@@ -8,12 +8,14 @@ uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls, ExtCtrls, LResources, EditBtn, Buttons, Contnrs,
   CEFuncProc, NewKernelHandler, symbolhandler, multilineinputqueryunit,
-  registry, resolve, fgl, math, PointerscanSettingsIPConnectionList;
+  registry, resolve, fgl, math, PointerscanSettingsIPConnectionList, types;
 
 
 type
   TPointerFileEntry=class(TCustomPanel)
   private
+    addresslist: TStringlist;
+
     fimagelist: Timagelist;
     ffilename: string;
     fOnDelete: TNotifyEvent;
@@ -21,7 +23,7 @@ type
     lblFilename: TLabel;
     btnSetFile: TSpeedButton;
     btnDelete: TSpeedButton;
-    edtAddress: TEdit;
+    cbAddress: TComboBox;
     procedure btnSetFileClick(Sender: TObject);
     procedure btnDeleteClick(Sender: TObject);
     procedure setFileName(filename: string);
@@ -104,6 +106,7 @@ type
     cbMustStartWithBase: TCheckBox;
     cbCompareToOtherPointermaps: TCheckBox;
     cbShowAdvancedOptions: TCheckBox;
+    cbAddress: TComboBox;
     edtDistributedPassword: TEdit;
     edtDistributedPort: TEdit;
     edtMaxOffsetsPerNode: TEdit;
@@ -118,7 +121,6 @@ type
     Label13: TLabel;
     lblNumberOfStackThreads: TLabel;
     lblPort: TLabel;
-    edtAddress: TEdit;
     lblStackSize: TLabel;
     odLoadPointermap: TOpenDialog;
     Panel3: TPanel;
@@ -141,6 +143,8 @@ type
     procedure Button1Click(Sender: TObject);
 
     procedure canNotReuse(Sender: TObject);
+    procedure cbAddressDrawItem(Control: TWinControl; Index: Integer;
+      ARect: TRect; State: TOwnerDrawState);
     procedure cbMustStartWithBaseChange(Sender: TObject);
     procedure cbConnectToNodeChange(Sender: TObject);
     procedure cbAllowRuntimeWorkersChange(Sender: TObject);
@@ -168,6 +172,8 @@ type
     edtBaseTo: TEdit;
     lblBaseFrom: TLabel;
     lblBaseTo: TLabel;
+
+    mainaddressList: TStringlist;
 
 
     procedure iplistResize(Sender: TObject);
@@ -217,7 +223,7 @@ var frmpointerscannersettings: tfrmpointerscannersettings;
 
 implementation
 
-uses frmMemoryAllocHandlerUnit, MemoryBrowserFormUnit, ProcessHandlerUnit;
+uses MainUnit, frmMemoryAllocHandlerUnit, MemoryBrowserFormUnit, ProcessHandlerUnit;
 
 
 
@@ -235,6 +241,27 @@ resourcestring
   strMaxOffsetsIsStupid = 'Sorry, but the max offsets should be 1 or higher, or else disable the checkbox'; //'Are you a fucking retard?';
   rsUseLoadedPointermap = 'Use saved pointermap';
 
+
+//helper
+procedure UpdateAddressList(combobox: TCombobox);
+var
+  i: integer;
+  maxwidth: integer;
+  list: tstringlist;
+begin
+  list:=tstringlist(combobox.tag);
+  combobox.Items.Clear;
+
+  maxwidth:=combobox.clientwidth-combobox.Left;
+
+  for i:=0 to list.count-1 do
+  begin
+    combobox.items.Add(list.Names[i]);
+    maxwidth:=max(maxwidth, combobox.Canvas.TextWidth(list[i]));
+  end;
+
+  SendMessage(combobox.Handle, CB_SETDROPPEDWIDTH, maxwidth+10, 0);
+end;
 
 
 
@@ -261,8 +288,8 @@ begin
 
   btnDelete:=TSpeedButton.Create(self);
   btnDelete.OnClick:=btnDeleteClick;
-  edtAddress:=TEdit.Create(self);
-  edtAddress.Enabled:=false;
+  cbAddress:=TComboBox.Create(self);
+  cbAddress.Enabled:=false;
 
   btnDelete.Parent:=self;
   btnDelete.AnchorSideRight.Side:=asrRight;
@@ -275,18 +302,22 @@ begin
   btnDelete.Glyph:=bm;
   bm.free;
 
-  edtAddress.parent:=self;
-  edtAddress.AnchorSideRight.Control:=btnDelete;
-  edtAddress.AnchorSideRight.side:=asrLeft;
-  edtAddress.clientwidth:=tcustomform(aowner).canvas.TextWidth('DDDDDDDDDDDD');
-  edtAddress.anchors:=[aktop, akright];
-  edtAddress.alignment:=tacenter;
+  cbAddress.parent:=self;
+  cbAddress.AnchorSideRight.Control:=btnDelete;
+  cbAddress.AnchorSideRight.side:=asrLeft;
+  cbAddress.clientwidth:=tcustomform(aowner).canvas.TextWidth('DDDDDDDDDDDD');
+  cbAddress.anchors:=[aktop, akright];
+  cbAddress.BorderSpacing.Right:=8;
+  cbAddress.style:=csOwnerDrawFixed;
 
-  edtAddress.BorderSpacing.Right:=8;
+  Addresslist:=tstringlist.create;
+  Addresslist.NameValueSeparator:='=';
+
+  cbAddress.Tag:=ptrint(Addresslist);
 
 
   btnsetfile.parent:=self;
-  btnSetFile.AnchorSideRight.control:=edtAddress;
+  btnSetFile.AnchorSideRight.control:=cbAddress;
   btnSetFile.AnchorSideRight.side:=asrLeft;
   btnSetFile.Anchors:=[aktop, akright];
   btnSetFile.BorderSpacing.Right:=8;
@@ -314,13 +345,16 @@ begin
   lblfilename.anchors:=[aktop, akleft, akright];
   lblFilename.Caption:='  <Select a file>';
 
-  height:=edtAddress.Height+2;
+  height:=cbAddress.Height+2;
 
 
 end;
 
 destructor TPointerFileEntry.destroy;
 begin
+  if addresslist<>nil then
+    addresslist.free;
+
   inherited destroy;
 end;
 
@@ -335,7 +369,7 @@ begin
   if od.execute then
   begin
     filename:=od.filename;
-    edtAddress.Enabled:=true;
+    cbAddress.Enabled:=true;
   end;
 
   od.free;
@@ -353,6 +387,11 @@ begin
   lblfilename.caption:=extractfilename(filename);
   lblfilename.Hint:=filename;
   lblfilename.ShowHint:=true;
+
+  if fileexists(filename+'.addresslist') then
+    tstrings(cbAddress.tag).LoadFromFile(filename+'.addresslist');
+
+  UpdateAddressList(cbAddress);
 
   if assigned(fonsetfilename) then
     fonSetFileName(self);
@@ -452,7 +491,7 @@ begin
   if filenames[index]<>'' then
   begin
     try
-      result:=StrToQWord('$'+entries[index].edtAddress.Text);
+      result:=StrToQWord('$'+entries[index].cbAddress.Text);
     except
       raise exception.create(filenames[index]+' has not been given a valid address');
     end;
@@ -494,7 +533,7 @@ begin
   e:=AddEntry;
 
   lblFilenames.Left:=e.lblFilename.Left;
-  lblAddress.left:=e.edtAddress.Left+(e.edtAddress.width div 2)-(lblAddress.width div 2);
+  lblAddress.left:=e.cbAddress.Left+(e.cbAddress.width div 2)-(lblAddress.width div 2);
 end;
 
 destructor TPointerFileList.destroy;
@@ -583,11 +622,11 @@ begin
 
 
   try
-    automaticaddress:=symhandler.getAddressFromName(edtAddress.text);
+    automaticaddress:=symhandler.getAddressFromName(cbAddress.text);
   except
     on e:exception do
     begin
-      MessageDlg('Invalid address ('+edtAddress.text+')', mtError, [mbok], 0);
+      MessageDlg('Invalid address ('+cbAddress.text+')', mtError, [mbok], 0);
       exit;
     end;
   end;
@@ -668,6 +707,15 @@ end;
 procedure TfrmPointerScannerSettings.canNotReuse(Sender: TObject);
 begin
   cbAcceptNonModuleVtable.enabled:=cbClassPointersOnly.checked;
+end;
+
+procedure TfrmPointerScannerSettings.cbAddressDrawItem(Control: TWinControl;
+  Index: Integer; ARect: TRect; State: TOwnerDrawState);
+var s: string;
+begin
+  cbAddress.Canvas.FillRect(ARect);
+  s:=mainaddressList.Strings[Index];
+  cbAddress.Canvas.TextOut(ARect.Left, ARect.Top, s);
 end;
 
 procedure TfrmPointerScannerSettings.cbMustStartWithBaseChange(Sender: TObject);
@@ -848,6 +896,13 @@ begin
     if odLoadPointermap.Execute then
     begin
       cbUseLoadedPointermap.Caption:=rsUseLoadedPointermap+':'+ExtractFileName(odLoadPointermap.FileName);
+
+      if fileexists(odLoadPointermap.FileName) then
+      begin
+        tstrings(cbAddress.tag).LoadFromFile(odLoadPointermap.FileName+'.addresslist');
+        UpdateAddressList(cbAddress);
+      end;
+
     end
     else
       cbUseLoadedPointermap.checked:=false;
@@ -858,6 +913,9 @@ begin
     cbUseLoadedPointermap.Caption:=rsUseLoadedPointermap;
 
   UpdateGuiBasedOnSavedPointerScanUsage;
+
+
+
 end;
 
 procedure TfrmPointerScannerSettings.PointerFileListEmpty(sender: TObject);
@@ -937,6 +995,9 @@ begin
     reg.free;
     freeandnil(iplist);
   end;
+
+  if mainaddressList<>nil then
+    freeandnil(mainaddressList);
 end;
 
 procedure TfrmPointerScannerSettings.cbStaticStacksChange(Sender: TObject);
@@ -955,7 +1016,6 @@ end;
 procedure TfrmPointerScannerSettings.FormShow(Sender: TObject);
 var
   cpucount: integer;
-
 begin
   cpucount:=GetCPUCount;
 
@@ -1023,6 +1083,17 @@ begin
 
   firstshow:=false;
 
+
+  if cbUseLoadedPointermap.checked then
+  begin
+    //get the addresslist from the scandata.addresslist file (if it exists)
+    if fileexists(odLoadPointermap.filename+'.addresslist') then
+      tstrings(cbAddress.tag).LoadFromFile(odLoadPointermap.filename+'.addresslist');
+  end
+  else
+    MainForm.addresslist.getAddressList(tstrings(cbAddress.tag));
+
+  UpdateAddressList(cbAddress);
 end;
 
 procedure TfrmPointerScannerSettings.FormCreate(Sender: TObject);
@@ -1101,6 +1172,11 @@ begin
   reg.free;
 
   firstshow:=true;
+
+  mainaddressList:=tstringlist.create;
+  mainaddresslist.NameValueSeparator:='=';
+
+  cbAddress.tag:=ptruint(mainaddressList);
 end;
 
 
@@ -1161,7 +1237,7 @@ begin
   frmMemoryAllocHandler:=TfrmMemoryAllocHandler.Create(memorybrowser);
   frmMemoryAllocHandler.WaitForInitializationToFinish;
 
-  edtAddressChange(edtAddress);
+  edtAddressChange(cbAddress);
 end;
 
 procedure TfrmPointerScannerSettings.Panel1Click(Sender: TObject);
@@ -1175,7 +1251,7 @@ begin
   gpm:=rbGeneratePointermap.checked;
 
   cbCompareToOtherPointermaps.enabled:=not gpm;
-  edtAddress.enabled:=not gpm;
+  cbAddress.enabled:=not gpm;
   cbValueType.enabled:=not gpm;
   cbStaticOnly.enabled:=not gpm;
   cbOnlyOneStatic.enabled:=not gpm;
@@ -1216,41 +1292,41 @@ begin
 
   if rbFindAddress.Checked then
   begin
-    edtAddress.visible:=true;
-    edtAddress.Width:=cbValueType.Left+cbValueType.Width-edtAddress.Left;
+    cbAddress.visible:=true;
+    cbAddress.Width:=cbValueType.Left+cbValueType.Width-cbAddress.Left;
     cbValueType.Visible:=false;
   end
   else
   if rbFindValue.checked then
   begin
-    edtAddress.visible:=true;
-    edtAddress.Width:=cbValueType.left-edtAddress.Left-3;
+    cbAddress.visible:=true;
+    cbAddress.Width:=cbValueType.left-cbAddress.Left-3;
     cbValueType.Visible:=true;
   end;
 
   if not gpm then
-    edtAddress.SetFocus;
+    cbAddress.SetFocus;
 end;
 
 procedure TfrmPointerScannerSettings.edtAddressChange(Sender: TObject);
 var haserror: boolean;
 begin
-  automaticaddress:=symhandler.getAddressFromName(edtAddress.text, false,haserror); //ignore error
+  automaticaddress:=symhandler.getAddressFromName(cbAddress.text, false,haserror); //ignore error
 
 
   if cbHeapOnly.Checked then
   begin
    if (frmMemoryAllocHandler.FindAddress(@frmMemoryAllocHandler.HeapBaselevel, automaticaddress)<>nil) then
-     edtAddress.Font.Color:=clGreen
+     cbAddress.Font.Color:=clGreen
    else
-     edtAddress.Font.Color:=clRed; //BAD
-  end else edtAddress.Font.Color:=clWindowText;
+     cbAddress.Font.Color:=clRed; //BAD
+  end else cbAddress.Font.Color:=clWindowText;
 
 end;
 
 procedure TfrmPointerScannerSettings.cbHeapOnlyClick(Sender: TObject);
 begin
-  edtAddressChange(edtAddress);
+  edtAddressChange(cbAddress);
 end;
 
 procedure TfrmPointerScannerSettings.UpdateGuiBasedOnSavedPointerScanUsage;

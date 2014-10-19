@@ -7512,7 +7512,7 @@ begin
       if frmpointerscannersettings = nil then //used over and over
         frmpointerscannersettings := tfrmpointerscannersettings.Create(self);
 
-      frmpointerscannersettings.edtAddress.Text := inttohex(address, 8);
+      frmpointerscannersettings.cbAddress.Text := inttohex(address, 8);
 
       if findpointeroffsets then
       begin

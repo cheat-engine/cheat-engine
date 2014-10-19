@@ -4390,7 +4390,6 @@ begin
 
     if generatePointermapOnly then
     begin
-
       f:=tfilestream.create(filename, fmCreate);
       cs:=Tcompressionstream.create(clfastest, f);
       pointerlisthandler.exportToStream(cs);
