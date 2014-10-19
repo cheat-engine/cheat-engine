@@ -1851,6 +1851,9 @@ begin
           if connectionlist[i].disconnected then
             s:=s+' (Disconnected)'
           else
+          if connectionlist[i].queued then
+            s:=s+' (Queued: '+inttostr(connectionlist[i].queuepos)+'/'+inttostr(connectionlist[i].queuesize)+')'
+          else
           begin
             if connectionlist[i].isidle=false then
               s:=s+' (Active)'

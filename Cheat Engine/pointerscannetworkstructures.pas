@@ -25,6 +25,10 @@ type
     parentconnectedto: boolean; //true if the parent connected to the child
     ip: string;
     port: word;
+    queued: boolean;
+    queuesize: integer;
+    queuepos: integer;
+
     isidle: boolean;
     disconnected: boolean;
     pathsevaluated: qword;
