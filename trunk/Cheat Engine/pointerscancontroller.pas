@@ -3860,9 +3860,9 @@ begin
     for i:=0 to files-1 do
     begin
       if i=0 then
-        ReadDword
+        ReadQword
       else
-        instantrescanfiles[i-1].address:=ReadDWord;
+        instantrescanfiles[i-1].address:=ReadQWord;
 
       streamsize:=ReadQWord;
 
@@ -4017,20 +4017,22 @@ begin
   buf:=TMemoryStream.Create;
   try
     buf.CopyFrom(parent.socket, getPathQueueElementSize*count);
-    parent.socket.WriteByte(0); //acknowledge that the paths have been received
-    parent.socket.flushWrites;
+
 
     buf.position:=0;
     for i:=0 to count-1 do
       LoadPathQueueElementFromStream(buf, @paths[i]);
 
     //still here so I guess it's ok
-    appendDynamicPathQueueToOverflowQueue(paths);
-
 
   finally
     buf.free;
   end;
+
+  appendDynamicPathQueueToOverflowQueue(paths);
+
+  parent.socket.WriteByte(0); //acknowledge that the paths have been received and handled properly
+  parent.socket.flushWrites;
 
 
 end;
