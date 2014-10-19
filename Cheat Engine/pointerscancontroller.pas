@@ -723,7 +723,11 @@ begin
         for i:=0 to length(f)-1 do
         begin
           //send a header
-          s.WriteDWord(ifthen(i=0,0,instantrescanfiles[i-1].address));  //not important for the main  (automaticaddress)
+          if i>0 then
+            s.WriteQword(instantrescanfiles[i-1].address);
+          else
+            s.WriteQWord(0);  //not important for the main  (automaticaddress)
+
           s.WriteQWord(f[i].Size);
 
           //and now send the file (in 64KB blocks)
@@ -3596,6 +3600,7 @@ begin
       child^.nontrustedlastpaths:=paths;
 
     child^.idle:=false; //not idle anymore
+    inc(child^.pathqueuesize, length(paths));
   except
     //add these paths to the overflow queue
     appendDynamicPathQueueToOverflowQueue(paths);
