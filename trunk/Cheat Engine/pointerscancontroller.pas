@@ -3335,7 +3335,7 @@ begin
     command:=s.ReadByte;
     case command of
       PSCMD_HELLO: raise exception.create('HELLO after initializtion');
-      PSCMD_YOURINTHEQUEUE: HandleQueueMessage(index);
+      PSCMD_YOUREINTHEQUEUE: HandleQueueMessage(index);
       PSCMD_UPDATESTATUS: HandleUpdateStatusMessage(index);
       PSCMD_AMITRUSTED: s.WriteByte(ifthen(childnodes[index].trusted,1,0));
       PSCMD_SENDPATHS: HandleSendPathsMessage(index);
@@ -4185,7 +4185,7 @@ begin
       try
         with parentqueue[i].socket do
         begin
-          WriteByte(PSCMD_YOURINTHEQUEUE);
+          WriteByte(PSCMD_YOUREINTHEQUEUE);
           WriteDWord(i); //position
           WriteDWord(length(parentqueue));
           flushWrites;
