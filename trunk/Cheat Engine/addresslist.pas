@@ -98,6 +98,7 @@ type
     procedure SymbolsLoaded(sender: TObject);
   public
     //needsToReinterpret: boolean;
+    procedure getAddressList(list: Tstrings);
 
     function focused:boolean; override;
 
@@ -144,6 +145,7 @@ type
 
     property OnDropByListview: TDropByListviewEvent read FOnDropByListview write FOnDropByListview;
     property OnAutoAssemblerEdit: TAutoAssemblerEditEvent read fOnAutoAssemblerEdit write fOnAutoAssemblerEdit;
+
 
 
     property headers: THeaderControl read header;
@@ -1843,6 +1845,20 @@ function TAddresslist.focused: boolean;
 begin
   result:=inherited focused;
   if not result then result:=treeview.Focused;
+end;
+
+procedure TAddresslist.getAddressList(list: Tstrings);
+{
+Gets the addresslist in lines formatted :  address=description
+main usage: pointerscan and scandata.addresslist files
+}
+var i: integer;
+begin
+  for i:=0 to Count-1 do
+  begin
+    if MemRecItems[i].AddressString<>'' then
+      list.add(MemRecItems[i].AddressString+'='+MemRecItems[i].Description);
+  end;
 end;
 
 constructor TAddresslist.Create(AOwner: TComponent);

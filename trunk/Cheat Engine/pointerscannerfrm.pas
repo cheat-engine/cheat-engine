@@ -891,6 +891,8 @@ var
   lb: TLabel;
 
   pfn: string;
+
+  al: TStringlist;
 begin
   FloatSettings:=DefaultFormatSettings;
 
@@ -958,6 +960,13 @@ begin
       staticscanner.initializer:=true;
       staticscanner.filename:=utf8toansi(fileName);
       staticscanner.generatePointermapOnly:=frmpointerscannersettings.rbGeneratePointermap.checked;
+      if staticscanner.generatePointermapOnly then
+      begin
+        al:=tstringlist.create;
+        MainForm.addresslist.getAddressList(al);
+        al.SaveToFile(filename+'.addresslist');
+        al.free;
+      end;
 
       staticscanner.compressedptr:=frmpointerscannersettings.cbCompressedPointerscanFile.checked;
 
@@ -1086,31 +1095,31 @@ begin
       if staticscanner.findValueInsteadOfAddress then
       begin
         //if values, check what type of value
-        floataccuracy:=pos(FloatSettings.DecimalSeparator,frmpointerscannersettings.edtAddress.Text);
+        floataccuracy:=pos(FloatSettings.DecimalSeparator,frmpointerscannersettings.cbAddress.Text);
         if floataccuracy>0 then
-          floataccuracy:=length(frmpointerscannersettings.edtAddress.Text)-floataccuracy;
+          floataccuracy:=length(frmpointerscannersettings.cbAddress.Text)-floataccuracy;
 
         case frmpointerscannersettings.cbValueType.ItemIndex of
           0:
           begin
             staticscanner.valuetype:=vtDword;
-            val(frmpointerscannersettings.edtAddress.Text, staticscanner.valuescandword, i);
-            if i>0 then raise exception.Create(Format(rsIsNotAValid4ByteValue, [frmpointerscannersettings.edtAddress.Text]));
+            val(frmpointerscannersettings.cbAddress.Text, staticscanner.valuescandword, i);
+            if i>0 then raise exception.Create(Format(rsIsNotAValid4ByteValue, [frmpointerscannersettings.cbAddress.Text]));
           end;
 
           1:
           begin
             staticscanner.valuetype:=vtSingle;
-            val(frmpointerscannersettings.edtAddress.Text, staticscanner.valuescansingle, i);
-            if i>0 then raise exception.Create(Format(rsIsNotAValidFloatingPointValue, [frmpointerscannersettings.edtAddress.Text]));
+            val(frmpointerscannersettings.cbAddress.Text, staticscanner.valuescansingle, i);
+            if i>0 then raise exception.Create(Format(rsIsNotAValidFloatingPointValue, [frmpointerscannersettings.cbAddress.Text]));
             staticscanner.valuescansingleMax:=staticscanner.valuescansingle+(1/(power(10,floataccuracy)));
           end;
 
           2:
           begin
             staticscanner.valuetype:=vtDouble;
-            val(frmpointerscannersettings.edtAddress.Text, staticscanner.valuescandouble, i);
-            if i>0 then raise exception.Create(Format(rsIsNotAValidDoubleValue, [frmpointerscannersettings.edtAddress.Text]));
+            val(frmpointerscannersettings.cbAddress.Text, staticscanner.valuescandouble, i);
+            if i>0 then raise exception.Create(Format(rsIsNotAValidDoubleValue, [frmpointerscannersettings.cbAddress.Text]));
             staticscanner.valuescandoubleMax:=staticscanner.valuescandouble+(1/(power(10,floataccuracy)));            
           end;
         end;
@@ -3824,7 +3833,7 @@ begin
   if frmpointerscannersettings=nil then
     frmpointerscannersettings:=tfrmpointerscannersettings.create(application);
 
-  frmpointerscannersettings.edtAddress.text:=inttohex(message.WParam,8);
+  frmpointerscannersettings.cbAddress.text:=inttohex(message.WParam,8);
   Method3Fastspeedandaveragememoryusage1.Click;
 end;
 
