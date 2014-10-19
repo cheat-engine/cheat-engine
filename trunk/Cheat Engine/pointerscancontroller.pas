@@ -724,7 +724,7 @@ begin
         begin
           //send a header
           if i>0 then
-            s.WriteQword(instantrescanfiles[i-1].address);
+            s.WriteQword(instantrescanfiles[i-1].address)
           else
             s.WriteQWord(0);  //not important for the main  (automaticaddress)
 
