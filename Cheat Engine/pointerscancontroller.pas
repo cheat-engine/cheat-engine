@@ -3684,7 +3684,7 @@ begin
 
       if child^.nontrustedlastpathstime>0 then
       begin
-        if (gettickcount64-child^.nontrustedlastpathstime)>1000*60*5 then
+        if (gettickcount64-child^.nontrustedlastpathstime)<1000*60*5 then
         begin
           //it went idle within 5 minutes, trust it a bit more
           inc(child^.trustlevel)
