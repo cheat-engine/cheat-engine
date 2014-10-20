@@ -505,6 +505,7 @@ begin
   try
     if ms<>nil then
     begin
+      ms.position:=0;
       try
         if fcontroller.initializer then
         begin
@@ -535,8 +536,9 @@ begin
               fcontroller.childnodescs.Leave;
             end;
 
+
             if resultstream<>nil then
-              resultstream.CopyFrom(ds, decompressedStreamSize);
+              resultstream.CopyFrom(ds, 0);
 
 
           finally
@@ -547,7 +549,7 @@ begin
         begin
           while fcontroller.UploadResults(decompressedStreamSize, ms)=false do
           begin
-            sleep(250);
+            sleep(10+random(500));
             if terminated then exit;
           end;
         end;
@@ -2919,7 +2921,7 @@ begin
           parent.socket.CopyFrom(s,s.size);
           parent.socket.flushWrites;
 
-          if parent.socket.ReadByte=0 then raise exception.create('Invalid reply from PSCMD_UPLOADRESULTS');
+          if parent.socket.ReadByte<>0 then raise exception.create('Invalid reply from PSCMD_UPLOADRESULTS');
 
         end; //nope, try again later
       except
