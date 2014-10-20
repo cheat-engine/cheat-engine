@@ -4941,6 +4941,7 @@ var
   j: integer;
   NewAffinity: DWORD_PTR;
   scanfileid: integer;
+  downloadtime: qword;
 begin
   if initializer then
   begin
@@ -4959,7 +4960,12 @@ begin
   begin
     scanner:=TPointerscanWorkerNetwork.Create(true);
     TPointerscanWorkerNetwork(scanner).OnFlushResults:=UploadResults;
-    TPointerscanWorkerNetwork(scanner).FlushSize:=downloadingscandata_total div ((downloadingscandata_stoptime-downloadingscandata_starttime) div 1000) * 5; //just an arbitrary value, it doesn't mean much.
+
+    if downloadingscandata_stoptime<>downloadingscandata_starttime then
+      TPointerscanWorkerNetwork(scanner).FlushSize:=floor((downloadingscandata_total / ((downloadingscandata_stoptime-downloadingscandata_starttime)/1000)) * 5); //just an arbitrary value, it doesn't mean much.
+
+    //else just use the default size
+
   end;
 
   scanner.OnException:=workerexception;
