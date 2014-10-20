@@ -4037,6 +4037,10 @@ begin
   InitializeCompressedPtrVariables;
   InitializeEmptyPathQueue;
 
+  if assigned(fOnStartScan) then
+    synchronize(NotifyStartScan);
+
+
   //spawn the threads:
   localscannersCS.enter;
   try

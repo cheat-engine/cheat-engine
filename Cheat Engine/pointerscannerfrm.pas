@@ -1210,6 +1210,9 @@ begin
 
     //create a new pointerscanner that acts as a node
     staticscanner:=TPointerscanController.create(true);
+
+    staticscanner.OnStartScan:=PointerscanStart;
+
     staticscanner.initializer:=false;
     staticscanner.threadcount:=f.threadcount;
     staticscanner.priority:=f.priority;
