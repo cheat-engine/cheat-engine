@@ -381,6 +381,7 @@ type
     procedure getThreadStatuses(s: TStrings);
     function getTotalTimeWriting: qword;
     function getTotalPathsEvaluated: qword;
+    function getLocalPathsEvaluated: qword;
     function getTotalResultsFound: qword;
     function getTotalPathQueueSize: integer;
     function getPointerlistHandlerCount: qword;
@@ -397,6 +398,7 @@ type
 
     property starttime: Qword read fstarttime;
     property totalpathsevaluated: qword read getTotalPathsEvaluated;
+    property localpathsevaluated: qword read getLocalPathsEvaluated;
     property OnScanDone: TPointerscanDoneEvent read fOnScanDone write fOnScanDone;
     property OnStartScan: TNotifyEvent read fOnStartScan write fOnStartScan;
   end;
@@ -1156,11 +1158,10 @@ begin
   end;
 end;
 
-function TPointerscanController.getTotalPathsEvaluated: qword;
+function TPointerscanController.getLocalPathsEvaluated: qword;
 var i: integer;
 begin
-  result:=getTotalPathsEvaluatedbyChildren;
-
+  result:=0;
   localscannersCS.enter;
   try
     for i:=0 to length(localscanners)-1 do
@@ -1168,6 +1169,11 @@ begin
   finally
     localscannersCS.leave;
   end;
+end;
+
+function TPointerscanController.getTotalPathsEvaluated: qword;
+begin
+  result:=getTotalPathsEvaluatedbyChildren+getLocalPathsEvaluated
 end;
 
 function TPointerscanController.getTotalPathQueueSize: integer;

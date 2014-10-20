@@ -272,8 +272,12 @@ type
         node: TTreenode; //+ statistics
         stats: record
           totalTimeScanning: TTreenode;
+
+          localPathsEvaluated: TTreenode;
+          localPathsPerSecond: TTreenode;
+
           totalPathsEvaluated: TTreenode;
-          calculatedPathsPerSecond: TTreenode;
+          totalPathsPerSecond: TTreenode;
 
           pointersInMap: TTreenode;
           pathQueue: TTreenode;
@@ -1622,7 +1626,9 @@ var i,j: integer;
     statistics: record
       totalTimeScanning: qword;
       totalPathsEvaluated: QWord;
-      pathspersecond: double;
+      totalpathspersecond: double;
+      localPathsEvaluated: Qword;
+      localpathspersecond: double;
       pointersinmap: qword;
       pathqueuesize: integer;
       pathqueueoverflow: dword;
@@ -1644,10 +1650,11 @@ begin
 
   try
     //collect data and then update the treeview
+    zeromemory(@statistics, sizeof(statistics));
 
     statistics.totalTimeScanning:=0;
-    statistics.totalPathsEvaluated:=0;
-    statistics.pathspersecond:=0;
+    statistics.localPathsEvaluated:=0;
+    statistics.localpathspersecond:=0;
 
     if staticscanner<>nil then
     begin
@@ -1655,8 +1662,13 @@ begin
         statistics.totalTimeScanning:=GetTickCount64-staticscanner.starttime;
 
       statistics.totalPathsEvaluated:=staticscanner.totalpathsevaluated;
+      statistics.localPathsEvaluated:=staticscanner.localpathsevaluated;
+
       if statistics.totalTimeScanning>0 then
-        statistics.pathspersecond:=(statistics.totalPathsEvaluated / statistics.totalTimeScanning)*1000; //paths / second
+      begin
+        statistics.totalpathspersecond:=(statistics.totalPathsEvaluated / statistics.totalTimeScanning)*1000; //paths / second
+        statistics.localPathsPersecond:=(statistics.localPathsEvaluated / statistics.totalTimeScanning)*1000; //paths / second
+      end;
 
       statistics.pointersinmap:=staticscanner.getPointerlistHandlerCount;
       statistics.pathqueuesize:=staticscanner.pathqueuelength;
@@ -1703,8 +1715,14 @@ begin
 
         pointersInMap:=tvInfo.Items.AddChild(infonodes.statistics.node,'');
         totalTimeScanning:=tvInfo.Items.AddChild(infonodes.statistics.node,'');
+
+        localPathsEvaluated:=tvInfo.Items.AddChild(infonodes.statistics.node,'');
+        localPathsPerSecond:=tvInfo.Items.AddChild(infonodes.statistics.node,'');
+
+
         totalPathsEvaluated:=tvInfo.Items.AddChild(infonodes.statistics.node,'');
-        calculatedPathsPerSecond:=tvInfo.Items.AddChild(infonodes.statistics.node,'');
+        totalPathsPerSecond:=tvInfo.Items.AddChild(infonodes.statistics.node,'');
+
 
         pathQueue:=tvInfo.Items.AddChild(infonodes.statistics.node,'');
         resultsFound:=tvInfo.Items.AddChild(infonodes.statistics.node,'');
@@ -1720,8 +1738,25 @@ begin
 
       pointersInMap.Text:='Unique pointervalues in target:'+IntToStr(statistics.pointersinmap);
       totalTimeScanning.Text:='Scan duration: '+TimeToStr(TimeStampToDateTime(MSecsToTimeStamp(statistics.totalTimeScanning)));
+      localPathsEvaluated.Text:='Paths evaluated: '+IntToStr(statistics.localPathsEvaluated);
+      localPathsPerSecond.Text:=format('Paths / seconds: (%.0n / s)', [statistics.localpathspersecond]);
+
       totalPathsEvaluated.Text:='Paths evaluated: '+IntToStr(statistics.totalPathsEvaluated);
-      calculatedPathsPerSecond.Text:=format('Paths / seconds: (%.0n / s)', [statistics.pathspersecond]);
+      totalPathsPerSecond.Text:=format('Paths / seconds: (%.0n / s)', [statistics.totalpathspersecond]);
+
+
+      if staticscanner.hasNetworkResponsibility then
+      begin
+        totalPathsEvaluated.visible:=true;
+        totalPathsPerSecond.visible:=true;
+      end
+      else
+      begin
+        totalPathsEvaluated.visible:=false;
+        totalPathsPerSecond.visible:=false;
+      end;
+
+
       pathQueue.Text:='Static queue size: '+inttostr(statistics.pathqueuesize)+' Dynamic queue size:'+inttostr(statistics.pathqueueoverflow);
       resultsFound.Text:='Results found: '+inttostr(statistics.resultsfound);
       timeSpentWriting.Text:='Time spent writing: '+inttostr(statistics.timeSpentWriting)+format(' (%.2f %%)', [statistics.percentageTimeSpentWriting]) ;
