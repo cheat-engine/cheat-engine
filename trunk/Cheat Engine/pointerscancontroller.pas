@@ -479,6 +479,7 @@ begin
 
     //tell the child it was received
     s.WriteByte(0);
+    s.flushWrites;
   except
     on e:exception do
     begin
