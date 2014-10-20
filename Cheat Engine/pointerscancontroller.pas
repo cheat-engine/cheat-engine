@@ -121,6 +121,7 @@ type
     fTotalPathsEvaluatedByErasedChildren: qword; //when a child entry is deleted, add it's total paths evaluated value to this
 
 
+    procedure InitializeCompressedPtrVariables;
     procedure InitializeEmptyPathQueue; //initializes the arrays inside the pathqueue
 
 
@@ -439,14 +440,14 @@ var
 
   resultstream: Tfilestream;
   i: integer;
-  compressedEntrySize: integer;
+  EntrySize: integer;
 begin
   //first get the socketstream
 
   if fcontroller.compressedptr then
   begin
-    EntrySize:=32+fcontroller.MaxBitCountModuleIndex+fcontroller.MaxBitCountLevel+fcontroller.MaxBitCountOffset*(fcontroller.maxlevel-length(mustendwithoffsetlist));
-    EntrySize:=(compressedEntrySize+7) div 8;
+    EntrySize:=32+fcontroller.MaxBitCountModuleIndex+fcontroller.MaxBitCountLevel+fcontroller.MaxBitCountOffset*(fcontroller.maxlevel-length(fcontroller.mustendwithoffsetlist));
+    EntrySize:=(EntrySize+7) div 8;
   end
   else
     EntrySize:=sizeof(dword)+sizeof(integer)+sizeof(integer)+fcontroller.maxlevel*sizeof(dword);
@@ -3221,6 +3222,14 @@ begin
             childnodes[i].scanresultDownloader.Free;
           end;
 
+          if childnodes[i].trusted=false then
+          begin
+            //take back the path(s) I last sent it when it was idle
+            appendDynamicPathQueueToOverflowQueue(childnodes[i].nontrustedlastpaths);
+            setlength(childnodes[i].nontrustedlastpaths,0);
+          end;
+
+
           for j:=i to length(childnodes)-2 do
             childnodes[j]:=childnodes[j+1];
 
@@ -3787,6 +3796,25 @@ end;
 
 //parent->child
 
+procedure TPointerscanController.InitializeCompressedPtrVariables;
+begin
+  if compressedptr then
+  begin
+    //calculate the masks for compression
+    //moduleid can be negative, so keep that in mind
+    if resumescan then
+      MaxBitCountModuleIndex:=getMaxBitCount(resumeptrfilereader.modulelistCount-1, true)
+    else
+      MaxBitCountModuleIndex:=getMaxBitCount(pointerlisthandler.modulelist.Count-1, true);
+
+    MaxBitCountLevel:=getMaxBitCount(maxlevel-length(mustendwithoffsetlist) , false); //counted from 1.  (if level=4 then value goes from 1,2,3,4) 0 means no offsets. This can happen in case of a pointerscan with specific end offsets, which do not get saved.
+    MaxBitCountOffset:=getMaxBitCount(sz, false);
+
+    if unalligned=false then MaxBitCountOffset:=MaxBitCountOffset - 2;
+  end;
+
+end;
+
 procedure TPointerscanController.InitializeEmptyPathQueue;
 var i: integer;
 begin
@@ -4027,6 +4055,7 @@ begin
 
   currentscanhasended:=false;
 
+  InitializeCompressedPtrVariables;
   InitializeEmptyPathQueue;
 
   //spawn the threads:
@@ -4502,28 +4531,15 @@ begin
     i:=0;
 
 
-    if compressedptr then
-    begin
-      //calculate the masks for compression
-      //moduleid can be negative, so keep that in mind
-      if resumescan then
-        MaxBitCountModuleIndex:=getMaxBitCount(resumeptrfilereader.modulelistCount-1, true)
-      else
-        MaxBitCountModuleIndex:=getMaxBitCount(pointerlisthandler.modulelist.Count-1, true);
-
-      MaxBitCountLevel:=getMaxBitCount(maxlevel-length(mustendwithoffsetlist) , false); //counted from 1.  (if level=4 then value goes from 1,2,3,4) 0 means no offsets. This can happen in case of a pointerscan with specific end offsets, which do not get saved.
-      MaxBitCountOffset:=getMaxBitCount(sz, false);
-
-      if unalligned=false then MaxBitCountOffset:=MaxBitCountOffset - 2;
-    end;
-
-
+    InitializeCompressedPtrVariables;
 
     //setup the pathqueue
     InitializeEmptyPathQueue;
 
     reverseScanCS:=tcriticalsection.Create;
     try
+
+      setlength(PreferedProcessorList,0);
 
       //build a list of cpu id's
       PA:=0;
@@ -5217,7 +5233,7 @@ constructor TPointerscanController.create(suspended: boolean);
 begin
   pointersize:=processhandler.pointersize;
 
-  listensocket:=-1;
+  listensocket:=INVALID_SOCKET;
   parent.socket:=nil;
 
   parentcs:=tcriticalsection.create;
