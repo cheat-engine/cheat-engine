@@ -439,8 +439,18 @@ var
 
   resultstream: Tfilestream;
   i: integer;
+  compressedEntrySize: integer;
 begin
   //first get the socketstream
+
+  if fcontroller.compressedptr then
+  begin
+    EntrySize:=32+fcontroller.MaxBitCountModuleIndex+fcontroller.MaxBitCountLevel+fcontroller.MaxBitCountOffset*(fcontroller.maxlevel-length(mustendwithoffsetlist));
+    EntrySize:=(compressedEntrySize+7) div 8;
+  end
+  else
+    EntrySize:=sizeof(dword)+sizeof(integer)+sizeof(integer)+fcontroller.maxlevel*sizeof(dword);
+
   s:=nil;
   ms:=nil;
   ds:=nil;
@@ -528,6 +538,9 @@ begin
                     resultstream:=TFileStream.Create(fcontroller.filename+'.child'+inttostr(fChildID), fmCreate);
                     fcontroller.childnodes[i].resultstream:=resultstream;
                   end;
+
+                  inc(fcontroller.childnodes[i].resultsfound, decompressedStreamSize div EntrySize);
+
                   break;
                 end;
               end;
