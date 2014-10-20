@@ -1234,9 +1234,14 @@ end;
 
 
 procedure TPointerscanController.appendDynamicPathQueueToOverflowQueue(paths: TDynPathQueue);
+{
+Add the paths in this array to the and of the overflow queue, and then add them to the main queue if there is room
+}
 var oldstart: integer;
   i: integer;
 begin
+  wasidle:=false; //small speedup to let children tell the parent they are idle
+
   overflowqueuecs.Enter;
   try
     oldstart:=length(overflowqueue);
@@ -3092,9 +3097,15 @@ begin
   begin
     idle:=isIdle;
     if idle and (wasidle=false) then
+    begin
+      wasidle:=idle;
       parentUpdater.TriggerNow; //tell the parent I recently became idle
+    end
+    else
+      wasidle:=idle;
 
-    wasidle:=idle;
+
+
   end;
 
 
@@ -4099,7 +4110,6 @@ begin
       LoadPathQueueElementFromStream(buf, @paths[i]);
 
     //still here so I guess it's ok
-
   finally
     buf.free;
   end;
