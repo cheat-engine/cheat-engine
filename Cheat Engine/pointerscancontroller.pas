@@ -120,6 +120,7 @@ type
     fTotalResultsReceived: qword; //updated when a child sends it results
     fTotalPathsEvaluatedByErasedChildren: qword; //when a child entry is deleted, add it's total paths evaluated value to this
 
+    wasidle: boolean; //state of isIdle since last call to waitForAndHandleNetworkEvent
 
     procedure InitializeCompressedPtrVariables;
     procedure InitializeEmptyPathQueue; //initializes the arrays inside the pathqueue
@@ -170,7 +171,7 @@ type
     procedure SayHello(potentialparent: PPointerscanControllerParent);
 
 
-    procedure cleanupScan;
+    //procedure cleanupScan;
 
     procedure HandleUpdateStatusReply_DoNewScan;
     procedure HandleUpdateStatusReply_GiveMeYourPaths;
@@ -179,7 +180,9 @@ type
     procedure HandleUpdateStatusReply_EverythingOK;
     procedure HandleUpdateStatusReply;
 
+    procedure UpdateStatus_cleanupScan;
     procedure UpdateStatus(sender: tobject); //sends the current status to the parent
+
     procedure HandleQueueMessage(index: integer);
     procedure HandleCanUploadResultsMessage(index: integer);
     procedure HandleUploadResultsMessage(index: integer);
@@ -309,7 +312,6 @@ type
     MaxBitCountLevel: dword;
     MaxBitCountOffset: dword;
 
-    isdone: boolean;
     staticonly: boolean; //for reverse
 
     hasError: boolean;
@@ -374,6 +376,7 @@ type
     function hasNetworkResponsibility: boolean;
 
     function isIdle: boolean;
+    function isDone: boolean;
     procedure getMinAndMaxPath(var minpath: TDynDwordArray; var maxpath: TDynDwordArray);
     procedure getThreadStatuses(s: TStrings);
     function getTotalTimeWriting: qword;
@@ -672,10 +675,10 @@ begin
   end;
 
   if s=nil then exit; //
-
-  if self.terminated then exit;
-
   try
+    if self.terminated then raise exception.create('The upload was terminated');
+
+
     s.WriteByte(PSUPDATEREPLYCMD_DONEWSCAN);
     s.WriteDWord(fchildid);  //tell it the childid (it's new scannerid)
 
@@ -708,7 +711,7 @@ begin
 
       s.flushWrites;
 
-      if self.terminated then exit;
+      if self.terminated then raise exception.create('The scan was terminated');
 
 
       setlength(f, length(instantrescanfiles)+1);
@@ -764,7 +767,7 @@ begin
             s.flushWrites;
             UpdateChildProgress(sent, totalsize);
 
-            if self.terminated then exit;
+            if self.terminated then raise exception.create('The scan was terminated');
           end;
 
         end;
@@ -824,6 +827,11 @@ end;
 
 
 //-------
+
+function TPointerscanController.isDone: boolean;
+begin
+  result:=isidle and (getTotalThreadCount=0);
+end;
 
 function TPointerscanController.isIdle: boolean;
 var
@@ -2721,7 +2729,7 @@ begin
           if (pathqueuelength=0) or terminated then
           begin //still 0
 
-            alldone:=isIdle;
+            alldone:=isdone;
 
 
             localscannersCS.Enter;
@@ -2737,14 +2745,14 @@ begin
 
                 for j:=0 to length(localscanners)-1 do localscanners[j].terminate; //even though the reversescanner already should have done this, let's do it myself as well
 
-                alldone:=true;
+
                 break;
               end;
 
               if not (localscanners[i].hasTerminated or localscanners[i].isdone) then //isdone might be enabled
               begin
-                if terminated then
-                  OutputDebugString('Worker '+inttostr(i)+' is still active. Waiting till it dies...');
+                //if terminated then
+                //  OutputDebugString('Worker '+inttostr(i)+' is still active. Waiting till it dies...');
 
                 alldone:=false;
                 break;
@@ -2789,7 +2797,6 @@ begin
 
     end;
 
-    isdone:=true;
 
 
     //all threads are done
@@ -2922,7 +2929,13 @@ begin
   begin
     try
       //todo: test me
-      if parent.socket=nil then exit; //return to the caller (failure)
+      if parent.socket=nil then
+      begin
+        if orphanedSince=0 then //give up sending these results, we have abandoned the parent
+          result:=true;
+
+        exit; //return to the caller (failure)
+      end;
       if parent.scanid<>currentscanid then exit; //the parent will probably tell the child to kill it's current scan (first a cleanup that will remove this caller)
       if currentscanhasended and (savestate=false) then exit;
 
@@ -3069,9 +3082,19 @@ var
   timeout: TTimeVal;
 
   checkedallsockets: boolean;
+
+  idle: boolean;
 begin
   //listen to the listensocket if available and for the children
   EatFromOverflowQueueIfNeeded;
+
+  idle:=isIdle;
+  if idle and (wasidle=false) then
+    parentUpdater.TriggerNow; //tell the parent I recently became idle
+
+  wasidle:=idle;
+
+
 
   if (listensocket=INVALID_SOCKET) and (length(childnodes)=0) then
   begin
@@ -3277,8 +3300,7 @@ begin
 
   if currentscanhasended then
   begin
-    cleanupScan;
-    orphanedSince:=0;
+    orphanedSince:=0; //we won't miss this one
   end
   else
     orphanedSince:=GetTickCount64;
@@ -3690,6 +3712,12 @@ begin
   child^.totalpathqueuesize:=updatemsg.totalpathQueueCount;
   child^.queuesize:=updatemsg.queuesize;
 
+  if isidle then //no more pathqueues and all scanners and children's scanners are waiting for new paths
+    currentscanhasended:=true;
+
+
+
+
   //now reply
   if currentscanhasended or ((not child^.idle) and (updatemsg.currentscanid<>currentscanid)) then //scan terminated , or
   begin
@@ -3841,65 +3869,6 @@ begin
 
 end;
 
-procedure TPointerscanController.cleanupScan;
-//called by the controller when the parent tells it to cleanup or do a new scan. (the cleanup should have been done first though)
-var i: integer;
-begin
-  localscannersCS.Enter;
-
-  if length(localscanners)>0 then //close them
-  begin
-    for i:=0 to length(localscanners)-1 do
-    begin
-      localscanners[i].savestate:=savestate;
-      localscanners[i].Terminate;
-    end;
-
-    pathqueueCS.enter;
-    pathqueuelength:=0;
-    ReleaseSemaphore(pathqueueSemaphore, MAXQUEUESIZE, nil);
-    pathqueueCS.leave;
-
-    for i:=0 to length(localscanners)-1 do
-    begin
-      localscanners[i].WaitFor;
-      localscanners[i].Free;
-    end;
-
-    setlength(localscanners,0);
-
-    //refresh this just to be sure:
-    closeHandle(pathqueueSemaphore);
-    pathqueueSemaphore:=CreateSemaphore(nil, 0, MAXQUEUESIZE, nil);
-
-    if pointerlisthandler<>nil then
-      freeAndNil(pointerlisthandler);
-
-    if (not initializer) and allowtempfiles then
-      deletefile(LoadedPointermapFilename);
-
-    for i:=0 to Length(instantrescanfiles)-1 do
-    begin
-      if instantrescanfiles[i].plist<>nil then
-        freeandnil(instantrescanfiles[i].plist);
-
-      if instantrescanfiles[i].memoryfilestream<>nil then
-        freeandnil(instantrescanfiles[i].memoryfilestream);
-
-      if (not initializer) and allowtempfiles then
-        deletefile(instantrescanfiles[i].filename);
-    end;
-  end;
-  localscannerscs.Leave;
-
-  overflowqueuecs.enter;
-  try
-    setlength(overflowqueue,0);
-  finally
-    overflowqueuecs.leave;
-  end;
-end;
-
 procedure TPointerscanController.HandleUpdateStatusReply_DoNewScan;
 {
 the parent is going to tell me information about the scan
@@ -3917,10 +3886,10 @@ var
 
 begin
   //todo: test me
-  if not isIdle then
-    raise exception.Create('New scan started while not idle');
+  if not isDone then
+    raise exception.Create('New scan started while not done');
 
-  cleanupscan;
+  UpdateStatus_cleanupScan;
 
 
   with parent.socket do
@@ -4144,6 +4113,7 @@ procedure TPointerscanController.HandleUpdateStatusReply_CurrentScanHasEnded;
 {
 The scan has finished (or terminated)
 }
+var i: integer;
 begin
   //todo: test me
 
@@ -4151,15 +4121,10 @@ begin
 
   //stop all the children and wait for them to end the scan (10-20 seconds)
   savestate:=parent.socket.ReadByte=1; //if this is true and currentscanhasended as well, the children will end the scan, but will also send their current paths
-  currentscanhasended:=true;  //tell the children that the scan has ended for as long as this is true
-
-
-
+  currentscanhasended:=true;  //tell the children that the scan has ended for as long as this is true (when this function returns UpdateStatus will go tell the local scanners to terminate)
 
   parent.socket.WriteByte(0); //understood
   parent.socket.flushWrites;
-
-  cleanupscan;
 end;
 
 procedure TPointerscanController.HandleUpdateStatusReply_EverythingOK;
@@ -4187,6 +4152,43 @@ begin
   end;
 end;
 
+procedure TPointerscanController.UpdateStatus_cleanupScan;
+{
+Called by Updatestatus or a subfunction of it
+It will free the used memory before a new scan can start
+Usually called by the idle cleanup of UpdateStatus or by DoNewScan
+}
+var i: integer;
+begin
+  //cleanup the instantrescan files.
+  //this can be done safely here because the UpdateStatus message is the only route new scanfiles can be made
+  for i:=0 to length(instantrescanfiles)-1 do
+  begin
+    if instantrescanfiles[i].memoryfilestream<>nil then
+      freeandnil(instantrescanfiles[i].memoryfilestream);
+
+    if instantrescanfiles[i].plist<>nil then
+      freeandnil(instantrescanfiles[i].plist);
+
+    if allowtempfiles then
+      deletefile(instantrescanfiles[i].filename);
+
+    if instantrescanfiles[i].memoryfilestream<>nil then
+      freeandnil(instantrescanfiles[i].memoryfilestream);
+  end;
+
+  setlength(instantrescanfiles,0);
+
+  if pointerlisthandler<>nil then
+    freeandnil(pointerlisthandler);
+
+  if allowtempfiles then
+    deletefile(LoadedPointermapFilename);
+
+  if pointerlisthandlerfile<>nil then
+    freeandnil(pointerlisthandlerfile);
+end;
+
 procedure TPointerscanController.UpdateStatus(sender: tobject);
 {
 Tells the parent the current status, and deal with it's response
@@ -4194,6 +4196,7 @@ Tells the parent the current status, and deal with it's response
 var
   i,j: integer;
   updatemsg: TPSUpdateStatusMsg;
+  allfinished: boolean;
 begin
   //note: called by another thread (parent responses can take a while)
 
@@ -4248,6 +4251,12 @@ begin
             begin
               if GetTickCount64>orphanedSince+60*60*1000 then //1 hour
                 orphanedSince:=0; //... fuck
+            end;
+
+            if orphanedSince=0 then //give up on the current scan if one was going on
+            begin
+              savestate:=false;
+              currentscanhasended:=true;
             end;
           end;
         end;
@@ -4316,6 +4325,54 @@ begin
     end;
   finally
     parentcs.leave;
+  end;
+
+
+  //parent released, do some cleanup
+  if currentscanhasended then //cause a flush of the worker threads
+  begin
+    allfinished:=true;
+    localscannerscs.enter;
+    try
+      for i:=0 to length(localscanners)-1 do
+      begin
+        if not localscanners[i].Finished then
+        begin
+          allfinished:=false;
+          localscanners[i].SaveStateAndTerminate;
+        end;
+      end;
+
+      if allfinished then
+      begin
+        for i:=0 to length(localscanners)-1 do
+          localscanners[i].free;
+
+        setlength(localscanners,0);
+      end;
+    finally
+      localscannerscs.Leave;
+    end;
+
+    //cleanup uninitialized children
+    childnodescs.Enter;
+    try
+      for i:=0 to length(childnodes)-1 do
+        if childnodes[i].scandatauploader<>nil then  //a child is busy getting initialized with an scan that has been terminated. Best kill it
+        begin
+          allfinished:=false;
+          childnodes[i].scandatauploader.terminate;
+        end;
+    finally
+      childnodescs.Leave;
+    end;
+
+    if allfinished then //not to be confused with isdone. This can be true, even if some children still have paths to process and send data
+      UpdateStatus_cleanupScan;
+
+    //instead of waiting 10+ seconds wait 1 second
+    sleep(1000);
+    parentUpdater.TriggerNow; //will trigger again when we return
   end;
 
 
