@@ -3217,6 +3217,7 @@ var
   host, password: string;
   port: word;
 begin
+  OutputDebugString('Parent error: '+error);
   shouldreconnect:=false;
   parentcs.enter;
 
@@ -3258,6 +3259,7 @@ var
   host, password: string;
   port: word;
 begin
+  OutputDebugString('ParentQueue error: '+error);
   shouldreconnect:=false;
 
   parentcs.enter; //shouldn't be needed as this should be called by something that already has the lock
@@ -3297,6 +3299,7 @@ var
   port: word;
   trusted: boolean;
 begin
+  OutputDebugString('Child error: '+error);
   shouldreconnect:=false;
 
   childnodescs.Enter; //shouldn't be needed as things that raise child exceptions SHOULD already have a lock on it
@@ -3347,6 +3350,7 @@ begin
       PSCMD_UPDATESTATUS: HandleUpdateStatusMessage(index);
       PSCMD_AMITRUSTED: s.WriteByte(ifthen(childnodes[index].trusted,1,0));
       PSCMD_SENDPATHS: HandleSendPathsMessage(index);
+      PSCMD_CANUPLOADRESULTS: HandleCanUploadResultsMessage(index);
       PSCMD_UPLOADRESULTS: HandleUploadResultsMessage(index);
       PSCMD_PREPAREFORMYTERMINATION: childnodes[index].terminating:=true;
       PSCMD_GOODBYE:
@@ -3354,6 +3358,8 @@ begin
         freeandnil(childnodes[index].socket);
         childnodes[index].MissingSince:=0; //it's gone but not missing.
       end;
+      else
+         raise exception.create('Invalid message received');
     end;
   end;
 end;
