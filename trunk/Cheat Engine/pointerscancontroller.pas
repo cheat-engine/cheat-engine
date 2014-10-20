@@ -829,8 +829,26 @@ end;
 //-------
 
 function TPointerscanController.isDone: boolean;
+var i: integer;
 begin
-  result:=isidle and (getTotalThreadCount=0);
+  if initializer then
+    result:=isidle and (getTotalThreadCount=0)
+  else
+  begin
+    result:=isidle;
+
+    childnodescs.enter;
+    try
+      for i:=0 to length(childnodes)-1 do
+        if childnodes[i].totalthreadcount>0 then //it still has some threads, so not done. (they can still flush their results when they get destroyed)
+        begin
+          result:=false;
+          exit;
+        end;
+    finally
+      childnodescs.leave;
+    end;
+  end;
 end;
 
 function TPointerscanController.isIdle: boolean;
@@ -867,6 +885,8 @@ begin
   try
     for i:=0 to length(localscanners)-1 do
     begin
+      if localscanners[i].Finished then continue;
+
       if localscanners[i].isdone=false then
         exit;
     end;
@@ -2731,41 +2751,8 @@ begin
           EatFromOverflowQueueIfNeeded;
 
           pathqueueCS.Enter;
-          if (pathqueuelength=0) or terminated then
-          begin //still 0
-
-            alldone:=isdone;
-
-
-            localscannersCS.Enter;
-            for i:=0 to length(localscanners)-1 do
-            begin
-              if localscanners[i].haserror then
-              begin
-
-                OutputDebugString('A worker had an error: '+localscanners[i].errorstring);
-
-                haserror:=true;
-                errorstring:=localscanners[i].errorstring;
-
-                for j:=0 to length(localscanners)-1 do localscanners[j].terminate; //even though the reversescanner already should have done this, let's do it myself as well
-
-
-                break;
-              end;
-
-              if not (localscanners[i].hasTerminated or localscanners[i].isdone) then //isdone might be enabled
-              begin
-                //if terminated then
-                //  OutputDebugString('Worker '+inttostr(i)+' is still active. Waiting till it dies...');
-
-                alldone:=false;
-                break;
-              end;
-            end;
-
-            localscannersCS.Leave;
-          end
+          if (pathqueuelength=0) or terminated then  //still 0
+            alldone:=isdone
           else
             alldone:=false;
 
@@ -2916,11 +2903,17 @@ procedure TPointerscanController.WorkerException(sender: TObject);
 //usually called by workers
 var i: integer;
 begin
-  reverseScanCS.Enter;
+  localscannersCS.Enter;
   for i:=0 to length(localscanners)-1 do
     localscanners[i].Terminate;
 
-  reverseScanCS.leave;
+  if haserror=false then
+  begin
+    haserror:=true;
+    errorstring:=TPointerscanWorker(sender).errorstring;
+  end;
+
+  localscannersCS.leave;
 end;
 
 function TPointerscanController.UploadResults(decompressedsize: integer; s: tmemorystream): boolean;
