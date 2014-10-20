@@ -837,16 +837,19 @@ begin
   begin
     result:=isidle;
 
-    childnodescs.enter;
-    try
-      for i:=0 to length(childnodes)-1 do
-        if childnodes[i].totalthreadcount>0 then //it still has some threads, so not done. (they can still flush their results when they get destroyed)
-        begin
-          result:=false;
-          exit;
-        end;
-    finally
-      childnodescs.leave;
+    if result then
+    begin
+      childnodescs.enter;
+      try
+        for i:=0 to length(childnodes)-1 do
+          if childnodes[i].totalthreadcount>0 then //it still has some threads, so not done. (they can still flush their results when they get destroyed)
+          begin
+            result:=false;
+            exit;
+          end;
+      finally
+        childnodescs.leave;
+      end;
     end;
   end;
 end;
