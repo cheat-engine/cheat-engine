@@ -3769,6 +3769,14 @@ begin
   finally
     pathqueueCS.leave;
   end;
+
+  overflowqueuecs.enter;
+  try
+    setlength(overflowqueue,0);
+  finally
+    overflowqueuecs.leave;
+  end;
+
 end;
 
 procedure TPointerscanController.cleanupScan;
@@ -3821,6 +3829,13 @@ begin
     end;
   end;
   localscannerscs.Leave;
+
+  overflowqueuecs.enter;
+  try
+    setlength(overflowqueue,0);
+  finally
+    overflowqueuecs.leave;
+  end;
 end;
 
 procedure TPointerscanController.HandleUpdateStatusReply_DoNewScan;
