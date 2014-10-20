@@ -4037,6 +4037,7 @@ begin
   InitializeCompressedPtrVariables;
   InitializeEmptyPathQueue;
 
+  starttime:=GetTickCount64;
   if assigned(fOnStartScan) then
     synchronize(NotifyStartScan);
 
