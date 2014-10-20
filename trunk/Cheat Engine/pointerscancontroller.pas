@@ -3088,11 +3088,14 @@ begin
   //listen to the listensocket if available and for the children
   EatFromOverflowQueueIfNeeded;
 
-  idle:=isIdle;
-  if idle and (wasidle=false) then
-    parentUpdater.TriggerNow; //tell the parent I recently became idle
+  if not initializer then
+  begin
+    idle:=isIdle;
+    if idle and (wasidle=false) then
+      parentUpdater.TriggerNow; //tell the parent I recently became idle
 
-  wasidle:=idle;
+    wasidle:=idle;
+  end;
 
 
 
