@@ -1308,7 +1308,7 @@ begin
   if rbFindAddress.Checked then
   begin
     cbAddress.visible:=true;
-    cbAddress.Width:=cbValueType.Left+cbValueType.Width-cbAddress.Left;
+    cbAddress.Width:=clientwidth-cbAddress.left*2;
     cbValueType.Visible:=false;
   end
   else
