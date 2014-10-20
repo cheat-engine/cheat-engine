@@ -1637,6 +1637,8 @@ var i,j: integer;
       percentageTimeSpentWriting: single;
       minpath, maxpath: TDynDwordArray;
       minpaths, maxpaths: string;
+
+      shownetwork: boolean;
     end;
 
     scanners: array of record
@@ -1658,6 +1660,8 @@ begin
 
     if staticscanner<>nil then
     begin
+      statistics.shownetwork:=staticscanner.hasNetworkResponsibility;
+
       if staticscanner.starttime>0 then
         statistics.totalTimeScanning:=GetTickCount64-staticscanner.starttime;
 
@@ -1741,20 +1745,10 @@ begin
       localPathsEvaluated.Text:='Paths evaluated: '+IntToStr(statistics.localPathsEvaluated);
       localPathsPerSecond.Text:=format('Paths / seconds: (%.0n / s)', [statistics.localpathspersecond]);
 
-      totalPathsEvaluated.Text:='Paths evaluated: '+IntToStr(statistics.totalPathsEvaluated);
-      totalPathsPerSecond.Text:=format('Paths / seconds: (%.0n / s)', [statistics.totalpathspersecond]);
+      totalPathsEvaluated.Text:='Total paths evaluated: '+IntToStr(statistics.totalPathsEvaluated);
+      totalPathsPerSecond.Text:=format('Total paths / seconds: (%.0n / s)', [statistics.totalpathspersecond]);
 
 
-      if staticscanner.hasNetworkResponsibility then
-      begin
-        totalPathsEvaluated.visible:=true;
-        totalPathsPerSecond.visible:=true;
-      end
-      else
-      begin
-        totalPathsEvaluated.visible:=false;
-        totalPathsPerSecond.visible:=false;
-      end;
 
 
       pathQueue.Text:='Static queue size: '+inttostr(statistics.pathqueuesize)+' Dynamic queue size:'+inttostr(statistics.pathqueueoverflow);
@@ -1766,6 +1760,8 @@ begin
 
 
 
+      totalPathsEvaluated.visible:=statistics.shownetwork;
+      totalPathsPerSecond.visible:=statistics.shownetwork;
     end;
 
 
