@@ -10915,7 +10915,7 @@ begin
       begin
         x:=sizeof(value);
         pptruint(@buffer[0])^:=value; //assign it so I don't have to make two compare routines
-        vtype:=FindTypeOfData(value, @buffer[0], x);
+        vtype:=FindTypeOfData(0, @buffer[0], x);
       end;
 
 
