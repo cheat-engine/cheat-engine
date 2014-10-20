@@ -121,6 +121,7 @@ type
     fTotalPathsEvaluatedByErasedChildren: qword; //when a child entry is deleted, add it's total paths evaluated value to this
 
 
+    procedure InitializeEmptyPathQueue; //initializes the arrays inside the pathqueue
 
 
     procedure notifyStartScan;
@@ -2431,7 +2432,9 @@ begin
 end;
 
 procedure TPointerscanController.SaveAndClearQueue(s: TStream);
-var i: integer;
+var
+  i: integer;
+  pathslocked: boolean;
 begin
   if s=nil then exit; //can happen if stop is pressed right after the scan is done but before the gui is updated
 
@@ -3750,6 +3753,23 @@ end;
 
 //parent->child
 
+procedure TPointerscanController.InitializeEmptyPathQueue;
+var i: integer;
+begin
+  pathqueueCS.enter;
+  try
+    pathqueuelength:=0;
+    for i:=0 to MAXQUEUESIZE-1 do
+    begin
+      setlength(pathqueue[i].tempresults, maxlevel+1);
+      if noLoop then
+        setlength(pathqueue[i].valuelist, maxlevel+1);
+    end;
+
+  finally
+    pathqueueCS.leave;
+  end;
+end;
 
 procedure TPointerscanController.cleanupScan;
 //called by the controller when the parent tells it to cleanup or do a new scan. (the cleanup should have been done first though)
@@ -3954,6 +3974,8 @@ begin
   end;
 
   currentscanhasended:=false;
+
+  InitializeEmptyPathQueue;
 
   //spawn the threads:
   localscannersCS.enter;
@@ -4257,6 +4279,7 @@ begin
 end;
 
 
+
 procedure TPointerscanController.execute;
 var
     i,j: integer;
@@ -4439,15 +4462,7 @@ begin
 
 
     //setup the pathqueue
-    pathqueuelength:=0;
-
-
-    for i:=0 to MAXQUEUESIZE-1 do
-    begin
-      setlength(pathqueue[i].tempresults, maxlevel+1);
-      if noLoop then
-        setlength(pathqueue[i].valuelist, maxlevel+1);
-    end;
+    InitializeEmptyPathQueue;
 
     reverseScanCS:=tcriticalsection.Create;
     try
