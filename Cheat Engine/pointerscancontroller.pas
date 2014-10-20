@@ -831,7 +831,7 @@ end;
 function TPointerscanController.isDone: boolean;
 var i: integer;
 begin
-  if initializer then
+  if not initializer then
     result:=isidle and (getTotalThreadCount=0)
   else
   begin
