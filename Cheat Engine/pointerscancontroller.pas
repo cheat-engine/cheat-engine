@@ -2703,9 +2703,6 @@ begin
             end;
           end;
 
-
-          if not savestate then
-            ReleaseSemaphore(pathqueueSemaphore, MAXQUEUESIZE, nil); //release all queues
         end;
 
 
@@ -2800,7 +2797,6 @@ begin
       localscanners[i].stop:=true;
     localscannerscs.Leave;
 
-    ReleaseSemaphore(pathqueueSemaphore, MAXQUEUESIZE, nil);
 
     localscannersCS.enter;
     try
