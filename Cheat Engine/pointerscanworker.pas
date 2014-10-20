@@ -173,7 +173,7 @@ uses frmMemoryAllocHandlerUnit, pointerscancontroller;
 procedure TPointerscanWorkerNetwork.initialize;
 begin
   // nothing for now
-  fflushsize:=15*1024*1024;
+  //fflushsize:=15*1024*1024;
 
   resultsms:=tmemorystream.create;
   resultscs:=TCompressionstreamWithPositionSupport.create(cldefault, resultsms);
@@ -186,12 +186,12 @@ begin
   fflushsize:=max(1024, min(size, 15*1024*1024)); //value between 1kb and 15mb
 
   //debug:
-//  flushsize:=0; //make it flush every time
+  //fflushsize:=0; //make it flush every time
 end;
 
 procedure TPointerscanWorkerNetwork.flushIfNeeded;
 begin
-  if resultscs.Position>fflushsize then
+  if (resultscs.Position>fflushsize) or (resultsms.position>fflushsize) then
     flushresults;
 end;
 
@@ -214,12 +214,14 @@ begin
       while fOnFlushResults(size, resultsms)=false do
       begin
         if terminated then break;
-        sleep(1000);
+        sleep(10+random(500));
       end;
     end;
 
     resultsms.position:=0;
     resultscs:=TCompressionstreamWithPositionSupport.create(cldefault, resultsms);
+
+    results:=resultscs;
 
     isFlushing:=false;
     inc(timespentwriting, gettickcount64-currentwritestart);
