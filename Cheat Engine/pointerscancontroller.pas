@@ -2912,6 +2912,7 @@ begin
         begin
           //yes
           parent.socket.WriteByte(PSCMD_UPLOADRESULTS);
+          parent.socket.WriteDWord(currentscanid);
           parent.socket.WriteDWord(s.size);
           parent.socket.WriteDWord(decompressedsize);
           parent.socket.CopyFrom(s,s.size);
