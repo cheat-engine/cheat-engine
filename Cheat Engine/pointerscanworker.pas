@@ -28,6 +28,7 @@ type
     results: tstream;
     procedure initialize; virtual; abstract;
     procedure flushresults; virtual; abstract;
+    procedure flushifneeded; virtual;
   public
     pointerlisthandler: TReversePointerListHandler;
     pathqueuesemaphore: THandle;
@@ -128,19 +129,23 @@ type
     property OnException: TNotifyEvent read fOnException write fOnException;
   end;
 
-  TFlushResultsEvent=function(size: integer; m: TStream): boolean of object;
+  TFlushResultsEvent=function(size: integer; m: TMemoryStream): boolean of object;
   TPointerscanWorkerNetwork=class(TPointerscanWorker)
   private
+    fFlushSize: integer;
     fOnFlushResults: TFlushResultsEvent;
     resultscs: TCompressionstreamWithPositionSupport;
     resultsms: TMemorystream;
+    procedure setFlushSize(size: integer);
   protected
     procedure initialize; override;
     procedure flushresults; override;
+    procedure flushIfNeeded; override;
   public
     destructor destroy; override;
 
     property OnFlushResults: TFlushResultsEvent read fOnFlushResults write fOnFlushResults;
+    property FlushSize: integer read fFlushSize write setFlushSize;
   end;
 
   TPointerscanWorkerLocal=class(TPointerscanWorker)
@@ -168,11 +173,26 @@ uses frmMemoryAllocHandlerUnit, pointerscancontroller;
 procedure TPointerscanWorkerNetwork.initialize;
 begin
   // nothing for now
+  fflushsize:=15*1024*1024;
 
   resultsms:=tmemorystream.create;
   resultscs:=TCompressionstreamWithPositionSupport.create(cldefault, resultsms);
 
   results:=resultscs;
+end;
+
+procedure TPointerscanWorkerNetwork.setFlushSize(size: integer);
+begin
+  fflushsize:=max(1024, min(size, 15*1024*1024)); //value between 1kb and 15mb
+
+  //debug:
+//  flushsize:=0; //make it flush every time
+end;
+
+procedure TPointerscanWorkerNetwork.flushIfNeeded;
+begin
+  if resultscs.Position>fflushsize then
+    flushresults;
 end;
 
 procedure TPointerscanWorkerNetwork.flushresults;
@@ -405,6 +425,7 @@ end;
 
 
 
+
 function TPointerscanWorker.DoRescan(level: valSint; staticdata: PStaticData): boolean;
 var
   i,j: integer;
@@ -563,9 +584,17 @@ begin
     results.WriteBuffer(i,sizeof(i));
     results.WriteBuffer(tempresults[0], maxlevel*sizeof(tempresults[0]) ); //todo for 6.3+: Change sizeof(tempresult[0]) with the max size the structsize can generate./ (e.g 4096 is  only 2 bytes, 65536 =3)
   end;
-  if results.position>15*1024*1024 then //bigger than 15mb
+  flushIfNeeded; //if results.position>15*1024*1024 then flushresult;//bigger than 15mb
+
+end;
+
+procedure TPointerscanWorker.flushifneeded;
+begin
+  //default behaviour. Override for smaller buffers
+  if results.position>15*1024*1024 then
     flushresults;
 end;
+
 
 procedure TPointerscanWorker.rscan(valuetofind:ptrUint; level: valSint);
 {

@@ -357,7 +357,7 @@ type
     downloadingscandata: boolean; //true while scandata is being downloaded
     downloadingscandata_received: qword;
     downloadingscandata_total: qword;
-    downloadingscandata_starttime: qword;
+    downloadingscandata_starttime, downloadingscandata_stoptime: qword;
 
     function UploadResults(decompressedsize: integer; s: tmemorystream): boolean; //sends the given results (compressed) to the parent.
 
@@ -3936,6 +3936,7 @@ begin
     WriteByte(0); //tell the parent I received everything
     flushWrites;
 
+    downloadingscandata_stoptime:=GetTickCount64;
     downloadingscandata:=false;
 
     //process the streams
@@ -4955,7 +4956,11 @@ begin
     nextscanfileid:=max(nextscanfileid, scanfileid+1);
   end
   else
+  begin
     scanner:=TPointerscanWorkerNetwork.Create(true);
+    TPointerscanWorkerNetwork(scanner).OnFlushResults:=UploadResults;
+    TPointerscanWorkerNetwork(scanner).FlushSize:=downloadingscandata_total div ((downloadingscandata_stoptime-downloadingscandata_starttime) div 1000) * 5; //just an arbitrary value, it doesn't mean much.
+  end;
 
   scanner.OnException:=workerexception;
   scanner.overflowqueuewriter:=OverflowQueueWriter;
