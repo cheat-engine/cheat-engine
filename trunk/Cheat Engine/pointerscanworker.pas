@@ -354,15 +354,17 @@ begin
 
       while (not terminated) do
       begin
-        wr:=WaitForSingleObject(pathqueueSemaphore, INFINITE); //obtain semaphore
-        if stop or terminated then
-        begin
-          ReleaseSemaphore(pathqueueSemaphore, 1, nil);
-          exit;
-        end;
+        wr:=WaitForSingleObject(pathqueueSemaphore, 500); //obtain semaphore
 
         if wr=WAIT_OBJECT_0 then
         begin
+          if stop or terminated then
+          begin
+            ReleaseSemaphore(pathqueueSemaphore, 1, nil);
+            exit;
+          end;
+
+
           //fetch the data from the queue and staticscanner
           if outofdiskspace^ then
           begin
@@ -398,6 +400,8 @@ begin
             isdone:=true;  //set isdone to true
           end;
         end;
+
+        if stop or terminated then exit;
       end;
 
     except
