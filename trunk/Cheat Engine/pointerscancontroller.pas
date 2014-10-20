@@ -3677,7 +3677,29 @@ begin
 
 
     if not child^.trusted then //save the paths being sent
+    begin
+      if child^.idle=false then raise exception.create('For some unknown reason the untrusted child isn''t idle anymore');   //should NEVER happen (childnodescs is locked and this thread is the only one accepting update messages)
+
       child^.nontrustedlastpaths:=paths;
+
+      if child^.nontrustedlastpathstime>0 then
+      begin
+        if (gettickcount64-child^.nontrustedlastpathstime)>1000*60*5 then
+        begin
+          //it went idle within 5 minutes, trust it a bit more
+          inc(child^.trustlevel)
+        end
+        else
+        begin
+          //it took longer than 5 minutes... Let's decrease the trustlevel in case he never comes back
+          if child^.trustlevel>0 then
+            dec(child^.trustlevel);
+        end;
+
+      end;
+
+      child^.nontrustedlastpathstime:=GetTickCount64;
+    end;
 
     child^.idle:=false; //not idle anymore
     inc(child^.pathqueuesize, length(paths));
@@ -3821,7 +3843,7 @@ begin
     begin
       if child^.idle then //only send paths to the non-trusted child if it's completely idle
       begin
-        HandleUpdateStatusMessage_SendPathsToChild(child, child.trustlevel+1); //the trustlevel goes up if it goes idle within 5 minutes
+        HandleUpdateStatusMessage_SendPathsToChild(child, min(child.trustlevel+1, localpathcount div 4 )); //the trustlevel goes up if it goes idle within 5 minutes (max 16)
         exit;
       end;
     end;
