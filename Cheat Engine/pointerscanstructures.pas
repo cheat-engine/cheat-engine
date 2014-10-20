@@ -78,6 +78,8 @@ type
 
     trustlevel: integer;
     nontrustedlastpaths: TDynPathQueue;
+    nontrustedlastpathstime: qword;
+
 
     scandatauploader: TThread;
     ScanDataSent: qword;
