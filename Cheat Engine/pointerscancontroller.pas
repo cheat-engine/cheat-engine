@@ -3385,7 +3385,7 @@ called by PSCMD_CANUPLOADRESULTS
 Checks if the current child is busy sending results to the parent
 }
 begin
-  childnodes[index].socket.WriteByte(ifthen(childnodes[index].scanresultDownloader<>nil, 1, 0));
+  childnodes[index].socket.WriteByte(ifthen(childnodes[index].scanresultDownloader=nil, 1, 0));
   childnodes[index].socket.flushWrites;
 end;
 
