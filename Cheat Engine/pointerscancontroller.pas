@@ -812,7 +812,7 @@ begin
   try
     for i:=0 to length(childnodes)-1 do
     begin
-      if childnodes[i].idle then
+      if not childnodes[i].idle then
         exit;
     end;
   finally
@@ -2696,7 +2696,8 @@ begin
           pathqueueCS.Enter;
           if (pathqueuelength=0) or terminated then
           begin //still 0
-            alldone:=true;
+
+            alldone:=isIdle;
 
 
             localscannersCS.Enter;
