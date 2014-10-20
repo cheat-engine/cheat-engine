@@ -538,7 +538,13 @@ begin
 
 
             if resultstream<>nil then
-              resultstream.CopyFrom(ds, 0);
+            begin
+              i:=resultstream.CopyFrom(ds, 0);
+              if i=0 then
+                OutputDebugString('FUUUCK');
+            end;
+
+
 
 
           finally
@@ -2922,6 +2928,8 @@ begin
           parent.socket.flushWrites;
 
           if parent.socket.ReadByte<>0 then raise exception.create('Invalid reply from PSCMD_UPLOADRESULTS');
+
+          result:=true; //success
 
         end; //nope, try again later
       except
