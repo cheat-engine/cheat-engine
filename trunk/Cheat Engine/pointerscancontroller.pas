@@ -3092,7 +3092,7 @@ begin
 
 
         //add this child to the list of sockets to wait for
-        if (childnodes[i].socket<>nil) and (childnodes[i].scandatauploader=nil) then  //this scandatauploader check 'should' not be necesary (the child shouldn't talk to the parent while it's receiving the scandata, not even worker threads as they should have been destroyed beforehand.
+        if (childnodes[i].socket<>nil) and (childnodes[i].scandatauploader=nil) and (childnodes[i].scanresultDownloader=nil) then
         begin
 
           FD_SET(childnodes[i].socket.sockethandle, readfds);
