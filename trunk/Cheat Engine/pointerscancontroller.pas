@@ -2900,7 +2900,7 @@ begin
       //todo: test me
       if parent.socket=nil then exit; //return to the caller (failure)
       if parent.scanid<>currentscanid then exit; //the parent will probably tell the child to kill it's current scan (first a cleanup that will remove this caller)
-
+      if currentscanhasended and (savestate=false) then exit;
 
       try
         s.position:=0;
@@ -3866,6 +3866,8 @@ begin
   begin
     scannerid:=ReadDWord;
     currentscanid:=ReadDWord;
+    parent.scanid:=currentscanid;
+
     maxlevel:=ReadDWord;
     sz:=ReadDWord;
     compressedptr:=readbyte=1;
