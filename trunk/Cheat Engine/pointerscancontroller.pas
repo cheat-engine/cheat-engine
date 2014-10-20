@@ -175,6 +175,7 @@ type
     procedure HandleUpdateStatusReply_GiveMeYourPaths;
     procedure HandleUpdateStatusReply_HereAreSomePaths;
     procedure HandleUpdateStatusReply_CurrentScanHasEnded;
+    procedure HandleUpdateStatusReply_EverythingOK;
     procedure HandleUpdateStatusReply;
 
     procedure UpdateStatus(sender: tobject); //sends the current status to the parent
@@ -4106,6 +4107,12 @@ begin
   cleanupscan;
 end;
 
+procedure TPointerscanController.HandleUpdateStatusReply_EverythingOK;
+begin
+  parent.socket.WriteByte(0); //acknowledge
+  parent.socket.flushWrites;
+end;
+
 procedure TPointerscanController.HandleUpdateStatusReply;
 {
 handles the replies the parent gives after it received the updateStatus message
@@ -4119,7 +4126,7 @@ begin
     PSUPDATEREPLYCMD_GIVEMEYOURPATHS: HandleUpdateStatusReply_GiveMeYourPaths;
     PSUPDATEREPLYCMD_HEREARESOMEPATHS: HandleUpdateStatusReply_HereAreSomePaths;
     PSUPDATEREPLYCMD_CURRENTSCANHASENDED: HandleUpdateStatusReply_CurrentScanHasEnded;
-    PSUPDATEREPLYCMD_EVERYTHINGOK: exit; //everything ok
+    PSUPDATEREPLYCMD_EVERYTHINGOK: HandleUpdateStatusReply_EverythingOK; //everything ok
     else
        raise TSocketException.create('Invalid UpdateStatus reply received');
   end;
