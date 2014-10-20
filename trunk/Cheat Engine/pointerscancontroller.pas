@@ -4778,6 +4778,8 @@ begin
       for i:=0 to length(mustendwithoffsetlist)-1 do
         result.writeDword(mustendwithoffsetlist[i]);
 
+
+
     finally
 
       if result<>nil then
@@ -4797,7 +4799,47 @@ begin
         deletefile(filename);
         RenameFile(filename+'.tmp', filename);
       end;
+
+      if initializer then
+      begin
+        //cleanup the connections
+        childnodescs.enter;
+        try
+          for i:=0 to length(childnodes)-1 do
+          begin
+            if childnodes[i].scanresultDownloader<>nil then
+            begin
+              childnodes[i].scanresultDownloader.Terminate;
+              childnodes[i].scanresultDownloader.WaitFor;
+              childnodes[i].scanresultDownloader.free;    //this is why we use nonblocking sockets
+              childnodes[i].scanresultDownloader:=nil;
+            end;
+
+            if childnodes[i].scandatauploader<>nil then
+            begin
+              childnodes[i].scandatauploader.Terminate;
+              childnodes[i].scandatauploader.WaitFor;
+              childnodes[i].scandatauploader.free;
+              childnodes[i].scandatauploader:=nil;
+            end;
+
+            if childnodes[i].resultstream<>nil then
+              freeandnil(childnodes[i].resultstream);
+
+            if childnodes[i].socket<>nil then
+              freeandnil(childnodes[i].socket);
+          end;
+
+        finally
+          childnodescs.leave;
+        end;
+
+      end;
+
     end;
+
+
+
 
 
 
