@@ -112,9 +112,26 @@ type
     property CanResume: boolean read fCanResume;
 end;
 
+procedure findAllResultFilesForThisPtr(filename: string; result: TStrings);
+
 implementation
 
 uses ProcessHandlerUnit;
+
+procedure findAllResultFilesForThisPtr(filename: string; result: TStrings);
+var r: TRawbyteSearchRec;
+begin
+  //search the folder this ptr file is in for .result.* files
+  //extract1
+  if FindFirst(filename+'.results.*', 0, r)=0 then
+  begin
+    repeat
+      result.add(extractfilepath(filename)+r.Name);
+    until FindNext(r)<>0;
+
+    FindClose(r);
+  end;
+end;
 
 function TPointerscanresultreader.getMergedResultCount: integer;
 begin
@@ -444,6 +461,8 @@ var
   fn: string;
   filenames: array of string;
 
+  fnames: tstringlist;
+
 begin
   FFilename:=filename;
   configfile:=TFileStream.Create(filename, fmOpenRead or fmShareDenyWrite);
@@ -494,72 +513,22 @@ begin
   end;
 
 
+  //read maxlevel
   configfile.Read(maxlevel,sizeof(maxlevel));
 
+  //read compressedptr info
 
-  //get filename count
-  configfile.Read(filenamecount,sizeof(filenamecount));
-  setlength(filenames,filenamecount);
-
-  fcount:=0;
-  //open the files
-  i:=0;
-  j:=0;
-
-  for i:=0 to filenamecount-1 do
-  begin
-    configfile.Read(x,sizeof(x));
-    while x>=temppcharmaxlength do
-    begin
-      temppcharmaxlength:=temppcharmaxlength*2;
-      ReallocMem(temppchar, temppcharmaxlength);
-    end;
-
-    configfile.Read(temppchar[0],x);
-    temppchar[x]:=#0;
-
-    filenames[i]:=temppchar;
-  end;
-
-
-  fExternalScanners:=0;
-  fCompressedPtr:=false;
-  try
-    if configfile.Position<configfile.Size then
-      fExternalScanners:=configfile.ReadDWord;
-
-    if configfile.Position<configfile.Size then
-      fGeneratedByWorkerID:=configfile.ReadDWord;
-
-    if configfile.Position<configfile.Size then
-      setlength(fmergedresults, configfile.ReadDWord);
-
-    //all following entries are worker id's when merged (this info is used by rescans)
-    for i:=0 to length(fmergedresults)-1 do
-      fmergedresults[i]:=configfile.ReadDWord;
-
-    if configfile.Position<configfile.Size then
-    begin
-      fCompressedPtr:=configfile.ReadDWord=1;
-      fAligned:=configfile.ReadDWord=1;
-
-      fMaxBitCountModuleIndex:=configfile.ReadDword;
-      fMaxBitCountLevel:=configfile.ReadDword;
-      fMaxBitCountOffset:=configfile.ReadDword;
-
-      setlength(fEndsWithOffsetList, configfile.ReadDword);
-
-      for i:=0 to length(fEndsWithOffsetList)-1 do
-        fEndsWithOffsetList[i]:=configfile.ReadDWord;
-    end;
-
-
-  except
-
-  end;
-
+  fCompressedPtr:=configfile.ReadByte=1;
   if fCompressedPtr then
   begin
+    fAligned:=configFile.ReadByte=1;
+    fMaxBitCountModuleIndex:=configfile.ReadByte;
+    fMaxBitCountLevel:=configfile.ReadByte;
+    fMaxBitCountOffset:=configfile.ReadByte;
+    setlength(fEndsWithOffsetList, configfile.ReadByte);
+    for i:=0 to length(fEndsWithOffsetList)-1 do
+      fEndsWithOffsetList[i]:=configfile.ReadDWord;
+
     sizeofentry:=32+MaxBitCountModuleIndex+MaxBitCountLevel+MaxBitCountOffset*(maxlevel-length(fEndsWithOffsetList));
     sizeofentry:=(sizeofentry+7) div 8;
 
@@ -575,10 +544,19 @@ begin
 
     for i:=1 to MaxBitCountOffset do
       MaskOffset:=(MaskOffset shl 1) or 1;
-
   end
   else
     sizeofentry:=12+(4*maxlevel);
+
+
+  //get the filenames
+  fnames:=tstringlist.create;
+  findAllResultFilesForThisPtr(filename, fnames);
+  setlength(filenames, fnames.count);
+  for i:=0 to fnames.count-1 do
+    filenames[i]:=fnames[i];
+
+  fnames.free;
 
   setlength(files, length(filenames));
   j:=0;
