@@ -908,21 +908,26 @@ begin
   if cbUseLoadedPointermap.checked then
   begin
     cbUseLoadedPointermap.OnChange:=nil;
-    if odLoadPointermap.Execute then
-    begin
-      cbUseLoadedPointermap.Caption:=rsUseLoadedPointermap+':'+ExtractFileName(odLoadPointermap.FileName);
-
-      if fileexists(odLoadPointermap.FileName) then
+    try
+      if odLoadPointermap.Execute then
       begin
-        tstrings(cbAddress.tag).LoadFromFile(odLoadPointermap.FileName+'.addresslist');
-        UpdateAddressList(cbAddress);
-      end;
+        cbUseLoadedPointermap.Caption:=rsUseLoadedPointermap+':'+ExtractFileName(odLoadPointermap.FileName);
 
-    end
-    else
-      cbUseLoadedPointermap.checked:=false;
+        if fileexists(odLoadPointermap.FileName+'.addresslist') then
+        begin
+          tstrings(cbAddress.tag).LoadFromFile(odLoadPointermap.FileName+'.addresslist');
+          UpdateAddressList(cbAddress);
+        end;
 
-    cbUseLoadedPointermap.OnChange:=cbUseLoadedPointermapChange;
+      end
+      else
+        cbUseLoadedPointermap.checked:=false;
+
+
+    finally
+      cbUseLoadedPointermap.OnChange:=cbUseLoadedPointermapChange;
+    end;
+
   end
   else
     cbUseLoadedPointermap.Caption:=rsUseLoadedPointermap;
