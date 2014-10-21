@@ -114,8 +114,7 @@ begin
 
     try
       i:=0;
-//      for i:=0 to Pointerscanresults.count-1 do
-//pascal complaining that qword isn't a valid ordinal in 32-bit, so instead of a nicely looking for, an ugly while instead
+
       while i<Pointerscanresults.count do
       begin
         if terminated then exit;
@@ -174,52 +173,6 @@ begin
       files.free;
     end;
 
-    //setup a .ptr that links them all together
-    f:=TFileStream.Create(tempname,fmCreate);
-    //write header
-    //modulelist
-    pointerscanresults.saveModulelistToResults(f);
-
-    //offsetlength
-    f.Write(pointerscanresults.offsetcount, sizeof(dword));
-
-    //pointerstores
-    temp:=tempfilelist.Count;
-    f.Write(temp,sizeof(temp));
-
-
-
-    for j:=0 to tempfilelist.count-1 do
-    begin
-      //remove the ".tempsort" part (the final result will be the old scanfile)
-      tempstring:=StringReplace(tempfilelist[j], tempname, Pointerscanresults.filename, []);
-      tempstring:=ExtractFileName(tempstring);
-      temp:=length(tempstring);
-      f.Write(temp,sizeof(temp));
-      f.Write(tempstring[1],temp);
-    end;
-
-    f.WriteDWord(pointerscanresults.externalScanners);
-    f.WriteDWord(pointerscanresults.generatedByWorkerID);
-
-
-    f.WriteDWord(pointerscanresults.mergedresultcount);
-    for j:=0 to pointerscanresults.mergedresultcount-1 do
-      f.WriteDWord(pointerscanresults.mergedresults[j]);
-
-    f.WriteDWord(ifthen(pointerscanresults.compressedptr,1,0));
-    f.WriteDWord(ifthen(pointerscanresults.aligned,1,0));
-    f.WriteDWord(pointerscanresults.MaxBitCountModuleIndex);
-    f.WriteDWord(pointerscanresults.MaxBitCountLevel);
-    f.WriteDWord(pointerscanresults.MaxBitCountOffset);
-
-    f.writedword(pointerscanresults.EndsWithOffsetListCount);
-    for j:=0 to pointerscanresults.EndsWithOffsetListCount-1 do
-      f.writedword(Pointerscanresults.EndsWithOffsetList[j]);
-
-
-
-    f.free;
 
     if pointerscanresults<>nil then
       freeandnil(pointerscanresults);
