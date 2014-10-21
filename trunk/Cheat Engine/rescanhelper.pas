@@ -18,12 +18,6 @@ type
 
     memoryregion: TMemoryRegions;
 
-    socket: TSocket;
-    socketcs: TCriticalSection;
-
-   { procedure downloadMemoryRegions;
-    function DownloadPages(page: PtrUInt): TPageInfo;      }
-
     function BinSearchMemRegions(address: ptrUint): integer;
     procedure quicksortmemoryregions(lo,hi: integer);
   public
@@ -35,7 +29,7 @@ type
     function getMemoryRegions: TMemoryRegions;
 
 
-    constructor create(socket: Tsocket=INVALID_SOCKET; socketcs: TCriticalSection=nil );
+    constructor create;
     destructor destroy; override;
 end;
 
@@ -43,158 +37,7 @@ implementation
 
 uses ProcessHandlerUnit;
 
-{
-function TRescanHelper.DownloadPages(page: ptruint): TPageInfo;
-var
-  getPages: packed record
-    command: byte;
-    base: qword;
-    count: byte;
-  end;
-  base: ptruint;
-  r: PPageInfo;
-  i: integer;
-  pageindex, originalpageindex: ptruint;
 
-  pagecount: dword;
-  pages: array of TPageInfo;
-
-  readable: byte;
-  compressedSize: dword;
-
-  ns: TNetworkStream;
-  ds: TDecompressionStream;
-
-  buffer: pointer;
-
-begin
-  result.data:=nil;
-  socketcs.enter;
-  try
-    base:=page and qword($fffffffffffff000);
-
-    r:=pagemap.GetPageInfo(base shr 12);
-    if r=nil then
-    begin
-      //still needs to be added
-
-      getpages.command:=RCMD_GETPAGES;
-      getpages.base:=base;
-      getpages.count:=1;
-
-      //check if there are more pages to download
-      if pagemap.GetPageInfo((base shr 12)-1)=nil then
-      begin
-        dec(getpages.base, 4096);
-        inc(getpages.count);
-
-        if pagemap.GetPageInfo((base shr 12)-2)=nil then
-        begin
-          dec(getpages.base, 4096);
-          inc(getpages.count);
-        end;
-      end;
-
-      if pagemap.GetPageInfo((base shr 12)+1)=nil then
-      begin
-        inc(getpages.count);
-        if pagemap.GetPageInfo((base shr 12)+2)=nil then
-          inc(getpages.count);
-      end;
-
-
-      send(socket, @getpages, sizeof(getpages));
-      setlength(pages, getpages.count);
-
-      receive(socket, @pagecount, sizeof(pagecount));
-
-      ns:=tnetworkstream.create;
-      try
-
-        for i:=0 to pagecount-1 do
-        begin
-          receive(socket, @readable, sizeof(readable));
-          if readable=0 then
-            pages[i].data:=nil
-          else
-          begin
-            receive(socket, @compressedsize, sizeof(compressedsize));
-
-            ns.Clear;
-            ns.ReadFromSocket(socket, compressedsize);
-
-            ns.position:=0;
-            ds:=Tdecompressionstream.create(ns);
-
-            getmem(pages[i].data, 4096);
-            ds.ReadBuffer(pages[i].data^, 4096);
-            ds.free;
-          end;
-        end;
-
-      finally
-        ns.free;
-      end;
-
-
-      originalpageindex:=page shr 12;
-      pagemapcs.enter;
-      for i:=0 to pagecount-1 do
-      begin
-        pageindex:=(getpages.base+i*4096) shr 12;
-        r:=pagemap.GetPageInfo(pageindex);
-        if r=nil then //add it
-          r:=pagemap.Add(pageindex, pages[i].data);
-
-        if pageindex=originalpageindex then
-          result:=r^;
-      end;
-      pagemapcs.leave;
-
-    end
-    else
-    begin
-      //already added
-      result:=r^;
-    end;
-
-
-  finally
-    socketcs.Leave;
-  end;
-
-end;
-
-procedure TRescanHelper.downloadMemoryRegions;
-var
-  command: byte;
-  count: dword;
-  i: integer;
-
-  baseaddress, size: qword;
-begin
-  //download the memory regions from the socket
-  socketcs.enter;
-  try
-    command:=RCMD_GETMEMORYREGIONS;
-    send(socket, @command, sizeof(command));
-    receive(socket, @count, sizeof(count));
-
-    setlength(memoryregion, count);
-    for i:=0 to count-1 do
-    begin
-      receive(socket, @baseaddress, sizeof(baseaddress));
-      receive(socket, @size, sizeof(size));
-
-      memoryregion[i].baseaddress:=baseaddress;
-      memoryregion[i].MemorySize:=size;
-    end;
-
-  finally
-    socketcs.leave;
-  end;
-end;
-            }
 function TRescanHelper.BinSearchMemRegions(address: ptrUint): integer;
 var
   First: Integer;
@@ -350,7 +193,7 @@ begin
   if (i<hi) then quicksortmemoryregions(i,hi);
 end;
 
-constructor TRescanHelper.create(socket: Tsocket=INVALID_SOCKET; socketcs: TCriticalSection=nil );
+constructor TRescanHelper.create;
 var
   mbi : _MEMORY_BASIC_INFORMATION;
   address: ptrUint;
@@ -360,38 +203,31 @@ begin
   pagemap:=TPageMap.Create;
   pagemapcs:=TCriticalSection.create;
 
-  self.socket:=socket;
-  self.socketcs:=socketcs;
-
 
   //enumerate all memory regions
   address:=0;
 
- { if socket>=0 then
-    downloadMemoryRegions
-  else}
+  while (Virtualqueryex(processhandle,pointer(address),mbi,sizeof(mbi))<>0) and ((address+mbi.RegionSize)>address) do
   begin
-    while (Virtualqueryex(processhandle,pointer(address),mbi,sizeof(mbi))<>0) and ((address+mbi.RegionSize)>address) do
+    if (not symhandler.inSystemModule(ptrUint(mbi.baseAddress))) and (not (not scan_mem_private and (mbi._type=mem_private))) and (not (not scan_mem_image and (mbi._type=mem_image))) and (not (not scan_mem_mapped and ((mbi._type and mem_mapped)>0))) and (mbi.State=mem_commit) and ((mbi.Protect and page_guard)=0) and ((mbi.protect and page_noaccess)=0) then  //look if it is commited
     begin
-      if (not symhandler.inSystemModule(ptrUint(mbi.baseAddress))) and (not (not scan_mem_private and (mbi._type=mem_private))) and (not (not scan_mem_image and (mbi._type=mem_image))) and (not (not scan_mem_mapped and ((mbi._type and mem_mapped)>0))) and (mbi.State=mem_commit) and ((mbi.Protect and page_guard)=0) and ((mbi.protect and page_noaccess)=0) then  //look if it is commited
-      begin
-        if Skip_PAGE_NOCACHE then
-          if (mbi.AllocationProtect and PAGE_NOCACHE)=PAGE_NOCACHE then
-          begin
-            address:=ptrUint(mbi.BaseAddress)+mbi.RegionSize;
-            continue;
-          end;
+      if Skip_PAGE_NOCACHE then
+        if (mbi.AllocationProtect and PAGE_NOCACHE)=PAGE_NOCACHE then
+        begin
+          address:=ptrUint(mbi.BaseAddress)+mbi.RegionSize;
+          continue;
+        end;
 
-        setlength(memoryregion,length(memoryregion)+1);
+      setlength(memoryregion,length(memoryregion)+1);
 
-        memoryregion[length(memoryregion)-1].BaseAddress:=ptrUint(mbi.baseaddress);  //just remember this location
-        memoryregion[length(memoryregion)-1].MemorySize:=mbi.RegionSize;
-      end;
-
-
-      address:=ptrUint(mbi.baseaddress)+mbi.RegionSize;
+      memoryregion[length(memoryregion)-1].BaseAddress:=ptrUint(mbi.baseaddress);  //just remember this location
+      memoryregion[length(memoryregion)-1].MemorySize:=mbi.RegionSize;
     end;
+
+
+    address:=ptrUint(mbi.baseaddress)+mbi.RegionSize;
   end;
+
 
 
 
