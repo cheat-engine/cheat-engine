@@ -1571,12 +1571,9 @@ begin
       DeleteFile(s);
     end;
 
-    deletefile(oldname);
-    renamefile(tempname, oldname);
-
     for i:=0 to tempfilelist.count-1 do
     begin
-      newname:=StringReplace(tempfilelist[i], tempname, oldname,[]);
+      newname:=StringReplace(tempfilelist[i], tempname, oldname+'.results',[]);
       DeleteFile(newname);
 
       RenameFile(tempfilelist[i], newname);
