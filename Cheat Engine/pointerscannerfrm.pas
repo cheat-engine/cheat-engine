@@ -698,23 +698,15 @@ var
 
   i: integer;
 
-  resumefilelist: tstringlist;
-
   pb: TProgressbar;
   lb: TLabel;
 
 
 begin
   //show a dialog where the user can pick the number of threads to scan
-  resumefilelist:=nil;
-
   if (pointerscanresults<>nil) and Pointerscanresults.CanResume then
   begin
     filename:=Pointerscanresults.filename;
-
-    resumefilelist:=tstringlist.create;
-    Pointerscanresults.getFileList(resumefilelist);
-
 
     try
       config:=TFileStream.Create(filename+'.resume.config', fmOpenRead or fmShareDenyNone);
@@ -797,7 +789,6 @@ begin
         staticscanner.OnScanDone:=PointerscanDone;
         staticscanner.threadcount:=threadcount;
         staticscanner.resumescan:=true;
-        staticscanner.resumefilelist:=resumefilelist;
         staticscanner.maxlevel:=maxlevel;
         staticscanner.sz:=structsize;
         staticscanner.compressedptr:=compressedptr;
@@ -858,7 +849,6 @@ begin
         staticscanner.LoadedPointermapFilename:=filename+'.resume.scandata';
 
         staticscanner.progressbar:=ProgressBar1;
-        staticscanner.resumeptrfilename:=filename; //free by staticscanner
         staticscanner.filename:=filename;
 
         staticscanner.Start;

@@ -355,8 +355,6 @@ type
     end;
 
     resumescan: boolean; //if true load the pointermap from filename.resume.scandata and the queue from filename.resume.queue
-    resumefilelist: tstringlist; //list containing the files of the previous scan. If less threads are created make sure at least all these files stay part of the .ptr file
-    resumePtrFilename: string;
 
     downloadingscandata: boolean; //true while scandata is being downloaded
     downloadingscandata_received: qword;
@@ -541,7 +539,7 @@ begin
                   else
                   begin
                     //create a resultstream
-                    resultstream:=TFileStream.Create(fcontroller.filename+'.child'+inttostr(fChildID), fmCreate);
+                    resultstream:=TFileStream.Create(fcontroller.filename+'.results.child'+inttostr(fChildID), fmCreate);
                     fcontroller.childnodes[i].resultstream:=resultstream;
                   end;
 
@@ -2602,7 +2600,7 @@ begin
             addedToQueue:=false;
             while (not terminated) and (not addedToQueue) do
             begin
-              if pathqueuelength<MAXQUEUESIZE-1 then //no need to lock
+              if pathqueuelength<MAXQUEUESIZE-1 then
               begin
                 pathqueueCS.enter;
                 //setup the queueelement
@@ -2766,28 +2764,6 @@ begin
             saveAndClearQueue(savedqueue);
 
           pathqueueCS.Leave;
-          {
-          if (not terminated) and alldone and distributedScanning then
-          begin
-            //if this is a distributed scan
-            if distributedWorker then
-            begin
-
-              if doDistributedScanningLoop then
-                alldone:=false; //the server didn't tell me to go kill myself
-            end
-            else
-            begin
-              //server scanners are done, check if all the workers are done
-              for i:=0 to length(workers)-1 do
-                if (workers[i].alldone=false) then
-                begin
-                  alldone:=false;
-                  break; //still some workers active. do not terminate the scan
-                end;
-            end;
-          end;}
-
         end;
 
       end;
@@ -4483,6 +4459,8 @@ var
 
 
     pointerlistloaders: array of TPointerlistloader;
+
+    oldfiles: tstringlist;
 begin
   if terminated then exit;
 
@@ -4524,14 +4502,17 @@ begin
     result:=nil;
 
     if resumescan then
-      resumeptrfilereader:=TPointerscanresultReader.create(resumeptrfilename);
+      resumeptrfilereader:=TPointerscanresultReader.create(filename)
+    else
+    begin
+      //not a resume, delete the old files
+      oldfiles:=tstringlist.create;
+      findAllResultFilesForThisPtr(filename, oldfiles);
+      for i:=0 to oldfiles.count-1 do
+        DeleteFile(oldfiles[i]);
 
-    {
-    if distributedScanning and distributedWorker then
-      LaunchWorker; //connects and sets up the parameters
-
-    if distributedScandataDownloadPort=0 then
-      distributedScandataDownloadPort:=distributedport+1; }
+      oldfiles.free;
+    end;
 
     phase:=1;
     if instantrescan then
@@ -4665,6 +4646,25 @@ begin
         pointerlisthandler.saveModuleListToResults(result);
       end;
 
+      //save the maxlevel:
+      result.Write(maxlevel,sizeof(maxlevel));
+
+
+      //save the compressed data fields
+      result.writeByte(ifthen(compressedptr, 1, 0));
+      if compressedptr then
+      begin
+        result.writeByte(ifthen(unalligned, 0, 1)); //1 if alligned (I should really rename this one)
+        result.writeByte(MaxBitCountModuleIndex);
+        result.writeByte(MaxBitCountLevel);
+        result.writeByte(MaxBitCountOffset);
+
+        result.writeByte(length(mustendwithoffsetlist));
+        for i:=0 to length(mustendwithoffsetlist)-1 do
+          result.writeDword(mustendwithoffsetlist[i]);
+      end;
+
+
 
       if resumePtrFileReader<>nil then
         FreeAndNil(resumePtrFileReader); //free the ptr files
@@ -4680,46 +4680,6 @@ begin
       if assigned(fOnStartScan) then
         synchronize(NotifyStartScan);
 
-      //levelsize
-      result.Write(maxlevel,sizeof(maxlevel)); //write max level (maxlevel is provided in the message (it could change depending on the settings)
-
-      //todo: change the way the pointerfiles are stored
-      //pointerstores
-      if resumescan then
-      begin
-        for i:=0 to length(localscanners)-1 do
-        begin
-          j:=resumefilelist.IndexOf(TPointerscanWorkerLocal(localscanners[i]).filename);
-          if j<>-1 then
-            resumefilelist.Delete(j);
-        end;
-      end;
-
-      temp:=length(localscanners);
-      if resumefilelist<>nil then
-        inc(temp, resumefilelist.count);
-
-      result.Write(temp,sizeof(temp));
-      for i:=0 to length(localscanners)-1 do
-      begin
-        tempstring:=ExtractFileName(TPointerscanWorkerLocal(localscanners[i]).filename);
-        temp:=length(tempstring);
-        result.Write(temp,sizeof(temp));
-        result.Write(tempstring[1],temp);
-      end;
-
-      if resumefilelist<>nil then
-      begin
-        for i:=0 to resumefilelist.count-1 do
-        begin
-          tempstring:=resumefilelist[i];
-          temp:=length(tempstring);
-          result.Write(temp,sizeof(temp));
-          result.Write(tempstring[1],temp);
-        end;
-      end;
-
-
       freeandnil(result);
 
 
@@ -4729,61 +4689,8 @@ begin
 
       //returned from the scan, save the rest
 
-      if resumescan then
-        result:=TfileStream.create(filename+'.tmp',fmOpenWrite)
-      else
-        result:=TfileStream.create(filename,fmOpenWrite);
-
-      result.seek(0, soEnd); //append from the end
-
-
-
-      {if distributedScanning then
-      begin
-        //save the number of external workers
-
-
-        result.writeDword(length(workers)); //0 for a worker (unless I decide to make it a real chaotic mess)
-
-        //save the workerid that generated these results (server=-1)
-        result.writeDword(myid);
-
-        freeandnil(result);
-
-        if scandataUploader<>nil then
-        begin
-          scandataUploader.terminate;
-          scandataUploader.WaitFor;
-          freeandnil(scandataUploader);
-        end
-
-      end
-      else }
-      begin
-        //todo: obsolete, there are no workers and no more merging of results
-        result.writeDword(0);    //number of workers
-        result.writeDword(0);    //my id (ignored)
-
-      end;
-
-      result.writeDword(0); //merged worker count
-
-      result.writeDword(ifthen(compressedptr, 1, 0));
-      result.writeDword(ifthen(unalligned, 0, 1)); //1 if alligned (I should really rename this one)
-      result.writeDword(MaxBitCountModuleIndex);
-      result.writeDword(MaxBitCountLevel);
-      result.writeDword(MaxBitCountOffset);
-
-      result.writeDword(length(mustendwithoffsetlist));
-      for i:=0 to length(mustendwithoffsetlist)-1 do
-        result.writeDword(mustendwithoffsetlist[i]);
-
-
 
     finally
-
-      if result<>nil then
-        freeandnil(result);
 
       freeandnil(reverseScanCS);
 
@@ -4803,6 +4710,9 @@ begin
       if initializer then
       begin
         //cleanup the connections
+        if connector<>nil then
+          connector.terminate;
+
         childnodescs.enter;
         try
           for i:=0 to length(childnodes)-1 do
@@ -4811,23 +4721,34 @@ begin
             begin
               childnodes[i].scanresultDownloader.Terminate;
               childnodes[i].scanresultDownloader.WaitFor;
-              childnodes[i].scanresultDownloader.free;    //this is why we use nonblocking sockets
-              childnodes[i].scanresultDownloader:=nil;
+              freeandnil(childnodes[i].scanresultDownloader);
             end;
 
             if childnodes[i].scandatauploader<>nil then
             begin
               childnodes[i].scandatauploader.Terminate;
               childnodes[i].scandatauploader.WaitFor;
-              childnodes[i].scandatauploader.free;
-              childnodes[i].scandatauploader:=nil;
+              freeandnil(childnodes[i].scandatauploader);
             end;
+
 
             if childnodes[i].resultstream<>nil then
               freeandnil(childnodes[i].resultstream);
 
             if childnodes[i].socket<>nil then
               freeandnil(childnodes[i].socket);
+          end;
+
+          if connector<>nil then
+          begin
+            connector.WaitFor;
+            freeandnil(connector);
+          end;
+
+          if listensocket<>INVALID_SOCKET then
+          begin
+            closesocket(listensocket);
+            listensocket:=INVALID_SOCKET;
           end;
 
         finally
@@ -5144,12 +5065,7 @@ begin
     scanfileid:=length(localscanners);
     localscannersCS.leave;
 
-    scanner:=TPointerscanWorkerLocal.Create(
-                                                     true,
-                                                     self.filename+'.'+inttostr(scanfileid),
-                                                     resumescan or (scanfileid<nextscanfileid)
-                                                     );
-    nextscanfileid:=max(nextscanfileid, scanfileid+1);
+    scanner:=TPointerscanWorkerLocal.Create(true, self.filename+'.results.'+inttostr(scanfileid));
   end
   else
   begin
@@ -5430,9 +5346,6 @@ begin
 
   if resumeptrfilereader<>nil then
     freeandnil(resumeptrfilereader);
-
-  if resumefilelist<>nil then
-    freeandnil(resumefilelist);
 
   if parentcs<>nil then
     freeandnil(parentcs);

@@ -873,7 +873,8 @@ uses mainunit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup, HotKeys,
   frmFloatingPointPanelUnit, pluginexports, DBK32functions, frmUltimapUnit,
   frmSetCrosshairUnit, StructuresFrm2, frmMemoryViewExUnit,
   frmD3DHookSnapshotConfigUnit, frmSaveSnapshotsUnit, frmsnapshothandlerUnit,
-  frmNetworkDataCompressionUnit, ProcessHandlerUnit, ProcessList, pointeraddresslist;
+  frmNetworkDataCompressionUnit, ProcessHandlerUnit, ProcessList, pointeraddresslist,
+  PointerscanresultReader;
 
 resourcestring
   rsInvalidStartAddress = 'Invalid start address: %s';
@@ -7928,38 +7929,12 @@ end;
 
 
 procedure TMainForm.Label59Click(Sender: TObject);
-var
-  l: TReversePointerListHandler;
-  fs: TFileStream;
-  cs: Tdecompressionstream;
-  p: ptruint;
-
-
-  x: TcompressionstreamWithPositionSupport;
-  y: tmemorystream;
-
-  a: ptruint;
-  plist: PPointerList;
+var r: tstringlist;
 begin
-  fs:=tfilestream.Create('e:\ptr\SHOM-health08EAE5F4.scandata', fmOpenRead);
-  cs:=Tdecompressionstream.create(fs);
+  r:=tstringlist.create;
+  findAllResultFilesForThisPtr('E:\ptr\tut.PTR',r);
 
-
-  l:=TReversePointerListHandler.createFromStream(cs, progressbar1);
-
-  a:=$08EAE5F4-$34;
-  plist:=l.findPointerValue(a,a);
-
-  if plist=nil then
-    showmessage('fuck');
-
-
-
-  cs.free;
-  fs.free;
-
-
-  showmessage(inttohex(p, 8)); //should be 01827d78
+  showmessage(r.text);
 end;
 
 procedure ChangeIcon(hModule: HModule; restype: PChar; resname: PChar;

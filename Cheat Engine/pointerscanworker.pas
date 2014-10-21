@@ -151,14 +151,13 @@ type
   TPointerscanWorkerLocal=class(TPointerscanWorker)
   private
     ffilename: string;
-    resumescan: boolean;
     resultsfile: tfilestream;
     resultsms: TMemorystream;
   protected
     procedure initialize; override;
     procedure flushresults; override;
   public
-    constructor create(suspended: boolean; filename: string; resumescan: boolean);
+    constructor create(suspended: boolean; filename: string);
     destructor destroy; override;
 
     property filename: string read ffilename;
@@ -250,10 +249,10 @@ begin
 
 
 
-  if resumescan and fileexists(filename) then
+  if fileexists(filename) then
   begin
     //append to the end
-    resultsfile:= tfilestream.Create(filename,fmOpenWrite or fmShareDenyNone);
+    resultsfile:=tfilestream.Create(filename,fmOpenWrite or fmShareDenyNone);
     resultsfile.Seek(0, soEnd);
   end
   else
@@ -280,10 +279,9 @@ begin
   end;
 end;
 
-constructor TPointerscanWorkerLocal.create(suspended: boolean; filename: string; resumescan: boolean);
+constructor TPointerscanWorkerLocal.create(suspended: boolean; filename: string);
 begin
   self.ffilename:=filename;
-  self.resumescan:=resumescan;
 
   inherited create(suspended);
 end;
