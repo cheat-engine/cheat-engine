@@ -130,5 +130,10 @@ object frmChangedAddresses: TfrmChangedAddresses
       ShortCut = 16451
       OnClick = MenuItem1Click
     end
+    object miCopyToAddresslist: TMenuItem
+      Caption = 'Copy selected addresses to addresslist'
+      ShortCut = 49219
+      OnClick = ChangedlistDblClick
+    end
   end
 end
