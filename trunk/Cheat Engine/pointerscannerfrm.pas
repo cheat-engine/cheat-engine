@@ -2858,10 +2858,15 @@ var c: TModalResult;
 begin
   if staticscanner<>nil then
   begin
-    if not (staticscanner.useheapdata or staticscanner.findValueInsteadOfAddress) then
-      c:=MessageDlg('Do you wish to resume the current pointerscan at a later time?', mtInformation,[mbyes, mbno, mbCancel], 0)
+    if staticscanner.initializer=false then
+      c:=mryes
     else
-      c:=mrno; //you can't resume scans that do a valuescan or use heapdata
+    begin
+      if not (staticscanner.useheapdata or staticscanner.findValueInsteadOfAddress) then
+        c:=MessageDlg('Do you wish to resume the current pointerscan at a later time?', mtInformation,[mbyes, mbno, mbCancel], 0)
+      else
+        c:=mrno; //you can't resume scans that do a valuescan or use heapdata
+    end;
 
     case c of
       mryes: stopscan(true);
