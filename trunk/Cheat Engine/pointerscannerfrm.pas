@@ -281,6 +281,7 @@ type
         connectedToNodes: array of record
           node: TTreenode; //ip:port (status)
           data: record
+            disconnectreason: TTreenode;
             trusted: TTreenode; //trusted: true/false
             totalthreadcount: TTreenode; //Total threadcount: %d
             resultsfound: TTreenode; //Total results found: %d
@@ -1835,6 +1836,7 @@ begin
 
             with infonodes.network.connectedToNodes[i].data do
             begin
+              disconnectreason:=tvinfo.items.AddChild(tn, '');
               trusted:=tvInfo.Items.AddChild(tn, '');
               totalthreadcount:=tvInfo.Items.AddChild(tn, '');
               resultsfound:=tvInfo.Items.AddChild(tn, '');
@@ -1869,6 +1871,9 @@ begin
 
           with infonodes.network.connectedToNodes[i].data do
           begin
+            disconnectreason.visible:=connectionlist[i].disconnected;
+            disconnectreason.Text:=connectionlist[i].lasterror;
+
             trusted.text:='Trusted: '+BoolToStr(connectionlist[i].trustedconnection, 'True', 'False');
             totalthreadcount.text:='Total threadcount: '+IntToStr(connectionlist[i].threadcount);
             resultsfound.text:='Results found: '+IntToStr(connectionlist[i].resultsfound);

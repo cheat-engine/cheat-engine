@@ -31,6 +31,7 @@ type
 
     isidle: boolean;
     disconnected: boolean;
+    lasterror: string;
     pathsevaluated: qword;
     trustedconnection: boolean;
     threadcount: integer;
