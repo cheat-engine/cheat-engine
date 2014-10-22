@@ -77,6 +77,7 @@ begin
 end;
 
 procedure TAsyncTimer.execute;
+var f: TNotifyEvent;
 begin
   while not terminated do
   begin
@@ -92,11 +93,14 @@ begin
       try
         fOnTimerCS.enter;
         try
-          if enabled and assigned(fOnTimer) then
-            fOnTimer(self);
+          f:=fOnTimer;
         finally
           fOnTimerCS.leave;
         end;
+
+
+        if enabled and assigned(f) then
+          f(self);
       except
         //on unexpected exceptions don't destroy the timer
       end;

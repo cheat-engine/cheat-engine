@@ -1175,6 +1175,7 @@ begin
     staticscanner:=TPointerscanController.create(true);
 
     staticscanner.OnStartScan:=PointerscanStart;
+    staticscanner.OnScanDone:=PointerscanDone;
 
     staticscanner.initializer:=false;
     staticscanner.threadcount:=f.threadcount;
