@@ -30,6 +30,7 @@ type
   TfrmChangedAddresses = class(TForm)
     lblInfo: TLabel;
     MenuItem1: TMenuItem;
+    miCopyToAddresslist: TMenuItem;
     miDissect: TMenuItem;
     micbShowAsHexadecimal: TMenuItem;
     Panel1: TPanel;
@@ -358,24 +359,23 @@ begin
   vartype:=vtDword;
   ct:=nil;
 
-  if changedlist.Selected<>nil then
-  begin
-    ct:=TCustomType(cbDisplayType.Items.Objects[cbDisplayType.ItemIndex]);
-    if ct=nil then
-    begin
-      case cbDisplayType.ItemIndex of
-        0: vartype:=vtByte;
-        1: vartype:=vtWord;
-        3: vartype:=vtSingle;
-        4: vartype:=vtDouble;
-      end;
-    end
-    else
-      vartype:=vtCustom;
 
-    mainform.addresslist.addaddress(rsNoDescription,
-      changedlist.selected.caption, [], 0, vartype, cbDisplayType.Text );
-  end;
+  ct:=TCustomType(cbDisplayType.Items.Objects[cbDisplayType.ItemIndex]);
+  if ct=nil then
+  begin
+    case cbDisplayType.ItemIndex of
+      0: vartype:=vtByte;
+      1: vartype:=vtWord;
+      3: vartype:=vtSingle;
+      4: vartype:=vtDouble;
+    end;
+  end
+  else
+    vartype:=vtCustom;
+
+  for i:=0 to changedlist.Items.Count-1 do
+    if changedlist.Items[i].Selected then
+      mainform.addresslist.addaddress(rsNoDescription, changedlist.Items[i].caption, [], 0, vartype, cbDisplayType.Text );
 end;
 
 procedure TfrmChangedAddresses.PopupMenu1Popup(Sender: TObject);
