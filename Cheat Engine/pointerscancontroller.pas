@@ -3559,6 +3559,7 @@ end;
 
 
 procedure TPointerscanController.execute_nonInitializer;
+var i: integer;
 begin
   //this is a childnode
   currentscanhasended:=true;
