@@ -266,7 +266,7 @@ begin
 
       end
       else //empty list
-        sleep(10000);
+        sleep(500);
 
     except
       on e: exception do

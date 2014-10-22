@@ -2130,7 +2130,8 @@ begin
     if idle and (wasidle=false) then
     begin
       wasidle:=idle;
-      parentUpdater.TriggerNow; //tell the parent I recently became idle
+      if parentUpdater<>nil then
+        parentUpdater.TriggerNow; //tell the parent I recently became idle
     end
     else
       wasidle:=idle;
@@ -3521,7 +3522,8 @@ begin
 
     //instead of waiting 10+ seconds wait 1 second
     sleep(1000);
-    parentUpdater.TriggerNow; //will trigger again when we return
+    if parentupdater<>nil then
+      parentUpdater.TriggerNow; //will trigger again when we return
   end;
 
 
@@ -3600,7 +3602,10 @@ begin
       if parent.knowsIAmTerminating then
         sendpathsToParent
       else
-        parentUpdater.TriggerNow;
+      begin
+        if parentupdater<>nil then
+          parentUpdater.TriggerNow;
+      end;
     end;
 
     if currentscanhasended and isDone then
@@ -3640,7 +3645,11 @@ begin
 
   //cleanup some memory
   if parentUpdater<>nil then
+  begin
+    parentUpdater.Terminate;
+    parentUpdater.WaitFor;
     freeandnil(parentUpdater);
+  end;
 
   if connector<>nil then
   begin
@@ -4540,6 +4549,13 @@ var i: integer;
 begin
   terminate;
   waitfor;
+
+  if connector<>nil then
+  begin
+    connector.Terminate;
+    connector.WaitFor;
+    freeandnil(connector);
+  end;
 
   if connectorcs<>nil then
     connectorcs.free;
