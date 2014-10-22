@@ -176,6 +176,8 @@ type
 
     mainaddressList: TStringlist;
 
+    warnedAboutDisablingInstantRescan: boolean;
+
 
     procedure iplistResize(Sender: TObject);
     procedure iplistWantedToDeleteLastItem(Sender: TObject);
@@ -962,6 +964,15 @@ begin
   end
   else
   begin
+    if (not warnedAboutDisablingInstantRescan) and (MessageDlg('You will get billions of useless results and gigabytes of wasted diskspace if you do not use this. Are you sure ?', mtConfirmation, [mbyes, mbno], 0)<>mryes) then
+    begin
+      cbCompareToOtherPointermaps.OnChange:=nil;
+      cbCompareToOtherPointermaps.checked:=true;
+      cbCompareToOtherPointermaps.OnChange:=cbCompareToOtherPointermapsChange;
+      exit;
+    end;
+
+    warnedAboutDisablingInstantRescan:=true;
     pdatafilelist.OnResize:=nil;
     pdatafilelist.OnEmptyList:=nil;
     pdatafilelist.visible:=false;
@@ -986,7 +997,10 @@ begin
 
 
     if Reg.OpenKey('\Software\Cheat Engine\'+ClassName, true) then
+    begin
       reg.WriteBool('Advanced', cbShowAdvancedOptions.checked);
+      reg.WriteBool('warnedAboutDisablingInstantRescan', warnedAboutDisablingInstantRescan);
+    end;
 
     if Reg.OpenKey('\Software\Cheat Engine\PSNNodeList', false) then
     begin
@@ -1159,6 +1173,9 @@ begin
   begin
     if reg.ValueExists('Advanced') then
       cbShowAdvancedOptions.checked:=reg.ReadBool('Advanced');
+
+    if reg.ValueExists('warnedAboutDisablingInstantRescan') then
+      warnedAboutDisablingInstantRescan:=reg.ReadBool('warnedAboutDisablingInstantRescan');
   end;
 
   if Reg.OpenKey('\Software\Cheat Engine\PSNNodeList', false) then
