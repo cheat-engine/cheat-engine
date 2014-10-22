@@ -2525,17 +2525,20 @@ begin
     count:=child.socket.ReadDWord;
 
     setlength(paths, count);
+    if count>0 then
+    begin
 
-    ms:=TMemoryStream.Create;
-    try
-      ms.CopyFrom(child.socket, getPathQueueElementSize*count);
-      for i:=0 to length(paths)-1 do
-        LoadPathQueueElementFromStream(ms, @paths[i]);
-    finally
-      ms.free;
+      ms:=TMemoryStream.Create;
+      try
+        ms.CopyFrom(child.socket, getPathQueueElementSize*count);
+        for i:=0 to length(paths)-1 do
+          LoadPathQueueElementFromStream(ms, @paths[i]);
+      finally
+        ms.free;
+      end;
+
+      appendDynamicPathQueueToOverflowQueue(paths);
     end;
-
-    appendDynamicPathQueueToOverflowQueue(paths);
   end
   else
     child.socket.WriteByte(1); //fail because of untrusted
@@ -2883,7 +2886,7 @@ begin
 
     if (child^.terminating) then
     begin
-      HandleUpdateStatusMessage_RequestPathsFromChild(child, updatemsg.localpathqueuecount);
+      HandleUpdateStatusMessage_RequestPathsFromChild(child,min(1000, updatemsg.localpathqueuecount));
       exit;
     end
     else
