@@ -2652,6 +2652,7 @@ var
   i: integer;
 begin
   //todo: test me
+
   with child^.socket do
   begin
     WriteByte(PSUPDATEREPLYCMD_GIVEMEYOURPATHS);
@@ -2661,19 +2662,23 @@ begin
     count:=ReadDWord;
     setlength(paths, count);
 
-    buf:=TMemoryStream.Create;
-    try
-      buf.CopyFrom(child^.socket, getPathQueueElementSize*count);
+    if count<>0 then
+    begin
+      buf:=TMemoryStream.Create;
+      try
+        buf.CopyFrom(child^.socket, getPathQueueElementSize*count);
 
-      buf.position:=0;
-      for i:=0 to count-1 do
-        LoadPathQueueElementFromStream(buf, @paths[i]);
-    finally
-      buf.free;
+        buf.position:=0;
+        for i:=0 to count-1 do
+          LoadPathQueueElementFromStream(buf, @paths[i]);
+      finally
+        buf.free;
+      end;
+
+
+      //still here so I guess it's ok
+      appendDynamicPathQueueToOverflowQueue(paths);
     end;
-
-    //still here so I guess it's ok
-    appendDynamicPathQueueToOverflowQueue(paths);
   end;
 
   EatFromOverflowQueueIfNeeded;
@@ -3203,21 +3208,24 @@ begin
 
   setlength(paths, count);
 
-  buf:=TMemoryStream.Create;
-  try
-    buf.CopyFrom(parent.socket, getPathQueueElementSize*count);
+  if count>0 then
+  begin
+    buf:=TMemoryStream.Create;
+    try
+      buf.CopyFrom(parent.socket, getPathQueueElementSize*count);
 
 
-    buf.position:=0;
-    for i:=0 to count-1 do
-      LoadPathQueueElementFromStream(buf, @paths[i]);
+      buf.position:=0;
+      for i:=0 to count-1 do
+        LoadPathQueueElementFromStream(buf, @paths[i]);
 
-    //still here so I guess it's ok
-  finally
-    buf.free;
+      //still here so I guess it's ok
+
+      appendDynamicPathQueueToOverflowQueue(paths);
+    finally
+      buf.free;
+    end;
   end;
-
-  appendDynamicPathQueueToOverflowQueue(paths);
 
   parent.socket.WriteByte(0); //acknowledge that the paths have been received and handled properly
   parent.socket.flushWrites;
