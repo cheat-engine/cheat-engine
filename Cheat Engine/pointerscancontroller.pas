@@ -172,6 +172,8 @@ type
 
 
     //procedure cleanupScan;
+    function sendPathsToParent: integer; //sends a lot of paths to the parent
+
 
     procedure HandleUpdateStatusReply_DoNewScan;
     procedure HandleUpdateStatusReply_GiveMeYourPaths;
@@ -2100,10 +2102,8 @@ begin
     end;
   end;
 
-
-
-
 end;
+
 
 procedure TPointerscanController.waitForAndHandleNetworkEvent;
 var
@@ -2452,7 +2452,13 @@ begin
       PSCMD_SENDPATHS: HandleSendPathsMessage(index);
       PSCMD_CANUPLOADRESULTS: HandleCanUploadResultsMessage(index);
       PSCMD_UPLOADRESULTS: HandleUploadResultsMessage(index);
-      PSCMD_PREPAREFORMYTERMINATION: childnodes[index].terminating:=true;
+      PSCMD_PREPAREFORMYTERMINATION:
+      begin
+        childnodes[index].terminating:=true;
+        childnodes[index].socket.WriteByte(0);//understood
+        childnodes[index].socket.flushWrites;
+      end;
+
       PSCMD_GOODBYE:
       begin
         freeandnil(childnodes[index].socket);
@@ -2676,6 +2682,42 @@ begin
 end;
 
 
+function TPointerscanController.sendPathsToParent: integer;
+var
+  paths: TDynPathQueue;
+  i: integer;
+begin
+  result:=0;
+  if not parent.knowsIAmTerminating then exit;
+  if parent.socket=nil then exit;
+
+  BuildPathListForTransmission(paths, 1000, false); //it's going to send 1000 paths at a time (or less if it can't do that amount)
+  parentcs.enter;
+  try
+    if parent.socket<>nil then
+    begin
+      parent.socket.WriteByte(PSCMD_SENDPATHS);
+      parent.socket.WriteDWord(length(paths));
+      for i:=0 to length(paths)-1 do
+        WritePathQueueElementToStream(parent.socket, @paths[i]);
+
+      parent.socket.flushWrites;
+      if parent.socket.ReadByte<>0 then
+        appendDynamicPathQueueToOverflowQueue(paths) //failure, but don't error out
+      else
+        result:=length(paths);
+    end
+    else
+      appendDynamicPathQueueToOverflowQueue(paths); //unexpected disconnect, save these paths
+
+
+  finally
+    parentcs.leave;
+  end;
+
+
+
+end;
 
 procedure TPointerscanController.HandleUpdateStatusMessage_SendPathsToChild(child: PPointerscancontrollerchild; count: integer);
 {
@@ -2777,10 +2819,8 @@ begin
   child^.totalpathqueuesize:=updatemsg.totalpathQueueCount;
   child^.queuesize:=updatemsg.queuesize;
 
-  if isidle then //no more pathqueues and all scanners and children's scanners are waiting for new paths
+  if isidle or terminated then //no more pathqueues and all scanners and children's scanners are waiting for new paths (or terminated by the user)
     currentscanhasended:=true;
-
-
 
 
   //now reply
@@ -2838,28 +2878,37 @@ begin
     childcount:=length(childnodes);
     childnodescs.leave;
 
-    if child^.trusted then
+    if (child^.terminating) then
+    begin
+      HandleUpdateStatusMessage_RequestPathsFromChild(child, updatemsg.localpathqueuecount);
+      exit;
+    end
+    else
+    if (child^.trusted) then
     begin
       //equalize the paths
-      if (localscannercount=0) and (localpathcount>0) then
+      if (child^.terminating=false) then
       begin
-        //this node does not handle paths. Send them all
-        HandleUpdateStatusMessage_SendPathsToChild(child, 1+(localpathcount div childcount));
-        exit;
-      end;
+        if (localscannercount=0) and (localpathcount>0) then
+        begin
+          //this node does not handle paths. Send them all
+          HandleUpdateStatusMessage_SendPathsToChild(child, 1+(localpathcount div childcount));
+          exit;
+        end;
 
-      if (overflowsize>0) and (updatemsg.localpathqueuecount<MAXQUEUESIZE) then
-      begin
-        //I have some overflow. Send what I can to this child
-        HandleUpdateStatusMessage_SendPathsToChild(child, 1+min(overflowsize, MAXQUEUESIZE)-updatemsg.localpathqueuecount);
-        exit;
-      end;
+        if (overflowsize>0) and (updatemsg.localpathqueuecount<MAXQUEUESIZE) then
+        begin
+          //I have some overflow. Send what I can to this child
+          HandleUpdateStatusMessage_SendPathsToChild(child, 1+min(overflowsize, MAXQUEUESIZE)-updatemsg.localpathqueuecount);
+          exit;
+        end;
 
-      if (updatemsg.localpathqueuecount<(MAXQUEUESIZE div 2)) and (localpathcount>(MAXQUEUESIZE div 2)) then
-      begin
-        //equalize (from parent->child)
-        HandleUpdateStatusMessage_SendPathsToChild(child, localpathcount-updatemsg.localpathqueuecount);
-        exit;
+        if (updatemsg.localpathqueuecount<(MAXQUEUESIZE div 2)) and (localpathcount>(MAXQUEUESIZE div 2)) then
+        begin
+          //equalize (from parent->child)
+          HandleUpdateStatusMessage_SendPathsToChild(child, localpathcount-updatemsg.localpathqueuecount);
+          exit;
+        end;
       end;
 
       if (updatemsg.localpathqueuecount>(MAXQUEUESIZE div 2)) and (localpathcount<(MAXQUEUESIZE div 2)) then
@@ -3339,6 +3388,18 @@ begin
         //receive the result
         //handle accordingly
 
+        if terminated and (parent.knowsIAmTerminating=false) then
+        begin
+          //tell a parent i'm going to disconnect
+          parent.socket.WriteByte(PSCMD_PREPAREFORMYTERMINATION);
+          parent.socket.flushWrites;
+
+          parent.knowsIAmTerminating:=true;
+          if parent.socket.ReadByte<>0 then
+            raise exception.create('Parent didn''t respond properly to PSCMD_PREPAREFORMYTERMINATION');
+        end;
+
+
         OutputDebugString('Updating status');
 
 
@@ -3541,8 +3602,83 @@ begin
         parentupdater.enabled:=true;
       end;
 
-      while not terminated do
+      while true do
+      begin
         waitForAndHandleNetworkEvent;
+        if terminated then
+        begin
+          currentscanhasended:=true;
+
+          if parent.knowsIAmTerminating then
+            sendpathsToParent
+          else
+            parentUpdater.TriggerNow;
+
+
+          if isDone then
+          begin
+            OutputDebugString('Terminated and all children are done. Quiting');
+
+            //send a message to the parent that i'm gone
+
+            parentcs.enter;
+            try
+              if parent.socket<>nil then
+              begin
+                parent.socket.WriteByte(PSCMD_GOODBYE);
+                freeandnil(parent.socket);
+              end;
+
+            finally
+              parentcs.Leave;
+            end;
+
+            break;
+          end;
+
+
+        end;
+
+      end;
+
+      //cleanup some memory
+      if connector<>nil then
+      begin
+        connector.Terminate;
+        connector.WaitFor;
+        freeandnil(connector);
+      end;
+
+      childnodescs.enter;
+      try
+        for i:=0 to length(childnodes)-1 do
+        begin
+          if childnodes[i].scanresultDownloader<>nil then
+          begin
+            childnodes[i].scanresultDownloader.terminate;
+            childnodes[i].scanresultDownloader.WaitFor;
+            freeandnil(childnodes[i]);
+          end;
+
+          if childnodes[i].scanresultDownloader<>nil then
+          begin
+            childnodes[i].scanresultDownloader.terminate;
+            childnodes[i].scanresultDownloader.waitfor;
+            freeandnil(childnodes[i].scanresultDownloader);
+          end;
+
+          if childnodes[i].socket<>nil then
+            freeandnil(childnodes[i].socket);
+
+        end;
+        setlength(childnodes,0);
+      finally
+        childnodescs.leave;
+      end;
+
+      if assigned(fOnScanDone) then
+        fOnScanDone(self, hasError, errorstring);
+
 
       exit;
     end;

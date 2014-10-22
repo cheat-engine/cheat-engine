@@ -42,6 +42,7 @@ type
     port: word;
 
     trustsme: boolean;
+    knowsIAmTerminating: boolean;
   end;
 
   PPointerscanControllerParent=^TPointerscanControllerParent;
