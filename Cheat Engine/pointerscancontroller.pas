@@ -2531,6 +2531,7 @@ begin
       ms:=TMemoryStream.Create;
       try
         ms.CopyFrom(child.socket, getPathQueueElementSize*count);
+        ms.Position:=0;
         for i:=0 to length(paths)-1 do
           LoadPathQueueElementFromStream(ms, @paths[i]);
       finally
