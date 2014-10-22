@@ -392,6 +392,7 @@ type
     procedure getParentData(var d: TPublicParentData);
 
     procedure TerminateAndSaveState;
+    procedure execute_nonInitializer;
     procedure execute; override;
     constructor create(suspended: boolean);
     destructor destroy; override;
@@ -2132,9 +2133,6 @@ begin
     end
     else
       wasidle:=idle;
-
-
-
   end;
 
 
@@ -3280,31 +3278,38 @@ var i: integer;
 begin
   //cleanup the instantrescan files.
   //this can be done safely here because the UpdateStatus message is the only route new scanfiles can be made
-  for i:=0 to length(instantrescanfiles)-1 do
-  begin
-    if instantrescanfiles[i].memoryfilestream<>nil then
-      freeandnil(instantrescanfiles[i].memoryfilestream);
+  parentcs.Enter;
+  try
+    for i:=0 to length(instantrescanfiles)-1 do
+    begin
+      if instantrescanfiles[i].memoryfilestream<>nil then
+        freeandnil(instantrescanfiles[i].memoryfilestream);
 
-    if instantrescanfiles[i].plist<>nil then
-      freeandnil(instantrescanfiles[i].plist);
+      if instantrescanfiles[i].plist<>nil then
+        freeandnil(instantrescanfiles[i].plist);
+
+      if allowtempfiles then
+        deletefile(instantrescanfiles[i].filename);
+
+      if instantrescanfiles[i].memoryfilestream<>nil then
+        freeandnil(instantrescanfiles[i].memoryfilestream);
+    end;
+
+    setlength(instantrescanfiles,0);
+
+    if pointerlisthandler<>nil then
+      freeandnil(pointerlisthandler);
 
     if allowtempfiles then
-      deletefile(instantrescanfiles[i].filename);
+      deletefile(LoadedPointermapFilename);
 
-    if instantrescanfiles[i].memoryfilestream<>nil then
-      freeandnil(instantrescanfiles[i].memoryfilestream);
+    if pointerlisthandlerfile<>nil then
+      freeandnil(pointerlisthandlerfile);
+
+
+  finally
+    parentcs.Leave;
   end;
-
-  setlength(instantrescanfiles,0);
-
-  if pointerlisthandler<>nil then
-    freeandnil(pointerlisthandler);
-
-  if allowtempfiles then
-    deletefile(LoadedPointermapFilename);
-
-  if pointerlisthandlerfile<>nil then
-    freeandnil(pointerlisthandlerfile);
 end;
 
 procedure TPointerscanController.UpdateStatus(sender: tobject);
@@ -3553,6 +3558,114 @@ begin
 end;
 
 
+procedure TPointerscanController.execute_nonInitializer;
+begin
+  //this is a childnode
+  currentscanhasended:=true;
+
+  //enter the networking loop and wait for the parent(if there is one) to provide messages, or handle incomming connections
+
+  //setup a parent update timer
+  if parentupdater=nil then //should be...
+  begin
+    parentupdater:=TAsyncTimer.create(false);
+    parentupdater.OnTimer:=UpdateStatus;
+    parentupdater.Interval:=8000+random(4000); //update the parent every 8 to 12 seconds
+    parentupdater.enabled:=true;
+  end;
+
+  while true do
+  begin
+    waitForAndHandleNetworkEvent;
+
+    if terminated then
+    begin
+      currentscanhasended:=true;
+
+      if parent.knowsIAmTerminating then
+        sendpathsToParent
+      else
+        parentUpdater.TriggerNow;
+    end;
+
+    if currentscanhasended and isDone then
+    begin
+      parentcs.Enter;
+      try
+        UpdateStatus_cleanupScan;
+      finally
+        parentcs.leave;
+      end;
+
+
+
+      if terminated then
+      begin
+        OutputDebugString('Terminated and all children are done. Quiting');
+
+        //send a message to the parent that i'm gone
+
+        parentcs.enter;
+        try
+          if parent.socket<>nil then
+          begin
+            parent.socket.WriteByte(PSCMD_GOODBYE);
+            freeandnil(parent.socket);
+          end;
+
+        finally
+          parentcs.Leave;
+        end;
+
+        break;
+      end;
+    end;
+
+  end;
+
+  //cleanup some memory
+  if parentUpdater<>nil then
+    freeandnil(parentUpdater);
+
+  if connector<>nil then
+  begin
+    connector.Terminate;
+    connector.WaitFor;
+    freeandnil(connector);
+  end;
+
+  childnodescs.enter;
+  try
+    for i:=0 to length(childnodes)-1 do
+    begin
+      if childnodes[i].scanresultDownloader<>nil then
+      begin
+        childnodes[i].scanresultDownloader.terminate;
+        childnodes[i].scanresultDownloader.WaitFor;
+        freeandnil(childnodes[i]);
+      end;
+
+      if childnodes[i].scanresultDownloader<>nil then
+      begin
+        childnodes[i].scanresultDownloader.terminate;
+        childnodes[i].scanresultDownloader.waitfor;
+        freeandnil(childnodes[i].scanresultDownloader);
+      end;
+
+      if childnodes[i].socket<>nil then
+        freeandnil(childnodes[i].socket);
+
+    end;
+    setlength(childnodes,0);
+  finally
+    childnodescs.leave;
+  end;
+
+  if assigned(fOnScanDone) then
+    fOnScanDone(self, hasError, errorstring);
+
+
+end;
 
 procedure TPointerscanController.execute;
 var
@@ -3588,99 +3701,9 @@ begin
 
     if not initializer then
     begin
-      //this is a childnode
-      currentscanhasended:=true;
-
-      //enter the networking loop and wait for the parent(if there is one) to provide messages, or handle incomming connections
-
-      //setup a parent update timer
-      if parentupdater=nil then
-      begin
-        parentupdater:=TAsyncTimer.create(false);
-        parentupdater.OnTimer:=UpdateStatus;
-        parentupdater.Interval:=8000+random(4000); //update the parent every 8 to 12 seconds
-        parentupdater.enabled:=true;
-      end;
-
-      while true do
-      begin
-        waitForAndHandleNetworkEvent;
-        if terminated then
-        begin
-          currentscanhasended:=true;
-
-          if parent.knowsIAmTerminating then
-            sendpathsToParent
-          else
-            parentUpdater.TriggerNow;
-
-
-          if isDone then
-          begin
-            OutputDebugString('Terminated and all children are done. Quiting');
-
-            //send a message to the parent that i'm gone
-
-            parentcs.enter;
-            try
-              if parent.socket<>nil then
-              begin
-                parent.socket.WriteByte(PSCMD_GOODBYE);
-                freeandnil(parent.socket);
-              end;
-
-            finally
-              parentcs.Leave;
-            end;
-
-            break;
-          end;
-
-
-        end;
-
-      end;
-
-      //cleanup some memory
-      if connector<>nil then
-      begin
-        connector.Terminate;
-        connector.WaitFor;
-        freeandnil(connector);
-      end;
-
-      childnodescs.enter;
-      try
-        for i:=0 to length(childnodes)-1 do
-        begin
-          if childnodes[i].scanresultDownloader<>nil then
-          begin
-            childnodes[i].scanresultDownloader.terminate;
-            childnodes[i].scanresultDownloader.WaitFor;
-            freeandnil(childnodes[i]);
-          end;
-
-          if childnodes[i].scanresultDownloader<>nil then
-          begin
-            childnodes[i].scanresultDownloader.terminate;
-            childnodes[i].scanresultDownloader.waitfor;
-            freeandnil(childnodes[i].scanresultDownloader);
-          end;
-
-          if childnodes[i].socket<>nil then
-            freeandnil(childnodes[i].socket);
-
-        end;
-        setlength(childnodes,0);
-      finally
-        childnodescs.leave;
-      end;
-
-      if assigned(fOnScanDone) then
-        fOnScanDone(self, hasError, errorstring);
-
-
+      execute_nonInitializer;
       exit;
+
     end;
 
     //this is an initiator
