@@ -1233,6 +1233,7 @@ begin
       l[i].pathsevaluated:=childnodes[i].totalPathsEvaluated;
       l[i].resultsfound:=childnodes[i].resultsfound;
       l[i].disconnected:=childnodes[i].socket=nil;
+      l[i].lasterror:=childnodes[i].Error;
       l[i].uploadingscandata:=childnodes[i].scandatauploader<>nil;
       l[i].ScanDataSent:=childnodes[i].ScanDataSent;
       l[i].ScanDataTotalSize:=childnodes[i].ScanDataTotalSize;
@@ -2406,6 +2407,7 @@ begin
       freeandnil(childnodes[index].socket);
 
     childnodes[index].MissingSince:=GetTickCount64;
+    childnodes[index].Error:=error;
     //else I won't really miss it...
 
     if childnodes[index].iConnectedTo then
