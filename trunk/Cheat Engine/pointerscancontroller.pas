@@ -2708,6 +2708,8 @@ begin
   if parent.socket=nil then exit;
 
   BuildPathListForTransmission(paths, 1000, false); //it's going to send 1000 paths at a time (or less if it can't do that amount)
+  if length(paths)=0 then exit; //don't bother the parent or the critical section
+
   parentcs.enter;
   try
     if parent.socket<>nil then
@@ -3643,6 +3645,11 @@ begin
           if parent.socket<>nil then
           begin
             parent.socket.WriteByte(PSCMD_GOODBYE);
+            try
+              parent.socket.ReadByte;
+            except
+              //Can happen
+            end;
             freeandnil(parent.socket);
           end;
 
