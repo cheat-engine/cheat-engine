@@ -642,6 +642,8 @@ begin
 
   if bigalloc<>nil then
     bigalloc.free;
+
+  inherited destroy;
 end;
 
 
@@ -797,7 +799,7 @@ begin
   maxlevel:=s.ReadDWord;
   totalcount:=s.ReadQWord;
 
-  getmem(level0list, sizeof(TReversePointerListArray));
+  level0list:=bigalloc.alloc(sizeof(TReversePointerListArray));
   ZeroMemory(level0list, sizeof(TReversePointerListArray));
 
   count:=0;
@@ -806,10 +808,6 @@ begin
   while (count<totalcount) do
   begin
     pvalue:=s.ReadQWord;
-    if pvalue=$08EAE5F4-$34 then
-    begin
-      beep;
-    end;
     plist:=findoraddpointervalue(pvalue);
 
 
@@ -819,14 +817,14 @@ begin
       numberofpointers:=s.ReadDWord;
 
       plist.pos:=numberofpointers;
-      getmem(plist.list, numberofpointers*sizeof(TPointerDataArray));
+      plist.list:=bigalloc.alloc(numberofpointers*sizeof(TPointerDataArray));
 
       for i:=0 to numberofpointers-1 do
       begin
         plist.list[i].address:=s.ReadQWord;
         if s.ReadByte=1 then //has staticdata
         begin
-          getmem(plist.list[i].staticdata, sizeof(TStaticData));
+          plist.list[i].staticdata:=bigalloc.alloc(sizeof(TStaticData));
           plist.list[i].staticdata.moduleindex:=s.ReadDWord;
           plist.list[i].staticdata.offset:=s.readDword;
         end
@@ -1265,7 +1263,7 @@ begin
       progressbar.Position:=0;
 
     finally
-      OutputDebugString('Freeing the buffer');
+      //OutputDebugString('Freeing the buffer');
       if buffer<>nil then
         freemem(buffer);
 
@@ -1277,7 +1275,7 @@ begin
 
     end;
 
-    OutputDebugString('TReversePointerListHandler.create: Finished without an exception');
+    //OutputDebugString('TReversePointerListHandler.create: Finished without an exception');
 
   except
     on e: exception do
