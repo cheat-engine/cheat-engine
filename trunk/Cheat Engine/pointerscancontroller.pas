@@ -2543,6 +2543,8 @@ begin
 
       appendDynamicPathQueueToOverflowQueue(paths);
     end;
+
+    child.socket.WriteByte(0); //success
   end
   else
     child.socket.WriteByte(1); //fail because of untrusted
