@@ -4592,7 +4592,7 @@ begin
   end;
 
   if connectorcs<>nil then
-    connectorcs.free;
+    freeandnil(connectorcs);
 
     {
   if sockethandle<>-1 then
@@ -4646,6 +4646,8 @@ begin
 
   if parentUpdater<>nil then
     freeandnil(parentUpdater);
+
+
 
   closehandle(pathqueueSemaphore);
 
