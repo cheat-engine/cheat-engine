@@ -131,14 +131,8 @@ type
 
     procedure EatFromOverflowQueueIfNeeded;
 
-  {  procedure launchWorker; //connect to the server
-    procedure launchServer; //start listening on the specific port
-    procedure broadcastscan; //sends a broadcast to the local network and the potentialWorkerList
-
-    function doDistributedScanningLoop: boolean;  //actually doDistributedScanningLoopIteration
-    function doDistributedScanningWorkerLoop: boolean;
-    function doDistributedScanningServerLoop: boolean;
-    procedure DispatchCommand(s: Tsocket; command: byte);  }
+    function childrenDone: boolean;
+    function localScannersDone: boolean;
 
     procedure getQueueStatistics_checkPath(path: TPathQueueElement);
     procedure getQueueStatistics;
@@ -831,6 +825,41 @@ end;
 
 //-------
 
+function TPointerscanController.LocalScannersDone: boolean;
+var i: integer;
+begin
+  result:=true;
+  localscannersCS.Enter;
+  try
+    for i:=0 to length(localscanners)-1 do
+    begin
+      if localscanners[i].Finished then continue;
+
+      if localscanners[i].isdone=false then
+        exit;
+    end;
+  finally
+    localscannersCS.Leave;
+  end;
+end;
+
+function TPointerscanController.childrendone: boolean;
+var i: integer;
+begin
+  result:=true;
+  childnodescs.enter;
+  try
+    for i:=0 to length(childnodes)-1 do
+      if childnodes[i].totalthreadcount>0 then //it still has some threads, so not done. (they can still flush their results when they get destroyed)
+      begin
+        result:=false;
+        exit;
+      end;
+  finally
+    childnodescs.leave;
+  end;
+end;
+
 function TPointerscanController.isDone: boolean;
 var i: integer;
 begin
@@ -841,19 +870,8 @@ begin
     result:=isidle;
 
     if result then
-    begin
-      childnodescs.enter;
-      try
-        for i:=0 to length(childnodes)-1 do
-          if childnodes[i].totalthreadcount>0 then //it still has some threads, so not done. (they can still flush their results when they get destroyed)
-          begin
-            result:=false;
-            exit;
-          end;
-      finally
-        childnodescs.leave;
-      end;
-    end;
+      result:=childrendone;
+
   end;
 end;
 
@@ -887,18 +905,7 @@ begin
 
   //the children are idle and all queue entries are empty
 
-  localscannersCS.Enter;
-  try
-    for i:=0 to length(localscanners)-1 do
-    begin
-      if localscanners[i].Finished then continue;
-
-      if localscanners[i].isdone=false then
-        exit;
-    end;
-  finally
-    localscannersCS.Leave;
-  end;
+  if localscannersdone=false then exit;
 
   //the children are idle and all queue entries are empty and no thread is currently doing anything
 
@@ -1814,10 +1821,16 @@ begin
           EatFromOverflowQueueIfNeeded;
 
           pathqueueCS.Enter;
-          if (pathqueuelength=0) or terminated then  //still 0
-            alldone:=isdone
+          if not terminated then
+          begin
+            if pathqueuelength=0 then  //still 0
+              alldone:=isdone
+            else
+              alldone:=false;
+          end
           else
-            alldone:=false;
+            alldone:=LocalScannersDone and ChildrenDone; //don't bother about paths, they will get saved later, or discarded
+
 
           if terminated and savestate then
             saveAndClearQueue(savedqueue);
@@ -1835,7 +1848,10 @@ begin
     //all threads are done
     localscannerscs.Enter;
     for i:=0 to length(localscanners)-1 do
+    begin
+      localscanners[i].terminate;
       localscanners[i].stop:=true;
+    end;
     localscannerscs.Leave;
 
 
