@@ -2548,6 +2548,8 @@ begin
   end
   else
     child.socket.WriteByte(1); //fail because of untrusted
+
+  child.socket.flushWrites;
 end;
 
 procedure TPointerscanController.BuildPathListForTransmission(var paths: TDynPathQueue; count: integer; includeVeryGoodPath: boolean);
