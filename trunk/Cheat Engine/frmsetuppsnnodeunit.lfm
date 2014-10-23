@@ -1,7 +1,7 @@
 object frmSetupPSNNode: TfrmSetupPSNNode
-  Left = 1391
+  Left = 414
   Height = 425
-  Top = 118
+  Top = 68
   Width = 370
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
