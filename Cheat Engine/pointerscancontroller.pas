@@ -3645,11 +3645,7 @@ begin
           if parent.socket<>nil then
           begin
             parent.socket.WriteByte(PSCMD_GOODBYE);
-            try
-              parent.socket.ReadByte;
-            except
-              //Can happen
-            end;
+            parent.socket.flushWrites;
             freeandnil(parent.socket);
           end;
 
