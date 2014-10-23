@@ -1959,17 +1959,19 @@ procedure TPointerscanController.WorkerException(sender: TObject);
 //usually called by workers
 var i: integer;
 begin
-  localscannersCS.Enter;
-  for i:=0 to length(localscanners)-1 do
-    localscanners[i].Terminate;
-
-  if haserror=false then
+  if localscannersCS.TryEnter then
   begin
-    haserror:=true;
-    errorstring:=TPointerscanWorker(sender).errorstring;
-  end;
+    for i:=0 to length(localscanners)-1 do
+      localscanners[i].Terminate;
 
-  localscannersCS.leave;
+    if haserror=false then
+    begin
+      haserror:=true;
+      errorstring:=TPointerscanWorker(sender).errorstring;
+    end;
+
+    localscannersCS.leave;
+  end;
 end;
 
 function TPointerscanController.UploadResults(decompressedsize: integer; s: tmemorystream): boolean;
