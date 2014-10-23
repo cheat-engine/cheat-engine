@@ -325,9 +325,17 @@ begin
 end;
 
 procedure TfrmChangedAddresses.MenuItem1Click(Sender: TObject);
+var
+  list: Tstringlist;
+  i: integer;
 begin
-  if changedlist.Selected<>nil then
-    clipboard.AsText:=changedlist.Selected.Caption;
+  list:=tstringlist.create;
+  for i:=0 to changedlist.Items.Count-1 do
+    if changedlist.Items[i].Selected then
+      list.add(changedlist.Items[i].Caption);
+
+  clipboard.AsText:=list.text;
+  list.free;
 end;
 
 procedure TfrmChangedAddresses.FormClose(Sender: TObject;
