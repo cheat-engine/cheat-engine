@@ -2589,6 +2589,8 @@ begin
             setlength(pathqueue[pathqueuelength-1].valuelist, maxlevel+1);
 
           dec(pathqueuelength);
+
+          inc(actualcount);
         end;
 
       end;
@@ -2596,7 +2598,7 @@ begin
     finally
       pathqueueCS.leave;
     end;
-    inc(actualcount);
+
   end;
 
   if actualcount>=count then exit; //done
@@ -3189,7 +3191,14 @@ begin
     begin
       WriteDWord(length(paths)); //number of paths
       for i:=0 to length(paths)-1 do
+      begin
+        if length(paths[i].tempresults)=0 then
+        asm
+          nop //debug me
+        end;
+
         WritePathQueueElementToStream(parent.socket, @paths[i]);
+      end;
 
       flushWrites;
     end;
