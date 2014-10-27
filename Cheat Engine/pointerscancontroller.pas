@@ -3390,6 +3390,7 @@ begin
             for j:=i+1 to length(parentqueue)-2 do
               parentqueue[j]:=parentqueue[j+1];
 
+            setlength(parentqueue, length(parentqueue)-1);
             orphanedSince:=0;
             break;
           end;
@@ -4253,7 +4254,7 @@ begin
 
 
           //you have a new daddy! Say hello to him
-          OutputDebugString('Going to say hello');
+        OutputDebugString('Going to say hello');
         sayHello(@parentqueue[length(parentqueue)-1]); //'Hello daddy'...creepy voice
         OutputDebugString('said hello');
 
