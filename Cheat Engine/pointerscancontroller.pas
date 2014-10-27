@@ -2313,6 +2313,8 @@ begin
             setlength(childnodes[i].nontrustedlastpaths,0);
           end;
 
+          if childnodes[i].resultstream<>nil then
+            freeandnil(childnodes[i].resultstream);
 
           for j:=i to length(childnodes)-2 do
             childnodes[j]:=childnodes[j+1];
@@ -3710,6 +3712,9 @@ begin
         childnodes[i].scanresultDownloader.waitfor;
         freeandnil(childnodes[i].scanresultDownloader);
       end;
+
+      if childnodes[i].resultstream<>nil then
+        freeandnil(childnodes[i].resultstream);
 
       if childnodes[i].socket<>nil then
         freeandnil(childnodes[i].socket);
