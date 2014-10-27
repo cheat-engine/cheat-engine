@@ -1082,6 +1082,7 @@ properties
   Parent: Treenode - The treenode this object is a child of. (can be nil) (ReadOnly)
   Level: Integer - The level this node is at
   HasChildren: boolean - Set to true if it has children, or you wish it to have an expand sign
+  Expanded: boolean - Set to true if it has been expanded
   Count : Integer - The number of children this node has
   Items[]: Treenode - Array to access the child nodes of this node
   Index: Integer - The index based on the parent
