@@ -153,6 +153,7 @@ type
     btnDecreaseThreadCount: TButton;
     cbTrusted: TCheckBox;
     cbPriority: TComboBox;
+    cbTestCrappyConnection: TCheckBox;
     edtIP: TEdit;
     edtPassword: TEdit;
     edtPort: TEdit;
@@ -199,6 +200,7 @@ type
     procedure btnIncreaseThreadCountClick(Sender: TObject);
     procedure btnDecreaseThreadCountClick(Sender: TObject);
     procedure cbPriorityChange(Sender: TObject);
+    procedure cbTestCrappyConnectionChange(Sender: TObject);
 
     procedure FormDestroy(Sender: TObject);
     procedure FormResize(Sender: TObject);
@@ -1494,6 +1496,11 @@ begin
 
     staticscanner.changeWorkerPriority(scannerpriority);
   end;
+end;
+
+procedure Tfrmpointerscanner.cbTestCrappyConnectionChange(Sender: TObject);
+begin
+  debug_connectionfailure:=cbTestCrappyConnection.checked;
 end;
 
 
