@@ -164,6 +164,27 @@ begin
   result:=0;
 end;
 
+function treenode_getExpanded(L: PLua_State): integer; cdecl;
+var
+  treenode: Ttreenode;
+begin
+
+  treenode:=luaclass_getClassObject(L);
+  lua_pushvariant(L, treenode.Expanded);
+  result:=1;
+end;
+
+function treenode_setExpanded(L: PLua_State): integer; cdecl;
+var
+  treenode: Ttreenode;
+begin
+  treenode:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    treenode.Expanded:=lua_tovariant(L, -1);
+
+  result:=0;
+end;
+
 
 function treenode_getParent(L: PLua_State): integer; cdecl;
 var
@@ -278,6 +299,7 @@ begin
   Luaclass_addPropertyToTable(L, metatable, userdata, 'MultiSelected', treenode_getMultiSelected, treenode_setMultiSelected);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Parent', treenode_getParent, nil);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'HasChildren', treenode_getHasChildren, treenode_setHasChildren);
+  Luaclass_addPropertyToTable(L, metatable, userdata, 'Expanded', treenode_getExpanded, treenode_setExpanded);
 
 end;
 
