@@ -22,6 +22,7 @@ MONOCMD_GETCLASSNAMESPACE=20
 MONOCMD_FREEMETHOD=21
 MONOCMD_TERMINATE=22
 MONOCMD_DISASSEMBLE=23
+MONOCMD_GETMETHODSIGNATURE=24
 
 
 MONO_TYPE_END        = 0x00       -- End of List
@@ -712,6 +713,21 @@ function mono_method_getHeader(method)
 
   monopipe.unlock()
 
+  return result;
+end
+
+function mono_method_getSignature(method)
+  if debug_canBreak() then return nil end
+
+  local result=''
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_GETMETHODSIGNATURE)
+  monopipe.writeQword(method)
+
+  local resultlength=monopipe.readWord();
+  result=monopipe.readString(resultlength);
+
+  monopipe.unlock()
   return result;
 end
 
