@@ -720,15 +720,29 @@ function mono_method_getSignature(method)
   if debug_canBreak() then return nil end
 
   local result=''
+  local parameternames={}
   monopipe.lock()
   monopipe.writeByte(MONOCMD_GETMETHODSIGNATURE)
   monopipe.writeQword(method)
+
+  local paramcount=monopipe.readByte()
+  local i
+  
+  for i=1, paramcount do
+    local namelength=monopipe.readByte()
+    if namelength>0 then
+      parameternames[i]=monopipe.readString(namelength)
+    else
+      parameternames[i]='param'..i
+    end
+  end
+
 
   local resultlength=monopipe.readWord();
   result=monopipe.readString(resultlength);
 
   monopipe.unlock()
-  return result;
+  return result, parameternames;
 end
 
 function mono_method_disassemble(method)

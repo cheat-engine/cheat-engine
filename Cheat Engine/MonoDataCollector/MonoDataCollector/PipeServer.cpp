@@ -151,8 +151,12 @@ void CPipeServer::InitMono()
 			mono_method_get_class=(MONO_METHOD_GET_CLASS)GetProcAddress(hMono, "mono_method_get_class");	
 			mono_method_get_header=(MONO_METHOD_GET_HEADER)GetProcAddress(hMono, "mono_method_get_header");	
 			mono_method_signature=(MONO_METHOD_SIG)GetProcAddress(hMono, "mono_method_signature");
+			mono_method_get_param_names = (MONO_METHOD_GET_PARAM_NAMES)GetProcAddress(hMono, "mono_method_get_param_names");
+
+			
 
 			mono_signature_get_desc = (MONO_SIGNATURE_GET_DESC)GetProcAddress(hMono, "mono_signature_get_desc");
+			mono_signature_get_param_count = (MONO_SIGNATURE_GET_PARAM_COUNT)GetProcAddress(hMono, "mono_signature_get_param_count");
 
 			mono_compile_method=(MONO_COMPILE_METHOD)GetProcAddress(hMono, "mono_compile_method");	
 			mono_free_method=(MONO_FREE_METHOD)GetProcAddress(hMono, "mono_free_method");	
@@ -537,7 +541,27 @@ void CPipeServer::DisassembleMethod()
 void CPipeServer::GetMethodSignature()
 {
 	void *method = (void *)ReadQword();
-	char *sig = mono_signature_get_desc(mono_method_signature(method), TRUE);  
+	void *methodsignature = mono_method_signature(method);
+	char *sig = mono_signature_get_desc(methodsignature, TRUE);
+	int paramcount = mono_signature_get_param_count(methodsignature);
+	char **names=(char **)calloc(sizeof(char *), paramcount);
+
+	int i;
+	
+	mono_method_get_param_names(method, (const char **)names);
+	WriteByte(paramcount);
+	for (i = 0; i < paramcount; i++)
+	{
+		if (names[i])
+		{
+			WriteByte(strlen(names[i]));
+			Write(names[i], strlen(names[i]));
+		}
+		else
+			WriteByte(0);
+	}
+
+	free(names);
 
 	WriteWord(strlen(sig));
 	Write(sig, strlen(sig));
