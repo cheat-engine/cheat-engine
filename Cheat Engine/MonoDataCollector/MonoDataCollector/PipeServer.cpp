@@ -150,6 +150,9 @@ void CPipeServer::InitMono()
 			mono_method_get_name=(MONO_METHOD_GET_NAME)GetProcAddress(hMono, "mono_method_get_name");	
 			mono_method_get_class=(MONO_METHOD_GET_CLASS)GetProcAddress(hMono, "mono_method_get_class");	
 			mono_method_get_header=(MONO_METHOD_GET_HEADER)GetProcAddress(hMono, "mono_method_get_header");	
+			mono_method_signature=(MONO_METHOD_SIG)GetProcAddress(hMono, "mono_method_signature");
+
+			mono_signature_get_desc = (MONO_SIGNATURE_GET_DESC)GetProcAddress(hMono, "mono_signature_get_desc");
 
 			mono_compile_method=(MONO_COMPILE_METHOD)GetProcAddress(hMono, "mono_compile_method");	
 			mono_free_method=(MONO_FREE_METHOD)GetProcAddress(hMono, "mono_free_method");	
@@ -531,6 +534,16 @@ void CPipeServer::DisassembleMethod()
 	g_free(disassembly);
 }
 
+void CPipeServer::GetMethodSignature()
+{
+	void *method = (void *)ReadQword();
+	char *sig = mono_signature_get_desc(method, TRUE);  
+
+	WriteWord(strlen(sig));
+	Write(sig, strlen(sig));
+	g_free(sig);	
+}
+
 void CPipeServer::Start(void)
 {
 	BYTE command;
@@ -639,6 +652,10 @@ void CPipeServer::Start(void)
 
 					case MONOCMD_DISASSEMBLE:
 						DisassembleMethod();
+						break;
+
+					case MONOCMD_GETMETHODSIGNATURE:
+						GetMethodSignature();
 						break;
 				}
 			}			
