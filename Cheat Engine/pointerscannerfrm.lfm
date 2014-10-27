@@ -41,6 +41,15 @@ object frmPointerScanner: TfrmPointerScanner
       TabOrder = 0
       Visible = False
     end
+    object cbTestCrappyConnection: TCheckBox
+      Left = 544
+      Height = 20
+      Top = 0
+      Width = 158
+      Caption = 'Simulate no connection'
+      OnChange = cbTestCrappyConnectionChange
+      TabOrder = 1
+    end
   end
   object btnStopRescanLoop: TButton
     Left = 248

@@ -46,6 +46,9 @@ function receive(socket: TSocket; buffer: pointer; size: integer; timeout: integ
 
 //todo: perhaps setup listener/connect for non blocking ?
 
+var
+  debug_connectionfailure: boolean;
+
 implementation
 
 function TSocketStream.Read(var Buffer; Count: Longint): Longint;
@@ -127,23 +130,6 @@ begin
 end;
 
 //----------------
-          {
-function TNetworkStream.WriteToSocket(s: tsocket; timeout: integer=10): integer;
-begin
-  result:=send(s, memory, size);
-end;
-
-function TNetworkStream.ReadFromSocket(s: tsocket; readsize: integer; timeout: integer=10): integer;
-var buffer: pchar;
-begin
-  getmem(buffer, readsize);
-  try
-    result:=receive(s, buffer, readsize);
-    WriteBuffer(buffer^, result);
-  finally
-    freemem(buffer);
-  end;
-end;      }
 
 function send(socket: TSocket; buffer: pointer; size: integer; timeout: integer=10): integer;
 var
@@ -154,6 +140,10 @@ begin
   {$ifdef DEBUGPROTOCOL}
   timeout:=0; //just let me test in peace
   {$endif}
+
+  if debug_connectionfailure then
+    raise TSocketException.Create('Whoopdeedoo');
+
 
   result:=0;
   while (result<size) do
@@ -209,6 +199,9 @@ begin
   {$ifdef DEBUGPROTOCOL}
   timeout:=0;
   {$endif}
+
+  if debug_connectionfailure then
+    raise TSocketException.Create('Whoopdeedoo');
 
   result:=0;
   while (result<size) do
