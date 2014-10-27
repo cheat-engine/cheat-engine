@@ -85,12 +85,13 @@ typedef int (__cdecl *MONO_JIT_INFO_GET_CODE_SIZE)(void *jitinfo);
 typedef void* (__cdecl *MONO_METHOD_GET_HEADER)(void *method);
 typedef void* (__cdecl *MONO_METHOD_GET_CLASS)(void *method);
 typedef void* (__cdecl *MONO_METHOD_SIG)(void *method);
+typedef void* (__cdecl *MONO_METHOD_GET_PARAM_NAMES)(void *method, const char **names);
 
 typedef void* (__cdecl *MONO_METHOD_HEADER_GET_CODE)(void *methodheader, UINT32 *code_size, UINT32 *max_stack);
 typedef char* (__cdecl *MONO_DISASM_CODE)(void *dishelper, void *method, void *ip, void *end);
 
 typedef char* (__cdecl *MONO_SIGNATURE_GET_DESC)(void *signature, int include_namespace);
-
+typedef int (__cdecl *MONO_SIGNATURE_GET_PARAM_COUNT)(void *signature);
 
 
 typedef void* (__cdecl *MONO_IMAGE_RVA_MAP)(void *image, UINT32 addr);
@@ -147,8 +148,10 @@ private:
 	MONO_METHOD_GET_HEADER mono_method_get_header;
 	MONO_METHOD_GET_CLASS mono_method_get_class;
 	MONO_METHOD_SIG mono_method_signature;
+	MONO_METHOD_GET_PARAM_NAMES mono_method_get_param_names;
 
 	MONO_SIGNATURE_GET_DESC mono_signature_get_desc;
+	MONO_SIGNATURE_GET_PARAM_COUNT mono_signature_get_param_count;
 
 
 	MONO_COMPILE_METHOD mono_compile_method;
