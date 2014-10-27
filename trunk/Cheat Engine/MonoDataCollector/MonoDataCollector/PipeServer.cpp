@@ -537,7 +537,7 @@ void CPipeServer::DisassembleMethod()
 void CPipeServer::GetMethodSignature()
 {
 	void *method = (void *)ReadQword();
-	char *sig = mono_signature_get_desc(method, TRUE);  
+	char *sig = mono_signature_get_desc(mono_method_signature(method), TRUE);  
 
 	WriteWord(strlen(sig));
 	Write(sig, strlen(sig));
