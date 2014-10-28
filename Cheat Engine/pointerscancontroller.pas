@@ -2446,7 +2446,11 @@ begin
     if childnodes[index].socket<>nil then
       freeandnil(childnodes[index].socket);
 
-    childnodes[index].MissingSince:=GetTickCount64;
+    if currentscanhasended and childnodes[index].idle then
+      childnodes[index].MissingSince:=0   //I won't miss it
+    else
+      childnodes[index].MissingSince:=GetTickCount64;
+
     childnodes[index].Error:=error;
     //else I won't really miss it...
 
@@ -2980,7 +2984,7 @@ begin
     begin
       if child^.idle then //only send paths to the non-trusted child if it's completely idle
       begin
-        HandleUpdateStatusMessage_SendPathsToChild(child, min(child.trustlevel+1, localpathcount div 4 )); //the trustlevel goes up if it goes idle within 5 minutes (max 16)
+        HandleUpdateStatusMessage_SendPathsToChild(child, min(child.trustlevel+1, localpathcount div 4 )); //the trustlevel goes up if it goes idle within 5 minutes
         exit;
       end;
     end;
