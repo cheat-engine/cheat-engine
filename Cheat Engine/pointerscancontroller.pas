@@ -1445,6 +1445,9 @@ begin
             oi:=length(overflowqueue)-1-(i-pathqueuelength);
             pathqueue[i].startlevel:=overflowqueue[oi].startlevel;
             pathqueue[i].valuetofind:=overflowqueue[oi].valuetofind;
+
+
+
             copymemory(@pathqueue[i].tempresults[0], @overflowqueue[oi].tempresults[0], listsize);
             if noLoop then
               copymemory(@pathqueue[i].valuelist[0], @overflowqueue[oi].valuelist[0], listsize);
@@ -3059,6 +3062,10 @@ var
   files: integer;
 
 
+  newscannerid: dword;
+  newcurrentscanid: dword;
+
+
 begin
   //todo: test me
   if not isDone then
@@ -3069,8 +3076,8 @@ begin
 
   with parent.socket do
   begin
-    scannerid:=ReadDWord;
-    currentscanid:=ReadDWord;
+    newscannerid:=ReadDWord;
+    newcurrentscanid:=ReadDWord;
     parent.scanid:=currentscanid;
 
     maxlevel:=ReadDWord;
@@ -3091,6 +3098,20 @@ begin
       mustendwithoffsetlist[i]:=ReadDWord;
 
     files:=readDword;
+
+    if length(instantrescanfiles)>0 then
+    begin
+      for i:=0 to length(instantrescanfiles)-1 do
+      begin
+        if instantrescanfiles[i].memoryfilestream<>nil then
+          freeandnil(instantrescanfiles[i].memoryfilestream);
+
+        if instantrescanfiles[i].plist<>nil then
+          freeandnil(instantrescanfiles[i].plist);
+      end;
+    end;
+
+    setlength(instantrescanfiles, 0);
 
     setlength(instantrescanfiles, files-1); //-1 because the first one is the main file
 
@@ -3124,7 +3145,12 @@ begin
       begin
         currentstream:=tmemorystream.create;
         if i=0 then
+        begin
+          if pointerlisthandlerfile<>nil then
+            freeandnil(pointerlisthandlerfile);
+
           pointerlisthandlerfile:=tmemorystream(currentstream)
+        end
         else
           instantrescanfiles[i-1].memoryfilestream:=tmemorystream(currentstream);
       end;
@@ -3152,11 +3178,17 @@ begin
     if allowtempfiles then //open the filestream
       currentstream:=TFileStream.create(LoadedPointermapFilename, fmOpenRead or fmShareDenyNone)
     else
+    begin
       currentstream:=pointerlisthandlerfile;
+      currentstream.position:=0;
+    end;
     //...
 
     ds:=Tdecompressionstream.create(currentstream);
     try
+      if pointerlisthandler<>nil then
+        freeandnil(pointerlisthandler);
+
       pointerlisthandler:=TReversePointerListHandler.createFromStream(ds);
     finally
       ds.free;
@@ -3175,10 +3207,16 @@ begin
         if allowtempfiles then //open the filestream
           currentstream:=TFileStream.create(instantrescanfiles[i].filename, fmOpenRead or fmShareDenyNone)
         else
-          currentstream:=pointerlisthandlerfile;
+        begin
+          currentstream:=instantrescanfiles[i].memoryfilestream;
+          currentstream.position:=0;
+        end;
 
         try
           ds:=Tdecompressionstream.create(currentstream);
+          if instantrescanfiles[i].plist<>nil then
+            freeandnil(instantrescanfiles[i].plist);
+
           instantrescanfiles[i].plist:=TPointerListHandler.createFromStream(ds);
         finally
           ds.free;
@@ -3215,6 +3253,10 @@ begin
   finally
     localscannersCS.leave;
   end;
+
+  //got till here, so everything got loaded
+  currentscanid:=newcurrentscanid;
+  scannerid:=newscannerid;
 end;
 
 procedure TPointerscanController.HandleUpdateStatusReply_GiveMeYourPaths;
@@ -3599,11 +3641,6 @@ begin
 
     if allfinished then //not to be confused with isdone. This can be true, even if some children still have paths to process and send data
       UpdateStatus_cleanupScan;
-
-    //instead of waiting 10+ seconds wait 1 second
-    sleep(1000);
-    if parentupdater<>nil then
-      parentUpdater.TriggerNow; //will trigger again when we return
   end;
 
 
