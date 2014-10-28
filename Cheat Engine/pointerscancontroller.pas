@@ -55,6 +55,8 @@ type
 
   TPointerscanController = class(TThread)
   private
+    fTerminatedScan: boolean;
+
     fOnScanDone: TPointerscanDoneEvent;
     fOnStartScan: TNotifyEvent;
 
@@ -196,6 +198,9 @@ type
     procedure ConnectorConnect(sender: TObject; sockethandle: TSocket; IBecameAParent: boolean; entry: PConnectEntry);
 
     procedure OverflowQueueWriter(sender: TObject; PathQueueElement: TPathQueueElement);
+    function getTerminatedState: boolean;
+  protected
+    property Terminated:boolean read getTerminatedState;
   public
 
 
@@ -567,6 +572,7 @@ begin
         end
         else
         begin
+
           while fcontroller.UploadResults(decompressedStreamSize, ms)=false do
           begin
             sleep(10+random(500));
@@ -916,6 +922,11 @@ procedure TPointerscanController.notifyStartScan;
 begin
   if assigned(fOnStartScan) then
     fOnStartScan(self);
+end;
+
+function TPointerscanController.getTerminatedState: boolean;
+begin
+  result:=(inherited Terminated) or fTerminatedScan;
 end;
 
 function TPointerscanController.getActualThreadCount: integer;
@@ -1627,6 +1638,35 @@ var
 
   cs: Tcompressionstream;
   s: TFileStream;
+  procedure handleNetwork;
+  begin
+    if useLoadedPointermap=false then  //one time init. (no incomming connections will get accepted during this time
+    begin
+      //create a scandata file to send to the children if it gets any
+      childnodescs.Enter;   //prevents the connector from adding a child to the list.
+      try
+        LoadedPointermapFilename:=self.filename+'.scandata';
+        s:=TFileStream.Create(LoadedPointermapFilename, fmCreate);
+        try
+          cs:=Tcompressionstream.Create(clfastest, s);
+          try
+            pointerlisthandler.exportToStream(cs);
+          finally
+            cs.free;
+          end;
+        finally
+          s.free;
+        end;
+      finally
+        childnodescs.leave;
+      end;
+
+      useLoadedPointermap:=true;
+    end;
+
+    waitForAndHandleNetworkEvent;
+  end;
+
 begin
 
   //scan the buffer
@@ -1690,7 +1730,12 @@ begin
               end;
 
               if (not addedToQueue) and (not terminated) then
-                sleep(500); //wait till there is space in the queue
+              begin
+                if hasNetworkResponsibility then
+                  handleNetwork
+                else
+                  sleep(500); //wait till there is space in the queue
+              end;
             end;
 
           end;
@@ -1779,33 +1824,7 @@ begin
         EatFromOverflowQueueIfNeeded;
 
         if hasNetworkResponsibility then
-        begin
-          if useLoadedPointermap=false then  //one time init. (no incomming connections will get accepted during this time
-          begin
-            //create a scandata file to send to the children if it gets any
-            childnodescs.Enter;   //prevents the connector from adding a child to the list.
-            try
-              LoadedPointermapFilename:=self.filename+'.scandata';
-              s:=TFileStream.Create(LoadedPointermapFilename, fmCreate);
-              try
-                cs:=Tcompressionstream.Create(clfastest, s);
-                try
-                  pointerlisthandler.exportToStream(cs);
-                finally
-                  cs.free;
-                end;
-              finally
-                s.free;
-              end;
-            finally
-              childnodescs.leave;
-            end;
-
-            useLoadedPointermap:=true;
-          end;
-
-          waitForAndHandleNetworkEvent;
-        end
+          HandleNetwork
         else
         begin
           if terminated and savestate then
@@ -3444,6 +3463,27 @@ begin
         //receive the result
         //handle accordingly
 
+        if currentscanhasended=false then
+        begin
+          if maxTimeToScan>0 then
+          begin
+            //check if the scan should stop because of the time
+
+            //if so, terminate the scan,  but don't terminate the thread
+            if (GetTickCount64-starttime div 1000)>maxTimeToScan then
+              fTerminatedScan:=true;  //from now on terminated will return true
+          end;
+
+          if maxResultsToFind>0 then
+          begin
+            //check if the scan should stop because of the resultcount
+            if getTotalResultsFound>maxResultsToFind then
+              fTerminatedScan:=true;
+          end;
+
+        end;
+
+
         if terminated and (parent.knowsIAmTerminating=false) then
         begin
           //tell a parent i'm going to disconnect
@@ -3631,6 +3671,7 @@ begin
   begin
     waitForAndHandleNetworkEvent;
 
+
     if terminated then
     begin
       currentscanhasended:=true;
@@ -3654,11 +3695,9 @@ begin
       end;
 
 
-
       if terminated then
       begin
-        OutputDebugString('Terminated and all children are done. Quiting');
-
+        OutputDebugString('Terminated and all children are done');
         //send a message to the parent that i'm gone
 
         parentcs.enter;
@@ -3674,7 +3713,12 @@ begin
           parentcs.Leave;
         end;
 
-        break;
+        fTerminatedScan:=false;
+        if terminated then //still terminated ?
+        begin
+          OutputDebugString('Actual termination');
+          break;
+        end;
       end;
     end;
 
