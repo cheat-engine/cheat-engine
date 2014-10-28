@@ -31,6 +31,18 @@ type
 
   TPointerscanController=class;
 
+  TPointerlistloader=class(tthread)
+  private
+  public
+    filename: string;
+    memoryfilestream: TMemoryStream;
+
+    progressbar: TProgressbar;
+    pointerlisthandler: TPointerListHandler;
+    procedure execute; override;
+  end;
+
+
   TScanResultDownloader = class (TThread) //class for receiving scan results from a child
   private
     fcontroller: TPointerscanController;
@@ -199,6 +211,8 @@ type
 
     procedure OverflowQueueWriter(sender: TObject; PathQueueElement: TPathQueueElement);
     function getTerminatedState: boolean;
+
+    procedure ProcessScanDataFiles;
   protected
     property Terminated:boolean read getTerminatedState;
   public
@@ -348,7 +362,7 @@ type
     instantrescan: boolean;
     instantrescanfiles:array of record
       filename: string;
-      memoryfilestream: TMemoryStream;
+      memoryfilestream: TMemoryStream; //if no tempfiles this holds the scandata file
       address: ptruint;
       plist: TPointerListHandler;
       progressbar: TProgressBar;
@@ -431,6 +445,29 @@ uses PointerscanNetworkCommands, ValueFinder, ProcessHandlerUnit;
 
 resourcestring
   rsFailureCopyingTargetProcessMemory = 'Failure copying target process memory';
+
+//------------------------POINTERLISTLOADER-------------
+procedure TPointerlistloader.execute;
+var
+  s: TStream;
+  ds: Tdecompressionstream;
+begin
+  s:=memoryfilestream;
+  if s=nil then
+    s:=tfilestream.Create(filename, fmOpenRead or fmShareDenyNone);
+
+  s.position:=0;
+
+  ds:=Tdecompressionstream.create(s);
+
+  pointerlisthandler:=TPointerListHandler.createFromStream(ds, progressbar);
+
+  ds.free;
+
+  if s is TFileStream then
+    s.free;
+end;
+
 
 //------------------------SCANRESULTDOWNLOADER-------------
 procedure TScanResultDownloader.execute;
@@ -1968,30 +2005,7 @@ begin
   result:=bitcount;
 end;
 
-type
-  TPointerlistloader=class(tthread)
-  private
-  public
-    filename: string;
-    progressbar: TProgressbar;
-    pointerlisthandler: TPointerListHandler;
-    procedure execute; override;
-  end;
 
-procedure TPointerlistloader.execute;
-var
-  fs: TFileStream;
-  cs: Tdecompressionstream;
-begin
-  fs:=tfilestream.Create(filename, fmOpenRead or fmShareDenyNone);
-  cs:=Tdecompressionstream.create(fs);
-
-  pointerlisthandler:=TPointerListHandler.createFromStream(cs, progressbar);
-
-  cs.free;
-  fs.free;
-
-end;
 
 procedure TPointerscanController.WorkerException(sender: TObject);
 //usually called by workers
@@ -3189,61 +3203,8 @@ begin
     downloadingscandata_stoptime:=GetTickCount64;
     downloadingscandata:=false;
 
-    //process the streams
-    //first the main stream
-    if allowtempfiles then //open the filestream
-      currentstream:=TFileStream.create(LoadedPointermapFilename, fmOpenRead or fmShareDenyNone)
-    else
-    begin
-      currentstream:=pointerlisthandlerfile;
-      currentstream.position:=0;
-    end;
-    //...
-
-    ds:=Tdecompressionstream.create(currentstream);
-    try
-      if pointerlisthandler<>nil then
-        freeandnil(pointerlisthandler);
-
-      pointerlisthandler:=TReversePointerListHandler.createFromStream(ds);
-    finally
-      ds.free;
-      if allowtempfiles then
-        currentstream.free;
-    end;
-
-
-
-
-
-    //and now the rescan streams
-    begin
-      for i:=0 to length(instantrescanfiles)-1 do
-      begin
-        if allowtempfiles then //open the filestream
-          currentstream:=TFileStream.create(instantrescanfiles[i].filename, fmOpenRead or fmShareDenyNone)
-        else
-        begin
-          currentstream:=instantrescanfiles[i].memoryfilestream;
-          currentstream.position:=0;
-        end;
-
-        try
-          ds:=Tdecompressionstream.create(currentstream);
-          if instantrescanfiles[i].plist<>nil then
-            freeandnil(instantrescanfiles[i].plist);
-
-          instantrescanfiles[i].plist:=TPointerListHandler.createFromStream(ds);
-        finally
-          ds.free;
-
-          if allowtempfiles then
-            currentstream.free;
-        end;
-
-
-      end;
-    end;
+    if threadcount>0 then //if it's going to be used right away:
+      ProcessScanDataFiles;
 
     instantrescan:=length(instantrescanfiles)>0;
 
@@ -3262,12 +3223,15 @@ begin
 
 
   //spawn the threads:
-  localscannersCS.enter;
-  try
-    while length(localscanners)<threadcount do
-      addworkerThread;
-  finally
-    localscannersCS.leave;
+  if threadcount>0 then
+  begin
+    localscannersCS.enter;
+    try
+      while length(localscanners)<threadcount do
+        addworkerThread;
+    finally
+      localscannersCS.leave;
+    end;
   end;
 
   //got till here, so everything got loaded
@@ -3894,40 +3858,47 @@ begin
     end;
 
     phase:=1;
-    if instantrescan then
+
+    if threadcount>0 then
     begin
-      //launch threads to load these data files
-      setlength(pointerlistloaders, length(instantrescanfiles));
-      for i:=0 to length(pointerlistloaders)-1 do
+      if instantrescan then
       begin
-        pointerlistloaders[i]:=TPointerlistloader.Create(true);
-        pointerlistloaders[i].progressbar:=instantrescanfiles[i].progressbar;
-        pointerlistloaders[i].filename:=instantrescanfiles[i].filename;
-        pointerlistloaders[i].Start;
+        //launch threads to load these data files
+        setlength(pointerlistloaders, length(instantrescanfiles));
+        for i:=0 to length(pointerlistloaders)-1 do
+        begin
+          pointerlistloaders[i]:=TPointerlistloader.Create(true);
+          pointerlistloaders[i].progressbar:=instantrescanfiles[i].progressbar;
+          pointerlistloaders[i].filename:=instantrescanfiles[i].filename;
+          pointerlistloaders[i].Start;
+        end;
       end;
+
     end;
 
-    if pointerlisthandler=nil then
+    if useLoadedPointermap then
+    begin
+      if threadcount>0 then  //don't load it yet if there are going to be no threads that want to use it
+      begin
+        f:=tfilestream.create(LoadedPointermapFilename, fmOpenRead or fmShareDenyNone);
+        try
+          ds:=Tdecompressionstream.create(f);
+          try
+            pointerlisthandler:=TReversePointerListHandler.createFromStream(ds, progressbar);
+          finally
+            ds.free;
+          end;
+        finally
+          f.free;
+        end;
+      end;
+    end
+    else
     begin
 
       progressbar.Position:=0;
       try
-        if useLoadedPointermap then
-        begin
-          f:=tfilestream.create(LoadedPointermapFilename, fmOpenRead or fmShareDenyNone);
-          try
-            ds:=Tdecompressionstream.create(f);
-            try
-              pointerlisthandler:=TReversePointerListHandler.createFromStream(ds, progressbar);
-            finally
-              ds.free;
-            end;
-          finally
-            f.free;
-          end;
-        end
-        else
-          pointerlisthandler:=TReversePointerListHandler.Create(startaddress,stopaddress,not unalligned,progressbar, noreadonly, MustBeClassPointers, acceptNonModuleClasses, useStacks, stacksAsStaticOnly, threadstacks, stacksize, mustStartWithBase, BaseStart, BaseStop);
+        pointerlisthandler:=TReversePointerListHandler.Create(startaddress,stopaddress,not unalligned,progressbar, noreadonly, MustBeClassPointers, acceptNonModuleClasses, useStacks, stacksAsStaticOnly, threadstacks, stacksize, mustStartWithBase, BaseStart, BaseStop);
 
 
         progressbar.position:=100;
@@ -3960,9 +3931,15 @@ begin
       end;
     end;
 
-    if generatePointermapOnly then
+    if ((threadcount=0) and (UseLoadedPointermap=false)) or generatePointermapOnly then
     begin
-      f:=tfilestream.create(filename, fmCreate);
+      if generatePointermapOnly then
+        LoadedPointermapFilename:=filename
+      else
+        LoadedPointermapFilename:=filename+'.scandata';
+
+
+      f:=tfilestream.create(LoadedPointermapFilename, fmCreate);
       cs:=Tcompressionstream.create(clfastest, f);
       pointerlisthandler.exportToStream(cs);
       cs.free;
@@ -3971,11 +3948,17 @@ begin
       filename:='';
       progressbar.Position:=0;
 
-      if Assigned(fOnScanDone) then
-        fOnScanDone(self, haserror, errorstring);
+      if generatePointermapOnly then
+      begin
+        //that's all we need
+        if Assigned(fOnScanDone) then
+          fOnScanDone(self, haserror, errorstring);
 
-      terminate;
-      exit;
+        terminate;
+        exit;
+      end;
+
+      UseLoadedPointermap:=true;
     end;
 
     phase:=2;
@@ -4430,6 +4413,83 @@ begin
   end;
 end;
 
+procedure TPointerscanController.ProcessScanDataFiles;
+{
+Loads the scandata streams into memory
+}
+var
+  pointerlistloaders: array of TPointerlistloader;
+  currentstream: Tstream;
+  ds: Tdecompressionstream;
+  i: integer;
+begin
+
+  //first the rescan streams (they can be done async)
+  setlength(pointerlistloaders, length(instantrescanfiles));
+  for i:=0 to length(pointerlistloaders)-1 do
+  begin
+    pointerlistloaders[i]:=TPointerlistloader.Create(true);
+    pointerlistloaders[i].progressbar:=instantrescanfiles[i].progressbar;
+    pointerlistloaders[i].filename:=instantrescanfiles[i].filename;
+    pointerlistloaders[i].memoryfilestream:=instantrescanfiles[i].memoryfilestream;
+    pointerlistloaders[i].Start;
+  end;
+
+
+  //while they are busy do the main stream (blocking)
+  if allowtempfiles then //open the filestream
+    currentstream:=TFileStream.create(LoadedPointermapFilename, fmOpenRead or fmShareDenyNone)
+  else
+    currentstream:=pointerlisthandlerfile;
+
+
+  currentstream.position:=0;
+
+  ds:=Tdecompressionstream.create(currentstream);
+  try
+    if pointerlisthandler<>nil then
+      freeandnil(pointerlisthandler);
+
+    pointerlisthandler:=TReversePointerListHandler.createFromStream(ds);
+  finally
+    ds.free;
+    if allowtempfiles then
+      currentstream.free;
+  end;
+
+  for i:=0 to length(pointerlistloaders)-1 do
+  begin
+    pointerlistloaders[i].WaitFor;
+    pointerlistloaders[i].Free;
+  end;
+
+
+             {
+  for i:=0 to length(instantrescanfiles)-1 do
+  begin
+    if allowtempfiles then //open the filestream
+      currentstream:=TFileStream.create(instantrescanfiles[i].filename, fmOpenRead or fmShareDenyNone)
+    else
+    begin
+      currentstream:=instantrescanfiles[i].memoryfilestream;
+      currentstream.position:=0;
+    end;
+
+    try
+      ds:=Tdecompressionstream.create(currentstream);
+      if instantrescanfiles[i].plist<>nil then
+        freeandnil(instantrescanfiles[i].plist);
+
+      instantrescanfiles[i].plist:=TPointerListHandler.createFromStream(ds);
+    finally
+      ds.free;
+
+      if allowtempfiles then
+        currentstream.free;
+    end;
+  end;  }
+end;
+
 procedure TPointerscanController.addworkerThread(preferedprocessor: integer=-1);
 var
   scanner: TPointerscanWorker;
@@ -4437,7 +4497,11 @@ var
   NewAffinity: DWORD_PTR;
   scanfileid: integer;
   downloadtime: qword;
+
 begin
+  if pointerlisthandler=nil then
+    processscandatafiles;
+
   if initializer then
   begin
     localscannersCS.enter;
