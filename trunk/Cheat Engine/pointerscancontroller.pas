@@ -791,6 +791,22 @@ begin
       else
       begin
         OutputDebugString('Succesfully sent scandata to child');
+
+        //mark it as a child we should keep track off
+        fcontroller.childnodescs.Enter;
+        try
+          for i:=0 to length(fcontroller.childnodes)-1 do
+          begin
+            if fcontroller.childnodes[i].childid=fchildid then
+            begin
+              fcontroller.childnodes[i].hasReceivedScandata:=true;
+              break;
+            end;
+          end;
+        finally
+          fcontroller.childnodescs.Leave;
+        end;
+
       end;
 
     end;
@@ -2449,7 +2465,7 @@ begin
     if childnodes[index].socket<>nil then
       freeandnil(childnodes[index].socket);
 
-    if currentscanhasended and childnodes[index].idle then
+    if (currentscanhasended and childnodes[index].idle) or (childnodes[index].hasReceivedScandata=false) then
       childnodes[index].MissingSince:=0   //I won't miss it
     else
       childnodes[index].MissingSince:=GetTickCount64;
