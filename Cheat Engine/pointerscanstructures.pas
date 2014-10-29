@@ -43,6 +43,7 @@ type
 
     trustsme: boolean;
     knowsIAmTerminating: boolean;
+    connecttime: qword;
   end;
 
   PPointerscanControllerParent=^TPointerscanControllerParent;
