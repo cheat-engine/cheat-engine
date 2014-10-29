@@ -2639,6 +2639,8 @@ var
   start: integer;
   i: integer;
 begin
+  if count<0 then
+    count:=0;
 
   setlength(paths, count);
   actualcount:=0;
