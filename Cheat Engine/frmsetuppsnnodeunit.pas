@@ -157,7 +157,7 @@ begin
         cbMaxFoundResults.Checked:=reg.ReadBool('StopScansAfterResultsFound');
 
       if reg.ValueExists('StopResultCount') then
-        edtMaxTimeToScan.text:=IntToStr(reg.ReadInteger('StopResultCount'));
+        edtMaxResultsToFind.text:=IntToStr(reg.ReadInteger('StopResultCount'));
 
 
       if reg.ValueExists('StopScansAfterTime') then
@@ -228,9 +228,9 @@ begin
       reg.WriteInteger('DefaultConnectPort', connectport);
       reg.WriteString('DefaultConnectPassword', edtConnectPassword.text);
       reg.WriteBool('StopScansAfterResultsFound', cbMaxFoundResults.Checked);
-      reg.WriteInteger('StopResultCount', maxtimetoscan);
+      reg.WriteInteger('StopResultCount', maxresultstofind);
       reg.WriteBool('StopScansAfterTime', cbMaxTimeToScan.Checked);
-      reg.WriteInteger('StopTime', maxtimetoscan);
+      reg.WriteInteger('StopTime', strtoint(edtMaxTimeToScan.text));
       reg.WriteBool('AllowTempFiles', cbAllowTempFiles.checked);
     end;
   finally
