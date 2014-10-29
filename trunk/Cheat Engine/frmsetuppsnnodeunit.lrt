@@ -3,7 +3,14 @@ TFRMSETUPPSNNODE.EDTTHREADCOUNT.HINT=The number of threads to scan.
 Hint: Can be 0
 TFRMSETUPPSNNODE.EDTTHREADCOUNT.TEXT=0
 TFRMSETUPPSNNODE.LBLTHREADCOUNT.CAPTION=Threadcount
+TFRMSETUPPSNNODE.CBMAXFOUNDRESULTS.HINT=This will terminate all the children and disconnect from the parent after having found at least the given amount of results
+It's slightly innacurate as the check is only done every 10 seconds or so
+
+Note: This only has effect when there is at least one parent in the queue. Otherwise it's not going to disconnect
 TFRMSETUPPSNNODE.CBMAXFOUNDRESULTS.CAPTION=Stop scans after finding max amount of results
+TFRMSETUPPSNNODE.CBMAXTIMETOSCAN.HINT=This will terminate all the children and disconnect from the parent after scanning for the given amount of time.
+
+Note: This only has effect when there is at least one parent in the queue. Otherwise it's not going to disconnect
 TFRMSETUPPSNNODE.CBMAXTIMETOSCAN.CAPTION=Stop scans after specific time
 TFRMSETUPPSNNODE.LABEL4.CAPTION=Seconds
 TFRMSETUPPSNNODE.LABEL3.CAPTION=Found pointer paths

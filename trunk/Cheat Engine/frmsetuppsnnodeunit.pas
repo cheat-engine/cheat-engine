@@ -195,7 +195,7 @@ begin
     maxresultstofind:=0;
 
   if cbMaxTimeToScan.checked then
-    maxtimetoscan:=strtoint(edtMaxTimeToScan.text)*1000
+    maxtimetoscan:=strtoint(edtMaxTimeToScan.text)
   else
     maxtimetoscan:=0;
 

@@ -1,12 +1,12 @@
 object frmSetupPSNNode: TfrmSetupPSNNode
-  Left = 414
-  Height = 425
-  Top = 68
+  Left = 386
+  Height = 450
+  Top = 133
   Width = 370
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Setup pointerscan network node'
-  ClientHeight = 425
+  ClientHeight = 450
   ClientWidth = 370
   OnCreate = FormCreate
   Position = poScreenCenter
@@ -40,10 +40,13 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     AnchorSideTop.Side = asrBottom
     Left = 14
     Height = 19
+    Hint = 'This will terminate all the children and disconnect from the parent after having found at least the given amount of results'#13#10'It''s slightly innacurate as the check is only done every 10 seconds or so'#13#10#13#10'Note: This only has effect when there is at least one parent in the queue. Otherwise it''s not going to disconnect'
     Top = 285
     Width = 265
     BorderSpacing.Top = 3
     Caption = 'Stop scans after finding max amount of results'
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 1
   end
   object edtMaxResultsToFind: TEdit
@@ -62,9 +65,12 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     AnchorSideTop.Side = asrBottom
     Left = 14
     Height = 19
+    Hint = 'This will terminate all the children and disconnect from the parent after scanning for the given amount of time.'#13#10#13#10'Note: This only has effect when there is at least one parent in the queue. Otherwise it''s not going to disconnect'
     Top = 327
     Width = 173
     Caption = 'Stop scans after specific time'
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 3
   end
   object edtMaxTimeToScan: TEdit
@@ -110,7 +116,7 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     AnchorSideBottom.Side = asrBottom
     Left = 97
     Height = 25
-    Top = 394
+    Top = 419
     Width = 90
     Anchors = [akLeft, akBottom]
     BorderSpacing.Top = 8
@@ -127,7 +133,7 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     AnchorSideBottom.Side = asrBottom
     Left = 192
     Height = 25
-    Top = 394
+    Top = 419
     Width = 90
     Anchors = [akLeft, akBottom]
     BorderSpacing.Top = 8
@@ -436,10 +442,13 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     TabOrder = 21
   end
   object cbAllowTempFiles: TCheckBox
-    Left = 16
+    AnchorSideLeft.Control = edtMaxTimeToScan
+    AnchorSideTop.Control = edtMaxTimeToScan
+    AnchorSideTop.Side = asrBottom
+    Left = 14
     Height = 19
     Hint = 'When checked it will save the scandata files it receives into temporary files on the harddisk'#13#10'If it''s unchecked these files will stay in memory in their original file format as well as their extracted format'#13#10#13#10'This can be useful when on a system with no disk access but lots of RAM'
-    Top = 372
+    Top = 369
     Width = 134
     Caption = 'Allow temp file usage'
     Checked = True
