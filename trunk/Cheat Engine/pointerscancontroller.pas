@@ -3476,6 +3476,8 @@ begin
             if length(parentqueue) > 0 then
             begin
               parent:=parentqueue[0];
+              parent.connecttime:=GetTickCount64; //it was accepted at this time (this way the queue time isn't counted)
+
               for i:=1 to length(parentqueue)-2 do
                 parentqueue[i]:=parentqueue[i+1];
 
@@ -3521,7 +3523,7 @@ begin
             //check if the scan should stop because of the time
 
             //if so, terminate the scan,  but don't terminate the thread
-            if (GetTickCount64-starttime div 1000)>maxTimeToScan then
+            if ((GetTickCount64-parent.connecttime) div 1000)>maxTimeToScan then
               fTerminatedScan:=true;  //from now on terminated will return true
           end;
 
