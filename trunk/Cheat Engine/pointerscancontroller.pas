@@ -2978,49 +2978,63 @@ begin
     begin
       HandleUpdateStatusMessage_RequestPathsFromChild(child,min(1000, updatemsg.localpathqueuecount));
       exit;
-    end
-    else
-    if (child^.trusted) then
+    end;
+
+    if (updatemsg.totalthreadcount>0) or (updatemsg.localpathqueuecount>0) then  //check if it's something we should send or get paths from
     begin
-      //equalize the paths
-      if (child^.terminating=false) then
+      if (child^.trusted) then
       begin
-        if (localscannercount=0) and (localpathcount>0) then
+        //equalize the paths
+        if (child^.terminating=false) then
         begin
-          //this node does not handle paths. Send them all
-          HandleUpdateStatusMessage_SendPathsToChild(child, 1+(localpathcount div childcount));
+          if (updatemsg.totalthreadcount=0) and (updatemsg.localpathqueuecount>0) then
+          begin
+            //get the paths from this node, it's useless (now)
+            HandleUpdateStatusMessage_RequestPathsFromChild(child, updatemsg.localpathqueuecount);
+            exit;
+          end;
+
+          if (localscannercount=0) and (localpathcount>0) then
+          begin
+            //this node does not handle paths. Send them all
+            HandleUpdateStatusMessage_SendPathsToChild(child, 1+(localpathcount div childcount));
+            exit;
+          end;
+
+          if (overflowsize>0) and (updatemsg.localpathqueuecount<MAXQUEUESIZE) then
+          begin
+            //I have some overflow. Send what I can to this child
+            HandleUpdateStatusMessage_SendPathsToChild(child, 1+min(overflowsize, MAXQUEUESIZE)-updatemsg.localpathqueuecount);
+            exit;
+          end;
+
+          if (updatemsg.localpathqueuecount<(MAXQUEUESIZE div 2)) and (localpathcount>(MAXQUEUESIZE div 2)) then
+          begin
+            //equalize (from parent->child)
+            HandleUpdateStatusMessage_SendPathsToChild(child, 1+((localpathcount-updatemsg.localpathqueuecount) div 2));
+            exit;
+          end;
+        end;
+
+        if (updatemsg.localpathqueuecount>(MAXQUEUESIZE div 2)) and (localpathcount<(MAXQUEUESIZE div 2)) then
+        begin
+          //equalize (from child<-parent)
+          HandleUpdateStatusMessage_RequestPathsFromChild(child, 1+((updatemsg.localpathqueuecount-localpathcount) div 2));
           exit;
         end;
 
-        if (overflowsize>0) and (updatemsg.localpathqueuecount<MAXQUEUESIZE) then
+
+
+      end
+      else
+      begin
+        //unstable/untrusted
+        if child^.idle then //only send paths to the non-trusted child if it's completely idle
         begin
-          //I have some overflow. Send what I can to this child
-          HandleUpdateStatusMessage_SendPathsToChild(child, 1+min(overflowsize, MAXQUEUESIZE)-updatemsg.localpathqueuecount);
+          HandleUpdateStatusMessage_SendPathsToChild(child, min(child.trustlevel+1, localpathcount div 4 )); //the trustlevel goes up if it goes idle within 5 minutes
           exit;
         end;
 
-        if (updatemsg.localpathqueuecount<(MAXQUEUESIZE div 2)) and (localpathcount>(MAXQUEUESIZE div 2)) then
-        begin
-          //equalize (from parent->child)
-          HandleUpdateStatusMessage_SendPathsToChild(child, localpathcount-updatemsg.localpathqueuecount);
-          exit;
-        end;
-      end;
-
-      if (updatemsg.localpathqueuecount>(MAXQUEUESIZE div 2)) and (localpathcount<(MAXQUEUESIZE div 2)) then
-      begin
-        //equalize (from child<-parent)
-        HandleUpdateStatusMessage_RequestPathsFromChild(child, localpathcount-updatemsg.localpathqueuecount);
-        exit;
-      end;
-
-    end
-    else
-    begin
-      if child^.idle then //only send paths to the non-trusted child if it's completely idle
-      begin
-        HandleUpdateStatusMessage_SendPathsToChild(child, min(child.trustlevel+1, localpathcount div 4 )); //the trustlevel goes up if it goes idle within 5 minutes
-        exit;
       end;
     end;
   end;
