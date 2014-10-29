@@ -3039,9 +3039,17 @@ begin
     //calculate the masks for compression
     //moduleid can be negative, so keep that in mind
     if resumescan then
-      MaxBitCountModuleIndex:=getMaxBitCount(resumeptrfilereader.modulelistCount-1, true)
+    begin
+      if resumeptrfilereader=nil then raise exception.create('no resume ptr file reader present');
+      MaxBitCountModuleIndex:=getMaxBitCount(resumeptrfilereader.modulelistCount-1, true);
+    end
     else
-      MaxBitCountModuleIndex:=getMaxBitCount(pointerlisthandler.modulelist.Count-1, true);
+    begin
+      if pointerlisthandler=nil then  //should never happen, but use it as a fallback
+        MaxBitCountModuleIndex:=32 //don't compress it
+      else
+        MaxBitCountModuleIndex:=getMaxBitCount(pointerlisthandler.modulelist.Count-1, true);
+    end;
 
     MaxBitCountLevel:=getMaxBitCount(maxlevel-length(mustendwithoffsetlist) , false); //counted from 1.  (if level=4 then value goes from 1,2,3,4) 0 means no offsets. This can happen in case of a pointerscan with specific end offsets, which do not get saved.
     MaxBitCountOffset:=getMaxBitCount(sz, false);
@@ -3214,8 +3222,9 @@ begin
 
   currentscanhasended:=false;
 
-  InitializeCompressedPtrVariables;
   InitializeEmptyPathQueue;
+
+
 
   fstarttime:=GetTickCount64;
   if assigned(fOnStartScan) then
@@ -3820,6 +3829,7 @@ var
 
     oldfiles: tstringlist;
 begin
+  result:=nil;
   if terminated then exit;
 
 
@@ -3969,105 +3979,85 @@ begin
     i:=0;
 
 
-    InitializeCompressedPtrVariables;
+
 
     //setup the pathqueue
     InitializeEmptyPathQueue;
 
+
+
     reverseScanCS:=tcriticalsection.Create;
-    try
 
-      setlength(PreferedProcessorList,0);
+    setlength(PreferedProcessorList,0);
 
-      //build a list of cpu id's
-      PA:=0;
-      GetProcessAffinityMask(GetCurrentProcess, PA, SA);
-      for i:=0 to BitSizeOf(PA)-1 do
+    //build a list of cpu id's
+    PA:=0;
+    GetProcessAffinityMask(GetCurrentProcess, PA, SA);
+    for i:=0 to BitSizeOf(PA)-1 do
+    begin
+      if getbit(i, PA)=1 then
       begin
-        if getbit(i, PA)=1 then
+        if (i mod 2=0) or (hasHyperThreading=false) then
         begin
-          if (i mod 2=0) or (hasHyperThreading=false) then
-          begin
-            setlength(PreferedProcessorList, length(PreferedProcessorList)+1);
-            PreferedProcessorList[length(PreferedProcessorList)-1]:=i;
-          end;
+          setlength(PreferedProcessorList, length(PreferedProcessorList)+1);
+          PreferedProcessorList[length(PreferedProcessorList)-1]:=i;
         end;
       end;
+    end;
 
-      currentcpu:=0;
-
-      //create the headerfile and save header (modulelist, and levelsize)
-      if resumescan then
-      begin
-        result:=TfileStream.create(filename+'.tmp',fmcreate or fmShareDenyWrite);
-        resumePtrFileReader.saveModulelistToResults(result);
-      end
+    for i:=0 to threadcount-1 do
+    begin
+      if i<length(PreferedProcessorList) then
+        addWorkerThread(PreferedProcessorList[i])
       else
+        addWorkerThread;
+    end;
+
+
+    //now do the actual scan
+    if assigned(fOnStartScan) then
+      synchronize(NotifyStartScan);
+
+    try
+      reversescan;
+
+
+      //when done generate the ptr file if it's not a resume scan
+
+      if not resumescan then //create a new ptr
       begin
         result:=TfileStream.create(filename,fmcreate or fmShareDenyWrite);
         pointerlisthandler.saveModuleListToResults(result);
+
+        //save the maxlevel:
+        result.Write(maxlevel,sizeof(maxlevel));
+
+
+        //save the compressed data fields
+        result.writeByte(ifthen(compressedptr, 1, 0));
+        if compressedptr then
+        begin
+          result.writeByte(ifthen(unalligned, 0, 1)); //1 if alligned (I should really rename this one)
+          result.writeByte(MaxBitCountModuleIndex);
+          result.writeByte(MaxBitCountLevel);
+          result.writeByte(MaxBitCountOffset);
+
+          result.writeByte(length(mustendwithoffsetlist));
+          for i:=0 to length(mustendwithoffsetlist)-1 do
+            result.writeDword(mustendwithoffsetlist[i]);
+        end;
+
       end;
-
-      //save the maxlevel:
-      result.Write(maxlevel,sizeof(maxlevel));
-
-
-      //save the compressed data fields
-      result.writeByte(ifthen(compressedptr, 1, 0));
-      if compressedptr then
-      begin
-        result.writeByte(ifthen(unalligned, 0, 1)); //1 if alligned (I should really rename this one)
-        result.writeByte(MaxBitCountModuleIndex);
-        result.writeByte(MaxBitCountLevel);
-        result.writeByte(MaxBitCountOffset);
-
-        result.writeByte(length(mustendwithoffsetlist));
-        for i:=0 to length(mustendwithoffsetlist)-1 do
-          result.writeDword(mustendwithoffsetlist[i]);
-      end;
-
-
-
-      if resumePtrFileReader<>nil then
-        FreeAndNil(resumePtrFileReader); //free the ptr files
-
-      for i:=0 to threadcount-1 do
-      begin
-        if i<length(PreferedProcessorList) then
-          addWorkerThread(PreferedProcessorList[i])
-        else
-          addWorkerThread;
-      end;
-
-      if assigned(fOnStartScan) then
-        synchronize(NotifyStartScan);
-
-      freeandnil(result);
-
-
-
-      //now do the actual scan
-      reversescan;
-
-      //returned from the scan, save the rest
-
 
     finally
+      if result<>nil then
+        freeandnil(result);
 
-      freeandnil(reverseScanCS);
+      if reverseScanCS<>nil then
+        freeandnil(reverseScanCS);
 
-
-
-
-      if resumescan then
-      begin
-        //delete the old ptr file, it's not needed anymore
-        if resumePtrFileReader<>nil then
-          FreeAndNil(resumePtrFileReader);
-
-        deletefile(filename);
-        RenameFile(filename+'.tmp', filename);
-      end;
+      if resumePtrFileReader<>nil then
+        FreeAndNil(resumePtrFileReader);
 
       if initializer then
       begin
@@ -4501,6 +4491,9 @@ var
 begin
   if pointerlisthandler=nil then
     processscandatafiles;
+
+  if MaxBitCountModuleIndex=0 then
+    InitializeCompressedPtrVariables;
 
   if initializer then
   begin
