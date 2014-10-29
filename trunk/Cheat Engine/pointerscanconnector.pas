@@ -165,6 +165,8 @@ var
   ss: TSocketStream;
   result: byte;
 
+
+  wait: boolean;
 begin
   i:=0;
   while not terminated do
@@ -176,13 +178,14 @@ begin
 
     try
 
+      wait:=false;
       listcs.enter;
 
       //check the list
       try
         if i>=list.count  then //start from the beginning
         begin
-          sleep(1000);  //end of the list, wait a bit to prevent hammering
+          wait:=true; //end of the list, wait a bit to prevent hammering
           i:=0;
         end;
 
@@ -192,6 +195,9 @@ begin
       finally
         listcs.leave;
       end;
+
+
+      if wait then sleep(1000);
 
       if terminated then exit;
 
