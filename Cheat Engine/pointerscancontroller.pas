@@ -2602,6 +2602,9 @@ begin
   if (currentscanhasended and savestate) or child.trusted or child.terminating then
   begin
     count:=child.socket.ReadDWord;
+    if count<0 then raise exception.create('The child tried to send a negative amount');
+    if count>65536 then raise exception.create('The child tried to send more paths at once than allowed');  //actually 1000 but let's allow some customization
+
 
     setlength(paths, count);
     if count>0 then
@@ -2641,6 +2644,10 @@ var
 begin
   if count<0 then
     count:=0;
+
+  if count>65535 then
+    count:=65535; //never more
+
 
   setlength(paths, count);
   actualcount:=0;
@@ -2751,9 +2758,15 @@ begin
     flushWrites;
 
     count:=ReadDWord;
+
+    if count>65536 then
+      raise exception.create('The child tried to send more paths than allowed after a request');
+
+
     setlength(paths, count);
 
-    if count<>0 then
+
+    if count>0 then
     begin
       buf:=TMemoryStream.Create;
       try
@@ -3275,6 +3288,8 @@ var
 begin
   //todo: test me
   maxcount:=parent.socket.ReadDWord;
+  if maxcount<0 then
+    maxcount:=0;
 
   buildPathListForTransmission(paths, maxcount, true);
   try
@@ -3283,14 +3298,7 @@ begin
     begin
       WriteDWord(length(paths)); //number of paths
       for i:=0 to length(paths)-1 do
-      begin
-        if length(paths[i].tempresults)=0 then
-        asm
-          nop //debug me
-        end;
-
         WritePathQueueElementToStream(parent.socket, @paths[i]);
-      end;
 
       flushWrites;
     end;
@@ -3318,25 +3326,28 @@ begin
   //todo: test me
   count:=parent.socket.ReadDWord;
 
+  if count<0 then
+    raise exception.create('The parent tried to send me a negatyive ammount of paths');
+
+  if count>65536 then
+    raise exception.create('The parent tried to send me more paths than allowed (after update)');
+
   setlength(paths, count);
 
-  if count>0 then
-  begin
-    buf:=TMemoryStream.Create;
-    try
-      buf.CopyFrom(parent.socket, getPathQueueElementSize*count);
+  buf:=TMemoryStream.Create;
+  try
+    buf.CopyFrom(parent.socket, getPathQueueElementSize*count);
 
 
-      buf.position:=0;
-      for i:=0 to count-1 do
-        LoadPathQueueElementFromStream(buf, @paths[i]);
+    buf.position:=0;
+    for i:=0 to count-1 do
+      LoadPathQueueElementFromStream(buf, @paths[i]);
 
-      //still here so I guess it's ok
+    //still here so I guess it's ok
 
-      appendDynamicPathQueueToOverflowQueue(paths);
-    finally
-      buf.free;
-    end;
+    appendDynamicPathQueueToOverflowQueue(paths);
+  finally
+    buf.free;
   end;
 
   parent.socket.WriteByte(0); //acknowledge that the paths have been received and handled properly
