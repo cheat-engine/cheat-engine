@@ -3160,7 +3160,6 @@ begin
   begin
     newscannerid:=ReadDWord;
     newcurrentscanid:=ReadDWord;
-    parent.scanid:=currentscanid;
 
     maxlevel:=ReadDWord;
     sz:=ReadDWord;
@@ -3290,6 +3289,7 @@ begin
   //got till here, so everything got loaded
   currentscanid:=newcurrentscanid;
   scannerid:=newscannerid;
+  parent.scanid:=currentscanid;
 end;
 
 procedure TPointerscanController.HandleUpdateStatusReply_GiveMeYourPaths;
