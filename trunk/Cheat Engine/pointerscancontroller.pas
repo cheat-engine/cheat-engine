@@ -399,7 +399,7 @@ type
     function getTotalPathQueueSize: integer;
     function getPointerlistHandlerCount: qword;
     function getActualThreadCount: integer;
-    function getTotalThreadCount: integer;
+    function getPotentialThreadCount: integer;
     procedure getConnectingList(var l: TConnectEntryArray);
     procedure getConnectionList(var l: TConnectionEntryArray);
     procedure getParentData(var d: TPublicParentData);
@@ -909,7 +909,7 @@ begin
   childnodescs.enter;
   try
     for i:=0 to length(childnodes)-1 do
-      if childnodes[i].totalthreadcount>0 then //it still has some threads, so not done. (they can still flush their results when they get destroyed)
+      if childnodes[i].actualthreadcount>0 then //it still has some threads, so not done. (they can still flush their results when they get destroyed)
       begin
         result:=false;
         exit;
@@ -923,7 +923,7 @@ function TPointerscanController.isDone: boolean;
 var i: integer;
 begin
   if not initializer then
-    result:=isidle and (getTotalThreadCount=0)
+    result:=isidle and (getActualThreadCount=0)
   else
   begin
     result:=isidle;
@@ -983,21 +983,32 @@ begin
 end;
 
 function TPointerscanController.getActualThreadCount: integer;
+var i: integer;
 begin
   localscannerscs.Enter;
   result:=length(localscanners);
   localscannerscs.Leave;
-end;
-
-function TPointerscanController.getTotalThreadCount: integer;
-var i: integer;
-begin
-  result:=getActualThreadCount;
 
   childnodescs.enter;
   try
     for i:=0 to length(childnodes)-1 do
-      inc(result, childnodes[i].totalthreadcount);
+      inc(result, childnodes[i].actualthreadcount);
+  finally
+    childnodescs.leave;
+  end;
+
+end;
+
+
+function TPointerscanController.getPotentialThreadCount: integer;
+var i: integer;
+begin
+  result:=threadcount;
+
+  childnodescs.enter;
+  try
+    for i:=0 to length(childnodes)-1 do
+      inc(result, childnodes[i].potentialThreadCount);
   finally
     childnodescs.leave;
   end;
@@ -1297,7 +1308,8 @@ begin
       l[i].ip:=childnodes[i].ip;
       l[i].port:=childnodes[i].port;
       l[i].isidle:=childnodes[i].idle;
-      l[i].threadcount:=childnodes[i].totalthreadcount;
+      l[i].potentialthreadcount:=childnodes[i].potentialthreadcount;
+      l[i].actualthreadcount:=childnodes[i].actualthreadcount;
       l[i].trustedconnection:=childnodes[i].trusted;
       l[i].pathquesize:=childnodes[i].pathqueuesize;
       l[i].totalpathqueuesize:=childnodes[i].totalpathqueuesize;
@@ -2922,7 +2934,8 @@ begin
 
 //  update the childstatus and issue it a command
   child^.idle:=updatemsg.isidle=1;
-  child^.totalthreadcount:=updatemsg.totalthreadcount;
+  child^.potentialthreadcount:=updatemsg.potentialthreadcount;
+  child^.actualthreadcount:=updatemsg.actualthreadcount;
   child^.totalPathsEvaluated:=updatemsg.pathsevaluated;
   child^.pathqueuesize:=updatemsg.localpathqueuecount;
   child^.totalpathqueuesize:=updatemsg.totalpathQueueCount;
@@ -2993,14 +3006,14 @@ begin
       exit;
     end;
 
-    if (updatemsg.totalthreadcount>0) or (updatemsg.localpathqueuecount>0) then  //check if it's something we should send or get paths from
+    if (updatemsg.potentialthreadcount>0) or (updatemsg.localpathqueuecount>0) then  //check if it's something we should send or get paths from
     begin
       if (child^.trusted) then
       begin
         //equalize the paths
         if (child^.terminating=false) then
         begin
-          if (updatemsg.totalthreadcount=0) and (updatemsg.localpathqueuecount>0) then
+          if (updatemsg.potentialthreadcount=0) and (updatemsg.localpathqueuecount>0) then
           begin
             //get the paths from this node, it's useless (now)
             HandleUpdateStatusMessage_RequestPathsFromChild(child, updatemsg.localpathqueuecount);
@@ -3140,6 +3153,7 @@ begin
 
   UpdateStatus_cleanupScan;
 
+  fTotalPathsEvaluatedByErasedChildren:=0;
 
   with parent.socket do
   begin
@@ -3565,7 +3579,8 @@ begin
 
         updatemsg.currentscanid:=currentscanid;
         updatemsg.isidle:=ifthen(isIdle,1,0);
-        updatemsg.totalthreadcount:=getTotalThreadCount;
+        updatemsg.potentialthreadcount:=getPotentialThreadCount;
+        updatemsg.actualthreadcount:=getActualThreadCount;
         updatemsg.pathsevaluated:=getTotalPathsEvaluated;
         overflowqueuecs.enter;
         updatemsg.localpathqueuecount:=pathqueuelength+length(overflowqueue);
@@ -4645,6 +4660,8 @@ begin
     begin
       localscanners[length(localscanners)-1].SaveStateAndTerminate;
       localscanners[length(localscanners)-1].WaitFor;
+
+      inc(fTotalPathsEvaluatedByErasedChildren, localscanners[length(localscanners)-1].pathsEvaluated);
       localscanners[length(localscanners)-1].free;
       setlength(localscanners, length(localscanners)-1);
     end;

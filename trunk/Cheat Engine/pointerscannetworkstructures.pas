@@ -34,7 +34,8 @@ type
     lasterror: string;
     pathsevaluated: qword;
     trustedconnection: boolean;
-    threadcount: integer;
+    potentialthreadcount: integer;
+    actualthreadcount: integer;
     pathquesize: integer;
     totalpathqueuesize: integer;
     resultsfound: qword;
@@ -60,7 +61,8 @@ type
   TPSUpdateStatusMsg=record
     currentscanid: uint32;
     isidle: byte;
-    totalthreadcount: integer;
+    potentialthreadcount: integer;
+    actualthreadcount: integer;
     pathsevaluated: qword;
     localpathqueuecount: uint32;
     totalpathQueueCount: uint32;

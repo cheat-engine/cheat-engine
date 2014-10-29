@@ -71,7 +71,8 @@ type
     totalPathsEvaluated: qword;
     pathqueuesize: integer;
     totalpathqueuesize: integer;
-    totalthreadcount: integer;
+    potentialthreadcount: integer;
+    actualthreadcount: integer;
 
     resultsfound: qword;
 

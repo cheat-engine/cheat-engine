@@ -1642,7 +1642,7 @@ begin
       statistics.pathqueuesize:=staticscanner.pathqueuelength;
       statistics.pathqueueoverflow:=length(staticscanner.overflowqueue);
       statistics.resultsfound:=staticscanner.getTotalResultsFound;
-      statistics.timeSpentWriting:=ceil((staticscanner.getTotalTimeWriting / 1000) / staticscanner.getActualThreadCount); //time spend writing in seconds
+      statistics.timeSpentWriting:=ceil((staticscanner.getTotalTimeWriting / 1000) / staticscanner.threadcount); //time spend writing in seconds
       statistics.percentageTimeSpentWriting:=(statistics.timeSpentWriting / (statistics.totalTimeScanning / 1000)) * 100; //time spend writing in seconds / total time div
 
       staticscanner.getMinAndMaxPath(statistics.minpath, statistics.maxpath);
@@ -1883,7 +1883,7 @@ begin
             disconnectreason.Text:=connectionlist[i].lasterror;
 
             trusted.text:='Trusted: '+BoolToStr(connectionlist[i].trustedconnection, 'True', 'False');
-            totalthreadcount.text:='Total threadcount: '+IntToStr(connectionlist[i].threadcount);
+            totalthreadcount.text:='Threadcount: '+IntToStr(connectionlist[i].potentialthreadcount)+' ('+IntToStr(connectionlist[i].actualthreadcount)+')';
             resultsfound.text:='Results found: '+IntToStr(connectionlist[i].resultsfound);
             pathqueuesize.text:='Queuesize: '+inttostr(connectionlist[i].pathquesize);
             totalpathquesize.text:='Total Queuesize: '+inttostr(connectionlist[i].totalpathqueuesize);
