@@ -193,6 +193,7 @@ type
     procedure UpdateStatus_cleanupScan;
     procedure UpdateStatus(sender: tobject); //sends the current status to the parent
 
+    procedure HandleGoodbyeMessage(index: integer);
     procedure HandleQueueMessage(index: integer);
     procedure HandleCanUploadResultsMessage(index: integer);
     procedure HandleUploadResultsMessage(index: integer);
@@ -2529,6 +2530,7 @@ raises Exception and SocketException
 var
   command: byte;
   s: TSocketStream;
+  canreconnect: boolean;
 begin
   s:=childnodes[index].socket;
   if s<>nil then
@@ -2549,11 +2551,7 @@ begin
         childnodes[index].socket.flushWrites;
       end;
 
-      PSCMD_GOODBYE:
-      begin
-        freeandnil(childnodes[index].socket);
-        childnodes[index].MissingSince:=0; //it's gone but not missing.
-      end;
+      PSCMD_GOODBYE: HandleGoodbyeMessage(index);
       else
          raise exception.create('Invalid message received');
     end;
@@ -2572,6 +2570,17 @@ begin
 
   s.WriteByte(0); //tell it you received and processed the message
   s.flushWrites;
+end;
+
+procedure TPointerscanController.HandleGoodbyeMessage(index: integer);
+var canreconnect: boolean;
+begin
+  canreconnect:=childnodes[index].socket.ReadByte=1;
+  freeandnil(childnodes[index].socket);
+  childnodes[index].MissingSince:=0; //it's gone but not missing.
+
+  if (connector<>nil) and childnodes[index].iConnectedTo and canreconnect then
+    connector.AddConnection(childnodes[index].connectdata.ip, childnodes[index].connectdata.port, childnodes[index].connectdata.password, false, childnodes[index].trusted);
 end;
 
 procedure TPointerscanController.HandleCanUploadResultsMessage(index: integer);
@@ -3786,6 +3795,8 @@ begin
           if parent.socket<>nil then
           begin
             parent.socket.WriteByte(PSCMD_GOODBYE);
+            parent.socket.WriteByte(ifthen(fTerminatedScan,1,0)); //writes 1 if it's a fake termination
+
             parent.socket.flushWrites;
             freeandnil(parent.socket);
           end;

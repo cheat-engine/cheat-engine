@@ -181,7 +181,10 @@ begin
       //check the list
       try
         if i>=list.count  then //start from the beginning
+        begin
+          sleep(1000);  //end of the list, wait a bit to prevent hammering
           i:=0;
+        end;
 
         if i<list.count then
           entry:=list[i];
@@ -189,6 +192,8 @@ begin
       finally
         listcs.leave;
       end;
+
+      if terminated then exit;
 
       if entry<>nil then
       begin
@@ -264,9 +269,8 @@ begin
           end;
         end;
 
-      end
-      else //empty list
-        sleep(500);
+      end;
+
 
     except
       on e: exception do
@@ -279,7 +283,6 @@ begin
       end;
     end;
     inc(i);
-
   end;
 end;
 
