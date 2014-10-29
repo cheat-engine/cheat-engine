@@ -101,7 +101,7 @@ type
     childnodes: array of TPointerscanControllerChild;
 
     parentUpdater: TAsyncTimer;
-    lastUpdateSent: integer;
+    lastUpdateSent: qword;
 
 
     lastPathCheck: qword; //last time the path check checked the queues
