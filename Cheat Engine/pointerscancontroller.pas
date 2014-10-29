@@ -1936,6 +1936,7 @@ begin
     localscannerscs.Enter;
     for i:=0 to length(localscanners)-1 do
     begin
+
       localscanners[i].terminate;
       localscanners[i].stop:=true;
     end;
@@ -3549,14 +3550,20 @@ begin
 
             //if so, terminate the scan,  but don't terminate the thread
             if ((GetTickCount64-parent.connecttime) div 1000)>maxTimeToScan then
+            begin
+              savestate:=true;
               fTerminatedScan:=true;  //from now on terminated will return true
+            end;
           end;
 
           if maxResultsToFind>0 then
           begin
             //check if the scan should stop because of the resultcount
             if getTotalResultsFound>maxResultsToFind then
+            begin
+              savestate:=true;
               fTerminatedScan:=true;
+            end;
           end;
 
         end;
