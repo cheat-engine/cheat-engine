@@ -233,8 +233,8 @@ type
     childpassword: string;
     autoTrustIncomingChildren: boolean;
 
-    maxResultsToFind: qword;
-    maxTimeToScan: qword;
+    maxResultsToFind: qword; //number of results found
+    maxTimeToScan: qword;    //max time to scan in seconds
     allowTempFiles: boolean;
 
 
@@ -3553,25 +3553,28 @@ begin
 
         if currentscanhasended=false then
         begin
-          if maxTimeToScan>0 then
+          if length(parentqueue)>0 then
           begin
-            //check if the scan should stop because of the time
-
-            //if so, terminate the scan,  but don't terminate the thread
-            if ((GetTickCount64-parent.connecttime) div 1000)>maxTimeToScan then
+            if maxTimeToScan>0 then
             begin
-              savestate:=true;
-              fTerminatedScan:=true;  //from now on terminated will return true
+              //check if the scan should stop because of the time
+
+              //if so, terminate the scan,  but don't terminate the thread
+              if ((GetTickCount64-parent.connecttime) div 1000)>maxTimeToScan then
+              begin
+                savestate:=true;
+                fTerminatedScan:=true;  //from now on terminated will return true
+              end;
             end;
-          end;
 
-          if maxResultsToFind>0 then
-          begin
-            //check if the scan should stop because of the resultcount
-            if getTotalResultsFound>maxResultsToFind then
+            if maxResultsToFind>0 then
             begin
-              savestate:=true;
-              fTerminatedScan:=true;
+              //check if the scan should stop because of the resultcount
+              if getTotalResultsFound>maxResultsToFind then
+              begin
+                savestate:=true;
+                fTerminatedScan:=true;
+              end;
             end;
           end;
 
