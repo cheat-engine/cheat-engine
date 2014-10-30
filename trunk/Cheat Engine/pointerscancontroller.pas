@@ -1192,22 +1192,31 @@ end;
 
 procedure TPointerscanController.getThreadStatuses(s: TStrings);
 var i: integer;
+  e: string;
 begin
   s.Clear;
   localscannersCS.enter;
   try
     for i:=0 to length(localscanners)-1 do
     begin
+      if localscanners[i].haserror then
+        e:=' (Error: '+localscanners[i].errorString+')'
+      else
+        e:='';
+
+
       if localscanners[i].hasTerminated then
-        s.add(IntToStr(i)+':Terminated')
+        s.add(IntToStr(i)+':Terminated'+e)
       else
       if localscanners[i].isdone then
-        s.add(IntToStr(i)+':Sleeping')
+        s.add(IntToStr(i)+':Sleeping'+e)
       else
       if localscanners[i].isFlushing then
-        s.add(IntToStr(i)+':Writing to disk')
+        s.add(IntToStr(i)+':Writing to disk'+e)
       else
-        s.add(IntToStr(i)+':Working');
+        s.add(IntToStr(i)+':Working'+e);
+
+
     end;
   finally
     localscannersCS.leave;
@@ -2952,7 +2961,9 @@ begin
   child^.queuesize:=updatemsg.queuesize;
 
   if initializer and (isidle or terminated) then //no more pathqueues and all scanners and children's scanners are waiting for new paths (or terminated by the user)
+  begin
     currentscanhasended:=true;
+  end;
 
 
   //now reply
@@ -2972,6 +2983,7 @@ begin
     child^.socket.flushWrites;
     if child^.socket.ReadByte<>0 then
       raise exception.create('Invalid reply for PSUPDATEREPLYCMD_CURRENTSCANHASENDED');
+
     exit;
   end;
 
@@ -3404,6 +3416,8 @@ begin
 
   parent.socket.WriteByte(0); //understood
   parent.socket.flushWrites;
+
+  fTerminatedScan:=true;
 end;
 
 procedure TPointerscanController.HandleUpdateStatusReply_EverythingOK;
