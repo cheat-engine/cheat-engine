@@ -2951,7 +2951,7 @@ begin
   child^.totalpathqueuesize:=updatemsg.totalpathQueueCount;
   child^.queuesize:=updatemsg.queuesize;
 
-  if isidle or terminated then //no more pathqueues and all scanners and children's scanners are waiting for new paths (or terminated by the user)
+  if initializer and (isidle or terminated) then //no more pathqueues and all scanners and children's scanners are waiting for new paths (or terminated by the user)
     currentscanhasended:=true;
 
 
