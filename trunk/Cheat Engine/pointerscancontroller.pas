@@ -3786,6 +3786,8 @@ begin
   begin
     waitForAndHandleNetworkEvent;
 
+    if currentscanhasended and savestate then
+      sendpathsToParent;
 
     if terminated then
     begin
