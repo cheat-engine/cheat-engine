@@ -3218,6 +3218,7 @@ begin
     downloadingscandata_starttime:=GetTickCount64;
     downloadingscandata:=true;
 
+
     for i:=0 to files-1 do
     begin
       if i=0 then
@@ -3755,6 +3756,7 @@ var i: integer;
 begin
   //this is a childnode
   currentscanhasended:=true;
+  UseLoadedPointermap:=true;
 
   //enter the networking loop and wait for the parent(if there is one) to provide messages, or handle incomming connections
 
