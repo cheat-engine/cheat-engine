@@ -112,6 +112,8 @@ type
 
     procedure fillList(addresslist: PReversePointerListArray; level: integer; var prev: PPointerList);
     procedure fillLinkedList;
+
+    procedure LoadModuleList(s: TStream);
   public
     count: qword;
 
@@ -126,6 +128,7 @@ type
     function findPointerValue(startvalue: ptrUint; var stopvalue: ptrUint): PPointerList;
     constructor create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers, allowNonModulePointers: boolean; useStacks: boolean; stacksAsStaticOnly: boolean; threadstacks: integer; stacksize: integer; specificBaseAsStaticOnly: boolean; baseStart: ptruint; baseStop: ptruint);
     constructor createFromStream(s: TStream; progressbar: tprogressbar=nil);
+    constructor createFromStreamModuleListOnly(s: TStream);
     destructor destroy; override;
   end;
 
@@ -751,6 +754,35 @@ begin
 
 end;
 
+procedure TReversePointerListHandler.LoadModuleList(s: TStream);
+var
+  i: integer;
+  x: integer;
+  mname: pchar;
+  mbase: qword;
+  mlistlength: integer;
+begin
+  modulelist:=TStringList.create;
+  mlistlength:=s.ReadDWord;
+  for i:=0 to mlistlength-1 do
+  begin
+    x:=s.ReadDWord;
+    getmem(mname, x);
+    s.ReadBuffer(mname^, x);
+    mname[x]:=#0;
+    mbase:=s.ReadQWord;
+
+    modulelist.AddObject(mname, tobject(mbase));
+    freemem(mname);
+  end;
+end;
+
+constructor TReversePointerListHandler.createFromStreamModuleListOnly(s: TStream);
+begin
+  //only loads the modulelist part
+  LoadModuleList(s);
+end;
+
 constructor TReversePointerListHandler.createFromStream(s: Tstream; progressbar: tprogressbar=nil);
 var
   i: integer;
@@ -758,15 +790,15 @@ var
   plist: PPointerList;
   address: ptruint;
 
-  mlistlength: integer;
+ // mlistlength: integer;
 
-  x: integer;
-  mname: pchar;
+  //x: integer;
+  //mname: pchar;
   totalcount: qword;
 
   lastcountupdate: qword;
 
-  mbase: qword;
+  //mbase: qword;
   pvalue: qword;
 begin
   OutputDebugString('TReversePointerListHandler.createFromStream');
@@ -782,19 +814,9 @@ begin
   end;
 
 
-  modulelist:=TStringList.create;
-  mlistlength:=s.ReadDWord;
-  for i:=0 to mlistlength-1 do
-  begin
-    x:=s.ReadDWord;
-    getmem(mname, x);
-    s.ReadBuffer(mname^, x);
-    mname[x]:=#0;
-    mbase:=s.ReadQWord;
+  LoadModuleList(s);
 
-    modulelist.AddObject(mname, tobject(mbase));
-    freemem(mname);
-  end;
+
 
   maxlevel:=s.ReadDWord;
   totalcount:=s.ReadQWord;

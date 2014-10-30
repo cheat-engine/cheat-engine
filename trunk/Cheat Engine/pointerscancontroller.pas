@@ -4118,7 +4118,25 @@ begin
       if not resumescan then //create a new ptr
       begin
         result:=TfileStream.create(filename,fmcreate or fmShareDenyWrite);
-        pointerlisthandler.saveModuleListToResults(result);
+
+        if (pointerlisthandler=nil) then
+        begin
+          if UseLoadedPointermap then
+          begin
+            f:=tfilestream.create(LoadedPointermapFilename, fmOpenRead);
+            ds:=Tdecompressionstream.create(f);
+            pointerlisthandler:=TReversePointerListHandler.createFromStreamModuleListOnly(ds);
+            pointerlisthandler.saveModuleListToResults(result);
+            ds.free;
+            f.free;
+
+            freeandnil(pointerlisthandler);
+          end
+          else
+            raise exception.create('The pointerlisthandler was destroyed without a good reason');
+        end
+        else
+          pointerlisthandler.saveModuleListToResults(result);
 
         //save the maxlevel:
         result.Write(maxlevel,sizeof(maxlevel));
