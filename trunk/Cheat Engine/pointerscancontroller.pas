@@ -3417,7 +3417,6 @@ begin
   parent.socket.WriteByte(0); //understood
   parent.socket.flushWrites;
 
-  fTerminatedScan:=true;
 end;
 
 procedure TPointerscanController.HandleUpdateStatusReply_EverythingOK;
