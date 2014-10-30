@@ -2824,35 +2824,40 @@ function TPointerscanController.sendPathsToParent: integer;
 var
   paths: TDynPathQueue;
   i: integer;
+
 begin
   result:=0;
-  if not parent.knowsIAmTerminating then exit;
+
   if parent.socket=nil then exit;
 
-  BuildPathListForTransmission(paths, 1000, false); //it's going to send 1000 paths at a time (or less if it can't do that amount)
-  if length(paths)=0 then exit; //don't bother the parent or the critical section
+  if (getTotalPathQueueSize>0) and (currentscanhasended or parent.knowsIAmTerminating) then
+  begin
+    BuildPathListForTransmission(paths, 1000, false); //it's going to send 1000 paths at a time (or less if it can't do that amount)
+    if length(paths)=0 then exit; //don't bother the parent or the critical section
 
-  parentcs.enter;
-  try
-    if parent.socket<>nil then
-    begin
-      parent.socket.WriteByte(PSCMD_SENDPATHS);
-      parent.socket.WriteDWord(length(paths));
-      for i:=0 to length(paths)-1 do
-        WritePathQueueElementToStream(parent.socket, @paths[i]);
+    parentcs.enter;
+    try
+      if parent.socket<>nil then
+      begin
+        parent.socket.WriteByte(PSCMD_SENDPATHS);
+        parent.socket.WriteDWord(length(paths));
+        for i:=0 to length(paths)-1 do
+          WritePathQueueElementToStream(parent.socket, @paths[i]);
 
-      parent.socket.flushWrites;
-      if parent.socket.ReadByte<>0 then
-        appendDynamicPathQueueToOverflowQueue(paths) //failure, but don't error out
+        parent.socket.flushWrites;
+        if parent.socket.ReadByte<>0 then
+          appendDynamicPathQueueToOverflowQueue(paths) //failure, but don't error out
+        else
+          result:=length(paths);
+      end
       else
-        result:=length(paths);
-    end
-    else
-      appendDynamicPathQueueToOverflowQueue(paths); //unexpected disconnect, save these paths
+        appendDynamicPathQueueToOverflowQueue(paths); //unexpected disconnect, save these paths
 
 
-  finally
-    parentcs.leave;
+    finally
+      parentcs.leave;
+    end;
+
   end;
 
 
@@ -3417,6 +3422,7 @@ begin
   parent.socket.WriteByte(0); //understood
   parent.socket.flushWrites;
 
+
 end;
 
 procedure TPointerscanController.HandleUpdateStatusReply_EverythingOK;
@@ -3786,7 +3792,7 @@ begin
   begin
     waitForAndHandleNetworkEvent;
 
-    if currentscanhasended and savestate then
+    if (currentscanhasended and savestate) then
       sendpathsToParent;
 
     if terminated then
@@ -3802,23 +3808,18 @@ begin
       end;
     end;
 
-    if currentscanhasended and isDone then
+
+    if terminated then
     begin
-      parentcs.Enter;
+      //send a message to the parent that i'm gone
+
+      parentcs.enter;
       try
-        UpdateStatus_cleanupScan;
-      finally
-        parentcs.leave;
-      end;
+        if currentscanhasended and isDone then
+        begin
+          OutputDebugString('Terminated and all children are done');
+          UpdateStatus_cleanupScan;  //call this here because there may not be a newscan
 
-
-      if terminated then
-      begin
-        OutputDebugString('Terminated and all children are done');
-        //send a message to the parent that i'm gone
-
-        parentcs.enter;
-        try
           if parent.socket<>nil then
           begin
             parent.socket.WriteByte(PSCMD_GOODBYE);
@@ -3827,21 +3828,22 @@ begin
             parent.socket.flushWrites;
             freeandnil(parent.socket);
           end;
-
-        finally
-          parentcs.Leave;
         end;
 
-        fTerminatedScan:=false;
-        if terminated then //still terminated ?
-        begin
-          OutputDebugString('Actual termination');
-          break;
-        end;
+      finally
+        parentcs.Leave;
+      end;
+
+      fTerminatedScan:=false;
+      if terminated then //still terminated ?
+      begin
+        OutputDebugString('Actual termination');
+        break;
       end;
     end;
-
   end;
+
+
 
   //cleanup some memory
   if parentUpdater<>nil then
