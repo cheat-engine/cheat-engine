@@ -3059,6 +3059,13 @@ begin
           exit;
         end;
 
+        if (localpathcount=0) and (localscannercount>0) then
+        begin
+          //i'm out of paths, give me half of what you have
+          HandleUpdateStatusMessage_RequestPathsFromChild(child, 1+(updatemsg.totalpathQueueCount div 2));
+          exit;
+        end;
+
 
 
       end
