@@ -4568,31 +4568,6 @@ begin
     pointerlistloaders[i].Free;
   end;
 
-
-             {
-  for i:=0 to length(instantrescanfiles)-1 do
-  begin
-    if allowtempfiles then //open the filestream
-      currentstream:=TFileStream.create(instantrescanfiles[i].filename, fmOpenRead or fmShareDenyNone)
-    else
-    begin
-      currentstream:=instantrescanfiles[i].memoryfilestream;
-      currentstream.position:=0;
-    end;
-
-    try
-      ds:=Tdecompressionstream.create(currentstream);
-      if instantrescanfiles[i].plist<>nil then
-        freeandnil(instantrescanfiles[i].plist);
-
-      instantrescanfiles[i].plist:=TPointerListHandler.createFromStream(ds);
-    finally
-      ds.free;
-
-      if allowtempfiles then
-        currentstream.free;
-    end;
-  end;  }
 end;
 
 procedure TPointerscanController.addworkerThread(preferedprocessor: integer=-1);
