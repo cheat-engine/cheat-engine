@@ -2571,6 +2571,8 @@ procedure TPointerscancontroller.HandleQueueMessage(index: integer);
 var
   s: TSocketStream;
 begin
+  OutputDebugString(childnodes[index].ip+' : HandleQueueMessage');
+
   s:=childnodes[index].socket;
 
   childnodes[index].queued:=true;
@@ -2598,6 +2600,8 @@ called by PSCMD_CANUPLOADRESULTS
 Checks if the current child is busy sending results to the parent
 }
 begin
+  OutputDebugString(childnodes[index].ip+' : HandleCanUploadResultsMessage');
+
   childnodes[index].socket.WriteByte(ifthen(childnodes[index].scanresultDownloader=nil, 1, 0));
   childnodes[index].socket.flushWrites;
 end;
@@ -2608,6 +2612,8 @@ The child wants to send me it's found results
 spawn a thread that will receive the results and then pass them on to the parent or save to disk
 }
 begin
+  OutputDebugString(childnodes[index].ip+' : HandleCanUploadResultsMessage');
+
   if childnodes[index].scanresultDownloader<>nil then //the child did not call PSCMD_CANUPLOADRESULTS to see if it could send new results, or blatantly ignored it's result
     raise exception.create('The child tried to send me results while I was still busy');
 
@@ -2629,6 +2635,8 @@ var
   i: integer;
 begin
   child:=@childnodes[index];
+
+  OutputDebugString(child.ip+' : HandleSendPathsMessage');
 
   if (currentscanhasended and savestate) or child.trusted or child.terminating then
   begin
@@ -2956,6 +2964,8 @@ begin
   child:=@childnodes[index];
   s:=child.socket;
 
+  OutputDebugString(child.ip+' : HandleUpdateStatusMessage()');
+
   s.ReadBuffer(updatemsg, sizeof(updatemsg));
 
 //  update the childstatus and issue it a command
@@ -2978,7 +2988,7 @@ begin
 
     if currentscanhasended then
     begin
-      saveresults:=not (terminated and savestate=false); //only false if the user terminated the scan and chose not to save the state
+      saveresults:=not (terminated and (savestate=false)); //only false if the user terminated the scan and chose not to save the state
 
       child^.socket.WriteByte(ifthen(saveresults, 1, 0))
     end
@@ -3186,6 +3196,7 @@ var
 
 begin
   //todo: test me
+  OutputDebugString(parent.ip+' : HandleUpdateStatusReply_DoNewScan');
   if not isDone then
     raise exception.Create('New scan started while not done');
 
@@ -3346,6 +3357,8 @@ begin
   if maxcount<0 then
     maxcount:=0;
 
+  OutputDebugString(parent.ip+' : HandleUpdateStatusReply_GiveMeYourPaths('+inttostr(maxcount)+')');
+
   buildPathListForTransmission(paths, maxcount, true);
   try
 
@@ -3380,6 +3393,10 @@ var
 begin
   //todo: test me
   count:=parent.socket.ReadDWord;
+
+
+
+  OutputDebugString(parent.ip+' : HandleUpdateStatusReply_HereAreSomePaths('+inttostr(count)+')');
 
   if count<0 then
     raise exception.create('The parent tried to send me a negatyive ammount of paths');
@@ -3418,6 +3435,8 @@ The scan has finished (or terminated)
 var i: integer;
 begin
   //todo: test me
+  OutputDebugString(parent.ip+' : HandleUpdateStatusReply_CurrentScanHasEnded');
+
 
 
 
@@ -3433,6 +3452,8 @@ end;
 
 procedure TPointerscanController.HandleUpdateStatusReply_EverythingOK;
 begin
+  OutputDebugString(parent.ip+' : HandleUpdateStatusReply_EverythingOK');
+
   parent.socket.WriteByte(0); //acknowledge
   parent.socket.flushWrites;
 end;
