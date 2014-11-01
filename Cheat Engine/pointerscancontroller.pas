@@ -2949,6 +2949,8 @@ var
   childcount: integer;
 
   pathstosend: integer;
+
+  saveresults: boolean;
 begin
   //todo: test me
   child:=@childnodes[index];
@@ -2966,9 +2968,7 @@ begin
   child^.queuesize:=updatemsg.queuesize;
 
   if initializer and (isidle or terminated) then //no more pathqueues and all scanners and children's scanners are waiting for new paths (or terminated by the user)
-  begin
     currentscanhasended:=true;
-  end;
 
 
   //now reply
@@ -2977,7 +2977,11 @@ begin
     child^.socket.WriteByte(PSUPDATEREPLYCMD_CURRENTSCANHASENDED);
 
     if currentscanhasended then
-      child^.socket.WriteByte(ifthen(savestate,1,0))
+    begin
+      saveresults:=not (terminated and savestate=false); //only false if the user terminated the scan and chose not to save the state
+
+      child^.socket.WriteByte(ifthen(saveresults, 1, 0))
+    end
     else
     begin
       //special case that under normal situations shouldn't occur (could happen if a scan was stopped and a new one was started before the children where idle, or a long lost child joins)
@@ -3324,6 +3328,8 @@ begin
   currentscanid:=newcurrentscanid;
   scannerid:=newscannerid;
   parent.scanid:=currentscanid;
+
+  parentUpdater.TriggerNow; //restart the Updatestatus function as soon as possible to let the parent know it's ready
 end;
 
 procedure TPointerscanController.HandleUpdateStatusReply_GiveMeYourPaths;
