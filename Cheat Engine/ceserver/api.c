@@ -2679,6 +2679,16 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
 
         if (modulepath[0]) //it's something
         {
+          int i;
+          if (strcmp(modulepath, '[heap]'))  //not static enough to mark as a 'module'
+            continue;
+
+          for (i=0; modulepath[i]; i++) //strip square brackets from the name (conflicts with pointer notations)
+          {
+            if ((modulepath[i]=='[') || (modulepath[i]==']'))
+              modulepath[i]='_';
+          }
+
           if ((mle) && (strcmp(modulepath, mle->moduleName)==0))
           {
             //same module as the last entry, adjust the size to encapsule this (may mark non module memory as module memory)
