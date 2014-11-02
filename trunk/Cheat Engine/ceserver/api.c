@@ -2663,6 +2663,7 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
     if (f)
     {
       char s[256];
+      memset(s, 0, 255);
 
       PModuleListEntry mle=NULL;
 
@@ -2674,13 +2675,14 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
         char memoryrange[64],modulepath[255];
 
         modulepath[0]='\0';
+        memset(modulepath, 0, 255);
 
         sscanf(s, "%llx-%llx %*s %*s %*s %*s %s\n", &start, &stop, modulepath);
 
         if (modulepath[0]) //it's something
         {
           int i;
-          if (strcmp(modulepath, '[heap]'))  //not static enough to mark as a 'module'
+          if (strcmp(modulepath, "[heap]")==0)  //not static enough to mark as a 'module'
             continue;
 
           for (i=0; modulepath[i]; i++) //strip square brackets from the name (conflicts with pointer notations)
