@@ -2685,10 +2685,13 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
           if (strcmp(modulepath, "[heap]")==0)  //not static enough to mark as a 'module'
             continue;
 
-          for (i=0; modulepath[i]; i++) //strip square brackets from the name (conflicts with pointer notations)
+          if (strcmp(modulepath, "[vdso]")!=0)  //temporary patch as to not rename vdso, because it is treated differently by the ce symbol loader
           {
-            if ((modulepath[i]=='[') || (modulepath[i]==']'))
-              modulepath[i]='_';
+            for (i=0; modulepath[i]; i++) //strip square brackets from the name (conflicts with pointer notations)
+            {
+              if ((modulepath[i]=='[') || (modulepath[i]==']'))
+                modulepath[i]='_';
+            }
           }
 
           if ((mle) && (strcmp(modulepath, mle->moduleName)==0))
