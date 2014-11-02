@@ -1066,6 +1066,9 @@ void *IdentifierThread(void *arg)
   struct sockaddr_in addr, addr_client;
 
   printf("IdentifierThread active\n");
+
+  fflush(stdout);
+
   s=socket(PF_INET, SOCK_DGRAM, 0);
   i=setsockopt(s, SOL_SOCKET, SO_BROADCAST, &v, sizeof(v));
 
@@ -1103,12 +1106,16 @@ void *IdentifierThread(void *arg)
 
 //        packet.checksum=00AE98E7 - y=8C7F09E2
 
+        fflush(stdout);
+
 
         i=sendto(s, &packet, sizeof(packet), 0, (struct sockaddr *)&addr_client, clisize);
         printf("sendto returned %d\n",i);
       }
       else
     	  printf("recvfrom failed\n");
+
+      fflush(stdout);
     }
 
 
@@ -1187,12 +1194,16 @@ int main(int argc, char *argv[])
         pthread_create(&pth, NULL, (void *)CESERVERTEST, argv);
     }
 
+    fflush(stdout);
+
     while (done==0)
     {
       int b=1;
       a=accept(s, (struct sockaddr *)&addr_client, &clisize);
 
       printf("accept=%d\n", a);
+
+      fflush(stdout);
 
 
       setsockopt(a, IPPROTO_TCP, TCP_NODELAY, &b, sizeof(b));

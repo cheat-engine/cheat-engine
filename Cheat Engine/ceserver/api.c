@@ -2578,30 +2578,36 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
       if (strspn(currentfile->d_name, "1234567890")==strlen(currentfile->d_name))
       {
         int pid;
-        char exepath[80];
-        char processpath[255];
-        sprintf(exepath, "/proc/%s/exe", currentfile->d_name);
+        char exepath[200];
+        char processpath[512];
+        snprintf(exepath, 200, "/proc/%s/exe", currentfile->d_name);
+        exepath[199]=0; //'should' not be needed in linux, but I read that microsoft is an asshole with this function
 
         int i=readlink(exepath, processpath, 254);
         if (i != -1)
         {
           char extrafile[255];
           int f;
+
+          if (i>254)
+            i=254;
+
           processpath[i]=0;
 
-          sprintf(extrafile, "/proc/%s/cmdline", currentfile->d_name);
+          snprintf(extrafile, 255, "/proc/%s/cmdline", currentfile->d_name);
+          extrafile[254]=0;
 
           f=open(extrafile, O_RDONLY);
           if (i!=-1)
           {
-        	i=read(f, extrafile, 255);
-        	if (i>=0)
-        		extrafile[i]=0;
-        	else
-        		extrafile[0]=0;
+            i=read(f, extrafile, 255);
+            if (i>=0)
+              extrafile[i]=0;
+            else
+              extrafile[0]=0;
 
-        	strcat(processpath," ");
-        	strcat(processpath,extrafile);
+            strcat(processpath," ");
+            strcat(processpath,extrafile);
 
             close(f);
           }
