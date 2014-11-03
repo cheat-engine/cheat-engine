@@ -7,7 +7,7 @@ The TPointerscanresultReader will read the results from the pointerfile and pres
 }
 interface
 
-uses windows, LCLIntf, sysutils, classes, CEFuncProc, NewKernelHandler, symbolhandler, math;
+uses windows, LCLIntf, sysutils, classes, CEFuncProc, NewKernelHandler, symbolhandler, math, dialogs;
 
 function GetFileSizeEx(hFile:HANDLE; FileSize:PQWord):BOOL; stdcall; external 'kernel32.dll' name 'GetFileSizeEx';
 
@@ -156,17 +156,7 @@ begin
         ext1:=ExtractFileExt(rs[i]);
         ext1:=copy(ext1, 2, length(ext1)-1);
 
-       { if basesort then
-        begin
-          //get the moduleid and offset
-          sepindex:=pos('-', ext1);
-          if sepindex=0 then exit; //not a valid list
-
-          m1:=StrToInt('$'+copy(ext1, 1, sepindex));
-          v1:=StrToInt('$'+copy(ext1, sepindex+1, length(ext1)));
-        end
-        else  }
-          v1:=StrToInt64('$'+ext1);
+        v1:=StrToInt64('$'+ext1);
 
         for j:=i+1 to rs.count-1 do
         begin
@@ -175,33 +165,16 @@ begin
 
           swap:=false;
 
-          {if basesort then
-          begin
-            //get the moduleid and offset
-            sepindex:=pos('-', ext2);
-            if sepindex=0 then exit;
-
-            m2:=StrToInt('$'+copy(ext2, 1, sepindex));
-            v2:=StrToInt('$'+copy(ext2, sepindex+1, length(ext2)));
-
-            if m1>m2 then
-              swap:=true;
-
-            if v1>v2 then
-              swap:=true;
-          end
-          else }
-          begin
-            v2:=StrToInt64('$'+ext2);
-            if v1>v2 then
-              swap:=true;
-          end;
+          v2:=StrToInt64('$'+ext2);
+          if v1>v2 then
+            swap:=true;
 
           if swap then
           begin
             temp:=rs[i];
             rs[i]:=rs[j];
             rs[j]:=temp;
+            v1:=v2;
           end;
 
 
@@ -210,9 +183,12 @@ begin
       end;
     except
       //one of these could not be interpreted as a proper hexadecimal offset, so no need to sort, it's unsorted
+      beep;
     end;
 
   end;
+
+  showmessage(rs.text);
 
 
 
