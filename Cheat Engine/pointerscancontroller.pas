@@ -4703,7 +4703,7 @@ begin
 
   scanner.compressedptr:=compressedptr;
   scanner.MaxBitCountModuleIndex:=MaxBitCountModuleIndex;
-  scanner.MaxBitCountOffset:=MaxBitCountModuleOffset;
+  scanner.MaxBitCountModuleOffset:=MaxBitCountModuleOffset;
   scanner.MaxBitCountLevel:=MaxBitCountLevel;
   scanner.MaxBitCountOffset:=MaxBitCountOffset;
 
