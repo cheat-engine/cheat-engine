@@ -7929,12 +7929,44 @@ end;
 
 
 procedure TMainForm.Label59Click(Sender: TObject);
-var r: tstringlist;
-begin
-  r:=tstringlist.create;
-  findAllResultFilesForThisPtr('E:\ptr\tut.PTR',r);
+var
+  r: TReversePointerListHandler;
+  f: tfilestream;
+  ds: Tdecompressionstream;
 
-  showmessage(r.text);
+  i: integer;
+  sl: tstringlist;
+
+  psr: TPointerscanresultReader;
+begin
+
+  psr:=TPointerscanresultReader.create('E:\ptr\m.PTR');
+
+  sl:=tstringlist.create;
+  for i:=0 to psr.modulelistCount-1 do
+    sl.Add(psr.getModulename(i)+' = ' + IntToHex(ptruint(psr.getModuleBase(i)),8));
+
+
+  showmessage(sl.text);
+  sl.free;
+  psr.free;
+
+
+ { f:=tfilestream.create('E:\ptr\SHOM-health08EAE5F4.scandata', fmOpenRead);
+  ds:=Tdecompressionstream.create(f);
+  r:=TReversePointerListHandler.createFromStreamModuleListOnly(ds);
+
+
+  sl:=tstringlist.create;
+  for i:=0 to r.modulelist.count-1 do
+    sl.Add(r.modulelist[i]+' = ' + IntToHex(ptruint(r.modulelist.Objects[i]),8));
+
+
+  showmessage(sl.text);
+  sl.free;
+  r.free;
+  ds.free;
+  f.free;  }
 end;
 
 procedure ChangeIcon(hModule: HModule; restype: PChar; resname: PChar;

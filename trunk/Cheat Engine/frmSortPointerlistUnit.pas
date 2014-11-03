@@ -97,6 +97,7 @@ var i: qword;
 
   temp: dword;
   tempstring: string;
+  mb: qword;
 begin
   try
     entrysize:=pointerscanresults.entrySize;
@@ -123,8 +124,22 @@ begin
 
         p:=pointerscanresults.getPointer(i);
 
-        if column=0 then
-          v:=pointerscanresults.getModuleBase(p.modulenr)+p.moduleoffset
+        if column=0 then //modules are limited to 32-bit length, so seperate them by the modulenr
+        begin
+          if p.modulenr>=0 then
+          begin
+            mb:=pointerscanresults.getModuleBase(p.modulenr);
+            if mb>0 then
+              v:=mb+p.moduleoffset
+            else
+              v:=qword(qword(p.modulenr+1) shl 32) or dword(p.moduleoffset)
+          end
+          else
+            v:=p.moduleoffset;
+
+
+
+        end
         else
         begin
           if column>p.offsetcount then

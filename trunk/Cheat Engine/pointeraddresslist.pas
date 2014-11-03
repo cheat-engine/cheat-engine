@@ -26,6 +26,8 @@ type
     modulebases: array of ptruint;
     is32bit: boolean;
   public
+
+    procedure reorderModuleIdList(ml: tstrings);  //changes the order of modules so they match the provided list (addresses stay unchanged of course)
     function getAddressFromModuleIndexPlusOffset(moduleindex: integer; offset: integer): ptruint;
     function getPointer(address: ptruint): ptruint; //return 0 if not found
     constructor createFromStream(s: TStream; progressbar: tprogressbar=nil);
@@ -59,6 +61,42 @@ begin
     result:=0;
 end;
 
+procedure TPointerListHandler.reorderModuleIdList(ml: tstrings);
+//sorts the modulelist based on the given modulelist
+var
+  oldindex: integer;
+  oldmodulename: string;
+  oldaddress :ptruint;
+  i: integer;
+begin
+  for i:=0 to ml.count-1 do
+  begin
+    oldindex:=modulelist.IndexOf(ml[i]);
+    if oldindex=-1 then //it wasn'tin the list, add it with address 0
+    begin
+      oldindex:=modulelist.Add(ml[i]);
+      setlength(modulebases, length(modulebases)+1);
+    end;
+
+    if oldindex<>i then
+    begin
+      //swap
+      oldaddress:=modulebases[i];
+      oldmodulename:=modulelist[i];
+
+      modulebases[i]:=modulebases[oldindex];
+      modulelist[i]:=modulelist[oldindex];
+
+      modulebases[oldindex]:=oldaddress;
+      modulelist[oldindex]:=oldmodulename;
+
+
+    end;
+
+  end;
+
+end;
+
 constructor TPointerListHandler.createFromStream(s: TStream; progressbar: tprogressbar=nil);
 var
   i,x: integer;
@@ -84,6 +122,7 @@ begin
 
 
   modulelist:=TStringList.create;
+  modulelist.CaseSensitive:=false;
   mlistlength:=s.ReadDWord;
   setlength(modulebases, mlistlength);
 

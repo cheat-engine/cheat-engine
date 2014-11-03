@@ -1,11 +1,11 @@
 object frmRescanPointer: TfrmRescanPointer
   Left = 979
-  Height = 367
+  Height = 429
   Top = 212
   Width = 330
   BorderStyle = bsDialog
   Caption = 'Rescan pointerlist'
-  ClientHeight = 367
+  ClientHeight = 429
   ClientWidth = 330
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
@@ -71,7 +71,7 @@ object frmRescanPointer: TfrmRescanPointer
   object cbDelay: TCheckBox
     Left = 8
     Height = 19
-    Top = 96
+    Top = 192
     Width = 97
     Caption = 'Delay rescan for'
     TabOrder = 4
@@ -79,7 +79,7 @@ object frmRescanPointer: TfrmRescanPointer
   object edtDelay: TEdit
     Left = 112
     Height = 21
-    Top = 95
+    Top = 192
     Width = 32
     TabOrder = 5
     Text = '0'
@@ -87,7 +87,7 @@ object frmRescanPointer: TfrmRescanPointer
   object Label1: TLabel
     Left = 146
     Height = 13
-    Top = 98
+    Top = 195
     Width = 40
     Caption = 'seconds'
     ParentColor = False
@@ -95,7 +95,7 @@ object frmRescanPointer: TfrmRescanPointer
   object cbBasePointerMustBeInRange: TCheckBox
     Left = 8
     Height = 19
-    Top = 168
+    Top = 265
     Width = 160
     Caption = 'Base pointer must be in range'
     OnChange = cbBasePointerMustBeInRangeChange
@@ -104,7 +104,7 @@ object frmRescanPointer: TfrmRescanPointer
   object edtBaseStart: TEdit
     Left = 8
     Height = 21
-    Top = 192
+    Top = 289
     Width = 112
     CharCase = ecUppercase
     Enabled = False
@@ -114,7 +114,7 @@ object frmRescanPointer: TfrmRescanPointer
   object cbMustStartWithSpecificOffsets: TCheckBox
     Left = 8
     Height = 19
-    Top = 217
+    Top = 314
     Width = 122
     Caption = 'Must start with offsets'
     OnChange = cbMustStartWithSpecificOffsetsChange
@@ -123,7 +123,7 @@ object frmRescanPointer: TfrmRescanPointer
   object pnlButtons: TPanel
     Left = 96
     Height = 34
-    Top = 328
+    Top = 376
     Width = 170
     BevelOuter = bvNone
     ClientHeight = 34
@@ -153,7 +153,7 @@ object frmRescanPointer: TfrmRescanPointer
   object edtBaseEnd: TEdit
     Left = 146
     Height = 21
-    Top = 191
+    Top = 288
     Width = 112
     CharCase = ecUppercase
     Enabled = False
@@ -163,7 +163,7 @@ object frmRescanPointer: TfrmRescanPointer
   object lblAnd: TLabel
     Left = 123
     Height = 13
-    Top = 194
+    Top = 291
     Width = 18
     Caption = 'and'
     Enabled = False
@@ -172,7 +172,7 @@ object frmRescanPointer: TfrmRescanPointer
   object cbMustEndWithSpecificOffsets: TCheckBox
     Left = 8
     Height = 19
-    Top = 240
+    Top = 337
     Width = 120
     Caption = 'Must end with offsets'
     OnChange = cbMustEndWithSpecificOffsetsChange
@@ -181,7 +181,7 @@ object frmRescanPointer: TfrmRescanPointer
   object cbRepeat: TCheckBox
     Left = 8
     Height = 19
-    Top = 120
+    Top = 217
     Width = 153
     Caption = 'Repeat rescan until stopped'
     TabOrder = 6
@@ -189,7 +189,7 @@ object frmRescanPointer: TfrmRescanPointer
   object cbNoValueCheck: TCheckBox
     Left = 8
     Height = 19
-    Top = 72
+    Top = 96
     Width = 154
     Caption = 'Only filter out invalid pointers'
     OnChange = cbNoValueCheckChange
@@ -199,7 +199,7 @@ object frmRescanPointer: TfrmRescanPointer
     Left = 8
     Height = 19
     Hint = 'When checked this will call the given function for every pointer being evaluated. Return true if it''s valid, false if not'#13#10'base is the base address (integer)'#13#10'offset is a table with offsets'#13#10'target is the address the pointer points to. Can be nil'
-    Top = 144
+    Top = 241
     Width = 104
     Caption = 'Lua filter. function'
     OnChange = cbLuaFilterChange
@@ -210,7 +210,7 @@ object frmRescanPointer: TfrmRescanPointer
   object edtRescanFunction: TEdit
     Left = 112
     Height = 21
-    Top = 144
+    Top = 241
     Width = 72
     Enabled = False
     TabOrder = 8
@@ -219,7 +219,7 @@ object frmRescanPointer: TfrmRescanPointer
   object lblLuaParams: TLabel
     Left = 185
     Height = 13
-    Top = 147
+    Top = 244
     Width = 122
     Caption = '(base, offsets, target):bool'
     ParentColor = False
@@ -241,11 +241,59 @@ object frmRescanPointer: TfrmRescanPointer
     ShowHint = True
     TabOrder = 15
   end
+  object CheckBox1: TCheckBox
+    Left = 8
+    Height = 19
+    Top = 120
+    Width = 250
+    Caption = 'Pointer starts must also be present in other ptr file'
+    TabOrder = 16
+  end
+  object FileNameEdit1: TFileNameEdit
+    Left = 24
+    Height = 21
+    Top = 140
+    Width = 280
+    FilterIndex = 0
+    HideDirectories = False
+    ButtonWidth = 23
+    NumGlyphs = 1
+    MaxLength = 0
+    TabOrder = 17
+  end
+  object FileNameEdit2: TFileNameEdit
+    Left = 16
+    Height = 21
+    Top = 72
+    Width = 280
+    FilterIndex = 0
+    HideDirectories = False
+    ButtonWidth = 23
+    NumGlyphs = 1
+    MaxLength = 0
+    TabOrder = 18
+  end
+  object Edit1: TEdit
+    Left = 112
+    Height = 21
+    Top = 168
+    Width = 80
+    TabOrder = 19
+    Text = '2'
+  end
+  object Label2: TLabel
+    Left = 24
+    Height = 13
+    Top = 168
+    Width = 83
+    Caption = 'min column count'
+    ParentColor = False
+  end
   object odLoadPointermap: TOpenDialog
     DefaultExt = '.scandata'
     Filter = 'All files (*.*)|*.*|scandata files (*.scandata)|*.scandata'
     FilterIndex = 2
-    left = 248
-    top = 48
+    left = 232
+    top = 16
   end
 end

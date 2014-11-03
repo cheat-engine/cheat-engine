@@ -1758,7 +1758,7 @@ begin
   if (Pointerscanresults.count>1000000) then
   begin
     lvResults.Items.Count:=1000000;
-    showmessage(rsOnlyTheFirst1000000EntriesWillBeDisplayed);
+   // showmessage(rsOnlyTheFirst1000000EntriesWillBeDisplayed);
   end
   else
     lvResults.Items.Count:=Pointerscanresults.count;
@@ -2083,14 +2083,6 @@ begin
         end;
       end;
 
-      if valid = false then
-      begin
-        asm
-        nop
-        end;
-
-      end;
-
       inc(evaluated);
       inc(currentEntry);
     end;
@@ -2172,6 +2164,8 @@ var
 
   oldfiles: TStringList;
 
+  ml: Tstringlist;
+
 begin
   progressbar.Min:=0;
   progressbar.Max:=100;
@@ -2194,6 +2188,15 @@ begin
     try
       ds:=Tdecompressionstream.create(f);
       pointermap:=TPointerListHandler.createFromStream(ds, pointermapprogressbar);
+
+      ml:=TStringList.create;
+      for i:=0 to pointerscanresults.modulelistCount-1 do
+        ml.AddObject(pointerscanresults.getModulename(i), tobject(pointerscanresults.getModuleBase(i)));
+
+      pointermap.reorderModuleIdList(ml);
+      ml.free;
+
+
     finally
       if ds<>nil then
         freeandnil(ds);
