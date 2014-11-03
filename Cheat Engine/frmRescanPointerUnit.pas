@@ -14,10 +14,8 @@ type
   { TfrmRescanPointer }
 
   TfrmRescanPointer = class(TForm)
-    btnNotifySpecificIPs: TButton;
     Button1: TButton;
     Button2: TButton;
-    cbBroadcast: TCheckBox;
     cbDelay: TCheckBox;
     cbBasePointerMustBeInRange: TCheckBox;
     cbMustStartWithSpecificOffsets: TCheckBox;
@@ -25,10 +23,7 @@ type
     cbRepeat: TCheckBox;
     cbNoValueCheck: TCheckBox;
     cbLuaFilter: TCheckBox;
-    cbDistributedRescan: TCheckBox;
-    cbWaitForAll: TCheckBox;
     cbUseSavedPointermap: TCheckBox;
-    edtRescanPort: TEdit;
     lblLuaParams: TLabel;
     edtRescanFunction: TEdit;
     edtBaseStart: TEdit;
@@ -127,27 +122,12 @@ end;
 
 procedure TfrmRescanPointer.cbBroadcastChange(Sender: TObject);
 begin
-  btnNotifySpecificIPs.enabled:=cbBroadcast.checked;
+
 end;
 
 procedure TfrmRescanPointer.cbDistributedRescanChange(Sender: TObject);
 begin
-  cbRepeat.enabled:=cbDistributedRescan.checked=false;
-  cbLuaFilter.enabled:=cbDistributedRescan.checked=false;
-  edtRescanFunction.enabled:=cbDistributedRescan.checked=false;
-  lblLuaParams.enabled:=cbDistributedRescan.checked=false;
 
-  cbBroadcast.enabled:= cbDistributedRescan.checked;
-  btnNotifySpecificIPs.enabled:=cbDistributedRescan.checked and cbBroadcast.checked;
-
-  cbWaitForAll.enabled:=cbDistributedRescan.checked;
-
-  if cbDistributedRescan.checked then
-  begin
-    cbRepeat.checked:=false;
-    cbLuaFilter.checked:=false;
-
-  end;
 
 end;
 
@@ -222,28 +202,6 @@ begin
     end;
 
 
-  end;
-
-  if cbDistributedRescan.checked then
-    distributedport:=strtoint(edtRescanPort.text);
-
-  if cbBroadcast.checked then
-  begin
-    r:=THostResolver.create(nil);
-    r.RaiseOnError:=false;
-
-    for i:=0 to iplist.count-1 do
-    begin
-      r.NameLookup(iplist[i]);
-
-      if r.HostAddress.s_addr<>0 then
-      begin
-        setlength(resolvediplist, length(resolvediplist)+1);
-        resolvediplist[Length(resolvediplist)-1]:=r.HostAddress;
-      end;
-    end;
-
-    r.free;
   end;
 
   modalresult:=mrok;
@@ -513,23 +471,10 @@ begin
       lblInfoLastOffset.top:=tedit(endoffsets[endoffsets.count-1]).top+4;
     end;
 
-    cbDistributedRescan.top:=nextstart+4;
-
-    if not cbDistributedRescan.visible then
-      pnlButtons.top:=cbDistributedRescan.top
-    else
-      pnlButtons.top:=cbWaitForAll.Top+cbWaitForAll.height+5;
-
-
   end
   else
   begin
-    cbDistributedRescan.top:=cbMustEndWithSpecificOffsets.top+cbMustEndWithSpecificOffsets.height+5;
-
-    if not cbDistributedRescan.visible then
-      pnlButtons.top:=cbDistributedRescan.top
-    else
-      pnlButtons.top:=cbWaitForAll.Top+cbWaitForAll.height+5;
+    pnlButtons.top:=cbMustEndWithSpecificOffsets.top+cbMustEndWithSpecificOffsets.height+4;
   end;
 
   clientheight:=pnlbuttons.top+pnlButtons.height;

@@ -151,7 +151,7 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     Top = 15
     Width = 140
     ItemHeight = 15
-    ItemIndex = 3
+    ItemIndex = 2
     Items.Strings = (
       'Idle'
       'Lowest'
@@ -163,7 +163,7 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     )
     Style = csDropDownList
     TabOrder = 7
-    Text = 'Normal'
+    Text = 'Lower'
   end
   object lblPriority: TLabel
     AnchorSideLeft.Control = edtThreadCount

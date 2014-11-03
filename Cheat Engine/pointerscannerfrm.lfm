@@ -49,6 +49,7 @@ object frmPointerScanner: TfrmPointerScanner
       Caption = 'Simulate no connection'
       OnChange = cbTestCrappyConnectionChange
       TabOrder = 1
+      Visible = False
     end
   end
   object btnStopRescanLoop: TButton
@@ -227,7 +228,6 @@ object frmPointerScanner: TfrmPointerScanner
           Width = 164
           Anchors = [akTop, akLeft, akRight]
           TabOrder = 0
-          Text = '127.0.0.1'
         end
         object lblIP: TLabel
           AnchorSideLeft.Control = gbNetwork
@@ -396,11 +396,6 @@ object frmPointerScanner: TfrmPointerScanner
         Caption = 'Open'
         ShortCut = 16463
         OnClick = Open1Click
-      end
-      object miMergePointerscanResults: TMenuItem
-        Caption = 'Merge pointerscan results'
-        Enabled = False
-        OnClick = miMergePointerscanResultsClick
       end
     end
     object MenuItem2: TMenuItem

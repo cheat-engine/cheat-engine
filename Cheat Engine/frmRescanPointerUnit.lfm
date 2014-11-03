@@ -121,14 +121,14 @@ object frmRescanPointer: TfrmRescanPointer
     TabOrder = 12
   end
   object pnlButtons: TPanel
-    Left = 88
+    Left = 96
     Height = 34
-    Top = 329
+    Top = 328
     Width = 170
     BevelOuter = bvNone
     ClientHeight = 34
     ClientWidth = 170
-    TabOrder = 19
+    TabOrder = 14
     object Button2: TButton
       Left = 96
       Height = 25
@@ -224,76 +224,6 @@ object frmRescanPointer: TfrmRescanPointer
     Caption = '(base, offsets, target):bool'
     ParentColor = False
   end
-  object cbDistributedRescan: TCheckBox
-    Left = 8
-    Height = 19
-    Top = 265
-    Width = 172
-    Caption = 'Let other workers rescan as well'
-    Checked = True
-    OnChange = cbDistributedRescanChange
-    State = cbChecked
-    TabOrder = 14
-    Visible = False
-  end
-  object edtRescanPort: TEdit
-    AnchorSideLeft.Control = cbDistributedRescan
-    AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = cbDistributedRescan
-    AnchorSideTop.Side = asrCenter
-    Left = 180
-    Height = 21
-    Top = 264
-    Width = 55
-    TabOrder = 15
-    Text = '52739'
-    Visible = False
-  end
-  object cbBroadcast: TCheckBox
-    AnchorSideTop.Control = btnNotifySpecificIPs
-    AnchorSideTop.Side = asrCenter
-    Left = 24
-    Height = 19
-    Top = 290
-    Width = 188
-    BorderSpacing.Top = 8
-    Caption = 'Broadcast that a rescan has started'
-    Enabled = False
-    OnChange = cbBroadcastChange
-    TabOrder = 16
-    Visible = False
-  end
-  object btnNotifySpecificIPs: TButton
-    AnchorSideLeft.Control = cbBroadcast
-    AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = edtRescanPort
-    AnchorSideTop.Side = asrBottom
-    Left = 220
-    Height = 25
-    Top = 287
-    Width = 86
-    BorderSpacing.Left = 8
-    BorderSpacing.Top = 2
-    Caption = 'Additional IP''s'
-    Enabled = False
-    OnClick = btnNotifySpecificIPsClick
-    TabOrder = 17
-    Visible = False
-  end
-  object cbWaitForAll: TCheckBox
-    AnchorSideTop.Control = btnNotifySpecificIPs
-    AnchorSideTop.Side = asrBottom
-    Left = 24
-    Height = 19
-    Top = 312
-    Width = 253
-    Caption = 'Wait for all known scanners to connect and finish'
-    Checked = True
-    Enabled = False
-    State = cbChecked
-    TabOrder = 18
-    Visible = False
-  end
   object cbUseSavedPointermap: TCheckBox
     Left = 8
     Height = 19
@@ -309,7 +239,7 @@ object frmRescanPointer: TfrmRescanPointer
     ParentFont = False
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 20
+    TabOrder = 15
   end
   object odLoadPointermap: TOpenDialog
     DefaultExt = '.scandata'
