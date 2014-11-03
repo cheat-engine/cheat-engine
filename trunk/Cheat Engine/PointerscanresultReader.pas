@@ -94,8 +94,6 @@ type
     property offsetCount: integer read maxlevel;
     property filename: string read FFilename;
     property entrySize: integer read sizeOfEntry;
-    property externalScanners: integer read fExternalScanners;
-    property generatedByWorkerID: integer read fGeneratedByWorkerID;
     property modulelistCount: integer read getModuleListcount;
     property modulebase[index: integer]: ptruint read getModuleBase write setModuleBase;
     property mergedresultcount: integer read getMergedResultCount;

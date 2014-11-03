@@ -166,7 +166,6 @@ type
     MenuItem2: TMenuItem;
     miCreatePSNnode: TMenuItem;
     miResume: TMenuItem;
-    miMergePointerscanResults: TMenuItem;
     odMerge: TOpenDialog;
     pnlData: TPanel;
     pnlStop: TPanel;
@@ -1215,203 +1214,8 @@ begin
 end;
 
 procedure Tfrmpointerscanner.miMergePointerscanResultsClick(Sender: TObject);
-var
-  i,j: integer;
-  psr: TPointerscanresultReader=nil;
-
-  pfiles: Tstringlist=nil;
-  newfiles: Tstringlist=nil;
-  destinationpath: string;
-  basename: string;
-
-  fname: string;
-  startid: integer;
-  id: integer;
-  s: string;
-
-  allworkerids: array of integer;
-
-  resultfile: TMemorystream=nil;
 begin
 
-  setlength(allworkerids,0);
-
-  if Pointerscanresults<>nil then
-  begin
-    destinationpath:=extractfilepath(Pointerscanresults.filename);
-    basename:=ExtractFileName(Pointerscanresults.filename);
-
-    psr:=nil;
-    pfiles:=tstringlist.create;
-    newfiles:=tstringlist.create;
-    Pointerscanresults.getFileList(newfiles); //add the original files (note: These contain a full path)
-
-    //strip the local path if it's possible (there can be results of a previous link merge)
-    for i:=0 to newfiles.count-1 do
-    begin
-      s:=StringReplace(newfiles[i], destinationpath, '', [rfIgnoreCase]);
-      if pos(PathDelim, s)=0 then
-        newfiles[i]:=s;
-    end;
-
-
-    startid:=1;
-    //get a basic start id. (Still first if the file exists)
-    for i:=0 to newfiles.count-1 do
-    begin
-      s:=ExtractFileExt(pfiles[i]);
-      s:=copy(s, 2, length(s)-1);
-
-      if TryStrToInt(s, id) then
-        startid:=max(id, startid);
-
-    end;
-
-    setlength(allworkerids, Pointerscanresults.mergedresultcount);
-    for i:=0 to Pointerscanresults.mergedresultcount-1 do
-      allworkerids[i]:=Pointerscanresults.mergedresults[i];
-
-
-    try
-      if odMerge.execute then
-      begin
-        frmMergePointerscanResultSettings:=TfrmMergePointerscanResultSettings.create(self);
-        if frmMergePointerscanResultSettings.showmodal=mrok then
-        begin
-          //generate the new .ptr file
-          resultfile:=tmemorystream.create;
-          Pointerscanresults.saveModulelistToResults(resultfile);
-
-          resultfile.WriteDWord(Pointerscanresults.offsetCount);  //offsetcount
-
-
-
-          for i:=0 to odmerge.Files.count-1 do
-          begin
-            psr:=TPointerscanresultReader.create(utf8toansi(odmerge.files[i]), Pointerscanresults);
-
-            if psr.offsetCount<>pointerscanresults.offsetCount then
-              raise exception.create(odmerge.files[i] +' is incompatible with the base pointerscan result');
-
-            pfiles.clear;
-            psr.getfilelist(pfiles);
-
-            for j:=0 to psr.mergedresultcount-1 do
-            begin
-              setlength(allworkerids, length(allworkerids)+1);
-              allworkerids[length(allworkerids)-1]:=psr.mergedresults[j];
-            end;
-
-            freeandnil(psr);
-
-            //copy (/move?) the files in pfiles to the path of pointerscanresults and give them unique names
-
-
-
-
-            for j:=0 to pfiles.count-1 do
-            begin
-              if frmMergePointerscanResultSettings.rgGroupMethod.ItemIndex in [0,1] then
-              begin
-                //copy/move
-
-                //find a filename not used yet
-                repeat
-                  fname:=destinationpath+basename+'.'+inttostr(startid);
-                  inc(startid);
-                until not FileExists(fname);
-
-                fname:=destinationpath+basename+'.'+inttostr(startid);
-
-                if frmMergePointerscanResultSettings.rgGroupMethod.ItemIndex=0 then //copy
-                begin
-                  if CopyFile(pchar(pfiles[j]), pchar(fname), true )=false then
-                    raise exception.create('Failure copying '+pfiles[j]+' to '+fname);
-                end
-                else
-                begin
-                  if MoveFile(pchar(pfiles[j]), pchar(fname) )=false then
-                    raise exception.create('Failure moving '+pfiles[j]+' to '+fname);
-                end;
-
-
-
-                fname:=extractfilename(fname);
-
-              end
-              else
-              begin
-                //link
-                fname:=pfiles[j];
-              end;
-              newfiles.add(fname);
-            end;
-
-
-
-
-          end;
-
-          resultfile.WriteDWord(newfiles.Count); //number of ptr files
-
-          //add the files to resultfile
-          for i:=0 to newfiles.count-1 do
-          begin
-            resultfile.WriteDWord(length(newfiles[i]));
-            resultfile.WriteBuffer(newfiles[i][1], length(newfiles[i]));
-          end;
-
-          resultfile.WriteDWord(pointerscanresults.externalScanners);
-          resultfile.WriteDWord(pointerscanresults.generatedByWorkerID);
-
-          resultfile.WriteDWord(length(allworkerids));
-          for i:=0 to length(allworkerids)-1 do
-            resultfile.WriteDWord(allworkerids[i]);
-
-          resultfile.WriteDWord(ifthen(pointerscanresults.compressedptr,1,0));
-          resultfile.WriteDWord(ifthen(pointerscanresults.aligned,1,0));
-          resultfile.WriteDWord(pointerscanresults.MaxBitCountModuleIndex);
-          resultfile.WriteDWord(pointerscanresults.MaxBitCountLevel);
-          resultfile.WriteDWord(pointerscanresults.MaxBitCountOffset);
-
-          resultfile.WriteDWord(pointerscanresults.EndsWithOffsetListCount);
-          for i:=0 to pointerscanresults.EndsWithOffsetListCount-1 do
-            resultfile.WriteDword(pointerscanresults.EndsWithOffsetList[i]);
-
-
-          //all done, and no crashes
-          New1.Click; //close the current pointerfile and cleanup everything attached
-
-
-
-          resultfile.SaveToFile(destinationpath+basename);
-
-
-          //and reopen it
-          OpenPointerfile(destinationpath+basename);
-
-        end;
-
-
-
-      end;
-    finally
-      if psr<>nil then
-        psr.free;
-
-      if pfiles<>nil then
-        pfiles.free;
-
-      if newfiles<>nil then
-        newfiles.free;
-
-      if resultfile<>nil then
-        freeandnil(resultfile);
-
-      if frmMergePointerscanResultSettings<>nil then
-        freeandnil(frmMergePointerscanResultSettings);
-    end;
-  end;
 end;
 
 
@@ -1954,11 +1758,11 @@ begin
   if (Pointerscanresults.count>1000000) then
   begin
     lvResults.Items.Count:=1000000;
+    showmessage(rsOnlyTheFirst1000000EntriesWillBeDisplayed);
+  end
+  else
+    lvResults.Items.Count:=Pointerscanresults.count;
 
-    if ((Staticscanner=nil){ or (staticscanner.distributedScanning=false)}) and (pointerscanresults.generatedByWorkerID=-1) then //tell the user
-      showmessage(rsOnlyTheFirst1000000EntriesWillBeDisplayed);
-
-  end else lvResults.Items.Count:=Pointerscanresults.count;
 
   lvResults.Align:=alClient;
   lvResults.Visible:=true;
@@ -1972,8 +1776,6 @@ begin
 
   Rescanmemory1.Enabled:=true;
   new1.Enabled:=true;
-
-  miMergePointerscanResults.enabled:=true;
 
   caption:=rsPointerScan+' : '+extractfilename(filename);
 
@@ -2597,18 +2399,6 @@ begin
 
     with rescanpointerform do
     begin
-      cbDistributedRescan.visible:=Pointerscanresults.externalScanners>0;
-      edtRescanPort.Visible:=Pointerscanresults.externalScanners>0;
-
-      cbBroadcast.visible:=Pointerscanresults.externalScanners>0;
-      btnNotifySpecificIPs.visible:=Pointerscanresults.externalScanners>0;
-      cbWaitForAll.visible:=Pointerscanresults.externalScanners>0;
-
-
-      if cbDistributedRescan.visible then
-        cbDistributedRescan.OnChange(cbDistributedRescan);
-
-
       if (rescanpointerform.cbRepeat.checked) or (showmodal=mrok) then
       begin
         if (rescanpointerform.cbRepeat.checked) or savedialog1.Execute then
@@ -2930,8 +2720,6 @@ begin
   open1.Enabled:=true;
   new1.enabled:=true;
   rescanmemory1.Enabled:=false;
-
-  miMergePointerscanResults.enabled:=false;
 
   lvResults.Items.BeginUpdate;
   lvResults.columns.BeginUpdate;
