@@ -7,7 +7,9 @@ interface
 uses
   windows, Classes, SysUtils, winsock, CELazySocket;
 
-const MAXQUEUESIZE=64;
+const
+  MAXQUEUESIZE=64;
+  pointerscanfileversion=1;
 
 type
   TDynDwordArray=array of dword;

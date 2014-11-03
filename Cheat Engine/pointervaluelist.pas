@@ -15,6 +15,8 @@ interface
 uses windows, LCLIntf, dialogs, SysUtils, classes, ComCtrls, CEFuncProc, NewKernelHandler,
      symbolhandler, math,bigmemallochandler, maps;
 
+const scandataversion=1;
+
 type
   PStaticData=^TStaticData;
   TStaticData=record
@@ -94,6 +96,7 @@ type
     stacksize: integer;
 
     stacklist: array of ptruint;
+
     function BinSearchMemRegions(address: ptrUint): integer;
     function isModulePointer(address: ptrUint): boolean;
     function ispointer(address: ptrUint): boolean;
@@ -114,6 +117,7 @@ type
     procedure fillLinkedList;
 
     procedure LoadModuleList(s: TStream);
+    function  LoadHeader(s: TStream): qword;
   public
     count: qword;
 
@@ -121,6 +125,7 @@ type
     modulelist: tstringlist;
 
 
+    function is64bit: boolean;
     procedure exportToStream(s: TStream; pb: TProgressbar=nil);
 
     procedure saveModuleListToResults(s: TStream);
@@ -128,8 +133,10 @@ type
     function findPointerValue(startvalue: ptrUint; var stopvalue: ptrUint): PPointerList;
     constructor create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers, allowNonModulePointers: boolean; useStacks: boolean; stacksAsStaticOnly: boolean; threadstacks: integer; stacksize: integer; specificBaseAsStaticOnly: boolean; baseStart: ptruint; baseStop: ptruint);
     constructor createFromStream(s: TStream; progressbar: tprogressbar=nil);
-    constructor createFromStreamModuleListOnly(s: TStream);
+    constructor createFromStreamHeaderOnly(s: TStream);
     destructor destroy; override;
+
+    property CanHaveStatic: boolean read specificBaseAsStaticOnly;
   end;
 
 implementation
@@ -698,11 +705,23 @@ var i,c: integer;
   pv: PPointerList;
   lastupdate: qword;
 begin
+  s.WriteByte($ce);
+  s.WriteByte(ScanDataVersion);
 
   saveModuleListToResults(s); //save the module list (not important for worker threads/systems, but used for saving the main .ptr file)
 
-  s.WriteDWord(maxlevel);
+  if specificBaseAsStaticOnly then
+  begin
+    s.WriteByte(1);
+    s.WriteQWord(basestart);
+    s.WriteQWord(basestop);
+  end
+  else
+  begin
+    s.WriteByte(0);
+  end;
 
+  s.WriteDWord(maxlevel);
   s.WriteQWord(count);
 
   lastupdate:=GetTickCount64;
@@ -777,10 +796,42 @@ begin
   end;
 end;
 
-constructor TReversePointerListHandler.createFromStreamModuleListOnly(s: TStream);
+function TReversePointerListHandler.LoadHeader(s: TStream) : qword;
 begin
-  //only loads the modulelist part
+  //check the header
+  if s.ReadByte<>$ce then
+    raise exception.create('Invalid scandata file');
+
+  if s.Readbyte<>ScanDataVersion then
+    raise exception.create('Invalid scandata version');
+
+
+  //first read the modulelist. Not used for the scan itself, but needed when saving as the base maintainer
+
+
   LoadModuleList(s);
+
+  specificBaseAsStaticOnly:=s.ReadByte=1;
+  if specificBaseAsStaticOnly then
+  begin
+    basestart:=s.ReadQWord;
+    basestop:=s.ReadQWord;
+  end;
+
+
+  maxlevel:=s.ReadDWord;
+  result:=s.ReadQWord;
+end;
+
+function TReversePointerListHandler.is64bit: boolean;
+begin
+  result:=maxlevel=15;
+end;
+
+constructor TReversePointerListHandler.createFromStreamHeaderOnly(s: TStream);
+begin
+  //only loads the header part
+  LoadHeader(s);
 end;
 
 constructor TReversePointerListHandler.createFromStream(s: Tstream; progressbar: tprogressbar=nil);
@@ -794,16 +845,16 @@ var
 
   //x: integer;
   //mname: pchar;
-  totalcount: qword;
-
   lastcountupdate: qword;
 
   //mbase: qword;
   pvalue: qword;
+  totalcount: qword;
 begin
   OutputDebugString('TReversePointerListHandler.createFromStream');
 
-  //first read the modulelist. Not used for the scan itself, but needed when saving as the base maintainer
+  totalcount:=LoadHeader(s);
+
   bigalloc:=TBigMemoryAllocHandler.create;
 
   if progressbar<>nil then
@@ -812,14 +863,6 @@ begin
     progressbar.Position:=0;
     progressbar.max:=100;
   end;
-
-
-  LoadModuleList(s);
-
-
-
-  maxlevel:=s.ReadDWord;
-  totalcount:=s.ReadQWord;
 
   level0list:=bigalloc.alloc(sizeof(TReversePointerListArray));
   ZeroMemory(level0list, sizeof(TReversePointerListArray));

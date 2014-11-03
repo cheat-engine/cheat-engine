@@ -324,6 +324,7 @@ type
     generatePointermapOnly: boolean;
 
     compressedptr: boolean;
+    MaxBitCountModuleOffset: dword;
     MaxBitCountModuleIndex: dword;
     MaxBitCountLevel: dword;
     MaxBitCountOffset: dword;
@@ -489,7 +490,7 @@ begin
 
   if fcontroller.compressedptr then
   begin
-    EntrySize:=32+fcontroller.MaxBitCountModuleIndex+fcontroller.MaxBitCountLevel+fcontroller.MaxBitCountOffset*(fcontroller.maxlevel-length(fcontroller.mustendwithoffsetlist));
+    EntrySize:=fcontroller.MaxBitCountModuleOffset+fcontroller.MaxBitCountModuleIndex+fcontroller.MaxBitCountLevel+fcontroller.MaxBitCountOffset*(fcontroller.maxlevel-length(fcontroller.mustendwithoffsetlist));
     EntrySize:=(EntrySize+7) div 8;
   end
   else
@@ -3131,20 +3132,31 @@ begin
     if resumescan then
     begin
       if resumeptrfilereader=nil then raise exception.create('no resume ptr file reader present');
-      MaxBitCountModuleIndex:=getMaxBitCount(resumeptrfilereader.modulelistCount-1, true);
+      MaxBitCountModuleIndex:=resumeptrfilereader.MaxBitCountModuleIndex;
+      MaxBitCountModuleOffset:=resumeptrfilereader.MaxBitCountModuleOffset;
+      MaxBitCountLevel:=resumeptrfilereader.MaxBitCountLevel;
+      MaxBitCountOffset:=resumeptrfilereader.MaxBitCountOffset;
     end
     else
     begin
       if pointerlisthandler=nil then  //should never happen, but use it as a fallback
-        MaxBitCountModuleIndex:=32 //don't compress it
+      begin
+        MaxBitCountModuleIndex:=32; //don't compress it
+        MaxBitCountModuleOffset:=64;
+      end
       else
+      begin
         MaxBitCountModuleIndex:=getMaxBitCount(pointerlisthandler.modulelist.Count-1, true);
+        if pointerlisthandler.is64bit and ((not staticonly) or (pointerlisthandler.CanHaveStatic)) then
+          MaxBitCountModuleOffset:=64
+        else
+          MaxBitCountModuleOffset:=32
+      end;
+
+      MaxBitCountLevel:=getMaxBitCount(maxlevel-length(mustendwithoffsetlist) , false); //counted from 1.  (if level=4 then value goes from 1,2,3,4) 0 means no offsets. This can happen in case of a pointerscan with specific end offsets, which do not get saved.
+      MaxBitCountOffset:=getMaxBitCount(sz, false);
+      if unalligned=false then MaxBitCountOffset:=MaxBitCountOffset - 2;
     end;
-
-    MaxBitCountLevel:=getMaxBitCount(maxlevel-length(mustendwithoffsetlist) , false); //counted from 1.  (if level=4 then value goes from 1,2,3,4) 0 means no offsets. This can happen in case of a pointerscan with specific end offsets, which do not get saved.
-    MaxBitCountOffset:=getMaxBitCount(sz, false);
-
-    if unalligned=false then MaxBitCountOffset:=MaxBitCountOffset - 2;
   end;
 
 end;
@@ -3946,6 +3958,8 @@ var
     pointerlistloaders: array of TPointerlistloader;
 
     oldfiles: tstringlist;
+
+
 begin
   result:=nil;
   if terminated then exit;
@@ -4055,9 +4069,15 @@ begin
       begin
         pointerlistloaders[i].WaitFor;
         instantrescanfiles[i].plist:=pointerlistloaders[i].pointerlisthandler;
+
+        if pointerlisthandler<>nil then //should always be true if the pointerlistloaders got initialized
+          instantrescanfiles[i].plist.reorderModuleIdList(pointerlisthandler.modulelist);
+
         pointerlistloaders[i].Free;
       end;
     end;
+
+
 
     if ((threadcount=0) and (UseLoadedPointermap=false)) or generatePointermapOnly then
     begin
@@ -4146,14 +4166,18 @@ begin
       begin
         result:=TfileStream.create(filename,fmcreate or fmShareDenyWrite);
 
+        result.writeByte($ce);
+        result.writeByte(pointerscanfileversion);
+
         if (pointerlisthandler=nil) then
         begin
           if UseLoadedPointermap then
           begin
             f:=tfilestream.create(LoadedPointermapFilename, fmOpenRead);
             ds:=Tdecompressionstream.create(f);
-            pointerlisthandler:=TReversePointerListHandler.createFromStreamModuleListOnly(ds);
+            pointerlisthandler:=TReversePointerListHandler.createFromStreamHeaderOnly(ds);
             pointerlisthandler.saveModuleListToResults(result);
+
             ds.free;
             f.free;
 
@@ -4175,6 +4199,7 @@ begin
         begin
           result.writeByte(ifthen(unalligned, 0, 1)); //1 if alligned (I should really rename this one)
           result.writeByte(MaxBitCountModuleIndex);
+          result.writeByte(MaxBitCountModuleOffset);
           result.writeByte(MaxBitCountLevel);
           result.writeByte(MaxBitCountOffset);
 
@@ -4586,6 +4611,11 @@ begin
   for i:=0 to length(pointerlistloaders)-1 do
   begin
     pointerlistloaders[i].WaitFor;
+    instantrescanfiles[i].plist:=pointerlistloaders[i].pointerlisthandler;
+
+    if pointerlisthandler<>nil then //should always be true if the pointerlistloaders got initialized
+      instantrescanfiles[i].plist.reorderModuleIdList(pointerlisthandler.modulelist);
+
     pointerlistloaders[i].Free;
   end;
 
@@ -4601,7 +4631,7 @@ var
 
 begin
   if pointerlisthandler=nil then
-    processscandatafiles;
+    processScanDataFiles;
 
   if MaxBitCountModuleIndex=0 then
     InitializeCompressedPtrVariables;
@@ -4673,6 +4703,7 @@ begin
 
   scanner.compressedptr:=compressedptr;
   scanner.MaxBitCountModuleIndex:=MaxBitCountModuleIndex;
+  scanner.MaxBitCountOffset:=MaxBitCountModuleOffset;
   scanner.MaxBitCountLevel:=MaxBitCountLevel;
   scanner.MaxBitCountOffset:=MaxBitCountOffset;
 

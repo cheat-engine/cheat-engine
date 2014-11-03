@@ -22,8 +22,8 @@ type
 
 
     procedure rscan(valuetofind:ptrUint; level: valSint);
-    procedure StorePath(level: valSint; staticdata: PStaticData);
-    function DoRescan(level: valSint; staticdata: PStaticData): boolean;
+    procedure StorePath(level: valSint; moduleid: integer; offset: ptruint);
+    function DoRescan(level: valSint; moduleid: integer; offset: ptruint): boolean;
   protected
     results: tstream;
     procedure initialize; virtual; abstract;
@@ -98,6 +98,7 @@ type
 
     compressedptr: boolean;
     MaxBitCountModuleIndex: dword;
+    MaxBitCountModuleOffset: dword;
     MaxBitCountLevel: dword;
     MaxBitCountOffset: dword;
 
@@ -331,9 +332,7 @@ begin
     try
       Initialize;
 
-
-
-      compressedEntrySize:=32+MaxBitCountModuleIndex+MaxBitCountLevel+MaxBitCountOffset*(maxlevel-mustendwithoffsetlistlength);
+      compressedEntrySize:=MaxBitCountModuleOffset+MaxBitCountModuleIndex+MaxBitCountLevel+MaxBitCountOffset*(maxlevel-mustendwithoffsetlistlength);
       compressedEntrySize:=(compressedEntrySize+7) div 8;
 
       getmem(compressedEntry, compressedEntrySize+4); //+4 so there's some space for overhead (writing using a dword pointer to the last byte)
@@ -430,7 +429,7 @@ end;
 
 
 
-function TPointerscanWorker.DoRescan(level: valSint; staticdata: PStaticData): boolean;
+function TPointerscanWorker.DoRescan(level: valSint; moduleid: integer; offset: ptruint): boolean;
 var
   i,j: integer;
   a: ptruint;
@@ -439,7 +438,7 @@ begin
   result:=false;
   for i:=0 to instantrescanlistcount-1 do
   begin
-    a:=instantrescanlist[i].getAddressFromModuleIndexPlusOffset(staticdata.moduleindex, staticdata.offset);
+    a:=instantrescanlist[i].getAddressFromModuleIndexPlusOffset(moduleid, offset);
 
     for j:=level downto 0 do
     begin
@@ -454,7 +453,7 @@ begin
   result:=true;
 end;
 
-procedure TPointerscanWorker.StorePath(level: valSint; staticdata: PStaticData);
+procedure TPointerscanWorker.StorePath(level: valSint; moduleid: integer; offset: ptruint);
 {Store the current path to memory and flush if needed}
 var
   i: integer;
@@ -463,9 +462,7 @@ var
 
   bit: integer;
 begin
-  if (staticdata=nil) then exit; //don't store it
-
-  if instantrescan and (not DoRescan(level, staticdata)) then exit;
+  if instantrescan and (not DoRescan(level, moduleid, offset)) then exit;
 
   //fill in the offset list
   inc(pointersfound);
@@ -516,33 +513,18 @@ begin
 
 
     bit:=0;
-    pdword(compressedEntry)^:=staticdata.offset;
-    bit:=bit+32;
 
+    pqword(compressedEntry)^:=offset;
+    bit:=bit+MaxBitCountModuleOffset;
 
     bd8:=bit shr 3; //bit div 8;
-    pdword(@compressedEntry[bd8])^:=staticdata.moduleindex;
+    pdword(@compressedEntry[bd8])^:=moduleid;
     bit:=bit+MaxBitCountModuleIndex;
 
 
     bd8:=bit shr 3; //bit div 8;
     bm8:=bit and $7; //bit mod 8;
-        {
-    v:=pdword(@compressedEntry[bd8])^; //get the current value at the specific byte the current bit points at
-    m:=MaskLevel shl (bm8);
-    m:=not m; //invert the mask
-    v:=v and m; //keep all the bits, except those of masklevel
-    v:=v or (level shl (bm8)); //set the bits of masklevel
-    pdword(@compressedEntry[bd8])^:=v; //set the value back
-    bit:=bit+MaxBitCountLevel;    //next section
-    }
 
-    //do not save the "must end with specific offset" offsets. They are known
-
-    //startindex:=mustendwithoffsetlistlength;
-   // _level:=1+(level-mustendwithoffsetlistlength);
-
-//    pdword(@compressedEntry[bd8])^:=pdword(@compressedEntry[bd8])^ and (not (MaskLevel shl bm8)) or (_level shl bm8);
     pdword(@compressedEntry[bd8])^:=pdword(@compressedEntry[bd8])^ and (not (MaskLevel shl bm8)) or ((1+(level-mustendwithoffsetlistlength)) shl bm8);
     bit:=bit+MaxBitCountLevel;    //next section
 
@@ -553,21 +535,6 @@ begin
     begin
       bd8:=bit shr 3; //bit div 8;
       bm8:=bit and $7; //bit mod 8;
-        {
-      v:=pdword(@compressedEntry[bd8])^;
-      m:=MaskOffset shl (bm8);
-      m:=not m;
-      v:=v and m;
-
-      if alligned then
-        v:=v or ((tempresults[i] shr 2) shl (bm8))
-      else
-        v:=v or (tempresults[i] shl (bm8));
-
-
-      pdword(@compressedEntry[bd8])^:=v;
-        }
-
 
       if alligned then
         pdword(@compressedEntry[bd8])^:=pdword(@compressedEntry[bd8])^ and (not (MaskOffset shl bm8)) or ((tempresults[i] shr 2) shl bm8)
@@ -582,14 +549,14 @@ begin
   end
   else
   begin
-    results.WriteBuffer(staticdata.moduleindex, sizeof(staticdata.moduleindex));
-    results.WriteBuffer(staticdata.offset,sizeof(staticdata.offset));
-    i:=level+1; //store how many offsets are actually used (since all are saved)
-    results.WriteBuffer(i,sizeof(i));
-    results.WriteBuffer(tempresults[0], maxlevel*sizeof(tempresults[0]) ); //todo for 6.3+: Change sizeof(tempresult[0]) with the max size the structsize can generate./ (e.g 4096 is  only 2 bytes, 65536 =3)
-  end;
-  flushIfNeeded; //if results.position>15*1024*1024 then flushresult;//bigger than 15mb
+    results.WriteDword(moduleid);
+    results.WriteQword(offset);
 
+    i:=level+1; //store how many offsets are actually used (since all are saved)
+    results.WriteDword(i);
+    results.WriteBuffer(tempresults[0], maxlevel*sizeof(tempresults[0]) );
+  end;
+  flushIfNeeded;
 end;
 
 procedure TPointerscanWorker.flushifneeded;
@@ -823,7 +790,7 @@ begin
               begin
                 nostatic.moduleindex:=$FFFFFFFF;
                 nostatic.offset:=plist.list[j].address;
-                StorePath(level,@nostatic);
+                StorePath(level,-1, plist.list[j].address);
               end;
 
             end
@@ -834,7 +801,7 @@ begin
               begin
                 nostatic.moduleindex:=$FFFFFFFF;
                 nostatic.offset:=plist.list[j].address;
-                StorePath(level,@nostatic);
+                StorePath(level, -1, plist.list[j].address);
               end;
             end
 
@@ -843,7 +810,7 @@ begin
         else
         begin
           //found a static one
-          StorePath(level, plist.list[j].staticdata);
+          StorePath(level, plist.list[j].staticdata.moduleindex, plist.list[j].staticdata.offset);
 
           if onlyOneStaticInPath then DontGoDeeper:=true;
         end;

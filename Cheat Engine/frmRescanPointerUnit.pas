@@ -5,8 +5,8 @@ unit frmRescanPointerUnit;
 interface
 
 uses
-  LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, LResources, contnrs, cefuncproc, symbolhandler,
+  LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  StdCtrls, ExtCtrls, LResources, EditBtn, contnrs, cefuncproc, symbolhandler,
   multilineinputqueryunit, lua, lualib, lauxlib, registry, resolve;
 
 type
@@ -24,6 +24,11 @@ type
     cbNoValueCheck: TCheckBox;
     cbLuaFilter: TCheckBox;
     cbUseSavedPointermap: TCheckBox;
+    CheckBox1: TCheckBox;
+    Edit1: TEdit;
+    FileNameEdit1: TFileNameEdit;
+    FileNameEdit2: TFileNameEdit;
+    Label2: TLabel;
     lblLuaParams: TLabel;
     edtRescanFunction: TEdit;
     edtBaseStart: TEdit;
@@ -394,12 +399,15 @@ begin
     cbRepeat.Enabled:=false; //really no use rescanning an never changing static pointermap
     cbNoValueCheck.Checked:=false;
     cbNoValueCheck.Enabled:=false;
+    cbDelay.checked:=false;
+    cbDelay.enabled:=false;
   end
   else
   begin
     rbFindValue.enabled:=true;
     cbRepeat.Enabled:=true;
     cbNoValueCheck.Enabled:=true;
+    cbDelay.enabled:=true;
   end;
 end;
 

@@ -14,7 +14,7 @@ function GetFileSizeEx(hFile:HANDLE; FileSize:PQWord):BOOL; stdcall; external 'k
 
 type TPointerscanResult=record
   modulenr: integer;
-  moduleoffset: integer;
+  moduleoffset: qword;
   offsetcount: integer;
   offsets: array [0..1000] of dword;
 end;
@@ -25,6 +25,7 @@ type
   TPointerscanresultReader=class
   private
     Fcount: qword;
+
     sizeOfEntry: integer;
     maxlevel: integer;
     modulelist: tstringlist;
@@ -56,6 +57,7 @@ type
     MaskOffset: dword;
 
     fMaxBitCountModuleIndex: dword;
+    fMaxBitCountModuleOffset: dword;
     fMaxBitCountLevel: dword;
     fMaxBitCountOffset: dword;
 
@@ -63,7 +65,8 @@ type
 
     fCanResume: boolean;
 
-    compressedPointerScanResult: PPointerscanResult;
+
+    CompressedPointerScanResult: PPointerscanResult;
     compressedTempBuffer: PByteArray;
 
     fLastRawPointer: pointer;
@@ -104,31 +107,115 @@ type
     property compressedptr: boolean read fCompressedPtr;
     property aligned: boolean read fAligned;
     property MaxBitCountModuleIndex: dword read fMaxBitCountModuleIndex;
+    property MaxBitCountModuleOffset: dword read fMaxBitCountModuleOffset;
     property MaxBitCountLevel: dword read fMaxBitCountLevel;
     property MaxBitCountOffset: dword read fMaxBitCountOffset;
     property LastRawPointer: pointer read fLastRawPointer;
     property CanResume: boolean read fCanResume;
 end;
 
-procedure findAllResultFilesForThisPtr(filename: string; result: TStrings);
+procedure findAllResultFilesForThisPtr(filename: string; rs: TStrings);
 
 implementation
 
-uses ProcessHandlerUnit;
+uses ProcessHandlerUnit, PointerscanStructures;
 
-procedure findAllResultFilesForThisPtr(filename: string; result: TStrings);
-var r: TRawbyteSearchRec;
+procedure findAllResultFilesForThisPtr(filename: string; rs: TStrings);
+var
+  fr: TRawbyteSearchRec;
+  i,j: integer;
+  ext1, ext2: string;
+
+  basesort: boolean;
+  v1, v2: uint64;
+
+  sepindex: integer;
+  temp: string;
+  swap: boolean;
 begin
   //search the folder this ptr file is in for .result.* files
   //extract1
-  if FindFirst(filename+'.results.*', 0, r)=0 then
+  if FindFirst(filename+'.results.*', 0, fr)=0 then
   begin
     repeat
-      result.add(extractfilepath(filename)+r.Name);
-    until FindNext(r)<>0;
+      rs.add(extractfilepath(filename)+fr.Name);
+    until FindNext(fr)<>0;
 
-    FindClose(r);
+    FindClose(fr);
   end;
+
+  //sort the results based on the extension
+  //keep in mind that base address sorting has as extention "moduleid-offset"
+  if rs.count>0 then
+  begin
+  {  basesort:=pos('-', ExtractFileExt(rs[0]))>0;     }
+
+    try
+      for i:=0 to rs.count-2 do
+      begin
+        ext1:=ExtractFileExt(rs[i]);
+        ext1:=copy(ext1, 2, length(ext1)-1);
+
+       { if basesort then
+        begin
+          //get the moduleid and offset
+          sepindex:=pos('-', ext1);
+          if sepindex=0 then exit; //not a valid list
+
+          m1:=StrToInt('$'+copy(ext1, 1, sepindex));
+          v1:=StrToInt('$'+copy(ext1, sepindex+1, length(ext1)));
+        end
+        else  }
+          v1:=StrToInt64('$'+ext1);
+
+        for j:=i+1 to rs.count-1 do
+        begin
+          ext2:=ExtractFileExt(rs[j]);
+          ext2:=copy(ext2, 2, length(ext2)-1);
+
+          swap:=false;
+
+          {if basesort then
+          begin
+            //get the moduleid and offset
+            sepindex:=pos('-', ext2);
+            if sepindex=0 then exit;
+
+            m2:=StrToInt('$'+copy(ext2, 1, sepindex));
+            v2:=StrToInt('$'+copy(ext2, sepindex+1, length(ext2)));
+
+            if m1>m2 then
+              swap:=true;
+
+            if v1>v2 then
+              swap:=true;
+          end
+          else }
+          begin
+            v2:=StrToInt64('$'+ext2);
+            if v1>v2 then
+              swap:=true;
+          end;
+
+          if swap then
+          begin
+            temp:=rs[i];
+            rs[i]:=rs[j];
+            rs[j]:=temp;
+          end;
+
+
+
+        end;
+      end;
+    except
+      //one of these could not be interpreted as a proper hexadecimal offset, so no need to sort, it's unsorted
+    end;
+
+  end;
+
+
+
 end;
 
 function TPointerscanresultreader.getMergedResultCount: integer;
@@ -272,21 +359,22 @@ end;
 function TPointerscanresultReader.getModuleBase(modulenr: integer): ptrUint;
 {pre: modulenr must be valid, so not -1 }
 begin
-  if modulenr<modulelist.Count then
+
+  if (modulenr>=0) and (modulenr<modulelist.Count) then
     result:=ptrUint(modulelist.Objects[modulenr])
   else
-    result:=$12345678;
+    result:=0;
 end;
 
 procedure TPointerscanresultReader.setModuleBase(modulenr: integer; newModuleBase: ptruint);
 begin
-  if modulenr<modulelist.Count then
+  if (modulenr>=0) and (modulenr<modulelist.Count) then
     modulelist.objects[modulenr]:=pointer(newModulebase);
 end;
 
 function TPointerscanresultReader.getModulename(modulenr: integer): string;
 begin
-  if modulenr<modulelist.Count then
+  if (modulenr>=0) and (modulenr<modulelist.Count) then
     result:=modulelist[modulenr]
   else
     result:='BuggedList';
@@ -324,8 +412,13 @@ begin
 
     CopyMemory(compressedTempBuffer, p, sizeofentry);
 
-    compressedPointerScanResult.moduleoffset:=PDword(compressedTempBuffer)^;
-    bit:=32;
+    if MaxBitCountModuleOffset=32 then //only 2 possibilities
+      compressedPointerScanResult.moduleoffset:=PDword(compressedTempBuffer)^
+    else
+      compressedPointerScanResult.moduleoffset:=PQword(compressedTempBuffer)^;
+
+
+    inc(bit, MaxBitCountModuleOffset);
 
     compressedPointerScanResult.modulenr:=pdword(@compressedTempBuffer[bit shr 3])^;
     compressedPointerScanResult.modulenr:=compressedPointerScanResult.modulenr and MaskModuleIndex;
@@ -388,8 +481,6 @@ begin
     result:=PPointerscanResult(ptrUint(cache)+(cachepos*sizeofentry));
     fLastRawPointer:=result;
   end;
-
-
 end;
 
 function TPointerscanresultReader.getPointer(i: qword; var pointsto: ptrUint): PPointerscanResult;
@@ -464,6 +555,13 @@ var
 begin
   FFilename:=filename;
   configfile:=TFileStream.Create(filename, fmOpenRead or fmShareDenyWrite);
+
+  if configfile.ReadByte<>$ce then
+    raise exception.create('Corrupted pointerscan file');
+
+  if configfile.ReadByte<>pointerscanfileversion then
+    raise exception.create('Invalid pointerscan file version');
+
   configfile.ReadBuffer(modulelistlength,sizeof(modulelistlength));
   modulelist:=tstringlist.create;
   tempmodulelist:=tstringlist.create;
@@ -510,7 +608,6 @@ begin
     end;
   end;
 
-
   //read maxlevel
   configfile.Read(maxlevel,sizeof(maxlevel));
 
@@ -521,17 +618,15 @@ begin
   begin
     fAligned:=configFile.ReadByte=1;
     fMaxBitCountModuleIndex:=configfile.ReadByte;
+    fMaxBitCountModuleOffset:=configfile.ReadByte;
     fMaxBitCountLevel:=configfile.ReadByte;
     fMaxBitCountOffset:=configfile.ReadByte;
     setlength(fEndsWithOffsetList, configfile.ReadByte);
     for i:=0 to length(fEndsWithOffsetList)-1 do
       fEndsWithOffsetList[i]:=configfile.ReadDWord;
 
-    sizeofentry:=32+MaxBitCountModuleIndex+MaxBitCountLevel+MaxBitCountOffset*(maxlevel-length(fEndsWithOffsetList));
+    sizeofentry:=MaxBitCountModuleOffset+MaxBitCountModuleIndex+MaxBitCountLevel+MaxBitCountOffset*(maxlevel-length(fEndsWithOffsetList));
     sizeofentry:=(sizeofentry+7) div 8;
-
-    getmem(compressedPointerScanResult, 12+4*maxlevel);
-    getmem(compressedTempBuffer, sizeofentry+4);
 
     MaskModuleIndex:=0;
     for i:=1 to MaxBitCountModuleIndex do
@@ -542,9 +637,18 @@ begin
 
     for i:=1 to MaxBitCountOffset do
       MaskOffset:=(MaskOffset shl 1) or 1;
+
+    getmem(CompressedPointerScanResult, 16+4*maxlevel);
+    getmem(CompressedTempBuffer, sizeofentry+4);
+
+
   end
   else
-    sizeofentry:=12+(4*maxlevel);
+  begin
+    sizeofentry:=16+(4*maxlevel)
+  end;
+
+
 
 
   //get the filenames
