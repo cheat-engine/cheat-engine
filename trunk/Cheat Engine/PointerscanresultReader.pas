@@ -418,7 +418,7 @@ begin
       compressedPointerScanResult.moduleoffset:=PQword(compressedTempBuffer)^;
 
 
-    inc(bit, MaxBitCountModuleOffset);
+    bit:=MaxBitCountModuleOffset;
 
     compressedPointerScanResult.modulenr:=pdword(@compressedTempBuffer[bit shr 3])^;
     compressedPointerScanResult.modulenr:=compressedPointerScanResult.modulenr and MaskModuleIndex;
