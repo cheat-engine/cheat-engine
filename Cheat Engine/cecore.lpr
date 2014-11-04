@@ -26,12 +26,12 @@ begin
   FreeOnTerminate:=true;
 end;
 
-procedure Java_org_cheatengine_jnitest_MainActivity_f1(PEnv: PJNIEnv; Obj: JObject); cdecl;
+procedure Java_org_cheatengine_jnitest_cecore_f1(PEnv: PJNIEnv; Obj: JObject); cdecl;
 var i: integer;
   t: TTestThread;
 begin
 //small test funtion
-  log('Java_org_cheatengine_jnitest_MainActivity_f1 called');
+  log('Java_org_cheatengine_jnitest_cecore_f1 called');
 
   log('Creating thread');
   t:=TTestThread.Create(false);
@@ -43,7 +43,7 @@ procedure CEConnect(PEnv: PJNIEnv; Obj: JObject); cdecl;
 var c: TCEConnection;
 begin
   log('CEConnect called');
-  host:=StrToNetAddr('127.0.0.1');
+  host:=StrToNetAddr('192.168.0.12');
   port:=ShortHostToNet(52736);
 
   log('Host='+inttohex(host.s_addr,1));
@@ -75,8 +75,6 @@ begin
       log('EXCEPTION:'+e.message);
   end;
 
-  log('pl.count='+inttostr(pl.Count));
-
   cl:=Penv^.FindClass(PEnv, 'java/util/ArrayList');
 
   initmethod:=Penv^.GetMethodID(penv, cl, '<init>', '()V');
@@ -103,6 +101,13 @@ begin
   processhandler.processhandle:=OpenProcess(PROCESS_ALL_ACCESS, false, pid);
 end;
 
+const methodcount=3;
+
+var jnimethods: array [0..methodcount-1] of JNINativeMethod =(
+  (name: 'CEConnect'; signature: '()V'; fnPtr: @CEConnect),
+  (name: 'GetProcessList'; signature: '()Ljava/util/ArrayList;'; fnPtr: @GetProcessList),
+  (name: 'SelectProcess'; signature: '(I)V'; fnPtr: @SelectProcess)
+);
 
 function JNI_OnLoad(vm: PJavaVM; reserved: pointer): jint; cdecl;
 var env: PJNIEnv;
@@ -114,55 +119,15 @@ begin
     result:=-1
   else
   begin
-    log('JNI_OnLoad');
-
     InitializeNetworkInterface;
-
-
-    log('env='+inttohex(ptruint(env),8));
-
-    c:=env^.FindClass(env, 'org/cheatengine/jnitest/MainActivity');
-    log('C='+inttohex(ptruint(c),1));
-
-
-    m[0].fnPtr:=@CEConnect;
-    m[0].name:='CEConnect';
-    m[0].signature:='()V';
-
-    m[1].fnPtr:=@GetProcessList;
-    m[1].name:='GetProcessList';
-    m[1].signature:='()Ljava/util/ArrayList;';
-
-    m[2].fnPtr:=@SelectProcess;
-    m[2].name:='SelectProcess';
-    m[2].signature:='(I)V';
-
-    r:=env^.RegisterNatives(env, c, @m[0], 3);
-
-    log('after RegisterNatives. r='+inttostr(r));
-
-
-    c:=env^.FindClass(env, 'org/cheatengine/jnitest/ProcessPicker');
-    log('C='+inttohex(ptruint(c),1));
-
-    m[0].fnPtr:=@GetProcessList;
-    m[0].name:='GetProcessList';
-    m[0].signature:='()Ljava/util/ArrayList;';
-
-    m[1].fnPtr:=@SelectProcess;
-    m[1].name:='SelectProcess';
-    m[1].signature:='(I)V';
-
-    r:=env^.RegisterNatives(env, c, @m[0], 2);
-
-    log('after RegisterNatives. r='+inttostr(r));
-
+    c:=env^.FindClass(env, 'org/cheatengine/jnitest/cecore');
+    r:=env^.RegisterNatives(env, c, @jnimethods[0], methodcount);
     result:=JNI_VERSION_1_6;
   end;
 end;
 
 
-exports Java_org_cheatengine_jnitest_MainActivity_f1;
+exports Java_org_cheatengine_jnitest_cecore_f1;
 exports JNI_OnLoad;
 
 begin

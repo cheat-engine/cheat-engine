@@ -35,22 +35,18 @@
       <Unit0>
         <Filename Value="cecore.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="cecore"/>
       </Unit0>
       <Unit1>
         <Filename Value="networkInterfaceApi.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="networkInterfaceApi"/>
       </Unit1>
       <Unit2>
         <Filename Value="networkInterface.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="networkInterface"/>
       </Unit2>
       <Unit3>
         <Filename Value="NewKernelHandler.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="NewKernelHandler"/>
       </Unit3>
       <Unit4>
         <Filename Value="unixporthelper.pas"/>
@@ -60,17 +56,14 @@
       <Unit5>
         <Filename Value="ProcessHandlerUnit.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="ProcessHandlerUnit"/>
       </Unit5>
       <Unit6>
         <Filename Value="elfsymbols.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="elfsymbols"/>
       </Unit6>
       <Unit7>
         <Filename Value="processlist.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="ProcessList"/>
       </Unit7>
     </Units>
   </ProjectOptions>
@@ -100,11 +93,7 @@
       </Options>
     </Linking>
     <Other>
-      <CompilerMessages>
-        <MsgFileName Value=""/>
-      </CompilerMessages>
       <CustomOptions Value="-dJNI"/>
-      <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
   <Debugging>

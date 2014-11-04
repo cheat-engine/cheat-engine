@@ -134,9 +134,9 @@ end;
 
 procedure ZeroMemory(destination: pointer; size: integer);
 begin
-  log('ZeroMemory');
+  //log('ZeroMemory');
   FillByte(destination^, size, 0); //perhaps filldword might be faster, but for now keep it compatible
-  log('ZeroMemory returned');
+  //log('ZeroMemory returned');
 end;
 
 procedure MoveMemory(destination: pointer; Origin: pointer; size: integer);
@@ -152,7 +152,7 @@ end;
 procedure log(l: string);
 begin
 {$ifdef android}
-  __android_log_write(ANDROID_LOG_ERROR, 'CE',pchar(l));
+  __android_log_write(ANDROID_LOG_ERROR, 'CECORE',pchar(l));
 {$endif}
 
 {$ifdef windows}

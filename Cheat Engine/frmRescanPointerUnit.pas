@@ -24,11 +24,6 @@ type
     cbNoValueCheck: TCheckBox;
     cbLuaFilter: TCheckBox;
     cbUseSavedPointermap: TCheckBox;
-    CheckBox1: TCheckBox;
-    Edit1: TEdit;
-    FileNameEdit1: TFileNameEdit;
-    FileNameEdit2: TFileNameEdit;
-    Label2: TLabel;
     lblLuaParams: TLabel;
     edtRescanFunction: TEdit;
     edtBaseStart: TEdit;
