@@ -25,6 +25,3 @@ TFRMRESCANPOINTER.LBLLUAPARAMS.CAPTION=(base, offsets, target):bool
 TFRMRESCANPOINTER.CBUSESAVEDPOINTERMAP.HINT=Normally this should not be used. Saved pointermaps are best suited for the initial scan.
 One case where it could be useful is where you have a pointerfile that is too big to send to someone else, but the scandata file is not. In that case, ask the other person for the scandata and do the scan on your system against the current pointerfile
 TFRMRESCANPOINTER.CBUSESAVEDPOINTERMAP.CAPTION=Use saved pointermap
-TFRMRESCANPOINTER.CHECKBOX1.CAPTION=Pointer starts must also be present in other ptr file
-TFRMRESCANPOINTER.EDIT1.TEXT=2
-TFRMRESCANPOINTER.LABEL2.CAPTION=min column count
