@@ -7,13 +7,14 @@ unit pointerscannerfrm;
 interface
 
 uses
-  windows, LCLIntf, LResources, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, ComCtrls, syncobjs,syncobjs2, Menus, math,
-  frmRescanPointerUnit, pointervaluelist, rescanhelper,
-  virtualmemory, symbolhandler,MainUnit,disassembler,CEFuncProc,NewKernelHandler,
-  valuefinder, PointerscanresultReader, maps, zstream, WinSock2, Sockets,
-  registry, PageMap, CELazySocket, PointerscanNetworkCommands, resolve, pointeraddresslist,
-  pointerscanworker, PointerscanStructures, PointerscanController;
+  windows, LCLIntf, LResources, Messages, SysUtils, Variants, Classes, Graphics,
+  Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls, syncobjs, syncobjs2,
+  Menus, math, frmRescanPointerUnit, pointervaluelist, rescanhelper,
+  virtualmemory, symbolhandler, MainUnit, disassembler, CEFuncProc,
+  NewKernelHandler, valuefinder, PointerscanresultReader, maps, zstream,
+  WinSock2, Sockets, registry, PageMap, CELazySocket,
+  PointerscanNetworkCommands, resolve, pointeraddresslist, pointerscanworker,
+  PointerscanStructures, PointerscanController, sqlite3conn, sqldb;
 
 
 
@@ -163,10 +164,13 @@ type
     lblPassword: TLabel;
     lblThreadPriority: TLabel;
     lblProgressbar1: TLabel;
+    MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
+    MenuItem3: TMenuItem;
     miCreatePSNnode: TMenuItem;
     miResume: TMenuItem;
     odMerge: TOpenDialog;
+    odSqlite: TOpenDialog;
     pnlData: TPanel;
     pnlStop: TPanel;
     pnlControl: TPanel;
@@ -187,7 +191,9 @@ type
     SaveDialog1: TSaveDialog;
     OpenDialog1: TOpenDialog;
     SaveDialog2: TSaveDialog;
-    SelectDirectoryDialog1: TSelectDirectoryDialog;
+    SQLite3: TSQLite3Connection;
+    SQLQuery: TSQLQuery;
+    SQLTransaction: TSQLTransaction;
     Timer2: TTimer;
     lvResults: TListView;
     PopupMenu1: TPopupMenu;
@@ -205,6 +211,7 @@ type
     procedure FormResize(Sender: TObject);
     procedure lvResultsColumnClick(Sender: TObject; Column: TListColumn);
     procedure lvResultsResize(Sender: TObject);
+    procedure MenuItem1Click(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
     procedure miCreatePSNnodeClick(Sender: TObject);
     procedure miMergePointerscanResultsClick(Sender: TObject);
@@ -1120,6 +1127,7 @@ begin
   end;
 end;
 
+
 procedure Tfrmpointerscanner.lvResultsResize(Sender: TObject);
 var i,l: integer;
 begin
@@ -1132,6 +1140,149 @@ begin
     l:=lvResults.ClientWidth-l;
     l:=max(120,l);
     lvResults.Columns[lvResults.columns.count-1].Width:=l;
+  end;
+end;
+
+procedure Tfrmpointerscanner.MenuItem1Click(Sender: TObject);
+var
+  filename: string;
+  r: TModalResult;
+  name: string;
+
+  tablenames: Tstringlist;
+  fieldnames: tstringlist;
+
+  offsetlist, offsetvalues: string;
+  ptrid: string;
+  i: integer;
+  j: qword;
+
+  p: PPointerscanResult;
+  s: string;
+begin
+  if (Pointerscanresults<>nil) and (odSqlite.execute) then
+  begin
+    filename:=utf8toansi(odsqlite.FileName);
+    name:=extractfilename(pointerscanresults.filename);
+
+    if InputQuery('Export to database','Give a name for these results', name)=false then exit;
+
+
+
+    SQLite3.DatabaseName:=filename;
+    sqlite3.Connected:=true;
+    try
+      tablenames:=tstringlist.create;
+      sqlite3.GetTableNames(tablenames, false);
+
+      //build the tables if necesary
+      if tablenames.IndexOf('pointerfilenames')=-1 then
+      begin
+        sqlite3.ExecuteDirect('CREATE TABLE `pointerfilenames` (`ptrid`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,`name`	char(256) NOT NULL);');
+        sqlite3.ExecuteDirect('CREATE UNIQUE INDEX "id_idx" ON "pointerfilenames"( "ptrid" );');
+      end;
+
+      if tablenames.IndexOf('modules')=-1 then
+      begin
+        sqlite3.ExecuteDirect('create table modules(ptrid integer not null, moduleid integer not null, name char(256) not null, primary key (ptrid, moduleid) );');
+        sqlite3.ExecuteDirect('CREATE UNIQUE INDEX "ptr_mod_id_idx" ON "modules"( ptrid, moduleid );');
+      end;
+
+      if tablenames.IndexOf('results')=-1 then
+      begin
+
+        offsetlist:='';
+        for i:=1 to pointerscanresults.offsetCount do
+          offsetlist:=offsetlist+', offset'+inttostr(i)+' integer';
+
+
+        sqlite3.ExecuteDirect('create table results(ptrid integer not null, resultid integer not null, offsetcount integer, moduleid integer, moduleoffset integer '+offsetlist+', primary key (ptrid, resultid) );');
+        sqlite3.ExecuteDirect('CREATE UNIQUE INDEX "ptr_res_id_idx" ON "results"( ptrid, resultid );');
+      end
+      else
+      begin
+        //might need an update
+        fieldnames:=tstringlist.create;
+        sqlite3.GetFieldNames('results', fieldnames);
+
+        for i:=1 to pointerscanresults.offsetCount do
+          if fieldnames.indexof('offset'+inttostr(i))=0 then
+            sqlite3.ExecuteDirect('ALTER TABLE results ADD COLUMN offset'+inttostr(i)+' integer');
+
+        fieldnames.free;
+      end;
+
+      tablenames.free;
+
+      SQLQuery.SQL.Text:='Select ptrid from pointerfilenames where name="'+name+'"';
+      SQLQuery.Active:=true;
+
+      if SQLQuery.RecordCount>0 then
+      begin
+        ptrid:=SQLQuery.FieldByName('ptrid').text;
+        if MessageDlg('Export to database', 'There is already a pointerfile with this name present in this database. Replace it''s content with this one ?', mtConfirmation, [mbyes, mbno], 0)<>mryes then
+        begin
+          showmessage('Export aborted');
+          exit;
+        end;
+
+        cursor:=crHourGlass;
+        sqlite3.ExecuteDirect('delete from results where ptrid='+ptrid);
+        sqlite3.ExecuteDirect('delete from modules where ptrid='+ptrid);
+        sqlite3.ExecuteDirect('delete from pointerfilenames where ptrid='+ptrid);
+        cursor:=crDefault;
+      end;
+      SQLQuery.Active:=false;
+
+
+
+      //and now fill it
+      cursor:=crHourGlass;
+
+      sqlite3.ExecuteDirect('INSERT INTO pointerfilenames (name) values ("'+name+'")');
+
+      SQLQuery.SQL.Text:='Select max(ptrid) as max from pointerfilenames';
+      SQLQuery.Active:=true;
+
+      ptrid:=SQLQuery.FieldByName('max').AsString;
+
+      SQLQuery.active:=false;
+
+
+      for i:=0 to Pointerscanresults.modulelistCount-1 do
+        sqlite3.ExecuteDirect('INSERT INTO modules(ptrid, moduleid, name) values ('+ptrid+','+inttostr(i)+',"'+Pointerscanresults.getModulename(i)+'")');
+
+      for j:=0 to Pointerscanresults.count-1 do
+      begin
+        offsetlist:='';
+        offsetvalues:='';
+        p:=Pointerscanresults.getPointer(j);
+
+        for i:=1 to p.offsetcount do
+        begin
+          offsetlist:=offsetlist+',offset'+inttostr(i);
+          offsetvalues:=offsetvalues+','+inttostr(p.offsets[i-1]);
+        end;
+
+        s:='INSERT INTO results(ptrid, resultid, offsetcount, moduleid, moduleoffset'+offsetlist+') values ('+ptrid+','+inttostr(j)+','+inttostr(p.offsetcount)+','+inttostr(p.modulenr)+','+inttostr(p.moduleoffset)+offsetvalues+')';
+       // s:='INSERT INTO results values ('+ptrid+','+inttostr(j)+','+inttostr(p.offsetcount)+','+inttostr(p.modulenr)+offsetvalues+')';
+
+        sqlite3.ExecuteDirect(s);
+      end;
+
+
+      SQLTransaction.Commit;
+
+      //SQLTransaction1.
+
+
+      showmessage('Export done');
+
+
+    finally
+      sqlite3.Connected:=false;
+      cursor:=crDefault;
+    end;
   end;
 end;
 
@@ -1221,23 +1372,8 @@ end;
 
 
 procedure Tfrmpointerscanner.miSetWorkFolderClick(Sender: TObject);
-var reg: Tregistry;
 begin
-  {
-  if SelectDirectoryDialog1.Execute then
-  begin
-    distributedworkfolder:=IncludeTrailingPathDelimiter(SelectDirectoryDialog1.filename);
 
-    reg:=tregistry.create;
-    Reg.RootKey := HKEY_CURRENT_USER;
-    if Reg.OpenKey('\Software\Cheat Engine',true) then
-    begin
-      distributedworkfolder:=IncludeTrailingPathDelimiter(SelectDirectoryDialog1.filename);
-      reg.WriteString('PointerScanWorkFolder', distributedworkfolder);
-    end;
-    reg.free;
-
-  end; }
 end;
 
 
@@ -2748,6 +2884,13 @@ var
   x: array of integer;
   reg: tregistry;
 begin
+  {$ifdef cpu64}
+    SQLiteLibraryName:='.\win64\sqlite3.dll';
+  {$else}
+    SQLiteLibraryName:='.\win32\sqlite3.dll';
+  {$endif}
+
+
   {$ifdef injectedpscan}
   caption:='CE Injected Pointerscan';
   {$endif}
@@ -2761,15 +2904,6 @@ begin
     cbtype.itemindex:=x[0];
 
   reg:=TRegistry.Create;
-  {
-  if Reg.OpenKey('\Software\Cheat Engine',false) then
-  begin
-    if reg.ValueExists('PointerScanWorkFolder') then
-    begin
-      distributedworkfolder:=IncludeTrailingPathDelimiter(reg.ReadString('PointerScanWorkFolder'));
-      SelectDirectoryDialog1.filename:=distributedworkfolder;
-    end;
-  end; }
 
   reg.free;
 end;
