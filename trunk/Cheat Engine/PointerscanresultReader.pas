@@ -188,7 +188,7 @@ begin
 
   end;
 
-  showmessage(rs.text);
+ // showmessage(rs.text);
 
 
 

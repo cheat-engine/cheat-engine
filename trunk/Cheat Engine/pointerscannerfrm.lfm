@@ -1,7 +1,7 @@
 object frmPointerScanner: TfrmPointerScanner
-  Left = 424
+  Left = 660
   Height = 460
-  Top = 119
+  Top = 163
   Width = 737
   Caption = 'Pointer scan'
   ClientHeight = 440
@@ -397,6 +397,13 @@ object frmPointerScanner: TfrmPointerScanner
         ShortCut = 16463
         OnClick = Open1Click
       end
+      object MenuItem1: TMenuItem
+        Caption = 'Export to sqlite database'
+        OnClick = MenuItem1Click
+      end
+      object MenuItem3: TMenuItem
+        Caption = 'Import from sqlite database'
+      end
     end
     object MenuItem2: TMenuItem
       Caption = 'Distributed pointer scan'
@@ -459,11 +466,6 @@ object frmPointerScanner: TfrmPointerScanner
       OnClick = Resyncmodulelist1Click
     end
   end
-  object SelectDirectoryDialog1: TSelectDirectoryDialog
-    Title = 'Select folder for pointerfiles (May not be used by other scanners)'
-    left = 296
-    top = 32
-  end
   object odMerge: TOpenDialog
     DefaultExt = '.ptr'
     Filter = 'Cheat Engine Pointerlist|*.PTR'
@@ -479,5 +481,35 @@ object frmPointerScanner: TfrmPointerScanner
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
     left = 304
     top = 288
+  end
+  object SQLite3: TSQLite3Connection
+    Connected = False
+    LoginPrompt = False
+    KeepConnection = False
+    Transaction = SQLTransaction
+    Options = []
+    left = 56
+    top = 40
+  end
+  object odSqlite: TOpenDialog
+    DefaultExt = '.sqlite'
+    Filter = 'All files (*.*)|*.*|Sqlite files (*.sqlite)|*.sqlite'
+    FilterIndex = 2
+    left = 58
+    top = 98
+  end
+  object SQLTransaction: TSQLTransaction
+    Active = False
+    Database = SQLite3
+    left = 128
+    top = 40
+  end
+  object SQLQuery: TSQLQuery
+    FieldDefs = <>
+    Database = SQLite3
+    Transaction = SQLTransaction
+    Params = <>
+    left = 223
+    top = 46
   end
 end
