@@ -1162,9 +1162,16 @@ var
 
   p: PPointerscanResult;
   s: string;
+
+  pb: TProgressbar;
+  pbl: TLabel;
+
+  oldpb: string;
 begin
   if (Pointerscanresults<>nil) and (sdSqlite.execute) then
   begin
+    oldpb:=lblProgressbar1.Caption;
+
     filename:=utf8toansi(sdsqlite.FileName);
     name:=extractfilename(pointerscanresults.filename);
 
@@ -1271,6 +1278,16 @@ begin
       //and now fill it
       cursor:=crHourGlass;
 
+
+      lblProgressbar1.Caption:='Exporting...';
+      progressbar1.position:=0;
+      progressbar1.max:=100;
+      pnlProgress.visible:=true;
+
+      Update;
+
+
+
       maxlevel:=inttostr(pointerscanresults.offsetCount);
       compressedptr:=inttostr(ifthen(Pointerscanresults.compressedptr, 1, 0));
       if Pointerscanresults.compressedptr then
@@ -1328,19 +1345,31 @@ begin
         s:='INSERT INTO results(ptrid, resultid, offsetcount, moduleid, moduleoffset'+offsetlist+') values ('+ptrid+','+inttostr(j)+','+inttostr(p.offsetcount)+','+inttostr(p.modulenr)+','+inttostr(p.moduleoffset)+offsetvalues+')';
 
         sqlite3.ExecuteDirect(s);
+
+        if j mod 50=0 then
+        begin
+          progressbar1.position:=trunc(j / Pointerscanresults.count * 100);
+          progressbar1.Update;
+        end;
+
       end;
+      progressbar1.position:=100;
+      progressbar1.update;
 
       SQLTransaction.Commit;
       SQLTransaction.Active:=false;
 
-      //SQLTransaction1.
-
-      showmessage('Export done');
 
 
     finally
       sqlite3.Connected:=false;
+
       cursor:=crDefault;
+
+      lblProgressbar1.Caption:=oldpb;
+      pnlProgress.visible:=false;
+
+      beep;
     end;
   end;
 end;
