@@ -217,6 +217,7 @@ type
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
+    miGeneratePointermap: TMenuItem;
     miDisplayHex: TMenuItem;
     miNetwork: TMenuItem;
     miCompression: TMenuItem;
@@ -446,6 +447,7 @@ type
     procedure Label57Click(Sender: TObject);
     procedure lblcompareToSavedScanClick(Sender: TObject);
     procedure miCompressionClick(Sender: TObject);
+    procedure miGeneratePointermapClick(Sender: TObject);
     procedure miManualExpandCollapseClick(Sender: TObject);
     procedure miSaveClick(Sender: TObject);
     procedure mi3dClick(Sender: TObject);
@@ -2979,6 +2981,7 @@ begin
 
   frmNetworkDataCompression.show;
 end;
+
 
 procedure TMainForm.miManualExpandCollapseClick(Sender: TObject);
 begin
@@ -7485,6 +7488,21 @@ begin
   edit;
 end;
 
+
+procedure TMainForm.miGeneratePointermapClick(Sender: TObject);
+var frmPointerScanner: TfrmPointerScanner;
+begin
+  frmPointerScanner := tfrmpointerscanner.Create(self);
+  frmPointerScanner.Show;
+
+  if frmpointerscannersettings = nil then //used over and over
+    frmpointerscannersettings := tfrmpointerscannersettings.Create(self);
+
+  frmpointerscannersettings.rbGeneratePointermap.checked:=true;
+  frmPointerScanner.SkipNextScanSettings:=true;
+  frmPointerScanner.Method3Fastspeedandaveragememoryusage1.Click;
+end;
+
 procedure TMainForm.Pointerscanforthisaddress1Click(Sender: TObject);
 var
   address: ptrUint;
@@ -7505,34 +7523,32 @@ begin
 
     address := memrec.GetRealAddress;
 
+
+    //default
+    frmPointerScanner := tfrmpointerscanner.Create(self);
+    frmPointerScanner.Show;
+
+    if frmpointerscannersettings = nil then //used over and over
+      frmpointerscannersettings := tfrmpointerscannersettings.Create(self);
+
+    frmpointerscannersettings.cbAddress.Text := inttohex(address, 8);
+
+    if findpointeroffsets then
     begin
-      //default
-      frmPointerScanner := tfrmpointerscanner.Create(self);
-      frmPointerScanner.Show;
+      //create and fill in the offset list
 
-      if frmpointerscannersettings = nil then //used over and over
-        frmpointerscannersettings := tfrmpointerscannersettings.Create(self);
+      frmpointerscannersettings.cbMustEndWithSpecificOffset.Checked := True;
+      TOffsetEntry(frmpointerscannersettings.offsetlist[0]).offset := memrec.pointeroffsets[0];
 
-      frmpointerscannersettings.cbAddress.Text := inttohex(address, 8);
-
-      if findpointeroffsets then
+      for i := 1 to length(memrec.pointeroffsets) - 1 do
       begin
-        //create and fill in the offset list
-
-        frmpointerscannersettings.cbMustEndWithSpecificOffset.Checked := True;
-        TOffsetEntry(frmpointerscannersettings.offsetlist[0]).offset :=
-          memrec.pointeroffsets[0];
-
-        for i := 1 to length(memrec.pointeroffsets) - 1 do
-        begin
-          frmpointerscannersettings.btnAddOffset.Click;
-          TOffsetEntry(frmpointerscannersettings.offsetlist[i]).offset :=
-            memrec.pointeroffsets[i];
-        end;
+        frmpointerscannersettings.btnAddOffset.Click;
+        TOffsetEntry(frmpointerscannersettings.offsetlist[i]).offset := memrec.pointeroffsets[i];
       end;
-
-      frmPointerScanner.Method3Fastspeedandaveragememoryusage1.Click;
     end;
+
+    frmpointerscannersettings.rbFindAddress.checked:=true;
+    frmPointerScanner.Method3Fastspeedandaveragememoryusage1.Click;
 
   end;
 end;

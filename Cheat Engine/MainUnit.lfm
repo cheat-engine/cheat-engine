@@ -1573,6 +1573,10 @@ object MainForm: TMainForm
       Caption = '-'
       GroupIndex = 2
     end
+    object miGeneratePointermap: TMenuItem
+      Caption = 'Generate pointermap'
+      OnClick = miGeneratePointermapClick
+    end
     object Pointerscanforthisaddress1: TMenuItem
       Caption = 'Pointer scan for this address'
       GroupIndex = 2
