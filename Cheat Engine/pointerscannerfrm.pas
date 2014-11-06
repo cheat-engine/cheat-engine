@@ -1348,7 +1348,7 @@ begin
 
         if j mod 50=0 then
         begin
-          progressbar1.position:=trunc(j / Pointerscanresults.count * 100);
+          progressbar1.position:=ceil(j / Pointerscanresults.count * 100);
           progressbar1.Update;
         end;
 
@@ -1407,6 +1407,10 @@ var
   bit: integer;
   bd8, bm8: dword;
 
+  totalcount: qword;
+  importedcount: qword;
+
+  oldpb: string;
 begin
   if (sdSqlite.execute) then
   begin
@@ -1566,9 +1570,29 @@ begin
       end;
     end;
 
+    oldpb:=lblProgressbar1.Caption;
+    lblProgressbar1.Caption:='Importing...';
+    progressbar1.position:=0;
+    progressbar1.max:=100;
+    pnlProgress.visible:=true;
+
+    Update;
+
 
     compressedEntry:=nil;
     resultptrfile:=nil;
+
+{      totalcount: qword;
+  importedcount: qword;
+  }
+    importedcount:=0;
+
+    sqlquery.sql.text:='select count(*) as count from results where ptrid='+ptrid;
+    SQLQuery.Active:=true;
+    totalcount:=SQLQuery.FieldByName('count').AsInteger;
+    sqlquery.Active:=false;
+
+
     sqlquery.sql.text:='select * from results where ptrid='+ptrid;
     SQLQuery.active:=true;
     try
@@ -1648,8 +1672,20 @@ begin
         end;
         //SQLQuery.FieldByName('');
         SQLQuery.next;
+        inc(importedcount);
+
+        if importedcount mod 25=0 then
+        begin
+          progressbar1.Position:=ceil(importedcount/totalcount*100);
+          progressbar1.update;
+        end;
       end;
     finally
+
+      pnlProgress.visible:=false;
+      lblProgressbar1.caption:=oldpb;
+
+
       SQLQuery.active:=false;
       if resultptrfile<>nil then
         freeandnil(resultptrfile);
