@@ -5,9 +5,13 @@ library cecore;
 //This is only for support with the android version. 
 
 
-uses {$ifdef unix}cthreads,{$endif}classes, jni, networkInterfaceApi, NewKernelHandler, networkInterface, sysutils,
-  unixporthelper, ProcessHandlerUnit, elfsymbols, resolve, Sockets, ProcessList;
+uses {$ifdef unix}cthreads, classes, jni, networkInterfaceApi, NewKernelHandler,
+  networkInterface, sysutils, unixporthelper, ProcessHandlerUnit, elfsymbols,
+  resolve, Sockets, ProcessList, memscan, strutils;
 
+const
+  packagename='org.cheatengine.jnitest';
+  classname='cecore';
 
 type TTestThread=class(TThread)
 public
@@ -114,13 +118,18 @@ var env: PJNIEnv;
   c: JClass;
   m: array [0..2] of JNINativeMethod;
   r: integer;
+  pname: string;
 begin
   if (vm^.GetEnv(vm, @env, JNI_VERSION_1_6) <> JNI_OK) then
     result:=-1
   else
   begin
     InitializeNetworkInterface;
-    c:=env^.FindClass(env, 'org/cheatengine/jnitest/cecore');
+
+    pname:=StringReplace(packagename, '.','/',[rfReplaceAll]);
+
+
+    c:=env^.FindClass(env, pchar(pname+'/'+classname));  //'org/cheatengine/jnitest/cecore';
     r:=env^.RegisterNatives(env, c, @jnimethods[0], methodcount);
     result:=JNI_VERSION_1_6;
   end;

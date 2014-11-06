@@ -12,7 +12,7 @@ interface
 uses
   Classes, Controls, SysUtils, ceguicomponents, forms, lua, lualib, lauxlib,
   comctrls, StdCtrls, CEFuncProc, typinfo, Graphics, disassembler, LuaDisassembler,
-  LastDisassembleData, Assemblerunit;
+  LastDisassembleData, Assemblerunit, commonTypeDefs;
 
 type
   TLuaCaller=class

@@ -10,10 +10,16 @@ Special care should be taken to add multithreaded scanning routines
 
 interface
 
+{$ifdef windows}
 uses windows, FileUtil, LCLIntf,sysutils, classes,ComCtrls,dialogs, NewKernelHandler,math,
      SyncObjs, windows7taskbar,SaveFirstScan, savedscanhandler, autoassembler,
      symbolhandler, CEFuncProc,shellapi, customtypehandler,lua,lualib,lauxlib,
-     LuaHandler, fileaccess, groupscancommandparser;
+     LuaHandler, fileaccess, groupscancommandparser, commonTypeDefs;
+{$endif}
+
+{$ifdef android}
+uses unixporthelper, commonTypeDefs;
+{$endif}
 
 
 type TCheckRoutine=function(newvalue,oldvalue: pointer):boolean of object;
@@ -610,7 +616,13 @@ type
 
 implementation
 
+{$ifdef windows}
 uses formsettingsunit, StrUtils, foundlisthelper, processhandlerunit;
+{$endif}
+
+{$ifdef android}
+uses ProcessHandlerUnit;
+{$endif}
 
 resourcestring
   rsIsNotAValidCharacterInsideABinaryString = '%s is not a valid character inside a binary string';

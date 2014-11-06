@@ -7,7 +7,7 @@ interface
 
 uses jwawindows, windows, classes,LCLIntf,imagehlp,{psapi,}sysutils, cefuncproc,
   newkernelhandler,syncobjs, SymbolListHandler, fgl, typinfo, cvconst, PEInfoFunctions,
-  DotNetPipe, DotNetTypes;
+  DotNetPipe, DotNetTypes, commonTypeDefs;
 
 
 Procedure Free (P : pointer); cdecl; external 'msvcrt' name 'free';

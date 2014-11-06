@@ -8,7 +8,8 @@ uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, disassembler, NewKernelHandler, ExtCtrls, Buttons,
   LResources, frmFloatingPointPanelUnit, strutils, cefuncproc, clipbrd, Menus,
-  ComCtrls, luahandler, symbolhandler, byteinterpreter, frmStackviewunit, tracerIgnore;
+  ComCtrls, luahandler, symbolhandler, byteinterpreter, frmStackviewunit,
+  tracerIgnore, commonTypeDefs;
 
 type TTraceDebugInfo=class
   private

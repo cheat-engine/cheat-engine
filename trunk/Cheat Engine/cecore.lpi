@@ -31,7 +31,7 @@
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <Units Count="8">
+    <Units Count="9">
       <Unit0>
         <Filename Value="cecore.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -65,6 +65,11 @@
         <Filename Value="processlist.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit7>
+      <Unit8>
+        <Filename Value="memscan.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="memscan"/>
+      </Unit8>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

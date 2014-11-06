@@ -7,7 +7,8 @@ interface
 uses
   windows, LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls,CEFuncProc, ExtCtrls, ComCtrls, Menus, NewKernelHandler, LResources,
-  disassembler, symbolhandler, byteinterpreter, CustomTypeHandler, maps, math, Clipbrd, addressparser;
+  disassembler, symbolhandler, byteinterpreter, CustomTypeHandler, maps, math, Clipbrd,
+  addressparser, commonTypeDefs;
 
 type
   TAddressEntry=class

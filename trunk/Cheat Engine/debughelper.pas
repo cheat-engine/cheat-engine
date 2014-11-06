@@ -9,7 +9,7 @@ uses
   foundcodeunit, debugeventhandler, cefuncproc, newkernelhandler, comctrls,
   debuggertypedefinitions, formChangedAddresses, frmTracerUnit, KernelDebuggerInterface, VEHDebugger,
   WindowsDebugger, debuggerinterfaceAPIWrapper, debuggerinterface,symbolhandler,
-  fgl, disassembler, NetworkDebuggerInterface, Clipbrd;
+  fgl, disassembler, NetworkDebuggerInterface, Clipbrd, commonTypeDefs;
 
 
 

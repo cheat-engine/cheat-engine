@@ -7,7 +7,7 @@ interface
 uses
   jwawindows, windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls{$ifdef netclient},netapis{$else},NewKernelHandler{$endif},CEFuncProc,
-  ExtCtrls, Menus, clipbrd, LResources;
+  ExtCtrls, Menus, clipbrd, LResources, commonTypeDefs;
 
 type TCodeCaveScanner=class(tthread)
   private

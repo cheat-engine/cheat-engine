@@ -6,7 +6,7 @@ interface
 
 uses windows, LCLIntf, classes, symbolhandler, CEFuncProc,NewKernelHandler, maps,
   sysutils, syncobjs, pagemap, Sockets, CELazySocket, PointerscanNetworkCommands,
-  zstream;
+  zstream, commonTypeDefs;
 
 type
 

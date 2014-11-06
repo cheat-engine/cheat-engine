@@ -9,7 +9,7 @@ This unit contains the class that reads a groupscan command and parses it. The r
 interface
 
 uses
-  Classes, SysUtils, cefuncproc, CustomTypeHandler, strutils;
+  Classes, SysUtils, cefuncproc, CustomTypeHandler, strutils, commonTypeDefs;
 
 type
   TGroupscanCommandParser=class

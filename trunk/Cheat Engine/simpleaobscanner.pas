@@ -8,7 +8,7 @@ Will search for an array of bytes and returns as soon as it finds it
 
 interface
 
-uses LCLIntf, memscan, sysutils, CEFuncProc, classes, foundlisthelper;
+uses LCLIntf, memscan, sysutils, CEFuncProc, classes, foundlisthelper, commonTypeDefs;
 
 
 function findaobInModule(modulename: string; aobstring: string; protectionflags: string=''; alignmenttype: TFastScanMethod=fsmNotAligned; alignmentparam: string=''): ptruint;
