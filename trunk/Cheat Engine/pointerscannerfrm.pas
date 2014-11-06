@@ -319,6 +319,8 @@ type
     Staticscanner: TPointerscanController;
 
     Pointerscanresults: TPointerscanresultReader;
+
+    SkipNextScanSettings: boolean; //set to true if you wish to start the scan with the predefined settings in the pointerscan settings form
     {
     procedure JoinPointerscan(host: string='127.0.0.1'; port: word=52737; threadcount: integer=1; scannerpriority:TThreadPriority=tpHigher; UseLoadedPointermap: boolean=false; LoadedPointermapFilename: string='');
     procedure JoinRescan(server: string; port: dword);  }
@@ -865,9 +867,12 @@ var
   pfn: string;
 
   al: TStringlist;
+  SkipNextScanSettingsWasTrue: boolean;
 begin
-  FloatSettings:=DefaultFormatSettings;
+  SkipNextScanSettingsWasTrue:=SkipNextScanSettings;
+  SkipNextScanSettings:=false;
 
+  FloatSettings:=DefaultFormatSettings;
 
   start:=now;
   if frmpointerscannersettings=nil then
@@ -875,7 +880,7 @@ begin
 
   if frmpointerscannersettings.Visible then exit; //already open, so no need to make again
 
-  if frmpointerscannersettings.Showmodal=mrok then
+  if SkipNextScanSettingsWasTrue or (frmpointerscannersettings.Showmodal=mrok) then
   begin
     new1.click;
 
@@ -3361,6 +3366,7 @@ begin
 
       end;
     end;
+
   end;
 end;
 

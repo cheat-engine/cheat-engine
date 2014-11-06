@@ -244,6 +244,19 @@ resourcestring
   strMaxOffsetsIsStupid = 'Sorry, but the max offsets should be 1 or higher, or else disable the checkbox'; //'Are you a fucking retard?';
   rsUseLoadedPointermap = 'Use saved pointermap';
 
+  rsNoCompareFiles = 'You will get billions of useless results and giga/terrabytes of wasted diskspace if you do not use the compare results option. Are you sure ?';
+  rsSelectAFile = '<Select a file>';
+  rsScandataFilter = 'All files (*.*)|*.*|Scan Data (*.scandata)|*.scandata';
+  rsFilename = 'Filename';
+  rsAddress = 'Address';
+  rsInvalidAddress = 'Invalid address';
+  rsPleaseFillInAnAddressToLookFor = 'Please fill in an address to look for';
+  rsCouldNotBeResolvedToAnIPAddress = 'could not be resolved to an IP address';
+  rsHasAnInvalidPort = '%s has an invalid port (%s)';
+  rsFrom = 'From';
+  rsTo = 'To';
+  rsLastOffset = 'Last offset';
+
 
 //helper
 procedure UpdateAddressList(combobox: TCombobox);
@@ -360,7 +373,7 @@ begin
 
 
   lblfilename.anchors:=[aktop, akleft, akright];
-  lblFilename.Caption:='  <Select a file>';
+  lblFilename.Caption:='  '+rsSelectAFile;
 
   height:=cbAddress.Height+2;
 
@@ -380,7 +393,7 @@ var od: TOpenDialog;
 begin
   od:=TOpenDialog.Create(self);
   od.DefaultExt:='.scandata';
-  od.Filter:='All files (*.*)|*.*|Scandata (*.scandata)|*.scandata';
+  od.Filter:=rsScandataFilter;
   od.FilterIndex:=2;
   od.filename:=filename;
   if od.execute then
@@ -537,11 +550,11 @@ begin
 
   entries:=TPointerFileEntries.create;
   lblFilenames:=TLabel.create(self);
-  lblFilenames.caption:='Filename';
+  lblFilenames.caption:=rsFilename;
   lblFilenames.parent:=self;
 
   lblAddress:=TLabel.create(self);
-  lblAddress.caption:='Address';
+  lblAddress.caption:=rsAddress;
   lblAddress.parent:=self;
 
   lblAddress.top:=0;
@@ -598,6 +611,7 @@ var
   i,j: integer;
   r: THostResolver;
   p: ptruint;
+  comparecount: integer;
 begin
   if cbMaxOffsetsPerNode.checked then
   begin
@@ -616,7 +630,10 @@ begin
       for i:=0 to pdatafilelist.Count-1 do
       begin
         if pdatafilelist.filenames[i]<>'' then
+        begin
           p:=pdatafilelist.addresses[i];
+          inc(comparecount);
+        end;
       end;
     except
       on e:exception do
@@ -624,6 +641,15 @@ begin
         MessageDlg(e.Message, mtError, [mbok], 0);
         exit;
       end;
+    end;
+
+    if comparecount=0 then
+    begin
+      //bug the user one time about this
+      if (not warnedAboutDisablingInstantRescan) and (MessageDlg(rsNoCompareFiles, mtConfirmation, [mbyes, mbno], 0)<>mryes) then
+        exit;
+
+      warnedAboutDisablingInstantRescan:=true;
     end;
   end;
 
@@ -643,7 +669,10 @@ begin
   except
     on e:exception do
     begin
-      MessageDlg('Invalid address ('+cbAddress.text+')', mtError, [mbok], 0);
+      if cbAddress.text='' then
+        MessageDlg(rsPleaseFillInAnAddressToLookFor, mtError, [mbok], 0)
+      else
+        MessageDlg(rsInvalidAddress+' ('+cbAddress.text+')', mtError, [mbok], 0);
       exit;
     end;
   end;
@@ -674,25 +703,7 @@ begin
 
   distributedport:=strtoint(edtDistributedPort.text);
 
-  {
-  if cbConnectToNode.checked then
-  begin
-    r:=THostResolver.create(nil);
-    r.RaiseOnError:=false;
 
-    for i:=0 to iplist.count-1 do
-    begin
-      r.NameLookup(iplist[i]);
-
-      if r.HostAddress.s_addr<>0 then
-      begin
-        setlength(resolvediplist, length(resolvediplist)+1);
-        resolvediplist[Length(resolvediplist)-1]:=r.HostAddress;
-      end;
-    end;
-
-    r.free;
-  end;  }
   if cbConnectToNode.checked then
   begin
     r:=THostResolver.create(nil);
@@ -704,13 +715,13 @@ begin
         r.NameLookup(iplist[i].host);
         if r.HostAddress.s_addr=0 then
         begin
-          MessageDlg(iplist[i].host+' could not be resolved to an IP address', mtError, [mbok], 0);
+          MessageDlg(iplist[i].host+' '+rsCouldNotBeResolvedToAnIPAddress,  mtError, [mbok], 0);
           exit;
         end;
 
         if TryStrToInt(iplist[i].port, j)=false then
         begin
-          MessageDlg(iplist[i].host+' has an invalid port ('+iplist[i].port+')', mtError, [mbok], 0);
+          MessageDlg(Format(rsHasAnInvalidPort, [iplist[i].host, iplist[i].port]), mtError, [mbok], 0);
           exit;
         end;
       end;
@@ -755,13 +766,13 @@ begin
 
     lblBaseFrom:=tlabel.create(self);
     lblBaseFrom.Parent:=self;
-    lblbasefrom.Caption:='From';
+    lblbasefrom.Caption:=rsFrom;
     lblbasefrom.left:=0;
     lblbasefrom.top:=edtbasefrom.top+(edtbasefrom.height div 2) - (lblbasefrom.height div 2);
 
     lblBaseTo:=tlabel.create(self);
     lblBaseTo.Parent:=self;
-    lblBaseTo.Caption:='To';
+    lblBaseTo.Caption:=rsTo;
     lblBaseTo.left:=0;
     lblBaseTo.top:=edtbaseto.top+(edtbaseto.height div 2) - (lblBaseTo.height div 2);
 
@@ -842,7 +853,7 @@ begin
 
     with lblInfoLastOffset do
     begin
-      caption:='Last offset';
+      caption:=rsLastOffset;
       left:=offsetentry.Left+offsetentry.Width+5;
       parent:=self;
       visible:=false;
@@ -964,7 +975,7 @@ begin
   end
   else
   begin
-    if (not warnedAboutDisablingInstantRescan) and (MessageDlg('You will get billions of useless results and gigabytes of wasted diskspace if you do not use this. Are you sure ?', mtConfirmation, [mbyes, mbno], 0)<>mryes) then
+    if (not warnedAboutDisablingInstantRescan) and (MessageDlg(rsNoCompareFiles, mtConfirmation, [mbyes, mbno], 0)<>mryes) then
     begin
       cbCompareToOtherPointermaps.OnChange:=nil;
       cbCompareToOtherPointermaps.checked:=true;
