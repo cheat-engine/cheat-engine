@@ -14,7 +14,7 @@ function GetFileSizeEx(hFile:HANDLE; FileSize:PQWord):BOOL; stdcall; external 'k
 
 type TPointerscanResult=record
   modulenr: integer;
-  moduleoffset: qword;
+  moduleoffset: int64;
   offsetcount: integer;
   offsets: array [0..1000] of dword;
 end;
@@ -389,9 +389,9 @@ begin
     CopyMemory(compressedTempBuffer, p, sizeofentry);
 
     if MaxBitCountModuleOffset=32 then //only 2 possibilities
-      compressedPointerScanResult.moduleoffset:=PDword(compressedTempBuffer)^
+      compressedPointerScanResult.moduleoffset:=PInteger(compressedTempBuffer)^
     else
-      compressedPointerScanResult.moduleoffset:=PQword(compressedTempBuffer)^;
+      compressedPointerScanResult.moduleoffset:=PInt64(compressedTempBuffer)^;
 
 
     bit:=MaxBitCountModuleOffset;
