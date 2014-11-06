@@ -14,7 +14,7 @@ uses
   NewKernelHandler, valuefinder, PointerscanresultReader, maps, zstream,
   WinSock2, Sockets, registry, PageMap, CELazySocket,
   PointerscanNetworkCommands, resolve, pointeraddresslist, pointerscanworker,
-  PointerscanStructures, PointerscanController, sqlite3conn, sqldb;
+  PointerscanStructures, PointerscanController, sqlite3conn, sqldb, frmSelectionlistunit;
 
 
 
@@ -164,9 +164,9 @@ type
     lblPassword: TLabel;
     lblThreadPriority: TLabel;
     lblProgressbar1: TLabel;
-    MenuItem1: TMenuItem;
+    miExportTosqlite: TMenuItem;
     MenuItem2: TMenuItem;
-    MenuItem3: TMenuItem;
+    miImportFromsqlite: TMenuItem;
     miCreatePSNnode: TMenuItem;
     miResume: TMenuItem;
     odMerge: TOpenDialog;
@@ -191,6 +191,7 @@ type
     SaveDialog1: TSaveDialog;
     OpenDialog1: TOpenDialog;
     SaveDialog2: TSaveDialog;
+    sdSqlite: TSaveDialog;
     SQLite3: TSQLite3Connection;
     SQLQuery: TSQLQuery;
     SQLTransaction: TSQLTransaction;
@@ -211,8 +212,8 @@ type
     procedure FormResize(Sender: TObject);
     procedure lvResultsColumnClick(Sender: TObject; Column: TListColumn);
     procedure lvResultsResize(Sender: TObject);
-    procedure MenuItem1Click(Sender: TObject);
-    procedure MenuItem3Click(Sender: TObject);
+    procedure miExportTosqliteClick(Sender: TObject);
+    procedure miImportFromsqliteClick(Sender: TObject);
     procedure miCreatePSNnodeClick(Sender: TObject);
     procedure miMergePointerscanResultsClick(Sender: TObject);
     procedure miResumeClick(Sender: TObject);
@@ -1143,11 +1144,13 @@ begin
   end;
 end;
 
-procedure Tfrmpointerscanner.MenuItem1Click(Sender: TObject);
+procedure Tfrmpointerscanner.miExportTosqliteClick(Sender: TObject);
 var
   filename: string;
   r: TModalResult;
   name: string;
+  maxlevel: string;
+  compressedptr, unalligned, MaxBitCountModuleIndex, MaxBitCountModuleOffset, MaxBitCountLevel, MaxBitCountOffset: string;
 
   tablenames: Tstringlist;
   fieldnames: tstringlist;
@@ -1160,9 +1163,9 @@ var
   p: PPointerscanResult;
   s: string;
 begin
-  if (Pointerscanresults<>nil) and (odSqlite.execute) then
+  if (Pointerscanresults<>nil) and (sdSqlite.execute) then
   begin
-    filename:=utf8toansi(odsqlite.FileName);
+    filename:=utf8toansi(sdsqlite.FileName);
     name:=extractfilename(pointerscanresults.filename);
 
     if InputQuery('Export to database','Give a name for these results', name)=false then exit;
@@ -1171,16 +1174,43 @@ begin
 
     SQLite3.DatabaseName:=filename;
     sqlite3.Connected:=true;
+
+    SQLTransaction.active:=true;
+
     try
       tablenames:=tstringlist.create;
       sqlite3.GetTableNames(tablenames, false);
 
       //build the tables if necesary
-      if tablenames.IndexOf('pointerfilenames')=-1 then
+      if tablenames.IndexOf('pointerfiles')=-1 then
       begin
-        sqlite3.ExecuteDirect('CREATE TABLE `pointerfilenames` (`ptrid`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,`name`	char(256) NOT NULL);');
-        sqlite3.ExecuteDirect('CREATE UNIQUE INDEX "id_idx" ON "pointerfilenames"( "ptrid" );');
+        sqlite3.ExecuteDirect('CREATE TABLE pointerfiles ('+
+	                      '`ptrid`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,'+
+	                      '`name`	char(256) NOT NULL,'+
+	                      '`maxlevel`	INTEGER,'+
+	                      '`compressedptr`	INTEGER,'+
+	                      '`unalligned`	INTEGER,'+
+	                      '`MaxBitCountModuleIndex`	INTEGER,'+
+	                      '`MaxBitCountModuleOffset`	INTEGER,'+
+	                      '`MaxBitCountLevel`	INTEGER,'+
+	                      '`MaxBitCountOffset`	INTEGER);');
+
+        sqlite3.ExecuteDirect('CREATE UNIQUE INDEX "id_idx" ON pointerfiles( "ptrid" );');
       end;
+
+      if tablenames.IndexOf('pointerfiles_endwithoffsetlist')=-1 then
+      begin
+        sqlite3.ExecuteDirect('CREATE TABLE pointerfiles_endwithoffsetlist ('+
+      	                      '  `ptrid`	INTEGER NOT NULL,'+
+      	                      '  `offsetnr`	INTEGER NOT NULL,'+
+      	                      '  `offsetvalue`	INTEGER NOT NULL,'+
+      	                      '  PRIMARY KEY(ptrid,offsetnr)'+
+                              ');');
+
+        sqlite3.ExecuteDirect('CREATE UNIQUE INDEX "ptrid_idx" ON pointerfiles( "ptrid" );');
+      end;
+
+
 
       if tablenames.IndexOf('modules')=-1 then
       begin
@@ -1198,6 +1228,7 @@ begin
 
         sqlite3.ExecuteDirect('create table results(ptrid integer not null, resultid integer not null, offsetcount integer, moduleid integer, moduleoffset integer '+offsetlist+', primary key (ptrid, resultid) );');
         sqlite3.ExecuteDirect('CREATE UNIQUE INDEX "ptr_res_id_idx" ON "results"( ptrid, resultid );');
+        sqlite3.ExecuteDirect('CREATE INDEX "modid_modoff_idx" ON "results"( moduleid, moduleoffset );');
       end
       else
       begin
@@ -1214,7 +1245,7 @@ begin
 
       tablenames.free;
 
-      SQLQuery.SQL.Text:='Select ptrid from pointerfilenames where name="'+name+'"';
+      SQLQuery.SQL.Text:='Select ptrid from pointerfiles where name="'+name+'"';
       SQLQuery.Active:=true;
 
       if SQLQuery.RecordCount>0 then
@@ -1229,7 +1260,8 @@ begin
         cursor:=crHourGlass;
         sqlite3.ExecuteDirect('delete from results where ptrid='+ptrid);
         sqlite3.ExecuteDirect('delete from modules where ptrid='+ptrid);
-        sqlite3.ExecuteDirect('delete from pointerfilenames where ptrid='+ptrid);
+        sqlite3.ExecuteDirect('delete from pointerfiles where ptrid='+ptrid);
+        sqlite3.ExecuteDirect('delete from pointerfiles_endwithoffsetlist where ptrid='+ptrid);
         cursor:=crDefault;
       end;
       SQLQuery.Active:=false;
@@ -1239,9 +1271,38 @@ begin
       //and now fill it
       cursor:=crHourGlass;
 
-      sqlite3.ExecuteDirect('INSERT INTO pointerfilenames (name) values ("'+name+'")');
+      maxlevel:=inttostr(pointerscanresults.offsetCount);
+      compressedptr:=inttostr(ifthen(Pointerscanresults.compressedptr, 1, 0));
+      if Pointerscanresults.compressedptr then
+      begin
+        unalligned:=inttostr(ifthen(Pointerscanresults.aligned,0,1));
+        MaxBitCountModuleIndex:=IntToStr(Pointerscanresults.MaxBitCountModuleIndex);
+        MaxBitCountModuleOffset:=IntToStr(Pointerscanresults.MaxBitCountModuleOffset);
+        MaxBitCountLevel:=IntToStr(Pointerscanresults.MaxBitCountLevel);
+        MaxBitCountOffset:=IntToStr(Pointerscanresults.MaxBitCountOffset);
+      end
+      else
+      begin
+        unalligned:='NULL';
+        MaxBitCountModuleIndex:='NULL';
+        MaxBitCountModuleOffset:='NULL';
+        MaxBitCountLevel:='NULL';
+        MaxBitCountOffset:='NULL';
+      end;
 
-      SQLQuery.SQL.Text:='Select max(ptrid) as max from pointerfilenames';
+
+      s:='INSERT INTO pointerfiles (name, maxlevel, compressedptr, unalligned, MaxBitCountModuleIndex, MaxBitCountModuleOffset, MaxBitCountLevel, MaxBitCountOffset) values ("'+name+'", '+maxlevel+','+compressedptr+','+unalligned+','+MaxBitCountModuleIndex+','+MaxBitCountModuleOffset+','+MaxBitCountLevel+','+MaxBitCountOffset+')';
+
+      sqlite3.ExecuteDirect(s);
+      for i:=0 to Pointerscanresults.EndsWithOffsetListCount-1 do
+      begin
+        s:='INSERT INTO pointerfiles_endwithoffsetlist (ptrid, offsetnr, offsetvalue) values ("'+ptrid+'", '+inttostr(i)+','+inttostr(Pointerscanresults.EndsWithOffsetList[i])+')';
+        sqlite3.ExecuteDirect(s);
+      end;
+
+
+
+      SQLQuery.SQL.Text:='Select max(ptrid) as max from pointerfiles';
       SQLQuery.Active:=true;
 
       ptrid:=SQLQuery.FieldByName('max').AsString;
@@ -1265,16 +1326,14 @@ begin
         end;
 
         s:='INSERT INTO results(ptrid, resultid, offsetcount, moduleid, moduleoffset'+offsetlist+') values ('+ptrid+','+inttostr(j)+','+inttostr(p.offsetcount)+','+inttostr(p.modulenr)+','+inttostr(p.moduleoffset)+offsetvalues+')';
-       // s:='INSERT INTO results values ('+ptrid+','+inttostr(j)+','+inttostr(p.offsetcount)+','+inttostr(p.modulenr)+offsetvalues+')';
 
         sqlite3.ExecuteDirect(s);
       end;
 
-
       SQLTransaction.Commit;
+      SQLTransaction.Active:=false;
 
       //SQLTransaction1.
-
 
       showmessage('Export done');
 
@@ -1286,27 +1345,294 @@ begin
   end;
 end;
 
-procedure Tfrmpointerscanner.MenuItem3Click(Sender: TObject);
+procedure Tfrmpointerscanner.miImportFromsqliteClick(Sender: TObject);
+var
+  l: TStringList;
+  f: TfrmSelectionList;
+  name, filename: string;
+
+  query2: TSQLQuery;
+
+  ptrfile: tfilestream;
+  resultptrfile: Tfilestream;
+
+  ptrid: string;
+  i: integer;
+  compressed: boolean;
+  alligned: boolean;
+  MaxBitCountModuleIndex: dword;
+  MaxBitCountModuleOffset: dword;
+  MaxBitCountLevel: dword;
+  MaxBitCountOffset: dword;
+
+  MaskModuleIndex: dword;
+  MaskLevel: dword;
+  MaskOffset: dword;
+
+  maxlevel: integer;
+
+  mustendwithoffsetlistlength: integer;
+
+  compressedEntry: pbytearray;
+  compressedEntrySize: integer;
+  bit: integer;
+  bd8, bm8: dword;
+
 begin
-  //start a listener for pointerscan related signals
-{  if distributedworkfolder='' then
-    miSetWorkFolder.Click;
-
-  if distributedworkfolder='' then exit;
-
-  if PointerscanListener<>nil then
+  if (sdSqlite.execute) then
   begin
-    if PointerscanListener.done then
+    filename:=utf8toansi(sdsqlite.FileName);
+
+    SQLite3.DatabaseName:=filename;
+    sqlite3.Connected:=true;
+
+    SQLQuery.SQL.Text:='select name from pointerfiles';
+    SQLQuery.Active:=true;
+    if SQLQuery.RecordCount>0 then
     begin
-      PointerscanListener.terminate;
-      freeandnil(pointerscanlistener);
+      l:=tstringlist.create;
+      while not SQLQuery.EOF do
+      begin
+        l.add(SQLQuery.FieldByName('Name').Text);
+        SQLQuery.Next;
+      end;
+
     end;
+    SQLQuery.Active:=false;
+
+    if l.Count=0 then
+    begin
+      MessageDlg('This database does not contain any pointer files', mtError, [mbok],0);
+      exit;
+    end;
+
+    f:=TfrmSelectionList.create(self, l);
+    try
+      if f.showmodal=mrok then
+        name:=f.selected
+      else
+        exit;
+    finally
+      f.free;
+    end;
+
+    savedialog1.FileName:=name;
+    if savedialog1.Execute=false then exit;
+
+    filename:=utf8toansi(savedialog1.filename);
+
+
+    ptrfile:=nil;
+    query2:=nil;
+
+
+    SQLQuery.SQL.Text:='select * from pointerfiles where name="'+name+'"';
+    SQLQuery.Active:=true;
+    try
+      if (SQLQuery.RecordCount=0) or (SQLQuery.RecordCount>1) then
+        raise exception.create('Invalid database');
+
+      query2:=TSQLQuery.Create(self);  //extra query
+      query2.DataBase:=SQLite3;
+
+
+      ptrfile:=TFileStream.Create(filename, fmCreate);
+      ptrfile.writeByte($ce);
+      ptrfile.writeByte(pointerscanfileversion);
+
+      ptrid:=SQLQuery.FieldByName('ptrid').text;
+
+
+      //save the modulelist
+
+      try
+
+        query2.sql.text:='Select count(*) as count from modules where ptrid='+ptrid;
+        query2.Active:=true;
+        ptrfile.WriteDWord(query2.FieldByName('count').AsInteger);
+        query2.active:=false;
+
+
+        query2.sql.text:='Select * from modules where ptrid='+ptrid+' order by moduleid asc';
+        query2.active:=true;
+
+        i:=0;
+        while not query2.EOF do
+        begin
+          if query2.FieldByName('moduleid').AsInteger=i then
+          begin
+            name:=query2.FieldByName('name').AsString;
+            //OutputDebugString(pchar(name));
+
+            ptrfile.WriteAnsiString(name);
+            ptrfile.WriteQWord(0);
+
+            query2.next;
+          end
+          else
+          begin
+            //this one seems to be missing
+            ptrfile.WriteAnsiString('Bogus');
+            ptrfile.WriteQword(0);
+          end;
+          inc(i);
+        end;
+      finally
+        query2.active:=false;
+      end;
+
+
+      maxlevel:=SQLQuery.FieldByName('maxlevel').AsInteger;
+      ptrfile.WriteDword(maxlevel);
+      if SQLQuery.FieldByName('compressedptr').AsInteger=1 then
+      begin
+        compressed:=true;
+        alligned:=SQLQuery.FieldByName('unalligned').AsInteger=0;
+        MaxBitCountModuleIndex:=SQLQuery.FieldByName('MaxBitCountModuleIndex').AsInteger;
+        MaxBitCountModuleOffset:=SQLQuery.FieldByName('MaxBitCountModuleOffset').AsInteger;
+        MaxBitCountLevel:=SQLQuery.FieldByName('MaxBitCountLevel').AsInteger;
+        MaxBitCountOffset:=SQLQuery.FieldByName('MaxBitCountOffset').AsInteger;
+
+        ptrfile.WriteByte(1);
+        ptrfile.writeByte(ifthen(alligned, 1,0));
+        ptrfile.writeByte(MaxBitCountModuleIndex);
+        ptrfile.writeByte(MaxBitCountModuleOffset);
+        ptrfile.writeByte(MaxBitCountLevel);
+        ptrfile.writeByte(MaxBitCountOffset);
+
+        query2.sql.text:='select count(*) as count from pointerfiles_endwithoffsetlist where ptrid='+ptrid;
+        query2.active:=true;
+
+
+        mustendwithoffsetlistlength:=query2.FieldByName('count').AsInteger;
+        ptrfile.writebyte(mustendwithoffsetlistlength);
+        query2.active:=false;
+
+        query2.sql.text:='select * from pointerfiles_endwithoffsetlist where ptrid='+ptrid;
+        query2.active:=true;
+        while not query2.eof do
+        begin
+          ptrfile.WriteDWord(query2.FieldByName('offsetvalue').AsInteger);
+          query2.next;
+        end;
+        query2.active:=false;
+      end
+      else
+      begin
+        compressed:=false;
+        ptrfile.WriteByte(0);
+      end;
+
+
+    finally
+      if ptrfile<>nil then
+        freeandnil(ptrfile);
+
+      SQLQuery.Active:=false;
+
+      if query2<>nil then
+      begin
+        query2.active:=false;
+        freeandnil(query2);
+      end;
+    end;
+
+
+    compressedEntry:=nil;
+    resultptrfile:=nil;
+    sqlquery.sql.text:='select * from results where ptrid='+ptrid;
+    SQLQuery.active:=true;
+    try
+      resultptrfile:=tfilestream.create(filename+'.results.0', fmcreate);
+
+      if compressed then
+      begin
+        compressedEntrySize:=MaxBitCountModuleOffset+MaxBitCountModuleIndex+MaxBitCountLevel+MaxBitCountOffset*(maxlevel-mustendwithoffsetlistlength);
+        compressedEntrySize:=(compressedEntrySize+7) div 8;
+
+        getmem(compressedEntry, compressedEntrySize+4); //+4 so there's some space for overhead (writing using a dword pointer to the last byte)
+
+
+        MaskModuleIndex:=0;
+        for i:=1 to MaxBitCountModuleIndex do
+          MaskModuleIndex:=(MaskModuleIndex shl 1) or 1;
+
+        MaskLevel:=0;
+        for i:=1 to MaxBitCountLevel do
+          MaskLevel:=(MaskLevel shl 1) or 1;
+
+        MaskOffset:=0;
+        for i:=1 to MaxBitCountOffset do
+          MaskOffset:=(MaskOffset shl 1) or 1;
+
+
+      end;
+
+      while not SQLQuery.eof do
+      begin
+        if compressed then
+        begin
+          ;
+          //-------------------------------------------
+          bit:=0;
+
+          pqword(compressedEntry)^:=sqlquery.FieldByName('moduleoffset').AsLargeInt;
+          bit:=bit+MaxBitCountModuleOffset;
+
+          bd8:=bit shr 3; //bit div 8;
+          pdword(@compressedEntry[bd8])^:=sqlquery.FieldByName('moduleid').AsInteger;
+          bit:=bit+MaxBitCountModuleIndex;
+
+
+          bd8:=bit shr 3; //bit div 8;
+          bm8:=bit and $7; //bit mod 8;
+
+          pdword(@compressedEntry[bd8])^:=pdword(@compressedEntry[bd8])^ and (not (MaskLevel shl bm8)) or ((sqlquery.FieldByName('offsetcount').AsInteger-mustendwithoffsetlistlength) shl bm8);
+          bit:=bit+MaxBitCountLevel;    //next section
+
+
+
+          //compress the offsets
+          for i:=1 to sqlquery.FieldByName('offsetcount').AsInteger-mustendwithoffsetlistlength do
+          begin
+            bd8:=bit shr 3; //bit div 8;
+            bm8:=bit and $7; //bit mod 8;
+
+            if alligned then
+              pdword(@compressedEntry[bd8])^:=pdword(@compressedEntry[bd8])^ and (not (MaskOffset shl bm8)) or ((sqlquery.FieldByName('offset'+inttostr(i)).AsInteger shr 2) shl bm8)
+            else
+              pdword(@compressedEntry[bd8])^:=pdword(@compressedEntry[bd8])^ and (not (MaskOffset shl bm8)) or ((sqlquery.FieldByName('offset'+inttostr(i)).AsInteger) shl bm8);
+
+            bit:=bit+MaxBitCountOffset;
+          end;
+
+          resultptrfile.WriteBuffer(compressedEntry^, compressedEntrySize);
+          //-------------------------------------------
+        end
+        else
+        begin
+          resultptrfile.WriteDWord(sqlquery.FieldByName('moduleid').AsInteger);
+          resultptrfile.WriteQWord(sqlquery.FieldByName('moduleoffset').AsLargeInt);
+          resultptrfile.WriteDWord(sqlquery.FieldByName('offsetcount').AsInteger);
+          for i:=1 to maxlevel do
+            resultptrfile.WriteDWord(sqlquery.FieldByName('offset'+inttostr(i)).AsInteger);
+        end;
+        //SQLQuery.FieldByName('');
+        SQLQuery.next;
+      end;
+    finally
+      SQLQuery.active:=false;
+      if resultptrfile<>nil then
+        freeandnil(resultptrfile);
+
+      if compressedEntry<>nil then
+        freemem(compressedEntry);
+    end;
+
+
+    OpenPointerfile(filename);
+
   end;
-
-  if PointerscanListener=nil then
-    PointerscanListener:=TPointerscanListener.create(self, false);
-                                                    }
-
 
 end;
 

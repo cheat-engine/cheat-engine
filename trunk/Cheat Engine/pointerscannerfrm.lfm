@@ -397,12 +397,15 @@ object frmPointerScanner: TfrmPointerScanner
         ShortCut = 16463
         OnClick = Open1Click
       end
-      object MenuItem1: TMenuItem
+      object miExportTosqlite: TMenuItem
         Caption = 'Export to sqlite database'
-        OnClick = MenuItem1Click
+        ShortCut = 16453
+        OnClick = miExportTosqliteClick
       end
-      object MenuItem3: TMenuItem
+      object miImportFromsqlite: TMenuItem
         Caption = 'Import from sqlite database'
+        ShortCut = 16457
+        OnClick = miImportFromsqliteClick
       end
     end
     object MenuItem2: TMenuItem
@@ -511,5 +514,12 @@ object frmPointerScanner: TfrmPointerScanner
     Params = <>
     left = 223
     top = 46
+  end
+  object sdSqlite: TSaveDialog
+    DefaultExt = '.sqlite'
+    Filter = 'All files (*.*)|*.*|Sqlite files (*.sqlite)|*.sqlite'
+    FilterIndex = 2
+    left = 128
+    top = 98
   end
 end

@@ -341,9 +341,11 @@ begin
       for i:=1 to MaxBitCountModuleIndex do
         MaskModuleIndex:=(MaskModuleIndex shl 1) or 1;
 
+      MaskLevel:=0;
       for i:=1 to MaxBitCountLevel do
         MaskLevel:=(MaskLevel shl 1) or 1;
 
+      MaskOffset:=0;
       for i:=1 to MaxBitCountOffset do
         MaskOffset:=(MaskOffset shl 1) or 1;
 

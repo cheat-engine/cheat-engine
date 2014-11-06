@@ -9,6 +9,9 @@ uses
   Dialogs, StdCtrls, ExtCtrls, LResources;
 
 type
+
+  { TfrmSelectionList }
+
   TfrmSelectionList = class(TForm)
     ListBox1: TListBox;
     Panel1: TPanel;
@@ -70,7 +73,10 @@ end;
 
 procedure TfrmSelectionList.ListBox1DblClick(Sender: TObject);
 begin
-  Button1.click;
+  if (listbox1.itemindex=-1) and (listbox1.items.count>0) then
+    listbox1.itemindex:=0;
+
+  modalresult:=mrok;
 end;
 
 initialization

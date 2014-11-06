@@ -10,10 +10,10 @@ object frmSelectionList: TfrmSelectionList
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.3'
   object Label1: TLabel
     Left = 0
-    Height = 14
+    Height = 13
     Top = 0
     Width = 313
     Align = alTop
@@ -22,8 +22,8 @@ object frmSelectionList: TfrmSelectionList
   end
   object ListBox1: TListBox
     Left = 0
-    Height = 187
-    Top = 14
+    Height = 188
+    Top = 13
     Width = 313
     Align = alClient
     ItemHeight = 0
