@@ -6124,6 +6124,9 @@ begin
   Pointerscanforthisaddress1.Visible :=
     (addresslist.selectedRecord <> nil) and (not addresslist.selectedRecord.isGroupHeader) and
     (not (addresslist.selectedRecord.vartype = vtAutoAssembler));
+
+  miGeneratePointermap.Visible:=processid<>0;
+
   Findoutwhataccessesthisaddress1.Visible :=
     (addresslist.selectedRecord <> nil) and (not addresslist.selectedRecord.isGroupHeader) and
     (not (addresslist.selectedRecord.vartype = vtAutoAssembler));
@@ -6142,7 +6145,7 @@ begin
     (addresslist.selectedRecord.vartype = vtAutoAssembler) then
     Calculatenewvaluepart21.Visible := False;
 
-  n4.Visible := addresslist.Count > 0;
+  n4.Visible := (addresslist.Count > 0) or (miGeneratePointermap.visible);
 
   n1.Visible := True;
   CreateGroup.Visible := True;
