@@ -7,7 +7,7 @@ interface
 uses
   LCLIntf, LCLType, Classes, SysUtils, controls, stdctrls, comctrls, ExtCtrls, graphics,
   math, MemoryRecordUnit, FPCanvas, cefuncproc, newkernelhandler, menus,dom,
-  XMLRead,XMLWrite, symbolhandler, AddresslistEditor, inputboxtopunit, frmMemrecComboboxUnit;
+  XMLRead,XMLWrite, symbolhandler, AddresslistEditor, inputboxtopunit, frmMemrecComboboxUnit, commonTypeDefs;
 
 type
   TTreeviewWithScroll=class(TTreeview)

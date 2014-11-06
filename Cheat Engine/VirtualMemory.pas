@@ -4,7 +4,7 @@ unit VirtualMemory;
 
 interface
 
-uses windows, SysUtils,LCLIntf,NewKernelHandler,CEFuncProc,ComCtrls, symbolhandler;
+uses windows, SysUtils,LCLIntf,NewKernelHandler,CEFuncProc,ComCtrls, symbolhandler, commonTypeDefs;
 
 type TMemoryRegion2 = record
   Address: ptrUint;

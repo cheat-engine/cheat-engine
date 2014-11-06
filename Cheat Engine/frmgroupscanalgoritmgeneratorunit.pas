@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ExtCtrls, CustomTypeHandler, math, strutils, cefuncproc, groupscancommandparser,
-  vartypestrings;
+  vartypestrings, commonTypeDefs;
 
 type
   { TfrmGroupScanAlgoritmGenerator }

@@ -6,7 +6,7 @@ interface
 
 uses jwawindows, windows, Assemblerunit, classes, LCLIntf,symbolhandler,
      sysutils,dialogs,controls, CEFuncProc, NewKernelHandler ,plugin,
-     ProcessHandlerUnit, lua, lualib, lauxlib;
+     ProcessHandlerUnit, lua, lualib, lauxlib, commonTypeDefs;
 
 
 

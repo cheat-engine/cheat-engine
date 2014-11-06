@@ -5,7 +5,7 @@ unit disassembler;
 interface
 
 uses windows, imagehlp,sysutils,LCLIntf,byteinterpreter, symbolhandler,CEFuncProc,
-  NewKernelHandler, ProcessHandlerUnit, LastDisassembleData, disassemblerarm;
+  NewKernelHandler, ProcessHandlerUnit, LastDisassembleData, disassemblerarm, commonTypeDefs;
 
 //translation: There is no fucking way I change the descriptions to resource strings
 //if you're bored, go do this

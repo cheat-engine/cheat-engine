@@ -66,7 +66,7 @@ end;   }
 
 interface
 
-uses windows, LCLIntf,classes,sysutils,syncobjs, CEFuncProc, CustomTypeHandler;
+uses windows, LCLIntf,classes,sysutils,syncobjs, CEFuncProc, CustomTypeHandler, commonTypeDefs;
 
 type TSavedScantype= (fs_advanced,fs_addresslist);
 //type TValueType= (vt_byte,vt_word, vt_dword, vt_single, vt_double, vt_int64, vt_all);     //todo: Make compatible with the rest of ce's vartype

@@ -27,72 +27,12 @@ hypermode,
 {$endif}
 {$endif}
 {$endif}
- math,syncobjs, shellapi, ProcessHandlerUnit, controls, shlobj, ActiveX, strutils;
+ math,syncobjs, shellapi, ProcessHandlerUnit, controls, shlobj, ActiveX, strutils,
+commontypedefs;
 
 
 
 
-//memscan
-type TScanOption=(soUnknownValue=0,soExactValue=1,soValueBetween=2,soBiggerThan=3,soSmallerThan=4, soIncreasedValue=5, soIncreasedValueBy=6, soDecreasedValue=7, soDecreasedValueBy=8, soChanged=9, soUnchanged=10, soCustom);
-type TScanType=(stNewScan, stFirstScan, stNextScan);
-type TRoundingType=(rtRounded=0,rtExtremerounded=1,rtTruncated=2);
-type TVariableType=(vtByte=0, vtWord=1, vtDword=2, vtQword=3, vtSingle=4, vtDouble=5, vtString=6, vtUnicodeString=7, vtByteArray=8, vtBinary=9, vtAll=10, vtAutoAssembler=11, vtPointer=12, vtCustom=13, vtGrouped=14, vtByteArrays=15); //all ,grouped and MultiByteArray are special types
-type TCustomScanType=(cstNone, cstAutoAssembler, cstCPP, cstDLLFunction);
-type TFastScanMethod=(fsmNotAligned=0, fsmAligned=1, fsmLastDigits=2);
-
-type TaccessRight=(arExecute, arRead, arWrite);
-type TAccessRights=set of TAccessRight;
-
-type TAddressArray=array of ptruint;
-
-Type TBytes = array of integer; //An array that represents a row of byte. Ints are used to be able to represent wildcards (-1)
-     TWindowPosArray=TBytes;
-
-type tfloatscan=(rounded,extremerounded,truncated);
-Type TMemoryRegion = record
-  BaseAddress: ptrUint;
-  MemorySize: qword;
-  IsChild: boolean;  //means there is a region before it
-  startaddress: pointer; //pointer to a spot in the whole memory copy, it means the start of this region
-  end;
-type TMemoryRegions = array of TMemoryRegion;
-type PMemoryRegions = ^TMemoryRegions;
-
-
-type
-  TGroupAddress=record
-    address: ptruint;
-    offsets: array [0..999999] of dword;
-  end;
-  PGroupAddress=^TGroupAddress;
-  PPGroupAddress=^PGroupAddress;
-  TGroupAddressArray=array [0..0] of TGroupAddress;
-  PGroupAddressArray=^TGroupAddressArray;
-
-
-
-type TBitAddress = record
-  address: ptruint;
-  bit: ptruint; //in 64-bit when it was dword it would get aligned to 64-bit anyhow
-end;
-
-type TBitAddressArray=array [0..0] of TBitAddress;
-type PBitAddressArray=^TBitAddressArray;
-
-type ToffsetList=array of integer;
-
-type TProcessListInfo=record
-  processID: dword;
-  processIcon: HICON;
-end;
-PProcessListInfo=^TProcessListInfo;
-
-
-type tmoduledata =class
-  public
-    moduleaddress: ptrUint;
-    modulesize: dword;
-end;
 
 function StrToQWordEx(s: string): qword;
 

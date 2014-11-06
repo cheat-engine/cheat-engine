@@ -8,7 +8,7 @@ uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls, ExtCtrls, LResources, EditBtn, Buttons, Contnrs,
   CEFuncProc, NewKernelHandler, symbolhandler, multilineinputqueryunit,
-  registry, resolve, fgl, math, PointerscanSettingsIPConnectionList, types;
+  registry, resolve, fgl, math, PointerscanSettingsIPConnectionList, types, commonTypeDefs;
 
 
 type

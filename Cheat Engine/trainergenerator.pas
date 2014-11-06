@@ -10,7 +10,7 @@ uses
   ComCtrls, Buttons, Menus, ExtraTrainerComponents, cefuncproc, HotkeyHandler,
   HotKeys, symbolhandler, luacaller, formdesignerunit, opensave, luafile,
   frmAdConfigUnit, cesupport, IconStuff, memoryrecordunit, frmSelectionlistunit,
-  mainunit2, lua, luahandler;
+  mainunit2, lua, luahandler, commonTypeDefs;
 
 type
   TTrainerForm=class(TCEForm)

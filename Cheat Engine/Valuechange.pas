@@ -6,12 +6,7 @@ interface
 
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, LResources
-  {$ifdef net}
-  ,netapis,CEClient;
-  {$else}
-  ,NewKernelHandler, CEFuncProc;
-  {$endif}
+  StdCtrls, LResources, commonTypeDefs,NewKernelHandler, CEFuncProc;
                                        
 type
   TValueChangeForm = class(TForm)

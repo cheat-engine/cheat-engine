@@ -9,7 +9,7 @@ uses
   resolve, math, pointervaluelist,PointerscanWorker, PointerscanStructures,
   pointeraddresslist, PointerscanresultReader, cefuncproc, newkernelhandler,
   zstream, PointerscanConnector, PointerscanNetworkStructures, WinSock2,
-  CELazySocket, AsyncTimer, MemoryStreamReader;
+  CELazySocket, AsyncTimer, MemoryStreamReader, commonTypeDefs;
 
 
 type
