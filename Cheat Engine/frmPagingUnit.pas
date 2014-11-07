@@ -57,7 +57,7 @@ implementation
 
 { TfrmPaging }
 
-uses MemoryBrowserFormUnit, ProcessHandlerUnit;
+uses MemoryBrowserFormUnit, ProcessHandlerUnit, Parsers;
 
 resourcestring
   rsNotFound = 'Not found';

@@ -48,7 +48,7 @@ var
 
 implementation
 
-uses ProcessHandlerUnit;
+uses ProcessHandlerUnit, Parsers;
 
 resourcestring
   rsPleaseAddAtLeastOneAddressRegionToTheList = 'Please add at least one address region to the list';

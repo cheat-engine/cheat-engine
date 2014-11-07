@@ -31,7 +31,7 @@
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <Units Count="10">
+    <Units Count="11">
       <Unit0>
         <Filename Value="cecore.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -43,6 +43,7 @@
       <Unit2>
         <Filename Value="networkInterface.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="networkInterface"/>
       </Unit2>
       <Unit3>
         <Filename Value="NewKernelHandler.pas"/>
@@ -75,6 +76,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="Parsers"/>
       </Unit9>
+      <Unit10>
+        <Filename Value="globals.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="Globals"/>
+      </Unit10>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

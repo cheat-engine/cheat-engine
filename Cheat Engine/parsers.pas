@@ -12,9 +12,29 @@ uses
 procedure ConvertStringToBytes(scanvalue:string; hex:boolean;var bytes: TBytes);
 function BinToInt(s: string): int64;
 function IntToBin(i: qword): string;
+function StrToQWordEx(s: string): qword;
 
 implementation
 
+resourcestring
+   rsInvalidInteger = 'Invalid integer';
+
+function StrToQWordEx(s: string): qword;
+{
+This routine will use StrToQword unless it is a negative value, in which case it will use StrToInt64
+}
+begin
+  s:=trim(s);
+  if length(s)=0 then
+    raise exception.create(rsInvalidInteger)
+  else
+  begin
+    if s[1]='-' then
+      result:=StrToInt64(s)
+    else
+      result:=StrToQWord(s);
+  end;
+end;
 
 function BinToInt(s: string): int64;
 var i: integer;

@@ -571,7 +571,7 @@ uses Valuechange,
   frmStringpointerscanUnit,
   frmFilePatcherUnit,
   frmUltimapUnit,
-  frmAssemblyScanUnit;
+  frmAssemblyScanUnit, Parsers;
 
 
 resourcestring

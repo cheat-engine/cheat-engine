@@ -227,7 +227,7 @@ var frmpointerscannersettings: tfrmpointerscannersettings;
 implementation
 
 uses MainUnit, frmMemoryAllocHandlerUnit, MemoryBrowserFormUnit, ProcessHandlerUnit,
-  Globals;
+  Globals, parsers;
 
 
 

@@ -337,7 +337,7 @@ uses PointerscannerSettingsFrm, frmMemoryAllocHandlerUnit, frmSortPointerlistUni
   LuaHandler, lauxlib, lua, frmPointerscanConnectDialogUnit,
   frmpointerrescanconnectdialogunit, frmMergePointerscanResultSettingsUnit,
   ProcessHandlerUnit, frmResumePointerscanUnit, PointerscanConnector,
-  frmSetupPSNNodeUnit, PointerscanNetworkStructures;
+  frmSetupPSNNodeUnit, PointerscanNetworkStructures, parsers;
 
 resourcestring
   rsErrorDuringScan = 'Error during scan';

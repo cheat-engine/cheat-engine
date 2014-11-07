@@ -37,7 +37,7 @@ var
 
 implementation
 
-uses ProcessHandlerUnit;
+uses ProcessHandlerUnit, Parsers;
 
 resourcestring
   strinvalidfile='This is a invalid memory region file. I''ll assume this file has no header data';

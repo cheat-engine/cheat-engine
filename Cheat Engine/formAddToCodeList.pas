@@ -33,7 +33,7 @@ var
 implementation
 
 
-uses AdvancedOptionsUnit;
+uses AdvancedOptionsUnit, Parsers;
 
 resourcestring
   rsRegionToAdd = 'Region to add';

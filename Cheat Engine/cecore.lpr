@@ -5,9 +5,9 @@ library cecore;
 //This is only for support with the android version. 
 
 
-uses {$ifdef unix}cthreads, classes, jni, networkInterfaceApi, NewKernelHandler,
+uses cthreads, classes, jni, networkInterfaceApi, NewKernelHandler,
   networkInterface, sysutils, unixporthelper, ProcessHandlerUnit, elfsymbols,
-  resolve, Sockets, ProcessList, memscan, Parsers, strutils;
+  resolve, Sockets, ProcessList, memscan, Parsers, Globals, strutils;
 
 const
   packagename='org.cheatengine.jnitest';
@@ -40,6 +40,9 @@ begin
   log('Creating thread');
   t:=TTestThread.Create(false);
   log('Thread created');
+
+  //todo: test a custom mainthread
+  //MainThreadID:= ... and in there call checkforsync
 
 end;
 
