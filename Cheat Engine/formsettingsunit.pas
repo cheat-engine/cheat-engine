@@ -261,7 +261,8 @@ ModuleSafetyUnit,
 frmProcessWatcherUnit,
 ConfigUnrandomizerFrm,
 CustomTypeHandler,
-processlist;
+processlist,
+Globals;
 
 
 
@@ -392,11 +393,7 @@ begin
 
   if bufsize=0 then raise exception.create(rsTheScanbufferSizeHasToBeGreaterThan0);
 
-  {$ifdef net}
-  mainform.buffersize:=bufsize*1024;
-  {$else}
   buffersize:=bufsize*1024;
-  {$endif}
 
   mainform.UndoScan.visible:={$ifdef net}false{$else}cbshowundo.checked{$endif};
 

@@ -9,7 +9,7 @@ interface
 
 uses LCLIntf,sysutils,classes,ComCtrls,StdCtrls,symbolhandler, CEFuncProc,
      NewKernelHandler, memscan, CustomTypeHandler, byteinterpreter,
-     groupscancommandparser, math, AvgLvlTree, commonTypeDefs;
+     groupscancommandparser, math, AvgLvlTree, commonTypeDefs, parsers;
 
 type TScanType=(fs_advanced,fs_addresslist);
 

@@ -7,7 +7,7 @@ library cecore;
 
 uses {$ifdef unix}cthreads, classes, jni, networkInterfaceApi, NewKernelHandler,
   networkInterface, sysutils, unixporthelper, ProcessHandlerUnit, elfsymbols,
-  resolve, Sockets, ProcessList, memscan, strutils;
+  resolve, Sockets, ProcessList, memscan, Parsers, strutils;
 
 const
   packagename='org.cheatengine.jnitest';

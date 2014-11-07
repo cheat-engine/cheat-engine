@@ -281,7 +281,7 @@ implementation
 
 uses assemblerunit, driverlist, LuaHandler, lualib, lua, lauxlib,
   disassemblerComments, StructuresFrm2, networkInterface, networkInterfaceApi,
-  processhandlerunit;
+  processhandlerunit, Globals;
 
 resourcestring
   rsSymbolloaderthreadHasCrashed = 'Symbolloaderthread has crashed';

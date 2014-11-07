@@ -2,6 +2,8 @@ unit formDifferentBitSizeUnit;
 
 {$MODE Delphi}
 
+//todo: this is REALLY REALLY OLD
+
 interface
 
 uses
@@ -39,6 +41,8 @@ var
   formDifferentBitSize: TformDifferentBitSize;
 
 implementation
+
+uses globals;
 
 resourcestring
   rsTheLastTimeYouScannedTheNumberOfBitsWasAndNowItIsP = 'The last time you scanned the number of bits was %s and now it is %s. Please tell me how and how much i must change the '

@@ -110,10 +110,9 @@ resourcestring
 
 implementation
 
-uses CEFuncProc, CEDebugger,debughelper, debugeventhandler,
-     MemoryBrowserFormUnit,
-     {$ifdef net}unit2,ceclient,{$else}MainUnit,kerneldebugger,{$endif}
-     AdvancedOptionsUnit ,formFoundcodeListExtraUnit,MainUnit2, ProcessHandlerUnit;
+uses CEFuncProc, CEDebugger,debughelper, debugeventhandler, MemoryBrowserFormUnit,
+     MainUnit,kerneldebugger, AdvancedOptionsUnit ,formFoundcodeListExtraUnit,
+     MainUnit2, ProcessHandlerUnit, Globals;
 
 destructor TCodeRecord.Destroy;
 begin

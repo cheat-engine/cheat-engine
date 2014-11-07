@@ -76,8 +76,6 @@ procedure Open_Process;
 Procedure Shutdown;
 function KeyToStr(key:word):string;
 
-
-procedure ConvertStringToBytes(scanvalue:string; hex:boolean;var bytes: TBytes);
 function GetBitCount(value: qword): integer;
 function getbit(bitnr: integer; bt: qword):integer; inline;
 procedure setbit(bitnr: integer; var bt: Byte;state:integer); overload;
@@ -111,8 +109,6 @@ function ByteStringToSingle(s: string;hex: boolean):single;
 function ByteStringToInt(s: string;hex: boolean):int64;
 function VarToBytes(v: pointer; size: integer): string;
 function RawToString(const buf: array of byte; vartype: integer;showashex: boolean; bufsize: integer):string;
-function IntToBin(i: qword):string;
-function BinToInt(s: string): int64;
 
 procedure decimal(var key: char);
 procedure hexadecimal(var key: char);
@@ -251,29 +247,7 @@ type
         FrozenValue : Dword;
   end;
 
-type TPtrUintArray=array[0..100] of ptruint;
-type PPtrUintArray=^TPtrUintArray;
 
-
-type TDwordArray=array[0..100] of dword;
-type PDwordArray=^TDwordArray;
-
-type TSingleArray=array[0..100] of single;
-type PSingleArray=^TSingleArray;
-
-type TdoubleArray=array[0..100] of double;
-type PdoubleArray=^TdoubleArray;
-
-type Tint64Array=array[0..100] of int64;
-type Pint64Array=^Tint64Array;
-
-type Tuint64Array=array[0..100] of uint64;
-type Puint64Array=^Tuint64Array;
-
-type PQWordArray=Puint64Array;
-
-type TExtendedArray=array[0..100] of extended;
-type PExtendedArray=^TExtendedArray;
 
 
 
@@ -324,161 +298,7 @@ type tspeedhackspeed=record
 end;
 
 type TKeyCombo=array [0..4] of word;
-type TKeys=record
-  configured: boolean;
-  CEDir: string[255];
-  cewindow: thandle;
 
-  callibrationmode: boolean;  //false=no textureselect hud
-  callibrationkey: TKeycombo;
-
-  setcallibration: boolean;
-  mousecallibrationhorizontal1point: single;
-  mousecallibrationvertical1point: single;
-
-  mousecallibrationhorizontal2point: single;
-  mousecallibrationvertical2point: single;
-
-  mousecallibrationhorizontal5point: single;
-  mousecallibrationvertical5point: single;
-
-  mousecallibrationhorizontal10point: single;
-  mousecallibrationvertical10point: single;
-
-  mousecallibrationhorizontal20point: single;
-  mousecallibrationvertical20point: single;
-
-  mousecallibrationhorizontal40point: single;
-  mousecallibrationvertical40point: single;
-
-  loadaimsettingsfile: tkeycombo;
-  saveaimsettingsfile: tkeycombo;
-  aimsettings1: string[255];
-  Aimsettings2: string[255];
-  Aimsettings3: string[255];
-
-  setaimsetting1: tkeycombo;
-  setaimsetting2: tkeycombo;
-  setaimsetting3: tkeycombo;
-
-  nexttexture: tkeycombo;
-  previoustexture: tkeycombo;
-  locktexture: tkeycombo;
-
-  IncreaseX: tkeycombo;
-  DecreaseX: TKeyCombo;
-  Increasey: tkeycombo;
-  Decreasey: TKeyCombo;
-  Increasez: tkeycombo;
-  Decreasez: TKeyCombo;
-
-  HoldAutoaimtoggle: boolean;
-  autoshoot: boolean;
-  autoaimtoggle: tKeycombo;
-  increaselag: tkeycombo;
-  decreaselag: tkeycombo;
-
-  zoomin,zoomout: TKeyCombo;
-  nozoom: tKeyCombo;
-  zoom1: tKeyCombo;
-  zoomlevel1: single;
-  zoom2: tkeycombo;
-  zoomlevel2: single;
-  zoom3: tkeycombo;
-  zoomlevel3: single;
-  zoom4: tkeycombo;
-  zoomlevel4: single;
-  zoom5: tkeycombo;
-  zoomlevel5: single;
-
-  zoomdelta: single;
-  lagdelta: integer;
-
-  setlag: boolean;
-  lagtoset: dword;
-  usefpslag: boolean;
-
-  rotateleft: tKeycombo;
-  rotateright: tkeycombo;
-  rotateup: tkeycombo;
-  rotatedown: tkeycombo;
-  moveleft: tkeycombo;
-  moveright: tkeycombo;
-  moveup: tkeycombo;
-  movedown: tkeycombo;
-  moveforward: tkeycombo;
-  movebackwards: tkeycombo;
-
-  movespeed: single;
-  rotatespeed: single;
-
-  setcameraback: tkeycombo;
-
-  zbuffer: tkeycombo;
-  fog: tkeycombo;
-  lighting: tkeycombo;
-  wireframe: tkeycombo;
-
-  ShowKeylist: tkeycombo;
-
-  SaveAlltextures: TKeycombo;
-
-  selectedlagrecord: string[50];
-  lagmemorytype: byte;
-  getlagfrommemory: boolean;
-  nrofoffsets: dword;
-  lagaddress: ptrUint;
-  offset1: dword;
-  offset2: dword;
-  offset3: dword;
-  offset4: dword;
-  offset5: dword;
-  offset6: dword;
-  offset7: dword;
-  offset8: dword;
-  offset9: dword;
-  offset10: dword;
-  offset11: dword;
-  offset12: dword;
-  offset13: dword;
-  offset14: dword;
-  offset15: dword;
-
-
-  pollinginterval: integer;
-end;
-type PKeys= ^TKeys;
-
-type TKeys2=record
-  configured: boolean;
-  CEDir: string[255];
-  cewindow: thandle;
-
-  textures: tkeycombo;
-  lighting: tkeycombo;
-  depthtest: tkeycombo;
-  fog: tkeycombo;
-
-
-  zoomin,zoomout: TKeyCombo;
-  nozoom: tKeyCombo;
-  zoom1: tKeyCombo;
-  zoomlevel1: single;
-  zoom2: tkeycombo;
-  zoomlevel2: single;
-  zoom3: tkeycombo;
-  zoomlevel3: single;
-  zoom4: tkeycombo;
-  zoomlevel4: single;
-  zoom5: tkeycombo;
-  zoomlevel5: single;
-
-  zoomdelta: single;
-
-
-  pollinginterval: integer;
-end;
-type PKeys2= ^TKeys2;
 
 
 
@@ -494,123 +314,7 @@ make use of ProcessHandlerUnit
 //function ProcessHandle: THandle;
 
 //Global vars:
-var
-  systemtype: integer;
-  old8087CW: word;  //you never know...
-  ProcessSelected: Boolean;
-  //ProcessID: Dword; //deperecated
-  //ProcessHandle: Thandle;
 
-
-
-  Skip_PAGE_NOCACHE: boolean=false;
-  Scan_MEM_PRIVATE: boolean=true;
-  Scan_MEM_IMAGE: boolean=true;
-  Scan_MEM_MAPPED: boolean=false;
-
-  TablesDir: string;
-  CheatEngineDir: String;
-  WindowsDir: string;
-
-  username: string;
-
-//scanhelpers
-  nrofbits: integer;
-  Bitscan: array of byte;
-  tempbits: array of byte;
-
-  bitoffsetchange: integer;
-
-
-  foundaddressB: array of TBitAddress;
-  foundaddressBswitch: array of TBitAddress;  
-
-
-  tempbytearray: array of byte;
-  tempwordarray: array of word;
-  tempdwordarray: array of dword;
-  tempsinglearray: array of single;
-  tempdoublearray: array of double;
-  tempint64array: array of int64;
-
-
-//--------
-  previousmemory: array of byte;
-{  SearchAddress: array of dword;
-  searchaddressswitch: array of dword;
-
-  SearchAddressB: array of TBitAddress;}
-
- // previousmemory1,previousmemory1switch: array of Byte;
-  {previousmemory2,previousmemory2switch: array of word;
-  previousmemory3,previousmemory3switch: array of dword;
-  previousmemory4,previousmemory4switch: array of Single;
-  previousmemory5,previousmemory5switch: array of Double;
-  previousmemory6,previousmemory6switch: array of int64; //Byte;
-  PreviousMemory7,previousmemory7switch: Array of Int64;
-  PreviousMemory8,previousmemory8switch: array of byte; }
-
-//---------
-  helpstr,helpstr2: string;
-  bytes: array of integer;  //-1=wildcard
-  bytearray: array of byte;
-
-
-
-//  MemoryRegion: array of TMemoryRegion;
-//  MemoryRegions: Integer;
-  
-//  Memory: Array of Byte;
-  Memory: ^Byte;
-  memory2: ^byte;
-
-
-  advanced: boolean;
-  //global files, so when an exception happens I can close them
-//  addressfile, memoryfile: File;
-//  newAddressfile,newmemoryfile: File;
-
-  savedStackSize: dword=4096;
-  buffersize: dword=512*1024;
-  overridedebug: boolean;
-
-  totalbytes: dword;
-  currentbyte: dword;
-
-
-  //hide/show windows
-  windowlist: array of thandle;
-  lastforeground,lastactive: thandle;
-  donthidelist: array of string;
-  onlyfront: boolean;
-  allwindowsareback:boolean;
-
-  //HyperscanFileMapping: THandle;
-  //HyperscanView: ^TScanSettings;
-  
-  hookedin:boolean;
-  keys: PKeys;
-  keys2: PKeys2;
-  keysfilemapping: THandle;
-
-  //stealth globals
-  le: dword;
-  ownprocesshandle: THandle;
-  stealthhook: thandle;
-
-  //windows version data
-  iswin2kplus: boolean;
-  scanpriority: TThreadPriority; 
-
-  useAPCtoInjectDLL: boolean;
-
-
-  tempdir: pchar;
-  dontusetempdir: boolean;
-  tempdiralternative: string;
-
-  VEHRealContextOnThreadCreation: boolean;
-  waitafterguiupdate: boolean;
 
 type
   SYSTEM_INFO = record
@@ -641,7 +345,7 @@ implementation
 
 uses disassembler,CEDebugger,debughelper, symbolhandler,frmProcessWatcherUnit,
      kerneldebugger, formsettingsunit, MemoryBrowserFormUnit, savedscanhandler,
-     networkInterface, networkInterfaceApi, processlist;
+     networkInterface, networkInterfaceApi, processlist, Parsers, Globals;
 
 
 resourcestring
@@ -1728,32 +1432,6 @@ begin
   result:=copy(result,1,length(result)-1);
 end;
 
-function BinToInt(s: string): int64;
-var i: integer;
-begin
-  result:=0;
-  for i:=length(s) downto 1 do
-    if s[i]='1' then result:=result+trunc(power(2,length(s)-i ));
-end;
-
-function Inttobin(i: qword): string;
-var temp,temp2: string;
-    j: integer;
-begin
-  temp:='';
-  while i>0 do
-  begin
-    if (i mod 2)>0 then temp:=temp+'1'
-                   else temp:=temp+'0';
-    i:=i div 2;
-  end;
-
-  temp2:='';
-  for j:=length(temp) downto 1 do
-    temp2:=temp2+temp[j];
-  result:=temp2;
-end;
-
 
 
 function getbit(bitnr: integer; bt: qword):integer; inline;
@@ -2639,58 +2317,7 @@ begin
 
 end;
 
-procedure ConvertStringToBytes(scanvalue:string; hex:boolean;var bytes: TBytes);
-{
-Converts a given string into a array of TBytes.
-TBytes are not pure bytes, they can hold -1, which indicates a wildcard
-}
-var i,j,k: integer;
-    helpstr,helpstr2:string;
-    delims: TSysCharSet;
-begin
-  setlength(bytes,0);
-  if length(scanvalue)=0 then exit;
 
-  delims:=[' ',',','-']; //[#0..#255] - ['a'..'f','A'..'F','1'..'9','0','*']; //everything except hexadecimal and wildcard
-
-  scanvalue:=trim(scanvalue);
-
-
-  for i:=1 to WordCount(scanvalue, delims) do
-  begin
-    helpstr:=ExtractWord(i, scanvalue, delims);
-
-    if helpstr<>'' then
-    begin
-      if not hex then
-      begin
-        setlength(bytes,length(bytes)+1);
-        try
-          bytes[length(bytes)-1]:=strtoint(helpstr);
-        except
-          bytes[length(bytes)-1]:=-1; //wildcard
-        end;
-      end
-      else
-      begin
-        j:=1;
-        while j<=length(helpstr) do
-        begin
-          helpstr2:=copy(helpstr, j,2);
-          setlength(bytes,length(bytes)+1);
-          try
-            bytes[length(bytes)-1]:=strtoint('$'+helpstr2);
-          except
-            bytes[length(bytes)-1]:=-1; //wildcard
-          end;
-
-          inc(j,2);
-        end;
-      end;
-
-    end;
-  end;
-end;
 
 
 
@@ -3881,7 +3508,6 @@ initialization
   GetTempPath(256,tempdir);
   GetWindir;
   keysfilemapping:=0;
-  keys:=nil;
 
   setlength(windowlist,0);
   setlength(donthidelist,0);

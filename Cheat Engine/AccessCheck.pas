@@ -19,6 +19,8 @@ procedure FileAccessTest;
 
 implementation
 
+uses Globals;
+
 resourcestring
   rsNoFileCreationRightsOrNoFileOverwriteRights = 'No file creation rights or no file overwrite rights';
   rsNoFileModificationRights = 'No file modification rights';

@@ -201,7 +201,7 @@ procedure generateAPIHookScript(script: tstrings; address: string; addresstogoto
 implementation
 
 
-uses frmAAEditPrefsUnit,MainUnit,memorybrowserformunit,APIhooktemplatesettingsfrm;
+uses frmAAEditPrefsUnit,MainUnit,memorybrowserformunit,APIhooktemplatesettingsfrm, Globals;
 
 resourcestring
   rsExecuteScript = 'Execute script';

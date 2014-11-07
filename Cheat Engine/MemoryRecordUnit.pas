@@ -277,7 +277,8 @@ function TextToMemRecHotkeyAction(text: string): TMemrecHotkeyAction;
 
 implementation
 
-uses mainunit, addresslist, formsettingsunit, LuaHandler, lua, lauxlib, lualib, processhandlerunit;
+uses mainunit, addresslist, formsettingsunit, LuaHandler, lua, lauxlib, lualib,
+  processhandlerunit, Parsers;
 
 {-----------------------------TMemoryRecordHotkey------------------------------}
 constructor TMemoryRecordHotkey.create(AnOwner: TMemoryRecord);

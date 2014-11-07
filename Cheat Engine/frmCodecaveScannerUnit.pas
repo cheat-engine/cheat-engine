@@ -58,7 +58,7 @@ var
 implementation
 
 
-uses MainUnit2, MemoryBrowserFormUnit, ProcessHandlerUnit;
+uses MainUnit2, MemoryBrowserFormUnit, ProcessHandlerUnit, Globals;
 
 resourcestring
   rsPleaseProvideAValidStartAddress = 'Please provide a valid start address';

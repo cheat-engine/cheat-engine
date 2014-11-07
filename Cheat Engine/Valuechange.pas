@@ -49,7 +49,7 @@ var
 
 implementation
 
-uses ProcessHandlerUnit;
+uses ProcessHandlerUnit, parsers;
 
 resourcestring
   rsChangeOffset = 'Change offset %s';

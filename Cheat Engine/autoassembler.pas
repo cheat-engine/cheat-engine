@@ -31,7 +31,7 @@ procedure unregisterAutoAssemblerPrologue(id: integer);
 implementation
 
 uses simpleaobscanner, StrUtils, LuaHandler, memscan, disassembler, networkInterface,
-     networkInterfaceApi, fgl, LuaCaller, SynHighlighterAA;
+     networkInterfaceApi, fgl, LuaCaller, SynHighlighterAA, Parsers, Globals;
 
 resourcestring
   rsForwardJumpWithNoLabelDefined = 'Forward jump with no label defined';

@@ -461,7 +461,7 @@ function safed3dhook(size: integer=16*1024*1024; hookwindow: boolean=true): TD3D
 implementation
 
 uses frmautoinjectunit, autoassembler, MainUnit, frmSaveSnapshotsUnit,
-  frmsnapshothandlerUnit, symbolhandler, ProcessHandlerUnit;
+  frmsnapshothandlerUnit, symbolhandler, ProcessHandlerUnit, Globals;
 
 procedure TD3DMessageHandler.handleSnapshot;
 begin

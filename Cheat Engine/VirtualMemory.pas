@@ -34,7 +34,7 @@ end;
 
 implementation
 
-uses ProcessHandlerUnit;
+uses ProcessHandlerUnit, Globals;
 
 resourcestring
   rsNoMemoryFoundInTheSpecifiedRegion = 'No memory found in the specified '

@@ -5,7 +5,7 @@ unit DotNetPipe;
 interface
 
 uses
-  jwawindows, windows, Classes, SysUtils, CEFuncProc, syncobjs, NewKernelHandler;
+  jwawindows, windows, Classes, SysUtils, CEFuncProc, syncobjs, NewKernelHandler, Globals;
 
 const
   CMD_TARGETPROCESS=0;

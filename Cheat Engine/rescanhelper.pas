@@ -35,7 +35,7 @@ end;
 
 implementation
 
-uses ProcessHandlerUnit;
+uses ProcessHandlerUnit, Globals;
 
 
 function TRescanHelper.BinSearchMemRegions(address: ptrUint): integer;

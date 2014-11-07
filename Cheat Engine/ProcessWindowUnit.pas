@@ -89,7 +89,7 @@ implementation
 
 
 uses MainUnit, formsettingsunit, advancedoptionsunit,frmProcessWatcherUnit,
-  memorybrowserformunit, networkConfig, ProcessHandlerUnit, processlist;
+  memorybrowserformunit, networkConfig, ProcessHandlerUnit, processlist, globals;
 
 resourcestring
   rsIsnTAValidProcessID = '%s isn''t a valid processID';

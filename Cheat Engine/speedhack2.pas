@@ -22,7 +22,7 @@ var speedhack: TSpeedhack;
 
 implementation
 
-uses frmAutoInjectUnit, networkInterface, networkInterfaceApi, ProcessHandlerUnit;
+uses frmAutoInjectUnit, networkInterface, networkInterfaceApi, ProcessHandlerUnit, Globals;
 
 resourcestring
   rsFailureEnablingSpeedhackDLLInjectionFailed = 'Failure enabling speedhack. (DLL injection failed)';

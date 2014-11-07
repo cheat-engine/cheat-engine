@@ -66,7 +66,7 @@ var
 implementation
 
 uses formsettingsunit, MainUnit,AdvancedOptionsUnit, MemoryBrowserFormUnit,
-     frmProcesswatcherExtraUnit,plugin, processhandlerunit;
+     frmProcesswatcherExtraUnit,plugin, processhandlerunit, Globals;
 
 resourcestring
   rsProcesswatcherThreadError = 'processwatcher: thread error:%s';
