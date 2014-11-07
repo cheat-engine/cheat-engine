@@ -534,7 +534,7 @@ implementation
 
 uses MainUnit, mainunit2, frmStructures2ElementInfoUnit, MemoryBrowserFormUnit,
   frmStructureLinkerUnit, frmgroupscanalgoritmgeneratorunit, frmStringPointerScanUnit,
-  ProcessHandlerUnit;
+  ProcessHandlerUnit, Parsers;
 
 resourcestring
   rsAddressValue = 'Address: Value';

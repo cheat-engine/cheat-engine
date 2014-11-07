@@ -18,14 +18,19 @@ uses windows, FileUtil, LCLIntf,sysutils, classes,ComCtrls,dialogs, NewKernelHan
 {$endif}
 
 {$ifdef unix}
-uses sysutils, unixporthelper, commonTypeDefs, classes, syncobjs, math, NewKernelHandler;
+uses sysutils, unixporthelper, commonTypeDefs, classes, syncobjs, math,
+     NewKernelHandler, strutils;
 
 //not yet implemented
 type
   TCustomType=class(Tobject);
   Tsavedscanhandler=class(Tobject);
   TSaveFirstScanThread=class(Tobject);
-  TCustomProgressBar=class(Tobject);
+  TCustomProgressBar=class(Tobject)
+  private
+  public
+    position: integer;
+  end;
 
 {$endif}
 
@@ -385,8 +390,10 @@ type
     scanvalue1,scanvalue2: string;
     widescanvalue1: widestring;
 
+    {$IFNDEF UNIX}
     compareToSavedScan: boolean;
     savedscanname: string;
+    {$ENDIF}
 
     scanOption: TScanOption;
     variableType: TVariableType;
@@ -524,7 +531,9 @@ type
   private
     previousMemoryBuffer: pointer;
     scanController: TScanController; //thread that configures the scanner threads and wait till they are done
+    {$IFNDEF UNIX}
     SaveFirstScanThread: TSaveFirstScanThread; //thread that will save the results of the first scan that can be used for "same as first scan" scans
+    {$ENDIF}
     memRegion: TMemoryRegions;  //after a scan the contents of controller gets copied to here
     memRegionPos: integer;
 
@@ -3552,6 +3561,7 @@ var FloatSettings: TFormatSettings;
     s: string;
 begin
   maxfound:=buffersize;
+  {$IFNDEF UNIX}
   if variableType = vtCustom then
   begin
     //possible override
@@ -3572,6 +3582,7 @@ begin
     end;
 
   end;
+  {$ENDIF}
 
   OutputDebugString('configurescanroutine');
   foundbuffersize:=0;
@@ -3611,15 +3622,21 @@ begin
               FloatSettings.DecimalSeparator:=',';
 
             //try again
+            //todo: Add lua support for unix
             try
               dvalue:=strtofloat(scanvalue1,FloatSettings);
             except
               //see if lua knows better
+              {$IFNDEF UNIX}
               try
                 dvalue:=lua_strtofloat(scanvalue1);
               except
+              {$ENDIF}
                 raise exception.Create(Format(rsIsNotAValidValue, [scanvalue1]));
+              {$IFNDEF UNIX}
               end;
+              {$ENDIF}
+
             end;
           end;
           value:=trunc(dvalue);
@@ -3627,11 +3644,15 @@ begin
         end else
         begin
           //not a float type, perhaps lua knows how to handle it
+          {$IFNDEF UNIX}
           try
             value:=lua_strtoint(scanvalue1);
           except
+          {$ENDIF}
             raise exception.Create(Format(rsIsAnInvalidValue, [scanvalue1]));
+          {$IFNDEF UNIX}
           end;
+          {$ENDIF}
         end;
       end;
 
@@ -3660,11 +3681,15 @@ begin
                 dvalue:=strtofloat(scanvalue2,FloatSettings);
               except
                 //see if lua knows better
+                {$IFNDEF UNIX}
                 try
                   dvalue:=lua_strtofloat(scanvalue2);
                 except
+                {$ENDIF}
                   raise exception.Create(Format(rsIsNotAValidValue, [scanvalue2]));
+                {$IFNDEF UNIX}
                 end;
+                {$ENDIF}
               end;
             end;
             value2:=trunc(dvalue);
@@ -3672,11 +3697,15 @@ begin
           else
           begin
             //perhaps lua knows what it is
+            {$IFNDEF UNIX}
             try
               value2:=lua_strtoint(scanvalue2);
             except
+            {$ENDIF}
               raise exception.Create(Format(rsIsAnInvalidValue, [scanvalue2]));
+            {$IFNDEF UNIX}
             end;
+            {$ENDIF}
 
           end;
         end;
@@ -3701,11 +3730,15 @@ begin
           dvalue:=strtofloat(scanvalue1,FloatSettings);
         except
           //try lua
+          {$IFNDEF UNIX}
           try
             dvalue:=lua_strtofloat(scanvalue1);
           except
+          {$ENDIF}
             raise exception.Create(Format(rsIsNotAValidValue, [scanvalue1]));
+          {$IFNDEF UNIX}
           end;
+          {$ENDIF}
         end;
       end;
 
@@ -3727,11 +3760,15 @@ begin
             dvalue2:=strtofloat(scanvalue2,FloatSettings);
           except
             //and again
+            {$IFNDEF UNIX}
             try
               dvalue2:=lua_strtofloat(scanvalue2);
             except
+            {$ENDIF}
               raise exception.Create(Format(rsIsNotAValidValue, [scanvalue2]));
+            {$IFNDEF UNIX}
             end;
+            {$ENDIF}
           end;
         end;
 
@@ -3876,8 +3913,11 @@ begin
     getmem(SecondaryAddressBuffer,maxfound*sizeof(ptruint));
   end;
 
+
+  {$IFNDEF UNIX}
   if compareToSavedScan then //create a first scan handler
     savedscanhandler:=Tsavedscanhandler.create(scandir,savedscanname);
+  {$ENDIF}
 
   case variableType of
     vtByte:
@@ -4103,6 +4143,7 @@ begin
       //almost like binary
 
       variablesize:=8; //override these variables (8 is big enough for even the double type)
+      {$IFNDEF UNIX}
       if allincludescustomtypes then  //find out the biggest customtype size
       begin
         customtypecount:=customtypes.count;
@@ -4110,6 +4151,7 @@ begin
         for i:=0 to customTypes.count-1 do
           variablesize:=max(variablesize, TCustomType(customtypes[i]).bytesize);
       end;
+      {$ENDIF}
 
 
       fastscanalignsize:=1;
@@ -4141,6 +4183,7 @@ begin
       //the other types have to be filled in by the nextscan routines
     end;
 
+    {$IFNDEF UNIX}
     vtCustom:
     begin
       //dword config
@@ -4202,6 +4245,7 @@ begin
         end;
       end;
     end;
+    {$ENDIF}
 
     vtGrouped:
     begin
@@ -4326,7 +4370,9 @@ begin
         vtAll:
         begin
           oldAddressFile.ReadBuffer(oldaddressesb[0],chunksize*sizeof(tbitaddress));
+          {$IFNDEF UNIX}
           if not compareToSavedScan then
+          {$ENDIF}
             oldMemoryFile.ReadBuffer(oldmemory^,chunksize*variablesize);
             
           nextnextscanmemall(@oldaddressesb[0],oldmemory,chunksize);
@@ -4346,7 +4392,9 @@ begin
           begin
             oldAddressFile.ReadBuffer(oldaddresses[0],chunksize*sizeof(ptruint));
 
+            {$IFNDEF UNIX}
             if not compareToSavedScan then
+            {$ENDIF}
             begin
               if not (self.variableType in [vtString,vtByteArray, vtByteArrays]) then //skip the types with no previous result stored
                 oldMemoryFile.ReadBuffer(oldmemory^,chunksize*variablesize);
@@ -4566,8 +4614,10 @@ end;
 
 procedure TScanner.execute;
 begin
+  {$if defined(cpui386) or defined(cpux86_64)}
   Set8087CW($133f); //disable floating point exceptions in this thread
   SetSSECSR($1f80);
+  {$endif}
 
   try
     scanwriter:=TScanfilewriter.create(self,self.OwningScanController,addressfile,memoryfile);
@@ -4675,7 +4725,9 @@ end;
 
 procedure TScanController.errorpopup;
 begin
+  {$IFNDEF UNIX}
   messagedlg(errorstring,mtError,[mbok],0);
+  {$ENDIF}
 end;
 
 procedure TScanController.fillVariableAndFastScanAlignSize;
@@ -4795,15 +4847,18 @@ begin
     begin
 
       variablesize:=8;
+      {$IFNDEF UNIX}
       if allincludescustomtypes then  //find out the biggest customtype size
       begin
         for i:=0 to customTypes.count-1 do
           variablesize:=max(variablesize, TCustomType(customtypes[i]).bytesize);
       end;
+      {$ENDIF}
 
       fastscanalignsize:=1;
     end;
 
+    {$IFNDEF UNIX}
     vtCustom:
     begin
       if customtype=nil then
@@ -4812,6 +4867,7 @@ begin
       variablesize:=customtype.bytesize;
       fastscanalignsize:=1;
     end;
+    {$ENDIF}
 
   end;
 
@@ -4846,9 +4902,11 @@ var
 begin
   offsetcount:=0;
 
+  {$IFNDEF UNIX}
   if (variableType=vtCustom) and (customType<>nil) and (customtype.CustomTypeType=cttLuaScript) then
     threadcount:=1
   else
+  {$ENDIF}
     threadcount:=GetCPUCount;
 
   
@@ -4914,8 +4972,10 @@ begin
 
           currententry:=scanners[i].stopentry+1; //next thread will start at the next one
 
+          {$IFNDEF UNIX}
           scanners[i].compareToSavedScan:=compareToSavedScan;
           scanners[i].savedscanname:=savedscanname;
+          {$ENDIF}
           scanners[i].scanType:=scanType; //stNextScan obviously
           scanners[i].scanoption:=scanoption;
           scanners[i].variableType:=VariableType;
@@ -4964,9 +5024,16 @@ begin
       begin
         while not (terminated or scanners[i].isdone) do
         begin
+         {$ifdef android}
+           if not scanners[i].Finished then
+             sleep(25);
+         {$endif}
+
+         {$ifdef windows}
           WaitForSingleObject(scanners[i].Handle,25); //25ms, an eternity for a cpu
           if OwningMemScan.progressbar<>nil then
             synchronize(updategui);
+          {$endif}
         end;
 
         //If terminated then stop the scanner thread and wait for it to finish
@@ -5022,8 +5089,10 @@ var
   datatype: string[6];
 begin
   threadcount:=GetCPUCount;
+  {$IFNDEF UNIX}
   if (variableType=vtCustom) and (customType<>nil) and (customtype.CustomTypeType=cttLuaScript) then
     threadcount:=1;
+  {$ENDIF}
 
   totalProcessMemorySize:=0;
 
@@ -5129,8 +5198,10 @@ begin
 
       //now configure the scanner thread with the same info this thread got, with some extra info
 
+      {$IFNDEF UNIX}
       scanners[i].compareToSavedScan:=compareToSavedScan;
       scanners[i].savedscanname:=savedscanname;
+      {$ENDIF}
       scanners[i].scanType:=scanType; //stNextScan obviously
       scanners[i].scanoption:=scanoption;
       scanners[i].variableType:=VariableType;
@@ -5176,9 +5247,13 @@ begin
   begin
     while not (terminated or scanners[i].isdone) do
     begin
+    {$IFDEF WINDOWS}
       WaitForSingleObject(scanners[i].Handle,25); //25ms, an eternity for a cpu
       if OwningMemScan.progressbar<>nil then
         synchronize(updategui);
+    {$else}
+      sleep(25);
+    {$ENDIF}
     end;
 
     //If terminated then stop the scanner thread and wait for it to finish
@@ -5269,8 +5344,10 @@ begin
     threadcount:=GetCPUCount;
 
   //if it's a custom scan with luascript as type just use one cpu so there is less overhead
+  {$IFNDEF UNIX}
   if (variableType=vtCustom) and (customType<>nil) and (customtype.CustomTypeType=cttLuaScript) then
     threadcount:=1;
+  {$ENDIF}
     
   totalProcessMemorySize:=0;
 
@@ -5549,8 +5626,10 @@ begin
               
 
       //now configure the scanner thread with the same info this thread got, with some extra info
+      {$IFNDEF UNIX}
       scanners[i].compareToSavedScan:=compareToSavedScan;
       scanners[i].savedscanname:=savedscanname;
+      {$ENDIF}
       scanners[i].scanType:=scanType; //stFirstScan obviously
       scanners[i].scanoption:=scanoption;
       scanners[i].variableType:=VariableType;
@@ -5602,9 +5681,14 @@ begin
     begin
       while not (terminated or scanners[i].isdone) do
       begin
+{$ifdef windows}
         WaitForSingleObject(scanners[i].Handle,25); //25ms, an eternity for a cpu
         if OwningMemScan.progressbar<>nil then
           synchronize(updategui);
+{$else}
+        sleep(25)
+{$endif}
+
       end;
 
 
@@ -5820,8 +5904,13 @@ begin
     if haserror then err:=1;
 
     isdone:=true;
+{$ifdef windows}
     if notifywindow<>0 then
       postMessage(notifywindow,notifymessage,err,0);
+{$else}
+    //todo: notify the caller the scan is done
+    OutputDebugString('It actually finished');
+{$endif}
 
 
     isdoneevent.setevent;
@@ -5893,7 +5982,9 @@ begin
       if scantype=stFirstScan then
       begin
         outputdebugstring('ScanController: This was a first scan, so saving the First Scan results');
+        {$IFNDEF UNIX}
         OwningMemScan.SaveFirstScanThread:=TSaveFirstScanThread.create(OwningMemScan.ScanresultFolder, false,@OwningMemScan.memregion,@OwningMemScan.memregionpos, OwningMemScan.previousMemoryBuffer);
+        {$ENDIF}
       end;
     except
       on e: exception do
@@ -5912,8 +6003,10 @@ begin
     end;
   end;
 
+  {$IFNDEF UNIX}
   if haserror2 then
     MessageBox(0, pchar(errorstring),'Scancontroller cleanup error',  MB_ICONERROR or mb_ok);
+  {$ENDIF}
 
   outputdebugstring('end of scancontroller reached');
   isreallydoneevent.setEvent;   //just set it again if it wasn't set
@@ -5923,7 +6016,9 @@ end;
 
 constructor TScanController.create(suspended: boolean);
 begin
+  {$IFDEF WINDOWS}
   SetProgressstate(tbpsNormal);
+  {$ENDIF}
 
   isdoneevent:=TEvent.create(nil,true,false,'');
   isreallydoneevent:=TEvent.create(nil,true,false,'');
@@ -5996,12 +6091,18 @@ begin
 
       if lastwait=wrTimeout then
       begin
+        {$IFNDEF UNIX}
         TerminateThread(scancontroller.Handle, $dead);
         messagedlg('The scan was forced to terminate. Subsequent scans may not function properly. It''s recommended to restart Cheat Engine', mtWarning, [mbok], 0);
+        {$else}
+        KillThread(scancontroller.handle);
+        {$ENDIF}
 
         scanController.isDoneEvent.SetEvent;
+        {$IFNDEF UNIX}
         if notifywindow<>0 then
           PostMessage(notifywindow, notifymessage,0,0);
+        {$ENDIF}
       end;
 
 
@@ -6081,6 +6182,7 @@ begin
   waittilldone;
 
 
+
   //copy the current scanresults to memory.savedscan and addresses.savedscan
   CopyFile(pchar(fScanResultFolder+'Memory.tmp'), pchar(fScanResultFolder+'Memory.'+resultname), false);
   CopyFile(pchar(fScanResultFolder+'Addresses.tmp'), pchar(fScanResultFolder+'Addresses.'+resultname), false);
@@ -6091,8 +6193,10 @@ end;
 
 procedure TMemscan.undoLastScan;
 begin
+  {$IFNDEF UNIX}
   if attachedFoundlist<>nil then
     TFoundList(Attachedfoundlist).Deinitialize;
+  {$ENDIF}
 
 
   if canUndo then
@@ -6195,11 +6299,13 @@ begin
     vtDouble:    result:=64;
     vtAll:
     begin
-      result:=8;
+      result:=8;  //bytes
 
+      {$IFNDEF UNIX}
       if allincludescustomtype then
         for i:=0 to customTypes.count-1 do
           result:=max(result, TCustomType(customtypes[i]).bytesize);
+      {$ENDIF}
 
       result:=result*8; //get the binary size
 
@@ -6207,15 +6313,19 @@ begin
     vtString:    if stringUnicode then result:=16*stringLength else result:=8*stringLength;
     vtBinary:    result:=binaryLength;
     vtByteArray: result:=arrayLength*8;
+    {$IFNDEF UNIX}
     vtCustom:    result:=currentCustomType.bytesize*8;
+    {$ENDIF}
     else result:=8;
   end;
 end;
 
 procedure TMemscan.newscan;
 begin
+  {$IFNDEF UNIX}
   if attachedFoundlist<>nil then
     TFoundList(Attachedfoundlist).Deinitialize;
+  {$ENDIF}
 
   if scanController<>nil then
   begin
@@ -6224,12 +6334,14 @@ begin
     FreeAndNil(scanController);
   end;
 
+  {$IFNDEF UNIX}
   if SaveFirstScanThread<>nil then
   begin
     SaveFirstScanThread.Terminate;
     SaveFirstScanThread.WaitFor; //wait till it's done
     freeandnil(SaveFirstScanThread);
   end;
+  {$ENDIF}
 
   if previousMemoryBuffer<>nil then virtualfree(previousMemoryBuffer,0,MEM_RELEASE);
   fLastscantype:=stNewScan;
@@ -6243,8 +6355,10 @@ end;
 
 procedure TMemscan.NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; hexadecimal,binaryStringAsDecimal, unicode, casesensitive,percentage,compareToSavedScan: boolean; savedscanname: string);
 begin
+  {$IFNDEF UNIX}
   if attachedFoundlist<>nil then
     TFoundList(Attachedfoundlist).Deinitialize;
+  {$ENDIF}
 
 
   inc(fnextscanCount);
@@ -6257,12 +6371,14 @@ begin
     freeandnil(scanController);
   end;
 
+  {$IFNDEF UNIX}
   if SaveFirstScanThread<>nil then
   begin
 
     SaveFirstScanThread.WaitFor; //wait till it's done
     freeandnil(SaveFirstScanThread);
   end;
+  {$ENDIF}
 
   scanController:=TscanController.Create(true);
   scanController.OwningMemScan:=self;
@@ -6293,7 +6409,9 @@ begin
   scancontroller.notifywindow:=notifywindow;
   scancontroller.notifymessage:=notifymessage;
 
+  {$IFNDEF UNIX}
   scanController.allincludescustomtypes:=formsettings.cballincludescustomtype.checked;
+  {$ENDIF}
 
   fLastscantype:=stNextScan;
   fLastScanValue:=scanvalue1;
@@ -6313,18 +6431,22 @@ begin
     raise exception.create('customType=nil');
 
 
+  {$IFNDEF UNIX}
   if attachedFoundlist<>nil then
     TFoundList(Attachedfoundlist).Deinitialize;
+  {$ENDIF}
 
 
   if scanController<>nil then freeandnil(scanController);
 
+  {$IFNDEF UNIX}
   if SaveFirstScanThread<>nil then
   begin
     SaveFirstScanThread.Terminate; //it should quit, saving took to long and the user already started a new one
     SaveFirstScanThread.WaitFor; //wait till it has fully terminated
     freeandnil(SaveFirstScanThread);
   end;
+  {$ENDIF}
 
 
   currentVariableType:=VariableType;
@@ -6375,7 +6497,9 @@ begin
 
   scanController.OnlyOne:=onlyone;
 
+  {$IFNDEF UNIX}
   scanController.allincludescustomtypes:=formsettings.cballincludescustomtype.checked;
+  {$ENDIF}
 
   fLastscantype:=stFirstScan;
   fLastScanValue:=scanValue1;
@@ -6452,13 +6576,17 @@ begin
     if (utf8 and (not CreateDirUTF8(fScanResultFolder))) or ((not utf8) and (not CreateDir(fScanResultFolder))) then
     begin
       //failure in creating the dir
+      {$IFNDEF UNIX}
       MakePathAccessible(fScanResultFolder);
+      {$ENDIF}
       if (utf8 and (not CreateDirUTF8(fScanResultFolder))) or ((not utf8) and (not CreateDirUTF8(fScanResultFolder))) then
         raise exception.create(rsFailureCreatingTheScanDirectory);
     end;
   end;
 
+  {$IFNDEF UNIX}
   MakePathAccessible(fScanResultFolder);
+  {$ENDIF}
 
 
 
@@ -6560,7 +6688,9 @@ end;
 
 destructor TMemScan.destroy;
 begin
+  {$IFNDEF UNIX}
   if SaveFirstScanThread<>nil then SaveFirstScanThread.Free;
+  {$ENDIF}
   if previousMemoryBuffer<>nil then virtualfree(previousMemoryBuffer,0,MEM_RELEASE);
 
   if scanController<>nil then

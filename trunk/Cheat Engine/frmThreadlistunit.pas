@@ -49,7 +49,7 @@ var
 implementation
 
 uses debugeventhandler, frmstacktraceunit, DebuggerInterfaceAPIWrapper,
-  ProcessHandlerUnit;
+  ProcessHandlerUnit, Parsers;
 
 resourcestring
   rsPleaseFirstAttachTheDebuggerToThisProcess = 'Please first attach the debugger to this process';

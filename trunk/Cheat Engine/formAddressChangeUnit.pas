@@ -192,7 +192,7 @@ var
 
 implementation
 
-uses MainUnit, formsettingsunit, ProcessHandlerUnit;
+uses MainUnit, formsettingsunit, ProcessHandlerUnit, Parsers;
 
 resourcestring
   rsThisPointerPointsToAddress = 'This pointer points to address';

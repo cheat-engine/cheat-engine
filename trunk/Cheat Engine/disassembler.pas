@@ -157,7 +157,7 @@ var visibleDisassembler: TDisassembler; //this disassembler is used to render th
 
 implementation
 
-uses Assemblerunit,CEDebugger, debughelper, StrUtils, debuggertypedefinitions;
+uses Assemblerunit,CEDebugger, debughelper, StrUtils, debuggertypedefinitions, Parsers;
 
 function registerGlobalDisassembleOverride(m: TDisassembleEvent): integer;
 var i: integer;

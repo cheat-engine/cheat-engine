@@ -56,7 +56,7 @@ var
 
 implementation
 
-uses MemoryBrowserFormUnit;
+uses MemoryBrowserFormUnit, Parsers;
 
 resourcestring
   rsNothingFound = 'nothing found';

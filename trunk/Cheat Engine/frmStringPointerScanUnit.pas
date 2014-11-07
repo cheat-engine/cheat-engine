@@ -335,7 +335,7 @@ implementation
 
 { TfrmStringPointerScan }
 
-uses frmStructPointerRescanUnit, MemoryBrowserFormUnit, ProcessHandlerUnit;
+uses frmStructPointerRescanUnit, MemoryBrowserFormUnit, ProcessHandlerUnit, Parsers;
 
 resourcestring
   rsGeneratingStringmap = 'Generating stringmap';

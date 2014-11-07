@@ -47,7 +47,7 @@ var
 
 implementation
 
-uses MemoryBrowserFormUnit, ProcessHandlerUnit;
+uses MemoryBrowserFormUnit, ProcessHandlerUnit, Parsers;
 
 resourcestring
   rsNothingFound = 'Nothing found';

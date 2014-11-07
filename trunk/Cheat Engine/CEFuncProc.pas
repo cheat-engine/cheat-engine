@@ -34,8 +34,6 @@ commontypedefs;
 
 
 
-function StrToQWordEx(s: string): qword;
-
 function ConvertHexStrToRealStr(const s: string): string;
 function HexStrToInt(const S: string): Integer;
 function HexStrToInt64(const S: string): Int64;
@@ -399,7 +397,7 @@ resourcestring
   rsICanTGetTheProcessListYouArePropablyUsingWindowsNT = 'I can''t get the process list. You are propably using windows NT. Use the window list instead!';
   rsNoKernel32DllLoaded = 'No kernel32.dll loaded';
   rsSeparator = 'Separator';
-  rsInvalidInteger = 'Invalid integer';
+
 
 function ProcessID: dword;
 begin
@@ -412,22 +410,7 @@ begin
 end;
 
 
-function StrToQWordEx(s: string): qword;
-{
-This routine will use StrToQword unless it is a negative value, in which case it will use StrToInt64
-}
-begin
-  s:=trim(s);
-  if length(s)=0 then
-    raise exception.create(rsInvalidInteger)
-  else
-  begin
-    if s[1]='-' then
-      result:=StrToInt64(s)
-    else
-      result:=StrToQWord(s);
-  end;
-end;
+
 
 procedure errorbeep;
 begin

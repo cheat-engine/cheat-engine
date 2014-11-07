@@ -76,7 +76,7 @@ implementation
 
 uses CEDebugger, MainUnit, frmRegistersunit, MemoryBrowserFormUnit, debughelper,
   debugeventhandler, debuggertypedefinitions, FoundCodeUnit, StructuresFrm2,
-  processhandlerunit, Globals;
+  processhandlerunit, Globals, Parsers;
 
 resourcestring
   rsStop='Stop';

@@ -112,7 +112,7 @@ implementation
 
 uses CEFuncProc, CEDebugger,debughelper, debugeventhandler, MemoryBrowserFormUnit,
      MainUnit,kerneldebugger, AdvancedOptionsUnit ,formFoundcodeListExtraUnit,
-     MainUnit2, ProcessHandlerUnit, Globals;
+     MainUnit2, ProcessHandlerUnit, Globals, Parsers;
 
 destructor TCodeRecord.Destroy;
 begin

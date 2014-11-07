@@ -1635,7 +1635,7 @@ procedure unregisterAssembler(id: integer);
 implementation
 
 uses {$ifndef autoassemblerdll}CEFuncProc,{$endif}symbolhandler, lua, luahandler,
-  lualib, assemblerArm;
+  lualib, assemblerArm, Parsers;
 
 
 var ExtraAssemblers: array of TAssemblerEvent;

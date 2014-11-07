@@ -53,7 +53,7 @@ var
 
 implementation
 
-uses frmCapturedTimersUnit, ProcessHandlerUnit;
+uses frmCapturedTimersUnit, ProcessHandlerUnit, Parsers;
 
 //uses frmCapturedTimersUnit;
 

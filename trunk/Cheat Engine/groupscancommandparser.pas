@@ -44,6 +44,8 @@ type
 
 implementation
 
+uses Parsers;
+
 procedure TGroupscanCommandParser.parseToken(s: string);
 var i,j,k: integer;
   command,value: string;

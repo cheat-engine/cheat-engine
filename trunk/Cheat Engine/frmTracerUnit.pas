@@ -149,7 +149,7 @@ implementation
 
 
 uses cedebugger, debughelper, MemoryBrowserFormUnit, frmTracerConfigUnit,
-  debuggertypedefinitions, processhandlerunit, Globals;
+  debuggertypedefinitions, processhandlerunit, Globals, Parsers;
 
 resourcestring
   rsSearch = 'Search';

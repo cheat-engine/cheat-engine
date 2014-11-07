@@ -58,7 +58,7 @@ var
 
 implementation
 
-uses DissectCodeunit, DissectCodeThread, MemoryBrowserFormUnit, ProcessHandlerUnit;
+uses DissectCodeunit, DissectCodeThread, MemoryBrowserFormUnit, ProcessHandlerUnit, Parsers;
 
 
 function getStringFromAddress(address: ptrUint): string;

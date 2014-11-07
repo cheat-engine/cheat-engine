@@ -7,7 +7,7 @@ unit unixporthelper;
 interface
 
 uses
-  Classes, SysUtils{$ifdef android},log{$endif};
+  Classes, SysUtils{$ifdef android},log{$endif}, BaseUnix;
 
 //just fill in some basic info. Most of it won't be used for jni. It's mostly for some structures and function declaration/pointers
 type
@@ -99,6 +99,13 @@ const
   PROCESS_ALL_ACCESS = $1f0fff; //not really used
 
 
+function VirtualAlloc(lpAddress:LPVOID; dwSize:PTRUINT; flAllocationType:DWORD; flProtect:DWORD):LPVOID;
+function VirtualFree(lpAddress:LPVOID; dwSize:PTRUINT; dwFreeType:DWORD):WINBOOL;
+
+function CopyFile(source: string; destination: string; failifdestinationExists: boolean): boolean;
+Function DirectoryExistsUTF8 (Const Directory : RawByteString) : Boolean;
+Function CreateDirUTF8(Const NewDir : UnicodeString) : Boolean;
+
 procedure ZeroMemory(destination: pointer; size: integer);
 procedure CopyMemory(destination: pointer; Origin: pointer; size: integer);
 procedure MoveMemory(destination: pointer; Origin: pointer; size: integer);
@@ -117,6 +124,63 @@ function InRangeQ(const AValue, AMin, AMax: QWord): Boolean;inline;
 {$endif}
 
 implementation
+
+Function CreateDirUTF8(Const NewDir : UnicodeString) : Boolean;
+begin
+  result:=false;
+end;
+
+Function DirectoryExistsUTF8 (Const Directory : RawByteString) : Boolean;
+begin
+  result:=false;
+end;
+
+function CopyFile(source: string; destination: string; failifdestinationExists: boolean): boolean;
+var src,dst: TFileStream;
+begin
+  result:=false;
+  try
+    src:=nil;
+    dst:=nil;
+
+    if not fileexists(source)=false then exit;
+    if failifdestinationExists and fileexists(destination) then exit;
+
+
+    try
+      src:=tfilestream.create(source, fmOpenRead);
+      dst:=tfilestream.create(destination, fmCreate);
+      dst.CopyFrom(src,0); //copy the whole file
+
+      result:=true; //still here and no exception
+    finally
+      if src<>nil then
+        freeandnil(src);
+
+      if dst<>nil then
+        freeandnil(dst);
+    end;
+
+  except
+    on e: exception do
+      log(e.message);
+  end;
+end;
+
+function VirtualFree(lpAddress:LPVOID; dwSize:PTRUINT; dwFreeType:DWORD):WINBOOL;
+begin
+  Fpmunmap(lpAddress, dwSize);
+end;
+
+function VirtualAlloc(lpAddress:LPVOID; dwSize:PTRUINT; flAllocationType:DWORD; flProtect:DWORD):LPVOID;
+var r: pointer;
+begin
+  log('Calling VirtualAlloc');
+  result:=Fpmmap(lpAddress,dwsize, PROT_READ or PROT_WRITE or PROT_EXEC, MAP_PRIVATE or MAP_ANONYMOUS, 0,0 );
+
+  log('After calling VirtualAlloc. Result='+inttohex(ptruint(result),8));
+
+end;
 
 function InRangeX(const AValue, AMin, AMax: ptrUint): Boolean;inline;
 begin
