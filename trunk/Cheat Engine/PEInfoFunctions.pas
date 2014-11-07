@@ -8,7 +8,7 @@ This unit will contain all functions used for PE-header inspection
 
 interface
 
-uses windows, LCLIntf,SysUtils,classes, CEFuncProc,NewKernelHandler,filemapping;
+uses windows, LCLIntf,SysUtils,classes, CEFuncProc,NewKernelHandler,filemapping, commonTypeDefs;
 
 
 const

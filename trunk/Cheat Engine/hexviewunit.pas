@@ -183,7 +183,7 @@ type
 
 implementation
 
-uses formsettingsunit, Valuechange, MainUnit, ProcessHandlerUnit;
+uses formsettingsunit, Valuechange, MainUnit, ProcessHandlerUnit, parsers;
 
 resourcestring
   rsBigFuckingError = 'Big fucking error';

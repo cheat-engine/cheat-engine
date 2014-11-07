@@ -11,6 +11,12 @@ uses
 
 //just fill in some basic info. Most of it won't be used for jni. It's mostly for some structures and function declaration/pointers
 type
+  PByteArray = ^TByteArray;
+  TByteArray = Array[0..{$ifdef CPU16}32766{$else}32767{$endif}] of Byte;
+
+  PWordarray = ^TWordArray;
+  TWordArray = array[0..{$ifdef CPU16}16382{$else}16383{$endif}] of Word;
+
   TLargeInteger=QWORD;
   ULONG_PTR=ptruint;
   LONG=integer;
@@ -46,6 +52,8 @@ type
     _Type: ULONG;
   end;
   _MEMORYSTATUS=record end;
+
+
 
 const
  MAX_PATH=256;

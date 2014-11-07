@@ -6,7 +6,7 @@ interface
 
 uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, ComCtrls, LResources,CEFuncProc,NewKernelHandler;
+  Dialogs, ComCtrls, LResources,CEFuncProc,NewKernelHandler, commonTypeDefs;
 
 type
   TfrmGDTinfo = class(TForm)
@@ -23,7 +23,7 @@ type
 
 implementation
 
-uses DBK32functions, ProcessHandlerUnit;
+uses DBK32functions, ProcessHandlerUnit, Globals;
 
 procedure TfrmGDTinfo.dissectGDTentry(entry: uint64; var segmentlimit_0_15: word; var baseaddress_0_23: dword; var segmenttype: byte; var dpl: byte; var p: byte; var segmentlimit_16_19: byte; var AVL: byte; var bigordefault: byte; var gran: byte; var baseaddress_24_31: byte );
 begin

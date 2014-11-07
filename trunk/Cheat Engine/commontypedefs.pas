@@ -70,6 +70,30 @@ type tmoduledata =class
     modulesize: dword;
 end;
 
+type TPtrUintArray=array[0..100] of ptruint;
+type PPtrUintArray=^TPtrUintArray;
+
+
+type TDwordArray=array[0..100] of dword;
+type PDwordArray=^TDwordArray;
+
+type TSingleArray=array[0..100] of single;
+type PSingleArray=^TSingleArray;
+
+type TdoubleArray=array[0..100] of double;
+type PdoubleArray=^TdoubleArray;
+
+type Tint64Array=array[0..100] of int64;
+type Pint64Array=^Tint64Array;
+
+type Tuint64Array=array[0..100] of uint64;
+type Puint64Array=^Tuint64Array;
+
+type PQWordArray=Puint64Array;
+
+type TExtendedArray=array[0..100] of extended;
+type PExtendedArray=^TExtendedArray;
+
 implementation
 
 end.

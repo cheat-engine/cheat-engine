@@ -38,7 +38,7 @@ type
 
 implementation
 
-uses ProcessHandlerUnit;
+uses ProcessHandlerUnit, Globals;
 
 resourcestring
   rsErrorWhileTryingToCreateTheConfigurationStructure = 'Error while trying '

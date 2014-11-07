@@ -6,7 +6,7 @@ interface
 
 uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, ComCtrls,CEFuncProc,NewKernelHandler, StdCtrls, LResources;
+  Dialogs, ComCtrls,CEFuncProc,NewKernelHandler, StdCtrls, LResources, commonTypeDefs;
 
 type
   TfrmIDT = class(TForm)

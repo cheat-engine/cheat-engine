@@ -12,7 +12,7 @@ interface
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, CEFuncProc, NewKernelHandler, Buttons, StdCtrls, ExtCtrls,
-  ComCtrls, LResources, symbolhandler, PEInfoFunctions;
+  ComCtrls, LResources, symbolhandler, PEInfoFunctions, commonTypeDefs;
 
 type
   TfrmPEInfo = class(TForm)

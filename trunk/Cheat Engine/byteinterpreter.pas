@@ -26,6 +26,8 @@ var onAutoGuessRoutine: TAutoGuessEvent;
 
 implementation
 
+uses parsers;
+
 procedure ParseStringAndWriteToAddress(value: string; address: ptruint; variabletype: TVariabletype; hexadecimal: boolean=false; customtype: TCustomType=nil);
 {
 Function to wrap all the occasional writing in

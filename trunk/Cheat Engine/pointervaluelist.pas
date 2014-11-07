@@ -141,7 +141,7 @@ type
 
 implementation
 
-uses ProcessHandlerUnit;
+uses ProcessHandlerUnit, globals;
 
 resourcestring
   rsPointerValueSetupError = 'Pointer value setup error';

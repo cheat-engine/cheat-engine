@@ -12,7 +12,7 @@ function SecondaryDeviceIoControl(dwIoControlCode: DWORD; lpInBuffer: Pointer; n
 
 implementation
 
-uses dbk32functions, vmxfunctions, ManualModuleLoader, ctypes;
+uses dbk32functions, vmxfunctions, ManualModuleLoader, ctypes, Globals;
 
 const IRP_MJ_CREATE                   =$00;
 const IRP_MJ_CREATE_NAMED_PIPE        =$01;

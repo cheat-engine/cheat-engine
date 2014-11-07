@@ -876,7 +876,7 @@ uses mainunit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup, HotKeys,
   frmSetCrosshairUnit, StructuresFrm2, frmMemoryViewExUnit,
   frmD3DHookSnapshotConfigUnit, frmSaveSnapshotsUnit, frmsnapshothandlerUnit,
   frmNetworkDataCompressionUnit, ProcessHandlerUnit, ProcessList, pointeraddresslist,
-  PointerscanresultReader;
+  PointerscanresultReader, Parsers, Globals;
 
 resourcestring
   rsInvalidStartAddress = 'Invalid start address: %s';
@@ -5486,7 +5486,7 @@ begin
               if not (s[i] in ['0', '1']) then
                 s[i] := '0';
 
-            oldvaluei := cefuncproc.BinToInt(s);
+            oldvaluei := parsers.BinToInt(s);
           end;
         end;
 
@@ -6940,7 +6940,7 @@ begin
   begin
     isbit := False;
     //convert the binary text to a decimal representation
-    scanvalue.Text := IntToStr(cefuncproc.BinToInt(scanvalue.Text));
+    scanvalue.Text := IntToStr(parsers.BinToInt(scanvalue.Text));
   end;
 end;
 

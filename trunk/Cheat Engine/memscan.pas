@@ -17,8 +17,16 @@ uses windows, FileUtil, LCLIntf,sysutils, classes,ComCtrls,dialogs, NewKernelHan
      LuaHandler, fileaccess, groupscancommandparser, commonTypeDefs;
 {$endif}
 
-{$ifdef android}
-uses unixporthelper, commonTypeDefs;
+{$ifdef unix}
+uses sysutils, unixporthelper, commonTypeDefs, classes, syncobjs, math, NewKernelHandler;
+
+//not yet implemented
+type
+  TCustomType=class(Tobject);
+  Tsavedscanhandler=class(Tobject);
+  TSaveFirstScanThread=class(Tobject);
+  TCustomProgressBar=class(Tobject);
+
 {$endif}
 
 
@@ -614,14 +622,16 @@ type
 
 
 
+
+
 implementation
 
 {$ifdef windows}
-uses formsettingsunit, StrUtils, foundlisthelper, processhandlerunit;
+uses formsettingsunit, StrUtils, foundlisthelper, processhandlerunit, parsers,Globals;
 {$endif}
 
 {$ifdef android}
-uses ProcessHandlerUnit;
+uses ProcessHandlerUnit, parsers, Globals;
 {$endif}
 
 resourcestring
@@ -661,7 +671,7 @@ function getBytecountBinaryString(st:string; scanvalueisdecimal: boolean): integ
 var i: integer;
 begin
   if scanvalueisdecimal then //first convert to binarystring
-    st:=cefuncproc.inttobin(strtoint(st));
+    st:=parsers.inttobin(strtoint(st));
 
 
   result:=0;
@@ -688,13 +698,17 @@ end;
 //==================TGroupData===============//
 
 constructor TGroupData.create(parameters: string);
+//todo: convert groupscancommandparser to unix
+{$ifndef unix}
 var start, i: integer;
   p,s: string;
 
   gcp: TGroupscanCommandParser;
 
   floatsettings: TFormatSettings;
+{$endif}
 begin
+{$ifndef unix}
   floatsettings:=DefaultFormatSettings;
 
   gcp:=TGroupscanCommandParser.create;
@@ -743,6 +757,9 @@ begin
   finally
     gcp.free;
   end;
+
+{$endif}
+
 
 end;
 
@@ -838,6 +855,8 @@ begin
         inc(newvalue, groupdata[i].bytesize);
       end;
 
+      //todo: Convert customtype to unix
+      {$ifndef unix}
       vtCustom:
       begin
         if groupdata[i].customType.scriptUsesFloat then
@@ -850,7 +869,7 @@ begin
 
         inc(newvalue, groupdata[i].customType.bytesize);
       end;
-
+      {$endif}
     end;
   end;
 
@@ -1020,6 +1039,8 @@ var current: pointer;
   i: integer;
   align: integer;
 begin
+
+  {$IFNDEF UNIX}
   result:=false;
   if outoforder_aligned then
     align:=4
@@ -1042,6 +1063,7 @@ begin
     inc(current,align);
     inc(i,align);
   end;
+  {$ENDIF}
 
 end;
 
@@ -1051,6 +1073,7 @@ var current: pointer;
   align: integer;
   f: single;
 begin
+  {$IFNDEF UNIX}
   result:=false;
   if outoforder_aligned then
     align:=4
@@ -1074,6 +1097,7 @@ begin
     inc(current,align);
     inc(i,align);
   end;
+  {$ENDIF}
 
 end;
 
@@ -1225,6 +1249,7 @@ begin
         end;
       end;
 
+{$IFNDEF UNIX}
       vtCustom:
       begin
         while result and isin do
@@ -1241,6 +1266,7 @@ begin
           isin:=result and isinlist;
         end;
       end;
+ {$ENDIF}
 
     end;
     groupdata[i].offset:=currentoffset-1;
@@ -1264,6 +1290,7 @@ begin
   typesmatch[vtSingle]:=typesmatch[vtSingle] and singleExact(newvalue,oldvalue);
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleExact(newvalue,oldvalue);
 
+  {$IFNDEF UNIX}
   if allincludescustomtypes then
   begin
     //also scan custom types
@@ -1277,6 +1304,7 @@ begin
         customtypesmatch[j]:=customtypesmatch[j] and CustomExact(newvalue,oldvalue)
     end;
   end;
+  {$ENDIF}
 
   result:=false;
   for i:=vtbyte to vtdouble do
@@ -1307,6 +1335,7 @@ begin
   typesmatch[vtSingle]:=typesmatch[vtSingle] and singleBetween(newvalue,oldvalue);
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleBetween(newvalue,oldvalue);
 
+  {$IFNDEF UNIX}
   if allincludescustomtypes then
   begin
     //also scan custom types
@@ -1320,6 +1349,7 @@ begin
         customtypesmatch[j]:=customtypesmatch[j] and CustomBetween(newvalue,oldvalue)
     end;
   end;
+  {$ENDIF}
 
   result:=false;
   for i:=vtbyte to vtdouble do
@@ -1349,6 +1379,7 @@ begin
   typesmatch[vtSingle]:=typesmatch[vtSingle] and singleBetweenPercentage(newvalue,oldvalue);
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleBetweenPercentage(newvalue,oldvalue);
 
+  {$IFNDEF UNIX}
   if allincludescustomtypes then
   begin
     //also scan custom types
@@ -1362,6 +1393,7 @@ begin
         customtypesmatch[j]:=customtypesmatch[j] and CustomBetweenPercentage(newvalue,oldvalue)
     end;
   end;
+  {$ENDIF}
 
   result:=false;
   for i:=vtbyte to vtdouble do
@@ -1391,6 +1423,7 @@ begin
   typesmatch[vtSingle]:=typesmatch[vtSingle] and singleBiggerThan(newvalue,oldvalue);
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleBiggerThan(newvalue,oldvalue);
 
+  {$IFNDEF UNIX}
   if allincludescustomtypes then
   begin
     //also scan custom types
@@ -1403,6 +1436,7 @@ begin
         customtypesmatch[j]:=customtypesmatch[j] and CustomBiggerThan(newvalue,oldvalue)
     end;
   end;
+  {$ENDIF}
 
   result:=false;
   for i:=vtbyte to vtdouble do
@@ -1432,6 +1466,7 @@ begin
   typesmatch[vtSingle]:=typesmatch[vtSingle] and singleSmallerThan(newvalue,oldvalue);
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleSmallerThan(newvalue,oldvalue);
 
+  {$IFNDEF UNIX}
   if allincludescustomtypes then
   begin
     //also scan custom types
@@ -1444,6 +1479,7 @@ begin
         customtypesmatch[j]:=customtypesmatch[j] and CustomSmallerThan(newvalue,oldvalue)
     end;
   end;
+  {$ENDIF}
 
   result:=false;
   for i:=vtbyte to vtdouble do
@@ -1473,6 +1509,7 @@ begin
   typesmatch[vtSingle]:=typesmatch[vtSingle] and singleIncreasedValue(newvalue,oldvalue);
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleIncreasedValue(newvalue,oldvalue);
 
+  {$IFNDEF UNIX}
   if allincludescustomtypes then
   begin
     //also scan custom types
@@ -1485,6 +1522,7 @@ begin
         customtypesmatch[j]:=customtypesmatch[j] and CustomIncreasedValue(newvalue,oldvalue)
     end;
   end;
+  {$ENDIF}
 
   result:=false;
   for i:=vtbyte to vtdouble do
@@ -1514,6 +1552,7 @@ begin
   typesmatch[vtSingle]:=typesmatch[vtSingle] and singleIncreasedValueBy(newvalue,oldvalue);
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleIncreasedValueBy(newvalue,oldvalue);
 
+  {$IFNDEF UNIX}
   if allincludescustomtypes then
   begin
     //also scan custom types
@@ -1526,6 +1565,7 @@ begin
         customtypesmatch[j]:=customtypesmatch[j] and CustomIncreasedValueBy(newvalue,oldvalue)
     end;
   end;
+  {$ENDIF}
 
   result:=false;
   for i:=vtbyte to vtdouble do
@@ -1555,6 +1595,7 @@ begin
   typesmatch[vtSingle]:=typesmatch[vtSingle] and singleIncreasedValueByPercentage(newvalue,oldvalue);
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleIncreasedValueByPercentage(newvalue,oldvalue);
 
+  {$IFNDEF UNIX}
   if allincludescustomtypes then
   begin
     //also scan custom types
@@ -1567,6 +1608,7 @@ begin
         customtypesmatch[j]:=customtypesmatch[j] and CustomIncreasedValueByPercentage(newvalue,oldvalue)
     end;
   end;
+  {$ENDIF}
 
   result:=false;
   for i:=vtbyte to vtdouble do
@@ -1597,6 +1639,7 @@ begin
   typesmatch[vtSingle]:=typesmatch[vtSingle] and singleDecreasedValue(newvalue,oldvalue);
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleDecreasedValue(newvalue,oldvalue);
 
+  {$IFNDEF UNIX}
   if allincludescustomtypes then
   begin
     //also scan custom types
@@ -1609,6 +1652,7 @@ begin
         customtypesmatch[j]:=customtypesmatch[j] and CustomDecreasedValue(newvalue,oldvalue)
     end;
   end;
+  {$ENDIF}
 
   result:=false;
   for i:=vtbyte to vtdouble do
@@ -1638,6 +1682,7 @@ begin
   typesmatch[vtSingle]:=typesmatch[vtSingle] and singleDecreasedValueBy(newvalue,oldvalue);
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleDecreasedValueBy(newvalue,oldvalue);
 
+  {$IFNDEF UNIX}
   if allincludescustomtypes then
   begin
     //also scan custom types
@@ -1650,6 +1695,7 @@ begin
         customtypesmatch[j]:=customtypesmatch[j] and CustomDecreasedValueBy(newvalue,oldvalue)
     end;
   end;
+  {$ENDIF}
 
   result:=false;
   for i:=vtbyte to vtdouble do
@@ -1679,6 +1725,7 @@ begin
   typesmatch[vtSingle]:=typesmatch[vtSingle] and singleDecreasedValueByPercentage(newvalue,oldvalue);
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleDecreasedValueByPercentage(newvalue,oldvalue);
 
+  {$IFNDEF UNIX}
   if allincludescustomtypes then
   begin
     //also scan custom types
@@ -1691,6 +1738,7 @@ begin
         customtypesmatch[j]:=customtypesmatch[j] and CustomDecreasedValueByPercentage(newvalue,oldvalue)
     end;
   end;
+  {$ENDIF}
 
   result:=false;
   for i:=vtbyte to vtdouble do
@@ -1720,6 +1768,7 @@ begin
   typesmatch[vtSingle]:=typesmatch[vtSingle] and singleChanged(newvalue,oldvalue);
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleChanged(newvalue,oldvalue);
 
+  {$IFNDEF UNIX}
   if allincludescustomtypes then
   begin
     //also scan custom types
@@ -1732,6 +1781,7 @@ begin
         customtypesmatch[j]:=customtypesmatch[j] and CustomChanged(newvalue,oldvalue)
     end;
   end;
+  {$ENDIF}
 
   result:=false;
   for i:=vtbyte to vtdouble do
@@ -1761,6 +1811,7 @@ begin
   typesmatch[vtSingle]:=typesmatch[vtSingle] and singleUnchanged(newvalue,oldvalue);
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleUnchanged(newvalue,oldvalue);
 
+  {$IFNDEF UNIX}
   if allincludescustomtypes then
   begin
     //also scan custom types
@@ -1773,6 +1824,7 @@ begin
         customtypesmatch[j]:=customtypesmatch[j] and CustomUnchanged(newvalue,oldvalue)
     end;
   end;
+  {$ENDIF}
 
   result:=false;
   for i:=vtbyte to vtdouble do
@@ -2026,67 +2078,93 @@ end;
 //--------------\/custom\/
 function TScanner.CustomExact(newvalue,oldvalue: pointer): boolean;
 begin
+  {$IFNDEF UNIX}
   result:=customType.ConvertDataToInteger(newvalue)=integer(value);
+  {$ENDIF}
 end;
 
 function TScanner.CustomBetween(newvalue,oldvalue: pointer): boolean;
 begin
+  {$IFNDEF UNIX}
   result:=(customType.ConvertDataToInteger(newvalue)>=integer(value)) and (customType.ConvertDataToInteger(newvalue)<=integer(value2));
+  {$ENDIF}
 end;
 
 function TScanner.CustomBetweenPercentage(newvalue,oldvalue: pointer):boolean;
 begin
+  {$IFNDEF UNIX}
   result:=(customType.ConvertDataToInteger(newvalue)>trunc(customType.ConvertDataToInteger(oldvalue)*svalue)) and (customType.ConvertDataToInteger(newvalue)<=trunc(customType.ConvertDataToInteger(oldvalue)*svalue2));
+  {$ENDIF}
 end;
 
 function TScanner.CustomBiggerThan(newvalue,oldvalue: pointer): boolean;
 begin
+  {$IFNDEF UNIX}
   result:=customType.ConvertDataToInteger(newvalue)>integer(value);
+  {$ENDIF}
 end;
 
 function TScanner.CustomSmallerThan(newvalue,oldvalue: pointer): boolean;
 begin
+  {$IFNDEF UNIX}
   result:=customType.ConvertDataToInteger(newvalue)<integer(value);
+  {$ENDIF}
 end;
 
 function TScanner.CustomIncreasedValue(newvalue,oldvalue: pointer): boolean;
 begin
+  {$IFNDEF UNIX}
   result:=customType.ConvertDataToInteger(newvalue)>customType.ConvertDataToInteger(oldvalue);
+  {$ENDIF}
 end;
 
 function TScanner.CustomIncreasedValueBy(newvalue,oldvalue: pointer): boolean;
 begin
+  {$IFNDEF UNIX}
   result:=customType.ConvertDataToInteger(newvalue)=customType.ConvertDataToInteger(oldvalue)+dword(value);
+  {$ENDIF}
 end;
 
 function TScanner.CustomIncreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
 begin
+  {$IFNDEF UNIX}
   result:=(customType.ConvertDataToInteger(newvalue)>trunc(customType.ConvertDataToInteger(oldvalue)+customType.ConvertDataToInteger(oldvalue)*svalue)) and (customType.ConvertDataToInteger(newvalue)<trunc(customType.ConvertDataToInteger(oldvalue)+customType.ConvertDataToInteger(oldvalue)*svalue2));
+  {$ENDIF}
 end;
 
 function TScanner.CustomDecreasedValue(newvalue,oldvalue: pointer): boolean;
 begin
+  {$IFNDEF UNIX}
   result:=customType.ConvertDataToInteger(newvalue)<customType.ConvertDataToInteger(oldvalue);
+  {$ENDIF}
 end;
 
 function TScanner.CustomDecreasedValueBy(newvalue,oldvalue: pointer): boolean;
 begin
+  {$IFNDEF UNIX}
   result:=customType.ConvertDataToInteger(newvalue)=customType.ConvertDataToInteger(oldvalue)-dword(value);
+  {$ENDIF}
 end;
 
 function TScanner.CustomDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
 begin
+  {$IFNDEF UNIX}
   result:=(customType.ConvertDataToInteger(newvalue)>trunc(customType.ConvertDataToInteger(oldvalue)-customType.ConvertDataToInteger(oldvalue)*svalue2)) and (customType.ConvertDataToInteger(newvalue)<trunc(customType.ConvertDataToInteger(oldvalue)-customType.ConvertDataToInteger(oldvalue)*svalue));
+  {$ENDIF}
 end;
 
 function TScanner.CustomChanged(newvalue,oldvalue: pointer): boolean;
 begin
+  {$IFNDEF UNIX}
   result:=customType.ConvertDataToInteger(newvalue)<>customType.ConvertDataToInteger(oldvalue);
+  {$ENDIF}
 end;
 
 function TScanner.CustomUnChanged(newvalue,oldvalue: pointer): boolean;
 begin
+  {$IFNDEF UNIX}
   result:=customType.ConvertDataToInteger(newvalue)=customType.ConvertDataToInteger(oldvalue);
+  {$ENDIF}
 end;
 //--------------/\custom/\
 
@@ -2097,6 +2175,7 @@ function TScanner.CustomFloatExact(newvalue,oldvalue: pointer): boolean;
 var f: single;
 begin
   result:=false;
+  {$IFNDEF UNIX}
   f:=customType.ConvertDataToFloat(newvalue);
   case roundingtype of
     rtRounded:
@@ -2108,79 +2187,104 @@ begin
     rtTruncated:
       result:=(f>=svalue) and (f<maxsvalue);
   end;
+  {$ENDIF}
 
 end;
 
 function TScanner.CustomFloatBetween(newvalue,oldvalue: pointer):boolean;
 var f: single;
 begin
+  {$IFNDEF UNIX}
   f:=customType.ConvertDataToFloat(newvalue);
   result:=(f>=svalue) and (f<=svalue2);
+  {$ENDIF}
 end;
 
 function TScanner.CustomFloatBetweenPercentage(newvalue,oldvalue: pointer): boolean;
 var new: single;
     old: single;
 begin
+  {$IFNDEF UNIX}
   new:=customType.ConvertDataToFloat(newvalue);
   old:=customType.ConvertDataToFloat(oldvalue);
   result:=(new>old*svalue) and (new<=old*svalue2);
+  {$ENDIF}
 end;
 
 function TScanner.CustomFloatBiggerThan(newvalue,oldvalue: pointer):boolean;
 begin
+  {$IFNDEF UNIX}
   result:=customType.ConvertDataToFloat(newvalue)>svalue;
+  {$ENDIF}
 end;
 
 function TScanner.CustomFloatSmallerThan(newvalue,oldvalue: pointer):boolean;
 begin
+  {$IFNDEF UNIX}
   result:=customType.ConvertDataToFloat(newvalue)<svalue;
+  {$ENDIF}
 end;
 
 function TScanner.CustomFloatIncreasedValue(newvalue,oldvalue: pointer):boolean;
 begin
+  {$IFNDEF UNIX}
   result:=customType.ConvertDataToFloat(newvalue)>customType.ConvertDataToFloat(oldvalue);
+  {$ENDIF}
 end;
 
 function TScanner.CustomFloatIncreasedValueBy(newvalue,oldvalue: pointer):boolean;
 begin
+  {$IFNDEF UNIX}
   result:=RoundTo(customType.ConvertDataToFloat(newvalue),-floataccuracy)=RoundTo(customType.ConvertDataToFloat(oldvalue)+svalue,-floataccuracy);
+  {$ENDIF}
 end;
 
 function TScanner.CustomFloatDecreasedValue(newvalue,oldvalue: pointer):boolean;
 begin
+  {$IFNDEF UNIX}
   result:=customType.ConvertDataToFloat(newvalue)<customType.ConvertDataToFloat(oldvalue);
+  {$ENDIF}
 end;
 
 function TScanner.CustomFloatDecreasedValueBy(newvalue,oldvalue: pointer):boolean;
 begin
+  {$IFNDEF UNIX}
   result:=RoundTo(customType.ConvertDataToFloat(newvalue),-floataccuracy)=RoundTo(customType.ConvertDataToFloat(oldvalue)-svalue,-floataccuracy);
+  {$ENDIF}
 end;
 
 function TScanner.CustomFloatIncreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
 var new, old: single;
 begin
+  {$IFNDEF UNIX}
   new:=customType.ConvertDataToFloat(newvalue);
   old:=customType.ConvertDataToFloat(oldvalue);
   result:=(new>old+old*svalue) and (new<old+old*svalue2);
+  {$ENDIF}
 end;
 
 function TScanner.CustomFloatDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
 var new, old: single;
 begin
+  {$IFNDEF UNIX}
   new:=customType.ConvertDataToFloat(newvalue);
   old:=customType.ConvertDataToFloat(oldvalue);
   result:=(new>old-old*svalue2) and (new<old-old*svalue);
+  {$ENDIF}
 end;
 
 function TScanner.CustomFloatChanged(newvalue,oldvalue: pointer):boolean;
 begin
+  {$IFNDEF UNIX}
   result:=customType.ConvertDataToFloat(newvalue)<>customType.ConvertDataToFloat(oldvalue);
+  {$ENDIF}
 end;
 
 function TScanner.CustomFloatUnchanged(newvalue,oldvalue: pointer):boolean;
 begin
+  {$IFNDEF UNIX}
   result:=customType.ConvertDataToFloat(newvalue)=customType.ConvertDataToFloat(oldvalue);
+  {$ENDIF}
 end;
 //   ^^^^CustomFloat^^^^
 
@@ -2483,6 +2587,7 @@ Generic routine for storing results. Use as last resort. E.g custom scans
 var f: single;
 begin
   //save varsize
+  {$IFNDEF UNIX}
   if (variableType = vtCustom) and (customtype<>nil) and (customtype.scriptUsesFloat) then
   begin
     //check if it's a valid float result
@@ -2490,6 +2595,7 @@ begin
     if isnan(f) or IsInfinite(f) then exit; //check if valid, if not, exit
 
   end;
+  {$ENDIF}
 
   PPtrUintArray(CurrentAddressBuffer)[found]:=address;
   copyMemory(pointer(ptruint(CurrentFoundBuffer)+ptruint(variablesize*found)),oldvalue,variablesize);
@@ -2986,7 +3092,8 @@ begin
 
 
 
-
+  //todo: convert savedscanhandler to unix
+  {$IFNDEF UNIX}
   if compareToSavedScan then //stupid, but ok...
   begin
     case self.variableType of
@@ -3040,6 +3147,7 @@ begin
     end;
   end
   else
+  {$ENDIF}
   begin
     if variableType=vtall then
     begin
@@ -3136,6 +3244,8 @@ begin
     currentbase:=alist[i].address;
     if readprocessmemory(phandle,pointer(currentbase),@newmemory[0],(alist[j].address-currentbase)+vsize,actualread) then
     begin
+
+      {$IFNDEF UNIX}
       if compareToSavedScan then
       begin
         //clear typesmatch and set current address
@@ -3146,7 +3256,7 @@ begin
           for m:=0 to customtypecount-1 do customtypesmatch[m]:=false;
 
 
-          
+
         currentaddress:=currentbase;
 
         for k:=i to j do
@@ -3186,6 +3296,7 @@ begin
 
       end
       else
+      {$ENDIF}
       begin
         //clear typesmatch and set current address
         for l:=vtByte to vtDouble do
@@ -3408,6 +3519,7 @@ begin
     currentbase:=alist[i];
     if readprocessmemory(phandle,pointer(currentbase),@newmemory[0],(alist[j]-currentbase)+vsize,actualread) then
     begin
+      {$IFNDEF UNIX}
       if compareToSavedScan then
       begin
         for k:=i to j do
@@ -3415,6 +3527,7 @@ begin
             StoreResultRoutine(alist[k],@newmemory[alist[k]-currentbase])
       end
       else
+      {$ENDIF}
       begin
         for k:=i to j do
           if CheckRoutine(@newmemory[alist[k]-currentbase],@oldmem[k*vsize]) then
@@ -3706,7 +3819,7 @@ begin
           scanvalue2:=scanvalue2+'$';
         end;
 
-        binarystring:=cefuncproc.inttobin(strtoint(trim(scanvalue1)))
+        binarystring:=parsers.inttobin(strtoint(trim(scanvalue1)))
       end
       else
         binarystring:=scanvalue1;
@@ -4538,7 +4651,7 @@ begin
   AddressFile:=TFileStream.Create(AddressFilename,fmCreate or fmSharedenynone);
   MemoryFile:=TFileStream.Create(MemoryFilename,fmCreate or fmSharedenynone);
 
-  Priority:=cefuncproc.scanpriority;
+  Priority:=Globals.scanpriority;
 
 
 
@@ -4656,7 +4769,7 @@ begin
 
       //store some info for lookup
       if binaryStringAsDecimal then //first convert do binarystring
-        s:=cefuncproc.inttobin(strtoint(scanvalue1))
+        s:=parsers.inttobin(strtoint(scanvalue1))
       else
         s:=trim(scanvalue1);
 

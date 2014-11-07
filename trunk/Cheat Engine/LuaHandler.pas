@@ -89,7 +89,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   LuaDissectCode, LuaByteTable, LuaBinary, lua_server, HotkeyHandler, LuaPipeClient,
   LuaPipeServer, LuaTreeview, LuaTreeNodes, LuaTreeNode, LuaCalendar, LuaSymbolListHandler,
   LuaCommonDialog, LuaFindDialog, LuaSettings, LuaPageControl, SymbolListHandler,
-  processhandlerunit, processlist;
+  processhandlerunit, processlist, Globals;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '

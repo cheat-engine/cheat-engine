@@ -21,6 +21,8 @@ var
 
 implementation
 
+uses Globals;
+
 resourcestring
     rsICanTGetTheProcessListYouArePropablyUsingWindowsNT = 'I can''t get the process list. You are propably using windows NT. Use the window list instead!';
 

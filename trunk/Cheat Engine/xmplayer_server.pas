@@ -5,7 +5,7 @@ unit xmplayer_server;
 interface
 
 uses
-  windows, Classes, SysUtils, xmplayer_defines, cefuncproc;
+  windows, Classes, SysUtils, xmplayer_defines, cefuncproc, globals;
 
 resourcestring
   rsXmplayerExeIsMissing = 'xmplayer.exe is missing';

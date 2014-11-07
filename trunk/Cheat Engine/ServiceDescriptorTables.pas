@@ -7,7 +7,7 @@ interface
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs,CEFuncProc,NewKernelHandler, Menus, ComCtrls,symbolhandler,imagehlp,disassembler,
-  StdCtrls, LResources;
+  StdCtrls, LResources, commonTypeDefs;
 
 type tenummodules= class(tthread)
   private

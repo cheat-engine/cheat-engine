@@ -90,7 +90,7 @@ implementation
 
 { TfrmExeTrainerGenerator }
 
-uses MainUnit,ceguicomponents, opensave;
+uses MainUnit,ceguicomponents, opensave, Globals;
 
 resourcestring
   rsSaving = 'Saving...';
