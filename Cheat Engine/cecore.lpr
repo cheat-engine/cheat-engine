@@ -7,42 +7,73 @@ library cecore;
 
 uses cthreads, classes, jni, networkInterfaceApi, NewKernelHandler,
   networkInterface, sysutils, unixporthelper, ProcessHandlerUnit, elfsymbols,
-  resolve, Sockets, ProcessList, memscan, Parsers, Globals, strutils;
+  resolve, Sockets, ProcessList, memscan, Parsers, Globals, commonTypeDefs,
+  strutils;
 
 const
   packagename='org.cheatengine.jnitest';
   classname='cecore';
 
-type TTestThread=class(TThread)
+type TMainThread=class(TThread)
 public
   procedure execute; override;
 end;
+var MainThread: TMainThread;
+var MainThreadEnv: PJNIEnv;
 
+
+procedure TMainThread.execute;
+//this thread will be responsible for calling functions that wish to synchronize with 'something' that can access the gui
+begin
+  log('Alive');
+  //curvm^.AttachCurrentThreadAsDaemon(curvm, @env, nil);
+  curvm^.AttachCurrentThread(curvm, @MainThreadEnv, nil);
+  log('Still alive');
+  MainThreadID:=GetCurrentThreadId;
+
+  while not terminated do
+    CheckSynchronize(1000);
+
+  curvm^.DetachCurrentThread(curvm);
+end;
+
+//-----
+type
+  TTestThread=class(TThread)
+  private
+    procedure runinmain;
+  public
+    procedure execute; override;
+  end;
+
+procedure TTestThread.runinmain;
+begin
+  log(IntToHex(GetThreadID,8)+':runinmain:This should be running from the main thread');
+end;
 
 procedure TTestThread.execute;
 begin
-  log('Alive');
-  sleep(1000);
-  log('Still alive');
-  sleep(1000);
-  log('And I''m still alive');
+
+  log(IntToHex(GetThreadID,8)+':This should run from a separate thread');
+  synchronize(runinmain);
+
+  log(IntToHex(GetThreadID,8)+':After runinmain');
 
   FreeOnTerminate:=true;
 end;
 
 procedure Java_org_cheatengine_jnitest_cecore_f1(PEnv: PJNIEnv; Obj: JObject); cdecl;
 var i: integer;
-  t: TTestThread;
+
 begin
 //small test funtion
   log('Java_org_cheatengine_jnitest_cecore_f1 called');
 
-  log('Creating thread');
-  t:=TTestThread.Create(false);
+  log('Creating test thread');
+  TTestThread.Create(false);
   log('Thread created');
 
-  //todo: test a custom mainthread
-  //MainThreadID:= ... and in there call checkforsync
+
 
 end;
 
@@ -108,39 +139,92 @@ begin
   processhandler.processhandle:=OpenProcess(PROCESS_ALL_ACCESS, false, pid);
 end;
 
-const methodcount=3;
+//creatememscan ?
+
+//test:
+procedure FirstScan(PEnv: PJNIEnv; Obj: JObject; value: jint); cdecl;
+var ms: TMemScan;
+begin
+  log('FirstScan');
+  ms:=TMemScan.create(nil);
+
+  log('created memscan');
+  ms.firstscan(soExactValue, vtDword, rtTruncated, inttostr(value), '',0,$ffffffff, false, false, false, false);
+
+end;
+
+procedure SetTempPath(PEnv: PJNIEnv; Obj: JObject; path: jstring); cdecl;
+var
+  s: pchar;
+  iscopy: jboolean;
+begin
+  log('SetTempPath');
+  iscopy:=0;
+  s:=PEnv^.GetStringUTFChars(penv, path, iscopy);
+
+  log('s='+s);
+
+  dontusetempdir:=true;
+  tempdiralternative:=Utf8ToAnsi(s);
+  tempdirOverride:=tempdiralternative;
+
+  Penv^.ReleaseStringUTFChars(penv, path, s);
+end;
+
+const methodcount=5;
+
+  //experiment: make a memscan class in java and give it references to things like memscan_firstscan where the java class contains the memscan long
 
 var jnimethods: array [0..methodcount-1] of JNINativeMethod =(
   (name: 'CEConnect'; signature: '()V'; fnPtr: @CEConnect),
   (name: 'GetProcessList'; signature: '()Ljava/util/ArrayList;'; fnPtr: @GetProcessList),
-  (name: 'SelectProcess'; signature: '(I)V'; fnPtr: @SelectProcess)
+  (name: 'SelectProcess'; signature: '(I)V'; fnPtr: @SelectProcess),
+  (name: 'FirstScan'; signature: '(I)V'; fnPtr: @FirstScan),
+  (name: 'SetTempPath'; signature: '(Ljava/lang/String;)V'; fnPtr: @SetTempPath)
 );
 
 function JNI_OnLoad(vm: PJavaVM; reserved: pointer): jint; cdecl;
 var env: PJNIEnv;
   c: JClass;
-  m: array [0..2] of JNINativeMethod;
-  r: integer;
   pname: string;
 begin
+  curVM:=vm;
+
   if (vm^.GetEnv(vm, @env, JNI_VERSION_1_6) <> JNI_OK) then
     result:=-1
   else
   begin
     InitializeNetworkInterface;
 
+    log('Creating main thread');
+    MainThread:=TMainThread.Create(false);
+
+
     pname:=StringReplace(packagename, '.','/',[rfReplaceAll]);
 
 
     c:=env^.FindClass(env, pchar(pname+'/'+classname));  //'org/cheatengine/jnitest/cecore';
-    r:=env^.RegisterNatives(env, c, @jnimethods[0], methodcount);
+    env^.RegisterNatives(env, c, @jnimethods[0], methodcount);
     result:=JNI_VERSION_1_6;
+  end;
+end;
+
+procedure JNI_OnUnload(vm:PJavaVM;reserved:pointer); cdecl;
+begin
+  //this doesn't seem to get called
+  Log('Goodbye');
+  if MainThread<>nil then
+  begin
+    MainThread.Terminate;
+    MainThread.WaitFor;
+    MainThread.Free;
   end;
 end;
 
 
 exports Java_org_cheatengine_jnitest_cecore_f1;
 exports JNI_OnLoad;
+exports JNI_OnUnload;
 
 begin
 

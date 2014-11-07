@@ -98,6 +98,10 @@ const
 
   PROCESS_ALL_ACCESS = $1f0fff; //not really used
 
+{$ifdef ANDROID}
+function GetTempDir: string;
+var tempdirOverride: string;
+{$endif}
 
 function VirtualAlloc(lpAddress:LPVOID; dwSize:PTRUINT; flAllocationType:DWORD; flProtect:DWORD):LPVOID;
 function VirtualFree(lpAddress:LPVOID; dwSize:PTRUINT; dwFreeType:DWORD):WINBOOL;
@@ -124,6 +128,14 @@ function InRangeQ(const AValue, AMin, AMax: QWord): Boolean;inline;
 {$endif}
 
 implementation
+
+{$ifdef ANDROID}
+function GetTempDir: string;
+begin
+  result:=tempdirOverride;
+end;
+
+{$endif}
 
 Function CreateDirUTF8(Const NewDir : UnicodeString) : Boolean;
 begin

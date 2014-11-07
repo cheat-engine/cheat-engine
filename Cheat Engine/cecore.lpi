@@ -31,7 +31,7 @@
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <Units Count="11">
+    <Units Count="12">
       <Unit0>
         <Filename Value="cecore.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -48,6 +48,7 @@
       <Unit3>
         <Filename Value="NewKernelHandler.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="NewKernelHandler"/>
       </Unit3>
       <Unit4>
         <Filename Value="unixporthelper.pas"/>
@@ -81,6 +82,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="Globals"/>
       </Unit10>
+      <Unit11>
+        <Filename Value="commontypedefs.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="commonTypeDefs"/>
+      </Unit11>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
