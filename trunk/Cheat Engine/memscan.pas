@@ -6551,6 +6551,7 @@ var guid: TGUID;
 
     utf8: boolean;
 begin
+  OutputDebugString('CreateScanfolder');
   CreateGUID(guid);
   if (length(trim(tempdiralternative))>2) and dontusetempdir then
     usedtempdir:=trim(tempdiralternative)
@@ -6560,6 +6561,8 @@ begin
   usedtempdir:=IncludeTrailingPathDelimiter(usedtempdir);
 
   fScanResultFolder:=usedtempdir+'Cheat Engine'+pathdelim;
+
+  OutputDebugString('fScanResultFolder='+fScanResultFolder);
 
 
   if DirectoryExistsUTF8(usedtempdir) then
