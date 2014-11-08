@@ -31,7 +31,7 @@
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <Units Count="13">
+    <Units Count="14">
       <Unit0>
         <Filename Value="cecore.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -93,6 +93,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="jniTObject"/>
       </Unit12>
+      <Unit13>
+        <Filename Value="jnitmemscan.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="jniTMemScan"/>
+      </Unit13>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

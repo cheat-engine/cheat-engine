@@ -13,7 +13,7 @@ function JObject2TObject(PEnv: PJNIEnv; Obj: JObject): TObject;
 
 implementation
 
-const methodcount=1;
+
 
 //experiment: make a memscan class in java and give it references to things like memscan_firstscan where the java class contains the memscan long
 var field_object: JFieldID;
@@ -38,8 +38,9 @@ begin
   log('TObject_destroy returned');
 end;
 
+const methodcount=1;
 var jnimethods: array [0..methodcount-1] of JNINativeMethod =(
-  (name: 'TObject_destroy'; signature: '()V'; fnPtr: @TObject_destroy)
+  (name: 'destroy'; signature: '()V'; fnPtr: @TObject_destroy)
   );
 
 procedure InitializeJniTObject(env: PJNIEnv);
@@ -49,11 +50,12 @@ begin
   c:=env^.FindClass(env, 'org/cheatengine/TObject');
 
   log('Getting the required fields');
-  field_object:=env^.GetFieldID(env, c, 'object','L');
-  log('After getting the fields');
+  field_object:=env^.GetFieldID(env, c, 'object','J');
+  log('After getting the fields ('+IntToHex(ptruint(field_object),8)+')');
 
 
   env^.RegisterNatives(env, c, @jnimethods[0], methodcount);
+  env^.DeleteLocalRef(env, c);
   log('InitializeJniObject exit');
 end;
 
