@@ -8,7 +8,7 @@ library cecore;
 uses cthreads, classes, jni, networkInterfaceApi, NewKernelHandler,
   networkInterface, sysutils, unixporthelper, ProcessHandlerUnit, elfsymbols,
   resolve, Sockets, ProcessList, memscan, Parsers, Globals, commonTypeDefs,
-  strutils, jniTObject;
+  strutils, jniTObject, JniTMemScan;
 
 
 type TMainThread=class(TThread)
@@ -205,8 +205,10 @@ begin
 
     c:=env^.FindClass(env, 'org/cheatengine/cecore');  //'org/cheatengine/jnitest/cecore';
     env^.RegisterNatives(env, c, @jnimethods[0], methodcount);
+    env^.DeleteLocalRef(env, c);
 
     InitializeJniTObject(env);
+    InitializeJniTMemScan(env);
 
 
     result:=JNI_VERSION_1_6;
