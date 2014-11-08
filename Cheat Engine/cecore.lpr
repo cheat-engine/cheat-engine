@@ -8,18 +8,18 @@ library cecore;
 uses cthreads, classes, jni, networkInterfaceApi, NewKernelHandler,
   networkInterface, sysutils, unixporthelper, ProcessHandlerUnit, elfsymbols,
   resolve, Sockets, ProcessList, memscan, Parsers, Globals, commonTypeDefs,
-  strutils;
+  strutils, jniTObject;
 
-const
-  packagename='org.cheatengine.jnitest';
-  classname='cecore';
 
 type TMainThread=class(TThread)
 public
   procedure execute; override;
 end;
-var MainThread: TMainThread;
-var MainThreadEnv: PJNIEnv;
+var
+  MainThread: TMainThread;
+  MainThreadEnv: PJNIEnv;
+
+  memscan: TMemScan;
 
 
 procedure TMainThread.execute;
@@ -62,7 +62,7 @@ begin
   FreeOnTerminate:=true;
 end;
 
-procedure Java_org_cheatengine_jnitest_cecore_f1(PEnv: PJNIEnv; Obj: JObject); cdecl;
+procedure Java_org_cheatengine_cecore_f1(PEnv: PJNIEnv; Obj: JObject); cdecl;
 var i: integer;
 
 begin
@@ -143,13 +143,16 @@ end;
 
 //test:
 procedure FirstScan(PEnv: PJNIEnv; Obj: JObject; value: jint); cdecl;
-var ms: TMemScan;
 begin
   log('FirstScan');
-  ms:=TMemScan.create(nil);
+
+  if memscan=nil then
+    memscan:=TMemScan.create(nil)
+  else
+    memscan.newscan;
 
   log('created memscan');
-  ms.firstscan(soExactValue, vtDword, rtTruncated, inttostr(value), '',0,$ffffffff, false, false, false, false);
+  memscan.firstscan(soExactValue, vtDword, rtTruncated, inttostr(value), '',0,$ffffffff, false, false, false, false);
 
 end;
 
@@ -200,11 +203,12 @@ begin
     MainThread:=TMainThread.Create(false);
 
 
-    pname:=StringReplace(packagename, '.','/',[rfReplaceAll]);
-
-
-    c:=env^.FindClass(env, pchar(pname+'/'+classname));  //'org/cheatengine/jnitest/cecore';
+    c:=env^.FindClass(env, 'org/cheatengine/cecore');  //'org/cheatengine/jnitest/cecore';
     env^.RegisterNatives(env, c, @jnimethods[0], methodcount);
+
+    InitializeJniTObject(env);
+
+
     result:=JNI_VERSION_1_6;
   end;
 end;
@@ -213,16 +217,21 @@ procedure JNI_OnUnload(vm:PJavaVM;reserved:pointer); cdecl;
 begin
   //this doesn't seem to get called
   Log('Goodbye');
+  if memscan<>nil then
+    freeandnil(memscan);
+
   if MainThread<>nil then
   begin
     MainThread.Terminate;
     MainThread.WaitFor;
-    MainThread.Free;
+    freeandnil(MainThread);
   end;
+
+
 end;
 
 
-exports Java_org_cheatengine_jnitest_cecore_f1;
+exports Java_org_cheatengine_cecore_f1;
 exports JNI_OnLoad;
 exports JNI_OnUnload;
 

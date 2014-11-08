@@ -31,7 +31,7 @@
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <Units Count="12">
+    <Units Count="13">
       <Unit0>
         <Filename Value="cecore.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -66,6 +66,7 @@
       <Unit7>
         <Filename Value="processlist.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="ProcessList"/>
       </Unit7>
       <Unit8>
         <Filename Value="memscan.pas"/>
@@ -87,6 +88,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="commonTypeDefs"/>
       </Unit11>
+      <Unit12>
+        <Filename Value="jnitobject.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="jniTObject"/>
+      </Unit12>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
