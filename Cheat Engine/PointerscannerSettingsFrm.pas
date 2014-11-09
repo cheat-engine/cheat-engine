@@ -1325,20 +1325,6 @@ begin
   label3.enabled:=not gpm;
   label12.enabled:=not gpm;
 
-
-  if gpm then
-  begin
-    cbCompareToOtherPointermaps.checked:=false;
-    cbCompressedPointerscanFile.checked:=false;
-    cbAllowRuntimeWorkers.checked:=false;
-    cbUseLoadedPointermap.checked:=false;
-    cbMustStartWithBase.checked:=false;
-    cbMustEndWithSpecificOffset.checked:=false;
-
-    cbAllowRuntimeWorkers.checked:=false;
-    cbConnectToNode.checked:=false;
-  end;
-
   if rbFindAddress.Checked then
   begin
     cbAddress.visible:=true;
