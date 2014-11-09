@@ -206,9 +206,9 @@ begin
   if addressfile=nil then exit;
 
   try
-    memoryfile:=tfilestream.Create(fmemscan.ScanresultFolder+'Memory.'+fListName,fmOpenRead or fmShareDenyNone);
-    outaddress:=tfilestream.Create(fmemscan.ScanresultFolder+'Addresses.NEW',fmCreate or fmShareDenyNone);
-    outmemory:=tfilestream.Create(fmemscan.ScanresultFolder+'Memory.NEW',fmCreate or fmShareDenyNone);
+    memoryfile:=tfilestream.Create(fmemscan.ScanresultFolder+'MEMORY.'+fListName,fmOpenRead or fmShareDenyNone);
+    outaddress:=tfilestream.Create(fmemscan.ScanresultFolder+'ADDRESSES.NEW',fmCreate or fmShareDenyNone);
+    outmemory:=tfilestream.Create(fmemscan.ScanresultFolder+'MEMORY.NEW',fmCreate or fmShareDenyNone);
   except
     exit;
   end;
@@ -279,10 +279,10 @@ begin
   //still here, not crashed, so out with the old, in with the new...
   deinitialize;
 
-  deletefile(fmemscan.ScanresultFolder+'Memory.'+fListName);
-  deletefile(fmemscan.ScanresultFolder+'Addresses.'+fListName);
-  renamefile(fmemscan.ScanresultFolder+'Memory.NEW',memscan.ScanresultFolder+'Memory.'+fListName);
-  renamefile(fmemscan.ScanresultFolder+'Addresses.NEW',memscan.ScanresultFolder+'Addresses.'+fListName);
+  deletefile(fmemscan.ScanresultFolder+'MEMORY.'+fListName);
+  deletefile(fmemscan.ScanresultFolder+'ADDRESSES.'+fListName);
+  renamefile(fmemscan.ScanresultFolder+'MEMORY.NEW',memscan.ScanresultFolder+'MEMORY.'+fListName);
+  renamefile(fmemscan.ScanresultFolder+'ADDRESSES.NEW',memscan.ScanresultFolder+'ADDRESSES.'+fListName);
 
   Reinitialize;
 end;

@@ -8208,6 +8208,8 @@ var
   actuallyshown: double;
   error: boolean;
   previous: string;
+
+  c: qword;
 begin
   if ScanTabList <> nil then
     ScanTabList.Enabled := True;
@@ -8247,7 +8249,8 @@ begin
     formsettings.cbShowAsSigned.Checked, not rbBit.Checked, cbunicode.Checked,
     TCustomType(VarType.items.objects[vartype.ItemIndex]));
 
-  foundcount := memscan.GetFoundCount;
+  c:=memscan.GetFoundCount;
+  foundcount := c;
 
   if PreviousResults<>nil then
     freeandnil(PreviousResults);

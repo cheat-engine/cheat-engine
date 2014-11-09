@@ -2,6 +2,8 @@ unit VirtualMemory;
 
 {$MODE Delphi}
 
+{obsolete}
+
 interface
 
 uses windows, SysUtils,LCLIntf,NewKernelHandler,CEFuncProc,ComCtrls, symbolhandler, commonTypeDefs;

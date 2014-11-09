@@ -152,6 +152,8 @@ type
     savedscanhandler: Tsavedscanhandler;
     scandir: string;
 
+    previousmemoryfile: TFilestream;
+
     found :dword;
     maxfound: dword; //the number of entries before flushing is demanded
 
@@ -451,6 +453,8 @@ type
     isdoneEvent: TEvent; //gets set when the scan has finished
     isReallyDoneEvent: TEvent; //gets set when the results have been completely written
 
+
+
     procedure updategui;
     procedure errorpopup;
     procedure firstScan;
@@ -529,9 +533,12 @@ type
     Configures the gui and related objects and launch TScanner objects with those objects
   }
   private
+    {$ifndef lowmemoryusage}
     previousMemoryBuffer: pointer;
+    {$endif}
+
     scanController: TScanController; //thread that configures the scanner threads and wait till they are done
-    {$IFNDEF UNIX}
+    {$IFNDEF lowmemoryusage}
     SaveFirstScanThread: TSaveFirstScanThread; //thread that will save the results of the first scan that can be used for "same as first scan" scans
     {$ENDIF}
     memRegion: TMemoryRegions;  //after a scan the contents of controller gets copied to here
@@ -3103,7 +3110,7 @@ begin
 
   //todo: convert savedscanhandler to unix
   {$IFNDEF UNIX}
-  if compareToSavedScan then //stupid, but ok...
+  if compareToSavedScan then //stupid, but ok...    (actually useful for lowmem scans)
   begin
     case self.variableType of
       vtByte:   valuetype:=vtbyte;
@@ -4307,8 +4314,8 @@ begin
   oldmemory:=nil;
   try
 
-    oldAddressFile:=TFileStream.Create(scandir+'Addresses.TMP',fmOpenRead or fmShareDenyNone);
-    oldMemoryFile:=TFileStream.Create(scandir+'Memory.TMP',fmOpenRead or fmShareDenyNone);
+    oldAddressFile:=TFileStream.Create(scandir+'ADDRESSES.TMP',fmOpenRead or fmShareDenyNone);
+    oldMemoryFile:=TFileStream.Create(scandir+'MEMORY.TMP',fmOpenRead or fmShareDenyNone);
 
     //set the current index to startentry
 
@@ -4507,6 +4514,7 @@ end;
 
 procedure TScanner.firstscan;
 var i: integer;
+    x: ptruint;
 
     currentbase: ptruint;
     size: dword;
@@ -4528,12 +4536,21 @@ begin
     if scanOption<>soUnknownValue then
     begin
       //not unknown initial
-      memorybuffer:=virtualAlloc(nil,maxregionsize+16,MEM_COMMIT	or MEM_TOP_DOWN	, PAGE_READWRITE);
+      memorybuffer:=virtualAlloc(nil,maxregionsize+variablesize+16,MEM_COMMIT	or MEM_TOP_DOWN	, PAGE_READWRITE);
       configurescanroutine;
     end
-    else //it is a unknown initial value, so use the previousmemorybuffer instead
+    else //it is a unknown initial value
     begin
+      {$ifdef lowmemoryusage}
+      //use the previousmemoryfile
+      //the memory.tmp file must have been generated with the correct size before calling this
+      previousmemoryfile:=Tfilestream.create(scandir+'MEMORY.TMP', fmOpenWrite or fmShareDenyNone);
+
+      memorybuffer:=virtualAlloc(nil,maxregionsize,MEM_COMMIT	or MEM_TOP_DOWN	, PAGE_READWRITE);
+      {$else}
+      //use the previousmemorybuffer instead
       memorybuffer:=pointer(PtrUint(OwningScanController.OwningMemScan.previousMemoryBuffer)+PtrUint(OwningScanController.memregion[startregion].startaddress)+(startaddress-OwningScanController.memregion[startregion].BaseAddress));
+      {$endif}
       variablesize:=1; //ignore
     end;
 
@@ -4579,9 +4596,24 @@ begin
 
           memregions[memregionpos].BaseAddress:=currentbase;
           memregions[memregionpos].MemorySize:=actualread;
-          memregions[memregionpos].startaddress:=memorybuffer;
 
+          {$ifdef lowmemoryusage}
+          //PtrUint(OwningScanController.memregion[i].startaddress) = offset in the file where OwningScanController.memregion[i].BaseAddress starts
+          //currentbase is the current address read
+          x:=PtrUint(OwningScanController.memregion[i].startaddress)+(currentbase-OwningScanController.memregion[i].BaseAddress);
+          previousmemoryfile.Position:=x;
+
+          memregions[memregionpos].startaddress:=pointer(previousmemoryfile.Position);
+
+          previousmemoryfile.WriteBuffer(memorybuffer^, actualread);
+
+
+          {$else}
+          memregions[memregionpos].startaddress:=memorybuffer;
           inc(memorybuffer,size);
+          {$endif}
+
+
 
           inc(memregionpos);
           if (memregionpos mod 16) = 0 then
@@ -4607,8 +4639,18 @@ begin
 
     if (scanOption<>soUnknownValue) then flushroutine; //save results
   finally
+    {$ifdef LOWMEMORYUSAGE}
+    if previousmemoryfile<>nil then
+      freeandnil(previousmemoryfile);
+
+    if memorybuffer<>nil then
+      virtualfree(memorybuffer,0,MEM_RELEASE);
+    {$else}
     if (scanOption<>soUnknownValue) and (memorybuffer<>nil) then
       virtualfree(memorybuffer,0,MEM_RELEASE);
+    {$endif}
+
+
   end;
 end;
 
@@ -5099,6 +5141,16 @@ begin
   memregion:=OwningMemscan.memRegion;
   memregionpos:=OwningMemscan.memRegionPos;
 
+  {$ifdef LOWMEMORYUSAGE}
+  if compareToSavedScan=false then
+  begin
+    compareToSavedScan:=true;
+    savedscanname:='FIRST';
+  end;
+  {$endif}
+
+
+
 
   {
   read the addressfile and split it up into chunks for the scanner threads
@@ -5143,17 +5195,16 @@ begin
         scanners[i].stopaddress:=stopaddress;  //let it go till the end
         scanners[i]._stopregion:=memregionpos-1;
 
-        if scanOption<>soUnknownValue then
+
+        //define maxregionsize
+        while j<memregionpos do
         begin
-          //define maxregionsize
-          while j<memregionpos do
-          begin
-            if scanners[i].maxregionsize<memregion[j].MemorySize then
-              scanners[i].maxregionsize:=memregion[j].MemorySize;
-              
-            inc(j);
-          end;
+          if scanners[i].maxregionsize<memregion[j].MemorySize then
+            scanners[i].maxregionsize:=memregion[j].MemorySize;
+
+          inc(j);
         end;
+
       end
       else
       begin
@@ -5198,10 +5249,10 @@ begin
 
       //now configure the scanner thread with the same info this thread got, with some extra info
 
-      {$IFNDEF UNIX}
+
       scanners[i].compareToSavedScan:=compareToSavedScan;
       scanners[i].savedscanname:=savedscanname;
-      {$ENDIF}
+
       scanners[i].scanType:=scanType; //stNextScan obviously
       scanners[i].scanoption:=scanoption;
       scanners[i].variableType:=VariableType;
@@ -5289,11 +5340,14 @@ begin
 
 
   //now clean up some mem, it's not needed anymore
+  {$ifndef LOWMEMORYUSAGE}
   if OwningMemScan.previousMemoryBuffer<>nil then
   begin
     virtualfree(OwningMemScan.previousMemoryBuffer,0,MEM_RELEASE);
     OwningMemscan.previousMemoryBuffer:=nil;
   end;
+  {$endif}
+
 end;
 
 
@@ -5336,6 +5390,8 @@ var
   validRegion: boolean;
 
   datatype: string[6];
+
+  f: TFilestream;
 begin
   OutputDebugString('TScanController.firstScan');
   if OnlyOne then
@@ -5509,6 +5565,14 @@ begin
   begin
     OutputDebugString('scanOption=soUnknownValue');
 
+    {$ifdef lowmemoryusage}
+    //create a file to store the previous memory in
+    OutputDebugString(format('Creating a memory.tmp file : %dKB',[totalProcessMemorySize div 1024]));
+    f:=Tfilestream.Create(OwningMemScan.ScanresultFolder+'MEMORY.TMP', fmCreate);
+    f.Size:=totalProcessMemorySize;
+    f.free;
+
+    {$else}
     //extra check to make sure the previous scan was cleared
     if OwningMemScan.previousMemoryBuffer<>nil then virtualfree(OwningMemScan.previousMemoryBuffer,0,MEM_RELEASE);
 
@@ -5518,6 +5582,9 @@ begin
       raise exception.Create(Format(rsFailureAllocatingMemoryForCopyTriedAllocatingKB, [inttostr(totalProcessMemorySize div 1024)]));
 
     OutputDebugString(format('Allocated at %p',[OwningMemScan.previousMemoryBuffer]));
+    {$endif}
+
+
   end;
 
   //split up into separate workloads
@@ -5555,17 +5622,13 @@ begin
         scanners[i].stopaddress:=stopaddress;
         scanners[i]._stopregion:=memregionpos-1;
 
-        //define maxregionsize
-        if scanOption<>soUnknownValue then
+        //define maxregionsize , go from current till end (since it'll scan everything that's left)
+        while j<memregionpos do
         begin
-          //define maxregionsize , go from current till end (since it'll scan averything that's left)
-          while j<memregionpos do
-          begin
-            if scanners[i].maxregionsize<memregion[j].MemorySize then
-              scanners[i].maxregionsize:=memregion[j].MemorySize;
+          if scanners[i].maxregionsize<memregion[j].MemorySize then
+            scanners[i].maxregionsize:=memregion[j].MemorySize;
 
-            inc(j);
-          end;
+          inc(j);
         end;
       end
       else
@@ -5808,6 +5871,7 @@ var err: dword;
     wantsize: qword;
 
     haserror2: boolean;
+    datatype: string[6];
 begin
   OutputDebugString('TScanController.execute');
 
@@ -5837,26 +5901,42 @@ begin
 
 
     if OnlyOne then savescannerresults:=false; //DO NOT INTERFERE
-    
-    if savescannerresults then //prepare saving. Set the filesize
+
+    {$ifdef LOWMEMORYUSAGE}
+    if scanOption=soUnknownValue then
+    begin
+      //write the regions
+      AddressFile:=TFileStream.Create(OwningMemScan.ScanresultFolder+'ADDRESSES.TMP',fmCreate or fmShareDenyNone);
+      datatype:='REGION';
+      AddressFile.WriteBuffer(datatype,sizeof(datatype));
+
+      for i:=0 to OwningMemScan.memregionpos do
+        AddressFile.WriteBuffer(OwningMemScan.memregion[i], sizeof(OwningMemScan.memRegion[i]));
+
+      freeandnil(addressfile);
+    end;
+    {$endif}
+
+    if (scanOption<>soUnknownValue) and savescannerresults then //prepare saving. Set the filesize
     begin
       try
         OutputDebugString('ScanController: creating undo files');
         freeandnil(scanners[0].Addressfile);
         freeandnil(scanners[0].Memoryfile);
 
-        //addresses
-        deletefile(OwningMemScan.ScanresultFolder+'Addresses.UNDO');
-        renamefile(OwningMemScan.ScanresultFolder+'Addresses.TMP',OwningMemScan.ScanresultFolder+'Addresses.UNDO');
-        renamefile(scanners[0].Addressfilename, OwningMemScan.ScanresultFolder+'Addresses.TMP');
+
+        deletefile(OwningMemScan.ScanresultFolder+'ADDRESSES.UNDO');
+        renamefile(OwningMemScan.ScanresultFolder+'ADDRESSES.TMP',OwningMemScan.ScanresultFolder+'ADDRESSES.UNDO');
+        renamefile(scanners[0].Addressfilename, OwningMemScan.ScanresultFolder+'ADDRESSES.TMP');
 
         //memory
-        deletefile(OwningMemScan.ScanresultFolder+'Memory.UNDO');
-        renamefile(OwningMemScan.ScanresultFolder+'Memory.TMP',OwningMemScan.ScanresultFolder+'Memory.UNDO');
-        renamefile(scanners[0].Memoryfilename, OwningMemScan.ScanresultFolder+'Memory.TMP');
+        deletefile(OwningMemScan.ScanresultFolder+'MEMORY.UNDO');
+        renamefile(OwningMemScan.ScanresultFolder+'MEMORY.TMP',OwningMemScan.ScanresultFolder+'MEMORY.UNDO');
+        renamefile(scanners[0].Memoryfilename, OwningMemScan.ScanresultFolder+'MEMORY.TMP');
+
         try
-          AddressFile:=TFileStream.Create(OwningMemScan.ScanresultFolder+'Addresses.TMP',fmOpenWrite or fmShareDenyNone);
-          MemoryFile:=TFileStream.Create(OwningMemScan.ScanresultFolder+'Memory.TMP',fmOpenWrite or fmsharedenynone);
+          AddressFile:=TFileStream.Create(OwningMemScan.ScanresultFolder+'ADDRESSES.TMP',fmOpenWrite or fmShareDenyNone);
+          MemoryFile:=TFileStream.Create(OwningMemScan.ScanresultFolder+'MEMORY.TMP',fmOpenWrite or fmsharedenynone);
         except
           raise exception.create(rsErrorWhenWhileLoadingResult);
         end;
@@ -5917,29 +5997,30 @@ begin
 
     haserror2:=false;
 
-
-
-    try
-      if savescannerresults and (addressfile<>nil) then //now actually save the scanner results
-      begin
-        //AddressFile should already have been created with the correct datatype and opened as denynone
-        AddressFile.Seek(oldpos,soFromBeginning);
-        Memoryfile.seek(oldmempos,soFromBeginning);
-
-        //save the exact results, and copy it to the AddressesFirst.tmp and Memoryfirst.tmp files
-        for i:=1 to length(scanners)-1 do
+    if scanOption<>soUnknownValue then
+    begin
+      try
+        if savescannerresults and (addressfile<>nil) then //now actually save the scanner results
         begin
-          outputdebugstring(format('ScanController: Writing results from scanner %d',[i]));
-          addressfile.CopyFrom(scanners[i].Addressfile,0);
-          Memoryfile.CopyFrom(scanners[i].MemoryFile,0);
+          //AddressFile should already have been created with the correct datatype and opened as denynone
+          AddressFile.Seek(oldpos,soFromBeginning);
+          Memoryfile.seek(oldmempos,soFromBeginning);
+
+          //save the exact results, and copy it to the AddressesFirst.tmp and Memoryfirst.tmp files
+          for i:=1 to length(scanners)-1 do
+          begin
+            outputdebugstring(format('ScanController: Writing results from scanner %d',[i]));
+            addressfile.CopyFrom(scanners[i].Addressfile,0);
+            Memoryfile.CopyFrom(scanners[i].MemoryFile,0);
+          end;
         end;
-      end;
-    except
-      on e: exception do
-      begin
-        OutputDebugString(pchar('Disk Write Error:'+e.message));
-        haserror2:=true;
-        errorstring:='controller:Cleanup:ResultsWrite:'+e.message;
+      except
+        on e: exception do
+        begin
+          OutputDebugString(pchar('Disk Write Error:'+e.message));
+          haserror2:=true;
+          errorstring:='controller:Cleanup:ResultsWrite:'+e.message;
+        end;
       end;
     end;
 
@@ -5950,7 +6031,6 @@ begin
 
     //clean up secondary scanner threads, their destructor will close and delete their files
     outputdebugstring('ScanController: Destroying scanner threads');
-    outputdebugstring('bla');
 
     scannersCS.enter;
     try
@@ -5972,17 +6052,16 @@ begin
     if addressfile<>nil then addressfile.Free;
     if MemoryFile<>nil then Memoryfile.Free;
 
-    outputdebugstring('bla2');
-
-
-
 
     //save the first scan results if needed
     try
       if scantype=stFirstScan then
       begin
         outputdebugstring('ScanController: This was a first scan, so saving the First Scan results');
-        {$IFNDEF UNIX}
+        {$IFDEF LOWMEMORYUSAGE}
+        copyfile(OwningMemScan.ScanresultFolder+'ADDRESSES.TMP', OwningMemScan.ScanresultFolder+'ADDRESSES.FIRST');
+        copyfile(OwningMemScan.ScanresultFolder+'MEMORY.TMP', OwningMemScan.ScanresultFolder+'MEMORY.FIRST')
+        {$else}
         OwningMemScan.SaveFirstScanThread:=TSaveFirstScanThread.create(OwningMemScan.ScanresultFolder, false,@OwningMemScan.memregion,@OwningMemScan.memregionpos, OwningMemScan.previousMemoryBuffer);
         {$ENDIF}
       end;
@@ -6132,7 +6211,7 @@ var u: TFileStream;
 begin
   result:=false;
   try
-    u:=tfilestream.create(fScanResultFolder+'Memory.UNDO', fmopenread or fmShareDenyNone);
+    u:=tfilestream.create(fScanResultFolder+'MEMORY.UNDO', fmopenread or fmShareDenyNone);
     try
       result:=u.Size>0;
     finally
@@ -6184,8 +6263,8 @@ begin
 
 
   //copy the current scanresults to memory.savedscan and addresses.savedscan
-  CopyFile(pchar(fScanResultFolder+'Memory.tmp'), pchar(fScanResultFolder+'Memory.'+resultname), false);
-  CopyFile(pchar(fScanResultFolder+'Addresses.tmp'), pchar(fScanResultFolder+'Addresses.'+resultname), false);
+  CopyFile(pchar(fScanResultFolder+'MEMORY.TMP'), pchar(fScanResultFolder+'MEMORY.'+resultname), false);
+  CopyFile(pchar(fScanResultFolder+'ADDRESSES.TMP'), pchar(fScanResultFolder+'ADDRESSES.'+resultname), false);
 
   savedresults.Add(resultname);
 
@@ -6201,11 +6280,11 @@ begin
 
   if canUndo then
   begin
-    deletefile(fScanResultFolder+'Memory.tmp');
-    deletefile(fScanResultFolder+'Addresses.tmp');
+    deletefile(fScanResultFolder+'MEMORY.TMP');
+    deletefile(fScanResultFolder+'ADDRESSES.TMP');
 
-    renamefile(fScanResultFolder+'Memory.UNDO',fScanResultFolder+'Memory.tmp');
-    renamefile(fScanResultFolder+'Addresses.UNDO',fScanResultFolder+'Addresses.tmp');
+    renamefile(fScanResultFolder+'MEMORY.UNDO',fScanResultFolder+'MEMORY.tmp');
+    renamefile(fScanResultFolder+'ADDRESSES.UNDO',fScanResultFolder+'ADDRESSES.tmp');
   end;
 end;
 
@@ -6334,16 +6413,17 @@ begin
     FreeAndNil(scanController);
   end;
 
-  {$IFNDEF UNIX}
+  {$IFNDEF LOWMEMORYUSAGE}
   if SaveFirstScanThread<>nil then
   begin
     SaveFirstScanThread.Terminate;
     SaveFirstScanThread.WaitFor; //wait till it's done
     freeandnil(SaveFirstScanThread);
   end;
-  {$ENDIF}
 
   if previousMemoryBuffer<>nil then virtualfree(previousMemoryBuffer,0,MEM_RELEASE);
+  {$endif}
+
   fLastscantype:=stNewScan;
   fLastScanValue:='';
 
@@ -6371,7 +6451,7 @@ begin
     freeandnil(scanController);
   end;
 
-  {$IFNDEF UNIX}
+  {$IFNDEF LOWMEMORYUSAGE}
   if SaveFirstScanThread<>nil then
   begin
 
@@ -6384,6 +6464,7 @@ begin
   scanController.OwningMemScan:=self;
   scanController.scantype:=stNextScan;
   scanController.scanOption:=scanOption;
+
   scanController.compareToSavedScan:=compareToSavedScan;
   scanController.savedscanname:=savedscanname;
   scanController.variableType:=CurrentVariableType;
@@ -6439,7 +6520,7 @@ begin
 
   if scanController<>nil then freeandnil(scanController);
 
-  {$IFNDEF UNIX}
+  {$IFNDEF LOWMEMORYUSAGE}
   if SaveFirstScanThread<>nil then
   begin
     SaveFirstScanThread.Terminate; //it should quit, saving took to long and the user already started a new one
@@ -6691,10 +6772,11 @@ end;
 
 destructor TMemScan.destroy;
 begin
-  {$IFNDEF UNIX}
+  {$IFNDEF LOWMEMORYUSAGE}
   if SaveFirstScanThread<>nil then SaveFirstScanThread.Free;
-  {$ENDIF}
+
   if previousMemoryBuffer<>nil then virtualfree(previousMemoryBuffer,0,MEM_RELEASE);
+  {$endif}
 
   if scanController<>nil then
     freeandnil(scancontroller);
