@@ -54,6 +54,16 @@ type
   _MEMORYSTATUS=record end;
 
 
+  //ce classes not implemented yet, but globally accessed
+  TCustomType=class(Tobject);
+  TCustomProgressBar=class(Tobject)
+  private
+  public
+    position: integer;
+  end;
+
+
+
 
 const
  MAX_PATH=256;
@@ -106,7 +116,7 @@ var tempdirOverride: string;
 function VirtualAlloc(lpAddress:LPVOID; dwSize:PTRUINT; flAllocationType:DWORD; flProtect:DWORD):LPVOID;
 function VirtualFree(lpAddress:LPVOID; dwSize:PTRUINT; dwFreeType:DWORD):WINBOOL;
 
-function CopyFile(source: string; destination: string; failifdestinationExists: boolean): boolean;
+function CopyFile(source: string; destination: string; failifdestinationExists: boolean=false): boolean;
 Function DirectoryExistsUTF8 (Const Directory : RawByteString) : Boolean;
 Function CreateDirUTF8(Const NewDir : UnicodeString) : Boolean;
 
@@ -147,7 +157,7 @@ begin
   result:=false;
 end;
 
-function CopyFile(source: string; destination: string; failifdestinationExists: boolean): boolean;
+function CopyFile(source: string; destination: string; failifdestinationExists: boolean=false): boolean;
 var src,dst: TFileStream;
 begin
   result:=false;

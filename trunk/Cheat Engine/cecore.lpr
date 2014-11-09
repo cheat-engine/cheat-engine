@@ -8,7 +8,7 @@ library cecore;
 uses cthreads, classes, jni, networkInterfaceApi, NewKernelHandler,
   networkInterface, sysutils, unixporthelper, ProcessHandlerUnit, elfsymbols,
   resolve, Sockets, ProcessList, memscan, Parsers, Globals, commonTypeDefs,
-  strutils, jniTObject, JniTMemScan;
+  strutils, jniTObject, JniTMemScan, savedscanhandler;
 
 
 type TMainThread=class(TThread)

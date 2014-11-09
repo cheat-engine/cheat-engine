@@ -66,7 +66,15 @@ end;   }
 
 interface
 
+{$ifdef windows}
 uses windows, LCLIntf,classes,sysutils,syncobjs, CEFuncProc, CustomTypeHandler, commonTypeDefs;
+
+{$define customtypeimplemented}
+
+{$else}
+uses Classes,sysutils,syncobjs,unixporthelper, commonTypeDefs;
+
+{$endif}
 
 type TSavedScantype= (fs_advanced,fs_addresslist);
 //type TValueType= (vt_byte,vt_word, vt_dword, vt_single, vt_double, vt_int64, vt_all);     //todo: Make compatible with the rest of ce's vartype
@@ -214,11 +222,15 @@ begin
     vtall:
     begin
       varsize:=8;
+      {$ifdef customtypeimplemented}
       if AllIncludesCustomType then
         varsize:=max(varsize, MaxCustomTypeSize);
+      {$endif}
     end;
 
+    {$ifdef customtypeimplemented}
     vtcustom: varsize:= ct.bytesize;
+    {$endif}
   end;
 
 
@@ -355,8 +367,10 @@ begin
         vtall:
         begin
           maxaddresslistcount:=8;
+          {$ifdef customtypeimplemented}
           if AllIncludesCustomType then
             maxaddresslistcount:=max(maxaddresslistcount, MaxCustomTypeSize);
+          {$endif}
 
           if maxaddresslistcount>20*4096 then
           begin
@@ -366,7 +380,10 @@ begin
           else
             maxaddresslistcount:=20*4096 div maxaddresslistcount;
 
-        end;
+        end
+        {$ifdef customtypeimplemented}
+        ;
+
 
         vtCustom:
         begin
@@ -380,6 +397,7 @@ begin
             maxaddresslistcount:=20*4096 div maxaddresslistcount;
 
         end
+        {$endif}
 
         else
           maxaddresslistcount:=1;
@@ -469,8 +487,9 @@ begin
             vtsingle: result:=@p4[pivot];
             vtdouble: result:=@p5[pivot];
             vtQword: result:=@p6[pivot];
+            {$ifdef customtypeimplemented}
             vtCustom: result:=@p1[pivot*ct.bytesize]
-
+            {$endif}
           end;
           LastAddressAccessed.address:=address;
           LastAddressAccessed.index:=pivot;
@@ -548,9 +567,11 @@ begin
         if address=pab[pivot].address then
         begin
           //found it
+          {$ifdef customtypeimplemented}
           if AllIncludesCustomType then
             result:=@p1[pivot*max(8, MaxCustomTypeSize)]
           else
+          {$endif}
             result:=@p6[pivot]; //8 byte entries, doesnt have to match the same type, since it is the same 8 byte value that's stored
 
           LastAddressAccessed.address:=address;
