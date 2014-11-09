@@ -31,7 +31,7 @@
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <Units Count="14">
+    <Units Count="15">
       <Unit0>
         <Filename Value="cecore.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -43,7 +43,6 @@
       <Unit2>
         <Filename Value="networkInterface.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="networkInterface"/>
       </Unit2>
       <Unit3>
         <Filename Value="NewKernelHandler.pas"/>
@@ -76,7 +75,6 @@
       <Unit9>
         <Filename Value="parsers.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="Parsers"/>
       </Unit9>
       <Unit10>
         <Filename Value="globals.pas"/>
@@ -98,6 +96,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="jniTMemScan"/>
       </Unit13>
+      <Unit14>
+        <Filename Value="savedscanhandler.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="savedscanhandler"/>
+      </Unit14>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -126,7 +129,8 @@
       </Options>
     </Linking>
     <Other>
-      <CustomOptions Value="-dJNI"/>
+      <CustomOptions Value="-dJNI
+-dlowmemoryusage"/>
     </Other>
   </CompilerOptions>
   <Debugging>
