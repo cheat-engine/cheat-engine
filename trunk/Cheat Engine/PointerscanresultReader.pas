@@ -12,7 +12,7 @@ uses windows, LCLIntf, sysutils, classes, CEFuncProc, NewKernelHandler, symbolha
 function GetFileSizeEx(hFile:HANDLE; FileSize:PQWord):BOOL; stdcall; external 'kernel32.dll' name 'GetFileSizeEx';
 
 
-type TPointerscanResult=record
+type TPointerscanResult=packed record
   modulenr: integer;
   moduleoffset: int64;
   offsetcount: integer;
