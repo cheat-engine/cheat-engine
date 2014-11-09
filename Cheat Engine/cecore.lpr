@@ -25,10 +25,9 @@ var
 procedure TMainThread.execute;
 //this thread will be responsible for calling functions that wish to synchronize with 'something' that can access the gui
 begin
-  log('Alive');
+
   //curvm^.AttachCurrentThreadAsDaemon(curvm, @env, nil);
   curvm^.AttachCurrentThread(curvm, @MainThreadEnv, nil);
-  log('Still alive');
   MainThreadID:=GetCurrentThreadId;
 
   while not terminated do
@@ -158,20 +157,13 @@ end;
 
 procedure SetTempPath(PEnv: PJNIEnv; Obj: JObject; path: jstring); cdecl;
 var
-  s: pchar;
-  iscopy: jboolean;
+  _path: string;
 begin
   log('SetTempPath');
-  iscopy:=0;
-  s:=PEnv^.GetStringUTFChars(penv, path, iscopy);
-
-  log('s='+s);
-
+  _path:=jniGetString(penv, path);
   dontusetempdir:=true;
-  tempdiralternative:=Utf8ToAnsi(s);
-  tempdirOverride:=tempdiralternative;
-
-  Penv^.ReleaseStringUTFChars(penv, path, s);
+  tempdiralternative:=_path;
+  tempdirOverride:=_path;
 end;
 
 const methodcount=5;

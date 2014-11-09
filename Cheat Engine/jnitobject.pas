@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, jni, unixporthelper;
 
 procedure InitializeJniTObject(env: PJNIEnv);
-function JObject2TObject(PEnv: PJNIEnv; Obj: JObject): TObject;
+function JObjectToTObject(PEnv: PJNIEnv; Obj: JObject): TObject;
 
 
 implementation
@@ -18,7 +18,7 @@ implementation
 //experiment: make a memscan class in java and give it references to things like memscan_firstscan where the java class contains the memscan long
 var field_object: JFieldID;
 
-function JObject2TObject(PEnv: PJNIEnv; Obj: JObject): TObject;
+function JObjectToTObject(PEnv: PJNIEnv; Obj: JObject): TObject;
 begin
   result:=TObject(penv^.GetLongField(penv, obj, field_object));
 end;
@@ -29,7 +29,7 @@ begin
   //get the "object" field inside Obj, free what it represents, and then set it to 0
   log('TObject_destroy');
 
-  o:=JObject2TObject(PEnv, Obj);
+  o:=JObjectToTObject(PEnv, Obj);
   if o<>nil then
     tobject(o).free
   else
