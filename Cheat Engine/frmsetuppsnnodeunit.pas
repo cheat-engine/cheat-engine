@@ -230,7 +230,7 @@ begin
       reg.WriteBool('StopScansAfterResultsFound', cbMaxFoundResults.Checked);
       reg.WriteInteger('StopResultCount', maxresultstofind);
       reg.WriteBool('StopScansAfterTime', cbMaxTimeToScan.Checked);
-      reg.WriteInteger('StopTime', strtoint(edtMaxTimeToScan.text));
+      reg.WriteInteger('StopTime', maxtimetoscan);
       reg.WriteBool('AllowTempFiles', cbAllowTempFiles.checked);
     end;
   finally
