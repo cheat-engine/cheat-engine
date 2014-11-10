@@ -454,20 +454,28 @@ var
   s: TStream;
   ds: Tdecompressionstream;
 begin
-  s:=memoryfilestream;
-  if s=nil then
-    s:=tfilestream.Create(filename, fmOpenRead or fmShareDenyNone);
+  try
+    s:=memoryfilestream;
+    if s=nil then
+      s:=tfilestream.Create(filename, fmOpenRead or fmShareDenyNone);
 
-  s.position:=0;
+    s.position:=0;
 
-  ds:=Tdecompressionstream.create(s);
+    ds:=Tdecompressionstream.create(s);
 
-  pointerlisthandler:=TPointerListHandler.createFromStream(ds, progressbar);
+    pointerlisthandler:=TPointerListHandler.createFromStream(ds, progressbar);
 
-  ds.free;
+    ds.free;
 
-  if s is TFileStream then
-    s.free;
+    if s is TFileStream then
+      s.free;
+
+  except
+    on e:exception do
+    begin
+      OutputDebugString('TPointerlistloader exception:'+e.message);
+    end;
+  end;
 end;
 
 

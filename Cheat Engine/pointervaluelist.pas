@@ -708,6 +708,7 @@ begin
   s.WriteByte($ce);
   s.WriteByte(ScanDataVersion);
 
+
   saveModuleListToResults(s); //save the module list (not important for worker threads/systems, but used for saving the main .ptr file)
 
   if specificBaseAsStaticOnly then
