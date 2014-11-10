@@ -2421,6 +2421,8 @@ var
   shouldreconnect: boolean;
   host, password: string;
   port: word;
+  i: integer;
+  abandonparent: boolean;
 begin
   OutputDebugString('Parent error: '+error);
   shouldreconnect:=false;
@@ -2448,10 +2450,22 @@ begin
     OutputDebugString('Going to reconnect to parent');
   end;
 
+  abandonparent:=currentscanhasended;
+  localscannersCS.enter;
+  try
+    for i:=0 to length(localscanners)-1 do
+      if localscanners[i].HasResultsPending then
+      begin
+        abandonparent:=false; //try to save this
+        break;
+      end;
+  finally
+    localscannersCS.leave;
+  end;
 
-  if currentscanhasended then
+  if abandonparent then
   begin
-    OutputDebugString('The current scan was terminated. Throw this parent away');
+    OutputDebugString('Abandoning this parent');
     orphanedSince:=0; //we won't miss this one
   end
   else
@@ -2993,7 +3007,9 @@ begin
   child^.queuesize:=updatemsg.queuesize;
 
   if initializer and (isidle or terminated) then //no more pathqueues and all scanners and children's scanners are waiting for new paths (or terminated by the user)
+  begin
     currentscanhasended:=true;
+  end;
 
 
   //now reply
@@ -3925,7 +3941,8 @@ begin
             localscanners[i].savestate:=savestate;
             localscanners[i].stop:=true;
 
-            localscanners[i].Terminate;
+            if (savestate=false) or (not localscanners[i].HasResultsPending) then
+              localscanners[i].Terminate;
           end;
 
           if alldone then
