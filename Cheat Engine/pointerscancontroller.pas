@@ -4001,7 +4001,12 @@ begin
             parent.socket.WriteByte(PSCMD_GOODBYE);
             parent.socket.WriteByte(ifthen(fTerminatedScan,1,0)); //writes 1 if it's a fake termination
 
-            parent.socket.flushWrites;
+            try
+              parent.socket.flushWrites;
+            except
+              //no biggy
+              OutputDebugString('The parent disconnected from me before I could tell him goodbye');
+            end;
             freeandnil(parent.socket);
           end;
 
