@@ -9,7 +9,7 @@ uses
   resolve, math, pointervaluelist,PointerscanWorker, PointerscanStructures,
   pointeraddresslist, PointerscanresultReader, cefuncproc, newkernelhandler,
   zstream, PointerscanConnector, PointerscanNetworkStructures, WinSock2,
-  CELazySocket, AsyncTimer, MemoryStreamReader, commonTypeDefs;
+  CELazySocket, AsyncTimer, MemoryStreamReader, commonTypeDefs, NullStream;
 
 
 type
@@ -2424,6 +2424,7 @@ begin
   try
     if parent.iConnectedTo then
     begin
+
       shouldreconnect:=true;
       host:=parent.connectdata.ip;
       password:=parent.connectdata.password;
@@ -2434,17 +2435,22 @@ begin
   end;
 
   if shouldreconnect then
+  begin
     BecomeChildOfNode(host, port, password);
+    OutputDebugString('Going to reconnect to parent');
+  end;
 
 
   if currentscanhasended then
   begin
+    OutputDebugString('The current scan was terminated. Throw this parent away');
     orphanedSince:=0; //we won't miss this one
   end
   else
+  begin
     orphanedSince:=GetTickCount64;
-
-
+    OutputDebugString('A scan was going on. Keep this parent''s information');
+  end;
 
 end;
 
@@ -2487,7 +2493,7 @@ end;
 procedure TPointerscancontroller.handleChildException(index: integer; error: string);
 {
 Handle socket and other exceptions that should disconnect the child
-do not clean uop anything else. (threads and other data structures will get cleared by the eventhandler)
+do not clean up anything else. (threads and other data structures will get cleared by the eventhandler)
 }
 var
   shouldreconnect: boolean;
@@ -3240,8 +3246,14 @@ begin
 
     files:=readDword;
 
+    OutputDebugString('Filecount='+inttostr(files));
+
+    if files=0 then
+      raise exception.create('Invalid scandata received. filecount=0');
+
     if length(instantrescanfiles)>0 then
     begin
+      OutputDebugString('instantrescanfiles was not empty. Cleaning it');
       for i:=0 to length(instantrescanfiles)-1 do
       begin
         if instantrescanfiles[i].memoryfilestream<>nil then
@@ -3262,6 +3274,7 @@ begin
     downloadingscandata_starttime:=GetTickCount64;
     downloadingscandata:=true;
 
+    OutputDebugString('Start downloading files');
 
     for i:=0 to files-1 do
     begin
@@ -3544,11 +3557,11 @@ var
 begin
   //note: called by another thread (parent responses can take a while)
 
-
-
   try
     try
       parentcs.enter;
+      OutputDebugString('UpdateStatus');
+
 
       if parent.socket=nil then
       begin
@@ -3569,7 +3582,7 @@ begin
           end;
         end;
 
-        if (parent.socket=nil) then //still no parent
+        if (not fTerminatedScan) and (parent.socket=nil) then //still no parent
         begin
           if (currentscanid=0) or (orphanedSince=0) then
           begin
@@ -3592,18 +3605,28 @@ begin
             begin
               //the parent didn't trust me anyhow
               if GetTickCount64>orphanedSince+30*60*1000 then //30 minutes
+
                 orphanedSince:=0; //give up and find a new parent
+
             end
             else
             begin
               if GetTickCount64>orphanedSince+60*60*1000 then //1 hour
-                orphanedSince:=0; //... fuck
+                orphanedSince:=0; //give up and find a new parent
+
+
             end;
 
             if orphanedSince=0 then //give up on the current scan if one was going on
             begin
               savestate:=false;
-              currentscanhasended:=true;
+
+              OutputDebugString('Giving up on parent');
+              if currentscanhasended=false then
+              begin
+                currentscanhasended:=true;
+                fTerminatedScan:=true;
+              end;
             end;
           end;
         end;
@@ -3810,8 +3833,13 @@ end;
 
 
 procedure TPointerscanController.execute_nonInitializer;
-var i: integer;
+var
+  i: integer;
+  devnull: TNullStream;
+  alldone: boolean;
 begin
+  devnull:=TNullStream.create;
+
   //this is a childnode
   currentscanhasended:=true;
   UseLoadedPointermap:=true;
@@ -3831,11 +3859,58 @@ begin
   begin
     waitForAndHandleNetworkEvent;
 
-    if (currentscanhasended and savestate) then
-      sendpathsToParent;
+    if currentscanhasended then
+    begin
+      if savestate then
+        sendpathsToParent
+      else
+        SaveAndClearQueue(devnull);
+
+
+      alldone:=true;
+      localscannersCS.Enter;
+      try
+        if length(localscanners)>0 then
+        begin
+          OutputDebugString('There are threads and currentscanhasended=true');
+          for i:=0 to length(localscanners)-1 do
+          begin
+            if localscanners[i].Finished=false then alldone:=false;
+
+            localscanners[i].savestate:=savestate;
+            localscanners[i].stop:=true;
+
+            localscanners[i].Terminate;
+          end;
+
+          if alldone then
+          begin
+            OutputDebugString('Not anymore');
+            for i:=0 to length(localscanners)-1 do
+              localscanners[i].Free;
+
+            setlength(localscanners,0);
+          end;
+        end;
+
+
+      finally
+        localscannersCS.Leave;
+      end;
+
+
+
+    end;
 
     if terminated then
     begin
+
+      if fTerminatedScan then
+        OutputDebugString('The current scan has been terminated')
+      else
+        OutputDebugString('The scanner is being terminated');
+
+
       currentscanhasended:=true;
 
       if parent.knowsIAmTerminating then
@@ -3845,18 +3920,14 @@ begin
         if parentupdater<>nil then
           parentUpdater.TriggerNow;
       end;
-    end;
 
-
-    if terminated then
-    begin
       //send a message to the parent that i'm gone
 
       parentcs.enter;
       try
-        if currentscanhasended and isDone then
+        if (currentscanhasended and isDone) or (savestate=false) then
         begin
-          OutputDebugString('Terminated and all children are done');
+          OutputDebugString('Terminated and all children are done, or terminated and no save (savestate='+BoolToStr(savestate) +')');
           UpdateStatus_cleanupScan;  //call this here because there may not be a newscan
 
           if parent.socket<>nil then
@@ -3867,16 +3938,19 @@ begin
             parent.socket.flushWrites;
             freeandnil(parent.socket);
           end;
-        end;
+
+          fTerminatedScan:=false;
+        end
+        else
+          OutputDebugString('Scan not finished yet');
 
       finally
         parentcs.Leave;
       end;
 
-      fTerminatedScan:=false;
-      if terminated then //still terminated ?
+      if (not savestate) and (not fTerminatedScan) then //really terminated and savestate was false
       begin
-        OutputDebugString('Actual termination');
+        OutputDebugString('Savestate is false and it''s an actual termination. Goodbye');
         break;
       end;
     end;
@@ -3933,6 +4007,7 @@ begin
     fOnScanDone(self, hasError, errorstring);
 
 
+  devnull.free;
 end;
 
 procedure TPointerscanController.execute;
