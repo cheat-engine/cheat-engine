@@ -25,6 +25,7 @@ type
     procedure StorePath(level: valSint; moduleid: integer; offset: ptruint);
     function DoRescan(level: valSint; moduleid: integer; offset: ptruint): boolean;
   protected
+    fhasresults: boolean;
     results: tstream;
     procedure initialize; virtual; abstract;
     procedure flushresults; virtual; abstract;
@@ -119,9 +120,10 @@ type
 
     savestate: boolean;
     overflowqueuewriter:TQueueWriterMethod;
+
+    function HasResultsPending: boolean;
+
     procedure SaveStateAndTerminate;
-
-
 
     procedure execute; override;
     constructor create(suspended: boolean);
@@ -225,6 +227,8 @@ begin
 
     isFlushing:=false;
     inc(timespentwriting, gettickcount64-currentwritestart);
+
+    fHasResults:=false;
   end;
 end;
 
@@ -302,6 +306,11 @@ procedure TPointerscanWorker.SaveStateAndTerminate;
 begin
   savestate:=true;
   Terminate;
+end;
+
+function TPointerscanWorker.HasResultsPending: boolean;
+begin
+  fHasResults:=true;
 end;
 
 constructor TPointerscanWorker.create(suspended:boolean);
@@ -558,6 +567,8 @@ begin
     results.WriteDword(i);
     results.WriteBuffer(tempresults[0], maxlevel*sizeof(tempresults[0]) );
   end;
+
+  fhasresults:=true;
   flushIfNeeded;
 end;
 
