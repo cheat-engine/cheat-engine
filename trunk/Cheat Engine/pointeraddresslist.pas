@@ -36,6 +36,8 @@ type
 
 implementation
 
+uses pointervaluelist;
+
 function TPointerListHandler.getAddressFromModuleIndexPlusOffset(moduleindex: integer; offset: integer): ptruint;
 begin
   if moduleindex>=0 then
@@ -117,6 +119,13 @@ var
   limit: integer;
 begin
   //create and fill in the pointerlist based on a reversepointerlist
+  if s.ReadByte<>$ce then
+    raise exception.create('Invalid scandata file');
+
+  if s.ReadByte<>ScanDataVersion then raise exception.create('Invalid scandata version');
+
+
+
   bma:=TBigMemoryAllocHandler.create;
   pmap:=TMap.Create(ituPtrSize, sizeof(ptruint));
 
@@ -137,6 +146,13 @@ begin
     modulelist.AddObject(mname, tobject(modulebases[i]));
     freemem(mname);
   end;
+
+  if s.ReadByte=1 then  //specific base as static only
+  begin
+    s.ReadQWord; //basestart
+    s.ReadQWord; //basestop
+  end;
+
 
   ml:=s.ReadDWord; //maxlevel (for determining if 32 or 64-bit)
 
