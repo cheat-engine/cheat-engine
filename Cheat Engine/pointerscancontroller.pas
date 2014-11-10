@@ -1298,6 +1298,11 @@ begin
   finally
     localscannersCS.leave;
   end;
+
+  childnodescs.enter;
+  for i:=0 to length(childnodes)-1 do
+    inc(result, childnodes[i].resultsfound);
+  childnodescs.leave;
 end;
 
 function TPointerscanController.getPointerlistHandlerCount: qword;
@@ -2368,6 +2373,9 @@ begin
         if childnodes[i].MissingSince=0 then
         begin
           //delete it
+          inc(fTotalPathsEvaluatedByErasedChildren,  childnodes[i].totalPathsEvaluated);
+          inc(fTotalResultsReceived, childnodes[i].resultsfound);
+
           if childnodes[i].scandatauploader<>nil then
           begin
             childnodes[i].scandatauploader.Terminate;
@@ -3130,6 +3138,10 @@ end;
 //parent->child
 
 procedure TPointerscanController.InitializeCompressedPtrVariables;
+var
+  f: Tfilestream;
+  ds: Tdecompressionstream;
+  tempplh: TReversePointerListHandler;
 begin
   if compressedptr then
   begin
@@ -3147,21 +3159,51 @@ begin
     begin
       if pointerlisthandler=nil then  //should never happen, but use it as a fallback
       begin
-        MaxBitCountModuleIndex:=32; //don't compress it
-        MaxBitCountModuleOffset:=64;
+        //just load the header
+        if pointerlisthandlerfile<>nil then //load it from here
+        begin
+          pointerlisthandlerfile.position:=0;
+
+          ds:=Tdecompressionstream.create(pointerlisthandlerfile);
+          try
+            tempplh:=TReversePointerListHandler.createFromStreamHeaderOnly(ds);
+          finally
+            ds.free;
+            pointerlisthandlerfile.position:=0;
+          end;
+        end
+        else
+        begin
+          f:=TFileStream.create(LoadedPointermapFilename, fmOpenRead or fmShareDenyNone);
+          try
+            ds:=Tdecompressionstream.create(f);
+            try
+              tempplh:=TReversePointerListHandler.createFromStreamHeaderOnly(ds);
+            finally
+              ds.free;
+            end;
+          finally
+            f.free;
+          end;
+        end;
       end
       else
-      begin
-        MaxBitCountModuleIndex:=getMaxBitCount(pointerlisthandler.modulelist.Count-1, true);
-        if pointerlisthandler.is64bit and ((not staticonly) or (pointerlisthandler.CanHaveStatic)) then
-          MaxBitCountModuleOffset:=64
-        else
-          MaxBitCountModuleOffset:=32
-      end;
+        tempplh:=pointerlisthandler;
+
+
+      MaxBitCountModuleIndex:=getMaxBitCount(tempplh.modulelist.Count-1, true);
+      if pointerlisthandler.is64bit and ((not staticonly) or (tempplh.CanHaveStatic)) then
+        MaxBitCountModuleOffset:=64
+      else
+        MaxBitCountModuleOffset:=32;
+
 
       MaxBitCountLevel:=getMaxBitCount(maxlevel-length(mustendwithoffsetlist) , false); //counted from 1.  (if level=4 then value goes from 1,2,3,4) 0 means no offsets. This can happen in case of a pointerscan with specific end offsets, which do not get saved.
       MaxBitCountOffset:=getMaxBitCount(sz, false);
       if unalligned=false then MaxBitCountOffset:=MaxBitCountOffset - 2;
+
+      if pointerlisthandler=nil then
+        tempplh.free;
     end;
   end;
 
@@ -3221,6 +3263,8 @@ begin
   UpdateStatus_cleanupScan;
 
   fTotalPathsEvaluatedByErasedChildren:=0;
+  fTotalResultsReceived:=0;
+
 
   with parent.socket do
   begin
@@ -3340,6 +3384,7 @@ begin
   currentscanhasended:=false;
 
   InitializeEmptyPathQueue;
+  InitializeCompressedPtrVariables;
 
 
 
@@ -4196,6 +4241,7 @@ begin
 
     //setup the pathqueue
     InitializeEmptyPathQueue;
+    InitializeCompressedPtrVariables;
 
 
 
