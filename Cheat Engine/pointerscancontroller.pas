@@ -2081,9 +2081,12 @@ begin
       //todo: test me
       if parent.socket=nil then
       begin
-        OutputDebugString('Abandoning the result upload');
+        OutputDebugString('Uploadresults called but parent.socket=nil');
         if orphanedSince=0 then //give up sending these results, we have abandoned the parent
+        begin
           result:=true;
+          OutputDebugString('The parent has been abandoned. Discarding the results');
+        end;
 
         exit; //return to the caller (failure)
       end;
@@ -3243,7 +3246,7 @@ begin
 
 
       MaxBitCountModuleIndex:=getMaxBitCount(tempplh.modulelist.Count-1, true);
-      if pointerlisthandler.is64bit and ((not staticonly) or (tempplh.CanHaveStatic)) then
+      if tempplh.is64bit and ((not staticonly) or (tempplh.CanHaveStatic)) then
         MaxBitCountModuleOffset:=64
       else
         MaxBitCountModuleOffset:=32;
