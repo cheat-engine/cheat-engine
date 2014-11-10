@@ -3040,7 +3040,9 @@ begin
 
   if initializer and (isidle or terminated) then //no more pathqueues and all scanners and children's scanners are waiting for new paths (or terminated by the user)
   begin
-    savestate:=true;
+    if terminated=false then
+      savestate:=true;
+
     currentscanhasended:=true;
   end;
 
@@ -3903,7 +3905,7 @@ begin
   except
     on e: exception do
     begin
-      OutputDebugString('Caught an unhandled exception in UpdateStatus: '+e.message);
+      OutputDebugString('Caught an unhandled exception in UpdateStatus: '+e.message+'  ('+inttostr(phase)+')');
     end;
   end;
 
@@ -4521,7 +4523,10 @@ begin
 
   receive(sockethandle, @command, 1);
   if command<>PSCMD_HELLO then
+  begin
+    OutputDebugString('WaitForHello received '+inttostr(command));
     raise TSocketException.Create('Invalid command while waiting for hello'); //invalid command
+  end;
 
   receive(sockethandle, @namelength, 1);
 
@@ -4713,10 +4718,14 @@ begin
         OutputDebugString('said hello');
 
       except
-        if parentqueue[length(parentqueue)-1].socket<>nil then
-          freeandnil(parentqueue[length(parentqueue)-1].socket);
+        on e:exception do
+        begin
+          OutputDebugString('Error while accepting parent:'+e.message);
+          if parentqueue[length(parentqueue)-1].socket<>nil then
+            freeandnil(parentqueue[length(parentqueue)-1].socket);
 
-        setlength(parentqueue, length(parentqueue)-1);
+          setlength(parentqueue, length(parentqueue)-1);
+        end;
       end;
 
     finally

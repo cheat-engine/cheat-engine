@@ -42,18 +42,26 @@ object frmPointerScanner: TfrmPointerScanner
       Visible = False
     end
     object cbTestCrappyConnection: TCheckBox
-      Left = 544
+      Left = 312
       Height = 20
       Top = 0
       Width = 158
       Caption = 'Simulate no connection'
       OnChange = cbTestCrappyConnectionChange
       TabOrder = 1
-      Visible = False
+    end
+    object cbNonResponsive: TCheckBox
+      Left = 480
+      Height = 20
+      Top = 0
+      Width = 183
+      Caption = 'Non responsive connection'
+      OnChange = cbNonResponsiveChange
+      TabOrder = 2
     end
   end
   object btnStopRescanLoop: TButton
-    Left = 248
+    Left = 160
     Height = 25
     Top = -1
     Width = 144
@@ -360,9 +368,9 @@ object frmPointerScanner: TfrmPointerScanner
     end
   end
   object lvResults: TListView
-    Left = 416
+    Left = 360
     Height = 65
-    Top = -1
+    Top = 80
     Width = 121
     Columns = <>
     HideSelection = False
