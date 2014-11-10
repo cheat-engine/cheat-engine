@@ -4213,7 +4213,6 @@ begin
       cs.free;
       f.free;
 
-      filename:='';
       progressbar.Position:=0;
 
       if generatePointermapOnly then
@@ -4221,6 +4220,8 @@ begin
         //that's all we need
         if Assigned(fOnScanDone) then
           fOnScanDone(self, haserror, errorstring);
+
+        filename:='';
 
         terminate;
         exit;
