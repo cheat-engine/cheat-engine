@@ -890,6 +890,7 @@ function TPointerscanController.LocalScannersDone: boolean;
 var i: integer;
 begin
   result:=true;
+  pathqueueCS.enter;
   localscannersCS.Enter;
   try
     for i:=0 to length(localscanners)-1 do
@@ -897,10 +898,14 @@ begin
       if localscanners[i].Finished then continue;
 
       if localscanners[i].isdone=false then
+      begin
+        result:=false;
         exit;
+      end;
     end;
   finally
     localscannersCS.Leave;
+    pathqueueCS.Leave;
   end;
 end;
 
@@ -2451,16 +2456,21 @@ begin
   end;
 
   abandonparent:=currentscanhasended;
-  localscannersCS.enter;
-  try
-    for i:=0 to length(localscanners)-1 do
-      if localscanners[i].HasResultsPending then
-      begin
-        abandonparent:=false; //try to save this
-        break;
-      end;
-  finally
-    localscannersCS.leave;
+  if abandonparent then
+  begin
+    localscannersCS.enter;
+    try
+      for i:=0 to length(localscanners)-1 do
+        if localscanners[i].HasResultsPending then
+        begin
+          OutputDebugString('Not going to abandon the parent because a worker has results for it');
+          abandonparent:=false; //try to save this
+          break;
+        end;
+    finally
+      localscannersCS.leave;
+    end;
+
   end;
 
   if abandonparent then
@@ -2471,7 +2481,7 @@ begin
   else
   begin
     orphanedSince:=GetTickCount64;
-    OutputDebugString('A scan was going on. Keep this parent''s information');
+    OutputDebugString('Keeping this parent');
   end;
 
 end;
@@ -2666,10 +2676,12 @@ begin
   child:=@childnodes[index];
 
   OutputDebugString(child.ip+' : HandleSendPathsMessage');
+  count:=child.socket.ReadDWord;
+
 
   if (currentscanhasended and savestate) or child.trusted or child.terminating then
   begin
-    count:=child.socket.ReadDWord;
+
     if count<0 then raise exception.create('The child tried to send a negative amount');
     if count>65536 then raise exception.create('The child tried to send more paths at once than allowed');  //actually 1000 but let's allow some customization
 
@@ -3008,6 +3020,7 @@ begin
 
   if initializer and (isidle or terminated) then //no more pathqueues and all scanners and children's scanners are waiting for new paths (or terminated by the user)
   begin
+    savestate:=true;
     currentscanhasended:=true;
   end;
 
@@ -3385,6 +3398,10 @@ begin
     WriteByte(0); //tell the parent I received everything
     flushWrites;
 
+    OutputDebugString('Done downloading files');
+
+    OutputDebugString('Processing files');
+
     downloadingscandata_stoptime:=GetTickCount64;
     downloadingscandata:=false;
 
@@ -3394,6 +3411,7 @@ begin
     instantrescan:=length(instantrescanfiles)>0;
 
 
+    OutputDebugString('Done processing files');
 
   end;
 
@@ -3425,6 +3443,8 @@ begin
   currentscanid:=newcurrentscanid;
   scannerid:=newscannerid;
   parent.scanid:=currentscanid;
+
+
 
   parentUpdater.TriggerNow; //restart the Updatestatus function as soon as possible to let the parent know it's ready
 end;
@@ -3927,7 +3947,14 @@ begin
     if currentscanhasended then
     begin
       if savestate then
-        sendpathsToParent
+      begin
+        try
+          sendpathsToParent
+        except
+          on e:exception do
+            handleParentException('During scan finishing: '+e.message);
+        end;
+      end
       else
         SaveAndClearQueue(devnull);
 
