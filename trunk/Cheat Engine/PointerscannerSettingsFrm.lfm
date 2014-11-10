@@ -71,18 +71,18 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       Caption = 'Nr of threads scanning: '
       ParentColor = False
     end
-    object Button1: TButton
+    object btnOk: TButton
       Left = 200
       Height = 25
       Top = 68
       Width = 80
       Caption = 'OK'
       Default = True
-      OnClick = Button1Click
+      OnClick = btnOkClick
       TabOrder = 0
     end
     object editStructsize: TEdit
-      AnchorSideRight.Control = Button1
+      AnchorSideRight.Control = btnOk
       AnchorSideRight.Side = asrBottom
       Left = 220
       Height = 21
@@ -118,7 +118,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     end
     object edtThreadcount: TEdit
       AnchorSideLeft.Control = editStructsize
-      AnchorSideRight.Control = Button1
+      AnchorSideRight.Control = btnOk
       AnchorSideRight.Side = asrBottom
       Left = 220
       Height = 21

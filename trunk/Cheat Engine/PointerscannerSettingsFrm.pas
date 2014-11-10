@@ -130,7 +130,7 @@ type
     Label3: TLabel;
     Label12: TLabel;
     Label9: TLabel;
-    Button1: TButton;
+    btnOk: TButton;
     editStructsize: TEdit;
     editMaxLevel: TEdit;
     btnCancel: TButton;
@@ -141,7 +141,7 @@ type
     rbGeneratePointermap: TRadioButton;
     rbFindAddress: TRadioButton;
     rbFindValue: TRadioButton;
-    procedure Button1Click(Sender: TObject);
+    procedure btnOkClick(Sender: TObject);
 
     procedure canNotReuse(Sender: TObject);
     procedure cbAddressDrawItem(Control: TWinControl; Index: Integer;
@@ -607,7 +607,7 @@ begin
   text:=inttohex(x,1);
 end;
 
-procedure TfrmPointerScannerSettings.Button1Click(Sender: TObject);
+procedure TfrmPointerScannerSettings.btnOkClick(Sender: TObject);
 var
   i,j: integer;
   r: THostResolver;
@@ -665,16 +665,20 @@ begin
   end;
 
 
-  try
-    automaticaddress:=symhandler.getAddressFromName(cbAddress.text);
-  except
-    on e:exception do
-    begin
-      if cbAddress.text='' then
-        MessageDlg(rsPleaseFillInAnAddressToLookFor, mtError, [mbok], 0)
-      else
-        MessageDlg(rsInvalidAddress+' ('+cbAddress.text+')', mtError, [mbok], 0);
-      exit;
+
+  if rbFindAddress.checked then
+  begin
+    try
+      automaticaddress:=symhandler.getAddressFromName(cbAddress.text);
+    except
+      on e:exception do
+      begin
+        if cbAddress.text='' then
+          MessageDlg(rsPleaseFillInAnAddressToLookFor, mtError, [mbok], 0)
+        else
+          MessageDlg(rsInvalidAddress+' ('+cbAddress.text+')', mtError, [mbok], 0);
+        exit;
+      end;
     end;
   end;
 
