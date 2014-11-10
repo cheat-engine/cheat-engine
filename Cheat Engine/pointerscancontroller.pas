@@ -3136,7 +3136,7 @@ begin
         //unstable/untrusted
         if child^.idle then //only send paths to the non-trusted child if it's completely idle
         begin
-          HandleUpdateStatusMessage_SendPathsToChild(child, min(child.trustlevel, 1+(localpathcount div 4) )); //the trustlevel goes up if it goes idle within 5 minutes
+          HandleUpdateStatusMessage_SendPathsToChild(child, 1+min(child.trustlevel, (localpathcount div 4) )); //the trustlevel goes up if it goes idle within 5 minutes
           exit;
         end;
 
