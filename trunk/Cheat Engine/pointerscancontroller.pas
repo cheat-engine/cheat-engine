@@ -3136,7 +3136,7 @@ begin
         //unstable/untrusted
         if child^.idle then //only send paths to the non-trusted child if it's completely idle
         begin
-          HandleUpdateStatusMessage_SendPathsToChild(child, min(child.trustlevel+1, localpathcount div 4 )); //the trustlevel goes up if it goes idle within 5 minutes
+          HandleUpdateStatusMessage_SendPathsToChild(child, min(child.trustlevel, 1+(localpathcount div 4) )); //the trustlevel goes up if it goes idle within 5 minutes
           exit;
         end;
 
@@ -3485,27 +3485,31 @@ begin
   OutputDebugString(parent.ip+' : HandleUpdateStatusReply_HereAreSomePaths('+inttostr(count)+')');
 
   if count<0 then
-    raise exception.create('The parent tried to send me a negatyive ammount of paths');
+    raise exception.create('The parent tried to send me a negative ammount of paths');
 
   if count>65536 then
     raise exception.create('The parent tried to send me more paths than allowed (after update)');
 
-  setlength(paths, count);
+  if count>0 then
+  begin
+    setlength(paths, count);
 
-  buf:=TMemoryStream.Create;
-  try
-    buf.CopyFrom(parent.socket, getPathQueueElementSize*count);
+    buf:=TMemoryStream.Create;
+    try
+      buf.CopyFrom(parent.socket, getPathQueueElementSize*count);
 
 
-    buf.position:=0;
-    for i:=0 to count-1 do
-      LoadPathQueueElementFromStream(buf, @paths[i]);
+      buf.position:=0;
+      for i:=0 to count-1 do
+        LoadPathQueueElementFromStream(buf, @paths[i]);
 
-    //still here so I guess it's ok
+      //still here so I guess it's ok
 
-    appendDynamicPathQueueToOverflowQueue(paths);
-  finally
-    buf.free;
+      appendDynamicPathQueueToOverflowQueue(paths);
+    finally
+      buf.free;
+    end;
+
   end;
 
   parent.socket.WriteByte(0); //acknowledge that the paths have been received and handled properly
@@ -4002,6 +4006,8 @@ begin
           end;
 
           fTerminatedScan:=false;
+
+          if terminated then break; //actually terminate if the user wanted to. it's safe
         end
         else
           OutputDebugString('Scan not finished yet');
