@@ -155,6 +155,7 @@ type
     cbTrusted: TCheckBox;
     cbPriority: TComboBox;
     cbTestCrappyConnection: TCheckBox;
+    cbNonResponsive: TCheckBox;
     edtIP: TEdit;
     edtPassword: TEdit;
     edtPort: TEdit;
@@ -207,6 +208,7 @@ type
     procedure btnDecreaseThreadCountClick(Sender: TObject);
     procedure cbPriorityChange(Sender: TObject);
     procedure cbTestCrappyConnectionChange(Sender: TObject);
+    procedure cbNonResponsiveChange(Sender: TObject);
 
     procedure FormDestroy(Sender: TObject);
     procedure FormResize(Sender: TObject);
@@ -1837,6 +1839,11 @@ end;
 procedure Tfrmpointerscanner.cbTestCrappyConnectionChange(Sender: TObject);
 begin
   debug_connectionfailure:=cbTestCrappyConnection.checked;
+end;
+
+procedure Tfrmpointerscanner.cbNonResponsiveChange(Sender: TObject);
+begin
+  debug_nonresponsiveconnection:=cbNonResponsive.checked;
 end;
 
 

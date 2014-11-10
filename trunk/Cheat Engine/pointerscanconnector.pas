@@ -9,7 +9,7 @@ interface
 
 uses
   Classes, SysUtils, sockets, resolve, syncobjs, math, winsock2, CELazySocket,
-  PointerscanNetworkCommands;
+  PointerscanNetworkCommands, NewKernelHandler;
 
 
 type
@@ -284,6 +284,7 @@ begin
         if sockethandle<>INVALID_SOCKET then
           closesocket(sockethandle);
 
+        OutputDebugString('Error while connecting: '+e.message);
         log(e.message);
         sleep(1000);
       end;
