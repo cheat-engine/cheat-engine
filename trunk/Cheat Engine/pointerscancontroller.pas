@@ -2081,13 +2081,25 @@ begin
       //todo: test me
       if parent.socket=nil then
       begin
+        OutputDebugString('Abandoning the result upload');
         if orphanedSince=0 then //give up sending these results, we have abandoned the parent
           result:=true;
 
         exit; //return to the caller (failure)
       end;
-      if parent.scanid<>currentscanid then exit; //the parent will probably tell the child to kill it's current scan (first a cleanup that will remove this caller)
-      if currentscanhasended and (savestate=false) then exit;
+
+      if parent.scanid<>currentscanid then
+      begin
+        OutputDebugString('upload results: parent.scanid<>currentscanid');
+        exit; //the parent will probably tell the child to kill it's current scan (first a cleanup that will remove this caller)
+      end;
+
+      if currentscanhasended and (savestate=false) then
+      begin
+        OutputDebugString('Curent scan has anded and savestate=true');
+        result:=true;
+        exit;
+      end;
 
       try
         s.position:=0;
@@ -2441,10 +2453,10 @@ begin
   shouldreconnect:=false;
   parentcs.enter;
 
-  if parent.socket<>nil then
-    FreeAndNil(parent.socket);
-
   try
+    if parent.socket<>nil then
+      FreeAndNil(parent.socket);
+
     if parent.iConnectedTo then
     begin
 
@@ -3647,236 +3659,253 @@ var
   i,j: integer;
   updatemsg: TPSUpdateStatusMsg;
   allfinished: boolean;
+
+  phase: integer;
 begin
   //note: called by another thread (parent responses can take a while)
 
+  phase:=0;
+
   try
+    parentcs.enter;
     try
-      parentcs.enter;
-      OutputDebugString('UpdateStatus');
+      try
+        OutputDebugString('UpdateStatus');
 
 
-      if parent.socket=nil then
-      begin
-        OutputDebugString('Accessing queue');
-        for i:=0 to length(parentqueue)-1 do
+        if parent.socket=nil then
         begin
-          if parentqueue[i].scanid=currentscanid then
+          OutputDebugString('Accessing queue');
+          for i:=0 to length(parentqueue)-1 do
           begin
-            //parent came back
-            OutputDebugString('Parent returned');
-            parent:=parentqueue[i];
-            for j:=i+1 to length(parentqueue)-2 do
-              parentqueue[j]:=parentqueue[j+1];
-
-            setlength(parentqueue, length(parentqueue)-1);
-            orphanedSince:=0;
-            break;
-          end;
-        end;
-
-        if (not fTerminatedScan) and (parent.socket=nil) then //still no parent
-        begin
-          if (currentscanid=0) or (orphanedSince=0) then
-          begin
-            //not an orphan, check the queue and make the first one in the list my new parent
-            if length(parentqueue) > 0 then
+            if parentqueue[i].scanid=currentscanid then
             begin
-              parent:=parentqueue[0];
-              parent.connecttime:=GetTickCount64; //it was accepted at this time (this way the queue time isn't counted)
-
-              for i:=1 to length(parentqueue)-2 do
-                parentqueue[i]:=parentqueue[i+1];
+              //parent came back
+              OutputDebugString('Parent returned');
+              parent:=parentqueue[i];
+              for j:=i+1 to length(parentqueue)-2 do
+                parentqueue[j]:=parentqueue[j+1];
 
               setlength(parentqueue, length(parentqueue)-1);
+              orphanedSince:=0;
+              break;
             end;
-          end
-          else
+          end;
+
+          if (not fTerminatedScan) and (parent.socket=nil) then //still no parent
           begin
-            //check if we should give up on our original parent...
-            if parent.trustsme=false then
+            if (currentscanid=0) or (orphanedSince=0) then
             begin
-              //the parent didn't trust me anyhow
-              if GetTickCount64>orphanedSince+30*60*1000 then //30 minutes
+              //not an orphan, check the queue and make the first one in the list my new parent
+              if length(parentqueue) > 0 then
+              begin
+                parent:=parentqueue[0];
+                parent.connecttime:=GetTickCount64; //it was accepted at this time (this way the queue time isn't counted)
 
-                orphanedSince:=0; //give up and find a new parent
+                for i:=1 to length(parentqueue)-2 do
+                  parentqueue[i]:=parentqueue[i+1];
 
+                setlength(parentqueue, length(parentqueue)-1);
+              end;
             end
             else
             begin
-              if GetTickCount64>orphanedSince+60*60*1000 then //1 hour
-                orphanedSince:=0; //give up and find a new parent
-
-
-            end;
-
-            if orphanedSince=0 then //give up on the current scan if one was going on
-            begin
-              savestate:=false;
-
-              OutputDebugString('Giving up on parent');
-              if currentscanhasended=false then
+              //check if we should give up on our original parent...
+              if parent.trustsme=false then
               begin
-                currentscanhasended:=true;
-                fTerminatedScan:=true;
+                //the parent didn't trust me anyhow
+                if GetTickCount64>orphanedSince+30*60*1000 then //30 minutes
+
+                  orphanedSince:=0; //give up and find a new parent
+
+              end
+              else
+              begin
+                if GetTickCount64>orphanedSince+60*60*1000 then //1 hour
+                  orphanedSince:=0; //give up and find a new parent
+
+
+              end;
+
+              if orphanedSince=0 then //give up on the current scan if one was going on
+              begin
+                savestate:=false;
+
+                OutputDebugString('Giving up on parent');
+                if currentscanhasended=false then
+                begin
+                  currentscanhasended:=true;
+                  fTerminatedScan:=true;
+                end;
               end;
             end;
           end;
+
         end;
 
-      end;
 
-
-      if parent.socket<>nil then
-      begin
-        //send the update command
-        //receive the result
-        //handle accordingly
-
-        if currentscanhasended=false then
+        if parent.socket<>nil then
         begin
-          if length(parentqueue)>0 then
+          //send the update command
+          //receive the result
+          //handle accordingly
+          phase:=1;
+
+          if currentscanhasended=false then
           begin
-            if maxTimeToScan>0 then
+            if length(parentqueue)>0 then
             begin
-              //check if the scan should stop because of the time
-
-              //if so, terminate the scan,  but don't terminate the thread
-              if ((GetTickCount64-parent.connecttime) div 1000)>maxTimeToScan then
+              if maxTimeToScan>0 then
               begin
-                savestate:=true;
-                fTerminatedScan:=true;  //from now on terminated will return true
+                //check if the scan should stop because of the time
+
+                //if so, terminate the scan,  but don't terminate the thread
+                if ((GetTickCount64-parent.connecttime) div 1000)>maxTimeToScan then
+                begin
+                  savestate:=true;
+                  fTerminatedScan:=true;  //from now on terminated will return true
+                end;
+              end;
+
+              if maxResultsToFind>0 then
+              begin
+                //check if the scan should stop because of the resultcount
+                if getTotalResultsFound>maxResultsToFind then
+                begin
+                  savestate:=true;
+                  fTerminatedScan:=true;
+                end;
               end;
             end;
 
-            if maxResultsToFind>0 then
-            begin
-              //check if the scan should stop because of the resultcount
-              if getTotalResultsFound>maxResultsToFind then
-              begin
-                savestate:=true;
-                fTerminatedScan:=true;
-              end;
-            end;
           end;
 
-        end;
+
+          if terminated and (parent.knowsIAmTerminating=false) then
+          begin
+            //tell a parent i'm going to disconnect
+            parent.socket.WriteByte(PSCMD_PREPAREFORMYTERMINATION);
+            parent.socket.flushWrites;
+
+            parent.knowsIAmTerminating:=true;
+            if parent.socket.ReadByte<>0 then
+              raise exception.create('Parent didn''t respond properly to PSCMD_PREPAREFORMYTERMINATION');
+          end;
 
 
-        if terminated and (parent.knowsIAmTerminating=false) then
-        begin
-          //tell a parent i'm going to disconnect
-          parent.socket.WriteByte(PSCMD_PREPAREFORMYTERMINATION);
+          OutputDebugString('Updating status');
+
+
+          phase:=2;
+          updatemsg.currentscanid:=currentscanid;
+          updatemsg.isidle:=ifthen(isIdle,1,0);
+          updatemsg.potentialthreadcount:=getPotentialThreadCount;
+          updatemsg.actualthreadcount:=getActualThreadCount;
+          updatemsg.pathsevaluated:=getTotalPathsEvaluated;
+          overflowqueuecs.enter;
+          updatemsg.localpathqueuecount:=pathqueuelength+length(overflowqueue);
+          overflowqueuecs.leave;
+
+          updatemsg.totalpathQueueCount:=getTotalPathQueueSize;
+          updatemsg.queuesize:=length(parentqueue);
+
+          parent.socket.WriteByte(PSCMD_UPDATESTATUS);
+          parent.socket.WriteBuffer(updatemsg, sizeof(updatemsg));
           parent.socket.flushWrites;
 
-          parent.knowsIAmTerminating:=true;
-          if parent.socket.ReadByte<>0 then
-            raise exception.create('Parent didn''t respond properly to PSCMD_PREPAREFORMYTERMINATION');
+          lastUpdateSent:=GetTickCount64;
+
+          HandleUpdateStatusReply;
         end;
 
-
-        OutputDebugString('Updating status');
-
-
-        updatemsg.currentscanid:=currentscanid;
-        updatemsg.isidle:=ifthen(isIdle,1,0);
-        updatemsg.potentialthreadcount:=getPotentialThreadCount;
-        updatemsg.actualthreadcount:=getActualThreadCount;
-        updatemsg.pathsevaluated:=getTotalPathsEvaluated;
-        overflowqueuecs.enter;
-        updatemsg.localpathqueuecount:=pathqueuelength+length(overflowqueue);
-        overflowqueuecs.leave;
-
-        updatemsg.totalpathQueueCount:=getTotalPathQueueSize;
-        updatemsg.queuesize:=length(parentqueue);
-
-        parent.socket.WriteByte(PSCMD_UPDATESTATUS);
-        parent.socket.WriteBuffer(updatemsg, sizeof(updatemsg));
-        parent.socket.flushWrites;
-
-        lastUpdateSent:=GetTickCount64;
-
-        HandleUpdateStatusReply;
-      end;
-
-    except
-      on e: exception do
-        handleParentException(e.message);
-    end;
-  finally
-    parentcs.leave;
-  end;
-
-  //update the queued parents
-  parentcs.enter;
-  try
-    i:=0;
-    while i<length(parentqueue)-1 do
-    begin
-      try
-        with parentqueue[i].socket do
-        begin
-          WriteByte(PSCMD_YOUREINTHEQUEUE);
-          WriteDWord(i); //position
-          WriteDWord(length(parentqueue));
-          flushWrites;
-        end;
-
-        inc(i);
       except
-        //error. Disconnect
         on e: exception do
-          HandleParentQueueException(i, e.message);
+          handleParentException(e.message);
       end;
+    finally
+      parentcs.leave;
     end;
-  finally
-    parentcs.leave;
-  end;
 
-
-  //parent released, do some cleanup
-  if currentscanhasended then //cause a flush of the worker threads
-  begin
-    allfinished:=true;
-    localscannerscs.enter;
+    //update the queued parents
+    phase:=3;
+    parentcs.enter;
     try
-      for i:=0 to length(localscanners)-1 do
+      i:=0;
+      while i<length(parentqueue)-1 do
       begin
-        if not localscanners[i].Finished then
-        begin
-          allfinished:=false;
-          localscanners[i].SaveStateAndTerminate;
+        try
+          with parentqueue[i].socket do
+          begin
+            WriteByte(PSCMD_YOUREINTHEQUEUE);
+            WriteDWord(i); //position
+            WriteDWord(length(parentqueue));
+            flushWrites;
+          end;
+
+          inc(i);
+        except
+          //error. Disconnect
+          on e: exception do
+            HandleParentQueueException(i, e.message);
         end;
       end;
+    finally
+      parentcs.leave;
+    end;
 
-      if allfinished then
-      begin
+
+    //parent released, do some cleanup
+    phase:=4;
+    if currentscanhasended then //cause a flush of the worker threads
+    begin
+      allfinished:=true;
+      localscannerscs.enter;
+      try
         for i:=0 to length(localscanners)-1 do
-          localscanners[i].free;
-
-        setlength(localscanners,0);
-      end;
-    finally
-      localscannerscs.Leave;
-    end;
-
-    //cleanup uninitialized children
-    childnodescs.Enter;
-    try
-      for i:=0 to length(childnodes)-1 do
-        if childnodes[i].scandatauploader<>nil then  //a child is busy getting initialized with an scan that has been terminated. Best kill it
         begin
-          allfinished:=false;
-          childnodes[i].scandatauploader.terminate;
+          if not localscanners[i].Finished then
+          begin
+            allfinished:=false;
+            localscanners[i].SaveStateAndTerminate;
+          end;
         end;
-    finally
-      childnodescs.Leave;
+
+        if allfinished then
+        begin
+          for i:=0 to length(localscanners)-1 do
+            localscanners[i].free;
+
+          setlength(localscanners,0);
+        end;
+      finally
+        localscannerscs.Leave;
+      end;
+
+      //cleanup uninitialized children
+      phase:=5;
+      childnodescs.Enter;
+      try
+        for i:=0 to length(childnodes)-1 do
+          if childnodes[i].scandatauploader<>nil then  //a child is busy getting initialized with an scan that has been terminated. Best kill it
+          begin
+            allfinished:=false;
+            childnodes[i].scandatauploader.terminate;
+          end;
+      finally
+        childnodescs.Leave;
+      end;
+
+      if allfinished then //not to be confused with isdone. This can be true, even if some children still have paths to process and send data
+        UpdateStatus_cleanupScan;
     end;
 
-    if allfinished then //not to be confused with isdone. This can be true, even if some children still have paths to process and send data
-      UpdateStatus_cleanupScan;
-  end;
 
+  except
+    on e: exception do
+    begin
+      OutputDebugString('Caught an unhandled exception in UpdateStatus: '+e.message);
+    end;
+  end;
 
 end;
 
