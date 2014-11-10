@@ -7493,17 +7493,45 @@ end;
 
 
 procedure TMainForm.miGeneratePointermapClick(Sender: TObject);
-var frmPointerScanner: TfrmPointerScanner;
+var
+  frmPointerScanner: TfrmPointerScanner;
+  originalAlligned: boolean;
+  originalConnect: boolean;
+
 begin
   frmPointerScanner := tfrmpointerscanner.Create(self);
   frmPointerScanner.Show;
 
   if frmpointerscannersettings = nil then //used over and over
+  begin
     frmpointerscannersettings := tfrmpointerscannersettings.Create(self);
 
+    if processhandler.is64Bit then
+      frmpointerscannersettings.edtReverseStop.text:='7FFFFFFFFFFFFFFF'
+    else
+    begin
+      if Is64bitOS then
+        frmpointerscannersettings.edtReverseStop.text:='FFFFFFFF'
+      else
+        frmpointerscannersettings.edtReverseStop.text:='7FFFFFFF';
+    end;
+  end;
+  originalAlligned:=frmpointerscannersettings.CbAlligned.checked;
+  frmpointerscannersettings.CbAlligned.checked:=true;
+
+  originalConnect:=frmpointerscannersettings.cbConnectToNode.checked;
+  frmpointerscannersettings.cbConnectToNode.checked:=false;
+
+
+
   frmpointerscannersettings.rbGeneratePointermap.checked:=true;
+  frmpointerscannersettings.btnOk.Click;
+
   frmPointerScanner.SkipNextScanSettings:=true;
   frmPointerScanner.Method3Fastspeedandaveragememoryusage1.Click;
+
+  frmpointerscannersettings.CbAlligned.checked:=originalAlligned;
+  frmpointerscannersettings.cbConnectToNode.checked:=originalConnect;
 end;
 
 procedure TMainForm.Pointerscanforthisaddress1Click(Sender: TObject);
