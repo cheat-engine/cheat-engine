@@ -93,6 +93,8 @@ type
     ScanDataStartTime: qword;
     hasReceivedScandata: boolean;
 
+    LastUpdateReceived: qword;
+
     scanresultDownloader: TThread; //not nil if the results it has sent me are still being processed
     resultstream: TFilestream; //if initializer this holds an open filestream to the .ptr associated with this child
   end;

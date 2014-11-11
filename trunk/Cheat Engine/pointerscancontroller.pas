@@ -1351,6 +1351,7 @@ begin
       l[i].ScanDataTotalSize:=childnodes[i].ScanDataTotalSize;
       l[i].ScanDataStartTime:=childnodes[i].ScanDataStartTime;
       l[i].downloadingResuls:=childnodes[i].scanresultDownloader<>nil;
+      l[i].lastUpdateReceived:=childnodes[i].lastUpdateReceived;
     end;
   finally
     childnodescs.leave;
@@ -2099,7 +2100,7 @@ begin
 
       if currentscanhasended and (savestate=false) then
       begin
-        OutputDebugString('Curent scan has anded and savestate=true');
+        OutputDebugString('Curent scan has ended and savestate=true');
         result:=true;
         exit;
       end;
@@ -2991,8 +2992,11 @@ begin
       child^.nontrustedlastpathstime:=GetTickCount64;
     end;
 
-    child^.idle:=false; //not idle anymore
     inc(child^.pathqueuesize, length(paths));
+
+    if child^.idle then
+      child^.idle:=child^.pathqueuesize=0; //mark it as active
+
   except
     //add these paths to the overflow queue
     appendDynamicPathQueueToOverflowQueue(paths);
@@ -3028,7 +3032,7 @@ begin
   child:=@childnodes[index];
   s:=child.socket;
 
-  OutputDebugString(child.ip+' : HandleUpdateStatusMessage()');
+
 
   s.ReadBuffer(updatemsg, sizeof(updatemsg));
 
@@ -3040,6 +3044,11 @@ begin
   child^.pathqueuesize:=updatemsg.localpathqueuecount;
   child^.totalpathqueuesize:=updatemsg.totalpathQueueCount;
   child^.queuesize:=updatemsg.queuesize;
+
+  child^.LastUpdateReceived:=GetTickCount64;
+
+  OutputDebugString(child.ip+' : HandleUpdateStatusMessage(idle='+inttostr(updatemsg.isidle)+')');
+
 
   if initializer and (isidle or terminated) then //no more pathqueues and all scanners and children's scanners are waiting for new paths (or terminated by the user)
   begin
@@ -3053,17 +3062,26 @@ begin
   //now reply
   if currentscanhasended or ((not child^.idle) and (updatemsg.currentscanid<>currentscanid)) then //scan terminated , or
   begin
+    OutputDebugString('Telling child current scan has ended.  (currentscanhasended='+BoolToStr(currentscanhasended,'true','false')+' updatemsg.currentscanid='+inttostr(updatemsg.currentscanid)+' currentscanid='+inttostr(currentscanid));
+
     child^.socket.WriteByte(PSUPDATEREPLYCMD_CURRENTSCANHASENDED);
 
     if currentscanhasended then
     begin
       saveresults:=not (terminated and (savestate=false)); //only false if the user terminated the scan and chose not to save the state
 
+      if saveresults then
+        OutputDebugString('Save the results')
+      else
+        OutputDebugString('Discard the results');
+
       child^.socket.WriteByte(ifthen(saveresults, 1, 0))
     end
     else
     begin
       //special case that under normal situations shouldn't occur (could happen if a scan was stopped and a new one was started before the children where idle, or a long lost child joins)
+
+      OutputDebugString('Discard the results');
       child^.socket.WriteByte(0); //wrong scan id. I'm waiting for him to kill his children. Don't let him send me paths...
     end;
 
@@ -4876,9 +4894,9 @@ begin
     TPointerscanWorkerNetwork(scanner).OnFlushResults:=UploadResults;
 
     if downloadingscandata_stoptime<>downloadingscandata_starttime then
-      TPointerscanWorkerNetwork(scanner).FlushSize:=floor((downloadingscandata_total / ((downloadingscandata_stoptime-downloadingscandata_starttime)/1000)) * 5); //just an arbitrary value, it doesn't mean much.
-
-    //else just use the default size
+      TPointerscanWorkerNetwork(scanner).FlushSize:=floor((downloadingscandata_total / ((downloadingscandata_stoptime-downloadingscandata_starttime)/1000)) * 5) //just an arbitrary value, it doesn't mean much.
+    else
+      TPointerscanWorkerNetwork(scanner).FlushSize:=15*1024*1024;  //else just use the default size
 
   end;
 

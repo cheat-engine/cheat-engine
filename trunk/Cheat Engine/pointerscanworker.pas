@@ -185,7 +185,7 @@ end;
 
 procedure TPointerscanWorkerNetwork.setFlushSize(size: integer);
 begin
-  fflushsize:=max(1024, min(size, 15*1024*1024)); //value between 1kb and 15mb
+  fflushsize:=max(4096, min(size, 15*1024*1024)); //value between 1kb and 15mb
 
   //debug:
   //fflushsize:=0; //make it flush every time
@@ -193,6 +193,7 @@ end;
 
 procedure TPointerscanWorkerNetwork.flushIfNeeded;
 begin
+
   if (resultscs.Position>fflushsize) or (resultsms.position>fflushsize) then
     flushresults;
 end;

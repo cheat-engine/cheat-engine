@@ -45,6 +45,8 @@ type
     ScanDataTotalSize: qword;
     ScanDataStartTime: qword;
     downloadingResuls: boolean;
+
+    lastUpdateReceived: qword;
   end;
 
   TConnectionEntryArray=array of TPublicConnectionEntry;

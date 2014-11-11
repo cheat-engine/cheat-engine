@@ -186,8 +186,11 @@ var reg: TRegistry;
 begin
   threadcount:=strtoint(edtThreadcount.text);
   listenport:=strtoint(edtPort.text);
+
   if cbConnectToOtherNode.checked then
-    connectport:=strtoint(edtConnectPort.text);
+    connectport:=strtoint(edtConnectPort.text)
+  else
+    TryStrToInt(edtConnectPort.text, connectport);
 
   if cbMaxFoundResults.checked then
     maxresultstofind:=strtoint(edtMaxResultsToFind.text)
