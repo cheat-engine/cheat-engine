@@ -300,6 +300,7 @@ type
             totalpathquesize: TTreenode; //Total queuesize: %d
             totalpathsEvaluated: TTreenode; //Total paths evaluated: %d
             pathspersecond: TTreenode; //Paths per second: %d
+            lastupdate: TTreenode;
           end;
 
 
@@ -2194,6 +2195,7 @@ begin
               pathqueuesize:=tvInfo.Items.AddChild(tn, '');
               totalpathquesize:=tvInfo.Items.AddChild(tn, '');
               totalpathsEvaluated:=tvInfo.Items.AddChild(tn, '');
+              lastUpdate:=tvInfo.Items.AddChild(tn, '');
              // pathspersecond:=tvInfo.Items.AddChild(tn, '');
             end;
           end;
@@ -2231,6 +2233,7 @@ begin
             pathqueuesize.text:='Queuesize: '+inttostr(connectionlist[i].pathquesize);
             totalpathquesize.text:='Total Queuesize: '+inttostr(connectionlist[i].totalpathqueuesize);
             totalpathsEvaluated.text:='Paths evaluated: '+inttostr(connectionlist[i].pathsevaluated);
+            lastupdate.text:='Last update: '+inttostr((GetTickCount64-connectionlist[i].lastUpdateReceived) div 1000);
             //pathspersecond.text:='Paths/second: '+inttostr(connectionlist[i].pathspersecond);
           end;
         end;
