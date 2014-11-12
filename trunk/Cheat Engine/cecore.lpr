@@ -17,7 +17,7 @@ public
 end;
 var
   MainThread: TMainThread;
-  MainThreadEnv: PJNIEnv;
+
 
   memscan: TMemScan;
 

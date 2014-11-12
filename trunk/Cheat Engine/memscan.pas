@@ -572,12 +572,15 @@ type
     savedresults: tstringlist;
     fonlyOne: boolean;
 
-    fOnScanDone: TNotifyEvent;
 
-    procedure ScanDone; //called by the scancontroller
+
+
     procedure DeleteScanfolder;
     procedure createScanfolder;
     function DeleteFolder(dir: string) : boolean;
+  protected
+    fOnScanDone: TNotifyEvent;
+    procedure ScanDone; virtual; //called by the scancontroller
   public
 
 
@@ -5043,15 +5046,15 @@ begin
         while not (terminated or scanners[i].isdone) do
         begin
          {$ifdef android}
-           if not scanners[i].Finished then
-             sleep(25);
+         if not scanners[i].Finished then
+           sleep(25);
          {$endif}
 
          {$ifdef windows}
-          WaitForSingleObject(scanners[i].Handle,25); //25ms, an eternity for a cpu
-          if OwningMemScan.progressbar<>nil then
-            synchronize(updategui);
-          {$endif}
+         WaitForSingleObject(scanners[i].Handle,25); //25ms, an eternity for a cpu
+         {$endif}
+         if OwningMemScan.progressbar<>nil then
+           synchronize(updategui);
         end;
 
         //If terminated then stop the scanner thread and wait for it to finish
@@ -5307,7 +5310,7 @@ begin
     
   if haserror then
   begin
-    //synchronize(errorpopup);
+    synchronize(errorpopup);
     exit;
   end;
 

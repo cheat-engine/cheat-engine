@@ -2995,7 +2995,7 @@ begin
     inc(child^.pathqueuesize, length(paths));
 
     if child^.idle then
-      child^.idle:=child^.pathqueuesize=0; //mark it as active
+      child^.idle:=child^.pathqueuesize=0; //mark it as active if count>0
 
   except
     //add these paths to the overflow queue
@@ -3572,6 +3572,8 @@ begin
     finally
       buf.free;
     end;
+
+
 
   end;
 
