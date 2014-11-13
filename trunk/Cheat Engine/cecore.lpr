@@ -80,7 +80,7 @@ procedure CEConnect(PEnv: PJNIEnv; Obj: JObject); cdecl;
 var c: TCEConnection;
 begin
   log('CEConnect called');
-  host:=StrToNetAddr('192.168.0.12');
+  host:=StrToNetAddr('192.168.0.10');
   port:=ShortHostToNet(52736);
 
   log('Host='+inttohex(host.s_addr,1));

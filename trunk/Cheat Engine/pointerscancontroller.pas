@@ -2926,7 +2926,6 @@ begin
       else
         appendDynamicPathQueueToOverflowQueue(paths); //unexpected disconnect, save these paths
 
-
     finally
       parentcs.leave;
     end;

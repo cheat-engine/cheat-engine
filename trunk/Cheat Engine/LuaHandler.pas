@@ -5508,7 +5508,7 @@ begin
     lua_register(LuaVM, 'getProcessIDFromProcessName', getProcessIDFromProcessName);
     lua_register(LuaVM, 'openProcess', openProcess);
     lua_register(LuaVM, 'debugProcess', debugProcess);
-
+    lua_register(LuaVM, 'debug_getBreakpointList', debug_getBreakpointList);
     lua_register(LuaVM, 'debug_isDebugging', debug_isDebugging);
     lua_register(LuaVM, 'debug_canBreak', debug_canBreak);
     lua_register(LuaVM, 'debug_setBreakpoint', debug_setBreakpoint);

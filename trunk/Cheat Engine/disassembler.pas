@@ -604,6 +604,8 @@ begin
                 LastDisassembleData.modrmValueType:=dvtAddress;
                 LastDisassembleData.modrmValue:=dwordptr^;
 
+                LastDisassembleData.riprelative:=modrmbyte+1;
+
               end
               else
               begin
@@ -1346,6 +1348,7 @@ begin
   lastdisassembledata.parameterValueType:=dvtNone;
   LastDisassembleData.hasSib:=false;
   LastDisassembleData.datasize:=0;
+  LastDisassembleData.riprelative:=0;
 
   if assigned(OnDisassembleOverride) then //check if the user has defined it's own disassembler
   begin
