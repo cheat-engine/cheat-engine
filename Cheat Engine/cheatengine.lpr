@@ -86,7 +86,7 @@ uses
   PointerscanWorker, PointerscanStructures, PointerscanController, zstreamext,
   PointerscanConnector, PointerscanNetworkStructures, AsyncTimer, 
 PointerscanSettingsIPConnectionList, MemoryStreamReader, commonTypeDefs, 
-Parsers, Globals, NullStream;
+Parsers, Globals, NullStream, RipRelativeScanner;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in

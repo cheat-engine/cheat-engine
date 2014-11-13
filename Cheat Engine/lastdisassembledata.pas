@@ -38,6 +38,8 @@ type
     iscall: boolean; //set if it's a call
     isret: boolean; //set if it's a ret
     isconditionaljump: boolean; //set if it's only effective when an conditon is met
+
+    riprelative: integer; //0 or contains the offset where the rip relative part of the code is
   end;
 
 implementation
