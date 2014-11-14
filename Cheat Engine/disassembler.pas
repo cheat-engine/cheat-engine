@@ -10542,8 +10542,16 @@ begin
 
     //adjust for the prefix.
     if j<>0 then
+    begin
       for i:=0 to LastDisassembleData.SeperatorCount-1 do
         inc(LastDisassembleData.Seperators[i],prefixsize);
+
+      if LastDisassembleData.riprelative<>0 then
+        inc(LastDisassembleData.riprelative, prefixsize);
+    end;
+
+
+
 
     //todo: Next time the disassembler is getting an averhaul, do something about the prefix counting and the unnecessary readprocessmemorys associated with it
 

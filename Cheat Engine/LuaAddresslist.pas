@@ -55,6 +55,7 @@ var
   addresslist: TAddresslist;
   index: integer;
 begin
+  result:=0;
   addresslist:=luaclass_getClassObject(L);
   if lua_gettop(L)>=1 then
   begin

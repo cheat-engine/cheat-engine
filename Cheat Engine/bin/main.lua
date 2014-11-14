@@ -2063,7 +2063,7 @@ Methods
 
 
 DissectCode class: (Inheritance: Object)
-getDissectCode() : Created or returns the current code DissectCode object
+getDissectCode() : Creates or returns the current code DissectCode object
 
 properties:
 methods:
@@ -2083,6 +2083,16 @@ methods:
 
   saveToFile(filename)
   loadFromFile(filename)
+
+RIPRelativeScanner class: (Inheritance: Object)
+createRipRelativeScanner(modulename): Creates a RIP relative scanner. This will scan the provided module for RIP relative instructions which you can use for whatever you like
+properties:
+  Count: integer - The number of instructions found that have a RIP relative address
+  Address[]: integer - An array to access the results. The address is the address of the RIP relative offset in the instruction
+
+methods:
+-
+ 
 
 
 
