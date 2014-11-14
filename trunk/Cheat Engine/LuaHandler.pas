@@ -88,8 +88,8 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   LuaTableFile, LuaMemoryRecordHotkey, LuaMemoryView, LuaD3DHook, LuaDisassembler,
   LuaDissectCode, LuaByteTable, LuaBinary, lua_server, HotkeyHandler, LuaPipeClient,
   LuaPipeServer, LuaTreeview, LuaTreeNodes, LuaTreeNode, LuaCalendar, LuaSymbolListHandler,
-  LuaCommonDialog, LuaFindDialog, LuaSettings, LuaPageControl, SymbolListHandler,
-  processhandlerunit, processlist, Globals;
+  LuaCommonDialog, LuaFindDialog, LuaSettings, LuaPageControl, LuaRipRelativeScanner,
+  SymbolListHandler, processhandlerunit, processlist, Globals;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -5440,6 +5440,7 @@ begin
   end;
 end;
 
+
 procedure InitializeLua;
 var s: tstringlist;
   k32: THandle;
@@ -5855,6 +5856,7 @@ begin
     initializeLuaPageControl;
 
     initializeLuaCalendar;
+    initializeLuaRipRelativeScanner;
 
 
 
