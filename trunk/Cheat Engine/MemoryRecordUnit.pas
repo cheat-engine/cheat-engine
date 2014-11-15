@@ -100,6 +100,8 @@ type
     fDropDownDescriptionOnly: boolean;
     fDisplayAsDropDownListItem: boolean;
 
+    fDontSave: boolean;
+
     fonactivate, fondeactivate: TMemoryRecordActivateEvent;
     fOnDestroy: TNotifyEvent;
     function getByteSize: integer;
@@ -229,6 +231,7 @@ type
     property CustomTypeName: string read fCustomTypeName write setCustomTypeName;
     property Value: string read GetValue write SetValue;
     property DisplayValue: string read GetDisplayValue;
+    property DontSave: boolean read fDontSave write fDontSave;
     property AllowDecrease: boolean read fallowDecrease write setAllowDecrease;
     property AllowIncrease: boolean read fallowIncrease write setAllowIncrease;
     property ShowAsHex: boolean read fShowAsHex write setShowAsHex;
@@ -841,7 +844,9 @@ begin
 
     //it is selected, check if it has a parent that is selected, if not, continue, else exit
     if hasSelectedParent then exit;
-  end;
+  end
+  else
+    if fDontSave then exit; //don't save this and it's children if it's not a selection copy (and if it is a selection, don't copy the fDontSave)
 
 
   doc:=node.OwnerDocument;
