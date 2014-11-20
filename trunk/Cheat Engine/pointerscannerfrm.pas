@@ -2744,10 +2744,12 @@ begin
         freeandnil(ds);
 
       f.free;
+
+      pointermapprogressbar.position:=100;
     end;
   end;
 
-  pointermapprogressbar.position:=100;
+
 
 
   //fill the modulelist with baseaddresses
