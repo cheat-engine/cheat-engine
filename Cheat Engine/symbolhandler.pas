@@ -2844,7 +2844,7 @@ If it is a invalid pointer, or can not be resolved, the result is NULL
 var i: integer;
     list: tstringlist;
     offsets: array of integer;
-    baseaddress: dword;
+    baseaddress: ptruint;
     off: string;
     realaddress, realaddress2: ptrUint;
     check: boolean;
