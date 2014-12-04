@@ -86,7 +86,7 @@ begin
 end;
 
 procedure TAddressParser.aregister;
-var tmp: dword;
+var tmp: ptruint;
     tmps: string;
     c: Pcontext;
 begin
