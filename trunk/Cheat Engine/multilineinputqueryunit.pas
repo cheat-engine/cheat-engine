@@ -10,7 +10,8 @@ uses
 
 
 
-function MultilineInputQuery(const ACaption, APrompt : String; Values : TStrings) : Boolean;
+function MultilineInputQuery(const ACaption, APrompt : String; Values : TStrings) : Boolean; overload;
+function MultilineInputQuery(const ACaption, APrompt : String; var Value : String) : Boolean; overload;
 
 implementation
 
@@ -28,10 +29,25 @@ type
     procedure Memo1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   end;
 
+function MultilineInputQuery(const ACaption, APrompt : String; var Value : String) : Boolean;
+var values: Tstringlist;
+begin
+  values:=tstringlist.create;
+  try
+    values.Text:=Value;
+    result:=MultilineInputQuery(ACaption, APrompt, Values);
+    if result then
+      value:=values.Text;
+  finally
+    values.free;
+  end;
+end;
+
 function MultilineInputQuery(const ACaption, APrompt : String; Values : TStrings) : Boolean;
 var f: TfrmMultilineInputQuery;
   i: integer;
 begin
+  result:=false;
   f:=TfrmMultilineInputQuery.Create(application);
   f.Caption:=ACaption;
   f.lblPrompt.caption:=APrompt;
@@ -47,6 +63,7 @@ begin
   begin
     values.Clear;
     values.AddStrings(f.memo1.lines);
+    result:=true;
   end;
 
   f.free;

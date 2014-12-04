@@ -7,7 +7,8 @@ interface
 uses
   LCLIntf, LCLType, Classes, SysUtils, controls, stdctrls, comctrls, ExtCtrls, graphics,
   math, MemoryRecordUnit, FPCanvas, cefuncproc, newkernelhandler, menus,dom,
-  XMLRead,XMLWrite, symbolhandler, AddresslistEditor, inputboxtopunit, frmMemrecComboboxUnit, commonTypeDefs;
+  XMLRead,XMLWrite, symbolhandler, AddresslistEditor, inputboxtopunit,
+  frmMemrecComboboxUnit, commonTypeDefs, multilineinputqueryunit;
 
 type
   TTreeviewWithScroll=class(TTreeview)
@@ -970,7 +971,12 @@ begin
   if memrec.DropDownCount=0 then
   begin
     value:=AnsiToUtf8(memrec.value);
-    canceled:=not InputQuery(rsChangeValue, rsWhatValueToChangeThisTo, value);
+
+    if memrec.VarType=vtString then
+      canceled:=not MultilineInputQuery(rsChangeValue, rsWhatValueToChangeThisTo, value)
+    else
+      canceled:=not InputQuery(rsChangeValue, rsWhatValueToChangeThisTo, value);
+
     value:=Utf8ToAnsi(value);
   end
   else
