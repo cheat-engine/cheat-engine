@@ -11,7 +11,7 @@ object frmSymbolhandler: TfrmSymbolhandler
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.3'
   object Panel1: TPanel
     Left = 320
     Height = 338
@@ -24,17 +24,17 @@ object frmSymbolhandler: TfrmSymbolhandler
     TabOrder = 0
     object Label3: TLabel
       Left = 32
-      Height = 17
+      Height = 16
       Top = 10
-      Width = 125
+      Width = 124
       Caption = 'Unique symbolname'
       ParentColor = False
     end
     object Label2: TLabel
       Left = 63
-      Height = 17
+      Height = 16
       Top = 59
-      Width = 52
+      Width = 51
       Caption = 'Address'
       ParentColor = False
     end
@@ -74,7 +74,7 @@ object frmSymbolhandler: TfrmSymbolhandler
     TabOrder = 1
     object Label1: TLabel
       Left = 0
-      Height = 17
+      Height = 16
       Top = 0
       Width = 320
       Align = alTop
@@ -83,8 +83,8 @@ object frmSymbolhandler: TfrmSymbolhandler
     end
     object ListView1: TListView
       Left = 0
-      Height = 321
-      Top = 17
+      Height = 322
+      Top = 16
       Width = 320
       Align = alClient
       Columns = <      
@@ -106,7 +106,7 @@ object frmSymbolhandler: TfrmSymbolhandler
       TabOrder = 0
       ViewStyle = vsReport
       OnClick = ListView1Click
-      OnDblClick = Delete1Click
+      OnDblClick = ListView1DblClick
     end
   end
   object PopupMenu1: TPopupMenu
