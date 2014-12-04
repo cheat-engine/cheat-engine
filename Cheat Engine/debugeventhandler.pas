@@ -138,7 +138,7 @@ procedure TDebugThreadHandler.frmchangedaddresses_AddRecord;
 begin
   TDebuggerthread(debuggerthread).execlocation:=44;
 
-  if currentBP.active and (currentBP.frmchangedaddresses<>nil) then
+  if (((currentbp.breakpointMethod=bpmException) and not currentbp.markedfordeletion) or currentBP.active) and (currentBP.frmchangedaddresses<>nil) then
     currentbp.frmchangedaddresses.AddRecord;
 end;
 
@@ -146,7 +146,7 @@ procedure TDebugThreadHandler.foundCodeDialog_AddRecord;
 begin
   TDebuggerthread(debuggerthread).execlocation:=43;
 
-  if currentBP.active and (currentbp.FoundcodeDialog<>nil) then  //it could have been deactivated
+  if (((currentbp.breakpointMethod=bpmException) and not currentbp.markedfordeletion) or currentBP.active) and (currentbp.FoundcodeDialog<>nil) then  //it could have been deactivated
   begin
     TDebuggerthread(debuggerthread).execlocation:=431;
     currentBP.FoundcodeDialog.usesdebugregs:=currentBP.breakpointMethod=bpmDebugRegister;
@@ -918,6 +918,7 @@ begin
       begin
         TDebuggerthread(debuggerthread).execlocation:=32;
         //outputdebugstring('Save registers and continue');
+
         if ((bpp.breakpointMethod=bpmException) and (not bpp.markedfordeletion)) or bpp.active then
         begin
           TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), foundCodeDialog_AddRecord);
