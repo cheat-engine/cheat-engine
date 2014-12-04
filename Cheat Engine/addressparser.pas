@@ -271,10 +271,17 @@ var i,j: integer;
     scount,vcount: integer;
     tempstr: string;
     haserror: boolean;
+
+    c: Pcontext;
 begin
   if skipsymhandler=false then
   begin
-    result:=symhandler.getaddressfromname(s,false,haserror);
+    if SpecialContext<>nil then
+      c:=SpecialContext
+    else
+      c:=@memorybrowser.lastdebugcontext;
+
+    result:=symhandler.getaddressfromname(s,false,haserror, c);
     if (result<>0) and (not haserror) then exit;
   end;
 
