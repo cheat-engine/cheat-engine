@@ -21,10 +21,12 @@ type
   { TfrmDebugEvents }
 
   TfrmDebugEvents = class(TForm)
+    Button1: TButton;
     lbDebugEvents: TListBox;
     MenuItem1: TMenuItem;
     Panel1: TPanel;
     PopupMenu1: TPopupMenu;
+    procedure Button1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure lbDebugEventsDblClick(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
@@ -50,6 +52,11 @@ begin
   clear;
   frmDebugEvents:=nil;
   CloseAction:=caFree;
+end;
+
+procedure TfrmDebugEvents.Button1Click(Sender: TObject);
+begin
+  close;
 end;
 
 procedure TfrmDebugEvents.lbDebugEventsDblClick(Sender: TObject);

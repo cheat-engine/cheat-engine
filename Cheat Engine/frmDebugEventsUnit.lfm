@@ -1,14 +1,14 @@
 object frmDebugEvents: TfrmDebugEvents
-  Left = 1263
+  Left = 670
   Height = 301
-  Top = 659
+  Top = 205
   Width = 641
   Caption = 'Debug Events'
   ClientHeight = 301
   ClientWidth = 641
   OnClose = FormClose
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.3'
   object lbDebugEvents: TListBox
     Left = 0
     Height = 251
@@ -27,7 +27,18 @@ object frmDebugEvents: TfrmDebugEvents
     Width = 641
     Align = alBottom
     BevelOuter = bvNone
+    ClientHeight = 50
+    ClientWidth = 641
     TabOrder = 1
+    object Button1: TButton
+      Left = 288
+      Height = 25
+      Top = 16
+      Width = 75
+      Caption = 'Close'
+      OnClick = Button1Click
+      TabOrder = 0
+    end
   end
   object PopupMenu1: TPopupMenu
     left = 116
