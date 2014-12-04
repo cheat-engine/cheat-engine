@@ -125,7 +125,11 @@ begin
     li:=listview1.Items[listview1.itemindex];
 
     edtSymbolname.Text:=li.Caption;
-    edtAddress.text:=li.SubItems[0];
+    if li.SubItems.Count>0 then
+      edtAddress.text:=li.SubItems[0]
+    else
+      edtAddress.text:='';
+
   end;
 end;
 
