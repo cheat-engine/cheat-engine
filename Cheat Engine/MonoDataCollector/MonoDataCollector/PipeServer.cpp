@@ -157,6 +157,9 @@ void CPipeServer::InitMono()
 
 			mono_signature_get_desc = (MONO_SIGNATURE_GET_DESC)GetProcAddress(hMono, "mono_signature_get_desc");
 			mono_signature_get_param_count = (MONO_SIGNATURE_GET_PARAM_COUNT)GetProcAddress(hMono, "mono_signature_get_param_count");
+			mono_signature_get_return_type = (MONO_SIGNATURE_GET_RETURN_TYPE)GetProcAddress(hMono, "mono_signature_get_return_type");
+			
+
 
 			mono_compile_method=(MONO_COMPILE_METHOD)GetProcAddress(hMono, "mono_compile_method");	
 			mono_free_method=(MONO_FREE_METHOD)GetProcAddress(hMono, "mono_free_method");	
@@ -566,6 +569,24 @@ void CPipeServer::GetMethodSignature()
 	WriteWord(strlen(sig));
 	Write(sig, strlen(sig));
 	g_free(sig);	
+
+	//12/5/2014:send the returntype as well
+	void *returntype = mono_signature_get_return_type(methodsignature);
+
+	if (returntype)
+	{
+		char *tname = mono_type_get_name(returntype);
+		if (tname)
+		{
+			WriteByte(strlen(tname));
+			Write(tname, strlen(tname));
+			g_free(tname);
+		}
+		else
+			WriteByte(0);
+	}
+	else
+		WriteByte(0);
 }
 
 void CPipeServer::Start(void)

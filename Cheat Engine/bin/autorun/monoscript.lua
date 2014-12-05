@@ -721,6 +721,7 @@ function mono_method_getSignature(method)
 
   local result=''
   local parameternames={}
+  local returntype=''
   monopipe.lock()
   monopipe.writeByte(MONOCMD_GETMETHODSIGNATURE)
   monopipe.writeQword(method)
@@ -741,8 +742,12 @@ function mono_method_getSignature(method)
   local resultlength=monopipe.readWord();
   result=monopipe.readString(resultlength);
 
+  local returntypelength=monopipe.readByte()
+  returntype=monopipe.readString(returntypelength)  
+  
+
   monopipe.unlock()
-  return result, parameternames;
+  return result, parameternames, returntype;
 end
 
 function mono_method_disassemble(method)

@@ -92,6 +92,7 @@ typedef char* (__cdecl *MONO_DISASM_CODE)(void *dishelper, void *method, void *i
 
 typedef char* (__cdecl *MONO_SIGNATURE_GET_DESC)(void *signature, int include_namespace);
 typedef int (__cdecl *MONO_SIGNATURE_GET_PARAM_COUNT)(void *signature);
+typedef void* (__cdecl *MONO_SIGNATURE_GET_RETURN_TYPE)(void *signature);
 
 
 typedef void* (__cdecl *MONO_IMAGE_RVA_MAP)(void *image, UINT32 addr);
@@ -152,6 +153,7 @@ private:
 
 	MONO_SIGNATURE_GET_DESC mono_signature_get_desc;
 	MONO_SIGNATURE_GET_PARAM_COUNT mono_signature_get_param_count;
+	MONO_SIGNATURE_GET_RETURN_TYPE mono_signature_get_return_type;
 
 
 	MONO_COMPILE_METHOD mono_compile_method;
