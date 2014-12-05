@@ -28,6 +28,7 @@
 #define MONOCMD_TERMINATE 22
 #define MONOCMD_DISASSEMBLE 23
 #define MONOCMD_GETMETHODSIGNATURE 24
+#define MONOCMD_GETPARENTCLASS 25
 
 typedef void (__cdecl *MonoDomainFunc) (void *domain, void *user_data);
 typedef void (__cdecl *GFunc)          (void *data, void *user_data);
@@ -58,6 +59,9 @@ typedef void* (__cdecl *MONO_CLASS_GET)(void *image, UINT32 tokenindex);
 typedef void* (__cdecl *MONO_CLASS_GET_METHODS)(void *klass, void *iter);
 typedef void* (__cdecl *MONO_CLASS_GET_METHOD_FROM_NAME)(void *klass, char *methodname, int paramcount);
 typedef void* (__cdecl *MONO_CLASS_GET_FIELDS)(void *klass, void *iter);
+typedef void* (__cdecl *MONO_CLASS_GET_PARENT)(void *klass);
+
+
 typedef int (__cdecl *MONO_CLASS_NUM_FIELDS)(void *klass);
 typedef int (__cdecl *MONO_CLASS_NUM_METHODS)(void *klass);
 
@@ -112,6 +116,8 @@ private:
 	MONO_OBJECT_GET_CLASS mono_object_get_class;
 	MONO_CLASS_GET_NAME mono_class_get_name;
 	MONO_CLASS_GET_NAMESPACE mono_class_get_namespace;
+	MONO_CLASS_GET_PARENT mono_class_get_parent;
+
 	MONO_DOMAIN_FOREACH mono_domain_foreach;
 	MONO_DOMAIN_SET mono_domain_set;
 	MONO_ASSEMBLY_FOREACH mono_assembly_foreach;	
@@ -190,12 +196,13 @@ private:
 	void FindMethod();
 	void GetMethodName();
 	void GetMethodClass();
-	void GetClassName();
+	void GetKlassName();
 	void GetClassNamespace();
 	void FreeMethod();
 
 	void DisassembleMethod();
 	void GetMethodSignature();
+	void GetParentClass();
 
 public:
 	CPipeServer(void);

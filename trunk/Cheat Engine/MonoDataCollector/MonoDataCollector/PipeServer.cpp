@@ -133,7 +133,8 @@ void CPipeServer::InitMono()
 			mono_class_get_namespace=(MONO_CLASS_GET_NAMESPACE)GetProcAddress(hMono, "mono_class_get_namespace");
 			mono_class_get_methods=(MONO_CLASS_GET_METHODS)GetProcAddress(hMono, "mono_class_get_methods");		
 			mono_class_get_method_from_name=(MONO_CLASS_GET_METHOD_FROM_NAME)GetProcAddress(hMono, "mono_class_get_method_from_name");		
-			mono_class_get_fields=(MONO_CLASS_GET_FIELDS)GetProcAddress(hMono, "mono_class_get_fields");		
+			mono_class_get_fields=(MONO_CLASS_GET_FIELDS)GetProcAddress(hMono, "mono_class_get_fields");	
+			mono_class_get_parent=(MONO_CLASS_GET_PARENT)GetProcAddress(hMono, "mono_class_get_parent");
 			
 			mono_class_num_fields=(MONO_CLASS_NUM_FIELDS)GetProcAddress(hMono, "mono_class_num_fields");	
 			mono_class_num_methods=(MONO_CLASS_NUM_METHODS)GetProcAddress(hMono, "mono_class_num_methods");		
@@ -505,7 +506,16 @@ void CPipeServer::GetMethodClass()
 	WriteQword((UINT_PTR)result);
 }
 
-void CPipeServer::GetClassName()
+
+void CPipeServer::GetParentClass(void)
+{
+	void *klass = (void *)ReadQword();
+	UINT_PTR parent=(UINT_PTR)mono_class_get_parent(klass);
+	
+	WriteQword(parent);
+}
+
+void CPipeServer::GetKlassName()
 {
 	void *klass=(void *)ReadQword();
 	char *methodname=mono_class_get_name(klass);
@@ -588,6 +598,7 @@ void CPipeServer::GetMethodSignature()
 	else
 		WriteByte(0);
 }
+
 
 void CPipeServer::Start(void)
 {
@@ -681,7 +692,7 @@ void CPipeServer::Start(void)
 						break;
 
 					case MONOCMD_GETCLASSNAME:
-						GetClassName();
+						GetKlassName();
 						break;
 
 					case MONOCMD_GETCLASSNAMESPACE:
@@ -701,6 +712,10 @@ void CPipeServer::Start(void)
 
 					case MONOCMD_GETMETHODSIGNATURE:
 						GetMethodSignature();
+						break;
+
+					case MONOCMD_GETPARENTCLASS:
+						GetParentClass();
 						break;
 				}
 			}			

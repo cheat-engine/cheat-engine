@@ -23,6 +23,7 @@ MONOCMD_FREEMETHOD=21
 MONOCMD_TERMINATE=22
 MONOCMD_DISASSEMBLE=23
 MONOCMD_GETMETHODSIGNATURE=24
+MONOCMD_GETPARENTCLASS=25
 
 
 MONO_TYPE_END        = 0x00       -- End of List
@@ -461,6 +462,20 @@ function mono_class_getNamespace(clasS)
   return result;
 end
 
+function mono_class_getParent(class)
+  if debug_canBreak() then return nil end
+
+  local result=0
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_GETPARENTCLASS)
+  monopipe.writeQword(class)  
+
+  result=monopipe.readQword()
+
+  monopipe.unlock()
+  return result;
+end
+
 
 function mono_class_enumFields(class)
   if debug_canBreak() then return nil end
@@ -717,6 +732,7 @@ function mono_method_getHeader(method)
 end
 
 function mono_method_getSignature(method)
+--Gets the method 'signature', the corresponding parameter names, and the returntype
   if debug_canBreak() then return nil end
 
   local result=''
