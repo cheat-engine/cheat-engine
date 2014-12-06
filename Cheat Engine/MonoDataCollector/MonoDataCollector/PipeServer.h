@@ -29,6 +29,7 @@
 #define MONOCMD_DISASSEMBLE 23
 #define MONOCMD_GETMETHODSIGNATURE 24
 #define MONOCMD_GETPARENTCLASS 25
+#define MONOCMD_GETSTATICFIELDADDRESSFROMCLASS 26
 
 typedef void (__cdecl *MonoDomainFunc) (void *domain, void *user_data);
 typedef void (__cdecl *GFunc)          (void *data, void *user_data);
@@ -60,6 +61,9 @@ typedef void* (__cdecl *MONO_CLASS_GET_METHODS)(void *klass, void *iter);
 typedef void* (__cdecl *MONO_CLASS_GET_METHOD_FROM_NAME)(void *klass, char *methodname, int paramcount);
 typedef void* (__cdecl *MONO_CLASS_GET_FIELDS)(void *klass, void *iter);
 typedef void* (__cdecl *MONO_CLASS_GET_PARENT)(void *klass);
+typedef void* (__cdecl *MONO_CLASS_VTABLE)(void *domain, void *klass);
+
+
 
 
 typedef int (__cdecl *MONO_CLASS_NUM_FIELDS)(void *klass);
@@ -72,6 +76,9 @@ typedef int (__cdecl *MONO_FIELD_GET_OFFSET)(void *field);
 
 typedef char* (__cdecl *MONO_TYPE_GET_NAME)(void *type);
 typedef int (__cdecl *MONO_TYPE_GET_TYPE)(void *type);
+typedef int (__cdecl *MONO_FIELD_GET_FLAGS)(void *type);
+
+
 
 
 typedef char* (__cdecl *MONO_METHOD_GET_NAME)(void *method);
@@ -100,6 +107,9 @@ typedef void* (__cdecl *MONO_SIGNATURE_GET_RETURN_TYPE)(void *signature);
 
 
 typedef void* (__cdecl *MONO_IMAGE_RVA_MAP)(void *image, UINT32 addr);
+typedef void* (__cdecl *MONO_VTABLE_GET_STATIC_FIELD_DATA)(void *vtable);
+
+
 
 class CPipeServer : Pipe
 {
@@ -117,6 +127,7 @@ private:
 	MONO_CLASS_GET_NAME mono_class_get_name;
 	MONO_CLASS_GET_NAMESPACE mono_class_get_namespace;
 	MONO_CLASS_GET_PARENT mono_class_get_parent;
+	MONO_CLASS_VTABLE mono_class_vtable;
 
 	MONO_DOMAIN_FOREACH mono_domain_foreach;
 	MONO_DOMAIN_SET mono_domain_set;
@@ -149,6 +160,7 @@ private:
 
 	MONO_TYPE_GET_NAME mono_type_get_name;
 	MONO_TYPE_GET_TYPE mono_type_get_type;
+	MONO_FIELD_GET_FLAGS mono_field_get_flags;
 
 
 	MONO_METHOD_GET_NAME mono_method_get_name;
@@ -172,6 +184,8 @@ private:
 	
 	MONO_METHOD_HEADER_GET_CODE mono_method_header_get_code;
 	MONO_DISASM_CODE mono_disasm_code;
+
+	MONO_VTABLE_GET_STATIC_FIELD_DATA mono_vtable_get_static_field_data;
 
 	BOOL attached;
 
@@ -203,6 +217,8 @@ private:
 	void DisassembleMethod();
 	void GetMethodSignature();
 	void GetParentClass();
+
+	void GetStaticFieldAddressFromClass();
 
 public:
 	CPipeServer(void);
