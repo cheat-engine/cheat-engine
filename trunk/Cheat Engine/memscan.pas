@@ -5879,27 +5879,36 @@ begin
 
     if OnlyOne then savescannerresults:=false; //DO NOT INTERFERE
 
+
     {$ifdef LOWMEMORYUSAGE}
     if scanOption=soUnknownValue then
     begin
-      //write the regions
-      AddressFile:=TFileStream.Create(OwningMemScan.ScanresultFolder+'ADDRESSES.TMP',fmCreate or fmShareDenyNone);
+      if scanners[0].Addressfile<>nil then
+        freeandnil(scanners[0].Addressfile);
+
+      AddressFile:=TFileStream.Create(scanners[0].Addressfilename,fmCreate or fmShareDenyNone);
       datatype:='REGION';
+
       AddressFile.WriteBuffer(datatype,sizeof(datatype));
 
       for i:=0 to OwningMemScan.memregionpos do
         AddressFile.WriteBuffer(OwningMemScan.memregion[i], sizeof(OwningMemScan.memRegion[i]));
 
       freeandnil(addressfile);
+
     end;
     {$endif}
 
-    if (scanOption<>soUnknownValue) and savescannerresults then //prepare saving. Set the filesize
+
+    if savescannerresults then //prepare saving. Set the filesize
     begin
       try
         OutputDebugString('ScanController: creating undo files');
-        freeandnil(scanners[0].Addressfile);
-        freeandnil(scanners[0].Memoryfile);
+        if scanners[0].Addressfile<>nil then
+          freeandnil(scanners[0].Addressfile);
+
+        if scanners[0].Memoryfile<>nil then
+          freeandnil(scanners[0].Memoryfile);
 
 
         deletefile(OwningMemScan.ScanresultFolder+'ADDRESSES.UNDO');
