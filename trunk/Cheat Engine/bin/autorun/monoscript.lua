@@ -24,6 +24,7 @@ MONOCMD_TERMINATE=22
 MONOCMD_DISASSEMBLE=23
 MONOCMD_GETMETHODSIGNATURE=24
 MONOCMD_GETPARENTCLASS=25
+MONOCMD_GETSTATICFIELDADDRESSFROMCLASS=26
 
 
 MONO_TYPE_END        = 0x00       -- End of List
@@ -83,6 +84,27 @@ monoTypeToVartypeLookup[MONO_TYPE_PTR]=vtPointer
 monoTypeToVartypeLookup[MONO_TYPE_BYREF]=vtPointer
 monoTypeToVartypeLookup[MONO_TYPE_CLASS]=vtPointer
 monoTypeToVartypeLookup[MONO_TYPE_FNPTR]=vtPointer
+
+
+FIELD_ATTRIBUTE_FIELD_ACCESS_MASK=0x0007
+FIELD_ATTRIBUTE_COMPILER_CONTROLLED=0x0000
+FIELD_ATTRIBUTE_PRIVATE=0x0001
+FIELD_ATTRIBUTE_FAM_AND_ASSEM=0x0002
+FIELD_ATTRIBUTE_ASSEMBLY=0x0003
+FIELD_ATTRIBUTE_FAMILY=0x0004
+FIELD_ATTRIBUTE_FAM_OR_ASSEM=0x0005
+FIELD_ATTRIBUTE_PUBLIC=0x0006
+FIELD_ATTRIBUTE_STATIC=0x0010
+FIELD_ATTRIBUTE_INIT_ONLY=0x0020
+FIELD_ATTRIBUTE_LITERAL=0x0040
+FIELD_ATTRIBUTE_NOT_SERIALIZED=0x0080
+FIELD_ATTRIBUTE_SPECIAL_NAME=0x0200
+FIELD_ATTRIBUTE_PINVOKE_IMPL=0x2000
+FIELD_ATTRIBUTE_RESERVED_MASK=0x9500
+FIELD_ATTRIBUTE_RT_SPECIAL_NAME=0x0400
+FIELD_ATTRIBUTE_HAS_FIELD_MARSHAL=0x1000
+FIELD_ATTRIBUTE_HAS_DEFAULT=0x8000
+FIELD_ATTRIBUTE_HAS_FIELD_RVA=0x0100
 
 
 
@@ -476,6 +498,20 @@ function mono_class_getParent(class)
   return result;
 end
 
+function mono_class_getStaticFieldAddress(domain, class)
+  if debug_canBreak() then return nil end
+
+  local result=0
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_GETSTATICFIELDADDRESSFROMCLASS)
+  monopipe.writeQword(domain)  
+  monopipe.writeQword(class)  
+
+  result=monopipe.readQword()
+
+  monopipe.unlock()
+  return result;
+end
 
 function mono_class_enumFields(class)
   if debug_canBreak() then return nil end
@@ -500,6 +536,11 @@ function mono_class_enumFields(class)
 
       fields[index].parent=monopipe.readQword()
       fields[index].offset=monopipe.readDword()
+      fields[index].flags=monopipe.readDword()
+     
+      fields[index].isStatic=(bAnd(fields[index].flags, bOr(FIELD_ATTRIBUTE_STATIC, FIELD_ATTRIBUTE_HAS_FIELD_RVA))) ~= 0 --check mono for other fields you'd like to test
+
+
       namelength=monopipe.readWord();
       fields[index].name=monopipe.readString(namelength);
 
