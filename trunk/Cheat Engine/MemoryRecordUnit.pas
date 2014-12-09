@@ -1888,7 +1888,7 @@ begin
   if fShowAsHex and (not (vartype in [vtSingle, vtDouble, vtByteArray, vtString] )) then
   begin
     currentvalue:=trim(currentValue);
-    if length(currentvalue)>1 then
+    if length(currentvalue)>0 then
     begin
       if currentvalue[1]='-' then
       begin
