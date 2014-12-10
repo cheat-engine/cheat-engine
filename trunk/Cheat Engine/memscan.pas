@@ -5438,17 +5438,23 @@ begin
         dec(mbi.RegionSize, startaddress-PtrUint(mbi.BaseAddress));
         mbi.BaseAddress:=pointer(startaddress);
       end;
-      
+
       if PtrUint(mbi.BaseAddress)+mbi.RegionSize>=stopaddress then
         mbi.RegionSize:=stopaddress-PtrUint(mbi.BaseAddress);
 
 
       validRegion:=(mbi.State=mem_commit);
+      validRegion:=validregion and (PtrUint(mbi.BaseAddress)<stopaddress);
       validregion:=validregion and ((mbi.Protect and page_guard)=0);
       validregion:=validregion and ((mbi.protect and page_noaccess)=0);
       validRegion:=validRegion and (not (not scan_mem_private and (mbi._type=mem_private)));
       validRegion:=validregion and (not (not scan_mem_image and (mbi._type=mem_image)));
       validRegion:=validregion and (not (not scan_mem_mapped and (mbi._type=mem_mapped)));
+
+
+
+      if usedbkquery and DBKLoaded then //small patch to fix an issue with the driver where it somehow sees a really big memory block
+        validRegion:=validRegion and (mbi.RegionSize<qword($2ffffffff));
 
       if validregion then
       begin
@@ -5896,9 +5902,15 @@ begin
 
       freeandnil(addressfile);
 
+      //make the state compatible with the original code  (double rename, but whatever)
+      for i:=0 to length(scanners)-1 do
+        if scanners[i].MemoryFile<>nil then
+          freeandnil(scanners[i].MemoryFile);
+
+      deletefile(scanners[0].Memoryfilename);
+      renamefile(OwningMemScan.ScanresultFolder+'MEMORY.TMP', scanners[0].Memoryfilename);
     end;
     {$endif}
-
 
     if savescannerresults then //prepare saving. Set the filesize
     begin
@@ -5919,6 +5931,7 @@ begin
         deletefile(OwningMemScan.ScanresultFolder+'MEMORY.UNDO');
         renamefile(OwningMemScan.ScanresultFolder+'MEMORY.TMP',OwningMemScan.ScanresultFolder+'MEMORY.UNDO');
         renamefile(scanners[0].Memoryfilename, OwningMemScan.ScanresultFolder+'MEMORY.TMP');
+
 
         try
           AddressFile:=TFileStream.Create(OwningMemScan.ScanresultFolder+'ADDRESSES.TMP',fmOpenWrite or fmShareDenyNone);
@@ -5983,6 +5996,7 @@ begin
 
     haserror2:=false;
 
+    //todo: instead of appending the results, link to the result files instead
     if scanOption<>soUnknownValue then
     begin
       try
@@ -5996,8 +6010,11 @@ begin
           for i:=1 to length(scanners)-1 do
           begin
             outputdebugstring(format('ScanController: Writing results from scanner %d',[i]));
-            addressfile.CopyFrom(scanners[i].Addressfile,0);
-            Memoryfile.CopyFrom(scanners[i].MemoryFile,0);
+            if (scanners[i].Addressfile<>nil) and (scanners[i].MemoryFile<>nil) then
+            begin
+              addressfile.CopyFrom(scanners[i].Addressfile,0);
+              Memoryfile.CopyFrom(scanners[i].MemoryFile,0);
+            end;
           end;
         end;
       except
