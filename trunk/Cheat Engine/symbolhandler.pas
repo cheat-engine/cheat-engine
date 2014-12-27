@@ -1023,7 +1023,8 @@ begin
       if not terminated then
       begin
         OutputDebugString('Symbolhandler: sync: Calling finishedloadingsymbols');
-        synchronize(finishedloadingsymbols);
+        Queue(finishedloadingsymbols);
+        //synchronize(finishedloadingsymbols);
         OutputDebugString('after finishedloadingsymbols');
       end
       else
@@ -1035,6 +1036,8 @@ begin
   except
     outputdebugstring(rsSymbolloaderthreadHasCrashed);
   end;
+
+  isloading:=false;
 end;
 
 destructor TSymbolloaderthread.destroy;
@@ -1335,10 +1338,7 @@ begin
     symbolloadervalid.Beginread;
     try
       if symbolloaderthread<>nil then
-      begin
-        symbolloaderthread.Terminate;
-        symbolloaderthread.WaitFor; //wait till it's done
-      end;
+        symbolloaderthread.Terminate; //let's get this started
     finally
       symbolloadervalid.Endread;
     end;
@@ -1351,21 +1351,27 @@ begin
     symbolloadervalid.BeginWrite;
     try
       if symbolloaderthread<>nil then
+      begin
+        symbolloaderthread.Terminate;
+
+        //OutputDebugString(pchar(inttostr(GetCurrentThreadId)+':Waiting'));
+        if symbolloaderthread.Finished=false then
+          symbolloaderthread.WaitFor; //wait till it's done
+
+        //OutputDebugString(pchar(inttostr(GetCurrentThreadId)+':Returned'));
+
         freeandnil(symbolloaderthread);
+      end;
 
       symbolloaderthread:=tsymbolloaderthread.Create(self, targetself,true);
       symbolloaderthread.kernelsymbols:=kernelsymbols;
       symbolloaderthread.searchpath:=searchpath;
       symbolloaderthread.symbollist:=symbollist;
-
+      symbolloaderthread.start;
     finally
       symbolloadervalid.EndWrite;
     end;
-
-
-    symbolloaderthread.start;
   end;
-
 
   ReinitializeUserdefinedSymbolList;
 end;
@@ -1377,7 +1383,7 @@ begin
 
   if symbolloaderthread<>nil then
   begin
-    while (symbolloaderthread.isloading) and
+    while (not symbolloaderthread.Finished) and (symbolloaderthread.isloading) and
           not
           (
             (apisymbolsonly and symbolloaderthread.apisymbolsloaded) or  //true if all the symbols are loaded
