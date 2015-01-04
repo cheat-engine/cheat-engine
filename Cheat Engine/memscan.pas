@@ -6339,6 +6339,10 @@ function TMemscan.GetProgress(var totaladdressestoscan:qword; var currentlyscann
 {returns a value between 1 and 1000 representing how far the scan is}
 var i: integer;
 begin
+  result:=0;
+  totaladdressestoscan:=0;
+  currentlyscanned:=0;
+
   //Take care of memory
   if self.scanController<>nil then
   begin
@@ -6352,14 +6356,9 @@ begin
     finally
       scanController.scannersCS.Leave;
     end;
-    
-    result:=trunc((currentlyscanned / totaladdressestoscan) * 1000);
-  end
-  else
-  begin
-    result:=0;
-    totaladdressestoscan:=0;
-    currentlyscanned:=0;
+
+    if totaladdressestoscan>0 then
+      result:=trunc((currentlyscanned / totaladdressestoscan) * 1000);
   end;
 end;
 
