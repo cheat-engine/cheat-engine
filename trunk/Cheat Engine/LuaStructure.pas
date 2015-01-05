@@ -22,7 +22,7 @@ uses StructuresFrm2, LuaObject, DotNetPipe;
 function getStructureCount(L: PLua_State): integer; cdecl;
 begin
   result:=1;
-  lua_tointeger(L, DissectedStructs.Count);
+  lua_pushinteger(L, DissectedStructs.Count);
 end;
 
 function getStructure(L: PLua_State): integer; cdecl;
