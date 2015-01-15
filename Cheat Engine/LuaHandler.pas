@@ -3323,7 +3323,7 @@ begin
 
     finally
       if f<>nil then
-        freemem(f);
+        FreeAndNil(f);
 
       freemem(buf);
     end;
