@@ -363,7 +363,7 @@ resourcestring
   rsBaseAddress = 'Base Address';
   rsOffset = 'Offset';
   rsPointsTo = 'Points to';
-  rsPointercount = 'pointercount';
+  rsPointercount = 'Pointer paths';
   rsOnlyTheFirst1000000EntriesWillBeDisplayed = 'Only the first 1000000 '
     +'entries will be displayed. Rescan will still work with all results.  ('
     +'This is normal for a pointerscan, you MUST do a few rescans)';
