@@ -3278,7 +3278,7 @@ begin
       writeprocessmemory(processhandle, pointer(address), f.memory, f.size, x);
 
     finally
-      freemem(f);
+      freeandnil(f);
     end;
 
 
