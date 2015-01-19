@@ -218,6 +218,8 @@ type
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
+    miScanDirtyOnly: TMenuItem;
+    miScanPagedOnly: TMenuItem;
     miGeneratePointermap: TMenuItem;
     miDisplayHex: TMenuItem;
     miNetwork: TMenuItem;
@@ -447,6 +449,7 @@ type
     procedure Label3Click(Sender: TObject);
     procedure Label57Click(Sender: TObject);
     procedure lblcompareToSavedScanClick(Sender: TObject);
+    procedure miScanDirtyOnlyClick(Sender: TObject);
     procedure miCompressionClick(Sender: TObject);
     procedure miGeneratePointermapClick(Sender: TObject);
     procedure miManualExpandCollapseClick(Sender: TObject);
@@ -454,6 +457,7 @@ type
     procedure mi3dClick(Sender: TObject);
     procedure miChangeDisplayTypeClick(Sender: TObject);
     procedure miOpenFileClick(Sender: TObject);
+    procedure miScanPagedOnlyClick(Sender: TObject);
     procedure miSetDropdownOptionsClick(Sender: TObject);
     procedure miSetupSnapshotKeysClick(Sender: TObject);
     procedure miShowAsSignedClick(Sender: TObject);
@@ -2975,6 +2979,11 @@ begin
 
 end;
 
+procedure TMainForm.miScanDirtyOnlyClick(Sender: TObject);
+begin
+  scan_dirtyonly:=miScanDirtyOnly.checked;
+end;
+
 procedure TMainForm.miCompressionClick(Sender: TObject);
 begin
   if frmNetworkDataCompression=nil then
@@ -3049,6 +3058,11 @@ begin
 
   if ProcessWindow.modalresult=mrOK then
     openProcessEpilogue(oldprocessname, oldprocess, oldprocesshandle);
+end;
+
+procedure TMainForm.miScanPagedOnlyClick(Sender: TObject);
+begin
+  scan_pagedonly:=miScanPagedOnly.checked;
 end;
 
 procedure TMainForm.miSetDropdownOptionsClick(Sender: TObject);

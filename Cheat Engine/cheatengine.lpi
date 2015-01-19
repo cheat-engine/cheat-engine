@@ -342,9 +342,10 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MainUnit"/>
-        <EditorIndex Value="9"/>
-        <TopLine Value="7913"/>
-        <CursorPos X="28" Y="7942"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="10"/>
+        <TopLine Value="3063"/>
+        <CursorPos X="42" Y="3065"/>
         <UsageCount Value="211"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -354,7 +355,7 @@
         <Filename Value="NewKernelHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="NewKernelHandler"/>
-        <EditorIndex Value="20"/>
+        <EditorIndex Value="21"/>
         <TopLine Value="3"/>
         <CursorPos X="15" Y="20"/>
         <UsageCount Value="211"/>
@@ -374,7 +375,7 @@
         <Filename Value="ProcessHandlerUnit.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="ProcessHandlerUnit"/>
-        <EditorIndex Value="1"/>
+        <EditorIndex Value="2"/>
         <TopLine Value="123"/>
         <CursorPos Y="143"/>
         <UsageCount Value="204"/>
@@ -385,7 +386,7 @@
         <Filename Value="symbolhandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="symbolhandler"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="8"/>
         <TopLine Value="1336"/>
         <CursorPos X="39" Y="1358"/>
         <UsageCount Value="204"/>
@@ -722,9 +723,8 @@
         <Filename Value="memscan.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="memscan"/>
-        <IsVisibleTab Value="True"/>
-        <TopLine Value="5441"/>
-        <CursorPos Y="5456"/>
+        <TopLine Value="5435"/>
+        <CursorPos Y="5571"/>
         <UsageCount Value="209"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -882,7 +882,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MemoryBrowserFormUnit"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="6"/>
         <CursorPos X="17" Y="21"/>
         <UsageCount Value="220"/>
         <Loaded Value="True"/>
@@ -1355,7 +1355,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="PointerscannerSettingsFrm"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="5"/>
         <TopLine Value="427"/>
         <CursorPos Y="461"/>
         <UsageCount Value="204"/>
@@ -1402,7 +1402,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="pointerscannerfrm"/>
-        <EditorIndex Value="16"/>
+        <EditorIndex Value="17"/>
         <TopLine Value="339"/>
         <CursorPos X="17" Y="366"/>
         <ExtraEditorCount Value="1"/>
@@ -1505,7 +1505,7 @@
         <Filename Value="hexviewunit.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="hexviewunit"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="7"/>
         <TopLine Value="164"/>
         <CursorPos X="26" Y="171"/>
         <UsageCount Value="208"/>
@@ -1560,7 +1560,7 @@
         <Filename Value="debuggertypedefinitions.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="debuggertypedefinitions"/>
-        <EditorIndex Value="12"/>
+        <EditorIndex Value="13"/>
         <TopLine Value="97"/>
         <CursorPos X="42" Y="104"/>
         <UsageCount Value="200"/>
@@ -1709,7 +1709,7 @@
         <Filename Value="dbk32\DBK32functions.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DBK32functions"/>
-        <EditorIndex Value="21"/>
+        <EditorIndex Value="22"/>
         <TopLine Value="197"/>
         <CursorPos X="10" Y="213"/>
         <UsageCount Value="204"/>
@@ -1782,7 +1782,7 @@
         <Filename Value="LuaHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaHandler"/>
-        <EditorIndex Value="14"/>
+        <EditorIndex Value="15"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
           <EditorIndex Value="-1"/>
@@ -2164,7 +2164,7 @@
         <Filename Value="networkInterface.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="networkInterface"/>
-        <EditorIndex Value="11"/>
+        <EditorIndex Value="12"/>
         <TopLine Value="1015"/>
         <CursorPos Y="1030"/>
         <UsageCount Value="222"/>
@@ -2175,7 +2175,7 @@
         <Filename Value="networkInterfaceApi.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="networkInterfaceApi"/>
-        <EditorIndex Value="19"/>
+        <EditorIndex Value="20"/>
         <TopLine Value="188"/>
         <CursorPos Y="207"/>
         <UsageCount Value="428"/>
@@ -2771,7 +2771,7 @@
         <Filename Value="LuaByteTable.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaByteTable"/>
-        <EditorIndex Value="15"/>
+        <EditorIndex Value="16"/>
         <TopLine Value="195"/>
         <CursorPos X="10" Y="208"/>
         <UsageCount Value="206"/>
@@ -2804,7 +2804,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmsnapshothandlerUnit"/>
-        <EditorIndex Value="10"/>
+        <EditorIndex Value="11"/>
         <TopLine Value="451"/>
         <CursorPos Y="482"/>
         <UsageCount Value="200"/>
@@ -2877,9 +2877,11 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="networkConfig"/>
-        <EditorIndex Value="-1"/>
+        <EditorIndex Value="1"/>
         <TopLine Value="85"/>
         <UsageCount Value="204"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit262>
       <Unit263>
@@ -3311,7 +3313,7 @@
         <Filename Value="commontypedefs.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="commonTypeDefs"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="4"/>
         <TopLine Value="41"/>
         <CursorPos X="6" Y="56"/>
         <UsageCount Value="200"/>
@@ -3330,9 +3332,9 @@
         <Filename Value="globals.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="Globals"/>
-        <EditorIndex Value="2"/>
+        <EditorIndex Value="3"/>
         <TopLine Value="6"/>
-        <CursorPos X="3" Y="21"/>
+        <CursorPos X="31" Y="24"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -3456,7 +3458,7 @@
       </Unit328>
       <Unit329>
         <Filename Value="C:\development\fpc\rtl\inc\objpash.inc"/>
-        <EditorIndex Value="18"/>
+        <EditorIndex Value="19"/>
         <TopLine Value="177"/>
         <CursorPos X="23" Y="193"/>
         <UsageCount Value="154"/>
@@ -3464,7 +3466,7 @@
       </Unit329>
       <Unit330>
         <Filename Value="C:\development\fpc\rtl\objpas\sysutils\sysutilh.inc"/>
-        <EditorIndex Value="17"/>
+        <EditorIndex Value="18"/>
         <TopLine Value="295"/>
         <CursorPos X="23" Y="310"/>
         <UsageCount Value="97"/>
@@ -3474,7 +3476,7 @@
         <Filename Value="virtualqueryexcache.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="VirtualQueryExCache"/>
-        <EditorIndex Value="13"/>
+        <EditorIndex Value="14"/>
         <TopLine Value="49"/>
         <CursorPos Y="62"/>
         <UsageCount Value="194"/>
@@ -3513,7 +3515,7 @@
       </Unit335>
       <Unit336>
         <Filename Value="C:\development\fpc\rtl\objpas\classes\classesh.inc"/>
-        <EditorIndex Value="8"/>
+        <EditorIndex Value="9"/>
         <TopLine Value="1661"/>
         <CursorPos X="14" Y="1676"/>
         <UsageCount Value="87"/>
@@ -3549,123 +3551,123 @@
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="memscan.pas"/>
-        <Caret Line="5515" TopLine="5506"/>
+        <Caret Line="5558" TopLine="5534"/>
       </Position1>
       <Position2>
         <Filename Value="memscan.pas"/>
-        <Caret Line="5518" TopLine="5506"/>
+        <Caret Line="5559" TopLine="5534"/>
       </Position2>
       <Position3>
         <Filename Value="memscan.pas"/>
-        <Caret Line="5519" TopLine="5506"/>
+        <Caret Line="5558" TopLine="5534"/>
       </Position3>
       <Position4>
         <Filename Value="memscan.pas"/>
-        <Caret Line="5452" TopLine="5437"/>
+        <Caret Line="5559" TopLine="5534"/>
       </Position4>
       <Position5>
-        <Filename Value="virtualqueryexcache.pas"/>
-        <Caret Line="59" TopLine="49"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="5558" TopLine="5534"/>
       </Position5>
       <Position6>
         <Filename Value="memscan.pas"/>
-        <Caret Line="5452" TopLine="5446"/>
+        <Caret Line="5559" TopLine="5534"/>
       </Position6>
       <Position7>
         <Filename Value="memscan.pas"/>
-        <Caret Line="5456" TopLine="5446"/>
+        <Caret Line="5558" TopLine="5534"/>
       </Position7>
       <Position8>
         <Filename Value="memscan.pas"/>
-        <Caret Line="5462" TopLine="5449"/>
+        <Caret Line="5559" TopLine="5534"/>
       </Position8>
       <Position9>
         <Filename Value="memscan.pas"/>
-        <Caret Line="5466" TopLine="5449"/>
+        <Caret Line="5558" TopLine="5534"/>
       </Position9>
       <Position10>
         <Filename Value="memscan.pas"/>
-        <Caret Line="5467" TopLine="5452"/>
+        <Caret Line="5559" TopLine="5534"/>
       </Position10>
       <Position11>
         <Filename Value="memscan.pas"/>
-        <Caret Line="5468" TopLine="5452"/>
+        <Caret Line="5558" TopLine="5546"/>
       </Position11>
       <Position12>
         <Filename Value="memscan.pas"/>
-        <Caret Line="5469" TopLine="5452"/>
+        <Caret Line="5559" TopLine="5546"/>
       </Position12>
       <Position13>
         <Filename Value="memscan.pas"/>
-        <Caret Line="5470" TopLine="5452"/>
+        <Caret Line="5558" TopLine="5546"/>
       </Position13>
       <Position14>
         <Filename Value="memscan.pas"/>
-        <Caret Line="5471" TopLine="5452"/>
+        <Caret Line="5559" TopLine="5546"/>
       </Position14>
       <Position15>
         <Filename Value="memscan.pas"/>
-        <Caret Line="5472" TopLine="5452"/>
+        <Caret Line="5558" TopLine="5546"/>
       </Position15>
       <Position16>
         <Filename Value="memscan.pas"/>
-        <Caret Line="5476" TopLine="5467"/>
+        <Caret Line="5559" TopLine="5546"/>
       </Position16>
       <Position17>
         <Filename Value="memscan.pas"/>
-        <Caret Line="5479" TopLine="5467"/>
+        <Caret Line="5558" TopLine="5546"/>
       </Position17>
       <Position18>
         <Filename Value="memscan.pas"/>
-        <Caret Line="5484" TopLine="5484"/>
+        <Caret Line="5559" TopLine="5546"/>
       </Position18>
       <Position19>
         <Filename Value="memscan.pas"/>
-        <Caret Line="5485" TopLine="5480"/>
+        <Caret Line="5558" TopLine="5546"/>
       </Position19>
       <Position20>
         <Filename Value="memscan.pas"/>
-        <Caret Line="5486" TopLine="5480"/>
+        <Caret Line="5559" TopLine="5546"/>
       </Position20>
       <Position21>
         <Filename Value="memscan.pas"/>
-        <Caret Line="5487" TopLine="5480"/>
+        <Caret Line="5558" TopLine="5546"/>
       </Position21>
       <Position22>
         <Filename Value="memscan.pas"/>
-        <Caret Line="5489" TopLine="5480"/>
+        <Caret Line="5559" TopLine="5546"/>
       </Position22>
       <Position23>
         <Filename Value="memscan.pas"/>
-        <Caret Line="5490" TopLine="5480"/>
+        <Caret Line="5558" TopLine="5546"/>
       </Position23>
       <Position24>
         <Filename Value="memscan.pas"/>
-        <Caret Line="5489" TopLine="5480"/>
+        <Caret Line="5565" TopLine="5546"/>
       </Position24>
       <Position25>
         <Filename Value="memscan.pas"/>
-        <Caret Line="5494" TopLine="5486"/>
+        <Caret Line="5567" TopLine="5546"/>
       </Position25>
       <Position26>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="5495" TopLine="5486"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="7942" Column="28" TopLine="7913"/>
       </Position26>
       <Position27>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="5499" TopLine="5486"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="7943" Column="28" TopLine="7914"/>
       </Position27>
       <Position28>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="5500" TopLine="5486"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="7950" Column="28" TopLine="7921"/>
       </Position28>
       <Position29>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="5504" TopLine="5486"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="2983" Column="8" TopLine="2980"/>
       </Position29>
       <Position30>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="5509" TopLine="5533"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="2984" Column="42" TopLine="2982"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
@@ -3773,7 +3775,7 @@
         <WatchScope Value="wpsLocal"/>
         <WatchKind Value="wpkWrite"/>
         <Source Value="MainUnit.pas"/>
-        <Line Value="6330"/>
+        <Line Value="6344"/>
       </Item8>
       <Item9>
         <Kind Value="bpkSource"/>

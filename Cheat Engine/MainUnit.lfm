@@ -2179,6 +2179,18 @@ object MainForm: TMainForm
         Caption = 'Compression'
         OnClick = miCompressionClick
       end
+      object miScanDirtyOnly: TMenuItem
+        AutoCheck = True
+        Caption = 'Scan changed regions only'
+        Checked = True
+        OnClick = miScanDirtyOnlyClick
+      end
+      object miScanPagedOnly: TMenuItem
+        AutoCheck = True
+        Caption = 'Scan paged (physical) memory only'
+        Checked = True
+        OnClick = miScanPagedOnlyClick
+      end
     end
     object Plugins2: TMenuItem
       Caption = 'P&lugins'
