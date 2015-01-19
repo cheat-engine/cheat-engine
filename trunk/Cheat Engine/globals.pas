@@ -20,8 +20,8 @@ var
   Scan_MEM_IMAGE: boolean=true;
   Scan_MEM_MAPPED: boolean=false;
 
-  scan_dirtyonly: boolean=false;
-  scan_pagedonly: boolean=false;
+  scan_dirtyonly: boolean=true;
+  scan_pagedonly: boolean=true;
 
 
   systemtype: integer;
