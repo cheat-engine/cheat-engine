@@ -99,15 +99,18 @@ begin
     end;
 
     //fallback... find the closest region (should not happen when properly implemented)
-    for i:=0 to regions.count-1 do
+    for i:=regions.count-1 downto 0 do
     begin
-      if baseaddress>=ptruint(PMEMORYBASICINFORMATION(regions[i])^.BaseAddress) then
+      if baseaddress>ptruint(PMEMORYBASICINFORMATION(regions[i])^.BaseAddress) then
       begin
         mbi:=PMEMORYBASICINFORMATION(regions[i])^;
 
         if baseaddress>ptruint(mbi.BaseAddress)+mbi.RegionSize then
         begin
           //overshot it. That means it's not in the list
+          if i=regions.count-1 then //the last item in the list was too small. Mark it as the end
+            exit;
+
           mbi.BaseAddress:=pointer(ptruint(baseaddress) and qword($fffffffffffff000));
           if i>0 then
             mbi.AllocationBase:=pointer(ptruint(PMEMORYBASICINFORMATION(regions[i-1])^.BaseAddress)+PMEMORYBASICINFORMATION(regions[i-1])^.RegionSize)
@@ -115,9 +118,12 @@ begin
             mbi.AllocationBase:=nil;
 
           if i<regions.count-1 then
-            mbi.RegionSize:=ptruint(mbi.allocationbase)+ptruint(PMEMORYBASICINFORMATION(regions[i+1])^.BaseAddress)
-          else
-            exit; //end of the list reached
+          begin
+            mbi.RegionSize:=ptruint(PMEMORYBASICINFORMATION(regions[i])^.BaseAddress)-ptruint(mbi.BaseAddress);
+            result:=true;
+          end;
+
+          exit;
         end
         else
         begin
