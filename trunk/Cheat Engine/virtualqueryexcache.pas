@@ -50,7 +50,9 @@ begin
 end;
 
 function TVirtualQueryExCache.getRegion(BaseAddress: ptruint; out mbi: TMEMORYBASICINFORMATION): boolean;
-var i: integer;
+var
+  i: integer;
+
 //usually vqe accesses are sequential so check the next one fist (if there is one)
 begin
   result:=false;
@@ -96,16 +98,32 @@ begin
 
     end;
 
-    //find the closest region
+    //fallback... find the closest region (should not happen when properly implemented)
     for i:=0 to regions.count-1 do
     begin
-      if ptruint(PMEMORYBASICINFORMATION(regions[i])^.BaseAddress)>=baseaddress then
+      if baseaddress>=ptruint(PMEMORYBASICINFORMATION(regions[i])^.BaseAddress) then
       begin
         mbi:=PMEMORYBASICINFORMATION(regions[i])^;
-        mbi.BaseAddress:=pointer(ptruint(baseaddress) and qword($fffffffffffff000));
-        result:=true;
-        lastAccessed:=i;
-        exit;
+
+        if baseaddress>ptruint(mbi.BaseAddress)+mbi.RegionSize then
+        begin
+          //overshot it. That means it's not in the list
+          mbi.BaseAddress:=pointer(ptruint(baseaddress) and qword($fffffffffffff000));
+          if i>0 then
+            mbi.AllocationBase:=pointer(ptruint(PMEMORYBASICINFORMATION(regions[i-1])^.BaseAddress)+PMEMORYBASICINFORMATION(regions[i-1])^.RegionSize)
+          else
+            mbi.AllocationBase:=nil;
+
+          if i<regions.count-1 then
+            mbi.RegionSize:=ptruint(mbi.allocationbase)+ptruint(PMEMORYBASICINFORMATION(regions[i+1])^.BaseAddress);
+        end
+        else
+        begin
+          mbi.BaseAddress:=pointer(ptruint(baseaddress) and qword($fffffffffffff000));
+          result:=true;
+          lastAccessed:=i;
+          exit;
+        end;
       end;
     end;
 

@@ -1,17 +1,17 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 834
+  Left = 1154
   Height = 554
   Hint = ' '
-  Top = 165
-  Width = 597
+  Top = 143
+  Width = 613
   HelpContext = 3
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AllowDropFiles = True
   Caption = 'Cheat Engine 6.4'
   ClientHeight = 534
-  ClientWidth = 597
+  ClientWidth = 613
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Menu = MainMenu1
@@ -28,7 +28,7 @@ object MainForm: TMainForm
     Left = 0
     Height = 7
     Top = 345
-    Width = 597
+    Width = 613
     Align = alTop
     AutoSnap = False
     Beveled = True
@@ -42,7 +42,7 @@ object MainForm: TMainForm
     Left = 0
     Height = 165
     Top = 352
-    Width = 597
+    Width = 613
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
@@ -55,13 +55,13 @@ object MainForm: TMainForm
     Left = 0
     Height = 17
     Top = 517
-    Width = 597
+    Width = 613
     Align = alBottom
     ClientHeight = 17
-    ClientWidth = 597
+    ClientWidth = 613
     TabOrder = 1
     object Label7: TLabel
-      Left = 192
+      Left = 200
       Height = 13
       Hint = 'Click here to change the hotkey'
       Top = 3
@@ -88,7 +88,7 @@ object MainForm: TMainForm
       ParentShowHint = False
     end
     object CommentButton: TSpeedButton
-      Left = 500
+      Left = 516
       Height = 15
       Top = 1
       Width = 96
@@ -106,18 +106,18 @@ object MainForm: TMainForm
     Left = 0
     Height = 345
     Top = 0
-    Width = 597
+    Width = 613
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 345
-    ClientWidth = 597
+    ClientWidth = 613
     TabOrder = 2
     OnResize = Panel5Resize
     object ProcessLabel: TLabel
       Left = -24
       Height = 17
       Top = 0
-      Width = 654
+      Width = 670
       Alignment = taCenter
       Anchors = [akTop, akLeft, akRight]
       AutoSize = False
@@ -144,7 +144,7 @@ object MainForm: TMainForm
     end
     object ScanText: TLabel
       AnchorSideLeft.Control = scanvalue
-      Left = 314
+      Left = 330
       Height = 13
       Top = 80
       Width = 55
@@ -154,7 +154,7 @@ object MainForm: TMainForm
       ParentColor = False
     end
     object lblScanType: TLabel
-      Left = 259
+      Left = 275
       Height = 13
       Top = 124
       Width = 52
@@ -164,7 +164,7 @@ object MainForm: TMainForm
       ParentColor = False
     end
     object lblValueType: TLabel
-      Left = 257
+      Left = 273
       Height = 13
       Top = 148
       Width = 54
@@ -250,7 +250,7 @@ object MainForm: TMainForm
       ParentColor = False
     end
     object SpeedButton2: TSpeedButton
-      Left = 290
+      Left = 298
       Height = 22
       Hint = 'Delete all addresses from the list'
       Top = 320
@@ -276,7 +276,7 @@ object MainForm: TMainForm
       ParentShowHint = False
     end
     object SpeedButton3: TSpeedButton
-      Left = 249
+      Left = 265
       Height = 22
       Hint = 'Copy all selected items to the address list'
       Top = 294
@@ -353,7 +353,7 @@ object MainForm: TMainForm
     object cbSpeedhack: TCheckBox
       AnchorSideTop.Control = cbUnrandomizer
       AnchorSideTop.Side = asrBottom
-      Left = 489
+      Left = 505
       Height = 19
       Hint = 'Enable speedhack'
       Top = 193
@@ -370,7 +370,7 @@ object MainForm: TMainForm
     object btnNewScan: TButton
       AnchorSideLeft.Control = Foundlist3
       AnchorSideLeft.Side = asrBottom
-      Left = 275
+      Left = 291
       Height = 25
       Top = 48
       Width = 65
@@ -384,7 +384,7 @@ object MainForm: TMainForm
     object cbUnicode: TCheckBox
       AnchorSideLeft.Control = ScanType
       AnchorSideLeft.Side = asrBottom
-      Left = 492
+      Left = 508
       Height = 19
       Top = 128
       Width = 60
@@ -395,7 +395,7 @@ object MainForm: TMainForm
       Visible = False
     end
     object gbScanOptions: TGroupBox
-      Left = 282
+      Left = 298
       Height = 148
       Top = 168
       Width = 202
@@ -627,7 +627,7 @@ object MainForm: TMainForm
       AnchorSideLeft.Control = btnNewScan
       AnchorSideLeft.Side = asrBottom
       AnchorSideRight.Control = btnNewScan
-      Left = 350
+      Left = 366
       Height = 25
       Top = 48
       Width = 65
@@ -641,7 +641,7 @@ object MainForm: TMainForm
       TabOrder = 2
     end
     object ScanType: TComboBox
-      Left = 314
+      Left = 330
       Height = 21
       Top = 120
       Width = 170
@@ -667,7 +667,7 @@ object MainForm: TMainForm
       TabOrder = 5
     end
     object VarType: TComboBox
-      Left = 314
+      Left = 330
       Height = 21
       Top = 144
       Width = 170
@@ -708,7 +708,7 @@ object MainForm: TMainForm
     object btnAddAddressManually: TButton
       AnchorSideRight.Control = Panel5
       AnchorSideRight.Side = asrBottom
-      Left = 482
+      Left = 498
       Height = 17
       Top = 322
       Width = 115
@@ -722,7 +722,7 @@ object MainForm: TMainForm
       Height = 16
       Hint = 'This shows how far Cheat Engine is with searching'
       Top = 14
-      Width = 458
+      Width = 474
       Anchors = [akTop, akLeft, akRight]
       ParentShowHint = False
       ShowHint = True
@@ -730,7 +730,7 @@ object MainForm: TMainForm
       TabOrder = 9
     end
     object cbHexadecimal: TCheckBox
-      Left = 272
+      Left = 288
       Height = 19
       Hint = 'When checked the value you type in is hexadecimal'
       Top = 96
@@ -746,7 +746,7 @@ object MainForm: TMainForm
     end
     object UndoScan: TButton
       AnchorSideRight.Control = LogoPanel
-      Left = 483
+      Left = 499
       Height = 25
       Top = 48
       Width = 65
@@ -759,7 +759,7 @@ object MainForm: TMainForm
     end
     object rbBit: TRadioButton
       AnchorSideLeft.Control = rbDec
-      Left = 256
+      Left = 272
       Height = 19
       Top = 88
       Width = 40
@@ -772,7 +772,7 @@ object MainForm: TMainForm
     end
     object rbDec: TRadioButton
       AnchorSideRight.Control = scanvalue
-      Left = 256
+      Left = 272
       Height = 19
       Top = 105
       Width = 58
@@ -784,7 +784,7 @@ object MainForm: TMainForm
       Visible = False
     end
     object scanvalue: TEdit
-      Left = 314
+      Left = 330
       Height = 21
       Top = 96
       Width = 280
@@ -796,7 +796,7 @@ object MainForm: TMainForm
     end
     object cbCaseSensitive: TCheckBox
       AnchorSideLeft.Control = cbUnicode
-      Left = 492
+      Left = 508
       Height = 19
       Top = 146
       Width = 88
@@ -881,7 +881,7 @@ object MainForm: TMainForm
     object pnlFloat: TPanel
       AnchorSideRight.Control = Panel5
       AnchorSideRight.Side = asrBottom
-      Left = 486
+      Left = 502
       Height = 53
       Top = 120
       Width = 111
@@ -921,7 +921,7 @@ object MainForm: TMainForm
       end
     end
     object cbUnrandomizer: TCheckBox
-      Left = 489
+      Left = 505
       Height = 19
       Top = 174
       Width = 85
@@ -953,7 +953,7 @@ object MainForm: TMainForm
       Visible = False
     end
     object LogoPanel: TPanel
-      Left = 551
+      Left = 567
       Height = 84
       Top = 0
       Width = 50
@@ -1304,7 +1304,7 @@ object MainForm: TMainForm
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = Panel5
       AnchorSideRight.Side = asrBottom
-      Left = 484
+      Left = 500
       Height = 94
       Top = 212
       Width = 113
@@ -1410,7 +1410,7 @@ object MainForm: TMainForm
       Height = 268
       Hint = 'This list shows all the found addresses that matched your last scan'
       Top = 48
-      Width = 244
+      Width = 260
       Anchors = [akTop, akLeft, akRight, akBottom]
       Color = clBtnFace
       Columns = <      

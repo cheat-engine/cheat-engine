@@ -31,7 +31,7 @@
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <Units Count="15">
+    <Units Count="16">
       <Unit0>
         <Filename Value="cecore.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -39,10 +39,12 @@
       <Unit1>
         <Filename Value="networkInterfaceApi.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="networkInterfaceApi"/>
       </Unit1>
       <Unit2>
         <Filename Value="networkInterface.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="networkInterface"/>
       </Unit2>
       <Unit3>
         <Filename Value="NewKernelHandler.pas"/>
@@ -57,6 +59,7 @@
       <Unit5>
         <Filename Value="ProcessHandlerUnit.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="ProcessHandlerUnit"/>
       </Unit5>
       <Unit6>
         <Filename Value="elfsymbols.pas"/>
@@ -101,13 +104,18 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="savedscanhandler"/>
       </Unit14>
+      <Unit15>
+        <Filename Value="virtualqueryexcache.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="VirtualQueryExCache"/>
+      </Unit15>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="..\ceandroid\workspace\jnitest\libs\armeabi\cecore.so"/>
+      <Filename Value="..\ceandroid\workspace\CheatEngine\libs\armeabi\cecore.so"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>

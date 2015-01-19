@@ -20,6 +20,10 @@ var
   Scan_MEM_IMAGE: boolean=true;
   Scan_MEM_MAPPED: boolean=false;
 
+  scan_dirtyonly: boolean=false;
+  scan_pagedonly: boolean=false;
+
+
   systemtype: integer;
   old8087CW: word;  //you never know...
   ProcessSelected: Boolean;

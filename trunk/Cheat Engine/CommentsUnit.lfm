@@ -2,27 +2,27 @@ object Comments: TComments
   Left = 595
   Height = 369
   Top = 194
-  Width = 414
+  Width = 444
   HelpContext = 11
   BorderIcons = [biMaximize]
   Caption = 'Comments'
   ClientHeight = 369
-  ClientWidth = 414
+  ClientWidth = 444
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.3'
   object Panel1: TPanel
     Left = 0
     Height = 36
     Top = 333
-    Width = 414
+    Width = 444
     Align = alBottom
     BevelOuter = bvNone
     ClientHeight = 36
-    ClientWidth = 414
+    ClientWidth = 444
     TabOrder = 0
     OnResize = Panel1Resize
     object Button1: TButton
@@ -39,7 +39,7 @@ object Comments: TComments
     Left = 0
     Height = 333
     Top = 0
-    Width = 414
+    Width = 444
     ActivePage = tsComment
     Align = alClient
     TabIndex = 0
@@ -47,12 +47,12 @@ object Comments: TComments
     object tsComment: TTabSheet
       Caption = 'Comments'
       ClientHeight = 304
-      ClientWidth = 406
+      ClientWidth = 436
       object Memo1: TMemo
         Left = 0
         Height = 304
         Top = 0
-        Width = 406
+        Width = 436
         Align = alClient
         Font.CharSet = ANSI_CHARSET
         Font.Height = -15

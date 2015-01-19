@@ -5371,6 +5371,8 @@ var
   datatype: string[6];
 
   f: TFilestream;
+
+  vqecacheflag: dword;
 begin
   OutputDebugString('TScanController.firstScan');
   if OnlyOne then
@@ -5428,6 +5430,24 @@ begin
   OutputDebugString('Finding out memory size');
   currentBaseAddress:=startaddress;
   ZeroMemory(@mbi,sizeof(mbi));
+
+  OutputDebugString('scanWritable='+inttostr(integer(scanWritable)));
+  OutputDebugString('scanExecutable='+inttostr(integer(scanExecutable)));
+  OutputDebugString('scanCopyOnWrite='+inttostr(integer(scanCopyOnWrite)));
+
+
+  vqecacheflag:=0;
+
+  if not Scan_MEM_MAPPED then
+    vqecacheflag:=vqecacheflag or VQE_NOSHARED;
+
+  if scan_pagedonly then
+    vqecacheflag:=vqecacheflag or VQE_PAGEDONLY;
+
+  if scan_dirtyonly then
+    vqecacheflag:=vqecacheflag or VQE_DIRTYONLY;
+
+  VirtualQueryEx_StartCache(processhandle, vqecacheflag);
 
   while (Virtualqueryex(processhandle,pointer(currentBaseAddress),mbi,sizeof(mbi))<>0) and (currentBaseAddress<stopaddress) and ((currentBaseAddress+mbi.RegionSize)>currentBaseAddress) do   //last check is done to see if it wasn't a 64-bit overflow.
   begin
@@ -5531,6 +5551,8 @@ begin
 
     currentBaseAddress:=PtrUint(mbi.baseaddress)+mbi.RegionSize;
   end;
+
+  VirtualQueryEx_EndCache(processhandle);
 
   OutputDebugString(format('memRegionPos=%d',[memRegionPos]));
   for i:=0 to memRegionPos-1 do
@@ -6547,6 +6569,8 @@ begin
   self.stopaddress:=stopaddress;
 
 
+  //OutputDebugString('Vartype='+inttostr(integer(VariableType)));
+
   scanController:=TscanController.Create(true);
   scanController.OwningMemScan:=self;
   scanController.scantype:=stFirstScan;
@@ -6612,9 +6636,23 @@ begin
       '-': currentState:=scanExclude;
       '+': currentState:=scanInclude;
       '*': currentstate:=scanDontCare;
-      'W': scanWritable:=currentState;
-      'C': scanCopyOnWrite:=currentState;
-      'X': scanExecutable:=currentState;
+      'W':
+      begin
+        scanWritable:=currentState;
+        currentState:=scanDontCare;
+      end;
+
+      'C':
+      begin
+        scanCopyOnWrite:=currentState;
+        currentState:=scanDontCare;
+      end;
+
+      'X':
+      begin
+        scanExecutable:=currentState;
+        currentState:=scanDontCare;
+      end;
     end;
   end;
 end;
