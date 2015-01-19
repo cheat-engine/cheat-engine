@@ -51,6 +51,7 @@ type
     Protect: ULONG;
     _Type: ULONG;
   end;
+  PMemoryBasicInformation=^TMemoryBasicInformation;
   _MEMORYSTATUS=record end;
 
 
