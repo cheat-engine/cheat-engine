@@ -2629,14 +2629,16 @@ begin
                         if $66 in prefix2 then
                         begin
                           lastdisassembledata.opcode:='movmskpd';
-                          lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last)+xmm(memory[2]);
+                          lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,0,last);
                           description:='extract packed double-precision floating-point sign mask';
                           inc(offset,last-1);
                         end
                         else
                         begin
                           lastdisassembledata.opcode:='movmskps';
-                          lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last)+xmm(memory[2]);
+//                          lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last)+xmm(memory[2]);
+                          lastdisassembledata.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           description:='move mask to integer';
                           inc(offset,last-1);
                         end;
