@@ -8,7 +8,7 @@ library cecore;
 uses cthreads, classes, jni, networkInterfaceApi, NewKernelHandler,
   networkInterface, sysutils, unixporthelper, ProcessHandlerUnit, elfsymbols,
   resolve, Sockets, ProcessList, memscan, Parsers, Globals, commonTypeDefs,
-  strutils, jniTObject, JniTMemScan, savedscanhandler;
+  strutils, jniTObject, JniTMemScan, savedscanhandler, VirtualQueryExCache;
 
 
 type TMainThread=class(TThread)
@@ -76,11 +76,17 @@ begin
 
 end;
 
-procedure CEConnect(PEnv: PJNIEnv; Obj: JObject); cdecl;
-var c: TCEConnection;
+function CEConnect(PEnv: PJNIEnv; Obj: JObject; hname: jstring): jboolean; cdecl;
+var
+  c: TCEConnection;
+  hostname: string;
 begin
   log('CEConnect called');
-  host:=StrToNetAddr('192.168.0.10');
+
+  hostname:=jniGetString(PEnv, hname);
+  log('address='+hostname);
+
+  host:=StrToNetAddr(hostname);
   port:=ShortHostToNet(52736);
 
   log('Host='+inttohex(host.s_addr,1));
@@ -88,6 +94,11 @@ begin
 
   c:=getConnection;
   log('c='+inttohex(ptruint(c),1));
+
+  if c=nil then
+    result:=0
+  else
+    result:=1;
 end;
 
 function GetProcessList(PEnv: PJNIEnv; Obj: JObject):jobject; cdecl;
@@ -171,7 +182,7 @@ const methodcount=5;
   //experiment: make a memscan class in java and give it references to things like memscan_firstscan where the java class contains the memscan long
 
 var jnimethods: array [0..methodcount-1] of JNINativeMethod =(
-  (name: 'CEConnect'; signature: '()V'; fnPtr: @CEConnect),
+  (name: 'CEConnect'; signature: '(Ljava/lang/String;)Z'; fnPtr: @CEConnect),
   (name: 'GetProcessList'; signature: '()Ljava/util/ArrayList;'; fnPtr: @GetProcessList),
   (name: 'SelectProcess'; signature: '(I)V'; fnPtr: @SelectProcess),
   (name: 'FirstScan'; signature: '(I)V'; fnPtr: @FirstScan),

@@ -1470,7 +1470,79 @@ begin
         inc(startoffset);
         prefix2:=prefix2+[RexPrefix];
         MoveMemory(@memory[0], @memory[1], 23);
-      end;
+      end
+         (*
+         //this stuff might deserve it's own units. (or I may just say fuck it and use a library)
+      else
+      if memory[0] in [$c4,$c5] then //vex prefix
+      begin
+
+        if memory[0]=$c4 then
+        begin
+          setlength(LastDisassembleData.bytes,length(LastDisassembleData.bytes)+3);
+          LastDisassembleData.bytes[length(LastDisassembleData.bytes)-3]:=memory[0];
+          LastDisassembleData.bytes[length(LastDisassembleData.bytes)-2]:=memory[1];
+          LastDisassembleData.bytes[length(LastDisassembleData.bytes)-1]:=memory[2];
+
+          inc(offset,3);
+          inc(startoffset,3);
+          prefix2:=prefix2+[$c4, memory[1], memory[2]];
+
+          i:=0;
+          //setup the rex prefix
+
+          //insert some bytes in front of the memoryarray depending on bit 0 to 4 of vex byte 1
+          {
+          00000: Reserved for future use (will #UD)
+          00001: implied 0F leading opcode byte
+          00010: implied 0F 38 leading opcode bytes
+          00011: implied 0F 3A leading opcode bytes
+          00100-11111: Reserved for future use (will #UD)
+          }
+          case memory[1] and $1f of
+            1:
+            begin
+              memory[0]:=$0f;
+              i:=1;
+            end;
+
+            2:
+            begin
+              memory[0]:=$0f;
+              memory[1]:=$38;
+              i:=2;
+            end;
+
+            3:
+            begin
+              memory[0]:=$0f;
+              memory[1]:=$3a;
+              i:=2;
+            end;
+          end;
+
+          MoveMemory(@memory[i], @memory[3], 24-i-3);
+
+        end
+        else
+        begin
+          setlength(LastDisassembleData.bytes,length(LastDisassembleData.bytes)+2);
+          LastDisassembleData.bytes[length(LastDisassembleData.bytes)-2]:=memory[0];
+          LastDisassembleData.bytes[length(LastDisassembleData.bytes)-1]:=memory[1];
+
+          inc(offset,2);
+          inc(startoffset,2);
+          prefix2:=prefix2+[$c5, memory[1]];
+
+          memory[0]:=$0f;
+          i:=1;
+
+          MoveMemory(@memory[1], @memory[2], 24-1-2);
+        end;
+
+        //todo: implement me some day when VEX gets used more
+        //hasrexprefix:=true;
+      end *) ;
     end;
 
     if (memory[0]=$cc) and (debuggerthread<>nil) then //if it's a int3 breakpoint and there is a debugger attached check if it's a bp

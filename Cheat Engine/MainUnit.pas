@@ -23,7 +23,8 @@ uses
   FPimage, byteinterpreter, frmgroupscanalgoritmgeneratorunit, vartypestrings,
   groupscancommandparser, GraphType, IntfGraphics, RemoteMemoryManager,
   DBK64SecondaryLoader, savedscanhandler, debuggertypedefinitions, networkInterface,
-  FrmMemoryRecordDropdownSettingsUnit, xmlutils, zstream, zstreamext, commonTypeDefs;
+  FrmMemoryRecordDropdownSettingsUnit, xmlutils, zstream, zstreamext, commonTypeDefs,
+  VirtualQueryExCache;
 
 //the following are just for compatibility
 
@@ -7985,34 +7986,60 @@ var
   sl: tstringlist;
 
   psr: TPointerListHandler;
+
+  x: qword;
+
+  vqe: TVirtualQueryExCache;
+
+  mbi,mbi2: TMEMORYBASICINFORMATION;
+  A: PTRUINT;
+
+  shouldend: boolean;
 begin
-   {
-  psr:=TPointerscanresultReader.create('E:\ptr\m.PTR');
+  vqe:=TVirtualQueryExCache.create(processhandle);
+  a:=0;
 
-  sl:=tstringlist.create;
-  for i:=0 to psr.modulelistCount-1 do
-    sl.Add(psr.getModulename(i)+' = ' + IntToHex(ptruint(psr.getModuleBase(i)),8));
-
-
-  showmessage(sl.text);
-  sl.free;
-  psr.free;   }
+  while VirtualQueryEx(processhandle, pointer(a), mbi, sizeof(mbi))<>0 do
+  begin
+    vqe.AddRegion(mbi);
+    a:=a+mbi.RegionSize;
+  end;
 
 
-  f:=tfilestream.create('E:\ptr\tutscandata.scandata', fmOpenRead or fmShareDenyNone);
-  ds:=Tdecompressionstream.create(f);
-  r:=TPointerListHandler.createFromStream(ds, progressbar1);
+  a:=0;
+  vqe.getRegion($ff000000, mbi2);
+
+  vqe.getRegion($00400500, mbi2);
+
+  if vqe.getRegion(a, mbi2) then
+  begin
+    shouldend:=false;
+    while VirtualQueryEx(processhandle, pointer(a), mbi, sizeof(mbi))<>0 do
+    begin
+      if shouldend then showmessage('awww');
+      if mbi.BaseAddress<>mbi2.BaseAddress then
+      begin
+        showmessage('fuck');
+        exit;
+      end;
+
+      a:=a+mbi.RegionSize;
+
+      if vqe.getRegion(a, mbi2)=false then shouldend:=true;
+    end;
+  end
+  else
+    showmessage('doublefuck');
+
+  if shouldend=false then showmessage('hmmm');
+
+  a:=0;
+  while vqe.getregion(a,mbi) do a:=a+mbi.RegionSize;
 
 
-  {sl:=tstringlist.create;
-  for i:=0 to r.modulelist.count-1 do
-    sl.Add(r.modulelist[i]+' = ' + IntToHex(ptruint(r.modulelist.Objects[i]),8));
 
 
-  showmessage(sl.text);
-                              }
-  ds.free;
-  f.free;
+  vqe.free;
 end;
 
 procedure ChangeIcon(hModule: HModule; restype: PChar; resname: PChar;

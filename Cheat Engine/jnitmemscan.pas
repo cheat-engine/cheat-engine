@@ -5,7 +5,7 @@ unit jniTMemScan;
 interface
 
 uses
-  Classes, SysUtils, jni, unixporthelper, commonTypeDefs;
+  Classes, SysUtils, jni, unixporthelper, commonTypeDefs, math;
 
 procedure InitializeJniTMemScan(env: PJNIEnv);
 
@@ -72,10 +72,44 @@ begin
   ms.newscan;
 end;
 
-procedure TMemScan_FirstScan(PEnv: PJNIEnv; Obj: JObject; scanOption: jint; variabletype: jint; roundingtype: jint; sv1: jstring; sv2: jstring; startaddress: jlong; stopaddress: jlong; fastscanmethod: jint; fastscanparameter: jstring; hexadecimal: jboolean; binaryasstring: jboolean; unicode: jboolean; casesensitive: jboolean); cdecl;
+function TMemScan_GetProgress(PEnv: PJNIEnv; Obj: JObject):jint; cdecl;
+var
+  ms: TMemscan;
+  total,current: qword;
+
+  p: integer;
+
+begin
+  result:=0;
+  p:=0;
+  try
+    ms:=TMemScan(JObjectToTObject(penv, obj));
+    if (ms<>nil) then
+    begin
+      p:=1;
+      ms.GetProgress(total, current);
+      p:=2;
+
+      if total>0 then
+      begin
+        p:=3;
+        result:=(current*100) div total;
+        p:=4;
+        //log(format('TMemScan_GetProgress returns %d',[result]));
+      end
+    end;
+
+    p:=5;
+  except
+    on e:exception do
+      log('Exception in TMemScan_GetProgress:'+e.message+'  (p='+inttostr(p));
+  end;
+end;
+
+procedure TMemScan_FirstScan(PEnv: PJNIEnv; Obj: JObject; scanOption: jint; variabletype: jint; roundingtype: jint; sv1: jstring; sv2: jstring; pf: jstring; startaddress: jlong; stopaddress: jlong; fastscanmethod: jint; fastscanparameter: jstring; hexadecimal: jboolean; binaryasstring: jboolean; unicode: jboolean; casesensitive: jboolean); cdecl;
 var
   ms: TJniMemscan;
-  scanvalue1, scanvalue2: string;
+  scanvalue1, scanvalue2, protectionflags: string;
 begin
   log('First scan');
   ms:=TJniMemscan(JObjectToTObject(penv, obj));
@@ -85,16 +119,20 @@ begin
 
   scanvalue1:=jniGetString(penv, sv1);
   scanvalue2:=jniGetString(penv, sv2);
+  protectionflags:=jniGetString(penv, pf);
 
+  ms.parseProtectionflags(protectionflags);
   ms.firstscan(TScanOption(scanOption), TVariableType(variabletype), TRoundingType(roundingtype), scanvalue1, scanvalue2, startaddress, stopaddress, hexadecimal<>0, binaryasstring<>0, unicode<>0, casesensitive<>0, TFastScanMethod(fastscanmethod), jnigetstring(penv, fastscanparameter), nil);
 end;
 
-const methodcount=3;
+const methodcount=4;
 var jnimethods: array [0..methodcount-1] of JNINativeMethod =(
   (name: 'create'; signature: '(Lorg/cheatengine/TMemScan;)J'; fnPtr: @TMemScan_Create),
   (name: 'newScan'; signature: '()V'; fnPtr: @TMemScan_NewScan),
-  (name: 'firstScan'; signature: '(IIILjava/lang/String;Ljava/lang/String;JJILjava/lang/String;ZZZZ)V'; fnPtr: @TMemScan_FirstScan)
+  (name: 'firstScan'; signature: '(IIILjava/lang/String;Ljava/lang/String;Ljava/lang/String;JJILjava/lang/String;ZZZZ)V'; fnPtr: @TMemScan_FirstScan),
 
+  //nextscan
+  (name: 'getProgress'; signature: '()I'; fnPtr: @TMemScan_GetProgress)
   );
 
 procedure InitializeJniTMemScan(env: PJNIEnv);

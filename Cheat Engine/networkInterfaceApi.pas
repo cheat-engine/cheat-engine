@@ -50,12 +50,12 @@ var threadManagerIsHooked: boolean=false;
 
 function getConnection: TCEConnection;
 begin
-  OutputDebugString('getConnection');
+  //OutputDebugString('getConnection');
   result:=nil;
 
   if {$ifndef jni}networkconfig.{$endif}host.s_addr<>0 then
   begin
-    OutputDebugString('Valid host');
+    //OutputDebugString('Valid host');
     if (connection=nil) or (not connection.connected) then
     begin
       OutputDebugString('connection=nil. creating');
@@ -70,7 +70,7 @@ begin
     end
     else
     begin
-      OutputDebugString('Already connected');
+      //OutputDebugString('Already connected');
       result:=connection;
     end;
 
@@ -89,6 +89,20 @@ begin
     result:=connection.CloseHandle(handle)
   else
     result:=false;
+end;
+
+function NetworkVirtualQueryEx_StartCache(hProcess: THandle; flags: dword): boolean;
+begin
+  if getConnection<>nil then
+    result:=connection.VirtualQueryEx_StartCache(hProcess, flags)
+  else
+    result:=false;
+end;
+
+procedure NetworkVirtualQueryEx_EndCache(hProcess: THandle);
+begin
+  if getConnection<>nil then
+    connection.VirtualQueryEx_EndCache(hProcess);
 end;
 
 function NetworkProcess32Next(hSnapshot: HANDLE; var lppe: PROCESSENTRY32): BOOL; stdcall;
@@ -275,6 +289,11 @@ begin
   newkernelhandler.VirtualAllocEx:=@networkVirtualAllocEx;
   newkernelhandler.VirtualFreeEx:=@networkVirtualFreeEx;
   newkernelhandler.CreateRemoteThread:=@networkCreateRemoteThread;
+
+
+
+  newkernelhandler.VirtualQueryEx_StartCache:=@NetworkVirtualQueryEx_StartCache;
+  newkernelhandler.VirtualQueryEx_EndCache:=@NetworkVirtualQueryEx_EndCache;
 
 
 end;

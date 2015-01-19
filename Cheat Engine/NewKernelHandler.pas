@@ -14,6 +14,10 @@ uses jwawindows, windows,LCLIntf,sysutils, dialogs, classes, controls,
 const dbkdll='DBK32.dll';
 
 
+const
+  VQE_PAGEDONLY=1;
+  VQE_DIRTYONLY=2;
+  VQE_NOSHARED=4 ;
 
 
 type
@@ -554,6 +558,10 @@ type Tdbvm_read_physical_memory=function(PhysicalAddress: UINT64; destination: p
 type Tdbvm_write_physical_memory=function(PhysicalAddress: UINT64; source: pointer; size: integer): dword; stdcall;
 
 
+type TVirtualQueryEx_StartCache=function(hProcess: THandle; flags: DWORD): boolean;
+type TVirtualQueryEx_EndCache=procedure(hProcess: THandle);
+
+
 procedure DONTUseDBKQueryMemoryRegion;
 procedure DONTUseDBKReadWriteMemory;
 procedure DONTUseDBKOpenProcess;
@@ -714,6 +722,11 @@ var
   GetLogicalProcessorInformation: function(Buffer: PSYSTEM_LOGICAL_PROCESSOR_INFORMATION; ReturnedLength: PDWORD): BOOL; stdcall;
   PrintWindow                 : function (hwnd: HWND; hdcBlt: HDC; nFlags: UINT): BOOL; stdcall;
 
+  VirtualQueryEx_StartCache: TVirtualQueryEx_StartCache;
+  VirtualQueryEx_EndCache: TVirtualQueryEx_EndCache;
+
+
+
  {    just include vmxfunctions
   //dbvm ce000000+
   dbvm_changeselectors    :Tdbvm_changeselectors;
@@ -765,6 +778,14 @@ resourcestring
   rsYourCpuMustBeAbleToRunDbvmToUseThisFunction = 'Your cpu must be able to run dbvm to use this function';
   rsCouldnTBeOpened = '%s couldn''t be opened';
 
+function VirtualQueryEx_StartCache_stub(hProcess: THandle; flags: dword): boolean;
+begin
+  result:=false;  //don't use it in windows
+end;
+
+procedure VirtualQueryEx_EndCache_stub(hProcess: THandle);
+begin
+end;
 
 function Is64bitOS: boolean;
 {$ifndef CPU64 }
@@ -1413,6 +1434,9 @@ initialization
   ModuleList:= nil;
   Denylist:= false;
   //globaldenylist:= false;
+
+  VirtualQueryEx_StartCache:=VirtualQueryEx_StartCache_stub;
+  VirtualQueryEx_EndCache:=VirtualQueryEx_EndCache_stub;
 
 {$ifndef jni}
   WindowsKernel:=LoadLibrary('Kernel32.dll'); //there is no kernel33.dll

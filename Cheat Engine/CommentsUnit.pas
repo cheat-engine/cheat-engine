@@ -50,6 +50,7 @@ end;
 procedure TComments.Button1Click(Sender: TObject);
 begin
   close;
+
 end;
 
 procedure TComments.FormCreate(Sender: TObject);

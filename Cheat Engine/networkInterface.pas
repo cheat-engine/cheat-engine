@@ -8,10 +8,12 @@ interface
 
 uses
   {$ifdef JNI}
-  Classes, SysUtils, Sockets, resolve, ctypes,syncobjs, math, zstream, newkernelhandler, unixporthelper, processhandlerunit;
+  Classes, SysUtils, Sockets, resolve, ctypes,syncobjs, math, zstream,
+  newkernelhandler, unixporthelper, processhandlerunit, gutil, gmap,VirtualQueryExCache;
   {$else}
   jwawindows, windows, Classes, SysUtils, Sockets, resolve, ctypes, networkconfig,
-  cefuncproc, newkernelhandler, math, zstream, syncobjs, processhandlerunit;
+  cefuncproc, newkernelhandler, math, zstream, syncobjs, processhandlerunit,
+  VirtualQueryExCache, gutil, gmap;
   {$endif}
 
 
@@ -22,6 +24,7 @@ const networkcompression=0;
 
 
 type
+
   TNetworkDebugEvent=packed record
     signal: integer;
     threadid: qword;
@@ -36,6 +39,9 @@ type
   end;
 
   TNetworkEnumSymCallback=function(modulename: string; symbolname: string; address: ptruint; size: integer; secondary: boolean ): boolean of object;
+
+  TVQEMapCmp = specialize TLess<PtrUInt>;
+  TVQEMap = specialize TMap<PtrUInt, TVirtualQueryExCache, TVQEMapCmp>;
 
   TCEConnection=class
   private
@@ -56,6 +62,9 @@ type
     end;
     WriteProcessMemoryBufferCS: TCriticalSection;
 
+
+    VirtualQueryExCacheMap: TVQEMap;
+    VirtualQueryExCacheMapCS: TCriticalSection;
 
 
     function receive(buffer: pointer; size: integer): integer;
@@ -81,6 +90,9 @@ type
     function VirtualAllocEx(hProcess: THandle; lpAddress: Pointer; dwSize, flAllocationType: DWORD; flProtect: DWORD): Pointer;
     function VirtualFreeEx(hProcess: HANDLE; lpAddress: LPVOID; dwSize: SIZE_T; dwFreeType: DWORD): BOOL;
     function VirtualQueryEx(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD;
+    function VirtualQueryEx_StartCache(hProcess: THandle; flags: DWORD): boolean;
+    procedure VirtualQueryEx_EndCache(hProcess: THandle);
+
     function ReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: PTRUINT): BOOL;
     function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL;
     procedure beginWriteProcessMemory;
@@ -150,6 +162,10 @@ const
   CMD_CREATETHREAD=28;
   CMD_LOADMODULE=29;
   CMD_SPEEDHACK_SETSPEED=30;
+
+  //
+  CMD_VIRTUALQUERYEXFULL=31;
+
 
 
 function TCEConnection.CloseHandle(handle: THandle):WINBOOL;
@@ -251,10 +267,10 @@ var ProcesslistCommand: packed record
   pname: pchar;
 
 begin
-  OutputDebugString('TCEConnection.Process32Next');
+  //OutputDebugString('TCEConnection.Process32Next');
   if ((hSnapshot shr 24) and $ff)= $ce then
   begin
-    OutputDebugString('Valid network handle');
+    //OutputDebugString('Valid network handle');
 
     if isfirst then
       ProcesslistCommand.command:=CMD_PROCESS32FIRST
@@ -818,6 +834,123 @@ begin
   {$endif}
 end;
 
+function TCEConnection.VirtualQueryEx_StartCache(hProcess: THandle; flags: DWORD): boolean;
+var
+  vqec: TVirtualQueryExCache;
+  input: packed record
+    command: byte;
+    handle: integer;
+    flags: byte;
+  end;
+
+  vqe_entry: packed record
+    baseaddress: qword;
+    size: qword;
+    protection: dword;
+    _type: dword;
+  end;
+
+  mbi: TMEMORYBASICINFORMATION;
+
+  count: UINT32;
+  i: UINT32;
+
+  nextAddress: qword;
+begin
+  result:=false;
+
+  //check if this processhandle is already cached, and if so, first call endcache on it
+  VirtualQueryEx_EndCache(hProcess); //clean up if there is already one
+
+  if isNetworkHandle(hProcess) then
+  begin
+    vqec:=TVirtualQueryExCache.create(hProcess);
+
+    //fill it
+
+    input.command:=CMD_VIRTUALQUERYEXFULL;
+    input.handle:=hProcess and $ffffff;
+    input.flags:=flags;
+
+    if send(@input, sizeof(input))>0 then
+    begin
+      //
+      //ceserver will now send the number of entries followed by the entries themself
+      nextAddress:=0;
+
+      receive(@count, sizeof(count));
+
+      for i:=0 to count-1 do
+      begin
+        receive(@vqe_entry, sizeof(vqe_entry));
+
+        if (vqe_entry.baseaddress<>nextAddress) then
+        begin
+          mbi.baseaddress:=pointer(nextAddress);
+          mbi.allocationbase:=mbi.BaseAddress;
+          mbi.AllocationProtect:=PAGE_NOACCESS;
+          mbi.protect:=PAGE_NOACCESS;
+          mbi.State:=MEM_FREE;
+          mbi._Type:=0;
+          mbi.RegionSize:=vqe_entry.baseaddress-nextaddress;
+          vqec.AddRegion(mbi);
+        end;
+
+        mbi.BaseAddress:=pointer(vqe_entry.baseaddress);
+        mbi.AllocationBase:=mbi.BaseAddress;
+        mbi.AllocationProtect:=PAGE_EXECUTE_READWRITE;
+        mbi.Protect:=vqe_entry.protection;
+
+        if vqe_entry.protection=PAGE_NOACCESS then
+        begin
+          mbi.State:=MEM_FREE;
+          mbi._Type:=0;
+        end
+        else
+        begin
+          mbi.State:=MEM_COMMIT;
+          mbi._Type:=vqe_entry._type;
+        end;
+
+        mbi.RegionSize:=vqe_entry.size;
+        vqec.AddRegion(mbi);
+
+        nextaddress:=vqe_entry.baseaddress+vqe_entry.size;
+      end;
+
+
+    end
+    else
+      exit; //fail to cache
+
+    //and add it to the map
+    VirtualQueryExCacheMapCS.enter;
+    try
+      VirtualQueryExCacheMap.insert(hProcess, vqec);
+    finally
+      VirtualQueryExCacheMapCS.Leave;
+    end;
+  end; //don't do anything
+
+end;
+
+procedure TCEConnection.VirtualQueryEx_EndCache(hProcess: THandle);
+var vqecache: TVirtualQueryExCache;
+begin
+  //find the current cache of this hProcess
+  VirtualQueryExCacheMapCS.enter;
+  try
+    if VirtualQueryExCacheMap.TryGetValue(hProcess, vqecache) then
+    begin
+      //cleanup
+      VirtualQueryExCacheMap.Delete(hProcess);
+      vqecache.free;
+    end;
+  finally
+    VirtualQueryExCacheMapCS.leave;
+  end;
+end;
+
 function TCEConnection.VirtualQueryEx(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD;
 var
   input: packed record
@@ -827,56 +960,73 @@ var
   end;
 
   output: packed record
-    result: integer;
-    protection: integer;
+    result: byte;
+    protection: dword;
+    _type: dword;
     baseaddress: qword;
     size: qword;
   end;
+
+  vqecache: TVirtualQueryExCache;
+
 begin
-
-  if ((hProcess shr 24) and $ff)= $ce then
+  if VirtualQueryExCacheMap.TryGetValue(hProcess, vqecache) then  //check if there is a cache going on for this handle
   begin
-    result:=0;
-    input.command:=CMD_VIRTUALQUERYEX;
-    input.handle:=hProcess and $ffffff;
-    input.baseaddress:=qword(lpAddress);
-    if send(@input, sizeof(input))>0 then
+    //yes, get it from the cache
+    if vqecache.getRegion(ptruint(lpAddress), lpBuffer) then
+      result:=sizeof(lpBuffer)
+    else
+      result:=0;
+  end
+  else
+  begin
+    //no, use the slow method instead
+    if isNetworkHandle(hProcess) then
     begin
-      if receive(@output, sizeof(output))>0 then
+      result:=0;
+      input.command:=CMD_VIRTUALQUERYEX;
+      input.handle:=hProcess and $ffffff;
+      input.baseaddress:=qword(lpAddress);
+      if send(@input, sizeof(input))>0 then
       begin
-        if output.result>0 then
+        if receive(@output, sizeof(output))>0 then
         begin
-          lpBuffer.BaseAddress:=pointer(output.baseaddress);
-          lpBuffer.AllocationBase:=lpBuffer.BaseAddress;
-          lpbuffer.AllocationProtect:=PAGE_NOACCESS;
-          lpbuffer.Protect:=output.protection;
-
-          if output.protection=PAGE_NOACCESS then
+          if output.result>0 then
           begin
-            lpbuffer.State:=MEM_FREE;
-            lpbuffer._Type:=0;
+            lpBuffer.BaseAddress:=pointer(output.baseaddress);
+            lpBuffer.AllocationBase:=lpBuffer.BaseAddress;
+            lpbuffer.AllocationProtect:=PAGE_NOACCESS;
+            lpbuffer.Protect:=output.protection;
+
+            if output.protection=PAGE_NOACCESS then
+            begin
+              lpbuffer.State:=MEM_FREE;
+              lpbuffer._Type:=0;
+            end
+            else
+            begin
+              lpbuffer.State:=MEM_COMMIT;
+              lpbuffer._Type:=output._type;
+            end;
+
+
+
+            lpbuffer.RegionSize:=output.size;
+
+            result:=dwlength;
           end
           else
-          begin
-            lpbuffer.State:=MEM_COMMIT;
-            lpbuffer._Type:=MEM_PRIVATE;
-          end;
-
-
-
-          lpbuffer.RegionSize:=output.size;
-
-          result:=dwlength;
-        end
-        else
-          result:=0;
+            result:=0;
+        end;
       end;
-    end;
-  end
-  {$ifdef windows}
-  else
-    result:=windows.VirtualQueryEx(hProcess, lpAddress, lpBuffer, dwLength)
-  {$endif};
+
+    end
+    {$ifdef windows}
+    else
+      result:=windows.VirtualQueryEx(hProcess, lpAddress, lpBuffer, dwLength)
+    {$endif};
+
+  end;
 end;
 
 function TCEConnection.OpenProcess(dwDesiredAccess:DWORD; bInheritHandle:WINBOOL; dwProcessId:DWORD):HANDLE;
@@ -1499,6 +1649,9 @@ begin
   OutputDebugString('Inside TCEConnection.create');
   WriteProcessMemoryBufferCS:=TCriticalSection.create;
 
+  VirtualQueryExCacheMapCS:=TCriticalSection.create;
+  VirtualQueryExCacheMap:=TVQEMap.Create;
+
   socket:=cint(INVALID_SOCKET);
 
   if (host.s_addr=0) or (port=0) then exit;
@@ -1540,6 +1693,16 @@ destructor TCEConnection.destroy;
 begin
   if socket<>INVALID_SOCKET then
     CloseSocket(socket);
+
+  if VirtualQueryExCacheMap<>nil then
+    VirtualQueryExCacheMap.free;
+
+  if VirtualQueryExCacheMapCS<>nil then
+    VirtualQueryExCacheMapCS.free;
+
+  if WriteProcessMemoryBufferCS<>nil then
+    WriteProcessMemoryBufferCS.free;
+
 end;
 
 end.
