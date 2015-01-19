@@ -46,6 +46,8 @@
 #define CMD_LOADMODULE              29
 #define CMD_SPEEDHACK_SETSPEED      30
 
+#define CMD_VIRTUALQUERYEXFULL      31
+
 //just in case I ever get over 255 commands this value will be reserved for a secondary command list (FF 00 -  FF 01 - ... - FF FE - FF FF 01 - FF FF 02 - .....
 #define CMD_COMMANDLIST2            255
 
@@ -85,15 +87,28 @@ typedef struct {
 
 typedef struct {
   int handle;
-  unsigned long long baseaddress;
+  uint64_t baseaddress;
 } CeVirtualQueryExInput, *PCeVirtualQueryExInput;
 
 typedef struct {
-  int result;
-  int protection;
-  unsigned long long baseaddress;
-  unsigned long long size;
+  uint8_t result;
+  uint32_t protection;
+  uint32_t type;
+  uint64_t baseaddress;
+  uint64_t size;
 } CeVirtualQueryExOutput, *PCeVirtualQueryExOutput;
+
+typedef struct {
+  int handle;
+  uint8_t flags;
+} CeVirtualQueryExFullInput, *PCeVirtualQueryExFullInput;
+
+typedef struct {
+  uint32_t protection;
+  uint32_t type;
+  uint64_t baseaddress;
+  uint64_t size;
+} CeVirtualQueryExFullOutput, *PCeVirtualQueryExFullOutput;
 
 typedef struct {
   uint32_t handle;

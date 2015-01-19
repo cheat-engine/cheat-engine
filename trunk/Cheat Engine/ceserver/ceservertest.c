@@ -70,7 +70,6 @@ int cenet_OpenProcess(int fd, int pid)
   recv(fd, &pHandle, sizeof(pHandle),MSG_WAITALL);
 
   return pHandle;
-
 }
 
 int cenet_startDebugger(int fd, int pHandle)
@@ -186,7 +185,7 @@ int cenet_readProcessMemory(int fd, int pHandle, unsigned long long address, voi
 
 }
 
-int cenet_setBreakpoint(int fd, int pHandle, int tid, void *Address, int bptype, int bpsize)
+int cenet_setBreakpoint(int fd, int pHandle, int tid, void *Address, int bptype, int bpsize, int debugreg)
 {
 #pragma pack(1)
     struct
@@ -194,22 +193,26 @@ int cenet_setBreakpoint(int fd, int pHandle, int tid, void *Address, int bptype,
       char command;
       HANDLE hProcess;
       int tid;
-      unsigned long long Address;
+      int debugreg;
+      uint64_t Address;
       int bptype;
       int bpsize;
     } sb;
 #pragma pack()
     int result;
 
-  printf("cenet_setBreakpoint\n");
+  printf("cenet_setBreakpoint sizeof(sb)=%d\n", sizeof(sb));
   sb.command=CMD_SETBREAKPOINT;
   sb.hProcess=pHandle;
   sb.tid=tid;
+  sb.debugreg=debugreg;
   sb.Address=(uintptr_t)Address;
   sb.bptype=bptype;
   sb.bpsize=bpsize;
 
   sendall(fd, &sb, sizeof(sb), 0);
+
+
   recv(fd, &result, sizeof(result), MSG_WAITALL);
 
   return result;
@@ -238,10 +241,44 @@ int cenet_removeBreakpoint(int fd, int pHandle, int tid)
   return result;
 }
 
+#define ARM_DBG_READ(N, M, OP2, VAL) do {\
+         asm volatile("mrc p14, 0, %0, " #N "," #M ", " #OP2 : "=r" (VAL));\
+} while (0)
+
+
+int cenet_VirtualQueryExFull(int fd, int pHandle, DWORD flags)
+{
+#pragma pack(1)
+    struct
+    {
+      char command;
+      HANDLE hProcess;
+      uint8_t flags;
+    } vqef;
+#pragma pack()
+
+    vqef.command=CMD_VIRTUALQUERYEXFULL;
+    vqef.hProcess=pHandle;
+    vqef.flags=flags;
+
+    sendall(fd, &vqef, sizeof(vqef),0);
+
+
+
+}
+
 void *CESERVERTEST_DEBUGGERTHREAD(void *arg)
 {
   int count=0;
   int fd=cenet_connect();
+
+  int dscr=0;
+#ifdef __arm__
+  ARM_DBG_READ(c0, c1, 0, dscr);
+  printf("after: %x\n", dscr);
+#endif
+
+
 
   if (cenet_startDebugger(fd, pHandle))
   {
@@ -259,10 +296,15 @@ void *CESERVERTEST_DEBUGGERTHREAD(void *arg)
       {
         printf("going to set breakpoint\n");
 #ifdef __arm__
-        //cenet_setBreakpoint(fd, pHandle, -1, 0x8374, 0, 1);
-        cenet_setBreakpoint(fd, pHandle, -1, 0xa000, 3, 4);
+        //cenet_setBreakpoint(fd, pHandle, -1, 0x85e4, 0, 1,0);
+        //cenet_setBreakpoint(fd, pHandle, -1, 0x85e4, 0, 1,1);
+        //cenet_setBreakpoint(fd, pHandle, -1, 0x85e4, 0, 1,2);
+        //cenet_setBreakpoint(fd, pHandle, -1, 0x85e4, 0, 1,3);
+        cenet_setBreakpoint(fd, pHandle, -1, 0x85e4, 0, 1,4);
+
+        //cenet_setBreakpoint(fd, pHandle, -1, 0xa000, 3, 4, 0);
 #else
-        cenet_setBreakpoint(fd, pHandle, -1, 0x4007ad, 0, 1);
+        cenet_setBreakpoint(fd, pHandle, -1, 0x4007ad, 0, 1, 0);
 #endif
 
         printf("cenet_setBreakpoint returned\n");
@@ -335,8 +377,12 @@ void *CESERVERTEST(void *argv[])
 
   printf("pHandle=%d\n", pHandle);
 
+  cenet_VirtualQueryExFull(fd, pHandle,  VQE_DIRTYONLY | VQE_PAGEDONLY);
+
+
+
   //launch the debuggerthread
-  pthread_create(&pth, NULL, CESERVERTEST_DEBUGGERTHREAD, NULL);
+  //pthread_create(&pth, NULL, CESERVERTEST_DEBUGGERTHREAD, NULL);
 
   //launch the rpmthread
  // sleep(1);

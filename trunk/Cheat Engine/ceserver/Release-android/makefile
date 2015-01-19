@@ -40,7 +40,7 @@ clean:
 
 post-build:
 	-@echo 'copy file to android device'
-	-adb push ceserver /data/test
+	-adb push ceserver /data/data/ceserver
 	-@echo ' '
 
 .PHONY: all clean dependents

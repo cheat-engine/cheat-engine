@@ -78,8 +78,6 @@ static inline unsigned int encode_ctrl_reg(int mismatch, int len, int type, int 
 {
         return (mismatch << 22) | (len << 5) | (type << 3) | (privilege << 1) | enabled;
 }
-
-
 #endif
 
 #if defined(__i386__) || defined(__x86_64__)
@@ -122,15 +120,19 @@ int VerboseLevel=0;
 
 int WakeDebuggerThread()
 {
+
   sem_post(&sem_DebugThreadEvent);
 }
 
 void mychildhandler(int signal, struct siginfo *info, void *context)
 {
-  //printf("Child event: %d\n", info->si_pid);
+  //only call re-entrant functions
+
   int orig_errno = errno;
   WakeDebuggerThread();
   errno = orig_errno;
+
+
 }
 
 int GetDebugPort(HANDLE hProcess)
@@ -418,7 +420,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
             printf("<<<================UNEXPECTED TID (wtid=%d tid=%d)================>>>\n", wtid, tid);
           }
 
-          printf("k=%d\n", k);
+          printf("k=%d (number of tries)\n", k);
 
           if (k==10)
           {
@@ -452,25 +454,38 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
           if (bptype==0)
           {
             //execute
+            void *rv=NULL;
+           // ptrace(PTRACE_SETHBPREGS, wtid, bpindex, &rv);
+           // ptrace(PTRACE_SETHBPREGS, wtid, bpindex+1, &rv);
 
+
+            i=ptrace(PTRACE_GETHBPREGS, wtid, bpindex, &rv);
+            printf("%d: Before: %d=%p\n", i, bpindex, rv);
 
             i=ptrace(PTRACE_SETHBPREGS, wtid, bpindex, &address);
             printf("i1=%d\n", i, hwbpreg);
 
+            i=ptrace(PTRACE_GETHBPREGS, wtid, bpindex, &rv);
+            printf("%d: After: %d=%p\n", i, bpindex, rv);
+
+
             //right now i'm not really sure how the breakpoint len is set and why it works in some cases and why not in other cases
             result=i==0;
 
-            hwbpreg=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_4, ARM_BREAKPOINT_EXECUTE, 0, 1);
+            hwbpreg=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_4, ARM_BREAKPOINT_EXECUTE, 2, 1);
             if (ptrace(PTRACE_SETHBPREGS, wtid, bpindex+1, &hwbpreg)<0) //according to my guess, this should usually work, but just in case...
             {
-              hwbpreg=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_2, ARM_BREAKPOINT_EXECUTE, 0, 1);
+              printf("f1\n");
+              hwbpreg=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_2, ARM_BREAKPOINT_EXECUTE, 2, 1);
               if (ptrace(PTRACE_SETHBPREGS, wtid, bpindex+1, &hwbpreg)<0)
               {
-                hwbpreg=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_1, ARM_BREAKPOINT_EXECUTE, 0, 1);
+                printf("f2\n");
+                hwbpreg=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_1, ARM_BREAKPOINT_EXECUTE, 2, 1);
                 if (ptrace(PTRACE_SETHBPREGS, wtid, bpindex+1, &hwbpreg)<0)
                 {
+                  printf("f3\n");
                   //last try, 8 ?
-                  hwbpreg=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_8, ARM_BREAKPOINT_EXECUTE, 0, 1);
+                  hwbpreg=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_8, ARM_BREAKPOINT_EXECUTE, 2, 1);
                   if (ptrace(PTRACE_SETHBPREGS, wtid, bpindex+1, &hwbpreg)<0)
                   {
                     printf("Failure to set breakpoint\n");
@@ -481,9 +496,13 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
               }
             }
 
-            printf("bpindex=%d bpindex+1=%d", bpindex, bpindex);
+            printf("bpindex=%d bpindex+1=%d\n", bpindex, bpindex+1);
 
             printf("hwbpreg=%x\n", hwbpreg);
+
+            i=ptrace(PTRACE_GETHBPREGS, wtid, bpindex+1, &hwbpreg);
+            printf("after=%x\n", hwbpreg);
+
           }
           else
           {
@@ -510,7 +529,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
             hwbpreg=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_4, btype, 0, 1);
             i=ptrace(PTRACE_SETHBPREGS, wtid, -(bpindex+1), &hwbpreg);
 
-            printf("-bpindex=%d -(bpindex+1)=%d", -bpindex, -(bpindex+1));
+            printf("-bpindex=%d -(bpindex+1)=%d\n", -bpindex, -(bpindex+1));
             printf("i=%d  (hwbpreg=%x)\n", i, hwbpreg);
             result=i==0;
 
@@ -1393,7 +1412,7 @@ int WaitForDebugEventNative(PProcessData p, PDebugEvent devent, int tid, int tim
          //   printf("Checking for dispatch command\n");
 
           CheckForAndDispatchCommand(p->debuggerServer);
-          if (VerboseLevel>10)
+          //if (VerboseLevel>10)
             printf("CheckForAndDispatchCommand returned\n");
 
           //check if an event got queued for this thread by the dispatcher
@@ -2203,7 +2222,7 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
   //todo: Try process_vm_readv
 
-  printf("ReadProcessMemory called\n");
+  //printf("ReadProcessMemory called\n");
 
   //printf("ReadProcessMemory\n");
   int bread=0;
@@ -2211,16 +2230,16 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
   { //valid handle
     PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
 
-    printf("hProcess=%d, lpAddress=%p, buffer=%p, size=%d\n", hProcess, lpAddress, buffer, size);
+    //printf("hProcess=%d, lpAddress=%p, buffer=%p, size=%d\n", hProcess, lpAddress, buffer, size);
 
     if (p->isDebugged) //&& cannotdealwithotherthreads
     {
-      printf("This process is being debugged\n");
+      //printf("This process is being debugged\n");
       //use the debugger specific readProcessMemory implementation
       return ReadProcessMemoryDebug(hProcess, p, lpAddress, buffer, size);
     }
 
-    printf("Read without debug\n");
+    //printf("Read without debug\n");
 
     if (pthread_mutex_lock(&memorymutex) == 0)
     {
@@ -2239,7 +2258,7 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
           if (bread==-1)
           {
             bread=0;
-            printf("pread error for address %p (errno=%d)\n", lpAddress, errno);
+            //printf("pread error for address %p (errno=%d)\n", lpAddress, errno);
 
             if (lpAddress>=0x80000000)
             {
@@ -2253,7 +2272,7 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
           }
 
-          printf("bread=%d size=%d\n", bread, size);
+          //printf("bread=%d size=%d\n", bread, size);
 
 
           ptrace(PTRACE_DETACH, pid,0,0);
@@ -2273,6 +2292,316 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
   return bread;
 }
 
+DWORD ProtectionStringToType(char *protectionstring)
+{
+  if (index(protectionstring, 's'))
+    return MEM_MAPPED;
+  else
+    return MEM_PRIVATE;
+}
+
+uint32_t ProtectionStringToProtection(char *protectionstring)
+{
+  int w,x;
+
+  if (index(protectionstring, 'x'))
+    x=1;
+  else
+    x=0;
+
+  if (index(protectionstring, 'w'))
+    w=1;
+  else
+    w=0;
+
+  if (x)
+  {
+    //executable
+    if (w)
+      return PAGE_EXECUTE_READWRITE;
+    else
+      return PAGE_EXECUTE_READ;
+  }
+  else
+  {
+    //not executable
+    if (w)
+      return PAGE_READWRITE;
+    else
+      return PAGE_READONLY;
+  }
+}
+
+void AddToRegionList(uint64_t base, uint64_t size, uint32_t type, uint32_t protection, RegionInfo **list, int *pos, int *max)
+//helper function for VirtualQueryExFull to add new entries to the list
+{
+  //printf("Calling AddToRegionList\n");
+
+  printf("++>%llx->%llx : (%llx)  - %d\n", (unsigned long long)base, (unsigned long long)base+size, (unsigned long long)size, type);
+
+  (*list)[*pos].baseaddress=base;
+  (*list)[*pos].size=size;
+  (*list)[*pos].type=type;
+  (*list)[*pos].protection=protection;
+
+  (*pos)++;
+
+  if (*pos>=*max)
+  {
+    printf("resize list\n");
+    *max=(*max)*2;
+    *list=(RegionInfo *)realloc(*list, sizeof(RegionInfo)*(*max));
+  }
+
+  //printf("Returning from AddToRegionList\n");
+}
+
+int VirtualQueryExFull(HANDLE hProcess, uint32_t flags, RegionInfo **rinfo, uint32_t *count)
+/*
+ * creates a full list of the maps file (less seeking)
+ */
+{
+  int pagedonly=flags & VQE_PAGEDONLY;
+  int dirtyonly=flags & VQE_DIRTYONLY;
+  int noshared=flags & VQE_NOSHARED;
+
+  printf("VirtualQueryExFull:\n");
+
+  if (GetHandleType(hProcess) == htProcesHandle )
+  {
+    PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
+
+    char smaps_name[64];
+    char pagemap_name[64];
+
+    sprintf(smaps_name,"/proc/%d/smaps", p->pid);
+    sprintf(pagemap_name,"/proc/%d/pagemap", p->pid);
+
+    FILE *maps=fopen(smaps_name, "r");
+    int pagemap=-1;
+
+    uint64_t *pagemap_entries=NULL;
+
+    if (pagedonly)
+    {
+      printf("pagedonly\n");
+      pagemap=open("/proc/8700/pagemap", O_RDONLY);
+
+      printf("pagemap=%p\n", pagemap);
+
+      pagemap_entries=(uint64_t *)malloc(512*8);
+    }
+
+
+    if (maps && (!pagedonly || (pagemap>=0)))
+    {
+
+
+      unsigned long long start=0, stop=0;
+      char protectionstring[25];
+      char x[200];
+      int pos=0, max=pagedonly?64:128;
+      RegionInfo *r=(RegionInfo *)malloc(sizeof(RegionInfo)*max);
+
+      printf("Allocated r at %p\n", r);
+
+      int isdirty=0;
+      int end=0;
+
+
+      while (!end)
+      {
+        unsigned long long _start, _stop;
+        char temp[25];
+
+        end=fgets(x, 200, maps)==0;
+
+
+        //make sure the stream gets to tne next line. (long modulepaths can cause an issue)
+
+        //printf("%s\n",x);
+
+        if (x[strlen(x)-1]!='\n')
+        {
+          //need to go to the end of line first
+
+          char discard[100];
+
+          do
+          {
+            discard[99]=0;
+            fgets(discard, 99, maps);
+          } while (discard[99]!=0);
+        }
+
+        temp[0]=0;
+        sscanf(x, "%llx-%llx %24s", &_start, &_stop, temp);
+
+        if ((end) || (temp[0]!=0))
+        {
+          //new entry
+          if (start)
+          {
+            int passed=1;
+            DWORD type=ProtectionStringToType(protectionstring);
+            DWORD protection=ProtectionStringToProtection(protectionstring);
+
+            //a block was being processed
+
+
+            //some checks to see if it passed
+            if (noshared && (type==MEM_MAPPED)) //
+              passed=0;
+
+            if (dirtyonly && !isdirty)
+              passed=0;
+
+            //writable only as well ?
+
+            if (passed)
+            {
+              //printf("passed the initial check\n");
+              if (pagedonly)
+              {
+                //only add the pages
+                //todo: Add a dirtyonlyPlus which works in conjunction with softdirty pages (only works on newer kernels and requires a forced clear)
+                uint64_t current=start;
+                int pagesize=getpagesize();
+                while (current<stop)
+                {
+                  int i;
+                  int currentstart=-1;
+                  off_t offset=(current / pagesize)*8;
+                  size_t pagecount=(stop-current) / pagesize;
+                  if (pagecount>512)
+                    pagecount=512;
+
+                  printf("-->%llx->%llx : %s (%llx)\n", start, stop, protectionstring, stop-start);
+
+                  i=pread(pagemap, pagemap_entries, pagecount*8, offset);
+                  if (i==-1)
+                  {
+                    printf("offset=%llx, pagecount=%d read=%d (%d) \n", (unsigned long long)offset, (int)pagecount, i/8, i);
+                    //exit(12);
+                  }
+                  else
+                  {
+                    for (i=0; i<pagecount; i++)
+                    {
+                      if (pagemap_entries[i] >> 63) //present
+                      {
+                        if (currentstart==-1) //new entry
+                          currentstart=i;
+
+                        //total3+=pagesize;
+                      }
+                      else
+                      {
+                        if (currentstart!=-1)
+                        {
+                          //store this section (from currentstart to i-1)
+                          AddToRegionList((uint64_t)(current+currentstart*pagesize), (i-currentstart)*pagesize, type, protection, &r, &pos, &max);
+                        }
+
+                        currentstart=-1;
+                      }
+                    }
+
+                    if (currentstart!=-1)
+                    {
+                      //store this section (from currentstart to pagecount)
+                      int count=pagecount-currentstart;
+                      AddToRegionList((uint64_t)(current+currentstart*pagesize), count*pagesize, type, protection, &r, &pos, &max);
+                    }
+
+                    current+=pagecount*pagesize;
+                  }
+
+
+                }
+
+              }
+              else
+                AddToRegionList(start, stop-start, type, protection, &r, &pos, &max);
+            }
+
+
+
+          }
+
+
+          //declare a new clean block for the next iteration
+          isdirty=0;
+          strcpy(protectionstring, temp);
+          start=_start;
+          stop=_stop;
+        }
+        else
+        {
+          //one of the info lines
+
+          if (dirtyonly && (start!=0))
+          {
+            //figure out if it's something I am interested in (dirty pages)
+            int i;
+            int number;
+            char name[32];
+            i=sscanf(x, "%31[^:]: %d", name, &number);
+            if (i==2)
+            {
+              if ((number>0) && ((strcmp(name,"Shared_Dirty")==0) || (strcmp(name,"Private_Dirty")==0))) //the value is >0 and it's information about the dirty state
+                isdirty=1;
+            }
+
+
+          }
+
+        }
+
+
+      }
+
+      printf("End of loop\n");
+
+      if (maps)
+        fclose(maps);
+
+      if (pagemap>=0)
+        close(pagemap);
+
+
+      *count=pos;
+      *rinfo=r;
+
+      if (pagemap_entries)
+        free(pagemap_entries);
+
+      fflush(stdout);
+
+      return 1;
+    }
+    else
+    {
+
+
+      if (maps)
+        fclose(maps);
+      else
+        printf("Failure opening /proc/%d/smaps", p->pid);
+
+      if (pagemap)
+        fclose(pagemap);
+      else
+        printf("Failure opening /proc/%d/pagemap", p->pid);
+
+      return 0;
+    }
+
+  }
+  else
+    return 0;
+
+}
 
 int VirtualQueryEx(HANDLE hProcess, void *lpAddress, PRegionInfo rinfo)
 {
@@ -2304,6 +2633,18 @@ int VirtualQueryEx(HANDLE hProcess, void *lpAddress, PRegionInfo rinfo)
         unsigned long long start=0, stop=0;
         char protectionstring[25];
 
+        if (x[strlen(x)-1]!='\n')
+        {
+          char discard[100];
+
+          do
+          {
+            discard[99]=0;
+            fgets(discard, 99, maps);
+          } while (discard[99]!=0);
+        }
+
+
         sscanf(x, "%llx-%llx %s", &start, &stop, protectionstring);
        // printf("%llx - %llx : %s\n", start,stop, protectionstring);
 
@@ -2315,54 +2656,20 @@ int VirtualQueryEx(HANDLE hProcess, void *lpAddress, PRegionInfo rinfo)
           {
             //it's inside the region, so useable
 
-            int w,x;
-
-            if (index(protectionstring, 'x'))
-              x=1;
-            else
-              x=0;
-
-            if (index(protectionstring, 'w'))
-              w=1;
-            else
-              w=0;
-
-            if (x)
-            {
-              //executable
-              if (w)
-                rinfo->protection=PAGE_EXECUTE_READWRITE;
-              else
-                rinfo->protection=PAGE_EXECUTE_READ;
-            }
-            else
-            {
-              //not executable
-              if (w)
-                rinfo->protection=PAGE_READWRITE;
-              else
-                rinfo->protection=PAGE_READONLY;
-            }
-
+            rinfo->protection=ProtectionStringToProtection(protectionstring);
+            rinfo->type=ProtectionStringToType(protectionstring);
             rinfo->size=stop-rinfo->baseaddress;
           }
           else
           {
             rinfo->size=start-rinfo->baseaddress;
             rinfo->protection=PAGE_NOACCESS;
+            rinfo->type=0;
           }
-
-
-
-
 
           break;
         }
-
-
-
       }
-
 
       fclose(maps);
 

@@ -24,6 +24,9 @@ typedef uint32_t DWORD;
 #define PAGE_EXECUTE_READ 32
 #define PAGE_EXECUTE_READWRITE 64
 
+#define MEM_MAPPED 262144
+#define MEM_PRIVATE 131072
+
 typedef enum {htEmpty=0, htProcesHandle, htThreadHandle, htTHSProcess, htTHSModule, htNativeThreadHandle} handleType; //The difference between ThreadHandle and NativeThreadHandle is that threadhandle is based on the processid of the thread, the NativeThreadHandle is in linux usually the pthread_t handle
 typedef int BOOL;
 
