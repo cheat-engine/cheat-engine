@@ -115,7 +115,9 @@ begin
             mbi.AllocationBase:=nil;
 
           if i<regions.count-1 then
-            mbi.RegionSize:=ptruint(mbi.allocationbase)+ptruint(PMEMORYBASICINFORMATION(regions[i+1])^.BaseAddress);
+            mbi.RegionSize:=ptruint(mbi.allocationbase)+ptruint(PMEMORYBASICINFORMATION(regions[i+1])^.BaseAddress)
+          else
+            exit; //end of the list reached
         end
         else
         begin
