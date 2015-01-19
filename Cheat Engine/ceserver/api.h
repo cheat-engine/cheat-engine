@@ -20,6 +20,11 @@
 #include <sys/user.h>
 #endif
 
+#define VQE_PAGEDONLY 1
+#define VQE_DIRTYONLY 2
+#define VQE_NOSHARED 4
+
+
 typedef struct
 {
   unsigned long long baseAddress;
@@ -124,9 +129,10 @@ typedef struct {
 
 #pragma pack(1)
 typedef struct {
-  unsigned long long baseaddress;
-  unsigned long long size;
-  DWORD protection;
+  uint64_t baseaddress;
+  uint64_t size;
+  uint32_t protection;
+  uint32_t type;
 } RegionInfo, *PRegionInfo;
 #pragma pack()
 
@@ -159,6 +165,7 @@ BOOL Process32First(HANDLE hSnapshot, PProcessListEntry processentry);
 HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID);
 HANDLE OpenProcess(DWORD pid);
 int VirtualQueryEx(HANDLE hProcess, void *lpAddress, PRegionInfo rinfo);
+int VirtualQueryExFull(HANDLE hProcess, uint32_t flags, RegionInfo **rinfo, uint32_t *count);
 int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size);
 int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size);
 
