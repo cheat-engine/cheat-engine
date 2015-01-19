@@ -11,7 +11,7 @@ procedure InitializeJniTMemScan(env: PJNIEnv);
 
 implementation
 
-uses jniTObject, memscan;
+uses jniTObject, memscan, Globals;
 
 var scanDoneMethodID: jmethodID;
 
@@ -106,7 +106,7 @@ begin
   end;
 end;
 
-procedure TMemScan_FirstScan(PEnv: PJNIEnv; Obj: JObject; scanOption: jint; variabletype: jint; roundingtype: jint; sv1: jstring; sv2: jstring; pf: jstring; startaddress: jlong; stopaddress: jlong; fastscanmethod: jint; fastscanparameter: jstring; hexadecimal: jboolean; binaryasstring: jboolean; unicode: jboolean; casesensitive: jboolean); cdecl;
+procedure TMemScan_FirstScan(PEnv: PJNIEnv; Obj: JObject; scanOption: jint; variabletype: jint; roundingtype: jint; sv1: jstring; sv2: jstring; pf: jstring; startaddress: jlong; stopaddress: jlong; fastscanmethod: jint; fastscanparameter: jstring; hexadecimal: jboolean; binaryasstring: jboolean; unicode: jboolean; casesensitive: jboolean; pagedonly: jboolean; dirtyonly: jboolean; noshared: jboolean); cdecl;
 var
   ms: TJniMemscan;
   scanvalue1, scanvalue2, protectionflags: string;
@@ -114,8 +114,9 @@ begin
   log('First scan');
   ms:=TJniMemscan(JObjectToTObject(penv, obj));
 
-
-
+  Scan_MEM_MAPPED:=noshared=0;
+  scan_dirtyonly:=dirtyonly<>0;
+  scan_pagedonly:=pagedonly<>0;
 
   scanvalue1:=jniGetString(penv, sv1);
   scanvalue2:=jniGetString(penv, sv2);
@@ -129,7 +130,7 @@ const methodcount=4;
 var jnimethods: array [0..methodcount-1] of JNINativeMethod =(
   (name: 'create'; signature: '(Lorg/cheatengine/TMemScan;)J'; fnPtr: @TMemScan_Create),
   (name: 'newScan'; signature: '()V'; fnPtr: @TMemScan_NewScan),
-  (name: 'firstScan'; signature: '(IIILjava/lang/String;Ljava/lang/String;Ljava/lang/String;JJILjava/lang/String;ZZZZ)V'; fnPtr: @TMemScan_FirstScan),
+  (name: 'firstScan'; signature: '(IIILjava/lang/String;Ljava/lang/String;Ljava/lang/String;JJILjava/lang/String;ZZZZZZZ)V'; fnPtr: @TMemScan_FirstScan),
 
   //nextscan
   (name: 'getProgress'; signature: '()I'; fnPtr: @TMemScan_GetProgress)
