@@ -48,6 +48,7 @@
 
 #include <semaphore.h>
 #include <sys/queue.h>
+#include <limits.h>
 
 
 #ifdef __arm__
@@ -2466,7 +2467,12 @@ int VirtualQueryExFull(HANDLE hProcess, uint32_t flags, RegionInfo **rinfo, uint
                 //only add the pages
                 //todo: Add a dirtyonlyPlus which works in conjunction with softdirty pages (only works on newer kernels and requires a forced clear)
                 uint64_t current=start;
-                int pagesize=getpagesize();
+                int pagesize;
+#ifndef PAGESIZE
+                pagesize=getpagesize();
+#else
+                pagesize=PAGESIZE;
+#endif
                 while (current<stop)
                 {
                   int i;
@@ -2561,7 +2567,7 @@ int VirtualQueryExFull(HANDLE hProcess, uint32_t flags, RegionInfo **rinfo, uint
 
       }
 
-      printf("End of loop\n");
+     // printf("End of loop\n");
 
       if (maps)
         fclose(maps);
@@ -2576,7 +2582,7 @@ int VirtualQueryExFull(HANDLE hProcess, uint32_t flags, RegionInfo **rinfo, uint
       if (pagemap_entries)
         free(pagemap_entries);
 
-      fflush(stdout);
+      //fflush(stdout);
 
       return 1;
     }
