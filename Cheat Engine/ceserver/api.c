@@ -2386,11 +2386,14 @@ int VirtualQueryExFull(HANDLE hProcess, uint32_t flags, RegionInfo **rinfo, uint
     if (pagedonly)
     {
       printf("pagedonly\n");
-      pagemap=open("/proc/8700/pagemap", O_RDONLY);
+      pagemap=open(pagemap_name, O_RDONLY);
 
       printf("pagemap=%p\n", pagemap);
 
+
       pagemap_entries=(uint64_t *)malloc(512*8);
+
+      printf("allocated pagemap_entries at %p\n", pagemap_entries);
     }
 
 
@@ -2402,7 +2405,10 @@ int VirtualQueryExFull(HANDLE hProcess, uint32_t flags, RegionInfo **rinfo, uint
       char protectionstring[25];
       char x[200];
       int pos=0, max=pagedonly?64:128;
-      RegionInfo *r=(RegionInfo *)malloc(sizeof(RegionInfo)*max);
+      RegionInfo *r;
+
+      printf("going to allocate r\n");
+      r=(RegionInfo *)malloc(sizeof(RegionInfo)*max);
 
       printf("Allocated r at %p\n", r);
 
@@ -2582,12 +2588,13 @@ int VirtualQueryExFull(HANDLE hProcess, uint32_t flags, RegionInfo **rinfo, uint
       if (pagemap_entries)
         free(pagemap_entries);
 
-      //fflush(stdout);
+      fflush(stdout);
 
       return 1;
     }
     else
     {
+      printf("Failure maps=%p pagemap=%d\n", maps, pagemap);
 
 
       if (maps)
@@ -2595,10 +2602,12 @@ int VirtualQueryExFull(HANDLE hProcess, uint32_t flags, RegionInfo **rinfo, uint
       else
         printf("Failure opening /proc/%d/smaps", p->pid);
 
-      if (pagemap)
-        fclose(pagemap);
+      if (pagemap>=0)
+        close(pagemap);
       else
         printf("Failure opening /proc/%d/pagemap", p->pid);
+
+      fflush(stdout);
 
       return 0;
     }
