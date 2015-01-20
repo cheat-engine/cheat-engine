@@ -377,7 +377,9 @@ void *CESERVERTEST(void *argv[])
 
   printf("pHandle=%d\n", pHandle);
 
-  cenet_VirtualQueryExFull(fd, pHandle,  VQE_DIRTYONLY | VQE_PAGEDONLY);
+  //cenet_VirtualQueryExFull(fd, pHandle,  VQE_DIRTYONLY | VQE_PAGEDONLY);
+
+  CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, pid);
 
 
 
