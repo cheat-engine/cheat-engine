@@ -2223,7 +2223,7 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
   //todo: Try process_vm_readv
 
-  //printf("ReadProcessMemory called\n");
+  //printf("ReadProcessMemory: %p\n", lpAddress);
 
   //printf("ReadProcessMemory\n");
   int bread=0;
@@ -2259,7 +2259,7 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
           if (bread==-1)
           {
             bread=0;
-            //printf("pread error for address %p (errno=%d)\n", lpAddress, errno);
+           // printf("pread error for address %p (errno=%d)\n", lpAddress, errno);
 
             if (lpAddress>=0x80000000)
             {
@@ -2988,18 +2988,23 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
       memset(s, 0, 255);
 
       PModuleListEntry mle=NULL;
+      int phandle=OpenProcess(th32ProcessID);
 
 
 
       while (fgets(s, 255, f)) //read a line into s
       {
         unsigned long long start, stop;
-        char memoryrange[64],modulepath[255];
+        char memoryrange[64],protectionstring[32],modulepath[255];
+        uint32_t magic;
 
         modulepath[0]='\0';
         memset(modulepath, 0, 255);
 
-        sscanf(s, "%llx-%llx %*s %*s %*s %*s %s\n", &start, &stop, modulepath);
+        sscanf(s, "%llx-%llx %s %*s %*s %*s %s\n", &start, &stop, protectionstring, modulepath);
+
+        if (ProtectionStringToType(protectionstring)==MEM_MAPPED)
+          continue;
 
         if (modulepath[0]) //it's something
         {
@@ -3027,6 +3032,25 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
 
 //          printf("%llx : %s\n", start, modulepath);
 
+          //check if it starts with ELF
+
+           //printf("tempbuf=%s\n", tempbuf);
+          i=ReadProcessMemory(phandle, (void *)start, &magic, 4);
+          if (i==0)
+          {
+            //printf("%s is unreadable(%llx)\n", modulepath, start);
+            continue; //unreadable
+          }
+
+          //printf("i=%d\n", i);
+
+          if (magic!=0x464c457f) //  7f 45 4c 46
+          {
+            //printf("%s is not an ELF(%llx).  tempbuf=%s\n", modulepath, start, tempbuf);
+            continue; //not an ELF
+          }
+
+          //printf("Found an ELF\n");
 
           mle=&ml->moduleList[ml->moduleCount];
           mle->moduleName=strdup(modulepath);
@@ -3050,6 +3074,8 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
 
 
       }
+
+      CloseHandle(phandle);
 
       fclose(f);
 
