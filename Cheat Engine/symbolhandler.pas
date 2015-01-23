@@ -1042,13 +1042,6 @@ begin
 
           c.enumSymbolsFromFile(self.owner.modulelist[i].modulepath, modinfo^.baseaddress, NetworkES);
 
-          if (pos('libapplication', self.owner.modulelist[i].modulepath)>0) then
-          begin
-          asm
-          nop
-          end;
-          end;
-
           if (modinfo^.baseaddress+modinfo^.size)<highestsymboladdress then
           begin
             self.owner.modulelistMREW.Beginread;
