@@ -73,6 +73,8 @@ type
     currentModuleIsNotStandard: boolean;
 
     extraSymbolData: TExtraSymbolData;
+    highestsymboladdress: ptruint;
+    highestsymbol: string;
 
     procedure EnumerateExtendedDebugSymbols;
 
@@ -833,12 +835,26 @@ end;
 
 function TSymbolloaderthread.NetworkES(modulename: string; symbolname: string; address: ptruint; size: integer; secondary: boolean): boolean;
 begin
+
+  //if highestsymboladdress<address then
+  if symbolname='_end' then
+  begin
+    highestsymboladdress:=address;
+    highestsymbol:=symbolname;
+  end;
+
   symbollist.AddSymbol(modulename, modulename+'.'+symbolname, Address, size, secondary);
   symbollist.AddSymbol(modulename, symbolname, Address, size,true);
   result:=not terminated;
 end;
 
 procedure TSymbolloaderthread.execute;
+type
+  TModInfo=record
+    baseaddress: qword;
+    size: qword;
+  end;
+  PModInfo=^TModInfo;
 var sp: pchar;
     s: string;
 
@@ -857,6 +873,10 @@ var sp: pchar;
     address:qword;
     size: integer;
     name: string;
+
+
+
+    modinfo: PModInfo;
 begin
 
   try
@@ -1002,13 +1022,51 @@ begin
         self.owner.modulelistMREW.Beginread;
         try
           for i:=0 to self.owner.modulelistpos-1 do
-            mpl.AddObject(self.owner.modulelist[i].modulepath, pointer(self.owner.modulelist[i].baseaddress));
+          begin
+            getmem(modinfo, sizeof(TModInfo));
+            modinfo^.baseaddress:=self.owner.modulelist[i].baseaddress;
+            modinfo^.size:=self.owner.modulelist[i].basesize;
+            mpl.AddObject(self.owner.modulelist[i].modulepath, tobject(modinfo));
+          end;
         finally
           self.owner.modulelistMREW.Endread;
         end;
 
         for i:=0 to mpl.Count-1 do
-          c.enumSymbolsFromFile(self.owner.modulelist[i].modulepath, ptruint(mpl.Objects[i]), NetworkES);
+        begin
+          modinfo:=pmodinfo(mpl.Objects[i]);
+
+          highestsymboladdress:=0;
+          highestsymbol:='';
+
+
+          c.enumSymbolsFromFile(self.owner.modulelist[i].modulepath, modinfo^.baseaddress, NetworkES);
+
+          if (pos('libapplication', self.owner.modulelist[i].modulepath)>0) then
+          begin
+          asm
+          nop
+          end;
+          end;
+
+          if (modinfo^.baseaddress+modinfo^.size)<highestsymboladdress then
+          begin
+            self.owner.modulelistMREW.Beginread;
+            try
+              for j:=0 to self.owner.modulelistpos-1 do
+                if self.owner.modulelist[j].baseaddress=modinfo^.baseaddress then
+                begin
+                  self.owner.modulelist[j].basesize:=highestsymboladdress-modinfo^.baseaddress;
+                  break;
+                end;
+            finally
+              self.owner.modulelistMREW.Endread;
+            end;
+          end;
+
+          freemem(modinfo);
+        end;
+
 
         mpl.free;
       end;
@@ -2644,10 +2702,13 @@ var
 
   alreadyInTheList: boolean;
 
-  oldmodulelist: array of qword;
+ // oldmodulelist: array of qword;
 
   is64bitprocess: boolean;
 
+
+  newmodulelist: TModuleInfoArray;
+  newmodulelistpos: integer;
 begin
 
 
@@ -2665,6 +2726,7 @@ begin
 
     if processid=0 then exit;
 
+    {
     modulelistMREW.beginread;
 
     //make a copy of the old list addresses to compare against
@@ -2672,7 +2734,7 @@ begin
     for i:=0 to modulelistpos-1 do
       oldmodulelist[i]:=modulelist[i].baseaddress;
 
-    modulelistMREW.Endread;
+    modulelistMREW.Endread;  }
 
 
     //Note: Just TH32CS_SNAPMODULE32 will result in an empty list
@@ -2681,9 +2743,10 @@ begin
     //So for now I just check if it's a system dll, and if so, if it's in the wow64 folder or not
     ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE or TH32CS_SNAPMODULE32,processid);
 
-    modulelistMREW.BeginWrite;
+    modulelistMREW.BeginRead;
     try
-      modulelistpos:=0;
+      newmodulelistpos:=0;
+      setlength(newmodulelist, length(modulelist));
 
       if ths<>0 then
       begin
@@ -2702,9 +2765,9 @@ begin
 
               alreadyInTheList:=false;
               //check if this modulename is already in the list, and if so check if it's the same base, else add it
-              for i:=0 to modulelistpos-1 do
+              for i:=0 to newmodulelistpos-1 do
               begin
-                if (modulelist[i].baseaddress=ptrUint(me32.modBaseAddr)) then
+                if (newmodulelist[i].baseaddress=ptrUint(me32.modBaseAddr)) then
                 begin
                   alreadyInTheList:=true;
                   break; //it's in the list, no need to continue looking, break out of the for loop
@@ -2714,50 +2777,54 @@ begin
 
               if not alreadyInTheList then
               begin
-                if modulelistpos+1>=length(modulelist) then
-                  setlength(modulelist,length(modulelist)*2);
+                if newmodulelistpos+1>=length(newmodulelist) then
+                  setlength(newmodulelist,length(newmodulelist)*2);
 
-
-
-                modulelist[modulelistpos].modulename:=modulename;
-                modulelist[modulelistpos].modulepath:=x;
+                newmodulelist[newmodulelistpos].modulename:=modulename;
+                newmodulelist[newmodulelistpos].modulepath:=x;
 
                 //all windows folder files are system modules, except when it is an .exe (minesweeper in xp)
-                modulelist[modulelistpos].isSystemModule:=(pos(lowercase(windowsdir),lowercase(x))>0) and (ExtractFileExt(lowercase(x))<>'.exe');
+                newmodulelist[newmodulelistpos].isSystemModule:=(pos(lowercase(windowsdir),lowercase(x))>0) and (ExtractFileExt(lowercase(x))<>'.exe');
 
-                modulelist[modulelistpos].baseaddress:=ptrUint(me32.modBaseAddr);
-                modulelist[modulelistpos].basesize:=me32.modBaseSize;
+                newmodulelist[newmodulelistpos].baseaddress:=ptrUint(me32.modBaseAddr);
+                newmodulelist[newmodulelistpos].basesize:=me32.modBaseSize;
 
                 if not processhandler.isNetwork then
                 begin
-                  if peinfo_is64bitfile(x, modulelist[modulelistpos].is64bitmodule)=false then
+
+                  if peinfo_is64bitfile(x, newmodulelist[newmodulelistpos].is64bitmodule)=false then
                   begin
                     //fallback
                     {$ifdef cpu64}
                     if is64bitprocess then
-                      modulelist[modulelistpos].is64bitmodule:=true
+                      newmodulelist[newmodulelistpos].is64bitmodule:=true
                     else
                     begin
-                      if modulelist[modulelistpos].isSystemModule then
+                      if newmodulelist[newmodulelistpos].isSystemModule then
                       begin
                         if pos('wow64', lowercase(ExtractFilePath(x)))>0 then  //todo: Open the file and check if it's 64-bit or not
-                          modulelist[modulelistpos].is64bitmodule:=false
+                          newmodulelist[newmodulelistpos].is64bitmodule:=false
                         else
-                          modulelist[modulelistpos].is64bitmodule:=true;
+                          newmodulelist[newmodulelistpos].is64bitmodule:=true;
                       end;
                     end;
                     {$endif}
                   end;
                 end
                 else
-                  modulelist[modulelistpos].is64bitmodule:=processhandler.is64Bit;
+                begin
+                  newmodulelist[newmodulelistpos].is64bitmodule:=processhandler.is64Bit;
+                  if pos('/system/',lowercase(x))=1 then //android thingy
+                    newmodulelist[newmodulelistpos].isSystemModule:=true;
+                end;
 
-                if (not modulelist[modulelistpos].isSystemModule) and (commonModuleList<>nil) then //check if it's a common module (e.g nvidia physx dll's)
-                  modulelist[modulelistpos].isSystemModule:=commonModuleList.IndexOf(lowercase(modulelist[modulelistpos].modulename))<>-1;
+                if (not newmodulelist[newmodulelistpos].isSystemModule) and (commonModuleList<>nil) then //check if it's a common module (e.g nvidia physx dll's)
+                  newmodulelist[newmodulelistpos].isSystemModule:=commonModuleList.IndexOf(lowercase(newmodulelist[newmodulelistpos].modulename))<>-1;
 
+                inc(newmodulelistpos);
 
-
-                inc(modulelistpos);
+                if (modulelistpos=0) or (newmodulelistpos>modulelistpos) or (modulelist[newmodulelistpos-1].baseaddress<>newmodulelist[newmodulelistpos-1].baseaddress) then //different size or different order, return true
+                  result:=true; //different
               end;
 
             until not module32next(ths,me32);
@@ -2770,11 +2837,15 @@ begin
 
 
     finally
-      modulelistmrew.EndWrite;
+      modulelistmrew.EndRead;
+
     end;
 
-    if length(oldmodulelist)=modulelistpos then
-    begin
+    if newmodulelistpos<>modulelistpos then
+      result:=true;
+
+
+    {begin
       for i:=0 to modulelistpos-1 do
       begin
         if oldmodulelist[i]<>modulelist[i].baseaddress then
@@ -2786,7 +2857,18 @@ begin
       end;
     end
     else
-      result:=true; //the length of the list changed
+      result:=true; //the length of the list changed}
+
+    if result=true then
+    begin
+      modulelistMREW.BeginWrite;
+      try
+        modulelist:=newmodulelist;
+        modulelistpos:=newmodulelistpos;
+      finally
+        modulelistMREW.EndWrite;
+      end;
+    end;
 
   except
     //MessageBox(0,'procedure TSymhandler.loadmodulelist','procedure TSymhandler.loadmodulelist',0);
