@@ -13,11 +13,71 @@ procedure ConvertStringToBytes(scanvalue:string; hex:boolean;var bytes: TBytes);
 function BinToInt(s: string): int64;
 function IntToBin(i: qword): string;
 function StrToQWordEx(s: string): qword;
+function getbit(bitnr: integer; bt: qword):integer; inline;
+procedure setbit(bitnr: integer; var bt: Byte;state:integer); overload;
+procedure setbit(bitnr: integer; var bt: dword;state:integer); overload;
+procedure setbit(bitnr: integer; var bt: qword;state:integer); overload;
+
+function GetBitCount(value: qword): integer;
+
 
 implementation
 
 resourcestring
    rsInvalidInteger = 'Invalid integer';
+
+function GetBitCount(value: qword): integer;
+begin
+  result:=0;
+  while value>0 do
+  begin
+    if (value mod 2)=1 then inc(result);
+    value:=value shr 1;
+  end;
+end;
+
+function getbit(bitnr: integer; bt: qword):integer; inline;
+begin
+  result:=(bt shr bitnr) and 1;
+end;
+
+procedure setbit(bitnr: integer; var bt: qword;state:integer); overload;
+{
+ pre: bitnr=bit between 0 and 7
+         bt=pointer to the byte
+ post: bt has the bit set specified in state
+ result: bt has a bit set or unset
+}
+begin
+  bt:=bt and (not (1 shl bitnr));
+  bt:=bt or (state shl bitnr);
+end;
+
+procedure setbit(bitnr: integer; var bt: dword;state:integer); overload;
+{
+ pre: bitnr=bit between 0 and 7
+         bt=pointer to the byte
+ post: bt has the bit set specified in state
+ result: bt has a bit set or unset
+}
+begin
+  bt:=bt and (not (1 shl bitnr));
+  bt:=bt or (state shl bitnr);
+end;
+
+procedure setbit(bitnr: integer; var bt: Byte;state:integer); overload;
+{
+ pre: bitnr=bit between 0 and 7
+         bt=pointer to the byte
+ post: bt has the bit set specified in state
+ result: bt has a bit set or unset
+}
+var d: dword;
+begin
+  d:=bt;
+  setbit(bitnr,d,state);
+  bt:=d;
+end;
 
 function StrToQWordEx(s: string): qword;
 {

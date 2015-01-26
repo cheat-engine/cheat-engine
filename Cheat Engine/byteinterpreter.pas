@@ -4,8 +4,15 @@ unit byteinterpreter;
 
 interface
 
+{$ifdef windows}
 uses windows, LCLIntf, sysutils, symbolhandler, CEFuncProc, NewKernelHandler, math,
   CustomTypeHandler, ProcessHandlerUnit, commonTypeDefs;
+{$endif}
+
+{$ifdef unix}
+uses unixporthelper, sysutils, ProcessHandlerUnit, NewKernelHandler, math,
+  CustomTypeHandler, commonTypeDefs;
+{$endif}
 
 type TAutoGuessEvent=function (address: ptruint; originalVariableType: TVariableType): TVariableType of object;
 
@@ -27,6 +34,16 @@ var onAutoGuessRoutine: TAutoGuessEvent;
 implementation
 
 uses parsers;
+
+{$ifdef unix}
+function isreadable(address: ptruint): boolean;
+var x: dword;
+    t: byte;
+begin
+  result:=ReadProcessMemory(processhandle, pointer(address), @t, 1, x);
+end;
+
+{$endif}
 
 procedure ParseStringAndWriteToAddress(value: string; address: ptruint; variabletype: TVariabletype; hexadecimal: boolean=false; customtype: TCustomType=nil);
 {
@@ -412,8 +429,11 @@ begin
       else
         a:=ptruint(pdword(buf)^);
 
+      {$ifndef unix}
       result:='(pointer)'+symhandler.getNameFromAddress(a,true,true);
-
+      {$else}
+      result:='(pointer)'+inttohex(PPtrUInt(buf)^,8)
+      {$endif}
 
 //      result:='(pointer)'+inttohex(pqword(buf)^,16) else result:='(pointer)'+inttohex(pdword(buf)^,8);
     end;
@@ -455,8 +475,10 @@ var x: string;
     floathasseperator: boolean;
     couldbestringcounter: boolean;
 begin
+  {$ifdef windows}
   Set8087CW($133f); //disable floating point exceptions (multithreaded)
   SetMXCSR($1f80);
+  {$endif}
 
   //check if it matches a string
   result:=vtDword;
@@ -561,6 +583,7 @@ begin
     if size>=processhandler.pointersize then
     begin
       //named addresses
+      {$ifndef unix}
 
       if processhandler.is64bit then
       begin
@@ -579,6 +602,8 @@ begin
         result:=vtPointer;
         exit;
       end;
+      {$endif}
+
     end;
 
 

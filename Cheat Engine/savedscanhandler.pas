@@ -72,7 +72,7 @@ uses windows, LCLIntf,classes,sysutils,syncobjs, CEFuncProc, CustomTypeHandler, 
 {$define customtypeimplemented}
 
 {$else}
-uses Classes,sysutils,syncobjs,unixporthelper, commonTypeDefs;
+uses Classes,sysutils,syncobjs,unixporthelper, CustomTypeHandler, commonTypeDefs;
 
 {$endif}
 

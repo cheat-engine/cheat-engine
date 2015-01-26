@@ -56,11 +56,42 @@ type
 
 
   //ce classes not implemented yet, but globally accessed
-  TCustomType=class(Tobject);
   TCustomProgressBar=class(Tobject)
   private
   public
     position: integer;
+  end;
+
+
+
+  TListViewItem=class(TObject)
+  private
+  public
+    index: integer;
+    procedure MakeVisible(s: boolean);
+  end;
+
+  TListViewItems=class(TStrings)
+  public
+    count: integer;
+    function getItem(index: integer): TListViewItem;
+  published
+    property item[index:integer]: TListViewItem read getItem; default;
+  end;
+
+  TListView=class(TObject)
+  private
+  public
+    itemindex: integer;
+    items: TListViewItems;
+    topitem: TListViewItem;
+    VisibleRowCount: integer;
+    ownerdata: boolean;
+    procedure Refresh;
+    procedure clear;
+    constructor create(aowner: TObject);
+    destructor destroy; override;
+  published
   end;
 
 
@@ -139,6 +170,40 @@ function InRangeQ(const AValue, AMin, AMax: QWord): Boolean;inline;
 {$endif}
 
 implementation
+
+function TListViewItems.getItem(index: integer): TListViewItem;
+begin
+  result:=nil;
+end;
+
+procedure TListViewItem.MakeVisible(s: boolean);
+begin
+  //
+end;
+
+procedure TListView.Refresh;
+begin
+  //
+end;
+
+procedure TListView.clear;
+begin
+  //
+end;
+
+constructor TListView.create(aowner: TObject);
+begin
+  items:=TListViewItems.Create;
+  inherited create;
+end;
+
+destructor TListView.destroy;
+begin
+  if items<>nil then
+    freeandnil(items);
+
+  inherited destroy;
+end;
 
 {$ifdef ANDROID}
 function GetTempDir: string;
