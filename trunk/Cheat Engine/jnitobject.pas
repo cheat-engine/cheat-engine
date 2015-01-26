@@ -19,6 +19,7 @@ implementation
 var field_object: JFieldID;
 
 function JObjectToTObject(PEnv: PJNIEnv; Obj: JObject): TObject;
+//pre: obj Must be a TObject descendant
 begin
   result:=TObject(penv^.GetLongField(penv, obj, field_object));
 end;

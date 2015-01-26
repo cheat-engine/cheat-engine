@@ -19,8 +19,8 @@ uses windows, FileUtil, LCLIntf,sysutils, classes,ComCtrls,dialogs, NewKernelHan
 {$endif}
 
 {$ifdef unix}
-uses sysutils, unixporthelper, commonTypeDefs, classes, syncobjs, math,
-     NewKernelHandler, strutils, savedscanhandler;
+uses sysutils, unixporthelper, customtypehandler, commonTypeDefs, classes,
+     syncobjs, math, groupscancommandparser, NewKernelHandler, strutils, savedscanhandler;
 
 
 {$endif}
@@ -5988,7 +5988,7 @@ begin
 
 
         outputdebugstring(format('ScanController: Have set AddressFile.size to %d',[AddressFile.size]));
-        outputdebugstring(format('ScanController: Have set MemoryFile.size to %d',[AddressFile.size]));
+        outputdebugstring(format('ScanController: Have set MemoryFile.size to %d',[memoryFile.size]));
       except
         on e: exception do
         begin

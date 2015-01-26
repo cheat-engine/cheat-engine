@@ -7,9 +7,18 @@ unit foundlisthelper;
 
 interface
 
+{$ifdef windows}
 uses LCLIntf,sysutils,classes,ComCtrls,StdCtrls,symbolhandler, CEFuncProc,
      NewKernelHandler, memscan, CustomTypeHandler, byteinterpreter,
      groupscancommandparser, math, AvgLvlTree, commonTypeDefs, parsers;
+{$endif}
+
+{$ifdef unix}
+//in cecore the foundlisthelper is data only. No link to a listview
+uses sysutils,classes, ProcessHandlerUnit, NewKernelHandler, memscan,
+     byteinterpreter, CustomTypeHandler, groupscancommandparser, math, AvgLvlTree,
+     commonTypeDefs, parsers, unixporthelper;
+{$endif}
 
 type TScanType=(fs_advanced,fs_addresslist);
 
@@ -29,7 +38,9 @@ type
   TFoundList=class
   private
     fmemscan: TMemscan;
+
     foundlist: TListView;
+
     //foundcountlabel: tlabel;
 
     addressfile: tfilestream;
@@ -59,7 +70,6 @@ type
 
     gcp: Tgroupscancommandparser;
     groupElementSize: integer;
-
 
 
     lookupTree: TAvgLvlTree;
@@ -105,7 +115,9 @@ type Tscandisplayroutine=procedure(value: pointer; output: pchar);
 
 implementation
 
+{$ifdef windows}
 uses mainunit, processhandlerunit;
+{$endif}
 
 resourcestring
   rsUndefinedError = 'Undefined error';
@@ -131,9 +143,11 @@ procedure TRebaseAgain.rerebase;
 begin
   foundlistClass.RebaseAgainThread:=nil; //so it will spawn a new one if still not done
   foundlistClass.RebaseAddresslistAgain;
+  {$ifdef windows}
   foundlistClass.foundlist.items[-1];
   foundlistClass.foundlist.Refresh;
   foundlistClass.foundlist.Refresh; (* lazarus bug bypass *)
+  {$endif}
 end;
 
 procedure TRebaseAgain.execute;
@@ -148,24 +162,38 @@ end;
 
 procedure TFoundList.clear;
 begin
-  if foundlist<>nil then
+  log('TFoundList.clear');
+  if self.foundlist<>nil then
   begin
+    log('self.foundlist<>nil');
+
     self.foundlist.items.count:=0;
     self.foundlist.clear;
   end;
 end;
 
 function TFoundList.InModule(i: integer):boolean;
+{$ifdef windows}
 var mi: tmoduleinfo;
 begin
   result:=symhandler.getmodulebyaddress(getaddress(i),mi);
 end;
+{$else}
+begin
+  result:=false;
+end;
+{$endif}
 
 function TFoundList.GetModuleNamePlusOffset(i: integer):string;
-var mi: tmoduleinfo;
-    x: ptrUint;
+var
+{$ifdef windows}
+  mi: tmoduleinfo;
+{$endif}
+  x: ptrUint;
 begin
   x:=getaddress(i);
+{$ifdef windows}
+
   if symhandler.getmodulebyaddress(x,mi) then
   begin
     //if the modulename has a special character, place the modulename between quotes
@@ -175,6 +203,7 @@ begin
     result:=mi.modulename+'+'+inttohex(x-mi.baseaddress,1)
   end
   else
+  {$endif}
     result:=inttohex(x,8);
 end;
 
@@ -579,12 +608,14 @@ begin
     if vartype=vtAll then
     begin
       //override vtype with the type it scanned
+      {$ifndef unix}
       if extra >=$1000 then
       begin
         fcustomtype:=tcustomtype(customTypes[extra-$1000]);
         vtype:=vtCustom;
       end
       else
+      {$endif}
         vtype:=TVariableType(extra);
 
     end else vtype:=vartype;
@@ -672,7 +703,6 @@ begin
 
       end;
 
-
     end;
 
     if not (vtype in [vtBinary,vtGrouped]) then
@@ -688,6 +718,7 @@ var dataType:  String[6];  //REGION or NORMAL  (Always region in this procedure)
     i: uint64;
 begin
   result:=0;
+  log('TFoundList.Initialize');
   Deinitialize;
 
   foundlist.itemindex:=-1;
@@ -698,12 +729,15 @@ begin
   fcustomType:=customtype;
 
 
+  log('Checking if '+fmemscan.ScanresultFolder+'ADDRESSES.'+fListName+' exists');
 
-
-  if fileexists(fmemscan.ScanresultFolder+'Addresses.'+fListName) then
+  if fileexists(fmemscan.ScanresultFolder+'ADDRESSES.'+fListName) then
   begin
+    log('it exists');
+
+
     try
-      self.addressfile:=tfilestream.Create(fmemscan.ScanresultFolder+'Addresses.'+fListName,fmOpenRead or fmShareDenyNone);
+      self.addressfile:=tfilestream.Create(fmemscan.ScanresultFolder+'ADDRESSES.'+fListName,fmOpenRead or fmShareDenyNone);
     except
       foundlist.Items.Count:=0;
       scantype:=fs_advanced;
@@ -774,6 +808,8 @@ begin
   begin
     //messagebox(0,'no','',0);
     //exit;
+    log('it does not exist');
+
     foundlist.Items.Count:=0;
     scantype:=fs_advanced;
   end;
@@ -786,11 +822,15 @@ begin
 
   if fmemscan<>nil then
   begin
+    log('using fmemscan');
     //guess the default display types
     //can later be overriden
     self.hexadecimal:=memscan.VarType=vtByteArray;
     self.varlength:=memscan.Getbinarysize div 8;
-  end;
+  end
+  else
+    log('no fmemscan');
+
 end;
 
 
@@ -817,18 +857,27 @@ end;
 
 function TFoundList.Initialize: int64;
 begin
-
   result:=Initialize(fmemscan.vartype,fmemscan.CustomType);
 end;
 
 procedure TFoundlist.Deinitialize;
 begin
+  log('TFoundList.Deinitialize');
+
+  log('0');
   clear;
+
+  log('1');
+
   if addressfile<>nil then
     freeandnil(addressfile);
 
+  log('2');
+
   if lookupTree<>nil then
     lookupTree.FreeAndClear;
+
+  log('Return from TFoundList.Deinitialize');
 end;
 
 procedure  TFoundlist.setListName(listname: string);

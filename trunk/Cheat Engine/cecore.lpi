@@ -31,7 +31,12 @@
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <Units Count="16">
+    <RequiredPackages Count="1">
+      <Item1>
+        <PackageName Value="LazUtils"/>
+      </Item1>
+    </RequiredPackages>
+    <Units Count="20">
       <Unit0>
         <Filename Value="cecore.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -78,6 +83,7 @@
       <Unit9>
         <Filename Value="parsers.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="Parsers"/>
       </Unit9>
       <Unit10>
         <Filename Value="globals.pas"/>
@@ -109,6 +115,26 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="VirtualQueryExCache"/>
       </Unit15>
+      <Unit16>
+        <Filename Value="foundlisthelper.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="foundlisthelper"/>
+      </Unit16>
+      <Unit17>
+        <Filename Value="CustomTypeHandler.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="CustomTypeHandler"/>
+      </Unit17>
+      <Unit18>
+        <Filename Value="groupscancommandparser.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="groupscancommandparser"/>
+      </Unit18>
+      <Unit19>
+        <Filename Value="jnitfoundlist.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="jnitfoundlist"/>
+      </Unit19>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

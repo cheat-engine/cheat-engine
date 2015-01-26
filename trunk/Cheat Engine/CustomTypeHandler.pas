@@ -7,9 +7,18 @@ This class is used as a wrapper for different kinds of custom types
 
 interface
 
+{$ifdef windows}
 uses
-  {windows, }dialogs, Classes, SysUtils,cefuncproc, autoassembler, lua, lauxlib,
-  lualib, math;
+  dialogs, Classes, SysUtils,cefuncproc, autoassembler, lua, lauxlib, lualib,
+  math;
+{$endif}
+
+{$ifdef unix} //not yet implemented, but the interface is available
+uses
+  Classes, SysUtils, math;
+
+type PLua_state=pointer;
+{$endif}
 
 type TConversionRoutine=function(data: pointer):integer; stdcall;
 type TReverseConversionRoutine=procedure(i: integer; output: pointer); stdcall;
@@ -31,7 +40,9 @@ type
     routine: TConversionRoutine;
     reverseroutine: TReverseConversionRoutine;
 
+    {$ifndef unix}
     c: TCEAllocArray;
+    {$endif}
     currentscript: tstringlist;
     fCustomTypeType: TCustomTypeType; //plugins set this to cttPlugin
     fScriptUsesFloat: boolean;
@@ -92,7 +103,9 @@ var customTypes: TList; //list holding all the custom types
 
 implementation
 
+{$ifdef windows}
 uses mainunit, LuaHandler;
+{$endif}
 
 resourcestring
   rsACustomTypeWithNameAlreadyExists = 'A custom type with name %s already '
@@ -168,6 +181,7 @@ var
   r: integer;
   c,b: integer;
 begin
+{$ifndef unix}
   l:=LuaVM;
 
   LuaCS.Enter;
@@ -200,6 +214,8 @@ begin
   finally
     LuaCS.Leave;
   end;
+{$endif}
+
 end;
 
 procedure TCustomType.ConvertIntegerToData(i: integer; output: pointer);
@@ -227,6 +243,7 @@ var
   L: PLua_State;
   i: integer;
 begin
+  {$IFNDEF UNIX}
   l:=LuaVM;
 
   LuaCS.Enter;
@@ -257,6 +274,7 @@ begin
   finally
     LuaCS.Leave;
   end;
+  {$ENDIF}
 
 end;
 
@@ -293,6 +311,7 @@ var
   r: integer;
   c,b: integer;
 begin
+  {$IFNDEF UNIX}
   l:=LuaVM;
 
   LuaCS.Enter;
@@ -325,6 +344,7 @@ begin
   finally
     LuaCS.Leave;
   end;
+  {$ENDIF}
 end;
 
 
@@ -353,6 +373,7 @@ var
   L: PLua_State;
   i: integer;
 begin
+  {$IFNDEF UNIX}
   l:=LuaVM;
 
   LuaCS.Enter;
@@ -378,6 +399,7 @@ begin
   finally
     LuaCS.Leave;
   end;
+  {$ENDIF}
 
 end;
 
@@ -429,6 +451,7 @@ end;
 
 procedure TCustomType.unloadscript;
 begin
+  {$IFNDEF UNIX}
   if fCustomTypeType=cttAutoAssembler then
   begin
     routine:=nil;
@@ -440,7 +463,10 @@ begin
       freeandnil(currentscript);
     end;
   end;
+    {$ENDIF}
+
 end;
+
 
 procedure TCustomType.setScript(script:string; luascript: boolean=false);
 var i: integer;
@@ -461,8 +487,13 @@ var i: integer;
   newroutine, oldroutine: TConversionRoutine;
   newreverseroutine, oldreverseroutine: TReverseConversionRoutine;
   newbytesize, oldbytesize: integer;
+
+{$IFNDEF UNIX}
   oldallocarray: TCEAllocArray;
+{$ENDIF}
 begin
+
+  {$IFNDEF UNIX}
   oldname:=fname;
   oldfunctiontypename:=ffunctiontypename;
   oldroutine:=routine;
@@ -636,6 +667,7 @@ begin
       raise exception.create(e.Message); //and now raise the error
     end;
   end;
+  {$ENDIF}
 end;
 
 
@@ -688,9 +720,12 @@ end;
 procedure TCustomType.showDebugInfo;
 var x,y: pointer;
 begin
+
+  {$IFNDEF UNIX}
   x:=@routine;
   y:=@reverseroutine;
   ShowMessage(format('routine=%p reverseroutine=%p',[x, y]));
+  {$ENDIF}
 end;
 
 destructor TCustomType.destroy;
@@ -713,6 +748,7 @@ var
 
   ct: TCustomType;
 begin
+  {$IFNDEF UNIX}
   result:=0;
   parameters:=lua_gettop(L);
   if parameters>=4 then
@@ -785,6 +821,7 @@ begin
     mainform.RefreshCustomTypes;
   end
   else lua_pop(L, parameters);
+  {$ENDIF}
 end;
 
 function registerCustomTypeAutoAssembler(L: PLua_State): integer; cdecl;
@@ -798,6 +835,7 @@ var
   s: TStringList;
   i: integer;
 begin
+  {$IFNDEF UNIX}
   result:=0;
   parameters:=lua_gettop(L);
   if parameters=3 then
@@ -827,6 +865,7 @@ begin
   end;
 
   mainform.RefreshCustomTypes;
+  {$ENDIF}
 
 end;
 
