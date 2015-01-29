@@ -4688,13 +4688,13 @@ begin
   if AddressFile<>nil then //can be made nil by the scancontroller
   begin
     Addressfile.free;
-    DeleteFile(scandir+'Addresses-'+inttostr(ThreadID)+'.TMP');
+    DeleteFile(scandir+'ADDRESSES-'+inttostr(ThreadID)+'.TMP');
   end;
 
   if MemoryFile<>nil then
   begin
     MemoryFile.free;
-    DeleteFile(scandir+'Memory-'+inttostr(ThreadID)+'.TMP');
+    DeleteFile(scandir+'MEMORY-'+inttostr(ThreadID)+'.TMP');
   end;
 
   if scanwriter<>nil then
@@ -4719,8 +4719,8 @@ begin
 
   self.scandir:=scandir;
 
-  AddressFilename:=scandir+'Addresses-'+inttostr(ThreadID)+'.TMP';
-  MemoryFilename:=scandir+'Memory-'+inttostr(ThreadID)+'.TMP';
+  AddressFilename:=scandir+'ADDRESSES-'+inttostr(ThreadID)+'.TMP';
+  MemoryFilename:=scandir+'MEMORY-'+inttostr(ThreadID)+'.TMP';
   AddressFile:=TFileStream.Create(AddressFilename,fmCreate or fmSharedenynone);
   MemoryFile:=TFileStream.Create(MemoryFilename,fmCreate or fmSharedenynone);
 
@@ -4934,7 +4934,8 @@ begin
 
   
   //read the results and split up
-  AddressFile:=TFileStream.Create(OwningMemScan.ScanresultFolder+'Addresses.TMP',fmOpenRead or fmShareDenyNone);
+
+  AddressFile:=TFileStream.Create(OwningMemScan.ScanresultFolder+'ADDRESSES.TMP',fmOpenRead or fmShareDenyNone);
   try
     if variableType in [vtbinary,vtall] then //it uses a specific TBitAddress instead of a dword
       totalAddresses:=(addressfile.size-7) div sizeof(TBitAddress)
@@ -5335,7 +5336,7 @@ var AddressFile: TFilestream;
     datatype: string[6];
 begin
   //open the address file and determine if it's a region scan or result scan
-  AddressFile:=TFileStream.Create(OwningMemScan.ScanresultFolder+'Addresses.TMP',fmOpenRead or fmSharedenynone);
+  AddressFile:=TFileStream.Create(OwningMemScan.ScanresultFolder+'ADDRESSES.TMP',fmOpenRead or fmSharedenynone);
   try
     Addressfile.ReadBuffer(datatype,sizeof(datatype));
   finally
@@ -6308,8 +6309,8 @@ begin
     deletefile(fScanResultFolder+'MEMORY.TMP');
     deletefile(fScanResultFolder+'ADDRESSES.TMP');
 
-    renamefile(fScanResultFolder+'MEMORY.UNDO',fScanResultFolder+'MEMORY.tmp');
-    renamefile(fScanResultFolder+'ADDRESSES.UNDO',fScanResultFolder+'ADDRESSES.tmp');
+    renamefile(fScanResultFolder+'MEMORY.UNDO',fScanResultFolder+'MEMORY.TMP');
+    renamefile(fScanResultFolder+'ADDRESSES.UNDO',fScanResultFolder+'ADDRESSES.TMP');
   end;
 end;
 

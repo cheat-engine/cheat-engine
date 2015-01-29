@@ -106,6 +106,21 @@ begin
   end;
 end;
 
+procedure TMemScan_NextScan(PEnv: PJNIEnv; Obj: JObject; scanOption: jint; roundingtype: jint; sv1: jstring; sv2: jstring; hexadecimal: jboolean; binaryasstring: jboolean; unicode: jboolean; casesensitive: jboolean; percentage: jboolean; compareToSavedScan: jboolean; ssn: jstring); cdecl;
+var
+  ms: TJniMemscan;
+  scanvalue1, scanvalue2, savedscanname: string;
+begin
+  log('Next scan');
+  ms:=TJniMemscan(JObjectToTObject(penv, obj));
+
+  scanvalue1:=jniGetString(penv, sv1);
+  scanvalue2:=jniGetString(penv, sv2);
+  savedscanname:=jniGetString(penv, ssn);
+
+  ms.NextScan(TScanOption(scanOption), TRoundingType(roundingtype), scanValue1, scanValue2, hexadecimal<>0, binaryAsString<>0, unicode<>0, casesensitive<>0, percentage<>0, comparetoSavedScan<>0, savedscanname);
+end;
+
 procedure TMemScan_FirstScan(PEnv: PJNIEnv; Obj: JObject; scanOption: jint; variabletype: jint; roundingtype: jint; sv1: jstring; sv2: jstring; pf: jstring; startaddress: jlong; stopaddress: jlong; fastscanmethod: jint; fastscanparameter: jstring; hexadecimal: jboolean; binaryasstring: jboolean; unicode: jboolean; casesensitive: jboolean; pagedonly: jboolean; dirtyonly: jboolean; noshared: jboolean); cdecl;
 var
   ms: TJniMemscan;
@@ -126,13 +141,28 @@ begin
   ms.firstscan(TScanOption(scanOption), TVariableType(variabletype), TRoundingType(roundingtype), scanvalue1, scanvalue2, startaddress, stopaddress, hexadecimal<>0, binaryasstring<>0, unicode<>0, casesensitive<>0, TFastScanMethod(fastscanmethod), jnigetstring(penv, fastscanparameter), nil);
 end;
 
-const methodcount=4;
+const methodcount=5;
 var jnimethods: array [0..methodcount-1] of JNINativeMethod =(
   (name: 'create'; signature: '(Lorg/cheatengine/TMemScan;)J'; fnPtr: @TMemScan_Create),
   (name: 'newScan'; signature: '()V'; fnPtr: @TMemScan_NewScan),
   (name: 'firstScan'; signature: '(IIILjava/lang/String;Ljava/lang/String;Ljava/lang/String;JJILjava/lang/String;ZZZZZZZ)V'; fnPtr: @TMemScan_FirstScan),
+  (name: 'nextScan'; signature: '(IILjava/lang/String;Ljava/lang/String;ZZZZZZLjava/lang/String;)V'; fnPtr: @TMemScan_NextScan),
 
-  //nextscan
+ {
+ scanOption: jint; I
+ roundingtype: jint; I
+ sv1: jstring; Ljava/lang/String;
+ sv2: jstring; Ljava/lang/String;
+ hexadecimal: jboolean; Z
+ binaryasstring: jboolean; Z
+ unicode: jboolean; Z
+ casesensitive: jboolean; Z
+ percentage: jboolean; Z
+ compareToSavedScan: jboolean; Z
+ ssn: jstring; Ljava/lang/String;
+
+ }
+
   (name: 'getProgress'; signature: '()I'; fnPtr: @TMemScan_GetProgress)
   );
 
@@ -148,6 +178,7 @@ begin
   log('scanDoneMethodID='+inttohex(ptruint(scanDoneMethodID),8));
   log('InitializeJniTMemScan exit');
 end;
+
 
 end.
 

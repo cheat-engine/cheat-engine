@@ -863,6 +863,7 @@ end;
 procedure TFoundlist.Deinitialize;
 begin
   log('TFoundList.Deinitialize');
+  fcount:=0;
 
   log('0');
   clear;
