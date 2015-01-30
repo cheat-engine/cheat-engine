@@ -52,7 +52,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#ifdef __arm__
+#if defined(__arm__) || defined(__ANDROID__)
 #include <linux/user.h>
 #else
 #include <sys/user.h>
@@ -109,7 +109,7 @@ int showRegisters(int pid)
   if (result!=0)
   {
     printf("PTRACE_GETREGS FAILED (%d)\n", result);
-    return;
+    return result;
   }
 
 #ifdef __arm__
@@ -117,9 +117,17 @@ int showRegisters(int pid)
   printf("orig_r0=%lx\n", r.ARM_ORIG_r0);
   printf("pc=%lx\n", r.ARM_pc);
 #else
-  printf("RAX=%lx\n", r.rax);
-  printf("orig_rax=%lx\n", r.orig_rax);
-  printf("rip=%lx\n", r.rip);
+  #if defined(__x86_64__)
+    printf("RAX=%lx\n", r.rax);
+    printf("orig_rax=%lx\n", r.orig_rax);
+    printf("rip=%lx\n", r.rip);
+  #endif
+
+  #if defined(__i386__)
+    printf("EAX=%lx\n", r.eax);
+    printf("orig_eax=%lx\n", r.orig_eax);
+    printf("eip=%lx\n", r.eip);
+  #endif
 #endif
 
 
@@ -420,6 +428,7 @@ printf("After wait 2. PID=%d\n", pid);
       printf("cpsr=%lx\n", origregs.ARM_cpsr);
 
 #else
+  #ifdef __x86_64__
       printf("rax=%lx\n", origregs.rax);
       printf("rbp=%lx\n", origregs.rbp);
       printf("rsp=%lx\n", origregs.rsp);
@@ -488,8 +497,10 @@ printf("After wait 2. PID=%d\n", pid);
       newregs.rdi=str;
       newregs.rsi=RTLD_NOW;
       newregs.orig_rax=0;
+  #else
+    printf("32-bit is not yet supported\n");
 
-
+  #endif //__x86_64
 
 
 #endif
@@ -518,6 +529,7 @@ printf("After wait 2. PID=%d\n", pid);
      printf("pc=%lx\n", newregs.ARM_pc);
      printf("cpsr=%lx\n", newregs.ARM_cpsr);
 #else
+  #ifdef __x86_64__
      printf("rax=%lx\n", newregs.rax);
      printf("rdi=%lx\n", newregs.rdi);
      printf("rsi=%lx\n", newregs.rsi);
@@ -525,6 +537,15 @@ printf("After wait 2. PID=%d\n", pid);
      printf("rsp=%lx\n", newregs.rsp);
      printf("orig_rax=%lx\n", newregs.orig_rax);
      printf("rip=%lx\n", newregs.rip);
+  #else
+     printf("eax=%lx\n", newregs.eax);
+     printf("edi=%lx\n", newregs.edi);
+     printf("esi=%lx\n", newregs.esi);
+     printf("ebp=%lx\n", newregs.ebp);
+     printf("esp=%lx\n", newregs.esp);
+     printf("orig_eax=%lx\n", newregs.orig_eax);
+     printf("eip=%lx\n", newregs.eip);
+  #endif //__x86_64__
 #endif
 
     printf("\n\nContinuing thread\n");
@@ -537,7 +558,7 @@ printf("After wait 2. PID=%d\n", pid);
     if (ptr!=0)
       {
         printf("PTRACE_CONT FAILED\n");
-        return;
+        return 1;
       }
 
       //wait for this thread to crash
@@ -590,13 +611,13 @@ printf("After wait 2. PID=%d\n", pid);
     printf("cpsr=%lx\n", newregs.ARM_cpsr);
 #else
 
-     printf("rax=%lx\n", newregs.rax);
-     printf("rdi=%lx\n", newregs.rdi);
-     printf("rsi=%lx\n", newregs.rsi);
-     printf("rbp=%lx\n", newregs.rbp);
-     printf("rsp=%lx\n", newregs.rsp);
-     printf("orig_rax=%lx\n", newregs.rax);
-     printf("rip=%lx\n", newregs.rip);
+     printf("rax=%lx\n", newregs.eax);
+     printf("rdi=%lx\n", newregs.edi);
+     printf("rsi=%lx\n", newregs.esi);
+     printf("rbp=%lx\n", newregs.ebp);
+     printf("rsp=%lx\n", newregs.esp);
+     printf("orig_rax=%lx\n", newregs.eax);
+     printf("rip=%lx\n", newregs.eip);
 
 #endif
 
