@@ -153,7 +153,7 @@ end;
 
 implementation
 
-uses processhandlerunit;
+uses processhandlerunit, parsers;
 
 resourcestring
   rsSymbolsAreBeingLoaded = 'Symbols are being loaded';

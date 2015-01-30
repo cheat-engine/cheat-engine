@@ -121,13 +121,13 @@ var
 begin
   result:=0;
   stream:=luaclass_getClassObject(L);
-  if lua_gettop(L)>1 then
+  if lua_gettop(L)>=1 then
   begin
     //table index is at 1
     if lua_istable(L, 1) then
     begin
       if lua_gettop(L)>=2 then
-        count:=min(lua_objlen(L, 2), lua_tointeger(L, 2)) //prevent the length from exeeding the table
+        count:=min(lua_objlen(L, 1), lua_tointeger(L, 2)) //prevent the length from exeeding the table
       else
         count:=lua_objlen(L, 1);
 
