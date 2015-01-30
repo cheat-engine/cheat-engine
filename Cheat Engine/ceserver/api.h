@@ -14,7 +14,7 @@
 
 #include "porthelp.h"
 
-#ifdef __arm__
+#if defined(__arm__) || defined(__ANDROID__)
 #include <linux/user.h>
 #else
 #include <sys/user.h>

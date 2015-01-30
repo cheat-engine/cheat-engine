@@ -81,10 +81,11 @@ static inline unsigned int encode_ctrl_reg(int mismatch, int len, int type, int 
 }
 #endif
 
-#if defined(__i386__) || defined(__x86_64__)
-#include <sys/user.h>
+#ifndef __ANDROID__
+  #if defined(__i386__) || defined(__x86_64__)
+    #include <sys/user.h>
+  #endif
 #endif
-
 
 
 
