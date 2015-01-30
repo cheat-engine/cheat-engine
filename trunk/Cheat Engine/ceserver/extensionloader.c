@@ -499,6 +499,62 @@ printf("After wait 2. PID=%d\n", pid);
       newregs.orig_rax=0;
   #else
     printf("32-bit is not yet supported\n");
+    printf("eax=%lx\n", origregs.eax);
+    printf("ebp=%lx\n", origregs.ebp);
+    printf("esp=%lx\n", origregs.esp);
+    printf("orig_eax=%lx\n", origregs.orig_eax);
+    printf("eip=%lx\n", origregs.eip);
+
+    //allocate stackspace
+    newregs.esp=newregs.esp-0x28-(8*((pathlen+7) / 8));
+    if ((newregs.esp & 0xf)!=8)
+    {
+      printf("Aligning stack.  Was %llx", newregs.esp);
+      newregs.esp-=8;
+      newregs.esp&=~(0xf); //clear the first 4 bits
+
+      newregs.esp=newregs.esp | 8; //set to 8
+
+      printf(" is now %llx\n", newregs.esp);
+    }
+
+    //in 32-bit the stack will have to look like:
+    //0-3: Return address  (0x0ce0)
+    //4-7: Address to path
+    //8-11:RTLD_NOW
+    //12-...: Path
+
+    //
+
+
+    if (ptrace(PTRACE_POKEDATA, pid, newregs.esp+0, returnaddress)!=0)
+    {
+      printf("Fuck\n");
+      ptrace(PTRACE_DETACH, pid,0,0);
+
+      return FALSE;
+    }
+
+    if (ptrace(PTRACE_POKEDATA, pid, newregs.esp+4, newregs.esp+12)!=0)
+    {
+      printf("Fuck2\n");
+      ptrace(PTRACE_DETACH, pid,0,0);
+
+      return FALSE;
+    }
+
+    if (ptrace(PTRACE_POKEDATA, pid, newregs.esp+8, RTLD_NOW)!=0)
+    {
+      printf("Fuck3\n");
+      ptrace(PTRACE_DETACH, pid,0,0);
+
+      return FALSE;
+    }
+
+    writeString(pid, newregs.esp+12, path);
+
+    newregs.eip=dlopen;
+    newregs.orig_eax=0;
 
   #endif //__x86_64
 
@@ -610,14 +666,23 @@ printf("After wait 2. PID=%d\n", pid);
     printf("sp=%lx\n", newregs.ARM_sp);
     printf("cpsr=%lx\n", newregs.ARM_cpsr);
 #else
-
-     printf("rax=%lx\n", newregs.eax);
-     printf("rdi=%lx\n", newregs.edi);
-     printf("rsi=%lx\n", newregs.esi);
-     printf("rbp=%lx\n", newregs.ebp);
-     printf("rsp=%lx\n", newregs.esp);
-     printf("orig_rax=%lx\n", newregs.eax);
-     printf("rip=%lx\n", newregs.eip);
+  #ifdef __x86_64__
+     printf("rax=%lx\n", newregs.rax);
+     printf("rdi=%lx\n", newregs.rdi);
+     printf("rsi=%lx\n", newregs.rsi);
+     printf("rbp=%lx\n", newregs.rbp);
+     printf("rsp=%lx\n", newregs.rsp);
+     printf("orig_rax=%lx\n", newregs.rax);
+     printf("rip=%lx\n", newregs.rip);
+  #else
+     printf("eax=%lx\n", newregs.eax);
+     printf("edi=%lx\n", newregs.edi);
+     printf("esi=%lx\n", newregs.esi);
+     printf("ebp=%lx\n", newregs.ebp);
+     printf("esp=%lx\n", newregs.esp);
+     printf("orig_eax=%lx\n", newregs.eax);
+     printf("eip=%lx\n", newregs.eip);
+  #endif
 
 #endif
 
