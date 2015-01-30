@@ -103,9 +103,14 @@ Caller must free output manually
   {
     //printf("Failure to read sectionHeaders\n");
     deflateEnd(&strm);
-    free(sectionHeaders);
-    free(output);
-    free(tempbuffer);
+    if (sectionHeaders)
+      free(sectionHeaders);
+
+    if (output)
+      free(output);
+
+    if (tempbuffer)
+      free(tempbuffer);
 
     return -1;
   }
@@ -311,9 +316,14 @@ Caller must free output manually
   {
     //printf("Failure to read sectionHeaders\n");
     deflateEnd(&strm);
-    free(sectionHeaders);
-    free(output);
-    free(tempbuffer);
+    if (sectionHeaders)
+      free(sectionHeaders);
+
+    if (output)
+      free(output);
+
+    if (tempbuffer)
+      free(tempbuffer);
 
     return -1;
   }
@@ -511,12 +521,168 @@ int GetSymbolListFromFile(char *filename, unsigned char **output, int *outputsiz
   return i;
 }
 
+
+int GetModuleSize32(int f, Elf32_Ehdr *b)
+{
+ /* printf("32 bit\n");
+  printf("b->e_ehsize=%d  (%d)\n", (int)b->e_ehsize, (int)sizeof(Elf32_Ehdr));*/
+
+  //Elf32_Shdr *sectionHeaders=malloc(b->e_shentsize*b->e_shnum);
+  Elf32_Phdr *programHeaders=malloc(b->e_phentsize*b->e_phnum);
+/*  printf("e_shoff=%x\n", b->e_shoff);
+  printf("e_shentsize=%d\n", b->e_shentsize);
+  printf("e_shnum=%d\n", b->e_shnum);
+  printf("e_shstrndx=%d\n", b->e_shstrndx);
+
+  printf("e_phoff=%x\n", b->e_phoff);
+  printf("e_phentsize=%d\n", b->e_phentsize);
+  printf("e_phnum=%d\n", b->e_phnum); */
+
+  if (pread(f, programHeaders, b->e_phentsize*b->e_phnum, b->e_phoff)==-1)
+  {
+    if (programHeaders)
+      free(programHeaders);
+
+    return 0;
+  }
+
+
+  int i;
+  unsigned long long lowest=0;//programHeaders[0].p_vaddr;
+  unsigned long long highest=0;//programHeaders[0].p_vaddr+programHeaders[0].p_memsz;
+
+  for (i=0; i<b->e_phnum; i++)
+  {
+     if (programHeaders[i].p_memsz>0)
+     {
+       if ((i==0) || (programHeaders[i].p_vaddr<lowest))
+          lowest=programHeaders[i].p_vaddr;
+
+       if ((i==0) || (programHeaders[i].p_vaddr+programHeaders[i].p_memsz>highest))
+          highest=programHeaders[i].p_vaddr+programHeaders[i].p_memsz;
+
+
+/*
+       printf("%d: %x\n", i, programHeaders[i].p_type);
+       printf("Virtual Address: %llx-%llx:\n", (long long unsigned int)programHeaders[i].p_vaddr,(long long unsigned int)programHeaders[i].p_vaddr+(long long unsigned int)programHeaders[i].p_memsz);
+       printf("Size: %d (%x)\n", (int)programHeaders[i].p_memsz, (int)programHeaders[i].p_memsz);
+       */
+     }
+  }
+
+    if (programHeaders)
+      free(programHeaders);
+
+ // printf("lowest=%llx highest=%llx\n", lowest, highest);
+ // printf("size=%llx\n", highest-lowest);
+   return highest-lowest;
+}
+
+int GetModuleSize64(int f, Elf64_Ehdr *b)
+{
+  /*printf("64 bit\n");
+  printf("b->e_ehsize=%d  (%d)\n", (int)b->e_ehsize, (int)sizeof(Elf32_Ehdr));*/
+
+  Elf64_Phdr *programHeaders=malloc(b->e_phentsize*b->e_phnum);
+/*  printf("e_shoff=%x\n", (int)b->e_shoff);
+  printf("e_shentsize=%d\n", b->e_shentsize);
+  printf("e_shnum=%d\n", b->e_shnum);
+  printf("e_shstrndx=%d\n", b->e_shstrndx);
+
+  printf("e_phoff=%x\n", (int)b->e_phoff);
+  printf("e_phentsize=%d\n", b->e_phentsize);
+  printf("e_phnum=%d\n", b->e_phnum);
+  */
+
+  if (pread(f, programHeaders, b->e_phentsize*b->e_phnum, b->e_phoff)==-1)
+  {
+    if (programHeaders)
+      free(programHeaders);
+
+    return 0;
+  }
+
+
+  int i;
+  unsigned long long lowest=0;//programHeaders[0].p_vaddr;
+  unsigned long long highest=0;//programHeaders[0].p_vaddr+programHeaders[0].p_memsz;
+
+  for (i=0; i<b->e_phnum; i++)
+  {
+     if (programHeaders[i].p_memsz>0)
+     {
+       if ((i==0) || (programHeaders[i].p_vaddr<lowest))
+          lowest=programHeaders[i].p_vaddr;
+
+       if ((i==0) || (programHeaders[i].p_vaddr+programHeaders[i].p_memsz>highest))
+          highest=programHeaders[i].p_vaddr+programHeaders[i].p_memsz;
+
+
+/*
+       printf("%d: %x\n", i, programHeaders[i].p_type);
+       printf("Virtual Address: %llx-%llx:\n", (long long unsigned int)programHeaders[i].p_vaddr,(long long unsigned int)programHeaders[i].p_vaddr+(long long unsigned int)programHeaders[i].p_memsz);
+       printf("Size: %d (%x)\n", (int)programHeaders[i].p_memsz, (int)programHeaders[i].p_memsz);
+       */
+     }
+  }
+
+    if (programHeaders)
+      free(programHeaders);
+
+ // printf("lowest=%llx highest=%llx\n", lowest, highest);
+ // printf("size=%llx\n", highest-lowest);
+   return highest-lowest;
+}
+
+
 unsigned long long GetModuleSize(char *filename, unsigned long long defaultsize)
 /*
  * Returns size the module will take in memory
  */
 {
-  return defaultsize;
+  int i,f;
+  unsigned char *b=NULL;
+  int result=defaultsize;
+
+  f=open(filename, O_RDONLY);
+  if (f==-1)
+  {
+    printf("Failed to open %s\n", filename);
+    return defaultsize;
+  }
+  else
+  {
+    b=malloc(sizeof(Elf64_Ehdr));
+    if (b)
+    {
+      i=pread(f, b, sizeof(Elf64_Ehdr), 0);
+
+      if (*(uint32_t *)b!=0x464c457f)
+      {
+        printf("not an elf\n");
+        free(b);
+        close(f);
+        return defaultsize; //not an ELF file
+      }
+
+      if (b[EI_CLASS]==ELFCLASS32)
+        i=GetModuleSize32(f, (Elf32_Ehdr *)b);
+      else
+        i=GetModuleSize64(f, (Elf64_Ehdr *)b);
+
+      free(b);
+      close(f);
+      return i;
+    }
+    else
+    {
+      close(f);
+      return defaultsize;
+    }
+
+
+
+  }
 
 
 }

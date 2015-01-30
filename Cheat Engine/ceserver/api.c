@@ -3056,7 +3056,7 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
           mle=&ml->moduleList[ml->moduleCount];
           mle->moduleName=strdup(modulepath);
           mle->baseAddress=start;
-          mle->moduleSize=stop-start;
+          mle->moduleSize=GetModuleSize(modulepath, stop-start);
 
           ml->moduleCount++;
 
