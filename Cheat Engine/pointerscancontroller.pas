@@ -443,7 +443,7 @@ type
 
 implementation
 
-uses PointerscanNetworkCommands, ValueFinder, ProcessHandlerUnit;
+uses PointerscanNetworkCommands, ValueFinder, ProcessHandlerUnit, Parsers;
 
 resourcestring
   rsFailureCopyingTargetProcessMemory = 'Failure copying target process memory';

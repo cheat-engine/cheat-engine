@@ -162,10 +162,10 @@ end;
 
 procedure TFoundList.clear;
 begin
-  log('TFoundList.clear');
+  //log('TFoundList.clear');
   if self.foundlist<>nil then
   begin
-    log('self.foundlist<>nil');
+   // log('self.foundlist<>nil');
 
     self.foundlist.items.count:=0;
     self.foundlist.clear;
@@ -718,7 +718,7 @@ var dataType:  String[6];  //REGION or NORMAL  (Always region in this procedure)
     i: uint64;
 begin
   result:=0;
-  log('TFoundList.Initialize');
+  //log('TFoundList.Initialize');
   Deinitialize;
 
   foundlist.itemindex:=-1;
@@ -729,11 +729,11 @@ begin
   fcustomType:=customtype;
 
 
-  log('Checking if '+fmemscan.ScanresultFolder+'ADDRESSES.'+fListName+' exists');
+ // log('Checking if '+fmemscan.ScanresultFolder+'ADDRESSES.'+fListName+' exists');
 
   if fileexists(fmemscan.ScanresultFolder+'ADDRESSES.'+fListName) then
   begin
-    log('it exists');
+   // log('it exists');
 
 
     try
@@ -808,7 +808,7 @@ begin
   begin
     //messagebox(0,'no','',0);
     //exit;
-    log('it does not exist');
+    //log('it does not exist');
 
     foundlist.Items.Count:=0;
     scantype:=fs_advanced;
@@ -822,14 +822,14 @@ begin
 
   if fmemscan<>nil then
   begin
-    log('using fmemscan');
+    //log('using fmemscan');
     //guess the default display types
     //can later be overriden
     self.hexadecimal:=memscan.VarType=vtByteArray;
     self.varlength:=memscan.Getbinarysize div 8;
   end
   else
-    log('no fmemscan');
+    OutputDebugString('no fmemscan');
 
 end;
 
@@ -862,23 +862,23 @@ end;
 
 procedure TFoundlist.Deinitialize;
 begin
-  log('TFoundList.Deinitialize');
+  //log('TFoundList.Deinitialize');
   fcount:=0;
 
-  log('0');
+  //log('0');
   clear;
 
-  log('1');
+  //log('1');
 
   if addressfile<>nil then
     freeandnil(addressfile);
 
-  log('2');
+ // log('2');
 
   if lookupTree<>nil then
     lookupTree.FreeAndClear;
 
-  log('Return from TFoundList.Deinitialize');
+  //log('Return from TFoundList.Deinitialize');
 end;
 
 procedure  TFoundlist.setListName(listname: string);

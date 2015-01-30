@@ -24,7 +24,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
       <MinorVersionNr Value="4"/>
-      <BuildNr Value="4289"/>
+      <BuildNr Value="4290"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="6.4"/>
@@ -354,7 +354,7 @@
         <Filename Value="NewKernelHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="NewKernelHandler"/>
-        <EditorIndex Value="23"/>
+        <EditorIndex Value="28"/>
         <TopLine Value="3"/>
         <CursorPos X="15" Y="20"/>
         <UsageCount Value="211"/>
@@ -385,7 +385,6 @@
         <Filename Value="symbolhandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="symbolhandler"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="12"/>
         <TopLine Value="1033"/>
         <CursorPos Y="1045"/>
@@ -458,7 +457,7 @@
         <Filename Value="autoassembler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="autoassembler"/>
-        <EditorIndex Value="14"/>
+        <EditorIndex Value="19"/>
         <TopLine Value="91"/>
         <CursorPos X="27" Y="110"/>
         <UsageCount Value="200"/>
@@ -702,10 +701,12 @@
       <Unit37>
         <Filename Value="foundlisthelper.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="673"/>
-        <CursorPos Y="690"/>
+        <UnitName Value="foundlisthelper"/>
+        <EditorIndex Value="15"/>
+        <TopLine Value="858"/>
+        <CursorPos X="5" Y="881"/>
         <UsageCount Value="210"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit37>
       <Unit38>
@@ -907,10 +908,12 @@
       <Unit57>
         <Filename Value="disassemblerviewunit.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="144"/>
-        <CursorPos X="25" Y="156"/>
+        <UnitName Value="disassemblerviewunit"/>
+        <EditorIndex Value="14"/>
+        <TopLine Value="148"/>
+        <CursorPos X="33" Y="156"/>
         <UsageCount Value="218"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit57>
       <Unit58>
@@ -1086,7 +1089,7 @@
         <Filename Value="PEInfoFunctions.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="PEInfoFunctions"/>
-        <EditorIndex Value="13"/>
+        <EditorIndex Value="18"/>
         <TopLine Value="394"/>
         <CursorPos X="3" Y="403"/>
         <UsageCount Value="206"/>
@@ -1365,8 +1368,8 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="PointerscannerSettingsFrm"/>
         <EditorIndex Value="7"/>
-        <TopLine Value="430"/>
-        <CursorPos Y="461"/>
+        <TopLine Value="45"/>
+        <CursorPos Y="60"/>
         <UsageCount Value="204"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -1411,7 +1414,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="pointerscannerfrm"/>
-        <EditorIndex Value="19"/>
+        <EditorIndex Value="24"/>
         <TopLine Value="2737"/>
         <CursorPos X="3" Y="2752"/>
         <ExtraEditorCount Value="1"/>
@@ -1567,7 +1570,7 @@
         <Filename Value="debuggertypedefinitions.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="debuggertypedefinitions"/>
-        <EditorIndex Value="15"/>
+        <EditorIndex Value="20"/>
         <TopLine Value="97"/>
         <CursorPos X="42" Y="104"/>
         <UsageCount Value="200"/>
@@ -1716,7 +1719,7 @@
         <Filename Value="dbk32\DBK32functions.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DBK32functions"/>
-        <EditorIndex Value="24"/>
+        <EditorIndex Value="29"/>
         <TopLine Value="197"/>
         <CursorPos X="10" Y="213"/>
         <UsageCount Value="204"/>
@@ -1789,7 +1792,7 @@
         <Filename Value="LuaHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaHandler"/>
-        <EditorIndex Value="17"/>
+        <EditorIndex Value="22"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
           <EditorIndex Value="-1"/>
@@ -2185,7 +2188,7 @@
         <Filename Value="networkInterfaceApi.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="networkInterfaceApi"/>
-        <EditorIndex Value="22"/>
+        <EditorIndex Value="27"/>
         <TopLine Value="188"/>
         <CursorPos Y="207"/>
         <UsageCount Value="428"/>
@@ -2703,9 +2706,13 @@
       <Unit243>
         <Filename Value="LuaStream.pas"/>
         <IsPartOfProject Value="True"/>
-        <TopLine Value="174"/>
-        <CursorPos X="97" Y="197"/>
+        <UnitName Value="LuaStream"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="13"/>
+        <TopLine Value="112"/>
+        <CursorPos X="35" Y="130"/>
         <UsageCount Value="204"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit243>
       <Unit244>
@@ -2780,7 +2787,7 @@
         <Filename Value="LuaByteTable.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaByteTable"/>
-        <EditorIndex Value="18"/>
+        <EditorIndex Value="23"/>
         <TopLine Value="195"/>
         <CursorPos X="10" Y="208"/>
         <UsageCount Value="206"/>
@@ -3257,13 +3264,15 @@
       <Unit303>
         <Filename Value="pointerscancontroller.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="4230"/>
-        <CursorPos X="27" Y="4240"/>
+        <UnitName Value="PointerscanController"/>
+        <EditorIndex Value="17"/>
+        <TopLine Value="439"/>
+        <CursorPos X="74" Y="446"/>
         <UsageCount Value="203"/>
         <Bookmarks Count="1">
           <Item0 X="5" Y="1943" ID="6"/>
         </Bookmarks>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit303>
       <Unit304>
@@ -3333,9 +3342,10 @@
       <Unit311>
         <Filename Value="parsers.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="52" Y="10"/>
+        <UnitName Value="Parsers"/>
+        <EditorIndex Value="16"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit311>
       <Unit312>
@@ -3468,25 +3478,27 @@
       </Unit328>
       <Unit329>
         <Filename Value="C:\development\fpc\rtl\inc\objpash.inc"/>
-        <EditorIndex Value="21"/>
+        <EditorIndex Value="26"/>
         <TopLine Value="177"/>
         <CursorPos X="23" Y="193"/>
         <UsageCount Value="154"/>
         <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit329>
       <Unit330>
         <Filename Value="C:\development\fpc\rtl\objpas\sysutils\sysutilh.inc"/>
-        <EditorIndex Value="20"/>
+        <EditorIndex Value="25"/>
         <TopLine Value="295"/>
         <CursorPos X="23" Y="310"/>
         <UsageCount Value="114"/>
         <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit330>
       <Unit331>
         <Filename Value="virtualqueryexcache.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="VirtualQueryExCache"/>
-        <EditorIndex Value="16"/>
+        <EditorIndex Value="21"/>
         <TopLine Value="98"/>
         <CursorPos Y="112"/>
         <UsageCount Value="228"/>
@@ -3556,124 +3568,124 @@
     </CustomDefines>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2743" TopLine="2728"/>
+        <Filename Value="LuaStream.pas"/>
+        <Caret Line="136" TopLine="117"/>
       </Position1>
       <Position2>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2745" TopLine="2728"/>
+        <Filename Value="LuaStream.pas"/>
+        <Caret Line="138" TopLine="117"/>
       </Position2>
       <Position3>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2746" TopLine="2728"/>
+        <Filename Value="LuaStream.pas"/>
+        <Caret Line="139" TopLine="117"/>
       </Position3>
       <Position4>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2747" TopLine="2728"/>
+        <Filename Value="LuaStream.pas"/>
+        <Caret Line="140" TopLine="117"/>
       </Position4>
       <Position5>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2748" TopLine="2728"/>
+        <Filename Value="LuaStream.pas"/>
+        <Caret Line="141" TopLine="117"/>
       </Position5>
       <Position6>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2750" TopLine="2728"/>
+        <Filename Value="LuaStream.pas"/>
+        <Caret Line="136" TopLine="117"/>
       </Position6>
       <Position7>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2752" TopLine="2728"/>
+        <Filename Value="LuaStream.pas"/>
+        <Caret Line="138" TopLine="117"/>
       </Position7>
       <Position8>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2753" TopLine="2728"/>
+        <Filename Value="LuaStream.pas"/>
+        <Caret Line="139" TopLine="117"/>
       </Position8>
       <Position9>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2755" TopLine="2730"/>
+        <Filename Value="LuaStream.pas"/>
+        <Caret Line="140" TopLine="117"/>
       </Position9>
       <Position10>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2756" TopLine="2731"/>
+        <Filename Value="LuaStream.pas"/>
+        <Caret Line="141" TopLine="117"/>
       </Position10>
       <Position11>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2758" TopLine="2733"/>
+        <Filename Value="LuaStream.pas"/>
+        <Caret Line="136" TopLine="117"/>
       </Position11>
       <Position12>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2759" TopLine="2734"/>
+        <Filename Value="LuaStream.pas"/>
+        <Caret Line="138" TopLine="117"/>
       </Position12>
       <Position13>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2760" TopLine="2735"/>
+        <Filename Value="LuaStream.pas"/>
+        <Caret Line="139" TopLine="117"/>
       </Position13>
       <Position14>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2765" TopLine="2740"/>
+        <Filename Value="LuaStream.pas"/>
+        <Caret Line="140" TopLine="117"/>
       </Position14>
       <Position15>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2767" TopLine="2742"/>
+        <Filename Value="LuaStream.pas"/>
+        <Caret Line="141" TopLine="117"/>
       </Position15>
       <Position16>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2777" TopLine="2762"/>
+        <Filename Value="LuaStream.pas"/>
+        <Caret Line="136" TopLine="117"/>
       </Position16>
       <Position17>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2779" TopLine="2762"/>
+        <Filename Value="LuaStream.pas"/>
+        <Caret Line="138" TopLine="117"/>
       </Position17>
       <Position18>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2782" TopLine="2762"/>
+        <Filename Value="LuaStream.pas"/>
+        <Caret Line="139" TopLine="117"/>
       </Position18>
       <Position19>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2783" TopLine="2824"/>
+        <Filename Value="LuaStream.pas"/>
+        <Caret Line="140" TopLine="117"/>
       </Position19>
       <Position20>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2843" TopLine="2825"/>
+        <Filename Value="LuaStream.pas"/>
+        <Caret Line="141" TopLine="117"/>
       </Position20>
       <Position21>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2861" TopLine="2846"/>
+        <Filename Value="LuaStream.pas"/>
+        <Caret Line="136" TopLine="117"/>
       </Position21>
       <Position22>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2719" TopLine="2704"/>
+        <Filename Value="LuaStream.pas"/>
+        <Caret Line="138" TopLine="117"/>
       </Position22>
       <Position23>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2878" TopLine="2863"/>
+        <Filename Value="LuaStream.pas"/>
+        <Caret Line="139" TopLine="117"/>
       </Position23>
       <Position24>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2826" TopLine="2811"/>
+        <Filename Value="LuaStream.pas"/>
+        <Caret Line="140" TopLine="117"/>
       </Position24>
       <Position25>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2846" Column="26" TopLine="2848"/>
+        <Filename Value="LuaStream.pas"/>
+        <Caret Line="141" TopLine="117"/>
       </Position25>
       <Position26>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2863" TopLine="2849"/>
+        <Filename Value="LuaStream.pas"/>
+        <Caret Line="136" TopLine="117"/>
       </Position26>
       <Position27>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="1042" TopLine="1027"/>
+        <Filename Value="LuaStream.pas"/>
+        <Caret Line="143" TopLine="117"/>
       </Position27>
       <Position28>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="1032" Column="50" TopLine="1027"/>
+        <Filename Value="LuaStream.pas"/>
+        <Caret Line="135" TopLine="117"/>
       </Position28>
       <Position29>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="840" Column="28" TopLine="834"/>
+        <Filename Value="LuaStream.pas"/>
+        <Caret Line="151" TopLine="135"/>
       </Position29>
       <Position30>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2864" TopLine="2849"/>
+        <Filename Value="LuaStream.pas"/>
+        <Caret Line="129" TopLine="112"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
@@ -3726,7 +3738,7 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <BreakPoints Count="14">
+    <BreakPoints Count="15">
       <Item1>
         <Kind Value="bpkSource"/>
         <WatchScope Value="wpsLocal"/>
@@ -3825,6 +3837,13 @@
         <Source Value="disassembler.pas"/>
         <Line Value="374"/>
       </Item14>
+      <Item15>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="LuaStream.pas"/>
+        <Line Value="134"/>
+      </Item15>
     </BreakPoints>
     <Watches Count="9">
       <Item1>
