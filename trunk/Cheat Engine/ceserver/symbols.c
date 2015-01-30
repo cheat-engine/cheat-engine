@@ -506,5 +506,17 @@ int GetSymbolListFromFile(char *filename, unsigned char **output, int *outputsiz
 
   free(b);
 
+  close(f);
+
   return i;
+}
+
+unsigned long long GetModuleSize(char *filename, unsigned long long defaultsize)
+/*
+ * Returns size the module will take in memory
+ */
+{
+  return defaultsize;
+
+
 }
