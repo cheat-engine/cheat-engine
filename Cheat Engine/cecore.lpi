@@ -31,10 +31,13 @@
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="1">
+    <RequiredPackages Count="2">
       <Item1>
-        <PackageName Value="LazUtils"/>
+        <PackageName Value="FCL"/>
       </Item1>
+      <Item2>
+        <PackageName Value="LazUtils"/>
+      </Item2>
     </RequiredPackages>
     <Units Count="20">
       <Unit0>
@@ -44,17 +47,14 @@
       <Unit1>
         <Filename Value="networkInterfaceApi.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="networkInterfaceApi"/>
       </Unit1>
       <Unit2>
         <Filename Value="networkInterface.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="networkInterface"/>
       </Unit2>
       <Unit3>
         <Filename Value="NewKernelHandler.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="NewKernelHandler"/>
       </Unit3>
       <Unit4>
         <Filename Value="unixporthelper.pas"/>
@@ -64,7 +64,6 @@
       <Unit5>
         <Filename Value="ProcessHandlerUnit.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="ProcessHandlerUnit"/>
       </Unit5>
       <Unit6>
         <Filename Value="elfsymbols.pas"/>
@@ -73,7 +72,6 @@
       <Unit7>
         <Filename Value="processlist.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="ProcessList"/>
       </Unit7>
       <Unit8>
         <Filename Value="memscan.pas"/>
@@ -88,7 +86,6 @@
       <Unit10>
         <Filename Value="globals.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="Globals"/>
       </Unit10>
       <Unit11>
         <Filename Value="commontypedefs.pas"/>
@@ -96,44 +93,42 @@
         <UnitName Value="commonTypeDefs"/>
       </Unit11>
       <Unit12>
-        <Filename Value="jnitobject.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="jniTObject"/>
-      </Unit12>
-      <Unit13>
-        <Filename Value="jnitmemscan.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="jniTMemScan"/>
-      </Unit13>
-      <Unit14>
         <Filename Value="savedscanhandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="savedscanhandler"/>
-      </Unit14>
-      <Unit15>
+      </Unit12>
+      <Unit13>
         <Filename Value="virtualqueryexcache.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="VirtualQueryExCache"/>
-      </Unit15>
-      <Unit16>
+      </Unit13>
+      <Unit14>
         <Filename Value="foundlisthelper.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="foundlisthelper"/>
-      </Unit16>
-      <Unit17>
+      </Unit14>
+      <Unit15>
         <Filename Value="CustomTypeHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="CustomTypeHandler"/>
-      </Unit17>
-      <Unit18>
+      </Unit15>
+      <Unit16>
         <Filename Value="groupscancommandparser.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="groupscancommandparser"/>
-      </Unit18>
-      <Unit19>
-        <Filename Value="jnitfoundlist.pas"/>
+      </Unit16>
+      <Unit17>
+        <Filename Value="jni\jnitfoundlist.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="jnitfoundlist"/>
+      </Unit17>
+      <Unit18>
+        <Filename Value="jni\jnitmemscan.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="jniTMemScan"/>
+      </Unit18>
+      <Unit19>
+        <Filename Value="jni\jnitobject.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="jniTObject"/>
       </Unit19>
     </Units>
   </ProjectOptions>
@@ -145,7 +140,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="..\android-ndk"/>
+      <OtherUnitFiles Value="..\android-ndk;jni"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Parsing>
