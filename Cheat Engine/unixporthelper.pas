@@ -18,9 +18,17 @@ type
   TWordArray = array[0..{$ifdef CPU16}16382{$else}16383{$endif}] of Word;
 
   TLargeInteger=QWORD;
+  PUINT64=^UInt64;
   ULONG_PTR=ptruint;
+  ULONG64=qword;
+  ULONG32=dword;
   LONG=integer;
   ULONG=DWORD;
+
+  dword64=UInt64;
+  PDWORD64=^dword64;
+  LONG64=UInt64;
+
   PVOID=pointer;
   LPBYTE=^BYTE;
   LPVOID=pointer;
@@ -29,12 +37,18 @@ type
   WINBOOL=boolean;
   BOOL=boolean;
   PBOOL=^BOOL;
+  PSTR=pchar;
   LPSTR=pchar;
   LPTSTR=pwidechar;
+  TCHAR=WCHAR;
+  PWCHAR=^WCHAR;
   HANDLE=integer;
   HDC=HANDLE;
   HWND=HANDLE;
   HICON=HANDLE;
+  HMODULE=HANDLE;
+  PHMODULE=^HMODULE;
+
   UINT=UInt32;
   PSYSTEM_LOGICAL_PROCESSOR_INFORMATION=pointer;
   TFNThreadStartRoutine=pointer;
@@ -134,6 +148,7 @@ const
   TH32CS_SNAPPROCESS  = $00000002;
   TH32CS_SNAPTHREAD   = $00000004;
   TH32CS_SNAPMODULE   = $00000008;
+  TH32CS_SNAPMODULE32 = 0;
   TH32CS_SNAPALL      = TH32CS_SNAPHEAPLIST or TH32CS_SNAPPROCESS or
                         TH32CS_SNAPTHREAD or TH32CS_SNAPMODULE;
   TH32CS_GETALLMODS   = $80000000;
@@ -152,6 +167,7 @@ function CopyFile(source: string; destination: string; failifdestinationExists: 
 Function DirectoryExistsUTF8 (Const Directory : RawByteString) : Boolean;
 Function CreateDirUTF8(Const NewDir : UnicodeString) : Boolean;
 
+function GetCurrentProcessID: SizeUInt;
 procedure ZeroMemory(destination: pointer; size: integer);
 procedure CopyMemory(destination: pointer; Origin: pointer; size: integer);
 procedure MoveMemory(destination: pointer; Origin: pointer; size: integer);
@@ -308,6 +324,12 @@ procedure CopyMemory(destination: pointer; Origin: pointer; size: integer);
 begin
   MoveMemory(destination, origin, size);
 end;
+
+function GetCurrentProcessID: SizeUInt;
+begin
+  result:=GetProcessID;
+end;
+
 
 procedure log(l: string);
 begin

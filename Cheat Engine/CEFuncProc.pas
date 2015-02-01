@@ -34,11 +34,7 @@ commontypedefs;
 
 
 
-function ConvertHexStrToRealStr(const s: string): string;
-function HexStrToInt(const S: string): Integer;
-function HexStrToInt64(const S: string): Int64;
 
-function IntToHexSigned(v: INT64; digits: integer): string;
 
 //function NewVarTypeToOldVarType(i: TVariableType):integer;
 function OldVarTypeToNewVarType(i: integer):TVariableType;
@@ -161,6 +157,10 @@ procedure SetLanguage;
 
 procedure DetachIfPossible;
 
+
+{$ifdef windows}
+procedure Log(s: string);
+{$endif}
 
 
 const
@@ -2607,153 +2607,6 @@ begin
     result:='.\'+copy(filename,length(CheatEnginedir)+1,length(filename));
 end;
 
-function ConvertHexStrToRealStr(const s: string): string;
-{
-Converts a string meant to be a hexadeimcal string to the real way delphi reads
-it
-e.g:
-123 > $123
--123 > -$123
-+123 > +$123
-#123 > 123
-+#123 > +123
-}
-var ishex: string;
-    start: integer;
-    i,j,k: integer;
-
-    bytes: string;
-    t: string;
-    q: qword;
-    f: single;
-    d: double;
-begin
-  if s='' then
-  begin
-    result:=s;
-    exit;
-  end;
-  start:=1;
-
-  ishex:='$';
-  for i:=start to length(s) do
-    case s[i] of
-      '''' , '"' :
-      begin
-        //char
-        if (i+2)<=length(s) then
-        begin
-          bytes:='';
-          for j:=i+2 to length(s) do
-            if s[j] in ['''','"'] then
-            begin
-              bytes:=copy(s,i+1,j-(i+1));
-
-              result:='$';
-              for k:=length(bytes) downto 1 do
-                result:=result+inttohex(byte(bytes[k]),2);
-
-              //result := '$'+inttohex(byte(s[i+1]),2);
-              exit; //this is it, no further process required, or appreciated...
-
-            end;
-
-
-
-        end;
-      end;
-
-      '#' :
-      begin
-        ishex:='';
-        start:=2;
-        break;
-      end;
-
-      '(' :
-      begin
-        if copy(s,1,5)='(INT)' then
-        begin
-          t:=copy(s,6,length(s));
-          try
-            q:=StrToQWordEx(t);
-            result:='$'+inttohex(q,8);
-            exit;
-          except
-          end;
-        end;
-
-        if copy(s,1,8)='(DOUBLE)' then
-        begin
-          t:=copy(s,9,length(s));
-          val(t, d,j);
-          if j=0 then
-          begin
-            result:='$'+inttohex(PINT64(@d)^,8);
-
-            if s[1]='-' then
-              result:='-'+result;
-
-            if s[1]='+' then
-              result:='+'+result;
-              
-            exit;
-          end;
-        end;
-
-        if copy(s,1,7)='(FLOAT)' then
-        begin
-          t:=copy(s,8,length(s));
-          val(t, f,j);
-          if j=0 then
-          begin
-            result:='$'+inttohex(pdword(@f)^,8);
-
-            if s[1]='-' then
-              result:='-'+result;
-
-            if s[1]='+' then
-              result:='+'+result;
-              
-            exit;
-          end;
-        end;
-      end;
-    end;
-
-
-  if s[1]='-' then
-  begin
-    result:='-'+ishex+copy(s,start+1,length(s))
-  end
-  else
-  if s[1]='+' then
-  begin
-    result:='+'+ishex+copy(s,start+1,length(s));
-  end
-  else
-  begin
-    result:=ishex+copy(s,start,length(s));
-  end;
-end;
-
-function IntToHexSigned(v: INT64; digits: integer): string;
-begin
-  if v>=0 then
-    result:=inttohex(v, digits)
-  else
-    result:='-'+inttohex(-v, digits);
-end;
-
-function HexStrToInt(const S: string): Integer;
-begin
-  result:=StrToint(ConvertHexStrToRealStr(s));
-end;
-
-function HexStrToInt64(const S: string): Int64;
-begin
-  result:=StrToQWordEx(ConvertHexStrToRealStr(s));
-end;
 
 function isjumporcall(address: ptrUint; var addresstojumpto: ptrUint): boolean;
 {
@@ -3431,6 +3284,10 @@ begin
     SetKernelObjectSecurity(h, DACL_SECURITY_INFORMATION, sa.lpSecurityDescriptor);
 end;
 
+procedure Log(s: string);
+begin
+  OutputDebugString(pchar(s));
+end;
 
 initialization
   ownprocesshandle := OpenProcess(PROCESS_ALL_ACCESS, True, GetCurrentProcessId);
