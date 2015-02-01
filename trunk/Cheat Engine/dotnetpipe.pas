@@ -3,9 +3,15 @@ unit DotNetPipe;
 {$mode objfpc}{$H+}
 
 interface
-
+{$ifdef windows}
 uses
   jwawindows, windows, Classes, SysUtils, CEFuncProc, syncobjs, NewKernelHandler, Globals;
+{$endif}
+
+{$ifdef unix}
+//mainly for some defines for easy compilation
+uses unixporthelper, Unix, Classes, SysUtils, syncobjs, NewKernelHandler, Globals;
+{$endif}
 
 const
   CMD_TARGETPROCESS=0;
@@ -355,6 +361,7 @@ var
   _windir: pchar;
   windir: string;
 begin
+{$ifndef unix}
   if fconnected=false then
   begin
     setlength(modules,0);
@@ -427,6 +434,8 @@ begin
       modules[0]:=temp;
     end;
   end;
+{$endif}
+
 end;
 
 procedure TDotNetPipe.EnumDomains(var domains: TDotNetDomainArray);
@@ -498,13 +507,21 @@ end;
 procedure TDotNetPipe.Read(var o; size: integer);
 var br: dword;
 begin
+  {$ifdef unix}
+  fconnected:=false;
+  {$else}
   fconnected:=fconnected and readfile(pipe, o, size, br, nil);
+  {$endif}
 end;
 
 procedure TDotNetPipe.Write(const o; size: integer);
 var bw: dword;
 begin
+  {$ifdef unix}
+  fconnected:=false;
+  {$else}
   fconnected:=fconnected and writefile(pipe, o, size, bw, nil);
+  {$endif}
 end;
 
 
@@ -512,6 +529,7 @@ function TDotNetPipe.Connect(processid: dword; is64bit: boolean; timeout:dword=1
 {
 Connects to a dotnet data collector and tells it to open a specific process
 }
+{$ifndef unix}
 var
   starttime: qword;
 
@@ -529,7 +547,9 @@ var
 
   ths: THandle;
   me32: TModuleEntry32;
+{$endif}
 begin
+  {$IFNDEF UNIX}
   if fConnected then
     disconnect;
 
@@ -613,6 +633,7 @@ begin
 
   if not result then
     disconnect;
+  {$ENDIF}
 end;
 
 procedure TDotNetPipe.disconnect;
@@ -622,6 +643,7 @@ var
   end;
   x: dword;
 begin
+  {$IFNDEF UNIX}
   if fConnected then
   begin
     msg.command:=CMD_CLOSEPROCESSANDQUIT;
@@ -641,6 +663,7 @@ begin
     closehandle(pipe);
     pipe:=0;
   end;
+  {$ENDIF}
 
   if pHandle<>0 then
     pHandle:=0;

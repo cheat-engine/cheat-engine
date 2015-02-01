@@ -20,7 +20,8 @@ uses windows, FileUtil, LCLIntf,sysutils, classes,ComCtrls,dialogs, NewKernelHan
 
 {$ifdef unix}
 uses sysutils, unixporthelper, customtypehandler, commonTypeDefs, classes,
-     syncobjs, math, groupscancommandparser, NewKernelHandler, strutils, savedscanhandler;
+     syncobjs, math, groupscancommandparser, NewKernelHandler, strutils,
+     savedscanhandler;
 
 
 {$endif}

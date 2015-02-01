@@ -9,8 +9,8 @@ uses cthreads, classes, jni, networkInterfaceApi, NewKernelHandler,
   networkInterface, sysutils, unixporthelper, ProcessHandlerUnit, elfsymbols,
   resolve, Sockets, ProcessList, memscan, Parsers, Globals, commonTypeDefs,
   strutils, savedscanhandler, VirtualQueryExCache, foundlisthelper,
-  groupscancommandparser, CustomTypeHandler, jnitfoundlist, jniTMemScan,
-  jniTObject;
+  groupscancommandparser, CustomTypeHandler, SymbolListHandler, symbolhandler,
+  DotNetTypes, DotNetPipe, jnitfoundlist, jniTMemScan, jniTObject;
 
 
 type TMainThread=class(TThread)
@@ -149,6 +149,8 @@ procedure SelectProcess(PEnv: PJNIEnv; Obj: JObject; pid: jint); cdecl;
 begin
   processhandler.processid:=pid;
   processhandler.processhandle:=OpenProcess(PROCESS_ALL_ACCESS, false, pid);
+  symhandler.reinitialize;
+
 end;
 
 //creatememscan ?
@@ -244,5 +246,9 @@ exports JNI_OnLoad;
 exports JNI_OnUnload;
 
 begin
+  Log('CECORE entry point executing');
+  Log('calling symhandlerInitialize');
+  symhandlerInitialize;
+  Log('Returned from symhandlerInitialize');
 
 end.

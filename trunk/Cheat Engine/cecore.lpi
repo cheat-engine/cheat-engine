@@ -39,7 +39,7 @@
         <PackageName Value="LazUtils"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="20">
+    <Units Count="24">
       <Unit0>
         <Filename Value="cecore.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -130,6 +130,26 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="jniTObject"/>
       </Unit19>
+      <Unit20>
+        <Filename Value="symbollisthandler.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="SymbolListHandler"/>
+      </Unit20>
+      <Unit21>
+        <Filename Value="symbolhandler.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="symbolhandler"/>
+      </Unit21>
+      <Unit22>
+        <Filename Value="dotnettypes.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DotNetTypes"/>
+      </Unit22>
+      <Unit23>
+        <Filename Value="dotnetpipe.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DotNetPipe"/>
+      </Unit23>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

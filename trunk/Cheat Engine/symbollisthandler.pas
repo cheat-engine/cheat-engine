@@ -7,8 +7,15 @@ This unit will keep two trees that link to a list of string to address informati
 
 interface
 
+{$ifdef windows}
 uses
   windows, Classes, SysUtils, AvgLvlTree, math, fgl, cvconst, syncobjs;
+{$endif}
+
+{$ifdef unix}
+uses
+  unixporthelper, Classes, SysUtils, AvgLvlTree, math, fgl, cvconst, syncobjs;
+{$endif}
 
 type
   PSYMBOL_INFO = ^TSYMBOL_INFO;
@@ -105,7 +112,13 @@ type
 
 implementation
 
+{$ifdef windows}
 uses CEFuncProc, symbolhandler;
+{$endif}
+
+{$ifdef unix}
+uses symbolhandler;
+{$endif}
 
 
 
@@ -500,10 +513,16 @@ end;
 constructor TSymbolListHandler.create;
 begin
   inherited create;
+
+  log('TSymbolListHandler.create 1');
   AddressToString:=TAvgLvlTree.CreateObjectCompare(A2SCheck);
   StringToAddress:=TAvgLvlTree.CreateObjectCompare(S2ACheck);
+
+  log('TSymbolListHandler.create 2');
   fExtraSymbolDataList:=TExtraSymbolDataList.create;
   cs:=TMultiReadExclusiveWriteSynchronizer.create;
+
+  log('TSymbolListHandler.create exit');
 
 
 end;
@@ -511,8 +530,10 @@ end;
 destructor TSymbolListHandler.destroy;
 var i: integer;
 begin
+
   if symhandler<>nil then
     symhandler.RemoveSymbolList(self);
+
 
   clear;
   if AddressToString<>nil then
