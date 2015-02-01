@@ -242,13 +242,24 @@ end;
 function CopyFile(source: string; destination: string; failifdestinationExists: boolean=false): boolean;
 var src,dst: TFileStream;
 begin
+  Log('CopyFile. source='+source+' destination='+destination+'Fail if exists'+ BoolToStr(failifdestinationExists, 'yes','no'));
+
   result:=false;
   try
     src:=nil;
     dst:=nil;
 
-    if not fileexists(source)=false then exit;
-    if failifdestinationExists and fileexists(destination) then exit;
+    if not fileexists('"'+source+'"')=false then
+    begin
+      log('source does not exist');
+      exit;
+    end;
+
+    if failifdestinationExists and fileexists(destination) then
+    begin
+      log('failifdestinationExists is true and the destination exists');
+      exit;
+    end;
 
 
     try
@@ -257,6 +268,7 @@ begin
       dst.CopyFrom(src,0); //copy the whole file
 
       result:=true; //still here and no exception
+      log('Copy successful')
     finally
       if src<>nil then
         freeandnil(src);
@@ -265,9 +277,11 @@ begin
         freeandnil(dst);
     end;
 
+
+    ;
   except
     on e: exception do
-      log(e.message);
+      log('Error during copy:'+e.message);
   end;
 end;
 
