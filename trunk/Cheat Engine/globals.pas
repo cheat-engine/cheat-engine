@@ -22,6 +22,7 @@ var
 
   scan_dirtyonly: boolean=true;
   scan_pagedonly: boolean=true;
+  fetchSymbols: boolean=true;   //set to false if you don't want the symbols to get enumerated
 
 
   systemtype: integer;

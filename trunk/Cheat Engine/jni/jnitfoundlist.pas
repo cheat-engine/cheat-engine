@@ -63,6 +63,14 @@ begin
   result:=TFoundList(JObjectToTObject(penv, obj)).count;
 end;
 
+function TFoundList_inModule(PEnv: PJNIEnv; Obj: JObject; index: jint): jboolean; cdecl;
+begin
+  if TFoundList(JObjectToTObject(penv, obj)).inModule(index) then
+    result:=1
+  else
+    result:=0;
+end;
+
 function TFoundList_getAddress(PEnv: PJNIEnv; Obj: JObject; index: jint): jlong; cdecl;
 begin
   result:=TFoundList(JObjectToTObject(penv, obj)).GetAddress(index);
@@ -98,7 +106,7 @@ begin
 end;
 
 
-const methodcount=7;
+const methodcount=8;
 var jnimethods: array [0..methodcount-1] of JNINativeMethod =(
   (name: 'create'; signature: '(Lorg/cheatengine/TMemScan;)J'; fnPtr: @TFoundList_Create),
   (name: 'initialize'; signature: '()J'; fnPtr: @TFoundList_initialize),
@@ -106,6 +114,7 @@ var jnimethods: array [0..methodcount-1] of JNINativeMethod =(
   (name: 'getCount'; signature: '()J'; fnPtr: @TFoundList_getCount),
   (name: 'getAddress'; signature: '(I)J'; fnPtr: @TFoundList_getAddress),
   (name: 'getValue'; signature: '(I)Ljava/lang/String;'; fnPtr: @TFoundList_getValue),
+  (name: 'inModule'; signature: '(I)Z'; fnPtr: @TFoundList_inModule),
   (name: 'refetchValueList'; signature: '()V'; fnPtr: @TFoundList_refetchValueList)
 
   );

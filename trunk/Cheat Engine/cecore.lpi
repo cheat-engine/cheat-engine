@@ -55,6 +55,7 @@
       <Unit3>
         <Filename Value="NewKernelHandler.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="NewKernelHandler"/>
       </Unit3>
       <Unit4>
         <Filename Value="unixporthelper.pas"/>

@@ -15,7 +15,7 @@ uses LCLIntf,sysutils,classes,ComCtrls,StdCtrls,symbolhandler, CEFuncProc,
 
 {$ifdef unix}
 //in cecore the foundlisthelper is data only. No link to a listview
-uses sysutils,classes, ProcessHandlerUnit, NewKernelHandler, memscan,
+uses sysutils,classes, symbolhandler, ProcessHandlerUnit, NewKernelHandler, memscan,
      byteinterpreter, CustomTypeHandler, groupscancommandparser, math, AvgLvlTree,
      commonTypeDefs, parsers, unixporthelper;
 {$endif}
@@ -119,6 +119,7 @@ implementation
 uses mainunit, processhandlerunit;
 {$endif}
 
+
 resourcestring
   rsUndefinedError = 'Undefined error';
   rsError = 'Error';
@@ -173,26 +174,17 @@ begin
 end;
 
 function TFoundList.InModule(i: integer):boolean;
-{$ifdef windows}
 var mi: tmoduleinfo;
 begin
   result:=symhandler.getmodulebyaddress(getaddress(i),mi);
 end;
-{$else}
-begin
-  result:=false;
-end;
-{$endif}
 
 function TFoundList.GetModuleNamePlusOffset(i: integer):string;
 var
-{$ifdef windows}
   mi: tmoduleinfo;
-{$endif}
   x: ptrUint;
 begin
   x:=getaddress(i);
-{$ifdef windows}
 
   if symhandler.getmodulebyaddress(x,mi) then
   begin
@@ -203,7 +195,6 @@ begin
     result:=mi.modulename+'+'+inttohex(x-mi.baseaddress,1)
   end
   else
-  {$endif}
     result:=inttohex(x,8);
 end;
 
