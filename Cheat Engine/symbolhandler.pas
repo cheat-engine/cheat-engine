@@ -1432,42 +1432,45 @@ begin
   Log('TSymhandler.reinitialize');
   if loadmodulelist or force then //if loadmodulelist returns true it has detected a change in the previous modulelist (baseaddresschange or new/deleted module)
   begin
-    Log('loadmodulelist or force was true');
-    symbolloadervalid.Beginread;
-    try
-      if symbolloaderthread<>nil then
-        symbolloaderthread.Terminate; //let's get this started
-    finally
-      symbolloadervalid.Endread;
-    end;
-
-    dotNetDataCollector.disconnect;
-
-    if not targetself then
-      dotNetDataCollector.connect(processid, processhandler.is64Bit);
-
-    symbolloadervalid.BeginWrite;
-    try
-      if symbolloaderthread<>nil then
-      begin
-        symbolloaderthread.Terminate;
-
-        //OutputDebugString(pchar(inttostr(GetCurrentThreadId)+':Waiting'));
-        if symbolloaderthread.Finished=false then
-          symbolloaderthread.WaitFor; //wait till it's done
-
-        //OutputDebugString(pchar(inttostr(GetCurrentThreadId)+':Returned'));
-
-        freeandnil(symbolloaderthread);
+    if fetchSymbols then
+    begin
+      Log('loadmodulelist or force was true');
+      symbolloadervalid.Beginread;
+      try
+        if symbolloaderthread<>nil then
+          symbolloaderthread.Terminate; //let's get this started
+      finally
+        symbolloadervalid.Endread;
       end;
 
-      symbolloaderthread:=tsymbolloaderthread.Create(self, targetself,true);
-      symbolloaderthread.kernelsymbols:=kernelsymbols;
-      symbolloaderthread.searchpath:=searchpath;
-      symbolloaderthread.symbollist:=symbollist;
-      symbolloaderthread.start;
-    finally
-      symbolloadervalid.EndWrite;
+      dotNetDataCollector.disconnect;
+
+      if not targetself then
+        dotNetDataCollector.connect(processid, processhandler.is64Bit);
+
+      symbolloadervalid.BeginWrite;
+      try
+        if symbolloaderthread<>nil then
+        begin
+          symbolloaderthread.Terminate;
+
+          //OutputDebugString(pchar(inttostr(GetCurrentThreadId)+':Waiting'));
+          if symbolloaderthread.Finished=false then
+            symbolloaderthread.WaitFor; //wait till it's done
+
+          //OutputDebugString(pchar(inttostr(GetCurrentThreadId)+':Returned'));
+
+          freeandnil(symbolloaderthread);
+        end;
+
+        symbolloaderthread:=tsymbolloaderthread.Create(self, targetself,true);
+        symbolloaderthread.kernelsymbols:=kernelsymbols;
+        symbolloaderthread.searchpath:=searchpath;
+        symbolloaderthread.symbollist:=symbollist;
+        symbolloaderthread.start;
+      finally
+        symbolloadervalid.EndWrite;
+      end;
     end;
   end;
 

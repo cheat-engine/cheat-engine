@@ -170,6 +170,11 @@ begin
 
 end;
 
+procedure FetchSymbols(PEnv: PJNIEnv; Obj: JObject; state: jboolean); cdecl;
+begin
+  Globals.fetchSymbols:=state<>0;
+end;
+
 procedure SetTempPath(PEnv: PJNIEnv; Obj: JObject; path: jstring); cdecl;
 var
   _path: string;
@@ -189,7 +194,7 @@ var jnimethods: array [0..methodcount-1] of JNINativeMethod =(
   (name: 'CEConnect'; signature: '(Ljava/lang/String;)Z'; fnPtr: @CEConnect),
   (name: 'GetProcessList'; signature: '()Ljava/util/ArrayList;'; fnPtr: @GetProcessList),
   (name: 'SelectProcess'; signature: '(I)V'; fnPtr: @SelectProcess),
-  (name: 'FirstScan'; signature: '(I)V'; fnPtr: @FirstScan),
+  (name: 'FetchSymbols'; signature: '(Z)V'; fnPtr: @FetchSymbols),
   (name: 'SetTempPath'; signature: '(Ljava/lang/String;)V'; fnPtr: @SetTempPath)
 );
 
