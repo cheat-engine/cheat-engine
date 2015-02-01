@@ -3579,6 +3579,10 @@ begin
   {$ENDIF}
 
   OutputDebugString('configurescanroutine');
+
+  OutputDebugString('Config 1');
+
+
   foundbuffersize:=0;
 
   //fill FloatSettings with formatting data (e.g difference between , and . for decimal)
@@ -3885,6 +3889,8 @@ begin
 
   end;
 
+  OutputDebugString('Config 2');
+
   FlushRoutine:=genericFlush; //change if not so
 
   if variableType in [vtbinary,vtall] then
@@ -3907,9 +3913,15 @@ begin
     getmem(SecondaryAddressBuffer,maxfound*sizeof(ptruint));
   end;
 
-
+  OutputDebugString('Config 3');
   if compareToSavedScan then //create a first scan handler
+  begin
+    OutputDebugString('Compare to saved scan');
     savedscanhandler:=Tsavedscanhandler.create(scandir,savedscanname);
+  end;
+
+  OutputDebugString('Config 3.1');
+  OutputDebugString('scanOption='+inttostr(integer(scanOption)));
 
   case variableType of
     vtByte:
@@ -3973,6 +3985,8 @@ begin
     vtDWord:
     begin
       //dword config
+      OutputDebugString('Config 4');
+
       FoundBufferSize:=buffersize*4;
       StoreResultRoutine:=DWordSaveResult;
 
@@ -3997,6 +4011,8 @@ begin
         soChanged:          checkroutine:=dwordChanged;
         soUnChanged:        checkroutine:=dwordUnchanged;
       end;
+
+      OutputDebugString('Config 5');
     end;
 
     vtQWord:
@@ -4267,6 +4283,7 @@ begin
 
   end;
 
+  OutputDebugString('Config 6');
   getmem(CurrentFoundBuffer,FoundBufferSize);
   getmem(SecondaryFoundBuffer,FoundBufferSize);
 
@@ -5126,7 +5143,7 @@ begin
   if compareToSavedScan=false then
   begin
     compareToSavedScan:=true;
-    savedscanname:='FIRST';
+    savedscanname:='First';
   end;
   {$endif}
 
@@ -6085,9 +6102,10 @@ begin
       if scantype=stFirstScan then
       begin
         outputdebugstring('ScanController: This was a first scan, so saving the First Scan results');
+        outputdebugstring('to:'+OwningMemScan.ScanresultFolder+'ADDRESSES.First');
         {$IFDEF LOWMEMORYUSAGE}
-        copyfile(OwningMemScan.ScanresultFolder+'ADDRESSES.TMP', OwningMemScan.ScanresultFolder+'ADDRESSES.FIRST');
-        copyfile(OwningMemScan.ScanresultFolder+'MEMORY.TMP', OwningMemScan.ScanresultFolder+'MEMORY.FIRST')
+        copyfile(OwningMemScan.ScanresultFolder+'ADDRESSES.TMP', OwningMemScan.ScanresultFolder+'ADDRESSES.First');
+        copyfile(OwningMemScan.ScanresultFolder+'MEMORY.TMP', OwningMemScan.ScanresultFolder+'MEMORY.First')
         {$else}
         OwningMemScan.SaveFirstScanThread:=TSaveFirstScanThread.create(OwningMemScan.ScanresultFolder, false,@OwningMemScan.memregion,@OwningMemScan.memregionpos, OwningMemScan.previousMemoryBuffer);
         {$ENDIF}
@@ -6254,7 +6272,7 @@ begin
   r.clear;
   if savedresults=nil then
   begin
-    r.add('FIRST');
+    r.add('First');
     result:=1;
   end
   else

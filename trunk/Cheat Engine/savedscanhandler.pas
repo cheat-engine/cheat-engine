@@ -607,6 +607,7 @@ var datatype: string[6];
 
     maxregionsize: integer;
 begin
+  Log('TSavedScanHandler.InitializeScanHandler');
   cleanup;
   maxregionsize:=20*4096;
   try
@@ -664,6 +665,7 @@ begin
     on e: exception do
     begin
       //clean up and raise the exception
+      log('Error during TSavedScanHandler.InitializeScanHandler:'+e.Message);
       cleanup;
       raise exception.Create(e.Message);
     end;
@@ -672,6 +674,9 @@ end;
 
 constructor TSavedScanHandler.create(scandir: string; savedresultsname: string);
 begin
+  inherited Create;
+
+  Log('TSavedScanHandler.create('''+scandir+''','''+savedresultsname+'''');
   if savedresultsname='' then
     savedresultsname:='TMP';
 
@@ -701,8 +706,11 @@ begin
     addresslistmemory:=nil;
   end;
 
-  freeandnil(SavedScanaddressFS);
-  freeandnil(SavedScanmemoryFS);
+  if SavedScanaddressFS<>nil then
+    freeandnil(SavedScanaddressFS);
+
+  if SavedScanmemoryFS<>nil then
+    freeandnil(SavedScanmemoryFS);
 end;
 
 procedure TSavedScanHandler.deinitialize;
