@@ -451,6 +451,23 @@ begin
 end;
 
 
+procedure getPotentialLabels(code: Tstrings; labels: TStrings);
+//parse the script for xxxx: lines and store them in labels
+//this list gets used when it's about to error out on an undefined symbol, and if found in here, add it as a label
+
+//pre: called after comments are removed
+var
+  i: integer;
+  currentline: string;
+begin
+  for i:=0 to code.count-1 do
+  begin
+    currentline:=trim(code[i]);
+    if (currentline<>'') and (currentline[length(currentline)]=':') then
+      labels.add(copy(currentline,1,length(currentline)-1));
+  end;
+end;
+
 procedure removecomments(code: tstrings);
 var i,j: integer;
     currentline: string;
@@ -1040,7 +1057,6 @@ var i,j,k,l,e: integer;
       bytes: PByteArray;
     end;
 
-
     globalallocs, allocs, kallocs, sallocs: array of tcealloc;
     labels: array of tlabel;
     defines: array of tdefine;
@@ -1084,6 +1100,9 @@ var i,j,k,l,e: integer;
     disassembler: TDisassembler;
 
     threadhandle: THandle;
+
+    potentiallabels: TStringlist;
+
 
     connection: TCEConnection;
 begin
@@ -1136,6 +1155,9 @@ begin
   pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 0); //tell the plugins that an autoassembler script is about to get executed
 {$endif}
 
+
+  potentiallabels:=tstringlist.create;
+
 //2 pass scanner
   try
     setlength(assembled,1);
@@ -1163,6 +1185,8 @@ begin
 
     removecomments(code);  //also trims each line
     unlabeledlabels(code);
+
+    getPotentialLabels(code, potentiallabels);
 
     //6.3: do the aobscans first
     //this will break scripts that use define(state,33) aobscan(name, 11 22 state 44 55), but really, live with it
@@ -1997,10 +2021,28 @@ begin
                 assemblerlines[length(assemblerlines)-1]:=currentline;
               end;
 
-              continue; //next line
+
             except
-              raise exception.Create(rsThisAddressSpecifierIsNotValid);
+              //add this as a label
+              j:=length(labels);
+              setlength(labels,j+1);
+
+              labels[j].labelname:=copy(currentline,1,length(currentline)-1);
+              labels[j].assemblerline:=length(assemblerlines)-1;
+              labels[j].defined:=false;
+
+              setlength(labels[j].references,0);
+              setlength(labels[j].references2,0);
+
+              //setlength(assemblerlines, length(assemblerlines)-1);
+//              assemblerlines[length(assemblerlines)-1]:='';
+
+//              continue;
+
+              //raise exception.Create(rsThisAddressSpecifierIsNotValid);
             end;
+
+            continue; //next line
           end;
 
           //replace label references with 00000000 so the assembler check doesn't complain about it
@@ -2019,7 +2061,48 @@ begin
 
           try
             //replace identifiers in the line with their address
-            if not assemble(currentline,currentaddress,assembled[0].bytes, apNone, true) then raise exception.Create('bla');
+            ok1:=false;
+            try
+              ok1:=assemble(currentline,currentaddress,assembled[0].bytes, apNone, true);
+            except
+            end;
+
+            if not ok1 then //the instruction could not be assembled as it is right now
+            begin
+              //try potential labels
+              ok1:=false;
+
+              for j:=0 to potentiallabels.count-1 do
+              begin
+                if processhandler.is64bit then
+                  currentline:=replacetoken(currentline,potentiallabels[j],'ffffffffffffffff')
+                else
+                  currentline:=replacetoken(currentline,potentiallabels[j],'00000000');
+
+                try
+                  ok1:=assemble(currentline,currentaddress,assembled[0].bytes, apNone, true);
+                  if ok1 then
+                  begin
+                    //define this potential label as a full label
+                    k:=length(labels);
+                    setlength(labels, k+1);
+                    labels[k].labelname:=potentiallabels[j];
+                    labels[k].defined:=false;
+                    setlength(labels[k].references,0);
+                    setlength(labels[k].references2,0);
+
+                    break;
+                  end;
+                except
+                  //don't quit yet
+                end;
+              end;
+
+
+              if not ok1 then
+                raise exception.Create('bla');
+
+            end;
           except
             raise exception.Create(rsThisInstructionCanTBeCompiled);
           end;
@@ -2750,8 +2833,8 @@ begin
     setlength(readmems,0);
 
 
-
-    tokens.free;
+    if tokens<>nil then
+      freeandnil(tokens);
 
     pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 3); //tell the plugins to free their data
 
@@ -2760,6 +2843,9 @@ begin
       processhandler.processhandle:=oldhandle;
       symhandler:=oldsymhandler;
     end;
+
+    if potentiallabels<>nil then
+      freeandnil(potentiallabels);
   end;
 end;
 
