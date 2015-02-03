@@ -39,7 +39,7 @@
         <PackageName Value="LazUtils"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="24">
+    <Units Count="26">
       <Unit0>
         <Filename Value="cecore.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -87,6 +87,7 @@
       <Unit10>
         <Filename Value="globals.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="Globals"/>
       </Unit10>
       <Unit11>
         <Filename Value="commontypedefs.pas"/>
@@ -96,7 +97,6 @@
       <Unit12>
         <Filename Value="savedscanhandler.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="savedscanhandler"/>
       </Unit12>
       <Unit13>
         <Filename Value="virtualqueryexcache.pas"/>
@@ -129,7 +129,6 @@
       <Unit19>
         <Filename Value="jni\jnitobject.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="jniTObject"/>
       </Unit19>
       <Unit20>
         <Filename Value="symbollisthandler.pas"/>
@@ -144,13 +143,21 @@
       <Unit22>
         <Filename Value="dotnettypes.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="DotNetTypes"/>
       </Unit22>
       <Unit23>
         <Filename Value="dotnetpipe.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="DotNetPipe"/>
       </Unit23>
+      <Unit24>
+        <Filename Value="byteinterpreter.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="byteinterpreter"/>
+      </Unit24>
+      <Unit25>
+        <Filename Value="jni\jnisymbolhandler.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="jniSymbolHandler"/>
+      </Unit25>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
