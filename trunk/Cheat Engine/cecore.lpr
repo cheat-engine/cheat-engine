@@ -10,7 +10,8 @@ uses cthreads, classes, jni, networkInterfaceApi, NewKernelHandler,
   resolve, Sockets, ProcessList, memscan, Parsers, Globals, commonTypeDefs,
   strutils, savedscanhandler, VirtualQueryExCache, foundlisthelper,
   groupscancommandparser, CustomTypeHandler, SymbolListHandler, symbolhandler,
-  DotNetTypes, DotNetPipe, jnitfoundlist, jniTMemScan, jniTObject;
+  DotNetTypes, DotNetPipe, byteinterpreter, jnitfoundlist, jniTMemScan,
+  jniTObject, jniSymbolHandler;
 
 
 type TMainThread=class(TThread)
@@ -222,6 +223,7 @@ begin
     InitializeJniTObject(env);
     InitializeJniTMemScan(env);
     InitializeJniTFoundList(env);
+    InitializeJniSymbolHandler(env);
 
 
     result:=JNI_VERSION_1_6;

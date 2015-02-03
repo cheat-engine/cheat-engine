@@ -10,7 +10,7 @@ uses windows, LCLIntf, sysutils, symbolhandler, CEFuncProc, NewKernelHandler, ma
 {$endif}
 
 {$ifdef unix}
-uses unixporthelper, sysutils, ProcessHandlerUnit, NewKernelHandler, math,
+uses unixporthelper, sysutils, symbolhandler, ProcessHandlerUnit, NewKernelHandler, math,
   CustomTypeHandler, commonTypeDefs;
 {$endif}
 
@@ -429,11 +429,8 @@ begin
       else
         a:=ptruint(pdword(buf)^);
 
-      {$ifndef unix}
+
       result:='(pointer)'+symhandler.getNameFromAddress(a,true,true);
-      {$else}
-      result:='(pointer)'+inttohex(PPtrUInt(buf)^,8)
-      {$endif}
 
 //      result:='(pointer)'+inttohex(pqword(buf)^,16) else result:='(pointer)'+inttohex(pdword(buf)^,8);
     end;
@@ -583,7 +580,7 @@ begin
     if size>=processhandler.pointersize then
     begin
       //named addresses
-      {$ifndef unix}
+
 
       if processhandler.is64bit then
       begin
@@ -602,7 +599,7 @@ begin
         result:=vtPointer;
         exit;
       end;
-      {$endif}
+
 
     end;
 

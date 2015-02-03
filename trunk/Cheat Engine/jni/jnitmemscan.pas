@@ -147,22 +147,6 @@ var jnimethods: array [0..methodcount-1] of JNINativeMethod =(
   (name: 'newScan'; signature: '()V'; fnPtr: @TMemScan_NewScan),
   (name: 'firstScan'; signature: '(IIILjava/lang/String;Ljava/lang/String;Ljava/lang/String;JJILjava/lang/String;ZZZZZZZ)V'; fnPtr: @TMemScan_FirstScan),
   (name: 'nextScan'; signature: '(IILjava/lang/String;Ljava/lang/String;ZZZZZZLjava/lang/String;)V'; fnPtr: @TMemScan_NextScan),
-
- {
- scanOption: jint; I
- roundingtype: jint; I
- sv1: jstring; Ljava/lang/String;
- sv2: jstring; Ljava/lang/String;
- hexadecimal: jboolean; Z
- binaryasstring: jboolean; Z
- unicode: jboolean; Z
- casesensitive: jboolean; Z
- percentage: jboolean; Z
- compareToSavedScan: jboolean; Z
- ssn: jstring; Ljava/lang/String;
-
- }
-
   (name: 'getProgress'; signature: '()I'; fnPtr: @TMemScan_GetProgress)
   );
 
