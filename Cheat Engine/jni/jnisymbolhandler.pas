@@ -23,7 +23,7 @@ begin
   result:=0;
   _name:=jniGetString(PEnv, name);
   try
-    result:=symhandler.getAddressFromName(_name);
+    result:=symhandler.getAddressFromName(_name, false);
   except
   end;
 end;

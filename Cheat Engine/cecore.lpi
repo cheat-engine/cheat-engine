@@ -39,7 +39,7 @@
         <PackageName Value="LazUtils"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="26">
+    <Units Count="27">
       <Unit0>
         <Filename Value="cecore.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -158,6 +158,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="jniSymbolHandler"/>
       </Unit25>
+      <Unit26>
+        <Filename Value="jni\jnibyteinterpreter.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="jniByteInterpreter"/>
+      </Unit26>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
