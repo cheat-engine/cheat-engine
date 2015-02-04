@@ -194,8 +194,26 @@ uintptr_t finddlopen(int pid)
           char y[200];
           while (fgets(y, 200, maps2))
           {
+             if (y[strlen(y)-1]!='\n')
+             {
+               //need to go to the end of line first
+
+               char discard[100];
+
+               do
+               {
+                 discard[99]=0;
+                 fgets(discard, 99, maps);
+               } while (discard[99]!=0);
+             }
+
+
              printf("%s", y);
+
+             modulepath[0]='\0';
              sscanf(y, "%llx-%llx %*s %*s %*s %*s %s\n", &start, &stop, modulepath);
+
+             printf("Check if '%s' == '%s'\n", modulepath, currentmodule);
              if (strcmp(modulepath, currentmodule)==0)
              {
                 printf("found the module in the target process\n");
