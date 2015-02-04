@@ -504,17 +504,20 @@ int GetSymbolListFromFile(char *filename, unsigned char **output, int *outputsiz
     return -1;
 
   b=malloc(sizeof(Elf64_Ehdr));
-  i=pread(f, b, sizeof(Elf64_Ehdr), 0);
+  if (b)
+  {
+    i=pread(f, b, sizeof(Elf64_Ehdr), 0);
 
-  if (*(uint32_t *)b!=0x464c457f)
-    return -1; //not an ELF file
+    if (*(uint32_t *)b!=0x464c457f)
+      return -1; //not an ELF file
 
-  if (b[EI_CLASS]==ELFCLASS32)
-    i=ELF32(f, (Elf32_Ehdr *)b, output);
-  else
-    i=ELF64(f, (Elf64_Ehdr *)b, output);
+    if (b[EI_CLASS]==ELFCLASS32)
+      i=ELF32(f, (Elf32_Ehdr *)b, output);
+    else
+      i=ELF64(f, (Elf64_Ehdr *)b, output);
 
-  free(b);
+    free(b);
+  }
 
   close(f);
 

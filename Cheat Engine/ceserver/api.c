@@ -93,6 +93,8 @@ static inline unsigned int encode_ctrl_reg(int mismatch, int len, int type, int 
 #include "porthelp.h"
 #include "ceserver.h"
 #include "threads.h"
+#include "symbols.h"
+
 
 //#include <vector>
 sem_t sem_DebugThreadEvent;
