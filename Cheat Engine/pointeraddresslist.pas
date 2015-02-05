@@ -71,28 +71,46 @@ var
   oldaddress :ptruint;
   i: integer;
 begin
+
+  //example:
+  //in ml: game.exe is loaded at     20000000 (module 1)
+  //in modulelist: game is loaded at 30000000 (module 2)
+
+  //during the scan the moduleid's of ml are requested but they need to return the address as it was
+  //so if the pscan requests moduleid1+10 it must return 30000010
+
+
+  //make room for the list if it's smaller
+  while modulelist.Count<ml.count do
+  begin
+    i:=modulelist.add('missing');
+    setlength(modulebases, length(modulebases)+1);
+    modulebases[length(modulebases)-1]:=0;
+  end;
+
   for i:=0 to ml.count-1 do
   begin
+    //find this module in the current module list
     oldindex:=modulelist.IndexOf(ml[i]);
+
     if oldindex=-1 then //it wasn'tin the list, add it with address 0
     begin
       oldindex:=modulelist.Add(ml[i]);
       setlength(modulebases, length(modulebases)+1);
+      modulebases[length(modulebases)-1]:=0;
     end;
 
     if oldindex<>i then
     begin
       //swap
-      oldaddress:=modulebases[i];
-      oldmodulename:=modulelist[i];
+      oldaddress:=modulebases[oldindex];
+      oldmodulename:=modulelist[oldindex];
 
-      modulebases[i]:=modulebases[oldindex];
-      modulelist[i]:=modulelist[oldindex];
+      modulebases[oldindex]:=modulebases[i];
+      modulelist[oldindex]:=modulelist[i];
 
-      modulebases[oldindex]:=oldaddress;
-      modulelist[oldindex]:=oldmodulename;
-
-
+      modulebases[i]:=oldaddress;
+      modulelist[i]:=oldmodulename;
     end;
 
   end;
@@ -138,7 +156,7 @@ begin
   for i:=0 to mlistlength-1 do
   begin
     x:=s.ReadDWord;
-    getmem(mname, x);
+    getmem(mname, x+1);
     s.ReadBuffer(mname^, x);
     mname[x]:=#0;
 
