@@ -787,7 +787,7 @@ begin
   for i:=0 to mlistlength-1 do
   begin
     x:=s.ReadDWord;
-    getmem(mname, x);
+    getmem(mname, x+1);
     s.ReadBuffer(mname^, x);
     mname[x]:=#0;
     mbase:=s.ReadQWord;
