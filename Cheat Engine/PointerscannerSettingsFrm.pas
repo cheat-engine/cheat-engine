@@ -8,7 +8,7 @@ uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls, ExtCtrls, LResources, EditBtn, Buttons, Contnrs,
   CEFuncProc, NewKernelHandler, symbolhandler, multilineinputqueryunit,
-  registry, resolve, fgl, math, PointerscanSettingsIPConnectionList, types, commonTypeDefs;
+  registry, resolve, math, PointerscanSettingsIPConnectionList, types, commonTypeDefs;
 
 
 type
@@ -38,7 +38,7 @@ type
 
 
 type
-  TPointerFileEntries = TFPGList<TPointerFileEntry>;
+  //TPointerFileEntries = TFPGList<TPointerFileEntry>;
 
   TPointerFileList=class(TPanel)
   private
@@ -46,7 +46,7 @@ type
     lblAddress: TLabel;
     fimagelist: TImageList;
     fOnEmptyList: TNotifyEvent;
-    Entries: TPointerFileEntries;
+    Entries: TList;
 
     function getCount: integer;
     function getFilename(index: integer): string;
@@ -108,6 +108,7 @@ type
     cbCompareToOtherPointermaps: TCheckBox;
     cbShowAdvancedOptions: TCheckBox;
     cbAddress: TComboBox;
+    cbIncludeSystemModules: TCheckBox;
     edtDistributedPassword: TEdit;
     edtDistributedPort: TEdit;
     edtMaxOffsetsPerNode: TEdit;
@@ -441,15 +442,15 @@ begin
   t:=lblFilenames.top+lblFilenames.height;
   for i:=0 to entries.count-1 do
   begin
-    entries[i].top:=t;
-    t:=entries[i].top+entries[i].Height;
+    TPointerFileEntry(entries[i]).top:=t;
+    t:=TPointerFileEntry(entries[i]).top+TPointerFileEntry(entries[i]).Height;
   end;
 
 
 
   //adjust the height
   if Entries.count>0 then
-    height:=entries[entries.count-1].Top+entries[entries.count-1].Height
+    height:=TPointerFileEntry(entries[entries.count-1]).Top+TPointerFileEntry(entries[entries.count-1]).Height
   else
     height:=0;
 
@@ -464,7 +465,7 @@ begin
   e:=TPointerFileEntry(sender);
   i:=entries.IndexOf(e);
 
-  if (i<>0) and (i=entries.count-1) and (entries[i].filename='') then exit; //don't delete the last one if there asre entries
+  if (i<>0) and (i=entries.count-1) and (TPointerFileEntry(entries[i]).filename='') then exit; //don't delete the last one if there asre entries
 
   entries.Delete(i);
   e.Free;
@@ -483,7 +484,7 @@ var i: integer;
 begin
   //check if there is a empty line, and if not, add a new one
   for i:=0 to entries.count-1 do
-    if entries[i].filename='' then exit;
+    if TPointerFileEntry(entries[i]).filename='' then exit;
 
   //no empty line. Add a new one
   AddEntry;
@@ -497,7 +498,7 @@ begin
   if entries.Count=0 then
     e.top:=lblFilenames.Top+lblFilenames.height+2
   else
-    e.top:=entries[entries.count-1].Top+entries[entries.count-1].Height;
+    e.top:=TPointerFileEntry(entries[entries.count-1]).Top+TPointerFileEntry(entries[entries.count-1]).Height;
 
   e.width:=ClientWidth;
   e.OnDelete:=DeleteEntry;
@@ -512,7 +513,7 @@ end;
 function TPointerFileList.getFilename(index: integer): string;
 begin
   if (index>=0) and (index<count) then
-    result:=entries[index].filename
+    result:=TPointerFileEntry(entries[index]).filename
   else
     result:='';
 end;
@@ -522,7 +523,7 @@ begin
   if filenames[index]<>'' then
   begin
     try
-      result:=StrToQWord('$'+entries[index].cbAddress.Text);
+      result:=StrToQWord('$'+TPointerFileEntry(entries[index]).cbAddress.Text);
     except
       raise exception.create(filenames[index]+' has not been given a valid address');
     end;
@@ -549,7 +550,7 @@ begin
   bevelouter:=bvNone;
 
 
-  entries:=TPointerFileEntries.create;
+  entries:=Tlist.create;
   lblFilenames:=TLabel.create(self);
   lblFilenames.caption:=rsFilename;
   lblFilenames.parent:=self;
@@ -571,7 +572,7 @@ destructor TPointerFileList.destroy;
 var i: integer;
 begin
   for i:=0 to entries.count-1 do
-    entries[i].Free;
+    TPointerFileEntry(entries[i]).Free;
 
   entries.free;
 

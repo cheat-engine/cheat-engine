@@ -1,11 +1,11 @@
 object frmPointerScannerSettings: TfrmPointerScannerSettings
   Left = 843
-  Height = 445
+  Height = 452
   Top = 130
   Width = 630
   BorderStyle = bsSingle
   Caption = 'Pointerscanner scanoptions'
-  ClientHeight = 445
+  ClientHeight = 452
   ClientWidth = 630
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
@@ -17,7 +17,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   object cbMustEndWithSpecificOffset: TCheckBox
     Left = 8
     Height = 19
-    Top = 312
+    Top = 320
     Width = 199
     Caption = 'Pointers must end with specific offsets'
     Font.Height = -11
@@ -29,7 +29,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   object Panel1: TPanel
     Left = 0
     Height = 104
-    Top = 341
+    Top = 348
     Width = 630
     Align = alBottom
     BevelOuter = bvNone
@@ -153,7 +153,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   object cbValueType: TComboBox
     Left = 501
     Height = 21
-    Top = 28
+    Top = 42
     Width = 132
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
@@ -215,7 +215,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Left = 8
     Height = 19
     Hint = 'Use this if you have created a pointermap on a system that runs the game, but you wish to do the scan on another system (or multiple systems).'#13#10'Checking this option will open a dialog where you can select the pointermap'
-    Top = 272
+    Top = 24
     Width = 126
     BorderSpacing.Top = 1
     Caption = 'Use saved pointermap'
@@ -229,7 +229,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Left = 291
     Height = 19
     Hint = 'Opens a port that other systems running the pointerscanner can connect to and help out with the scan'
-    Top = 272
+    Top = 288
     Width = 194
     Caption = 'Allow scanners to connect at runtime'
     OnChange = cbAllowRuntimeWorkersChange
@@ -244,7 +244,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     AnchorSideTop.Side = asrCenter
     Left = 329
     Height = 21
-    Top = 292
+    Top = 308
     Width = 103
     Enabled = False
     TabOrder = 6
@@ -256,7 +256,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     AnchorSideTop.Side = asrBottom
     Left = 307
     Height = 13
-    Top = 296
+    Top = 312
     Width = 22
     BorderSpacing.Left = 16
     BorderSpacing.Top = 5
@@ -270,7 +270,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Left = 291
     Height = 19
     Hint = 'When checked will send a broadcast message on the local network which will tell pointer scanner systems to join this scan if they are set to auto join'#13#10#13#10'You can use "Setup specific IP''s to notify" to notify systems of this scan that are outside of the local network'
-    Top = 313
+    Top = 329
     Width = 157
     Caption = 'Connect to pointerscan node'
     OnChange = cbConnectToNodeChange
@@ -283,7 +283,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Left = 8
     Height = 19
     Hint = 'Will only mark the given range as valid base address (Will reduce the number of results)'#13#10'This internally makes use of the "Only find paths with a static address" feature by marking the provided range as static only, so it must be enabled.'
-    Top = 292
+    Top = 300
     Width = 204
     Caption = 'Base address must be in specific range'
     OnChange = cbMustStartWithBaseChange
@@ -296,7 +296,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Left = 8
     Height = 19
     Hint = 'When ticked you can add other pointermaps which will be used to verify that the pointers it finds are correct. You will have to fill in the correct address for each pointermap you provide.'#13#10'Note: expect at least the size of the game itself in memory for every pointermap used'#13#10
-    Top = 56
+    Top = 64
     Width = 242
     BorderSpacing.Top = 1
     Caption = 'Compare results with other saved pointermap(s)'
@@ -313,7 +313,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     AnchorSideRight.Side = asrBottom
     Left = 488
     Height = 21
-    Top = 292
+    Top = 308
     Width = 137
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Left = 5
@@ -329,7 +329,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     AnchorSideTop.Side = asrCenter
     Left = 437
     Height = 13
-    Top = 296
+    Top = 312
     Width = 46
     BorderSpacing.Left = 5
     Caption = 'Password'
@@ -339,7 +339,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     AnchorSideTop.Side = asrBottom
     Left = 291
     Height = 19
-    Top = 56
+    Top = 64
     Width = 135
     Caption = 'Show advanced options'
     OnChange = cbShowAdvancedOptionsChange
@@ -348,12 +348,12 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   object Panel3: TPanel
     AnchorSideTop.Side = asrBottom
     Left = 8
-    Height = 194
-    Top = 72
+    Height = 208
+    Top = 80
     Width = 616
     BevelOuter = bvNone
     BorderStyle = bsSingle
-    ClientHeight = 190
+    ClientHeight = 204
     ClientWidth = 612
     Color = clWindow
     ParentColor = False
@@ -610,11 +610,19 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       State = cbChecked
       TabOrder = 17
     end
+    object cbIncludeSystemModules: TCheckBox
+      Left = 8
+      Height = 19
+      Top = 184
+      Width = 132
+      Caption = 'Include system modules'
+      TabOrder = 18
+    end
   end
   object cbAddress: TComboBox
     Left = 8
     Height = 19
-    Top = 28
+    Top = 42
     Width = 492
     DropDownCount = 0
     ItemHeight = 13

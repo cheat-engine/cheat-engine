@@ -978,6 +978,8 @@ begin
       staticscanner.LimitToMaxOffsetsPerNode:=frmpointerscannersettings.cbMaxOffsetsPerNode.Checked;
       staticscanner.maxOffsetsPerNode:=frmpointerscannersettings.maxOffsetsPerNode;
 
+      staticscanner.includeSystemModules:=frmpointerscannersettings.cbIncludeSystemModules.Checked;
+
 
       staticscanner.automatic:=true;
 
