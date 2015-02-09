@@ -2837,7 +2837,7 @@ begin
 
                 if not processhandler.isNetwork then
                 begin
-                  {$ifdef windpws}
+                  {$ifdef windows}
                   if peinfo_is64bitfile(x, newmodulelist[newmodulelistpos].is64bitmodule)=false then
                   begin
                     //fallback
