@@ -1344,8 +1344,11 @@ begin
     cbValueType.Visible:=true;
   end;
 
-  if not gpm then
-    cbAddress.SetFocus;
+  if gpm then
+    cbUseLoadedPointermap.checked:=false
+  else
+    cbAddress.SetFocus
+
 end;
 
 procedure TfrmPointerScannerSettings.edtAddressChange(Sender: TObject);
