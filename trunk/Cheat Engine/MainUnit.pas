@@ -4276,9 +4276,9 @@ var
 begin
   if scantablist = nil then
   begin
-    setlength(c, panel5.ControlCount);
+    {setlength(c, panel5.ControlCount);
     for i := 0 to panel5.controlcount - 1 do
-      c[i] := panel5.Controls[i];
+      c[i] := panel5.Controls[i];  }
 
 
     foundlistheightdiff := btnMemoryView.top - (foundlist3.top + foundlist3.Height);
@@ -4292,7 +4292,7 @@ begin
     scantablist.color := panel5.Color;
     scantablist.Height := 20;
 
-    scantablist.Anchors := scantablist.Anchors + [akRight];
+    scantablist.Anchors := [akTop, akLeft, akRight];
 
     i := scantablist.AddTab(rsScan + ' 1'); //original scan
 
@@ -4308,6 +4308,7 @@ begin
     scantablist.OnTabChange := ScanTabListTabChange;
     scantablist.SelectedTab := i;
 
+
     tabcounter := 3;
 
 
@@ -4316,13 +4317,13 @@ begin
     //make space for the tabs
     //luckely this routine is not called often
 
-    for i := 0 to length(c) - 1 do
+    for i := 0 to panel5.ControlCount - 1 do
     begin
-      if (c[i] <> panel7) and (c[i] <> LoadButton) and
-        (c[i] <> SaveButton) and (c[i] <> ProcessLabel) and
-        (c[i] <> Progressbar1) and (c[i] <> logopanel) and
-        (c[i] <> btnMemoryView) and (c[i] <> speedbutton2) and
-        (c[i] <> btnAddAddressManually) then
+      if ( panel5.Controls[i] <> panel7) and (panel5.Controls[i] <> LoadButton) and
+        (panel5.Controls[i] <> SaveButton) and (panel5.Controls[i] <> ProcessLabel) and
+        (panel5.Controls[i] <> Progressbar1) and (panel5.Controls[i] <> logopanel) and
+        (panel5.Controls[i] <> btnMemoryView) and (panel5.Controls[i] <> speedbutton2) and
+        (panel5.Controls[i] <> btnAddAddressManually) and (panel5.Controls[i] <> scantablist) then
       begin
         panel5.Controls[i].Top := panel5.Controls[i].Top + 20; //p.height;
         //c[i].Parent:=p;
@@ -5122,21 +5123,23 @@ begin
   if addresslist <> nil then
     addresslist.Refresh;
 
-  updatetimer.Enabled := False;
-
   Inc(reinterpretcheck);
   if reinterpretcheck mod 15 = 0 then
     reinterpretaddresses;
-
-  updatetimer.Enabled := True;
 end;
 
 procedure TMainForm.FreezeTimerTimer(Sender: TObject);
 begin
-  freezetimer.Enabled := False;
-  if addresslist <> nil then
-    addresslist.ApplyFreeze;
-  freezetimer.Enabled := True;
+  try
+    if addresslist <> nil then
+      addresslist.ApplyFreeze;
+  except
+    on e:exception do
+    begin
+      OutputDebugString('FreezeTimerTimer:'+e.Message);
+    end;
+
+  end;
 end;
 
 
