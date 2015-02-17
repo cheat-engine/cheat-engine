@@ -957,7 +957,7 @@ var
   someerror: boolean;
   allError: boolean;
   i: integer;
-  value: string;
+  oldvalue, value: string;
 
   canceled: boolean;
 
@@ -972,12 +972,14 @@ begin
   begin
     value:=AnsiToUtf8(memrec.value);
 
+
     if memrec.VarType=vtString then
       canceled:=not MultilineInputQuery(rsChangeValue, rsWhatValueToChangeThisTo, value)
     else
       canceled:=not InputQuery(rsChangeValue, rsWhatValueToChangeThisTo, value);
 
-    value:=Utf8ToAnsi(value);
+
+    value:=TrimRight(Utf8ToAnsi(value));
   end
   else
   begin
