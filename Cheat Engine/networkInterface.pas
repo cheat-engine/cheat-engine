@@ -48,6 +48,7 @@ type
     socket: cint;
     fConnected: boolean;
 
+    //todo: change rpmcache to a map
     rpmcache: array [0..15] of record //every connection is thread specific, so each thread has it's own rpmcache
         lastupdate: TLargeInteger; //contains the last time this page was updated
         baseaddress: PtrUInt;
@@ -126,7 +127,7 @@ var
 
 implementation
 
-uses elfsymbols;
+uses elfsymbols, Globals;
 
 const
   CMD_GETVERSION =0;
@@ -387,7 +388,7 @@ begin
       if rpmcache[j].baseaddress=pages[i].startaddress then
       begin
         //check if the page is too old
-        if ((currenttime-rpmcache[j].lastupdate) / freq) > 1.0 then //too old, refetch
+        if ((currenttime-rpmcache[j].lastupdate) / freq) > networkRPMCacheTimeout then //too old, refetch
           oldest:=i //so it gets reused
         else //not too old, can still be used
           pages[i].memory:=@rpmcache[j].memory[0];

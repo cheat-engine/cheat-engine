@@ -24,6 +24,7 @@ var
   scan_pagedonly: boolean=true;
   fetchSymbols: boolean=true;   //set to false if you don't want the symbols to get enumerated
 
+  networkRPMCacheTimeout: single=1.0;
 
   systemtype: integer;
   old8087CW: word;  //you never know...
