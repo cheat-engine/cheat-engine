@@ -146,6 +146,11 @@ begin
   result:=arraylist;
 end;
 
+procedure SetNetworkRPMCacheTimeout(PEnv: PJNIEnv; Obj: JObject; timeout: jfloat); cdecl;
+begin
+  networkRPMCacheTimeout:=timeout;
+end;
+
 procedure SelectProcess(PEnv: PJNIEnv; Obj: JObject; pid: jint); cdecl;
 begin
   processhandler.processid:=pid;
@@ -187,7 +192,7 @@ begin
   tempdirOverride:=_path;
 end;
 
-const methodcount=5;
+const methodcount=6;
 
   //experiment: make a memscan class in java and give it references to things like memscan_firstscan where the java class contains the memscan long
 
@@ -196,7 +201,8 @@ var jnimethods: array [0..methodcount-1] of JNINativeMethod =(
   (name: 'GetProcessList'; signature: '()Ljava/util/ArrayList;'; fnPtr: @GetProcessList),
   (name: 'SelectProcess'; signature: '(I)V'; fnPtr: @SelectProcess),
   (name: 'FetchSymbols'; signature: '(Z)V'; fnPtr: @FetchSymbols),
-  (name: 'SetTempPath'; signature: '(Ljava/lang/String;)V'; fnPtr: @SetTempPath)
+  (name: 'SetTempPath'; signature: '(Ljava/lang/String;)V'; fnPtr: @SetTempPath),
+  (name: 'SetNetworkRPMCacheTimeout'; signature: '(F)V'; fnPtr: @SetNetworkRPMCacheTimeout)
 );
 
 function JNI_OnLoad(vm: PJavaVM; reserved: pointer): jint; cdecl;
