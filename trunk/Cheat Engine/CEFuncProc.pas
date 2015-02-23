@@ -125,8 +125,6 @@ function AccessRightsToAllocationProtect(ar: TAccessRights): Dword;
 
 function freetypetostring(freetype: dword):string;
 
-function getPointerAddress(address: ptruint; const offsets: array of integer; var hasError: boolean): ptruint;
-
 function isAddress(address: ptrUint):boolean;
 function isExecutableAddress(address: ptrUint):boolean;
 function MinX(a, b: ptrUint): ptrUint;inline; overload; //fpc2.4.1 has no support for unsigned
@@ -195,21 +193,7 @@ type
         Group:  Byte;
   end;
 
-type TCEPointer=record
-  Address: ptrUint;  //only used when last pointer in list
-  Interpretableaddress: string; //same as address
-  offset: integer;
-end;
 
-type TCEAlloc=record
-  address: ptrUint;
-  varname: string;
-  size: dword;
-  prefered: ptrUint;
-
-end;
-type PCEAlloc=^TCEAlloc;
-type TCEAllocArray=array of TCEAlloc;
 
 type
   MemoryRecord = record
@@ -291,7 +275,6 @@ type tspeedhackspeed=record
   sleeptime: dword; //obsolete
 end;
 
-type TKeyCombo=array [0..4] of word;
 
 
 
@@ -3075,30 +3058,6 @@ begin
 end;
 
 
-function getPointerAddress(address: ptruint; const offsets: array of integer; var hasError: boolean): ptruint;
-var realaddress, realaddress2: PtrUInt;
-    count: PtrUInt;
-    check: boolean;
-    i: integer;
-begin
-  realaddress2:=address;
-  for i:=length(offsets)-1 downto 0 do
-  begin
-    realaddress:=0;
-    check:=readprocessmemory(processhandle,pointer(realaddress2),@realaddress,processhandler.pointersize,count);
-    if check and (count=processhandler.pointersize) then
-      realaddress2:=realaddress+offsets[i]
-    else
-    begin
-      result:=0;
-
-      exit;
-    end;
-  end;
-
-  result:=realAddress2;
-  hasError:=false;
-end;
 
 
 function EscapeStringForRegEx(const S: string): string;      //copied and modified from the RegExprEscapeStr in the OldRegExpr.pp unit (it forgot the '+' check)

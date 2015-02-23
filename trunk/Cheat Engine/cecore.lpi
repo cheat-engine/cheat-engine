@@ -39,7 +39,7 @@
         <PackageName Value="LazUtils"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="27">
+    <Units Count="30">
       <Unit0>
         <Filename Value="cecore.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -47,15 +47,16 @@
       <Unit1>
         <Filename Value="networkInterfaceApi.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="networkInterfaceApi"/>
       </Unit1>
       <Unit2>
         <Filename Value="networkInterface.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="networkInterface"/>
       </Unit2>
       <Unit3>
         <Filename Value="NewKernelHandler.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="NewKernelHandler"/>
       </Unit3>
       <Unit4>
         <Filename Value="unixporthelper.pas"/>
@@ -77,12 +78,10 @@
       <Unit8>
         <Filename Value="memscan.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="memscan"/>
       </Unit8>
       <Unit9>
         <Filename Value="parsers.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="Parsers"/>
       </Unit9>
       <Unit10>
         <Filename Value="globals.pas"/>
@@ -110,7 +109,6 @@
       <Unit15>
         <Filename Value="CustomTypeHandler.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="CustomTypeHandler"/>
       </Unit15>
       <Unit16>
         <Filename Value="groupscancommandparser.pas"/>
@@ -129,11 +127,11 @@
       <Unit19>
         <Filename Value="jni\jnitobject.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="jniTObject"/>
       </Unit19>
       <Unit20>
         <Filename Value="symbollisthandler.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="SymbolListHandler"/>
       </Unit20>
       <Unit21>
         <Filename Value="symbolhandler.pas"/>
@@ -163,6 +161,21 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="jniByteInterpreter"/>
       </Unit26>
+      <Unit27>
+        <Filename Value="MemoryRecordUnit.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="MemoryRecordUnit"/>
+      </Unit27>
+      <Unit28>
+        <Filename Value="pointerparser.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="pointerparser"/>
+      </Unit28>
+      <Unit29>
+        <Filename Value="jni\jniaddresslist.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="jniAddressList"/>
+      </Unit29>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

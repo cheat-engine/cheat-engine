@@ -11,6 +11,8 @@ uses
 
 //just fill in some basic info. Most of it won't be used for jni. It's mostly for some structures and function declaration/pointers
 type
+  TColor = DWord;
+
   PByteArray = ^TByteArray;
   TByteArray = Array[0..{$ifdef CPU16}32766{$else}32767{$endif}] of Byte;
 
@@ -154,6 +156,8 @@ const
   TH32CS_GETALLMODS   = $80000000;
 
   PROCESS_ALL_ACCESS = $1f0fff; //not really used
+
+  clWindowText=0;
 
 {$ifdef ANDROID}
 function GetTempDir: string;
