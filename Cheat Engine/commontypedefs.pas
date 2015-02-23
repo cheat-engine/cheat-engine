@@ -94,6 +94,25 @@ type PQWordArray=Puint64Array;
 type TExtendedArray=array[0..100] of extended;
 type PExtendedArray=^TExtendedArray;
 
+type TCEPointer=record
+  Address: ptrUint;  //only used when last pointer in list
+  Interpretableaddress: string; //same as address
+  offset: integer;
+end;
+
+type TCEAlloc=record
+  address: ptrUint;
+  varname: string;
+  size: dword;
+  prefered: ptrUint;
+
+end;
+type PCEAlloc=^TCEAlloc;
+type TCEAllocArray=array of TCEAlloc;
+
+type TKeyCombo=array [0..4] of word;
+
+
 implementation
 
 end.
