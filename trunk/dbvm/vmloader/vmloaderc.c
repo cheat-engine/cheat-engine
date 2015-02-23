@@ -143,6 +143,7 @@ int _vmloader_main(void)
 
 		if (!readsector(0, bootsector))
 		{
+		  sendstringf("Error loading the bootsector.\n");
 			displayline("Error loading the bootsector.\n");
 			while (1) ;
 
@@ -182,14 +183,21 @@ int _vmloader_main(void)
 			tempbase=((unsigned long long)p[i].BaseAddrHigh << 32)+p[i].BaseAddrLow;
 			templength=((unsigned long long)p[i].LengthHigh << 32)+p[i].LengthLow;
 
-			if (((tempbase+templength) < 0x100000000ULL ) && (templength>=0x400000) && (p[i].Type==1) && (tempbase+templength>maxAvailableAddress) )
+			sendstringf("i=%d : BaseAddress=%6, Length=%6, Type=%d ",i, tempbase, templength, p[i].Type);
+			displayline("i=%d : BaseAddress=%6, Length=%6, Type=%d \n\r",i, tempbase, templength, p[i].Type);
+
+			if (((tempbase+templength) < 0x100000000ULL ) && (templength>=0x800000) && (p[i].Type==1) && (tempbase+templength>maxAvailableAddress) )
 			{
 				maxAvailableAddress=tempbase+templength;
 				chosenregion=i;
+
+				sendstringf(" < 'new' potential region");
+
 			}
 
-			sendstringf("i=%d : BaseAddress=%6, Length=%6, Type=%d \n\r",i, tempbase, templength, p[i].Type);
-			displayline("i=%d : BaseAddress=%6, Length=%6, Type=%d \n\r",i, tempbase, templength, p[i].Type);
+			sendstring("\n\r");
+
+
 		}
 
 
@@ -227,19 +235,27 @@ int _vmloader_main(void)
 			PPDPTE_PAE PageMapLevel4;
 
 
-			sendstringf("Max address=%x\n\r",(int)maxAvailableAddress);
+			sendstringf("Max address=%6  (region %d)\n\r",maxAvailableAddress, chosenregion);
 
 			/* create a pagetable for the vmm and it's stack at this location */
 			/* the vmm is loaded at address 0x60000 */
 			start=(maxAvailableAddress-4*1024*1024);
+
+			sendstringf("1:start=%8\n\r",start);
 			displayline("1:start=%8\n\r",start);
+
+			sendstringf("1.5:start mod 0x00400000=%8 \n\r",start % 0x00400000);
 			displayline("1.5:start mod 0x00400000=%8 \n\r",start % 0x00400000);
 			start-=start % 0x00400000;
+
+			sendstringf("2:start=%8\n\r",start);
 			displayline("2:start=%8\n\r",start);
 
+			sendstringf("chosenregion=%d\n\r",chosenregion);
 			displayline("chosenregion=%d\n\r",chosenregion);
 
 
+			sendstringf("Adjusting memory map (done for physical memory access devices)\n\r");
 			displayline("Adjusting memory map (done for physical memory access devices)\n\r");
 			oldend=p[chosenregion].BaseAddrLow+p[chosenregion].LengthLow;
 			p[chosenregion].LengthLow=start-p[chosenregion].BaseAddrLow;
@@ -250,6 +266,7 @@ int _vmloader_main(void)
 				p[chosenregion+1].BaseAddrLow=start;
 				p[chosenregion+1].LengthLow=oldend-start;
 
+				sendstringf("Adjusted reserved memory size as well\n\r");
 				displayline("Adjusted reserved memory size as well\n\r");
 			}
 			else
@@ -266,20 +283,24 @@ int _vmloader_main(void)
 				p[chosenregion+1].Type=2;  //reserved
 
 				reservedmem_listcount++;
+				sendstringf("inserted new region\n\r");
 				displayline("inserted new region\n\r");
 			}
 
     //  waitforkeypress();
     //  waitforkeypress();
 
+			sendstringf("newmap=\n\r");
 			displayline("newmap=\n\r");
 			for (i=0; i<reservedmem_listcount;i++)
 			{
 				tempbase=((unsigned long long)p[i].BaseAddrHigh << 32)+p[i].BaseAddrLow;
 				templength=((unsigned long long)p[i].LengthHigh << 32)+p[i].LengthLow;
+				sendstringf("i=%d : BaseAddress=%6, Length=%6, Type=%d \n\r",i, tempbase, templength, p[i].Type);
 				displayline("i=%d : BaseAddress=%6, Length=%6, Type=%d \n\r",i, tempbase, templength, p[i].Type);
 			}
 
+			sendstringf("reservedmem_listcount=%d\n", reservedmem_listcount);
 			displayline("reservedmem_listcount=%d\n", reservedmem_listcount);
 
 		//	waitforkeypress();
@@ -294,6 +315,7 @@ int _vmloader_main(void)
 
 		//	*(int *)0x88000=reservedmem_listcount;
 
+			sendstringf("Going to zero 0x00400000 bytes at %p\n", start);
 			displayline("Going to zero 0x00400000 bytes at %p\n", start);
       //waitforkeypress();
       //waitforkeypress();
@@ -354,6 +376,9 @@ int _vmloader_main(void)
 
       /* setup pagedir / pages */
       pagedirptrbase=(start+VMMSIZE+2*4096) & 0xfffff000;
+
+
+      sendstringf("pagedirptrbase=%8\n\r",pagedirptrbase);
       displayline("pagedirptrbase=%8\n\r",pagedirptrbase);
 
       PageMapLevel4=(PPDPTE_PAE)pagedirptrbase;
@@ -434,6 +459,7 @@ int _vmloader_main(void)
 
       /* 0 to 4MB will be identity mapped */
       /* 4MB to 8MB will point to the vmm and it's stack */
+      sendstringf("vmloader finished. Switching from 32-bit to 64-bit and entering VMM\n");
       displayline("vmloader finished. Switching from 32-bit to 64-bit and entering VMM\n");
      // displayline("Press any key to continue\n");
       //waitforkeypress();
