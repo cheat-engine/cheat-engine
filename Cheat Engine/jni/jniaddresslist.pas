@@ -41,7 +41,7 @@ end;
 function addresslist_getEntry(PEnv: PJNIEnv; Obj: JObject; index: jint): jobject; cdecl;
 var
  r: TMemoryRecord;
- descriptionstring: jstring;
+ descriptionstring, addressString: jstring;
 begin
   result:=nil;
   log('addresslist_getEntry');
@@ -50,7 +50,7 @@ begin
     r:=TMemoryRecord(addresslist[index]);
     result:=penv^.NewObject(penv, AddressListEntry_class, AddressListEntry_init_method);
 
-    log('Created result. Creating description string');
+    log('Created result. Creating description string ('+r.description+')');
     descriptionstring:=penv^.NewStringUTF(penv, pchar(r.Description));
 
     log('Created descriptionstring, assigning it to the description field');
@@ -58,6 +58,15 @@ begin
     penv^.SetObjectField(penv, result, description_fieldid, descriptionstring);
 
     log('Assigned the string to the description field');
+
+    log('Creating addressString ('+r.AddressString+')');
+    addressString:=penv^.NewStringUTF(penv, pchar(r.AddressString));
+    log('Created addressString ('+r.AddressString+')');
+
+    log('Assigning addressString');
+    penv^.SetObjectField(penv, result, addressString_fieldid, addressString);
+
+    penv^.SetLongField(penv, result, address_fieldid, r.GetRealAddress);
   end;
 end;
 
@@ -76,7 +85,11 @@ var
   i: integer;
 begin
   log('setting memory record');
-  if (index<0) or (index>=addresslist.count) then exit;
+  if (index<0) or (index>=addresslist.count) then
+  begin
+    log('index ('+inttostr(index)+') is outside bounds');
+    exit;
+  end;
 
   r:=TMemoryRecord(addresslist[index]);
 
@@ -86,6 +99,8 @@ begin
   begin
     log('got the description');
     r.Description:=jniGetString(penv, descriptionstring);
+
+    log('description='+r.Description);
   end
   else
     log('description=null');
@@ -135,8 +150,8 @@ begin
   addresslist.Add(r);
   result:=addresslist.count;
 
-  log('Initializing memory record');
-  addresslist_setEntry(penv, obj, result, entry);
+  log('Initializing memory record. (result='+inttostr(result)+')');
+  addresslist_setEntry(penv, obj, result-1, entry);
 end;
 
 procedure addresslist_deleteEntry(PEnv: PJNIEnv; Obj: JObject; index: jint); cdecl;
