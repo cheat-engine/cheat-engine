@@ -1393,6 +1393,7 @@ begin
   //6.0 compatibility
   if state=fActive then exit; //no need to execute this is it's the same state
 
+  outputdebugstring('setting active state with description:'+description+' to '+BoolToStr(state));
   {$IFNDEF UNIX}
   if (state) then
     LUA_memrec_callback(self, '_memrec_'+description+'_activating')
@@ -1439,13 +1440,21 @@ begin
     else
     begin
       //freeze/unfreeze
+
+
       if state then
       begin
+
         f:=GetValue;
 
+
         try
+
           SetValue(f);
+          OutputDebugString('SetValue returned');
+
         except
+
           fActive:=false;
           beep;
           exit;
@@ -1453,6 +1462,7 @@ begin
 
         //still here so F is ok
         //enabled
+
         FrozenValue:=f;
       end;
 
@@ -1488,6 +1498,8 @@ begin
 
 
   //6.1+
+
+
   if state then
   begin
     //activating , before
@@ -1501,7 +1513,11 @@ begin
   end;
 
 
+
+
   SetVisibleChildrenState;
+
+
 
 end;
 
@@ -1965,6 +1981,7 @@ begin
 
   realAddress:=GetRealAddress; //quick update
 
+
   currentValue:={utf8toansi}(v);
 
   if fShowAsHex and (not (vartype in [vtSingle, vtDouble, vtByteArray, vtString] )) then
@@ -1981,7 +1998,6 @@ begin
     end;
   end;
 
-
   bufsize:=getbytesize;
 
   if (vartype=vtbinary) and (bufsize=3) then bufsize:=4;
@@ -1991,8 +2007,11 @@ begin
 
 
 
+
   VirtualProtectEx(processhandle, pointer(realAddress), bufsize, PAGE_EXECUTE_READWRITE, originalprotection);
   try
+
+
     check:=ReadProcessMemory(processhandle, pointer(realAddress), buf, bufsize,x);
     if vartype in [vtBinary, vtByteArray] then //fill the buffer with the original byte
       if not check then exit;
@@ -2159,11 +2178,13 @@ begin
 
   finally
     VirtualProtectEx(processhandle, pointer(realAddress), bufsize, originalprotection, originalprotection);
+
   end;
 
   freemem(buf);
 
   frozenValue:=unparsedvalue;     //we got till the end, so update the frozen value
+
 end;
 
 function TMemoryRecord.getBaseAddress: ptrUint;

@@ -257,6 +257,13 @@ begin
   oldendthread(ExitCode);
 end;
 
+function NetworkVirtualProtectEx(hProcess: THandle; lpAddress: Pointer; dwSize, flNewProtect: DWORD; var OldProtect: DWORD): BOOL; stdcall;
+begin
+  //for now don't bother with this
+  //todo: implement this someday
+  result:=true;
+end;
+
 procedure InitializeNetworkInterface;
 var tm: TThreadManager;
 begin
@@ -278,6 +285,7 @@ begin
   newkernelhandler.OpenProcess:=@NetworkOpenProcess;
   newkernelhandler.ReadProcessMemory:=@NetworkReadProcessMemory;
   newkernelhandler.WriteProcessMemory:=@NetworkWriteProcessMemory;
+  newkernelhandler.VirtualProtectEx:=@NetworkVirtualProtectEx;
   newkernelhandler.VirtualQueryEx:=@NetworkVirtualQueryEx;
   newkernelhandler.CreateToolhelp32Snapshot:=@NetworkCreateToolhelp32Snapshot;
   newkernelhandler.Process32First:=@NetworkProcess32First;
