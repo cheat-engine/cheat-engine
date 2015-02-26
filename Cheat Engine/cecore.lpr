@@ -80,10 +80,12 @@ begin
 
 end;
 
-function CEConnect(PEnv: PJNIEnv; Obj: JObject; hname: jstring): jboolean; cdecl;
+function CEConnect(PEnv: PJNIEnv; Obj: JObject; hname: jstring; timeout: integer): jboolean; cdecl;
 var
   c: TCEConnection;
   hostname: string;
+
+  t: qword;
 begin
   log('CEConnect called');
 
@@ -96,7 +98,12 @@ begin
   log('Host='+inttohex(host.s_addr,1));
   log('Port='+inttohex(port,1));
 
-  c:=getConnection;
+  t:=GetTickCount64;
+  while GetTickCount64<t+timeout do
+  begin
+    c:=getConnection;
+    if c<>nil then break;
+  end;
   log('c='+inttohex(ptruint(c),1));
 
   if c=nil then
@@ -149,7 +156,10 @@ end;
 
 procedure SetNetworkRPMCacheTimeout(PEnv: PJNIEnv; Obj: JObject; timeout: jfloat); cdecl;
 begin
-  networkRPMCacheTimeout:=timeout;
+  if timeout>0 then
+    networkRPMCacheTimeout:=timeout
+  else
+    networkRPMCacheTimeout:=0;
 end;
 
 procedure SelectProcess(PEnv: PJNIEnv; Obj: JObject; pid: jint); cdecl;
@@ -198,12 +208,13 @@ const methodcount=6;
   //experiment: make a memscan class in java and give it references to things like memscan_firstscan where the java class contains the memscan long
 
 var jnimethods: array [0..methodcount-1] of JNINativeMethod =(
-  (name: 'CEConnect'; signature: '(Ljava/lang/String;)Z'; fnPtr: @CEConnect),
+  (name: 'CEConnect'; signature: '(Ljava/lang/String;I)Z'; fnPtr: @CEConnect),
   (name: 'GetProcessList'; signature: '()Ljava/util/ArrayList;'; fnPtr: @GetProcessList),
   (name: 'SelectProcess'; signature: '(I)V'; fnPtr: @SelectProcess),
   (name: 'FetchSymbols'; signature: '(Z)V'; fnPtr: @FetchSymbols),
   (name: 'SetTempPath'; signature: '(Ljava/lang/String;)V'; fnPtr: @SetTempPath),
   (name: 'SetNetworkRPMCacheTimeout'; signature: '(F)V'; fnPtr: @SetNetworkRPMCacheTimeout)
+
 );
 
 function JNI_OnLoad(vm: PJavaVM; reserved: pointer): jint; cdecl;
