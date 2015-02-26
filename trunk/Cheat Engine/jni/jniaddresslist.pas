@@ -38,6 +38,7 @@ var
  active_fieldid: jfieldID;
 
 
+ freezeInterval: integer;
  freezerthread: TAddressListFreezer;
 
 procedure TAddressListFreezer.execute;
@@ -61,7 +62,7 @@ begin
     finally
       addresslistcs.Leave;
     end;
-    sleep(100);
+    sleep(freezeInterval);
   end;
 end;
 
@@ -94,6 +95,12 @@ begin
   end;
 end;
 
+function addresslist_setFreezeTimer(PEnv: PJNIEnv; Obj: JObject; interval: jint): jobject; cdecl;
+begin
+  log('Setting freeze interval to '+inttostr(interval));
+  freezeInterval:=interval;
+end;
+
 function addresslist_getEntry(PEnv: PJNIEnv; Obj: JObject; index: jint): jobject; cdecl;
 var
  r: TMemoryRecord;
@@ -116,7 +123,7 @@ begin
     //log('Assigned the string to the description field');
 
     //log('Creating addressString ('+r.AddressString+')');
-    addressString:=penv^.NewStringUTF(penv, pchar(r.AddressString));
+    addressString:=penv^.NewStringUTF(penv, pchar(r.interpretableaddress));
     //log('Created addressString ('+r.AddressString+')');
 
    // log('Assigning addressString');
@@ -255,15 +262,17 @@ begin
 end;
 
 
-const methodcount=7;
+const methodcount=8;
 var jnimethods: array [0..methodcount-1] of JNINativeMethod =(
   (name: 'GetCount'; signature: '()I'; fnPtr: @addresslist_getCount),
   (name: 'GetEntry'; signature: '(I)Lorg/cheatengine/AddressListEntry;'; fnPtr: @addresslist_getEntry),
   (name: 'SetEntry'; signature: '(ILorg/cheatengine/AddressListEntry;)V'; fnPtr: @addresslist_setEntry),
   (name: 'AddEntry'; signature: '(Lorg/cheatengine/AddressListEntry;)I'; fnPtr: @addresslist_addEntry),
   (name: 'SetEntryActive'; signature: '(IZ)Z'; fnPtr: @addresslist_setActive),
+  (name: 'SetFreezeTimer'; signature: '(I)V'; fnPtr: @addresslist_setFreezeTimer),
   (name: 'DeleteEntry'; signature: '(I)V'; fnPtr: @addresslist_deleteEntry),
   (name: 'Clear'; signature: '()V'; fnPtr: @addresslist_clear)
+
 
   );
 
