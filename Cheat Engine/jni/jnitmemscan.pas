@@ -141,12 +141,22 @@ begin
   ms.firstscan(TScanOption(scanOption), TVariableType(variabletype), TRoundingType(roundingtype), scanvalue1, scanvalue2, startaddress, stopaddress, hexadecimal<>0, binaryasstring<>0, unicode<>0, casesensitive<>0, TFastScanMethod(fastscanmethod), jnigetstring(penv, fastscanparameter), nil);
 end;
 
-const methodcount=5;
+function TMemScan_HasDoneFirstScan(PEnv: PJNIEnv; Obj: JObject):jint; cdecl;
+var
+  ms: TJniMemscan;
+begin
+  ms:=TJniMemscan(JObjectToTObject(penv, obj));
+  result:=ifthen(ms.LastScanType<>stNewScan,1,0);
+end;
+
+const methodcount=6;
 var jnimethods: array [0..methodcount-1] of JNINativeMethod =(
   (name: 'create'; signature: '(Lorg/cheatengine/TMemScan;)J'; fnPtr: @TMemScan_Create),
   (name: 'newScan'; signature: '()V'; fnPtr: @TMemScan_NewScan),
   (name: 'firstScan'; signature: '(IIILjava/lang/String;Ljava/lang/String;Ljava/lang/String;JJILjava/lang/String;ZZZZZZZ)V'; fnPtr: @TMemScan_FirstScan),
   (name: 'nextScan'; signature: '(IILjava/lang/String;Ljava/lang/String;ZZZZZZLjava/lang/String;)V'; fnPtr: @TMemScan_NextScan),
+  (name: 'hasDoneFirstScan'; signature: '()Z'; fnPtr: @TMemScan_HasDoneFirstScan),
+
   (name: 'getProgress'; signature: '()I'; fnPtr: @TMemScan_GetProgress)
   );
 
