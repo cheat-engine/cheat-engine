@@ -10,7 +10,7 @@ interface
 {$ifdef windows}
 uses
   dialogs, Classes, SysUtils,cefuncproc, autoassembler, lua, lauxlib, lualib,
-  math;
+  math, commonTypeDefs;
 {$endif}
 
 {$ifdef unix} //not yet implemented, but the interface is available

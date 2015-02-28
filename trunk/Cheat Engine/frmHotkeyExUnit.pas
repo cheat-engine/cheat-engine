@@ -5,7 +5,8 @@ unit frmHotkeyExUnit;
 interface
 
 uses
-  windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls, cefuncproc;
+  windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
+  StdCtrls, cefuncproc, commonTypeDefs;
 
 type
 

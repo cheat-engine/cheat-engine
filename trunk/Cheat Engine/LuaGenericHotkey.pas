@@ -7,7 +7,8 @@ unit LuaGenericHotkey;
 interface
 
 uses
-  windows, Classes, SysUtils, lua, lauxlib, lualib, genericHotkey, CEFuncProc, math;
+  windows, Classes, SysUtils, lua, lauxlib, lualib, genericHotkey, CEFuncProc,
+  math, commonTypeDefs;
 
 
 procedure initializeLuaGenericHotkey;

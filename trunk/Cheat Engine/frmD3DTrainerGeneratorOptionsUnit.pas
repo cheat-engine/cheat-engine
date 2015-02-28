@@ -6,7 +6,7 @@ interface
 
 uses
   windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ComCtrls, ExtCtrls, ExtDlgs, cefuncproc;
+  ComCtrls, ExtCtrls, ExtDlgs, cefuncproc, commonTypeDefs;
 
 type
 

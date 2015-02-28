@@ -4,7 +4,8 @@ unit HotkeyHandler;
 
 interface
 
-uses windows, LCLIntf,classes,SyncObjs,CEFuncProc,messages,genericHotkey, math;
+uses windows, LCLIntf,classes,SyncObjs,CEFuncProc,messages,genericHotkey, math,
+  commonTypeDefs;
 
 type thotkeyitem=record
   keys: TKeyCombo;
