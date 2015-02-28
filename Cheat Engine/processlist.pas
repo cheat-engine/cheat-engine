@@ -119,6 +119,8 @@ begin
     OutputDebugString('Setting up ProcessEntry dwSize');
     ProcessEntry.dwSize:=SizeOf(ProcessEntry);
 
+    if processhandler.isNetwork then
+      noProcessInfo:=true;
 
     Check:=Process32First(SnapHandle,ProcessEntry);
     while check do

@@ -5,7 +5,7 @@ unit speedhack2;
 interface
 
 uses Classes,LCLIntf, SysUtils, NewKernelHandler,CEFuncProc, symbolhandler,
-     autoassembler, dialogs,Clipbrd;
+     autoassembler, dialogs,Clipbrd, commonTypeDefs;
 
 type TSpeedhack=class
   private

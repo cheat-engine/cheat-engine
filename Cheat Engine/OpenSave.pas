@@ -10,8 +10,9 @@ interface
 uses windows, forms, LCLIntf,registry, SysUtils,AdvancedOptionsUnit,CommentsUnit,
      CEFuncProc,classes,{formmemorymodifier,formMemoryTrainerUnit,}shellapi,
      {MemoryTrainerDesignUnit,}StdCtrls,{ExtraTrainerComponents,}Graphics,Controls,
-     tableconverter, ExtCtrls,Dialogs,NewKernelHandler, hotkeyhandler, structuresfrm, StructuresFrm2,
-     comctrls,dom, xmlread,xmlwrite, FileUtil, ceguicomponents, zstream, luafile, disassemblerComments;
+     tableconverter, ExtCtrls,Dialogs,NewKernelHandler, hotkeyhandler, structuresfrm,
+     StructuresFrm2, comctrls,dom, xmlread,xmlwrite, FileUtil, ceguicomponents,
+     zstream, luafile, disassemblerComments, commonTypeDefs;
 
 
 var CurrentTableVersion: dword=18;

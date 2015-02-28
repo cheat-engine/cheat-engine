@@ -5,8 +5,8 @@ unit sharedMemory;
 interface
 
 uses
-  windows, Classes, SysUtils, symbolhandler, autoassembler, frmautoinjectunit, cefuncproc, NewKernelHandler,
-  Clipbrd;
+  windows, Classes, SysUtils, symbolhandler, autoassembler, frmautoinjectunit,
+  cefuncproc, NewKernelHandler, Clipbrd, commonTypeDefs;
 
 const FILE_MAP_EXECUTE = $20;
 
