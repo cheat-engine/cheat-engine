@@ -21,7 +21,7 @@ var
 
 implementation
 
-uses Globals;
+uses Globals, networkInterfaceApi;
 
 resourcestring
     rsICanTGetTheProcessListYouArePropablyUsingWindowsNT = 'I can''t get the process list. You are propably using windows NT. Use the window list instead!';
@@ -119,7 +119,8 @@ begin
     OutputDebugString('Setting up ProcessEntry dwSize');
     ProcessEntry.dwSize:=SizeOf(ProcessEntry);
 
-    if processhandler.isNetwork then
+
+    if getconnection<>nil then
       noProcessInfo:=true;
 
     Check:=Process32First(SnapHandle,ProcessEntry);
