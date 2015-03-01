@@ -1441,23 +1441,14 @@ begin
 
 
   if cbShowAdvancedOptions.checked then
-  begin
-    cbUseLoadedPointermap.top:=panel3.Top+panel3.height+2;
-    cbAllowRuntimeWorkers.top:=cbUseLoadedPointermap.top;
-  end
+    cbAllowRuntimeWorkers.top:=panel3.Top+panel3.height+2
   else
-  begin
-    if cbCompareToOtherPointermaps.checked then
-      cbUseLoadedPointermap.top:=pdatafilelist.top+pdatafilelist.height+2
-    else
-      cbUseLoadedPointermap.top:=cbShowAdvancedOptions.top+cbShowAdvancedOptions.height+2;
-
     cbAllowRuntimeWorkers.top:=cbShowAdvancedOptions.top+cbShowAdvancedOptions.height+2;
 
-  end;
+  cbMustStartWithBase.top:=cbAllowRuntimeWorkers.top;
 
 
-  cbMustStartWithBase.top:=cbUseLoadedPointermap.Top+cbUseLoadedPointermap.height+2;
+
 
   if edtBaseFrom<>nil then
   begin
@@ -1465,15 +1456,11 @@ begin
     edtBaseTo.top:=edtBaseFrom.top+edtbasefrom.height+1;
     lblbasefrom.top:=edtbasefrom.top+(edtbasefrom.height div 2) - (lblbasefrom.height div 2);
     lblBaseTo.top:=edtbaseto.top+(edtbaseto.height div 2) - (lblBaseTo.height div 2);
-  end;
 
-  //adjustment:=cbMustEndWithSpecificOffset.Top;
-  if edtBaseFrom<>nil then
     cbMustEndWithSpecificOffset.Top:=edtBaseTo.top+edtBaseTo.Height+2
+  end
   else
-    cbMustEndWithSpecificOffset.Top:=cbMustStartWithBase.top+cbMustStartWithBase.height+2; //(cbMustStartWithBase.top-cbCompareToOtherPointermaps.top); //same difference
-
-  //adjustment:=cbMustEndWithSpecificOffset.Top-adjustment;
+    cbMustEndWithSpecificOffset.Top:=cbMustStartWithBase.top+cbMustStartWithBase.height+2;
 
   nexttop:=cbMustEndWithSpecificOffset.top+cbMustEndWithSpecificOffset.height;
 
@@ -1505,6 +1492,10 @@ begin
   end
   else
     newheight:=cbMustEndWithSpecificOffset.top+cbMustEndWithSpecificOffset.Height+2+panel1.height;
+
+
+  newheight:=max(newheight, cbConnectToNode.top+cbConnectToNode.height+2+panel1.height);
+
 
 
 
