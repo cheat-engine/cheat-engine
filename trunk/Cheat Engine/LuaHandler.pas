@@ -1163,7 +1163,7 @@ begin
       v:=0;
       if ReadProcessMemory(processhandle, pointer(address), @v, sizeof(v), r) then
       begin
-        lua_pushinteger(L, v);
+        lua_pushinteger(L, dword(v));
         result:=1;
       end;
 
