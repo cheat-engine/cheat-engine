@@ -420,6 +420,8 @@ int DispatchCommand(int currentsocket, unsigned char command)
           r->modulesize=me.moduleSize;
           r->modulenamesize=strlen(me.moduleName);
 
+//          printf("Sending %s size %x\n", me.moduleName, r->modulesize);
+
           memcpy((char *)r+sizeof(CeModuleEntry), me.moduleName, r->modulenamesize);
         }
         else

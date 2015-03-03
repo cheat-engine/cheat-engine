@@ -2850,6 +2850,8 @@ BOOL Module32Next(HANDLE hSnapshot, PModuleListEntry moduleentry)
 
       ml->moduleListIterator++;
 
+      //printf("Module32First/Next: Returning %s size %x\n", moduleentry->moduleName, moduleentry->moduleSize);
+
       return TRUE;
     }
     else
@@ -2992,6 +2994,7 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
 
       PModuleListEntry mle=NULL;
       int phandle=OpenProcess(th32ProcessID);
+      int hasValidModuleSize=0;
 
 
 
@@ -3003,6 +3006,7 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
 
         modulepath[0]='\0';
         memset(modulepath, 0, 255);
+
 
         sscanf(s, "%llx-%llx %s %*s %*s %*s %s\n", &start, &stop, protectionstring, modulepath);
 
@@ -3027,7 +3031,8 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
           if ((mle) && (strcmp(modulepath, mle->moduleName)==0))
           {
             //same module as the last entry, adjust the size to encapsule this (may mark non module memory as module memory)
-            mle->moduleSize=stop-(mle->baseAddress);
+            if (hasValidModuleSize==0)
+              mle->moduleSize=stop-(mle->baseAddress); //else use the already provided modulesize
             continue;
           }
 
@@ -3058,7 +3063,11 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
           mle=&ml->moduleList[ml->moduleCount];
           mle->moduleName=strdup(modulepath);
           mle->baseAddress=start;
-          mle->moduleSize=GetModuleSize(modulepath, stop-start);
+          mle->moduleSize=GetModuleSize(modulepath, 0);
+
+          hasValidModuleSize=mle->moduleSize!=0;
+
+        //  printf("Setting size of %s to %x\n", modulepath, mle->moduleSize);
 
           ml->moduleCount++;
 

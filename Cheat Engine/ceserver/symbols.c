@@ -647,6 +647,8 @@ unsigned long long GetModuleSize(char *filename, unsigned long long defaultsize)
   unsigned char *b=NULL;
   int result=defaultsize;
 
+//  printf("GetModuleSize(\"%s\")=",filename);
+
   f=open(filename, O_RDONLY);
   if (f==-1)
   {
@@ -662,7 +664,7 @@ unsigned long long GetModuleSize(char *filename, unsigned long long defaultsize)
 
       if (*(uint32_t *)b!=0x464c457f)
       {
-        printf("not an elf\n");
+        printf("%s is not an elf\n", filename);
         free(b);
         close(f);
         return defaultsize; //not an ELF file
@@ -675,6 +677,8 @@ unsigned long long GetModuleSize(char *filename, unsigned long long defaultsize)
 
       free(b);
       close(f);
+
+      //printf("%x\n",i);
       return i;
     }
     else
