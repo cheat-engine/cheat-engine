@@ -28,7 +28,7 @@ all: ceserver
 ceserver: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: Cross GCC Linker'
-	/android-build/bin/arm-linux-androideabi-gcc  -o "ceserver" $(OBJS) $(USER_OBJS) $(LIBS)
+	/android-build/bin/arm-linux-androideabi-gcc -fPIE -pie -o "ceserver" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 	$(MAKE) --no-print-directory post-build
