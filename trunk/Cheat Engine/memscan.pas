@@ -623,6 +623,7 @@ type
     property OnlyOne: boolean read fOnlyOne write fOnlyOne;
     property VarType: TVariableType read currentVariableType;
     property CustomType: TCustomType read currentCustomType;
+    property isUnicode: boolean read stringUnicode;
     property LastScanValue: string read fLastScanValue;
     property LastScanType: TScanType read FLastScanType;
     property ScanresultFolder: string read fScanResultFolder; //read only, it's configured during creation

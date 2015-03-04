@@ -11,7 +11,7 @@ procedure InitializeJniTFoundList(env: PJNIEnv);
 
 implementation
 
-uses unixporthelper, jniTObject, foundlisthelper, memscan, symbolhandler;
+uses unixporthelper, jniTObject, foundlisthelper, memscan, symbolhandler, math;
 
 
 function TFoundList_initialize(PEnv: PJNIEnv; Obj: JObject): jlong; cdecl;
@@ -89,10 +89,22 @@ begin
   result:=penv^.NewStringUTF(penv, pchar(r));
 end;
 
-function TFoundList_getVarType(PEnv: PJNIEnv; Obj: JObject): jboolean; cdecl;
+function TFoundList_getVarType(PEnv: PJNIEnv; Obj: JObject): jint; cdecl;
 begin
   result:=integer(TFoundList(JObjectToTObject(penv, obj)).vartype);
 end;
+
+function TFoundList_getVarLength(PEnv: PJNIEnv; Obj: JObject): jint; cdecl;
+begin
+  result:=TFoundList(JObjectToTObject(penv, obj)).GetVarLength;
+end;
+
+
+function TFoundList_isUnicode(PEnv: PJNIEnv; Obj: JObject): jboolean; cdecl;
+begin
+  result:=ifthen(TFoundList(JObjectToTObject(penv, obj)).isUnicode,1,0);
+end;
+
 
 function TFoundList_getValue(PEnv: PJNIEnv; Obj: JObject; index: jint): jstring; cdecl;
 var
@@ -124,7 +136,7 @@ begin
 end;
 
 
-const methodcount=10;
+const methodcount=12;
 var jnimethods: array [0..methodcount-1] of JNINativeMethod =(
   (name: 'create'; signature: '(Lorg/cheatengine/TMemScan;)J'; fnPtr: @TFoundList_Create),
   (name: 'initialize'; signature: '()J'; fnPtr: @TFoundList_initialize),
@@ -134,6 +146,8 @@ var jnimethods: array [0..methodcount-1] of JNINativeMethod =(
   (name: 'getAddressString'; signature: '(I)Ljava/lang/String;'; fnPtr: @TFoundList_getAddressString),
   (name: 'getValue'; signature: '(I)Ljava/lang/String;'; fnPtr: @TFoundList_getValue),
   (name: 'getVarType'; signature: '()I'; fnPtr: @TFoundList_getVarType),
+  (name: 'getVarLength'; signature: '()I'; fnPtr: @TFoundList_getVarLength),
+  (name: 'isUnicode'; signature: '()Z'; fnPtr: @TFoundList_isUnicode),
   (name: 'inModule'; signature: '(I)Z'; fnPtr: @TFoundList_inModule),
   (name: 'refetchValueList'; signature: '()V'; fnPtr: @TFoundList_refetchValueList)
 
