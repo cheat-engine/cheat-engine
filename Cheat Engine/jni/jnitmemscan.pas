@@ -157,7 +157,16 @@ begin
   result:=integer(ms.VarType);
 end;
 
-const methodcount=7;
+
+function TMemScan_GetBinarySize(PEnv: PJNIEnv; Obj: JObject):jint; cdecl;
+var
+  ms: TJniMemscan;
+begin
+  ms:=TJniMemscan(JObjectToTObject(penv, obj));
+  result:=ms.Getbinarysize;
+end;
+
+const methodcount=8;
 var jnimethods: array [0..methodcount-1] of JNINativeMethod =(
   (name: 'create'; signature: '(Lorg/cheatengine/TMemScan;)J'; fnPtr: @TMemScan_Create),
   (name: 'newScan'; signature: '()V'; fnPtr: @TMemScan_NewScan),
@@ -165,7 +174,9 @@ var jnimethods: array [0..methodcount-1] of JNINativeMethod =(
   (name: 'nextScan'; signature: '(IILjava/lang/String;Ljava/lang/String;ZZZZZZLjava/lang/String;)V'; fnPtr: @TMemScan_NextScan),
   (name: 'hasDoneFirstScan'; signature: '()Z'; fnPtr: @TMemScan_HasDoneFirstScan),
   (name: 'getVarType'; signature: '()I'; fnPtr: @TMemScan_GetVarType),
-  (name: 'getProgress'; signature: '()I'; fnPtr: @TMemScan_GetProgress)
+  (name: 'getProgress'; signature: '()I'; fnPtr: @TMemScan_GetProgress),
+  (name: 'getBinarySize'; signature: '()I'; fnPtr: @TMemScan_GetBinarySize)
+
   );
 
 procedure InitializeJniTMemScan(env: PJNIEnv);

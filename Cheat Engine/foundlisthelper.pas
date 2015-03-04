@@ -818,6 +818,8 @@ begin
     //can later be overriden
     self.hexadecimal:=memscan.VarType=vtByteArray;
     self.varlength:=memscan.Getbinarysize div 8;
+
+    self.unicode:=memscan.isUnicode;
   end
   else
     OutputDebugString('no fmemscan');

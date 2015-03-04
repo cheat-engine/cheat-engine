@@ -37,6 +37,9 @@ var
  index_fieldid: JFieldID;
  active_fieldid: jfieldID;
 
+ isUnicode_fieldid: jfieldID;
+ size_fieldid: jFieldid;
+
 
  freezeInterval: integer;
  freezerthread: TAddressListFreezer;
@@ -101,6 +104,34 @@ begin
   freezeInterval:=interval;
 end;
 
+procedure addresslist_setEntryValue(PEnv: PJNIEnv; Obj: JObject; index: jint; value: jstring); cdecl;
+var r: TMemoryRecord;
+begin
+  if (index>=0) and (index<addresslist.count) then
+  begin
+    r:=TMemoryRecord(addresslist[index]);
+    try
+      r.Value:=jniGetString(penv, value);
+    except
+      log('addresslist_setEntryValue: Error trying to set value');
+    end;
+  end;
+end;
+
+function addresslist_getEntryValue(PEnv: PJNIEnv; Obj: JObject; index: jint): jstring; cdecl;
+var
+  r: TMemoryRecord;
+  v: string;
+begin
+  if (index>=0) and (index<addresslist.count) then
+  begin
+    r:=TMemoryRecord(addresslist[index]);
+    v:=r.value;
+    result:=penv^.NewStringUTF(penv, pchar(v));
+  end;
+end;
+
+
 function addresslist_getEntry(PEnv: PJNIEnv; Obj: JObject; index: jint): jobject; cdecl;
 var
  r: TMemoryRecord;
@@ -133,6 +164,16 @@ begin
     penv^.SetIntField(penv, result, vartype_fieldid, integer(r.VarType));
     penv^.SetIntField(penv, result, index_fieldid, index);
     penv^.SetBooleanField(penv, result, active_fieldid, ifthen(r.active,1,0));
+
+    if r.vartype=vtString then
+    begin
+      penv^.SetIntField(penv, result, size_fieldid, r.Extra.stringData.length);
+      penv^.SetBooleanField(penv, result, isUnicode_fieldid, ifthen(r.extra.stringData.unicode,1,0));
+    end;
+
+    if r.vartype=vtByteArray then
+      penv^.SetIntField(penv, result, size_fieldid, r.Extra.byteData.bytelength);
+
   end;
 end;
 
@@ -206,6 +247,19 @@ begin
   end;
 
 
+  if r.vartype=vtString then
+  begin
+    Log('set address: string');
+    r.extra.stringData.length:=penv^.GetIntField(penv, entry, size_fieldid);
+    r.Extra.stringData.unicode:=penv^.GetBooleanField(penv, entry, isUnicode_fieldid)<>0;
+
+    Log('Length='+inttostr(r.extra.stringData.length));
+    Log('isUnicode='+BoolToStr(r.extra.stringData.unicode));
+  end;
+
+  if r.vartype=vtByteArray then
+    r.Extra.byteData.bytelength:=penv^.GetIntField(penv, entry, size_fieldid);
+
   r.ReinterpretAddress;
 end;
 
@@ -262,7 +316,7 @@ begin
 end;
 
 
-const methodcount=8;
+const methodcount=10;
 var jnimethods: array [0..methodcount-1] of JNINativeMethod =(
   (name: 'GetCount'; signature: '()I'; fnPtr: @addresslist_getCount),
   (name: 'GetEntry'; signature: '(I)Lorg/cheatengine/AddressListEntry;'; fnPtr: @addresslist_getEntry),
@@ -271,7 +325,10 @@ var jnimethods: array [0..methodcount-1] of JNINativeMethod =(
   (name: 'SetEntryActive'; signature: '(IZ)Z'; fnPtr: @addresslist_setActive),
   (name: 'SetFreezeTimer'; signature: '(I)V'; fnPtr: @addresslist_setFreezeTimer),
   (name: 'DeleteEntry'; signature: '(I)V'; fnPtr: @addresslist_deleteEntry),
-  (name: 'Clear'; signature: '()V'; fnPtr: @addresslist_clear)
+  (name: 'Clear'; signature: '()V'; fnPtr: @addresslist_clear) ,
+
+  (name: 'SetEntryValue'; signature: '(ILjava/lang/String;)V'; fnPtr: @addresslist_setEntryValue),
+  (name: 'GetEntryValue'; signature: '(I)Ljava/lang/String;'; fnPtr: @addresslist_getEntryValue)
 
 
   );
@@ -300,6 +357,9 @@ begin
   active_fieldid:=env^.GetFieldID(env, AddressListEntry_class, 'active','Z');
 
   index_fieldid:=env^.GetFieldID(env, AddressListEntry_class, 'index','I');
+
+  isUnicode_fieldid:=env^.GetFieldID(env, AddressListEntry_class, 'isUnicode','Z');
+  size_fieldid:=env^.GetFieldID(env, AddressListEntry_class, 'size','I');
 
   log('description_fieldid='+inttohex(ptruint(description_fieldid),8));
   log('vartype_fieldid='+inttohex(ptruint(vartype_fieldid),8));
