@@ -137,6 +137,10 @@ begin
   scanvalue2:=jniGetString(penv, sv2);
   protectionflags:=jniGetString(penv, pf);
 
+  log('scanvalue1='+scanvalue1);
+  log('scanvalue2='+scanvalue2);
+  log('protectionflags='+protectionflags);
+
   ms.parseProtectionflags(protectionflags);
   ms.firstscan(TScanOption(scanOption), TVariableType(variabletype), TRoundingType(roundingtype), scanvalue1, scanvalue2, startaddress, stopaddress, hexadecimal<>0, binaryasstring<>0, unicode<>0, casesensitive<>0, TFastScanMethod(fastscanmethod), jnigetstring(penv, fastscanparameter), nil);
 end;

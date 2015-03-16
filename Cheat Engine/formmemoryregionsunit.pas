@@ -86,19 +86,16 @@ procedure TFormMemoryRegions.FormShow(Sender: TObject);
 var address: PtrUInt;
     mbi : _MEMORY_BASIC_INFORMATION;
     temp:string;
-    mappedfilename: pchar;
+    mappedfilename: string;
     i: integer;
 begin
-  getmem(mappedfilename,256);
-  try
-
     listview1.Clear;
 
     //query the process for the memory regions
     address:=0;
     mbi.RegionSize:=$1000;
 
-    while (Virtualqueryex(processhandle,pointer(address),mbi,sizeof(mbi))<>0) and ((address+mbi.RegionSize)>address) do
+    while (GetRegionInfo(processhandle,pointer(address),mbi,sizeof(mbi), mappedfilename)<>0) and ((address+mbi.RegionSize)>address) do
     begin
       setlength(moreinfo,length(moreinfo)+1);
       moreinfo[length(moreinfo)-1].address:=ptrUint(mbi.BaseAddress);
@@ -151,19 +148,12 @@ begin
       listview1.Items[listview1.Items.Count-1].SubItems.add(inttohex(mbi.regionsize,1));
 
      // if mbi._Type=MEM_MAPPED then
-      begin
-        i:=GetMappedFileName(processhandle,mbi.BaseAddress, mappedfilename, 255);
-        mappedfilename[i]:=#0;
-        listview1.Items[listview1.Items.Count-1].SubItems.Add(mappedfilename);
-      end;
+      listview1.Items[listview1.Items.Count-1].SubItems.Add(mappedfilename);
 
 
 
       inc(address,mbi.RegionSize);
     end;
-  finally
-    freemem(mappedfilename);
-  end;
 
 end;
 
