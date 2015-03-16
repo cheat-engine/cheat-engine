@@ -237,13 +237,18 @@ begin
     l:=penv^.GetArrayLength(penv, offsets);
   //  log('the offsets array length='+inttostr(l));
 
+    iscopy:=0;
     offsetlist:=PJintArray(penv^.GetIntArrayElements(penv,offsets, iscopy));
+    if offsetlist<>nil then
+    begin
+      setlength(r.pointeroffsets, l);
+      for i:=0 to l-1 do
+        r.pointeroffsets[i]:=offsetlist[i];
 
-    setlength(r.pointeroffsets, l);
-    for i:=0 to l-1 do
-      r.pointeroffsets[i]:=offsetlist[i];
-
-    penv^.ReleaseIntArrayElements(penv, offsets, PJint(offsetlist),0);
+      penv^.ReleaseIntArrayElements(penv, offsets, PJint(offsetlist),JNI_ABORT);
+    end
+    else
+      log('offsetlist=nil');
   end;
 
 

@@ -94,6 +94,8 @@ type
     function VirtualQueryEx_StartCache(hProcess: THandle; flags: DWORD): boolean;
     procedure VirtualQueryEx_EndCache(hProcess: THandle);
 
+    function GetRegionInfo(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD; var mapsline: string): DWORD;
+
     function ReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: PTRUINT): BOOL;
     function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL;
     procedure beginWriteProcessMemory;
@@ -111,6 +113,9 @@ type
     function loadModule(hProcess: THandle; modulepath: string): boolean;
     function loadExtension(hProcess: Thandle): boolean;
     function speedhack_setSpeed(hProcess: THandle; speed: single): boolean;
+
+    procedure TerminateServer;
+
     property connected: boolean read fConnected;
 
     constructor create;
@@ -166,6 +171,16 @@ const
 
   //
   CMD_VIRTUALQUERYEXFULL=31;
+  CMD_GETREGIONINFO=32; //extended version of VirtualQueryEx which also get the full string
+
+
+procedure TCEConnection.TerminateServer;
+var command: byte;
+begin
+  command:=CMD_TERMINATESERVER;
+  send(@command, sizeof(command));
+end;
+
 
 
 
@@ -360,10 +375,20 @@ var pages: array of TPageInfo;
 
   m: PByte;
 begin
+  //log(format('TCEConnection.CReadProcessMemory: Read %d bytes from %p into %p',[nsize, lpBaseAddress, lpBuffer]));
+
+
   result:=false;
   lpNumberOfBytesRead:=0;
 
-  pagecount:=1+((ptruint(lpBaseAddress)+nSize-1) shr 12) - (ptruint(lpBaseAddress) shr 12);
+  currenttarget:=ptruint(lpBaseAddress)+nsize-1;
+  if currenttarget<ptruint(lpBaseAddress) then //overflow
+  begin
+    pagecount:=2+(currenttarget shr 12);
+  end
+  else
+    pagecount:=1+((ptruint(lpBaseAddress)+nSize-1) shr 12) - (ptruint(lpBaseAddress) shr 12);
+
   setlength(pages, pagecount);
 
   QueryPerformanceFrequency(freq);
@@ -530,8 +555,13 @@ end;
 
 function TCEConnection.ReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: PTRUINT): BOOL;
 begin
+ // log(format('TCEConnection.ReadProcessMemory: Read %d bytes from %p into %p',[nsize, lpBaseAddress, lpBuffer]));
+
+
   if ((hProcess shr 24) and $ff)= $ce then
   begin
+   // Log('hProcess is valid');
+
     result:=false;
     lpNumberOfBytesRead:=0;
 
@@ -541,10 +571,14 @@ begin
 
     if (nsize<=8192) then
     begin
+      //log('nsize<=8192. Calling CReadProcessMemory');
       result:=CReadProcessMemory(hProcess, lpBaseAddress, lpBuffer, nsize, lpNumberOfBytesRead);
     end
     else //just fetch it all from the net , ce usually does not fetch more than 8KB for random accesses, so would be a waste of time
+    begin
+     // log('nsize>8192. Calling NReadProcessMemory');
       result:=NReadProcessMemory(hProcess, lpBaseaddress, lpbuffer, nsize, lpNumberOfBytesRead);
+    end;
 
 
 
@@ -971,6 +1005,8 @@ var
   vqecache: TVirtualQueryExCache;
 
 begin
+  result:=0;
+
   if VirtualQueryExCacheMap.TryGetValue(hProcess, vqecache) then  //check if there is a cache going on for this handle
   begin
     //yes, get it from the cache
@@ -1026,6 +1062,93 @@ begin
     else
       result:=windows.VirtualQueryEx(hProcess, lpAddress, lpBuffer, dwLength)
     {$endif};
+
+  end;
+end;
+
+function TCEConnection.GetRegionInfo(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD; var mapsline: string): DWORD;
+var
+  input: packed record
+    command: byte;
+    handle: integer;
+    baseaddress: qword;
+  end;
+
+  output: packed record
+    result: byte;
+    protection: dword;
+    _type: dword;
+    baseaddress: qword;
+    size: qword;
+  end;
+
+  mapslinesize: byte;
+
+  ml: pchar;
+begin
+  result:=0;
+
+  log('TCEConnection.GetRegionInfo');
+
+  if isNetworkHandle(hProcess) then
+  begin
+    log('valid handle');
+    result:=0;
+    input.command:=CMD_GETREGIONINFO;
+    input.handle:=hProcess and $ffffff;
+    input.baseaddress:=qword(lpAddress);
+    if send(@input, sizeof(input))>0 then
+    begin
+      if receive(@output, sizeof(output))>0 then
+      begin
+        if output.result>0 then
+        begin
+          lpBuffer.BaseAddress:=pointer(output.baseaddress);
+          lpBuffer.AllocationBase:=lpBuffer.BaseAddress;
+          lpbuffer.AllocationProtect:=PAGE_NOACCESS;
+          lpbuffer.Protect:=output.protection;
+
+          if output.protection=PAGE_NOACCESS then
+          begin
+            lpbuffer.State:=MEM_FREE;
+            lpbuffer._Type:=0;
+          end
+          else
+          begin
+            lpbuffer.State:=MEM_COMMIT;
+            lpbuffer._Type:=output._type;
+          end;
+
+
+
+          lpbuffer.RegionSize:=output.size;
+
+          result:=dwlength;
+        end
+        else
+          result:=0;
+      end;
+
+      //extended part of CMD_GETREGIONINFO;
+      log('receiving extended state');
+      if receive(@mapslinesize, sizeof(mapslinesize))>0 then
+      begin
+        log('received extended state');
+        log('mapelinesize='+inttostr(mapslinesize));
+
+        getmem(ml, mapslinesize+1);
+        if (ml<>nil) then
+        begin
+          receive(ml, mapslinesize);
+          ml[mapslinesize]:=#0;
+
+          mapsline:=ml;
+          freemem(ml);
+        end;
+      end;
+
+
+    end;
 
   end;
 end;
@@ -1685,9 +1808,12 @@ begin
     else
     begin
       inc(retry);
-      OutputDebugString('fail '+inttostr(retry));
+     // OutputDebugString('fail '+inttostr(retry));
     end;
   end;
+
+  if not fconnected then
+    OutputDebugString('Connection failure');
 end;
 
 destructor TCEConnection.destroy;

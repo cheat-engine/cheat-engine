@@ -106,7 +106,6 @@
       <Unit14>
         <Filename Value="foundlisthelper.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="foundlisthelper"/>
       </Unit14>
       <Unit15>
         <Filename Value="CustomTypeHandler.pas"/>
@@ -119,7 +118,6 @@
       <Unit17>
         <Filename Value="jni\jnitfoundlist.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="jnitfoundlist"/>
       </Unit17>
       <Unit18>
         <Filename Value="jni\jnitmemscan.pas"/>
@@ -129,7 +127,6 @@
       <Unit19>
         <Filename Value="jni\jnitobject.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="jniTObject"/>
       </Unit19>
       <Unit20>
         <Filename Value="symbollisthandler.pas"/>
@@ -166,12 +163,10 @@
       <Unit27>
         <Filename Value="MemoryRecordUnit.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="MemoryRecordUnit"/>
       </Unit27>
       <Unit28>
         <Filename Value="pointerparser.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="pointerparser"/>
       </Unit28>
       <Unit29>
         <Filename Value="jni\jniaddresslist.pas"/>
@@ -207,7 +202,8 @@
     </Linking>
     <Other>
       <CustomOptions Value="-dJNI
--dlowmemoryusage"/>
+-dlowmemoryusage
+-OoFASTMATH"/>
     </Other>
   </CompilerOptions>
   <Debugging>

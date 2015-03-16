@@ -8013,7 +8013,7 @@ var
 
   shouldend: boolean;
 begin
-  vqe:=TVirtualQueryExCache.create(processhandle);
+ { vqe:=TVirtualQueryExCache.create(processhandle);
   a:=0;
 
   while VirtualQueryEx(processhandle, pointer(a), mbi, sizeof(mbi))<>0 do
@@ -8056,7 +8056,7 @@ begin
 
 
 
-  vqe.free;
+  vqe.free;   }
 end;
 
 procedure ChangeIcon(hModule: HModule; restype: PChar; resname: PChar;

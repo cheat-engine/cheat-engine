@@ -8,7 +8,7 @@ uses
   {$ifdef JNI}
     Classes, SysUtils, networkinterface, unixporthelper, newkernelhandler;
   {$else}
-  {jwawindows,} windows, Classes, SysUtils, networkinterface, newkernelhandler;
+  {jwawindows,} windows, Classes, SysUtils, networkinterface, newkernelhandler, CEFuncProc;
   {$endif}
 
 
@@ -34,6 +34,7 @@ function NetworkCloseHandle(handle: THandle):WINBOOL; stdcall;
 function NetworkSetBreakpoint(handle: THandle; threadid: integer; debugregister: integer; address: PtrUInt; bptype: integer; bpsize: integer): boolean;
 function NetworkRemoveBreakpoint(handle: THandle; threadid: integer; debugregister: integer; wasWatchpoint: boolean): boolean;
 
+function NetworkGetRegionInfo(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD; var mapsline: string): DWORD; stdcall;
 
 implementation
 
@@ -166,27 +167,47 @@ function NetworkReadProcessMemory(hProcess: THandle; lpBaseAddress, lpBuffer: Po
 var a,b: dword;
     c,d: ptruint;
 begin
+  //log('NetworkReadProcessMemory');
+  //log(format('Read %d bytes from %p into %p',[nsize, lpBaseAddress, lpBuffer]));
+
   if getConnection<>nil then
   begin
+   // log('Has connection');
+
     result:=connection.readProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesRead);
     if (result=false) and (connection.connected=false) and (getConnection<>nil) then //try again one more time
     begin
+    //  log('read fail1. Try smaller chunk');
+
       //try a smaller chunk
       a:=nsize div 2;
       b:=nsize-a;
       c:=0;
       d:=0;
-      result:=connection.readProcessMemory(hProcess, lpBaseAddress, lpBuffer, a, c);
-      if result and (b>0) then
-        result:=connection.readProcessMemory(hProcess, pointer(ptruint(lpBaseAddress)+a), pointer(ptruint(lpBuffer)+a), b, d);
 
-      lpNumberOfBytesRead:=c+d;
+      //log('a='+inttostr(a));
+     // log('b='+inttostr(b));
+
+      result:=connection.readProcessMemory(hProcess, lpBaseAddress, lpBuffer, a, c);
+
+     // log('after read 1/2');
+
+      if result and (b>0) and (c>0) then //first read succesful, there is something else to read, and it actually has read
+      begin
+        result:=connection.readProcessMemory(hProcess, pointer(ptruint(lpBaseAddress)+a), pointer(ptruint(lpBuffer)+a), b, d);
+       // log('after read 2/2');
+      end;
+
+      if @lpNumberOfBytesRead<>nil then
+        lpNumberOfBytesRead:=c+d;
     end;
 
 
   end
   else
     result:=false;
+
+  //log('Returning from rpm');
 end;
 
 function NetworkWriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: ptruint): BOOL; stdcall;
@@ -197,6 +218,14 @@ begin
     result:=false;
 end;
 
+
+function NetworkGetRegionInfo(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD; var mapsline: string): DWORD; stdcall;
+begin
+  if getConnection<>nil then
+    result:=connection.GetRegionInfo(hProcess, lpAddress, lpBuffer, dwLength, mapsline)
+  else
+    result:=0;
+end;
 
 function NetworkVirtualQueryEx(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; stdcall;
 begin
@@ -297,6 +326,8 @@ begin
   newkernelhandler.VirtualAllocEx:=@networkVirtualAllocEx;
   newkernelhandler.VirtualFreeEx:=@networkVirtualFreeEx;
   newkernelhandler.CreateRemoteThread:=@networkCreateRemoteThread;
+
+  newkernelhandler.GetRegionInfo:=@NetworkGetRegionInfo;
 
 
 

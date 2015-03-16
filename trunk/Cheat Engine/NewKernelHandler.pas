@@ -725,6 +725,8 @@ var
   VirtualQueryEx_StartCache: TVirtualQueryEx_StartCache;
   VirtualQueryEx_EndCache: TVirtualQueryEx_EndCache;
 
+  GetRegionInfo: function (hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD; var mapsline: string): DWORD;  stdcall;
+
 
 
  {    just include vmxfunctions
@@ -1411,6 +1413,33 @@ begin
 end;
 
 
+{$ifdef windows}
+function GetRegionInfo_Windows(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD; var mapsline: string): DWORD;  stdcall;
+var
+  i: integer;
+  mappedfilename: pchar;
+
+begin
+  result:=VirtualQueryEx(hProcess, lpAddress, lpBuffer, dwLength);
+
+  if (result=sizeof(lpbuffer)) then
+  begin
+    getmem(mappedfilename,256);
+    i:=GetMappedFileName(hProcess,lpBuffer.BaseAddress, mappedfilename, 255);
+    mappedfilename[i]:=#0;
+    mapsline:=mappedfilename;
+
+    freemem(mappedfilename);
+  end;
+end;
+{$endif}
+
+
+function GetRegionInfo_Stub(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD; var mapsline: string): DWORD;  stdcall;
+begin
+  result:=VirtualQueryEx(hProcess, lpAddress, lpBuffer, dwLength);
+  mapsline:='';
+end;
 
 var x: string;
   psa: thandle;
@@ -1441,6 +1470,8 @@ initialization
 {$ifndef jni}
   WindowsKernel:=LoadLibrary('Kernel32.dll'); //there is no kernel33.dll
   if WindowsKernel=0 then Raise Exception.create(rsFucked);
+
+
 
   //by default point to these exports:
   ReadProcessMemory:=GetProcAddress(WindowsKernel,'ReadProcessMemory');
@@ -1505,6 +1536,12 @@ initialization
 
   u32:=loadlibrary('user32.dll');
   PrintWindow:=GetProcAddress(u32,'PrintWindow');
+
+  {$ifdef windows}
+  GetRegionInfo:=GetRegionInfo_Windows;
+  {$else}
+  GetRegionInfo:=GetRegionInfo_Stub;
+  {$endif}
 
 
 

@@ -4656,10 +4656,15 @@ end;
 
 procedure TScanner.execute;
 begin
+  (*
   {$if defined(cpui386) or defined(cpux86_64)}
   Set8087CW($133f); //disable floating point exceptions in this thread
   SetSSECSR($1f80);
   {$endif}
+  *)
+
+  SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
+
 
   try
     scanwriter:=TScanfilewriter.create(self,self.OwningScanController,addressfile,memoryfile);
@@ -4682,6 +4687,8 @@ begin
     begin
       haserror:=true;
       errorstring:='thread '+inttostr(scannernr)+':'+e.message;
+
+      log('Scanner exception:'+errorstring);
 
       //tell all siblings to terminate, something messed up
       //and I can just do this, since the ScanController is waiting for us, and terminate is pretty much atomic
@@ -6648,6 +6655,10 @@ var i: integer;
     currentstate: Tscanregionpreference;
 begin
   //parse the protectionflags string and set scanWritable, scanExecutable and scanCopyOnWrite;
+  scanWritable:=scanDontCare;
+  scanCopyOnWrite:=scanDontCare;
+  scanExecutable:=scanDontCare;
+
   protectionflags:=uppercase(protectionflags);
 
   currentstate:=scanDontCare;
