@@ -7038,7 +7038,7 @@ begin
   if formsettings.ShowModal <> mrOk then
   begin
     resumehotkeyhandler;
-    LoadSettingsFromRegistry;
+    LoadSettingsFromRegistry(true);
     exit;
   end;
 

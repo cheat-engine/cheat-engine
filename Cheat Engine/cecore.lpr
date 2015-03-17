@@ -159,8 +159,34 @@ begin
   result:=arraylist;
 end;
 
+function ReadPointer(PEnv: PJNIEnv; Obj: JObject; Address: jlong): jlongArray; cdecl;  //(name: 'ReadPointer'; signature: '(J)[J'; fnPtr: @readPointer),
+//reads a pointer from the current process and returns an 2 length long array. field 0 means success/failure field 1 returns the value
+var
+  res: jlong;
+  x: ptruint;
+  iscopy: jboolean;
 
-function ReadMemoryIntoBuffer(PEnv: PJNIEnv; Obj: JObject; baseAddress: jlong; buffer: jbyteArray):jboolean; //(name: 'ReadMemoryIntoBuffer'; signature: '(L[B)Z'; fnPtr: @ReadMemoryIntoBuffer)
+  resarr: PJLong;
+
+begin
+  res:=0;
+  result:=penv^.NewLongArray(penv, 2);
+  resarr:=penv^.GetLongArrayElements(penv, result, iscopy);
+
+  if readProcessmemory(processhandle, pointer(address), @res, processhandler.pointersize, x) then
+  begin
+    Puint64Array(resarr)[1]:=1;
+    Puint64Array(resarr)[0]:=res;
+  end
+  else
+  begin
+    Puint64Array(resarr)[1]:=0;
+  end;
+
+  penv^.ReleaseLongArrayElements(penv, result, resarr, 0);
+end;
+
+function ReadMemoryIntoBuffer(PEnv: PJNIEnv; Obj: JObject; baseAddress: jlong; buffer: jbyteArray):jboolean; cdecl; //(name: 'ReadMemoryIntoBuffer'; signature: '(L[B)Z'; fnPtr: @ReadMemoryIntoBuffer)
 var
   buffersize: jint;
   iscopy: jboolean;
@@ -206,7 +232,7 @@ begin
 
 end;
 
-function GetRegionInfoString(PEnv: PJNIEnv; Obj: JObject; address: jlong): jstring;
+function GetRegionInfoString(PEnv: PJNIEnv; Obj: JObject; address: jlong): jstring; cdecl;
 var
   mbi: TMemoryBasicInformation;
   mapsline: string;
@@ -301,7 +327,7 @@ begin
     c.TerminateServer;
 end;
 
-const methodcount=10;
+const methodcount=11;
 
   //experiment: make a memscan class in java and give it references to things like memscan_firstscan where the java class contains the memscan long
 
@@ -314,6 +340,7 @@ var jnimethods: array [0..methodcount-1] of JNINativeMethod =(
   (name: 'FetchSymbols'; signature: '(Z)V'; fnPtr: @FetchSymbols),
   (name: 'SetTempPath'; signature: '(Ljava/lang/String;)V'; fnPtr: @SetTempPath),
   (name: 'SetNetworkRPMCacheTimeout'; signature: '(F)V'; fnPtr: @SetNetworkRPMCacheTimeout),
+  (name: 'ReadPointer'; signature: '(J)[J'; fnPtr: @ReadPointer),
   (name: 'ReadMemoryIntoBuffer'; signature: '(J[B)Z'; fnPtr: @ReadMemoryIntoBuffer),
   (name: 'GetRegionInfoString'; signature: '(J)Ljava/lang/String;'; fnPtr: @GetRegionInfoString),
 

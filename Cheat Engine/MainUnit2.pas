@@ -18,7 +18,7 @@ resourcestring
   rsPleaseWait = 'Please Wait!';
 
 procedure UpdateToolsMenu;
-procedure LoadSettingsFromRegistry;
+procedure LoadSettingsFromRegistry(skipPlugins: boolean=false);
 procedure initcetitle;
 
 
@@ -115,7 +115,7 @@ begin
   end;
 end;
 
-procedure LoadSettingsFromRegistry;
+procedure LoadSettingsFromRegistry(skipPlugins: boolean=false);
 var reg : TRegistry;
     i,j: integer;
     temphotkeylist: array [0..30] of commontypedefs.tkeycombo;
@@ -681,12 +681,15 @@ begin
 
 
 
-      if Reg.OpenKey('\Software\Cheat Engine\Plugins'{$ifdef cpu64}+'64'{$else}+'32'{$endif},false) then
+
+      if (not skipPlugins) and (Reg.OpenKey('\Software\Cheat Engine\Plugins'{$ifdef cpu64}+'64'{$else}+'32'{$endif},false)) then
       begin
         names:=TStringList.create;
         try
           reg.GetValueNames(names);
           names.Sort;
+
+
 
           for i:=0 to names.Count-1 do
           begin
@@ -709,11 +712,13 @@ begin
 
           end;
 
-          pluginhandler.FillCheckListBox(formsettings.clbPlugins);
+
         finally
           names.Free;
         end;
       end;
+
+      pluginhandler.FillCheckListBox(formsettings.clbPlugins);
       {$endif}
 
 
