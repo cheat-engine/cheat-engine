@@ -1556,6 +1556,8 @@ procedure TPluginHandler.FillCheckListBox(clb: TCheckListbox);
 var i,j: integer;
     x:Tpathspecifier;
 begin
+  j:=clb.count;
+
   for i:=0 to clb.Count-1 do
     Tpathspecifier(clb.Items.Objects[i]).Free;
 

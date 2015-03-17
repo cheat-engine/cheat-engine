@@ -134,8 +134,13 @@ end;
 
 function addresslist_getEntry(PEnv: PJNIEnv; Obj: JObject; index: jint): jobject; cdecl;
 var
+ i: integer;
  r: TMemoryRecord;
  descriptionstring, addressString: jstring;
+
+ offsetsarr: jintArray;
+ offsets: Pjint;
+ iscopy: jboolean;
 begin
   result:=nil;
   //log('addresslist_getEntry');
@@ -164,6 +169,16 @@ begin
     penv^.SetIntField(penv, result, vartype_fieldid, integer(r.VarType));
     penv^.SetIntField(penv, result, index_fieldid, index);
     penv^.SetBooleanField(penv, result, active_fieldid, ifthen(r.active,1,0));
+
+    //assign the offsets (if there are any)
+    offsetsarr:=penv^.NewIntArray(penv, length(r.pointeroffsets));
+    offsets:=penv^.GetIntArrayElements(penv, offsetsarr, iscopy);
+    for i:=0 to length(r.pointeroffsets)-1 do
+      PIntegerArray(offsets)[i]:=r.pointeroffsets[i];
+
+    penv^.ReleaseIntArrayElements(penv, offsetsarr, offsets, 0);
+
+    penv^.SetObjectField(penv, result, offsets_fieldid, offsetsarr);
 
     if r.vartype=vtString then
     begin

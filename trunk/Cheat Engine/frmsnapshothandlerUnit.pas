@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
-  StdCtrls, Menus, fgl, math, NewKernelHandler, FPImage, FPCanvas, FPImgCanv, FPReadPNG, FPWritePNG;
+  StdCtrls, Menus, math, NewKernelHandler, FPImage, FPCanvas, FPImgCanv, FPReadPNG, FPWritePNG;
 
 type
 
@@ -41,7 +41,7 @@ type
     destructor destroy; override;
   end;
 
-  TSnapshotList =  TFPGList<TSnapshot>;     //eew, <  and > and not used for bigger/than smaller than compares. It's unnatural
+  TSnapshotList =  Tlist;
 
 
   TfrmSnapshotHandler = class(TForm)
@@ -111,7 +111,7 @@ procedure TfrmSnapshotHandler.clearlist;
 var i: integer;
 begin
   for i:=0 to snapshots.count-1 do
-    snapshots[i].free;
+    TSnapshot(snapshots[i]).free;
 
   snapshots.Clear;
 
@@ -247,18 +247,18 @@ begin
   functionnames.Duplicates:=dupIgnore;
 
   for i:=scrollbar1.Position to snapshots.count-1 do
-    if InRange(x, snapshots[i].xpos, snapshots[i].xpos+snapshots[i].width) then
-      snapshots[i].selected:=not snapshots[i].selected;
+    if InRange(x, TSnapshot(snapshots[i]).xpos, TSnapshot(snapshots[i]).xpos+TSnapshot(snapshots[i]).width) then
+      TSnapshot(snapshots[i]).selected:=not TSnapshot(snapshots[i]).selected;
 
 
   for i:=0 to snapshots.count-1 do
   begin
-    if snapshots[i].selected then
+    if TSnapshot(snapshots[i]).selected then
     begin
-      if snapshots[i].functionname<>nil then
+      if TSnapshot(snapshots[i]).functionname<>nil then
       begin
-        if functionnames.IndexOf(snapshots[i].functionname)=-1 then //for some reason dupIgnore isn't used
-          functionnames.Add(snapshots[i].functionname);
+        if functionnames.IndexOf(TSnapshot(snapshots[i]).functionname)=-1 then //for some reason dupIgnore isn't used
+          functionnames.Add(TSnapshot(snapshots[i]).functionname);
       end;
 
       inc(selcount);
@@ -318,15 +318,15 @@ begin
 
   for i:=0 to snapshots.count-1 do
   begin
-    aspectratio:=snapshots[i].pic.Width/snapshots[i].pic.Height;
+    aspectratio:=TSnapshot(snapshots[i]).pic.Width/TSnapshot(snapshots[i]).pic.Height;
 
     currentw:=ceil(h*aspectratio);
-    paintbox1.Canvas.CopyRect(rect(xpos, 0, xpos+currentw, h), snapshots[i].pic.Canvas, rect(0,0,snapshots[i].pic.width, snapshots[i].pic.height));
+    paintbox1.Canvas.CopyRect(rect(xpos, 0, xpos+currentw, h), TSnapshot(snapshots[i]).pic.Canvas, rect(0,0,TSnapshot(snapshots[i]).pic.width, TSnapshot(snapshots[i]).pic.height));
 
-    snapshots[i].xpos:=xpos;
-    snapshots[i].width:=currentw;
+   TSnapshot(snapshots[i]).xpos:=xpos;
+    TSnapshot(snapshots[i]).width:=currentw;
 
-    if snapshots[i].selected then
+    if TSnapshot(snapshots[i]).selected then
     begin
       paintbox1.Canvas.Pen.Width:=3;
       paintbox1.canvas.pen.Color:=clAqua;
@@ -372,7 +372,7 @@ var
 begin
   hasselection:=false;
   for i:=0 to snapshots.count-1 do
-    if snapshots[i].selected then
+    if TSnapshot(snapshots[i]).selected then
     begin
       hasSelection:=true;
       break;
@@ -414,18 +414,18 @@ begin
       size:=0;
 
       for i:=0 to snapshots.count-1 do
-        if snapshots[i].selected then
+        if TSnapshot(snapshots[i]).selected then
         begin
 
           if rbstack.checked then
           begin
-            structurefrm.addLockedAddress(snapshots[i].stackbase, snapshots[i].stack, snapshots[i].stacksize);
-            size:=max(snapshots[i].stacksize, size);
+            structurefrm.addLockedAddress(TSnapshot(snapshots[i]).stackbase, TSnapshot(snapshots[i]).stack, TSnapshot(snapshots[i]).stacksize);
+            size:=max(TSnapshot(snapshots[i]).stacksize, size);
           end
           else
           begin
-            structurefrm.addLockedAddress(0, snapshots[i].constantbuffer, snapshots[i].constantbuffersize);
-            size:=max(snapshots[i].constantbuffersize, size);
+            structurefrm.addLockedAddress(0, TSnapshot(snapshots[i]).constantbuffer, TSnapshot(snapshots[i]).constantbuffersize);
+            size:=max(TSnapshot(snapshots[i]).constantbuffersize, size);
           end;
 
         end;
