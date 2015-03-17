@@ -1748,19 +1748,16 @@ begin
     //convert the value to a dropdown list item value
     for i:=0 to c-1 do
     begin
-      if uppercase(DropDownValue[i])=uppercase(result) then
+      if uppercase(utf8toansi(DropDownValue[i]))=uppercase(result) then
       begin
         if fDropDownDescriptionOnly then
-          result:=DropDownDescription[i]
+          result:=utf8toansi(DropDownDescription[i])
         else
-          result:=result+' : '+DropDownDescription[i];
+          result:=result+' : '+utf8toansi(DropDownDescription[i]);
       end;
 
       //still here. The value couldn't be found in the list , so just display the value
     end;
-
-
-
   end;
 end;
 

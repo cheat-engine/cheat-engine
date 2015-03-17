@@ -986,7 +986,7 @@ begin
     frmMemrecCombobox:=TfrmMemrecCombobox.Create(memrec);
     canceled:=frmMemrecCombobox.showmodal<>mrok;
 
-    value:=frmMemrecCombobox.value;
+    value:=utf8toansi(frmMemrecCombobox.value);
 
     frmMemrecCombobox.free;
   end;
