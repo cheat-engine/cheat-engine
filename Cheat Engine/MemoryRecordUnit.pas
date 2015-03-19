@@ -1298,17 +1298,26 @@ begin
   if VarType in [vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble] then
   begin
     try
-      if VarType in [vtByte, vtWord, vtDword, vtQword] then
+      if showAsHex then //separate handler for hexadecimal. (handle as int, even for the float types)
       begin
-        oldvalue:=StrToQWordEx(getvalue);
-        decreasevalue:=StrToQWordEx(value);
-        setvalue(IntToStr(oldvalue-decreasevalue));
+        oldvalue:=StrToQWordEx('$'+getvalue);
+        decreasevalue:=StrToQwordEx('$'+value);
+        setvalue(IntTohex(oldvalue-decreasevalue,1));
       end
       else
       begin
-        oldvaluedouble:=StrToFloat(getValue);
-        decreasevalueDouble:=StrToFloat(value);
-        setvalue(FloatToStr(oldvaluedouble-decreasevalueDouble));
+        if VarType in [vtByte, vtWord, vtDword, vtQword] then
+        begin
+          oldvalue:=StrToQWordEx(getvalue);
+          decreasevalue:=StrToQWordEx(value);
+          setvalue(IntToStr(oldvalue-decreasevalue));
+        end
+        else
+        begin
+          oldvaluedouble:=StrToFloat(getValue);
+          decreasevalueDouble:=StrToFloat(value);
+          setvalue(FloatToStr(oldvaluedouble-decreasevalueDouble));
+        end;
       end;
     except
 
