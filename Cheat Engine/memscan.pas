@@ -2245,7 +2245,7 @@ end;
 function TScanner.CustomFloatIncreasedValueBy(newvalue,oldvalue: pointer):boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=RoundTo(customType.ConvertDataToFloat(newvalue),-floataccuracy)=RoundTo(customType.ConvertDataToFloat(oldvalue)+svalue,-floataccuracy);
+  result:=(pqword(newvalue)^<>pqword(oldvalue)^) and (RoundTo(customType.ConvertDataToFloat(newvalue),-floataccuracy)=RoundTo(customType.ConvertDataToFloat(oldvalue)+svalue,-floataccuracy));
   {$ENDIF}
 end;
 
@@ -2259,7 +2259,7 @@ end;
 function TScanner.CustomFloatDecreasedValueBy(newvalue,oldvalue: pointer):boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=RoundTo(customType.ConvertDataToFloat(newvalue),-floataccuracy)=RoundTo(customType.ConvertDataToFloat(oldvalue)-svalue,-floataccuracy);
+  result:=(pqword(newvalue)^<>pqword(oldvalue)^) and (RoundTo(customType.ConvertDataToFloat(newvalue),-floataccuracy)=RoundTo(customType.ConvertDataToFloat(oldvalue)-svalue,-floataccuracy));
   {$ENDIF}
 end;
 
@@ -2477,7 +2477,7 @@ end;
 
 function TScanner.SingleIncreasedValueBy(newvalue,oldvalue: pointer):boolean;
 begin
-  result:=RoundTo(psingle(newvalue)^,-floataccuracy)=RoundTo(psingle(oldvalue)^+svalue,-floataccuracy);
+  result:=(pdword(newvalue)^<>pdword(oldvalue)^) and (RoundTo(psingle(newvalue)^,-floataccuracy)=RoundTo(psingle(oldvalue)^+svalue,-floataccuracy));
 end;
 
 function TScanner.SingleDecreasedValue(newvalue,oldvalue: pointer):boolean;
@@ -2487,7 +2487,7 @@ end;
 
 function TScanner.SingleDecreasedValueBy(newvalue,oldvalue: pointer):boolean;
 begin
-  result:=RoundTo(psingle(newvalue)^,-floataccuracy)=RoundTo(psingle(oldvalue)^-svalue,-floataccuracy);
+  result:=(pdword(newvalue)^<>pdword(oldvalue)^) and (RoundTo(psingle(newvalue)^,-floataccuracy)=RoundTo(psingle(oldvalue)^-svalue,-floataccuracy));
 end;
 
 function TScanner.SingleIncreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
@@ -2553,7 +2553,7 @@ end;
 
 function TScanner.DoubleIncreasedValueBy(newvalue,oldvalue: pointer):boolean;
 begin
-  result:=RoundTo(pdouble(newvalue)^,-floataccuracy)=RoundTo(pdouble(oldvalue)^+svalue,-floataccuracy);
+  result:=(pqword(newvalue)^<>pqword(oldvalue)^) and (RoundTo(pdouble(newvalue)^,-floataccuracy)=RoundTo(pdouble(oldvalue)^+svalue,-floataccuracy));
 end;
 
 function TScanner.DoubleDecreasedValue(newvalue,oldvalue: pointer):boolean;
@@ -2563,7 +2563,7 @@ end;
 
 function TScanner.DoubleDecreasedValueBy(newvalue,oldvalue: pointer):boolean;
 begin
-  result:=RoundTo(pdouble(newvalue)^,-floataccuracy)=RoundTo(pdouble(oldvalue)^-svalue,-floataccuracy);
+  result:=(pqword(newvalue)^<>pqword(oldvalue)^) and (RoundTo(pdouble(newvalue)^,-floataccuracy)=RoundTo(pdouble(oldvalue)^-svalue,-floataccuracy));
 end;
 
 function TScanner.DoubleIncreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
@@ -3923,6 +3923,10 @@ begin
 
   OutputDebugString('Config 3.1');
   OutputDebugString('scanOption='+inttostr(integer(scanOption)));
+
+
+  if (scanOption in [soIncreasedValueBy, soDecreasedValueBy]) and (value=0) then
+    scanOption:=soUnchanged;
 
   case variableType of
     vtByte:
