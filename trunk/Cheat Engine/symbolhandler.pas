@@ -8,7 +8,7 @@ interface
 
 uses jwawindows, windows, classes,LCLIntf,imagehlp,{psapi,}sysutils, cefuncproc,
   newkernelhandler,syncobjs, SymbolListHandler, fgl, typinfo, cvconst, PEInfoFunctions,
-  DotNetPipe, DotNetTypes, commonTypeDefs;
+  DotNetPipe, DotNetTypes, commonTypeDefs, math;
 {$endif}
 
 {$ifdef unix}
@@ -84,6 +84,9 @@ type
     //highestsymboladdress: ptruint;
 //    highestsymbol: string;
 
+    fprogress: integer;
+    modulecount: integer;
+    enumeratedModules: integer;
     procedure EnumerateExtendedDebugSymbols;
 
     procedure LoadDriverSymbols;
@@ -106,6 +109,9 @@ type
     procedure execute; override;
     constructor create(owner: TSymhandler; targetself, CreateSuspended: boolean);
     destructor destroy; override;
+
+    property progress: integer read fProgress;
+
   end;
 
   TModuleInfoArray=array of TModuleInfo;
@@ -163,6 +169,7 @@ type
     function getusedprocessid:dword;
     function getisloaded:boolean;
     function geterror:boolean;
+    function getProgress:integer;
     function getDotNetAccess: boolean;
     function GetUserdefinedSymbolByNameIndex(symbolname:string):integer;
     function GetUserdefinedSymbolByAddressIndex(address: ptruint):integer;
@@ -191,6 +198,7 @@ type
     property isloaded: boolean read getisloaded;
     property hasError: boolean read geterror;
     property hasDotNetAccess: boolean read getDotNetAccess;
+    property progress: integer read getProgress;
 
     procedure waitforsymbolsloaded(apisymbolsonly: boolean=false; specificmodule: string='');
 
@@ -421,10 +429,13 @@ begin
     begin
 
       count:=need div sizeof(pointer);
+      modulecount:=count;
+
       getmem(modulename,1024);
       try
         for i:=0 to count-1 do
         begin
+
           GetModuleFileNameEx(thisprocesshandle,ptrUint(x[i]),modulename,200);
           symLoadModule64(thisprocesshandle,0,pchar(modulename),nil,ptrUint(x[i]),0);
         end;
@@ -854,6 +865,7 @@ begin
   self:=TSymbolloaderthread(UserContext);
   self.CurrentModulename:=ModuleName;
 
+
   if symhandler.getmodulebyaddress(baseofdll, mi) then
     self.currentModuleIsNotStandard:=ProcessHandler.is64Bit<>mi.is64bitmodule
   else
@@ -865,7 +877,10 @@ begin
 
   //mark this module as loaded
 
-  symhandler.markModuleAsLoaded(baseofdll)
+  symhandler.markModuleAsLoaded(baseofdll);
+  inc(self.enumeratedModules);
+
+  self.fprogress:=ceil((self.enumeratedModules / self.modulecount) * 100);
   {$ENDIF}
 end;
 
@@ -974,7 +989,6 @@ begin
             setlength(dotNetdomains,0);
 
 
-
             owner.dotNetDataCollector.EnumDomains(dotNetdomains);
             for i:=0 to length(dotNetdomains)-1 do
             begin
@@ -1006,7 +1020,6 @@ begin
               owner.dotNetDataCollector.ReleaseObject(dotNetdomains[i].hDomain);
             end;
 
-
             //enumerate the first module
             if (not terminated) and (length(dotNetmodules)>0) then
             begin
@@ -1027,16 +1040,21 @@ begin
           symsetsearchpath(processhandle,pchar(searchpath));
 
           if kernelsymbols then LoadDriverSymbols;
+
           LoadDLLSymbols;
 
           //enumerate the basic data from the symbols
+          enumeratedModules:=0;
           SymEnumerateModules64(thisprocesshandle, @EM, self );
+
           apisymbolsloaded:=true;
 
 
 
           if owner.dotNetDataCollector.Attached then
           begin
+            fprogress:=50;
+
             //Enumerate the other .net module methods
             for i:=1 to length(dotNetmodules)-1 do
             begin
@@ -1078,32 +1096,17 @@ begin
           self.owner.modulelistMREW.Endread;
         end;
 
-        for i:=0 to mpl.Count-1 do
+        modulecount:=mpl.count;
+        enumeratedModules:=0;
+        for i:=0 to modulecount-1 do
         begin
           modinfo:=pmodinfo(mpl.Objects[i]);
 
 
-{
-          highestsymboladdress:=0;
-          highestsymbol:='';}
-
-
           c.enumSymbolsFromFile(self.owner.modulelist[i].modulepath, modinfo^.baseaddress, NetworkES);
-            {
-          if (modinfo^.baseaddress+modinfo^.size)<highestsymboladdress then
-          begin
-            self.owner.modulelistMREW.Beginread;
-            try
-              for j:=0 to self.owner.modulelistpos-1 do
-                if self.owner.modulelist[j].baseaddress=modinfo^.baseaddress then
-                begin
-                  self.owner.modulelist[j].basesize:=highestsymboladdress-modinfo^.baseaddress;
-                  break;
-                end;
-            finally
-              self.owner.modulelistMREW.Endread;
-            end;
-          end;  }
+
+          inc(enumeratedModules);
+          fprogress:=ceil((i/modulecount)*100);
 
           freemem(modinfo);
         end;
@@ -1232,6 +1235,21 @@ begin
     setlength(tokens,length(tokens)+1);
     tokens[length(tokens)-1]:=t;
   end;
+end;
+
+function TSymHandler.getProgress: integer;
+begin
+  result:=0;
+  symbolloadervalid.beginread;
+  if symbolloaderthread<>nil then
+  begin
+    if symbolloaderthread.Finished then
+      result:=100
+    else
+      result:=symbolloaderthread.fprogress;
+  end;
+
+  symbolloadervalid.Endread;
 end;
 
 function TSymhandler.geterror:boolean;
@@ -2955,15 +2973,15 @@ begin
 
       for i:=0 to DissectedStructs.count-1 do
       begin
-        if uppercase(DissectedStructs[i].name)=structurename then
+        if uppercase(TDissectedStruct(DissectedStructs[i]).name)=structurename then
         begin
           //found the structure
-          for j:=0 to DissectedStructs[i].count-1 do
+          for j:=0 to TDissectedStruct(DissectedStructs[i]).count-1 do
           begin
-            if uppercase(DissectedStructs[i].element[j].Name)=elementname then
+            if uppercase(TDissectedStruct(DissectedStructs[i]).element[j].Name)=elementname then
             begin
               //found the element
-              offset:=DissectedStructs[i].element[j].Offset;
+              offset:=TDissectedStruct(DissectedStructs[i]).element[j].Offset;
               result:=true;
               break;
             end;

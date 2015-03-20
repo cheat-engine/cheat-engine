@@ -21,7 +21,7 @@ type
   private
     eventhandler: TDebugEventHandler;
     ThreadList: TList; //only the debugger thread can add or remove from this list
-    BreakpointList: TBreakpointList;  //only the main thread can add or remove from this list
+    BreakpointList: TList;  //only the main thread can add or remove from this list
 
     debuggerCS: TGuiSafeCriticalSection;
     //breakpointCS: TGuiSafeCriticalSection;
@@ -1768,7 +1768,7 @@ begin
   debuggercs.enter;
   setlength(addresslist, BreakpointList.count);
   for i:=0 to BreakpointList.count-1 do
-    addresslist[i]:=BreakpointList[i].address;
+    addresslist[i]:=PBreakpoint(BreakpointList[i])^.address;
 
   debuggercs.leave;
 end;
@@ -2333,7 +2333,7 @@ begin
   OnAttachEvent := TEvent.Create(nil, True, False, '');
   OnContinueEvent := Tevent.Create(nil, true, False, '');
   threadlist := TList.Create;
-  BreakpointList := TBreakpointList.Create;
+  BreakpointList := TList.Create;
   eventhandler := TDebugEventHandler.Create(self, OnAttachEvent, OnContinueEvent, breakpointlist, threadlist, debuggerCS);
 
 

@@ -13,7 +13,7 @@ handles the communication while it itself is going back to listen to new connect
 interface
 
 uses
-  windows, Classes, SysUtils, fgl, lua, lauxlib, lualib, LuaHandler;
+  windows, Classes, SysUtils, lua, lauxlib, lualib, LuaHandler;
 
 type
   TLuaServerHandler=class(TThread)
@@ -42,9 +42,9 @@ type
     property name: string read fname;
   end;
 
-  TLuaServers =  TFPGList<TLuaServer>;
+ // TLuaServers =  TFPGList<TLuaServer>;
 
-var luaservers: TLuaServers;
+var luaservers: TList;
 
 function luaserverExists(name: string): boolean;
 
@@ -55,7 +55,7 @@ var i: integer;
 begin
   result:=true;
   for i:=0 to luaservers.count-1 do
-    if luaservers[i].name=name then exit;
+    if TLuaServer(luaservers[i]).name=name then exit;
 
   result:=false;
 end;
@@ -218,7 +218,7 @@ begin
 end;
 
 initialization
-  luaservers:=TLuaServers.create;
+  luaservers:=TList.create;
 
 
 end.

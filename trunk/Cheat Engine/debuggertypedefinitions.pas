@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, Windows, FoundCodeUnit, formchangedaddresses, frmTracerUnit,
-  cefuncproc, NewKernelHandler, fgl, commonTypeDefs;
+  cefuncproc, NewKernelHandler, commonTypeDefs;
 
 type
   TNewProcedureData = record
@@ -213,7 +213,7 @@ type
     size: integer;       //1, 2 or 4
   end;
   TBreakpointSplitArray = array of TBreakpointSplit;
-  TBreakpointList=TFPGList<PBreakpoint>;
+ // TBreakpointList=TFPGList<PBreakpoint>;
 
 function BreakPointTriggerIsWatchpoint(bpt: TBreakpointTrigger): boolean; inline;
 

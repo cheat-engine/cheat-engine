@@ -5130,6 +5130,8 @@ end;
 
 procedure TMainForm.FreezeTimerTimer(Sender: TObject);
 begin
+
+
   try
     if addresslist <> nil then
       addresslist.ApplyFreeze;
@@ -7992,14 +7994,14 @@ begin
 end;
 
 
-
 procedure TMainForm.Label59Click(Sender: TObject);
 var
   r: TPointerListHandler;
   f: tfilestream;
   ds: Tdecompressionstream;
 
-  i: integer;
+  i,j: integer;
+  z: qword;
   sl: tstringlist;
 
   psr: TPointerListHandler;
@@ -8012,7 +8014,15 @@ var
   A: PTRUINT;
 
   shouldend: boolean;
+  th: thandle;
 begin
+  th:=OpenThread(THREAD_ALL_ACCESS, false, GetCurrentThreadId);
+
+  showmessage('before.  tid='+inttohex(GetCurrentThreadId,8));
+  NtSetInformationThread(th, jwawindows.ThreadHideFromDebugger, nil, 0);
+  showmessage('after');
+
+
  { vqe:=TVirtualQueryExCache.create(processhandle);
   a:=0;
 

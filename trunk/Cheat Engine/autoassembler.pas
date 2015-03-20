@@ -31,7 +31,7 @@ procedure unregisterAutoAssemblerPrologue(id: integer);
 implementation
 
 uses simpleaobscanner, StrUtils, LuaHandler, memscan, disassembler, networkInterface,
-     networkInterfaceApi, fgl, LuaCaller, SynHighlighterAA, Parsers, Globals;
+     networkInterfaceApi, LuaCaller, SynHighlighterAA, Parsers, Globals;
 
 resourcestring
   rsForwardJumpWithNoLabelDefined = 'Forward jump with no label defined';
@@ -89,11 +89,11 @@ resourcestring
   rsYouHavnTSpecifiedADisableSection = 'You havn''t specified a disable section';
   rsWrongSyntaxSHAREDALLOCNameSize = 'Wrong syntax. SHAREDALLOC(name,size)';
 
-type
-  TregisteredAutoAssemblerCommands =  TFPGList<TRegisteredAutoAssemblerCommand>;
+//type
+//  TregisteredAutoAssemblerCommands =  TFPGList<TRegisteredAutoAssemblerCommand>;
 
 var
-  registeredAutoAssemblerCommands: TregisteredAutoAssemblerCommands;
+  registeredAutoAssemblerCommands: TList;
 
   AutoAssemblerPrologues: array of TAutoAssemblerPrologue;
 
@@ -126,15 +126,15 @@ var i: integer;
     c:TRegisteredAutoAssemblerCommand;
 begin
   if registeredAutoAssemblerCommands=nil then
-    registeredAutoAssemblerCommands:=TregisteredAutoAssemblerCommands.Create;
+    registeredAutoAssemblerCommands:=TList.Create;
 
   command:=uppercase(command);
   for i:=0 to registeredAutoAssemblerCommands.Count-1 do
-    if registeredAutoAssemblerCommands[i].command=command then
+    if TRegisteredAutoAssemblerCommand(registeredAutoAssemblerCommands[i]).command=command then
     begin
       //update
-      CleanupLuaCall(tmethod(registeredAutoAssemblerCommands[i].callback));
-      registeredAutoAssemblerCommands[i].callback:=nil;//TAutoAssemblerCallback(callback);
+      CleanupLuaCall(tmethod(TRegisteredAutoAssemblerCommand(registeredAutoAssemblerCommands[i]).callback));
+      TRegisteredAutoAssemblerCommand(registeredAutoAssemblerCommands[i]).callback:=nil;//TAutoAssemblerCallback(callback);
       exit;
     end;
 
@@ -154,7 +154,7 @@ begin
   i:=0;
   while i<registeredAutoAssemblerCommands.count do
   begin
-    if registeredAutoAssemblerCommands[i].command=command then
+    if TRegisteredAutoAssemblerCommand(registeredAutoAssemblerCommands[i]).command=command then
     begin
       c:=registeredAutoAssemblerCommands[i];
       CleanupLuaCall(tmethod(c.callback));
@@ -1302,13 +1302,13 @@ begin
               s1:=uppercase(copy(currentline, 1, j-1));
               for j:=0 to registeredAutoAssemblerCommands.count-1 do
               begin
-                if registeredAutoAssemblerCommands[j].command=s1 then
+                if TRegisteredAutoAssemblerCommand(registeredAutoAssemblerCommands[j]).command=s1 then
                 begin
                   a:=pos('(',currentline);
                   b:=RPos(')',currentline);
                   s1:=copy(currentline, a+1, b-a-1);
 
-                  currentline:=registeredAutoAssemblerCommands[j].callback(s1, syntaxcheckonly);
+                  currentline:=TRegisteredAutoAssemblerCommand(registeredAutoAssemblerCommands[j]).callback(s1, syntaxcheckonly);
 
                   //insert the current text as lines into the codelist
                   multilineinjection:=TStringList.create;

@@ -9,7 +9,7 @@ uses
   windows, Classes, LCLProc, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls, math,
   StdCtrls, ComCtrls, Menus, lmessages, scrolltreeview, byteinterpreter, symbolhandler, cefuncproc,
   newkernelhandler, frmSelectionlistunit, frmStructuresConfigUnit, registry, Valuechange, DOM,
-  XMLRead, XMLWrite, Clipbrd, CustomTypeHandler, strutils, fgl, dotnetpipe, DotNetTypes, commonTypeDefs;
+  XMLRead, XMLWrite, Clipbrd, CustomTypeHandler, strutils, dotnetpipe, DotNetTypes, commonTypeDefs;
 
 
 
@@ -174,7 +174,7 @@ type
 
   PDissectedStruct=^TDissectedStruct;
 
-  TDissectedStructs=TFPGList<TDissectedStruct>;
+  //TDissectedStructs=TFPGList<TDissectedStruct>;
 
   TfrmStructures2=class;
   TStructColumn=class;
@@ -519,7 +519,7 @@ type
 
 var
   frmStructures2: TList;
-  DissectedStructs: TDissectedStructs;
+  DissectedStructs: TList;
 
 
 function registerStructureDissectOverride(m: TStructureDissectOverride): integer;
@@ -3320,7 +3320,7 @@ begin
     if structname<>rsUnnamedStructure then
     begin
       for i:=0 to DissectedStructs.Count-1 do
-        if dissectedstructs[i].name=structname then
+        if TDissectedStruct(dissectedstructs[i]).name=structname then
         begin
           if messagedlg(format(rsStructAlreadyExists,[structname]), mtWarning, [mbyes, mbno], 0)<>mryes then exit else break;
         end;
@@ -5078,7 +5078,7 @@ end;
 
 
 initialization
-  DissectedStructs:=TDissectedStructs.create;
+  DissectedStructs:=TList.create;
   frmStructures2:=tlist.Create;
 
 end.
