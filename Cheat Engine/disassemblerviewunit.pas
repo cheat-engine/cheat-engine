@@ -156,7 +156,7 @@ implementation
 uses processhandlerunit, parsers;
 
 resourcestring
-  rsSymbolsAreBeingLoaded = 'Symbols are being loaded';
+  rsSymbolsAreBeingLoaded = 'Symbols are being loaded (%d %%)';
   rsPleaseOpenAProcessFirst = 'Please open a process first';
   rsAddress = 'Address';
   rsBytes = 'Bytes';
@@ -646,7 +646,7 @@ begin
     if (not symhandler.isloaded) and (not symhandler.haserror) then
     begin
       if processid>0 then
-        statusinfolabel.Caption:=rsSymbolsAreBeingLoaded
+        statusinfolabel.Caption:=format(rsSymbolsAreBeingLoaded,[symhandler.progress])
       else
         statusinfolabel.Caption:=rsPleaseOpenAProcessFirst;
 
