@@ -472,10 +472,8 @@ var x: string;
     floathasseperator: boolean;
     couldbestringcounter: boolean;
 begin
-  {$ifdef windows}
-  Set8087CW($133f); //disable floating point exceptions (multithreaded)
-  SetMXCSR($1f80);
-  {$endif}
+  SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
+
 
   //check if it matches a string
   result:=vtDword;
