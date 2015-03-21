@@ -6113,14 +6113,21 @@ begin
     try
       if scantype=stFirstScan then
       begin
-        outputdebugstring('ScanController: This was a first scan, so saving the First Scan results');
-        outputdebugstring('to:'+OwningMemScan.ScanresultFolder+'ADDRESSES.First');
-        {$IFDEF LOWMEMORYUSAGE}
-        copyfile(OwningMemScan.ScanresultFolder+'ADDRESSES.TMP', OwningMemScan.ScanresultFolder+'ADDRESSES.First');
-        copyfile(OwningMemScan.ScanresultFolder+'MEMORY.TMP', OwningMemScan.ScanresultFolder+'MEMORY.First')
-        {$else}
-        OwningMemScan.SaveFirstScanThread:=TSaveFirstScanThread.create(OwningMemScan.ScanresultFolder, false,@OwningMemScan.memregion,@OwningMemScan.memregionpos, OwningMemScan.previousMemoryBuffer);
-        {$ENDIF}
+
+        if not OnlyOne then
+        begin
+          outputdebugstring('ScanController: This was a first scan, so saving the First Scan results');
+          outputdebugstring('to:'+OwningMemScan.ScanresultFolder+'ADDRESSES.First');
+
+          {$IFDEF LOWMEMORYUSAGE}
+          copyfile(OwningMemScan.ScanresultFolder+'ADDRESSES.TMP', OwningMemScan.ScanresultFolder+'ADDRESSES.First');
+          copyfile(OwningMemScan.ScanresultFolder+'MEMORY.TMP', OwningMemScan.ScanresultFolder+'MEMORY.First')
+          {$else}
+          OwningMemScan.SaveFirstScanThread:=TSaveFirstScanThread.create(OwningMemScan.ScanresultFolder, false,@OwningMemScan.memregion,@OwningMemScan.memregionpos, OwningMemScan.previousMemoryBuffer);
+          {$ENDIF}
+        end
+        else
+          OutputDebugString('This was an single result scan only. No need to save the first scan state');
       end;
     except
       on e: exception do
