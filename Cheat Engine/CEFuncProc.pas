@@ -2501,6 +2501,10 @@ begin
           if form.left<0 then form.left:=0;
 
 
+          if form.Top>Screen.WorkAreaHeight-20 then form.top:=screen.WorkAreaHeight-20;
+          if form.Left>Screen.WorkAreaWidth-10 then form.left:=screen.WorkAreaWidth-10;
+
+
           for i:=0 to length(x)-1 do
             x[i]:=buf[4+i];
 
