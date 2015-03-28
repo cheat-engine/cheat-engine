@@ -474,6 +474,7 @@ begin
       lblInfoLastOffset.top:=tedit(endoffsets[endoffsets.count-1]).top+4;
     end;
 
+    pnlButtons.top:=nextstart;
   end
   else
   begin
