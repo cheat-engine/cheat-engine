@@ -2497,12 +2497,12 @@ begin
           form.width:=buf[2];
           form.height:=buf[3];
 
-          if form.top<0 then form.top:=0;
-          if form.left<0 then form.left:=0;
+          if form.top<screen.WorkAreaTop then form.top:=screen.WorkAreaTop;
+          if form.left<screen.WorkAreaLeft then form.left:=screen.WorkAreaLeft;
 
 
-          if form.Top>Screen.WorkAreaHeight-20 then form.top:=screen.WorkAreaHeight-20;
-          if form.Left>Screen.WorkAreaWidth-10 then form.left:=screen.WorkAreaWidth-10;
+          if form.Top>Screen.WorkAreaHeight-form.height then form.top:=screen.WorkAreaHeight-form.height;
+          if form.Left>Screen.WorkAreaWidth-form.Width then form.left:=screen.WorkAreaWidth-form.Width;
 
 
           for i:=0 to length(x)-1 do
