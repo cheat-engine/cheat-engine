@@ -47,6 +47,7 @@
 #define CMD_SPEEDHACK_SETSPEED      30
 
 #define CMD_VIRTUALQUERYEXFULL      31
+#define CMD_GETREGIONINFO           32
 
 //just in case I ever get over 255 commands this value will be reserved for a secondary command list (FF 00 -  FF 01 - ... - FF FE - FF FF 01 - FF FF 02 - .....
 #define CMD_COMMANDLIST2            255

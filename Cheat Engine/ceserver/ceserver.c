@@ -709,6 +709,7 @@ int DispatchCommand(int currentsocket, unsigned char command)
     }
 
 
+    case CMD_GETREGIONINFO:
     case CMD_VIRTUALQUERYEX:
     {
       CeVirtualQueryExInput c;
@@ -730,23 +731,43 @@ int DispatchCommand(int currentsocket, unsigned char command)
           }
         }
 
+        char mapsline[200];
+
+        if (command==CMD_VIRTUALQUERYEX)
+          o.result=VirtualQueryEx(c.handle, (void *)(uintptr_t)c.baseaddress, &rinfo, NULL);
+        else
+        if (command==CMD_GETREGIONINFO)
+          o.result=VirtualQueryEx(c.handle, (void *)(uintptr_t)c.baseaddress, &rinfo, mapsline);
 
 
-
-
-        o.result=VirtualQueryEx(c.handle, (void *)(uintptr_t)c.baseaddress, &rinfo);
         o.protection=rinfo.protection;
         o.baseaddress=rinfo.baseaddress;
         o.type=rinfo.type;
         o.size=rinfo.size;
 
-        sendall(currentsocket, &o, sizeof(o), 0);
+        if (command==CMD_VIRTUALQUERYEX)
+          sendall(currentsocket, &o, sizeof(o), 0);
+        else
+        if (command==CMD_GETREGIONINFO)
+        {
+          sendall(currentsocket, &o, sizeof(o), MSG_MORE);
+          {
+            uint8_t size=strlen(mapsline);
+            sendall(currentsocket, &size, sizeof(size), MSG_MORE);
+            sendall(currentsocket, mapsline, size, 0);
+          }
+        }
+
+
+
+
 
 
       }
 
       break;
     }
+
 
 
 
