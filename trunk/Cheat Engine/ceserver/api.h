@@ -164,7 +164,7 @@ BOOL Process32Next(HANDLE hSnapshot, PProcessListEntry processentry);
 BOOL Process32First(HANDLE hSnapshot, PProcessListEntry processentry);
 HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID);
 HANDLE OpenProcess(DWORD pid);
-int VirtualQueryEx(HANDLE hProcess, void *lpAddress, PRegionInfo rinfo);
+int VirtualQueryEx(HANDLE hProcess, void *lpAddress, PRegionInfo rinfo, char *mapsline);
 int VirtualQueryExFull(HANDLE hProcess, uint32_t flags, RegionInfo **rinfo, uint32_t *count);
 int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size);
 int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size);

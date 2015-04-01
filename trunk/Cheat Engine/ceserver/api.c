@@ -2621,7 +2621,7 @@ int VirtualQueryExFull(HANDLE hProcess, uint32_t flags, RegionInfo **rinfo, uint
 
 }
 
-int VirtualQueryEx(HANDLE hProcess, void *lpAddress, PRegionInfo rinfo)
+int VirtualQueryEx(HANDLE hProcess, void *lpAddress, PRegionInfo rinfo, char *mapsline)
 {
   /*
    * Alternate method: read pagemaps and look up the pfn in /proc/kpageflags (needs to 2 files open and random seeks through both files, so not sure if slow or painfully slow...)
@@ -2651,6 +2651,8 @@ int VirtualQueryEx(HANDLE hProcess, void *lpAddress, PRegionInfo rinfo)
         unsigned long long start=0, stop=0;
         char protectionstring[25];
 
+        x[199]=0;
+
         if (x[strlen(x)-1]!='\n')
         {
           char discard[100];
@@ -2661,6 +2663,8 @@ int VirtualQueryEx(HANDLE hProcess, void *lpAddress, PRegionInfo rinfo)
             fgets(discard, 99, maps);
           } while (discard[99]!=0);
         }
+
+
 
 
         sscanf(x, "%llx-%llx %s", &start, &stop, protectionstring);
@@ -2684,6 +2688,9 @@ int VirtualQueryEx(HANDLE hProcess, void *lpAddress, PRegionInfo rinfo)
             rinfo->protection=PAGE_NOACCESS;
             rinfo->type=0;
           }
+
+          if (mapsline!=NULL)
+            strcpy(mapsline, x);
 
           break;
         }
