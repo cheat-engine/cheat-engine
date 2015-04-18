@@ -154,7 +154,7 @@ implementation
 
 uses cedebugger, kerneldebugger, formsettingsunit, FormDebugStringsUnit,
      frmBreakpointlistunit, plugin, memorybrowserformunit, autoassembler,
-     pluginexports, networkInterfaceApi, processhandlerunit, Globals;
+     pluginexports, networkInterfaceApi, processhandlerunit, Globals, LuaCaller;
 
 //-----------Inside thread code---------
 
@@ -384,6 +384,9 @@ begin
 
               if bp.traceendcondition<>nil then
                 Strdispose(bp.traceendcondition);
+
+              if assigned(bp.OnBreakpoint) then
+                LuaCaller.CleanupLuaCall(TMethod(bp.OnBreakpoint));
 
               freemem(bp);
 
