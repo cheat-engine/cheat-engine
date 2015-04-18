@@ -391,8 +391,8 @@ debug_isDebugging(): Returns true if the debugger has been started
 debug_canBreak(): Returns true if there is a possibility the target can stop in a breakpoint. 6.4+
 debug_getBreakpointList(): Returns a lua table containing all the breakpoint addresses
 
-debug_setBreakpoint(address, size OPTIONAL, trigger OPTIONAL, functiontocall OPTIONAL) : sets a breakpoint of a specific size at the given address. if trigger is bptExecute then size is ignored. If trigger is ignored then it will be of type bptExecute, which obviously also ignores the size then as well
-debug_setBreakpoint(address, functiontocall OPTIONAL)
+debug_setBreakpoint(address, size OPTIONAL, trigger OPTIONAL, functiontocall() OPTIONAL) : sets a breakpoint of a specific size at the given address. if trigger is bptExecute then size is ignored. If trigger is ignored then it will be of type bptExecute, which obviously also ignores the size then as well
+debug_setBreakpoint(address, functiontocall() OPTIONAL)
 debug_removeBreakpoint(address) : if the given address is a part of a breakpoint it will be removed
 debug_continueFromBreakpoint(continueMethod) : if the debugger is currently waiting to continue you can continue with this. Valid parameters are :co_run (just continue), co_stepinto(when on top of a call, follow it), co_stepover (when on top of a call run till after the call)
 debug_getXMMPointer(xmmregnr) :
