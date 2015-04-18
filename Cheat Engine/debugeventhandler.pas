@@ -185,7 +185,10 @@ begin
   else
     MemoryBrowser.lastdebugcontextarm:=armcontext;
 
-  WaitingToContinue:=not lua_onBreakpoint(context);
+  if assigned(currentbp.OnBreakpoint) then
+    WaitingToContinue:=currentbp.OnBreakpoint(currentbp, context)
+  else
+    WaitingToContinue:=not lua_onBreakpoint(context);
 
   if WaitingToContinue then //no lua script or it returned 0
     MemoryBrowser.UpdateDebugContext(self.Handle, self.ThreadId);

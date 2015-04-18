@@ -65,9 +65,11 @@ type
       function StructureNameLookup(var address: ptruint; var name: string): boolean;
       procedure AssemblerEvent(address:integer; instruction: string; var bytes: TAssemblerBytes);
       procedure AutoAssemblerPrologueEvent(code: TStrings; syntaxcheckonly: boolean);
-
-
       procedure ScreenFormEvent(Sender: TObject; Form: TCustomForm);
+
+      function BreakpointEvent(bp: pointer; context: pointer):boolean;
+
+
 
       procedure synchronize;
 
@@ -104,6 +106,7 @@ function LuaCaller_D3DKeyDownEvent(L: PLua_state): integer; cdecl; //(VirtualKey
 
 
 function LuaCaller_ScreenFormEvent(L: PLua_state): integer; cdecl; //(Form)
+function LuaCaller_BreakpointEvent(L: PLua_state): integer; cdecl; //():boolean;
 
 
 
@@ -115,7 +118,9 @@ function luacaller_getFunctionHeaderAndMethodForType(typeinfo: PTypeInfo; lc: po
 
 implementation
 
-uses luahandler, LuaByteTable, MainUnit, MemoryRecordUnit, disassemblerviewunit, hexviewunit, d3dhookUnit, luaclass;
+uses
+  luahandler, LuaByteTable, MainUnit, MemoryRecordUnit, disassemblerviewunit,
+  hexviewunit, d3dhookUnit, luaclass, debuggertypedefinitions;
 
 type
   TLuaCallData=class(tobject)
@@ -960,6 +965,27 @@ begin
   end;
 end;
 
+function TLuaCaller.BreakpointEvent(bp: Pointer; context: pointer):boolean;
+var oldstack: integer;
+begin
+  Luacs.Enter;
+  try
+    oldstack:=lua_gettop(Luavm);
+
+    if canRun then
+    begin
+      if context<>nil then
+      begin
+        PushFunction;
+        result:=LUA_onBreakpoint(context, true);
+      end;
+    end;
+  finally
+    lua_settop(Luavm, oldstack);
+    luacs.leave;
+  end;
+end;
+
 function TLuaCaller.AddressLookupCallback(address: ptruint): string;
 var oldstack: integer;
 begin
@@ -1748,6 +1774,28 @@ begin
     lua_pop(L, lua_gettop(L));
 
 end;
+
+function LuaCaller_BreakpointEvent(L: PLua_state): integer; cdecl; //():boolean;  //the state has already been set global
+var
+  m: TMethod;
+  sender: TObject;
+begin
+  result:=0;
+  if lua_gettop(L)=1 then
+  begin
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+
+    lua_pop(L, lua_gettop(L));
+
+
+    TBreakpointEvent(m)(nil,nil);
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+
+end;
+
 
 
 procedure registerLuaCall(typename: string; getmethodprop: lua_CFunction; setmethodprop: pointer; luafunctionheader: string);
