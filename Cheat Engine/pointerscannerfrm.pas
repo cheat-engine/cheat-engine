@@ -1340,7 +1340,9 @@ begin
       for i:=0 to Pointerscanresults.modulelistCount-1 do
         sqlite3.ExecuteDirect('INSERT INTO modules(ptrid, moduleid, name) values ('+ptrid+','+inttostr(i)+',"'+Pointerscanresults.getModulename(i)+'")');
 
-      for j:=0 to Pointerscanresults.count-1 do
+      //for j:=0 to Pointerscanresults.count-1 do
+      j:=0;
+      while j<=Pointerscanresults.count-1 do
       begin
         offsetlist:='';
         offsetvalues:='';
@@ -1361,7 +1363,7 @@ begin
           progressbar1.position:=ceil(j / Pointerscanresults.count * 100);
           progressbar1.Update;
         end;
-
+        inc(j);
       end;
       progressbar1.position:=100;
       progressbar1.update;
