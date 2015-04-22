@@ -91,7 +91,9 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   LuaDissectCode, LuaByteTable, LuaBinary, lua_server, HotkeyHandler, LuaPipeClient,
   LuaPipeServer, LuaTreeview, LuaTreeNodes, LuaTreeNode, LuaCalendar, LuaSymbolListHandler,
   LuaCommonDialog, LuaFindDialog, LuaSettings, LuaPageControl, LuaRipRelativeScanner,
-  SymbolListHandler, processhandlerunit, processlist, Globals;
+  SymbolListHandler, processhandlerunit, processlist, DebuggerInterface,
+  WindowsDebugger, VEHDebugger, KernelDebuggerInterface, DebuggerInterfaceAPIWrapper,
+  Globals;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -2213,6 +2215,26 @@ begin
   ce_debugProcess(debuggerinterface);
 end;
 
+function debug_getCurrentDebuggerInterface(L:PLua_State): integer; cdecl;
+begin
+
+  if debuggerthread<>nil then
+  begin
+    if (CurrentDebuggerInterface is TWindowsDebuggerInterface) then
+      lua_pushinteger(L, 1);
+
+    if (CurrentDebuggerInterface is TVEHDebugInterface) then
+      lua_pushinteger(L, 2);
+
+    if (CurrentDebuggerInterface is TKernelDebugInterface) then
+      lua_pushinteger(L, 3);
+
+    result:=1;
+  end
+  else
+    result:=0;
+end;
+
 function debug_getBreakpointList(L: Plua_State): integer; cdecl;
 var
   al: TAddressArray;
@@ -2298,6 +2320,8 @@ begin
   lua_pushboolean(L, debuggerthread<>nil);
   result:=1;
 end;
+
+
 
 function debug_canBreak(L: Plua_State): integer; cdecl;
 var list: TAddressArray;
@@ -4778,6 +4802,7 @@ end;
 
 function lua_detachIfPossible(L: Plua_State): integer; cdecl;
 begin
+  result:=0;
   DetachIfPossible;
   lua_pop(L, lua_gettop(L));
 end;
@@ -4865,6 +4890,7 @@ end;
 function openLuaServer(L: PLua_State): integer; cdecl;
 var name: string;
 begin
+  result:=0;
   if lua_gettop(L)=1 then
     name:=Lua_ToString(L, 1)
   else
@@ -4914,6 +4940,7 @@ end;
 function lua_unregisterAutoAssemblerCommand(L: PLua_State): integer; cdecl;
 var command: string;
 begin
+  result:=0;
   if lua_gettop(L)=1 then
   begin
     command:=Lua_ToString(L, 1);
@@ -5309,6 +5336,8 @@ var
   ms: TMemorystream;
   playparam: dword;
 begin
+  result:=0;
+
   if lua_gettop(L)>=1 then
   begin
     if winmm=0 then
@@ -5369,6 +5398,7 @@ end;
 
 function activateProtection(L: PLua_State): integer; cdecl;
 begin
+  result:=0;
   if lua_gettop(L)=0 then
     protectme
   else
@@ -5545,6 +5575,7 @@ begin
     lua_register(LuaVM, 'debugProcess', debugProcess);
     lua_register(LuaVM, 'debug_getBreakpointList', debug_getBreakpointList);
     lua_register(LuaVM, 'debug_isDebugging', debug_isDebugging);
+    lua_register(LuaVM, 'debug_getCurrentDebuggerInterface', debug_getCurrentDebuggerInterface);
     lua_register(LuaVM, 'debug_canBreak', debug_canBreak);
     lua_register(LuaVM, 'debug_setBreakpoint', debug_setBreakpoint);
     lua_register(LuaVM, 'debug_removeBreakpoint', debug_removeBreakpoint);

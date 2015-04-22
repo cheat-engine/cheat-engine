@@ -388,6 +388,7 @@ createProcess(path, parameters OPTIONAL, debug OPTIONAL, breakonentrypoint OPTIO
 debugProcess(interface OPT): starts the debugger for the currently opened process (won't ask the user) Optional interface: 0=default, 1=windows debug, 2=VEHDebug, 3=Kerneldebug
 
 debug_isDebugging(): Returns true if the debugger has been started
+debug_getCurrentDebuggerInterface() : Returns the current debuggerinterface used (1=windows, 2=VEH 3=Kernel, nil=no debugging active)
 debug_canBreak(): Returns true if there is a possibility the target can stop in a breakpoint. 6.4+
 debug_getBreakpointList(): Returns a lua table containing all the breakpoint addresses
 
