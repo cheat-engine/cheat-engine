@@ -478,7 +478,7 @@ begin
   for i:=0 to min(63, length(noBreakList)-1) do
     VEHDebugView.NoBreakList[i]:=noBreakList[i];
 
-  VEHDebugView.NoBreakListSize:=length(nobreaklist);
+  VEHDebugView.NoBreakListSize:=min(63, length(noBreakList)-1);
 end;
 
 procedure TVEHDebugInterface.AddToNoBreakList(threadid: integer);
