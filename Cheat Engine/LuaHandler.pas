@@ -2482,7 +2482,7 @@ begin
   result:=1;
   if debuggerthread<>nil then
   begin
-    debuggerthread.AddToNoBreakList(lua_tointeger(L,1));
+    CurrentDebuggerInterface.AddToNoBreakList(lua_tointeger(L,1));
     lua_pushboolean(L, true);
   end
   else
@@ -2494,7 +2494,7 @@ begin
   result:=1;
   if debuggerthread<>nil then
   begin
-    debuggerthread.RemoveFromNoBreakList(lua_tointeger(L,1));
+    CurrentDebuggerInterface.RemoveFromNoBreakList(lua_tointeger(L,1));
     lua_pushboolean(L, true);
   end
   else

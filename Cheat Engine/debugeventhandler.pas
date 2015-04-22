@@ -718,7 +718,7 @@ end;
 
 function TDebugThreadHandler.InNoBreakList: boolean;
 begin
-  result:=TDebuggerthread(debuggerthread).InNoBreakList(threadid);
+  result:=CurrentDebuggerInterface.InNoBreakList(threadid);
 end;
 
 function TDebugThreadHandler.CheckIfConditionIsMet(bp: PBreakpoint; script: string=''): boolean;
