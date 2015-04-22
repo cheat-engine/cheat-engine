@@ -49,6 +49,7 @@ type
 
     ResumeProcessWhenIdleCounter: dword; //suspend counter to tell the cleanup handler to resume the process
 
+    noBreakList: array of thandle;
 
     function getDebugThreadHanderFromThreadID(tid: dword): TDebugThreadHandler;
 
@@ -93,6 +94,10 @@ type
     procedure updatebplist(lv: TListview; showshadow: boolean);
     procedure setbreakpointcondition(bp: PBreakpoint; easymode: boolean; script: string);
     function getbreakpointcondition(bp: PBreakpoint; var easymode: boolean):pchar;
+
+    function inNoBreakList(threadid: integer): boolean;
+    procedure AddToNoBreakList(threadid: integer);
+    procedure RemoveFromNoBreakList(threadid: integer);
 
     procedure getBreakpointAddresses(var AddressList: TAddressArray);
     function  isBreakpoint(address: uint_ptr; address2: uint_ptr=0; includeinactive: boolean=false): PBreakpoint;
@@ -1775,6 +1780,41 @@ begin
     addresslist[i]:=PBreakpoint(BreakpointList[i])^.address;
 
   debuggercs.leave;
+end;
+
+function TDebuggerthread.inNoBreakList(threadid: integer): boolean;
+var i: integer;
+begin
+  result:=false;
+  for i:=0 to length(nobreaklist)-1 do
+    if nobreaklist[i]=threadid then
+    begin
+      result:=true;
+      exit;
+    end;
+end;
+
+procedure TDebuggerthread.AddToNoBreakList(threadid: integer);
+begin
+  if innobreaklist(threadid) then exit;
+
+  setlength(nobreaklist, length(nobreaklist)+1);
+  nobreaklist[length(nobreaklist)-1]:=threadid;
+end;
+
+procedure TDebuggerthread.RemoveFromNoBreakList(threadid: integer);
+var i,j: integer;
+begin
+  for i:=0 to length(noBreakList)-1 do
+  begin
+    if nobreaklist[i]=threadid then
+    begin
+      for j:=i to length(nobreaklist)-2 do
+        nobreaklist[j]:=nobreaklist[j+1];
+
+      setlength(nobreaklist, length(nobreaklist)-1);
+    end;
+  end;
 end;
 
 procedure TDebuggerthread.updatebplist(lv: TListview; showshadow: boolean);

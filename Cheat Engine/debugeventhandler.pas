@@ -55,7 +55,7 @@ type
     currentBP: PBreakpoint;
 
     function CheckIfConditionIsMet(bp: PBreakpoint; script: string=''): boolean;
-
+    function InNoBreakList: boolean;
 
     function HandleAccessViolationDebugEvent(debugEvent: TDEBUGEVENT; var dwContinueStatus: dword): boolean;
     function HandleExceptionDebugEvent(debugEvent: TDEBUGEVENT; var dwContinueStatus: dword): boolean;
@@ -716,11 +716,18 @@ begin
   end;
 end;
 
+function TDebugThreadHandler.InNoBreakList: boolean;
+begin
+  result:=TDebuggerthread(debuggerthread).InNoBreakList(threadid);
+end;
+
 function TDebugThreadHandler.CheckIfConditionIsMet(bp: PBreakpoint; script: string=''): boolean;
 var
   i:integer;
 begin
   TDebuggerthread(debuggerthread).execlocation:=14;
+
+
 
   result:=true;
   if (script<>'') or (bp<>nil) then
@@ -774,9 +781,6 @@ begin
 
     if InRangeX(address, bpp.address, bpp.address+bpp.size-1) then
     begin
-
-
-
       if (not (CurrentDebuggerInterface is TNetworkDebuggerInterface)) and (debugreg in [0..4]) and (bpp.breakpointMethod=bpmDebugRegister) and (bpp.debugRegister<>debugreg) then
         continue; //this is not the correct breakpoint. Skip it
 
@@ -830,7 +834,7 @@ begin
 
 
 
-    if (bpp.OneTimeOnly=false) and (((bpp.breakpointMethod<>bpmException) and (not active)) or (not CheckIfConditionIsMet(bpp) or (bpp.markedfordeletion) )) then
+    if (InNoBreakList) or ((bpp.OneTimeOnly=false) and (((bpp.breakpointMethod<>bpmException) and (not active)) or (not CheckIfConditionIsMet(bpp) or (bpp.markedfordeletion) ))) then
     begin
       TDebuggerthread(debuggerthread).execlocation:=28;
       OutputDebugString('bp was disabled or Condition was not met');

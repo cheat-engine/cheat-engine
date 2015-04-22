@@ -2477,6 +2477,30 @@ begin
   lua_pop(L, lua_gettop(L)); //clear the stack
 end;
 
+function debug_addThreadToNoBreakList(L: Plua_State): integer; cdecl;
+begin
+  result:=1;
+  if debuggerthread<>nil then
+  begin
+    debuggerthread.AddToNoBreakList(lua_tointeger(L,1));
+    lua_pushboolean(L, true);
+  end
+  else
+    lua_pushboolean(L, false);
+end;
+
+function debug_removeThreadFromNoBreakList(L: Plua_State): integer; cdecl;
+begin
+  result:=1;
+  if debuggerthread<>nil then
+  begin
+    debuggerthread.RemoveFromNoBreakList(lua_tointeger(L,1));
+    lua_pushboolean(L, true);
+  end
+  else
+    lua_pushboolean(L, false);
+end;
+
 var isclosing: boolean;
 function closeCE(L: Plua_state): integer; cdecl;
 var th: thandle;
@@ -5580,6 +5604,10 @@ begin
     lua_register(LuaVM, 'debug_setBreakpoint', debug_setBreakpoint);
     lua_register(LuaVM, 'debug_removeBreakpoint', debug_removeBreakpoint);
     lua_register(LuaVM, 'debug_continueFromBreakpoint', debug_continueFromBreakpoint);
+
+    lua_register(LuaVM, 'debug_addThreadToNoBreakList', debug_addThreadToNoBreakList);
+    lua_register(LuaVM, 'debug_removeThreadFromNoBreakList', debug_removeThreadFromNoBreakList);
+
     lua_register(LuaVM, 'closeCE', closeCE);
     lua_register(LuaVM, 'hideAllCEWindows', hideAllCEWindows);
     lua_register(LuaVM, 'unhideMainCEwindow', unhideMainCEwindow);

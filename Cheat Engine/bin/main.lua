@@ -392,6 +392,10 @@ debug_getCurrentDebuggerInterface() : Returns the current debuggerinterface used
 debug_canBreak(): Returns true if there is a possibility the target can stop in a breakpoint. 6.4+
 debug_getBreakpointList(): Returns a lua table containing all the breakpoint addresses
 
+debug_addThreadToNoBreakList(threadid): This will cause breakpoints on the provided thread to be ignored
+debug_removeThreadFromNoBreakList(threadid): removed the threadid from the list
+
+
 debug_setBreakpoint(address, size OPTIONAL, trigger OPTIONAL, functiontocall() OPTIONAL) : sets a breakpoint of a specific size at the given address. if trigger is bptExecute then size is ignored. If trigger is ignored then it will be of type bptExecute, which obviously also ignores the size then as well
 debug_setBreakpoint(address, functiontocall() OPTIONAL)
 debug_removeBreakpoint(address) : if the given address is a part of a breakpoint it will be removed
