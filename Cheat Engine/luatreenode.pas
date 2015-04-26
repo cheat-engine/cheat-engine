@@ -65,6 +65,22 @@ begin
   treenode.Collapse(recursive);
 end;
 
+function treenode_getItems(L: PLua_State): integer; cdecl;
+var
+  treenode: Ttreenode;
+  index: integer;
+begin
+  result:=0;
+  treenode:=luaclass_getClassObject(L);
+
+  if lua_gettop(L)>=1 then
+  begin
+    index:=lua_tointeger(L,-1);
+    luaclass_newClass(L, treenode.Items[index]);
+    result:=1;
+  end;
+end;
+
 function treenode_getCount(L: PLua_State): integer; cdecl;
 var
   treenode: Ttreenode;
@@ -288,6 +304,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'collapse', treenode_collapse);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'deleteChildren', treenode_deleteChildren);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getNextSibling', treenode_getNextSibling);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getItems', treenode_getItems);
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'Data', treenode_getData, treenode_setData);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Text', treenode_getText, treenode_setText);
@@ -300,6 +317,8 @@ begin
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Parent', treenode_getParent, nil);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'HasChildren', treenode_getHasChildren, treenode_setHasChildren);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Expanded', treenode_getExpanded, treenode_setExpanded);
+  luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Items', treenode_getItems);
+  luaclass_setDefaultArrayProperty(L, metatable, userdata, treenode_getItems, nil);
 
 end;
 

@@ -1082,7 +1082,7 @@ methods
   getCanvas() : Canvas - Returns the canvas object used to render the listview
 
 
-TreeNode clasS : (Inheritance: TObject)
+TreeNode class : (Inheritance: TObject)
 properties
   Text: string - The text of the treenode
   Parent: Treenode - The treenode this object is a child of. (can be nil) (ReadOnly)
@@ -1091,6 +1091,7 @@ properties
   Expanded: boolean - Set to true if it has been expanded
   Count : Integer - The number of children this node has
   Items[]: Treenode - Array to access the child nodes of this node
+  [] = Items[]
   Index: Integer - The index based on the parent
   AbsoluteIndex: Integer - The index based on the TreeView's Treenodes object (Items)
   Selected: Boolean - Set to true if currently selected
@@ -1116,7 +1117,7 @@ properties
 methods
   clear()
   getCount()
-  getItem(integer) : Return the listitem object at the given index
+  getItem(integer) : Return the TreeNode object at the given index (based on the TreeView's Treenodes)
   add(text:string): Returns a new root Treenode object
   insert(treenode, string): Returns a new treenode object that has been inserted before the given treenode
   insertBehind(treenode, string): Returns a new treenode object that has been inserted after the given treenode
