@@ -135,8 +135,30 @@ begin
 
 end;
 
+
 function Handler(ExceptionInfo: PEXCEPTION_POINTERS): LONG; stdcall;
+const STATUS_WX86_SINGLE_STEP = $4000001E;
+var i: integer;
+  tid: dword;
 begin
+   //check if the current threadid is in the NoBreakList and if so, and the break is a single step(so not int3 or pagefault, or whatever) continue with the resume flag set
+   tid:=GetCurrentThreadId;
+   for i:=0 to VEHSharedMem.NoBreakListSize-1 do
+   begin
+
+     if VEHSharedMem.NoBreakList[i]=tid then
+     begin
+       if (ExceptionInfo.ExceptionRecord.ExceptionCode = EXCEPTION_SINGLE_STEP) or (ExceptionInfo.ExceptionRecord.ExceptionCode=STATUS_WX86_SINGLE_STEP) then
+       begin
+         ExceptionInfo.ContextRecord^.EFlags:=ExceptionInfo.ContextRecord^.EFlags or $10000; //set the RF bit
+         result:=EXCEPTION_CONTINUE_EXECUTION;
+         exit;
+       end
+       else
+         break; //not a single step
+     end;
+   end;
+
   result:=InternalHandler(ExceptionInfo, getCurrentThreadID);
 end;
 

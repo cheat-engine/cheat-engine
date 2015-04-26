@@ -50,6 +50,7 @@ type
     ResumeProcessWhenIdleCounter: dword; //suspend counter to tell the cleanup handler to resume the process
 
 
+
     function getDebugThreadHanderFromThreadID(tid: dword): TDebugThreadHandler;
 
     procedure GetBreakpointList(address: uint_ptr; size: integer; var bplist: TBreakpointSplitArray);
@@ -93,6 +94,7 @@ type
     procedure updatebplist(lv: TListview; showshadow: boolean);
     procedure setbreakpointcondition(bp: PBreakpoint; easymode: boolean; script: string);
     function getbreakpointcondition(bp: PBreakpoint; var easymode: boolean):pchar;
+
 
     procedure getBreakpointAddresses(var AddressList: TAddressArray);
     function  isBreakpoint(address: uint_ptr; address2: uint_ptr=0; includeinactive: boolean=false): PBreakpoint;
@@ -1776,6 +1778,7 @@ begin
 
   debuggercs.leave;
 end;
+
 
 procedure TDebuggerthread.updatebplist(lv: TListview; showshadow: boolean);
 {

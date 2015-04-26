@@ -23,6 +23,7 @@ type
     active: boolean;
     is64bit: boolean; //stored local so it doesn't have to evaluate the property (saves some time)
     hasPausedProcess: boolean;
+    procedure SynchronizeNoBreakList;
   public
     function WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL; override;
     function ContinueDebugEvent(dwProcessId: DWORD; dwThreadId: DWORD; dwContinueStatus: DWORD): BOOL; override;
@@ -31,6 +32,8 @@ type
 
     function DebugActiveProcess(dwProcessId: DWORD): WINBOOL; override;
     function DebugActiveProcessStop(dwProcessID: DWORD): WINBOOL; override;
+    procedure AddToNoBreakList(threadid: integer); override;
+    procedure RemoveFromNoBreakList(threadid: integer); override;
     destructor destroy; override;
     constructor create;
   end;
@@ -468,6 +471,28 @@ begin
 
   end;
 end;
+
+procedure TVEHDebugInterface.SynchronizeNoBreakList;
+var i: integer;
+begin
+  for i:=0 to min(63, length(noBreakList)-1) do
+    VEHDebugView.NoBreakList[i]:=noBreakList[i];
+
+  VEHDebugView.NoBreakListSize:=min(63, length(noBreakList)-1);
+end;
+
+procedure TVEHDebugInterface.AddToNoBreakList(threadid: integer);
+begin
+  inherited AddToNoBreakList(threadid);
+  SynchronizeNoBreakList;
+end;
+
+procedure TVEHDebugInterface.RemoveFromNoBreakList(threadid: integer);
+begin
+  inherited RemoveFromNoBreakList(threadid);
+  SynchronizeNoBreakList;
+end;
+
 
 end.
 

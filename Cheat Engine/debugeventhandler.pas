@@ -55,7 +55,7 @@ type
     currentBP: PBreakpoint;
 
     function CheckIfConditionIsMet(bp: PBreakpoint; script: string=''): boolean;
-
+    function InNoBreakList: boolean;
 
     function HandleAccessViolationDebugEvent(debugEvent: TDEBUGEVENT; var dwContinueStatus: dword): boolean;
     function HandleExceptionDebugEvent(debugEvent: TDEBUGEVENT; var dwContinueStatus: dword): boolean;
@@ -185,10 +185,13 @@ begin
   else
     MemoryBrowser.lastdebugcontextarm:=armcontext;
 
-  if assigned(currentbp.OnBreakpoint) then
+
+
+  if (currentbp<>nil) and (assigned(currentbp.OnBreakpoint)) then
     WaitingToContinue:=currentbp.OnBreakpoint(currentbp, context)
   else
     WaitingToContinue:=not lua_onBreakpoint(context);
+
 
   if WaitingToContinue then //no lua script or it returned 0
     MemoryBrowser.UpdateDebugContext(self.Handle, self.ThreadId);
@@ -713,11 +716,18 @@ begin
   end;
 end;
 
+function TDebugThreadHandler.InNoBreakList: boolean;
+begin
+  result:=CurrentDebuggerInterface.InNoBreakList(threadid);
+end;
+
 function TDebugThreadHandler.CheckIfConditionIsMet(bp: PBreakpoint; script: string=''): boolean;
 var
   i:integer;
 begin
   TDebuggerthread(debuggerthread).execlocation:=14;
+
+
 
   result:=true;
   if (script<>'') or (bp<>nil) then
@@ -771,9 +781,6 @@ begin
 
     if InRangeX(address, bpp.address, bpp.address+bpp.size-1) then
     begin
-
-
-
       if (not (CurrentDebuggerInterface is TNetworkDebuggerInterface)) and (debugreg in [0..4]) and (bpp.breakpointMethod=bpmDebugRegister) and (bpp.debugRegister<>debugreg) then
         continue; //this is not the correct breakpoint. Skip it
 
@@ -827,7 +834,7 @@ begin
 
 
 
-    if (bpp.OneTimeOnly=false) and (((bpp.breakpointMethod<>bpmException) and (not active)) or (not CheckIfConditionIsMet(bpp) or (bpp.markedfordeletion) )) then
+    if (InNoBreakList) or ((bpp.OneTimeOnly=false) and (((bpp.breakpointMethod<>bpmException) and (not active)) or (not CheckIfConditionIsMet(bpp) or (bpp.markedfordeletion) ))) then
     begin
       TDebuggerthread(debuggerthread).execlocation:=28;
       OutputDebugString('bp was disabled or Condition was not met');

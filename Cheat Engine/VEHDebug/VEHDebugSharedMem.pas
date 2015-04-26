@@ -27,11 +27,16 @@ type TVEHDebugSharedMem=packed record
   ThreadWatchMethod: QWORD;
   ThreadWatchMethodConfig: QWORD; //each bit contains an boolean option (for threadpoll, the only one implemented, bit 0 means simulate thread create contexts)
 
+  NoBreakListSize: QWORD;   //number of entries in the nobreaklist
+  NoBreakList: array [0..63] of QWORD;
 
   case integer of
     1: (Exception32: EXCEPTION_RECORD32);
     2: (Exception64: EXCEPTION_RECORD64);
-//  end;
+  //end;
+
+
+
 
 
 
