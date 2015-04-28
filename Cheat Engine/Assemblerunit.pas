@@ -1635,7 +1635,7 @@ procedure unregisterAssembler(id: integer);
 implementation
 
 uses {$ifndef autoassemblerdll}CEFuncProc,{$endif}symbolhandler, lua, luahandler,
-  lualib, assemblerArm, Parsers;
+  lualib, assemblerArm, Parsers, NewKernelHandler;
 
 
 var ExtraAssemblers: array of TAssemblerEvent;
@@ -3273,6 +3273,9 @@ var tokens: ttokens;
     is64bit: boolean;
 
 
+    b: byte;
+    br: PTRUINT;
+
 begin
   setlength(bytes,0);
   is64bit:=processhandler.is64Bit;
@@ -3313,7 +3316,18 @@ begin
           else addstring(bytes,tokens[i]); //lets try to save face...
         end
         else
-          add(bytes,[HexStrToInt(tokens[i])]);
+        begin    //db 00 00 ?? ?? ?? ?? 00 00
+          if ((length(tokens[i])>=1) and (tokens[i][1] in ['?','*'])) and
+             ((length(tokens[i])<2) or ((length(tokens[i])=2) and (tokens[i][2]=tokens[i][1]))) then
+          begin
+            //wildcard
+            v:=0;
+            ReadProcessMemory(processhandle,pointer(address+i-1), @b, 1, br);
+            add(bytes, b);
+          end
+          else
+            add(bytes,[HexStrToInt(tokens[i])]);
+        end;
       end;
 
       result:=true;
