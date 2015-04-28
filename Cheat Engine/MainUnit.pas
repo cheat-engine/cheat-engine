@@ -2900,7 +2900,14 @@ var x: TPortableNetworkGraphic;
   m: array [0..8] of ptruint;
 
 begin
+  try
+    asm
+      int3
+    end;
 
+  except
+    log('expected exception');
+  end;
 
 
 
@@ -4802,6 +4809,24 @@ begin
         if not AdjustTokenPrivileges(tokenhandle, False, tp, sizeof(tp),
           prev, returnlength) then
           ShowMessage('Failure setting the debug privilege. Debugging may be limited.');
+      end;
+
+      if lookupPrivilegeValue(nil, 'SeTcbPrivilege', tp.Privileges[0].Luid) then
+      begin
+        tp.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
+        tp.PrivilegeCount := 1; // One privilege to set
+        if not AdjustTokenPrivileges(tokenhandle, False, tp, sizeof(tp),
+          prev, returnlength) then
+          ShowMessage('Failure setting the SeTcbPrivilege privilege. Debugging may be limited.');
+      end;
+
+      if lookupPrivilegeValue(nil, 'SeTcbPrivilege', tp.Privileges[0].Luid) then
+      begin
+        tp.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
+        tp.PrivilegeCount := 1; // One privilege to set
+        if not AdjustTokenPrivileges(tokenhandle, False, tp, sizeof(tp),
+          prev, returnlength) then
+          ShowMessage('Failure setting the SeTcbPrivilege privilege. Debugging may be limited.');
       end;
 
 
@@ -7996,7 +8021,7 @@ end;
 
 procedure TMainForm.Label59Click(Sender: TObject);
 var
-  r: TPointerListHandler;
+ // r: TPointerListHandler;
   f: tfilestream;
   ds: Tdecompressionstream;
 
@@ -8014,12 +8039,44 @@ var
   A: PTRUINT;
 
   shouldend: boolean;
-  th: thandle;
+  ph, th: thandle;
+
+
+
+
+
+  s: widestring;
+
+  prh: thandle;
+
+  dh: thandle;
+
+  ch: THandle;
+  pn: UNICODE_STRING;
+  r: NTSTATUS;
+  mms: ulong;
+  cdl: ulong;
+
+
+  sqos: SECURITY_QUALITY_OF_SERVICE;
 begin
+
+
+
+//  showmessage('sip='+inttohex(r,8));
+
+ // windows.GetThreadContext();
+
+
+  //NtCreatePort(@ph, @oa);
+
+//  th:=OpenThread(THREAD_ALL_ACCESS, false, strtoint(scanvalue.text));
+
+  showmessage('threadid='+inttohex(getcurrentthreadid,1));
   th:=OpenThread(THREAD_ALL_ACCESS, false, GetCurrentThreadId);
 
-  showmessage('before.  tid='+inttohex(GetCurrentThreadId,8));
-  NtSetInformationThread(th, jwawindows.ThreadHideFromDebugger, nil, 0);
+
+  r:=NtSetInformationThread(th, jwawindows.ThreadHideFromDebugger, nil, 0);
   showmessage('after');
 
 

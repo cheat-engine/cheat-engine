@@ -98,7 +98,7 @@ function registerCustomTypeLua(L: PLua_State): integer; cdecl;
 function registerCustomTypeAutoAssembler(L: PLua_State): integer; cdecl;
 
 var customTypes: TList; //list holding all the custom types
-    AllIncludesCustomType: boolean;
+//    AllIncludesCustomType: boolean;
     MaxCustomTypeSize: integer;
 
 implementation

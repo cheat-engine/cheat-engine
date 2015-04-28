@@ -183,6 +183,15 @@ type
     customtypesmatch: array of boolean;
     customtypecount: integer;
 
+    //some variables to hold what types to scan for all (faster then checking the set)
+    allByte: boolean;
+    allWord: boolean;
+    allDword: boolean;
+    allQword: boolean;
+    allFloat: boolean;
+    allDouble: boolean;
+    allCustom: boolean;
+
     //groupdata
     groupdata: TGroupData;
 
@@ -393,9 +402,6 @@ type
     scanType: TScanType; //defines if it's a firstscan or next scan. (newscan is ignored)
     useNextNextscan: boolean; //determines to use the nextNextScan or firstNextScan
 
-    allincludescustomtypes: boolean;
-
-
     //thread controlling variables:
     isdone: boolean; //will get set to true when the thread finishes normally
     haserror: boolean;
@@ -486,7 +492,6 @@ type
     compareToSavedScan: boolean;
     savedscanname: string;
 
-    allincludescustomtypes: boolean;
     scanOption: TScanOption;
     variableType: TVariableType;
     customType: TCustomType;
@@ -1301,7 +1306,7 @@ begin
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleExact(newvalue,oldvalue);
 
   {$ifdef customtypeimplemented}
-  if allincludescustomtypes then
+  if allCustom then
   begin
     //also scan custom types
     for j:=0 to customtypecount-1 do
@@ -1324,7 +1329,7 @@ begin
       exit;
     end;
 
-  if allincludescustomtypes then
+  if allCustom then
     for j:=0 to customtypecount-1 do
       if customtypesmatch[j] then
       begin
@@ -1346,7 +1351,7 @@ begin
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleBetween(newvalue,oldvalue);
 
   {$ifdef customtypeimplemented}
-  if allincludescustomtypes then
+  if allCustom then
   begin
     //also scan custom types
     for j:=0 to customtypecount-1 do
@@ -1369,7 +1374,7 @@ begin
       exit;
     end;
 
-  if allincludescustomtypes then
+  if allCustom then
     for j:=0 to customtypecount-1 do
       if customtypesmatch[j] then
       begin
@@ -1390,7 +1395,7 @@ begin
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleBetweenPercentage(newvalue,oldvalue);
 
   {$ifdef customtypeimplemented}
-  if allincludescustomtypes then
+  if allCustom then
   begin
     //also scan custom types
     for j:=0 to customtypecount-1 do
@@ -1413,7 +1418,7 @@ begin
       exit;
     end;
 
-  if allincludescustomtypes then
+  if allCustom then
     for j:=0 to customtypecount-1 do
       if customtypesmatch[j] then
       begin
@@ -1434,7 +1439,7 @@ begin
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleBiggerThan(newvalue,oldvalue);
 
   {$ifdef customtypeimplemented}
-  if allincludescustomtypes then
+  if allCustom then
   begin
     //also scan custom types
     for j:=0 to customtypecount-1 do
@@ -1456,7 +1461,7 @@ begin
       exit;
     end;
 
-  if allincludescustomtypes then
+  if allCustom then
     for j:=0 to customtypecount-1 do
       if customtypesmatch[j] then
       begin
@@ -1477,7 +1482,7 @@ begin
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleSmallerThan(newvalue,oldvalue);
 
   {$ifdef customtypeimplemented}
-  if allincludescustomtypes then
+  if allCustom then
   begin
     //also scan custom types
     for j:=0 to customtypecount-1 do
@@ -1499,7 +1504,7 @@ begin
       exit;
     end;
 
-  if allincludescustomtypes then
+  if allCustom then
     for j:=0 to customtypecount-1 do
       if customtypesmatch[j] then
       begin
@@ -1520,7 +1525,7 @@ begin
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleIncreasedValue(newvalue,oldvalue);
 
   {$ifdef customtypeimplemented}
-  if allincludescustomtypes then
+  if allCustom then
   begin
     //also scan custom types
     for j:=0 to customtypecount-1 do
@@ -1542,7 +1547,7 @@ begin
       exit;
     end;
 
-  if allincludescustomtypes then
+  if allCustom then
     for j:=0 to customtypecount-1 do
       if customtypesmatch[j] then
       begin
@@ -1563,7 +1568,7 @@ begin
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleIncreasedValueBy(newvalue,oldvalue);
 
   {$ifdef customtypeimplemented}
-  if allincludescustomtypes then
+  if allCustom then
   begin
     //also scan custom types
     for j:=0 to customtypecount-1 do
@@ -1585,7 +1590,7 @@ begin
       exit;
     end;
 
-  if allincludescustomtypes then
+  if allCustom then
     for j:=0 to customtypecount-1 do
       if customtypesmatch[j] then
       begin
@@ -1606,7 +1611,7 @@ begin
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleIncreasedValueByPercentage(newvalue,oldvalue);
 
   {$ifdef customtypeimplemented}
-  if allincludescustomtypes then
+  if allCustom then
   begin
     //also scan custom types
     for j:=0 to customtypecount-1 do
@@ -1628,7 +1633,7 @@ begin
       exit;
     end;
 
-  if allincludescustomtypes then
+  if allCustom then
     for j:=0 to customtypecount-1 do
       if customtypesmatch[j] then
       begin
@@ -1650,7 +1655,7 @@ begin
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleDecreasedValue(newvalue,oldvalue);
 
   {$ifdef customtypeimplemented}
-  if allincludescustomtypes then
+  if allCustom then
   begin
     //also scan custom types
     for j:=0 to customtypecount-1 do
@@ -1672,7 +1677,7 @@ begin
       exit;
     end;
 
-  if allincludescustomtypes then
+  if allCustom then
     for j:=0 to customtypecount-1 do
       if customtypesmatch[j] then
       begin
@@ -1693,7 +1698,7 @@ begin
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleDecreasedValueBy(newvalue,oldvalue);
 
   {$ifdef customtypeimplemented}
-  if allincludescustomtypes then
+  if allCustom then
   begin
     //also scan custom types
     for j:=0 to customtypecount-1 do
@@ -1715,7 +1720,7 @@ begin
       exit;
     end;
 
-  if allincludescustomtypes then
+  if allCustom then
     for j:=0 to customtypecount-1 do
       if customtypesmatch[j] then
       begin
@@ -1736,7 +1741,7 @@ begin
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleDecreasedValueByPercentage(newvalue,oldvalue);
 
   {$ifdef customtypeimplemented}
-  if allincludescustomtypes then
+  if allCustom then
   begin
     //also scan custom types
     for j:=0 to customtypecount-1 do
@@ -1758,7 +1763,7 @@ begin
       exit;
     end;
 
-  if allincludescustomtypes then
+  if allCustom then
     for j:=0 to customtypecount-1 do
       if customtypesmatch[j] then
       begin
@@ -1779,7 +1784,7 @@ begin
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleChanged(newvalue,oldvalue);
 
   {$ifdef customtypeimplemented}
-  if allincludescustomtypes then
+  if allCustom then
   begin
     //also scan custom types
     for j:=0 to customtypecount-1 do
@@ -1801,7 +1806,7 @@ begin
       exit;
     end;
 
-  if allincludescustomtypes then
+  if allCustom then
     for j:=0 to customtypecount-1 do
       if customtypesmatch[j] then
       begin
@@ -1822,7 +1827,7 @@ begin
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleUnchanged(newvalue,oldvalue);
 
   {$ifdef customtypeimplemented}
-  if allincludescustomtypes then
+  if allCustom then
   begin
     //also scan custom types
     for j:=0 to customtypecount-1 do
@@ -1844,7 +1849,7 @@ begin
       exit;
     end;
 
-  if allincludescustomtypes then
+  if allCustom then
     for j:=0 to customtypecount-1 do
       if customtypesmatch[j] then
       begin
@@ -2245,7 +2250,8 @@ end;
 function TScanner.CustomFloatIncreasedValueBy(newvalue,oldvalue: pointer):boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=(pqword(newvalue)^<>pqword(oldvalue)^) and (RoundTo(customType.ConvertDataToFloat(newvalue),-floataccuracy)=RoundTo(customType.ConvertDataToFloat(oldvalue)+svalue,-floataccuracy));
+
+  result:=(not CompareMem(newvalue, oldvalue, customtype.bytesize)) and (RoundTo(customType.ConvertDataToFloat(newvalue),-floataccuracy)=RoundTo(customType.ConvertDataToFloat(oldvalue)+svalue,-floataccuracy));
   {$ENDIF}
 end;
 
@@ -2259,7 +2265,7 @@ end;
 function TScanner.CustomFloatDecreasedValueBy(newvalue,oldvalue: pointer):boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=(pqword(newvalue)^<>pqword(oldvalue)^) and (RoundTo(customType.ConvertDataToFloat(newvalue),-floataccuracy)=RoundTo(customType.ConvertDataToFloat(oldvalue)-svalue,-floataccuracy));
+  result:=(not CompareMem(newvalue, oldvalue, customtype.bytesize)) and (RoundTo(customType.ConvertDataToFloat(newvalue),-floataccuracy)=RoundTo(customType.ConvertDataToFloat(oldvalue)-svalue,-floataccuracy));
   {$ENDIF}
 end;
 
@@ -2764,7 +2770,7 @@ begin
     end;
   end;
 
-  if allincludescustomtypes then
+  if allCustom then
   begin
     for j:=0 to customtypecount-1 do
     begin
@@ -3022,23 +3028,29 @@ begin
     //reset typesmatch array for each check
     while (ptruint(p)<=lastmem) do
     begin
+      typesmatch[vtByte]:=allByte;
+
       if _fastscan then
       begin
         dividableby2:=ptruint(p) mod 2=0;
         dividableby4:=ptruint(p) mod 4=0;
-        typesmatch[vtByte]:=true;
-        typesmatch[vtWord]:=dividableby2;
-        typesmatch[vtDWord]:=dividableby4;
-        typesmatch[vtQWord]:=dividableby4;
-        typesmatch[vtSingle]:=dividableby4;
-        typesmatch[vtDouble]:=dividableby4;
+
+        typesmatch[vtWord]:=allWord and dividableby2;
+        typesmatch[vtDWord]:=allDword and dividableby4;
+        typesmatch[vtQWord]:=allQword and dividableby4;
+        typesmatch[vtSingle]:=allFloat and dividableby4;
+        typesmatch[vtDouble]:=allDouble and dividableby4;
       end
       else
       begin
-        for i:=vtByte to vtDouble do typesmatch[i]:=true;
+        typesmatch[vtWord]:=allWord;
+        typesmatch[vtDWord]:=allDword;
+        typesmatch[vtQWord]:=allQword;
+        typesmatch[vtSingle]:=allFloat;
+        typesmatch[vtDouble]:=allDouble;
       end;
 
-      if allincludescustomtypes then
+      if allCustom then
         for j:=0 to customtypecount-1 do customtypesmatch[j]:=true;
 
       if checkroutine(p,nil) then //found one
@@ -3133,7 +3145,7 @@ begin
         else
           for i:=vtByte to vtDouble do typesmatch[i]:=true;
 
-        if allincludescustomtypes then
+        if allCustom then
           for j:=0 to customtypecount-1 do customtypesmatch[j]:=true;
 
 
@@ -3174,7 +3186,7 @@ begin
         else
           for i:=vtByte to vtDouble do typesmatch[i]:=true;
 
-        if allincludescustomtypes then
+        if allCustom then
           for j:=0 to customtypecount-1 do customtypesmatch[j]:=true;
 
 
@@ -3259,7 +3271,7 @@ begin
         for l:=vtByte to vtDouble do
           typesmatch[l]:=false;
 
-        if allincludescustomtypes then
+        if allCustom then
           for m:=0 to customtypecount-1 do customtypesmatch[m]:=false;
 
 
@@ -3308,7 +3320,7 @@ begin
         for l:=vtByte to vtDouble do
           typesmatch[l]:=false;
 
-        if allincludescustomtypes then
+        if allCustom then
            for m:=0 to customtypecount-1 do customtypesmatch[m]:=false;
 
         currentaddress:=currentbase;
@@ -3567,7 +3579,7 @@ begin
     end;
   end
   else
-  if (variableType = vtAll) and AllIncludesCustomType then
+  if (variableType = vtAll) and (vtCustom in ScanAllTypes) then
   begin
     i:=max(8, MaxCustomTypeSize);
     if i>16 then
@@ -4157,7 +4169,7 @@ begin
 
       variablesize:=8; //override these variables (8 is big enough for even the double type)
       {$ifdef customtypeimplemented}
-      if allincludescustomtypes then  //find out the biggest customtype size
+      if allCustom then  //find out the biggest customtype size
       begin
         customtypecount:=customtypes.count;
         setlength(customtypesmatch, customtypecount);
@@ -4756,6 +4768,13 @@ begin
 
   Priority:=Globals.scanpriority;
 
+  allByte:=vtByte in ScanAllTypes;
+  allWord:=vtWord in ScanAllTypes;
+  allDword:=vtDword in ScanAllTypes;
+  allQword:=vtQword in ScanAllTypes;
+  allFloat:=vtSingle in ScanAllTypes;
+  allDouble:=vtDouble in ScanAllTypes;
+  allCustom:=vtCustom in ScanAllTypes;
 
 
   if not suspended then start;   //would be stupid, but ok...
@@ -4901,7 +4920,7 @@ begin
 
       variablesize:=8;
       {$ifdef customtypeimplemented}
-      if allincludescustomtypes then  //find out the biggest customtype size
+      if vtcustom in ScanAllTypes then  //find out the biggest customtype size
       begin
         for i:=0 to customTypes.count-1 do
           variablesize:=max(variablesize, TCustomType(customtypes[i]).bytesize);
@@ -5046,7 +5065,6 @@ begin
           scanners[i].fastscandigitcount:=fastscandigitcount;
           scanners[i].variablesize:=variablesize;
           scanners[i].useNextNextscan:=true; //address result scan so nextnextscan
-          scanners[i].allincludescustomtypes:=allincludescustomtypes;
 
           if variableType=vtGrouped then
             scanners[i].PreviousOffsetCount:=offsetcount;
@@ -5281,7 +5299,6 @@ begin
       scanners[i].fastscandigitcount:=fastscandigitcount;
       scanners[i].variablesize:=variablesize;
       scanners[i].useNextNextscan:=false; //region scan so firstnextscan
-      scanners[i].allincludescustomtypes:=allincludescustomtypes;
 
       if i=0 then //first thread gets the header part
       begin
@@ -5747,7 +5764,6 @@ begin
       scanners[i].fastscanmethod:=fastscanmethod;
       scanners[i].fastscandigitcount:=fastscandigitcount;
       scanners[i].variablesize:=variablesize;
-      scanners[i].allincludescustomtypes:=allincludescustomtypes;
 
       if i=0 then //first thread gets the header part
       begin
@@ -6444,7 +6460,7 @@ begin
       result:=8;  //bytes
 
       {$ifdef customtypeimplemented}
-      if allincludescustomtype then
+      if vtcustom in ScanAllTypes then
         for i:=0 to customTypes.count-1 do
           result:=max(result, TCustomType(customtypes[i]).bytesize);
       {$ENDIF}
@@ -6553,10 +6569,6 @@ begin
   scancontroller.notifywindow:=notifywindow;
   scancontroller.notifymessage:=notifymessage;
 
-  {$IFNDEF UNIX}
-  scanController.allincludescustomtypes:=formsettings.cballincludescustomtype.checked;
-  {$ENDIF}
-
   fLastscantype:=stNextScan;
   fLastScanValue:=scanvalue1;
 
@@ -6642,10 +6654,6 @@ begin
   scancontroller.notifymessage:=notifymessage;
 
   scanController.OnlyOne:=onlyone;
-
-  {$IFNDEF UNIX}
-  scanController.allincludescustomtypes:=formsettings.cballincludescustomtype.checked;
-  {$ENDIF}
 
   fLastscantype:=stFirstScan;
   fLastScanValue:=scanValue1;
