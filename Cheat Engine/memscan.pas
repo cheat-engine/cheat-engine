@@ -28,6 +28,7 @@ uses sysutils, unixporthelper, customtypehandler, commonTypeDefs, classes,
 
 
 type TCheckRoutine=function(newvalue,oldvalue: pointer):boolean of object;
+type TMultiAOBCheckRoutine=function(newvalue: pointer; mabsindex: integer):boolean of object;
 type TStoreResultRoutine=procedure(address: ptruint; oldvalue: pointer) of object;
 type TFlushRoutine=procedure of object;
 
@@ -169,6 +170,7 @@ type
     //array of bytes
     abs_arraylength: integer; //optimization so no need to call length()
     abs_arraytofind: TBytes;
+    nibbleSupport: boolean;
 
     //multi array of byte. This is for vtByteArrays. vtByteArrays can only be used together with the "OnlyOne" variable. Found in this case means all elements have been found
     mabs: array of record
@@ -324,9 +326,11 @@ type
     function CustomFloatUnChanged(newvalue,oldvalue: pointer): boolean;
 
 
+    function ArrayOfBytesExact_NibbleWildcardSupport(newvalue: pointer; mabsindex: integer):boolean;
     function ArrayOfBytesExact(newvalue: pointer; mabsindex: integer):boolean;
 
     //following types only have exact: Array of byte, binary and string
+    function ArrayOfByteExact_NibbleWildcardSupport(newvalue,oldvalue: pointer):boolean;
     function ArrayOfByteExact(newvalue,oldvalue: pointer):boolean;
     function BinaryExact(newvalue,oldvalue: pointer):boolean;
     function CaseSensitiveAnsiStringExact(newvalue,oldvalue: pointer):boolean;
@@ -1912,6 +1916,33 @@ begin
   result:=true; //it got here, so a match
 end;
 
+function TScanner.ArrayOfByteExact_NibbleWildcardSupport(newvalue,oldvalue: pointer):boolean;
+//sperate function as support for this will cause it to be slower
+var i: integer;
+begin
+  for i:=0 to abs_arraylength-1 do
+  begin
+    if abs_arraytofind[i]=-1 then continue; //full wildcard
+    if abs_arraytofind[i]<0 then
+    begin
+      //it's a nibble wildcard
+      //check if it matches
+      if ((pbytearray(newvalue)[i] and ((abs_arraytofind[i] shr 8) and $ff))<> (abs_arraytofind[i] and $ff) ) then
+      begin
+        result:=false; //no match
+        exit;
+      end;
+    end
+    else
+    if (pbytearray(newvalue)[i]<>abs_arraytofind[i]) then
+    begin
+      result:=false; //no match
+      exit;
+    end;
+  end;
+
+  result:=true; //still here, so a match
+end;
 
 function TScanner.ArrayOfByteExact(newvalue,oldvalue: pointer):boolean;
 var i: integer;
@@ -1922,6 +1953,38 @@ begin
       result:=false; //no match
       exit;
     end;
+
+  result:=true; //still here, so a match
+end;
+
+function TScanner.ArrayOfBytesExact_NibbleWildcardSupport(newvalue: pointer; mabsindex: integer):boolean;
+var i: integer;
+  arraylength: integer;
+  a: PIntegerArray;
+begin
+  arraylength:=mabs[mabsindex].arraylength;
+  a:=@mabs[mabsindex].arraytofind[0];
+
+  for i:=0 to arraylength-1 do
+  begin
+    if a[i]=-1 then continue; //full wildcard
+    if a[i]<0 then
+    begin
+      //it's a nibble wildcard
+      //check if it matches
+      if ((pbytearray(newvalue)[i] and ((a[i] shr 8) and $ff))<> (a[i] and $ff) ) then
+      begin
+        result:=false; //no match
+        exit;
+      end;
+    end
+    else
+    if (pbytearray(newvalue)[i]<>a[i]) then
+    begin
+      result:=false; //no match
+      exit;
+    end;
+  end;
 
   result:=true; //still here, so a match
 end;
@@ -2970,6 +3033,8 @@ var stepsize: integer;
     dividableby2: boolean;
     dividableby4: boolean;
     allfound: boolean;
+
+    aob_checkroutine: TMultiAOBCheckRoutine;
 begin
   _fastscan:=fastscanmethod<>fsmNotAligned;
   p:=buffer;
@@ -2993,11 +3058,17 @@ begin
   if variableType=vtByteArrays then
   begin
     //do a ArrayOfBytesExact scan for every aob in the list
+    if nibbleSupport then
+      aob_checkroutine:=ArrayOfBytesExact_NibbleWildcardSupport
+    else
+      aob_checkroutine:=ArrayOfBytesExact;
+
+
     while (ptruint(p)<=lastmem) do
     begin
       for j:=0 to mabs_arraylength-1 do
       begin
-        if (mabs[j].foundaddress=0) and ArrayOfBytesExact(p,j) then //found one
+        if (mabs[j].foundaddress=0) and aob_checkroutine(p,j) then //found one
         begin
           mabs[j].foundaddress:=base+ptruint(p)-ptruint(buffer);
 
@@ -3831,10 +3902,18 @@ begin
       widescanvalue1:=scanvalue1;
     end;    
 
+    nibbleSupport:=false;
     if variabletype = vtByteArray then
     begin
-      ConvertStringToBytes(trim(scanvalue1),hexadecimal,abs_arraytofind);
+      ConvertStringToBytes(trim(scanvalue1),hexadecimal,abs_arraytofind, true);
       abs_arraylength:=length(abs_arraytofind);
+      for i:=0 to abs_arraylength-1 do
+        if (abs_arraytofind[i]<0) and (abs_arraytofind[i]<>-1) then
+        begin
+          nibbleSupport:=true;
+          break;
+        end;
+
     end;
 
     if variableType = vtByteArrays then
@@ -3846,9 +3925,16 @@ begin
       for i:=0 to length(mabs)-1 do
       begin
         s:=ExtractWord(i+1, scanvalue1, ['(',')']);
-        ConvertStringToBytes(trim(s),hexadecimal,mabs[i].arraytofind);
+        ConvertStringToBytes(trim(s),hexadecimal,mabs[i].arraytofind, true);
         mabs[i].arraylength:=length(mabs[i].arraytofind);
         mabs[i].foundaddress:=0;
+
+        for j:=0 to mabs[i].arraylength-1 do
+          if (mabs[i].arraytofind[j]<0) and (mabs[i].arraytofind[j]<>-1) then
+          begin
+            nibbleSupport:=true;
+            break;
+          end;
       end;
 
       mabs_arraylength:=length(mabs);
@@ -4122,8 +4208,13 @@ begin
       
     vtByteArray, vtByteArrays:
     begin
-      CheckRoutine:=ArrayOfByteExact;
+      if nibbleSupport then
+        CheckRoutine:=ArrayOfByteExact_NibbleWildcardSupport
+      else
+        CheckRoutine:=ArrayOfByteExact;
+
       flushroutine:=stringFlush;
+
       StoreResultRoutine:=ArrayOfByteSaveResult;
       FoundBufferSize:=0;
     end;

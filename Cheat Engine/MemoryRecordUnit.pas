@@ -2160,7 +2160,7 @@ begin
 
       vtByteArray:
       begin
-        ConvertStringToBytes(currentValue, showAsHex, bts);
+        ConvertStringToBytes(currentValue, showAsHex, bts, true);
         if length(bts)>bufsize then
         begin
           //the user wants to input more bytes than it should have
@@ -2171,11 +2171,19 @@ begin
           if not ReadProcessMemory(processhandle, pointer(realAddress), buf, bufsize,x) then exit;
         end;
 
-
         bufsize:=min(length(bts),bufsize);
         for i:=0 to bufsize-1 do
-          if bts[i]<>-1 then
-            pba[i]:=bts[i];
+          if bts[i]>=0 then
+            pba[i]:=bts[i]
+          else
+          begin
+            if bts[i]=-1 then continue;
+
+            if not showashex then raise exception.create('Nibble support is only for hexadecimal display');
+
+            //nibble
+            pba[i]:=(((not (bts[i] shr 8)) and $ff) and pba[i]) or (bts[i] and $ff);
+          end;
       end;
     end;
 
