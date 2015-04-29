@@ -37,6 +37,9 @@ type
     dispChar: TMenuItem;
     dispShorts: TMenuItem;
     DispLongs: TMenuItem;
+    MenuItem21: TMenuItem;
+    miTextEncoding8: TMenuItem;
+    miTextEncoding16: TMenuItem;
     miReferencedFunctions: TMenuItem;
     miUserDefinedHeader: TMenuItem;
     miShowIndisassembler: TMenuItem;
@@ -239,6 +242,7 @@ type
     procedure MenuItem17Click(Sender: TObject);
     procedure MenuItem18Click(Sender: TObject);
     procedure MenuItem20Click(Sender: TObject);
+    procedure miTextEncodingClick(Sender: TObject);
     procedure miReferencedFunctionsClick(Sender: TObject);
     procedure miShowIndisassemblerClick(Sender: TObject);
     procedure miCopyBytesOnlyClick(Sender: TObject);
@@ -1033,6 +1037,14 @@ begin
 
 end;
 
+procedure TMemoryBrowser.miTextEncodingClick(Sender: TObject);
+begin
+  if miTextEncoding8.checked then
+    hexview.CharEncoding:=ceUtf8
+  else
+    hexview.CharEncoding:=ceUtf16;
+end;
+
 
 
 
@@ -1468,7 +1480,7 @@ begin
     //and now apply those colors
     cbColorGroupChange(cbColorGroup);
 
-
+    FontDialog2.Font.Assign(hexview.HexFont);
 
     if showmodal=mrok then
     begin
@@ -1476,6 +1488,8 @@ begin
       disassemblerview.Font.Name:=fontdialog1.Font.name;
       disassemblerview.Font.size:=fontdialog1.Font.size;
       disassemblerview.colors:=colors;
+
+      hexview.HexFont:=fontdialog2.Font;
     end;
     free;
   end;
@@ -1490,6 +1504,12 @@ begin
       reg.WriteBinaryData('colors', disassemblerview.colors, sizeof(disassemblerview.colors));
       reg.WriteString('font.name', disassemblerview.font.name);
       reg.WriteInteger('font.size', disassemblerview.font.size);
+    end;
+
+    if reg.OpenKey('\Software\Cheat Engine\Hexview\',true) then
+    begin
+      reg.WriteString('font.name', hexview.hexfont.name);
+      reg.WriteInteger('font.size', hexview.hexfont.size);
     end;
 
   finally
@@ -1555,7 +1575,7 @@ begin
   disassemblerview.TopAddress:=$00400000;
   disassemblerview.name:='DisassemblerView';
 
-  //save to the registry
+  //load from the registry
   reg:=Tregistry.Create;
   try
     if reg.OpenKey('\Software\Cheat Engine\Disassemblerview\',false) then
@@ -1572,9 +1592,20 @@ begin
       disassemblerview.reinitialize;
     end;
 
+    if reg.OpenKey('\Software\Cheat Engine\Hexview\',false) then
+    begin
+      if reg.ValueExists('font.name') then
+        hexview.hexfont.name:=reg.ReadString('font.name');
+
+      if reg.ValueExists('font.size') then
+        hexview.hexfont.size:=reg.ReadInteger('font.size');
+    end;
+
   finally
     reg.free;
   end;
+
+
 
 
 

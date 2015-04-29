@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
-  StdCtrls, Menus, disassemblerviewunit, disassemblerviewlinesunit;
+  StdCtrls, Menus, disassemblerviewunit, disassemblerviewlinesunit, windows;
 
 type
 
@@ -14,12 +14,16 @@ type
 
   TfrmMemviewPreferences = class(TForm)
     btnFont: TButton;
+    btnHexFont: TButton;
     Button2: TButton;
     Button3: TButton;
     cbColorGroup: TComboBox;
     ColorDialog1: TColorDialog;
     FontDialog1: TFontDialog;
+    FontDialog2: TFontDialog;
     GroupBox1: TGroupBox;
+    Label1: TLabel;
+    Label2: TLabel;
     lblRegister: TLabel;
     lblNormal: TLabel;
     lblSymbol: TLabel;
@@ -27,6 +31,7 @@ type
     miRestoreToDefaults: TMenuItem;
     pmColors: TPopupMenu;
     procedure btnFontClick(Sender: TObject);
+    procedure btnHexFontClick(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure cbColorGroupChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -140,6 +145,13 @@ begin
   fontdialog1.font.Size:=MemoryBrowser.Font.size;
   btnFont.Caption:=fontdialog1.Font.Name+' '+inttostr(fontdialog1.Font.Size);
 
+
+  fontdialog1.font.Charset:=DEFAULT_CHARSET;
+  fontdialog1.font.Color:=clwindowText;
+  fontdialog1.font.Height:=-11;
+  fontdialog1.font.Name:='Courier';
+  fontdialog1.font.Style:=[];
+
   applyfont;
 end;
 
@@ -150,6 +162,12 @@ begin
     btnFont.Caption:=fontdialog1.Font.Name+' '+inttostr(fontdialog1.Font.Size);
     applyfont;
   end;
+end;
+
+procedure TfrmMemviewPreferences.btnHexFontClick(Sender: TObject);
+begin
+  if fontdialog2.execute then
+    btnHexFont.Caption:=fontdialog2.Font.Name+' '+inttostr(fontdialog2.Font.Size);
 end;
 
 procedure TfrmMemviewPreferences.Button2Click(Sender: TObject);
