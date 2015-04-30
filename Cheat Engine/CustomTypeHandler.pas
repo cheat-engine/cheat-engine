@@ -188,7 +188,7 @@ begin
   try
     if lua_valuetobytesfunctionid=-1 then
     begin
-      lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(lua_valuetobytes));
+      lua_getglobal(LuaVM, pchar(lua_valuetobytes));
       lua_valuetobytesfunctionid:=luaL_ref(LuaVM,LUA_REGISTRYINDEX);
     end;
     lua_rawgeti(Luavm, LUA_REGISTRYINDEX, lua_valuetobytesfunctionid);
@@ -252,7 +252,7 @@ begin
 
     if lua_bytestovaluefunctionid=-1 then
     begin
-      lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(lua_bytestovalue));
+      lua_getglobal(LuaVM, pchar(lua_bytestovalue));
       lua_bytestovaluefunctionid:=luaL_ref(LuaVM,LUA_REGISTRYINDEX);
     end;
 
@@ -318,7 +318,7 @@ begin
   try
     if lua_valuetobytesfunctionid=-1 then
     begin
-      lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(lua_valuetobytes));
+      lua_getglobal(LuaVM, pchar(lua_valuetobytes));
       lua_valuetobytesfunctionid:=luaL_ref(LuaVM,LUA_REGISTRYINDEX);
     end;
     lua_rawgeti(Luavm, LUA_REGISTRYINDEX, lua_valuetobytesfunctionid);
@@ -380,7 +380,7 @@ begin
   try
     if lua_bytestovaluefunctionid=-1 then
     begin
-      lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(lua_bytestovalue));
+      lua_getglobal(LuaVM, pchar(lua_bytestovalue));
       lua_bytestovaluefunctionid:=luaL_ref(LuaVM,LUA_REGISTRYINDEX);
     end;
 
@@ -638,10 +638,10 @@ begin
       currentscript.text:=script;
 
 
-      lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(lua_bytestovalue));
+      lua_getglobal(LuaVM, pchar(lua_bytestovalue));
       lua_bytestovaluefunctionid:=luaL_ref(LuaVM,LUA_REGISTRYINDEX);
 
-      lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(lua_valuetobytes));
+      lua_getglobal(LuaVM, pchar(lua_valuetobytes));
       lua_valuetobytesfunctionid:=luaL_ref(LuaVM,LUA_REGISTRYINDEX);
 
       lua_pop(LuaVM,lua_getTop(luavm));
@@ -765,7 +765,7 @@ begin
     if lua_isstring(L,3) then
     begin
       bytestovalue:=Lua_ToString(L, 3);
-      lua_getfield(L, LUA_GLOBALSINDEX, pchar(bytestovalue));
+      lua_getglobal(L, pchar(bytestovalue));
       f_valuetobytes:=luaL_ref(L,LUA_REGISTRYINDEX);
     end
     else
@@ -787,7 +787,7 @@ begin
     if lua_isstring(L,4) then
     begin
       valuetobytes:=Lua_ToString(L, 4);
-      lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(valuetobytes));
+      lua_getglobal(LuaVM, pchar(valuetobytes));
       f_valuetobytes:=luaL_ref(L,LUA_REGISTRYINDEX);
     end
     else

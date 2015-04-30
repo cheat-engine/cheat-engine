@@ -1602,6 +1602,8 @@ function THexView.getChar(a: ptrUint): string;
 var err: boolean;
     w: word;
     b,b2: byte;
+
+    wc: widechar;
 begin
   b:=getbyte(a,err);
   if err then
@@ -1626,7 +1628,9 @@ begin
     else
     begin
       w:=(b2 shl 8)+b;
-      result:=WideChar(w);
+      wc:=widechar(w);
+
+      result:=wc;
     end;
   end;
 end;

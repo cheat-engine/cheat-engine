@@ -294,7 +294,7 @@ begin
     L:=LuaVM;
 
   if luaroutineindex=-1 then //get the index of the given routine
-    lua_getfield(L, LUA_GLOBALSINDEX, pchar(luaroutine))
+    lua_getglobal(L, pchar(luaroutine))
   else
     lua_rawgeti(L, LUA_REGISTRYINDEX, luaroutineindex)
 end;

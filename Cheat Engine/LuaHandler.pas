@@ -553,7 +553,7 @@ begin
     begin
       lua_pop(LuaVM, lua_gettop(luavm)); //clear it just to be sure
 
-      lua_getfield(luavm, LUA_GLOBALSINDEX, pchar('debugger_onBreakpoint'));
+      lua_getglobal(luavm, pchar('debugger_onBreakpoint'));
       p:=lua_gettop(luavm);
       if p=0 then exit;
     end;
@@ -862,7 +862,7 @@ begin
   try
     m:=memrec;
 
-    lua_getfield(luavm, LUA_GLOBALSINDEX, pchar(routine));
+    lua_getglobal(luavm, pchar(routine));
 
     p:=lua_gettop(luavm);
     if p<>0 then
@@ -894,7 +894,7 @@ begin
   begin
     try
       //check if the routine exists
-      lua_getfield(luavm, LUA_GLOBALSINDEX, pchar(routinetocall));
+      lua_getglobal(luavm, pchar(routinetocall));
 
       p:=lua_gettop(luavm);
       if p<>oldstack then

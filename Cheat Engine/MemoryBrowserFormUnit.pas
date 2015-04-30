@@ -1575,6 +1575,14 @@ begin
   disassemblerview.TopAddress:=$00400000;
   disassemblerview.name:='DisassemblerView';
 
+  hexview:=THexview.create(self);
+  hexview.Align:=alClient;
+  hexview.parent:=panel3;
+  hexview.popupmenu:=memorypopup;
+
+  hexview.OnKeyDown:=hexviewKeyDown;
+  hexview.Name:='HexadecimalView';
+
   //load from the registry
   reg:=Tregistry.Create;
   try
@@ -1609,13 +1617,7 @@ begin
 
 
 
-  hexview:=THexview.create(self);
-  hexview.Align:=alClient;
-  hexview.parent:=panel3;
-  hexview.popupmenu:=memorypopup;
 
-  hexview.OnKeyDown:=hexviewKeyDown;
-  hexview.Name:='HexadecimalView';
 
 
   memoryaddress:=$00400000;

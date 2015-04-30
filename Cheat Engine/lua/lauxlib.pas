@@ -213,7 +213,12 @@ function luaL_checkoption(L: Plua_State; narg: Integer; def: PChar; lst: PPChar)
 function luaL_ref(L: Plua_State; t: Integer): Integer; cdecl; external LUA_LIB_NAME;
 procedure luaL_unref(L: Plua_State; t, ref: Integer); cdecl; external LUA_LIB_NAME;
 
-function luaL_loadfile(L: Plua_State; const filename: PChar): Integer; cdecl; external LUA_LIB_NAME;
+function luaL_loadfilex(L: Plua_State; const filename: PChar; const mode: pchar): Integer; cdecl; external LUA_LIB_NAME;
+function luaL_loadfile(L: Plua_State; const filename: PChar): Integer; cdecl;
+begin
+  result:=luaL_loadfilex(L,filename,nil);
+end;
+
 function luaL_loadbuffer(L: Plua_State; const buff: PChar; size: size_t; const name: PChar): Integer; cdecl; external LUA_LIB_NAME;
 function luaL_loadstring(L: Plua_State; const s: PChar): Integer; cdecl; external LUA_LIB_NAME;
 

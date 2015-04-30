@@ -83,7 +83,7 @@ begin
       else
         errorstring:='';
 
-      lua_getfield(L, LUA_GLOBALSINDEX, 'print');
+      lua_getglobal(L, 'print');
       lua_pushstring(L, 'Error in native thread called '+name+':'+errorstring);
       lua_pcall(L, 1,0,0);
 
@@ -91,7 +91,7 @@ begin
   except
     on e:Exception do
     begin
-      lua_getfield(L, LUA_GLOBALSINDEX, 'print');
+      lua_getglobal(L, 'print');
       lua_pushstring(L, 'Error in native thread called '+name+' in native code:'+e.Message);
       lua_pcall(L, 1,0,0);
     end;
@@ -153,7 +153,7 @@ begin
       routine:=lua_tostring(L,1);
       //get a reference to this function
 
-      lua_getfield(L, LUA_GLOBALSINDEX, pchar(routine));
+      lua_getglobal(L, pchar(routine));
       f:=luaL_ref(L,LUA_REGISTRYINDEX);
     end
     else
@@ -231,7 +231,7 @@ begin
       routine:=lua_tostring(L,paramstart);
       //get a reference to this function
 
-      lua_getfield(L, LUA_GLOBALSINDEX, pchar(routine));
+      lua_getglobal(L, pchar(routine));
       f:=luaL_ref(L,LUA_REGISTRYINDEX);
     end;
 
