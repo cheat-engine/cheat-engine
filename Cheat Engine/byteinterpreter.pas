@@ -100,6 +100,9 @@ begin
           value:='$'+value;
 
         v:=StrToQWordEx(value);
+
+        if (variabletype=vtCustom) and customtype.scriptUsesFloat then
+          s:=StrToFloat(value);
       end;
     end;
 
