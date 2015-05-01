@@ -87,12 +87,10 @@ begin
   end
   else
   begin
-    if variabletype in [vtSingle, vtDouble, vtCustom] then
+    if variabletype in [vtSingle, vtDouble] then
     begin
       d:=StrToFloat(value);
-
-      if (customtype=nil) or customtype.scriptUsesFloat then
-        s:=d;
+      s:=d;
     end
     else
     begin
