@@ -1,29 +1,29 @@
 object frmMemviewPreferences: TfrmMemviewPreferences
   Left = 628
-  Height = 245
+  Height = 269
   Top = 374
-  Width = 193
+  Width = 392
   Caption = 'Disassembler Preferences'
-  ClientHeight = 245
-  ClientWidth = 193
+  ClientHeight = 269
+  ClientWidth = 392
   OnCreate = FormCreate
   OnShow = FormShow
   PopupMenu = pmColors
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.3'
   object btnFont: TButton
     Left = 8
     Height = 25
-    Top = 0
+    Top = 24
     Width = 179
-    Caption = 'Change font'
+    Caption = 'Change disassembler font'
     OnClick = btnFontClick
     TabOrder = 0
   end
   object cbColorGroup: TComboBox
     Left = 8
     Height = 23
-    Top = 32
+    Top = 56
     Width = 179
     ItemHeight = 15
     ItemIndex = 0
@@ -42,22 +42,21 @@ object frmMemviewPreferences: TfrmMemviewPreferences
   end
   object GroupBox1: TGroupBox
     Cursor = crHandPoint
-    Left = 4
-    Height = 148
-    Top = 56
+    Left = 6
+    Height = 144
+    Top = 88
     Width = 181
-    Anchors = [akTop, akLeft, akRight, akBottom]
     Caption = 'Normal'
-    ClientHeight = 130
+    ClientHeight = 124
     ClientWidth = 177
     TabOrder = 2
     OnClick = GroupBox1Click
     object lblRegister: TLabel
       Cursor = crHandPoint
       Left = 6
-      Height = 16
+      Height = 15
       Top = 32
-      Width = 73
+      Width = 72
       Caption = 'Register color'
       ParentColor = False
       OnClick = lblRegisterClick
@@ -65,9 +64,9 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     object lblNormal: TLabel
       Cursor = crHandPoint
       Left = 6
-      Height = 16
+      Height = 15
       Top = 0
-      Width = 69
+      Width = 68
       Caption = 'Default color'
       ParentColor = False
       OnClick = lblNormalClick
@@ -75,9 +74,9 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     object lblSymbol: TLabel
       Cursor = crHandPoint
       Left = 6
-      Height = 16
+      Height = 15
       Top = 64
-      Width = 71
+      Width = 70
       Caption = 'Symbol color'
       ParentColor = False
       OnClick = lblSymbolClick
@@ -85,9 +84,9 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     object lblHex: TLabel
       Cursor = crHandPoint
       Left = 6
-      Height = 16
+      Height = 15
       Top = 96
-      Width = 99
+      Width = 98
       Caption = 'Hexadecimal color'
       ParentColor = False
       OnClick = lblHexClick
@@ -96,7 +95,7 @@ object frmMemviewPreferences: TfrmMemviewPreferences
   object Button2: TButton
     Left = 16
     Height = 26
-    Top = 215
+    Top = 239
     Width = 75
     Anchors = [akLeft, akBottom]
     Caption = 'Apply'
@@ -107,13 +106,38 @@ object frmMemviewPreferences: TfrmMemviewPreferences
   object Button3: TButton
     Left = 96
     Height = 26
-    Top = 215
+    Top = 239
     Width = 75
     Anchors = [akLeft, akBottom]
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 4
+  end
+  object Label1: TLabel
+    Left = 24
+    Height = 15
+    Top = 8
+    Width = 69
+    Caption = 'Disassembler'
+    ParentColor = False
+  end
+  object Label2: TLabel
+    Left = 272
+    Height = 15
+    Top = 8
+    Width = 44
+    Caption = 'Hexview'
+    ParentColor = False
+  end
+  object btnHexFont: TButton
+    Left = 208
+    Height = 25
+    Top = 24
+    Width = 179
+    Caption = 'Change hexview font'
+    OnClick = btnHexFontClick
+    TabOrder = 5
   end
   object ColorDialog1: TColorDialog
     Color = clBlack
@@ -152,8 +176,8 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     MaxFontSize = 0
     Options = [fdNoFaceSel, fdNoSimulations]
     PreviewText = 'mov'
-    left = 88
-    top = 8
+    left = 32
+    top = 16
   end
   object pmColors: TPopupMenu
     left = 32
@@ -162,5 +186,17 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       Caption = 'Restore to defaults'
       OnClick = miRestoreToDefaultsClick
     end
+  end
+  object FontDialog2: TFontDialog
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -13
+    Font.Name = 'Courier'
+    Font.Pitch = fpFixed
+    Font.Quality = fqDraft
+    MinFontSize = 0
+    MaxFontSize = 0
+    Options = [fdEffects, fdFixedPitchOnly]
+    left = 272
+    top = 48
   end
 end

@@ -12,6 +12,8 @@ uses
 
 type
   TDisplayType = (dtByte, dtByteDec, dtWord, dtWordDec, dtDword, dtDwordDec, dtQword, dtQwordDec, dtSingle, dtDouble);
+  TCharEncoding = (ceUtf8, ceUtf16);
+
 const
   DisplayTypeByteSize: array [dtByte..dtDouble] of integer =(1,1, 2,2, 4, 4, 8,8, 4, 8); //update both if adding something new
 
@@ -69,6 +71,7 @@ type
     editingType: THexRegion;
     selectionType: THexRegion;
     fDisplayType: TDisplayType; //determines what to display. If anything other than byte the editing/selecting mode will be disabled
+    fCharEncoding: TCharEncoding;
 
 
     lastupdate: dword;
@@ -89,6 +92,12 @@ type
     lastselection1, lastselection2: ptruint;
 
     scrolltimer: TTimer;
+
+
+    fHexFont: Tfont;
+
+    procedure setHexFont(f: TFont);
+
     procedure LoadMemoryRegion;
     function GetPageInfo(a: ptruint): PPageInfo;
 
@@ -110,7 +119,7 @@ type
     function getQWordDec(a: ptrUint; full: boolean=false): string;
     function getSingle(a: ptrUint; full: boolean=false): string;
     function getDouble(a: ptrUint; full: boolean=false): string;
-    function getChar(a: ptrUint): char;
+    function getChar(a: ptrUint): string;
     function inModule(a: ptrUint): boolean;
     procedure MouseScroll(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
     procedure ScrollBarScroll(Sender: TObject; ScrollCode: TScrollCode; var ScrollPos: Integer);
@@ -122,6 +131,7 @@ type
     procedure RefocusIfNeeded;
     procedure HandleEditKeyPress(key: char);
     procedure setDisplayType(newdt: TDisplaytype);
+    procedure setCharEncoding(newce: TCharEncoding);
 
     function CalculateGradientColor(Percentage: single; MaxColor, MinColor: TColor): TColor;
     procedure setBytesPerSeperator(b: integer);
@@ -133,6 +143,7 @@ type
 
     procedure lineUp(sender: tobject);
     procedure lineDown(sender: TObject);
+
   protected
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure KeyPress(var Key: char); override;
@@ -173,12 +184,14 @@ type
     property SelectionStop: ptruint read getSelectionStop;
     property Osb: TBitmap read offscreenbitmap;
     property DisplayType: TDisplayType read fDisplayType write setDisplayType;
+    property CharEncoding: TCharEncoding read fCharEncoding write setCharEncoding;
     property BytesPerSeperator: integer read fbytesPerSeperator write setBytesPerSeperator;
     property OnByteSelect: TByteSelectEvent read fOnByteSelect write fOnByteSelect;
     property OnAddressChange: TAddressChangeEvent read fonAddressChange write fonAddressChange;
 
     property PaintBox: TPaintbox read mbCanvas;
     property OSBitmap: TBitmap read offscreenBitmap;
+    property HexFont: TFont read fHexFont write setHexFont;
   end;
 
 implementation
@@ -311,6 +324,13 @@ begin
   newblue:=trunc((graphics.blue(c1)*(1-(percentage/100))+graphics.Blue(c2)*(percentage/100)));
 
   result:=RGBToColor(newred, newGreen, newBlue);
+end;
+
+procedure THexView.setCharEncoding(newce: TCharEncoding);
+begin
+  fCharEncoding:=newce;
+  changelist.Clear;
+  update;
 end;
 
 procedure THexView.setDisplayType(newdt: TDisplaytype);
@@ -1578,19 +1598,40 @@ begin
 end;
 
 
-function THexView.getChar(a: ptrUint): char;
+function THexView.getChar(a: ptrUint): string;
 var err: boolean;
-    b: byte;
+    w: word;
+    b,b2: byte;
+
+    wc: widechar;
 begin
   b:=getbyte(a,err);
   if err then
-    result:='?'
-  else
+  begin
+    result:='?';
+    exit;
+  end;
+
+  if fCharEncoding=ceUtf8 then
   begin
     if b in [0..31] then
       result:='.'
     else
       result:=chr(b);
+  end
+  else
+  if fCharEncoding=ceUtf16 then
+  begin
+    b2:=getByte(a+1,err);
+    if err then
+      result:='?'
+    else
+    begin
+      w:=(b2 shl 8)+b;
+      wc:=widechar(w);
+
+      result:=wc;
+    end;
   end;
 end;
 
@@ -1790,7 +1831,9 @@ begin
           offscreenbitmap.canvas.Font.Color:=clWindowText;
         end;
       end;
-      offscreenbitmap.canvas.TextOut(charstart+j*charsize, (2+i)*textheight, getChar(currentAddress)); //char
+
+      if (fCharEncoding=ceUtf8) or (j mod 2=0) then
+        offscreenbitmap.canvas.TextOut(charstart+j*charsize, (2+i)*textheight, getChar(currentAddress)); //char
 
 
       offscreenbitmap.canvas.Font.Color:=clWindowText;
@@ -1971,6 +2014,25 @@ begin
   mbcanvas.Canvas.CopyRect(cr,offscreenbitmap.Canvas,cr);
 end;
 
+
+procedure THexview.setHexFont(f: TFont);
+begin
+  fHexFont.Assign(f);
+
+  offscreenBitmap.Canvas.Font.Assign(fHexFont);
+  mbCanvas.Font.Assign(fHexFont);
+
+  textheight:=offscreenbitmap.Canvas.TextHeight('X?');
+  addresswidthdefault:=offscreenbitmap.Canvas.TextWidth('XXXXXXXX');
+
+  charsize:=offscreenbitmap.Canvas.TextWidth('X');
+  byteSize:=offscreenbitmap.Canvas.TextWidth('XX X'); //byte space and the character it represents
+  byteSizeWithoutChar:=offscreenbitmap.Canvas.TextWidth('XX ');
+
+  hexviewResize(self);
+  update;
+end;
+
 destructor THexview.destroy;
 begin
   unlock; //always destroy links
@@ -2002,6 +2064,7 @@ end;
 constructor THexView.create(AOwner: TComponent);
 begin
   inherited create(AOwner);
+
   fadetimer:=1000;
   backlist:=TStack.create;
 
@@ -2032,16 +2095,19 @@ begin
     OnScroll:=scrollBarScroll;
   end;
 
+  fHexFont:=tfont.create;
+  fHexFont.Charset:=DEFAULT_CHARSET;
+  fHexFont.Color:=clwindowText;
+  fHexFont.Height:=-11;
+  fHexFont.Name:='Courier';
+  fHexFont.Style:=[];
+
   mbCanvas:=TPaintbox.Create(self);
   with mbCanvas do
   begin
     align:=alClient;
     ParentFont:=False;
-    Font.Charset:=DEFAULT_CHARSET;
-    Font.Color:=clwindowText;
-    Font.Height:=-11;
-    Font.Name:='Courier';
-    Font.Style:=[];
+    Font.Assign(fHexFont);
     parent:=self;
     OnPaint:=MbPaint;
     OnMouseDown:=mbCanvasMouseDown;
@@ -2054,7 +2120,7 @@ begin
   self.OnResize:=hexviewResize;
 
   offscreenbitmap:=TBitmap.create;
-  offscreenbitmap.canvas.font.Assign(mbCanvas.font);
+  offscreenbitmap.canvas.font.Assign(fHexFont);
 
   textheight:=offscreenbitmap.Canvas.TextHeight('X?');
   addresswidthdefault:=offscreenbitmap.Canvas.TextWidth('XXXXXXXX');
@@ -2062,9 +2128,6 @@ begin
   charsize:=offscreenbitmap.Canvas.TextWidth('X');
   byteSize:=offscreenbitmap.Canvas.TextWidth('XX X'); //byte space and the character it represents
   byteSizeWithoutChar:=offscreenbitmap.Canvas.TextWidth('XX ');
-
-
-
   update;
 
 end;

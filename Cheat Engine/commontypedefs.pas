@@ -18,6 +18,7 @@ type TFastScanMethod=(fsmNotAligned=0, fsmAligned=1, fsmLastDigits=2);
 
 type TaccessRight=(arExecute, arRead, arWrite);
 type TAccessRights=set of TAccessRight;
+type TVariableTypes=set of TVariableType;
 
 type TAddressArray=array of ptruint;
 

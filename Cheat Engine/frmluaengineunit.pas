@@ -231,7 +231,7 @@ begin
   if result=false then
   begin
     //try global
-    lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(token));
+    lua_getglobal(luavm, pchar(token));
     if lua_isnil(LuaVM,-1) then
       lua_pop(luavm, 1)
     else

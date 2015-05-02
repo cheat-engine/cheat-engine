@@ -33,11 +33,11 @@ type
     cbUseWindowsDebugger: TRadioButton;
     CheckBox1: TCheckBox;
     cbCanStepKernelcode: TCheckBox;
-    cbAllIncludesCustomType: TCheckBox;
     cbShowProcesslist: TCheckBox;
     cbOverrideExistingBPs: TCheckBox;
     cbVEHRealContextOnThreadCreation: TCheckBox;
     cbWaitAfterGuiUpdate: TCheckBox;
+    cgAllTypes: TCheckGroup;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
     edtStacksize: TEdit;
@@ -262,6 +262,7 @@ frmProcessWatcherUnit,
 ConfigUnrandomizerFrm,
 CustomTypeHandler,
 processlist,
+commonTypeDefs,
 Globals;
 
 
@@ -436,8 +437,22 @@ begin
       else
         Application.TaskBarBehavior:=tbSingleButton;
 
-      AllIncludesCustomType:=cbAllIncludesCustomType.checked;
-      reg.writebool('All includes custom types', cbAllIncludesCustomType.checked);
+      ScanAllTypes:=[];
+      if cgAllTypes.checked[0] then ScanAllTypes:=ScanAllTypes+[vtByte];
+      if cgAllTypes.checked[1] then ScanAllTypes:=ScanAllTypes+[vtWord];
+      if cgAllTypes.checked[2] then ScanAllTypes:=ScanAllTypes+[vtDword];
+      if cgAllTypes.checked[3] then ScanAllTypes:=ScanAllTypes+[vtQword];
+      if cgAllTypes.checked[4] then ScanAllTypes:=ScanAllTypes+[vtSingle];
+      if cgAllTypes.checked[5] then ScanAllTypes:=ScanAllTypes+[vtDouble];
+      if cgAllTypes.checked[6] then ScanAllTypes:=ScanAllTypes+[vtCustom];
+
+      reg.writebool('AllByte',cgAllTypes.checked[0]);
+      reg.writebool('AllWord',cgAllTypes.checked[1]);
+      reg.writebool('AllDWord',cgAllTypes.checked[2]);
+      reg.writebool('AllQWord',cgAllTypes.checked[3]);
+      reg.writebool('AllFloat',cgAllTypes.checked[4]);
+      reg.writebool('AllDouble',cgAllTypes.checked[5]);
+      reg.writebool('AllCustom',cgAllTypes.checked[6]);
 
 
       reg.writebool('Can Step Kernelcode',cbCanStepKernelcode.checked);
@@ -1025,6 +1040,10 @@ end;
 procedure TformSettings.FormCreate(Sender: TObject);
 var i: integer;
 begin
+  cgAllTypes.Checked[2]:=true;
+  cgAllTypes.Checked[4]:=true;
+  cgAllTypes.Checked[5]:=true;
+
   tvMenuSelection.Items[0].Data:=GeneralSettings;
   tvMenuSelection.Items[1].Data:=tsTools;
   tvMenuSelection.Items[2].Data:=tsHotkeys;

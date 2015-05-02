@@ -9,7 +9,7 @@ interface
 uses
   Classes, SysUtils, strutils, commonTypeDefs, math;
 
-procedure ConvertStringToBytes(scanvalue:string; hex:boolean;var bytes: TBytes);
+procedure ConvertStringToBytes(scanvalue:string; hex:boolean;var bytes: TBytes; canHandleNibbleWildcards: boolean=false);
 function BinToInt(s: string): int64;
 function IntToBin(i: qword): string;
 function StrToQWordEx(s: string): qword;
@@ -129,7 +129,7 @@ end;
 
 
 
-procedure ConvertStringToBytes(scanvalue:string; hex:boolean;var bytes: TBytes);
+procedure ConvertStringToBytes(scanvalue:string; hex:boolean;var bytes: TBytes; canHandleNibbleWildcards: boolean=false);
 {
 Converts a given string into a array of TBytes.
 TBytes are not pure bytes, they can hold -1, which indicates a wildcard
@@ -172,6 +172,32 @@ begin
             bytes[length(bytes)-1]:=strtoint('$'+helpstr2);
           except
             bytes[length(bytes)-1]:=-1; //wildcard
+
+            if canHandleNibbleWildcards and (length(helpstr2)=2) then
+            begin
+              //see if it can be salvaged into nibble information
+              //how it's stored:
+              //the most significant bit is set (so negative) as an indicator it's wildcard
+
+              //bits 8 to 11 contains a mask for the nibble ranging from bit 0 to 3
+              //bits 12 to 15 contain a mask for nibble part ranging from bit 4 to 7
+
+              //so: 7* will be $80000000 or f000 or 70=$8000f070
+              //when compared to another value e.g 79  79 gets AND'ed with f0, leaving 70, which then matches 70
+
+              try
+                k:=strtoint('$'+helpstr2[1]); // (x*) bit 0 to 3 are wildcard
+                bytes[length(bytes)-1]:=dword($80000000) or ($0000f000) or (k shl 4);
+              except
+                try
+                  k:=strtoint('$'+helpstr2[2]); //(*x) bit 4 to 7 are wildcard
+                  bytes[length(bytes)-1]:=dword($80000000) or ($00000f00) or k;
+                except
+                end;
+              end;
+
+            end;
+
           end;
 
           inc(j,2);

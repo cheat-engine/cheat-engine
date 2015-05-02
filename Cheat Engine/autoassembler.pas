@@ -2912,14 +2912,14 @@ begin
 
   for i:=0 to code.Count-1 do
   begin
-    if (uppercase(code[i]))='[ENABLE]' then
+    if (uppercase(trim(code[i])))='[ENABLE]' then
     begin
       insideenable:=true;
       insidedisable:=false;
       continue;
     end;
 
-    if (uppercase(code[i]))='[DISABLE]' then
+    if (uppercase(trim(code[i])))='[DISABLE]' then
     begin
       insideenable:=false;
       insidedisable:=true;

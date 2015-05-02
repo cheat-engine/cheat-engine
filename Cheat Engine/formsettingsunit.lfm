@@ -1,11 +1,11 @@
 object formSettings: TformSettings
   Left = 774
-  Height = 517
+  Height = 518
   Top = 308
   Width = 772
   BorderIcons = [biSystemMenu]
   Caption = 'Cheat Engine settings'
-  ClientHeight = 517
+  ClientHeight = 518
   ClientWidth = 772
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
@@ -17,16 +17,16 @@ object formSettings: TformSettings
   LCLVersion = '1.3'
   object pnlConfig: TPanel
     Left = 0
-    Height = 470
+    Height = 471
     Top = 0
     Width = 772
     Align = alClient
-    ClientHeight = 470
+    ClientHeight = 471
     ClientWidth = 772
     TabOrder = 0
     object tvMenuSelection: TTreeView
       Left = 1
-      Height = 468
+      Height = 469
       Top = 1
       Width = 148
       Align = alLeft
@@ -57,12 +57,12 @@ object formSettings: TformSettings
     end
     object pcSetting: TPageControl
       Left = 149
-      Height = 468
+      Height = 469
       Top = 1
       Width = 622
-      ActivePage = Assembler
+      ActivePage = ScanSettings
       Align = alClient
-      TabIndex = 5
+      TabIndex = 3
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -467,7 +467,7 @@ object formSettings: TformSettings
       end
       object Unrandomizer: TTabSheet
         Caption = 'Unrandomizer'
-        ClientHeight = 442
+        ClientHeight = 443
         ClientWidth = 614
         ImageIndex = 8
         object Label5: TLabel
@@ -497,45 +497,56 @@ object formSettings: TformSettings
       end
       object ScanSettings: TTabSheet
         Caption = 'Scan Settings'
-        ClientHeight = 442
+        ClientHeight = 443
         ClientWidth = 614
         ImageIndex = 1
         object Label3: TLabel
+          AnchorSideTop.Control = cbMemMapped
+          AnchorSideTop.Side = asrBottom
           Left = 0
-          Height = 14
-          Top = 273
-          Width = 68
+          Height = 13
+          Top = 289
+          Width = 67
+          BorderSpacing.Top = 5
           Caption = 'Thread priority'
           ParentColor = False
         end
         object Label1: TLabel
           Left = 0
-          Height = 14
+          Height = 13
           Top = 7
-          Width = 115
+          Width = 114
           Caption = 'Size of scanbuffer (KB) :'
           ParentColor = False
         end
         object Label15: TLabel
-          Left = 175
-          Height = 14
+          AnchorSideLeft.Control = EditBufsize
+          AnchorSideLeft.Side = asrBottom
+          Left = 168
+          Height = 13
           Top = 7
-          Width = 137
+          Width = 136
+          BorderSpacing.Left = 3
           Caption = '(Can affect scan speed a lot)'
           ParentColor = False
         end
         object Label21: TLabel
+          AnchorSideTop.Control = edtTempScanFolder
+          AnchorSideTop.Side = asrBottom
           Left = 0
-          Height = 14
-          Top = 185
-          Width = 190
+          Height = 13
+          Top = 214
+          Width = 189
+          BorderSpacing.Top = 10
           Caption = 'Scan the following memory region types:'
           ParentColor = False
         end
         object combothreadpriority: TComboBox
+          AnchorSideTop.Control = Label3
+          AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 21
-          Top = 289
+          Top = 302
           Width = 122
           ItemHeight = 13
           ItemIndex = 4
@@ -553,9 +564,11 @@ object formSettings: TformSettings
           Text = 'Higher'
         end
         object cbFastscan: TCheckBox
+          AnchorSideTop.Control = EditBufsize
+          AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 39
+          Top = 26
           Width = 130
           Caption = 'Fast scan on by default'
           Checked = True
@@ -563,10 +576,12 @@ object formSettings: TformSettings
           TabOrder = 1
         end
         object cbSkip_PAGE_NOCACHE: TCheckBox
+          AnchorSideTop.Control = cbFastscan
+          AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
           Hint = 'Some systems crash when trying to read memory with this protection. If that happens check this option.'
-          Top = 56
+          Top = 45
           Width = 312
           Caption = 'Don''t scan memory that is protected with the No Cache option'
           ParentShowHint = False
@@ -574,9 +589,11 @@ object formSettings: TformSettings
           TabOrder = 2
         end
         object cbMemImage: TCheckBox
+          AnchorSideTop.Control = cbMemPrivate
+          AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 224
+          Top = 246
           Width = 355
           Caption = 'MEM_IMAGE:Memory that is mapped into the view of an image section'
           Checked = True
@@ -584,17 +601,21 @@ object formSettings: TformSettings
           TabOrder = 3
         end
         object cbMemMapped: TCheckBox
+          AnchorSideTop.Control = cbMemImage
+          AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 244
+          Top = 265
           Width = 531
           Caption = 'MEM_MAPPED:Memory that is mapped into the view of a section. (E.g:File mapping, emulator memory, slow)'
           TabOrder = 4
         end
         object cbMemPrivate: TCheckBox
+          AnchorSideTop.Control = Label21
+          AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 204
+          Top = 227
           Width = 206
           Caption = 'MEM_PRIVATE:Memory that is private.'
           Checked = True
@@ -602,7 +623,9 @@ object formSettings: TformSettings
           TabOrder = 5
         end
         object EditBufsize: TEdit
-          Left = 119
+          AnchorSideLeft.Control = Label1
+          AnchorSideLeft.Side = asrBottom
+          Left = 114
           Height = 21
           Top = 5
           Width = 51
@@ -610,36 +633,54 @@ object formSettings: TformSettings
           Text = '1024'
         end
         object cbDontusetempdir: TCheckBox
+          AnchorSideTop.Control = cgAllTypes
+          AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 90
+          Top = 151
           Width = 292
           Caption = 'Don''t store the temporary scanfiles in the windows tempdir'
           OnChange = cbDontusetempdirChange
           TabOrder = 7
         end
         object edtTempScanFolder: TEdit
+          AnchorSideLeft.Control = cbDontusetempdir
+          AnchorSideTop.Control = Label2
+          AnchorSideTop.Side = asrBottom
+          AnchorSideRight.Control = LoadButton
           Left = 15
           Height = 21
-          Top = 124
-          Width = 521
+          Top = 183
+          Width = 559
+          Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Left = 15
           Enabled = False
           TabOrder = 8
         end
         object Label2: TLabel
+          AnchorSideLeft.Control = cbDontusetempdir
+          AnchorSideTop.Control = cbDontusetempdir
+          AnchorSideTop.Side = asrBottom
           Left = 15
-          Height = 14
-          Top = 111
-          Width = 201
+          Height = 13
+          Top = 170
+          Width = 200
+          BorderSpacing.Left = 15
           Caption = 'Store the temporary scanfiles here instead:'
           Enabled = False
           ParentColor = False
         end
         object LoadButton: TSpeedButton
-          Left = 535
+          AnchorSideTop.Control = edtTempScanFolder
+          AnchorSideTop.Side = asrCenter
+          AnchorSideRight.Control = ScanSettings
+          AnchorSideRight.Side = asrBottom
+          Left = 574
           Height = 25
-          Top = 123
+          Top = 181
           Width = 25
+          Anchors = [akTop, akRight]
+          BorderSpacing.Right = 15
           Enabled = False
           Glyph.Data = {
             D6020000424DD6020000000000003600000028000000100000000E0000000100
@@ -670,15 +711,41 @@ object formSettings: TformSettings
           ShowHint = True
           ParentShowHint = False
         end
-        object cbAllIncludesCustomType: TCheckBox
+        object cgAllTypes: TCheckGroup
+          AnchorSideTop.Control = cbSkip_PAGE_NOCACHE
+          AnchorSideTop.Side = asrBottom
           Left = 0
-          Height = 19
-          Top = 73
-          Width = 292
-          Caption = 'Custom types are included with the ALL scan variabletype'
-          Checked = True
-          State = cbChecked
+          Height = 87
+          Top = 64
+          Width = 227
+          AutoFill = True
+          AutoSize = True
+          Caption = 'The all type includes'
+          ChildSizing.LeftRightSpacing = 6
+          ChildSizing.TopBottomSpacing = 6
+          ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+          ChildSizing.EnlargeVertical = crsHomogenousChildResize
+          ChildSizing.ShrinkHorizontal = crsScaleChilds
+          ChildSizing.ShrinkVertical = crsScaleChilds
+          ChildSizing.Layout = cclTopToBottomThenLeftToRight
+          ChildSizing.ControlsPerLine = 3
+          ClientHeight = 69
+          ClientWidth = 223
+          ColumnLayout = clVerticalThenHorizontal
+          Columns = 3
+          Items.Strings = (
+            'Byte'
+            '2 Bytes'
+            '4 Bytes'
+            '8 Bytes'
+            'Float'
+            'Double'
+            'All Custom Types'
+          )
           TabOrder = 9
+          Data = {
+            0700000002020202020202
+          }
         end
       end
       object Plugins: TTabSheet
@@ -747,7 +814,7 @@ object formSettings: TformSettings
       end
       object Assembler: TTabSheet
         Caption = 'Debugger Options'
-        ClientHeight = 442
+        ClientHeight = 443
         ClientWidth = 614
         ImageIndex = 5
         object replacewithnops: TCheckBox
@@ -1354,7 +1421,7 @@ object formSettings: TformSettings
   object Panel6: TPanel
     Left = 0
     Height = 47
-    Top = 470
+    Top = 471
     Width = 772
     Align = alBottom
     BevelOuter = bvNone

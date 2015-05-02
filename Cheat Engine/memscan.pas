@@ -28,6 +28,7 @@ uses sysutils, unixporthelper, customtypehandler, commonTypeDefs, classes,
 
 
 type TCheckRoutine=function(newvalue,oldvalue: pointer):boolean of object;
+type TMultiAOBCheckRoutine=function(newvalue: pointer; mabsindex: integer):boolean of object;
 type TStoreResultRoutine=procedure(address: ptruint; oldvalue: pointer) of object;
 type TFlushRoutine=procedure of object;
 
@@ -65,7 +66,7 @@ type
 
     groupdatalength: integer;  //saves a getLenghth lookup call
 
-   // scanner: TScanner;
+    fscanner: TScanner;
 
     function ByteScan(value: byte; buf: Pbytearray; var startoffset: integer): boolean;
     function WordScan(value: word; buf: pointer; var startoffset: integer): boolean;
@@ -84,7 +85,7 @@ type
     function testWideString(buf: PWideChar; ts: pwidechar): boolean;
 
   public
-    constructor create(parameters: string);
+    constructor create(parameters: string; scanner: TScanner);
     function compareblock(newvalue,oldvalue: pointer): boolean; //Check if the values are at their specific offsets
     function compareblock_outoforder(newvalue,oldvalue: pointer): boolean; //Scan the blocks for the values
 
@@ -169,6 +170,7 @@ type
     //array of bytes
     abs_arraylength: integer; //optimization so no need to call length()
     abs_arraytofind: TBytes;
+    nibbleSupport: boolean;
 
     //multi array of byte. This is for vtByteArrays. vtByteArrays can only be used together with the "OnlyOne" variable. Found in this case means all elements have been found
     mabs: array of record
@@ -183,8 +185,20 @@ type
     customtypesmatch: array of boolean;
     customtypecount: integer;
 
+    //some variables to hold what types to scan for all (faster then checking the set)
+    allByte: boolean;
+    allWord: boolean;
+    allDword: boolean;
+    allQword: boolean;
+    allFloat: boolean;
+    allDouble: boolean;
+    allCustom: boolean;
+
     //groupdata
     groupdata: TGroupData;
+
+    //custom data
+    currentAddress: PtrUInt;
 
     //check routines:
     function ByteExact(newvalue,oldvalue: pointer): boolean;
@@ -315,9 +329,11 @@ type
     function CustomFloatUnChanged(newvalue,oldvalue: pointer): boolean;
 
 
+    function ArrayOfBytesExact_NibbleWildcardSupport(newvalue: pointer; mabsindex: integer):boolean;
     function ArrayOfBytesExact(newvalue: pointer; mabsindex: integer):boolean;
 
     //following types only have exact: Array of byte, binary and string
+    function ArrayOfByteExact_NibbleWildcardSupport(newvalue,oldvalue: pointer):boolean;
     function ArrayOfByteExact(newvalue,oldvalue: pointer):boolean;
     function BinaryExact(newvalue,oldvalue: pointer):boolean;
     function CaseSensitiveAnsiStringExact(newvalue,oldvalue: pointer):boolean;
@@ -392,9 +408,6 @@ type
     customType: TCustomType;
     scanType: TScanType; //defines if it's a firstscan or next scan. (newscan is ignored)
     useNextNextscan: boolean; //determines to use the nextNextScan or firstNextScan
-
-    allincludescustomtypes: boolean;
-
 
     //thread controlling variables:
     isdone: boolean; //will get set to true when the thread finishes normally
@@ -486,7 +499,6 @@ type
     compareToSavedScan: boolean;
     savedscanname: string;
 
-    allincludescustomtypes: boolean;
     scanOption: TScanOption;
     variableType: TVariableType;
     customType: TCustomType;
@@ -707,7 +719,7 @@ end;
 
 //==================TGroupData===============//
 
-constructor TGroupData.create(parameters: string);
+constructor TGroupData.create(parameters: string; scanner: TScanner);
 //todo: convert groupscancommandparser to unix
 {$ifndef unix}
 var start, i: integer;
@@ -720,6 +732,7 @@ var start, i: integer;
 begin
 {$ifndef unix}
   floatsettings:=DefaultFormatSettings;
+  fscanner:=scanner;
 
   gcp:=TGroupscanCommandParser.create;
   try
@@ -871,11 +884,11 @@ begin
       begin
         if groupdata[i].customType.scriptUsesFloat then
         begin
-          f:=groupdata[i].customType.ConvertDataToFloat(newvalue);
+          f:=groupdata[i].customType.ConvertDataToFloat(newvalue, fscanner.currentAddress);
           result:=groupdata[i].wildcard or ((f>groupdata[i].minfvalue) and (f<groupdata[i].maxfvalue));
         end
         else
-          result:=groupdata[i].wildcard or (groupdata[i].customType.ConvertDataToInteger(newvalue)=groupdata[i].valuei);
+          result:=groupdata[i].wildcard or (groupdata[i].customType.ConvertDataToInteger(newvalue, fscanner.currentAddress)=groupdata[i].valuei);
 
         inc(newvalue, groupdata[i].customType.bytesize);
       end;
@@ -1063,7 +1076,7 @@ begin
 
   while i<(blocksize-ct.bytesize-1) do
   begin
-    if ct.ConvertDataToInteger(current)=value then
+    if ct.ConvertDataToInteger(current, fscanner.currentAddress)=value then
     begin
       startoffset:=i+1;
       result:=true;
@@ -1096,7 +1109,7 @@ begin
 
   while i<(blocksize-ct.bytesize-1) do
   begin
-    f:=ct.ConvertDataToFloat(current);
+    f:=ct.ConvertDataToFloat(current, fscanner.currentAddress);
     if (f>minf) and (f<maxf) then
     begin
       startoffset:=i+1;
@@ -1301,7 +1314,7 @@ begin
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleExact(newvalue,oldvalue);
 
   {$ifdef customtypeimplemented}
-  if allincludescustomtypes then
+  if allCustom then
   begin
     //also scan custom types
     for j:=0 to customtypecount-1 do
@@ -1324,7 +1337,7 @@ begin
       exit;
     end;
 
-  if allincludescustomtypes then
+  if allCustom then
     for j:=0 to customtypecount-1 do
       if customtypesmatch[j] then
       begin
@@ -1346,7 +1359,7 @@ begin
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleBetween(newvalue,oldvalue);
 
   {$ifdef customtypeimplemented}
-  if allincludescustomtypes then
+  if allCustom then
   begin
     //also scan custom types
     for j:=0 to customtypecount-1 do
@@ -1369,7 +1382,7 @@ begin
       exit;
     end;
 
-  if allincludescustomtypes then
+  if allCustom then
     for j:=0 to customtypecount-1 do
       if customtypesmatch[j] then
       begin
@@ -1390,7 +1403,7 @@ begin
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleBetweenPercentage(newvalue,oldvalue);
 
   {$ifdef customtypeimplemented}
-  if allincludescustomtypes then
+  if allCustom then
   begin
     //also scan custom types
     for j:=0 to customtypecount-1 do
@@ -1413,7 +1426,7 @@ begin
       exit;
     end;
 
-  if allincludescustomtypes then
+  if allCustom then
     for j:=0 to customtypecount-1 do
       if customtypesmatch[j] then
       begin
@@ -1434,7 +1447,7 @@ begin
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleBiggerThan(newvalue,oldvalue);
 
   {$ifdef customtypeimplemented}
-  if allincludescustomtypes then
+  if allCustom then
   begin
     //also scan custom types
     for j:=0 to customtypecount-1 do
@@ -1456,7 +1469,7 @@ begin
       exit;
     end;
 
-  if allincludescustomtypes then
+  if allCustom then
     for j:=0 to customtypecount-1 do
       if customtypesmatch[j] then
       begin
@@ -1477,7 +1490,7 @@ begin
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleSmallerThan(newvalue,oldvalue);
 
   {$ifdef customtypeimplemented}
-  if allincludescustomtypes then
+  if allCustom then
   begin
     //also scan custom types
     for j:=0 to customtypecount-1 do
@@ -1499,7 +1512,7 @@ begin
       exit;
     end;
 
-  if allincludescustomtypes then
+  if allCustom then
     for j:=0 to customtypecount-1 do
       if customtypesmatch[j] then
       begin
@@ -1520,7 +1533,7 @@ begin
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleIncreasedValue(newvalue,oldvalue);
 
   {$ifdef customtypeimplemented}
-  if allincludescustomtypes then
+  if allCustom then
   begin
     //also scan custom types
     for j:=0 to customtypecount-1 do
@@ -1542,7 +1555,7 @@ begin
       exit;
     end;
 
-  if allincludescustomtypes then
+  if allCustom then
     for j:=0 to customtypecount-1 do
       if customtypesmatch[j] then
       begin
@@ -1563,7 +1576,7 @@ begin
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleIncreasedValueBy(newvalue,oldvalue);
 
   {$ifdef customtypeimplemented}
-  if allincludescustomtypes then
+  if allCustom then
   begin
     //also scan custom types
     for j:=0 to customtypecount-1 do
@@ -1585,7 +1598,7 @@ begin
       exit;
     end;
 
-  if allincludescustomtypes then
+  if allCustom then
     for j:=0 to customtypecount-1 do
       if customtypesmatch[j] then
       begin
@@ -1606,7 +1619,7 @@ begin
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleIncreasedValueByPercentage(newvalue,oldvalue);
 
   {$ifdef customtypeimplemented}
-  if allincludescustomtypes then
+  if allCustom then
   begin
     //also scan custom types
     for j:=0 to customtypecount-1 do
@@ -1628,7 +1641,7 @@ begin
       exit;
     end;
 
-  if allincludescustomtypes then
+  if allCustom then
     for j:=0 to customtypecount-1 do
       if customtypesmatch[j] then
       begin
@@ -1650,7 +1663,7 @@ begin
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleDecreasedValue(newvalue,oldvalue);
 
   {$ifdef customtypeimplemented}
-  if allincludescustomtypes then
+  if allCustom then
   begin
     //also scan custom types
     for j:=0 to customtypecount-1 do
@@ -1672,7 +1685,7 @@ begin
       exit;
     end;
 
-  if allincludescustomtypes then
+  if allCustom then
     for j:=0 to customtypecount-1 do
       if customtypesmatch[j] then
       begin
@@ -1693,7 +1706,7 @@ begin
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleDecreasedValueBy(newvalue,oldvalue);
 
   {$ifdef customtypeimplemented}
-  if allincludescustomtypes then
+  if allCustom then
   begin
     //also scan custom types
     for j:=0 to customtypecount-1 do
@@ -1715,7 +1728,7 @@ begin
       exit;
     end;
 
-  if allincludescustomtypes then
+  if allCustom then
     for j:=0 to customtypecount-1 do
       if customtypesmatch[j] then
       begin
@@ -1736,7 +1749,7 @@ begin
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleDecreasedValueByPercentage(newvalue,oldvalue);
 
   {$ifdef customtypeimplemented}
-  if allincludescustomtypes then
+  if allCustom then
   begin
     //also scan custom types
     for j:=0 to customtypecount-1 do
@@ -1758,7 +1771,7 @@ begin
       exit;
     end;
 
-  if allincludescustomtypes then
+  if allCustom then
     for j:=0 to customtypecount-1 do
       if customtypesmatch[j] then
       begin
@@ -1779,7 +1792,7 @@ begin
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleChanged(newvalue,oldvalue);
 
   {$ifdef customtypeimplemented}
-  if allincludescustomtypes then
+  if allCustom then
   begin
     //also scan custom types
     for j:=0 to customtypecount-1 do
@@ -1801,7 +1814,7 @@ begin
       exit;
     end;
 
-  if allincludescustomtypes then
+  if allCustom then
     for j:=0 to customtypecount-1 do
       if customtypesmatch[j] then
       begin
@@ -1822,7 +1835,7 @@ begin
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleUnchanged(newvalue,oldvalue);
 
   {$ifdef customtypeimplemented}
-  if allincludescustomtypes then
+  if allCustom then
   begin
     //also scan custom types
     for j:=0 to customtypecount-1 do
@@ -1844,7 +1857,7 @@ begin
       exit;
     end;
 
-  if allincludescustomtypes then
+  if allCustom then
     for j:=0 to customtypecount-1 do
       if customtypesmatch[j] then
       begin
@@ -1907,6 +1920,33 @@ begin
   result:=true; //it got here, so a match
 end;
 
+function TScanner.ArrayOfByteExact_NibbleWildcardSupport(newvalue,oldvalue: pointer):boolean;
+//sperate function as support for this will cause it to be slower
+var i: integer;
+begin
+  for i:=0 to abs_arraylength-1 do
+  begin
+    if abs_arraytofind[i]=-1 then continue; //full wildcard
+    if abs_arraytofind[i]<0 then
+    begin
+      //it's a nibble wildcard
+      //check if it matches
+      if ((pbytearray(newvalue)[i] and ((abs_arraytofind[i] shr 8) and $ff))<> (abs_arraytofind[i] and $ff) ) then
+      begin
+        result:=false; //no match
+        exit;
+      end;
+    end
+    else
+    if (pbytearray(newvalue)[i]<>abs_arraytofind[i]) then
+    begin
+      result:=false; //no match
+      exit;
+    end;
+  end;
+
+  result:=true; //still here, so a match
+end;
 
 function TScanner.ArrayOfByteExact(newvalue,oldvalue: pointer):boolean;
 var i: integer;
@@ -1917,6 +1957,38 @@ begin
       result:=false; //no match
       exit;
     end;
+
+  result:=true; //still here, so a match
+end;
+
+function TScanner.ArrayOfBytesExact_NibbleWildcardSupport(newvalue: pointer; mabsindex: integer):boolean;
+var i: integer;
+  arraylength: integer;
+  a: PIntegerArray;
+begin
+  arraylength:=mabs[mabsindex].arraylength;
+  a:=@mabs[mabsindex].arraytofind[0];
+
+  for i:=0 to arraylength-1 do
+  begin
+    if a[i]=-1 then continue; //full wildcard
+    if a[i]<0 then
+    begin
+      //it's a nibble wildcard
+      //check if it matches
+      if ((pbytearray(newvalue)[i] and ((a[i] shr 8) and $ff))<> (a[i] and $ff) ) then
+      begin
+        result:=false; //no match
+        exit;
+      end;
+    end
+    else
+    if (pbytearray(newvalue)[i]<>a[i]) then
+    begin
+      result:=false; //no match
+      exit;
+    end;
+  end;
 
   result:=true; //still here, so a match
 end;
@@ -2089,91 +2161,91 @@ end;
 function TScanner.CustomExact(newvalue,oldvalue: pointer): boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=customType.ConvertDataToInteger(newvalue)=integer(value);
+  result:=customType.ConvertDataToInteger(newvalue, currentAddress)=integer(value);
   {$ENDIF}
 end;
 
 function TScanner.CustomBetween(newvalue,oldvalue: pointer): boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=(customType.ConvertDataToInteger(newvalue)>=integer(value)) and (customType.ConvertDataToInteger(newvalue)<=integer(value2));
+  result:=(customType.ConvertDataToInteger(newvalue, currentAddress)>=integer(value)) and (customType.ConvertDataToInteger(newvalue, currentAddress)<=integer(value2));
   {$ENDIF}
 end;
 
 function TScanner.CustomBetweenPercentage(newvalue,oldvalue: pointer):boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=(customType.ConvertDataToInteger(newvalue)>trunc(customType.ConvertDataToInteger(oldvalue)*svalue)) and (customType.ConvertDataToInteger(newvalue)<=trunc(customType.ConvertDataToInteger(oldvalue)*svalue2));
+  result:=(customType.ConvertDataToInteger(newvalue, currentAddress)>trunc(customType.ConvertDataToInteger(oldvalue, currentAddress)*svalue)) and (customType.ConvertDataToInteger(newvalue, currentAddress)<=trunc(customType.ConvertDataToInteger(oldvalue, currentAddress)*svalue2));
   {$ENDIF}
 end;
 
 function TScanner.CustomBiggerThan(newvalue,oldvalue: pointer): boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=customType.ConvertDataToInteger(newvalue)>integer(value);
+  result:=customType.ConvertDataToInteger(newvalue, currentAddress)>integer(value);
   {$ENDIF}
 end;
 
 function TScanner.CustomSmallerThan(newvalue,oldvalue: pointer): boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=customType.ConvertDataToInteger(newvalue)<integer(value);
+  result:=customType.ConvertDataToInteger(newvalue, currentAddress)<integer(value);
   {$ENDIF}
 end;
 
 function TScanner.CustomIncreasedValue(newvalue,oldvalue: pointer): boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=customType.ConvertDataToInteger(newvalue)>customType.ConvertDataToInteger(oldvalue);
+  result:=customType.ConvertDataToInteger(newvalue, currentAddress)>customType.ConvertDataToInteger(oldvalue, currentAddress);
   {$ENDIF}
 end;
 
 function TScanner.CustomIncreasedValueBy(newvalue,oldvalue: pointer): boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=customType.ConvertDataToInteger(newvalue)=customType.ConvertDataToInteger(oldvalue)+dword(value);
+  result:=customType.ConvertDataToInteger(newvalue, currentAddress)=customType.ConvertDataToInteger(oldvalue, currentAddress)+dword(value);
   {$ENDIF}
 end;
 
 function TScanner.CustomIncreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=(customType.ConvertDataToInteger(newvalue)>trunc(customType.ConvertDataToInteger(oldvalue)+customType.ConvertDataToInteger(oldvalue)*svalue)) and (customType.ConvertDataToInteger(newvalue)<trunc(customType.ConvertDataToInteger(oldvalue)+customType.ConvertDataToInteger(oldvalue)*svalue2));
+  result:=(customType.ConvertDataToInteger(newvalue, currentAddress)>trunc(customType.ConvertDataToInteger(oldvalue, currentAddress)+customType.ConvertDataToInteger(oldvalue, currentAddress)*svalue)) and (customType.ConvertDataToInteger(newvalue,currentAddress)<trunc(customType.ConvertDataToInteger(oldvalue, currentAddress)+customType.ConvertDataToInteger(oldvalue, currentAddress)*svalue2));
   {$ENDIF}
 end;
 
 function TScanner.CustomDecreasedValue(newvalue,oldvalue: pointer): boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=customType.ConvertDataToInteger(newvalue)<customType.ConvertDataToInteger(oldvalue);
+  result:=customType.ConvertDataToInteger(newvalue, currentAddress)<customType.ConvertDataToInteger(oldvalue, currentAddress);
   {$ENDIF}
 end;
 
 function TScanner.CustomDecreasedValueBy(newvalue,oldvalue: pointer): boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=customType.ConvertDataToInteger(newvalue)=customType.ConvertDataToInteger(oldvalue)-dword(value);
+  result:=customType.ConvertDataToInteger(newvalue, currentAddress)=customType.ConvertDataToInteger(oldvalue, currentAddress)-dword(value);
   {$ENDIF}
 end;
 
 function TScanner.CustomDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=(customType.ConvertDataToInteger(newvalue)>trunc(customType.ConvertDataToInteger(oldvalue)-customType.ConvertDataToInteger(oldvalue)*svalue2)) and (customType.ConvertDataToInteger(newvalue)<trunc(customType.ConvertDataToInteger(oldvalue)-customType.ConvertDataToInteger(oldvalue)*svalue));
+  result:=(customType.ConvertDataToInteger(newvalue, currentAddress)>trunc(customType.ConvertDataToInteger(oldvalue, currentAddress)-customType.ConvertDataToInteger(oldvalue, currentAddress)*svalue2)) and (customType.ConvertDataToInteger(newvalue, currentAddress)<trunc(customType.ConvertDataToInteger(oldvalue, currentAddress)-customType.ConvertDataToInteger(oldvalue, currentAddress)*svalue));
   {$ENDIF}
 end;
 
 function TScanner.CustomChanged(newvalue,oldvalue: pointer): boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=customType.ConvertDataToInteger(newvalue)<>customType.ConvertDataToInteger(oldvalue);
+  result:=customType.ConvertDataToInteger(newvalue, currentAddress)<>customType.ConvertDataToInteger(oldvalue, currentAddress);
   {$ENDIF}
 end;
 
 function TScanner.CustomUnChanged(newvalue,oldvalue: pointer): boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=customType.ConvertDataToInteger(newvalue)=customType.ConvertDataToInteger(oldvalue);
+  result:=customType.ConvertDataToInteger(newvalue, currentAddress)=customType.ConvertDataToInteger(oldvalue, currentAddress);
   {$ENDIF}
 end;
 //--------------/\custom/\
@@ -2186,7 +2258,7 @@ var f: single;
 begin
   result:=false;
   {$ifdef customtypeimplemented}
-  f:=customType.ConvertDataToFloat(newvalue);
+  f:=customType.ConvertDataToFloat(newvalue, currentAddress);
   case roundingtype of
     rtRounded:
       result:=(RoundTo(f,-floataccuracy)=svalue);
@@ -2205,7 +2277,7 @@ function TScanner.CustomFloatBetween(newvalue,oldvalue: pointer):boolean;
 var f: single;
 begin
   {$ifdef customtypeimplemented}
-  f:=customType.ConvertDataToFloat(newvalue);
+  f:=customType.ConvertDataToFloat(newvalue, currentAddress);
   result:=(f>=svalue) and (f<=svalue2);
   {$ENDIF}
 end;
@@ -2215,8 +2287,8 @@ var new: single;
     old: single;
 begin
   {$ifdef customtypeimplemented}
-  new:=customType.ConvertDataToFloat(newvalue);
-  old:=customType.ConvertDataToFloat(oldvalue);
+  new:=customType.ConvertDataToFloat(newvalue, currentAddress);
+  old:=customType.ConvertDataToFloat(oldvalue, currentAddress);
   result:=(new>old*svalue) and (new<=old*svalue2);
   {$ENDIF}
 end;
@@ -2224,42 +2296,43 @@ end;
 function TScanner.CustomFloatBiggerThan(newvalue,oldvalue: pointer):boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=customType.ConvertDataToFloat(newvalue)>svalue;
+  result:=customType.ConvertDataToFloat(newvalue, currentAddress)>svalue;
   {$ENDIF}
 end;
 
 function TScanner.CustomFloatSmallerThan(newvalue,oldvalue: pointer):boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=customType.ConvertDataToFloat(newvalue)<svalue;
+  result:=customType.ConvertDataToFloat(newvalue, currentAddress)<svalue;
   {$ENDIF}
 end;
 
 function TScanner.CustomFloatIncreasedValue(newvalue,oldvalue: pointer):boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=customType.ConvertDataToFloat(newvalue)>customType.ConvertDataToFloat(oldvalue);
+  result:=customType.ConvertDataToFloat(newvalue, currentAddress)>customType.ConvertDataToFloat(oldvalue, currentAddress);
   {$ENDIF}
 end;
 
 function TScanner.CustomFloatIncreasedValueBy(newvalue,oldvalue: pointer):boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=(pqword(newvalue)^<>pqword(oldvalue)^) and (RoundTo(customType.ConvertDataToFloat(newvalue),-floataccuracy)=RoundTo(customType.ConvertDataToFloat(oldvalue)+svalue,-floataccuracy));
+
+  result:=(not CompareMem(newvalue, oldvalue, customtype.bytesize)) and (RoundTo(customType.ConvertDataToFloat(newvalue, currentAddress),-floataccuracy)=RoundTo(customType.ConvertDataToFloat(oldvalue, currentAddress)+svalue,-floataccuracy));
   {$ENDIF}
 end;
 
 function TScanner.CustomFloatDecreasedValue(newvalue,oldvalue: pointer):boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=customType.ConvertDataToFloat(newvalue)<customType.ConvertDataToFloat(oldvalue);
+  result:=customType.ConvertDataToFloat(newvalue, currentAddress)<customType.ConvertDataToFloat(oldvalue, currentAddress);
   {$ENDIF}
 end;
 
 function TScanner.CustomFloatDecreasedValueBy(newvalue,oldvalue: pointer):boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=(pqword(newvalue)^<>pqword(oldvalue)^) and (RoundTo(customType.ConvertDataToFloat(newvalue),-floataccuracy)=RoundTo(customType.ConvertDataToFloat(oldvalue)-svalue,-floataccuracy));
+  result:=(not CompareMem(newvalue, oldvalue, customtype.bytesize)) and (RoundTo(customType.ConvertDataToFloat(newvalue, currentAddress),-floataccuracy)=RoundTo(customType.ConvertDataToFloat(oldvalue, currentAddress)-svalue,-floataccuracy));
   {$ENDIF}
 end;
 
@@ -2267,8 +2340,8 @@ function TScanner.CustomFloatIncreasedValueByPercentage(newvalue,oldvalue: point
 var new, old: single;
 begin
   {$ifdef customtypeimplemented}
-  new:=customType.ConvertDataToFloat(newvalue);
-  old:=customType.ConvertDataToFloat(oldvalue);
+  new:=customType.ConvertDataToFloat(newvalue, currentAddress);
+  old:=customType.ConvertDataToFloat(oldvalue, currentAddress);
   result:=(new>old+old*svalue) and (new<old+old*svalue2);
   {$ENDIF}
 end;
@@ -2277,8 +2350,8 @@ function TScanner.CustomFloatDecreasedValueByPercentage(newvalue,oldvalue: point
 var new, old: single;
 begin
   {$ifdef customtypeimplemented}
-  new:=customType.ConvertDataToFloat(newvalue);
-  old:=customType.ConvertDataToFloat(oldvalue);
+  new:=customType.ConvertDataToFloat(newvalue, currentAddress);
+  old:=customType.ConvertDataToFloat(oldvalue, currentAddress);
   result:=(new>old-old*svalue2) and (new<old-old*svalue);
   {$ENDIF}
 end;
@@ -2286,14 +2359,14 @@ end;
 function TScanner.CustomFloatChanged(newvalue,oldvalue: pointer):boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=customType.ConvertDataToFloat(newvalue)<>customType.ConvertDataToFloat(oldvalue);
+  result:=customType.ConvertDataToFloat(newvalue, currentAddress)<>customType.ConvertDataToFloat(oldvalue, currentAddress);
   {$ENDIF}
 end;
 
 function TScanner.CustomFloatUnchanged(newvalue,oldvalue: pointer):boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=customType.ConvertDataToFloat(newvalue)=customType.ConvertDataToFloat(oldvalue);
+  result:=customType.ConvertDataToFloat(newvalue, currentAddress)=customType.ConvertDataToFloat(oldvalue, currentAddress);
   {$ENDIF}
 end;
 //   ^^^^CustomFloat^^^^
@@ -2601,7 +2674,7 @@ begin
   if (variableType = vtCustom) and (customtype<>nil) and (customtype.scriptUsesFloat) then
   begin
     //check if it's a valid float result
-    f:=customType.ConvertDataToFloat(oldvalue); //get value
+    f:=customType.ConvertDataToFloat(oldvalue, currentAddress); //get value
     if isnan(f) or IsInfinite(f) then exit; //check if valid, if not, exit
 
   end;
@@ -2764,7 +2837,7 @@ begin
     end;
   end;
 
-  if allincludescustomtypes then
+  if allCustom then
   begin
     for j:=0 to customtypecount-1 do
     begin
@@ -2964,6 +3037,8 @@ var stepsize: integer;
     dividableby2: boolean;
     dividableby4: boolean;
     allfound: boolean;
+
+    aob_checkroutine: TMultiAOBCheckRoutine;
 begin
   _fastscan:=fastscanmethod<>fsmNotAligned;
   p:=buffer;
@@ -2983,87 +3058,124 @@ begin
   else
     stepsize:=1;
 
-
-  if variableType=vtByteArrays then
-  begin
-    //do a ArrayOfBytesExact scan for every aob in the list
-    while (ptruint(p)<=lastmem) do
+  case variableType of
+    vtByteArrays:
     begin
-      for j:=0 to mabs_arraylength-1 do
+      //do a ArrayOfBytesExact scan for every aob in the list
+      if nibbleSupport then
+        aob_checkroutine:=ArrayOfBytesExact_NibbleWildcardSupport
+      else
+        aob_checkroutine:=ArrayOfBytesExact;
+
+
+      while (ptruint(p)<=lastmem) do
       begin
-        if (mabs[j].foundaddress=0) and ArrayOfBytesExact(p,j) then //found one
+        for j:=0 to mabs_arraylength-1 do
         begin
-          mabs[j].foundaddress:=base+ptruint(p)-ptruint(buffer);
-
-          //check if all have been found
-          allfound:=true;
-          for k:=0 to mabs_arraylength-1 do
-            if mabs[k].foundaddress=0 then
-            begin
-              allfound:=false;
-              break;
-            end;
-
-          if allfound then
+          if (mabs[j].foundaddress=0) and aob_checkroutine(p,j) then //found one
           begin
-            found:=1;
+            mabs[j].foundaddress:=base+ptruint(p)-ptruint(buffer);
+
+            //check if all have been found
+            allfound:=true;
+            for k:=0 to mabs_arraylength-1 do
+              if mabs[k].foundaddress=0 then
+              begin
+                allfound:=false;
+                break;
+              end;
+
+            if allfound then
+            begin
+              found:=1;
+              exit;
+            end;
+          end;
+
+        end;
+
+        inc(p,stepsize);
+      end;
+    end;
+
+    vtAll:
+    begin
+      //reset typesmatch array for each check
+      while (ptruint(p)<=lastmem) do
+      begin
+        typesmatch[vtByte]:=allByte;
+
+        if _fastscan then
+        begin
+          dividableby2:=ptruint(p) mod 2=0;
+          dividableby4:=ptruint(p) mod 4=0;
+
+          typesmatch[vtWord]:=allWord and dividableby2;
+          typesmatch[vtDWord]:=allDword and dividableby4;
+          typesmatch[vtQWord]:=allQword and dividableby4;
+          typesmatch[vtSingle]:=allFloat and dividableby4;
+          typesmatch[vtDouble]:=allDouble and dividableby4;
+        end
+        else
+        begin
+          typesmatch[vtWord]:=allWord;
+          typesmatch[vtDWord]:=allDword;
+          typesmatch[vtQWord]:=allQword;
+          typesmatch[vtSingle]:=allFloat;
+          typesmatch[vtDouble]:=allDouble;
+        end;
+
+        if allCustom then
+        begin
+          currentaddress:=base+ptruint(p)-ptruint(buffer);
+          for j:=0 to customtypecount-1 do customtypesmatch[j]:=true;
+        end;
+
+        if checkroutine(p,nil) then //found one
+          StoreResultRoutine(base+ptruint(p)-ptruint(buffer),p);
+
+        inc(p,stepsize);
+      end;
+    end;
+
+    vtCustom:
+    begin
+      while (ptruint(p)<=lastmem) do
+      begin
+        currentAddress:=base+ptruint(p)-ptruint(buffer);
+        if checkroutine(p,nil) then //found one
+        begin
+          StoreResultRoutine(currentAddress,p);
+          if OnlyOne then
+          begin
+            AddressFound:=currentAddress;
             exit;
           end;
         end;
 
+        inc(p,stepsize);
       end;
-
-      inc(p,stepsize);
-    end;
-  end
-  else
-  if variableType=vtAll then
-  begin
-    //reset typesmatch array for each check
-    while (ptruint(p)<=lastmem) do
+    end
+    else
     begin
-      if _fastscan then
+      while (ptruint(p)<=lastmem) do
       begin
-        dividableby2:=ptruint(p) mod 2=0;
-        dividableby4:=ptruint(p) mod 4=0;
-        typesmatch[vtByte]:=true;
-        typesmatch[vtWord]:=dividableby2;
-        typesmatch[vtDWord]:=dividableby4;
-        typesmatch[vtQWord]:=dividableby4;
-        typesmatch[vtSingle]:=dividableby4;
-        typesmatch[vtDouble]:=dividableby4;
-      end
-      else
-      begin
-        for i:=vtByte to vtDouble do typesmatch[i]:=true;
-      end;
-
-      if allincludescustomtypes then
-        for j:=0 to customtypecount-1 do customtypesmatch[j]:=true;
-
-      if checkroutine(p,nil) then //found one
-        StoreResultRoutine(base+ptruint(p)-ptruint(buffer),p);
-
-      inc(p,stepsize);
-    end;    
-  end
-  else
-  begin
-    while (ptruint(p)<=lastmem) do
-    begin
-      if checkroutine(p,nil) then //found one
-      begin
-        StoreResultRoutine(base+ptruint(p)-ptruint(buffer),p);
-        if OnlyOne then
+        if checkroutine(p,nil) then //found one
         begin
-          AddressFound:=base+ptruint(p)-ptruint(buffer);
-          exit;
+          StoreResultRoutine(base+ptruint(p)-ptruint(buffer),p);
+          if OnlyOne then
+          begin
+            AddressFound:=base+ptruint(p)-ptruint(buffer);
+            exit;
+          end;
         end;
-      end;
 
-      inc(p,stepsize);
+        inc(p,stepsize);
+      end;
     end;
+
   end;
+
 end;
 
 procedure TScanner.FirstNextScanmem(base:ptruint; buffer,oldbuffer: pointer; size: integer);
@@ -3133,8 +3245,11 @@ begin
         else
           for i:=vtByte to vtDouble do typesmatch[i]:=true;
 
-        if allincludescustomtypes then
+        if allCustom then
+        begin
+          currentaddress:=base+ptruint(p)-ptruint(buffer);
           for j:=0 to customtypecount-1 do customtypesmatch[j]:=true;
+        end;
 
 
         if checkroutine(p,savedscanhandler.getpointertoaddress(base+ptruint(p)-ptruint(buffer),valuetype,nil )) then //found one
@@ -3147,8 +3262,9 @@ begin
     begin
       while ptruint(p)<=lastmem do
       begin
-        if checkroutine(p,savedscanhandler.getpointertoaddress(base+ptrUint(p)-ptrUint(buffer),valuetype,customtype )) then //found one
-          StoreResultRoutine(base+ptruint(p)-ptruint(buffer),p);
+        currentaddress:=base+ptrUint(p)-ptrUint(buffer);
+        if checkroutine(p,savedscanhandler.getpointertoaddress(currentaddress,valuetype,customtype )) then //found one
+          StoreResultRoutine(currentaddress,p);
 
         inc(p, stepsize);
       end;
@@ -3174,12 +3290,25 @@ begin
         else
           for i:=vtByte to vtDouble do typesmatch[i]:=true;
 
-        if allincludescustomtypes then
+        if allCustom then
           for j:=0 to customtypecount-1 do customtypesmatch[j]:=true;
 
 
         if checkroutine(p,oldp) then //found one
           StoreResultRoutine(base+ptruint(p)-ptruint(buffer),p);
+
+        inc(p, stepsize);
+        inc(oldp, stepsize);
+      end;
+    end
+    else
+    if variableType=vtCustom then
+    begin
+      while ptruint(p)<=lastmem do
+      begin
+        currentaddress:=base+ptruint(p)-ptruint(buffer);
+        if checkroutine(p,oldp) then //found one
+          StoreResultRoutine(currentaddress,p);
 
         inc(p, stepsize);
         inc(oldp, stepsize);
@@ -3213,7 +3342,6 @@ var i,j,k: dword;
 
     so: Tscanoption;
     valuetype: TVariableType;
-    currentaddress: ptruint;
     phandle: thandle;
 begin
   i:=0;
@@ -3259,10 +3387,8 @@ begin
         for l:=vtByte to vtDouble do
           typesmatch[l]:=false;
 
-        if allincludescustomtypes then
+        if allCustom then
           for m:=0 to customtypecount-1 do customtypesmatch[m]:=false;
-
-
 
         currentaddress:=currentbase;
 
@@ -3308,7 +3434,7 @@ begin
         for l:=vtByte to vtDouble do
           typesmatch[l]:=false;
 
-        if allincludescustomtypes then
+        if allCustom then
            for m:=0 to customtypecount-1 do customtypesmatch[m]:=false;
 
         currentaddress:=currentbase;
@@ -3528,14 +3654,22 @@ begin
       if compareToSavedScan then
       begin
         for k:=i to j do
+        begin
+          currentaddress:=alist[k];
+
           if checkroutine(@newmemory[alist[k]-currentbase],savedscanhandler.getpointertoaddress(alist[k],valuetype, customType )) then
-            StoreResultRoutine(alist[k],@newmemory[alist[k]-currentbase])
+            StoreResultRoutine(alist[k],@newmemory[alist[k]-currentbase]);
+        end;
       end
       else
       begin
         for k:=i to j do
+        begin
+          currentaddress:=alist[k];
+
           if CheckRoutine(@newmemory[alist[k]-currentbase],@oldmem[k*vsize]) then
             StoreResultRoutine(alist[k],@newmemory[alist[k]-currentbase]);
+        end;
       end;
     end;
 
@@ -3567,7 +3701,7 @@ begin
     end;
   end
   else
-  if (variableType = vtAll) and AllIncludesCustomType then
+  if (variableType = vtAll) and (vtCustom in ScanAllTypes) then
   begin
     i:=max(8, MaxCustomTypeSize);
     if i>16 then
@@ -3592,7 +3726,7 @@ begin
 
   if variableType=vtGrouped then
   begin
-    groupdata:=TGroupData.create(scanvalue1);
+    groupdata:=TGroupData.create(scanvalue1, self);
   end
   else
   if scanOption in [soCustom, soExactValue,soValueBetween,soBiggerThan,soSmallerThan, soDecreasedValueBy, soIncreasedValueBy] then
@@ -3819,10 +3953,18 @@ begin
       widescanvalue1:=scanvalue1;
     end;    
 
+    nibbleSupport:=false;
     if variabletype = vtByteArray then
     begin
-      ConvertStringToBytes(trim(scanvalue1),hexadecimal,abs_arraytofind);
+      ConvertStringToBytes(trim(scanvalue1),hexadecimal,abs_arraytofind, true);
       abs_arraylength:=length(abs_arraytofind);
+      for i:=0 to abs_arraylength-1 do
+        if (abs_arraytofind[i]<0) and (abs_arraytofind[i]<>-1) then
+        begin
+          nibbleSupport:=true;
+          break;
+        end;
+
     end;
 
     if variableType = vtByteArrays then
@@ -3834,9 +3976,16 @@ begin
       for i:=0 to length(mabs)-1 do
       begin
         s:=ExtractWord(i+1, scanvalue1, ['(',')']);
-        ConvertStringToBytes(trim(s),hexadecimal,mabs[i].arraytofind);
+        ConvertStringToBytes(trim(s),hexadecimal,mabs[i].arraytofind, true);
         mabs[i].arraylength:=length(mabs[i].arraytofind);
         mabs[i].foundaddress:=0;
+
+        for j:=0 to mabs[i].arraylength-1 do
+          if (mabs[i].arraytofind[j]<0) and (mabs[i].arraytofind[j]<>-1) then
+          begin
+            nibbleSupport:=true;
+            break;
+          end;
       end;
 
       mabs_arraylength:=length(mabs);
@@ -4110,8 +4259,13 @@ begin
       
     vtByteArray, vtByteArrays:
     begin
-      CheckRoutine:=ArrayOfByteExact;
+      if nibbleSupport then
+        CheckRoutine:=ArrayOfByteExact_NibbleWildcardSupport
+      else
+        CheckRoutine:=ArrayOfByteExact;
+
       flushroutine:=stringFlush;
+
       StoreResultRoutine:=ArrayOfByteSaveResult;
       FoundBufferSize:=0;
     end;
@@ -4157,7 +4311,7 @@ begin
 
       variablesize:=8; //override these variables (8 is big enough for even the double type)
       {$ifdef customtypeimplemented}
-      if allincludescustomtypes then  //find out the biggest customtype size
+      if allCustom then  //find out the biggest customtype size
       begin
         customtypecount:=customtypes.count;
         setlength(customtypesmatch, customtypecount);
@@ -4756,6 +4910,13 @@ begin
 
   Priority:=Globals.scanpriority;
 
+  allByte:=vtByte in ScanAllTypes;
+  allWord:=vtWord in ScanAllTypes;
+  allDword:=vtDword in ScanAllTypes;
+  allQword:=vtQword in ScanAllTypes;
+  allFloat:=vtSingle in ScanAllTypes;
+  allDouble:=vtDouble in ScanAllTypes;
+  allCustom:=vtCustom in ScanAllTypes;
 
 
   if not suspended then start;   //would be stupid, but ok...
@@ -4901,7 +5062,7 @@ begin
 
       variablesize:=8;
       {$ifdef customtypeimplemented}
-      if allincludescustomtypes then  //find out the biggest customtype size
+      if vtcustom in ScanAllTypes then  //find out the biggest customtype size
       begin
         for i:=0 to customTypes.count-1 do
           variablesize:=max(variablesize, TCustomType(customtypes[i]).bytesize);
@@ -5046,7 +5207,6 @@ begin
           scanners[i].fastscandigitcount:=fastscandigitcount;
           scanners[i].variablesize:=variablesize;
           scanners[i].useNextNextscan:=true; //address result scan so nextnextscan
-          scanners[i].allincludescustomtypes:=allincludescustomtypes;
 
           if variableType=vtGrouped then
             scanners[i].PreviousOffsetCount:=offsetcount;
@@ -5281,7 +5441,6 @@ begin
       scanners[i].fastscandigitcount:=fastscandigitcount;
       scanners[i].variablesize:=variablesize;
       scanners[i].useNextNextscan:=false; //region scan so firstnextscan
-      scanners[i].allincludescustomtypes:=allincludescustomtypes;
 
       if i=0 then //first thread gets the header part
       begin
@@ -5747,7 +5906,6 @@ begin
       scanners[i].fastscanmethod:=fastscanmethod;
       scanners[i].fastscandigitcount:=fastscandigitcount;
       scanners[i].variablesize:=variablesize;
-      scanners[i].allincludescustomtypes:=allincludescustomtypes;
 
       if i=0 then //first thread gets the header part
       begin
@@ -6444,7 +6602,7 @@ begin
       result:=8;  //bytes
 
       {$ifdef customtypeimplemented}
-      if allincludescustomtype then
+      if vtcustom in ScanAllTypes then
         for i:=0 to customTypes.count-1 do
           result:=max(result, TCustomType(customtypes[i]).bytesize);
       {$ENDIF}
@@ -6553,10 +6711,6 @@ begin
   scancontroller.notifywindow:=notifywindow;
   scancontroller.notifymessage:=notifymessage;
 
-  {$IFNDEF UNIX}
-  scanController.allincludescustomtypes:=formsettings.cballincludescustomtype.checked;
-  {$ENDIF}
-
   fLastscantype:=stNextScan;
   fLastScanValue:=scanvalue1;
 
@@ -6642,10 +6796,6 @@ begin
   scancontroller.notifymessage:=notifymessage;
 
   scanController.OnlyOne:=onlyone;
-
-  {$IFNDEF UNIX}
-  scanController.allincludescustomtypes:=formsettings.cballincludescustomtype.checked;
-  {$ENDIF}
 
   fLastscantype:=stFirstScan;
   fLastScanValue:=scanValue1;

@@ -12,7 +12,9 @@ uses
   Classes, SysUtils, commonTypeDefs;
 
 var
-  AllIncludesCustomType: boolean;
+//  AllIncludesCustomType: boolean;
+  ScanAllTypes: TVariableTypes=[vtDword, vtSingle, vtDouble];
+
   buffersize: dword=512*1024;
 
   Skip_PAGE_NOCACHE: boolean=false;
