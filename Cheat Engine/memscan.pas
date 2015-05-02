@@ -3148,7 +3148,7 @@ begin
           StoreResultRoutine(currentAddress,p);
           if OnlyOne then
           begin
-            AddressFound:=base+currentAddress;
+            AddressFound:=currentAddress;
             exit;
           end;
         end;
