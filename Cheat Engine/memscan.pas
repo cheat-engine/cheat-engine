@@ -66,7 +66,7 @@ type
 
     groupdatalength: integer;  //saves a getLenghth lookup call
 
-   // scanner: TScanner;
+    fscanner: TScanner;
 
     function ByteScan(value: byte; buf: Pbytearray; var startoffset: integer): boolean;
     function WordScan(value: word; buf: pointer; var startoffset: integer): boolean;
@@ -85,7 +85,7 @@ type
     function testWideString(buf: PWideChar; ts: pwidechar): boolean;
 
   public
-    constructor create(parameters: string);
+    constructor create(parameters: string; scanner: TScanner);
     function compareblock(newvalue,oldvalue: pointer): boolean; //Check if the values are at their specific offsets
     function compareblock_outoforder(newvalue,oldvalue: pointer): boolean; //Scan the blocks for the values
 
@@ -196,6 +196,9 @@ type
 
     //groupdata
     groupdata: TGroupData;
+
+    //custom data
+    currentAddress: PtrUInt;
 
     //check routines:
     function ByteExact(newvalue,oldvalue: pointer): boolean;
@@ -716,7 +719,7 @@ end;
 
 //==================TGroupData===============//
 
-constructor TGroupData.create(parameters: string);
+constructor TGroupData.create(parameters: string; scanner: TScanner);
 //todo: convert groupscancommandparser to unix
 {$ifndef unix}
 var start, i: integer;
@@ -729,6 +732,7 @@ var start, i: integer;
 begin
 {$ifndef unix}
   floatsettings:=DefaultFormatSettings;
+  fscanner:=scanner;
 
   gcp:=TGroupscanCommandParser.create;
   try
@@ -880,11 +884,11 @@ begin
       begin
         if groupdata[i].customType.scriptUsesFloat then
         begin
-          f:=groupdata[i].customType.ConvertDataToFloat(newvalue);
+          f:=groupdata[i].customType.ConvertDataToFloat(newvalue, fscanner.currentAddress);
           result:=groupdata[i].wildcard or ((f>groupdata[i].minfvalue) and (f<groupdata[i].maxfvalue));
         end
         else
-          result:=groupdata[i].wildcard or (groupdata[i].customType.ConvertDataToInteger(newvalue)=groupdata[i].valuei);
+          result:=groupdata[i].wildcard or (groupdata[i].customType.ConvertDataToInteger(newvalue, fscanner.currentAddress)=groupdata[i].valuei);
 
         inc(newvalue, groupdata[i].customType.bytesize);
       end;
@@ -1072,7 +1076,7 @@ begin
 
   while i<(blocksize-ct.bytesize-1) do
   begin
-    if ct.ConvertDataToInteger(current)=value then
+    if ct.ConvertDataToInteger(current, fscanner.currentAddress)=value then
     begin
       startoffset:=i+1;
       result:=true;
@@ -1105,7 +1109,7 @@ begin
 
   while i<(blocksize-ct.bytesize-1) do
   begin
-    f:=ct.ConvertDataToFloat(current);
+    f:=ct.ConvertDataToFloat(current, fscanner.currentAddress);
     if (f>minf) and (f<maxf) then
     begin
       startoffset:=i+1;
@@ -2157,91 +2161,91 @@ end;
 function TScanner.CustomExact(newvalue,oldvalue: pointer): boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=customType.ConvertDataToInteger(newvalue)=integer(value);
+  result:=customType.ConvertDataToInteger(newvalue, currentAddress)=integer(value);
   {$ENDIF}
 end;
 
 function TScanner.CustomBetween(newvalue,oldvalue: pointer): boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=(customType.ConvertDataToInteger(newvalue)>=integer(value)) and (customType.ConvertDataToInteger(newvalue)<=integer(value2));
+  result:=(customType.ConvertDataToInteger(newvalue, currentAddress)>=integer(value)) and (customType.ConvertDataToInteger(newvalue, currentAddress)<=integer(value2));
   {$ENDIF}
 end;
 
 function TScanner.CustomBetweenPercentage(newvalue,oldvalue: pointer):boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=(customType.ConvertDataToInteger(newvalue)>trunc(customType.ConvertDataToInteger(oldvalue)*svalue)) and (customType.ConvertDataToInteger(newvalue)<=trunc(customType.ConvertDataToInteger(oldvalue)*svalue2));
+  result:=(customType.ConvertDataToInteger(newvalue, currentAddress)>trunc(customType.ConvertDataToInteger(oldvalue, currentAddress)*svalue)) and (customType.ConvertDataToInteger(newvalue, currentAddress)<=trunc(customType.ConvertDataToInteger(oldvalue, currentAddress)*svalue2));
   {$ENDIF}
 end;
 
 function TScanner.CustomBiggerThan(newvalue,oldvalue: pointer): boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=customType.ConvertDataToInteger(newvalue)>integer(value);
+  result:=customType.ConvertDataToInteger(newvalue, currentAddress)>integer(value);
   {$ENDIF}
 end;
 
 function TScanner.CustomSmallerThan(newvalue,oldvalue: pointer): boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=customType.ConvertDataToInteger(newvalue)<integer(value);
+  result:=customType.ConvertDataToInteger(newvalue, currentAddress)<integer(value);
   {$ENDIF}
 end;
 
 function TScanner.CustomIncreasedValue(newvalue,oldvalue: pointer): boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=customType.ConvertDataToInteger(newvalue)>customType.ConvertDataToInteger(oldvalue);
+  result:=customType.ConvertDataToInteger(newvalue, currentAddress)>customType.ConvertDataToInteger(oldvalue, currentAddress);
   {$ENDIF}
 end;
 
 function TScanner.CustomIncreasedValueBy(newvalue,oldvalue: pointer): boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=customType.ConvertDataToInteger(newvalue)=customType.ConvertDataToInteger(oldvalue)+dword(value);
+  result:=customType.ConvertDataToInteger(newvalue, currentAddress)=customType.ConvertDataToInteger(oldvalue, currentAddress)+dword(value);
   {$ENDIF}
 end;
 
 function TScanner.CustomIncreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=(customType.ConvertDataToInteger(newvalue)>trunc(customType.ConvertDataToInteger(oldvalue)+customType.ConvertDataToInteger(oldvalue)*svalue)) and (customType.ConvertDataToInteger(newvalue)<trunc(customType.ConvertDataToInteger(oldvalue)+customType.ConvertDataToInteger(oldvalue)*svalue2));
+  result:=(customType.ConvertDataToInteger(newvalue, currentAddress)>trunc(customType.ConvertDataToInteger(oldvalue, currentAddress)+customType.ConvertDataToInteger(oldvalue, currentAddress)*svalue)) and (customType.ConvertDataToInteger(newvalue,currentAddress)<trunc(customType.ConvertDataToInteger(oldvalue, currentAddress)+customType.ConvertDataToInteger(oldvalue, currentAddress)*svalue2));
   {$ENDIF}
 end;
 
 function TScanner.CustomDecreasedValue(newvalue,oldvalue: pointer): boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=customType.ConvertDataToInteger(newvalue)<customType.ConvertDataToInteger(oldvalue);
+  result:=customType.ConvertDataToInteger(newvalue, currentAddress)<customType.ConvertDataToInteger(oldvalue, currentAddress);
   {$ENDIF}
 end;
 
 function TScanner.CustomDecreasedValueBy(newvalue,oldvalue: pointer): boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=customType.ConvertDataToInteger(newvalue)=customType.ConvertDataToInteger(oldvalue)-dword(value);
+  result:=customType.ConvertDataToInteger(newvalue, currentAddress)=customType.ConvertDataToInteger(oldvalue, currentAddress)-dword(value);
   {$ENDIF}
 end;
 
 function TScanner.CustomDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=(customType.ConvertDataToInteger(newvalue)>trunc(customType.ConvertDataToInteger(oldvalue)-customType.ConvertDataToInteger(oldvalue)*svalue2)) and (customType.ConvertDataToInteger(newvalue)<trunc(customType.ConvertDataToInteger(oldvalue)-customType.ConvertDataToInteger(oldvalue)*svalue));
+  result:=(customType.ConvertDataToInteger(newvalue, currentAddress)>trunc(customType.ConvertDataToInteger(oldvalue, currentAddress)-customType.ConvertDataToInteger(oldvalue, currentAddress)*svalue2)) and (customType.ConvertDataToInteger(newvalue, currentAddress)<trunc(customType.ConvertDataToInteger(oldvalue, currentAddress)-customType.ConvertDataToInteger(oldvalue, currentAddress)*svalue));
   {$ENDIF}
 end;
 
 function TScanner.CustomChanged(newvalue,oldvalue: pointer): boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=customType.ConvertDataToInteger(newvalue)<>customType.ConvertDataToInteger(oldvalue);
+  result:=customType.ConvertDataToInteger(newvalue, currentAddress)<>customType.ConvertDataToInteger(oldvalue, currentAddress);
   {$ENDIF}
 end;
 
 function TScanner.CustomUnChanged(newvalue,oldvalue: pointer): boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=customType.ConvertDataToInteger(newvalue)=customType.ConvertDataToInteger(oldvalue);
+  result:=customType.ConvertDataToInteger(newvalue, currentAddress)=customType.ConvertDataToInteger(oldvalue, currentAddress);
   {$ENDIF}
 end;
 //--------------/\custom/\
@@ -2254,7 +2258,7 @@ var f: single;
 begin
   result:=false;
   {$ifdef customtypeimplemented}
-  f:=customType.ConvertDataToFloat(newvalue);
+  f:=customType.ConvertDataToFloat(newvalue, currentAddress);
   case roundingtype of
     rtRounded:
       result:=(RoundTo(f,-floataccuracy)=svalue);
@@ -2273,7 +2277,7 @@ function TScanner.CustomFloatBetween(newvalue,oldvalue: pointer):boolean;
 var f: single;
 begin
   {$ifdef customtypeimplemented}
-  f:=customType.ConvertDataToFloat(newvalue);
+  f:=customType.ConvertDataToFloat(newvalue, currentAddress);
   result:=(f>=svalue) and (f<=svalue2);
   {$ENDIF}
 end;
@@ -2283,8 +2287,8 @@ var new: single;
     old: single;
 begin
   {$ifdef customtypeimplemented}
-  new:=customType.ConvertDataToFloat(newvalue);
-  old:=customType.ConvertDataToFloat(oldvalue);
+  new:=customType.ConvertDataToFloat(newvalue, currentAddress);
+  old:=customType.ConvertDataToFloat(oldvalue, currentAddress);
   result:=(new>old*svalue) and (new<=old*svalue2);
   {$ENDIF}
 end;
@@ -2292,21 +2296,21 @@ end;
 function TScanner.CustomFloatBiggerThan(newvalue,oldvalue: pointer):boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=customType.ConvertDataToFloat(newvalue)>svalue;
+  result:=customType.ConvertDataToFloat(newvalue, currentAddress)>svalue;
   {$ENDIF}
 end;
 
 function TScanner.CustomFloatSmallerThan(newvalue,oldvalue: pointer):boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=customType.ConvertDataToFloat(newvalue)<svalue;
+  result:=customType.ConvertDataToFloat(newvalue, currentAddress)<svalue;
   {$ENDIF}
 end;
 
 function TScanner.CustomFloatIncreasedValue(newvalue,oldvalue: pointer):boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=customType.ConvertDataToFloat(newvalue)>customType.ConvertDataToFloat(oldvalue);
+  result:=customType.ConvertDataToFloat(newvalue, currentAddress)>customType.ConvertDataToFloat(oldvalue, currentAddress);
   {$ENDIF}
 end;
 
@@ -2314,21 +2318,21 @@ function TScanner.CustomFloatIncreasedValueBy(newvalue,oldvalue: pointer):boolea
 begin
   {$ifdef customtypeimplemented}
 
-  result:=(not CompareMem(newvalue, oldvalue, customtype.bytesize)) and (RoundTo(customType.ConvertDataToFloat(newvalue),-floataccuracy)=RoundTo(customType.ConvertDataToFloat(oldvalue)+svalue,-floataccuracy));
+  result:=(not CompareMem(newvalue, oldvalue, customtype.bytesize)) and (RoundTo(customType.ConvertDataToFloat(newvalue, currentAddress),-floataccuracy)=RoundTo(customType.ConvertDataToFloat(oldvalue, currentAddress)+svalue,-floataccuracy));
   {$ENDIF}
 end;
 
 function TScanner.CustomFloatDecreasedValue(newvalue,oldvalue: pointer):boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=customType.ConvertDataToFloat(newvalue)<customType.ConvertDataToFloat(oldvalue);
+  result:=customType.ConvertDataToFloat(newvalue, currentAddress)<customType.ConvertDataToFloat(oldvalue, currentAddress);
   {$ENDIF}
 end;
 
 function TScanner.CustomFloatDecreasedValueBy(newvalue,oldvalue: pointer):boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=(not CompareMem(newvalue, oldvalue, customtype.bytesize)) and (RoundTo(customType.ConvertDataToFloat(newvalue),-floataccuracy)=RoundTo(customType.ConvertDataToFloat(oldvalue)-svalue,-floataccuracy));
+  result:=(not CompareMem(newvalue, oldvalue, customtype.bytesize)) and (RoundTo(customType.ConvertDataToFloat(newvalue, currentAddress),-floataccuracy)=RoundTo(customType.ConvertDataToFloat(oldvalue, currentAddress)-svalue,-floataccuracy));
   {$ENDIF}
 end;
 
@@ -2336,8 +2340,8 @@ function TScanner.CustomFloatIncreasedValueByPercentage(newvalue,oldvalue: point
 var new, old: single;
 begin
   {$ifdef customtypeimplemented}
-  new:=customType.ConvertDataToFloat(newvalue);
-  old:=customType.ConvertDataToFloat(oldvalue);
+  new:=customType.ConvertDataToFloat(newvalue, currentAddress);
+  old:=customType.ConvertDataToFloat(oldvalue, currentAddress);
   result:=(new>old+old*svalue) and (new<old+old*svalue2);
   {$ENDIF}
 end;
@@ -2346,8 +2350,8 @@ function TScanner.CustomFloatDecreasedValueByPercentage(newvalue,oldvalue: point
 var new, old: single;
 begin
   {$ifdef customtypeimplemented}
-  new:=customType.ConvertDataToFloat(newvalue);
-  old:=customType.ConvertDataToFloat(oldvalue);
+  new:=customType.ConvertDataToFloat(newvalue, currentAddress);
+  old:=customType.ConvertDataToFloat(oldvalue, currentAddress);
   result:=(new>old-old*svalue2) and (new<old-old*svalue);
   {$ENDIF}
 end;
@@ -2355,14 +2359,14 @@ end;
 function TScanner.CustomFloatChanged(newvalue,oldvalue: pointer):boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=customType.ConvertDataToFloat(newvalue)<>customType.ConvertDataToFloat(oldvalue);
+  result:=customType.ConvertDataToFloat(newvalue, currentAddress)<>customType.ConvertDataToFloat(oldvalue, currentAddress);
   {$ENDIF}
 end;
 
 function TScanner.CustomFloatUnchanged(newvalue,oldvalue: pointer):boolean;
 begin
   {$ifdef customtypeimplemented}
-  result:=customType.ConvertDataToFloat(newvalue)=customType.ConvertDataToFloat(oldvalue);
+  result:=customType.ConvertDataToFloat(newvalue, currentAddress)=customType.ConvertDataToFloat(oldvalue, currentAddress);
   {$ENDIF}
 end;
 //   ^^^^CustomFloat^^^^
@@ -2670,7 +2674,7 @@ begin
   if (variableType = vtCustom) and (customtype<>nil) and (customtype.scriptUsesFloat) then
   begin
     //check if it's a valid float result
-    f:=customType.ConvertDataToFloat(oldvalue); //get value
+    f:=customType.ConvertDataToFloat(oldvalue, currentAddress); //get value
     if isnan(f) or IsInfinite(f) then exit; //check if valid, if not, exit
 
   end;
@@ -3054,99 +3058,124 @@ begin
   else
     stepsize:=1;
 
-
-  if variableType=vtByteArrays then
-  begin
-    //do a ArrayOfBytesExact scan for every aob in the list
-    if nibbleSupport then
-      aob_checkroutine:=ArrayOfBytesExact_NibbleWildcardSupport
-    else
-      aob_checkroutine:=ArrayOfBytesExact;
-
-
-    while (ptruint(p)<=lastmem) do
+  case variableType of
+    vtByteArrays:
     begin
-      for j:=0 to mabs_arraylength-1 do
+      //do a ArrayOfBytesExact scan for every aob in the list
+      if nibbleSupport then
+        aob_checkroutine:=ArrayOfBytesExact_NibbleWildcardSupport
+      else
+        aob_checkroutine:=ArrayOfBytesExact;
+
+
+      while (ptruint(p)<=lastmem) do
       begin
-        if (mabs[j].foundaddress=0) and aob_checkroutine(p,j) then //found one
+        for j:=0 to mabs_arraylength-1 do
         begin
-          mabs[j].foundaddress:=base+ptruint(p)-ptruint(buffer);
-
-          //check if all have been found
-          allfound:=true;
-          for k:=0 to mabs_arraylength-1 do
-            if mabs[k].foundaddress=0 then
-            begin
-              allfound:=false;
-              break;
-            end;
-
-          if allfound then
+          if (mabs[j].foundaddress=0) and aob_checkroutine(p,j) then //found one
           begin
-            found:=1;
+            mabs[j].foundaddress:=base+ptruint(p)-ptruint(buffer);
+
+            //check if all have been found
+            allfound:=true;
+            for k:=0 to mabs_arraylength-1 do
+              if mabs[k].foundaddress=0 then
+              begin
+                allfound:=false;
+                break;
+              end;
+
+            if allfound then
+            begin
+              found:=1;
+              exit;
+            end;
+          end;
+
+        end;
+
+        inc(p,stepsize);
+      end;
+    end;
+
+    vtAll:
+    begin
+      //reset typesmatch array for each check
+      while (ptruint(p)<=lastmem) do
+      begin
+        typesmatch[vtByte]:=allByte;
+
+        if _fastscan then
+        begin
+          dividableby2:=ptruint(p) mod 2=0;
+          dividableby4:=ptruint(p) mod 4=0;
+
+          typesmatch[vtWord]:=allWord and dividableby2;
+          typesmatch[vtDWord]:=allDword and dividableby4;
+          typesmatch[vtQWord]:=allQword and dividableby4;
+          typesmatch[vtSingle]:=allFloat and dividableby4;
+          typesmatch[vtDouble]:=allDouble and dividableby4;
+        end
+        else
+        begin
+          typesmatch[vtWord]:=allWord;
+          typesmatch[vtDWord]:=allDword;
+          typesmatch[vtQWord]:=allQword;
+          typesmatch[vtSingle]:=allFloat;
+          typesmatch[vtDouble]:=allDouble;
+        end;
+
+        if allCustom then
+        begin
+          currentaddress:=base+ptruint(p)-ptruint(buffer);
+          for j:=0 to customtypecount-1 do customtypesmatch[j]:=true;
+        end;
+
+        if checkroutine(p,nil) then //found one
+          StoreResultRoutine(base+ptruint(p)-ptruint(buffer),p);
+
+        inc(p,stepsize);
+      end;
+    end;
+
+    vtCustom:
+    begin
+      while (ptruint(p)<=lastmem) do
+      begin
+        currentAddress:=base+ptruint(p)-ptruint(buffer);
+        if checkroutine(p,nil) then //found one
+        begin
+          StoreResultRoutine(currentAddress,p);
+          if OnlyOne then
+          begin
+            AddressFound:=base+currentAddress;
             exit;
           end;
         end;
 
+        inc(p,stepsize);
       end;
-
-      inc(p,stepsize);
-    end;
-  end
-  else
-  if variableType=vtAll then
-  begin
-    //reset typesmatch array for each check
-    while (ptruint(p)<=lastmem) do
+    end
+    else
     begin
-      typesmatch[vtByte]:=allByte;
-
-      if _fastscan then
+      while (ptruint(p)<=lastmem) do
       begin
-        dividableby2:=ptruint(p) mod 2=0;
-        dividableby4:=ptruint(p) mod 4=0;
-
-        typesmatch[vtWord]:=allWord and dividableby2;
-        typesmatch[vtDWord]:=allDword and dividableby4;
-        typesmatch[vtQWord]:=allQword and dividableby4;
-        typesmatch[vtSingle]:=allFloat and dividableby4;
-        typesmatch[vtDouble]:=allDouble and dividableby4;
-      end
-      else
-      begin
-        typesmatch[vtWord]:=allWord;
-        typesmatch[vtDWord]:=allDword;
-        typesmatch[vtQWord]:=allQword;
-        typesmatch[vtSingle]:=allFloat;
-        typesmatch[vtDouble]:=allDouble;
-      end;
-
-      if allCustom then
-        for j:=0 to customtypecount-1 do customtypesmatch[j]:=true;
-
-      if checkroutine(p,nil) then //found one
-        StoreResultRoutine(base+ptruint(p)-ptruint(buffer),p);
-
-      inc(p,stepsize);
-    end;    
-  end
-  else
-  begin
-    while (ptruint(p)<=lastmem) do
-    begin
-      if checkroutine(p,nil) then //found one
-      begin
-        StoreResultRoutine(base+ptruint(p)-ptruint(buffer),p);
-        if OnlyOne then
+        if checkroutine(p,nil) then //found one
         begin
-          AddressFound:=base+ptruint(p)-ptruint(buffer);
-          exit;
+          StoreResultRoutine(base+ptruint(p)-ptruint(buffer),p);
+          if OnlyOne then
+          begin
+            AddressFound:=base+ptruint(p)-ptruint(buffer);
+            exit;
+          end;
         end;
-      end;
 
-      inc(p,stepsize);
+        inc(p,stepsize);
+      end;
     end;
+
   end;
+
 end;
 
 procedure TScanner.FirstNextScanmem(base:ptruint; buffer,oldbuffer: pointer; size: integer);
@@ -3217,7 +3246,10 @@ begin
           for i:=vtByte to vtDouble do typesmatch[i]:=true;
 
         if allCustom then
+        begin
+          currentaddress:=base+ptruint(p)-ptruint(buffer);
           for j:=0 to customtypecount-1 do customtypesmatch[j]:=true;
+        end;
 
 
         if checkroutine(p,savedscanhandler.getpointertoaddress(base+ptruint(p)-ptruint(buffer),valuetype,nil )) then //found one
@@ -3230,8 +3262,9 @@ begin
     begin
       while ptruint(p)<=lastmem do
       begin
-        if checkroutine(p,savedscanhandler.getpointertoaddress(base+ptrUint(p)-ptrUint(buffer),valuetype,customtype )) then //found one
-          StoreResultRoutine(base+ptruint(p)-ptruint(buffer),p);
+        currentaddress:=base+ptrUint(p)-ptrUint(buffer);
+        if checkroutine(p,savedscanhandler.getpointertoaddress(currentaddress,valuetype,customtype )) then //found one
+          StoreResultRoutine(currentaddress,p);
 
         inc(p, stepsize);
       end;
@@ -3269,6 +3302,19 @@ begin
       end;
     end
     else
+    if variableType=vtCustom then
+    begin
+      while ptruint(p)<=lastmem do
+      begin
+        currentaddress:=base+ptruint(p)-ptruint(buffer);
+        if checkroutine(p,oldp) then //found one
+          StoreResultRoutine(currentaddress,p);
+
+        inc(p, stepsize);
+        inc(oldp, stepsize);
+      end;
+    end
+    else
     begin
       while ptruint(p)<=lastmem do
       begin
@@ -3296,7 +3342,6 @@ var i,j,k: dword;
 
     so: Tscanoption;
     valuetype: TVariableType;
-    currentaddress: ptruint;
     phandle: thandle;
 begin
   i:=0;
@@ -3344,8 +3389,6 @@ begin
 
         if allCustom then
           for m:=0 to customtypecount-1 do customtypesmatch[m]:=false;
-
-
 
         currentaddress:=currentbase;
 
@@ -3611,14 +3654,22 @@ begin
       if compareToSavedScan then
       begin
         for k:=i to j do
+        begin
+          currentaddress:=alist[k];
+
           if checkroutine(@newmemory[alist[k]-currentbase],savedscanhandler.getpointertoaddress(alist[k],valuetype, customType )) then
-            StoreResultRoutine(alist[k],@newmemory[alist[k]-currentbase])
+            StoreResultRoutine(alist[k],@newmemory[alist[k]-currentbase]);
+        end;
       end
       else
       begin
         for k:=i to j do
+        begin
+          currentaddress:=alist[k];
+
           if CheckRoutine(@newmemory[alist[k]-currentbase],@oldmem[k*vsize]) then
             StoreResultRoutine(alist[k],@newmemory[alist[k]-currentbase]);
+        end;
       end;
     end;
 
@@ -3675,7 +3726,7 @@ begin
 
   if variableType=vtGrouped then
   begin
-    groupdata:=TGroupData.create(scanvalue1);
+    groupdata:=TGroupData.create(scanvalue1, self);
   end
   else
   if scanOption in [soCustom, soExactValue,soValueBetween,soBiggerThan,soSmallerThan, soDecreasedValueBy, soIncreasedValueBy] then

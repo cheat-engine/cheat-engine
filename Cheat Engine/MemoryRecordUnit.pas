@@ -1821,9 +1821,9 @@ begin
         if customtype<>nil then
         begin
           if customtype.scriptUsesFloat then
-            result:=FloatToStr(customtype.ConvertDataToFloat(buf))
+            result:=FloatToStr(customtype.ConvertDataToFloat(buf, RealAddress))
           else
-            if showashex then result:=inttohex(customtype.ConvertDataToInteger(buf),8) else if showassigned then result:=inttostr(integer(customtype.ConvertDataToInteger(buf))) else result:=inttostr(customtype.ConvertDataToInteger(buf));
+            if showashex then result:=inttohex(customtype.ConvertDataToInteger(buf, RealAddress),8) else if showassigned then result:=inttostr(integer(customtype.ConvertDataToInteger(buf, RealAddress))) else result:=inttostr(customtype.ConvertDataToInteger(buf, RealAddress));
         end
         else
           result:='error';
@@ -2049,9 +2049,9 @@ begin
         if customtype<>nil then
         Begin
           if customtype.scriptUsesFloat then
-            customtype.ConvertFloatToData(strtofloat(currentValue), ps)
+            customtype.ConvertFloatToData(strtofloat(currentValue), ps, RealAddress)
           else
-            customtype.ConvertIntegerToData(strtoint(currentValue), pdw);
+            customtype.ConvertIntegerToData(strtoint(currentValue), pdw, RealAddress);
 
         end;
       end;
