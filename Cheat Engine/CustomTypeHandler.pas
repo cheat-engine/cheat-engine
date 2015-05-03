@@ -592,6 +592,7 @@ begin
 
           preferedAlignment:=newpreferedalignment;
           fScriptUsesFloat:=newScriptUsesFloat;
+          fScriptUsesCDecl:=newScriptUsesCDecl;
 
           fCustomTypeType:=cttAutoAssembler;
           if currentscript<>nil then
