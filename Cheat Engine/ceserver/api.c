@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <pthread.h>
 
+#include <sys/mman.h>
 
 
 #include <stddef.h>
@@ -41,6 +42,10 @@
 #include <sys/syscall.h>
 #include <signal.h>
 
+#ifndef __x86_64__
+#include <asm/signal.h>
+#endif
+
 
 #include <sys/eventfd.h>
 
@@ -50,9 +55,18 @@
 #include <sys/queue.h>
 #include <limits.h>
 
+#include <sys/ptrace.h>
+
+#ifndef __x86_64__
+#include <linux/elf.h>
+#include <linux/uio.h>
+#endif
+
 
 #ifdef __arm__
 #include <linux/user.h>
+
+#endif
 
 //blatantly stolen from the kernel source
 #define PTRACE_GETHBPREGS 29
@@ -79,7 +93,6 @@ static inline unsigned int encode_ctrl_reg(int mismatch, int len, int type, int 
 {
         return (mismatch << 22) | (len << 5) | (type << 3) | (privilege << 1) | enabled;
 }
-#endif
 
 #ifndef __ANDROID__
   #if defined(__i386__) || defined(__x86_64__)
@@ -94,7 +107,7 @@ static inline unsigned int encode_ctrl_reg(int mismatch, int len, int type, int 
 #include "ceserver.h"
 #include "threads.h"
 #include "symbols.h"
-
+#include "context.h"
 
 //#include <vector>
 sem_t sem_DebugThreadEvent;
@@ -166,6 +179,72 @@ int FindPausedThread(PProcessData p)
       return p->threadlist[i].tid;
 
   return 0;
+}
+
+int getBreakpointCapabilities(int tid, uint8_t *maxBreakpointCount, uint8_t *maxWatchpointCount, uint8_t *maxSharedBreakpoints)
+//Only called when the thread is suspended
+{
+
+  *maxBreakpointCount=0;
+  *maxWatchpointCount=0;
+  *maxSharedBreakpoints=0;
+
+
+#ifdef __arm__
+  HBP_RESOURCE_INFO hwbpcap;
+  if (ptrace(PTRACE_GETHBPREGS, tid, 0, &hwbpcap)==0)
+  {
+    printf("hwbpcap:\n");
+    printf("debug architecture:                %d\n", hwbpcap.debug_arch);
+    printf("number of instruction breakpoints: %d\n", hwbpcap.num_brps);
+    printf("number of data breakpoints:        %d\n", hwbpcap.num_wrps);
+    printf("max length of a data breakpoint:   %d\n", hwbpcap.wp_len);
+
+    *maxBreakpointCount=hwbpcap.num_brps;
+    *maxWatchpointCount=hwbpcap.num_wrps;
+    *maxSharedBreakpoints=0;
+
+    return 1;
+  }
+  else
+    return 0;
+#endif
+
+#ifdef __aarch64__
+  struct iovec iov;
+  struct user_hwdebug_state hwd;
+  memset(&hwd, 0, sizeof(hwd));
+
+  iov.iov_base=&hwd;
+  iov.iov_len=sizeof(hwd);
+
+  if (ptrace(PTRACE_GETREGSET, tid, NT_ARM_HW_WATCH, &iov)==0)
+  {
+    printf("NT_ARM_HW_WATCH: dbg_info=%x:\n", hwd.dbg_info);
+    *maxWatchpointCount=hwd.dbg_info & 0xf;
+  }
+  else
+    return 0;
+
+  iov.iov_base=&hwd;
+  iov.iov_len=sizeof(hwd);
+  if (ptrace(PTRACE_GETREGSET, tid, NT_ARM_HW_BREAK, &iov)==0)
+  {
+    printf("NT_ARM_HW_BREAK: dbg_info=%x:\n", hwd.dbg_info);
+    *maxBreakpointCount=hwd.dbg_info & 0xf;
+  }
+  else
+    return 0;
+
+  return 1;
+#endif
+
+#if defined(__i386__) || defined(__x86_64__)
+  *maxBreakpointCount=0;
+  *maxWatchpointCount=0;
+  *maxSharedBreakpoints=4;
+  return 1;
+#endif
 }
 
 int StartDebug(HANDLE hProcess)
@@ -243,24 +322,15 @@ int StartDebug(HANDLE hProcess)
               //first event, create process
               DebugEvent createProcessEvent;
 
-#ifdef __arm__
+#if defined(__arm__) || defined (__aarch64__)
+
               if (WaitForDebugEventNative(p, &createProcessEvent, tid, -1))
               {
                 //get the debug capabilities
 
-                HBP_RESOURCE_INFO hwbpcap;
-                if (ptrace(PTRACE_GETHBPREGS, createProcessEvent.threadid, 0, &hwbpcap)==0)
-                {
-                  printf("hwbpcap:\n");
-                  printf("debug architecture:                %d\n", hwbpcap.debug_arch);
-                  printf("number of instruction breakpoints: %d\n", hwbpcap.num_brps);
-                  printf("number of data breakpoints:        %d\n", hwbpcap.num_wrps);
-                  printf("max length of a data breakpoint:   %d\n", hwbpcap.wp_len);
+                getBreakpointCapabilities(tid, &createProcessEvent.maxBreakpointCount, &createProcessEvent.maxWatchpointCount, &createProcessEvent.maxSharedBreakpoints);
 
-                  createProcessEvent.maxBreakpointCount=hwbpcap.num_brps;
-                  createProcessEvent.maxWatchpointCount=hwbpcap.num_wrps;
-                  createProcessEvent.maxSharedBreakpoints=0;
-                }
+
 
                 ptrace(PTRACE_CONT, createProcessEvent.threadid, 0,0);
 
@@ -439,11 +509,124 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
 
         //debugging the given tid
         printf("Setting breakpoint in thread %d\n", wtid);
+#ifdef __aarch64__
+        struct user_pt_regs regset;
+
+        struct iovec iov;
+
+        memset(&regset, 0, sizeof(regset));
+        memset(&iov, 0, sizeof(iov));
+        iov.iov_base=&regset;
+        iov.iov_len=sizeof(regset);
+        int i=ptrace(PTRACE_GETREGSET, wtid, (void*)NT_PRSTATUS, &iov);
+
+        printf("iov.iov_len=%d\n", (int)iov.iov_len);  //272=64 bit app. 72=32 bit app
+        printf("i=%d\n", i);
+
+        //printf("pc=%lx\n", regset.pc);
+
+        if (iov.iov_len==72)
+        {
+          printf("This is a 32 bit target. Most likely debugging will fail\n");
+        }
+
+        printf("r0=%llx\n", regset.regs[0]);
+        printf("r1=%llx\n", regset.regs[1]);
+        printf("r2=%llx\n", regset.regs[2]);
+        printf("r3=%llx\n", regset.regs[3]);
+
+
+
+        struct user_hwdebug_state hwd;
+        memset(&hwd, 0, sizeof(hwd));
+
+
+
+
+
+        iov.iov_base=&hwd;
+        iov.iov_len=sizeof(hwd);
+        i=ptrace(PTRACE_GETREGSET, wtid, NT_ARM_HW_WATCH, &iov);
+
+
+        printf("iov.iov_len=%d\n", (int)iov.iov_len);  //272=64 bit app. 72=32 bit app
+        printf("i=%d (%d)\n", i,errno);
+
+        printf("hwd.dbg_info=%x\n", hwd.dbg_info);
+        printf("hwd.dbg_regs[0].addr=%llx\n", hwd.dbg_regs[0].addr);
+        printf("hwd.dbg_regs[0].ctrl=%x\n", hwd.dbg_regs[0].ctrl);
+
+        iov.iov_base=&hwd;
+        iov.iov_len=sizeof(hwd);
+        i=ptrace(PTRACE_GETREGSET, wtid, NT_ARM_HW_BREAK, &iov);
+
+
+        printf("iov.iov_len=%d\n", (int)iov.iov_len);  //272=64 bit app. 72=32 bit app
+        printf("i=%d (%d)\n", i,errno);
+
+        printf("hwd.dbg_info=%x\n", hwd.dbg_info);
+        printf("hwd.dbg_regs[0].addr=%llx\n", hwd.dbg_regs[0].addr);
+        printf("hwd.dbg_regs[0].ctrl=%x\n", hwd.dbg_regs[0].ctrl);
+
+
+
+        int btype=0;
+        int bplist=NT_ARM_HW_BREAK;
+
+        if (bptype==0)
+        {
+          //execute bp
+          bplist=NT_ARM_HW_BREAK;
+
+          btype=ARM_BREAKPOINT_EXECUTE;
+        }
+        else
+        {
+          //watchpoint
+          bplist=NT_ARM_HW_WATCH;
+          if (bptype==1)
+            btype=ARM_BREAKPOINT_STORE;
+          else
+          if (bptype==2)
+            btype=ARM_BREAKPOINT_LOAD;
+          else
+          if (bptype==3)
+            btype=ARM_BREAKPOINT_STORE | ARM_BREAKPOINT_LOAD;
+
+        }
+
+        i=ptrace(PTRACE_GETREGSET, wtid, bplist, &iov);
+
+        hwd.dbg_regs[debugreg].addr=(uintptr_t)address;
+        hwd.dbg_regs[debugreg].ctrl=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_4, btype, 0, 1);
+
+        i=ptrace(PTRACE_SETREGSET, wtid, bplist, &iov);
+
+        printf("set=%d\n",i);
+
+        memset(&hwd, 0, sizeof(hwd));
+
+        i=ptrace(PTRACE_GETREGSET, wtid, NT_ARM_HW_WATCH, &iov);
+
+        printf("get: iov.iov_len=%d\n", (int)iov.iov_len);  //272=64 bit app. 72=32 bit app
+        printf("i=%d\n", i);
+
+        printf("hwd.dbg_info=%x\n", hwd.dbg_info);
+        printf("hwd.dbg_regs[0].addr=%llx\n", hwd.dbg_regs[0].addr);
+        printf("hwd.dbg_regs[0].ctrl=%x\n", hwd.dbg_regs[0].ctrl);
+
+#endif
 
 #ifdef __arm__
     //hwbps
-        int val;
+        unsigned long long val;
         int bpindex=1+(2*debugreg);
+
+
+
+        printf("PTRACE_GETHBPREGS=%d\n",PTRACE_GETHBPREGS);
+
+
 
         if (ptrace(PTRACE_GETHBPREGS, wtid, 0, &val)==0)
         {
@@ -541,25 +724,27 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
 
         }
         else
-          printf("Failure getting the debug capability register for thread %d\n", wtid);
+          printf("Failure getting the debug capability register for thread %d (%d)\n", wtid, errno);
 
 
 #endif
 
-#if defined __i386__ || defined __x86_64__
+#if defined(__i386__) || defined(__x86_64__)
         //debug regs
         //PTRACE_SETREGS
         int r,r2;
 
-        uintptr_t newdr7;
+        uintptr_t newdr7=ptrace(PTRACE_PEEKUSER, wtid, offsetof(struct user, u_debugreg[7]), 0);
 
 
-        newdr7=(1<<debugreg*2);
+        newdr7=newdr7 | (1<<debugreg*2);
 
         if (bptype==2) //x86 does not support read onlyhw bps
           bptype=3;
 
         newdr7=newdr7 | (bptype << (16+(debugreg*4))); //bptype
+
+        printf("Setting DR7 to %x\n", newdr7);
 
         //bplen
         if (bpsize<=1)
@@ -777,16 +962,43 @@ int RemoveBreakpoint(HANDLE hProcess, int tid, int debugreg,int wasWatchpoint)
         result=(i==0) && (i2==0) && (i3==0);
 #endif
 
-#if defined(__i386__) || defined (__x86_64__)
+#ifdef __aarch64__
+        int i;
+        struct user_hwdebug_state hwd;
+        struct iovec iov;
+
+        memset(&hwd, 0, sizeof(hwd));
+        memset(&iov, 0, sizeof(iov));
+        iov.iov_base=&hwd;
+        iov.iov_len=sizeof(hwd);
+
+        int bplist;
+
+        if (wasWatchpoint)
+          bplist=NT_ARM_HW_WATCH;
+        else
+          bplist=NT_ARM_HW_BREAK;
+
+        i=ptrace(PTRACE_GETREGSET, wtid, bplist, &iov);
+        if (i!=0)
+          printf("PTRACE_GETREGSET failed\n");
+
+        hwd.dbg_regs[debugreg].addr=0;
+        hwd.dbg_regs[debugreg].ctrl=0;
+
+        i=ptrace(PTRACE_SETREGSET, wtid, bplist, &iov);
+        if (i!=0)
+          printf("PTRACE_SETREGSET failed\n");
+
+        result=i;
+#endif
+
+#if defined(__i386__) || defined(__x86_64__)
         int r;
-        uintptr_t dr7;
+        uintptr_t dr7=0;
         printf("x86\n");
 
-        r=ptrace(PTRACE_PEEKUSER, wtid, offsetof(struct user, u_debugreg[7]), &dr7);
-        if (r!=0)
-          printf("Failure fetching dr7\n");
-        else
-          printf("dr7=%x\n", (int)dr7);
+        dr7=ptrace(PTRACE_PEEKUSER, wtid, offsetof(struct user, u_debugreg[7]), 0);
 
         dr7&=~(3 << (debugreg*2)); //disable G# and L#
         dr7&=~(15 << (16+debugreg*4)); //set len and type for this debugreg to 0
@@ -885,6 +1097,8 @@ int GetThreadContext(HANDLE hProcess, int tid, PCONTEXT Context, int type)
   int r=FALSE;
   printf("GetThreadContext(%d)\n", tid);
 
+
+
   if (tid<=0)
   {
     printf("Invalid tid\n");
@@ -922,10 +1136,11 @@ int GetThreadContext(HANDLE hProcess, int tid, PCONTEXT Context, int type)
 
         //the thread is paused, so fetch the data
 
+        k=getRegisters(tid, &Context->regs);
 
 
-        k=ptrace(PTRACE_GETREGS, tid, 0, &Context->regs);
-        printf("ptrace returned %d\n", k);
+        //k=ptrace(PTRACE_GETREGS, tid, 0, &Context->regs);
+        printf("getRegisters() returned %d\n", k);
 
         if (k==0)
           r=TRUE;
@@ -1423,7 +1638,7 @@ int WaitForDebugEventNative(PProcessData p, PDebugEvent devent, int tid, int tim
           PDebugEvent e=FindThreadDebugEventInQueue(p, tid);
           if (e)
           {
-            printf("There was a queued event after CheckForAndDispatchCommand. TID=%d (wanted %d)\n", e->threadid, tid);
+            printf("There was a queued event after CheckForAndDispatchCommand. TID=%ld (wanted %d)\n", e->threadid, tid);
             currentTID=e->threadid;
 
             r=RemoveThreadDebugEventFromQueue(p, currentTID);
@@ -1547,7 +1762,7 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
 
       if (de) //there was a queued event, return it
       {
-        printf("Returning queued event (sig=%d,  thread=%d)\n", de->de.debugevent, de->de.threadid);
+        printf("Returning queued event (sig=%d,  thread=%ld)\n", de->de.debugevent, de->de.threadid);
         if (de->de.debugevent==SIGSTOP)
         {
           printf("<---Something queued a SIGSTOP--->\n");
@@ -1577,7 +1792,7 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
           //fill in the address
 
 
-#ifdef __arm__
+#if (defined(__arm__) || defined(__aarch64__))
           //return si_addr of siginfo
           if (ptrace(PTRACE_GETSIGINFO, p->debuggedThreadEvent.threadid, NULL, &si)==0)
           {
@@ -1634,7 +1849,7 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
           ptrace(PTRACE_POKEUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[6]), 0); //not sure if needed, or if this should be moved to continuefromdebugevent
 
 #endif
-          printf("p->debuggedThreadEvent.address=%llx\n", p->debuggedThreadEvent.address);
+          printf("p->debuggedThreadEvent.address=%lx\n", p->debuggedThreadEvent.address);
 
           devent->address=p->debuggedThreadEvent.address;
         }
@@ -1773,7 +1988,7 @@ int StopDebug(HANDLE hProcess)
     int i;
     for (i=0; i<p->threadlistpos;i++)
       if (ptrace(PTRACE_DETACH, p->threadlist[i].tid,0,0)<0)
-        printf("Failed to detach from %d\n", p->threadlist[i]);
+        printf("Failed to detach from %ld\n", p->threadlist[i].tid);
   }
 
   return 1;
@@ -2262,17 +2477,21 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
           if (bread==-1)
           {
             bread=0;
-           // printf("pread error for address %p (errno=%d)\n", lpAddress, errno);
+            printf("pread error for address %p (errno=%d) ", lpAddress, errno);
 
+#if defined(__i386__) | defined(__arm__)
             if (lpAddress>=0x80000000)
             {
+              printf("Falling back on compat mode");
               //for some reason PEEKDATA does work when above 0x80000000
-              while (read<size)
+              while (bread<size)
               {
                 *(uintptr_t *)((uintptr_t)buffer+read)=ptrace(PTRACE_PEEKDATA, pid, (uintptr_t)lpAddress+bread, 0);
                 bread+=sizeof(uintptr_t);
               }
             }
+#endif
+            printf("\n");
 
           }
 
@@ -2295,6 +2514,20 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
   return bread;
 }
+
+#ifdef __aarch64__
+char *index(const char *s, int c)
+{
+  int i=0;
+  for (i=0; s[i]!=0; i++)
+  {
+    if (s[i]==c)
+      return &s[i];
+  }
+
+  return NULL;
+}
+#endif
 
 DWORD ProtectionStringToType(char *protectionstring)
 {
@@ -2391,7 +2624,7 @@ int VirtualQueryExFull(HANDLE hProcess, uint32_t flags, RegionInfo **rinfo, uint
       printf("pagedonly\n");
       pagemap=open(pagemap_name, O_RDONLY);
 
-      printf("pagemap=%p\n", pagemap);
+     // printf("pagemap=%p\n", pagemap);
 
 
       pagemap_entries=(uint64_t *)malloc(512*8);

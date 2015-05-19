@@ -31,7 +31,7 @@ int cenet_connect(void)
   fd=socket(AF_INET, SOCK_STREAM, 0);
 
 
-  memset(&addr, sizeof(addr), 0);
+  memset(&addr, 0, sizeof(addr));
   addr.sin_family=AF_INET;
   addr.sin_port=htons(PORT);
   addr.sin_addr.s_addr=htonl(INADDR_LOOPBACK); //0x1600a8c0; //INADDR_LOOPBACK;
@@ -218,14 +218,16 @@ int cenet_setBreakpoint(int fd, int pHandle, int tid, void *Address, int bptype,
   return result;
 }
 
-int cenet_removeBreakpoint(int fd, int pHandle, int tid)
+int cenet_removeBreakpoint(int fd, int pHandle, int tid, int debugreg, int waswatchpoint)
 {
 #pragma pack(1)
     struct
     {
       char command;
       HANDLE hProcess;
-      int tid;
+      uint32_t tid;
+      uint32_t debugreg;
+      uint32_t waswatchpoint;
     } rb;
 #pragma pack()
     int result;
@@ -234,6 +236,8 @@ int cenet_removeBreakpoint(int fd, int pHandle, int tid)
   rb.command=CMD_REMOVEBREAKPOINT;
   rb.hProcess=pHandle;
   rb.tid=tid;
+  rb.debugreg=debugreg;
+  rb.waswatchpoint=waswatchpoint;
 
   sendall(fd, &rb, sizeof(rb), 0);
   recv(fd, &result, sizeof(result), MSG_WAITALL);
@@ -295,19 +299,16 @@ void *CESERVERTEST_DEBUGGERTHREAD(void *arg)
       if (count==4)
       {
         printf("going to set breakpoint\n");
-#ifdef __arm__
-        //cenet_setBreakpoint(fd, pHandle, -1, 0x85e4, 0, 1,0);
-        //cenet_setBreakpoint(fd, pHandle, -1, 0x85e4, 0, 1,1);
+
+        i=cenet_setBreakpoint(fd, pHandle, -1, 0x00ce0000, 3, 4,0);
         //cenet_setBreakpoint(fd, pHandle, -1, 0x85e4, 0, 1,2);
         //cenet_setBreakpoint(fd, pHandle, -1, 0x85e4, 0, 1,3);
-        cenet_setBreakpoint(fd, pHandle, -1, 0x85e4, 0, 1,4);
+       // cenet_setBreakpoint(fd, pHandle, -1, 0x85e4, 0, 1,4);
 
         //cenet_setBreakpoint(fd, pHandle, -1, 0xa000, 3, 4, 0);
-#else
-        cenet_setBreakpoint(fd, pHandle, -1, 0x4007ad, 0, 1, 0);
-#endif
 
-        printf("cenet_setBreakpoint returned\n");
+
+        printf("cenet_setBreakpoint returned %d\n",i);
       }
 
       i=cenet_waitForDebugEvent(fd, pHandle, &devent, 2000);
@@ -318,7 +319,9 @@ void *CESERVERTEST_DEBUGGERTHREAD(void *arg)
         {
           printf("TRAP (thread %d)\n", devent.threadid);
          // printf("Going to remove breakpoint\n");
-          cenet_removeBreakpoint(fd, pHandle, devent.threadid);
+          cenet_removeBreakpoint(fd, pHandle, devent.threadid,0,1);
+
+          printf("After removeBreakpoint\n");
 
          // cenet_setBreakpoint(fd, pHandle, -1, 0xa000, 3, 4);
 
@@ -330,6 +333,10 @@ void *CESERVERTEST_DEBUGGERTHREAD(void *arg)
       }
     }
 
+  }
+  else
+  {
+    printf("Failed to start the debugger\n");
   }
 
   return NULL;
@@ -379,12 +386,13 @@ void *CESERVERTEST(void *argv[])
 
   //cenet_VirtualQueryExFull(fd, pHandle,  VQE_DIRTYONLY | VQE_PAGEDONLY);
 
-  CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, pid);
+ // CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, pid);
 
 
 
   //launch the debuggerthread
   //pthread_create(&pth, NULL, CESERVERTEST_DEBUGGERTHREAD, NULL);
+  CESERVERTEST_DEBUGGERTHREAD(NULL);
 
   //launch the rpmthread
  // sleep(1);

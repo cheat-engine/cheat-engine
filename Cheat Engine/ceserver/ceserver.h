@@ -150,9 +150,9 @@ typedef struct {
 
 typedef struct {
   HANDLE hProcess;
-  int tid;
-  int debugreg;
-  int wasWatchpoint;
+  uint32_t tid;
+  uint32_t debugreg;
+  uint32_t wasWatchpoint;
 } CeRemoveBreapointInput, *PCeRemoveBreakpointInput;
 
 
