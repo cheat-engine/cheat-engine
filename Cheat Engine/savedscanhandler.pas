@@ -131,7 +131,7 @@ end;
 
 implementation
 
-uses Math;
+uses Math, globals;
 
 resourcestring
   rsMaxaddresslistcountIs0MeansTheAddresslistIsBad = 'maxaddresslistcount is 0 (Means: the addresslist is bad)';
@@ -223,7 +223,7 @@ begin
     begin
       varsize:=8;
       {$ifdef customtypeimplemented}
-      if AllIncludesCustomType then
+      if vtCustom in ScanAllTypes then
         varsize:=max(varsize, MaxCustomTypeSize);
       {$endif}
     end;
@@ -368,7 +368,7 @@ begin
         begin
           maxaddresslistcount:=8;
           {$ifdef customtypeimplemented}
-          if AllIncludesCustomType then
+          if vtcustom in ScanAllTypes then
             maxaddresslistcount:=max(maxaddresslistcount, MaxCustomTypeSize);
           {$endif}
 
@@ -568,7 +568,7 @@ begin
         begin
           //found it
           {$ifdef customtypeimplemented}
-          if AllIncludesCustomType then
+          if vtcustom in ScanAllTypes then
             result:=@p1[pivot*max(8, MaxCustomTypeSize)]
           else
           {$endif}

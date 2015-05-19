@@ -24,7 +24,7 @@ function isHumanReadableInteger(v: integer): boolean; //returns false if it's no
 
 function FindTypeOfData(address: ptrUint; buf: pbytearray; size: integer; CustomType: PCustomType=nil; FindOption: TFindTypeOptions=[]):TVariableType;
 function DataToString(buf: PByteArray; size: integer; vartype: TVariableType): string;
-function readAndParsePointer(buf: pbytearray; variableType: TVariableType; customtype: TCustomType=nil; showashexadecimal: Boolean=false; showAsSigned: boolean=false; bytesize:integer=1): string;
+function readAndParsePointer(address: ptruint; buf: pbytearray; variableType: TVariableType; customtype: TCustomType=nil; showashexadecimal: Boolean=false; showAsSigned: boolean=false; bytesize:integer=1): string;
 function readAndParseAddress(address: ptrUint; variableType: TVariableType; customtype: TCustomType=nil; showashexadecimal: Boolean=false; showAsSigned: boolean=false; bytesize:integer=1): string;
 procedure ParseStringAndWriteToAddress(value: string; address: ptruint; variabletype: TVariabletype; hexadecimal: boolean=false; customtype: TCustomType=nil);
 
@@ -100,6 +100,9 @@ begin
           value:='$'+value;
 
         v:=StrToQWordEx(value);
+
+        if (variabletype=vtCustom) and customtype.scriptUsesFloat then
+          s:=StrToFloat(value);
       end;
     end;
 
@@ -125,9 +128,9 @@ begin
           if ReadProcessMemory(processhandle, pointer(address), ba, customtype.bytesize, x) then
           begin
             if customtype.scriptUsesFloat then
-              customtype.ConvertFloatToData(s, ba)
+              customtype.ConvertFloatToData(s, ba, address)
             else
-              customtype.ConvertIntegerToData(v, ba);
+              customtype.ConvertIntegerToData(v, ba, address);
 
             WriteProcessMemory(processhandle, pointer(address), ba, customtype.bytesize, x);
           end;
@@ -143,7 +146,7 @@ begin
 
 end;
 
-function readAndParsePointer(buf: pbytearray; variableType: TVariableType; customtype: TCustomType=nil; showashexadecimal: Boolean=false; showAsSigned: boolean=false; bytesize:integer=1): string;
+function readAndParsePointer(address: ptruint; buf: pbytearray; variableType: TVariableType; customtype: TCustomType=nil; showashexadecimal: Boolean=false; showAsSigned: boolean=false; bytesize:integer=1): string;
 var
     s: pchar;
     ws: PWideChar;
@@ -266,13 +269,13 @@ begin
       if customtype<>nil then
       begin
         if showashexadecimal and (customtype.scriptUsesFloat=false) then
-          result:=inttohex(customtype.ConvertDataToInteger(buf),8)
+          result:=inttohex(customtype.ConvertDataToInteger(buf, address),8)
         else
         begin
           if customtype.scriptUsesFloat then
-            result:=FloatToStr(customtype.ConvertDataToFloat(buf))
+            result:=FloatToStr(customtype.ConvertDataToFloat(buf, address))
           else
-            result:=IntToStr(customtype.ConvertDataToInteger(buf));
+            result:=IntToStr(customtype.ConvertDataToInteger(buf, address));
         end;
       end;
     end;
@@ -289,38 +292,38 @@ begin
     vtByte:
     begin
       if ReadProcessMemory(processhandle,pointer(address),@buf[0],1,x) then
-        result:=readAndParsePointer(@buf[0], variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
+        result:=readAndParsePointer(address, @buf[0], variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
 
     end;
 
     vtWord:
     begin
       if ReadProcessMemory(processhandle,pointer(address),@buf[0],2,x) then
-        result:=readAndParsePointer(@buf[0], variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
+        result:=readAndParsePointer(address, @buf[0], variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
     end;
 
     vtDWord:
     begin
       if ReadProcessMemory(processhandle,pointer(address),@buf[0],4,x) then
-        result:=readAndParsePointer(@buf[0], variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
+        result:=readAndParsePointer(address, @buf[0], variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
     end;
 
     vtQword:
     begin
       if ReadProcessMemory(processhandle,pointer(address),@buf[0],8,x) then
-        result:=readAndParsePointer(@buf[0], variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
+        result:=readAndParsePointer(address, @buf[0], variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
     end;
 
     vtSingle:
     begin
       if ReadProcessMemory(processhandle,pointer(address),@buf[0],4,x) then
-        result:=readAndParsePointer(@buf[0], variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
+        result:=readAndParsePointer(address, @buf[0], variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
     end;
 
     vtDouble:
     begin
       if ReadProcessMemory(processhandle,pointer(address),@buf[0],8,x) then
-        result:=readAndParsePointer(@buf[0], variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
+        result:=readAndParsePointer(address, @buf[0], variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
     end;
 
     vtString:
@@ -328,7 +331,7 @@ begin
       getmem(buf2, bytesize+1);
       try
         if ReadProcessMemory(processhandle,pointer(address),buf2,bytesize,x) then
-          result:=readAndParsePointer(buf2, variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
+          result:=readAndParsePointer(address, buf2, variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
       finally
         freemem(buf2);
       end;
@@ -340,7 +343,7 @@ begin
       try
 
         if ReadProcessMemory(processhandle,pointer(address),buf2,bytesize,x) then
-          result:=readAndParsePointer(buf2, variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
+          result:=readAndParsePointer(address, buf2, variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
 
 
       finally
@@ -354,7 +357,7 @@ begin
       getmem(buf2, bytesize);
       try
         if ReadProcessMemory(processhandle,pointer(address),buf2,bytesize,x) then
-          result:=readAndParsePointer(buf2, variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
+          result:=readAndParsePointer(address, buf2, variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
       finally
         freemem(buf2);
       end;
@@ -367,7 +370,7 @@ begin
         getmem(buf2, customtype.bytesize);
         try
           if ReadProcessMemory(processhandle,pointer(address),buf2,customtype.bytesize,x) then
-            result:=readAndParsePointer(buf2, variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
+            result:=readAndParsePointer(address, buf2, variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
 
         finally
           freemem(buf2);
@@ -694,7 +697,7 @@ begin
         if TCustomType(customtypes[i]).scriptUsesFloat then
         begin
           //float check
-          f:=TCustomType(customtypes[i]).ConvertDataToFloat(@buf[0]);
+          f:=TCustomType(customtypes[i]).ConvertDataToFloat(@buf[0], address);
           x:=floattostr(f);
 
           if (pos('E',x)=0) and (f<>0) and InRange(f, -100000.0, 100000.0) then
@@ -710,7 +713,7 @@ begin
         else
         begin
           //dword check
-          if isHumanReadableInteger(TCustomType(customtypes[i]).ConvertDataToInteger(@buf[0])) then
+          if isHumanReadableInteger(TCustomType(customtypes[i]).ConvertDataToInteger(@buf[0], address)) then
           begin
             result:=vtCustom;
             CustomType^:=customtypes[i];

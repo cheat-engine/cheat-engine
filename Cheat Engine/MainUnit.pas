@@ -2900,7 +2900,14 @@ var x: TPortableNetworkGraphic;
   m: array [0..8] of ptruint;
 
 begin
+  try
+    asm
+      int3
+    end;
 
+  except
+    log('expected exception');
+  end;
 
 
 
@@ -3881,8 +3888,11 @@ begin
       Add('UsesFloat:');
       Add('db 0 //Change to 1 if this custom type should be treated as a float');
       Add('');
+      Add('CallMethod:');
+      Add('db 1 //Remove or change to 0 for legacy call mechanism');
+      Add('');
       Add('//The convert routine should hold a routine that converts the data to an integer (in eax)');
-      Add('//function declared as: stdcall int ConvertRoutine(unsigned char *input);');
+      Add('//function declared as: cdecl int ConvertRoutine(unsigned char *input, PTR_UINT address);');
       Add('//Note: Keep in mind that this routine can be called by multiple threads at the same time.');
       Add('ConvertRoutine:');
       Add('//jmp dllname.functionname');
@@ -3890,6 +3900,7 @@ begin
       Add('//or manual:');
       Add('//parameters: (64-bit)');
       Add('//rcx=address of input');
+      Add('//rdx=address');
       Add('mov eax,[rcx] //eax now contains the bytes ''input'' pointed to');
       Add('');
       Add('ret');
@@ -3901,27 +3912,29 @@ begin
       Add('//parameters: (32-bit)'); //[esp]=return [esp+4]=input
       Add('push ebp');  //[esp]=ebp , [esp+4]=return [esp+8]=input
       Add('mov ebp,esp');  //[ebp]=ebp , [esp+4]=return [esp+8]=input
-      Add('//[ebp+8]=input');
+      Add('//[ebp+8]=address of input');
+      Add('//[ebp+c]=address');
       Add('//example:');
       Add('mov eax,[ebp+8] //place the address that contains the bytes into eax');
       Add('mov eax,[eax] //place the bytes into eax so it''s handled as a normal 4 byte value');
       Add('');
       Add('pop ebp');
-      Add('ret 4');
+      Add('ret');
       add('[/32-bit]');
 
       Add('');
       Add('//The convert back routine should hold a routine that converts the given integer back to a row of bytes (e.g when the user wats to write a new value)');
-      Add('//function declared as: stdcall void ConvertBackRoutine(int i, unsigned char *output);');
+      Add('//function declared as: cdecl void ConvertBackRoutine(int i, PTR_UINT address, unsigned char *output);');
       Add('ConvertBackRoutine:');
       Add('//jmp dllname.functionname');
       Add('//or manual:');
       Add('[64-bit]');
       Add('//parameters: (64-bit)');
       Add('//ecx=input');
-      Add('//rdx=address of output');
+      Add('//rdx=address');
+      Add('//r8=address of output');
       Add('//example:');
-      Add('mov [rdx],ecx //place the integer the 4 bytes pointed to by rdx');
+      Add('mov [r8],ecx //place the integer at the 4 bytes pointed to by r8');
       Add('');
       Add('ret');
       Add('[/64-bit]');
@@ -3931,19 +3944,20 @@ begin
       Add('push ebp');  //[esp]=ebp , [esp+4]=return [esp+8]=input
       Add('mov ebp,esp');  //[ebp]=ebp , [esp+4]=return [esp+8]=input
       Add('//[ebp+8]=input');
-      Add('//[ebp+c]=address of output');
+      Add('//[ebp+c]=address');
+      Add('//[ebp+10]=address of output');
       Add('//example:');
       Add('push eax');
       Add('push ebx');
       Add('mov eax,[ebp+8] //load the value into eax');
-      Add('mov ebx,[ebp+c] //load the address into ebx');
+      Add('mov ebx,[ebp+10] //load the output address into ebx');
       Add('mov [ebx],eax //write the value into the address');
       Add('pop ebx');
       Add('pop eax');
 
       Add('');
       Add('pop ebp');
-      Add('ret 8');
+      Add('ret');
       add('[/32-bit]');
       Add('');
     end;
@@ -4802,6 +4816,24 @@ begin
         if not AdjustTokenPrivileges(tokenhandle, False, tp, sizeof(tp),
           prev, returnlength) then
           ShowMessage('Failure setting the debug privilege. Debugging may be limited.');
+      end;
+
+      if lookupPrivilegeValue(nil, 'SeTcbPrivilege', tp.Privileges[0].Luid) then
+      begin
+        tp.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
+        tp.PrivilegeCount := 1; // One privilege to set
+        if not AdjustTokenPrivileges(tokenhandle, False, tp, sizeof(tp),
+          prev, returnlength) then
+          ShowMessage('Failure setting the SeTcbPrivilege privilege. Debugging may be limited.');
+      end;
+
+      if lookupPrivilegeValue(nil, 'SeTcbPrivilege', tp.Privileges[0].Luid) then
+      begin
+        tp.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
+        tp.PrivilegeCount := 1; // One privilege to set
+        if not AdjustTokenPrivileges(tokenhandle, False, tp, sizeof(tp),
+          prev, returnlength) then
+          ShowMessage('Failure setting the SeTcbPrivilege privilege. Debugging may be limited.');
       end;
 
 
@@ -7838,7 +7870,7 @@ begin
         if p=nil then
           previousvalue:='<none>'
         else
-          previousvalue:=readAndParsePointer(p, valuetype, ct, hexadecimal, foundlist.isSigned);
+          previousvalue:=readAndParsePointer(address, p, valuetype, ct, hexadecimal, foundlist.isSigned);
       end;
     end;
 
@@ -7996,7 +8028,7 @@ end;
 
 procedure TMainForm.Label59Click(Sender: TObject);
 var
-  r: TPointerListHandler;
+ // r: TPointerListHandler;
   f: tfilestream;
   ds: Tdecompressionstream;
 
@@ -8014,12 +8046,44 @@ var
   A: PTRUINT;
 
   shouldend: boolean;
-  th: thandle;
+  ph, th: thandle;
+
+
+
+
+
+  s: widestring;
+
+  prh: thandle;
+
+  dh: thandle;
+
+  ch: THandle;
+  pn: UNICODE_STRING;
+  r: NTSTATUS;
+  mms: ulong;
+  cdl: ulong;
+
+
+  sqos: SECURITY_QUALITY_OF_SERVICE;
 begin
+
+
+
+//  showmessage('sip='+inttohex(r,8));
+
+ // windows.GetThreadContext();
+
+
+  //NtCreatePort(@ph, @oa);
+
+//  th:=OpenThread(THREAD_ALL_ACCESS, false, strtoint(scanvalue.text));
+
+  showmessage('threadid='+inttohex(getcurrentthreadid,1));
   th:=OpenThread(THREAD_ALL_ACCESS, false, GetCurrentThreadId);
 
-  showmessage('before.  tid='+inttohex(GetCurrentThreadId,8));
-  NtSetInformationThread(th, jwawindows.ThreadHideFromDebugger, nil, 0);
+
+  r:=NtSetInformationThread(th, jwawindows.ThreadHideFromDebugger, nil, 0);
   showmessage('after');
 
 

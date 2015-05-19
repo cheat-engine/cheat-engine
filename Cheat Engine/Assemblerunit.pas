@@ -354,8 +354,8 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'ENTER';opcode1:eo_iw;opcode2:eo_ib;paramtype1:par_imm16;paramtype2:par_imm8;bytes:1;bt1:$c8),
   (mnemonic:'F2XM1';bytes:2;bt1:$d9;bt2:$f0),
   (mnemonic:'FABS';bytes:2;bt1:$d9;bt2:$e1),
-  (mnemonic:'FADD';opcode1:eo_reg0;paramtype1:par_m32;bytes:1;bt1:$d8),
-  (mnemonic:'FADD';opcode1:eo_reg0;paramtype1:par_m64;bytes:1;bt1:$dc),
+  (mnemonic:'FADD';opcode1:eo_reg0;paramtype1:par_m32;bytes:1;bt1:$d8; norexw:true),
+  (mnemonic:'FADD';opcode1:eo_reg0;paramtype1:par_m64;bytes:1;bt1:$dc; norexw:true),
   (mnemonic:'FADD';opcode1:eo_pi;paramtype1:par_st0;paramtype2:par_st;bytes:2;bt1:$d8;bt2:$c0),
   (mnemonic:'FADD';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$d8;bt2:$c0),
   (mnemonic:'FADD';opcode1:eo_pi;paramtype1:par_st;paramtype2:par_st0;bytes:2;bt1:$dc;bt2:$c0),
@@ -1635,7 +1635,7 @@ procedure unregisterAssembler(id: integer);
 implementation
 
 uses {$ifndef autoassemblerdll}CEFuncProc,{$endif}symbolhandler, lua, luahandler,
-  lualib, assemblerArm, Parsers;
+  lualib, assemblerArm, Parsers, NewKernelHandler;
 
 
 var ExtraAssemblers: array of TAssemblerEvent;
@@ -3273,6 +3273,9 @@ var tokens: ttokens;
     is64bit: boolean;
 
 
+    b: byte;
+    br: PTRUINT;
+
 begin
   setlength(bytes,0);
   is64bit:=processhandler.is64Bit;
@@ -3313,7 +3316,18 @@ begin
           else addstring(bytes,tokens[i]); //lets try to save face...
         end
         else
-          add(bytes,[HexStrToInt(tokens[i])]);
+        begin    //db 00 00 ?? ?? ?? ?? 00 00
+          if ((length(tokens[i])>=1) and (tokens[i][1] in ['?','*'])) and
+             ((length(tokens[i])<2) or ((length(tokens[i])=2) and (tokens[i][2]=tokens[i][1]))) then
+          begin
+            //wildcard
+            v:=0;
+            ReadProcessMemory(processhandle,pointer(address+i-1), @b, 1, br);
+            add(bytes, b);
+          end
+          else
+            add(bytes,[HexStrToInt(tokens[i])]);
+        end;
       end;
 
       result:=true;

@@ -666,6 +666,24 @@ object MemoryBrowser: TMemoryBrowser
         OnClick = DisplayTypeClick
       end
     end
+    object MenuItem21: TMenuItem
+      Caption = 'Text Encoding'
+      object miTextEncoding8: TMenuItem
+        AutoCheck = True
+        Caption = '8 Bit'
+        Checked = True
+        GroupIndex = 1
+        RadioItem = True
+        OnClick = miTextEncodingClick
+      end
+      object miTextEncoding16: TMenuItem
+        AutoCheck = True
+        Caption = '16 Bit'
+        GroupIndex = 1
+        RadioItem = True
+        OnClick = miTextEncodingClick
+      end
+    end
     object miSeperators: TMenuItem
       Caption = 'Seperators'
       object miSepEvery2Bytes: TMenuItem

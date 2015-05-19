@@ -1402,7 +1402,6 @@ object MainForm: TMainForm
       Width = 32
       Caption = 'Label3'
       ParentColor = False
-      Visible = False
       OnClick = Label3Click
     end
     object Foundlist3: TListView

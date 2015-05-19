@@ -23,6 +23,10 @@ type PLua_state=pointer;
 type TConversionRoutine=function(data: pointer):integer; stdcall;
 type TReverseConversionRoutine=procedure(i: integer; output: pointer); stdcall;
 
+//I should have used cdecl from the start
+type TConversionRoutine2=function(data: pointer; address: ptruint):integer; cdecl;
+type TReverseConversionRoutine2=procedure(i: integer; address: ptruint; output: pointer); cdecl;
+
 
 type
   TCustomTypeType=(cttAutoAssembler, cttLuaScript, cttPlugin);
@@ -37,8 +41,9 @@ type
     lua_valuetobytes: string;
 
 
-    routine: TConversionRoutine;
-    reverseroutine: TReverseConversionRoutine;
+    routine: pointer;
+    reverseroutine: pointer;
+
 
     {$ifndef unix}
     c: TCEAllocArray;
@@ -46,6 +51,7 @@ type
     currentscript: tstringlist;
     fCustomTypeType: TCustomTypeType; //plugins set this to cttPlugin
     fScriptUsesFloat: boolean;
+    fScriptUsesCDecl: boolean;
 
 
 
@@ -58,20 +64,20 @@ type
     preferedAlignment: integer;
 
     //these 4 functions are just to make it easier
-    procedure ConvertToData(f: single; output: pointer); overload;
-    function ConvertFromData(data: pointer): single; overload;
-    procedure ConvertToData(i: integer; output: pointer); overload;
-    function ConvertFromData(data: pointer): integer; overload;
+    procedure ConvertToData(f: single; output: pointer; address: ptruint); overload;
+    function ConvertFromData(data: pointer; address: ptruint): single; overload;
+    procedure ConvertToData(i: integer; output: pointer; address: ptruint); overload;
+    function ConvertFromData(data: pointer; address: ptruint): integer; overload;
 
-    function ConvertDataToInteger(data: pointer): integer;
-    function ConvertDataToIntegerLua(data: pbytearray): integer;
-    procedure ConvertIntegerToData(i: integer; output: pointer);
-    procedure ConvertIntegerToDataLua(i: integer; output: pbytearray);
+    function ConvertDataToInteger(data: pointer; address: ptruint): integer;
+    function ConvertDataToIntegerLua(data: pbytearray; address: ptruint): integer;
+    procedure ConvertIntegerToData(i: integer; output: pointer; address: ptruint);
+    procedure ConvertIntegerToDataLua(i: integer; output: pbytearray; address: ptruint);
 
-    function ConvertDataToFloat(data: pointer): single;
-    function ConvertDataToFloatLua(data: pbytearray): single;
-    procedure ConvertFloatToData(f: single; output: pointer);
-    procedure ConvertFloatToDataLua(f: single; output: pbytearray);
+    function ConvertDataToFloat(data: pointer; address: ptruint): single;
+    function ConvertDataToFloatLua(data: pbytearray; address: ptruint): single;
+    procedure ConvertFloatToData(f: single; output: pointer; address: ptruint);
+    procedure ConvertFloatToDataLua(f: single; output: pbytearray; address: ptruint);
 
 
 
@@ -98,7 +104,7 @@ function registerCustomTypeLua(L: PLua_State): integer; cdecl;
 function registerCustomTypeAutoAssembler(L: PLua_State): integer; cdecl;
 
 var customTypes: TList; //list holding all the custom types
-    AllIncludesCustomType: boolean;
+//    AllIncludesCustomType: boolean;
     MaxCustomTypeSize: integer;
 
 implementation
@@ -175,7 +181,7 @@ begin
     result:='';
 end;
 
-procedure TCustomType.ConvertIntegerToDataLua(i: integer; output: pbytearray);
+procedure TCustomType.ConvertIntegerToDataLua(i: integer; output: pbytearray; address: ptruint);
 var
   L: PLua_State;
   r: integer;
@@ -188,12 +194,13 @@ begin
   try
     if lua_valuetobytesfunctionid=-1 then
     begin
-      lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(lua_valuetobytes));
+      lua_getglobal(LuaVM, pchar(lua_valuetobytes));
       lua_valuetobytesfunctionid:=luaL_ref(LuaVM,LUA_REGISTRYINDEX);
     end;
     lua_rawgeti(Luavm, LUA_REGISTRYINDEX, lua_valuetobytesfunctionid);
 
     lua_pushinteger(L, i);
+    lua_pushinteger(L, address);
     if lua_pcall(l,1,bytesize,0)=0 then
     begin
       r:=lua_gettop(L);
@@ -218,7 +225,7 @@ begin
 
 end;
 
-procedure TCustomType.ConvertIntegerToData(i: integer; output: pointer);
+procedure TCustomType.ConvertIntegerToData(i: integer; output: pointer; address: ptruint);
 var f: single;
 begin
 
@@ -229,16 +236,21 @@ begin
   end;
 
   if assigned(reverseroutine) then
-    reverseroutine(i,output)
+  begin
+    if fScriptUsesCDecl then
+      TReverseConversionRoutine2(reverseroutine)(i,address, output)
+    else
+      TReverseConversionRoutine(reverseroutine)(i,output);
+  end
   else
   begin
     //possible lua
     if fCustomTypeType=cttLuaScript then
-      ConvertIntegerToDataLua(i, output);
+      ConvertIntegerToDataLua(i, output, address);
   end;
 end;
 
-function TCustomType.ConvertDataToIntegerLua(data: pbytearray): integer; //split up for speed
+function TCustomType.ConvertDataToIntegerLua(data: pbytearray; address: ptruint): integer; //split up for speed
 var
   L: PLua_State;
   i: integer;
@@ -252,7 +264,7 @@ begin
 
     if lua_bytestovaluefunctionid=-1 then
     begin
-      lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(lua_bytestovalue));
+      lua_getglobal(LuaVM, pchar(lua_bytestovalue));
       lua_bytestovaluefunctionid:=luaL_ref(LuaVM,LUA_REGISTRYINDEX);
     end;
 
@@ -267,6 +279,8 @@ begin
     for i:=0 to bytesize-1 do
       lua_pushinteger(L,data[i]);
 
+    lua_pushinteger(L, address);
+
     lua_call(L, bytesize,1);
     result:=lua_tointeger(L, -1);
 
@@ -280,18 +294,23 @@ end;
 
 
 
-function TCustomType.ConvertDataToInteger(data: pointer): integer;
+function TCustomType.ConvertDataToInteger(data: pointer; address: ptruint): integer;
 var
   i: dword;
   f: single absolute i;
 begin
   if assigned(routine) then
-    result:=routine(data)
+  begin
+    if fScriptUsesCDecl then
+      result:=TConversionRoutine2(routine)(data, address)
+    else
+      result:=TConversionRoutine(routine)(data);
+  end
   else
   begin
     //possible lua
     if fCustomTypeType=cttLuaScript then
-      result:=ConvertDataToIntegerLua(data)
+      result:=ConvertDataToIntegerLua(data, address)
     else
       result:=0;
   end;
@@ -304,7 +323,7 @@ begin
 end;
 
 
-procedure TCustomType.ConvertFloatToDataLua(f: single; output: pbytearray);
+procedure TCustomType.ConvertFloatToDataLua(f: single; output: pbytearray; address: ptruint);
 //I REALLY doubt anyone in their right mind would use lua to encode a float as bytes, but it's here...
 var
   L: PLua_State;
@@ -318,12 +337,13 @@ begin
   try
     if lua_valuetobytesfunctionid=-1 then
     begin
-      lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(lua_valuetobytes));
+      lua_getglobal(LuaVM, pchar(lua_valuetobytes));
       lua_valuetobytesfunctionid:=luaL_ref(LuaVM,LUA_REGISTRYINDEX);
     end;
     lua_rawgeti(Luavm, LUA_REGISTRYINDEX, lua_valuetobytesfunctionid);
 
     lua_pushnumber(L, f);
+    lua_pushinteger(L, address);
     if lua_pcall(l,1,bytesize,0)=0 then
     begin
       r:=lua_gettop(L);
@@ -348,7 +368,7 @@ begin
 end;
 
 
-procedure TCustomType.ConvertFloatToData(f: single; output: pointer);
+procedure TCustomType.ConvertFloatToData(f: single; output: pointer; address: ptruint);
 var i: integer;
 begin
 
@@ -358,16 +378,21 @@ begin
     i:=trunc(f);
 
   if assigned(reverseroutine) then
-    reverseroutine(i,output)
+  begin
+    if fScriptUsesCDecl then
+      TReverseConversionRoutine2(reverseroutine)(i,address, output)
+    else
+      TReverseConversionRoutine(reverseroutine)(i,output);
+  end
   else
   begin
     //possible lua
     if fCustomTypeType=cttLuaScript then
-      ConvertFloatToDataLua(f, output);
+      ConvertFloatToDataLua(f, output, address);
   end;
 end;
 
-function TCustomType.ConvertDataToFloatLua(data: PByteArray): single;
+function TCustomType.ConvertDataToFloatLua(data: PByteArray; address: ptruint): single;
 //again, why would anyone use lua for this ?
 var
   L: PLua_State;
@@ -380,7 +405,7 @@ begin
   try
     if lua_bytestovaluefunctionid=-1 then
     begin
-      lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(lua_bytestovalue));
+      lua_getglobal(LuaVM, pchar(lua_bytestovalue));
       lua_bytestovaluefunctionid:=luaL_ref(LuaVM,LUA_REGISTRYINDEX);
     end;
 
@@ -388,11 +413,12 @@ begin
     lua_rawgeti(Luavm, LUA_REGISTRYINDEX, lua_bytestovaluefunctionid);
 
 
-
     for i:=0 to bytesize-1 do
       lua_pushinteger(L,data[i]);
 
-    lua_call(L, bytesize,1);
+    lua_pushinteger(Luavm, address);
+
+    lua_call(L, bytesize+1,1);
     result:=lua_tonumber(L, -1);
 
     lua_pop(L,lua_gettop(l));
@@ -405,14 +431,17 @@ end;
 
 
 
-function TCustomType.ConvertDataToFloat(data: pointer): single;
+function TCustomType.ConvertDataToFloat(data: pointer; address: ptruint): single;
 var
   i: dword;
   f: single absolute i;
 begin
   if assigned(routine) then
   begin
-    i:=routine(data);
+    if fScriptUsesCDecl then
+      i:=TConversionRoutine2(routine)(data,address)
+    else
+      i:=TConversionRoutine(routine)(data);
 
     if not fScriptUsesFloat then //the result is in integer format ,
       f:=i; //convert the integer to float
@@ -421,7 +450,7 @@ begin
   begin
     //possible lua
     if fCustomTypeType=cttLuaScript then
-      f:=ConvertDataToFloatLua(data)
+      f:=ConvertDataToFloatLua(data, address)
     else
       f:=0;
   end;
@@ -429,24 +458,24 @@ begin
   result:=f;
 end;
 
-procedure TCustomType.ConvertToData(f: single; output: pointer);
+procedure TCustomType.ConvertToData(f: single; output: pointer; address: ptruint);
 begin
-  ConvertFloatToData(f, output);
+  ConvertFloatToData(f, output, address);
 end;
 
-function TCustomType.ConvertFromData(data: pointer): single;
+function TCustomType.ConvertFromData(data: pointer; address: ptruint): single;
 begin
-  result:=ConvertDataToFloat(data);
+  result:=ConvertDataToFloat(data, address);
 end;
 
-procedure TCustomType.ConvertToData(i: integer; output: pointer);
+procedure TCustomType.ConvertToData(i: integer; output: pointer; address: ptruint);
 begin
-  ConvertIntegerToData(i, output);
+  ConvertIntegerToData(i, output, address);
 end;
 
-function TCustomType.ConvertFromData(data: pointer): integer;
+function TCustomType.ConvertFromData(data: pointer; address: ptruint): integer;
 begin
-  result:=ConvertDataToInteger(data);
+  result:=ConvertDataToInteger(data, address);
 end;
 
 procedure TCustomType.unloadscript;
@@ -484,8 +513,9 @@ var i: integer;
   oldfunctiontypename: string;
   newpreferedalignment, oldpreferedalignment: integer;
   oldScriptUsesFloat, newScriptUsesFloat: boolean;
-  newroutine, oldroutine: TConversionRoutine;
-  newreverseroutine, oldreverseroutine: TReverseConversionRoutine;
+  oldScriptUsesCDecl, newScriptUsesCDecl: boolean;
+  newroutine, oldroutine: pointer;
+  newreverseroutine, oldreverseroutine: pointer;
   newbytesize, oldbytesize: integer;
 
 {$IFNDEF UNIX}
@@ -501,6 +531,7 @@ begin
   oldbytesize:=bytesize;
   oldpreferedalignment:=preferedalignment;
   oldScriptUsesFloat:=fScriptUsesFloat;
+  oldScriptUsesCDecl:=fScriptUsesCDecl;
 
   setlength(oldallocarray, length(c));
   for i:=0 to length(c)-1 do
@@ -539,6 +570,9 @@ begin
             if uppercase(c[i].varname)='USESFLOAT' then
               newScriptUsesFloat:=pbyte(c[i].address)^<>0;
 
+            if uppercase(c[i].varname)='CALLMETHOD' then
+               newScriptUsesCDecl:=pbyte(c[i].address)^<>0;
+
             if uppercase(c[i].varname)='CONVERTBACKROUTINE' then
               newreverseroutine:=pointer(c[i].address);
           end;
@@ -558,6 +592,7 @@ begin
 
           preferedAlignment:=newpreferedalignment;
           fScriptUsesFloat:=newScriptUsesFloat;
+          fScriptUsesCDecl:=newScriptUsesCDecl;
 
           fCustomTypeType:=cttAutoAssembler;
           if currentscript<>nil then
@@ -638,10 +673,10 @@ begin
       currentscript.text:=script;
 
 
-      lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(lua_bytestovalue));
+      lua_getglobal(LuaVM, pchar(lua_bytestovalue));
       lua_bytestovaluefunctionid:=luaL_ref(LuaVM,LUA_REGISTRYINDEX);
 
-      lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(lua_valuetobytes));
+      lua_getglobal(LuaVM, pchar(lua_valuetobytes));
       lua_valuetobytesfunctionid:=luaL_ref(LuaVM,LUA_REGISTRYINDEX);
 
       lua_pop(LuaVM,lua_getTop(luavm));
@@ -659,6 +694,8 @@ begin
       bytesize:=oldbytesize;
       preferedAlignment:=oldpreferedalignment;
       fScriptUsesFloat:=oldScriptUsesFloat;
+
+      fScriptUsesCDecl:=oldScriptUsesCDecl;
 
       setlength(c,length(oldallocarray));
       for i:=0 to length(oldallocarray)-1 do
@@ -765,7 +802,7 @@ begin
     if lua_isstring(L,3) then
     begin
       bytestovalue:=Lua_ToString(L, 3);
-      lua_getfield(L, LUA_GLOBALSINDEX, pchar(bytestovalue));
+      lua_getglobal(L, pchar(bytestovalue));
       f_valuetobytes:=luaL_ref(L,LUA_REGISTRYINDEX);
     end
     else
@@ -787,7 +824,7 @@ begin
     if lua_isstring(L,4) then
     begin
       valuetobytes:=Lua_ToString(L, 4);
-      lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(valuetobytes));
+      lua_getglobal(LuaVM, pchar(valuetobytes));
       f_valuetobytes:=luaL_ref(L,LUA_REGISTRYINDEX);
     end
     else

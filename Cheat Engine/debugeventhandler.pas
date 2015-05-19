@@ -1098,11 +1098,6 @@ begin
 
     breakAddress:=address;
 
-   { if (breakAddress and $fff)=$75c then
-    begin
-      beep;
-    end;  }
-
     //freeze all threads except this one and do a single step
 
     context.EFlags:=eflags_setTF(context.EFlags,1);
@@ -1135,7 +1130,7 @@ begin
   TDebuggerthread(debuggerthread).execlocation:=16;
   bp:=nil;
 
-  OutputDebugString('HandleExceptionDebugEvent:'+inttohex(debugEvent.Exception.ExceptionRecord.ExceptionCode,8));
+  OutputDebugString(inttohex(ThreadId,1)+'('+inttohex(context.{$ifdef cpu64}Rip{$else}Eip{$endif},8)+')'+':HandleExceptionDebugEvent:'+inttohex(debugEvent.Exception.ExceptionRecord.ExceptionCode,8));
   exceptionAddress := ptrUint(debugEvent.Exception.ExceptionRecord.ExceptionAddress);
 
 
@@ -1247,18 +1242,33 @@ begin
 
 
         if (context.Dr6 and 1) = 1 then
+        begin
+          log('caused by DR0: Context.DR0='+inttohex(context.DR0,8));
           Result := DispatchBreakpoint(context.dr0, 0, dwContinueStatus)
+        end
         else
         if ((context.Dr6 shr 1) and 1) = 1 then
+        begin
+          log('caused by DR1: Context.DR1='+inttohex(context.DR1,8));
           Result := DispatchBreakpoint(context.dr1, 1, dwContinueStatus)
+        end
         else
         if ((context.Dr6 shr 2) and 1) = 1 then
+        begin
+          log('caused by DR2: Context.DR2='+inttohex(context.DR2,8));
           Result := DispatchBreakpoint(context.dr2, 2, dwContinueStatus)
+        end
         else
         if ((context.Dr6 shr 3) and 1) = 1 then
+        begin
+          log('caused by DR3: Context.DR3='+inttohex(context.DR3,8));
           Result := DispatchBreakpoint(context.dr3, 3, dwContinueStatus)
+        end
         else
+        begin
+          log('Not caused by a debugreg');
           Result := SingleStep(dwContinueStatus);
+        end;
 
         if dwContinueStatus=DBG_CONTINUE then
         begin

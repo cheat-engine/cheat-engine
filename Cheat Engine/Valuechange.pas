@@ -362,17 +362,31 @@ begin
 
 {bytes} 7       : begin
 //convert the string to bytes
-                    ConvertStringToBytes(Valuetext.Text,true,newvalue7);
+                    ConvertStringToBytes(Valuetext.Text,true,newvalue7, true);
                     setlength(newstring,length(newvalue7));
                     for i:=0 to length(newvalue7)-1 do
                     begin
                       //if the bytesvalue is -1 then read that byte from the memory and leave it untouched
                       //if it is unreadable popup a message noptifying the user
-                      if newvalue7[i]=-1 then
+                      if newvalue7[i]<0 then
                       begin
                         write:=0;
                         readprocessmemory(processhandle,pointer(address+i),addr(newstring[i]),1,write);
                         if write<>1 then raise exception.Create(rsPartOfTheStringIsUnreadable);
+
+                        if newvalue7[i]<>-1 then
+                        begin
+                          //apply the nibble part
+                          //example: 9*  and newstring[i]=7c
+                          //the wanted result will be 9c
+
+                          //newvalue7[i]=$8000f090
+                          //not (f0) = 0f
+                          //0f and 9c = 0c
+                          //0c or 90 = 9c
+
+                          newstring[i]:=(((not (newvalue7[i] shr 8)) and $ff) and newstring[i]) or (newvalue7[i] and $ff);
+                        end;
                       end
                       else
                         newstring[i]:=newvalue7[i];
@@ -394,7 +408,7 @@ end;
 
 procedure TValueChangeForm.FormCreate(Sender: TObject);
 begin
-  cbVarType.Items.Delete(cbVarType.Items.Count-1);
+  //cbVarType.Items.Delete(cbVarType.Items.Count-1);
   cbVarType.itemindex:=0;
 end;
 
