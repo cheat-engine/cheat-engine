@@ -3934,7 +3934,7 @@ begin
       Add('//rdx=address');
       Add('//r8=address of output');
       Add('//example:');
-      Add('mov [r8],ecx //place the integer at the 4 bytes pointed to by rdx');
+      Add('mov [r8],ecx //place the integer at the 4 bytes pointed to by r8');
       Add('');
       Add('ret');
       Add('[/64-bit]');

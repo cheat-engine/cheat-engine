@@ -52,7 +52,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#if defined(__arm__) || defined(__ANDROID__)
+#ifdef HAS_LINUX_USER_H
 #include <linux/user.h>
 #else
 #include <sys/user.h>
@@ -65,6 +65,10 @@
 #include <sys/un.h>
 #include <unistd.h>
 #include <libgen.h>
+
+#ifdef __aarch64__
+#include <elf.h>
+#endif
 
 #include "porthelp.h"
 #include "api.h"
@@ -97,11 +101,19 @@ int WaitForPid()
 
 int showRegisters(int pid)
 {
-#ifdef __arm__
-  struct pt_regs r;
+#ifdef __aarch64__
+  struct user_pt_regs regs;
 #else
-  struct user_regs_struct r;
+  #ifdef __arm__
+    struct pt_regs r;
+  #else
+    struct user_regs_struct r;
+  #endif
 #endif
+/*
+
+
+
   int result=ptrace(PTRACE_GETREGS, pid, 0, &r);
 
 
@@ -129,7 +141,7 @@ int showRegisters(int pid)
     printf("eip=%lx\n", r.eip);
   #endif
 #endif
-
+*/
 
 }
 
@@ -318,6 +330,7 @@ int isExtensionLoaded(int pid)
 
 int loadExtension(int pid, char *path, int isBeingDebugged)
 {
+
     uintptr_t dlopen;
     uintptr_t str;
     int status;
@@ -368,20 +381,36 @@ printf("After wait 2. PID=%d\n", pid);
 
 
     //save the current state and set the state to what I need it to be
+#ifdef __i386__
+  struct pt_regs origregs;
+  struct pt_regs newregs;
+#endif
+
+#ifdef __x86_64__
+  struct user_regs_struct origregs;
+  struct user_regs_struct newregs;
+#endif
+
 
 #ifdef __arm__
   struct pt_regs origregs;
   struct pt_regs newregs;
-#else
-  struct user_regs_struct origregs;
-  char bla[1024];
-
-
-  struct user_regs_struct newregs;
-  char bla2[1024];
 #endif
 
+
+#ifdef __aarch64__
+  struct user_pt_regs origregs;
+  struct user_pt_regs newregs;
+  struct iovec iov;
+#endif;
+
+#ifdef __aarch64__
+      iov.iov_base=&newregs;
+      iov.iov_len=sizeof(newregs);
+      if (ptrace(PTRACE_GETREGSET, pid, (void*)NT_PRSTATUS, &iov))
+#else
       if (ptrace(PTRACE_GETREGS, pid, 0, &newregs)!=0)
+#endif
       {
         printf("PTRACE_GETREGS FAILED\n");
         ptrace(PTRACE_DETACH, pid,0,0);
@@ -389,7 +418,13 @@ printf("After wait 2. PID=%d\n", pid);
         return FALSE;
       }
 
+#ifdef __aarch64__
+      iov.iov_base=&origregs;
+      iov.iov_len=sizeof(origregs);
+      if (ptrace(PTRACE_GETREGSET, pid, (void*)NT_PRSTATUS, &iov))
+#else
       if (ptrace(PTRACE_GETREGS, pid, 0, &origregs)!=0)
+#endif
       {
         printf("PTRACE_GETREGS FAILED 2\n");
         ptrace(PTRACE_DETACH, pid,0,0);
@@ -410,9 +445,6 @@ printf("After wait 2. PID=%d\n", pid);
       //not sur eif [sp] is written to with a push or if it's [sp-4] and then sp decreased, so start at sp+4 instead
       str=newregs.ARM_sp+4;
       writeString(pid, str, path);
-
-
-
 
       newregs.ARM_lr=returnaddress;
       newregs.ARM_pc=dlopen;
@@ -445,8 +477,14 @@ printf("After wait 2. PID=%d\n", pid);
       printf("pc=%lx\n", origregs.ARM_pc);
       printf("cpsr=%lx\n", origregs.ARM_cpsr);
 
-#else
-  #ifdef __x86_64__
+#endif
+
+#ifdef __aarch64__
+      printf("extensionloader is not implemented yet for aarch64\n");
+      return FALSE;
+#endif
+
+#ifdef __x86_64__
       printf("rax=%lx\n", origregs.rax);
       printf("rbp=%lx\n", origregs.rbp);
       printf("rsp=%lx\n", origregs.rsp);
@@ -515,8 +553,9 @@ printf("After wait 2. PID=%d\n", pid);
       newregs.rdi=str;
       newregs.rsi=RTLD_NOW;
       newregs.orig_rax=0;
-  #else
-    printf("32-bit is not yet supported\n");
+#endif
+
+#ifdef __i386__
     printf("eax=%lx\n", origregs.eax);
     printf("ebp=%lx\n", origregs.ebp);
     printf("esp=%lx\n", origregs.esp);
@@ -573,13 +612,15 @@ printf("After wait 2. PID=%d\n", pid);
 
     newregs.eip=dlopen;
     newregs.orig_eax=0;
-
-  #endif //__x86_64
-
-
 #endif
 
+#ifdef __aarch64__
+      iov.iov_base=&newregs;
+      iov.iov_len=sizeof(newregs);
+      if (ptrace(PTRACE_SETREGSET, pid, (void*)NT_PRSTATUS, &iov))
+#else
       if (ptrace(PTRACE_SETREGS, pid, 0, &newregs)!=0)
+#endif
       {
         printf("PTRACE_SETREGS FAILED\n");
         ptrace(PTRACE_DETACH, pid,0,0);
@@ -587,7 +628,13 @@ printf("After wait 2. PID=%d\n", pid);
         return FALSE;
       }
 
+#ifdef __aarch64__
+      iov.iov_base=&newregs;
+      iov.iov_len=sizeof(newregs);
+      if (ptrace(PTRACE_GETREGSET, pid, (void*)NT_PRSTATUS, &iov))
+#else
       if (ptrace(PTRACE_GETREGS, pid, 0, &newregs)!=0)
+#endif
       {
         printf("PTRACE_GETREGS FAILED 4\n");
         ptrace(PTRACE_DETACH, pid,0,0);
@@ -602,8 +649,9 @@ printf("After wait 2. PID=%d\n", pid);
      printf("orig_r0=%lx\n", newregs.ARM_ORIG_r0);
      printf("pc=%lx\n", newregs.ARM_pc);
      printf("cpsr=%lx\n", newregs.ARM_cpsr);
-#else
-  #ifdef __x86_64__
+#endif
+
+#ifdef __x86_64__
      printf("rax=%lx\n", newregs.rax);
      printf("rdi=%lx\n", newregs.rdi);
      printf("rsi=%lx\n", newregs.rsi);
@@ -611,7 +659,9 @@ printf("After wait 2. PID=%d\n", pid);
      printf("rsp=%lx\n", newregs.rsp);
      printf("orig_rax=%lx\n", newregs.orig_rax);
      printf("rip=%lx\n", newregs.rip);
-  #else
+#endif
+
+#ifdef __i386__
      printf("eax=%lx\n", newregs.eax);
      printf("edi=%lx\n", newregs.edi);
      printf("esi=%lx\n", newregs.esi);
@@ -619,8 +669,7 @@ printf("After wait 2. PID=%d\n", pid);
      printf("esp=%lx\n", newregs.esp);
      printf("orig_eax=%lx\n", newregs.orig_eax);
      printf("eip=%lx\n", newregs.eip);
-  #endif //__x86_64__
-#endif
+#endif //__x86_64__
 
     printf("\n\nContinuing thread\n");
 
@@ -669,7 +718,13 @@ printf("After wait 2. PID=%d\n", pid);
 
 
 
+#ifdef __aarch64__
+      iov.iov_base=&newregs;
+      iov.iov_len=sizeof(newregs);
+      if (ptrace(PTRACE_GETREGSET, pid, (void*)NT_PRSTATUS, &iov))
+#else
      if (ptrace(PTRACE_GETREGS, pid, 0, &newregs)!=0)
+#endif
      {
        printf("PTRACE_GETREGS FAILED (2)\n");
        ptrace(PTRACE_DETACH, pid,0,0);
@@ -683,16 +738,19 @@ printf("After wait 2. PID=%d\n", pid);
     printf("pc=%lx\n", newregs.ARM_pc);
     printf("sp=%lx\n", newregs.ARM_sp);
     printf("cpsr=%lx\n", newregs.ARM_cpsr);
-#else
-  #ifdef __x86_64__
-     printf("rax=%lx\n", newregs.rax);
-     printf("rdi=%lx\n", newregs.rdi);
-     printf("rsi=%lx\n", newregs.rsi);
-     printf("rbp=%lx\n", newregs.rbp);
-     printf("rsp=%lx\n", newregs.rsp);
-     printf("orig_rax=%lx\n", newregs.rax);
-     printf("rip=%lx\n", newregs.rip);
-  #else
+#endif
+
+#ifdef __x86_64__
+    printf("rax=%lx\n", newregs.rax);
+    printf("rdi=%lx\n", newregs.rdi);
+    printf("rsi=%lx\n", newregs.rsi);
+    printf("rbp=%lx\n", newregs.rbp);
+    printf("rsp=%lx\n", newregs.rsp);
+    printf("orig_rax=%lx\n", newregs.rax);
+    printf("rip=%lx\n", newregs.rip);
+#endif
+
+#ifdef __i386__
      printf("eax=%lx\n", newregs.eax);
      printf("edi=%lx\n", newregs.edi);
      printf("esi=%lx\n", newregs.esi);
@@ -700,11 +758,16 @@ printf("After wait 2. PID=%d\n", pid);
      printf("esp=%lx\n", newregs.esp);
      printf("orig_eax=%lx\n", newregs.eax);
      printf("eip=%lx\n", newregs.eip);
-  #endif
-
 #endif
 
+
+#ifdef __aarch64__
+     iov.iov_base=&origregs;
+     iov.iov_len=sizeof(origregs);
+     if (ptrace(PTRACE_SETREGSET, pid, (void*)NT_PRSTATUS, &iov))
+#else
      if (ptrace(PTRACE_SETREGS, pid, 0, &origregs)!=0)
+#endif
      {
        printf("PTRACE_SETREGS FAILED (20\n");
      }
@@ -723,6 +786,7 @@ printf("After wait 2. PID=%d\n", pid);
 
 
      printf("End...\n");
+
 }
 
 int loadCEServerExtension(HANDLE hProcess)
@@ -831,6 +895,8 @@ int loadCEServerExtension(HANDLE hProcess)
           {
             printf("Calling loadExtension\n");
             p->hasLoadedExtension=loadExtension(p->pid, modulepath, p->isDebugged);
+
+            printf("p->hasLoadedExtension=%d\n", p->hasLoadedExtension);
           }
 
           if (p->hasLoadedExtension)

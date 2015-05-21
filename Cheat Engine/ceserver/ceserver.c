@@ -301,6 +301,8 @@ int DispatchCommand(int currentsocket, unsigned char command)
 
       result=GetThreadContext(gtc.hProcess, gtc.tid, &Context, gtc.type);
 
+      printf("result=%d\n", result);
+
 
       if (result)
       {
@@ -1167,7 +1169,7 @@ void *IdentifierThread(void *arg)
         printf("sendto returned %d\n",i);
       }
       else
-    	  printf("recvfrom failed\n");
+        printf("recvfrom failed\n");
 
       fflush(stdout);
     }
@@ -1175,7 +1177,7 @@ void *IdentifierThread(void *arg)
 
   }
   else
-	  printf("bind failed\n");
+    printf("bind failed\n");
 
   printf("IdentifierThread exit\n");
 
@@ -1220,7 +1222,7 @@ int main(int argc, char *argv[])
 
 
 
-  memset(&addr, sizeof(addr), 0);
+  memset(&addr, 0, sizeof(addr));
   addr.sin_family=AF_INET;
   addr.sin_port=htons(PORT);
   addr.sin_addr.s_addr=INADDR_ANY;
@@ -1240,7 +1242,7 @@ int main(int argc, char *argv[])
     printf("listen=%d\n", l);
 
     clisize=sizeof(addr_client);
-    memset(&addr_client, sizeof(addr_client), 0);
+    memset(&addr_client, 0, sizeof(addr_client));
 
     if (argc>2)
     {
