@@ -92,7 +92,8 @@ const
   LUA_ERRRUN    = 2;
   LUA_ERRSYNTAX = 3;
   LUA_ERRMEM    = 4;
-  LUA_ERRERR    = 5;
+  LUA_ERRGCMM   = 5;
+  LUA_ERRERR    = 6;
 
 type
   Plua_State = Pointer;
@@ -126,6 +127,8 @@ const
   LUA_TFUNCTION      = 6;
   LUA_TUSERDATA      = 7;
   LUA_TTHREAD        = 8;
+  LUA_NUMTAGS        = 9;
+
 
 (* minimum Lua stack available to a C function *)
   LUA_MINSTACK = 20;
@@ -212,7 +215,7 @@ procedure lua_pushthread(L: Plua_State); cdecl;
 procedure lua_gettable(L: Plua_State; idx: Integer); cdecl;
 procedure lua_getfield(L: Plua_state; idx: Integer; k: PChar); cdecl;
 procedure lua_rawget(L: Plua_State; idx: Integer); cdecl;
-procedure lua_rawgeti(L: Plua_State; idx, n: Integer); cdecl;
+function lua_rawgeti(L: Plua_State; idx: integer; n: lua_Integer):integer; cdecl;
 procedure lua_createtable(L: Plua_State; narr, nrec: Integer); cdecl;
 function lua_newuserdata(L: Plua_State; sz: size_t): Pointer; cdecl; overload;
 procedure lua_newuserdata(L: Plua_State; p: pointer); cdecl; overload;
@@ -466,7 +469,7 @@ procedure lua_pushthread(L: Plua_State); cdecl; external LUA_NAME;
 procedure lua_gettable(L: Plua_State; idx: Integer); cdecl; external LUA_NAME;
 procedure lua_getfield(L: Plua_state; idx: Integer; k: PChar); cdecl; external LUA_NAME;
 procedure lua_rawget(L: Plua_State; idx: Integer); cdecl; external LUA_NAME;
-procedure lua_rawgeti(L: Plua_State; idx, n: Integer); cdecl; external LUA_NAME;
+function lua_rawgeti(L: Plua_State; idx: integer; n: lua_Integer):integer; cdecl; external LUA_NAME;
 procedure lua_createtable(L: Plua_State; narr, nrec: Integer); cdecl; external LUA_NAME;
 function lua_newuserdata(L: Plua_State; sz: size_t): Pointer; cdecl; external LUA_NAME;
 function lua_getmetatable(L: Plua_State; objindex: Integer): Integer; cdecl; external LUA_NAME;
