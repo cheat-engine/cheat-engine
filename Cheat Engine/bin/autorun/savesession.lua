@@ -228,7 +228,7 @@ function saveMemoryScan()
   --check the extensions for other things than first, undo or tmp
   local savedscans={}
   for i=1,#files do
-    local ext=files[i].name:match("\[^\.]*$")
+    local ext=files[i].name:match("%.([^%.]+)$")
 
   if (string.upper(ext)~='FIRST') and
      (string.upper(ext)~='TMP') and
