@@ -228,7 +228,7 @@ procedure lua_getfenv(L: Plua_State; idx: Integer); cdecl;
 procedure lua_settable(L: Plua_State; idx: Integer); cdecl;
 procedure lua_setfield(L: Plua_State; idx: Integer; k: PChar); cdecl;
 procedure lua_rawset(L: Plua_State; idx: Integer); cdecl;
-procedure lua_rawseti(L: Plua_State; idx, n: Integer); cdecl;
+procedure lua_rawseti(L: Plua_State; idx, n: lua_Integer); cdecl;
 function lua_setmetatable(L: Plua_State; objindex: Integer): Integer; cdecl;
 function lua_setfenv(L: Plua_State; idx: Integer): Integer; cdecl;
 
