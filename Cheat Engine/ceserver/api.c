@@ -2441,10 +2441,12 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
   //todo: Try process_vm_readv
 
-  //printf("ReadProcessMemory: %p\n", lpAddress);
+  printf("ReadProcessMemory(%d, %p, %p, %d)\n", (int)hProcess, lpAddress, buffer, size);
 
   //printf("ReadProcessMemory\n");
   int bread=0;
+
+
   if (GetHandleType(hProcess) == htProcesHandle )
   { //valid handle
     PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
@@ -2470,29 +2472,15 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
           pid_t pid=wait(&status);
 
+          lseek64(p->mem, (uintptr_t)lpAddress, SEEK_SET);
 
-          lseek64(p->mem, (uint64_t)lpAddress, SEEK_SET);
           bread=read(p->mem, buffer, size);
 
           if (bread==-1)
           {
             bread=0;
             printf("pread error for address %p (errno=%d) ", lpAddress, errno);
-
-#if defined(__i386__) | defined(__arm__)
-            if (lpAddress>=0x80000000)
-            {
-              printf("Falling back on compat mode");
-              //for some reason PEEKDATA does work when above 0x80000000
-              while (bread<size)
-              {
-                *(uintptr_t *)((uintptr_t)buffer+read)=ptrace(PTRACE_PEEKDATA, pid, (uintptr_t)lpAddress+bread, 0);
-                bread+=sizeof(uintptr_t);
-              }
-            }
-#endif
             printf("\n");
-
           }
 
           //printf("bread=%d size=%d\n", bread, size);
@@ -2511,6 +2499,10 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
   }
   else
     printf("RPM: invalid handle\n");
+
+  printf("Returned from rpm\n");
+
+  fflush(stdout);
 
   return bread;
 }
