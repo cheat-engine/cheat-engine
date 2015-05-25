@@ -1,5 +1,7 @@
 unit debugeventhandler;
 
+//handles the debug events
+
 {$MODE Delphi}
 
 interface
