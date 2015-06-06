@@ -319,9 +319,18 @@ void *CESERVERTEST_DEBUGGERTHREAD(void *arg)
         {
           printf("TRAP (thread %d)\n", devent.threadid);
          // printf("Going to remove breakpoint\n");
-          cenet_removeBreakpoint(fd, pHandle, devent.threadid,0,1);
+          //cenet_removeBreakpoint(fd, pHandle, devent.threadid,0,1);
 
-          printf("After removeBreakpoint\n");
+          //printf("After removeBreakpoint\n");
+
+          cenet_continueFromDebugEvent(fd, pHandle, devent.threadid, 2); //single step
+
+          i=cenet_waitForDebugEvent(fd, pHandle, &devent, 2000);
+          printf("after single step. i=%d\n",i);
+          printf("devent.debugevent=%d (thread %d)\n", devent.debugevent, devent.threadid);
+
+        //  cenet_setBreakpoint(fd, pHandle, devent.threadid,0xce0000, 3,4,0);
+
 
          // cenet_setBreakpoint(fd, pHandle, -1, 0xa000, 3, 4);
 
