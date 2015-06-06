@@ -406,7 +406,11 @@ begin
           //if it is a network breakpoint delete it first. Not needed for x86 but arm can't continue if the breakpoint doesn't get removed (at least my transformer tablet does)
           //it's like windows XP where the RF flag is borked, and the added fun that is also affects read/write watchpoints and arm doesn't do single stepping
 
+
           TdebuggerThread(debuggerthread).UnsetBreakpoint(bp, nil, ThreadId); //remove the breakpoint just for this thread
+
+
+          TNetworkDebuggerInterface(CurrentDebuggerInterface).SingleStepNextContinue:=true; //if possible. Not all builds support it and it's bad...
 
           //add a non persistent breakpoint using the last available debug register
 
@@ -416,7 +420,7 @@ begin
           pc:=armcontext.PC;
           d.disassemble(pc, t);
           }
-
+             {
           pc:=armcontext.PC+4;
 
 
@@ -424,13 +428,13 @@ begin
 
           if c.SetBreakpoint(processhandle, ThreadId, CurrentDebuggerInterface.maxInstructionBreakpointCount-1, pc,0, 1) then
             expectedUndefinedBreakpoint:=pc;
-
+            }
 
           setInt1Back:=true;
           Int1SetBackBP:=bp;
 
 
-          d.free;
+        //  d.free;
 
          {
           if (bp.OneTimeOnly=false) and (bp.breakpointAction<>bo_OnBreakpoint) then
@@ -959,17 +963,14 @@ begin
   end else
   begin
     TDebuggerthread(debuggerthread).execlocation:=34;
-    if (expectedUndefinedBreakpoint<>0) and (address=expectedUndefinedBreakpoint) then
+    if (setint1back) and (address<>0) then
     begin
       connection:=getConnection;
       if connection<>nil then
       begin
-        expectedUndefinedBreakpoint:=0;
-        connection.RemoveBreakpoint(processhandle, threadid, CurrentDebuggerInterface.maxInstructionBreakpointCount-1, false);
+        TdebuggerThread(debuggerthread).setBreakpoint(Int1SetBackBP, self);
 
-        if setInt1Back then
-          TdebuggerThread(debuggerthread).setBreakpoint(Int1SetBackBP, self);
-
+        setint1back:=false;
 
         dwContinueStatus:=DBG_CONTINUE;
         result:=true;
