@@ -13,6 +13,7 @@ type
   private
     handle: THandle;
     lastevent: TNetworkDebugEvent;
+    fsinglestepNextContinue: boolean;
 
   public
     function WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL; override;
@@ -27,6 +28,7 @@ type
     function GetLastBranchRecords(lbr: pointer): integer; override;
 
     function DebugActiveProcess(dwProcessId: DWORD): WINBOOL; override;
+    property SingleStepNextContinue: boolean read fSingleStepNextContinue write fSingleStepNextContinue;
 
     destructor destroy; override;
     constructor create;
@@ -197,7 +199,14 @@ begin
   if c<>nil then
   begin
     if dwContinueStatus=DBG_CONTINUE then
-      result:=c.ContinueDebugEvent(handle, dwThreadID, 1)  //ignore this signal
+    begin
+      if fSingleStepNextContinue then
+        result:=c.ContinueDebugEvent(handle, dwThreadID, 2)  //ignore this signal and enter a single step mode
+      else
+        result:=c.ContinueDebugEvent(handle, dwThreadID, 1);  //ignore this signal
+
+      fSingleStepNextContinue:=false;
+    end
     else
       result:=c.ContinueDebugEvent(handle, dwThreadID, 0);
   end;
@@ -225,24 +234,31 @@ begin
 
     if (carm<>nil) and (processhandler.SystemArchitecture=archARM) then
     begin
-      lpContext.R0:=carm.R0;
-      lpContext.R1:=carm.R1;
-      lpContext.R2:=carm.R2;
-      lpContext.R3:=carm.R3;
-      lpContext.R4:=carm.R4;
-      lpContext.R5:=carm.R5;
-      lpContext.R6:=carm.R6;
-      lpContext.R7:=carm.R7;
-      lpContext.R8:=carm.R8;
-      lpContext.R9:=carm.R9;
-      lpContext.R10:=carm.R10;
-      lpContext.FP:=carm.FP;
-      lpContext.IP:=carm.IP;
-      lpContext.SP:=carm.SP;
-      lpContext.LR:=carm.LR;
-      lpContext.PC:=carm.PC;
-      lpContext.CPSR:=carm.CPSR;
-      lpContext.ORIG_R0:=carm.ORIG_R0;
+      if processhandler.is64Bit then
+      begin
+        lpContext.PC:=$64646464; //holder for 64 bit for now
+      end
+      else
+      begin
+        lpContext.R0:=carm.R0;
+        lpContext.R1:=carm.R1;
+        lpContext.R2:=carm.R2;
+        lpContext.R3:=carm.R3;
+        lpContext.R4:=carm.R4;
+        lpContext.R5:=carm.R5;
+        lpContext.R6:=carm.R6;
+        lpContext.R7:=carm.R7;
+        lpContext.R8:=carm.R8;
+        lpContext.R9:=carm.R9;
+        lpContext.R10:=carm.R10;
+        lpContext.FP:=carm.FP;
+        lpContext.IP:=carm.IP;
+        lpContext.SP:=carm.SP;
+        lpContext.LR:=carm.LR;
+        lpContext.PC:=carm.PC;
+        lpContext.CPSR:=carm.CPSR;
+        lpContext.ORIG_R0:=carm.ORIG_R0;
+      end;
     end; //else use GetThreadContext
 
     if (carm<>nil) then

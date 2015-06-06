@@ -813,7 +813,7 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'MOVHPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_m64;bytes:2;bt1:$0f;bt2:$16),
   (mnemonic:'MOVHPS';opcode1:eo_reg;paramtype1:par_m64;paramtype2:par_xmm;bytes:2;bt1:$0f;bt2:$17),
 
-  (mnemonic:'MOVLHPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;bytes:2;bt1:$0f;bt3:$16),
+  (mnemonic:'MOVLHPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;bytes:2;bt1:$0f;bt2:$16),
 
   (mnemonic:'MOVLPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_m64;bytes:3;bt1:$66;bt2:$0f;bt3:$12),
   (mnemonic:'MOVLPD';opcode1:eo_reg;paramtype1:par_m64;paramtype2:par_xmm;bytes:3;bt1:$66;bt2:$0f;bt3:$13),
