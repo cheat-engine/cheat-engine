@@ -1,5 +1,5 @@
 unit scrollTreeView;
-{Helper class for treeviews that need more control over the horizontal scroll)
+{Helper class for treeviews that need more control over the horizontal scroll}
 
 {$mode delphi}
 

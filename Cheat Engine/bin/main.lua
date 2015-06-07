@@ -396,7 +396,8 @@ debug_addThreadToNoBreakList(threadid): This will cause breakpoints on the provi
 debug_removeThreadFromNoBreakList(threadid): removed the threadid from the list
 
 
-debug_setBreakpoint(address, size OPTIONAL, trigger OPTIONAL, functiontocall() OPTIONAL) : sets a breakpoint of a specific size at the given address. if trigger is bptExecute then size is ignored. If trigger is ignored then it will be of type bptExecute, which obviously also ignores the size then as well
+debug_setBreakpoint(address, size OPTIONAL, trigger OPTIONAL, breakpointmethod OPTIONAL, functiontocall() OPTIONAL) : sets a breakpoint of a specific size at the given address. if trigger is bptExecute then size is ignored. If trigger is ignored then it will be of type bptExecute, which obviously also ignores the size then as well
+debug_setBreakpoint(address, size OPTIONAL, trigger OPTIONAL, functiontocall() OPTIONAL) 
 debug_setBreakpoint(address, functiontocall() OPTIONAL)
 debug_removeBreakpoint(address) : if the given address is a part of a breakpoint it will be removed
 debug_continueFromBreakpoint(continueMethod) : if the debugger is currently waiting to continue you can continue with this. Valid parameters are :co_run (just continue), co_stepinto(when on top of a call, follow it), co_stepover (when on top of a call run till after the call)

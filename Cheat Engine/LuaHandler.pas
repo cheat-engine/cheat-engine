@@ -2346,6 +2346,8 @@ var parameters: integer;
   method: TBreakpointMethod;
 
   lc: TLuaCaller;
+
+  bpe: TBreakpointEvent;
 begin
   lc:=nil;
 
@@ -2384,43 +2386,71 @@ begin
       size:=1;
 
 
-    if lc=nil then  //address, size OPTIONAL, trigger OPTIONAL, functiontocall OPTIONAL
+    if lc=nil then  //address, size OPTIONAL, trigger OPTIONAL, method, functiontocall OPTIONAL
     begin
       if parameters>=3 then
         trigger:=TBreakpointTrigger(lua_tointeger(L,3))
       else
         trigger:=bptExecute;
 
-      if parameters>=4 then
-        method:=TBreakpointMethod(lua_tointeger(L,4))
-      else
-        method:=bpmDebugRegister;
+      method:=preferedBreakpointMethod;
 
-      if parameters>=5 then
+      if parameters>=4 then
       begin
-        if lua_isfunction(L,5) then //address, function type
+        if lua_isnumber(L, 4) then //address, size OPTIONAL, trigger OPTIONAL, method
         begin
-          lua_pushvalue(L,5);
-          lc:=TLuaCaller.create;
-          lc.luaroutineIndex:=luaL_ref(L,LUA_REGISTRYINDEX);
+          method:=TBreakpointMethod(lua_tointeger(L,4));
         end
         else
         begin
-          lc:=TLuaCaller.create;
-          lc.luaroutine:=Lua_ToString(L,5);
+          //addresss, size, trigger, function
+          if lua_isfunction(L,4) then //address, function type
+          begin
+            lua_pushvalue(L,4);
+            lc:=TLuaCaller.create;
+            lc.luaroutineIndex:=luaL_ref(L,LUA_REGISTRYINDEX);
+          end
+          else
+          begin
+            lc:=TLuaCaller.create;
+            lc.luaroutine:=Lua_ToString(L,4);
+          end;
         end;
+      end;
 
+
+      if lc=nil then
+      begin
+        if parameters>=5 then
+        begin
+          if lua_isfunction(L,5) then //address, function type
+          begin
+            lua_pushvalue(L,5);
+            lc:=TLuaCaller.create;
+            lc.luaroutineIndex:=luaL_ref(L,LUA_REGISTRYINDEX);
+          end
+          else
+          begin
+            lc:=TLuaCaller.create;
+            lc.luaroutine:=Lua_ToString(L,5);
+          end;
+
+        end;
       end;
     end;
 
     try
+      if lc<>nil then
+        bpe:=TBreakpointEvent(lc.BreakpointEvent)
+      else
+        bpe:=nil;
 
       if startdebuggerifneeded(false) then
       begin
         case trigger of
-          bptAccess: debuggerthread.SetOnAccessBreakpoint(address, size, method, 0, TBreakpointEvent(lc.BreakpointEvent));
-          bptWrite: debuggerthread.SetOnWriteBreakpoint(address, size, method, 0, TBreakpointEvent(lc.BreakpointEvent));
-          bptExecute: debuggerthread.SetOnExecuteBreakpoint(address, method,false, 0, TBreakpointEvent(lc.BreakpointEvent));
+          bptAccess: debuggerthread.SetOnAccessBreakpoint(address, size, method, 0, bpe);
+          bptWrite: debuggerthread.SetOnWriteBreakpoint(address, size, method, 0, bpe);
+          bptExecute: debuggerthread.SetOnExecuteBreakpoint(address, method,false, 0, bpe);
         end;
 
         MemoryBrowser.hexview.update;
