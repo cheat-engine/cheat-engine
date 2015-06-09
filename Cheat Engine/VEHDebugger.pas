@@ -322,6 +322,8 @@ e: integer;
 prefix: string;
 testptr: ptruint;
 mi: tmoduleinfo;
+
+cfm: THandle;
 begin
   try
     processhandler.processid:=dwProcessID;
@@ -395,6 +397,9 @@ begin
       raise exception.Create(
         rsFailureDuplicatingTheEventHandlesToTheOtherProcess);
 
+    if not DuplicateHandle(GetCurrentProcess, ConfigFileMapping, processhandle, @cfm, 0, false, DUPLICATE_SAME_ACCESS	) then
+      raise exception.Create('Failure duplicating the filemapping');
+
 
 
     symhandler.waitforsymbolsloaded(true,'kernel32.dll');
@@ -410,6 +415,10 @@ begin
       s.Clear;
       s.Add('"vehdebug'+prefix+'.ConfigName":');
       s.add('db '''+guidstring+''',0');
+
+      s.Add('"vehdebug'+prefix+'.fm":');
+      s.add('dq '+inttohex(cfm,8));
+
       s.Add('CreateThread("vehdebug'+prefix+'.InitializeVEH")');
 
       //Clipboard.SetTextBuf(pchar(s.text));

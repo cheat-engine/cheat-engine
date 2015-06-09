@@ -132,7 +132,9 @@ begin
 
 //  fm:=CreateFileMapping(INVALID_HANDLE_VALUE,nil,PAGE_READWRITE,0,sizeof(TVEHDebugSharedMem),@ConfigName[0]);
 
-  fm:=OpenFileMapping(FILE_MAP_ALL_ACCESS,false,m);
+  if fm=0 then
+    fm:=OpenFileMapping(FILE_MAP_ALL_ACCESS,false,m);
+
   OutputDebugString(pchar('fm='+inttohex(fm,8)));
 
   if (fm=0) then
