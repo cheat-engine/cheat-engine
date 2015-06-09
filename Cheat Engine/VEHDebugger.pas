@@ -417,7 +417,10 @@ begin
       s.add('db '''+guidstring+''',0');
 
       s.Add('"vehdebug'+prefix+'.fm":');
-      s.add('dq '+inttohex(cfm,8));
+      if processhandler.is64Bit then
+        s.add('dq '+inttohex(cfm,8))
+      else
+        s.add('dd '+inttohex(cfm,8));
 
       s.Add('CreateThread("vehdebug'+prefix+'.InitializeVEH")');
 
