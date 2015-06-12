@@ -2899,8 +2899,13 @@ var x: TPortableNetworkGraphic;
 
   m: array [0..8] of ptruint;
 
+  r: TPRangeDynArray;
 begin
-  try
+  setlength(r,0);
+  EnumAndGetAccessedPages(processhandle, r);
+
+  showmessage(inttostr(length(r)));
+{  try
     asm
       int3
     end;
@@ -2908,7 +2913,7 @@ begin
   except
     log('expected exception');
   end;
-
+       }
 
 
  {
@@ -8077,6 +8082,8 @@ var
 begin
 
 
+  MarkAllPagesAsNonAccessed(ProcessHandle);
+
 
 //  showmessage('sip='+inttohex(r,8));
 
@@ -8086,13 +8093,14 @@ begin
   //NtCreatePort(@ph, @oa);
 
 //  th:=OpenThread(THREAD_ALL_ACCESS, false, strtoint(scanvalue.text));
-
+              {
   showmessage('threadid='+inttohex(getcurrentthreadid,1));
   th:=OpenThread(THREAD_ALL_ACCESS, false, GetCurrentThreadId);
 
 
   r:=NtSetInformationThread(th, jwawindows.ThreadHideFromDebugger, nil, 0);
   showmessage('after');
+  }
 
 
  { vqe:=TVirtualQueryExCache.create(processhandle);

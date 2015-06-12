@@ -1,0 +1,17 @@
+TFRMACCESSEDMEMORY.CAPTION=Find accessed memory regions
+TFRMACCESSEDMEMORY.LABEL2.CAPTION=This function will try to find out all accessed memory regions over a period of time and store it's results into an .mregion file which you can use with other functions that can make use of it (e.g pointerscan)
+
+Note: This will enable the dbk kernel module and if your windows version isn't supported this could potentially BSOD you. (So save your data)
+TFRMACCESSEDMEMORY.LABEL3.CAPTION=Hotkey to stop monitoring
+TFRMACCESSEDMEMORY.LABEL1.CAPTION=Hotkey to (re)start monitoring
+TFRMACCESSEDMEMORY.BTNCLEARSMALLSNAPSHOT.CAPTION=Clear
+TFRMACCESSEDMEMORY.BTNCLEARSMALLSNAPSHOT1.CAPTION=Clear
+TFRMACCESSEDMEMORY.BUTTON2.CAPTION=Start
+TFRMACCESSEDMEMORY.BUTTON3.CAPTION=Stop
+TFRMACCESSEDMEMORY.BUTTON1.CAPTION=Set hotkeys
+TFRMACCESSEDMEMORY.LISTVIEW1.COLUMNS[0].CAPTION=From
+TFRMACCESSEDMEMORY.LISTVIEW1.COLUMNS[1].CAPTION=To
+TFRMACCESSEDMEMORY.MENUITEM1.CAPTION=File
+TFRMACCESSEDMEMORY.MENUITEM2.CAPTION=Open region file
+TFRMACCESSEDMEMORY.MENUITEM3.CAPTION=Save region file
+TFRMACCESSEDMEMORY.MENUITEM4.CAPTION=Clear

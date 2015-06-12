@@ -62,6 +62,7 @@ resourcestring
 procedure TForm1.Button1Click(Sender: TObject);
 begin
   self.hide;
+
   form2:=Tform2.create(self);
   form2.width:=width;
   form2.height:=height;

@@ -38,6 +38,7 @@ type
     dispShorts: TMenuItem;
     DispLongs: TMenuItem;
     MenuItem21: TMenuItem;
+    MenuItem22: TMenuItem;
     miTextEncoding8: TMenuItem;
     miTextEncoding16: TMenuItem;
     miReferencedFunctions: TMenuItem;
@@ -242,6 +243,7 @@ type
     procedure MenuItem17Click(Sender: TObject);
     procedure MenuItem18Click(Sender: TObject);
     procedure MenuItem20Click(Sender: TObject);
+    procedure MenuItem22Click(Sender: TObject);
     procedure miTextEncodingClick(Sender: TObject);
     procedure miReferencedFunctionsClick(Sender: TObject);
     procedure miShowIndisassemblerClick(Sender: TObject);
@@ -575,7 +577,9 @@ uses Valuechange,
   frmStringpointerscanUnit,
   frmFilePatcherUnit,
   frmUltimapUnit,
-  frmAssemblyScanUnit, Parsers;
+  frmAssemblyScanUnit,
+  AccessedMemory,
+  Parsers;
 
 
 resourcestring
@@ -1035,6 +1039,14 @@ begin
 
   t.show;
 
+end;
+
+procedure TMemoryBrowser.MenuItem22Click(Sender: TObject);
+begin
+  if frmAccessedMemory=nil then
+    frmAccessedMemory:=TfrmAccessedMemory.Create(application);
+
+  frmAccessedMemory.Show;
 end;
 
 procedure TMemoryBrowser.miTextEncodingClick(Sender: TObject);

@@ -7,6 +7,12 @@
 #include "interruptHook.h"
 */
 
+#ifdef TESTCOMPILE
+//small bypass to make test compiles function (this compiler doesn't have CLI/STI )
+void _enable() {}
+void _disable() {}
+#endif
+
 
 void forEachCpuPassive(PF f, UINT_PTR param)
 /*

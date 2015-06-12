@@ -1529,7 +1529,67 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				forEachCpuPassive(GetCPUIDS_all,&x);
 			}*/
 
+		case IOCTL_CE_STARTACCESMONITOR:
+			{
+				//this is used instead of writeProcessMemory for speed reasons (the reading out is still done with readProcessMemory because of easier memory management)
+				struct input
+				{
+					UINT64 ProcessID;
+				} *inp;
+				PEPROCESS selectedprocess;
 
+				PVOID BaseAddress;
+				SIZE_T RegionSize;
+
+				inp=Irp->AssociatedIrp.SystemBuffer;
+				DbgPrint("IOCTL_CE_STARTACCESMONITOR(%d)\n", inp->ProcessID);
+
+
+				ntStatus = STATUS_UNSUCCESSFUL;
+
+				if (PsLookupProcessByProcessId((PVOID)(UINT64)(inp->ProcessID), &selectedprocess) == STATUS_SUCCESS)	
+					ntStatus = markAllPagesAsNeverAccessed(selectedprocess);
+
+				break;
+			}
+
+		case IOCTL_CE_ENUMACCESSEDMEMORY:
+			{
+				struct input
+				{
+					UINT64 ProcessID;
+				} *inp;
+				PEPROCESS selectedprocess;
+
+				PVOID BaseAddress;
+				SIZE_T RegionSize;
+
+				inp = Irp->AssociatedIrp.SystemBuffer;
+				DbgPrint("IOCTL_CE_ENUMACCESSEDMEMORY(%d)\n", inp->ProcessID);
+
+
+				ntStatus = STATUS_UNSUCCESSFUL;
+
+				if (PsLookupProcessByProcessId((PVOID)(UINT64)(inp->ProcessID), &selectedprocess) == STATUS_SUCCESS)
+					*(int *)Irp->AssociatedIrp.SystemBuffer=enumAllAccessedPages(selectedprocess);
+
+				ntStatus = STATUS_SUCCESS;
+				break;
+			}
+
+		case IOCTL_CE_GETACCESSEDMEMORYLIST:
+			{
+				int ListSizeInBytes = *(int *)Irp->AssociatedIrp.SystemBuffer;
+				PPRANGE List = (PPRANGE)Irp->AssociatedIrp.SystemBuffer;
+
+				DbgPrint("IOCTL_CE_GETACCESSEDMEMORYLIST\n"); 
+
+				getAccessedPageList(List, ListSizeInBytes);
+
+				DbgPrint("return from IOCTL_CE_GETACCESSEDMEMORYLIST\n");
+				ntStatus = STATUS_SUCCESS;
+				break;
+			}
 
 		case IOCTL_CE_INITIALIZE:
 			{

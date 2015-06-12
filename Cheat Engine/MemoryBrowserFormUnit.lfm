@@ -1214,6 +1214,11 @@ object MemoryBrowser: TMemoryBrowser
         ShortCut = 49237
         OnClick = MenuItem14Click
       end
+      object MenuItem22: TMenuItem
+        Caption = 'Watch memory page access'
+        ShortCut = 24641
+        OnClick = MenuItem22Click
+      end
       object Watchmemoryallocations1: TMenuItem
         Caption = 'Watch memory allocations'
         ShortCut = 24653

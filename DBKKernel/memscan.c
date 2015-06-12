@@ -405,13 +405,229 @@ UINT_PTR SignExtend(UINT_PTR a)
 #endif
 }
 
-BOOLEAN GetMemoryRegionData(DWORD PID,PEPROCESS PEProcess, PVOID mempointer,ULONG *regiontype, UINT_PTR *memorysize,UINT_PTR *baseaddress)
+typedef void PRESENTPAGECALLBACK(UINT_PTR StartAddress, UINT_PTR EndAddress, struct PTEStruct *pageEntry);
+BOOL walkPagingLayout(PEPROCESS PEProcess, UINT_PTR MaxAddress, PRESENTPAGECALLBACK OnPresentPage)
+{
+	UINT_PTR pagebase = PAGETABLEBASE;
+
+	if (OnPresentPage == NULL)
+		return FALSE;
+
+	__try
+	{
+		KeAttachProcess((PEPROCESS)PEProcess);
+		__try
+		{
+			UINT_PTR currentAddress = 0; //start from address 0
+			UINT_PTR lastAddress = 0;
+			struct PTEStruct *PPTE, *PPDE, *PPDPE, *PPML4E;
+
+			while ((currentAddress < MaxAddress) && (lastAddress<=currentAddress) )
+			{
+				//DbgPrint("currentAddress=%p\n", currentAddress);
+				lastAddress = currentAddress;
+
+				
+				(UINT_PTR)PPTE = ((currentAddress & 0xFFFFFFFFFFFFULL) >> 12) *PTESize + pagebase;
+				(UINT_PTR)PPDE = ((((UINT_PTR)PPTE) & 0xFFFFFFFFFFFFULL) >> 12) *PTESize + pagebase;
+				(UINT_PTR)PPDPE = ((((UINT_PTR)PPDE) & 0xFFFFFFFFFFFFULL) >> 12) *PTESize + pagebase;
+				(UINT_PTR)PPML4E = ((((UINT_PTR)PPDPE) & 0xFFFFFFFFFFFFULL) >> 12) *PTESize + pagebase;
+				if (PTESize == 8)
+					(UINT_PTR)PPDPE = ((((UINT_PTR)PPDE) & 0xFFFFFFFFFFFFULL) >> 12) *PTESize + pagebase;
+				else
+					(UINT_PTR)PPDPE = 0;
+
+#ifdef AMD64
+				(UINT_PTR)PPML4E = ((((UINT_PTR)PPDPE) & 0xFFFFFFFFFFFFULL) >> 12) *PTESize + pagebase;
+#else
+				(UINT_PTR)PPML4E = 0;
+#endif
+
+	
+
+				if ((PPML4E) && (PPML4E->P == 0))
+				{
+					currentAddress &= 0xffffff8000000000ULL;
+					currentAddress += 0x8000000000ULL;	
+					continue;
+				}
+
+				if ((PPDPE) && (PPDPE->P == 0))
+				{		
+					currentAddress &= 0xffffffffc0000000ULL;
+					currentAddress += 0x40000000;						
+					continue;
+				}
+
+				if (PPDE->P == 0)
+				{
+				
+					if (PAGE_SIZE_LARGE == 0x200000)
+						currentAddress &= 0xffffffffffe00000ULL;
+					else
+						currentAddress &= 0xffffffffffc00000ULL;
+
+					currentAddress += PAGE_SIZE_LARGE;			
+	
+					continue;
+				}
+
+				if (PPDE->PS)
+				{
+					OnPresentPage(currentAddress, currentAddress + PAGE_SIZE_LARGE-1, PPDE);					
+					currentAddress += PAGE_SIZE_LARGE;
+					continue;
+				}
+
+				if (PPTE->P == 0)
+				{		
+				
+					currentAddress &= 0xfffffffffffff000ULL;
+					currentAddress += 0x1000;
+					
+					continue;
+				}
+				
+				OnPresentPage(currentAddress, currentAddress + 0xfff, PPTE);				
+				currentAddress += 0x1000;
+			}
+
+		}
+		__finally
+		{
+			KeDetachProcess();
+		}
+	}
+	__except (1)
+	{
+		DbgPrint("Excepion while walking the paging layout\n");
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+
+
+
+PPENTRY AccessedList = NULL;
+int AccessedListSize;
+
+void CleanAccessedList()
+{	
+	PPENTRY e = AccessedList;
+	PPENTRY previous;
+	//DbgPrint("Cleaning list");
+
+	while (e)
+	{
+		previous = e;
+		e = e->Next;
+		ExFreePool(previous);
+	}
+
+	AccessedList = NULL;
+	AccessedListSize = 0;
+}
+	
+
+void StoreAccessedRanges(UINT_PTR StartAddress, UINT_PTR EndAddress, struct PTEStruct *pageEntry)
+{
+	if (pageEntry->A)
+	{		
+		if ((AccessedList) && (AccessedList->Range.EndAddress == StartAddress - 1)) //group
+			AccessedList->Range.EndAddress = EndAddress;
+		else
+		{
+			//insert
+			PPENTRY e;
+			e = ExAllocatePoolWithTag(PagedPool, sizeof(PENTRY), 0);
+			e->Range.StartAddress = StartAddress;
+			e->Range.EndAddress = EndAddress;
+			e->Next = AccessedList;
+
+			AccessedList = e;
+			AccessedListSize++;
+		}
+
+		
+	}
+}
+
+
+int enumAllAccessedPages(PEPROCESS PEProcess)
 {
 #ifdef AMD64
-	UINT_PTR pagebase=0xfffff68000000000ULL;
+	UINT_PTR MaxAddress = 0x80000000000ULL;
 #else
-	UINT_PTR pagebase=0xc0000000;
+	UINT_PTR MaxAddress = 0x80000000;
 #endif
+
+	CleanAccessedList();
+
+	if (walkPagingLayout(PEProcess, MaxAddress, StoreAccessedRanges))
+	{
+		//DbgPrint("AccessedListSize=%d\n", AccessedListSize);
+		return AccessedListSize*sizeof(PRANGE);
+	}
+	else
+		return 0;
+}
+
+int getAccessedPageList(PPRANGE List, int ListSizeInBytes)
+{
+	PPENTRY e = AccessedList;
+	int maxcount = ListSizeInBytes / sizeof(PRANGE);
+	int i = 0;
+
+//	DbgPrint("getAccessedPageList\n");
+
+	while (e)
+	{
+		if (i >= maxcount)
+		{
+			//DbgPrint("%d>=%d", i, maxcount);
+			break;
+		}
+
+		//DbgPrint("i=%d  (%p -> %p)\n", i, e->Range.StartAddress, e->Range.EndAddress);
+		List[i] = e->Range;
+		e = e->Next;
+
+		i++;
+	}
+
+	CleanAccessedList();
+
+	return i*sizeof(PRANGE);
+}
+
+
+void MarkPageAsNotAccessed(UINT_PTR StartAddress, UINT_PTR EndAddress, struct PTEStruct *pageEntry)
+{
+	pageEntry->A = 0;
+}
+
+NTSTATUS markAllPagesAsNeverAccessed(PEPROCESS PEProcess)
+{
+#ifdef AMD64
+	UINT_PTR MaxAddress = 0x80000000000ULL;	
+#else
+	UINT_PTR MaxAddress = 0x80000000;
+#endif
+
+	if (walkPagingLayout(PEProcess, MaxAddress, MarkPageAsNotAccessed))
+		return STATUS_SUCCESS;
+	else
+		return STATUS_UNSUCCESSFUL;
+
+}
+
+BOOLEAN GetMemoryRegionData(DWORD PID,PEPROCESS PEProcess, PVOID mempointer,ULONG *regiontype, UINT_PTR *memorysize,UINT_PTR *baseaddress)
+{
+	UINT_PTR pagebase=PAGETABLEBASE;
+
+
 
 	UINT_PTR StartAddress;
 	KAPC_STATE apc_state;
