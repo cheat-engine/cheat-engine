@@ -109,6 +109,7 @@ type
     cbShowAdvancedOptions: TCheckBox;
     cbAddress: TComboBox;
     cbIncludeSystemModules: TCheckBox;
+    cbLimitScanToRegionFile: TCheckBox;
     edtDistributedPassword: TEdit;
     edtDistributedPort: TEdit;
     edtMaxOffsetsPerNode: TEdit;
@@ -125,6 +126,7 @@ type
     lblPort: TLabel;
     lblStackSize: TLabel;
     odLoadPointermap: TOpenDialog;
+    odLoadRegionFile: TOpenDialog;
     Panel3: TPanel;
     cbMustEndWithSpecificOffset: TCheckBox;
     Panel1: TPanel;
@@ -147,6 +149,7 @@ type
     procedure canNotReuse(Sender: TObject);
     procedure cbAddressDrawItem(Control: TWinControl; Index: Integer;
       ARect: TRect; State: TOwnerDrawState);
+    procedure cbLimitScanToRegionFileChange(Sender: TObject);
     procedure cbMustStartWithBaseChange(Sender: TObject);
     procedure cbConnectToNodeChange(Sender: TObject);
     procedure cbAllowRuntimeWorkersChange(Sender: TObject);
@@ -752,6 +755,8 @@ begin
   cbAddress.Canvas.TextOut(ARect.Left, ARect.Top, s);
 end;
 
+
+
 procedure TfrmPointerScannerSettings.cbMustStartWithBaseChange(Sender: TObject);
 begin
   if cbMustStartWithBase.checked then
@@ -920,6 +925,25 @@ procedure TfrmPointerScannerSettings.cbShowAdvancedOptionsChange(Sender: TObject
 begin
   panel3.visible:=cbShowAdvancedOptions.checked;
   updatepositions;
+end;
+
+procedure TfrmPointerScannerSettings.cbLimitScanToRegionFileChange(
+  Sender: TObject);
+begin
+  if cbLimitScanToRegionFile.Checked then
+  begin
+    cbLimitScanToRegionFile.OnChange:=nil;
+    if odLoadRegionFile.execute then
+    begin
+      cbLimitScanToRegionFile.Caption:='Limit scan to specified region file '+extractfilename(odLoadRegionFile.FileName);
+    end
+    else
+    begin
+      cbLimitScanToRegionFile.Checked:=false;
+      cbLimitScanToRegionFile.Caption:='Limit scan to specified region file';
+    end;
+    cbLimitScanToRegionFile.OnChange:=cbLimitScanToRegionFileChange;
+  end;
 end;
 
 procedure TfrmPointerScannerSettings.cbUseLoadedPointermapChange(Sender: TObject);
@@ -1301,8 +1325,10 @@ end;
 
 procedure TfrmPointerScannerSettings.rbFindValueClick(Sender: TObject);
 var gpm: boolean;
+  fv: boolean;
 begin
   gpm:=rbGeneratePointermap.checked;
+  fv:=rbFindValue.checked;
 
   cbCompareToOtherPointermaps.enabled:=not gpm;
   cbAddress.enabled:=not gpm;

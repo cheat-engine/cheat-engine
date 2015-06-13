@@ -1,10 +1,10 @@
 object frmAccessedMemory: TfrmAccessedMemory
   Left = 292
-  Height = 264
+  Height = 257
   Top = 200
   Width = 636
   Caption = 'Find accessed memory regions'
-  ClientHeight = 244
+  ClientHeight = 237
   ClientWidth = 636
   Menu = MainMenu1
   OnCreate = FormCreate
@@ -12,12 +12,12 @@ object frmAccessedMemory: TfrmAccessedMemory
   LCLVersion = '1.3'
   object Panel1: TPanel
     Left = 0
-    Height = 244
+    Height = 237
     Top = 0
     Width = 379
     Align = alLeft
     BevelOuter = bvNone
-    ClientHeight = 244
+    ClientHeight = 237
     ClientWidth = 379
     TabOrder = 0
     object Label2: TLabel
@@ -152,13 +152,13 @@ object frmAccessedMemory: TfrmAccessedMemory
   end
   object Splitter1: TSplitter
     Left = 379
-    Height = 244
+    Height = 237
     Top = 0
     Width = 5
   end
   object ListView1: TListView
     Left = 384
-    Height = 244
+    Height = 237
     Top = 0
     Width = 252
     Align = alClient

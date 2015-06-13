@@ -124,3 +124,4 @@ Most of the time the bottleneck of a pointerscan is disk writing, so it is recom
 Compressed .PTR files can not be read out by older Cheat Engine versions
 TFRMPOINTERSCANNERSETTINGS.CBCOMPRESSEDPOINTERSCANFILE.CAPTION=Compressed pointerscan file
 TFRMPOINTERSCANNERSETTINGS.CBINCLUDESYSTEMMODULES.CAPTION=Include system modules
+TFRMPOINTERSCANNERSETTINGS.CBLIMITSCANTOREGIONFILE.CAPTION=Limit scan to specified region file
