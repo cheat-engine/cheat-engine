@@ -118,6 +118,8 @@ begin
     setlength(ranges, f.Size div sizeof(TPRange));
     f.ReadBuffer(ranges[0], f.size);
     f.free;
+
+    listview1.Items.count:=ranges.count;
   end;
 end;
 
