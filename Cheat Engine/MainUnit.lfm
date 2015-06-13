@@ -1650,8 +1650,12 @@ object MainForm: TMainForm
         OnClick = miHideChildrenClick
       end
       object miBindActivation: TMenuItem
-        Caption = '(De)Activating this entry (de)activates children'
+        Caption = 'Activating this entry activates it''s children'
         OnClick = miBindActivationClick
+      end
+      object miBindDeactivation: TMenuItem
+        Caption = 'Deactivating this entry deactivates it''s children'
+        OnClick = miBindDeactivationClick
       end
       object miRecursiveSetValue: TMenuItem
         Caption = 'Setting a value to this entry sets same value to children'

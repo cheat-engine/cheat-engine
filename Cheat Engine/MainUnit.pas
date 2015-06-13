@@ -218,6 +218,7 @@ type
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
+    miBindDeactivation: TMenuItem;
     miScanDirtyOnly: TMenuItem;
     miScanPagedOnly: TMenuItem;
     miGeneratePointermap: TMenuItem;
@@ -449,6 +450,7 @@ type
     procedure Label3Click(Sender: TObject);
     procedure Label57Click(Sender: TObject);
     procedure lblcompareToSavedScanClick(Sender: TObject);
+    procedure miBindDeactivationClick(Sender: TObject);
     procedure miScanDirtyOnlyClick(Sender: TObject);
     procedure miCompressionClick(Sender: TObject);
     procedure miGeneratePointermapClick(Sender: TObject);
@@ -2991,6 +2993,8 @@ begin
 
 end;
 
+
+
 procedure TMainForm.miScanDirtyOnlyClick(Sender: TObject);
 begin
   scan_dirtyonly:=miScanDirtyOnly.checked;
@@ -3582,11 +3586,22 @@ begin
   if addresslist.selectedRecord <> nil then
   begin
     if miBindActivation.Checked then
-      addresslist.selectedRecord.options :=
-        addresslist.selectedRecord.options + [moBindActivation]
+      addresslist.selectedRecord.options := addresslist.selectedRecord.options + [moActivateChildrenAsWell]
     else
-      addresslist.selectedRecord.options :=
-        addresslist.selectedRecord.options - [moBindActivation];
+      addresslist.selectedRecord.options := addresslist.selectedRecord.options - [moActivateChildrenAsWell];
+  end;
+end;
+
+procedure TMainForm.miBindDeactivationClick(Sender: TObject);
+begin
+  miBindActivation.Checked := not miBindActivation.Checked;
+
+  if addresslist.selectedRecord <> nil then
+  begin
+    if miBindActivation.Checked then
+      addresslist.selectedRecord.options := addresslist.selectedRecord.options + [moDeactivateChildrenAsWell]
+    else
+      addresslist.selectedRecord.options := addresslist.selectedRecord.options - [moDeactivateChildrenAsWell];
   end;
 end;
 
@@ -6219,7 +6234,8 @@ begin
   begin
     miGroupconfig.Visible := True;
     miHideChildren.Checked := moHideChildren in selectedrecord.options;
-    miBindActivation.Checked := moBindActivation in selectedrecord.options;
+    miBindActivation.Checked := moActivateChildrenAsWell in selectedrecord.options;
+    miBindDeactivation.checked := moDeactivateChildrenAsWell in selectedrecord.options;
     miRecursiveSetValue.Checked := moRecursiveSetValue in selectedrecord.options;
     miAllowCollapse.checked := moAllowManualCollapseAndExpand in selectedrecord.options;
     miManualExpandCollapse.checked := moManualExpandCollapse in selectedrecord.options;
