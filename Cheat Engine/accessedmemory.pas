@@ -119,7 +119,7 @@ begin
     f.ReadBuffer(ranges[0], f.size);
     f.free;
 
-    listview1.Items.count:=ranges.count;
+    listview1.Items.count:=length(ranges);
   end;
 end;
 
