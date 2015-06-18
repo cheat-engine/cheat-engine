@@ -9,7 +9,7 @@ object frmStringMap: TfrmStringMap
   OnClose = FormClose
   OnResize = FormResize
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.3'
   object Panel1: TPanel
     Left = 233
     Height = 353
@@ -48,9 +48,9 @@ object frmStringMap: TfrmStringMap
     end
     object lblStringCount: TLabel
       Left = 9
-      Height = 16
+      Height = 15
       Top = 112
-      Width = 75
+      Width = 74
       Caption = 'Stringcount: 0'
       ParentColor = False
     end

@@ -550,6 +550,8 @@ begin
         VK_OEM_6 : newstr:=']';
         VK_OEM_7 : newstr:='''';
 
+
+
         48..57      : newstr:=chr(x[i]);
         65..90      : newstr:=chr(x[i]);
         else  newstr:='#'+inttostr(x[i]);

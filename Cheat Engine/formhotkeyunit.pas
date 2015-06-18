@@ -85,6 +85,17 @@ begin
     newstr:=newstr+'+';
 
   case key of
+    VK_OEM_PLUS : newstr:='=';
+    VK_OEM_MINUS : newstr:='-';
+    VK_OEM_PERIOD : newstr:=',';
+    VK_OEM_COMMA : newstr:='.';
+    VK_OEM_1 : newstr:=';';
+    VK_OEM_2 : newstr:='/';
+    VK_OEM_3 : newstr:='`';
+    VK_OEM_4 : newstr:='[';
+    VK_OEM_5 : newstr:='\';
+    VK_OEM_6 : newstr:=']';
+    VK_OEM_7 : newstr:='''';
     VK_BACK	: newstr:=newstr+rsBackspace;
     VK_TAB	: newstr:=newstr+rsTab;
     VK_CLEAR	: newstr:=newstr+rsClear;

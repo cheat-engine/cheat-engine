@@ -11,12 +11,12 @@ object FormHotkey: TFormHotkey
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.3'
   object Label1: TLabel
     Left = 0
-    Height = 14
+    Height = 13
     Top = 0
-    Width = 208
+    Width = 207
     Caption = 'Press the new hotkey combination in below:'
     ParentColor = False
   end
@@ -26,6 +26,7 @@ object FormHotkey: TFormHotkey
     Top = 16
     Width = 201
     OnKeyDown = Edit1KeyDown
+    ReadOnly = True
     TabOrder = 0
   end
   object Button1: TButton

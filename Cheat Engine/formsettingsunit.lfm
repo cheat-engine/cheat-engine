@@ -60,9 +60,9 @@ object formSettings: TformSettings
       Height = 469
       Top = 1
       Width = 622
-      ActivePage = Assembler
+      ActivePage = tsTools
       Align = alClient
-      TabIndex = 5
+      TabIndex = 7
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -408,7 +408,6 @@ object formSettings: TformSettings
                 Left = 184
                 Height = 14
                 Top = 3
-                Width = 32
               end
               inherited edtSHSpeed: TEdit
                 Left = 160
@@ -1196,7 +1195,7 @@ object formSettings: TformSettings
       end
       object tsTools: TTabSheet
         Caption = 'tsTools'
-        ClientHeight = 442
+        ClientHeight = 443
         ClientWidth = 614
         ImageIndex = 9
         object Panel2: TPanel
@@ -1223,46 +1222,46 @@ object formSettings: TformSettings
         end
         object Panel3: TPanel
           Left = 386
-          Height = 416
+          Height = 417
           Top = 26
           Width = 228
           Align = alRight
           BevelOuter = bvNone
-          ClientHeight = 416
+          ClientHeight = 417
           ClientWidth = 228
           TabOrder = 1
           object lblApplicationTool: TLabel
             Left = 10
-            Height = 14
+            Height = 13
             Top = 49
-            Width = 105
+            Width = 104
             Caption = 'Application/Command'
             Enabled = False
             ParentColor = False
           end
           object lblShortcut: TLabel
             Left = 10
-            Height = 14
+            Height = 13
             Top = 98
-            Width = 44
+            Width = 43
             Caption = 'Shortcut:'
             Enabled = False
             ParentColor = False
           end
           object lblShortcutText: TLabel
             Left = 10
-            Height = 14
+            Height = 13
             Top = 118
-            Width = 41
+            Width = 40
             Caption = 'xxxxxxxx'
             Enabled = False
             ParentColor = False
           end
           object lblToolsName: TLabel
             Left = 10
-            Height = 14
+            Height = 13
             Top = 0
-            Width = 29
+            Width = 28
             Caption = 'Name'
             Enabled = False
             ParentColor = False
@@ -1335,18 +1334,18 @@ object formSettings: TformSettings
         end
         object Panel5: TPanel
           Left = 0
-          Height = 416
+          Height = 417
           Top = 26
           Width = 386
           Align = alClient
           BevelOuter = bvNone
-          ClientHeight = 416
+          ClientHeight = 417
           ClientWidth = 386
           TabOrder = 2
           object Panel4: TPanel
             Left = 0
             Height = 28
-            Top = 388
+            Top = 389
             Width = 386
             Align = alBottom
             BevelOuter = bvNone
@@ -1374,7 +1373,7 @@ object formSettings: TformSettings
           end
           object lvTools: TListView
             Left = 0
-            Height = 388
+            Height = 389
             Top = 0
             Width = 386
             Align = alClient

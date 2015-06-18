@@ -590,6 +590,7 @@ object MemoryBrowser: TMemoryBrowser
         Tag = 1
         AutoCheck = True
         Caption = 'Byte decimal'
+        GroupIndex = 3
         RadioItem = True
         ShortCut = 16434
         OnClick = DisplayTypeClick
@@ -607,6 +608,7 @@ object MemoryBrowser: TMemoryBrowser
         Tag = 3
         AutoCheck = True
         Caption = '2 Byte decimal'
+        GroupIndex = 3
         RadioItem = True
         ShortCut = 16436
         OnClick = DisplayTypeClick

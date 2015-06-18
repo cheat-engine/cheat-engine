@@ -723,6 +723,7 @@ begin
   if (address and 1) = 1 then //thumb
   begin
     result:=thumbdisassembler.Disassemble(address);
+    LastDisassembleData:=thumbdisassembler.LastDisassembleData;
     exit;
   end;
 

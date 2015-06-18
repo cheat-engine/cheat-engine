@@ -41,6 +41,7 @@ type
     procedure Edit1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure Edit2KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormCreate(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure ListView1Data(Sender: TObject; Item: TListItem);
     procedure MenuItem2Click(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
@@ -96,6 +97,11 @@ end;
 procedure TfrmAccessedMemory.FormCreate(Sender: TObject);
 begin
 
+end;
+
+procedure TfrmAccessedMemory.FormShow(Sender: TObject);
+begin
+  clientheight:=button1.top+button1.height+5;
 end;
 
 procedure TfrmAccessedMemory.ListView1Data(Sender: TObject; Item: TListItem);

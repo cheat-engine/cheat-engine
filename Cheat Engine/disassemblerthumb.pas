@@ -5,7 +5,7 @@ unit DisassemblerThumb;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, LastDisassembleData;
 
 type
   TThumbDisassembler=object
@@ -13,7 +13,7 @@ type
     opcode: uint16;
     opcode2: uint16; //for 32-bit thumb2
   public
-//    LastDisassembleData: TLastDisassembleData;
+    LastDisassembleData: TLastDisassembleData;
     function disassemble(var address: ptrUint): string;
   end;
 
