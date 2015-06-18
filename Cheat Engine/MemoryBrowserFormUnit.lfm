@@ -670,6 +670,7 @@ object MemoryBrowser: TMemoryBrowser
     end
     object MenuItem21: TMenuItem
       Caption = 'Text Encoding'
+      Visible = False
       object miTextEncoding8: TMenuItem
         AutoCheck = True
         Caption = '8 Bit'
@@ -805,6 +806,130 @@ object MemoryBrowser: TMemoryBrowser
       Caption = 'Follow'
       Visible = False
       OnClick = Follow1Click
+    end
+    object MenuItem23: TMenuItem
+      Caption = 'Set/Unset bookmark'
+      object miSetBookmark0: TMenuItem
+        Caption = 'Bookmark 0'
+        ShortCut = 24624
+        OnClick = SetBookmarkClick
+      end
+      object miSetBookmark1: TMenuItem
+        Tag = 1
+        Caption = 'Bookmark 1'
+        ShortCut = 24625
+        OnClick = SetBookmarkClick
+      end
+      object miSetBookmark2: TMenuItem
+        Tag = 2
+        Caption = 'Bookmark 2'
+        ShortCut = 24626
+        OnClick = SetBookmarkClick
+      end
+      object miSetBookmark3: TMenuItem
+        Tag = 3
+        Caption = 'Bookmark 3'
+        ShortCut = 24627
+        OnClick = SetBookmarkClick
+      end
+      object miSetBookmark4: TMenuItem
+        Tag = 4
+        Caption = 'Bookmark 4'
+        ShortCut = 24628
+        OnClick = SetBookmarkClick
+      end
+      object miSetBookmark5: TMenuItem
+        Tag = 5
+        Caption = 'Bookmark 5'
+        ShortCut = 24629
+        OnClick = SetBookmarkClick
+      end
+      object miSetBookmark6: TMenuItem
+        Tag = 6
+        Caption = 'Bookmark 6'
+        ShortCut = 24630
+        OnClick = SetBookmarkClick
+      end
+      object miSetBookmark7: TMenuItem
+        Tag = 7
+        Caption = 'Bookmark 7'
+        ShortCut = 24631
+        OnClick = SetBookmarkClick
+      end
+      object miSetBookmark8: TMenuItem
+        Tag = 8
+        Caption = 'Bookmark 8'
+        ShortCut = 24632
+        OnClick = SetBookmarkClick
+      end
+      object miSetBookmark9: TMenuItem
+        Tag = 9
+        Caption = 'Bookmark 9'
+        ShortCut = 24633
+        OnClick = SetBookmarkClick
+      end
+    end
+    object MenuItem24: TMenuItem
+      Caption = 'Goto bookmark'
+      object miGotoBookmark0: TMenuItem
+        Caption = 'Bookmark 0'
+        ShortCut = 16432
+        OnClick = GotoBookmarkClick
+      end
+      object miGotoBookmark1: TMenuItem
+        Tag = 1
+        Caption = 'Bookmark 1'
+        ShortCut = 16433
+        OnClick = GotoBookmarkClick
+      end
+      object miGotoBookmark2: TMenuItem
+        Tag = 2
+        Caption = 'Bookmark 2'
+        ShortCut = 16434
+        OnClick = GotoBookmarkClick
+      end
+      object miGotoBookmark3: TMenuItem
+        Tag = 3
+        Caption = 'Bookmark 3'
+        ShortCut = 16435
+        OnClick = GotoBookmarkClick
+      end
+      object miGotoBookmark4: TMenuItem
+        Tag = 4
+        Caption = 'Bookmark 4'
+        ShortCut = 16436
+        OnClick = GotoBookmarkClick
+      end
+      object miGotoBookmark5: TMenuItem
+        Tag = 5
+        Caption = 'Bookmark 5'
+        ShortCut = 16437
+        OnClick = GotoBookmarkClick
+      end
+      object miGotoBookmark6: TMenuItem
+        Tag = 6
+        Caption = 'Bookmark 6'
+        ShortCut = 16438
+        OnClick = GotoBookmarkClick
+      end
+      object miGotoBookmark7: TMenuItem
+        Tag = 7
+        Caption = 'Bookmark 7'
+        ShortCut = 16439
+        OnClick = GotoBookmarkClick
+      end
+      object miGotoBookmark8: TMenuItem
+        Tag = 8
+        Caption = 'Bookmark 8'
+        ShortCut = 16440
+        OnClick = GotoBookmarkClick
+      end
+      object miGotoBookmark9: TMenuItem
+        Tag = 9
+        Caption = 'Bookmark 9'
+        ShortCut = 16441
+        OnClick = GotoBookmarkClick
+      end
     end
     object N2: TMenuItem
       Caption = '-'

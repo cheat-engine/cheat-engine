@@ -39,6 +39,28 @@ type
     DispLongs: TMenuItem;
     MenuItem21: TMenuItem;
     MenuItem22: TMenuItem;
+    MenuItem23: TMenuItem;
+    MenuItem24: TMenuItem;
+    miSetBookmark0: TMenuItem;
+    miGotoBookmark0: TMenuItem;
+    miSetBookmark1: TMenuItem;
+    miSetBookmark2: TMenuItem;
+    miSetBookmark3: TMenuItem;
+    miSetBookmark4: TMenuItem;
+    miSetBookmark5: TMenuItem;
+    miSetBookmark6: TMenuItem;
+    miSetBookmark7: TMenuItem;
+    miSetBookmark8: TMenuItem;
+    miSetBookmark9: TMenuItem;
+    miGotoBookmark1: TMenuItem;
+    miGotoBookmark2: TMenuItem;
+    miGotoBookmark3: TMenuItem;
+    miGotoBookmark4: TMenuItem;
+    miGotoBookmark5: TMenuItem;
+    miGotoBookmark6: TMenuItem;
+    miGotoBookmark7: TMenuItem;
+    miGotoBookmark8: TMenuItem;
+    miGotoBookmark9: TMenuItem;
     miTextEncoding8: TMenuItem;
     miTextEncoding16: TMenuItem;
     miReferencedFunctions: TMenuItem;
@@ -235,6 +257,7 @@ type
     N18: TMenuItem;
     stacktrace2: TMenuItem;
     Executetillreturn1: TMenuItem;
+    procedure GotoBookmarkClick(Sender: TObject);
     procedure memorypopupPopup(Sender: TObject);
     procedure MenuItem10Click(Sender: TObject);
     procedure MenuItem11Click(Sender: TObject);
@@ -244,6 +267,7 @@ type
     procedure MenuItem18Click(Sender: TObject);
     procedure MenuItem20Click(Sender: TObject);
     procedure MenuItem22Click(Sender: TObject);
+    procedure SetBookmarkClick(Sender: TObject);
     procedure miTextEncodingClick(Sender: TObject);
     procedure miReferencedFunctionsClick(Sender: TObject);
     procedure miShowIndisassemblerClick(Sender: TObject);
@@ -452,6 +476,13 @@ type
     lastBreakpointCondition: record
       script: string;
       easy: boolean;
+    end;
+
+    bookmarks: array [0..9] of record
+      addressString: string;
+      lastAddress: ptruint;
+      setMi: TMenuItem;
+      gotoMi: TMenuItem;
     end;
 
     procedure SetStacktraceSize(size: integer);
@@ -976,6 +1007,7 @@ begin
   end;
 end;
 
+
 procedure TMemoryBrowser.MenuItem10Click(Sender: TObject);
 begin
   if frmStringMap=nil then
@@ -1047,6 +1079,52 @@ begin
     frmAccessedMemory:=TfrmAccessedMemory.Create(application);
 
   frmAccessedMemory.Show;
+end;
+
+procedure TMemoryBrowser.SetBookmarkClick(Sender: TObject);
+var
+  id: integer;
+begin
+  if (sender=nil) or (not (sender is TMenuItem)) then exit;
+  id:=TMenuItem(Sender).Tag;
+
+  if (id<0) or (id>9) then exit;
+
+  if disassemblerview.SelectedAddress=bookmarks[id].lastAddress then
+  begin
+    //delete
+    bookmarks[id].addressString:='';
+    bookmarks[id].lastAddress:=0;
+    bookmarks[id].setMi.caption:=format('Bookmark %d', [id]);
+    bookmarks[id].gotoMi.caption:=bookmarks[id].setMi.caption;
+  end
+  else
+  begin
+    //update
+    bookmarks[id].addressString:=symhandler.getNameFromAddress(disassemblerview.SelectedAddress);
+    bookmarks[id].lastAddress:=disassemblerview.SelectedAddress;
+    bookmarks[id].setMi.Caption:=format('Bookmark %d: %s', [id, bookmarks[id].addressString]);
+    bookmarks[id].gotoMi.Caption:=bookmarks[id].setMi.caption;
+  end;
+end;
+
+procedure TMemoryBrowser.GotoBookmarkClick(Sender: TObject);
+var
+  err: boolean;
+  id: integer;
+  newaddress: ptruint;
+begin
+  if (sender=nil) or (not (sender is TComponent)) then exit;
+  id:=TComponent(Sender).Tag;
+
+  if (id<0) or (id>9) then exit;
+  if bookmarks[id].addressString='' then exit;
+
+  newaddress:=symhandler.getAddressFromName(bookmarks[id].addressString, false, err);
+  if err then
+    newaddress:=bookmarks[id].lastAddress;
+
+  disassemblerview.SelectedAddress:=newaddress;
 end;
 
 procedure TMemoryBrowser.miTextEncodingClick(Sender: TObject);
@@ -1571,6 +1649,31 @@ var x: array of integer;
   reg: tregistry;
 begin
   MemoryBrowsers.Add(self);
+
+  bookmarks[0].setMi:=miSetBookmark0;
+  bookmarks[1].setMi:=miSetBookmark1;
+  bookmarks[2].setMi:=miSetBookmark2;
+  bookmarks[3].setMi:=miSetBookmark3;
+  bookmarks[4].setMi:=miSetBookmark4;
+  bookmarks[5].setMi:=miSetBookmark5;
+  bookmarks[6].setMi:=miSetBookmark6;
+  bookmarks[7].setMi:=miSetBookmark7;
+  bookmarks[8].setMi:=miSetBookmark8;
+  bookmarks[9].setMi:=miSetBookmark9;
+
+  bookmarks[0].gotoMi:=miGotoBookmark0;
+  bookmarks[1].gotoMi:=miGotoBookmark1;
+  bookmarks[2].gotoMi:=miGotoBookmark2;
+  bookmarks[3].gotoMi:=miGotoBookmark3;
+  bookmarks[4].gotoMi:=miGotoBookmark4;
+  bookmarks[5].gotoMi:=miGotoBookmark5;
+  bookmarks[6].gotoMi:=miGotoBookmark6;
+  bookmarks[7].gotoMi:=miGotoBookmark7;
+  bookmarks[8].gotoMi:=miGotoBookmark8;
+  bookmarks[9].gotoMi:=miGotoBookmark9;
+
+
+
 
   displaytype:=dtByte;
 
