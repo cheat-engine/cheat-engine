@@ -93,7 +93,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   LuaCommonDialog, LuaFindDialog, LuaSettings, LuaPageControl, LuaRipRelativeScanner,
   SymbolListHandler, processhandlerunit, processlist, DebuggerInterface,
   WindowsDebugger, VEHDebugger, KernelDebuggerInterface, DebuggerInterfaceAPIWrapper,
-  Globals;
+  Globals, math;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -5558,10 +5558,76 @@ begin
   end;
 end;
 
+function lua_frexp(L:PLua_State): integer; cdecl;
+var
+  d: float;
+  m: float;
+  e: integer;
+begin
+  if lua_gettop(l)>=1 then
+  begin
+    d:=lua_tonumber(L, 1);
+    Frexp(d, m,e);
+
+    lua_pushnumber(l,m);
+    lua_pushnumber(l, e);
+    result:=2;
+  end
+  else
+  begin
+    lua_pushstring(L, 'Number required');
+    lua_error(L);
+  end;
+end;
+
+function lua_cosh(L:PLua_State): integer; cdecl;
+begin
+  if lua_gettop(l)>=1 then
+  begin
+    lua_pushnumber(L, cosh(lua_tonumber(L,1)));
+    result:=1;
+  end
+  else
+  begin
+    lua_pushstring(L, 'Number required');
+    lua_error(L);
+  end;
+end;
+
+
+function lua_sinh(L:PLua_State): integer; cdecl;
+begin
+  if lua_gettop(l)>=1 then
+  begin
+    lua_pushnumber(L, sinh(lua_tonumber(L,1)));
+    result:=1;
+  end
+  else
+  begin
+    lua_pushstring(L, 'Number required');
+    lua_error(L);
+  end;
+end;
+
+function lua_tanh(L:PLua_State): integer; cdecl;
+begin
+  if lua_gettop(l)>=1 then
+  begin
+    lua_pushnumber(L, tanh(lua_tonumber(L,1)));
+    result:=1;
+  end
+  else
+  begin
+    lua_pushstring(L, 'Number required');
+    lua_error(L);
+  end;
+end;
 
 procedure InitializeLua;
-var s: tstringlist;
+var
+  s: tstringlist;
   k32: THandle;
+  i: integer;
 begin
 
   LuaVM:=lua_open();
@@ -6049,9 +6115,40 @@ begin
       s.add('dbvm_restore_interrupts=0x'+inttohex(ptruint(@vmxfunctions.dbvm_restore_interrupts),8));
       s.add('dbvm_changeselectors=0x'+inttohex(ptruint(@vmxfunctions.dbvm_changeselectors),8));
 
+      //5.2 backward compatibility:
+      s.add('math.log10=function(v) return math.log(v,10) end');
+      s.add('loadstring=load');
+      s.add('unpack=table.unpack');
+      s.add('package.loaders=package.searchers');
 
+      //5.3 backward compatibility:
+      s.add('math.pow=function(x,y) return x^y end');
+      s.add('math.atan2=math.atan');
+      s.add('math.ldexp=function(x,exp) return x * 2.0^exp end');
 
       lua_doscript(s.text);
+
+      lua_getglobal(luavm, 'math');
+      i:=lua_gettop(luavm);
+
+      lua_pushstring(luavm, 'frexp');
+      lua_pushcfunction(luavm, lua_frexp);
+      lua_settable(luavm,i);
+
+      lua_pushstring(luavm, 'cosh');
+      lua_pushcfunction(luavm, lua_cosh);
+      lua_settable(luavm,i);
+
+      lua_pushstring(luavm, 'sinh');
+      lua_pushcfunction(luavm, lua_sinh);
+      lua_settable(luavm,i);
+
+      lua_pushstring(luavm, 'tanh');
+      lua_pushcfunction(luavm, lua_tanh);
+      lua_settable(luavm,i);
+
+
+      lua_settop(luavm,i-1);
 
     finally
       s.free;
