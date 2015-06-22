@@ -572,6 +572,7 @@ properties
   Count : integer - Number of children attached to this menuitem
   Menu: Menu - The menu this item resides in
   Parent: MenuItem - The menuitem this item hangs under
+  MenuIndex: integer - The position this menu item is in it's parent
   Item[] : Array to access each child menuitem
   [] : Item[]
   OnClick: Function to call when the menu item is activated
