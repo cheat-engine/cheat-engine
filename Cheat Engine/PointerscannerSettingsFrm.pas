@@ -344,6 +344,7 @@ begin
   cbAddress.BorderSpacing.Right:=8;
   cbAddress.style:=csOwnerDrawFixed;
   cbAddress.OnDrawItem:=cbAddressDrawItem;
+  cbAddress.Height:=btnDelete.Height;
 
   Addresslist:=tstringlist.create;
   Addresslist.NameValueSeparator:='=';
@@ -1467,11 +1468,19 @@ begin
 
 
   if cbShowAdvancedOptions.checked then
-    cbAllowRuntimeWorkers.top:=panel3.Top+panel3.height+2
+  begin
+    cbAllowRuntimeWorkers.top:=panel3.Top+panel3.height+2;
+    cbMustStartWithBase.top:=cbAllowRuntimeWorkers.top;
+  end
   else
+  begin
     cbAllowRuntimeWorkers.top:=cbShowAdvancedOptions.top+cbShowAdvancedOptions.height+2;
 
-  cbMustStartWithBase.top:=cbAllowRuntimeWorkers.top;
+//cbMustStartWithBase must be under cbCompareToOtherPointermaps and it's list
+    cbMustStartWithBase.top:=panel3.top;
+  end;
+
+
 
 
 

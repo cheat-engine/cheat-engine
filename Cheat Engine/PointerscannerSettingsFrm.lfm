@@ -130,9 +130,10 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     end
     object ComboBox1: TComboBox
       AnchorSideLeft.Control = btnCancel
+      AnchorSideTop.Control = edtThreadcount
       Left = 288
       Height = 21
-      Top = 5
+      Top = 6
       Width = 140
       ItemHeight = 13
       ItemIndex = 3
