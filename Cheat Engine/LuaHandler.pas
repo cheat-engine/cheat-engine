@@ -93,7 +93,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   LuaCommonDialog, LuaFindDialog, LuaSettings, LuaPageControl, LuaRipRelativeScanner,
   SymbolListHandler, processhandlerunit, processlist, DebuggerInterface,
   WindowsDebugger, VEHDebugger, KernelDebuggerInterface, DebuggerInterfaceAPIWrapper,
-  Globals, math;
+  Globals, math, speedhack2;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -2642,6 +2642,12 @@ begin
     result:=1;
 
   end else lua_pop(L, parameters);
+end;
+
+function speedhack_getSpeed(L: PLua_State): integer; cdecl;
+begin
+  lua_pushnumber(L, speedhack.getSpeed);
+  result:=1;
 end;
 
 function speedhack_setSpeed(L: PLua_State): integer; cdecl;
@@ -5718,6 +5724,7 @@ begin
 
     lua_register(LuaVM, 'messageDialog', messageDialog);
     lua_register(LuaVM, 'speedhack_setSpeed', speedhack_setSpeed);
+    lua_register(LuaVM, 'speedhack_getSpeed', speedhack_getSpeed);
     lua_register(LuaVM, 'injectDLL', injectDLL);
     lua_register(LuaVM, 'getAutoAttachList', getAutoAttachList);
 

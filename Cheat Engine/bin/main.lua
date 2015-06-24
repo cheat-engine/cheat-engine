@@ -237,7 +237,9 @@ checkSynchronize(): Calls this from an infinite loop in the main thread when usi
 writeToClipboard(text):  Writes the given text to the clipboard
 readFromClipboard():  Reads the text from the clipboard
 
-speedhack_setSpeed(speed)
+speedhack_setSpeed(speed) : Enables the speedhack if needed and sets the specific speed
+speedhack_getSpeed(): Returns the last set speed
+
 injectDLL(filename): Injects a dll, and returns true on success
 
 loadPlugin(dllnameorpath): Loads the given plugin. Returns nil on failure. On success returns a value of 0 or greater
