@@ -49,7 +49,6 @@ procedure luaL_openlib(L: Plua_State; const libname: PChar; const lr: PluaL_reg;
 procedure luaL_register(L: Plua_State; const libname: PChar; const lr: PluaL_reg); cdecl;
 function luaL_getmetafield(L: Plua_State; obj: Integer; const e: PChar): Integer; cdecl;
 function luaL_callmeta(L: Plua_State; obj: Integer; const e: PChar): Integer; cdecl;
-function luaL_typerror(L: Plua_State; narg: Integer; const tname: PChar): Integer; cdecl;
 function luaL_argerror(L: Plua_State; numarg: Integer; const extramsg: PChar): Integer; cdecl;
 function luaL_checklstring(L: Plua_State; numArg: Integer; l_: Psize_t): PChar; cdecl;
 function luaL_optlstring(L: Plua_State; numArg: Integer; const def: PChar; l_: Psize_t): PChar; cdecl;
@@ -120,8 +119,9 @@ const
 
 type
   luaL_Buffer = record
-    p: PChar;       (* current position in buffer *)
-    lvl: Integer;   (* number of strings in the stack (level) *)
+    b: PChar;
+    size: size_t;
+    n: size_t;
     L: Plua_State;
     buffer: array [0..LUAL_BUFFERSIZE - 1] of Char; // warning: see note above about LUAL_BUFFERSIZE
   end;
@@ -186,7 +186,11 @@ begin
 end;
 
 procedure luaL_openlib(L: Plua_State; const libname: PChar; const lr: PluaL_reg; nup: Integer); cdecl; external LUA_LIB_NAME;
-procedure luaL_register(L: Plua_State; const libname: PChar; const lr: PluaL_reg); cdecl; external LUA_LIB_NAME;
+procedure luaL_register(L: Plua_State; const libname: PChar; const lr: PluaL_reg); cdecl;
+begin
+  luaL_openlib(L, libname, lr,0);
+end;
+
 function luaL_getmetafield(L: Plua_State; obj: Integer; const e: PChar): Integer; cdecl; external LUA_LIB_NAME;
 function luaL_callmeta(L: Plua_State; obj: Integer; const e: PChar): Integer; cdecl; external LUA_LIB_NAME;
 function luaL_typerror(L: Plua_State; narg: Integer; const tname: PChar): Integer; cdecl; external LUA_LIB_NAME;
@@ -294,10 +298,10 @@ end;
 
 procedure luaL_addchar(B: PluaL_Buffer; c: Char);
 begin
-  if Cardinal(@(B^.p)) < (Cardinal(@(B^.buffer[0])) + LUAL_BUFFERSIZE) then
+  if Cardinal(@(B^.b)) < (Cardinal(@(B^.buffer[0])) + LUAL_BUFFERSIZE) then
     luaL_prepbuffer(B);
-  B^.p[1] := c;
-  B^.p := B^.p + 1;
+  B^.b[1] := c;
+  B^.b := B^.b + 1;
 end;
 
 procedure luaL_putchar(B: PluaL_Buffer; c: Char);
@@ -307,7 +311,7 @@ end;
 
 procedure luaL_addsize(B: PluaL_Buffer; n: Integer);
 begin
-  B^.p := B^.p + n;
+  B^.b := B^.b + n;
 end;
 
 procedure luaL_buffinit(L: Plua_State ; B: PluaL_Buffer); cdecl; external LUA_LIB_NAME;
