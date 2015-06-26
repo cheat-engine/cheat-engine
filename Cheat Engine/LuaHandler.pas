@@ -91,7 +91,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   LuaDissectCode, LuaByteTable, LuaBinary, lua_server, HotkeyHandler, LuaPipeClient,
   LuaPipeServer, LuaTreeview, LuaTreeNodes, LuaTreeNode, LuaCalendar, LuaSymbolListHandler,
   LuaCommonDialog, LuaFindDialog, LuaSettings, LuaPageControl, LuaRipRelativeScanner,
-  SymbolListHandler, processhandlerunit, processlist, DebuggerInterface,
+  LuaStructureFrm, SymbolListHandler, processhandlerunit, processlist, DebuggerInterface,
   WindowsDebugger, VEHDebugger, KernelDebuggerInterface, DebuggerInterfaceAPIWrapper,
   Globals, math, speedhack2;
 
@@ -6053,6 +6053,8 @@ begin
 
     initializeLuaCalendar;
     initializeLuaRipRelativeScanner;
+
+    initializeLuaStructureFrm;
 
 
 

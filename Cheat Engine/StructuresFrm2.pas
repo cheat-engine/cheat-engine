@@ -200,6 +200,7 @@ type
     procedure DeleteClick(sender: Tobject);
     procedure setGroupName(newname: string);
   public
+    function getParent: TfrmStructures2;
     function AColumnHasSetCaption: boolean;
     procedure setPositions;
     constructor create(parent: TfrmStructures2; GroupName: string);
@@ -209,9 +210,10 @@ type
     property Matches: boolean read fMatches;
     procedure addString(s:string); //sets matches to false if it doesn't match the previous string (also sets currentStrign to '' on false)
 
-
+  published
     property currentString: string read fCurrentString;
     property groupname: string read fGroupName write setGroupName;
+    property name: string read fGroupName write setGroupName;
     property box: TGroupbox read GroupBox;
     property columnCount: integer read getColumnCount;
     property columns[index: integer]: TStructColumn read Getcolumn;
@@ -261,6 +263,9 @@ type
     procedure edtAddressChange(sender: TObject);
     function getAddress: ptruint;
     procedure setAddress(address: ptruint);
+    function getAddressText: string;
+    procedure setAddressText(address: string);
+
     procedure setFocused(state: boolean);
     function getFocused: boolean;
     function getGlobalIndex: integer;
@@ -289,12 +294,15 @@ type
     function getEditLeft: integer;
     function isXInColumn(x: integer): boolean;
     procedure SetProperEditboxPosition;
+
+  published
     property EditWidth: integer read getEditwidth;
     property EditLeft: integer read getEditleft;
     property Address: ptruint read getAddress write setAddress;
     property Focused: boolean read getFocused write setFocused;
     property CompareValue: string read fcompareValue write fcompareValue;
     property GlobalIndex: integer read getGlobalIndex;
+    property AddressText: string read getAddressText write setAddressText;
   end;
 
   TfrmStructures2 = class(TForm)
@@ -361,6 +369,7 @@ type
     SaveDialog1: TSaveDialog;
     saveValues: TSaveDialog;
     Structures1: TMenuItem;
+    tmFixGui: TTimer;
     updatetimer: TTimer;
     tvStructureView: TTreeView;
     procedure Addextraaddress1Click(Sender: TObject);
@@ -414,6 +423,7 @@ type
     procedure miRecalculateAddressClick(Sender: TObject);
     procedure Renamestructure1Click(Sender: TObject);
     procedure Save1Click(Sender: TObject);
+    procedure tmFixGuiTimer(Sender: TObject);
     procedure tvStructureViewAdvancedCustomDrawItem(Sender: TCustomTreeView;
       Node: TTreeNode; State: TCustomDrawState; Stage: TCustomDrawStage;
       var PaintImages, DefaultDraw: Boolean);
@@ -463,7 +473,7 @@ type
     function getDisplayedDescription(se: TStructelement): string;
     procedure setupNodeWithElement(node: TTreenode; element: TStructElement);
     procedure setCurrentNodeStringsInColumns(node: TTreenode; element: TStructElement; highlighted: boolean=false);  //sets the value for the current node into the columns
-    procedure RefreshVisibleNodes;
+    
     procedure setMainStruct(struct: TDissectedStruct);
     function getColumn(i: integer): TStructColumn;
     function getColumnCount: integer;
@@ -483,6 +493,7 @@ type
 
     function DefineNewStructure(recommendedSize: integer=4096): TDissectedStruct;
     procedure addLockedAddress(shownaddress: ptruint; memoryblock: pointer; size: integer); //call this to add a locked address, and copy the memoryblock to the target process)
+    procedure RefreshVisibleNodes;
 
     function addColumn: TStructColumn;
     function getFocusedColumn: TStructColumn;
@@ -504,6 +515,8 @@ type
     procedure onElementChange(struct:TDissectedStruct; element: TStructelement); //called when an element of a structure is changed
     procedure onStructureDelete(sender: TDissectedStruct);
 
+    procedure FixPositions;
+  published
     property DefaultColor: TColor read fDefaultColor;
     property MatchColor: TColor read fMatchColor;
     property NoMatchColor: Tcolor read fNoMatchcolor;
@@ -524,6 +537,7 @@ var
 
 function registerStructureDissectOverride(m: TStructureDissectOverride): integer;
 procedure unregisterStructureDissectOverride(id: integer);
+function lookupStructureName(address: ptruint; defaultName: string) : string;
 
 function registerStructureNameLookup(m: TStructureNameLookup): integer;
 procedure unregisterStructureNameLookup(id: integer);
@@ -646,6 +660,25 @@ procedure unregisterStructureDissectOverride(id: integer);
 begin
   if id<length(StructureDissectOverrides) then
     StructureDissectOverrides[id]:=nil;
+end;
+
+function lookupStructureName(address: ptruint; defaultName: string) : string;
+var
+  structName: string;
+  i: integer;
+  found: boolean;
+begin
+  found:=false;
+  for i:=0 to length(StructureNameLookups)-1 do
+  begin
+    if assigned(StructureNameLookups[i]) then
+    begin
+      found := StructureNameLookups[i](address, structname);
+      if found then break;
+    end;
+  end;
+  if not found then structname:=defaultName;
+  result := structname;
 end;
 
 function DisplaymethodToString(d:TdisplayMethod): string;
@@ -925,6 +958,8 @@ end;
 procedure TStructelement.AutoCreateChildStruct(name: string; address: ptruint);
 var c: TDissectedStruct;
   addressdata: TAddressData;
+  UsedOverride: boolean;
+  i: integer;
 begin
   if isPointer and (ChildStruct=nil) then
   begin
@@ -933,6 +968,7 @@ begin
     if symhandler.GetLayoutFromAddress(address, addressdata) then
     begin
       c.fillFromDotNetAddressData(addressdata);
+      c.name:=addressdata.classname;
       if c.count>0 then
       begin
         ChildStruct:=c;
@@ -943,7 +979,18 @@ begin
     end
     else
     begin
-      c.autoGuessStruct(address, 0, parent.autoCreateStructsize);
+      UsedOverride:=false;
+      for i:=0 to length(StructureDissectOverrides)-1 do
+      begin
+        if assigned(StructureDissectOverrides[i]) then
+        begin
+          UsedOverride:=StructureDissectOverrides[i](c, address);
+          if UsedOverride then break;
+        end;
+      end;
+      
+      if not UsedOverride then
+        c.autoGuessStruct(address, 0, parent.autoCreateStructsize);
 
       if c.count>0 then
         ChildStruct:=c
@@ -2089,6 +2136,18 @@ begin
   edtAddress.Text:=IntToHex(faddress,8);
 end;
 
+function TStructColumn.getAddressText: string;
+begin
+  result:=edtAddress.Text;
+end;
+
+procedure TStructColumn.setAddressText(address: string);
+begin
+  clearSavedState;
+  edtAddress.Text:=address;
+  edtAddressChange(nil);
+end;
+
 function TStructColumn.LockAddress(shownaddress: ptruint; memoryblock: pointer; size: integer): boolean;
 var
   x: ptruint;
@@ -2474,6 +2533,11 @@ begin
   result:=fcolumns[i];
 end;
 
+function TStructGroup.getParent: TfrmStructures2;
+begin
+  result:=parent;
+end;
+
 function TStructGroup.AColumnHasSetCaption: boolean;
 var i: integer;
 begin
@@ -2489,60 +2553,9 @@ begin
 end;
 
 procedure TStructGroup.setPositions;
-var i,j: integer;
-  maxh: integer;
-  h: integer;
 begin
-  maxh:=0;
-
-  //first get the height needed
-  for i:=0 to parent.groupcount-1 do
-  begin
-    for j:=0 to parent.group[i].columnCount-1 do
-    begin
-      h:=parent.group[i].columns[j].edtAddress.height;
-      if parent.group[i].columns[j].lblName.caption<>'' then
-        inc(h, parent.group[i].columns[j].lblName.height);
-
-      maxh:=max(maxh, h);
-    end;
-  end;
-
-  inc(maxh, 3);
-
   //now set the height
-  for i:=0 to parent.groupcount-1 do
-    parent.group[i].GroupBox.ClientHeight:=maxh;
-
-
-  parent.pnlGroups.ClientHeight:=parent.group[0].GroupBox.top+parent.group[0].GroupBox.Height+2;
-  parent.HeaderControl1.Top:=parent.pnlgroups.Top+parent.pnlGroups.Height;
-  parent.tvStructureView.top:=parent.HeaderControl1.Top+parent.HeaderControl1.Height;
-
-
-
-
-  for i:=0 to parent.groupcount-1 do
-  begin
-    //update the editboxes inside each group
-    for j:=0 to parent.group[i].columnCount-1 do
-      parent.group[i].columns[j].SetProperEditboxPosition;
-
-    //and then update the groupbox to fit in he grouppanel and right size
-    //set the left position
-    if i=0 then
-      parent.group[i].box.Left:=3
-    else
-      parent.group[i].box.Left:=parent.group[i-1].box.Left+parent.group[i-1].box.Width+10;
-
-    //set the width
-    if parent.group[i].columnCount>0 then
-      parent.group[i].box.width:=parent.group[i].columns[parent.group[i].columnCount-1].EditLeft+parent.group[i].columns[parent.group[i].columnCount-1].EditWidth+10
-    else
-      parent.group[i].box.width:=20;
-
-  end;
-
+  parent.FixPositions;
 end;
 
 constructor TStructGroup.create(parent: TfrmStructures2; GroupName: string);
@@ -3085,6 +3098,7 @@ var n: TStructelement;
   c: TStructColumn;
   x: ptruint;
   savedstate: PtrUInt;
+  structName: string;
 begin
   AllowExpansion:=true;
   n:=getStructElementFromNode(node);
@@ -3114,8 +3128,11 @@ begin
             address:=address+(savedstate-c.address);
 
           //check if the address pointed to is readable
-          if ReadProcessMemory(processhandle, pointer(address), @x, 1, x) then
-            n.AutoCreateChildStruct('Autocreated from '+inttohex(address,8), address)
+          if ReadProcessMemory(processhandle, pointer(address), @x, 1, x) then 
+          begin
+            structName:=lookupStructureName(address, 'Autocreated from '+inttohex(address,8));
+            n.AutoCreateChildStruct(structName, address)
+          end
           else
             error:=true;
         end
@@ -3754,6 +3771,12 @@ begin
 
     doc.Free;
   end;
+end;
+
+procedure TfrmStructures2.tmFixGuiTimer(Sender: TObject);
+begin
+  tmFixgui.enabled:=false;
+  FixPositions;
 end;
 
 procedure TfrmStructures2.pmStructureViewPopup(Sender: TObject);
@@ -5076,6 +5099,59 @@ begin
 
 end;
 
+procedure TfrmStructures2.FixPositions;
+var
+  maxh: integer;
+  i,j, h: integer;
+begin
+  maxh:=0;
+
+  //first get the height needed
+  for i:=0 to groupcount-1 do
+  begin
+    for j:=0 to group[i].columnCount-1 do
+    begin
+      h:=group[i].columns[j].edtAddress.height;
+      if group[i].columns[j].lblName.caption<>'' then
+        inc(h, group[i].columns[j].lblName.height);
+
+      maxh:=max(maxh, h);
+    end;
+  end;
+
+  inc(maxh, 3);
+
+  for i:=0 to groupcount-1 do
+    group[i].GroupBox.ClientHeight:=maxh;
+
+
+  pnlGroups.ClientHeight:=group[0].GroupBox.top+group[0].GroupBox.Height+2;
+  HeaderControl1.Top:=pnlgroups.Top+pnlGroups.Height;
+  tvStructureView.top:=HeaderControl1.Top+HeaderControl1.Height;
+
+
+
+
+  for i:=0 to groupcount-1 do
+  begin
+    //update the editboxes inside each group
+    for j:=0 to group[i].columnCount-1 do
+      group[i].columns[j].SetProperEditboxPosition;
+
+    //and then update the groupbox to fit in he grouppanel and right size
+    //set the left position
+    if i=0 then
+      group[i].box.Left:=3
+    else
+      group[i].box.Left:=group[i-1].box.Left+group[i-1].box.Width+10;
+
+    //set the width
+    if group[i].columnCount>0 then
+      group[i].box.width:=group[i].columns[group[i].columnCount-1].EditLeft+group[i].columns[group[i].columnCount-1].EditWidth+10
+    else
+      group[i].box.width:=20;
+  end;
+end;
 
 initialization
   DissectedStructs:=TList.create;

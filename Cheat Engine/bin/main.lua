@@ -1774,6 +1774,41 @@ methods
 
 
 
+StructureFrm class:
+createStructureForm(address)
+properties:
+Column[index]: structColumn - Fetches a structColumn object from the structure form
+Group[index]: structGroup - Fetches a structGroup object from the structure form
+
+methods:
+structChange() : Forces a refresh
+addColumn(): Adds a new column in the currently focuses group and returns it's structColumn object
+addGroup(): Adds a new group and returns the structGroup object
+
+structColumn class:
+properties:
+Address: integer - The current address
+AddressText: string - Gets/sets the visual address
+Focused: boolean - Gets/sets the focused state 
+
+methods:
+focus(): focuses the current column
+
+
+structGroup class:
+properties:
+name: string - gets the current name
+box: Groupbox - Gets the groupbox object
+columnCount: integer- Gets the number of columns in the group
+columns[index]: structColumn - Returns the specific structColumn object
+
+
+methods:
+addColumns(): Adds a new columns to the specific group and returns it's structColumn objecy
+
+
+
+
 Structure class related functions:
 getStructureCount(): Returns the number of Global structures. (Global structures are the visible structures)
 getStructure(index): Returns the Structure object at the given index
