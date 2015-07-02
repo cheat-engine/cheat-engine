@@ -3838,7 +3838,7 @@ begin
   if customTypes.Count > 0 then
   begin
     n := n + ' ' + IntToStr(customtypes.Count + 1);
-    fbn := fbn + ' ' + IntToStr(customtypes.Count + 1);
+    fbn := fbn + IntToStr(customtypes.Count + 1);
   end;
 
   with TfrmAutoInject.Create(self) do

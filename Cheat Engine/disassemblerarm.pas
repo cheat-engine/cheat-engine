@@ -43,7 +43,9 @@ type
 
 implementation
 
+ {$ifndef ARMDEV}
 uses processhandlerunit;
+{$endif}
 
 
 function SignExtend(value: int32; mostSignificantBit: integer): int32;
