@@ -30,6 +30,13 @@
 #define MONOCMD_GETMETHODSIGNATURE 24
 #define MONOCMD_GETPARENTCLASS 25
 #define MONOCMD_GETSTATICFIELDADDRESSFROMCLASS 26
+#define MONOCMD_GETTYPECLASS 27
+#define MONOCMD_GETARRAYELEMENTCLASS 28
+#define MONOCMD_FINDMETHODBYDESC 29
+#define MONOCMD_INVOKEMETHOD 30
+#define MONOCMD_LOADASSEMBLY 31
+#define MONOCMD_GETFULLTYPENAME 32
+
 
 typedef void (__cdecl *MonoDomainFunc) (void *domain, void *user_data);
 typedef void (__cdecl *GFunc)          (void *data, void *user_data);
@@ -46,7 +53,10 @@ typedef void (__cdecl *MONO_DOMAIN_FOREACH)(MonoDomainFunc func, void *user_data
 typedef int (__cdecl *MONO_DOMAIN_SET)(void *domain, BOOL force);
 typedef int (__cdecl *MONO_ASSEMBLY_FOREACH)(GFunc func, void *user_data);
 typedef void* (__cdecl *MONO_ASSEMBLY_GET_IMAGE)(void *assembly);
+typedef void* (__cdecl *MONO_ASSEMBLY_OPEN)(void *fname, int *status);
+typedef void* (__cdecl *MONO_IMAGE_GET_ASSEMBLY)(void *image);
 typedef char* (__cdecl *MONO_IMAGE_GET_NAME)(void *image);
+typedef void* (__cdecl *MONO_IMAGE_OPEN)(const char *fname, int *status);
 
 typedef void* (__cdecl *MONO_IMAGE_GET_TABLE_INFO)(void *image, int table_id);
 typedef int (__cdecl *MONO_TABLE_INFO_GET_ROWS)(void *tableinfo);
@@ -62,8 +72,8 @@ typedef void* (__cdecl *MONO_CLASS_GET_METHOD_FROM_NAME)(void *klass, char *meth
 typedef void* (__cdecl *MONO_CLASS_GET_FIELDS)(void *klass, void *iter);
 typedef void* (__cdecl *MONO_CLASS_GET_PARENT)(void *klass);
 typedef void* (__cdecl *MONO_CLASS_VTABLE)(void *domain, void *klass);
-
-
+typedef void* (__cdecl *MONO_CLASS_FROM_MONO_TYPE)(void *type);
+typedef void* (__cdecl *MONO_CLASS_GET_ELEMENT_CLASS)(void *klass);
 
 
 typedef int (__cdecl *MONO_CLASS_NUM_FIELDS)(void *klass);
@@ -76,6 +86,7 @@ typedef int (__cdecl *MONO_FIELD_GET_OFFSET)(void *field);
 
 typedef char* (__cdecl *MONO_TYPE_GET_NAME)(void *type);
 typedef int (__cdecl *MONO_TYPE_GET_TYPE)(void *type);
+typedef char* (__cdecl *MONO_TYPE_GET_NAME_FULL)(void *type, int format);
 typedef int (__cdecl *MONO_FIELD_GET_FLAGS)(void *type);
 
 
@@ -110,6 +121,27 @@ typedef void* (__cdecl *MONO_IMAGE_RVA_MAP)(void *image, UINT32 addr);
 typedef void* (__cdecl *MONO_VTABLE_GET_STATIC_FIELD_DATA)(void *vtable);
 
 
+typedef void* (__cdecl *MONO_METHOD_DESC_NEW)(const char *name, int include_namespace);
+typedef void* (__cdecl *MONO_METHOD_DESC_FROM_METHOD)(void *method);
+typedef void  (__cdecl *MONO_METHOD_DESC_FREE)(void *desc);
+
+typedef void* (__cdecl *MONO_ASSEMBLY_NAME_NEW)(const char *name);
+typedef void* (__cdecl *MONO_ASSEMBLY_LOADED)(void *aname);
+typedef void* (__cdecl *MONO_IMAGE_LOADED)(void *aname);
+
+typedef void* (__cdecl *MONO_STRING_NEW)(void *domain, const char *text);
+typedef char* (__cdecl *MONO_STRING_TO_UTF8)(void*);
+typedef void* (__cdecl *MONO_ARRAY_NEW)(void *domain, void *eclass, uintptr_t n);
+typedef void* (__cdecl *MONO_OBJECT_TO_STRING)(void *object, void **exc);
+typedef void  (__cdecl *MONO_FREE)(void*);
+
+typedef void* (__cdecl *MONO_METHOD_DESC_SEARCH_IN_IMAGE)(void *desc, void *image);
+typedef void* (__cdecl *MONO_RUNTIME_INVOKE)(void *method, void *obj, void **params, void **exc);
+typedef void* (__cdecl *MONO_RUNTIME_INVOKE_ARRAY)(void *method, void *obj, void *params, void **exc);
+typedef void* (__cdecl *MONO_VALUE_BOX)(void *domain, void *klass, void* val);
+typedef void* (__cdecl *MONO_OBJECT_UNBOX)(void *obj);
+typedef void* (__cdecl *MONO_CLASS_GET_TYPE)(void *klass);
+
 
 class CPipeServer : Pipe
 {
@@ -128,15 +160,20 @@ private:
 	MONO_CLASS_GET_NAMESPACE mono_class_get_namespace;
 	MONO_CLASS_GET_PARENT mono_class_get_parent;
 	MONO_CLASS_VTABLE mono_class_vtable;
+	MONO_CLASS_FROM_MONO_TYPE mono_class_from_mono_type;
 
 	MONO_DOMAIN_FOREACH mono_domain_foreach;
 	MONO_DOMAIN_SET mono_domain_set;
 	MONO_ASSEMBLY_FOREACH mono_assembly_foreach;	
 	MONO_ASSEMBLY_GET_IMAGE mono_assembly_get_image;
+	MONO_IMAGE_GET_ASSEMBLY mono_image_get_assembly;
+	MONO_ASSEMBLY_OPEN mono_assembly_open;
 	
 	MONO_IMAGE_GET_NAME mono_image_get_name;
 	MONO_IMAGE_GET_TABLE_INFO mono_image_get_table_info;
     MONO_IMAGE_RVA_MAP mono_image_rva_map;
+	MONO_IMAGE_OPEN mono_image_open;
+	MONO_IMAGE_LOADED mono_image_loaded;
 
 	MONO_TABLE_INFO_GET_ROWS mono_table_info_get_rows;
 	MONO_METADATA_DECODE_ROW_COL mono_metadata_decode_row_col;
@@ -151,6 +188,7 @@ private:
 	MONO_CLASS_GET_METHODS mono_class_get_methods;
 
 	MONO_CLASS_GET_METHOD_FROM_NAME mono_class_get_method_from_name;
+	MONO_CLASS_GET_ELEMENT_CLASS mono_class_get_element_class;
 
 
 	MONO_FIELD_GET_NAME mono_field_get_name;
@@ -160,8 +198,8 @@ private:
 
 	MONO_TYPE_GET_NAME mono_type_get_name;
 	MONO_TYPE_GET_TYPE mono_type_get_type;
+	MONO_TYPE_GET_NAME_FULL mono_type_get_name_full;
 	MONO_FIELD_GET_FLAGS mono_field_get_flags;
-
 
 	MONO_METHOD_GET_NAME mono_method_get_name;
 	MONO_METHOD_GET_HEADER mono_method_get_header;
@@ -186,6 +224,24 @@ private:
 	MONO_DISASM_CODE mono_disasm_code;
 
 	MONO_VTABLE_GET_STATIC_FIELD_DATA mono_vtable_get_static_field_data;
+
+	MONO_METHOD_DESC_NEW mono_method_desc_new;
+	MONO_METHOD_DESC_FROM_METHOD mono_method_desc_from_method;
+	MONO_METHOD_DESC_FREE mono_method_desc_free;
+	MONO_ASSEMBLY_NAME_NEW mono_assembly_name_new;
+	MONO_ASSEMBLY_LOADED mono_assembly_loaded;
+
+	MONO_STRING_NEW mono_string_new;
+	MONO_STRING_TO_UTF8 mono_string_to_utf8;
+	MONO_ARRAY_NEW mono_array_new;
+	MONO_OBJECT_TO_STRING mono_object_to_string;
+	MONO_FREE mono_free;
+	MONO_VALUE_BOX mono_value_box;
+	MONO_OBJECT_UNBOX mono_object_unbox;
+	MONO_CLASS_GET_TYPE mono_class_get_type;
+
+	MONO_METHOD_DESC_SEARCH_IN_IMAGE mono_method_desc_search_in_image;
+	MONO_RUNTIME_INVOKE mono_runtime_invoke;
 
 	BOOL attached;
 
@@ -213,16 +269,34 @@ private:
 	void GetKlassName();
 	void GetClassNamespace();
 	void FreeMethod();
-
 	void DisassembleMethod();
 	void GetMethodSignature();
 	void GetParentClass();
-
 	void GetStaticFieldAddressFromClass();
+	void GetTypeClass();
+	void GetArrayElementClass();
+	void FindMethodByDesc();
+	void InvokeMethod();
+	void LoadAssemblyFromFile();
+	void GetFullTypeName();
 
 public:
 	CPipeServer(void);
 	~CPipeServer(void);
 
 	void Start(void);
+
+	char* ReadString(void);
+	void WriteString(const char*);
+	void FreeString(char*);
+
+	void *ReadObjectArray(void* domain);
+	void FreeObjectArray(void *arr);
+	int GetObjectArraySize(void *arr);
+	void **GetObjectArrayArgs(void *arr);
+
+	int GetObjectSize(int);
+	void* ReadObject(void* domain, MonoTypeEnum type, void* addr);
+	void WriteObject(void*);
+	void WriteEmptyObject();
 };

@@ -8,6 +8,7 @@ uses
   { you can add units after this };
 
 exports ConfigName;
+exports fm;
 exports InitializeVEH;
 exports UnloadVEH;
 

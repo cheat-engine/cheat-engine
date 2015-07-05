@@ -173,11 +173,11 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="26">
+    <Units Count="28">
       <Unit0>
         <Filename Value="tutorial.lpr"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="10"/>
+        <EditorIndex Value="11"/>
         <CursorPos X="3" Y="22"/>
         <UsageCount Value="60"/>
         <Loaded Value="True"/>
@@ -189,9 +189,8 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit1"/>
-        <IsVisibleTab Value="True"/>
         <TopLine Value="39"/>
-        <CursorPos X="123" Y="56"/>
+        <CursorPos Y="65"/>
         <UsageCount Value="60"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -203,9 +202,10 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit2"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
-        <TopLine Value="83"/>
-        <CursorPos X="118" Y="75"/>
+        <TopLine Value="79"/>
+        <CursorPos Y="95"/>
         <UsageCount Value="60"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -217,7 +217,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit3"/>
-        <EditorIndex Value="2"/>
+        <EditorIndex Value="3"/>
         <TopLine Value="57"/>
         <CursorPos X="125" Y="69"/>
         <UsageCount Value="60"/>
@@ -231,7 +231,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit4"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="4"/>
         <CursorPos X="26" Y="16"/>
         <UsageCount Value="60"/>
         <Loaded Value="True"/>
@@ -244,7 +244,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit5"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="5"/>
         <TopLine Value="76"/>
         <CursorPos X="125" Y="61"/>
         <UsageCount Value="60"/>
@@ -258,7 +258,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit6"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="6"/>
         <TopLine Value="39"/>
         <CursorPos X="128" Y="57"/>
         <UsageCount Value="60"/>
@@ -272,7 +272,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit7"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="7"/>
         <TopLine Value="70"/>
         <CursorPos X="127" Y="79"/>
         <UsageCount Value="60"/>
@@ -286,7 +286,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit8"/>
-        <EditorIndex Value="9"/>
+        <EditorIndex Value="10"/>
         <TopLine Value="66"/>
         <CursorPos X="29" Y="85"/>
         <UsageCount Value="60"/>
@@ -300,7 +300,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit9"/>
-        <EditorIndex Value="12"/>
+        <EditorIndex Value="13"/>
         <TopLine Value="119"/>
         <CursorPos X="91" Y="126"/>
         <UsageCount Value="60"/>
@@ -314,7 +314,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit10"/>
-        <EditorIndex Value="11"/>
+        <EditorIndex Value="12"/>
         <TopLine Value="95"/>
         <CursorPos X="85" Y="102"/>
         <UsageCount Value="60"/>
@@ -331,7 +331,7 @@
         <Filename Value="cetranslator.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="cetranslator"/>
-        <EditorIndex Value="13"/>
+        <EditorIndex Value="14"/>
         <TopLine Value="96"/>
         <CursorPos X="54" Y="108"/>
         <UsageCount Value="55"/>
@@ -413,7 +413,7 @@
       <Unit24>
         <Filename Value="C:\development\lazarus\lcl\controls.pp"/>
         <UnitName Value="Controls"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="8"/>
         <TopLine Value="2113"/>
         <CursorPos X="14" Y="2127"/>
         <UsageCount Value="10"/>
@@ -421,14 +421,29 @@
       </Unit24>
       <Unit25>
         <Filename Value="C:\development\lazarus\lcl\include\wincontrol.inc"/>
-        <EditorIndex Value="8"/>
+        <EditorIndex Value="9"/>
         <TopLine Value="3635"/>
         <CursorPos X="3" Y="3640"/>
         <UsageCount Value="10"/>
         <Loaded Value="True"/>
       </Unit25>
+      <Unit26>
+        <Filename Value="C:\development\fpc\rtl\win\wininc\struct.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="211"/>
+        <CursorPos X="6" Y="226"/>
+        <UsageCount Value="10"/>
+      </Unit26>
+      <Unit27>
+        <Filename Value="C:\development\fpc\rtl\objpas\classes\classesh.inc"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="2031"/>
+        <CursorPos X="10" Y="2046"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit27>
     </Units>
-    <JumpHistory Count="27" HistoryIndex="26">
+    <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="Unit3.pas"/>
         <Caret Line="48" TopLine="33"/>
@@ -537,6 +552,18 @@
         <Filename Value="Unit1.pas"/>
         <Caret Line="69" Column="22" TopLine="62"/>
       </Position27>
+      <Position28>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="65" Column="8" TopLine="39"/>
+      </Position28>
+      <Position29>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="66" Column="3" TopLine="39"/>
+      </Position29>
+      <Position30>
+        <Filename Value="Unit2.pas"/>
+        <Caret Line="95" Column="22" TopLine="79"/>
+      </Position30>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

@@ -237,7 +237,9 @@ checkSynchronize(): Calls this from an infinite loop in the main thread when usi
 writeToClipboard(text):  Writes the given text to the clipboard
 readFromClipboard():  Reads the text from the clipboard
 
-speedhack_setSpeed(speed)
+speedhack_setSpeed(speed) : Enables the speedhack if needed and sets the specific speed
+speedhack_getSpeed(): Returns the last set speed
+
 injectDLL(filename): Injects a dll, and returns true on success
 
 loadPlugin(dllnameorpath): Loads the given plugin. Returns nil on failure. On success returns a value of 0 or greater
@@ -396,7 +398,8 @@ debug_addThreadToNoBreakList(threadid): This will cause breakpoints on the provi
 debug_removeThreadFromNoBreakList(threadid): removed the threadid from the list
 
 
-debug_setBreakpoint(address, size OPTIONAL, trigger OPTIONAL, functiontocall() OPTIONAL) : sets a breakpoint of a specific size at the given address. if trigger is bptExecute then size is ignored. If trigger is ignored then it will be of type bptExecute, which obviously also ignores the size then as well
+debug_setBreakpoint(address, size OPTIONAL, trigger OPTIONAL, breakpointmethod OPTIONAL, functiontocall() OPTIONAL) : sets a breakpoint of a specific size at the given address. if trigger is bptExecute then size is ignored. If trigger is ignored then it will be of type bptExecute, which obviously also ignores the size then as well
+debug_setBreakpoint(address, size OPTIONAL, trigger OPTIONAL, functiontocall() OPTIONAL) 
 debug_setBreakpoint(address, functiontocall() OPTIONAL)
 debug_removeBreakpoint(address) : if the given address is a part of a breakpoint it will be removed
 debug_continueFromBreakpoint(continueMethod) : if the debugger is currently waiting to continue you can continue with this. Valid parameters are :co_run (just continue), co_stepinto(when on top of a call, follow it), co_stepover (when on top of a call run till after the call)
@@ -571,6 +574,7 @@ properties
   Count : integer - Number of children attached to this menuitem
   Menu: Menu - The menu this item resides in
   Parent: MenuItem - The menuitem this item hangs under
+  MenuIndex: integer - The position this menu item is in it's parent
   Item[] : Array to access each child menuitem
   [] : Item[]
   OnClick: Function to call when the menu item is activated
@@ -1767,6 +1771,41 @@ methods
 
   waitfor() :
     Waits for the given thread to finish (Not recommended to call this from inside the thread itself)
+
+
+
+StructureFrm class:
+createStructureForm(address)
+properties:
+Column[index]: structColumn - Fetches a structColumn object from the structure form
+Group[index]: structGroup - Fetches a structGroup object from the structure form
+
+methods:
+structChange() : Forces a refresh
+addColumn(): Adds a new column in the currently focuses group and returns it's structColumn object
+addGroup(): Adds a new group and returns the structGroup object
+
+structColumn class:
+properties:
+Address: integer - The current address
+AddressText: string - Gets/sets the visual address
+Focused: boolean - Gets/sets the focused state 
+
+methods:
+focus(): focuses the current column
+
+
+structGroup class:
+properties:
+name: string - gets the current name
+box: Groupbox - Gets the groupbox object
+columnCount: integer- Gets the number of columns in the group
+columns[index]: structColumn - Returns the specific structColumn object
+
+
+methods:
+addColumns(): Adds a new columns to the specific group and returns it's structColumn objecy
+
 
 
 

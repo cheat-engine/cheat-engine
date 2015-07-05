@@ -1,10 +1,10 @@
 object frmStructures2: TfrmStructures2
   Left = 833
-  Height = 376
+  Height = 381
   Top = 231
   Width = 540
   Caption = 'Structure dissect'
-  ClientHeight = 356
+  ClientHeight = 361
   ClientWidth = 540
   Menu = MainMenu1
   OnClose = FormClose
@@ -15,7 +15,7 @@ object frmStructures2: TfrmStructures2
   LCLVersion = '1.3'
   object tvStructureView: TTreeView
     Left = 0
-    Height = 292
+    Height = 297
     Top = 64
     Width = 540
     Align = alBottom
@@ -353,5 +353,11 @@ object frmStructures2: TfrmStructures2
     OnFind = FindDialog1Find
     left = 152
     top = 128
+  end
+  object tmFixGui: TTimer
+    Interval = 100
+    OnTimer = tmFixGuiTimer
+    left = 360
+    top = 84
   end
 end

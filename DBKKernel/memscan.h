@@ -1,5 +1,11 @@
 #include <windef.h>
 
+#ifdef AMD64
+#define PAGETABLEBASE 0xfffff68000000000ULL
+#else
+#define PAGETABLEBASE 0xc0000000
+#endif
+
 typedef struct _ADDRESSENTRY {
 DWORD Address;
 BYTE  size;
@@ -43,6 +49,18 @@ BOOLEAN ThreadActive;
 
 SCANDATA CurrentScan;
 					  
+typedef struct
+{
+	UINT64 StartAddress;
+	UINT64 EndAddress;
+} PRANGE, *PPRANGE;
+
+typedef struct
+{
+	PRANGE Range;
+	void *Next;
+} PENTRY, *PPENTRY;
+
 #ifdef CETC
 BOOLEAN FirstScan(PEPROCESS ActivePEPROCESS, DWORD start,DWORD stop,BYTE vartype,BYTE scantype,BYTE scanvaluesize,char *scanvalue,BYTE ScanOptions);
 #endif
@@ -52,6 +70,10 @@ BOOLEAN ReadProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Size
 BOOLEAN WriteProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Size, PVOID Buffer);
 BOOLEAN IsAddressSafe(UINT_PTR StartAddress);
 BOOLEAN GetMemoryRegionData(DWORD PID,PEPROCESS PEProcess, PVOID mempointer,ULONG *regiontype, UINT_PTR *memorysize,UINT_PTR *baseaddress);
+NTSTATUS markAllPagesAsNeverAccessed(PEPROCESS PEProcess);
+int enumAllAccessedPages(PEPROCESS PEProcess);
+int getAccessedPageList(PPRANGE List, int ListSizeInBytes);
+
 UINT_PTR getPEThread(UINT_PTR threadid);
 
 ADDRESSENTRY *AddressList;

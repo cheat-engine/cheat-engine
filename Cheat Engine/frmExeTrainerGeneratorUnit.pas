@@ -274,7 +274,7 @@ begin
           if rb32.checked then
           begin
             addfile(cheatenginedir+'cheatengine-i386.exe');
-            addfile(cheatenginedir+'lua5.1-32.dll');
+            addfile(cheatenginedir+'lua53-32.dll');
             addfile(cheatenginedir+'win32\dbghelp.dll','win32');
 
             if cbSpeedhack.checked then
@@ -296,7 +296,7 @@ begin
           else
           begin
             addfile(cheatenginedir+'cheatengine-x86_64.exe');
-            addfile(cheatenginedir+'lua5.1-64.dll');
+            addfile(cheatenginedir+'lua53-64.dll');
 
             if cbSpeedhack.checked then
               addfile(cheatenginedir+'speedhack-x86_64.dll');

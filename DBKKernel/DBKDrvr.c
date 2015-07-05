@@ -399,6 +399,8 @@ Return Value:
 	MAX_PDE_POS=0xFFFFF6FB7FFFFFF8ULL;
 #endif
 
+	
+
 #ifdef CETC
 	DbgPrint("Going to initialice CETC\n");
 	InitializeCETC();

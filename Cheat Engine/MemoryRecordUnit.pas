@@ -24,7 +24,7 @@ type TFreezeType=(ftFrozen, ftAllowIncrease, ftAllowDecrease);
 
 
 
-type TMemrecOption=(moHideChildren, moBindActivation, moRecursiveSetValue, moAllowManualCollapseAndExpand, moManualExpandCollapse);
+type TMemrecOption=(moHideChildren, moActivateChildrenAsWell, moDeactivateChildrenAsWell, moRecursiveSetValue, moAllowManualCollapseAndExpand, moManualExpandCollapse);
 type TMemrecOptions=set of TMemrecOption;
 
 type TMemrecStringData=record
@@ -566,9 +566,21 @@ begin
       if (a<>nil) and (a.TextContent='1') then
           foptions:=foptions+[moHideChildren];
 
-      a:=tempnode.Attributes.GetNamedItem('moBindActivation');
+      a:=tempnode.Attributes.GetNamedItem('moBindActivation');  //support for loading older tables that use this
       if (a<>nil) and (a.TextContent='1') then
-        foptions:=foptions+[moBindActivation];
+      begin
+        foptions:=foptions+[moActivateChildrenAsWell];
+        foptions:=foptions+[moDeactivateChildrenAsWell];
+      end;
+
+      a:=tempnode.Attributes.GetNamedItem('moActivateChildrenAsWell');
+      if (a<>nil) and (a.TextContent='1') then
+        foptions:=foptions+[moActivateChildrenAsWell];
+
+      a:=tempnode.Attributes.GetNamedItem('moDeactivateChildrenAsWell');
+      if (a<>nil) and (a.TextContent='1') then
+        foptions:=foptions+[moDeactivateChildrenAsWell];
+
 
       a:=tempnode.Attributes.GetNamedItem('moRecursiveSetValue');
       if (a<>nil) and (a.TextContent='1') then
@@ -920,9 +932,16 @@ begin
       opt.Attributes.SetNamedItem(a);
     end;
 
-    if moBindActivation in options then
+    if moActivateChildrenAsWell in options then
     begin
-      a:=doc.CreateAttribute('moBindActivation');
+      a:=doc.CreateAttribute('moActivateChildrenAsWell');
+      a.TextContent:='1';
+      opt.Attributes.SetNamedItem(a);
+    end;
+
+    if moDeactivateChildrenAsWell in options then
+    begin
+      a:=doc.CreateAttribute('moDeactivateChildrenAsWell');
       a.TextContent:='1';
       opt.Attributes.SetNamedItem(a);
     end;
@@ -1490,11 +1509,18 @@ begin
   {$IFNDEF UNIX}
   treenode.update;
 
-  if moBindActivation in options then
+  if active and (moActivateChildrenAsWell in options) then
   begin
     //apply this state to all the children
     for i:=0 to treenode.Count-1 do
-      TMemoryRecord(treenode[i].data).setActive(active);
+      TMemoryRecord(treenode[i].data).setActive(true);
+  end;
+
+  if (not active) and (moDeactivateChildrenAsWell in options) then
+  begin
+    //apply this state to all the children
+    for i:=0 to treenode.Count-1 do
+      TMemoryRecord(treenode[i].data).setActive(false);
   end;
 
 

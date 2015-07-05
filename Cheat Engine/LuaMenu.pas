@@ -78,6 +78,29 @@ begin
   end else lua_pop(L, lua_gettop(L));
 end;
 
+function menuItem_getMenuIndex(L: PLua_State): integer; cdecl;
+var
+  menuItem: TmenuItem;
+begin
+  menuitem:=luaclass_getClassObject(L);
+  lua_pushinteger(L, menuItem.MenuIndex);
+  result:=1;
+end;
+
+function menuItem_setMenuIndex(L: PLua_State): integer; cdecl;
+var
+  menuItem: TmenuItem;
+  i: integer;
+begin
+  menuitem:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+  begin
+    i:=lua_tointeger(L, -1);
+    menuItem.MenuIndex:=i;
+  end;
+  result:=0;
+end;
+
 
 function menuItem_getCaption(L: PLua_State): integer; cdecl;
 var
@@ -90,7 +113,6 @@ end;
 
 function menuItem_setCaption(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   menuItem: TmenuItem;
   Caption: string;
 begin
@@ -292,6 +314,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getOnClick', menuItem_getOnClick);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'doClick', menuItem_doClick);
 
+  luaclass_addPropertyToTable(L, metatable, userdata, 'MenuIndex', menuItem_getMenuIndex, menuItem_setMenuIndex);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Caption', menuItem_getCaption, menuItem_setCaption);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Shortcut', menuItem_getShortcut, menuItem_setShortcut);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Parent', menuItem_getParent, nil);

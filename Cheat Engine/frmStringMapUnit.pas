@@ -289,7 +289,7 @@ begin
     end;
   except
     on e: exception do
-      MessageBox(0, pchar('Error='+e.message),'Unhandled TStringScan crash', MB_OK or MB_ICONERROR);
+      MessageBox(0, pchar(ansitoutf8('Error='+e.message)),'Unhandled TStringScan crash', MB_OK or MB_ICONERROR);
   end;
 end;
 

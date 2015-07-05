@@ -1,0 +1,220 @@
+object frmAccessedMemory: TfrmAccessedMemory
+  Left = 292
+  Height = 250
+  Top = 200
+  Width = 636
+  Caption = 'Find accessed memory regions'
+  ClientHeight = 230
+  ClientWidth = 636
+  Menu = MainMenu1
+  OnCreate = FormCreate
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '1.3'
+  object Panel1: TPanel
+    Left = 0
+    Height = 230
+    Top = 0
+    Width = 379
+    Align = alLeft
+    BevelOuter = bvNone
+    ClientHeight = 230
+    ClientWidth = 379
+    TabOrder = 0
+    object Label2: TLabel
+      Left = 0
+      Height = 105
+      Top = 0
+      Width = 379
+      Align = alTop
+      Caption = 'This function will try to find out all accessed memory regions over a period of time and store it''s results into an .mregion file which you can use with other functions that can make use of it (e.g pointerscan)'#13#10#13#10'Note: This will enable the dbk kernel module and if your windows version isn''t supported this could potentially BSOD you. (So save your data)'
+      ParentColor = False
+      WordWrap = True
+    end
+    object Edit2: TEdit
+      AnchorSideTop.Control = Label3
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Label3
+      AnchorSideRight.Side = asrBottom
+      Left = 0
+      Height = 23
+      Top = 172
+      Width = 141
+      Anchors = [akTop, akLeft, akRight]
+      OnKeyDown = Edit2KeyDown
+      ReadOnly = True
+      TabOrder = 0
+    end
+    object Edit1: TEdit
+      AnchorSideTop.Control = Label1
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Label3
+      AnchorSideRight.Side = asrBottom
+      Left = 0
+      Height = 23
+      Top = 130
+      Width = 141
+      Anchors = [akTop, akLeft, akRight]
+      OnKeyDown = Edit1KeyDown
+      ReadOnly = True
+      TabOrder = 1
+    end
+    object Label3: TLabel
+      AnchorSideTop.Control = Edit1
+      AnchorSideTop.Side = asrBottom
+      Left = 0
+      Height = 15
+      Top = 157
+      Width = 141
+      BorderSpacing.Top = 4
+      Caption = 'Hotkey to stop monitoring'
+      ParentColor = False
+    end
+    object Label1: TLabel
+      AnchorSideTop.Control = Label2
+      AnchorSideTop.Side = asrBottom
+      Left = 0
+      Height = 15
+      Top = 115
+      Width = 159
+      BorderSpacing.Top = 10
+      Caption = 'Hotkey to (re)start monitoring'
+      ParentColor = False
+    end
+    object btnClearSmallSnapshot: TButton
+      AnchorSideLeft.Control = Edit1
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Edit1
+      AnchorSideTop.Side = asrCenter
+      Left = 146
+      Height = 17
+      Top = 133
+      Width = 43
+      BorderSpacing.Left = 5
+      Caption = 'Clear'
+      OnClick = btnClearSmallSnapshotClick
+      TabOrder = 2
+    end
+    object btnClearSmallSnapshot1: TButton
+      AnchorSideLeft.Control = Edit2
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Edit2
+      AnchorSideTop.Side = asrCenter
+      Left = 146
+      Height = 17
+      Top = 175
+      Width = 43
+      BorderSpacing.Left = 5
+      Caption = 'Clear'
+      OnClick = btnClearSmallSnapshot1Click
+      TabOrder = 3
+    end
+    object Button2: TButton
+      AnchorSideLeft.Control = btnClearSmallSnapshot
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Edit1
+      Left = 219
+      Height = 25
+      Top = 130
+      Width = 75
+      BorderSpacing.Left = 30
+      Caption = 'Start'
+      OnClick = startMonitor
+      TabOrder = 4
+    end
+    object Button3: TButton
+      AnchorSideLeft.Control = btnClearSmallSnapshot
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Edit2
+      Left = 219
+      Height = 25
+      Top = 172
+      Width = 75
+      BorderSpacing.Left = 30
+      Caption = 'Stop'
+      Enabled = False
+      OnClick = stopMonitor
+      TabOrder = 5
+    end
+    object Button1: TButton
+      AnchorSideLeft.Side = asrCenter
+      AnchorSideTop.Control = Edit2
+      AnchorSideTop.Side = asrBottom
+      AnchorSideBottom.Side = asrBottom
+      Left = 24
+      Height = 27
+      Top = 200
+      Width = 92
+      BorderSpacing.Top = 5
+      BorderSpacing.Bottom = 10
+      Caption = 'Set hotkeys'
+      OnClick = Button1Click
+      TabOrder = 6
+    end
+  end
+  object Splitter1: TSplitter
+    Left = 379
+    Height = 230
+    Top = 0
+    Width = 5
+  end
+  object ListView1: TListView
+    Left = 384
+    Height = 230
+    Top = 0
+    Width = 252
+    Align = alClient
+    Columns = <    
+      item
+        Caption = 'From'
+        Width = 110
+      end    
+      item
+        Caption = 'To'
+        Width = 110
+      end>
+    OwnerData = True
+    ReadOnly = True
+    RowSelect = True
+    TabOrder = 2
+    ViewStyle = vsReport
+    OnData = ListView1Data
+  end
+  object MainMenu1: TMainMenu
+    left = 80
+    top = 24
+    object MenuItem1: TMenuItem
+      Caption = 'File'
+      object MenuItem2: TMenuItem
+        Caption = 'Open region file'
+        ShortCut = 16463
+        OnClick = MenuItem2Click
+      end
+      object MenuItem3: TMenuItem
+        Caption = 'Save region file'
+        ShortCut = 16467
+        OnClick = MenuItem3Click
+      end
+    end
+  end
+  object PopupMenu1: TPopupMenu
+    left = 448
+    top = 49
+    object MenuItem4: TMenuItem
+      Caption = 'Clear'
+      OnClick = MenuItem4Click
+    end
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '.mregion'
+    Filter = 'Memory region files (*.mregion)|*.mregion|All files (*.*)|*.*'
+    left = 448
+    top = 112
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.mregion'
+    Filter = 'Memory region files (*.mregion)|*.mregion|All files (*.*)|*.*'
+    left = 528
+    top = 112
+  end
+end

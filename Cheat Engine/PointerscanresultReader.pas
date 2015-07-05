@@ -127,7 +127,7 @@ var
   ext1, ext2: string;
 
   basesort: boolean;
-  v1, v2: uint64;
+  v1, v2: int64;
 
   sepindex: integer;
   temp: string;

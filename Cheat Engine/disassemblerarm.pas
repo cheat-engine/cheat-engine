@@ -5,7 +5,8 @@ unit DisassemblerArm;
 interface
 
 uses
-  windows, Classes, SysUtils{$ifndef ARMDEV}, newkernelhandler, cefuncproc{$endif}, LastDisassembleData;
+  windows, Classes, SysUtils{$ifndef ARMDEV}, newkernelhandler, cefuncproc{$endif},
+  LastDisassembleData, DisassemblerThumb;
 
 const ArmConditions: array [0..15] of string=('EQ','NE','CS', 'CC', 'MI', 'PL', 'VS', 'VC', 'HI', 'LS', 'GE', 'LT', 'GT', 'LE', '','NV');
 const DataProcessingOpcodes: array [0..15] of string=('AND','EOR','SUB', 'RSB', 'ADD', 'ADC', 'SBC', 'RSC', 'TST', 'TEQ', 'CMP', 'CMN', 'ORR', 'MOV', 'BIC','MVN');
@@ -42,7 +43,9 @@ type
 
 implementation
 
+ {$ifndef ARMDEV}
 uses processhandlerunit;
+{$endif}
 
 
 function SignExtend(value: int32; mostSignificantBit: integer): int32;
@@ -715,8 +718,17 @@ end;
 function TArmDisassembler.Disassemble(var address: ptrUint): string;
 var
   x: ptruint;
+  thumbdisassembler: TThumbDisassembler;
 begin
   result:='';
+
+  if (address and 1) = 1 then //thumb
+  begin
+    result:=thumbdisassembler.Disassemble(address);
+    LastDisassembleData:=thumbdisassembler.LastDisassembleData;
+    exit;
+  end;
+
   setlength(LastDisassembleData.bytes,0);
 
   {$ifdef ARMDEV}

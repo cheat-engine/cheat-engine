@@ -11,7 +11,7 @@
 int getRegisters(int tid, CONTEXT_REGS *registerstore)
 {
 
-#if defined(PTRACE_GETREGS)
+#ifndef NT_PRSTATUS
   return ptrace(PTRACE_GETREGS, tid, 0, registerstore);
 #else
   struct iovec iov;

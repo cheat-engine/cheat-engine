@@ -6312,7 +6312,8 @@ begin
   outputdebugstring('end of scancontroller reached');
   isreallydoneevent.setEvent;   //just set it again if it wasn't set
 
-  Synchronize(OwningMemScan.ScanDone);
+  if assigned(OwningMemScan.OnScanDone) then
+    Queue(OwningMemScan.ScanDone);
 end;
 
 constructor TScanController.create(suspended: boolean);

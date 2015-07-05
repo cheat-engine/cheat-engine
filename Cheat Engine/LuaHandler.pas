@@ -91,9 +91,9 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   LuaDissectCode, LuaByteTable, LuaBinary, lua_server, HotkeyHandler, LuaPipeClient,
   LuaPipeServer, LuaTreeview, LuaTreeNodes, LuaTreeNode, LuaCalendar, LuaSymbolListHandler,
   LuaCommonDialog, LuaFindDialog, LuaSettings, LuaPageControl, LuaRipRelativeScanner,
-  SymbolListHandler, processhandlerunit, processlist, DebuggerInterface,
+  LuaStructureFrm, SymbolListHandler, processhandlerunit, processlist, DebuggerInterface,
   WindowsDebugger, VEHDebugger, KernelDebuggerInterface, DebuggerInterfaceAPIWrapper,
-  Globals;
+  Globals, math, speedhack2;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -2346,6 +2346,8 @@ var parameters: integer;
   method: TBreakpointMethod;
 
   lc: TLuaCaller;
+
+  bpe: TBreakpointEvent;
 begin
   lc:=nil;
 
@@ -2384,43 +2386,71 @@ begin
       size:=1;
 
 
-    if lc=nil then  //address, size OPTIONAL, trigger OPTIONAL, functiontocall OPTIONAL
+    if lc=nil then  //address, size OPTIONAL, trigger OPTIONAL, method, functiontocall OPTIONAL
     begin
       if parameters>=3 then
         trigger:=TBreakpointTrigger(lua_tointeger(L,3))
       else
         trigger:=bptExecute;
 
-      if parameters>=4 then
-        method:=TBreakpointMethod(lua_tointeger(L,4))
-      else
-        method:=bpmDebugRegister;
+      method:=preferedBreakpointMethod;
 
-      if parameters>=5 then
+      if parameters>=4 then
       begin
-        if lua_isfunction(L,5) then //address, function type
+        if lua_isnumber(L, 4) then //address, size OPTIONAL, trigger OPTIONAL, method
         begin
-          lua_pushvalue(L,5);
-          lc:=TLuaCaller.create;
-          lc.luaroutineIndex:=luaL_ref(L,LUA_REGISTRYINDEX);
+          method:=TBreakpointMethod(lua_tointeger(L,4));
         end
         else
         begin
-          lc:=TLuaCaller.create;
-          lc.luaroutine:=Lua_ToString(L,5);
+          //addresss, size, trigger, function
+          if lua_isfunction(L,4) then //address, function type
+          begin
+            lua_pushvalue(L,4);
+            lc:=TLuaCaller.create;
+            lc.luaroutineIndex:=luaL_ref(L,LUA_REGISTRYINDEX);
+          end
+          else
+          begin
+            lc:=TLuaCaller.create;
+            lc.luaroutine:=Lua_ToString(L,4);
+          end;
         end;
+      end;
 
+
+      if lc=nil then
+      begin
+        if parameters>=5 then
+        begin
+          if lua_isfunction(L,5) then //address, function type
+          begin
+            lua_pushvalue(L,5);
+            lc:=TLuaCaller.create;
+            lc.luaroutineIndex:=luaL_ref(L,LUA_REGISTRYINDEX);
+          end
+          else
+          begin
+            lc:=TLuaCaller.create;
+            lc.luaroutine:=Lua_ToString(L,5);
+          end;
+
+        end;
       end;
     end;
 
     try
+      if lc<>nil then
+        bpe:=TBreakpointEvent(lc.BreakpointEvent)
+      else
+        bpe:=nil;
 
       if startdebuggerifneeded(false) then
       begin
         case trigger of
-          bptAccess: debuggerthread.SetOnAccessBreakpoint(address, size, method, 0, TBreakpointEvent(lc.BreakpointEvent));
-          bptWrite: debuggerthread.SetOnWriteBreakpoint(address, size, method, 0, TBreakpointEvent(lc.BreakpointEvent));
-          bptExecute: debuggerthread.SetOnExecuteBreakpoint(address, method,false, 0, TBreakpointEvent(lc.BreakpointEvent));
+          bptAccess: debuggerthread.SetOnAccessBreakpoint(address, size, method, 0, bpe);
+          bptWrite: debuggerthread.SetOnWriteBreakpoint(address, size, method, 0, bpe);
+          bptExecute: debuggerthread.SetOnExecuteBreakpoint(address, method,false, 0, bpe);
         end;
 
         MemoryBrowser.hexview.update;
@@ -2612,6 +2642,12 @@ begin
     result:=1;
 
   end else lua_pop(L, parameters);
+end;
+
+function speedhack_getSpeed(L: PLua_State): integer; cdecl;
+begin
+  lua_pushnumber(L, speedhack.getSpeed);
+  result:=1;
 end;
 
 function speedhack_setSpeed(L: PLua_State): integer; cdecl;
@@ -5528,10 +5564,76 @@ begin
   end;
 end;
 
+function lua_frexp(L:PLua_State): integer; cdecl;
+var
+  d: float;
+  m: float;
+  e: integer;
+begin
+  if lua_gettop(l)>=1 then
+  begin
+    d:=lua_tonumber(L, 1);
+    Frexp(d, m,e);
+
+    lua_pushnumber(l,m);
+    lua_pushnumber(l, e);
+    result:=2;
+  end
+  else
+  begin
+    lua_pushstring(L, 'Number required');
+    lua_error(L);
+  end;
+end;
+
+function lua_cosh(L:PLua_State): integer; cdecl;
+begin
+  if lua_gettop(l)>=1 then
+  begin
+    lua_pushnumber(L, cosh(lua_tonumber(L,1)));
+    result:=1;
+  end
+  else
+  begin
+    lua_pushstring(L, 'Number required');
+    lua_error(L);
+  end;
+end;
+
+
+function lua_sinh(L:PLua_State): integer; cdecl;
+begin
+  if lua_gettop(l)>=1 then
+  begin
+    lua_pushnumber(L, sinh(lua_tonumber(L,1)));
+    result:=1;
+  end
+  else
+  begin
+    lua_pushstring(L, 'Number required');
+    lua_error(L);
+  end;
+end;
+
+function lua_tanh(L:PLua_State): integer; cdecl;
+begin
+  if lua_gettop(l)>=1 then
+  begin
+    lua_pushnumber(L, tanh(lua_tonumber(L,1)));
+    result:=1;
+  end
+  else
+  begin
+    lua_pushstring(L, 'Number required');
+    lua_error(L);
+  end;
+end;
 
 procedure InitializeLua;
-var s: tstringlist;
+var
+  s: tstringlist;
   k32: THandle;
+  i: integer;
 begin
 
   LuaVM:=lua_open();
@@ -5622,6 +5724,7 @@ begin
 
     lua_register(LuaVM, 'messageDialog', messageDialog);
     lua_register(LuaVM, 'speedhack_setSpeed', speedhack_setSpeed);
+    lua_register(LuaVM, 'speedhack_getSpeed', speedhack_getSpeed);
     lua_register(LuaVM, 'injectDLL', injectDLL);
     lua_register(LuaVM, 'getAutoAttachList', getAutoAttachList);
 
@@ -5951,6 +6054,8 @@ begin
     initializeLuaCalendar;
     initializeLuaRipRelativeScanner;
 
+    initializeLuaStructureFrm;
+
 
 
     s:=tstringlist.create;
@@ -6019,9 +6124,40 @@ begin
       s.add('dbvm_restore_interrupts=0x'+inttohex(ptruint(@vmxfunctions.dbvm_restore_interrupts),8));
       s.add('dbvm_changeselectors=0x'+inttohex(ptruint(@vmxfunctions.dbvm_changeselectors),8));
 
+      //5.2 backward compatibility:
+      s.add('math.log10=function(v) return math.log(v,10) end');
+      s.add('loadstring=load');
+      s.add('unpack=table.unpack');
+      s.add('package.loaders=package.searchers');
 
+      //5.3 backward compatibility:
+      s.add('math.pow=function(x,y) return x^y end');
+      s.add('math.atan2=math.atan');
+      s.add('math.ldexp=function(x,exp) return x * 2.0^exp end');
 
       lua_doscript(s.text);
+
+      lua_getglobal(luavm, 'math');
+      i:=lua_gettop(luavm);
+
+      lua_pushstring(luavm, 'frexp');
+      lua_pushcfunction(luavm, lua_frexp);
+      lua_settable(luavm,i);
+
+      lua_pushstring(luavm, 'cosh');
+      lua_pushcfunction(luavm, lua_cosh);
+      lua_settable(luavm,i);
+
+      lua_pushstring(luavm, 'sinh');
+      lua_pushcfunction(luavm, lua_sinh);
+      lua_settable(luavm,i);
+
+      lua_pushstring(luavm, 'tanh');
+      lua_pushcfunction(luavm, lua_tanh);
+      lua_settable(luavm,i);
+
+
+      lua_settop(luavm,i-1);
 
     finally
       s.free;

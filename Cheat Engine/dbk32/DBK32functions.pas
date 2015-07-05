@@ -13,7 +13,7 @@ uses jwawindows, windows, sysutils, classes, types, registry, multicpuexecution,
 
 
 
-const currentversion=2000015;
+const currentversion=2000016;
 
 const FILE_ANY_ACCESS=0;
 const FILE_SPECIAL_ACCESS=FILE_ANY_ACCESS;
@@ -108,6 +108,10 @@ const IOCTL_CE_ULTIMAP_CONTINUE       = (IOCTL_UNKNOWN_BASE shl 16) or ($0845 sh
 const IOCTL_CE_ULTIMAP_FLUSH          = (IOCTL_UNKNOWN_BASE shl 16) or ($0846 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
 const IOCTL_CE_GETMEMORYRANGES        = (IOCTL_UNKNOWN_BASE shl 16) or ($0847 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_STARTACCESMONITOR      = (IOCTL_UNKNOWN_BASE shl 16) or ($0848 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+
+const IOCTL_CE_ENUMACCESSEDMEMORY     = (IOCTL_UNKNOWN_BASE shl 16) or ($0849 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_GETACCESSEDMEMORYLIST  = (IOCTL_UNKNOWN_BASE shl 16) or ($084a shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
 
 type TDeviceIoControl=function(hDevice: THandle; dwIoControlCode: DWORD; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesReturned: DWORD; lpOverlapped: POverlapped): BOOL; stdcall;
@@ -163,6 +167,19 @@ type       //The DataEvent structure contains the address and blockid. Use this 
   PUltimapDataEvent= ^TUltimapDataEvent;
 
 
+type
+  TPRange=record
+    startAddress: UINT64;
+    endaddress: uint64;
+  end;
+  PPRange=^TPRange;
+
+  TPRangeArray=array [0..9999] of TPRange;
+  PPRangeArray=^TPRangeArray;
+
+  TPRangeDynArray=array of TPRange;
+
+
 var hdevice: thandle=INVALID_HANDLE_VALUE; //handle to my the device driver
     handlelist: array of thandlelist;
     driverloc: string;
@@ -211,6 +228,8 @@ function WritePhysicalMemory(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:poi
 function GetPhysicalAddress(hProcess:THandle;lpBaseAddress:pointer;var Address:int64): BOOL; stdcall;
 function GetMemoryRanges(var ranges: TPhysicalMemoryRanges): boolean;
 function VirtualQueryExPhysical(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; stdcall;
+
+
 
 function GetCR4:DWORD; stdcall;
 function GetCR3(hProcess:THANDLE;var CR3:system.QWORD):BOOL; stdcall;
@@ -273,6 +292,8 @@ function readMSR(msr: dword): QWORD;
 procedure writeMSR(msr: dword; value: qword);
 
 
+function MarkAllPagesAsNonAccessed(hProcess: THandle):boolean;
+function EnumAndGetAccessedPages(hProcess: THandle; var r: TPRangeDynArray):integer;
 
 
 
@@ -1295,6 +1316,113 @@ Function {NtOpenProcess}NOP(var Handle: THandle; AccessMask: dword; objectattrib
 begin
   Handle:=OP(process_all_access,true,clientid.processid);
   if handle<>0 then result:=0 else result:=$C000000E;
+end;
+
+function MarkAllPagesAsNonAccessed(hProcess: THandle):boolean;
+var
+  i: integer;
+  input: record
+    ProcessID: QWORD;
+  end;
+  br,cc: dword;
+begin
+  //OutputDebugString('MarkAllPagesAsNonAccessed');
+  result:=false;
+  for i:=0 to length(handlelist)-1 do
+    if handlelist[i].processhandle=hProcess then
+    begin
+      if hdevice<>INVALID_HANDLE_VALUE then
+      begin
+        //OutputDebugString('going to call IOCTL_CE_STARTACCESMONITOR');
+
+        input.ProcessID:=handlelist[i].processid;
+        cc:=IOCTL_CE_STARTACCESMONITOR;
+        if deviceiocontrol(hdevice,cc,@input,sizeof(input),nil,0,br,nil) then
+          result:=true;
+
+        exit;
+      end;
+    end;
+end;
+
+function EnumAccessedPages(hProcess: THandle):integer;
+var
+  i: integer;
+  input: record
+    ProcessID: QWORD;
+  end;
+  br,cc: dword;
+  sizeneeded: integer;
+begin
+  OutputDebugString('EnumAccessedPages');
+  result:=0;
+  for i:=0 to length(handlelist)-1 do
+    if handlelist[i].processhandle=hProcess then
+    begin
+      if hdevice<>INVALID_HANDLE_VALUE then
+      begin
+       // OutputDebugString('going to call IOCTL_CE_ENUMACCESSEDMEMORY');
+
+        input.ProcessID:=handlelist[i].processid;
+        cc:=IOCTL_CE_ENUMACCESSEDMEMORY;
+        if deviceiocontrol(hdevice,cc,@input,sizeof(input),@sizeneeded,sizeof(sizeneeded),br,nil) then
+        begin
+         // OutputDebugString('sizeneeded='+inttostr(sizeneeded));
+          result:=sizeneeded;
+        end
+        else
+        begin
+          result:=0;
+          //outputdebugstring('EnumAccessedPages:fail');
+        end;
+
+        exit;
+      end;
+    end;
+end;
+
+
+
+
+function EnumAndGetAccessedPages(hProcess: THandle; var r: TPRangeDynArray):integer;
+var
+  br,cc: dword;
+  sizeneeded: integer;
+  ranges: PPRangeArray;
+  i: integer;
+begin
+
+
+  if hdevice<>INVALID_HANDLE_VALUE then
+  begin
+    sizeneeded:=EnumAccessedPages(hProcess);
+
+    getmem(ranges, sizeneeded);
+
+  //  OutputDebugString('going to call IOCTL_CE_GETACCESSEDMEMORYLIST');
+
+    cc:=IOCTL_CE_GETACCESSEDMEMORYLIST;
+    if deviceiocontrol(hdevice,cc,@sizeneeded,sizeof(sizeneeded),ranges,sizeneeded,br,nil) then
+    begin
+     // outputdebugstring('after IOCTL_CE_GETACCESSEDMEMORYLIST');
+      result:=sizeneeded div sizeof(TPRange);
+
+     // outputdebugstring('result='+inttostr(result));
+      setlength(r, result);
+      for i:=0 to result-1 do
+        r[result-1-i]:=ranges[i];
+    end
+    else
+    begin
+      result:=0;
+     // outputdebugstring('IOCTL_CE_GETACCESSEDMEMORYLIST failed');
+    end;
+
+    freemem(ranges);
+  end;
+
+
+
 end;
 
 function {VirtualQueryEx}VQE(hProcess: THandle; address: pointer; var mbi: _MEMORY_BASIC_INFORMATION; bufsize: DWORD):dword; stdcall;

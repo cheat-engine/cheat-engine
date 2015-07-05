@@ -1210,6 +1210,11 @@ int main(int argc, char *argv[])
   printf("&s=%p\n", &s);
   printf("main=%p\n", main);
 
+  printf("sizeof(off_t)=%d\n",sizeof(off_t));
+  printf("sizeof(off64_t)=%d\n",sizeof(off64_t));
+
+
+
   printf("CEServer. Waiting for client connection\n");
 
   //if (broadcast)

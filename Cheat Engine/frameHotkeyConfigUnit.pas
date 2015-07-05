@@ -155,25 +155,31 @@ procedure TframeHotkeyConfig.Edit1KeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 var i: integer;
 begin
-  if newhotkeys[listbox1.ItemIndex][4]=0 then
+  if listbox1.ItemIndex<>-1 then
   begin
-    for i:=0 to 4 do
-      if newhotkeys[listbox1.ItemIndex][i]=0 then
-      begin
-        newhotkeys[listbox1.ItemIndex][i]:=key;
-        break;
-      end else
-      if newhotkeys[listbox1.ItemIndex][i]=key then break;
-  end;
+    if newhotkeys[listbox1.ItemIndex][4]=0 then
+    begin
+      for i:=0 to 4 do
+        if newhotkeys[listbox1.ItemIndex][i]=0 then
+        begin
+          newhotkeys[listbox1.ItemIndex][i]:=key;
+          break;
+        end else
+        if newhotkeys[listbox1.ItemIndex][i]=key then break;
+    end;
 
-  edit1.Text:=ConvertKeyComboToString(newhotkeys[listbox1.ItemIndex]);
+    edit1.Text:=ConvertKeyComboToString(newhotkeys[listbox1.ItemIndex]);
+  end;
 end;
 
 procedure TframeHotkeyConfig.Button3Click(Sender: TObject);
 begin
-  zeromemory(@newhotkeys[listbox1.ItemIndex][0],10);
-  edit1.Text:=ConvertKeyComboToString(newhotkeys[listbox1.ItemIndex]);
-  edit1.SetFocus;
+  if listbox1.ItemIndex<>-1 then
+  begin
+    zeromemory(@newhotkeys[listbox1.ItemIndex][0],10);
+    edit1.Text:=ConvertKeyComboToString(newhotkeys[listbox1.ItemIndex]);
+    edit1.SetFocus;
+  end;
 end;
 
 initialization

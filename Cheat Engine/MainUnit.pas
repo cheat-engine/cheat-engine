@@ -218,6 +218,7 @@ type
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
+    miBindDeactivation: TMenuItem;
     miScanDirtyOnly: TMenuItem;
     miScanPagedOnly: TMenuItem;
     miGeneratePointermap: TMenuItem;
@@ -449,6 +450,7 @@ type
     procedure Label3Click(Sender: TObject);
     procedure Label57Click(Sender: TObject);
     procedure lblcompareToSavedScanClick(Sender: TObject);
+    procedure miBindDeactivationClick(Sender: TObject);
     procedure miScanDirtyOnlyClick(Sender: TObject);
     procedure miCompressionClick(Sender: TObject);
     procedure miGeneratePointermapClick(Sender: TObject);
@@ -2899,8 +2901,13 @@ var x: TPortableNetworkGraphic;
 
   m: array [0..8] of ptruint;
 
+  r: TPRangeDynArray;
 begin
-  try
+  setlength(r,0);
+  EnumAndGetAccessedPages(processhandle, r);
+
+  showmessage(inttostr(length(r)));
+{  try
     asm
       int3
     end;
@@ -2908,7 +2915,7 @@ begin
   except
     log('expected exception');
   end;
-
+       }
 
 
  {
@@ -2985,6 +2992,8 @@ procedure TMainForm.lblcompareToSavedScanClick(Sender: TObject);
 begin
 
 end;
+
+
 
 procedure TMainForm.miScanDirtyOnlyClick(Sender: TObject);
 begin
@@ -3577,11 +3586,22 @@ begin
   if addresslist.selectedRecord <> nil then
   begin
     if miBindActivation.Checked then
-      addresslist.selectedRecord.options :=
-        addresslist.selectedRecord.options + [moBindActivation]
+      addresslist.selectedRecord.options := addresslist.selectedRecord.options + [moActivateChildrenAsWell]
     else
-      addresslist.selectedRecord.options :=
-        addresslist.selectedRecord.options - [moBindActivation];
+      addresslist.selectedRecord.options := addresslist.selectedRecord.options - [moActivateChildrenAsWell];
+  end;
+end;
+
+procedure TMainForm.miBindDeactivationClick(Sender: TObject);
+begin
+  miBindActivation.Checked := not miBindActivation.Checked;
+
+  if addresslist.selectedRecord <> nil then
+  begin
+    if miBindActivation.Checked then
+      addresslist.selectedRecord.options := addresslist.selectedRecord.options + [moDeactivateChildrenAsWell]
+    else
+      addresslist.selectedRecord.options := addresslist.selectedRecord.options - [moDeactivateChildrenAsWell];
   end;
 end;
 
@@ -3818,7 +3838,7 @@ begin
   if customTypes.Count > 0 then
   begin
     n := n + ' ' + IntToStr(customtypes.Count + 1);
-    fbn := fbn + ' ' + IntToStr(customtypes.Count + 1);
+    fbn := fbn + IntToStr(customtypes.Count + 1);
   end;
 
   with TfrmAutoInject.Create(self) do
@@ -4734,6 +4754,14 @@ begin
   Set8087CW($133f);
   SetSSECSR($1f80);
 
+  //FormDropFiles fix for win7, win8 and later (window message filter update)
+  if (WindowsVersion>=wv7) and assigned(ChangeWindowMessageFilter) then
+  try
+   //WM_COPYGLOBALDATA = 73; MSGFLT_ADD = 1
+   ChangeWindowMessageFilter(73, 1);
+   ChangeWindowMessageFilter(WM_DROPFILES, 1);
+  except;
+  end;
 
   LuaFiles := TLuaFileList.Create;
   LuaForms := TList.Create;
@@ -6206,7 +6234,8 @@ begin
   begin
     miGroupconfig.Visible := True;
     miHideChildren.Checked := moHideChildren in selectedrecord.options;
-    miBindActivation.Checked := moBindActivation in selectedrecord.options;
+    miBindActivation.Checked := moActivateChildrenAsWell in selectedrecord.options;
+    miBindDeactivation.checked := moDeactivateChildrenAsWell in selectedrecord.options;
     miRecursiveSetValue.Checked := moRecursiveSetValue in selectedrecord.options;
     miAllowCollapse.checked := moAllowManualCollapseAndExpand in selectedrecord.options;
     miManualExpandCollapse.checked := moManualExpandCollapse in selectedrecord.options;
@@ -8069,6 +8098,8 @@ var
 begin
 
 
+  MarkAllPagesAsNonAccessed(ProcessHandle);
+
 
 //  showmessage('sip='+inttohex(r,8));
 
@@ -8078,13 +8109,14 @@ begin
   //NtCreatePort(@ph, @oa);
 
 //  th:=OpenThread(THREAD_ALL_ACCESS, false, strtoint(scanvalue.text));
-
+              {
   showmessage('threadid='+inttohex(getcurrentthreadid,1));
   th:=OpenThread(THREAD_ALL_ACCESS, false, GetCurrentThreadId);
 
 
   r:=NtSetInformationThread(th, jwawindows.ThreadHideFromDebugger, nil, 0);
   showmessage('after');
+  }
 
 
  { vqe:=TVirtualQueryExCache.create(processhandle);

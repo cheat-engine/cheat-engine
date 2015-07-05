@@ -97,6 +97,8 @@ type
 
     stacklist: array of ptruint;
 
+    ScannablePages: TMap;
+
     function BinSearchMemRegions(address: ptrUint): integer;
     function isModulePointer(address: ptrUint): boolean;
     function ispointer(address: ptrUint): boolean;
@@ -131,7 +133,7 @@ type
     procedure saveModuleListToResults(s: TStream);
 
     function findPointerValue(startvalue: ptrUint; var stopvalue: ptrUint): PPointerList;
-    constructor create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers, allowNonModulePointers: boolean; useStacks: boolean; stacksAsStaticOnly: boolean; threadstacks: integer; stacksize: integer; specificBaseAsStaticOnly: boolean; baseStart: ptruint; baseStop: ptruint; includeSystemModules: boolean=false);
+    constructor create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers, allowNonModulePointers: boolean; useStacks: boolean; stacksAsStaticOnly: boolean; threadstacks: integer; stacksize: integer; specificBaseAsStaticOnly: boolean; baseStart: ptruint; baseStop: ptruint; includeSystemModules: boolean=false; regionfilename: string='');
     constructor createFromStream(s: TStream; progressbar: tprogressbar=nil);
     constructor createFromStreamHeaderOnly(s: TStream);
     destructor destroy; override;
@@ -141,7 +143,7 @@ type
 
 implementation
 
-uses ProcessHandlerUnit, globals;
+uses ProcessHandlerUnit, globals, DBK32functions;
 
 resourcestring
   rsPointerValueSetupError = 'Pointer value setup error';
@@ -198,10 +200,19 @@ function TReversePointerListHandler.ispointer(address: ptrUint): boolean;
 {
 Check the memoryregion array for this address. If it's in, return true
 }
-var i: integer;
+var
+  i: integer;
+  pfn: ptruint;
+
 begin
   i:=BinSearchMemRegions(address);
   result:=(i<>-1) and (memoryregion[i].ValidPointerRange);
+
+  if result and (scannablepages<>nil) then
+  begin
+    pfn:=address shr 12;
+    result:=scannablepages.HasId(pfn);
+  end;
 end;
 
 procedure TReversePointerListHandler.quicksortmemoryregions(lo,hi: integer);
@@ -653,6 +664,9 @@ begin
   if bigalloc<>nil then
     bigalloc.free;
 
+  if ScannablePages<>nil then
+    freeandnil(ScannablePages);
+
   inherited destroy;
 end;
 
@@ -913,7 +927,7 @@ begin
 
 end;
 
-constructor TReversePointerListHandler.create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers, allowNonModulePointers: boolean; useStacks: boolean; stacksAsStaticOnly: boolean; threadstacks: integer; stacksize: integer; specificBaseAsStaticOnly: boolean; baseStart: ptruint; baseStop: ptruint; includeSystemModules: boolean=false);
+constructor TReversePointerListHandler.create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers, allowNonModulePointers: boolean; useStacks: boolean; stacksAsStaticOnly: boolean; threadstacks: integer; stacksize: integer; specificBaseAsStaticOnly: boolean; baseStart: ptruint; baseStop: ptruint; includeSystemModules: boolean=false; regionfilename: string='');
 var bytepointer: PByte;
     dwordpointer: PDword absolute bytepointer;
     qwordpointer: PQword absolute bytepointer;
@@ -924,6 +938,7 @@ var bytepointer: PByte;
 
     mbi : _MEMORY_BASIC_INFORMATION;
     address: ptrUint;
+    pfn: ptruint;
     size:       dword;
 
     i: Integer;
@@ -942,6 +957,9 @@ var bytepointer: PByte;
     inmodule: boolean;
     valid: boolean;
     InModulePointerMap: TMap;
+
+    regionfile: TFilestream;
+    prangelist: TPRangeDynArray;
 
 begin
   OutputDebugString('TReversePointerListHandler.create');
@@ -992,7 +1010,7 @@ begin
 
     count:=0;
 
-    address:=start;
+
 
     size:=sizeof(TReversePointerListArray);
 
@@ -1000,6 +1018,33 @@ begin
     ZeroMemory(level0list, size);
 
     OutputDebugString('Querying memoryregions');
+
+    if regionfilename<>'' then
+    begin
+      //load this file and map every single page
+      regionfile:=tfilestream.create(regionfilename, fmOpenRead);
+      setlength(prangelist, regionfile.Size div sizeof(TPRange));
+      regionfile.ReadBuffer(prangelist[0], regionfile.Size);
+      regionfile.free;
+
+      //go through the list and add every page to a map
+      ScannablePages:=TMap.Create(ituPtrSize,0);
+
+      for i:=0 to length(prangelist)-1 do
+      begin
+        address:=prangelist[i].startAddress;
+
+        while address<prangelist[i].endaddress do
+        begin
+          pfn:=address shr 12;
+          scannablepages.Add(pfn, valid);
+          inc(address, 4096);
+        end;
+      end;
+    end;
+
+    address:=start;
+
 
     while (Virtualqueryex(processhandle,pointer(address),mbi,sizeof(mbi))<>0) and (address<stop) and ((address+mbi.RegionSize)>address) do
     begin
@@ -1145,7 +1190,7 @@ begin
 
       outputdebugstring('Initial scan to determine the memory needed');
 
-      valid:=true;
+
       for i:=0 to length(memoryregion)-1 do
       begin
         actualread:=0;
@@ -1162,9 +1207,12 @@ begin
             while ptrUint(bytepointer)<=lastaddress do
             begin
 
+
               if (alligned and ((qwordpointer^ mod 8)=0) and ispointer(qwordpointer^)) or
                  ((not alligned) and ispointer(qwordpointer^) ) then
               begin
+                valid:=true;
+
                 //initial add
                 if mustbeclasspointers then
                 begin
@@ -1179,6 +1227,12 @@ begin
 
                     InModulePointerMap.Add(qwordpointer^, valid);
                   end;
+                end;
+
+                if valid and (scannablepages<>nil) then
+                begin
+                  pfn:=(Memoryregion[i].BaseAddress+(ptrUint(qwordpointer)-ptrUint(buffer))) shr 12;
+                  valid:=scannablepages.HasId(pfn);
                 end;
 
                 if valid then
@@ -1196,10 +1250,13 @@ begin
             while ptrUint(bytepointer)<=lastaddress do
             begin
 
+
               if (alligned and ((dwordpointer^ mod 4)=0) and ispointer(dwordpointer^)) or
                  ((not alligned) and ispointer(dwordpointer^) ) then
               begin
                 //initial add
+                valid:=true;
+
                 if mustbeclasspointers then
                 begin
                   //check if we havn't previously marked this address as invalid
@@ -1213,6 +1270,12 @@ begin
 
                     InModulePointerMap.Add(dwordpointer^, valid);
                   end;
+                end;
+
+                if valid and (scannablepages<>nil) then
+                begin
+                  pfn:=(Memoryregion[i].BaseAddress+(ptrUint(dwordpointer)-ptrUint(buffer))) shr 12;
+                  valid:=scannablepages.HasId(pfn);
                 end;
 
                 if valid then
@@ -1247,10 +1310,14 @@ begin
           begin
             while ptrUint(bytepointer)<lastaddress do
             begin
+
+
               if (alligned and ((qwordpointer^ mod 8)=0) and ispointer(qwordpointer^)) or
                  ((not alligned) and ispointer(qwordpointer^) ) then
               begin
                 //initial add
+                valid:=true;
+
                 if mustbeclasspointers then
                 begin
 
@@ -1265,6 +1332,12 @@ begin
 
                     InModulePointerMap.Add(qwordpointer^, valid);
                   end;
+                end;
+
+                if valid and (scannablepages<>nil) then
+                begin
+                  pfn:=(Memoryregion[i].BaseAddress+(ptrUint(qwordpointer)-ptrUint(buffer))) shr 12;
+                  valid:=scannablepages.HasId(pfn);
                 end;
 
                 if valid then
@@ -1284,10 +1357,14 @@ begin
           begin
             while ptrUint(bytepointer)<lastaddress do
             begin
+
+
               if (alligned and ((dwordpointer^ mod 4)=0) and ispointer(dwordpointer^)) or
                  ((not alligned) and ispointer(dwordpointer^) ) then
               begin
                 //initial add
+                valid:=true;
+
                 if mustbeclasspointers then
                 begin
                   //check if we havn't previously marked this address as invalid
@@ -1301,6 +1378,12 @@ begin
 
                     InModulePointerMap.Add(dwordpointer^, valid);
                   end;
+                end;
+
+                if valid and (scannablepages<>nil) then
+                begin
+                  pfn:=(Memoryregion[i].BaseAddress+(ptrUint(dwordpointer)-ptrUint(buffer))) shr 12;
+                  valid:=scannablepages.HasId(pfn);
                 end;
 
                 if valid then

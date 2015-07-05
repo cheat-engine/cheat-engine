@@ -969,6 +969,12 @@ begin
       else
         lblProgressbar1.caption:='Generating pointermap';
 
+      if frmpointerscannersettings.cbLimitScanToRegionFile.Checked then
+        staticscanner.RegionFilename:=frmpointerscannersettings.odLoadRegionFile.FileName
+      else
+        staticscanner.RegionFilename:='';
+
+
       staticscanner.startaddress:=frmpointerscannersettings.start;
       staticscanner.stopaddress:=frmpointerscannersettings.Stop;
 

@@ -334,6 +334,9 @@ type
     hasError: boolean;
     errorString: string;
 
+    RegionFilename: string;
+
+
     LoadedPointermapFilename: string;
     UseLoadedPointermap: boolean;
 
@@ -4276,7 +4279,8 @@ begin
 
       progressbar.Position:=0;
       try
-        pointerlisthandler:=TReversePointerListHandler.Create(startaddress,stopaddress,not unalligned,progressbar, noreadonly, MustBeClassPointers, acceptNonModuleClasses, useStacks, stacksAsStaticOnly, threadstacks, stacksize, mustStartWithBase, BaseStart, BaseStop, includeSystemModules);
+
+        pointerlisthandler:=TReversePointerListHandler.Create(startaddress,stopaddress,not unalligned,progressbar, noreadonly, MustBeClassPointers, acceptNonModuleClasses, useStacks, stacksAsStaticOnly, threadstacks, stacksize, mustStartWithBase, BaseStart, BaseStop, includeSystemModules, RegionFilename);
 
 
         progressbar.position:=100;

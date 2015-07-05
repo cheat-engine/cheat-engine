@@ -394,7 +394,7 @@ int StartDebug(HANDLE hProcess)
   }
   else
   {
-    printf("Invalid handle\n");
+    //printf("Invalid handle\n");
     return FALSE;
   }
 
@@ -849,7 +849,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
   }
   else
   {
-    printf("Invalid handle\n");
+   // printf("Invalid handle\n");
   }
 
   return result;
@@ -1631,7 +1631,7 @@ int WaitForDebugEventNative(PProcessData p, PDebugEvent devent, int tid, int tim
          //   printf("Checking for dispatch command\n");
 
           CheckForAndDispatchCommand(p->debuggerServer);
-          //if (VerboseLevel>10)
+          if (VerboseLevel>10)
             printf("CheckForAndDispatchCommand returned\n");
 
           //check if an event got queued for this thread by the dispatcher
@@ -1797,7 +1797,7 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
           if (ptrace(PTRACE_GETSIGINFO, p->debuggedThreadEvent.threadid, NULL, &si)==0)
           {
 
-            p->debuggedThreadEvent.address=si.si_addr;
+            p->debuggedThreadEvent.address=(uintptr_t)si.si_addr;
             printf("si.si_addr=%p\n", si.si_addr);
           }
           else
@@ -1937,12 +1937,10 @@ int ContinueFromDebugEvent(HANDLE hProcess, int tid, int ignoresignal)
         result=ptrace(PTRACE_SINGLESTEP, tid, 0,0);
         if (result!=0)
         {
-          printf("FAIL: %d!\n", errno);
-          printf("tid=%d\n", tid);
-
-
-          while (1);
+          printf("PTRACE_SINGLESTEP failed (%d). Shit happens\n", errno);
+          result=ptrace(PTRACE_CONT, tid, 0,signal);
         }
+
       }
       else
       {
@@ -2250,6 +2248,8 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
 
   int bytesread=0;
 
+ // printf("ReadProcessMemoryDebug");
+//  printf("lpAddress=%p\n", lpAddress);
 
 
 
@@ -2287,8 +2287,11 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
       if (inflooptest>10)
         printf("FUUU");
 
+
+
       //bytesread=pread(p->mem, buffer, size, (uintptr_t)lpAddress);
-      lseek64(p->mem, (uint64_t)lpAddress, SEEK_SET);
+
+      lseek64(p->mem, (uintptr_t)lpAddress, SEEK_SET);
       bytesread=read(p->mem, buffer, size);
 
 
@@ -2320,7 +2323,7 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
           if (f>=0)
           {
             //bytesread=pread(f, buffer, size, (uintptr_t)lpAddress);
-            lseek64(p->mem, (uint64_t)lpAddress, SEEK_SET);
+            lseek64(p->mem, (uintptr_t)lpAddress, SEEK_SET);
             bytesread=read(p->mem, buffer, size);
 
             if ((bytesread<0) && (errno!=EINTR))
@@ -2441,10 +2444,12 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
   //todo: Try process_vm_readv
 
-  //printf("ReadProcessMemory: %p\n", lpAddress);
+ // printf("ReadProcessMemory(%d, %p, %p, %d)\n", (int)hProcess, lpAddress, buffer, size);
 
   //printf("ReadProcessMemory\n");
   int bread=0;
+
+
   if (GetHandleType(hProcess) == htProcesHandle )
   { //valid handle
     PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
@@ -2470,29 +2475,15 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
           pid_t pid=wait(&status);
 
+          lseek64(p->mem, (uintptr_t)lpAddress, SEEK_SET);
 
-          lseek64(p->mem, (uint64_t)lpAddress, SEEK_SET);
           bread=read(p->mem, buffer, size);
 
           if (bread==-1)
           {
             bread=0;
-            printf("pread error for address %p (errno=%d) ", lpAddress, errno);
-
-#if defined(__i386__) | defined(__arm__)
-            if (lpAddress>=0x80000000)
-            {
-              printf("Falling back on compat mode");
-              //for some reason PEEKDATA does work when above 0x80000000
-              while (bread<size)
-              {
-                *(uintptr_t *)((uintptr_t)buffer+read)=ptrace(PTRACE_PEEKDATA, pid, (uintptr_t)lpAddress+bread, 0);
-                bread+=sizeof(uintptr_t);
-              }
-            }
-#endif
-            printf("\n");
-
+            //printf("pread error for address %p (errno=%d) ", lpAddress, errno);
+            //printf("\n");
           }
 
           //printf("bread=%d size=%d\n", bread, size);
@@ -2509,8 +2500,12 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
     else
       printf("For some reason I failed to obtain a lock\n");
   }
-  else
-    printf("RPM: invalid handle\n");
+  //else
+  //  printf("RPM: invalid handle\n");
+
+ // printf("Returned from rpm\n");
+
+  fflush(stdout);
 
   return bread;
 }
@@ -3076,7 +3071,7 @@ BOOL Process32First(HANDLE hSnapshot, PProcessListEntry processentry)
 BOOL Module32Next(HANDLE hSnapshot, PModuleListEntry moduleentry)
 {
   //get the current iterator of the list and increase it. If the max has been reached, return false
- // printf("Module32Next\n");
+  printf("Module32First/Next(%d)\n", hSnapshot);
 
   if (GetHandleType(hSnapshot) == htTHSModule)
   {
@@ -3096,12 +3091,15 @@ BOOL Module32Next(HANDLE hSnapshot, PModuleListEntry moduleentry)
     }
     else
     {
-     // printf("Returning false because ml->moduleListIterator=%d and ml->moduleCount=%d\n", ml->moduleListIterator, ml->moduleCount);
+      printf("Module32First/Next: Returning false because ml->moduleListIterator=%d and ml->moduleCount=%d\n", ml->moduleListIterator, ml->moduleCount);
       return FALSE;
     }
   }
   else
+  {
+    printf("Module32First/Next: GetHandleType(hSnapshot)=%d\n",GetHandleType(hSnapshot));
     return FALSE;
+  }
 }
 
 

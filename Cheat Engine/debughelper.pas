@@ -278,6 +278,8 @@ begin
           ContinueStatus:=DBG_CONTINUE;
           execlocation:=2;
 
+          if (pluginhandler<>nil) and (pluginhandler.handledebuggerplugins(@debugEvent)=1) then continue;
+
           debugging := eventhandler.HandleDebugEvent(debugEvent, ContinueStatus);
 
           if debugging then

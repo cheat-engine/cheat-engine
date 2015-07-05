@@ -92,7 +92,13 @@ const
   LUA_ERRRUN    = 2;
   LUA_ERRSYNTAX = 3;
   LUA_ERRMEM    = 4;
-  LUA_ERRERR    = 5;
+  LUA_ERRGCMM   = 5;
+  LUA_ERRERR    = 6;
+
+const
+  LUA_OPEQ=	0;
+  LUA_OPLT=	1;
+  LUA_OPLE=	2;
 
 type
   Plua_State = Pointer;
@@ -126,6 +132,8 @@ const
   LUA_TFUNCTION      = 6;
   LUA_TUSERDATA      = 7;
   LUA_TTHREAD        = 8;
+  LUA_NUMTAGS        = 9;
+
 
 (* minimum Lua stack available to a C function *)
   LUA_MINSTACK = 20;
@@ -152,6 +160,7 @@ function lua_atpanic(L: Plua_State; panicf: lua_CFunction): lua_CFunction; cdecl
 ** basic stack manipulation
 *)
 procedure lua_rotate(L: Plua_State; idx: integer; n: integer); cdecl;
+procedure lua_copy(L: Plua_State; fromidx:integer; toidx: integer); cdecl;
 
 
 function lua_gettop(L: Plua_State): Integer; cdecl;
@@ -174,6 +183,7 @@ function lua_isuserdata(L: Plua_State; idx: Integer): LongBool; cdecl;
 function lua_type(L: Plua_State; idx: Integer): Integer; cdecl;
 function lua_typename(L: Plua_State; tp: Integer): PChar; cdecl;
 
+function lua_compare(L: Plua_State; idx1,idx2, op: integer): LongBool; cdecl;
 function lua_equal(L: Plua_State; idx1, idx2: Integer): LongBool; cdecl;
 function lua_rawequal(L: Plua_State; idx1, idx2: Integer): LongBool; cdecl;
 function lua_lessthan(L: Plua_State; idx1, idx2: Integer): LongBool; cdecl;
@@ -212,7 +222,7 @@ procedure lua_pushthread(L: Plua_State); cdecl;
 procedure lua_gettable(L: Plua_State; idx: Integer); cdecl;
 procedure lua_getfield(L: Plua_state; idx: Integer; k: PChar); cdecl;
 procedure lua_rawget(L: Plua_State; idx: Integer); cdecl;
-procedure lua_rawgeti(L: Plua_State; idx, n: Integer); cdecl;
+function lua_rawgeti(L: Plua_State; idx: integer; n: lua_Integer):integer; cdecl;
 procedure lua_createtable(L: Plua_State; narr, nrec: Integer); cdecl;
 function lua_newuserdata(L: Plua_State; sz: size_t): Pointer; cdecl; overload;
 procedure lua_newuserdata(L: Plua_State; p: pointer); cdecl; overload;
@@ -225,7 +235,7 @@ procedure lua_getfenv(L: Plua_State; idx: Integer); cdecl;
 procedure lua_settable(L: Plua_State; idx: Integer); cdecl;
 procedure lua_setfield(L: Plua_State; idx: Integer; k: PChar); cdecl;
 procedure lua_rawset(L: Plua_State; idx: Integer); cdecl;
-procedure lua_rawseti(L: Plua_State; idx, n: Integer); cdecl;
+procedure lua_rawseti(L: Plua_State; idx: integer; n: lua_Integer); cdecl;
 function lua_setmetatable(L: Plua_State; objindex: Integer): Integer; cdecl;
 function lua_setfenv(L: Plua_State; idx: Integer): Integer; cdecl;
 
@@ -243,6 +253,7 @@ function lua_dump(L: Plua_State; writer: lua_Writer; data: Pointer): Integer; cd
 (*
 ** coroutine functions
 *)
+function lua_yieldk(L: Plua_State; nresults: integer; ctx: lua_KContext; h: lua_KFunction): integer; cdecl;
 function lua_yield(L: Plua_State; nresults: Integer): Integer; cdecl;
 function lua_resume(L: Plua_State; narg: Integer): Integer; cdecl;
 function lua_status(L: Plua_State): Integer; cdecl;
@@ -395,6 +406,8 @@ function lua_newthread(L: Plua_State): Plua_State; cdecl; external LUA_NAME;
 function lua_atpanic(L: Plua_State; panicf: lua_CFunction): lua_CFunction; cdecl; external LUA_NAME;
 
 procedure lua_rotate(L: Plua_State; idx: integer; n: integer); cdecl; external LUA_NAME;
+procedure lua_copy(L: Plua_State; fromidx:integer; toidx: integer); cdecl; external LUA_NAME;
+
 function lua_rawlen(L: Plua_State; idx: integer):size_t; cdecl; external LUA_NAME;
 
 function lua_gettop(L: Plua_State): Integer; cdecl; external LUA_NAME;
@@ -411,7 +424,12 @@ begin
   lua_rotate(L, idx, 1);
 end;
 
-procedure lua_replace(L: Plua_State; idx: Integer); cdecl; external LUA_NAME;
+procedure lua_replace(L: Plua_State; idx: Integer); cdecl;
+begin
+  lua_copy(L, -1, idx);
+  lua_pop(L, 1);
+end;
+
 function lua_checkstack(L: Plua_State; sz: Integer): LongBool; cdecl; external LUA_NAME;
 procedure lua_xmove(from, to_: Plua_State; n: Integer); cdecl; external LUA_NAME;
 
@@ -422,9 +440,18 @@ function lua_isuserdata(L: Plua_State; idx: Integer): LongBool; cdecl; external 
 function lua_type(L: Plua_State; idx: Integer): Integer; cdecl; external LUA_NAME;
 function lua_typename(L: Plua_State; tp: Integer): PChar; cdecl; external LUA_NAME;
 
-function lua_equal(L: Plua_State; idx1, idx2: Integer): LongBool; cdecl; external LUA_NAME;
+function lua_equal(L: Plua_State; idx1, idx2: Integer): LongBool; cdecl;
+begin
+  result:=lua_compare(L, idx1, idx2, LUA_OPEQ);
+end;
+
+function lua_compare(L: Plua_State; idx1,idx2, op: integer): LongBool; cdecl; external LUA_NAME;
 function lua_rawequal(L: Plua_State; idx1, idx2: Integer): LongBool; cdecl; external LUA_NAME;
-function lua_lessthan(L: Plua_State; idx1, idx2: Integer): LongBool; cdecl; external LUA_NAME;
+
+function lua_lessthan(L: Plua_State; idx1, idx2: Integer): LongBool; cdecl;
+begin
+  result:=lua_compare(L, idx1,idx2, LUA_OPLT);
+end;
 
 function lua_tonumberx(L: Plua_State; idx: Integer; isnum: pinteger): lua_Number; cdecl; external LUA_NAME;
 function lua_tointegerx(L: Plua_State; idx: Integer; isnum: pinteger): lua_Integer; cdecl; external LUA_NAME;
@@ -466,7 +493,7 @@ procedure lua_pushthread(L: Plua_State); cdecl; external LUA_NAME;
 procedure lua_gettable(L: Plua_State; idx: Integer); cdecl; external LUA_NAME;
 procedure lua_getfield(L: Plua_state; idx: Integer; k: PChar); cdecl; external LUA_NAME;
 procedure lua_rawget(L: Plua_State; idx: Integer); cdecl; external LUA_NAME;
-procedure lua_rawgeti(L: Plua_State; idx, n: Integer); cdecl; external LUA_NAME;
+function lua_rawgeti(L: Plua_State; idx: integer; n: lua_Integer):integer; cdecl; external LUA_NAME;
 procedure lua_createtable(L: Plua_State; narr, nrec: Integer); cdecl; external LUA_NAME;
 function lua_newuserdata(L: Plua_State; sz: size_t): Pointer; cdecl; external LUA_NAME;
 function lua_getmetatable(L: Plua_State; objindex: Integer): Integer; cdecl; external LUA_NAME;
@@ -475,7 +502,7 @@ procedure lua_getfenv(L: Plua_State; idx: Integer); cdecl; external LUA_NAME;
 procedure lua_settable(L: Plua_State; idx: Integer); cdecl; external LUA_NAME;
 procedure lua_setfield(L: Plua_State; idx: Integer; k: PChar); cdecl; external LUA_NAME;
 procedure lua_rawset(L: Plua_State; idx: Integer); cdecl; external LUA_NAME;
-procedure lua_rawseti(L: Plua_State; idx, n: Integer); cdecl; external LUA_NAME;
+procedure lua_rawseti(L: Plua_State; idx: integer; n: lua_Integer); cdecl; external LUA_NAME;
 function lua_setmetatable(L: Plua_State; objindex: Integer): Integer; cdecl; external LUA_NAME;
 function lua_setfenv(L: Plua_State; idx: Integer): Integer; cdecl; external LUA_NAME;
 
@@ -505,7 +532,12 @@ function lua_load(L: Plua_State; reader: lua_Reader; dt: Pointer; const chunknam
 
 function lua_dump(L: Plua_State; writer: lua_Writer; data: Pointer): Integer; cdecl; external LUA_NAME;
 
-function lua_yield(L: Plua_State; nresults: Integer): Integer; cdecl; external LUA_NAME;
+function lua_yieldk(L: Plua_State; nresults: integer; ctx: lua_KContext; h: lua_KFunction):integer; cdecl; external LUA_NAME;
+function lua_yield(L: Plua_State; nresults: Integer): Integer; cdecl;
+begin
+  lua_yieldk(L, nresults, 0, nil)
+end;
+
 function lua_resume(L: Plua_State; narg: Integer): Integer; cdecl; external LUA_NAME;
 function lua_status(L: Plua_State): Integer; cdecl; external LUA_NAME;
 

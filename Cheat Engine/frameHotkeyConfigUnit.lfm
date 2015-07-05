@@ -20,7 +20,7 @@ object frameHotkeyConfig: TframeHotkeyConfig
     TabOrder = 0
     object Label1: TLabel
       Left = 0
-      Height = 16
+      Height = 15
       Top = 0
       Width = 305
       Align = alTop
@@ -29,8 +29,8 @@ object frameHotkeyConfig: TframeHotkeyConfig
     end
     object ListBox1: TListBox
       Left = 0
-      Height = 348
-      Top = 16
+      Height = 349
+      Top = 15
       Width = 305
       Align = alClient
       ExtendedSelect = False
@@ -84,9 +84,9 @@ object frameHotkeyConfig: TframeHotkeyConfig
     TabOrder = 1
     object Label2: TLabel
       Left = 6
-      Height = 16
+      Height = 15
       Top = 0
-      Width = 39
+      Width = 38
       Caption = 'Hotkey'
       ParentColor = False
     end
@@ -120,10 +120,10 @@ object frameHotkeyConfig: TframeHotkeyConfig
       TabOrder = 2
       Visible = False
       object Label52: TLabel
-        Left = 9
-        Height = 16
+        Left = 10
+        Height = 15
         Top = 2
-        Width = 33
+        Width = 32
         Anchors = [akTop, akRight]
         Caption = 'Speed'
         ParentColor = False
@@ -150,9 +150,9 @@ object frameHotkeyConfig: TframeHotkeyConfig
       Visible = False
       object Label3: TLabel
         Left = 3
-        Height = 16
+        Height = 15
         Top = 1
-        Width = 62
+        Width = 61
         Caption = 'Speed delta'
         ParentColor = False
       end
@@ -178,17 +178,17 @@ object frameHotkeyConfig: TframeHotkeyConfig
     TabOrder = 2
     object Label4: TLabel
       Left = 104
-      Height = 16
+      Height = 15
       Top = 6
-      Width = 159
+      Width = 158
       Caption = 'Keypoll interval (milliseconds)'
       ParentColor = False
     end
     object Label5: TLabel
       Left = 104
-      Height = 16
+      Height = 15
       Top = 32
-      Width = 187
+      Width = 186
       Caption = 'Delay between reactivating hotkeys'
       ParentColor = False
     end
@@ -209,6 +209,8 @@ object frameHotkeyConfig: TframeHotkeyConfig
       Hint = 'Lets you specify how quickly a hotkey is repeated'
       Top = 26
       Width = 95
+      ParentShowHint = False
+      ShowHint = True
       TabOrder = 1
       Text = '100'
     end

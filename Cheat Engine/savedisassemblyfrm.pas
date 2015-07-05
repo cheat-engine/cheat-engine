@@ -24,6 +24,8 @@ type
     procedure execute; override;
   end;
 
+  { TfrmSavedisassembly }
+
   TfrmSavedisassembly = class(TForm)
     Button1: TButton;
     Edit1: TEdit;
@@ -51,7 +53,7 @@ type
 
 implementation
 
-uses MemoryBrowserFormUnit;
+uses MemoryBrowserFormUnit, disassemblerComments;
 
 resourcestring
   rsCopyDisassembledOutput = 'Copy disassembled output';
@@ -127,8 +129,17 @@ begin
     if addresslength=0 then
       addresslength:=length(addresspart)+1;
 
+    if dassemblercomments<>nil then
+      specialpart:=dassemblercomments.comments[oldaddress]
+    else
+      specialpart:='';
+
+    if specialpart='' then
+      specialpart:=disassembler.DecodeLastParametersToString;
+
     if specialpart<>'' then
-      opcodepart:=opcodepart+' : '+specialpart;
+      opcodepart:=opcodepart+' { '+specialpart+' }';
+
 
 
     if address then

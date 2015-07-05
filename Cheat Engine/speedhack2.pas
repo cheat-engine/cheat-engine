@@ -11,8 +11,10 @@ type TSpeedhack=class
   private
     fProcessId: dword;
     initaddress: ptrUint;
+    lastSpeed: single;
   public
     procedure setSpeed(speed: single);
+    function getSpeed: single;
     property processid: dword read fProcessId;
     constructor create;
     destructor destroy; override;
@@ -249,6 +251,14 @@ begin
  
 end;
 
+function TSpeedhack.getSpeed: single;
+begin
+  if self=nil then
+    result:=1
+  else
+    result:=lastspeed;
+end;
+
 procedure TSpeedhack.setSpeed(speed: single);
 var x: single;
     script: Tstringlist;
@@ -257,6 +267,7 @@ begin
   if processhandler.isNetwork then
   begin
     getConnection.speedhack_setSpeed(processhandle, speed);
+    lastspeed:=speed;
   end
   else
   begin
@@ -297,6 +308,8 @@ begin
       except
         raise exception.Create(rsFailureSettingSpeed);
       end;
+
+      lastspeed:=speed;
     finally
       script.free;
     end;
