@@ -17,7 +17,6 @@ type
     a: ptruint;
     opcode: uint16;
     opcode2: uint16; //for 32-bit thumb2
-    procedure t32;
 
     procedure ADC_R_T1;
     procedure AND_R_T1;
@@ -105,6 +104,27 @@ type
     procedure STM_T1;
     procedure LDM_T1;
 
+    //T32:
+    procedure T32;
+    procedure T32_DataProcessing_Reg;
+    procedure T32_DataProcessing_Shifted_Reg;
+    procedure T32_DataProcessing_Modified_Immediate;
+    procedure T32_DataProcessing_Plain_Binary_Immediate;
+    procedure T32_Branches_And_Miscellaneous_Control;
+    procedure T32_LoadStore_Multiple;
+    procedure T32_STR_LDR_STL;
+    procedure T32_LoadWord;
+    procedure T32_LoadHalfWord_MemoryHints;
+    procedure T32_LoadByte_MemoryHints;
+
+    procedure T32_StoreSingleDataItem;
+    procedure T32_Multiply_MultiplyAccumulate_AbsoluteDiff;
+    procedure T32_LongMultiply_LongMultiplyAccumulate_Divide;
+
+
+
+
+
 
 
   public
@@ -121,15 +141,941 @@ uses
 {$endif}
   ;
 
+procedure TThumbDisassembler.T32_LongMultiply_LongMultiplyAccumulate_Divide;
+var
+  op1, op2: byte;
+  x: byte;
+begin
+  op1:=(opcode shr 4) and 7;
+  op2:=(opcode2 shr 4) and $f;
+  x:=(op1 shl 4) or op2;
+
+  case x of
+    0: ;//SMULL
+    $1f: ;//SDIV
+    $20: ;//UMUL
+    $3f: ;//UDIV
+    $40: ;//SMLAL
+    $48..$4b: ;//SMLALBB
+    $4c..$4d: ;//SMLALD
+    $5c..$5d: ;//SMLSLD
+    $60: ;//UMLAL
+    $66: ;//UMAAL
+
+
+  end;
+
+end;
+
+procedure TThumbDisassembler.T32_Multiply_MultiplyAccumulate_AbsoluteDiff;
+var op1, Ra, op2: byte;
+  x: byte;
+begin
+  op1:=(opcode shr 4) and $7;
+  Ra:=(opcode2 shr 12) and $f;
+  op2:=(opcode2 shr 4) and 3;
+
+  x:=(op1 shl 2) or op2;
+
+  case op1 of
+    0: ;//if ra=15 then MUL else MLA
+    1: ;//MLS
+    $4..$7: ;// if ra=15 then SMULLBB else SMLABB
+    $8..$9: ;//if ra=15 then SMUAD else SMLAD
+    $C..$d: ;//if ra=15 then SMULWB else SMLAWB
+    $10..$11: ;//if ra=15 then SMUSD else SMLDS
+    $14..$15: ;//if ra=15 then SMMUL else SMMLA
+    $18..$19: ;//SMMLS
+    $1c: ;//if ra=15 then USAD8 else USADA8
+  end;
+
+end;
+
+procedure TThumbDisassembler.T32_DataProcessing_Reg;
+var op1, rn, op2,x: byte;
+begin
+  op1:=(opcode shr 4) and $f;
+  rn:=opcode and $f;
+  op2:=(opcode shr 4) and $f;
+
+  if (op2=0) and (op1 shr 1=1) then
+  begin
+    //movs_reg_shifted
+  end
+  else
+  if (op1 shr 3=1) then
+  begin
+    case op2 shr 2 of
+      0:
+      begin
+        //Parallel Addition and subtraction, signed
+        op1:=(opcode shr 4) and 7;
+        op2:=(opcode shr 4) and 3;
+
+        x:=(op2 shl 3) or op1;
+
+        case x of
+          0: ; //SADD8
+          1: ; //SADD16
+          2: ; //SASX
+          4: ; //SSUB8
+          5: ; //SSUB16
+          6: ; //SSAX
+
+          $8+0: ; //QADD8
+          $8+1: ; //QADD16
+          $8+2: ; //QASX
+          $8+4: ; //QSUB8
+          $8+5: ; //QSUB16
+          $8+6: ; //QSAX
+
+          $10+0: ; //SHADD8
+          $10+1: ; //SHADD16
+          $10+2: ; //SHASX
+          $10+4: ; //SHSUB8
+          $10+5: ; //SHSUB16
+          $10+6: ; //SHSAX
+        end;
+
+
+      end;
+      1:
+      begin
+        //Parallel addition and subtraction, unsigned
+        op1:=(opcode shr 4) and 7;
+        op2:=(opcode shr 4) and 3;
+
+        x:=(op2 shl 3) or op1;
+
+        case x of
+          0: ; //UADD8
+          1: ; //UADD16
+          2: ; //UASX
+          4: ; //USUB8
+          5: ; //USUB16
+          6: ; //USAX
+
+          $8+0: ; //UQADD8
+          $8+1: ; //UQADD16
+          $8+2: ; //UQASX
+          $8+4: ; //UQSUB8
+          $8+5: ; //UQSUB16
+          $8+6: ; //UQSAX
+
+          $10+0: ; //UHADD8
+          $10+1: ; //UHADD16
+          $10+2: ; //UHASX
+          $10+4: ; //UHSUB8
+          $10+5: ; //UHSUB16
+          $10+6: ; //UHSAX
+        end;
+      end;
+      2:
+      begin
+        //miscelanious operations
+        op1:=(opcode shr 4) and 7;
+        op2:=(opcode shr 4) and 3;
+
+        x:=(op1 shl 2) or op2;
+
+        case x of
+          0: ; //QADD
+          1: ; //QDADD
+          2: ; //QSUB
+          3: ; //QDSUB
+
+          $4+0: ; //REV
+          $4+1: ; //REV16
+          $4+2: ; //RBIT
+          $4+3: ; //REVSH
+
+
+          $8: ; //SEL
+          $c: ; //CLZ
+          $10..$13: ; //CRC32
+          $14..$17: ; //CRC32C
+        end;
+      end;
+    end;
+  end
+  else
+  begin
+    if op2 shr 3=1 then
+    begin
+      case op1 of
+        0: ;//if rn=15 then SXTH else SXTAH ;
+        1: ;//if rn=15 then UXTH else UXTAH;
+        2: ;//if rn=15 then SXTB16 else SXTAB16;
+        3: ;//if rn=15 then UXTB16 else UXTAB16
+        4: ;//if rn=15 then SXTB else SXTAB16
+        5: ;//if rn=15 then UXTB else UXTAB;
+      end;
+    end;
+  end;
+
+end;
+
+procedure TThumbDisassembler.T32_DataProcessing_Shifted_Reg;
+var op, s, rn, rd: byte;
+  rds: byte;
+begin
+  op:=(opcode shr 5) and $f;
+  s:=(opcode shr 4) and 1;
+  rn:=opcode and $f;
+
+  rd:=(opcode2 shr 8) and $f;
+  rds:=(rd shl 1) or s;
+
+  case op of
+    0:
+    begin
+//      if rds=31 then and_r else tst_r;
+    end;
+
+    1:
+    begin
+      //BIC_r;
+
+    end;
+
+    2:
+    begin
+//      if rn=15 then mov_r else orr_r
+    end;
+
+    3:
+    begin
+//      if rn=15 then mvn_r else orn_r
+    end;
+
+    4:
+    begin
+     // if rds=31 then TEQ_r else EOR_R
+    end;
+
+    6:
+    begin
+      // PKHBT
+
+    end;
+
+    8:
+    begin
+      //if rds=31 then CMN_R else ADD_R
+
+    end;
+
+    10:
+    begin
+      //ADC_R
+
+    end;
+
+    11:
+    begin
+     // SBC_R
+    end;
+
+    13:
+    begin
+//      if RDS =31 then CMP_R else SUB_R
+
+    end;
+
+    14:
+    begin
+//      RSB_R;
+    end;
+
+  end;
+
+end;
+
+procedure TThumbDisassembler.T32_StoreSingleDataItem;
+var op1, op2: byte;
+begin
+  op1:=(opcode shr 5) and 7;
+  op2:=(opcode shr 6) and $3f;
+
+  case op1 of
+    4: ; //STRB_I
+    5: ; //STRH_I
+    6: ; //STR_I
+    else
+    begin
+      if (op2=0) then
+      begin
+        case op1 of
+          0: ; //STRB_R;
+          1: ; //STRH_R
+          2: ; //STR_R;
+        end;
+      end
+      else
+      if (op2 and $24=$24) or ((op2 shr 2)=12) then
+      begin
+        case op1 of
+          0: ; //STRB_I;
+          1: ; //STRH_I;
+          2: ; //STR_I;
+        end;
+      end
+      else
+      if (op2 shr 2)=13 then
+      begin
+        case op1 of
+          0: ; //STRBT;
+          1: ; //STRHT;
+          2: ; //STRT;
+        end;
+      end;
+    end;
+  end;
+
+
+end;
+
+procedure TThumbDisassembler.T32_LoadByte_MemoryHints;
+var op1, rn, rt, op2: byte;
+begin
+  op1:=(opcode shr 7) and 3;
+  rn:=opcode and $f;
+  rt:=(opcode2 shr 12) and $f;
+  op2:=(opcode shr 6) and $3f;
+
+  if (rn=15) then
+    begin
+      if (op1 shl 1)=1 then
+      begin
+        if rt<>15 then
+        begin
+          //LDRSB_LIT
+        end
+        else
+        begin
+          //PLI_R
+        end;
+      end
+      else
+      begin
+        if rt<>15 then
+        begin
+          //LDRB_IMM
+        end
+        else
+        begin
+          //PLD_LIT
+        end;
+      end;
+    end
+    else //rn<>15
+    case op1 of
+      0:
+      begin
+        if (op2 and $24=$24) or ((op2 shr 2 = 12) and (rt<>15) ) then
+        begin
+          //LDRB_IMM;
+        end
+        else
+        begin
+          if op2=0 then
+          begin
+            if rt=15 then
+            begin
+              //PLD
+            end
+            else
+            begin
+              //LDRB_R
+            end;
+          end
+          else
+          begin
+            //op2<>0
+            case op2 shr 2 of
+              12:
+              begin
+                if rt=15 then
+                begin
+                  //PLD
+                end;
+              end;
+
+              14:
+              begin
+                //LDRBT
+              end;
+            end;
+          end;
+        end;
+      end;
+
+      1:
+      begin
+        if rt=15 then
+        begin
+          //PLI
+        end
+        else
+        begin
+          //LDRB_IMM
+        end;
+      end;
+
+      2:
+      begin
+        if (op2 and $24=$24) or ((op2 shr 2 = 12) and (rt<>15) ) then
+        begin
+          //LDRSB_IMM;
+        end
+        else
+        begin
+          if op2=0 then
+          begin
+            if rt=15 then
+            begin
+              //PLI
+            end
+            else
+            begin
+              //LDRSB_R
+            end;
+          end
+          else
+          begin
+            //op2<>0
+            case op2 shr 2 of
+              12:
+              begin
+                if rt=15 then
+                begin
+                  //PLI
+                end;
+              end;
+
+              14:
+              begin
+                //LDRSBT
+              end;
+            end;
+          end;
+        end;
+      end;
+
+      3:
+      begin
+        if (rt=15) then
+        begin
+          //PLI
+        end
+        else
+        begin
+          //LDRSB
+        end;
+      end;
+    end;
+end;
+
+procedure TThumbDisassembler.T32_LoadHalfWord_MemoryHints;
+var op1, rn, rt, op2: byte;
+begin
+  op1:=(opcode shr 7) and 3;
+  rn:=opcode and $f;
+  rt:=(opcode2 shr 12) and $f;
+  op2:=(opcode shr 6) and $3f;
+
+  if (rn=15) then
+  begin
+    if (op1 shl 1)=1 then
+    begin
+      if rt<>15 then
+      begin
+        //LDRSH_LIT
+      end
+      else
+      begin
+        //NOP
+      end;
+    end
+    else
+    begin
+      if rt<>15 then
+      begin
+        //LDRH_LIT
+      end
+      else
+      begin
+        //PLD_LIT
+      end;
+    end;
+  end
+  else //rn<>15
+  case op1 of
+    0:
+    begin
+      if (op2 and $24=$24) or ((op2 shr 2 = 12) and (rt<>15) ) then
+      begin
+        //LDRH_IMM;
+      end
+      else
+      begin
+        if op2=0 then
+        begin
+          if rt=15 then
+          begin
+            //PLD
+          end
+          else
+          begin
+            //LDRH_R
+          end;
+        end
+        else
+        begin
+          //op2<>0
+          case op2 shr 2 of
+            12:
+            begin
+              if rt=15 then
+              begin
+                //PLD
+              end;
+            end;
+
+            14:
+            begin
+              //LDRHT
+            end;
+          end;
+        end;
+      end;
+    end;
+
+    1:
+    begin
+      if rt=15 then
+      begin
+        //PLD_R
+      end
+      else
+      begin
+        //LDRH_IMM
+      end;
+    end;
+
+    2:
+    begin
+      if (op2 and $24=$24) or ((op2 shr 2 = 12) and (rt<>15) ) then
+      begin
+        //LDRSH_IMM;
+      end
+      else
+      begin
+        if op2=0 then
+        begin
+          if rt=15 then
+          begin
+            //NOP
+          end
+          else
+          begin
+            //LDRSH_R
+          end;
+        end
+        else
+        begin
+          //op2<>0
+          case op2 shr 2 of
+            12:
+            begin
+              if rt=15 then
+              begin
+                //NOP
+              end;
+            end;
+
+            14:
+            begin
+              //LDRSHT
+            end;
+          end;
+        end;
+      end;
+    end;
+
+    3:
+    begin
+      if (rt=15) then ; //NOP
+    end;
+  end;
+end;
+
+procedure TThumbDisassembler.T32_LoadWord;
+var op1, Rn, op2: byte;
+begin
+  op1:=(opcode shr 7) and 3;
+  Rn:=opcode and $f;
+  op2:=(opcode shr 6) and $3f;
+
+  if (rn=15) then
+  begin
+    if (op1<=1) then ; //LDR_Literal;
+  end
+  else
+  begin
+    if (op1=1) then
+    begin
+      //LDR_Immediatye
+    end
+    else
+    begin
+      if (op2=0) then
+      begin
+        // LDR_R;
+      end
+      else
+      begin
+        if ((op2 shr 2)=12) or ((op2 and $24)=$24 ) then
+        begin
+          //LDR_IMM
+        end;
+      end;
+
+    end;
+  end;
+
+end;
+
+procedure TThumbDisassembler.T32_STR_LDR_STL;
+var
+  op1, op2, Rn, op3: byte;
+begin
+  op1:=(opcode shr 7) and 3;
+  op2:=(opcode shr 4) and 3;
+  Rn:=opcode and $f;
+  op3:=(opcode2 shr 4) and $f;
+
+  case (op1 shl 2) or op2 of
+    0: ; //STREX
+    1: ; //LDREX
+    2,6,8,10,12,14: ; //STRD_I_
+    3, 7,9,11,13,15: ;// if rn=15 then LDRD_Literal else LDRD_Immediate;
+    4:
+    begin
+      case op3 of
+        4: ; //STREB
+        5: ; //STREXH
+        7: ; //STREXD
+        8: ; //STLB
+        9: ; //STLH
+        10: ; //STL
+        12: ; //STLEXB
+        13: ; //STLEXH
+        14: ; //STLEX
+        15: ; //STLEXD
+      end;
+    end;
+
+    5:
+    begin
+      case op3 of
+        0: ; //TBB_TBH
+        1: ; //TBH
+        4: ; //LDREXB
+        5: ; //LDREXH
+        7: ; //LDREXD
+        8: ; //LDAB
+        9: ; //LDAH
+        10: ; //LDA
+        12: ; //LDAEXB
+        13: ; //LDAEXH
+        14: ; //LDAEX
+        15: ; //LDAEXD
+      end;
+    end;
+
+
+
+  end;
+
+end;
+
+procedure TThumbDisassembler.T32_LoadStore_Multiple;
+var
+  op, W,L,Rn: byte;
+
+  WRn: byte;
+begin
+  op:=(opcode shr 7) and 3;
+  w:=(opcode shr 5) and 1;
+  l:=(opcode shr 4) and 1;
+  Rn:=opcode and $f;
+
+  WRn:=(W shl 4) or Rn;
+
+  case op of
+    0:
+    begin
+      case L of
+        0: ; //SRS
+        1: ; //RFE
+      end;
+    end;
+
+    1:
+    begin
+      case L of
+        0: ;//STM
+        1: ;//LDM ////not W_Rn: $1D
+      end;
+    end;
+
+    2:
+    begin
+      case L of
+        0: ;//STMDB //not W_Rn: $1D
+        1: ;//LDMDB
+      end;
+    end;
+
+    3:
+    begin
+      case L of
+        0: ;//SRS
+        1: ;//RFE
+      end;
+    end;
+  end;
+
+end;
+
+procedure TThumbDisassembler.T32_Branches_And_Miscellaneous_Control;
+var op, op1, op2, op3, imm8: byte;
+begin
+  op:=(opcode shr 4) and $7f;
+  op3:=opcode and $f;
+  op1:=(opcode2 shr 12) and 7;
+  op2:=(opcode2 shr 8) and $f;
+  imm8:=opcode2 and $ff;
+
+  case op1 of
+    0,2:
+    begin
+      if ((op shr 3) and 7)<>7 then
+      begin
+        //B
+      end
+      else
+      begin
+        case op of
+          $38,$39:
+          begin
+            if (imm8 shr 5) and 1=1 then
+            begin
+              //MSR_BR_
+            end
+            else
+            begin
+              //MSR_R_
+            end;
+
+          end;
+
+          $3a:
+          begin
+            //Change PE_State_and_Hints
+            if ((opcode2 shl 8) and 7)<>0 then
+            begin
+              //CPS/CPSID/CPSIE
+            end
+            else
+            begin
+              case (opcode2 and $ff) of
+                0: ;//NOP;
+                1: ; //YIELD
+                2: ; //WFE
+                3: ; //WFI
+                4: ; //SEV
+                5: ; //SEVL
+                $f0..$ff: ; //DBG
+              end;
+            end;
+
+          end;
+          $3b:
+          begin
+            //Misc_Control_instructions
+            case ((opcode2 shr 4) and $f) of
+              2: ;//CLREX
+              4: ;//DSB
+              5: ;//DMB
+              6: ;//ISB
+            end;
+          end;
+          $3c: ; //BXJ
+          $3d:
+          begin
+            if imm8=0 then
+            begin
+              //ERET
+            end
+            else
+            begin
+              //SUB_I
+            end;
+          end;
+
+          $3e, $3f:
+          begin
+            if (imm8 shr 5) and 1=1 then
+            begin
+              //MRS_BR_
+            end
+            else
+            begin
+              //MRS
+            end;
+          end;
+
+          $78:
+          begin
+            if (op1=0) and (op2=0) and (op3=15) and ((imm8 shr 2)=0) then
+            begin
+              //DCPS1, DCPS2, DCPS3
+            end;
+          end;
+
+          $7e:
+          begin
+            if (op1=0) and ((imm8 shr 2)=0) then
+            begin
+              //HVC
+            end;
+          end;
+
+          $7f:
+          begin
+            if (op1=0) and ((imm8 shr 2)=0) then
+            begin
+              //SMC
+            end;
+
+            if (op1=2) then
+            begin
+              //UDF
+            end;
+          end;
+        end;
+      end;
+    end;
+
+    1,3:
+    begin
+      //B
+    end;
+
+    4..7:
+    begin
+      //BL/BLX
+    end;
+  end;
+
+end;
+
+procedure TThumbDisassembler.T32_DataProcessing_Plain_Binary_Immediate;
+var
+  op, Rn: byte;
+begin
+  op:=(opcode shr 4) and $1f;
+  Rn:=opcode and $f;
+
+  case op of
+    0: ;//ADD / ADR
+    4: ;//MOV
+    10: ;//SUB  / ADR
+    14: ; //MOVT
+    16: ;//SSAT;
+    18: ;//if (((opcode2 shr 6) and 3)=0) and (((opcode2 shr 12) and 7)=0) then SSAT16 else SSAT
+    20: ; //  SBFX
+    22: ;//  BF1/BFC
+    24: ;//USAT
+    26: ;//if (((opcode2 shr 6) and 3)=0) and (((opcode2 shr 12) and 7)=0) then USAT16
+    28: ;//UBFX
+
+  end;
+
+end;
+
+procedure TThumbDisassembler.T32_DataProcessing_Modified_Immediate;
+var
+  op: byte;
+  S: byte;
+  Rn: byte;
+  Rd: byte;
+  a1: boolean;
+
+  i: Byte;
+  imm3: byte;
+  v: byte;
+
+  imm12: word;
+
+  imm32: dword;
+begin
+  op:=(opcode shr 5) and $f;
+  s:=(opcode shr 4) and 1;
+  Rn:=opcode and $f;
+  Rd:=(opcode2 shr 8) and $f;
+
+  i:=(opcode shr 10) and 1;
+  imm3:=(opcode2 shr 12) and 7;
+  v:=opcode2 and $ff;
+
+  a1:=(S=1) and (Rd=$F);
+
+  imm12:=(i shl 12) or (imm3 shl 8) or v;
+
+  if (imm12 shr 10)=0 then
+  begin
+    case (imm12 shr 8) and 3 of
+      0: imm32:=v;
+      1: imm32:=(v shl 16) or v;
+      2: imm32:=(v shl 24) or (v shl 8);
+      3: imm32:=(v shl 24) or (v shl 16) or (v shl 8) or v;
+    end;
+  end
+  else
+  begin
+    //rotate (explained on page 2530/2531)
+    imm32:=(1 shl 7) or (imm12 and $3f); //no, not a mistake, the 8th bit gets replaced by a 1
+    imm32:=RorDWord(imm32, imm12 shr 7);
+  end;
+
+  case op of
+    0: ; // if a1 then TST_I_X(imm32) else AND_TX(imm32);
+    1: ; //BIC(imm32)
+    2: ; //if rn=15 then MOV(imm32) else ORR(imm32);
+    3: ; //if rn=15 then MSN(imm32) else ORN(imm32)
+    4: ; //if a1 then TEQ(imm32) else EOR(imm32)
+    8: ; //if a1 then CMN(imm32) else ADD(imm32)
+    10: ; //ADC(imm32)
+    11: ; //SBC(imm32)
+    13: ; //if a1 then CMP(imm32) else SUB(imm32)
+    14: ; //RSB(imm32)
+  end;
+
+
+end;
 
 procedure TThumbDisassembler.t32;
 var x: ptruint;
+  op1, op2, op: byte;
 begin
   //read opcode2
   {$ifdef armdev}
-  opcode:=pword(a)^;
+  opcode2:=pword(a+2)^;
   setlength(LastDisassembleData.Bytes,4);
-  pword(@LastDisassembleData.Bytes[2])^:=opcode;
+  pword(@LastDisassembleData.Bytes[2])^:=opcode2;
   {$else}
   if readprocessmemory(processhandle, pointer(ptruint(a)-1+2), @opcode2, sizeof(opcode2), x) then
   begin
@@ -137,6 +1083,121 @@ begin
     puint16(@LastDisassembleData.Bytes[2])^:=opcode2;
   end;
   {$endif}
+
+  op1:=(opcode shr 11) and 3;
+  op2:=(opcode shr 4) and $7f;
+  op:=(opcode2 shr 15) and 1;
+
+  case op1 of
+    1:
+    begin
+      if (op2 shr 5)=0 then
+      begin
+        if (op2 shr 2) and 1 = 0 then
+        begin
+          //LoadStore multiple
+          T32_LoadStore_Multiple;
+        end
+        else
+        begin
+          //LoadStore-Exclusive, load acquire/store release table branch
+          T32_STR_LDR_STL;
+        end;
+      end
+      else
+      if (op2 shr 5)=1 then
+      begin
+        //Data-processing (shifted reg)
+        T32_DataProcessing_Shifted_Reg;
+      end
+      else
+      begin
+        //CoProcessor, Advanced SIMD, floating point instr...
+
+        //todo: perhaps in the future
+      end;
+    end;
+
+    2:
+    begin
+      if op=0 then
+      begin
+        if (op2 shr 5) and 1=0 then
+        begin
+          //Data processing (modified immediate)
+          T32_DataProcessing_Modified_Immediate;
+
+        end
+        else
+        begin
+          //Data processing (plain binary immediate)
+          T32_DataProcessing_Plain_Binary_Immediate;
+
+        end;
+
+      end
+      else
+      begin
+        //Branches and miscellaneous
+        T32_Branches_And_Miscellaneous_Control;
+
+      end;
+
+    end;
+
+    3:
+    begin
+      if (op2 shr 4=0) and ((op2 and 1)=0) then
+      begin
+        //Store single data Item
+        T32_StoreSingleDataItem;
+
+      end
+      else
+      if (op2 shr 5=0) then //00xxxxx
+      begin
+        case (op2 and 7) of
+          1: T32_LoadByte_MemoryHints; //LoadByte, memory hints
+          3: T32_LoadHalfWord_MemoryHints;//Load halfword, memory hints
+          5: T32_LoadWord;//Load word
+          7: ;//undefined
+          else
+          begin
+            if ((op2 shr 4) and 1=1) and ((op2 and 1)=0) then
+            begin
+              //Advanced SIMD element or structure load/store
+            end;
+
+          end;
+        end;
+      end
+      else
+      if (op2 shr 4)=2 then
+      begin
+        //data processing (register)
+        T32_DataProcessing_Reg;
+      end
+      else
+      if (op2 shr 3)=6 then
+      begin
+        //Multiply, multiple accumulate, and absolute difference
+        T32_Multiply_MultiplyAccumulate_AbsoluteDiff;
+      end
+      else
+      if (op2 shr 3)=7 then
+      begin
+        //Long multiple, long multiple accumulate, and divide
+        T32_LongMultiply_LongMultiplyAccumulate_Divide;
+      end
+      else
+      if (op2 shr 6)=1 then
+      begin
+        //CoProcessor, Advanced SIMD, and floating point instructions
+      end;
+
+
+    end;
+  end;
 
   //todo: implement me
 end;
