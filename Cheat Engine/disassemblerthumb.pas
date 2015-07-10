@@ -95,12 +95,17 @@ type
     procedure STRH_R_T1;
     procedure STRB_R_T1;
     procedure LDRSB_R_T1;
+    procedure LDRSB_R_T2;
+    procedure LDRSB_L_T1;
     procedure LDR_R_T1;
     procedure LDR_R_T2;
 
     procedure LDRH_R_T1;
+    procedure LDRH_R_T2;
     procedure LDRB_R_T1;
+    procedure LDRB_R_T2;
     procedure LDRSH_R_T1;
+    procedure LDRSH_R_T2;
 
     procedure STR_I_T1;
     procedure LDR_I_T1;
@@ -111,8 +116,17 @@ type
 
     procedure STRB_I_T1;
     procedure LDRB_I_T1;
+    procedure LDRB_I_T2;
+    procedure LDRB_I_T3;
+
     procedure STRH_I_T1;
     procedure LDRH_I_T1;
+
+    procedure LDRSH_I_T1;
+    procedure LDRSH_I_T2;
+    procedure LDRSB_I_T1;
+    procedure LDRSB_I_T2;
+
 
     procedure ADR_T1;
     procedure ADD_SP_I_T1;
@@ -165,6 +179,30 @@ type
     procedure STRD_I_T1;
     procedure LDRD_I_T1;
     procedure LDRD_L_T1;
+
+
+    procedure LDRH_L_T1;
+    procedure LDRSH_L_T1;
+
+
+    procedure LDRBT_T1;
+    procedure LDRHT_T1;
+    procedure LDRSHT_T1;
+    procedure LDRSBT_T1;
+
+    procedure PLD_L_T1;
+    procedure PLD_R_T1;
+    procedure PLD_I_T1;
+    procedure PLD_I_T2;
+
+    procedure PLI_IL_T1;
+    procedure PLI_IL_T2;
+    procedure PLI_IL_T3;
+
+    procedure PLI_R_T1;
+
+
+    procedure NOP_T32;
 
     //T32:
     procedure T32;
@@ -507,26 +545,34 @@ begin
 
   if (rn=15) then
     begin
-      if (op1 shl 1)=1 then
+      if (op1 shr 1)=1 then
       begin
+        //1*
         if rt<>15 then
         begin
-          //LDRSB_LIT
+          LDRSB_L_T1;
         end
         else
         begin
-          //PLI_R
+          //rn=1111 rt=1111
+          PLI_IL_T3;
+
         end;
       end
       else
       begin
+
+        //0*
         if rt<>15 then
         begin
-          //LDRB_IMM
+          if op1=0 then
+            LDRB_I_T3
+          else
+            LDRB_I_T2
         end
         else
         begin
-          //PLD_LIT
+          PLD_L_T1;
         end;
       end;
     end
@@ -536,7 +582,7 @@ begin
       begin
         if (op2 and $24=$24) or ((op2 shr 2 = 12) and (rt<>15) ) then
         begin
-          //LDRB_IMM;
+          LDRB_I_T3;
         end
         else
         begin
@@ -544,11 +590,11 @@ begin
           begin
             if rt=15 then
             begin
-              //PLD
+              PLD_R_T1;
             end
             else
             begin
-              //LDRB_R
+              LDRB_R_T2;
             end;
           end
           else
@@ -559,13 +605,21 @@ begin
               begin
                 if rt=15 then
                 begin
-                  //PLD
+
+                  //op1=00 op2=1100xx rn<>1111 rt=1111
+                  //1111100 0 0 0 0 1 xxxx 1111 1100xxxxxxxx
+                  PLD_I_T2;
                 end;
               end;
 
               14:
               begin
                 //LDRBT
+                //op1=00 op2=1110xx rn<>1111 rt=1111
+                //1111100 0 0 0 0 1 xxxx 1111 1100xxxxxxxx
+
+                LDRBT_T1;
+
               end;
             end;
           end;
@@ -576,11 +630,11 @@ begin
       begin
         if rt=15 then
         begin
-          //PLI
+          PLD_I_T1;
         end
         else
         begin
-          //LDRB_IMM
+          LDRB_I_T2;
         end;
       end;
 
@@ -588,7 +642,7 @@ begin
       begin
         if (op2 and $24=$24) or ((op2 shr 2 = 12) and (rt<>15) ) then
         begin
-          //LDRSB_IMM;
+          LDRSB_I_T2;
         end
         else
         begin
@@ -596,11 +650,11 @@ begin
           begin
             if rt=15 then
             begin
-              //PLI
+              PLI_R_T1;
             end
             else
             begin
-              //LDRSB_R
+              LDRSB_R_T2;
             end;
           end
           else
@@ -611,13 +665,13 @@ begin
               begin
                 if rt=15 then
                 begin
-                  //PLI
+                  PLI_IL_T2;
                 end;
               end;
 
               14:
               begin
-                //LDRSBT
+                LDRSBT_T1;
               end;
             end;
           end;
@@ -628,11 +682,11 @@ begin
       begin
         if (rt=15) then
         begin
-          //PLI
+          PLI_IL_T1;
         end
         else
         begin
-          //LDRSB
+          LDRSB_I_T1;
         end;
       end;
     end;
@@ -648,26 +702,26 @@ begin
 
   if (rn=15) then
   begin
-    if (op1 shl 1)=1 then
+    if (op1 shr 1)=1 then
     begin
       if rt<>15 then
       begin
-        //LDRSH_LIT
+        LDRSH_L_T1;
       end
       else
       begin
-        //NOP
+        NOP_T32;
       end;
     end
     else
     begin
       if rt<>15 then
       begin
-        //LDRH_LIT
+        LDRH_L_T1;
       end
       else
       begin
-        //PLD_LIT
+        PLD_L_T1;
       end;
     end;
   end
@@ -677,7 +731,7 @@ begin
     begin
       if (op2 and $24=$24) or ((op2 shr 2 = 12) and (rt<>15) ) then
       begin
-        //LDRH_IMM;
+        LDRH_L_T1;
       end
       else
       begin
@@ -685,11 +739,12 @@ begin
         begin
           if rt=15 then
           begin
-            //PLD
+            PLD_R_T1;     //00 000000 xxxx 1111
+
           end
           else
           begin
-            //LDRH_R
+            LDRH_R_T2;
           end;
         end
         else
@@ -700,13 +755,13 @@ begin
             begin
               if rt=15 then
               begin
-                //PLD
+                PLD_I_T1;
               end;
             end;
 
             14:
             begin
-              //LDRHT
+              LDRHT_T1;
             end;
           end;
         end;
@@ -717,11 +772,11 @@ begin
     begin
       if rt=15 then
       begin
-        //PLD_R
+        PLD_R_T1;
       end
       else
       begin
-        //LDRH_IMM
+        LDRH_I_T1;
       end;
     end;
 
@@ -729,7 +784,7 @@ begin
     begin
       if (op2 and $24=$24) or ((op2 shr 2 = 12) and (rt<>15) ) then
       begin
-        //LDRSH_IMM;
+        LDRSH_I_T2;
       end
       else
       begin
@@ -737,11 +792,11 @@ begin
         begin
           if rt=15 then
           begin
-            //NOP
+            NOP_T32;
           end
           else
           begin
-            //LDRSH_R
+            LDRSH_R_T2;
           end;
         end
         else
@@ -752,13 +807,13 @@ begin
             begin
               if rt=15 then
               begin
-                //NOP
+                NOP_T32;
               end;
             end;
 
             14:
             begin
-              //LDRSHT
+              LDRSHT_T1;
             end;
           end;
         end;
@@ -767,7 +822,10 @@ begin
 
     3:
     begin
-      if (rt=15) then ; //NOP
+      if (rt=15) then
+        NOP_T32
+      else
+        LDRSH_I_T1;
     end;
   end;
 end;
@@ -2227,10 +2285,108 @@ begin
   else
   if (p=1) and (w=1) then
     LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+_imm+']!';
+end;
 
+procedure TThumbDisassembler.LDRSB_I_T1;
+var rn, rt: byte;
+    imm12: word;
+  _imm: string;
+begin
+  rn:=opcode and $f;
+  rt:=(opcode2 shr 12) and $f;
+  imm12:=opcode2 and $fff;
 
+  if imm12=0 then
+    _imm:=''
+  else
+    _imm:=','+inttohex(imm12,1);
 
+  LastDisassembleData.opcode:='LDRSB';
+  LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+_imm+']'
+end;
 
+procedure TThumbDisassembler.LDRSB_I_T2;
+var rn, rt, p, u, w, imm8: byte;
+  _imm: string;
+begin
+  rn:=opcode and $f;
+  rt:=(opcode2 shr 12) and $f;
+  p:=(opcode2 shr 10) and 1;
+  u:=(opcode2 shr 9) and 1;
+  w:=(opcode2 shr 8) and 1;
+  imm8:=opcode2 and $ff;
+
+  if imm8=0 then
+    _imm:=''
+  else
+  begin
+    if u=0 then
+      _imm:=',-'+inttohex(imm8,1)
+    else
+      _imm:=','+inttohex(imm8,1);
+  end;
+
+  LastDisassembleData.opcode:='LDRSB';
+
+  if (p=1) and (u=0) and (w=0) then
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+_imm+']'
+  else
+  if (p=0) and (w=1) then
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+']'+_imm
+  else
+  if (p=1) and (w=1) then
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+_imm+']!';
+end;
+
+procedure TThumbDisassembler.LDRSH_I_T1;
+var rn, rt: byte;
+    imm12: word;
+  _imm: string;
+begin
+  rn:=opcode and $f;
+  rt:=(opcode2 shr 12) and $f;
+  imm12:=opcode2 and $fff;
+
+  if imm12=0 then
+    _imm:=''
+  else
+    _imm:=','+inttohex(imm12,1);
+
+  LastDisassembleData.opcode:='LDRSH';
+  LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+_imm+']'
+end;
+
+procedure TThumbDisassembler.LDRSH_I_T2;
+var rn, rt, p, u, w, imm8: byte;
+  _imm: string;
+begin
+  rn:=opcode and $f;
+  rt:=(opcode2 shr 12) and $f;
+  p:=(opcode2 shr 10) and 1;
+  u:=(opcode2 shr 9) and 1;
+  w:=(opcode2 shr 8) and 1;
+  imm8:=opcode2 and $ff;
+
+  if imm8=0 then
+    _imm:=''
+  else
+  begin
+    if u=0 then
+      _imm:=',-'+inttohex(imm8,1)
+    else
+      _imm:=','+inttohex(imm8,1);
+  end;
+
+  LastDisassembleData.opcode:='LDRSH';
+
+  if (p=1) and (u=0) and (w=0) then
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+_imm+']'
+  else
+  if (p=0) and (w=1) then
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+']'+_imm
+  else
+  if (p=1) and (w=1) then
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+_imm+']!';
 end;
 
 procedure TThumbDisassembler.STRB_I_T1;
@@ -2267,6 +2423,57 @@ begin
   LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rb]+_imm+']';
 end;
 
+procedure TThumbDisassembler.LDRB_I_T2;
+var rn, rt: byte;
+    imm12: word;
+  _imm: string;
+begin
+  rn:=opcode and $f;
+  rt:=(opcode2 shr 12) and $f;
+  imm12:=opcode2 and $fff;
+
+  if imm12=0 then
+    _imm:=''
+  else
+    _imm:=','+inttohex(imm12,1);
+
+  LastDisassembleData.opcode:='LDRB';
+  LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+_imm+']'
+end;
+
+procedure TThumbDisassembler.LDRB_I_T3;
+var rn, rt, p, u, w, imm8: byte;
+  _imm: string;
+begin
+  rn:=opcode and $f;
+  rt:=(opcode2 shr 12) and $f;
+  p:=(opcode2 shr 10) and 1;
+  u:=(opcode2 shr 9) and 1;
+  w:=(opcode2 shr 8) and 1;
+  imm8:=opcode2 and $ff;
+
+  if imm8=0 then
+    _imm:=''
+  else
+  begin
+    if u=0 then
+      _imm:=',-'+inttohex(imm8,1)
+    else
+      _imm:=','+inttohex(imm8,1);
+  end;
+
+  LastDisassembleData.opcode:='LDRB';
+
+  if (p=1) and (u=0) and (w=0) then
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+_imm+']'
+  else
+  if (p=0) and (w=1) then
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+']'+_imm
+  else
+  if (p=1) and (w=1) then
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+_imm+']!';
+end;
+
 procedure TThumbDisassembler.STRH_I_T1;
 var rt, rb, imm5: byte;
   _imm: string;
@@ -2300,6 +2507,7 @@ begin
   LastDisassembleData.opcode:='LDRH';
   LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rb]+_imm+']';
 end;
+
 
 procedure TThumbDisassembler.STR_R_T1;
 var rt, rn, rm: byte;
@@ -2346,6 +2554,20 @@ begin
   LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+','+ArmRegisters[rm]+']';
 end;
 
+procedure TThumbDisassembler.LDRSB_R_T2;
+var rn, rt, imm2, rm: byte;
+begin
+  rn:=opcode and $f;
+  rt:=(opcode2 shr 12) and $f;
+  imm2:=(opcode2 shr 4) and 3;
+  rm:=(opcode2 and $f);
+  LastDisassembleData.opcode:='LDRSB';
+  if imm2=0 then
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+','+ArmRegisters[rm]+']'
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+','+ArmRegisters[rm]+', LSL '+inttohex(imm2,1)+']';
+end;
+
 procedure TThumbDisassembler.LDR_R_T1;
 var rt, rn, rm: byte;
 begin
@@ -2383,6 +2605,20 @@ begin
   LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+','+ArmRegisters[rm]+']';
 end;
 
+procedure TThumbDisassembler.LDRH_R_T2;
+var rn, rt, imm2, rm: byte;
+begin
+  rn:=opcode and $f;
+  rt:=(opcode2 shr 12) and $f;
+  imm2:=(opcode2 shr 4) and 3;
+  rm:=(opcode2 and $f);
+  LastDisassembleData.opcode:='LDRH';
+  if imm2=0 then
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+','+ArmRegisters[rm]+']'
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+','+ArmRegisters[rm]+', LSL '+inttohex(imm2,1)+']';
+end;
+
 procedure TThumbDisassembler.LDRB_R_T1;
 var rt, rn, rm: byte;
 begin
@@ -2394,6 +2630,20 @@ begin
   LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+','+ArmRegisters[rm]+']';
 end;
 
+procedure TThumbDisassembler.LDRB_R_T2;
+var rn, rt, imm2, rm: byte;
+begin
+  rn:=opcode and $f;
+  rt:=(opcode2 shr 12) and $f;
+  imm2:=(opcode2 shr 4) and 3;
+  rm:=(opcode2 and $f);
+  LastDisassembleData.opcode:='LDRB';
+  if imm2=0 then
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+','+ArmRegisters[rm]+']'
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+','+ArmRegisters[rm]+', LSL '+inttohex(imm2,1)+']';
+end;
+
 procedure TThumbDisassembler.LDRSH_R_T1;
 var rt, rn, rm: byte;
 begin
@@ -2403,6 +2653,20 @@ begin
 
   LastDisassembleData.opcode:='LDRSH';
   LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+','+ArmRegisters[rm]+']';
+end;
+
+procedure TThumbDisassembler.LDRSH_R_T2;
+var rn, rt, imm2, rm: byte;
+begin
+  rn:=opcode and $f;
+  rt:=(opcode2 shr 12) and $f;
+  imm2:=(opcode2 shr 4) and 3;
+  rm:=(opcode2 and $f);
+  LastDisassembleData.opcode:='LDRSH';
+  if imm2=0 then
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+','+ArmRegisters[rm]+']'
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+','+ArmRegisters[rm]+', LSL '+inttohex(imm2,1)+']';
 end;
 
 
@@ -3515,6 +3779,225 @@ begin
 
   if not ((p=0) and (w=0)) then
     LastDisassembleData.parameters:=ArmRegisters[rt]+','+ArmRegisters[rt2]+','+inttohex(imm32,1);
+end;
+
+
+procedure TThumbDisassembler.LDRH_L_T1;
+var u, rt: byte;
+  imm12: word;
+  imm32: ptruint;
+begin
+  u:=(opcode shr 7) and 1;
+  rt:=(opcode2 shr 12) and $f;
+  imm12:=opcode2 and $ff;
+
+  imm32:=imm12;
+  if u=0 then
+    imm32:=-imm32;
+
+  LastDisassembleData.opcode:='LDRH';
+  LastDisassembleData.parameters:=inttohex(Align(a+4,4)+imm32,1);
+end;
+
+procedure TThumbDisassembler.LDRSH_L_T1;
+var u, rt: byte;
+  imm12: word;
+  imm32: ptruint;
+begin
+  u:=(opcode shr 7) and 1;
+  rt:=(opcode2 shr 12) and $f;
+  imm12:=opcode2 and $ff;
+
+  imm32:=imm12;
+  if u=0 then
+    imm32:=-imm32;
+
+  LastDisassembleData.opcode:='LDRSH';
+  LastDisassembleData.parameters:=inttohex(Align(a+4,4)+imm32,1);
+end;
+
+procedure TThumbDisassembler.LDRSB_L_T1;
+var u, rt: byte;
+  imm12: word;
+  imm32: ptruint;
+begin
+  u:=(opcode shr 7) and 1;
+  rt:=(opcode2 shr 12) and $f;
+  imm12:=opcode2 and $ff;
+
+  imm32:=imm12;
+  if u=0 then
+    imm32:=-imm32;
+
+  LastDisassembleData.opcode:='LDRSB';
+  LastDisassembleData.parameters:=inttohex(Align(a+4,4)+imm32,1);
+end;
+
+procedure TThumbDisassembler.PLD_L_T1;
+var u,w: byte;
+  imm12: word;
+  imm32: ptruint;
+begin
+  u:=(opcode shr 7) and 1;
+  w:=(opcode shr 5) and 1;
+  imm12:=opcode2 and $ff;
+
+  imm32:=imm12;
+  if u=0 then
+    imm32:=-imm32;
+
+  LastDisassembleData.opcode:='PLD';
+  LastDisassembleData.parameters:=inttohex(Align(a+4,4)+imm32,1);
+
+end;
+
+procedure TThumbDisassembler.PLD_R_T1;
+var w,rn,imm2, rm: byte;
+begin
+  w:=(opcode shr 5) and 1;
+  rn:=(opcode and $f);
+  imm2:=(opcode2 shr 4) and 3;
+  rm:=opcode and $f;
+
+  if (w=1) then
+    LastDisassembleData.opcode:='PLDW'
+  else
+    LastDisassembleData.opcode:='PLD';
+
+  LastDisassembleData.parameters:='['+ArmRegisters[Rn]+','+ArmRegisters[Rm]+',LSL '+inttohex(imm2,1)+']';
+end;
+
+procedure TThumbDisassembler.PLD_I_T1;
+var w,rn: byte;
+  imm12: word;
+begin
+  w:=(opcode shr 5) and 1;
+  rn:=(opcode and $f);
+  imm12:=opcode2 and $fff;
+
+  if (w=1) then
+    LastDisassembleData.opcode:='PLDW'
+  else
+    LastDisassembleData.opcode:='PLD';
+
+  LastDisassembleData.parameters:='['+ArmRegisters[Rn]+','+inttohex(imm12,1)+']';
+
+end;
+
+procedure TThumbDisassembler.PLD_I_T2;
+var w,rn: byte;
+  imm8: word;
+begin
+  w:=(opcode shr 5) and 1;
+  rn:=(opcode and $f);
+  imm8:=opcode2 and $ff;
+
+  if (w=1) then
+    LastDisassembleData.opcode:='PLDW'
+  else
+    LastDisassembleData.opcode:='PLD';
+
+  LastDisassembleData.parameters:='['+ArmRegisters[Rn]+',-'+inttohex(imm8,1)+']';
+
+end;
+
+procedure TThumbDisassembler.PLI_IL_T1;
+var rn: byte;
+  imm12: word;
+begin
+  rn:=(opcode and $f);
+  imm12:=opcode2 and $fff;
+
+  LastDisassembleData.opcode:='PLI';
+  LastDisassembleData.parameters:='['+ArmRegisters[Rn]+','+inttohex(imm12,1)+']';
+end;
+
+procedure TThumbDisassembler.PLI_IL_T2;
+var rn: byte;
+  imm8: word;
+begin
+  rn:=(opcode and $f);
+  imm8:=opcode2 and $ff;
+
+  LastDisassembleData.opcode:='PLI';
+  LastDisassembleData.parameters:='['+ArmRegisters[Rn]+',-'+inttohex(imm8,1)+']';
+end;
+
+procedure TThumbDisassembler.PLI_IL_T3;
+var u: byte;
+  imm12: word;
+begin
+  u:=(opcode shr 7) and $1;
+  imm12:=opcode2 and $fff;
+
+  LastDisassembleData.opcode:='PLI';
+  if u=0 then
+    LastDisassembleData.parameters:='['+inttohex(align(a+4,4)-imm12,1)+']'
+  else
+    LastDisassembleData.parameters:='['+inttohex(align(a+4,4)+imm12,1)+']'
+end;
+
+procedure TThumbDisassembler.PLI_R_T1;
+var rn,imm2, rm: byte;
+begin
+  rn:=(opcode and $f);
+  imm2:=(opcode2 shr 4) and 3;
+  rm:=opcode and $f;
+
+  LastDisassembleData.opcode:='PLI';
+
+  LastDisassembleData.parameters:='['+ArmRegisters[Rn]+','+ArmRegisters[Rm]+',LSL '+inttohex(imm2,1)+']';
+end;
+
+procedure TThumbDisassembler.LDRBT_T1;
+var rn, rt, imm8: byte;
+begin
+  rn:=opcode and $f;
+  rt:=(opcode2 shr 12) and $f;
+  imm8:=opcode2 and $ff;
+
+  LastDisassembleData.opcode:='LDRBT';
+  LastDisassembleData.parameters:=ArmRegisters[Rt]+',['+ArmRegisters[rn]+','+inttohex(imm8,1)+']';
+end;
+
+procedure TThumbDisassembler.LDRHT_T1;
+var rn, rt, imm8: byte;
+begin
+  rn:=opcode and $f;
+  rt:=(opcode2 shr 12) and $f;
+  imm8:=opcode2 and $ff;
+
+  LastDisassembleData.opcode:='LDRHT';
+  LastDisassembleData.parameters:=ArmRegisters[Rt]+',['+ArmRegisters[rn]+','+inttohex(imm8,1)+']';
+end;
+
+procedure TThumbDisassembler.LDRSHT_T1;
+var rn, rt, imm8: byte;
+begin
+  rn:=opcode and $f;
+  rt:=(opcode2 shr 12) and $f;
+  imm8:=opcode2 and $ff;
+
+  LastDisassembleData.opcode:='LDRSHT';
+  LastDisassembleData.parameters:=ArmRegisters[Rt]+',['+ArmRegisters[rn]+','+inttohex(imm8,1)+']';
+end;
+
+procedure TThumbDisassembler.LDRSBT_T1;
+var rn, rt, imm8: byte;
+begin
+  rn:=opcode and $f;
+  rt:=(opcode2 shr 12) and $f;
+  imm8:=opcode2 and $ff;
+
+  LastDisassembleData.opcode:='LDRSBT';
+  LastDisassembleData.parameters:=ArmRegisters[Rt]+',['+ArmRegisters[rn]+','+inttohex(imm8,1)+']';
+end;
+
+
+procedure TThumbDisassembler.NOP_T32;
+begin
+  LastDisassembleData.opcode:='NOP';
+  LastDisassembleData.parameters:='';
 end;
 
 function TThumbDisassembler.disassemble(var address: ptruint): string;
