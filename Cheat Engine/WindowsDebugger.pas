@@ -71,8 +71,13 @@ end;
 function TWindowsDebuggerInterface.DebugActiveProcess(dwProcessId: DWORD): WINBOOL;
 var d: tstringlist;
 begin
+ // OutputDebugString('Windows Debug Active Process');
   processhandler.processid:=dwProcessID;
+
+//  OutputDebugString('Before calling Open_Process');
   Open_Process;
+
+ // OutputDebugString('After calling Open_Process');
   symhandler.reinitialize;
   symhandler.waitforsymbolsloaded(true);
 

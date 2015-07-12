@@ -199,6 +199,10 @@ begin
 
         lua_pop(L, lua_gettop(L));
       end;
+    end
+    else
+    begin
+      MessageBoxA(0, pchar(Lua_ToString(l, -1)), 'Conditonal breakpoint error', MB_OK);
     end;
   end;
 end;
@@ -882,68 +886,92 @@ begin
 end;
 
 function LUA_functioncall(routinetocall: string; parameters: array of const): integer;
-var i: integer;
+var i,e: integer;
   c: string;
   p: integer;
   oldstack: integer;
+  l: Plua_State;
 begin
+ // OutputDebugString(inttohex(qword(GetCurrentThreadId),1)+':LUA_functioncall calling '+routinetocall);
+ { if GetCurrentThreadId<>MainThreadID then
+  begin
+    OutputDebugString('Not main thread');
+    l:=lua_newthread(luavm);
+  end
+  else  }
+    l:=luavm;
+
+
   result:=-1;
-  oldstack:=lua_gettop(luavm);
+  oldstack:=lua_gettop(l);
+
+ // OutputDebugString('LUA_functioncall: oldstack='+inttostr(oldstack));
 
  // if luacs.TryEnter then
   begin
     try
       //check if the routine exists
-      lua_getglobal(luavm, pchar(routinetocall));
+    //  OutputDebugString('LUA_functioncall: calling getglobal');
 
-      p:=lua_gettop(luavm);
+      lua_getglobal(l, pchar(routinetocall));
+
+     // OutputDebugString('LUA_functioncall: after getglobal');
+
+      p:=lua_gettop(l);
+     // OutputDebugString('LUA_functioncall: newstack='+inttostr(p));
+
       if p<>oldstack then
       begin
-        if lua_isfunction(luavm, -1) then
+        if lua_isfunction(l, -1) then
         begin
+          OutputDebugString('LUA_functioncall: function exists');
+          OutputDebugString('LUA_functioncall: length(parameters)='+inttostr(length(parameters)));
+
           //routine exists, fill in the parameters
           for i:=0 to length(parameters)-1 do
           begin
             case parameters[i].VType of
-              system.vtInteger : lua_pushinteger(LUAVM, parameters[i].VInteger);
-              system.vtBoolean: lua_pushboolean(LUAVM, parameters[i].VBoolean);
+              system.vtInteger : lua_pushinteger(L, parameters[i].VInteger);
+              system.vtBoolean: lua_pushboolean(L, parameters[i].VBoolean);
               system.vtChar:
               begin
                 c:=parameters[i].VChar;
-                lua_pushstring(LUAVM, c);
+                lua_pushstring(L, c);
               end;
-              system.vtExtended: lua_pushnumber(LUAVM, parameters[i].VExtended^);
-              system.vtString: lua_pushstring(LUAVM, pchar(parameters[i].VString));
-              system.vtPointer: lua_pushlightuserdata(LUAVM, parameters[i].VPointer);
-              system.vtPChar: lua_pushstring(LUAVM, parameters[i].VPChar);
-              system.vtObject: lua_pushlightuserdata(LUAVM, pointer(parameters[i].VObject));
-              system.vtClass: lua_pushlightuserdata(LUAVM, pointer(parameters[i].VClass));
+              system.vtExtended: lua_pushnumber(L, parameters[i].VExtended^);
+              system.vtString: lua_pushstring(L, pchar(parameters[i].VString));
+              system.vtPointer: lua_pushlightuserdata(L, parameters[i].VPointer);
+              system.vtPChar: lua_pushstring(L, parameters[i].VPChar);
+              system.vtObject: lua_pushlightuserdata(L, pointer(parameters[i].VObject));
+              system.vtClass: lua_pushlightuserdata(L, pointer(parameters[i].VClass));
               system.vtWideChar, vtPWideChar, vtVariant, vtInterface,
-                vtWideString: lua_pushstring(LUAVM, rsCheatengineIsBeingAFag);
-              system.vtAnsiString: lua_pushstring(LUAVM, pchar(parameters[i].VAnsiString));
-              system.vtCurrency: lua_pushnumber(LUAVM, parameters[i].VCurrency^);
+                vtWideString: lua_pushstring(L, rsCheatengineIsBeingAFag);
+              system.vtAnsiString: lua_pushstring(L, pchar(parameters[i].VAnsiString));
+              system.vtCurrency: lua_pushnumber(L, parameters[i].VCurrency^);
               system.vtInt64:
               begin
                 if (parameters[i].VInt64^<=$ffffffff) then
-                  lua_pushinteger(LUAVM, parameters[i].VInt64^)
+                  lua_pushinteger(L, parameters[i].VInt64^)
                 else
-                  lua_pushlightuserdata(LUAVM, pointer(parameters[i].VInt64^));
+                  lua_pushlightuserdata(L, pointer(parameters[i].VInt64^));
               end;
               system.vtQWord:
               begin
                 if (parameters[i].VQWord^<=$ffffffff) then
-                  lua_pushinteger(LUAVM, parameters[i].VQWord^)
+                  lua_pushinteger(L, parameters[i].VQWord^)
                 else
-                  lua_pushlightuserdata(LUAVM, pointer(parameters[i].VQWord^));
+                  lua_pushlightuserdata(L, pointer(parameters[i].VQWord^));
               end;
             end;
 
           end;
 
-          lua_pcall(luavm, length(parameters), 1, 0);
-          i:=lua_gettop(luavm);
+         // OutputDebugString('Lua_functioncall: Calling lua_pcall');
+          lua_pcall(L, length(parameters), 1, 0);
+         // OutputDebugString('Lua_functioncall: returned from lua_pcall');
+          i:=lua_gettop(L);
           if i>0 then //it has a parameter
-            result:=lua_tointeger(luavm, -1);
+            result:=lua_tointeger(L, -1);
         end;
 
 
@@ -951,7 +979,8 @@ begin
 
 
     finally
-      lua_settop(luavm, oldstack);
+     // OutputDebugString('Lua_functioncall exit');
+      lua_settop(L, oldstack);
  //     luacs.leave;
     end;
 

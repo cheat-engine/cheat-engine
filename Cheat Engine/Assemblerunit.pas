@@ -3264,7 +3264,6 @@ var tokens: ttokens;
     vtype,v2type: integer;
     signedvtype,signedv2type: integer;
 
-    first,last: integer;
     startoflist,endoflist: integer;
 
     tempstring: string;

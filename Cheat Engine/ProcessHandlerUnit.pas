@@ -117,7 +117,13 @@ begin
   {$endif}
 
   if processhandle<>0 then
+  begin
+    OutputDebugString('setProcessHandle: Calling open');
     open;
+    OutputDebugString('After open');
+  end;
+
+
 
     {if GetCurrentThreadId<>MainThreadID then
         TThread.Synchronize(nil, open) }
