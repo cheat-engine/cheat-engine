@@ -40,6 +40,7 @@ type
     rbFindValue: TRadioButton;
     procedure btnNotifySpecificIPsClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
     procedure cbBasePointerMustBeInRangeChange(Sender: TObject);
     procedure cbBroadcastChange(Sender: TObject);
     procedure cbDistributedRescanChange(Sender: TObject);
@@ -50,10 +51,13 @@ type
     procedure cbUseSavedPointermapChange(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure Notebook1ChangeBounds(Sender: TObject);
     procedure rbFindAddressClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
+
+
 
     startoffsets: TComponentList;
     endoffsets: TComponentList;
@@ -79,6 +83,7 @@ type
     { Public declarations }
     resolvediplist: array of THostAddr;
     distributedport: integer;
+    canceled: boolean;
 
     startOffsetValues, endoffsetvalues: Array of dword;
     property Delay: integer read fdelay;
@@ -204,7 +209,14 @@ begin
 
   end;
 
+  canceled:=false;
   modalresult:=mrok;
+end;
+
+procedure TfrmRescanPointer.Button2Click(Sender: TObject);
+begin
+  canceled:=true;
+  modalresult:=mrcancel;
 end;
 
 procedure TfrmRescanPointer.btnNotifySpecificIPsClick(Sender: TObject);
@@ -415,6 +427,11 @@ end;
 procedure TfrmRescanPointer.FormShow(Sender: TObject);
 begin
   updatePositions;
+end;
+
+procedure TfrmRescanPointer.Notebook1ChangeBounds(Sender: TObject);
+begin
+
 end;
 
 procedure TfrmRescanPointer.updatePositions;
