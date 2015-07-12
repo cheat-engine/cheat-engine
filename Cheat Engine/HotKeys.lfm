@@ -14,7 +14,7 @@ object HotKeyForm: THotKeyForm
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.3'
   object ListView1: TListView
     Left = 0
     Height = 136
@@ -99,9 +99,9 @@ object HotKeyForm: THotKeyForm
         ClientWidth = 468
         object Label1: TLabel
           Left = 5
-          Height = 14
+          Height = 13
           Top = 1
-          Width = 208
+          Width = 207
           Caption = 'Type the keys you want to set the hotkey to'
           ParentColor = False
         end
@@ -171,9 +171,9 @@ object HotKeyForm: THotKeyForm
         end
         object Label2: TLabel
           Left = 4
-          Height = 14
+          Height = 13
           Top = 91
-          Width = 102
+          Width = 101
           Caption = 'Description (Optional)'
           ParentColor = False
         end
@@ -183,6 +183,8 @@ object HotKeyForm: THotKeyForm
           Hint = 'When autogenerating a trainer this field will be used as description'
           Top = 107
           Width = 257
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 6
         end
       end

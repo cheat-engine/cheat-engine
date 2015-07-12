@@ -364,7 +364,7 @@ object frmTracer: TfrmTracer
     object sbShowstack: TSpeedButton
       Left = 212
       Height = 30
-      Hint = 'Floating point registers'
+      Hint = 'Stack'
       Top = 192
       Width = 21
       Caption = 'S'

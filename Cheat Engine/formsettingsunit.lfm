@@ -60,76 +60,76 @@ object formSettings: TformSettings
       Height = 469
       Top = 1
       Width = 622
-      ActivePage = tsTools
+      ActivePage = GeneralSettings
       Align = alClient
-      TabIndex = 7
+      TabIndex = 0
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
         Caption = 'General Settings'
-        ClientHeight = 442
+        ClientHeight = 443
         ClientWidth = 614
         object Label11: TLabel
           Left = 221
-          Height = 14
+          Height = 13
           Top = 373
-          Width = 14
+          Width = 13
           Caption = 'ms'
           ParentColor = False
         end
         object Label12: TLabel
           Left = 221
-          Height = 14
+          Height = 13
           Top = 397
-          Width = 14
+          Width = 13
           Caption = 'ms'
           ParentColor = False
         end
         object Label13: TLabel
           Left = 87
-          Height = 14
+          Height = 13
           Top = 376
-          Width = 73
+          Width = 72
           Caption = 'Update interval'
           ParentColor = False
         end
         object Label14: TLabel
           Left = 90
-          Height = 14
+          Height = 13
           Top = 401
-          Width = 70
+          Width = 69
           Caption = 'Freeze interval'
           ParentColor = False
         end
         object Label18: TLabel
           Left = 1
-          Height = 14
+          Height = 13
           Top = 424
-          Width = 159
+          Width = 158
           Caption = 'Found address list update interval'
           ParentColor = False
         end
         object Label19: TLabel
           Left = 221
-          Height = 14
+          Height = 13
           Top = 421
-          Width = 14
+          Width = 13
           Caption = 'ms'
           ParentColor = False
         end
         object Label23: TLabel
           Left = 10
-          Height = 14
+          Height = 13
           Top = 322
-          Width = 194
+          Width = 193
           Caption = 'Automatically attach to processes named'
           ParentColor = False
         end
         object Label24: TLabel
           Left = 359
-          Height = 14
+          Height = 13
           Top = 321
-          Width = 115
+          Width = 114
           Caption = '(Seperate entries with ; )'
           ParentColor = False
         end
@@ -249,6 +249,8 @@ object formSettings: TformSettings
           Hint = 'Type the name of the process you want to automatically open. Note: Only works when NO process has been opened yet'
           Top = 317
           Width = 143
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 9
         end
         object cbAlwaysAutoAttach: TCheckBox
