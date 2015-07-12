@@ -5,7 +5,8 @@ unit DisassemblerThumb;
 {
 This disassembler is build based on the information in chapter F of the ARM DDI 0487A.e ID121714 Documentation
 
-
+it's main purpose is to give an basic overview of what is going on.
+And yes, this can require a bit of refactoring
 }
 
 interface
@@ -21,29 +22,48 @@ type
     opcode2: uint16; //for 32-bit thumb2
 
     procedure ADC_R_T1;
+    procedure ADC_R_T2;
     procedure AND_R_T1;
+    procedure AND_R_T2;
     procedure EOR_R_T1;
+    procedure EOR_R_T2;
     procedure SBC_R_T1;
+    procedure SBC_R_T2;
     procedure TST_R_T1;
+    procedure TST_R_T2;
     procedure RSB_I_T1;
+    procedure RSB_R_T1;
     procedure CMP_R_T1;
     procedure CMP_R_T2;
+    procedure CMP_R_T3;
     procedure CMN_R_T1;
+    procedure CMN_R_T2;
     procedure ORR_R_T1;
+    procedure ORR_R_T2;
+    procedure ORN_R_T1;
     procedure MUL_R_T1;
     procedure BIC_R_T1;
+    procedure BIC_R_T2;
     procedure MVN_R_T1;
+    procedure MVN_R_T2;
 
     procedure MOV_R_T1;
     procedure MOV_R_T2;
+    procedure MOV_R_T3;
     procedure MOV_RSR_T1;
+    procedure MOV_RSR_T2;
 
-    procedure ADD_R_T2;
+    procedure PKHBT_T1;
+
+
     procedure ADD_SP_R_T1;
     procedure ADD_SP_R_T2;
 
     procedure ADD_R_T1;
+    procedure ADD_R_T2;
+    procedure ADD_R_T3;
     procedure SUB_R_T1;
+    procedure SUB_R_T2;
 
     procedure ADD_I_T1;
     procedure ADD_I_T2;
@@ -56,6 +76,8 @@ type
     procedure SUB_I_T2;
     procedure SUB_I_T4;
     procedure SUB_I_T5;
+
+    procedure TEQ_R_T1;
 
 
     procedure SSAT_T1;
@@ -92,8 +114,17 @@ type
     procedure LDR_L_T2;
 
     procedure STR_R_T1;
+    procedure STR_R_T2;
     procedure STRH_R_T1;
+    procedure STRH_R_T2;
+    procedure STRHT_T1;
     procedure STRB_R_T1;
+    procedure STRB_R_T2;
+    procedure STRBT_T1;
+
+    procedure STRT_T1;
+
+
     procedure LDRSB_R_T1;
     procedure LDRSB_R_T2;
     procedure LDRSB_L_T1;
@@ -112,14 +143,22 @@ type
     procedure STR_I_T2;
     procedure LDR_I_T2;
 
+    procedure STR_I_T3;
+    procedure STR_I_T4;
+
+
     procedure LDR_I_T4;
 
     procedure STRB_I_T1;
+    procedure STRB_I_T2;
+    procedure STRB_I_T3;
     procedure LDRB_I_T1;
     procedure LDRB_I_T2;
     procedure LDRB_I_T3;
 
     procedure STRH_I_T1;
+    procedure STRH_I_T2;
+    procedure STRH_I_T3;
     procedure LDRH_I_T1;
 
     procedure LDRSH_I_T1;
@@ -134,9 +173,23 @@ type
     procedure SUB_SP_I_T1;
     procedure CBZ_CBNZ;
     procedure SXTH_T1;
+    procedure SXTH_T2;
+    procedure SXTAH_T1;
     procedure SXTB_T1;
+    procedure SXTB_T2;
+    procedure SXTAB_T1;
+    procedure SXTB16_T1;
+    procedure SXTAB16_T1;
+    procedure UXTB16_T1;
+    procedure UXTAB_T1;
+    procedure UXTAB16_T1;
+
     procedure UXTH_T1;
+    procedure UXTH_T2;
+    procedure UXTAH_T1;
+
     procedure UXTB_T1;
+    procedure UXTB_T2;
     procedure PUSH_T1;
     procedure POP_T1;
 
@@ -243,24 +296,38 @@ uses
 
 procedure TThumbDisassembler.T32_LongMultiply_LongMultiplyAccumulate_Divide;
 var
-  op1, op2: byte;
+  op1, rn, RdLo, RdHi, op2, Rm: byte;
   x: byte;
 begin
   op1:=(opcode shr 4) and 7;
+  rn:=opcode and $f;
+  RdLo:=(opcode2 shr 12) and $f;
+  RdHi:=(opcode2 shr 8) and $f;
   op2:=(opcode2 shr 4) and $f;
+  Rm:=opcode2 and $f;
   x:=(op1 shl 4) or op2;
 
+  if op2=15 then
+    LastDisassembleData.parameters:=ArmRegisters[RdHi]+','+ArmRegisters[Rn]+','+ArmRegisters[Rm]
+  else
+    LastDisassembleData.parameters:=ArmRegisters[RdLo]+','+ArmRegisters[RdHi]+','+ArmRegisters[Rn]+','+ArmRegisters[Rm];
+
   case x of
-    0: ;//SMULL
-    $1f: ;//SDIV
-    $20: ;//UMUL
-    $3f: ;//UDIV
-    $40: ;//SMLAL
-    $48..$4b: ;//SMLALBB
-    $4c..$4d: ;//SMLALD
-    $5c..$5d: ;//SMLSLD
-    $60: ;//UMLAL
-    $66: ;//UMAAL
+    0: LastDisassembleData.opcode:='SMULL';
+    $1f: LastDisassembleData.opcode:='SDIV';
+    $20: LastDisassembleData.opcode:='UMUL';
+    $3f: LastDisassembleData.opcode:='UDIV';
+    $40: LastDisassembleData.opcode:='SMLAL';
+    $48: LastDisassembleData.opcode:='SMLALBB';
+    $49: LastDisassembleData.opcode:='SMLALTB';
+    $4a: LastDisassembleData.opcode:='SMLALBT';
+    $4b: LastDisassembleData.opcode:='SMLALTT';
+    $4c: LastDisassembleData.opcode:='SMLALD';
+    $4d: LastDisassembleData.opcode:='SMLALDX';
+    $5c: LastDisassembleData.opcode:='SMLSLD';
+    $5d: LastDisassembleData.opcode:='SMLSLDX';
+    $60: LastDisassembleData.opcode:='UMLAL';
+    $66: LastDisassembleData.opcode:='UMAAL';
 
 
   end;
@@ -268,39 +335,62 @@ begin
 end;
 
 procedure TThumbDisassembler.T32_Multiply_MultiplyAccumulate_AbsoluteDiff;
-var op1, Ra, op2: byte;
+var op1, rn, Ra, rd, rm, op2: byte;
   x: byte;
+
+  _ra: string;
 begin
   op1:=(opcode shr 4) and $7;
+  rn:=opcode and $f;
   Ra:=(opcode2 shr 12) and $f;
+  rd:=(opcode2 shr 8) and $f;
   op2:=(opcode2 shr 4) and 3;
+  rm:=opcode2 and $f;
 
   x:=(op1 shl 2) or op2;
 
+  if ra=15 then
+    _ra:=''
+  else
+    _ra:=','+ArmRegisters[ra];
+
+  LastDisassembleData.parameters:=ArmRegisters[Rd]+','+ArmRegisters[Rn]+','+ArmRegisters[Rm]+_ra;
+
+
   case op1 of
-    0: ;//if ra=15 then MUL else MLA
-    1: ;//MLS
-    $4..$7: ;// if ra=15 then SMULLBB else SMLABB
-    $8..$9: ;//if ra=15 then SMUAD else SMLAD
-    $C..$d: ;//if ra=15 then SMULWB else SMLAWB
-    $10..$11: ;//if ra=15 then SMUSD else SMLDS
-    $14..$15: ;//if ra=15 then SMMUL else SMMLA
-    $18..$19: ;//SMMLS
-    $1c: ;//if ra=15 then USAD8 else USADA8
+    0: if ra=15 then LastDisassembleData.opcode:='MUL' else LastDisassembleData.opcode:='MLA';
+    1: LastDisassembleData.opcode:='MLS';
+    $4: if ra=15 then LastDisassembleData.opcode:='SMULBB' else LastDisassembleData.opcode:='SMLABB';
+    $5: if ra=15 then LastDisassembleData.opcode:='SMULTB' else LastDisassembleData.opcode:='SMLATB';
+    $6: if ra=15 then LastDisassembleData.opcode:='SMULBT' else LastDisassembleData.opcode:='SMLABT';
+    $7: if ra=15 then LastDisassembleData.opcode:='SMULTT' else LastDisassembleData.opcode:='SMLATT';
+    $8: if ra=15 then LastDisassembleData.opcode:='SMUAD' else LastDisassembleData.opcode:='SMLAD';
+    $9: if ra=15 then LastDisassembleData.opcode:='SMUADX' else LastDisassembleData.opcode:='SMLADX';
+    $C: if ra=15 then LastDisassembleData.opcode:='SMULWB' else LastDisassembleData.opcode:='SMLAWB';
+    $d: if ra=15 then LastDisassembleData.opcode:='SMULWT' else LastDisassembleData.opcode:='SMLAWT';
+    $10: if ra=15 then LastDisassembleData.opcode:='SMUSD' else LastDisassembleData.opcode:='SMLSD';
+    $11: if ra=15 then LastDisassembleData.opcode:='SMUSDX' else LastDisassembleData.opcode:='SMLSDX';
+    $14: if ra=15 then LastDisassembleData.opcode:='SMMUL' else LastDisassembleData.opcode:='SMMLA';
+    $15: if ra=15 then LastDisassembleData.opcode:='SMMULR' else LastDisassembleData.opcode:='SMMLAR';
+    $18: LastDisassembleData.opcode:='SMMLS';
+    $19: LastDisassembleData.opcode:='SMMLSR';
+    $1c: if ra=15 then LastDisassembleData.opcode:='USAD8' else LastDisassembleData.opcode:='USADA8';
   end;
 
 end;
 
 procedure TThumbDisassembler.T32_DataProcessing_Reg;
-var op1, rn, op2,x: byte;
+var op1, rd, rn, rm, op2,x: byte;
 begin
   op1:=(opcode shr 4) and $f;
   rn:=opcode and $f;
+  rd:=(opcode2 shr 8) and $f;
   op2:=(opcode shr 4) and $f;
+  rm:=opcode2 and $f;
 
   if (op2=0) and (op1 shr 1=1) then
   begin
-    //movs_reg_shifted
+    MOV_RSR_T2;
   end
   else
   if (op1 shr 3=1) then
@@ -313,28 +403,29 @@ begin
         op2:=(opcode shr 4) and 3;
 
         x:=(op2 shl 3) or op1;
+        LastDisassembleData.parameters:=ArmRegisters[Rd]+','+ArmRegisters[Rn]+','+ArmRegisters[Rm];
 
         case x of
-          0: ; //SADD8
-          1: ; //SADD16
-          2: ; //SASX
-          4: ; //SSUB8
-          5: ; //SSUB16
-          6: ; //SSAX
+          0: LastDisassembleData.opcode:='SADD8';
+          1: LastDisassembleData.opcode:='SADD16';
+          2: LastDisassembleData.opcode:='SASX';
+          4: LastDisassembleData.opcode:='SSUB8';
+          5: LastDisassembleData.opcode:='SSUB16';
+          6: LastDisassembleData.opcode:='SSAX';
 
-          $8+0: ; //QADD8
-          $8+1: ; //QADD16
-          $8+2: ; //QASX
-          $8+4: ; //QSUB8
-          $8+5: ; //QSUB16
-          $8+6: ; //QSAX
+          $8+0: LastDisassembleData.opcode:='QADD8';
+          $8+1: LastDisassembleData.opcode:='QADD16';
+          $8+2: LastDisassembleData.opcode:='QASX';
+          $8+4: LastDisassembleData.opcode:='QSUB8';
+          $8+5: LastDisassembleData.opcode:='QSUB16';
+          $8+6: LastDisassembleData.opcode:='QSAX';
 
-          $10+0: ; //SHADD8
-          $10+1: ; //SHADD16
-          $10+2: ; //SHASX
-          $10+4: ; //SHSUB8
-          $10+5: ; //SHSUB16
-          $10+6: ; //SHSAX
+          $10+0: LastDisassembleData.opcode:='SHADD8';
+          $10+1: LastDisassembleData.opcode:='SHADD16';
+          $10+2: LastDisassembleData.opcode:='SHASX';
+          $10+4: LastDisassembleData.opcode:='SHSUB8';
+          $10+5: LastDisassembleData.opcode:='SHSUB16';
+          $10+6: LastDisassembleData.opcode:='SHSAX';
         end;
 
 
@@ -346,28 +437,29 @@ begin
         op2:=(opcode shr 4) and 3;
 
         x:=(op2 shl 3) or op1;
+        LastDisassembleData.parameters:=ArmRegisters[Rd]+','+ArmRegisters[Rn]+','+ArmRegisters[Rm];
 
         case x of
-          0: ; //UADD8
-          1: ; //UADD16
-          2: ; //UASX
-          4: ; //USUB8
-          5: ; //USUB16
-          6: ; //USAX
+          0: LastDisassembleData.opcode:='UADD8';
+          1: LastDisassembleData.opcode:='UADD16';
+          2: LastDisassembleData.opcode:='UASX';
+          4: LastDisassembleData.opcode:='USUB8';
+          5: LastDisassembleData.opcode:='USUB16';
+          6: LastDisassembleData.opcode:='USAX';
 
-          $8+0: ; //UQADD8
-          $8+1: ; //UQADD16
-          $8+2: ; //UQASX
-          $8+4: ; //UQSUB8
-          $8+5: ; //UQSUB16
-          $8+6: ; //UQSAX
+          $8+0: LastDisassembleData.opcode:='UQADD8';
+          $8+1: LastDisassembleData.opcode:='UQADD16';
+          $8+2: LastDisassembleData.opcode:='UQASX';
+          $8+4: LastDisassembleData.opcode:='UQSUB8';
+          $8+5: LastDisassembleData.opcode:='UQSUB16';
+          $8+6: LastDisassembleData.opcode:='UQSAX';
 
-          $10+0: ; //UHADD8
-          $10+1: ; //UHADD16
-          $10+2: ; //UHASX
-          $10+4: ; //UHSUB8
-          $10+5: ; //UHSUB16
-          $10+6: ; //UHSAX
+          $10+0: LastDisassembleData.opcode:='UHADD8';
+          $10+1: LastDisassembleData.opcode:='UHADD16';
+          $10+2: LastDisassembleData.opcode:='UHASX';
+          $10+4: LastDisassembleData.opcode:='UHSUB8';
+          $10+5: LastDisassembleData.opcode:='UHSUB16';
+          $10+6: LastDisassembleData.opcode:='UHSAX';
         end;
       end;
       2:
@@ -378,22 +470,29 @@ begin
 
         x:=(op1 shl 2) or op2;
 
+        LastDisassembleData.parameters:=ArmRegisters[Rd]+','+ArmRegisters[Rn]+','+ArmRegisters[Rm];
+
+
         case x of
-          0: ; //QADD
-          1: ; //QDADD
-          2: ; //QSUB
-          3: ; //QDSUB
+          0: LastDisassembleData.opcode:='QADD';
+          1: LastDisassembleData.opcode:='QDADD';
+          2: LastDisassembleData.opcode:='QSUB';
+          3: LastDisassembleData.opcode:='QDSUB';
 
-          $4+0: ; //REV
-          $4+1: ; //REV16
-          $4+2: ; //RBIT
-          $4+3: ; //REVSH
+          $4+0: LastDisassembleData.opcode:='REV';
+          $4+1: LastDisassembleData.opcode:='REV16';
+          $4+2: LastDisassembleData.opcode:='RBIT';
+          $4+3: LastDisassembleData.opcode:='REVSH';
 
 
-          $8: ; //SEL
-          $c: ; //CLZ
-          $10..$13: ; //CRC32
-          $14..$17: ; //CRC32C
+          $8: LastDisassembleData.opcode:='SEL';
+          $c: LastDisassembleData.opcode:='CLZ';
+          $10: LastDisassembleData.opcode:='CRC32B';
+          $11: LastDisassembleData.opcode:='CRC32H';
+          $12: LastDisassembleData.opcode:='CRC32W';
+          $14: LastDisassembleData.opcode:='CRC32CB';
+          $15: LastDisassembleData.opcode:='CRC32CH';
+          $16: LastDisassembleData.opcode:='CRC32CW';
         end;
       end;
     end;
@@ -403,12 +502,12 @@ begin
     if op2 shr 3=1 then
     begin
       case op1 of
-        0: ;//if rn=15 then SXTH else SXTAH ;
-        1: ;//if rn=15 then UXTH else UXTAH;
-        2: ;//if rn=15 then SXTB16 else SXTAB16;
-        3: ;//if rn=15 then UXTB16 else UXTAB16
-        4: ;//if rn=15 then SXTB else SXTAB16
-        5: ;//if rn=15 then UXTB else UXTAB;
+        0: if rn=15 then SXTH_T2 else SXTAH_T1;
+        1: if rn=15 then UXTH_T2 else UXTAH_T1;
+        2: if rn=15 then SXTB16_T1 else SXTAB16_T1;
+        3: if rn=15 then UXTB16_T1 else UXTAB16_T1;
+        4: if rn=15 then SXTB_T2 else SXTAB_T1;
+        5: if rn=15 then UXTB_T2 else UXTAB_T1;
       end;
     end;
   end;
@@ -427,66 +526,17 @@ begin
   rds:=(rd shl 1) or s;
 
   case op of
-    0:
-    begin
-//      if rds=31 then and_r else tst_r;
-    end;
-
-    1:
-    begin
-      //BIC_r;
-
-    end;
-
-    2:
-    begin
-//      if rn=15 then mov_r else orr_r
-    end;
-
-    3:
-    begin
-//      if rn=15 then mvn_r else orn_r
-    end;
-
-    4:
-    begin
-     // if rds=31 then TEQ_r else EOR_R
-    end;
-
-    6:
-    begin
-      // PKHBT
-
-    end;
-
-    8:
-    begin
-      //if rds=31 then CMN_R else ADD_R
-
-    end;
-
-    10:
-    begin
-      //ADC_R
-
-    end;
-
-    11:
-    begin
-     // SBC_R
-    end;
-
-    13:
-    begin
-//      if RDS =31 then CMP_R else SUB_R
-
-    end;
-
-    14:
-    begin
-//      RSB_R;
-    end;
-
+    0: if rds=31 then AND_R_T2 else TST_R_T2;
+    1: BIC_R_T2;
+    2: if rn=15 then MOV_R_T3 else ORR_R_T2;
+    3: if rn=15 then MVN_R_T2 else ORN_R_T1;
+    4: if rds=31 then TEQ_R_T1 else EOR_R_T2;
+    6: PKHBT_T1;
+    8: if rds=31 then CMN_R_T2 else ADD_R_T3;
+    10: ADC_R_T2;
+    11: SBC_R_T2;
+    13: if RDS =31 then CMP_R_T3 else SUB_R_T2;
+    14: RSB_R_T1;
   end;
 
 end;
@@ -498,35 +548,35 @@ begin
   op2:=(opcode shr 6) and $3f;
 
   case op1 of
-    4: ; //STRB_I
-    5: ; //STRH_I
-    6: ; //STR_I
+    4: STRB_I_T2;
+    5: STRH_I_T2;
+    6: STR_I_T3;
     else
     begin
       if (op2=0) then
       begin
         case op1 of
-          0: ; //STRB_R;
-          1: ; //STRH_R
-          2: ; //STR_R;
+          0: STRB_R_T2;
+          1: STRH_R_T2;
+          2: STR_R_T2;
         end;
       end
       else
       if (op2 and $24=$24) or ((op2 shr 2)=12) then
       begin
         case op1 of
-          0: ; //STRB_I;
-          1: ; //STRH_I;
-          2: ; //STR_I;
+          0: STRB_I_T3;
+          1: STRH_I_T3;
+          2: STR_I_T4;
         end;
       end
       else
       if (op2 shr 2)=13 then
       begin
         case op1 of
-          0: ; //STRBT;
-          1: ; //STRHT;
-          2: ; //STRT;
+          0: STRBT_T1;
+          1: STRHT_T1;
+          2: STRT_T1;
         end;
       end;
     end;
@@ -2099,6 +2149,66 @@ begin
   LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rs];
 end;
 
+procedure TThumbDisassembler.SXTH_T2;
+var rd, rotate, rm: byte;
+begin
+  rd:=(opcode2 shr 8) and $f;
+  rotate:=(opcode2 shr 4) and 3;
+  rm:=opcode2 and $f;
+
+
+  LastDisassembleData.opcode:='SXTH';
+  if (rotate=0) then
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rm]
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rm]+' ROR '+inttohex(rotate shr 3,1);
+end;
+
+procedure TThumbDisassembler.UXTH_T2;
+var rd, rotate, rm: byte;
+begin
+  rd:=(opcode2 shr 8) and $f;
+  rotate:=(opcode2 shr 4) and 3;
+  rm:=opcode2 and $f;
+
+
+  LastDisassembleData.opcode:='UXTH';
+  if (rotate=0) then
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rm]
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rm]+' ROR '+inttohex(rotate shr 3,1);
+end;
+
+procedure TThumbDisassembler.SXTAH_T1;
+var rn, rd, rotate, rm: byte;
+begin
+  rn:=opcode and $f;
+  rd:=(opcode2 shr 8) and $f;
+  rotate:=(opcode2 shr 4) and 3;
+  rm:=opcode2 and $f;
+
+  LastDisassembleData.opcode:='SXTAH';
+  if (rotate=0) then
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]+' ROR '+inttohex(rotate shr 3,1);
+end;
+
+procedure TThumbDisassembler.UXTAH_T1;
+var rn, rd, rotate, rm: byte;
+begin
+  rn:=opcode and $f;
+  rd:=(opcode2 shr 8) and $f;
+  rotate:=(opcode2 shr 4) and 3;
+  rm:=opcode2 and $f;
+
+  LastDisassembleData.opcode:='UXTAH';
+  if (rotate=0) then
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]+' ROR '+inttohex(rotate shr 3,1);
+end;
+
 procedure TThumbDisassembler.SXTB_T1;
 var rd, rs: byte;
 begin
@@ -2108,6 +2218,110 @@ begin
   LastDisassembleData.opcode:='SXTB';
   LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rs];
 end;
+
+procedure TThumbDisassembler.SXTB_T2;
+var rd, rotate, rm: byte;
+begin
+  rd:=(opcode2 shr 8) and $f;
+  rotate:=(opcode2 shr 4) and 3;
+  rm:=opcode2 and $f;
+
+
+  LastDisassembleData.opcode:='SXTB';
+  if (rotate=0) then
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rm]
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rm]+' ROR '+inttohex(rotate shr 3,1);
+end;
+
+procedure TThumbDisassembler.SXTAB_T1;
+var rn, rd, rotate, rm: byte;
+begin
+  rn:=opcode and $f;
+  rd:=(opcode2 shr 8) and $f;
+  rotate:=(opcode2 shr 4) and 3;
+  rm:=opcode2 and $f;
+
+  LastDisassembleData.opcode:='SXTAB';
+  if (rotate=0) then
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]+' ROR '+inttohex(rotate shr 3,1);
+end;
+
+procedure TThumbDisassembler.SXTB16_T1;
+var rn, rd, rotate, rm: byte;
+begin
+  rd:=(opcode2 shr 8) and $f;
+  rotate:=(opcode2 shr 4) and 3;
+  rm:=opcode2 and $f;
+
+  LastDisassembleData.opcode:='SXTB16';
+  if (rotate=0) then
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rm]
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rm]+' ROR '+inttohex(rotate shr 3,1);
+end;
+
+procedure TThumbDisassembler.SXTAB16_T1;
+var rn, rd, rotate, rm: byte;
+begin
+  rn:=opcode and $f;
+  rd:=(opcode2 shr 8) and $f;
+  rotate:=(opcode2 shr 4) and 3;
+  rm:=opcode2 and $f;
+
+  LastDisassembleData.opcode:='SXTAB16';
+  if (rotate=0) then
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]+' ROR '+inttohex(rotate shr 3,1);
+end;
+
+procedure TThumbDisassembler.UXTB16_T1;
+var rn, rd, rotate, rm: byte;
+begin
+  rd:=(opcode2 shr 8) and $f;
+  rotate:=(opcode2 shr 4) and 3;
+  rm:=opcode2 and $f;
+
+  LastDisassembleData.opcode:='UXTB16';
+  if (rotate=0) then
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rm]
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rm]+' ROR '+inttohex(rotate shr 3,1);
+end;
+
+procedure TThumbDisassembler.UXTAB_T1;
+var rn, rd, rotate, rm: byte;
+begin
+  rn:=opcode and $f;
+  rd:=(opcode2 shr 8) and $f;
+  rotate:=(opcode2 shr 4) and 3;
+  rm:=opcode2 and $f;
+
+  LastDisassembleData.opcode:='UXTAB';
+  if (rotate=0) then
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]+' ROR '+inttohex(rotate shr 3,1);
+end;
+
+procedure TThumbDisassembler.UXTAB16_T1;
+var rn, rd, rotate, rm: byte;
+begin
+  rn:=opcode and $f;
+  rd:=(opcode2 shr 8) and $f;
+  rotate:=(opcode2 shr 4) and 3;
+  rm:=opcode2 and $f;
+
+  LastDisassembleData.opcode:='UXTAB16';
+  if (rotate=0) then
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]+' ROR '+inttohex(rotate shr 3,1);
+end;
+
 
 procedure TThumbDisassembler.UXTH_T1;
 var rd, rs: byte;
@@ -2127,6 +2341,21 @@ begin
 
   LastDisassembleData.opcode:='UXTB';
   LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rs];
+end;
+
+procedure TThumbDisassembler.UXTB_T2;
+var rd, rotate, rm: byte;
+begin
+  rd:=(opcode2 shr 8) and $f;
+  rotate:=(opcode2 shr 4) and 3;
+  rm:=opcode2 and $f;
+
+
+  LastDisassembleData.opcode:='UXTB';
+  if (rotate=0) then
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rm]
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rm]+' ROR '+inttohex(rotate shr 3,1);
 end;
 
 
@@ -2235,6 +2464,57 @@ begin
 
   LastDisassembleData.opcode:='STR';
   LastDisassembleData.parameters:=ArmRegisters[rt]+',[SP'+_imm+']';
+end;
+
+procedure TThumbDisassembler.STR_I_T3;
+var rn, rt: byte;
+    imm12: word;
+  _imm: string;
+begin
+  rn:=opcode and $f;
+  rt:=(opcode2 shr 12) and $f;
+  imm12:=opcode2 and $fff;
+
+  if imm12=0 then
+    _imm:=''
+  else
+    _imm:=','+inttohex(imm12,1);
+
+  LastDisassembleData.opcode:='STR';
+  LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+_imm+']'
+end;
+
+procedure TThumbDisassembler.STR_I_T4;
+var rn, rt, p, u, w, imm8: byte;
+  _imm: string;
+begin
+  rn:=opcode and $f;
+  rt:=(opcode2 shr 12) and $f;
+  p:=(opcode2 shr 10) and 1;
+  u:=(opcode2 shr 9) and 1;
+  w:=(opcode2 shr 8) and 1;
+  imm8:=opcode2 and $ff;
+
+  if imm8=0 then
+    _imm:=''
+  else
+  begin
+    if u=0 then
+      _imm:=',-'+inttohex(imm8,1)
+    else
+      _imm:=','+inttohex(imm8,1);
+  end;
+
+  LastDisassembleData.opcode:='STR';
+
+  if (p=1) and (u=0) and (w=0) then
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+_imm+']'
+  else
+  if (p=0) and (w=1) then
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+']'+_imm
+  else
+  if (p=1) and (w=1) then
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+_imm+']!';
 end;
 
 procedure TThumbDisassembler.LDR_I_T2;
@@ -2406,6 +2686,57 @@ begin
   LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rb]+_imm+']';
 end;
 
+procedure TThumbDisassembler.STRB_I_T2;
+var rn, rt: byte;
+    imm12: word;
+  _imm: string;
+begin
+  rn:=opcode and $f;
+  rt:=(opcode2 shr 12) and $f;
+  imm12:=opcode2 and $fff;
+
+  if imm12=0 then
+    _imm:=''
+  else
+    _imm:=','+inttohex(imm12,1);
+
+  LastDisassembleData.opcode:='STRB';
+  LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+_imm+']'
+end;
+
+procedure TThumbDisassembler.STRB_I_T3;
+var rn, rt, p, u, w, imm8: byte;
+  _imm: string;
+begin
+  rn:=opcode and $f;
+  rt:=(opcode2 shr 12) and $f;
+  p:=(opcode2 shr 10) and 1;
+  u:=(opcode2 shr 9) and 1;
+  w:=(opcode2 shr 8) and 1;
+  imm8:=opcode2 and $ff;
+
+  if imm8=0 then
+    _imm:=''
+  else
+  begin
+    if u=0 then
+      _imm:=',-'+inttohex(imm8,1)
+    else
+      _imm:=','+inttohex(imm8,1);
+  end;
+
+  LastDisassembleData.opcode:='STRB';
+
+  if (p=1) and (u=0) and (w=0) then
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+_imm+']'
+  else
+  if (p=0) and (w=1) then
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+']'+_imm
+  else
+  if (p=1) and (w=1) then
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+_imm+']!';
+end;
+
 procedure TThumbDisassembler.LDRB_I_T1;
 var rt, rb, imm5: byte;
   _imm: string;
@@ -2491,6 +2822,59 @@ begin
   LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rb]+_imm+']';
 end;
 
+
+procedure TThumbDisassembler.STRH_I_T2;
+var rn, rt: byte;
+    imm12: word;
+  _imm: string;
+begin
+  rn:=opcode and $f;
+  rt:=(opcode2 shr 12) and $f;
+  imm12:=opcode2 and $fff;
+
+  if imm12=0 then
+    _imm:=''
+  else
+    _imm:=','+inttohex(imm12,1);
+
+  LastDisassembleData.opcode:='STRH';
+  LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+_imm+']'
+end;
+
+
+procedure TThumbDisassembler.STRH_I_T3;
+var rn, rt, p, u, w, imm8: byte;
+  _imm: string;
+begin
+  rn:=opcode and $f;
+  rt:=(opcode2 shr 12) and $f;
+  p:=(opcode2 shr 10) and 1;
+  u:=(opcode2 shr 9) and 1;
+  w:=(opcode2 shr 8) and 1;
+  imm8:=opcode2 and $ff;
+
+  if imm8=0 then
+    _imm:=''
+  else
+  begin
+    if u=0 then
+      _imm:=',-'+inttohex(imm8,1)
+    else
+      _imm:=','+inttohex(imm8,1);
+  end;
+
+  LastDisassembleData.opcode:='STRH';
+
+  if (p=1) and (u=0) and (w=0) then
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+_imm+']'
+  else
+  if (p=0) and (w=1) then
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+']'+_imm
+  else
+  if (p=1) and (w=1) then
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+_imm+']!';
+end;
+
 procedure TThumbDisassembler.LDRH_I_T1;
 var rt, rb, imm5: byte;
   _imm: string;
@@ -2520,6 +2904,20 @@ begin
   LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+','+ArmRegisters[rm]+']';
 end;
 
+procedure TThumbDisassembler.STR_R_T2;
+var rn, rt, imm2, rm: byte;
+begin
+  rn:=opcode and $f;
+  rt:=(opcode2 shr 12) and $f;
+  imm2:=(opcode2 shr 4) and 3;
+  rm:=(opcode2 and $f);
+  LastDisassembleData.opcode:='STR';
+  if imm2=0 then
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+','+ArmRegisters[rm]+']'
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+','+ArmRegisters[rm]+', LSL '+inttohex(imm2,1)+']';
+end;
+
 
 procedure TThumbDisassembler.STRH_R_T1;
 var rt, rn, rm: byte;
@@ -2532,6 +2930,31 @@ begin
   LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+','+ArmRegisters[rm]+']';
 end;
 
+procedure TThumbDisassembler.STRH_R_T2;
+var rn, rt, imm2, rm: byte;
+begin
+  rn:=opcode and $f;
+  rt:=(opcode2 shr 12) and $f;
+  imm2:=(opcode2 shr 4) and 3;
+  rm:=(opcode2 and $f);
+  LastDisassembleData.opcode:='STRH';
+  if imm2=0 then
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+','+ArmRegisters[rm]+']'
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+','+ArmRegisters[rm]+', LSL '+inttohex(imm2,1)+']';
+end;
+
+procedure TThumbDisassembler.STRHT_T1;
+var rn, rt, imm8: byte;
+begin
+  rn:=opcode and $f;
+  rt:=(opcode2 shr 12) and $f;
+  imm8:=opcode2 and $ff;
+
+  LastDisassembleData.opcode:='STRHT';
+  LastDisassembleData.parameters:=ArmRegisters[Rt]+',['+ArmRegisters[rn]+','+inttohex(imm8,1)+']';
+end;
+
 procedure TThumbDisassembler.STRB_R_T1;
 var rt, rn, rm: byte;
 begin
@@ -2542,6 +2965,43 @@ begin
   LastDisassembleData.opcode:='STRB';
   LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+','+ArmRegisters[rm]+']';
 end;
+
+procedure TThumbDisassembler.STRB_R_T2;
+var rn, rt, imm2, rm: byte;
+begin
+  rn:=opcode and $f;
+  rt:=(opcode2 shr 12) and $f;
+  imm2:=(opcode2 shr 4) and 3;
+  rm:=(opcode2 and $f);
+  LastDisassembleData.opcode:='STRB';
+  if imm2=0 then
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+','+ArmRegisters[rm]+']'
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rt]+',['+ArmRegisters[rn]+','+ArmRegisters[rm]+', LSL '+inttohex(imm2,1)+']';
+end;
+
+procedure TThumbDisassembler.STRBT_T1;
+var rn, rt, imm8: byte;
+begin
+  rn:=opcode and $f;
+  rt:=(opcode2 shr 12) and $f;
+  imm8:=opcode2 and $ff;
+
+  LastDisassembleData.opcode:='STRBT';
+  LastDisassembleData.parameters:=ArmRegisters[Rt]+',['+ArmRegisters[rn]+','+inttohex(imm8,1)+']';
+end;
+
+procedure TThumbDisassembler.STRT_T1;
+var rn, rt, imm8: byte;
+begin
+  rn:=opcode and $f;
+  rt:=(opcode2 shr 12) and $f;
+  imm8:=opcode2 and $ff;
+
+  LastDisassembleData.opcode:='STRT';
+  LastDisassembleData.parameters:=ArmRegisters[Rt]+',['+ArmRegisters[rn]+','+inttohex(imm8,1)+']';
+end;
+
 
 procedure TThumbDisassembler.LDRSB_R_T1;
 var rt, rn, rm: byte;
@@ -2976,6 +3436,35 @@ begin
   LastDisassembleData.parameters:='PC,LR,'+ IntToHex(imm8,1);
 end;
 
+procedure TThumbDisassembler.TEQ_R_T1;
+var  rn, imm3, imm2, _type, Rm: byte;
+  v: byte;
+  shift_s: string;
+begin
+  rn:=opcode and $f;
+  imm3:=(opcode2 shr 12) and 3;
+  imm2:=(opcode2 shr 6) and $3;
+  _type:=(opcode2 shr 4) and $3;
+  rm:=opcode2 and $f;
+
+  v:=(imm3 shl 2) or imm2;
+
+  case _type of
+    0: shift_s:='LSL ';
+    1: shift_s:='LSR ';
+    2: shift_s:='ASR ';
+    3: shift_s:='ROR ';
+  end;
+
+  LastDisassembleData.opcode:='TEQ';
+
+
+  if (v=0) and (_type=3) then
+    LastDisassembleData.parameters:=ArmRegisters[rn]+','+ArmRegisters[rm]+',RRX'
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rn]+','+ArmRegisters[rm]+' '+shift_s+inttohex(_type,1);
+end;
+
 procedure TThumbDisassembler.SSAT_T1;
 var sh, rn, imm3, rd, imm2, sat_imm: byte;
 begin
@@ -3193,6 +3682,40 @@ begin
   LastDisassembleData.parameters:=ArmRegisters[rdn]+','+ArmRegisters[rm];
 end;
 
+procedure TThumbDisassembler.ADD_R_T3;
+var s, rn, imm3, rd, imm2, _type, Rm: byte;
+  v: byte;
+
+  shift_s: string;
+begin
+  s:=(opcode shr 4) and 1;
+  rn:=opcode and $f;
+  imm3:=(opcode2 shr 12) and 3;
+  rd:=(opcode2 shr 8) and $f;
+  imm2:=(opcode2 shr 6) and $3;
+  _type:=(opcode2 shr 4) and $3;
+  rm:=opcode2 and $f;
+
+  v:=(imm3 shl 2) or imm2;
+
+  case _type of
+    0: shift_s:='LSL ';
+    1: shift_s:='LSR ';
+    2: shift_s:='ASR ';
+    3: shift_s:='ROR ';
+  end;
+
+  if (s=0) then
+    LastDisassembleData.opcode:='ADD'
+  else
+    LastDisassembleData.opcode:='ADDS';
+
+  if (v=0) and (_type=3) then
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]+',RRX'
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]+' '+shift_s+inttohex(_type,1);
+end;
+
 procedure TThumbDisassembler.SUB_R_T1;
 var rd, rn, rm: byte;
 begin
@@ -3203,6 +3726,41 @@ begin
   LastDisassembleData.opcode:='SUBS';
   LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm];
 end;
+
+procedure TThumbDisassembler.SUB_R_T2;
+var s, rn, imm3, rd, imm2, _type, Rm: byte;
+  v: byte;
+
+  shift_s: string;
+begin
+  s:=(opcode shr 4) and 1;
+  rn:=opcode and $f;
+  imm3:=(opcode2 shr 12) and 3;
+  rd:=(opcode2 shr 8) and $f;
+  imm2:=(opcode2 shr 6) and $3;
+  _type:=(opcode2 shr 4) and $3;
+  rm:=opcode2 and $f;
+
+  v:=(imm3 shl 2) or imm2;
+
+  case _type of
+    0: shift_s:='LSL ';
+    1: shift_s:='LSR ';
+    2: shift_s:='ASR ';
+    3: shift_s:='ROR ';
+  end;
+
+  if (s=0) then
+    LastDisassembleData.opcode:='SUB'
+  else
+    LastDisassembleData.opcode:='SUBS';
+
+  if (v=0) and (_type=3) then
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]+',RRX'
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]+' '+shift_s+inttohex(_type,1);
+end;
+
 
 
 procedure TThumbDisassembler.ADC_R_T1;
@@ -3215,6 +3773,40 @@ begin
   LastDisassembleData.parameters:=ArmRegisters[rdn]+','+ArmRegisters[rm];
 end;
 
+procedure TThumbDisassembler.ADC_R_T2;
+var s, rn, imm3, rd, imm2, _type, Rm: byte;
+  v: byte;
+
+  shift_s: string;
+begin
+  s:=(opcode shr 4) and 1;
+  rn:=opcode and $f;
+  imm3:=(opcode2 shr 12) and 3;
+  rd:=(opcode2 shr 8) and $f;
+  imm2:=(opcode2 shr 6) and $3;
+  _type:=(opcode2 shr 4) and $3;
+  rm:=opcode2 and $f;
+
+  v:=(imm3 shl 2) or imm2;
+
+  case _type of
+    0: shift_s:='LSL ';
+    1: shift_s:='LSR ';
+    2: shift_s:='ASR ';
+    3: shift_s:='ROR ';
+  end;
+
+  if (s=0) then
+    LastDisassembleData.opcode:='ADC'
+  else
+    LastDisassembleData.opcode:='ADCS';
+
+  if (v=0) and (_type=3) then
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]+',RRX'
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]+' '+shift_s+inttohex(_type,1);
+end;
+
 procedure TThumbDisassembler.AND_R_T1;
 var
   rdn,rm: byte;
@@ -3223,6 +3815,40 @@ begin
   rdn:=opcode and 7;
   LastDisassembleData.opcode:='ANDS';
   LastDisassembleData.parameters:=ArmRegisters[rdn]+','+ArmRegisters[rm];
+end;
+
+procedure TThumbDisassembler.AND_R_T2;
+var s, rn, imm3, rd, imm2, _type, Rm: byte;
+  v: byte;
+
+  shift_s: string;
+begin
+  s:=(opcode shr 4) and 1;
+  rn:=opcode and $f;
+  imm3:=(opcode2 shr 12) and 3;
+  rd:=(opcode2 shr 8) and $f;
+  imm2:=(opcode2 shr 6) and $3;
+  _type:=(opcode2 shr 4) and $3;
+  rm:=opcode2 and $f;
+
+  v:=(imm3 shl 2) or imm2;
+
+  case _type of
+    0: shift_s:='LSL ';
+    1: shift_s:='LSR ';
+    2: shift_s:='ASR ';
+    3: shift_s:='ROR ';
+  end;
+
+  if (s=0) then
+    LastDisassembleData.opcode:='AND'
+  else
+    LastDisassembleData.opcode:='ANDS';
+
+  if (v=0) and (_type=3) then
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]+',RRX'
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]+' '+shift_s+inttohex(_type,1);
 end;
 
 procedure TThumbDisassembler.EOR_R_T1;
@@ -3235,6 +3861,40 @@ begin
   LastDisassembleData.parameters:=ArmRegisters[rdn]+','+ArmRegisters[rm];
 end;
 
+procedure TThumbDisassembler.EOR_R_T2;
+var s, rn, imm3, rd, imm2, _type, Rm: byte;
+  v: byte;
+
+  shift_s: string;
+begin
+  s:=(opcode shr 4) and 1;
+  rn:=opcode and $f;
+  imm3:=(opcode2 shr 12) and 3;
+  rd:=(opcode2 shr 8) and $f;
+  imm2:=(opcode2 shr 6) and $3;
+  _type:=(opcode2 shr 4) and $3;
+  rm:=opcode2 and $f;
+
+  v:=(imm3 shl 2) or imm2;
+
+  case _type of
+    0: shift_s:='LSL ';
+    1: shift_s:='LSR ';
+    2: shift_s:='ASR ';
+    3: shift_s:='ROR ';
+  end;
+
+  if (s=0) then
+    LastDisassembleData.opcode:='EOR'
+  else
+    LastDisassembleData.opcode:='EORS';
+
+  if (v=0) and (_type=3) then
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]+',RRX'
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]+' '+shift_s+inttohex(_type,1);
+end;
+
 procedure TThumbDisassembler.SBC_R_T1;
 var
   rdn,rm: byte;
@@ -3243,6 +3903,40 @@ begin
   rdn:=opcode and 7;
   LastDisassembleData.opcode:='SBCS';
   LastDisassembleData.parameters:=ArmRegisters[rdn]+','+ArmRegisters[rm];
+end;
+
+procedure TThumbDisassembler.SBC_R_T2;
+var s, rn, imm3, rd, imm2, _type, Rm: byte;
+  v: byte;
+
+  shift_s: string;
+begin
+  s:=(opcode shr 4) and 1;
+  rn:=opcode and $f;
+  imm3:=(opcode2 shr 12) and 3;
+  rd:=(opcode2 shr 8) and $f;
+  imm2:=(opcode2 shr 6) and $3;
+  _type:=(opcode2 shr 4) and $3;
+  rm:=opcode2 and $f;
+
+  v:=(imm3 shl 2) or imm2;
+
+  case _type of
+    0: shift_s:='LSL ';
+    1: shift_s:='LSR ';
+    2: shift_s:='ASR ';
+    3: shift_s:='ROR ';
+  end;
+
+  if (s=0) then
+    LastDisassembleData.opcode:='ADC'
+  else
+    LastDisassembleData.opcode:='ADCS';
+
+  if (v=0) and (_type=3) then
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]+',RRX'
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]+' '+shift_s+inttohex(_type,1);
 end;
 
 procedure TThumbDisassembler.TST_R_T1;
@@ -3255,6 +3949,35 @@ begin
   LastDisassembleData.parameters:=ArmRegisters[rdn]+','+ArmRegisters[rm];
 end;
 
+procedure TThumbDisassembler.TST_R_T2;
+var rn, imm3, imm2, _type, Rm: byte;
+  v: byte;
+
+  shift_s: string;
+begin
+  rn:=opcode and $f;
+  imm3:=(opcode2 shr 12) and 3;
+  imm2:=(opcode2 shr 6) and $3;
+  _type:=(opcode2 shr 4) and $3;
+  rm:=opcode2 and $f;
+
+  v:=(imm3 shl 2) or imm2;
+
+  case _type of
+    0: shift_s:='LSL ';
+    1: shift_s:='LSR ';
+    2: shift_s:='ASR ';
+    3: shift_s:='ROR ';
+  end;
+
+  LastDisassembleData.opcode:='TST';
+
+  if (v=0) and (_type=3) then
+    LastDisassembleData.parameters:=ArmRegisters[rn]+','+ArmRegisters[rm]+',RRX'
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rn]+','+ArmRegisters[rm]+' '+shift_s+inttohex(_type,1);
+end;
+
 procedure TThumbDisassembler.RSB_I_T1;
 var
   rd,rn: byte;
@@ -3263,6 +3986,40 @@ begin
   rd:=opcode and 7;
   LastDisassembleData.opcode:='RSBS';
   LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+',0';
+end;
+
+procedure TThumbDisassembler.RSB_R_T1;
+var s, rn, imm3, rd, imm2, _type, Rm: byte;
+  v: byte;
+
+  shift_s: string;
+begin
+  s:=(opcode shr 4) and 1;
+  rn:=opcode and $f;
+  imm3:=(opcode2 shr 12) and 3;
+  rd:=(opcode2 shr 8) and $f;
+  imm2:=(opcode2 shr 6) and $3;
+  _type:=(opcode2 shr 4) and $3;
+  rm:=opcode2 and $f;
+
+  v:=(imm3 shl 2) or imm2;
+
+  case _type of
+    0: shift_s:='LSL ';
+    1: shift_s:='LSR ';
+    2: shift_s:='ASR ';
+    3: shift_s:='ROR ';
+  end;
+
+  if (s=0) then
+    LastDisassembleData.opcode:='RSB'
+  else
+    LastDisassembleData.opcode:='RSBS';
+
+  if (v=0) and (_type=3) then
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]+',RRX'
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]+' '+shift_s+inttohex(_type,1);
 end;
 
 procedure TThumbDisassembler.CMP_R_T1;
@@ -3289,6 +4046,35 @@ begin
   LastDisassembleData.parameters:=ArmRegisters[rn]+','+ArmRegisters[rm];
 end;
 
+procedure TThumbDisassembler.CMP_R_T3;
+var  rn, imm3, imm2, _type, Rm: byte;
+  v: byte;
+
+  shift_s: string;
+begin
+  rn:=opcode and $f;
+  imm3:=(opcode2 shr 12) and 3;
+
+  imm2:=(opcode2 shr 6) and $3;
+  _type:=(opcode2 shr 4) and $3;
+  rm:=opcode2 and $f;
+
+  v:=(imm3 shl 2) or imm2;
+
+  case _type of
+    0: shift_s:='LSL ';
+    1: shift_s:='LSR ';
+    2: shift_s:='ASR ';
+    3: shift_s:='ROR ';
+  end;
+
+  LastDisassembleData.opcode:='CMP';
+  if (v=0) and (_type=3) then
+    LastDisassembleData.parameters:=ArmRegisters[rn]+','+ArmRegisters[rm]+',RRX'
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rn]+','+ArmRegisters[rm]+' '+shift_s+inttohex(_type,1);
+end;
+
 
 procedure TThumbDisassembler.CMN_R_T1;
 var
@@ -3300,6 +4086,35 @@ begin
   LastDisassembleData.parameters:=ArmRegisters[rn]+','+ArmRegisters[rm];
 end;
 
+procedure TThumbDisassembler.CMN_R_T2;
+var  rn, imm3, imm2, _type, Rm: byte;
+  v: byte;
+
+  shift_s: string;
+begin
+  rn:=opcode and $f;
+  imm3:=(opcode2 shr 12) and 3;
+
+  imm2:=(opcode2 shr 6) and $3;
+  _type:=(opcode2 shr 4) and $3;
+  rm:=opcode2 and $f;
+
+  v:=(imm3 shl 2) or imm2;
+
+  case _type of
+    0: shift_s:='LSL ';
+    1: shift_s:='LSR ';
+    2: shift_s:='ASR ';
+    3: shift_s:='ROR ';
+  end;
+
+  LastDisassembleData.opcode:='CMN';
+  if (v=0) and (_type=3) then
+    LastDisassembleData.parameters:=ArmRegisters[rn]+','+ArmRegisters[rm]+',RRX'
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rn]+','+ArmRegisters[rm]+' '+shift_s+inttohex(_type,1);
+end;
+
 
 procedure TThumbDisassembler.ORR_R_T1;
 var
@@ -3309,6 +4124,74 @@ begin
   rdn:=opcode and 7;
   LastDisassembleData.opcode:='ORRS';
   LastDisassembleData.parameters:=ArmRegisters[rdn]+','+ArmRegisters[rm];
+end;
+
+procedure TThumbDisassembler.ORR_R_T2;
+var s, rn, imm3, rd, imm2, _type, Rm: byte;
+  v: byte;
+
+  shift_s: string;
+begin
+  s:=(opcode shr 4) and 1;
+  rn:=opcode and $f;
+  imm3:=(opcode2 shr 12) and 3;
+  rd:=(opcode2 shr 8) and $f;
+  imm2:=(opcode2 shr 6) and $3;
+  _type:=(opcode2 shr 4) and $3;
+  rm:=opcode2 and $f;
+
+  v:=(imm3 shl 2) or imm2;
+
+  case _type of
+    0: shift_s:='LSL ';
+    1: shift_s:='LSR ';
+    2: shift_s:='ASR ';
+    3: shift_s:='ROR ';
+  end;
+
+  if (s=0) then
+    LastDisassembleData.opcode:='ORR'
+  else
+    LastDisassembleData.opcode:='ORRS';
+
+  if (v=0) and (_type=3) then
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]+',RRX'
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]+' '+shift_s+inttohex(_type,1);
+end;
+
+procedure TThumbDisassembler.ORN_R_T1;
+var s, rn, imm3, rd, imm2, _type, Rm: byte;
+  v: byte;
+
+  shift_s: string;
+begin
+  s:=(opcode shr 4) and 1;
+  rn:=opcode and $f;
+  imm3:=(opcode2 shr 12) and 3;
+  rd:=(opcode2 shr 8) and $f;
+  imm2:=(opcode2 shr 6) and $3;
+  _type:=(opcode2 shr 4) and $3;
+  rm:=opcode2 and $f;
+
+  v:=(imm3 shl 2) or imm2;
+
+  case _type of
+    0: shift_s:='LSL ';
+    1: shift_s:='LSR ';
+    2: shift_s:='ASR ';
+    3: shift_s:='ROR ';
+  end;
+
+  if (s=0) then
+    LastDisassembleData.opcode:='ORN'
+  else
+    LastDisassembleData.opcode:='ORNS';
+
+  if (v=0) and (_type=3) then
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]+',RRX'
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]+' '+shift_s+inttohex(_type,1);
 end;
 
 
@@ -3332,6 +4215,40 @@ begin
   LastDisassembleData.parameters:=ArmRegisters[rdn]+','+ArmRegisters[rm];
 end;
 
+procedure TThumbDisassembler.BIC_R_T2;
+var s, rn, imm3, rd, imm2, _type, Rm: byte;
+  v: byte;
+
+  shift_s: string;
+begin
+  s:=(opcode shr 4) and 1;
+  rn:=opcode and $f;
+  imm3:=(opcode2 shr 12) and 3;
+  rd:=(opcode2 shr 8) and $f;
+  imm2:=(opcode2 shr 6) and $3;
+  _type:=(opcode2 shr 4) and $3;
+  rm:=opcode2 and $f;
+
+  v:=(imm3 shl 2) or imm2;
+
+  case _type of
+    0: shift_s:='LSL ';
+    1: shift_s:='LSR ';
+    2: shift_s:='ASR ';
+    3: shift_s:='ROR ';
+  end;
+
+  if (s=0) then
+    LastDisassembleData.opcode:='BIC'
+  else
+    LastDisassembleData.opcode:='BICS';
+
+  if (v=0) and (_type=3) then
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]+',RRX'
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]+' '+shift_s+inttohex(_type,1);
+end;
+
 procedure TThumbDisassembler.MVN_R_T1;
 var
   rd,rm: byte;
@@ -3340,6 +4257,40 @@ begin
   rd:=opcode and 7;
   LastDisassembleData.opcode:='MVN';
   LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rm];
+end;
+
+procedure TThumbDisassembler.MVN_R_T2;
+var s, rn, imm3, rd, imm2, _type, Rm: byte;
+  v: byte;
+
+  shift_s: string;
+begin
+  s:=(opcode shr 4) and 1;
+  rn:=opcode and $f;
+  imm3:=(opcode2 shr 12) and 3;
+  rd:=(opcode2 shr 8) and $f;
+  imm2:=(opcode2 shr 6) and $3;
+  _type:=(opcode2 shr 4) and $3;
+  rm:=opcode2 and $f;
+
+  v:=(imm3 shl 2) or imm2;
+
+  case _type of
+    0: shift_s:='LSL ';
+    1: shift_s:='LSR ';
+    2: shift_s:='ASR ';
+    3: shift_s:='ROR ';
+  end;
+
+  if (s=0) then
+    LastDisassembleData.opcode:='MVN'
+  else
+    LastDisassembleData.opcode:='MVNS';
+
+  if (v=0) and (_type=3) then
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]+',RRX'
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]+' '+shift_s+inttohex(_type,1);
 end;
 
 procedure TThumbDisassembler.MOV_R_T1;
@@ -3378,6 +4329,59 @@ begin
   LastDisassembleData.parameters:=ArmRegisters[rdm]+','+ArmRegisters[rdm]+','+shiftname+' '+ArmRegisters[rs];
 end;
 
+procedure TThumbDisassembler.MOV_RSR_T2;
+var
+  _type, s, rm, rd, rs: byte;
+  shift_s: string;
+begin
+  _type:=(opcode shr 5) and $f;
+  s:=(opcode shr 4) and 1;
+  rm:=opcode and $f;
+  rd:=(opcode2 shr 8) and $f;
+  rs:=opcode2 and $f;
+
+  case _type of
+    0: shift_s:='LSL ';
+    1: shift_s:='LSR ';
+    2: shift_s:='ASR ';
+    3: shift_s:='ROR ';
+  end;
+
+  if (s=1) then
+    LastDisassembleData.opcode:='MOVS'
+  else
+    LastDisassembleData.opcode:='MOV';
+
+  LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rm]+','+shift_s+ArmRegisters[rs];
+end;
+
+procedure TThumbDisassembler.PKHBT_T1;
+var  rn, imm3, rd, imm2, _type, Rm: byte;
+  v: byte;
+
+  shift_s: string;
+begin
+  rn:=opcode and $f;
+  imm3:=(opcode2 shr 12) and 3;
+  rd:=(opcode2 shr 8) and $f;
+  imm2:=(opcode2 shr 6) and $3;
+  _type:=(opcode2 shr 4) and $3;
+  rm:=opcode2 and $f;
+
+  v:=(imm3 shl 2) or imm2;
+
+  case _type of
+    0: shift_s:='LSL ';
+    1: shift_s:='LSR ';
+    2: shift_s:='ASR ';
+    3: shift_s:='ROR ';
+  end;
+
+  LastDisassembleData.opcode:='PKHBT';
+  LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]+' '+shift_s+inttohex(_type,1);
+end;
+
+
 procedure TThumbDisassembler.MOV_R_T2;
 var
   op: byte;
@@ -3408,6 +4412,40 @@ begin
     LastDisassembleData.opcode:='MOVS';
     LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+shiftname;
   end;
+end;
+
+procedure TThumbDisassembler.MOV_R_T3;
+var s, rn, imm3, rd, imm2, _type, Rm: byte;
+  v: byte;
+
+  shift_s: string;
+begin
+  s:=(opcode shr 4) and 1;
+  rn:=opcode and $f;
+  imm3:=(opcode2 shr 12) and 3;
+  rd:=(opcode2 shr 8) and $f;
+  imm2:=(opcode2 shr 6) and $3;
+  _type:=(opcode2 shr 4) and $3;
+  rm:=opcode2 and $f;
+
+  v:=(imm3 shl 2) or imm2;
+
+  case _type of
+    0: shift_s:='LSL ';
+    1: shift_s:='LSR ';
+    2: shift_s:='ASR ';
+    3: shift_s:='ROR ';
+  end;
+
+  if (s=0) then
+    LastDisassembleData.opcode:='MOV'
+  else
+    LastDisassembleData.opcode:='MOVS';
+
+  if (v=0) and (_type=3) then
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]+',RRX'
+  else
+    LastDisassembleData.parameters:=ArmRegisters[rd]+','+ArmRegisters[rn]+','+ArmRegisters[rm]+' '+shift_s+inttohex(_type,1);
 end;
 
 
@@ -3834,12 +4872,11 @@ begin
 end;
 
 procedure TThumbDisassembler.PLD_L_T1;
-var u,w: byte;
+var u: byte;
   imm12: word;
   imm32: ptruint;
 begin
   u:=(opcode shr 7) and 1;
-  w:=(opcode shr 5) and 1;
   imm12:=opcode2 and $ff;
 
   imm32:=imm12;
