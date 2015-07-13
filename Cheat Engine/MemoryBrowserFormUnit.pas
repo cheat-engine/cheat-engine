@@ -671,7 +671,7 @@ resourcestring
   rsReplaceWithCodeThatDoesNothing = 'Replace with code that does nothing';
   rsComment = 'Comment';
   rsCommentFor = 'Comment for %s';
-  rsHeaderFor = 'Comment for %s';
+  rsHeaderFor = 'Header for %s';
   rsSShowsTheAutoguessValue = '(%s shows the autoguess value)';
 
 
