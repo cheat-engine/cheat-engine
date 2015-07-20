@@ -5634,7 +5634,7 @@ begin
   if scan_pagedonly then
     vqecacheflag:=vqecacheflag or VQE_PAGEDONLY;
 
-  if scan_dirtyonly then
+  if scan_dirtyonly and (scanWritable=scanInclude) then
     vqecacheflag:=vqecacheflag or VQE_DIRTYONLY;
 
   VirtualQueryEx_StartCache(processhandle, vqecacheflag);
