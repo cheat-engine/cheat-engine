@@ -5057,6 +5057,18 @@ begin
   {$endif}
 
   LastDisassembleData.address:=a;
+  LastDisassembleData.SeperatorCount:=0;
+  LastDisassembleData.prefix:='';
+  LastDisassembleData.PrefixSize:=0;
+  LastDisassembleData.opcode:='';
+  LastDisassembleData.parameters:='';
+  lastdisassembledata.isjump:=false;
+  lastdisassembledata.iscall:=false;
+  lastdisassembledata.isret:=false;
+  lastdisassembledata.isconditionaljump:=false;
+  lastdisassembledata.modrmValueType:=dvtNone;
+  lastdisassembledata.parameterValueType:=dvtNone;
+
 
   case (opcode shr 10) of
     $00..$0f:
