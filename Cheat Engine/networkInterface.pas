@@ -309,7 +309,10 @@ begin
           ZeroMemory(@lppe, sizeof(lppe));
           lppe.th32ProcessID:=r.pid;
 
-          CopyMemory(@lppe.szExeFile[0], pname, min(r.stringlength, MAX_PATH)+1);
+
+          CopyMemory(@lppe.szExeFile[0], pname, min(r.stringlength+1, MAX_PATH));
+          lppe.szExeFile[MAX_PATH-1]:=#0;
+
           freemem(pname);
         end;
 
