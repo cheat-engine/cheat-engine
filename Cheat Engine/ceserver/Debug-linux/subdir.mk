@@ -7,6 +7,7 @@ C_SRCS += \
 ../api.c \
 ../ceserver.c \
 ../ceservertest.c \
+../context.c \
 ../extensionfunctions.c \
 ../extensionloader.c \
 ../porthelp.c \
@@ -17,6 +18,7 @@ OBJS += \
 ./api.o \
 ./ceserver.o \
 ./ceservertest.o \
+./context.o \
 ./extensionfunctions.o \
 ./extensionloader.o \
 ./porthelp.o \
@@ -27,6 +29,7 @@ C_DEPS += \
 ./api.d \
 ./ceserver.d \
 ./ceservertest.d \
+./context.d \
 ./extensionfunctions.d \
 ./extensionloader.d \
 ./porthelp.d \
@@ -38,7 +41,7 @@ C_DEPS += \
 %.o: ../%.c
 	@echo 'Building file: $<'
 	@echo 'Invoking: GCC C Compiler'
-	gcc -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
+	gcc -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 

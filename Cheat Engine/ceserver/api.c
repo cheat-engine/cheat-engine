@@ -3215,7 +3215,7 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
 
     PModuleList ml=(PModuleList)malloc(sizeof(ModuleList));
 
-    //printf("Creating module list for process %d\n", th32ProcessID);
+    printf("Creating module list for process %d\n", th32ProcessID);
 
     ml->ReferenceCount=1;
     ml->moduleCount=0;
@@ -3227,8 +3227,8 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
 
     if (f)
     {
-      char s[256];
-      memset(s, 0, 255);
+      char s[512];
+      memset(s, 0, 512);
 
       PModuleListEntry mle=NULL;
       int phandle=OpenProcess(th32ProcessID);
@@ -3236,10 +3236,10 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
 
 
 
-      while (fgets(s, 255, f)) //read a line into s
+      while (fgets(s, 511, f)) //read a line into s
       {
         unsigned long long start, stop;
-        char memoryrange[64],protectionstring[32],modulepath[255];
+        char memoryrange[64],protectionstring[32],modulepath[511];
         uint32_t magic;
 
         modulepath[0]='\0';
@@ -3333,7 +3333,7 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
     }
     else
     {
-      //printf("Failed opening %s\n", mapfile);
+      printf("Failed opening %s\n", mapfile);
       return 0;
     }
 

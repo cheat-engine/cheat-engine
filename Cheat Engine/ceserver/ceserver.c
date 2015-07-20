@@ -378,10 +378,15 @@ int DispatchCommand(int currentsocket, unsigned char command)
       CeCreateToolhelp32Snapshot params;
       HANDLE result;
 
+      printf("CMD_CREATETOOLHELP32SNAPSHOT\n");
+
       if (recvall(currentsocket, &params, sizeof(CeCreateToolhelp32Snapshot), MSG_WAITALL) > 0)
       {
+        printf("Calling CreateToolhelp32Snapshot\n");
         result=CreateToolhelp32Snapshot(params.dwFlags, params.th32ProcessID);
-        //printf("result of CreateToolhelp32Snapshot=%d\n", result);
+        printf("result of CreateToolhelp32Snapshot=%d\n", result);
+
+        fflush(stdout);
 
         sendall(currentsocket, &result, sizeof(HANDLE), 0);
 
