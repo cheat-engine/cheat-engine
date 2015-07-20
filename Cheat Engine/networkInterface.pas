@@ -250,10 +250,13 @@ begin
           lpme.hModule:=r.modulebase;
           lpme.modBaseAddr:=pointer(r.modulebase);
           lpme.modBaseSize:=r.modulesize;
-          strcopy(@lpme.szExePath, mname);
-          strcopy(@lpme.szModule, mname);
-          freemem(mname);
+          copymemory(@lpme.szExePath[0], mname, min(r.stringlength+1, MAX_PATH));
+          lpme.szExePath[MAX_PATH-1]:=#0;
 
+          copymemory(@lpme.szModule[0], mname, min(r.stringlength+1, MAX_MODULE_NAME32));
+          lpme.szModule[MAX_MODULE_NAME32-1]:=#0;
+
+          freemem(mname);
         end;
 
       end;
