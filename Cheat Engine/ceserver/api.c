@@ -3246,7 +3246,7 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
         memset(modulepath, 0, 255);
 
 
-        sscanf(s, "%llx-%llx %s %*s %*s %*s %s\n", &start, &stop, protectionstring, modulepath);
+        sscanf(s, "%llx-%llx %s %*s %*s %*s %[^\t\n]\n", &start, &stop, protectionstring, modulepath);
 
         if (ProtectionStringToType(protectionstring)==MEM_MAPPED)
           continue;
@@ -3256,6 +3256,8 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
           int i;
           if (strcmp(modulepath, "[heap]")==0)  //not static enough to mark as a 'module'
             continue;
+
+          printf("%s\n", modulepath);
 
           if (strcmp(modulepath, "[vdso]")!=0)  //temporary patch as to not rename vdso, because it is treated differently by the ce symbol loader
           {
