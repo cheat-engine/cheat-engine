@@ -4,9 +4,18 @@ unit autoassembler;
 
 interface
 
+
+{$ifdef jni}
+uses unixporthelper, Assemblerunit, classes, symbolhandler, sysutils,
+     NewKernelHandler, ProcessHandlerUnit, commonTypeDefs;
+{$endif}
+
+{$ifdef windows}
 uses jwawindows, windows, Assemblerunit, classes, LCLIntf,symbolhandler,
      sysutils,dialogs,controls, CEFuncProc, NewKernelHandler ,plugin,
      ProcessHandlerUnit, lua, lualib, lauxlib, commonTypeDefs;
+{$endif}
+
 
 
 
@@ -30,8 +39,17 @@ procedure unregisterAutoAssemblerPrologue(id: integer);
 
 implementation
 
+{$ifdef jni}
+uses strutils, memscan, disassembler, networkInterface, networkInterfaceApi,
+     Parsers, Globals, memoryQuery;
+{$endif}
+
+
+{$ifdef windows}
 uses simpleaobscanner, StrUtils, LuaHandler, memscan, disassembler, networkInterface,
-     networkInterfaceApi, LuaCaller, SynHighlighterAA, Parsers, Globals;
+     networkInterfaceApi, LuaCaller, SynHighlighterAA, Parsers, Globals, memoryQuery;
+{$endif}
+
 
 resourcestring
   rsForwardJumpWithNoLabelDefined = 'Forward jump with no label defined';
@@ -125,6 +143,7 @@ procedure RegisterAutoAssemblerCommand(command: string; callback: TAutoAssembler
 var i: integer;
     c:TRegisteredAutoAssemblerCommand;
 begin
+  {$ifndef jni}
   if registeredAutoAssemblerCommands=nil then
     registeredAutoAssemblerCommands:=TList.Create;
 
@@ -144,12 +163,14 @@ begin
   registeredAutoAssemblerCommands.Add(c);
 
   aa_AddExtraCommand(pchar(command));
+  {$endif}
 end;
 
 procedure UnregisterAutoAssemblerCommand(command: string);
 var i,j: integer;
     c:TRegisteredAutoAssemblerCommand;
 begin
+{$ifndef jni}
   command:=uppercase(command);
   i:=0;
   while i<registeredAutoAssemblerCommands.count do
@@ -167,6 +188,7 @@ begin
   end;
 
   aa_RemoveExtraCommand(pchar(command));
+{$endif jni}
 end;
 
 procedure tokenize(input: string; tokens: tstringlist);
@@ -915,6 +937,7 @@ var
   error: boolean;
 begin
   i:=0;
+
   while i<code.Count do
   begin
     //search for {$LUA}
@@ -943,7 +966,7 @@ begin
             code[j]:='';
 
 
-
+{$ifndef NOLUA}
           LUACS.Enter;
           try
             stack:=lua_Gettop(luavm);
@@ -988,7 +1011,7 @@ begin
             lua_settop(Luavm, stack);
             LUACS.Leave;
           end;
-
+{$endif}
           break;
 
         end;
@@ -1131,6 +1154,7 @@ begin
     end;
   end;
 
+  {$ifndef jni}
   if targetself then
   begin
     //get this function to use the symbolhandler that's pointing to CE itself and the self processid/handle
@@ -1142,6 +1166,7 @@ begin
     processhandler.processhandle:=processhandle;
   end
   else
+  {$endif}
   begin
     processid:=processhandlerunit.ProcessID;
     processhandle:=processhandlerunit.ProcessHandle;
@@ -1149,7 +1174,7 @@ begin
 
   symhandler.waitforsymbolsloaded(true);
 
-{$ifndef standalonetrainer}
+{$ifndef jni}
   if pluginhandler=nil then exit; //Error. Cheat Engine is not properly configured
 
   pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 0); //tell the plugins that an autoassembler script is about to get executed
@@ -1290,7 +1315,9 @@ begin
 
           //plugins
           currentlinep:=@currentline[1];
+          {$ifndef jni}
           pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 1);
+          {$endif}
           currentline:=currentlinep;
 
           //lua extensions
@@ -1525,6 +1552,7 @@ begin
             end else raise exception.Create(rsWrongSyntaxCreateThreadAddress);
           end;
 
+          {$ifndef jni}
           if uppercase(copy(currentline,1,12))='LOADLIBRARY(' then
           begin
             //load a library into memory , this one already executes BEFORE the 2nd pass to get addressnames correct
@@ -1562,6 +1590,7 @@ begin
             end else raise exception.Create(rsWrongSyntaxLoadLibraryFilename);
           end;
 
+
           if uppercase(copy(currentline,1,8))='LUACALL(' then
           begin
             //execute a given lua command
@@ -1580,6 +1609,7 @@ begin
               continue;
             end else raise exception.Create(rsWrongSyntaxLuaCall);
           end;
+          {$endif}
 
           if uppercase(copy(currentline,1,8))='READMEM(' then
           begin
@@ -2265,7 +2295,9 @@ begin
       exit;
     end;
 
+    {$ifndef jni}
     if popupmessages and (messagedlg(rsThisCodeCanBeInjectedAreYouSure, mtConfirmation	, [mbyes, mbno], 0)<>mryes) then exit;
+    {$endif}
 
     //allocate the memory
 
@@ -2382,6 +2414,7 @@ begin
 
 
       //plugin
+      {$ifndef jni}
       if length(currentline)>0 then
       begin
         currentlinep:=@currentline[1];
@@ -2390,6 +2423,7 @@ begin
         //if handled currentline will have it's identifiers regarding the plugin's previously registered stuff replaced
         //note that this can be called in a multithreaded situation, so the plugin must hld storage containers on a threadid base and handle the locking itself
       end;
+      {$endif}
       //plugin
 
 
@@ -2649,7 +2683,9 @@ begin
 
     if not ok2 then
     begin
+      {$ifndef jni}
       if popupmessages then showmessage(rsNotAllInstructionsCouldBeInjected)
+      {$endif}
     end
     else
     begin
@@ -2797,6 +2833,7 @@ begin
           end;
         end;
 
+      {$IFNDEF UNIX}
       if popupmessages then
       begin
         s1:='';
@@ -2816,6 +2853,7 @@ begin
 
         showmessage(rsTheCodeInjectionWasSuccessfull+s1);
       end;
+      {$ENDIF}
     end;
 
     result:=ok2;
@@ -2836,6 +2874,7 @@ begin
     if tokens<>nil then
       freeandnil(tokens);
 
+    {$IFNDEF UNIX}
     pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 3); //tell the plugins to free their data
 
     if targetself then
@@ -2843,6 +2882,7 @@ begin
       processhandler.processhandle:=oldhandle;
       symhandler:=oldsymhandler;
     end;
+    {$ENDIF}
 
     if potentiallabels<>nil then
       freeandnil(potentiallabels);

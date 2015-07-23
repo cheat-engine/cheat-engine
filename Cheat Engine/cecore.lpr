@@ -12,7 +12,8 @@ uses cthreads, classes, jni, networkInterfaceApi, NewKernelHandler,
   groupscancommandparser, CustomTypeHandler, SymbolListHandler, symbolhandler,
   DotNetTypes, DotNetPipe, byteinterpreter, MemoryRecordUnit, jnitfoundlist,
   jniTMemScan, jniTObject, jniSymbolHandler, jniByteInterpreter, pointerparser,
-  jniAddressList;
+  Assemblerunit, DisassemblerArm, assemblerArm, DisassemblerThumb,
+  LastDisassembleData, autoassembler, jniAddressList;
 
 
 type TMainThread=class(TThread)

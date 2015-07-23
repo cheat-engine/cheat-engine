@@ -27,6 +27,8 @@ type
   LONG=integer;
   ULONG=DWORD;
 
+  pint=^integer;
+
   dword64=UInt64;
   PDWORD64=^dword64;
   LONG64=UInt64;

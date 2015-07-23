@@ -4,9 +4,16 @@ unit assemblerArm;
 
 interface
 
+
+{$ifdef jni}
+uses classes, SysUtils, StrUtils, assemblerunit, symbolhandler;
+{$endif}
+
+{$ifdef windows}
 uses
   Classes, SysUtils, strutils{$ifndef ARMDEV}, assemblerunit{$endif}, dialogs,
   symbolhandler;
+{$endif}
 
 {$ifdef ARMDEV}
 type TAssemblerBytes=array of byte;

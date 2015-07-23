@@ -202,7 +202,7 @@ implementation
 
 
 uses frmAAEditPrefsUnit,MainUnit,memorybrowserformunit,APIhooktemplatesettingsfrm,
-  Globals, Parsers;
+  Globals, Parsers, MemoryQuery;
 
 resourcestring
   rsExecuteScript = 'Execute script';

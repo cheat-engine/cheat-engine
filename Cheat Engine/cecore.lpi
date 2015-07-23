@@ -39,7 +39,7 @@
         <PackageName Value="LazUtils"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="30">
+    <Units Count="36">
       <Unit0>
         <Filename Value="cecore.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -93,7 +93,6 @@
       <Unit11>
         <Filename Value="commontypedefs.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="commonTypeDefs"/>
       </Unit11>
       <Unit12>
         <Filename Value="savedscanhandler.pas"/>
@@ -173,6 +172,36 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="jniAddressList"/>
       </Unit29>
+      <Unit30>
+        <Filename Value="autoassembler.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="autoassembler"/>
+      </Unit30>
+      <Unit31>
+        <Filename Value="Assemblerunit.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="Assemblerunit"/>
+      </Unit31>
+      <Unit32>
+        <Filename Value="assemblerarm.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="assemblerArm"/>
+      </Unit32>
+      <Unit33>
+        <Filename Value="disassemblerarm.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DisassemblerArm"/>
+      </Unit33>
+      <Unit34>
+        <Filename Value="disassemblerthumb.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DisassemblerThumb"/>
+      </Unit34>
+      <Unit35>
+        <Filename Value="lastdisassembledata.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="LastDisassembleData"/>
+      </Unit35>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -201,9 +230,10 @@
       </Options>
     </Linking>
     <Other>
-      <CustomOptions Value="-dJNI
+      <CustomOptions Value="-OoFASTMATH
+-dJNI
 -dlowmemoryusage
--OoFASTMATH"/>
+-dNOLUA"/>
     </Other>
   </CompilerOptions>
   <Debugging>

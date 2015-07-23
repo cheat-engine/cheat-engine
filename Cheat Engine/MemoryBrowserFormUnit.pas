@@ -609,6 +609,7 @@ uses Valuechange,
   frmFilePatcherUnit,
   frmUltimapUnit,
   frmAssemblyScanUnit,
+  MemoryQuery,
   AccessedMemory,
   Parsers;
 

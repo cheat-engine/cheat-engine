@@ -6312,8 +6312,13 @@ begin
   outputdebugstring('end of scancontroller reached');
   isreallydoneevent.setEvent;   //just set it again if it wasn't set
 
+  {$IFNDEF UNIX}
   if assigned(OwningMemScan.OnScanDone) then
+  {$endif}
+  begin
+    outputdebugstring('Queue OwningMemScan.ScanDone');
     Queue(OwningMemScan.ScanDone);
+  end;
 end;
 
 constructor TScanController.create(suspended: boolean);
