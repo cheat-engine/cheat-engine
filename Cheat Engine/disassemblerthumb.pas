@@ -5043,17 +5043,16 @@ var x: ptruint;
 begin
 
   a:=address;
+  setlength(LastDisassembleData.Bytes,2);
+
   {$ifdef armdev}
   opcode:=pword(address)^;
-  setlength(LastDisassembleData.Bytes,2);
   pword(@LastDisassembleData.Bytes[0])^:=opcode;
   {$else}
   x:=0;
+
   if readprocessmemory(processhandle, pointer(address-1), @opcode, sizeof(opcode), x) then
-  begin
-    setlength(LastDisassembleData.Bytes,2);
     puint16(@LastDisassembleData.Bytes[0])^:=opcode;
-  end;
   {$endif}
 
   LastDisassembleData.address:=a;
@@ -5235,10 +5234,20 @@ begin
     $3a..$3f: T32;
   end;
 
-  result:=inttohex(LastDisassembleData.address,8);
+  result:=inttohex(LastDisassembleData.address,8)+' (THUMB)';
   result:=result+' - ';
-  for i:=0 to length(LastDisassembleData.bytes)-1 do
-    result:=result+inttohex(LastDisassembleData.Bytes[i],2)+' ';
+  if x>0 then
+  begin
+    for i:=0 to length(LastDisassembleData.bytes)-1 do
+      result:=result+inttohex(LastDisassembleData.Bytes[i],2)+' ';
+  end
+  else
+  begin
+    for i:=0 to length(LastDisassembleData.bytes)-1 do
+      result:=result+'?? ';
+
+  end;
+
   result:=result+' - ';
   result:=result+LastDisassembleData.opcode;
   result:=result+' ';

@@ -1910,6 +1910,10 @@ dbvm_readMSR(msr): See dbk_readMSR
 dbvm_writeMSR(msr, value): See dbk_writeMSR
 
 
+dbk_getPhysicalAddress(address): Returns the physical address of the given address
+dbk_writesIgnoreWriteProtection(state): Set to true if you do not wish to initiate copy-on-write behaviour
+
+
 
 onAPIPointerChange(function): Registers a callback when an api pointer is changed (can happen when the user clicks ok in settings, or when dbk_use*** is used. Does NOT happen when setAPIPointer is called)
 

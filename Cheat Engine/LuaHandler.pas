@@ -3740,6 +3740,37 @@ begin
   end else lua_pop(L, parameters);
 end;
 
+function dbk_writesIgnoreWriteProtection(L: PLua_State): integer; cdecl;
+var state: boolean;
+begin
+  result:=0;
+  if lua_gettop(L)=1 then
+  begin
+    state:=lua_toboolean(L, 1);
+    lua_pushboolean(L, KernelWritesIgnoreWriteProtection(state));
+    result:=1;
+  end;
+
+end;
+
+function dbk_getPhysicalAddress(L: PLua_State): integer; cdecl;
+var
+  address: ptruint;
+  pa: int64;
+begin
+  result:=0;
+  if lua_gettop(L)=1 then
+  begin
+    address:=lua_tointeger(L,1);
+
+    if GetPhysicalAddress(processhandle, pointer(address), pa) then
+    begin
+      lua_pushinteger(L, pa);
+      result:=1;
+    end;
+  end;
+end;
+
 function dbk_readMSR(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
@@ -5916,6 +5947,12 @@ begin
     lua_register(LuaVM, 'dbk_executeKernelMemory', dbk_executeKernelMemory);
     lua_register(LuaVM, 'dbk_readMSR', dbk_readMSR);
     lua_register(LuaVM, 'dbk_writeMSR', dbk_writeMSR);
+
+    lua_register(LuaVM, 'dbk_getPhysicalAddress', dbk_getPhysicalAddress);
+    lua_register(LuaVM, 'dbk_writesIgnoreWriteProtection', dbk_writesIgnoreWriteProtection);
+
+
+
 
     lua_register(LuaVM, 'allocateSharedMemory', allocateSharedMemory);
     lua_register(LuaVM, 'deallocateSharedMemory', deallocateSharedMemory);

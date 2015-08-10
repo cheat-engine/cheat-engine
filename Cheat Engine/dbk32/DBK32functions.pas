@@ -13,7 +13,7 @@ uses jwawindows, windows, sysutils, classes, types, registry, multicpuexecution,
 
 
 
-const currentversion=2000016;
+const currentversion=2000017;
 
 const FILE_ANY_ACCESS=0;
 const FILE_SPECIAL_ACCESS=FILE_ANY_ACCESS;
@@ -112,6 +112,10 @@ const IOCTL_CE_STARTACCESMONITOR      = (IOCTL_UNKNOWN_BASE shl 16) or ($0848 sh
 
 const IOCTL_CE_ENUMACCESSEDMEMORY     = (IOCTL_UNKNOWN_BASE shl 16) or ($0849 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_GETACCESSEDMEMORYLIST  = (IOCTL_UNKNOWN_BASE shl 16) or ($084a shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+
+const IOCTL_CE_WRITESIGNOREWP         = (IOCTL_UNKNOWN_BASE shl 16) or ($084b shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+
+
 
 
 type TDeviceIoControl=function(hDevice: THandle; dwIoControlCode: DWORD; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesReturned: DWORD; lpOverlapped: POverlapped): BOOL; stdcall;
@@ -294,7 +298,7 @@ procedure writeMSR(msr: dword; value: qword);
 
 function MarkAllPagesAsNonAccessed(hProcess: THandle):boolean;
 function EnumAndGetAccessedPages(hProcess: THandle; var r: TPRangeDynArray):integer;
-
+function KernelWritesIgnoreWriteProtection(state: boolean): boolean;
 
 
 type TIsWow64Process=function (processhandle: THandle; var isWow: BOOL): BOOL; stdcall;
@@ -1381,6 +1385,23 @@ begin
     end;
 end;
 
+function KernelWritesIgnoreWriteProtection(state: boolean): boolean;
+var
+  br,cc: dword;
+  _state: byte;
+begin
+  if hdevice<>INVALID_HANDLE_VALUE then
+  begin
+    cc:=IOCTL_CE_WRITESIGNOREWP;
+
+    if state then
+      _state:=1
+    else
+      _state:=0;
+
+    result:=deviceiocontrol(hdevice,cc,@_state,1,nil,0,br,nil);
+  end;
+end;
 
 
 

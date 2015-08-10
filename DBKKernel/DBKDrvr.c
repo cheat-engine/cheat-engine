@@ -174,7 +174,7 @@ Return Value:
 
 	
 	KernelCodeStepping=0;
-	
+	KernelWritesIgnoreWP = 0;
 
 	
 

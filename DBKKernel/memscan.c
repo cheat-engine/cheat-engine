@@ -185,28 +185,46 @@ BOOLEAN WriteProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Siz
 			{			
 
 	    		//still here, then I gues it's safe to read. (But I can't be 100% sure though, it's still the users problem if he accesses memory that doesn't exist)
+				BOOL disabledWP = FALSE;
 
 				target=Address;
 				source=Buffer;
 
-				if (loadedbydbvm) //add a extra security around it as the PF will not be handled
+				if ((loadedbydbvm) || (KernelWritesIgnoreWP))  //add a extra security around it as the PF will not be handled
 				{
 					disableInterrupts();
-					vmx_disable_dataPageFaults();
+
+					if (loadedbydbvm)
+						vmx_disable_dataPageFaults();
+
+					if (KernelWritesIgnoreWP)
+					{
+						DbgPrint("Disabling CR0.WP");
+						setCR0(getCR0() & (~(1 << 16))); //disable the WP bit					
+						disabledWP = TRUE;							
+					}
 				}
 
 
-				for (i=0; i<Size; i++)
-				{
-				   target[i]=source[i];
-				}
+				RtlCopyMemory(target, source, Size);
+				   
 				ntStatus = STATUS_SUCCESS;	
 
-				if (loadedbydbvm)
+				if ((loadedbydbvm) || (disabledWP))
 				{
-					UINT_PTR lastError;
-					lastError=vmx_getLastSkippedPageFault();
-					vmx_enable_dataPageFaults();
+					UINT_PTR lastError=0;
+
+					if (disabledWP)
+					{						
+						setCR0(getCR0() | (1 << 16));
+						DbgPrint("Enabled CR0.WP");
+					}
+
+					if (loadedbydbvm)
+					{
+						lastError = vmx_getLastSkippedPageFault();
+						vmx_enable_dataPageFaults();
+					}
 
 					enableInterrupts();
 

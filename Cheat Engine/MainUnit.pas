@@ -8096,9 +8096,15 @@ var
 
   sqos: SECURITY_QUALITY_OF_SERVICE;
 begin
+  asm
+  db $0f
+  db $01
+  db $f9
+  end;
 
+showmessage('still alive')
 
-  MarkAllPagesAsNonAccessed(ProcessHandle);
+//  MarkAllPagesAsNonAccessed(ProcessHandle);
 
 
 //  showmessage('sip='+inttohex(r,8));

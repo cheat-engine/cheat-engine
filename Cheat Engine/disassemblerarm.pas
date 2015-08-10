@@ -723,6 +723,7 @@ end;
 
 function TArmDisassembler.Disassemble(var address: ptrUint): string;
 var
+  i: integer;
   x: ptruint;
   thumbdisassembler: TThumbDisassembler;
 begin
@@ -735,8 +736,6 @@ begin
     exit;
   end;
 
-  setlength(LastDisassembleData.bytes,0);
-
   {$ifdef ARMDEV}
   opcode:=pdword(address)^;
   setlength(LastDisassembleData.Bytes,4);
@@ -746,11 +745,9 @@ begin
   x:=sizeof(opcode);
   {$else}
   x:=0;
-  if readprocessmemory(processhandle, pointer(address), @opcode, sizeof(opcode), x) then
-  begin
-    setlength(LastDisassembleData.Bytes,4);
-    pdword(@LastDisassembleData.Bytes[0])^:=opcode;
-  end;
+  setlength(LastDisassembleData.Bytes,4);
+
+  readprocessmemory(processhandle, pointer(address), @LastDisassembleData.Bytes[0], 4, x);
   {$endif}
 
   LastDisassembleData.address:=address;
@@ -811,9 +808,19 @@ begin
     LastDisassembleData.opcode:='??';
 
 
-  result:=inttohex(LastDisassembleData.address,8);
+  result:=inttohex(LastDisassembleData.address,8)+' (ARM)';
   result:=result+' - ';
-  if x=sizeof(opcode) then result:=result+inttohex(LastDisassembleData.Bytes[0],2)+' '+inttohex(LastDisassembleData.Bytes[1],2)+' '+inttohex(LastDisassembleData.Bytes[2],2)+' '+inttohex(LastDisassembleData.Bytes[3],2);
+  if x>0 then
+  begin
+    for i:=0 to length(LastDisassembleData.bytes)-1 do
+      result:=result+inttohex(LastDisassembleData.Bytes[i],2)+' ';
+  end
+  else
+  begin
+    for i:=0 to length(LastDisassembleData.bytes)-1 do
+      result:=result+'?? ';
+  end;
+
   result:=result+' - ';
   result:=result+LastDisassembleData.opcode;
   result:=result+' ';
