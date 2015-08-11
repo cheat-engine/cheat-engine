@@ -15,6 +15,7 @@ int allocateVirtualTLB(void)
  * Out of the 4MB */
 {
   int i;
+  int maxAllocMem;
   unsigned int AvailableForPaging;
   int orig=nosendchar[getAPICID()];
 
@@ -29,16 +30,50 @@ int allocateVirtualTLB(void)
   }
 
   //cpucount is set,
-  AvailableForPaging = (maxAllocatableMemory() - 32*1024) / cpucount;
+
+  maxAllocMem=maxAllocatableMemory();
+  sendstringf("maxAllocatableMemory()=0x%x  (-32*1024=%x)\n", maxAllocMem, maxAllocMem-32*1024 );
+  sendstringf("cpucount=%d\n", cpucount);
+  sendstringf("(maxAllocMem - 32*1024) / cpucount = %d\n",(maxAllocMem - 32*1024) / cpucount);
+
+  AvailableForPaging = (maxAllocMem - 32*1024) / cpucount;
   AvailableForPaging -= 4096; //keep some memory for some thing extra
+
+  if (AvailableForPaging<0)
+  {
+    sendstringf("1: Not enough memory for DBVM functioning");
+    while (1)
+      halt();
+  }
+
+  sendstringf("AvailableForPaging before alignment fix: 0x%x\n", AvailableForPaging);
+
   AvailableForPaging -= AvailableForPaging % 4096;
 
-  sendstringf("AvailableForPaging=%x\n", AvailableForPaging);
+  sendstringf("AvailableForPaging after alignment fix: 0x%x\n", AvailableForPaging);
 
-  for (i=0; i<16; i++)
+  if (AvailableForPaging<0)
+  {
+    sendstringf("2: Not enough memory for DBVM functioning");
+    while (1)
+      halt();
+  }
+
+
+
+  for (i=0; i<cpucount; i++)
     if (cpuinfo[i].active)
     {
       cpuinfo[i].virtualTLB = malloc(AvailableForPaging);
+      sendstringf("allocated a virtualTLB for cpu %d at %p", i, cpuinfo[i].virtualTLB);
+
+      if (cpuinfo[i].virtualTLB==NULL)
+      {
+        sendstringf("Allocation failed\n");
+        while (1);
+          halt();
+      }
+
       cpuinfo[i].virtualTLB_PA = VirtualToPhysical((UINT64)cpuinfo[i].virtualTLB);
 
       cpuinfo[i].virtualTLB_FreeSpot = cpuinfo[i].virtualTLB + 4096;

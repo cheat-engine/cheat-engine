@@ -40,6 +40,9 @@
 #define MONITOR_EXITING           (1<<29)
 #define PAUSE_EXITING             (1<<30)
 
+//secondary processor based vm-execution flags
+#define SPBEF_ENABLE_RDTSCP         (1<<3)
+
 //vm-exit controls
 #define SAVE_DEBUG_CONTROLS           (1<<2)
 #define HOST_ADDRESS_SPACE_SIZE       (1<<9)

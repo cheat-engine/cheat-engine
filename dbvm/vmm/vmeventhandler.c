@@ -1428,7 +1428,7 @@ int handleIOAccess(VMRegisters *vmregisters)
 
   }
   sendstring("Not supported port break\n\r");
-  return 1; //not yet handled
+  return 0; //not yet handled
 #else
   return 0; //just let it slip...
 #endif
@@ -3477,7 +3477,7 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 		{
 			sendstring("Interrupt window event... I did NOT ask for this\n\r");
 			sendstringf("vm_execution_controls_cpu=%6\n", vmread(vm_execution_controls_cpu));
-			return 1;
+			return 0; //ignore for now
 		}
 
     case 9:

@@ -994,6 +994,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
                     case 0x190: //must execute gpf
                     case 0x826:
                     case 0x836:
+                    case 0x839:
                     case 0x8cf:
                     case 0xa23:
                     case 0x507:
@@ -1267,6 +1268,22 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
             break;
           }
 
+          case 0x50:
+          {
+
+            switch (rip)
+            {
+
+              case 0x8a0:
+              case 0x8af:
+
+                skip=1;
+                break;
+            }
+
+            break;
+          }
+
           case 0x58:
           {
 
@@ -1290,6 +1307,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
               case 0x255:
               case 0x262:
               case 0x5a6:
+              case 0x839:
               case 0x95a:
               case 0xb2e:
               case 0xc16:
@@ -2468,20 +2486,15 @@ void setupVMX(pcpuinfo currentcpuinfo)
     sendstring("CR3 store exiting fail\n");
 
 
+
+
  // IA32_VMX_PROCBASED_CTLS=IA32_VMX_PROCBASED_CTLS | (1<<1) | (7<<4) | (1<<8) | (15<<13) | (1<<26);
 
   //do a check for a secondary entry
 
-  /*
-  if (IA32_VMX_PROCBASED_CTLS >> 63)
-  {
-  	//it can have a secondary entry
-  	//enable rdtscp
-	sendstringf("Enabling rdtscp\n");
-  	IA32_VMX_PROCBASED_CTLS=IA32_VMX_PROCBASED_CTLS | (1<<31); //enable secondary entry
-  	vmwrite(vm_execution_controls_cpu_secondary, (1<<3)); //enable rdtscp
-  }
-  */
+
+
+
 
 
   sendstringf("%d: Initializing vmcs region for launch\n\r",currentcpuinfo->cpunr);
@@ -2646,8 +2659,22 @@ void setupVMX(pcpuinfo currentcpuinfo)
 
     DWORD new_vm_execution_controls_cpu=(DWORD)IA32_VMX_PROCBASED_CTLS | INVLPG_EXITING | USE_IO_BITMAPS | USE_MSR_BITMAPS;
 
+    if ((IA32_VMX_PROCBASED_CTLS >> 32) & (1<<31)) //secondary procbased ctl support
+      new_vm_execution_controls_cpu=new_vm_execution_controls_cpu | (1<<31);
+
     vmwrite(vm_execution_controls_cpu, new_vm_execution_controls_cpu); //processor-based vm-execution controls
     sendstringf("Set vm_execution_controls_cpu to %8 (became %8)\n", new_vm_execution_controls_cpu, (DWORD)vmread(vm_execution_controls_cpu));
+
+
+    if ((new_vm_execution_controls_cpu >> 31) & 1)
+    {
+      //it has a secondary entry
+      //enable rdtscp
+      sendstringf("Enabling rdtscp\n");
+      if ((IA32_VMX_SECONDARY_PROCBASED_CTLS >> 32) & (1<<SPBEF_ENABLE_RDTSCP)) //can it enable rdtscp ?
+        vmwrite(vm_execution_controls_cpu_secondary, SPBEF_ENABLE_RDTSCP); //enable rdtscp
+    }
+
 
 
     currentcpuinfo->efer=originalstate->originalEFER;
@@ -2843,8 +2870,21 @@ void setupVMX(pcpuinfo currentcpuinfo)
         sendstring("<<<<<<WARNING: This system does not support USE_MSR_BITMAPS>>>>>>\n");
 
 
+      if ((IA32_VMX_PROCBASED_CTLS >> 32) & (1<<31)) //secondary procbased ctl support
+        new_vm_execution_controls_cpu=new_vm_execution_controls_cpu | (1<<31);
+
       vmwrite(vm_execution_controls_cpu, new_vm_execution_controls_cpu); //processor-based vm-execution controls
       sendstringf("Set vm_execution_controls_cpu to %8 (became %8)\n", new_vm_execution_controls_cpu, (DWORD)vmread(vm_execution_controls_cpu));
+
+      if ((new_vm_execution_controls_cpu >> 31) & 1)
+      {
+        //it has a secondary entry
+        //enable rdtscp
+        sendstringf("Enabling rdtscp\n");
+        if ((IA32_VMX_SECONDARY_PROCBASED_CTLS >> 32) & (1<<SPBEF_ENABLE_RDTSCP)) //can it enable rdtscp ?
+          vmwrite(vm_execution_controls_cpu_secondary, SPBEF_ENABLE_RDTSCP); //enable rdtscp
+      }
+
 
 
       DWORD new_vm_entry_controls=(DWORD)IA32_VMX_ENTRY_CTLS;
@@ -2949,7 +2989,23 @@ void setupVMX(pcpuinfo currentcpuinfo)
       currentcpuinfo->guestCR0=0;
       currentcpuinfo->hasIF=0;
 
-      vmwrite(vm_execution_controls_cpu,(UINT64)IA32_VMX_PROCBASED_CTLS | INVLPG_EXITING | USE_IO_BITMAPS | USE_MSR_BITMAPS ); //don't exit on hlt, it needs it
+
+      DWORD new_vm_execution_controls_cpu=(UINT64)IA32_VMX_PROCBASED_CTLS | INVLPG_EXITING | USE_IO_BITMAPS | USE_MSR_BITMAPS;
+      if ((IA32_VMX_PROCBASED_CTLS >> 32) & (1<<31)) //secondary procbased ctl support
+        new_vm_execution_controls_cpu=new_vm_execution_controls_cpu | (1<<31);
+
+
+      vmwrite(vm_execution_controls_cpu, new_vm_execution_controls_cpu); //don't exit on hlt, it needs it
+      if ((new_vm_execution_controls_cpu >> 31) & 1)
+      {
+        //it has a secondary entry
+        //enable rdtscp
+        sendstringf("Enabling rdtscp\n");
+        if ((IA32_VMX_SECONDARY_PROCBASED_CTLS >> 32) & (1<<SPBEF_ENABLE_RDTSCP)) //can it enable rdtscp ?
+          vmwrite(vm_execution_controls_cpu_secondary, SPBEF_ENABLE_RDTSCP); //enable rdtscp
+      }
+
+
       vmwrite(vm_entry_controls,(UINT64)IA32_VMX_ENTRY_CTLS ); //32bit/16bit init
 
       vmwrite(vm_cr0_fakeread,(UINT64)0); //cr0 read shadow
