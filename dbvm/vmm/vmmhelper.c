@@ -2671,7 +2671,7 @@ void setupVMX(pcpuinfo currentcpuinfo)
       //it has a secondary entry
       //enable rdtscp
       sendstringf("Enabling rdtscp\n");
-      if ((IA32_VMX_SECONDARY_PROCBASED_CTLS >> 32) & (1<<SPBEF_ENABLE_RDTSCP)) //can it enable rdtscp ?
+      if ((IA32_VMX_SECONDARY_PROCBASED_CTLS >> 32) & SPBEF_ENABLE_RDTSCP) //can it enable rdtscp ?
         vmwrite(vm_execution_controls_cpu_secondary, SPBEF_ENABLE_RDTSCP); //enable rdtscp
     }
 
@@ -2881,7 +2881,7 @@ void setupVMX(pcpuinfo currentcpuinfo)
         //it has a secondary entry
         //enable rdtscp
         sendstringf("Enabling rdtscp\n");
-        if ((IA32_VMX_SECONDARY_PROCBASED_CTLS >> 32) & (1<<SPBEF_ENABLE_RDTSCP)) //can it enable rdtscp ?
+        if ((IA32_VMX_SECONDARY_PROCBASED_CTLS >> 32) & SPBEF_ENABLE_RDTSCP) //can it enable rdtscp ?
           vmwrite(vm_execution_controls_cpu_secondary, SPBEF_ENABLE_RDTSCP); //enable rdtscp
       }
 
@@ -3001,7 +3001,7 @@ void setupVMX(pcpuinfo currentcpuinfo)
         //it has a secondary entry
         //enable rdtscp
         sendstringf("Enabling rdtscp\n");
-        if ((IA32_VMX_SECONDARY_PROCBASED_CTLS >> 32) & (1<<SPBEF_ENABLE_RDTSCP)) //can it enable rdtscp ?
+        if ((IA32_VMX_SECONDARY_PROCBASED_CTLS >> 32) & SPBEF_ENABLE_RDTSCP) //can it enable rdtscp ?
           vmwrite(vm_execution_controls_cpu_secondary, SPBEF_ENABLE_RDTSCP); //enable rdtscp
       }
 
