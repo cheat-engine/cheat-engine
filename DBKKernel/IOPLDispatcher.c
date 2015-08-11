@@ -1333,6 +1333,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 		{
 			KernelWritesIgnoreWP = *(BYTE*)Irp->AssociatedIrp.SystemBuffer;
 			ntStatus = STATUS_SUCCESS;
+			break;
 		}
 
 		
