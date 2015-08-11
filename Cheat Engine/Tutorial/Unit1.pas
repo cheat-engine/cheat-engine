@@ -50,11 +50,11 @@ resourcestring
               'Then click on the ''open process'' icon. (top left icon, with the computer on it)'+#13#10+
               ''+#13#10+
               'When the process window is open find this tutorial. The process name is probably ''tutorial.exe'' unless you'+
-              'renamed it.'+#13#10+
+              ' renamed it.'+#13#10+
               'Select it, and click ok. Just ignore all the other buttons right now, but experiment with them later if you feel like it.'+#13#10+
               ''+#13#10+
-              'When everything went right, the process window should be gone now and at the top of CE the processname is'+
-              'shown.'+#13#10+
+              'When everything went right, the process window should be gone now and at the top of CE the process name is'+
+              ' shown.'+#13#10+
               ''+#13#10+
               'Now, click NEXT to continue to the next step. (Or fill in the password to proceed to that particular step you want)';
 
