@@ -3771,6 +3771,51 @@ begin
   end;
 end;
 
+function dbk_getCR0(L: PLua_state): integer; cdecl;
+begin
+  lua_pushinteger(L, getcr0);
+  result:=1;
+end;
+
+function dbk_getCR3(L: PLua_state): integer; cdecl;
+var cr3: qword;
+begin
+  if GetCR3(processhandle, cr3) then
+    lua_pushinteger(L, cr3)
+  else
+    lua_pushnil(L);
+
+  result:=1;
+end;
+
+function dbk_getCR4(L: PLua_state): integer; cdecl;
+begin
+  lua_pushinteger(L, getcr4);
+  result:=1;
+end;
+
+function dbvm_getCR0(L: PLua_state): integer; cdecl;
+begin
+  lua_pushinteger(L, dbvm_getRealCR0);
+  result:=1;
+end;
+
+function dbvm_getCR3(L: PLua_state): integer; cdecl;
+begin
+  lua_pushinteger(L, dbvm_getRealCR3);
+  result:=1;
+end;
+
+function dbvm_getCR4(L: PLua_state): integer; cdecl;
+begin
+  lua_pushinteger(L, dbvm_getRealCR4);
+  result:=1;
+end;
+
+
+
+
+
 function dbk_readMSR(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
@@ -5947,6 +5992,14 @@ begin
     lua_register(LuaVM, 'dbk_executeKernelMemory', dbk_executeKernelMemory);
     lua_register(LuaVM, 'dbk_readMSR', dbk_readMSR);
     lua_register(LuaVM, 'dbk_writeMSR', dbk_writeMSR);
+    lua_register(LuaVM, 'dbk_getCR0', dbk_getCR0);
+    lua_register(LuaVM, 'dbk_getCR3', dbk_getCR3);
+    lua_register(LuaVM, 'dbk_getCR4', dbk_getCR4);
+    lua_register(LuaVM, 'dbvm_getCR0', dbvm_getCR0);
+    lua_register(LuaVM, 'dbvm_getCR3', dbvm_getCR3);
+    lua_register(LuaVM, 'dbvm_getCR4', dbvm_getCR4);
+
+
 
     lua_register(LuaVM, 'dbk_getPhysicalAddress', dbk_getPhysicalAddress);
     lua_register(LuaVM, 'dbk_writesIgnoreWriteProtection', dbk_writesIgnoreWriteProtection);

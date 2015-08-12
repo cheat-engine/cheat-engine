@@ -1898,6 +1898,7 @@ dbk_useKernelmodeProcessMemoryAccess() : Switches the internal pointer to the Re
 dbk_useKernelmodeQueryMemoryRegions() : Switches the internal pointer to the QueryVirtualMemory api to dbk_QueryVirtualMemory
 dbk_getPEProcess(processid) : Returns the pointer of the EProcess structure of the selected processid
 dbk_getPEThread(threadid) : Gets the pointer to the EThread  structure
+
 dbk_readMSR(msr): Reads the msr
 dbk_writeMSR(msr, msrvalue): Writes the msr
 dbk_executeKernelMemory(address, parameter) :
@@ -1910,9 +1911,13 @@ dbvm_readMSR(msr): See dbk_readMSR
 dbvm_writeMSR(msr, value): See dbk_writeMSR
 
 
+dbk_getCR0(): Returns Control Register 0
+dbk_getCR3(): Returns Control Register 3 of the currently opened process
+dbk_getCR4(): Returns Control Register 4
 dbk_getPhysicalAddress(address): Returns the physical address of the given address
 dbk_writesIgnoreWriteProtection(state): Set to true if you do not wish to initiate copy-on-write behaviour
 
+dbvm_getCR4(): Returns the real Control Register 4 state
 
 
 onAPIPointerChange(function): Registers a callback when an api pointer is changed (can happen when the user clicks ok in settings, or when dbk_use*** is used. Does NOT happen when setAPIPointer is called)
