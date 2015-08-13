@@ -748,6 +748,7 @@ begin
   setlength(LastDisassembleData.Bytes,4);
 
   readprocessmemory(processhandle, pointer(address), @LastDisassembleData.Bytes[0], 4, x);
+  opcode:=pdword(@LastDisassembleData.Bytes[0])^;
   {$endif}
 
   LastDisassembleData.address:=address;
