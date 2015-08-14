@@ -62,11 +62,10 @@ begin
   if (value shr mostSignificantBit)=1 then //needs to be sign extended
   begin
     //set bits 31 to mostSignificantBit to 1
-    result:=value or ($fffffff shl (mostSignificantBit+1));
+    result:=value or ($fffffff shl mostSignificantBit);
   end
   else
     result:=value;
-
 end;
 
 function TArmDisassembler.Condition: string;

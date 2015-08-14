@@ -3159,7 +3159,8 @@ begin
 end;
 
 procedure TThumbDisassembler.B_T1;
-var cond, imm8: byte;
+var cond:byte;
+  imm8: ShortInt;
 begin
   cond:=(opcode shr 8) and $7;
   imm8:=opcode and $ff;
@@ -3169,18 +3170,20 @@ begin
 end;
 
 procedure TThumbDisassembler.B_T2;
-var imm11: word;
+var imm11: smallint;
 begin
   imm11:=opcode and $7ff;
   LastDisassembleData.opcode:='B';
+
+  imm11:=SignExtend(imm11, 10);
   LastDisassembleData.parameters:=inttohex(dword(a+2+imm11*2),1);
 end;
 
 procedure TThumbDisassembler.B_T3;
 var
   s, cond, imm6, j1, j2: byte;
-  imm11: word;
-  imm32: dword;
+  imm11: smallint;
+  imm32: integer;
 begin
   s:=(opcode shr 10) and 1;
   cond:=(opcode shr 6) and $f;
@@ -3192,7 +3195,7 @@ begin
   //S:J2:J1:imm6:imm11:'0'
   imm32:=(j2 shl 18) or (j1 shl 17) or (imm6 shl 11) or imm11;
   imm32:=imm32 shl 1;
-  if s=1 then imm32:=imm32 or $FFF00000;
+  if s=1 then imm32:=SignExtend(imm32, 19);
 
   LastDisassembleData.opcode:='B'+ArmConditions[cond];
   LastDisassembleData.parameters:=inttohex(dword(a+4+imm32),8);
@@ -3201,8 +3204,8 @@ end;
 procedure TThumbDisassembler.B_T4;
 var
   s, j1, j2: byte;
-  imm10, imm11: word;
-  imm32: dword;
+  imm10, imm11: smallint;
+  imm32: integer;
 
   i1, i2: byte;
 begin
@@ -3223,9 +3226,10 @@ begin
   imm32:=imm32 or (imm10 shl 11);
   imm32:=imm32 or (i2 shl 21);
   imm32:=imm32 or (i1 shl 22);
-
+  imm32:=imm32 or (s shl 23);
   imm32:=imm32 shl 1;
-  if s=1 then imm32:=imm32 or $FF000000; //S+sign extend
+
+  imm32:=signextend(imm32, 24); //S is bit 24 after the shl 1
 
   LastDisassembleData.opcode:='B';
   LastDisassembleData.parameters:=inttohex(dword(a+4+imm32),8);
@@ -3238,7 +3242,7 @@ var
   imm11: word;
 
   i1, i2: byte;
-  imm32: ptruint;
+  imm32: integer;
 begin
   s:=(opcode shr 10) and 1;
   imm10:=opcode and $3ff;
@@ -3247,16 +3251,16 @@ begin
   j2:=(opcode2 shr 11) and 1;
   imm11:=opcode2 and $7ff;
 
-  i1:=not (j1 xor s);
-  i2:=not (j2 xor s);
+  i1:=(not (j1 xor s)) and 1;
+  i2:=(not (j2 xor s)) and 1;
 
     //S:J2:J1:imm10:imm11:'0'
-  imm32:=(i1 shl 23) or (i2 shl 22) or (imm10 shl 11) or imm11;
+  imm32:=(s shl 23) or (i1 shl 22) or (i2 shl 21) or (imm10 shl 11) or imm11;
   imm32:=imm32 shl 1;
-  if s=1 then imm32:=-imm32;
+  imm32:=signextend(imm32, 24);
 
   LastDisassembleData.opcode:='BL';
-  LastDisassembleData.parameters:=inttohex(a+4+imm32,8);
+  LastDisassembleData.parameters:=inttohex(dword(a+4+imm32),8);
 
 end;
 
@@ -3266,7 +3270,7 @@ var
   imm10h: word;
   imm10l: word;
   i1, i2: byte;
-  imm32: ptruint;
+  imm32: integer;
 begin
   s:=(opcode shr 10) and 1;
   imm10h:=opcode and $3ff;
@@ -3279,12 +3283,12 @@ begin
   i2:=not (j2 xor s);
 
     //S:i1:i2:imm10h:imm10l:'00'
-  imm32:=(i1 shl 22) or (i2 shl 21) or (imm10h shl 10) or imm10l;
+  imm32:=(s shl 22) or (i1 shl 21) or (i2 shl 20) or (imm10h shl 10) or imm10l;
   imm32:=imm32 shl 2;
-  if s=1 then imm32:=-imm32;
+  imm32:=signextend(imm32, 24);
 
   LastDisassembleData.opcode:='BLX';
-  LastDisassembleData.parameters:=inttohex(a+4+imm32,8);
+  LastDisassembleData.parameters:=inttohex(dword(a+4+imm32),8);
 
 end;
 
