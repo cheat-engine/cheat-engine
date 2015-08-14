@@ -661,22 +661,32 @@ int DispatchCommand(int currentsocket, unsigned char command)
         printf("recv returned %d bytes\n", r);
         printf("c.size=%d\n", c.size);
 
-        buf=(unsigned char *)malloc(c.size);
-
-        r=recvall(currentsocket, buf, c.size, MSG_WAITALL);
-        if (r>0)
+        if (c.size)
         {
-          printf("received %d bytes for the buffer. Wanted %d\n", r, c.size);
-          o.written=WriteProcessMemory(c.handle, (void *)(uintptr_t)c.address, buf, c.size);
+          buf=(unsigned char *)malloc(c.size);
 
-          r=sendall(currentsocket, &o, sizeof(CeWriteProcessMemoryOutput), 0);
-          printf("wpm: returned %d bytes to caller\n", r);
+          r=recvall(currentsocket, buf, c.size, MSG_WAITALL);
+          if (r>0)
+          {
+            printf("received %d bytes for the buffer. Wanted %d\n", r, c.size);
+            o.written=WriteProcessMemory(c.handle, (void *)(uintptr_t)c.address, buf, c.size);
 
+            r=sendall(currentsocket, &o, sizeof(CeWriteProcessMemoryOutput), 0);
+            printf("wpm: returned %d bytes to caller\n", r);
+
+          }
+          else
+            printf("wpm recv error while reading the data\n");
+
+          free(buf);
         }
         else
-          printf("wpm recv error while reading the data\n");
-
-        free(buf);
+        {
+          printf("wpm with a size of 0 bytes");
+          o.written=0;
+          r=sendall(currentsocket, &o, sizeof(CeWriteProcessMemoryOutput), 0);
+          printf("wpm: returned %d bytes to caller\n", r);
+        }
 
       }
       else
