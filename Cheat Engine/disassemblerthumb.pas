@@ -5075,6 +5075,7 @@ begin
   lastdisassembledata.isconditionaljump:=false;
   lastdisassembledata.modrmValueType:=dvtNone;
   lastdisassembledata.parameterValueType:=dvtNone;
+  lastdisassembledata.Disassembler:=dcThumb;
 
 
   case (opcode shr 10) of

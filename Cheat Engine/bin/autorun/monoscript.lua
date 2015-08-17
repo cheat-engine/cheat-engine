@@ -2196,7 +2196,7 @@ function monoAA_GETMONOSTRUCT(parameters, syntaxcheckonly)
   result=result.."\n"
 
 
-  for i=2, #sortedindex do
+  for i=1, #sortedindex do
     local offset=sortedindex[i]
 
 

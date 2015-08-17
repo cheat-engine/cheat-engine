@@ -10,6 +10,8 @@ uses
 type
   TDisAssemblerValueType=(dvtNone=0, dvtAddress=1, dvtValue=2);
 
+  TDisassemblerClass=(dcX86, dcArm, dcThumb);
+
 
 
   TLastDisassembleData=record
@@ -40,7 +42,11 @@ type
     isconditionaljump: boolean; //set if it's only effective when an conditon is met
 
     riprelative: integer; //0 or contains the offset where the rip relative part of the code is
+
+    Disassembler: TDisassemblerClass;
   end;
+
+  PLastDisassembleData=^TLastDisassembleData;
 
 implementation
 
