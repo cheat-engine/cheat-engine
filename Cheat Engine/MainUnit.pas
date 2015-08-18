@@ -3594,11 +3594,11 @@ end;
 
 procedure TMainForm.miBindDeactivationClick(Sender: TObject);
 begin
-  miBindActivation.Checked := not miBindActivation.Checked;
+  miBindDeactivation.Checked := not miBindDeactivation.Checked;
 
   if addresslist.selectedRecord <> nil then
   begin
-    if miBindActivation.Checked then
+    if miBindDeactivation.Checked then
       addresslist.selectedRecord.options := addresslist.selectedRecord.options + [moDeactivateChildrenAsWell]
     else
       addresslist.selectedRecord.options := addresslist.selectedRecord.options - [moDeactivateChildrenAsWell];
@@ -8097,12 +8097,19 @@ var
   sqos: SECURITY_QUALITY_OF_SERVICE;
 begin
   asm
-  db $0f
-  db $01
-  db $f9
+    mov eax,1
+    cpuid
+    mov z,rcx
   end;
 
-showmessage('still alive')
+
+  if (z shl 31) and 1=1 then showmessage('hypervisor present') else showmessage('no hypervisor detected');
+
+  showmessage(inttohex(z,8));
+
+ // getConnection.loadExtension(processhandle);
+
+//showmessage('still alive')
 
 //  MarkAllPagesAsNonAccessed(ProcessHandle);
 
