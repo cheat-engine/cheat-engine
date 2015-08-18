@@ -1412,8 +1412,32 @@ begin
 end;
 
 procedure VEXT(var LastDisassembleData: TLastDisassembleData);
+var
+  opcode: dword;
+  D, Vn, Vd, imm4, N, Q, M, Vm: byte;
 begin
+  opcode:=pdword(LastDisassembleData.Bytes[0])^;
+  D:=(opcode shr 22) and 1;
+  Vn:=(opcode shr 16) and $f;
+  Vd:=(opcode shr 12) and $f;
 
+  imm4:=(opcode shr 8) and $f;
+
+  N:=(opcode shr 7) and 1;
+  Q:=(opcode shr 6) and 1;
+  M:=(opcode shr 5) and 1;
+  Vm:=opcode and $f;
+
+  Vn:=(N shl 4) or Vn;
+  Vm:=(M shl 4) or Vm;
+  Vd:=(D shl 4) or Vd;
+
+  if q=0 then
+    LastDisassembleData.parameters:='D'+inttostr(vd)+', D'+inttostr(Vn)+', D'+inttostr(Vm)+' '+inttohex(imm4,1)
+  else
+    LastDisassembleData.parameters:='D'+inttostr(vd)+', D'+inttostr(Vn)+', D'+inttostr(Vm)+' '+inttohex(imm4,1);
+
+  LastDisassembleData.opcode:='VEXT.8';
 end;
 
 procedure ASIMD_2Reg_Misc(var LastDisassembleData: TLastDisassembleData);
@@ -1652,14 +1676,89 @@ begin
 end;
 
 procedure VTBL_VTBLX(var LastDisassembleData: TLastDisassembleData);
+var
+  opcode: dword;
+  D, Vn, Vd, len, N, op, M, Vm: byte;
+  _list: string;
+  i: integer;
 begin
+  opcode:=pdword(LastDisassembleData.Bytes[0])^;
 
+  D:=(opcode shr 22) and 1;
+  Vn:=(opcode shr 16) and $f;
+  Vd:=(opcode shr 12) and $f;
+  len:=(opcode shr 8) and 3;
+
+  N:=(opcode shr 7) and 1;
+  op:=(opcode shr 6) and 1;
+  M:=(opcode shr 5) and 1;
+  Vm:=opcode and $f;
+
+  Vn:=(N shl 4) or Vn;
+  Vm:=(M shl 4) or Vm;
+  Vd:=(D shl 4) or Vd;
+
+  for i:=0 to len-1 do
+  begin
+    _list:=_list+'D'+inttostr(Vn+i);
+    if i<len-1 then
+      _list:=_list+', ';
+  end;
+
+  LastDisassembleData.parameters:='D'+inttostr(vd)+', {'+_list+'} D'+inttostr(Vm);
+
+
+  if op=0 then
+    LastDisassembleData.opcode:='VTBL.8'
+  else
+    LastDisassembleData.opcode:='VTBX.8';
 end;
 
 
 procedure VDUP_Scalar(var LastDisassembleData: TLastDisassembleData);
-begin
+var
+  opcode: dword;
+  D, imm4, Vd, Q, M, Vm: byte;
 
+  size, index: byte;
+begin
+  opcode:=pdword(LastDisassembleData.Bytes[0])^;
+
+  D:=(opcode shr 22) and 1;
+  imm4:=(opcode shr 16) and $f;
+  Vd:=(opcode shr 12) and $f;
+
+  Q:=(opcode shr 6) and 1;
+  M:=(opcode shr 5) and 1;
+  Vm:=opcode and $f;
+
+  Vm:=(M shl 4) or Vm;
+  Vd:=(D shl 4) or Vd;
+
+  if (imm4 and 1)=1 then
+  begin
+    size:=8;
+    index:=imm4 shr 1;
+  end
+  else
+  if (imm4 and 2)=2 then
+  begin
+    size:=16;
+    index:=imm4 shr 2;
+  end
+  else
+  if (imm4 and 4)=4 then
+  begin
+    size:=32;
+    index:=imm4 shr 3;
+  end;
+
+  if q=0 then
+    LastDisassembleData.parameters:='D'+inttostr(vd)+', D'+inttostr(Vm)+'['+inttostr(index)+']'
+  else
+    LastDisassembleData.parameters:='Q'+inttostr(vd)+', Q'+inttostr(Vm)+'['+inttostr(index)+']';
+
+  LastDisassembleData.opcode:='VDUP.'+inttostr(size);
 end;
 
 procedure Advanced_SIMD_Data_Processing(var LastDisassembleData: TLastDisassembleData);
