@@ -3818,7 +3818,7 @@ begin
       CustomTypeCallback := CreateCustomType;
       CustomType := ct;
       if ct.CustomTypeType = cttLuaScript then
-        luamode := True;
+        ScriptMode :=smLua;
 
       assemblescreen.Lines.Text := CustomType.script;
 
@@ -3847,7 +3847,7 @@ begin
     CustomTypeScript := True;
     CustomTypeCallback := CreateCustomType;
     CustomType := nil;
-    luamode := True;
+    ScriptMode:= smLua;
 
     with assemblescreen.Lines do
     begin
@@ -4816,7 +4816,7 @@ begin
 
 
   frmLuaTableScript := TfrmAutoInject.Create(self);
-  frmLuaTableScript.luamode := True;
+  frmLuaTableScript.ScriptMode := smLua;
 
   frmLuaTableScript.Caption := rsLuaScriptCheatTable;
   frmLuaTableScript.New1.Visible := False;
@@ -8095,8 +8095,16 @@ var
 
 
   sqos: SECURITY_QUALITY_OF_SERVICE;
+
+  gnua: TfrmAutoInject;
+
 begin
-  asm
+
+  gnua:=TfrmAutoInject.Create(self);
+  gnua.ScriptMode:=smGnuAssembler;
+
+
+ { asm
     mov eax,1
     cpuid
     mov z,rcx
@@ -8105,7 +8113,7 @@ begin
 
   if (z shl 31) and 1=1 then showmessage('hypervisor present') else showmessage('no hypervisor detected');
 
-  showmessage(inttohex(z,8));
+  showmessage(inttohex(z,8)); }
 
  // getConnection.loadExtension(processhandle);
 

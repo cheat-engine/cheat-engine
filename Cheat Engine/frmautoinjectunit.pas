@@ -64,6 +64,8 @@ type TAOBFind = Object
   function IsMatch(var maskBytes: Array Of Byte; var maskFlags : TBooleanArray; startIndex, endIndex: Integer): Boolean;
 end;
 
+type TScriptMode=(smAutoAssembler, smLua, smGnuAssembler);
+
 type
 
   { TfrmAutoInject }
@@ -162,10 +164,14 @@ type
 
     selectedtab: integer;
 
+
+    fScriptMode: TScriptMode;
     fluamode: boolean;
     fCustomTypeScript: boolean;
 
     procedure setluamode(state: boolean);
+    procedure setScriptMode(mode: TScriptMode);
+
     procedure injectscript(createthread: boolean);
     procedure tlistOnTabChange(sender: TObject; oldselection: integer);
     procedure setCustomTypeScript(x: boolean);
@@ -188,8 +194,8 @@ type
     callbackroutine: TCallbackroutine;
     CustomTypeCallback: TCustomCallbackroutine;
     injectintomyself: boolean;
-    property luamode: boolean read fluamode write setluamode;
     property CustomTypeScript: boolean read fCustomTypeScript write setCustomTypeScript;
+    property ScriptMode: TScriptMode read fScriptMode write setScriptMode;
   end;
 
 
@@ -210,6 +216,7 @@ resourcestring
   rsLUAScript = 'LUA Script';
   rsWriteCode = 'Write code';
   rsCEAFilter = 'Cheat Engine Assembly (*.CEA)|*.CEA|All Files ( *.* )|*.*';
+  rsCEGAFilter = 'Cheat Engine GNU Assembly (*.CEGA)|*.CEGA|All Files ( *.* )|*.*';
   rsAutoAssembler = 'Auto assembler';
   rsCodeNeedsEnableAndDisable = 'The code needs an [ENABLE] and a [DISABLE] section if you want to use this script as a table entry';
   rsNotAllCodeIsInjectable = 'Not all code is injectable.'#13#10'%s'#13#10'Are you sure you wan''t to edit it to this?';
@@ -229,42 +236,64 @@ begin
     editscript:=true;
 end;
 
+procedure TfrmAutoInject.setScriptMode(mode: TScriptMode);
+begin
+  case mode of
+    smLua:
+    begin
+      assemblescreen.Highlighter:=LuaHighlighter;
+
+      //change gui to lua style
+      button1.Caption:=rsExecuteScript;
+      opendialog1.DefaultExt:='LUA';
+      opendialog1.Filter:=rsLuaFilter;
+      savedialog1.DefaultExt:='LUA';
+      savedialog1.Filter:=rsLuaFilter;
+      Assigntocurrentcheattable1.visible:=false;
+      emplate1.Visible:=false;
+      caption:=rsLUAScript;
+     // inject1.Visible:=true;
+      helpcontext:=19; //c-script help
+    end;
+
+    smAutoAssembler:
+    begin
+      assemblescreen.Highlighter:=AAHighlighter;
+
+
+      //change gui to autoassembler style
+      button1.caption:=rsWriteCode;
+      opendialog1.DefaultExt:='CEA';
+      opendialog1.Filter:=rsCEAFilter;
+      savedialog1.DefaultExt:='CEA';
+      savedialog1.Filter:=rsCEAFilter;
+      Assigntocurrentcheattable1.Visible:=true;
+      emplate1.Visible:=true;
+      caption:=rsAutoAssembler;
+      inject1.Visible:=false;
+      helpcontext:=18; //auto asm help
+    end;
+
+    smGnuAssembler:
+    begin
+      assemblescreen.Highlighter:=nil; //no highlighter for it yet
+
+      button1.Caption:=rsWriteCode;
+      opendialog1.DefaultExt:='CEGA';
+      opendialog1.Filter:=rsCEGAFilter;
+      savedialog1.DefaultExt:='CEGA';
+      savedialog1.Filter:=rsCEGAFilter;
+      Assigntocurrentcheattable1.visible:=true; //yup
+      emplate1.Visible:=false; //no templates right now
+      caption:=rsLUAScript;
+    end;
+
+  end;
+end;
+
 procedure TfrmAutoInject.setluamode(state: boolean);
 begin
-  fluamode:=state;
-  if state then
-  begin
-    assemblescreen.Highlighter:=LuaHighlighter;
 
-    //change gui to lua style
-    button1.Caption:=rsExecuteScript;
-    opendialog1.DefaultExt:='LUA';
-    opendialog1.Filter:=rsLuaFilter;
-    savedialog1.DefaultExt:='LUA';
-    savedialog1.Filter:=rsLuaFilter;
-    Assigntocurrentcheattable1.visible:=false;
-    emplate1.Visible:=false;
-    caption:=rsLUAScript;
-   // inject1.Visible:=true;
-    helpcontext:=19; //c-script help
-  end
-  else
-  begin
-    assemblescreen.Highlighter:=AAHighlighter;
-
-
-    //change gui to autoassembler style
-    button1.caption:=rsWriteCode;
-    opendialog1.DefaultExt:='CEA';
-    opendialog1.Filter:=rsCEAFilter;
-    savedialog1.DefaultExt:='CEA';
-    savedialog1.Filter:=rsCEAFilter;
-    Assigntocurrentcheattable1.Visible:=true;
-    emplate1.Visible:=true;
-    caption:=rsAutoAssembler;
-    inject1.Visible:=false;
-    helpcontext:=18; //auto asm help
-  end;
 end;
 
 
@@ -284,53 +313,102 @@ begin
   registeredsymbols.CaseSensitive:=false;
   registeredsymbols.Duplicates:=dupIgnore;
 
-  if luamode then
-  begin
-    //execute
-    LUA_DoScript(assemblescreen.Text);
-    modalresult:=mrok; //not modal anymore, but can still be used to pass info
-    if editscript2 or CustomTypeScript then close;
-  end
-  else
-  begin
-    if editscript then
+  case scriptmode of
+    smlua:
     begin
-      //check if both scripts are valid before allowing the edit
+      //execute
+      LUA_DoScript(assemblescreen.Text);
+      modalresult:=mrok; //not modal anymore, but can still be used to pass info
+      if editscript2 or CustomTypeScript then close;
+    end;
 
-      setlength(aa,1);
-      getenableanddisablepos(assemblescreen.Lines,a,b);
-      if not CustomTypeScript then
-        if (a=-1) and (b=-1) then raise exception.create(rsCodeNeedsEnableAndDisable);
+    smAutoAssembler:
+    begin
+      if editscript then
+      begin
+        //check if both scripts are valid before allowing the edit
+
+        setlength(aa,1);
+        getenableanddisablepos(assemblescreen.Lines,a,b);
+        if not CustomTypeScript then
+          if (a=-1) and (b=-1) then raise exception.create(rsCodeNeedsEnableAndDisable);
 
 
-      try
-        check:=autoassemble(assemblescreen.lines,false,true,true,injectintomyself,aa,registeredsymbols) and
-               autoassemble(assemblescreen.lines,false,false,true,injectintomyself,aa,registeredsymbols);
+        try
+          check:=autoassemble(assemblescreen.lines,false,true,true,injectintomyself,aa,registeredsymbols) and
+                 autoassemble(assemblescreen.lines,false,false,true,injectintomyself,aa,registeredsymbols);
 
-        if not check then
-          errmsg:=format(rsNotAllCodeIsInjectable,['']);
-      except
-        on e: exception do
-        begin
-          check:=false;
-          errmsg:=format(rsNotAllCodeIsInjectable,['('+e.Message+')']);
+          if not check then
+            errmsg:=format(rsNotAllCodeIsInjectable,['']);
+        except
+          on e: exception do
+          begin
+            check:=false;
+            errmsg:=format(rsNotAllCodeIsInjectable,['('+e.Message+')']);
+          end;
         end;
-      end;
 
-      if check then
-      begin
-        modalresult:=mrok; //not modal anymore, but can still be used to pass info
-        if editscript2 or CustomTypeScript then close; //can only be used when not modal
-      end
-      else
-      begin
-        if messagedlg(errmsg, mtWarning, [mbyes, mbno], 0)=mryes then
+        if check then
         begin
           modalresult:=mrok; //not modal anymore, but can still be used to pass info
-          if editscript2 or CustomTypeScript then close;
+          if editscript2 or CustomTypeScript then close; //can only be used when not modal
+        end
+        else
+        begin
+          if messagedlg(errmsg, mtWarning, [mbyes, mbno], 0)=mryes then
+          begin
+            modalresult:=mrok; //not modal anymore, but can still be used to pass info
+            if editscript2 or CustomTypeScript then close;
+          end;
         end;
-      end;
-    end else autoassemble(assemblescreen.lines,true);
+      end else autoassemble(assemblescreen.lines,true);
+    end;
+
+    smGnuAssembler:
+    begin
+      //1:
+      //.aobscan <name> "ceaobscanformat"
+      //Internally ->:
+      //.msection _<name> <aobscanresult>
+      //name:
+      //->see .msection
+
+      //2:
+      //scan the script for .asection , .msection and .aobscan
+      //.asection <name> <0xpreferedaddress>
+      //Internally ->:
+      //.section _<name>,"xa" :  after assembly check the size and allocate at least the specific amount
+      //name:
+
+      //3:
+      //.msection <name> <address or ce symbol> <expectedsize>  (error out if after linking the assumed size is bigger than expected. E.g veneers)
+      //Internally ->:
+      //.secion _<name>,"xa" : after assembly add it to the section list with the given address
+      //name:
+
+      //4:
+      //scan for <xxx>: and add ".type <xxx>, %function" for each label found (
+
+      //assemble the script
+
+      //parse the ELF header
+      //enumerate the sections. Crossreference them with the list of asection and msection.  Unknown sections will be handled as .asection with no prefered address
+      //allocate the sections (that need to be allocated.  .msection sections are already allocated)
+
+      //write a linker script that sets these sections to their specific addresses
+
+      //parse the ELF header further and figure out which symbols are undefined
+      //call the linker with --defsym=symbolname=0xaddress for each symbol
+
+      //after the linker:
+      //extract the binary data for each section:
+      //objcopy -j<sectionname> -O binary <tempresultfile> <sectionbinary>
+
+      //write the sections to memory from top to bottom. So write your code injection destinations before the jump/branch to it. (Just like the auto assembler)
+
+
+    end;
+
   end;
   registeredsymbols.free;
 {$endif}
@@ -363,7 +441,7 @@ procedure TfrmAutoInject.miNewWindowClick(Sender: TObject);
 var f: TfrmAutoInject;
 begin
   f:=TfrmAutoInject.Create(application);
-  f.luamode:=luamode;
+  f.scriptmode:=smLua;
 
   f.show;
 end;
@@ -420,9 +498,9 @@ begin
       begin
 
         if modalresult=mrok then
-          CustomTypeCallback(customtype, assemblescreen.text,true,luamode)
+          CustomTypeCallback(customtype, assemblescreen.text,true,scriptmode=smLua)
         else
-          CustomTypeCallback(customtype, assemblescreen.text,false,luamode);
+          CustomTypeCallback(customtype, assemblescreen.text,false,scriptmode=smLua);
 
         action:=cafree;
       end;
@@ -1425,6 +1503,8 @@ begin
   CPPHighlighter:=TSynCppSyn.create(self);
   LuaHighlighter:=TSynLuaSyn.Create(self);
 
+
+
   assembleSearch:=TSyneditSearch.Create;
 
   tlist:=TTablist.Create(self);
@@ -1511,7 +1591,12 @@ begin
 
   Syntaxhighlighting1.checked:=not Syntaxhighlighting1.checked;
   if Syntaxhighlighting1.checked then //enable
-    assemblescreen.Highlighter:=AAHighlighter
+  begin
+    if fluamode then
+      assemblescreen.Highlighter:=LuaHighlighter
+    else
+      assemblescreen.Highlighter:=AAHighlighter
+  end
   else //disabl
     assemblescreen.Highlighter:=nil;
 

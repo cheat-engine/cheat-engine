@@ -677,6 +677,112 @@ begin
   LastDisassembleData.parameters:=inttohex(opcode and $FFFFFF,1);
 end;
 
+procedure FloatingPointDataInstruction(var LastDisassembleData: TLastDisassembleData);
+var
+  opcode: dword;
+  cond: byte;
+  t: byte;
+
+  opc1, opc2, opc3, opc4: byte;
+  condition: string;
+
+  D, Vn, Vd, sz, N, M, Vm: byte;
+  cc: byte;
+begin
+  opcode:=pdword(LastDisassembleData.Bytes)^;
+
+  if lastdisassembledata.Disassembler=dcArm then
+  begin
+    cond:=(opcode shr 28) and $f;
+    if (cond=$f) then
+      t:=1
+    else
+      t:=0;
+
+    condition:=ArmConditions[cond];
+  end
+  else
+  begin
+    opcode:=(opcode shr 16) or (opcode shl 16);
+    t:=(opcode shr 28) and 1;
+
+    pdword(@lastdisassembledata.Bytes[0])^:=opcode;
+    condition:='';
+  end;
+
+
+
+  opc1:=(opcode shr 20) and $f;
+  opc2:=(opcode shr 16) and $f;
+  opc3:=(opcode shr 6) and 3;
+  opc4:=opcode and $f;
+
+  sz:=(opcode shr 8) and 1;
+
+  D:=(opcode shr 22) and 1;
+  Vn:=(opcode shr 16) and $f;
+  Vd:=(opcode shr 12) and $f;
+  N:=(opcode shr 7) and 1;
+  M:=(opcode shr 5) and 1;
+  Vm:=opcode and $f;
+
+
+  if sz=0 then
+  begin
+    Vn:=(Vn shl 1) or N;
+    Vm:=(Vm shl 1) or M;
+    Vd:=(Vd shl 1) or D;
+    LastDisassembleData.parameters:='S'+inttostr(vd)+', S'+inttostr(vn)+', S'+inttostr(Vm);
+  end
+  else
+  begin
+    Vn:=(N shl 4) or Vn;
+    Vm:=(M shl 4) or Vm;
+    Vd:=(D shl 4) or Vd;
+    LastDisassembleData.parameters:='D'+inttostr(vd)+', D'+inttostr(vn)+', D'+inttostr(Vm);
+  end;
+
+  case (t shl 4) or opc1 of
+    0,4: if (opc3 and 1)=1 then LastDisassembleData.opcode:='VMLS' else LastDisassembleData.opcode:='VMLA';
+    1,5: if (opc3 and 1)=1 then LastDisassembleData.opcode:='VNMLA' else LastDisassembleData.opcode:='VNMLS';
+    2,6: if (opc3 and 1)=1 then LastDisassembleData.opcode:='VNMUL' else LastDisassembleData.opcode:='VMUL';
+    3,7: if (opc3 and 1)=1 then LastDisassembleData.opcode:='VADD' else LastDisassembleData.opcode:='VSUB';
+    8,12: if (opc3 and 1)=0 then LastDisassembleData.opcode:='VDIV';
+    9,13: if (opc3 and 1)=1 then LastDisassembleData.opcode:='VFNMA' else LastDisassembleData.opcode:='VFNMS';
+    10,14: if (opc3 and 1)=1 then LastDisassembleData.opcode:='VFMS' else LastDisassembleData.opcode:='VFMA';
+
+    16..23:
+    begin
+      case (opcode shr 20) and 3 of
+        0: LastDisassembleData.opcode:='VSELEQ';
+        1: LastDisassembleData.opcode:='VSELVS';
+        2: LastDisassembleData.opcode:='VSELGE';
+        3: LastDisassembleData.opcode:='VSELGT';
+      end;
+    end;
+
+    24,28: if (opc3 and 1)=1 then LastDisassembleData.opcode:='VMINNM' else LastDisassembleData.opcode:='VMAXNM';
+
+    11,15, 27, 31:
+    begin
+      //other:
+      exit;
+
+    end;
+  end;
+
+  if sz=0 then
+    LastDisassembleData.opcode:=LastDisassembleData.opcode+condition+'.F32'
+  else
+    LastDisassembleData.opcode:=LastDisassembleData.opcode+condition+'.F64';
+
+  if lastdisassembledata.Disassembler=dcThumb then  //undo the wordswap
+  begin
+    opcode:=(opcode shr 16) or (opcode shl 16);
+    pdword(@lastdisassembledata.Bytes[0])^:=opcode;
+  end;
+end;
+
 procedure TArmDisassembler.CDP;
 var
   CP_Opc: integer;
@@ -692,12 +798,19 @@ var
 
   _expression1,_expression2: string;
 begin
+
   CP_Opc:=(opcode shr 20) and $f;       //
   CRd:=(opcode shr 12) and $f;    //
   CRn:=(opcode shr 16) and $f;      //
   CRm:=opcode and $f;               //
   CPn:=(opcode shr 8) and $f;
   CP:=(opcode shr 5) and $7;  //
+
+  if (CPn in [10,11]) and ((opcode and $10)=$10) then
+  begin
+    FloatingPointDataInstruction(LastDisassembleData);
+    exit;
+  end;
 
 
   _expression1:=inttohex(CP_OPC,1);
@@ -1832,8 +1945,8 @@ begin
     end;
   end;
 
-  //undo the byteswap
-  if lastdisassembledata.Disassembler=dcThumb then
+
+  if lastdisassembledata.Disassembler=dcThumb then  //undo the wordswap
   begin
     opcode:=(opcode shr 16) or (opcode shl 16);
     pdword(@lastdisassembledata.Bytes[0])^:=opcode;

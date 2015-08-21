@@ -1031,6 +1031,7 @@ begin
 
 end;
 
+
 function autoassemble2(code: tstrings;popupmessages: boolean;syntaxcheckonly:boolean; targetself: boolean ;var ceallocarray:TCEAllocArray; registeredsymbols: tstringlist=nil):boolean;
 {
 registeredsymbols is a stringlist that is initialized by the caller as case insensitive and no duplicates
@@ -2406,7 +2407,9 @@ begin
 
     //-----------------------2nd pass------------------------
     //assemblerlines only contains label specifiers and assembler instructions
-    
+
+
+
     setlength(assembled,0);
     for i:=0 to length(assemblerlines)-1 do
     begin
