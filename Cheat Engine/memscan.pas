@@ -3235,15 +3235,22 @@ begin
         begin
           dividableby2:=ptrUint(p) mod 2=0;
           dividableby4:=ptrUint(p) mod 4=0;
-          typesmatch[vtByte]:=true;
-          typesmatch[vtWord]:=dividableby2;
-          typesmatch[vtDWord]:=dividableby4;
-          typesmatch[vtQWord]:=dividableby4;
-          typesmatch[vtSingle]:=dividableby4;
-          typesmatch[vtDouble]:=dividableby4;
+          typesmatch[vtByte]:=allbyte;
+          typesmatch[vtWord]:=allWord and dividableby2;
+          typesmatch[vtDWord]:=allDword and dividableby4;
+          typesmatch[vtQWord]:=allQword and dividableby4;
+          typesmatch[vtSingle]:=allFloat and dividableby4;
+          typesmatch[vtDouble]:=allDouble and dividableby4;
         end
         else
-          for i:=vtByte to vtDouble do typesmatch[i]:=true;
+        begin
+          typesmatch[vtByte]:=allByte;
+          typesmatch[vtWord]:=allWord;
+          typesmatch[vtDWord]:=allDword;
+          typesmatch[vtQWord]:=allQword;
+          typesmatch[vtSingle]:=allFloat;
+          typesmatch[vtDouble]:=allDouble;
+        end;
 
         if allCustom then
         begin
@@ -3280,15 +3287,22 @@ begin
         begin
           dividableby2:=ptruint(p) mod 2=0;
           dividableby4:=ptruint(p) mod 4=0;
-          typesmatch[vtByte]:=true;
-          typesmatch[vtWord]:=dividableby2;
-          typesmatch[vtDWord]:=dividableby4;
-          typesmatch[vtQWord]:=dividableby4;
-          typesmatch[vtSingle]:=dividableby4;
-          typesmatch[vtDouble]:=dividableby4;
+          typesmatch[vtByte]:=allbyte;
+          typesmatch[vtWord]:=allWord and dividableby2;
+          typesmatch[vtDWord]:=allDword and dividableby4;
+          typesmatch[vtQWord]:=allQword and dividableby4;
+          typesmatch[vtSingle]:=allFloat and dividableby4;
+          typesmatch[vtDouble]:=allDouble and dividableby4;
         end
         else
-          for i:=vtByte to vtDouble do typesmatch[i]:=true;
+        begin
+          typesmatch[vtByte]:=allByte;
+          typesmatch[vtWord]:=allWord;
+          typesmatch[vtDWord]:=allDword;
+          typesmatch[vtQWord]:=allQword;
+          typesmatch[vtSingle]:=allFloat;
+          typesmatch[vtDouble]:=allDouble;
+        end;
 
         if allCustom then
           for j:=0 to customtypecount-1 do customtypesmatch[j]:=true;
