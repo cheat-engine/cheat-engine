@@ -64,6 +64,9 @@ type
     property POFile: TPOFile read FPOFile;
   end;
 
+
+var translationfilepath: string;
+
 procedure doTranslation;
 
 implementation
@@ -268,6 +271,9 @@ begin
   // search first po translation resources
   try
      lcfn := FindLocaleFileName('.po');
+
+     translationfilepath:=ExtractFilePath(lcfn);
+
      lcfn:=SysToUTF8(lcfn);
 
      if lcfn <> '' then

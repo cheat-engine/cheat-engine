@@ -91,7 +91,10 @@ destroyRef(integer) - Removes the reference
 
 reloadSettingsFromRegistry(): This will cause cheat engine to reload the settings from the registry and apply them
 
-translate(string): Returns a translation of the string, if it can be found in the main .PO file. Returns the same string if it can't be found
+getTranslationFolder(): Returns the path of the current translation files. Empty if there is no translation going on
+loadPOFile(path): Loads a .PO file used for translation
+translate(string): Returns a translation of the string. Returns the same string if it can't be found
+translateID(translationid: string, originalstring: string OPTIONAL): Returns a translation of the string id
 
 ansiToUtf8(string): Converts a string in Ansi encoding to UTF8
 utf8ToAnsi(string): Converts a string in UTF8 encoding to Ansi

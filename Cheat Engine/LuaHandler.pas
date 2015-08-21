@@ -5734,11 +5734,85 @@ begin
   end;
 end;
 
+function lua_getTranslationFolder(L: PLua_State): integer; cdecl;
+begin
+  lua_pushstring(L, translationfilepath);
+  result:=1;
+end;
+
+function lua_loadPOFile(L: PLua_State): integer; cdecl;
+var
+  POFile: TPOFile;
+  filename: string;
+  postrings: TStringlist;
+begin
+  if lua_gettop(L)>=1 then
+  begin
+    postrings:=Tstringlist.create;
+    try
+      filename:=Lua_ToString(L, 1);
+      postrings.LoadFromFile(filename);
+      if assigned(LRSTranslator) then
+      begin
+        if (LRSTranslator is TPOTranslator) then
+        begin
+          pofile:=TPOTranslator(LRSTranslator).POFile;
+          pofile.ReadPOText(postrings.text);
+        end;
+      end;
+      lua_pushboolean(L, true);
+    except
+      lua_pushboolean(L, false);
+    end;
+    postrings.free;
+    result:=1;
+  end
+  else
+    result:=0;
+end;
+
+function lua_translateid(L:PLua_state): integer; cdecl;
+var
+  POFile: TPOFile;
+  id, orig: string;
+  r: string;
+begin
+  if lua_gettop(L)>=1 then
+  begin
+    id:=Lua_ToString(L, 1);
+
+    if lua_gettop(L)>=2 then
+      orig:=Lua_ToString(L,2)
+    else
+      orig:='';
+
+    r:=orig;
+
+    if assigned(LRSTranslator) then
+    begin
+      if (LRSTranslator is TPOTranslator) then
+      begin
+        pofile:=TPOTranslator(LRSTranslator).POFile;
+
+        if assigned(pofile) then
+          r:=pofile.Translate(id, orig);
+      end;
+    end;
+
+    lua_pushstring(L, r);
+    result:=1;
+  end
+  else
+    result:=0;
+end;
+
 function lua_translate(L:PLua_state): integer; cdecl;
 var
   s: string;
   POFile: TPOFile;
   r: string;
+
+  z: TStringList;
 begin
   if lua_gettop(L)>=1 then
   begin
@@ -5751,15 +5825,15 @@ begin
         pofile:=TPOTranslator(LRSTranslator).POFile;
 
         if assigned(pofile) then
-        begin
-          r:=pofile.Translate('', r);
-        end;
+          r:=pofile.Translate('',r);
       end;
     end;
 
     lua_pushstring(L, r);
     result:=1;
-  end;
+  end
+  else
+    result:=1;
 end;
 
 procedure InitializeLua;
@@ -6169,6 +6243,9 @@ begin
     lua_register(LuaVM, 'restoreSeDebugPrivilege', restoreSeDebugPrivilege);
 
     lua_register(LuaVM, 'translate', lua_translate);
+    lua_register(LuaVM, 'translateID', lua_translateid);
+    lua_register(LuaVM, 'loadPOFile', lua_loadPOFile);
+    lua_register(LuaVM, 'getTranslationFolder', lua_getTranslationFolder);
 
     initializeLuaCustomControl;
 
