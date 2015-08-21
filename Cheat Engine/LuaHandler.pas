@@ -18,7 +18,7 @@ uses
   controls, LuaCaller, forms, ExtCtrls, StdCtrls, comctrls, ceguicomponents,
   generichotkey, luafile, xmplayer_server, ExtraTrainerComponents, customtimer,
   menus, XMLRead, XMLWrite, DOM,ShellApi, Clipbrd, typinfo, PEInfoFunctions,
-  LCLProc, strutils, registry, md5, commonTypeDefs;
+  LCLProc, strutils, registry, md5, commonTypeDefs, LResources, Translations;
 
 
 const MAXTABLERECURSIONLOOKUP=2;
@@ -93,7 +93,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   LuaCommonDialog, LuaFindDialog, LuaSettings, LuaPageControl, LuaRipRelativeScanner,
   LuaStructureFrm, SymbolListHandler, processhandlerunit, processlist, DebuggerInterface,
   WindowsDebugger, VEHDebugger, KernelDebuggerInterface, DebuggerInterfaceAPIWrapper,
-  Globals, math, speedhack2;
+  Globals, math, speedhack2, CETranslator;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -5734,6 +5734,34 @@ begin
   end;
 end;
 
+function lua_translate(L:PLua_state): integer; cdecl;
+var
+  s: string;
+  POFile: TPOFile;
+  r: string;
+begin
+  if lua_gettop(L)>=1 then
+  begin
+    r:=Lua_ToString(L, 1);
+
+    if assigned(LRSTranslator) then
+    begin
+      if (LRSTranslator is TPOTranslator) then
+      begin
+        pofile:=TPOTranslator(LRSTranslator).POFile;
+
+        if assigned(pofile) then
+        begin
+          r:=pofile.Translate('', r);
+        end;
+      end;
+    end;
+
+    lua_pushstring(L, r);
+    result:=1;
+  end;
+end;
+
 procedure InitializeLua;
 var
   s: tstringlist;
@@ -6139,6 +6167,8 @@ begin
     lua_Register(LuaVM, 'stringToMD5String', lua_stringToMD5String);
     lua_register(LuaVM, 'convertKeyComboToString', lua_ConvertKeyComboToString);
     lua_register(LuaVM, 'restoreSeDebugPrivilege', restoreSeDebugPrivilege);
+
+    lua_register(LuaVM, 'translate', lua_translate);
 
     initializeLuaCustomControl;
 
