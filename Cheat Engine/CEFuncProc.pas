@@ -37,6 +37,7 @@ commontypedefs;
 
 
 //function NewVarTypeToOldVarType(i: TVariableType):integer;
+function VariableTypeToTranslatedString(variableType: TVariableType): string;
 function OldVarTypeToNewVarType(i: integer):TVariableType;
 function VariableTypeToString(variableType: TVariableType): string;
 function StringToVariableType(s: string): TVariableType;
@@ -321,7 +322,8 @@ implementation
 
 uses disassembler,CEDebugger,debughelper, symbolhandler,frmProcessWatcherUnit,
      kerneldebugger, formsettingsunit, MemoryBrowserFormUnit, savedscanhandler,
-     networkInterface, networkInterfaceApi, processlist, Parsers, Globals;
+     networkInterface, networkInterfaceApi, vartypestrings, processlist, Parsers,
+     Globals;
 
 
 resourcestring
@@ -2678,6 +2680,26 @@ begin
     8: result:=vtByteArray;
     10: result:=vtCustom;
     255: result:=vtAutoAssembler; //aa script
+  end;
+end;
+
+function VariableTypeToTranslatedString(variableType: TVariableType): string;
+begin
+  case variabletype of
+    vtAll: result:=rs_vtAll;
+    vtBinary: result:=rs_vtBinary;
+    vtByteArray: Result:=rs_vtByteArray;
+    vtByte: result:=rs_vtByte;
+    vtWord: Result:=rs_vtWord;
+    vtDword: Result:=rs_vtDword;
+    vtQword: Result:=rs_vtQword;
+    vtSingle: Result:=rs_vtSingle;
+    vtDouble: Result:=rs_vtDouble;
+    vtString: Result:=rs_vtString;
+    vtUnicodeString: Result:=rs_vtUnicodeString;
+    vtPointer: result:=rs_vtPointer;
+    vtAutoAssembler: Result:=rs_vtAutoAssembler;
+    vtCustom: Result:=rs_vtCustom;
   end;
 end;
 
