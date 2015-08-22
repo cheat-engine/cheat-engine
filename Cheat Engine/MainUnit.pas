@@ -8099,7 +8099,6 @@ var
   gnua: TfrmAutoInject;
 
 begin
-
   gnua:=TfrmAutoInject.Create(self);
   gnua.ScriptMode:=smGnuAssembler;
 
@@ -8318,6 +8317,8 @@ var
 begin
   if PreviousResults<>nil then
     freeandnil(PreviousResults);
+
+  if (memscan=nil) or (foundlist=nil) then raise exception.create('Unable to scan. Fix your scan settings and restart cheat engine');
 
   foundlist.Deinitialize; //unlock file handles
 
