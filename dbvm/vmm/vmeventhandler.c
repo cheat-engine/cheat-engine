@@ -1641,6 +1641,11 @@ int handleCPUID(VMRegisters *vmregisters)
 
   _cpuid(&(vmregisters->rax),&(vmregisters->rbx),&(vmregisters->rcx),&(vmregisters->rdx));
 
+  if (oldeax==1)
+  {
+    //remove the hypervisor active bit (bit 31 in ecx)
+    vmregisters->rcx=vmregisters->rcx & (~(1 << 31));
+  }
 
   /*
   if (oldeax==1)
