@@ -107,6 +107,7 @@ resourcestring
     ''+#13#10+
     'Tip: Health is a float'+#13#10+
     'Tip2: There are multiple solutions';
+  rsU10ThisWasTheLastTutorial = 'This was the last tutorial and you skipped it. You lose';
 
 procedure TPlayer.Hit(damage: integer);
 var x: single;
@@ -264,7 +265,7 @@ end;
 
 procedure TForm10.SpeedButton1Click(Sender: TObject);
 begin
-  showmessage('This was the last tutorial and you skipped it. You lose');
+  showmessage(rsU10ThisWasTheLastTutorial);
   Application.Terminate;
 end;
 

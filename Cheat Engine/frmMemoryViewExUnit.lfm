@@ -9,7 +9,7 @@ object frmMemoryViewEx: TfrmMemoryViewEx
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.3'
   object Panel1: TPanel
     Left = 0
     Height = 274
@@ -21,9 +21,9 @@ object frmMemoryViewEx: TfrmMemoryViewEx
   end
   object lblAddress: TLabel
     Left = 0
-    Height = 16
+    Height = 15
     Top = 0
-    Width = 46
+    Width = 45
     Caption = 'Address:'
     ParentColor = False
   end
@@ -52,9 +52,9 @@ object frmMemoryViewEx: TfrmMemoryViewEx
   end
   object Label2: TLabel
     Left = 696
-    Height = 16
+    Height = 15
     Top = 16
-    Width = 72
+    Width = 71
     Caption = 'Pixels per line'
     ParentColor = False
   end
@@ -171,9 +171,9 @@ object frmMemoryViewEx: TfrmMemoryViewEx
   end
   object Label3: TLabel
     Left = 696
-    Height = 16
+    Height = 15
     Top = 104
-    Width = 30
+    Width = 29
     Caption = 'Color'
     ParentColor = False
   end

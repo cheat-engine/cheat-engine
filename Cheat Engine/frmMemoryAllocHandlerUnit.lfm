@@ -13,7 +13,7 @@ object frmMemoryAllocHandler: TfrmMemoryAllocHandler
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.3'
   object GroupBox1: TGroupBox
     Left = 0
     Height = 238
@@ -21,22 +21,22 @@ object frmMemoryAllocHandler: TfrmMemoryAllocHandler
     Width = 525
     Align = alClient
     Caption = 'Data'
-    ClientHeight = 220
+    ClientHeight = 217
     ClientWidth = 521
     TabOrder = 0
     object Label1: TLabel
       Left = 40
-      Height = 17
+      Height = 16
       Top = 64
-      Width = 38
+      Width = 37
       Caption = 'Flags:'
       ParentColor = False
     end
     object Label2: TLabel
       Left = 40
-      Height = 17
+      Height = 16
       Top = 16
-      Width = 90
+      Width = 89
       Caption = 'Base Address:'
       ParentColor = False
     end
@@ -63,17 +63,17 @@ object frmMemoryAllocHandler: TfrmMemoryAllocHandler
     end
     object Label3: TLabel
       Left = 40
-      Height = 17
+      Height = 16
       Top = 48
-      Width = 79
+      Width = 78
       Caption = 'HeapHandle'
       ParentColor = False
     end
     object Label4: TLabel
       Left = 40
-      Height = 17
+      Height = 16
       Top = 32
-      Width = 30
+      Width = 29
       Caption = 'Size:'
       ParentColor = False
     end
@@ -86,9 +86,9 @@ object frmMemoryAllocHandler: TfrmMemoryAllocHandler
     end
     object lblErr: TLabel
       Left = 40
-      Height = 17
+      Height = 16
       Top = 88
-      Width = 388
+      Width = 387
       Caption = 'Couldn''t find in heap. Found using the Alloc hook. (Not very useful)'
       Font.Color = clRed
       Font.Height = -14
@@ -100,7 +100,7 @@ object frmMemoryAllocHandler: TfrmMemoryAllocHandler
     object StatusBar1: TStatusBar
       Left = 0
       Height = 23
-      Top = 197
+      Top = 194
       Width = 521
       Panels = <      
         item

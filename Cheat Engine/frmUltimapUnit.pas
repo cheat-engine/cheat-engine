@@ -176,6 +176,18 @@ uses MemoryBrowserFormUnit, vmxfunctions, ProcessHandlerUnit;
 
 resourcestring
   rsRemoveHotkey = 'Remove hotkey (%s)';
+  rsUUOld = 'old=';
+  rsUUNew = ' new=';
+  rsUUErrorDuringMap = 'Error during map';
+  rsUUSorryButThisFeatureIsOnlyAvailableOnIntelCpus = 'Sorry, but this feature is only available on intel cpu''s';
+  rsUUPleaseRunThe64bitVersionOfCheatEngineToMakeUseOfThisFeature = 'Please run the 64-bit version of Cheat Engine to make use of this feature';
+  rsUUThisFunctionNeedsAtLeast200BytesForTheHeaderOfTheBuffer = 'This function needs at least 200 bytes for the header of the buffer';
+  rsUUTheMaximumNumberOfWorkersIs64 = 'The maximum number of workers is 64';
+  rsUUPause = 'Pause';
+  rsUUResume = 'Resume';
+  rsUUThisWillResetTheCallcountofFunctionBackto0 = 'This will reset the callcount of functions back to 0. This can not be undone. Continue?';
+  rsUUThisWillBringBackAllFoundInstructions = 'This will bring back all found instructions. Continue?';
+  rsUULastFilterResults = 'Last filter results: filtered out %d left: %d';
 
 {$ifdef cpu64}
 const kernelbase=QWORD($800000000000);        //sign extended to :$ffff800000000000
@@ -293,7 +305,7 @@ begin
   if haslock then
     branchtreeCS.Leave; //release lock
 
-  OutputDebugString('old='+inttostr(old)+' new='+inttostr(new));
+  OutputDebugString(rsUUOld+inttostr(old)+rsUUNew+inttostr(new));
 end;
 
 
@@ -319,7 +331,7 @@ begin
           //OutputDebugString(format('1=%x 2=%x 3=%x 4=%x\n',[buf[0], buf[1], buf[2], buf[3]]));
           map(buf, UltimapDataEvent.Size div sizeof(TBTS));
         except
-          OutputDebugString('Error during map');
+          OutputDebugString(rsUUErrorDuringMap);
         end;
 
 
@@ -384,10 +396,10 @@ var
   //eprocess: qword;
 begin
   if isAMD then
-    raise exception.create('Sorry, but this feature is only available on intel cpu''s');
+    raise exception.create(rsUUSorryButThisFeatureIsOnlyAvailableOnIntelCpus);
 
   {$ifdef cpu32}
-  if Is64bitOS then raise exception.create('Please run the 64-bit version of Cheat Engine to make use of this feature');
+  if Is64bitOS then raise exception.create(rsUUPleaseRunThe64bitVersionOfCheatEngineToMakeUseOfThisFeature);
   {$endif}
 
   TotalBranches:=0;
@@ -411,10 +423,10 @@ begin
   workercount:=strtoint(edtWorkerCount.text);
 
   if bufsize<2000 then
-    raise exception.create('This function needs at least 200 bytes for the header of the buffer');
+    raise exception.create(rsUUThisFunctionNeedsAtLeast200BytesForTheHeaderOfTheBuffer);
 
   if workercount>64 then
-    raise exception.create('The maximum number of workers is 64');
+    raise exception.create(rsUUTheMaximumNumberOfWorkersIs64);
 
 
 
@@ -447,7 +459,7 @@ begin
 
   paused:=false;
 //  btnPause.tag:=1;
-  btnPause.caption:='Pause';
+  btnPause.caption:=rsUUPause;
   btnPause.enabled:=true;
   btnStop.enabled:=true;
   btnstart.enabled:=false;
@@ -500,13 +512,13 @@ begin
   begin
     foreachcpu(ultimap_pause,nil);
     paused:=true;
-    btnPause.caption:='Resume';
+    btnPause.caption:=rsUUResume;
   end
   else
   begin
     foreachcpu(ultimap_resume,nil);
     paused:=false;
-    btnPause.caption:='Pause';
+    btnPause.caption:=rsUUPause;
   end;
   beep;
 end;
@@ -523,7 +535,7 @@ var n: TAvgLvlTreeNode;
 begin
   flush;
 
-  if (branchtree<>nil) and (messagedlg('This will reset the callcount of functions back to 0. This can not be undone. Continue?', mtConfirmation, [mbyes, mbno], 0)=mryes) then
+  if (branchtree<>nil) and (messagedlg(rsUUThisWillResetTheCallcountofFunctionBackto0, mtConfirmation, [mbyes, mbno], 0)=mryes) then
   begin
     branchtreecs.Enter;
     try
@@ -618,7 +630,7 @@ begin
 
   branchtreeCS.enter;
   try
-    if (branchtree<>nil) and (messagedlg('This will bring back all found instructions. Continue?', mtConfirmation, [mbyes, mbno], 0)=mryes) then
+    if (branchtree<>nil) and (messagedlg(rsUUThisWillBringBackAllFoundInstructions, mtConfirmation, [mbyes, mbno], 0)=mryes) then
     begin
       n:=branchtree.FindLowest;
       if n=nil then exit;
@@ -806,7 +818,7 @@ begin
     branchtreecs.Leave;
   end;
 
-  lblLastfilterresult.caption:='Last filter results: filtered out '+inttostr(wrongcount)+' left:'+inttostr(notwrong);
+  lblLastfilterresult.caption:=format(rsUULastFilterResults, [wrongcount, notwrong]);
   beep;
 end;
 

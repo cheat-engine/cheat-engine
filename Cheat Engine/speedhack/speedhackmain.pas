@@ -9,9 +9,11 @@ uses windows, classes, sysutils{$ifdef USECS},syncobjs{$endif};
 procedure InitializeSpeedhack(speed: single); stdcall;
 
 type TGetTickCount=function: DWORD; stdcall;
+type TGetTickCount64=function: QWORD; stdcall;
 type TQueryPerformanceCounter=function(var x: int64): BOOL; stdcall;
 
 function speedhackversion_GetTickCount: DWORD; stdcall;
+function speedhackversion_GetTickCount64: QWORD; stdcall;
 function speedhackversion_QueryPerformanceCounter(var x: int64): BOOL; stdcall;
 
 type TSimpleLock=record
@@ -51,11 +53,16 @@ var CETick: dword;
     speedmultiplier: single;
     realgettime: pointer;
     realGetTickCount: pointer;
+    realGetTickCount64: pointer;
     realQueryPerformanceCounter: pointer;
     initialoffset: dword;
     initialtime: dword;
     initialoffset64: int64;
     initialtime64: int64;
+
+    initialoffset_tc64: QWord;
+    initialtime_tc64: QWord;
+
 
 
     GTCLock: TSimpleLock;
@@ -110,6 +117,20 @@ begin
   unlock(GTCLock);
 end;
 
+function speedhackversion_GetTickCount64: QWORD; stdcall;
+var currentTime: qword;
+begin
+  //also used for timeGetTime
+
+  lock(GTCLock);
+
+  currentTime:=TGetTickCount64(realgettickcount64);
+  //time past since activation, mulitplied by speed multiplier
+  result:=trunc((currentTime-initialtime_tc64)*speedmultiplier)+initialoffset_tc64;
+
+  unlock(GTCLock);
+end;
+
 function speedhackversion_QueryPerformanceCounter(var x: int64): BOOL; stdcall;
 var currentTime64: int64;
     newx: int64;
@@ -151,8 +172,15 @@ begin
   QueryPerformanceCounter(initialoffset64);
   TQueryPerformanceCounter(realQueryPerformanceCounter)(initialtime64);
 
- // OutputDebugString('c2');
 
+  if realGetTickCount64<>nil then   //xp doesn't have this
+  begin
+    initialoffset_tc64:=GetTickCount64;
+    initialtime_tc64:=TGetTickCount64(realGetTickCount64);
+  end;
+
+
+ // OutputDebugString('c2');
   speedmultiplier:=speed;
 
  // OutputDebugString('d');

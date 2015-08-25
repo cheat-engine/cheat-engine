@@ -93,7 +93,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   LuaCommonDialog, LuaFindDialog, LuaSettings, LuaPageControl, LuaRipRelativeScanner,
   LuaStructureFrm, SymbolListHandler, processhandlerunit, processlist, DebuggerInterface,
   WindowsDebugger, VEHDebugger, KernelDebuggerInterface, DebuggerInterfaceAPIWrapper,
-  Globals, math, speedhack2, CETranslator;
+  Globals, math, speedhack2, CETranslator, binutils;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -5836,6 +5836,171 @@ begin
     result:=1;
 end;
 
+function lua_registerBinUtil (L:PLua_state): integer; cdecl;
+var
+  name, description: string;
+  path: string;
+  prefix: string;
+  ASParam: string;
+  LDParam: string;
+  OBJDUMPParam: string;
+  DisassemblerCommentChar: string;
+
+
+  bu: TBinUtils;
+
+  miBu: TMenuItem;
+  OnDisassemble: integer;
+  arch: string;
+
+  i: integer;
+begin
+  result:=0;
+  if (lua_gettop(L)>0) and (lua_istable(L, 1)) then
+  begin
+    //get the data from the provided table
+    lua_pushstring(L, 'Name');
+    lua_gettable(L, 1);
+
+    if lua_isnil(L,-1) then
+      name:='No name'
+    else
+      name:=Lua_ToString(L,-1);
+
+    lua_pop(L,1);
+
+    lua_pushstring(L, 'Description');
+    lua_gettable(L, 1);
+
+    if lua_isnil(L,-1) then
+      description:=''
+    else
+      description:=Lua_ToString(L,-1);
+
+    lua_pop(L,1);
+
+    lua_pushstring(L, 'Path');
+    lua_gettable(L, 1);
+
+    if lua_isnil(L,-1) then
+      path:=''
+    else
+      path:=Lua_ToString(L,-1);
+
+    lua_pop(L,1);
+
+    lua_pushstring(L, 'Prefix');
+    lua_gettable(L, 1);
+
+    if lua_isnil(L,-1) then
+      prefix:=''
+    else
+      prefix:=Lua_ToString(L,-1);
+
+    lua_pop(L,1);
+
+    lua_pushstring(L, 'OnDisassemble');
+    lua_gettable(L, 1);
+
+    i:=lua_gettop(L);
+    if lua_isnil(L,-1) then
+    begin
+      onDisassemble:=0;
+      lua_pop(L,1);
+    end
+    else
+      OnDisassemble:=luaL_ref(L, LUA_REGISTRYINDEX);
+
+    lua_pushstring(L, 'Architecture');
+    lua_gettable(L, 1);
+
+    if lua_isnil(L,-1) then
+      arch:=''
+    else
+      arch:=Lua_ToString(L,-1);
+
+    lua_pop(L,1);
+
+    lua_pushstring(L, 'ASParam');
+    lua_gettable(L, 1);
+
+    if lua_isnil(L,-1) then
+      ASParam:=''
+    else
+      ASParam:=Lua_ToString(L,-1);
+
+    lua_pop(L,1);
+
+    lua_pushstring(L, 'LDParam');
+    lua_gettable(L, 1);
+
+    if lua_isnil(L,-1) then
+      LDParam:=''
+    else
+      LDParam:=Lua_ToString(L,-1);
+
+    lua_pop(L,1);
+
+    lua_pushstring(L, 'OBJDUMPParam');
+    lua_gettable(L, 1);
+
+    if lua_isnil(L,-1) then
+      OBJDUMPParam:=''
+    else
+      OBJDUMPParam:=Lua_ToString(L,-1);
+
+    lua_pop(L,1);
+
+    lua_pushstring(L, 'DisassemblerCommentChar');
+    lua_gettable(L, 1);
+
+    if lua_isnil(L,-1) then
+      DisassemblerCommentChar:=''
+    else
+      DisassemblerCommentChar:=Lua_ToString(L,-1);
+
+    lua_pop(L,1);
+
+
+
+
+    bu:=TBinUtils.create;
+
+    bu.Name:=name;
+    bu.description:=description;
+    bu.prefix:=prefix;
+    bu.path:=path;
+    bu.OnDisassemble:=ondisassemble;
+    bu.arch:=Arch;
+    bu.ASParam:=ASParam;
+    bu.LDParam:=LDParam;
+    bu.OBJDUMPParam:=OBJDUMPParam;
+    bu.DisassemblerCommentChar:=DisassemblerCommentChar;
+
+
+    binutilslist.add(bu);
+
+    miBu:=TMenuItem.Create(MemoryBrowser.miBinUtils);
+    if bu.description<>'' then
+      miBu.caption:=bu.name+' - '+bu.description
+    else
+      miBu.caption:=bu.name;
+
+    miBu.Tag:=binutilslist.count-1;
+    miBu.AutoCheck:=true;
+    miBu.RadioItem:=true;
+    miBu.OnClick:=MemoryBrowser.miBinutilsSelect.OnClick;
+
+    MemoryBrowser.miBinUtils.Add(miBu);
+
+    if binutilslist.count>0 then //make a menu visible so the user can choose at runtime
+    begin
+      MemoryBrowser.miBinUtils.visible:=true;
+      MemoryBrowser.miGNUAssembler.visible:=true;
+    end;
+  end;
+end;
+
 procedure InitializeLua;
 var
   s: tstringlist;
@@ -6247,6 +6412,8 @@ begin
     lua_register(LuaVM, 'loadPOFile', lua_loadPOFile);
     lua_register(LuaVM, 'getTranslationFolder', lua_getTranslationFolder);
 
+    lua_register(LuaVM, 'registerBinUtil', lua_registerBinUtil);
+
     initializeLuaCustomControl;
 
 
@@ -6360,6 +6527,8 @@ begin
       s.add('math.pow=function(x,y) return x^y end');
       s.add('math.atan2=math.atan');
       s.add('math.ldexp=function(x,exp) return x * 2.0^exp end');
+
+      s.add('BinUtils={}');
 
       lua_doscript(s.text);
 

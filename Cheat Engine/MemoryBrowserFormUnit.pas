@@ -13,7 +13,7 @@ uses
   NewKernelHandler, ComCtrls, LResources, byteinterpreter, StrUtils, hexviewunit,
   debughelper, debuggertypedefinitions,frmMemviewPreferencesUnit, registry,
   scrollboxex, disassemblercomments, multilineinputqueryunit, frmMemoryViewExUnit,
-  LastDisassembleData, ProcessHandlerUnit, commonTypeDefs;
+  LastDisassembleData, ProcessHandlerUnit, commonTypeDefs, binutils;
 
 
 type
@@ -41,6 +41,9 @@ type
     MenuItem22: TMenuItem;
     MenuItem23: TMenuItem;
     MenuItem24: TMenuItem;
+    miGNUAssembler: TMenuItem;
+    miBinutilsSelect: TMenuItem;
+    miBinUtils: TMenuItem;
     miSetBookmark0: TMenuItem;
     miGotoBookmark0: TMenuItem;
     miSetBookmark1: TMenuItem;
@@ -267,6 +270,8 @@ type
     procedure MenuItem18Click(Sender: TObject);
     procedure MenuItem20Click(Sender: TObject);
     procedure MenuItem22Click(Sender: TObject);
+    procedure miGNUAssemblerClick(Sender: TObject);
+    procedure miBinutilsSelectClick(Sender: TObject);
     procedure SetBookmarkClick(Sender: TObject);
     procedure miTextEncodingClick(Sender: TObject);
     procedure miReferencedFunctionsClick(Sender: TObject);
@@ -485,6 +490,8 @@ type
       gotoMi: TMenuItem;
     end;
 
+    currentBinutils: Tbinutils;
+
     procedure SetStacktraceSize(size: integer);
     procedure setShowDebugPanels(state: boolean);
     procedure UpdateRWAddress(disasm: string);
@@ -611,7 +618,8 @@ uses Valuechange,
   frmAssemblyScanUnit,
   MemoryQuery,
   AccessedMemory,
-  Parsers;
+  Parsers,
+  GnuAssembler;
 
 
 resourcestring
@@ -1081,6 +1089,33 @@ begin
     frmAccessedMemory:=TfrmAccessedMemory.Create(application);
 
   frmAccessedMemory.Show;
+end;
+
+procedure TMemoryBrowser.miGNUAssemblerClick(Sender: TObject);
+var gnua: TfrmAutoInject;
+begin
+  gnua:=TfrmAutoInject.Create(self);
+  gnua.ScriptMode:=smGnuAssembler;
+  gnua.show;
+end;
+
+procedure TMemoryBrowser.miBinutilsSelectClick(Sender: TObject);
+var id: integer;
+begin
+  if (sender is TMenuItem) then
+  begin
+    id:=tmenuitem(sender).tag;
+    if (id<0) or (id>=binutilslist.count) then
+    begin
+      defaultBinutils:=nil;
+      miDisassemblerType.Enabled:=true;
+    end
+    else
+    begin
+      defaultBinutils:=TBinUtils(binutilslist[id]);
+      miDisassemblerType.Enabled:=false;
+    end;
+  end;
 end;
 
 procedure TMemoryBrowser.SetBookmarkClick(Sender: TObject);
@@ -2236,6 +2271,8 @@ var assemblercode,desc: string;
 
     localdisassembler: TDisassembler;
     bytelength: dword;
+
+    gnascript: tstringlist;
 begin
 
   //make sure it doesnt have a breakpoint
@@ -2270,6 +2307,21 @@ begin
   assemblercode:=InputboxTop(rsCheatEngineSingleLingeAssembler, Format(rsTypeYourAssemblerCodeHereAddress, [inttohex(disassemblerview.SelectedAddress, 8)]), assemblercode, x='', canceled, assemblerHistory);
   if not canceled then
   begin
+
+    if defaultBinutils<>nil then
+    begin
+      //use the gnuassembler for this
+      gnascript:=TStringList.create;
+      try
+        gnascript.add('.msection sline 0x'+inttohex(disassemblerview.SelectedAddress,8));
+        gnascript.Add(assemblercode);
+        gnuassemble(gnascript);
+      finally
+        gnascript.free;
+      end;
+
+      exit;
+    end;
 
     try
       if Assemble(assemblercode,disassemblerview.SelectedAddress,bytes) then

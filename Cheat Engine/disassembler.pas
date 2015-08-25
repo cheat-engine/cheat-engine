@@ -169,7 +169,7 @@ uses Assemblerunit, StrUtils, Parsers, memoryQuery;
 {$endif}
 
 {$ifdef windows}
-uses Assemblerunit,CEDebugger, debughelper, StrUtils, debuggertypedefinitions, Parsers, memoryQuery;
+uses Assemblerunit,CEDebugger, debughelper, StrUtils, debuggertypedefinitions, Parsers, memoryQuery, binutils;
 {$endif}
 
 
@@ -1320,6 +1320,41 @@ var memory: TMemory;
     prefixsize: integer;
     mi: TModuleInfo;
 begin
+  if defaultBinutils<>nil then
+  begin
+    //use this
+    LastDisassembleData.address:=offset;
+    LastDisassembleData.SeperatorCount:=0;
+    defaultBinutils.disassemble(LastDisassembleData);
+
+    result:=inttohex(LastDisassembleData.address,8);
+    result:=result+' - ';
+    for i:=0 to length(LastDisassembleData.bytes)-1 do
+      result:=result+inttohex(LastDisassembleData.Bytes[i],2)+' ';
+
+    result:=result+' - ';
+    result:=result+LastDisassembleData.opcode;
+    result:=result+' ';
+    result:=result+LastDisassembleData.parameters;
+
+    if length(LastDisassembleData.bytes)>0 then
+      inc(offset,length(LastDisassembleData.bytes))
+    else
+    begin
+      if processhandler.SystemArchitecture=archArm then
+      begin
+        if (offset or 1)=1 then
+          inc(offset,2)
+        else
+          inc(offset,4);
+      end
+      else
+        inc(offset,1);
+    end;
+
+    exit;
+  end;
+
   if is64bitOverride then
     is64bit:=is64BitOverrideState
   else

@@ -1067,6 +1067,8 @@ resourcestring
   rsDecimal = 'Decimal';
   rsHexadecimal = 'Hexadecimal';
   rsIsNotAValidX = '%s is not a valid xml name';
+  rsMUGenerateGroupscanCommand = 'Generate groupscan command';
+
 
 var
   ncol: TColor;
@@ -5779,7 +5781,7 @@ begin
   if groupconfigbutton=nil then
   begin
     groupconfigbutton:=Tbutton.create(self);
-    groupconfigbutton.caption:='Generate groupscan command';
+    groupconfigbutton.caption:=rsMUGenerateGroupscanCommand;
     groupconfigbutton.parent:=scantype.Parent;
     groupconfigbutton.Left:=scantype.left;
     groupconfigbutton.top:=scantype.top;
@@ -7983,23 +7985,26 @@ end;
 
 procedure TMainForm.miChangeValueClick(Sender: TObject);
 var
-  a: ptruint;
-  newvalue: string;
+  a:ptruint;
   extra: dword;
-  value: string;
+  value, newvalue: string;
   i: integer;
   vt: TVariableType;
   customtype: TCustomType;
 begin
   if foundlist3.Selected<>nil then
-  begin    a:=foundlist.GetAddress(foundlist3.Selected.Index, extra, Value);
+  begin
+    foundlist.GetAddress(foundlist3.Selected.Index, extra, Value);
 
     if InputQuery('Change value', 'Give the new value for the selected address(es)', value) then
     begin
+      newvalue:=value;
       for i:=0 to foundlist3.items.Count-1 do
       begin
         if foundlist3.Items[i].Selected then
         begin
+          a:=foundlist.GetAddress(foundlist3.Selected.Index, extra, Value);
+
           if foundlist.vartype=vtAll then  //all, extra contains the vartype
           begin
             if extra<$1000 then
@@ -8018,8 +8023,7 @@ begin
           if (vt=vtString) and (cbUnicode.checked) then
             vt:=vtUnicodeString;
 
-
-          ParseStringAndWriteToAddress(value, a, vt, foundlist.isHexadecimal, customtype);
+          ParseStringAndWriteToAddress(newvalue, a, vt, foundlist.isHexadecimal, customtype);
 
         end;
 

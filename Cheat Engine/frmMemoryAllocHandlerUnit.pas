@@ -211,6 +211,8 @@ resourcestring
   rsQueuedMemoryEventsWaiting = 'Queued memory events waiting: %s';
   rsHeapcount = 'Heapcount=%s';
   rsFailureToInitialize = 'Failure to initialize';
+  rsFailureToHook = 'Failure to hook';
+
 
 procedure TDisplayThread.removeaddress(addresslist: PMemrecTableArray; memallocevent: TmemoryAllocevent );
 var
@@ -654,7 +656,7 @@ begin
     injectionscript.Add('DQ '+inttohex(z,8));
 
 
-    if not autoassemble(injectionscript,false) then raise exception.Create('Failure hooking apis');
+    if not autoassemble(injectionscript,false) then raise exception.Create(rsFailureToHook);
 
     HookEventDataAddress:=symhandler.getAddressFromName('HookEventData');
 
@@ -665,7 +667,7 @@ begin
 
     injectionscript.Clear;
     injectionscript.Add('CreateThread(CeInitializeAllocHook)');
-    if not autoassemble(injectionscript,false) then raise exception.Create('Failure initialing');
+    if not autoassemble(injectionscript,false) then raise exception.Create(rsFailureToInitialize);
 
     
   finally
@@ -960,14 +962,14 @@ begin
     generateAPIHookScript(hookscript,'RtlFreeHeap','CeRtlFreeHeap', 'RtlFreeHeapOrig','3');
     generateAPIHookScript(hookscript,'RtlDestroyHeap','CeRtlDestroyHeap', 'RtlDestroyHeapOrig','4');
 
-    if not autoassemble(hookscript,false,true,false,false,hookallocarray) then raise exception.Create('Failure to hook');
+    if not autoassemble(hookscript,false,true,false,false,hookallocarray) then raise exception.Create(rsFailureToHook);
   end
   else
   begin
     //unload
     if hookscript=nil then exit; //should never happen
 
-    if not autoassemble(hookscript,false,false,false,false,hookallocarray) then raise exception.Create('Failure to hook');
+    if not autoassemble(hookscript,false,false,false,false,hookallocarray) then raise exception.Create(rsFailureToHook);
 
     freeandnil(hookscript);
   end;
@@ -981,3 +983,4 @@ initialization
   {$i frmMemoryAllocHandlerUnit.lrs}
 
 end.
+

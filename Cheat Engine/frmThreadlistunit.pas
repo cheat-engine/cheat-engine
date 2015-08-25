@@ -55,6 +55,17 @@ resourcestring
   rsPleaseFirstAttachTheDebuggerToThisProcess = 'Please first attach the debugger to this process';
   rsCouldnTObtainContext = 'Couldn''t obtain context';
   rsCouldnTOpenHandle = 'Couldn''t open handle';
+  rsTLChangeValue = 'Change value';
+  rsTLWhatShouldTheNewValueOfThisRegisterBe = 'What should the new value of this register be?';
+  rsTLFailedErrorcode = 'failed. Errorcode=';
+  rsTLExecute = 'Execute';
+  rsTLWrite = 'Write';
+  rsTLIO = 'I/O';
+  rsTLAccess = 'Access';
+  rsTL1Bytes = '1 byte';
+  rsTL2Bytes = '2 bytes';
+  rsTL8Bytes = '8 bytes';
+  rsTL4Bytes = '4 bytes';
 
 procedure TfrmThreadlist.FormClose(Sender: TObject;
   var Action: TCloseAction);
@@ -521,7 +532,7 @@ begin
           v:=pdword(regaddress)^;
 
         input:=inttohex(v,8);
-        InputQuery('Change value','What should the new value of this register be?', input);
+        InputQuery(rsTLChangeValue,rsTLWhatShouldTheNewValueOfThisRegisterBe, input);
 
         v:=StrToQWordEx('$'+input);
 
@@ -551,14 +562,14 @@ begin
           c32.eip:=c.rip;
 
           if WOW64SetThreadContext(th, c32)=false then
-            showmessage('failed. Errorcode='+inttostr(GetLastError));
+            showmessage(rsTLFailedErrorcode+inttostr(GetLastError));
         end
         else
         {$endif}
         begin
           c.ContextFlags:=CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS;
           if SetThreadContext(th, c)=false then
-            showmessage('failed. Errorcode='+inttostr(GetLastError));
+            showmessage(rsTLFailedErrorcode+inttostr(GetLastError));
         end;
       end;
 
@@ -600,20 +611,20 @@ procedure TfrmThreadlist.threadTreeviewExpanding(Sender: TObject;
 function rw2str(x: byte): string;
 begin
   case x of
-    0: result:='Execute';
-    1: result:='Write';
-    2: result:='I/O';
-    3: result:='Access';
+    0: result:=rsTLExecute;
+    1: result:=rsTLWrite;
+    2: result:=rsTLIO;
+    3: result:=rsTLAccess;
   end;
 end;
 
 function len2str(x: byte): string;
 begin
   case x of
-    0: result:='1 byte';
-    1: result:='2 bytes';
-    2: result:='8 bytes';
-    3: result:='4 bytes';
+    0: result:=rsTL1Bytes;
+    1: result:=rsTL2Bytes;
+    2: result:=rsTL8Bytes;
+    3: result:=rsTL4Bytes;
   end;
 end;
 
