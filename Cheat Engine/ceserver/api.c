@@ -192,6 +192,8 @@ int getBreakpointCapabilities(int tid, uint8_t *maxBreakpointCount, uint8_t *max
 
 #ifdef __arm__
   HBP_RESOURCE_INFO hwbpcap;
+
+  memset(&hwbpcap, 0, sizeof(HBP_RESOURCE_INFO));
   if (ptrace(PTRACE_GETHBPREGS, tid, 0, &hwbpcap)==0)
   {
     printf("hwbpcap:\n");
@@ -627,6 +629,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
         printf("PTRACE_GETHBPREGS=%d\n",PTRACE_GETHBPREGS);
 
 
+        val=0;
 
         if (ptrace(PTRACE_GETHBPREGS, wtid, 0, &val)==0)
         {
