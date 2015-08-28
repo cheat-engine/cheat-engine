@@ -883,7 +883,7 @@ uses mainunit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup, HotKeys,
   frmSetCrosshairUnit, StructuresFrm2, frmMemoryViewExUnit,
   frmD3DHookSnapshotConfigUnit, frmSaveSnapshotsUnit, frmsnapshothandlerUnit,
   frmNetworkDataCompressionUnit, ProcessHandlerUnit, ProcessList, pointeraddresslist,
-  PointerscanresultReader, Parsers, Globals;
+  PointerscanresultReader, Parsers, Globals, GnuAssembler;
 
 resourcestring
   rsInvalidStartAddress = 'Invalid start address: %s';
@@ -8101,6 +8101,8 @@ var
 begin
   gnua:=TfrmAutoInject.Create(self);
   gnua.ScriptMode:=smGnuAssembler;
+
+  gnua.show;
 
 
  { asm

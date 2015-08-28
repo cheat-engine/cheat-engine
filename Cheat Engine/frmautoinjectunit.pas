@@ -208,12 +208,13 @@ implementation
 
 
 uses frmAAEditPrefsUnit,MainUnit,memorybrowserformunit,APIhooktemplatesettingsfrm,
-  Globals, Parsers, MemoryQuery;
+  Globals, Parsers, MemoryQuery, GnuAssembler;
 
 resourcestring
   rsExecuteScript = 'Execute script';
   rsLuaFilter = 'LUA Script (*.LUA)|*.LUA|All Files ( *.* )|*.*';
   rsLUAScript = 'LUA Script';
+  rsGNUAScript = 'GNU Assembler Script';
   rsWriteCode = 'Write code';
   rsCEAFilter = 'Cheat Engine Assembly (*.CEA)|*.CEA|All Files ( *.* )|*.*';
   rsCEGAFilter = 'Cheat Engine GNU Assembly (*.CEGA)|*.CEGA|All Files ( *.* )|*.*';
@@ -238,6 +239,7 @@ end;
 
 procedure TfrmAutoInject.setScriptMode(mode: TScriptMode);
 begin
+  fScriptMode:=mode;
   case mode of
     smLua:
     begin
@@ -285,7 +287,7 @@ begin
       savedialog1.Filter:=rsCEGAFilter;
       Assigntocurrentcheattable1.visible:=true; //yup
       emplate1.Visible:=false; //no templates right now
-      caption:=rsLUAScript;
+      caption:=rsGNUAScript;
     end;
 
   end;
@@ -366,46 +368,7 @@ begin
 
     smGnuAssembler:
     begin
-      //1:
-      //.aobscan <name> "ceaobscanformat"
-      //Internally ->:
-      //.msection _<name> <aobscanresult>
-      //name:
-      //->see .msection
-
-      //2:
-      //scan the script for .asection , .msection and .aobscan
-      //.asection <name> <0xpreferedaddress>
-      //Internally ->:
-      //.section _<name>,"xa" :  after assembly check the size and allocate at least the specific amount
-      //name:
-
-      //3:
-      //.msection <name> <address or ce symbol> <expectedsize>  (error out if after linking the assumed size is bigger than expected. E.g veneers)
-      //Internally ->:
-      //.secion _<name>,"xa" : after assembly add it to the section list with the given address
-      //name:
-
-      //4:
-      //scan for <xxx>: and add ".type <xxx>, %function" for each label found (
-
-      //assemble the script
-
-      //parse the ELF header
-      //enumerate the sections. Crossreference them with the list of asection and msection.  Unknown sections will be handled as .asection with no prefered address
-      //allocate the sections (that need to be allocated.  .msection sections are already allocated)
-
-      //write a linker script that sets these sections to their specific addresses
-
-      //parse the ELF header further and figure out which symbols are undefined
-      //call the linker with --defsym=symbolname=0xaddress for each symbol
-
-      //after the linker:
-      //extract the binary data for each section:
-      //objcopy -j<sectionname> -O binary <tempresultfile> <sectionbinary>
-
-      //write the sections to memory from top to bottom. So write your code injection destinations before the jump/branch to it. (Just like the auto assembler)
-
+      GnuAssemble(assemblescreen.lines);
 
     end;
 
@@ -441,7 +404,7 @@ procedure TfrmAutoInject.miNewWindowClick(Sender: TObject);
 var f: TfrmAutoInject;
 begin
   f:=TfrmAutoInject.Create(application);
-  f.scriptmode:=smLua;
+  f.scriptmode:=ScriptMode;
 
   f.show;
 end;
