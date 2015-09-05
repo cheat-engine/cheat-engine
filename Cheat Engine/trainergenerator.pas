@@ -1098,7 +1098,7 @@ begin
       if keyparams<>'' then
         keyparams:=copy(keyparams, 1,length(keyparams)-1);
 
-      l.add('registerHotkey(popupTrainerHotkeyFunction, '+keyparams+')');
+      l.add('createHotkey(popupTrainerHotkeyFunction, '+keyparams+')');
       l.add('getFreezeTimer().Interval='+edtFreezeInterval.text);
     end;
 

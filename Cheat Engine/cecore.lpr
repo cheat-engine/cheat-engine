@@ -12,7 +12,8 @@ uses cthreads, classes, jni, networkInterfaceApi, NewKernelHandler,
   groupscancommandparser, CustomTypeHandler, SymbolListHandler, symbolhandler,
   DotNetTypes, DotNetPipe, byteinterpreter, MemoryRecordUnit, jnitfoundlist,
   jniTMemScan, jniTObject, jniSymbolHandler, jniByteInterpreter, pointerparser,
-  jniAddressList;
+  Assemblerunit, DisassemblerArm, assemblerArm, DisassemblerThumb,
+  LastDisassembleData, autoassembler, disassembler, jniAddressList, jniTDisassembler;
 
 
 type TMainThread=class(TThread)
@@ -374,6 +375,7 @@ begin
     InitializeJniSymbolHandler(env);
     InitializeJniByteInterpreter(env);
     InitializeJniAddressList(env);
+    InitializeJniTDisassembler(env);
 
 
     result:=JNI_VERSION_1_6;

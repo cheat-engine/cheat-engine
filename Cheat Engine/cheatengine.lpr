@@ -87,7 +87,8 @@ uses
   PointerscanConnector, PointerscanNetworkStructures, AsyncTimer, 
 PointerscanSettingsIPConnectionList, MemoryStreamReader, commonTypeDefs, 
 Parsers, Globals, NullStream, RipRelativeScanner, LuaRipRelativeScanner, 
-VirtualQueryExCache, disassemblerthumb, AccessedMemory, LuaStructureFrm;
+VirtualQueryExCache, disassemblerthumb, AccessedMemory, LuaStructureFrm, 
+MemoryQuery, pointerparser, GnuAssembler, binutils;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in

@@ -833,13 +833,13 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     case VMCALL_GETCR0:
     {
 
-      vmregisters->rax = isAMD?currentcpuinfo->vmcb->CR0:vmread(0x6800);
+      vmregisters->rax = isAMD?currentcpuinfo->vmcb->CR0:vmread(vm_guest_cr0);
       break;
     }
 
     case VMCALL_GETCR3:
     {
-      vmregisters->rax = isAMD?currentcpuinfo->vmcb->CR3:vmread(0x6802);
+      vmregisters->rax = isAMD?currentcpuinfo->vmcb->CR3:vmread(vm_guest_cr3);
       break;
     }
 

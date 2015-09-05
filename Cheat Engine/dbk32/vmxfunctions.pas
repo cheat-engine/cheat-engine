@@ -77,6 +77,10 @@ function dbvm_raise_privilege: DWORD; stdcall;
 function dbvm_readMSR(msr: dword): QWORD;
 procedure dbvm_writeMSR(msr: dword; value: qword);
 
+function dbvm_getRealCR0: QWORD;
+function dbvm_getRealCR3: QWORD;
+function dbvm_getRealCR4: QWORD;
+
 function dbvm_ultimap_pause: DWORD;
 function dbvm_ultimap_resume: DWORD;
 function dbvm_ultimap_debuginfo(debuginfo: PULTIMAPDEBUGINFO): DWORD;
@@ -492,6 +496,45 @@ begin
   vmcallinfo.msr:=msr;
   vmcallinfo.msrvalue:=value;
   vmcall(@vmcallinfo,vmx_password1);
+end;
+
+function dbvm_getRealCR0: QWORD;
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_GETCR0;
+  result:=vmcall(@vmcallinfo,vmx_password1);
+end;
+
+function dbvm_getRealCR3: QWORD;
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_GETCR3;
+  result:=vmcall(@vmcallinfo,vmx_password1);
+end;
+
+function dbvm_getRealCR4: QWORD;
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_GETCR4;
+  result:=vmcall(@vmcallinfo,vmx_password1);
 end;
 
 procedure dbvm_switchToKernelMode(cs: word; rip: pointer; parameters: pointer);

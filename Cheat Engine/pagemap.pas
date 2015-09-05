@@ -129,20 +129,25 @@ begin
     for i:=0 to $F do
     begin
       if list[i].pageinfo<>nil then
-        freemem(list[i].pageinfo);
+      begin
+        if list^[i].pageinfo.data<>nil then
+          freemem(list^[i].pageinfo.data);
 
-      list[i].pageinfo:=nil;
+        freemem(list^[i].pageinfo);
+      end;
+
+      list^[i].pageinfo:=nil;
     end;
   end
   else
   begin
     for i:=0 to $F do
     begin
-      if list[i].PageEntryArray<>nil then
+      if list^[i].PageEntryArray<>nil then
       begin
-        deletepath(list[i].PageEntryArray,level+1);
-        freemem(list[i].PageEntryArray);
-        list[i].PageEntryArray:=nil;
+        deletepath(list^[i].PageEntryArray,level+1);
+        freemem(list^[i].PageEntryArray);
+        list^[i].PageEntryArray:=nil;
       end;
     end;
   end;

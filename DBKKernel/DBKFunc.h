@@ -232,6 +232,7 @@ int cpu_ext_modelID;
 int cpu_ext_familyID;
 
 int KernelCodeStepping;
+int KernelWritesIgnoreWP;
 
 int isPrefix(unsigned char b);
 EFLAGS getEflags(void);

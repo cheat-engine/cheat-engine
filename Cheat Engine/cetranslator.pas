@@ -60,7 +60,12 @@ type
     destructor Destroy; override;
     procedure TranslateStringProperty(Sender: TObject; const Instance: TPersistent;
       PropInfo: PPropInfo; var Content: string); override;
+  published
+    property POFile: TPOFile read FPOFile;
   end;
+
+
+var translationfilepath: string;
 
 procedure doTranslation;
 
@@ -266,6 +271,9 @@ begin
   // search first po translation resources
   try
      lcfn := FindLocaleFileName('.po');
+
+     translationfilepath:=ExtractFilePath(lcfn);
+
      lcfn:=SysToUTF8(lcfn);
 
      if lcfn <> '' then

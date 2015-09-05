@@ -859,15 +859,47 @@ int loadCEServerExtension(HANDLE hProcess)
 
         printf("after dirname: %s\n", mp);
         strcpy(modulepath, mp);
-        strcat(modulepath, "/libceserver-extension.so");
+        strcat(modulepath, "/libceserver-extension");
 
-        printf("modulepath = %s\n", modulepath);
+#ifdef __i386__
+        strcat(modulepath, "_x86");
+#endif
+
+#ifdef __aarch64__
+        strcat(modulepath, "_arm64");
+#endif
+
+#ifdef __arm__
+        strcat(modulepath, "_arm");
+#endif
+        strcat(modulepath,".so");
+
+
 
       }
       else
       {
-        strcpy(modulepath, "libceserver-extension.so");
+        strcpy(modulepath, "libceserver-extension");
+
+#ifdef __i386__
+        strcat(modulepath, "_x86");
+#endif
+
+#ifdef __x86_64__
+        strcat(modulepath, "_x86_64");
+#endif
+
+#ifdef __aarch64__
+        strcat(modulepath, "_arm64");
+#endif
+
+#ifdef __arm__
+        strcat(modulepath, "_arm");
+#endif
+        strcat(modulepath,".so");
       }
+
+      printf("modulepath = %s\n", modulepath);
 
 
 

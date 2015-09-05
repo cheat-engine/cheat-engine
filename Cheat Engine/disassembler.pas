@@ -4,8 +4,15 @@ unit disassembler;
 
 interface
 
+{$ifdef jni}
+uses unixporthelper, sysutils, byteinterpreter, symbolhandler, NewKernelHandler,
+ ProcessHandlerUnit, LastDisassembleData, DisassemblerArm, commonTypeDefs;
+{$endif}
+
+{$ifdef windows}
 uses windows, imagehlp,sysutils,LCLIntf,byteinterpreter, symbolhandler,CEFuncProc,
   NewKernelHandler, ProcessHandlerUnit, LastDisassembleData, disassemblerarm, commonTypeDefs;
+{$endif}
 
 //translation: There is no fucking way I change the descriptions to resource strings
 //if you're bored, go do this
@@ -157,7 +164,14 @@ var visibleDisassembler: TDisassembler; //this disassembler is used to render th
 
 implementation
 
-uses Assemblerunit,CEDebugger, debughelper, StrUtils, debuggertypedefinitions, Parsers;
+{$ifdef jni}
+uses Assemblerunit, StrUtils, Parsers, memoryQuery;
+{$endif}
+
+{$ifdef windows}
+uses Assemblerunit,CEDebugger, debughelper, StrUtils, debuggertypedefinitions, Parsers, memoryQuery;
+{$endif}
+
 
 function registerGlobalDisassembleOverride(m: TDisassembleEvent): integer;
 var i: integer;
@@ -983,8 +997,6 @@ begin
     LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=last;
     inc(LastDisassembleData.SeperatorCount);
   end;
-
-  if last>15 then messagebox(0,pchar(result),nil,0);
 end;
 
 
@@ -1259,6 +1271,7 @@ begin
 
 end;
 
+{$ifndef jni}
 procedure repairbreakbyte(address: ptruint; var b: byte);
 {changes the given byte to the original byte if it is in fact a int3 breakpoint}
 //pre: debuggerthread is valid
@@ -1273,6 +1286,7 @@ begin
   end;
   debuggerthread.unlockbplist;
 end;
+{$endif}
 
 function disassemble(var offset: ptrUint; var description: string): string; overload;
 begin
@@ -1415,10 +1429,12 @@ begin
   begin
     //I HATE THESE...   (I propably will not add them all, but I'll see how far I get)
 
+    {$ifndef jni}
     if debuggerthread<>nil then
       for i:=0 to actualread-1 do
         if memory[i]=$cc then
           memory[i]:=debuggerthread.getrealbyte(offset+i);
+    {$endif}
 
 
     while isprefix do
@@ -1545,8 +1561,10 @@ begin
       end *) ;
     end;
 
+    {$ifdef windows}
     if (memory[0]=$cc) and (debuggerthread<>nil) then //if it's a int3 breakpoint and there is a debugger attached check if it's a bp
       repairbreakbyte(startoffset, memory[0]);
+    {$endif}
 
 
     prefixsize:=length(LastDisassembleData.bytes);
@@ -10801,7 +10819,7 @@ returns if the opcode has an accessible address specifier or not, and the addres
 var
   s: string;
   i,j: integer;
-  x: dword;
+  br: ptruint;
 
   haserror: boolean;
 begin
@@ -10825,7 +10843,9 @@ begin
     if has4ByteHexString(d,s) then
     begin
       address:=StrToQWordEx(s); //s already has the $ in front
+
       result:=isAddress(address);
+
     end;
   end else
   begin

@@ -609,6 +609,7 @@ uses Valuechange,
   frmFilePatcherUnit,
   frmUltimapUnit,
   frmAssemblyScanUnit,
+  MemoryQuery,
   AccessedMemory,
   Parsers;
 
@@ -671,6 +672,7 @@ resourcestring
   rsReplaceWithCodeThatDoesNothing = 'Replace with code that does nothing';
   rsComment = 'Comment';
   rsCommentFor = 'Comment for %s';
+  rsHeaderFor = 'Header for %s';
   rsSShowsTheAutoguessValue = '(%s shows the autoguess value)';
 
 
@@ -883,7 +885,7 @@ begin
   s:=tstringlist.create;
   try
     s.text:=ansitoutf8(dassemblercomments.commentHeader[disassemblerview.SelectedAddress]);
-    if multilineinputquery(rsCommentFor, Format(rsCommentFor, [inttohex(disassemblerview.SelectedAddress, 8)])+' '+rsSShowsTheAutoguessValue, s) then
+    if multilineinputquery(rsHeaderFor, Format(rsCommentFor, [inttohex(disassemblerview.SelectedAddress, 8)])+' '+rsSShowsTheAutoguessValue, s) then
       dassemblercomments.commentHeader[disassemblerview.SelectedAddress]:=utf8toansi(s.text);
   finally
     s.free;

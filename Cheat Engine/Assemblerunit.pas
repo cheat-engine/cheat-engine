@@ -6,7 +6,13 @@ unit Assemblerunit;
 
 interface
 
+{$ifdef jni}
+uses  sysutils, ProcessHandlerUnit;
+{$endif}
+
+{$ifdef windows}
 uses dialogs,LCLIntf,sysutils,imagehlp, ProcessHandlerUnit;
+{$endif}
 
 const opcodecount=1097; //I wish there was a easier way than to handcount
 
@@ -1634,8 +1640,14 @@ procedure unregisterAssembler(id: integer);
 
 implementation
 
+{$ifdef jni}
+uses symbolhandler, assemblerArm, Parsers, NewKernelHandler;
+{$endif}
+
+{$ifdef windows}
 uses {$ifndef autoassemblerdll}CEFuncProc,{$endif}symbolhandler, lua, luahandler,
   lualib, assemblerArm, Parsers, NewKernelHandler;
+{$endif}
 
 
 var ExtraAssemblers: array of TAssemblerEvent;
@@ -3264,7 +3276,6 @@ var tokens: ttokens;
     vtype,v2type: integer;
     signedvtype,signedv2type: integer;
 
-    first,last: integer;
     startoflist,endoflist: integer;
 
     tempstring: string;

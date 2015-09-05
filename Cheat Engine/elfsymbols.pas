@@ -69,11 +69,6 @@ begin
 
     end;
   end;
-
-
-
-
-
 end;
 
 function EnumElfSymbols(modulename: string; modulebase: ptruint; callback: TNetworkEnumSymCallback): boolean;

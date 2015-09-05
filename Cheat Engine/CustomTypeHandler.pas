@@ -281,7 +281,13 @@ begin
 
     lua_pushinteger(L, address);
 
-    lua_call(L, bytesize,1);
+    lua_call(L, bytesize+1,1);
+    {
+    if lua_pcall(L, bytesize+1,1, 0)<>0 then
+    begin
+      Log('customtype error:'+Lua_ToString(L,-1));
+    end;
+    }
     result:=lua_tointeger(L, -1);
 
     lua_pop(L,lua_gettop(l));

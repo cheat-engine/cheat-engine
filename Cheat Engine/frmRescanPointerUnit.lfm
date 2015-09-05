@@ -137,6 +137,7 @@ object frmRescanPointer: TfrmRescanPointer
       Cancel = True
       Caption = 'Cancel'
       ModalResult = 2
+      OnClick = Button2Click
       TabOrder = 1
     end
     object Button1: TButton

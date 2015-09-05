@@ -11,8 +11,8 @@ Just used for basic initialization allocation, frees shouldn't happen too often
 #include "common.h"
 
 
-#define sendstringf(s,x...)
-#define sendstring(s)
+//#define sendstringf(s,x...)
+//#define sendstring(s)
 
 
 /*
@@ -95,6 +95,8 @@ if equal or bigger than 4096 bytes align on a page boundary
   PMemlistItem freememory;
 
   unsigned int totalsize;
+
+  sendstringf("------------>malloc(%d)<------------");
 
   if (mallocCS.locked)
   {
@@ -256,7 +258,7 @@ UINT64 MapPhysicalMemoryEx(UINT64 address, UINT64 VirtualAddress, int writable)
 		 return value will be the virtual address the specified address is located
 	*/
 
-  sendstringf("Mapping physical address %6 at base VirtualAddress %8\n\r",address,VirtualAddress);
+  //sendstringf("Mapping physical address %6 at base VirtualAddress %8\n\r",address,VirtualAddress);
 	int Dirptr=VirtualAddress >> 30;
 	int Dir=(VirtualAddress >> 21) & 0x1ff;
 	PPDE_PAE usedpagedir=(PPDE_PAE)((unsigned long long)pagedirvirtual+(unsigned long long)Dirptr*0x1000);
@@ -311,12 +313,12 @@ void InitializeMM(UINT64 BaseVirtualAddress)
 {
   /* memorylist contains the virtual address that is freely accessible */
 
-  sendstringf("Initializing Memory Manager and keeping %d bytes reserved for the stack of %d cpu's\n",cpucount*0x40000, cpucount);
+  sendstringf("Initializing Memory Manager and keeping %d bytes reserved for the stack of %d cpu's\n",cpucount*0x20000, cpucount);
   sendstringf("&memorylist=%6\n\r", (UINT64)&memorylist);
   sendstringf("memorylist=%6\n\r", (UINT64)memorylist);
 
   memorylist->base=BaseVirtualAddress+sizeof(MemlistItem);
-  memorylist->size=(0x007fffff-(cpucount*0x40000))-memorylist->base; //make room for the stack of the cpucores (each cpu will get 256KB stack)
+  memorylist->size=(0x007fffff-(cpucount*0x20000))-memorylist->base; //make room for the stack of the cpucores (each cpu will get 128KB stack)
   memorylist->type=0; //free
   memorylist->previous=NULL;
   memorylist->next=NULL;
@@ -467,31 +469,31 @@ UINT64 VirtualToPhysical(UINT64 address)
   UINT64 result=0xffffffffffffffffULL;
 
 
-  sendstringf("VirtualToPhysical %6\n",address);
-  sendstringf("Dirptr=%d, Dir=%d\n", Dirptr, Dir);
+ // sendstringf("VirtualToPhysical %6\n",address);
+  //sendstringf("Dirptr=%d, Dir=%d\n", Dirptr, Dir);
 
 
   usedpagedir=(PPDE2MB_PAE)((UINT64)pagedirvirtual+(UINT64)Dirptr*0x1000);
 
 
-  sendstringf("usedpagedir=%6\n",usedpagedir);
+  //sendstringf("usedpagedir=%6\n",usedpagedir);
 
 
   //this design doesn't use more than 4GB VIRTUAL ram addressing, even though it is 64, bit, so only the level0 pagedirptr is enough
 
   if (usedpagedir[Dir].P)
   {
-    sendstring("pagedir is present\n");
+    //sendstring("pagedir is present\n");
     if (usedpagedir[Dir].PS==1)
     {
-      sendstring("This pagedir is a BIG page\n");
+      //sendstring("This pagedir is a BIG page\n");
       result=(UINT64)((UINT64)usedpagedir[Dir].PFN << 13)+Offset;
     }
     else
     {
       //this is a pagedir without PS bit, pfn is 12 bits shifted now (or just clear first 12 bits)
       PPDE_PAE usedpagedirNOPS=(PPDE_PAE)((UINT64)pagedirvirtual+(UINT64)Dirptr*0x1000);
-      sendstringf("This pagedir(%6) has a pagetable\n", *(UINT64 *)(&usedpagedir[Dir]));
+      //sendstringf("This pagedir(%6) has a pagetable\n", *(UINT64 *)(&usedpagedir[Dir]));
 
       //it has a pagetable (loadedOS?)
       UINT64 Offset2=address & 0xfff;
@@ -500,9 +502,9 @@ UINT64 VirtualToPhysical(UINT64 address)
 //tip: Improve this by caching the page in a non changing local page
       PPTE_PAE usedpagetable=(PPTE_PAE)MapPhysicalMemory((UINT64)(usedpagedirNOPS[Dir].PFN) << 12, 0x0fc00000);
 
-      sendstringf("Mapped the usedpagetable at %6\n", (UINT64)usedpagetable);
+      //sendstringf("Mapped the usedpagetable at %6\n", (UINT64)usedpagetable);
 
-      sendstringf("Table=%d\n",Table);
+      //sendstringf("Table=%d\n",Table);
 
       if (usedpagetable[Table].P)
       {
@@ -510,14 +512,14 @@ UINT64 VirtualToPhysical(UINT64 address)
       }
       else
       {
-        sendstring("Not present pagetable entry\n");
+        //sendstring("Not present pagetable entry\n");
       }
 
     }
   }
   else
   {
-    sendstring("pagedir is NOT present\n");
+    //sendstring("pagedir is NOT present\n");
     //sendstringf("Dirptr=%d Dir=%d Offset=%x\n\r", Dirptr, Dir, Offset);
     //sendstringf("pagedirvirtual=%6\n\r",(UINT64)pagedirvirtual);
     //sendstringf("usedpagedir=%6\n\r",(UINT64)usedpagedir);

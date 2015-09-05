@@ -2360,6 +2360,8 @@ destructor TRescanworker.destroy;
 begin
   if Pointerscanresults<>nil then
     Pointerscanresults.Free;
+
+  inherited destroy;
 end;
 
 procedure TRescanWorker.execute;
@@ -2390,282 +2392,282 @@ begin
 
   try
 
-  if useluafilter then
-  begin
-    //create a new lua thread
-    luacs.enter;
-    try
-      l:=lua_newthread(luavm); //pushes the thread on the luavm stack.
-      lref:=luaL_ref(luavm,LUA_REGISTRYINDEX); //add a reference so the garbage collector wont destroy the thread (pops the thread off the stack)
-    finally
-      luacs.leave;
-    end;
-
-
-    lua_getglobal(L, pchar(luafilter));
-    lfun:=lua_gettop(L);
-
-    //create a table for the offset
-    lua_createtable(L, Pointerscanresults.offsetCount+1,0);   //+1 for a nil
-    ltable:=lua_gettop(L);
-  end;
-
-
-  tempfile:=nil;
-  tempbuffer:=nil;
-  address:=0;
-  address2:=0;
-  pointersize:=processhandler.pointersize;
-
-
-
-  getmem(tempvalue,valuesize);
-
-  try
-    tempfile:=tfilestream.Create(self.filename, fmCreate);
-    tempbuffer:=TMemoryStream.Create;
-    tempbuffer.SetSize(16*1024*1024);
-
-    evaluated:=0;
-    currentEntry:=self.startentry;
-
-    if currentEntry>Pointerscanresults.count then exit;
-
-
-    while evaluated < self.EntriesToCheck do
+    if useluafilter then
     begin
-      p:=Pointerscanresults.getPointer(currentEntry);
-      if p<>nil then
-      begin
-        valid:=true;
-        if pointermap=nil then
-        begin
-          if p.modulenr=-1 then
-            address:=p.moduleoffset
-          else
-            address:=Pointerscanresults.getModuleBase(p.modulenr)+p.moduleoffset
-        end
-        else
-          address:=pointermap.getAddressFromModuleIndexPlusOffset(p.modulenr,p.moduleoffset);
-
-        baseaddress:=address;
-
-        if address>0 then
-        begin
-          //if the base must be in a range then check if the base address is in the given range
-          if (not mustbeinrange) or (inrangex(address, baseStart, baseEnd)) then
-          begin
-            //don't care or in range.
-
-            //check if start offet values are given
-            if length(startOffsetValues)>0 then
-            begin
-              //check the offsets
-              for i:=0 to length(startOffsetValues)-1 do
-                if p.offsets[p.offsetcount-1-i]<>startOffsetValues[i] then
-                begin
-                  valid:=false;
-                  break;
-                end;
-            end;
-
-            if valid and (length(endoffsetvalues)>0) then
-            begin
-              j:=0;
-              for i:=length(endoffsetvalues)-1 downto 0 do
-              begin
-                if p.offsets[j]<>endoffsetvalues[i] then
-                begin
-                  valid:=false;
-                  break;
-                end;
-                inc(j);
-              end;
-            end;
-
-            if valid then
-            begin
-              //evaluate the pointer to address
-              if pointermap=nil then
-              begin
-                for i:=p.offsetcount-1 downto 0 do
-                begin
-
-                  pi:=rescanhelper.FindPage(address shr 12);
-                  if (pi.data<>nil) then
-                  begin
-                    tempaddress:=0;
-                    j:=address and $fff; //offset into the page
-                    k:=min(pointersize, 4096-j); //bytes to read from this page
-
-
-                    if (k<pointersize) then
-                    begin
-                      //more bytes are needed
-                      copymemory(@tempaddress, @pi.data[j], k);
-
-                      pi:=rescanhelper.FindPage((address shr 12)+1);
-                      if pi.data<>nil then
-                        copymemory(pointer(ptruint(@address)+k), @pi.data[0], pointersize-k)
-                      else
-                      begin
-                        valid:=false;
-                        break;
-                      end;
-                    end
-                    else
-                      tempaddress:=pptruint(@pi.data[j])^;
-
-                    {$ifdef cpu64}
-                    if pointersize=4 then
-                      tempaddress:=tempaddress and $ffffffff;
-                    {$endif}
-
-                    address:=tempaddress+p.offsets[i];
-                  end
-                  else
-                  begin
-                    valid:=false;
-                    break;
-                  end;
-                end;
-              end
-              else
-              begin
-                //use pointermap
-
-
-                for i:=p.offsetcount-1 downto 0 do
-                begin
-                  address:=pointermap.getPointer(address);
-                  if address=0 then
-                  begin
-                    valid:=false;
-                    break;
-                  end;
-                  address:=address+p.offsets[i];
-                end;
-              end;
-            end;
-
-            if valid then
-            begin
-              if novaluecheck or forvalue then
-              begin
-                //evaluate the address (address must be accessible)
-                if rescanhelper.ispointer(address) then
-                begin
-
-                  if novaluecheck=false then //check if the value is correct
-                  begin
-
-                    value:=nil;
-                    pi:=rescanhelper.FindPage(address shr 12);
-                    if pi.data<>nil then
-                    begin
-                      i:=address and $fff;
-                      j:=min(valuesize, 4096-i);
-
-                      copymemory(tempvalue, @pi.data[i], j);
-
-                      if j<valuesize then
-                      begin
-                        pi:=rescanhelper.FindPage((address shr 12)+1);
-                        if pi.data<>nil then
-                          copymemory(pointer(ptruint(tempvalue)+j), @pi.data[0], valuesize-j)
-                        else
-                          valid:=false;
-                      end;
-                    end
-                    else
-                      valid:=false;
-
-                    value:=tempvalue;
-
-                    if (not valid) or (value=nil) or (not isMatchToValue(value)) then
-                      valid:=false; //invalid value
-                  end;
-                end else valid:=false; //unreadable address
-              end
-              else
-              begin
-                //check if the address matches
-                if address<>PointerAddressToFind then
-                  valid:=false;
-              end;
-            end;
-
-            if valid and useluafilter then
-            begin
-              //check the lua function
-              //first set the offsets
-              for i:=0 to p.offsetcount-1 do
-              begin
-                lua_pushinteger(L, p.offsets[i]);
-                lua_rawseti(L, ltable, i+1);
-              end;
-
-              //end the table with a nil marker
-              lua_pushnil(L);
-              lua_rawseti(L, ltable, p.offsetcount+1);
-
-              //setup the function call
-              lua_pushvalue(L, lfun);           //function
-              lua_pushinteger(L, baseaddress);  //base
-              lua_pushvalue(L, ltable);         //offsets
-              lua_pushinteger(L, address);      //address
-              lua_call(L, 3,1);                 //call and don't expect any errors
-              valid:=lua_toboolean(L, -1);
-              lua_pop(L, 1);
-            end;
-
-            if valid then
-            begin
-              //checks passed, it's valid
-              if pointerscanresults.compressedptr then
-                p:=pointerscanresults.LastRawPointer;
-
-              tempbuffer.Write(p^,Pointerscanresults.entrySize);
-
-              if tempbuffer.Position>16*1024*1024 then flushresults;
-            end;
-
-
-          end; //must be in range and it wasn't in the range
-        end;
-      end;
-
-      inc(evaluated);
-      inc(currentEntry);
-    end;
-
-    flushresults;
-  finally
-    freemem(tempvalue);
-    
-    if tempfile<>nil then
-      freeandnil(tempfile);
-
-    if tempbuffer<>nil then
-      freeandnil(tempbuffer);
-
-    if l<>nil then
-    begin
-      lua_settop(L, 0);
-
-      //remove the reference to the thread
+      //create a new lua thread
       luacs.enter;
       try
-        luaL_unref(LuaVM, LUA_REGISTRYINDEX, lref);
+        l:=lua_newthread(luavm); //pushes the thread on the luavm stack.
+        lref:=luaL_ref(luavm,LUA_REGISTRYINDEX); //add a reference so the garbage collector wont destroy the thread (pops the thread off the stack)
       finally
         luacs.leave;
       end;
 
+
+      lua_getglobal(L, pchar(luafilter));
+      lfun:=lua_gettop(L);
+
+      //create a table for the offset
+      lua_createtable(L, Pointerscanresults.offsetCount+1,0);   //+1 for a nil
+      ltable:=lua_gettop(L);
     end;
 
-    done:=true;
 
-  end;
+    tempfile:=nil;
+    tempbuffer:=nil;
+    address:=0;
+    address2:=0;
+    pointersize:=processhandler.pointersize;
+
+
+
+    getmem(tempvalue,valuesize);
+
+    try
+      tempfile:=tfilestream.Create(self.filename, fmCreate);
+      tempbuffer:=TMemoryStream.Create;
+      tempbuffer.SetSize(16*1024*1024);
+
+      evaluated:=0;
+      currentEntry:=self.startentry;
+
+      if currentEntry>Pointerscanresults.count then exit;
+
+
+      while evaluated < self.EntriesToCheck do
+      begin
+        p:=Pointerscanresults.getPointer(currentEntry);
+        if p<>nil then
+        begin
+          valid:=true;
+          if pointermap=nil then
+          begin
+            if p.modulenr=-1 then
+              address:=p.moduleoffset
+            else
+              address:=Pointerscanresults.getModuleBase(p.modulenr)+p.moduleoffset
+          end
+          else
+            address:=pointermap.getAddressFromModuleIndexPlusOffset(p.modulenr,p.moduleoffset);
+
+          baseaddress:=address;
+
+          if address>0 then
+          begin
+            //if the base must be in a range then check if the base address is in the given range
+            if (not mustbeinrange) or (inrangex(address, baseStart, baseEnd)) then
+            begin
+              //don't care or in range.
+
+              //check if start offet values are given
+              if length(startOffsetValues)>0 then
+              begin
+                //check the offsets
+                for i:=0 to length(startOffsetValues)-1 do
+                  if p.offsets[p.offsetcount-1-i]<>startOffsetValues[i] then
+                  begin
+                    valid:=false;
+                    break;
+                  end;
+              end;
+
+              if valid and (length(endoffsetvalues)>0) then
+              begin
+                j:=0;
+                for i:=length(endoffsetvalues)-1 downto 0 do
+                begin
+                  if p.offsets[j]<>endoffsetvalues[i] then
+                  begin
+                    valid:=false;
+                    break;
+                  end;
+                  inc(j);
+                end;
+              end;
+
+              if valid then
+              begin
+                //evaluate the pointer to address
+                if pointermap=nil then
+                begin
+                  for i:=p.offsetcount-1 downto 0 do
+                  begin
+
+                    pi:=rescanhelper.FindPage(address shr 12);
+                    if (pi.data<>nil) then
+                    begin
+                      tempaddress:=0;
+                      j:=address and $fff; //offset into the page
+                      k:=min(pointersize, 4096-j); //bytes to read from this page
+
+
+                      if (k<pointersize) then
+                      begin
+                        //more bytes are needed
+                        copymemory(@tempaddress, @pi.data[j], k);
+
+                        pi:=rescanhelper.FindPage((address shr 12)+1);
+                        if pi.data<>nil then
+                          copymemory(pointer(ptruint(@address)+k), @pi.data[0], pointersize-k)
+                        else
+                        begin
+                          valid:=false;
+                          break;
+                        end;
+                      end
+                      else
+                        tempaddress:=pptruint(@pi.data[j])^;
+
+                      {$ifdef cpu64}
+                      if pointersize=4 then
+                        tempaddress:=tempaddress and $ffffffff;
+                      {$endif}
+
+                      address:=tempaddress+p.offsets[i];
+                    end
+                    else
+                    begin
+                      valid:=false;
+                      break;
+                    end;
+                  end;
+                end
+                else
+                begin
+                  //use pointermap
+
+
+                  for i:=p.offsetcount-1 downto 0 do
+                  begin
+                    address:=pointermap.getPointer(address);
+                    if address=0 then
+                    begin
+                      valid:=false;
+                      break;
+                    end;
+                    address:=address+p.offsets[i];
+                  end;
+                end;
+              end;
+
+              if valid then
+              begin
+                if novaluecheck or forvalue then
+                begin
+                  //evaluate the address (address must be accessible)
+                  if rescanhelper.ispointer(address) then
+                  begin
+
+                    if novaluecheck=false then //check if the value is correct
+                    begin
+
+                      value:=nil;
+                      pi:=rescanhelper.FindPage(address shr 12);
+                      if pi.data<>nil then
+                      begin
+                        i:=address and $fff;
+                        j:=min(valuesize, 4096-i);
+
+                        copymemory(tempvalue, @pi.data[i], j);
+
+                        if j<valuesize then
+                        begin
+                          pi:=rescanhelper.FindPage((address shr 12)+1);
+                          if pi.data<>nil then
+                            copymemory(pointer(ptruint(tempvalue)+j), @pi.data[0], valuesize-j)
+                          else
+                            valid:=false;
+                        end;
+                      end
+                      else
+                        valid:=false;
+
+                      value:=tempvalue;
+
+                      if (not valid) or (value=nil) or (not isMatchToValue(value)) then
+                        valid:=false; //invalid value
+                    end;
+                  end else valid:=false; //unreadable address
+                end
+                else
+                begin
+                  //check if the address matches
+                  if address<>PointerAddressToFind then
+                    valid:=false;
+                end;
+              end;
+
+              if valid and useluafilter then
+              begin
+                //check the lua function
+                //first set the offsets
+                for i:=0 to p.offsetcount-1 do
+                begin
+                  lua_pushinteger(L, p.offsets[i]);
+                  lua_rawseti(L, ltable, i+1);
+                end;
+
+                //end the table with a nil marker
+                lua_pushnil(L);
+                lua_rawseti(L, ltable, p.offsetcount+1);
+
+                //setup the function call
+                lua_pushvalue(L, lfun);           //function
+                lua_pushinteger(L, baseaddress);  //base
+                lua_pushvalue(L, ltable);         //offsets
+                lua_pushinteger(L, address);      //address
+                lua_call(L, 3,1);                 //call and don't expect any errors
+                valid:=lua_toboolean(L, -1);
+                lua_pop(L, 1);
+              end;
+
+              if valid then
+              begin
+                //checks passed, it's valid
+                if pointerscanresults.compressedptr then
+                  p:=pointerscanresults.LastRawPointer;
+
+                tempbuffer.Write(p^,Pointerscanresults.entrySize);
+
+                if tempbuffer.Position>16*1024*1024 then flushresults;
+              end;
+
+
+            end; //must be in range and it wasn't in the range
+          end;
+        end;
+
+        inc(evaluated);
+        inc(currentEntry);
+      end;
+
+      flushresults;
+    finally
+      freemem(tempvalue);
+
+      if tempfile<>nil then
+        freeandnil(tempfile);
+
+      if tempbuffer<>nil then
+        freeandnil(tempbuffer);
+
+      if l<>nil then
+      begin
+        lua_settop(L, 0);
+
+        //remove the reference to the thread
+        luacs.enter;
+        try
+          luaL_unref(LuaVM, LUA_REGISTRYINDEX, lref);
+        finally
+          luacs.leave;
+        end;
+
+      end;
+
+      done:=true;
+
+    end;
 
   except
     on e: exception do
@@ -2956,9 +2958,9 @@ begin
 
     with rescanpointerform do
     begin
-      if (rescanpointerform.cbRepeat.checked) or (showmodal=mrok) then
+      if ((not rescanpointerform.canceled) and rescanpointerform.cbRepeat.checked) or (showmodal=mrok) then
       begin
-        if (rescanpointerform.cbRepeat.checked) or savedialog1.Execute then
+        if ((savedialog1.filename<>'') and rescanpointerform.cbRepeat.checked) or savedialog1.Execute then
         begin
           rescan.novaluecheck:=cbNoValueCheck.checked;
 

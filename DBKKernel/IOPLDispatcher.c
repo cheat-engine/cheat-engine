@@ -1329,6 +1329,13 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				break;
 			}
 
+		case IOCTL_CE_WRITESIGNOREWP:
+		{
+			KernelWritesIgnoreWP = *(BYTE*)Irp->AssociatedIrp.SystemBuffer;
+			ntStatus = STATUS_SUCCESS;
+			break;
+		}
+
 		
 		case IOCTL_CE_GD_SETBREAKPOINT:
 			{

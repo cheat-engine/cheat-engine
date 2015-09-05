@@ -238,7 +238,7 @@ end;
 
 destructor TRescanHelper.destroy;
 var i: integer;
-  pmi: TMapIterator;
+  data: PByteArray;
 begin
   setlength(memoryregion,0);
 

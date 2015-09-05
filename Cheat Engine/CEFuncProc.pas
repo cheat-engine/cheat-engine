@@ -37,6 +37,7 @@ commontypedefs;
 
 
 //function NewVarTypeToOldVarType(i: TVariableType):integer;
+function VariableTypeToTranslatedString(variableType: TVariableType): string;
 function OldVarTypeToNewVarType(i: integer):TVariableType;
 function VariableTypeToString(variableType: TVariableType): string;
 function StringToVariableType(s: string): TVariableType;
@@ -125,8 +126,7 @@ function AccessRightsToAllocationProtect(ar: TAccessRights): Dword;
 
 function freetypetostring(freetype: dword):string;
 
-function isAddress(address: ptrUint):boolean;
-function isExecutableAddress(address: ptrUint):boolean;
+
 function MinX(a, b: ptrUint): ptrUint;inline; overload; //fpc2.4.1 has no support for unsigned
 function MaxX(a, b: ptrUint): ptrUint;inline; overload;
 
@@ -134,7 +134,7 @@ function MaxX(a, b: ptrUint): ptrUint;inline; overload;
 function InRangeX(const AValue, AMin, AMax: ptrUint): Boolean;inline;
 function InRangeQ(const AValue, AMin, AMax: qword): Boolean;inline;
 
-function FindFreeBlockForRegion(base: ptrUint; size: dword): pointer;
+
 
 function getProcessnameFromProcessID(pid: dword): string;
 function getProcessPathFromProcessID(pid: dword): string;
@@ -322,7 +322,8 @@ implementation
 
 uses disassembler,CEDebugger,debughelper, symbolhandler,frmProcessWatcherUnit,
      kerneldebugger, formsettingsunit, MemoryBrowserFormUnit, savedscanhandler,
-     networkInterface, networkInterfaceApi, processlist, Parsers, Globals;
+     networkInterface, networkInterfaceApi, vartypestrings, processlist, Parsers,
+     Globals;
 
 
 resourcestring
@@ -2682,6 +2683,26 @@ begin
   end;
 end;
 
+function VariableTypeToTranslatedString(variableType: TVariableType): string;
+begin
+  case variabletype of
+    vtAll: result:=rs_vtAll;
+    vtBinary: result:=rs_vtBinary;
+    vtByteArray: Result:=rs_vtByteArray;
+    vtByte: result:=rs_vtByte;
+    vtWord: Result:=rs_vtWord;
+    vtDword: Result:=rs_vtDword;
+    vtQword: Result:=rs_vtQword;
+    vtSingle: Result:=rs_vtSingle;
+    vtDouble: Result:=rs_vtDouble;
+    vtString: Result:=rs_vtString;
+    vtUnicodeString: Result:=rs_vtUnicodeString;
+    vtPointer: result:=rs_vtPointer;
+    vtAutoAssembler: Result:=rs_vtAutoAssembler;
+    vtCustom: Result:=rs_vtCustom;
+  end;
+end;
+
 function VariableTypeToString(variableType: TVariableType): string;
 begin
   case variabletype of
@@ -2830,21 +2851,6 @@ begin
 end;
 
 
-function isAddress(address: ptrUint):boolean;
-var mbi: TMemoryBasicInformation;
-begin
-  result:=false;
-  if VirtualQueryEx(processhandle, pointer(address), mbi, sizeof(mbi))>0 then
-    result:=(mbi.State=MEM_COMMIT);// and (mbi.AllocationProtect<>PAGE_NOACCESS);
-end;
-
-function isExecutableAddress(address: ptrUint):boolean;
-var mbi: TMemoryBasicInformation;
-begin
-  result:=false;
-  if VirtualQueryEx(processhandle, pointer(address), mbi, sizeof(mbi))>0 then
-    result:=(mbi.State=MEM_COMMIT) and (((mbi.Protect and PAGE_EXECUTE)=PAGE_EXECUTE) or ((mbi.Protect and PAGE_EXECUTE_READ)=PAGE_EXECUTE_READ) or ((mbi.Protect and PAGE_EXECUTE_READWRITE)=PAGE_EXECUTE_READWRITE) or ((mbi.Protect and PAGE_EXECUTE_WRITECOPY)=PAGE_EXECUTE_WRITECOPY) );
-end;
 
 
 function MinX(a, b: ptrUint): ptrUint;inline;
@@ -2875,129 +2881,7 @@ begin
   Result:=(AValue>=AMin) and (AValue<=AMax);
 end;
 
-function FindFreeBlockForRegion(base: ptrUint; size: dword): pointer;
-{
-Query the memory arround base to find an empty block that is at least 'size' big
-}
-var
-  mbi: MEMORY_BASIC_INFORMATION;
-  x: ptrUint;
-  offset: ptrUint;
 
-  b,oldb: ptrUint;
-
-  minAddress,maxAddress: ptrUint;
-
-  c: TCEConnection;
-begin
-
-  //todo: Do some network specific stuff
-
-  result:=nil;
- // if not processhandler.is64Bit then exit; //don't bother
-
-  //64-bit
-
-  if base=0 then exit;
-
-  minAddress:=base-$70000000; //let's add in some extra overhead to skip the last fffffff
-  maxAddress:=base+$70000000;
-
-  if processhandler.is64Bit then
-  begin
-    if getConnection<>nil then
-    begin
-      minAddress:=$8000;
-      maxAddress:=$7fffffffffffffff;
-    end
-    else
-    begin
-      if (minAddress>ptrUint(systeminfo.lpMaximumApplicationAddress)) or (minAddress<ptrUint(systeminfo.lpMinimumApplicationAddress)) then
-        minAddress:=ptrUint(systeminfo.lpMinimumApplicationAddress);
-
-      if (maxAddress<ptrUint(systeminfo.lpMinimumApplicationAddress)) or (maxAddress>ptrUint(systeminfo.lpMaximumApplicationAddress)) then
-        maxAddress:=ptrUint(systeminfo.lpMaximumApplicationAddress);
-    end;
-  end
-  else
-  begin
-    minaddress:=$10000;
-    maxaddress:=$fffffffff;
-  end;
-
-
-  if processhandler.isNetwork then
-    systeminfo.dwAllocationGranularity:=4096;
-
-  b:=minAddress;
-
-
-  ZeroMemory(@mbi,sizeof(mbi));
-  while VirtualQueryEx(processhandle,pointer(b),mbi,sizeof(mbi))=sizeof(mbi) do
-  begin
-    if mbi.BaseAddress>pointer(maxAddress) then exit; //no memory found, just return 0 and let windows decide
-
-    if (mbi.State=MEM_FREE) and ((mbi.RegionSize)>size) then
-    begin
-      if (ptrUint(mbi.baseaddress) mod systeminfo.dwAllocationGranularity)>0 then
-      begin
-        //the whole size can not be used
-        x:=ptrUint(mbi.baseaddress);
-        offset:=systeminfo.dwAllocationGranularity - (x mod systeminfo.dwAllocationGranularity);
-
-        //check if there's enough left
-        if (mbi.regionsize-offset)>=size then
-        begin
-          //yes
-          x:=x+offset;
-
-          if x<base then
-          begin
-            x:=x+(mbi.regionsize-offset)-size;
-            if x>base then x:=base;
-
-            //now decrease x till it's alligned properly
-            x:=x-(x mod systeminfo.dwAllocationGranularity);
-          end;
-
-          //if the difference is closer then use that
-          if abs(ptrInt(x-base))<abs(ptrInt(ptrUint(result)-base)) then
-            result:=pointer(x);
-        end;
-        //nope
-
-      end
-      else
-      begin
-        x:=ptrUint(mbi.BaseAddress);
-        if x<base then //try to get it the closest possible (so to the end of the region-size and aligned by dwAllocationGranularity)
-        begin
-          x:=(x+mbi.RegionSize)-size;
-          if x>base then x:=base;
-
-          //now decrease x till it's alligned properly
-          x:=x-(x mod systeminfo.dwAllocationGranularity);
-        end;
-
-
-        if abs(ptrInt(x-base))<abs(ptrInt(ptrUint(result)-base)) then
-          result:=pointer(x);
-      end;
-
-    end;
-
-    if (mbi.regionsize mod systeminfo.dwAllocationGranularity)>0 then
-      mbi.RegionSize:=mbi.regionsize+(systeminfo.dwAllocationGranularity-(mbi.regionsize mod systeminfo.dwAllocationGranularity));
-
-
-    oldb:=b;
-    b:=ptrUint(mbi.BaseAddress)+mbi.RegionSize;
-
-    if b>maxAddress then exit;
-    if oldb>b then exit; //overflow
-  end;
-
-end;
 
 function getProcessPathFromProcessID(pid: dword): string;
 var ths: thandle;

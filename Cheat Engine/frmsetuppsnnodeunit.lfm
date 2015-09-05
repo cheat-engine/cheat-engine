@@ -20,6 +20,8 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     Hint = 'The number of threads to scan.'#13#10'Hint: Can be 0'
     Top = 15
     Width = 80
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 0
     Text = '0'
   end
@@ -241,12 +243,14 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     AnchorSideTop.Side = asrBottom
     Left = 14
     Height = 19
-    Hint = 'If this is checked this system will become a slave of the provided node'
+    Hint = 'Connect to another system as it''s parent or child'
     Top = 225
     Width = 154
     BorderSpacing.Top = 8
     Caption = 'Connect to other node as'
     OnChange = cbConnectToOtherNodeChange
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 11
   end
   object cbAutoTrustChildren: TCheckBox

@@ -259,7 +259,10 @@ begin
       begin
         fNeedsToSetEntryPointBreakpoint:=false; //just be sure
         if not DebugActiveProcess(processid) then
+        begin
+          OutputDebugString('DebugActiveProcess failed');
           exit;
+        end;
       end;
 
       currentprocesid := processid;
@@ -2282,7 +2285,7 @@ begin
 
     while (gettickcount-starttime)<timeout do
     begin
-      OutputDebugString('loop WaitTillAttachedOrError');
+
       currentloopstarttime:=GetTickCount;
       while CheckSynchronize and ((GetTickCount-currentloopstarttime)<50) do
       begin

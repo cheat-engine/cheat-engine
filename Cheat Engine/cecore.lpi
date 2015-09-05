@@ -39,7 +39,7 @@
         <PackageName Value="LazUtils"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="30">
+    <Units Count="38">
       <Unit0>
         <Filename Value="cecore.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -52,7 +52,6 @@
       <Unit2>
         <Filename Value="networkInterface.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="networkInterface"/>
       </Unit2>
       <Unit3>
         <Filename Value="NewKernelHandler.pas"/>
@@ -62,7 +61,6 @@
       <Unit4>
         <Filename Value="unixporthelper.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="unixporthelper"/>
       </Unit4>
       <Unit5>
         <Filename Value="ProcessHandlerUnit.pas"/>
@@ -79,7 +77,6 @@
       <Unit8>
         <Filename Value="memscan.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="memscan"/>
       </Unit8>
       <Unit9>
         <Filename Value="parsers.pas"/>
@@ -88,12 +85,10 @@
       <Unit10>
         <Filename Value="globals.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="Globals"/>
       </Unit10>
       <Unit11>
         <Filename Value="commontypedefs.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="commonTypeDefs"/>
       </Unit11>
       <Unit12>
         <Filename Value="savedscanhandler.pas"/>
@@ -127,6 +122,7 @@
       <Unit19>
         <Filename Value="jni\jnitobject.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="jniTObject"/>
       </Unit19>
       <Unit20>
         <Filename Value="symbollisthandler.pas"/>
@@ -173,6 +169,43 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="jniAddressList"/>
       </Unit29>
+      <Unit30>
+        <Filename Value="autoassembler.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit30>
+      <Unit31>
+        <Filename Value="Assemblerunit.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit31>
+      <Unit32>
+        <Filename Value="assemblerarm.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit32>
+      <Unit33>
+        <Filename Value="disassemblerarm.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DisassemblerArm"/>
+      </Unit33>
+      <Unit34>
+        <Filename Value="disassemblerthumb.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DisassemblerThumb"/>
+      </Unit34>
+      <Unit35>
+        <Filename Value="lastdisassembledata.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="LastDisassembleData"/>
+      </Unit35>
+      <Unit36>
+        <Filename Value="disassembler.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="disassembler"/>
+      </Unit36>
+      <Unit37>
+        <Filename Value="jni\jnitdisassembler.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="jniTDisassembler"/>
+      </Unit37>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -201,9 +234,10 @@
       </Options>
     </Linking>
     <Other>
-      <CustomOptions Value="-dJNI
+      <CustomOptions Value="-OoFASTMATH
+-dJNI
 -dlowmemoryusage
--OoFASTMATH"/>
+-dNOLUA"/>
     </Other>
   </CompilerOptions>
   <Debugging>

@@ -61,7 +61,7 @@ begin
     log('Weird');
 
   ms.javaowner:=penv^.NewGlobalRef(penv, owner);
-  result:=ptrint(ms);
+  result:=ptruint(ms);
 end;
 
 procedure TMemScan_NewScan(PEnv: PJNIEnv; Obj: JObject); cdecl;
@@ -125,8 +125,20 @@ procedure TMemScan_FirstScan(PEnv: PJNIEnv; Obj: JObject; scanOption: jint; vari
 var
   ms: TJniMemscan;
   scanvalue1, scanvalue2, protectionflags: string;
+  c: jclass;
 begin
   log('First scan');
+
+  c:=penv^.FindClass(penv, 'org/cheatengine/TObject');
+
+  if penv^.IsInstanceOf(penv, obj, c)=0 then
+  begin
+    log('memscantest: obj<>TObject');
+  end;
+
+  penv^.DeleteLocalRef(penv, c);
+
+
   ms:=TJniMemscan(JObjectToTObject(penv, obj));
 
   Scan_MEM_MAPPED:=noshared=0;

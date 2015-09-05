@@ -883,7 +883,7 @@ uses mainunit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup, HotKeys,
   frmSetCrosshairUnit, StructuresFrm2, frmMemoryViewExUnit,
   frmD3DHookSnapshotConfigUnit, frmSaveSnapshotsUnit, frmsnapshothandlerUnit,
   frmNetworkDataCompressionUnit, ProcessHandlerUnit, ProcessList, pointeraddresslist,
-  PointerscanresultReader, Parsers, Globals;
+  PointerscanresultReader, Parsers, Globals, GnuAssembler;
 
 resourcestring
   rsInvalidStartAddress = 'Invalid start address: %s';
@@ -3594,11 +3594,11 @@ end;
 
 procedure TMainForm.miBindDeactivationClick(Sender: TObject);
 begin
-  miBindActivation.Checked := not miBindActivation.Checked;
+  miBindDeactivation.Checked := not miBindDeactivation.Checked;
 
   if addresslist.selectedRecord <> nil then
   begin
-    if miBindActivation.Checked then
+    if miBindDeactivation.Checked then
       addresslist.selectedRecord.options := addresslist.selectedRecord.options + [moDeactivateChildrenAsWell]
     else
       addresslist.selectedRecord.options := addresslist.selectedRecord.options - [moDeactivateChildrenAsWell];
@@ -3818,7 +3818,7 @@ begin
       CustomTypeCallback := CreateCustomType;
       CustomType := ct;
       if ct.CustomTypeType = cttLuaScript then
-        luamode := True;
+        ScriptMode :=smLua;
 
       assemblescreen.Lines.Text := CustomType.script;
 
@@ -3847,7 +3847,7 @@ begin
     CustomTypeScript := True;
     CustomTypeCallback := CreateCustomType;
     CustomType := nil;
-    luamode := True;
+    ScriptMode:= smLua;
 
     with assemblescreen.Lines do
     begin
@@ -4816,7 +4816,7 @@ begin
 
 
   frmLuaTableScript := TfrmAutoInject.Create(self);
-  frmLuaTableScript.luamode := True;
+  frmLuaTableScript.ScriptMode := smLua;
 
   frmLuaTableScript.Caption := rsLuaScriptCheatTable;
   frmLuaTableScript.New1.Visible := False;
@@ -8095,10 +8095,32 @@ var
 
 
   sqos: SECURITY_QUALITY_OF_SERVICE;
+
+  gnua: TfrmAutoInject;
+
 begin
+  gnua:=TfrmAutoInject.Create(self);
+  gnua.ScriptMode:=smGnuAssembler;
+
+  gnua.show;
 
 
-  MarkAllPagesAsNonAccessed(ProcessHandle);
+ { asm
+    mov eax,1
+    cpuid
+    mov z,rcx
+  end;
+
+
+  if (z shl 31) and 1=1 then showmessage('hypervisor present') else showmessage('no hypervisor detected');
+
+  showmessage(inttohex(z,8)); }
+
+ // getConnection.loadExtension(processhandle);
+
+//showmessage('still alive')
+
+//  MarkAllPagesAsNonAccessed(ProcessHandle);
 
 
 //  showmessage('sip='+inttohex(r,8));
@@ -8297,6 +8319,8 @@ var
 begin
   if PreviousResults<>nil then
     freeandnil(PreviousResults);
+
+  if (memscan=nil) or (foundlist=nil) then raise exception.create('Unable to scan. Fix your scan settings and restart cheat engine');
 
   foundlist.Deinitialize; //unlock file handles
 

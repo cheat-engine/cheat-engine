@@ -1,6 +1,5 @@
 TMAINFORM.HINT= 
 TMAINFORM.CAPTION=Cheat Engine 6.4
-TMAINFORM.LABEL7.HINT=Click here to change the hotkey
 TMAINFORM.LABEL7.CAPTION=Ctrl+Alt+Page Down brings Cheat Engine to front
 TMAINFORM.ADVANCEDBUTTON.HINT=Codelist and pause
 TMAINFORM.ADVANCEDBUTTON.CAPTION=Advanced Options
@@ -131,7 +130,6 @@ TMAINFORM.MIBINDACTIVATION.CAPTION=Activating this entry activates it's children
 TMAINFORM.MIBINDDEACTIVATION.CAPTION=Deactivating this entry deactivates it's children
 TMAINFORM.MIRECURSIVESETVALUE.CAPTION=Setting a value to this entry sets same value to children
 TMAINFORM.MIALLOWCOLLAPSE.CAPTION=Allow left and right arrow keys to collapse and expand
-TMAINFORM.MIALLOWCOLLAPSE.HINT=Lets the user press the left and right buttons on the keyboard to expand the entry
 TMAINFORM.MIMANUALEXPANDCOLLAPSE.CAPTION=Manual expand/collapse
 TMAINFORM.PLUGINS1.CAPTION=Plugins
 TMAINFORM.MIADDADDRESS.CAPTION=Add selected addresses to the addresslist
