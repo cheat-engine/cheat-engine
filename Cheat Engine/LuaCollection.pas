@@ -30,7 +30,7 @@ var
 begin
   collection:=luaclass_getClassObject(L);
   lua_pushinteger(L, collection.Count);
-  result:=0;
+  result:=1;
 end;
 
 function collection_delete(L: Plua_State): integer; cdecl;
