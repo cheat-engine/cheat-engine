@@ -103,9 +103,8 @@ begin
         result:=1;
 
       except
-        freemem(buf);
       end;
-
+      freemem(buf);
 
     end;
   end;
@@ -142,9 +141,8 @@ begin
         end;
         stream.Write(buf^, count);
       except
-        freemem(buf);
       end;
-
+      freemem(buf);
 
     end;
   end;
