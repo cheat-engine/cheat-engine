@@ -8,6 +8,9 @@ uses
   windows, Classes, SysUtils, NewKernelHandler, ProcessHandlerUnit, strutils, dialogs;
 
 {
+      //scan for .extraparams_as <string>
+      //scan for .extraparams_ld <string>
+
       //scan the script for .asection , .msection and .aobscan
       //1:
       //.aobscan <name> "ceaobscanformat"
@@ -195,6 +198,8 @@ var
   undefinedimports: Tstringlist;
   x: ptruint;
   op: dword;
+
+  extraparams_as, extraparams_ld: string;
 begin
   if currentbinutils=nil then
     raise exception.create('Configure a valid binutils setup first');
@@ -277,6 +282,23 @@ begin
                 end;
               end;
 
+              'e':
+              begin
+                if copy(line,1,13)='.extraparams_' then
+                begin
+                  if length(line)>15 then
+                  begin
+                    if copy(line,14,3)='as ' then
+                      extraparams_as:=copy(line,17,length(line))
+                    else
+                    if copy(line,14,3)='ld ' then
+                      extraparams_ld:=copy(line,17,length(line));
+                  end;
+                end;
+              end;
+
+
+
               'i': //.import
               begin
                 if copy(line,1,8)='.import ' then
@@ -357,7 +379,7 @@ begin
 
 
 
-      currentbinutils.assemble(script, o);
+      currentbinutils.assemble(script, extraparams_as, o);
 
       //parse o to get the sections and their size
 
@@ -457,7 +479,7 @@ begin
       for i:=0 to length(sections)-1 do
         binarysections[i].sectionname:=sections[i].name;
 
-      currentbinutils.ldAndExtract(o, lnkfilename, imports, binarysections);
+      currentbinutils.ldAndExtract(o, lnkfilename, extraparams_ld, imports, binarysections);
 
       //before writing, first check that the sections are of compatible size
       for i:=0 to length(sections)-1 do

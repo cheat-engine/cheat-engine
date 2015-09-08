@@ -40,10 +40,10 @@ type
     prefix: string;
     lasterror: string;
     arch: string;
-    function assemble(script: tstringlist; out filename: string): boolean;
+    function assemble(script: tstringlist; extraparams: string; out filename: string): boolean;
     procedure nm(filename: string; undefined: tstringlist);
     procedure GetSections(filename: string; var sections: TSectionArray);
-    procedure ldAndExtract(objectfile, linkfilename: string; imports: TImportList; var sections: TBinarySections);
+    procedure ldAndExtract(objectfile, linkfilename, extraparams: string; imports: TImportList; var sections: TBinarySections);
     procedure disassemble(var ldd: TLastDisassembleData); //address and bytes are filled in
   published
     property path: string read fpath write setPath;
@@ -70,10 +70,12 @@ end;
 
 procedure TBinUtils.disassemble(var ldd: TLastDisassembleData);
 begin
+  //check if this address is in the disassembled cache, and if so, add it
 
+  //if not, disassemble this address and a couple of instructions after it as well
 end;
 
-procedure TBinUtils.ldAndExtract(objectfile, linkfilename: string; imports: TImportList; var sections: TBinarySections);
+procedure TBinUtils.ldAndExtract(objectfile, linkfilename, extraparams: string; imports: TImportList; var sections: TBinarySections);
 var
   p: TProcess;
   i: integer;
@@ -86,6 +88,7 @@ begin
     p.CurrentDirectory:=fpath;
     p.executable:=fpath+prefix+'ld';
     p.Options:=[poUsePipes, poNoConsole];
+    p.Parameters.add(extraparams);
     p.Parameters.Add('-T "'+linkfilename+'"');
     p.Parameters.Add('"'+objectfile+'"');
 
@@ -319,7 +322,7 @@ begin
   end;
 end;
 
-function TBinUtils.assemble(script: tstringlist; out filename: string): boolean;
+function TBinUtils.assemble(script: tstringlist; extraparams: string; out filename: string): boolean;
 var
   p: TProcess;
   origfile: string;
@@ -337,6 +340,7 @@ begin
     p.Executable:=fpath+prefix+'as';
     p.Options:=[poUsePipes, poWaitOnExit, poNoConsole];
 
+    p.Parameters.add(extraparams);
     p.Parameters.Add('"'+origfile+'"');
     p.Parameters.Add('-o "'+filename+'"');
 
