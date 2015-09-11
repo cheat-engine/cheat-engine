@@ -7992,14 +7992,16 @@ var
   customtype: TCustomType;
 begin
   if foundlist3.Selected<>nil then
-  begin    a:=foundlist.GetAddress(foundlist3.Selected.Index, extra, Value);
-
+  begin
+    a:=foundlist.GetAddress(foundlist3.selected.Index, extra, Value);
     if InputQuery('Change value', 'Give the new value for the selected address(es)', value) then
     begin
+      newvalue := value;
       for i:=0 to foundlist3.items.Count-1 do
       begin
         if foundlist3.Items[i].Selected then
         begin
+          a:=foundlist.GetAddress(foundlist3.Items[i].Index, extra, Value);
           if foundlist.vartype=vtAll then  //all, extra contains the vartype
           begin
             if extra<$1000 then
@@ -8019,7 +8021,7 @@ begin
             vt:=vtUnicodeString;
 
 
-          ParseStringAndWriteToAddress(value, a, vt, foundlist.isHexadecimal, customtype);
+          ParseStringAndWriteToAddress(newvalue, a, vt, foundlist.isHexadecimal, customtype);
 
         end;
 
