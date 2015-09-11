@@ -7983,8 +7983,6 @@ end;
 
 procedure TMainForm.miChangeValueClick(Sender: TObject);
 var
-  a: ptruint;
-  newvalue: string;
   extra: dword;
   value: string;
   i: integer;
@@ -7992,7 +7990,8 @@ var
   customtype: TCustomType;
 begin
   if foundlist3.Selected<>nil then
-  begin    a:=foundlist.GetAddress(foundlist3.Selected.Index, extra, Value);
+  begin
+    foundlist.GetAddress(foundlist3.Selected.Index, extra, Value);
 
     if InputQuery('Change value', 'Give the new value for the selected address(es)', value) then
     begin
@@ -8018,8 +8017,7 @@ begin
           if (vt=vtString) and (cbUnicode.checked) then
             vt:=vtUnicodeString;
 
-
-          ParseStringAndWriteToAddress(value, a, vt, foundlist.isHexadecimal, customtype);
+          ParseStringAndWriteToAddress(value, foundlist.GetAddress(i), vt, foundlist.isHexadecimal, customtype);
 
         end;
 
