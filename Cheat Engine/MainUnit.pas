@@ -7983,8 +7983,9 @@ end;
 
 procedure TMainForm.miChangeValueClick(Sender: TObject);
 var
+  a:ptruint;
   extra: dword;
-  value: string;
+  value, newvalue: string;
   i: integer;
   vt: TVariableType;
   customtype: TCustomType;
@@ -7995,10 +7996,13 @@ begin
 
     if InputQuery('Change value', 'Give the new value for the selected address(es)', value) then
     begin
+      newvalue:=value;
       for i:=0 to foundlist3.items.Count-1 do
       begin
         if foundlist3.Items[i].Selected then
         begin
+          a:=foundlist.GetAddress(foundlist3.Selected.Index, extra, Value);
+
           if foundlist.vartype=vtAll then  //all, extra contains the vartype
           begin
             if extra<$1000 then
@@ -8017,7 +8021,7 @@ begin
           if (vt=vtString) and (cbUnicode.checked) then
             vt:=vtUnicodeString;
 
-          ParseStringAndWriteToAddress(value, foundlist.GetAddress(i), vt, foundlist.isHexadecimal, customtype);
+          ParseStringAndWriteToAddress(newvalue, a, vt, foundlist.isHexadecimal, customtype);
 
         end;
 
