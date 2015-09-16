@@ -616,7 +616,8 @@ uses Valuechange,
   frmAssemblyScanUnit,
   MemoryQuery,
   AccessedMemory,
-  Parsers;
+  Parsers,
+  GnuAssembler;
 
 
 resourcestring
@@ -2260,6 +2261,8 @@ var assemblercode,desc: string;
 
     localdisassembler: TDisassembler;
     bytelength: dword;
+
+    gnascript: tstringlist;
 begin
 
   //make sure it doesnt have a breakpoint
@@ -2294,6 +2297,21 @@ begin
   assemblercode:=InputboxTop(rsCheatEngineSingleLingeAssembler, Format(rsTypeYourAssemblerCodeHereAddress, [inttohex(disassemblerview.SelectedAddress, 8)]), assemblercode, x='', canceled, assemblerHistory);
   if not canceled then
   begin
+
+    if defaultBinutils<>nil then
+    begin
+      //use the gnuassembler for this
+      gnascript:=TStringList.create;
+      try
+        gnascript.add('.msection singleline 0x'+inttohex(disassemblerview.SelectedAddress,8));
+        gnascript.Add(assemblercode);
+        gnuassemble(gnascript);
+      finally
+        gnascript.free;
+      end;
+
+      exit;
+    end;
 
     try
       if Assemble(assemblercode,disassemblerview.SelectedAddress,bytes) then

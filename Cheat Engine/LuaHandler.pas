@@ -5841,6 +5841,11 @@ var
   name, description: string;
   path: string;
   prefix: string;
+  ASParam: string;
+  LDParam: string;
+  OBJDUMPParam: string;
+  DisassemblerCommentChar: string;
+
 
   bu: TBinUtils;
 
@@ -5916,6 +5921,48 @@ begin
 
     lua_pop(L,1);
 
+    lua_pushstring(L, 'ASParam');
+    lua_gettable(L, 1);
+
+    if lua_isnil(L,-1) then
+      ASParam:=''
+    else
+      ASParam:=Lua_ToString(L,-1);
+
+    lua_pop(L,1);
+
+    lua_pushstring(L, 'LDParam');
+    lua_gettable(L, 1);
+
+    if lua_isnil(L,-1) then
+      LDParam:=''
+    else
+      LDParam:=Lua_ToString(L,-1);
+
+    lua_pop(L,1);
+
+    lua_pushstring(L, 'OBJDUMPParam');
+    lua_gettable(L, 1);
+
+    if lua_isnil(L,-1) then
+      OBJDUMPParam:=''
+    else
+      OBJDUMPParam:=Lua_ToString(L,-1);
+
+    lua_pop(L,1);
+
+    lua_pushstring(L, 'DisassemblerCommentChar');
+    lua_gettable(L, 1);
+
+    if lua_isnil(L,-1) then
+      DisassemblerCommentChar:=''
+    else
+      DisassemblerCommentChar:=Lua_ToString(L,-1);
+
+    lua_pop(L,1);
+
+
+
 
     bu:=TBinUtils.create;
 
@@ -5925,6 +5972,11 @@ begin
     bu.path:=path;
     bu.OnDisassemble:=ondisassemble;
     bu.arch:=Arch;
+    bu.ASParam:=ASParam;
+    bu.LDParam:=LDParam;
+    bu.OBJDUMPParam:=OBJDUMPParam;
+    bu.DisassemblerCommentChar:=DisassemblerCommentChar;
+
 
     binutilslist.add(bu);
 

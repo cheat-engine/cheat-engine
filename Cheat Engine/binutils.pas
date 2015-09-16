@@ -44,6 +44,12 @@ type
     lasterror: string;
     arch: string;
     OnDisassemble: integer; //lua function reference
+
+    ASParam: string;
+    LDParam: string;
+    OBJDUMPParam: string;
+    DisassemblerCommentChar: string;
+
     constructor create;
     destructor destroy; override;
 
@@ -175,7 +181,6 @@ begin
     ReadProcessMemory(processhandle, pointer(ldd.address), buffer, 512, br);
 
 
-
     if disassemblercache.GetData(ldd.address, entry) then
     begin
       //return this data
@@ -192,7 +197,6 @@ begin
         exit;
       end;
     end;
-
 
     if disassemblercache.Count>10000 then
       clearDisassemblerCache;
@@ -212,6 +216,8 @@ begin
       p.CurrentDirectory:=fpath;
       p.executable:={fpath+}prefix+'objdump';
       p.Options:=[poUsePipes, poNoConsole];
+
+      p.parameters.add(OBJDUMPParam);
       p.parameters.add('--adjust-vma=0x'+inttohex(ldd.address,8));
       p.parameters.Add('--stop-address=0x'+inttohex(ldd.address+512,8));
       p.Parameters.add('--prefix-addresses');
@@ -300,14 +306,21 @@ begin
             if TryStrToInt64(a1,address1) and TryStrToInt64(a2,address2) then
             begin
               instr:=ExtractWord(2, line1, [' ',#8,#9]);
+              param:='';
+              comment:='';
               j:=WordPosition(3, line1, [' ',#8,#9]);
-              param:=copy(line1, j, length(line1));
-
-              j:=pos(';', param);
               if j>0 then
+                param:=copy(line1, j, length(line1));
+
+
+              if DisassemblerCommentChar<>'' then
               begin
-                comment:=copy(param, j, length(param));
-                param:=copy(param,1, j-1);
+                j:=pos(DisassemblerCommentChar, param);
+                if j>0 then
+                begin
+                  comment:=copy(param, j, length(param));
+                  param:=copy(param,1, j-1);
+                end;
               end;
 
               //valid
@@ -381,6 +394,7 @@ begin
     p.executable:={fpath+}prefix+'ld';
     p.Options:=[poUsePipes, poNoConsole];
     p.Parameters.add(extraparams);
+    p.parameters.add(LDParam);
     p.Parameters.Add('-T "'+linkfilename+'"');
     p.Parameters.Add('"'+objectfile+'"');
 
@@ -633,6 +647,7 @@ begin
     p.Options:=[poUsePipes, poWaitOnExit, poNoConsole];
 
     p.Parameters.add(extraparams);
+    p.parameters.add(ASParam);
     p.Parameters.Add('"'+origfile+'"');
     p.Parameters.Add('-o "'+filename+'"');
 

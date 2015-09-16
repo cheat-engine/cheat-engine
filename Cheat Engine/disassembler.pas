@@ -1324,6 +1324,7 @@ begin
   begin
     //use this
     LastDisassembleData.address:=offset;
+    LastDisassembleData.SeperatorCount:=0;
     defaultBinutils.disassemble(LastDisassembleData);
 
     result:=inttohex(LastDisassembleData.address,8);
