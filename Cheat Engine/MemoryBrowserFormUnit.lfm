@@ -1214,6 +1214,18 @@ object MemoryBrowser: TMemoryBrowser
           OnClick = miDisassemblyAutodetectClick
         end
       end
+      object miBinUtils: TMenuItem
+        Caption = 'BinUtils'
+        Visible = False
+        object miBinutilsSelect: TMenuItem
+          Tag = -1
+          AutoCheck = True
+          Caption = 'None'
+          Checked = True
+          RadioItem = True
+          OnClick = miBinutilsSelectClick
+        end
+      end
       object miTextPreferences: TMenuItem
         Caption = 'Text preferences'
         OnClick = miTextPreferencesClick

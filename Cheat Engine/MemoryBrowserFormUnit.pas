@@ -13,7 +13,7 @@ uses
   NewKernelHandler, ComCtrls, LResources, byteinterpreter, StrUtils, hexviewunit,
   debughelper, debuggertypedefinitions,frmMemviewPreferencesUnit, registry,
   scrollboxex, disassemblercomments, multilineinputqueryunit, frmMemoryViewExUnit,
-  LastDisassembleData, ProcessHandlerUnit, commonTypeDefs;
+  LastDisassembleData, ProcessHandlerUnit, commonTypeDefs, binutils;
 
 
 type
@@ -41,6 +41,8 @@ type
     MenuItem22: TMenuItem;
     MenuItem23: TMenuItem;
     MenuItem24: TMenuItem;
+    miBinutilsSelect: TMenuItem;
+    miBinUtils: TMenuItem;
     miSetBookmark0: TMenuItem;
     miGotoBookmark0: TMenuItem;
     miSetBookmark1: TMenuItem;
@@ -267,6 +269,7 @@ type
     procedure MenuItem18Click(Sender: TObject);
     procedure MenuItem20Click(Sender: TObject);
     procedure MenuItem22Click(Sender: TObject);
+    procedure miBinutilsSelectClick(Sender: TObject);
     procedure SetBookmarkClick(Sender: TObject);
     procedure miTextEncodingClick(Sender: TObject);
     procedure miReferencedFunctionsClick(Sender: TObject);
@@ -484,6 +487,8 @@ type
       setMi: TMenuItem;
       gotoMi: TMenuItem;
     end;
+
+    currentBinutils: Tbinutils;
 
     procedure SetStacktraceSize(size: integer);
     procedure setShowDebugPanels(state: boolean);
@@ -1081,6 +1086,25 @@ begin
     frmAccessedMemory:=TfrmAccessedMemory.Create(application);
 
   frmAccessedMemory.Show;
+end;
+
+procedure TMemoryBrowser.miBinutilsSelectClick(Sender: TObject);
+var id: integer;
+begin
+  if (sender is TMenuItem) then
+  begin
+    id:=tmenuitem(sender).tag;
+    if (id<0) or (id>=binutilslist.count) then
+    begin
+      defaultBinutils:=nil;
+      miDisassemblerType.Enabled:=true;
+    end
+    else
+    begin
+      defaultBinutils:=TBinUtils(binutilslist[id]);
+      miDisassemblerType.Enabled:=false;
+    end;
+  end;
 end;
 
 procedure TMemoryBrowser.SetBookmarkClick(Sender: TObject);
