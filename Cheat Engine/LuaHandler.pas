@@ -5994,7 +5994,10 @@ begin
     MemoryBrowser.miBinUtils.Add(miBu);
 
     if binutilslist.count>0 then //make a menu visible so the user can choose at runtime
+    begin
       MemoryBrowser.miBinUtils.visible:=true;
+      MemoryBrowser.miGNUAssembler.visible:=true;
+    end;
   end;
 end;
 

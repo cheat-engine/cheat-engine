@@ -177,6 +177,9 @@ resourcestring
   rsType = 'Type';
   rsValue = 'Value';
   rsScript = '<script>';
+  rsALAddAddress = 'Add address';
+  rsALNoDescription = 'No description';
+  rsALAutoAssembleScritp = 'Auto Assemble script';
 
 procedure TTreeviewWithScroll.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var n: TTreenode;
@@ -635,7 +638,7 @@ begin
   memrec:=TMemoryrecord.Create(self);
   memrec.id:=GetUniqueMemrecId;
   memrec.isGroupHeader:=false;
-  memrec.Description:='Auto Assemble script';
+  memrec.Description:=rsALAutoAssembleScritp;
   memrec.AutoAssemblerData.script:=tstringlist.create;
   memrec.AutoAssemblerData.script.text:=script;
 
@@ -689,7 +692,7 @@ begin
 
 
   Treeview.BeginUpdate;
-  mr:=addaddress('No description',initialaddress,[],0, vartype);
+  mr:=addaddress(rsALNoDescription,initialaddress,[],0, vartype);
   mr.visible:=false;
   Treeview.EndUpdate;
 
@@ -697,7 +700,7 @@ begin
   //changevalue, if cancel, delete
   with TFormaddresschange.Create(self) do
   begin
-    caption:='Add address';
+    caption:=rsALAddAddress;
     memoryrecord:=mr;
     if showmodal<>mrok then
     begin
@@ -1984,4 +1987,3 @@ begin
 end;
 
 end.
-

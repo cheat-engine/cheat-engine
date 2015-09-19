@@ -256,6 +256,8 @@ begin
       caption:=rsLUAScript;
      // inject1.Visible:=true;
       helpcontext:=19; //c-script help
+
+      Syntaxhighlighting1.visible:=true;
     end;
 
     smAutoAssembler:
@@ -274,6 +276,8 @@ begin
       caption:=rsAutoAssembler;
       inject1.Visible:=false;
       helpcontext:=18; //auto asm help
+
+      Syntaxhighlighting1.visible:=true;
     end;
 
     smGnuAssembler:
@@ -288,6 +292,8 @@ begin
       Assigntocurrentcheattable1.visible:=true; //yup
       emplate1.Visible:=false; //no templates right now
       caption:=rsGNUAScript;
+
+      Syntaxhighlighting1.visible:=false;
     end;
 
   end;

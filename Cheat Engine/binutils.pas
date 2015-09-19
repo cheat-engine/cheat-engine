@@ -214,7 +214,7 @@ begin
 
     try
       p.CurrentDirectory:=fpath;
-      p.executable:={fpath+}prefix+'objdump';
+      p.executable:='"'+fpath+prefix+'objdump'+'"';
       p.Options:=[poUsePipes, poNoConsole];
 
       p.parameters.add(OBJDUMPParam);
@@ -391,7 +391,7 @@ begin
   p:=TProcess.create(nil);
   try
     p.CurrentDirectory:=fpath;
-    p.executable:={fpath+}prefix+'ld';
+    p.executable:='"'+fpath+prefix+'ld'+'"';
     p.Options:=[poUsePipes, poNoConsole];
     p.Parameters.add(extraparams);
     p.parameters.add(LDParam);
@@ -426,7 +426,7 @@ begin
     p:=TProcess.Create(nil);
     try
       p.CurrentDirectory:=fpath;
-      p.executable:={fpath+}prefix+'objcopy';
+      p.executable:='"'+fpath+prefix+'objcopy'+'"';
       p.Options:=[poUsePipes, poNoConsole];
 
       p.Parameters.Add('-Obinary');
@@ -483,7 +483,7 @@ begin
 
   try
     p.CurrentDirectory:=fpath;
-    p.Executable:={fpath+}prefix+'objdump';
+    p.Executable:='"'+fpath+prefix+'objdump'+'"';
     p.Options:=[poUsePipes, poNoConsole];
 
     p.Parameters.Add('-h');
@@ -577,7 +577,7 @@ begin
   p:=TProcess.Create(nil);
   try
     p.CurrentDirectory:=fpath;
-    p.Executable:={fpath+}prefix+'nm';
+    p.Executable:='"'+fpath+prefix+'nm'+'"';
     p.Options:=[poUsePipes, poNoConsole];
 
     p.Parameters.Add('-u');
@@ -643,7 +643,7 @@ begin
 
   try
     p.CurrentDirectory:=fpath;
-    p.Executable:={fpath+}prefix+'as';
+    p.Executable:='"'+fpath+prefix+'as'+'"';
     p.Options:=[poUsePipes, poWaitOnExit, poNoConsole];
 
     p.Parameters.add(extraparams);

@@ -609,6 +609,20 @@ resourcestring
    rsCopy = 'Copy';
    rsPaste = 'Paste';
    rsSpider = 'Spider';
+   rsSF2GiveTheNewNameForThisStructure = 'Give the new name for this structure';
+   rsSF2StructureRename = 'Structure rename';
+   rsSF2AreYouSureYouWantToDeleteTheStructureNamed = 'Are you sure you want to delete the structure named :';
+   rsSF2AreYouSureYouWantToDeleteAllTheDefinedStructures = 'Are you sure you want to delete all the defined structures ?';
+   rsSF2AutocreateStructureSize = 'Autocreate structure size: ';
+   rsSF2ChangeValue = 'Change Value';
+   rsSF2NewValueForThisAddress = 'New value for this address:';
+   rsSF2Group1 = 'Group 1';
+   rsSF2Group = 'Group ';
+   rsSF2Group2 = 'Group ';
+   rsSF2Rename = 'Rename';
+   rsSF2DeleteGroup = 'Delete group';
+
+
 
 var
   StructureDissectOverrides: array of TStructureDissectOverride;
@@ -2024,7 +2038,7 @@ begin
     //apply change
     if grouplist.Objects[l.itemindex]=nil then //new group
     begin
-      newname:='Group '+inttostr(parent.parent.groupcount+1);
+      newname:=rsSF2Group2+inttostr(parent.parent.groupcount+1);
       if inputquery('New group','Give the new name', newname) then
         g:=TStructGroup.create(parent.parent, newname)
       else
@@ -2569,12 +2583,12 @@ begin
 
   grouppopup:=Tpopupmenu.create(parent);
   miRename:=TmenuItem.create(grouppopup);
-  miRename.caption:='Rename';
+  miRename.caption:=rsSF2Rename;
   miRename.OnClick:=RenameClick;
   grouppopup.items.Add(miRename);
 
   miDelete:=TMenuItem.create(grouppopup);
-  miDelete.caption:='Delete group';
+  miDelete.caption:=rsSF2DeleteGroup;
   miDelete.OnClick:=DeleteClick;
   grouppopup.items.Add(miDelete);
 
@@ -3852,7 +3866,7 @@ begin
   if mainstruct<>nil then
   begin
     newname:=mainStruct.name;
-    if InputQuery('Give the new name for this structure', 'Structure rename', newname) then
+    if InputQuery(rsSF2GiveTheNewNameForThisStructure, rsSF2StructureRename, newname) then
       mainStruct.name:=newname;
   end;
 end;
@@ -4019,7 +4033,7 @@ var c: TStructColumn;
 begin
   result:=nil;
   if groupcount=0 then
-    TStructGroup.create(self,'Group 1');
+    TStructGroup.create(self,rsSF2Group1);
 
   c:=getFocusedColumn;
   if c=nil then
@@ -4209,7 +4223,7 @@ procedure TfrmStructures2.MenuItem5Click(Sender: TObject);
 var s: string;
   g: Tstructgroup;
 begin
-  s:='Group '+inttostr(groupcount+1);
+  s:=rsSF2Group+inttostr(groupcount+1);
   if InputQuery('Name for this group','Structure define', s) then
   begin
     g:=TStructGroup.create(self, s);
@@ -4263,7 +4277,7 @@ end;
 
 procedure TfrmStructures2.miClearClick(Sender: TObject);
 begin
-  if MessageDlg('Are you sure you want to delete all the defined structures ?', mtWarning, [mbyes, mbno],0)=mryes then
+  if MessageDlg(rsSF2AreYouSureYouWantToDeleteAllTheDefinedStructures, mtWarning, [mbyes, mbno],0)=mryes then
   begin
     if mainstruct<>nil then //this one first
     begin
@@ -4642,7 +4656,7 @@ procedure TfrmStructures2.Deletecurrentstructure1Click(Sender: TObject);
 begin
   if mainstruct<>nil then
   begin
-    if messagedlg('Are you sure you want to delete the structure named :'+mainstruct.structname+' ?', mtConfirmation, [mbyes,mbno],0) = mryes then
+    if messagedlg(rsSF2AreYouSureYouWantToDeleteTheStructureNamed+mainstruct.structname+' ?', mtConfirmation, [mbyes,mbno],0) = mryes then
     begin
       mainstruct.free;
       mainstruct:=nil; //should happen automatically thanks to the destroy procedure of the struct
@@ -4705,7 +4719,7 @@ begin
   if mainStruct<>nil then
   begin
     miAutoCreate.Checked:=mainstruct.AutoCreate;
-    miAutostructsize.caption:='Autocreate structure size: '+inttostr(mainstruct.autoCreateStructsize);
+    miAutostructsize.caption:=rsSF2AutocreateStructureSize+inttostr(mainstruct.autoCreateStructsize);
     miAutoDestroyLocal.Checked:=mainstruct.AutoDestroy;
     miDoNotSaveLocal.checked:=mainstruct.DoNotSaveLocal;
     miAutoFillGaps.Checked:=mainStruct.AutoFill;
@@ -5024,7 +5038,7 @@ begin
     begin
       //show the change value dialog
       s:=se.getValue(a);
-      if InputQuery('Change Value','New value for this address:', s) then
+      if InputQuery(rsSF2ChangeValue,rsSF2NewValueForThisAddress, s) then
       begin
         //try setting the value
         for i:=0 to tvStructureView.SelectionCount-1 do

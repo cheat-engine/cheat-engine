@@ -8,6 +8,9 @@ uses
   LCLType, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ExtCtrls, MemoryRecordUnit;
 
+resourcestring
+rsDDDropdownOtionsFor = 'Dropdown options for ';
+
 type
 
   { TFrmMemoryRecordDropdownSettings }
@@ -75,7 +78,7 @@ begin
   cbOnlyShowDescription.checked:=memrec.DropDownDescriptionOnly;
   cbDisplayAsDropdownItem.checked:=memrec.DisplayAsDropDownListItem;
 
-  caption:='Dropdown options for '+memrec.description;
+  caption:=rsDDDropdownOtionsFor+memrec.description;
 end;
 
 end.

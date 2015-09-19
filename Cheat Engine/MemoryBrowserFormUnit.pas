@@ -41,6 +41,7 @@ type
     MenuItem22: TMenuItem;
     MenuItem23: TMenuItem;
     MenuItem24: TMenuItem;
+    miGNUAssembler: TMenuItem;
     miBinutilsSelect: TMenuItem;
     miBinUtils: TMenuItem;
     miSetBookmark0: TMenuItem;
@@ -269,6 +270,7 @@ type
     procedure MenuItem18Click(Sender: TObject);
     procedure MenuItem20Click(Sender: TObject);
     procedure MenuItem22Click(Sender: TObject);
+    procedure miGNUAssemblerClick(Sender: TObject);
     procedure miBinutilsSelectClick(Sender: TObject);
     procedure SetBookmarkClick(Sender: TObject);
     procedure miTextEncodingClick(Sender: TObject);
@@ -1087,6 +1089,14 @@ begin
     frmAccessedMemory:=TfrmAccessedMemory.Create(application);
 
   frmAccessedMemory.Show;
+end;
+
+procedure TMemoryBrowser.miGNUAssemblerClick(Sender: TObject);
+var gnua: TfrmAutoInject;
+begin
+  gnua:=TfrmAutoInject.Create(self);
+  gnua.ScriptMode:=smGnuAssembler;
+  gnua.show;
 end;
 
 procedure TMemoryBrowser.miBinutilsSelectClick(Sender: TObject);
@@ -2303,7 +2313,7 @@ begin
       //use the gnuassembler for this
       gnascript:=TStringList.create;
       try
-        gnascript.add('.msection singleline 0x'+inttohex(disassemblerview.SelectedAddress,8));
+        gnascript.add('.msection sline 0x'+inttohex(disassemblerview.SelectedAddress,8));
         gnascript.Add(assemblercode);
         gnuassemble(gnascript);
       finally

@@ -37,7 +37,7 @@ resourcestring
   rsPleaseFillInAValidFromAddress = 'Please fill in a valid ''From'' address';
   rsPleaseFillInAValidToAddress = 'Please fill in a valid ''To'' address';
   rsPleaseFillInAValidFillValue = 'Please fill in a valid ''Fill'' value';
-
+  rsFMRegionTooLarge = 'Region too large';
 
 procedure TfrmFillMemory.Button1Click(Sender: TObject);
 var start,stop: ptrUint;
@@ -81,7 +81,7 @@ begin
   fillmemory(@buf[0],count,fillvalue);
 
   count2:=count;
-  if count<>count2 then raise exception.create('Region too large');
+  if count<>count2 then raise exception.create(rsFMRegionTooLarge);
 
   RewriteCode(processhandle,start,@buf[0],count2);
 

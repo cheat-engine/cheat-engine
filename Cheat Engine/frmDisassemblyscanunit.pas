@@ -69,6 +69,10 @@ implementation
 
 uses MemoryBrowserFormUnit, ProcessHandlerUnit;
 
+resourcestring
+  rsDSScanError = 'scan error';
+  rsDSClose = 'Close';
+
 procedure TDisassemblerthread.foundone;
 begin
   ownerform.ListBox1.Items.Add(foundline)
@@ -171,7 +175,7 @@ begin
     end;
   except
     on e:exception do
-      messagebox(0,pchar(e.message),pchar('scan error'), 0);
+      messagebox(0,pchar(e.message),pchar(rsDSScanError), 0);
   end;
 end;
 
@@ -289,7 +293,7 @@ begin
     disassemblerthread.Free;
     disassemblerthread:=nil;
 
-    btnCancel.Caption:='Close';
+    btnCancel.Caption:=rsDSClose;
   end else close;
 
 end;

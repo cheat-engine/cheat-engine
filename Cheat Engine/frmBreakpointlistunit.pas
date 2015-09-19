@@ -53,6 +53,9 @@ implementation
 
 uses formsettingsunit, MemoryBrowserFormUnit, DebugHelper, frmBreakpointConditionunit;
 
+resourcestring
+  rsBPAreYouSureYouWishToChangeThisToAPegewideBP = 'Are you sure you wish to change this to a pagewide breakpoint?';
+
 procedure TFrmBreakpointlist.update(var m: tmessage);
 begin
   updatebplist;
@@ -160,7 +163,7 @@ procedure TfrmBreakpointlist.miPageWideClick(Sender: TObject);
 var bp: PBreakpoint;
 begin
 
-  if (listview1.selected<>nil) and (MessageDlg('Are you sure you wish to change this to a pagewide breakpoint?', mtConfirmation, [mbyes, mbno], 0)=mryes) then
+  if (listview1.selected<>nil) and (MessageDlg(rsBPAreYouSureYouWishToChangeThisToAPegewideBp, mtConfirmation, [mbyes, mbno], 0)=mryes) then
   begin
     debuggerthread.lockbplist;
     try

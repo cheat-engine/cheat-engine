@@ -5,7 +5,8 @@ unit GnuAssembler;
 interface
 
 uses
-  windows, Classes, SysUtils, NewKernelHandler, ProcessHandlerUnit, strutils, dialogs;
+  windows, Classes, SysUtils, NewKernelHandler, ProcessHandlerUnit, strutils,
+  dialogs, commonTypeDefs;
 
 {
       //scan for .extraparams_as <string>
@@ -25,7 +26,7 @@ uses
       //name:
 
       //3:
-      //.msection <name> <address or ce symbol> <expectedsize OPT>  (error out if after linking the assumed size is bigger than expected. E.g veneers)
+      //.msection <name> <address or ce symbol> <expectedsize OPT> <overridesize OPT>  (error out if after linking the assumed size is bigger than expected. E.g veneers and sometimes alignments)
       //Internally ->:
       //.section _<name>,"xa" : after assembly add it to the section list with the given address
       //name:
@@ -163,7 +164,7 @@ begin
   end;
 end;
 
-procedure gnuassemble(originalscript: tstrings);
+function gnuassemble2(originalscript: tstrings; targetself: boolean; var CEAllocarray: TCEAllocArray): boolean;
 var
   nmdisabled: boolean;
   i,j,k,l: integer;
@@ -602,8 +603,13 @@ nop
 nop
 nop
 
-
-
 }
+
+procedure gnuassemble(originalscript: tstrings);
+var a: TCEAllocArray;
+begin
+  //let's do something similar to autoassembler
+  gnuassemble2(originalscript, false, a);
+end;
 
 end.

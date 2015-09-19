@@ -1067,6 +1067,8 @@ resourcestring
   rsDecimal = 'Decimal';
   rsHexadecimal = 'Hexadecimal';
   rsIsNotAValidX = '%s is not a valid xml name';
+  rsMUGenerateGroupscanCommand = 'Generate groupscan command';
+
 
 var
   ncol: TColor;
@@ -5779,7 +5781,7 @@ begin
   if groupconfigbutton=nil then
   begin
     groupconfigbutton:=Tbutton.create(self);
-    groupconfigbutton.caption:='Generate groupscan command';
+    groupconfigbutton.caption:=rsMUGenerateGroupscanCommand;
     groupconfigbutton.parent:=scantype.Parent;
     groupconfigbutton.Left:=scantype.left;
     groupconfigbutton.top:=scantype.top;

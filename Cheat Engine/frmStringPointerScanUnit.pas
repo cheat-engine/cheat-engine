@@ -346,7 +346,17 @@ resourcestring
   rsAreYouSureYo = 'Are you sure you wish to start a new scan?';
   rsScan = 'Scan';
   rsScanningFoun = 'Scanning... Found %s';
-
+  rsSPSUNotYetImplemented = 'Not yet implemented';
+  rsSPSUFUUUU = 'FUUUU';
+  rsSPSUFUUUUU = 'FUUUUU';
+  rsSPSUException = 'Exception:';
+  rsSPSUOffset = 'Offset ';
+  rsSPSUAddress = 'Address';
+  rsSPSUAddress2 = 'Address 2';
+  rsSPSURescan = 'Rescan';
+  rsSPSUFound = 'Found:';
+  rsSPSUScanDoneFound = 'Scan done! Found ';
+  rsSPSUErrorduringScanNoScanresults = 'Error during scan. No scanresults available';
 //----------TPointerfileReader---------
 
 function TPointerfilereader.getByteFromAddress(address: ptruint; var error: boolean): byte;
@@ -536,7 +546,7 @@ begin
 
       end
       else
-        result:='Not yet implemented';
+        result:=rsSPSUNotYetImplemented;
 
     end;
   end;
@@ -1187,7 +1197,7 @@ begin
          { if pointerlist.Find(p)<>nil then
           begin
          //   freemem(p);
-            messagebox(0,'FUUUU','FUUUUU',0);
+            messagebox(0,rsSPSUFUUUU,rsSPSUFUUUUU,0);
             continue;
           end;   }
 
@@ -1593,7 +1603,7 @@ begin
 
     except
       on e: exception do
-        messagebox(0,pchar('Exception:'+e.Message),'ps',0);
+        messagebox(0,pchar(rsSPSUException+e.Message),'ps',0);
     end;
 
 
@@ -1811,18 +1821,18 @@ begin
     lc:=listview1.Columns.Add;
     lc.MinWidth:=2;
     lc.Width:=70;
-    lc.Caption:='Offset '+inttostr(i);
+    lc.Caption:=rsSPSUOffset+inttostr(i);
   end;
 
   lc:=listview1.Columns.Add;
   lc.MinWidth:=2;
   lc.Width:=120;
-  lc.Caption:='Address';
+  lc.Caption:=rsSPSUAddress;
 
   lc:=listview1.Columns.Add;
   lc.MinWidth:=2;
   lc.Width:=120;
-  lc.Caption:='Address 2';
+  lc.Caption:=rsSPSUAddress2;
 
 
   lblExtra.enabled:=true;
@@ -1835,24 +1845,24 @@ begin
 
   //setup rescan mode
 
-  btnScan.caption:='Rescan';
+  btnScan.caption:=rsSPSURescan;
   btnScan.tag:=1;
 end;
 
 procedure TfrmStringPointerScan.scanDone(var m: tmessage);
 begin
   if scanner<>nil then
-    lblInfo.caption:='Found:'+inttostr(scanner.count);
+    lblInfo.caption:=rsSPSUFound+inttostr(scanner.count);
 
   if rescanner<>nil then
-    lblInfo.caption:='Found:'+inttostr(rescanner.count);
+    lblInfo.caption:=rsSPSUFound+inttostr(rescanner.count);
 
 
   cleanup;
 
   OpenPointerfile(SaveDialog1.FileName);
 
-  btnScan.caption:='Rescan';
+  btnScan.caption:=rsSPSURescan;
   btnScan.tag:=1;
   btnScan.Left:=panel1.clientwidth-btnScan.width-btnNewScan.left;
 
@@ -1864,9 +1874,9 @@ begin
     comboType.itemindex:=comboCompareType.itemindex;
 
   if pointerfilereader<>nil then
-    showmessage('Scan done! Found '+inttostr(pointerfilereader.count))
+    showmessage(rsSPSUScanDoneFound+inttostr(pointerfilereader.count))
   else
-    raise exception.create('Error during scan. No scanresults available');
+    raise exception.create(rsSPSUErrorduringScanNoScanresults);
 
   //restore the gui
   EnableGui;

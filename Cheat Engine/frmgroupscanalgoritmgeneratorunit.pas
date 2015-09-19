@@ -75,6 +75,8 @@ resourcestring
   rsWildcard='Skip nr of bytes:';
   rsAdd='Add';
   rsPickedHint='When checked this element will get added to the addresslist. Note: If all checkboxes are disabled, ALL elements will be added';
+  rsGSGShouldBeAtLeast = 'Should be at least %d';
+  rsGSGBlocksizeMustBeProvided = 'blocksize must be provided';
 
 {$R *.lfm}
 
@@ -404,7 +406,7 @@ begin
   end
   else
   begin
-    lblMin.Caption:='Should be at least '+inttostr(s);
+    lblMin.Caption:=format(rsGSGShouldBeAtLeast, [s]);
   end;
 end;
 
@@ -543,7 +545,7 @@ begin
 
 
   except
-    raise exception.create('blocksize must be provided');
+    raise exception.create(rsGSGBlocksizeMustBeProvided);
   end;
 
 end;
