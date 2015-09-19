@@ -1617,7 +1617,7 @@ function mono_OpenProcessMT(t)
   local m=enumModules()
   local i
   for i=1, #m do
-    if m[i].Name=='mono.dll' then
+    if (m[i].Name=='mono.dll') or (string.sub(m[i].Name,1,5)=='mono-') then
       usesmono=true
       break
     end
