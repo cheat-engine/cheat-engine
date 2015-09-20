@@ -1384,7 +1384,7 @@ object MemoryBrowser: TMemoryBrowser
       end
       object miGNUAssembler: TMenuItem
         Caption = 'GNU Assembler'
-        ShortCut = 49217
+        ShortCut = 24641
         Visible = False
         OnClick = miGNUAssemblerClick
       end

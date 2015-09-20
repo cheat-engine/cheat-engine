@@ -23,8 +23,10 @@ uses
 
 exports InitializeSpeedhack;
 exports realGetTickCount;
+exports realGetTickCount64;
 exports realQueryPerformanceCounter;
 exports speedhackversion_GetTickCount;
+exports speedhackversion_GetTickCount64;
 exports speedhackversion_QueryPerformanceCounter;
 
 
