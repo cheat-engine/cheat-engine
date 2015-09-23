@@ -759,6 +759,7 @@ void vmm_entry(void)
   sendstringf("APICID=%8\n\rrsp=%6\n\rnextstack=%6\n\r",getAPICID(), getRSP(), (UINT64)nextstack);
 
 
+
   if (isAP)
   {
     vmm_entry2();

@@ -1645,7 +1645,11 @@ int handleCPUID(VMRegisters *vmregisters)
   {
     //remove the hypervisor active bit (bit 31 in ecx)
     vmregisters->rcx=vmregisters->rcx & (~(1 << 31));
+
+    if ((vmregisters->rcx & (1<<26)) && (vmread(vm_guest_cr4) & CR4_OSXSAVE)) //doe sit have OSXSave capabilities and is it enabled ?
+      vmregisters->rcx=vmregisters->rcx | (1 << 27); //the guest has activated osxsave , represent that in cpuid
   }
+
 
   /*
   if (oldeax==1)
@@ -3395,7 +3399,62 @@ int handleInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters) //nightma
 }
 
 
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
+int handleXSETBV(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
+{
+  unsigned long long value=((unsigned long long)vmregisters->rdx << 32)+vmregisters->rax;
+  int success=0;
 
+  sendstring("handleXSETBV\n\r");
+
+  currentcpuinfo->LastInterrupt=0;
+  currentcpuinfo->OnInterrupt.RIP=(volatile void *)&&InterruptFired; //set interrupt location
+  currentcpuinfo->OnInterrupt.RSP=getRSP();
+
+
+  if (vmread(vm_guest_cr4) & CR4_OSXSAVE)
+  {
+    sendstring("Guest has OSXSAVE enabled\n\r");
+    setCR4(getCR4() | CR4_OSXSAVE);
+  }
+  else
+  {
+    sendstring("Guest doesn't have OSXSAVE enabled\n\r");
+    setCR4(getCR4() & (~CR4_OSXSAVE));
+  }
+
+  sendstring("Calling _xsetbv\n");
+
+  _xsetbv(vmregisters->rcx, value);
+
+  sendstring("Returned without exception\n");
+  success=1;
+
+InterruptFired:
+  currentcpuinfo->OnInterrupt.RIP=0;
+
+  if (!success)
+  {
+    sendstringf("Exception happened. Interrupt=%d\n\r", currentcpuinfo->LastInterrupt);
+    if (currentcpuinfo->LastInterrupt==13)
+      raiseGeneralProtectionFault(0);
+
+    if (currentcpuinfo->LastInterrupt==6)
+      raiseInvalidOpcodeException(currentcpuinfo);
+
+
+
+  }
+  else
+  {
+    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+  }
+  return 0;
+}
+
+
+#pragma GCC pop_options
 
 
 int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
@@ -3485,6 +3544,12 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 			return 0; //ignore for now
 		}
 
+		case 8: //NMI window
+		{
+		  sendstring("NMI Window");
+		  return 1;
+		}
+
     case 9:
       return handleTaskswitch(currentcpuinfo, vmregisters);
 
@@ -3494,6 +3559,14 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
       return result;
     }
+
+		case 11:
+		{
+		  //currently not supported
+		  sendstring("GETSEC\n\r");
+		  raiseInvalidOpcodeException(currentcpuinfo);
+		  return 0;
+		}
 
 		case 12: //HLT
     {
@@ -3553,7 +3626,7 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       return result;
     }
 
-		case 20 ... 27 : //VMX instruction called
+    case 19 ... 27 : //VMX instruction called
 		{
 			sendstring("VMX instruction called...\n\r");
 			return raiseInvalidOpcodeException(currentcpuinfo);
@@ -3629,6 +3702,12 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 			return 1;
 		}
 
+		case 37:
+		{
+		  sendstring("Monitor trap flag\n\r");
+		  return 1;
+		}
+
 		case 39: //MONITOR
 		{
 			sendstringf("MONITOR occured and MONITOR Exiting=1\n\r");
@@ -3653,6 +3732,54 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 			return 1;
 		}
 
+		case 44: //APIC_access
+		{
+		  sendstring("APIC access\n\r");
+		  return 1;
+		}
+
+		case 45: //Virtualized EOI
+		{
+		  sendstring("Virtualized EOI\n\r");
+		  return 1;
+		}
+
+		case 46:
+		{
+		  sendstring("GDT/IDT access\n\r");
+		  return 1;
+		}
+
+		case 47:
+		{
+		  sendstring("LDTR/TR access\n\r");
+		  return 1;
+		}
+
+		case 48:
+		{
+		  sendstring("EPT violation\n\r");
+		  return 1;
+		}
+
+		case 49:
+		{
+      sendstring("EPT misconfig\n\r");
+      return 1;
+		}
+
+		case 50:
+		{
+		  sendstring("INVEPT\n\r");
+		  return 1;
+		}
+
+		case 51:
+		{
+		  sendstring("RDTSCP\n\r");
+		  return 1;
+		}
+
 		case vm_exit_vmx_preemptiontimer_reachedzero:
 		{
 		  IA32_VMX_MISC.IA32_VMX_MISC=readMSR(0x485);
@@ -3661,6 +3788,24 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 		  //sendstringf("%d: %x:%6 (vmm rsp=%6 , freemem=%x)\n", currentcpuinfo->cpunr, vmread(vm_guest_cs),vmread(vm_guest_rip), getRSP(), maxAllocatableMemory());
 		  vmwrite(vm_preemption_timer_value,IA32_VMX_MISC.vmx_premption_timer_tsc_relation*10000000);
 		  return 0;
+		}
+
+		case 53:
+		{
+		  sendstring("INVVPID\n\r");
+		  return 1;
+		}
+
+		case 54:
+		{
+		  sendstring("WBINVD\n\r");
+		  return 1;
+		}
+
+		case 55:
+		{
+		  sendstring("XSETBV\n\r");
+		  return handleXSETBV(currentcpuinfo, vmregisters);
 		}
 
 		default:

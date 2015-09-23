@@ -83,7 +83,7 @@ mov [nextstack],rax
 ;out dx,al
 
 mov rax,cr4
-or rax,0x200 ;enable xmm
+or rax,0x200 ;enable fxsave
 mov cr4,rax
 
 call vmm_entry
@@ -92,10 +92,10 @@ vmm_entry_exit:
 jmp vmm_entry_exit
 
 dq 0
-
 dq 0
 
 
+align 16,db 0
 isAP:              	dd 0
 bootdisk:           dd 0
 nextstack:		  	dq 0x00000000007FFFF8 ;start of stack for the next cpu
@@ -897,6 +897,30 @@ ret
 db 0xcc
 db 0xcc
 db 0xcc
+
+;------------------------------------;
+;void xsetbv(ULONG xcr, UINT64 value);
+;------------------------------------;
+global _xsetbv
+_xsetbv:
+push rcx
+push rax
+push rdx
+mov ecx,edi
+mov eax,esi
+mov rdx,rsi
+shr rdx,32
+
+xsetbv
+
+pop rdx
+pop rax
+pop rcx
+ret
+db 0xcc
+db 0xcc
+db 0xcc
+
 
 ;----------------;
 ;int3bptest(void);

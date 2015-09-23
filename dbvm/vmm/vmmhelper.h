@@ -590,6 +590,12 @@ typedef struct _regCR4
 #define CR4_OSFXSR      (1<<9)
 #define CR4_OSXMMEXCPT  (1<<10)
 #define CR4_VMXE        (1<<13)
+#define CR4_SMXE        (1<<14)
+#define CR4_FSGSBASE    (1<<16)
+#define CR4_PCIDE       (1<<17)
+#define CR4_OSXSAVE     (1<<18)
+
+
 
 typedef struct _regDR6
 {

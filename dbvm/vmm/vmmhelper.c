@@ -704,6 +704,8 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
   }
 */
 
+  int result;
+
 #ifndef DEBUG
 
 //  currentdisplayline=currentcpuinfo->cpunr+1;
@@ -711,7 +713,13 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
 //  displayline("%d: %d:%x (%x,%x)                              \n",currentcpuinfo->cpunr,vmeventcount,vmread(vm_exit_reason),vmread(vm_guest_cs),vmread(vm_guest_rip));
 
   nosendchar[getAPICID()]=1;
-  return handleVMEvent(currentcpuinfo, (VMRegisters*)registers);
+  result=handleVMEvent(currentcpuinfo, (VMRegisters*)registers);
+
+  if (result!=0) //on release, if an unexpected event happens, just fail the instruction and hope the OS won't make a too big mess out of it
+    return raiseInvalidOpcodeException(currentcpuinfo);
+  else
+    return result;
+
 #else
   //nosendchar[getAPICID()]=0;
   //sendstringf("%x:%x\n",vmread(vm_guest_cs),vmread(vm_guest_rip));
@@ -722,7 +730,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
 
   UINT64 initialcount;
 
-  int result;
+
   //char lastevent[15];
   int userbreak=0;
   //DWORD before=*tocheck;
