@@ -209,6 +209,7 @@ struc vmxloop_amd_stackframe
 endstruc
 extern vmexit_amd
 
+align 16
 global vmxloop_amd
 vmxloop_amd:
 ;xchg bx,bx ;break by bochs
@@ -447,6 +448,7 @@ mov eax,3
 popfq ;(esp-0)
 ret
 
+align 16
 vmxloop_vmexit:
 cli
 ;ok, this should be executed

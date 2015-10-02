@@ -96,7 +96,7 @@ if equal or bigger than 4096 bytes align on a page boundary
 
   unsigned int totalsize;
 
-  sendstringf("------------>malloc(%d)<------------");
+  sendstringf("------------>malloc(%d)<------------", size);
 
   if (mallocCS.locked)
   {
