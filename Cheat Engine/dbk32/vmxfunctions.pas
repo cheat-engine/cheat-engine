@@ -114,7 +114,7 @@ var
 
   vmx_enabled: boolean;
 
-  dbvmversion: integer=0;
+  //dbvmversion: integer=0;
 
 implementation
 
@@ -228,9 +228,7 @@ begin
   try
     result:=vmcall(@vmcallinfo,vmx_password1);
 
-    if (result shr 24)=$ce then
-      dbvmversion:=result and $00ffffff
-    else
+    if (result shr 24)<>$ce then
     begin
       OutputDebugString('Invalid vmx');
       result:=0;
@@ -1068,8 +1066,6 @@ begin
 
   vmx_password1:=userpassword1;
   vmx_password2:=userpassword2;
-  if (dbvm_version>=$ce000000) then
-    vmx_enabled:=true;
   {$endif}
 end;
 
@@ -1083,7 +1079,7 @@ end;
 var cc: dword;
     x: TInput;
 begin
-  if (vmx_enabled) then //tell the driver it can use vmcall instructions
+  if (dbvm_version>$ce000000) then //tell the driver it can use vmcall instructions
   begin
     OutputDebugString('vmx_enabled=TRUE');
     
@@ -1096,6 +1092,8 @@ begin
       cc:=IOCTL_CE_VMXCONFIG;
       deviceiocontrol(hdevice,cc,@x,sizeof(x),nil,0,cc,nil);
     end;
+
+    vmx_enabled:=true;
   end else OutputDebugString('vmx_enabled=FALSE');
 end;
 

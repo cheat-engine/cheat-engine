@@ -533,7 +533,7 @@ type TGetSSDTEntry=function (nr: integer; address: PDWORD; paramcount: PBYTE):bo
 type TGetGDT=function(var limit: word):dword; stdcall;
 
 type TisDriverLoaded=function(SigningIsTheCause: PBOOL): BOOL; stdcall;
-type TLaunchDBVM=procedure; stdcall;
+type TLaunchDBVM=procedure(cpuid: integer); stdcall;
 
 
 type TDBKDebug_ContinueDebugEvent=function(handled: BOOL): boolean; stdcall;
@@ -845,7 +845,7 @@ begin
   begin
     if isDBVMCapable and (MessageDlg(rsToUseThisFunctionYouWillNeedToRunDBVM, mtWarning, [mbyes, mbno], 0)=mryes) then
     begin
-      LaunchDBVM;
+      LaunchDBVM(-1);
       if not isRunningDBVM then raise exception.Create(rsDidNotLoadDBVM);
     end;
 
@@ -873,7 +873,7 @@ begin
         begin
           if MessageDlg(rsToUseThisFunctionYouWillNeedToRunDBVM, mtWarning, [mbyes, mbno], 0)=mryes then
           begin
-            LaunchDBVM;
+            LaunchDBVM(-1);
             if not isRunningDBVM then raise exception.Create(rsDidNotLoadDBVM);
             result:=true;
           end;

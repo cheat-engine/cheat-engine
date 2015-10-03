@@ -85,7 +85,7 @@ begin
    // ShowMessage('Part 1');
 
     //load the 64 bit driver
-    if dbvmversion=0 then
+    if dbvm_version =0 then
     begin
       showmessage('seems like dbvm isn''t loaded after all');
       exit;

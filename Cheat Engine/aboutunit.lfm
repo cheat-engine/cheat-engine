@@ -448,7 +448,7 @@ object About: TAbout
       Top = 224
       Width = 1
       ParentColor = False
-      OnClick = lblDBVMClick
+      OnMouseDown = lblDBVMClick
     end
     object Label11: TLabel
       Left = 294

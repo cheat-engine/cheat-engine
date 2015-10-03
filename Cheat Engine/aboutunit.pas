@@ -47,11 +47,13 @@ type
     procedure Label9Click(Sender: TObject);
     procedure Image1MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
-    procedure lblDBVMClick(Sender: TObject);
+    procedure lblDBVMClick(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
   private
     { Private declarations }
   public
     { Public declarations }
+    procedure UpdateDBVMStatus;
   end;
 
 var
@@ -59,12 +61,8 @@ var
 
 implementation
 
-uses tlgUnit,MainUnit2,
-{$ifdef net}
-unit2;
-{$else}
-MainUnit;
-{$endif}
+uses tlgUnit,MainUnit2, MainUnit, dbvmLoadManual;
+
 
 resourcestring
   rsYourSystemDOESNOTSupportDBVM = 'Your system DOES NOT support DBVM';
@@ -93,7 +91,7 @@ begin
 end;
 
 procedure TAbout.FormShow(Sender: TObject);
-var supportsdbvm: boolean;
+var
     a,b,c,d: dword;
 begin
   {$ifdef net}
@@ -103,6 +101,78 @@ begin
   {$endif}
 
 
+
+
+  UpdateDBVMStatus;
+end;
+
+procedure TAbout.Label8Click(Sender: TObject);
+begin
+  ShellExecute(0, pchar('open'),pchar('http://cheatengine.org/'), pchar(''),pchar(''), SW_MAXIMIZE	);
+end;
+
+procedure TAbout.Label9Click(Sender: TObject);
+begin
+  ShellExecute(0, pchar('open'),pchar('http://forum.cheatengine.org/'), pchar(''),pchar(''), SW_MAXIMIZE	);
+end;
+
+procedure TAbout.Image1MouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  if (ssCtrl in Shift) and (ssAlt in Shift) and (ssShift in Shift) then
+  begin
+    ShowMessage(rsDidYouReallyThinkYouDFindAnEasterEggByDoingThisWel);
+    with TTlg.create(self) do show;
+  end;
+end;
+
+
+procedure TAbout.lblDBVMClick(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  if not isRunningDBVM then
+  begin
+    if not isDBVMCapable then exit;
+
+    if button=mbLeft then
+    begin
+
+
+      if not Is64bitOS then
+      begin
+        if messagedlg(rsAreYouSureYouWantToLaunchDBVM, mtWarning, [mbno, mbyes], 0)=mryes then
+        begin
+          loaddbk32;
+          if assigned(launchdbvm) then
+            launchdbvm(-1)
+          else
+            raise exception.create('launchdbvm was not assigned');
+
+          formshow(self);
+        end;
+      end
+      else
+      begin
+        if loaddbvmifneeded then
+        begin
+          formshow(self);
+        end;
+      end;
+    end
+    else
+    begin
+      if frmDBVMLoadManual=nil then
+        frmDBVMLoadManual:=tfrmDBVMLoadManual.create(self);
+
+      frmDBVMLoadManual.show();
+    end;
+  end;
+end;
+
+procedure TAbout.UpdateDBVMStatus;
+var
+  supportsdbvm: boolean;
+begin
   if (vmx_password1=0) and (vmx_password2=0) then
   begin
     vmx_password1:=$76543210;
@@ -118,7 +188,6 @@ begin
     vmx_password2:=$fedcba98;
   end;
 
-
   if not isDBVMCapable then
   begin
     lblDBVM.Font.Color:=clRed;
@@ -132,6 +201,7 @@ begin
 //{$ifdef cpu32}
 //    Loaddbk32;
 //{$endif}
+
     if (dbvm_version>0) then
     begin
       lblDBVM.Font.Color:=clLime;
@@ -180,54 +250,6 @@ begin
   end;
 end;
 
-procedure TAbout.Label8Click(Sender: TObject);
-begin
-  ShellExecute(0, pchar('open'),pchar('http://cheatengine.org/'), pchar(''),pchar(''), SW_MAXIMIZE	);
-end;
-
-procedure TAbout.Label9Click(Sender: TObject);
-begin
-  ShellExecute(0, pchar('open'),pchar('http://forum.cheatengine.org/'), pchar(''),pchar(''), SW_MAXIMIZE	);
-end;
-
-procedure TAbout.Image1MouseDown(Sender: TObject; Button: TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
-begin
-  if (ssCtrl in Shift) and (ssAlt in Shift) and (ssShift in Shift) then
-  begin
-    ShowMessage(rsDidYouReallyThinkYouDFindAnEasterEggByDoingThisWel);
-    with TTlg.create(self) do show;
-  end;
-end;
-
-procedure TAbout.lblDBVMClick(Sender: TObject);
-begin
-  if not isRunningDBVM then
-  begin
-    if not isDBVMCapable then exit;
-    
-    if not Is64bitOS then
-    begin
-      if messagedlg(rsAreYouSureYouWantToLaunchDBVM, mtWarning, [mbno, mbyes], 0)=mryes then
-      begin
-        loaddbk32;
-        if assigned(launchdbvm) then
-          launchdbvm
-        else
-          raise exception.create('launchdbvm was not assigned');
-
-        formshow(self);
-      end;
-    end
-    else
-    begin
-      if loaddbvmifneeded then
-      begin
-        formshow(self);
-      end;
-    end;
-  end;
-end;
 
 initialization
   {$i aboutunit.lrs}

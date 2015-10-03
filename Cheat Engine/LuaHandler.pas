@@ -4476,7 +4476,7 @@ begin
         if isDBVMCapable then
         begin
           LoadDBK32;
-          launchdbvm;
+          launchdbvm(-1);
         end;
       end;
     end;
