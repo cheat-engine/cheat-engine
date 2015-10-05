@@ -1061,7 +1061,7 @@ begin
   vmx_password1:=$76543210;
   vmx_password2:=$fedcba98;
 
-  if dbvm_version>=$ce000000 then //this works, change the password
+  if (dbvm_version>=$ce000000) and (userpassword1<>vmx_password1) and (userpassword2<>vmx_password2) then //this works, change the password
     dbvm_changepassword(userpassword1,userpassword2);
 
   vmx_password1:=userpassword1;

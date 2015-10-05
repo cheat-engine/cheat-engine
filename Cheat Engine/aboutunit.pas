@@ -160,12 +160,7 @@ begin
       end;
     end
     else
-    begin
-      if frmDBVMLoadManual=nil then
-        frmDBVMLoadManual:=tfrmDBVMLoadManual.create(self);
-
-      frmDBVMLoadManual.show();
-    end;
+      tfrmDBVMLoadManual.create(Application).Show;
   end;
 end;
 

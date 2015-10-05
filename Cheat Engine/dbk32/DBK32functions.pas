@@ -2030,7 +2030,7 @@ begin
   //    foreachcpu(internal_LaunchDBVM,nil);
 
       configure_vmx(vmx_password1, vmx_password2);
-      configure_vmx_kernel;
+     // configure_vmx_kernel;
     end;
 
 

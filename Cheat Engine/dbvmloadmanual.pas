@@ -13,7 +13,6 @@ type
   { TfrmDBVMLoadManual }
 
   TfrmDBVMLoadManual = class(TForm)
-
     procedure FormCreate(Sender: TObject);
   private
     { private declarations }
@@ -24,9 +23,6 @@ type
     { public declarations }
 
   end;
-
-var
-  frmDBVMLoadManual: TfrmDBVMLoadManual;
 
 implementation
 
@@ -119,6 +115,7 @@ begin
 
   checkfordbvm;
 end;
+
 
 procedure TfrmDBVMLoadManual.checkfordbvm;
 var i: integer;

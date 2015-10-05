@@ -5254,7 +5254,7 @@ end;
 procedure TMainForm.Calculatenewvaluepart21Click(Sender: TObject);
 var
   newaddress: ptrUint;
-  calculate: integer;
+  calculate: int64;
   i, j, err: integer;
   selectedi: integer;
 
@@ -8103,22 +8103,22 @@ var
   gnua: TfrmAutoInject;
 
 begin
-  gnua:=TfrmAutoInject.Create(self);
+  {gnua:=TfrmAutoInject.Create(self);
   gnua.ScriptMode:=smGnuAssembler;
 
-  gnua.show;
+  gnua.show;   }
 
 
- { asm
+  asm
     mov eax,1
     cpuid
     mov z,rcx
   end;
 
 
-  if (z shl 31) and 1=1 then showmessage('hypervisor present') else showmessage('no hypervisor detected');
+  if (z shr 31) and 1=1 then showmessage('hypervisor present') else showmessage('no hypervisor detected');
 
-  showmessage(inttohex(z,8)); }
+  showmessage(inttohex(z,8));
 
  // getConnection.loadExtension(processhandle);
 
