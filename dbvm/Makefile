@@ -2,8 +2,8 @@
 #SERIALPORT=0x3f8 #bochs
 #SERIALPORT=0xbf00 #intel
 #SERIALPORT=0xec00 #amd
-SERIALPORT=0xd010 #16 core test system
-#SERIALPORT=0
+#SERIALPORT=0xd010 #16 core test system
+SERIALPORT=0 #release build
  
 
 all:
