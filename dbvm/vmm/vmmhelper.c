@@ -878,7 +878,8 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
     {
 
       case vm_exit_vmcall:
-    	skip=1;
+    	  skip=1;
+        sendstring("VMCALL\n");
     	break;
 
 
@@ -1381,7 +1382,6 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
 
 
     }
-
 
     if (skip)
     {

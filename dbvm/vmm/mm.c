@@ -96,7 +96,7 @@ if equal or bigger than 4096 bytes align on a page boundary
 
   unsigned int totalsize;
 
-  sendstringf("------------>malloc(%d)<------------", size);
+  sendstringf("------------>malloc(0x%x)<------------\n", size);
 
   if (mallocCS.locked)
   {
@@ -208,6 +208,10 @@ if equal or bigger than 4096 bytes align on a page boundary
 
  // sendstringf("Failed allocating memory\n\r");
   csLeave(&mallocCS);
+
+  sendstring("!!!!!!!!!!!!!!!!!!!!!!!OUT OF MEMORY!!!!!!!!!!!!!!!!!!!!!!!\n");
+
+
   return NULL; //no memory
 }
 
@@ -309,16 +313,18 @@ unsigned int maxAllocatableMemory(void)
 }
 
 
+
+
 void InitializeMM(UINT64 BaseVirtualAddress)
 {
   /* memorylist contains the virtual address that is freely accessible */
 
-  sendstringf("Initializing Memory Manager and keeping %d bytes reserved for the stack of %d cpu's\n",cpucount*0x20000, cpucount);
+  sendstringf("Initializing Memory Manager and keeping %d bytes reserved for the stack of %d cpu's\n",cpucount*MAX_STACK_SIZE, cpucount);
   sendstringf("&memorylist=%6\n\r", (UINT64)&memorylist);
   sendstringf("memorylist=%6\n\r", (UINT64)memorylist);
 
   memorylist->base=BaseVirtualAddress+sizeof(MemlistItem);
-  memorylist->size=(0x007fffff-(cpucount*0x20000))-memorylist->base; //make room for the stack of the cpucores (each cpu will get 128KB stack)
+  memorylist->size=(0x007fffff-(cpucount*MAX_STACK_SIZE))-memorylist->base; //make room for the stack of the cpucores (each cpu will get 128KB stack)
   memorylist->type=0; //free
   memorylist->previous=NULL;
   memorylist->next=NULL;

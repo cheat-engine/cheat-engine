@@ -950,7 +950,7 @@ void vmm_entry(void)
 
       sendstring("getting foundcpus from loadedOS\n");
       foundcpus=original->cpucount;
-      cpucount=foundcpus;
+      cpucount=foundcpus*2; //temporary test for mem menagement
 
       sendstringf("cpucount=%x\n",cpucount);
 
@@ -2604,6 +2604,13 @@ void startvmx(pcpuinfo currentcpuinfo)
           currentcpuinfo->vmxon_region=malloc(4096);
 
         sendstringf("Allocated vmxon_region at %6 (%6)\n\r",(UINT64)currentcpuinfo->vmxon_region,(UINT64)VirtualToPhysical((UINT64)currentcpuinfo->vmxon_region));
+
+        if (currentcpuinfo->vmxon_region==NULL)
+        {
+          sendstringf(">>>>>>>>>>>>>>>>>>>>vmxon allocation has failed<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
+          while (1);
+        }
+
         zeromemory(currentcpuinfo->vmxon_region,4096);
   			*(ULONG *)currentcpuinfo->vmxon_region=IA32_VMX_BASIC.rev_id;
 
@@ -2611,6 +2618,14 @@ void startvmx(pcpuinfo currentcpuinfo)
           currentcpuinfo->vmcs_region=malloc(4096);
 
         sendstringf("Allocated vmcs_region at %6 (%6)\n\r",currentcpuinfo->vmcs_region,VirtualToPhysical((UINT64)currentcpuinfo->vmcs_region));
+
+        if (currentcpuinfo->vmcs_region==NULL)
+        {
+          sendstringf(">>>>>>>>>>>>>>>>>>>>vmcs_region allocation has failed<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
+          while (1);
+        }
+
+
         zeromemory(currentcpuinfo->vmcs_region,4096);
         *(ULONG *)currentcpuinfo->vmcs_region=IA32_VMX_BASIC.rev_id;
 

@@ -66,7 +66,7 @@ and rsp,0xfffffffffffffff0
 
 
 ;sub rax,0x40000 ;256kb for the next cpu
-sub rax,0x20000
+sub rax,0x10000
 mov [nextstack],rax
 
 

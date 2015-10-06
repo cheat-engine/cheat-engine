@@ -25,6 +25,10 @@ int allocateVirtualTLB(void)
 
   nosendchar[getAPICID()]=0;
 
+  enableserial();
+  sendstring("---------------------------------------------------->");
+
+
   sendstring("Allocating a virtual TLB\n\r");
 
   if (cpucount==0)
@@ -44,9 +48,9 @@ int allocateVirtualTLB(void)
     maxAllocMem=maxAllocatableMemory();
     sendstringf("maxAllocatableMemory()=0x%x  (-32*1024=%x)\n", maxAllocMem, maxAllocMem-32*1024 );
     sendstringf("cpucount=%d\n", cpucount);
-    sendstringf("(maxAllocMem - 32*1024) / cpucount = %d\n",(maxAllocMem - 32*1024) / cpucount);
+    sendstringf("(maxAllocMem - 32*1024) / cpucount = %d\n",(maxAllocMem - 32*1024) / cpucount, cpucount);
 
-    AvailableForPaging = (maxAllocMem - 32*1024) / cpucount;
+    AvailableForPaging = (maxAllocMem - 32*1024*cpucount) / cpucount;
     AvailableForPaging -= 4096; //keep some memory for some thing extra
 
     if (AvailableForPaging<0)
@@ -86,7 +90,7 @@ int allocateVirtualTLB(void)
         cpuinfo[i].virtualTLB_PA = VirtualToPhysical((UINT64)cpuinfo[i].virtualTLB);
 
         cpuinfo[i].virtualTLB_FreeSpot = cpuinfo[i].virtualTLB + 4096;
-        cpuinfo[i].virtualTLB_Max = AvailableForPaging / 2;
+        cpuinfo[i].virtualTLB_Max = (AvailableForPaging / 2) & (0xfffff000);
         cpuinfo[i].virtualTLB_Lookup = cpuinfo[i].virtualTLB + cpuinfo[i].virtualTLB_Max;
 
         zeromemory(cpuinfo[i].virtualTLB,4096);

@@ -4,6 +4,8 @@
 #include "vmmhelper.h"
 #include "common.h"
 
+
+
 void InitializeMM(UINT64 BaseVirtualAddress);
 UINT64 MapPhysicalMemory(UINT64 address, UINT64 VirtualAddress);
 UINT64 MapPhysicalMemoryEx(UINT64 address, UINT64 VirtualAddress, int writable);

@@ -3462,8 +3462,6 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   int result;
 
 
-
-
   switch (vmread(vm_exit_reason) & 0x7fffffff) //exit reason
   {
     case 0: //interrupt
@@ -3619,6 +3617,10 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case 18: //VMCALL
     {
+
+      nosendchar[getAPICID()]=0;
+      sendstring("vmcall\n");
+
       result = handleVMCall(currentcpuinfo, vmregisters);
 
 
