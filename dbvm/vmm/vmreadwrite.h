@@ -21,7 +21,8 @@
 
 #define vm_exit_controls            0x400c
 #define vm_entry_controls           0x4012
-#define vm_entry_interruptioninfo  0x4016
+#define vm_entry_interruptioninfo   0x4016
+#define vm_entry_exceptionerrorcode 0x4018
 
 #define vm_errorcode                0x4400
 #define vm_exit_reason              0x4402

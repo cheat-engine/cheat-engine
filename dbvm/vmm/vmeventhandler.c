@@ -1638,6 +1638,11 @@ int handleCPUID(VMRegisters *vmregisters)
 //  sendstring("handling CPUID\n\r");
 
   UINT64 oldeax=vmregisters->rax;
+  RFLAGS flags;
+  flags.value=vmread(vm_guest_rflags);
+
+  if (flags.TF==1)
+    vmwrite(vm_pending_debug_exceptions,0x4000);
 
   _cpuid(&(vmregisters->rax),&(vmregisters->rbx),&(vmregisters->rcx),&(vmregisters->rdx));
 
@@ -2881,8 +2886,8 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
 
     isFault=0; //isDebugFault(vmread(vm_exit_qualification), dr7.DR7);
 
-    nosendchar[getAPICID()]=1;
-    sendstring("Interrupt 1:");
+    nosendchar[getAPICID()]=0;
+    sendstring("Interrupt 1:\n");
 
     setDR6((getDR6() & 0xfff0) | vmread(vm_exit_qualification)); //set bits in dr6 (qualification tells which bits)
 
@@ -3328,7 +3333,7 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
     newintinfo.type=3; //hardware
     newintinfo.haserrorcode=1; //errorcode
     newintinfo.valid=1;
-    vmwrite(0x4018, 0); //entry errorcode
+    vmwrite(vm_entry_exceptionerrorcode, 0); //entry errorcode
 
     sendstring("DOUBLEFAULT RAISED\n\r");
   }
@@ -3339,7 +3344,7 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
     newintinfo.type=intinfo.type;
     newintinfo.haserrorcode=intinfo.haserrorcode;
     newintinfo.valid=intinfo.valid; //should be 1...
-    vmwrite(0x4018, vmread(vm_exit_interruptionerror)); //entry errorcode
+    vmwrite(vm_entry_exceptionerrorcode, vmread(vm_exit_interruptionerror)); //entry errorcode
   }
 
   //nosendchar[getAPICID()]=0;

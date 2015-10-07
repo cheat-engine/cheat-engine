@@ -1263,6 +1263,8 @@ db 0xcc
 %macro	_inthandler	1
 global inthandler%1
 inthandler%1:
+xchg bx,bx
+
 cli ;is probably already done, but just to be sure
 push %1
 jmp inthandlerx
@@ -2017,12 +2019,15 @@ quickboot:
 call clearScreen
 
 
-nop
-nop
+;nop
+;nop
+;xchg bx,bx
 ;mov eax,0
+;push 0x197
+;popfq
 ;cpuid
-nop
-nop
+;nop
+;nop
 
 ;disable cpuid bit
 pushfq
