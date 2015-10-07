@@ -84,7 +84,6 @@ int allocateVirtualTLB(void)
         {
           sendstringf("Allocation failed\n");
           while (1);
-          halt();
         }
 
         cpuinfo[i].virtualTLB_PA = VirtualToPhysical((UINT64)cpuinfo[i].virtualTLB);
@@ -344,7 +343,7 @@ void fillTLB_PTE(PPTE activepagetableentry, PPTE guestpagetableentry)
 
 }
 
-UINT64 mapVMmemory(pcpuinfo currentcpuinfo, UINT64 address, int size,  UINT64 VirtualAddress, int *error, UINT64 *pagefaultaddress )
+void * mapVMmemory(pcpuinfo currentcpuinfo, UINT64 address, int size,  UINT64 VirtualAddress, int *error, UINT64 *pagefaultaddress )
 {
   /* Will map the virtual machine's virtual memory  to the vmm's virtual address  *
    * error=0: no error
@@ -369,24 +368,40 @@ UINT64 mapVMmemory(pcpuinfo currentcpuinfo, UINT64 address, int size,  UINT64 Vi
   PPTE_PAE      newpagetable;
   int           i;
 
+  void *r=NULL;
+
   *pagefaultaddress=0;
 
-  //sendstring("Inside mapVMmemory\n\r");
 
-  //sendstringf("usedpagedir = %8\n\r",(UINT64)usedpagedir);
-  //sendstringf("Dirptr=%d Dir=%d \n\r",Dirptr,Dir);
+/*
+  sendstring("Inside mapVMmemory\n\r");
+
+  sendstringf("address=%6\n", address);
+  sendstringf("VirtualAddress=%6\n", VirtualAddress);
+
+
+  sendstringf("currentaddress=%6\n",currentaddress);
+  sendstringf("lastaddress=%6\n",lastaddress);
+
+
+  sendstringf("usedpagedir = %6\n\r",(UINT64)usedpagedir);
+  sendstringf("Dirptr=%d Dir=%d \n\r",Dirptr,Dir);
+
+*/
 
   //check if there is already a tlb, if not, allocate it. (it's needed for temp mem)
 
 
   if (size >= 0x00200000)
   {
+    //sendstring("Size too big\n");
     *error=3;
     return 0;
   }
 
   if (currentcpuinfo->virtualTLB_Max<4096)
   {
+    //sendstring("Not enough memory\n");
     *error=1;
     return 0;
   }
@@ -404,8 +419,6 @@ UINT64 mapVMmemory(pcpuinfo currentcpuinfo, UINT64 address, int size,  UINT64 Vi
   //there is enough memory
   newpagetable=currentcpuinfo->virtualTLB_FreeSpot;
   currentcpuinfo->virtualTLB_FreeSpot=currentcpuinfo->virtualTLB_FreeSpot+4096;
-
-
 
   *(unsigned long long*)&usedpagedir[Dir]=(VirtualToPhysical((UINT64)newpagetable) & 0xFFFFFFFFFFFFF000ULL);
   usedpagedir[Dir].P=1;
@@ -426,7 +439,7 @@ UINT64 mapVMmemory(pcpuinfo currentcpuinfo, UINT64 address, int size,  UINT64 Vi
 
     if (notpaged)
     {
-      sendstringf("notpaged is 1 (currentaddress=%8)\n\r", currentaddress);
+      //sendstringf("notpaged is 1 (currentaddress=%8)\n\r", currentaddress);
       *error=2;
       *pagefaultaddress=currentaddress;
       return VirtualAddress+(address & 0xfff);
@@ -447,9 +460,18 @@ UINT64 mapVMmemory(pcpuinfo currentcpuinfo, UINT64 address, int size,  UINT64 Vi
 
   _invlpg(VirtualAddress);
 
-  *error=0;
-  return VirtualAddress+((UINT64)address & 0xfff);
+  //sendstring("Everything ok\n");
 
+  *error=0;
+
+  r=(void *)(VirtualAddress+((UINT64)address & 0xfff));
+
+ // sendstringf("Returning %6\n", r);
+
+  if (VirtualAddress==0)
+    bochsbp(); //step to find the caller
+
+  return r;
 }
 
 UINT64 getPhysicalAddressVM(pcpuinfo currentcpuinfo, UINT64 address, int *notpaged)

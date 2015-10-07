@@ -12,7 +12,7 @@ void *nonpagedEmulationPagedir; //nonpaged memory emulation pagedir
 //void *VirtualMachinePagingspace; //virtual TLB 
 //void *VirtualMachinePagingspaceFreeSpot; //next entry for virtual TLB
 
-UINT64 mapVMmemory(pcpuinfo currentcpuinfo, UINT64 address, int size,  UINT64 VirtualAddress, int *error, UINT64 *pagefaultaddress);
+void *mapVMmemory(pcpuinfo currentcpuinfo, UINT64 address, int size,  UINT64 VirtualAddress, int *error, UINT64 *pagefaultaddress);
 UINT64 getPhysicalAddressVM(pcpuinfo currentcpuinfo, UINT64 address, int *notpaged);
 void optimizeVTLB(pcpuinfo currentcpuinfo, int usermode, int WPbit);
 int ReadVMMemory(pcpuinfo currentcpuinfo, UINT64 address, unsigned char *buf,int size);

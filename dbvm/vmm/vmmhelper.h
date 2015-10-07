@@ -15,6 +15,7 @@ PPDE2MB_PAE pagedirvirtual; //wrong name, should be pagedir
 PPDE2MB_PAE pagedirvirtual2;
 PPDE2MB_PAE pagedirvirtual3;
 PPDE2MB_PAE pagedirvirtual4;
+PPDE2MB_PAE pagedirvirtual5;
 
 
 int debugmode,breakpointset;

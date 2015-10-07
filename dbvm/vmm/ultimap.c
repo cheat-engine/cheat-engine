@@ -19,10 +19,10 @@
 void ultimap_debugoutput(pcpuinfo currentcpuinfo, PULTIMAPDEBUGINFO UltimapDebugInfo)
 {
 
-	int error;
-	UINT64 pagefaultaddress;
+//	int error;
+	//UINT64 pagefaultaddress;
 
-	if (!error)
+	//if (!error)
 	{
 		UltimapDebugInfo->Active=currentcpuinfo->Ultimap.Active;
 		UltimapDebugInfo->CR3=currentcpuinfo->Ultimap.CR3;

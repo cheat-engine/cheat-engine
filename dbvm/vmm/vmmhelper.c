@@ -2164,7 +2164,8 @@ void setupVMX(pcpuinfo currentcpuinfo)
 
   csEnter(&setupVMX_lock);
 
-  currentcpuinfo->AvailableVirtualAddress=(currentcpuinfo->cpunr+1) << 28;
+//  currentcpuinfo->AvailableVirtualAddress=(UINT64)(currentcpuinfo->cpunr+1) << 28;
+  currentcpuinfo->AvailableVirtualAddress=(UINT64)(currentcpuinfo->cpunr+16) << 28;
   sendstringf("AvailableVirtualAddress=%6\n\r",currentcpuinfo->AvailableVirtualAddress);
 
   if (!loadedOS)

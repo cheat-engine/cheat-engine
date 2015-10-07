@@ -8,7 +8,7 @@
 #ifndef VMEVENTHANDLER_AMD_H_
 #define VMEVENTHANDLER_AMD_H_
 
-#include "vmmhelper.h";
+#include "vmmhelper.h"
 
 //define Exit codes:
 #define VMEXIT_CR0_READ  0x00
