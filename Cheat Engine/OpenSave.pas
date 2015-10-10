@@ -205,6 +205,9 @@ resourcestring
   rsAskIfStupid = 'Generating a trainer with the current state of the cheat '
     +'table will likely result in a completely useless trainer that does '
     +'nothing. Are you sure?';
+  rsOSThereIsANewerVersionifCheatEngineOutEtc = 'There is a newer version of Cheat Engine out. It''s recommended to use that version instead';
+  rsOSThisCheatTableIsCorrupt = 'This cheat table is corrupt';
+
  {
 procedure LoadStructFromXMLNode(var struct: TbaseStructure; Structure: TDOMNode);
 var tempnode: TDOMNode;
@@ -369,9 +372,9 @@ begin
         try
           version:=strtoint(tempnode.TextContent);
           if (version>CurrentTableVersion) then
-            showmessage('There is a newer version of Cheat Engine out. It''s recommended to use that version instead');
+            showmessage(rsOSThereIsANewerVersionifCheatEngineOutEtc);
         except
-          showmessage('This cheat table is corrupt');
+          showmessage(rsOSThisCheatTableIsCorrupt);
         end;
       end;
 

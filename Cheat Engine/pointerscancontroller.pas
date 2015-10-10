@@ -450,6 +450,49 @@ uses PointerscanNetworkCommands, ValueFinder, ProcessHandlerUnit, Parsers;
 
 resourcestring
   rsFailureCopyingTargetProcessMemory = 'Failure copying target process memory';
+  rsPSCTheChildIsSendingMeResultsOfADifferentScan = 'The child is sending me results of a different scan';
+  rsPSCTheUploadWasTerminated = 'The upload was terminated';
+  rsPSCImpossibleErrorUseLoadedPointermapWasFalseEtc = 'Impossible error: UseLoadedPointermap was false when a child message got handled';
+  rsPSCTheScanWasTerminated = 'The scan was terminated';
+  rsPSCInvalidResultReceivedAfterUploadingTheScanresults = 'Invalid result received after uploading the scanresults';
+  rsPSCSuccesfullySentScandataToChild = 'Succesfully sent scandata to child';
+  rsPSCError = ' (Error: ';
+  rsPSCTerminated = ':Terminated';
+  rsPSCSleeping = ':Sleeping';
+  rsPSCWritingToDisk = ':Writing to disk';
+  rsPSCWorking = ':Working';
+  rsPSCInvalidQueueFile = 'Invalid queue file';
+  rsPSCInvalidHandshakeSignature = 'Invalid handshake signature';
+  rsPSCAParentTriedToConnect = 'A parent tried to connect';
+  rsPSCInvalidParentPassword = 'Invalid parent password';
+  rsPSCAChildTriedToConnect = 'A child tried to connect';
+  rsPSCInvalidChildPassword = 'Invalid child password';
+  rsPSCInvalidMessage = 'Invalid message';
+  rsPSCHELLOAfterInitializtion = 'HELLO after initializtion';
+  rsPSCInvalidMessageReceived = 'Invalid message received';
+  rsPSCTheChildTriedToSendMeResultsWhileIWasStillBusy = 'The child tried to send me results while I was still busy';
+  rsPSCTheChildTriedToSendANegativeAmount = 'The child tried to send a negative amount';
+  rsPSCTheChildTriedToSendMorePathsAtOnceThanAllowed = 'The child tried to send more paths at once than allowed';
+  rsPSCTheChildTriedToSendMorePathsThanAllowedAfterARequest = 'The child tried to send more paths than allowed after a request';
+  rsPSCInvalidResultReceivedFromPSUPDATEREPLYCMDHEREARESOMEPATHS = 'Invalid result received from PSUPDATEREPLYCMD_HEREARESOMEPATHS';
+  rsPSCForSomeUnknownReasonTheUntrustedChildIsntIdleAnymore = 'For some unknown reason the untrusted child isn''t idle anymore';
+  rsPSCInvalidReplyForPSUPDATEREPLYCMDCURRENTSCANHASENDED = 'Invalid reply for PSUPDATEREPLYCMD_CURRENTSCANHASENDED';
+  rsPSCChildIsntIdleWhilePreviouslyItWas = 'child isn''t idle while previously it was...';
+  rsPSCTheChildDidntRespondToPSUPDATEREPLYCMDEVERYTHINGOKAsExpected = 'The child didn''t respond to PSUPDATEREPLYCMD_EVERYTHINGOK as expected';
+  rsPSCNoResumePtrFileReaderPresent = 'no resume ptr file reader present';
+  rsPSCNewScanStartedWhileNotDone = 'New scan started while not done';
+  rsPSCInvalidScandataReceivedFilecount = 'Invalid scandata received. filecount=0';
+  rsPSCTheParentTriedToSendMeANegativeAmmountOfPaths = 'The parent tried to send me a negative ammount of paths';
+  rsPSCTheParentTriedToSendMeMorePathsThanAllowedAafterUpdate = 'The parent tried to send me more paths than allowed (after update)';
+  rsPSCInvalidUpdateStatusReplyReceived = 'Invalid UpdateStatus reply received';
+  rsPSCParentDidntRespondProperlyToPSCMDPREPAREFORMYTERMINATION = 'Parent didn''t respond properly to PSCMD_PREPAREFORMYTERMINATION';
+  rsPSCFailureCreatingSocket = 'Failure creating socket';
+  rsPSCFailureToBindPort = 'Failure to bind port ';
+  rsPSCFailureToListen = 'Failure to listen';
+  rsPSCDuringScanFinishing = 'During scan finishing: ';
+  rsPSCThePointerlisthandlerWasDestroyedWithoutAGoodReason = 'The pointerlisthandler was destroyed without a good reason';
+  rsPSCInvalidCommandWhileWaitingForHello = 'Invalid command while waiting for hello';
+  rsPSCAlreadystillConnectedToThisChild = 'Already/still connected to this child';
 
 //------------------------POINTERLISTLOADER-------------
 procedure TPointerlistloader.execute;
@@ -533,7 +576,7 @@ begin
   try
     //download the data
     scanid:=s.ReadDWord;
-    if scanid<>fcontroller.currentscanid then raise TSocketException.create('The child is sending me results of a different scan');
+    if scanid<>fcontroller.currentscanid then raise TSocketException.create(rsPSCTheChildIsSendingMeResultsOfADifferentScan);
 
     streamsize:=s.ReadDWord;
     decompressedStreamSize:=s.ReadDword;
@@ -729,7 +772,7 @@ begin
 
   if s=nil then exit; //
   try
-    if self.terminated then raise exception.create('The upload was terminated');
+    if self.terminated then raise exception.create(rsPSCTheUploadWasTerminated);
 
 
     s.WriteByte(PSUPDATEREPLYCMD_DONEWSCAN);
@@ -759,12 +802,12 @@ begin
       s.WriteDWord(1+length(instantrescanfiles));
 
       if UseLoadedPointermap=false then
-        raise exception.create('Impossible error: UseLoadedPointermap was false when a child message got handled');
+        raise exception.create(rsPSCImpossibleErrorUseLoadedPointermapWasFalseEtc);
 
 
       s.flushWrites;
 
-      if self.terminated then raise exception.create('The scan was terminated');
+      if self.terminated then raise exception.create(rsPSCTheScanWasTerminated);
 
 
       setlength(f, length(instantrescanfiles)+1);
@@ -820,7 +863,7 @@ begin
             s.flushWrites;
             UpdateChildProgress(sent, totalsize);
 
-            if self.terminated then raise exception.create('The scan was terminated');
+            if self.terminated then raise exception.create(rsPSCTheScanWasTerminated);
           end;
 
         end;
@@ -836,11 +879,11 @@ begin
 
       if s.ReadByte<>0 then
       begin
-        raise TSocketException.create('Invalid result received after uploading the scanresults');
+        raise TSocketException.create(rsPSCInvalidResultReceivedAfterUploadingTheScanresults);
       end
       else
       begin
-        OutputDebugString('Succesfully sent scandata to child');
+        OutputDebugString(rsPSCSuccesfullySentScandataToChild);
 
         //mark it as a child we should keep track off
         fcontroller.childnodescs.Enter;
@@ -1217,21 +1260,21 @@ begin
     for i:=0 to length(localscanners)-1 do
     begin
       if localscanners[i].haserror then
-        e:=' (Error: '+localscanners[i].errorString+')'
+        e:=rsPSCError+localscanners[i].errorString+')'
       else
         e:='';
 
 
       if localscanners[i].hasTerminated then
-        s.add(IntToStr(i)+':Terminated'+e)
+        s.add(IntToStr(i)+rsPSCTerminated+e)
       else
       if localscanners[i].isdone then
-        s.add(IntToStr(i)+':Sleeping'+e)
+        s.add(IntToStr(i)+rsPSCSleeping+e)
       else
       if localscanners[i].isFlushing then
-        s.add(IntToStr(i)+':Writing to disk'+e)
+        s.add(IntToStr(i)+rsPSCWritingToDisk+e)
       else
-        s.add(IntToStr(i)+':Working'+e);
+        s.add(IntToStr(i)+rsPSCWorking+e);
 
 
     end;
@@ -1614,7 +1657,7 @@ begin
   f:=tfilestream.Create(filename+'.resume.queue', fmOpenRead or fmShareDenyNone);
   offsetcountperlist:=f.readDWord;
 
-  if offsetcountperlist<>length(pathqueue[0].tempresults) then raise exception.create('Invalid queue file');
+  if offsetcountperlist<>length(pathqueue[0].tempresults) then raise exception.create(rsPSCInvalidQueueFile);
 
   pathqueueCS.enter;
 
@@ -2192,7 +2235,7 @@ begin
     try
       cehandshakesignature:=ss.ReadByte;
       if cehandshakesignature<>$ce then
-        raise TSocketException.create('Invalid handshake signature');
+        raise TSocketException.create(rsPSCInvalidHandshakeSignature);
 
       password:=ss.ReadAnsiString8;
       connectiontype:=ss.ReadByte;
@@ -2200,22 +2243,22 @@ begin
       if connectiontype=0 then //parent
       begin
         if not allowIncomingParent then
-          raise exception.create('A parent tried to connect');
+          raise exception.create(rsPSCAParentTriedToConnect);
 
         if parentpassword<>password then
-          raise TSocketException.create('Invalid parent password');
+          raise TSocketException.create(rsPSCInvalidParentPassword);
       end
       else
       if connectiontype=1 then //child
       begin
         if not allowIncomingChildren then
-          raise exception.create('A child tried to connect');
+          raise exception.create(rsPSCAChildTriedToConnect);
 
         if childpassword<>password then
-          raise TSocketException.create('Invalid child password');
+          raise TSocketException.create(rsPSCInvalidChildPassword);
       end
       else
-        raise exception.create('Invalid message');
+        raise exception.create(rsPSCInvalidMessage);
 
 
       ss.WriteByte(0); //still here, so a valid password
@@ -2612,7 +2655,7 @@ begin
   begin
     command:=s.ReadByte;
     case command of
-      PSCMD_HELLO: raise exception.create('HELLO after initializtion');
+      PSCMD_HELLO: raise exception.create(rsPSCHELLOAfterInitializtion);
       PSCMD_YOUREINTHEQUEUE: HandleQueueMessage(index);
       PSCMD_UPDATESTATUS: HandleUpdateStatusMessage(index);
       PSCMD_AMITRUSTED: s.WriteByte(ifthen(childnodes[index].trusted,1,0));
@@ -2628,7 +2671,7 @@ begin
 
       PSCMD_GOODBYE: HandleGoodbyeMessage(index);
       else
-         raise exception.create('Invalid message received');
+         raise exception.create(rsPSCInvalidMessageReceived);
     end;
   end;
 end;
@@ -2681,7 +2724,7 @@ begin
   OutputDebugString(childnodes[index].ip+' : HandleCanUploadResultsMessage');
 
   if childnodes[index].scanresultDownloader<>nil then //the child did not call PSCMD_CANUPLOADRESULTS to see if it could send new results, or blatantly ignored it's result
-    raise exception.create('The child tried to send me results while I was still busy');
+    raise exception.create(rsPSCTheChildTriedToSendMeResultsWhileIWasStillBusy);
 
   //spawn a thread
   childnodes[index].scanresultDownloader:=TScanResultDownloader.create(self, childnodes[index].childid);
@@ -2709,8 +2752,8 @@ begin
   if (currentscanhasended and savestate) or child.trusted or child.terminating then
   begin
 
-    if count<0 then raise exception.create('The child tried to send a negative amount');
-    if count>65536 then raise exception.create('The child tried to send more paths at once than allowed');  //actually 1000 but let's allow some customization
+    if count<0 then raise exception.create(rsPSCTheChildTriedToSendANegativeAmount);
+    if count>65536 then raise exception.create(rsPSCTheChildTriedToSendMorePathsAtOnceThanAllowed);  //actually 1000 but let's allow some customization
 
 
     setlength(paths, count);
@@ -2867,7 +2910,7 @@ begin
     count:=ReadDWord;
 
     if count>65536 then
-      raise exception.create('The child tried to send more paths than allowed after a request');
+      raise exception.create(rsPSCTheChildTriedToSendMorePathsThanAllowedAfterARequest);
 
 
     setlength(paths, count);
@@ -2964,14 +3007,14 @@ begin
 
       flushWrites;
 
-      if ReadByte<>0 then raise TSocketException.create('Invalid result received from PSUPDATEREPLYCMD_HEREARESOMEPATHS');
+      if ReadByte<>0 then raise TSocketException.create(rsPSCInvalidResultReceivedFromPSUPDATEREPLYCMDHEREARESOMEPATHS);
     end;
 
 
 
     if not child^.trusted then //save the paths being sent
     begin
-      if child^.idle=false then raise exception.create('For some unknown reason the untrusted child isn''t idle anymore');   //should NEVER happen (childnodescs is locked and this thread is the only one accepting update messages)
+      if child^.idle=false then raise exception.create(rsPSCForSomeUnknownReasonTheUntrustedChildIsntIdleAnymore);   //should NEVER happen (childnodescs is locked and this thread is the only one accepting update messages)
 
       child^.nontrustedlastpaths:=paths;
 
@@ -3090,7 +3133,7 @@ begin
 
     child^.socket.flushWrites;
     if child^.socket.ReadByte<>0 then
-      raise exception.create('Invalid reply for PSUPDATEREPLYCMD_CURRENTSCANHASENDED');
+      raise exception.create(rsPSCInvalidReplyForPSUPDATEREPLYCMDCURRENTSCANHASENDED);
 
     exit;
   end;
@@ -3100,7 +3143,7 @@ begin
     //spawn a new thread and tell him about the scan (as soon as I quit and release the critical section)
     //use child.childid to identify the child object to update when done
 
-    assert(child^.idle, 'child isn''t idle while previously it was...');
+    assert(child^.idle, rsPSCChildIsntIdleWhilePreviouslyItWas);
     if child^.idle then
     begin
       child^.ScanDataTotalSize:=0;
@@ -3206,7 +3249,7 @@ begin
   child^.socket.WriteByte(PSUPDATEREPLYCMD_EVERYTHINGOK);
   child^.socket.flushWrites;
   if child^.socket.ReadByte<>0 then
-    raise exception.create('The child didn''t respond to PSUPDATEREPLYCMD_EVERYTHINGOK as expected');
+    raise exception.create(rsPSCTheChildDidntRespondToPSUPDATEREPLYCMDEVERYTHINGOKAsExpected);
 end;
 
 //parent->child
@@ -3223,7 +3266,7 @@ begin
     //moduleid can be negative, so keep that in mind
     if resumescan then
     begin
-      if resumeptrfilereader=nil then raise exception.create('no resume ptr file reader present');
+      if resumeptrfilereader=nil then raise exception.create(rsPSCNoResumePtrFileReaderPresent);
       MaxBitCountModuleIndex:=resumeptrfilereader.MaxBitCountModuleIndex;
       MaxBitCountModuleOffset:=resumeptrfilereader.MaxBitCountModuleOffset;
       MaxBitCountLevel:=resumeptrfilereader.MaxBitCountLevel;
@@ -3332,7 +3375,7 @@ begin
   //todo: test me
   OutputDebugString(parent.ip+' : HandleUpdateStatusReply_DoNewScan');
   if not isDone then
-    raise exception.Create('New scan started while not done');
+    raise exception.Create(rsPSCNewScanStartedWhileNotDone);
 
   UpdateStatus_cleanupScan;
 
@@ -3367,7 +3410,7 @@ begin
     OutputDebugString('Filecount='+inttostr(files));
 
     if files=0 then
-      raise exception.create('Invalid scandata received. filecount=0');
+      raise exception.create(rsPSCInvalidScandataReceivedFilecount);
 
     if length(instantrescanfiles)>0 then
     begin
@@ -3550,10 +3593,10 @@ begin
   OutputDebugString(parent.ip+' : HandleUpdateStatusReply_HereAreSomePaths('+inttostr(count)+')');
 
   if count<0 then
-    raise exception.create('The parent tried to send me a negative ammount of paths');
+    raise exception.create(rsPSCTheParentTriedToSendMeANegativeAmmountOfPaths);
 
   if count>65536 then
-    raise exception.create('The parent tried to send me more paths than allowed (after update)');
+    raise exception.create(rsPSCTheParentTriedToSendMeMorePathsThanAllowedAafterUpdate);
 
   if count>0 then
   begin
@@ -3630,7 +3673,7 @@ begin
     PSUPDATEREPLYCMD_CURRENTSCANHASENDED: HandleUpdateStatusReply_CurrentScanHasEnded;
     PSUPDATEREPLYCMD_EVERYTHINGOK: HandleUpdateStatusReply_EverythingOK; //everything ok
     else
-       raise TSocketException.create('Invalid UpdateStatus reply received');
+       raise TSocketException.create(rsPSCInvalidUpdateStatusReplyReceived);
   end;
 end;
 
@@ -3816,7 +3859,7 @@ begin
 
             parent.knowsIAmTerminating:=true;
             if parent.socket.ReadByte<>0 then
-              raise exception.create('Parent didn''t respond properly to PSCMD_PREPAREFORMYTERMINATION');
+              raise exception.create(rsPSCParentDidntRespondProperlyToPSCMDPREPAREFORMYTERMINATION);
           end;
 
 
@@ -3950,7 +3993,7 @@ begin
   listensocket:=socket(AF_INET, SOCK_STREAM, 0);
 
   if listensocket=INVALID_SOCKET then
-    raise Exception.create('Failure creating socket');
+    raise Exception.create(rsPSCFailureCreatingSocket);
 
   B:=TRUE;
   fpsetsockopt(listensocket, SOL_SOCKET, SO_REUSEADDR, @B, sizeof(B));
@@ -3962,11 +4005,11 @@ begin
   i:=bind(listensocket, @sockaddr, sizeof(sockaddr));
 
   if i=SOCKET_ERROR then
-    raise exception.create('Failure to bind port '+inttostr(listenport));
+    raise exception.create(rsPSCFailureToBindPort+inttostr(listenport));
 
   i:=listen(listensocket, 32);
   if i=SOCKET_ERROR then
-    raise exception.create('Failure to listen');
+    raise exception.create(rsPSCFailureToListen);
 
 
 
@@ -4016,7 +4059,7 @@ begin
           sendpathsToParent
         except
           on e:exception do
-            handleParentException('During scan finishing: '+e.message);
+            handleParentException(rsPSCDuringScanFinishing+e.message);
         end;
       end
       else
@@ -4426,7 +4469,7 @@ begin
             freeandnil(pointerlisthandler);
           end
           else
-            raise exception.create('The pointerlisthandler was destroyed without a good reason');
+            raise exception.create(rsPSCThePointerlisthandlerWasDestroyedWithoutAGoodReason);
         end
         else
           pointerlisthandler.saveModuleListToResults(result);
@@ -4551,7 +4594,7 @@ begin
   if command<>PSCMD_HELLO then
   begin
     OutputDebugString('WaitForHello received '+inttostr(command));
-    raise TSocketException.Create('Invalid command while waiting for hello'); //invalid command
+    raise TSocketException.Create(rsPSCInvalidCommandWhileWaitingForHello); //invalid command
   end;
 
   receive(sockethandle, @namelength, 1);
@@ -4794,7 +4837,7 @@ begin
       for i:=0 to length(childnodes)-1 do
       begin
         if (childnodes[i].socket<>nil) and childnodes[i].iConnectedTo and (uppercase(ip)=uppercase(childnodes[i].connectdata.ip)) and (port=childnodes[i].connectdata.port) then
-          raise exception.create('Already/still connected to this child');
+          raise exception.create(rsPSCAlreadystillConnectedToThisChild);
       end;
     finally
       childnodescs.leave;

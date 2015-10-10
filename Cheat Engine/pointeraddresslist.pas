@@ -17,6 +17,10 @@ interface
 uses
   Classes, SysUtils, maps, ComCtrls, bigmemallochandler, CEFuncProc;
 
+resourcestring
+  rsPALInvalidScandataFile = 'Invalid scandata file';
+  rsPALInvalidScandataVersion = 'Invalid scandata version';
+
 type
   TPointerListHandler=class
   private
@@ -138,9 +142,9 @@ var
 begin
   //create and fill in the pointerlist based on a reversepointerlist
   if s.ReadByte<>$ce then
-    raise exception.create('Invalid scandata file');
+    raise exception.create(rsPALInvalidScandataFile);
 
-  if s.ReadByte<>ScanDataVersion then raise exception.create('Invalid scandata version');
+  if s.ReadByte<>ScanDataVersion then raise exception.create(rsPALInvalidScandataVersion);
 
 
 

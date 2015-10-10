@@ -130,9 +130,9 @@ end;
 procedure TAbout.lblDBVMClick(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
-  if not isRunningDBVM then
+  //if not isRunningDBVM then
   begin
-    if not isDBVMCapable then exit;
+    //if not isDBVMCapable then exit;
 
     if button=mbLeft then
     begin

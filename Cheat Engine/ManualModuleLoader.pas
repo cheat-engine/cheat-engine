@@ -11,6 +11,13 @@ interface
 uses windows, LCLIntf, classes, sysutils, imagehlp, dialogs, PEInfoFunctions,CEFuncProc,
      NewKernelHandler, symbolhandler, dbk32functions, vmxfunctions, commonTypeDefs;
 
+resourcestring
+  rsMMLNotAValidFile = 'not a valid file';
+  rsMMLNotAValidHeader = 'Not a valid header';
+  rsMMLTriedLoadingA64BitModuleOnA32BitSystem = 'Tried loading a 64-bit module on a 32-bit system';
+  rsMMLAllocationError = 'Allocation error';
+  rsMMLFailedFindingAddressOf = 'failed finding address of ';
+
 type TModuleLoader=class
   private
     filename: string;
@@ -77,20 +84,20 @@ begin
     filemap.LoadFromFile(filename);
     
     if PImageDosHeader(filemap.Memory)^.e_magic<>IMAGE_DOS_SIGNATURE then
-      raise exception.create('not a valid file');
+      raise exception.create(rsMMLNotAValidFile);
 
 
     tempmap:=tmemorystream.Create;
     try
       ImageNtHeader:=peinfo_getImageNtHeaders(filemap.Memory, filemap.Size);
       if ImageNtHeader=nil then
-        raise exception.create('Not a valid header');
+        raise exception.create(rsMMLNotAValidHeader);
 
       if ImageNTHeader^.FileHeader.Machine=$8664 then
       begin
         is64bit:=true;
         if not Is64bitOS then
-          raise exception.create('Tried loading a 64-bit module on a 32-bit system');
+          raise exception.create(rsMMLTriedLoadingA64BitModuleOnA32BitSystem);
 
         numberofrva:=PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.NumberOfRvaAndSizes;
       end else
@@ -141,7 +148,7 @@ begin
 
       end;
 
-      if destinationBase=0 then raise exception.create('Allocation error');
+      if destinationBase=0 then raise exception.create(rsMMLAllocationError);
 
       FEntryPoint:=destinationBase+ImageNTHeader^.OptionalHeader.AddressOfEntryPoint;
 
@@ -223,13 +230,13 @@ begin
                       importfunctionnamews:=importfunctionname;
                       funcaddress:=GetKProcAddress64(@importfunctionnamews[1]);
                       if funcaddress=0 then
-                        raise exception.create('failed finding address of '+pwidechar(@importfunctionnamews[1]));
+                        raise exception.create(rsMMLFailedFindingAddressOf+pwidechar(@importfunctionnamews[1]));
                     end
                     else
                     begin
                       funcaddress:=symhandler.getAddressFromName(importmodulename+'!'+importfunctionname, true, haserror);
                       if haserror then
-                        raise exception.create('failed finding address of '+importmodulename+'!'+importfunctionname);
+                        raise exception.create(rsMMLFailedFindingAddressOf+importmodulename+'!'+importfunctionname);
                     end;
 
                     PQWORD(importaddress)^:=funcaddress;
@@ -249,13 +256,13 @@ begin
                       importfunctionnamews:=importfunctionname;
                       funcaddress:=GetKProcAddress64(@importfunctionnamews[1]);
                       if funcaddress=0 then
-                        raise exception.create('failed finding address of '+pwidechar(@importfunctionnamews[1]));
+                        raise exception.create(rsMMLFailedFindingAddressOf+pwidechar(@importfunctionnamews[1]));
                     end
                     else
                     begin
                       funcaddress:=symhandler.getAddressFromName(importmodulename+'!'+importfunctionname, true, haserror);
                       if haserror then
-                        raise exception.create('failed finding address of '+importmodulename+'!'+importfunctionname);
+                        raise exception.create(rsMMLFailedFindingAddressOf+importmodulename+'!'+importfunctionname);
 
                     end;
 

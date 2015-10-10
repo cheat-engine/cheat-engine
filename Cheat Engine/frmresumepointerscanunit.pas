@@ -9,6 +9,11 @@ uses
   ExtCtrls, ComCtrls, registry, multilineinputqueryunit, CEFuncProc, math,
   types;
 
+resourcestring
+  rsRPSIpList = 'IP List';
+  rsRPSEnterTheIpAddressesToNotifyExplicitly = 'Enter the IP addresses to notify explicitly';
+  rsRPSWasNotFound = ' was not found';
+
 type
 
   { TfrmResumePointerscan }
@@ -156,7 +161,7 @@ var
 begin
   reg:=TRegistry.create;
   try
-    if MultilineInputQuery('IP List','Enter the IP addresses to notify explicitly', iplist) then  //save the new ip list
+    if MultilineInputQuery(rsRPSIpList,rsRPSEnterTheIpAddressesToNotifyExplicitly, iplist) then  //save the new ip list
     begin
       Reg.RootKey := HKEY_CURRENT_USER;
       if Reg.OpenKey('\Software\Cheat Engine',true) then
@@ -176,7 +181,7 @@ begin
   for i:=0 to instantrescanfiles.Count-1 do
     if fileexists(instantrescanfiles[i])=false then
     begin
-      MessageDlg(instantrescanfiles[i]+' was not found', mtError, [mbok],0);
+      MessageDlg(instantrescanfiles[i]+rsRPSWasNotFound, mtError, [mbok],0);
       exit;
     end;
 

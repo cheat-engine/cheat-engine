@@ -377,7 +377,8 @@ resourcestring
   rsICanTGetTheProcessListYouArePropablyUsingWindowsNT = 'I can''t get the process list. You are propably using windows NT. Use the window list instead!';
   rsNoKernel32DllLoaded = 'No kernel32.dll loaded';
   rsSeparator = 'Separator';
-
+  rsCEFPDllInjectionFailedSymbolLookupError = 'Dll injection failed: symbol lookup error';
+  rsCEFPICantGetTheProcessListYouArePropablyUseinWindowsNtEtc = 'I can''t get the process list. You are propably using windows NT. Use the window list instead!';
 
 function ProcessID: dword;
 begin
@@ -703,7 +704,7 @@ begin
       except
 {$ifdef cpu64}
         if not processhandler.is64Bit then
-          raise exception.create('Dll injection failed: symbol lookup error');
+          raise exception.create(rsCEFPDllInjectionFailedSymbolLookupError);
 {$endif}
         GetProcAddressPtr:=GetProcAddress(h,'GetProcAddress');
       end;
@@ -716,7 +717,7 @@ begin
         //failed getting the address of LoadLibraryA, use old method
         {$ifdef cpu64}
           if not processhandler.is64Bit then
-            raise exception.create('Dll injection failed: symbol lookup error');
+            raise exception.create(rsCEFPDllInjectionFailedSymbolLookupError);
         {$endif}
         LoadLibraryPtr:=GetProcAddress(h,'LoadLibraryA');
       end;
@@ -1825,7 +1826,7 @@ begin
 
       check:=Process32Next(SnapHandle,ProcessEntry);
     end;
-  end else raise exception.Create('I can''t get the process list. You are propably using windows NT. Use the window list instead!');
+  end else raise exception.Create(rsCEFPICantGetTheProcessListYouArePropablyUseinWindowsNtEtc);
 end;   }
 
 

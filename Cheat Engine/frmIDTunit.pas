@@ -33,6 +33,7 @@ resourcestring
   rsIDT32bitInterruptGate = '32-bit interrupt gate';
   rsIDT32BiyTrapGate = '32-bit trap gate';
   rsIDTUnkownIDT = 'unknown IDT';
+  rsIDTDPL = ' DPL=';
 
 procedure TfrmIDT.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
@@ -100,7 +101,7 @@ begin
         else
           title:=title+inttohex(offset_0_15+(offset_16_31 shl 16),8)+')';
 
-        title:=title+' DPL='+inttostr(DPL);
+        title:=title+rsIDTDPL+inttostr(DPL);
       end;
       tvidt.Items.Add(nil,title);
     end;

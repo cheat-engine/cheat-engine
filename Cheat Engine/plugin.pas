@@ -886,6 +886,7 @@ resourcestring
   rsErrorLoadingTheDllIsMissingTheCEPlugin_GetVersionE = 'Error loading %s. The dll is missing the CEPlugin_GetVersion export';
   rsErrorLoadingThisDllRequiresANewerVersionOfCeToFunc = 'Error loading %s. This dll requires a newer version of ce to function properly';
   rsErrorLoadingTheGetVersionFunctionReturnedFALSE = 'Error loading %s. The GetVersion function returned FALSE';
+  rsPlugThePluginDllCouldNotBeLoaded = 'The plugin dll could not be loaded:';
 
 function TPluginHandler.GetDLLFilePath(pluginid: integer):string;
 begin
@@ -1422,7 +1423,7 @@ begin
   hmodule:=loadlibrary(pchar(dllname));
 
   if hmodule=0 then
-    raise exception.create('The plugin dll could not be loaded:'+inttostr(getlasterror));
+    raise exception.create(rsPlugThePluginDllCouldNotBeLoaded+inttostr(getlasterror));
 
   GetVersion:=getprocaddress(hmodule,'CEPlugin_GetVersion');
   if not assigned(GetVersion) then

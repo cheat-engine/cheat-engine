@@ -7,6 +7,14 @@ interface
 uses
   Classes, SysUtils, ExtCtrls, StdCtrls, Controls;
 
+resourcestring
+  rsPSSICLAdd = 'Add';
+  rsPSSICLRemove = 'Remove';
+  rsPSSICLHost = 'Host';
+  rsPSSICLPort = 'Port';
+  rsPSSICLPassword = 'Password';
+  rsPSSICLStable = 'Stable';
+
 type
   TIpinfo=class(TPanel)
   private
@@ -334,8 +342,8 @@ begin
     btnAdd:=tbutton.create(self);
     btnRemove:=tbutton.create(self);
 
-    btnAdd.caption:='Add';
-    btnRemove.caption:='Remove';
+    btnAdd.caption:=rsPSSICLAdd;
+    btnRemove.caption:=rsPSSICLRemove;
 
     btnAdd.parent:=self;
     btnRemove.parent:=self;
@@ -348,19 +356,19 @@ begin
     btnRemove.OnClick:=@removeIpInfo;
 
     lblHost:=tlabel.create(self);
-    lblHost.caption:='Host';
+    lblHost.caption:=rsPSSICLHost;
     lblHost.parent:=self;
 
     lblPort:=tlabel.create(self);
-    lblPort.caption:='Port';
+    lblPort.caption:=rsPSSICLPort;
     lblPort.parent:=self;
 
     lblPassword:=tlabel.Create(self);
-    lblPassword.caption:='Password';
+    lblPassword.caption:=rsPSSICLPassword;
     lblPassword.parent:=self;
 
     lblStable:=tlabel.create(self);
-    lblStable.caption:='Stable';
+    lblStable.caption:=rsPSSICLStable;
     lblStable.parent:=self;
 
     addIpInfo(self);

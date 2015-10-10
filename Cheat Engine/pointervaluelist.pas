@@ -150,10 +150,9 @@ resourcestring
   rsNoMemoryFoundInTheSpecifiedRegion = 'No memory found in the specified '
     +'region';
   rsAllocatingBytesToBuffer = 'Allocating %s bytes to ''buffer''';
-  rsNotEnoughMemoryFreeToScan = 'Not enough memory free to scan';
-
-
-
+  rsPVInvalidScandataFile = 'Invalid scandata file';
+  rsPVInvalidScandataVersion = 'Invalid scandata version';
+  rsPVNotEnoughMemoryFreeToScan = 'Not enough memory free to scan';
 
 function TReversePointerListHandler.BinSearchMemRegions(address: ptrUint): integer;
 var
@@ -815,10 +814,10 @@ function TReversePointerListHandler.LoadHeader(s: TStream) : qword;
 begin
   //check the header
   if s.ReadByte<>$ce then
-    raise exception.create('Invalid scandata file');
+    raise exception.create(rsPVInvalidScandataFile);
 
   if s.Readbyte<>ScanDataVersion then
-    raise exception.create('Invalid scandata version');
+    raise exception.create(rsPVInvalidScandataVersion);
 
 
   //first read the modulelist. Not used for the scan itself, but needed when saving as the base maintainer
@@ -1169,7 +1168,7 @@ begin
       getmem(buffer,maxsize);
     except
       outputdebugstring('Not enough memory free to scan');
-      raise exception.Create(rsNotEnoughMemoryFreeToScan);
+      raise exception.Create(rsPVNotEnoughMemoryFreeToScan);
     end;
 
     if mustbeclasspointers then

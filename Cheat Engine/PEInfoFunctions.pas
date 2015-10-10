@@ -321,7 +321,10 @@ begin
   end;
 end;
 
-resourcestring strInvalidFile='Invalid file';
+resourcestring
+  strInvalidFile='Invalid file';
+  rsPEIFNoExports = 'No exports';
+
 function peinfo_getExportList(filename: string; dllList: Tstrings): boolean;
 var fmap: TFileMapping;
     header: pointer;
@@ -372,7 +375,7 @@ begin
       exportlist:=peinfo_VirtualAddressToFileAddress(header,fmap.filesize, dword(ImageExportDirectory.AddressOfNames));
       addresslist:=peinfo_VirtualAddressToFileAddress(header,fmap.filesize, dword(ImageExportDirectory.AddressOfFunctions));
 
-      if exportlist=nil then raise exception.Create('No exports');
+      if exportlist=nil then raise exception.Create(rsPEIFNoExports);
 
       for i:=0 to ImageExportDirectory.NumberOfNames-1 do
       begin

@@ -14,6 +14,14 @@ uses unixporthelper, sysutils, symbolhandler, ProcessHandlerUnit, NewKernelHandl
   CustomTypeHandler, commonTypeDefs;
 {$endif}
 
+resourcestring
+  rsBIByte = '(byte)';
+  rsBIWord = '(word)';
+  rsBIDword = '(dword)';
+  rsBIQword = '(qword)';
+  rsBIFloat = '(float)';
+  rsBIDouble = '(double)';
+
 type TAutoGuessEvent=function (address: ptruint; originalVariableType: TVariableType): TVariableType of object;
 
 type
@@ -390,12 +398,12 @@ var tr: Widestring;
     tempbuf: pbytearray;
 begin
   case vartype of
-    vtByte: result:='(byte)'+inttohex(buf[0],2) + '('+inttostr(buf[0])+')';
-    vtWord: result:='(word)'+inttohex(pword(buf)^,4) + '('+inttostr(pword(buf)^)+')';
-    vtDword: result:='(dword)'+inttohex(pdword(buf)^,8) + '('+inttostr(pdword(buf)^)+')';
-    vtQword: result:='(qword)'+inttohex(pqword(buf)^,16) + '('+inttostr(pqword(buf)^)+')';
-    vtSingle: result:='(float)'+format('%.2f',[psingle(buf)^]);
-    vtDouble: result:='(double)'+format('%.2f',[pdouble(buf)^]);
+    vtByte: result:=rsBIByte+inttohex(buf[0],2) + '('+inttostr(buf[0])+')';
+    vtWord: result:=rsBIWord+inttohex(pword(buf)^,4) + '('+inttostr(pword(buf)^)+')';
+    vtDword: result:=rsBIDword+inttohex(pdword(buf)^,8) + '('+inttostr(pdword(buf)^)+')';
+    vtQword: result:=rsBIQword+inttohex(pqword(buf)^,16) + '('+inttostr(pqword(buf)^)+')';
+    vtSingle: result:=rsBIFloat+format('%.2f',[psingle(buf)^]);
+    vtDouble: result:=rsBIDouble+format('%.2f',[pdouble(buf)^]);
     vtString:
     begin
       getmem(tempbuf,size+1);

@@ -621,7 +621,29 @@ resourcestring
    rsSF2Group2 = 'Group ';
    rsSF2Rename = 'Rename';
    rsSF2DeleteGroup = 'Delete group';
-
+  rsSF2TheGapBetweenOffset = 'The gap between offset %x and %x is %d bytes long. Autofill this?';
+  rsSF2NewGroup = '<New group>';
+  rsSF2GroupPicker = 'Group picker';
+  rsSF2SecletTheGroupThisColumnShouldBecomePartOf = 'Select the group this column should become part of';
+  rsSF2NewGroup2 = 'New group';
+  rsSF2GiveTheNewName = 'Give the new name';
+  rsSF2ShadowcopyAt = 'Lock ( Shadowcopy at %s )';
+  rsSF2NewColumnName = 'New column name';
+  rsSF2WhatNameShouldThisColumnHave = 'What name should this column have?';
+  rsSF2TStructColumnCreateError = 'TStructColumn.create Error';
+  rsSF2SetNameRename = 'Set name/Rename';
+  rsSF2RenameGroup = 'Rename group';
+  rsSF2GiveTheNewNameForTheGroup = 'Give the new name for the group';
+  rsSF2AutocreatedFrom = 'Autocreated from ';
+  rsSF2NameForThisGroup = 'Name for this group';
+  rsFS2StructureDefine = 'Structure define';
+  rsSF2TheGroupscanCommandHasBeenCopiedToTheClipboard = 'The groupscan command has been copied to the clipboard';
+  rsSF2AutocreateStructure = 'Autocreate structure';
+  rsSF2DefaultSize = 'Default size:';
+  rsSF2UnknownCustomType = 'Unknown custom type';
+  rsSF2Hex = ' (Hex)';
+  rsSF2Signed = ' (Signed)';
+  rsSF2To = ' to ';
 
 
 var
@@ -1256,7 +1278,7 @@ begin
     begin
       if size>smallestacceptedsize then
       begin
-        if (askiftoobig=false) or (MessageDlg('The gap between offset '+inttohex(element[i-1].Offset,1)+' and '+inttohex(element[i-1].Offset,1)+' is '+inttostr(size)+' bytes long. Autofill this?', mtConfirmation, [mbyes,mbno],0)<>mryes) then
+        if (askiftoobig=false) or (MessageDlg(format(rsSF2TheGapBetweenOffset, [element[i-1].Offset, element[i-1].Offset, size]), mtConfirmation, [mbyes,mbno],0)<>mryes) then
         begin
           inc(i);
           continue;
@@ -2026,11 +2048,11 @@ begin
   for i:=0 to parent.parent.groupcount-1 do
     grouplist.AddObject(parent.parent.group[i].groupname, parent.parent.group[i]);
 
-  grouplist.AddObject('<New group>',nil);
+  grouplist.AddObject(rsSF2NewGroup,nil);
 
   l := TfrmSelectionList.Create(parent.parent, grouplist);
-  l.Caption := 'Group picker';
-  l.label1.Caption := 'Select the group this column should become part of';
+  l.Caption := rsSF2GroupPicker;
+  l.label1.Caption := rsSF2SecletTheGroupThisColumnShouldBecomePartOf;
   l.ItemIndex := 0;
 
   if (l.showmodal = mrOk) and (l.ItemIndex <> -1) then
@@ -2039,7 +2061,7 @@ begin
     if grouplist.Objects[l.itemindex]=nil then //new group
     begin
       newname:=rsSF2Group2+inttostr(parent.parent.groupcount+1);
-      if inputquery('New group','Give the new name', newname) then
+      if inputquery(rsSF2NewGroup2,rsSF2GiveTheNewName, newname) then
         g:=TStructGroup.create(parent.parent, newname)
       else
         exit; //no new group, no change
@@ -2193,7 +2215,7 @@ begin
 
 
   miToggleLock.Checked:=result;
-  miToggleLock.Caption:=rsLock+' ( Shadowcopy at '+inttohex(qword(fsavedstate),8)+')';
+  miToggleLock.Caption:=format(rsSF2ShadowcopyAt, [inttohex(qword(fsavedstate),8)]);
 end;
 
 function TStructColumn.saveState: boolean;
@@ -2320,7 +2342,7 @@ procedure TStructColumn.SetCaptionClick(sender: TObject);
 var newname: string;
 begin
   newname:=lblname.caption;
-  if InputQuery('New column name', 'What name should this column have?', newname) then
+  if InputQuery(rsSF2NewColumnName, rsSF2WhatNameShouldThisColumnHave, newname) then
     lblname.caption:=newname;
 
   parent.setPositions;
@@ -2377,7 +2399,7 @@ constructor TStructColumn.create(parent: TStructGroup);
 var hsection: THeaderSection;
   s: TMenuItem;
 begin
-  if parent=nil then raise exception.create('TStructColumn.create Error');
+  if parent=nil then raise exception.create(rsSF2TStructColumnCreateError);
   self.parent:=parent;
 
   columneditpopupmenu:=TPopupMenu.Create(parent.parent);
@@ -2431,7 +2453,7 @@ begin
 
   miSetCaption:=TMenuItem.create(columneditpopupmenu);
   miSetCaption.OnClick:=SetCaptionClick;
-  miSetCaption.caption:='Set name/Rename';
+  miSetCaption.caption:=rsSF2SetNameRename;
   miSetCaption.ShortCut:=TextToShortCut('Ctrl+R');
   columneditpopupmenu.Items.Add(miSetCaption);
 
@@ -2526,7 +2548,7 @@ procedure TStructGroup.RenameClick(sender: tobject);
 var newname: string;
 begin
   newname:=groupname;
-  if inputquery('Rename group', 'Give the new name for the group', newname) then
+  if inputquery(rsSF2RenameGroup, rsSF2GiveTheNewNameForTheGroup, newname) then
     groupname:=newname;
 end;
 
@@ -3144,7 +3166,7 @@ begin
           //check if the address pointed to is readable
           if ReadProcessMemory(processhandle, pointer(address), @x, 1, x) then 
           begin
-            structName:=lookupStructureName(address, 'Autocreated from '+inttohex(address,8));
+            structName:=lookupStructureName(address, rsSF2AutocreatedFrom+inttohex(address,8));
             n.AutoCreateChildStruct(structName, address)
           end
           else
@@ -4224,7 +4246,7 @@ var s: string;
   g: Tstructgroup;
 begin
   s:=rsSF2Group+inttostr(groupcount+1);
-  if InputQuery('Name for this group','Structure define', s) then
+  if InputQuery(rsSF2NameForThisGroup,rsFS2StructureDefine, s) then
   begin
     g:=TStructGroup.create(self, s);
 
@@ -4523,7 +4545,7 @@ begin
         mainform.scanvalue.text:=gcf.getparameters;
       end
       else
-        showmessage('The groupscan command has been copied to the clipboard');
+        showmessage(rsSF2TheGroupscanCommandHasBeenCopiedToTheClipboard);
 
       clipboard.astext:=gcf.getparameters;
 
@@ -4693,7 +4715,7 @@ begin
   if mainstruct<>nil then
   begin
     newsize:=inttostr(mainstruct.autoCreateStructsize);
-    if InputQuery('Autocreate structure', 'Default size:', newsize) then
+    if InputQuery(rsSF2AutocreateStructure, rsSF2DefaultSize, newsize) then
       mainstruct.autoCreateStructsize:=strtoint(newsize);
   end;
 end;
@@ -4869,7 +4891,7 @@ begin
       if se.CustomType<>nil then
         varname:=se.CustomType.name
       else
-        varname:='Unknown custom type';
+        varname:=rsSF2UnknownCustomType;
     end
     else
       varname:=VariableTypeToString(se.VarType);
@@ -4878,13 +4900,13 @@ begin
 
     //show nondefault displaymethods
     case se.DisplayMethod of
-      dtHexadecimal: description:=description+' (Hex)';
-      dtSignedInteger: description:=description+' (Signed)';
+      dtHexadecimal: description:=description+rsSF2Hex;
+      dtSignedInteger: description:=description+rsSF2Signed;
     end;
 
     if (se.VarType=vtPointer) and (se.ChildStruct<>nil) then
     begin
-      description:=description+' to '+se.ChildStruct.name;
+      description:=description+rsSF2To+se.ChildStruct.name;
       if se.ChildStructStart<>0 then
         description:=description+'+'+inttohex(se.ChildStructStart,1);
     end;

@@ -679,6 +679,10 @@ resourcestring
   rsTMPAndUNDOAreNamesThatMayNotBeUsedTryAnotherName = 'TMP and UNDO are names that may not be used. Try another name';
   rsTheTemporaryScanDirectoryDoesNotExistCheckYourScan = 'The temporary scan directory %s does not exist. Check your scan settings';
   rsFailureCreatingTheScanDirectory = 'Failure creating the scan directory';
+  rsMSNothingToScanFor = 'Nothing to scan for';
+  rsMStupidAlignsize = 'Stupid alignsize';
+  rsMSCustomTypeIsNil = 'Custom type is nil';
+  rsMSTheScanWasForcedToTerminateSubsequentScansMayNotFunctionProperlyEtc = 'The scan was forced to terminate. Subsequent scans may not function properly. It''s recommended to restart Cheat Engine';
 
 //===============Local functions================//
 function getBytecountArrayOfByteString(st: string): integer;
@@ -741,10 +745,10 @@ begin
     fAlignsize:=gcp.blockalignment;
 
     if fblocksize<=0 then
-      raise exception.create('Nothing to scan for');
+      raise exception.create(rsMSNothingToScanFor);
 
     if fAlignsize<=0 then
-      raise exception.create('Stupid alignsize');
+      raise exception.create(rsMStupidAlignsize);
 
 
     outoforder:=gcp.outOfOrder;
@@ -5090,7 +5094,7 @@ begin
     vtCustom:
     begin
       if customtype=nil then
-        raise exception.create('Custom type is nil');
+        raise exception.create(rsMSCustomTypeIsNil);
 
       variablesize:=customtype.bytesize;
       fastscanalignsize:=1;
@@ -6414,7 +6418,7 @@ begin
       begin
         {$IFNDEF UNIX}
         TerminateThread(scancontroller.Handle, $dead);
-        messagedlg('The scan was forced to terminate. Subsequent scans may not function properly. It''s recommended to restart Cheat Engine', mtWarning, [mbok], 0);
+        messagedlg(rsMSTheScanWasForcedToTerminateSubsequentScansMayNotFunctionProperlyEtc, mtWarning, [mbok], 0);
         {$else}
         KillThread(scancontroller.handle);
         {$ENDIF}

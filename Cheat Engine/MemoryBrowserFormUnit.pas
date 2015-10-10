@@ -682,7 +682,10 @@ resourcestring
   rsCommentFor = 'Comment for %s';
   rsHeaderFor = 'Header for %s';
   rsSShowsTheAutoguessValue = '(%s shows the autoguess value)';
-
+  rsMBBookmark = 'Bookmark %d';
+  rsMBBookmark2 = 'Bookmark %d: %s';
+  rsMBCreationOfTheRemoteThreadFailed = 'Creation of the remote thread failed';
+  rsMBThreadCreated = 'Thread Created';
 
 //property functions:
 function TMemoryBrowser.getShowValues: boolean;
@@ -1132,7 +1135,7 @@ begin
     //delete
     bookmarks[id].addressString:='';
     bookmarks[id].lastAddress:=0;
-    bookmarks[id].setMi.caption:=format('Bookmark %d', [id]);
+    bookmarks[id].setMi.caption:=format(rsMBBookmark, [id]);
     bookmarks[id].gotoMi.caption:=bookmarks[id].setMi.caption;
   end
   else
@@ -1140,7 +1143,7 @@ begin
     //update
     bookmarks[id].addressString:=symhandler.getNameFromAddress(disassemblerview.SelectedAddress);
     bookmarks[id].lastAddress:=disassemblerview.SelectedAddress;
-    bookmarks[id].setMi.Caption:=format('Bookmark %d: %s', [id, bookmarks[id].addressString]);
+    bookmarks[id].setMi.Caption:=format(rsMBBookmark2, [id, bookmarks[id].addressString]);
     bookmarks[id].gotoMi.Caption:=bookmarks[id].setMi.caption;
   end;
 end;
@@ -2761,7 +2764,7 @@ begin
     raise exception.Create(rsPleaseEnterAValidHexadecimalValue);
   end;
 
-  if CreateRemoteThread(processhandle,nil,0,pointer(startaddress),pointer(parameter),0,threadid)=0 then raise exception.Create('Creation of the remote thread failed') else showmessage('Thread Created');
+  if CreateRemoteThread(processhandle,nil,0,pointer(startaddress),pointer(parameter),0,threadid)=0 then raise exception.Create(rsMBCreationOfTheRemoteThreadFailed) else showmessage(rsMBThreadCreated);
 end;
 
 procedure TMemoryBrowser.MemoryRegions1Click(Sender: TObject);

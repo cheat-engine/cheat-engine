@@ -8,6 +8,9 @@ uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ExtCtrls, cefuncproc, StructuresFrm2, vartypestrings, math, CustomTypeHandler, commonTypeDefs;
 
+resourcestring
+  rsS2EILocalStruct = 'Local struct:';
+  rsS2EIIfYouContinueTheOldLocallyDefinedType = 'If you continue the old locally defined type %s will be deleted. Continue? (Tip: You can make this type into a global type so it can be re-used over again)';
 type
 
   { TfrmStructures2ElementInfo }
@@ -125,7 +128,7 @@ begin
 
   //still here so it's a "local" type
   localChild:=s;
-  cbStructType.ItemIndex:=cbStructType.Items.AddObject('Local struct:'+s.name, s);
+  cbStructType.ItemIndex:=cbStructType.Items.AddObject(rsS2EILocalStruct+s.name, s);
 end;
 
 function TfrmStructures2ElementInfo.getChildStruct: TDissectedStruct;
@@ -399,7 +402,7 @@ end;
 procedure TfrmStructures2ElementInfo.Button1Click(Sender: TObject);
 begin
   if (localChild<>nil) and (localchild<>getChildStruct) then
-    if MessageDlg('If you continue the old locally defined type '+localChild.name+' will be deleted. Continue? (Tip: You can make this type into a global type so it can be re-used over again)', mtWarning, [mbyes, mbno], 0)<>mryes then exit;
+    if MessageDlg(format(rsS2EIIfYouContinueTheOldLocallyDefinedType,[localChild.name]), mtWarning, [mbyes, mbno], 0)<>mryes then exit;
 
   modalresult:=mrok;
 end;

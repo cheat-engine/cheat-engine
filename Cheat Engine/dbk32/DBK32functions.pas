@@ -312,7 +312,7 @@ var kernel32dll: thandle;
 
 implementation
 
-uses vmxfunctions, DBK64SecondaryLoader, NewKernelHandler, frmDriverLoadedUnit, CEFuncProc;
+uses vmxfunctions, DBK64SecondaryLoader, NewKernelHandler, frmDriverLoadedUnit, CEFuncProc, Parsers;
 
 var dataloc: string;
     applicationPath: string;
@@ -1933,6 +1933,31 @@ begin
 end;
 
 
+function AllCoresHaveDBVMLoaded: boolean;
+var
+  i: integer;
+  proc, sys: DWORD_PTR;
+begin
+  result:=true;
+  GetProcessAffinityMask(GetCurrentProcess, proc, sys);
+
+  for i:=0 to {$ifdef cpu32}31{$else}63{$endif} do
+  begin
+
+    if getbit(i, sys)=1 then
+    begin
+      SetProcessAffinityMask(GetCurrentProcess, 1 shl i);
+      sleep(10);
+
+      if dbvm_version=0 then
+        result:=false;
+    end;
+  end;
+
+
+  SetProcessAffinityMask(GetCurrentProcess, proc);
+end;
+
 function internal_LaunchDBVM(parameters: pointer): BOOL; stdcall;
 var
   cc: dword;
@@ -1946,6 +1971,7 @@ var
   proc, sys: DWORD_PTR;
 
   cpuid: integer;
+  fc: dword;
 begin
 
   if (hdevice<>INVALID_HANDLE_VALUE) then
@@ -1971,6 +1997,21 @@ begin
       OutputDebugString('Param is invalid');
     end;
 
+    if not isAMD then
+    begin
+      OutputDebugString('A');
+      fc:=readMSR($3a); //get IA32_FEATURE_CONTROL
+
+      OutputDebugString('B');
+      if (fc and 1)=1 then
+      begin
+        //the feature control msr is locked
+        if (fc and (1 shl 2))=0 then
+          raise exception.create('Could not launch DBVM: The Intel-VT feature has been disabled in your BIOS');
+      end;
+      OutputDebugString('C');
+    end;
+
     cc:=IOCTL_CE_LAUNCHDBVM;
     temp:='\??\'+widestring(applicationpath)+'vmdisk.img';
 
@@ -1978,6 +2019,9 @@ begin
 
     OutputDebugString('Calling deviceiocontrol');
     result:=deviceiocontrol(hdevice,cc,@input,sizeof(Input),nil,0,cc,nil);
+
+
+    configure_vmx(vmx_password1, vmx_password2);
 
     if parameters<>nil then
       SetProcessAffinityMask(GetCurrentProcess, proc);
@@ -1987,59 +2031,25 @@ end;
 
 
 procedure LaunchDBVM(cpuid: integer); stdcall;
-var fc: dword;
-  part: integer;
 begin
-  try
-    part:=0;
-    OutputDebugString('LaunchDBVM('+inttostr(cpuid)+') Before check');
+  OutputDebugString('LaunchDBVM('+inttostr(cpuid)+') Before check');
 
-    if (not vmx_enabled) or (cpuid<>-1) then
-    begin
-      part:=1;
-      OutputDebugString('LaunchDBVM('+inttostr(cpuid)+')');
-      if not isAMD then
-      begin
-        part:=2;
+  if (not vmx_enabled) or (cpuid<>-1) then
+  begin
+    OutputDebugString('LaunchDBVM('+inttostr(cpuid)+')');
 
-        OutputDebugString('A');
-        fc:=readMSR($3a); //get IA32_FEATURE_CONTROL
+    OutputDebugString('calling internal_LaunchDBVM');
 
-        OutputDebugString('B');
-
-        part:=3;
-        if (fc and 1)=1 then
-        begin
-          //the feature control msr is locked
-          if (fc and (1 shl 2))=0 then
-            raise exception.create('Could not launch DBVM: The Intel-VT feature has been disabled in your BIOS');
-        end;
-        OutputDebugString('C');
-        part:=4;
-      end;
-
-      OutputDebugString('D');
-      OutputDebugString('calling internal_LaunchDBVM');
-
-      part:=5;
-      internal_LaunchDBVM(@cpuid);
-
-      OutputDebugString('E');
+    internal_LaunchDBVM(@cpuid);
 
 
-  //    foreachcpu(internal_LaunchDBVM,nil);
-
-      configure_vmx(vmx_password1, vmx_password2);
-     // configure_vmx_kernel;
-    end;
+//    foreachcpu(internal_LaunchDBVM,nil);
 
 
-  except
-    on e: exception do
-    begin
-      raise exception.create(inttostr(part)+':'+e.message);
-    end;
   end;
+
+  if (cpuid=-1) or (AllCoresHaveDBVMLoaded) then
+    configure_vmx_kernel;
 end;
 
 

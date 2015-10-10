@@ -261,6 +261,8 @@ resourcestring
   rsFrom = 'From';
   rsTo = 'To';
   rsLastOffset = 'Last offset';
+  rsHasNotBeenGivenAValidAddress = '%s has not been given a valid address';
+  rsLimitScanToSpecifiedRegionFile = 'Limit scan to specified region file';
 
 
 //helper
@@ -529,7 +531,7 @@ begin
     try
       result:=StrToQWord('$'+TPointerFileEntry(entries[index]).cbAddress.Text);
     except
-      raise exception.create(filenames[index]+' has not been given a valid address');
+      raise exception.create(Format(rsHasNotBeenGivenAValidAddress, [filenames[index]]));
     end;
   end;
 end;
@@ -936,12 +938,12 @@ begin
     cbLimitScanToRegionFile.OnChange:=nil;
     if odLoadRegionFile.execute then
     begin
-      cbLimitScanToRegionFile.Caption:='Limit scan to specified region file '+extractfilename(odLoadRegionFile.FileName);
+      cbLimitScanToRegionFile.Caption:=rsLimitScanToSpecifiedRegionFile+' '+extractfilename(odLoadRegionFile.FileName);
     end
     else
     begin
       cbLimitScanToRegionFile.Checked:=false;
-      cbLimitScanToRegionFile.Caption:='Limit scan to specified region file';
+      cbLimitScanToRegionFile.Caption:=rsLimitScanToSpecifiedRegionFile;
     end;
     cbLimitScanToRegionFile.OnChange:=cbLimitScanToRegionFileChange;
   end;
@@ -1006,13 +1008,13 @@ begin
   end
   else
   begin
-    if (not warnedAboutDisablingInstantRescan) and (MessageDlg(rsNoCompareFiles, mtConfirmation, [mbyes, mbno], 0)<>mryes) then
+   { if (not warnedAboutDisablingInstantRescan) and (MessageDlg(rsNoCompareFiles, mtConfirmation, [mbyes, mbno], 0)<>mryes) then
     begin
       cbCompareToOtherPointermaps.OnChange:=nil;
       cbCompareToOtherPointermaps.checked:=true;
       cbCompareToOtherPointermaps.OnChange:=cbCompareToOtherPointermapsChange;
       exit;
-    end;
+    end; }
 
     warnedAboutDisablingInstantRescan:=true;
     pdatafilelist.OnResize:=nil;
@@ -1151,11 +1153,11 @@ begin
   edtReverseStop.Width:=edtReverseStart.width;
 
 
-  if firstshow then
+ { if firstshow then
   begin
     cbCompareToOtherPointermaps.checked:=true;
 //    updatepositions;
-  end;
+  end;}
 
   firstshow:=false;
 

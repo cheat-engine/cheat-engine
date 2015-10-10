@@ -72,7 +72,7 @@ resourcestring
   rsSelectAnItemFromTheListForASmallDescription = 'Select an item from the list for a small description';
   rsNoHotkey = 'No hotkey';
   rsEnableDisableSpeedhack = 'Enable/Disable speedhack.';
-
+  rsM2NoHotkey = ' (No hotkey)';
 
 
   var
@@ -402,7 +402,7 @@ begin
             mainform.cbSpeedhack.Hint:=rsEnableDisableSpeedhack+' ('+
               ConvertKeyComboToString(temphotkeylist[2])+')'
           else
-            mainform.cbSpeedhack.Hint:=rsEnableDisableSpeedhack+' (No hotkey)';
+            mainform.cbSpeedhack.Hint:=rsEnableDisableSpeedhack+rsM2NoHotkey;
 
 
           ResumeHotkeyHandler;

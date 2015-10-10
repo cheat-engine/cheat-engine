@@ -15,6 +15,11 @@ interface
 
 uses
   Classes, SysUtils, controls, stdctrls, comctrls, MemoryRecordUnit, symbolhandler, cefuncproc,newkernelhandler, addresslist;
+
+resourcestring
+  rsALHAGroupWithTheName = 'A group with the name ';
+  rsALHAlreadyExists = ' already exists';
+
     {
 
 type TAddresslistHandler=class
@@ -43,6 +48,7 @@ type TAddresslistHandler=class
     }
 
 implementation
+
    {
 function TAddresslistHandler.GetRecord(Index: Integer): TMemoryRecord;
 begin
@@ -74,7 +80,7 @@ begin
   begin
     memrec:=TMemoryRecord(FAddressList.Items[i].data);
     if memrec.isGroupHeader and (memrec.Description=groupname) then
-      raise exception.create('A group with the name '+groupname+' already exists');
+      raise exception.create(rsALHAGroupWithTheName+groupname+rsALHAlreadyExists);
   end;
 
   memrec:=TMemoryRecord.create(self);

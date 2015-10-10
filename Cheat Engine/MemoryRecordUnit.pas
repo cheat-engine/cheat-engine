@@ -18,6 +18,9 @@ uses
   XMLRead, XMLWrite, CustomTypeHandler, FileUtil, commonTypeDefs, math, pointerparser;
 {$endif}
 
+resourcestring
+  rsMRNibbleSupportIsOnlyForHexadecimalDisplay = 'Nibble support is only for hexadecimal display';
+
 type TMemrecHotkeyAction=(mrhToggleActivation, mrhToggleActivationAllowIncrease, mrhToggleActivationAllowDecrease, mrhActivate, mrhDeactivate, mrhSetValue, mrhIncreaseValue, mrhDecreaseValue);
 
 type TFreezeType=(ftFrozen, ftAllowIncrease, ftAllowDecrease);
@@ -2205,7 +2208,7 @@ begin
           begin
             if bts[i]=-1 then continue;
 
-            if not showashex then raise exception.create('Nibble support is only for hexadecimal display');
+            if not showashex then raise exception.create(rsMRNibbleSupportIsOnlyForHexadecimalDisplay);
 
             //nibble
             pba[i]:=(((not (bts[i] shr 8)) and $ff) and pba[i]) or (bts[i] and $ff);

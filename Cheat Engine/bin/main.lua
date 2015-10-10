@@ -192,8 +192,8 @@ messageDialog(text, type, buttons...) : pops up a messagebox with a specific ico
 sleep(milliseconds): pauses for the number of specified milliseconds (1000= 1 sec...)
 
 getProcesslist(Strings): Fills a Strings inherited object with the processlist of the system. Format: %x-pidname
+getProcesslist(): Returns a table with the processlist  (pid - name )
 getThreadlist(List): fills a List object with the threadlist of the currently opened process. Format: %x
-
 
 function onOpenProcess(processid):
   If this function is defined it will be called whenever cheat engine opens a process.

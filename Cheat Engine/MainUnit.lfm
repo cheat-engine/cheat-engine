@@ -9,7 +9,7 @@ object MainForm: TMainForm
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AllowDropFiles = True
-  Caption = 'Cheat Engine 6.4'
+  Caption = 'Cheat Engine 6.4+'
   ClientHeight = 534
   ClientWidth = 613
   Font.Height = -11
@@ -337,6 +337,7 @@ object MainForm: TMainForm
       Width = 42
       Caption = 'Test cap'
       ParentColor = False
+      Visible = False
       OnClick = Label59Click
     end
     object Label61: TLabel
@@ -1401,6 +1402,7 @@ object MainForm: TMainForm
       Width = 32
       Caption = 'Label3'
       ParentColor = False
+      Visible = False
       OnClick = Label3Click
     end
     object Foundlist3: TListView

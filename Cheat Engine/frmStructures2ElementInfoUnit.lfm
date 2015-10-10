@@ -9,12 +9,12 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
   ClientWidth = 302
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.3'
   object Label1: TLabel
     Left = 20
-    Height = 14
+    Height = 13
     Top = 40
-    Width = 54
+    Width = 53
     Caption = 'Description'
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
@@ -23,9 +23,9 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
   end
   object Label2: TLabel
     Left = 240
-    Height = 14
+    Height = 13
     Top = 80
-    Width = 40
+    Width = 39
     Caption = 'Bytesize'
     Enabled = False
     Font.Height = -11
@@ -35,9 +35,9 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
   end
   object Label3: TLabel
     Left = 20
-    Height = 14
+    Height = 13
     Top = 0
-    Width = 29
+    Width = 28
     Caption = 'Offset'
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
@@ -154,17 +154,17 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
   end
   object Label4: TLabel
     Left = 20
-    Height = 16
+    Height = 15
     Top = 80
-    Width = 27
+    Width = 26
     Caption = 'Type'
     ParentColor = False
   end
   object Label5: TLabel
     Left = 20
-    Height = 16
+    Height = 15
     Top = 190
-    Width = 107
+    Width = 106
     Caption = 'Structure pointed to'
     Enabled = False
     ParentColor = False
@@ -189,9 +189,9 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
   end
   object lblOffsetInto: TLabel
     Left = 240
-    Height = 14
+    Height = 13
     Top = 190
-    Width = 49
+    Width = 48
     Caption = 'Offset into'
     Enabled = False
     Font.Height = -11
@@ -214,9 +214,9 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
   end
   object Label6: TLabel
     Left = 20
-    Height = 16
+    Height = 15
     Top = 144
-    Width = 97
+    Width = 96
     Caption = 'Background Color'
     ParentColor = False
   end

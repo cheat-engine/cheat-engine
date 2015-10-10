@@ -104,6 +104,7 @@ type
 
 resourcestring
   strClose='Close';
+  rsFCThesWillSetASiftwareBreakpointInt3OnEverySingleOpcodeEtc = 'This will set a Software Breakpoint (int3) on every single opcode that will be reported here. Are you sure ?';
 
 //var
 //  FoundCodeDialog: TFoundCodeDialog;
@@ -1016,7 +1017,7 @@ var i: integer;
 begin
   if miFindWhatAccesses.checked then
   begin
-    if MessageDlg('This will set a Software Breakpoint (int3) on every single opcode that will be reported here. Are you sure ?',mtWarning, [mbyes,mbno],0)=mryes then
+    if MessageDlg(rsFCThesWillSetASiftwareBreakpointInt3OnEverySingleOpcodeEtc,mtWarning, [mbyes,mbno],0)=mryes then
     begin
       //go through all existing entries and set a FindWhatCodeAccesses bp
       for i:=0 to FoundCodeList.Items.Count-1 do

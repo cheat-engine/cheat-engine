@@ -8,6 +8,10 @@ uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ExtCtrls, Menus, ComCtrls, genericHotkey, DBK32functions, commonTypeDefs;
 
+resourcestring
+  rsAMError = 'Error';
+  rsAMYouCantSaveAnEmptyList = 'You can''t save an empty list';
+
 type
 
   { TfrmAccessedMemory }
@@ -112,7 +116,7 @@ begin
     item.SubItems.Add(inttohex(ranges[item.index].endaddress,8));
   end
   else
-    item.Caption:='Error';
+    item.Caption:=rsAMError;
 end;
 
 procedure TfrmAccessedMemory.MenuItem2Click(Sender: TObject);
@@ -133,7 +137,7 @@ procedure TfrmAccessedMemory.MenuItem3Click(Sender: TObject);
 var f:tfilestream;
 begin
   if length(ranges)=0 then
-    MessageDlg('You can''t save an empty list', mtError, [mbok], 0)
+    MessageDlg(rsAMYouCantSaveAnEmptyList, mtError, [mbok], 0)
   else
   if savedialog1.execute then
   begin

@@ -125,6 +125,9 @@ resourcestring
   rsInvalidFunctiontypename = 'invalid functiontypename';
   rsInvalidTypename = 'invalid typename';
   rsUndefinedError = 'Undefined error';
+  rsCTHParameter3IsNotAValidFunction = 'Parameter 3 is not a valid function';
+  rsCTHParameter4IsNotAValidFunction = 'Parameter 4 is not a valid function';
+  rsCTHInvalidNumberOfParameters = 'Invalid number of parameters';
 
 function GetCustomTypeFromName(name:string): TCustomType;
 var i: integer;
@@ -163,8 +166,7 @@ begin
     if uppercase(TCustomType(customtypes[i]).functiontypename)=uppercase(n) then
     begin
       if TCustomType(customtypes[i])<>self then
-        raise exception.create(Format(
-          rsACustomFunctionTypeWithNameAlreadyExists, [n]));
+        raise exception.create(Format(rsACustomFunctionTypeWithNameAlreadyExists, [n]));
     end;
 
   ffunctiontypename:=n;
@@ -628,8 +630,7 @@ begin
         begin
           returncount:=lua_gettop(templua);
           if returncount<>3 then
-            raise exception.create(
-              rsOnlyReturnTypenameBytecountAndFunctiontypename);
+            raise exception.create(rsOnlyReturnTypenameBytecountAndFunctiontypename);
 
           //-1=functiontypename
           //-2=bytecount
@@ -814,7 +815,7 @@ begin
     else
     begin
       lua_pop(L, lua_gettop(L));
-      lua_pushstring(L,'Parameter 3 is not a valid function');
+      lua_pushstring(L,rsCTHParameter3IsNotAValidFunction);
       lua_error(L);
       exit;
     end;
@@ -836,7 +837,7 @@ begin
     else
     begin
       lua_pop(L, parameters);
-      lua_pushstring(L,'Parameter 4 is not a valid function');
+      lua_pushstring(L,rsCTHParameter4IsNotAValidFunction);
       lua_error(L);
       exit;
     end;
@@ -893,7 +894,7 @@ begin
   else
   begin
     lua_pop(L, parameters);
-    lua_pushstring(L,'Invalid number of parameters');
+    lua_pushstring(L,rsCTHInvalidNumberOfParameters);
     lua_error(L);
     exit;
   end;

@@ -924,8 +924,8 @@ begin
       begin
         if lua_isfunction(l, -1) then
         begin
-          OutputDebugString('LUA_functioncall: function exists');
-          OutputDebugString('LUA_functioncall: length(parameters)='+inttostr(length(parameters)));
+          //OutputDebugString('LUA_functioncall: function exists');
+          //OutputDebugString('LUA_functioncall: length(parameters)='+inttostr(length(parameters)));
 
           //routine exists, fill in the parameters
           for i:=0 to length(parameters)-1 do
