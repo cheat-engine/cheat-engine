@@ -39,6 +39,7 @@ type
     procedure AddToNoBreakList(threadid: integer); virtual;
     procedure RemoveFromNoBreakList(threadid: integer); virtual;
 
+    function canReportExactDebugRegisterTrigger: boolean; virtual;
 
     property DebuggerCapabilities: TDebuggerCapabilitiesSet read fDebuggerCapabilities;
     property errorstring: string read ferrorstring;
@@ -46,6 +47,8 @@ type
     property maxInstructionBreakpointCount: integer read fmaxInstructionBreakpointCount;
     property maxWatchpointBreakpointCount: integer read fmaxWatchpointBreakpointCount;
     property maxSharedBreakpointCount: integer read fmaxSharedBreakpointCount;
+
+
 end;
 
 implementation
@@ -119,6 +122,10 @@ begin
   end;
 end;
 
+function TDebuggerInterface.canReportExactDebugRegisterTrigger: boolean;
+begin
+  result:=true;
+end;
 
 end.
 

@@ -26,6 +26,7 @@ type
 
 
     function GetLastBranchRecords(lbr: pointer): integer; override;
+    function canReportExactDebugRegisterTrigger: boolean; override;
 
     function DebugActiveProcess(dwProcessId: DWORD): WINBOOL; override;
     property SingleStepNextContinue: boolean read fSingleStepNextContinue write fSingleStepNextContinue;
@@ -378,6 +379,11 @@ begin
 
   end;
 
+end;
+
+function TNetworkDebuggerInterface.canReportExactDebugRegisterTrigger: boolean;
+begin
+  result:=false;
 end;
 
 

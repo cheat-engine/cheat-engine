@@ -2049,7 +2049,10 @@ begin
   end;
 
   if (cpuid=-1) or (AllCoresHaveDBVMLoaded) then
+  begin
+    OutputDebugString('All cpu cores loaded. Activate kernelmode dbvm support');
     configure_vmx_kernel;
+  end;
 end;
 
 

@@ -50,6 +50,7 @@ type
     function GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false):  BOOL; override;
 
     function GetLastBranchRecords(lbr: pointer): integer; override;
+    function canReportExactDebugRegisterTrigger: boolean; override;
 
     procedure injectEvent(e: pointer);
     function DebugActiveProcess(dwProcessId: DWORD): WINBOOL; override;
@@ -434,6 +435,11 @@ begin
       lpDebugEvent.Exception.ExceptionRecord.ExceptionAddress:=pointer(ptrUint(currentdebuggerstate.eip));
     end;
   end;
+end;
+
+function TKernelDebugInterface.canReportExactDebugRegisterTrigger: boolean;
+begin
+  result:=not globalDebug;
 end;
 
 destructor TKernelDebugInterface.destroy;
