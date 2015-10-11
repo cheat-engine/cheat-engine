@@ -4827,6 +4827,57 @@ begin
   end;
 end;
 
+function getWindowList_lua(L: PLua_state): integer; cdecl;
+var
+  parameters: integer;
+  s: tstrings;
+  i: integer;
+  pid: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters>=1 then
+  begin
+    s:=lua_toceuserdata(L,1);
+    lua_pop(L, lua_gettop(l));
+    if (s<>nil) and (s is TStrings) then
+    begin
+      GetWindowList(s);
+      sanitizeProcessList(s);
+
+    end
+    else
+    begin
+      lua_pushstring(L,'getProcessList: the provided List object is not valid');
+      lua_error(L);
+    end;
+  end
+  else
+  begin
+    //table version
+    s:=tstringlist.create;
+    GetWindowList(s);
+    sanitizeProcessList(s);
+
+
+
+    lua_newtable(L);
+
+    for i:=0 to s.Count-1 do
+    begin
+      if TryStrToInt(copy(s[i],1,8), pid) then
+      begin
+        lua_pushinteger(L, pid);
+        lua_pushstring(L, copy(s[i], 10, length(s[i])));
+        lua_settable(L, 1);
+      end;
+    end;
+
+    s.free;
+
+    result:=1; //table
+  end;
+end;
 
 function getProcesslist_lua(L: PLua_state): integer; cdecl;
 var
@@ -6340,6 +6391,10 @@ begin
     lua_register(LuaVM, 'ansiToUtf8', lua_AnsiToUtf8);
 
     lua_register(LuaVM, 'fullAccess', fullAccess);
+
+    lua_register(LuaVM, 'getWindowlist', getWindowList_lua);
+    lua_register(LuaVM, 'getWindowList', getWindowList_lua);
+
     lua_register(LuaVM, 'getProcesslist', getProcessList_lua);
     lua_register(LuaVM, 'getProcessList', getProcessList_lua);
     lua_register(LuaVM, 'getThreadlist', getThreadlist_lua);

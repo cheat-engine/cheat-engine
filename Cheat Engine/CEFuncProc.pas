@@ -56,7 +56,8 @@ function GetUserNameFromPID(ProcessId: DWORD): string;
 //procedure GetProcessList(ProcessList: TStrings; NoPID: boolean=false; noProcessInfo: boolean=false);  overload;
 procedure GetThreadList(threadlist: TStrings);
 //procedure cleanProcessList(processlist: TStrings);
-procedure GetWindowList(ProcessList: TListBox; showInvisible: boolean=true);
+procedure GetWindowList(ProcessList: TStrings; showInvisible: boolean=true); overload;
+procedure GetWindowList(ProcessListBox: TListBox; showInvisible: boolean=true); overload;
 procedure GetModuleList(ModuleList: TStrings; withSystemModules: boolean);
 procedure cleanModuleList(ModuleList: TStrings);
 
@@ -2106,7 +2107,7 @@ begin
   end else raise exception.Create(rsICanTGetTheProcessListYouArePropablyUsingWindowsNT);
 end;    }
 
-procedure GetWindowList(ProcessList: TListBox; showInvisible: boolean=true);
+procedure GetWindowList(ProcessList: TStrings; showInvisible: boolean=true);
 var previouswinhandle, winhandle: Hwnd;
     winprocess: Dword;
     temp: Pchar;
@@ -2118,6 +2119,98 @@ var previouswinhandle, winhandle: Hwnd;
     ProcessListInfo: PProcessListInfo;
     tempdword: dword;
 begin
+  getmem(temp,101);
+  try
+    x:=tstringlist.Create;
+
+    for i:=0 to processlist.count-1 do
+      if processlist.Objects[i]<>nil then
+      begin
+        ProcessListInfo:=PProcessListInfo(processlist.Objects[i]);
+        if ProcessListInfo.processIcon>0 then
+          DestroyIcon(ProcessListInfo.processIcon);
+
+        freemem(ProcessListInfo);
+      end;
+    processlist.clear;
+
+    winhandle:=getwindow(getforegroundwindow,GW_HWNDFIRST);
+
+    i:=0;
+    while (winhandle<>0) and (i<10000) do
+    begin
+
+
+      if showInvisible or IsWindowVisible(winhandle) then
+      begin
+        GetWindowThreadProcessId(winhandle,addr(winprocess));
+        temp[0]:=#0;
+        getwindowtext(winhandle,temp,100);
+        temp[100]:=#0;
+        wintitle:=temp;
+
+
+        if ((not ProcessesCurrentUserOnly) or (GetUserNameFromPID(winprocess)=username)) and (length(wintitle)>0) then
+        begin
+          getmem(ProcessListInfo,sizeof(TProcessListInfo));
+          ProcessListInfo.processID:=winprocess;
+          ProcessListInfo.processIcon:=0;
+
+          if formsettings.cbProcessIcons.checked then
+          begin
+            tempdword:=0;
+            if SendMessageTimeout(winhandle,WM_GETICON,ICON_SMALL,0,SMTO_ABORTIFHUNG, 100, tempdword )<>0 then
+            begin
+              ProcessListInfo.processIcon:=tempdword;
+              if ProcessListInfo.processIcon=0 then
+              begin
+                if SendMessageTimeout(winhandle,WM_GETICON,ICON_SMALL2,0,SMTO_ABORTIFHUNG, 100, tempdword	)<>0 then
+                  ProcessListInfo.processIcon:=tempdword;
+
+                if ProcessListInfo.processIcon=0 then
+                  if SendMessageTimeout(winhandle,WM_GETICON,ICON_BIG,0,SMTO_ABORTIFHUNG, 100, tempdword	)<>0 then
+                    ProcessListInfo.processIcon:=tempdword;
+              end;
+            end else
+            begin
+              inc(i,100); //at worst case scenario this causes the list to wait 10 seconds
+            end;
+          end;
+
+
+          x.AddObject(IntTohex(winprocess,8)+'-'+AnsiToUtf8(wintitle),TObject(ProcessListInfo));
+        end;
+      end;
+
+      previouswinhandle:=winhandle;
+      winhandle:=getwindow(winhandle,GW_HWNDNEXT);
+
+      if winhandle=previouswinhandle then break;
+
+      inc(i);
+    end;
+
+    x.Sort;
+    processlist.Assign(x);
+  finally
+    freemem(temp);
+  end;
+end;
+
+procedure GetWindowList(ProcessListBox: TListBox; showInvisible: boolean=true);
+var previouswinhandle, winhandle: Hwnd;
+    winprocess: Dword;
+    temp: Pchar;
+    wintitle: string;
+
+    x: tstringlist;
+    i,j:integer;
+
+    ProcessListInfo: PProcessListInfo;
+    tempdword: dword;
+begin
+  GetWindowList(ProcessListBox.Items, showInvisible);
+ {
   getmem(temp,101);
   try
     x:=tstringlist.Create;
@@ -2193,7 +2286,7 @@ begin
     processlist.Items.Assign(x);
   finally
     freemem(temp);
-  end;
+  end; }
 end;
 
 function GetCEdir:string;

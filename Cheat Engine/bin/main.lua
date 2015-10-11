@@ -193,6 +193,9 @@ sleep(milliseconds): pauses for the number of specified milliseconds (1000= 1 se
 
 getProcesslist(Strings): Fills a Strings inherited object with the processlist of the system. Format: %x-pidname
 getProcesslist(): Returns a table with the processlist  (pid - name )
+getWindowlist(Strings): Fills a Strings inherited object with the top-window list of the system. Format: %x-windowcaption
+getWindowlist(): Returns a table with the windowlist (pid - window caption )
+
 getThreadlist(List): fills a List object with the threadlist of the currently opened process. Format: %x
 
 function onOpenProcess(processid):
