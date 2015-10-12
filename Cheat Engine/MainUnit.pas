@@ -7646,6 +7646,8 @@ begin
       frmpointerscannersettings := tfrmpointerscannersettings.Create(self);
 
     frmpointerscannersettings.cbAddress.Text := inttohex(address, 8);
+    frmpointerscannersettings.cbCompareToOtherPointermaps.Checked:=false;
+    frmpointerscannersettings.cbUseLoadedPointermap.checked:=false;
 
     if findpointeroffsets then
     begin
@@ -8101,14 +8103,51 @@ var
   sqos: SECURITY_QUALITY_OF_SERVICE;
 
   gnua: TfrmAutoInject;
+  label p1,p2,p3;
 
 begin
+
+
+
+  try
+    asm
+     push $397
+     {$ifdef cpu32}
+     popfd
+     {$else}
+     popfq
+     {$endif}
+     p1:
+     cpuid
+     //nop
+     p2:
+     nop
+     p3:
+     nop
+    end;
+
+  except
+    on e:exception do
+    begin
+      if ExceptAddr()=@p1 then
+        showmessage('P1')
+      else
+      if ExceptAddr()=@p2 then
+        showmessage('P2 (correct)')
+      else
+      if ExceptAddr()=@p3 then
+        showmessage('P3')
+      else
+        showmessage(inttohex(ptruint(ExceptAddr()),8));
+    end
+  end;
+
   {gnua:=TfrmAutoInject.Create(self);
   gnua.ScriptMode:=smGnuAssembler;
 
   gnua.show;   }
 
-
+     {
   asm
     mov eax,1
     cpuid
@@ -8119,7 +8158,7 @@ begin
   if (z shr 31) and 1=1 then showmessage('hypervisor present') else showmessage('no hypervisor detected');
 
   showmessage(inttohex(z,8));
-
+       }
  // getConnection.loadExtension(processhandle);
 
 //showmessage('still alive')
