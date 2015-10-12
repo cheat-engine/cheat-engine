@@ -70,7 +70,7 @@ end;
 
 procedure TAddressParser.value;
 //copy all characters of 0 to 9 in tempstr
-var tmp: dword;
+var tmp: ptruint;
     strp: pchar;
     count: integer;
 begin
