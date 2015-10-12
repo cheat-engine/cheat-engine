@@ -1482,8 +1482,10 @@ begin
 
 
 
+    x:=0;
+    readprocessmemory(processhandle,pointer(baseaddress),@buf[0],bytesize,x);
 
-    if readprocessmemory(processhandle,pointer(baseaddress),@buf[0],bytesize,x) then
+    if x>0 then
     begin
       currentOffset:=offset;
 

@@ -64,10 +64,6 @@ type
 var
   frmStackView: TfrmStackView;
 
-implementation
-
-uses MemoryBrowserFormUnit, StructuresFrm2, frmstacktraceunit, processhandlerunit;
-
 resourcestring
   rsTheStructuresListIsBroken = 'The structures list is broken';
   rsNewWindow = '<New window>';
@@ -75,6 +71,12 @@ resourcestring
   rsSelectTheStructureDissectWindowYouWishToAddThisReg = 'Select the structure'
     +' dissect window you wish to add this region to';
   rsSVThisStackViewWindowHasAllocatedStackSnapshotsEtc = 'This stackview window has allocated stack snapshots in the target process. Do you wish to free them?';
+
+
+implementation
+
+uses MemoryBrowserFormUnit, StructuresFrm2, frmstacktraceunit, processhandlerunit;
+
 
 procedure TfrmStackView.miAddESPClick(Sender: TObject);
 begin
