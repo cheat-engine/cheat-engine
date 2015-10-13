@@ -958,21 +958,30 @@ begin
           dec(counter);
         end;
 
-        closehandle(threadhandle);
+        try
 
-        if (counter=0) then
-          raise exception.Create(rsTheInjectionThreadTookLongerThan10SecondsToExecute);
 
-        if getexitcodethread(threadhandle,res) then
-        begin
-          case res of
-            1: ;//success
-            2: raise exception.Create(rsFailedInjectingTheDLL);
-            3: raise exception.Create(rsFailedExecutingTheFunctionOfTheDll);
-            else raise exception.Create(rsUnknownErrorDuringInjection);
-          end;
-        end; //else unsure, did it work or not , or is it crashing?
+          if (counter=0) then
+            raise exception.Create(rsTheInjectionThreadTookLongerThan10SecondsToExecute);
 
+          if getexitcodethread(threadhandle,res) then
+          begin
+            case res of
+              1: ;//success
+              2: raise exception.Create(rsFailedInjectingTheDLL);
+              3: raise exception.Create(rsFailedExecutingTheFunctionOfTheDll);
+              else raise exception.Create(rsUnknownErrorDuringInjection);
+            end;
+          end
+          else
+          begin
+            OutputDebugString('failure to get the exitcode of the thread.'+inttostr(GetLastError));
+          end; //else unsure, did it work or not , or is it crashing?
+
+
+        finally
+          closehandle(threadhandle);
+        end;
       end;
     finally
       FreeLibrary(h);

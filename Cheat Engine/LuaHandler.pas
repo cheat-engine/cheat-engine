@@ -2714,7 +2714,6 @@ begin
     result:=1;
     lua_pushboolean(L, r);
   end;
-  lua_pop(L, parameters);
 end;
 
 
