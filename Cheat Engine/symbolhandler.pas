@@ -2039,17 +2039,33 @@ begin
 end;
 
 function TSymhandler.getmodulebyname(modulename: string; var mi: TModuleInfo):BOOLEAN;
-var i: integer;
+var
+  i: integer;
+  moduleNameToFind: string;
+  currentModuleName: string;
 begin
   result:=false;
+  moduleNameToFind:=uppercase(modulename);
+
+  if (length(moduleNameToFind)>0) and (moduleNameToFind[1]='"') then
+  begin
+    moduleNameToFind:=trim(moduleNameToFind);
+    moduleNameToFind:=copy(moduleNameToFind, 2, length(moduleNameToFind)-2);
+  end;
+
+
   modulelistMREW.beginread;
+
   for i:=0 to modulelistpos-1 do
-    if (uppercase(modulelist[i].modulename)=uppercase(modulename)) then
+  begin
+    currentModuleName:=uppercase(modulelist[i].modulename);
+    if currentModuleName=moduleNameToFind then
     begin
       mi:=modulelist[i];
       result:=true;
       break;
     end;
+  end;
   modulelistMREW.endread;
 end;
 
