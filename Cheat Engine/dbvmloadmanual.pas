@@ -40,6 +40,8 @@ begin
   if (sender is TButton) then
   begin
     cpuid:=TButton(sender).tag;
+    if cpuid=-1 then exit;
+
     OutputDebugString(pchar('launchDBVMForCpuClick('+inttostr(cpuid)+')'));
     LaunchDBVM(cpuid);
   end;
@@ -137,6 +139,7 @@ begin
     begin
       cpulabels[i].caption:='Loaded:'+inttostr(dbvm_version and $ffffff);
       cpulabels[i].font.color:=clGreen;
+      cpulabels[i].tag:=-1;
     end
     else
     begin
