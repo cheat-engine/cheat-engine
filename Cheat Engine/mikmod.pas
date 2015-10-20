@@ -82,6 +82,11 @@ var
   Player_LoadTitleFP: function(fp: pointer): pchar; cdecl;
   Player_Free: procedure(module: PMODULE); cdecl;
   Player_Start: procedure(module: PMODULE); cdecl;
+  Player_GetLoop: function(module: PMODULE):BOOL; cdecl;
+  Player_GetWrap: function(module: PMODULE):BOOL; cdecl;
+  Player_SetLoop: procedure(module: PMODULE; state: BOOL); cdecl;
+  Player_SetWrap: procedure(module: PMODULE; state: BOOL); cdecl;
+
   Player_Active: function:BOOL; cdecl;
   Player_Stop: procedure; cdecl;
   Player_TogglePause: procedure; cdecl;
@@ -119,9 +124,9 @@ var
 
   function GenerateMREADER(memory: pointer; size: integer): MREADER;
 
-  procedure MikMod_Play(filename: string);
+  procedure MikMod_Play(filename: string; loop: boolean=false);
   procedure MikMod_PlayMemory(memory: pointer; size: integer);
-  procedure MikMod_PlayStream(s: TStream);
+  procedure MikMod_PlayStream(s: TStream; loop: boolean=false);
 
 implementation
 
@@ -141,13 +146,15 @@ type
     commandReady: TEvent;
     commandcs: TCriticalSection;
 
+    doloop: boolean;
+
 
     memstream: TMemoryStream;
 
   public
-    procedure play(f: string);
-    procedure playMemory(m: pointer; size: integer);
-    procedure playStream(s: TStream);
+    procedure play(f: string; loop: boolean=false);
+    procedure playMemory(m: pointer; size: integer; loop: boolean=false);
+    procedure playStream(s: TStream; loop: boolean=false);
     procedure execute; override;
     constructor create(LaunchSuspended: boolean);
     destructor destroy; override;
@@ -157,26 +164,28 @@ var
   libmikmod: HModule;
   mikmodthread: TMikModThread;
 
-procedure TMikModThread.play(f: string);
+procedure TMikModThread.play(f: string; loop: boolean=false);
 begin
   commandcs.enter;
   self.filename:=f;
+  doloop:=loop;
   command:=MIKMODCMD_PLAYFILE;
   commandReady.SetEvent;
   commandcs.leave;
 end;
 
-procedure TMikModThread.playMemory(m: pointer; size: integer);
+procedure TMikModThread.playMemory(m: pointer; size: integer; loop: boolean=false);
 begin
   commandcs.enter;
   memory:=m;
   memorysize:=size;
+  doloop:=loop;
   command:=MIKMODCMD_PLAYMEMORY;
   commandReady.SetEvent;
   commandcs.leave;
 end;
 
-procedure TMikModThread.playStream(s: TStream);
+procedure TMikModThread.playStream(s: TStream; loop: boolean=false);
 begin
   if memstream<>nil then
     freeandnil(memstream);
@@ -185,12 +194,14 @@ begin
   memstream:=TMemoryStream.create;
   memstream.LoadFromStream(s);
 
-  playMemory(memstream.Memory, memstream.Size);
+  playMemory(memstream.Memory, memstream.Size, loop);
 end;
 
 procedure TMikModThread.execute;
 var m: PMODULE;
   mr: MREADER;
+
+  w,l: BOOL;
 begin
   Priority:=tpTimeCritical;
   m:=nil;
@@ -208,6 +219,18 @@ begin
     try
       while not terminated do
       begin
+        if (m<>nil) then
+        begin
+          w:=Player_GetWrap(m);
+          l:=Player_GetLoop(m);
+
+         { if w=l then
+          begin
+            OutputDebugString('bla');
+
+          end; }
+        end;
+
         if commandReady.WaitFor(ifthen(Player_Active(), 10, 1000))=wrSignaled then
         begin
           commandcs.enter;
@@ -235,7 +258,11 @@ begin
                 m:=Player_Load(pchar(filename), 64, FALSE);
 
               if m<>nil then
+              begin
+                Player_SetWrap(m, doloop);
+               // Player_SetLoop(m, false);
                 Player_Start(m);
+              end;
             end;
 
           end;
@@ -280,12 +307,12 @@ begin
   inherited destroy;
 end;
 
-procedure MikMod_Play(filename: string);
+procedure MikMod_Play(filename: string; loop: boolean=false);
 begin
   if mikmodthread=nil then
     mikmodthread:=TMikModThread.create(false);
 
-  mikmodthread.play(filename);
+  mikmodthread.play(filename, loop);
 end;
 
 procedure MikMod_PlayMemory(memory: pointer; size: integer);
@@ -296,12 +323,12 @@ begin
   mikmodthread.playmemory(memory, size);
 end;
 
-procedure MikMod_PlayStream(s: TStream);
+procedure MikMod_PlayStream(s: TStream; loop: boolean=false);
 begin
   if mikmodthread=nil then
     mikmodthread:=TMikModThread.create(false);
 
-  mikmodthread.playstream(s);
+  mikmodthread.playstream(s, loop);
 end;
 
 //mreader setup
@@ -419,6 +446,14 @@ begin
     farproc(Player_SetTempo):=GetProcAddress(libmikmod, 'Player_SetTempo');
 
 
+    farproc(Player_GetLoop):=GetProcAddress(libmikmod, 'Player_GetLoop');
+    farproc(Player_SetLoop):=GetProcAddress(libmikmod, 'Player_SetLoop');
+    farproc(Player_GetWrap):=GetProcAddress(libmikmod, 'Player_GetWrap');
+    farproc(Player_SetWrap):=GetProcAddress(libmikmod, 'Player_SetWrap');
+
+
+
+
     md_volume:=GetProcAddress(libmikmod, 'md_volume');
     md_musicvolume:=GetProcAddress(libmikmod, 'md_musicvolume');
     md_sndfxvolume:=GetProcAddress(libmikmod, 'md_sndfxvolume');
@@ -434,6 +469,16 @@ begin
     result:=true;
   end;
 end;
+
+finalization
+  if mikmodthread<>nil then
+  begin
+    mikmodthread.Terminate;
+    mikmodthread.free;
+  end;
+
+
+
 
 end.
 
