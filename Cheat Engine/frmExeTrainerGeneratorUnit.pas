@@ -30,7 +30,7 @@ type
     cbKernelDebug: TCheckBox;
     cbSpeedhack: TCheckBox;
     cbVEHDebug: TCheckBox;
-    cbXMPlayer: TCheckBox;
+    cbModPlayer: TCheckBox;
     cbD3DHook: TCheckBox;
     cbDotNet: TCheckBox;
     comboCompression: TComboBox;
@@ -286,11 +286,8 @@ begin
             if cbKernelDebug.checked then
               addfile(cheatenginedir+'dbk32.sys');
 
-            if cbDotNet.checked then
-            begin
-              addfile(cheatenginedir+'DotNetDataCollector32.exe');
-              addfile(cheatenginedir+'DotNetDataCollector64.exe');
-            end;
+            if cbModPlayer.checked then
+              addfile(cheatenginedir+'libmikmod32.dll');
 
           end
           else
@@ -306,10 +303,17 @@ begin
 
             if cbKernelDebug.checked then
               addfile(cheatenginedir+'dbk64.sys');
+
+            if cbModPlayer.checked then
+              addfile(cheatenginedir+'libmikmod64.dll');
+
           end;
 
-          if cbXMPlayer.checked then
-            addfile(cheatenginedir+'xmplayer.exe');
+          if cbDotNet.checked then
+          begin
+            addfile(cheatenginedir+'DotNetDataCollector32.exe');
+            addfile(cheatenginedir+'DotNetDataCollector64.exe');
+          end;
 
           if cbD3DHook.checked then
           begin
@@ -473,7 +477,7 @@ begin
   rb64.enabled:=cbGigantic.checked;
   cbSpeedhack.enabled:=cbGigantic.Checked;
   cbVEHDebug.enabled:=cbGigantic.checked;
-  cbXMPlayer.Enabled:=cbGigantic.checked;
+  cbModPlayer.Enabled:=cbGigantic.checked;
   cbKernelDebug.enabled:=cbGigantic.Checked;
 
   label1.enabled:=cbGigantic.checked;
@@ -558,7 +562,7 @@ begin
   s:=lowercase(mainform.frmLuaTableScript.assemblescreen.Text);
 
   cbSpeedhack.checked:=pos('speedhack_',s)>0;
-  cbXMPlayer.checked:=(pos('xmplayer_',s)>0) or (pos('xmplayer.',s)>0);
+  cbModPlayer.checked:=(pos('xmplayer_',s)>0) or (pos('xmplayer.',s)>0);
   cbKernelDebug.checked:=pos('dbk_',s)>0;
   cbD3DHook.checked:=pos('created3dhook',s)>0;
   cbDotNet.checked:=symhandler.hasDotNetAccess or (pos('dotnet',s)>0);

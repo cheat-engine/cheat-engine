@@ -31,7 +31,7 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
       Width = 328
       Align = alTop
       Caption = 'Process'
-      ClientHeight = 44
+      ClientHeight = 42
       ClientWidth = 324
       TabOrder = 0
       object rb32: TRadioButton
@@ -60,7 +60,7 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
       Width = 328
       Align = alTop
       Caption = 'Features used'
-      ClientHeight = 56
+      ClientHeight = 54
       ClientWidth = 324
       TabOrder = 1
       object cbVEHDebug: TCheckBox
@@ -79,12 +79,12 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
         Caption = 'Kernel Tools'
         TabOrder = 1
       end
-      object cbXMPlayer: TCheckBox
+      object cbModPlayer: TCheckBox
         Left = 150
         Height = 19
         Top = 2
-        Width = 70
-        Caption = 'XMPlayer'
+        Width = 96
+        Caption = 'Module Player'
         TabOrder = 2
       end
       object cbSpeedhack: TCheckBox
@@ -172,7 +172,7 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
       Width = 328
       Align = alTop
       Caption = 'Trainer size'
-      ClientHeight = 22
+      ClientHeight = 20
       ClientWidth = 324
       TabOrder = 5
       object cbTiny: TRadioButton
@@ -231,12 +231,12 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
     Width = 248
     Align = alClient
     Caption = 'Extra files'
-    ClientHeight = 202
+    ClientHeight = 200
     ClientWidth = 244
     TabOrder = 2
     object ListView1: TListView
       Left = 0
-      Height = 167
+      Height = 165
       Top = 0
       Width = 244
       Align = alClient
@@ -261,7 +261,7 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
     object Panel3: TPanel
       Left = 0
       Height = 35
-      Top = 167
+      Top = 165
       Width = 244
       Align = alBottom
       BevelOuter = bvNone
