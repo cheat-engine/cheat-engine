@@ -10,7 +10,7 @@ half port of the MikMod header file to pascal
 interface
 
 uses
-  windows, Classes, SysUtils;
+  windows, Classes, SysUtils, syncobjs;
 
 
 type
@@ -19,7 +19,7 @@ type
 
   MREADER_SEEK=function(self:PREADER; offset:longint; whence:integer):longint;cdecl;
   MREADER_TELL=function(self:PREADER):longint;cdecl;
-  MREADER_READ=function(self:PREADER; dest: pointer; lenght: size_t): BOOL; cdecl;
+  MREADER_READ=function(self:PREADER; dest: pointer; l: size_t): BOOL; cdecl;
   MREADER_GET=function(self:PREADER):integer; cdecl;
   MREADER_EOF=function(self:PREADER):BOOL; cdecl;
 
@@ -29,6 +29,9 @@ type
     Read: MREADER_READ;
     Get:  MREADER_GET;
     EOF:  MREADER_EOF;
+    memory: PBYTE;
+    size: integer;
+    position: integer;
   end;
 
 function LoadMikMod: boolean;
@@ -45,6 +48,10 @@ const
   DMODE_SURROUND     =$0100;
   DMODE_INTERP       =$0200;
   DMODE_REVERSE      =$0400;
+
+
+
+
 
 
 var
@@ -110,9 +117,257 @@ var
 
   MikMod_errno: PINTEGER;
 
+  function GenerateMREADER(memory: pointer; size: integer): MREADER;
+
+  procedure MikMod_Play(filename: string);
+  procedure MikMod_PlayMemory(memory: pointer; size: integer);
+  procedure MikMod_PlayStream(s: TStream);
+
 implementation
 
-var libmikmod: HModule;
+uses math;
+
+const
+  MIKMODCMD_PLAYFILE    = 0;
+  MIKMODCMD_PLAYMEMORY  = 1;
+
+type
+  TMikModThread=class(TThread)
+  private
+    command: integer;
+    filename: string;
+    memory: pointer;
+    memorysize: integer;
+    commandReady: TEvent;
+    commandcs: TCriticalSection;
+
+
+    memstream: TMemoryStream;
+
+  public
+    procedure play(f: string);
+    procedure playMemory(m: pointer; size: integer);
+    procedure playStream(s: TStream);
+    procedure execute; override;
+    constructor create(LaunchSuspended: boolean);
+    destructor destroy; override;
+  end;
+
+var
+  libmikmod: HModule;
+  mikmodthread: TMikModThread;
+
+procedure TMikModThread.play(f: string);
+begin
+  commandcs.enter;
+  self.filename:=f;
+  command:=MIKMODCMD_PLAYFILE;
+  commandReady.SetEvent;
+  commandcs.leave;
+end;
+
+procedure TMikModThread.playMemory(m: pointer; size: integer);
+begin
+  commandcs.enter;
+  memory:=m;
+  memorysize:=size;
+  command:=MIKMODCMD_PLAYMEMORY;
+  commandReady.SetEvent;
+  commandcs.leave;
+end;
+
+procedure TMikModThread.playStream(s: TStream);
+begin
+  if memstream<>nil then
+    freeandnil(memstream);
+
+  s.position:=0;
+  memstream:=TMemoryStream.create;
+  memstream.LoadFromStream(s);
+
+  playMemory(memstream.Memory, memstream.Size);
+end;
+
+procedure TMikModThread.execute;
+var m: PMODULE;
+  mr: MREADER;
+begin
+  Priority:=tpTimeCritical;
+  m:=nil;
+  if LoadMikMod then
+  begin
+    MikMod_RegisterAllDrivers;
+    MikMod_RegisterAllLoaders;
+    md_mode^:=md_mode^ or DMODE_HQMIXER;
+
+
+
+    if MikMod_Init('')<>0 then
+      raise exception.create('Failure to initialize MikMod');
+
+    try
+      while not terminated do
+      begin
+        if commandReady.WaitFor(ifthen(Player_Active(), 10, 1000))=wrSignaled then
+        begin
+          commandcs.enter;
+          case command of
+            -1: ; //
+
+            MIKMODCMD_PLAYFILE, MIKMODCMD_PLAYMEMORY:
+            begin
+              if Player_Active() then
+              begin
+                Player_Stop();
+                MikMod_Update();
+              end;
+
+              if m<>nil then
+                Player_Free(m);
+
+
+              if command=MIKMODCMD_PLAYMEMORY then
+              begin
+                mr:=GenerateMREADER(memory, memorysize);
+                m:=Player_LoadGeneric(@mr, 64, FALSE);
+              end
+              else
+                m:=Player_Load(pchar(filename), 64, FALSE);
+
+              if m<>nil then
+                Player_Start(m);
+            end;
+
+          end;
+
+          command:=-1;
+          commandcs.leave;
+        end;
+
+        if Player_Active() then
+          MikMod_Update();
+      end;
+    finally
+      MikMod_Exit();
+    end;
+
+  end;
+end;
+
+constructor TMikModThread.create(LaunchSuspended: Boolean);
+begin
+
+  commandcs:=TCriticalSection.Create;
+  commandReady:=TEvent.Create(nil, false, false,'');
+  inherited Create(LaunchSuspended);
+end;
+
+destructor TMikModThread.Destroy;
+begin
+  Terminate;
+  if not Finished then
+    WaitFor;
+
+  if commandcs<>nil then
+    commandcs.free;
+
+  if commandReady<>nil then
+    commandReady.free;
+
+  if memstream<>nil then
+    freeandnil(memstream);
+
+  inherited destroy;
+end;
+
+procedure MikMod_Play(filename: string);
+begin
+  if mikmodthread=nil then
+    mikmodthread:=TMikModThread.create(false);
+
+  mikmodthread.play(filename);
+end;
+
+procedure MikMod_PlayMemory(memory: pointer; size: integer);
+begin
+  if mikmodthread=nil then
+    mikmodthread:=TMikModThread.create(false);
+
+  mikmodthread.playmemory(memory, size);
+end;
+
+procedure MikMod_PlayStream(s: TStream);
+begin
+  if mikmodthread=nil then
+    mikmodthread:=TMikModThread.create(false);
+
+  mikmodthread.playstream(s);
+end;
+
+//mreader setup
+
+function mr_seek(self:PREADER; offset:longint; whence:integer):longint;cdecl;
+const
+  Seek_set = 0;
+  Seek_Cur = 1;
+  Seek_End = 2;
+begin
+  case whence of
+    Seek_set: self^.position:=offset;
+    Seek_cur: inc(self^.position, offset);
+    Seek_end: self^.position:=self^.size-offset;
+  end;
+
+  result:=0;
+end;
+
+function mr_tell(self:PREADER):longint;cdecl;
+begin
+  result:=self^.position;
+end;
+
+function mr_read(self:PREADER; dest: pointer; l: size_t): BOOL; cdecl;
+begin
+  if l>(self^.size-self^.position) then
+    l:=self^.size-self^.position;
+
+  copymemory(dest, @self^.memory[self^.position], l);
+  inc(self^.position, l);
+
+  result:=true;
+end;
+
+function mr_get(self:PREADER):integer; cdecl;
+begin
+  if self^.EOF(self) then
+    result:=-1
+  else
+  begin
+    result:=self^.memory[self^.position];
+    inc(self^.position);
+  end;
+end;
+
+function mr_eof(self:PREADER):BOOL; cdecl;
+begin
+  result:=self^.position>=self^.size;
+end;
+
+function GenerateMREADER(memory: pointer; size: integer): MREADER;
+var r: MREADER;
+begin
+  r.Seek:=@mr_Seek;
+  r.Tell:=@mr_Tell;
+  r.Read:=@mr_Read;
+  r.Get:=@mr_Get;
+  r.EOF:=@mr_EOF;
+  r.memory:=memory;
+  r.size:=size;
+  r.position:=0;
+
+
+  result:=r;
+end;
 
 function LoadMikMod: boolean;
 begin
