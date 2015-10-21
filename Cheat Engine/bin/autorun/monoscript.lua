@@ -339,6 +339,9 @@ end
 function mono_enumDomains()
   if debug_canBreak() then return nil end
 
+  if monopipe==nil then return nil end
+
+
   monopipe.lock()
   monopipe.writeByte(MONOCMD_ENUMDOMAINS)
   local count=monopipe.readDword()
@@ -1586,10 +1589,13 @@ function mono_dissect()
 
   local domains=mono_enumDomains()
   local i
-  for i=1, #domains do
-    n=monoForm.TV.Items.add(string.format("%x", domains[i]))
-    n.Data=domains[i]
-    monoForm.TV.Items[i-1].HasChildren=true
+
+  if (domains~=nil) then
+    for i=1, #domains do
+      n=monoForm.TV.Items.add(string.format("%x", domains[i]))
+      n.Data=domains[i]
+      monoForm.TV.Items[i-1].HasChildren=true
+    end
   end
 
 end

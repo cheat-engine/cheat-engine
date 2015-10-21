@@ -438,6 +438,22 @@ setComment(address, text) : Sets a userdefined comment at the specifried address
 getHeader(address) : Gets the userdefined header at the specified address
 setHeader(address) : Sets the userdefined header at the specified address
 
+registerBinUtil(config) Registers a binutils toolset with CE (for assembling and disassembling in other cpu instruction sets)
+config is a table containing several fields that describe the tools, and lets you specify extra parameters
+
+Name : The displayed name in the binutils menu in memview
+Description: The description for this toolset
+Architecture: used by the objdump -m<architecture>  (required)
+ASParam : extra parameters to pass on to AS (optional)
+LDParam : extra parameters to pass on to LD
+OBJDUMPParam: extra parameters to pass on to OBJDUMP
+OnDisassemble: a lua function that gets called each time an address is disassembled. The return value will be passed on to OBJDUMP
+Path: filepath to the binutils set
+Prefix: prefix  (e.g: "arm-linux-androideabi-")
+DisassemblerCommentChar: Depending on which target you're disassembling, the comment character  can be different. (ARM=";"  x86='#' )
+
+
+
 
 
 class helper functions
@@ -1440,7 +1456,7 @@ methods
   getData() : Gets a MemoryStream object
 
 
-xmplayer class.
+xmplayer class
 The xmplayer class has already been defined as xmplayer, no need to create it manually
 
 properties
@@ -2301,6 +2317,8 @@ TabSheet class (WinControl->Control->Component->Object)
 properties
   TabIndex: integer - the current index in the pagelist of the owning pagecontrol
 methods
+
+
 
 
 --]]
