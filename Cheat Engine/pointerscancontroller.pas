@@ -4732,7 +4732,7 @@ begin
     len:=sizeof(ipname);
     if getpeername(sockethandle, ipname, len)<>SOCKET_ERROR then
     begin
-      child.ip:=inttostr(byte(ipname.sin_addr.S_un_b.s_b1))+'.'+inttostr(byte(ipname.sin_addr.S_un_b.s_b2))+
+      child.ip:=inttostr(byte(ipname.sin_addr.S_un_b.s_b1))+'.'+inttostr(byte(ipname.sin_addr.S_un_b.s_b2))+'.'+
                 inttostr(byte(ipname.sin_addr.S_un_b.s_b3))+'.'+inttostr(byte(ipname.sin_addr.S_un_b.s_b4));
 
       child.port:=ntohs(ipname.sin_port);
@@ -4772,7 +4772,7 @@ begin
         len:=sizeof(ipname);
         if getpeername(sockethandle, ipname, len)<>SOCKET_ERROR then
         begin
-          parentqueue[length(parentqueue)-1].ip:=inttostr(byte(ipname.sin_addr.S_un_b.s_b1))+'.'+inttostr(byte(ipname.sin_addr.S_un_b.s_b2))+
+          parentqueue[length(parentqueue)-1].ip:=inttostr(byte(ipname.sin_addr.S_un_b.s_b1))+'.'+inttostr(byte(ipname.sin_addr.S_un_b.s_b2))+'.'+
                     inttostr(byte(ipname.sin_addr.S_un_b.s_b3))+'.'+inttostr(byte(ipname.sin_addr.S_un_b.s_b4));
 
           parentqueue[length(parentqueue)-1].port:=ntohs(ipname.sin_port);
