@@ -1166,7 +1166,7 @@ var c: integer;
 begin
   result:=false;
   for c:=0 to i-1 do
-    if groupdata[c].offset=currentoffset then
+    if groupdata[c].offset=(currentoffset-1) then
     begin
       result:=true;
 
