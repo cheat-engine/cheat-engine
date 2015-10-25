@@ -50,6 +50,7 @@ Added some basic Thumb disassembling
 The xmplayer has been replaced with mikmod which supports many different module types (in lua you still call it xmplayer)
 Rightlicking on "your system supports dbvm" will let you manually load DBVM for each cpu. This is usefull if for some reason your system crashes when it's done too quickly
 In "Find what addresses this instruction accesses" you can now open the structure dissect window of your choice in case there are others. It will also fill in the base address, so no need to recalculate yourself
+AA command GlobalAlloc now has an optional 3th parameter that lets you specify the prefered region
 
 lua:
   switched from Lua 5.1 to 5.3    

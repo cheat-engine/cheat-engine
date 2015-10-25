@@ -4426,7 +4426,7 @@ begin
     case apiid of
       0: newkernelhandler.OpenProcess:=pointer(address);
       1: newkernelhandler.ReadProcessMemory:=pointer(address);
-      2: newkernelhandler.WriteProcessMemory:=pointer(address);
+      2: newkernelhandler.WriteProcessMemoryActual:=pointer(address);
       3: newkernelhandler.VirtualQueryEx:=pointer(address);
     end;
 

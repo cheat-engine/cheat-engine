@@ -235,7 +235,7 @@ type
     //userdefined symbols
     function DeleteUserdefinedSymbol(symbolname:string):boolean;
     function GetUserdefinedSymbolByName(symbolname:string):ptrUint;
-    function SetUserdefinedSymbolAllocSize(symbolname:string; size: dword): boolean;
+    function SetUserdefinedSymbolAllocSize(symbolname:string; size: dword; preferedaddress: ptruint=0): boolean;
     function GetUserdefinedSymbolByAddress(address:ptrUint):string;
     procedure AddUserdefinedSymbol(addressstring: string; symbolname: string; donotsave: boolean=false);
     procedure EnumerateUserdefinedSymbols(list:tstrings);
@@ -302,7 +302,7 @@ implementation
 {$ifdef windows}
 uses assemblerunit, driverlist, LuaHandler, lualib, lua, lauxlib,
   disassemblerComments, StructuresFrm2, networkInterface, networkInterfaceApi,
-  processhandlerunit, Globals, Parsers;
+  processhandlerunit, Globals, Parsers, MemoryQuery;
 {$endif}
 
 {$ifdef unix}
@@ -1570,7 +1570,7 @@ begin
     UserdefinedSymbolCallback();
 end;
 
-function TSymhandler.SetUserdefinedSymbolAllocSize(symbolname:string; size: dword): boolean;
+function TSymhandler.SetUserdefinedSymbolAllocSize(symbolname:string; size: dword; preferedaddress: ptruint=0): boolean;
 {
 This function will find the userdefined symbol, and when found checks if it already
 allocated memory. If not allocate memory, else check if the size matches
@@ -1624,7 +1624,7 @@ begin
         if (globalallocpid<>processid) or (globalalloc=nil) or (globalallocsizeleft<size) then //new alloc
         begin
           globalallocpid:=processid;
-          globalalloc:=virtualallocex(processhandle,nil,max(65536,size),MEM_COMMIT , PAGE_EXECUTE_READWRITE);
+          globalalloc:=virtualallocex(processhandle,FindFreeBlockForRegion(preferedaddress,max(65536,size)),max(65536,size),MEM_COMMIT , PAGE_EXECUTE_READWRITE);
           globalallocsizeleft:=max(65536,size);
         end;
 

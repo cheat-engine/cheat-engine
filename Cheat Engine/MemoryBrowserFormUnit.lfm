@@ -1107,6 +1107,10 @@ object MemoryBrowser: TMemoryBrowser
         Caption = 'Debug events'
         OnClick = miDebugEventsClick
       end
+      object MenuItem25: TMenuItem
+        Caption = 'User write history'
+        OnClick = MenuItem25Click
+      end
       object N5: TMenuItem
         Caption = '-'
       end

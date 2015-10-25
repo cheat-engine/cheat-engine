@@ -1718,7 +1718,7 @@ begin
 
   //pointers to the address that contains the pointers to the functions
   exportedfunctions.ReadProcessMemory:=@@ReadProcessMemory;
-  exportedfunctions.WriteProcessMemory:=@@WriteProcessMemory;
+  exportedfunctions.WriteProcessMemory:=@@WriteProcessMemoryActual;
   exportedfunctions.GetThreadContext:=@@GetThreadContext;
   exportedfunctions.SetThreadContext:=@@SetThreadContext;
   exportedfunctions.SuspendThread:=@@SuspendThread;

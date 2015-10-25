@@ -41,6 +41,7 @@ type
     MenuItem22: TMenuItem;
     MenuItem23: TMenuItem;
     MenuItem24: TMenuItem;
+    MenuItem25: TMenuItem;
     miGNUAssembler: TMenuItem;
     miBinutilsSelect: TMenuItem;
     miBinUtils: TMenuItem;
@@ -270,6 +271,7 @@ type
     procedure MenuItem18Click(Sender: TObject);
     procedure MenuItem20Click(Sender: TObject);
     procedure MenuItem22Click(Sender: TObject);
+    procedure MenuItem25Click(Sender: TObject);
     procedure miGNUAssemblerClick(Sender: TObject);
     procedure miBinutilsSelectClick(Sender: TObject);
     procedure SetBookmarkClick(Sender: TObject);
@@ -619,7 +621,8 @@ uses Valuechange,
   MemoryQuery,
   AccessedMemory,
   Parsers,
-  GnuAssembler;
+  GnuAssembler,
+  frmEditHistoryUnit;
 
 
 resourcestring
@@ -1092,6 +1095,15 @@ begin
     frmAccessedMemory:=TfrmAccessedMemory.Create(application);
 
   frmAccessedMemory.Show;
+end;
+
+procedure TMemoryBrowser.MenuItem25Click(Sender: TObject);
+begin
+  if frmEditHistory=nil then
+    frmEditHistory:=tfrmEditHistory.create(application);
+
+  frmEditHistory.show;
+
 end;
 
 procedure TMemoryBrowser.miGNUAssemblerClick(Sender: TObject);
@@ -2067,6 +2079,9 @@ begin
           exit;
         end;
       end;
+
+      if (key=ORD('Z')) and (ssCtrl in shift) then
+        undoLastWrite;
 
       if (ssalt in shift) or (ssctrl in shift) then exit; 
 

@@ -159,7 +159,8 @@ type
 
 implementation
 
-uses dialogs, formAddressChangeUnit, TypePopup, PasteTableentryFRM, mainunit, ProcessHandlerUnit;
+uses dialogs, formAddressChangeUnit, TypePopup, PasteTableentryFRM, mainunit,
+  ProcessHandlerUnit, frmEditHistoryUnit;
 
 resourcestring
   rsDoYouWantToDeleteTheSelectedAddress = 'Do you want to delete the selected '
@@ -389,10 +390,19 @@ end;
 
 procedure TAddresslist.ApplyFreeze;
 {Freeze all the records that are active}
-var i: integer;
+var
+  i: integer;
+  oldlogWrites: boolean;
 begin
-  for i:=0 to count-1 do
-    memrecitems[i].ApplyFreeze;
+  oldlogWrites:=logwrites;
+  //oldlogWrites:=false;
+
+  try
+    for i:=0 to count-1 do
+      memrecitems[i].ApplyFreeze;
+  finally
+    logWrites:=oldlogWrites;
+  end;
 end;
 
 procedure TAddresslist.saveTableXMLToNode(CheatEntries: TDOMNode; selectedOnly: boolean=false);

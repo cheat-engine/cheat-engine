@@ -88,7 +88,7 @@ resourcestring
 implementation
 
 
-uses KernelDebugger,mainunit, DebugHelper, CustomTypeHandler, ProcessList, Globals;
+uses KernelDebugger,mainunit, DebugHelper, CustomTypeHandler, ProcessList, Globals, frmEditHistoryUnit;
 
 procedure UpdateToolsMenu;
 var i: integer;
@@ -562,8 +562,6 @@ begin
           try cbKernelReadWriteProcessMemory.checked:=reg.ReadBool('Use dbk32 ReadWriteProcessMemory'); except end;
           try cbKernelOpenProcess.checked:=reg.ReadBool('Use dbk32 OpenProcess'); except end;
 
-          {$ifndef net}
-
 
           try unrandomizersettings.defaultreturn:=reg.ReadInteger('Unrandomizer: default value'); except end;
           try unrandomizersettings.incremental:=reg.ReadBool('Unrandomizer: incremental'); except end;
@@ -642,12 +640,18 @@ begin
             if (frmProcessWatcher=nil) then //propably yes
               frmProcessWatcher:=tfrmprocesswatcher.Create(mainform); //start the process watcher
 
-          {$endif}
 
 
+          if reg.ValueExists('WriteLogging') then
+            cbWriteLoggingOn.checked:=reg.ReadBool('WriteLogging');
 
+          if reg.ValueExists('WriteLoggingSize') then
+          begin
+            edtWriteLogSize.text:=inttostr(reg.ReadInteger('WriteLoggingSize'));
+            setMaxWriteLogSize(reg.ReadInteger('WriteLoggingSize'));
+          end;
 
-
+          logWrites:=cbWriteLoggingOn.checked;
         end;
 
 

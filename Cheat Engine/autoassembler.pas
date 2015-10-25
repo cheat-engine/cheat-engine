@@ -1459,11 +1459,24 @@ begin
           begin
             a:=pos('(',currentline);
             b:=pos(',',currentline);
-            c:=pos(')',currentline);
-            if (a>0) and (b>0) and (c>0) then
+            c:=PosEx(',',currentline,b+1);
+            d:=pos(')',currentline);
+
+            if (a>0) and (b>0) and (d>0) then
             begin
               s1:=trim(copy(currentline,a+1,b-a-1));
-              s2:=trim(copy(currentline,b+1,c-b-1));
+
+              if c>0 then
+              begin
+                s2:=trim(copy(currentline,b+1,c-b-1));
+                s3:=trim(copy(currentline,c+1,d-c-1));
+              end
+              else
+              begin
+                s2:=trim(copy(currentline,b+1,d-b-1));
+                s3:='';
+              end;
+
 
               try
                 x:=strtoint(s2);
@@ -1472,12 +1485,16 @@ begin
               end;
 
               //define it here already
-              symhandler.SetUserdefinedSymbolAllocSize(s1,x);
+              if s3<>'' then
+                symhandler.SetUserdefinedSymbolAllocSize(s1,x, symhandler.getAddressFromName(s3))
+              else
+                symhandler.SetUserdefinedSymbolAllocSize(s1,x);
 
               setlength(globalallocs,length(globalallocs)+1);
               globalallocs[length(globalallocs)-1].address:=symhandler.GetUserdefinedSymbolByName(s1);
               globalallocs[length(globalallocs)-1].varname:=s1;
               globalallocs[length(globalallocs)-1].size:=x;
+
 
               setlength(assemblerlines,length(assemblerlines)-1);
               continue;

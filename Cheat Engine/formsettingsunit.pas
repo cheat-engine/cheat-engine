@@ -38,13 +38,16 @@ type
     cbVEHRealContextOnThreadCreation: TCheckBox;
     cbWaitAfterGuiUpdate: TCheckBox;
     cgAllTypes: TCheckGroup;
+    cbWriteLoggingOn: TCheckBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
+    edtWriteLogSize: TEdit;
     edtStacksize: TEdit;
     edtTempScanFolder: TEdit;
     GroupBox2: TGroupBox;
     GroupBox4: TGroupBox;
     Label2: TLabel;
+    Label8: TLabel;
     lblThreadFollowing: TLabel;
     Label4: TLabel;
     Label6: TLabel;
@@ -263,6 +266,7 @@ ConfigUnrandomizerFrm,
 CustomTypeHandler,
 processlist,
 commonTypeDefs,
+frmEditHistoryUnit,
 Globals;
 
 
@@ -351,6 +355,7 @@ var processhandle2: Thandle;
     dllpath: Tpathspecifier;
 
     cpu: string;
+    WriteLogSize: integer;
 begin
 
   {$ifdef cpu64}
@@ -373,10 +378,10 @@ begin
   if not ((cbMemPrivate.checked) or (cbMemImage.Checked) or (cbMemMapped.Checked)) then
     if messagedlg(rsYouHavenTSelectedAnyMemoryTypeThisWillResultInChea, mtWarning, [mbyes, mbno], 0)<>mryes then exit;
 
+  WriteLogSize:=strtoint(edtWriteLogSize.text);
+
   val(edtStacksize.text, stacksize, error);
   if (error<>0) or (stacksize<=0) then raise exception.Create(Format(rsIsNotAValidInterval, [edtStacksize.text]));
-
-
 
 
 
@@ -685,7 +690,6 @@ begin
       reg.WriteBool('Wait After Gui Update', waitafterguiupdate);
 
 
-
       unrandomizersettings.defaultreturn:=strtoint(edtdefault.Text);
       unrandomizersettings.incremental:=cbincremental.Checked;
       reg.WriteInteger('Unrandomizer: default value',unrandomizersettings.defaultreturn);
@@ -694,6 +698,11 @@ begin
       reg.writebool('Show tools menu', cbShowTools.checked);
       mainform.ools1.Visible:=cbShowTools.checked;
 
+      reg.writebool('WriteLogging', cbWriteLoggingOn.checked);
+      reg.WriteInteger('WriteLoggingSize', WriteLogSize);
+
+      logWrites:=cbWriteLoggingOn.checked;
+      setMaxWriteLogSize(writelogsize);
     end;
 
 

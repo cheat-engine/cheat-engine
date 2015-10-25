@@ -1,11 +1,11 @@
 object formSettings: TformSettings
   Left = 774
-  Height = 518
+  Height = 540
   Top = 308
   Width = 772
   BorderIcons = [biSystemMenu]
   Caption = 'Cheat Engine settings'
-  ClientHeight = 518
+  ClientHeight = 540
   ClientWidth = 772
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
@@ -17,16 +17,16 @@ object formSettings: TformSettings
   LCLVersion = '1.3'
   object pnlConfig: TPanel
     Left = 0
-    Height = 471
+    Height = 493
     Top = 0
     Width = 772
     Align = alClient
-    ClientHeight = 471
+    ClientHeight = 493
     ClientWidth = 772
     TabOrder = 0
     object tvMenuSelection: TTreeView
       Left = 1
-      Height = 469
+      Height = 491
       Top = 1
       Width = 148
       Align = alLeft
@@ -57,7 +57,7 @@ object formSettings: TformSettings
     end
     object pcSetting: TPageControl
       Left = 149
-      Height = 469
+      Height = 491
       Top = 1
       Width = 622
       ActivePage = GeneralSettings
@@ -67,12 +67,12 @@ object formSettings: TformSettings
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
         Caption = 'General Settings'
-        ClientHeight = 443
+        ClientHeight = 465
         ClientWidth = 614
         object Label11: TLabel
           Left = 221
           Height = 13
-          Top = 373
+          Top = 395
           Width = 13
           Caption = 'ms'
           ParentColor = False
@@ -80,7 +80,7 @@ object formSettings: TformSettings
         object Label12: TLabel
           Left = 221
           Height = 13
-          Top = 397
+          Top = 419
           Width = 13
           Caption = 'ms'
           ParentColor = False
@@ -88,7 +88,7 @@ object formSettings: TformSettings
         object Label13: TLabel
           Left = 87
           Height = 13
-          Top = 376
+          Top = 395
           Width = 72
           Caption = 'Update interval'
           ParentColor = False
@@ -96,7 +96,7 @@ object formSettings: TformSettings
         object Label14: TLabel
           Left = 90
           Height = 13
-          Top = 401
+          Top = 423
           Width = 69
           Caption = 'Freeze interval'
           ParentColor = False
@@ -104,7 +104,7 @@ object formSettings: TformSettings
         object Label18: TLabel
           Left = 1
           Height = 13
-          Top = 424
+          Top = 446
           Width = 158
           Caption = 'Found address list update interval'
           ParentColor = False
@@ -112,7 +112,7 @@ object formSettings: TformSettings
         object Label19: TLabel
           Left = 221
           Height = 13
-          Top = 421
+          Top = 443
           Width = 13
           Caption = 'ms'
           ParentColor = False
@@ -120,7 +120,7 @@ object formSettings: TformSettings
         object Label23: TLabel
           Left = 10
           Height = 13
-          Top = 322
+          Top = 344
           Width = 193
           Caption = 'Automatically attach to processes named'
           ParentColor = False
@@ -157,7 +157,7 @@ object formSettings: TformSettings
           Left = 165
           Height = 21
           Hint = 'The number of milliseconds that Cheat Engine will wait before refreshing the list of addresses'
-          Top = 369
+          Top = 391
           Width = 53
           ParentShowHint = False
           ShowHint = True
@@ -168,7 +168,7 @@ object formSettings: TformSettings
           Left = 165
           Height = 21
           Hint = 'The number of milliseconds that Cheat Engine will wait before resetting the frozen addresses to their original value.'
-          Top = 394
+          Top = 416
           Width = 53
           ParentShowHint = False
           ShowHint = True
@@ -178,7 +178,7 @@ object formSettings: TformSettings
         object GroupBox1: TGroupBox
           Left = 0
           Height = 64
-          Top = 250
+          Top = 272
           Width = 602
           Caption = 'Address list specific'
           ClientHeight = 46
@@ -216,7 +216,7 @@ object formSettings: TformSettings
           Left = 165
           Height = 21
           Hint = 'The number of milliseconds that Cheat Engine will wait before refreshing the list of addresses'
-          Top = 417
+          Top = 439
           Width = 51
           ParentShowHint = False
           ShowHint = True
@@ -247,7 +247,7 @@ object formSettings: TformSettings
           Left = 209
           Height = 21
           Hint = 'Type the name of the process you want to automatically open. Note: Only works when NO process has been opened yet'
-          Top = 317
+          Top = 339
           Width = 143
           ParentShowHint = False
           ShowHint = True
@@ -256,7 +256,7 @@ object formSettings: TformSettings
         object cbAlwaysAutoAttach: TCheckBox
           Left = 10
           Height = 19
-          Top = 343
+          Top = 365
           Width = 334
           Caption = 'Even autoattach when another process has already been selected'
           TabOrder = 10
@@ -344,48 +344,84 @@ object formSettings: TformSettings
           Caption = 'Show process list in main menu'
           TabOrder = 19
         end
+        object cbWriteLoggingOn: TCheckBox
+          Left = 1
+          Height = 19
+          Top = 246
+          Width = 164
+          Caption = 'Enable write logging by default'
+          TabOrder = 20
+        end
+        object Label8: TLabel
+          AnchorSideLeft.Control = cbWriteLoggingOn
+          AnchorSideLeft.Side = asrBottom
+          AnchorSideTop.Control = cbWriteLoggingOn
+          AnchorSideTop.Side = asrCenter
+          Left = 170
+          Height = 13
+          Top = 249
+          Width = 122
+          BorderSpacing.Left = 5
+          Caption = 'Max log size (nr of entries)'
+          Enabled = False
+          ParentColor = False
+        end
+        object edtWriteLogSize: TEdit
+          AnchorSideLeft.Control = Label8
+          AnchorSideLeft.Side = asrBottom
+          AnchorSideTop.Control = Label8
+          AnchorSideTop.Side = asrCenter
+          Left = 297
+          Height = 21
+          Top = 245
+          Width = 80
+          BorderSpacing.Left = 5
+          Enabled = False
+          TabOrder = 21
+          Text = '250'
+        end
       end
       object tsHotkeys: TTabSheet
         Caption = 'Hotkeys'
-        ClientHeight = 442
+        ClientHeight = 443
         ClientWidth = 614
         ImageIndex = 7
         inline frameHotkeyConfig: TframeHotkeyConfig
-          Height = 442
+          Height = 443
           Width = 614
           Align = alClient
-          ClientHeight = 442
+          ClientHeight = 443
           ClientWidth = 614
           DesignLeft = 737
           DesignTop = 306
           inherited Panel1: TPanel
-            Height = 380
+            Height = 381
             Top = 62
             Width = 388
-            ClientHeight = 380
+            ClientHeight = 381
             ClientWidth = 388
             inherited Label1: TLabel
-              Height = 14
+              Height = 13
               Width = 388
             end
             inherited ListBox1: TListBox
-              Height = 366
-              Top = 14
+              Height = 368
+              Top = 13
               Width = 388
               ItemHeight = 13
             end
           end
           inherited Panel2: TPanel
             Left = 388
-            Height = 380
+            Height = 381
             Top = 62
             Width = 226
-            ClientHeight = 380
+            ClientHeight = 381
             ClientWidth = 226
             inherited Label2: TLabel
               Left = 7
-              Height = 14
-              Width = 35
+              Height = 13
+              Width = 34
             end
             inherited Edit1: TEdit
               Left = 6
@@ -401,15 +437,16 @@ object formSettings: TformSettings
             end
             inherited Panel3: TPanel
               Left = 2
-              Height = 382
+              Height = 383
               Top = 72
               Width = 224
-              ClientHeight = 382
+              ClientHeight = 383
               ClientWidth = 224
               inherited Label52: TLabel
-                Left = 184
-                Height = 14
+                Left = 185
+                Height = 13
                 Top = 3
+                Width = 31
               end
               inherited edtSHSpeed: TEdit
                 Left = 160
@@ -427,8 +464,8 @@ object formSettings: TformSettings
               ClientWidth = 213
               inherited Label3: TLabel
                 Left = 4
-                Height = 14
-                Width = 58
+                Height = 13
+                Width = 57
               end
               inherited Edit4: TEdit
                 Height = 21
@@ -444,15 +481,15 @@ object formSettings: TformSettings
             ClientWidth = 614
             inherited Label4: TLabel
               Left = 128
-              Height = 14
+              Height = 13
               Top = 7
-              Width = 137
+              Width = 136
             end
             inherited Label5: TLabel
               Left = 128
-              Height = 14
+              Height = 13
               Top = 39
-              Width = 170
+              Width = 169
             end
             inherited edtKeypollInterval: TEdit
               Height = 21
@@ -1109,13 +1146,13 @@ object formSettings: TformSettings
       end
       object Extra: TTabSheet
         Caption = 'Extra'
-        ClientHeight = 442
+        ClientHeight = 443
         ClientWidth = 614
         ImageIndex = 6
         object TauntOldOsUser: TLabel
           Left = 0
-          Height = 14
-          Top = 428
+          Height = 13
+          Top = 430
           Width = 614
           Align = alBottom
           Alignment = taCenter
@@ -1422,7 +1459,7 @@ object formSettings: TformSettings
   object Panel6: TPanel
     Left = 0
     Height = 47
-    Top = 471
+    Top = 493
     Width = 772
     Align = alBottom
     BevelOuter = bvNone
