@@ -32,7 +32,7 @@ implementation
 
 function TXMPlayer.getPlayingState: boolean;
 begin
-  result:=Player_Active();
+  result:=Player_Active() and (not Player_Paused());
 end;
 
 procedure TXMPlayer.playXM(filename: string; noloop: boolean);
