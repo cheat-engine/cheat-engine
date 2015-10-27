@@ -12,17 +12,19 @@ uses
 type
   { TfrmGroupScanAlgoritmGenerator }
   TfrmGroupScanAlgoritmGenerator = class(TForm)
-    btnOK: TButton;
     btnCancel: TButton;
-    cbTypeAligned: TCheckBox;
+    btnOK: TButton;
     cbOutOfOrder: TCheckBox;
+    cbTypeAligned: TCheckBox;
     edtBlockalignment: TEdit;
     edtBlocksize: TEdit;
-    lblBlocksize: TLabel;
     lblBlockAlignment: TLabel;
-    lblWildcardExplanation: TLabel;
-    lblMustBeDividable: TLabel;
+    lblBlocksize: TLabel;
     lblMin: TLabel;
+    lblMustBeDividable: TLabel;
+    lblWildcardExplanation: TLabel;
+    Panel1: TPanel;
+    Panel2: TPanel;
     ScrollBox1: TScrollBox;
     procedure btnOKClick(Sender: TObject);
     procedure cbOutOfOrderChange(Sender: TObject);
@@ -388,7 +390,7 @@ end;
 
 procedure TfrmGroupScanAlgoritmGenerator.FormShow(Sender: TObject);
 begin
-  clientheight:=btnOK.top+btnOK.height+10;
+//  clientheight:=panel1.top+btnOK.top+btnOK.height+10;
 end;
 
 procedure TfrmGroupScanAlgoritmGenerator.sizechange;

@@ -1,181 +1,204 @@
 object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
-  Left = 995
-  Height = 306
-  Top = 176
-  Width = 306
-  BorderStyle = bsSingle
+  Left = 782
+  Height = 330
+  Top = 371
+  Width = 343
   Caption = 'Generate groupscan command'
-  ClientHeight = 306
-  ClientWidth = 306
+  ClientHeight = 330
+  ClientWidth = 343
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
-  object edtBlocksize: TEdit
-    AnchorSideLeft.Control = ScrollBox1
-    AnchorSideTop.Control = lblBlocksize
-    AnchorSideTop.Side = asrBottom
-    Left = 14
-    Height = 23
-    Top = 158
-    Width = 80
-    Enabled = False
-    TabOrder = 0
-  end
-  object lblBlocksize: TLabel
-    AnchorSideLeft.Control = ScrollBox1
-    AnchorSideTop.Control = ScrollBox1
-    AnchorSideTop.Side = asrBottom
-    Left = 14
-    Height = 16
-    Top = 142
-    Width = 49
-    BorderSpacing.Top = 6
-    Caption = 'Blocksize'
-    ParentColor = False
-  end
+  LCLVersion = '1.3'
   object ScrollBox1: TScrollBox
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = lblWildcardExplanation
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Panel1
     Left = 14
-    Height = 120
-    Top = 16
-    Width = 278
-    HorzScrollBar.Page = 274
-    VertScrollBar.Increment = 11
-    VertScrollBar.Page = 116
+    Height = 124
+    Top = 15
+    Width = 315
+    HorzScrollBar.Page = 1
+    VertScrollBar.Increment = 1
+    VertScrollBar.Page = 1
     VertScrollBar.Smooth = True
     VertScrollBar.Tracking = True
-    Anchors = [akTop, akLeft, akRight]
+    Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Left = 14
     BorderSpacing.Right = 14
-    TabOrder = 1
-  end
-  object btnOK: TButton
-    AnchorSideLeft.Control = Owner
-    AnchorSideLeft.Side = asrCenter
-    AnchorSideTop.Control = cbTypeAligned
-    AnchorSideTop.Side = asrBottom
-    AnchorSideRight.Control = btnCancel
-    Left = 72
-    Height = 25
-    Top = 268
-    Width = 75
-    Anchors = [akTop]
-    BorderSpacing.Top = 10
-    BorderSpacing.Right = 8
-    Caption = 'OK'
-    Default = True
-    OnClick = btnOKClick
-    TabOrder = 2
-  end
-  object btnCancel: TButton
-    AnchorSideLeft.Control = btnOK
-    AnchorSideTop.Control = cbTypeAligned
-    AnchorSideTop.Side = asrBottom
-    Left = 160
-    Height = 25
-    Top = 268
-    Width = 75
-    Anchors = [akTop]
-    BorderSpacing.Top = 10
-    Cancel = True
-    Caption = 'Cancel'
-    ModalResult = 2
-    TabOrder = 3
-  end
-  object cbOutOfOrder: TCheckBox
-    AnchorSideLeft.Control = ScrollBox1
-    AnchorSideTop.Control = edtBlockalignment
-    AnchorSideTop.Side = asrBottom
-    Left = 14
-    Height = 19
-    Top = 220
-    Width = 85
-    Caption = 'Out of order'
-    OnChange = cbOutOfOrderChange
-    TabOrder = 4
-  end
-  object cbTypeAligned: TCheckBox
-    AnchorSideLeft.Control = cbOutOfOrder
-    AnchorSideTop.Control = cbOutOfOrder
-    AnchorSideTop.Side = asrBottom
-    Left = 28
-    Height = 19
-    Top = 239
-    Width = 133
-    BorderSpacing.Left = 14
-    Caption = 'Must be type-aligned'
-    Checked = True
-    Enabled = False
-    OnChange = cbOutOfOrderChange
-    State = cbChecked
-    TabOrder = 5
-  end
-  object lblMin: TLabel
-    AnchorSideLeft.Control = edtBlocksize
-    AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = edtBlocksize
-    AnchorSideTop.Side = asrCenter
-    Left = 98
-    Height = 16
-    Top = 161
-    Width = 35
-    BorderSpacing.Left = 4
-    Caption = 'lblMin'
-    ParentColor = False
-    Visible = False
-  end
-  object edtBlockalignment: TEdit
-    AnchorSideLeft.Control = ScrollBox1
-    AnchorSideTop.Control = lblBlockAlignment
-    AnchorSideTop.Side = asrBottom
-    Left = 14
-    Height = 23
-    Top = 197
-    Width = 80
-    OnChange = edtBlockalignmentChange
-    TabOrder = 6
-    Text = '4'
-  end
-  object lblBlockAlignment: TLabel
-    AnchorSideLeft.Control = ScrollBox1
-    AnchorSideTop.Control = edtBlocksize
-    AnchorSideTop.Side = asrBottom
-    Left = 14
-    Height = 16
-    Top = 181
-    Width = 87
-    Caption = 'Block alignment'
-    ParentColor = False
+    BorderSpacing.Bottom = 14
+    TabOrder = 0
   end
   object lblWildcardExplanation: TLabel
     AnchorSideLeft.Control = Owner
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = Owner
-    Left = 45
-    Height = 16
+    Left = 63
+    Height = 15
     Top = 0
-    Width = 217
+    Width = 216
     Caption = 'Leave a value empty or use * for wildcard'
     ParentColor = False
   end
-  object lblMustBeDividable: TLabel
-    AnchorSideLeft.Control = edtBlockalignment
-    AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = edtBlockalignment
-    AnchorSideTop.Side = asrCenter
-    Left = 98
-    Height = 16
-    Top = 200
-    Width = 120
-    BorderSpacing.Left = 4
-    Caption = 'Must be dividable by 4'
-    ParentColor = False
-    Visible = False
+  object Panel1: TPanel
+    Left = 0
+    Height = 177
+    Top = 153
+    Width = 343
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 177
+    ClientWidth = 343
+    TabOrder = 1
+    object edtBlocksize: TEdit
+      AnchorSideLeft.Control = ScrollBox1
+      AnchorSideTop.Control = lblBlocksize
+      AnchorSideTop.Side = asrBottom
+      Left = 16
+      Height = 23
+      Top = 23
+      Width = 80
+      Enabled = False
+      TabOrder = 0
+    end
+    object lblBlocksize: TLabel
+      AnchorSideLeft.Control = ScrollBox1
+      AnchorSideTop.Control = ScrollBox1
+      AnchorSideTop.Side = asrBottom
+      Left = 16
+      Height = 15
+      Top = 8
+      Width = 48
+      BorderSpacing.Top = 6
+      Caption = 'Blocksize'
+      ParentColor = False
+    end
+    object cbOutOfOrder: TCheckBox
+      AnchorSideLeft.Control = ScrollBox1
+      AnchorSideTop.Control = edtBlockalignment
+      AnchorSideTop.Side = asrBottom
+      Left = 16
+      Height = 19
+      Top = 84
+      Width = 85
+      Caption = 'Out of order'
+      OnChange = cbOutOfOrderChange
+      TabOrder = 1
+    end
+    object cbTypeAligned: TCheckBox
+      AnchorSideLeft.Control = cbOutOfOrder
+      AnchorSideTop.Control = cbOutOfOrder
+      AnchorSideTop.Side = asrBottom
+      Left = 30
+      Height = 19
+      Top = 103
+      Width = 133
+      BorderSpacing.Left = 14
+      Caption = 'Must be type-aligned'
+      Checked = True
+      Enabled = False
+      OnChange = cbOutOfOrderChange
+      State = cbChecked
+      TabOrder = 2
+    end
+    object lblMin: TLabel
+      AnchorSideLeft.Control = edtBlocksize
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = edtBlocksize
+      AnchorSideTop.Side = asrCenter
+      Left = 100
+      Height = 15
+      Top = 27
+      Width = 34
+      BorderSpacing.Left = 4
+      Caption = 'lblMin'
+      ParentColor = False
+      Visible = False
+    end
+    object edtBlockalignment: TEdit
+      AnchorSideLeft.Control = ScrollBox1
+      AnchorSideTop.Control = lblBlockAlignment
+      AnchorSideTop.Side = asrBottom
+      Left = 16
+      Height = 23
+      Top = 61
+      Width = 80
+      OnChange = edtBlockalignmentChange
+      TabOrder = 3
+      Text = '4'
+    end
+    object lblBlockAlignment: TLabel
+      AnchorSideLeft.Control = ScrollBox1
+      AnchorSideTop.Control = edtBlocksize
+      AnchorSideTop.Side = asrBottom
+      Left = 16
+      Height = 15
+      Top = 46
+      Width = 86
+      Caption = 'Block alignment'
+      ParentColor = False
+    end
+    object lblMustBeDividable: TLabel
+      AnchorSideLeft.Control = edtBlockalignment
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = edtBlockalignment
+      AnchorSideTop.Side = asrCenter
+      Left = 100
+      Height = 15
+      Top = 65
+      Width = 119
+      BorderSpacing.Left = 4
+      Caption = 'Must be dividable by 4'
+      ParentColor = False
+      Visible = False
+    end
+    object Panel2: TPanel
+      AnchorSideLeft.Control = Panel1
+      AnchorSideLeft.Side = asrCenter
+      AnchorSideBottom.Control = Panel1
+      AnchorSideBottom.Side = asrBottom
+      Left = 92
+      Height = 41
+      Top = 136
+      Width = 158
+      Anchors = [akTop, akLeft, akBottom]
+      AutoSize = True
+      BevelOuter = bvNone
+      ClientHeight = 41
+      ClientWidth = 158
+      TabOrder = 4
+      object btnCancel: TButton
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Side = asrBottom
+        Left = 83
+        Height = 25
+        Top = 10
+        Width = 75
+        BorderSpacing.Top = 10
+        Cancel = True
+        Caption = 'Cancel'
+        ModalResult = 2
+        TabOrder = 0
+      end
+      object btnOK: TButton
+        AnchorSideLeft.Side = asrCenter
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Side = asrBottom
+        Left = 0
+        Height = 25
+        Top = 10
+        Width = 75
+        BorderSpacing.Top = 10
+        BorderSpacing.Right = 8
+        Caption = 'OK'
+        Default = True
+        OnClick = btnOKClick
+        TabOrder = 1
+      end
+    end
   end
 end
