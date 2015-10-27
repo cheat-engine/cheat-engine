@@ -13,6 +13,7 @@ type
   { TfrmDBVMLoadManual }
 
   TfrmDBVMLoadManual = class(TForm)
+    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
   private
     { private declarations }
@@ -47,6 +48,12 @@ begin
   end;
 
   checkfordbvm;
+end;
+
+procedure TfrmDBVMLoadManual.FormClose(Sender: TObject;
+  var CloseAction: TCloseAction);
+begin
+  closeaction:=caFree;
 end;
 
 procedure TfrmDBVMLoadManual.FormCreate(Sender: TObject);
