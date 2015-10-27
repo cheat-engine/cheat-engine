@@ -31,23 +31,42 @@ implementation
 
 uses aboutunit, Parsers, DBK32functions, vmxfunctions;
 
+resourcestring
+  rsCpuAlreadyRunningDBVM='This cpu is already running DBVM';
+
 { TfrmDBVMLoadManual }
 
 procedure TfrmDBVMLoadManual.launchDBVMForCpuClick(Sender: TObject);
-var cpuid: integer;
+var
+  cpuid: integer;
+  proc, sys: DWORD_PTR;
 begin
   //LoadDBK32;
+  GetProcessAffinityMask(GetCurrentProcess, proc, sys);
 
-  if (sender is TButton) then
-  begin
-    cpuid:=TButton(sender).tag;
-    if cpuid=-1 then exit;
+  try
+    if (sender is TButton) then
+    begin
+      cpuid:=TButton(sender).tag;
+      SetProcessAffinityMask(GetCurrentProcess, 1 shl cpuid);
+      sleep(10);
 
-    OutputDebugString(pchar('launchDBVMForCpuClick('+inttostr(cpuid)+')'));
-    LaunchDBVM(cpuid);
+      if dbvm_version=0 then
+      begin
+        OutputDebugString(pchar('launchDBVMForCpuClick('+inttostr(cpuid)+')'));
+        LaunchDBVM(cpuid);
+      end
+      else
+        raise exception.create(rsCpuAlreadyRunningDBVM);
+    end;
+
+
+
+  finally
+    checkfordbvm;
+    SetProcessAffinityMask(GetCurrentProcess, proc);
   end;
 
-  checkfordbvm;
 end;
 
 procedure TfrmDBVMLoadManual.FormClose(Sender: TObject;
@@ -131,15 +150,18 @@ var i: integer;
   proc, sys: DWORD_PTR;
 
   allactive: boolean;
+  id: integer;
 begin
   GetProcessAffinityMask(GetCurrentProcess, proc, sys);
   allactive:=true;
   for i:=0 to length(cpulabels)-1 do
   begin
+    id:=TLabel(cpulabels[i]).Tag;
 
-    SetProcessAffinityMask(GetCurrentProcess, 1 shl TLabel(cpulabels[i]).Tag);
-    OutputDebugString(pchar('Testing '+inttostr(TLabel(cpulabels[i]).Tag)));
+    if id<>-1 then continue; //already on loaded
 
+    SetProcessAffinityMask(GetCurrentProcess, 1 shl id);
+    OutputDebugString(pchar('Testing '+inttostr(id)));
     sleep(10);
 
     if dbvm_version>0 then

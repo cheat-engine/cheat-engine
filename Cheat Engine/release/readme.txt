@@ -1,7 +1,7 @@
 Cheat Engine 6.5
 
 Fixes:
-  
+Fixed page exception breakpoints from not working  
 Fixed the save as button in the lua script assigned to the table
 Fixed the dotnetdatacollector from not fetching parent fields
 Fixed disassembling of some instructions
@@ -51,6 +51,7 @@ The xmplayer has been replaced with mikmod which supports many different module 
 Rightlicking on "your system supports dbvm" will let you manually load DBVM for each cpu. This is usefull if for some reason your system crashes when it's done too quickly
 In "Find what addresses this instruction accesses" you can now open the structure dissect window of your choice in case there are others. It will also fill in the base address, so no need to recalculate yourself
 AA command GlobalAlloc now has an optional 3th parameter that lets you specify the prefered region
+Added an option to record and undo writes. (Off by default, can be enabled in settings.  Memview ctrl+z will undo the last edit)
 
 lua:
   switched from Lua 5.1 to 5.3    
