@@ -126,10 +126,15 @@ object formSettings: TformSettings
           ParentColor = False
         end
         object Label24: TLabel
-          Left = 359
+          AnchorSideLeft.Control = EditAutoAttach
+          AnchorSideLeft.Side = asrBottom
+          AnchorSideTop.Control = EditAutoAttach
+          AnchorSideTop.Side = asrCenter
+          Left = 357
           Height = 13
-          Top = 321
+          Top = 343
           Width = 114
+          BorderSpacing.Left = 5
           Caption = '(Seperate entries with ; )'
           ParentColor = False
         end
@@ -347,9 +352,12 @@ object formSettings: TformSettings
         object cbWriteLoggingOn: TCheckBox
           Left = 1
           Height = 19
+          Hint = 'When enabled CE will record writes done by the user and allows the user to undo those changes'
           Top = 246
           Width = 164
           Caption = 'Enable write logging by default'
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 20
         end
         object Label8: TLabel

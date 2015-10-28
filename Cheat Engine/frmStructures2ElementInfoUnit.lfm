@@ -1,11 +1,11 @@
 object frmStructures2ElementInfo: TfrmStructures2ElementInfo
   Left = 982
-  Height = 275
-  Top = 96
+  Height = 284
+  Top = 102
   Width = 302
   BorderStyle = bsSingle
   Caption = 'Structure Info'
-  ClientHeight = 275
+  ClientHeight = 284
   ClientWidth = 302
   OnCreate = FormCreate
   Position = poScreenCenter
@@ -66,7 +66,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
   object Button1: TButton
     Left = 20
     Height = 24
-    Top = 238
+    Top = 256
     Width = 76
     Caption = 'OK'
     Default = True
@@ -79,7 +79,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
   object Button2: TButton
     Left = 112
     Height = 24
-    Top = 238
+    Top = 256
     Width = 76
     Cancel = True
     Caption = 'Cancel'
@@ -231,6 +231,15 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     ParentColor = False
     TabOrder = 10
     OnClick = pnlBackgroundClick
+  end
+  object cbExpandChangesAddress: TCheckBox
+    Left = 20
+    Height = 19
+    Top = 232
+    Width = 253
+    Caption = 'Expanding this node will change the address'
+    Enabled = False
+    TabOrder = 11
   end
   object ColorDialog1: TColorDialog
     Color = clBlack

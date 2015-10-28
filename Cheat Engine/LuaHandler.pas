@@ -6051,6 +6051,14 @@ begin
   end;
 end;
 
+function setPointerSize(L:PLua_state): integer; cdecl;
+begin
+  if lua_gettop(L)>=1 then
+    processhandler.overridePointerSize(lua_tointeger(L, 1));
+
+  result:=0;
+end;
+
 procedure InitializeLua;
 var
   s: tstringlist;
@@ -6467,6 +6475,7 @@ begin
     lua_register(LuaVM, 'getTranslationFolder', lua_getTranslationFolder);
 
     lua_register(LuaVM, 'registerBinUtil', lua_registerBinUtil);
+    lua_register(LuaVM, 'setPointerSize', setPointerSize);
 
     initializeLuaCustomControl;
 

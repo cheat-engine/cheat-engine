@@ -33,6 +33,7 @@ TFORMSETTINGS.CBSHOWALLWINDOWS.CAPTION=Show all windows in the taskbar
 TFORMSETTINGS.CBASKIFTABLEHASLUASCRIPT.CAPTION=Ask to run lua scripts from tables
 TFORMSETTINGS.CBALWAYSRUNSCRIPT.CAPTION=Always run lua scripts from tables
 TFORMSETTINGS.CBSHOWPROCESSLIST.CAPTION=Show process list in main menu
+TFORMSETTINGS.CBWRITELOGGINGON.HINT=When enabled CE will record writes done by the user and allows the user to undo those changes
 TFORMSETTINGS.CBWRITELOGGINGON.CAPTION=Enable write logging by default
 TFORMSETTINGS.LABEL8.CAPTION=Max log size (nr of entries)
 TFORMSETTINGS.EDTWRITELOGSIZE.TEXT=250

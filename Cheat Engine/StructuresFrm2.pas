@@ -35,6 +35,7 @@ type
     fdisplayMethod: TdisplayMethod;
     fchildstruct: TDissectedStruct;
     fchildstructstart: integer; //offset into the childstruct where this pointer starts. Always 0 for local structs, can be higher than 0 for other defined structs
+    fExpandChangesAddress: boolean;
   public
     delayLoadedStructname: string;
     constructor createFromXMLElement(parent:TDissectedStruct; element: TDOMElement);
@@ -82,6 +83,7 @@ type
     property ChildStructStart: integer read fchildstructstart write setChildStructStart;
     property index: integer read getIndex;
     property parent: TDissectedStruct read getParent;
+    property ExpandChangesAddress: boolean read fExpandChangesAddress write fExpandChangesAddress;
   end;
 
 
@@ -3140,6 +3142,31 @@ var n: TStructelement;
 begin
   AllowExpansion:=true;
   n:=getStructElementFromNode(node);
+
+
+  if (n<>nil) and (n.ExpandChangesAddress) then
+  begin
+    //change address and the structure if needed
+    AllowExpansion:=false;
+
+    c:=getFocusedColumn;
+    address:=getAddressFromNode(node, c, error);
+    if not error then
+    begin
+      //dereference the pointer and fill it in if possible
+      if ReadProcessMemory(processhandle, pointer(address), @address, processhandler.pointersize, x) then
+      begin
+        c:=getFocusedColumn;
+
+        c.Address:=address-n.ChildStructStart;
+        mainStruct:=n.ChildStruct;
+      end;
+    end;
+
+    exit;
+  end;
+
+
   if (n<>nil) and (n.isPointer) and (n.ChildStruct=nil) then
   begin
     if miAutoCreate.Checked then
@@ -3518,6 +3545,8 @@ begin
     hexadecimal:=structelement.displayMethod=dtHexadecimal;
     signed:=structelement.displaymethod=dtSignedInteger;
 
+    ExpandChangesAddress:=structelement.ExpandChangesAddress;
+
 
     if tvStructureView.SelectionCount>1 then
       edtOffset.Enabled:=false;
@@ -3551,6 +3580,8 @@ begin
 
         structElement.parent.beginUpdate;
         try
+          structelement.ExpandChangesAddress:=ExpandChangesAddress;
+
           if changedDescription then
             structElement.name:=description;
 
@@ -3594,6 +3625,8 @@ begin
             structelement.ChildStruct:=nil;
             structelement.ChildStructStart:=0;
           end;
+
+
 
         finally
           structElement.parent.endupdate;
@@ -3681,6 +3714,7 @@ begin
         end;
 
         structElement.BackgroundColor:=backgroundColor;
+        structElement.ExpandChangesAddress:=ExpandChangesAddress;
 
 
 
