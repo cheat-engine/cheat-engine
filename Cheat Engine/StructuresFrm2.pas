@@ -1329,7 +1329,8 @@ var
   offset: integer;
   elemsize: integer;
 begin
-  if frmStructuresConfig.cbAutoGuessCustomTypes.checked then
+
+  if (frmStructuresConfig<>nil) and frmStructuresConfig.cbAutoGuessCustomTypes.checked then
     ctp:=@customtype
   else
     ctp:=nil;
