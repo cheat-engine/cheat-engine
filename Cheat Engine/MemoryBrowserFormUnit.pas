@@ -1699,6 +1699,7 @@ end;
 procedure TMemoryBrowser.FormCreate(Sender: TObject);
 var x: array of integer;
   reg: tregistry;
+  f: TFont;
 begin
   MemoryBrowsers.Add(self);
 
@@ -1769,11 +1770,15 @@ begin
 
     if reg.OpenKey('\Software\Cheat Engine\Hexview\',false) then
     begin
+      f:=hexview.hexfont;
+
       if reg.ValueExists('font.name') then
-        hexview.hexfont.name:=reg.ReadString('font.name');
+        f.name:=reg.ReadString('font.name');
 
       if reg.ValueExists('font.size') then
-        hexview.hexfont.size:=reg.ReadInteger('font.size');
+        f.size:=reg.ReadInteger('font.size');
+
+      hexview.hexfont:=f;
     end;
 
   finally
