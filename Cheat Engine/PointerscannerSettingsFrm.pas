@@ -252,6 +252,7 @@ resourcestring
   rsNoCompareFiles = 'You will get billions of useless results and giga/terrabytes of wasted diskspace if you do not use the compare results option. Are you sure ?';
   rsSelectAFile = '<Select a file>';
   rsScandataFilter = 'All files (*.*)|*.*|Scan Data (*.scandata)|*.scandata';
+  rsReusedTheSameFile = 'This file is already in the list of scandata files to be used'; //alternatively: 'For fucks sake dude. You already picked this file. Pick something else!'
   rsFilename = 'Filename';
   rsAddress = 'Address';
   rsInvalidAddress = 'Invalid address';
@@ -397,20 +398,46 @@ begin
 end;
 
 procedure TPointerFileEntry.btnSetFileClick(Sender: TObject);
-var od: TOpenDialog;
+var
+  od: TOpenDialog;
+  l: TPointerFileList;
+  e: TPointerFileEntry;
+  s: TfrmPointerScannerSettings;
+  i: integer;
+
+
 begin
   od:=TOpenDialog.Create(self);
-  od.DefaultExt:='.scandata';
-  od.Filter:=rsScandataFilter;
-  od.FilterIndex:=2;
-  od.filename:=filename;
-  if od.execute then
-  begin
-    filename:=od.filename;
-    cbAddress.Enabled:=true;
-  end;
+  try
+    od.DefaultExt:='.scandata';
+    od.Filter:=rsScandataFilter;
+    od.FilterIndex:=2;
+    od.filename:=filename;
+    if od.execute then
+    begin
+      //check if this filename is present in one of the other entries, or main entry
+      l:=TPointerFileList(parent);
 
-  od.free;
+      for i:=0 to l.Entries.Count-1 do
+      begin
+        e:=TPointerFileEntry(l.Entries[i]);
+        if (e<>self) and (e.filename=od.FileName) then
+          raise exception.create(rsReusedTheSameFile);
+      end;
+
+      if l.Owner is TfrmPointerScannerSettings then
+      begin
+        s:=TfrmPointerScannerSettings(l.owner);
+        if s.cbUseLoadedPointermap.checked and (s.odLoadPointermap.FileName=od.FileName) then
+          raise exception.create(rsReusedTheSameFile);
+      end;
+
+      filename:=od.filename;
+      cbAddress.Enabled:=true;
+    end;
+  finally
+    od.free;
+  end;
 end;
 
 procedure TPointerFileEntry.btnDeleteClick(Sender: TObject);
@@ -1172,6 +1199,8 @@ begin
     MainForm.addresslist.getAddressList(tstrings(cbAddress.tag));
 
   UpdateAddressList(cbAddress);
+
+  updatepositions;
 end;
 
 procedure TfrmPointerScannerSettings.FormCreate(Sender: TObject);

@@ -1,7 +1,7 @@
 object frmPointerScanner: TfrmPointerScanner
-  Left = 660
+  Left = 714
   Height = 460
-  Top = 163
+  Top = 262
   Width = 737
   Caption = 'Pointer scan'
   ClientHeight = 440
@@ -49,6 +49,7 @@ object frmPointerScanner: TfrmPointerScanner
       Caption = 'Simulate no connection'
       OnChange = cbTestCrappyConnectionChange
       TabOrder = 1
+      Visible = False
     end
     object cbNonResponsive: TCheckBox
       Left = 480
@@ -58,6 +59,7 @@ object frmPointerScanner: TfrmPointerScanner
       Caption = 'Non responsive connection'
       OnChange = cbNonResponsiveChange
       TabOrder = 2
+      Visible = False
     end
   end
   object btnStopRescanLoop: TButton

@@ -158,7 +158,7 @@ begin
   begin
     id:=TLabel(cpulabels[i]).Tag;
 
-    if id<>-1 then continue; //already on loaded
+    if id=-1 then continue; //already on loaded
 
     SetProcessAffinityMask(GetCurrentProcess, 1 shl id);
     OutputDebugString(pchar('Testing '+inttostr(id)));
