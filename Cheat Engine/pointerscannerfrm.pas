@@ -2393,8 +2393,8 @@ function TRescanWorker.isMatchToValue(p:pointer): boolean;
 begin
   case valuetype of
     vtDword: result:=pdword(p)^=valuescandword;
-    vtSingle: result:=(psingle(p)^>=valuescansingle) and (psingle(p)^<valuescansinglemax);
-    vtDouble: result:=(pdouble(p)^>=valuescandouble) and (pdouble(p)^<valuescandoublemax);
+    vtSingle: result:=(psingle(p)^>=valuescansingle) and (psingle(p)^<=valuescansinglemax);
+    vtDouble: result:=(pdouble(p)^>=valuescandouble) and (pdouble(p)^<=valuescandoublemax);
   end;
 end;
 
