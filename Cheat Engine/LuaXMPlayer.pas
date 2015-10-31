@@ -84,8 +84,8 @@ begin
   result:=0;
   lua_pop(L, lua_gettop(L));
 
-  if xmplayer<>nil then
-     xmplayer.stop;
+  if (xmplayer<>nil) then
+    xmplayer.stop();
 end;
 
 function xmplayer_isPlaying(L: Plua_State): integer; cdecl;

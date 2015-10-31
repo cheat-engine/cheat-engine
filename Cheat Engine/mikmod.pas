@@ -128,6 +128,12 @@ var
   procedure MikMod_PlayMemory(memory: pointer; size: integer);
   procedure MikMod_PlayStream(s: TStream; loop: boolean=false);
 
+  procedure MikMod_Pause;
+  procedure MikMod_Unpause;
+  procedure MikMod_Stop;
+
+
+
 implementation
 
 uses math;
@@ -135,6 +141,9 @@ uses math;
 const
   MIKMODCMD_PLAYFILE    = 0;
   MIKMODCMD_PLAYMEMORY  = 1;
+  MIKMODCMD_PAUSE       = 2;
+  MIKMODCMD_UNPAUSE     = 3;
+  MIKMODCMD_STOP        = 4;
 
 type
   TMikModThread=class(TThread)
@@ -155,6 +164,9 @@ type
     procedure play(f: string; loop: boolean=false);
     procedure playMemory(m: pointer; size: integer; loop: boolean=false);
     procedure playStream(s: TStream; loop: boolean=false);
+    procedure pause;
+    procedure unpause;
+    procedure stop;
     procedure execute; override;
     constructor create(LaunchSuspended: boolean);
     destructor destroy; override;
@@ -196,6 +208,32 @@ begin
 
   playMemory(memstream.Memory, memstream.Size, loop);
 end;
+
+procedure TMikModThread.pause;
+begin
+  commandcs.enter;
+  command:=MIKMODCMD_PAUSE;
+  commandReady.SetEvent;
+  commandcs.leave;
+end;
+
+procedure TMikModThread.unpause;
+begin
+  commandcs.enter;
+  command:=MIKMODCMD_UNPAUSE;
+  commandReady.SetEvent;
+  commandcs.leave;
+end;
+
+procedure TMikModThread.stop;
+begin
+  commandcs.enter;
+  command:=MIKMODCMD_STOP;
+  commandReady.SetEvent;
+  commandcs.leave;
+end;
+
+
 
 procedure TMikModThread.execute;
 var m: PMODULE;
@@ -265,6 +303,24 @@ begin
               end;
             end;
 
+            MIKMODCMD_PAUSE:
+            begin
+              if not Player_Paused() then
+                Player_TogglePause();
+            end;
+
+            MIKMODCMD_UNPAUSE:
+            begin
+              if Player_Paused() then
+                Player_TogglePause();
+            end;
+
+            MIKMODCMD_STOP:
+            begin
+              if Player_Active() then
+                Player_Stop();
+            end;
+
           end;
 
           command:=-1;
@@ -329,6 +385,24 @@ begin
     mikmodthread:=TMikModThread.create(false);
 
   mikmodthread.playstream(s, loop);
+end;
+
+procedure MikMod_Pause;
+begin
+  if mikmodthread=nil then exit;
+  mikmodthread.pause;
+end;
+
+procedure MikMod_Unpause;
+begin
+  if mikmodthread=nil then exit;
+  mikmodthread.unpause;
+end;
+
+procedure MikMod_Stop;
+begin
+  if mikmodthread=nil then exit;
+  mikmodthread.stop;
 end;
 
 //mreader setup

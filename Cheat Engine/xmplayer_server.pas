@@ -32,41 +32,45 @@ implementation
 
 function TXMPlayer.getPlayingState: boolean;
 begin
+  LoadMikMod;
   result:=Player_Active() and (not Player_Paused());
 end;
 
 procedure TXMPlayer.playXM(filename: string; noloop: boolean);
 begin
+  LoadMikMod;
   MikMod_Play(filename,not noloop);
 end;
 
 procedure TXMPlayer.playXM(stream: TStream; noloop: boolean=false);
-
 begin
+  LoadMikMod;
   MikMod_PlayStream(stream, not noloop);
 end;
 
 procedure TXMPlayer.pause;
 begin
-  if not Player_Paused() then
-    Player_TogglePause();
-
+  LoadMikMod;
+  MikMod_Pause;
 end;
 
 procedure TXMPlayer.resume;
 begin
-  if Player_Paused() then
-    Player_TogglePause();
+  LoadMikMod;
+  MikMod_UnPause;
 end;
 
 
 procedure TXMPlayer.stop;
 begin
-  Player_Stop();
+  LoadMikMod;
+
+  MikMod_Stop;
 end;
 
 procedure TXMPlayer.setVolume(v: integer);
 begin
+  LoadMikMod;
   Player_SetVolume(v);
 end;
 
