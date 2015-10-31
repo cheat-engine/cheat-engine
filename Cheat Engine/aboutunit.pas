@@ -82,6 +82,7 @@ end;
 
 procedure TAbout.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
+  About:=nil;
   action:=caFree;
 end;
 
@@ -161,7 +162,8 @@ begin
       end;
     end
     else
-      tfrmDBVMLoadManual.create(Application).Show;
+      if frmDBVMLoadManual<>nil then frmDBVMLoadManual.SetFocus
+      else tfrmDBVMLoadManual.create(Application).Show;
   end;
 end;
 
