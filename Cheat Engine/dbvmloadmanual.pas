@@ -25,6 +25,9 @@ type
 
   end;
 
+var
+  frmDBVMLoadManual: TfrmDBVMLoadManual;
+
 implementation
 
 {$R *.lfm}
@@ -72,6 +75,7 @@ end;
 procedure TfrmDBVMLoadManual.FormClose(Sender: TObject;
   var CloseAction: TCloseAction);
 begin
+  frmDBVMLoadManual:=nil;
   closeaction:=caFree;
 end;
 
@@ -83,6 +87,7 @@ var
   b: TButton;
   l: TLabel;
 begin
+  frmDBVMLoadManual:=self;
   oldp:=nil;
   GetProcessAffinityMask(GetCurrentProcess, process,sys);
   for i:=0 to {$ifdef cpu64}63{$else}31{$endif} do
