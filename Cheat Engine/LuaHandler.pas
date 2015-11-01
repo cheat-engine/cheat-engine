@@ -4864,7 +4864,7 @@ begin
 
     for i:=0 to s.Count-1 do
     begin
-      if TryStrToInt(copy(s[i],1,8), pid) then
+      if TryStrToInt('0x'+copy(s[i],1,8), pid) then
       begin
         lua_pushinteger(L, pid);
         lua_pushstring(L, copy(s[i], 10, length(s[i])));
@@ -4909,7 +4909,7 @@ begin
 
     for i:=0 to s.Count-1 do
     begin
-      if TryStrToInt(copy(s[i],1,8), pid) then
+      if TryStrToInt('0x'+copy(s[i],1,8), pid) then
       begin
         lua_pushinteger(L, pid);
         lua_pushstring(L, copy(s[i], 10, length(s[i])));
