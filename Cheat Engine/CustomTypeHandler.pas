@@ -559,6 +559,7 @@ begin
         begin
           newpreferedalignment:=-1;
           newScriptUsesFloat:=false;
+          newScriptUsesCDecl:=false;
 
           //find alloc "ConvertRoutine"
           for i:=0 to length(c)-1 do
