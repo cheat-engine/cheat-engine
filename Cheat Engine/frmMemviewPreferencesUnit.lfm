@@ -1,7 +1,7 @@
 object frmMemviewPreferences: TfrmMemviewPreferences
-  Left = 628
+  Left = 514
   Height = 269
-  Top = 374
+  Top = 198
   Width = 392
   Caption = 'Disassembler Preferences'
   ClientHeight = 269
@@ -169,7 +169,7 @@ object frmMemviewPreferences: TfrmMemviewPreferences
   object FontDialog1: TFontDialog
     Font.CharSet = ANSI_CHARSET
     Font.Height = -13
-    Font.Name = 'Arial'
+    Font.Name = 'MS Sans Serif'
     Font.Pitch = fpVariable
     Font.Quality = fqDraft
     MinFontSize = 0
@@ -196,6 +196,7 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     MinFontSize = 0
     MaxFontSize = 0
     Options = [fdEffects, fdFixedPitchOnly]
+    PreviewText = '10 aa cd 30 90 90 90'
     left = 272
     top = 48
   end
