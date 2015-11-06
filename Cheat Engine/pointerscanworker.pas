@@ -627,6 +627,8 @@ begin
     startvalue:=valuetofind-structsize;
     stopvalue:=valuetofind;
 
+    if startvalue>stopvalue then startvalue:=0;
+
     if useheapdata then
     begin
       mae:=frmMemoryAllocHandler.FindAddress(@frmMemoryAllocHandler.HeapBaselevel, valuetofind);
