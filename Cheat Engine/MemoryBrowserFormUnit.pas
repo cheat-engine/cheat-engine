@@ -2206,6 +2206,8 @@ begin
     if frmFloatingPointPanel<>nil then
       frmFloatingPointPanel.Visible:=false;
 
+    if WindowState=wsMinimized then //for an unknown reason, the memoryview window can't be shown again if it was hidden minized
+      WindowState:=wsNormal;
   end;
 end;
 
