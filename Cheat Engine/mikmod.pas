@@ -14,6 +14,7 @@ uses
 
 
 type
+  PSAMPLE=pointer;
   PMODULE=pointer;
   PREADER=^MREADER;
 
@@ -34,6 +35,15 @@ type
     position: integer;
   end;
 
+  TMikModSFX=class
+  private
+    s: PSAMPLE;
+  public
+    procedure play;
+    constructor create(sample: PSAMPLE);
+    destructor destroy; override;
+  end;
+
 function LoadMikMod: boolean;
 
 const
@@ -50,8 +60,41 @@ const
   DMODE_REVERSE      =$0400;
 
 
+  SFX_CRITICAL= 1;
 
+  //Sample format [loading and in-memory] flags:
+  SF_16BITS       =$0001;
+  SF_STEREO       =$0002;
+  SF_SIGNED       =$0004;
+  SF_BIG_ENDIAN   =$0008;
+  SF_DELTA        =$0010;
+  SF_ITPACKED     =$0020;
 
+  SF_FORMATMASK   =$003F;
+
+  // General Playback flags
+
+  SF_LOOP         =$0100;
+  SF_BIDI         =$0200;
+  SF_REVERSE      =$0400;
+  SF_SUSTAIN      =$0800;
+
+  SF_PLAYBACKMASK =$0C00;
+
+  // Module-only Playback Flags
+
+  SF_OWNPAN       =$1000;
+  SF_UST_LOOP     =$2000;
+
+  SF_EXTRAPLAYBACKMASK    =$3000;
+
+  //Panning constants
+  PAN_LEFT        =0;
+  PAN_HALFLEFT    =64;
+  PAN_CENTER      =128;
+  PAN_HALFRIGHT   =192;
+  PAN_RIGHT       =255;
+  PAN_SURROUND    =512; // panning value for Dolby Surround
 
 
 var
@@ -100,6 +143,15 @@ var
   Player_SetSpeed: procedure(speed: WORD); cdecl;
   Player_SetTempo: procedure(tempo: WORD); cdecl;
 
+  Sample_Load: function(filename: pchar): PSAMPLE; cdecl;
+  Sample_LoadFP: function(fp: pointer): PSAMPLE; cdecl;
+  Sample_LoadGeneric: function(reader: PREADER): PSAMPLE; cdecl;
+
+  Sample_Play: function(s: PSAMPLE; start: ULONG; flags: Byte): SmallInt; cdecl;
+  Sample_Free: procedure(s: PSAMPLE); cdecl;
+
+  Voice_Stopped: function(v: SmallInt): BOOL; cdecl;
+
 
 
   { These variables can be changed at ANY time and results will be immediate }
@@ -128,6 +180,11 @@ var
   procedure MikMod_PlayMemory(memory: pointer; size: integer);
   procedure MikMod_PlayStream(s: TStream; loop: boolean=false);
 
+  function MikMod_CreateSFX(filename: string): TMikModSFX;
+//  function MikMod_CreateSFX(memory: pointer): TMikModSFX; overload;
+//  function MikMod_CreateSFX(s: TStream): TMikModSFX; overload;
+
+
   procedure MikMod_Pause;
   procedure MikMod_Unpause;
   procedure MikMod_Stop;
@@ -145,6 +202,7 @@ const
   MIKMODCMD_UNPAUSE     = 3;
   MIKMODCMD_STOP        = 4;
 
+
 type
   TMikModThread=class(TThread)
   private
@@ -159,8 +217,9 @@ type
 
 
     memstream: TMemoryStream;
-
+    ready: TEvent;
   public
+    procedure waitTillReady;
     procedure play(f: string; loop: boolean=false);
     procedure playMemory(m: pointer; size: integer; loop: boolean=false);
     procedure playStream(s: TStream; loop: boolean=false);
@@ -233,6 +292,10 @@ begin
   commandcs.leave;
 end;
 
+procedure TMikModThread.waitTillReady;
+begin
+  ready.WaitFor(infinite);
+end;
 
 
 procedure TMikModThread.execute;
@@ -247,29 +310,21 @@ begin
   begin
     MikMod_RegisterAllDrivers;
     MikMod_RegisterAllLoaders;
-    md_mode^:=md_mode^ or DMODE_HQMIXER;
-
-
+    md_mode^:=md_mode^ or DMODE_HQMIXER or DMODE_SOFT_SNDFX;
 
     if MikMod_Init('')<>0 then
       raise exception.create('Failure to initialize MikMod');
 
+    MikMod_SetNumVoices(-1, 16);
+    MikMod_EnableOutput();
+
+    ready.SetEvent;
+
     try
       while not terminated do
       begin
-        if (m<>nil) then
-        begin
-          w:=Player_GetWrap(m);
-          l:=Player_GetLoop(m);
 
-         { if w=l then
-          begin
-            OutputDebugString('bla');
-
-          end; }
-        end;
-
-        if commandReady.WaitFor(ifthen(Player_Active(), 10, 1000))=wrSignaled then
+        if commandReady.WaitFor(ifthen(Player_Active(), 10, 10))=wrSignaled then
         begin
           commandcs.enter;
           case command of
@@ -327,7 +382,7 @@ begin
           commandcs.leave;
         end;
 
-        if Player_Active() then
+       // if Player_Active() then
           MikMod_Update();
       end;
     finally
@@ -339,7 +394,7 @@ end;
 
 constructor TMikModThread.create(LaunchSuspended: Boolean);
 begin
-
+  ready:=TEvent.Create(nil, false, false,'');
   commandcs:=TCriticalSection.Create;
   commandReady:=TEvent.Create(nil, false, false,'');
   inherited Create(LaunchSuspended);
@@ -362,6 +417,54 @@ begin
 
   inherited destroy;
 end;
+
+
+procedure TMikModSFX.play;
+var i: integer;
+begin
+  MikMod_EnableOutput();
+  if Sample_Play(s,0,SFX_CRITICAL or SF_LOOP)=-1 then raise exception.create('fuck');
+  MikMod_Update();
+end;
+
+constructor TMikModSFX.create(sample: PSAMPLE);
+begin
+  s:=sample;
+end;
+
+destructor TMikModSFX.destroy;
+begin
+  Sample_Free(s);
+  inherited destroy;
+end;
+
+function MikMod_CreateSFX(filename: string): TMikModSFX;
+var s: PSAMPLE;
+begin
+  if mikmodthread=nil then
+    mikmodthread:=TMikModThread.create(false);
+
+  mikmodthread.waitTillReady;
+
+  s:=Sample_Load(pchar(filename));
+  if s<>nil then
+    result:=TMikModSFX.create(s)
+  else
+    result:=nil;
+end;
+
+function MikMod_CreateSFX(memory: pointer): TMikModSFX;
+begin
+  if mikmodthread=nil then
+    mikmodthread:=TMikModThread.create(false);
+end;
+
+function MikMod_CreateSFX(s: TStream): TMikModSFX;
+begin
+  if mikmodthread=nil then
+    mikmodthread:=TMikModThread.create(false);
+end;
+
 
 procedure MikMod_Play(filename: string; loop: boolean=false);
 begin
@@ -524,6 +627,21 @@ begin
     farproc(Player_SetLoop):=GetProcAddress(libmikmod, 'Player_SetLoop');
     farproc(Player_GetWrap):=GetProcAddress(libmikmod, 'Player_GetWrap');
     farproc(Player_SetWrap):=GetProcAddress(libmikmod, 'Player_SetWrap');
+
+
+    farproc(Sample_Load):=GetProcAddress(libmikmod, 'Sample_Load');
+    farproc(Sample_LoadFP):=GetProcAddress(libmikmod, 'Sample_LoadFP');
+    farproc(Sample_LoadGeneric):=GetProcAddress(libmikmod, 'Sample_LoadGeneric');
+
+    farproc(Sample_Play):=GetProcAddress(libmikmod, 'Sample_Play');
+    farproc(Sample_Free):=GetProcAddress(libmikmod, 'Sample_Free');
+
+    farproc(Voice_Stopped):=GetProcAddress(libmikmod, 'Voice_Stopped');
+
+
+
+
+
 
 
 
