@@ -1002,28 +1002,32 @@ begin
     end;
   end;
 
-  laststate:=cheatEntry.AppendChild(doc.CreateElement('LastState'));
-  if VarType<>vtAutoAssembler then
+  if Value<>'??' then
   begin
-    a:=doc.CreateAttribute('RealAddress');
-    a.TextContent:=IntToHex(GetRealAddress,8);
-    laststate.Attributes.SetNamedItem(a);
-
-    if VarType<>vtString then
+    laststate:=cheatEntry.AppendChild(doc.CreateElement('LastState'));
+    if VarType<>vtAutoAssembler then
     begin
-      a:=doc.CreateAttribute('Value');
-      a.TextContent:=value;
+      a:=doc.CreateAttribute('RealAddress');
+      a.TextContent:=IntToHex(GetRealAddress,8);
       laststate.Attributes.SetNamedItem(a);
+
+      if VarType<>vtString then
+      begin
+        a:=doc.CreateAttribute('Value');
+        a.TextContent:=value;
+        laststate.Attributes.SetNamedItem(a);
+      end;
     end;
   end;
 
-  a:=doc.CreateAttribute('Activated');
-  if Active then
-    a.TextContent:='1'
-  else
-    a.TextContent:='0';
-  laststate.Attributes.SetNamedItem(a);
 
+
+  if Active then
+  begin
+    a:=doc.CreateAttribute('Activated');
+    a.TextContent:='1';
+    laststate.Attributes.SetNamedItem(a);
+  end;
 
 
   if showAsHex then
