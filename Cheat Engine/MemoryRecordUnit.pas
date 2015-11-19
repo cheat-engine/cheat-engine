@@ -1038,7 +1038,8 @@ begin
   end;
 
 
-  cheatEntry.AppendChild(doc.CreateElement('Color')).TextContent:=inttohex(fcolor,6);
+  if fcolor<>clWindowText then
+    cheatEntry.AppendChild(doc.CreateElement('Color')).TextContent:=inttohex(fcolor,6);
 
   if fisGroupHeader then
   begin

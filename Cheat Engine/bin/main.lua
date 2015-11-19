@@ -1465,6 +1465,7 @@ properties
   Initialized: boolean - Indicator that the xmplayer is actually actively loaded in memory
 
 methods
+  setVolume(int)
   playXM(filename, OPTIONAL noloop)
   playXM(tablefile, OPTIONAL noloop)
   playXM(Stream, OPTIONAL noloop)
