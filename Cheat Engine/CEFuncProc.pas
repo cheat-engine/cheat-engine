@@ -2318,7 +2318,7 @@ begin
 
 
   if DirectoryExists(tablesdir)=false then
-    CreateDir(tablesdir);
+    tablesdir:='';
 
 end;
 
