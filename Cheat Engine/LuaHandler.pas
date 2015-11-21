@@ -6059,6 +6059,32 @@ begin
   result:=0;
 end;
 
+
+function getDebugContext(L:PLua_state): integer; cdecl;
+begin
+  result:=1;
+  if (debuggerthread<>nil) and (debuggerthread.isWaitingToContinue) and (debuggerthread.CurrentThread<>nil) then
+  begin
+    LUA_SetCurrentContextState(debuggerthread.CurrentThread.context);
+    lua_pushboolean(L, true);
+  end
+  else
+    lua_pushboolean(L, false);
+
+end;
+
+function setDebugContext(L:PLua_state): integer; cdecl;
+begin
+  result:=1;
+  if (debuggerthread<>nil) and (debuggerthread.isWaitingToContinue) and (debuggerthread.CurrentThread<>nil) then
+  begin
+    LUA_GetNewContextState(debuggerthread.CurrentThread.context);
+    lua_pushboolean(L, true);
+  end
+  else
+    lua_pushboolean(L, false);
+end;
+
 procedure InitializeLua;
 var
   s: tstringlist;
@@ -6476,6 +6502,9 @@ begin
 
     lua_register(LuaVM, 'registerBinUtil', lua_registerBinUtil);
     lua_register(LuaVM, 'setPointerSize', setPointerSize);
+
+    lua_register(LuaVM, 'getDebugContext', getDebugContext);
+    lua_register(LuaVM, 'setDebugContext', setDebugContext);
 
     initializeLuaCustomControl;
 

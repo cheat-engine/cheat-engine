@@ -432,6 +432,14 @@ Changing registers:
 When the debugger is waiting to continue you can change the register variables. When you continue those register values will be set in the thread's context
 
 
+If the target is currently stopped on a breakpoint, but not done through an onBreakpoint function. The context won't be set.
+You can get and set the context back with these functions before execution continues"
+getDebugContext()
+setDebugContext()
+
+
+
+
 detachIfPossible() : Detaches the debugger from the target process (if it was attached)
 
 getComment(address) : Gets the userdefined comment at the specified address
