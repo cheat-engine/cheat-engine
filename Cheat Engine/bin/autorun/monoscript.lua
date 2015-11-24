@@ -1477,11 +1477,17 @@ function mono_TVExpanding(sender, node)
     elseif (node.Level>=3) and (node.Text=='methods') then --methods
       monoform_EnumMethods(node)
     elseif (node.Level>=3) and (node.Text=='base class') then 
-      local klass = node.Data
-      local classname=mono_class_getName(klass)
-      local namespace=mono_class_getNamespace(klass)
-      local fqname=mono_class_getFullName(klass)
-      monoform_AddClass(node, klass, namespace, classname, fqname)
+      if (monoForm.autoExpanding==nil) or (monoForm.autoExpanding==false) then
+        local klass = node.Data
+        if (klass ~= 0) then
+          local classname=mono_class_getName(klass)
+          local namespace=mono_class_getNamespace(klass)
+          local fqname=mono_class_getFullName(klass)
+          monoform_AddClass(node, klass, namespace, classname, fqname)
+        end
+      else
+        allow=false --don't auto expand the base classes
+      end
     end
 
   end
@@ -1559,7 +1565,9 @@ end
 function monoform_miExpandAllClick(sender)
   if messageDialog("Are you sure you wish to expand the whole tree? This can take a while and Cheat Engine may look like it has crashed (It has not)", mtConfirmation, mbYes, mbNo)==mrYes then
     monoForm.TV.beginUpdate()
+    monoForm.autoExpanding=true --special feature where a base object can contain extra lua variables
     monoForm.TV.fullExpand()
+    monoForm.autoExpanding=false
     monoForm.TV.endUpdate()
   end
 end
