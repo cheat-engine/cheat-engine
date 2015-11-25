@@ -1717,7 +1717,7 @@ begin
   result:=writeStringEx(L, processhandle);
 end;
 
-function readBytesEx(processhandle: dword; L: PLua_State): integer; cdecl;
+function readBytesEx(processhandle: THandle; L: PLua_State): integer; cdecl;
 var parameters: integer;
   addresstoread: ptruint;
   bytestoread: integer;
@@ -1780,7 +1780,7 @@ begin
 end;
 
 
-function writeBytesEx(processhandle: dword; L: PLua_State): integer;
+function writeBytesEx(processhandle: THandle; L: PLua_State): integer;
 var
   parameters, parameters2: integer;
   bytes: array of byte;
