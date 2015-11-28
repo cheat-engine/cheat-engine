@@ -1576,6 +1576,7 @@ This function will find the userdefined symbol, and when found checks if it alre
 allocated memory. If not allocate memory, else check if the size matches
 }
 var i:integer;
+ base: pointer;
 begin
   result:=false;
   if size=0 then raise exception.Create(rsPleaseProvideABiggerSize);
@@ -1591,7 +1592,9 @@ begin
       }
       if (globalallocpid<>processid) or (globalalloc=nil) or (globalallocsizeleft<size) then //new alloc
       begin
-        globalalloc:=virtualallocex(processhandle,nil,max(65536,size),MEM_COMMIT , PAGE_EXECUTE_READWRITE);
+        base:=FindFreeBlockForRegion(preferedaddress,max(65536,size));
+
+        globalalloc:=virtualallocex(processhandle,base,max(65536,size),MEM_COMMIT or MEM_RESERVE , PAGE_EXECUTE_READWRITE);
         globalallocpid:=processid;
         globalallocsizeleft:=max(65536,size);
       end;
