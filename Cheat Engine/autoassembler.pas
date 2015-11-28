@@ -2340,7 +2340,10 @@ begin
         if allocs[i].prefered<>0 then
         begin
           //if yes, is it the same as the previous entry? (or was the previous one that doesn't care?)
-          if (prefered<>allocs[i].prefered) and (prefered<>0) then
+          if prefered=0 then
+            prefered:=allocs[i].prefered;
+
+          if (prefered<>allocs[i].prefered) then
           begin
             //different prefered address
 
@@ -2370,11 +2373,15 @@ begin
               x:=0;
             end;
 
-
             //new prefered address
             j:=i;
             prefered:=allocs[i].prefered;
+
+
+
+
           end;
+
         end;
 
         //no prefered location specified, OR same prefered location
