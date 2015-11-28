@@ -3900,6 +3900,7 @@ begin
       Add('alloc(TypeName,256)');
       Add('alloc(ByteSize,4)');
       Add('alloc(UsesFloat,1)');
+      Add('alloc(CallMethod,1)');
       Add('');
       Add('TypeName:');
       Add('db ''' + n + ''',0');
