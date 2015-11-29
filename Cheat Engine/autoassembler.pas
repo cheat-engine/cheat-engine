@@ -2737,11 +2737,12 @@ begin
 
           for i:=0 to length(ceallocarray)-1 do
           begin
-            if ceallocarray[i].address<baseaddress then
-              baseaddress:=ceallocarray[i].address;
+            virtualfreeex(processhandle,pointer(dealloc[i]),0,MEM_RELEASE);
+{            if ceallocarray[i].address<baseaddress then
+              baseaddress:=ceallocarray[i].address;}
           end;
 
-          virtualfreeex(processhandle,pointer(baseaddress),0,MEM_RELEASE);
+          //virtualfreeex(processhandle,pointer(baseaddress),0,MEM_RELEASE);
         end;
 
         setlength(ceallocarray,length(allocs));
