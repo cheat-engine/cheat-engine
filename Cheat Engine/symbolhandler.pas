@@ -1627,7 +1627,7 @@ begin
         if (globalallocpid<>processid) or (globalalloc=nil) or (globalallocsizeleft<size) then //new alloc
         begin
           globalallocpid:=processid;
-          globalalloc:=virtualallocex(processhandle,FindFreeBlockForRegion(preferedaddress,max(65536,size)),max(65536,size),MEM_COMMIT , PAGE_EXECUTE_READWRITE);
+          globalalloc:=virtualallocex(processhandle,FindFreeBlockForRegion(preferedaddress,max(65536,size)),max(65536,size),MEM_COMMIT or MEM_RESERVE , PAGE_EXECUTE_READWRITE);
           globalallocsizeleft:=max(65536,size);
         end;
 
