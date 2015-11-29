@@ -1876,6 +1876,39 @@ begin
   result:=readbytesEx(getcurrentprocess, L);
 end;
 
+function deAllocEx(processhandle: THandle; L: PLua_State): integer; cdecl;
+var parameters: integer;
+    address: ptruint;
+begin
+  result:=1;
+  parameters:=lua_gettop(L);
+  if parameters=0 then begin lua_pushboolean(L, false); exit; end;
+
+  if lua_isstring(L, -parameters) then
+  begin
+    if processhandle=GetCurrentProcess then
+      address:=selfsymhandler.getAddressFromNameL(lua_tostring(L,-parameters))
+    else
+      address:=symhandler.getAddressFromNameL(lua_tostring(L,-parameters));
+  end
+  else
+    address:=lua_tointeger(L,-parameters);
+
+  lua_pop(L, parameters);
+  lua_pushboolean(L, virtualfreeex(processhandle,pointer(address),0,MEM_RELEASE));
+
+end;
+
+function deAlloc_lua(L: PLua_State): integer; cdecl;
+begin
+  result:=deAllocEx(processhandle, L);
+end;
+
+function deAllocLocal_lua(L: PLua_State): integer; cdecl;
+begin
+  result:=deAllocEx(getcurrentprocess, L);
+end;
+
 function autoAssemble_lua(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
@@ -1884,7 +1917,7 @@ var
   targetself: boolean;
   CEAllocArray: TCEAllocArray;
 begin
-  result:=0;
+  result:=1;
   parameters:=lua_gettop(L);
   if parameters=0 then
   begin
@@ -1912,7 +1945,6 @@ begin
     code.free;
   end;
 
-  result:=1;
 end;
 
 function getPixel(L: PLua_State): integer; cdecl;
@@ -6135,6 +6167,8 @@ begin
     lua_register(LuaVM, 'readBytesLocal', readbyteslocal);
     lua_register(LuaVM, 'writeBytesLocal', writebyteslocal);
     lua_register(LuaVM, 'autoAssemble', autoAssemble_lua);
+    lua_register(LuaVM, 'deAlloc', deAlloc_lua);
+    lua_register(LuaVM, 'deAllocLocal', deAllocLocal_lua);
     lua_register(LuaVM, 'showMessage', showMessage_lua);
     lua_register(LuaVM, 'inputQuery', inputQuery_lua);
     lua_register(LuaVM, 'getPixel', getPixel);
