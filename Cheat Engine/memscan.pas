@@ -194,6 +194,8 @@ type
     allDouble: boolean;
     allCustom: boolean;
 
+    floatscanWithoutExponents: boolean;
+
     //groupdata
     groupdata: TGroupData;
 
@@ -2734,9 +2736,13 @@ begin
 end;
 
 procedure TScanner.SingleSaveResult(address: ptruint; oldvalue: pointer);
+var
+  exp: integer;
 begin
-  if not (isnan(psingle(oldvalue)^) or IsInfinite(psingle(oldvalue)^))  then
+  if not (isnan(psingle(oldvalue)^) or IsInfinite(psingle(oldvalue)^)) then
   begin
+    if floatscanWithoutExponents and (pdword(oldvalue)^>0) and (abs(127-(pdword(oldvalue)^ shr 23) and $ff)>10) then exit;
+
     PPtrUintArray(CurrentAddressBuffer)[found]:=address;
     psinglearray(CurrentFoundBuffer)[found]:=psingle(oldvalue)^;
 
@@ -2747,9 +2753,12 @@ begin
 end;
 
 procedure TScanner.DoubleSaveResult(address: ptruint; oldvalue: pointer);
+
 begin
   if not (isnan(pdouble(oldvalue)^) or IsInfinite(pdouble(oldvalue)^))  then
   begin
+    if floatscanWithoutExponents and (pdword(oldvalue)^>0) and (abs(1023-(pdword(oldvalue)^ shr 52) and $7ff)>10) then exit;
+
     PPtrUintArray(CurrentAddressBuffer)[found]:=address;
     pdoublearray(CurrentFoundBuffer)[found]:=pdouble(oldvalue)^;
 
