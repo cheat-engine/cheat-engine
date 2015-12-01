@@ -43,8 +43,8 @@ function CheckIfConditionIsMetContext(context: PContext; script: string): boolea
 procedure LUA_DoScript(s: string);
 function LUA_functioncall(routinetocall: string; parameters: array of const): integer;
 procedure LUA_memrec_callback(memrec: pointer; routine: string);
-procedure LUA_SetCurrentContextState(context: PContext);
-procedure LUa_GetNewContextState(context: PContext);
+procedure LUA_SetCurrentContextState(context: PContext; extraregs: boolean=false);
+procedure LUa_GetNewContextState(context: PContext; extraregs: boolean=false);
 
 function LUA_onBreakpoint(context: PContext; functionAlreadyPushed: boolean=false): boolean;
 procedure LUA_onNotify(functionid: integer; sender: tobject);
@@ -587,7 +587,8 @@ begin
   end;
 end;
 
-procedure LUA_SetCurrentContextState(context: PContext);
+procedure LUA_SetCurrentContextState(context: PContext; extraregs: boolean=false);
+var i: integer;
 begin
   LuaCS.Enter;
   try
@@ -691,12 +692,42 @@ begin
     lua_setglobal(luavm, 'R15');
     {$endif}
 
+    if extraregs then //default off as it's a bit slow
+    begin
+      for i:=0 to 7 do
+      begin
+        {$ifdef cpu32}
+        CreateByteTableFromPointer(luavm, @context.FloatSave.RegisterArea[10*i], 10);
+        {$else}
+        CreateByteTableFromPointer(luavm, @context.FltSave.FloatRegisters[i], 10);
+        {$endif}
+        lua_setglobal(luavm, pchar('FP'+inttostr(i)));
+      end;
+
+      //xmm regs
+
+      for i:=0 to 15 do
+      begin
+        if (i>=8) and (not processhandler.is64Bit) then break;
+
+        {$ifdef cpu32}
+        CreateByteTableFromPointer(luavm, @context.ext.XMMRegisters.LegacyXMM[i], 16);
+        {$else}
+        CreateByteTableFromPointer(luavm, @context.FltSave.XmmRegisters[i], 16);
+        {$endif}
+        lua_setglobal(luavm, pchar('XMM'+inttostr(i)));
+      end;
+    end;
+
+
+
   finally
     LuaCS.Leave;
   end;
 end;
 
-procedure LUA_GetNewContextState(context: PContext);
+procedure LUA_GetNewContextState(context: PContext; extraregs: boolean=false);
+var i: integer;
 begin
   lua_getglobal(luavm, 'EFLAGS');
   context.EFLAGS:=lua_tointeger(luavm, -1);
@@ -813,7 +844,39 @@ begin
     context.R15:=lua_tointeger(luavm, -1);
     lua_pop(luavm,1);
   {$endif}
+  end;
 
+  if extraregs then
+  begin
+    for i:=0 to 7 do
+    begin
+      lua_getglobal(luavm, pchar('FP'+inttostr(i)));
+      if not lua_isnil(luavm, -1) then
+      begin
+        {$ifdef cpu32}
+        readBytesFromTable(luavm, -1, @context.FloatSave.RegisterArea[10*i], 10);
+        {$else}
+        readBytesFromTable(luavm, -1, @context.FltSave.FloatRegisters[i], 10);
+        {$endif}
+      end;
+      lua_pop(luavm,1);
+    end;
+
+    for i:=0 to 15 do
+    begin
+      if (i>=8) and (not processhandler.is64Bit) then break;
+
+      lua_getglobal(luavm, pchar('XMM'+inttostr(i)));
+      if not lua_isnil(luavm, -1) then
+      begin
+        {$ifdef cpu32}
+        readBytesFromTable(luavm, -1, @context.ext.XMMRegisters.LegacyXMM[i], 16);
+        {$else}
+        readBytesFromTable(luavm, -1, @context.FltSave.XmmRegisters[i], 16);
+        {$endif}
+      end;
+
+    end;
   end;
 end;
 
@@ -6093,11 +6156,17 @@ end;
 
 
 function getDebugContext(L:PLua_state): integer; cdecl;
+var extraregs: boolean;
 begin
   result:=1;
+  if lua_gettop(L)>=1 then
+    extraregs:=lua_toboolean(L,1)
+  else
+    extraregs:=false;
+
   if (debuggerthread<>nil) and (debuggerthread.isWaitingToContinue) and (debuggerthread.CurrentThread<>nil) then
   begin
-    LUA_SetCurrentContextState(debuggerthread.CurrentThread.context);
+    LUA_SetCurrentContextState(debuggerthread.CurrentThread.context, extraregs);
     lua_pushboolean(L, true);
   end
   else
@@ -6106,11 +6175,17 @@ begin
 end;
 
 function setDebugContext(L:PLua_state): integer; cdecl;
+var extraregs: boolean;
 begin
   result:=1;
+  if lua_gettop(L)>=1 then
+    extraregs:=lua_toboolean(L,1)
+  else
+    extraregs:=false;
+
   if (debuggerthread<>nil) and (debuggerthread.isWaitingToContinue) and (debuggerthread.CurrentThread<>nil) then
   begin
-    LUA_GetNewContextState(debuggerthread.CurrentThread.context);
+    LUA_GetNewContextState(debuggerthread.CurrentThread.context, extraregs);
     lua_pushboolean(L, true);
   end
   else

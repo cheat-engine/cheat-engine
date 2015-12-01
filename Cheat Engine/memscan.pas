@@ -2757,7 +2757,7 @@ procedure TScanner.DoubleSaveResult(address: ptruint; oldvalue: pointer);
 begin
   if not (isnan(pdouble(oldvalue)^) or IsInfinite(pdouble(oldvalue)^))  then
   begin
-    if floatscanWithoutExponents and (pdword(oldvalue)^>0) and (abs(1023-(pdword(oldvalue)^ shr 52) and $7ff)>10) then exit;
+    if floatscanWithoutExponents and (pqword(oldvalue)^>0) and (abs(integer(1023-(pqword(oldvalue)^ shr 52) and $7ff))>10) then exit;
 
     PPtrUintArray(CurrentAddressBuffer)[found]:=address;
     pdoublearray(CurrentFoundBuffer)[found]:=pdouble(oldvalue)^;
