@@ -45,7 +45,7 @@ uses symbolhandler;
 procedure TfrmAssemblyScan.btnOkClick(Sender: TObject);
 begin
   startaddress:=symhandler.getAddressFromName(edtFrom.Text);
-  stopaddress:=symhandler.getAddressFromName(edtFrom.Text);
+  stopaddress:=symhandler.getAddressFromName(edtTo.Text);
   modalresult:=mrok;
 end;
 
