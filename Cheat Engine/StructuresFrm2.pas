@@ -1622,8 +1622,9 @@ begin
       else
       begin
         //a struct but not the deleted one. Make sure it is a LOCAL one to prevent an infinite loop (a global struct can point to itself)
-        if not s.isInGlobalStructList then
-          s.OnDeleteStructNotification(structtodelete);
+
+        //if not s.isInGlobalStructList then
+        //  s.OnDeleteStructNotification(structtodelete);
       end;
     end;
   end;

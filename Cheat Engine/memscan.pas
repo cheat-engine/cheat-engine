@@ -586,6 +586,7 @@ type
 
     savedresults: tstringlist;
     fonlyOne: boolean;
+    fisHexadecimal: boolean;
 
 
 
@@ -638,6 +639,7 @@ type
     property VarType: TVariableType read currentVariableType;
     property CustomType: TCustomType read currentCustomType;
     property isUnicode: boolean read stringUnicode;
+    property isHexadecimal: boolean read fisHexadecimal; //gui
     property LastScanValue: string read fLastScanValue;
     property LastScanType: TScanType read FLastScanType;
     property ScanresultFolder: string read fScanResultFolder; //read only, it's configured during creation
@@ -6689,6 +6691,8 @@ end;
 
 procedure TMemscan.NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; hexadecimal,binaryStringAsDecimal, unicode, casesensitive,percentage,compareToSavedScan: boolean; savedscanname: string);
 begin
+  fisHexadecimal:=hexadecimal;
+
   {$IFNDEF UNIX}
   if attachedFoundlist<>nil then
     TFoundList(Attachedfoundlist).Deinitialize;
@@ -6757,6 +6761,7 @@ Spawn the controller thread and fill it with the required data
 Popup the wait window, or not ?
 }
 begin
+  fisHexadecimal:=hexadecimal;
 
   if (variableType=vtCustom) and (customtype=nil) then
     raise exception.create('customType=nil');

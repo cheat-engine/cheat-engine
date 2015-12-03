@@ -2045,6 +2045,7 @@ function monoform_exportStructInternal(s, caddr, recursive, static, structmap, m
             
       -- print(string.format("  Field: %d: %d: %d: %s", e.Offset, e.Vartype, ft, fieldname))
       if ft==MONO_TYPE_STRING then
+--[[
          if str==nil then
             str = structmap["String"]
          end
@@ -2065,6 +2066,7 @@ function monoform_exportStructInternal(s, caddr, recursive, static, structmap, m
            structure_endUpdate(str)
          end
          e.setChildStruct(str)
+--]]
       elseif ft == MONO_TYPE_PTR or ft == MONO_TYPE_CLASS or ft == MONO_TYPE_BYREF 
           or ft == MONO_TYPE_GENERICINST then
         local typename = monoform_escapename(fields[i].typename)

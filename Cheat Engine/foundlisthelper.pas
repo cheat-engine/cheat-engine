@@ -816,7 +816,7 @@ begin
     //log('using fmemscan');
     //guess the default display types
     //can later be overriden
-    self.hexadecimal:=memscan.VarType=vtByteArray;
+    self.hexadecimal:=memscan.isHexadecimal;   //memscan.VarType=vtByteArray;
     self.varlength:=memscan.Getbinarysize div 8;
 
     self.unicode:=memscan.isUnicode;
