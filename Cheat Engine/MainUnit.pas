@@ -203,6 +203,7 @@ type
     cbCopyOnWrite: TCheckBox;
     cbExecutable: TCheckBox;
     cbFastScan: TCheckBox;
+    cbFloatSimple: TCheckBox;
     cbPauseWhileScanning: TCheckBox;
     cbWritable: TCheckBox;
     ColorDialog1: TColorDialog;
@@ -731,6 +732,8 @@ type
     procedure SaveCurrentState(scanstate: PScanState);
     procedure SetupInitialScanTabState(scanstate: PScanState; IsFirstEntry: boolean);
     procedure ScanTabListTabChange(Sender: TObject; oldselection: integer);
+
+    procedure UpdateFloatRelatedPositions;
 
     //custom type:
     procedure CreateCustomType(customtype: TCustomtype; script: string;
@@ -2260,6 +2263,8 @@ begin
     begin
       cbHexadecimal.checked:=hexvis;
     end;
+
+    UpdateFloatRelatedPositions;
 
   finally
     scantype.OnChange := old;
@@ -4266,7 +4271,9 @@ begin
     UpdateScanType;
 
 
+
     foundcount := foundlist.Initialize(getvartype, memscan.customtype);
+
 
     try
       PreviousResults:=TSavedScanHandler.create(memscan.getScanFolder, currentlySelectedSavedResultname);
@@ -4299,6 +4306,9 @@ begin
     end;
 
     foundlistDisplayOverride:=newstate.foundlistDisplayOverride;
+
+    UpdateFloatRelatedPositions;
+
     //    foundlist3.TopItem:=foundlist3.items[newstate.foundlist.itemindex];
   end;
   //else leave empty
@@ -4422,6 +4432,25 @@ begin
     freemem(oldscanstate);
 
   end;
+end;
+
+procedure TMainForm.UpdateFloatRelatedPositions;
+begin
+  if pnlFloat.visible then
+  begin
+    cbFloatSimple.Top:=pnlFloat.Top+pnlFloat.Height;
+    cbUnrandomizer.top:=cbFloatSimple.Top+cbFloatSimple.Height;
+    cbFloatSimple.visible:=true;
+  end
+  else
+  begin
+    cbFloatSimple.top:=pnlFloat.top;
+    cbUnrandomizer.top:=gbScanOptions.top;
+
+    cbFloatSimple.visible:=getVarType in [vtSingle, vtDouble, vtAll];
+  end;
+
+
 end;
 
 procedure TMainForm.miFreezeNegativeClick(Sender: TObject);
@@ -8422,6 +8451,8 @@ begin
     end
     else
       fastscanmethod := fsmNotAligned;
+
+    memscan.floatscanWithoutExponents:=cbFloatSimple.checked;
 
     memscan.firstscan(GetScanType2, getVarType2, roundingtype,
       utf8toansi(scanvalue.Text), utf8toansi(svalue2), scanStart, scanStop,

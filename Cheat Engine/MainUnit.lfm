@@ -1,9 +1,9 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 1154
+  Left = 1155
   Height = 554
   Hint = ' '
-  Top = 143
+  Top = 144
   Width = 613
   HelpContext = 3
   HorzScrollBar.Visible = False
@@ -356,7 +356,7 @@ object MainForm: TMainForm
       Left = 505
       Height = 19
       Hint = 'Enable speedhack'
-      Top = 193
+      Top = 214
       Width = 111
       Anchors = [akTop, akRight]
       Caption = 'Enable Speedhack'
@@ -881,17 +881,17 @@ object MainForm: TMainForm
     object pnlFloat: TPanel
       AnchorSideRight.Control = Panel5
       AnchorSideRight.Side = asrBottom
-      Left = 502
-      Height = 53
+      Left = 505
+      Height = 55
       Top = 120
-      Width = 111
+      Width = 108
       Anchors = [akTop, akRight]
       BevelOuter = bvNone
-      ClientHeight = 53
-      ClientWidth = 111
+      ClientHeight = 55
+      ClientWidth = 108
       TabOrder = 15
       object rt3: TRadioButton
-        Left = 4
+        Left = 0
         Height = 19
         Top = 36
         Width = 73
@@ -902,7 +902,7 @@ object MainForm: TMainForm
         TabStop = True
       end
       object rt1: TRadioButton
-        Left = 4
+        Left = 0
         Height = 17
         Top = 0
         Width = 109
@@ -911,7 +911,7 @@ object MainForm: TMainForm
         TabOrder = 0
       end
       object rt2: TRadioButton
-        Left = 4
+        Left = 0
         Height = 19
         Top = 17
         Width = 114
@@ -923,7 +923,7 @@ object MainForm: TMainForm
     object cbUnrandomizer: TCheckBox
       Left = 505
       Height = 19
-      Top = 174
+      Top = 195
       Width = 85
       Anchors = [akTop, akRight]
       Caption = 'Unrandomizer'
@@ -1306,7 +1306,7 @@ object MainForm: TMainForm
       AnchorSideRight.Side = asrBottom
       Left = 500
       Height = 94
-      Top = 212
+      Top = 233
       Width = 113
       Anchors = [akTop, akLeft, akRight]
       BevelOuter = bvNone
@@ -1446,6 +1446,15 @@ object MainForm: TMainForm
       OnData = Foundlist3Data
       OnDblClick = FoundListDblClick
       OnKeyDown = Foundlist3KeyDown
+    end
+    object cbFloatSimple: TCheckBox
+      AnchorSideLeft.Control = cbUnrandomizer
+      Left = 505
+      Height = 19
+      Top = 176
+      Width = 107
+      Caption = 'Simple values only'
+      TabOrder = 24
     end
   end
   object UpdateTimer: TTimer

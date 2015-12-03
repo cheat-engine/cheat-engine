@@ -968,9 +968,9 @@ begin
           begin
             case res of
               1: ;//success
-              2: raise exception.Create(rsFailedInjectingTheDLL);
-              3: raise exception.Create(rsFailedExecutingTheFunctionOfTheDll);
-              else raise exception.Create(rsUnknownErrorDuringInjection);
+              2: raise exception.Create(utf8toansi(rsFailedInjectingTheDLL));
+              3: raise exception.Create(utf8toansi(rsFailedExecutingTheFunctionOfTheDll));
+              else raise exception.Create(utf8toansi(rsUnknownErrorDuringInjection));
             end;
           end
           else

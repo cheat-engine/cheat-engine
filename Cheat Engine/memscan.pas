@@ -527,6 +527,8 @@ type
     AddressFound: ptruint;
     AddressesFound: TAddresses; //for multi aob scans
 
+    floatscanWithoutExponents: boolean;
+
     procedure execute; override;
     constructor create(suspended: boolean);
     destructor destroy; override;
@@ -588,6 +590,8 @@ type
     fonlyOne: boolean;
     fisHexadecimal: boolean;
 
+    ffloatscanWithoutExponents: boolean;
+
 
 
 
@@ -635,6 +639,7 @@ type
 
     property nextscanCount: integer read fnextscanCount;
   published
+    property floatscanWithoutExponents: boolean read ffloatscanWithoutExponents write ffloatscanWithoutExponents;
     property OnlyOne: boolean read fOnlyOne write fOnlyOne;
     property VarType: TVariableType read currentVariableType;
     property CustomType: TCustomType read currentCustomType;
@@ -5236,6 +5241,7 @@ begin
           scanners[i].fastscandigitcount:=fastscandigitcount;
           scanners[i].variablesize:=variablesize;
           scanners[i].useNextNextscan:=true; //address result scan so nextnextscan
+          scanners[i].floatscanWithoutExponents:=floatscanWithoutExponents;
 
           if variableType=vtGrouped then
             scanners[i].PreviousOffsetCount:=offsetcount;
@@ -5470,6 +5476,7 @@ begin
       scanners[i].fastscandigitcount:=fastscandigitcount;
       scanners[i].variablesize:=variablesize;
       scanners[i].useNextNextscan:=false; //region scan so firstnextscan
+      scanners[i].floatscanWithoutExponents:=floatscanWithoutExponents;
 
       if i=0 then //first thread gets the header part
       begin
@@ -5935,6 +5942,8 @@ begin
       scanners[i].fastscanmethod:=fastscanmethod;
       scanners[i].fastscandigitcount:=fastscandigitcount;
       scanners[i].variablesize:=variablesize;
+      scanners[i].floatscanWithoutExponents:=floatscanWithoutExponents;
+
 
       if i=0 then //first thread gets the header part
       begin
@@ -6744,6 +6753,7 @@ begin
   scancontroller.binaryStringAsDecimal:=binaryStringAsDecimal;
   scancontroller.unicode:=unicode;
   scancontroller.casesensitive:=casesensitive;
+  scancontroller.floatscanWithoutExponents:=floatscanWithoutExponents;
   scancontroller.percentage:=percentage;
   scancontroller.notifywindow:=notifywindow;
   scancontroller.notifymessage:=notifymessage;
@@ -6829,6 +6839,7 @@ begin
   scancontroller.binaryStringAsDecimal:=binaryStringAsDecimal;
   scancontroller.unicode:=unicode;
   scancontroller.casesensitive:=casesensitive;
+  scancontroller.floatscanWithoutExponents:=floatscanWithoutExponents;
   scancontroller.percentage:=false; //first scan does not have a percentage scan
   scancontroller.notifywindow:=notifywindow;
   scancontroller.notifymessage:=notifymessage;
