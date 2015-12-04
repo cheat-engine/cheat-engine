@@ -399,7 +399,8 @@ debugProcess(interface OPT): starts the debugger for the currently opened proces
 
 debug_isDebugging(): Returns true if the debugger has been started
 debug_getCurrentDebuggerInterface() : Returns the current debuggerinterface used (1=windows, 2=VEH 3=Kernel, nil=no debugging active)
-debug_canBreak(): Returns true if there is a possibility the target can stop in a breakpoint. 6.4+
+debug_canBreak(): Returns true if there is a possibility the target can stop on a breakpoint. 6.4+
+debug_isBroken(): Returns true if the debugger is currently halted on a thread
 debug_getBreakpointList(): Returns a lua table containing all the breakpoint addresses
 
 debug_addThreadToNoBreakList(threadid): This will cause breakpoints on the provided thread to be ignored

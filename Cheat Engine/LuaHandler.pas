@@ -2462,6 +2462,14 @@ begin
   result:=1;
 end;
 
+function debug_isBroken(L: PLua_state): integer; cdecl;
+var r: boolean;
+begin
+  r:=(debuggerthread<>nil) and (debuggerthread.CurrentThread<>nil) and (debuggerthread.CurrentThread.isHandled);
+  lua_pushboolean(L, r);
+  result:=1;
+end;
+
 function debug_setBreakpoint(L: Plua_State): integer; cdecl;
 var parameters: integer;
   address: ptruint;
@@ -6268,6 +6276,7 @@ begin
     lua_register(LuaVM, 'debug_isDebugging', debug_isDebugging);
     lua_register(LuaVM, 'debug_getCurrentDebuggerInterface', debug_getCurrentDebuggerInterface);
     lua_register(LuaVM, 'debug_canBreak', debug_canBreak);
+    lua_register(LuaVM, 'debug_isBroken', debug_isBroken);
     lua_register(LuaVM, 'debug_setBreakpoint', debug_setBreakpoint);
     lua_register(LuaVM, 'debug_removeBreakpoint', debug_removeBreakpoint);
     lua_register(LuaVM, 'debug_continueFromBreakpoint', debug_continueFromBreakpoint);

@@ -2060,7 +2060,7 @@ function monoform_exportStructInternal(s, caddr, recursive, static, structmap, m
            ce.Vartype=vtDword
            ce=str.addElement()
            ce.Name="Value"
-           ce.Offset=0xC
+           ce.Offset=0xC --not in 64-bit
            ce.Vartype=vtUnicodeString
            ce.Bytesize=128
            structure_endUpdate(str)
