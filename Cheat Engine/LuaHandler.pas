@@ -6200,6 +6200,15 @@ begin
     lua_pushboolean(L, false);
 end;
 
+function debug_updateGUI(L:PLua_state): integer; cdecl;
+begin
+  if (debuggerthread<>nil) and (debuggerthread.isWaitingToContinue) and (debuggerthread.CurrentThread<>nil) then
+  begin
+    debuggerthread.CurrentThread.UpdateMemoryBrowserContext;
+    MemoryBrowser.UpdateDebugContext(debuggerthread.CurrentThread.handle,debuggerthread.CurrentThread.ThreadID, false);
+  end;
+end;
+
 procedure InitializeLua;
 var
   s: tstringlist;
@@ -6283,6 +6292,15 @@ begin
 
     lua_register(LuaVM, 'debug_addThreadToNoBreakList', debug_addThreadToNoBreakList);
     lua_register(LuaVM, 'debug_removeThreadFromNoBreakList', debug_removeThreadFromNoBreakList);
+
+    lua_register(LuaVM, 'debug_getContext', getDebugContext);
+    lua_register(LuaVM, 'debug_setContext', setDebugContext);
+    lua_register(LuaVM, 'debug_updateGUI', debug_updateGUI);
+
+    lua_register(LuaVM, 'getDebugContext', getDebugContext);
+    lua_register(LuaVM, 'setDebugContext', setDebugContext);
+
+
 
     lua_register(LuaVM, 'closeCE', closeCE);
     lua_register(LuaVM, 'hideAllCEWindows', hideAllCEWindows);
@@ -6621,8 +6639,6 @@ begin
     lua_register(LuaVM, 'registerBinUtil', lua_registerBinUtil);
     lua_register(LuaVM, 'setPointerSize', setPointerSize);
 
-    lua_register(LuaVM, 'getDebugContext', getDebugContext);
-    lua_register(LuaVM, 'setDebugContext', setDebugContext);
 
     initializeLuaCustomControl;
 

@@ -544,7 +544,7 @@ type
     procedure reloadStacktrace;
     function GetReturnaddress: ptrUint;
 
-    procedure UpdateDebugContext(threadhandle: THandle; threadid: dword);
+    procedure UpdateDebugContext(threadhandle: THandle; threadid: dword; changeSelection: boolean=true);
     procedure miLockOnClick(Sender: TObject);
     procedure miLockMemviewClick(sender: TObject);
 
@@ -4043,7 +4043,7 @@ begin
     result:=0;
 end;
 
-procedure TMemoryBrowser.UpdateDebugContext(threadhandle: THandle; threadid: dword);
+procedure TMemoryBrowser.UpdateDebugContext(threadhandle: THandle; threadid: dword; changeselection: boolean=true);
 var temp: string='';
     Regstart: string='';
     charcount: integer=8;
@@ -4053,6 +4053,7 @@ var temp: string='';
     i: integer=0;
 
 begin
+
   if processhandler.is64Bit or (processhandler.SystemArchitecture=archArm) then
   begin
     regstart:='R';
@@ -4223,16 +4224,25 @@ begin
   stacktrace1.Enabled:=true;
   Executetillreturn1.Enabled:=true;
 
-  caption:=Format(rsMemoryViewerCurrentlyDebuggingThread, [inttohex(threadid, 1)]);
+  if threadid<>0 then
+    caption:=Format(rsMemoryViewerCurrentlyDebuggingThread, [inttohex(threadid, 1)]);
 
-  if frmstacktrace<>nil then
+  if (frmstacktrace<>nil) then
+  begin
+    if (threadhandle=0) and (debuggerthread<>nil) and (debuggerthread.CurrentThread<>nil) then
+      threadhandle:=debuggerthread.CurrentThread.handle;
+
     frmstacktrace.stacktrace(threadhandle, lastdebugcontext);
+  end;
 
-  if processhandler.SystemArchitecture=archX86 then
-    disassemblerview.SelectedAddress:=lastdebugcontext.{$ifdef CPU64}rip{$else}eip{$endif}
-  else
-  if processhandler.SystemArchitecture=archArm then
-    disassemblerview.SelectedAddress:=lastdebugcontextarm.PC;
+  if changeselection then
+  begin
+    if processhandler.SystemArchitecture=archX86 then
+      disassemblerview.SelectedAddress:=lastdebugcontext.{$ifdef CPU64}rip{$else}eip{$endif}
+    else
+    if processhandler.SystemArchitecture=archArm then
+      disassemblerview.SelectedAddress:=lastdebugcontextarm.PC;
+  end;
 
 
 

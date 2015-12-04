@@ -435,9 +435,9 @@ When the debugger is waiting to continue you can change the register variables. 
 
 If the target is currently stopped on a breakpoint, but not done through an onBreakpoint function. The context won't be set.
 You can get and set the context back with these functions before execution continues"
-getDebugContext(BOOL extraregs) - Fills the global variables for the regular registers. If extraregs is true, it will also set FP0 to FP7 and XMM0 to XMM15
-setDebugContext(BOOL extraregs)
-
+debug_getContext(BOOL extraregs) - Fills the global variables for the regular registers. If extraregs is true, it will also set FP0 to FP7 and XMM0 to XMM15
+debug_setContext(BOOL extraregs)
+debug_updateGUI() - Will refresh the userinterface to reflect the new context if the debugger was broken
 
 
 
