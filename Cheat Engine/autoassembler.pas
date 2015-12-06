@@ -1040,6 +1040,8 @@ begin
 end;
 
 
+var nextaaid: longint;
+
 function autoassemble2(code: tstrings;popupmessages: boolean;syntaxcheckonly:boolean; targetself: boolean ;var ceallocarray:TCEAllocArray; registeredsymbols: tstringlist=nil):boolean;
 {
 registeredsymbols is a stringlist that is initialized by the caller as case insensitive and no duplicates
@@ -1137,6 +1139,8 @@ var i,j,k,l,e: integer;
 
 
     connection: TCEConnection;
+
+    aaid: longint;
 begin
   setlength(readmems,0);
   setlength(allocs,0);
@@ -1146,6 +1150,8 @@ begin
   setlength(createthread,0);
 
   currentaddress:=0;
+
+
 
 
   if syntaxcheckonly and (registeredsymbols<>nil) then
@@ -1186,7 +1192,8 @@ begin
 {$ifndef jni}
   if pluginhandler=nil then exit; //Error. Cheat Engine is not properly configured
 
-  pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 0); //tell the plugins that an autoassembler script is about to get executed
+  aaid:=InterLockedIncrement(nextaaid);
+  pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 0, aaid); //tell the plugins that an autoassembler script is about to get executed
 {$endif}
 
 
@@ -1325,7 +1332,7 @@ begin
           //plugins
           currentlinep:=@currentline[1];
           {$ifndef jni}
-          pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 1);
+          pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 1,aaid);
           {$endif}
           currentline:=currentlinep;
 
@@ -2453,7 +2460,7 @@ begin
       if length(currentline)>0 then
       begin
         currentlinep:=@currentline[1];
-        pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 2);
+        pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 2,aaid);
         currentline:=currentlinep;
         //if handled currentline will have it's identifiers regarding the plugin's previously registered stuff replaced
         //note that this can be called in a multithreaded situation, so the plugin must hld storage containers on a threadid base and handle the locking itself
@@ -2911,7 +2918,7 @@ begin
       freeandnil(tokens);
 
     {$IFNDEF UNIX}
-    pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 3); //tell the plugins to free their data
+    pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 3,aaid); //tell the plugins to free their data
 
     if targetself then
     begin

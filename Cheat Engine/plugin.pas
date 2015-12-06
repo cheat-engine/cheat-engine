@@ -7,7 +7,7 @@ interface
 uses lclproc, windows, classes, sysutils,LCLIntf,checklst,menus,dialogs,CEFuncProc,
      NewKernelHandler, graphics, syncobjs, commonTypeDefs;
 
-const CurrentPluginVersion=5;
+const CurrentPluginVersion=6;
 
 //todo: Move the type definitions to a different unit
 
@@ -808,7 +808,9 @@ end;
 
 //plugin type 8
 //where: when the autoassembler is used in the first and 2nd stage
-type TPluginFunction8=procedure(line: ppchar; phase: integer); stdcall;
+type TPluginFunction8=procedure(line: ppchar; phase: integer; id: integer); stdcall;
+type TPluginFunction8Version5=procedure(line: ppchar; phase: integer); stdcall;
+
 type TPluginfunctionType8=class
   public
     pluginid: integer;
@@ -853,7 +855,7 @@ type TPluginHandler=class
     procedure FillCheckListBox(clb: TCheckListbox);
     procedure EnablePlugin(pluginid: integer);
     procedure DisablePlugin(pluginid: integer);
-    procedure handleAutoAssemblerPlugin(line: ppchar; phase: integer);
+    procedure handleAutoAssemblerPlugin(line: ppchar; phase: integer; id: integer);
     procedure handledisassemblerContextPopup(address: ptruint);
     procedure handledisassemblerplugins(address: ptruint; addressStringPointer: pointer; bytestringpointer: pointer; opcodestringpointer: pointer; specialstringpointer: pointer; textcolor: PColor);
     function handledebuggerplugins(devent:PDebugEvent):integer;
@@ -1574,14 +1576,20 @@ begin
   pluginCS.Leave;
 end;
 
-procedure TPluginHandler.handleAutoAssemblerPlugin(line: ppchar; phase: integer);
+procedure TPluginHandler.handleAutoAssemblerPlugin(line: ppchar; phase: integer; id: integer);
 var i,j: integer;
 begin
   pluginCS.Enter;
   try
     for i:=0 to length(plugins)-1 do
       for j:=0 to length(plugins[i].RegisteredFunctions8)-1 do
-        plugins[i].RegisteredFunctions8[j].callback(line,phase);
+      begin
+        if plugins[i].pluginversion<=5 then
+          TPluginFunction8Version5(plugins[i].Registeredfunctions8[j].callback)(line,phase)
+        else
+          plugins[i].RegisteredFunctions8[j].callback(line,phase,id);
+
+      end;
   finally
     pluginCS.Leave;
   end;

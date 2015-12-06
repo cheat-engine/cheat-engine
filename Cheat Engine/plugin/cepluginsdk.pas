@@ -16,7 +16,7 @@ type ptruint=dword;
 type pptruint=^ptruint'
 {$endif}
 
-const PluginVersionSDK=5;
+const PluginVersionSDK=6;
 
 type TAutoAssemblerPhase=(aaInitialize=0, aaPhase1=1, aaPhase2=2, aaFinalize=3);
 type TPluginType=(ptAddressList=0, ptMemoryView=1, ptOnDebugEvent=2, ptProcesswatcherEvent=3, ptFunctionPointerchange=4, ptMainMenu=5, ptDisassemblerContext=6, ptDisassemblerRenderLine=7, ptAutoAssembler=8);
@@ -178,7 +178,7 @@ type
  type TPluginfunction6OnPopup=function(selectedAddress: ptruint; addressofname: pointer):bool; stdcall;
  type TPluginfunction6=function(selectedAddress: pptruint):bool; stdcall;
  type TPluginFunction7=procedure(address: ptruint; addressStringPointer: pointer; bytestringpointer: pointer; opcodestringpointer: pointer; specialstringpointer: pointer; textcolor: PColor); stdcall;
- type TPluginFunction8=procedure(line: ppchar; phase: TAutoAssemblerPhase); stdcall;
+ type TPluginFunction8=procedure(line: ppchar; phase: TAutoAssemblerPhase; id:integer); stdcall;
 
 
 type Tfunction0=record

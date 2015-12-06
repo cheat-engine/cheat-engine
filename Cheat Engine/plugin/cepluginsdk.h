@@ -5,7 +5,7 @@
  v4.0.0
 */
 #include <windows.h>
-#define CESDK_VERSION 5
+#define CESDK_VERSION 6
 
 typedef enum {ptAddressList=0, ptMemoryView=1, ptOnDebugEvent=2, ptProcesswatcherEvent=3, ptFunctionPointerchange=4, ptMainMenu=5, ptDisassemblerContext=6, ptDisassemblerRenderLine=7, ptAutoAssembler=8} PluginType;
 typedef enum {aaInitialize=0, aaPhase1=1, aaPhase2=2, aaFinalize=3} AutoAssemblerPhase;
@@ -38,7 +38,7 @@ typedef void (__stdcall *CEP_PLUGINTYPE5)(void);
 typedef BOOL (__stdcall *CEP_PLUGINTYPE6ONPOPUP)(ULONG selectedAddress, char **addressofname);
 typedef BOOL (__stdcall *CEP_PLUGINTYPE6)(ULONG *selectedAddress);
 typedef void (__stdcall *CEP_PLUGINTYPE7)(ULONG address, char **addressStringPointer, char **bytestringpointer, char **opcodestringpointer, char **specialstringpointer, ULONG *textcolor);
-typedef void (__stdcall *CEP_PLUGINTYPE8)(char **line, AutoAssemblerPhase phase);
+typedef void (__stdcall *CEP_PLUGINTYPE8)(char **line, AutoAssemblerPhase phase, int id);
 
 
 
