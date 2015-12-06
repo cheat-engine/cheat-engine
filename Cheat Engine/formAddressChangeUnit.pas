@@ -227,9 +227,9 @@ begin
   if ssCtrl in shift then
     stepsize:=1
   else if ssShift in shift then
-    stepsize:=processhandler.pointersize
+    stepsize:=ifthen(processhandler.pointersize=8, 4, 8)
   else
-    stepsize:=4;
+    stepsize:=ifthen(istop, 4, processhandler.pointersize);
 
   repeatstart:=GetTickCount;
   repeatdirection:=0; //tell the timer to decrease
@@ -249,9 +249,9 @@ begin
   if ssCtrl in shift then
     stepsize:=1
   else if ssShift in shift then
-    stepsize:=processhandler.pointersize
+    stepsize:=ifthen(processhandler.pointersize=8, 4, 8)
   else
-    stepsize:=4;
+    stepsize:=ifthen(istop, 4, processhandler.pointersize);
 
   repeatstart:=GetTickCount;
   repeatdirection:=1; //tell the timer to increase
