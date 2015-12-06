@@ -33,7 +33,7 @@ function ce_freezemem(address: ptrUint; size: integer):integer; stdcall;
 function ce_unfreezemem(id: integer):BOOL; stdcall;
 
 function ce_sym_addressToName(address:ptrUint; name: pchar; maxnamesize: integer):BOOL; stdcall;
-function ce_sym_nameToAddress(name: pchar; address: PDWORD):BOOL; stdcall;
+function ce_sym_nameToAddress(name: pchar; address: PPtrUInt):BOOL; stdcall;
 function ce_generateAPIHookScript(address, addresstojumpto, addresstogetnewcalladdress, script: pchar; maxscriptsize: integer): BOOL; stdcall;
 
 
@@ -448,7 +448,7 @@ begin
 end;
 
 
-function ce_sym_nameToAddress(name: pchar; address: PDWORD):BOOL; stdcall;
+function ce_sym_nameToAddress(name: pchar; address: PPtrUInt):BOOL; stdcall;
 var haserror: boolean;
 begin
   address^:=symhandler.getAddressFromName(name,false,haserror);
