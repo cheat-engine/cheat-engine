@@ -1467,6 +1467,17 @@ int opcode_STI(void)
   return 0;
 }
 
+int opcode_CLD(pcpuinfo currentcpuinfo)
+{
+  UINT64 guestrflags=vmread(vm_guest_rflags);
+  PRFLAGS pguestrflags=(PRFLAGS)&guestrflags;
+
+  pguestrflags->DF=0;
+  vmwrite(0x6820,(UINT64)guestrflags);
+
+  return 0;
+}
+
 int opcode_UD(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 {
   emulateRMinterrupt(currentcpuinfo, vmregisters,6);
@@ -2349,6 +2360,7 @@ int emulateRMinstruction2(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PIN
 
     case 0xfa: return opcode_CLI();
     case 0xfb: return opcode_STI();
+    case 0xfc: return opcode_CLD(currentcpuinfo);
   }
 
 
@@ -2570,79 +2582,86 @@ int emulateRealMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     switch (address)
     {
 
-      case 0x2006e:
+      case 0x20067:
+      case 0x20068:
+      case 0x2006a:
+      case 0x2006d:
       case 0x2006f:
-      case 0x20071:
-      case 0x20074:
+      case 0x20072:
+      case 0x20075:
       case 0x20076:
       case 0x20079:
-      case 0x2007c:
-      case 0x2007d:
-      case 0x20080:
-      case 0x20083: //nh
+      case 0x2007c: //IRET
 
-      case 0x200cc:
-      case 0x200d1:
-      case 0x200d7:
-      case 0x200e0:
+      case 0x200c5:
+      case 0x200ca:
+      case 0x200d0:
+      case 0x200d9:
+      case 0x200de:
+      case 0x200df:
       case 0x200e5:
       case 0x200e8:
       case 0x200eb:
-      case 0x200ee:
-      case 0x200f1:
-      case 0x200f4:
-      case 0x200f7:
-      case 0x200fa:
-      case 0x200fd:
-      case 0x200fe:
+      case 0x200ec:
+      case 0x200ed:
+      case 0x200f0:
+      case 0x200f3:
+      case 0x200f6:
+      case 0x200f9:
+      case 0x200fc:
       case 0x200ff:
-      case 0x20100:
-      case 0x20103:
+      case 0x20102:
+      case 0x20105:
       case 0x20106:
-      case 0x20109:
-      case 0x2010c:
-      case 0x2010d:
-      case 0x20125:
-      case 0x20128:
-      case 0x20129:
-      case 0x2012a:
+      case 0x20107:
+      case 0x20108:
+      case 0x2010b:
+      case 0x2010e:
+      case 0x20111:
+      case 0x20114:
+      case 0x20115:
+      case 0x20117:
+      case 0x20119:
+      case 0x2011b:
+      case 0x2011d:
+      case 0x2011f:
+      case 0x20122:
+      case 0x20124:
+      case 0x20127:
       case 0x2012b:
-      case 0x20229:
-      case 0x2022e:
-      case 0x20233:
-      case 0x20236:
-      case 0x2023b:
-      case 0x2023e:
-      case 0x20243:
-      case 0x20246: //NH  (0b d2: or dx,dx
+      case 0x2012e:
+      case 0x2012f:
+      case 0x20130: //CLD
+      case 0x20131:
+      case 0x20132:
 
-      case 0x20252: //switch to pm
-      case 0x2025f:
-      case 0x203bc:
-      case 0x203c1:
-      case 0x203c4:
-      case 0x203c5:
-      case 0x203c6:
-      case 0x203c7:
-      case 0x203c8:
-      case 0x203cb:
-      case 0x203d0:
-      case 0x203d1:
-      case 0x203d3:
-      case 0x203d5:
-      case 0x203d8:
-      case 0x203dd:
-      case 0x203e0:
-      case 0x203e5:
-      case 0x203ea:
-      case 0x203eb:
-      case 0x205a3:
-      case 0x205a4:
-      case 0x205a6:
-      case 0x20776:
-      case 0x20779:
-      case 0x207de: //mov ah,00
-      case 0x207e0: //cd 1a  (int 0x1a)
+      case 0x202f4:
+      case 0x202f9:
+
+      case 0x20826:
+      case 0x2082b:
+      case 0x20830:
+      case 0x20833:
+      case 0x20836:
+
+      case 0x208a0:
+      case 0x208a5:
+      case 0x208a8:
+      case 0x208a9:
+      case 0x208aa:
+      case 0x208ab:
+      case 0x208ac:
+      case 0x208af:
+
+      case 0x208cf:
+      case 0x208d4:
+      case 0x208d5:
+      case 0x208d7:
+
+
+
+         /*
+
       case 0x20957:
 
       case 0x20958: //8b ec : mov bp,sp
@@ -2678,6 +2697,11 @@ int emulateRealMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       case 0x30682:
       case 0x30685:
       case 0x30689:
+      */
+      case 0xe8024: //pushf
+
+
+        /*
 
       case 0xeb90d:
       case 0xeb90e:
@@ -2706,7 +2730,17 @@ int emulateRealMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       case 0xff2ed:
       case 0xff2f2:
 
-      case 0xffe6e:
+      case 0xffe6e:*/
+
+      case 0xfe05e:
+      case 0xfe05f:
+      case 0xfe060:
+      case 0xfe063:
+      case 0xfe064:
+      case 0xfe065:
+      case 0xfe066:
+      case 0xfe069:
+      case 0xfe06c: //inc word [si]
       case 0xffea5:
 
 
@@ -2714,8 +2748,10 @@ int emulateRealMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
         break;
     }
 
-    if (currentcpuinfo->cpunr==0)
-      skip=1;
+
+
+//    if (currentcpuinfo->cpunr==0)
+//      skip=1;
 #endif
 
 

@@ -106,6 +106,16 @@ resourcestring
   rsYouHavnTSpecifiedAEnableSection = 'You havn''t specified a enable section';
   rsYouHavnTSpecifiedADisableSection = 'You havn''t specified a disable section';
   rsWrongSyntaxSHAREDALLOCNameSize = 'Wrong syntax. SHAREDALLOC(name,size)';
+  rsAAErrorInTheStructureDefinitionOf = 'Error in the structure definition of %s at line %d';
+  rsAAIsAReservedWord = '%s is a reserved word';
+  rsAANoIdeaWhatXis = 'No idea what %s is';
+  rsAANoEndFound = 'No end found';
+  rsAATheArrayOfByteNamed = 'The array of byte named %s could not be found';
+  rsXCouldNotBeFound = '%s could not be found';
+  rsAAErrorWhileSacnningForAobs = 'Error while scanning for AOB''s : ';
+  rsAAError = 'Error: ';
+  rsAAModuleNotFound = 'module not found:';
+  rsAALuaErrorInTheScriptAtLine = 'Lua error in the script at line ';
 
 //type
 //  TregisteredAutoAssemblerCommands =  TFPGList<TRegisteredAutoAssemblerCommand>;
@@ -318,7 +328,7 @@ var
   procedure structError(reason: string='');
   var error: string;
   begin
-    error:='Error in the structure definition of '+structname+' at line '+inttostr(lastlinenr+1);
+    error:=format(rsAAErrorInTheStructureDefinitionOf, [structname, lastlinenr+1]);
     if reason<>'' then
       error:=error+' :'+reason
     else
@@ -350,7 +360,7 @@ begin
       begin
         elementname:=copy(tokens[0], 1, Length(tokens[0])-1);
         if GetOpcodesIndex(elementname)<>-1 then
-          structError(elementname+' is a reserved word');
+          structError(format(rsAAIsAReservedWord, [elementname]));
 
         elements.AddObject(elementname, tobject(currentOffset));
 
@@ -437,7 +447,7 @@ begin
         end;
 
         else
-          structError('No idea what '+tokens[j]+' is'); //we already dealth with labels, so this is wrong
+          structError(format(rsAANoIdeaWhatXis, [tokens[j]])); //we already dealth with labels, so this is wrong
       end;
 
 
@@ -448,7 +458,7 @@ begin
   end;
 
   if endfound=false then
-    structerror('No end found');
+    structerror(rsAANoEndFound);
 
   //the elements have been filled in, delete the structure (between linenr and lastlinenr) and inject define(element,offset) and define(structname.element,offset)
   for i:=lastlinenr downto linenr do
@@ -502,7 +512,7 @@ begin
   for i:=0 to code.count-1 do
   begin
     currentline:=code[i];
-    
+
     for j:=1 to length(currentline) do
     begin
       if incomment then
@@ -522,7 +532,7 @@ begin
       else
       begin
         if currentline[j]='''' then instring:=not instring;
-        if currentline[j]=#9 then currentline[j]:=' '; //tabs are basicly comments 
+        if currentline[j]=#9 then currentline[j]:=' '; //tabs are basicly comments
 
         if not instring then
         begin
@@ -709,12 +719,10 @@ var i,j,k, m: integer;
         if results[i]=0 then
         begin
           error:=true;
-          errorstring:='The array of byte named '+aobscanmodules[f].entries[i].name+' could not be found';
+          errorstring:=format(rsAATheArrayOfByteNamed, [aobscanmodules[f].entries[i].name]);
         end
         else
           code[aobscanmodules[f].entries[i].linenumber]:='DEFINE('+aobscanmodules[f].entries[i].name+', '+inttohex(results[i],8)+')';
-
-
       end;
     end
     else
@@ -724,7 +732,7 @@ var i,j,k, m: integer;
       for i:=0 to length(aobscanmodules[f].entries)-1 do
         aoblist:=aoblist+aobscanmodules[f].entries[i].name+' ';
 
-      errorstring:='Error while scanning for AOB''s : '+aoblist+#13#10#13#10+'Error: '+aobscanmodules[f].memscan.GetErrorString;
+      errorstring:=rsAAErrorWhileSacnningForAobs+aoblist+#13#10#13#10+rsAAError+aobscanmodules[f].memscan.GetErrorString;
 
 
     end;
@@ -857,7 +865,7 @@ begin
               aobscanmodules[m].maxaddress:=mi.baseaddress+mi.basesize;
             end
             else
-              raise exception.create('module not found:'+s2);
+              raise exception.create(rsAAModuleNotFound+s2);
 
             setlength(aobscanmodules[m].entries,0);
           end;
@@ -1001,9 +1009,9 @@ begin
             if error then
             begin
               if lua_isstring(luavm, -1) then
-                raise exception.create('Lua error in the script at line '+inttostr(integer(code.Objects[i]))+':'+lua_tostring(luavm, -1))
+                raise exception.create(rsAALuaErrorInTheScriptAtLine+inttostr(integer(code.Objects[i]))+':'+lua_tostring(luavm, -1))
               else
-                raise exception.create('Lua error in the script at line '+inttostr(integer(code.Objects[i])));
+                raise exception.create(rsAALuaErrorInTheScriptAtLine+inttostr(integer(code.Objects[i])));
 
             end;
 
@@ -1031,6 +1039,8 @@ begin
 
 end;
 
+
+var nextaaid: longint;
 
 function autoassemble2(code: tstrings;popupmessages: boolean;syntaxcheckonly:boolean; targetself: boolean ;var ceallocarray:TCEAllocArray; registeredsymbols: tstringlist=nil):boolean;
 {
@@ -1129,6 +1139,8 @@ var i,j,k,l,e: integer;
 
 
     connection: TCEConnection;
+
+    aaid: longint;
 begin
   setlength(readmems,0);
   setlength(allocs,0);
@@ -1138,6 +1150,8 @@ begin
   setlength(createthread,0);
 
   currentaddress:=0;
+
+
 
 
   if syntaxcheckonly and (registeredsymbols<>nil) then
@@ -1178,7 +1192,8 @@ begin
 {$ifndef jni}
   if pluginhandler=nil then exit; //Error. Cheat Engine is not properly configured
 
-  pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 0); //tell the plugins that an autoassembler script is about to get executed
+  aaid:=InterLockedIncrement(nextaaid);
+  pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 0, aaid); //tell the plugins that an autoassembler script is about to get executed
 {$endif}
 
 
@@ -1317,7 +1332,7 @@ begin
           //plugins
           currentlinep:=@currentline[1];
           {$ifndef jni}
-          pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 1);
+          pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 1,aaid);
           {$endif}
           currentline:=currentlinep;
 
@@ -1451,11 +1466,24 @@ begin
           begin
             a:=pos('(',currentline);
             b:=pos(',',currentline);
-            c:=pos(')',currentline);
-            if (a>0) and (b>0) and (c>0) then
+            c:=PosEx(',',currentline,b+1);
+            d:=pos(')',currentline);
+
+            if (a>0) and (b>0) and (d>0) then
             begin
               s1:=trim(copy(currentline,a+1,b-a-1));
-              s2:=trim(copy(currentline,b+1,c-b-1));
+
+              if c>0 then
+              begin
+                s2:=trim(copy(currentline,b+1,c-b-1));
+                s3:=trim(copy(currentline,c+1,d-c-1));
+              end
+              else
+              begin
+                s2:=trim(copy(currentline,b+1,d-b-1));
+                s3:='';
+              end;
+
 
               try
                 x:=strtoint(s2);
@@ -1464,12 +1492,16 @@ begin
               end;
 
               //define it here already
-              symhandler.SetUserdefinedSymbolAllocSize(s1,x);              
+              if s3<>'' then
+                symhandler.SetUserdefinedSymbolAllocSize(s1,x, symhandler.getAddressFromName(s3))
+              else
+                symhandler.SetUserdefinedSymbolAllocSize(s1,x);
 
               setlength(globalallocs,length(globalallocs)+1);
               globalallocs[length(globalallocs)-1].address:=symhandler.GetUserdefinedSymbolByName(s1);
               globalallocs[length(globalallocs)-1].varname:=s1;
               globalallocs[length(globalallocs)-1].size:=x;
+
 
               setlength(assemblerlines,length(assemblerlines)-1);
               continue;
@@ -1544,7 +1576,7 @@ begin
             if (a>0) and (b>0) then
             begin
               s1:=trim(copy(currentline,a+1,b-a-1));
-            
+
               setlength(createthread,length(createthread)+1);
               createthread[length(createthread)-1]:=s1;
 
@@ -1689,7 +1721,7 @@ begin
               try
                 testptr:=symhandler.getAddressFromName(s1);
               except
-                raise exception.Create(s1+' could not be found');
+                raise exception.Create(format(rsXCouldNotBeFound, [s1]));
               end;
 
               disassembler:=TDisassembler.create;
@@ -2315,7 +2347,10 @@ begin
         if allocs[i].prefered<>0 then
         begin
           //if yes, is it the same as the previous entry? (or was the previous one that doesn't care?)
-          if (prefered<>allocs[i].prefered) and (prefered<>0) then
+          if prefered=0 then
+            prefered:=allocs[i].prefered;
+
+          if (prefered<>allocs[i].prefered) then
           begin
             //different prefered address
 
@@ -2345,11 +2380,15 @@ begin
               x:=0;
             end;
 
-
             //new prefered address
             j:=i;
             prefered:=allocs[i].prefered;
+
+
+
+
           end;
+
         end;
 
         //no prefered location specified, OR same prefered location
@@ -2421,7 +2460,7 @@ begin
       if length(currentline)>0 then
       begin
         currentlinep:=@currentline[1];
-        pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 2);
+        pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 2,aaid);
         currentline:=currentlinep;
         //if handled currentline will have it's identifiers regarding the plugin's previously registered stuff replaced
         //note that this can be called in a multithreaded situation, so the plugin must hld storage containers on a threadid base and handle the locking itself
@@ -2705,11 +2744,12 @@ begin
 
           for i:=0 to length(ceallocarray)-1 do
           begin
-            if ceallocarray[i].address<baseaddress then
-              baseaddress:=ceallocarray[i].address;
+            virtualfreeex(processhandle,pointer(dealloc[i]),0,MEM_RELEASE);
+{            if ceallocarray[i].address<baseaddress then
+              baseaddress:=ceallocarray[i].address;}
           end;
 
-          virtualfreeex(processhandle,pointer(baseaddress),0,MEM_RELEASE);
+          //virtualfreeex(processhandle,pointer(baseaddress),0,MEM_RELEASE);
         end;
 
         setlength(ceallocarray,length(allocs));
@@ -2878,7 +2918,7 @@ begin
       freeandnil(tokens);
 
     {$IFNDEF UNIX}
-    pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 3); //tell the plugins to free their data
+    pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 3,aaid); //tell the plugins to free their data
 
     if targetself then
     begin
@@ -3047,7 +3087,7 @@ begin
   getenableanddisablepos(code,enablepos,disablepos);
 
   result:=false;
-  
+
   if enablepos=-2 then
   begin
     if not popupmessages then exit;
@@ -3080,7 +3120,7 @@ begin
       begin
         if not popupmessages then exit;
         raise exception.Create(rsYouHavnTSpecifiedADisableSection);
-        
+
       end;
 
       if enable then
@@ -3118,6 +3158,7 @@ end;
 
 
 end.
+
 
 
 

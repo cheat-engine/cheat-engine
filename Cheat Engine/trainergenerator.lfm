@@ -121,7 +121,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
       Top = 112
       Width = 253
       Caption = 'Automated gui config options'
-      ClientHeight = 154
+      ClientHeight = 152
       ClientWidth = 249
       TabOrder = 8
       object cbCanResize: TCheckBox
@@ -218,8 +218,8 @@ object frmTrainerGenerator: TfrmTrainerGenerator
       Left = 8
       Height = 19
       Top = 288
-      Width = 117
-      Caption = 'Play XM music file'
+      Width = 124
+      Caption = 'Play mod music file'
       OnChange = cbPlayXMChange
       TabOrder = 11
     end
@@ -230,7 +230,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
       Top = 307
       Width = 225
       DialogOptions = []
-      Filter = 'XM files|*.XM'
+      Filter = 'Module files|*.669;*.amf;*.dsm;*.far;*.gdm;*.imf;*.it;*.med;*.m15;*.mod;*.mtm;*.okt;*.stm;*.stx;*.s3m;*.ult;*.uni;*.xm'
       FilterIndex = 0
       HideDirectories = False
       ButtonWidth = 23

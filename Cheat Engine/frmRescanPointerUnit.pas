@@ -102,7 +102,13 @@ resourcestring
     +'filled in';
   rsAdd = 'Add';
   rsRemove = 'Remove';
-
+  rsRPTheFunction = 'The function %s(base, offsets, target) has not yet been defined. Please define it first';
+  rsRPIpList = 'IP List';
+  rsRPEnterTheIpAddressesToNotifyExplicitly = 'Enter the IP addresses to notify explicitly';
+  rsRPLastOffset = 'Last offset';
+  rsRPFirstOffset = 'First offset';
+  rsRPUseSavedPointermap = 'Use saved pointermap: ';
+  rsRPUseSavedPointermap2 = 'Use saved pointermap';
 
 procedure TfrmRescanPointer.rbFindAddressClick(Sender: TObject);
 begin
@@ -201,7 +207,7 @@ begin
     lua_getglobal(LuaVM, pchar(edtRescanFunction.Text));
     try
       if not lua_isfunction(Luavm,-1) then
-        raise exception.create('The function '+edtRescanFunction.Text+'(base, offsets, target) has not yet been defined. Please define it first');
+        raise exception.create(format(rsRPTheFunction,[edtRescanFunction.Text]));
     finally
       lua_pop(Luavm,1);
     end;
@@ -225,7 +231,7 @@ var
 begin
   reg:=TRegistry.create;
   try
-    if MultilineInputQuery('IP List','Enter the IP addresses to notify explicitly', iplist) then  //save the new ip list
+    if MultilineInputQuery(rsRPIpList,rsRPEnterTheIpAddressesToNotifyExplicitly, iplist) then  //save the new ip list
     begin
       Reg.RootKey := HKEY_CURRENT_USER;
       if Reg.OpenKey('\Software\Cheat Engine',true) then
@@ -255,7 +261,7 @@ begin
     if lblInfoLastOffset=nil then
     begin
       lblInfoLastOffset:=TLabel.create(self);
-      lblInfoLastOffset.caption:='Last offset';
+      lblInfoLastOffset.caption:=rsRPLastOffset;
       lblInfoLastOffset.left:=e.Left+e.Width+5;
       lblInfoLastOffset.parent:=self;
       lblInfoLastOffset.visible:=false;
@@ -325,7 +331,7 @@ begin
     if lblInfoFirstOffset=nil then
     begin
       lblInfoFirstOffset:=TLabel.create(self);
-      lblInfoFirstOffset.caption:='First offset';
+      lblInfoFirstOffset.caption:=rsRPFirstOffset;
       lblInfoFirstOffset.left:=e.Left+e.Width+5;
       lblInfoFirstOffset.parent:=self;
       lblInfoFirstOffset.visible:=false;
@@ -390,12 +396,12 @@ begin
   if cbUseSavedPointermap.checked then
   begin
     if odLoadPointermap.execute then
-      cbUseSavedPointermap.caption:='Use saved pointermap: '+ExtractFileName(odLoadPointermap.FileName)
+      cbUseSavedPointermap.caption:=rsRPUseSavedPointermap+ExtractFileName(odLoadPointermap.FileName)
     else
       cbUseSavedPointermap.checked:=false;
   end
   else
-    cbUseSavedPointermap.Caption:='Use saved pointermap';
+    cbUseSavedPointermap.Caption:=rsRPUseSavedPointermap2;
 
   if cbUseSavedPointermap.checked then
   begin

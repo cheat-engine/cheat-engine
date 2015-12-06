@@ -208,6 +208,7 @@ begin
       end;
 
 
+      //qpc
       script.clear;
       a:=symhandler.getAddressFromName('realQueryPerformanceCounter') ;
       b:=0;
@@ -222,6 +223,26 @@ begin
       except //do mind
         raise exception.Create(rsFailureConfiguringSpeedhackPart+' 2');
       end;
+
+      //gettickcount64
+      if symhandler.getAddressFromName('GetTickCount64',false,err)>0 then
+      begin
+        script.clear;
+        a:=symhandler.getAddressFromName('realGetTickCount64') ;
+        b:=0;
+        readprocessmemory(processhandle,pointer(a),@b,processhandler.pointersize,x);
+        if b<>0 then //already configured
+          generateAPIHookScript(script, 'GetTickCount64', 'speedhackversion_GetTickCount64')
+        else
+          generateAPIHookScript(script, 'GetTickCount64', 'speedhackversion_GetTickCount64', 'realGetTickCount64');
+
+        try
+          autoassemble(script,false);
+        except //do mind
+          raise exception.Create(rsFailureConfiguringSpeedhackPart+' 3');
+        end;
+      end;
+
 
     end;
 

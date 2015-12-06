@@ -8,6 +8,10 @@ uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, LResources;
 
+resourcestring
+  rsSAE4Bytes = '4 Bytes';
+  rsSAE2Bytes = '2 Bytes';
+
 type
 
   { TfrmStructuresAddElement }
@@ -48,8 +52,8 @@ begin
   if visible then
   begin
     s:=edtDescription.Text;
-    if s='Dword' then s:='4 Bytes';
-    if s='Word' then s:='2 Bytes';
+    if s='Dword' then s:=rsSAE4Bytes;
+    if s='Word' then s:=rsSAE2Bytes;
     if cbType.Items.IndexOf(s)<>-1 then
       edtDescription.Text:=cbType.Items[cbType.itemindex];
 

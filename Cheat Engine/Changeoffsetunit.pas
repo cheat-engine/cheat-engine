@@ -25,7 +25,7 @@ type
     { Private declarations }
   public
     { Public declarations }
-    offset: Integer;
+    offset: Int64;
     FromAddress: ptrUint;
     toAddress: ptrUint;
     error: integer;

@@ -17,6 +17,7 @@ type
   { TForm1 }
 
   TForm1 = class(TForm)
+    Label4: TLabel;
     lblFail: TLabel;
     Timer1: TTimer;
     Label1: TLabel;
@@ -88,6 +89,7 @@ begin
   QueryPerformanceFrequency(freq);
   label3.Caption:=inttostr(newperf)+' = '+inttostr(newperf div freq);
 
+  label4.caption:=inttostr(gettickcount64 div 1000);
 
   if fail then
       lblFail.visible:=true;

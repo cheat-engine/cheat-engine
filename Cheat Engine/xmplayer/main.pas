@@ -75,20 +75,29 @@ begin
 
       //writeln('weee');
       actualread:=0;
-      while ReadFile(pipe, command, 1, actualread, nil) do
-      begin
-        //writeln('command='+inttostr(command));
+      try
+        try
+          while ReadFile(pipe, command, 1, actualread, nil) do
+          begin
+            //writeln('command='+inttostr(command));
+            case command of
+              XMPLAYER_PLAYXM: HandleLoadFileCommand;
+              XMPLAYER_PAUSE: uFMOD_Pause;
+              XMPLAYER_RESUME: uFMOD_Resume;
+              XMPLAYER_STOP: uFMOD_StopSong;
+              XMPLAYER_SETVOLUME: HandleSetVolumeCommand;
+            end;
 
-        case command of
-          XMPLAYER_PLAYXM: HandleLoadFileCommand;
-          XMPLAYER_PAUSE: uFMOD_Pause;
-          XMPLAYER_RESUME: uFMOD_Resume;
-          XMPLAYER_STOP: uFMOD_StopSong;
-          XMPLAYER_SETVOLUME: HandleSetVolumeCommand;
+          end;
+        finally
+          closehandle(pipe);
         end;
 
+      except
+        on e:exception do
+          OutputDebugString(pchar(e.Message));
       end;
-      closehandle(pipe);
+
     end;
 
 

@@ -12,17 +12,19 @@ uses
 type
   { TfrmGroupScanAlgoritmGenerator }
   TfrmGroupScanAlgoritmGenerator = class(TForm)
-    btnOK: TButton;
     btnCancel: TButton;
-    cbTypeAligned: TCheckBox;
+    btnOK: TButton;
     cbOutOfOrder: TCheckBox;
+    cbTypeAligned: TCheckBox;
     edtBlockalignment: TEdit;
     edtBlocksize: TEdit;
-    lblBlocksize: TLabel;
     lblBlockAlignment: TLabel;
-    lblWildcardExplanation: TLabel;
-    lblMustBeDividable: TLabel;
+    lblBlocksize: TLabel;
     lblMin: TLabel;
+    lblMustBeDividable: TLabel;
+    lblWildcardExplanation: TLabel;
+    Panel1: TPanel;
+    Panel2: TPanel;
     ScrollBox1: TScrollBox;
     procedure btnOKClick(Sender: TObject);
     procedure cbOutOfOrderChange(Sender: TObject);
@@ -75,6 +77,8 @@ resourcestring
   rsWildcard='Skip nr of bytes:';
   rsAdd='Add';
   rsPickedHint='When checked this element will get added to the addresslist. Note: If all checkboxes are disabled, ALL elements will be added';
+  rsGSGShouldBeAtLeast = 'Should be at least %d';
+  rsGSGBlocksizeMustBeProvided = 'blocksize must be provided';
 
 {$R *.lfm}
 
@@ -386,7 +390,7 @@ end;
 
 procedure TfrmGroupScanAlgoritmGenerator.FormShow(Sender: TObject);
 begin
-  clientheight:=btnOK.top+btnOK.height+10;
+//  clientheight:=panel1.top+btnOK.top+btnOK.height+10;
 end;
 
 procedure TfrmGroupScanAlgoritmGenerator.sizechange;
@@ -404,7 +408,7 @@ begin
   end
   else
   begin
-    lblMin.Caption:='Should be at least '+inttostr(s);
+    lblMin.Caption:=format(rsGSGShouldBeAtLeast, [s]);
   end;
 end;
 
@@ -543,7 +547,7 @@ begin
 
 
   except
-    raise exception.create('blocksize must be provided');
+    raise exception.create(rsGSGBlocksizeMustBeProvided);
   end;
 
 end;

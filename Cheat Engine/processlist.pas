@@ -11,6 +11,7 @@ uses
 procedure GetProcessList(ProcessList: TListBox; NoPID: boolean=false); overload;
 {$endif}
 procedure GetProcessList(ProcessList: TStrings; NoPID: boolean=false; noProcessInfo: boolean=false); overload;
+procedure sanitizeProcessList(processlist: TStrings);
 procedure cleanProcessList(processlist: TStrings);
 
 //global vars refering to the processlist
@@ -53,14 +54,11 @@ begin
 end;
 {$endif}
 
-
-procedure cleanProcessList(processlist: TStrings);
+procedure sanitizeProcessList(processlist: TStrings);
 var
   i: integer;
   ProcessListInfo: PProcessListInfo;
 begin
-  OutputDebugString('cleanProcessList()');
-
   for i:=0 to processlist.count-1 do
     if processlist.Objects[i]<>nil then
     begin
@@ -70,8 +68,15 @@ begin
         DestroyIcon(ProcessListInfo.processIcon);
 {$endif}
       freemem(ProcessListInfo);
-    end;
 
+      processlist.Objects[i]:=nil;
+    end;
+end;
+
+procedure cleanProcessList(processlist: TStrings);
+begin
+  OutputDebugString('cleanProcessList()');
+  sanitizeProcessList(processlist);
   processlist.clear;
 end;
 

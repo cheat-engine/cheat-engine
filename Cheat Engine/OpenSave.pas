@@ -205,6 +205,9 @@ resourcestring
   rsAskIfStupid = 'Generating a trainer with the current state of the cheat '
     +'table will likely result in a completely useless trainer that does '
     +'nothing. Are you sure?';
+  rsOSThereIsANewerVersionifCheatEngineOutEtc = 'There is a newer version of Cheat Engine out. It''s recommended to use that version instead';
+  rsOSThisCheatTableIsCorrupt = 'This cheat table is corrupt';
+
  {
 procedure LoadStructFromXMLNode(var struct: TbaseStructure; Structure: TDOMNode);
 var tempnode: TDOMNode;
@@ -369,9 +372,9 @@ begin
         try
           version:=strtoint(tempnode.TextContent);
           if (version>CurrentTableVersion) then
-            showmessage('There is a newer version of Cheat Engine out. It''s recommended to use that version instead');
+            showmessage(rsOSThereIsANewerVersionifCheatEngineOutEtc);
         except
-          showmessage('This cheat table is corrupt');
+          showmessage(rsOSThisCheatTableIsCorrupt);
         end;
       end;
 
@@ -651,52 +654,71 @@ begin
     begin
       if not isTrainer then
       begin
+        reg:=TRegistry.Create;
+        try
+          Reg.RootKey := HKEY_CURRENT_USER;
 
-        if formSettings.cbAskIfTableHasLuascript.checked then
-        begin
-
-          r:=MessageDlg(rsThisTableContainsALuaScriptDoYouWantToRunIt, mtConfirmation, [mbyes, mbno, mbyestoall, mbNoToAll], 0);
-
-          if r in [mrYesToAll, mrNoToAll] then
+          if Reg.OpenKey('\Software\Cheat Engine',false) then   //fill it from the registry (in case it's loaded before the settings are loaded)
           begin
-            case r of
+            if reg.ValueExists('Ask if table has lua script') then
+              formSettings.cbAskIfTableHasLuascript.checked:=reg.ReadBool('Ask if table has lua script')
+            else
+              formSettings.cbAskIfTableHasLuascript.checked:=true;
 
-              mrYesToAll:
-              begin
-                r:=mryes;
-                formsettings.cbAskIfTableHasLuascript.Checked:=false;
-                formsettings.cbAlwaysRunScript.checked:=true;
+            if reg.ValueExists('Always run script') then
+              formsettings.cbAlwaysRunScript.Checked:=reg.ReadBool('Always run script')
+            else
+              formsettings.cbAlwaysRunScript.Checked:=false;
+
+          end
+          else
+            formSettings.cbAskIfTableHasLuascript.checked:=true; //no registry settings yet.
+
+          if formSettings.cbAskIfTableHasLuascript.checked then
+          begin
+
+            r:=MessageDlg(rsThisTableContainsALuaScriptDoYouWantToRunIt, mtConfirmation, [mbyes, mbno, mbyestoall, mbNoToAll], 0);
+
+            if r in [mrYesToAll, mrNoToAll] then
+            begin
+              case r of
+
+                mrYesToAll:
+                begin
+                  r:=mryes;
+                  formsettings.cbAskIfTableHasLuascript.Checked:=false;
+                  formsettings.cbAlwaysRunScript.checked:=true;
+                end;
+
+                mrNoToAll:
+                begin
+                  r:=mrNo;
+                  formsettings.cbAskIfTableHasLuascript.Checked:=false;
+                  formsettings.cbAlwaysRunScript.checked:=false;
+                end;
               end;
 
-              mrNoToAll:
-              begin
-                r:=mrNo;
-                formsettings.cbAskIfTableHasLuascript.Checked:=false;
-                formsettings.cbAlwaysRunScript.checked:=false;
-              end;
-            end;
 
-            reg:=TRegistry.Create;
-            try
-              Reg.RootKey := HKEY_CURRENT_USER;
               if Reg.OpenKey('\Software\Cheat Engine',true) then
               begin
                 reg.WriteBool('Ask if table has lua script',formsettings.cbAskIfTableHasLuascript.Checked);
                 reg.WriteBool('Always run script',formsettings.cbAlwaysRunScript.Checked);
               end;
-            finally
-              reg.free;
+
             end;
+
+
+          end
+          else
+          begin
+            if formSettings.cbAlwaysRunScript.checked then
+              r:=mrYes
+            else
+              r:=mrNo;
           end;
 
-
-        end
-        else
-        begin
-          if formSettings.cbAlwaysRunScript.checked then
-            r:=mrYes
-          else
-            r:=mrNo;
+        finally
+          reg.free;
         end;
 
       end

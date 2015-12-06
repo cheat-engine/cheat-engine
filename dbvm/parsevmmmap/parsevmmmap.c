@@ -35,7 +35,7 @@ int main(void)
 		while (strcmp(temp,"memorylist")!=0)
 		{
 			memorylist=strtol(temp,NULL,16); 
-			fscanf(fpVMMMAP,"%s",&temp);
+			fscanf(fpVMMMAP,"%s",(char *)&temp);
 		}
 		fclose(fpVMMMAP);
 
@@ -63,7 +63,7 @@ int main(void)
 
 
 
-			printf("startoffreemem=%x\n",startoffreemem);
+			printf("startoffreemem=%x\n",(int)startoffreemem);
 			*(unsigned long long *)(&buf[memorylist-startofbss])=startoffreemem+0x7f00;
 
 			//seek to the end

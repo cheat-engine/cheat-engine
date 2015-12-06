@@ -25,6 +25,7 @@
 
 #include "test.h"
 #include "vmcall.h"
+#include "vmpaging.h"
 //#include "psod.h" //for pink screen of death support
 
 /*
@@ -759,6 +760,7 @@ void vmm_entry(void)
   sendstringf("APICID=%8\n\rrsp=%6\n\rnextstack=%6\n\r",getAPICID(), getRSP(), (UINT64)nextstack);
 
 
+
   if (isAP)
   {
     vmm_entry2();
@@ -798,10 +800,11 @@ void vmm_entry(void)
   pagedirptrvirtual=(PPDPTE_PAE)((unsigned long long)pagedirlvl4+0x1000);
 
 
-  pagedirvirtual=(PPDE2MB_PAE)((unsigned long long)pagedirptrvirtual+0x1000); //00000000 to 3fffffff
-  pagedirvirtual2=(PPDE2MB_PAE)((unsigned long long)pagedirptrvirtual+0x2000); //40000000 to 7fffffff
-  pagedirvirtual3=(PPDE2MB_PAE)((unsigned long long)pagedirptrvirtual+0x3000); //80000000 to bffffffff
-  pagedirvirtual4=(PPDE2MB_PAE)((unsigned long long)pagedirptrvirtual+0x4000); //c0000000 to ffffffff
+  pagedirvirtual=(PPDE2MB_PAE)((unsigned long long)pagedirptrvirtual+0x1000);  //000000000 to 03fffffff
+  pagedirvirtual2=(PPDE2MB_PAE)((unsigned long long)pagedirptrvirtual+0x2000); //040000000 to 07fffffff
+  pagedirvirtual3=(PPDE2MB_PAE)((unsigned long long)pagedirptrvirtual+0x3000); //080000000 to 0bfffffff
+  pagedirvirtual4=(PPDE2MB_PAE)((unsigned long long)pagedirptrvirtual+0x4000); //0c0000000 to 0ffffffff
+  pagedirvirtual5=(PPDE2MB_PAE)((unsigned long long)pagedirptrvirtual+0x5000); //100000000 to 13fffffff
 
 
   sendstringf("pagedirptrvirtual=%6 (%6)\n",(UINT64)pagedirptrvirtual, VirtualToPhysical((UINT64)pagedirptrvirtual));
@@ -809,21 +812,31 @@ void vmm_entry(void)
   sendstringf("pagedirvirtual2=%6 (%6)\n",(UINT64)pagedirvirtual2, VirtualToPhysical((UINT64)pagedirvirtual2));
   sendstringf("pagedirvirtual3=%6 (%6)\n",(UINT64)pagedirvirtual3, VirtualToPhysical((UINT64)pagedirvirtual3));
   sendstringf("pagedirvirtual4=%6 (%6)\n",(UINT64)pagedirvirtual4, VirtualToPhysical((UINT64)pagedirvirtual4));
+  sendstringf("pagedirvirtual5=%6 (%6)\n",(UINT64)pagedirvirtual5, VirtualToPhysical((UINT64)pagedirvirtual5));
 
 
 
   zeromemory(pagedirvirtual2,4096);
   zeromemory(pagedirvirtual3,4096);
   zeromemory(pagedirvirtual4,4096);
+  zeromemory(pagedirvirtual5,4096);
   sendstring("Zeroed directory ptr tables 2, 3 and 4\n\r");
 
-  for (i=1;i<4; i++)
+
+  *(UINT64 *)(&pagedirptrvirtual[1])=VirtualToPhysical((UINT64)pagedirvirtual2);
+  *(UINT64 *)(&pagedirptrvirtual[2])=VirtualToPhysical((UINT64)pagedirvirtual3);
+  *(UINT64 *)(&pagedirptrvirtual[3])=VirtualToPhysical((UINT64)pagedirvirtual4);
+  *(UINT64 *)(&pagedirptrvirtual[4])=VirtualToPhysical((UINT64)pagedirvirtual5);
+
+
+
+  for (i=1;i<5; i++)
   {
     pagedirptrvirtual[i].P=1;
     pagedirptrvirtual[i].RW=1;
     pagedirptrvirtual[i].US=1;
 
-    pagedirptrvirtual[i].PFN=pagedirptrvirtual[i-1].PFN+1;
+//    pagedirptrvirtual[i].PFN=pagedirptrvirtual[i-1].PFN+1;
   }
 
   sendstring("resetting paging:\n");
@@ -949,7 +962,7 @@ void vmm_entry(void)
 
       sendstring("getting foundcpus from loadedOS\n");
       foundcpus=original->cpucount;
-      cpucount=foundcpus;
+      cpucount=foundcpus*2; //temporary test for mem menagement
 
       sendstringf("cpucount=%x\n",cpucount);
 
@@ -1000,7 +1013,7 @@ void vmm_entry(void)
   sendstring("Initializing MM\n\r");
 
 
-  InitializeMM((UINT64)pagedirptrvirtual+8*4096);
+  InitializeMM((UINT64)pagedirptrvirtual+9*4096);
 
 
 
@@ -2077,13 +2090,17 @@ void menu(void)
         }
         break;
 
-/*
+
       case  '4' : //display vm memory (virtual)
 				{
+				  allocateVirtualTLB();
+				  sendstringf("AvailableVirtualAddress=%6\n", cpuinfo[0].AvailableVirtualAddress);
+
           displayVMmemory(&cpuinfo[0]);
+          sendstringf("AvailableVirtualAddress=%6\n", cpuinfo[0].AvailableVirtualAddress);
 				}
         break;
-        */
+
 
       case  '5' :
         asm("int $5\n");
@@ -2128,17 +2145,30 @@ void menu(void)
 
       case  '7':
         {
-          ULONG *x=(ULONG *)MapPhysicalMemoryEx(0x10000000 , 0xe0000000,1);
+          int error;
+          UINT64 pf;
+          pcpuinfo currentcpuinfo=&cpuinfo[0];
+          currentcpuinfo->AvailableVirtualAddress=(UINT64)(currentcpuinfo->cpunr+16) << 28;
 
-          x[0]=12;
-          sendstring("Write successfull\n\r");
+          sendstringf("currentcpuinfo->AvailableVirtualAddress=%6\n", currentcpuinfo->AvailableVirtualAddress);
 
-          x=(ULONG *)MapPhysicalMemoryEx(0xfee00000 , 0xfee00000,1);
-          x[0xc0]=0xc4500;
+          allocateVirtualTLB();
 
-          sendstringf("write apic success x[0xc0]=%6\n\r",(UINT64)&x[0xc0]);
 
-          initcpus(0xfee00000);
+          void *address=mapVMmemory(&cpuinfo[0], 0xc0000ULL, 16, currentcpuinfo->AvailableVirtualAddress, &error, &pf);
+
+          sendstringf("address=%6\n", address);
+          sendstringf("currentcpuinfo->AvailableVirtualAddress=%6\n", currentcpuinfo->AvailableVirtualAddress);
+
+          if (error==0)
+            sendstringf("*address=%2\n", *(char *)address);
+          else
+            sendstringf("error=%d  (pf=%6)\n", error, pf);
+
+
+
+
+
           break;
           //
 
@@ -2603,6 +2633,13 @@ void startvmx(pcpuinfo currentcpuinfo)
           currentcpuinfo->vmxon_region=malloc(4096);
 
         sendstringf("Allocated vmxon_region at %6 (%6)\n\r",(UINT64)currentcpuinfo->vmxon_region,(UINT64)VirtualToPhysical((UINT64)currentcpuinfo->vmxon_region));
+
+        if (currentcpuinfo->vmxon_region==NULL)
+        {
+          sendstringf(">>>>>>>>>>>>>>>>>>>>vmxon allocation has failed<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
+          while (1);
+        }
+
         zeromemory(currentcpuinfo->vmxon_region,4096);
   			*(ULONG *)currentcpuinfo->vmxon_region=IA32_VMX_BASIC.rev_id;
 
@@ -2610,6 +2647,14 @@ void startvmx(pcpuinfo currentcpuinfo)
           currentcpuinfo->vmcs_region=malloc(4096);
 
         sendstringf("Allocated vmcs_region at %6 (%6)\n\r",currentcpuinfo->vmcs_region,VirtualToPhysical((UINT64)currentcpuinfo->vmcs_region));
+
+        if (currentcpuinfo->vmcs_region==NULL)
+        {
+          sendstringf(">>>>>>>>>>>>>>>>>>>>vmcs_region allocation has failed<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
+          while (1);
+        }
+
+
         zeromemory(currentcpuinfo->vmcs_region,4096);
         *(ULONG *)currentcpuinfo->vmcs_region=IA32_VMX_BASIC.rev_id;
 

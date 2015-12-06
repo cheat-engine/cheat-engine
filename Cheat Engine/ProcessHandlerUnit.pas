@@ -29,6 +29,7 @@ type TProcessHandler=class
 
     procedure Open;
     function isNetwork: boolean;  //perhaps name it isLinux ?
+    procedure overridePointerSize(newsize: integer);
     property is64Bit: boolean read fIs64Bit;
     property pointersize: integer read fPointersize;
     property processhandle: THandle read fProcessHandle write setProcessHandle;
@@ -49,6 +50,11 @@ uses networkinterface, networkInterfaceApi;
 {$else}
 uses LuaHandler, mainunit, networkinterface, networkInterfaceApi;
 {$endif}
+
+procedure TProcessHandler.overridePointerSize(newsize: integer);
+begin
+  fpointersize:=newsize;
+end;
 
 function TProcessHandler.isNetwork: boolean;
 begin

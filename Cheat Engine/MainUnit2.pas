@@ -11,10 +11,10 @@ uses windows, dialogs,forms,classes,LCLIntf, LCLProc, sysutils,registry,ComCtrls
      memscan,plugin, hotkeyhandler,frmProcessWatcherunit, newkernelhandler,
      debuggertypedefinitions, commonTypeDefs;
 
-const ceversion=6.4;
+const ceversion=6.5;
 
 resourcestring
-  cename = 'Cheat Engine 6.4';
+  cename = 'Cheat Engine 6.5';
   rsPleaseWait = 'Please Wait!';
 
 procedure UpdateToolsMenu;
@@ -24,7 +24,7 @@ procedure initcetitle;
 
 
 
-const beta=''; //empty this for a release
+const beta='Beta 1'; //empty this for a release
 
 var
   CEnorm:string;
@@ -72,7 +72,7 @@ resourcestring
   rsSelectAnItemFromTheListForASmallDescription = 'Select an item from the list for a small description';
   rsNoHotkey = 'No hotkey';
   rsEnableDisableSpeedhack = 'Enable/Disable speedhack.';
-
+  rsM2NoHotkey = ' (No hotkey)';
 
 
   var
@@ -88,7 +88,7 @@ resourcestring
 implementation
 
 
-uses KernelDebugger,mainunit, DebugHelper, CustomTypeHandler, ProcessList, Globals;
+uses KernelDebugger,mainunit, DebugHelper, CustomTypeHandler, ProcessList, Globals, frmEditHistoryUnit;
 
 procedure UpdateToolsMenu;
 var i: integer;
@@ -402,7 +402,7 @@ begin
             mainform.cbSpeedhack.Hint:=rsEnableDisableSpeedhack+' ('+
               ConvertKeyComboToString(temphotkeylist[2])+')'
           else
-            mainform.cbSpeedhack.Hint:=rsEnableDisableSpeedhack+' (No hotkey)';
+            mainform.cbSpeedhack.Hint:=rsEnableDisableSpeedhack+rsM2NoHotkey;
 
 
           ResumeHotkeyHandler;
@@ -562,8 +562,6 @@ begin
           try cbKernelReadWriteProcessMemory.checked:=reg.ReadBool('Use dbk32 ReadWriteProcessMemory'); except end;
           try cbKernelOpenProcess.checked:=reg.ReadBool('Use dbk32 OpenProcess'); except end;
 
-          {$ifndef net}
-
 
           try unrandomizersettings.defaultreturn:=reg.ReadInteger('Unrandomizer: default value'); except end;
           try unrandomizersettings.incremental:=reg.ReadBool('Unrandomizer: incremental'); except end;
@@ -642,12 +640,18 @@ begin
             if (frmProcessWatcher=nil) then //propably yes
               frmProcessWatcher:=tfrmprocesswatcher.Create(mainform); //start the process watcher
 
-          {$endif}
 
 
+          if reg.ValueExists('WriteLogging') then
+            cbWriteLoggingOn.checked:=reg.ReadBool('WriteLogging');
 
+          if reg.ValueExists('WriteLoggingSize') then
+          begin
+            edtWriteLogSize.text:=inttostr(reg.ReadInteger('WriteLoggingSize'));
+            setMaxWriteLogSize(reg.ReadInteger('WriteLoggingSize'));
+          end;
 
-
+          logWrites:=cbWriteLoggingOn.checked;
         end;
 
 

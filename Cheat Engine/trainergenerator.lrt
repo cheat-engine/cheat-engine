@@ -19,7 +19,7 @@ TFRMTRAINERGENERATOR.BTNDESIGNFORM.CAPTION=Design userinterface manually
 TFRMTRAINERGENERATOR.CBPROTECT.HINT=Will encrypt the generated cetrainer file and when Cheat Engine loads this file back it will destroy the main form preventing the user from doing anything with it.
 Does not affect the standalone trainer because that one is protected by default
 TFRMTRAINERGENERATOR.CBPROTECT.CAPTION=Protect trainer from editing/reading
-TFRMTRAINERGENERATOR.CBPLAYXM.CAPTION=Play XM music file
+TFRMTRAINERGENERATOR.CBPLAYXM.CAPTION=Play mod music file
 TFRMTRAINERGENERATOR.CBSTOPPLAYING.CAPTION=Stop playing when
 TFRMTRAINERGENERATOR.RBSTOPWHENATTACHED.CAPTION=Game has been attached
 TFRMTRAINERGENERATOR.RBSTOPWHENFOCUSLOST.CAPTION=Trainer loses focus

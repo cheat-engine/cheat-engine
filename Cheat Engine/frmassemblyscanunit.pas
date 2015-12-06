@@ -40,10 +40,12 @@ implementation
 
 { TfrmAssemblyScan }
 
+uses symbolhandler;
+
 procedure TfrmAssemblyScan.btnOkClick(Sender: TObject);
 begin
-  startaddress:=StrToQWordEx('$'+edtFrom.Text);
-  stopaddress:=StrToQWordEx('$'+edtTo.Text);
+  startaddress:=symhandler.getAddressFromName(edtFrom.Text);
+  stopaddress:=symhandler.getAddressFromName(edtTo.Text);
   modalresult:=mrok;
 end;
 

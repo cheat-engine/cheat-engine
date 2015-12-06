@@ -160,10 +160,11 @@ begin
   changename:=false;
   if parameters>=1 then
   begin
-    if lua_isstring(L, 1) then
-      address:=symhandler.getAddressFromNameL(lua_tostring(L,1))
+    if lua_isnumber(L, 1) then
+      address:=lua_tointeger(L,1)
     else
-      address:=lua_tointeger(L,1);
+      address:=symhandler.getAddressFromNameL(lua_tostring(L,1));
+
 
     if (parameters>=2) then
       changename:=lua_toboolean(L, 2);

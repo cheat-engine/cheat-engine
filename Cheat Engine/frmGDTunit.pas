@@ -8,6 +8,20 @@ uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, ComCtrls, LResources,CEFuncProc,NewKernelHandler, commonTypeDefs;
 
+resourcestring
+  rsGDTCodeSegment = 'Code Segment';
+  rsGDTDataSegment = 'Data Segment';
+  rsGDTSystemSegment = 'System Segment';
+  rsGDTNotPresent = 'Not present';
+  rsGDTAccessed = 'Accessed=';
+  rsGDTWritable = 'Writable=';
+  rsGDTExpansionDirection = 'Expansion direction=';
+  rsGDTReadable = 'Readable=';
+  rsGDTConforming = 'Conforming=';
+  rsGDTDPL = 'DPL=';
+  rsGDTAVL = 'AVL=';
+  rsGDTReadError = 'Read error';
+
 type
   TfrmGDTinfo = class(TForm)
     TreeView1: TTreeView;
@@ -99,19 +113,19 @@ begin
           begin
             if ((segmenttype shr 3) and 1)=1 then
             begin
-              title:=title+'Code Segment';
+              title:=title+rsGDTCodeSegment;
               segtype:=1;
             end
             else
             begin
               segtype:=0;
-              title:=title+'Data Segment';
+              title:=title+rsGDTDataSegment;
             end;
 
           end else
           begin
             segtype:=2;
-            title:=title+'System Segment';
+            title:=title+rsGDTSystemSegment;
           end;
 
 
@@ -123,7 +137,7 @@ begin
 
           title:=title+' ('+inttohex(baseaddress,8)+' - '+inttohex(baseaddress+seglimit,8)+')';
         end
-        else title:='Not present';
+        else title:=rsGDTNotPresent;
 
 
         t:=treeview1.Items.Add(nil,title);
@@ -131,26 +145,26 @@ begin
         if p=1 then
         begin
           if segtype in [0,1] then
-            treeview1.items.addchild(t,'Accessed='+inttostr(segmenttype and 1));
+            treeview1.items.addchild(t,rsGDTAccessed+inttostr(segmenttype and 1));
 
           if segtype = 0 then //data
           begin
-            treeview1.items.addchild(t,'Writable='+inttostr((segmenttype shr 1) and 1));
-            treeview1.items.addchild(t,'Expansion direction='+inttostr((segmenttype shr 2) and 1));
+            treeview1.items.addchild(t,rsGDTWritable+inttostr((segmenttype shr 1) and 1));
+            treeview1.items.addchild(t,rsGDTExpansionDirection+inttostr((segmenttype shr 2) and 1));
           end;
 
           if segtype = 1 then //code
           begin
-            treeview1.items.addchild(t,'Readable='+inttostr((segmenttype shr 1) and 1));
-            treeview1.items.addchild(t,'Conforming='+inttostr((segmenttype shr 2) and 1));
+            treeview1.items.addchild(t,rsGDTReadable+inttostr((segmenttype shr 1) and 1));
+            treeview1.items.addchild(t,rsGDTConforming+inttostr((segmenttype shr 2) and 1));
           end;
 
-          treeview1.items.addchild(t,'DPL='+inttostr(dpl));
-          treeview1.items.addchild(t,'AVL='+inttostr(AVL));
+          treeview1.items.addchild(t,rsGDTDPL+inttostr(dpl));
+          treeview1.items.addchild(t,rsGDTAVL+inttostr(AVL));
         end;
       end;
 
-    end else showmessage('Read error');
+    end else showmessage(rsGDTReadError);
 
   finally
     freemem(x);

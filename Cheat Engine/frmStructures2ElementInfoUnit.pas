@@ -8,6 +8,9 @@ uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ExtCtrls, cefuncproc, StructuresFrm2, vartypestrings, math, CustomTypeHandler, commonTypeDefs;
 
+resourcestring
+  rsS2EILocalStruct = 'Local struct:';
+  rsS2EIIfYouContinueTheOldLocallyDefinedType = 'If you continue the old locally defined type %s will be deleted. Continue? (Tip: You can make this type into a global type so it can be re-used over again)';
 type
 
   { TfrmStructures2ElementInfo }
@@ -19,6 +22,7 @@ type
     cbType: TComboBox;
     cbHexadecimal: TCheckBox;
     cbSigned: TCheckBox;
+    cbExpandChangesAddress: TCheckBox;
     ColorDialog1: TColorDialog;
     edtByteSize: TEdit;
     edtChildstart: TEdit;
@@ -69,6 +73,9 @@ type
     function getChildStruct: TDissectedStruct;
     procedure setChildStructStart(o: integer);
     function getChildStructStart: integer;
+
+    function getExpandChangedAddress: boolean;
+    procedure setExpandChangedaddress(s: boolean);
   public
     { public declarations }
     ChangedDescription: boolean;
@@ -92,6 +99,7 @@ type
     property backgroundColor: TColor read getBackgroundColor write setBackgroundColor;
     property childstruct: TDissectedStruct read getChildStruct write setChildStruct;
     property childstructstart: integer read getchildstructstart write setChildStructStart;
+    property ExpandChangesAddress: boolean read getExpandChangedAddress write setExpandChangedAddress;
   end; 
 
 var
@@ -125,12 +133,25 @@ begin
 
   //still here so it's a "local" type
   localChild:=s;
-  cbStructType.ItemIndex:=cbStructType.Items.AddObject('Local struct:'+s.name, s);
+  cbStructType.ItemIndex:=cbStructType.Items.AddObject(rsS2EILocalStruct+s.name, s);
+
+  if s<>nil then
+    cbExpandChangesAddress.enabled:=true;
 end;
 
 function TfrmStructures2ElementInfo.getChildStruct: TDissectedStruct;
 begin
   result:=TDissectedStruct(cbStructType.Items.Objects[cbStructType.ItemIndex]);
+end;
+
+function TfrmStructures2ElementInfo.getExpandChangedAddress: boolean;
+begin
+  result:=cbExpandChangesAddress.checked;
+end;
+
+procedure TfrmStructures2ElementInfo.setExpandChangedaddress(s: boolean);
+begin
+  cbExpandChangesAddress.checked:=s;
 end;
 
 function TfrmStructures2ElementInfo.getChildstructstart: integer;
@@ -399,7 +420,7 @@ end;
 procedure TfrmStructures2ElementInfo.Button1Click(Sender: TObject);
 begin
   if (localChild<>nil) and (localchild<>getChildStruct) then
-    if MessageDlg('If you continue the old locally defined type '+localChild.name+' will be deleted. Continue? (Tip: You can make this type into a global type so it can be re-used over again)', mtWarning, [mbyes, mbno], 0)<>mryes then exit;
+    if MessageDlg(format(rsS2EIIfYouContinueTheOldLocallyDefinedType,[localChild.name]), mtWarning, [mbyes, mbno], 0)<>mryes then exit;
 
   modalresult:=mrok;
 end;
@@ -416,6 +437,10 @@ end;
 procedure TfrmStructures2ElementInfo.cbStructTypeChange(Sender: TObject);
 begin
   ChangedChildStruct:=true;
+  cbExpandChangesAddress.enabled:=cbStructType.ItemIndex>=1;
+
+  if cbExpandChangesAddress.enabled=false then
+    cbExpandChangesAddress.checked:=false;
 end;
 
 procedure TfrmStructures2ElementInfo.edtOffsetChange(Sender: TObject);

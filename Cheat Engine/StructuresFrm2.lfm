@@ -1,11 +1,11 @@
 object frmStructures2: TfrmStructures2
-  Left = 833
+  Left = 831
   Height = 381
   Top = 231
-  Width = 540
+  Width = 542
   Caption = 'Structure dissect'
   ClientHeight = 361
-  ClientWidth = 540
+  ClientWidth = 542
   Menu = MainMenu1
   OnClose = FormClose
   OnCreate = FormCreate
@@ -17,7 +17,7 @@ object frmStructures2: TfrmStructures2
     Left = 0
     Height = 297
     Top = 64
-    Width = 540
+    Width = 542
     Align = alBottom
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderStyle = bsNone
@@ -48,7 +48,7 @@ object frmStructures2: TfrmStructures2
     Left = 0
     Height = 51
     Top = 0
-    Width = 540
+    Width = 542
     Align = alTop
     BevelOuter = bvNone
     BorderStyle = bsSingle
@@ -59,7 +59,7 @@ object frmStructures2: TfrmStructures2
     Left = 0
     Height = 21
     Top = 50
-    Width = 540
+    Width = 542
     DragReorder = False
     Sections = <    
       item

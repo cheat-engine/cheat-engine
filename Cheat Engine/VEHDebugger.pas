@@ -446,7 +446,7 @@ begin
   except
     on e: exception do
     begin
-      messagebox(0, pchar(e.message), pchar(rsVEHDebugError), MB_OK or MB_ICONERROR);
+      messagebox(0, pchar(e.message), pchar(utf8toansi(rsVEHDebugError)), MB_OK or MB_ICONERROR);
       result:=false;
     end;
   end;

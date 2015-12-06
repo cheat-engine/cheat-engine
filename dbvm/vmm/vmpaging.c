@@ -10,16 +10,24 @@ unsigned int pagetablesize;
 
 volatile void *nonpagedInvalidEmulationPagedir; //basicly one pagetable that maps a invalid cs state page (caused by entering realmode from protected mode above 1mb)
 
+volatile int TLBhasBeenSetup=0;
+
+criticalSection setupTLB;
+
 int allocateVirtualTLB(void)
 /* will allocate memory for a virtual TLB
  * Out of the 4MB */
 {
   int i;
   int maxAllocMem;
-  unsigned int AvailableForPaging;
+  int AvailableForPaging;
   int orig=nosendchar[getAPICID()];
 
   nosendchar[getAPICID()]=0;
+
+  enableserial();
+  sendstring("---------------------------------------------------->");
+
 
   sendstring("Allocating a virtual TLB\n\r");
 
@@ -31,65 +39,77 @@ int allocateVirtualTLB(void)
 
   //cpucount is set,
 
-  maxAllocMem=maxAllocatableMemory();
-  sendstringf("maxAllocatableMemory()=0x%x  (-32*1024=%x)\n", maxAllocMem, maxAllocMem-32*1024 );
-  sendstringf("cpucount=%d\n", cpucount);
-  sendstringf("(maxAllocMem - 32*1024) / cpucount = %d\n",(maxAllocMem - 32*1024) / cpucount);
-
-  AvailableForPaging = (maxAllocMem - 32*1024) / cpucount;
-  AvailableForPaging -= 4096; //keep some memory for some thing extra
-
-  if (AvailableForPaging<0)
+  csEnter(&setupTLB);
+  if (!TLBhasBeenSetup)
   {
-    sendstringf("1: Not enough memory for DBVM functioning");
-    while (1)
-      halt();
-  }
-
-  sendstringf("AvailableForPaging before alignment fix: 0x%x\n", AvailableForPaging);
-
-  AvailableForPaging -= AvailableForPaging % 4096;
-
-  sendstringf("AvailableForPaging after alignment fix: 0x%x\n", AvailableForPaging);
-
-  if (AvailableForPaging<0)
-  {
-    sendstringf("2: Not enough memory for DBVM functioning");
-    while (1)
-      halt();
-  }
+    TLBhasBeenSetup=1;
 
 
+    maxAllocMem=maxAllocatableMemory();
+    sendstringf("maxAllocatableMemory()=0x%x  (-32*1024=%x)\n", maxAllocMem, maxAllocMem-32*1024 );
+    sendstringf("cpucount=%d\n", cpucount);
+    sendstringf("(maxAllocMem - 32*1024) / cpucount = %d\n",(maxAllocMem - 32*1024) / cpucount, cpucount);
 
-  for (i=0; i<cpucount; i++)
-    if (cpuinfo[i].active)
+    AvailableForPaging = (maxAllocMem - 32*1024*cpucount) / cpucount;
+    AvailableForPaging -= 4096; //keep some memory for some thing extra
+
+    if (AvailableForPaging<0)
     {
-      cpuinfo[i].virtualTLB = malloc(AvailableForPaging);
-      sendstringf("allocated a virtualTLB for cpu %d at %p", i, cpuinfo[i].virtualTLB);
+      sendstringf("1: Not enough memory for DBVM functioning");
+      while (1) ;
 
-      if (cpuinfo[i].virtualTLB==NULL)
-      {
-        sendstringf("Allocation failed\n");
-        while (1);
-          halt();
-      }
-
-      cpuinfo[i].virtualTLB_PA = VirtualToPhysical((UINT64)cpuinfo[i].virtualTLB);
-
-      cpuinfo[i].virtualTLB_FreeSpot = cpuinfo[i].virtualTLB + 4096;
-      cpuinfo[i].virtualTLB_Max = AvailableForPaging / 2;
-      cpuinfo[i].virtualTLB_Lookup = cpuinfo[i].virtualTLB + cpuinfo[i].virtualTLB_Max;
-
-      zeromemory(cpuinfo[i].virtualTLB,4096);
-
-
-
-      sendstringf("Setup virtualTLB for cpu %d:\n\r",i);
-      sendstringf("virtualTLB=%x\n\r", (UINT64)cpuinfo[i].virtualTLB);
-      sendstringf("virtualTLB_FreeSpot=%x\n\r", (UINT64)cpuinfo[i].virtualTLB_FreeSpot);
-      sendstringf("virtualTLB_Max=%x\n\r", (ULONG)cpuinfo[i].virtualTLB_Max);
-      sendstringf("virtualTLB_Lookup=%x\n\r", (UINT64)cpuinfo[i].virtualTLB_Lookup);
     }
+
+    sendstringf("AvailableForPaging before alignment fix: 0x%x\n", AvailableForPaging);
+
+    AvailableForPaging -= AvailableForPaging % 4096;
+
+    sendstringf("AvailableForPaging after alignment fix: 0x%x\n", AvailableForPaging);
+
+    if (AvailableForPaging<0)
+    {
+      sendstringf("2: Not enough memory for DBVM functioning");
+      while (1) ;
+
+    }
+
+
+
+    for (i=0; i<cpucount; i++)
+    {
+        cpuinfo[i].virtualTLB= malloc(AvailableForPaging);
+        sendstringf("allocated a virtualTLB for cpu %d at %p", i, cpuinfo[i].virtualTLB);
+
+        if (cpuinfo[i].virtualTLB==NULL)
+        {
+          sendstringf("Allocation failed\n");
+          while (1);
+        }
+
+        cpuinfo[i].virtualTLB_PA = VirtualToPhysical((UINT64)cpuinfo[i].virtualTLB);
+
+        cpuinfo[i].virtualTLB_FreeSpot = cpuinfo[i].virtualTLB + 4096;
+        cpuinfo[i].virtualTLB_Max = (AvailableForPaging / 2) & (0xfffff000);
+        cpuinfo[i].virtualTLB_Lookup = cpuinfo[i].virtualTLB + cpuinfo[i].virtualTLB_Max;
+
+        zeromemory(cpuinfo[i].virtualTLB,4096);
+
+
+
+        sendstringf("Setup virtualTLB for cpu %d:\n\r",i);
+        sendstringf("virtualTLB=%x\n\r", (UINT64)cpuinfo[i].virtualTLB);
+        sendstringf("virtualTLB_FreeSpot=%x\n\r", (UINT64)cpuinfo[i].virtualTLB_FreeSpot);
+        sendstringf("virtualTLB_Max=%x\n\r", (ULONG)cpuinfo[i].virtualTLB_Max);
+        sendstringf("virtualTLB_Lookup=%x\n\r", (UINT64)cpuinfo[i].virtualTLB_Lookup);
+
+    }
+
+  }
+
+
+
+  csLeave(&setupTLB);
+
 
   nosendchar[getAPICID()]=orig;
   return 0;
@@ -323,7 +343,7 @@ void fillTLB_PTE(PPTE activepagetableentry, PPTE guestpagetableentry)
 
 }
 
-UINT64 mapVMmemory(pcpuinfo currentcpuinfo, UINT64 address, int size,  UINT64 VirtualAddress, int *error, UINT64 *pagefaultaddress )
+void * mapVMmemory(pcpuinfo currentcpuinfo, UINT64 address, int size,  UINT64 VirtualAddress, int *error, UINT64 *pagefaultaddress )
 {
   /* Will map the virtual machine's virtual memory  to the vmm's virtual address  *
    * error=0: no error
@@ -348,24 +368,40 @@ UINT64 mapVMmemory(pcpuinfo currentcpuinfo, UINT64 address, int size,  UINT64 Vi
   PPTE_PAE      newpagetable;
   int           i;
 
+  void *r=NULL;
+
   *pagefaultaddress=0;
 
-  //sendstring("Inside mapVMmemory\n\r");
 
-  //sendstringf("usedpagedir = %8\n\r",(UINT64)usedpagedir);
-  //sendstringf("Dirptr=%d Dir=%d \n\r",Dirptr,Dir);
+/*
+  sendstring("Inside mapVMmemory\n\r");
+
+  sendstringf("address=%6\n", address);
+  sendstringf("VirtualAddress=%6\n", VirtualAddress);
+
+
+  sendstringf("currentaddress=%6\n",currentaddress);
+  sendstringf("lastaddress=%6\n",lastaddress);
+
+
+  sendstringf("usedpagedir = %6\n\r",(UINT64)usedpagedir);
+  sendstringf("Dirptr=%d Dir=%d \n\r",Dirptr,Dir);
+
+*/
 
   //check if there is already a tlb, if not, allocate it. (it's needed for temp mem)
 
 
   if (size >= 0x00200000)
   {
+    //sendstring("Size too big\n");
     *error=3;
     return 0;
   }
 
   if (currentcpuinfo->virtualTLB_Max<4096)
   {
+    //sendstring("Not enough memory\n");
     *error=1;
     return 0;
   }
@@ -384,13 +420,16 @@ UINT64 mapVMmemory(pcpuinfo currentcpuinfo, UINT64 address, int size,  UINT64 Vi
   newpagetable=currentcpuinfo->virtualTLB_FreeSpot;
   currentcpuinfo->virtualTLB_FreeSpot=currentcpuinfo->virtualTLB_FreeSpot+4096;
 
-
-
   *(unsigned long long*)&usedpagedir[Dir]=(VirtualToPhysical((UINT64)newpagetable) & 0xFFFFFFFFFFFFF000ULL);
   usedpagedir[Dir].P=1;
   usedpagedir[Dir].PS=0; //has pagetable
   usedpagedir[Dir].RW=1;
   usedpagedir[Dir].US=1;
+
+
+
+  for (i=0; i<512; i++)
+    *(unsigned long long*)&newpagetable[i]=0;
 
   //fill in the pagetable
   for (i=0; currentaddress<lastaddress; i++, currentaddress+=4096)
@@ -400,7 +439,7 @@ UINT64 mapVMmemory(pcpuinfo currentcpuinfo, UINT64 address, int size,  UINT64 Vi
 
     if (notpaged)
     {
-      sendstringf("notpaged is 1 (currentaddress=%8)\n\r", currentaddress);
+      //sendstringf("notpaged is 1 (currentaddress=%8)\n\r", currentaddress);
       *error=2;
       *pagefaultaddress=currentaddress;
       return VirtualAddress+(address & 0xfff);
@@ -417,11 +456,22 @@ UINT64 mapVMmemory(pcpuinfo currentcpuinfo, UINT64 address, int size,  UINT64 Vi
     //sendstringf("Invalidating virtual address %8\n\r",VirtualAddress+i*4096);
   }
 
+
+
   _invlpg(VirtualAddress);
 
-  *error=0;
-  return VirtualAddress+((UINT64)address & 0xfff);
+  //sendstring("Everything ok\n");
 
+  *error=0;
+
+  r=(void *)(VirtualAddress+((UINT64)address & 0xfff));
+
+ // sendstringf("Returning %6\n", r);
+
+  if (VirtualAddress==0)
+    bochsbp(); //step to find the caller
+
+  return r;
 }
 
 UINT64 getPhysicalAddressVM(pcpuinfo currentcpuinfo, UINT64 address, int *notpaged)

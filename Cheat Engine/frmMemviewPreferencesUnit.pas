@@ -148,9 +148,19 @@ begin
 
   fontdialog1.font.Charset:=DEFAULT_CHARSET;
   fontdialog1.font.Color:=clwindowText;
-  fontdialog1.font.Height:=-11;
-  fontdialog1.font.Name:='Courier';
+  fontdialog2.font.Size:=10;
+  fontdialog1.font.Name:='MS Sans Serif';
   fontdialog1.font.Style:=[];
+
+  fontdialog2.font.Charset:=DEFAULT_CHARSET;
+  fontdialog2.font.Color:=clwindowText;
+  fontdialog2.font.Height:=-11;
+  fontdialog2.font.Size:=10;
+  fontdialog2.font.Name:='Courier';
+  fontdialog2.font.Style:=[];
+
+
+
 
   applyfont;
 end;

@@ -8,6 +8,9 @@ uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ExtCtrls, math, LuaCanvas, FPImage, FPCanvas, FPImgCanv, FPReadPNG, FPWritePNG;
 
+resourcestring
+  rsSSAreYouSureYouWishToThrowAwayTheseSnapshots = 'Are you sure you wish to throw away these snapshots?';
+
 type
 
   { TfrmSaveSnapshots }
@@ -377,7 +380,7 @@ end;
 procedure TfrmSaveSnapshots.FormCloseQuery(Sender: TObject;
   var CanClose: boolean);
 begin
-  if (saved.count>0) or (MessageDlg('Are you sure you wish to throw away these snapshots?', mtConfirmation, [mbyes, mbno], 0)=mryes) then
+  if (saved.count>0) or (MessageDlg(rsSSAreYouSureYouWishToThrowAwayTheseSnapshots, mtConfirmation, [mbyes, mbno], 0)=mryes) then
     CanClose:=true
   else
     canclose:=false;

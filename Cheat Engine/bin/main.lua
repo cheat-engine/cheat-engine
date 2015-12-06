@@ -192,8 +192,11 @@ messageDialog(text, type, buttons...) : pops up a messagebox with a specific ico
 sleep(milliseconds): pauses for the number of specified milliseconds (1000= 1 sec...)
 
 getProcesslist(Strings): Fills a Strings inherited object with the processlist of the system. Format: %x-pidname
-getThreadlist(List): fills a List object with the threadlist of the currently opened process. Format: %x
+getProcesslist(): Returns a table with the processlist  (pid - name )
+getWindowlist(Strings): Fills a Strings inherited object with the top-window list of the system. Format: %x-windowcaption
+getWindowlist(): Returns a table with the windowlist (pid - window caption )
 
+getThreadlist(List): fills a List object with the threadlist of the currently opened process. Format: %x
 
 function onOpenProcess(processid):
   If this function is defined it will be called whenever cheat engine opens a process.
@@ -205,6 +208,7 @@ getOpenedProcessID() : Returns the currently opened process. If none is open, re
 getProcessIDFromProcessName(name) : returns a processid
 openProcess(processid) : causes cheat engine to open the given processid
 openProcess(processname): causes cheat engine to find and open the given process
+setPointerSize(size): Sets the size cheat engine will deal with pointers in bytes. (Some 64-bit processes can only use 32-bit addresses)
 pause() : pauses the current opened process
 unpause(): resumes the current opened process
 
@@ -395,7 +399,8 @@ debugProcess(interface OPT): starts the debugger for the currently opened proces
 
 debug_isDebugging(): Returns true if the debugger has been started
 debug_getCurrentDebuggerInterface() : Returns the current debuggerinterface used (1=windows, 2=VEH 3=Kernel, nil=no debugging active)
-debug_canBreak(): Returns true if there is a possibility the target can stop in a breakpoint. 6.4+
+debug_canBreak(): Returns true if there is a possibility the target can stop on a breakpoint. 6.4+
+debug_isBroken(): Returns true if the debugger is currently halted on a thread
 debug_getBreakpointList(): Returns a lua table containing all the breakpoint addresses
 
 debug_addThreadToNoBreakList(threadid): This will cause breakpoints on the provided thread to be ignored
@@ -428,12 +433,36 @@ Changing registers:
 When the debugger is waiting to continue you can change the register variables. When you continue those register values will be set in the thread's context
 
 
+If the target is currently stopped on a breakpoint, but not done through an onBreakpoint function. The context won't be set.
+You can get and set the context back with these functions before execution continues"
+debug_getContext(BOOL extraregs) - Fills the global variables for the regular registers. If extraregs is true, it will also set FP0 to FP7 and XMM0 to XMM15
+debug_setContext(BOOL extraregs)
+debug_updateGUI() - Will refresh the userinterface to reflect the new context if the debugger was broken
+
+
+
 detachIfPossible() : Detaches the debugger from the target process (if it was attached)
 
 getComment(address) : Gets the userdefined comment at the specified address
 setComment(address, text) : Sets a userdefined comment at the specifried address. %s is used to display the autoguess value if there is one
 getHeader(address) : Gets the userdefined header at the specified address
 setHeader(address) : Sets the userdefined header at the specified address
+
+registerBinUtil(config) Registers a binutils toolset with CE (for assembling and disassembling in other cpu instruction sets)
+config is a table containing several fields that describe the tools, and lets you specify extra parameters
+
+Name : The displayed name in the binutils menu in memview
+Description: The description for this toolset
+Architecture: used by the objdump -m<architecture>  (required)
+ASParam : extra parameters to pass on to AS (optional)
+LDParam : extra parameters to pass on to LD
+OBJDUMPParam: extra parameters to pass on to OBJDUMP
+OnDisassemble: a lua function that gets called each time an address is disassembled. The return value will be passed on to OBJDUMP
+Path: filepath to the binutils set
+Prefix: prefix  (e.g: "arm-linux-androideabi-")
+DisassemblerCommentChar: Depending on which target you're disassembling, the comment character  can be different. (ARM=";"  x86='#' )
+
+
 
 
 
@@ -1437,7 +1466,7 @@ methods
   getData() : Gets a MemoryStream object
 
 
-xmplayer class.
+xmplayer class
 The xmplayer class has already been defined as xmplayer, no need to create it manually
 
 properties
@@ -1445,6 +1474,7 @@ properties
   Initialized: boolean - Indicator that the xmplayer is actually actively loaded in memory
 
 methods
+  setVolume(int)
   playXM(filename, OPTIONAL noloop)
   playXM(tablefile, OPTIONAL noloop)
   playXM(Stream, OPTIONAL noloop)
@@ -2298,6 +2328,8 @@ TabSheet class (WinControl->Control->Component->Object)
 properties
   TabIndex: integer - the current index in the pagelist of the owning pagecontrol
 methods
+
+
 
 
 --]]

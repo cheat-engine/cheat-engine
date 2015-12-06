@@ -252,6 +252,7 @@ resourcestring
   rsNoCompareFiles = 'You will get billions of useless results and giga/terrabytes of wasted diskspace if you do not use the compare results option. Are you sure ?';
   rsSelectAFile = '<Select a file>';
   rsScandataFilter = 'All files (*.*)|*.*|Scan Data (*.scandata)|*.scandata';
+  rsReusedTheSameFile = 'This file is already in the list of scandata files to be used'; //alternatively: 'For fucks sake dude. You already picked this file. Pick something else!'
   rsFilename = 'Filename';
   rsAddress = 'Address';
   rsInvalidAddress = 'Invalid address';
@@ -261,6 +262,8 @@ resourcestring
   rsFrom = 'From';
   rsTo = 'To';
   rsLastOffset = 'Last offset';
+  rsHasNotBeenGivenAValidAddress = '%s has not been given a valid address';
+  rsLimitScanToSpecifiedRegionFile = 'Limit scan to specified region file';
 
 
 //helper
@@ -395,20 +398,46 @@ begin
 end;
 
 procedure TPointerFileEntry.btnSetFileClick(Sender: TObject);
-var od: TOpenDialog;
+var
+  od: TOpenDialog;
+  l: TPointerFileList;
+  e: TPointerFileEntry;
+  s: TfrmPointerScannerSettings;
+  i: integer;
+
+
 begin
   od:=TOpenDialog.Create(self);
-  od.DefaultExt:='.scandata';
-  od.Filter:=rsScandataFilter;
-  od.FilterIndex:=2;
-  od.filename:=filename;
-  if od.execute then
-  begin
-    filename:=od.filename;
-    cbAddress.Enabled:=true;
-  end;
+  try
+    od.DefaultExt:='.scandata';
+    od.Filter:=rsScandataFilter;
+    od.FilterIndex:=2;
+    od.filename:=filename;
+    if od.execute then
+    begin
+      //check if this filename is present in one of the other entries, or main entry
+      l:=TPointerFileList(parent);
 
-  od.free;
+      for i:=0 to l.Entries.Count-1 do
+      begin
+        e:=TPointerFileEntry(l.Entries[i]);
+        if (e<>self) and (e.filename=od.FileName) then
+          raise exception.create(rsReusedTheSameFile);
+      end;
+
+      if l.Owner is TfrmPointerScannerSettings then
+      begin
+        s:=TfrmPointerScannerSettings(l.owner);
+        if s.cbUseLoadedPointermap.checked and (s.odLoadPointermap.FileName=od.FileName) then
+          raise exception.create(rsReusedTheSameFile);
+      end;
+
+      filename:=od.filename;
+      cbAddress.Enabled:=true;
+    end;
+  finally
+    od.free;
+  end;
 end;
 
 procedure TPointerFileEntry.btnDeleteClick(Sender: TObject);
@@ -529,7 +558,7 @@ begin
     try
       result:=StrToQWord('$'+TPointerFileEntry(entries[index]).cbAddress.Text);
     except
-      raise exception.create(filenames[index]+' has not been given a valid address');
+      raise exception.create(Format(rsHasNotBeenGivenAValidAddress, [filenames[index]]));
     end;
   end;
 end;
@@ -936,12 +965,12 @@ begin
     cbLimitScanToRegionFile.OnChange:=nil;
     if odLoadRegionFile.execute then
     begin
-      cbLimitScanToRegionFile.Caption:='Limit scan to specified region file '+extractfilename(odLoadRegionFile.FileName);
+      cbLimitScanToRegionFile.Caption:=rsLimitScanToSpecifiedRegionFile+' '+extractfilename(odLoadRegionFile.FileName);
     end
     else
     begin
       cbLimitScanToRegionFile.Checked:=false;
-      cbLimitScanToRegionFile.Caption:='Limit scan to specified region file';
+      cbLimitScanToRegionFile.Caption:=rsLimitScanToSpecifiedRegionFile;
     end;
     cbLimitScanToRegionFile.OnChange:=cbLimitScanToRegionFileChange;
   end;
@@ -1006,13 +1035,13 @@ begin
   end
   else
   begin
-    if (not warnedAboutDisablingInstantRescan) and (MessageDlg(rsNoCompareFiles, mtConfirmation, [mbyes, mbno], 0)<>mryes) then
+   { if (not warnedAboutDisablingInstantRescan) and (MessageDlg(rsNoCompareFiles, mtConfirmation, [mbyes, mbno], 0)<>mryes) then
     begin
       cbCompareToOtherPointermaps.OnChange:=nil;
       cbCompareToOtherPointermaps.checked:=true;
       cbCompareToOtherPointermaps.OnChange:=cbCompareToOtherPointermapsChange;
       exit;
-    end;
+    end; }
 
     warnedAboutDisablingInstantRescan:=true;
     pdatafilelist.OnResize:=nil;
@@ -1151,11 +1180,11 @@ begin
   edtReverseStop.Width:=edtReverseStart.width;
 
 
-  if firstshow then
+ { if firstshow then
   begin
     cbCompareToOtherPointermaps.checked:=true;
 //    updatepositions;
-  end;
+  end;}
 
   firstshow:=false;
 
@@ -1170,6 +1199,8 @@ begin
     MainForm.addresslist.getAddressList(tstrings(cbAddress.tag));
 
   UpdateAddressList(cbAddress);
+
+  updatepositions;
 end;
 
 procedure TfrmPointerScannerSettings.FormCreate(Sender: TObject);

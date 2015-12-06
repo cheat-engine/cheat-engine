@@ -56,7 +56,8 @@ function GetUserNameFromPID(ProcessId: DWORD): string;
 //procedure GetProcessList(ProcessList: TStrings; NoPID: boolean=false; noProcessInfo: boolean=false);  overload;
 procedure GetThreadList(threadlist: TStrings);
 //procedure cleanProcessList(processlist: TStrings);
-procedure GetWindowList(ProcessList: TListBox; showInvisible: boolean=true);
+procedure GetWindowList(ProcessList: TStrings; showInvisible: boolean=true); overload;
+procedure GetWindowList(ProcessListBox: TListBox; showInvisible: boolean=true); overload;
 procedure GetModuleList(ModuleList: TStrings; withSystemModules: boolean);
 procedure cleanModuleList(ModuleList: TStrings);
 
@@ -377,7 +378,8 @@ resourcestring
   rsICanTGetTheProcessListYouArePropablyUsingWindowsNT = 'I can''t get the process list. You are propably using windows NT. Use the window list instead!';
   rsNoKernel32DllLoaded = 'No kernel32.dll loaded';
   rsSeparator = 'Separator';
-
+  rsCEFPDllInjectionFailedSymbolLookupError = 'Dll injection failed: symbol lookup error';
+  rsCEFPICantGetTheProcessListYouArePropablyUseinWindowsNtEtc = 'I can''t get the process list. You are propably using windows NT. Use the window list instead!';
 
 function ProcessID: dword;
 begin
@@ -703,7 +705,7 @@ begin
       except
 {$ifdef cpu64}
         if not processhandler.is64Bit then
-          raise exception.create('Dll injection failed: symbol lookup error');
+          raise exception.create(rsCEFPDllInjectionFailedSymbolLookupError);
 {$endif}
         GetProcAddressPtr:=GetProcAddress(h,'GetProcAddress');
       end;
@@ -716,7 +718,7 @@ begin
         //failed getting the address of LoadLibraryA, use old method
         {$ifdef cpu64}
           if not processhandler.is64Bit then
-            raise exception.create('Dll injection failed: symbol lookup error');
+            raise exception.create(rsCEFPDllInjectionFailedSymbolLookupError);
         {$endif}
         LoadLibraryPtr:=GetProcAddress(h,'LoadLibraryA');
       end;
@@ -956,21 +958,30 @@ begin
           dec(counter);
         end;
 
-        closehandle(threadhandle);
+        try
 
-        if (counter=0) then
-          raise exception.Create(rsTheInjectionThreadTookLongerThan10SecondsToExecute);
 
-        if getexitcodethread(threadhandle,res) then
-        begin
-          case res of
-            1: ;//success
-            2: raise exception.Create(rsFailedInjectingTheDLL);
-            3: raise exception.Create(rsFailedExecutingTheFunctionOfTheDll);
-            else raise exception.Create(rsUnknownErrorDuringInjection);
-          end;
-        end; //else unsure, did it work or not , or is it crashing?
+          if (counter=0) then
+            raise exception.Create(rsTheInjectionThreadTookLongerThan10SecondsToExecute);
 
+          if getexitcodethread(threadhandle,res) then
+          begin
+            case res of
+              1: ;//success
+              2: raise exception.Create(utf8toansi(rsFailedInjectingTheDLL));
+              3: raise exception.Create(utf8toansi(rsFailedExecutingTheFunctionOfTheDll));
+              else raise exception.Create(utf8toansi(rsUnknownErrorDuringInjection));
+            end;
+          end
+          else
+          begin
+            OutputDebugString('failure to get the exitcode of the thread.'+inttostr(GetLastError));
+          end; //else unsure, did it work or not , or is it crashing?
+
+
+        finally
+          closehandle(threadhandle);
+        end;
       end;
     finally
       FreeLibrary(h);
@@ -1825,7 +1836,7 @@ begin
 
       check:=Process32Next(SnapHandle,ProcessEntry);
     end;
-  end else raise exception.Create('I can''t get the process list. You are propably using windows NT. Use the window list instead!');
+  end else raise exception.Create(rsCEFPICantGetTheProcessListYouArePropablyUseinWindowsNtEtc);
 end;   }
 
 
@@ -2105,7 +2116,7 @@ begin
   end else raise exception.Create(rsICanTGetTheProcessListYouArePropablyUsingWindowsNT);
 end;    }
 
-procedure GetWindowList(ProcessList: TListBox; showInvisible: boolean=true);
+procedure GetWindowList(ProcessList: TStrings; showInvisible: boolean=true);
 var previouswinhandle, winhandle: Hwnd;
     winprocess: Dword;
     temp: Pchar;
@@ -2117,6 +2128,98 @@ var previouswinhandle, winhandle: Hwnd;
     ProcessListInfo: PProcessListInfo;
     tempdword: dword;
 begin
+  getmem(temp,101);
+  try
+    x:=tstringlist.Create;
+
+    for i:=0 to processlist.count-1 do
+      if processlist.Objects[i]<>nil then
+      begin
+        ProcessListInfo:=PProcessListInfo(processlist.Objects[i]);
+        if ProcessListInfo.processIcon>0 then
+          DestroyIcon(ProcessListInfo.processIcon);
+
+        freemem(ProcessListInfo);
+      end;
+    processlist.clear;
+
+    winhandle:=getwindow(getforegroundwindow,GW_HWNDFIRST);
+
+    i:=0;
+    while (winhandle<>0) and (i<10000) do
+    begin
+
+
+      if showInvisible or IsWindowVisible(winhandle) then
+      begin
+        GetWindowThreadProcessId(winhandle,addr(winprocess));
+        temp[0]:=#0;
+        getwindowtext(winhandle,temp,100);
+        temp[100]:=#0;
+        wintitle:=temp;
+
+
+        if ((not ProcessesCurrentUserOnly) or (GetUserNameFromPID(winprocess)=username)) and (length(wintitle)>0) then
+        begin
+          getmem(ProcessListInfo,sizeof(TProcessListInfo));
+          ProcessListInfo.processID:=winprocess;
+          ProcessListInfo.processIcon:=0;
+
+          if formsettings.cbProcessIcons.checked then
+          begin
+            tempdword:=0;
+            if SendMessageTimeout(winhandle,WM_GETICON,ICON_SMALL,0,SMTO_ABORTIFHUNG, 100, tempdword )<>0 then
+            begin
+              ProcessListInfo.processIcon:=tempdword;
+              if ProcessListInfo.processIcon=0 then
+              begin
+                if SendMessageTimeout(winhandle,WM_GETICON,ICON_SMALL2,0,SMTO_ABORTIFHUNG, 100, tempdword	)<>0 then
+                  ProcessListInfo.processIcon:=tempdword;
+
+                if ProcessListInfo.processIcon=0 then
+                  if SendMessageTimeout(winhandle,WM_GETICON,ICON_BIG,0,SMTO_ABORTIFHUNG, 100, tempdword	)<>0 then
+                    ProcessListInfo.processIcon:=tempdword;
+              end;
+            end else
+            begin
+              inc(i,100); //at worst case scenario this causes the list to wait 10 seconds
+            end;
+          end;
+
+
+          x.AddObject(IntTohex(winprocess,8)+'-'+AnsiToUtf8(wintitle),TObject(ProcessListInfo));
+        end;
+      end;
+
+      previouswinhandle:=winhandle;
+      winhandle:=getwindow(winhandle,GW_HWNDNEXT);
+
+      if winhandle=previouswinhandle then break;
+
+      inc(i);
+    end;
+
+    x.Sort;
+    processlist.Assign(x);
+  finally
+    freemem(temp);
+  end;
+end;
+
+procedure GetWindowList(ProcessListBox: TListBox; showInvisible: boolean=true);
+var previouswinhandle, winhandle: Hwnd;
+    winprocess: Dword;
+    temp: Pchar;
+    wintitle: string;
+
+    x: tstringlist;
+    i,j:integer;
+
+    ProcessListInfo: PProcessListInfo;
+    tempdword: dword;
+begin
+  GetWindowList(ProcessListBox.Items, showInvisible);
+ {
   getmem(temp,101);
   try
     x:=tstringlist.Create;
@@ -2192,7 +2295,7 @@ begin
     processlist.Items.Assign(x);
   finally
     freemem(temp);
-  end;
+  end; }
 end;
 
 function GetCEdir:string;
@@ -2215,7 +2318,7 @@ begin
 
 
   if DirectoryExists(tablesdir)=false then
-    CreateDir(tablesdir);
+    tablesdir:='';
 
 end;
 

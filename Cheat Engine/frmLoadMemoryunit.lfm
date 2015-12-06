@@ -12,12 +12,12 @@ object frmLoadMemory: TfrmLoadMemory
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.3'
   object Label1: TLabel
     Left = 0
-    Height = 14
+    Height = 13
     Top = 72
-    Width = 42
+    Width = 41
     Caption = 'Address:'
     ParentColor = False
   end

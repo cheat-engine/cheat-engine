@@ -9,6 +9,10 @@ interface
 
 uses windows, LCLIntf, sysutils, classes, CEFuncProc, NewKernelHandler, symbolhandler, math, dialogs;
 
+resourcestring
+  rsPSRCorruptedPointerscanFile = 'Corrupted pointerscan file';
+  rsPSRInvalidPointerscanFileVersion = 'Invalid pointerscan file version';
+
 function GetFileSizeEx(hFile:HANDLE; FileSize:PQWord):BOOL; stdcall; external 'kernel32.dll' name 'GetFileSizeEx';
 
 
@@ -533,10 +537,10 @@ begin
   configfile:=TFileStream.Create(filename, fmOpenRead or fmShareDenyWrite);
 
   if configfile.ReadByte<>$ce then
-    raise exception.create('Corrupted pointerscan file');
+    raise exception.create(rsPSRCorruptedPointerscanFile);
 
   if configfile.ReadByte<>pointerscanfileversion then
-    raise exception.create('Invalid pointerscan file version');
+    raise exception.create(rsPSRInvalidPointerscanFileVersion);
 
   configfile.ReadBuffer(modulelistlength,sizeof(modulelistlength));
   modulelist:=tstringlist.create;

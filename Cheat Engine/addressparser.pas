@@ -6,6 +6,9 @@ interface
 
 uses LCLIntf,SysUtils,dialogs,symbolhandler, NewKernelHandler;
 
+resourcestring
+  rsAPThisIsNotAValidAddress = 'This is not a valid address';
+
 type
   TSeperator = (plus,minus,multiply); //the things the disassembler shows (NO DIVIDE)
 
@@ -67,7 +70,7 @@ end;
 
 procedure TAddressParser.value;
 //copy all characters of 0 to 9 in tempstr
-var tmp: dword;
+var tmp: ptruint;
     strp: pchar;
     count: integer;
 begin
@@ -314,7 +317,7 @@ begin
     'F'      :  value;
     'R'      :  aregister;
     '+','-','*' :  seperator;
-    else        raise exception.Create('This is not a valid address');
+    else        raise exception.Create(rsAPThisIsNotAValidAddress);
 
     end;
   end;

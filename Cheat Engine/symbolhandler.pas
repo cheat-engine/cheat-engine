@@ -235,7 +235,7 @@ type
     //userdefined symbols
     function DeleteUserdefinedSymbol(symbolname:string):boolean;
     function GetUserdefinedSymbolByName(symbolname:string):ptrUint;
-    function SetUserdefinedSymbolAllocSize(symbolname:string; size: dword): boolean;
+    function SetUserdefinedSymbolAllocSize(symbolname:string; size: dword; preferedaddress: ptruint=0): boolean;
     function GetUserdefinedSymbolByAddress(address:ptrUint):string;
     procedure AddUserdefinedSymbol(addressstring: string; symbolname: string; donotsave: boolean=false);
     procedure EnumerateUserdefinedSymbols(list:tstrings);
@@ -302,7 +302,7 @@ implementation
 {$ifdef windows}
 uses assemblerunit, driverlist, LuaHandler, lualib, lua, lauxlib,
   disassemblerComments, StructuresFrm2, networkInterface, networkInterfaceApi,
-  processhandlerunit, Globals, Parsers;
+  processhandlerunit, Globals, Parsers, MemoryQuery;
 {$endif}
 
 {$ifdef unix}
@@ -1570,12 +1570,13 @@ begin
     UserdefinedSymbolCallback();
 end;
 
-function TSymhandler.SetUserdefinedSymbolAllocSize(symbolname:string; size: dword): boolean;
+function TSymhandler.SetUserdefinedSymbolAllocSize(symbolname:string; size: dword; preferedaddress: ptruint=0): boolean;
 {
 This function will find the userdefined symbol, and when found checks if it already
 allocated memory. If not allocate memory, else check if the size matches
 }
 var i:integer;
+ base: pointer;
 begin
   result:=false;
   if size=0 then raise exception.Create(rsPleaseProvideABiggerSize);
@@ -1591,7 +1592,9 @@ begin
       }
       if (globalallocpid<>processid) or (globalalloc=nil) or (globalallocsizeleft<size) then //new alloc
       begin
-        globalalloc:=virtualallocex(processhandle,nil,max(65536,size),MEM_COMMIT , PAGE_EXECUTE_READWRITE);
+        base:=FindFreeBlockForRegion(preferedaddress,max(65536,size));
+
+        globalalloc:=virtualallocex(processhandle,base,max(65536,size),MEM_COMMIT or MEM_RESERVE , PAGE_EXECUTE_READWRITE);
         globalallocpid:=processid;
         globalallocsizeleft:=max(65536,size);
       end;
@@ -1624,7 +1627,7 @@ begin
         if (globalallocpid<>processid) or (globalalloc=nil) or (globalallocsizeleft<size) then //new alloc
         begin
           globalallocpid:=processid;
-          globalalloc:=virtualallocex(processhandle,nil,max(65536,size),MEM_COMMIT , PAGE_EXECUTE_READWRITE);
+          globalalloc:=virtualallocex(processhandle,FindFreeBlockForRegion(preferedaddress,max(65536,size)),max(65536,size),MEM_COMMIT or MEM_RESERVE , PAGE_EXECUTE_READWRITE);
           globalallocsizeleft:=max(65536,size);
         end;
 
@@ -2039,17 +2042,33 @@ begin
 end;
 
 function TSymhandler.getmodulebyname(modulename: string; var mi: TModuleInfo):BOOLEAN;
-var i: integer;
+var
+  i: integer;
+  moduleNameToFind: string;
+  currentModuleName: string;
 begin
   result:=false;
+  moduleNameToFind:=uppercase(modulename);
+
+  if (length(moduleNameToFind)>0) and (moduleNameToFind[1]='"') then
+  begin
+    moduleNameToFind:=trim(moduleNameToFind);
+    moduleNameToFind:=copy(moduleNameToFind, 2, length(moduleNameToFind)-2);
+  end;
+
+
   modulelistMREW.beginread;
+
   for i:=0 to modulelistpos-1 do
-    if (uppercase(modulelist[i].modulename)=uppercase(modulename)) then
+  begin
+    currentModuleName:=uppercase(modulelist[i].modulename);
+    if currentModuleName=moduleNameToFind then
     begin
       mi:=modulelist[i];
       result:=true;
       break;
     end;
+  end;
   modulelistMREW.endread;
 end;
 

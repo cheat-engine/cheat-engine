@@ -66,7 +66,7 @@ and rsp,0xfffffffffffffff0
 
 
 ;sub rax,0x40000 ;256kb for the next cpu
-sub rax,0x20000
+sub rax,0x10000
 mov [nextstack],rax
 
 
@@ -83,7 +83,7 @@ mov [nextstack],rax
 ;out dx,al
 
 mov rax,cr4
-or rax,0x200 ;enable xmm
+or rax,0x200 ;enable fxsave
 mov cr4,rax
 
 call vmm_entry
@@ -92,10 +92,10 @@ vmm_entry_exit:
 jmp vmm_entry_exit
 
 dq 0
-
 dq 0
 
 
+align 16,db 0
 isAP:              	dd 0
 bootdisk:           dd 0
 nextstack:		  	dq 0x00000000007FFFF8 ;start of stack for the next cpu
@@ -209,6 +209,7 @@ struc vmxloop_amd_stackframe
 endstruc
 extern vmexit_amd
 
+align 16
 global vmxloop_amd
 vmxloop_amd:
 ;xchg bx,bx ;break by bochs
@@ -447,6 +448,7 @@ mov eax,3
 popfq ;(esp-0)
 ret
 
+align 16
 vmxloop_vmexit:
 cli
 ;ok, this should be executed
@@ -898,6 +900,30 @@ db 0xcc
 db 0xcc
 db 0xcc
 
+;------------------------------------;
+;void xsetbv(ULONG xcr, UINT64 value);
+;------------------------------------;
+global _xsetbv
+_xsetbv:
+push rcx
+push rax
+push rdx
+mov ecx,edi
+mov eax,esi
+mov rdx,rsi
+shr rdx,32
+
+xsetbv
+
+pop rdx
+pop rax
+pop rcx
+ret
+db 0xcc
+db 0xcc
+db 0xcc
+
+
 ;----------------;
 ;int3bptest(void);
 ;----------------;
@@ -1237,6 +1263,8 @@ db 0xcc
 %macro	_inthandler	1
 global inthandler%1
 inthandler%1:
+xchg bx,bx
+
 cli ;is probably already done, but just to be sure
 push %1
 jmp inthandlerx
@@ -1991,12 +2019,15 @@ quickboot:
 call clearScreen
 
 
-nop
-nop
+;nop
+;nop
+;xchg bx,bx
 ;mov eax,0
+;push 0x197
+;popfq
 ;cpuid
-nop
-nop
+;nop
+;nop
 
 ;disable cpuid bit
 pushfq

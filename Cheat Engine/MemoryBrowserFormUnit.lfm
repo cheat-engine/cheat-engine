@@ -61,6 +61,7 @@ object MemoryBrowser: TMemoryBrowser
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 0
+      OnClick = Panel5Click
     end
     object RegisterView: TPanel
       Left = 506
@@ -1106,6 +1107,10 @@ object MemoryBrowser: TMemoryBrowser
         Caption = 'Debug events'
         OnClick = miDebugEventsClick
       end
+      object MenuItem25: TMenuItem
+        Caption = 'User write history'
+        OnClick = MenuItem25Click
+      end
       object N5: TMenuItem
         Caption = '-'
       end
@@ -1212,6 +1217,18 @@ object MemoryBrowser: TMemoryBrowser
           GroupIndex = 1
           RadioItem = True
           OnClick = miDisassemblyAutodetectClick
+        end
+      end
+      object miBinUtils: TMenuItem
+        Caption = 'BinUtils'
+        Visible = False
+        object miBinutilsSelect: TMenuItem
+          Tag = -1
+          AutoCheck = True
+          Caption = 'None'
+          Checked = True
+          RadioItem = True
+          OnClick = miBinutilsSelectClick
         end
       end
       object miTextPreferences: TMenuItem
@@ -1368,6 +1385,12 @@ object MemoryBrowser: TMemoryBrowser
         Caption = 'Inject DLL'
         ShortCut = 16457
         OnClick = InjectDLL1Click
+      end
+      object miGNUAssembler: TMenuItem
+        Caption = 'GNU Assembler'
+        ShortCut = 24641
+        Visible = False
+        OnClick = miGNUAssemblerClick
       end
       object AutoInject1: TMenuItem
         Caption = 'Auto Assemble'

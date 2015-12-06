@@ -88,7 +88,7 @@ uses
 PointerscanSettingsIPConnectionList, MemoryStreamReader, commonTypeDefs, 
 Parsers, Globals, NullStream, RipRelativeScanner, LuaRipRelativeScanner, 
 VirtualQueryExCache, disassemblerthumb, AccessedMemory, LuaStructureFrm, 
-MemoryQuery, pointerparser, GnuAssembler, binutils;
+MemoryQuery, pointerparser, GnuAssembler, binutils, dbvmLoadManual, mikmod;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in
@@ -201,7 +201,7 @@ begin
 end;
 
 begin
-  Application.Title:='Cheat Engine 6.4';
+  Application.Title:='Cheat Engine 6.5';
   Application.Initialize;
   getcedir;
 

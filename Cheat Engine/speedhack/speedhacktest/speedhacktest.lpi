@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
@@ -38,7 +38,7 @@
       <Unit0>
         <Filename Value="speedhacktest.lpr"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="8" Y="11"/>
@@ -57,8 +57,8 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="88"/>
-        <CursorPos X="39" Y="108"/>
+        <TopLine Value="76"/>
+        <CursorPos X="20" Y="92"/>
         <UsageCount Value="88"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -114,24 +114,20 @@
       </Unit8>
       <Unit9>
         <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\win\wininc\redef.inc"/>
-        <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
         <TopLine Value="734"/>
         <CursorPos X="10" Y="748"/>
         <UsageCount Value="27"/>
-        <Loaded Value="True"/>
       </Unit9>
       <Unit10>
         <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\win\wininc\struct.inc"/>
-        <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
         <TopLine Value="2164"/>
         <CursorPos X="6" Y="2178"/>
         <UsageCount Value="27"/>
-        <Loaded Value="True"/>
       </Unit10>
     </Units>
-    <JumpHistory Count="16" HistoryIndex="15">
+    <JumpHistory Count="17" HistoryIndex="16">
       <Position1>
         <Filename Value="Unit1.pas"/>
         <Caret Line="45" Column="3" TopLine="26"/>
@@ -178,24 +174,28 @@
       </Position11>
       <Position12>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="25" Column="19" TopLine="29"/>
+        <Caret Line="68" Column="14" TopLine="56"/>
       </Position12>
       <Position13>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="68" Column="14" TopLine="56"/>
+        <Caret Line="62" Column="18" TopLine="44"/>
       </Position13>
       <Position14>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="62" Column="18" TopLine="44"/>
+        <Caret Line="47" Column="10" TopLine="37"/>
       </Position14>
       <Position15>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="47" Column="10" TopLine="37"/>
+        <Caret Line="51" Column="34" TopLine="37"/>
       </Position15>
       <Position16>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="51" Column="34" TopLine="37"/>
+        <Caret Line="108" Column="39" TopLine="22"/>
       </Position16>
+      <Position17>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="109" Column="39" TopLine="80"/>
+      </Position17>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
@@ -215,8 +215,8 @@
     </Parsing>
     <CodeGeneration>
       <Optimizations>
-        <VariablesInRegisters Value="True"/>
         <OptimizationLevel Value="3"/>
+        <VariablesInRegisters Value="True"/>
       </Optimizations>
     </CodeGeneration>
     <Linking>

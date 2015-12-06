@@ -194,6 +194,8 @@ type
     allDouble: boolean;
     allCustom: boolean;
 
+    floatscanWithoutExponents: boolean;
+
     //groupdata
     groupdata: TGroupData;
 
@@ -525,6 +527,8 @@ type
     AddressFound: ptruint;
     AddressesFound: TAddresses; //for multi aob scans
 
+    floatscanWithoutExponents: boolean;
+
     procedure execute; override;
     constructor create(suspended: boolean);
     destructor destroy; override;
@@ -584,6 +588,9 @@ type
 
     savedresults: tstringlist;
     fonlyOne: boolean;
+    fisHexadecimal: boolean;
+
+    ffloatscanWithoutExponents: boolean;
 
 
 
@@ -632,10 +639,12 @@ type
 
     property nextscanCount: integer read fnextscanCount;
   published
+    property floatscanWithoutExponents: boolean read ffloatscanWithoutExponents write ffloatscanWithoutExponents;
     property OnlyOne: boolean read fOnlyOne write fOnlyOne;
     property VarType: TVariableType read currentVariableType;
     property CustomType: TCustomType read currentCustomType;
     property isUnicode: boolean read stringUnicode;
+    property isHexadecimal: boolean read fisHexadecimal; //gui
     property LastScanValue: string read fLastScanValue;
     property LastScanType: TScanType read FLastScanType;
     property ScanresultFolder: string read fScanResultFolder; //read only, it's configured during creation
@@ -679,6 +688,10 @@ resourcestring
   rsTMPAndUNDOAreNamesThatMayNotBeUsedTryAnotherName = 'TMP and UNDO are names that may not be used. Try another name';
   rsTheTemporaryScanDirectoryDoesNotExistCheckYourScan = 'The temporary scan directory %s does not exist. Check your scan settings';
   rsFailureCreatingTheScanDirectory = 'Failure creating the scan directory';
+  rsMSNothingToScanFor = 'Nothing to scan for';
+  rsMStupidAlignsize = 'Stupid alignsize';
+  rsMSCustomTypeIsNil = 'Custom type is nil';
+  rsMSTheScanWasForcedToTerminateSubsequentScansMayNotFunctionProperlyEtc = 'The scan was forced to terminate. Subsequent scans may not function properly. It''s recommended to restart Cheat Engine';
 
 //===============Local functions================//
 function getBytecountArrayOfByteString(st: string): integer;
@@ -741,10 +754,10 @@ begin
     fAlignsize:=gcp.blockalignment;
 
     if fblocksize<=0 then
-      raise exception.create('Nothing to scan for');
+      raise exception.create(rsMSNothingToScanFor);
 
     if fAlignsize<=0 then
-      raise exception.create('Stupid alignsize');
+      raise exception.create(rsMStupidAlignsize);
 
 
     outoforder:=gcp.outOfOrder;
@@ -1162,7 +1175,7 @@ var c: integer;
 begin
   result:=false;
   for c:=0 to i-1 do
-    if groupdata[c].offset=currentoffset then
+    if groupdata[c].offset=(currentoffset-1) then
     begin
       result:=true;
 
@@ -2730,9 +2743,13 @@ begin
 end;
 
 procedure TScanner.SingleSaveResult(address: ptruint; oldvalue: pointer);
+var
+  exp: integer;
 begin
-  if not (isnan(psingle(oldvalue)^) or IsInfinite(psingle(oldvalue)^))  then
+  if not (isnan(psingle(oldvalue)^) or IsInfinite(psingle(oldvalue)^)) then
   begin
+    if floatscanWithoutExponents and (pdword(oldvalue)^>0) and (abs(127-(pdword(oldvalue)^ shr 23) and $ff)>10) then exit;
+
     PPtrUintArray(CurrentAddressBuffer)[found]:=address;
     psinglearray(CurrentFoundBuffer)[found]:=psingle(oldvalue)^;
 
@@ -2743,9 +2760,12 @@ begin
 end;
 
 procedure TScanner.DoubleSaveResult(address: ptruint; oldvalue: pointer);
+
 begin
   if not (isnan(pdouble(oldvalue)^) or IsInfinite(pdouble(oldvalue)^))  then
   begin
+    if floatscanWithoutExponents and (pqword(oldvalue)^>0) and (abs(integer(1023-(pqword(oldvalue)^ shr 52) and $7ff))>10) then exit;
+
     PPtrUintArray(CurrentAddressBuffer)[found]:=address;
     pdoublearray(CurrentFoundBuffer)[found]:=pdouble(oldvalue)^;
 
@@ -5090,7 +5110,7 @@ begin
     vtCustom:
     begin
       if customtype=nil then
-        raise exception.create('Custom type is nil');
+        raise exception.create(rsMSCustomTypeIsNil);
 
       variablesize:=customtype.bytesize;
       fastscanalignsize:=1;
@@ -5221,6 +5241,7 @@ begin
           scanners[i].fastscandigitcount:=fastscandigitcount;
           scanners[i].variablesize:=variablesize;
           scanners[i].useNextNextscan:=true; //address result scan so nextnextscan
+          scanners[i].floatscanWithoutExponents:=floatscanWithoutExponents;
 
           if variableType=vtGrouped then
             scanners[i].PreviousOffsetCount:=offsetcount;
@@ -5455,6 +5476,7 @@ begin
       scanners[i].fastscandigitcount:=fastscandigitcount;
       scanners[i].variablesize:=variablesize;
       scanners[i].useNextNextscan:=false; //region scan so firstnextscan
+      scanners[i].floatscanWithoutExponents:=floatscanWithoutExponents;
 
       if i=0 then //first thread gets the header part
       begin
@@ -5920,6 +5942,8 @@ begin
       scanners[i].fastscanmethod:=fastscanmethod;
       scanners[i].fastscandigitcount:=fastscandigitcount;
       scanners[i].variablesize:=variablesize;
+      scanners[i].floatscanWithoutExponents:=floatscanWithoutExponents;
+
 
       if i=0 then //first thread gets the header part
       begin
@@ -6414,7 +6438,7 @@ begin
       begin
         {$IFNDEF UNIX}
         TerminateThread(scancontroller.Handle, $dead);
-        messagedlg('The scan was forced to terminate. Subsequent scans may not function properly. It''s recommended to restart Cheat Engine', mtWarning, [mbok], 0);
+        messagedlg(rsMSTheScanWasForcedToTerminateSubsequentScansMayNotFunctionProperlyEtc, mtWarning, [mbok], 0);
         {$else}
         KillThread(scancontroller.handle);
         {$ENDIF}
@@ -6676,6 +6700,8 @@ end;
 
 procedure TMemscan.NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; hexadecimal,binaryStringAsDecimal, unicode, casesensitive,percentage,compareToSavedScan: boolean; savedscanname: string);
 begin
+  fisHexadecimal:=hexadecimal;
+
   {$IFNDEF UNIX}
   if attachedFoundlist<>nil then
     TFoundList(Attachedfoundlist).Deinitialize;
@@ -6727,6 +6753,7 @@ begin
   scancontroller.binaryStringAsDecimal:=binaryStringAsDecimal;
   scancontroller.unicode:=unicode;
   scancontroller.casesensitive:=casesensitive;
+  scancontroller.floatscanWithoutExponents:=floatscanWithoutExponents;
   scancontroller.percentage:=percentage;
   scancontroller.notifywindow:=notifywindow;
   scancontroller.notifymessage:=notifymessage;
@@ -6744,6 +6771,7 @@ Spawn the controller thread and fill it with the required data
 Popup the wait window, or not ?
 }
 begin
+  fisHexadecimal:=hexadecimal;
 
   if (variableType=vtCustom) and (customtype=nil) then
     raise exception.create('customType=nil');
@@ -6811,6 +6839,7 @@ begin
   scancontroller.binaryStringAsDecimal:=binaryStringAsDecimal;
   scancontroller.unicode:=unicode;
   scancontroller.casesensitive:=casesensitive;
+  scancontroller.floatscanWithoutExponents:=floatscanWithoutExponents;
   scancontroller.percentage:=false; //first scan does not have a percentage scan
   scancontroller.notifywindow:=notifywindow;
   scancontroller.notifymessage:=notifymessage;

@@ -8,6 +8,9 @@ uses
   jwaWindows, windows, LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls,{psapi,} Menus,imagehlp,CEFuncProc,NewKernelHandler, LREsources;
 
+resourcestring
+  rsDLNothingFound = 'nothing found';
+
 type
   TfrmDriverlist = class(TForm)
     ListBox1: TListBox;
@@ -62,7 +65,7 @@ begin
       exit;
     end;
   end;
-  showmessage('nothing found');
+  showmessage(rsDLNothingFound);
 end;
 
 procedure TfrmDriverlist.Find1Click(Sender: TObject);

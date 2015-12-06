@@ -112,6 +112,10 @@ uses luaclass;
 
 resourcestring
   rsError = 'Script Error';
+  rsLEErrorInLine = 'Error in line ';
+  rsLEUndefinedError = 'Undefined error';
+  rsLEOnlyOneScriptCanBeDebuggedAtATimeEtc = 'Only one script can be debugged at a time. Continue executing this script without the debugger?';
+  rsLEUserClickedStop = 'User clicked stop';
 
 var
   LuaDebugForm: TfrmLuaEngine;
@@ -553,10 +557,10 @@ begin
   if r=1 then
   begin
     lua_getinfo(L, '>l', @ld);
-    lua_pushstring(L, 'Error in line '+inttostr(ld.currentline));
+    lua_pushstring(L, rsLEErrorInLine+inttostr(ld.currentline));
   end
   else
-    lua_pushstring(L, 'Undefined error');
+    lua_pushstring(L, rsLEUndefinedError);
              }
   result:=1;
 
@@ -719,7 +723,7 @@ begin
     3:
     begin
       //lua_sethook(L, linehook, 0, 0);
-      lua_pushstring(L, 'User clicked stop');
+      lua_pushstring(L, rsLEUserClickedStop);
       lua_error(L);
     end;
   end;
@@ -780,7 +784,7 @@ begin
     else
     begin
       dodebug:=false;
-      if MessageDlg('Only one script can be debugged at a time. Continue executing this script without the debugger?', mtConfirmation, [mbyes, mbno], 0)<>mryes then exit;
+      if MessageDlg(rsLEOnlyOneScriptCanBeDebuggedAtATimeEtc, mtConfirmation, [mbyes, mbno], 0)<>mryes then exit;
     end;
   end;
 

@@ -8,6 +8,17 @@ uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
   StdCtrls, Menus, math, NewKernelHandler, FPImage, FPCanvas, FPImgCanv, FPReadPNG, FPWritePNG;
 
+resourcestring
+  rsSHView = 'View';
+  rsSHDissectMemoryOfSelectedSnapshot = 'Dissect memory of selected snapshot';
+  rsSHDissectAndCompareMemoryOfSelectedSnapshots = 'Dissect and compare memory of selected snapshots';
+  rsSHCompare = 'Compare';
+  rsSHFunctions = ' Function(s): ';
+  rsSHTheStructuresListIsBroken = 'The structures list is broken';
+  rsSHNewWindow = '<New window>';
+  rsSHLockAndAddToStructureDissect = 'Lock and add to structure dissect';
+  rsSHSelectTheStructureDissectWindowYouWishToAddThisRegionTo = 'Select the structure dissect window you wish to add this region to';
+
 type
 
   { TfrmSnapshotHandler }
@@ -276,19 +287,19 @@ begin
   if selcount=0 then
   begin
     lblCompare.caption:='';
-    btnCompare.caption:='View';
+    btnCompare.caption:=rsSHView;
   end
   else
   if selcount=1 then
   begin
-    lblCompare.caption:='Dissect memory of selected snapshot';
-    btnCompare.caption:='View';
+    lblCompare.caption:=rsSHDissectMemoryOfSelectedSnapshot;
+    btnCompare.caption:=rsSHView;
   end
   else
   if selcount>1 then
   begin
-    lblCompare.caption:='Dissect and compare memory of selected snapshots';
-    btnCompare.caption:='Compare';
+    lblCompare.caption:=rsSHDissectAndCompareMemoryOfSelectedSnapshots;
+    btnCompare.caption:=rsSHCompare;
 
   end;
 
@@ -297,7 +308,7 @@ begin
     fn :=fn+functionnames[i]+' ';
 
 
-  lblCompare.caption:=lblCompare.Caption+' Function(s): '+fn;
+  lblCompare.caption:=lblCompare.Caption+rsSHFunctions+fn;
 
 
   functionnames.free;
@@ -386,17 +397,17 @@ begin
     s:=tstringlist.create;
 
     if frmStructures2=nil then
-      raise exception.create('The structures list is broken');
+      raise exception.create(rsSHTheStructuresListIsBroken);
 
     for i:=0 to frmStructures2.Count-1 do
       s.add(TfrmStructures2(frmStructures2[i]).Caption);
 
-    s.add('<New window>');
+    s.add(rsSHNewWindow);
 
     f:=TfrmSelectionList.Create(self, s);
 
-    f.caption:='Lock and add to structure dissect';
-    f.label1.Caption:='Select the structure dissect window you wish to add this region to';
+    f.caption:=rsSHLockAndAddToStructureDissect;
+    f.label1.Caption:=rsSHSelectTheStructureDissectWindowYouWishToAddThisRegionTo;
 
     if f.showmodal=mrok then
     begin

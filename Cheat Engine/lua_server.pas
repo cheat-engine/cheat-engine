@@ -13,7 +13,7 @@ handles the communication while it itself is going back to listen to new connect
 interface
 
 uses
-  windows, Classes, SysUtils, lua, lauxlib, lualib, LuaHandler;
+  jwawindows, windows, Classes, SysUtils, lua, lauxlib, lualib, LuaHandler;
 
 type
   TLuaServerHandler=class(TThread)
@@ -128,9 +128,9 @@ begin
           exec.clear;
           exec.Text:=script;
 
-          exec.Insert(0, 'function _luaservercall'+inttostr(GetThreadID)+'(parameter)');
+          exec.Insert(0, 'function _luaservercall'+inttostr(GetCurrentThreadId)+'(parameter)');
           exec.add('end');
-          exec.add('return _luaservercall'+inttostr(GetThreadID)+'('+inttostr(parameter)+')');
+          exec.add('return _luaservercall'+inttostr(GetCurrentThreadId)+'('+inttostr(parameter)+')');
 
           synchronize(executescript);
 
@@ -176,12 +176,21 @@ end;
 //--------TLuaServer--------
 
 procedure TLuaServer.execute;
-var pipe: THandle;
+var
+  pipe: THandle;
+  a: SECURITY_ATTRIBUTES;
 begin
   while not terminated do
   begin
-    pipe:=CreateNamedPipe(pchar('\\.\pipe\'+name), PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE or PIPE_READMODE_BYTE or PIPE_WAIT, 255, 16, 8192, 0, nil );
+    ZeroMemory(@a, sizeof(a));
+    a.nLength:=sizeof(a);
+    a.bInheritHandle:=TRUE;
 
+    //got this string from https://www.osronline.com/showThread.CFM?link=204207
+    ConvertStringSecurityDescriptorToSecurityDescriptor('D:(D;;FA;;;NU)(A;;0x12019f;;;WD)(A;;0x12019f;;;CO)', SDDL_REVISION_1, a.lpSecurityDescriptor, nil);
+
+    pipe:=CreateNamedPipe(pchar('\\.\pipe\'+name), PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE or PIPE_READMODE_BYTE or PIPE_WAIT, 255, 16, 8192, 0, @a );
+    LocalFree(HLOCAL(a.lpSecurityDescriptor));
 
 
     if ConnectNamedPipe(pipe, nil) or (GetLastError = ERROR_PIPE_CONNECTED) then

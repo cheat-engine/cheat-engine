@@ -654,6 +654,10 @@ void sendchar(char c)
 #if (defined SERIALPORT) && (SERIALPORT != 0)
 	unsigned char x;
 
+	if (!c)
+	  return; //don't sent 0 bytes...
+
+
   x=c;
   if (x>0x80)
     c='.';

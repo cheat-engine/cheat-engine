@@ -5,9 +5,13 @@ unit GnuAssembler;
 interface
 
 uses
-  windows, Classes, SysUtils, NewKernelHandler, ProcessHandlerUnit, strutils, dialogs;
+  windows, Classes, SysUtils, NewKernelHandler, ProcessHandlerUnit, strutils,
+  dialogs, commonTypeDefs;
 
 {
+      //scan for .extraparams_as <string>
+      //scan for .extraparams_ld <string>
+
       //scan the script for .asection , .msection and .aobscan
       //1:
       //.aobscan <name> "ceaobscanformat"
@@ -22,7 +26,7 @@ uses
       //name:
 
       //3:
-      //.msection <name> <address or ce symbol> <expectedsize OPT>  (error out if after linking the assumed size is bigger than expected. E.g veneers)
+      //.msection <name> <address or ce symbol> <expectedsize OPT> <overridesize OPT>  (error out if after linking the assumed size is bigger than expected. E.g veneers and sometimes alignments)
       //Internally ->:
       //.section _<name>,"xa" : after assembly add it to the section list with the given address
       //name:
@@ -160,7 +164,7 @@ begin
   end;
 end;
 
-procedure gnuassemble(originalscript: tstrings);
+function gnuassemble2(originalscript: tstrings; targetself: boolean; var CEAllocarray: TCEAllocArray): boolean;
 var
   nmdisabled: boolean;
   i,j,k,l: integer;
@@ -195,9 +199,15 @@ var
   undefinedimports: Tstringlist;
   x: ptruint;
   op: dword;
+
+  extraparams_as, extraparams_ld: string;
+
+  bu: TBinUtils;
 begin
-  if currentbinutils=nil then
+  if (binutilslist.count=0) then
     raise exception.create('Configure a valid binutils setup first');
+
+  bu:=nil;
 
   script:=tstringlist.create;
   script.Assign(originalscript);
@@ -277,6 +287,41 @@ begin
                 end;
               end;
 
+              'b': //.binutils <name> (optional)
+              begin
+                if copy(line,1,10)='.binutils ' then
+                begin
+                  p1:=trim(copy(line,11, length(line)-1));
+
+                  for i:=0 to binutilslist.count-1 do
+                  begin
+                    if TBinUtils(binutilslist[i]).name=p1 then
+                    begin
+                      bu:=TBinUtils(binutilslist[i]);
+                      break;
+                    end;
+                  end;
+
+                end;
+              end;
+
+              'e':
+              begin
+                if copy(line,1,13)='.extraparams_' then
+                begin
+                  if length(line)>15 then
+                  begin
+                    if copy(line,14,3)='as ' then
+                      extraparams_as:=copy(line,17,length(line))
+                    else
+                    if copy(line,14,3)='ld ' then
+                      extraparams_ld:=copy(line,17,length(line));
+                  end;
+                end;
+              end;
+
+
+
               'i': //.import
               begin
                 if copy(line,1,8)='.import ' then
@@ -355,9 +400,17 @@ begin
       end;
 
 
+      if (bu=nil) then
+        bu:=defaultBinutils;
+
+      if (bu=nil) and (binutilslist.count>0) then
+        bu:=TBinUtils(binutilslist[0]);
+
+      if bu=nil then
+        raise exception.create('No binutils installed');
 
 
-      currentbinutils.assemble(script, o);
+      bu.assemble(script, extraparams_as, o);
 
       //parse o to get the sections and their size
 
@@ -367,7 +420,7 @@ begin
         GetSectionsFromElf(o, elfsections);   //elfsections now contains all allocatable sections
       except
         //I work best with ELF obj files, but I'll add some fallback by calling objdump to get the data needed
-        currentbinutils.GetSections(o, elfsections);
+        bu.GetSections(o, elfsections);
       end;
 
 
@@ -429,7 +482,7 @@ begin
       begin
         //if nm hasn't been disabled call nm and then check which symbols are undefined and add them to the import list (if they aren't in there already)
         undefinedimports:=tstringlist.create;
-        currentbinutils.nm(o, undefinedimports);
+        bu.nm(o, undefinedimports);
 
         for i:=0 to undefinedimports.count-1 do
         begin
@@ -457,7 +510,7 @@ begin
       for i:=0 to length(sections)-1 do
         binarysections[i].sectionname:=sections[i].name;
 
-      currentbinutils.ldAndExtract(o, lnkfilename, imports, binarysections);
+      bu.ldAndExtract(o, lnkfilename, extraparams_ld, imports, binarysections);
 
       //before writing, first check that the sections are of compatible size
       for i:=0 to length(sections)-1 do
@@ -550,8 +603,13 @@ nop
 nop
 nop
 
-
-
 }
+
+procedure gnuassemble(originalscript: tstrings);
+var a: TCEAllocArray;
+begin
+  //let's do something similar to autoassembler
+  gnuassemble2(originalscript, false, a);
+end;
 
 end.

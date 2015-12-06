@@ -258,6 +258,8 @@ begin
     edtHotkey.SetFocus;
 
   editHotkey:=true;
+
+  cbFreezedirection.OnSelect(cbFreezedirection);
 end;
 
 procedure THotKeyForm.btnApplyClick(Sender: TObject);

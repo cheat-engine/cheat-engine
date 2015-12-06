@@ -36,6 +36,7 @@ resourcestring
     +'memory free. Either install more RAM, or increase the maximum allowed '
     +'paging size';
   rsCEPointerscanMemoryManager = 'CE Pointerscan memory manager';
+  rsBMAVirtualAllocFailedYouProbablyDontHaveEnoughtVirtualMemoryFreeEtc = 'VirtualAlloc failed. You probably don''t have enough virtual memory free. Use the 64-bit version instead';
 
 constructor TBigMemoryAllocHandler.create;
 begin
@@ -107,7 +108,7 @@ begin
         {$ifdef cpu64}
           raise exception.create(rsAllocError);
         {$else}
-          raise exception.create('VirtualAlloc failed. You probably don''t have enough virtual memory free. Use the 64-bit version instead');
+          raise exception.create(rsBMAVirtualAllocFailedYouProbablyDontHaveEnoughtVirtualMemoryFreeEtc);
         {$endif}
       end;
 

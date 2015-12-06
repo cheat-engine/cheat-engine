@@ -106,6 +106,7 @@ uses MemoryBrowserFormUnit, MainUnit, ProcessHandlerUnit;
 resourcestring
   rsGotoAddress = 'Goto Address';
   rsFillInTheAddressYouWantToGoTo = 'Fill in the address you want to go to';
+  rsAddressZoom = 'Address : %s zoom : %s';
 
 
 { TMemoryDataSource }
@@ -494,7 +495,7 @@ end;
 
 procedure TfrmMemoryViewEx.Timer1Timer(Sender: TObject);
 begin
-  lbladdress.caption:='Address : '+inttohex(md.getTopLeftAddress,8)+' zoom : '+floattostr(md.zoom);
+  lbladdress.caption:=Format(rsAddressZoom, [inttohex(md.getTopLeftAddress, 8), floattostr(md.zoom)]);
 end;
 
 procedure TfrmMemoryViewEx.tbPitchChange(Sender: TObject);

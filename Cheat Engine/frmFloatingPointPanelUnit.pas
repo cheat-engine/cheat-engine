@@ -12,6 +12,9 @@ uses
   {jwawindows,} windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, cefuncproc, ComCtrls, LResources, NewKernelHandler, commonTypeDefs;
 
+resourcestring
+  rsFPPExtended = 'Extended';
+
 type
   TfrmFloatingPointPanel = class(TForm)
     PageControl1: TPageControl;
@@ -110,7 +113,7 @@ begin
 
 
         if combobox2.Items.Count=6 then
-          combobox2.Items.Add('Extended');
+          combobox2.Items.Add(rsFPPExtended);
 
         for i:=0 to 7 do
         begin

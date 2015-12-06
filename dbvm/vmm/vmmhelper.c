@@ -704,6 +704,8 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
   }
 */
 
+  int result;
+
 #ifndef DEBUG
 
 //  currentdisplayline=currentcpuinfo->cpunr+1;
@@ -711,7 +713,13 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
 //  displayline("%d: %d:%x (%x,%x)                              \n",currentcpuinfo->cpunr,vmeventcount,vmread(vm_exit_reason),vmread(vm_guest_cs),vmread(vm_guest_rip));
 
   nosendchar[getAPICID()]=1;
-  return handleVMEvent(currentcpuinfo, (VMRegisters*)registers);
+  result=handleVMEvent(currentcpuinfo, (VMRegisters*)registers);
+
+  if (result!=0) //on release, if an unexpected event happens, just fail the instruction and hope the OS won't make a too big mess out of it
+    return raiseInvalidOpcodeException(currentcpuinfo);
+  else
+    return result;
+
 #else
   //nosendchar[getAPICID()]=0;
   //sendstringf("%x:%x\n",vmread(vm_guest_cs),vmread(vm_guest_rip));
@@ -722,7 +730,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
 
   UINT64 initialcount;
 
-  int result;
+
   //char lastevent[15];
   int userbreak=0;
   //DWORD before=*tocheck;
@@ -870,12 +878,13 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
     {
 
       case vm_exit_vmcall:
-    	skip=1;
+    	  skip=1;
+        sendstring("VMCALL\n");
     	break;
 
 
       case vm_exit_cpuid:
-        skip=1;
+        //skip=1;
         break;
 
 
@@ -1373,7 +1382,6 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
 
 
     }
-
 
     if (skip)
     {
@@ -2156,7 +2164,8 @@ void setupVMX(pcpuinfo currentcpuinfo)
 
   csEnter(&setupVMX_lock);
 
-  currentcpuinfo->AvailableVirtualAddress=(currentcpuinfo->cpunr+1) << 28;
+  currentcpuinfo->AvailableVirtualAddress=(UINT64)(currentcpuinfo->cpunr+1) << 28;
+//  currentcpuinfo->AvailableVirtualAddress=(UINT64)(currentcpuinfo->cpunr+16) << 28;
   sendstringf("AvailableVirtualAddress=%6\n\r",currentcpuinfo->AvailableVirtualAddress);
 
   if (!loadedOS)
@@ -2912,7 +2921,7 @@ void setupVMX(pcpuinfo currentcpuinfo)
 
       vmwrite(vm_guest_gdtr_base,(UINT64)getGDTbase()); //gdtr base
       vmwrite(vm_guest_idtr_base,(UINT64)getIDTbase()); //idtr base
-      vmwrite(vm_guest_gdt_limit,(UINT64)0x50); //gdtr limit
+      vmwrite(vm_guest_gdt_limit,(UINT64)88); //gdtr limit
       vmwrite(vm_guest_idt_limit,(UINT64)8*256); //idtr limit
 
 
@@ -2920,12 +2929,12 @@ void setupVMX(pcpuinfo currentcpuinfo)
       vmwrite(vm_guest_cr3,getCR3()); //cr3
       vmwrite(vm_guest_cr4,getCR4() |(UINT64)IA32_VMX_CR4_FIXED0 | 1 | (1 << 4) | ( 1 << 5) | (1<<0)); //guest cr4
 
-      vmwrite(vm_guest_es,(UINT64)0); //es selector
+      vmwrite(vm_guest_es,(UINT64)8); //es selector
       vmwrite(vm_guest_cs,(UINT64)80); //cs selector
-      vmwrite(vm_guest_ss,(UINT64)0); //ss selector
-      vmwrite(vm_guest_ds,(UINT64)0); //ds selector
-      vmwrite(vm_guest_fs,(UINT64)0); //fs selector
-      vmwrite(vm_guest_gs,(UINT64)0); //gs selector
+      vmwrite(vm_guest_ss,(UINT64)8); //ss selector
+      vmwrite(vm_guest_ds,(UINT64)8); //ds selector
+      vmwrite(vm_guest_fs,(UINT64)8); //fs selector
+      vmwrite(vm_guest_gs,(UINT64)8); //gs selector
       vmwrite(vm_guest_ldtr,(UINT64)0); //ldtr selector
       vmwrite(vm_guest_tr,(UINT64)64); //tr selector
 
@@ -2963,7 +2972,8 @@ void setupVMX(pcpuinfo currentcpuinfo)
       vmwrite(vm_guest_dr7,(UINT64)0x400); //dr7
 
       vmwrite(0x4826,(UINT64)0); //guest activity state, normal
-      vmwrite(vm_guest_rsp,(UINT64)0x8fffc); //rsp
+      //vmwrite(vm_guest_rsp,(UINT64)0x8fffc); //rsp
+      vmwrite(vm_guest_rsp,((UINT64)malloc(4096))+0x1000-8); //rsp
       vmwrite(vm_guest_rip,(UINT64)quickboot); //rip
       vmwrite(vm_guest_rflags,(UINT64)getRFLAGS()); //rflags
 

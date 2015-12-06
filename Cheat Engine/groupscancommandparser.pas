@@ -16,6 +16,11 @@ uses Classes, SysUtils, cefuncproc, CustomTypeHandler, strutils, commonTypeDefs;
 uses Classes, SysUtils, strutils, CustomTypeHandler, commonTypeDefs;
 {$endif}
 
+resourcestring
+  rsGSCPCustomTypeNotRecognized = 'Custom type not recognized: ';
+  rsGSCPInvalidGroupscanCommand = 'Invalid groupscan command';
+  rsGSCPWildcardsEmptyAreNotAllowedForOutOfOrderScans = 'Wildcards/Empty are not allowed for Out of Order scans';
+
 type
   TGroupscanCommandParser=class
   private
@@ -156,7 +161,7 @@ begin
         if elements[j].customtype<>nil then
           elements[j].bytesize:=elements[j].customtype.bytesize
         else
-          raise exception.create('Custom type not recognized: '+ctn);
+          raise exception.create(rsGSCPCustomTypeNotRecognized+ctn);
 
         nextchar:=k+1;
       end;
@@ -190,7 +195,7 @@ begin
       end;
 
       else
-        raise exception.create('Invalid groupscan command');
+        raise exception.create(rsGSCPInvalidGroupscanCommand);
     end;
 
     if length(command)>=nextchar then
@@ -198,7 +203,7 @@ begin
       case command[nextchar] of
         'P': elements[j].picked:=true; //elements marked picked will be added when doubleclicked in the addresslist
         else
-          raise exception.create('Invalid groupscan command');
+          raise exception.create(rsGSCPInvalidGroupscanCommand);
       end;
     end;
 
@@ -294,7 +299,7 @@ begin
   if outOfOrder then
     for i:=0 to length(elements)-1 do
       if elements[i].wildcard then
-        raise exception.create('Wildcards/Empty are not allowed for Out of Order scans');
+        raise exception.create(rsGSCPWildcardsEmptyAreNotAllowedForOutOfOrderScans);
 
 
   haspick:=false;

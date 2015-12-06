@@ -13,7 +13,7 @@ uses
   NewKernelHandler, ComCtrls, LResources, byteinterpreter, StrUtils, hexviewunit,
   debughelper, debuggertypedefinitions,frmMemviewPreferencesUnit, registry,
   scrollboxex, disassemblercomments, multilineinputqueryunit, frmMemoryViewExUnit,
-  LastDisassembleData, ProcessHandlerUnit, commonTypeDefs;
+  LastDisassembleData, ProcessHandlerUnit, commonTypeDefs, binutils;
 
 
 type
@@ -41,6 +41,10 @@ type
     MenuItem22: TMenuItem;
     MenuItem23: TMenuItem;
     MenuItem24: TMenuItem;
+    MenuItem25: TMenuItem;
+    miGNUAssembler: TMenuItem;
+    miBinutilsSelect: TMenuItem;
+    miBinUtils: TMenuItem;
     miSetBookmark0: TMenuItem;
     miGotoBookmark0: TMenuItem;
     miSetBookmark1: TMenuItem;
@@ -267,6 +271,9 @@ type
     procedure MenuItem18Click(Sender: TObject);
     procedure MenuItem20Click(Sender: TObject);
     procedure MenuItem22Click(Sender: TObject);
+    procedure MenuItem25Click(Sender: TObject);
+    procedure miGNUAssemblerClick(Sender: TObject);
+    procedure miBinutilsSelectClick(Sender: TObject);
     procedure SetBookmarkClick(Sender: TObject);
     procedure miTextEncodingClick(Sender: TObject);
     procedure miReferencedFunctionsClick(Sender: TObject);
@@ -485,6 +492,8 @@ type
       gotoMi: TMenuItem;
     end;
 
+    currentBinutils: Tbinutils;
+
     procedure SetStacktraceSize(size: integer);
     procedure setShowDebugPanels(state: boolean);
     procedure UpdateRWAddress(disasm: string);
@@ -535,7 +544,7 @@ type
     procedure reloadStacktrace;
     function GetReturnaddress: ptrUint;
 
-    procedure UpdateDebugContext(threadhandle: THandle; threadid: dword);
+    procedure UpdateDebugContext(threadhandle: THandle; threadid: dword; changeSelection: boolean=true);
     procedure miLockOnClick(Sender: TObject);
     procedure miLockMemviewClick(sender: TObject);
 
@@ -611,7 +620,9 @@ uses Valuechange,
   frmAssemblyScanUnit,
   MemoryQuery,
   AccessedMemory,
-  Parsers;
+  Parsers,
+  GnuAssembler,
+  frmEditHistoryUnit;
 
 
 resourcestring
@@ -674,7 +685,10 @@ resourcestring
   rsCommentFor = 'Comment for %s';
   rsHeaderFor = 'Header for %s';
   rsSShowsTheAutoguessValue = '(%s shows the autoguess value)';
-
+  rsMBBookmark = 'Bookmark %d';
+  rsMBBookmark2 = 'Bookmark %d: %s';
+  rsMBCreationOfTheRemoteThreadFailed = 'Creation of the remote thread failed';
+  rsMBThreadCreated = 'Thread Created';
 
 //property functions:
 function TMemoryBrowser.getShowValues: boolean;
@@ -1083,6 +1097,42 @@ begin
   frmAccessedMemory.Show;
 end;
 
+procedure TMemoryBrowser.MenuItem25Click(Sender: TObject);
+begin
+  if frmEditHistory=nil then
+    frmEditHistory:=tfrmEditHistory.create(application);
+
+  frmEditHistory.show;
+
+end;
+
+procedure TMemoryBrowser.miGNUAssemblerClick(Sender: TObject);
+var gnua: TfrmAutoInject;
+begin
+  gnua:=TfrmAutoInject.Create(self);
+  gnua.ScriptMode:=smGnuAssembler;
+  gnua.show;
+end;
+
+procedure TMemoryBrowser.miBinutilsSelectClick(Sender: TObject);
+var id: integer;
+begin
+  if (sender is TMenuItem) then
+  begin
+    id:=tmenuitem(sender).tag;
+    if (id<0) or (id>=binutilslist.count) then
+    begin
+      defaultBinutils:=nil;
+      miDisassemblerType.Enabled:=true;
+    end
+    else
+    begin
+      defaultBinutils:=TBinUtils(binutilslist[id]);
+      miDisassemblerType.Enabled:=false;
+    end;
+  end;
+end;
+
 procedure TMemoryBrowser.SetBookmarkClick(Sender: TObject);
 var
   id: integer;
@@ -1097,7 +1147,7 @@ begin
     //delete
     bookmarks[id].addressString:='';
     bookmarks[id].lastAddress:=0;
-    bookmarks[id].setMi.caption:=format('Bookmark %d', [id]);
+    bookmarks[id].setMi.caption:=format(rsMBBookmark, [id]);
     bookmarks[id].gotoMi.caption:=bookmarks[id].setMi.caption;
   end
   else
@@ -1105,7 +1155,7 @@ begin
     //update
     bookmarks[id].addressString:=symhandler.getNameFromAddress(disassemblerview.SelectedAddress);
     bookmarks[id].lastAddress:=disassemblerview.SelectedAddress;
-    bookmarks[id].setMi.Caption:=format('Bookmark %d: %s', [id, bookmarks[id].addressString]);
+    bookmarks[id].setMi.Caption:=format(rsMBBookmark2, [id, bookmarks[id].addressString]);
     bookmarks[id].gotoMi.Caption:=bookmarks[id].setMi.caption;
   end;
 end;
@@ -1649,6 +1699,7 @@ end;
 procedure TMemoryBrowser.FormCreate(Sender: TObject);
 var x: array of integer;
   reg: tregistry;
+  f: TFont;
 begin
   MemoryBrowsers.Add(self);
 
@@ -1719,11 +1770,15 @@ begin
 
     if reg.OpenKey('\Software\Cheat Engine\Hexview\',false) then
     begin
+      f:=hexview.hexfont;
+
       if reg.ValueExists('font.name') then
-        hexview.hexfont.name:=reg.ReadString('font.name');
+        f.name:=reg.ReadString('font.name');
 
       if reg.ValueExists('font.size') then
-        hexview.hexfont.size:=reg.ReadInteger('font.size');
+        f.size:=reg.ReadInteger('font.size');
+
+      hexview.hexfont:=f;
     end;
 
   finally
@@ -2030,6 +2085,9 @@ begin
         end;
       end;
 
+      if (key=ORD('Z')) and (ssCtrl in shift) then
+        undoLastWrite;
+
       if (ssalt in shift) or (ssctrl in shift) then exit; 
 
       assemblepopup(lowercase(chr(key)));
@@ -2148,6 +2206,8 @@ begin
     if frmFloatingPointPanel<>nil then
       frmFloatingPointPanel.Visible:=false;
 
+    if WindowState=wsMinimized then //for an unknown reason, the memoryview window can't be shown again if it was hidden minized
+      WindowState:=wsNormal;
   end;
 end;
 
@@ -2236,6 +2296,8 @@ var assemblercode,desc: string;
 
     localdisassembler: TDisassembler;
     bytelength: dword;
+
+    gnascript: tstringlist;
 begin
 
   //make sure it doesnt have a breakpoint
@@ -2270,6 +2332,21 @@ begin
   assemblercode:=InputboxTop(rsCheatEngineSingleLingeAssembler, Format(rsTypeYourAssemblerCodeHereAddress, [inttohex(disassemblerview.SelectedAddress, 8)]), assemblercode, x='', canceled, assemblerHistory);
   if not canceled then
   begin
+
+    if defaultBinutils<>nil then
+    begin
+      //use the gnuassembler for this
+      gnascript:=TStringList.create;
+      try
+        gnascript.add('.msection sline 0x'+inttohex(disassemblerview.SelectedAddress,8));
+        gnascript.Add(assemblercode);
+        gnuassemble(gnascript);
+      finally
+        gnascript.free;
+      end;
+
+      exit;
+    end;
 
     try
       if Assemble(assemblercode,disassemblerview.SelectedAddress,bytes) then
@@ -2709,7 +2786,7 @@ begin
     raise exception.Create(rsPleaseEnterAValidHexadecimalValue);
   end;
 
-  if CreateRemoteThread(processhandle,nil,0,pointer(startaddress),pointer(parameter),0,threadid)=0 then raise exception.Create('Creation of the remote thread failed') else showmessage('Thread Created');
+  if CreateRemoteThread(processhandle,nil,0,pointer(startaddress),pointer(parameter),0,threadid)=0 then raise exception.Create(rsMBCreationOfTheRemoteThreadFailed) else showmessage(rsMBThreadCreated);
 end;
 
 procedure TMemoryBrowser.MemoryRegions1Click(Sender: TObject);
@@ -3966,7 +4043,7 @@ begin
     result:=0;
 end;
 
-procedure TMemoryBrowser.UpdateDebugContext(threadhandle: THandle; threadid: dword);
+procedure TMemoryBrowser.UpdateDebugContext(threadhandle: THandle; threadid: dword; changeselection: boolean=true);
 var temp: string='';
     Regstart: string='';
     charcount: integer=8;
@@ -3976,6 +4053,7 @@ var temp: string='';
     i: integer=0;
 
 begin
+
   if processhandler.is64Bit or (processhandler.SystemArchitecture=archArm) then
   begin
     regstart:='R';
@@ -4146,16 +4224,25 @@ begin
   stacktrace1.Enabled:=true;
   Executetillreturn1.Enabled:=true;
 
-  caption:=Format(rsMemoryViewerCurrentlyDebuggingThread, [inttohex(threadid, 1)]);
+  if threadid<>0 then
+    caption:=Format(rsMemoryViewerCurrentlyDebuggingThread, [inttohex(threadid, 1)]);
 
-  if frmstacktrace<>nil then
+  if (frmstacktrace<>nil) then
+  begin
+    if (threadhandle=0) and (debuggerthread<>nil) and (debuggerthread.CurrentThread<>nil) then
+      threadhandle:=debuggerthread.CurrentThread.handle;
+
     frmstacktrace.stacktrace(threadhandle, lastdebugcontext);
+  end;
 
-  if processhandler.SystemArchitecture=archX86 then
-    disassemblerview.SelectedAddress:=lastdebugcontext.{$ifdef CPU64}rip{$else}eip{$endif}
-  else
-  if processhandler.SystemArchitecture=archArm then
-    disassemblerview.SelectedAddress:=lastdebugcontextarm.PC;
+  if changeselection then
+  begin
+    if processhandler.SystemArchitecture=archX86 then
+      disassemblerview.SelectedAddress:=lastdebugcontext.{$ifdef CPU64}rip{$else}eip{$endif}
+    else
+    if processhandler.SystemArchitecture=archArm then
+      disassemblerview.SelectedAddress:=lastdebugcontextarm.PC;
+  end;
 
 
 

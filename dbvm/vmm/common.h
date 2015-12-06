@@ -1,6 +1,7 @@
 #ifndef COMMON_H_
 #define COMMON_H_
 
+#define MAX_STACK_SIZE 0x10000
 
 #if (defined SERIALPORT) && (SERIALPORT != 0)
   #define DEBUG //comment for release

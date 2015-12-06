@@ -339,6 +339,9 @@ end
 function mono_enumDomains()
   if debug_canBreak() then return nil end
 
+  if monopipe==nil then return nil end
+
+
   monopipe.lock()
   monopipe.writeByte(MONOCMD_ENUMDOMAINS)
   local count=monopipe.readDword()
@@ -1474,11 +1477,17 @@ function mono_TVExpanding(sender, node)
     elseif (node.Level>=3) and (node.Text=='methods') then --methods
       monoform_EnumMethods(node)
     elseif (node.Level>=3) and (node.Text=='base class') then 
-      local klass = node.Data
-      local classname=mono_class_getName(klass)
-      local namespace=mono_class_getNamespace(klass)
-      local fqname=mono_class_getFullName(klass)
-      monoform_AddClass(node, klass, namespace, classname, fqname)
+      if (monoForm.autoExpanding==nil) or (monoForm.autoExpanding==false) then
+        local klass = node.Data
+        if (klass ~= 0) then
+          local classname=mono_class_getName(klass)
+          local namespace=mono_class_getNamespace(klass)
+          local fqname=mono_class_getFullName(klass)
+          monoform_AddClass(node, klass, namespace, classname, fqname)
+        end
+      else
+        allow=false --don't auto expand the base classes
+      end
     end
 
   end
@@ -1556,7 +1565,9 @@ end
 function monoform_miExpandAllClick(sender)
   if messageDialog("Are you sure you wish to expand the whole tree? This can take a while and Cheat Engine may look like it has crashed (It has not)", mtConfirmation, mbYes, mbNo)==mrYes then
     monoForm.TV.beginUpdate()
+    monoForm.autoExpanding=true --special feature where a base object can contain extra lua variables
     monoForm.TV.fullExpand()
+    monoForm.autoExpanding=false
     monoForm.TV.endUpdate()
   end
 end
@@ -1586,10 +1597,13 @@ function mono_dissect()
 
   local domains=mono_enumDomains()
   local i
-  for i=1, #domains do
-    n=monoForm.TV.Items.add(string.format("%x", domains[i]))
-    n.Data=domains[i]
-    monoForm.TV.Items[i-1].HasChildren=true
+
+  if (domains~=nil) then
+    for i=1, #domains do
+      n=monoForm.TV.Items.add(string.format("%x", domains[i]))
+      n.Data=domains[i]
+      monoForm.TV.Items[i-1].HasChildren=true
+    end
   end
 
 end
@@ -1617,7 +1631,7 @@ function mono_OpenProcessMT(t)
   local m=enumModules()
   local i
   for i=1, #m do
-    if m[i].Name=='mono.dll' then
+    if (m[i].Name=='mono.dll') or (string.sub(m[i].Name,1,5)=='mono-') then
       usesmono=true
       break
     end
@@ -2031,6 +2045,7 @@ function monoform_exportStructInternal(s, caddr, recursive, static, structmap, m
             
       -- print(string.format("  Field: %d: %d: %d: %s", e.Offset, e.Vartype, ft, fieldname))
       if ft==MONO_TYPE_STRING then
+--[[
          if str==nil then
             str = structmap["String"]
          end
@@ -2045,12 +2060,13 @@ function monoform_exportStructInternal(s, caddr, recursive, static, structmap, m
            ce.Vartype=vtDword
            ce=str.addElement()
            ce.Name="Value"
-           ce.Offset=0xC
+           ce.Offset=0xC --not in 64-bit
            ce.Vartype=vtUnicodeString
            ce.Bytesize=128
            structure_endUpdate(str)
          end
          e.setChildStruct(str)
+--]]
       elseif ft == MONO_TYPE_PTR or ft == MONO_TYPE_CLASS or ft == MONO_TYPE_BYREF 
           or ft == MONO_TYPE_GENERICINST then
         local typename = monoform_escapename(fields[i].typename)

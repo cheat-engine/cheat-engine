@@ -97,6 +97,8 @@ type
     context: PContext;  //PContext but it does belong to this thread. It's due to alignment issues
     armcontext: TArmContext;
 
+
+    procedure UpdateMemoryBrowserContext;
     procedure TracerQuit;
     procedure suspend;
     procedure resume;
@@ -179,15 +181,18 @@ begin
   end;
 end;
 
-procedure TDebugThreadHandler.VisualizeBreak;
+procedure TDebugThreadHandler.UpdateMemoryBrowserContext;
 begin
-  TDebuggerthread(debuggerthread).execlocation:=41;
   if processhandler.SystemArchitecture=archx86 then
     MemoryBrowser.lastdebugcontext:=context^
   else
     MemoryBrowser.lastdebugcontextarm:=armcontext;
+end;
 
-
+procedure TDebugThreadHandler.VisualizeBreak;
+begin
+  TDebuggerthread(debuggerthread).execlocation:=41;
+  UpdateMemoryBrowserContext;
 
   if (currentbp<>nil) and (assigned(currentbp.OnBreakpoint)) then
     WaitingToContinue:=currentbp.OnBreakpoint(currentbp, context)
@@ -787,7 +792,7 @@ begin
 
     if InRangeX(address, bpp.address, bpp.address+bpp.size-1) then
     begin
-      if (not (CurrentDebuggerInterface is TNetworkDebuggerInterface)) and (debugreg in [0..4]) and (bpp.breakpointMethod=bpmDebugRegister) and (bpp.debugRegister<>debugreg) then
+      if (CurrentDebuggerInterface.canReportExactDebugRegisterTrigger) and (debugreg in [0..4]) and (bpp.breakpointMethod=bpmDebugRegister) and (bpp.debugRegister<>debugreg) then
         continue; //this is not the correct breakpoint. Skip it
 
 

@@ -767,7 +767,12 @@ begin
   end;
 end;
 
-resourcestring StrSelectExeFor3D='Select the executable of the Direct-3D game';
+resourcestring
+  StrSelectExeFor3D='Select the executable of the Direct-3D game';
+  rsAOErrorWhileTryingToCreateTheSharedKeyStructureEtc = 'Error while trying to create the shared key structure! (Which efficiently renders this whole feature useless)';
+  rsAOCheatEngineFailedToGetIntoTheConfigOfSelectedProgram = 'Cheat Engine failed to get into the config of the selected program.';
+  rsAOYouCanOnlyLoadExeFiles = 'You can only load EXE files';
+
 procedure TAdvancedOptions.Button4Click(Sender: TObject);
 var i:integer;
     fname,expectedFilename: string;
@@ -786,13 +791,13 @@ begin
 
     KeysFileMapping:=CreateFileMapping($FFFFFFFF,nil,PAGE_READWRITE,0,sizeof(tkeys),'CEKEYS');
     if KeysFileMapping=0 then
-      raise exception.Create('Error while trying to create the shared key structure! (Which efficiently renders this whole feature useless)');
+      raise exception.Create(rsAOErrorWhileTryingToCreateTheSharedKeyStructureEtc);
 
     keys:=MapViewOfFile(KeysFileMapping,FILE_MAP_ALL_ACCESS,0,0,0);
     if keys=nil then
     begin
       closehandle(KeysFileMapping);
-      raise exception.Create('Cheat Engine failed to get into the config of the selected program.');
+      raise exception.Create(rsAOCheatEngineFailedToGetIntoTheConfigOfSelectedProgram);
     end;
 
     keys.configured:=false;
@@ -804,7 +809,7 @@ begin
 
     unpause;
     detachIfPossible;
-    if Uppercase(extractfileext(opendialog1.FileName))<>'.EXE' then raise Exception.Create('You can only load EXE files');
+    if Uppercase(extractfileext(opendialog1.FileName))<>'.EXE' then raise Exception.Create(rsAOYouCanOnlyLoadExeFiles);
 
     Debuggerthread:=TDebugger.MyCreate(opendialog1.FileName);
 

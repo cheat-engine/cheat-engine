@@ -18,6 +18,9 @@ uses
   XMLRead, XMLWrite, CustomTypeHandler, FileUtil, commonTypeDefs, math, pointerparser;
 {$endif}
 
+resourcestring
+  rsMRNibbleSupportIsOnlyForHexadecimalDisplay = 'Nibble support is only for hexadecimal display';
+
 type TMemrecHotkeyAction=(mrhToggleActivation, mrhToggleActivationAllowIncrease, mrhToggleActivationAllowDecrease, mrhActivate, mrhDeactivate, mrhSetValue, mrhIncreaseValue, mrhDecreaseValue);
 
 type TFreezeType=(ftFrozen, ftAllowIncrease, ftAllowDecrease);
@@ -999,28 +1002,32 @@ begin
     end;
   end;
 
-  laststate:=cheatEntry.AppendChild(doc.CreateElement('LastState'));
-  if VarType<>vtAutoAssembler then
+  if Value<>'??' then
   begin
-    a:=doc.CreateAttribute('RealAddress');
-    a.TextContent:=IntToHex(GetRealAddress,8);
-    laststate.Attributes.SetNamedItem(a);
-
-    if VarType<>vtString then
+    laststate:=cheatEntry.AppendChild(doc.CreateElement('LastState'));
+    if VarType<>vtAutoAssembler then
     begin
-      a:=doc.CreateAttribute('Value');
-      a.TextContent:=value;
+      a:=doc.CreateAttribute('RealAddress');
+      a.TextContent:=IntToHex(GetRealAddress,8);
       laststate.Attributes.SetNamedItem(a);
+
+      if VarType<>vtString then
+      begin
+        a:=doc.CreateAttribute('Value');
+        a.TextContent:=value;
+        laststate.Attributes.SetNamedItem(a);
+      end;
     end;
   end;
 
-  a:=doc.CreateAttribute('Activated');
-  if Active then
-    a.TextContent:='1'
-  else
-    a.TextContent:='0';
-  laststate.Attributes.SetNamedItem(a);
 
+
+  if Active then
+  begin
+    a:=doc.CreateAttribute('Activated');
+    a.TextContent:='1';
+    laststate.Attributes.SetNamedItem(a);
+  end;
 
 
   if showAsHex then
@@ -1035,7 +1042,8 @@ begin
   end;
 
 
-  cheatEntry.AppendChild(doc.CreateElement('Color')).TextContent:=inttohex(fcolor,6);
+  if fcolor<>clWindowText then
+    cheatEntry.AppendChild(doc.CreateElement('Color')).TextContent:=inttohex(fcolor,6);
 
   if fisGroupHeader then
   begin
@@ -2205,7 +2213,7 @@ begin
           begin
             if bts[i]=-1 then continue;
 
-            if not showashex then raise exception.create('Nibble support is only for hexadecimal display');
+            if not showashex then raise exception.create(rsMRNibbleSupportIsOnlyForHexadecimalDisplay);
 
             //nibble
             pba[i]:=(((not (bts[i] shr 8)) and $ff) and pba[i]) or (bts[i] and $ff);

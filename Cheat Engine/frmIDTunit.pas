@@ -25,6 +25,16 @@ implementation
 
 uses DBK32functions, ProcessHandlerUnit;
 
+resourcestring
+  rsIDTNotPresent = 'not present';
+  rsIDTTaskGate = 'task gate';
+  rsIDT16bitInterruptGate = '16-bit interrupt gate';
+  rsIDT16BiyTrapGate = '16-bit trap gate';
+  rsIDT32bitInterruptGate = '32-bit interrupt gate';
+  rsIDT32BiyTrapGate = '32-bit trap gate';
+  rsIDTUnkownIDT = 'unknown IDT';
+  rsIDTDPL = ' DPL=';
+
 procedure TfrmIDT.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   action:=cafree;
@@ -70,15 +80,15 @@ begin
 
       title:=inttostr(i)+' : ';
       if p=0 then  //if it's not present then only say it's not present
-        title:=title+'not present'
+        title:=title+rsIDTNotPresent
       else
       case idttype of
-        5: title:=title+'task gate'; //task gate
-        6: title:=title+'16-bit interrupt gate'; //16 bit interrupt gate
-        7: title:=title+'16-bit trap gate'; //16 bit trap gate
-       14: title:=title+'32-bit interrupt gate'; //32-bit interrupt gate
-       15: title:=title+'32-bit trap gate'; //32-bit trap gate
-       else title:=title+'unknown IDT'; //unknown type
+        5: title:=title+rsIDTTaskGate; //task gate
+        6: title:=title+rsIDT16bitInterruptGate; //16 bit interrupt gate
+        7: title:=title+rsIDT16BiyTrapGate; //16 bit trap gate
+       14: title:=title+rsIDT32bitInterruptGate; //32-bit interrupt gate
+       15: title:=title+rsIDT32BiyTrapGate; //32-bit trap gate
+       else title:=title+rsIDTUnkownIDT; //unknown type
       end;
 
 
@@ -91,7 +101,7 @@ begin
         else
           title:=title+inttohex(offset_0_15+(offset_16_31 shl 16),8)+')';
 
-        title:=title+' DPL='+inttostr(DPL);
+        title:=title+rsIDTDPL+inttostr(DPL);
       end;
       tvidt.Items.Add(nil,title);
     end;

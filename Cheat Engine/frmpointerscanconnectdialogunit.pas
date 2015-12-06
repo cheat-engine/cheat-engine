@@ -39,6 +39,10 @@ type
     scannerpriority: TThreadPriority;
   end;
 
+resourcestring
+  rsHostCouldNotBeResolved='host: %s could not be resolved';
+  rsUseLoadedPointermap = 'Use loaded pointermap:';
+
 var
   frmPointerscanConnectDialog: TfrmPointerscanConnectDialog;
 
@@ -61,7 +65,7 @@ begin
       if hr.NameLookup(edtHost.text) then
         host:=hr.NetHostAddress
       else
-        raise exception.create('host:'+edtHost.text+' could not be resolved');
+        raise exception.create(Format(rsHostCouldNotBeResolved, [edtHost.text]));
     end;
 
 
@@ -91,7 +95,7 @@ procedure TfrmPointerscanConnectDialog.cbUseLoadedPointermapChange(
   Sender: TObject);
 begin
   if cbUseLoadedPointermap.checked and odLoadPointermap.Execute then
-    cbUseLoadedPointermap.Caption:='Use loaded pointermap:'+ExtractFileName(odLoadPointermap.FileName)
+    cbUseLoadedPointermap.Caption:=rsUseLoadedPointermap+ExtractFileName(odLoadPointermap.FileName)
   else
     cbUseLoadedPointermap.checked:=false;
 

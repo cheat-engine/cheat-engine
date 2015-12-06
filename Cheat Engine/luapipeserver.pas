@@ -7,7 +7,7 @@ unit LuaPipeServer;
 interface
 
 uses
-  windows, Classes, SysUtils, lua, luaclass, luapipe;
+  jwawindows, windows, Classes, SysUtils, lua, luaclass, luapipe;
 
 procedure initializeLuaPipeServer;
 
@@ -42,9 +42,31 @@ begin
 end;
 
 constructor TLuaPipeServer.create(pipename: string; inputsize, outputsize: integer);
+var
+  a: SECURITY_ATTRIBUTES;
 begin
   inherited create;
-  pipe:=CreateNamedPipe(pchar('\\.\pipe\'+pipename), PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE or PIPE_READMODE_BYTE or PIPE_WAIT, 1,inputsize, outputsize, INFINITE, nil);
+
+  a.nLength:=sizeof(a);
+  a.bInheritHandle:=TRUE;
+  ConvertStringSecurityDescriptorToSecurityDescriptor('D:(D;;FA;;;NU)(A;;0x12019f;;;WD)(A;;0x12019f;;;CO)', SDDL_REVISION_1, a.lpSecurityDescriptor, nil);
+
+  //AllocateAndInitializeSid();
+  {
+  LPCWSTR LOW_INTEGRITY_SDDL_SACL_W = L"S:(ML;;NW;;;LW)"
+  ;
+  PSECURITY_DESCRIPTOR securitydescriptor;
+  ConvertStringSecurityDescriptorToSecurityDescriptorW(LOW_INTEGRITY_SDDL_SACL_W,SDDL_REVISION_1,&securitydescriptor,NULL);
+  sa.nLength = sizeof
+  (SECURITY_ATTRIBUTES);
+  sa.lpSecurityDescriptor = securitydescriptor;
+  sa.bInheritHandle = TRUE;
+  }
+
+
+  pipe:=CreateNamedPipe(pchar('\\.\pipe\'+pipename), PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE or PIPE_READMODE_BYTE or PIPE_WAIT, 1,inputsize, outputsize, INFINITE, @a);
+
+  LocalFree(HLOCAL(a.lpSecurityDescriptor));
 end;
 
 

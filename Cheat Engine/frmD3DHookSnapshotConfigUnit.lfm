@@ -38,7 +38,9 @@ object frmD3DHookSnapshotConfig: TfrmD3DHookSnapshotConfig
     Width = 80
     Alignment = taCenter
     OnKeyDown = edtFullSnapshotKeyDown
+    ParentShowHint = False
     ReadOnly = True
+    ShowHint = True
     TabOrder = 0
   end
   object edtSmallSnapshot: TEdit

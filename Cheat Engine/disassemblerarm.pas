@@ -2049,7 +2049,7 @@ begin
     LastDisassembleData.opcode:='??';
 
 
-  result:=inttohex(LastDisassembleData.address,8)+' (ARM)';
+  result:=inttohex(LastDisassembleData.address,8);
   result:=result+' - ';
   if x>0 then
   begin

@@ -35,6 +35,7 @@ type
     fdisplayMethod: TdisplayMethod;
     fchildstruct: TDissectedStruct;
     fchildstructstart: integer; //offset into the childstruct where this pointer starts. Always 0 for local structs, can be higher than 0 for other defined structs
+    fExpandChangesAddress: boolean;
   public
     delayLoadedStructname: string;
     constructor createFromXMLElement(parent:TDissectedStruct; element: TDOMElement);
@@ -82,6 +83,7 @@ type
     property ChildStructStart: integer read fchildstructstart write setChildStructStart;
     property index: integer read getIndex;
     property parent: TDissectedStruct read getParent;
+    property ExpandChangesAddress: boolean read fExpandChangesAddress write fExpandChangesAddress;
   end;
 
 
@@ -609,6 +611,42 @@ resourcestring
    rsCopy = 'Copy';
    rsPaste = 'Paste';
    rsSpider = 'Spider';
+   rsSF2GiveTheNewNameForThisStructure = 'Give the new name for this structure';
+   rsSF2StructureRename = 'Structure rename';
+   rsSF2AreYouSureYouWantToDeleteTheStructureNamed = 'Are you sure you want to delete the structure named :';
+   rsSF2AreYouSureYouWantToDeleteAllTheDefinedStructures = 'Are you sure you want to delete all the defined structures ?';
+   rsSF2AutocreateStructureSize = 'Autocreate structure size: ';
+   rsSF2ChangeValue = 'Change Value';
+   rsSF2NewValueForThisAddress = 'New value for this address:';
+   rsSF2Group1 = 'Group 1';
+   rsSF2Group = 'Group ';
+   rsSF2Group2 = 'Group ';
+   rsSF2Rename = 'Rename';
+   rsSF2DeleteGroup = 'Delete group';
+  rsSF2TheGapBetweenOffset = 'The gap between offset %x and %x is %d bytes long. Autofill this?';
+  rsSF2NewGroup = '<New group>';
+  rsSF2GroupPicker = 'Group picker';
+  rsSF2SecletTheGroupThisColumnShouldBecomePartOf = 'Select the group this column should become part of';
+  rsSF2NewGroup2 = 'New group';
+  rsSF2GiveTheNewName = 'Give the new name';
+  rsSF2ShadowcopyAt = 'Lock ( Shadowcopy at %s )';
+  rsSF2NewColumnName = 'New column name';
+  rsSF2WhatNameShouldThisColumnHave = 'What name should this column have?';
+  rsSF2TStructColumnCreateError = 'TStructColumn.create Error';
+  rsSF2SetNameRename = 'Set name/Rename';
+  rsSF2RenameGroup = 'Rename group';
+  rsSF2GiveTheNewNameForTheGroup = 'Give the new name for the group';
+  rsSF2AutocreatedFrom = 'Autocreated from ';
+  rsSF2NameForThisGroup = 'Name for this group';
+  rsFS2StructureDefine = 'Structure define';
+  rsSF2TheGroupscanCommandHasBeenCopiedToTheClipboard = 'The groupscan command has been copied to the clipboard';
+  rsSF2AutocreateStructure = 'Autocreate structure';
+  rsSF2DefaultSize = 'Default size:';
+  rsSF2UnknownCustomType = 'Unknown custom type';
+  rsSF2Hex = ' (Hex)';
+  rsSF2Signed = ' (Signed)';
+  rsSF2To = ' to ';
+
 
 var
   StructureDissectOverrides: array of TStructureDissectOverride;
@@ -1242,7 +1280,7 @@ begin
     begin
       if size>smallestacceptedsize then
       begin
-        if (askiftoobig=false) or (MessageDlg('The gap between offset '+inttohex(element[i-1].Offset,1)+' and '+inttohex(element[i-1].Offset,1)+' is '+inttostr(size)+' bytes long. Autofill this?', mtConfirmation, [mbyes,mbno],0)<>mryes) then
+        if (askiftoobig=false) or (MessageDlg(format(rsSF2TheGapBetweenOffset, [element[i-1].Offset, element[i-1].Offset, size]), mtConfirmation, [mbyes,mbno],0)<>mryes) then
         begin
           inc(i);
           continue;
@@ -1291,7 +1329,8 @@ var
   offset: integer;
   elemsize: integer;
 begin
-  if frmStructuresConfig.cbAutoGuessCustomTypes.checked then
+
+  if (frmStructuresConfig<>nil) and frmStructuresConfig.cbAutoGuessCustomTypes.checked then
     ctp:=@customtype
   else
     ctp:=nil;
@@ -1446,8 +1485,10 @@ begin
 
 
 
+    x:=0;
+    readprocessmemory(processhandle,pointer(baseaddress),@buf[0],bytesize,x);
 
-    if readprocessmemory(processhandle,pointer(baseaddress),@buf[0],bytesize,x) then
+    if x>0 then
     begin
       currentOffset:=offset;
 
@@ -1581,8 +1622,9 @@ begin
       else
       begin
         //a struct but not the deleted one. Make sure it is a LOCAL one to prevent an infinite loop (a global struct can point to itself)
-        if not s.isInGlobalStructList then
-          s.OnDeleteStructNotification(structtodelete);
+
+        //if not s.isInGlobalStructList then
+        //  s.OnDeleteStructNotification(structtodelete);
       end;
     end;
   end;
@@ -2012,11 +2054,11 @@ begin
   for i:=0 to parent.parent.groupcount-1 do
     grouplist.AddObject(parent.parent.group[i].groupname, parent.parent.group[i]);
 
-  grouplist.AddObject('<New group>',nil);
+  grouplist.AddObject(rsSF2NewGroup,nil);
 
   l := TfrmSelectionList.Create(parent.parent, grouplist);
-  l.Caption := 'Group picker';
-  l.label1.Caption := 'Select the group this column should become part of';
+  l.Caption := rsSF2GroupPicker;
+  l.label1.Caption := rsSF2SecletTheGroupThisColumnShouldBecomePartOf;
   l.ItemIndex := 0;
 
   if (l.showmodal = mrOk) and (l.ItemIndex <> -1) then
@@ -2024,8 +2066,8 @@ begin
     //apply change
     if grouplist.Objects[l.itemindex]=nil then //new group
     begin
-      newname:='Group '+inttostr(parent.parent.groupcount+1);
-      if inputquery('New group','Give the new name', newname) then
+      newname:=rsSF2Group2+inttostr(parent.parent.groupcount+1);
+      if inputquery(rsSF2NewGroup2,rsSF2GiveTheNewName, newname) then
         g:=TStructGroup.create(parent.parent, newname)
       else
         exit; //no new group, no change
@@ -2179,7 +2221,7 @@ begin
 
 
   miToggleLock.Checked:=result;
-  miToggleLock.Caption:=rsLock+' ( Shadowcopy at '+inttohex(qword(fsavedstate),8)+')';
+  miToggleLock.Caption:=format(rsSF2ShadowcopyAt, [inttohex(qword(fsavedstate),8)]);
 end;
 
 function TStructColumn.saveState: boolean;
@@ -2306,7 +2348,7 @@ procedure TStructColumn.SetCaptionClick(sender: TObject);
 var newname: string;
 begin
   newname:=lblname.caption;
-  if InputQuery('New column name', 'What name should this column have?', newname) then
+  if InputQuery(rsSF2NewColumnName, rsSF2WhatNameShouldThisColumnHave, newname) then
     lblname.caption:=newname;
 
   parent.setPositions;
@@ -2363,7 +2405,7 @@ constructor TStructColumn.create(parent: TStructGroup);
 var hsection: THeaderSection;
   s: TMenuItem;
 begin
-  if parent=nil then raise exception.create('TStructColumn.create Error');
+  if parent=nil then raise exception.create(rsSF2TStructColumnCreateError);
   self.parent:=parent;
 
   columneditpopupmenu:=TPopupMenu.Create(parent.parent);
@@ -2417,7 +2459,7 @@ begin
 
   miSetCaption:=TMenuItem.create(columneditpopupmenu);
   miSetCaption.OnClick:=SetCaptionClick;
-  miSetCaption.caption:='Set name/Rename';
+  miSetCaption.caption:=rsSF2SetNameRename;
   miSetCaption.ShortCut:=TextToShortCut('Ctrl+R');
   columneditpopupmenu.Items.Add(miSetCaption);
 
@@ -2512,7 +2554,7 @@ procedure TStructGroup.RenameClick(sender: tobject);
 var newname: string;
 begin
   newname:=groupname;
-  if inputquery('Rename group', 'Give the new name for the group', newname) then
+  if inputquery(rsSF2RenameGroup, rsSF2GiveTheNewNameForTheGroup, newname) then
     groupname:=newname;
 end;
 
@@ -2569,12 +2611,12 @@ begin
 
   grouppopup:=Tpopupmenu.create(parent);
   miRename:=TmenuItem.create(grouppopup);
-  miRename.caption:='Rename';
+  miRename.caption:=rsSF2Rename;
   miRename.OnClick:=RenameClick;
   grouppopup.items.Add(miRename);
 
   miDelete:=TMenuItem.create(grouppopup);
-  miDelete.caption:='Delete group';
+  miDelete.caption:=rsSF2DeleteGroup;
   miDelete.OnClick:=DeleteClick;
   grouppopup.items.Add(miDelete);
 
@@ -3102,6 +3144,31 @@ var n: TStructelement;
 begin
   AllowExpansion:=true;
   n:=getStructElementFromNode(node);
+
+
+  if (n<>nil) and (n.ExpandChangesAddress) then
+  begin
+    //change address and the structure if needed
+    AllowExpansion:=false;
+
+    c:=getFocusedColumn;
+    address:=getAddressFromNode(node, c, error);
+    if not error then
+    begin
+      //dereference the pointer and fill it in if possible
+      if ReadProcessMemory(processhandle, pointer(address), @address, processhandler.pointersize, x) then
+      begin
+        c:=getFocusedColumn;
+
+        c.Address:=address-n.ChildStructStart;
+        mainStruct:=n.ChildStruct;
+      end;
+    end;
+
+    exit;
+  end;
+
+
   if (n<>nil) and (n.isPointer) and (n.ChildStruct=nil) then
   begin
     if miAutoCreate.Checked then
@@ -3130,7 +3197,7 @@ begin
           //check if the address pointed to is readable
           if ReadProcessMemory(processhandle, pointer(address), @x, 1, x) then 
           begin
-            structName:=lookupStructureName(address, 'Autocreated from '+inttohex(address,8));
+            structName:=lookupStructureName(address, rsSF2AutocreatedFrom+inttohex(address,8));
             n.AutoCreateChildStruct(structName, address)
           end
           else
@@ -3480,6 +3547,8 @@ begin
     hexadecimal:=structelement.displayMethod=dtHexadecimal;
     signed:=structelement.displaymethod=dtSignedInteger;
 
+    ExpandChangesAddress:=structelement.ExpandChangesAddress;
+
 
     if tvStructureView.SelectionCount>1 then
       edtOffset.Enabled:=false;
@@ -3513,6 +3582,8 @@ begin
 
         structElement.parent.beginUpdate;
         try
+          structelement.ExpandChangesAddress:=ExpandChangesAddress;
+
           if changedDescription then
             structElement.name:=description;
 
@@ -3556,6 +3627,8 @@ begin
             structelement.ChildStruct:=nil;
             structelement.ChildStructStart:=0;
           end;
+
+
 
         finally
           structElement.parent.endupdate;
@@ -3643,6 +3716,7 @@ begin
         end;
 
         structElement.BackgroundColor:=backgroundColor;
+        structElement.ExpandChangesAddress:=ExpandChangesAddress;
 
 
 
@@ -3852,7 +3926,7 @@ begin
   if mainstruct<>nil then
   begin
     newname:=mainStruct.name;
-    if InputQuery('Give the new name for this structure', 'Structure rename', newname) then
+    if InputQuery(rsSF2GiveTheNewNameForThisStructure, rsSF2StructureRename, newname) then
       mainStruct.name:=newname;
   end;
 end;
@@ -4019,7 +4093,7 @@ var c: TStructColumn;
 begin
   result:=nil;
   if groupcount=0 then
-    TStructGroup.create(self,'Group 1');
+    TStructGroup.create(self,rsSF2Group1);
 
   c:=getFocusedColumn;
   if c=nil then
@@ -4209,8 +4283,8 @@ procedure TfrmStructures2.MenuItem5Click(Sender: TObject);
 var s: string;
   g: Tstructgroup;
 begin
-  s:='Group '+inttostr(groupcount+1);
-  if InputQuery('Name for this group','Structure define', s) then
+  s:=rsSF2Group+inttostr(groupcount+1);
+  if InputQuery(rsSF2NameForThisGroup,rsFS2StructureDefine, s) then
   begin
     g:=TStructGroup.create(self, s);
 
@@ -4263,7 +4337,7 @@ end;
 
 procedure TfrmStructures2.miClearClick(Sender: TObject);
 begin
-  if MessageDlg('Are you sure you want to delete all the defined structures ?', mtWarning, [mbyes, mbno],0)=mryes then
+  if MessageDlg(rsSF2AreYouSureYouWantToDeleteAllTheDefinedStructures, mtWarning, [mbyes, mbno],0)=mryes then
   begin
     if mainstruct<>nil then //this one first
     begin
@@ -4509,7 +4583,7 @@ begin
         mainform.scanvalue.text:=gcf.getparameters;
       end
       else
-        showmessage('The groupscan command has been copied to the clipboard');
+        showmessage(rsSF2TheGroupscanCommandHasBeenCopiedToTheClipboard);
 
       clipboard.astext:=gcf.getparameters;
 
@@ -4642,7 +4716,7 @@ procedure TfrmStructures2.Deletecurrentstructure1Click(Sender: TObject);
 begin
   if mainstruct<>nil then
   begin
-    if messagedlg('Are you sure you want to delete the structure named :'+mainstruct.structname+' ?', mtConfirmation, [mbyes,mbno],0) = mryes then
+    if messagedlg(rsSF2AreYouSureYouWantToDeleteTheStructureNamed+mainstruct.structname+' ?', mtConfirmation, [mbyes,mbno],0) = mryes then
     begin
       mainstruct.free;
       mainstruct:=nil; //should happen automatically thanks to the destroy procedure of the struct
@@ -4679,7 +4753,7 @@ begin
   if mainstruct<>nil then
   begin
     newsize:=inttostr(mainstruct.autoCreateStructsize);
-    if InputQuery('Autocreate structure', 'Default size:', newsize) then
+    if InputQuery(rsSF2AutocreateStructure, rsSF2DefaultSize, newsize) then
       mainstruct.autoCreateStructsize:=strtoint(newsize);
   end;
 end;
@@ -4705,7 +4779,7 @@ begin
   if mainStruct<>nil then
   begin
     miAutoCreate.Checked:=mainstruct.AutoCreate;
-    miAutostructsize.caption:='Autocreate structure size: '+inttostr(mainstruct.autoCreateStructsize);
+    miAutostructsize.caption:=rsSF2AutocreateStructureSize+inttostr(mainstruct.autoCreateStructsize);
     miAutoDestroyLocal.Checked:=mainstruct.AutoDestroy;
     miDoNotSaveLocal.checked:=mainstruct.DoNotSaveLocal;
     miAutoFillGaps.Checked:=mainStruct.AutoFill;
@@ -4855,7 +4929,7 @@ begin
       if se.CustomType<>nil then
         varname:=se.CustomType.name
       else
-        varname:='Unknown custom type';
+        varname:=rsSF2UnknownCustomType;
     end
     else
       varname:=VariableTypeToString(se.VarType);
@@ -4864,13 +4938,13 @@ begin
 
     //show nondefault displaymethods
     case se.DisplayMethod of
-      dtHexadecimal: description:=description+' (Hex)';
-      dtSignedInteger: description:=description+' (Signed)';
+      dtHexadecimal: description:=description+rsSF2Hex;
+      dtSignedInteger: description:=description+rsSF2Signed;
     end;
 
     if (se.VarType=vtPointer) and (se.ChildStruct<>nil) then
     begin
-      description:=description+' to '+se.ChildStruct.name;
+      description:=description+rsSF2To+se.ChildStruct.name;
       if se.ChildStructStart<>0 then
         description:=description+'+'+inttohex(se.ChildStructStart,1);
     end;
@@ -5024,7 +5098,7 @@ begin
     begin
       //show the change value dialog
       s:=se.getValue(a);
-      if InputQuery('Change Value','New value for this address:', s) then
+      if InputQuery(rsSF2ChangeValue,rsSF2NewValueForThisAddress, s) then
       begin
         //try setting the value
         for i:=0 to tvStructureView.SelectionCount-1 do

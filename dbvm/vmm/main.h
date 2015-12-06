@@ -27,6 +27,7 @@ extern void _vmxoff(void);
 extern void cLIDT(void *idtloader);
 extern unsigned long long readMSR(ULONG msr);
 extern void writeMSR(ULONG msr, UINT64 newvalue);
+extern void _xsetbv(ULONG xcr, UINT64 value);
 extern int stopautomation(void);
 extern int hascpuid(void);
 extern UINT64 getCR0(void);

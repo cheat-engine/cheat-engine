@@ -64,16 +64,19 @@ type
 var
   frmStackView: TfrmStackView;
 
-implementation
-
-uses MemoryBrowserFormUnit, StructuresFrm2, frmstacktraceunit, processhandlerunit;
-
 resourcestring
   rsTheStructuresListIsBroken = 'The structures list is broken';
   rsNewWindow = '<New window>';
   rsLockAndAddToStructureDissect = 'Lock and add to structure dissect';
   rsSelectTheStructureDissectWindowYouWishToAddThisReg = 'Select the structure'
     +' dissect window you wish to add this region to';
+  rsSVThisStackViewWindowHasAllocatedStackSnapshotsEtc = 'This stackview window has allocated stack snapshots in the target process. Do you wish to free them?';
+
+
+implementation
+
+uses MemoryBrowserFormUnit, StructuresFrm2, frmstacktraceunit, processhandlerunit;
+
 
 procedure TfrmStackView.miAddESPClick(Sender: TObject);
 begin
@@ -330,7 +333,7 @@ begin
 
   if allocs<>nil then
   begin
-    r:=messagedlg('This stackview window has allocated stack snapshots in the target process. Do you wish to free them?', mtconfirmation, [mbyes, mbno, mbCancel], 0);
+    r:=messagedlg(rsSVThisStackViewWindowHasAllocatedStackSnapshotsEtc, mtconfirmation, [mbyes, mbno, mbCancel], 0);
 
     if not (r in [mryes, mrno]) then
     begin

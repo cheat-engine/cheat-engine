@@ -1,72 +1,65 @@
-Cheat Engine 6.4
+Cheat Engine 6.5
 
 Fixes:
-Network: Network server can now handle multiple incoming connections at the same time
-Gui: Fixed a crash when using multiple scan tabs
-Assembler/Disassembler: Fixed several assembler/disassembler bugs
-Debug: Fixed issues where deleting a breakpoint wouldn't actually remove it, causing a crash
-Debug: Fixed a problem where deleting a breakpoint that was marked for deletion would never happen if the game was constantly triggering the debugger
-Lua: Fixed the 6.2 and earlier version of opendialog_execute
-Lua: Fixed memscan.waitTillDone() when using it on the gui memscan
-Lua: Fixed speedhack_setSpeed() not taking more than 3 digits
-D3D Hook: Direct3D9 objects now support transparency
-D3D Hook: Fix detection of which directx version is actually used for rendering
-Dissect Data: Fixed the column click detection when scrolled
-Auto Assembler: Fixed some commands not highlighting properly
-Ultimap: Fixed ultimap so it now works in windows 8
-Ultimap: Fixed the hotkeys
-Ultimap: Fixed the hint popup for pre-emptive flushing
-Symbols: Fixed a problem where 32-bit modules where detected as 64-bit
-Memory Scan: Fixed next scan causing a buffer overflow in some rare situations
-Form Designer: Fixed a problem where deleting a non visible object failed (press the delete key in the object inspector tree)
-Trainer Designer: Fixed the go back to generated form from functioning and related issues
-PE-Info: Fixed a possibility where a bad PE header could cause an read error
-Memory view: Hexview: Fix 8-byte value editing
-Syntax Highlighters LUA/AA: Fixed UTF8 encoded text
-Syntax Highlighters AA: Added xmm registers
+Fixed page exception breakpoints from not working  
+Fixed the save as button in the lua script assigned to the table
+Fixed the dotnetdatacollector from not fetching parent fields
+Fixed disassembling of some instructions
+Fixed assembling some instructions
+Fixed assembling instructions that referenced address 80000000 to ffffffff in 64-bit targets
+Fixed dealing with unexpected breakpoints
+Fixed several issues with the network scanner. (symbols, scanspeed, threads, etc...)
+Fixed "going to" 64-bit registers.
+Fixed pointerstrings for 64-bit
+Fixed the addressparser in memview's hexview not handing static 64-bit addresses 
+Fixed r8 and r9 looking broken in the memoryview window
+Fixed hotkeys that set a value as hexadecimal and the value is smaller than 0x10
+Fixed multiline string editing for memory records
+Fixed dragging cheat tables into CE
+Fixed VEH debug for 'Modern' apps
+Fixed several translation issues
+
+lua:
+ fixed getStructureCount, writeRegionToFile, readRegionFromFile, readInteger, ListColum.GetCount
+ fixed memoryleak in MemoryStream
 
 
-
+Several fixes to DBVM:
+ added support for Windows 10
+ support for more than 8 cpu's
+ support for newer cpu's
+ fixed issue where calling CPUID right after setting the TF flag wouldn't trigger a breakpoint after it
 
 
 
 Additions and changes:
-Address List: Added a group option that shows a +/- sign in front of group entries
-Address List: Pressing enter on a single entry now goes into value edit mode
-Address List: Added an option so certain entries in the address list show a groupbox the user can pick from
-Auto Assembler: New auto assembler templates that focus on Array of Byte scans(thanks to jgoemat)
-Auto Assembler: The auto assembler can now handle {$LUA} and {$ASM} preprocessors for multiline lua scripts
-Break And Trace: Added a donottrace.txt file in the base directory which holds a list of modules that should not be traced but stepped over instead
-Pointerscan: Improved performance of the pointer scanner
-Pointerscan: The pointerscan now has the option to generate a lot smaller .PTR files
-Pointerscan: Added the ability to do a distributed pointerscan and pointer rescan
-ProcessList: You can now type in the processlist to filter for the specific process
-Network: Added a basic ARM assembler/disasembler
-Network: The linux/android network version can now use basic debugging (find what access/writes)
-Network: Added speedhack to the network version
-Network: The network version now compresses read/write process memory before sending to the client. The compression level can be changed at runtime
-Network: Added module injection for linux/android
-Symbols: Added better support for .PDB debug files so parameters and local variable references show when that data is available
-Symbols: Added support for .Net
-Symbols: Added support for Java (proof-of-concept showing off the extendabilty of CE)
-Symbols: Added support for Mono (^)
-Memory view: Hexview: Added decimal display modes for the other types
-Memory View: Added shift-scrollng to the hexview and disassembler so you can scroll by 1 byte changes instead of the default calculated sizes
-Stack View: Added a search option
-D3D Hook: you can now reattach the D3D hook to a process that previously had been hooked
-Lua engine window: Added a search and replace option to the editor
-Lua engine window: Added the ability to set breakpoints, inspect variables and step over lines
-Lua engine window: Enabled tab indentation of blocks
-Lua engine window: Some extra customization options
-Trainer Generator: Replaced the beepOnAction with playSoundOnAction and added 2 build in activate/deativate sounds. (You can override them)
-Trainer Generator: The XM file field now has a play button
-Lua/Trainer Generator/Designer: Added several new components , propertes and methods.
-Lua: Added a dll search path to cedir\clibs32 or cedir\clibs64 depending on which cheat engine version is used. Use it for lua extentions
-Lua: Made it more forgiving about method and property names
-Lua: Added some threading helper functions
-Lua: You can now override the disassembler/assembler
-Lua: Lots of other new features. Check out main.lua
+Array of Byte's can now deal with nibble's.  (e.g: 9* *0 90 is now a valid input- and scanstring)
+The auto assembler can now deal with some mistakes like forgetting to declare a label
+Added support to use binutils as assembler and disassembler, and a special scripting language for it
+Added support for 64-bit mono, and script support for cases where mono.dll isn't called mono.dll
+Added an option to get a list of all recently accessed memory regions. This is useful for the pointerscanner
+The pointerscanner can now use multiple snapshots (pointermaps) to do a scan. This basically lets you do a rescan during the first scan, saving your harddisk 
+Made the pointerscan network scanner a bit easier to use. You can now join and leave a pointerscan session
+You can now stop pointerscans and resume them at a later time
+Pointerscan files can get converted to and from sqlite database files
+The pointerscan configuration window now has an advanced and basic mode display
+The all type now has a setting that lets you define what under "all" falls
+Custom types now also have access to the address they're being used on
+Split up the "(de)activating this (de)activates children" into two seperate options (one for activate, one for deactivate)
+Added some basic Thumb disassembling
+The xmplayer has been replaced with mikmod which supports many different module types (in lua you still call it xmplayer)
+Rightlicking on "your system supports dbvm" will let you manually load DBVM for each cpu. This is usefull if for some reason your system crashes when it's done too quickly
+In "Find what addresses this instruction accesses" you can now open the structure dissect window of your choice in case there are others. It will also fill in the base address, so no need to recalculate yourself
+AA command GlobalAlloc now has an optional 3th parameter that lets you specify the prefered region
+Added an option to record and undo writes. (Off by default, can be enabled in settings.  Memview ctrl+z will undo the last edit)
 
+lua:
+  switched from Lua 5.1 to 5.3    
+  debug_setBreakpoint can now take an OnBreakpoint parameter that lets you set a specific function just for that breakpoint
+  added dbk_getPhysicalAddress(int)
+  added dbk_writesIgnoreWriteProtection(bool)
+  added getWindowList()
+  And a bunch of other lua functions. (check out main.lua)
 
 
 How to use:

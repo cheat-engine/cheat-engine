@@ -50,6 +50,9 @@ implementation
 
 uses ProcessHandlerUnit;
 
+resourcestring
+  strIsNotAValidAddress = '%s is not a valid address';
+
 
 
 procedure TfrmStructureLinker.Panel1Resize(Sender: TObject);
@@ -103,7 +106,7 @@ begin
     if value<>'' then
     begin
       struct[i].address:=symhandler.getAddressFromName(value,false, e);
-      if e then raise exception.create(struct[i].s.name+' : '+sgStructureAddress.Cells[1,i+1]+' is not a valid address');
+      if e then raise exception.create(format(strIsNotAValidAddress, [struct[i].s.name+' : '+sgStructureAddress.Cells[1,i+1]]));
     end
     else
       struct[i].address:=0;

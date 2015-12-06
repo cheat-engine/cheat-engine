@@ -239,6 +239,10 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
         //map CS:RIP and read out the instruction
         int error;
         UINT64 pagefaultaddress;
+
+        sendstringf("DB:2:currentcpuinfo->AvailableVirtualAddress=%6\n", currentcpuinfo->AvailableVirtualAddress);
+
+
         unsigned char *bytes=(unsigned char *)mapVMmemory(currentcpuinfo, currentcpuinfo->vmcb->cs_base+currentcpuinfo->vmcb->RIP, 15, currentcpuinfo->AvailableVirtualAddress, &error, &pagefaultaddress);
 
         int i;
@@ -521,6 +525,9 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
         //FFS (I don't think i'm going to support cpu's without this)
         int error;
         UINT64 pagefaultaddress;
+
+        sendstringf("DB:1:currentcpuinfo->AvailableVirtualAddress=%6\n", currentcpuinfo->AvailableVirtualAddress);
+
         unsigned char *bytes=(unsigned char *)mapVMmemory(currentcpuinfo, currentcpuinfo->vmcb->cs_base+currentcpuinfo->vmcb->RIP, 15, currentcpuinfo->AvailableVirtualAddress, &error, &pagefaultaddress);
 
         for (i=0; i<15; i++)

@@ -89,6 +89,8 @@ resourcestring
   strScan='Scan';
   strStop='Stop';
   strStopping='Stopping...';
+  rsFSStructOrArray = 'struct or array';
+  rsFSUnreadablePointer = 'Unreadable pointer';
 
 procedure TStaticScanner.UpdateList;
 var x: tlistitem;
@@ -103,7 +105,7 @@ begin
     x:=frmfindstatics.ListView1.Items.Add;
     x.Caption:=IntToHex(staticlist[i].s,8);
     if staticlist[i].isstruct then
-      x.SubItems.Add('struct or array')
+      x.SubItems.Add(rsFSStructOrArray)
     else
     begin
       point:=0;
@@ -111,7 +113,7 @@ begin
       begin
         x.SubItems.add(IntToHex(point,8));
       end
-      else x.SubItems.add('Unreadable pointer');
+      else x.SubItems.add(rsFSUnreadablePointer);
     end;
 
     x.SubItems.Add('1');
@@ -121,7 +123,7 @@ begin
     //update entry
     x:=frmfindstatics.ListView1.Items[updateline];
     if staticlist[updateline].isstruct then
-      x.SubItems[0]:='struct or array';
+      x.SubItems[0]:=rsFSStructOrArray;
 
 
     x.SubItems[1]:=IntToStR(staticlist[updateline].referencecount);

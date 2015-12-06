@@ -42,6 +42,11 @@ uses ProcessHandlerUnit, Parsers;
 resourcestring
   strinvalidfile='This is a invalid memory region file. I''ll assume this file has no header data';
   rsLoadIntoMemory = 'Load %s into memory';
+  rsWroteBytesOutOf = 'Wrote %d bytes out of %d';
+  rsNotAllTheMemoryCanBeWrittenInTheCurrentMemoryRegion = 'Not all the memory '
+    +'can be written in the current memory region. Do you want to force as '
+    +'much as possible into the given region and just discard what can not be '
+    +'written? (Really bad idea)';
 
 
 type Tregion=class
@@ -186,11 +191,11 @@ begin
     s:=length(buf[i]);
     if not RewriteCode(processhandle,tregion(listbox1.items.objects[i]).fromaddress,@x[0],s) then
     begin
-      if MessageDlg('Not all the memory can be written in the current memory region. Do you want to force as much as possible into the given region and just discard what can not be written? (Really bad idea)', mtConfirmation, [mbno, mbyes], 0)=mryes then
+      if MessageDlg(rsNotAllTheMemoryCanBeWrittenInTheCurrentMemoryRegion, mtConfirmation, [mbno, mbyes], 0)=mryes then
       begin
         s:=length(buf[i]);
         RewriteCode(processhandle,tregion(listbox1.items.objects[i]).fromaddress,@x[0],s, true);
-        showmessage('Wrote '+inttostr(s)+' bytes out of '+inttostr(length(buf[i])));
+        showmessage(Format(rsWroteBytesOutOf, [s, length(buf[i])]));
       end;
     end;
   end;

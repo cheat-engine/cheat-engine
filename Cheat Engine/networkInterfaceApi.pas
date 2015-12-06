@@ -313,7 +313,7 @@ begin
 
   newkernelhandler.OpenProcess:=@NetworkOpenProcess;
   newkernelhandler.ReadProcessMemory:=@NetworkReadProcessMemory;
-  newkernelhandler.WriteProcessMemory:=@NetworkWriteProcessMemory;
+  newkernelhandler.WriteProcessMemoryActual:=@NetworkWriteProcessMemory;
   newkernelhandler.VirtualProtectEx:=@NetworkVirtualProtectEx;
   newkernelhandler.VirtualQueryEx:=@NetworkVirtualQueryEx;
   newkernelhandler.CreateToolhelp32Snapshot:=@NetworkCreateToolhelp32Snapshot;

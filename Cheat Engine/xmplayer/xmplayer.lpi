@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
@@ -43,19 +43,18 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="79" Y="15"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="69"/>
         <Loaded Value="True"/>
       </Unit0>
       <Unit1>
         <Filename Value="main.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="main"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="19"/>
-        <CursorPos X="105" Y="46"/>
-        <UsageCount Value="20"/>
+        <TopLine Value="29"/>
+        <CursorPos X="21" Y="72"/>
+        <UsageCount Value="69"/>
         <Loaded Value="True"/>
       </Unit1>
       <Unit2>
@@ -65,27 +64,28 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="20" Y="14"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="69"/>
       </Unit2>
       <Unit3>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win\wininc\defines.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="2176"/>
         <CursorPos X="18" Y="2189"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="5"/>
       </Unit3>
       <Unit4>
         <Filename Value="uFMOD.pp"/>
         <UnitName Value="uFMOD"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="211"/>
+        <TopLine Value="1"/>
         <CursorPos X="18" Y="230"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="34"/>
         <Loaded Value="True"/>
       </Unit4>
     </Units>
-    <JumpHistory Count="24" HistoryIndex="23">
+    <JumpHistory Count="25" HistoryIndex="24">
       <Position1>
         <Filename Value="main.pas"/>
         <Caret Line="8" Column="37" TopLine="1"/>
@@ -182,10 +182,14 @@
         <Filename Value="main.pas"/>
         <Caret Line="48" Column="70" TopLine="19"/>
       </Position24>
+      <Position25>
+        <Filename Value="main.pas"/>
+        <Caret Line="98" Column="38" TopLine="51"/>
+      </Position25>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="10"/>
+    <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
       <Filename Value="..\bin\xmplayer"/>
@@ -197,13 +201,13 @@
     </SearchPaths>
     <CodeGeneration>
       <Optimizations>
-        <VariablesInRegisters Value="True"/>
         <OptimizationLevel Value="3"/>
+        <VariablesInRegisters Value="True"/>
       </Optimizations>
     </CodeGeneration>
     <Linking>
       <Debugging>
-        <DebugInfoType Value="dsAuto"/>
+        <GenerateDebugInfo Value="False"/>
         <UseLineInfoUnit Value="False"/>
         <StripSymbols Value="True"/>
       </Debugging>
@@ -234,4 +238,5 @@
       </Item3>
     </Exceptions>
   </Debugging>
+  <EditorMacros Count="0"/>
 </CONFIG>
