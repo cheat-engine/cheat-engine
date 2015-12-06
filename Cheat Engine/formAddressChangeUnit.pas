@@ -226,6 +226,8 @@ begin
 
   if ssCtrl in shift then
     stepsize:=1
+  else if ssShift in shift then
+    stepsize:=processhandler.pointersize
   else
     stepsize:=4;
 
@@ -246,6 +248,8 @@ begin
 
   if ssCtrl in shift then
     stepsize:=1
+  else if ssShift in shift then
+    stepsize:=processhandler.pointersize
   else
     stepsize:=4;
 
