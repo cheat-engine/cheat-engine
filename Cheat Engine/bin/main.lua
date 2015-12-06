@@ -1435,7 +1435,7 @@ properties
 
 methods
   copyFrom(stream, count) - Copies count bytes from the given stream to this stream
-  read(count): bytetable - Returns a bytetable containing the bytes of the stream. This increases the posion
+  read(count): bytetable - Returns a bytetable containing the bytes of the stream. This increases the position
   write(bytetable, count OPTIONAL)- Writes the given bytetable to the stream
 
 
@@ -2162,13 +2162,14 @@ methods:
 
   addReference(fromAddress, ToAddress, type, OPTIONAL isstring):
     Adds a reference. Type can be jtCall, jtUnconditional, jtConditional, jtMemory
-    In case of rtMemory setting isstring to true will add it to the referenced strings list
+    In case of jtMemory setting isstring to true will add it to the referenced strings list
 
   deleteReference(fromAddress, ToAddress)
 
 
   getReferences(address) : Returns a table containing the addresses that reference this address and the type
   getReferencedStrings(): Returns a table of addresses and their strings that have been referenced. Use getReferences to find out which addresses that are
+  getReferencedFunctions(): Returns a table of functions that have been referenced. Use getReferences to find out which callers that are
 
   saveToFile(filename)
   loadFromFile(filename)
