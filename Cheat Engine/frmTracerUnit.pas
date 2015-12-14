@@ -132,12 +132,15 @@ type
     fSkipconfig: boolean;
 
     stepover: boolean;
+    nosystem: boolean;
 
     procedure configuredisplay;
     procedure setSavestack(x: boolean);
     procedure updatestackview;
   public
     { Public declarations }
+    returnfromignore: boolean;
+
     procedure setDataTrace(state: boolean);
     procedure addRecord;
     procedure finish;
@@ -326,6 +329,14 @@ begin
 
   s:=inttohex(address,8)+' - '+s;
 
+  if returnfromignore then
+  begin
+    //00500DD9
+    returnfromignore:=false;
+    if (currentAppendage<>nil) then
+      currentAppendage:=currentAppendage.Parent;
+  end;
+
   if currentAppendage<>nil then
     thisnode:=lvTracer.Items.AddChildObject(currentAppendage,s,d)
   else
@@ -334,8 +345,9 @@ begin
   if not stepover and defaultDisassembler.LastDisassembleData.iscall then
     currentAppendage:=thisnode;
 
-  if defaultDisassembler.LastDisassembleData.isret then
+  if (defaultDisassembler.LastDisassembleData.isret) {or returnfromignore} then
   begin
+    returnfromignore:=false;
     if currentAppendage<>nil then
     begin
       currentAppendage:=currentAppendage.Parent;
@@ -421,6 +433,7 @@ begin
         tcount:=strtoint(edtMaxTrace.text);
         condition:=edtCondition.text;
         stepover:=cbStepOver.checked;
+        nosystem:=cbSkipSystemModules.checked;
 
         if startdebuggerifneeded then
         begin
@@ -439,14 +452,14 @@ begin
               memorybrowser.hexview.GetSelectionRange(fromaddress,toaddress);
 
             //set the breakpoint
-            debuggerthread.setBreakAndTraceBreakpoint(self, fromaddress, bpTrigger, 1+(toaddress-fromaddress), tcount, condition, stepover);
+            debuggerthread.setBreakAndTraceBreakpoint(self, fromaddress, bpTrigger, 1+(toaddress-fromaddress), tcount, condition, stepover, nosystem);
           end
           else
           begin
             if (owner is TMemoryBrowser) then
-              debuggerthread.setBreakAndTraceBreakpoint(self, (owner as TMemoryBrowser).disassemblerview.SelectedAddress, bptExecute, 1, tcount, condition, StepOver)
+              debuggerthread.setBreakAndTraceBreakpoint(self, (owner as TMemoryBrowser).disassemblerview.SelectedAddress, bptExecute, 1, tcount, condition, StepOver, Nosystem)
             else
-              debuggerthread.setBreakAndTraceBreakpoint(self, memorybrowser.disassemblerview.SelectedAddress, bptExecute,1, tcount, condition, StepOver);
+              debuggerthread.setBreakAndTraceBreakpoint(self, memorybrowser.disassemblerview.SelectedAddress, bptExecute,1, tcount, condition, StepOver, nosystem);
           end;
         end;
 
