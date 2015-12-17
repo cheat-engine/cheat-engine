@@ -13,7 +13,7 @@ LONG NTAPI ErrorFilter(struct _EXCEPTION_POINTERS *ExceptionInfo)
 	if ((ExpectingAccessViolations) && (ExceptionInfo->ExceptionRecord->ExceptionCode == 0xc0000005))
 	{
 #ifdef _AMD64_
-		ExceptionInfo->ContextRecord->Rip = (DWORD)ErrorThrow;
+		ExceptionInfo->ContextRecord->Rip = (UINT_PTR)ErrorThrow;
 #else
 		ExceptionInfo->ContextRecord->Eip = (DWORD)ErrorThrow;
 #endif
@@ -947,17 +947,31 @@ void CPipeServer::LoadAssemblyFromFile(void)
 
 void CPipeServer::GetFullTypeName(void)
 {
-	void *klass = (void *)ReadQword();
-	char isKlass = ReadByte();
-	void *ptype = klass && isKlass ? mono_class_get_type(klass) : klass;
-	int nameformat = ReadDword();
-	char *fullname = ptype && mono_type_get_name_full ? mono_type_get_name_full(ptype, nameformat) : NULL;
-	if (fullname) {
-		WriteWord(strlen(fullname));
-		Write(fullname, strlen(fullname));
-	} else {
-		WriteWord(0);
+	ExpectingAccessViolations = TRUE;
+
+	try
+	{
+		void *klass = (void *)ReadQword();
+		char isKlass = ReadByte();
+		void *ptype = klass && isKlass ? mono_class_get_type(klass) : klass;
+		int nameformat = ReadDword();
+		char *fullname = ptype && mono_type_get_name_full ? mono_type_get_name_full(ptype, nameformat) : NULL;
+		if (fullname) {
+			WriteWord(strlen(fullname));
+			Write(fullname, strlen(fullname));
+		}
+		else {
+			WriteWord(0);
+		}
 	}
+	catch (...)
+	{
+		OutputDebugStringA("GetFullTypeName exception\n");
+		WriteWord(0);		
+	}
+	ExpectingAccessViolations = FALSE;
+
+		
 }
 
 void CPipeServer::Start(void)
