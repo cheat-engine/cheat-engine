@@ -496,7 +496,10 @@ begin
   begin
     currentline:=trim(code[i]);
     if (currentline<>'') and (currentline[length(currentline)]=':') then
-      labels.add(copy(currentline,1,length(currentline)-1));
+    begin
+      if (pos('+', currentline)=0) and (pos('.', currentline)=0) then
+        labels.add(copy(currentline,1,length(currentline)-1));
+    end;
   end;
 end;
 
