@@ -1201,6 +1201,7 @@ begin
 
 
   potentiallabels:=tstringlist.create;
+  potentiallabels.CaseSensitive:=false;
 
 //2 pass scanner
   try
@@ -2089,7 +2090,10 @@ begin
 
 
             except
-              //add this as a label
+              //add this as a label if a potential label
+              if potentiallabels.IndexOf(copy(currentline,1,length(currentline)-1))=-1 then
+                raise exception.Create(rsThisAddressSpecifierIsNotValid);
+
               j:=length(labels);
               setlength(labels,j+1);
 
