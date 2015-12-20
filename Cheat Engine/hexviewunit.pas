@@ -897,6 +897,8 @@ begin
     fromAddress:=MinX(selected,selected2);
     toAddress:=MaxX(selected,selected2);
 
+
+
     if selectiontype=hrChar then
     begin
       while fromaddress<=toAddress do
@@ -919,23 +921,37 @@ begin
     end
     else
     begin
-      //byte array
+
+      toAddress:=toAddress+DisplayTypeByteSize[fDisplayType]-1;
+      s:='';
       while fromaddress<=toAddress do
       begin
-        b:=getByte(fromAddress,unreadable);
-        if not unreadable then
-        begin
-          s:=s+inttohex(b,2)+' ';
-        end
-        else
-          s:=s+'?? ';
+        case fDisplayType of
+          dtByte: s:=s+getByte(fromaddress);
+          dtByteDec: s:=s+getByteDec(fromaddress, true);
+          dtWord: s:=s+getWord(fromaddress);
+          dtWordDec: s:=s+getWordDec(fromaddress, true);
+          dtDword: s:=s+getDWord(fromaddress);
+          dtDwordDec: s:=s+getDWordDec(fromaddress, true);
+          dtQword: s:=s+getQWord(fromaddress);
+          dtQwordDec: s:=s+getQWordDec(fromaddress, true);
+          dtSingle: s:=s+getSingle(fromaddress, true);
+          dtDouble: s:=s+getDouble(fromaddress, true);
+        end;
 
+         //byte array
+        //b:=getByte(fromAddress,unreadable);
+        //if not unreadable then
+        //begin
+        //  s:=s+inttohex(b,2)+' ';
+        //end
+        //else
+        //  s:=s+'?? ';
 
-        inc(fromAddress);
+        inc(fromAddress, DisplayTypeByteSize[fDisplayType]);
+        if fromaddress<=toAddress then
+          s:=s+' ';
       end;
-
-      if s<>'' then
-        s:=copy(s,1,length(s)-1);
     end;
 
     Clipboard.AsText:=s;

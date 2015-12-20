@@ -683,13 +683,14 @@ function mono_object_findRealStartOfObject(address, maxsize)
     local classaddress,classname=mono_object_getClass(currentaddress)
 
     if (classaddress~=nil) and (classname~=nil) then
-      local classname = monoform_escapename(mono_class_getFullName(classaddress))
       classname=classname:match "^%s*(.-)%s*$" --trim
       if (classname~='') then
-          --local r=string.find(classname, "[^%a%d_.]", 1)  --scan for characters that are not decimal or characters, or have a _ or . in the name
-          --if (r==nil) or (r>=5) then
-            return currentaddress, classaddress, classname --good enough
-          --end
+        local r=string.find(classname, "[^%a%d_.]", 1)  --scan for characters that are not decimal or characters, or have a _ or . in the name
+
+
+        if (r==nil) or (r>=5) then
+          return currentaddress, classaddress, classname --good enough
+        end
       end
     end
 
@@ -1123,7 +1124,9 @@ function monoform_miRejitClick(sender)
     local node=monoForm.TV.Selected
     if (node~=nil) and (node.Level==4) and (node.Parent.Text=='methods') then
       local r=mono_compile_method(node.Data)
-      print(string.format("Method at %x", r))
+      getMemoryViewForm().DisassemblerView.SelectedAddress=r
+      getMemoryViewForm().show()
+--      print(string.format("Method at %x", r))
     end
   end
 end
@@ -2018,10 +2021,12 @@ function monoform_exportStructInternal(s, caddr, recursive, static, structmap, m
   --print('Populating '..className)
   
   -- handle Array as separate case
+--[[
   if string.sub(className,-2)=='[]' then
     local elemtype = mono_class_getArrayElementClass(caddr)
     return monoform_exportArrayStructInternal(s, caddr, elemtype, recursive, structmap, makeglobal, true)
   end
+--]]
   
   local hasStatic = false
   structure_beginUpdate(s)
@@ -2044,8 +2049,9 @@ function monoform_exportStructInternal(s, caddr, recursive, static, structmap, m
       e.Vartype=monoTypeToVarType(ft)
             
       -- print(string.format("  Field: %d: %d: %d: %s", e.Offset, e.Vartype, ft, fieldname))
-      if ft==MONO_TYPE_STRING then
 --[[
+      if ft==MONO_TYPE_STRING then
+
          if str==nil then
             str = structmap["String"]
          end
@@ -2066,7 +2072,7 @@ function monoform_exportStructInternal(s, caddr, recursive, static, structmap, m
            structure_endUpdate(str)
          end
          e.setChildStruct(str)
---]]
+
       elseif ft == MONO_TYPE_PTR or ft == MONO_TYPE_CLASS or ft == MONO_TYPE_BYREF 
           or ft == MONO_TYPE_GENERICINST then
         local typename = monoform_escapename(fields[i].typename)
@@ -2082,7 +2088,8 @@ function monoform_exportStructInternal(s, caddr, recursive, static, structmap, m
         local elemtype = mono_class_getArrayElementClass(arraytype)
         local acs = monoform_exportArrayStruct(arraytype, elemtype, typename, recursive, static, structmap, makeglobal, false)
         if acs~=nil then e.setChildStruct(acs) end
-      end      
+      end
+--]]      
     end
   end
 

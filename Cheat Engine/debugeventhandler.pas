@@ -43,6 +43,7 @@ type
     traceWindow: TfrmTracer;
     traceQuitCondition: string;
     traceStepOver: boolean; //perhaps also trace branches ?
+    traceNoSystem: boolean;
     //------------------
 
     WaitingToContinue: boolean; //set to true when it's waiting for the user to continue
@@ -585,9 +586,17 @@ var
   b: PBreakpoint;
   r: ptruint;
   x: PtrUInt;
+
+  ignored: boolean;
 begin
   TDebuggerthread(debuggerthread).execlocation:=37;
-  if tracewindow<>nil then
+
+  ignored:=IgnoredModuleListHandler.InIgnoredModuleRange(context.{$ifdef cpu64}rip{$else}eip{$endif});
+
+  if (not ignored) and traceNoSystem and symhandler.inSystemModule(context.{$ifdef cpu64}rip{$else}eip{$endif}) then
+    ignored:=true;
+
+  if (tracewindow<>nil) and (not ignored) then
   begin
     TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), tracewindow.AddRecord);
     TDebuggerthread(debuggerthread).guiupdate:=true;
@@ -612,8 +621,9 @@ begin
       end;
     end;
 
-    if IgnoredModuleListHandler.InIgnoredModuleRange(context.{$ifdef cpu64}rip{$else}eip{$endif}) then
+    if ignored then
     begin
+      tracewindow.returnfromignore:=true;
       ReadProcessMemory(processhandle, pointer(context.{$ifdef cpu64}rsp{$else}esp{$endif}), @r, sizeof(processhandler.pointersize), x);
       b:=TDebuggerthread(debuggerthread).SetOnExecuteBreakpoint(r , false, ThreadId);
       b.OneTimeOnly:=true;
@@ -907,6 +917,7 @@ begin
             tracecount:=bpp.TraceCount;
             traceWindow:=bpp.frmTracer;
             traceStepOver:=bpp.tracestepOver;
+            traceNoSystem:=bpp.traceNoSystem;
             if bpp.traceendcondition<>nil then
               traceQuitCondition:=bpp.traceendcondition
             else

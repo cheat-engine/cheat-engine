@@ -1175,7 +1175,7 @@ begin
       3: LastDisassembleData.sibScaler:=8;
     end;
 
-    if ss>0 then
+    if (ss>0) and (index<>4) then
       indexstring:=indexstring+'*'+colorhex+inttostr(LastDisassembleData.sibScaler)+endcolor;
 
     if indexstring<>'' then

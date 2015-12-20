@@ -18,6 +18,7 @@ type
     cbDereferenceAddresses: TCheckBox;
     cbSaveStack: TCheckBox;
     cbStepOver: TCheckBox;
+    cbSkipSystemModules: TCheckBox;
     edtMaxTrace: TEdit;
     edtCondition: TEdit;
     Label1: TLabel;
@@ -39,7 +40,6 @@ implementation
 
 { TfrmTracerConfig }
 
-
 procedure TfrmTracerConfig.setDataTrace(state: boolean);
 begin
   rbBreakOnAccess.visible:=state;
@@ -48,7 +48,7 @@ begin
   if state then
     btnOk.top:=rbBreakOnAccess.top+rbBreakOnAccess.Height+5
   else
-    btnOk.top:=cbStepOver.top+cbStepOver.Height+5;
+    btnOk.top:=cbSkipSystemModules.top+cbSkipSystemModules.Height+5;
 
   btnCancel.top:=btnOk.top;
   ClientHeight:=btnOK.top+btnOK.Height+3;

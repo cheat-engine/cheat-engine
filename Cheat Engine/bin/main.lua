@@ -220,7 +220,7 @@ setMousePos(x,y): sets the mouse position
 isKeyPressed(key) : returns true if the specified key is currently pressed
 keyDown(key) : causes the key to go into down state
 keyUp(key) :causes the key to go up
-doKeyPress(key) : simmulates a key press
+doKeyPress(key) : simulates a key press
 
 shortCutToText(shortcut): Returns the textual representation of the given shortut value (integer) (6.4+)
 textToShortCut(shortcutstring): Returns an shortcut integer that the given string represents.  (6.4+)
@@ -229,7 +229,7 @@ convertKeyComboToString(key1,...): Returns a string representation of the given 
 convertKeyComboToString({key1,...}): ^
 
 
-outputDebugString(text): Outputs a message using the windows OutputDebugString message. You can use tools like dbgview to read this. Useful for testing situations where the gui freezes
+outputDebugString(text): Outputs a message using the windows OutputDebugString message. You can use tools like dbgview to read this. Useful for testing situations where the GUI freezes
 
 shellExecute(command, parameters OPTIONAL, folder OPTIONAL, showcommand OPTIONAL): Executes a given command
 
@@ -491,7 +491,7 @@ properties
   Component[int]: Component - Array containing the child components. Starts at 0. Readonly
   ComponentByName[string]: Component - Returns a component based on the name. Readonly
   Name: string - The name of the component
-  Tag: integer - Free to use storage space. (Usefull for id's)
+  Tag: integer - Free to use storage space. (Useful for id's)
   Owner: Component - Returns the owner of this object. Nil if it has none
 
 methods
@@ -534,7 +534,7 @@ methods:
   setWidth(integer)
   getHeight()
   setHeight()
-  setCaption(caption) : sets the text on a control. All the gui objects fall in this category
+  setCaption(caption) : sets the text on a control. All the GUI objects fall in this category
   getCaption() : Returns the text of the control
   setPosition(x,y): sets the x and y position of the object base don the top left position (relative to the client array of the owner object)
   getPosition(): returns the x and y position of the object (relative to the client array of the owner object)
@@ -1060,7 +1060,7 @@ properties
 methods
   add(): Returns a new ListColumn object
   getColumn(index): Returns a ListColum object;
-  setColumn(index, listcolumns): Sets a ListColum object (not recomended, use add instead)
+  setColumn(index, listcolumns): Sets a ListColum object (not recommended, use add instead)
 
 ListItem Class : (Inheritance: TObject)
 properties
@@ -1186,15 +1186,15 @@ createTimer(owner OPT, enabled OPT):
 properties
   Interval: integer - The number of milliseconds (1000=1 second) between executions
   Enabled: boolean
-  OnTimer: function - The function to call when the timer triggers
+  OnTimer: function(timer) - The function to call when the timer triggers
 
 methods
   getInterval()
   setInterval(interval) : Sets the speed on how often the timer should trigger. In milliseconds (1000=1 second)
   getOnTimer()
-  setOnTimer(function)
+  setOnTimer(function(timer))
   getEnabled()
-  setEnabled()boolean)
+  setEnabled(boolean)
 
 CustomControl class (CustomControl->WinControl->Control->Component->Object)
 properties
@@ -1234,7 +1234,7 @@ methods
   floodFill(x,y)
   ellipse(x1,y1,x2,y2)
   gradientFill(x1,y1,x2,y2, startcolor, stopcolor, direction) : Gradient fills a rectangle. Direction can be 0 or 1. 0=Vertical 1=Horizontal
-  copyRect(dest_x1,dest_y1,dest_x2,dest_y2, sourceCanvas, source_x1,source_y1,source_x2,source_y2) : Draws an image from one source to another. Usefull in cases of doublebuffering
+  copyRect(dest_x1,dest_y1,dest_x2,dest_y2, sourceCanvas, source_x1,source_y1,source_x2,source_y2) : Draws an image from one source to another. Useful in cases of doublebuffering
   draw(x,y, graphic) : Draw the image of a specific Graphic class
   getClipRect() : Returns a table containing the fields Left, Top, Right and Bottom, which define the invalidated region of the graphical object. Use this to only render what needs to be rendered in the onPaint event of objects
 
@@ -1373,7 +1373,7 @@ FileDialog Class: (Inheritance: CommonDialog->Component->Object)
 properties
 
   DefaultExt: string - When not using filters this will be the default extention used if no extension is given
-  Files: Strings - Stringlist containing all seleced files if multiple files are selected
+  Files: Strings - Stringlist containing all selected files if multiple files are selected
   FileName: string - The filename that was selected
   Filter: string - A filter formatted string
   FilterIndex: integer - The index of which filter to use
@@ -1435,7 +1435,7 @@ properties
 
 methods
   copyFrom(stream, count) - Copies count bytes from the given stream to this stream
-  read(count): bytetable - Returns a bytetable containing the bytes of the stream. This increases the posion
+  read(count): bytetable - Returns a bytetable containing the bytes of the stream. This increases the position
   write(bytetable, count OPTIONAL)- Writes the given bytetable to the stream
 
 
@@ -1534,7 +1534,7 @@ properties
   ID: Integer - Unique ID
   Index: Integer - The index ID for this record. 0 is top. (ReadOnly)
   Description: string- The description of the memory record
-  Address: string - Get/set the interpretable address string. Usefull for simple address settings.
+  Address: string - Get/set the interpretable address string. Useful for simple address settings.
   OffsetCount: integer - The number of offsets. Set to 0 for a normal address
   Offset[] : integer - Array to access each offset
   CurrentAddress: integer - The address the memoryrecord points to
@@ -1547,7 +1547,7 @@ properties
       Binary.Startbit: First bit to start reading from
       Binary.Size : Number of bits
 
-    If the type is vtByteArray then the following propertes are available
+    If the type is vtByteArray then the following properties are available
       Aob.Size : Number of bytes
 
   CustomTypeName: String - If the type is vtCustomType this will contain the name of the CustomType
@@ -1556,6 +1556,10 @@ properties
   Selected: boolean - Set to true if selected (ReadOnly)
   Active: boolean - Set to true to activate/freeze, false to deactivate/unfreeze
   Color: integer
+  ShowAsHex: boolean - Self explanatory
+  ShowAsSigned: boolean - Self explanatory
+  AllowIncrease: boolean - Allow value increasing, unfreeze will reset it to false
+  AllowDecrease: boolean - Allow value decreasing, unfreeze will reset it to false
 
   Count: Number of children
   Child[index] : Array to access the child records
@@ -1564,9 +1568,11 @@ properties
   HotkeyCount: integer - Number of hotkeys attached to this memory record
   Hotkey[] : Array to index the hotkeys
 
-  OnActivate: function()
-  OnDeactivate: function()
-  OnDestroy: function()
+  OnActivate: function(memoryrecord,before,currentstate):boolean - The function to call when the memoryrecord will change (or changed) Active to true. If before is true, not returning true will cause the activation to stop.
+  OnDeactivate: function(memoryrecord,before,currentstate):boolean - The function to call when the memoryrecord will change (or changed) Active to false. If before is true, not returning true will cause the deactivation to stop.
+  OnDestroy: function() - Called when the memoryrecord is destroyed.
+  DontSave: boolean - Don't save this memoryrecord and it's children
+
 methods
   getDescription()
   setDescription()
@@ -1604,10 +1610,10 @@ methods
 
   getSelectedRecords():  Returns a table containing all the selected records
 
-  doDescriptionChange() : Will show the gui window to change the description of the selected entry
-  doAddressChange() : Will show the gui window to change the address of the selected entry
-  doTypeChange() : Will show the gui window to change the type of the selected entries
-  doValueChange() : Will show the gui window to change the value of the selected entries
+  doDescriptionChange() : Will show the GUI window to change the description of the selected entry
+  doAddressChange() : Will show the GUI window to change the address of the selected entry
+  doTypeChange() : Will show the GUI window to change the type of the selected entries
+  doValueChange() : Will show the GUI window to change the value of the selected entries
 
   getSelectedRecord() : Gets the main selected memoryrecord
   setSelectedRecord(memrec) : Sets the currently selected memoryrecord. This will unselect all other entries
@@ -1653,7 +1659,7 @@ methods
 
     roundingtype: Defined the way scans for exact value floating points are handled
       rtRounded : Normal rounded scans. If exact value = "3" then it includes 3.0 to 3.49999999. If exact value is "3.0" it includes 3.00 to 3.0499999999
-      rtTruncated: Truncated algoritm. If exact value = "3" then it includes 3.0 to 3.99999999. If exact value is "3.0" it includes 3.00 to 3.099999999
+      rtTruncated: Truncated algorithm. If exact value = "3" then it includes 3.0 to 3.99999999. If exact value is "3.0" it includes 3.00 to 3.099999999
       rtExtremerounded: Rounded Extreme. If exact value = "3" then it includes 2.0000001 to 3.99999999. If exact value is "3.0" it includes 2.900000001 to 3.099999999
 
     input1: If required by the scanoption this is a string of the given variable type
@@ -1800,7 +1806,7 @@ methods
 
   synchronize(function(thread, ...), ...) :
     Called from inside the thread. This wil cause the tread to get the main thread to execute the given function and wait for it to finish.
-    Usually for gui access
+    Usually for GUI access
     Returns the return value of the given function
 
   waitfor() :
@@ -2162,13 +2168,14 @@ methods:
 
   addReference(fromAddress, ToAddress, type, OPTIONAL isstring):
     Adds a reference. Type can be jtCall, jtUnconditional, jtConditional, jtMemory
-    In case of rtMemory setting isstring to true will add it to the referenced strings list
+    In case of jtMemory setting isstring to true will add it to the referenced strings list
 
   deleteReference(fromAddress, ToAddress)
 
 
   getReferences(address) : Returns a table containing the addresses that reference this address and the type
   getReferencedStrings(): Returns a table of addresses and their strings that have been referenced. Use getReferences to find out which addresses that are
+  getReferencedFunctions(): Returns a table of functions that have been referenced. Use getReferences to find out which callers that are
 
   saveToFile(filename)
   loadFromFile(filename)
