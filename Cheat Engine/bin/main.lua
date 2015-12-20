@@ -1592,6 +1592,20 @@ methods
   getHotkey(index): Returns the hotkey from the hotkey array
   getHotkeyByID(integer): Returns the hotkey with the given id
 
+global events
+  function onMemRecPreExecute(memoryrecord, newstate BOOLEAN):
+    If above function is defined it will be called before action* has been performed.
+    Active property is about to change to newState.
+  
+  function onMemRecPostExecute(memoryrecord, newState BOOLEAN, succeeded BOOLEAN):
+    If above function is defined it will be called after action*.
+    Active property was supposed to change to newState.
+    If 'succeeded' is true it means that Active state has changed and is newState.
+    
+    newState and succeeded are read only.
+  
+    *action can be: running auto assembler script (ENABLE or DISABLE section), freezing and unfreezing.
+  
 
 Addresslist Class: (Inheritance: Panel->WinControl->Control->Component->Object)
 properties

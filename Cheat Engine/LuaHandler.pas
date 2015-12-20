@@ -1005,7 +1005,7 @@ begin
               system.vtString: lua_pushstring(L, pchar(parameters[i].VString));
               system.vtPointer: lua_pushlightuserdata(L, parameters[i].VPointer);
               system.vtPChar: lua_pushstring(L, parameters[i].VPChar);
-              system.vtObject: lua_pushlightuserdata(L, pointer(parameters[i].VObject));
+              system.vtObject: luaclass_newClass(L, parameters[i].VObject); //lua_pushlightuserdata(L, pointer(parameters[i].VObject));
               system.vtClass: lua_pushlightuserdata(L, pointer(parameters[i].VClass));
               system.vtWideChar, vtPWideChar, vtVariant, vtInterface,
                 vtWideString: lua_pushstring(L, rsCheatengineIsBeingAFag);
