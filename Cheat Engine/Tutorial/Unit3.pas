@@ -45,7 +45,7 @@ resourcestring
   rsDead = 'Seems you''ve done it again! Let me get a replacement! (And restart your scan!)';
   rsTryAgain3 = 'Step 3 isn''t really that hard. Just do a new scan, unkown initial value and then decreased value till you find it. Almost everyone gets past'
     +' this one. Sure you want to quit?';
-  rsLOSER = 'LOSER';
+  rsLOSER = 'BOO';
 
   rsTutorialStep3=
     'Ok, seeing that you''ve figured out how to find a value using exact value let''s move on to the next step.'+#13#10+

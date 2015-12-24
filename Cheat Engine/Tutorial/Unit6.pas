@@ -40,7 +40,7 @@ resourcestring
   rsStep5CodeFinderPW = 'Step 5: Code finder (PW=%s)';
   rsTryAgain6 = 'This may look difficult. but it''s basicly. Find health, rigthclick health, find what writes, change health, click replace, change health, '
     +'done.  But don''t feel down if you don''t get it. at least you know the basicas of memory scanning...  Are you sure you want to quit?';
-  rsLOSER = 'LOSER';
+  rsLOSER = 'BOO';
 
   rsTutorialStep5=
       'Sometimes the location something is stored at changes when you restart the game, or even while you''re playing.. In '+

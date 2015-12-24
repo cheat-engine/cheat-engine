@@ -51,7 +51,7 @@ resourcestring
   rsDead = 'I think you''re dead!%sPress ok to become a brain eating zombie';
   rsConfirmClose5 = 'Come on. This step is simple. For health do a float scan, and for ammo a double type. (don''t forget to disable fastscan for double in '
     +'this case) Just ignore the fact that it looks different because it has a "." in the value. You sure you want to quit?';
-  rsLOSER = 'LOSER';
+  rsLOSER = 'BOO';
 
   rsTutorialStep4=
     'In the previous tutorial we used bytes to scan, but some games store information in so called ''floating point'' notations. '+#13#10+
