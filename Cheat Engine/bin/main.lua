@@ -10,6 +10,8 @@ require("defines")
 List of CE specific functions and variables:
 
 TrainerOrigin : A variable that contains the path of the trainer that launched cheat engine (Only set when launched as a trainer)
+process : A variable that contains the main modulename of the currently opened process
+
 getCEVersion(): Returns a floating point value specifying the version of cheat engine
 
 
@@ -1592,6 +1594,7 @@ methods
   getHotkey(index): Returns the hotkey from the hotkey array
   getHotkeyByID(integer): Returns the hotkey with the given id
 
+
 global events
   function onMemRecPreExecute(memoryrecord, newstate BOOLEAN):
     If above function is defined it will be called before action* has been performed.
@@ -1606,6 +1609,7 @@ global events
   
     *action can be: running auto assembler script (ENABLE or DISABLE section), freezing and unfreezing.
   
+
 
 Addresslist Class: (Inheritance: Panel->WinControl->Control->Component->Object)
 properties
