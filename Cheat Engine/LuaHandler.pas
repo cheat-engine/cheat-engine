@@ -91,9 +91,9 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   LuaDissectCode, LuaByteTable, LuaBinary, lua_server, HotkeyHandler, LuaPipeClient,
   LuaPipeServer, LuaTreeview, LuaTreeNodes, LuaTreeNode, LuaCalendar, LuaSymbolListHandler,
   LuaCommonDialog, LuaFindDialog, LuaSettings, LuaPageControl, LuaRipRelativeScanner,
-  LuaStructureFrm, SymbolListHandler, processhandlerunit, processlist, DebuggerInterface,
-  WindowsDebugger, VEHDebugger, KernelDebuggerInterface, DebuggerInterfaceAPIWrapper,
-  Globals, math, speedhack2, CETranslator, binutils;
+  LuaStructureFrm, LuaInternet, SymbolListHandler, processhandlerunit, processlist,
+  DebuggerInterface, WindowsDebugger, VEHDebugger, KernelDebuggerInterface,
+  DebuggerInterfaceAPIWrapper, Globals, math, speedhack2, CETranslator, binutils;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -3494,7 +3494,26 @@ begin
   end;
 end;
 
+function createStringStream(L: Plua_State): integer; cdecl;
+var s: pchar;
+  sl: integer;
+  ss: TStringStream;
+begin
+  if lua_gettop(L)>0 then
+    s:=lua_tolstring(L, 1, @sl)
+  else
+    s:=nil;
 
+  ss:=TStringStream.create(s);
+  if s<>nil then
+  begin
+    ss.WriteBuffer(s^, sl);
+    ss.position:=0;
+  end;
+
+  luaclass_newClass(L, ss);
+  result:=1;
+end;
 
 
 function readRegionFromFile(L: Plua_State): integer; cdecl;
@@ -6413,6 +6432,8 @@ begin
 
     lua_register(LuaVM, 'createMemoryStream', createMemoryStream);
     lua_register(LuaVM, 'createFileStream', createFileStream);
+    lua_register(LuaVM, 'createStringStream', createStringStream);
+
 
 
     Lua_register(LuaVM, 'getSettingsForm', getSettingsForm);
@@ -6674,6 +6695,7 @@ begin
     initializeLuaRipRelativeScanner;
 
     initializeLuaStructureFrm;
+    initializeLuaInternet;
 
 
 

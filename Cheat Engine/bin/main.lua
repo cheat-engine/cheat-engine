@@ -1455,6 +1455,9 @@ methods
 FileStream Class (Inheritance: HandleStream->Stream->Object)
 createFileStream(filename, mode)
 
+StringStream Class (Inheritance: Stream->Object)
+createStringStream(string)
+
 
 TableFile class (Inheritance: Object)
 findTableFile(filename): Returns the TableFile class object for the saved file
@@ -2354,6 +2357,14 @@ properties
   TabIndex: integer - the current index in the pagelist of the owning pagecontrol
 methods
 
+Internet class (Object)
+global functions
+  getInternet(string) - Returns an internet class object
+
+properties
+  Header : string - the additional header to be sent with the next getURL request
+methods
+  getURL(path) - returns a string containing the contents of the url. nil on failure
 
 
 
