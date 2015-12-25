@@ -6228,6 +6228,171 @@ begin
   end;
 end;
 
+function executeCode(L:PLua_state): integer; cdecl; //executecode(address, parameter)
+var
+  s: tstringlist;
+  allocs: TCEAllocArray;
+  address: ptruint;
+  i: integer;
+  stubaddress: ptruint;
+  resultaddress: ptruint;
+
+  parameter: ptruint;
+  timeout: dword;
+
+  thread: thandle;
+
+  r: ptruint;
+  x: dword;
+  y: ptruint;
+
+begin
+  //creates a thread in the target process.  calls stdcall function(parameter):pointer and wait for it's return
+  stubaddress:=0;
+  result:=0;
+
+  if lua_gettop(L)>=1 then
+  begin
+    if lua_isnumber(L,1) then
+      address:=lua_tointeger(L, 1)
+    else
+      address:=symhandler.getAddressFromName(Lua_ToString(L,1));
+
+    if lua_gettop(L)>=2 then
+    begin
+      if lua_isnumber(L,2) then
+        address:=lua_tointeger(L, 2)
+      else
+        address:=selfsymhandler.getAddressFromName(Lua_ToString(L,2));
+    end
+    else
+      parameter:=0;
+
+    if lua_gettop(L)>=3 then
+      timeout:=lua_tointeger(L,3)
+    else
+      timeout:=INFINITE;
+  end
+  else
+    exit;
+
+  s:=tstringlist.create;
+  try
+    s.Add('alloc(stub, 2048)');
+
+    if processhandler.is64Bit then
+    begin
+      s.add('alloc(result,8)');
+      s.add('alloc(addressToCall, 8)');
+    end
+    else
+      s.add('alloc(result,4)');
+
+
+
+
+
+    s.add('stub:');
+    if processhandler.is64Bit then
+    begin
+      s.add('sub rsp,28');
+      s.add('call [addressToCall]');
+      s.add('mov [result],rax');
+      s.add('add rsp,28');
+      s.add('ret');
+    end
+    else
+    begin
+      s.add('push [esp+4]');  //push the parameter again
+      s.add('call '+inttohex(address,8));
+      s.add('mov [result],eax');
+      s.add('ret 4');
+    end;
+
+
+
+
+    if processhandler.is64Bit then
+    begin
+      s.add('addressToCall:');
+      s.add('dq '+inttohex(address,8));
+    end;
+
+    if autoassemble(s, false, true, false, false, allocs) then
+    begin
+
+      for i:=0 to length(allocs)-1 do
+      begin
+        if allocs[i].varname='stub' then
+          stubaddress:=allocs[i].address;
+
+        if allocs[i].varname='result' then
+          resultaddress:=allocs[i].address;
+      end;
+
+      if stubaddress<>0 then
+      begin
+        thread:=CreateRemoteThread(processhandle, nil, 0, pointer(stubaddress), pointer(parameter), 0, x);
+
+        if (thread<>0) then
+        begin
+          if WaitForSingleObject(thread, timeout)=WAIT_OBJECT_0 then
+          begin
+            if ReadProcessMemory(processhandle, pointer(resultaddress), @r, sizeof(r), y) then
+            begin
+              lua_pushinteger(L, r);
+              result:=1;
+            end;
+          end;
+
+          closehandle(thread);
+        end;
+      end;
+    end;
+
+  finally
+    s.free;
+
+    if stubaddress<>0 then
+      VirtualFreeEx(processhandle, pointer(stubaddress), 0, MEM_RELEASE);
+  end;
+end;
+
+function executeCodeLocal(L:PLua_state): integer; cdecl;
+type
+  TFunction=function(parameter: pointer):pointer; stdcall;
+var
+  address, parameter: PtrUInt;
+  f: TFunction;
+begin
+  //executes the given address
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    if lua_isnumber(L,1) then
+      address:=lua_tointeger(L, 1)
+    else
+      address:=selfsymhandler.getAddressFromName(Lua_ToString(L,1));
+
+    if lua_gettop(L)>=2 then
+    begin
+      if lua_isnumber(L,2) then
+        address:=lua_tointeger(L, 2)
+      else
+        address:=selfsymhandler.getAddressFromName(Lua_ToString(L,2));
+    end
+    else
+      parameter:=0;
+
+    f:=pointer(address);
+    lua_pushinteger(L, ptruint(f(pointer(parameter))));
+    result:=1;
+  end
+  else
+    exit;
+end;
+
+
 procedure InitializeLua;
 var
   s: tstringlist;
@@ -6659,6 +6824,10 @@ begin
 
     lua_register(LuaVM, 'registerBinUtil', lua_registerBinUtil);
     lua_register(LuaVM, 'setPointerSize', setPointerSize);
+
+
+    lua_register(LuaVM, 'executeCode', executeCode);
+    lua_register(LuaVM, 'executeCodeLocal', executeCodeLocal);
 
 
     initializeLuaCustomControl;

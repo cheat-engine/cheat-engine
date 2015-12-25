@@ -251,6 +251,8 @@ speedhack_setSpeed(speed) : Enables the speedhack if needed and sets the specifi
 speedhack_getSpeed(): Returns the last set speed
 
 injectDLL(filename): Injects a dll, and returns true on success
+executeCode(address, parameter OPTIONAL, timeout OPTIONAL) : address - Executes a stdcall function with 1 parameter at the given address in the target process  and wait for it to return. The return value is the result of the function that was called
+executeCodeLocal(addres, parameter OPTIONAL): address -  Executes a stdcall function with 1 parameter at the given address in the target process. The return value is the result of the function that was called
 
 loadPlugin(dllnameorpath): Loads the given plugin. Returns nil on failure. On success returns a value of 0 or greater
 
@@ -1457,6 +1459,9 @@ createFileStream(filename, mode)
 
 StringStream Class (Inheritance: Stream->Object)
 createStringStream(string)
+
+properties
+DataString: The internal string
 
 
 TableFile class (Inheritance: Object)

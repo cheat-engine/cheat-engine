@@ -198,10 +198,20 @@ end;
 
 function stringstream_getDataString(L: PLua_State): integer; cdecl;
 var ss: TStringStream;
+  ms: TMemoryStream;
+  oldpos: integer;
 begin
   ss:=luaclass_getClassObject(L);
-  lua_pushstring(L, ss.DataString);
+  ms:=TMemoryStream.create;
+  oldpos:=ss.Position;
+
+  ss.position:=0;
+  ms.LoadFromStream(ss);
+  lua_pushlstring(L, ms.Memory, ms.Size);
   result:=1;
+
+  ss.position:=oldpos;
+  ms.free;
 end;
 
 procedure stringstream_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
