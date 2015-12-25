@@ -1463,7 +1463,7 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'SUBSS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m32;bytes:3;bt1:$f3;bt2:$0f;bt3:$5c),
   (mnemonic:'SWAPGS';bytes:3;bt1:$0f;bt2:$01;bt3:$f8),
 
-  (mnemonic:'SYSCALL';bytes:2;bt1:$0f;bt2:$05),
+  (mnemonic:'SYSCALL';bytes:2;bt1:$0f;bt2:$05{; invalidin32bit:true}),
   (mnemonic:'SYSENTER';bytes:2;bt1:$0f;bt2:$34),
   (mnemonic:'SYSEXIT';bytes:2;bt1:$0f;bt2:$35),
 

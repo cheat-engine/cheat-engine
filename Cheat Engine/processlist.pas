@@ -14,6 +14,10 @@ procedure GetProcessList(ProcessList: TStrings; NoPID: boolean=false; noProcessI
 procedure sanitizeProcessList(processlist: TStrings);
 procedure cleanProcessList(processlist: TStrings);
 
+{$ifdef windows}
+function GetFirstModuleName(processid: dword): string;
+{$endif}
+
 //global vars refering to the processlist
 var
   GetProcessIcons: Boolean;

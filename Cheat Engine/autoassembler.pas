@@ -838,7 +838,7 @@ begin
       if (a>0) and (b>0) and (c>0) then
       begin
         s1:=trim(copy(currentline,a+1,b-a-1));
-        s2:=uppercase(trim(copy(currentline,b+1,c-b-1)));
+        s2:=trim(copy(currentline,b+1,c-b-1));
         s3:=trim(copy(currentline,c+1,d-c-1));
 
         //s1=varname
@@ -850,7 +850,7 @@ begin
           //find the s2 module
           m:=-1;
           for j:=0 to length(aobscanmodules)-1 do
-            if aobscanmodules[j].name=s2 then
+            if aobscanmodules[j].name=uppercase(s2) then
             begin
               m:=j;
               break;
@@ -861,14 +861,26 @@ begin
             setlength(aobscanmodules, length(aobscanmodules)+1);
             m:=length(aobscanmodules)-1;
 
-            aobscanmodules[m].name:=s2;
+            aobscanmodules[m].name:=uppercase(s2);
             if symhandler.getmodulebyname(s2, mi) then
             begin
               aobscanmodules[m].minaddress:=mi.baseaddress;
               aobscanmodules[m].maxaddress:=mi.baseaddress+mi.basesize;
             end
             else
-              raise exception.create(rsAAModuleNotFound+s2);
+            begin
+              //modulename not found. Perhaps a symbol was used
+              try
+                testptr:=symhandler.getAddressFromName(s2);
+                if symhandler.getmodulebyaddress(testptr, mi) then
+                begin
+                  aobscanmodules[m].minaddress:=mi.baseaddress;
+                  aobscanmodules[m].maxaddress:=mi.baseaddress+mi.basesize;
+                end;
+              except
+                raise exception.create(rsAAModuleNotFound+s2);
+              end;
+            end;
 
             setlength(aobscanmodules[m].entries,0);
           end;
