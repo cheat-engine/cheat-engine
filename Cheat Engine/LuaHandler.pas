@@ -6246,10 +6246,13 @@ var
   x: dword;
   y: ptruint;
 
+  wr: DWORD;
+  dontfree: boolean;
 begin
   //creates a thread in the target process.  calls stdcall function(parameter):pointer and wait for it's return
   stubaddress:=0;
   result:=0;
+  dontfree:=false;
 
   if lua_gettop(L)>=1 then
   begin
@@ -6336,14 +6339,21 @@ begin
 
         if (thread<>0) then
         begin
-          if WaitForSingleObject(thread, timeout)=WAIT_OBJECT_0 then
+          wr:=WaitForSingleObject(thread, timeout);
+          if wr=WAIT_OBJECT_0 then
           begin
             if ReadProcessMemory(processhandle, pointer(resultaddress), @r, sizeof(r), y) then
             begin
               lua_pushinteger(L, r);
               result:=1;
             end;
-          end;
+          end
+          else
+          if wr=WAIT_TIMEOUT then
+            dontfree:=true;
+
+
+
 
           closehandle(thread);
         end;
@@ -6353,7 +6363,7 @@ begin
   finally
     s.free;
 
-    if stubaddress<>0 then
+    if (dontfree=false) and (stubaddress<>0) then
       VirtualFreeEx(processhandle, pointer(stubaddress), 0, MEM_RELEASE);
   end;
 end;
