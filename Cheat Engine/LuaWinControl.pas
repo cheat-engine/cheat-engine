@@ -230,8 +230,8 @@ begin
   luaclass_addPropertyToTable(L, metatable, userdata, 'DoubleBuffered', wincontrol_getDoubleBuffered, wincontrol_setDoubleBuffered);
   luaclass_addPropertyToTable(L, metatable, userdata, 'ControlCount', wincontrol_getControlCount, nil);
   luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Control', wincontrol_getControl);
-  luaclass_addPropertyToTable(L, metatable, userdata, 'OnEnter', wincontrol_setOnEnter, nil);
-  luaclass_addPropertyToTable(L, metatable, userdata, 'OnExit', wincontrol_setOnExit, nil);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'OnEnter', wincontrol_getOnEnter, wincontrol_setOnEnter);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'OnExit', wincontrol_getOnExit, wincontrol_setOnExit);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Handle', wincontrol_getHandle, nil);
 end;
 
