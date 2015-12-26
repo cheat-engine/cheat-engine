@@ -202,7 +202,7 @@ begin
     end
     else
     begin
-      MessageBoxA(0, pchar(Lua_ToString(l, -1)), 'Conditonal breakpoint error', MB_OK);
+      MessageBoxA(0, pchar(Lua_ToString(l, -1)), 'Conditional breakpoint error', MB_OK);
     end;
   end;
 end;
