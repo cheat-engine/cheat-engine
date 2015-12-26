@@ -14,6 +14,12 @@ implementation
 
 uses LuaCaller, luacontrol, luaclass;
 
+function wincontrol_getHandle(L: PLua_State): integer; cdecl;
+begin
+  lua_pushinteger(L, twincontrol(luaclass_getClassObject(L)).Handle);
+  result:=1;
+end;
+
 function wincontrol_getDoubleBuffered(L: PLua_State): integer; cdecl;
 begin
   lua_pushboolean(L, twincontrol(luaclass_getClassObject(L)).DoubleBuffered);
@@ -226,6 +232,7 @@ begin
   luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Control', wincontrol_getControl);
   luaclass_addPropertyToTable(L, metatable, userdata, 'OnEnter', wincontrol_setOnEnter, nil);
   luaclass_addPropertyToTable(L, metatable, userdata, 'OnExit', wincontrol_setOnExit, nil);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Handle', wincontrol_getHandle, nil);
 end;
 
 procedure initializeLuaWinControl;
