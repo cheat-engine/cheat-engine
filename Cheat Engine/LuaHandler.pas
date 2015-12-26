@@ -6379,17 +6379,19 @@ begin
   result:=0;
   if lua_gettop(L)>=1 then
   begin
-    if lua_isnumber(L,1) then
-      address:=lua_tointeger(L, 1)
+    if lua_isstring(L,1) then
+      address:=selfsymhandler.getAddressFromName(Lua_ToString(L,1))
     else
-      address:=selfsymhandler.getAddressFromName(Lua_ToString(L,1));
+      address:=lua_tointeger(L, 1);
+
 
     if lua_gettop(L)>=2 then
     begin
-      if lua_isnumber(L,2) then
-        address:=lua_tointeger(L, 2)
+      if lua_isstring(L,2) then
+        address:=selfsymhandler.getAddressFromName(Lua_ToString(L,2))
       else
-        address:=selfsymhandler.getAddressFromName(Lua_ToString(L,2));
+        address:=lua_tointeger(L, 2)
+
     end
     else
       parameter:=0;
