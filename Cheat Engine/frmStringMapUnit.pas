@@ -9,8 +9,10 @@ This unit will create a map that holds the addresses of all the strings in the g
 interface
 
 uses
-  windows, Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs, math, ComCtrls, ExtCtrls, StdCtrls,
-  maps, cefuncproc, memfuncs, newkernelhandler, AvgLvlTree, bigmemallochandler, symbolhandler, oldRegExpr, commonTypeDefs;
+  windows, Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics,
+  Dialogs, math, ComCtrls, ExtCtrls, StdCtrls, maps, Menus, cefuncproc,
+  memfuncs, newkernelhandler, AvgLvlTree, bigmemallochandler, symbolhandler,
+  oldRegExpr, commonTypeDefs;
 
 type
 
@@ -28,6 +30,7 @@ type
 
   TStringScan=class(tthread)
   private
+    f: tfilestream;
     regex: TREGExprEngine;
     muststartwithregex: boolean;
     progressbar: TProgressBar;
@@ -38,7 +41,7 @@ type
     procedure docleanup;
   public
     procedure execute; override;
-    constructor create(suspended: boolean; progressbar: TProgressbar; stringtree: TAvgLvlTree; bma: TBigMemoryAllocHandler; regex: TREGExprEngine; muststartwithregex: boolean);
+    constructor create(suspended: boolean; progressbar: TProgressbar; stringtree: TAvgLvlTree; bma: TBigMemoryAllocHandler; regex: TREGExprEngine; muststartwithregex: boolean; filename: string);
   end;
 
   TfrmStringMap = class(TForm)
@@ -48,11 +51,13 @@ type
     cbRegExp: TCheckBox;
     cbCaseSensitive: TCheckBox;
     cbMustBeStart: TCheckBox;
+    cbSaveToDisk: TCheckBox;
     edtRegExp: TEdit;
     lblStringCount: TLabel;
     ListView1: TListView;
     Panel1: TPanel;
     ProgressBar1: TProgressBar;
+    SaveDialog1: TSaveDialog;
     procedure btnScanClick(Sender: TObject);
     procedure btnFreeClick(Sender: TObject);
     procedure btnShowListClick(Sender: TObject);
@@ -176,8 +181,11 @@ var buf: PByteArray;
 
   str: string;
   index, len: integer;
+
+  savetofile: boolean;
 begin
   totalhandled:=0;
+
 
   try
     //get memory regions
@@ -248,7 +256,10 @@ begin
                       buf[j]:=0;
 
                       if unicode then
+                      begin
+                        buf[j-1]:=0;
                         str:=PWideChar(@buf[start])
+                      end
                       else
                         str:=PChar(@buf[start]);
 
@@ -257,11 +268,42 @@ begin
                       if RegExprPos(regex, pchar(str) , index,len) then
                       begin
                         if (not muststartwithregex) or (muststartwithregex and (index=0)) then
+                        begin
                           AddString(mr[i].BaseAddress+currentpos+start,j-start, unicode);
+
+                          if f<>nil then
+                          begin
+                            str:=inttohex(mr[i].BaseAddress+currentpos+start,8)+' - '+str+#13#10;
+                            f.WriteBuffer(str[1], length(str));
+                          end;
+
+                        end
                       end
                     end
                     else
+                    begin
                       AddString(mr[i].BaseAddress+currentpos+start,j-start, unicode);
+                      if f<>nil then
+                      begin
+
+                        if unicode then
+                        begin
+                          buf[j]:=0;
+                          buf[j-1]:=0;
+
+                          str:=PWideChar(@buf[start])
+                        end
+                        else
+                        begin
+                          buf[j]:=0;
+                          str:=PChar(@buf[start]);
+                        end;
+
+                        str:=inttohex(mr[i].BaseAddress+currentpos+start,8)+' - '+str+#13#10;
+                        f.WriteBuffer(str[1], length(str));
+                      end;
+                    end;
+
                   end;
                 end;
 
@@ -285,6 +327,9 @@ begin
       if buf<>nil then
         freemem(buf);
 
+      if f<>nil then
+        freeandnil(f);
+
       synchronize(docleanup);
     end;
   except
@@ -293,13 +338,15 @@ begin
   end;
 end;
 
-constructor TStringScan.create(suspended: boolean; progressbar: TProgressbar; stringtree: TAvgLvlTree; bma: TBigMemoryAllocHandler; regex: TRegExprEngine; muststartwithregex: boolean);
+constructor TStringScan.create(suspended: boolean; progressbar: TProgressbar; stringtree: TAvgLvlTree; bma: TBigMemoryAllocHandler; regex: TRegExprEngine; muststartwithregex: boolean; filename: string);
 begin
   self.stringtree:=stringtree;
   self.progressbar:=progressbar;
   self.bma:=bma;
   self.regex:=regex;
   self.muststartwithregex:=muststartwithregex;
+  if filename<>'' then
+    f:=tfilestream.create(filename, fmCreate);
 
   progressbar.Position:=0;
   progressbar.max:=100;
@@ -361,6 +408,7 @@ end;
 procedure TfrmStringMap.btnScanClick(Sender: TObject);
 var mapIdType: TMapIdType;
     regflags: tregexprflags;
+    filename: string;
 begin
 
   isfillinglist:=false;
@@ -409,7 +457,12 @@ begin
 
     btnScan.caption:=rsStop;
 
-    scanner:=TStringScan.create(false, progressbar1, stringtree, bma, regex, cbMustBeStart.checked);
+    if cbSaveToDisk.checked and SaveDialog1.execute then
+      filename:=savedialog1.filename
+    else
+      filename:='';
+
+    scanner:=TStringScan.create(false, progressbar1, stringtree, bma, regex, cbMustBeStart.checked, filename);
   end;
 
 end;
@@ -521,10 +574,13 @@ begin
     memorybrowser.hexview.address:=ptruint(listview1.Selected.Data);
 end;
 
+
+
 procedure TfrmStringMap.Panel1Resize(Sender: TObject);
 begin
   btnShowList.Top:=(panel1.clientheight) - (btnShowList.height)-3;
 end;
+
 
 function TfrmStringMap.findNearestString(address: ptruint): PStringData;
 var
