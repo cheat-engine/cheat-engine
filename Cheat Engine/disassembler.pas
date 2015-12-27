@@ -3850,7 +3850,7 @@ begin
                         lastdisassembledata.opcode:='jo';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
-                        inc(offset,1+5);
+                        inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
                           LastDisassembleData.riprelative:=2;
@@ -3876,7 +3876,7 @@ begin
                         lastdisassembledata.opcode:='jno';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
-                        inc(offset,1+5);
+                        inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
                           LastDisassembleData.riprelative:=2;
@@ -3904,7 +3904,7 @@ begin
                         lastdisassembledata.opcode:='jb';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
-                        inc(offset,1+5);
+                        inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
                           LastDisassembleData.riprelative:=2;
@@ -3931,7 +3931,7 @@ begin
                         lastdisassembledata.opcode:='jae';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
-                        inc(offset,1+5);
+                        inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
                           LastDisassembleData.riprelative:=2;
@@ -3958,7 +3958,7 @@ begin
                         lastdisassembledata.opcode:='je';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
-                        inc(offset,1+5);
+                        inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
                           LastDisassembleData.riprelative:=2;
@@ -3985,7 +3985,7 @@ begin
                         lastdisassembledata.opcode:='jne';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
-                        inc(offset,1+5);
+                        inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
                           LastDisassembleData.riprelative:=2;
@@ -4012,7 +4012,7 @@ begin
                         lastdisassembledata.opcode:='jbe';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
-                        inc(offset,1+5);
+                        inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
                           LastDisassembleData.riprelative:=2;
@@ -4039,7 +4039,7 @@ begin
                         lastdisassembledata.opcode:='ja';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
-                        inc(offset,1+5);
+                        inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
                           LastDisassembleData.riprelative:=2;
@@ -4065,7 +4065,7 @@ begin
                         lastdisassembledata.opcode:='js';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
-                        inc(offset,1+5);
+                        inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
                           LastDisassembleData.riprelative:=2;
@@ -4091,7 +4091,7 @@ begin
                         lastdisassembledata.opcode:='jns';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
-                        inc(offset,1+5);
+                        inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
                           LastDisassembleData.riprelative:=2;
@@ -4117,7 +4117,7 @@ begin
                         lastdisassembledata.opcode:='jp';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
-                        inc(offset,1+5);
+                        inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
                           LastDisassembleData.riprelative:=2;
@@ -4143,7 +4143,7 @@ begin
                         lastdisassembledata.opcode:='jnp';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
-                        inc(offset,1+5);
+                        inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
                           LastDisassembleData.riprelative:=2;
@@ -4169,7 +4169,7 @@ begin
                         lastdisassembledata.opcode:='jl';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
-                        inc(offset,1+5);
+                        inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
                           LastDisassembleData.riprelative:=2;
@@ -4195,7 +4195,7 @@ begin
                         lastdisassembledata.opcode:='jnl';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
-                        inc(offset,1+5);
+                        inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
                           LastDisassembleData.riprelative:=2;
@@ -4221,7 +4221,7 @@ begin
                         lastdisassembledata.opcode:='jng';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
-                        inc(offset,1+5);
+                        inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
                           LastDisassembleData.riprelative:=2;
@@ -4247,7 +4247,7 @@ begin
                         lastdisassembledata.opcode:='jg';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
-                        inc(offset,1+5);
+                        inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
                           LastDisassembleData.riprelative:=2;
