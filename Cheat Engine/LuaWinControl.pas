@@ -5,7 +5,7 @@ unit LuaWinControl;
 interface
 
 uses
-  Classes, SysUtils, controls, lua, lualib, lauxlib,LuaHandler, graphics;
+  windows, Classes, SysUtils, controls, lua, lualib, lauxlib,LuaHandler, graphics;
 
 procedure initializeLuaWinControl;
 procedure wincontrol_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
@@ -214,6 +214,36 @@ begin
   end;
 end;
 
+
+function wincontrol_setLayeredAttributes(L: PLua_State): integer; cdecl;
+var
+  h: thandle;
+  key: dword;
+  alpha: byte;
+  flags: byte;
+begin
+  //only works on forms in windows 7 and earlier, but also works on child components in windows 8 and later
+  result:=0;
+
+  if lua_gettop(L)>=3 then
+  begin
+    h:=twincontrol(luaclass_getClassObject(L)).handle;
+    if SetWindowLong(h, GWL_EXSTYLE, GetWindowLong(h, GWL_EXSTYLE) or WS_EX_LAYERED)=0 then
+    begin
+      result:=1;
+      lua_pushboolean(L, false);
+      exit; //not supported
+    end;
+
+    key:=lua_tointeger(L, 1);
+    alpha:=lua_tointeger(L, 2);
+    flags:=lua_tointeger(L, 3);
+
+    result:=1;
+    lua_pushboolean(L, SetLayeredWindowAttributes(h, key, alpha, flags));
+  end;
+end;
+
 procedure wincontrol_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
   control_addMetaData(L, metatable, userdata);
@@ -226,6 +256,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'focused', wincontrol_focused);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setFocus', wincontrol_setFocus);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setShape', wincontrol_setShape);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setLayeredAttributes', wincontrol_setLayeredAttributes);
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'DoubleBuffered', wincontrol_getDoubleBuffered, wincontrol_setDoubleBuffered);
   luaclass_addPropertyToTable(L, metatable, userdata, 'ControlCount', wincontrol_getControlCount, nil);

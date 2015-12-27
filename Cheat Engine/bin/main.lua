@@ -600,6 +600,9 @@ methods
   getOnEnter()
   setOnExit(function) : Sets an onExit event. (Triggered on lost focus)
   getOnExit()
+  setLayeredAttributes(Key, Alpha, Flags) : Sets the layered state for the control if possible (Only Forms are supported in in windows 7 and earlier)
+      flags can be a combination of LWA_ALPHA and/or LWA_COLORKEY
+      See msdn SetLayeredWindowAttributes for more information
 
 
 MenuItem class(Inheritance: Component->Object)
@@ -2207,7 +2210,8 @@ methods:
   loadFromFile(filename)
 
 RIPRelativeScanner class: (Inheritance: Object)
-createRipRelativeScanner(modulename): Creates a RIP relative scanner. This will scan the provided module for RIP relative instructions which you can use for whatever you like
+createRipRelativeScanner(startaddress, stopaddress, includejumpsandcalls OPTIONAL):
+createRipRelativeScanner(modulename, includejumpsandcalls OPTIONAL): Creates a RIP relative scanner. This will scan the provided module for RIP relative instructions which you can use for whatever you like
 properties:
   Count: integer - The number of instructions found that have a RIP relative address
   Address[]: integer - An array to access the results. The address is the address of the RIP relative offset in the instruction

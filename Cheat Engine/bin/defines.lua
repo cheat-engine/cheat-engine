@@ -332,3 +332,6 @@ vsIcon = 0
 vsSmallIcon = 1
 vsList = 2
 vsReport = 3
+
+LWA_COLORKEY = 1
+LWA_ALPHA = 2
