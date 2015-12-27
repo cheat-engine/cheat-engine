@@ -1,7 +1,7 @@
 object frmAssemblyScan: TfrmAssemblyScan
-  Left = 662
+  Left = 448
   Height = 185
-  Top = 422
+  Top = 553
   Width = 444
   BorderIcons = [biSystemMenu]
   Caption = 'Assembly scan'
@@ -10,7 +10,7 @@ object frmAssemblyScan: TfrmAssemblyScan
   Constraints.MinHeight = 120
   Constraints.MinWidth = 430
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.3'
   object Panel1: TPanel
     Left = 0
     Height = 185
@@ -22,7 +22,7 @@ object frmAssemblyScan: TfrmAssemblyScan
     TabOrder = 0
     object lblInputAssemblyCode: TLabel
       Left = 1
-      Height = 16
+      Height = 15
       Top = 1
       Width = 319
       Align = alTop
@@ -31,8 +31,8 @@ object frmAssemblyScan: TfrmAssemblyScan
     end
     object mAssemblerSearch: TMemo
       Left = 1
-      Height = 167
-      Top = 17
+      Height = 168
+      Top = 16
       Width = 319
       Align = alClient
       TabOrder = 0
@@ -55,7 +55,7 @@ object frmAssemblyScan: TfrmAssemblyScan
       AnchorSideTop.Side = asrBottom
       Left = 22
       Height = 25
-      Top = 84
+      Top = 82
       Width = 75
       BorderSpacing.Top = 5
       Caption = 'Scan'
@@ -65,7 +65,7 @@ object frmAssemblyScan: TfrmAssemblyScan
     object edtFrom: TEdit
       Left = 1
       Height = 23
-      Top = 17
+      Top = 16
       Width = 116
       Align = alTop
       TabOrder = 1
@@ -73,7 +73,7 @@ object frmAssemblyScan: TfrmAssemblyScan
     end
     object lblFrom: TLabel
       Left = 1
-      Height = 16
+      Height = 15
       Top = 1
       Width = 116
       Align = alTop
@@ -82,8 +82,8 @@ object frmAssemblyScan: TfrmAssemblyScan
     end
     object lblTo: TLabel
       Left = 1
-      Height = 16
-      Top = 40
+      Height = 15
+      Top = 39
       Width = 116
       Align = alTop
       Caption = 'To'
@@ -92,7 +92,7 @@ object frmAssemblyScan: TfrmAssemblyScan
     object edtTo: TEdit
       Left = 1
       Height = 23
-      Top = 56
+      Top = 54
       Width = 116
       Align = alTop
       TabOrder = 2

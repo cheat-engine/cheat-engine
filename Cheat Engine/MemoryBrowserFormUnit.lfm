@@ -1,7 +1,7 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 866
+  Left = 867
   Height = 587
-  Top = 246
+  Top = 247
   Width = 716
   HelpContext = 12
   Caption = 'Memory Viewer'
@@ -812,61 +812,61 @@ object MemoryBrowser: TMemoryBrowser
       Caption = 'Set/Unset bookmark'
       object miSetBookmark0: TMenuItem
         Caption = 'Bookmark 0'
-        ShortCut = 24624
+        ShortCut = 49200
         OnClick = SetBookmarkClick
       end
       object miSetBookmark1: TMenuItem
         Tag = 1
         Caption = 'Bookmark 1'
-        ShortCut = 24625
+        ShortCut = 49201
         OnClick = SetBookmarkClick
       end
       object miSetBookmark2: TMenuItem
         Tag = 2
         Caption = 'Bookmark 2'
-        ShortCut = 24626
+        ShortCut = 49202
         OnClick = SetBookmarkClick
       end
       object miSetBookmark3: TMenuItem
         Tag = 3
         Caption = 'Bookmark 3'
-        ShortCut = 24627
+        ShortCut = 49203
         OnClick = SetBookmarkClick
       end
       object miSetBookmark4: TMenuItem
         Tag = 4
         Caption = 'Bookmark 4'
-        ShortCut = 24628
+        ShortCut = 49204
         OnClick = SetBookmarkClick
       end
       object miSetBookmark5: TMenuItem
         Tag = 5
         Caption = 'Bookmark 5'
-        ShortCut = 24629
+        ShortCut = 49205
         OnClick = SetBookmarkClick
       end
       object miSetBookmark6: TMenuItem
         Tag = 6
         Caption = 'Bookmark 6'
-        ShortCut = 24630
+        ShortCut = 49206
         OnClick = SetBookmarkClick
       end
       object miSetBookmark7: TMenuItem
         Tag = 7
         Caption = 'Bookmark 7'
-        ShortCut = 24631
+        ShortCut = 49207
         OnClick = SetBookmarkClick
       end
       object miSetBookmark8: TMenuItem
         Tag = 8
         Caption = 'Bookmark 8'
-        ShortCut = 24632
+        ShortCut = 49208
         OnClick = SetBookmarkClick
       end
       object miSetBookmark9: TMenuItem
         Tag = 9
         Caption = 'Bookmark 9'
-        ShortCut = 24633
+        ShortCut = 49209
         OnClick = SetBookmarkClick
       end
     end
