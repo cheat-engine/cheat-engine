@@ -11162,7 +11162,7 @@ begin
         vtString:
         begin
           buffer[x]:=0;
-          result:=pchar(@buffer[0]);
+          result:='"'+pchar(@buffer[0])+'"';
         end;
 
 
@@ -11172,7 +11172,7 @@ begin
           if x>0 then
             buffer[x-1]:=0;
 
-          result:=pwidechar(@buffer[0]);
+          result:='"'+pwidechar(@buffer[0])+'"';
         end;
 
         vtPointer:
