@@ -19,7 +19,6 @@ uses
 
 
 {$R *.res}
-{$R ..\manifest.res}
 
 type TIsWow64Process=function (processhandle: THandle; var isWow: BOOL): BOOL; stdcall;
 var IsWow64Process        :TIsWow64Process;

@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
@@ -6,6 +6,10 @@
     <General>
       <MainUnit Value="0"/>
       <ResourceType Value="res"/>
+      <UseXPManifest Value="True"/>
+      <XPManifest>
+        <ExecutionLevel Value="2"/>
+      </XPManifest>
       <ActiveWindowIndexAtStart Value="0"/>
     </General>
     <i18n>
@@ -37,8 +41,8 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="285"/>
-        <CursorPos X="23" Y="302"/>
+        <TopLine Value="1"/>
+        <CursorPos X="12" Y="11"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
       </Unit0>
@@ -70,17 +74,18 @@
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="9"/>
+    <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
       <Filename Value="..\..\bin\kernelmoduleunloader-$(TargetCPU)"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="F:\svn\Cheat Engine 6\dbk32\"/>
+      <IncludeFiles Value="F:\svn\Cheat Engine 6\dbk32\;$(ProjOutDir)"/>
       <OtherUnitFiles Value="F:\svn\Cheat Engine 6\dbk32\"/>
     </SearchPaths>
     <Linking>
       <Debugging>
+        <GenerateDebugInfo Value="False"/>
         <UseLineInfoUnit Value="False"/>
         <StripSymbols Value="True"/>
       </Debugging>
@@ -101,8 +106,11 @@
   <Debugging>
     <BreakPoints Count="1">
       <Item1>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsGlobal"/>
+        <WatchKind Value="wpkWrite"/>
         <Source Value="Kernelmoduleunloader.lpr"/>
-        <Line Value="155"/>
+        <Line Value="156"/>
       </Item1>
     </BreakPoints>
     <Exceptions Count="3">
@@ -117,4 +125,5 @@
       </Item3>
     </Exceptions>
   </Debugging>
+  <EditorMacros Count="0"/>
 </CONFIG>

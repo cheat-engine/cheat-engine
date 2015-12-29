@@ -1283,6 +1283,10 @@ begin
       result:=0;
   end else result:=windows.OpenProcess(dwDesiredAccess,bInheritHandle,dwProcessID);
 
+{$ifdef badopen}
+  result:=0;
+{$endif}
+
   if result=0 then //you can still access memory using the low level stuff, just not normal stuff
   begin
     valid:=false;

@@ -728,6 +728,8 @@ begin
 
   //treeview.EndUpdate;
 
+  mainform.editedsincelastsave:=true;
+
   result:=mr;
 end;
 
