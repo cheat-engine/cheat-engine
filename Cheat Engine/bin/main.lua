@@ -2297,7 +2297,7 @@ Settings class
   This class can be used to read out and set settings of cheat engine and of plugins, and store your own data
 
 global functions
-  getSettings(path Optional): Settings - Returns a settings object. If path is nil it will points to the Cheat Engine main settings (Registry) . If name is provides the settings currently accessed will be the one at the subkey provided
+  getSettings(path Optional): Settings - Returns a settings object. If path is nil it will points to the Cheat Engine main settings (Registry) . If name is provided the settings currently accessed will be the one at the subkey provided
   Note: Keep in mind that it returns a new object each call, even if he same name is used multiple times
 
 

@@ -202,6 +202,10 @@ function LaunchMonoDataCollector()
 
   end
 
+  if (monoSettings==nil) then
+    monoSettings=getSettings("MonoExtension")  
+  end
+
   return monoBase
 end
 
@@ -220,18 +224,37 @@ end
 function mono_structureNameLookupCallback(address)
   local currentaddress, classaddress, classname
 
+  local always=monoSettings.Value["AlwaysUseForDissect"]
+  local r
+  if (always==nil) or (always=="") then
+    r=messageDialog("Do you wish to let the mono extention figure out the name and start address? If it's not a proper object this may crash the target.", mtConfirmation, mbYes, mbNo, mbYesToAll, mbNoToAll)    
+  else
+    if (always=="1") then
+      r=mrYes
+    else
+      r=mrNo
+    end
+  end
+  
+  
+  if (r==mrYes) or (r==mbYesToAll) then
+    currentaddress, classaddress, classname=mono_object_findRealStartOfObject(address)
 
-  --messageDialog("Do you wish to let the mono extention figure out the name and start address? If it's not a proper object this may crash the target.", mtConfirmation, mbYes, mbNo)==mrYes then
-      currentaddress, classaddress, classname=mono_object_findRealStartOfObject(address)
-
-      if (currentaddress~=nil) then
-       -- print("currentaddress~=nil : "..currentaddress)
-        return classname,currentaddress
-      else
+    if (currentaddress~=nil) then
+      -- print("currentaddress~=nil : "..currentaddress)
+      return classname,currentaddress
+    else
       --  print("currentaddress==nil")
-        return nil
-      end
-  --end
+      return nil
+    end
+  end
+
+  --still alive, so the user made a good choice
+  if (r==mrYesToAll) then
+    monoSettings.Value["AlwaysUseForDissect"]="1"
+  elseif (r==mrNoToAll) then
+    monoSettings.Value["AlwaysUseForDissect"]="0"
+  end
 end
 
 
