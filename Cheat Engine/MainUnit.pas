@@ -2016,7 +2016,7 @@ begin
   begin
     cbpercentage := tcheckbox.Create(self);
     cbpercentage.AutoSize := True;
-    cbpercentage.Left := scantype.Left + scantype.Width + 5;
+    cbpercentage.Left := cbFloatSimple.left;
     cbpercentage.Top := scantype.Top + 2;
 
     cbpercentage.Parent := scantype.Parent;
@@ -2028,6 +2028,7 @@ begin
   else
     cbpercentage.Caption := rsAtLeastXx;
 
+  UpdateFloatRelatedPositions;
 end;
 
 procedure TMainForm.DestroyCbPercentage;
@@ -2037,6 +2038,8 @@ begin
     cbpercentage.Checked := False;
     FreeAndNil(cbpercentage);
   end;
+  UpdateFloatRelatedPositions;
+
 end;
 //------------------
 
@@ -4450,6 +4453,8 @@ begin
     cbFloatSimple.visible:=getVarType in [vtSingle, vtDouble, vtAll];
   end;
 
+  if cbpercentage<>nil then
+    cbFloatSimple.Top:=cbpercentage.top+cbpercentage.Height;
 
 end;
 
@@ -8134,8 +8139,6 @@ var
   label p1,p2,p3;
 
 begin
-
-
 
   try
     asm
