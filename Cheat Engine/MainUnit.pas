@@ -8662,6 +8662,8 @@ begin
 
   lastscantype := scantype.ItemIndex;
 
+  memscan.floatscanWithoutExponents:=cbFloatSimple.checked;
+
   memscan.nextscan(GetScanType2, roundingtype, utf8toansi(scanvalue.Text),
     utf8toansi(svalue2), cbHexadecimal.Checked, rbdec.Checked,
     cbunicode.Checked, cbCaseSensitive.Checked, percentage, compareToSavedScan,
