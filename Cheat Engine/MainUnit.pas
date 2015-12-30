@@ -4450,7 +4450,7 @@ begin
     cbFloatSimple.top:=pnlFloat.top;
     cbUnrandomizer.top:=gbScanOptions.top;
 
-    cbFloatSimple.visible:=getVarType in [vtSingle, vtDouble, vtAll];
+    cbFloatSimple.visible:=(getVarType in [vtSingle, vtDouble, vtAll]) and (GetScanType<>soUnknownValue);
   end;
 
   if cbpercentage<>nil then
