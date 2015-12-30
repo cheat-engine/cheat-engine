@@ -79,6 +79,7 @@ begin
    addresslistpos:=0;
 
    d:=TDisassembler.Create;
+   d.dataOnly:=true;
    d.MarkIPRelativeInstructions:=includeLongJumpsAndCalls;
 
    try
