@@ -54,6 +54,7 @@ var
 
   d: TDisassembler;
   a: ptruint;
+  stop: ptruint;
   i: integer;
   desc: string;
 begin
@@ -83,9 +84,10 @@ begin
    try
      for i:=0 to length(executablelist)-1 do
      begin
-       a:=executablelist[i].base;
+       a:=maxx(startaddress, executablelist[i].base);
+       stop:=MinX(stopaddress, executablelist[i].base+executablelist[i].size);
 
-       while a<executablelist[i].base+executablelist[i].size do
+       while a<stop do
        begin
          d.disassemble(a, desc);
 
