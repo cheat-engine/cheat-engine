@@ -1,6 +1,6 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 1155
+  Left = 1201
   Height = 554
   Hint = ' '
   Top = 144
@@ -9,7 +9,7 @@ object MainForm: TMainForm
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AllowDropFiles = True
-  Caption = 'Cheat Engine 6.4+'
+  Caption = 'Cheat Engine 6.5'
   ClientHeight = 534
   ClientWidth = 613
   Font.Height = -11
