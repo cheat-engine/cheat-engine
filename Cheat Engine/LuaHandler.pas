@@ -3312,9 +3312,9 @@ function inheritsFromObject(L: PLua_state): integer; cdecl;
 var x: TObject;
 begin
   result:=0;
-  if lua_gettop(L)>1 then
+  if lua_gettop(L)>=1 then
   begin
-    x:=lua_toceuserdata(L, -1);
+    x:=lua_toceuserdata(L, 1);
     lua_pop(L, lua_gettop(l));
 
     if x<>nil then
@@ -3330,9 +3330,9 @@ function inheritsFromComponent(L: PLua_state): integer; cdecl;
 var x: TObject;
 begin
   result:=0;
-  if lua_gettop(L)>1 then
+  if lua_gettop(L)>=1 then
   begin
-    x:=lua_toceuserdata(L, -1);
+    x:=lua_toceuserdata(L, 1);
     lua_pop(L, lua_gettop(l));
 
     if x<>nil then
@@ -3346,17 +3346,19 @@ end;
 
 function inheritsFromControl(L: PLua_state): integer; cdecl;
 var x: TObject;
+  r: boolean;
 begin
   result:=0;
-  if lua_gettop(L)>1 then
+  if lua_gettop(L)>=1 then
   begin
-    x:=lua_toceuserdata(L, -1);
+    x:=lua_toceuserdata(L, 1);
     lua_pop(L, lua_gettop(l));
 
     if x<>nil then
     begin
       result:=1;
-      lua_pushboolean(l, (x is TControl));
+      r:=x is TControl;
+      lua_pushboolean(l, r);
     end;
 
   end;
@@ -3366,9 +3368,9 @@ function inheritsFromWinControl(L: PLua_state): integer; cdecl;
 var x: TObject;
 begin
   result:=0;
-  if lua_gettop(L)>1 then
+  if lua_gettop(L)>=1 then
   begin
-    x:=lua_toceuserdata(L, -1);
+    x:=lua_toceuserdata(L, 1);
     lua_pop(L, lua_gettop(l));
 
     if x<>nil then
@@ -3379,16 +3381,6 @@ begin
 
   end;
 end;
-
-
-
-
-
-
-
-
-
-
 
 
 function createToggleBox(L: Plua_State): integer; cdecl;
