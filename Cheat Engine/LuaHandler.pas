@@ -6404,6 +6404,62 @@ begin
     exit;
 end;
 
+function md5file(L:PLua_state): integer; cdecl;
+var
+  filename: string;
+  f: TMemoryStream;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    filename:=Lua_ToString(L,1);
+
+    f:=TMemoryStream.create;
+    try
+      f.LoadFromFile(filename);
+      lua_pushstring(L, MD5Print(MD5Buffer(f.Memory^, f.Size)));
+      result:=1;
+    finally
+      f.free;
+    end;
+  end;
+end;
+
+function md5memory(L:PLua_state): integer; cdecl;
+var
+  startaddress: ptruint;
+  size: integer;
+
+  buf: PByteArray;
+  x: ptruint;
+begin
+  result:=0;
+  if lua_gettop(L)>=2 then
+  begin
+    if lua_isstring(L, 1) then
+      startaddress:=symhandler.getAddressFromName(Lua_ToString(L,1))
+    else
+      startaddress:=lua_tointeger(L, 1);
+
+    size:=lua_tointeger(L, 2);
+
+    if size>0 then
+    begin
+      getmem(buf, size);
+      if ReadProcessMemory(processhandle, pointer(startaddress), buf, size, x) then
+      begin
+        if x>0 then
+        begin
+          lua_pushstring(L, MD5Print(MD5Buffer(buf^, x)));
+          result:=1;
+        end;
+      end;
+      freemem(buf);
+    end;
+
+  end;
+
+end;
 
 procedure InitializeLua;
 var
@@ -6841,6 +6897,8 @@ begin
     lua_register(LuaVM, 'executeCode', executeCode);
     lua_register(LuaVM, 'executeCodeLocal', executeCodeLocal);
 
+    lua_register(LuaVM, 'md5file', md5file);
+    lua_register(LuaVM, 'md5memory', md5memory);
 
     initializeLuaCustomControl;
 
