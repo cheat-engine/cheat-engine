@@ -6939,8 +6939,14 @@ begin
   if (month = 7) and (day = 1) then
     ShowMessage(strhappybirthday);
   if (month = 1) and (day = 1) then
-    ShowMessage(strnewyear);
-  if (month = 1) and (day = 1) and (year >= 2015) then
+  begin
+    if reg.ValueExists('ShownHappyNewYear'+inttostr(year))=false then
+    begin
+      ShowMessage(strnewyear);
+      reg.WriteBool('ShownHappyNewYear'+inttostr(year), true);
+    end;
+  end;
+  if (month = 1) and (day = 1) and (year >= 2020) then
     ShowMessage(strFuture);
 
   if (month = 4) and (day = 1) then
@@ -7025,6 +7031,9 @@ begin
 
   panel6.clientheight:=cbPauseWhileScanning.top+cbPauseWhileScanning.height+2;
   gbScanOptions.ClientHeight:=panel6.top+panel6.height+2;
+
+  if reg<>nil then
+    freeandnil(reg);
 end;
 
 
