@@ -30,6 +30,7 @@ begin
     modulename:=Lua_ToString(L, 1);
     luaclass_newClass(L, TRIPRelativeScanner.create(modulename, false));
     result:=1;
+    exit;
   end;
 
   if lua_gettop(L)=2 then //could be (modulename, includebooleans), or (startaddress, stopaddress)
@@ -40,6 +41,7 @@ begin
       includelongjumps:=lua_toboolean(L, 2);
       luaclass_newClass(L, TRIPRelativeScanner.create(modulename, includelongjumps));
       result:=1;
+      exit;
     end
     else //startaddress, stopaddress
     begin
@@ -56,6 +58,7 @@ begin
 
       luaclass_newClass(L, TRIPRelativeScanner.create(startaddress, stopaddress, false));
       result:=1;
+      exit;
     end;
   end;
 
@@ -74,6 +77,7 @@ begin
     includelongjumps:=lua_toboolean(L, 3);
     luaclass_newClass(L, TRIPRelativeScanner.create(startaddress, stopaddress, includelongjumps));
     result:=1;
+    exit;
   end;
 end;
 
