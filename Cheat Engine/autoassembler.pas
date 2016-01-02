@@ -926,7 +926,7 @@ begin
         for j:=0 to length(aobscanmodules)-1 do
         begin
           //exact address only. No widening/appending of the groups is possible (Users may want to scan for 00 00 in a 16 byte region)
-          if (startaddress=aobscanmodules[j].minaddress) and (stopaddress=aobscanmodules[j].minaddress) then
+          if (startaddress=aobscanmodules[j].minaddress) and (stopaddress=aobscanmodules[j].maxaddress) then
           begin
             m:=j;
             break;
