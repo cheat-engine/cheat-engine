@@ -159,6 +159,8 @@ procedure unregisterAutoAssemblerPrologue(id: integer);
 var
   prologues: PAutoAssemblerPrologues;
 begin
+  if id=0 then exit; //does not exist
+
   if id<0 then
   begin
     prologues:=@AutoAssemblerProloguesPostAOBSCAN;
