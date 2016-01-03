@@ -142,7 +142,11 @@ begin
     if assigned(prologues^[i])=false then
     begin
       prologues^[i]:=m;
-      result:=i;
+      result:=i+1;
+
+      if postAOBSCAN then
+        result:=-result;
+
       exit;
     end
   end;
