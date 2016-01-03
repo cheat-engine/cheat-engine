@@ -84,6 +84,11 @@ type
 
     edtAlignment: record
       Text: string;
+      Enabled: boolean;
+    end;
+
+    rbFsmAligned:record
+      checked: boolean;
     end;
 
 
@@ -4044,6 +4049,9 @@ begin
 
   scanstate.cbfastscan.Checked := cbFastScan.Checked;
   scanstate.edtAlignment.Text := edtAlignment.Text;
+  scanstate.edtAlignment.enabled:=edtAlignment.enabled;
+
+  scanstate.rbFsmAligned.checked:=rbFsmAligned.checked;
 
   scanstate.scanvalue.Text := scanvalue.Text;
   scanstate.scanvalue.Visible := scanvalue.Visible;
@@ -4210,10 +4218,19 @@ begin
 
     btnNextScan.Enabled := newstate.nextscanstate.Enabled;
 
-    cbFastScan.Checked := newstate.cbfastscan.Checked;
-    edtAlignment.Text := newstate.edtAlignment.Text;
-
     setGbScanOptionsEnabled(newstate.gbScanOptionsEnabled);
+
+    cbFastScan.OnChange:=nil;
+    cbFastScan.Checked := newstate.cbfastscan.Checked;
+    cbFastScan.OnChange:=cbFastScanChange;
+
+    edtAlignment.Text := newstate.edtAlignment.Text;
+    edtAlignment.Enabled:=newstate.edtAlignment.enabled;
+    rbFsmAligned.checked:=newstate.rbFsmAligned.checked;
+    if rbFsmAligned.checked=false then
+      rbfsmLastDigts.checked:=true;
+
+
 
     cbFastScanClick(cbfastscan);    //update the alignment textbox
 
