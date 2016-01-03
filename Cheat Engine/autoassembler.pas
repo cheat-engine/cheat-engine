@@ -147,12 +147,12 @@ begin
     end
   end;
 
-  result:=length(prologues^);
-  setlength(prologues^, result+1);
-  prologues^[result]:=m;
+  result:=length(prologues^)+1;  //first one is id 1
+  setlength(prologues^, result);
+  prologues^[result-1]:=m;
 
   if postAOBSCAN then
-    result:=-result;
+    result:=-result; //first one is id -1
 end;
 
 procedure unregisterAutoAssemblerPrologue(id: integer);
@@ -167,8 +167,8 @@ begin
   else
     prologues:=@AutoAssemblerPrologues;
 
-  if id<length(prologues^) then
-    prologues^[id]:=nil;
+  if id<=length(prologues^) then
+    prologues^[id-1]:=nil;
 end;
 
 procedure RegisterAutoAssemblerCommand(command: string; callback: TAutoAssemblerCallback);
