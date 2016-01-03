@@ -145,7 +145,7 @@ type
     procedure endUpdate;
     procedure DoElementChangeNotification(element: TStructelement);
 
-    procedure OnDeleteStructNotification(structtodelete: TDissectedStruct);
+    procedure OnDeleteStructNotification(structtodelete: TDissectedStruct; path: TList);
 
     procedure sortElements;
     function addElement(name: string=''; offset: integer=0; vartype: TVariableType=vtByte; customtype:TCustomtype=nil; bytesize: integer=0; childstruct: TDissectedStruct=nil): TStructelement;
@@ -1602,7 +1602,7 @@ begin
   //if nothing is found result will contain the current count, resulting in nothing
 end;
 
-procedure TDissectedStruct.OnDeleteStructNotification(structtodelete: TDissectedStruct);
+procedure TDissectedStruct.OnDeleteStructNotification(structtodelete: TDissectedStruct; path: TList);
 var
   i: integer;
   s: TDissectedStruct;
@@ -1622,9 +1622,12 @@ begin
       else
       begin
         //a struct but not the deleted one. Make sure it is a LOCAL one to prevent an infinite loop (a global struct can point to itself)
-
-        //if not s.isInGlobalStructList then
-        //  s.OnDeleteStructNotification(structtodelete);
+        if (not s.isInGlobalStructList) and (path.IndexOf(self)=-1) then
+        begin
+          path.Add(self); //prevents infinite loops
+          s.OnDeleteStructNotification(structtodelete, path);
+          path.Remove(self);
+        end;
       end;
     end;
   end;
@@ -1632,7 +1635,9 @@ begin
 end;
 
 procedure TDissectedStruct.DoDeleteStructNotification;
-var i: integer;
+var
+  i: integer;
+  infiniteLoopProtection: tlist;
 begin
   //tell each form that it should close this structure
   for i:=0 to frmStructures2.Count-1 do
@@ -1643,7 +1648,14 @@ begin
   for i:=0 to DissectedStructs.count-1 do
   begin
     if DissectedStructs[i]<>self then
-      TDissectedStruct(DissectedStructs[i]).OnDeleteStructNotification(self);
+    begin
+      infiniteLoopProtection:=TList.create;
+      try
+        TDissectedStruct(DissectedStructs[i]).OnDeleteStructNotification(self, infiniteLoopProtection);
+      finally
+        infiniteLoopProtection.Free;
+      end;
+    end;
   end;
 end;
 
