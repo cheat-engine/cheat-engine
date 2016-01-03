@@ -8021,6 +8021,8 @@ procedure TMainForm.Foundlist3KeyDown(Sender: TObject; var Key: word;
 var
   i: integer;
 begin
+
+  foundlistpopupPopup(sender);
   if ((key = Ord('A')) and (ssctrl in Shift) and not (ssalt in Shift)) then
   begin
     //select all
