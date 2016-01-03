@@ -34,7 +34,7 @@ end;
 procedure RegisterAutoAssemblerCommand(command: string; callback: TAutoAssemblerCallback);
 procedure UnregisterAutoAssemblerCommand(command: string);
 function registerAutoAssemblerPrologue(m: TAutoAssemblerPrologue; postAOBSCAN: boolean=false): integer;
-procedure unregisterAutoAssemblerPrologue(id: integer; postAOBSCAN: boolean=false);
+procedure unregisterAutoAssemblerPrologue(id: integer);
 
 
 implementation
@@ -150,13 +150,23 @@ begin
   result:=length(prologues^);
   setlength(prologues^, result+1);
   prologues^[result]:=m;
+
+  if postAOBSCAN then
+    result:=-result;
 end;
 
-procedure unregisterAutoAssemblerPrologue(id: integer; postAOBSCAN: boolean=false);
-var prologues: PAutoAssemblerPrologues;
+procedure unregisterAutoAssemblerPrologue(id: integer);
+var
+  prologues: PAutoAssemblerPrologues;
 begin
-  if postAOBSCAN then prologues:=@AutoAssemblerProloguesPostAOBSCAN
-                 else prologues:=@AutoAssemblerPrologues;
+  if id<0 then
+  begin
+    prologues:=@AutoAssemblerProloguesPostAOBSCAN;
+    id:=-id;
+  end
+  else
+    prologues:=@AutoAssemblerPrologues;
+
   if id<length(prologues^) then
     prologues^[id]:=nil;
 end;
