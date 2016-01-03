@@ -184,7 +184,7 @@ registerAssembler(function(address, instruction):bytetable)
 
 unregisterAssembler(ID): Unregisters the registered assembler
 
-registerAutoAssemblerPrologue(function(script, syntaxcheck))
+registerAutoAssemblerPrologue(function(script, syntaxcheck), postAOB:boolean=false)
   Registers a function to be called when the auto assembler is about to parse an auto assembler script. The script you get is after the [ENABLE] and [DISABLE] tags have been used to strip the script to the according one, but before comment stripping and trimming has occured
 
   script is a Strings object which when changed has direct effect to the script

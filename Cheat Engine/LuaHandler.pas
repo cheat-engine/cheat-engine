@@ -5525,10 +5525,11 @@ var
   f: integer;
   routine: string;
   lc: tluacaller;
+  postaob: boolean;
 begin
   result:=0;
 
-  if lua_gettop(L)=1 then
+  if lua_gettop(L)>=1 then
   begin
     if lua_isfunction(L, 1) then
     begin
@@ -5547,7 +5548,12 @@ begin
     end
     else exit;
 
-    lua_pushinteger(L, registerAutoAssemblerPrologue(lc.AutoAssemblerPrologueEvent));
+    if lua_gettop(L)=2 then
+      postaob:=lua_toboolean(L,2)
+    else
+      postaob:=false;
+
+    lua_pushinteger(L, registerAutoAssemblerPrologue(lc.AutoAssemblerPrologueEvent, postaob));
     result:=1;
   end;
 end;

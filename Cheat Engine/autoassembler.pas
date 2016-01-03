@@ -33,8 +33,8 @@ end;
 
 procedure RegisterAutoAssemblerCommand(command: string; callback: TAutoAssemblerCallback);
 procedure UnregisterAutoAssemblerCommand(command: string);
-function registerAutoAssemblerPrologue(m: TAutoAssemblerPrologue): integer;
-procedure unregisterAutoAssemblerPrologue(id: integer);
+function registerAutoAssemblerPrologue(m: TAutoAssemblerPrologue; postAOBSCAN: boolean=false): integer;
+procedure unregisterAutoAssemblerPrologue(id: integer; postAOBSCAN: boolean=false);
 
 
 implementation
@@ -122,33 +122,43 @@ resourcestring
 //type
 //  TregisteredAutoAssemblerCommands =  TFPGList<TRegisteredAutoAssemblerCommand>;
 
+type
+  TAutoAssemblerPrologues=array of TAutoAssemblerPrologue;
+  PAutoAssemblerPrologues=^TAutoAssemblerPrologues;
 var
   registeredAutoAssemblerCommands: TList;
 
-  AutoAssemblerPrologues: array of TAutoAssemblerPrologue;
+  AutoAssemblerPrologues: TAutoAssemblerPrologues;
+  AutoAssemblerProloguesPostAOBSCAN: TAutoAssemblerPrologues;
 
-function registerAutoAssemblerPrologue(m: TAutoAssemblerPrologue): integer;
+function registerAutoAssemblerPrologue(m: TAutoAssemblerPrologue; postAOBSCAN: boolean=false): integer;
 var i: integer;
+    prologues: PAutoAssemblerPrologues;
 begin
-  for i:=0 to length(AutoAssemblerPrologues)-1 do
+  if postAOBSCAN then prologues:=@AutoAssemblerProloguesPostAOBSCAN
+                 else prologues:=@AutoAssemblerPrologues;
+  for i:=0 to length(prologues^)-1 do
   begin
-    if assigned(AutoAssemblerPrologues[i])=false then
+    if assigned(prologues^[i])=false then
     begin
-      AutoAssemblerPrologues[i]:=m;
+      prologues^[i]:=m;
       result:=i;
       exit;
     end
   end;
 
-  result:=length(AutoAssemblerPrologues);
-  setlength(AutoAssemblerPrologues, result+1);
-  AutoAssemblerPrologues[result]:=m;
+  result:=length(prologues^);
+  setlength(prologues^, result+1);
+  prologues^[result]:=m;
 end;
 
-procedure unregisterAutoAssemblerPrologue(id: integer);
+procedure unregisterAutoAssemblerPrologue(id: integer; postAOBSCAN: boolean=false);
+var prologues: PAutoAssemblerPrologues;
 begin
-  if id<length(AutoAssemblerPrologues) then
-    AutoAssemblerPrologues[id]:=nil;
+  if postAOBSCAN then prologues:=@AutoAssemblerProloguesPostAOBSCAN
+                 else prologues:=@AutoAssemblerPrologues;
+  if id<length(prologues^) then
+    prologues^[id]:=nil;
 end;
 
 procedure RegisterAutoAssemblerCommand(command: string; callback: TAutoAssemblerCallback);
@@ -1305,6 +1315,11 @@ begin
     //this will break scripts that use define(state,33) aobscan(name, 11 22 state 44 55), but really, live with it
 
     aobscans(code, syntaxcheckonly);
+
+    if not targetself then
+      for i:=0 to length(AutoAssemblerProloguesPostAOBSCAN)-1 do
+        if assigned(AutoAssemblerProloguesPostAOBSCAN[i]) then
+          AutoAssemblerProloguesPostAOBSCAN[i](code, syntaxcheckonly);
 
     //first pass
 
