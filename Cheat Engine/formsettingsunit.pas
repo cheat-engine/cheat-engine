@@ -64,6 +64,8 @@ type
     rbgDebuggerInterface: TRadioGroup;
     rbInt3AsBreakpoint: TRadioButton;
     SelectDirectoryDialog1: TSelectDirectoryDialog;
+    spbDown: TSpeedButton;
+    spbUp: TSpeedButton;
     tsKernelDebugConfig: TTabSheet;
     tsVEHDebugConfig: TTabSheet;
     tsWindowsDebuggerConfig: TTabSheet;
@@ -171,6 +173,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure cbShowDisassemblerClick(Sender: TObject);
     procedure LoadButtonClick(Sender: TObject);
+    procedure Panel3Click(Sender: TObject);
     procedure pcSettingChange(Sender: TObject);
     procedure rbInt3AsBreakpointChange(Sender: TObject);
     procedure replacewithnopsClick(Sender: TObject);
@@ -185,6 +188,8 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button4Click(Sender: TObject);
     procedure Button5Click(Sender: TObject);
+    procedure spbDownClick(Sender: TObject);
+    procedure spbUpClick(Sender: TObject);
     procedure tvMenuSelectionChange(Sender: TObject; Node: TTreeNode);
     procedure Panel6Resize(Sender: TObject);
     procedure cbProcessIconsClick(Sender: TObject);
@@ -961,6 +966,7 @@ begin
 
   cbDebuggerInterfaceChange(nil);
 
+  spbDown.top:=panel5.top+lvTools.Height-spbDown.height;
 
 
  // GroupBox2.top:=rbgDebuggerInterface.top+rbgDebuggerInterface.height+4;
@@ -975,6 +981,11 @@ procedure TformSettings.LoadButtonClick(Sender: TObject);
 begin
   if SelectDirectoryDialog1.Execute then
     edtTempScanFolder.text:=SelectDirectoryDialog1.FileName;
+end;
+
+procedure TformSettings.Panel3Click(Sender: TObject);
+begin
+
 end;
 
 procedure TformSettings.pcSettingChange(Sender: TObject);
@@ -1179,6 +1190,8 @@ begin
 
 
   tvMenuSelection.FullExpand;
+
+
 end;
 
 procedure TformSettings.cbKernelQueryMemoryRegionClick(Sender: TObject);
@@ -1247,6 +1260,24 @@ begin
   end;
 
 end;
+
+
+procedure TformSettings.spbUpClick(Sender: TObject);
+var
+  i: integer;
+  li: TListItem;
+begin
+  //move up
+  if lvtools.ItemIndex>=1 then
+    lvtools.items.Move(lvtools.ItemIndex, lvtools.ItemIndex-1);
+end;
+
+procedure TformSettings.spbDownClick(Sender: TObject);
+begin
+  if (lvtools.ItemIndex<>-1) and (lvtools.ItemIndex<lvtools.items.Count-1) then
+    lvtools.items.Move(lvtools.ItemIndex, lvtools.ItemIndex+1);
+end;
+
 
 procedure TformSettings.tvMenuSelectionChange(Sender: TObject;
   Node: TTreeNode);
@@ -1361,6 +1392,10 @@ begin
     lblShortcutText.caption:=lvtools.Selected.SubItems[1];
     edtToolsName.SetFocus;
   end;
+
+  spbDown.enabled:=lvTools.selected<>nil;
+  spbUp.Enabled:=spbDown.enabled;
+
 end;
 
 procedure TformSettings.edtApplicationToolChange(Sender: TObject);
