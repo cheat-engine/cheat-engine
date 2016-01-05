@@ -4,14 +4,14 @@ object MainForm: TMainForm
   Height = 554
   Hint = ' '
   Top = 144
-  Width = 613
+  Width = 573
   HelpContext = 3
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AllowDropFiles = True
   Caption = 'Cheat Engine 6.5'
   ClientHeight = 534
-  ClientWidth = 613
+  ClientWidth = 573
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Menu = MainMenu1
@@ -28,7 +28,7 @@ object MainForm: TMainForm
     Left = 0
     Height = 7
     Top = 345
-    Width = 613
+    Width = 573
     Align = alTop
     AutoSnap = False
     Beveled = True
@@ -42,7 +42,7 @@ object MainForm: TMainForm
     Left = 0
     Height = 165
     Top = 352
-    Width = 613
+    Width = 573
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
@@ -55,13 +55,13 @@ object MainForm: TMainForm
     Left = 0
     Height = 17
     Top = 517
-    Width = 613
+    Width = 573
     Align = alBottom
     ClientHeight = 17
-    ClientWidth = 613
+    ClientWidth = 573
     TabOrder = 1
     object Label7: TLabel
-      Left = 200
+      Left = 180
       Height = 13
       Top = 3
       Width = 229
@@ -87,7 +87,7 @@ object MainForm: TMainForm
       ParentShowHint = False
     end
     object CommentButton: TSpeedButton
-      Left = 516
+      Left = 476
       Height = 15
       Top = 1
       Width = 96
@@ -105,18 +105,18 @@ object MainForm: TMainForm
     Left = 0
     Height = 345
     Top = 0
-    Width = 613
+    Width = 573
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 345
-    ClientWidth = 613
+    ClientWidth = 573
     TabOrder = 2
     OnResize = Panel5Resize
     object ProcessLabel: TLabel
       Left = -24
       Height = 17
       Top = 0
-      Width = 670
+      Width = 630
       Alignment = taCenter
       Anchors = [akTop, akLeft, akRight]
       AutoSize = False
@@ -143,7 +143,7 @@ object MainForm: TMainForm
     end
     object ScanText: TLabel
       AnchorSideLeft.Control = scanvalue
-      Left = 330
+      Left = 290
       Height = 13
       Top = 80
       Width = 55
@@ -153,7 +153,7 @@ object MainForm: TMainForm
       ParentColor = False
     end
     object lblScanType: TLabel
-      Left = 275
+      Left = 235
       Height = 13
       Top = 124
       Width = 52
@@ -163,7 +163,7 @@ object MainForm: TMainForm
       ParentColor = False
     end
     object lblValueType: TLabel
-      Left = 273
+      Left = 233
       Height = 13
       Top = 148
       Width = 54
@@ -249,7 +249,7 @@ object MainForm: TMainForm
       ParentColor = False
     end
     object SpeedButton2: TSpeedButton
-      Left = 298
+      Left = 278
       Height = 22
       Hint = 'Delete all addresses from the list'
       Top = 320
@@ -275,7 +275,7 @@ object MainForm: TMainForm
       ParentShowHint = False
     end
     object SpeedButton3: TSpeedButton
-      Left = 265
+      Left = 225
       Height = 22
       Hint = 'Copy all selected items to the address list'
       Top = 294
@@ -353,7 +353,7 @@ object MainForm: TMainForm
     object cbSpeedhack: TCheckBox
       AnchorSideTop.Control = cbUnrandomizer
       AnchorSideTop.Side = asrBottom
-      Left = 505
+      Left = 465
       Height = 19
       Hint = 'Enable speedhack'
       Top = 214
@@ -370,7 +370,7 @@ object MainForm: TMainForm
     object btnNewScan: TButton
       AnchorSideLeft.Control = Foundlist3
       AnchorSideLeft.Side = asrBottom
-      Left = 291
+      Left = 251
       Height = 25
       Top = 48
       Width = 65
@@ -384,7 +384,7 @@ object MainForm: TMainForm
     object cbUnicode: TCheckBox
       AnchorSideLeft.Control = ScanType
       AnchorSideLeft.Side = asrBottom
-      Left = 508
+      Left = 468
       Height = 19
       Top = 128
       Width = 60
@@ -395,7 +395,7 @@ object MainForm: TMainForm
       Visible = False
     end
     object gbScanOptions: TGroupBox
-      Left = 298
+      Left = 258
       Height = 148
       Top = 168
       Width = 202
@@ -627,7 +627,7 @@ object MainForm: TMainForm
       AnchorSideLeft.Control = btnNewScan
       AnchorSideLeft.Side = asrBottom
       AnchorSideRight.Control = btnNewScan
-      Left = 366
+      Left = 326
       Height = 25
       Top = 48
       Width = 65
@@ -641,7 +641,7 @@ object MainForm: TMainForm
       TabOrder = 2
     end
     object ScanType: TComboBox
-      Left = 330
+      Left = 290
       Height = 21
       Top = 120
       Width = 170
@@ -667,7 +667,7 @@ object MainForm: TMainForm
       TabOrder = 5
     end
     object VarType: TComboBox
-      Left = 330
+      Left = 290
       Height = 21
       Top = 144
       Width = 170
@@ -708,7 +708,7 @@ object MainForm: TMainForm
     object btnAddAddressManually: TButton
       AnchorSideRight.Control = Panel5
       AnchorSideRight.Side = asrBottom
-      Left = 498
+      Left = 458
       Height = 17
       Top = 322
       Width = 115
@@ -722,7 +722,7 @@ object MainForm: TMainForm
       Height = 16
       Hint = 'This shows how far Cheat Engine is with searching'
       Top = 14
-      Width = 474
+      Width = 434
       Anchors = [akTop, akLeft, akRight]
       ParentShowHint = False
       ShowHint = True
@@ -730,7 +730,7 @@ object MainForm: TMainForm
       TabOrder = 9
     end
     object cbHexadecimal: TCheckBox
-      Left = 288
+      Left = 248
       Height = 19
       Hint = 'When checked the value you type in is hexadecimal'
       Top = 96
@@ -746,7 +746,7 @@ object MainForm: TMainForm
     end
     object UndoScan: TButton
       AnchorSideRight.Control = LogoPanel
-      Left = 499
+      Left = 459
       Height = 25
       Top = 48
       Width = 65
@@ -759,7 +759,7 @@ object MainForm: TMainForm
     end
     object rbBit: TRadioButton
       AnchorSideLeft.Control = rbDec
-      Left = 272
+      Left = 232
       Height = 19
       Top = 88
       Width = 40
@@ -772,7 +772,7 @@ object MainForm: TMainForm
     end
     object rbDec: TRadioButton
       AnchorSideRight.Control = scanvalue
-      Left = 272
+      Left = 232
       Height = 19
       Top = 105
       Width = 58
@@ -784,7 +784,7 @@ object MainForm: TMainForm
       Visible = False
     end
     object scanvalue: TEdit
-      Left = 330
+      Left = 290
       Height = 21
       Top = 96
       Width = 280
@@ -796,7 +796,7 @@ object MainForm: TMainForm
     end
     object cbCaseSensitive: TCheckBox
       AnchorSideLeft.Control = cbUnicode
-      Left = 508
+      Left = 468
       Height = 19
       Top = 146
       Width = 88
@@ -881,7 +881,7 @@ object MainForm: TMainForm
     object pnlFloat: TPanel
       AnchorSideRight.Control = Panel5
       AnchorSideRight.Side = asrBottom
-      Left = 505
+      Left = 465
       Height = 55
       Top = 120
       Width = 108
@@ -921,7 +921,7 @@ object MainForm: TMainForm
       end
     end
     object cbUnrandomizer: TCheckBox
-      Left = 505
+      Left = 465
       Height = 19
       Top = 195
       Width = 85
@@ -953,7 +953,7 @@ object MainForm: TMainForm
       Visible = False
     end
     object LogoPanel: TPanel
-      Left = 567
+      Left = 527
       Height = 84
       Top = 0
       Width = 50
@@ -1304,7 +1304,7 @@ object MainForm: TMainForm
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = Panel5
       AnchorSideRight.Side = asrBottom
-      Left = 500
+      Left = 460
       Height = 94
       Top = 233
       Width = 113
@@ -1410,7 +1410,7 @@ object MainForm: TMainForm
       Height = 268
       Hint = 'This list shows all the found addresses that matched your last scan'
       Top = 48
-      Width = 260
+      Width = 220
       Anchors = [akTop, akLeft, akRight, akBottom]
       Color = clBtnFace
       Columns = <      
@@ -1449,7 +1449,7 @@ object MainForm: TMainForm
     end
     object cbFloatSimple: TCheckBox
       AnchorSideLeft.Control = cbUnrandomizer
-      Left = 505
+      Left = 465
       Height = 19
       Top = 176
       Width = 107
@@ -1713,7 +1713,6 @@ object MainForm: TMainForm
     object Removeselectedaddresses1: TMenuItem
       Caption = 'Remove selected addresses'
       ShortCut = 16430
-      Visible = False
       OnClick = Removeselectedaddresses1Click
     end
     object Selectallitems1: TMenuItem

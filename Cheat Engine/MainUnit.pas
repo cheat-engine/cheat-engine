@@ -2017,12 +2017,9 @@ end;
 
 procedure TMainForm.CreateCbPercentage;
 begin
-
-
   if cbpercentage = nil then
   begin
     cbpercentage := tcheckbox.Create(self);
-  //  cbpercentage.AutoSize := True;
     cbpercentage.Left := cbUnrandomizer.left;
     cbpercentage.Top := scantype.Top + 2;
 
@@ -6350,7 +6347,8 @@ begin
     Browsethismemoryarrea1.Enabled := True;
   end;
 
-  Removeselectedaddresses1.Visible := not (GetVarType in [vtBinary, vtByteArray, vtAll]);
+  if Removeselectedaddresses1.enabled then
+    Removeselectedaddresses1.enabled := not (GetVarType in [vtBinary, vtByteArray, vtAll]);
 
   miChangeValue.enabled:=Browsethismemoryarrea1.enabled;
   miAddAddress.enabled:=Browsethismemoryarrea1.enabled;
