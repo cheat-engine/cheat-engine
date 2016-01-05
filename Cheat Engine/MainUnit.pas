@@ -6397,9 +6397,13 @@ begin
         mi.Caption:=TCustomType(customTypes[i]).name;
         mi.RadioItem:=miDisplayDouble.RadioItem;
         mi.AutoCheck:=miDisplayDouble.AutoCheck;
+        mi.GroupIndex:=miDisplayDouble.GroupIndex;
         mi.OnClick:=miChangeDisplayTypeClick;
         mi.tag:=1000+i;
         foundlistpopup.Items.Add(mi);
+
+        if foundlistDisplayOverride=mi.tag then
+          mi.Checked:=true;
       end;
     end;
   end;
@@ -7902,7 +7906,10 @@ begin
         end;
       end;
 
-      value:=readAndParseAddress(address, valuetype, ct, hexadecimal);
+      if valuetype=vtAll then
+        value:=readAndParseAddress(address, TVariableType(extra), ct, hexadecimal)
+      else
+        value:=readAndParseAddress(address, valuetype, ct, hexadecimal);
     end;
 
 
