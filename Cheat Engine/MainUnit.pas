@@ -2017,11 +2017,13 @@ end;
 
 procedure TMainForm.CreateCbPercentage;
 begin
+
+
   if cbpercentage = nil then
   begin
     cbpercentage := tcheckbox.Create(self);
-    cbpercentage.AutoSize := True;
-    cbpercentage.Left := cbFloatSimple.left;
+  //  cbpercentage.AutoSize := True;
+    cbpercentage.Left := cbUnrandomizer.left;
     cbpercentage.Top := scantype.Top + 2;
 
     cbpercentage.Parent := scantype.Parent;
