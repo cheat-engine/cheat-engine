@@ -3870,13 +3870,13 @@ begin
       Add('bytecount=4  --number of bytes of this type');
       Add('functionbasename="' + fbn + '"');
       Add('');
-      Add('function ' + fbn + '_bytestovalue(b1,b2,b3,b4)');
+      Add('function ' + fbn + '_bytestovalue(b1,b2,b3,b4,address)');
       Add('--Add extra byte parameters as required');
       Add('return 123');
       Add('');
       Add('end');
       Add('');
-      Add('function ' + fbn + '_valuetobytes(i)');
+      Add('function ' + fbn + '_valuetobytes(i,address)');
       Add('');
       Add('--return the bytes to write (usually only used when you change the value)');
       Add('return 0,0,0,0');
