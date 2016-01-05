@@ -2570,6 +2570,9 @@ var reg: tregistry;
     buf: PIntegerArray;
     i: integer;
     z: integer;
+
+    r: trect;
+    m: TMonitor;
 begin
   result:=false;
   buf:=nil;
@@ -2603,12 +2606,24 @@ begin
           form.width:=buf[2];
           form.height:=buf[3];
 
-          if form.top<screen.WorkAreaTop then form.top:=screen.WorkAreaTop;
-          if form.left<screen.WorkAreaLeft then form.left:=screen.WorkAreaLeft;
+          r.top:=buf[0];
+          r.Left:=buf[1];
+          r.Right:=buf[2]+buf[1];
+          r.Bottom:=buf[3]+buf[0];
 
 
-          if form.Top>Screen.WorkAreaHeight-form.height then form.top:=screen.WorkAreaHeight-form.height;
-          if form.Left>Screen.WorkAreaWidth-form.Width then form.left:=screen.WorkAreaWidth-form.Width;
+          m:=screen.MonitorFromRect(r, mdNull);
+          if m=nil then
+          begin
+            m:=screen.MonitorFromRect(r);
+
+            if form.top<m.WorkareaRect.Top then form.top:=m.WorkareaRect.Top;
+            if form.left<m.WorkareaRect.Left then form.left:=m.WorkareaRect.Left;
+
+
+            if form.Top>m.WorkareaRect.Bottom-form.height then form.top:=m.WorkareaRect.Bottom-form.height;
+            if form.Left>m.WorkareaRect.Right-form.Width then form.left:=m.WorkareaRect.Right-form.Width;
+          end;
 
 
           for i:=0 to length(x)-1 do
