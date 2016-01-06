@@ -46,7 +46,7 @@ begin
   result:=0;
   memscan:=luaclass_getClassObject(L, @paramstart, @paramcount);
 
-  if paramcount=14 then
+  if paramcount>=14 then
   begin
     scanOption:=TScanOption(lua_tointeger(L, paramstart));
     vartype:=TVariableType(lua_tointeger(L, paramstart+1));
@@ -99,7 +99,7 @@ begin
   memscan:=luaclass_getClassObject(L, @paramstart, @paramcount);
 
 
-  if paramcount>=10 then
+  if paramcount>=9 then
   begin
     scanOption:=TScanOption(lua_tointeger(L, paramstart+0));
     roundingtype:=TRoundingType(lua_tointeger(L, paramstart+1));
@@ -112,7 +112,7 @@ begin
     iscasesensitive:=lua_toboolean(L, paramstart+7);
     ispercentagescan:=lua_toboolean(L, paramstart+8);
 
-    if paramcount=10 then
+    if paramcount>9 then
       savedscanname:=Lua_ToString(L, paramstart+9)
     else
       savedscanname:='';
