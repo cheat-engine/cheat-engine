@@ -174,6 +174,7 @@ type
     procedure cbShowDisassemblerClick(Sender: TObject);
     procedure LoadButtonClick(Sender: TObject);
     procedure Panel3Click(Sender: TObject);
+    procedure Panel3Resize(Sender: TObject);
     procedure pcSettingChange(Sender: TObject);
     procedure rbInt3AsBreakpointChange(Sender: TObject);
     procedure replacewithnopsClick(Sender: TObject);
@@ -966,7 +967,7 @@ begin
 
   cbDebuggerInterfaceChange(nil);
 
-  spbDown.top:=panel5.top+lvTools.Height-spbDown.height;
+
 
 
  // GroupBox2.top:=rbgDebuggerInterface.top+rbgDebuggerInterface.height+4;
@@ -986,6 +987,11 @@ end;
 procedure TformSettings.Panel3Click(Sender: TObject);
 begin
 
+end;
+
+procedure TformSettings.Panel3Resize(Sender: TObject);
+begin
+  spbDown.top:=panel4.top-spbDown.height;
 end;
 
 procedure TformSettings.pcSettingChange(Sender: TObject);

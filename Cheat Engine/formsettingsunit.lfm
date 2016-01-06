@@ -1,7 +1,7 @@
 object formSettings: TformSettings
-  Left = 774
+  Left = 1053
   Height = 540
-  Top = 308
+  Top = 315
   Width = 772
   BorderIcons = [biSystemMenu]
   Caption = 'Cheat Engine settings'
@@ -1278,6 +1278,7 @@ object formSettings: TformSettings
           ClientWidth = 228
           TabOrder = 1
           OnClick = Panel3Click
+          OnResize = Panel3Resize
           object lblApplicationTool: TLabel
             Left = 10
             Height = 13
