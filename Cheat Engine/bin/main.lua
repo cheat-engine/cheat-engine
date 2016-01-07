@@ -814,16 +814,34 @@ createEdit(owner): Creates an Edit class object which belongs to the given owner
 
 properties
   Text: string - The current contents of the editfield
+  SelText: string - The current selected contents of the edit field (readonly)
+  SelStart: number - The starting index of the current selection (zero-indexed, readonly)
+  SelLength: number - The length of the current selection. (readonly)
   OnChange: function - The function to call when the editfield is changed
+  OnKeyPress: function - The function to call for the KeyPress event.
+  OnKeyUp: function - The function to call for the KeyUp event.
+  OnKeyDown: function - The function to call for the KeyDown event.
 
 methods
   clear()
-  selectAll()
-  clearSelection()
   copyToClipboard()
   cutToClipboard()
   pasteFromClipboard()
-  onChange(function)
+  selectAll()
+  select(start, length OPTIONAL)
+  selectText(start, length OPTIONAL) : Set the control's current selection. If no length is specified, selects everything after start.
+  clearSelection()
+  getSelText()
+  getSelStart()
+  getSelLength()
+  getOnChange()
+  setOnChange(function)
+  getOnKeyPress()
+  setOnKeyPress(function)
+  getOnKeyUp()
+  setOnKeyUp(function)
+  getOnKeyDown()
+  setOnKeyDown(function)
 
 
 Memo Class: (Inheritance: Edit->WinControl->Control->Component->Object)
@@ -1008,8 +1026,8 @@ methods
   setMin(trackbar, integer)
   getPosition(progressbar)
   setPosition(progressbar, integer)
-  getOnChange(function)
-  setOnChange()
+  getOnChange()
+  setOnChange(function)
 
 
 CollectionItem Class: (Inheritance: Object)
