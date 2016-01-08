@@ -487,6 +487,8 @@ begin
     messagedlg(rsErrorDuringScan+': '+staticscanner.errorString, mtError, [mbok] , 0);
 
   doneui;
+
+  if SkipNextScanSettings then close;
 end;
 
 {
@@ -921,7 +923,6 @@ var
   SkipNextScanSettingsWasTrue: boolean;
 begin
   SkipNextScanSettingsWasTrue:=SkipNextScanSettings;
-  SkipNextScanSettings:=false;
 
   FloatSettings:=DefaultFormatSettings;
 

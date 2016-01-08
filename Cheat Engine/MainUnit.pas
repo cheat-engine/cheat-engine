@@ -6589,6 +6589,8 @@ begin
     pluginhandler:=nil;
   end;
 
+
+
 end;
 
 
@@ -7641,34 +7643,27 @@ end;
 procedure TMainForm.miGeneratePointermapClick(Sender: TObject);
 var
   frmPointerScanner: TfrmPointerScanner;
-  originalAlligned: boolean;
-  originalConnect: boolean;
-
+  oldSettingsForm: tfrmpointerscannersettings;
 begin
   frmPointerScanner := tfrmpointerscanner.Create(self);
   frmPointerScanner.Show;
 
-  if frmpointerscannersettings = nil then //used over and over
+  oldSettingsForm:=frmpointerscannersettings;
+
+  frmpointerscannersettings := tfrmpointerscannersettings.Create(self);
+
+  if processhandler.is64Bit then
+    frmpointerscannersettings.edtReverseStop.text:='7FFFFFFFFFFFFFFF'
+  else
   begin
-    frmpointerscannersettings := tfrmpointerscannersettings.Create(self);
-
-    if processhandler.is64Bit then
-      frmpointerscannersettings.edtReverseStop.text:='7FFFFFFFFFFFFFFF'
+    if Is64bitOS then
+      frmpointerscannersettings.edtReverseStop.text:='FFFFFFFF'
     else
-    begin
-      if Is64bitOS then
-        frmpointerscannersettings.edtReverseStop.text:='FFFFFFFF'
-      else
-        frmpointerscannersettings.edtReverseStop.text:='7FFFFFFF';
-    end;
+      frmpointerscannersettings.edtReverseStop.text:='7FFFFFFF';
   end;
-  originalAlligned:=frmpointerscannersettings.CbAlligned.checked;
+
   frmpointerscannersettings.CbAlligned.checked:=true;
-
-  originalConnect:=frmpointerscannersettings.cbConnectToNode.checked;
   frmpointerscannersettings.cbConnectToNode.checked:=false;
-
-
 
   frmpointerscannersettings.rbGeneratePointermap.checked:=true;
   frmpointerscannersettings.btnOk.Click;
@@ -7676,8 +7671,9 @@ begin
   frmPointerScanner.SkipNextScanSettings:=true;
   frmPointerScanner.Method3Fastspeedandaveragememoryusage1.Click;
 
-  frmpointerscannersettings.CbAlligned.checked:=originalAlligned;
-  frmpointerscannersettings.cbConnectToNode.checked:=originalConnect;
+  freeandnil(frmpointerscannersettings);
+
+  frmpointerscannersettings:=oldSettingsForm;
 end;
 
 procedure TMainForm.Pointerscanforthisaddress1Click(Sender: TObject);
