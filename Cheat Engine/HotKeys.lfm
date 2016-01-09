@@ -44,6 +44,7 @@ object HotKeyForm: THotKeyForm
       end>
     HideSelection = False
     PopupMenu = pmHotkeylist
+    ReadOnly = True
     RowSelect = True
     TabOrder = 0
     ViewStyle = vsReport

@@ -487,6 +487,8 @@ begin
     messagedlg(rsErrorDuringScan+': '+staticscanner.errorString, mtError, [mbok] , 0);
 
   doneui;
+
+  if SkipNextScanSettings then close;
 end;
 
 {
@@ -921,7 +923,6 @@ var
   SkipNextScanSettingsWasTrue: boolean;
 begin
   SkipNextScanSettingsWasTrue:=SkipNextScanSettings;
-  SkipNextScanSettings:=false;
 
   FloatSettings:=DefaultFormatSettings;
 
@@ -937,7 +938,11 @@ begin
 
     if frmpointerscannersettings.rbGeneratePointermap.checked then //show a .scandata dialog instad of a .ptr
     begin
-      if not savedialog2.execute then exit;
+      if not savedialog2.execute then
+      begin
+        if SkipNextScanSettings then close;
+        exit;
+      end;
       filename:=savedialog2.filename;
     end
     else

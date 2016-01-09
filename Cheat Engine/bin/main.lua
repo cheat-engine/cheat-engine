@@ -10,6 +10,8 @@ require("defines")
 List of CE specific functions and variables:
 
 TrainerOrigin : A variable that contains the path of the trainer that launched cheat engine (Only set when launched as a trainer)
+process : A variable that contains the main modulename of the currently opened process
+
 getCEVersion(): Returns a floating point value specifying the version of cheat engine
 
 
@@ -100,12 +102,16 @@ ansiToUtf8(string): Converts a string in Ansi encoding to UTF8
 utf8ToAnsi(string): Converts a string in UTF8 encoding to Ansi
 Note: GUI components mainly show in UTF8, some other functions use Ansi, try to find out which ones...
 
+
 enumModules(processid OPTIONAL):
   Returns a table containing information about each module in the current process, or the specified processid
   Each entry is a table with fields
     Name : String containing the modulename    Address: Integer representing the address the module is loaded
     Is64Bit: Boolean set to true if it's a 64-bit module
     PathToFile: String to the location this module is loaded
+
+md5memory(address, size): Returns a md5 sum calculated from the provided memory. 
+md5file(pathtofile): Returns a md5 sum calculated from the file. 
 
 
 getAddress(string, local OPTIONAL): returns the address of a symbol. Can be a modulename or an export. set Local to true if you wish to querry the symboltable of the ce process
@@ -178,7 +184,7 @@ registerAssembler(function(address, instruction):bytetable)
 
 unregisterAssembler(ID): Unregisters the registered assembler
 
-registerAutoAssemblerPrologue(function(script, syntaxcheck))
+registerAutoAssemblerPrologue(function(script, syntaxcheck), postAOB:boolean=false)
   Registers a function to be called when the auto assembler is about to parse an auto assembler script. The script you get is after the [ENABLE] and [DISABLE] tags have been used to strip the script to the according one, but before comment stripping and trimming has occured
 
   script is a Strings object which when changed has direct effect to the script
@@ -249,6 +255,8 @@ speedhack_setSpeed(speed) : Enables the speedhack if needed and sets the specifi
 speedhack_getSpeed(): Returns the last set speed
 
 injectDLL(filename): Injects a dll, and returns true on success
+executeCode(address, parameter OPTIONAL, timeout OPTIONAL) : address - Executes a stdcall function with 1 parameter at the given address in the target process  and wait for it to return. The return value is the result of the function that was called
+executeCodeLocal(addres, parameter OPTIONAL): address -  Executes a stdcall function with 1 parameter at the given address in the target process. The return value is the result of the function that was called
 
 loadPlugin(dllnameorpath): Loads the given plugin. Returns nil on failure. On success returns a value of 0 or greater
 
@@ -596,6 +604,9 @@ methods
   getOnEnter()
   setOnExit(function) : Sets an onExit event. (Triggered on lost focus)
   getOnExit()
+  setLayeredAttributes(Key, Alpha, Flags) : Sets the layered state for the control if possible (Only Forms are supported in in windows 7 and earlier)
+      flags can be a combination of LWA_ALPHA and/or LWA_COLORKEY
+      See msdn SetLayeredWindowAttributes for more information
 
 
 MenuItem class(Inheritance: Component->Object)
@@ -803,16 +814,34 @@ createEdit(owner): Creates an Edit class object which belongs to the given owner
 
 properties
   Text: string - The current contents of the editfield
+  SelText: string - The current selected contents of the edit field (readonly)
+  SelStart: number - The starting index of the current selection (zero-indexed, readonly)
+  SelLength: number - The length of the current selection. (readonly)
   OnChange: function - The function to call when the editfield is changed
+  OnKeyPress: function - The function to call for the KeyPress event.
+  OnKeyUp: function - The function to call for the KeyUp event.
+  OnKeyDown: function - The function to call for the KeyDown event.
 
 methods
   clear()
-  selectAll()
-  clearSelection()
   copyToClipboard()
   cutToClipboard()
   pasteFromClipboard()
-  onChange(function)
+  selectAll()
+  select(start, length OPTIONAL)
+  selectText(start, length OPTIONAL) : Set the control's current selection. If no length is specified, selects everything after start.
+  clearSelection()
+  getSelText()
+  getSelStart()
+  getSelLength()
+  getOnChange()
+  setOnChange(function)
+  getOnKeyPress()
+  setOnKeyPress(function)
+  getOnKeyUp()
+  setOnKeyUp(function)
+  getOnKeyDown()
+  setOnKeyDown(function)
 
 
 Memo Class: (Inheritance: Edit->WinControl->Control->Component->Object)
@@ -997,8 +1026,8 @@ methods
   setMin(trackbar, integer)
   getPosition(progressbar)
   setPosition(progressbar, integer)
-  getOnChange(function)
-  setOnChange()
+  getOnChange()
+  setOnChange(function)
 
 
 CollectionItem Class: (Inheritance: Object)
@@ -1453,6 +1482,12 @@ methods
 FileStream Class (Inheritance: HandleStream->Stream->Object)
 createFileStream(filename, mode)
 
+StringStream Class (Inheritance: Stream->Object)
+createStringStream(string)
+
+properties
+DataString: The internal string
+
 
 TableFile class (Inheritance: Object)
 findTableFile(filename): Returns the TableFile class object for the saved file
@@ -1591,6 +1626,22 @@ methods
 
   getHotkey(index): Returns the hotkey from the hotkey array
   getHotkeyByID(integer): Returns the hotkey with the given id
+
+
+global events
+  function onMemRecPreExecute(memoryrecord, newstate BOOLEAN):
+    If above function is defined it will be called before action* has been performed.
+    Active property is about to change to newState.
+  
+  function onMemRecPostExecute(memoryrecord, newState BOOLEAN, succeeded BOOLEAN):
+    If above function is defined it will be called after action*.
+    Active property was supposed to change to newState.
+    If 'succeeded' is true it means that Active state has changed and is newState.
+    
+    newState and succeeded are read only.
+  
+    *action can be: running auto assembler script (ENABLE or DISABLE section), freezing and unfreezing.
+  
 
 
 Addresslist Class: (Inheritance: Panel->WinControl->Control->Component->Object)
@@ -2181,7 +2232,8 @@ methods:
   loadFromFile(filename)
 
 RIPRelativeScanner class: (Inheritance: Object)
-createRipRelativeScanner(modulename): Creates a RIP relative scanner. This will scan the provided module for RIP relative instructions which you can use for whatever you like
+createRipRelativeScanner(startaddress, stopaddress, includejumpsandcalls OPTIONAL):
+createRipRelativeScanner(modulename, includejumpsandcalls OPTIONAL): Creates a RIP relative scanner. This will scan the provided module for RIP relative instructions which you can use for whatever you like
 properties:
   Count: integer - The number of instructions found that have a RIP relative address
   Address[]: integer - An array to access the results. The address is the address of the RIP relative offset in the instruction
@@ -2267,7 +2319,7 @@ Settings class
   This class can be used to read out and set settings of cheat engine and of plugins, and store your own data
 
 global functions
-  getSettings(path Optional): Settings - Returns a settings object. If path is nil it will points to the Cheat Engine main settings (Registry) . If name is provides the settings currently accessed will be the one at the subkey provided
+  getSettings(path Optional): Settings - Returns a settings object. If path is nil it will points to the Cheat Engine main settings (Registry) . If name is provided the settings currently accessed will be the one at the subkey provided
   Note: Keep in mind that it returns a new object each call, even if he same name is used multiple times
 
 
@@ -2336,6 +2388,14 @@ properties
   TabIndex: integer - the current index in the pagelist of the owning pagecontrol
 methods
 
+Internet class (Object)
+global functions
+  getInternet(string) - Returns an internet class object
+
+properties
+  Header : string - the additional header to be sent with the next getURL request
+methods
+  getURL(path) - returns a string containing the contents of the url. nil on failure
 
 
 

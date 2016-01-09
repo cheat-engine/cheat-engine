@@ -783,7 +783,8 @@ end;
 //plugin type 6:
 //where: rightclick context of the disassembler
 type TPluginfunction6=function(selectedAddress: pptruint):bool; stdcall;
-type Tpluginfuntion6OnContext=function(selectedAddress: ptruint; addressofname: pointer):bool; stdcall;
+type Tpluginfuntion6OnContext=function(selectedAddress: ptruint; addressofname: pointer; show: pbool):bool; stdcall;
+type Tpluginfuntion6OnContextVersion5=function(selectedAddress: ptruint; addressofname: pointer):bool; stdcall;
 
 //private plugin data
 type TPluginfunctionType6=class
@@ -1599,6 +1600,7 @@ procedure TPluginHandler.handledisassemblerContextPopup(address: ptruint);
 var i,j: integer;
     addressofmenuitemstring: pchar;
     s: string;
+    show: bool;
 begin
   pluginCS.Enter;
   try
@@ -1607,8 +1609,14 @@ begin
       begin
         s:=plugins[i].RegisteredFunctions6[j].menuitem.Caption;
         addressofmenuitemstring:=@s[1];
-        plugins[i].RegisteredFunctions6[j].callbackOnContext(address, @addressofmenuitemstring);
+        show:=true;
+        if plugins[i].pluginversion<=5 then
+          Tpluginfuntion6OnContextVersion5(plugins[i].RegisteredFunctions6[j].callbackOnContext)(address, @addressofmenuitemstring)
+        else
+          plugins[i].RegisteredFunctions6[j].callbackOnContext(address, @addressofmenuitemstring, @show);
+
         plugins[i].RegisteredFunctions6[j].menuitem.Caption:=addressofmenuitemstring;
+        plugins[i].RegisteredFunctions6[j].menuitem.Visible:=show;
       end;
   finally
     pluginCS.Leave;

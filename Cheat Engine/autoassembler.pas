@@ -33,7 +33,7 @@ end;
 
 procedure RegisterAutoAssemblerCommand(command: string; callback: TAutoAssemblerCallback);
 procedure UnregisterAutoAssemblerCommand(command: string);
-function registerAutoAssemblerPrologue(m: TAutoAssemblerPrologue): integer;
+function registerAutoAssemblerPrologue(m: TAutoAssemblerPrologue; postAOBSCAN: boolean=false): integer;
 procedure unregisterAutoAssemblerPrologue(id: integer);
 
 
@@ -77,6 +77,8 @@ resourcestring
   rsTheArrayOfByteCouldNotBeFound = 'The array of byte ''%s'' could not be found';
   rsWrongSyntaxAOBSCANName11223355 = 'Wrong syntax. AOBSCAN(name,11 22 33 ** 55)';
   rsWrongSyntaxAOBSCANMODULEName11223355 = 'Wrong syntax. AOBSCANMODULE(name, module, 11 22 33 ** 55)';
+  rsWrongSyntaxAOBSCANREGION = 'Wrong syntax. AOBSCANREGION(name, startaddress, stopaddress, 11 22 33 ** 55)';
+
 
   rsDefineAlreadyDefined = 'Define %s already defined';
   rsWrongSyntaxDEFINENameWhatever = 'Wrong syntax. DEFINE(name,whatever)';
@@ -120,33 +122,59 @@ resourcestring
 //type
 //  TregisteredAutoAssemblerCommands =  TFPGList<TRegisteredAutoAssemblerCommand>;
 
+type
+  TAutoAssemblerPrologues=array of TAutoAssemblerPrologue;
+  PAutoAssemblerPrologues=^TAutoAssemblerPrologues;
 var
   registeredAutoAssemblerCommands: TList;
 
-  AutoAssemblerPrologues: array of TAutoAssemblerPrologue;
+  AutoAssemblerPrologues: TAutoAssemblerPrologues;
+  AutoAssemblerProloguesPostAOBSCAN: TAutoAssemblerPrologues;
 
-function registerAutoAssemblerPrologue(m: TAutoAssemblerPrologue): integer;
+function registerAutoAssemblerPrologue(m: TAutoAssemblerPrologue; postAOBSCAN: boolean=false): integer;
 var i: integer;
+    prologues: PAutoAssemblerPrologues;
 begin
-  for i:=0 to length(AutoAssemblerPrologues)-1 do
+  if postAOBSCAN then prologues:=@AutoAssemblerProloguesPostAOBSCAN
+                 else prologues:=@AutoAssemblerPrologues;
+  for i:=0 to length(prologues^)-1 do
   begin
-    if assigned(AutoAssemblerPrologues[i])=false then
+    if assigned(prologues^[i])=false then
     begin
-      AutoAssemblerPrologues[i]:=m;
-      result:=i;
+      prologues^[i]:=m;
+      result:=i+1;
+
+      if postAOBSCAN then
+        result:=-result;
+
       exit;
     end
   end;
 
-  result:=length(AutoAssemblerPrologues);
-  setlength(AutoAssemblerPrologues, result+1);
-  AutoAssemblerPrologues[result]:=m;
+  result:=length(prologues^)+1;  //first one is id 1
+  setlength(prologues^, result);
+  prologues^[result-1]:=m;
+
+  if postAOBSCAN then
+    result:=-result; //first one is id -1
 end;
 
 procedure unregisterAutoAssemblerPrologue(id: integer);
+var
+  prologues: PAutoAssemblerPrologues;
 begin
-  if id<length(AutoAssemblerPrologues) then
-    AutoAssemblerPrologues[id]:=nil;
+  if id=0 then exit; //does not exist
+
+  if id<0 then
+  begin
+    prologues:=@AutoAssemblerProloguesPostAOBSCAN;
+    id:=-id;
+  end
+  else
+    prologues:=@AutoAssemblerPrologues;
+
+  if id<=length(prologues^) then
+    prologues^[id-1]:=nil;
 end;
 
 procedure RegisterAutoAssemblerCommand(command: string; callback: TAutoAssemblerCallback);
@@ -681,9 +709,9 @@ var i,j,k, m: integer;
       memscan: TMemScan;
     end;
 
-    a,b,c,d: integer;
+    a,b,c,d,e: integer;
     currentline: string;
-    s1,s2, s3: string;
+    s1,s2, s3,s4: string;
     testptr: ptruint;
 
     cpucount: integer;
@@ -695,6 +723,8 @@ var i,j,k, m: integer;
     errorstring: string;
 
     aob1, aob2: dword;
+
+    startaddress, stopaddress: ptruint;
 
   procedure finished(f: integer);
   //cleanup a memscan and fill in the results
@@ -896,8 +926,60 @@ begin
 
       end else raise exception.Create(rsWrongSyntaxAOBSCANMODULEName11223355);
     end;
-  end;
 
+    if uppercase(copy(currentline,1,14))='AOBSCANREGION(' then //AOBSCANREGION(varname, startaddress, stopaddress, bytestring)
+    begin
+      a:=pos('(',currentline);
+      b:=pos(',',currentline);
+      c:=PosEx(',',currentline,b+1);
+      d:=PosEx(',',currentline,c+1);
+      e:=pos(')',currentline);
+
+      if (d<=a) or (b<=a) or (c<=a) or (d<=a) or (e<=a) then raise exception.create(rsWrongSyntaxAOBSCANREGION);
+
+      s1:=trim(copy(currentline,a+1,b-a-1));
+      s2:=trim(copy(currentline,b+1,c-b-1));
+      s3:=trim(copy(currentline,c+1,d-c-1));
+      s4:=trim(copy(currentline,d+1,e-d-1));
+
+      if (not syntaxcheckonly) then
+      begin
+        startaddress:=symhandler.getAddressFromName(s2);
+        stopaddress:=symhandler.getAddressFromName(s3);
+
+        //see if this region is already being scanned
+        m:=-1;
+        for j:=0 to length(aobscanmodules)-1 do
+        begin
+          //exact address only. No widening/appending of the groups is possible (Users may want to scan for 00 00 in a 16 byte region)
+          if (startaddress=aobscanmodules[j].minaddress) and (stopaddress=aobscanmodules[j].maxaddress) then
+          begin
+            m:=j;
+            break;
+          end;
+        end;
+
+        if m=-1 then
+        begin
+          setlength(aobscanmodules, length(aobscanmodules)+1);
+          m:=length(aobscanmodules)-1;
+          aobscanmodules[m].name:='<REGION>';
+          aobscanmodules[m].minaddress:=startaddress;
+          aobscanmodules[m].maxaddress:=stopaddress;
+          setlength(aobscanmodules[m].entries,0);
+        end;
+
+        j:=length(aobscanmodules[m].entries);
+        setlength(aobscanmodules[m].entries, j+1);
+        aobscanmodules[m].entries[j].name:=s1;
+        aobscanmodules[m].entries[j].aobstring:=s4;
+        aobscanmodules[m].entries[j].linenumber:=i;
+      end
+      else
+        code[i]:='DEFINE('+s1+', 00000000)';
+
+    end;
+  end;
   //do simultaneous scans for the selected modules
   for i:=0 to length(aobscanmodules)-1 do
   begin
@@ -1249,6 +1331,11 @@ begin
     //this will break scripts that use define(state,33) aobscan(name, 11 22 state 44 55), but really, live with it
 
     aobscans(code, syntaxcheckonly);
+
+    if not targetself then
+      for i:=0 to length(AutoAssemblerProloguesPostAOBSCAN)-1 do
+        if assigned(AutoAssemblerProloguesPostAOBSCAN[i]) then
+          AutoAssemblerProloguesPostAOBSCAN[i](code, syntaxcheckonly);
 
     //first pass
 

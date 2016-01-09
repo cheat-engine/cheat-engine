@@ -84,6 +84,11 @@ type
 
     edtAlignment: record
       Text: string;
+      Enabled: boolean;
+    end;
+
+    rbFsmAligned:record
+      checked: boolean;
     end;
 
 
@@ -2015,8 +2020,7 @@ begin
   if cbpercentage = nil then
   begin
     cbpercentage := tcheckbox.Create(self);
-    cbpercentage.AutoSize := True;
-    cbpercentage.Left := scantype.Left + scantype.Width + 5;
+    cbpercentage.Left := cbUnrandomizer.left;
     cbpercentage.Top := scantype.Top + 2;
 
     cbpercentage.Parent := scantype.Parent;
@@ -2028,6 +2032,7 @@ begin
   else
     cbpercentage.Caption := rsAtLeastXx;
 
+  UpdateFloatRelatedPositions;
 end;
 
 procedure TMainForm.DestroyCbPercentage;
@@ -2037,6 +2042,8 @@ begin
     cbpercentage.Checked := False;
     FreeAndNil(cbpercentage);
   end;
+  UpdateFloatRelatedPositions;
+
 end;
 //------------------
 
@@ -3863,13 +3870,13 @@ begin
       Add('bytecount=4  --number of bytes of this type');
       Add('functionbasename="' + fbn + '"');
       Add('');
-      Add('function ' + fbn + '_bytestovalue(b1,b2,b3,b4)');
+      Add('function ' + fbn + '_bytestovalue(b1,b2,b3,b4,address)');
       Add('--Add extra byte parameters as required');
       Add('return 123');
       Add('');
       Add('end');
       Add('');
-      Add('function ' + fbn + '_valuetobytes(i)');
+      Add('function ' + fbn + '_valuetobytes(i,address)');
       Add('');
       Add('--return the bytes to write (usually only used when you change the value)');
       Add('return 0,0,0,0');
@@ -4041,6 +4048,9 @@ begin
 
   scanstate.cbfastscan.Checked := cbFastScan.Checked;
   scanstate.edtAlignment.Text := edtAlignment.Text;
+  scanstate.edtAlignment.enabled:=edtAlignment.enabled;
+
+  scanstate.rbFsmAligned.checked:=rbFsmAligned.checked;
 
   scanstate.scanvalue.Text := scanvalue.Text;
   scanstate.scanvalue.Visible := scanvalue.Visible;
@@ -4207,10 +4217,19 @@ begin
 
     btnNextScan.Enabled := newstate.nextscanstate.Enabled;
 
-    cbFastScan.Checked := newstate.cbfastscan.Checked;
-    edtAlignment.Text := newstate.edtAlignment.Text;
-
     setGbScanOptionsEnabled(newstate.gbScanOptionsEnabled);
+
+    cbFastScan.OnChange:=nil;
+    cbFastScan.Checked := newstate.cbfastscan.Checked;
+    cbFastScan.OnChange:=cbFastScanChange;
+
+    edtAlignment.Text := newstate.edtAlignment.Text;
+    edtAlignment.Enabled:=newstate.edtAlignment.enabled;
+    rbFsmAligned.checked:=newstate.rbFsmAligned.checked;
+    if rbFsmAligned.checked=false then
+      rbfsmLastDigts.checked:=true;
+
+
 
     cbFastScanClick(cbfastscan);    //update the alignment textbox
 
@@ -4447,9 +4466,11 @@ begin
     cbFloatSimple.top:=pnlFloat.top;
     cbUnrandomizer.top:=gbScanOptions.top;
 
-    cbFloatSimple.visible:=getVarType in [vtSingle, vtDouble, vtAll];
+    cbFloatSimple.visible:=(getVarType in [vtSingle, vtDouble, vtAll]) and (GetScanType<>soUnknownValue);
   end;
 
+  if cbpercentage<>nil then
+    cbFloatSimple.Top:=cbpercentage.top+cbpercentage.Height;
 
 end;
 
@@ -5428,6 +5449,7 @@ begin
   mr:=addresslist.addAddressManually(lastAddedAddress);
   if mr<>nil then
     lastAddedAddress:=mr.interpretableaddress; //store the last used string
+
 end;
 
 procedure TMainForm.ScanTypeChange(Sender: TObject);
@@ -6325,7 +6347,8 @@ begin
     Browsethismemoryarrea1.Enabled := True;
   end;
 
-  Removeselectedaddresses1.Visible := not (GetVarType in [vtBinary, vtByteArray, vtAll]);
+  if Removeselectedaddresses1.enabled then
+    Removeselectedaddresses1.enabled := not (GetVarType in [vtBinary, vtByteArray, vtAll]);
 
   miChangeValue.enabled:=Browsethismemoryarrea1.enabled;
   miAddAddress.enabled:=Browsethismemoryarrea1.enabled;
@@ -6374,9 +6397,13 @@ begin
         mi.Caption:=TCustomType(customTypes[i]).name;
         mi.RadioItem:=miDisplayDouble.RadioItem;
         mi.AutoCheck:=miDisplayDouble.AutoCheck;
+        mi.GroupIndex:=miDisplayDouble.GroupIndex;
         mi.OnClick:=miChangeDisplayTypeClick;
         mi.tag:=1000+i;
         foundlistpopup.Items.Add(mi);
+
+        if foundlistDisplayOverride=mi.tag then
+          mi.Checked:=true;
       end;
     end;
   end;
@@ -6561,6 +6588,8 @@ begin
     pluginhandler.free;
     pluginhandler:=nil;
   end;
+
+
 
 end;
 
@@ -6933,8 +6962,14 @@ begin
   if (month = 7) and (day = 1) then
     ShowMessage(strhappybirthday);
   if (month = 1) and (day = 1) then
-    ShowMessage(strnewyear);
-  if (month = 1) and (day = 1) and (year >= 2015) then
+  begin
+    if reg.ValueExists('ShownHappyNewYear'+inttostr(year))=false then
+    begin
+      ShowMessage(strnewyear);
+      reg.WriteBool('ShownHappyNewYear'+inttostr(year), true);
+    end;
+  end;
+  if (month = 1) and (day = 1) and (year >= 2020) then
     ShowMessage(strFuture);
 
   if (month = 4) and (day = 1) then
@@ -7019,6 +7054,9 @@ begin
 
   panel6.clientheight:=cbPauseWhileScanning.top+cbPauseWhileScanning.height+2;
   gbScanOptions.ClientHeight:=panel6.top+panel6.height+2;
+
+  if reg<>nil then
+    freeandnil(reg);
 end;
 
 
@@ -7605,34 +7643,27 @@ end;
 procedure TMainForm.miGeneratePointermapClick(Sender: TObject);
 var
   frmPointerScanner: TfrmPointerScanner;
-  originalAlligned: boolean;
-  originalConnect: boolean;
-
+  oldSettingsForm: tfrmpointerscannersettings;
 begin
   frmPointerScanner := tfrmpointerscanner.Create(self);
   frmPointerScanner.Show;
 
-  if frmpointerscannersettings = nil then //used over and over
+  oldSettingsForm:=frmpointerscannersettings;
+
+  frmpointerscannersettings := tfrmpointerscannersettings.Create(self);
+
+  if processhandler.is64Bit then
+    frmpointerscannersettings.edtReverseStop.text:='7FFFFFFFFFFFFFFF'
+  else
   begin
-    frmpointerscannersettings := tfrmpointerscannersettings.Create(self);
-
-    if processhandler.is64Bit then
-      frmpointerscannersettings.edtReverseStop.text:='7FFFFFFFFFFFFFFF'
+    if Is64bitOS then
+      frmpointerscannersettings.edtReverseStop.text:='FFFFFFFF'
     else
-    begin
-      if Is64bitOS then
-        frmpointerscannersettings.edtReverseStop.text:='FFFFFFFF'
-      else
-        frmpointerscannersettings.edtReverseStop.text:='7FFFFFFF';
-    end;
+      frmpointerscannersettings.edtReverseStop.text:='7FFFFFFF';
   end;
-  originalAlligned:=frmpointerscannersettings.CbAlligned.checked;
+
   frmpointerscannersettings.CbAlligned.checked:=true;
-
-  originalConnect:=frmpointerscannersettings.cbConnectToNode.checked;
   frmpointerscannersettings.cbConnectToNode.checked:=false;
-
-
 
   frmpointerscannersettings.rbGeneratePointermap.checked:=true;
   frmpointerscannersettings.btnOk.Click;
@@ -7640,8 +7671,9 @@ begin
   frmPointerScanner.SkipNextScanSettings:=true;
   frmPointerScanner.Method3Fastspeedandaveragememoryusage1.Click;
 
-  frmpointerscannersettings.CbAlligned.checked:=originalAlligned;
-  frmpointerscannersettings.cbConnectToNode.checked:=originalConnect;
+  freeandnil(frmpointerscannersettings);
+
+  frmpointerscannersettings:=oldSettingsForm;
 end;
 
 procedure TMainForm.Pointerscanforthisaddress1Click(Sender: TObject);
@@ -7870,7 +7902,10 @@ begin
         end;
       end;
 
-      value:=readAndParseAddress(address, valuetype, ct, hexadecimal);
+      if valuetype=vtAll then
+        value:=readAndParseAddress(address, TVariableType(extra), ct, hexadecimal)
+      else
+        value:=readAndParseAddress(address, valuetype, ct, hexadecimal);
     end;
 
 
@@ -7989,6 +8024,8 @@ procedure TMainForm.Foundlist3KeyDown(Sender: TObject; var Key: word;
 var
   i: integer;
 begin
+
+  foundlistpopupPopup(sender);
   if ((key = Ord('A')) and (ssctrl in Shift) and not (ssalt in Shift)) then
   begin
     //select all
@@ -8133,8 +8170,6 @@ var
   label p1,p2,p3;
 
 begin
-
-
 
   try
     asm
@@ -8657,6 +8692,8 @@ begin
     svalue2 := '';
 
   lastscantype := scantype.ItemIndex;
+
+  memscan.floatscanWithoutExponents:=cbFloatSimple.checked;
 
   memscan.nextscan(GetScanType2, roundingtype, utf8toansi(scanvalue.Text),
     utf8toansi(svalue2), cbHexadecimal.Checked, rbdec.Checked,

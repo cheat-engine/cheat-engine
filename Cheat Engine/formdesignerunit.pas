@@ -456,7 +456,10 @@ begin
     ol[i]:=oid.selection[i];
 
   for i:=0 to length(ol)-1 do
-    ol[i].free;
+  begin
+    if not (ol[i] is TCustomForm) then
+      ol[i].free;
+  end;
 
   TCEform(GlobalDesignHook.LookupRoot).designsurface.ClearSelection;
   TCEform(GlobalDesignHook.LookupRoot).designsurface.UpdateDesigner;

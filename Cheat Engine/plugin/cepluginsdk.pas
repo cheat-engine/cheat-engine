@@ -175,7 +175,7 @@ type
  type TPluginFunction3=function(processid: dword; peprocess:ptruint; created: BOOL):integer; stdcall;
  type TPluginFunction4=function(section: integer):boolean; stdcall;
  type TPluginfunction5=procedure; stdcall;
- type TPluginfunction6OnPopup=function(selectedAddress: ptruint; addressofname: pointer):bool; stdcall;
+ type TPluginfunction6OnPopup=function(selectedAddress: ptruint; addressofname: pointer; show: pbool):bool; stdcall;
  type TPluginfunction6=function(selectedAddress: pptruint):bool; stdcall;
  type TPluginFunction7=procedure(address: ptruint; addressStringPointer: pointer; bytestringpointer: pointer; opcodestringpointer: pointer; specialstringpointer: pointer; textcolor: PColor); stdcall;
  type TPluginFunction8=procedure(line: ppchar; phase: TAutoAssemblerPhase; id:integer); stdcall;

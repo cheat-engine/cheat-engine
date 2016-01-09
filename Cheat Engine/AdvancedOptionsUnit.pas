@@ -292,6 +292,8 @@ begin
     li.Caption:=inttohex(address,8);
 
   li.SubItems.Add(newstring);
+
+  mainform.editedsincelastsave:=true;
 end;
 
 

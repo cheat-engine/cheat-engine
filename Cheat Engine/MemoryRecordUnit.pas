@@ -1426,28 +1426,31 @@ procedure TMemoryRecord.setActive(state: boolean);
 var f: string;
     i: integer;
 begin
-  //6.0 compatibility
   if state=fActive then exit; //no need to execute this is it's the same state
+  outputdebugstring('setting active state with description:'+description+' to '+BoolToStr(state,true));
 
-  outputdebugstring('setting active state with description:'+description+' to '+BoolToStr(state));
-  {$IFNDEF UNIX}
+{ deprecated
+
+  //6.0 compatibility
   if (state) then
     LUA_memrec_callback(self, '_memrec_'+description+'_activating')
   else
     LUA_memrec_callback(self, '_memrec_'+description+'_deactivating');
-  {$ENDIF}
+}
+
+  //6.5+
+  LUA_functioncall('onMemRecPreExecute',[self, state]);
 
   //6.1+
   if state then
   begin
-    //activating , before
-    if assigned(fonactivate) then
+    if assigned(fonactivate) then //activating , before
       if not fonactivate(self, true, fActive) then exit; //do not activate if it returns false
   end
   else
   begin
-    if assigned(fondeactivate) then
-      if not fondeactivate(self, true, fActive) then exit;
+    if assigned(fondeactivate) then //deactivating , before
+      if not fondeactivate(self, true, fActive) then exit; //do not deactivate if it returns false
   end;
 
 
@@ -1514,9 +1517,9 @@ begin
     allowDecrease:=false;
     allowIncrease:=false;
   end;
+
   {$IFNDEF UNIX}
   treenode.update;
-
   if active and (moActivateChildrenAsWell in options) then
   begin
     //apply this state to all the children
@@ -1530,37 +1533,25 @@ begin
     for i:=0 to treenode.Count-1 do
       TMemoryRecord(treenode[i].data).setActive(false);
   end;
+  {$ENDIF}
 
+{ deprecated
 
-  //6.0 compat
+  //6.0 compatibility
   if state then
     LUA_memrec_callback(self, '_memrec_'+description+'_activated')
   else
     LUA_memrec_callback(self, '_memrec_'+description+'_deactivated');
-  {$ENDIF}
+}
 
+  //6.5+
+  LUA_functioncall('onMemRecPostExecute',[self, state, fActive=state]);
 
   //6.1+
-
-
-  if state then
-  begin
-    //activating , before
-    if assigned(fonactivate) then
-      if not fonactivate(self, false, factive) then exit; //do not activate if it returns false
-  end
-  else
-  begin
-    if assigned(fondeactivate) then
-      if not fondeactivate(self, false, factive) then exit;
-  end;
-
-
-
+  if state and assigned(fonactivate) then fonactivate(self, false, factive); //activated , after
+  if not state and assigned(fondeactivate) then fondeactivate(self, false, factive); //deactivated , after
 
   SetVisibleChildrenState;
-
-
 
 end;
 

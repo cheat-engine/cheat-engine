@@ -324,6 +324,8 @@ var MZheader: ttreenode;
     tempaddress,tempaddress2: ptrUint;
 
     tempstring: pchar;
+
+    s: string;
 begin
 
   PEItv.Items.BeginUpdate;
@@ -638,7 +640,6 @@ begin
           ImageImportDirectory:=PImageImportDirectory(ptrUint(loadedmodule)+ImageNTHeader^.OptionalHeader.DataDirectory[i].VirtualAddress);
 
 
-
         while (j<45) do
         begin
           if ImageImportDirectory.name=0 then break;
@@ -646,7 +647,9 @@ begin
           if j>0 then
             lbImports.Items.Add('');
 
-          lbImports.Items.Add(format('%s', [pchar(ptrUint(loadedmodule)+ImageImportDirectory.name)]));
+          s:=pchar(ptrUint(loadedmodule)+ImageImportDirectory.name);
+
+          lbImports.Items.Add(format('%s', [s]));
 
 
           tempnode2:=PEItv.Items.addchild(tempnode,format(rsPEImport,[j, pchar(ptrUint(loadedmodule)+ImageImportDirectory.name)]));
@@ -675,7 +678,33 @@ begin
 
                 if InRangeX(importaddress, ptrUint(loadedmodule), ptrUint(loadedmodule)+memorycopysize) then
                 begin
-                  importfunctionname:=pchar(ptrUint(loadedmodule)+pdword(importaddress)^+2);
+
+                  if loaded then
+                  begin
+                    //lookup
+                    tempaddress2:=pqwordarray(ptrUint(loadedmodule)+ImageImportDirectory.FirstThunk)[k];
+                    importfunctionname:=symhandler.getNameFromAddress(tempaddress2);
+
+                    if uppercase(inttohex(tempaddress2,8))=uppercase(importfunctionname) then
+                    begin
+                      //failure to convert the address to an import
+                      inc(k);
+                      continue;
+                    end;
+                  end
+                  else
+                  begin
+                    //get the name from the file
+                    tempaddress:=ptrUint(loadedmodule)+pqwordarray(ptrUint(loadedmodule)+ImageImportDirectory.FirstThunk)[k]+2;
+                    if InRangeX(tempaddress, ptruint(loadedmodule), ptruint(loadedmodule)+memorycopysize-100) then
+                    begin
+                      setlength(importfunctionname, 100);
+                      CopyMemory(@importfunctionname[1], pointer(tempaddress), 99);
+                      importfunctionname[99]:=#0;
+                    end
+                    else
+                      importfunctionname:='err';
+                  end;
 
                   PEItv.Items.addchild(tempnode3, format('%x (%x) - %s',[PUINT64(ptrUint(loadedmodule)+ImageImportDirectory.FirstThunk+8*k)^, importaddress, importfunctionname]));
                   lbImports.Items.Add( format('%x (%x) - %s',[PUINT64(ptrUint(loadedmodule)+ImageImportDirectory.FirstThunk+8*k)^, importaddress, importfunctionname]));
@@ -722,7 +751,6 @@ begin
                   end
                   else
                     importfunctionname:='err';
-
                 end;
 
                 PEItv.Items.addchild(tempnode3, format('%x (%x) - %s',[pdwordarray(ptrUint(loadedmodule)+ImageImportDirectory.FirstThunk)[k], importaddress, importfunctionname]));

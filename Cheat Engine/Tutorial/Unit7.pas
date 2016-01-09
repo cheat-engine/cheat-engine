@@ -45,7 +45,7 @@ resourcestring
   rsStep6PointersPW = 'Step 6: Pointers: (PW=%s)';
   rsTryAgain7 = 'So, pointers are too difficult eh? Don''t worry, try again later. For most beginners this is difficult to grasp. But I have to tell you it''s'
     +' a powerfull feature if you learn to use it. Are you sure you want to quit?';
-  rsLOSER = 'LOSER';
+  rsLOSER = 'BOO';
 
   rsTutorialStep6=
     'In the previous step I explained how to use the Code finder to handle changing locations. But that method alone '+

@@ -35,7 +35,7 @@ typedef int (__stdcall *CEP_PLUGINTYPE2)(LPDEBUG_EVENT DebugEvent);
 typedef void (__stdcall *CEP_PLUGINTYPE3)(ULONG processid, ULONG peprocess, BOOL Created);
 typedef void (__stdcall *CEP_PLUGINTYPE4)(int reserved);
 typedef void (__stdcall *CEP_PLUGINTYPE5)(void);
-typedef BOOL (__stdcall *CEP_PLUGINTYPE6ONPOPUP)(ULONG selectedAddress, char **addressofname);
+typedef BOOL (__stdcall *CEP_PLUGINTYPE6ONPOPUP)(ULONG selectedAddress, char **addressofname, BOOL *show);
 typedef BOOL (__stdcall *CEP_PLUGINTYPE6)(ULONG *selectedAddress);
 typedef void (__stdcall *CEP_PLUGINTYPE7)(ULONG address, char **addressStringPointer, char **bytestringpointer, char **opcodestringpointer, char **specialstringpointer, ULONG *textcolor);
 typedef void (__stdcall *CEP_PLUGINTYPE8)(char **line, AutoAssemblerPhase phase, int id);

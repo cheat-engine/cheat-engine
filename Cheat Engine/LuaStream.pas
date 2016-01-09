@@ -196,9 +196,35 @@ begin
   luaclass_addPropertyToTable(L, metatable, userdata, 'Memory', memorystream_getMemory, nil);
 end;
 
+function stringstream_getDataString(L: PLua_State): integer; cdecl;
+var ss: TStringStream;
+  ms: TMemoryStream;
+  oldpos: integer;
+begin
+  ss:=luaclass_getClassObject(L);
+  ms:=TMemoryStream.create;
+  oldpos:=ss.Position;
+
+  ss.position:=0;
+  ms.LoadFromStream(ss);
+  lua_pushlstring(L, ms.Memory, ms.Size);
+  result:=1;
+
+  ss.position:=oldpos;
+  ms.free;
+end;
+
+procedure stringstream_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+begin
+  stream_addMetaData(L, metatable, userdata);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'DataString', stringstream_getDataString, nil);
+end;
+
+
 initialization
   luaclass_register(TStream, stream_addMetaData);
   luaclass_register(TMemoryStream, memorystream_addMetaData);
+  luaclass_register(TStringStream, stringstream_addMetaData);
 
 end.
 

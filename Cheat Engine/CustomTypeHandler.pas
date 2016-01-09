@@ -203,7 +203,7 @@ begin
 
     lua_pushinteger(L, i);
     lua_pushinteger(L, address);
-    if lua_pcall(l,1,bytesize,0)=0 then
+    if lua_pcall(l,2,bytesize,0)=0 then
     begin
       r:=lua_gettop(L);
       if r>0 then

@@ -94,7 +94,7 @@ resourcestring
   rsYouVeGotSecondsLeftToChangeTheValueTo5000 = 'You''ve got %s seconds left to change the value to 5000';
   rsTryAgain9 = 'Aw, you''ve almost reached the end. But don''t worry, multilevel pointers can be a real pain when dealing with. If you get more experienced '
     +'someday you can try it again. Are you sure you want to quit?';
-  rsLOSER = 'LOSER';
+  rsLOSER = 'BOO';
 
   rsTutorialStep8=
           'This step will explain how to use multi-level pointers.'+#13#10+

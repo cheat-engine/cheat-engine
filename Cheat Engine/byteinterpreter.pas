@@ -656,16 +656,24 @@ begin
             //check if the value isn't bigger or smaller than 100000 or smaller than -100000
             if (pdouble(@buf[0])^<100000) and (pdouble(@buf[0])^>-100000) then
             begin
+
               if result=vtSingle then
               begin
                 if pdouble(@buf[0])^>psingle(@buf[0])^ then exit; //float has a smaller value
               end;
 
-              //if 4 bytes after this address is a float then override thise double to a single type
-              if FindTypeOfData(address+4, @buf[4], size-4)=vtSingle then
-                result:=vtSingle
-              else
-                result:=vtDouble;
+              result:=vtDouble;
+
+              if Pdword(@buf[0])^<>0 then
+              begin
+                x:=floattostr(PSingle(@buf[0])^);
+                if (pos('E',x)=0) then
+                begin
+                  //if 4 bytes after this address is a float then override thise double to a single type
+                  if FindTypeOfData(address+4, @buf[4], size-4)=vtSingle then
+                    result:=vtSingle;
+                end;
+              end;
 
               exit;
             end;

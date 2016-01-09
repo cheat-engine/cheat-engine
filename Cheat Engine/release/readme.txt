@@ -52,6 +52,7 @@ Rightlicking on "your system supports dbvm" will let you manually load DBVM for 
 In "Find what addresses this instruction accesses" you can now open the structure dissect window of your choice in case there are others. It will also fill in the base address, so no need to recalculate yourself
 AA command GlobalAlloc now has an optional 3th parameter that lets you specify the prefered region
 Added an option to record and undo writes. (Off by default, can be enabled in settings.  Memview ctrl+z will undo the last edit)
+Added aobscanregion(name,startaddress,stopaddress,aob)
 
 lua:
   switched from Lua 5.1 to 5.3    
