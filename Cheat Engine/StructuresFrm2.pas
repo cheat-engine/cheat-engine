@@ -2795,6 +2795,7 @@ var
   displacement: integer;
 
   parentelement: TStructelement;
+  n: TStructelement;
 begin
   baseaddress:=column.Address;
   setlength(offsetlist,0);
@@ -2816,7 +2817,15 @@ begin
     else
       displacement:=0;
 
-    offsetlist[i]:=getStructElementFromNode(node).Offset-displacement;
+    n:=getStructElementFromNode(node);
+    if n=nil then
+    begin
+      baseaddress:=0;
+      setlength(offsetlist,0);
+      exit;
+    end;
+
+    offsetlist[i]:=n.Offset-displacement;
     inc(i);
 
     node:=prevnode;
@@ -3091,7 +3100,7 @@ begin
 
       struct:=getStructFromNode(node);
 
-      if struct.structelementlist=nil then exit; //this whole structure is destroyed
+      if (struct=nil) or (struct.structelementlist=nil) then exit; //this whole structure is destroyed
 
       //now get the element this node represents and check if it is a pointer
       node.HasChildren:=struct[node.Index].isPointer;
@@ -3491,11 +3500,14 @@ var i: integer;
   n: TTreenode;
 begin
   //find the structure this node belongs
+  result:=nil;
+
   if (node<>nil) and (node.level>0) then
   begin
     pse:=getStructElementFromNode(node.parent);
     nodestruct:=TDissectedStruct(node.parent.data);
 
+    if nodestruct=nil then exit;
 
     if pse<>nil then
       i:=nodestruct.getIndexOfOffset(pse.ChildStructStart)
@@ -3503,11 +3515,7 @@ begin
       i:=0;
 
     result:=nodestruct[node.index+i];
-  end
-  else
-    result:=nil;
-
-
+  end;
 end;
 
 function TfrmStructures2.getStructFromNode(node: TTreenode): TDissectedStruct;
