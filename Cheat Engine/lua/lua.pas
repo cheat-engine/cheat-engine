@@ -462,8 +462,15 @@ begin
 end;
 
 function lua_tointeger(L: Plua_State; idx: Integer): lua_Integer; cdecl;
+var
+  isnum: Integer;
 begin
-  result:=lua_tointegerx(L,idx,nil);
+  result:=lua_tointegerx(L,idx,@isnum);
+  if isnum=0 then
+  begin
+    result:=trunc(lua_tonumberx(L,idx,@isnum));
+    if isnum=0 then result:=0;
+  end;
 end;
 
 function lua_toboolean(L: Plua_State; idx: Integer): LongBool; cdecl; external LUA_NAME;
