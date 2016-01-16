@@ -164,6 +164,7 @@ begin
       try
         try
           LoadTable(tabletoload,false);
+          MainForm.Savedialog1.FileName:=tabletoload;
         finally
           if ExtractFileName(tabletoload)='CET_TRAINER.CETRAINER' then //Let's just hope no-one names their trainer exactly this...
             DeleteFile(tabletoload);

@@ -7393,7 +7393,7 @@ procedure TMainForm.actOpenExecute(Sender: TObject);
 var
   merge: boolean;
   app: word;
-  Extension: string;
+  Extension,oldFileName: string;
 
 begin
 
@@ -7404,7 +7404,7 @@ begin
       exit;
 
 
-
+  oldFileName:=Opendialog1.FileName;
   if autoopen or Opendialog1.Execute then
   begin
     SaveIntialTablesDir(extractfilepath(Opendialog1.filename));
@@ -7437,7 +7437,8 @@ begin
 
     reinterpretaddresses;
 
-  end;
+  end
+  else Opendialog1.FileName:=oldFileName;
 
   if advancedoptions <> nil then
   begin
@@ -7464,6 +7465,7 @@ end;
 procedure TMainForm.actSaveExecute(Sender: TObject);
 var
   protect: boolean;
+  oldFileName: string;
 begin
   saveGotCanceled:=true;
   protect := False;
@@ -7475,7 +7477,7 @@ begin
   end;
 
 
-
+  oldFileName:=Savedialog1.FileName;
   if Savedialog1.Execute then
   begin
     if uppercase(ExtractFileExt(savedialog1.FileName)) = '.CETRAINER' then
@@ -7485,12 +7487,10 @@ begin
     savetable(savedialog1.FileName, protect);
 
     saveGotCanceled:=false;
-  end;
-
-  opendialog1.FileName := savedialog1.filename;
-
-  SaveIntialTablesDir(extractfilepath(savedialog1.filename));
-
+    opendialog1.FileName := savedialog1.filename;
+    SaveIntialTablesDir(extractfilepath(savedialog1.filename));
+  end
+  else Savedialog1.FileName:=oldFileName;
 end;
 
 procedure TMainForm.actAutoAssembleExecute(Sender: TObject);
