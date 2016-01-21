@@ -391,8 +391,8 @@ alignmentparam is a string which either holds the value the addresses must be di
 
 debug variables
 EFLAGS
-32-bit: EAX, EBX, ECX, EDX, EDI, ESP, EBP, ESP, EIP
-64-bit: RAX, EBX, RBX, RDX, RDI, RSP, RBP, RSP, RIP, R8, R9, R10, R11, R12, R13, R14, R15 : The value of the register
+32-/64-bit: EAX, EBX, ECX, EDX, EDI, ESI, EBP, ESP, EIP
+64-bit only: RAX, RBX, RCX, RDX, RDI, RSI, RBP, RSP, RIP, R8, R9, R10, R11, R12, R13, R14, R15 : The value of the register
 
 Debug related routines:
 function debugger_onBreakpoint():
