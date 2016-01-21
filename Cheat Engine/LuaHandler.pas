@@ -2498,9 +2498,17 @@ begin
     address:=lua_tointeger(L, i);
   i := i + 1;
   
-  //optional args: size, trigger, method
+  //optional int args: size, trigger, method
+  
+  //defaults:
+  size := 1;
+  trigger := bptExecute;
+  method := preferedBreakpointMethod;
+  
+  //processing
+  //args: size, trigger, method
   if i<=parameters and lua_isnumber(L, i) then
-  begin 
+  begin
     size:=lua_tointeger(L, i);
     i := i + 1;
     
@@ -2516,14 +2524,9 @@ begin
         method:=TBreakpointMethod(lua_tointeger(L, i));
         i := i + 1;
       end
-      else
-        method:=preferedBreakpointMethod;
     end
-    else
-      trigger:=bptExecute;
   end
-  else size := 1
-  
+
   //optional arg: function
   if i<=parameters then
   begin
