@@ -2472,6 +2472,7 @@ end;
 
 function debug_setBreakpoint(L: Plua_State): integer; cdecl;
 var parameters: integer;
+  i: integer;
   address: ptruint;
   size: integer;
   trigger: TBreakpointTrigger;
@@ -2483,114 +2484,87 @@ var parameters: integer;
 begin
   lc:=nil;
 
+  i:=1; //index of current argument
   result:=0;
   parameters:=lua_gettop(L);
-  if parameters>=1 then
-  begin
-    if parameters>=1 then
-    begin
-      if lua_isstring(L, 1) then
-        address:=symhandler.getAddressFromNameL(lua_tostring(L, 1))
-      else
-        address:=lua_tointeger(L, 1);
-    end else raise exception.create('debug_setBreakpoint needs at least an address');
+  
+  if parameters=0 then
+    raise exception.create('debug_setBreakpoint needs at least an address');
 
-    if parameters>=2 then
+  //arg: address
+  if lua_isstring(L, i) then
+    address:=symhandler.getAddressFromNameL(lua_tostring(L, i))
+  else
+    address:=lua_tointeger(L, i);
+  i := i + 1;
+  
+  //optional args: size, trigger, method
+  if i<=parameters and lua_isnumber(L, i) then
+  begin 
+    size:=lua_tointeger(L, i);
+    i := i + 1;
+    
+    //args: trigger, method
+    if i<=parameters and lua_isnumber(L, i) then
     begin
-      if lua_isfunction(L,2) then //address, function type
+      trigger:=TBreakpointTrigger(lua_tointeger(L, i));
+      i := i + 1;
+      
+      //arg: method
+      if i<=parameters and lua_isnumber(L, i) then
       begin
-        lua_pushvalue(L,2);
-        lc:=TLuaCaller.create;
-        lc.luaroutineIndex:=luaL_ref(L,LUA_REGISTRYINDEX);
+        method:=TBreakpointMethod(lua_tointeger(L, i));
+        i := i + 1;
       end
       else
-      begin
-        if lua_isnumber(L, 2) then
-          size:=lua_tointeger(L, 2)
-        else
-        begin //function name as string
-          lc:=TLuaCaller.create;
-          lc.luaroutine:=Lua_ToString(L,2);
-        end;
-      end;
+        method:=preferedBreakpointMethod;
     end
     else
-      size:=1;
-
-
-    if lc=nil then  //address, size OPTIONAL, trigger OPTIONAL, method, functiontocall OPTIONAL
+      trigger:=bptExecute;
+  end
+  else size := 1
+  
+  //optional arg: function
+  if i<=parameters then
+  begin
+    if lua_isfunction(L, i) then //directly as function
     begin
-      if parameters>=3 then
-        trigger:=TBreakpointTrigger(lua_tointeger(L,3))
-      else
-        trigger:=bptExecute;
+      lua_pushvalue(L, i);
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=luaL_ref(L,LUA_REGISTRYINDEX);
+    end
+    else
+    begin //function name as string
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=Lua_ToString(L, i);
+    end
+    i := i + 1;;
+    
+    //? Does the following need to be surrounded by `try`?
+    bpe:=TBreakpointEvent(lc.BreakpointEvent);
+  end else bpe:=nil;
+  
+  //too many args!
+  if i<=parameters then
+  begin
+    //???
+  end
 
-      method:=preferedBreakpointMethod;
-
-      if parameters>=4 then
-      begin
-        if lua_isnumber(L, 4) then //address, size OPTIONAL, trigger OPTIONAL, method
-        begin
-          method:=TBreakpointMethod(lua_tointeger(L,4));
-        end
-        else
-        begin
-          //addresss, size, trigger, function
-          if lua_isfunction(L,4) then //address, function type
-          begin
-            lua_pushvalue(L,4);
-            lc:=TLuaCaller.create;
-            lc.luaroutineIndex:=luaL_ref(L,LUA_REGISTRYINDEX);
-          end
-          else
-          begin
-            lc:=TLuaCaller.create;
-            lc.luaroutine:=Lua_ToString(L,4);
-          end;
-        end;
+  try
+    if startdebuggerifneeded(false) then
+    begin
+      case trigger of
+        bptAccess: debuggerthread.SetOnAccessBreakpoint(address, size, method, 0, bpe);
+        bptWrite: debuggerthread.SetOnWriteBreakpoint(address, size, method, 0, bpe);
+        bptExecute: debuggerthread.SetOnExecuteBreakpoint(address, method, false, 0, bpe);
       end;
 
-
-      if lc=nil then
-      begin
-        if parameters>=5 then
-        begin
-          if lua_isfunction(L,5) then //address, function type
-          begin
-            lua_pushvalue(L,5);
-            lc:=TLuaCaller.create;
-            lc.luaroutineIndex:=luaL_ref(L,LUA_REGISTRYINDEX);
-          end
-          else
-          begin
-            lc:=TLuaCaller.create;
-            lc.luaroutine:=Lua_ToString(L,5);
-          end;
-
-        end;
-      end;
+      MemoryBrowser.hexview.update;
+      Memorybrowser.disassemblerview.Update;
     end;
 
-    try
-      if lc<>nil then
-        bpe:=TBreakpointEvent(lc.BreakpointEvent)
-      else
-        bpe:=nil;
-
-      if startdebuggerifneeded(false) then
-      begin
-        case trigger of
-          bptAccess: debuggerthread.SetOnAccessBreakpoint(address, size, method, 0, bpe);
-          bptWrite: debuggerthread.SetOnWriteBreakpoint(address, size, method, 0, bpe);
-          bptExecute: debuggerthread.SetOnExecuteBreakpoint(address, method,false, 0, bpe);
-        end;
-
-        MemoryBrowser.hexview.update;
-        Memorybrowser.disassemblerview.Update;
-      end;
-
-    except
-    end;
+  except
+  
   end;
 
   lua_pop(L, lua_gettop(L)); //clear the stack
