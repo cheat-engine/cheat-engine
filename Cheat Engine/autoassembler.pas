@@ -185,16 +185,9 @@ begin
   if registeredAutoAssemblerCommands=nil then
     registeredAutoAssemblerCommands:=TList.Create;
 
-  command:=uppercase(command);
-  for i:=0 to registeredAutoAssemblerCommands.Count-1 do
-    if TRegisteredAutoAssemblerCommand(registeredAutoAssemblerCommands[i]).command=command then
-    begin
-      //update
-      CleanupLuaCall(tmethod(TRegisteredAutoAssemblerCommand(registeredAutoAssemblerCommands[i]).callback));
-      TRegisteredAutoAssemblerCommand(registeredAutoAssemblerCommands[i]).callback:=nil;//TAutoAssemblerCallback(callback);
-      exit;
-    end;
+  UnregisterAutoAssemblerCommand(command);
 
+  command:=uppercase(command);
   c:=TRegisteredAutoAssemblerCommand.create;
   c.command:=command;
   c.callback:=callback;
