@@ -2484,114 +2484,110 @@ begin
   lc:=nil;
 
   result:=0;
+  size:=1;
   parameters:=lua_gettop(L);
-  if parameters>=1 then
-  begin
-    if parameters>=1 then
-    begin
-      if lua_isstring(L, 1) then
-        address:=symhandler.getAddressFromNameL(lua_tostring(L, 1))
-      else
-        address:=lua_tointeger(L, 1);
-    end else raise exception.create('debug_setBreakpoint needs at least an address');
+  if parameters=0 then
+    raise exception.create('debug_setBreakpoint needs at least an address');
 
-    if parameters>=2 then
+  if lua_isstring(L, 1) then
+    address:=symhandler.getAddressFromNameL(lua_tostring(L, 1))
+  else
+    address:=lua_tointeger(L, 1);
+
+  if parameters>=2 then
+  begin
+    if lua_isfunction(L,2) then //address, function type
     begin
-      if lua_isfunction(L,2) then //address, function type
-      begin
-        lua_pushvalue(L,2);
+      lua_pushvalue(L,2);
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=luaL_ref(L,LUA_REGISTRYINDEX);
+    end
+    else
+    begin
+      if lua_isnumber(L, 2) then
+        size:=lua_tointeger(L, 2)
+      else
+      begin //function name as string
         lc:=TLuaCaller.create;
-        lc.luaroutineIndex:=luaL_ref(L,LUA_REGISTRYINDEX);
+        lc.luaroutine:=Lua_ToString(L,2);
+      end;
+    end;
+  end;
+
+  if lc=nil then  //address, size OPTIONAL, trigger OPTIONAL, method, functiontocall OPTIONAL
+  begin
+    if parameters>=3 then
+      trigger:=TBreakpointTrigger(lua_tointeger(L,3))
+    else
+      trigger:=bptExecute;
+
+    method:=preferedBreakpointMethod;
+
+    if parameters>=4 then
+    begin
+      if lua_isnumber(L, 4) then //address, size OPTIONAL, trigger OPTIONAL, method
+      begin
+        method:=TBreakpointMethod(lua_tointeger(L,4));
       end
       else
       begin
-        if lua_isnumber(L, 2) then
-          size:=lua_tointeger(L, 2)
-        else
-        begin //function name as string
-          lc:=TLuaCaller.create;
-          lc.luaroutine:=Lua_ToString(L,2);
-        end;
-      end;
-    end
-    else
-      size:=1;
-
-
-    if lc=nil then  //address, size OPTIONAL, trigger OPTIONAL, method, functiontocall OPTIONAL
-    begin
-      if parameters>=3 then
-        trigger:=TBreakpointTrigger(lua_tointeger(L,3))
-      else
-        trigger:=bptExecute;
-
-      method:=preferedBreakpointMethod;
-
-      if parameters>=4 then
-      begin
-        if lua_isnumber(L, 4) then //address, size OPTIONAL, trigger OPTIONAL, method
+        //addresss, size, trigger, function
+        if lua_isfunction(L,4) then //address, function type
         begin
-          method:=TBreakpointMethod(lua_tointeger(L,4));
+          lua_pushvalue(L,4);
+          lc:=TLuaCaller.create;
+          lc.luaroutineIndex:=luaL_ref(L,LUA_REGISTRYINDEX);
         end
         else
         begin
-          //addresss, size, trigger, function
-          if lua_isfunction(L,4) then //address, function type
-          begin
-            lua_pushvalue(L,4);
-            lc:=TLuaCaller.create;
-            lc.luaroutineIndex:=luaL_ref(L,LUA_REGISTRYINDEX);
-          end
-          else
-          begin
-            lc:=TLuaCaller.create;
-            lc.luaroutine:=Lua_ToString(L,4);
-          end;
-        end;
-      end;
-
-
-      if lc=nil then
-      begin
-        if parameters>=5 then
-        begin
-          if lua_isfunction(L,5) then //address, function type
-          begin
-            lua_pushvalue(L,5);
-            lc:=TLuaCaller.create;
-            lc.luaroutineIndex:=luaL_ref(L,LUA_REGISTRYINDEX);
-          end
-          else
-          begin
-            lc:=TLuaCaller.create;
-            lc.luaroutine:=Lua_ToString(L,5);
-          end;
-
+          lc:=TLuaCaller.create;
+          lc.luaroutine:=Lua_ToString(L,4);
         end;
       end;
     end;
 
-    try
-      if lc<>nil then
-        bpe:=TBreakpointEvent(lc.BreakpointEvent)
-      else
-        bpe:=nil;
 
-      if startdebuggerifneeded(false) then
+    if lc=nil then
+    begin
+      if parameters>=5 then
       begin
-        case trigger of
-          bptAccess: debuggerthread.SetOnAccessBreakpoint(address, size, method, 0, bpe);
-          bptWrite: debuggerthread.SetOnWriteBreakpoint(address, size, method, 0, bpe);
-          bptExecute: debuggerthread.SetOnExecuteBreakpoint(address, method,false, 0, bpe);
+        if lua_isfunction(L,5) then //address, function type
+        begin
+          lua_pushvalue(L,5);
+          lc:=TLuaCaller.create;
+          lc.luaroutineIndex:=luaL_ref(L,LUA_REGISTRYINDEX);
+        end
+        else
+        begin
+          lc:=TLuaCaller.create;
+          lc.luaroutine:=Lua_ToString(L,5);
         end;
 
-        MemoryBrowser.hexview.update;
-        Memorybrowser.disassemblerview.Update;
       end;
-
-    except
     end;
   end;
+
+  try
+    if lc<>nil then
+      bpe:=TBreakpointEvent(lc.BreakpointEvent)
+    else
+      bpe:=nil;
+
+    if startdebuggerifneeded(false) then
+    begin
+      case trigger of
+        bptAccess: debuggerthread.SetOnAccessBreakpoint(address, size, method, 0, bpe);
+        bptWrite: debuggerthread.SetOnWriteBreakpoint(address, size, method, 0, bpe);
+        bptExecute: debuggerthread.SetOnExecuteBreakpoint(address, method,false, 0, bpe);
+      end;
+
+      MemoryBrowser.hexview.update;
+      Memorybrowser.disassemblerview.Update;
+    end;
+
+  except
+  end;
+
 
   lua_pop(L, lua_gettop(L)); //clear the stack
 end;
@@ -2599,26 +2595,18 @@ end;
 function debug_removeBreakpoint(L: Plua_State): integer; cdecl;
 var parameters: integer;
   address: ptruint;
-  e: boolean;
 begin
   result:=0;
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    if lua_isstring(L, -1) then
-    begin
-      e:=false;
-      address:=symhandler.getAddressFromNameL(lua_tostring(L, -1));
-      if e then //unrecognizable address
-      begin
-        lua_pop(L, lua_gettop(L));
-        exit;
-      end;
-    end
+    if lua_isstring(L, 1) then
+      address:=symhandler.getAddressFromNameL(lua_tostring(L, 1))
     else
-      address:=lua_tointeger(L, -1);
+      address:=lua_tointeger(L, 1);
 
-    ce_debug_removeBreakpoint(address);
+    lua_pushboolean(L, ce_debug_removeBreakpoint(address));
+    result:=1;
   end;
 
   lua_pop(L, lua_gettop(L)); //clear the stack
