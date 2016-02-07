@@ -3723,6 +3723,8 @@ var FloatSettings: TFormatSettings;
     td: double;
     s: string;
 begin
+  value:=0;
+  dvalue:=0;
   maxfound:=buffersize;
   {$ifdef customtypeimplemented}
   if variableType = vtCustom then
@@ -4108,7 +4110,7 @@ begin
   OutputDebugString('scanOption='+inttostr(integer(scanOption)));
 
 
-  if (scanOption in [soIncreasedValueBy, soDecreasedValueBy]) and (dvalue=0) then
+  if (scanOption in [soIncreasedValueBy, soDecreasedValueBy]) and (value=0) and (dvalue=0) then
     scanOption:=soUnchanged;
 
   case variableType of
