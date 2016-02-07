@@ -4108,7 +4108,7 @@ begin
   OutputDebugString('scanOption='+inttostr(integer(scanOption)));
 
 
-  if (scanOption in [soIncreasedValueBy, soDecreasedValueBy]) and (value=0) then
+  if (scanOption in [soIncreasedValueBy, soDecreasedValueBy]) and (dvalue=0) then
     scanOption:=soUnchanged;
 
   case variableType of
