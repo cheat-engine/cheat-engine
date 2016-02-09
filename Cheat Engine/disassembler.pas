@@ -239,6 +239,7 @@ end;
 
 function TDisassembler.rd8(bt:byte): string;
 begin
+  if rex_B then bt:=bt or 8;
   case bt of
   0: result:='al';
   1: result:='cl';
@@ -265,6 +266,7 @@ end;
 
 function TDisassembler.rd16(bt:byte):string;
 begin
+  if rex_B then bt:=bt or 8;
   case bt of
   0: result:='ax';
   1: result:='cx';
@@ -8130,6 +8132,8 @@ begin
               lastdisassembledata.parametervalue:=memory[1];
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
+
+//              if Rex_B
 
               lastdisassembledata.parameters:=rd8(memory[0]-$b0)+','+inttohexs(memory[1],2);
               inc(offset);
