@@ -1,0 +1,5 @@
+# This builds all the libraries of the folder for 1 uname
+
+tecmake $1 $2 $3 $4 $5 $6 $7 $8
+tecmake $1 MF=lua $2 $3 $4 $5 $6 $7 $8
+tecmake $1 MF=luac $2 $3 $4 $5 $6 $7 $8
