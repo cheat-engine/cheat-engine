@@ -333,6 +333,24 @@ begin
   result:=1;
 end;
 
+function memoryrecord_isGroupHeader(L: PLua_State): integer; cdecl;
+var
+  memrecord: TMemoryRecord;
+begin
+  memrecord:=luaclass_getClassObject(L);
+  lua_pushboolean(L, memrecord.IsGroupHeader);
+  result:=1;
+end;
+
+function memoryrecord_isReadableAddress(L: PLua_State): integer; cdecl;
+var
+  memrecord: TMemoryRecord;
+begin
+  memrecord:=luaclass_getClassObject(L);
+  lua_pushboolean(L, memrecord.IsReadableAddress);
+  result:=1;
+end;
+
 function memoryrecord_setActive(L: PLua_State): integer; cdecl;
 var
   memrec: TMemoryRecord;
@@ -794,6 +812,8 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getChild', memoryrecord_getChild);
 
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'isSelected', memoryrecord_isSelected);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'isGroupHeader', memoryrecord_isGroupHeader);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'isReadable', memoryrecord_isReadableAddress);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'appendToEntry', memoryrecord_appendToEntry);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'delete', memoryrecord_delete);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'expand', memoryrecord_expand);
@@ -880,6 +900,8 @@ begin
   lua_register(LuaVM, 'memoryrecord_setScript', memoryrecord_setScript);
   lua_register(LuaVM, 'memoryrecord_isActive', memoryrecord_getActive);
   lua_register(LuaVM, 'memoryrecord_isSelected', memoryrecord_isSelected);
+  lua_register(LuaVM, 'memoryrecord_isGroupHeader', memoryrecord_isGroupHeader);
+  lua_register(LuaVM, 'memoryrecord_isReadable', memoryrecord_isReadableAddress);
   lua_register(LuaVM, 'memoryrecord_getCollapsed', memoryrecord_getCollapsed);
   lua_register(LuaVM, 'memoryrecord_setCollapsed', memoryrecord_setCollapsed);
   lua_register(LuaVM, 'memoryrecord_expand', memoryrecord_expand);
