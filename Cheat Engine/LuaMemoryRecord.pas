@@ -353,6 +353,66 @@ begin
   result:=1;
 end;
 
+function memoryrecord_getCollapsed(L: PLua_State): integer; cdecl;
+var
+  memoryrecord: TMemoryRecord;
+begin
+  memoryrecord:=luaclass_getClassObject(L);
+  lua_pushboolean(L, (memoryrecord.Count > 0) and (not memoryrecord.treenode.Expanded));
+  result:=1;
+end;
+
+function memoryrecord_setCollapsed(L: PLua_State): integer; cdecl;
+var
+  memoryrecord: TMemoryRecord;
+  collapsed: boolean;
+begin
+  result:=0;
+  memoryrecord:=luaclass_getClassObject(L);
+  if (memoryrecord.Count > 0) and (lua_gettop(L) >= 1) then
+  begin
+    collapsed:=lua_toboolean(L, 1);
+    if collapsed and memoryrecord.treenode.Expanded then
+       memoryrecord.treenode.Collapse(False)
+    else if not collapsed and not memoryrecord.treenode.Expanded then
+       memoryrecord.treenode.Expand(False);
+     lua_pushboolean(L, (memoryrecord.Count > 0) and (not memoryrecord.treenode.Expanded));
+  end;
+  lua_pop(L, lua_gettop(L));
+end;
+
+function memoryrecord_collapse(L: PLua_State): integer; cdecl;
+var
+  memoryrecord: TMemoryRecord;
+  recurse: boolean = False;
+begin
+  result:=0;
+  memoryrecord:=luaclass_getClassObject(L);
+  if memoryrecord.Count > 0 then
+  begin
+    if lua_gettop(L) = 1 then
+       recurse:=lua_toboolean(L, 1);
+    memoryrecord.treenode.Collapse(recurse);
+  end;
+  lua_pop(L, lua_gettop(L));
+end;
+
+function memoryrecord_expand(L: PLua_State): integer; cdecl;
+var
+  memoryrecord: TMemoryRecord;
+  recurse: boolean = False;
+begin
+  result:=0;
+  memoryrecord:=luaclass_getClassObject(L);
+  if memoryrecord.Count > 0 then
+  begin
+    if lua_gettop(L) = 1 then
+       recurse:=lua_toboolean(L, 1);
+    memoryrecord.treenode.Expand(recurse);
+  end;
+  lua_pop(L, lua_gettop(L));
+end;
+
 function memoryrecord_freeze(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
@@ -729,11 +789,15 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setScript', memoryrecord_setScript);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getActive', memoryrecord_getActive);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setActive', memoryrecord_setActive);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getCollapsed', memoryrecord_getCollapsed);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setCollapsed', memoryrecord_setCollapsed);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getChild', memoryrecord_getChild);
 
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'isSelected', memoryrecord_isSelected);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'appendToEntry', memoryrecord_appendToEntry);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'delete', memoryrecord_delete);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'expand', memoryrecord_expand);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'collapse', memoryrecord_collapse);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getHotkeyCount', memoryrecord_getHotkeyCount);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getHotkey', memoryrecord_getHotkey);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getHotkeyByID', memoryrecord_getHotkeyByID);
@@ -746,6 +810,7 @@ begin
   luaclass_addPropertyToTable(L, metatable, userdata, 'Value', memoryrecord_getValue, memoryrecord_setValue);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Script', memoryrecord_getScript, memoryrecord_setScript);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Active', memoryrecord_getActive, memoryrecord_setActive);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Collapsed', memoryrecord_getCollapsed, memoryrecord_setCollapsed);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Selected', memoryrecord_isSelected, nil);
   luaclass_addPropertyToTable(L, metatable, userdata, 'HotkeyCount', memoryrecord_getHotkeyCount, nil);
   luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Hotkey', memoryrecord_getHotkey, nil);
@@ -815,6 +880,10 @@ begin
   lua_register(LuaVM, 'memoryrecord_setScript', memoryrecord_setScript);
   lua_register(LuaVM, 'memoryrecord_isActive', memoryrecord_getActive);
   lua_register(LuaVM, 'memoryrecord_isSelected', memoryrecord_isSelected);
+  lua_register(LuaVM, 'memoryrecord_getCollapsed', memoryrecord_getCollapsed);
+  lua_register(LuaVM, 'memoryrecord_setCollapsed', memoryrecord_setCollapsed);
+  lua_register(LuaVM, 'memoryrecord_expand', memoryrecord_expand);
+  lua_register(LuaVM, 'memoryrecord_collapse', memoryrecord_collapse);
   lua_register(LuaVM, 'memoryrecord_freeze', memoryrecord_freeze);
   lua_register(LuaVM, 'memoryrecord_unfreeze', memoryrecord_unfreeze);
   lua_register(LuaVM, 'memoryrecord_setColor', memoryrecord_setColor);
