@@ -1510,9 +1510,9 @@ properties
 
 methods
   setVolume(int)
-  playXM(filename, OPTIONAL noloop)
-  playXM(tablefile, OPTIONAL noloop)
-  playXM(Stream, OPTIONAL noloop)
+  playXM(filename, noloop OPTIONAL)
+  playXM(tablefile, noloop OPTIONAL)
+  playXM(Stream, noloop OPTIONAL)
   pause()
   resume()
   stop()
@@ -1595,6 +1595,9 @@ properties
   ShowAsSigned: boolean - Self explanatory
   AllowIncrease: boolean - Allow value increasing, unfreeze will reset it to false
   AllowDecrease: boolean - Allow value decreasing, unfreeze will reset it to false
+  Collapsed: boolean - Set to true to collapse this record or false to expand it. Use expand/collapse methods for recursive operations. (Windows only)
+  IsGroupHeader: boolean - Set to true if the record was created as a Group Header with no address or value info. (ReadOnly)
+  Readable: boolean - Set to false if record contains an unreadable address. NOTE: This property will not be set until the value property is accessed at least once. (ReadOnly)
 
   Count: Number of children
   Child[index] : Array to access the child records
@@ -1609,10 +1612,13 @@ properties
   DontSave: boolean - Don't save this memoryrecord and it's children
 
 methods
+  isSelected()
+  isReadable()
   getDescription()
   setDescription()
   getAddress() : Returns the interpretable addressstring of this record. If it is a pointer, it returns a second result as a table filled with the offsets
   setAddress(string) : Sets the interpretable address string, and if offsets are provided make it a pointer
+  getCurrentAddress(): Returns the current address as an integer (the final result of the interpretable address and pointer offsets)
 
   getOffsetCount(): Returns the number of offsets for this memoryrecord
   setOffsetCount(integer): Lets you set the number of offsets
@@ -1620,10 +1626,13 @@ methods
   getOffset(index) : Gets the offset at the given index
   setOffset(index, value) : Sets the offset at the given index
 
-  getCurrentAddress(): Returns the current address as an integer (the final result of the interpretable address and pointer offsets)
-
+  getCollapsed()
+  setCollapsed(boolean)
+  expand(recurse OPTIONAL): Expand the record's tree node. Setting recurse to true will recursively expand the record and all of its child nodes.
+  collapse(recurse OPTIONAL): Collapse the record's tree node. Setting recurse to true will recursively expand the record and all of its child nodes. (Windows only)
   appendToEntry(memrec): Appends the current memory record to the given memory record
 
+  getHotkeyCount()
   getHotkey(index): Returns the hotkey from the hotkey array
   getHotkeyByID(integer): Returns the hotkey with the given id
 

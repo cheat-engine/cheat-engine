@@ -371,6 +371,7 @@ begin
   result:=1;
 end;
 
+{$ifndef unix}
 function memoryrecord_getCollapsed(L: PLua_State): integer; cdecl;
 var
   memoryrecord: TMemoryRecord;
@@ -432,6 +433,7 @@ begin
     memoryrecord.treenode.Expand(recurse);
   end;
 end;
+{$endif}
 
 function memoryrecord_freeze(L: PLua_State): integer; cdecl;
 var
@@ -809,17 +811,19 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setScript', memoryrecord_setScript);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getActive', memoryrecord_getActive);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setActive', memoryrecord_setActive);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getCollapsed', memoryrecord_getCollapsed);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setCollapsed', memoryrecord_setCollapsed);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getChild', memoryrecord_getChild);
 
+  {$ifndef unix}
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'expand', memoryrecord_expand);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'collapse', memoryrecord_collapse);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getCollapsed', memoryrecord_getCollapsed); // redundant
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setCollapsed', memoryrecord_setCollapsed);
+  {$endif}
+
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'isSelected', memoryrecord_isSelected);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'isGroupHeader', memoryrecord_isGroupHeader);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'isReadable', memoryrecord_isReadableAddress);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'appendToEntry', memoryrecord_appendToEntry);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'delete', memoryrecord_delete);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'expand', memoryrecord_expand);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'collapse', memoryrecord_collapse);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getHotkeyCount', memoryrecord_getHotkeyCount);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getHotkey', memoryrecord_getHotkey);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getHotkeyByID', memoryrecord_getHotkeyByID);
@@ -834,6 +838,8 @@ begin
   luaclass_addPropertyToTable(L, metatable, userdata, 'Active', memoryrecord_getActive, memoryrecord_setActive);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Collapsed', memoryrecord_getCollapsed, memoryrecord_setCollapsed);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Selected', memoryrecord_isSelected, nil);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Readable', memoryrecord_isReadableAddress, nil);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'IsGroupHeader', memoryrecord_isGroupHeader, nil);
   luaclass_addPropertyToTable(L, metatable, userdata, 'HotkeyCount', memoryrecord_getHotkeyCount, nil);
   luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Hotkey', memoryrecord_getHotkey, nil);
 
