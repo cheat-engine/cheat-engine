@@ -359,7 +359,7 @@ begin
   memrec:=luaclass_getClassObject(L);
 
   if lua_gettop(L)>=1 then
-    memrec.active:=lua_toboolean(L, 1);
+    memrec.active:=lua_toboolean(L, -1);
 end;
 
 function memoryrecord_getActive(L: PLua_State): integer; cdecl;
@@ -384,51 +384,53 @@ function memoryrecord_setCollapsed(L: PLua_State): integer; cdecl;
 var
   memoryrecord: TMemoryRecord;
   collapsed: boolean;
+  parameters: integer;
 begin
   result:=0;
   memoryrecord:=luaclass_getClassObject(L);
-  if (memoryrecord.Count > 0) and (lua_gettop(L) >= 1) then
+  parameters:=lua_gettop(L);
+  if (memoryrecord.Count > 0) and (parameters >= 1) and lua_isboolean(L, parameters) then
   begin
-    collapsed:=lua_toboolean(L, 1);
+    collapsed := lua_toboolean(L, parameters);
     if collapsed and memoryrecord.treenode.Expanded then
        memoryrecord.treenode.Collapse(False)
     else if not collapsed and not memoryrecord.treenode.Expanded then
        memoryrecord.treenode.Expand(False);
-     lua_pushboolean(L, (memoryrecord.Count > 0) and (not memoryrecord.treenode.Expanded));
   end;
-  lua_pop(L, lua_gettop(L));
 end;
 
 function memoryrecord_collapse(L: PLua_State): integer; cdecl;
 var
   memoryrecord: TMemoryRecord;
   recurse: boolean = False;
+  parameters: integer;
 begin
   result:=0;
   memoryrecord:=luaclass_getClassObject(L);
+  parameters:=lua_gettop(L);
   if memoryrecord.Count > 0 then
   begin
-    if lua_gettop(L) = 1 then
-       recurse:=lua_toboolean(L, 1);
+    if (parameters >= 1) and lua_isboolean(L, parameters) then
+       recurse:=lua_toboolean(L, parameters);
     memoryrecord.treenode.Collapse(recurse);
   end;
-  lua_pop(L, lua_gettop(L));
 end;
 
 function memoryrecord_expand(L: PLua_State): integer; cdecl;
 var
   memoryrecord: TMemoryRecord;
   recurse: boolean = False;
+  parameters: integer;
 begin
   result:=0;
   memoryrecord:=luaclass_getClassObject(L);
+  parameters:=lua_gettop(L);
   if memoryrecord.Count > 0 then
   begin
-    if lua_gettop(L) = 1 then
-       recurse:=lua_toboolean(L, 1);
+    if (parameters >= 1) and lua_isboolean(L, parameters) then
+       recurse:=lua_toboolean(L, parameters);
     memoryrecord.treenode.Expand(recurse);
   end;
-  lua_pop(L, lua_gettop(L));
 end;
 
 function memoryrecord_freeze(L: PLua_State): integer; cdecl;
