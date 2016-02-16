@@ -391,8 +391,9 @@ alignmentparam is a string which either holds the value the addresses must be di
 
 debug variables
 EFLAGS
-32-/64-bit: EAX, EBX, ECX, EDX, EDI, ESI, EBP, ESP, EIP
+32/64-bit: EAX, EBX, ECX, EDX, EDI, ESI, EBP, ESP, EIP
 64-bit only: RAX, RBX, RCX, RDX, RDI, RSI, RBP, RSP, RIP, R8, R9, R10, R11, R12, R13, R14, R15 : The value of the register
+
 
 Debug related routines:
 function debugger_onBreakpoint():
@@ -1595,6 +1596,9 @@ properties
   ShowAsSigned: boolean - Self explanatory
   AllowIncrease: boolean - Allow value increasing, unfreeze will reset it to false
   AllowDecrease: boolean - Allow value decreasing, unfreeze will reset it to false
+  Collapsed: boolean - Set to true to collapse this record or false to expand it. Use expand/collapse methods for recursive operations. 
+  IsGroupHeader: boolean - Set to true if the record was created as a Group Header with no address or value info. (ReadOnly)
+  IsReadable: boolean - Set to false if record contains an unreadable address. NOTE: This property will not be set until the value property is accessed at least once. (ReadOnly)
 
   Count: Number of children
   Child[index] : Array to access the child records
