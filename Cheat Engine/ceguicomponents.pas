@@ -33,7 +33,7 @@ type TCESplitter=class(TCustomSplitter)
   property Cursor;
   property Height;
   property MinSize;
- // property OnCanResize;
+  property OnCanResize;
   property OnChangeBounds;
   property OnMoved;
   property ParentColor;

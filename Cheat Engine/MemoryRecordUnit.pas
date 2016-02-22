@@ -237,7 +237,7 @@ type
   published
     property IsGroupHeader: boolean read fisGroupHeader write fisGroupHeader;
     property IsReadableAddress: boolean read fIsReadableAddress; //gets set by getValue, so at least read the value once
-    property IsReadable: bool read fIsReadableAddress;
+    property IsReadable: boolean read fIsReadableAddress;
     property ID: integer read fID write setID;
     property Index: integer read getIndex;
     property Collapsed: boolean read GetCollapsed write SetCollapsed;

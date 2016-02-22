@@ -12,7 +12,7 @@ interface
 uses
   Classes, Controls, SysUtils, ceguicomponents, forms, lua, lualib, lauxlib,
   comctrls, StdCtrls, CEFuncProc, typinfo, Graphics, disassembler, LuaDisassembler,
-  LastDisassembleData, Assemblerunit, commonTypeDefs;
+  LastDisassembleData, Assemblerunit, commonTypeDefs, ExtCtrls;
 
 type
   TLuaCaller=class
@@ -41,6 +41,7 @@ type
       procedure LVSelectItemEvent(Sender: TObject; Item: TListItem; Selected: Boolean);
       procedure LVCompareEvent(Sender: TObject; Item1, Item2: TListItem; Data: Integer; var Compare: Integer);
 
+      procedure CanResizeEvent(Sender: TObject; var NewSize: Integer; var Accept: Boolean);
 
       procedure CloseEvent(Sender: TObject; var CloseAction: TCloseAction);
       procedure CloseQueryEvent(Sender: TObject; var CanClose: boolean);
@@ -95,6 +96,7 @@ function LuaCaller_KeyEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_TreeViewExpandOrCloseEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_LVCheckedItemEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_LVSelectItemEvent(L: PLua_state): integer; cdecl;
+
 function LuaCaller_MemoryRecordActivateEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_DisassemblerSelectionChangeEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_ByteSelectEvent(L: PLua_state): integer; cdecl;  //(sender: TObject; address: ptruint; address2: ptruint);
@@ -856,6 +858,27 @@ begin
   end;
 end;
 
+procedure TLuaCaller.CanResizeEvent(Sender: TObject; var NewSize: Integer; var Accept: Boolean);
+var oldstack: integer;
+begin
+  Luacs.enter;
+  try
+    oldstack:=lua_gettop(Luavm);
+    pushFunction;
+    luaclass_newClass(luavm, sender);
+    lua_pushinteger(luavm, newsize);
+
+    if lua_pcall(LuaVM, 2, 2, 0)=0 then
+    begin
+      newsize:=lua_tointeger(luavm, 1);
+      accept:=lua_toboolean(luavm, 2);
+    end;
+  finally
+    lua_settop(Luavm, oldstack);
+    luacs.leave;
+  end;
+end;
+
 function TLuaCaller.DisassembleEvent(sender: TObject; address: ptruint; var ldd: TLastDisassembleData; var output: string; var description: string): boolean;
 var oldstack: integer;
   lddentry: integer;
@@ -1477,6 +1500,35 @@ begin
     lua_pop(L, lua_gettop(L));
 end;
 
+function LuaCaller_CanResizeEvent(L: PLua_state): integer; cdecl;
+var
+  parameters: integer;
+  m: TMethod;
+  sender: TObject;
+  newsize: integer;
+  accept: boolean;
+begin
+  result:=0;
+
+  if lua_gettop(L)=2 then
+  begin
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_toceuserdata(L, 1);
+    newsize:=lua_tointeger(L, 2);
+    lua_pop(L, lua_gettop(L));
+
+    accept:=true;
+    TCanResizeEvent(m)(sender,newsize, accept);
+
+    lua_pushinteger(L,newsize);
+    lua_pushboolean(L,accept);
+    result:=2;
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
 function LuaCaller_MemoryRecordActivateEvent(L: PLua_state): integer; cdecl;
 var
   m: TMethod;
@@ -1825,6 +1877,7 @@ initialization
   registerLuaCall('TLVDeletedEvent', LuaCaller_LVCheckedItemEvent, pointer(TLuaCaller.LVCheckedItemEvent),'function %s(sender, listitem)'#13#10#13#10'end'#13#10);
   registerLuaCall('TLVColumnClickEvent', LuaCaller_LVColumnClickEvent, pointer(TLuaCaller.LVColumnClickEvent),'function %s(sender, listcolumn)'#13#10#13#10'end'#13#10);
   registerLuaCall('TLVCompareEvent', LuaCaller_LVCompareEvent, pointer(TLuaCaller.LVCompareEvent),'function %s(sender, listitem1, listitem2, data)'#13#10#13#10' return 0 --0=equal -1=smaller 1=bigger'#13#10'end'#13#10);
+  registerLuaCall('TCanResizeEvent', LuaCaller_CanResizeEvent, pointer(TLuaCaller.CanResizeEvent),'function %s(sender, newsize)'#13#10#13#10' local accept=true'#13#10'return newsize, accept'#13#10'end'#13#10);
   registerLuaCall('TLVSelectItemEvent', LuaCaller_LVSelectItemEvent, pointer(TLuaCaller.LVSelectItemEvent),'function %s(sender, listitem, selected)'#13#10#13#10'end'#13#10);
 
   registerLuaCall('TMemoryRecordActivateEvent', LuaCaller_MemoryRecordActivateEvent, pointer(TLuaCaller.MemoryRecordActivateEvent),'function %s(sender, before, current)'#13#10#13#10'end'#13#10);
