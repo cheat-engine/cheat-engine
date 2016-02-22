@@ -273,12 +273,12 @@ begin
   result:=input;
   tokens:=tstringlist.Create;
   try
-    tokenize(input,tokens);
-    for i:=0 to tokens.Count-1 do
+    tokenize(result,tokens);
+    for i:=tokens.Count-1 downto 0 do
       if tokens[i]=token then
       begin
         j:=integer(tokens.Objects[i]);
-        result:=copy(input,1,j-1)+replacewith+copy(input,j+length(token),length(input));
+        result:=copy(result,1,j-1)+replacewith+copy(result,j+length(token),length(result));
       end;
 
   finally
