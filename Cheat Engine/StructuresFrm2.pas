@@ -3113,7 +3113,16 @@ begin
   tvStructureView.BeginUpdate;
   try
     if node.HasChildren then
+    begin
+      tvStructureView.OnCollapsing:=nil;
+      tvStructureView.OnCollapsed:=nil;
+
       node.DeleteChildren; //delete the children when collapsed
+
+      tvStructureView.OnCollapsing:=tvStructureViewCollapsing;
+      tvStructureView.OnCollapsed:=tvStructureViewCollapsed;
+
+    end;
 
     if node.parent<>nil then //almost always, and then it IS a child
     begin
@@ -3409,7 +3418,31 @@ var i: integer;
 begin
   //find the treenodes that belong to this specific element and change them accordingly
   i:=0;
-  while i<tvStructureView.Items.Count do
+  n:=tvStructureView.Items.GetFirstNode;
+  while n<>nil do
+  begin
+    if n.data=struct then
+    begin
+      if n.expanded then
+      begin
+        if n.Count>=element.index then
+          setupNodeWithElement(n[element.index], element)
+        else
+        begin
+          tvStructureView.OnCollapsing:=nil;
+          tvStructureView.OnCollapsed:=nil;
+
+          n.DeleteChildren;
+
+          tvStructureView.OnCollapsing:=tvStructureViewCollapsing;
+          tvStructureView.OnCollapsed:=tvStructureViewCollapsed;
+        end;
+      end;
+    end;
+    n:=n.GetNext;
+  end;
+
+{  while i<tvStructureView.Items.Count do
   begin
     if tvStructureView.Items[i].Data=struct then //this node contains the element
     begin
@@ -3422,7 +3455,7 @@ begin
       end;
     end;
     inc(i);
-  end;
+  end;   }
 
 
 
