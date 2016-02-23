@@ -1108,7 +1108,8 @@ end;
 
 function TDissectedStruct.getElementCount: integer;
 begin
-  result:=structelementlist.Count;
+  if structelementlist<>nil then
+    result:=structelementlist.Count;
 end;
 
 function TDissectedStruct.getElement(index: integer): TStructelement;
@@ -1122,6 +1123,7 @@ end;
 
 function TDissectedStruct.isUpdating: boolean;
 begin
+
   result:=fUpdateCounter>0;
 end;
 
@@ -1610,7 +1612,10 @@ begin
   //remove all mentioning of this struct
   if structtodelete=self then exit;
 
+  if structelementlist=nil then exit; //destroyed structure called (bug)
+
   beginUpdate;
+
   for i:=0 to count-1 do
   begin
     s:=element[i].ChildStruct;
@@ -1639,12 +1644,8 @@ var
   i: integer;
   infiniteLoopProtection: tlist;
 begin
-  //tell each form that it should close this structure
-  for i:=0 to frmStructures2.Count-1 do
-    TfrmStructures2(frmStructures2[i]).OnStructureDelete(self);
-
-
   //tell each structure that it should remove all the childstruct mentions of this structure
+
   for i:=0 to DissectedStructs.count-1 do
   begin
     if DissectedStructs[i]<>self then
@@ -1657,6 +1658,12 @@ begin
       end;
     end;
   end;
+
+  //tell each form that it should close this structure
+  for i:=0 to frmStructures2.Count-1 do
+    TfrmStructures2(frmStructures2[i]).OnStructureDelete(self);
+
+
 end;
 
 
@@ -2010,6 +2017,8 @@ begin
   beginUpdate; //never endupdate
 
 
+  DoDeleteStructNotification;
+
   if structelementlist<>nil then
   begin
     while structelementlist.Count>0 do
@@ -2018,7 +2027,6 @@ begin
     freeandnil(structelementlist);
   end;
 
-  DoDeleteStructNotification;
 
   removeFromGlobalStructList;
 
@@ -3022,19 +3030,32 @@ end;
 
 procedure TfrmStructures2.setupNodeWithElement(node: TTreenode; element: TStructElement);
 begin
-  if (element.isPointer) then
-  begin
-    node.Data:=element.ChildStruct;
-    node.HasChildren:=true;
-  end
-  else
-  begin
-    //an update caused this node to lose it's pointerstate. If it had children, it doesn't anymore
-    node.data:=nil;
-    if node.HasChildren then
-      node.DeleteChildren;
+  tvStructureView.OnCollapsing:=nil;
+  tvStructureView.OnCollapsed:=nil;
 
-    node.haschildren:=false;
+  try
+    if (element.isPointer) then
+    begin
+      node.Data:=element.ChildStruct;
+      if node.data=nil then
+        node.DeleteChildren;
+
+      node.HasChildren:=true;
+    end
+    else
+    begin
+      //an update caused this node to lose it's pointerstate. If it had children, it doesn't anymore
+      node.data:=nil;
+      node.DeleteChildren;
+      node.haschildren:=false;
+    end;
+
+
+
+
+  finally
+    tvStructureView.OnCollapsing:=tvStructureViewCollapsing;
+    tvStructureView.OnCollapsed:=tvStructureViewCollapsed;
   end;
 end;
 
@@ -3296,11 +3317,36 @@ begin
 end;
 
 procedure TfrmStructures2.onStructureDelete(sender: TDissectedStruct);
+var n: TTreenode;
 begin
   if sender=mainStruct then
   begin
     mainstruct:=nil;
     tvStructureView.Items.Clear;
+  end
+  else
+  begin
+    tvStructureView.OnCollapsing:=nil;
+    tvStructureView.OnCollapsed:=nil;
+
+    try
+      n:=tvStructureView.Items.GetFirstNode;
+
+      while n<>nil do
+      begin
+        if n.data=sender then
+        begin
+          n.data:=nil;
+          n.Collapse(true);
+          n.DeleteChildren;
+        end;
+        n:=n.GetNext;
+      end;
+
+    finally
+      tvStructureView.OnCollapsing:=tvStructureViewCollapsing;
+      tvStructureView.OnCollapsed:=tvStructureViewCollapsed;
+    end;
   end;
 end;
 
@@ -3362,7 +3408,9 @@ var i: integer;
     n: Ttreenode;
 begin
   //find the treenodes that belong to this specific element and change them accordingly
-  for i:=0 to tvStructureView.Items.Count-1 do
+  i:=0;
+  while i<tvStructureView.Items.Count do
+  begin
     if tvStructureView.Items[i].Data=struct then //this node contains the element
     begin
       if tvStructureView.Items[i].Expanded then
@@ -3373,6 +3421,8 @@ begin
         setupNodeWithElement(n, element);
       end;
     end;
+    inc(i);
+  end;
 
 
 
