@@ -2483,6 +2483,7 @@ var parameters: integer;
 begin
   lc:=nil;
 
+  trigger:=bptExecute;
   result:=0;
   size:=1;
   parameters:=lua_gettop(L);
