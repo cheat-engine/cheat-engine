@@ -1169,6 +1169,7 @@ function TGroupData.compareblock_outoforder(newvalue,oldvalue: pointer): boolean
 var i,j: integer;
   currentoffset: integer;
   isin: boolean;
+  currentoffsetEqualToZeroExist: boolean;
 
 function isinlist: boolean; //check if currently in the list of offsets, if so, return true and adjust the current offset so the scan starts from next offset
 var c: integer;
@@ -1188,6 +1189,8 @@ end;
 
 begin
   result:=true;
+  currentoffsetEqualToZeroExist:=false;
+
   for i:=0 to groupdatalength-1 do
   begin
     if result=false then exit;
@@ -1306,7 +1309,11 @@ begin
 
     end;
     groupdata[i].offset:=currentoffset-1;
+    if groupdata[i].offset=0 then currentoffsetEqualToZeroExist:=true;
   end;
+
+  if result and outoforder then // at least one current offset must be zero
+    result:=currentoffsetEqualToZeroExist;
 end;
 
 
