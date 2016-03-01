@@ -7001,6 +7001,7 @@ begin
       s.add('math.pow=function(x,y) return x^y end');
       s.add('math.atan2=math.atan');
       s.add('math.ldexp=function(x,exp) return x * 2.0^exp end');
+      s.add('string.gfind=string.gmatch');
 
       s.add('BinUtils={}');
 
