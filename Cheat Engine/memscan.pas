@@ -4468,8 +4468,7 @@ begin
       FoundBufferSize:=0;
 
       variablesize:=groupdata.blocksize;   //this is why there is no nextscan data to compare against (varsize of 4096)
-      if groupdata.outoforder and groupdata.outoforder_aligned then
-        fastscanalignsize:=variablesize; //else use the given alignment
+
 
       if scannernr=0 then //write the header for groupdata (after the normal header comes the number of offsets)
         Addressfile.WriteBuffer(groupdata.groupdatalength, sizeof(groupdata.groupdatalength));
