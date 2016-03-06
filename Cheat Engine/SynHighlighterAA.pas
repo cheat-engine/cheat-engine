@@ -441,7 +441,7 @@ procedure aa_RemoveExtraCommand(command:pchar);
 begin
   if extracommands<>nil then
   begin
-    extracommands.Delete(extracommands.IndexOf(command));
+    if extracommands.IndexOf(command)<>-1 then extracommands.Delete(extracommands.IndexOf(command));
     if extracommands.Count=0 then
       freeandnil(extracommands);
   end;

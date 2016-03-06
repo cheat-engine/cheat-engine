@@ -1,0 +1,20 @@
+ifeq ($(OS), Windows_NT)
+  TECMAKE_CMD = $(MAKE) --no-print-directory -f tecmakewin.mak TEC_UNAME=$(TEC_UNAME)
+  WLUA = wlua
+else
+  TECMAKE_CMD = $(MAKE) --no-print-directory -f tecmake.mak
+endif
+
+all: lualib lua luac $(WLUA)
+
+lualib:
+	@$(TECMAKE_CMD)
+
+lua:
+	@$(TECMAKE_CMD) MF=lua
+
+wlua:
+	@$(TECMAKE_CMD) MF=wlua
+
+luac:
+	@$(TECMAKE_CMD) MF=luac

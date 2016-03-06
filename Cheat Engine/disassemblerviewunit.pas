@@ -129,7 +129,6 @@ type TDisassemblerview=class(TPanel)
     procedure setheaderWidth(headerid: integer; size: integer);
 
     property Totalvisibledisassemblerlines: integer read fTotalvisibledisassemblerlines;
-    property OnSelectionChange: TDisassemblerSelectionChangeEvent read fOnSelectionChange write fOnSelectionChange;
 
     procedure getDefaultColors(var c: Tdisassemblerviewcolors);
 
@@ -145,6 +144,7 @@ type TDisassemblerview=class(TPanel)
     property TopAddress: ptrUint read fTopAddress write setTopAddress;
     property SelectedAddress: ptrUint read fSelectedAddress write setSelectedAddress;
     property SelectedAddress2: ptrUint read fSelectedAddress2 write setSelectedAddress2;
+    property OnSelectionChange: TDisassemblerSelectionChangeEvent read fOnSelectionChange write fOnSelectionChange;
     property PopupMenu: TPopupMenu read getOriginalPopupMenu write SetOriginalPopupMenu;
     property Osb: TBitmap read offscreenbitmap;
     property OnExtraLineRender: TDisassemblerExtraLineRender read fOnExtraLineRender write fOnExtraLineRender;

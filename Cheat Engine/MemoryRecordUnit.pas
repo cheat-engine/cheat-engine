@@ -147,6 +147,9 @@ type
     function getDropDownCount: integer;
     function getDropDownValue(index: integer): string;
     function getDropDownDescription(index: integer): string;
+
+    function GetCollapsed: boolean;
+    procedure SetCollapsed(state: boolean);
   public
 
 
@@ -234,8 +237,10 @@ type
   published
     property IsGroupHeader: boolean read fisGroupHeader write fisGroupHeader;
     property IsReadableAddress: boolean read fIsReadableAddress; //gets set by getValue, so at least read the value once
+    property IsReadable: boolean read fIsReadableAddress;
     property ID: integer read fID write setID;
     property Index: integer read getIndex;
+    property Collapsed: boolean read GetCollapsed write SetCollapsed;
     property Color: TColor read fColor write setColor;
     property Count: integer read getChildCount;
     property AddressString: string read getAddressString;
@@ -342,6 +347,20 @@ begin
 end;
 
 {---------------------------------MemoryRecord---------------------------------}
+
+function TMemoryRecord.GetCollapsed: boolean;
+begin
+  result:=treenode.Expanded;
+end;
+
+procedure TMemoryRecord.SetCollapsed(state: boolean);
+begin
+  if state then
+    treenode.Expand(false)
+  else
+    treenode.Collapse(false);
+end;
+
 
 function TMemoryRecord.getDropDownCount: integer;
 begin

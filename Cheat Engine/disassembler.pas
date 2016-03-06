@@ -239,6 +239,7 @@ end;
 
 function TDisassembler.rd8(bt:byte): string;
 begin
+  if rex_B then bt:=bt or 8;
   case bt of
   0: result:='al';
   1: result:='cl';
@@ -265,6 +266,7 @@ end;
 
 function TDisassembler.rd16(bt:byte):string;
 begin
+  if rex_B then bt:=bt or 8;
   case bt of
   0: result:='ax';
   1: result:='cx';
@@ -8131,6 +8133,8 @@ begin
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
 
+//              if Rex_B
+
               lastdisassembledata.parameters:=rd8(memory[0]-$b0)+','+inttohexs(memory[1],2);
               inc(offset);
             end;
@@ -8650,7 +8654,7 @@ begin
                     end;
 
                 5:  begin
-                      description:='unsigned devide by 2, once';
+                      description:='unsigned divide by 2, once';
                       lastdisassembledata.opcode:='shr';
                       lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last,8)+'1';
                       inc(offset,last-1);
@@ -8663,7 +8667,7 @@ begin
                     end;
 
                 7:  begin
-                      description:='signed devide by 2, once';
+                      description:='signed divide by 2, once';
                       lastdisassembledata.opcode:='sar';
                       lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last,8)+'1';
                       inc(offset,last-1);
@@ -8841,7 +8845,7 @@ begin
                     end;
 
                 5:  begin
-                      description:='unsigned devide by 2, cl times';
+                      description:='unsigned divide by 2, cl times';
                       lastdisassembledata.opcode:='shr';
                       lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last,8)+colorreg+'cl'+endcolor;
                       inc(offset,last-1);
@@ -8855,7 +8859,7 @@ begin
                     end;
 
                 7:  begin
-                      description:='signed devide by 2, cl times';
+                      description:='signed divide by 2, cl times';
                       lastdisassembledata.opcode:='sar';
                       lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last,8)+colorreg+'cl'+endcolor;
                       inc(offset,last-1);
@@ -9473,15 +9477,15 @@ begin
 
 
                   6:  begin
-                        description:='devide';
+                        description:='divide';
                         lastdisassembledata.opcode:='fidiv';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last);
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,32);
 
                         inc(offset,last-1);
                       end;
 
                   7:  begin
-                        description:='reverse devide';
+                        description:='reverse divide';
                         lastdisassembledata.opcode:='fidivr';
                         lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last);
 
@@ -9952,7 +9956,7 @@ begin
 
 
                 5: begin
-                     description:='reverse devide';
+                     description:='reverse divide';
                      last:=2;
                      if memory[1]>=$e8 then
                      begin
@@ -9972,7 +9976,7 @@ begin
 
 
                 6: begin
-                     description:='reverse devide';
+                     description:='reverse divide';
                      last:=2;
                      if memory[1]>=$f0 then
                      begin
@@ -9982,8 +9986,11 @@ begin
                      end
                      else
                      begin
-                       lastdisassembledata.opcode:='db';
-                       lastdisassembledata.parameters:=inttohexs(memory[0],2);
+                       description:='divide';
+                       lastdisassembledata.opcode:='fidiv';
+                       lastdisassembledata.parameters:=modrm(memory,prefix2,1,1,last,16);
+
+                       inc(offset,last-1);
                      end;
                    end;
 
