@@ -258,7 +258,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 					if (PsLookupProcessByProcessId((PVOID)(UINT_PTR)(processid),&selectedprocess)==STATUS_SUCCESS)
 					{		
 
-							DbgPrint("Calling ObOpenObjectByPointer\n");
+							//DbgPrint("Calling ObOpenObjectByPointer\n");
 							ntStatus=ObOpenObjectByPointer ( 
 										selectedprocess,
 										0,
@@ -268,7 +268,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 										KernelMode, //UserMode,
 										&ProcessHandle);
 
-							DbgPrint("ntStatus=%x",ntStatus);
+							//DbgPrint("ntStatus=%x",ntStatus);
 					}
 				}
 				__except(1)

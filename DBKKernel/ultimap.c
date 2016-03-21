@@ -202,6 +202,12 @@ Called from usermode to wait for data
 	
 }
 
+void ultimap_cleanstate()
+{
+	APIC_BASE->LVT_Performance_Monitor.a = APIC_BASE->LVT_Performance_Monitor.a & 0xff;
+	APIC_BASE->EOI.a = 0;
+}
+
 int perfmon_interrupt_centry(void)
 {
 	KIRQL old;
@@ -214,11 +220,7 @@ int perfmon_interrupt_centry(void)
 
 
 	if (causedbyme)
-	{
-		//undo the system flags that got set by this interrupt
-		APIC_BASE->LVT_Performance_Monitor.a=APIC_BASE->LVT_Performance_Monitor.a & 0xff;
-		APIC_BASE->EOI.a=0;
-	}
+		ultimap_cleanstate();	
 
 	blocksize=DS_AREA[cpunr()]->BTS_IndexBaseAddress-DS_AREA[cpunr()]->BTS_BufferBaseAddress;
 	
@@ -513,11 +515,13 @@ Call this for each processor
 		DbgPrint("APIC_BASE->LVT_Performance_Monitor.a=%x\n", APIC_BASE->LVT_Performance_Monitor.a);
 
 	
+		/*
 
 		if (inthook_HookInterrupt((unsigned char)perfmonIVT, getCS(), (ULONG_PTR)perfmon_interrupt, &perfmonJumpBackLocation))
 			DbgPrint("Interrupt hooked\n");
 		else
 			DbgPrint("Failed to hook interrupt\n");
+			*/
 
 	}
 
@@ -532,6 +536,14 @@ Call this for each processor
 	}
 }
 
+
+void perfmon_hook(__in struct _KINTERRUPT *Interrupt, __in PVOID ServiceContext)
+{	
+	perfmon_interrupt_centry();
+	ultimap_cleanstate();
+}
+
+void *pperfmon_hook = perfmon_hook;
 
 NTSTATUS ultimap(UINT64 cr3, UINT64 dbgctl_msr, int DS_AREA_SIZE, BOOL savetofile, WCHAR *filename, int handlerCount)
 {
@@ -603,6 +615,8 @@ NTSTATUS ultimap(UINT64 cr3, UINT64 dbgctl_msr, int DS_AREA_SIZE, BOOL savetofil
 		params.cr3=cr3;
 		params.dbgctl_msr=dbgctl_msr;
 		params.DS_AREA_SIZE=DS_AREA_SIZE;
+
+		HalSetSystemInformation(HalProfileSourceInterruptHandler, sizeof(PVOID*), &pperfmon_hook); //hook the perfmon interrupt
 
 		forEachCpu(ultimap_setup_dpc, &params, NULL, NULL);
 		return STATUS_SUCCESS;
