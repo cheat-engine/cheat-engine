@@ -2027,8 +2027,8 @@ begin
 
       if cbPointerInRange.checked then
       begin
-        pointerstart:=StrToQWordEx('$'+edtPointerStart.text);
-        pointerstop:=StrToQWordEx('$'+edtPointerStop.text);
+        pointerstart:=symhandler.getAddressFromName(edtPointerStart.text);
+        pointerstop:=symhandler.getAddressFromName(edtPointerStop.text);
       end;
     end;
 
@@ -2233,7 +2233,7 @@ begin
   rbDiffDontCare.enabled:=hasAddress2;
 
   try
-    address2:=StrToQword('$'+edtExtra.text);
+    address2:=symhandler.getAddressFromName(edtExtra.text);
     listview1.Refresh;
   except
   end;
