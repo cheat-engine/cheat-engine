@@ -6437,8 +6437,8 @@ begin
 
     screen.Cursor := crhourglass;
 
-    MainForm.Caption := CEWait;
-    Mainform.Refresh;
+    //MainForm.Caption := CEWait;
+    //Mainform.Refresh;
 
     foundlist3.Items.BeginUpdate;
     try
@@ -6457,7 +6457,7 @@ begin
         foundlist.deleteaddress(selected[i]);
 
     finally
-      Mainform.Caption := CENorm;
+      //Mainform.Caption := CENorm;
       screen.Cursor := crDefault;
       foundlist3.Items.EndUpdate;
     end;
