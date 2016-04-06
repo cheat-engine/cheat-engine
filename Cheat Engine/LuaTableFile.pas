@@ -14,6 +14,100 @@ implementation
 uses LuaClass, LuaHandler, LuaObject, MainUnit, luafile;
 
 
+function indexOfLuaFileByName(filename: string; internal: boolean=false): integer;
+var
+  i: integer;
+  luaFiles: TLuaFileList;
+begin
+  if internal then
+    luaFiles:=mainForm.InternalLuaFiles
+  else
+    luaFiles:=mainform.LuaFiles;
+
+  result:=-1;
+  for i:=0 to luaFiles.count-1 do
+    if luaFiles[i].name=filename then
+    begin
+      result:=i;
+      break;
+    end;
+end;
+
+function pushLuaTableFile(L: Plua_State; index: integer; internal: boolean=false): integer;
+var
+  lf: TLuafile;
+  s: TMemoryStream;
+begin
+  if internal then
+    lf:=MainForm.InternalLuaFiles[index]
+  else
+    lf:=MainForm.LuaFiles[index];
+
+   s:=lf.stream;
+   s.Position:=0;
+
+   result:=1;
+   luaclass_newClass(L, lf);
+end;
+
+function addLuaTableFile(L: Plua_State; filename: string; filepath: string=''): integer;
+var
+  i: integer;
+  lf: TLuafile;
+  s: TMemoryStream;
+begin
+  result:=0;
+  if (indexOfLuaFileByName(filename)=-1) and
+     (indexOfLuaFileByName(filename, true)=-1) then
+  begin
+    try
+      s:=TMemorystream.Create;
+      try
+        if filepath<>'' then
+          s.LoadFromFile(filepath);
+        lf:=TLuaFile.Create(filename, s);
+      finally
+        s.Free;
+      end;
+      i:=mainform.LuaFiles.add(lf);
+      result:=pushLuaTableFile(L, i);
+      mainform.editedsincelastsave:=true;
+    except
+      on e : Exception do begin
+        lua_pushstring(L, e.className + ' error raised with message: ' + e.message);
+        lua_error(L);
+      end;
+    end;
+  end
+  else
+  begin
+      lua_pushstring(L, 'Table file entry already exists for filename: ' + filename);
+      lua_error(L);
+  end;
+end;
+
+function createTableFile(L: Plua_State): integer; cdecl;
+var
+  parameters: integer;
+  filename, filepath: string;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters>=1 then
+  begin
+    filepath:='';
+    filename:=Lua_ToString(L, 1);
+    if parameters>=2 then
+       filepath:=Lua_ToString(L, 2);
+    result:=addLuaTableFile(L, filename, filepath);
+  end
+  else
+  begin
+    lua_pushstring(L, 'createTableFile requires at least one parameter');
+    lua_error(L);
+  end;
+end;
+
 function findTableFile(L: Plua_State): integer; cdecl;
 var parameters: integer;
   f: string;
@@ -104,6 +198,7 @@ end;
 
 procedure initializeLuaTableFile;
 begin
+  Lua_register(LuaVM, 'createTableFile', createTableFile);
   Lua_register(LuaVM, 'findTableFile', findTableFile);
   Lua_register(LuaVM, 'tablefile_delete', tablefile_delete);
   Lua_register(LuaVM, 'tablefile_saveToFile', tablefile_saveToFile);
