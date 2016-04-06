@@ -121,32 +121,15 @@ begin
   begin
     f:=Lua_ToString(L, -1);
     lua_pop(L, lua_gettop(L));
-    for i:=0 to mainform.LuaFiles.count-1 do
-      if mainform.Luafiles[i].name=f then
-      begin
-        s:=mainform.Luafiles[i].stream;
-
-        s.position:=0;
-        luaclass_newClass(L, mainform.Luafiles[i]); //return the tableFile, not the stream. To get the stream, use  tablefile_getData
-        result:=1;
-        break; // abort iteration on first result
-      end;
-
-    if result=0 then //not overriden
+    i:=indexOfLuaFileByName(f);
+    if i<>-1 then
+      result:=pushLuaTableFile(L, i) //return the tableFile, not the stream. To get the stream, use  tablefile_getData
+    else
     begin
-      for i:=0 to mainform.InternalLuaFiles.count-1 do
-      begin
-        if mainform.InternalLuaFiles[i].name=f then
-        begin
-          s:=mainform.InternalLuaFiles[i].stream;
-          s.position:=0;
-          luaclass_newClass(L, mainform.InternalLuaFiles[i]);
-          result:=1;
-          break;
-        end;
-      end;
+      i:=indexOfLuaFileByName(f, true); //internal file
+      if i<>-1 then
+        result:=pushLuaTableFile(L, i, true);
     end;
-
   end
   else
     lua_pop(L, lua_gettop(L));
@@ -162,6 +145,7 @@ begin
   mainform.LuaFiles.Remove(lf);
   mainform.UpdateMenu;
   lf.Free;
+  mainform.editedsincelastsave:=true;
 end;
 
 function tablefile_saveToFile(L: Plua_State): integer; cdecl;
