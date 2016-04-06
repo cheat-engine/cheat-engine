@@ -1676,6 +1676,7 @@ begin
     baseaddress:=a;
   end;
 
+  GetRealAddress;
 
   //update the children
   for i:=0 to count-1 do
