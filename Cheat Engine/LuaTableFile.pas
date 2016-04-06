@@ -23,7 +23,7 @@ var parameters: integer;
 begin
   result:=0;
   parameters:=lua_gettop(L);
-  if parameters=1 then
+  if parameters>=1 then
   begin
     f:=Lua_ToString(L, -1);
     lua_pop(L, lua_gettop(L));
@@ -35,6 +35,7 @@ begin
         s.position:=0;
         luaclass_newClass(L, mainform.Luafiles[i]); //return the tableFile, not the stream. To get the stream, use  tablefile_getData
         result:=1;
+        break; // abort iteration on first result
       end;
 
     if result=0 then //not overriden
@@ -47,6 +48,7 @@ begin
           s.position:=0;
           luaclass_newClass(L, mainform.InternalLuaFiles[i]);
           result:=1;
+          break;
         end;
       end;
     end;
@@ -61,9 +63,9 @@ function tablefile_saveToFile(L: Plua_State): integer; cdecl;
 var parameters: integer;
   lf: TLuaFile;
   f: string;
-  i: integer;
 begin
   lf:=luaclass_getClassObject(L);
+  f:=lf.name;
   if parameters>=1 then
     f:=Lua_ToString(L, -1);
 
@@ -75,7 +77,7 @@ function tablefile_getData(L: Plua_State): integer; cdecl;
 var parameters: integer;
   lf: TLuaFile;
 begin
-  result:=0;
+  result:=1;
   lf:=luaclass_getClassObject(L);
   luaclass_newClass(L, lf.stream);
 end;
