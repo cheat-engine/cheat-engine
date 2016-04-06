@@ -6251,9 +6251,9 @@ begin
     if lua_gettop(L)>=2 then
     begin
       if lua_isnumber(L,2) then
-        address:=lua_tointeger(L, 2)
+        parameter:=lua_tointeger(L, 2)
       else
-        address:=selfsymhandler.getAddressFromName(Lua_ToString(L,2));
+        parameter:=selfsymhandler.getAddressFromName(Lua_ToString(L,2));
     end
     else
       parameter:=0;
