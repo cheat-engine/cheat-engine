@@ -1492,12 +1492,14 @@ DataString: The internal string
 
 TableFile class (Inheritance: Object)
 findTableFile(filename): Returns the TableFile class object for the saved file
+createTableFile(filename, filepath OPTIONAL): TableFile - Add a new file to your table. If no filepath is specified, it will create a blank file. Otherwise, it will read the contents from disk.
 
 properties
   Name: string
   Stream: MemoryStream
 
 methods
+  delete() : Deletes this file from your table.
   saveToFile(filename)
   getData() : Gets a MemoryStream object
 
