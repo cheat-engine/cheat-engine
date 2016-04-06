@@ -59,6 +59,17 @@ begin
 end;
 
 
+function tablefile_delete(L: Plua_State): integer; cdecl;
+var
+  lf: TLuaFile;
+begin
+  result:=0;
+  lf:=luaclass_getClassObject(L);
+  mainform.LuaFiles.Remove(lf);
+  mainform.UpdateMenu;
+  lf.Free;
+end;
+
 function tablefile_saveToFile(L: Plua_State): integer; cdecl;
 var parameters: integer;
   lf: TLuaFile;
@@ -86,6 +97,7 @@ procedure tablefile_addMetaData(L: PLua_state; metatable: integer; userdata: int
 begin
   object_addMetaData(L, metatable, userdata);
 
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'delete', tablefile_delete);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'saveToFile', tablefile_saveToFile);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getData', tablefile_getData);
 end;
@@ -93,6 +105,7 @@ end;
 procedure initializeLuaTableFile;
 begin
   Lua_register(LuaVM, 'findTableFile', findTableFile);
+  Lua_register(LuaVM, 'tablefile_delete', tablefile_delete);
   Lua_register(LuaVM, 'tablefile_saveToFile', tablefile_saveToFile);
   Lua_register(LuaVM, 'tablefile_getData', tablefile_getData);
 end;
