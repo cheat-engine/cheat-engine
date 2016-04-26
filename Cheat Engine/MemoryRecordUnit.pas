@@ -350,15 +350,15 @@ end;
 
 function TMemoryRecord.GetCollapsed: boolean;
 begin
-  result:=treenode.Expanded;
+  result:=not treenode.Expanded;
 end;
 
 procedure TMemoryRecord.SetCollapsed(state: boolean);
 begin
   if state then
-    treenode.Expand(false)
+    treenode.Collapse(false)
   else
-    treenode.Collapse(false);
+    treenode.Expand(false);
 end;
 
 
