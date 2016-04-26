@@ -64,7 +64,7 @@ type
       function AddressLookupCallback(address: ptruint): string;
       function SymbolLookupCallback(s: string): ptruint;
       function StructureNameLookup(var address: ptruint; var name: string): boolean;
-      procedure AssemblerEvent(address:integer; instruction: string; var bytes: TAssemblerBytes);
+      procedure AssemblerEvent(address:qword; instruction: string; var bytes: TAssemblerBytes);
       procedure AutoAssemblerPrologueEvent(code: TStrings; syntaxcheckonly: boolean);
       procedure ScreenFormEvent(Sender: TObject; Form: TCustomForm);
 
@@ -1076,7 +1076,7 @@ begin
   end;
 end;
 
-procedure TLuaCaller.AssemblerEvent(address:integer; instruction: string; var bytes: TAssemblerBytes);
+procedure TLuaCaller.AssemblerEvent(address:qword; instruction: string; var bytes: TAssemblerBytes);
 var
   oldstack: integer;
   tableindex: integer;

@@ -1575,7 +1575,7 @@ type
 type ttokens=array of string;
 type TAssemblerBytes=array of byte;
 
-type TAssemblerEvent=procedure(address:integer; instruction: string; var bytes: TAssemblerBytes) of object;
+type TAssemblerEvent=procedure(address:qword; instruction: string; var bytes: TAssemblerBytes) of object;
 
 type TassemblerPreference=(apNone, apShort, apLong);
 
