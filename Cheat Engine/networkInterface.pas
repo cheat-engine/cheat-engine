@@ -1788,7 +1788,7 @@ begin
 
   //connect
   socket:=FPSocket(AF_INET, SOCK_STREAM, 0);
-  if (socket=INVALID_SOCKET) then
+  if (socket=cint(INVALID_SOCKET)) then
   begin
     OutputDebugString('Socket creation failed. Check permissions');
     exit;
@@ -1798,9 +1798,9 @@ begin
 
   OutputDebugString('socket='+inttostr(socket));
 
-  SockAddr.Family := AF_INET;
-  SockAddr.Port := port;
-  SockAddr.Addr := host.s_addr;
+  SockAddr.sin_family := AF_INET;
+  SockAddr.sin_port := port;
+  SockAddr.sin_addr.s_addr := host.s_addr;
 
   B:=TRUE;
 
