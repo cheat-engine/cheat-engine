@@ -214,6 +214,7 @@ function CollectJavaSymbolsNonInjected(thread)
 
 
  -- print("-------------------------------------------------")
+--[[
   s=readPointer("jvm.gHotSpotVMIntConstants")
   VMIntConstantEntryNameOffset=readInteger("jvm.gHotSpotVMIntConstantEntryNameOffset")
   VMIntConstantEntryValueOffset=readInteger("jvm.gHotSpotVMIntConstantEntryValueOffset")
@@ -290,6 +291,7 @@ function CollectJavaSymbolsNonInjected(thread)
     CurrentPos=CurrentPos+CodeletSize
   end
 
+--]]
   JavaHotSpotFieldsLoaded=true
 end
 
@@ -348,57 +350,105 @@ function javaInjectAgent()
 
 
   if (alreadyinjected==false) then
-    local script=[[
-    globalalloc(bla,1024)
+    local script=''
 
-    globalalloc(cmd,16)
-    globalalloc(arg0,256)
-    globalalloc(arg1,256)
-    globalalloc(arg2,256)
-    globalalloc(result,4)
+    if targetIs64Bit() then  
+      script=[[
+        globalalloc(bla,1024)
 
-    globalalloc(pipename,256)
+        globalalloc(cmd,16)
+        globalalloc(arg0,256)
+        globalalloc(arg1,256)
+        globalalloc(arg2,256)
+        globalalloc(result,4)
 
-    cmd:
-    db 'load',0
+        globalalloc(pipename,256)
 
-    arg0:
+        cmd:
+        db 'load',0
 
-    db ']]..dllpath..[[',0
+        arg0:
 
-    arg1:
-    db 0
+        db ']]..dllpath..[[',0
 
-    arg2:
-    db 0
+        arg1:
+        db 0
 
-    pipename:
-    db '\\.\pipe\cejavapipe',0
+        arg2:
+        db 0
+
+        pipename:
+        db '\\.\pipe\cejavapipe',0
 
 
-    bla:
-    sub rsp,8
-    sub rsp,30
+        bla:
+        sub rsp,8
+        sub rsp,30
 
-    mov rcx,cmd
-    mov rdx,arg0
-    mov r8,arg1
-    mov r9,arg2
+        mov rcx,cmd
+        mov rdx,arg0
+        mov r8,arg1
+        mov r9,arg2
 
-    mov [rsp],cmd
-    mov [rsp+8],arg0
-    mov [rsp+10],arg1
-    mov [rsp+18],arg2
-    mov [rsp+20],pipename
+        mov [rsp],cmd
+        mov [rsp+8],arg0
+        mov [rsp+10],arg1
+        mov [rsp+18],arg2
+        mov [rsp+20],pipename
 
-    call jvm.JVM_EnqueueOperation
-    mov [result],eax
+        call jvm.JVM_EnqueueOperation
+        mov [result],eax
 
-    add rsp,38
-    ret
+        add rsp,38
+        ret
 
-    createthread(bla)
-    ]]
+        createthread(bla)
+      ]]
+    else
+      script=[[
+        globalalloc(bla,1024)
+
+        globalalloc(cmd,16)
+        globalalloc(arg0,256)
+        globalalloc(arg1,256)
+        globalalloc(arg2,256)
+        globalalloc(result,4)
+
+        globalalloc(pipename,256)
+
+        cmd:
+        db 'load',0
+
+        arg0:
+
+        db ']]..dllpath..[[',0
+
+        arg1:
+        db 0
+
+        arg2:
+        db 0
+
+        pipename:
+        db '\\.\pipe\cejavapipe',0
+
+
+        bla:
+        push pipename
+        push arg2
+        push arg1
+        push arg0
+        push cmd
+
+
+        call jvm.JVM_EnqueueOperation
+        mov [result],eax
+
+        ret
+
+        createthread(bla)
+      ]]
+    end
   if autoAssemble(script)==false then
     error('Auto assembler failed:'..script)
   end
