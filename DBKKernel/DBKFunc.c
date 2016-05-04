@@ -52,7 +52,7 @@ calls a specific function for each cpu that runs in passive mode
 
 
 			
-			DbgPrint("Calling passive function for cpunr %d\n", cpunr);
+			//DbgPrint("Calling passive function for cpunr %d\n", cpunr);
 			//set affinity
 
 			newaffinity=(KAFFINITY)(1 << cpunr);

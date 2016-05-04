@@ -210,12 +210,13 @@ void ultimap_cleanstate()
 
 int perfmon_interrupt_centry(void)
 {
+
 	KIRQL old;
 	
 	void *temp;
 	int causedbyme=(DS_AREA[cpunr()]->BTS_IndexBaseAddress>=DS_AREA[cpunr()]->BTS_InterruptThresholdAddress);
 	UINT_PTR blocksize;
-
+	
 	DbgPrint("perfmon_interrupt_centry\n", cpunr());
 
 
@@ -225,8 +226,12 @@ int perfmon_interrupt_centry(void)
 	blocksize=DS_AREA[cpunr()]->BTS_IndexBaseAddress-DS_AREA[cpunr()]->BTS_BufferBaseAddress;
 	
 	{	
-		old=KeRaiseIrqlToDpcLevel();
-		enableInterrupts();
+		if (KeGetCurrentIrql() < DISPATCH_LEVEL)
+		{
+			//When called by the pre-emptive caller
+			old = KeRaiseIrqlToDpcLevel();
+		}
+
 
 		DbgPrint("Entry cpunr=%d\n", cpunr());
 		DbgPrint("Entry threadid=%d\n", PsGetCurrentThreadId());
@@ -249,10 +254,6 @@ int perfmon_interrupt_centry(void)
 			disableInterrupts();
 			return causedbyme;
 		}
-
-		
-
-
 		
 		KeLowerIrql(old);
 		//should be passive mode, taskswitches and cpu switches will happen now (When this returns, I may not be on the same interrupt as I was when I started)
@@ -337,6 +338,8 @@ int perfmon_interrupt_centry(void)
 	DbgPrint("Returning from perfmon_interrupt_centry\n");
 
 	return causedbyme;
+
+	
 }
 
 
@@ -401,7 +404,7 @@ skip_original_perfmon:
 VOID ultimap_disable_dpc(IN struct _KDPC *Dpc, IN PVOID DeferredContext, IN PVOID SystemArgumen1, IN PVOID SystemArgument2)
 {
 	int i;
-	DbgPrint("ultimap_disable()\n");
+	//DbgPrint("ultimap_disable_dpc()\n");
 
 	if (vmxusable)
 	{
@@ -413,14 +416,12 @@ VOID ultimap_disable_dpc(IN struct _KDPC *Dpc, IN PVOID DeferredContext, IN PVOI
 			DS_AREA[cpunr()]=NULL;
 		}
 	}
-	else
-	{
-		DbgPrint("vmx not usable\n");
-	}
 }
 
 void ultimap_disable(void)
 {
+	void *clear = NULL;
+
 	if (DataBlock)
 	{
 		int i;
@@ -451,6 +452,9 @@ void ultimap_disable(void)
 			DataReadyPointerList=NULL;		
 		}
 		ExReleaseFastMutex(&DataBlockMutex);
+
+	    HalSetSystemInformation(HalProfileSourceInterruptHandler, sizeof(PVOID*), &clear); //unhook the perfmon interrupt
+
 
 	}
 }
@@ -536,11 +540,70 @@ Call this for each processor
 	}
 }
 
+void ultimapapc(PKAPC Apc, PKNORMAL_ROUTINE NormalRoutine, PVOID NormalContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+	EFLAGS e = getEflags();
+	DbgPrint("ultimapapc call for cpu %d ( IF=%d IRQL=%d)\n", KeGetCurrentProcessorNumber(), e.IF, KeGetCurrentIrql());
+	DbgPrint("SystemArgument1=%x\n", *(PULONG)SystemArgument1);
+	DbgPrint("tid=%x\n", PsGetCurrentThreadId());
+	DbgPrint("Apc=%p\n", Apc);
+}
+
+void ultimapapcnormal(PVOID arg1, PVOID arg2, PVOID arg3)
+{
+	EFLAGS e = getEflags();
+	DbgPrint("ultimapapcnormal call for cpu %d ( IF=%d IRQL=%d)\n", KeGetCurrentProcessorNumber(), e.IF, KeGetCurrentIrql());
+	DbgPrint("tid=%x\n", PsGetCurrentThreadId());
+
+	ultimap_flushBuffers();
+
+	return;
+}
+
+KAPC      kApc[128];
+volatile int apcnr = 0;
 
 void perfmon_hook(__in struct _KINTERRUPT *Interrupt, __in PVOID ServiceContext)
 {	
-	perfmon_interrupt_centry();
+	
+	int i = InterlockedIncrement(&apcnr) % 128;
+
+	
+	EFLAGS e = getEflags();
+	DbgPrint("permon_hook call for cpu %d ( IF=%d IRQL=%d)\n", KeGetCurrentProcessorNumber(), e.IF, KeGetCurrentIrql());
+
+	DbgPrint("kApc=%p\n", &kApc);
+
+
+	//switch buffer pointers
+
+	//call DPC for ultimap for this cpu
+
+
+	//todo: if this is buggy use a dpc instead to create the apc.  (slower)
+	KeInitializeApc(&kApc[i],
+		(PKTHREAD)PsGetCurrentThread(), 
+		0,
+		(PKKERNEL_ROUTINE)ultimapapc,
+		NULL,
+		(PKNORMAL_ROUTINE)ultimapapcnormal,
+		KernelMode,
+		0
+		);
+
+	KeInsertQueueApc(&kApc[i], NULL, NULL, 0);
+
+	
+
+	DbgPrint("after KeInsertQueueApc");
+
+
+
+
+	//perfmon_interrupt_centry();
 	ultimap_cleanstate();
+
+	DbgPrint("permon_return");
 }
 
 void *pperfmon_hook = perfmon_hook;
@@ -597,6 +660,7 @@ NTSTATUS ultimap(UINT64 cr3, UINT64 dbgctl_msr, int DS_AREA_SIZE, BOOL savetofil
 
 	if ((DataBlock) && (DataReadyPointerList))
 	{
+		NTSTATUS r;
 
 
 		for (i=0; i< MaxDataBlocks; i++)
@@ -616,7 +680,9 @@ NTSTATUS ultimap(UINT64 cr3, UINT64 dbgctl_msr, int DS_AREA_SIZE, BOOL savetofil
 		params.dbgctl_msr=dbgctl_msr;
 		params.DS_AREA_SIZE=DS_AREA_SIZE;
 
-		HalSetSystemInformation(HalProfileSourceInterruptHandler, sizeof(PVOID*), &pperfmon_hook); //hook the perfmon interrupt
+		r=HalSetSystemInformation(HalProfileSourceInterruptHandler, sizeof(PVOID*), &pperfmon_hook); //hook the perfmon interrupt
+
+		DbgPrint("HalSetSystemInformation returned %x\n", r);
 
 		forEachCpu(ultimap_setup_dpc, &params, NULL, NULL);
 		return STATUS_SUCCESS;

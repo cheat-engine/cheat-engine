@@ -506,6 +506,8 @@ Return Value:
 
 		DbgPrint("LVT_Performance_Monitor=%x\n", (UINT_PTR)&y.LVT_Performance_Monitor-(UINT_PTR)&y);
 	}
+
+
 	
     return STATUS_SUCCESS;
 }
