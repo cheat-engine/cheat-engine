@@ -13,7 +13,7 @@ uses jwawindows, windows, sysutils, classes, types, registry, multicpuexecution,
 
 
 
-const currentversion=2000017;
+const currentversion=2000018;
 
 const FILE_ANY_ACCESS=0;
 const FILE_SPECIAL_ACCESS=FILE_ANY_ACCESS;
@@ -114,6 +114,9 @@ const IOCTL_CE_ENUMACCESSEDMEMORY     = (IOCTL_UNKNOWN_BASE shl 16) or ($0849 sh
 const IOCTL_CE_GETACCESSEDMEMORYLIST  = (IOCTL_UNKNOWN_BASE shl 16) or ($084a shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
 const IOCTL_CE_WRITESIGNOREWP         = (IOCTL_UNKNOWN_BASE shl 16) or ($084b shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_FREE_NONPAGED          = (IOCTL_UNKNOWN_BASE shl 16) or ($084c shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+
+const IOCTL_CE_MAP_MEMORY             = (IOCTL_UNKNOWN_BASE shl 16) or ($084d shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
 
 
@@ -158,6 +161,12 @@ type
   end;
   TUltimapEventArray=array [0..0] of TUltimapEvent;
   PUltimapEventArray=^TUltimapEventArray;
+
+
+  TMapMemoryResult=record
+    address: uint64;
+    mdladdress: uint64;
+  end;
 
 type       //The DataEvent structure contains the address and blockid. Use this when done handling the event
   TUltimapDataEvent=packed record
@@ -268,6 +277,9 @@ function DBKResumeProcess(ProcessID:dword):boolean; stdcall;
 
 function KernelAlloc(size: dword):pointer; stdcall;
 function KernelAlloc64(size: dword):uint64; stdcall;
+procedure KernelFree(address: uint64); stdcall;
+function MapMemory(frompid, topid: dword; address: ptruint; size: dword):TMapMemoryResult;
+
 function GetKProcAddress(s: pwidechar):pointer; stdcall;
 function GetKProcAddress64(s: pwidechar):uint64; stdcall;
 
@@ -1690,6 +1702,56 @@ begin
     result:=uint64(dbvm_kernelalloc(size));
   end;
 end;
+
+procedure KernelFree(address: uint64); stdcall;
+var cc: dword;
+    x: record
+      address: uint64;
+    end;
+begin
+  x.address:=address;
+
+  if (hdevice<>INVALID_HANDLE_VALUE) then
+  begin
+    cc:=IOCTL_CE_FREE_NONPAGED;
+    deviceiocontrol(hdevice,cc,@x,sizeof(x),@output,sizeof(output),cc,nil);
+  end;
+end;
+
+
+
+function MapMemory(frompid, topid: dword; address: ptruint; size: dword):TMapMemoryResult;
+var cc: dword;
+    input: record
+      FromPID: uint64;
+      ToPid: uint64;
+      address: uint64;
+      size: dword;
+    end;
+    output: record
+      mdl: uint64;
+      address: uint64;
+    end;
+begin
+  result.address:=0;
+  result.mdladdress:=0;
+  input.frompid:=frompid;
+  input.topid:=topid;
+  input.address:=address;
+  input.size:=size;
+
+  if (hdevice<>INVALID_HANDLE_VALUE) then
+  begin
+    cc:=IOCTL_CE_MAP_MEMORY;
+    if deviceiocontrol(hdevice,cc,@input,sizeof(input),@output,sizeof(output),cc,nil) then
+    begin
+      result.mdladdress:=output.mdl;
+      result.address:=output.address;
+    end;
+
+  end;
+end;
+
 
 function GetKProcAddress(s: pwidechar):pointer; stdcall;
 begin
