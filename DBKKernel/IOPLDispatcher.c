@@ -1120,10 +1120,6 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				BaseAddress=(PVOID)(UINT_PTR)inp->BaseAddress;
 				RegionSize=(SIZE_T)(inp->Size);
 
-				
-
-
-
 
 				if (PsLookupProcessByProcessId((PVOID)(UINT64)(inp->ProcessID),&selectedprocess)==STATUS_SUCCESS)	
 				{
@@ -1186,7 +1182,6 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 					ULONG Size;
 				} *inp;
 				PVOID address;
-				char *x;
 				int size;
 
 				inp=Irp->AssociatedIrp.SystemBuffer;
@@ -1203,18 +1198,177 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				{
 					DbgPrint("Alloc success. Cleaning memory... (size=%d)\n",size);					
 					
-					x=address;
-					DbgPrint("x=%p\n", x);
-					RtlZeroMemory(x, size);
-
-					x=Irp->AssociatedIrp.SystemBuffer;
+					DbgPrint("address=%p\n", address);
+					RtlZeroMemory(address, size);
 				
 					ntStatus=STATUS_SUCCESS;
 				}
 
 				break;
 			}
-			
+
+		case IOCTL_CE_FREE_NONPAGED:
+			{
+				struct input
+				{
+					UINT64 Address;
+				} *inp;
+
+				inp = Irp->AssociatedIrp.SystemBuffer;
+
+				ExFreePool(inp->Address);
+
+				ntStatus = STATUS_SUCCESS;
+
+				break;
+			}
+
+
+		case IOCTL_CE_MAP_MEMORY:
+			{
+				struct input
+				{
+					UINT64 FromPID;
+					UINT64 ToPID;
+					UINT64 address;
+					DWORD size;
+				} *inp;
+
+				struct output
+				{
+					UINT64 FromMDL;
+					UINT64 Address;
+				} *outp;
+
+				KAPC_STATE apc_state;
+				PEPROCESS selectedprocess;
+				PMDL FromMDL=NULL;
+
+				inp = Irp->AssociatedIrp.SystemBuffer;
+				outp = Irp->AssociatedIrp.SystemBuffer;
+
+				DbgPrint("IOCTL_CE_MAP_MEMORY\n");
+				DbgPrint("address %x size %d\n", inp->address, inp->size);
+				ntStatus = STATUS_UNSUCCESSFUL;				
+
+				if (inp->FromPID)			
+				{
+					//switch
+					DbgPrint("From PID %d\n", inp->FromPID);
+					if (PsLookupProcessByProcessId((PVOID)(UINT64)(inp->FromPID), &selectedprocess) == STATUS_SUCCESS)
+					{
+						__try
+						{
+							RtlZeroMemory(&apc_state, sizeof(apc_state));
+							KeStackAttachProcess((PVOID)selectedprocess, &apc_state); 
+
+							__try
+							{
+								FromMDL=IoAllocateMdl(inp->address, inp->size, FALSE, FALSE, NULL);
+								if (FromMDL)
+									MmProbeAndLockPages(FromMDL, UserMode, IoReadAccess);
+							}
+							__finally
+							{
+								KeUnstackDetachProcess(&apc_state);
+							}
+
+						}
+						__except (1)
+						{
+							DbgPrint("Exception\n");
+							ntStatus = STATUS_UNSUCCESSFUL;
+							break;
+						}						
+					}
+				}
+				else
+				{
+					DbgPrint("From kernel or self\n", inp->FromPID);
+					__try
+					{
+						FromMDL = IoAllocateMdl(inp->address, inp->size, FALSE, FALSE, NULL);
+						if (FromMDL)
+						{
+							DbgPrint("IoAllocateMdl success\n");
+							MmProbeAndLockPages(FromMDL, KernelMode, IoReadAccess);
+						}
+					}
+					__except (1)
+					{
+						DbgPrint("Exception\n");
+
+						if (FromMDL)
+						{
+							IoFreeMdl(FromMDL);
+							FromMDL = NULL;
+						}
+					}
+				}
+
+				if (FromMDL)
+				{
+					DbgPrint("FromMDL is valid\n");
+
+					if (inp->ToPID)
+					{
+						//switch
+						DbgPrint("To PID %d\n", inp->ToPID);
+						if (PsLookupProcessByProcessId((PVOID)(UINT64)(inp->ToPID), &selectedprocess) == STATUS_SUCCESS)
+						{
+							__try
+							{
+								RtlZeroMemory(&apc_state, sizeof(apc_state));
+								KeStackAttachProcess((PVOID)selectedprocess, &apc_state);
+
+								__try
+								{
+									outp->Address = MmMapLockedPagesSpecifyCache(FromMDL, UserMode, MmWriteCombined, NULL, FALSE, NormalPagePriority);
+									outp->FromMDL = FromMDL;
+									ntStatus = STATUS_SUCCESS;
+								}
+								__finally
+								{
+									KeUnstackDetachProcess(&apc_state);
+								}
+
+							}
+							__except (1)
+							{
+								DbgPrint("Exception part 2\n");
+								ntStatus = STATUS_UNSUCCESSFUL;
+								break;
+							}
+						}
+					}
+					else
+					{
+						DbgPrint("To kernel or self\n", inp->FromPID);
+
+						__try
+						{
+							outp->Address = MmMapLockedPagesSpecifyCache(FromMDL, UserMode, MmWriteCombined, NULL, FALSE, NormalPagePriority);
+							outp->FromMDL = FromMDL;
+							ntStatus = STATUS_SUCCESS;
+						}
+						__except (1)
+						{
+							DbgPrint("Exception part 2\n");
+						}
+					}
+
+
+
+					
+
+				}
+				else
+					DbgPrint("FromMDL==NULL\n");
+
+
+				
+				break;
+			}
 
 		case IOCTL_CE_GETPROCADDRESS:
 			{
