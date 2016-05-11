@@ -18,7 +18,8 @@ uses
   controls, LuaCaller, forms, ExtCtrls, StdCtrls, comctrls, ceguicomponents,
   generichotkey, luafile, xmplayer_server, ExtraTrainerComponents, customtimer,
   menus, XMLRead, XMLWrite, DOM,ShellApi, Clipbrd, typinfo, PEInfoFunctions,
-  LCLProc, strutils, registry, md5, commonTypeDefs, LResources, Translations;
+  LCLProc, strutils, registry, md5, commonTypeDefs, LResources, Translations,
+  variants;
 
 
 const MAXTABLERECURSIONLOOKUP=2;
@@ -93,7 +94,8 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   LuaCommonDialog, LuaFindDialog, LuaSettings, LuaPageControl, LuaRipRelativeScanner,
   LuaStructureFrm, LuaInternet, SymbolListHandler, processhandlerunit, processlist,
   DebuggerInterface, WindowsDebugger, VEHDebugger, KernelDebuggerInterface,
-  DebuggerInterfaceAPIWrapper, Globals, math, speedhack2, CETranslator, binutils;
+  DebuggerInterfaceAPIWrapper, Globals, math, speedhack2, CETranslator, binutils,
+  xinput;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -946,6 +948,19 @@ begin
     lua_pop(luavm,lua_gettop(luavm));
     luacs.Leave;
   end;
+end;
+
+procedure lua_setbasictableentry(L: Plua_State; tableindex: integer; entryname: string; data: Variant);
+begin
+  lua_pushstring(L, entryname);
+
+  case vartype(data) and vartypemask of
+    varsmallint, varinteger, varint64, varqword, varlongword, varword, varbyte, varshortint: lua_pushinteger(L, data);
+    varsingle, vardouble: lua_pushnumber(L, data);
+    varboolean: lua_pushboolean(L, data);
+  end;
+
+  lua_settable(L, tableindex);
 end;
 
 function LUA_functioncall(routinetocall: string; parameters: array of const): integer;
@@ -6636,6 +6651,95 @@ begin
   lua_pushinteger(L, GetForegroundWindow());
 end;
 
+function getXBox360ControllerState(L:PLua_state): integer; cdecl;
+var
+  index: integer;
+  i: integer;
+  state: XINPUT_STATE;
+begin
+  result:=0;
+  index:=-1;
+  InitXinput;
+  if lua_gettop(L)>=1 then
+  begin
+    index:=lua_tointeger(L, 1);
+    if XInputGetState(index, state)<>0 then exit;
+  end
+  else
+  begin
+    for i:=0 to XUSER_MAX_COUNT-1 do
+    begin
+      if XInputGetState(lua_tointeger(L, 1), state)=0 then //found a controller  (usually 0)
+      begin
+        index:=i;
+        break;
+      end;
+    end;
+  end;
+
+  if index<>-1 then
+  begin
+    //state is now filled in, convert it to a readable table
+    lua_newtable(L);
+    i:=lua_gettop(L);
+
+    lua_setbasictableentry(L, i, 'ControllerID', index);
+    lua_setbasictableentry(L, i, 'PacketNumber', state.dwPacketNumber);
+    lua_setbasictableentry(L, i, 'GAMEPAD_DPAD_UP', (state.Gamepad.wButtons and XINPUT_GAMEPAD_DPAD_UP)<>0);
+    lua_setbasictableentry(L, i, 'GAMEPAD_DPAD_DOWN', (state.Gamepad.wButtons and XINPUT_GAMEPAD_DPAD_DOWN)<>0);
+    lua_setbasictableentry(L, i, 'GAMEPAD_DPAD_LEFT', (state.Gamepad.wButtons and XINPUT_GAMEPAD_DPAD_LEFT)<>0);
+    lua_setbasictableentry(L, i, 'GAMEPAD_DPAD_RIGHT', (state.Gamepad.wButtons and XINPUT_GAMEPAD_DPAD_RIGHT)<>0);
+
+    lua_setbasictableentry(L, i, 'GAMEPAD_START', (state.Gamepad.wButtons and XINPUT_GAMEPAD_START)<>0);
+    lua_setbasictableentry(L, i, 'GAMEPAD_BACK', (state.Gamepad.wButtons and XINPUT_GAMEPAD_BACK)<>0);
+
+    lua_setbasictableentry(L, i, 'GAMEPAD_LEFT_THUMB', (state.Gamepad.wButtons and XINPUT_GAMEPAD_LEFT_THUMB)<>0);
+    lua_setbasictableentry(L, i, 'GAMEPAD_RIGHT_THUMB', (state.Gamepad.wButtons and XINPUT_GAMEPAD_RIGHT_THUMB)<>0);
+
+    lua_setbasictableentry(L, i, 'GAMEPAD_LEFT_SHOULDER', (state.Gamepad.wButtons and XINPUT_GAMEPAD_LEFT_SHOULDER)<>0);
+    lua_setbasictableentry(L, i, 'GAMEPAD_RIGHT_SHOULDER', (state.Gamepad.wButtons and XINPUT_GAMEPAD_RIGHT_SHOULDER)<>0);
+
+    lua_setbasictableentry(L, i, 'GAMEPAD_A', (state.Gamepad.wButtons and XINPUT_GAMEPAD_A)<>0);
+    lua_setbasictableentry(L, i, 'GAMEPAD_B', (state.Gamepad.wButtons and XINPUT_GAMEPAD_B)<>0);
+    lua_setbasictableentry(L, i, 'GAMEPAD_X', (state.Gamepad.wButtons and XINPUT_GAMEPAD_X)<>0);
+    lua_setbasictableentry(L, i, 'GAMEPAD_Y', (state.Gamepad.wButtons and XINPUT_GAMEPAD_Y)<>0);
+
+    lua_setbasictableentry(L, i, 'LeftTrigger', state.Gamepad.bLeftTrigger);
+    lua_setbasictableentry(L, i, 'RightTrigger', state.Gamepad.bRightTrigger);
+
+    lua_setbasictableentry(L, i, 'ThumbLeftX', state.Gamepad.sThumbLX);
+    lua_setbasictableentry(L, i, 'ThumbLeftY', state.Gamepad.sThumbLY);
+    lua_setbasictableentry(L, i, 'ThumbRightX', state.Gamepad.sThumbRX);
+    lua_setbasictableentry(L, i, 'ThumbRightY', state.Gamepad.sThumbRY);
+
+
+
+    result:=1;
+  end;
+end;
+
+function setXBox360ControllerVibration(L:PLua_state): integer; cdecl;
+var
+  index: integer;
+  left, right: word;
+  vib: XINPUT_VIBRATION;
+begin
+  result:=0;
+  InitXinput;
+
+  if lua_gettop(L)>=3 then
+  begin
+    index:=lua_tointeger(L,1);
+    left:=lua_tointeger(L,2);
+    right:=lua_tointeger(L, 3);
+
+    vib.wLeftMotorSpeed:=left;
+    vib.wRightMotorSpeed:=right;
+
+    result:=1;
+    lua_pushboolean(L, XInputSetState(index, @vib)=0);
+  end;
+end;
 
 procedure InitializeLua;
 var
@@ -7090,8 +7194,8 @@ begin
     lua_register(LuaVM, 'getWindowClassName', lua_getWindowClassName);
     lua_register(LuaVM, 'getForegroundWindow', lua_getForegroundWindow);
 
-
-
+    lua_register(LuaVM, 'getXBox360ControllerState', getXBox360ControllerState);
+    lua_register(LuaVM, 'setXBox360ControllerVibration', setXBox360ControllerVibration);
 
     initializeLuaCustomControl;
 

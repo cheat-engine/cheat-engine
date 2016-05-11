@@ -363,6 +363,37 @@ getUpdateTimer() : Returns the update timer object
 setGlobalKeyPollInterval(integer): Sets the global keypoll interval. The interval determines the speed of how often CE checks if a key has been pressed or not. Lower is more accurate, but eats more cpu power
 setGlobalDelayBetweenHotkeyActivation(integer): Sets the minimum delay between the activation of the same hotey in milliseconds. Affects all hotkeys that do not set their own minimum delay
 
+getXBox360ControllerState(ControllerID OPTIONAL) : table - Fetches the state of the connected xbox controller. Returns a table containing the following fields on success:
+    ControllerID : The id of the controller (between 0 and 3)
+    PacketNumber : The packet id of the state you see. (use to detect changes)
+    GAMEPAD_DPAD_UP : D-PAD Up (boolean)
+    GAMEPAD_DPAD_DOWN: D-PAD Down (boolean)
+    GAMEPAD_DPAD_LEFT: D-PAD Left (boolean)
+    GAMEPAD_DPAD_RIGHT: D-PAD Right (boolean)
+    GAMEPAD_START: Start button (boolean)
+    GAMEPAD_BACK: Back button (boolean)
+    GAMEPAD_LEFT_THUMB: Left thumb stick down (boolean)
+    GAMEPAD_RIGHT_THUMB: Right thumb stick down (boolean)
+
+    GAMEPAD_LEFT_SHOULDER: Left shoulder button (boolean)
+    GAMEPAD_RIGHT_SHOULDER: Right shoulder button (boolean)
+
+    GAMEPAD_A: A button (boolean)
+    GAMEPAD_B: B button (boolean)
+    GAMEPAD_X: X button (boolean)
+    GAMEPAD_Y: Y button (boolean)
+
+    LeftTrigger: Left trigger (integer ranging from 0 to 255)
+    RightTrigger: Right trigger (integer ranging from 0 to 255)
+
+    ThumbLeftX: Horizontal position of the left thumbstick (-32768 to 32767)
+    ThumbLeftY: Verital position of the left thumbstick (-32768 to 32767)
+    ThumbRightX: Horizontal position of the right thumbstick (-32768 to 32767)
+    ThumbRightY: Vertical position of the right thumbstick (-32768 to 32767)  
+
+
+setXBox360ControllerVibration(ControllerID, leftMotor, rightMotor) - Sets the speed of the left and right vibrating motor inside the controller. Range (0 to 65535 where 0 is off)
+
 
 
 undefined property functions. Not all properties of all classes have been explicitly exposed to lua, but if you know the name of a property of a specific class you can still access them (assuming they are declared as published in the pascal class declaration)

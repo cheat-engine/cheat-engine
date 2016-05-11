@@ -89,7 +89,7 @@ uses
   Parsers, Globals, NullStream, RipRelativeScanner, LuaRipRelativeScanner,
   VirtualQueryExCache, disassemblerthumb, AccessedMemory, LuaStructureFrm,
   MemoryQuery, pointerparser, GnuAssembler, binutils, dbvmLoadManual, mikmod,
-  frmEditHistoryUnit, LuaInternet;
+  frmEditHistoryUnit, LuaInternet, xinput;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in
