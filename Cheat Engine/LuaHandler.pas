@@ -6512,6 +6512,131 @@ begin
   end;
 end;
 
+function lua_sendMessage(L:PLua_state): integer; cdecl;
+var h: HWND;
+    Msg:  UINT;
+    wp: WPARAM;
+    lp: LPARAM;
+begin
+  result:=0;
+  if lua_gettop(L)=4 then
+  begin
+    h:=lua_tointeger(L,1);
+    msg:=lua_tointeger(L,2);
+    wp:=lua_tointeger(L,3);
+    lp:=lua_tointeger(L,4);
+
+    lua_tointeger(L, SendMessageA(h, Msg, wp, lp));
+    result:=1;
+  end;
+end;
+
+function lua_findWindow(L:PLua_state): integer; cdecl;
+var
+  classname, windowname: pchar;
+begin
+  classname:=nil;
+  windowname:=nil;
+
+  if lua_gettop(L)>=1 then
+    classname:=lua.lua_tostring(L,1);
+
+  if lua_gettop(L)>=2 then
+    windowname:=lua.Lua_ToString(L, 2);
+
+  lua_pushinteger(L, FindWindow(classname, windowname));
+  result:=1;
+end;
+
+function lua_getWindow(L:PLua_state): integer; cdecl;
+var
+  h: hwnd;
+  cmd: uint;
+begin
+  result:=0;
+  if lua_gettop(L)>=2 then
+  begin
+    h:=lua_tointeger(L, 1);
+    cmd:=lua_tointeger(L, 2);
+
+    lua_pushinteger(L, GetWindow(h, cmd));
+    result:=1;
+  end;
+end;
+
+function lua_getWindowProcessID(L:PLua_state): integer; cdecl;
+var
+  h: hwnd;
+  pid: DWORD;
+  tid: dword;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    pid:=0;
+    tid:=0;
+
+    tid:=GetWindowThreadProcessId(h, pid);
+
+    lua_pushinteger(L, pid);
+    lua_pushinteger(L, tid);
+    result:=2;
+
+  end;
+end;
+
+function lua_getWindowCaption(L:PLua_state): integer; cdecl;
+var
+  h: hwnd;
+  s: pchar;
+  i: integer;
+begin
+  result:=0;
+  if lua_gettop(L)=1 then
+  begin
+    h:=lua_tointeger(L, 1);
+    getmem(s,255);
+    try
+      i:=GetWindowText(h, s, 255);
+      s[i]:=#0;
+      lua_pushstring(L,s);
+      result:=1;
+    finally
+      freemem(s);
+    end;
+  end;
+end;
+
+function lua_getWindowClassName(L:PLua_state): integer; cdecl;
+var
+  h: hwnd;
+  s: pchar;
+  i: integer;
+begin
+  result:=0;
+  if lua_gettop(L)=1 then
+  begin
+    h:=lua_tointeger(L, 1);
+
+    getmem(s,255);
+    try
+      i:=GetClassNameA(h, s, 255);
+      s[i]:=#0;
+      lua_pushstring(L,s);
+      result:=1;
+    finally
+      freemem(s);
+    end;
+  end;
+end;
+
+function lua_getForegroundWindow(L:PLua_state): integer; cdecl;
+begin
+  result:=1;
+  lua_pushinteger(L, GetForegroundWindow());
+end;
+
+
 procedure InitializeLua;
 var
   s: tstringlist;
@@ -6956,6 +7081,15 @@ begin
 
     lua_register(LuaVM, 'mapMemory', lua_mapMemory);
     lua_register(LuaVM, 'unmapMemory', lua_unmapMemory);
+
+    lua_register(LuaVM, 'sendMessage', lua_sendMessage);
+    lua_register(LuaVM, 'findWindow', lua_findWindow);
+    lua_register(LuaVM, 'getWindow', lua_getWindow);
+    lua_register(LuaVM, 'getWindowProcessID', lua_getWindowProcessID);
+    lua_register(LuaVM, 'getWindowCaption', lua_getWindowCaption);
+    lua_register(LuaVM, 'getWindowClassName', lua_getWindowClassName);
+    lua_register(LuaVM, 'getForegroundWindow', lua_getForegroundWindow);
+
 
 
 

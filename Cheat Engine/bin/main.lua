@@ -204,6 +204,8 @@ getWindowlist(): Returns a table with the windowlist (pid - window caption )
 
 getThreadlist(List): fills a List object with the threadlist of the currently opened process. Format: %x
 
+
+
 function onOpenProcess(processid):
   If this function is defined it will be called whenever cheat engine opens a process.
   Note: The the same process might be opened multiple times in a row internally
@@ -250,6 +252,8 @@ checkSynchronize(): Calls this from an infinite loop in the main thread when usi
 
 writeToClipboard(text):  Writes the given text to the clipboard
 readFromClipboard():  Reads the text from the clipboard
+
+
 
 speedhack_setSpeed(speed) : Enables the speedhack if needed and sets the specific speed
 speedhack_getSpeed(): Returns the last set speed
@@ -302,6 +306,18 @@ allocateSharedMemory(name, size):
 
 
 getForegroundProcess() : Returns the processID of the process that is currently on top
+
+
+findWindow(classname OPTIONAL, caption OPTIONAL): windowhandle - Finds a window with the given classname and/or windowname
+getWindow(windowhandle, command) : windowhandle - Gets a specific window based on the given window (Check MSDN getWindow for the command description)
+getWindowCaption(windowhandle) : string - Returns the caption of the window
+getWindowClassName(windowhandle): string - Returns the classname of the window
+getWindowProcessID(windowhandle): processid - Returns the processid of the process this window belongs to
+getForegroundWindow() - windowhandle : Returns the windowhandle of the topmost window
+sendMessage(hwnd, msg, wparam, lparam): result - Sends a message to a window. Those that wish to use it, should know how to use it (and fill in the msg id's yourself)
+
+
+
 
 cheatEngineIs64Bit(): Returns true if CE is 64-bit, false if 32-bit
 targetIs64Bit(): Returns true if the target process is 64-bit, false if 32-bit
@@ -586,6 +602,7 @@ methods
 
 WinControl Class: (Inheritance: Control->Component->Object)
 properties
+  Handle: Integer - The internal windows handle
   DoubleBuffered: boolean - Graphical updates will go to a offscreen bitmap which will then be shown on the screen instead of directly to the screen. May reduce flickering
   ControlCount : integer - The number of child controls of this wincontrol
   Control[] : Control - Array to access a child control
