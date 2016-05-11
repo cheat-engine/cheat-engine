@@ -6541,7 +6541,7 @@ begin
     wp:=lua_tointeger(L,3);
     lp:=lua_tointeger(L,4);
 
-    lua_tointeger(L, SendMessageA(h, Msg, wp, lp));
+    lua_pushinteger(L, SendMessageA(h, Msg, wp, lp));
     result:=1;
   end;
 end;
