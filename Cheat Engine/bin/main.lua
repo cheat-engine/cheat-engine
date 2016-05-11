@@ -2016,6 +2016,14 @@ dbk_writesIgnoreWriteProtection(state): Set to true if you do not wish to initia
 
 dbvm_getCR4(): Returns the real Control Register 4 state
 
+allocateKernelMemory(size) : Allocates a block of nonpaged memory and returns the address
+freeKernelMemory(address) : Frees the given memory region
+
+mapMemory(address, size,  frompid OPTIONAL, topid OPTIONAL): maps a specific address to the usermode context from the given PID to the given PID. If the PID is 0 or not specified, the cheat engine process is selected. This functions returns 2 results. Address and MDL. The MDL you will need for unmapMemory()
+unmapMemory(address, mdl)                                                         
+
+
+
 
 onAPIPointerChange(function): Registers a callback when an api pointer is changed (can happen when the user clicks ok in settings, or when dbk_use*** is used. Does NOT happen when setAPIPointer is called)
 

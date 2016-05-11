@@ -6448,6 +6448,70 @@ begin
 
 end;
 
+
+function allocateKernelMemory(L:PLua_state): integer; cdecl;
+begin
+  result:=0;
+  if lua_gettop(L)=1 then
+  begin
+    lua_pushinteger(L, ptruint(KernelAlloc(lua_tointeger(L,1))));
+    result:=1;
+  end;
+end;
+
+function freeKernelMemory(L:PLua_state): integer; cdecl;
+begin
+  if lua_gettop(L)=1 then
+    KernelFree(lua_tointeger(L,1));
+
+  result:=0; //you'll know it worked by not having a BSOD
+end;
+
+function lua_mapMemory(L:PLua_state): integer; cdecl;
+var
+  address: uint64;
+  size: dword;
+  frompid, topid: dword;
+
+  mmr: TMapMemoryResult;
+begin
+  frompid:=0;
+  topid:=0;
+
+  if lua_gettop(L)>=2 then
+  begin
+    address:=lua_tointeger(L,1);
+    size:=lua_tointeger(L,2);
+  end
+  else
+    exit(0);
+
+  if lua_gettop(L)>=3 then
+    frompid:=lua_tointeger(L,3);
+
+  if lua_getttop(L)>=4 then
+    topid:=lua_tointeger(L,4);
+
+  mmr:=MapMemory(address, size, frompid, topid);
+
+  lua_pushinteger(L, mmr.address);
+  lua_pushinteger(L, mmr.mdladdress);
+  result:=2;
+end;
+
+function lua_unmapMemory(L:PLua_state): integer; cdecl;
+var
+  mmr: TMapMemoryResult;
+begin
+  result:=0;
+  if lua_gettop(l)>=2 then
+  begin
+    mmr.address:=lua_tointeger(L, 1);
+    mmr.mdladdress:=lua_tointeger(L, 2);
+    UnmapMemory(mmr);
+  end;
+end;
+
 procedure InitializeLua;
 var
   s: tstringlist;
@@ -6886,6 +6950,14 @@ begin
 
     lua_register(LuaVM, 'md5file', md5file);
     lua_register(LuaVM, 'md5memory', md5memory);
+
+    lua_register(LuaVM, 'allocateKernelMemory', allocateKernelMemory);
+    lua_register(LuaVM, 'freeKernelMemory', freeKernelMemory);
+
+    lua_register(LuaVM, 'mapMemory', lua_mapMemory);
+    lua_register(LuaVM, 'unmapMemory', lua_unmapMemory);
+
+
 
     initializeLuaCustomControl;
 
