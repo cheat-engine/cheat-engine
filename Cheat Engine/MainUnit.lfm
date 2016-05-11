@@ -9,7 +9,7 @@ object MainForm: TMainForm
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AllowDropFiles = True
-  Caption = 'Cheat Engine 6.5'
+  Caption = 'Cheat Engine 6.5.1'
   ClientHeight = 534
   ClientWidth = 573
   Font.Height = -11
@@ -22,7 +22,7 @@ object MainForm: TMainForm
   OnDropFiles = FormDropFiles
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.3'
   object Splitter1: TSplitter
     Cursor = crVSplit
     Left = 0

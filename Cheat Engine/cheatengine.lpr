@@ -203,7 +203,7 @@ begin
 end;
 
 begin
-  Application.Title:='Cheat Engine 6.5';
+  Application.Title:='Cheat Engine 6.5.1';
   Application.Initialize;
   getcedir;
 

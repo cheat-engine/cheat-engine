@@ -8128,9 +8128,11 @@ end;
 procedure TMainForm.Label59Click(Sender: TObject);
 var r: TMapMemoryResult;
 begin
-  r:=MapMemory(0,0,$00400000, 4096);
+  r:=MapMemory($00400000, 4096, 0,0);
 
   showmessage(inttohex(r.address,8));
+
+  UnmapMemory(r);
 end;
 
 procedure ChangeIcon(hModule: HModule; restype: PChar; resname: PChar;
