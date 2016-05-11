@@ -6659,7 +6659,8 @@ var
 begin
   result:=0;
   index:=-1;
-  InitXinput;
+  if InitXinput=false then exit;
+
   if lua_gettop(L)>=1 then
   begin
     index:=lua_tointeger(L, 1);
@@ -6725,7 +6726,7 @@ var
   vib: XINPUT_VIBRATION;
 begin
   result:=0;
-  InitXinput;
+  if InitXinput=false then exit;
 
   if lua_gettop(L)>=3 then
   begin
