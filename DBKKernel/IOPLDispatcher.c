@@ -1266,7 +1266,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 							{
 								FromMDL=IoAllocateMdl(inp->address, inp->size, FALSE, FALSE, NULL);
 								if (FromMDL)
-									MmProbeAndLockPages(FromMDL, UserMode, IoReadAccess);
+									MmProbeAndLockPages(FromMDL, KernelMode, IoReadAccess);
 							}
 							__finally
 							{
@@ -1367,6 +1367,28 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 
 				
+				break;
+			}
+
+		case IOCTL_CE_UNMAP_MEMORY:
+			{
+				struct output
+				{
+					UINT64 FromMDL;
+					UINT64 Address;
+				} *inp;
+
+				PMDL mdl;
+
+				inp = Irp->AssociatedIrp.SystemBuffer;
+				mdl = (PMDL)inp->FromMDL;
+
+				MmUnmapLockedPages((PMDL)inp->Address, mdl);
+
+				IoFreeMdl(mdl);
+
+				ntStatus = STATUS_SUCCESS; //no BSOD means success ;)
+
 				break;
 			}
 
