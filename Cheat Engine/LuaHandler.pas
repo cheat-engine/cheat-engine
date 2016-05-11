@@ -6489,7 +6489,7 @@ begin
   if lua_gettop(L)>=3 then
     frompid:=lua_tointeger(L,3);
 
-  if lua_getttop(L)>=4 then
+  if lua_gettop(L)>=4 then
     topid:=lua_tointeger(L,4);
 
   mmr:=MapMemory(address, size, frompid, topid);
