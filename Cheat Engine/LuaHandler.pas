@@ -5709,7 +5709,7 @@ begin
           else
             playparam:=playparam or SND_ASYNC;
 
-          PlaySoundA(ms.Memory, NULL, playparam);
+          PlaySoundA(ms.Memory, 0, playparam);
         end;
 
 
