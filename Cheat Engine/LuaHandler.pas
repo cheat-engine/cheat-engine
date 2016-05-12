@@ -4383,6 +4383,8 @@ begin
     lc:=lua_ToCEUserData(L, -1);
     if lc<>nil then
       screen.RemoveHandlerFormAdded(lc.ScreenFormEvent);
+
+    lc.Free;
   end;
 end;
 
@@ -5257,7 +5259,7 @@ begin
       else
       if lua_isstring(L,2) then
       begin
-        routine:=lua_tostring(L,-1);
+        routine:=lua_tostring(L,2);
         lc:=TLuaCaller.create;
         lc.luaroutine:=routine;
       end
@@ -5345,7 +5347,7 @@ begin
     else
     if lua_isstring(L,1) then
     begin
-      routine:=lua_tostring(L,-1);
+      routine:=lua_tostring(L,1);
       lc:=TLuaCaller.create;
       lc.luaroutine:=routine;
     end
@@ -5385,7 +5387,7 @@ begin
     else
     if lua_isstring(L,1) then
     begin
-      routine:=lua_tostring(L,-1);
+      routine:=lua_tostring(L,1);
       lc:=TLuaCaller.create;
       lc.luaroutine:=routine;
     end
@@ -5426,7 +5428,7 @@ begin
     else
     if lua_isstring(L,1) then
     begin
-      routine:=lua_tostring(L,-1);
+      routine:=lua_tostring(L,1);
       lc:=TLuaCaller.create;
       lc.luaroutine:=routine;
     end
@@ -5466,7 +5468,7 @@ begin
     else
     if lua_isstring(L,1) then
     begin
-      routine:=lua_tostring(L,-1);
+      routine:=lua_tostring(L,1);
       lc:=TLuaCaller.create;
       lc.luaroutine:=routine;
     end
@@ -5505,7 +5507,7 @@ begin
     else
     if lua_isstring(L,1) then
     begin
-      routine:=lua_tostring(L,-1);
+      routine:=lua_tostring(L,1);
       lc:=TLuaCaller.create;
       lc.luaroutine:=routine;
     end
@@ -6742,6 +6744,56 @@ begin
   end;
 end;
 
+
+function lua_registerAutoAssemblerTemplate(L:PLua_state): integer; cdecl;
+var
+  f: integer;
+  routine: string;
+  lc: tluacaller;
+  name: string;
+begin
+  result:=0;
+
+  if lua_gettop(L)>=2 then
+  begin
+    name:=Lua_ToString(L, 1);
+
+    if lua_isfunction(L, 2) then
+    begin
+      lua_pushvalue(L, 2);
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+    end
+    else
+    if lua_isstring(L,2) then
+    begin
+      routine:=lua_tostring(L,2);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+    end
+    else exit;
+
+   // lua_pushinteger(L, registerAutoAssemblerTemplate(name, lc.AutoAssemblerTemplateCallback));
+    result:=1;
+  end;
+end;
+
+function lua_unregisterAutoAssemblerTemplate(L:PLua_state): integer; cdecl;
+var id: integer;
+begin
+  result:=0;
+  if lua_gettop(L)=1 then
+  begin
+    id:=lua_tointeger(L, 1);
+    unregisterAutoAssemblerTemplate(id);
+  end;
+end;
+
+
+
+
 procedure InitializeLua;
 var
   s: tstringlist;
@@ -7197,6 +7249,9 @@ begin
 
     lua_register(LuaVM, 'getXBox360ControllerState', getXBox360ControllerState);
     lua_register(LuaVM, 'setXBox360ControllerVibration', setXBox360ControllerVibration);
+
+    lua_register(LuaVM, 'registerAutoAssemblerTemplate', lua_registerAutoAssemblerTemplate);
+    lua_register(LuaVM, 'unregisterAutoAssemblerTemplate', lua_unregisterAutoAssemblerTemplate);
 
     initializeLuaCustomControl;
 

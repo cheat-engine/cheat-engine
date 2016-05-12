@@ -302,7 +302,7 @@ implementation
 {$ifdef windows}
 uses assemblerunit, driverlist, LuaHandler, lualib, lua, lauxlib,
   disassemblerComments, StructuresFrm2, networkInterface, networkInterfaceApi,
-  processhandlerunit, Globals, Parsers, MemoryQuery;
+  processhandlerunit, Globals, Parsers, MemoryQuery, LuaCaller;
 {$endif}
 
 {$ifdef unix}
@@ -371,7 +371,10 @@ begin
   id:=id and $1FFFFFFF;
 
   if id<length(SymbolLookupCallbacks[cbp]) then
+  begin
+    CleanupLuaCall(TMethod(SymbolLookupCallbacks[cbp][id]));
     SymbolLookupCallbacks[cbp][id]:=nil;
+  end;
 end;
 
 function registerAddressLookupCallback(callback: TAddressLookupCallback): integer;
@@ -394,7 +397,10 @@ end;
 procedure unregisterAddressLookupCallback(id: integer);
 begin
   if id<length(AddressLookupCallbacks) then
+  begin
+    CleanupLuaCall(TMethod(AddressLookupCallbacks[id]));
     AddressLookupCallbacks[id]:=nil;
+  end;
 end;
 
 

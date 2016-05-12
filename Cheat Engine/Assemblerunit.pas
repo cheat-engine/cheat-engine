@@ -1647,7 +1647,7 @@ uses symbolhandler, assemblerArm, Parsers, NewKernelHandler;
 
 {$ifdef windows}
 uses {$ifndef autoassemblerdll}CEFuncProc,{$endif}symbolhandler, lua, luahandler,
-  lualib, assemblerArm, Parsers, NewKernelHandler;
+  lualib, assemblerArm, Parsers, NewKernelHandler, LuaCaller;
 {$endif}
 
 
@@ -1675,7 +1675,10 @@ end;
 procedure unregisterAssembler(id: integer);
 begin
   if id<length(ExtraAssemblers) then
+  begin
+    CleanupLuaCall(TMethod(ExtraAssemblers[id]));
     ExtraAssemblers[id]:=nil;
+  end;
 end;
 
 

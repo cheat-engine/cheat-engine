@@ -67,6 +67,15 @@ end;
 type TScriptMode=(smAutoAssembler, smLua, smGnuAssembler);
 
 type
+  TAutoAssemblerTemplateCallback=procedure(script: TStrings) of object;
+  TAutoAssemblerTemplate=record
+                           name: string;
+                           m: TAutoAssemblerTemplateCallback;
+                         end;
+
+  TAutoAssemblerTemplates=array of TAutoAssemblerTemplate;
+
+type
 
   { TfrmAutoInject }
 
@@ -178,7 +187,7 @@ type
     procedure gutterclick(Sender: TObject; X, Y, Line: integer; mark: TSynEditMark);
     procedure assemblescreenchange(sender: TObject);
     function GetUniqueAOB(mi: TModuleInfo; address: ptrUint; codesize: Integer; var resultOffset: Integer) : string;
-
+    procedure CustomTemplateClick(sender: tobject);
   public
     { Public declarations }
 
@@ -194,6 +203,8 @@ type
     callbackroutine: TCallbackroutine;
     CustomTypeCallback: TCustomCallbackroutine;
     injectintomyself: boolean;
+    procedure addTemplate(id: integer);
+    procedure removeTemplate(id: integer);
     property CustomTypeScript: boolean read fCustomTypeScript write setCustomTypeScript;
     property ScriptMode: TScriptMode read fScriptMode write setScriptMode;
   end;
@@ -202,13 +213,15 @@ type
 procedure Getjumpandoverwrittenbytes(address,addressto: ptrUINT; jumppart,originalcodepart: tstrings);
 procedure generateAPIHookScript(script: tstrings; address: string; addresstogoto: string; addresstostoreneworiginalfunction: string=''; nameextension:string='0');
 
+function registerAutoAssemblerTemplate(name: string; m: TAutoAssemblerTemplateCallback): integer;
+procedure unregisterAutoAssemblerTemplate(id: integer);
 
 
 implementation
 
 
 uses frmAAEditPrefsUnit,MainUnit,memorybrowserformunit,APIhooktemplatesettingsfrm,
-  Globals, Parsers, MemoryQuery, GnuAssembler;
+  Globals, Parsers, MemoryQuery, GnuAssembler, LuaCaller;
 
 resourcestring
   rsExecuteScript = 'Execute script';
@@ -229,6 +242,102 @@ resourcestring
   rsEndAddressLastBytesAreIncludedIfNecesary = 'End address (last bytes are included if necessary)';
   rsAreYouSureYouWantToClose = 'Are you sure you want to close %s ?';
   rsWhatIdentifierDoYouWantToUse = 'What do you want to name the symbol for the injection point?';
+
+
+var
+  AutoAssemblerTemplates: TAutoAssemblerTemplates;
+
+
+
+
+function registerAutoAssemblerTemplate(name: string; m: TAutoAssemblerTemplateCallback): integer;
+var i: integer;
+begin
+  //find a spot in the current list
+  result:=-1;
+  for i:=0 to length(AutoAssemblerTemplates)-1 do
+    if not assigned(AutoAssemblerTemplates[i].m) then
+    begin
+      AutoAssemblerTemplates[i].name:=name;
+      AutoAssemblerTemplates[i].m:=m;
+      result:=i;
+      break;
+    end;
+
+  if result=-1 then
+  begin
+    i:=length(AutoAssemblerTemplates);
+    setlength(AutoAssemblerTemplates,i+1);
+    AutoAssemblerTemplates[i].name:=name;
+    AutoAssemblerTemplates[i].m:=m;
+    result:=i;
+  end;
+
+  //check for open autoassembler windows
+  for i:=0 to screen.FormCount-1 do
+  begin
+    if screen.Forms[i] is TfrmAutoInject then
+      TfrmAutoInject(screen.Forms[i]).addTemplate(result);
+  end;
+end;
+
+procedure unregisterAutoAssemblerTemplate(id: integer);
+var i: integer;
+begin
+  if id<length(AutoAssemblerTemplates) then
+  begin
+    //check for open autoassembler windows
+    for i:=0 to screen.FormCount-1 do
+    begin
+      if screen.Forms[i] is TfrmAutoInject then
+        TfrmAutoInject(screen.Forms[i]).removeTemplate(id);
+    end;
+
+    CleanupLuaCall(TMethod(AutoAssemblerTemplates[id].m));
+
+    AutoAssemblerTemplates[id].name:='';
+    AutoAssemblerTemplates[id].m:=nil;
+  end;
+end;
+
+procedure TfrmAutoInject.removeTemplate(id: integer);
+var i: integer;
+begin
+  for i:=emplate1.Count-1 downto 0 do
+    if emplate1.Items[i].Tag=id then
+      emplate1.Items[i].Free;
+
+end;
+
+procedure TfrmAutoInject.addTemplate(id: integer);
+var mi: TMenuItem;
+begin
+  if ScriptMode=smAutoAssembler then
+  begin
+    mi:=TMenuItem.create(MainMenu1);
+    mi.Caption:=name;
+    mi.Tag:=id;
+    mi.OnClick:=CustomTemplateClick;
+    emplate1.Add(mi);
+  end;
+end;
+
+procedure TfrmAutoInject.CustomTemplateClick(sender: tobject);
+var
+  i: integer;
+  t: TAutoAssemblerTemplate;
+begin
+  if sender is TMenuItem then
+  begin
+    i:=TMenuItem(sender).Tag;
+    if i<length(AutoAssemblerTemplates) then
+    begin
+      t:=AutoAssemblerTemplates[i];
+      if assigned(t.m) then
+        t.m(assemblescreen.Lines);
+    end;
+  end;
+end;
 
 procedure TfrmAutoInject.setCustomTypeScript(x: boolean);
 begin
@@ -2749,6 +2858,7 @@ begin
 end;
 
 // /\   http://forum.cheatengine.org/viewtopic.php?t=566415 (jgoemat and some mods by db)
+
 
 initialization
   {$i frmautoinjectunit.lrs}

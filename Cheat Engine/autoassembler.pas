@@ -174,7 +174,10 @@ begin
     prologues:=@AutoAssemblerPrologues;
 
   if id<=length(prologues^) then
+  begin
+    CleanupLuaCall(TMethod(prologues^[id-1]));
     prologues^[id-1]:=nil;
+  end;
 end;
 
 procedure RegisterAutoAssemblerCommand(command: string; callback: TAutoAssemblerCallback);

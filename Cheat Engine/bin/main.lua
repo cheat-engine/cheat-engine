@@ -191,6 +191,9 @@ registerAutoAssemblerPrologue(function(script, syntaxcheck), postAOB:boolean=fal
 
 unregisterAutoAssemblerPrologue(ID)
 
+registerAutoAssemblerTemplate(name, function(script: TStrings): id - Registers an template for the auto assembler. The script parameter is a TStrings object that has a direct connection to the current script. (All script parsing is up to you...).  Returns an ID
+unregisterAutoAssemblerTemplate(ID)
+
 
 showMessage(text) : shows a messagebox with the given text
 inputQuery(caption, prompt, initialstring): Shows a dialog where the user can input a string. This function returns the given string, or nil on cancel  CE6.4+

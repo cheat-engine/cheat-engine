@@ -169,7 +169,7 @@ uses Assemblerunit, StrUtils, Parsers, memoryQuery;
 {$endif}
 
 {$ifdef windows}
-uses Assemblerunit,CEDebugger, debughelper, StrUtils, debuggertypedefinitions, Parsers, memoryQuery, binutils;
+uses Assemblerunit,CEDebugger, debughelper, StrUtils, debuggertypedefinitions, Parsers, memoryQuery, binutils, luacaller;
 {$endif}
 
 
@@ -194,7 +194,10 @@ end;
 procedure unregisterGlobalDisassembleOverride(id: integer);
 begin
   if id<length(GlobalDisassembleOverrides) then
+  begin
+    CleanupLuaCall(TMethod(GlobalDisassembleOverrides[id]));
     GlobalDisassembleOverrides[id]:=nil;
+  end;
 end;
 
 

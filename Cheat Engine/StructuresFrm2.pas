@@ -550,7 +550,7 @@ implementation
 
 uses MainUnit, mainunit2, frmStructures2ElementInfoUnit, MemoryBrowserFormUnit,
   frmStructureLinkerUnit, frmgroupscanalgoritmgeneratorunit, frmStringPointerScanUnit,
-  ProcessHandlerUnit, Parsers;
+  ProcessHandlerUnit, Parsers, LuaCaller;
 
 resourcestring
   rsAddressValue = 'Address: Value';
@@ -673,7 +673,10 @@ end;
 procedure unregisterStructureNameLookup(id: integer);
 begin
   if id<length(StructureNameLookups) then
+  begin
+    CleanupLuaCall(TMethod(StructureNameLookups[id]));
     StructureNameLookups[id]:=nil;
+  end;
 end;
 
 function registerStructureDissectOverride(m: TStructureDissectOverride): integer;
@@ -697,7 +700,10 @@ end;
 procedure unregisterStructureDissectOverride(id: integer);
 begin
   if id<length(StructureDissectOverrides) then
+  begin
+    CleanupLuaCall(TMethod(StructureDissectOverrides[id]));
     StructureDissectOverrides[id]:=nil;
+  end;
 end;
 
 function lookupStructureName(address: ptruint; defaultName: string) : string;
