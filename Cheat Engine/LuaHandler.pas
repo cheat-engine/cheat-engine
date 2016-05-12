@@ -6670,7 +6670,7 @@ begin
   begin
     for i:=0 to XUSER_MAX_COUNT-1 do
     begin
-      if XInputGetState(lua_tointeger(L, 1), state)=0 then //found a controller  (usually 0)
+      if XInputGetState(i, state)=0 then //found a controller  (usually 0)
       begin
         index:=i;
         break;
