@@ -304,21 +304,30 @@ procedure TfrmAutoInject.removeTemplate(id: integer);
 var i: integer;
 begin
   for i:=emplate1.Count-1 downto 0 do
-    if emplate1.Items[i].Tag=id then
+    if emplate1.Items[i].Tag=id+1 then
       emplate1.Items[i].Free;
 
 end;
 
 procedure TfrmAutoInject.addTemplate(id: integer);
-var mi: TMenuItem;
+var
+  mi: TMenuItem;
+  t: TAutoAssemblerTemplate;
 begin
-  if ScriptMode=smAutoAssembler then
+  if id<length(AutoAssemblerTemplates) then
   begin
-    mi:=TMenuItem.create(MainMenu1);
-    mi.Caption:=name;
-    mi.Tag:=id;
-    mi.OnClick:=CustomTemplateClick;
-    emplate1.Add(mi);
+    t:=AutoAssemblerTemplates[id];
+    if assigned(t.m) then
+    begin
+      if ScriptMode=smAutoAssembler then
+      begin
+        mi:=TMenuItem.create(MainMenu1);
+        mi.Caption:=t.name;
+        mi.Tag:=id+1;
+        mi.OnClick:=CustomTemplateClick;
+        emplate1.Add(mi);
+      end;
+    end;
   end;
 end;
 
@@ -329,7 +338,7 @@ var
 begin
   if sender is TMenuItem then
   begin
-    i:=TMenuItem(sender).Tag;
+    i:=TMenuItem(sender).Tag-1;
     if i<length(AutoAssemblerTemplates) then
     begin
       t:=AutoAssemblerTemplates[i];
@@ -1563,8 +1572,10 @@ end;
 
 
 procedure TfrmAutoInject.FormCreate(Sender: TObject);
-var x: array of integer;
-    reg: tregistry;
+var
+  i: integer;
+  x: array of integer;
+  reg: tregistry;
 begin
 
 
@@ -1654,6 +1665,10 @@ begin
   finally
     reg.free;
   end;
+
+
+  for i:=0 to length(AutoAssemblerTemplates)-1 do
+    addTemplate(i);
 
 {$endif}
 end;

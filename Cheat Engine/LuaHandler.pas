@@ -6775,7 +6775,7 @@ begin
     end
     else exit;
 
-   // lua_pushinteger(L, registerAutoAssemblerTemplate(name, lc.AutoAssemblerTemplateCallback));
+    lua_pushinteger(L, registerAutoAssemblerTemplate(name, lc.AutoAssemblerTemplateCallback));
     result:=1;
   end;
 end;
