@@ -959,12 +959,13 @@ end;
 procedure TFormDesigner.CheckBoxForbooleanClick(sender: tobject);
 var reg: tregistry;
 begin
-  {$ifndef OLDLAZARUS11}
+
   {
   If you're wondering why this code is giving an error, then update to
   lazarus 1.6 or remove the comments from the above $define line (or add
   OLDLAZARUS11 to your defines)
   }
+  {$ifndef OLDLAZARUS11}
 
   oid.GridControl[oipgpProperties].CheckboxForBoolean:=tmenuitem(sender).Checked;
   oid.RebuildPropertyLists;
