@@ -612,7 +612,9 @@ type TCEForm=class(TCustomForm)
     procedure ResyncWithLua(Base: TComponent); overload;
     procedure ResyncWithLua; overload;
     procedure SaveToFile(filename: string);
+    procedure SaveToFileLFM(filename: string);
     procedure LoadFromFile(filename: string);
+    procedure LoadFromFileLFM(filename: string);
     procedure SaveToXML(Node: TDOMNode);
     procedure LoadFromXML(Node: TDOMNode);
     procedure RestoreToDesignState;
@@ -1350,6 +1352,17 @@ begin
   WriteXML(xmldoc, filename);
 end;
 
+procedure TCEForm.SaveToFileLFM(filename: string);
+var
+  ms: Tmemorystream;
+begin
+  SaveCurrentStateasDesign;
+  ms:=TMemoryStream.Create;
+  LRSObjectBinaryToText(savedDesign, ms);
+  ms.SaveToFile(filename);
+  ms.Destroy;
+end;
+
 procedure TCEForm.LoadFromFile(filename: string);
 var
   formnode: TDOMNode;
@@ -1370,6 +1383,23 @@ begin
     else
       raise exception.create('Invalid formdata');
   end;
+end;
+
+procedure TCEForm.LoadFromFileLFM(filename: string);
+var
+  ms: Tmemorystream;
+  wasActive: boolean;
+begin
+  wasActive:=active;
+  active:=false;
+
+  ms:=TMemoryStream.Create;
+  ms.LoadFromFile(filename);
+  saveddesign.Size:=0;
+  LRSObjectTextToBinary(ms,saveddesign);
+  ms.Destroy;
+
+  active:=wasActive;
 end;
 
 procedure TCEForm.paint;

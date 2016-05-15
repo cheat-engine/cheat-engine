@@ -36,7 +36,9 @@ type
     miAddItems: TMenuItem;
     miDelete: TMenuItem;
     miSave: TMenuItem;
+    miSaveLFM: TMenuItem;
     miLoad: TMenuItem;
+    miLoadLFM: TMenuItem;
     miBringToFront: TMenuItem;
     miSendToBack: TMenuItem;
     OpenDialog1: TOpenDialog;
@@ -85,9 +87,11 @@ type
     procedure miAnchorEditorClick(Sender: TObject);
     procedure miDeleteClick(Sender: TObject);
     procedure miLoadClick(Sender: TObject);
+    procedure miLoadLFMClick(Sender: TObject);
     procedure miMenuMoveDownClick(Sender: TObject);
     procedure miMenuMoveUpClick(Sender: TObject);
     procedure miSaveClick(Sender: TObject);
+    procedure miSaveLFMClick(Sender: TObject);
     procedure miBringToFrontClick(Sender: TObject);
     procedure miSendToBackClick(Sender: TObject);
     procedure miSetupMainMenuClick(Sender: TObject);
@@ -267,11 +271,27 @@ end;
 procedure TFormDesigner.miLoadClick(Sender: TObject);
 var f: TCeform;
 begin
+  OpenDialog1.DefaultExt := '.FRM';
+  OpenDialog1.Filter := 'Form files(*.frm)|*.FRM';
   if (GlobalDesignHook.LookupRoot<>nil) and (GlobalDesignHook.LookupRoot is TCEForm) and (OpenDialog1.Execute) then
   begin
     f:=TCEForm(GlobalDesignHook.LookupRoot);
 
     f.LoadFromFile(UTF8ToAnsi(OpenDialog1.filename));
+    setFormName;
+  end;
+end;
+
+procedure TFormDesigner.miLoadLFMClick(Sender: TObject);
+var f: TCeform;
+begin
+  OpenDialog1.DefaultExt := '.LFM';
+  OpenDialog1.Filter := 'Form files(*.lfm)|*.LFM';
+  if (GlobalDesignHook.LookupRoot<>nil) and (GlobalDesignHook.LookupRoot is TCEForm) and (OpenDialog1.Execute) then
+  begin
+    f:=TCEForm(GlobalDesignHook.LookupRoot);
+
+    f.LoadFromFileLFM(UTF8ToAnsi(OpenDialog1.filename));
     setFormName;
   end;
 end;
@@ -332,11 +352,26 @@ end;
 procedure TFormDesigner.miSaveClick(Sender: TObject);
 var f: TCeform;
 begin
+  SaveDialog1.DefaultExt := '.FRM';
+  SaveDialog1.Filter := 'Form files(*.frm)|*.FRM';
   if (GlobalDesignHook.LookupRoot<>nil) and (GlobalDesignHook.LookupRoot is TCEForm) and (SaveDialog1.Execute) then
   begin
     f:=TCEForm(GlobalDesignHook.LookupRoot);
 
     f.SaveToFile(Utf8ToAnsi(Savedialog1.filename));
+  end;
+end;
+
+procedure TFormDesigner.miSaveLFMClick(Sender: TObject);
+var f: TCeform;
+begin
+  SaveDialog1.DefaultExt := '.LFM';
+  SaveDialog1.Filter := 'Form files(*.lfm)|*.LFM';
+  if (GlobalDesignHook.LookupRoot<>nil) and (GlobalDesignHook.LookupRoot is TCEForm) and (SaveDialog1.Execute) then
+  begin
+    f:=TCEForm(GlobalDesignHook.LookupRoot);
+
+    f.SaveToFileLFM(Utf8ToAnsi(Savedialog1.filename));
   end;
 end;
 
