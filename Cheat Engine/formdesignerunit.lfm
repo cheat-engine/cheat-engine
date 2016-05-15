@@ -2740,6 +2740,14 @@ object FormDesigner: TFormDesigner
       object miLoad: TMenuItem
         Caption = 'Load'
         OnClick = miLoadClick
+      end      
+      object miSaveLFM: TMenuItem
+        Caption = 'Save LFM'
+        OnClick = miSaveLFMClick
+      end
+      object miLoadLFM: TMenuItem
+        Caption = 'Load LFM'
+        OnClick = miLoadLFMClick
       end
     end
   end
