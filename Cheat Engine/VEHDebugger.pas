@@ -404,7 +404,10 @@ begin
 
     symhandler.waitforsymbolsloaded(true,'kernel32.dll');
 
-    InjectDll(cheatenginedir+'vehdebug'+prefix+'.dll');
+    try
+      InjectDll(cheatenginedir+'vehdebug'+prefix+'.dll');
+    except
+    end;
     symhandler.reinitialize;
     symhandler.waitforsymbolsloaded(true,'vehdebug'+prefix+'.dll');
 
