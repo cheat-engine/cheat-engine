@@ -4,43 +4,39 @@
   #include "lstate.h"
 
 CRITICAL_SECTION b;
+BOOL cscreated = FALSE;
 
   void LuaLockInitial(lua_State * L) 
   { 
-
-	  if (sizeof(b) != sizeof(L->lock))
+	  if (!cscreated)
 	  {
-		  MessageBoxA(0, "Not the same", "FUUUCK", MB_OK);
+		  InitializeCriticalSection(&b);
+		  cscreated = TRUE;
 	  }
-    if (!L->lock_init) 
-    {
-		InitializeCriticalSection((LPCRITICAL_SECTION)&L->lock);
-		L->lock_init = 1;
-    }
   }
 
   void LuaLockFinal(lua_State * L) /* Not called by Lua. */
   { 
-    /* Destroy a mutex. */
-	if (L->lock_init)
-    {
-      DeleteCriticalSection(&L->lock);
-	  L->lock_init = 0;
-    }
-	
+	  DeleteCriticalSection(&b);
+
   }
 
   void LuaLock(lua_State * L)
   {	  
-	  if (!L->lock_init)
+	  if (!cscreated)
 		  LuaLockInitial(L);
 
-	  EnterCriticalSection((LPCRITICAL_SECTION)&L->lock);	  
+	  EnterCriticalSection(&b);	  
   }
 
   void LuaUnlock(lua_State * L)
   { 
 	//  MessageBox(0, "LuaUnlock","LuaUnlock", MB_OK);
     /* Release control of mutex */
-	  LeaveCriticalSection((LPCRITICAL_SECTION)&L->lock);
+
+	  if (!cscreated)
+		  LuaLockInitial(L);
+
+
+	  LeaveCriticalSection(&b);
   }
