@@ -1609,8 +1609,11 @@ properties
   ID: integer - Unique id of this hotkey (ReadOnly)
   Description: string - The description of this hotkey (ReadOnly)
   HotkeyString: string - The hotkey formatted as a string (ReadOnly)
+  ActivateSound: string - Tablefile name of a WAV file inside the table which will get played on activate events
+  DeactivateSound: string - Tablefile name of a .WAV file inside the table which will get played on deactivate events
   OnHotkey: function(sender) - Function to be called when a hotkey has just been pressed
   OnPostHotkey: function(sender) - Function to be called when a hotkey has been pressed and the action has been performed
+
 
 methods
   doHotkey: Executes the hotkey as if it got triggered by the keyboard

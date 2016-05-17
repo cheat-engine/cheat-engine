@@ -273,6 +273,8 @@ type
   private
     fOnHotkey: TNotifyevent;
     fOnPostHotkey: TNotifyevent;
+    factivateSound: string;
+    fdeactivateSound: string;
   public
     fID: integer;
     fDescription: string;
@@ -281,13 +283,14 @@ type
     action: TMemrecHotkeyAction;
     value: string;
 
-    activateSound: string;
-    deactivateSound: string;
+
 
     procedure doHotkey;
     constructor create(AnOwner: TMemoryRecord);
     destructor destroy; override;
   published
+    property ActivateSound: string read factivateSound write factivateSound;
+    property DeactivateSound: string read fdeactivateSound write fdeactivateSound;
     property Description: string read fDescription;
     property Owner: TMemoryRecord read fOwner;
     property ID: integer read fID;
