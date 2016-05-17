@@ -149,7 +149,9 @@ type
     { public declarations }
 
     canceled: boolean;
-  end; 
+  end;
+
+procedure FillSoundList(list: Tstrings);
 
 var
   frmTrainerGenerator: TfrmTrainerGenerator;
@@ -713,6 +715,32 @@ begin
   edtPopupHotkey.SetFocus;
 end;
 
+procedure FillSoundList(list: Tstrings);
+var
+  i: integer;
+  riff: pchar;
+begin
+  getmem(riff,5);
+  for i:=0 to mainform.LuaFiles.Count-1 do
+  begin
+    if mainform.LuaFiles[i].stream.size>4 then
+    begin
+      CopyMemory(riff, mainform.LuaFiles[i].stream.Memory,4);
+      riff[4]:=#0;
+      if riff='RIFF' then //good enough (could still be wrong, but better than random)
+        list.add(mainform.LuaFiles[i].name);
+    end;
+  end;
+
+  freemem(riff);
+
+  for i:=0 to mainform.InternalLuaFiles.Count-1 do
+  begin
+    if list.IndexOf(mainform.InternalLuaFiles[i].name)=-1 then //not overriden
+      list.add(mainform.InternalLuaFiles[i].name);
+  end;
+end;
+
 procedure TfrmTrainerGenerator.FillSound;
 var i: integer;
   s: tstringlist;
@@ -726,27 +754,7 @@ begin
 
   s:=tstringlist.create;
 
-
-  getmem(riff,5);
-  for i:=0 to mainform.LuaFiles.Count-1 do
-  begin
-    if mainform.LuaFiles[i].stream.size>4 then
-    begin
-      CopyMemory(riff, mainform.LuaFiles[i].stream.Memory,4);
-      riff[4]:=#0;
-      if riff='RIFF' then //good enough (could still be wrong, but better than random)
-        s.add(mainform.LuaFiles[i].name);
-    end;
-  end;
-
-  freemem(riff);
-
-  for i:=0 to mainform.InternalLuaFiles.Count-1 do
-  begin
-    if s.IndexOf(mainform.InternalLuaFiles[i].name)=-1 then //not overriden
-      s.add(mainform.InternalLuaFiles[i].name);
-  end;
-
+  FillSoundList(s);
 
   oldcbActivateSound:=cbActivateSound.text;
   oldcbDeactivateSound:=cbDeactivateSound.text;

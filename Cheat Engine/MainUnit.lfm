@@ -22,7 +22,7 @@ object MainForm: TMainForm
   OnDropFiles = FormDropFiles
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object Splitter1: TSplitter
     Cursor = crVSplit
     Left = 0
@@ -337,6 +337,7 @@ object MainForm: TMainForm
       Width = 42
       Caption = 'Test cap'
       ParentColor = False
+      Visible = False
       OnClick = Label59Click
     end
     object Label61: TLabel

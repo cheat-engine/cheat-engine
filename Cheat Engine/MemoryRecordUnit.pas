@@ -281,6 +281,9 @@ type
     action: TMemrecHotkeyAction;
     value: string;
 
+    activateSound: string;
+    deactivateSound: string;
+
     procedure doHotkey;
     constructor create(AnOwner: TMemoryRecord);
     destructor destroy; override;
@@ -823,6 +826,14 @@ begin
           if tempnode2<>nil then
             hk.value:=tempnode2.TextContent;
 
+          tempnode2:=tempnode.childnodes[i].findnode('ActivateSound');
+          if tempnode2<>nil then
+            hk.activateSound:=tempnode2.TextContent;
+
+          tempnode2:=tempnode.childnodes[i].findnode('DeactivateSound');
+          if tempnode2<>nil then
+            hk.deactivateSound:=tempnode2.TextContent;
+
           tempnode2:=tempnode.ChildNodes[i].FindNode('Keys');
           if tempnode2<>nil then
           begin
@@ -1146,6 +1157,13 @@ begin
 
       if hotkey[i].id>=0 then
         hk.AppendChild(doc.CreateElement('ID')).TextContent:=inttostr(hotkey[i].id);
+
+      if hotkey[i].value<>'' then
+        hk.AppendChild(doc.CreateElement('ActivateSound')).TextContent:=hotkey[i].activateSound;
+
+      if hotkey[i].value<>'' then
+        hk.AppendChild(doc.CreateElement('DeactivateSound')).TextContent:=hotkey[i].deactivateSound;
+
     end;
 
   end;
@@ -1381,31 +1399,84 @@ begin
 end;
 
 procedure TMemoryRecord.DoHotkey(hk: TMemoryRecordhotkey);
+var oldstate: boolean;
 begin
   if (hk<>nil) and (hk.owner=self) then
   begin
     try
       case hk.action of
-        mrhToggleActivation: active:=not active;
-        mrhSetValue:         SetValue(hk.value);
-        mrhIncreaseValue:    increaseValue(hk.value);
-        mrhDecreaseValue:    decreaseValue(hk.value);
+        mrhToggleActivation:
+        begin
+          active:=not active;
+
+          if (hk.activateSound<>'') and active then
+            LUA_DoScript('playSound(findTableFile([['+hk.activateSound+']]))');
+
+          if (hk.deactivateSound<>'') and (not active) then
+            LUA_DoScript('playSound(findTableFile([['+hk.deactivateSound+']]))'); //also gives a signal when failing to activate
+        end;
+
+        mrhSetValue:
+        begin
+          SetValue(hk.value);
+
+          if (hk.activateSound<>'') then
+            LUA_DoScript('playSound(findTableFile([['+hk.activateSound+']]))');
+        end;
+
+        mrhIncreaseValue:
+        begin
+          increaseValue(hk.value);
+          if (hk.activateSound<>'') then
+            LUA_DoScript('playSound(findTableFile([['+hk.activateSound+']]))');
+        end;
+
+        mrhDecreaseValue:
+        begin
+          decreaseValue(hk.value);
+          if (hk.activateSound<>'') then
+            LUA_DoScript('playSound(findTableFile([['+hk.activateSound+']]))');
+        end;
 
 
         mrhToggleActivationAllowDecrease:
         begin
           allowDecrease:=True;
           active:=not active;
+
+          if (hk.activateSound<>'') and active then
+            LUA_DoScript('playSound(findTableFile([['+hk.activateSound+']]))');
+
+          if (hk.deactivateSound<>'') and (not active) then
+            LUA_DoScript('playSound(findTableFile([['+hk.deactivateSound+']]))'); //also gives a signal when failing to activate
         end;
 
         mrhToggleActivationAllowIncrease:
         begin
           allowIncrease:=True;
           active:=not active;
+
+          if (hk.activateSound<>'') and active then
+            LUA_DoScript('playSound(findTableFile([['+hk.activateSound+']]))');
+
+          if (hk.deactivateSound<>'') and (not active) then
+            LUA_DoScript('playSound(findTableFile([['+hk.deactivateSound+']]))'); //also gives a signal when failing to activate
+
         end;
 
-        mrhActivate: active:=true;
-        mrhDeactivate: active:=false;
+        mrhActivate:
+        begin
+          active:=true;
+          if (hk.activateSound<>'') and active then
+            LUA_DoScript('playSound(findTableFile([['+hk.activateSound+']]))');
+        end;
+
+        mrhDeactivate:
+        begin
+          active:=false;
+          if (hk.deactivateSound<>'') and (not active) then
+            LUA_DoScript('playSound(findTableFile([['+hk.deactivateSound+']]))'); //also gives a signal when failing to activate
+        end;
 
 
       end;
