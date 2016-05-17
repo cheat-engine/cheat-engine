@@ -32,6 +32,8 @@ type TCEThread=class (TThread)
     constructor create(L: Plua_State; functionid: integer; suspended: boolean);
   published
     property name: string read fname write fname;
+    property Terminated;
+    property Finished;
 end;
 
 procedure TCEThread.sync;
@@ -121,8 +123,9 @@ begin
 end;
 
 
-//Lua functions
-function createNativeThread(L: PLua_State): integer; cdecl;
+
+
+function createNativeThreadInternal(L: PLua_State; suspended: boolean): integer; cdecl;
 var
   f: integer;
   routine: string;
@@ -187,10 +190,23 @@ begin
     result:=1;
 
     c.FreeOnTerminate:=true;
-    c.Start;
+
+    if not suspended then
+      c.Start;
   end
   else
     lua_pop(L, lua_gettop(L));
+end;
+
+//Lua functions
+function createNativeThread(L: PLua_State): integer; cdecl;
+begin
+  result:=createNativeThreadInternal(L, false);
+end;
+
+function createNativeThreadSuspended(L: PLua_State): integer; cdecl;
+begin
+  result:=createNativeThreadInternal(L, true);
 end;
 
 function thread_freeOnTerminate(L: PLua_State): integer; cdecl;
@@ -263,17 +279,40 @@ begin
   c.WaitFor;
 end;
 
+function thread_terminate(L: PLua_State): integer; cdecl;
+begin
+  TCEThread(luaclass_getClassObject(L)).Terminate;
+  result:=0;
+end;
+
+function thread_suspend(L: PLua_State): integer; cdecl;
+begin
+  TCEThread(luaclass_getClassObject(L)).Suspend;
+  result:=0;
+end;
+
+function thread_resume(L: PLua_State): integer; cdecl;
+begin
+  TCEThread(luaclass_getClassObject(L)).Resume;
+  result:=0;
+end;
+
+
 procedure thread_addMetaData(L: PLua_state; metatable: integer; userdata: integer);
 begin
   object_addMetaData(L, metatable, userdata);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'freeOnTerminate', thread_freeOnTerminate);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'synchronize', thread_synchronize);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'waitfor', thread_waitfor);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'terminate', thread_terminate);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'suspend', thread_suspend);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'resume', thread_resume);
 end;
 
 procedure initializeLuaThread;
 begin
   lua_register(LuaVM, 'createNativeThread', createNativeThread);
+  lua_register(LuaVM, 'createNativeThreadSuspended', createNativeThreadSuspended);
   lua_register(LuaVM, 'thread_freeOnTerminate', thread_freeOnTerminate);
   lua_register(LuaVM, 'thread_synchronize', thread_synchronize);
   lua_register(LuaVM, 'thread_waitfor', thread_waitfor);

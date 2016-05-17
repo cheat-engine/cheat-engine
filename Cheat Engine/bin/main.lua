@@ -1904,8 +1904,14 @@ createNativeThread(function(Thread,...), ...) :
   The function returns the Thread class object
   function declaration: function (Thread, ...)
 
+createNativeThreadSuspended(function(Thread,...), ...) :
+  Same as createNativeThread nut it won't run until resume is called on it
+
+
 properties
   name: string - This name will be shown when the thread terminated abnormally
+  Finished: boolean - Returns true if the thread has reached the end.  Do not rely on this if the thread is freeOnTerminate(true) (which is the default)
+  Terminated: boolean - Returns true if the Terminate method has been called
 
 methods
   freeOnTerminate(state) :
@@ -1919,6 +1925,15 @@ methods
 
   waitfor() :
     Waits for the given thread to finish (Not recommended to call this from inside the thread itself)
+
+  suspend() :
+    Suspend the thread's execution
+
+  resume() :
+    Resume the thread;s executionmm
+
+  terminate() :
+    Tells the thread it should terminate. The Terminated property will become true
 
 
 
