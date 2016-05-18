@@ -53,18 +53,25 @@ type
     cbMustBeStart: TCheckBox;
     cbSaveToDisk: TCheckBox;
     edtRegExp: TEdit;
+    FindDialog1: TFindDialog;
     lblStringCount: TLabel;
     ListView1: TListView;
+    miFind: TMenuItem;
+    miNext: TMenuItem;
     Panel1: TPanel;
+    pmStringList: TPopupMenu;
     ProgressBar1: TProgressBar;
     SaveDialog1: TSaveDialog;
     procedure btnScanClick(Sender: TObject);
     procedure btnFreeClick(Sender: TObject);
     procedure btnShowListClick(Sender: TObject);
     procedure cbRegExpChange(Sender: TObject);
+    procedure FindDialog1Find(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormResize(Sender: TObject);
     procedure ListView1DblClick(Sender: TObject);
+    procedure miFindClick(Sender: TObject);
+    procedure miNextClick(Sender: TObject);
     procedure Panel1Resize(Sender: TObject);
   private
     { private declarations }
@@ -78,6 +85,7 @@ type
     stringtree: TAvgLvlTree;
 
 
+    procedure dosearch;
     function treecompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
     procedure cleanup;
     function isString(address: ptruint): boolean;
@@ -558,6 +566,8 @@ begin
   edtRegExp.enabled:=cbRegExp.checked;
 end;
 
+
+
 procedure TfrmStringMap.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
   isfillinglist:=false;
@@ -572,6 +582,54 @@ procedure TfrmStringMap.ListView1DblClick(Sender: TObject);
 begin
   if listview1.Selected<>nil then
     memorybrowser.hexview.address:=ptruint(listview1.Selected.Data);
+end;
+
+procedure TfrmStringMap.dosearch;
+var
+  i: integer;
+  lookfor, s: string;
+  casesensitive: boolean;
+begin
+  lookfor:=finddialog1.FindText;
+  casesensitive:=frMatchCase in finddialog1.Options;
+  if not casesensitive then
+    lookfor:=LowerCase(lookfor);
+
+  for i:=listview1.ItemIndex+1 to listview1.Items.Count-1 do
+  begin
+    s:=listview1.Items[i].SubItems[0];
+    if not casesensitive then s:=lowercase(s);
+    if pos(lookfor,s)>0 then
+    begin
+      listview1.Items[i].MakeVisible(false);
+      listview1.Selected:=listview1.Items[i];
+      listview1.ItemIndex:=i;
+      break;
+    end;
+  end;
+end;
+
+procedure TfrmStringMap.FindDialog1Find(Sender: TObject);
+begin
+  if finddialog1.FindText<>'' then
+  begin
+    dosearch;
+    miNext.Enabled:=true;
+  end;
+
+  finddialog1.CloseDialog;
+end;
+
+
+procedure TfrmStringMap.miFindClick(Sender: TObject);
+begin
+  FindDialog1.Execute;
+end;
+
+procedure TfrmStringMap.miNextClick(Sender: TObject);
+begin
+  if finddialog1.FindText<>'' then
+    dosearch;
 end;
 
 

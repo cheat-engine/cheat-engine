@@ -1,7 +1,7 @@
 object frmStringMap: TfrmStringMap
-  Left = 350
+  Left = 216
   Height = 400
-  Top = 298
+  Top = 312
   Width = 480
   Caption = 'String map'
   ClientHeight = 400
@@ -9,7 +9,7 @@ object frmStringMap: TfrmStringMap
   OnClose = FormClose
   OnResize = FormResize
   Position = poScreenCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object Panel1: TPanel
     Left = 304
     Height = 400
@@ -123,6 +123,7 @@ object frmStringMap: TfrmStringMap
         Width = 150
       end>
     HideSelection = False
+    PopupMenu = pmStringList
     ReadOnly = True
     RowSelect = True
     TabOrder = 1
@@ -134,5 +135,29 @@ object frmStringMap: TfrmStringMap
     Filter = 'Text files|*.txt'
     left = 57
     top = 170
+  end
+  object pmStringList: TPopupMenu
+    left = 35
+    top = 33
+    object miFind: TMenuItem
+      Caption = 'Find...'
+      ShortCut = 16454
+      OnClick = miFindClick
+    end
+    object miNext: TMenuItem
+      Caption = 'Next'
+      Enabled = False
+      ShortCut = 114
+      Visible = False
+      OnClick = miNextClick
+    end
+  end
+  object FindDialog1: TFindDialog
+    Width = 480
+    Height = 136
+    Options = [frDown, frHideWholeWord, frHideUpDown, frHideEntireScope]
+    OnFind = FindDialog1Find
+    left = 136
+    top = 40
   end
 end
