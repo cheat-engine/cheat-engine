@@ -1076,6 +1076,7 @@ resourcestring
   rsHexadecimal = 'Hexadecimal';
   rsIsNotAValidX = '%s is not a valid xml name';
   rsMUGenerateGroupscanCommand = 'Generate groupscan command';
+  rsTryTutorial = 'Do you want to try out the tutorial?';
 
 
 var
@@ -6931,9 +6932,8 @@ begin
   begin
     reg.WriteBool('First Time User', False);
 
-    if messagedlg('Do you want to try out the tutorial?', mtConfirmation,
-      [mbYes, mbNo], 0) = mrYes then
-        miTutorial.Click;
+    if messagedlg(rsTryTutorial, mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+      miTutorial.Click;
   end;
 
   if reg.ValueExists('Show previous value column') then
