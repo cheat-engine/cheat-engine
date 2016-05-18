@@ -13,7 +13,7 @@ object frmPEInfo: TfrmPEInfo
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.6.0.4'
   object GroupBox2: TGroupBox
     Left = 177
     Height = 318
@@ -21,75 +21,80 @@ object frmPEInfo: TfrmPEInfo
     Width = 308
     Align = alClient
     Caption = 'Info'
-    ClientHeight = 300
+    ClientHeight = 297
     ClientWidth = 304
     TabOrder = 0
     object PageControl1: TPageControl
       Left = 0
-      Height = 300
+      Height = 297
       Top = 0
       Width = 304
       ActivePage = TabSheet1
       Align = alClient
+      PopupMenu = pmInfo
       TabIndex = 0
       TabOrder = 0
       object TabSheet1: TTabSheet
         Caption = 'All'
-        ClientHeight = 271
+        ClientHeight = 268
         ClientWidth = 296
         object PEItv: TTreeView
           Left = 0
-          Height = 271
+          Height = 268
           Top = 0
           Width = 296
           Align = alClient
           DefaultItemHeight = 18
           Indent = 19
+          PopupMenu = pmInfo
           TabOrder = 0
         end
       end
       object TabSheet2: TTabSheet
         Caption = 'Imports'
-        ClientHeight = 267
+        ClientHeight = 268
         ClientWidth = 296
         ImageIndex = 1
         object lbImports: TListBox
           Left = 0
-          Height = 267
+          Height = 268
           Top = 0
           Width = 296
           Align = alClient
           ItemHeight = 0
+          PopupMenu = pmInfo
           TabOrder = 0
         end
       end
       object TabSheet3: TTabSheet
         Caption = 'Exports'
-        ClientHeight = 267
+        ClientHeight = 268
         ClientWidth = 296
         ImageIndex = 2
         object lbExports: TListBox
           Left = 0
-          Height = 267
+          Height = 268
           Top = 0
           Width = 296
           Align = alClient
           ItemHeight = 0
+          PopupMenu = pmInfo
           TabOrder = 0
         end
       end
       object TabSheet4: TTabSheet
         Caption = 'Base Relocations'
-        ClientHeight = 267
+        ClientHeight = 268
         ClientWidth = 296
         ImageIndex = 3
         object lbBaseReloc: TListBox
           Left = 0
-          Height = 267
+          Height = 268
           Top = 0
           Width = 296
           Align = alClient
           ItemHeight = 0
+          PopupMenu = pmInfo
           TabOrder = 0
         end
       end
@@ -135,24 +140,23 @@ object frmPEInfo: TfrmPEInfo
         00C0C0C0000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0
         C0C0C0C0C0000000000000000000C0C0C0C0C0C0C0C0C0C0C0C0
       }
-      NumGlyphs = 0
       OnClick = LoadButtonClick
       ShowHint = True
       ParentShowHint = False
     end
     object Label1: TLabel
       Left = 10
-      Height = 17
+      Height = 16
       Top = 236
-      Width = 89
+      Width = 88
       Caption = 'No file opened'
       ParentColor = False
     end
     object Label2: TLabel
       Left = 10
-      Height = 17
+      Height = 16
       Top = 256
-      Width = 51
+      Width = 50
       Caption = 'address'
       ParentColor = False
     end
@@ -162,7 +166,7 @@ object frmPEInfo: TfrmPEInfo
       Top = 20
       Width = 161
       Caption = 'MZ-Start'
-      ClientHeight = 160
+      ClientHeight = 157
       ClientWidth = 157
       TabOrder = 0
       object edtAddress: TEdit
@@ -215,5 +219,17 @@ object frmPEInfo: TfrmPEInfo
     Options = [ofFileMustExist, ofEnableSizing]
     left = 104
     top = 168
+  end
+  object pmInfo: TPopupMenu
+    left = 237
+    top = 93
+    object miCopyTab: TMenuItem
+      Caption = 'Copy tab to clipboard'
+      OnClick = miCopyTabClick
+    end
+    object miCopyEverything: TMenuItem
+      Caption = 'Copy everything to clipboard'
+      OnClick = miCopyEverythingClick
+    end
   end
 end

@@ -12,11 +12,17 @@ interface
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, CEFuncProc, NewKernelHandler, Buttons, StdCtrls, ExtCtrls,
-  ComCtrls, LResources, symbolhandler, PEInfoFunctions, commonTypeDefs;
+  ComCtrls, LResources, Menus, symbolhandler, PEInfoFunctions, commonTypeDefs,
+  Clipbrd;
 
 type
+
+  { TfrmPEInfo }
+
   TfrmPEInfo = class(TForm)
     GroupBox2: TGroupBox;
+    miCopyTab: TMenuItem;
+    miCopyEverything: TMenuItem;
     Panel1: TPanel;
     GroupBox1: TGroupBox;
     edtAddress: TEdit;
@@ -26,6 +32,7 @@ type
     OpenDialog1: TOpenDialog;
     Label2: TLabel;
     PageControl1: TPageControl;
+    pmInfo: TPopupMenu;
     TabSheet1: TTabSheet;
     TabSheet2: TTabSheet;
     TabSheet3: TTabSheet;
@@ -40,6 +47,8 @@ type
     procedure LoadButtonClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure miCopyEverythingClick(Sender: TObject);
+    procedure miCopyTabClick(Sender: TObject);
     procedure modulelistClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Button1Click(Sender: TObject);
@@ -937,6 +946,75 @@ end;
 procedure TfrmPEInfo.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   action:=cafree;
+end;
+
+procedure TfrmPEInfo.miCopyEverythingClick(Sender: TObject);
+var
+  ss: TStringStream;
+  i: integer;
+begin
+  ss:=TStringStream.Create('');
+  try
+    PEItv.SaveToStream(ss);
+
+    ss.WriteString(#13#10#13#10);
+    ss.WriteString('---Imports---'+#13#10);
+    ss.WriteString(lbImports.Items.Text);
+    ss.WriteString(#13#10#13#10);
+    ss.WriteString('---Exports---'+#13#10);
+    ss.WriteString(lbExports.Items.Text);
+    ss.WriteString(#13#10#13#10);
+    ss.WriteString('---Relocs---'+#13#10);
+    ss.WriteString(lbBaseReloc.Items.Text);
+
+
+    ss.Position:=0;
+    while ss.Position<ss.Size do
+    begin
+      if ss.ReadByte=0 then
+      begin
+        ss.position:=ss.position-1;
+        ss.WriteByte(ord('.'));
+      end;
+    end;
+
+
+    clipboard.AsText:=ss.DataString;
+
+
+  finally
+    ss.free;
+  end;
+end;
+
+procedure TfrmPEInfo.miCopyTabClick(Sender: TObject);
+var ss: TStringStream;
+begin
+  case PageControl1.TabIndex of
+    0:
+      begin
+        ss:=TStringStream.Create('');
+        PEItv.SaveToStream(ss);
+        Clipboard.AsText:=ss.DataString;
+
+        ss.Position:=0;
+        while ss.Position<ss.Size do
+        begin
+          if ss.ReadByte=0 then
+          begin
+            ss.position:=ss.position-1;
+            ss.WriteByte(ord('.'));
+          end;
+        end;
+
+        ss.free;
+      end;
+
+    1: Clipboard.AsText:=lbImports.Items.Text;
+    2: Clipboard.AsText:=lbExports.Items.Text;
+    3: Clipboard.AsText:=lbBaseReloc.Items.Text;
+  end;
+
 end;
 
 procedure TfrmPEInfo.modulelistClick(Sender: TObject);
