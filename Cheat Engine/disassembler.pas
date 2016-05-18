@@ -2015,9 +2015,23 @@ begin
                         inc(offset);
                       end;
 
-                // $0d : begin
+                $0d : begin
+                        case getreg(memory[2]) of
+                          1:  begin
+                                description:='Prefetch Data into Caches in Anticipation of a Write';
+                                lastdisassembledata.opcode:='prefetchw';
+                                lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last);
+                                inc(offset,last-1);
+                              end;
 
-                  //    end;
+                          2:  begin
+                                 description:='Prefetch Vector Data Into Caches with Intent to Write and T1 Hint';
+                                 lastdisassembledata.opcode:='prefetchwt1';
+                                 lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last);
+                                 inc(offset,last-1);
+                               end;
+                        end;
+                      end;
 
 
                 $10 : begin
