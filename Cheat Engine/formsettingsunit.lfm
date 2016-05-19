@@ -14,7 +14,7 @@ object formSettings: TformSettings
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poMainFormCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object pnlConfig: TPanel
     Left = 0
     Height = 493
@@ -60,9 +60,9 @@ object formSettings: TformSettings
       Height = 491
       Top = 1
       Width = 622
-      ActivePage = tsTools
+      ActivePage = GeneralSettings
       Align = alClient
-      TabIndex = 7
+      TabIndex = 0
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -220,7 +220,7 @@ object formSettings: TformSettings
         object editUpdatefoundInterval: TEdit
           Left = 165
           Height = 21
-          Hint = 'The number of milliseconds that Cheat Engine will wait before refreshing the list of addresses'
+          Hint = 'The number of milliseconds that Cheat Engine will wait before refreshing the list of found addresses'
           Top = 439
           Width = 51
           ParentShowHint = False

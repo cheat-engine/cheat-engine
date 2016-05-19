@@ -123,12 +123,15 @@ object HotKeyForm: THotKeyForm
           TabOrder = 0
         end
         object Button2: TButton
+          AnchorSideLeft.Control = edtHotkey
+          AnchorSideLeft.Side = asrBottom
           AnchorSideTop.Control = edtHotkey
           AnchorSideTop.Side = asrCenter
-          Left = 248
+          Left = 244
           Height = 19
           Top = 18
           Width = 34
+          BorderSpacing.Left = 5
           Caption = 'Clear'
           OnClick = Button2Click
           TabOrder = 1
@@ -230,7 +233,7 @@ object HotKeyForm: THotKeyForm
           AnchorSideRight.Side = asrBottom
           AnchorSideBottom.Control = cbFreezedirection
           AnchorSideBottom.Side = asrBottom
-          Left = 287
+          Left = 283
           Height = 13
           Top = 48
           Width = 71
@@ -244,7 +247,7 @@ object HotKeyForm: THotKeyForm
           AnchorSideLeft.Control = lblActivateSound
           AnchorSideTop.Control = cbActivateSound
           AnchorSideTop.Side = asrBottom
-          Left = 287
+          Left = 283
           Height = 13
           Top = 86
           Width = 84
@@ -257,7 +260,7 @@ object HotKeyForm: THotKeyForm
           AnchorSideLeft.Control = lblDeactivateSound
           AnchorSideTop.Control = lblDeactivateSound
           AnchorSideTop.Side = asrBottom
-          Left = 287
+          Left = 283
           Height = 21
           Top = 101
           Width = 119
@@ -275,7 +278,7 @@ object HotKeyForm: THotKeyForm
           AnchorSideLeft.Control = lblActivateSound
           AnchorSideTop.Control = lblActivateSound
           AnchorSideTop.Side = asrBottom
-          Left = 287
+          Left = 283
           Height = 21
           Top = 63
           Width = 119
@@ -294,7 +297,7 @@ object HotKeyForm: THotKeyForm
           AnchorSideLeft.Side = asrBottom
           AnchorSideTop.Control = cbActivateSound
           AnchorSideTop.Side = asrCenter
-          Left = 408
+          Left = 404
           Height = 22
           Top = 62
           Width = 23
@@ -343,7 +346,7 @@ object HotKeyForm: THotKeyForm
           AnchorSideLeft.Side = asrBottom
           AnchorSideTop.Control = cbDeactivateSound
           AnchorSideTop.Side = asrCenter
-          Left = 408
+          Left = 404
           Height = 22
           Top = 100
           Width = 23
