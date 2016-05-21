@@ -14,7 +14,7 @@ uses  sysutils, ProcessHandlerUnit;
 uses dialogs,LCLIntf,sysutils,imagehlp, ProcessHandlerUnit;
 {$endif}
 
-const opcodecount=1100; //I wish there was a easier way than to handcount
+const opcodecount=1103; //I wish there was a easier way than to handcount
 
 
 
@@ -458,6 +458,10 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'FISTP';opcode1:eo_reg3;paramtype1:par_m32;bytes:1;bt1:$db; norexw: true),
   (mnemonic:'FISTP';opcode1:eo_reg3;paramtype1:par_m16;bytes:1;bt1:$df; norexw: true),
   (mnemonic:'FISTP';opcode1:eo_reg7;paramtype1:par_m64;bytes:1;bt1:$df; norexw: true),
+
+  (mnemonic:'FISTTP';opcode1:eo_reg1;paramtype1:par_m32;bytes:1;bt1:$db; norexw: true),
+  (mnemonic:'FISTTP';opcode1:eo_reg1;paramtype1:par_m16;bytes:1;bt1:$df; norexw: true),
+  (mnemonic:'FISTTP';opcode1:eo_reg1;paramtype1:par_m64;bytes:1;bt1:$dd; norexw: true),
 
   (mnemonic:'FISUB';opcode1:eo_reg4;paramtype1:par_m32;bytes:1;bt1:$da; norexw: true),
   (mnemonic:'FISUB';opcode1:eo_reg4;paramtype1:par_m16;bytes:1;bt1:$de; norexw: true),

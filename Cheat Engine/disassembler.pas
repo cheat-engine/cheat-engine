@@ -9566,6 +9566,14 @@ begin
                                     inc(offset,last-1);
                                   end;
 
+                              1:  begin
+                                    description:='store integer with truncation';
+                                    lastdisassembledata.opcode:='fisttp';
+                                    lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,32);
+
+                                    inc(offset,last-1);
+                                  end;
+
                               2:  begin
                                     description:='store integer';
                                     lastdisassembledata.opcode:='fist';
@@ -9794,6 +9802,14 @@ begin
                              0:  begin
                                    description:='load floating point value';
                                    lastdisassembledata.opcode:='fld';
+                                   lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,64);
+
+                                   inc(offset,last-1);
+                                 end;
+
+                             1:  begin
+                                   description:='store integer with truncation';
+                                   lastdisassembledata.opcode:='fisttp';
                                    lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,64);
 
                                    inc(offset,last-1);
@@ -10036,6 +10052,14 @@ begin
                 0:  begin
                       description:='load integer';
                       lastdisassembledata.opcode:='fild';
+                      lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,16);
+
+                      inc(offset,last-1);
+                    end;
+
+                1:  begin
+                      description:='store integer with truncation';
+                      lastdisassembledata.opcode:='fisttp';
                       lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,16);
 
                       inc(offset,last-1);
