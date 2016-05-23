@@ -5,11 +5,12 @@ object frmMultilineInputQuery: TfrmMultilineInputQuery
   Width = 273
   ClientHeight = 113
   ClientWidth = 273
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.6.0.4'
   object lblPrompt: TLabel
     Left = 0
-    Height = 16
+    Height = 15
     Top = 0
     Width = 273
     Align = alTop
@@ -19,8 +20,8 @@ object frmMultilineInputQuery: TfrmMultilineInputQuery
   end
   object Memo1: TMemo
     Left = 0
-    Height = 67
-    Top = 16
+    Height = 68
+    Top = 15
     Width = 273
     Align = alClient
     Lines.Strings = (

@@ -8,7 +8,8 @@ object frmSnapshotHandler: TfrmSnapshotHandler
   ClientWidth = 674
   Menu = MainMenu1
   OnCreate = FormCreate
-  LCLVersion = '1.1'
+  PopupMode = pmAuto
+  LCLVersion = '1.6.0.4'
   object Panel2: TPanel
     Left = 0
     Height = 159

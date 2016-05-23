@@ -6,8 +6,9 @@ object frmPointerrescanConnectDialog: TfrmPointerrescanConnectDialog
   Caption = 'Join rescan'
   ClientHeight = 93
   ClientWidth = 261
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.6.0.4'
   object btnOK: TButton
     Left = 56
     Height = 25
@@ -32,9 +33,9 @@ object frmPointerrescanConnectDialog: TfrmPointerrescanConnectDialog
     AnchorSideTop.Side = asrBottom
     AnchorSideBottom.Control = edtHost
     Left = 8
-    Height = 16
-    Top = 8
-    Width = 26
+    Height = 15
+    Top = 9
+    Width = 25
     Anchors = [akLeft, akBottom]
     Caption = 'Host'
     ParentColor = False
@@ -43,9 +44,9 @@ object frmPointerrescanConnectDialog: TfrmPointerrescanConnectDialog
     AnchorSideLeft.Control = edtPort
     AnchorSideBottom.Control = edtPort
     Left = 175
-    Height = 16
-    Top = 8
-    Width = 23
+    Height = 15
+    Top = 9
+    Width = 22
     Anchors = [akLeft, akBottom]
     Caption = 'Port'
     ParentColor = False

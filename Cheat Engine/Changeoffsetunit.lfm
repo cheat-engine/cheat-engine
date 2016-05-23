@@ -11,22 +11,23 @@ object ChangeOffset: TChangeOffset
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnShow = FormShow
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.6.0.4'
   object TabControl1: TTabControl
     Left = 0
     Height = 113
     Top = 0
     Width = 201
+    TabStop = False
     OnChange = TabControl1Change
     OnChanging = TabControl1Changing
     TabIndex = 0
-    TabOrder = 0
     Tabs.Strings = (
       'Change by offset'
       'Change to address'
     )
-    TabStop = False
+    TabOrder = 0
     object Change: TButton
       Left = 24
       Height = 25

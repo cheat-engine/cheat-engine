@@ -13,8 +13,9 @@ object ValueChangeForm: TValueChangeForm
   OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object cbVarType: TComboBox
     Left = 16
     Height = 21

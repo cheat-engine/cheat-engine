@@ -9,8 +9,9 @@ object frmSetupPSNNode: TfrmSetupPSNNode
   ClientHeight = 450
   ClientWidth = 370
   OnCreate = FormCreate
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object edtThreadCount: TEdit
     AnchorSideLeft.Control = lblThreadCount
     AnchorSideTop.Control = lblThreadCount
@@ -444,6 +445,7 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     Width = 128
     Caption = 'Setup trusted IP list'
     TabOrder = 21
+    Visible = False
   end
   object cbAllowTempFiles: TCheckBox
     AnchorSideLeft.Control = edtMaxTimeToScan

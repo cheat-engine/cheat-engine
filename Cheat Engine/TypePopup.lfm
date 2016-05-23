@@ -11,21 +11,22 @@ object TypeForm: TTypeForm
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnShow = FormShow
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.6.0.4'
   object Label1: TLabel
     Left = 10
-    Height = 14
+    Height = 13
     Top = 0
-    Width = 98
+    Width = 97
     Caption = 'Select the new type:'
     ParentColor = False
   end
   object lengthlabel: TLabel
     Left = 217
-    Height = 14
+    Height = 13
     Top = -1
-    Width = 34
+    Width = 33
     Caption = 'Length'
     ParentColor = False
   end
@@ -108,73 +109,73 @@ object TypeForm: TTypeForm
     TabOrder = 4
     object Label4: TLabel
       Left = 4
-      Height = 14
+      Height = 13
       Top = 0
-      Width = 7
+      Width = 6
       Caption = '0'
       ParentColor = False
     end
     object Label5: TLabel
       Left = 25
-      Height = 14
+      Height = 13
       Top = 0
-      Width = 7
+      Width = 6
       Caption = '1'
       ParentColor = False
     end
     object Label6: TLabel
       Left = 43
-      Height = 14
+      Height = 13
       Top = 0
-      Width = 7
+      Width = 6
       Caption = '2'
       ParentColor = False
     end
     object Label7: TLabel
       Left = 64
-      Height = 14
+      Height = 13
       Top = 0
-      Width = 7
+      Width = 6
       Caption = '3'
       ParentColor = False
     end
     object Label8: TLabel
       Left = 84
-      Height = 14
+      Height = 13
       Top = 0
-      Width = 7
+      Width = 6
       Caption = '4'
       ParentColor = False
     end
     object Label9: TLabel
       Left = 103
-      Height = 14
+      Height = 13
       Top = 0
-      Width = 7
+      Width = 6
       Caption = '5'
       ParentColor = False
     end
     object Label10: TLabel
       Left = 122
-      Height = 14
+      Height = 13
       Top = 0
-      Width = 7
+      Width = 6
       Caption = '6'
       ParentColor = False
     end
     object Label11: TLabel
       Left = 143
-      Height = 14
+      Height = 13
       Top = 0
-      Width = 7
+      Width = 6
       Caption = '7'
       ParentColor = False
     end
     object Label2: TLabel
       Left = 162
-      Height = 14
+      Height = 13
       Top = 14
-      Width = 34
+      Width = 33
       Caption = 'Length'
       ParentColor = False
       Visible = False

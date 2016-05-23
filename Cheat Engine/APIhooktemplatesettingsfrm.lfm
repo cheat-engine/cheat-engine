@@ -10,37 +10,38 @@ object frmAPIhookTemplateSettings: TfrmAPIhookTemplateSettings
   ClientWidth = 266
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.6.0.4'
   object Label1: TLabel
     Left = 8
-    Height = 14
+    Height = 13
     Top = 0
-    Width = 96
+    Width = 95
     Caption = 'Original api address:'
     ParentColor = False
   end
   object Label2: TLabel
     Left = 8
-    Height = 14
+    Height = 13
     Top = 40
-    Width = 83
+    Width = 82
     Caption = 'New api address:'
     ParentColor = False
   end
   object Label3: TLabel
     Left = 8
-    Height = 14
+    Height = 13
     Top = 80
-    Width = 225
+    Width = 224
     Caption = 'Address where to store the new original api call:'
     ParentColor = False
   end
   object Label4: TLabel
     Left = 8
-    Height = 14
+    Height = 13
     Top = 96
-    Width = 246
+    Width = 245
     Caption = '(optional, in case your dll uses a variable for the call)'
     ParentColor = False
   end
@@ -53,9 +54,9 @@ object frmAPIhookTemplateSettings: TfrmAPIhookTemplateSettings
   end
   object Label5: TLabel
     Left = 8
-    Height = 14
+    Height = 13
     Top = 176
-    Width = 253
+    Width = 252
     Caption = 'Note: The addresses can also be exportnames of dll''s'
     ParentColor = False
     WordWrap = True

@@ -1,7 +1,7 @@
 object frmLuaEngine: TfrmLuaEngine
-  Left = 573
+  Left = 875
   Height = 307
-  Top = 236
+  Top = 149
   Width = 570
   HelpContext = 19
   Caption = 'Lua Engine'
@@ -19,12 +19,12 @@ object frmLuaEngine: TfrmLuaEngine
     Width = 570
     Align = alClient
     Caption = 'Output'
-    ClientHeight = 134
+    ClientHeight = 132
     ClientWidth = 566
     TabOrder = 1
     object mOutput: TMemo
       Left = 0
-      Height = 134
+      Height = 132
       Top = 0
       Width = 566
       Align = alClient

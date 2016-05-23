@@ -223,7 +223,7 @@ object frmPointerScanner: TfrmPointerScanner
         Width = 170
         Align = alTop
         Caption = 'Network'
-        ClientHeight = 179
+        ClientHeight = 182
         ClientWidth = 166
         TabOrder = 1
         object edtIP: TEdit

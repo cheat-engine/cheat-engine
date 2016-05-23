@@ -9,8 +9,9 @@ object frmSaveSnapshots: TfrmSaveSnapshots
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.1'
+  LCLVersion = '1.6.0.4'
   object Label1: TLabel
     Left = 0
     Height = 15

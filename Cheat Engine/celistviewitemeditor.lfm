@@ -6,8 +6,9 @@ object frmCEListviewItemEditor: TfrmCEListviewItemEditor
   Caption = 'Item editor'
   ClientHeight = 240
   ClientWidth = 349
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.6.0.4'
   object Panel1: TPanel
     Left = 0
     Height = 200
@@ -49,7 +50,7 @@ object frmCEListviewItemEditor: TfrmCEListviewItemEditor
         AnchorSideRight.Side = asrBottom
         Left = 6
         Height = 23
-        Top = 28
+        Top = 27
         Width = 130
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
@@ -58,7 +59,7 @@ object frmCEListviewItemEditor: TfrmCEListviewItemEditor
       end
       object lblText: TLabel
         Left = 6
-        Height = 16
+        Height = 15
         Top = 6
         Width = 130
         Align = alTop
@@ -74,7 +75,7 @@ object frmCEListviewItemEditor: TfrmCEListviewItemEditor
         AnchorSideRight.Side = asrBottom
         Left = 6
         Height = 25
-        Top = 57
+        Top = 56
         Width = 130
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
@@ -90,7 +91,7 @@ object frmCEListviewItemEditor: TfrmCEListviewItemEditor
         AnchorSideRight.Side = asrBottom
         Left = 6
         Height = 25
-        Top = 88
+        Top = 87
         Width = 130
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
@@ -107,7 +108,7 @@ object frmCEListviewItemEditor: TfrmCEListviewItemEditor
         AnchorSideRight.Side = asrBottom
         Left = 6
         Height = 25
-        Top = 119
+        Top = 118
         Width = 130
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6

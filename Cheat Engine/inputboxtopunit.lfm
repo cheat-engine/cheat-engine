@@ -1,7 +1,7 @@
 object InputboxTop: TInputboxTop
-  Left = 918
+  Left = 901
   Height = 66
-  Top = 419
+  Top = 392
   Width = 283
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
@@ -11,11 +11,12 @@ object InputboxTop: TInputboxTop
   Font.Name = 'MS Sans Serif'
   FormStyle = fsStayOnTop
   OnShow = FormShow
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.6.0.4'
   object Label1: TLabel
     Left = 0
-    Height = 14
+    Height = 13
     Top = 0
     Width = 283
     Align = alTop

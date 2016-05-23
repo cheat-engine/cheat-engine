@@ -32,8 +32,8 @@ begin
 
   lua_pop(L, lua_gettop(L));
 
-
   f:=ce_createForm(visible);  //not relly a customform, but it inherits from it, so good enough
+  f.PopupMode:=pmAuto;
   luaclass_newClass(L, f);
   result:=1;
 

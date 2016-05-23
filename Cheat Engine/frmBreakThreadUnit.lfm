@@ -11,13 +11,14 @@ object frmbreakthread: Tfrmbreakthread
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
+  PopupMode = pmAuto
   Position = poOwnerFormCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.6.0.4'
   object Label1: TLabel
     Left = 6
-    Height = 17
+    Height = 16
     Top = 0
-    Width = 429
+    Width = 428
     Caption = 'This process has more than 1 thread. Select the thread you wish to break'
     ParentColor = False
   end

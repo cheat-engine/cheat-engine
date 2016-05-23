@@ -9,8 +9,9 @@ object frmMemviewPreferences: TfrmMemviewPreferences
   OnCreate = FormCreate
   OnShow = FormShow
   PopupMenu = pmColors
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object btnFont: TButton
     Left = 8
     Height = 25

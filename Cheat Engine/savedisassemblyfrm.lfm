@@ -10,8 +10,9 @@ object frmSavedisassembly: TfrmSavedisassembly
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnDestroy = FormDestroy
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object Label1: TLabel
     Left = 24
     Height = 13

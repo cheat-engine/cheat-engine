@@ -10,8 +10,9 @@ object frmdissectWindow: TfrmdissectWindow
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   OnCreate = FormCreate
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.1'
+  LCLVersion = '1.6.0.4'
   object TreeView1: TTreeView
     Left = 0
     Height = 211

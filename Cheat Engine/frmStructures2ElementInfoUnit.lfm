@@ -8,8 +8,9 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
   ClientHeight = 284
   ClientWidth = 302
   OnCreate = FormCreate
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object Label1: TLabel
     Left = 20
     Height = 13

@@ -9,7 +9,8 @@ object frmStructureLinker: TfrmStructureLinker
   ClientWidth = 457
   OnCreate = FormCreate
   OnShow = FormShow
-  LCLVersion = '1.1'
+  PopupMode = pmAuto
+  LCLVersion = '1.6.0.4'
   object sgStructureAddress: TStringGrid
     Left = 0
     Height = 156

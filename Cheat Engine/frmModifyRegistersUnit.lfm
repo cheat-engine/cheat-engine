@@ -11,13 +11,14 @@ object frmModifyRegisters: TfrmModifyRegisters
   OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.6.0.4'
   object Label1: TLabel
     Left = 6
-    Height = 14
+    Height = 13
     Top = 32
-    Width = 25
+    Width = 24
     Caption = 'EAX'
     Font.CharSet = ANSI_CHARSET
     Font.Height = -13
@@ -29,9 +30,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object Label2: TLabel
     Left = 6
-    Height = 14
+    Height = 13
     Top = 55
-    Width = 25
+    Width = 24
     Caption = 'EBX'
     Font.CharSet = ANSI_CHARSET
     Font.Height = -13
@@ -43,9 +44,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object Label3: TLabel
     Left = 6
-    Height = 14
+    Height = 13
     Top = 78
-    Width = 25
+    Width = 24
     Caption = 'ECX'
     Font.CharSet = ANSI_CHARSET
     Font.Height = -13
@@ -57,9 +58,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object Label4: TLabel
     Left = 6
-    Height = 14
+    Height = 13
     Top = 101
-    Width = 25
+    Width = 24
     Caption = 'EDX'
     Font.CharSet = ANSI_CHARSET
     Font.Height = -13
@@ -71,9 +72,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object Label5: TLabel
     Left = 6
-    Height = 14
+    Height = 13
     Top = 124
-    Width = 25
+    Width = 24
     Caption = 'ESI'
     Font.CharSet = ANSI_CHARSET
     Font.Height = -13
@@ -85,9 +86,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object Label6: TLabel
     Left = 6
-    Height = 14
+    Height = 13
     Top = 147
-    Width = 25
+    Width = 24
     Caption = 'EDI'
     Font.CharSet = ANSI_CHARSET
     Font.Height = -13
@@ -99,9 +100,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object Label7: TLabel
     Left = 6
-    Height = 14
+    Height = 13
     Top = 170
-    Width = 25
+    Width = 24
     Caption = 'EBP'
     Font.CharSet = ANSI_CHARSET
     Font.Height = -13
@@ -113,9 +114,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object Label8: TLabel
     Left = 6
-    Height = 14
+    Height = 13
     Top = 193
-    Width = 25
+    Width = 24
     Caption = 'ESP'
     Font.CharSet = ANSI_CHARSET
     Font.Height = -13
@@ -127,9 +128,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object Label9: TLabel
     Left = 6
-    Height = 14
+    Height = 13
     Top = 216
-    Width = 25
+    Width = 24
     Caption = 'EIP'
     Font.CharSet = ANSI_CHARSET
     Font.Height = -13
@@ -141,9 +142,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object Label16: TLabel
     Left = 230
-    Height = 14
+    Height = 13
     Top = 24
-    Width = 26
+    Width = 25
     Caption = 'Flags'
     ParentColor = False
   end
@@ -306,9 +307,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object Label17: TLabel
     Left = 14
-    Height = 14
+    Height = 13
     Top = 239
-    Width = 17
+    Width = 16
     Caption = 'R8'
     Font.CharSet = ANSI_CHARSET
     Font.Height = -13
@@ -327,9 +328,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object Label18: TLabel
     Left = 14
-    Height = 14
+    Height = 13
     Top = 262
-    Width = 17
+    Width = 16
     Caption = 'R9'
     Font.CharSet = ANSI_CHARSET
     Font.Height = -13
@@ -348,9 +349,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object Label19: TLabel
     Left = 6
-    Height = 14
+    Height = 13
     Top = 285
-    Width = 25
+    Width = 24
     Caption = 'R10'
     Font.CharSet = ANSI_CHARSET
     Font.Height = -13
@@ -369,9 +370,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object Label20: TLabel
     Left = 6
-    Height = 14
+    Height = 13
     Top = 308
-    Width = 25
+    Width = 24
     Caption = 'R11'
     Font.CharSet = ANSI_CHARSET
     Font.Height = -13
@@ -390,9 +391,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object Label21: TLabel
     Left = 6
-    Height = 14
+    Height = 13
     Top = 331
-    Width = 25
+    Width = 24
     Caption = 'R12'
     Font.CharSet = ANSI_CHARSET
     Font.Height = -13
@@ -411,9 +412,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object Label22: TLabel
     Left = 6
-    Height = 14
+    Height = 13
     Top = 354
-    Width = 25
+    Width = 24
     Caption = 'R13'
     Font.CharSet = ANSI_CHARSET
     Font.Height = -13
@@ -432,9 +433,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object Label23: TLabel
     Left = 6
-    Height = 14
+    Height = 13
     Top = 377
-    Width = 25
+    Width = 24
     Caption = 'R14'
     Font.CharSet = ANSI_CHARSET
     Font.Height = -13
@@ -453,9 +454,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object Label24: TLabel
     Left = 6
-    Height = 14
+    Height = 13
     Top = 400
-    Width = 25
+    Width = 24
     Caption = 'R15'
     Font.CharSet = ANSI_CHARSET
     Font.Height = -13
@@ -474,9 +475,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object Label25: TLabel
     Left = 8
-    Height = 14
+    Height = 13
     Top = 0
-    Width = 259
+    Width = 258
     Caption = 'Leave blank if you don''t want to edit the register or flag'
     ParentColor = False
   end

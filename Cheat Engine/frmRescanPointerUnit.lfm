@@ -12,8 +12,9 @@ object frmRescanPointer: TfrmRescanPointer
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object edtAddress: TEdit
     Left = 8
     Height = 21

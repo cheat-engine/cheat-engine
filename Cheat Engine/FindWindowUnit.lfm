@@ -11,8 +11,9 @@ object FindWindow: TFindWindow
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnShow = FormShow
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object ProgressBar: TProgressBar
     Left = 0
     Height = 20

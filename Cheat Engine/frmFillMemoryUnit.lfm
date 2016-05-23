@@ -11,29 +11,30 @@ object frmFillMemory: TfrmFillMemory
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
+  PopupMode = pmAuto
   Position = poOwnerFormCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.6.0.4'
   object Label1: TLabel
     Left = 16
-    Height = 14
+    Height = 13
     Top = 8
-    Width = 24
+    Width = 23
     Caption = 'From'
     ParentColor = False
   end
   object Label2: TLabel
     Left = 26
-    Height = 14
+    Height = 13
     Top = 32
-    Width = 14
+    Width = 13
     Caption = 'To'
     ParentColor = False
   end
   object Label3: TLabel
     Left = 5
-    Height = 14
+    Height = 13
     Top = 56
-    Width = 35
+    Width = 34
     Caption = 'Fill with'
     ParentColor = False
   end

@@ -9,8 +9,9 @@ object frmAssemblyScan: TfrmAssemblyScan
   ClientWidth = 444
   Constraints.MinHeight = 120
   Constraints.MinWidth = 430
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object Panel1: TPanel
     Left = 0
     Height = 185

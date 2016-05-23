@@ -9,8 +9,9 @@ object frmSelectionList: TfrmSelectionList
   ClientWidth = 313
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object Label1: TLabel
     Left = 0
     Height = 13

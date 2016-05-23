@@ -10,13 +10,14 @@ object formPointerOrPointee: TformPointerOrPointee
   ClientWidth = 335
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
+  PopupMode = pmAuto
   Position = poMainFormCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.6.0.4'
   object Label1: TLabel
     Left = 8
-    Height = 14
+    Height = 13
     Top = 8
-    Width = 78
+    Width = 77
     Caption = 'This is a pointer.'
     ParentColor = False
     WordWrap = True

@@ -7,8 +7,9 @@ object frmBreakpointCondition: TfrmBreakpointCondition
   ClientHeight = 226
   ClientWidth = 510
   OnCreate = FormCreate
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.6.0.4'
   object Button1: TButton
     Left = 8
     Height = 27
@@ -54,17 +55,17 @@ object frmBreakpointCondition: TfrmBreakpointCondition
       end
       object Label1: TLabel
         Left = 4
-        Height = 16
+        Height = 15
         Top = 8
-        Width = 426
+        Width = 425
         Caption = 'Give a formula that must return true if you want the breakpoint to trigger a break'
         ParentColor = False
       end
       object Label2: TLabel
         Left = 4
-        Height = 16
+        Height = 15
         Top = 32
-        Width = 380
+        Width = 379
         Caption = 'Example: EAX == 0x1234  (case sensitive and hexadecimal starts with 0x )'
         ParentColor = False
       end

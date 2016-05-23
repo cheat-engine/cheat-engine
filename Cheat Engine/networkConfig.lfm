@@ -8,8 +8,9 @@ object frmNetworkConfig: TfrmNetworkConfig
   ClientWidth = 293
   OnCreate = FormCreate
   OnShow = FormShow
+  PopupMode = pmAuto
   Position = poOwnerFormCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.6.0.4'
   object GroupBox1: TGroupBox
     Left = 0
     Height = 116
@@ -17,12 +18,12 @@ object frmNetworkConfig: TfrmNetworkConfig
     Width = 293
     Align = alClient
     Caption = 'Discovered servers'
-    ClientHeight = 98
+    ClientHeight = 96
     ClientWidth = 289
     TabOrder = 0
     object ListView1: TListView
       Left = 0
-      Height = 98
+      Height = 96
       Top = 0
       Width = 289
       Align = alClient
@@ -81,17 +82,17 @@ object frmNetworkConfig: TfrmNetworkConfig
     end
     object Label1: TLabel
       Left = 8
-      Height = 16
+      Height = 15
       Top = 1
-      Width = 26
+      Width = 25
       Caption = 'Host'
       ParentColor = False
     end
     object Label2: TLabel
       Left = 232
-      Height = 16
+      Height = 15
       Top = 0
-      Width = 23
+      Width = 22
       Caption = 'Port'
       ParentColor = False
     end

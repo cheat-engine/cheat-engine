@@ -11,8 +11,9 @@ object frmAAEditPrefs: TfrmAAEditPrefs
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.6.0.4'
   object Panel2: TPanel
     Left = 0
     Height = 41
@@ -110,9 +111,9 @@ object frmAAEditPrefs: TfrmAAEditPrefs
     end
     object Label1: TLabel
       Left = 31
-      Height = 14
+      Height = 13
       Top = 83
-      Width = 51
+      Width = 50
       Caption = 'Tab Width'
       ParentColor = False
     end

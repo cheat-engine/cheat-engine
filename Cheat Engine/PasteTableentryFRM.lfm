@@ -9,8 +9,9 @@ object frmPasteTableentry: TfrmPasteTableentry
   ClientWidth = 294
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.6.0.4'
   object GroupBox1: TGroupBox
     Left = 7
     Height = 105
@@ -22,17 +23,17 @@ object frmPasteTableentry: TfrmPasteTableentry
     TabOrder = 0
     object Label1: TLabel
       Left = 8
-      Height = 14
+      Height = 13
       Top = 3
-      Width = 57
+      Width = 56
       Caption = 'Text to find:'
       ParentColor = False
     end
     object Label2: TLabel
       Left = 8
-      Height = 14
+      Height = 13
       Top = 39
-      Width = 66
+      Width = 65
       Caption = 'Replace with:'
       ParentColor = False
     end
@@ -62,9 +63,9 @@ object frmPasteTableentry: TfrmPasteTableentry
     TabOrder = 1
     object Label3: TLabel
       Left = 8
-      Height = 14
+      Height = 13
       Top = 3
-      Width = 90
+      Width = 89
       Caption = 'Adjust address by: '
       ParentColor = False
     end

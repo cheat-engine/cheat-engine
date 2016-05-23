@@ -12,21 +12,22 @@ object frmAddToCodeList: TfrmAddToCodeList
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   OnShow = FormShow
+  PopupMode = pmAuto
   Position = poOwnerFormCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.6.0.4'
   object Label1: TLabel
     Left = 30
-    Height = 14
+    Height = 13
     Top = 8
-    Width = 24
+    Width = 23
     Caption = 'From'
     ParentColor = False
   end
   object Label2: TLabel
     Left = 40
-    Height = 14
+    Height = 13
     Top = 32
-    Width = 14
+    Width = 13
     Caption = 'To'
     ParentColor = False
   end

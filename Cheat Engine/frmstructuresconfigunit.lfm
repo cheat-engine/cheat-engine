@@ -10,8 +10,9 @@ object frmStructuresConfig: TfrmStructuresConfig
   ClientWidth = 499
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.6.0.4'
   object Panel1: TPanel
     Left = 0
     Height = 221
@@ -29,7 +30,7 @@ object frmStructuresConfig: TfrmStructuresConfig
       Width = 105
       Align = alLeft
       Caption = 'Colors'
-      ClientHeight = 203
+      ClientHeight = 201
       ClientWidth = 101
       Color = clWindow
       ParentColor = False
@@ -38,10 +39,10 @@ object frmStructuresConfig: TfrmStructuresConfig
         Tag = 2
         Cursor = crHandPoint
         Left = 32
-        Height = 16
+        Height = 15
         Hint = 'Color used when only one group and all columns have the same value'
         Top = 40
-        Width = 30
+        Width = 29
         Caption = 'Equal'
         ParentColor = False
         ParentShowHint = False
@@ -53,10 +54,10 @@ object frmStructuresConfig: TfrmStructuresConfig
         Tag = 1
         Cursor = crHandPoint
         Left = 28
-        Height = 16
+        Height = 15
         Hint = 'Color used when only one column'
         Top = 24
-        Width = 39
+        Width = 38
         Caption = 'Default'
         ParentColor = False
         ParentShowHint = False
@@ -68,10 +69,10 @@ object frmStructuresConfig: TfrmStructuresConfig
         Tag = 3
         Cursor = crHandPoint
         Left = 24
-        Height = 16
+        Height = 15
         Hint = 'Color used when only one group and not all columns have the same value, or when multiple groups but not every group has matching columns'
         Top = 56
-        Width = 47
+        Width = 46
         Caption = 'Different'
         ParentColor = False
         ParentShowHint = False
@@ -83,10 +84,10 @@ object frmStructuresConfig: TfrmStructuresConfig
         Tag = 4
         Cursor = crHandPoint
         Left = 14
-        Height = 16
+        Height = 15
         Hint = 'Color used when multiple groups and every member of every group has the same value, and that value matches that of each group'
         Top = 72
-        Width = 66
+        Width = 65
         Caption = 'Group Equal'
         ParentColor = False
         ParentShowHint = False
@@ -98,10 +99,10 @@ object frmStructuresConfig: TfrmStructuresConfig
         Tag = 5
         Cursor = crHandPoint
         Left = 6
-        Height = 16
+        Height = 15
         Hint = 'Color used when multiple groups and every member of every group has the same value, but not each group has the same value'
         Top = 88
-        Width = 83
+        Width = 82
         Caption = 'Group Different'
         ParentColor = False
         ParentShowHint = False
@@ -144,7 +145,7 @@ object frmStructuresConfig: TfrmStructuresConfig
         Width = 394
         Align = alClient
         Caption = 'Default options for new structures'
-        ClientHeight = 143
+        ClientHeight = 141
         ClientWidth = 390
         TabOrder = 0
         object cbAutoCreate: TCheckBox
@@ -192,9 +193,9 @@ object frmStructuresConfig: TfrmStructuresConfig
         end
         object Label4: TLabel
           Left = 5
-          Height = 16
+          Height = 15
           Top = 21
-          Width = 131
+          Width = 130
           Caption = 'Autocreate structure size'
           ParentColor = False
         end
@@ -214,7 +215,7 @@ object frmStructuresConfig: TfrmStructuresConfig
         Width = 394
         Align = alBottom
         Caption = 'Global options'
-        ClientHeight = 42
+        ClientHeight = 40
         ClientWidth = 390
         TabOrder = 1
         object cbAutoGuessCustomTypes: TCheckBox
@@ -227,17 +228,20 @@ object frmStructuresConfig: TfrmStructuresConfig
         end
         object Label5: TLabel
           Left = 5
-          Height = 16
+          Height = 15
           Top = 22
-          Width = 123
+          Width = 122
           Caption = 'Max auto-expand level:'
           ParentColor = False
         end
         object edtMaxAutoExpandLevel: TEdit
-          Left = 127
+          AnchorSideLeft.Control = Label5
+          AnchorSideLeft.Side = asrBottom
+          Left = 130
           Height = 23
           Top = 18
           Width = 31
+          BorderSpacing.Left = 3
           TabOrder = 1
           Text = '1'
         end

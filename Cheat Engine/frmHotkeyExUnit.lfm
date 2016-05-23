@@ -7,8 +7,9 @@ object frmHotkeyEx: TfrmHotkeyEx
   Caption = 'Set Hotkey'
   ClientHeight = 79
   ClientWidth = 286
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.6.0.4'
   object Button1: TButton
     Left = 56
     Height = 25
@@ -38,9 +39,9 @@ object frmHotkeyEx: TfrmHotkeyEx
   end
   object Label1: TLabel
     Left = 8
-    Height = 16
+    Height = 15
     Top = 1
-    Width = 227
+    Width = 226
     Caption = 'Press the key combination you want to use'
     ParentColor = False
   end

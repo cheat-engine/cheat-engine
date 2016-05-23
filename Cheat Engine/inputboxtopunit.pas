@@ -36,6 +36,8 @@ function InputBoxTop(const ACaption, APrompt, ADefault: string; Aselecttext: boo
 implementation
 
 
+uses MemoryBrowserFormUnit;
+
 
   
 function InputBoxTop(const ACaption, APrompt, ADefault: string): string;
@@ -64,7 +66,7 @@ var
 begin
 
 
-  inputbox:=TInputboxtop.Create(Application);
+  inputbox:=TInputboxtop.Create(Memorybrowser);
   with inputbox do
   begin
    // button1.setfocus;

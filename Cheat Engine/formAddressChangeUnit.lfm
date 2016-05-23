@@ -12,8 +12,9 @@ object formAddressChange: TformAddressChange
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object Label1: TLabel
     Left = 8
     Height = 13

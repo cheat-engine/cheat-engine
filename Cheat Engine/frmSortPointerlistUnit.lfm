@@ -9,8 +9,9 @@ object frmSortPointerlist: TfrmSortPointerlist
   ClientWidth = 320
   OnClose = FormClose
   OnDestroy = FormDestroy
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.2.0.3'
+  LCLVersion = '1.6.0.4'
   object Label1: TLabel
     Left = 0
     Height = 15

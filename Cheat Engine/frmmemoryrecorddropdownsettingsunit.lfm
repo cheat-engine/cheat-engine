@@ -8,8 +8,9 @@ object FrmMemoryRecordDropdownSettings: TFrmMemoryRecordDropdownSettings
   ClientHeight = 245
   ClientWidth = 320
   OnClose = FormClose
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object memoDropdownItems: TMemo
     Left = 0
     Height = 123

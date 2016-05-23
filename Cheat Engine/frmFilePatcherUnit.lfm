@@ -7,8 +7,9 @@ object frmFilePatcher: TfrmFilePatcher
   Caption = 'File patcher'
   ClientHeight = 247
   ClientWidth = 320
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.6.0.4'
   object rbAuto: TRadioButton
     Left = 0
     Height = 19
@@ -33,7 +34,7 @@ object frmFilePatcher: TfrmFilePatcher
   end
   object lblFilename: TLabel
     Left = 0
-    Height = 16
+    Height = 15
     Top = 126
     Width = 320
     Align = alTop
@@ -52,9 +53,9 @@ object frmFilePatcher: TfrmFilePatcher
   end
   object lblBaseAddress: TLabel
     Left = 0
-    Height = 16
+    Height = 15
     Top = 168
-    Width = 136
+    Width = 135
     Caption = 'Base address (MZ header)'
     Enabled = False
     ParentColor = False
@@ -68,7 +69,7 @@ object frmFilePatcher: TfrmFilePatcher
     FilterIndex = 0
     HideDirectories = False
     ButtonWidth = 23
-    NumGlyphs = 0
+    NumGlyphs = 1
     Enabled = False
     MaxLength = 0
     TabOrder = 2

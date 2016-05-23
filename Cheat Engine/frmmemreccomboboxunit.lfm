@@ -8,12 +8,13 @@ object frmMemrecCombobox: TfrmMemrecCombobox
   ClientHeight = 81
   ClientWidth = 243
   OnDestroy = FormDestroy
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.6.0.4'
   object cbMemrecCombobox: TComboBox
     Left = 0
     Height = 23
-    Top = 16
+    Top = 15
     Width = 243
     Align = alTop
     ItemHeight = 15
@@ -21,7 +22,7 @@ object frmMemrecCombobox: TfrmMemrecCombobox
   end
   object Label1: TLabel
     Left = 0
-    Height = 16
+    Height = 15
     Top = 0
     Width = 243
     Align = alTop
