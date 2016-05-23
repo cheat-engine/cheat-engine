@@ -6707,6 +6707,8 @@ begin
     lua_setbasictableentry(L, i, 'GAMEPAD_X', (state.Gamepad.wButtons and XINPUT_GAMEPAD_X)<>0);
     lua_setbasictableentry(L, i, 'GAMEPAD_Y', (state.Gamepad.wButtons and XINPUT_GAMEPAD_Y)<>0);
 
+    lua_setbasictableentry(L, i, 'wButtons', state.Gamepad.wButtons);
+
     lua_setbasictableentry(L, i, 'LeftTrigger', state.Gamepad.bLeftTrigger);
     lua_setbasictableentry(L, i, 'RightTrigger', state.Gamepad.bRightTrigger);
 
