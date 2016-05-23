@@ -4819,6 +4819,7 @@ begin
   try
     LUA_DoScript('package.path = package.path .. [[;' + tablesdir + '\?.lua]]');
   except
+    OutputDebugString('LUA_DoScript failure: package.path');
   end;
 
   InternalLuaFiles := TLuaFileList.Create;
