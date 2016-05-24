@@ -66,7 +66,7 @@ type
       function StructureNameLookup(var address: ptruint; var name: string): boolean;
       procedure AssemblerEvent(address:qword; instruction: string; var bytes: TAssemblerBytes);
       procedure AutoAssemblerPrologueEvent(code: TStrings; syntaxcheckonly: boolean);
-      procedure AutoAssemblerTemplateCallback(script: TStrings);
+      procedure AutoAssemblerTemplateCallback(script: TStrings; sender: TObject);
       procedure ScreenFormEvent(Sender: TObject; Form: TCustomForm);
 
       function BreakpointEvent(bp: pointer; context: pointer):boolean;
@@ -1129,7 +1129,7 @@ begin
   end;
 end;
 
-procedure TLuaCaller.AutoAssemblerTemplateCallback(script: TStrings);
+procedure TLuaCaller.AutoAssemblerTemplateCallback(script: TStrings; sender: TObject);
 var oldstack: integer;
 begin
   Luacs.Enter;
@@ -1138,7 +1138,8 @@ begin
 
     PushFunction;
     luaclass_newClass(luavm, script);
-    lua_pcall(Luavm, 1,0,0);
+    luaclass_newClass(luavm, sender);
+    lua_pcall(Luavm, 2,0,0);
   finally
     lua_settop(Luavm, oldstack);
     luacs.leave;

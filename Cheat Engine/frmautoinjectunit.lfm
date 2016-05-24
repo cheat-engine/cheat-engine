@@ -123,10 +123,12 @@ object frmAutoInject: TfrmAutoInject
       end
       object menuAOBInjection: TMenuItem
         Caption = 'AOB Injection'
+        ShortCut = 24641
         OnClick = menuAOBInjectionClick
       end
       object menuFullInjection: TMenuItem
         Caption = 'Full Injection'
+        ShortCut = 24646
         OnClick = menuFullInjectionClick
       end
       object CheatTablecompliantcodee1: TMenuItem

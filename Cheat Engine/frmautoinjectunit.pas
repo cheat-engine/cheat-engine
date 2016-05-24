@@ -67,7 +67,7 @@ end;
 type TScriptMode=(smAutoAssembler, smLua, smGnuAssembler);
 
 type
-  TAutoAssemblerTemplateCallback=procedure(script: TStrings) of object;
+  TAutoAssemblerTemplateCallback=procedure(script: TStrings; sender: TObject) of object;
   TAutoAssemblerTemplate=record
                            name: string;
                            m: TAutoAssemblerTemplateCallback;
@@ -348,7 +348,7 @@ begin
     begin
       t:=AutoAssemblerTemplates[i];
       if assigned(t.m) then
-        t.m(assemblescreen.Lines);
+        t.m(assemblescreen.Lines, self);
     end;
   end;
 end;
