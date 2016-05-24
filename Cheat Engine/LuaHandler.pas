@@ -6809,6 +6809,79 @@ begin
 end;
 
 
+function lua_GenerateCodeInjectionScript(L: PLua_state): integer; cdecl;
+var
+  script: TStrings;
+  address: string;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    script:=lua_ToCEUserData(L,1);
+
+    if lua_gettop(L)>=2 then
+      address:=Lua_ToString(L,2)
+    else
+      address:=inttohex(MemoryBrowser.disassemblerview.SelectedAddress,8);
+
+    try
+      GenerateCodeInjectionScript(script, address);
+      lua_pushboolean(L,true);
+      result:=1;
+    except
+    end;
+  end;
+end;
+
+function lua_GenerateAOBInjectionScript(L: PLua_state): integer; cdecl;
+var
+  script: TStrings;
+  address, symbolname: string;
+begin
+  result:=0;
+  if lua_gettop(L)>=2 then
+  begin
+    script:=lua_ToCEUserData(L,1);
+    symbolname:=Lua_ToString(L,2);
+
+    if lua_gettop(L)>=3 then
+      address:=Lua_ToString(L,3)
+    else
+      address:=inttohex(MemoryBrowser.disassemblerview.SelectedAddress,8);
+
+
+    try
+      GenerateAOBInjectionScript(script, address, symbolname);
+      lua_pushboolean(L,true);
+      result:=1;
+    except
+    end;
+  end;
+end;
+
+function lua_GenerateFullInjectionScript(L: PLua_state): integer; cdecl;
+var
+  script: TStrings;
+  address: string;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    script:=lua_ToCEUserData(L,1);
+
+    if lua_gettop(L)>=2 then
+      address:=Lua_ToString(L,2)
+    else
+      address:=inttohex(MemoryBrowser.disassemblerview.SelectedAddress,8);
+
+    try
+      GenerateFullInjectionScript(script, address);
+      lua_pushboolean(L,true);
+      result:=1;
+    except
+    end;
+  end;
+end;
 
 
 procedure InitializeLua;
@@ -7271,6 +7344,10 @@ begin
 
     lua_register(LuaVM, 'registerAutoAssemblerTemplate', lua_registerAutoAssemblerTemplate);
     lua_register(LuaVM, 'unregisterAutoAssemblerTemplate', lua_unregisterAutoAssemblerTemplate);
+
+    lua_register(LuaVM, 'generateCodeInjectionScript', lua_GenerateCodeInjectionScript);
+    lua_register(LuaVM, 'generateAOBInjectionScript', lua_GenerateAOBInjectionScript);
+    lua_register(LuaVM, 'generateFullInjectionScript', lua_GenerateFullInjectionScript);
 
     initializeLuaCustomControl;
 

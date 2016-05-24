@@ -195,6 +195,12 @@ registerAutoAssemblerTemplate(name, function(script: TStrings): id - Registers a
 unregisterAutoAssemblerTemplate(ID)
 
 
+generateCodeInjectionScript(script: Tstrings, address: string): Adds a default codeinjection script to the given script
+generateAOBInjectionScript(script: Tstrings, symbolname: string, address: string): Adds an AOB injection script to the given script
+generateFullInjectionScript(script: Tstrings, address: string): Adds a Full Injection script to the given script
+
+
+
 showMessage(text) : shows a messagebox with the given text
 inputQuery(caption, prompt, initialstring): Shows a dialog where the user can input a string. This function returns the given string, or nil on cancel  CE6.4+
 messageDialog(text, type, buttons...) : pops up a messagebox with a specific icon/sound with the specified buttons (mbok, mbyes, ....)
