@@ -339,8 +339,8 @@ begin
 
     result:=false;
 
-    if symhandler.getmodulebyname('vehdebug'+prefix+'.dll',mi) then
-      exit; //no reattach supported right now
+   { if symhandler.getmodulebyname('vehdebug'+prefix+'.dll',mi) then
+      exit; //no reattach supported right now     }
 
 
 
