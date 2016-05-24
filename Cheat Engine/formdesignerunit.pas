@@ -1101,9 +1101,11 @@ begin
   f.active:=true;
 
   f.designsurface.PopupMenu:=controlPopup;
-
   f.show;
+
   f.BringToFront;
+
+
 end;
 
 
@@ -1112,6 +1114,8 @@ initialization
 {$i formdesignerunit.lrs}
 
 {$R designerimages.res}
+
+RegisterClass(TShortCutGrabBox);
 
 end.
 
