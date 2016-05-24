@@ -1115,7 +1115,5 @@ initialization
 
 {$R designerimages.res}
 
-RegisterClass(TShortCutGrabBox);
-
 end.
 
