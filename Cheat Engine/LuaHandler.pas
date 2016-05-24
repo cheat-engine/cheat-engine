@@ -5222,6 +5222,21 @@ begin
   end;
 end;
 
+function lua_createComponentClass(L: PLua_State): integer; cdecl;
+var
+  classname: string;
+  owner: TComponent;
+begin
+  result:=0;
+  if lua_gettop(L)=2 then
+  begin
+    classname:=Lua_ToString(L,1);
+    owner:=lua_ToCEUserData(L,2);
+    luaclass_newClass(L, TComponentClass(GetClass(classname)).Create(owner));
+    result:=1;
+  end;
+end;
+
 function openLuaServer(L: PLua_State): integer; cdecl;
 var name: string;
 begin
@@ -7168,6 +7183,8 @@ begin
     Lua_register(LuaVM, 'setHeader', setHeader);
 
     lua_register(LuaVM, 'createClass', lua_createClass);
+    lua_register(LuaVM, 'createComponentClass', lua_createComponentClass);
+
     lua_register(LuaVM, 'openLuaServer', openLuaServer);
 
     lua_register(LuaVM, 'registerAutoAssemblerCommand', lua_registerAutoAssemblerCommand);

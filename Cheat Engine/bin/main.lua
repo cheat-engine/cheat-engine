@@ -532,6 +532,7 @@ inheritsFromControl(object): Returns true if the given object inherits from the 
 inheritsFromWinControl(object): Returns true if the given object inherits from the WinControl class
 
 createClass(classname): Creates an object of the specified class (Assuming it's a registered class and has a default constructor)
+createComponentClass(classname, owner): Creates an object of the specified component inherited class 
 
 
 Class definitions
