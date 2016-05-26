@@ -1207,7 +1207,7 @@ begin
             begin
 
 
-              if (alligned and ((qwordpointer^ mod 8)=0) and ispointer(qwordpointer^)) or
+              if (alligned and ((qwordpointer^ mod 4)=0) and ispointer(qwordpointer^)) or
                  ((not alligned) and ispointer(qwordpointer^) ) then
               begin
                 valid:=true;
@@ -1239,7 +1239,7 @@ begin
               end;
 
               if alligned then
-                inc(qwordpointer)
+                inc(dwordpointer) //increases qwordpointer
               else
                 inc(bytepointer);
             end;
@@ -1311,7 +1311,7 @@ begin
             begin
 
 
-              if (alligned and ((qwordpointer^ mod 8)=0) and ispointer(qwordpointer^)) or
+              if (alligned and ((qwordpointer^ mod 4)=0) and ispointer(qwordpointer^)) or
                  ((not alligned) and ispointer(qwordpointer^) ) then
               begin
                 //initial add
@@ -1347,7 +1347,7 @@ begin
               end;
 
               if alligned then
-                inc(qwordpointer) //increase with 8
+                inc(dwordpointer) //increase with 4
               else
                 inc(bytepointer);
             end;
