@@ -284,6 +284,8 @@ begin
     maxwidth:=max(maxwidth, combobox.Canvas.TextWidth(list[i]));
   end;
 
+  combobox.DropDownCount:=max(16, combobox.Items.Count);
+
   SendMessage(combobox.Handle, CB_SETDROPPEDWIDTH, maxwidth+10, 0);
 end;
 

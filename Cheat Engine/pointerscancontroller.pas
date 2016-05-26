@@ -391,6 +391,8 @@ type
     procedure removeWorkerThread;
     procedure addWorkerThread(preferedprocessor: integer=-1);
 
+    procedure disconnectChild(childid: integer; force: boolean);
+
     function hasNetworkResponsibility: boolean;
 
     function isIdle: boolean;
@@ -1381,6 +1383,7 @@ begin
     for i:=0 to length(childnodes)-1 do
     begin
       l[i].ip:=childnodes[i].ip;
+      l[i].childid:=childnodes[i].childid;
       l[i].port:=childnodes[i].port;
       l[i].isidle:=childnodes[i].idle;
       l[i].potentialthreadcount:=childnodes[i].potentialthreadcount;
@@ -2281,6 +2284,32 @@ begin
 end;
 
 
+procedure TPointerscanController.disconnectChild(childid: integer; force: boolean);
+var i: integer;
+begin
+  childnodescs.Enter;
+  try
+    for i:=0 to length(childnodes)-1 do
+      if childnodes[i].childid=childid then
+      begin
+        childnodes[i].iConnectedTo:=false; //no reconnect
+        if force then
+          handleChildException(childid, 'forced disconnect')
+        else
+        begin
+          childnodes[i].takePathsAndDisconnect:=true;
+          childnodes[i].terminating:=true;
+        end;
+
+      end;
+
+
+  finally
+    childnodescs.leave;
+  end;
+end;
+
+
 procedure TPointerscanController.waitForAndHandleNetworkEvent;
 var
   count: integer;
@@ -2409,8 +2438,9 @@ begin
             end;
           end;
 
-          if (childnodes[i].socket<>nil) and (GetTickCount64-childnodes[i].LastUpdateReceived>60000) then
-            handleChildException(i, 'No update from the client for over 60 seconds'); //marks the child as disconnected
+          childnodes[i].ScanDataSent:=;
+          if (childnodes[i].socket<>nil) and (childnodes[i].scandatauploader=nil) and (GetTickCount64-childnodes[i].LastUpdateReceived>120000) then
+            handleChildException(i, 'No update from the client for over 120 seconds'); //marks the child as disconnected
 
           inc(i);
         end;
@@ -3179,6 +3209,12 @@ begin
     if (child^.terminating) then
     begin
       HandleUpdateStatusMessage_RequestPathsFromChild(child,min(1000, updatemsg.localpathqueuecount));
+
+      if child^.takePathsAndDisconnect and (updatemsg.localpathqueuecount=0) then
+      begin
+        handleChildException(index, 'All paths received');
+      end;
+
       exit;
     end;
 
@@ -5176,7 +5212,7 @@ begin
 
   overflowqueuecs:=TCriticalSection.create;
 
-  nextchildid:=random(MaxInt); //just a random start
+  nextchildid:=1+random(MaxInt); //just a random start
 
   inherited create(suspended);
 end;

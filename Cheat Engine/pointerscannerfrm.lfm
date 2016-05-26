@@ -14,7 +14,7 @@ object frmPointerScanner: TfrmPointerScanner
   OnDestroy = FormDestroy
   OnResize = FormResize
   Position = poScreenCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object Panel1: TPanel
     Left = 0
     Height = 24
@@ -145,6 +145,7 @@ object frmPointerScanner: TfrmPointerScanner
       Align = alClient
       DefaultItemHeight = 18
       Indent = 19
+      PopupMenu = miInfoPopup
       ReadOnly = True
       RightClickSelect = True
       RowSelect = True
@@ -223,7 +224,7 @@ object frmPointerScanner: TfrmPointerScanner
         Width = 170
         Align = alTop
         Caption = 'Network'
-        ClientHeight = 182
+        ClientHeight = 179
         ClientWidth = 166
         TabOrder = 1
         object edtIP: TEdit
@@ -514,6 +515,7 @@ object frmPointerScanner: TfrmPointerScanner
   object SQLTransaction: TSQLTransaction
     Active = False
     Database = SQLite3
+    Options = []
     left = 128
     top = 40
   end
@@ -521,6 +523,7 @@ object frmPointerScanner: TfrmPointerScanner
     FieldDefs = <>
     Database = SQLite3
     Transaction = SQLTransaction
+    Options = []
     Params = <>
     left = 223
     top = 46
@@ -531,5 +534,19 @@ object frmPointerScanner: TfrmPointerScanner
     FilterIndex = 2
     left = 128
     top = 98
+  end
+  object miInfoPopup: TPopupMenu
+    OnPopup = miInfoPopupPopup
+    left = 258
+    top = 178
+    object miDisconnect: TMenuItem
+      Caption = 'Disconnect'
+      OnClick = miDisconnectClick
+    end
+    object miForceDisconnect: TMenuItem
+      Caption = 'Unsafe disconnect'
+      Enabled = False
+      OnClick = miForceDisconnectClick
+    end
   end
 end

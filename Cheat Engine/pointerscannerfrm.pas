@@ -165,6 +165,8 @@ type
     lblPassword: TLabel;
     lblThreadPriority: TLabel;
     lblProgressbar1: TLabel;
+    miDisconnect: TMenuItem;
+    miForceDisconnect: TMenuItem;
     miExportTosqlite: TMenuItem;
     MenuItem2: TMenuItem;
     miImportFromsqlite: TMenuItem;
@@ -187,6 +189,7 @@ type
     Pointerscanner1: TMenuItem;
     Method3Fastspeedandaveragememoryusage1: TMenuItem;   //I should probably rename this, it's not really, 'average memory usage' anymore...
     N1: TMenuItem;
+    miInfoPopup: TPopupMenu;
     ProgressBar1: TProgressBar;
     Rescanmemory1: TMenuItem;
     SaveDialog1: TSaveDialog;
@@ -214,9 +217,12 @@ type
     procedure FormResize(Sender: TObject);
     procedure lvResultsColumnClick(Sender: TObject; Column: TListColumn);
     procedure lvResultsResize(Sender: TObject);
+    procedure miDisconnectClick(Sender: TObject);
+    procedure miForceDisconnectClick(Sender: TObject);
     procedure miExportTosqliteClick(Sender: TObject);
     procedure miImportFromsqliteClick(Sender: TObject);
     procedure miCreatePSNnodeClick(Sender: TObject);
+    procedure miInfoPopupPopup(Sender: TObject);
     procedure miMergePointerscanResultsClick(Sender: TObject);
     procedure miResumeClick(Sender: TObject);
     procedure miSetWorkFolderClick(Sender: TObject);
@@ -1213,6 +1219,37 @@ begin
   end;
 end;
 
+procedure Tfrmpointerscanner.miDisconnectClick(Sender: TObject);
+var childid: integer;
+begin
+  if (tvinfo.Selected<>nil) and (tvinfo.Selected.Data<>nil) then
+  begin
+    childid:=ptruint(tvinfo.Selected.Data);
+
+    if Staticscanner<>nil then
+      Staticscanner.disconnectChild(childid, false);
+
+    miForceDisconnect.Enabled:=true;
+  end;
+end;
+
+procedure Tfrmpointerscanner.miForceDisconnectClick(Sender: TObject);
+var childid: integer;
+begin
+  //disconnect this one
+
+  if MessageDlg('Are you sure you wish you force a disconnect. The current paths will be lost', mtWarning, [mbyes, mbno], 0, mbNo)<>mryes then exit;
+
+  if (tvinfo.Selected<>nil) and (tvinfo.Selected.Data<>nil) then
+  begin
+    childid:=ptruint(tvinfo.Selected.Data);
+
+    if Staticscanner<>nil then
+      Staticscanner.disconnectChild(childid, true);
+  end;
+
+end;
+
 procedure Tfrmpointerscanner.miExportTosqliteClick(Sender: TObject);
 var
   filename: string;
@@ -1826,6 +1863,11 @@ begin
   f.free;
 end;
 
+procedure Tfrmpointerscanner.miInfoPopupPopup(Sender: TObject);
+begin
+  miForceDisconnect.Visible:=(tvinfo.Selected<>nil) and (tvinfo.Selected.Data<>nil);
+end;
+
 procedure Tfrmpointerscanner.miMergePointerscanResultsClick(Sender: TObject);
 begin
 
@@ -2284,6 +2326,7 @@ begin
           end;
 
           infonodes.network.connectedToNodes[i].node.Text:=s;
+          infonodes.network.connectedToNodes[i].node.Data:=pointer(ptruint(connectionlist[i].childid));
 
           with infonodes.network.connectedToNodes[i].data do
           begin
