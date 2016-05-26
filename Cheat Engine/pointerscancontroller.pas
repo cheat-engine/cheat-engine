@@ -2409,6 +2409,9 @@ begin
             end;
           end;
 
+          if (childnodes[i].socket<>nil) and (GetTickCount64-childnodes[i].LastUpdateReceived>60000) then
+            handleChildException(i, 'No update from the client for over 60 seconds'); //marks the child as disconnected
+
           inc(i);
         end;
 
