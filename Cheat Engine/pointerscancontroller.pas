@@ -2438,7 +2438,6 @@ begin
             end;
           end;
 
-          childnodes[i].ScanDataSent:=;
           if (childnodes[i].socket<>nil) and (childnodes[i].scandatauploader=nil) and (GetTickCount64-childnodes[i].LastUpdateReceived>120000) then
             handleChildException(i, 'No update from the client for over 120 seconds'); //marks the child as disconnected
 
