@@ -717,6 +717,7 @@ var
   config: Tfilestream;
   maxlevel: integer;
   structsize: integer;
+  totalpathsevaluated: qword;
   compressedptr: boolean;
   unalligned: boolean;
   noloop: boolean;
@@ -759,7 +760,7 @@ begin
 
     maxlevel:=config.ReadDWord;
     structsize:=config.ReadDWord;
-   // totalpathsevaluated:=config.ReadQWord; //IGNORED
+    totalpathsevaluated:=config.ReadQWord; //IGNORED
     compressedptr:=config.ReadByte=1;
     unalligned:=config.ReadByte=1;
     noloop:=config.ReadByte=1;
@@ -841,6 +842,7 @@ begin
         staticscanner.MaxOffsetsPerNode:=maxoffsetspernode;
         staticscanner.BaseStart:=basestart;
         staticscanner.BaseStart:=basestop;
+
         setlength(staticscanner.mustendwithoffsetlist, length(mustendwithoffsetlist));
         for i:=0 to length(mustendwithoffsetlist)-1 do
           staticscanner.mustendwithoffsetlist[i]:=mustendwithoffsetlist[i];

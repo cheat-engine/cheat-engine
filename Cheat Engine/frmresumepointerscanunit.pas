@@ -6,8 +6,8 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, ComCtrls, registry, multilineinputqueryunit, CEFuncProc, math,
-  types;
+  ExtCtrls, ComCtrls, Menus, registry, multilineinputqueryunit, CEFuncProc,
+  math, types;
 
 resourcestring
   rsRPSIpList = 'IP List';
@@ -31,8 +31,10 @@ type
     Label9: TLabel;
     lblPort: TLabel;
     ListView1: TListView;
+    MenuItem1: TMenuItem;
     odLoadPointermap: TOpenDialog;
     Panel1: TPanel;
+    pmRescanFiles: TPopupMenu;
     procedure btnNotifySpecificIPsClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure cbDistributedScanningChange(Sender: TObject);
@@ -40,6 +42,7 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure ListView1DblClick(Sender: TObject);
+    procedure MenuItem1Click(Sender: TObject);
     procedure Panel1Resize(Sender: TObject);
   private
     { private declarations }
@@ -98,6 +101,22 @@ begin
   end;
 
 
+end;
+
+procedure TfrmResumePointerscan.MenuItem1Click(Sender: TObject);
+var address: string;
+  a: ptruint;
+begin
+  if odLoadPointermap.Execute then
+  begin
+    if InputQuery('New pointermap','Enter the address this scan should look for', address) then
+    begin
+      a:=StrToQWord('$'+address);
+      instantrescanfiles.AddObject(odLoadPointermap.FileName, pointer(a));
+
+      updateFileList;
+    end;
+  end;
 end;
 
 procedure TfrmResumePointerscan.Panel1Resize(Sender: TObject);
