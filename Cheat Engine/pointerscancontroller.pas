@@ -1653,6 +1653,8 @@ var f: TFileStream;
     addedToQueue: integer;
 
     tempentry: TPathQueueElement;
+
+    tempfix: integer;
 begin
   //setup the queue
   //load the overflow from the overflow queue
@@ -1660,24 +1662,37 @@ begin
   f:=tfilestream.Create(filename+'.resume.queue', fmOpenRead or fmShareDenyNone);
   offsetcountperlist:=f.readDWord;
 
-  if offsetcountperlist<>length(pathqueue[0].tempresults) then raise exception.create(rsPSCInvalidQueueFile);
+  //if offsetcountperlist<>maxlevel then raise exception.create(rsPSCInvalidQueueFile);
 
   pathqueueCS.enter;
 
   while f.Position<f.Size do
   begin
     i:=length(overflowqueue);
+
+  //  if i=64 then dec(offsetcountperlist); //tempfix for db's important pointerscan
+
     setlength(overflowqueue, length(overflowqueue)+1);
-    f.Read(overflowqueue[i].valuetofind, sizeof(pathqueue[i].valuetofind));
-    f.read(overflowqueue[i].startlevel, sizeof(overflowqueue[i].startlevel));
-
-    setlength(overflowqueue[i].tempresults, offsetcountperlist);
-    f.read(overflowqueue[i].tempresults[0], length(overflowqueue[i].tempresults)*sizeof(overflowqueue[i].tempresults[0]));
-
-    if noloop then
+    if f.Read(overflowqueue[i].valuetofind, sizeof(pathqueue[i].valuetofind))>0 then
     begin
-      setlength(overflowqueue[i].valuelist, offsetcountperlist);
-      f.read(overflowqueue[i].valuelist[0], length(overflowqueue[i].valuelist)*sizeof(overflowqueue[i].valuelist[0]));
+      f.read(overflowqueue[i].startlevel, sizeof(overflowqueue[i].startlevel));
+
+      if overflowqueue[i].startlevel>offsetcountperlist then
+      begin
+        j:=f.Position;
+        raise exception.create('invalid data:'+inttostr(f.position));
+      end;
+
+      setlength(overflowqueue[i].tempresults, offsetcountperlist);
+      f.read(overflowqueue[i].tempresults[0], length(overflowqueue[i].tempresults)*sizeof(overflowqueue[i].tempresults[0]));
+
+      //length(pathqueue[i].tempresults)*sizeof(pathqueue[i].tempresults[0]));
+
+      if noloop then
+      begin
+        setlength(overflowqueue[i].valuelist, offsetcountperlist);
+        f.read(overflowqueue[i].valuelist[0], length(overflowqueue[i].valuelist)*sizeof(overflowqueue[i].valuelist[0]));
+      end;
     end;
 
   end;
@@ -1723,6 +1738,9 @@ procedure TPointerscanController.SaveAndClearQueue(s: TStream);
 var
   i: integer;
   pathslocked: boolean;
+
+  v: qword;
+  l: integer;
 begin
   if s=nil then exit; //can happen if stop is pressed right after the scan is done but before the gui is updated
 
@@ -1733,23 +1751,27 @@ begin
       //save the current queue and clear it (repeat till all scanners are done)
       for i:=0 to pathqueuelength-1 do
       begin
-        s.Write(pathqueue[i].valuetofind, sizeof(pathqueue[i].valuetofind));
-        s.Write(pathqueue[i].startlevel, sizeof(pathqueue[i].startlevel));
-        s.Write(pathqueue[i].tempresults[0], length(pathqueue[i].tempresults)*sizeof(pathqueue[i].tempresults[0]));
+        v:=pathqueue[i].valuetofind;
+        l:=pathqueue[i].startlevel;
+        s.Write(v, sizeof(v));
+        s.Write(l, sizeof(l));
+        s.Write(pathqueue[i].tempresults[0], maxlevel*sizeof(pathqueue[0].tempresults[0]));
 
         if noloop then
-          s.Write(pathqueue[i].valuelist[0], length(pathqueue[i].valuelist)*sizeof(pathqueue[i].valuelist[0]));
+          s.Write(pathqueue[i].valuelist[0], maxlevel*sizeof(pathqueue[0].valuelist[0]));
       end;
 
       //also save the overflow queue
       for i:=0 to length(overflowqueue)-1 do
       begin
-        s.Write(overflowqueue[i].valuetofind, sizeof(overflowqueue[i].valuetofind));
-        s.Write(overflowqueue[i].startlevel, sizeof(overflowqueue[i].startlevel));
-        s.Write(overflowqueue[i].tempresults[0], length(overflowqueue[i].tempresults)*sizeof(overflowqueue[i].tempresults[0]));
+        v:=overflowqueue[i].valuetofind;
+        l:=overflowqueue[i].startlevel;
+        s.Write(v, sizeof(v));
+        s.Write(l, sizeof(l));
+        s.Write(overflowqueue[i].tempresults[0], maxlevel*sizeof(pathqueue[0].tempresults[0]));
 
         if noloop then
-          s.Write(overflowqueue[i].valuelist[0], length(overflowqueue[i].valuelist)*sizeof(overflowqueue[i].valuelist[0]));
+          s.Write(overflowqueue[i].valuelist[0], maxlevel*sizeof(pathqueue[0].valuelist[0]));
       end;
 
       setlength(overflowqueue,0);
@@ -1961,7 +1983,7 @@ begin
             if savedqueue=nil then
             begin
               savedqueue:=TFileStream.Create(filename+'.resume.queue', fmCreate);
-              savedqueue.WriteDWord(length(pathqueue[0].tempresults)); //number of entries in the tempresult array
+              savedqueue.WriteDWord(maxlevel); //number of entries in the tempresult array
             end;
           end;
 

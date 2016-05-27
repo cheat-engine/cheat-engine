@@ -825,6 +825,7 @@ begin
       pnlProgress.Visible:=true;
 
       try
+        staticscanner.initializer:=true;
         staticscanner.OnStartScan:=PointerscanStart;
         staticscanner.OnScanDone:=PointerscanDone;
         staticscanner.threadcount:=threadcount;
@@ -842,7 +843,6 @@ begin
         staticscanner.MaxOffsetsPerNode:=maxoffsetspernode;
         staticscanner.BaseStart:=basestart;
         staticscanner.BaseStart:=basestop;
-
         setlength(staticscanner.mustendwithoffsetlist, length(mustendwithoffsetlist));
         for i:=0 to length(mustendwithoffsetlist)-1 do
           staticscanner.mustendwithoffsetlist[i]:=mustendwithoffsetlist[i];
@@ -1058,12 +1058,6 @@ begin
       staticscanner.progressbar:=progressbar1;
       staticscanner.threadcount:=frmpointerscannersettings.threadcount;
       staticscanner.scannerpriority:=frmpointerscannersettings.scannerpriority;
-       {
-      staticscanner.distributedScanning:=frmpointerscannersettings.cbDistributedScanning.checked;
-      staticscanner.distributedport:=frmpointerscannersettings.distributedPort;
-
-      staticscanner.broadcastThisScanner:=frmpointerscannersettings.cbBroadcast.checked;
-      staticscanner.potentialWorkerList:=frmpointerscannersettings.resolvediplist;    }
 
 
       staticscanner.mustStartWithBase:=frmpointerscannersettings.cbMustStartWithBase.checked;
