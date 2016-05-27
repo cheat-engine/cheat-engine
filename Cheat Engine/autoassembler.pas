@@ -1347,6 +1347,12 @@ begin
           if length(currentline)=0 then continue;
           if copy(currentline,1,2)='//' then continue; //skip
 
+          if uppercase(currentline)='{$STRICT}' then //requires labels to be defined
+          begin
+            potentiallabels.Clear;
+            continue;
+          end;
+
           //do this first. Do not touch registersymbol with any kind of define/label/whatsoever
           if uppercase(copy(currentline,1,15))='REGISTERSYMBOL(' then
           begin

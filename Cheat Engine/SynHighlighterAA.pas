@@ -1231,8 +1231,11 @@ begin
 end;
 
 procedure TSynAASyn.BraceOpenProc;
+var l: integer;
 begin
-  if (Run=0) and (fLine[Run + 1] = '$') and   //{$LUA}
+  l:=StrLen(fLine);
+
+  if (Run=0) and (l>=6) and (fLine[Run + 1] = '$') and   //{$LUA}
      (uppercase(fLine[Run + 2]) = 'L') and
      (uppercase(fLine[Run + 3]) = 'U') and
      (uppercase(fLine[Run + 4]) = 'A') and
@@ -1252,7 +1255,7 @@ begin
     exit;
   end
   else
-  if (Run=0) and (fLine[Run + 1] = '$') and   //{$ASM}
+  if (Run=0) and (l>=6) and (fLine[Run + 1] = '$') and   //{$ASM}
      (uppercase(fLine[Run + 2]) = 'A') and
      (uppercase(fLine[Run + 3]) = 'S') and
      (uppercase(fLine[Run + 4]) = 'M') and
@@ -1261,6 +1264,21 @@ begin
   begin
     FTokenID:=tkIdentifier;
     inc(run,5);
+    exit;
+  end
+  else
+  if (Run=0) and (l>=9) and (fLine[Run + 1] = '$') and   //{$STRICT}
+     (uppercase(fLine[Run + 2]) = 'S') and
+     (uppercase(fLine[Run + 3]) = 'T') and
+     (uppercase(fLine[Run + 4]) = 'R') and
+     (uppercase(fLine[Run + 5]) = 'I') and
+     (uppercase(fLine[Run + 6]) = 'C') and
+     (uppercase(fLine[Run + 7]) = 'T') and
+     (fLine[Run + 8] = '}')
+  then
+  begin
+    FTokenID:=tkIdentifier;
+    inc(run,8);
     exit;
   end
   else
