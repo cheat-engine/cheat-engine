@@ -4149,9 +4149,9 @@ var elementlist: Tlist;
   originalindex: integer;
 begin
   //save the old selection pos
-  if tvStructureView.Selected<>nil then
+ { if tvStructureView.Selected<>nil then
     originalindex:=tvStructureView.Selected.AbsoluteIndex
-  else
+  else    }
     originalindex:=-1;
 
 
@@ -4161,6 +4161,11 @@ begin
   try
     for i:=0 to tvStructureView.SelectionCount-1 do
     begin
+      if originalindex=-1 then
+        originalindex:=tvStructureView.Selections[i].AbsoluteIndex;
+
+      originalindex:=min(tvStructureView.Selections[i].AbsoluteIndex, originalindex);
+
       e:=getStructElementFromNode(tvStructureView.Selections[i]);
       if (e<>nil) and ((struct=nil) or (e.parent=struct))  then //the element can be null if it's the origin
       begin
@@ -4193,7 +4198,9 @@ begin
 
   //restore the selection pos
   if originalindex>=0 then
+  begin
     tvStructureView.Items.SelectOnlyThis(tvStructureView.Items[min(tvStructureView.items.count-1, originalindex)]);
+  end;
 
 end;
 

@@ -1865,6 +1865,7 @@ end;
 
 procedure Tfrmpointerscanner.miInfoPopupPopup(Sender: TObject);
 begin
+  miDisconnect.Visible:=(tvinfo.Selected<>nil) and (tvinfo.Selected.Data<>nil);
   miForceDisconnect.Visible:=(tvinfo.Selected<>nil) and (tvinfo.Selected.Data<>nil);
 end;
 
