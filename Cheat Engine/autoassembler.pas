@@ -1021,6 +1021,7 @@ begin
 
 end;
 
+
 procedure luacode(code: TStrings; syntaxcheckonly: boolean);
 {
 Find and execute the LUA parts:
@@ -1234,6 +1235,7 @@ var i,j,k,l,e: integer;
     connection: TCEConnection;
 
     aaid: longint;
+    strictmode: boolean;
 begin
   setlength(readmems,0);
   setlength(allocs,0);
@@ -1318,10 +1320,17 @@ begin
 
     luacode(code, syntaxcheckonly);
 
+    strictmode:=false;
+    for i:=0 to code.count-1 do
+      if uppercase(TrimRight(code[i]))='{$STRICT}' then
+        strictmode:=true;
+
     removecomments(code);  //also trims each line
     unlabeledlabels(code);
 
-    getPotentialLabels(code, potentiallabels);
+    if not strictmode then
+      getPotentialLabels(code, potentiallabels);
+
 
     //6.3: do the aobscans first
     //this will break scripts that use define(state,33) aobscan(name, 11 22 state 44 55), but really, live with it
@@ -1347,11 +1356,7 @@ begin
           if length(currentline)=0 then continue;
           if copy(currentline,1,2)='//' then continue; //skip
 
-          if uppercase(currentline)='{$STRICT}' then //requires labels to be defined
-          begin
-            potentiallabels.Clear;
-            continue;
-          end;
+
 
           //do this first. Do not touch registersymbol with any kind of define/label/whatsoever
           if uppercase(copy(currentline,1,15))='REGISTERSYMBOL(' then
