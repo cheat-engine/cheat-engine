@@ -1568,13 +1568,16 @@ var
   i: integer;
   oi: integer;
   pathsToCopy: integer;
-  listsize: integer;
+  listsize, valuelistsize: integer;
 begin
+  if (pathqueuelength=MAXQUEUESIZE) or (length(overflowqueue)=0) then exit;
+
   overflowqueuecs.enter;
   try
     if (length(overflowqueue)>0) and (pathqueuelength<MAXQUEUESIZE-1) then //I could use some paths
     begin
       listsize:=sizeof(dword)*(maxlevel+1);
+      valuelistsize:=sizeof(qword)*(maxlevel+1);
 
       //do I have an overflow I can use ?
       pathqueueCS.enter;
@@ -1590,11 +1593,9 @@ begin
             pathqueue[i].startlevel:=overflowqueue[oi].startlevel;
             pathqueue[i].valuetofind:=overflowqueue[oi].valuetofind;
 
-
-
             copymemory(@pathqueue[i].tempresults[0], @overflowqueue[oi].tempresults[0], listsize);
             if noLoop then
-              copymemory(@pathqueue[i].valuelist[0], @overflowqueue[oi].valuelist[0], listsize);
+              copymemory(@pathqueue[i].valuelist[0], @overflowqueue[oi].valuelist[0], valuelistsize);
           end;
 
           inc(pathqueuelength, pathsToCopy);
@@ -1648,90 +1649,103 @@ procedure TPointerscanController.SetupQueueForResume;
 var f: TFileStream;
     offsetcountperlist: integer;
 
-    i, j: integer;
+    i, j,k: integer;
 
     addedToQueue: integer;
 
     tempentry: TPathQueueElement;
 
     tempfix: integer;
+    listsize, valuelistsize: integer;
+
+    ml: integer;
 begin
   //setup the queue
   //load the overflow from the overflow queue
 
   f:=tfilestream.Create(filename+'.resume.queue', fmOpenRead or fmShareDenyNone);
-  offsetcountperlist:=f.readDWord;
+  ml:=f.ReadDWord;
 
-  //if offsetcountperlist<>maxlevel then raise exception.create(rsPSCInvalidQueueFile);
+  if ml<>maxlevel then raise exception.create(rsPSCInvalidQueueFile);
+
+  listsize:=sizeof(dword)*(maxlevel+1);
+  valuelistsize:=sizeof(qword)*(maxlevel+1);
+
 
   pathqueueCS.enter;
+  try
 
-  while f.Position<f.Size do
-  begin
-    i:=length(overflowqueue);
 
-  //  if i=64 then dec(offsetcountperlist); //tempfix for db's important pointerscan
-
-    setlength(overflowqueue, length(overflowqueue)+1);
-    if f.Read(overflowqueue[i].valuetofind, sizeof(pathqueue[i].valuetofind))>0 then
+    while f.Position<f.Size do
     begin
-      f.read(overflowqueue[i].startlevel, sizeof(overflowqueue[i].startlevel));
-
-      if overflowqueue[i].startlevel>offsetcountperlist then
+      i:=length(overflowqueue);
+      setlength(overflowqueue, length(overflowqueue)+1);
+      if f.Read(overflowqueue[i].valuetofind, sizeof(overflowqueue[i].valuetofind))>0 then
       begin
-        j:=f.Position;
-        raise exception.create('invalid data:'+inttostr(f.position));
+        f.read(overflowqueue[i].startlevel, sizeof(overflowqueue[i].startlevel));
+
+        if overflowqueue[i].startlevel>offsetcountperlist then
+        begin
+          j:=f.Position;
+          raise exception.create('invalid data:'+inttostr(f.position));
+        end;
+
+        setlength(overflowqueue[i].tempresults, maxlevel+1);
+        f.read(overflowqueue[i].tempresults[0], listsize);
+
+        //length(pathqueue[i].tempresults)*sizeof(pathqueue[i].tempresults[0]));
+
+        if noloop then
+        begin
+          setlength(overflowqueue[i].valuelist, maxlevel+1);
+          f.read(overflowqueue[i].valuelist[0], valuelistsize);
+        end;
       end;
 
-      setlength(overflowqueue[i].tempresults, offsetcountperlist);
-      f.read(overflowqueue[i].tempresults[0], length(overflowqueue[i].tempresults)*sizeof(overflowqueue[i].tempresults[0]));
+    end;
 
-      //length(pathqueue[i].tempresults)*sizeof(pathqueue[i].tempresults[0]));
-
-      if noloop then
+    //sort based on level
+    for i:=0 to length(overflowqueue)-2 do
+    begin
+      for j:=i to length(overflowqueue)-1 do
       begin
-        setlength(overflowqueue[i].valuelist, offsetcountperlist);
-        f.read(overflowqueue[i].valuelist[0], length(overflowqueue[i].valuelist)*sizeof(overflowqueue[i].valuelist[0]));
+        if overflowqueue[i].startlevel>overflowqueue[j].startlevel then //swap
+        begin
+          tempentry:=overflowqueue[j];
+          overflowqueue[j]:=overflowqueue[i];
+          overflowqueue[i]:=tempentry;
+        end;
       end;
     end;
 
-  end;
+    addedToQueue:=0;
+    try
 
-  //sort based on level
-  for i:=0 to length(overflowqueue)-2 do
-  begin
-    for j:=i to length(overflowqueue)-1 do
-    begin
-      if overflowqueue[i].startlevel>overflowqueue[j].startlevel then //swap
+      for i:=length(overflowqueue)-1 downto 0 do
       begin
-        tempentry:=overflowqueue[j];
-        overflowqueue[j]:=overflowqueue[i];
-        overflowqueue[i]:=tempentry;
+        if pathqueuelength<MAXQUEUESIZE then
+        begin
+          pathqueue[(length(overflowqueue)-1)-i]:=overflowqueue[i];
+
+
+          overflowqueue[i].tempresults[0]:=$cece;
+          inc(addedToQueue);
+          inc(pathqueuelength);
+        end else break;
       end;
+
+    finally
+      setlength(overflowqueue, length(overflowqueue)-addedToQueue);
+      ReleaseSemaphore(pathqueueSemaphore, addedToQueue, nil);
     end;
+
+  finally
+    pathqueueCS.leave;
+    f.free;
   end;
 
-  addedToQueue:=0;
-
-  for i:=length(overflowqueue)-1 downto 0 do
-  begin
-    if pathqueuelength<MAXQUEUESIZE then
-    begin
-      pathqueue[(length(overflowqueue)-1)-i]:=overflowqueue[i];
 
 
-      overflowqueue[i].tempresults[0]:=$cece;
-      inc(addedToQueue);
-      inc(pathqueuelength);
-    end else break;
-  end;
-
-  setlength(overflowqueue, length(overflowqueue)-addedToQueue);
-
-  ReleaseSemaphore(pathqueueSemaphore, addedToQueue, nil);
-  pathqueueCS.leave;
-
-  f.free;
 end;
 
 procedure TPointerscanController.SaveAndClearQueue(s: TStream);
@@ -1741,8 +1755,12 @@ var
 
   v: qword;
   l: integer;
+  listsize, valuelistsize: integer;
 begin
   if s=nil then exit; //can happen if stop is pressed right after the scan is done but before the gui is updated
+
+  listsize:=sizeof(dword)*(maxlevel+1);
+  valuelistsize:=sizeof(qword)*(maxlevel+1);
 
   if pathqueuelength>0 then
   begin
@@ -1755,10 +1773,10 @@ begin
         l:=pathqueue[i].startlevel;
         s.Write(v, sizeof(v));
         s.Write(l, sizeof(l));
-        s.Write(pathqueue[i].tempresults[0], maxlevel*sizeof(pathqueue[0].tempresults[0]));
+        s.Write(pathqueue[i].tempresults[0], listsize);
 
         if noloop then
-          s.Write(pathqueue[i].valuelist[0], maxlevel*sizeof(pathqueue[0].valuelist[0]));
+          s.Write(pathqueue[i].valuelist[0], valuelistsize);
       end;
 
       //also save the overflow queue
@@ -1768,10 +1786,10 @@ begin
         l:=overflowqueue[i].startlevel;
         s.Write(v, sizeof(v));
         s.Write(l, sizeof(l));
-        s.Write(overflowqueue[i].tempresults[0], maxlevel*sizeof(pathqueue[0].tempresults[0]));
+        s.Write(overflowqueue[i].tempresults[0], listsize);
 
         if noloop then
-          s.Write(overflowqueue[i].valuelist[0], maxlevel*sizeof(pathqueue[0].valuelist[0]));
+          s.Write(overflowqueue[i].valuelist[0], valuelistsize);
       end;
 
       setlength(overflowqueue,0);
@@ -1890,7 +1908,7 @@ begin
                   if unalligned then
                     currentaddress:=ValueFinder.FindValue(currentaddress+1)
                   else
-                    currentaddress:=ValueFinder.FindValue(currentaddress+pointersize);
+                    currentaddress:=ValueFinder.FindValue(currentaddress+4);
 
                   addedToQueue:=true;
                 end;
@@ -1983,7 +2001,7 @@ begin
             if savedqueue=nil then
             begin
               savedqueue:=TFileStream.Create(filename+'.resume.queue', fmCreate);
-              savedqueue.WriteDWord(maxlevel); //number of entries in the tempresult array
+              savedqueue.WriteDWord(maxlevel); //just to be safe
             end;
           end;
 
@@ -5187,6 +5205,7 @@ begin
   s.WriteQWord(totalpathsevaluated);
   s.writebyte(ifthen(compressedptr,1,0));
   s.writebyte(ifthen(unalligned,1,0));
+  s.Writebyte(ifthen(staticonly,1,0));
   s.writebyte(ifthen(noLoop,1,0));
   s.writebyte(ifthen(muststartwithbase,1,0));
   s.writebyte(ifthen(LimitToMaxOffsetsPerNode,1,0));

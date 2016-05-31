@@ -720,6 +720,7 @@ var
   totalpathsevaluated: qword;
   compressedptr: boolean;
   unalligned: boolean;
+  staticonly: boolean;
   noloop: boolean;
   muststartwithbase: boolean;
   LimitToMaxOffsetsPerNode:boolean;
@@ -763,6 +764,7 @@ begin
     totalpathsevaluated:=config.ReadQWord; //IGNORED
     compressedptr:=config.ReadByte=1;
     unalligned:=config.ReadByte=1;
+    staticonly:=config.ReadByte=1;
     noloop:=config.ReadByte=1;
     muststartwithbase:=config.ReadByte=1;
     LimitToMaxOffsetsPerNode:=config.ReadByte=1;
@@ -834,6 +836,7 @@ begin
         staticscanner.sz:=structsize;
         staticscanner.compressedptr:=compressedptr;
         staticscanner.unalligned:=unalligned;
+        staticscanner.staticonly:=staticonly;
         staticscanner.noLoop:=noloop;
         staticscanner.mustStartWithBase:=muststartwithbase;
         staticscanner.LimitToMaxOffsetsPerNode:=LimitToMaxOffsetsPerNode;
