@@ -41,7 +41,6 @@ var
   frmDriverLoaded: TfrmDriverLoaded;
   s,s2,t: string;
   i: integer;
-  h: hwnd;
 
   a,b: array [0..1] of boolean;
 

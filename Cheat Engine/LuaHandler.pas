@@ -1172,7 +1172,7 @@ var
   i: integer;
 begin
   parameters:=lua_gettop(L);
-  if parameters=0 then exit;
+  if parameters=0 then exit(0);
 
   str:='';
   for i:=-parameters to -1 do
@@ -1220,7 +1220,7 @@ var
   s: string;
 begin
   parameters:=lua_gettop(L);
-  if parameters=0 then exit;
+  if parameters=0 then exit(0);
 
   if lua_islightuserdata(l,-1) then
     s:=inttohex(ptruint(lua_touserdata(L, -1)),8)
@@ -1870,7 +1870,7 @@ var
   b: byte;
 begin
   parameters:=lua_gettop(L);
-  if parameters=0 then exit;
+  if parameters=0 then exit(0);
 
 
 
@@ -2134,6 +2134,7 @@ var parameters: integer;
 begin
   result:=0;
   r:=false;
+  key:=0;
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
@@ -2176,6 +2177,7 @@ var parameters: integer;
 begin
   result:=0;
   r:=false;
+  key:=0;
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
@@ -2207,6 +2209,7 @@ var parameters: integer;
 begin
   result:=0;
   r:=false;
+  key:=0;
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
@@ -2237,18 +2240,19 @@ var parameters: integer;
 begin
   result:=0;
   r:=false;
+  key:=0;
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    if lua_isstring(L,-1) then  //char given isntead of keycode
+    if lua_isstring(L,1) then  //char given instead of keycode
     begin
-      keyinput:=lua.lua_tostring(L,-1);
+      keyinput:=lua.lua_tostring(L,1);
       if keyinput<>nil then
         key:=ord(keyinput[0]);
     end
     else
-    if lua_isnumber(L,-1) then //keycode
-      key:=lua_tointeger(L,-1);
+    if lua_isnumber(L,1) then //keycode
+      key:=lua_tointeger(L,1);
 
 
     if key<>0 then
@@ -3495,6 +3499,7 @@ var s: pchar;
   sl: integer;
   ss: TStringStream;
 begin
+  sl:=0;
   if lua_gettop(L)>0 then
     s:=lua_tolstring(L, 1, @sl)
   else
@@ -4649,7 +4654,7 @@ function getTickCount_lua(L: PLua_State): integer; cdecl;
 begin
   lua_pop(L, lua_gettop(L));
   result:=1;
-  lua_pushinteger(L, GetTickCount);
+  lua_pushinteger(L, GetTickCount64);
 end;
 
 function processMessages(L: PLua_State): integer; cdecl;
@@ -5866,6 +5871,7 @@ var
   m: float;
   e: integer;
 begin
+  result:=0;
   if lua_gettop(l)>=1 then
   begin
     d:=lua_tonumber(L, 1);
@@ -5884,6 +5890,7 @@ end;
 
 function lua_cosh(L:PLua_State): integer; cdecl;
 begin
+  result:=0;
   if lua_gettop(l)>=1 then
   begin
     lua_pushnumber(L, cosh(lua_tonumber(L,1)));
@@ -5899,6 +5906,7 @@ end;
 
 function lua_sinh(L:PLua_State): integer; cdecl;
 begin
+  result:=0;
   if lua_gettop(l)>=1 then
   begin
     lua_pushnumber(L, sinh(lua_tonumber(L,1)));
@@ -5913,6 +5921,7 @@ end;
 
 function lua_tanh(L:PLua_State): integer; cdecl;
 begin
+  result:=0;
   if lua_gettop(l)>=1 then
   begin
     lua_pushnumber(L, tanh(lua_tonumber(L,1)));
@@ -6240,6 +6249,7 @@ end;
 
 function debug_updateGUI(L:PLua_state): integer; cdecl;
 begin
+  result:=0;
   if (debuggerthread<>nil) and (debuggerthread.isWaitingToContinue) and (debuggerthread.CurrentThread<>nil) then
   begin
     debuggerthread.CurrentThread.UpdateMemoryBrowserContext;
@@ -6607,6 +6617,8 @@ begin
   begin
     pid:=0;
     tid:=0;
+
+    h:=lua_tointeger(L,1);
 
     tid:=GetWindowThreadProcessId(h, pid);
 

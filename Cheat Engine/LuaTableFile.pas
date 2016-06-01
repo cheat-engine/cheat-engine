@@ -112,8 +112,6 @@ function findTableFile(L: Plua_State): integer; cdecl;
 var parameters: integer;
   f: string;
   i: integer;
-
-  s: tmemorystream;
 begin
   result:=0;
   parameters:=lua_gettop(L);

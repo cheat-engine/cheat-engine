@@ -786,6 +786,9 @@ begin
     typename:=Lua_ToString(L, 1);
     bytecount:=lua_tointeger(L, 2);
 
+    f_bytestovalue:=0;
+    f_valuetobytes:=0;
+
     if lua_isfunction(L, 3) then
     begin
       lua_pushvalue(L, 3);
@@ -867,6 +870,7 @@ var
 begin
   {$IFNDEF UNIX}
   result:=0;
+  bytecount:=1;
   parameters:=lua_gettop(L);
   if parameters=3 then
   begin

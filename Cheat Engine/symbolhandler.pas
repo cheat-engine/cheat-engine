@@ -745,7 +745,7 @@ var
 begin
   {$IFNDEF UNIX}
   if pSymInfo.NameLen=0 then
-    exit;
+    exit(false);
 
   self:=TSymbolloaderthread(UserContext);
 
@@ -790,9 +790,9 @@ begin
 
       ZeroMemory(@c, sizeof(c));
       c.InstructionOffset:=self.extraSymbolData.symboladdress;
-      SymSetContext(self.thisprocesshandle, @c, NULL);
+      SymSetContext(self.thisprocesshandle, @c, nil);
 
-      SymEnumSymbols(self.thisprocesshandle, 0, NULL, @ES2, self);
+      SymEnumSymbols(self.thisprocesshandle, 0, nil, @ES2, self);
 
       self.extraSymbolData.filledin:=true;
     end;
@@ -879,7 +879,7 @@ begin
 
  // result:=SymEnumTypes(self.thisprocesshandle, baseofdll, @ET, self);
 
-  result:=(self.terminated=false) and (SymEnumSymbols(self.thisprocesshandle, baseofdll, NULL, @ES, self));
+  result:=(self.terminated=false) and (SymEnumSymbols(self.thisprocesshandle, baseofdll, nil, @ES, self));
 
   //mark this module as loaded
 

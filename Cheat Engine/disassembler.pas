@@ -10962,6 +10962,7 @@ begin
   result:=false;
   hexcount:=0;
   lasthexcount:=0;
+  lastmatch:=0;
 
   for i:=length(d) downto 1 do
   begin
@@ -11189,7 +11190,9 @@ begin
         x:=0;
         readprocessmemory(processhandle, pointer(value), @buffer[0], 63,x);
         if x>0 then
-          vtype:=FindTypeOfData(value, @buffer[0], x);
+          vtype:=FindTypeOfData(value, @buffer[0], x)
+        else
+          vtype:=vtDword;
       end
       else
       begin

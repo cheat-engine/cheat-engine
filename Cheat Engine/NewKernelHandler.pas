@@ -794,6 +794,7 @@ var
   x: PTRUINT;
 
 begin
+  wle:=nil;
   if logWrites then
   begin
     if nsize<64*1024*1024 then
@@ -810,7 +811,7 @@ begin
   end;
 
   result:=WriteProcessMemoryActual(hProcess, lpBaseAddress, lpbuffer, nSize, lpNumberOfBytesWritten);
-  if result and logwrites then
+  if result and logwrites and (wle<>nil) then
   begin
     getmem(wle^.newbytes, lpNumberOfBytesWritten);
     ReadProcessMemory(hProcess, lpBaseaddress,wle^.newbytes, lpNumberOfBytesWritten, x);
@@ -898,6 +899,8 @@ end;
 function loaddbvmifneeded: BOOL;  stdcall;
 var signed: BOOL;
 begin
+  result:=false;
+
 {$ifndef JNI}
   loaddbk32;
   if assigned(isDriverLoaded) then
@@ -1481,7 +1484,7 @@ begin
   mapsline:='';
 end;
 
-var x: string;
+var
   psa: thandle;
   u32: thandle;
 

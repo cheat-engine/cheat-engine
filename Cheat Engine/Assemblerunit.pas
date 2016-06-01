@@ -2093,7 +2093,7 @@ begin
 end;
 
 function gettokentype(var token:string;token2: string): TTokenType;
-var i,err: integer;
+var err: integer;
     temp:string;
     i64: int64;
 begin
@@ -2197,14 +2197,13 @@ begin
 end;
 
 function rewrite(var token:string): boolean;
-var i,j,k,err,err2: integer;
+var i,j,err,err2: integer;
     a,b: qword;
     tokens: array of string;
     last: integer;
 
     temp: string;
     haserror: boolean;
-    f: double;
     inQuote: boolean;
     quotechar: char;
 begin
@@ -2377,8 +2376,6 @@ end;
 
 function tokenize(opcode:string; var tokens: ttokens): boolean;
 var i,j,last: integer;
-    spacecount: integer;
-    seperatorcount: integer;
 
     quoted: boolean;
     quotechar: char;
@@ -2599,7 +2596,6 @@ end;
 
 procedure TSingleLineAssembler.createsibscaleindex(var sib:byte;reg:string);
 var
-  i2,i4,i8: integer;
   i: integer;
   hasmultiply: boolean;
 begin
@@ -2673,7 +2669,7 @@ end;
 procedure TSingleLineAssembler.setmodrm(var modrm:tassemblerbytes;address:string; offset: integer);
 var regs: string;
     disp,test: qword;
-    i,j,k,l: integer;
+    i,j,k: integer;
     start: integer;
     increase: boolean;
 
@@ -3170,7 +3166,6 @@ begin
 end;
 
 procedure TSingleLineAssembler.addopcode(var bytes:tassemblerbytes;i:integer);
-var itterator: integer;
 begin
   RexPrefixLocation:=length(bytes);
 
@@ -3207,7 +3202,6 @@ procedure TSingleLineAssembler.setRex_W(state: boolean);
 {
 Set bit 3 to the appropriate state
 }
-var s: integer;
 begin
   if state then
     rexprefix:=(rexprefix and $f7) or 8

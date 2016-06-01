@@ -2725,8 +2725,6 @@ var buf: array [0..31] of byte;
     actualread: PtrUInt;
     i,j: integer;
     st: string;
-    offset: dword;
-    haserror: boolean;
 
     dis: TDisassembler;
 begin
@@ -2844,6 +2842,8 @@ end;
 function StringToVariableType(s: string): TVariableType;
 //NEVER translate this, use the vartypestrings unit for that
 begin
+  result:=vtByte;
+
   s:=trim(lowercase(s));
   if s='all' then result:=vtAll else
   if s='binary' then result :=vtBinary else

@@ -777,7 +777,7 @@ begin
 
     _Rn:=GetParam(instruction, parserpos);
     rn:=GetRegNumber(_Rn);
-    if rd=-1 then
+    if rn=-1 then
       raise exception.create('Invalid first operand register');
 
     result:=result or (rn shl 16);
