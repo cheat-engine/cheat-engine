@@ -149,21 +149,21 @@ begin
 end;
 
 function tablefile_saveToFile(L: Plua_State): integer; cdecl;
-var parameters: integer;
+var
   lf: TLuaFile;
   f: string;
 begin
   lf:=luaclass_getClassObject(L);
   f:=lf.name;
-  if parameters>=1 then
-    f:=Lua_ToString(L, -1);
+  if lua_gettop(L)>=1 then
+    f:=Lua_ToString(L, 1);
 
   lf.stream.Position:=0;
   lf.stream.SaveToFile(f);
 end;
 
 function tablefile_getData(L: Plua_State): integer; cdecl;
-var parameters: integer;
+var
   lf: TLuaFile;
 begin
   result:=1;
