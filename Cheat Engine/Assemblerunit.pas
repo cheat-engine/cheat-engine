@@ -2208,7 +2208,7 @@ var i,j,k,err,err2: integer;
     inQuote: boolean;
     quotechar: char;
 begin
-  if length(token)=0 then exit; //empty string
+  if length(token)=0 then exit(false); //empty string
 
 
   quotechar:=#0;
@@ -3224,7 +3224,6 @@ procedure TSingleLineAssembler.setRex_R(state: boolean);
 {
 Set bit 2 to the appropriate state
 }
-var s: integer;
 begin
   if state then
     rexprefix:=(rexprefix and $fb) or 4
@@ -3242,7 +3241,6 @@ procedure TSingleLineAssembler.setRex_X(state: boolean);
 {
 Set bit 2 to the appropriate state
 }
-var s: integer;
 begin
   if state then
     rexprefix:=(rexprefix and $fd) or 2
@@ -3260,7 +3258,6 @@ procedure TSingleLineAssembler.setRex_B(state: boolean);
 {
 Set bit 2 to the appropriate state
 }
-var s: integer;
 begin
   if state then
     rexprefix:=(rexprefix and $fe) or 1
@@ -5896,7 +5893,7 @@ begin
   end;
 end;
 
-var i,j,k,l,m: integer;
+var i,j,k: integer;
     lastentry: integer=1;
     lastindex: PIndexArray=nil;
 
