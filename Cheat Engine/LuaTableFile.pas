@@ -153,6 +153,7 @@ var
   lf: TLuaFile;
   f: string;
 begin
+  result:=0;
   lf:=luaclass_getClassObject(L);
   f:=lf.name;
   if lua_gettop(L)>=1 then
