@@ -94,6 +94,7 @@ var SNAPHandle: THandle;
     s: string;
 begin
 
+  ProcessListInfo:=nil;
   HI:=0;
 
   j:=0;

@@ -1375,10 +1375,9 @@ end;
 
 function Taddresslist.descriptioncompare(a: tmemoryrecord; b: tmemoryrecord): integer;
 begin
+  result:=0; //equal
   if b.description>a.description then
     result:=1;
-  if b.description=a.description then
-    result:=0;
   if b.description<a.description then
     result:=-1;
 end;

@@ -249,7 +249,9 @@ begin
 
       lua_getglobal(L, pchar(routine));
       f:=luaL_ref(L,LUA_REGISTRYINDEX);
-    end;
+    end
+    else
+      exit;
 
 
     c.syncfunction:=f;

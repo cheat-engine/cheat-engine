@@ -87,14 +87,14 @@ end;
 
 destructor TDiscovery.destroy;
 begin
-  if s<>INVALID_SOCKET then
+  if s<>cint(INVALID_SOCKET) then
     closeSocket(s);
 end;
 
 procedure TDiscovery.terminate;
 var olds: cint;
 begin
-  if s<>INVALID_SOCKET then
+  if s<>cint(INVALID_SOCKET) then
   begin
     olds:=s;
     s:=cint(INVALID_SOCKET);
@@ -190,7 +190,7 @@ begin
     end;
   end;
 
-  if s<>INVALID_SOCKET then
+  if s<>cint(INVALID_SOCKET) then
   begin
     closesocket(s);
     s:=cint(invalid_socket);

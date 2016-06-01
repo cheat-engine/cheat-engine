@@ -12,7 +12,7 @@ uses
   XMLRead, XMLWrite, Clipbrd, CustomTypeHandler, strutils, dotnetpipe, DotNetTypes, commonTypeDefs;
 
 
-
+const structureversion=2;
 
   { TfrmStructures2 }
 type
@@ -1115,7 +1115,9 @@ end;
 function TDissectedStruct.getElementCount: integer;
 begin
   if structelementlist<>nil then
-    result:=structelementlist.Count;
+    result:=structelementlist.Count
+  else
+    result:=0;
 end;
 
 function TDissectedStruct.getElement(index: integer): TStructelement;

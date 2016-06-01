@@ -110,6 +110,7 @@ var ok: boolean;
    i,j: integer;
    matchpos,offset: integer;
 begin
+  result:=0;
   for i:=0 to length(regexpressions)-1 do
   begin
     //check if it confirms to the search querry

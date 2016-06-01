@@ -101,7 +101,9 @@ begin
     begin
       p:=Lua_ToString(L,1);
       if p<>'' then
-        c:=pointer(StrToInt64(p));
+        c:=pointer(StrToInt64(p))
+      else
+        exit;
     end;
 
     p:=Lua_ToString(L, 2);
@@ -256,7 +258,9 @@ begin
     begin
       p:=Lua_ToString(L,1);
       if p<>'' then
-        c:=pointer(StrToInt64(p));
+        c:=pointer(StrToInt64(p))
+      else
+        exit;
     end;
 
     p:=Lua_ToString(L,2);
@@ -317,7 +321,9 @@ begin
     begin
       p:=Lua_ToString(L,1);
       if p<>'' then
-        c:=pointer(StrToInt64(p));
+        c:=pointer(StrToInt64(p))
+      else
+        exit;
     end;
 
     p:=Lua_ToString(L,2);

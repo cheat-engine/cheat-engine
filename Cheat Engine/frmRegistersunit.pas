@@ -312,6 +312,7 @@ end;
 
 function TRegisters.TagToValue(tag: integer): ptrUint;
 begin
+  result:=0;
   case tag of
     0: result:=context.{$ifdef cpu64}Rax{$else}Eax{$endif};
     1: result:=context.{$ifdef cpu64}Rbx{$else}Ebx{$endif};

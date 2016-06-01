@@ -170,6 +170,7 @@ var
   deactivatetime: integer;
   t: TTimer;
 begin
+  result:=0;
   cheatcomponent:=luaclass_getClassObject(L);
   if lua_gettop(L)>=1 then
     cheatcomponent.EditValue:=Lua_ToString(L,-1);

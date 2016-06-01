@@ -3251,6 +3251,8 @@ begin
       vtdouble: valuetype:=vtdouble;
       vtQword:  valuetype:=vtQword;
       vtAll:    valuetype:=vtall;
+      else
+        valuetype:=vtDword;
     end;
 
     if valuetype=vtall then
@@ -3641,6 +3643,8 @@ begin
   oldmem:=oldmemory;
   alist:=addresslist;
   phandle:=processhandle;
+
+  valuetype:=vtdword;
 
   case variableType of
     vtByte:   valuetype:=vtbyte;
@@ -6589,7 +6593,9 @@ begin
   begin
     result:=scancontroller.FoundSomething;
     addresses:=scancontroller.AddressesFound;
-  end;
+  end
+  else
+    result:=false;
 end;
 
 function TMemscan.GetOnlyOneResult(var address: ptruint):boolean;
@@ -6598,7 +6604,9 @@ begin
   begin
     result:=scancontroller.FoundSomething;
     address:=scancontroller.AddressFound;
-  end;
+  end
+  else
+    result:=false;
 end;
 
 function TMemscan.GetScanFolder: string;

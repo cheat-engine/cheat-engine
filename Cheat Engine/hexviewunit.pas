@@ -861,6 +861,8 @@ begin
       dtQword, dtQwordDec: vartype:=vtQword;
       dtSingle: vartype:=vtSingle;
       dtDouble: vartype:=vtDouble;
+      else
+        vartype:=vtDword;
     end;
 
     mainform.addresslist.addAddressManually(inttohex(selected,8), Vartype);
@@ -1411,7 +1413,9 @@ begin
 
   unreadable:=not pi.readable;
   if pi.readable then
-    result:=pi.data[offset];
+    result:=pi.data[offset]
+  else
+    result:=0;
 end;
 
 function THexView.getByte(a: ptrUint): string; overload;

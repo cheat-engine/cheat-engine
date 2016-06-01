@@ -1539,6 +1539,7 @@ procedure TfrmTrainerGenerator.Button5Click(Sender: TObject);
 var f: string;
     protect: boolean;
 begin
+  protect:=false;
   generateScript;
 
   case cbOutput.ItemIndex of

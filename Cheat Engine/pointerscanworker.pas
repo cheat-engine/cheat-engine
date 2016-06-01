@@ -311,7 +311,7 @@ end;
 
 function TPointerscanWorker.HasResultsPending: boolean;
 begin
-  fHasResults:=true;
+  result:=fHasResults;
 end;
 
 constructor TPointerscanWorker.create(suspended:boolean);

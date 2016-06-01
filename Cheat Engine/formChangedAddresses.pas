@@ -62,7 +62,6 @@ type
     { Private declarations }
     addresslist: TMap;
     procedure refetchValues(specificaddress: ptruint=0);
-    function getBase(entry: TAddressEntry): ptruint;
   public
     { Public declarations }
     equation: string;
@@ -102,12 +101,6 @@ begin
   end;
 end;
 
-
-function TfrmChangedAddresses.getBase(entry: TAddressEntry): ptruint;
-//parse the equation
-begin
-
-end;
 
 procedure TfrmChangedAddresses.AddRecord;
 var

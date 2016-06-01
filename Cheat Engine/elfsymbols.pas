@@ -17,7 +17,7 @@ implementation
 
 function EnumElfSymbols32(modulename: string; modulebase: ptruint; mem: pbyte; callback: TNetworkEnumSymCallback): boolean;
 begin
-
+  result:=false;
 end;
 
 function EnumElfSymbols64(modulename: string; modulebase: ptruint; mem: pbyte; callback: TNetworkEnumSymCallback): boolean;
@@ -40,6 +40,7 @@ var
 
   address: ptruint;
 begin
+  result:=false;
   Header:=@mem[sizeof(TElfIdent)];
 
   SectionHeaders:=@mem[Header^.SectHdrOffset];
@@ -78,6 +79,7 @@ var
   br: ptruint;
   mem: pbyte;
 begin
+  result:=false;
   mem:=getmem(4096);
   if ReadProcessMemory(processhandle, pointer(modulebase), mem, 4096, br) then
   begin

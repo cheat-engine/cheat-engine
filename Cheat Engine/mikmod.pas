@@ -457,12 +457,16 @@ function MikMod_CreateSFX(memory: pointer): TMikModSFX;
 begin
   if mikmodthread=nil then
     mikmodthread:=TMikModThread.create(false);
+
+  result:=nil;
 end;
 
 function MikMod_CreateSFX(s: TStream): TMikModSFX;
 begin
   if mikmodthread=nil then
     mikmodthread:=TMikModThread.create(false);
+
+  result:=nil;
 end;
 
 

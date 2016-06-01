@@ -2319,6 +2319,12 @@ begin
 
   //first check if this address is already in the list!
   customname := '';
+  l := 0;
+  startbit := 0;
+  extra:=0;
+  ct:=nil;
+  gcp:=nil;
+  ga:=nil;
 
   vt := getvartype;
   if vt = vtBinary then //binary
@@ -2329,10 +2335,6 @@ begin
   else
   if vt = vtAll then //all
   begin
-    l := 0;
-    startbit := 0;
-
-    extra:=0;
     address:=foundlist.GetAddress(line, extra, Value);
 
     if extra >= $1000 then
@@ -2817,11 +2819,14 @@ var address: ptruint;
   found: boolean;
   c: TStructColumn;
 begin
+
   if frmStructures2.count>0 then
   begin
     if addresslist.Focused and (addresslist.selectedRecord<>nil) and (addresslist.selectedRecord.isGroupHeader=false) and (addresslist.selectedRecord.VarType<>vtAutoAssembler) then
     begin
       //add this address if it's not yet in the list
+      found:=false;
+
       address:=addresslist.selectedRecord.GetRealAddress;
       f:=TfrmStructures2(frmStructures2[0]);
       for i:=0 to f.columnCount-1 do
@@ -6357,7 +6362,9 @@ begin
 
   //updatwe the display override
   if memscan<>nil then
-    bytesize:=memscan.Getbinarysize div 8;
+    bytesize:=memscan.Getbinarysize div 8
+  else
+    bytesize:=1; //should never happen
 
   MenuItem19.visible:=(foundlist3.Items.Count>0) and (memscan<>nil);
 
@@ -7425,12 +7432,15 @@ begin
 
     if ((addresslist.Count > 0) or (advancedoptions.numberofcodes > 0) or (DissectedStructs.count>0) ) and
       (Extension <> '.EXE') then
+    begin
       app := messagedlg(rsDoYouWishToMergeTheCurrentTableWithThisTable,
         mtConfirmation, mbYesNoCancel, 0);
-    case app of
-      mrCancel: exit;
-      mrYes: merge := True;
-      mrNo: merge := False;
+      case app of
+        mrCancel: exit;
+        mrYes: merge := True;
+        mrNo: merge := False;
+      end;
+
     end;
 
     LoadTable(Opendialog1.filename, merge);
@@ -8059,6 +8069,7 @@ var
   vt: TVariableType;
   customtype: TCustomType;
 begin
+  customtype:=nil;
   if foundlist3.Selected<>nil then
   begin
     foundlist.GetAddress(foundlist3.Selected.Index, extra, Value);
@@ -9002,9 +9013,6 @@ end;
 
 function TMainForm.getVarType: TVariableType;
 begin
-  if vartype.itemindex>=11 then
-    result:=vtCustom
-  else
   case VarType.ItemIndex of
     0: result:=vtBinary; //binary
     1: result:=vtByte; //byte
@@ -9017,6 +9025,8 @@ begin
     8: result:=vtByteArray; //array of byte
     9: result:=vtAll; //all, only for new memscan
     10: result:=vtGrouped; //grouped, only for memscan
+    else
+      result:=vtCustom;
   end;
 end;
 

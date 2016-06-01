@@ -194,11 +194,9 @@ begin
   begin
 
     a:=address;
+    i:=qword(-1);
     if faddresslistonly then
-    begin
       i:=addresslist.FindClosestAddress(address-fvarsize+1); //all following accesses will be sequential
-
-    end;
 
 
     toread:=bufsize;

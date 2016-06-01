@@ -188,7 +188,9 @@ end;
 function TDisassemblerview.getOnDblClick: TNotifyEvent;
 begin
   if discanvas<>nil then
-    result:=disCanvas.OnDblClick;
+    result:=disCanvas.OnDblClick
+  else
+    result:=nil;
 end;
 
 procedure TDisassemblerview.setOnDblClick(x: TNotifyEvent);
@@ -200,7 +202,9 @@ end;
 function TDisassemblerview.getheaderWidth(headerid: integer): integer;
 begin
   if header<>nil then
-    result:=header.Sections[headerid].width;
+    result:=header.Sections[headerid].width
+  else
+    result:=0;
 end;
 
 procedure TDisassemblerview.setheaderWidth(headerid: integer; size: integer);
@@ -475,6 +479,7 @@ begin
   if (y<0) or (y>discanvas.Height) then exit; //moved out of range
 
   //find the selected line
+  line:=nil;
   found:=false;
   for i:=0 to fTotalvisibledisassemblerlines-1 do
   begin
@@ -486,7 +491,8 @@ begin
       break;
     end;
   end;
-  if not found then exit; //not found, which is weird, but whatever...
+  if (line=nil) or (not found) then exit; //not found, which is weird, but whatever...
+
 
 
   if line.address<>fSelectedAddress then
@@ -526,6 +532,8 @@ var
   jumplineoffset: integer;
 begin
   jumplineoffset:=4;
+
+  found:=false;
 
   for i:=0 to fTotalvisibledisassemblerlines-1 do
   begin

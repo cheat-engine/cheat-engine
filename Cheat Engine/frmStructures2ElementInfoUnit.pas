@@ -259,6 +259,7 @@ end;
 
 function TfrmStructures2ElementInfo.getCustomType: TCustomType;
 begin
+  result:=nil;
   if (cbType.ItemIndex<>-1) then
     result:=TCustomType(cbType.Items.Objects[cbType.ItemIndex]); //returns nil or the custom type
 end;

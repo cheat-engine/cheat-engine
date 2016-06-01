@@ -1456,6 +1456,7 @@ begin
 
 
   setlength(bplist, 0);
+  usedDebugRegister:=-1;
   if method=bpmDebugRegister then
   begin
     GetBreakpointList(address, size, bplist);
@@ -1602,6 +1603,7 @@ begin
 
 
   method:=preferedBreakpointMethod;
+  usedDebugRegister:=-1;
   if method=bpmDebugRegister then
   begin
     usedDebugRegister := GetUsableDebugRegister(bptExecute);
@@ -1700,11 +1702,13 @@ var
   s: string;
   tempaddress: ptruint;
 begin
+  result:=nil;
   if foundCodeDialog<>nil then  //this is linked to a foundcode dialog
     method:=bpmInt3
   else
     method:=preferedBreakpointMethod;
 
+  usedDebugRegister:=-1;
   if method=bpmDebugRegister then
   begin
     usedDebugRegister := GetUsableDebugRegister(bptExecute);

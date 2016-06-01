@@ -833,7 +833,7 @@ begin
                 aobscanmodules[m].maxaddress:=$7fffffff;
             end;
 
-            aobscanmodules[m].maxaddress:=$ffffffffffffffff;
+            aobscanmodules[m].maxaddress:=qword($ffffffffffffffff);
             setlength(aobscanmodules[m].entries,0); //shouldn't be needed, but do it anyhow
           end;
 

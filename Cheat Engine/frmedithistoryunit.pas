@@ -237,10 +237,10 @@ begin
 
   for i:=0 to lvwritelog.items.count-1 do
   begin
-    if integer(lvWriteLog.Items[i].data) in selectedids then
+    if uintptr(lvWriteLog.Items[i].data) in selectedids then
       lvWriteLog.Items[i].selected:=true;
 
-    if (mainselectedid<>-1) and (integer(lvWriteLog.Items[i].data)=mainselectedid) then
+    if (mainselectedid<>-1) and (uintptr(lvWriteLog.Items[i].data)=mainselectedid) then
       lvWriteLog.ItemIndex:=i;
   end;
 

@@ -224,6 +224,7 @@ function customform_dragNow(L: Plua_State): integer; cdecl;
 var
   f: TCustomForm;
 begin
+  result:=0;
   f:=luaclass_getClassObject(L);
   ReleaseCapture;
   SendMessageA(f.Handle,WM_SYSCOMMAND,$F012,0);

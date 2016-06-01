@@ -177,13 +177,12 @@ end;
 
 function memscan_setreturnOnlyOneResult(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   memscan: Tmemscan;
 begin
   result:=0;
   memscan:=luaclass_getClassObject(L);
-  if parameters>=1 then
-    memscan.OnlyOne:=lua_toboolean(L,-1);
+  if lua_gettop(L)>=1 then
+    memscan.OnlyOne:=lua_toboolean(L,1);
 end;
 
 function memscan_getOnlyResult(L: Plua_State): integer; cdecl;

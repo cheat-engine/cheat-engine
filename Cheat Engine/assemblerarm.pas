@@ -432,12 +432,12 @@ end;
 
 function CMPParser(address: int32; instruction:string):int32;
 begin
-  result:=$ffffffff;
+  result:=int32($ffffffff);
 end;
 
 function CDPPArser(address: int32; instruction:string): int32;
 begin
-
+  result:=0; //NYI
 end;
 
 

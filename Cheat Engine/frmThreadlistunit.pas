@@ -494,6 +494,8 @@ begin
         x:=GetThreadContext(th, c);
       end;
 
+
+
       if x then
       begin
         case regnr of
@@ -524,6 +526,8 @@ begin
           21: regaddress:=@c.r14;
           22: regaddress:=@c.r15;
           {$endif}
+          else
+            regaddress:=@v; //in case of bugs
         end;
 
         if processhandler.is64Bit then

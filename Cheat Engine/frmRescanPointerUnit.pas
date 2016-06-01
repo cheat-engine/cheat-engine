@@ -448,6 +448,7 @@ var e: Tedit;
   i: integer;
   nextstart: integer;
 begin
+  e:=nil;
   if cbMustStartWithSpecificOffsets.Checked then
   begin
     nextstart:=cbMustStartWithSpecificOffsets.top+cbMustStartWithSpecificOffsets.height+3;

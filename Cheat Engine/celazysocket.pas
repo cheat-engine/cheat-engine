@@ -98,7 +98,9 @@ begin
   begin
     result:=send(s, writer.memory, writer.position, ftimeout);
     writer.position:=0;
-  end;
+  end
+  else
+    result:=0;
 end;
 
 destructor TSocketStream.destroy;
@@ -123,7 +125,7 @@ begin
 
   {$ifdef windows}
     bm:=1;
-    ioctlsocket(sockethandle, FIONBIO, bm);
+    ioctlsocket(sockethandle, longint(FIONBIO), bm);
   {$else}
     fcntl(fSocket, F_SETFL, fcntl(socketfd, F_GETFL, 0) | O_NONBLOCK);
   {$endif}

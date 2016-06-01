@@ -865,6 +865,8 @@ begin
   flushcs:=TCriticalSection.Create;
 
   setlength(x, 0);
+  ne:=nil;
+
   loadformposition(self,x);
   if length(x)>=3*6 then
   begin

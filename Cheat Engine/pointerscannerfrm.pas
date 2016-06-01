@@ -1936,6 +1936,8 @@ begin
       4: scannerpriority:=tpHigher;
       5: scannerpriority:=tpHighest;
       6: scannerpriority:=tpTimeCritical;
+      else
+        scannerpriority:=tpNormal;
     end;
 
     staticscanner.changeWorkerPriority(scannerpriority);
@@ -2443,6 +2445,8 @@ begin
     vtDword: result:=pdword(p)^=valuescandword;
     vtSingle: result:=(psingle(p)^>=valuescansingle) and (psingle(p)^<=valuescansinglemax);
     vtDouble: result:=(pdouble(p)^>=valuescandouble) and (pdouble(p)^<=valuescandoublemax);
+    else
+      result:=false;
   end;
 end;
 

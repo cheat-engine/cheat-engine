@@ -211,6 +211,8 @@ begin
     8: result:=selecteddifferentText;
     9: result:=selectedgroupequaltext;
     10: result:=selectedgroupDifferentText;
+    else
+      result:=defaulttext;
   end;
 end;
 

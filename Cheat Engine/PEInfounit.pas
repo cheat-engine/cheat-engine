@@ -262,20 +262,13 @@ function peinfo_getheadersize(header: pointer): dword;
 var
     ImageNTHeader: PImageNtHeaders;
 begin
-  if PImageDosHeader(header)^.e_magic<>IMAGE_DOS_SIGNATURE then
-  begin
-    result:=0;
-    exit;
-  end;
+  result:=0;
+  if PImageDosHeader(header)^.e_magic<>IMAGE_DOS_SIGNATURE then exit;
 
   ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
   if ptrUint(ImageNTHeader)-ptrUint(header)>$1000 then exit;
-  
-  if ImageNTHeader.Signature<>IMAGE_NT_SIGNATURE then
-  begin
-    result:=0;
-    exit;
-  end;
+  if ImageNTHeader.Signature<>IMAGE_NT_SIGNATURE then exit;
+
   result:=ImageNTHeader.OptionalHeader.SizeOfHeaders;
 end;
 

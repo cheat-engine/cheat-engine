@@ -38,7 +38,9 @@ begin
         s:=TStream(o)
       else
       if o is TLuafile then
-        s:=TLuafile(o).stream;
+        s:=TLuafile(o).stream
+      else
+        exit;
 
       xmplayer.playXM(s, noloop)
     end

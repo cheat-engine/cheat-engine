@@ -92,6 +92,7 @@ begin
   end
   else
   begin
+    cpbuf:=nil;
     assignfile(f,filename);
     rewrite(f);
   end;

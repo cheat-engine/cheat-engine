@@ -102,6 +102,7 @@ resourcestring
 
 function THotkeyform.getHotkeyAction: TMemrecHotkeyAction;
 begin
+  result:=mrhToggleActivation;
   if fmemrec.vartype=vtAutoAssembler then
   begin
     case cbFreezedirection.ItemIndex of

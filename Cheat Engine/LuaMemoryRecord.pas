@@ -422,6 +422,7 @@ function memoryrecord_delete(L: PLua_State): integer; cdecl;
 var
   memoryrecord: Tmemoryrecord;
 begin
+  result:=0;
   memoryrecord:=luaclass_getClassObject(L);
   memoryrecord.free;
 end;

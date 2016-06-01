@@ -1981,18 +1981,22 @@ begin
 
 
     baseaddress:=symhandler.getAddressFromName(edtBase.text);
+    baseaddress2:=0;
 
+    shadow:=0;
+    shadowsize:=0;
+    shadow2:=0;
+    shadowsize2:=0;
+
+    pointerstart:=0;
+    pointerstop:=0;
+    alignsize:=4;
 
 
     if cbHasShadow.checked then
     begin
       shadow:=symhandler.getAddressFromName(edtShadowAddress.text);
       shadowsize:=strtoint(edtShadowSize.text);
-    end
-    else
-    begin
-      shadow:=0;
-      shadowsize:=0;
     end;
 
     if ((shadow<>0) and (not isreadable(shadow))) or
@@ -2009,13 +2013,8 @@ begin
       baseaddress2:=symhandler.getAddressFromName(edtExtra.text);
       if cbHasShadow2.checked then
       begin
-        shadow:=symhandler.getAddressFromName(edtShadowAddress2.text);
-        shadowsize:=strtoint(edtShadowSize2.text);
-      end
-      else
-      begin
-        shadow2:=0;
-        shadowsize2:=0;
+        shadow2:=symhandler.getAddressFromName(edtShadowAddress2.text);
+        shadowsize2:=strtoint(edtShadowSize2.text);
       end;
 
 

@@ -1620,6 +1620,8 @@ begin
     vtDword: result:=pdword(p)^=valuescandword;
     vtSingle: result:=(psingle(p)^>=valuescansingle) and (psingle(p)^<=valuescansinglemax);
     vtDouble: result:=(pdouble(p)^>=valuescandouble) and (pdouble(p)^<=valuescandoublemax);
+    else
+       result:=false;
   end;
 end;
 
@@ -2256,7 +2258,7 @@ begin
 
 
 
-  if s=SOCKET_ERROR then
+  if s=tsocket(SOCKET_ERROR) then
   begin
     OutputDebugString('s==INVALID_SOCKET');
     OutputDebugString('lasterror='+inttostr(socketerror));
@@ -2267,7 +2269,7 @@ begin
 
 {$ifdef windows}
   nonblockingmode:=1;
-  ioctlsocket(s, FIONBIO, nonblockingmode);
+  ioctlsocket(s, longint(FIONBIO), nonblockingmode);
 {$else}
   fcntl(fSocket, F_SETFL, fcntl(socketfd, F_GETFL, 0) | O_NONBLOCK);
 {$endif}
@@ -2824,7 +2826,7 @@ begin
   if (currentscanhasended and savestate) or child.trusted or child.terminating then
   begin
 
-    if count<0 then raise exception.create(rsPSCTheChildTriedToSendANegativeAmount);
+    if integer(count)<0 then raise exception.create(rsPSCTheChildTriedToSendANegativeAmount);
     if count>65536 then raise exception.create(rsPSCTheChildTriedToSendMorePathsAtOnceThanAllowed);  //actually 1000 but let's allow some customization
 
 
@@ -4751,7 +4753,7 @@ begin
   //mark the socket as non blocking
 {$ifdef windows}
   bm:=0;
-  ioctlsocket(sockethandle, FIONBIO, bm);
+  ioctlsocket(sockethandle, longint(FIONBIO), bm);
 {$else}
   fcntl(fSocket, F_SETFL, fcntl(socketfd, F_GETFL, 0) | O_NONBLOCK);
 {$endif}
@@ -5280,10 +5282,10 @@ begin
     sockethandle:=-1;
   end; }
 
-  if listensocket<>-1 then
+  if listensocket<>THandle(-1) then
   begin
     closesocket(listensocket);
-    listensocket:=-1;
+    listensocket:=THandle(-1);
   end;
 
   if instantrescan then

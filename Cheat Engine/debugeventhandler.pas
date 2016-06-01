@@ -351,12 +351,13 @@ end;
 
 function TDebugThreadHandler.EnableOriginalBreakpointAfterThisBreakpointForThisThread(bp: Pbreakpoint; OriginalBreakpoint: PBreakpoint): boolean;
 begin
+  result:=true;
   TDebuggerthread(debuggerthread).execlocation:=40;
   debuggercs.enter;
   if bp.active then
   begin
     dec(OriginalBreakpoint.referencecount);
-    TdebuggerThread(debuggerthread).SetBreakpoint(Originalbreakpoint, self);
+    result:=TdebuggerThread(debuggerthread).SetBreakpoint(Originalbreakpoint, self);
   end;
   debuggercs.leave;
 end;

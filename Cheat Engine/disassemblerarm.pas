@@ -996,6 +996,8 @@ var opcode: dword;
 
   a32: dword;
 begin
+  opcode:=pdword(LastDisassembleData.Bytes[0])^;
+
   if LastDisassembleData.Disassembler=dcThumb then
     a:=(opcode shr 28) and 1
   else
@@ -1006,6 +1008,7 @@ begin
   d:=(opcode shr 16) and 1;
 
   cmode:=(opcode shr 8) and $f;
+  Q:=(opcode shr 6) and 1;
   op:=(opcode shr 5) and 1;
 
   e:=(opcode shr 3) and 1;
@@ -1018,6 +1021,7 @@ begin
 
   abcdefgh:=(a shl 7) or (b shl 6) or (c shl 5) or (d shl 4) or (e shl 3) or (f shl 2) or (g shl 1) or h;
 
+  constant:=0;
   case cmode of
     0:
     begin
@@ -1150,6 +1154,7 @@ var opcode: dword;
   _dt1,_dt2: string;
 begin
   opcode:=pdword(LastDisassembleData.Bytes[0])^;
+  imm:=0;
 
   if LastDisassembleData.Disassembler=dcThumb then
     u:=(opcode shr 28) and 1
@@ -1179,6 +1184,7 @@ begin
   _type:='';
 
   //size:
+  size:=8;
   if (limm3 and 1)=1 then size:=8 else
   if (limm3 and 2)=2 then size:=16 else
   if (limm3 and 4)=4 then size:=32 else
@@ -1848,6 +1854,8 @@ begin
   Vm:=(M shl 4) or Vm;
   Vd:=(D shl 4) or Vd;
 
+  size:=0;
+  index:=0;
   if (imm4 and 1)=1 then
   begin
     size:=8;

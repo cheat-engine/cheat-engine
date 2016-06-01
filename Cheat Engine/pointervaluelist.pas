@@ -523,6 +523,7 @@ The pointer was not found exactly, but we are in an addresslist that has been al
 var i: integer;
 begin
   //first try the top
+  result:=nil;
 
   for i:=entrynr+1 to $F do
   begin

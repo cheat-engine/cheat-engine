@@ -257,6 +257,7 @@ function getGenericHotkeyKeyItem(generichotkey: TGenericHotkey): PHotkeyItem;
 //pre: ONLY call this when the CSKeys critical section has been acquired
 var i: integer;
 begin
+  result:=nil;
   for i:=0 to length(hotkeythread.hotkeylist)-1 do
   begin
     if hotkeythread.hotkeylist[i].genericHotkey=genericHotkey then
