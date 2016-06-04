@@ -74,6 +74,7 @@ type
     cbParseData: TRadioButton;
     cbPreemptiveFlush: TCheckBox;
     cbfilterOutNewEntries: TCheckBox;
+    cbFilterFuturePaths: TCheckBox;
     Edit1: TEdit;
     edtBufSize: TEdit;
     edtFilename: TEdit;
@@ -562,6 +563,8 @@ end;
 procedure TfrmUltimap.btnExecutedClick(Sender: TObject);
 begin
   ApplyFilter(0);
+  if cbFilterFuturePaths.checked then
+    cbfilterOutNewEntries.checked:=true;
 end;
 
 procedure TfrmUltimap.btnNotExecutedClick(Sender: TObject);
