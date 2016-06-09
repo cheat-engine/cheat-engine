@@ -202,12 +202,50 @@ var
   XInputGetState: function(dwUserIndex: dword; out pState: XINPUT_STATE): DWORD; stdcall;
   XInputSetState: function(dwUserIndex: dword; pVibration: PXINPUT_VIBRATION): DWORD; stdcall;
   XInputGetCapabilities: function(dwUserIndex: dword; dwFlags: dword; pCapabilities: PXINPUT_CAPABILITIES): DWORD; stdcall;
+  XInputGetKeystroke: function(dwUserIndex: dword; reserved: dword; pKeyStroke: PXINPUT_KEYSTROKE): DWORD; stdcall;
 
 implementation
+
+uses forms;
+
+type TXBoxKeyDownThread=class(TThread)
+private
+public
+  procedure execute; override;
+end;
 
 var
   xih: thandle;
 
+  xt: TXBoxKeyDownThread;
+
+
+procedure TXBoxKeyDownThread.execute;
+var
+  ks: XINPUT_KEYSTROKE;
+  i: dword;
+
+  h: THandle;
+begin
+  if not assigned(XInputGetKeystroke) then exit;
+
+  while not terminated do
+  begin
+    i:=XInputGetKeystroke(0,0,@ks);
+    if i=ERROR_SUCCESS then
+    begin
+      h:=screen.ActiveControl.Handle;
+
+      if (ks.Flags or XINPUT_KEYSTROKE_KEYDOWN)=XINPUT_KEYSTROKE_KEYDOWN then
+        SendMessage(h, WM_KEYDOWN, ks.VirtualKey, 0);
+
+      if (ks.Flags or XINPUT_KEYSTROKE_KEYUP)=XINPUT_KEYSTROKE_KEYUP then
+        SendMessage(h, WM_KEYUP, ks.VirtualKey, 0);
+
+    end;
+    sleep(50);
+  end;
+end;
 
 function loadxinputmodule: THandle;
 begin
@@ -240,6 +278,12 @@ begin
     XInputGetState:=GetProcAddress(xih, 'XInputGetState');
     XInputSetState:=GetProcAddress(xih, 'XInputSetState');
     XInputGetCapabilities:=GetProcAddress(xih, 'XInputGetCapabilities');
+    XInputGetKeystroke:=GetProcAddress(xih, 'XInputGetKeystroke');
+
+    if assigned(XInputGetKeystroke) and (xt=nil) then
+    begin
+      xt:=TXBoxKeyDownThread.create(false);
+    end;
   end;
 
   result:=xih<>0;
