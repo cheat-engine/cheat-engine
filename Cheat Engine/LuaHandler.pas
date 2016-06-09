@@ -951,13 +951,17 @@ begin
 end;
 
 procedure lua_setbasictableentry(L: Plua_State; tableindex: integer; entryname: string; data: Variant);
+var x: integer;
 begin
   lua_pushstring(L, entryname);
 
-  case vartype(data) and vartypemask of
+  x:=vartype(data) and vartypemask;
+  case x of
     varsmallint, varinteger, varint64, varqword, varlongword, varword, varbyte, varshortint: lua_pushinteger(L, data);
     varsingle, vardouble: lua_pushnumber(L, data);
     varboolean: lua_pushboolean(L, data);
+    varstring,varustring,varolestr: lua_pushstring(L, data);
+
   end;
 
   lua_settable(L, tableindex);
@@ -6680,6 +6684,50 @@ begin
   lua_pushinteger(L, GetForegroundWindow());
 end;
 
+function getXBox360ControllerKeyPress(L:PLua_state): integer; cdecl;
+var
+  i: integer;
+  index: integer;
+  ks: XINPUT_KEYSTROKE;
+  state: XINPUT_STATE;
+begin
+  result:=0;
+  index:=-1;
+  if InitXinput=false then exit;
+  if not assigned(XInputGetKeystroke) then exit;
+
+  if lua_gettop(L)>=1 then
+  begin
+    index:=lua_tointeger(L, 1);
+    if XInputGetKeystroke(index, 0, @ks)<>0 then exit;
+  end
+  else
+  begin
+    for i:=0 to XUSER_MAX_COUNT-1 do
+    begin
+      if (XInputGetState(i, state)=0) and (XInputGetKeystroke(i, 0, @ks)=0) then //found a controller  (usually 0)
+      begin
+        index:=i;
+        break;
+      end;
+    end;
+  end;
+
+  if index<>-1 then
+  begin
+    lua_newtable(L);
+    i:=lua_gettop(L);
+
+    lua_setbasictableentry(L, i, 'VirtualKey', ks.VirtualKey);
+    lua_setbasictableentry(L, i, 'Unicode', ks.Unicode);
+    lua_setbasictableentry(L, i, 'Flags', ks.Flags);
+    lua_setbasictableentry(L, i, 'UserIndex', ks.UserIndex);
+    lua_setbasictableentry(L, i, 'HidCode', ks.HidCode);
+    result:=1;
+  end;
+
+end;
+
 function getXBox360ControllerState(L:PLua_state): integer; cdecl;
 var
   index: integer;
@@ -7351,6 +7399,8 @@ begin
     lua_register(LuaVM, 'getWindowClassName', lua_getWindowClassName);
     lua_register(LuaVM, 'getForegroundWindow', lua_getForegroundWindow);
 
+
+    lua_register(LuaVM, 'getXBox360ControllerKeyPress', getXBox360ControllerKeyPress);
     lua_register(LuaVM, 'getXBox360ControllerState', getXBox360ControllerState);
     lua_register(LuaVM, 'setXBox360ControllerVibration', setXBox360ControllerVibration);
 

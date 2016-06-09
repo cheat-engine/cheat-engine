@@ -282,7 +282,7 @@ begin
 
     if assigned(XInputGetKeystroke) and (xt=nil) then
     begin
-      xt:=TXBoxKeyDownThread.create(false);
+     // xt:=TXBoxKeyDownThread.create(false);
     end;
   end;
 
