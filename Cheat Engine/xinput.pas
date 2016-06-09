@@ -197,7 +197,7 @@ uses windows,classes;
     PXINPUT_KEYSTROKE = ^_XINPUT_KEYSTROKE;
 
 function InitXinput: boolean;
-function XInputMessages(state: boolean);
+procedure XInputMessages(state: boolean);
 
 var
   XInputGetState: function(dwUserIndex: dword; out pState: XINPUT_STATE): DWORD; stdcall;
@@ -248,7 +248,7 @@ begin
   end;
 end;
 
-function XInputMessages(state: boolean);
+procedure XInputMessages(state: boolean);
 begin
   InitXinput;
   if state then
