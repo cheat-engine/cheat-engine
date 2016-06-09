@@ -577,14 +577,14 @@ begin
         VK_PAD_LTHUMB_UPRIGHT : newstr:='[Left: Up Right]';
         VK_PAD_LTHUMB_DOWNRIGHT : newstr:='[Left: Down Right]';
         VK_PAD_LTHUMB_DOWNLEFT : newstr:='[Left: Down Left]';
-        VK_PAD_RTHUMB_UP : newstr:='[Left: Up]';
-        VK_PAD_RTHUMB_DOWN : newstr:='[Left: Down]';
-        VK_PAD_RTHUMB_RIGHT : newstr:='[Left: Right]';
-        VK_PAD_RTHUMB_LEFT : newstr:='[Left: Left]';
-        VK_PAD_RTHUMB_UPLEFT : newstr:='[Left: Up Left]';
-        VK_PAD_RTHUMB_UPRIGHT : newstr:='[Left: Up Right]';
-        VK_PAD_RTHUMB_DOWNRIGHT : newstr:='[Left: Down Right]';
-        VK_PAD_RTHUMB_DOWNLEFT : newstr:='[Left: Down Left]';
+        VK_PAD_RTHUMB_UP : newstr:='[Right: Up]';
+        VK_PAD_RTHUMB_DOWN : newstr:='[Right: Down]';
+        VK_PAD_RTHUMB_RIGHT : newstr:='[Right: Right]';
+        VK_PAD_RTHUMB_LEFT : newstr:='[Right: Left]';
+        VK_PAD_RTHUMB_UPLEFT : newstr:='[Right: Up Left]';
+        VK_PAD_RTHUMB_UPRIGHT : newstr:='[Right: Up Right]';
+        VK_PAD_RTHUMB_DOWNRIGHT : newstr:='[Right: Down Right]';
+        VK_PAD_RTHUMB_DOWNLEFT : newstr:='[Right: Down Left]';
 
         48..57      : newstr:=chr(x[i]);
         65..90      : newstr:=chr(x[i]);
