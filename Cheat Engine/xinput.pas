@@ -197,12 +197,14 @@ uses windows,classes;
     PXINPUT_KEYSTROKE = ^_XINPUT_KEYSTROKE;
 
 function InitXinput: boolean;
+function XInputMessages(state: boolean);
 
 var
   XInputGetState: function(dwUserIndex: dword; out pState: XINPUT_STATE): DWORD; stdcall;
   XInputSetState: function(dwUserIndex: dword; pVibration: PXINPUT_VIBRATION): DWORD; stdcall;
   XInputGetCapabilities: function(dwUserIndex: dword; dwFlags: dword; pCapabilities: PXINPUT_CAPABILITIES): DWORD; stdcall;
   XInputGetKeystroke: function(dwUserIndex: dword; reserved: dword; pKeyStroke: PXINPUT_KEYSTROKE): DWORD; stdcall;
+
 
 implementation
 
@@ -218,7 +220,6 @@ var
   xih: thandle;
 
   xt: TXBoxKeyDownThread;
-
 
 procedure TXBoxKeyDownThread.execute;
 var
@@ -244,6 +245,24 @@ begin
 
     end;
     sleep(50);
+  end;
+end;
+
+function XInputMessages(state: boolean);
+begin
+  InitXinput;
+  if state then
+  begin
+    if assigned(XInputGetKeystroke) and (xt=nil) then
+      xt:=TXBoxKeyDownThread.create(false);
+  end
+  else
+  begin
+    if xt<>nil then
+    begin
+      xt.Terminate;
+      xt.Free;
+    end;
   end;
 end;
 
@@ -280,10 +299,6 @@ begin
     XInputGetCapabilities:=GetProcAddress(xih, 'XInputGetCapabilities');
     XInputGetKeystroke:=GetProcAddress(xih, 'XInputGetKeystroke');
 
-    if assigned(XInputGetKeystroke) and (xt=nil) then
-    begin
-     // xt:=TXBoxKeyDownThread.create(false);
-    end;
   end;
 
   result:=xih<>0;
