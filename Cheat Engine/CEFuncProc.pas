@@ -324,7 +324,7 @@ implementation
 uses disassembler,CEDebugger,debughelper, symbolhandler,frmProcessWatcherUnit,
      kerneldebugger, formsettingsunit, MemoryBrowserFormUnit, savedscanhandler,
      networkInterface, networkInterfaceApi, vartypestrings, processlist, Parsers,
-     Globals;
+     Globals, xinput;
 
 
 resourcestring
@@ -553,7 +553,38 @@ begin
         VK_OEM_6 : newstr:=']';
         VK_OEM_7 : newstr:='''';
 
-
+        VK_PAD_A : newstr:='[A]';
+        VK_PAD_B : newstr:='[B]';
+        VK_PAD_X : newstr:='[X]';
+        VK_PAD_Y : newstr:='[Y]';
+        VK_PAD_RSHOULDER : newstr:='[Right Shoulder]';
+        VK_PAD_LSHOULDER : newstr:='[Left Shoulder]';
+        VK_PAD_LTRIGGER : newstr:='[Left Trigger]';
+        VK_PAD_RTRIGGER : newstr:='[Right Trigger]';
+        VK_PAD_DPAD_UP : newstr:='[Up]';
+        VK_PAD_DPAD_DOWN : newstr:='[Down]';
+        VK_PAD_DPAD_LEFT : newstr:='[Left]';
+        VK_PAD_DPAD_RIGHT : newstr:='[Right]';
+        VK_PAD_START : newstr:='[Start]';
+        VK_PAD_BACK : newstr:='[Back]';
+        VK_PAD_LTHUMB_PRESS : newstr:='[Left Thumbstick]';
+        VK_PAD_RTHUMB_PRESS : newstr:='[Right Thumbstick]';
+        VK_PAD_LTHUMB_UP : newstr:='[Left: Up]';
+        VK_PAD_LTHUMB_DOWN : newstr:='[Left: Down]';
+        VK_PAD_LTHUMB_RIGHT : newstr:='[Left: Right]';
+        VK_PAD_LTHUMB_LEFT : newstr:='[Left: Left]';
+        VK_PAD_LTHUMB_UPLEFT : newstr:='[Left: Up Left]';
+        VK_PAD_LTHUMB_UPRIGHT : newstr:='[Left: Up Right]';
+        VK_PAD_LTHUMB_DOWNRIGHT : newstr:='[Left: Down Right]';
+        VK_PAD_LTHUMB_DOWNLEFT : newstr:='[Left: Down Left]';
+        VK_PAD_RTHUMB_UP : newstr:='[Left: Up]';
+        VK_PAD_RTHUMB_DOWN : newstr:='[Left: Down]';
+        VK_PAD_RTHUMB_RIGHT : newstr:='[Left: Right]';
+        VK_PAD_RTHUMB_LEFT : newstr:='[Left: Left]';
+        VK_PAD_RTHUMB_UPLEFT : newstr:='[Left: Up Left]';
+        VK_PAD_RTHUMB_UPRIGHT : newstr:='[Left: Up Right]';
+        VK_PAD_RTHUMB_DOWNRIGHT : newstr:='[Left: Down Right]';
+        VK_PAD_RTHUMB_DOWNLEFT : newstr:='[Left: Down Left]';
 
         48..57      : newstr:=chr(x[i]);
         65..90      : newstr:=chr(x[i]);

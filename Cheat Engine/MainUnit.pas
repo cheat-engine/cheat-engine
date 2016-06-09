@@ -891,7 +891,7 @@ uses mainunit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup, HotKeys,
   frmSetCrosshairUnit, StructuresFrm2, frmMemoryViewExUnit,
   frmD3DHookSnapshotConfigUnit, frmSaveSnapshotsUnit, frmsnapshothandlerUnit,
   frmNetworkDataCompressionUnit, ProcessHandlerUnit, ProcessList, pointeraddresslist,
-  PointerscanresultReader, Parsers, Globals, GnuAssembler;
+  PointerscanresultReader, Parsers, Globals, GnuAssembler, xinput;
 
 resourcestring
   rsInvalidStartAddress = 'Invalid start address: %s';
@@ -5174,6 +5174,7 @@ begin
   LoadCustomTypesFromRegistry;
 
 
+  XInputMessages(true);
 end;
 
 procedure TMainForm.ChangedHandle(Sender: TObject);

@@ -59,21 +59,79 @@ var hotkeythread: THotkeythread;
 
 implementation
 
-uses MemoryRecordUnit;
+uses MemoryRecordUnit, xinput;
 
 type tkeystate=(ks_undefined=0, ks_pressed=1, ks_notpressed=2);
 
-var keystate: array [0..255] of tkeystate;  //0=undefined, 1=pressed, 2-not pressed
-
-
+var
+    keystate: array [0..255] of tkeystate;  //0=undefined, 1=pressed, 2-not pressed
+    ControllerState: XINPUT_STATE;
 
 function IsKeyPressed(key: integer):boolean;
-var ks: dword;
+var
+    ks: dword;
 begin
+  result:=false;
   if key>255 then //not inside the list... (doubt it's valid)
   begin
     //anyhow, check if it is currently pressed
-    result:=((word(getasynckeystate(key)) shr 15) and 1) = 1;
+
+    if (key>=VK_PAD_A) and (key<=VK_PAD_RTHUMB_DOWNLEFT) then
+    begin
+      //controller key
+      if InitXinput then
+      begin
+        if ControllerState.dwPacketNumber=0 then   //needs an update
+          if XInputGetState(0, ControllerState)<>0 then exit;
+
+        case key of
+          VK_PAD_A: exit((ControllerState.Gamepad.wButtons and XINPUT_GAMEPAD_A)>0);
+          VK_PAD_B: exit((ControllerState.Gamepad.wButtons and XINPUT_GAMEPAD_B)>0);
+          VK_PAD_X: exit((ControllerState.Gamepad.wButtons and XINPUT_GAMEPAD_X)>0);
+          VK_PAD_Y: exit((ControllerState.Gamepad.wButtons and XINPUT_GAMEPAD_Y)>0);
+
+          VK_PAD_RSHOULDER: exit((ControllerState.Gamepad.wButtons and XINPUT_GAMEPAD_RIGHT_SHOULDER)>0);
+          VK_PAD_LSHOULDER: exit((ControllerState.Gamepad.wButtons and XINPUT_GAMEPAD_LEFT_SHOULDER)>0);
+
+          VK_PAD_LTRIGGER: exit(ControllerState.Gamepad.bLeftTrigger>40);
+          VK_PAD_RTRIGGER: exit(ControllerState.Gamepad.bLeftTrigger>40);
+
+          VK_PAD_DPAD_UP: exit((ControllerState.Gamepad.wButtons and XINPUT_GAMEPAD_DPAD_UP)>0);
+          VK_PAD_DPAD_DOWN: exit((ControllerState.Gamepad.wButtons and XINPUT_GAMEPAD_DPAD_DOWN)>0);
+          VK_PAD_DPAD_LEFT: exit((ControllerState.Gamepad.wButtons and XINPUT_GAMEPAD_DPAD_LEFT)>0);
+          VK_PAD_DPAD_RIGHT: exit((ControllerState.Gamepad.wButtons and XINPUT_GAMEPAD_DPAD_RIGHT)>0);
+
+          VK_PAD_START: exit((ControllerState.Gamepad.wButtons and XINPUT_GAMEPAD_START)>0);
+          VK_PAD_BACK: exit((ControllerState.Gamepad.wButtons and XINPUT_GAMEPAD_BACK)>0);
+
+          VK_PAD_LTHUMB_PRESS: exit((ControllerState.Gamepad.wButtons and XINPUT_GAMEPAD_LEFT_THUMB)>0);
+          VK_PAD_RTHUMB_PRESS: exit((ControllerState.Gamepad.wButtons and XINPUT_GAMEPAD_RIGHT_THUMB)>0);
+
+          VK_PAD_LTHUMB_UP: exit(ControllerState.Gamepad.sThumbLY>20000);
+          VK_PAD_LTHUMB_DOWN: exit(ControllerState.Gamepad.sThumbLY<-20000);
+          VK_PAD_LTHUMB_RIGHT: exit(ControllerState.Gamepad.sThumbLX>20000);
+          VK_PAD_LTHUMB_LEFT: exit(ControllerState.Gamepad.sThumbLX<-20000);
+
+          VK_PAD_LTHUMB_UPLEFT: exit((ControllerState.Gamepad.sThumbLY>20000) and (ControllerState.Gamepad.sThumbLX<-20000));
+          VK_PAD_LTHUMB_UPRIGHT: exit((ControllerState.Gamepad.sThumbLY>20000) and (ControllerState.Gamepad.sThumbLX>20000));
+          VK_PAD_LTHUMB_DOWNRIGHT: exit((ControllerState.Gamepad.sThumbLY<-20000) and (ControllerState.Gamepad.sThumbLX>20000));
+          VK_PAD_LTHUMB_DOWNLEFT: exit((ControllerState.Gamepad.sThumbLY<-20000) and (ControllerState.Gamepad.sThumbLX<-20000));
+
+          VK_PAD_RTHUMB_UP: exit(ControllerState.Gamepad.sThumbRY>20000);
+          VK_PAD_RTHUMB_DOWN: exit(ControllerState.Gamepad.sThumbRY<-20000);
+          VK_PAD_RTHUMB_RIGHT: exit(ControllerState.Gamepad.sThumbRX>20000);
+          VK_PAD_RTHUMB_LEFT: exit(ControllerState.Gamepad.sThumbRX<-20000);
+
+          VK_PAD_RTHUMB_UPLEFT: exit((ControllerState.Gamepad.sThumbRY>20000) and (ControllerState.Gamepad.sThumbRX<-20000));
+          VK_PAD_RTHUMB_UPRIGHT: exit((ControllerState.Gamepad.sThumbRY>20000) and (ControllerState.Gamepad.sThumbRX>20000));
+          VK_PAD_RTHUMB_DOWNRIGHT: exit((ControllerState.Gamepad.sThumbRY<-20000) and (ControllerState.Gamepad.sThumbRX>20000));
+          VK_PAD_RTHUMB_DOWNLEFT: exit((ControllerState.Gamepad.sThumbRY<-20000) and (ControllerState.Gamepad.sThumbRX<-20000));
+
+        end;
+      end;
+    end
+    else
+      result:=((word(getasynckeystate(key)) shr 15) and 1) = 1;
     exit;
   end;
 
@@ -99,6 +157,8 @@ begin
   zeromemory(@keystate[0],256*sizeof(tkeystate));
   for i:=0 to 255 do
     getasynckeystate(i); //clears the last call flag
+
+  ControllerState.dwPacketNumber:=0;
 end;
 
 procedure hotkeyTargetWindowHandleChanged(oldhandle, newhandle: thandle);

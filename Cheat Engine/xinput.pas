@@ -8,7 +8,7 @@ unit xinput;
 
 interface
 
-uses windows,classes;
+uses windows,classes, Controls;
 
   {**************************************************************************
   *                                                                          *
@@ -226,6 +226,7 @@ var
   ks: XINPUT_KEYSTROKE;
   i: dword;
 
+  c: TWinControl;
   h: THandle;
 begin
   if not assigned(XInputGetKeystroke) then exit;
@@ -235,14 +236,17 @@ begin
     i:=XInputGetKeystroke(0,0,@ks);
     if i=ERROR_SUCCESS then
     begin
-      h:=screen.ActiveControl.Handle;
+      c:=screen.ActiveControl;
+      if c<>nil then
+      begin
+        h:=screen.ActiveControl.Handle;
 
-      if (ks.Flags or XINPUT_KEYSTROKE_KEYDOWN)=XINPUT_KEYSTROKE_KEYDOWN then
-        SendMessage(h, WM_KEYDOWN, ks.VirtualKey, 0);
+        if (ks.Flags or XINPUT_KEYSTROKE_KEYDOWN)=XINPUT_KEYSTROKE_KEYDOWN then
+          SendMessage(h, WM_KEYDOWN, ks.VirtualKey, 0);
 
-      if (ks.Flags or XINPUT_KEYSTROKE_KEYUP)=XINPUT_KEYSTROKE_KEYUP then
-        SendMessage(h, WM_KEYUP, ks.VirtualKey, 0);
-
+        if (ks.Flags or XINPUT_KEYSTROKE_KEYUP)=XINPUT_KEYSTROKE_KEYUP then
+          SendMessage(h, WM_KEYUP, ks.VirtualKey, 0);
+      end;
     end;
     sleep(50);
   end;
@@ -262,6 +266,7 @@ begin
     begin
       xt.Terminate;
       xt.Free;
+      xt:=nil;
     end;
   end;
 end;
@@ -298,7 +303,6 @@ begin
     XInputSetState:=GetProcAddress(xih, 'XInputSetState');
     XInputGetCapabilities:=GetProcAddress(xih, 'XInputGetCapabilities');
     XInputGetKeystroke:=GetProcAddress(xih, 'XInputGetKeystroke');
-
   end;
 
   result:=xih<>0;

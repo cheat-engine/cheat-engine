@@ -6691,6 +6691,8 @@ var
   ks: XINPUT_KEYSTROKE;
   state: XINPUT_STATE;
 begin
+  XInputMessages(false); //you don't want to use gui support for hotkeys, but handle it yourself
+
   result:=0;
   index:=-1;
   if InitXinput=false then exit;
