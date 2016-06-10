@@ -468,6 +468,8 @@ begin
         vk_lbutton: newstr:=rsLeftMB;
         vk_mbutton: newstr:=rsMiddleMB;
         vk_rbutton: newstr:=rsRightMB;
+        VK_XBUTTON1: newstr:='MB 4';
+        VK_XBUTTON2: newstr:='MB 5';
         VK_CANCEL: newstr:=rsBreak;
         VK_BACK	: newstr:=rsBackspace;
         VK_SHIFT: newstr:=rsShift;

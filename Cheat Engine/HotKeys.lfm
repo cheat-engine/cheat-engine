@@ -120,6 +120,7 @@ object HotKeyForm: THotKeyForm
           Width = 235
           BorderSpacing.Top = 2
           OnKeyDown = edtHotkeyKeyDown
+          OnMouseDown = edtHotkeyMouseDown
           ReadOnly = True
           TabOrder = 0
         end

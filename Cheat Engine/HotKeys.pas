@@ -54,6 +54,8 @@ type
     procedure cbPlaySoundChange(Sender: TObject);
     procedure edtHotkeyKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    procedure edtHotkeyMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -384,6 +386,21 @@ begin
   edtHotkey.Text:=ConvertKeyComboToString(keys);
 
   key:=0;
+end;
+
+procedure THotKeyForm.edtHotkeyMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+var key: word;
+begin
+  key:=0;
+  case button of
+    mbMiddle: key:=VK_MBUTTON;
+    mbExtra1: key:=VK_XBUTTON1;
+    mbExtra2: key:=VK_XBUTTON2;
+  end;
+
+  if key<>0 then
+    edtHotkeyKeyDown(edtHotkey, key, shift);
 end;
 
 procedure THotKeyForm.FormClose(Sender: TObject; var CloseAction: TCloseAction);
