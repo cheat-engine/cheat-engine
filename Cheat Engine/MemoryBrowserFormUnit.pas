@@ -4467,7 +4467,7 @@ begin
       GSlabel.Caption:=temp;
     end else GSlabel.Font.Color:=clWindowText;
 
-    temp:='CF '+IntToStr(GetBit(2,lastdebugcontext.EFLAgs));
+    temp:='CF '+IntToStr(GetBit(0,lastdebugcontext.EFLAgs));
     if temp<>cflabel.Caption then
     begin
       CFlabel.Font.Color:=clred;
