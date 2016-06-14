@@ -257,6 +257,7 @@ integerToUserData(int):  Converts a given integer to a userdata variable
 userDataToInteger(UserDataVar):  Converts a given userdata variable to an integer
 
 synchronize(function(...), ...): Calls the given function from the main thread. Returns the return value of the given function
+queue(function(...),...): calls the given function from the main thread. Does not wait for the result
 checkSynchronize(): Calls this from an infinite loop in the main thread when using threading and synchronize calls. This will execute any queued synchronize calls
 
 writeToClipboard(text):  Writes the given text to the clipboard

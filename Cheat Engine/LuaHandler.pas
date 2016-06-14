@@ -2414,6 +2414,48 @@ begin
   CheckSynchronize;
 end;
 
+function lua_queue(L: Plua_State): integer; cdecl;
+var lc: TLuaCaller;
+  f: integer;
+  routine: string;
+begin
+  result:=0;
+  lc:=nil;
+  if lua_isfunction(L,1) then
+  begin
+    lua_pushvalue(L, 1);
+    f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+    lc:=TLuaCaller.create;
+    lc.luaroutineIndex:=f;
+  end
+  else
+  if lua_isstring(L,1) then
+  begin
+    routine:=lua_tostring(L,1);
+    lc:=TLuaCaller.create;
+    lc.luaroutine:=routine;
+  end;
+
+  if lc<>nil then
+  begin
+    lc.syncvm:=l;
+    if lua_gettop(L)>=2 then
+    begin
+      lc.synchronizeparam:=2;
+      lc.synchronizeparamcount:=lua_gettop(l)-1;
+    end
+    else
+      lc.synchronizeparam:=0;
+
+    tthread.Queue(nil, lc.synchronize);
+
+    lc.free;
+
+    result:=1;
+  end;
+end;
+
 function lua_synchronize(L: Plua_State): integer; cdecl;
 var lc: TLuaCaller;
   f: integer;
@@ -4335,7 +4377,7 @@ begin
 
     if lua_isfunction(L,-1) then
     begin
-      routine:=Lua_ToString(L,-1);
+
       f:=luaL_ref(L,LUA_REGISTRYINDEX);
 
       lc:=TLuaCaller.create;
@@ -7351,6 +7393,7 @@ begin
 
     lua_register(LuaVM, 'inMainThread', inMainThread);
     lua_register(LuaVM, 'synchronize', lua_synchronize);
+    lua_register(LuaVM, 'queue', lua_queue);
     lua_register(LuaVM, 'checkSynchronize', lua_checkSynchronize);
 
     lua_register(LuaVM, 'playSound', lua_playSound);
