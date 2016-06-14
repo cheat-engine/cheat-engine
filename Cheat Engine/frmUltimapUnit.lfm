@@ -2,10 +2,10 @@ object frmUltimap: TfrmUltimap
   Left = 754
   Height = 451
   Top = 254
-  Width = 747
+  Width = 751
   Caption = 'Ultimap'
   ClientHeight = 451
-  ClientWidth = 747
+  ClientWidth = 751
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -15,11 +15,11 @@ object frmUltimap: TfrmUltimap
     Left = 0
     Height = 451
     Top = 0
-    Width = 747
+    Width = 751
     Align = alClient
     BevelOuter = bvNone
     ClientHeight = 451
-    ClientWidth = 747
+    ClientWidth = 751
     TabOrder = 0
     object Label4: TLabel
       Left = 322
@@ -33,18 +33,18 @@ object frmUltimap: TfrmUltimap
       Left = 0
       Height = 219
       Top = 232
-      Width = 747
+      Width = 751
       Align = alClient
       BevelOuter = bvNone
       Caption = 'Panel2'
       ClientHeight = 219
-      ClientWidth = 747
+      ClientWidth = 751
       TabOrder = 0
       object ListView1: TListView
         Left = 0
         Height = 156
         Top = 0
-        Width = 747
+        Width = 751
         Align = alClient
         Columns = <        
           item
@@ -59,6 +59,7 @@ object frmUltimap: TfrmUltimap
             Caption = 'Count'
           end>
         HideSelection = False
+        MultiSelect = True
         OwnerData = True
         PopupMenu = PopupMenu1
         ReadOnly = True
@@ -72,14 +73,14 @@ object frmUltimap: TfrmUltimap
         Left = 0
         Height = 63
         Top = 156
-        Width = 747
+        Width = 751
         Align = alBottom
         BevelOuter = bvNone
         ClientHeight = 63
-        ClientWidth = 747
+        ClientWidth = 751
         TabOrder = 1
         object Button5: TButton
-          Left = 294
+          Left = 296
           Height = 25
           Top = 3
           Width = 155
@@ -92,7 +93,7 @@ object frmUltimap: TfrmUltimap
           Left = 0
           Height = 30
           Top = 33
-          Width = 747
+          Width = 751
           Align = alBottom
           Caption = 'General tip: "Pause/Resume", "Code did not get executed" and "Code has been executed" can be rightclicked and assigned a hotkey for use inside games so you don''t have to alt tab out'
           ParentColor = False
@@ -104,11 +105,11 @@ object frmUltimap: TfrmUltimap
       Left = 0
       Height = 232
       Top = 0
-      Width = 747
+      Width = 751
       Align = alTop
       BevelOuter = bvNone
       ClientHeight = 232
-      ClientWidth = 747
+      ClientWidth = 751
       TabOrder = 1
       object btnExecuted: TButton
         Left = 344
@@ -134,10 +135,13 @@ object frmUltimap: TfrmUltimap
       object Button6: TButton
         Left = 672
         Height = 25
+        Hint = 'If you lost track of what happened, use this. It will set execution count back to 0 of all the branches it has found'
         Top = 0
         Width = 74
         Caption = 'Reset'
         OnClick = Button6Click
+        ParentShowHint = False
+        ShowHint = True
         TabOrder = 2
       end
       object btnNotCalled: TButton
@@ -329,8 +333,8 @@ object frmUltimap: TfrmUltimap
         Height = 19
         Hint = 'When this checkbox is ticked all newly added code entry points will be marked as entries that do not match the filters'
         Top = 207
-        Width = 200
-        Caption = 'Mark all new entries as filtered out'
+        Width = 213
+        Caption = 'Mark all new branches as filtered out'
         OnChange = cbfilterOutNewEntriesChange
         ParentShowHint = False
         ShowHint = True
@@ -341,8 +345,8 @@ object frmUltimap: TfrmUltimap
         Height = 19
         Hint = 'When checked (default) will mark all subsequent paths after this as filtered out'
         Top = 48
-        Width = 113
-        Caption = 'Filter future paths'
+        Width = 132
+        Caption = 'Filter future branches'
         Checked = True
         ParentShowHint = False
         ShowHint = True
@@ -376,6 +380,10 @@ object frmUltimap: TfrmUltimap
     object MenuItem2: TMenuItem
       Caption = 'Flush buffers'
       OnClick = MenuItem2Click
+    end
+    object MenuItem1: TMenuItem
+      Caption = 'Add selection to code list'
+      OnClick = MenuItem1Click
     end
   end
   object Flusher: TTimer

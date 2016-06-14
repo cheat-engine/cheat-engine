@@ -87,6 +87,7 @@ type
     Label6: TLabel;
     lblLastfilterresult: TLabel;
     ListView1: TListView;
+    MenuItem1: TMenuItem;
     miSetHotkey: TMenuItem;
     MenuItem2: TMenuItem;
     miRemoveHotkey: TMenuItem;
@@ -120,6 +121,7 @@ type
     procedure Label7Click(Sender: TObject);
     procedure ListView1Data(Sender: TObject; Item: TListItem);
     procedure ListView1DblClick(Sender: TObject);
+    procedure MenuItem1Click(Sender: TObject);
     procedure miSetHotkeyClick(Sender: TObject);
     procedure MenuItem2Click(Sender: TObject);
     procedure miRemoveHotkeyClick(Sender: TObject);
@@ -173,7 +175,7 @@ implementation
 
 {$R *.lfm}
 
-uses MemoryBrowserFormUnit, vmxfunctions, ProcessHandlerUnit;
+uses MemoryBrowserFormUnit, vmxfunctions, ProcessHandlerUnit, AdvancedOptionsUnit;
 
 resourcestring
   rsRemoveHotkey = 'Remove hotkey (%s)';
@@ -896,6 +898,7 @@ begin
     end;
 
   end;
+
 end;
 
 procedure TfrmUltimap.FormDestroy(Sender: TObject);
@@ -954,6 +957,32 @@ begin
 
     if memorybrowser.visible=false then
       memorybrowser.show;
+  end;
+end;
+
+procedure TfrmUltimap.MenuItem1Click(Sender: TObject);
+var
+  i: integer;
+  p: tpoint;
+  a,a2: ptruint;
+  size: integer;
+begin
+  p:=PopupMenu1.PopupPoint;
+  for i:=0 to listview1.Items.count-1 do
+  begin
+    if listview1.Items[i].Selected then
+    begin
+      if p.x>listview1.Column[0].Width then
+        a:=validlist[listview1.selected.Index].lastFromAddress
+      else
+        a:=validlist[listview1.selected.Index].toAddress;
+    end;
+
+    a2:=a;
+    disassemble(a2);
+
+
+    advancedoptions.AddToCodeList(a, a2-a,false);
   end;
 end;
 
@@ -1074,6 +1103,9 @@ begin
   isFlushing:=false;  //no more wasted cycles checking the critical section
 
 end;
+
+initialization
+//{$i frmUltimapUnit.lrs}
 
 end.
 
