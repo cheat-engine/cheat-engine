@@ -1161,10 +1161,10 @@ begin
       if hotkey[i].id>=0 then
         hk.AppendChild(doc.CreateElement('ID')).TextContent:=inttostr(hotkey[i].id);
 
-      if hotkey[i].value<>'' then
+      if hotkey[i].activateSound<>'' then
         hk.AppendChild(doc.CreateElement('ActivateSound')).TextContent:=hotkey[i].activateSound;
 
-      if hotkey[i].value<>'' then
+      if hotkey[i].deactivateSound<>'' then
         hk.AppendChild(doc.CreateElement('DeactivateSound')).TextContent:=hotkey[i].deactivateSound;
 
     end;
