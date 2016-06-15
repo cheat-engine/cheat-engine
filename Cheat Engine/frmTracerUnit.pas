@@ -356,6 +356,9 @@ begin
       begin
         //check if the return is valid, could be it's a parent jump
         d:=TTraceDebugInfo(currentAppendage.Data);
+
+        if d=nil then exit; //cleanup underway
+
         if (d.c.{$ifdef cpu64}Rip{$else}eip{$endif}+d.instructionsize<>a) then
         begin
           //see if a parent can be found that does match
@@ -363,6 +366,9 @@ begin
           while x<>nil do
           begin
             d:=TTraceDebugInfo(x.Data);
+
+            if d=nil then exit; //cleanup underway
+
             if (d.c.{$ifdef cpu64}Rip{$else}eip{$endif}+d.instructionsize=a) then
             begin
               //match found
@@ -768,7 +774,10 @@ begin
   for i:=0 to lvTracer.Items.Count-1 do
   begin
     if lvTracer.Items[i].data<>nil then
+    begin
       TTraceDebugInfo(lvTracer.Items[i].data).Free;
+      lvTracer.Items[i].data:=nil;
+    end;
   end;
 
   action:=cafree;
