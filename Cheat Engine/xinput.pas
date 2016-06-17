@@ -228,27 +228,34 @@ var
 
   c: TWinControl;
   h: THandle;
+  s: XINPUT_STATE;
 begin
   if not assigned(XInputGetKeystroke) then exit;
 
   while not terminated do
   begin
-    i:=XInputGetKeystroke(0,0,@ks);
-    if i=ERROR_SUCCESS then
+    if XInputGetState(0,s)=0 then
     begin
-      c:=screen.ActiveControl;
-      if c<>nil then
+      i:=XInputGetKeystroke(0,0,@ks);
+      if i=ERROR_SUCCESS then
       begin
-        h:=screen.ActiveControl.Handle;
+        c:=screen.ActiveControl;
+        if c<>nil then
+        begin
+          h:=screen.ActiveControl.Handle;
 
-        if (ks.Flags or XINPUT_KEYSTROKE_KEYDOWN)=XINPUT_KEYSTROKE_KEYDOWN then
-          SendMessage(h, WM_KEYDOWN, ks.VirtualKey, 0);
+          if (ks.Flags or XINPUT_KEYSTROKE_KEYDOWN)=XINPUT_KEYSTROKE_KEYDOWN then
+            SendMessage(h, WM_KEYDOWN, ks.VirtualKey, 0);
 
-        if (ks.Flags or XINPUT_KEYSTROKE_KEYUP)=XINPUT_KEYSTROKE_KEYUP then
-          SendMessage(h, WM_KEYUP, ks.VirtualKey, 0);
+          if (ks.Flags or XINPUT_KEYSTROKE_KEYUP)=XINPUT_KEYSTROKE_KEYUP then
+            SendMessage(h, WM_KEYUP, ks.VirtualKey, 0);
+        end;
       end;
-    end;
-    sleep(50);
+
+      sleep(50);
+    end
+    else
+      sleep(2500);
   end;
 end;
 
