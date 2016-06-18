@@ -298,6 +298,7 @@ type
     Panel2: TPanel;
     Panel3: TPanel;
     Panel6: TPanel;
+    Panel8: TPanel;
     pmTablist: TPopupMenu;
     pmValueType: TPopupMenu;
     pmResetRange: TPopupMenu;
