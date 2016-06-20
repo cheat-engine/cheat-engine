@@ -1,7 +1,7 @@
 object FormDesigner: TFormDesigner
-  Left = 349
+  Left = 413
   Height = 55
-  Top = 120
+  Top = 50
   Width = 1061
   BorderStyle = bsSizeToolWin
   Caption = 'Form Designer'
@@ -15,10 +15,10 @@ object FormDesigner: TFormDesigner
   LCLVersion = '1.6.0.4'
   object ToolBar1: TToolBar
     Left = 0
-    Height = 35
+    Height = 34
     Top = 0
     Width = 1061
-    Align = alClient
+    AutoSize = True
     ButtonHeight = 32
     ButtonWidth = 0
     Caption = 'ToolBar1'
@@ -2891,7 +2891,7 @@ object FormDesigner: TFormDesigner
   end
   object PopupMenu1: TPopupMenu
     OnPopup = PopupMenu1Popup
-    left = 976
+    left = 1016
     object miBringToFront: TMenuItem
       Caption = 'Bring to front'
       OnClick = miBringToFrontClick
@@ -2921,7 +2921,7 @@ object FormDesigner: TFormDesigner
     end
   end
   object MainMenu1: TMainMenu
-    left = 944
+    left = 1008
     object MenuItem1: TMenuItem
       Caption = 'File'
       object miSave: TMenuItem
@@ -2956,7 +2956,7 @@ object FormDesigner: TFormDesigner
   end
   object controlPopup: TPopupMenu
     OnPopup = controlPopupPopup
-    left = 912
+    left = 1032
     object miDelete: TMenuItem
       Caption = 'Delete'
       OnClick = miDeleteClick
