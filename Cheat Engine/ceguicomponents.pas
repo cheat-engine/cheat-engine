@@ -1519,10 +1519,13 @@ initialization
   RegisterClass(TCalendar);
   RegisterClass(TFindDialog);
   RegisterClass(TSelectDirectoryDialog);
+  RegisterClass(TScrollBox);
 
-
+  RegisterClass(TRadioButton);
 
   RegisterClass(tceform);
+
+
 
 
   RegisterPropertyEditor(ClassTypeInfo(TListItems), TCEListView, 'Items', TCEListViewItemsPropertyEditor);
@@ -1560,6 +1563,7 @@ initialization
   RegisterPropertyEditor(TypeInfo(TTabGetImageEvent), nil, '', THiddenPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TGetSiteInfoEvent), nil, '', THiddenPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TGetDockCaptionEvent), nil, '', THiddenPropertyEditor);
+
 
 end.
 

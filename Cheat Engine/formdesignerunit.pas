@@ -73,6 +73,8 @@ type
     PopupMenu: TToolButton;
     Calendar: TToolButton;
     SelectDirectoryDialog: TToolButton;
+    RadioButton: TToolButton;
+    ScrollBox: TToolButton;
     ToolButton6: TToolButton;
     CEImage: TToolButton;
     procedure controlPopupPopup(Sender: TObject);
