@@ -49,7 +49,7 @@ uses
   win32proc,
   messages,
   {$endif}
-  ExtCtrls, Contnrs,LMessages, Menus;
+  ExtCtrls, Contnrs,LMessages, Menus, strutils;
 
 type
   TJvDesignSurface = class;
@@ -166,6 +166,8 @@ type
     FPopupMenu: TPopupMenu;
 
     procedure MessengerOnChange(sender: tobject);
+    procedure fcce(Reader: TReader; const cn: string;
+    var ComponentClass: TComponentClass);
   protected
     FOnChange: TNotifyEvent;
     FOnGetAddClass: TJvDesignGetAddClassEvent;
@@ -752,6 +754,7 @@ begin
       CO.BoundsRect := GetBounds;
       CO.PopupMenu:= container.PopupMenu;
 
+
       Select(CO);
     end;
     Messenger.DesignComponent(C, Active);
@@ -840,10 +843,80 @@ end;
 
 procedure TJvDesignSurface.CopyComponents;
 var
-  I: Integer;
+  I,j,k: Integer;
+  endstring: string;
+  s: TStringStream;
+  ow: TAbstractObjectWriter;
+
+  sl, output: tstringlist;
+  temp: string;
+
+  found: boolean;
+
 begin
-  with TJvDesignComponentClipboard.Create(Container) do
+  s:=TStringStream.Create('');
+  CreateLFMFile(container, s); //only forms show all the subitems
+
+  sl:=tstringlist.Create;
+  sl.text:=s.DataString;
+
+  //showmessage(sl.text);
+
+  output:=tstringlist.create;
+
+  //parse through the stringlist for the selected objects
+  for i:=0 to count-1 do
+  begin
+    //make sure this selection isn't owned by another selection
+    found:=false;
+    for j:=0 to count-1 do
+    begin
+      if j=i then continue;
+      if selection[j].IsParentOf(selection[i]) then
+      begin
+        found:=true;
+        break;
+      end;
+    end;
+
+    if found then continue; //don't save it twice
+
+
+    //find "object Selection[I].Name: Selection[I].ClassName
+    for j:=0 to sl.Count-1 do
+    begin
+      temp:=sl[j];
+      if trim(temp)='object '+Selection[I].Name+': '+Selection[I].ClassName then
+      begin
+
+        //search till the end of this indentation
+        k:=length(temp)-length(TrimLeft(temp));
+        endstring:=padleft('',k)+'end';
+
+        for k:=j to sl.count-1 do
+        begin
+          output.Add(sl[k]);
+          if sl[k]=endstring then break; //found the end
+        end;
+      end;
+    end;
+  end;
+
+  Clipboard.AsText:=output.text;
+
+ // showmessage(output.Text);
+
+
+  output.free;
+  sl.free;
+ // showmessage(s.DataString);
+  s.free;
+      {
+
+   with TJvDesignComponentClipboard.Create(Container) do
   try
+
+
     OpenWrite;
     try
       for I := 0 to Count - 1 do
@@ -853,7 +926,7 @@ begin
     end;
   finally
     Free;
-  end;
+  end;   }
 end;
 
 procedure TJvDesignSurface.CutComponents;
@@ -862,11 +935,21 @@ begin
   DeleteComponents;
 end;
 
+procedure TJvDesignSurface.fcce(Reader: TReader; const cn: string;
+    var ComponentClass: TComponentClass);
+begin
+  //find component class event
+  ComponentClass:=TComponentClass(GetClass(cn));
+
+end;
+
 procedure TJvDesignSurface.PasteComponents;
 var
   CO: TControl;
   C: TComponent;
   P: TWinControl;
+  s: tstringstream;
+  ms: TMemoryStream;
 
   procedure KeepInParent;
   begin
@@ -894,29 +977,31 @@ var
 
   end;
 
+
 begin
-  with TJvDesignComponentClipboard.Create(Container) do
+  s:=TStringStream.Create(clipboard.AsText);
+  ms:=TMemoryStream.Create;
+
   try
-    OpenRead;
-    try
-      C := GetComponent;
-      if (C <> nil) then
-      begin
-        P := SelectedContainer;
-        ClearSelection;
-        repeat
-          PasteComponent;
-          C := GetComponent;
-        until C = nil;
-        SelectionChange;
-        Change;
+    LRSObjectTextToBinary(s,ms);
+    ms.position:=0;
+
+    while ms.position<ms.size do
+    begin
+      C:=nil;
+      try
+        ReadComponentFromBinaryStream(ms, C, @fcce, container, SelectedContainer, container);
+      except
+        break;
       end;
-    finally
-      CloseRead;
     end;
+
   finally
-    Free;
+    ms.free;
+    s.free;
   end;
+
+
 
   active:=false;
   active:=true;
