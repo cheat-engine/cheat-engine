@@ -1551,6 +1551,7 @@ initialization
   RegisterClass(TTreeview);
 
   RegisterClass(TPageControl);
+  RegisterClass(TTrayIcon);
 
 
 
