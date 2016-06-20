@@ -843,90 +843,65 @@ end;
 
 procedure TJvDesignSurface.CopyComponents;
 var
-  I,j,k: Integer;
-  endstring: string;
-  s: TStringStream;
-  ow: TAbstractObjectWriter;
-
-  sl, output: tstringlist;
-  temp: string;
+  LFMStream: TStringStream;
+  BinStream: TMemoryStream;
+  DestroyDriver: Boolean;
+  w: TWriter;
+  i,j: integer;
 
   found: boolean;
-
 begin
-  s:=TStringStream.Create('');
-  CreateLFMFile(container, s); //only forms show all the subitems
+  LFMStream:=tstringstream.create('');
 
-  sl:=tstringlist.Create;
-  sl.text:=s.DataString;
-
-  //showmessage(sl.text);
-
-  output:=tstringlist.create;
-
-  //parse through the stringlist for the selected objects
-  for i:=0 to count-1 do
-  begin
-    //make sure this selection isn't owned by another selection
-    found:=false;
-    for j:=0 to count-1 do
-    begin
-      if j=i then continue;
-      if selection[j].IsParentOf(selection[i]) then
-      begin
-        found:=true;
-        break;
-      end;
-    end;
-
-    if found then continue; //don't save it twice
-
-
-    //find "object Selection[I].Name: Selection[I].ClassName
-    for j:=0 to sl.Count-1 do
-    begin
-      temp:=sl[j];
-      if trim(temp)='object '+Selection[I].Name+': '+Selection[I].ClassName then
-      begin
-
-        //search till the end of this indentation
-        k:=length(temp)-length(TrimLeft(temp));
-        endstring:=padleft('',k)+'end';
-
-        for k:=j to sl.count-1 do
-        begin
-          output.Add(sl[k]);
-          if sl[k]=endstring then break; //found the end
-        end;
-      end;
-    end;
-  end;
-
-  Clipboard.AsText:=output.text;
-
- // showmessage(output.Text);
-
-
-  output.free;
-  sl.free;
- // showmessage(s.DataString);
-  s.free;
-      {
-
-   with TJvDesignComponentClipboard.Create(Container) do
   try
+    for i:=0 to count-1 do
+    begin
+      if (selected[i] is TComponent) then
+      begin
+        found:=false;
+        for j:=0 to count-1 do
+          if selection[j].IsParentOf(selection[i]) then
+          begin
+            found:=true;
+            break;
+          end;
 
+        if found then continue; //don't save children of selected objects
 
-    OpenWrite;
-    try
-      for I := 0 to Count - 1 do
-        SetComponent(Selection[I]);
-    finally
-      CloseWrite;
+        BinStream:=TMemoryStream.Create;
+        try
+          try
+            // write component to binary stream
+
+            DestroyDriver:=false;
+            w:=CreateLRSWriter(BinStream,DestroyDriver);
+            try
+              w.Root:=container;
+              w.WriteComponent(TComponent(selected[i]));
+            finally
+              if DestroyDriver then w.Driver.Free;
+              w.Free;
+            end;
+          except
+            exit;
+          end;
+          try
+            // transform binary to text
+            BinStream.Position:=0;
+            LRSObjectBinaryToText(BinStream,LFMStream);
+          except
+            exit;
+          end;
+        finally
+          binstream.free;
+        end
+      end;
     end;
+
+    clipboard.AsText:=LFMStream.DataString;
   finally
-    Free;
-  end;   }
+    LFMStream.free;
+  end;
 end;
 
 procedure TJvDesignSurface.CutComponents;
@@ -978,6 +953,9 @@ var
   end;
 
 
+  var l: TObjectList;
+    i: integer;
+
 begin
   s:=TStringStream.Create(clipboard.AsText);
   ms:=TMemoryStream.Create;
@@ -986,11 +964,14 @@ begin
     LRSObjectTextToBinary(s,ms);
     ms.position:=0;
 
+    l:=tobjectlist.create;
+    ClearSelection;
     while ms.position<ms.size do
     begin
       C:=nil;
       try
         ReadComponentFromBinaryStream(ms, C, @fcce, container, SelectedContainer, container);
+        l.add(c);
       except
         break;
       end;
@@ -1005,6 +986,10 @@ begin
 
   active:=false;
   active:=true;
+
+  for i:=0 to l.count-1 do
+    selector.AddToSelection(TControl(l[i]));
+  SelectionChange;
 
 end;
 
