@@ -1526,6 +1526,33 @@ initialization
   RegisterClass(tceform);
 
 
+  //some support for those that use lazarus. This way ce can load these components  {
+  RegisterClass(TButton);
+  RegisterClass(TLabel);
+  RegisterClass(TPanel);
+  RegisterClass(TImage);
+  RegisterClass(TMemo);
+  RegisterClass(TEdit);
+  RegisterClass(TToggleBox);
+
+  RegisterClass(TComboBox);
+  RegisterClass(TListBox);
+
+  RegisterClass(TCheckBox);
+  RegisterClass(TGroupBox);
+  RegisterClass(TRadioGroup);
+  RegisterClass(TTimer);
+  RegisterClass(TSaveDialog);
+  RegisterClass(TOpenDialog);
+  RegisterClass(TProgressBar);
+  RegisterClass(TTrackbar);
+  RegisterClass(TListView);
+  RegisterClass(TSplitter);
+  RegisterClass(TTreeview);
+
+  RegisterClass(TPageControl);
+
+
 
 
   RegisterPropertyEditor(ClassTypeInfo(TListItems), TCEListView, 'Items', TCEListViewItemsPropertyEditor);
