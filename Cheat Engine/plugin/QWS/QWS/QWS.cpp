@@ -93,6 +93,7 @@ SIZE_T WINAPI NewVirtualQueryEx(_In_ HANDLE hProcess, _In_opt_ LPCVOID lpAddress
 
 		} while (toosmall);
 
+		LastMap.clear();
 		if (info)
 		{
 			for (ULONG_PTR i = 0; i < info->NumberOfEntries; i++)
