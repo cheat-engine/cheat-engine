@@ -1,4 +1,3 @@
-LIBRARY		QWS
 EXPORTS   
     CEPlugin_GetVersion	@1
     CEPlugin_InitializePlugin @2
