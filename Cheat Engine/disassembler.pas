@@ -10710,7 +10710,22 @@ begin
                         lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last) else
                       begin
                         if is64bit then
-                          lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,64)
+                        begin
+
+                          if (memory[1]=$15) and (pdword(@memory[2])^=2) and (pword(@memory[6])^=$8eb) then //special 16 byte call
+                          begin
+                            lastdisassembledata.parameters:=inttohexs(pqword(@memory[8])^,8);
+                            inc(last,8+4+2+2);
+
+                            LastDisassembleData.Seperators[0]:=2;
+                            LastDisassembleData.Seperators[1]:=2+4;
+                            LastDisassembleData.Seperators[2]:=2+4+2;
+                            LastDisassembleData.SeperatorCount:=3;
+
+                          end
+                          else
+                            lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,64);
+                        end
                         else
                           lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,32);
                       end;
@@ -10739,10 +10754,25 @@ begin
                       lastdisassembledata.opcode:='jmp';
                       lastdisassembledata.isjump:=true;
 
+
                       if is64bit then
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,64)
+                      begin
+                        if (memory[1]=$25) and (pdword(@memory[2])^=0) then //special 14 byte jmp
+                        begin
+                          lastdisassembledata.parameters:=inttohexs(pqword(@memory[6])^,8);
+                          inc(last,8+4+2);
+
+                          LastDisassembleData.Seperators[0]:=2;
+                          LastDisassembleData.Seperators[1]:=2+4;
+                          LastDisassembleData.SeperatorCount:=2;
+
+                        end
+                        else
+                          lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,64);
+                      end
                       else
                         lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,32);
+
 
                       inc(offset,last-1);
                     end;
