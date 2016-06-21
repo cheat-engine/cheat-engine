@@ -9,10 +9,13 @@ ExportedFunctions g_ef;
 int g_pluginid, callbackid;
 PVOID OriginalVQE = NULL;
 
-
-
 DWORD BlockProtectionToPageProtection(int p)
 {
+#ifdef IWANTITALL
+	return PAGE_EXECUTE_READWRITE;
+#endif
+
+
 	switch (p)
 	{
 		

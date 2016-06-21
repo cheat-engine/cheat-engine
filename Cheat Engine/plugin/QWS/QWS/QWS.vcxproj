@@ -77,13 +77,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(SolutionDir)..\;$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)\Output</OutDir>
+    <OutDir>$(SolutionDir)\Output\</OutDir>
     <TargetName>$(ProjectName)-$(PlatformShortName)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(SolutionDir)..\;$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)\Output</OutDir>
+    <OutDir>$(SolutionDir)\Output\</OutDir>
     <TargetName>$(ProjectName)-$(PlatformShortName)</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
