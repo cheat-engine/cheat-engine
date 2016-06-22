@@ -165,6 +165,7 @@ uses dialogs, formAddressChangeUnit, TypePopup, PasteTableentryFRM, mainunit,
 resourcestring
   rsDoYouWantToDeleteTheSelectedAddress = 'Do you want to delete the selected '
     +'address%s?';
+  rsSelectedAddressES = 'es';
   rsChangeDescription = 'Change Description';
   rsWhatWillBeTheNewDescription = 'What will be the new description?';
   rsChangeValue = 'Change Value';
@@ -363,7 +364,7 @@ begin
   if count=0 then exit;
 
   if selcount=0 then exit;
-  if selcount=1 then multi:='' else multi:='es';
+  if selcount=1 then multi:='' else multi:=rsSelectedAddressES;
 
   oldindex:=selectedRecord.treenode.AbsoluteIndex;
 
