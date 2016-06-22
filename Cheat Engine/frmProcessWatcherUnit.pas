@@ -232,6 +232,7 @@ begin
           end;
         finally
           freemem(processname);
+          processname:=nil;
         end;
       end;
 

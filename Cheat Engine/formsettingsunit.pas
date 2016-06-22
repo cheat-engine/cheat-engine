@@ -545,7 +545,9 @@ begin
 
       if frmModuleSafety<>nil then //modified
       begin
-        freemem(modulelist);
+        if modulelist<>nil then
+          freemem(modulelist);
+
         modulelist:=tempmodulelist;
         modulelistsize:=tempmodulelistsize;
         tempmodulelist:=nil;

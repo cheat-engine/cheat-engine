@@ -447,10 +447,12 @@ begin
         end;
       finally
         freemem(modulename);
+        modulename:=nil;
       end;
     end;
   finally
     freemem(x);
+    x:=nil;
   end;
 
   {$endif}
@@ -480,10 +482,12 @@ begin
         end;
       finally
         freemem(drivername);
+        drivername:=nil;
       end;
     end;
   finally
     freemem(x);
+    x:=nil;
   end;
   {$ENDIF}
 end;
@@ -1115,6 +1119,7 @@ begin
           fprogress:=ceil((i/modulecount)*100);
 
           freemem(modinfo);
+          modinfo:=nil;
         end;
 
 

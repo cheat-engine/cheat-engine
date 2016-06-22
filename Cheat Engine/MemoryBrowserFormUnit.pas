@@ -1222,6 +1222,7 @@ begin
       end;
     finally
       freemem(buf);
+      buf:=nil;
     end;
   end;
 end;
@@ -3459,6 +3460,7 @@ begin
       end;
     finally
       freemem(header);
+      header:=nil;
     end;
   end;
   modulelist.free;
@@ -3708,6 +3710,7 @@ begin
           lvstacktracedata.Items.Count:=strace.Count;
         finally
           freemem(s);
+          s:=nil;
         end;
       end else
       begin

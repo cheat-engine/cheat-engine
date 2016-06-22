@@ -1473,6 +1473,7 @@ begin
     mapsline:=mappedfilename;
 
     freemem(mappedfilename);
+    mappedfilename:=nil;
   end;
 end;
 {$endif}

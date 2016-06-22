@@ -118,7 +118,10 @@ uses CEFuncProc, CEDebugger,debughelper, debugeventhandler, MemoryBrowserFormUni
 destructor TCodeRecord.Destroy;
 begin
   if stack.stack<>nil then
+  begin
     freemem(stack.stack);
+    stack.stack:=nil;
+  end;
 
   inherited destroy;
 end;

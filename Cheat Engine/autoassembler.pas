@@ -1530,6 +1530,7 @@ begin
                     end else raise exception.Create(Format(rsTheMemoryAtCanNotBeRead, [s1]));
                   finally
                     freemem(bytebuf);
+                    bytebuf:=nil;
                   end;
 
                 end
@@ -1796,7 +1797,10 @@ begin
                 on e:exception do
                 begin
                   if bytebuf<>nil then
+                  begin
                     freemem(bytebuf);
+                    bytebuf:=nil;
+                  end;
 
                   raise exception.create(e.Message);
                 end;
@@ -3022,7 +3026,10 @@ begin
 
     for i:=0 to length(readmems)-1 do
       if readmems[i].bytes<>nil then
+      begin
         freemem(readmems[i].bytes);
+        readmems[i].bytes:=nil;
+      end;
 
     setlength(readmems,0);
 

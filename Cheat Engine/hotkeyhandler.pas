@@ -507,6 +507,7 @@ begin
 
           //cleanup the memory as well while we're at it
           freemem(temphotkey);
+          temphotkey:=nil;
         end;
         activeHotkeyList.clear;
 

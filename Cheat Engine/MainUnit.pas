@@ -1172,6 +1172,8 @@ begin
     frmLuaTableScript.assemblescreen.ClearAll;
 
     frmLuaTableScript.Free;
+    frmLuaTableScript:=TfrmAutoInject(tcustomform(mainform));
+
   end;
 end;
 
@@ -1712,6 +1714,7 @@ begin
   begin
     MessageDlg(err, mtError, [mbOK], 0);
     freemem(err);
+    err:=nil;
   end
   else
     MessageDlg('Unspecified error', mtError, [mbOK], 0);
@@ -1938,6 +1941,7 @@ begin
     if c = 500 then
     begin
       togglewindows.Free;
+      togglewindows:=nil;
       raise Exception.Create(strWindowFailedToHide);
     end;
     sleep(10);
@@ -2174,6 +2178,7 @@ begin
             ScanType.Items.Add(strCompareToFirstScan);
 
           t.Free;
+          t:=nil;
 
         end;
 
@@ -3222,6 +3227,7 @@ begin
       LuaFiles.add(lf);
 
       s.Free;
+      s:=nil;
     end;
 
   finally
@@ -3277,6 +3283,7 @@ begin
 
     f := TCEForm(LuaForms[TMenuItem(Sender).Tag]);
     f.Free;
+    f:=nil;
 
     LuaForms.Delete(TMenuItem(Sender).Tag);
 
@@ -3360,7 +3367,7 @@ begin
     if f.Execute then
       lf.stream.SaveToFile(f.filename);
   finally
-    f.Free;
+    freeandnil(f);
   end;
 end;
 
@@ -3369,9 +3376,9 @@ var
   lf: TLuafile;
 begin
   lf := LuaFiles[TMenuItem(Sender).Tag];
-  lf.Free;
-
   LuaFiles.Delete(TMenuItem(Sender).Tag);
+
+  lf.Free;
   UpdateMenu;
 
 end;
@@ -3693,9 +3700,9 @@ begin
         end;
       end;
 
-      CustomTypes.Free;
+      freeandnil(CustomTypes);
     end;
-    reg.Free;
+    freeandnil(reg);
     RefreshCustomTypes;
   finally
     vartype.OnChange := VarTypeChange;   //set the onchange event back
@@ -3785,7 +3792,7 @@ begin
         //delete the old one
         reg := Tregistry.Create;
         reg.DeleteKey('\Software\Cheat Engine\CustomTypes\' + oldname);
-        reg.Free;
+        freeandnil(reg);
       end;
     end;
 
@@ -3801,7 +3808,7 @@ begin
 
     end;
 
-    reg.Free;
+    freeandnil(reg);
 
     RefreshCustomTypes;
 
@@ -4453,9 +4460,10 @@ begin
     scantablist.RemoveTab(oldindex);
 
     //now we can delete the tabdata
-    oldscanstate.foundlist.Free;
-    oldscanstate.memscan.Free;
+    freeandnil(oldscanstate.foundlist);
+    freeandnil(oldscanstate.memscan);
     freemem(oldscanstate);
+    oldscanstate:=nil;
 
   end;
 end;
@@ -4656,7 +4664,7 @@ begin
     if reg.OpenKey('\Software\Cheat Engine\', true) then
       reg.WriteBool('Show previous value column', miShowPreviousValue.checked);
   finally
-    reg.free;
+    freeandnil(reg);
   end;
 end;
 
@@ -4832,12 +4840,12 @@ begin
 
   rs := TResourceStream.Create(HInstance, 'BUILDIN_ACTIVATE', RT_RCDATA);
   InternalLuaFiles.Add(TLuaFile.Create('Activate', rs));
-  rs.free;
+  freeandnil(rs);
 
 
   rs := TResourceStream.Create(HInstance, 'BUILDIN_DEACTIVATE', RT_RCDATA);
   InternalLuaFiles.Add(TLuaFile.Create('Deactivate', rs));
-  rs.free;
+  freeandnil(rs);
 
 
 
@@ -4860,7 +4868,7 @@ begin
     end;
 
   finally
-    reg.Free;
+    freeandnil(reg);
   end;
 
   application.OnHelp := onhelp;
@@ -5447,8 +5455,7 @@ begin
     end;
   end;
 
-
-  updatelist.free;
+  freeandnil(updatelist);
   addresslist.ReinterpretAddresses;
 end;
 
@@ -5511,7 +5518,7 @@ begin
             lblcompareToSavedScan.Caption := rsComparingToF;
           end;
         finally
-          s.Free;
+          freeandnil(s);
         end;
 
         scantype.Items[scantype.ItemIndex] := strCompareToLastScan;
@@ -6032,12 +6039,7 @@ begin
       freeandnil(groupconfigbutton);
   end;
 
- { tc:=tbitmap.Create;
-  tc.canvas.Font:=cbHexadecimal.Font;
-  hexwidth:=tc.canvas.TextWidth(hextext)+22;
-  tc.free;
-  cbHexadecimal.width:=hexwidth;
-  cbHexadecimal.left:=scanvalue.Left-cbHexadecimal.width; }
+
   cbHexadecimal.Visible := hexvis;
   rbdec.Visible := decbitvis;
   rbbit.Visible := decbitvis;
@@ -7835,6 +7837,7 @@ begin
 
       //load back and free memory
       freemem(offsets);
+      offsets:=nil;
       //using my own var instead the user is lame enough to mess up the pointer
       addresslist.selectedRecord.ReinterpretAddress;
     end;
@@ -8139,14 +8142,11 @@ begin
 end;
 
 
+
 procedure TMainForm.Label59Click(Sender: TObject);
-var r: TMapMemoryResult;
 begin
-  r:=MapMemory($00400000, 4096, 0,0);
 
-  showmessage(inttohex(r.address,8));
 
-  UnmapMemory(r);
 end;
 
 procedure ChangeIcon(hModule: HModule; restype: PChar; resname: PChar;
@@ -8253,6 +8253,7 @@ begin
             if pli.processIcon > 0 then
               DestroyIcon(pli.processIcon);
             freemem(pli);
+            pli:=nil;
           end;
 
         pl.Free;
@@ -8660,9 +8661,10 @@ begin
       if scantablist.SelectedTab <> i then
       begin
         oldscanstate := scantablist.TabData[i];
-        oldscanstate.foundlist.Free;
-        oldscanstate.memscan.Free;
+        freeandnil(oldscanstate.foundlist);
+        freeandnil(oldscanstate.memscan);
         freemem(oldscanstate);
+        oldscanstate:=nil;
       end;
     end;
     FreeAndNil(scantablist);

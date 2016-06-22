@@ -290,10 +290,11 @@ begin
     
 
   finally
-    memoryfile.free;
-    outaddress.free;
-    outmemory.free;
+    freeandnil(memoryfile);
+    freeandnil(outaddress);
+    freeandnil(outmemory);
     freemem(buf);
+    buf:=nil;
   end;
 
   //still here, not crashed, so out with the old, in with the new...

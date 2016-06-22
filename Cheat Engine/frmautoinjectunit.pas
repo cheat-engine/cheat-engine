@@ -1001,6 +1001,7 @@ begin
   end;
 
   freemem(originalcodebuffer);
+  originalcodebuffer:=nil;
 
 
 

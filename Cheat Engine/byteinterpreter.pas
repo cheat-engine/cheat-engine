@@ -89,6 +89,7 @@ begin
       end;
     finally
       freemem(ba);
+      ba:=nil;
     end;
 
     setlength(b,0);
@@ -144,6 +145,7 @@ begin
           end;
         finally
           freemem(ba);
+          ba:=nil;
         end;
       end;
     end;
@@ -249,6 +251,7 @@ begin
         result:=ws;
       finally
         freemem(ws);
+        ws:=nil;
       end;
     end;
 
@@ -342,6 +345,7 @@ begin
           result:=readAndParsePointer(address, buf2, variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
       finally
         freemem(buf2);
+        buf2:=nil;
       end;
     end;
 
@@ -355,7 +359,8 @@ begin
 
 
       finally
-        freemem(buf2)
+        freemem(buf2);
+        buf2:=nil;
       end;
 
     end;
@@ -368,6 +373,7 @@ begin
           result:=readAndParsePointer(address, buf2, variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
       finally
         freemem(buf2);
+        buf2:=nil;
       end;
     end;
 
@@ -382,6 +388,7 @@ begin
 
         finally
           freemem(buf2);
+          buf2:=nil;
         end;
       end;
     end;
@@ -414,6 +421,7 @@ begin
         result:=pchar(tempbuf);
       finally
         freemem(tempbuf);
+        tempbuf:=nil;
       end;
     end;
 
@@ -430,6 +438,7 @@ begin
 
       finally
         freemem(tempbuf);
+        tempbuf:=nil;
       end;
     end;
 

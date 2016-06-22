@@ -4630,7 +4630,10 @@ begin
     if oldmemory<>nil then virtualfree(oldmemory,0,MEM_RELEASE);
 
     if oldaddressesGroup<>nil then
+    begin
       freemem(oldaddressesGroup);
+      oldaddressesGroup:=nil;
+    end;
   end;
 end;
 
@@ -4917,18 +4920,19 @@ begin
 
   if AddressFile<>nil then //can be made nil by the scancontroller
   begin
-    Addressfile.free;
+    freeandnil(Addressfile);
     DeleteFile(scandir+'ADDRESSES-'+inttostr(ThreadID)+'.TMP');
   end;
 
   if MemoryFile<>nil then
   begin
-    MemoryFile.free;
+    freeandnil(MemoryFile);
     DeleteFile(scandir+'MEMORY-'+inttostr(ThreadID)+'.TMP');
   end;
 
   if scanwriter<>nil then
-    scanwriter.free;
+    freeandnil(scanwriter);
+
 
 
   if CurrentFoundBuffer<>nil then freemem(CurrentFoundBuffer);
@@ -4936,9 +4940,12 @@ begin
   if CurrentAddressBuffer<>nil then freemem(CurrentAddressBuffer);
   if SecondaryAddressBuffer<>nil then freemem(SecondaryAddressBuffer);
 
-  if savedscanhandler<>nil then savedscanhandler.free;
+  CurrentFoundBuffer:=nil;
+  SecondaryFoundBuffer:=nil;
+  CurrentAddressBuffer:=nil;
+  SecondaryAddressBuffer:=nil;
 
-  outputdebugstring('Destroyed a scanner');
+  if savedscanhandler<>nil then freeandnil(savedscanhandler);
 
   inherited destroy;
 end;

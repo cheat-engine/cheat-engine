@@ -282,8 +282,13 @@ begin
   while not mi.EOM do
   begin
     mi.GetData(al);
-    freemem(al.a);
-    freemem(al);
+    if al<>nil then
+    begin
+      if al.a<>nil then
+        freemem(al.a);
+
+      freemem(al);
+    end;
     mi.Next;
   end;
 

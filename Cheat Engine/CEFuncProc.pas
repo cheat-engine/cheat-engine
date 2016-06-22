@@ -437,6 +437,7 @@ begin
       x[bufsize]:=#0;
       result:=x;
       freemem(x);
+      x:=nil;
     end;
 
     8: //array of bytes
@@ -1891,6 +1892,7 @@ var
   user, domain: string;
 begin
   Result := '';
+  pUser:=nil;
   ProcessHandle := OpenProcess(PROCESS_QUERY_INFORMATION, False, ProcessId);
   if ProcessHandle <> 0 then
   begin
@@ -1920,43 +1922,16 @@ begin
         end;
       end;
 
-      if bSuccess then FreeMem(pUser);
-
     end;
     CloseHandle(ProcessHandle);
   end;
-end;
 
-{
-procedure GetProcessList(ProcessList: TListBox; NoPID: boolean=false);
-var sl: tstringlist;
-    i: integer;
-    pli: PProcessListInfo;
-begin
-  sl:=tstringlist.create;
-  try
-    processlist.Sorted:=false;
-    for i:=0 to processlist.Items.count-1 do
-      if processlist.Items.Objects[i]<>nil then
-      begin
-        pli:=pointer(processlist.Items.Objects[i]);
-        if pli.processIcon>0 then
-          DestroyIcon(pli.processIcon);
-        freemem(pli);
-      end;
-
-    processlist.Items.Clear;
-
-    
-    GetProcessList(sl, NoPID);
-    processlist.Items.AddStrings(sl);
-  finally
-    sl.free;
+  if puser<>nil then
+  begin
+    FreeMem(pUser);
+    pUser:=nil;
   end;
 end;
-   }
-
-
 
 procedure GetModuleList(ModuleList: TStrings; withSystemModules: boolean);
 var ths: thandle;
@@ -2021,24 +1996,7 @@ begin
   ModuleList.Clear;
 end;
 
-{
 
-procedure cleanProcessList(processlist: TStrings);
-var
-  i: integer;
-  ProcessListInfo: PProcessListInfo;
-begin
-  for i:=0 to processlist.count-1 do
-    if processlist.Objects[i]<>nil then
-    begin
-      ProcessListInfo:= pointer( processlist.Objects[i]);
-      if ProcessListInfo.processIcon>0 then
-        DestroyIcon(ProcessListInfo.processIcon);
-      freemem(ProcessListInfo);
-    end;
-
-  processlist.clear;
-end;     }
 
 procedure GetThreadList(threadlist: TStrings);
 var
@@ -2058,96 +2016,7 @@ begin
   closehandle(ths);
 end;
 
-{
-procedure GetProcessList(ProcessList: TStrings; NoPID: boolean=false; noProcessInfo: boolean=false);
-var SNAPHandle: THandle;
-    ProcessEntry: PROCESSENTRY32;
-    Check: Boolean;
 
-    HI: HICON;
-    ProcessListInfo: PProcessListInfo;
-    i,j: integer;
-    s: string;
-begin
-
-  HI:=0;
-
-  j:=0;
-
-
-
-  cleanProcessList(ProcessList);
-
-  if processhandler.isNetwork then
-    noProcessInfo:=true;
-
-
-  SNAPHandle:=CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS,0);
-  If SnapHandle>0 then
-  begin
-    ZeroMemory(@ProcessEntry, sizeof(ProcessEntry));
-    ProcessEntry.dwSize:=SizeOf(ProcessEntry);
-
-    Check:=Process32First(SnapHandle,ProcessEntry);
-    while check do
-    begin
-      if (noprocessinfo=false) and getprocessicons then
-      begin
-        s:='';
-
-
-        HI:=ExtractIcon(hinstance,ProcessEntry.szExeFile,0);
-        if HI=0 then
-        begin
-          i:=getlasterror;
-
-          //alternative method:
-          if (processentry.th32ProcessID>0) and (uppercase(copy(ExtractFileName(ProcessEntry.szExeFile), 1,3))<>'AVG') then //february 2014: AVG freezes processes that do createtoolhelp32snapshot on it's processes for several seconds. AVG has multiple processes...
-          begin
-            s:=GetFirstModuleName(processentry.th32ProcessID);
-            OutputDebugString(s);
-            HI:=ExtractIcon(hinstance,pchar(s),0);
-          end;
-        end;
-
-      end;
-
-      if (noprocessinfo) or (not (ProcessesWithIconsOnly and (hi=0))) and ((not ProcessesCurrentUserOnly) or (GetUserNameFromPID(processentry.th32ProcessID)=username)) then
-      begin
-        if processentry.th32ProcessID<>0 then
-        begin
-
-          if noprocessinfo=false then
-          begin
-            // get some processinfo
-            getmem(ProcessListInfo,sizeof(TProcessListInfo));
-            ProcessListInfo.processID:=processentry.th32ProcessID;
-            ProcessListInfo.processIcon:=HI;
-
-
-          end;
-
-          if noPID then
-            s:=''
-          else
-            s:=IntTohex(processentry.th32ProcessID,8)+'-';
-
-          s:=s+ExtractFilename(processentry.szExeFile);
-
-          if noprocessinfo then
-            ProcessList.Add(AnsiToUtf8(s))
-          else
-            ProcessList.AddObject(AnsiToUtf8(s), TObject(ProcessListInfo));
-        end;
-      end;
-
-
-      check:=Process32Next(SnapHandle,ProcessEntry);
-    end;
-
-    closehandle(snaphandle);
-  end else raise exception.Create(rsICanTGetTheProcessListYouArePropablyUsingWindowsNT);
-end;    }
 
 procedure GetWindowList(ProcessList: TStrings; showInvisible: boolean=true);
 var previouswinhandle, winhandle: Hwnd;
@@ -2173,6 +2042,7 @@ begin
           DestroyIcon(ProcessListInfo.processIcon);
 
         freemem(ProcessListInfo);
+        ProcessListInfo:=nil;
       end;
     processlist.clear;
 
@@ -2236,6 +2106,7 @@ begin
     processlist.Assign(x);
   finally
     freemem(temp);
+    temp:=nil;
   end;
 end;
 
@@ -2252,83 +2123,6 @@ var previouswinhandle, winhandle: Hwnd;
     tempdword: dword;
 begin
   GetWindowList(ProcessListBox.Items, showInvisible);
- {
-  getmem(temp,101);
-  try
-    x:=tstringlist.Create;
-
-    for i:=0 to processlist.items.count-1 do
-      if processlist.items.Objects[i]<>nil then
-      begin
-        ProcessListInfo:=PProcessListInfo(processlist.items.Objects[i]);
-        if ProcessListInfo.processIcon>0 then
-          DestroyIcon(ProcessListInfo.processIcon);
-
-        freemem(ProcessListInfo);
-      end;
-    processlist.clear;
-
-    winhandle:=getwindow(getforegroundwindow,GW_HWNDFIRST);
-
-    i:=0;
-    while (winhandle<>0) and (i<10000) do
-    begin
-
-
-      if showInvisible or IsWindowVisible(winhandle) then
-      begin
-        GetWindowThreadProcessId(winhandle,addr(winprocess));
-        temp[0]:=#0;
-        getwindowtext(winhandle,temp,100);
-        temp[100]:=#0;
-        wintitle:=temp;
-
-
-        if ((not ProcessesCurrentUserOnly) or (GetUserNameFromPID(winprocess)=username)) and (length(wintitle)>0) then
-        begin
-          getmem(ProcessListInfo,sizeof(TProcessListInfo));
-          ProcessListInfo.processID:=winprocess;
-          ProcessListInfo.processIcon:=0;
-
-          if formsettings.cbProcessIcons.checked then
-          begin
-            tempdword:=0;
-            if SendMessageTimeout(winhandle,WM_GETICON,ICON_SMALL,0,SMTO_ABORTIFHUNG, 100, tempdword )<>0 then
-            begin
-              ProcessListInfo.processIcon:=tempdword;
-              if ProcessListInfo.processIcon=0 then
-              begin
-                if SendMessageTimeout(winhandle,WM_GETICON,ICON_SMALL2,0,SMTO_ABORTIFHUNG, 100, tempdword	)<>0 then
-                  ProcessListInfo.processIcon:=tempdword;
-
-                if ProcessListInfo.processIcon=0 then
-                  if SendMessageTimeout(winhandle,WM_GETICON,ICON_BIG,0,SMTO_ABORTIFHUNG, 100, tempdword	)<>0 then
-                    ProcessListInfo.processIcon:=tempdword;
-              end;
-            end else
-            begin
-              inc(i,100); //at worst case scenario this causes the list to wait 10 seconds
-            end;
-          end;
-
-
-          x.AddObject(IntTohex(winprocess,8)+'-'+AnsiToUtf8(wintitle),TObject(ProcessListInfo));
-        end;
-      end;
-
-      previouswinhandle:=winhandle;
-      winhandle:=getwindow(winhandle,GW_HWNDNEXT);
-
-      if winhandle=previouswinhandle then break;
-      
-      inc(i);
-    end;
-
-    x.Sort;
-    processlist.Items.Assign(x);
-  finally
-    freemem(temp);
-  end; }
 end;
 
 function GetCEdir:string;
@@ -2365,6 +2159,7 @@ begin
     WindowsDir:=x;
   end;
   freemem(x);
+  x:=nil;
 end;
 
 Procedure Shutdown;
@@ -2375,6 +2170,7 @@ begin
   deletefile(CheatEngineDir+'Memory.UNDO');
   deletefile(CheatEngineDir+'Addresses.UNDO');
   freemem(memory);
+  memory:=nil;
  // Closehandle(processhandle);
 
 end;
@@ -2437,26 +2233,8 @@ begin
   begin
     result:=rewritedata(processhandle,address,buffer,size);
 
-  FlushInstructionCache(processhandle,pointer(address),size);
-
-  {
-  else
-  begin
-    //go through a loop of single pages and write as much as possible
-    bytesleft:=size;
-    size:=0;
-
-    //do the first part
-
-    init:=min(size, bytesleft);
-    writeprocessmemory(
-
-
-
-
+    FlushInstructionCache(processhandle,pointer(address),size);
   end;
-  }
-end;
 
 end;
 
@@ -2493,6 +2271,7 @@ begin
       end;
     finally
       freemem(l);
+      l:=nil;
     end;
   end;
 
@@ -2669,7 +2448,10 @@ begin
       end;
     finally
       if buf<>nil then
+      begin
         freemem(buf);
+        buf:=nil;
+      end;
 
       reg.free;
     end;
@@ -3091,10 +2873,12 @@ begin
 
       finally
         freemem(drivername);
+        drivername:=nil;
       end;
     end;
   finally
     freemem(x);
+    x:=nil;
   end;
 end;
 
@@ -3233,7 +3017,7 @@ begin
               end;
 
               freemem(buf);
-
+              buf:=nil;
 
             end;
           end;
@@ -3313,7 +3097,10 @@ initialization
 finalization
 
   if tempdir<>nil then
+  begin
     freemem(tempdir);
+    tempdir:=nil;
+  end;
 
 end.
 

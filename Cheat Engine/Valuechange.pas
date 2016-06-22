@@ -229,6 +229,7 @@ begin
               ValueText.text:=ws;
 
               freemem(ws);
+              ws:=nil;
 
             end
             else
@@ -244,6 +245,7 @@ begin
               ValueText.text:=s;
 
               freemem(s);
+              s:=nil;
             end;
 
             cbunicode.visible:=true;
