@@ -12,6 +12,7 @@ autoAssemble([[
   [32-bit]
   mov eax,[esp+4]
   mov eax,[eax]
+  mov ecx,[eax+8]
   push ebx
   push ecx
   push edx
@@ -20,9 +21,11 @@ autoAssemble([[
   [/32-bit]
 
   [64-bit]
-  mov rax,[rcx]
+  
   mov r8,rcx //save rcx
   mov r9,rbx //save rbx
+  mov eax,[rcx]
+  mov ecx,[rcx+8]
   [/64-bit]
   cpuid
 
