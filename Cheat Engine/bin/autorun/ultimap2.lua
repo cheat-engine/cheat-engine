@@ -377,7 +377,7 @@ function RecordClick(sender)
 end;
 
 function LaunchUltimap2()
-  if true then --Ultimap2Check() then
+  if Ultimap2Check() then
     --create a form with options and state of ultimap2
     if ultimap2.Form==nil then
 	  ultimap2.Active=false
