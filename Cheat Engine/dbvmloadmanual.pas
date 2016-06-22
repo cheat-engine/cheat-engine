@@ -36,7 +36,11 @@ uses aboutunit, Parsers, DBK32functions, vmxfunctions;
 
 resourcestring
   rsCpuAlreadyRunningDBVM='This cpu is already running DBVM';
-
+  rsCpu = 'CPU ';
+  rsChecking = '<Checking>';
+  rsLoaded = 'Loaded:';
+  rsNotLoaded = 'Not loaded';
+  
 { TfrmDBVMLoadManual }
 
 procedure TfrmDBVMLoadManual.launchDBVMForCpuClick(Sender: TObject);
@@ -115,11 +119,11 @@ begin
       p.BorderSpacing.top:=5;
 
       b:=Tbutton.create(p);
-      b.caption:='CPU '+inttostr(i);
+      b.caption:=rsCpu+inttostr(i);
       b.parent:=p;
 
       l:=TLabel.create(p);
-      l.caption:='<Checking>';
+      l.caption:=rsChecking;
       l.parent:=p;
 
       b.AnchorSideTop.Control:=p;
@@ -171,14 +175,14 @@ begin
 
     if dbvm_version>0 then
     begin
-      cpulabels[i].caption:='Loaded:'+inttostr(dbvm_version and $ffffff);
+      cpulabels[i].caption:=rsLoaded+inttostr(dbvm_version and $ffffff);
       cpulabels[i].font.color:=clGreen;
       cpulabels[i].tag:=-1;
     end
     else
     begin
       allactive:=false;
-      cpulabels[i].caption:='Not loaded';
+      cpulabels[i].caption:=rsNotLoaded;
       cpulabels[i].font.color:=clWindowText;
     end;
   end;
