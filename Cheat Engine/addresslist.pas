@@ -163,8 +163,8 @@ uses dialogs, formAddressChangeUnit, TypePopup, PasteTableentryFRM, mainunit,
   ProcessHandlerUnit, frmEditHistoryUnit;
 
 resourcestring
-  rsDoYouWantToDeleteTheSelectedAddress = 'Do you want to delete the selected '
-    +'address%s?';
+  rsDoYouWantToDeleteTheSelectedAddress = 'Do you want to delete the selected address?';
+  rsDoYouWantToDeleteTheSelectedAddresses = 'Do you want to delete the selected addresses?';
   rsChangeDescription = 'Change Description';
   rsWhatWillBeTheNewDescription = 'What will be the new description?';
   rsChangeValue = 'Change Value';
@@ -356,19 +356,19 @@ end;
 
 procedure TAddresslist.DeleteSelected(ask: boolean=true);
 var i: integer;
-multi: string;
+question: string;
 oldindex: integer;
 begin
 
   if count=0 then exit;
 
   if selcount=0 then exit;
-  if selcount=1 then multi:='' else multi:='es';
+  if selcount=1 then question:=rsDoYouWantToDeleteTheSelectedAddress else question:=rsDoYouWantToDeleteTheSelectedAddresses;
 
   oldindex:=selectedRecord.treenode.AbsoluteIndex;
 
 
-  if (not ask) or (messagedlg(Format(rsDoYouWantToDeleteTheSelectedAddress, [multi]), mtConfirmation, [mbyes, mbno], 0) = mryes) then
+  if (not ask) or (messagedlg(question, mtConfirmation, [mbyes, mbno], 0) = mryes) then
   begin
     i:=0;
     while i<count do
