@@ -258,11 +258,11 @@ function launchRTIT()
   e.TraceEn = true
   e.OS = false
   e.USER = true
-  e.CR3Filter = false --for now
+  e.CR3Filter = true --false --for now
   e.ToPA = true
   e.TSCEn = true
   e.DisRETC = true
-
+    
   setRTIT_CTL(e)
 end
 
@@ -328,7 +328,9 @@ function RTIT_WatcherThread(t, cpunr)
 	
 	if ultimap2.Command[cpunr]==CMD_StartRecording then
 	  dbk_writeMSR(IA32_RTIT_OUTPUT_BASE, dbk_getPhysicalAddress(ultimap2.ToPABuffers[cpunr].Memory))
-	  dbk_writeMSR(IA32_RTIT_OUTPUT_MASK_PTRS,0)		
+	  dbk_writeMSR(IA32_RTIT_OUTPUT_MASK_PTRS,0)
+	  dbk_writeMSR(IA32_RTIT_CR3_MATCH, dbk_getCR3())
+	  
 	  launchRTIT()
 	  ultimap2.Command[cpunr]=0	
 	  
@@ -346,8 +348,11 @@ function RTIT_WatcherThread(t, cpunr)
 	  ultimap2.Status[cpunr].Status=getRTIT_STATUS()
 	  ultimap2.Status[cpunr].OutputBase=dbk_readMSR(IA32_RTIT_OUTPUT_BASE)
 	  ultimap2.Status[cpunr].OutputMask=dbk_readMSR(IA32_RTIT_OUTPUT_MASK_PTRS)	
-	  ultimap2.Status[cpunr].Progress=ultimap2.ToPABuffers[cpunr].ProgressCheck[ultimap2.Status[cpunr].OutputBase]+((ultimap2.Status[cpunr].OutputMask&0xffffffff) >> 7)
-	  ultimap2.Status[cpunr].ProgressPercentage=(ultimap2.Status[cpunr].Progress/ultimap2.ToPABuffers[cpunr].TotalEntries)*100
+	  
+	  if ultimap2.ToPABuffers and ultimap2.ToPABuffers[cpunr] then	  
+	    ultimap2.Status[cpunr].Progress=ultimap2.ToPABuffers[cpunr].ProgressCheck[ultimap2.Status[cpunr].OutputBase]+((ultimap2.Status[cpunr].OutputMask&0xffffffff) >> 7)
+	    ultimap2.Status[cpunr].ProgressPercentage=(ultimap2.Status[cpunr].Progress/ultimap2.ToPABuffers[cpunr].TotalEntries)*100
+	  end
 	end
     sleep(100);
 	
@@ -415,7 +420,11 @@ function ultimap2.TimerUpdate(sender)
 	c.Brush.Color=0xffffff
 	c.clear()
 	c.gradientFill(0,100-progress,1,100,currentcolor,0x00ff00,0)
-		
+	
+    --if (ultimap2.gbBuffer[i].ab.Checked) and 
+	
+	--when ultimap2.Status[i].Status.Stopped is true, play an alarm sound and stop recording the other cpu's
+	
   end
 end
 
