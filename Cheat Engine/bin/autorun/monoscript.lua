@@ -1676,21 +1676,24 @@ function mono_OpenProcessMT(t)
     --create a menu item if needed
     if (miMonoTopMenuItem==nil) then
       local mfm=getMainForm().Menu
-      local mi
-      miMonoTopMenuItem=createMenuItem(mfm)
-      miMonoTopMenuItem.Caption="Mono"
-      mfm.Items.insert(mfm.Items.Count-1, miMonoTopMenuItem) --add it before help
+      
+	  if (mfm)
+	    local mi
+        miMonoTopMenuItem=createMenuItem(mfm)
+		miMonoTopMenuItem.Caption="Mono"
+		mfm.Items.insert(mfm.Items.Count-1, miMonoTopMenuItem) --add it before help
 
-      mi=createMenuItem(miMonoTopMenuItem)
-      mi.Caption="Activate mono features"
-      mi.OnClick=miMonoActivateClick
-      miMonoTopMenuItem.Add(mi)
+		mi=createMenuItem(miMonoTopMenuItem)
+		mi.Caption="Activate mono features"
+		mi.OnClick=miMonoActivateClick
+		miMonoTopMenuItem.Add(mi)
 
-      mi=createMenuItem(miMonoTopMenuItem)
-      mi.Caption="Dissect mono"
-      mi.Shortcut="Ctrl+Alt+M"
-      mi.OnClick=miMonoDissectClick
-      miMonoTopMenuItem.Add(mi)
+		mi=createMenuItem(miMonoTopMenuItem)
+		mi.Caption="Dissect mono"
+		mi.Shortcut="Ctrl+Alt+M"
+		mi.OnClick=miMonoDissectClick
+		miMonoTopMenuItem.Add(mi)
+	  end
     end
 
   else
