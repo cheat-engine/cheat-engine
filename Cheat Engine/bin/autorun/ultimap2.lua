@@ -167,7 +167,9 @@ function setupToPA(size)
 	  local size=sizePerCPU+extra;
 	  ultimap2.ToPABuffers[i]={}
 	  ultimap2.ToPABuffers[i].Memory=allocateKernelMemory(size)
+	  ultimap2.ToPABuffers[i].MemorySize=size
 	  ultimap2.ToPABuffers[i].Layout={}  
+	  ultimap2.ToPABuffers[i].ToPAHeaders={}
 	  local ToPAMemory=ultimap2.ToPABuffers[i].Memory	  
 	  
 	  ultimap2.Command[i]=CMD_LoadToPA
@@ -175,14 +177,11 @@ function setupToPA(size)
 
 	  if (ToPAMemory~=0) then
 		--configure it
-		--zero the memory (not really needed, but do this while testing)
 
+
+		table.insert(ultimap2.ToPABuffers[i].ToPAHeaders, ToPAMemory)	
 		table.insert(ultimap2.ToPABuffers[i].Layout, dbk_getPhysicalAddress(ToPAMemory))	
 		
-		for i=0, size-7, 8 do
-		  writeQword(ToPAMemory+i,0)
-		end
-
 		local maxAddress=ToPAMemory+size-1
 		local currentOutput=ToPAMemory+4096
 		local currentToPA=ToPAMemory
@@ -213,6 +212,7 @@ function setupToPA(size)
 			currentToPA=currentOutput
 			maxToPA=currentToPA+4096-9
 			
+			table.insert(ultimap2.ToPABuffers[i].ToPAHeaders, currentOutput)	
 			table.insert(ultimap2.ToPABuffers[i].Layout, e.PhysicalAddress)	
 			index=0
 			--TODO: If support for size>0 then record that too
@@ -246,11 +246,39 @@ function setupToPA(size)
 		end
 	  end
 
-	end
-	
-	
+	end	
   end
+end
 
+function readOutput(cpunr, size)
+  --write everything except the pages of ultimap2.ToPABuffers[i].ToPAHeaders
+  local start=ultimap2.ToPABuffers[cpunr].Memory
+  local stop=start+ultimap2.ToPABuffers[cpunr].MemorySize
+  
+  if size then stop=start+size else 
+    stop=start+4096+ultimap2.Status[cpunr].Progress+(ultimap2.Status[cpunr].OutputMask>>32)
+  end
+  
+  local current=start+4096
+  local i=2
+  
+  local r={}
+  
+  while current<stop do
+    local blocksize=ultimap2.ToPABuffers[cpunr].ToPAHeaders[i]-current
+	
+	if current+blocksize>=stop then
+	  blocksize=stop-current
+	end
+
+	r[i-1]=readBytes(current, blocksize, true)
+
+    i=i+1
+
+    current=current+blocksize+4096 --+4096 because it is folowed by the next ToPA header	
+  end
+  
+  return r --caller can group it
 end
 
 function launchRTIT()
@@ -260,8 +288,8 @@ function launchRTIT()
   e.USER = true
   e.CR3Filter = true --false --for now
   e.ToPA = true
-  e.TSCEn = true
-  e.DisRETC = true
+  e.TSCEn = false
+  e.DisRETC = false
     
   setRTIT_CTL(e)
 end
