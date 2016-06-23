@@ -1677,7 +1677,7 @@ function mono_OpenProcessMT(t)
     if (miMonoTopMenuItem==nil) then
       local mfm=getMainForm().Menu
       
-	  if (mfm)
+	  if (mfm) then
 	    local mi
         miMonoTopMenuItem=createMenuItem(mfm)
 		miMonoTopMenuItem.Caption="Mono"
