@@ -147,8 +147,8 @@ function setupToPA(size)
 
   if (ultimap2.ToPABuffers~=nil) then
     for k,v in pairs(ultimap2.ToPABuffers) do
-	  freeKernelMemory(v.Memory)
-	end
+	    freeKernelMemory(v.Memory)
+	  end
   end
   
   ultimap2.ToPABuffers={}
@@ -158,96 +158,98 @@ function setupToPA(size)
   for i=1, #ultimap2.gbBuffer do
     if ultimap2.gbBuffer[i].ab.Checked then
 	  
-	  if left>=4096 then
-	    extra=4096
-		left=left-4096
-	  else
-	    extra=0
-	  end
-	  local size=sizePerCPU+extra;
-	  ultimap2.ToPABuffers[i]={}
-	  ultimap2.ToPABuffers[i].Memory=allocateKernelMemory(size)
-	  ultimap2.ToPABuffers[i].MemorySize=size
-	  ultimap2.ToPABuffers[i].Layout={}  
-	  ultimap2.ToPABuffers[i].ToPAHeaders={}
-	  local ToPAMemory=ultimap2.ToPABuffers[i].Memory	  
-	  
-	  ultimap2.Command[i]=CMD_LoadToPA
-	  print(string.format("ToPA for cpu %d allocated at %x  (size=0x%x)", i-1, ToPAMemory, size))	
+      if left>=4096 then
+        extra=4096
+      left=left-4096
+      else
+        extra=0
+      end
+      local size=sizePerCPU+extra;
+      ultimap2.ToPABuffers[i]={}
+      ultimap2.ToPABuffers[i].Memory=allocateKernelMemory(size)
+      ultimap2.ToPABuffers[i].MemorySize=size
+      ultimap2.ToPABuffers[i].Layout={}  
+      ultimap2.ToPABuffers[i].ToPAHeaders={}
+      local ToPAMemory=ultimap2.ToPABuffers[i].Memory	  
+      
+      ultimap2.Command[i]=CMD_LoadToPA
+      print(string.format("ToPA for cpu %d allocated at %x  (size=0x%x)", i-1, ToPAMemory, size))	
 
-	  if (ToPAMemory~=0) then
-		--configure it
+      if (ToPAMemory~=0) then
+      --configure it
 
 
-		table.insert(ultimap2.ToPABuffers[i].ToPAHeaders, ToPAMemory)	
-		table.insert(ultimap2.ToPABuffers[i].Layout, dbk_getPhysicalAddress(ToPAMemory))	
-		
-		local maxAddress=ToPAMemory+size-1
-		local currentOutput=ToPAMemory+4096
-		local currentToPA=ToPAMemory
-		local maxToPA=currentToPA+4096-9
-		
+        table.insert(ultimap2.ToPABuffers[i].ToPAHeaders, ToPAMemory)	
+        table.insert(ultimap2.ToPABuffers[i].Layout, dbk_getPhysicalAddress(ToPAMemory))	
+      
+        local maxAddress=ToPAMemory+size-1
+        local currentOutput=ToPAMemory+4096
+        local currentToPA=ToPAMemory
+        local maxToPA=currentToPA+4096-9
+      
 
-		local index=0
-		local e={}
-		local lastToPA=currentToPA
-		while (currentOutput<maxAddress) do
-		  lastToPA=currentToPA
-		  e.PhysicalAddress= dbk_getPhysicalAddress(currentOutput)
-		  
-		  if (e.PhysicalAddress==nil) then
-		    error(string.format('dbk_getPhysicalAddress(%x)==nil', currentOutput)) 
-		  end
-		  
-		  e.Size = 0  --todo: group together if on a proper alignment and contiguous
-		  e.STOP = false
-		  e.INT = false
-		  
+        local index=0
+        local e={}
+        local lastToPA=currentToPA
+        while (currentOutput<maxAddress) do
+          lastToPA=currentToPA
+          e.PhysicalAddress= dbk_getPhysicalAddress(currentOutput)
+          
+          if (e.PhysicalAddress==nil) then
+            error(string.format('dbk_getPhysicalAddress(%x)==nil', currentOutput)) 
+          end
+        
+          e.Size = 0  --todo: group together if on a proper alignment and contiguous
+          e.STOP = false
+          e.INT = false
+        
 
-		  if currentToPA>=maxToPA then
-			--this block becomes a new ToPA
-			print("new ToPA list")
-			e.END = true          
+          if currentToPA>=maxToPA then
+            --this block becomes a new ToPA
+            --print("new ToPA list")
+            e.END = true          
 
-			currentToPA=currentOutput
-			maxToPA=currentToPA+4096-9
-			
-			table.insert(ultimap2.ToPABuffers[i].ToPAHeaders, currentOutput)	
-			table.insert(ultimap2.ToPABuffers[i].Layout, e.PhysicalAddress)	
-			index=0
-			--TODO: If support for size>0 then record that too
-		  else
-			e.END = false
-			currentToPA=currentToPA+8
-			
-			index=index+1
-		  end
+            currentToPA=currentOutput
+            maxToPA=currentToPA+4096-9
+            
+            table.insert(ultimap2.ToPABuffers[i].ToPAHeaders, currentOutput)	
+            table.insert(ultimap2.ToPABuffers[i].Layout, e.PhysicalAddress)	
+            index=0
+            --TODO: If support for size>0 then record that too
+            else
+            e.END = false
+            currentToPA=currentToPA+8
+        
+            index=index+1
+          end
 
-		  writeQword(lastToPA, ToPA_Table_Entry_To_Value(e))
+          writeQword(lastToPA, ToPA_Table_Entry_To_Value(e))
 
-		  currentOutput=currentOutput+4096        
-		end
+          currentOutput=currentOutput+4096        
+        end
 
-		--end of memory
-		e.STOP = true
-		e.INT = false
-		e.END = false
-		e.Size = 0
-		writeQword(lastToPA, ToPA_Table_Entry_To_Value(e))  --mark it as stop	  
-	
-		--each entry except the last one is 4096/8 entries
-		ultimap2.ToPABuffers[i].TotalEntries=math.floor((#ultimap2.ToPABuffers[i].Layout-1)*(4096/8)+index)
-		  
-		ultimap2.ToPABuffers[i].ProgressCheck={} --contains the number of entries done till this ToPA table. Combined with TotalEntries this can be used to figure ouyt the size of the buffer
-		  
-		local k,v
-		for k,v in pairs(ultimap2.ToPABuffers[i].Layout) do
-		  ultimap2.ToPABuffers[i].ProgressCheck[v]=math.floor((k-1)*(4096/8))
-		end
-	  end
+        --end of memory
+        e.STOP = true
+        e.INT = false
+        e.END = false
+        e.Size = 0
+        writeQword(lastToPA, ToPA_Table_Entry_To_Value(e))  --mark it as stop	  
+    
+        --each entry except the last one is 4096/8 entries
+        ultimap2.ToPABuffers[i].TotalEntries=math.floor((#ultimap2.ToPABuffers[i].Layout-1)*(4096/8)+index)
+          
+        ultimap2.ToPABuffers[i].ProgressCheck={} --contains the number of entries done till this ToPA table. Combined with TotalEntries this can be used to figure ouyt the size of the buffer
+          
+        local k,v
+        for k,v in pairs(ultimap2.ToPABuffers[i].Layout) do
+          ultimap2.ToPABuffers[i].ProgressCheck[v]=math.floor((k-1)*(4096/8))
+        end
+      end
 
-	end	
+    end	
   end
+  
+  waitForWatcherThreads()
 end
 
 function readOutput(cpunr, size)
@@ -256,7 +258,7 @@ function readOutput(cpunr, size)
   local stop=start+ultimap2.ToPABuffers[cpunr].MemorySize
   
   if size then stop=start+size else 
-    stop=start+4096+ultimap2.Status[cpunr].Progress+(ultimap2.Status[cpunr].OutputMask>>32)
+    stop=start+4096+ultimap2.Status[cpunr].Progress*4096+(ultimap2.Status[cpunr].OutputMask>>32)
   end
   
   local current=start+4096
@@ -286,10 +288,12 @@ function launchRTIT()
   e.TraceEn = true
   e.OS = false
   e.USER = true
-  e.CR3Filter = true --false --for now
+  e.CR3Filter = true
   e.ToPA = true
   e.TSCEn = false
   e.DisRETC = false
+  
+  e.Bit13=true
     
   setRTIT_CTL(e)
 end
@@ -321,12 +325,13 @@ function BufferPanelResize(sender)
     local bwidth=sender.ClientWidth / #ultimap2.gbBuffer
     for i=1, #ultimap2.gbBuffer do
       ultimap2.gbBuffer[i].gb.Width=bwidth
-	  ultimap2.gbBuffer[i].gb.Height=sender.ClientHeight
-	  ultimap2.gbBuffer[i].gb.Top=0
-	  ultimap2.gbBuffer[i].gb.Left=bwidth*(i-1)	  
-	end
+      ultimap2.gbBuffer[i].gb.Height=sender.ClientHeight
+      ultimap2.gbBuffer[i].gb.Top=0
+      ultimap2.gbBuffer[i].gb.Left=bwidth*(i-1)	  
+	  end
   end
 end
+
 
 function RTIT_WatcherThread(t, cpunr)
   --print("Thread for cpu "..cpunr-1)
@@ -342,88 +347,154 @@ function RTIT_WatcherThread(t, cpunr)
   local launched=false;
   
   while not t.Terminated do
-    
-	
-	
+  
     --get the status and update ultimap2.gbBuffer[cpunr+1].progress 
-	if ultimap2.Command[cpunr]==CMD_LoadToPA then	
-	  dbk_writeMSR(IA32_RTIT_OUTPUT_BASE, dbk_getPhysicalAddress(ultimap2.ToPABuffers[cpunr].Memory))
-	  dbk_writeMSR(IA32_RTIT_OUTPUT_MASK_PTRS,0)	
-	  ultimap2.Command[cpunr]=0 
-
+    if ultimap2.Command[cpunr]==CMD_LoadToPA then
+      sleep(100)    
+      dbk_writeMSR(IA32_RTIT_OUTPUT_BASE, dbk_getPhysicalAddress(ultimap2.ToPABuffers[cpunr].Memory))
+      dbk_writeMSR(IA32_RTIT_OUTPUT_MASK_PTRS,0)	
+      ultimap2.Command[cpunr]=0           
+    end
+    
+    if ultimap2.Command[cpunr]==CMD_StartRecording then
+      sleep(100)
+      dbk_writeMSR(IA32_RTIT_OUTPUT_BASE, dbk_getPhysicalAddress(ultimap2.ToPABuffers[cpunr].Memory))
+      dbk_writeMSR(IA32_RTIT_OUTPUT_MASK_PTRS,0)
+      dbk_writeMSR(IA32_RTIT_CR3_MATCH, dbk_getCR3())
+      
+      launchRTIT()
+      ultimap2.Command[cpunr]=0	
+      
+      launched=true	
+    end
+    
+    if ultimap2.Command[cpunr]==CMD_StopRecording then
+      sleep(100)
+      dbk_writeMSR(IA32_RTIT_CTL,0)
+      dbk_writeMSR(IA32_RTIT_STATUS,0)  
+      ultimap2.Command[cpunr]=0
+    end	
+    
+    
+      --collect data (the mainthread timer will update the status)
+    if launched then
+      ultimap2.Status[cpunr].Status=getRTIT_STATUS()
+      ultimap2.Status[cpunr].OutputBase=dbk_readMSR(IA32_RTIT_OUTPUT_BASE)
+      ultimap2.Status[cpunr].OutputMask=dbk_readMSR(IA32_RTIT_OUTPUT_MASK_PTRS)	
+      
+      if ultimap2.ToPABuffers and ultimap2.ToPABuffers[cpunr] and ultimap2.ToPABuffers[cpunr].ProgressCheck then	  
+        ultimap2.Status[cpunr].Progress=ultimap2.ToPABuffers[cpunr].ProgressCheck[ultimap2.Status[cpunr].OutputBase]+((ultimap2.Status[cpunr].OutputMask&0xffffffff) >> 7)
+        ultimap2.Status[cpunr].ProgressPercentage=(ultimap2.Status[cpunr].Progress/ultimap2.ToPABuffers[cpunr].TotalEntries)*100
         
-	end
-	
-	if ultimap2.Command[cpunr]==CMD_StartRecording then
-	  dbk_writeMSR(IA32_RTIT_OUTPUT_BASE, dbk_getPhysicalAddress(ultimap2.ToPABuffers[cpunr].Memory))
-	  dbk_writeMSR(IA32_RTIT_OUTPUT_MASK_PTRS,0)
-	  dbk_writeMSR(IA32_RTIT_CR3_MATCH, dbk_getCR3())
-	  
-	  launchRTIT()
-	  ultimap2.Command[cpunr]=0	
-	  
-	  launched=true	
-	end
-	
-	if ultimap2.Command[cpunr]==CMD_StopRecording then
-	  dbk_writeMSR(IA32_RTIT_CTL,0)
-	  ultimap2.Command[cpunr]=0
-	end	
-	
-	
-    --collect data (the mainthread timer will update the status)
-	if launched then
-	  ultimap2.Status[cpunr].Status=getRTIT_STATUS()
-	  ultimap2.Status[cpunr].OutputBase=dbk_readMSR(IA32_RTIT_OUTPUT_BASE)
-	  ultimap2.Status[cpunr].OutputMask=dbk_readMSR(IA32_RTIT_OUTPUT_MASK_PTRS)	
-	  
-	  if ultimap2.ToPABuffers and ultimap2.ToPABuffers[cpunr] then	  
-	    ultimap2.Status[cpunr].Progress=ultimap2.ToPABuffers[cpunr].ProgressCheck[ultimap2.Status[cpunr].OutputBase]+((ultimap2.Status[cpunr].OutputMask&0xffffffff) >> 7)
-	    ultimap2.Status[cpunr].ProgressPercentage=(ultimap2.Status[cpunr].Progress/ultimap2.ToPABuffers[cpunr].TotalEntries)*100
-	  end
-	end
-    sleep(100);
-	
+        if (ultimap2.Status[cpunr].ProgressPercentage>50) then
+          local old=1
+          old,ultimap2.paused=ultimap2.paused,old
+          if old==nil then 
+            pause() --stop the process so we don't miss packets during the save            
+            
+            if getRTIT_STATUS().Stopped then 
+              print("loss of information")
+            end
+            
+            
+            dbk_writeMSR(IA32_RTIT_CTL,0)
+            dbk_writeMSR(IA32_RTIT_STATUS,0)   
 
+            local i            
+            for i=1, #ultimap2.Command do             
+              ultimap2.Command[i]=CMD_StopRecording
+            end
+            
+            ultimap2.Command[cpunr]=CMD_None --in case of a race condition            
+            if waitForWatcherThreads(true)==false then print("wait timeout") end
+            
+            --save the results of all the threads
+            
+            
+            --restore the write header to the start of the memory
+            dbk_writeMSR(IA32_RTIT_OUTPUT_BASE, dbk_getPhysicalAddress(ultimap2.ToPABuffers[cpunr].Memory))
+            dbk_writeMSR(IA32_RTIT_OUTPUT_MASK_PTRS,0)	            
+            for i=1, #ultimap2.Command do             
+              ultimap2.Command[i]=CMD_LoadToPA
+            end
+            ultimap2.Command[cpunr]=CMD_None
+            if waitForWatcherThreads(true)==false then print("wait timeout") end
+            
 
-  end
+            --start recording
+            dbk_writeMSR(IA32_RTIT_OUTPUT_BASE, dbk_getPhysicalAddress(ultimap2.ToPABuffers[cpunr].Memory))
+            dbk_writeMSR(IA32_RTIT_OUTPUT_MASK_PTRS,0)
+            dbk_writeMSR(IA32_RTIT_CR3_MATCH, dbk_getCR3())
+            
+            launchRTIT()
+      
+            for i=1, #ultimap2.Command do             
+              ultimap2.Command[i]=CMD_StartRecording
+            end
+            ultimap2.Command[cpunr]=CMD_None
+            if waitForWatcherThreads(true)==false then print("wait timeout") end
+         
+           -- print("cpu "..cpunr.." has flushed the results")
+          
+            unpause()
+            ultimap2.paused=nil         
+          end  --else some other thread has initiated a flush. Just go through the loop again, it probably has commands waiting for me
+        end
+        else
+          ultimap2.Status[cpunr].Progress=0
+          ultimap2.Status[cpunr].ProgressPercentage=0
+        end
+      end
+      sleep(10);
+    end
 end
 
-function waitForWatcherThreads() --only from mainthread
+function waitForWatcherThreads(fromthread) --only from mainthread
   --TODO: Add event and other sync methods to lua
   local starttime=GetTickCount();
+--  print("waitForWatcherThreads:")
   for i=1, #ultimap2.gbBuffer do
-    if ultimap2.Command[i]~=CMD_None then
-	  if GetTickCount()>starttime+5000 then --5 seconds
-	    print("Thread "..i.." has stopped responding");
-		return
+    --print("ultimap2.Command["..i.."]="..ultimap2.Command[i])
+    while ultimap2.Command[i]~=CMD_None do
+      --print("cpu "..i.." is busy")
+      if GetTickCount()>starttime+5000 then --5 seconds
+        if fromthread==nil then
+          print("Thread "..i.." has stopped responding");
+        end
+        return false
       end
-	  sleep(10)
-	  checkSynchronize()
-	end
+      if fromthread==nil then
+        sleep(10)
+	      checkSynchronize()
+      else
+        sleep(1)
+      end
+	  end
   end
+  
+  return true
 end
 
 function RecordClick(sender)
   if (sender.Checked) then
     size=tonumber(ultimap2.Form.edtSize.text)*4096
-	openProcess(getOpenedProcessID()) --force kernelmode access
+    openProcess(getOpenedProcessID()) --force kernelmode access
     setupToPA(size)
   
     for i=1, #ultimap2.gbBuffer do
       if ultimap2.gbBuffer[i].ab.Checked then
-	    ultimap2.Command[i]=CMD_StartRecording
-	  end
-	   
-	  ultimap2.gbBuffer[i].ab.Enabled=false
-	end
-	
+        ultimap2.Command[i]=CMD_StartRecording
+      end
+     
+      ultimap2.gbBuffer[i].ab.Enabled=false
+    end
+
 	
   else 
     for i=1, #ultimap2.gbBuffer do
       ultimap2.Command[i]=CMD_StopRecording	  
-	  ultimap2.gbBuffer[i].ab.Enabled=true
-	end
+      ultimap2.gbBuffer[i].ab.Enabled=true
+    end
   end
   
   waitForWatcherThreads()
@@ -435,24 +506,24 @@ function ultimap2.TimerUpdate(sender)
   for i=1, #ultimap2.Status do
     local c=ultimap2.gbBuffer[i].progress.Picture.Bitmap.Canvas
 	
-	--local progress=i*10 --debug
-	local progress=0
-	if (ultimap2.Status[i].ProgressPercentage) then
-	  progress=ultimap2.Status[i].ProgressPercentage
-	end
-	
-	
-	local shade=math.floor(progress/100*255)
-	
-	local currentcolor=byteTableToDword({shade,255-shade,0,0})
-	c.Brush.Color=0xffffff
-	c.clear()
-	c.gradientFill(0,100-progress,1,100,currentcolor,0x00ff00,0)
-	
-    --if (ultimap2.gbBuffer[i].ab.Checked) and 
-	
-	--when ultimap2.Status[i].Status.Stopped is true, play an alarm sound and stop recording the other cpu's
-	
+    --local progress=i*10 --debug
+    local progress=0
+    if (ultimap2.Status[i].ProgressPercentage) then
+      progress=ultimap2.Status[i].ProgressPercentage
+    end
+    
+    
+    local shade=math.floor(progress/100*255)
+    
+    local currentcolor=byteTableToDword({shade,255-shade,0,0})
+    c.Brush.Color=0xffffff
+    c.clear()
+    c.gradientFill(0,100-progress,1,100,currentcolor,0x00ff00,0)
+    
+      --if (ultimap2.gbBuffer[i].ab.Checked) and 
+    
+    --when ultimap2.Status[i].Status.Stopped is true, play an alarm sound and stop recording the other cpu's
+    
   end
 end
 
