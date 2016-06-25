@@ -58,6 +58,11 @@ implementation
 
 uses networkInterfaceApi;
 
+resourcestring
+  rsHost = 'host:';
+  rsCouldNotBeResolved = ' could not be resolved';
+  rsFailureCreatingSocket = 'Failure creating socket';
+  rsFailedConnectingToTheServer = 'Failed connecting to the server';
 
 type TDiscovery=class(tthread)
   private
@@ -211,7 +216,7 @@ begin
       if hr.NameLookup(hostname) then
         host:=hr.NetHostAddress
       else
-        raise exception.create('host:'+hostname+' could not be resolved');
+        raise exception.create(rsHost+hostname+rsCouldNotBeResolved);
 
     end;
 
@@ -223,7 +228,7 @@ begin
   port:=ShortHostToNet(p);
 
   if getConnection=nil then
-    raise exception.create('Failed connecting to the server');
+    raise exception.create(rsFailedConnectingToTheServer);
 
 
   InitializeNetworkInterface;

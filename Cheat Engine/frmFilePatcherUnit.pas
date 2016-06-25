@@ -41,10 +41,13 @@ implementation
 
 {$R *.lfm}
 
+resourcestring
+  rsFilePatcher = 'File Patcher: ';
+
 procedure TfrmFilePatcher.setModule;
 begin
   fmodule:=m;
-  caption:='File Patcher: '+m;
+  caption:=rsFilePatcher+m;
 end;
 
 procedure TfrmFilePatcher.AutoOrManual(Sender: TObject);

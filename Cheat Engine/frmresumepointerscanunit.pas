@@ -13,6 +13,8 @@ resourcestring
   rsRPSIpList = 'IP List';
   rsRPSEnterTheIpAddressesToNotifyExplicitly = 'Enter the IP addresses to notify explicitly';
   rsRPSWasNotFound = ' was not found';
+  rsNewPointermap = 'New pointermap';
+  rsEnterTheAddressThisScanShouldLookFor = 'Enter the address this scan should look for';
 
 type
 
@@ -109,7 +111,7 @@ var address: string;
 begin
   if odLoadPointermap.Execute then
   begin
-    if InputQuery('New pointermap','Enter the address this scan should look for', address) then
+    if InputQuery(rsNewPointermap,rsEnterTheAddressThisScanShouldLookFor, address) then
     begin
       a:=StrToQWord('$'+address);
       instantrescanfiles.AddObject(odLoadPointermap.FileName, pointer(a));

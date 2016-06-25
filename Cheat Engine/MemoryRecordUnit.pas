@@ -20,6 +20,9 @@ uses
 
 resourcestring
   rsMRNibbleSupportIsOnlyForHexadecimalDisplay = 'Nibble support is only for hexadecimal display';
+  rsPqqqqqqqq = 'P->????????';
+  rsP = 'P->';
+  rsError = 'error';
 
 type TMemrecHotkeyAction=(mrhToggleActivation, mrhToggleActivationAllowIncrease, mrhToggleActivationAllowDecrease, mrhActivate, mrhDeactivate, mrhSetValue, mrhIncreaseValue, mrhDecreaseValue);
 
@@ -1828,9 +1831,9 @@ begin
   if length(pointeroffsets)>0 then
   begin
     if UnreadablePointer then
-      result:='P->????????'
+      result:=rsPqqqqqqqq
     else
-      result:='P->'+inttohex(realaddress,8);
+      result:=rsP+inttohex(realaddress,8);
   end else
   begin
     if (realaddress=0) and (couldnotinterpretaddress) then
@@ -1945,7 +1948,7 @@ begin
             if showashex then result:=inttohex(customtype.ConvertDataToInteger(buf, RealAddress),8) else if showassigned then result:=inttostr(integer(customtype.ConvertDataToInteger(buf, RealAddress))) else result:=inttostr(customtype.ConvertDataToInteger(buf, RealAddress));
         end
         else
-          result:='error';
+          result:=rsError;
       end;
 
       vtByte : if showashex then result:=inttohex(pb^,2) else if showassigned then result:=inttostr(shortint(pb^)) else result:=inttostr(pb^);

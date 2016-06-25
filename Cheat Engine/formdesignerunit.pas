@@ -192,11 +192,13 @@ uses mainunit;
 resourcestring
   rsInvalidObject = '{Invalid object}';
   rsFormDesignerCaption = 'Form Designer';
+  rsFormFilesFrmFRM = 'Form files(*.frm)|*.FRM';
+  rsFormFilesLfmLFM = 'Form files(*.lfm)|*.LFM';
 
 procedure TFormDesigner.setFormName;
 begin
   if (GlobalDesignHook.LookupRoot<>nil) and (GlobalDesignHook.LookupRoot is TComponent) then
-    caption:='Form Designer'+':'+TComponent(GlobalDesignHook.LookupRoot).name;
+    caption:=rsFormDesignerCaption+':'+TComponent(GlobalDesignHook.LookupRoot).name;
 end;
 
 procedure TFormDesigner.foundlist3Data(Sender: TObject; Item: TListItem);
@@ -274,7 +276,7 @@ procedure TFormDesigner.miLoadClick(Sender: TObject);
 var f: TCeform;
 begin
   OpenDialog1.DefaultExt := '.FRM';
-  OpenDialog1.Filter := 'Form files(*.frm)|*.FRM';
+  OpenDialog1.Filter := rsFormFilesFrmFRM;
   if (GlobalDesignHook.LookupRoot<>nil) and (GlobalDesignHook.LookupRoot is TCEForm) and (OpenDialog1.Execute) then
   begin
     f:=TCEForm(GlobalDesignHook.LookupRoot);
@@ -288,7 +290,7 @@ procedure TFormDesigner.miLoadLFMClick(Sender: TObject);
 var f: TCeform;
 begin
   OpenDialog1.DefaultExt := '.LFM';
-  OpenDialog1.Filter := 'Form files(*.lfm)|*.LFM';
+  OpenDialog1.Filter := rsFormFilesLfmLFM;
   if (GlobalDesignHook.LookupRoot<>nil) and (GlobalDesignHook.LookupRoot is TCEForm) and (OpenDialog1.Execute) then
   begin
     f:=TCEForm(GlobalDesignHook.LookupRoot);
@@ -355,7 +357,7 @@ procedure TFormDesigner.miSaveClick(Sender: TObject);
 var f: TCeform;
 begin
   SaveDialog1.DefaultExt := '.FRM';
-  SaveDialog1.Filter := 'Form files(*.frm)|*.FRM';
+  SaveDialog1.Filter := rsFormFilesFrmFRM;
   if (GlobalDesignHook.LookupRoot<>nil) and (GlobalDesignHook.LookupRoot is TCEForm) and (SaveDialog1.Execute) then
   begin
     f:=TCEForm(GlobalDesignHook.LookupRoot);
@@ -368,7 +370,7 @@ procedure TFormDesigner.miSaveLFMClick(Sender: TObject);
 var f: TCeform;
 begin
   SaveDialog1.DefaultExt := '.LFM';
-  SaveDialog1.Filter := 'Form files(*.lfm)|*.LFM';
+  SaveDialog1.Filter := rsFormFilesLfmLFM;
   if (GlobalDesignHook.LookupRoot<>nil) and (GlobalDesignHook.LookupRoot is TCEForm) and (SaveDialog1.Execute) then
   begin
     f:=TCEForm(GlobalDesignHook.LookupRoot);

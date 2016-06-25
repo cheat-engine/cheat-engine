@@ -19,6 +19,11 @@ implementation
 
 uses LuaClass, LuaHandler, pluginexports, LuaCaller, symbolhandler;
 
+resourcestring
+  rsThisIsAnInvalidClassOrMethodProperty = 'This is an invalid class or method property';
+  rsThisTypeOfMethod = 'This type of method:';
+  rsIsNotYetSupported = ' is not yet supported';
+
 function object_destroy(L: PLua_State): integer; cdecl;
 var c: TObject;
   metatable: integer;
@@ -273,7 +278,7 @@ begin
 
     if (pi=nil) or (pi.proptype=nil) or (pi.PropType.Kind<>tkMethod) then
     begin
-      raise exception.create('This is an invalid class or method property');
+      raise exception.create(rsThisIsAnInvalidClassOrMethodProperty);
     end;
 
 
@@ -381,7 +386,7 @@ begin
       else
       begin
         lc.free;
-        raise exception.create('This type of method:'+pi.PropType.Name+' is not yet supported');
+        raise exception.create(rsThisTypeOfMethod+pi.PropType.Name+rsIsNotYetSupported);
       end;
 
       luacaller.setMethodProperty(c,p,m);
@@ -390,7 +395,7 @@ begin
     else
     begin
       lc.free;
-      raise exception.create('This is an invalid class or method property');
+      raise exception.create(rsThisIsAnInvalidClassOrMethodProperty);
     end;
 
 

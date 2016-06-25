@@ -17,6 +17,11 @@ implementation
 
 uses luaclass, LuaObject;
 
+resourcestring
+  rsErrorInNativeThreadCalled = 'Error in native thread called ';
+  rsInNativeCode = ' in native code:';
+  rsInvalidFirstParameterForCreateNativeThread = 'Invalid first parameter for createNativeThread';
+
 type TCEThread=class (TThread)
   private
     fname: string;
@@ -86,7 +91,7 @@ begin
         errorstring:='';
 
       lua_getglobal(L, 'print');
-      lua_pushstring(L, 'Error in native thread called '+name+':'+errorstring);
+      lua_pushstring(L, rsErrorInNativeThreadCalled+name+':'+errorstring);
       lua_pcall(L, 1,0,0);
 
     end;
@@ -94,7 +99,7 @@ begin
     on e:Exception do
     begin
       lua_getglobal(L, 'print');
-      lua_pushstring(L, 'Error in native thread called '+name+' in native code:'+e.Message);
+      lua_pushstring(L, rsErrorInNativeThreadCalled+name+rsInNativeCode+e.Message);
       lua_pcall(L, 1,0,0);
     end;
   end;
@@ -160,7 +165,7 @@ begin
       f:=luaL_ref(L,LUA_REGISTRYINDEX);
     end
     else
-      raise exception.create('Invalid first parameter for createNativeThread');
+      raise exception.create(rsInvalidFirstParameterForCreateNativeThread);
 
     newL:=lua_newthread(L);
 

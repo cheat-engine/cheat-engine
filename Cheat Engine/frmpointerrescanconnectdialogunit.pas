@@ -34,6 +34,10 @@ implementation
 
 {$R *.lfm}
 
+resourcestring
+  rsHost = 'host:';
+  rsCouldNotBeResolved = ' could not be resolved';
+
 { TfrmPointerrescanConnectDialog }
 
 procedure TfrmPointerrescanConnectDialog.btnOKClick(Sender: TObject);
@@ -49,7 +53,7 @@ begin
       if hr.NameLookup(edtHost.text) then
         host:=hr.NetHostAddress
       else
-        raise exception.create('host:'+edtHost.text+' could not be resolved');
+        raise exception.create(rsHost+edtHost.text+rsCouldNotBeResolved);
     end;
 
 

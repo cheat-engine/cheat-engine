@@ -1078,7 +1078,25 @@ resourcestring
   rsIsNotAValidX = '%s is not a valid xml name';
   rsMUGenerateGroupscanCommand = 'Generate groupscan command';
   rsTryTutorial = 'Do you want to try out the tutorial?';
-
+  rsUnspecifiedError = 'Unspecified error';
+  rsGroupscanDataInvalid = 'groupscan data invalid';
+  rsGroupscanResultWithNoGroupscanparser = 'Groupscan result with no groupscanparser';
+  rsFailedToLoad = 'failed to load';
+  rsFailureSettingTheDebugPrivilege = 'Failure setting the debug privilege. Debugging may be limited.';
+  rsFailureSettingTheSeTcbPrivilegePrivilege = 'Failure setting the SeTcbPrivilege privilege. Debugging may be limited.';
+  rsFailureSettingTheLoadDriverPrivilege = 'Failure setting the load driver privilege. Debugging may be limited.';
+  rsFailureSettingTheCreateGlobalPrivilege = 'Failure setting the CreateGlobal privilege.';
+  rsCurrentProcess = 'Current process';
+  rsNone = '<none>';
+  rsCEError = 'CE Error:';
+  rsPart = ' part ';
+  rsChangeValue = 'Change value';
+  rsGiveTheNewValueForTheSelectedAddressEs = 'Give the new value for the selected address(es)';
+  rsOverlay = 'overlay ';
+  rsWasClickedAtPositon = ' was clicked at positon ';
+  rsWidth = '   -   width=';
+  rsHeight = ' , height=';
+  rsUnableToScanFixYourScanSettings = 'Unable to scan. Fix your scan settings and restart cheat engine';
 
 var
   ncol: TColor;
@@ -1717,7 +1735,7 @@ begin
     err:=nil;
   end
   else
-    MessageDlg('Unspecified error', mtError, [mbOK], 0);
+    MessageDlg(rsUnspecifiedError, mtError, [mbOK], 0);
 end;
 
 //----------------------------------
@@ -2381,11 +2399,11 @@ begin
     //add as a group
     ga:=foundlist.GetGroupAddress(line);
     if ga=nil then
-      raise exception.create('groupscan data invalid');
+      raise exception.create(rsGroupscanDataInvalid);
 
     gcp:=foundlist.getGCP;
     if gcp=nil then
-      raise exception.create('Groupscan result with no groupscanparser');
+      raise exception.create(rsGroupscanResultWithNoGroupscanparser);
 
 
     for i:=0 to length(gcp.elements)-1 do
@@ -3008,7 +3026,7 @@ begin
 
   end
   else
-    showmessage('failed to load');
+    showmessage(rsFailedToLoad);
 
          }
 
@@ -4909,7 +4927,7 @@ begin
         tp.PrivilegeCount := 1; // One privilege to set
         if not AdjustTokenPrivileges(tokenhandle, False, tp, sizeof(tp),
           prev, returnlength) then
-          ShowMessage('Failure setting the debug privilege. Debugging may be limited.');
+          ShowMessage(rsFailureSettingTheDebugPrivilege);
       end;
 
       if lookupPrivilegeValue(nil, 'SeTcbPrivilege', tp.Privileges[0].Luid) then
@@ -4918,7 +4936,7 @@ begin
         tp.PrivilegeCount := 1; // One privilege to set
         if not AdjustTokenPrivileges(tokenhandle, False, tp, sizeof(tp),
           prev, returnlength) then
-          ShowMessage('Failure setting the SeTcbPrivilege privilege. Debugging may be limited.');
+          ShowMessage(rsFailureSettingTheSeTcbPrivilegePrivilege);
       end;
 
       if lookupPrivilegeValue(nil, 'SeTcbPrivilege', tp.Privileges[0].Luid) then
@@ -4927,7 +4945,7 @@ begin
         tp.PrivilegeCount := 1; // One privilege to set
         if not AdjustTokenPrivileges(tokenhandle, False, tp, sizeof(tp),
           prev, returnlength) then
-          ShowMessage('Failure setting the SeTcbPrivilege privilege. Debugging may be limited.');
+          ShowMessage(rsFailureSettingTheSeTcbPrivilegePrivilege);
       end;
 
 
@@ -4938,7 +4956,7 @@ begin
         tp.PrivilegeCount := 1; // One privilege to set
         if not AdjustTokenPrivileges(tokenhandle, False, tp, sizeof(tp),
           prev, returnlength) then
-          ShowMessage('Failure setting the load driver privilege. Debugging may be limited.');
+          ShowMessage(rsFailureSettingTheLoadDriverPrivilege);
       end;
 
 
@@ -4954,7 +4972,7 @@ begin
           tp.PrivilegeCount := 1; // One privilege to set
           if not AdjustTokenPrivileges(tokenhandle, False, tp,
             sizeof(tp), prev, returnlength) then
-            ShowMessage('Failure setting the CreateGlobal privilege.');
+            ShowMessage(rsFailureSettingTheCreateGlobalPrivilege);
         end;
 
 
@@ -5134,7 +5152,7 @@ begin
   processid := getcurrentprocessid;
   processhandle := getcurrentprocess;
   enableGui;
-  processlabel.Caption := Inttohex(processid, 8) + ' : ' + 'Current process';
+  processlabel.Caption := Inttohex(processid, 8) + ' : ' + rsCurrentProcess;
 {$endif}
 
 
@@ -7979,7 +7997,7 @@ begin
       begin
         p:=PreviousResults.getpointertoaddress(address, ssvt, ct);
         if p=nil then
-          previousvalue:='<none>'
+          previousvalue:=rsNone
         else
           previousvalue:=readAndParsePointer(address, p, valuetype, ct, hexadecimal, foundlist.isSigned);
       end;
@@ -7999,7 +8017,7 @@ begin
     begin
     //ShowMessage(IntToStr(item.index));
 
-      error:='CE Error:'+inttostr(item.index)+' part '+inttostr(part)+':'+e.message;
+      error:=rsCEError+inttostr(item.index)+rsPart+inttostr(part)+':'+e.message;
 
       if part in [0,3] then
       begin
@@ -8079,7 +8097,7 @@ begin
   begin
     foundlist.GetAddress(foundlist3.Selected.Index, extra, Value);
 
-    if InputQuery('Change value', 'Give the new value for the selected address(es)', value) then
+    if InputQuery(rsChangeValue, rsGiveTheNewValueForTheSelectedAddressEs, value) then
     begin
       newvalue:=value;
       for i:=0 to foundlist3.items.Count-1 do
@@ -8137,8 +8155,8 @@ begin
   w := d3dhook.getwidth;
   h := d3dhook.getheight;
 
-  ShowMessage('overlay ' + IntToStr(overlayid) + ' was clicked at positon ' +
-    IntToStr(x) + ',' + IntToStr(y) + '   -   width=' + IntToStr(w) + ' , height=' + IntToStr(h));
+  ShowMessage(rsOverlay + IntToStr(overlayid) + rsWasClickedAtPositon +
+    IntToStr(x) + ',' + IntToStr(y) + rsWidth + IntToStr(w) + rsHeight + IntToStr(h));
 end;
 
 
@@ -8283,7 +8301,7 @@ begin
   if PreviousResults<>nil then
     freeandnil(PreviousResults);
 
-  if (memscan=nil) or (foundlist=nil) then raise exception.create('Unable to scan. Fix your scan settings and restart cheat engine');
+  if (memscan=nil) or (foundlist=nil) then raise exception.create(rsUnableToScanFixYourScanSettings);
 
   foundlist.Deinitialize; //unlock file handles
 

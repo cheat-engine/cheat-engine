@@ -430,6 +430,7 @@ resourcestring
   rsPSREscanning = 'Rescanning';
   rsPSFindByAddressPart1 = 'Find by address requires an address. "';
   rsPSFindByAddressPart2 = '" is not a valid address';
+  rsAreYouSureYouWishYouForceADisconnect = 'Are you sure you wish you force a disconnect. The current paths will be lost';
 
 //----------------------- scanner info --------------------------
 //----------------------- staticscanner -------------------------
@@ -1237,7 +1238,7 @@ var childid: integer;
 begin
   //disconnect this one
 
-  if MessageDlg('Are you sure you wish you force a disconnect. The current paths will be lost', mtWarning, [mbyes, mbno], 0, mbNo)<>mryes then exit;
+  if MessageDlg(rsAreYouSureYouWishYouForceADisconnect, mtWarning, [mbyes, mbno], 0, mbNo)<>mryes then exit;
 
   if (tvinfo.Selected<>nil) and (tvinfo.Selected.Data<>nil) then
   begin

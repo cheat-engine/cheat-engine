@@ -105,7 +105,21 @@ resourcestring
 
   rsInvalidFloat = 'Invalid floating point string:%s';
   rsInvalidInt = 'Invalid integer:%s';
-
+  rsError = 'Error:';
+  rsConditionalBreakpointError = 'Conditional breakpoint error';
+  rsMainLuaError = 'main.lua error:';
+  rsMainLuaError2 = 'main.lua error';
+  rsError2 = ' error:';
+  rsError3 = ' error';
+  rsLUAPanic = 'LUA panic!';
+  rsDebugsetBreakpointNeedsAtLeastAnAddress = 'debug_setBreakpoint needs at least an address';
+  rsCreateMemScanNeedsAProgressbarOrNil = 'createMemScan needs a progressbar or nil. ';
+  rsIsNotAProgressbar = ' is not a progressbar';
+  rsDeallocateSharedMemoryIsNotImplemented = 'deallocateSharedMemory is not implemented (It''s not even in the list of available functions)';
+  rsGetProcessListTheProvidedListObjectIsNotValid = 'getProcessList: the provided List object is not valid';
+  rsGetThreadlistTheProvidedListObjectIsNotValid = 'getThreadlist: the provided List object is not valid';
+  rsPlaySoundTheParameterMustBeATableFileOrAMemoryStream = 'playSound: The parameter must be a table file or a memory stream. Nothing else';
+  rsNumberRequired = 'Number required';
 
 var
   printoutput: TStrings;
@@ -191,7 +205,7 @@ begin
           usesluaengineform:=true;
         end;
 
-        printoutput.add('Error:'+error);
+        printoutput.add(rsError+error);
 
         if (frmLuaEngine<>nil) and usesluaengineform and (frmLuaEngine.cbShowOnPrint.checked) then
           frmLuaEngine.show;
@@ -204,7 +218,7 @@ begin
     end
     else
     begin
-      MessageBoxA(0, pchar(Lua_ToString(l, -1)), 'Conditional breakpoint error', MB_OK);
+      MessageBoxA(0, pchar(Lua_ToString(l, -1)), pchar(rsConditionalBreakpointError), MB_OK);
     end;
   end;
 end;
@@ -433,11 +447,11 @@ begin
       begin
         pc:=lua_tolstring(luavm, -1,nil);
         if pc<>nil then
-          showmessage('main.lua error:'+pc)
+          showmessage(rsMainLuaError+pc)
         else
-          showmessage('main.lua error');
+          showmessage(rsMainLuaError2);
       end
-      else showmessage('main.lua error');
+      else showmessage(rsMainLuaError2);
 
     end;
 
@@ -463,11 +477,11 @@ begin
           begin
             pc:=lua_tolstring(luavm, -1,nil);
             if pc<>nil then
-              showmessage(DirInfo.name+' error:'+pc)
+              showmessage(DirInfo.name+rsError2+pc)
             else
-              showmessage(DirInfo.name+' error');
+              showmessage(DirInfo.name+rsError3);
           end
-          else showmessage(DirInfo.name+' error');
+          else showmessage(DirInfo.name+rsError3);
         end;
 
         //reset stack
@@ -2553,7 +2567,7 @@ begin
   size:=1;
   parameters:=lua_gettop(L);
   if parameters=0 then
-    raise exception.create('debug_setBreakpoint needs at least an address');
+    raise exception.create(rsDebugsetBreakpointNeedsAtLeastAnAddress);
 
   if lua_isstring(L, 1) then
     address:=symhandler.getAddressFromNameL(lua_tostring(L, 1))
@@ -3722,7 +3736,7 @@ begin
   lua_pop(L, lua_gettop(L));
 
   if (progressbar<>nil) and (progressbar is TCustomProgressBar=false) then
-    raise exception.create('createMemScan needs a progressbar or nil. '+progressbar.ClassName+' is not a progressbar');
+    raise exception.create(rsCreateMemScanNeedsAProgressbarOrNil+progressbar.ClassName+rsIsNotAProgressbar);
 
   memscan:=TMemscan.create(progressbar);
 
@@ -4105,7 +4119,7 @@ begin
   if parameters>=1 then
     lua_pop(L, parameters);
 
-  lua_pushstring(L, 'deallocateSharedMemory is not implemented (It''s not even in the list of available functions)');
+  lua_pushstring(L, rsDeallocateSharedMemoryIsNotImplemented);
   lua_error(L);
 end;
 
@@ -5018,7 +5032,7 @@ begin
     end
     else
     begin
-      lua_pushstring(L,'getProcessList: the provided List object is not valid');
+      lua_pushstring(L,rsGetProcessListTheProvidedListObjectIsNotValid);
       lua_error(L);
     end;
   end
@@ -5066,7 +5080,7 @@ begin
       GetProcessList(s, false, true)
     else
     begin
-      lua_pushstring(L,'getProcessList: the provided List object is not valid');
+      lua_pushstring(L,rsGetProcessListTheProvidedListObjectIsNotValid);
       lua_error(L);
     end;
   end
@@ -5107,7 +5121,7 @@ begin
       GetThreadList(s)
     else
     begin
-      lua_pushstring(L,'getThreadlist: the provided List object is not valid');
+      lua_pushstring(L,rsGetThreadlistTheProvidedListObjectIsNotValid);
       lua_error(L);
     end;
   end
@@ -5767,7 +5781,7 @@ begin
           if o is TMemoryStream then
             ms:=TMemoryStream(o)
           else
-            raise exception.create('playSound: The parameter must be a table file or a memory stream. Nothing else');
+            raise exception.create(rsPlaySoundTheParameterMustBeATableFileOrAMemoryStream);
 
           playparam:=SND_MEMORY;
           if (lua_gettop(L)>=2) and lua_toboolean(L,2) then
@@ -5929,7 +5943,7 @@ begin
   end
   else
   begin
-    lua_pushstring(L, 'Number required');
+    lua_pushstring(L, rsNumberRequired);
     lua_error(L);
   end;
 end;
@@ -5944,7 +5958,7 @@ begin
   end
   else
   begin
-    lua_pushstring(L, 'Number required');
+    lua_pushstring(L, rsNumberRequired);
     lua_error(L);
   end;
 end;
@@ -5960,7 +5974,7 @@ begin
   end
   else
   begin
-    lua_pushstring(L, 'Number required');
+    lua_pushstring(L, rsNumberRequired);
     lua_error(L);
   end;
 end;
@@ -5975,7 +5989,7 @@ begin
   end
   else
   begin
-    lua_pushstring(L, 'Number required');
+    lua_pushstring(L, rsNumberRequired);
     lua_error(L);
   end;
 end;

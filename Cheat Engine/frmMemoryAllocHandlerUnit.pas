@@ -212,7 +212,9 @@ resourcestring
   rsHeapcount = 'Heapcount=%s';
   rsFailureToInitialize = 'Failure to initialize';
   rsFailureToHook = 'Failure to hook';
-
+  rsEvent1Failure = 'Event1 failure:';
+  rsEvent2Failure = 'Event2 failure:';
+  rsEvent3Failure = 'Event3 failure:';
 
 procedure TDisplayThread.removeaddress(addresslist: PMemrecTableArray; memallocevent: TmemoryAllocevent );
 var
@@ -637,15 +639,15 @@ begin
 
     x:=0;
     if not DuplicateHandle(GetCurrentProcess, HasSetupDataEvent, processhandle, @x, 0, false, DUPLICATE_SAME_ACCESS	) then
-      raise exception.Create('Event1 failure:'+inttostr(getlasterror));
+      raise exception.Create(rsEvent1Failure+inttostr(getlasterror));
 
     y:=0;
     if not DuplicateHandle(GetCurrentProcess, CEHasHandledItEvent, processhandle, @y, 0, false, DUPLICATE_SAME_ACCESS	) then
-      raise exception.Create('Event2 failure:'+inttostr(getlasterror));
+      raise exception.Create(rsEvent2Failure+inttostr(getlasterror));
 
     z:=0;
     if not DuplicateHandle(GetCurrentProcess, CEInitializationFinished, processhandle, @z, 0, false, DUPLICATE_SAME_ACCESS	) then
-      raise exception.Create('Event3 failure:'+inttostr(getlasterror));
+      raise exception.Create(rsEvent3Failure+inttostr(getlasterror));
 
     //set event handles
     injectionscript.Add('HasSetupDataEvent:');

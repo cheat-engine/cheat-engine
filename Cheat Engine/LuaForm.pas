@@ -17,6 +17,9 @@ implementation
 
 uses luaclass, LuaCustomControl;
 
+resourcestring
+  rsTheGivenFormIsNotCompatible = 'The given form is not compatible. Formclass=';
+
 function createForm(L: Plua_State): integer; cdecl;
 var f: tcustomform;
   parameters: integer;
@@ -281,7 +284,7 @@ begin
       end;
     end
     else
-      raise exception.create('The given form is not compatible. Formclass='+f.ClassName);
+      raise exception.create(rsTheGivenFormIsNotCompatible+f.ClassName);
   end
   else
     lua_pop(L, lua_gettop(L));
