@@ -50,6 +50,10 @@ function luaserverExists(name: string): boolean;
 
 implementation
 
+resourcestring
+  rsALuaserverWithTheName = 'A luaserver with the name ';
+  rsAlreadyExists = ' already exists';
+
 function luaserverExists(name: string): boolean;
 var i: integer;
 begin
@@ -213,7 +217,7 @@ begin
   fname:=name;
 
   if luaserverExists(name) then
-    raise exception.create('A luaserver with the name '+name+' already exists');
+    raise exception.create(rsALuaserverWithTheName+name+rsAlreadyExists);
 
   luaservers.Add(self);
 

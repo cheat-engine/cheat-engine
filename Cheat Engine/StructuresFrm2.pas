@@ -646,7 +646,7 @@ resourcestring
   rsSF2Hex = ' (Hex)';
   rsSF2Signed = ' (Signed)';
   rsSF2To = ' to ';
-
+  rsP = 'P->';
 
 var
   StructureDissectOverrides: array of TStructureDissectOverride;
@@ -908,7 +908,7 @@ begin
   if vartype=vtPointer then
   begin
     ashex:=true;
-    result:='P->';
+    result:=rsP;
 
     if processhandler.is64Bit then
       vt:=vtQword
@@ -946,7 +946,7 @@ begin
     hex:=true;
 
     //strip optional P-> part
-    if copy(value, 1,3)='P->' then
+    if copy(value, 1,3)=rsP then
       value:=copy(value,4, length(value)-3);
   end
   else

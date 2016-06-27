@@ -125,6 +125,12 @@ uses
   luahandler, LuaByteTable, MainUnit, MemoryRecordUnit, disassemblerviewunit,
   hexviewunit, d3dhookUnit, luaclass, debuggertypedefinitions;
 
+resourcestring
+  rsThisTypeOfMethod = 'This type of method:';
+  rsIsNotYetSupported = ' is not yet supported';
+  rsAutoAssemblerCallbackLuaFunctionError = 'AutoAssemblerCallback: Lua Function error(';
+  rsStructureDissectEventLuaFunctionError = 'StructureDissectEvent: Lua Function error(';
+
 type
   TLuaCallData=class(tobject)
     GetMethodProp: lua_CFunction; //used when lua wants a function to a class method/property  (GetMethodProp)
@@ -175,7 +181,7 @@ begin
 
   i:=LuaCallList.IndexOf(typename);
   if i=-1 then
-    raise exception.create('This type of method:'+typename+' is not yet supported');
+    raise exception.create(rsThisTypeOfMethod+typename+rsIsNotYetSupported);
 
   newcode:=TLuaCallData(LuaCallList.Objects[i]).SetMethodProp;
 
@@ -223,7 +229,7 @@ var
 begin
   i:=LuaCallList.IndexOf(typename);
   if i=-1 then
-    raise exception.create('This type of method:'+typename+' is not yet supported');
+    raise exception.create(rsThisTypeOfMethod+typename+rsIsNotYetSupported);
 
   f:=TLuaCallData(LuaCallList.Objects[i]).GetMethodProp;
 
@@ -940,7 +946,7 @@ begin
       result:=Lua_ToString(luavm, -2);
     end
     else
-      raise exception.create('AutoAssemblerCallback: Lua Function error('+lua_tostring(luavm, -1)+')');
+      raise exception.create(rsAutoAssemblerCallbackLuaFunctionError+lua_tostring(luavm, -1)+')');
 
   finally
     lua_settop(Luavm, oldstack);
@@ -963,7 +969,7 @@ begin
     if lua_pcall(Luavm, 2,1,0)=0 then
       result:=lua_toboolean(luavm, -1)
     else
-      raise exception.create('StructureDissectEvent: Lua Function error('+lua_tostring(luavm, -1)+')');
+      raise exception.create(rsStructureDissectEventLuaFunctionError+lua_tostring(luavm, -1)+')');
   finally
     lua_settop(Luavm, oldstack);
     luacs.leave;

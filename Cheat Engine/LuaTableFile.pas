@@ -13,6 +13,10 @@ implementation
 
 uses LuaClass, LuaHandler, LuaObject, MainUnit, luafile;
 
+resourcestring
+  rsErrorRaisedWithMessage = ' error raised with message: ';
+  rsTableDileEntryAlreadyExistsForFilename = 'Table file entry already exists for filename: ';
+  rsCreateTableFileRequiresAtLeastOneParameter = 'createTableFile requires at least one parameter';
 
 function indexOfLuaFileByName(filename: string; internal: boolean=false): integer;
 var
@@ -74,14 +78,14 @@ begin
       mainform.editedsincelastsave:=true;
     except
       on e : Exception do begin
-        lua_pushstring(L, e.className + ' error raised with message: ' + e.message);
+        lua_pushstring(L, e.className + rsErrorRaisedWithMessage + e.message);
         lua_error(L);
       end;
     end;
   end
   else
   begin
-      lua_pushstring(L, 'Table file entry already exists for filename: ' + filename);
+      lua_pushstring(L, rsTableDileEntryAlreadyExistsForFilename + filename);
       lua_error(L);
   end;
 end;
@@ -103,7 +107,7 @@ begin
   end
   else
   begin
-    lua_pushstring(L, 'createTableFile requires at least one parameter');
+    lua_pushstring(L, rsCreateTableFileRequiresAtLeastOneParameter);
     lua_error(L);
   end;
 end;

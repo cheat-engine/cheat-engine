@@ -16,6 +16,9 @@ implementation
 
 uses luaclass, luaobject;
 
+resourcestring
+  rsCreatefoundlistNeedsAMemscanObjectAsParameter = 'createfoundlist needs a memscan object as parameter';
+
 function createFoundList(L: Plua_State): integer; cdecl;
 var
   foundlist: TFoundlist;
@@ -25,7 +28,7 @@ begin
   if lua_gettop(L)=1 then
     memscan:=lua_toceuserdata(L, -1)
   else
-    raise exception.create('createfoundlist needs a memscan object as parameter');
+    raise exception.create(rsCreatefoundlistNeedsAMemscanObjectAsParameter);
 
   foundlist:=TFoundList.create(nil, memscan);
 

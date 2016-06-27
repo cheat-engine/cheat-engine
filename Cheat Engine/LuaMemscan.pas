@@ -14,6 +14,9 @@ implementation
 
 uses luaclass, LuaObject;
 
+resourcestring
+  rsNotAllParametersHaveBeenProvided = 'Not all parameters have been provided';
+
 //memscan_firstScan(memscan, scanOption, vartype, roundingtype, input1, input2, startAddress,
 //                  stopAddress, protectionflags, alignmenttype, "alignmentparam", isHexadecimalInput,
 //                  isNotABinaryString, isunicodescan, iscasesensitive, ispercentagescan);
@@ -80,7 +83,7 @@ begin
     memscan.firstscan(scanoption, vartype, roundingtype, input1,input2, startaddress,stopaddress, isHexadecimalInput, isNotABinaryString, isunicodescan, iscasesensitive, alignmenttype, alignmentparam, nil );
   end
   else
-    raise exception.create('Not all parameters have been provided');
+    raise exception.create(rsNotAllParametersHaveBeenProvided);
 
 end;
 
@@ -121,7 +124,7 @@ begin
 
     memscan.nextscan(scanoption, roundingtype, input1,input2, isHexadecimalInput, isNotABinaryString, isunicodescan, iscasesensitive, ispercentagescan, savedscanname<>'', savedscanname );
   end else
-    raise exception.create('Not all parameters have been provided');
+    raise exception.create(rsNotAllParametersHaveBeenProvided);
 end;
 
 function memscan_waitTillDone(L: Plua_State): integer; cdecl;

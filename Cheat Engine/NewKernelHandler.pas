@@ -783,7 +783,7 @@ resourcestring
   rsTheDriverNeedsToBeLoadedToBeAbleToUseThisFunction = 'The driver needs to be loaded to be able to use this function.';
   rsYourCpuMustBeAbleToRunDbvmToUseThisFunction = 'Your cpu must be able to run dbvm to use this function';
   rsCouldnTBeOpened = '%s couldn''t be opened';
-
+  rsDBVMIsNotLoadedThisFeatureIsNotUsable = 'DBVM is not loaded. This feature is not usable';
 
 
 
@@ -890,7 +890,7 @@ begin
     end;
 
     if not isRunningDBVM then
-      raise exception.create('DBVM is not loaded. This feature is not usable');
+      raise exception.create(rsDBVMIsNotLoadedThisFeatureIsNotUsable);
   end;
 {$endif}
 

@@ -463,6 +463,11 @@ implementation
 uses frmautoinjectunit, autoassembler, MainUnit, frmSaveSnapshotsUnit,
   frmsnapshothandlerUnit, symbolhandler, ProcessHandlerUnit, Globals;
 
+resourcestring 
+  rsTheD3dhookObjectHasNotBeenCreatedYet = 'The d3dhook object has not been created yet';
+  rsD3DHookFailureToOpenTheSharedMemoryObject = 'D3DHook: Failure to open the shared memory object';
+  rsD3DHookFailureToMapTheSharedMemoryObject = 'D3DHook: Failure to map the shared memory object';
+
 procedure TD3DMessageHandler.handleSnapshot;
 begin
   if frmSaveSnapshots=nil then
@@ -1380,7 +1385,7 @@ end;
 procedure TD3DHook.beginCommandListUpdate;
 begin
   if self=nil then
-    raise exception.create('The d3dhook object has not been created yet');
+    raise exception.create(rsTheD3dhookObjectHasNotBeenCreatedYet);
 
   commandlistCS.enter;
 
@@ -1553,12 +1558,12 @@ begin
 
   fmhandle:=OpenFileMapping(FILE_MAP_EXECUTE or FILE_MAP_READ or FILE_MAP_WRITE, false, pchar(sharename));
   if fmhandle=0 then
-    raise exception.create('D3DHook: Failure to open the shared memory object');
+    raise exception.create(rsD3DHookFailureToOpenTheSharedMemoryObject);
 
   shared:=MapViewOfFile(fmhandle,FILE_MAP_EXECUTE or FILE_MAP_READ or FILE_MAP_WRITE, 0,0,0 );
 
   if shared=nil then
-    raise exception.create('D3DHook: Failure to map the shared memory object');
+    raise exception.create(rsD3DHookFailureToMapTheSharedMemoryObject);
 
   alreadyhooked:=shared.initialized=$dbcedbce;
 

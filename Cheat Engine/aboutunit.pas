@@ -74,6 +74,7 @@ resourcestring
   rsThisMeansThatYouReCurrentlyNotRunningDbvm = 'This means that you''re currently not running dbvm, but that your system is capable of running it';
   rsDidYouReallyThinkYouDFindAnEasterEggByDoingThisWel = 'Did you really think you''d find an easter egg by doing this? Well, you know what? You where right!';
   rsAreYouSureYouWantToLaunchDBVM = 'Are you sure you want to launch DBVM? You seem to be running in 32-bit, so don''t really need it that badly (Except for ultimap and cloaked operations)';
+  rsLaunchdbvmWasNotAssigned = 'launchdbvm was not assigned';
 
 procedure TAbout.Button1Click(Sender: TObject);
 begin
@@ -148,7 +149,7 @@ begin
           if assigned(launchdbvm) then
             launchdbvm(-1)
           else
-            raise exception.create('launchdbvm was not assigned');
+            raise exception.create(rsLaunchdbvmWasNotAssigned);
 
           formshow(self);
         end;

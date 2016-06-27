@@ -328,6 +328,22 @@ implementation
 
 uses vmxfunctions, DBK64SecondaryLoader, NewKernelHandler, frmDriverLoadedUnit, CEFuncProc, Parsers;
 
+resourcestring
+
+  rsInvalidMsrAddress = 'Invalid MSR address:';
+  rsMsrsAreUnavailable = 'msrs are unavailable';
+  rsCouldNotLaunchDbvm = 'Could not launch DBVM: The Intel-VT feature has been disabled in your BIOS';
+  rsYouAreMissingTheDriver = 'You are missing the driver. Try reinstalling cheat engine, and try to disable your anti-virus before doing so.';
+  rsDriverError = 'Driver error';
+  rsFailureToConfigureTheDriver = 'Failure to configure the driver';
+  rsPleaseRebootAndPressF8DuringBoot = 'Please reboot and press F8 during boot. Then choose "allow unsigned drivers". '+#13#10+'Alternatively you could sign the driver yourself.'+#13#10+'Just buy yourself a class 3 business signing certificate and sign the driver. Then you''ll never have to reboot again to use this driver';
+  rsDbk32Error = 'DBK32 error';
+  rsTheServiceCouldntGetOpened = 'The service couldn''t get opened and also couldn''t get created.'+' Check if you have the needed rights to create a service, or call your system admin (Who''ll probably beat you up for even trying this). Untill this is fixed you won''t be able to make use of the enhancements the driver gives you';
+  rsTheDriverCouldntBeOpened = 'The driver couldn''t be opened! It''s not loaded or not responding. Luckely you are running dbvm so it''s not a total waste. Do you wish to force load the driver?';
+  rsTheDriverCouldntBeOpenedTryAgain = 'The driver couldn''t be opened! It''s not loaded or not responding. I recommend to reboot your system and try again (If you''re on 64-bit windows, you might want to use dbvm)';
+  rsTheDriverThatIsCurrentlyLoaded = 'The driver that is currently loaded belongs to a different version of Cheat Engine. Please unload this driver or reboot.';
+  rsTheDriverFailedToSuccessfullyInitialize = 'The driver failed to successfully initialize. Some functions may not completely work';
+
 var dataloc: string;
     applicationPath: string;
 
@@ -1990,10 +2006,10 @@ begin
     if deviceiocontrol(hdevice,cc,@msr,sizeof(msr),@msrvalue,sizeof(msrvalue),cc,nil) then
       result:=msrvalue
     else
-      raise exception.create('Invalid MSR address:'+inttohex(msr,1));
+      raise exception.create(rsInvalidMsrAddress+inttohex(msr,1));
   end
   else
-    raise exception.create('msrs are unavailable');
+    raise exception.create(rsMsrsAreUnavailable);
 end;
 
 procedure writeMSR(msr: dword; value: qword);
@@ -2016,7 +2032,7 @@ begin
     deviceiocontrol(hdevice,cc,@input,sizeof(input),nil,0,cc,nil);
   end
   else
-  raise exception.create('msrs are unavailable');
+  raise exception.create(rsMsrsAreUnavailable);
 end;
 
 
@@ -2094,7 +2110,7 @@ begin
       begin
         //the feature control msr is locked
         if (fc and (1 shl 2))=0 then
-          raise exception.create('Could not launch DBVM: The Intel-VT feature has been disabled in your BIOS');
+          raise exception.create(rsCouldNotLaunchDbvm);
       end;
       OutputDebugString('C');
     end;
@@ -2455,7 +2471,7 @@ begin
 
       if not fileexists(driverloc) then
       begin
-        messagebox(0,'You are missing the driver. Try reinstalling cheat engine, and try to disable your anti-virus before doing so.','Driver error',MB_ICONERROR or mb_ok);
+        messagebox(0,PChar(rsYouAreMissingTheDriver),PChar(rsDriverError),MB_ICONERROR or mb_ok);
         hDevice:=INVALID_HANDLE_VALUE;
         exit;
       end;
@@ -2510,7 +2526,7 @@ begin
           reg.RootKey:=HKEY_LOCAL_MACHINE;
           if not reg.OpenKey('\SYSTEM\CurrentControlSet\Services\'+servicename,false) then
           begin
-            messagebox(0,'Failure to configure the driver','Driver Error',MB_ICONERROR or mb_ok);
+            messagebox(0,PChar(rsFailureToConfigureTheDriver),PChar(rsDriverError),MB_ICONERROR or mb_ok);
             hDevice:=INVALID_HANDLE_VALUE;
             exit;
           end;
@@ -2525,7 +2541,7 @@ begin
             if getlasterror=577 then
             begin
               if dbvm_version=0 then
-                messagebox(0,'Please reboot and press F8 during boot. Then choose "allow unsigned drivers". '+#13#10+'Alternatively you could sign the driver yourself.'+#13#10+'Just buy yourself a class 3 business signing certificate and sign the driver. Then you''ll never have to reboot again to use this driver','DBK32 error',MB_ICONERROR or mb_ok);
+                messagebox(0,PChar(rsPleaseRebootAndPressF8DuringBoot),PChar(rsDbk32Error),MB_ICONERROR or mb_ok);
               failedduetodriversigning:=true;
             end; //else could already be started
           end;
@@ -2533,7 +2549,7 @@ begin
           closeservicehandle(hservice);
         end else
         begin
-          messagebox(0,'The service couldn''t get opened and also couldn''t get created.'+' Check if you have the needed rights to create a service, or call your system admin (Who''ll probably beat you up for even trying this). Untill this is fixed you won''t be able to make use of the enhancements the driver gives you','DBK32 Error',MB_ICONERROR or mb_ok);
+          messagebox(0,PChar(rsTheServiceCouldntGetOpened),PChar(rsDbk32Error),MB_ICONERROR or mb_ok);
           hDevice:=INVALID_HANDLE_VALUE;
           exit;
         end;
@@ -2552,7 +2568,7 @@ begin
         begin
           if dbvm_version>$ce000000 then
           begin
-            if MessageDlg('The driver couldn''t be opened! It''s not loaded or not responding. Luckely you are running dbvm so it''s not a total waste. Do you wish to force load the driver?', mtconfirmation, [mbyes, mbno],0)=mryes then
+            if MessageDlg(rsTheDriverCouldntBeOpened, mtconfirmation, [mbyes, mbno],0)=mryes then
             begin
               OutputDebugString('Calling SecondaryDriverLoad');
               {$ifdef cpu32}
@@ -2569,7 +2585,7 @@ begin
           end
           else
           begin
-            messagebox(0,'The driver couldn''t be opened! It''s not loaded or not responding. I recommend to reboot your system and try again (If you''re on 64-bit windows, you might want to use dbvm)','DBK32.DLL Error',MB_ICONERROR or MB_OK)
+            messagebox(0,PChar(rsTheDriverCouldntBeOpenedTryAgain),'DBK32.DLL Error',MB_ICONERROR or MB_OK)
           end;
 
         end
@@ -2583,7 +2599,7 @@ begin
           if GetDriverVersion<>currentversion then
           begin
             closehandle(hdevice);
-            messagebox(0,'The driver that is currently loaded belongs to a different version of Cheat Engine. Please unload this driver or reboot.','DBK32.dll',MB_ICONERROR or MB_OK);
+            messagebox(0,PChar(rsTheDriverThatIsCurrentlyLoaded),'DBK32.dll',MB_ICONERROR or MB_OK);
 
             hdevice:=INVALID_HANDLE_VALUE;
           end
@@ -2592,7 +2608,7 @@ begin
             InitializeDriver(0,0);
             {
             if not InitializeDriver(0,0) then
-              messagebox(0,'The driver failed to successfully initialize. Some functions may not completely work','DBK32.dll',MB_ICONERROR or MB_OK);
+              messagebox(0,rsTheDriverFailedToSuccessfullyInitialize,'DBK32.dll',MB_ICONERROR or MB_OK);
               }
 
           end;

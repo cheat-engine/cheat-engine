@@ -247,7 +247,14 @@ resourcestring
   rsEndAddressLastBytesAreIncludedIfNecesary = 'End address (last bytes are included if necessary)';
   rsAreYouSureYouWantToClose = 'Are you sure you want to close %s ?';
   rsWhatIdentifierDoYouWantToUse = 'What do you want to name the symbol for the injection point?';
-
+  rsThumbInstructionsAreNotYetImplemented = 'Thumb instructions are not yet implemented';
+  rsScript1 = 'Script 1';
+  rsScript = 'Script ';
+  rsFailedAllocatingMemoryForTheScript = 'Failed allocating memory for the script';
+  rsFailedWritingTheScriptToTheProcess = 'failed writing the script to the process';
+  rsFailureLoadingUndercdll = 'Failure loading undercdll';
+  rsFailedCreatingCallingStubForScriptLocatedAtAddress = 'Failed creating calling stub for script located at address ';
+  rsERRORCouldNotFindUniqueAOBTriedCode = 'ERROR: Could not find unique AOB, tried code "';
 
 var
   AutoAssemblerTemplates: TAutoAssemblerTemplates;
@@ -1101,7 +1108,7 @@ begin
       add('jumptrampoline'+nameextension+':');
       if isThumbDestination then
       begin
-        raise exception.create('Thumb instructions are not yet implemented');
+        raise exception.create(rsThumbInstructionsAreNotYetImplemented);
         if isThumbOrigin then
         begin
           add('thumb:b '+addresstogoto);
@@ -1539,11 +1546,11 @@ begin
 
   if length(scripts)=2 then //first time new
   begin
-    tlist.AddTab('Script 1');
+    tlist.AddTab(rsScript1);
     tlist.Visible:=true;
   end;
 
-  i:=tlist.AddTab('Script '+inttostr(length(scripts)));
+  i:=tlist.AddTab(rsScript+inttostr(length(scripts)));
   tlist.SelectedTab:=i;
   oldtabindex:=i;
 {$endif}
@@ -1831,9 +1838,9 @@ begin
   //now allocate memory for the script and write it to there
   totalmem:=length(assemblescreen.text);
   address:=VirtualAllocEx(processhandle,nil,totalmem+512,mem_commit,page_execute_readwrite);
-  if address=nil then raise exception.create('Failed allocating memory for the script');
+  if address=nil then raise exception.create(rsFailedAllocatingMemoryForTheScript);
   if not WriteProcessMemory(processhandle,address,@s[1],totalmem,totalwritten) then
-    raise exception.create('failed writing the script to the process');
+    raise exception.create(rsFailedWritingTheScriptToTheProcess);
 
 
 
@@ -1861,9 +1868,9 @@ begin
       //lets wait before injecting the callscript script
       symhandler.waitforsymbolsloaded;
       if not symhandler.getmodulebyname('undercdll.dll',mi) then
-        raise exception.Create('Failure loading undercdll');
+        raise exception.Create(rsFailureLoadingUndercdll);
     end;
-    if not autoassemble(callscriptscript,false,true,false,false,CEAllocArray) then raise exception.Create('Failed creating calling stub for script located at address '+inttohex(ptrUint(address),8));
+    if not autoassemble(callscriptscript,false,true,false,false,CEAllocArray) then raise exception.Create(rsFailedCreatingCallingStubForScriptLocatedAtAddress+inttohex(ptrUint(address),8));
   finally
     callscriptscript.free;
   end;
@@ -2736,7 +2743,7 @@ begin
 
   // if we can't find unique AOB, return earlier aob with error
   if shortestBeforeLength >= 100 then begin
-    result := 'ERROR: Could not find unique AOB, tried code "' + aob + '"';
+    result := rsERRORCouldNotFindUniqueAOBTriedCode + aob + '"';
     exit;
   end;
 

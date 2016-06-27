@@ -136,6 +136,10 @@ type
 
 implementation
 
+resourcestring
+  rsOnDataReturnedATooSmallMemoryRegion = 'OnData returned a too small memory region. It should have returned false instead';
+  rsFailureCreatingOpenglWindow = 'failure creating opengl window';
+
 procedure TMemDisplay.setPointer(address: ptruint);
 var newp: pointer;
     newsize: integer;
@@ -332,7 +336,7 @@ begin
 
     if assigned(fOnData) and fOnData(a,preferedsize,newp,newsize) then
     begin
-      if newsize<preferedsize then raise exception.create('OnData returned a too small memory region. It should have returned false instead');
+      if newsize<preferedsize then raise exception.create(rsOnDataReturnedATooSmallMemoryRegion);
 
       address:=a;
       p:=newp;
@@ -637,7 +641,7 @@ begin
     end;
 
     if hglrc=0 then
-      raise exception.create('failure creating opengl window');
+      raise exception.create(rsFailureCreatingOpenglWindow);
 
 
 
