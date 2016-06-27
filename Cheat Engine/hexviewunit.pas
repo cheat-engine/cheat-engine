@@ -54,7 +54,7 @@ type
     usablewidth: integer;
     bytesPerLine: integer;
     fbytesPerSeperator: integer; //only 8, 4 or 2
-    lockedRowSize: integer; //if 0 then bytesPerLine is calculated by the size of the object, else it's lockedRowSize
+    flockedRowSize: integer; //if 0 then bytesPerLine is calculated by the size of the object, else it's lockedRowSize
 
     totallines: integer;
     charstart: integer;
@@ -149,7 +149,7 @@ type
     procedure KeyPress(var Key: char); override;
   public
     fadetimer: integer;
-    procedure LockRowsize;
+    procedure LockRowsize(size: integer=0);
     procedure UnlockRowsize;
     procedure CopySelectionToClipboard;
     procedure GetSelectionRange(var start: ptruint; var stop: ptruint);
@@ -192,6 +192,7 @@ type
     property PaintBox: TPaintbox read mbCanvas;
     property OSBitmap: TBitmap read offscreenBitmap;
     property HexFont: TFont read fHexFont write setHexFont;
+    property LockedRowSize: integer read fLockedRowSize write fLockedRowSize;
   end;
 
 implementation
@@ -297,14 +298,17 @@ begin
   update;
 end;
 
-procedure THexView.LockRowsize;
+procedure THexView.LockRowsize(size: integer=0);
 begin
-  lockedRowSize:=bytesPerLine;
+  if size=0 then
+    flockedRowSize:=bytesPerLine
+  else
+    flockedRowSize:=size;
 end;
 
 procedure THexView.UnlockRowsize;
 begin
-  lockedRowSize:=0;
+  flockedRowSize:=0;
   hexviewResize(self);
   update;
 end;
@@ -1949,8 +1953,8 @@ begin
 
   usablewidth:=mbCanvas.ClientWidth-addresswidth-8;
 
-  if lockedRowSize>0 then
-    bytesPerLine:=lockedRowSize
+  if flockedRowSize>0 then
+    bytesPerLine:=flockedRowSize
   else
     bytesPerLine:=(usablewidth div bytesize) and $fffffff8;
 

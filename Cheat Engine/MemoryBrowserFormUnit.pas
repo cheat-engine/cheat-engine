@@ -1825,13 +1825,22 @@ begin
       registerview.width:=x[5];
     end;
 
-    if length(x)>6 then
+    if length(x)>=7 then
     begin
       Showsymbols1.checked:=x[6]=1;
       Showmoduleaddresses1.checked:=x[7]=1;
 
       symhandler.showsymbols:=showsymbols1.Checked;
       symhandler.showmodules:=Showmoduleaddresses1.Checked;
+    end;
+
+    if length(x)>=9 then
+    begin
+      if x[8]=1 then
+      begin
+        miLockRowsize.Checked:=true;
+        hexview.LockedRowSize:=x[9];
+      end;
     end;
 
 
@@ -3318,7 +3327,9 @@ begin
                               panel1.height,
                               registerview.width,
                               strtoint(BoolToStr(Showsymbols1.checked,'1','0')),
-                              strtoint(BoolToStr(Showmoduleaddresses1.checked,'1','0'))
+                              strtoint(BoolToStr(Showmoduleaddresses1.checked,'1','0')),
+                              strtoint(BoolToStr(miLockRowsize.Checked,'1','0')),
+                              hexview.LockedRowSize
                       ]);
 
 
