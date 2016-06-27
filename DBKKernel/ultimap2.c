@@ -341,7 +341,7 @@ void* setupToPA(PToPA_ENTRY *Header, PVOID *OutputBuffer, PRTL_GENERIC_TABLE *gt
 	tl.PhysicalAddress = MmGetPhysicalAddress(&r[0]).QuadPart;
 	RtlInsertElementGenericTable(*gt, &tl, sizeof(tl), NULL);
 
-	Output = (UINT_PTR)OutputBuffer;
+	Output = (UINT_PTR)*OutputBuffer;
 	Stop = Output+BufferSize;
 	
 
