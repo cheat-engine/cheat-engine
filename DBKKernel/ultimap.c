@@ -202,10 +202,15 @@ Called from usermode to wait for data
 	
 }
 
-void ultimap_cleanstate()
+void apic_clearPerfmon()
 {
 	APIC_BASE->LVT_Performance_Monitor.a = APIC_BASE->LVT_Performance_Monitor.a & 0xff;
 	APIC_BASE->EOI.a = 0;
+}
+
+void ultimap_cleanstate()
+{
+	apic_clearPerfmon();
 }
 
 int perfmon_interrupt_centry(void)

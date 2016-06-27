@@ -73,6 +73,9 @@ NTSTATUS ZwCreateThread(
 
 
 
+
+
+
 UNICODE_STRING  uszDeviceString;
 PVOID BufDeviceString=NULL;
 
@@ -132,6 +135,21 @@ VOID TestDPC(IN struct _KDPC *Dpc, IN PVOID  DeferredContext, IN PVOID  SystemAr
 }
 
 
+VOID TestThread(__in PVOID StartContext)
+{
+	PEPROCESS x = (PEPROCESS)StartContext;
+	DbgPrint("Hello from testthread");
+
+	//PsSuspendProcess((PEPROCESS)StartContext);
+
+	
+
+	DbgPrint("x=%p\n", x);
+
+
+	
+}
+
 NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject,
                      IN PUNICODE_STRING RegistryPath)
 /*++
@@ -172,6 +190,8 @@ Return Value:
 	
 	criticalSection csTest;
 
+	HANDLE Ultimap2Handle;
+
 	
 	KernelCodeStepping=0;
 	KernelWritesIgnoreWP = 0;
@@ -184,6 +204,11 @@ Return Value:
 	this_es=getES();
 	this_fs=getFS();
 	this_gs=getGS();	
+
+
+
+	//InitializeObjectAttributes(&ao, NULL, OBJ_KERNEL_HANDLE, NULL, NULL);
+	//PsCreateSystemThread(&Ultimap2Handle, 0, NULL, 0, NULL, TestThread, PsGetCurrentProcess());
 
 	DbgPrint("DBK loading...");
 #ifdef TOBESIGNED
@@ -501,6 +526,7 @@ Return Value:
 
 		DbgPrint("Testing forEachCpu(...)\n");
 		forEachCpu(TestDPC, NULL, NULL, NULL);
+		forEachCpuAsync(TestDPC, NULL, NULL, NULL);
 
 		forEachCpuPassive(TestPassive, 0);
 

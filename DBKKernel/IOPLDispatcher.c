@@ -18,6 +18,7 @@
 #include "vmxhelper.h"
 #include "vmxoffload.h"
 #include "ultimap.h"
+#include "ultimap2.h"
 
 UINT64 PhysicalMemoryRanges=0; //initialized once, and used thereafter. If the user adds/removes ram at runtime, screw him and make him the reload the driver
 UINT64 PhysicalMemoryRangesListSize=0;
@@ -384,55 +385,14 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 			{
 				//PEPROCESS selectedprocess=NULL;
 
+				KIRQL old;
 				DbgPrint("test\n");
 
-				/*
-				__try
-				{
-					PMDL mdl=NULL;
-					char *buffer;
+				old=KeRaiseIrqlToDpcLevel();
+				//PsSuspendProcess(PsGetCurrentProcess());				
+				//DbgPrint("after suspend\n");
 
-					mdl = IoAllocateMdl((PVOID)0x00400000, 0x4096, FALSE, TRUE, NULL);
-					if (!mdl)
-					{
-						DbgPrint("Not enough memory dude!!!!\n");
-						ntStatus = STATUS_INSUFFICIENT_RESOURCES;
-						break;
-					}
-
-			        //PsLookupProcessByProcessId((PVOID)696,&selectedprocess);
-
-					DbgPrint("Before\n");
-					DbgPrint("mdl->Process=%x",mdl->Process);
-					DbgPrint("mdl->MappedSystemVa=%x",mdl->MappedSystemVa);
-					DbgPrint("mdl->StartVa=%x",mdl->StartVa);
-
-
-					//KeAttachProcess((PEPROCESS)selectedprocess);
-					MmProbeAndLockPages(mdl, UserMode, IoReadAccess);
-					
-					DbgPrint("After\n");
-					DbgPrint("mdl->Process=%x",mdl->Process);
-					DbgPrint("mdl->MappedSystemVa=%x",mdl->MappedSystemVa);
-					DbgPrint("mdl->StartVa=%x",mdl->StartVa);
-					
-
-					buffer = MmGetSystemAddressForMdlSafe(mdl, NormalPagePriority );
-					//KeDetachProcess();
-
-					
-					DbgPrint("buffer=%x\n",(ULONG)buffer);
-					//MmUnlockPages(mdl);
-					//IoFreeMdl(mdl); 
-				}
-				__except(1)
-				{
-					DbgPrint("Damn\n");
-
-				}
-				*/
-			
-
+				KeLowerIrql(old);
 
 				break;
 			}
@@ -1216,7 +1176,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 				inp = Irp->AssociatedIrp.SystemBuffer;
 
-				ExFreePool(inp->Address);
+				ExFreePool((PVOID)inp->Address);
 
 				ntStatus = STATUS_SUCCESS;
 
@@ -1264,7 +1224,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 							__try
 							{
-								FromMDL=IoAllocateMdl(inp->address, inp->size, FALSE, FALSE, NULL);
+								FromMDL=IoAllocateMdl((PVOID)inp->address, inp->size, FALSE, FALSE, NULL);
 								if (FromMDL)
 									MmProbeAndLockPages(FromMDL, KernelMode, IoReadAccess);
 							}
@@ -1287,7 +1247,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 					DbgPrint("From kernel or self\n", inp->FromPID);
 					__try
 					{
-						FromMDL = IoAllocateMdl(inp->address, inp->size, FALSE, FALSE, NULL);
+						FromMDL = IoAllocateMdl((PVOID)inp->address, inp->size, FALSE, FALSE, NULL);
 						if (FromMDL)
 						{
 							DbgPrint("IoAllocateMdl success\n");
@@ -1323,8 +1283,8 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 								__try
 								{
-									outp->Address = MmMapLockedPagesSpecifyCache(FromMDL, UserMode, MmWriteCombined, NULL, FALSE, NormalPagePriority);
-									outp->FromMDL = FromMDL;
+									outp->Address = (UINT64)MmMapLockedPagesSpecifyCache(FromMDL, UserMode, MmWriteCombined, NULL, FALSE, NormalPagePriority);
+									outp->FromMDL = (UINT64)FromMDL;
 									ntStatus = STATUS_SUCCESS;
 								}
 								__finally
@@ -1347,8 +1307,8 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 						__try
 						{
-							outp->Address = MmMapLockedPagesSpecifyCache(FromMDL, UserMode, MmWriteCombined, NULL, FALSE, NormalPagePriority);
-							outp->FromMDL = FromMDL;
+							outp->Address = (UINT64)MmMapLockedPagesSpecifyCache(FromMDL, UserMode, MmWriteCombined, NULL, FALSE, NormalPagePriority);
+							outp->FromMDL = (UINT64)FromMDL;
 							ntStatus = STATUS_SUCCESS;
 						}
 						__except (1)
@@ -1672,6 +1632,19 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				{
 					ntStatus=STATUS_UNSUCCESSFUL;
 				}
+				break;
+			}
+
+		case IOCTL_CE_ULTIMAP2:
+			{
+				struct input
+				{
+					UINT64 TargetCR3;
+					UINT64 EProcess;
+					UINT32 Size;
+				} *inp = Irp->AssociatedIrp.SystemBuffer;				
+
+				SetupUltimap2(inp->EProcess, inp->TargetCR3, inp->Size);
 				break;
 			}
 
