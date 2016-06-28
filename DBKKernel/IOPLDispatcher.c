@@ -1639,12 +1639,17 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 			{
 				struct input
 				{
-					UINT64 TargetCR3;
-					UINT64 EProcess;
+					UINT32 PID;	
 					UINT32 Size;
 				} *inp = Irp->AssociatedIrp.SystemBuffer;				
 
-				SetupUltimap2(inp->EProcess, inp->TargetCR3, inp->Size);
+				SetupUltimap2(inp->PID, inp->Size);
+				break;
+			}
+
+		case IOCTL_CE_DISABLEULTIMAP2:
+			{
+				DisableUltimap2();
 				break;
 			}
 

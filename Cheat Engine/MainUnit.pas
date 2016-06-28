@@ -2935,66 +2935,6 @@ end;
 
 
 var t: TRemoteMemoryManager;
-procedure TMainForm.Label3Click(Sender: TObject);
-var x: TPortableNetworkGraphic;
-  z: TLazIntfImage;
-  i,j: integer;
-  c: TFPColor;
-
-  y: tpicture;
-
-  m: array [0..8] of ptruint;
-
-  r: TPRangeDynArray;
-begin
-  setlength(r,0);
-  EnumAndGetAccessedPages(processhandle, r);
-
-  showmessage(inttostr(length(r)));
-{  try
-    asm
-      int3
-    end;
-
-  except
-    log('expected exception');
-  end;
-       }
-
-
- {
- //code to convert a 24 bit picture to a 32-bit picture with transparency
-
-  y:=tpicture.create;
-   y.Bitmap.Canvas.brush.color:=clred;
-   y.bitmap.width:=100;
-   y.bitmap.height:=100;
-   y.bitmap.Canvas.FillRect(0,0,100,100);
-
-   y.bitmap.canvas.font:=mainform.Font;
-
-   y.bitmap.canvas.brush.color:=clblue;
-   y.bitmap.Canvas.TextOut(0,0,'test');
-
-   y.png.SaveToFile('c:\yyy.png');
-
-  x:=TPortableNetworkGraphic.Create;
-  x.PixelFormat:=pf32bit;
-  x.Transparent:=true;
-  x.TransparentColor:=clBlue;
-
-  x.width:=y.width;
-  x.height:=y.height;
-  x.canvas.CopyRect(rect(0,0,100,100), y.bitmap.canvas, rect(0,0,100,100));
-
-  x.TransparentColor:=clRed;
-  x.SaveToFile('c:\xxx.png');
-
-  x.free;
-
-     }
-
-end;
 
 
 
@@ -8160,11 +8100,15 @@ begin
 end;
 
 
+procedure TMainForm.Label3Click(Sender: TObject);
+begin
+  dbk_disableUltimap2();
+end;
+
 
 procedure TMainForm.Label59Click(Sender: TObject);
 begin
-
-
+  dbk_ultimap2(processid, 16*1024*1024);
 end;
 
 procedure ChangeIcon(hModule: HModule; restype: PChar; resname: PChar;

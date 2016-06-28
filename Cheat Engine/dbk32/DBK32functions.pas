@@ -13,7 +13,7 @@ uses jwawindows, windows, sysutils, classes, types, registry, multicpuexecution,
 
 
 
-const currentversion=2000018;
+const currentversion=2000019;
 
 const FILE_ANY_ACCESS=0;
 const FILE_SPECIAL_ACCESS=FILE_ANY_ACCESS;
@@ -119,6 +119,8 @@ const IOCTL_CE_FREE_NONPAGED          = (IOCTL_UNKNOWN_BASE shl 16) or ($084c sh
 const IOCTL_CE_MAP_MEMORY             = (IOCTL_UNKNOWN_BASE shl 16) or ($084d shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_UNMAP_MEMORY           = (IOCTL_UNKNOWN_BASE shl 16) or ($084e shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
+const IOCTL_CE_ULTIMAP2               = (IOCTL_UNKNOWN_BASE shl 16) or ($084f shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_DISABLEULTIMAP2        = (IOCTL_UNKNOWN_BASE shl 16) or ($0850 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
 
 
@@ -297,6 +299,10 @@ function ultimap_continue(previousdataresult: PUltimapDataEvent): boolean;
 procedure ultimap_flush;
 
 
+procedure dbk_disableUltimap2;
+procedure dbk_ultimap2(processid: dword; size: dword);
+procedure dbk_test;
+
 procedure LaunchDBVM(cpuid: integer); stdcall;
 
 function GetGDT(limit: pword):dword; stdcall;
@@ -393,6 +399,39 @@ end;
 
 {$W+}
 
+
+procedure dbk_disableUltimap2;
+var
+  cc,br: dword;
+begin
+  OutputDebugString('disable ultimap2');
+  cc:=IOCTL_CE_DISABLEULTIMAP2;
+  deviceiocontrol(hdevice,cc,nil,0,nil,0,br,nil);
+end;
+
+
+procedure dbk_ultimap2(processid: dword; size: dword);
+var
+  inp:record
+    PID: UINT32;
+    BufferSize: UINT32;
+  end;
+  cc,br: dword;
+begin
+  OutputDebugString('ultimap2');
+  inp.PID:=processid;
+  inp.BufferSize:=size;
+  cc:=IOCTL_CE_ULTIMAP2;
+  deviceiocontrol(hdevice,cc,@inp,sizeof(inp),nil,0,br,nil);
+end;
+
+procedure dbk_test;
+var cc,br: dword;
+begin
+  OutputDebugString('dbk_test');
+  cc:=IOCTL_CE_TEST;
+  deviceiocontrol(hdevice,cc,nil,0,nil,0,br,nil);
+end;
 
 function GetGDT(limit: pword):dword; stdcall;
 var cc,br: dword;

@@ -16,6 +16,7 @@
 #include "IOPLDispatcher.h"
 #include "interruptHook.h"
 #include "ultimap.h"
+#include "ultimap2.h"
 
 #if (AMD64 && TOBESIGNED)
 #include "sigcheck.h"
@@ -604,6 +605,7 @@ void UnloadDriver(PDRIVER_OBJECT DriverObject)
 	}
 
 	ultimap_disable();
+	DisableUltimap2();
 
 	clean_APIC_BASE();
 	

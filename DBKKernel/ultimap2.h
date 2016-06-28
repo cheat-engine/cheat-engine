@@ -12,34 +12,38 @@
 #define IA32_RTIT_OUTPUT_BASE		0x560
 #define IA32_RTIT_OUTPUT_MASK_PTRS  0x561
 
+#pragma pack(1)
 typedef union {
 		struct{
 			ULONG TraceEn : 1;
+			ULONG Reserved_0 : 1;
 			ULONG OS : 1;
 			ULONG USER : 1;
-			ULONG Reserved : 4;
+			ULONG Reserved_1 : 3;
 			ULONG CR3Filter : 1;
-			ULONG Accessed : 1;
 			ULONG ToPA : 1;
 			ULONG Reserved_2 : 1;
 			ULONG TSCEn : 1;
 			ULONG DisRETC : 1;
 			ULONG Reserved_3 : 1;
 			ULONG BranchEn : 1;
-			ULONG Reserved_4 : 17;
+			ULONG Reserved_4 : 18;
 			ULONG Reserved_5 : 32;
 		} Bits;
 		UINT64 Value;
 	}  RTIT_CTL, *PRTIT_CTL;
 
-
+ 
 typedef union {
 	struct{
-		ULONG END : 1;
-		ULONG INT : 1;
-		ULONG Reserved : 1;
-		ULONG STOP : 1;		
-		ULONG Reserved2 : 8;
+		UINT64 END : 1;
+		UINT64 Reserved_0 : 1;
+		UINT64 INT : 1;
+		UINT64 Reserved_1 : 1;
+		UINT64 STOP : 1;
+		UINT64 Reserved_2 : 1;
+		UINT64 Size : 4;
+		UINT64 Reserved_3 : 2;
 		UINT64 PhysicalFrameNr : 52;
 	} Bits;
 	UINT64 Value;
@@ -50,6 +54,7 @@ typedef struct{
 	int index;
 } ToPA_LOOKUP, *PToPA_LOOKUP;
 
-void SetupUltimap2(PEPROCESS target, UINT64 cr3, UINT32 BufferSize);
+void SetupUltimap2(UINT32 PID, UINT32 BufferSize);
+void DisableUltimap2(void);
 
 #endif
