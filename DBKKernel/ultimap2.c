@@ -2,6 +2,7 @@
 #include <wdm.h>
 #include <windef.h>
 
+#include "Ntstrsafe.h"
 #include "DBKFunc.h"
 #include "ultimap.h"
 #include "ultimap2.h"
@@ -67,7 +68,6 @@ void suspendThread(PVOID StartContext)
 	NTSTATUS wr;
 	while (UltimapActive)
 	{
-		KIRQL old;
 		wr = KeWaitForSingleObject(&SuspendEvent, Executive, KernelMode, FALSE, NULL);
 		if (!UltimapActive) return;
 
@@ -87,7 +87,32 @@ void WriteThreadForSpecificCPU(PVOID StartContext)
 {
 	PProcessorInfo pi = PInfo[(int)StartContext];
 
+
+	UNICODE_STRING usFile;
+	OBJECT_ATTRIBUTES oaFile;
+	IO_STATUS_BLOCK iosb;
+	NTSTATUS r;
+	HANDLE FileHandle;
+	WCHAR Buffer[200];
 	//DbgPrint("WriteThreadForSpecificCPU %d alive", (int)StartContext);
+
+	RtlInitEmptyUnicodeString(&usFile, Buffer, 200);
+	RtlUnicodeStringPrintf(&usFile, L"\\DosDevices\\D:\\BLAA.%d", (int)StartContext);
+
+	//if (SaveToFile)
+	{
+		InitializeObjectAttributes(&oaFile, &usFile, OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE, NULL, NULL);
+
+		DbgPrint("Creating file %S", usFile.Buffer);
+
+		FileHandle = 0;
+		ZwDeleteFile(&oaFile);
+		r = ZwCreateFile(&FileHandle, SYNCHRONIZE | FILE_READ_DATA | FILE_APPEND_DATA | GENERIC_ALL, &oaFile, &iosb, 0, FILE_ATTRIBUTE_NORMAL, 0, FILE_SUPERSEDE, FILE_SEQUENTIAL_ONLY | FILE_SYNCHRONOUS_IO_NONALERT, NULL, 0);
+		DbgPrint("%d: ZwCreateFile=%x\n", (int)StartContext, r);
+		
+	}
+
+
 
 	
 	KeSetSystemAffinityThread((KAFFINITY)(1 << (int)StartContext));
@@ -96,7 +121,8 @@ void WriteThreadForSpecificCPU(PVOID StartContext)
 	{
 		NTSTATUS wr = KeWaitForSingleObject(&pi->InitiateSave, Executive, KernelMode, FALSE, NULL);
 		//DbgPrint("WriteThreadForSpecificCPU %d:  wr=%x", (int)StartContext, wr);
-		if (!UltimapActive) return;
+		if (!UltimapActive)
+			break;
 
 		if (wr == STATUS_SUCCESS)
 		{
@@ -116,8 +142,13 @@ void WriteThreadForSpecificCPU(PVOID StartContext)
 				//write...
 				//DbgPrint("%d: result->index=%d", (int)StartContext, result->index);
 				Size = ((result->index * 511) + ((pi->CurrentSaveOutputMask & 0xffffffff) >> 7)) * 4096 + (pi->CurrentSaveOutputMask >> 32);
+				if (Size > 0)
+				{
 
-				//DbgPrint("%d: Writing %x bytes\n", (int)StartContext, Size);
+					r = ZwWriteFile(FileHandle, NULL, NULL, NULL, &iosb, pi->ToPABuffer2, (ULONG)Size, NULL, NULL);
+					DbgPrint("%d: ZwCreateFile(%p, %d)=%x\n", (int)StartContext, pi->ToPABuffer2, (ULONG)Size, r);
+					//DbgPrint("%d: Writing %x bytes\n", (int)StartContext, Size);
+				}
 
 
 			}
@@ -130,6 +161,10 @@ void WriteThreadForSpecificCPU(PVOID StartContext)
 	}
 
 	KeSetSystemAffinityThread(KeQueryActiveProcessors());
+
+	if (FileHandle)
+		ZwClose(FileHandle);
+
 }
 
 void SwitchToPABuffer(struct _KDPC *Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -234,10 +269,9 @@ void bufferWriterThread(PVOID StartContext)
 
 		if ((wr == STATUS_SUCCESS) || (wr == STATUS_TIMEOUT))
 		{
-			//if ((wr == STATUS_SUCCESS) && (!isSuspended))
+			if ((wr == STATUS_SUCCESS) && (!isSuspended))
 			{
-				//called by a dpc
-				
+				//called by a dpc				
 				KeWaitForSingleObject(&SuspendMutex, Executive, KernelMode, FALSE, NULL);
 				if (!isSuspended)
 				{
@@ -271,27 +305,10 @@ void bufferWriterThread(PVOID StartContext)
 							break;
 						}
 					}
-
-					if (!found)
-					{
-						KeWaitForSingleObject(&SuspendMutex, Executive, KernelMode, FALSE, NULL);
-						if (isSuspended)
-						{
-							PsResumeProcess(CurrentTarget);
-							isSuspended = FALSE;
-						}
-						KeReleaseMutex(&SuspendMutex, FALSE);
-					}
-
 				}
-
-				//no interrupt for a while, resume the process
-
-
-
-
-
 			}
+
+			
 
 			//wait till the previous buffers are done writing
 			WaitForWriteToFinishAndSwapWriteBuffers(FALSE);
@@ -317,16 +334,15 @@ void bufferWriterThread(PVOID StartContext)
 void RTIT_DPC_Handler(__in struct _KDPC *Dpc, __in_opt PVOID DeferredContext, __in_opt PVOID SystemArgument1,__in_opt PVOID SystemArgument2)
 {
 	//Signal the bufferWriterThread
-	//KeSetEvent(&SuspendEvent, 0, FALSE);
+	KeSetEvent(&SuspendEvent, 0, FALSE);
 	KeSetEvent(&FlushData, 0, FALSE);
 }
-
-
+ 
 
 void PMI(__in struct _KINTERRUPT *Interrupt, __in PVOID ServiceContext)
 {
 	//check if caused by me, if so defer to dpc
-	//DbgPrint("PMI");
+	DbgPrint("PMI");
 	if ((__readmsr(IA32_PERF_GLOBAL_STATUS) >> 55) & 1)
 	{		
 		//DbgPrint("caused by me");	
@@ -536,7 +552,17 @@ void* setupToPA(PToPA_ENTRY *Header, PVOID *OutputBuffer, PRTL_GENERIC_TABLE *gt
 
 	DbgPrint("Interrupt at index %d", i);
 
-	r[i].Bits.INT = 1; //Interrupt after filling this entry
+	r[i].Bits.INT = 1; //Interrupt after filling this entry 
+
+	//and every 2nd page after this.  (in case of a rare situation where resume is called right after suspend)
+
+	while (i < ToPAIndex-1)
+	{
+		if ((i + 1) % 512) //anything but 0
+			r[i].Bits.INT = 1;
+
+		i += 2;
+	}
 
 	{
 		PToPA_LOOKUP l;
@@ -560,6 +586,7 @@ void* setupToPA(PToPA_ENTRY *Header, PVOID *OutputBuffer, PRTL_GENERIC_TABLE *gt
 	return (void *)r;
 }
 
+BOOL ultimapEnabled = FALSE;
 void SetupUltimap2(UINT32 PID, UINT32 BufferSize)
 {
 	//for each cpu setup tracing
@@ -634,6 +661,7 @@ void SetupUltimap2(UINT32 PID, UINT32 BufferSize)
 	}
 	
 	UltimapActive = TRUE;
+	ultimapEnabled = TRUE;
 
 	PsCreateSystemThread(&SuspendThreadHandle, 0, NULL, 0, NULL, suspendThread, NULL);
 	
@@ -652,12 +680,17 @@ void SetupUltimap2(UINT32 PID, UINT32 BufferSize)
 
 		forEachCpu(ultimap2_setup_dpc, NULL, (PVOID)BufferSize, NULL);
 	}
+
+	
 }
 
 void DisableUltimap2(void)
 {
 	unsigned int i;
 	void *clear = NULL;
+
+	if (!ultimapEnabled)
+		return;
 	
 	forEachCpuAsync(ultimap2_disable_dpc, NULL, NULL, NULL);
 	HalSetSystemInformation(HalProfileSourceInterruptHandler, sizeof(PVOID*), &clear); //unhook the perfmon interrupt
