@@ -211,6 +211,7 @@ type
     cbFloatSimple: TCheckBox;
     cbPauseWhileScanning: TCheckBox;
     cbWritable: TCheckBox;
+    CheckBox1: TCheckBox;
     ColorDialog1: TColorDialog;
     CreateGroup: TMenuItem;
     edtAlignment: TEdit;
@@ -224,6 +225,7 @@ type
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
+    miDisassemble: TMenuItem;
     miBindDeactivation: TMenuItem;
     miScanDirtyOnly: TMenuItem;
     miScanPagedOnly: TMenuItem;
@@ -458,6 +460,7 @@ type
     procedure Label57Click(Sender: TObject);
     procedure lblcompareToSavedScanClick(Sender: TObject);
     procedure miBindDeactivationClick(Sender: TObject);
+    procedure miDisassembleClick(Sender: TObject);
     procedure miScanDirtyOnlyClick(Sender: TObject);
     procedure miCompressionClick(Sender: TObject);
     procedure miGeneratePointermapClick(Sender: TObject);
@@ -3591,6 +3594,15 @@ begin
   end;
 end;
 
+procedure TMainForm.miDisassembleClick(Sender: TObject);
+begin
+  if addresslist.selectedrecord <> nil then
+  begin
+    memorybrowser.disassemblerview.SelectedAddress := addresslist.selectedrecord.GetRealAddress;
+    memorybrowser.Show;
+  end;
+end;
+
 
 
 procedure TMainForm.miHideChildrenClick(Sender: TObject);
@@ -6172,6 +6184,8 @@ begin
   Smarteditaddresses1.visible := (addresslist.selectedrecord <> nil) and (not addresslist.selectedRecord.isGroupHeader);
 
   BrowseThisMemoryRegion1.Visible :=(addresslist.selectedRecord <> nil) and (not addresslist.selectedRecord.isGroupHeader) and (not (addresslist.selectedRecord.vartype = vtAutoAssembler));
+  miDisassemble.Visible:=Browsethismemoryregion1.Visible;
+
   ShowAsHexadecimal1.Visible :=
     (addresslist.selectedRecord <> nil) and (addresslist.selectedRecord.VarType in
     [vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble, vtCustom, vtByteArray]) and
@@ -8102,13 +8116,15 @@ end;
 
 procedure TMainForm.Label3Click(Sender: TObject);
 begin
-  dbk_disableUltimap2();
+  ultimap2_disable;
 end;
 
 
 procedure TMainForm.Label59Click(Sender: TObject);
+var ranges: TPRangeDynArray;
 begin
-  dbk_ultimap2(processid, 16*1024*1024);
+  setlength(ranges,0);
+  ultimap2(processid, 16*1024*1024, 'd:\bla',ranges);
 end;
 
 procedure ChangeIcon(hModule: HModule; restype: PChar; resname: PChar;

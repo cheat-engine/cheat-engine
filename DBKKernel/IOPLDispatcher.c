@@ -1641,11 +1641,51 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				{
 					UINT32 PID;	
 					UINT32 Size;
+					UINT32 RangeCount;
+					UINT32 Reserved;
+					PRANGE Ranges[8];
+					WCHAR OutputPath[200];
 				} *inp = Irp->AssociatedIrp.SystemBuffer;				
 
-				SetupUltimap2(inp->PID, inp->Size);
+				SetupUltimap2(inp->PID, inp->Size, inp->OutputPath);
 				break;
 			}
+
+		case IOCTL_CE_ULTIMAP2_WAITFORDATA:
+		{
+
+			ULONG timeout = *(ULONG *)Irp->AssociatedIrp.SystemBuffer;
+			PULTIMAP2DATAEVENT output = Irp->AssociatedIrp.SystemBuffer;
+			ntStatus = ultimap2_waitForData(timeout, output);
+
+			break;
+		}
+
+		case IOCTL_CE_ULTIMAP2_CONTINUE:
+		{
+			int cpunr=*(int*)Irp->AssociatedIrp.SystemBuffer;
+			ntStatus = ultimap2_continue(cpunr);
+
+			break;
+		}
+
+		case IOCTL_CE_ULTIMAP2_FLUSH:
+		{			
+			ntStatus = ultimap2_flushBuffers();
+			break;
+		}
+
+		case IOCTL_CE_ULTIMAP2_PAUSE:
+		{
+			ntStatus = ultimap2_pause();
+			break;
+		}
+
+		case IOCTL_CE_ULTIMAP2_RESUME:
+		{
+			ntStatus = ultimap2_resume();
+			break;
+		}
 
 		case IOCTL_CE_DISABLEULTIMAP2:
 			{

@@ -241,6 +241,7 @@ type
     procedure EnumerateUserdefinedSymbols(list:tstrings);
 
     function ParseAsPointer(s: string; list:tstrings): boolean;
+    function ParseRange(s: string; var start: ptruint; var stop: ptruint): boolean;
     function GetAddressFromPointer(s: string; var error: boolean):ptrUint;
 
     function LookupStructureOffset(s: string; out offset: integer): boolean;
@@ -3082,6 +3083,42 @@ begin
   finally
     list.free;
   end;
+end;
+
+function TSymhandler.ParseRange(s: string; var start: ptruint; var stop: ptruint): boolean;
+var
+  tokens: ttokens;
+  i: integer;
+  t2start: integer;
+  s1,s2: string;
+  err: boolean;
+begin
+  result:=false;
+  tokenize(s, tokens);
+
+  //first find the first part
+  s1:='';
+  for i:=0 to length(tokens)-2 do
+  begin
+    s1:=s1+tokens[i];
+    err:=false;
+    start:=symhandler.getAddressFromName(s1, true, err);
+    if (err=false) and (tokens[i+1]='-') then
+    begin
+      t2start:=i+2;
+      break;
+    end;
+  end;
+
+  if err then exit;
+
+  s2:='';
+  for i:=t2start to length(tokens)-1 do
+    s2:=s2+tokens[i];
+
+  stop:=symhandler.getAddressFromName(s2, true, err);
+
+  result:=not err;
 end;
 
 function TSymhandler.ParseAsPointer(s: string; list:tstrings): boolean;

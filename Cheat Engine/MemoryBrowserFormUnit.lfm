@@ -1,7 +1,7 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 867
+  Left = 879
   Height = 587
-  Top = 247
+  Top = 259
   Width = 716
   HelpContext = 12
   Caption = 'Memory Viewer'
@@ -16,7 +16,7 @@ object MemoryBrowser: TMemoryBrowser
   OnResize = FormResize
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object Splitter1: TSplitter
     Cursor = crVSplit
     Left = 0
@@ -1357,6 +1357,11 @@ object MemoryBrowser: TMemoryBrowser
         Caption = 'Ultimap'
         ShortCut = 49237
         OnClick = MenuItem14Click
+      end
+      object MenuItem26: TMenuItem
+        Caption = 'Ultimap 2'
+        ShortCut = 24661
+        OnClick = MenuItem26Click
       end
       object MenuItem22: TMenuItem
         Caption = 'Watch memory page access'

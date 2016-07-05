@@ -107,6 +107,66 @@ type
   Tread_memory_callback=function(buffer: PByteArray; size: SIZE_T; asid: PPT_ASID; ip: uint64; context: pointer): integer; cdecl;
 
 
+  pt_event_type = (ptev_enabled,ptev_disabled,ptev_async_disabled,
+    ptev_async_branch,ptev_paging,ptev_async_paging,
+    ptev_overflow,ptev_exec_mode,ptev_tsx,
+    ptev_stop,ptev_vmcs,ptev_async_vmcs
+    );
+
+
+  Ppt_event = ^pt_event;
+  pt_event = record
+      _type : pt_event_type;
+      flag0 : word;
+      tsc : uint64;
+      lost_mtc : uint32;
+      lost_cyc : uint32;
+      reserved : array[0..1] of uint64;
+      variant : record
+          case longint of
+            0 : ( enabled : record
+                ip : uint64;
+              end );
+            1 : ( disabled : record
+                ip : uint64;
+              end );
+            2 : ( async_disabled : record
+                at : uint64;
+                ip : uint64;
+              end );
+            3 : ( async_branch : record
+                froma : uint64;
+                toa : uint64;
+              end );
+            4 : ( paging : record
+                cr3 : uint64;
+                flag0 : word;
+              end );
+            5 : ( async_paging : record
+                cr3 : uint64;
+                flag0 : word;
+                ip : uint64;
+              end );
+            6 : ( overflow : record
+                ip : uint64;
+              end );
+            7 : ( exec_mode : record
+                mode : pt_exec_mode;
+                ip : uint64;
+              end );
+            8 : ( tsx : record
+                ip : uint64;
+                flag0 : word;
+              end );
+            9 : ( vmcs : record
+                base : uint64;
+              end );
+            10 : ( async_vmcs : record
+                base : uint64;
+                ip : uint64;
+              end );
+          end;
+    end;
 
 
 
@@ -125,6 +185,14 @@ var
   pt_insn_sync_forward:function(decoder: ppt_insn_decoder): integer; cdecl;
   pt_insn_next: function(decoder: ppt_insn_decoder; insn: Ppt_insn; size: size_t): integer; cdecl;
   pt_insn_get_offset:function(decoder: Ppt_insn_decoder; offset: PQWord): integer; cdecl;
+
+  pt_qry_alloc_decoder:function(config: ppt_config): ppt_query_decoder; cdecl;
+  pt_qry_free_decoder:procedure(decoder: ppt_query_decoder); cdecl;
+  pt_qry_sync_forward: function(decoder: ppt_query_decoder; ip: pqword): integer; cdecl;
+  pt_qry_get_offset: function(decoder: ppt_query_decoder; offset: pqword): integer; cdecl;
+  pt_qry_indirect_branch: function(decoder: ppt_query_decoder; ip: pqword): integer; cdecl;
+  pt_qry_event:function(decoder: ppt_query_decoder; event: Ppt_event; size: size_t): integer; cdecl;
+  pt_qry_cond_branch: function(decoder: Ppt_query_decoder; taken: pinteger): integer; cdecl;
 
   procedure pt_asid_init(asid: PPT_ASID); inline;
   procedure pt_config_init(config: ppt_config); inline;
@@ -174,6 +242,13 @@ begin
       pt_insn_next:=GetProcAddress(hLibIPT, 'pt_insn_next');
       pt_insn_get_offset:=GetProcAddress(hLibIPT, 'pt_insn_get_offset');
 
+      pt_qry_alloc_decoder:=GetProcAddress(hLibIPT, 'pt_qry_alloc_decoder');
+      pt_qry_free_decoder:=GetProcAddress(hLibIPT, 'pt_qry_free_decoder');
+      pt_qry_sync_forward:=GetProcAddress(hLibIPT, 'pt_qry_sync_forward');
+      pt_qry_indirect_branch:=GetProcAddress(hLibIPT, 'pt_qry_indirect_branch');
+      pt_qry_get_offset:=GetProcAddress(hLibIPT, 'pt_qry_get_offset');
+      pt_qry_event:=GetProcAddress(hLibIPT, 'pt_qry_event');
+      pt_qry_cond_branch:=GetProcAddress(hLibIPT, 'pt_qry_event');
     end;
   end;
 end;

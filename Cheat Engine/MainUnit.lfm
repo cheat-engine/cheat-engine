@@ -1,9 +1,9 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 1108
+  Left = 562
   Height = 557
   Hint = ' '
-  Top = 365
+  Top = 190
   Width = 577
   HelpContext = 3
   HorzScrollBar.Visible = False
@@ -1602,6 +1602,11 @@ object MainForm: TMainForm
       GroupIndex = 2
       ShortCut = 16450
       OnClick = Browsethismemoryregion1Click
+    end
+    object miDisassemble: TMenuItem
+      Caption = 'Disassemble this memory region'
+      ShortCut = 16452
+      OnClick = miDisassembleClick
     end
     object miShowAsSigned: TMenuItem
       Caption = 'Show as signed'

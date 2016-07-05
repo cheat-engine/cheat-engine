@@ -167,6 +167,8 @@ function setupToPA(size)
       local size=sizePerCPU+extra;
       ultimap2.ToPABuffers[i]={}
       ultimap2.ToPABuffers[i].Memory=allocateKernelMemory(size)
+      if (ultimap2.ToPABuffers[i].Memory==0) then error("Failure allocating memory") end
+      
       ultimap2.ToPABuffers[i].MemorySize=size
       ultimap2.ToPABuffers[i].Layout={}  
       ultimap2.ToPABuffers[i].ToPAHeaders={}

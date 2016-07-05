@@ -54,7 +54,21 @@ typedef struct{
 	int index;
 } ToPA_LOOKUP, *PToPA_LOOKUP;
 
-void SetupUltimap2(UINT32 PID, UINT32 BufferSize);
+typedef struct
+{
+	UINT64 Address;
+	UINT64 Size;
+	UINT64 CpuID;	
+} ULTIMAP2DATAEVENT, *PULTIMAP2DATAEVENT;
+
+void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path);
 void DisableUltimap2(void);
+
+NTSTATUS ultimap2_waitForData(ULONG timeout, PULTIMAP2DATAEVENT data);
+NTSTATUS ultimap2_continue(int cpunr);
+NTSTATUS ultimap2_flushBuffers();
+
+NTSTATUS ultimap2_pause();
+NTSTATUS ultimap2_resume();
 
 #endif

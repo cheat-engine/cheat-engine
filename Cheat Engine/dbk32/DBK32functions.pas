@@ -122,6 +122,11 @@ const IOCTL_CE_UNMAP_MEMORY           = (IOCTL_UNKNOWN_BASE shl 16) or ($084e sh
 const IOCTL_CE_ULTIMAP2               = (IOCTL_UNKNOWN_BASE shl 16) or ($084f shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_DISABLEULTIMAP2        = (IOCTL_UNKNOWN_BASE shl 16) or ($0850 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
+const IOCTL_CE_ULTIMAP2_WAITFORDATA   = (IOCTL_UNKNOWN_BASE shl 16) or ($0851 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_ULTIMAP2_CONTINUE      = (IOCTL_UNKNOWN_BASE shl 16) or ($0852 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_ULTIMAP2_FLUSH         = (IOCTL_UNKNOWN_BASE shl 16) or ($0853 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_ULTIMAP2_PAUSE         = (IOCTL_UNKNOWN_BASE shl 16) or ($0854 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_ULTIMAP2_RESUME        = (IOCTL_UNKNOWN_BASE shl 16) or ($0855 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
 
 type TDeviceIoControl=function(hDevice: THandle; dwIoControlCode: DWORD; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesReturned: DWORD; lpOverlapped: POverlapped): BOOL; stdcall;
@@ -182,6 +187,12 @@ type       //The DataEvent structure contains the address and blockid. Use this 
   end;
   PUltimapDataEvent= ^TUltimapDataEvent;
 
+  TUltimap2DataEvent=packed record
+    Address:Qword;
+    Size: Qword;
+    Cpunr: Qword;
+  end;
+  PUltimap2DataEvent= ^TUltimap2DataEvent;
 
 type
   TPRange=record
@@ -299,8 +310,23 @@ function ultimap_continue(previousdataresult: PUltimapDataEvent): boolean;
 procedure ultimap_flush;
 
 
-procedure dbk_disableUltimap2;
-procedure dbk_ultimap2(processid: dword; size: dword);
+procedure ultimap2(processid: dword; size: dword; outputfolder: widestring; ranges: TPRangeDynArray);
+procedure ultimap2_disable;
+function  ultimap2_waitForData(timeout: dword; var output: TUltimap2DataEvent): boolean;
+procedure ultimap2_continue(cpunr: integer);
+procedure ultimap2_flush;
+procedure ultimap2_pause;
+procedure ultimap2_resume;
+
+{
+const IOCTL_CE_ULTIMAP2_WAITFORDATA   = (IOCTL_UNKNOWN_BASE shl 16) or ($0851 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_ULTIMAP2_CONTINUE      = (IOCTL_UNKNOWN_BASE shl 16) or ($0852 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_ULTIMAP2_FLUSH         = (IOCTL_UNKNOWN_BASE shl 16) or ($0853 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_ULTIMAP2_PAUSE         = (IOCTL_UNKNOWN_BASE shl 16) or ($0854 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_ULTIMAP2_RESUME        = (IOCTL_UNKNOWN_BASE shl 16) or ($0855 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+
+}
+
 procedure dbk_test;
 
 procedure LaunchDBVM(cpuid: integer); stdcall;
@@ -400,7 +426,7 @@ end;
 {$W+}
 
 
-procedure dbk_disableUltimap2;
+procedure ultimap2_disable;
 var
   cc,br: dword;
 begin
@@ -410,20 +436,80 @@ begin
 end;
 
 
-procedure dbk_ultimap2(processid: dword; size: dword);
+procedure ultimap2(processid: dword; size: dword; outputfolder: widestring; ranges: TPRangeDynArray);
 var
   inp:record
     PID: UINT32;
     BufferSize: UINT32;
+    rangecount: UINT32;
+    reserved:   UINT32;
+    range: array[0..7] of TPRange;
+    filename: array [0..199] of WideChar;
   end;
   cc,br: dword;
+  i: integer;
 begin
   OutputDebugString('ultimap2');
   inp.PID:=processid;
   inp.BufferSize:=size;
+
+  outputfolder:='\DosDevices\'+outputfolder;
+
+  if outputfolder[length(outputfolder)]<>PathDelim then
+    outputfolder:=outputfolder+PathDelim;
+
+
+  for i:=1 to length(outputfolder) do
+    inp.filename[i-1]:=outputfolder[i];
+
+  inp.filename[length(outputfolder)+1]:=#0;
+
   cc:=IOCTL_CE_ULTIMAP2;
   deviceiocontrol(hdevice,cc,@inp,sizeof(inp),nil,0,br,nil);
 end;
+
+function  ultimap2_waitForData(timeout: dword; var output: TUltimap2DataEvent): boolean;
+var cc: dword;
+begin
+  if (hdevice<>INVALID_HANDLE_VALUE) then
+    result:=deviceiocontrol(hdevice,IOCTL_CE_ULTIMAP2_WAITFORDATA,@timeout,sizeof(timeout),@output,sizeof(TUltimap2DataEvent),cc,nil)
+  else
+    result:=false;
+end;
+
+
+procedure ultimap2_continue(cpunr: integer);
+var cc: dword;
+begin
+  if (hdevice<>INVALID_HANDLE_VALUE) then
+    deviceiocontrol(hdevice,IOCTL_CE_ULTIMAP2_CONTINUE,@cpunr,sizeof(cpunr),nil,0,cc,nil);
+end;
+
+procedure ultimap2_flush;
+var
+  cc,br: dword;
+begin
+  cc:=IOCTL_CE_ULTIMAP2_FLUSH;
+  deviceiocontrol(hdevice,cc,nil,0,nil,0,br,nil);
+end;
+
+
+procedure ultimap2_pause;
+var
+  cc,br: dword;
+begin
+  cc:=IOCTL_CE_ULTIMAP2_PAUSE;
+  deviceiocontrol(hdevice,cc,nil,0,nil,0,br,nil);
+end;
+
+procedure ultimap2_resume;
+var
+  cc,br: dword;
+begin
+  cc:=IOCTL_CE_ULTIMAP2_RESUME;
+  deviceiocontrol(hdevice,cc,nil,0,nil,0,br,nil);
+end;
+
 
 procedure dbk_test;
 var cc,br: dword;

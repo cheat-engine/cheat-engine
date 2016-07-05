@@ -1,7 +1,7 @@
 object frmSelectionList: TfrmSelectionList
-  Left = 791
+  Left = 397
   Height = 232
-  Top = 326
+  Top = 165
   Width = 313
   BorderIcons = [biSystemMenu]
   Caption = 'title'
@@ -23,12 +23,13 @@ object frmSelectionList: TfrmSelectionList
   end
   object ListBox1: TListBox
     Left = 0
-    Height = 188
-    Top = 13
+    Height = 167
+    Top = 34
     Width = 313
     Align = alClient
     ItemHeight = 0
     OnDblClick = ListBox1DblClick
+    OnSelectionChange = ListBox1SelectionChange
     TabOrder = 0
   end
   object Panel1: TPanel
@@ -51,5 +52,15 @@ object frmSelectionList: TfrmSelectionList
       ModalResult = 1
       TabOrder = 0
     end
+  end
+  object Edit1: TEdit
+    Left = 0
+    Height = 21
+    Top = 13
+    Width = 313
+    Align = alTop
+    OnKeyPress = Edit1KeyPress
+    TabOrder = 2
+    Visible = False
   end
 end

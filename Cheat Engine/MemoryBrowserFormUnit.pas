@@ -42,6 +42,7 @@ type
     MenuItem23: TMenuItem;
     MenuItem24: TMenuItem;
     MenuItem25: TMenuItem;
+    MenuItem26: TMenuItem;
     miGNUAssembler: TMenuItem;
     miBinutilsSelect: TMenuItem;
     miBinUtils: TMenuItem;
@@ -272,6 +273,7 @@ type
     procedure MenuItem20Click(Sender: TObject);
     procedure MenuItem22Click(Sender: TObject);
     procedure MenuItem25Click(Sender: TObject);
+    procedure MenuItem26Click(Sender: TObject);
     procedure miGNUAssemblerClick(Sender: TObject);
     procedure miBinutilsSelectClick(Sender: TObject);
     procedure SetBookmarkClick(Sender: TObject);
@@ -617,6 +619,7 @@ uses Valuechange,
   frmStringpointerscanUnit,
   frmFilePatcherUnit,
   frmUltimapUnit,
+  frmUltimap2Unit,
   frmAssemblyScanUnit,
   MemoryQuery,
   AccessedMemory,
@@ -1106,6 +1109,14 @@ begin
 
 end;
 
+procedure TMemoryBrowser.MenuItem26Click(Sender: TObject);
+begin
+  if frmUltimap2=nil then
+    frmUltimap2:=TfrmUltimap2.create(application);
+
+  frmUltimap2.show;
+end;
+
 procedure TMemoryBrowser.miGNUAssemblerClick(Sender: TObject);
 var gnua: TfrmAutoInject;
 begin
@@ -1358,7 +1369,7 @@ begin
 
 
       //look for ret, int3 or nop
-      if (d.LastDisassembleData.opcode='??') or (d.LastDisassembleData.opcode='ret') or (d.LastDisassembleData.opcode='int 3') or (d.LastDisassembleData.opcode='nop') then
+      if (d.LastDisassembleData.opcode='??') or (d.LastDisassembleData.opcode='ret') or (d.LastDisassembleData.opcode='int 3') then
       begin
         start:=a; //start from next instruction
         break;
@@ -1865,8 +1876,12 @@ var newaddress: string;
     old: ptruint;
 begin
   panel4.setfocus;
-  old:=memoryaddress;
-  newaddress:=inputboxtop(rsGotoAddress, rsFillInTheAddressYouWantToGoTo, IntTohex(memoryaddress, 8), true, canceled, memorybrowserHistory);
+//  old:=memoryaddress;
+
+  old:=hexview.SelectionStart;
+  if old=0 then old:=memoryaddress;
+
+  newaddress:=inputboxtop(rsGotoAddress, rsFillInTheAddressYouWantToGoTo, IntTohex(old, 8), true, canceled, memorybrowserHistory);
 
   hexview.address:=getaddress(newaddress);
 
