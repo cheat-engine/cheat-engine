@@ -241,7 +241,7 @@ type
     procedure EnumerateUserdefinedSymbols(list:tstrings);
 
     function ParseAsPointer(s: string; list:tstrings): boolean;
-    function ParseRange(s: string; var start: ptruint; var stop: ptruint): boolean;
+    function ParseRange(s: string; var start: QWORD; var stop: QWORD): boolean;
     function GetAddressFromPointer(s: string; var error: boolean):ptrUint;
 
     function LookupStructureOffset(s: string; out offset: integer): boolean;
@@ -3085,7 +3085,7 @@ begin
   end;
 end;
 
-function TSymhandler.ParseRange(s: string; var start: ptruint; var stop: ptruint): boolean;
+function TSymhandler.ParseRange(s: string; var start: QWORD; var stop: QWORD): boolean;
 var
   tokens: ttokens;
   i: integer;

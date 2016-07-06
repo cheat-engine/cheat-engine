@@ -70,5 +70,7 @@ NTSTATUS ultimap2_flushBuffers();
 
 NTSTATUS ultimap2_pause();
 NTSTATUS ultimap2_resume();
+void ultimap2_LockFile(int cpunr);
+void ultimap2_ReleaseFile(int cpunr);
 
 #endif

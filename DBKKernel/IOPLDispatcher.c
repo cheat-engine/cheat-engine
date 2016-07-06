@@ -1647,6 +1647,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 					WCHAR OutputPath[200];
 				} *inp = Irp->AssociatedIrp.SystemBuffer;				
 
+				DbgPrint("IOCTL_CE_ULTIMAP2");
 				SetupUltimap2(inp->PID, inp->Size, inp->OutputPath);
 				break;
 			}
@@ -1656,10 +1657,27 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 			ULONG timeout = *(ULONG *)Irp->AssociatedIrp.SystemBuffer;
 			PULTIMAP2DATAEVENT output = Irp->AssociatedIrp.SystemBuffer;
+			output->Address = 0;
+
 			ntStatus = ultimap2_waitForData(timeout, output);
 
 			break;
 		}
+
+		IOCTL_CE_ULTIMAP2_LOCKFILE:
+		{
+			int cpunr = *(int *)Irp->AssociatedIrp.SystemBuffer;
+			ultimap2_LockFile(cpunr);
+			break;
+		}
+
+		IOCTL_CE_ULTIMAP2_RELEASEFILE:
+		{
+			int cpunr = *(int *)Irp->AssociatedIrp.SystemBuffer;
+			ultimap2_ReleaseFile(cpunr);
+			break;
+		}
+
 
 		case IOCTL_CE_ULTIMAP2_CONTINUE:
 		{

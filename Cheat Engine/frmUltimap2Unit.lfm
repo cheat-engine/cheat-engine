@@ -1,7 +1,7 @@
 object frmUltimap2: TfrmUltimap2
-  Left = 626
+  Left = 446
   Height = 529
-  Top = 317
+  Top = 99
   Width = 670
   Caption = 'Ultimap 2'
   ClientHeight = 529
@@ -176,23 +176,8 @@ object frmUltimap2: TfrmUltimap2
       Caption = '0'
       ParentColor = False
     end
-    object btnRecordPause: TButton
-      Tag = 2
-      AnchorSideLeft.Control = rbLogToFolder
-      AnchorSideTop.Control = gbRange
-      AnchorSideTop.Side = asrBottom
-      Left = 5
-      Height = 25
-      Top = 224
-      Width = 98
-      BorderSpacing.Top = 8
-      Caption = 'Record/Stop'
-      Enabled = False
-      TabOrder = 10
-    end
     object lblIPCount: TLabel
       AnchorSideLeft.Control = rbLogToFolder
-      AnchorSideTop.Control = btnRecordPause
       AnchorSideTop.Side = asrBottom
       AnchorSideBottom.Control = Label3
       Left = 5
@@ -213,7 +198,7 @@ object frmUltimap2: TfrmUltimap2
       Width = 73
       BorderSpacing.Left = 3
       Caption = 'Reset Count'
-      TabOrder = 11
+      TabOrder = 10
     end
     object cbfilterOutNewEntries: TCheckBox
       AnchorSideLeft.Control = btnNotExecuted
@@ -227,7 +212,7 @@ object frmUltimap2: TfrmUltimap2
       Caption = 'Mark all new addresses as filtered out'
       ParentShowHint = False
       ShowHint = True
-      TabOrder = 12
+      TabOrder = 11
     end
     object cbFilterFuturePaths: TCheckBox
       AnchorSideLeft.Control = btnExecuted
@@ -245,9 +230,9 @@ object frmUltimap2: TfrmUltimap2
       ParentShowHint = False
       ShowHint = True
       State = cbChecked
-      TabOrder = 13
+      TabOrder = 12
     end
-    object Label4: TLabel
+    object lblKB: TLabel
       AnchorSideLeft.Control = edtBufSize
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = edtBufSize
@@ -272,7 +257,7 @@ object frmUltimap2: TfrmUltimap2
       ButtonWidth = 23
       NumGlyphs = 1
       MaxLength = 0
-      TabOrder = 14
+      TabOrder = 13
       Text = 'd:\lotsofspace'
     end
     object gbRange: TGroupBox
@@ -289,13 +274,13 @@ object frmUltimap2: TfrmUltimap2
       Caption = 'Range(s) to log: (Empty for all)'
       ClientHeight = 109
       ClientWidth = 223
-      TabOrder = 15
+      TabOrder = 14
       object lbRange: TListBox
         AnchorSideLeft.Control = gbRange
         AnchorSideTop.Control = gbRange
         AnchorSideRight.Control = gbRange
         AnchorSideRight.Side = asrBottom
-        AnchorSideBottom.Control = Button1
+        AnchorSideBottom.Control = btnAddRange
         Left = 0
         Height = 80
         Top = 0
@@ -308,7 +293,7 @@ object frmUltimap2: TfrmUltimap2
         PopupMenu = pmRangeOptions
         TabOrder = 0
       end
-      object Button1: TButton
+      object btnAddRange: TButton
         AnchorSideBottom.Control = gbRange
         AnchorSideBottom.Side = asrBottom
         Left = 0
@@ -318,9 +303,30 @@ object frmUltimap2: TfrmUltimap2
         Anchors = [akLeft, akBottom]
         BorderSpacing.Bottom = 2
         Caption = 'Add range'
-        OnClick = Button1Click
+        OnClick = btnAddRangeClick
         TabOrder = 1
       end
+    end
+    object tbRecordPause: TToggleBox
+      AnchorSideTop.Control = gbRange
+      AnchorSideTop.Side = asrBottom
+      Left = 5
+      Height = 23
+      Top = 219
+      Width = 90
+      BorderSpacing.Top = 3
+      Caption = 'Record/Stop'
+      OnChange = tbRecordPauseChange
+      TabOrder = 15
+    end
+    object Button1: TButton
+      Left = 305
+      Height = 25
+      Top = 235
+      Width = 75
+      Caption = 'Button1'
+      OnClick = Button1Click
+      TabOrder = 16
     end
   end
   object Panel2: TPanel
@@ -397,5 +403,11 @@ object frmUltimap2: TfrmUltimap2
       Caption = 'Clear List'
       OnClick = miRangeDeleteAllClick
     end
+  end
+  object tActivator: TTimer
+    Interval = 500
+    OnTimer = tActivatorTimer
+    left = 120
+    top = 215
   end
 end

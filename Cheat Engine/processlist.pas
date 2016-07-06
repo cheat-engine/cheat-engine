@@ -79,7 +79,7 @@ end;
 
 procedure cleanProcessList(processlist: TStrings);
 begin
-  OutputDebugString('cleanProcessList()');
+ // OutputDebugString('cleanProcessList()');
   sanitizeProcessList(processlist);
   processlist.clear;
 end;
@@ -99,34 +99,34 @@ begin
 
   j:=0;
 
-  OutputDebugString('GetProcessList()');
+//  OutputDebugString('GetProcessList()');
 
   cleanProcessList(ProcessList);
 
 
-  OutputDebugString('Calling CreateToolhelp32Snapshot');
+ // OutputDebugString('Calling CreateToolhelp32Snapshot');
   SNAPHandle:=CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS,0);
 
-  OutputDebugString('SNAPHandle='+inttohex(SNAPHandle,8));
+ // OutputDebugString('SNAPHandle='+inttohex(SNAPHandle,8));
 
   If SnapHandle<>0 then
   begin
-    OutputDebugString('SnapHandle>0');
+  //  OutputDebugString('SnapHandle>0');
 
     ZeroMemory(@ProcessEntry, sizeof(ProcessEntry));
 
-    OutputDebugString('Setting up processentry');
+    //OutputDebugString('Setting up processentry');
 
 
     if not assigned(Process32First) then
     begin
-      OutputDebugString('Process32First was not assigned');
+    //  OutputDebugString('Process32First was not assigned');
       exit;
     end;
 
-    OutputDebugString('Calling Process32First');
+   // OutputDebugString('Calling Process32First');
 
-    OutputDebugString('Setting up ProcessEntry dwSize');
+   // OutputDebugString('Setting up ProcessEntry dwSize');
     ProcessEntry.dwSize:=SizeOf(ProcessEntry);
 
 
@@ -151,7 +151,7 @@ begin
           if (processentry.th32ProcessID>0) and (uppercase(copy(ExtractFileName(ProcessEntry.szExeFile), 1,3))<>'AVG') then //february 2014: AVG freezes processes that do createtoolhelp32snapshot on it's processes for several seconds. AVG has multiple processes...
           begin
             s:=GetFirstModuleName(processentry.th32ProcessID);
-            OutputDebugString(s);
+           // OutputDebugString(s);
             HI:=ExtractIcon(hinstance,pchar(s),0);
           end;
         end;
@@ -200,7 +200,7 @@ begin
   end
   else
   begin
-    OutputDebugString('Apparently the handle is smaller than 0...');
+  //  OutputDebugString('Apparently the handle is smaller than 0...');
     {$ifdef windows}
     raise exception.Create(rsICanTGetTheProcessListYouArePropablyUsingWindowsNT);
     {$endif}

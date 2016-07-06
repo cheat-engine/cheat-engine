@@ -127,6 +127,9 @@ const IOCTL_CE_ULTIMAP2_CONTINUE      = (IOCTL_UNKNOWN_BASE shl 16) or ($0852 sh
 const IOCTL_CE_ULTIMAP2_FLUSH         = (IOCTL_UNKNOWN_BASE shl 16) or ($0853 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_ULTIMAP2_PAUSE         = (IOCTL_UNKNOWN_BASE shl 16) or ($0854 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_ULTIMAP2_RESUME        = (IOCTL_UNKNOWN_BASE shl 16) or ($0855 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_ULTIMAP2_LOCKFILE      = (IOCTL_UNKNOWN_BASE shl 16) or ($0856 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_ULTIMAP2_RELEASEFILE   = (IOCTL_UNKNOWN_BASE shl 16) or ($0857 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+
 
 
 type TDeviceIoControl=function(hDevice: THandle; dwIoControlCode: DWORD; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesReturned: DWORD; lpOverlapped: POverlapped): BOOL; stdcall;
@@ -196,8 +199,8 @@ type       //The DataEvent structure contains the address and blockid. Use this 
 
 type
   TPRange=record
-    startAddress: UINT64;
-    endaddress: uint64;
+    startAddress: QWORD;
+    endaddress: QWORD;
   end;
   PPRange=^TPRange;
 
@@ -317,6 +320,8 @@ procedure ultimap2_continue(cpunr: integer);
 procedure ultimap2_flush;
 procedure ultimap2_pause;
 procedure ultimap2_resume;
+procedure ultimap2_lockfile(cpunr: integer);
+procedure ultimap2_releasefile(cpunr: integer);
 
 {
 const IOCTL_CE_ULTIMAP2_WAITFORDATA   = (IOCTL_UNKNOWN_BASE shl 16) or ($0851 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
@@ -449,20 +454,33 @@ var
   cc,br: dword;
   i: integer;
 begin
-  OutputDebugString('ultimap2');
+  OutputDebugString('ultimap2:'+outputfolder);
   inp.PID:=processid;
   inp.BufferSize:=size;
 
-  outputfolder:='\DosDevices\'+outputfolder;
+  if outputfolder<>'' then
+  begin
+    if DirectoryExists(outputfolder) then
+    begin
+      outputfolder:='\DosDevices\'+outputfolder;
 
-  if outputfolder[length(outputfolder)]<>PathDelim then
-    outputfolder:=outputfolder+PathDelim;
-
+      if outputfolder[length(outputfolder)]<>PathDelim then
+        outputfolder:=outputfolder+PathDelim;
+    end
+    else
+    begin
+      OutputDebugString(outputfolder+' could not be found');
+      outputfolder:='';
+    end;
+  end;
 
   for i:=1 to length(outputfolder) do
     inp.filename[i-1]:=outputfolder[i];
 
   inp.filename[length(outputfolder)+1]:=#0;
+
+  for i:=0 to min(7,length(ranges)-1) do
+    inp.range[i]:=ranges[i];
 
   cc:=IOCTL_CE_ULTIMAP2;
   deviceiocontrol(hdevice,cc,@inp,sizeof(inp),nil,0,br,nil);
@@ -508,6 +526,20 @@ var
 begin
   cc:=IOCTL_CE_ULTIMAP2_RESUME;
   deviceiocontrol(hdevice,cc,nil,0,nil,0,br,nil);
+end;
+
+procedure ultimap2_lockfile(cpunr: integer);
+var cc: dword;
+begin
+  if (hdevice<>INVALID_HANDLE_VALUE) then
+    deviceiocontrol(hdevice,IOCTL_CE_ULTIMAP2_LOCKFILE,@cpunr,sizeof(cpunr),nil,0,cc,nil);
+end;
+
+procedure ultimap2_releasefile(cpunr: integer);
+var cc: dword;
+begin
+  if (hdevice<>INVALID_HANDLE_VALUE) then
+    deviceiocontrol(hdevice,IOCTL_CE_ULTIMAP2_RELEASEFILE,@cpunr,sizeof(cpunr),nil,0,cc,nil);
 end;
 
 
@@ -2710,7 +2742,7 @@ begin
           end
           else
           begin
-            messagebox(0,PChar(rsTheDriverCouldntBeOpenedTryAgain),'DBK32.DLL Error',MB_ICONERROR or MB_OK)
+            messagebox(0,PChar(rsTheDriverCouldntBeOpenedTryAgain),'DBK Error',MB_ICONERROR or MB_OK)
           end;
 
         end
@@ -2724,7 +2756,7 @@ begin
           if GetDriverVersion<>currentversion then
           begin
             closehandle(hdevice);
-            messagebox(0,PChar(rsTheDriverThatIsCurrentlyLoaded),'DBK32.dll',MB_ICONERROR or MB_OK);
+            messagebox(0,PChar(rsTheDriverThatIsCurrentlyLoaded),'DBK',MB_ICONERROR or MB_OK);
 
             hdevice:=INVALID_HANDLE_VALUE;
           end
@@ -2733,7 +2765,7 @@ begin
             InitializeDriver(0,0);
             {
             if not InitializeDriver(0,0) then
-              messagebox(0,rsTheDriverFailedToSuccessfullyInitialize,'DBK32.dll',MB_ICONERROR or MB_OK);
+              messagebox(0,rsTheDriverFailedToSuccessfullyInitialize,'DBK',MB_ICONERROR or MB_OK);
               }
 
           end;
