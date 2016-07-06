@@ -46,7 +46,7 @@ type
     procedure HandleIP(ip: QWORD);
     procedure HandleIPForRegion(ip: qword; region: PRegionInfo);
 
-    function waitForData(e: TUltimap2DataEvent): boolean;
+    function waitForData(timeout: dword; e: TUltimap2DataEvent): boolean;
     procedure continueFromData(e: TUltimap2DataEvent);
   public
     id: integer;
@@ -357,13 +357,13 @@ begin
   if lastregion=nil then exit; //fuck it
 end;
 
-function TUltimap2Worker.waitForData(e: TUltimap2DataEvent): boolean;
+function TUltimap2Worker.waitForData(timeout: dword; e: TUltimap2DataEvent): boolean;
 begin
   result:=false;
   if fromfile then
   begin
     //wait for the fileready event
-    if processFile.WaitFor(INFINITE)=wrSignaled then
+    if processFile.WaitFor(timeout)=wrSignaled then
     begin
       ultimap2_lockfile(id);
       filemap:=TFileMapping.create(filename);
@@ -374,7 +374,7 @@ begin
     end
   end
   else
-    result:=ultimap2_waitForData($ffffffff, e);
+    result:=ultimap2_waitForData(timeout, e);
 end;
 
 procedure TUltimap2Worker.continueFromData(e: TUltimap2DataEvent);
@@ -411,7 +411,7 @@ begin
   while not terminated do
   begin
 
-    if waitForData(e) then
+    if waitForData(250, e) then
     begin
       try
         //process the data between e.Address and e.Address+e.Size
@@ -523,6 +523,7 @@ end;
 
 
 procedure TfrmUltimap2.cleanup;
+var i: integer;
 begin
   //cleanup everything
   if regiontree<>nil then
@@ -537,6 +538,17 @@ begin
 
     freeandnil(regiontree);
   end;
+
+
+  for i:=0 to length(workers)-1 do
+    workers[i].Terminate;
+
+  for i:=0 to length(workers)-1 do
+  begin
+    workers[i].Free;
+    workers[i]:=nil;
+  end;
+  setlength(workers,0);
 
 
   enableConfigGUI;
