@@ -12,11 +12,11 @@ object frmDisassemblyscan: TfrmDisassemblyscan
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.6.0.4'
   object Label1: TLabel
     Left = 0
-    Height = 14
-    Top = 156
+    Height = 13
+    Top = 157
     Width = 447
     Align = alBottom
     Alignment = taCenter
@@ -25,11 +25,12 @@ object frmDisassemblyscan: TfrmDisassemblyscan
   end
   object ListBox1: TListBox
     Left = 0
-    Height = 156
+    Height = 157
     Top = 0
     Width = 381
     Align = alClient
     ItemHeight = 0
+    MultiSelect = True
     OnDblClick = ListBox1DblClick
     OnKeyDown = ListBox1KeyDown
     PopupMenu = PopupMenu1
@@ -37,11 +38,11 @@ object frmDisassemblyscan: TfrmDisassemblyscan
   end
   object Panel1: TPanel
     Left = 381
-    Height = 156
+    Height = 157
     Top = 0
     Width = 66
     Align = alRight
-    ClientHeight = 156
+    ClientHeight = 157
     ClientWidth = 66
     TabOrder = 1
     OnClick = Panel1Click
@@ -69,6 +70,10 @@ object frmDisassemblyscan: TfrmDisassemblyscan
       Default = True
       ShortCut = 32
       OnClick = MenuItem1Click
+    end
+    object MenuItem2: TMenuItem
+      Caption = 'Copy selection to clipboard'
+      OnClick = MenuItem2Click
     end
   end
 end
