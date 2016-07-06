@@ -1664,14 +1664,14 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 			break;
 		}
 
-		IOCTL_CE_ULTIMAP2_LOCKFILE:
+		case IOCTL_CE_ULTIMAP2_LOCKFILE:
 		{
 			int cpunr = *(int *)Irp->AssociatedIrp.SystemBuffer;
 			ultimap2_LockFile(cpunr);
 			break;
 		}
 
-		IOCTL_CE_ULTIMAP2_RELEASEFILE:
+		case IOCTL_CE_ULTIMAP2_RELEASEFILE:
 		{
 			int cpunr = *(int *)Irp->AssociatedIrp.SystemBuffer;
 			ultimap2_ReleaseFile(cpunr);
