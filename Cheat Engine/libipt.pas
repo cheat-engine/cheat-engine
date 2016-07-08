@@ -197,7 +197,7 @@ var
   procedure pt_asid_init(asid: PPT_ASID); inline;
   procedure pt_config_init(config: ppt_config); inline;
 
-  procedure libIptInit;
+  function libIptInit: boolean;
 
 implementation
 
@@ -217,7 +217,7 @@ begin
 end;
 
 
-procedure libIptInit;
+function libIptInit: boolean;
 begin
   if hLibIPT=0 then
   begin
@@ -251,6 +251,8 @@ begin
       pt_qry_cond_branch:=GetProcAddress(hLibIPT, 'pt_qry_event');
     end;
   end;
+
+  result:=hLibIPT<>0;
 end;
 
 end.

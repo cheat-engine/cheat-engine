@@ -455,8 +455,11 @@ var
   i: integer;
 begin
   OutputDebugString('ultimap2:'+outputfolder);
+  zeromemory(@inp, sizeof(inp));
   inp.PID:=processid;
   inp.BufferSize:=size;
+
+
 
   if outputfolder<>'' then
   begin
@@ -475,9 +478,11 @@ begin
   end;
 
   for i:=1 to length(outputfolder) do
+  begin
     inp.filename[i-1]:=outputfolder[i];
+  end;
 
-  inp.filename[length(outputfolder)+1]:=#0;
+  inp.filename[length(outputfolder)]:=#0;
 
   for i:=0 to min(7,length(ranges)-1) do
     inp.range[i]:=ranges[i];

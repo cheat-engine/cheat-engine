@@ -46,7 +46,7 @@ type
     procedure HandleIP(ip: QWORD);
     procedure HandleIPForRegion(ip: qword; region: PRegionInfo);
 
-    function waitForData(timeout: dword; e: TUltimap2DataEvent): boolean;
+    function waitForData(timeout: dword; var e: TUltimap2DataEvent): boolean;
     procedure continueFromData(e: TUltimap2DataEvent);
   public
     id: integer;
@@ -74,6 +74,7 @@ type
     btnResetCount: TButton;
     btnAddRange: TButton;
     Button1: TButton;
+    Button2: TButton;
     Button5: TButton;
     Button6: TButton;
     cbFilterFuturePaths: TCheckBox;
@@ -101,6 +102,8 @@ type
     tActivator: TTimer;
     procedure btnAddRangeClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
+    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormDestroy(Sender: TObject);
     procedure miRangeDeleteSelectedClick(Sender: TObject);
@@ -145,7 +148,6 @@ uses symbolhandler, frmSelectionlistunit, cpuidUnit;
 
 function iptReadMemory(buffer: PByteArray; size: SIZE_T; asid: PPT_ASID; ip: uint64; context: pointer): integer; cdecl;
 var self: TUltimap2Worker;
-  lastRegion: PRegionInfo;
   n: TAvgLvlTreeNode;
   e: TRegionInfo;
 
@@ -154,29 +156,30 @@ begin
   self:=TUltimap2Worker(context);
   //watch for page boundaries
 
-  lastRegion:=self.lastRegion;
-  if (lastRegion=nil) or (ip<lastRegion^.address) or (ip>(lastRegion^.address+lastRegion^.size)) then
+  if (self.lastRegion=nil) or (ip<self.lastRegion^.address) or (ip>=(self.lastRegion^.address+self.lastRegion^.size)) then
   begin
     e.address:=ip;
     self.ownerForm.regiontreeMREW.Beginread;
     n:=self.ownerForm.regiontree.Find(@e);
     self.ownerForm.regiontreeMREW.endRead;
 
+
     if n<>nil then
-      lastRegion:=PRegionInfo(n.Data)
+      self.lastRegion:=PRegionInfo(n.Data)
     else
     begin
-      lastregion:=self.addIPBlockToRegionTree(ip);
-      if lastregion=nil then
+      self.lastRegion:=nil;
+    //  lastregion:=self.addIPBlockToRegionTree(ip);
+    //  if lastregion=nil then
         exit(-integer(pte_nomap));
     end;
   end;
 
-  if lastregion<>nil then
+  if self.lastRegion<>nil then
   begin
-    s:=(lastRegion^.address+lastRegion^.size)-ip;
+    s:=(self.lastRegion^.address+self.lastRegion^.size)-ip;
     if s>size then s:=size;
-    CopyMemory(buffer, @lastRegion^.memory[ip-lastRegion^.address], s);
+    CopyMemory(buffer, @self.lastRegion^.memory[ip-self.lastRegion^.address], s);
 
     size:=size-s;
     if size>0 then
@@ -212,7 +215,7 @@ begin
     p^.size:=br;
     p^.memory:=page;
     getmem(p^.info, 4096*sizeof(TByteInfo));
-    zeromemory(p^.info, 4096);
+    zeromemory(p^.info, 4096*sizeof(TByteInfo));
 
     ownerForm.regiontree.Add(p);
     result:=p;
@@ -289,7 +292,7 @@ begin
 
 
         br:=0;
-        ReadProcessMemory(processhandle, pointer(baseaddress),p^.memory, endaddress-baseaddress, br);
+        ReadProcessMemory(processhandle, pointer(baseaddress),p^.memory, p^.size, br);
         if br<endaddress-baseaddress then
         begin
           p^.size:=br; //fix size
@@ -299,9 +302,12 @@ begin
             ownerForm.freeRegion(p);
             exit(addIPPageToRegionTree(IP));
           end;
-
-          ownerForm.regiontree.Add(p);
         end;
+
+        zeromemory(p^.info, p^.size*sizeof(TByteInfo));
+        ownerForm.regiontree.Add(p);
+
+        result:=p;
 
       end
       else
@@ -338,26 +344,25 @@ begin
     exit;
   end;
 
+  lastregion:=nil;
+
 
   e.address:=ip;
   ownerform.regiontreeMREW.Beginread;
   n:=ownerform.regiontree.Find(@e);
   if n<>nil then
     lastRegion:=n.data;
+
   ownerform.regiontreeMREW.Endread;
 
-  if lastRegion<>nil then
-  begin
-    HandleIPForRegion(ip,lastRegion);
-    exit;
-  end;
+  if lastregion=nil then
+    lastregion:=addIPBlockToRegionTree(ip);
 
-  //still here
-  lastregion:=addIPBlockToRegionTree(ip);
-  if lastregion=nil then exit; //fuck it
+  if lastRegion<>nil then
+    HandleIPForRegion(ip,lastRegion);
 end;
 
-function TUltimap2Worker.waitForData(timeout: dword; e: TUltimap2DataEvent): boolean;
+function TUltimap2Worker.waitForData(timeout: dword; var e: TUltimap2DataEvent): boolean;
 begin
   result:=false;
   if fromfile then
@@ -366,15 +371,20 @@ begin
     if processFile.WaitFor(timeout)=wrSignaled then
     begin
       ultimap2_lockfile(id);
-      filemap:=TFileMapping.create(filename);
+      if fileexists(filename) then
+      begin
+        filemap:=TFileMapping.create(filename);
 
-      e.Address:=ptruint(filemap.fileContent);
-      e.Size:=filemap.filesize;
-      result:=true;
+        e.Address:=ptruint(filemap.fileContent);
+        e.Size:=filemap.filesize;
+        result:=true;
+      end;
     end
   end
   else
+  begin
     result:=ultimap2_waitForData(timeout, e);
+  end;
 end;
 
 procedure TUltimap2Worker.continueFromData(e: TUltimap2DataEvent);
@@ -400,8 +410,9 @@ var
   decoder: ppt_insn_decoder;
   callbackImage: PPT_Image;
   insn: pt_insn;
+  i: integer;
 begin
-  callbackImage:=pt_image_alloc('');
+  callbackImage:=pt_image_alloc('xxx');
   pt_image_set_callback(callbackImage,@iptReadMemory,self);
 
   pt_config_init(@iptConfig);
@@ -425,10 +436,16 @@ begin
             pt_insn_set_image(decoder, callbackImage);
 
             //scan through this decoder
-            while pt_insn_sync_forward(decoder)>0 do
+
+            while pt_insn_sync_forward(decoder)>=0 do
             begin
-              while pt_insn_next(decoder, @insn, sizeof(insn))>0 do
+              while pt_insn_next(decoder, @insn, sizeof(insn))>=0 do
+              begin
+                if insn.iclass=ptic_error then break;
+
                 handleIP(insn.ip);
+
+              end;
             end;
           finally
             pt_insn_free_decoder(decoder);
@@ -447,7 +464,9 @@ end;
 destructor TUltimap2Worker.destroy;
 begin
   Terminate;
-  processFile.SetEvent;
+  if processFile<>nil then
+    processFile.SetEvent;
+
   waitfor;
   freeandnil(processFile);
   inherited destroy;
@@ -465,15 +484,26 @@ end;
 //RegionCompare
 
 function TfrmUltimap2.RegionCompare(Tree: TAvgLvlTree; Data1, Data2: pointer): integer;
-var d1,d2: PRegionInfo;
+var
+  d1,d2: PRegionInfo;
+  start,stop: ptruint;
+  a: ptruint;
 begin
   d1:=data1;
   d2:=data2;
+  {
+  a:=d1^.address;
+  start:=d2^.address;
+  stop:=d2^.address+d2^.size;
 
-  if (d2^.address>=d1^.address) and (d2^.address<d1^.address) then
+  outputdebugstring(pchar(format('is %x in %x - %x', d1^.address, start,stop)); }
+
+  if (d1^.address>=d2^.address) and (d1^.address<d2^.address+d2^.size) then
+  begin
     result:=0
+  end
   else
-    result:=CompareValue(d1^.address, d2^.address); //not inside
+    result:=CompareValue(d2^.address, d1^.address); //not inside
 end;
 
 
@@ -526,6 +556,16 @@ procedure TfrmUltimap2.cleanup;
 var i: integer;
 begin
   //cleanup everything
+  for i:=0 to length(workers)-1 do
+    workers[i].Terminate;
+
+  for i:=0 to length(workers)-1 do
+  begin
+    workers[i].Free;
+    workers[i]:=nil;
+  end;
+  setlength(workers,0);
+
   if regiontree<>nil then
   begin
     while regiontree.root<>nil do
@@ -540,20 +580,13 @@ begin
   end;
 
 
-  for i:=0 to length(workers)-1 do
-    workers[i].Terminate;
 
-  for i:=0 to length(workers)-1 do
-  begin
-    workers[i].Free;
-    workers[i]:=nil;
-  end;
-  setlength(workers,0);
+
 
 
   enableConfigGUI;
 
-  ultimap_disable;
+  ultimap2_disable;
   ultimap2Initialized:=0;
 end;
 
@@ -568,6 +601,9 @@ var
 
   p: PRegionInfo;
   br: ptruint;
+
+  n: TAvgLvlTreeNode;
+  e: TRegionInfo;
 begin
   if tbRecordPause.enabled=false then
   begin
@@ -645,20 +681,22 @@ begin
         workers[i].ownerForm:=self;
       end;
 
-      if length(ranges)=0 then
+      if length(ranges)>0 then
       begin
         for i:=0 to length(ranges)-1 do
         begin
           getmem(p, sizeof(TRegionInfo));
+          p^.address:=ranges[i].startAddress;
           p^.size:=ranges[i].endaddress-ranges[i].startAddress;
           getmem(p^.memory, p^.size);
           getmem(p^.info, size*sizeof(TByteInfo));
-          ReadProcessMemory(processhandle, pointer(ranges[i].startAddress), p^.memory, p^.size, br);
+          ReadProcessMemory(processhandle, pointer(p^.address), p^.memory, p^.size, br);
           if br=0 then
             freeRegion(p)
           else
           begin
-            zeromemory(p^.info, size*sizeof(TByteInfo));
+            p^.size:=br;
+            zeromemory(p^.info, p^.size*sizeof(TByteInfo));
             regiontree.Add(p);
           end;
         end;
@@ -669,15 +707,18 @@ begin
         for i:=0 to length(regions)-1 do
         begin
           getmem(p, sizeof(TRegionInfo));
+
+          p^.address:=regions[i].BaseAddress;
           p^.size:=regions[i].MemorySize;
           getmem(p^.memory, p^.size);
           getmem(p^.info, p^.size*sizeof(TByteInfo));
-          ReadProcessMemory(processhandle, pointer(regions[i].BaseAddress), p^.memory, p^.size, br);
+          ReadProcessMemory(processhandle, pointer(p^.address), p^.memory, p^.size, br);
           if br=0 then
             freeRegion(p)
           else
           begin
-            zeromemory(p^.info, size*sizeof(TByteInfo));
+            p^.size:=br;
+            zeromemory(p^.info, p^.size*sizeof(TByteInfo));
             regiontree.Add(p);
           end;
         end;
@@ -685,8 +726,15 @@ begin
 
 
       //start the recording
-      //ultimap2(processid,
 
+
+      if not libIptInit then raise exception.create('Failure loading libipt');
+
+
+     { if rbLogToFolder.Checked then
+        ultimap2(processid, size, deTargetFolder.Directory, ranges)
+      else
+        ultimap2(processid, size, '', ranges);}
 
       for i:=0 to length(workers)-1 do
         workers[i].start;
@@ -695,7 +743,9 @@ begin
     begin
       //toggle between active/disabled
       if tbRecordPause.Checked then
+      begin
         ultimap2_resume
+      end
       else
       begin
         ultimap2_pause;
@@ -768,32 +818,19 @@ begin
 end;
 
 procedure TfrmUltimap2.Button1Click(Sender: TObject);
-var n:PRegionInfo;
 begin
-  regiontree:=TAvgLvlTree.CreateObjectCompare(@RegionCompare);
+  ultimap2_lockfile(0);
+end;
 
-  getmem(n, sizeof(TRegionInfo));
-  n^.memory:=nil;
-  n^.info:=nil;
-  n^.address:=$004000000;
-  n^.size:=$100000;
-  regiontree.Add(n);
+procedure TfrmUltimap2.Button2Click(Sender: TObject);
+begin
+  ultimap2_releasefile(0);
+end;
 
-  getmem(n, sizeof(TRegionInfo));
-  n^.address:=$008000000;
-  n^.size:=$100000;
-  n^.memory:=nil;
-  n^.info:=nil;
-  regiontree.Add(n);
-
-  getmem(n, sizeof(TRegionInfo));
-  n^.address:=$00c000000;
-  n^.size:=$100000;
-  n^.memory:=nil;
-  n^.info:=nil;
-  regiontree.Add(n);
-
-  cleanup;
+procedure TfrmUltimap2.FormClose(Sender: TObject; var CloseAction: TCloseAction
+  );
+begin
+  CloseAction:=caFree;
 end;
 
 

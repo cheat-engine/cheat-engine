@@ -1,11 +1,12 @@
 object frmUltimap2: TfrmUltimap2
-  Left = 446
+  Left = 425
   Height = 529
-  Top = 99
+  Top = 163
   Width = 670
   Caption = 'Ultimap 2'
   ClientHeight = 529
   ClientWidth = 670
+  OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnDestroy = FormDestroy
   Position = poScreenCenter
@@ -36,7 +37,7 @@ object frmUltimap2: TfrmUltimap2
       AnchorSideTop.Side = asrBottom
       Left = 260
       Height = 25
-      Top = 18
+      Top = 23
       Width = 264
       Caption = 'Code did not get executed'
       TabOrder = 1
@@ -83,8 +84,8 @@ object frmUltimap2: TfrmUltimap2
       AnchorSideTop.Control = btnFilterCallCount
       AnchorSideTop.Side = asrCenter
       Left = 527
-      Height = 23
-      Top = 113
+      Height = 28
+      Top = 110
       Width = 40
       BorderSpacing.Left = 3
       TabOrder = 5
@@ -95,9 +96,9 @@ object frmUltimap2: TfrmUltimap2
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Panel5
       Left = 260
-      Height = 15
+      Height = 20
       Top = 3
-      Width = 88
+      Width = 110
       BorderSpacing.Left = 28
       BorderSpacing.Top = 3
       Caption = 'Last filter results:'
@@ -117,10 +118,10 @@ object frmUltimap2: TfrmUltimap2
       AnchorSideTop.Control = edtBufSize
       AnchorSideTop.Side = asrBottom
       Left = 5
-      Height = 19
+      Height = 24
       Hint = 'CE will write the results to disk as quickly as possible but won''t process it until the recording is stopped, or a filter function is being used.'
-      Top = 26
-      Width = 183
+      Top = 31
+      Width = 229
       Caption = 'Process data after clicking stop'
       ParentShowHint = False
       ShowHint = True
@@ -131,9 +132,9 @@ object frmUltimap2: TfrmUltimap2
       AnchorSideTop.Control = deTargetFolder
       AnchorSideTop.Side = asrBottom
       Left = 5
-      Height = 19
-      Top = 68
-      Width = 171
+      Height = 24
+      Top = 83
+      Width = 214
       Caption = 'Process data while recording'
       Checked = True
       TabOrder = 8
@@ -143,8 +144,8 @@ object frmUltimap2: TfrmUltimap2
       AnchorSideLeft.Control = lblBuffersPerCPU
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Panel5
-      Left = 86
-      Height = 23
+      Left = 105
+      Height = 28
       Top = 3
       Width = 80
       BorderSpacing.Left = 3
@@ -157,9 +158,9 @@ object frmUltimap2: TfrmUltimap2
       AnchorSideTop.Control = edtBufSize
       AnchorSideTop.Side = asrCenter
       Left = 5
-      Height = 15
+      Height = 20
       Top = 7
-      Width = 78
+      Width = 97
       BorderSpacing.Left = 5
       Caption = 'Buffer per CPU'
       ParentColor = False
@@ -169,9 +170,9 @@ object frmUltimap2: TfrmUltimap2
       AnchorSideBottom.Control = Panel5
       AnchorSideBottom.Side = asrBottom
       Left = 5
-      Height = 15
-      Top = 273
-      Width = 6
+      Height = 20
+      Top = 268
+      Width = 8
       Anchors = [akLeft, akBottom]
       Caption = '0'
       ParentColor = False
@@ -181,9 +182,9 @@ object frmUltimap2: TfrmUltimap2
       AnchorSideTop.Side = asrBottom
       AnchorSideBottom.Control = Label3
       Left = 5
-      Height = 15
-      Top = 258
-      Width = 145
+      Height = 20
+      Top = 248
+      Width = 179
       Anchors = [akLeft, akBottom]
       Caption = 'Instruction Pointer List Size:'
       ParentColor = False
@@ -205,10 +206,10 @@ object frmUltimap2: TfrmUltimap2
       AnchorSideTop.Control = btnFilterModule
       AnchorSideTop.Side = asrBottom
       Left = 260
-      Height = 19
+      Height = 24
       Hint = 'When this checkbox is ticked all newly added code entry points will be marked as entries that do not match the filters'
       Top = 167
-      Width = 216
+      Width = 273
       Caption = 'Mark all new addresses as filtered out'
       ParentShowHint = False
       ShowHint = True
@@ -220,10 +221,10 @@ object frmUltimap2: TfrmUltimap2
       AnchorSideTop.Control = btnExecuted
       AnchorSideTop.Side = asrCenter
       Left = 527
-      Height = 19
+      Height = 24
       Hint = 'When checked (default) will mark all subsequent paths after this as filtered out'
-      Top = 51
-      Width = 139
+      Top = 48
+      Width = 175
       BorderSpacing.Left = 3
       Caption = 'Exclude new addresses'
       Checked = True
@@ -237,10 +238,10 @@ object frmUltimap2: TfrmUltimap2
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = edtBufSize
       AnchorSideTop.Side = asrCenter
-      Left = 166
-      Height = 15
+      Left = 185
+      Height = 20
       Top = 7
-      Width = 14
+      Width = 18
       Caption = 'KB'
       ParentColor = False
     end
@@ -249,8 +250,8 @@ object frmUltimap2: TfrmUltimap2
       AnchorSideTop.Control = rbLogToFolder
       AnchorSideTop.Side = asrBottom
       Left = 5
-      Height = 23
-      Top = 45
+      Height = 28
+      Top = 55
       Width = 227
       Directory = 'd:\lotsofspace'
       ShowHidden = False
@@ -268,11 +269,11 @@ object frmUltimap2: TfrmUltimap2
       AnchorSideRight.Side = asrBottom
       Left = 5
       Height = 129
-      Top = 87
+      Top = 107
       Width = 227
       Anchors = [akTop, akLeft, akRight]
       Caption = 'Range(s) to log: (Empty for all)'
-      ClientHeight = 109
+      ClientHeight = 104
       ClientWidth = 223
       TabOrder = 14
       object lbRange: TListBox
@@ -282,7 +283,7 @@ object frmUltimap2: TfrmUltimap2
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = btnAddRange
         Left = 0
-        Height = 80
+        Height = 75
         Top = 0
         Width = 223
         Anchors = [akTop, akLeft, akRight, akBottom]
@@ -298,7 +299,7 @@ object frmUltimap2: TfrmUltimap2
         AnchorSideBottom.Side = asrBottom
         Left = 0
         Height = 25
-        Top = 82
+        Top = 77
         Width = 75
         Anchors = [akLeft, akBottom]
         BorderSpacing.Bottom = 2
@@ -312,7 +313,7 @@ object frmUltimap2: TfrmUltimap2
       AnchorSideTop.Side = asrBottom
       Left = 5
       Height = 23
-      Top = 219
+      Top = 239
       Width = 90
       BorderSpacing.Top = 3
       Caption = 'Record/Stop'
@@ -327,6 +328,15 @@ object frmUltimap2: TfrmUltimap2
       Caption = 'Button1'
       OnClick = Button1Click
       TabOrder = 16
+    end
+    object Button2: TButton
+      Left = 408
+      Height = 25
+      Top = 232
+      Width = 75
+      Caption = 'Button2'
+      OnClick = Button2Click
+      TabOrder = 17
     end
   end
   object Panel2: TPanel
@@ -381,10 +391,10 @@ object frmUltimap2: TfrmUltimap2
         AnchorSideLeft.Side = asrCenter
         AnchorSideTop.Control = Panel3
         AnchorSideTop.Side = asrCenter
-        Left = 258
-        Height = 25
-        Top = 11
-        Width = 155
+        Left = 243
+        Height = 30
+        Top = 8
+        Width = 185
         AutoSize = True
         Caption = 'Show matching routines'
         TabOrder = 0
@@ -405,6 +415,7 @@ object frmUltimap2: TfrmUltimap2
     end
   end
   object tActivator: TTimer
+    Enabled = False
     Interval = 500
     OnTimer = tActivatorTimer
     left = 120
