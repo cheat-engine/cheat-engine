@@ -112,50 +112,63 @@ void suspendThread(PVOID StartContext)
 
 NTSTATUS ultimap2_continue(int cpunr)
 {
-	PProcessorInfo pi = PInfo[cpunr];
-	PVOID Address = (PVOID)pi->MappedAddress;
-	PMDL Mdl = pi->ToPABuffer2MDL;
-	
-	KeSetEvent(&pi->DataProcessed, 0, FALSE); //let the next swap happen if needed
+	if (PInfo)
+	{
+		PProcessorInfo pi = PInfo[cpunr];
+		PVOID Address = (PVOID)pi->MappedAddress;
+		PMDL Mdl = pi->ToPABuffer2MDL;
 
-	MmUnmapLockedPages(Address, Mdl); //unmap this memory
+		pi->MappedAddress = 0;
+		pi->ToPABuffer2MDL = NULL;
+		KeSetEvent(&pi->DataProcessed, 0, FALSE); //let the next swap happen if needed
 
+		if ((Address) && (Mdl))
+			MmUnmapLockedPages(Address, Mdl); //unmap this memory
+
+	}
 	return STATUS_SUCCESS;
 }
 
 NTSTATUS ultimap2_waitForData(ULONG timeout, PULTIMAP2DATAEVENT data)
 {
-	NTSTATUS r;
-	LARGE_INTEGER wait;
-	PKWAIT_BLOCK waitblock;
 
-	int cpunr;
 
-	waitblock = ExAllocatePool(NonPagedPool, Ultimap2CpuCount*sizeof(KWAIT_BLOCK));
-	wait.QuadPart = -10000LL * timeout;
+
 
 	//Wait for the events in the list
 	//If an event is triggered find out which one is triggered, then map that block into the usermode space and return the address and block
 	//That block will be needed to continue
 
-	if (timeout == 0xffffffff) //infinite wait
-		r = KeWaitForMultipleObjects(Ultimap2CpuCount, Ultimap2_DataReady, WaitAny, UserRequest, UserMode, TRUE, NULL, waitblock);
-	else
-		r = KeWaitForMultipleObjects(Ultimap2CpuCount, Ultimap2_DataReady, WaitAny, UserRequest, UserMode, TRUE, &wait, waitblock);
-
-	ExFreePool(waitblock);
-
-	cpunr= r - STATUS_WAIT_0;
-	
-	if (cpunr < Ultimap2CpuCount)
+	if (UltimapActive)
 	{
-		PProcessorInfo pi = PInfo[cpunr];
-		data->Address=(UINT64)MmMapLockedPagesSpecifyCache(pi->ToPABuffer2MDL, UserMode, MmCached, NULL, FALSE, NormalPagePriority);
-		if (data->Address)
+		NTSTATUS r;
+		LARGE_INTEGER wait;
+		PKWAIT_BLOCK waitblock;
+
+		int cpunr;
+
+		waitblock = ExAllocatePool(NonPagedPool, Ultimap2CpuCount*sizeof(KWAIT_BLOCK));
+		wait.QuadPart = -10000LL * timeout;
+
+		if (timeout == 0xffffffff) //infinite wait
+			r = KeWaitForMultipleObjects(Ultimap2CpuCount, Ultimap2_DataReady, WaitAny, UserRequest, UserMode, TRUE, NULL, waitblock);
+		else
+			r = KeWaitForMultipleObjects(Ultimap2CpuCount, Ultimap2_DataReady, WaitAny, UserRequest, UserMode, TRUE, &wait, waitblock);
+
+		ExFreePool(waitblock);
+
+		cpunr = r - STATUS_WAIT_0;
+
+		if (cpunr < Ultimap2CpuCount)
 		{
-			data->Size = pi->Buffer2FlushSize;
-			data->CpuID = cpunr;
-			r = STATUS_SUCCESS;
+			PProcessorInfo pi = PInfo[cpunr];
+			data->Address = (UINT64)MmMapLockedPagesSpecifyCache(pi->ToPABuffer2MDL, UserMode, MmCached, NULL, FALSE, NormalPagePriority);
+			if (data->Address)
+			{
+				data->Size = pi->Buffer2FlushSize;
+				data->CpuID = cpunr;
+				r = STATUS_SUCCESS;
+			}
 		}
 	}
 
@@ -300,26 +313,32 @@ void WriteThreadForSpecificCPU(PVOID StartContext)
 
 void ultimap2_LockFile(int cpunr)
 {
-	NTSTATUS wr;
-	PProcessorInfo pi = PInfo[cpunr];
-
-	DbgPrint("AcquireUltimap2File()");
-	wr = KeWaitForSingleObject(&pi->FileAccess, Executive, KernelMode, FALSE, NULL);
-	if (wr == STATUS_SUCCESS)
+	if (PInfo)
 	{
-		DbgPrint("Acquired");
-		if (pi->FileHandle)
+		NTSTATUS wr;
+		PProcessorInfo pi = PInfo[cpunr];
+
+		DbgPrint("AcquireUltimap2File()");
+		wr = KeWaitForSingleObject(&pi->FileAccess, Executive, KernelMode, FALSE, NULL);
+		if (wr == STATUS_SUCCESS)
 		{
-			ZwClose(pi->FileHandle);
-			pi->FileHandle = 0;
+			DbgPrint("Acquired");
+			if (pi->FileHandle)
+			{
+				ZwClose(pi->FileHandle);
+				pi->FileHandle = 0;
+			}
 		}
 	}
 }
 
 void ultimap2_ReleaseFile(int cpunr)
 {
-	PProcessorInfo pi = PInfo[cpunr];
-	KeSetEvent(&pi->FileAccess, 0, FALSE);
+	if (PInfo)
+	{
+		PProcessorInfo pi = PInfo[cpunr];
+		KeSetEvent(&pi->FileAccess, 0, FALSE);
+	}
 }
 
 void SwitchToPABuffer(struct _KDPC *Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -351,11 +370,8 @@ Only called when buffer2 is ready for flushing
 		if ((!flushallbuffers) && (((pi->CurrentOutputBase == 0) || ((__readmsr(IA32_RTIT_OUTPUT_BASE) == pi->CurrentOutputBase))) && (((__readmsr(IA32_RTIT_OUTPUT_MASK_PTRS)&0xffffffff) >> 7) < 2))) //still the same output base)
 		  return; //don't flush yet
 
+		DbgPrint("%d: pi->CurrentOutputBase=%p __readmsr(IA32_RTIT_OUTPUT_BASE)=%p __readmsr(IA32_RTIT_OUTPUT_MASK_PTRS)=%p", KeGetCurrentProcessorNumber(), pi->CurrentOutputBase, __readmsr(IA32_RTIT_OUTPUT_BASE), __readmsr(IA32_RTIT_OUTPUT_MASK_PTRS));
 
-		if (!flushallbuffers)
-			DbgPrint("%d: pi->CurrentOutputBase=%p __readmsr(IA32_RTIT_OUTPUT_BASE)=%p __readmsr(IA32_RTIT_OUTPUT_MASK_PTRS)=%p", KeGetCurrentProcessorNumber(), pi->CurrentOutputBase, __readmsr(IA32_RTIT_OUTPUT_BASE), __readmsr(IA32_RTIT_OUTPUT_MASK_PTRS));
-		else
-			DbgPrint("Thats why");
 
 
 		__writemsr(IA32_RTIT_CTL, 0); //disable packet generation
@@ -444,7 +460,7 @@ void bufferWriterThread(PVOID StartContext)
 		wr = KeWaitForSingleObject(&FlushData, Executive, KernelMode, FALSE, &Timeout);
 		//wr = KeWaitForSingleObject(&FlushData, Executive, KernelMode, FALSE, NULL);
 
-		DbgPrint("bufferWriterThread: Alive (wr==%x)", wr);
+		//DbgPrint("bufferWriterThread: Alive (wr==%x)", wr);
 		if (!UltimapActive)
 		{
 			DbgPrint("bufferWriterThread: Terminating");
@@ -621,6 +637,9 @@ void ultimap2_setup_dpc(struct _KDPC *Dpc, PVOID DeferredContext, PVOID SystemAr
 	ctl.Bits.DisRETC = 0;
 	ctl.Bits.BranchEn = 1;
 
+	if (PInfo == NULL)
+		return;
+	 
 	if (PInfo[KeGetCurrentProcessorNumber()]->ToPABuffer == NULL)
 	{
 		DbgPrint("ToPA for cpu %d not setup\n", KeGetCurrentProcessorNumber());
@@ -821,7 +840,7 @@ NTSTATUS ultimap2_pause()
 
 NTSTATUS ultimap2_resume()
 {
-	if (ultimapEnabled)
+	if ((ultimapEnabled) && (PInfo))
 		forEachCpu(ultimap2_setup_dpc, NULL, NULL, NULL);
 
 	return STATUS_SUCCESS;
@@ -838,7 +857,9 @@ void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path)
 	UNICODE_STRING s;
 	NTSTATUS r;
 
-	SaveToFile = (OutputPath[0] == 0);
+	DbgPrint("Path[0]=%d\n", Path[0]);
+
+	SaveToFile = (Path[0] != 0);
 
 	if (SaveToFile)
 	{
@@ -955,10 +976,12 @@ void DisableUltimap2(void)
 	int i;
 	void *clear = NULL;
 
-	DbgPrint("DisableUltimap2");
+	DbgPrint("-------------------->DisableUltimap2<------------------");
 
 	if (!ultimapEnabled)
 		return;
+
+	DbgPrint("-------------------->DisableUltimap2:Stage 1<------------------");
 	
 	forEachCpuAsync(ultimap2_disable_dpc, NULL, NULL, NULL);
 	HalSetSystemInformation(HalProfileSourceInterruptHandler, sizeof(PVOID*), &clear); //unhook the perfmon interrupt
@@ -995,9 +1018,10 @@ void DisableUltimap2(void)
 		Ultimap2Handle = NULL;
 	}
 
-	DbgPrint("going to deal with the PInfo data");
+	
 	if (PInfo)
 	{
+		DbgPrint("going to deal with the PInfo data");
 		for (i = 0; i < Ultimap2CpuCount; i++)
 		{
 			if (PInfo[i])
@@ -1065,6 +1089,8 @@ void DisableUltimap2(void)
 
 		DbgPrint("Finished terminating ultimap2");
 	}
+
+	DbgPrint("-------------------->DisableUltimap2:Finish<------------------");
 
 
 }
