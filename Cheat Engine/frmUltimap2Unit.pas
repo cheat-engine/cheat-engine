@@ -18,6 +18,8 @@ const
   bifExecuted=2;
 
 type
+  TRecordState=(rsStopped, rsProcessing, rsRecording);
+
   TByteInfo=packed record
     count: byte;
     flags: byte;
@@ -56,6 +58,9 @@ type
     done: boolean;
     ownerForm: TfrmUltimap2;
 
+    processed: qword;
+    totalsize: qword;
+
     procedure execute; override;
 
     constructor create(CreateSuspended: boolean);
@@ -70,44 +75,48 @@ type
     btnFilterCallCount: TButton;
     btnFilterModule: TButton;
     btnNotCalled: TButton;
+    btnAddRange: TButton;
     btnNotExecuted: TButton;
     btnResetCount: TButton;
-    btnAddRange: TButton;
-    Button1: TButton;
-    Button2: TButton;
+    btnRecordPause: TButton;
     Button5: TButton;
     Button6: TButton;
     cbFilterFuturePaths: TCheckBox;
     cbfilterOutNewEntries: TCheckBox;
+    edtCallCount: TEdit;
     gbRange: TGroupBox;
+    Label1: TLabel;
+    lblLastfilterresult: TLabel;
     lbRange: TListBox;
     miRangeDeleteSelected: TMenuItem;
     miRangeDeleteAll: TMenuItem;
+    Panel1: TPanel;
+    Panel4: TPanel;
     pmRangeOptions: TPopupMenu;
     rbLogToFolder: TRadioButton;
     rbRuntimeParsing: TRadioButton;
     deTargetFolder: TDirectoryEdit;
-    edtCallCount: TEdit;
     edtBufSize: TEdit;
     lblBuffersPerCPU: TLabel;
     Label3: TLabel;
     lblKB: TLabel;
     lblIPCount: TLabel;
-    lblLastfilterresult: TLabel;
     ListView1: TListView;
     Panel2: TPanel;
     Panel3: TPanel;
     Panel5: TPanel;
-    tbRecordPause: TToggleBox;
     tActivator: TTimer;
     procedure btnAddRangeClick(Sender: TObject);
+    procedure btnExecutedClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
+    procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure miRangeDeleteSelectedClick(Sender: TObject);
     procedure miRangeDeleteAllClick(Sender: TObject);
+    procedure Panel5Click(Sender: TObject);
     procedure tActivatorTimer(Sender: TObject);
     procedure tbRecordPauseChange(Sender: TObject);
   private
@@ -120,6 +129,9 @@ type
 
     workers: array of TUltimap2Worker;
 
+    fstate: TRecordState;
+    postProcessing: TNotifyEvent; //called when all threads enter the done state
+
     function RegionCompare(Tree: TAvgLvlTree; Data1, Data2: pointer): integer;
 
     procedure freeRegion(r: PRegionInfo);
@@ -127,9 +139,16 @@ type
     procedure setConfigGUIState(state: boolean);
     procedure enableConfigGUI;
     procedure disableConfigGUI;
+
+    procedure FlushResults(callOnDoneProcessing: TNotifyEvent);
+    procedure ExecuteFilter(Sender: TObject);
+
+    procedure setState(state: TRecordState);
     function ModuleSelectEvent(index: integer; listText: string): string;
+    property state:TRecordState read fstate write setState;
   public
     { public declarations }
+
   end;
 
 var
@@ -168,9 +187,9 @@ begin
       self.lastRegion:=PRegionInfo(n.Data)
     else
     begin
-      self.lastRegion:=nil;
-    //  lastregion:=self.addIPBlockToRegionTree(ip);
-    //  if lastregion=nil then
+      //self.lastRegion:=nil;
+      self.lastregion:=self.addIPBlockToRegionTree(ip);
+      if self.lastregion=nil then
         exit(-integer(pte_nomap));
     end;
   end;
@@ -373,7 +392,13 @@ begin
       ultimap2_lockfile(id);
       if fileexists(filename) then
       begin
-        filemap:=TFileMapping.create(filename);
+        if fileexists(filename+'.processing') then   //'shouldn't' happen
+          deletefile(filename+'.processing');
+
+        renamefile(filename, filename+'.processing');
+        ultimap2_releasefile(id);
+
+        filemap:=TFileMapping.create(filename+'.processing');
 
         e.Address:=ptruint(filemap.fileContent);
         e.Size:=filemap.filesize;
@@ -394,7 +419,7 @@ begin
     if filemap<>nil then
       freeandnil(filemap);
 
-    ultimap2_releasefile(id);
+
 
     done:=true;
   end
@@ -411,6 +436,7 @@ var
   callbackImage: PPT_Image;
   insn: pt_insn;
   i: integer;
+
 begin
   callbackImage:=pt_image_alloc('xxx');
   pt_image_set_callback(callbackImage,@iptReadMemory,self);
@@ -426,6 +452,7 @@ begin
     begin
       try
         //process the data between e.Address and e.Address+e.Size
+        totalsize:=e.Size;
         iptConfig.beginaddress:=pointer(e.Address);
         iptConfig.endaddress:=pointer(e.Address+e.Size);
 
@@ -437,14 +464,24 @@ begin
 
             //scan through this decoder
 
-            while pt_insn_sync_forward(decoder)>=0 do
+            i:=0;
+            while (pt_insn_sync_forward(decoder)>=0) and (not terminated) do
             begin
-              while pt_insn_next(decoder, @insn, sizeof(insn))>=0 do
+              //percentagetotal
+
+              while (pt_insn_next(decoder, @insn, sizeof(insn))>=0) and (not terminated) do
               begin
                 if insn.iclass=ptic_error then break;
 
                 handleIP(insn.ip);
 
+                inc(i);
+                if i>512 then
+                begin
+                  pt_insn_get_offset(decoder, @processed);
+
+                  i:=0;
+                end;
               end;
             end;
           finally
@@ -453,6 +490,8 @@ begin
         end;
 
       finally
+        processed:=totalsize;
+        done:=true;
         continueFromData(e);
       end;
     end else sleep(1);
@@ -551,6 +590,65 @@ begin
   setConfigGUIState(false);
 end;
 
+procedure TfrmUltimap2.FlushResults(callOnDoneProcessing: TNotifyEvent);
+var i:integer;
+begin
+  ultimap2_flush;
+
+
+  if rbLogToFolder.checked then
+  begin
+    //signal the worker threads to start processing
+    if state=rsRecording then
+    begin
+      for i:=0 to length(workers)-1 do
+      begin
+        workers[i].totalsize:=0;
+        workers[i].done:=false;
+        workers[i].processFile.SetEvent;
+      end;
+
+      btnRecordPause.enabled:=false;
+      tActivator.enabled:=true;
+      //when the worker threads are all done, this will become enabled
+
+      postProcessing:=callOnDoneProcessing;
+      state:=rsProcessing;
+
+    end;
+  end
+  else
+  begin
+
+    //flush only returns after all data has been handled, so :
+    if assigned(callOnDoneProcessing) then
+      callOnDoneProcessing(self);
+  end;
+end;
+
+procedure TfrmUltimap2.setState(state: TRecordState);
+begin
+  fstate:=state;
+  case state of
+    rsRecording:
+    begin
+      label1.Caption:='Recording';
+      panel1.color:=clRed;
+    end;
+
+    rsStopped:
+    begin
+      label1.Caption:='Paused';
+      panel1.Color:=clGreen;
+    end;
+
+    rsProcessing:
+    begin
+      label1.Caption:='Processing'#13#10'Data';
+      panel1.color:=$ff9900;
+    end;
+  end;
+end;
 
 procedure TfrmUltimap2.cleanup;
 var i: integer;
@@ -605,18 +703,9 @@ var
   n: TAvgLvlTreeNode;
   e: TRegionInfo;
 begin
-  if tbRecordPause.enabled=false then
-  begin
-    tbRecordPause.OnChange:=nil;
-    tbRecordPause.checked:=not tbRecordPause.checked;
-    tbRecordPause.OnChange:=@tbRecordPauseChange;
-    exit;
-  end;
+  if state=rsProcessing then exit;
 
-  try
-
-
-    if ((ultimap2Initialized=0) or (processid<>ultimap2Initialized)) and tbRecordPause.Checked then
+    if ((ultimap2Initialized=0) or (processid<>ultimap2Initialized)) then
     begin
       //first time init
       if ultimap2Initialized<>0 then
@@ -665,10 +754,11 @@ begin
       regiontreeMREW:=TMultiReadExclusiveWriteSynchronizer.Create;
 
       //launch worker threads
-      setlength(workers, 1); //CPUCount);
+      setlength(workers, CPUCount);
       for i:=0 to length(workers)-1 do
       begin
         workers[i]:=TUltimap2Worker.Create(true);
+        workers[i].id:=i;
         workers[i].fromFile:=rbLogToFolder.Checked;
         workers[i].Filename:=deTargetFolder.Directory;
         if workers[i].Filename<>'' then
@@ -680,6 +770,8 @@ begin
         end;
         workers[i].ownerForm:=self;
       end;
+
+
 
       if length(ranges)>0 then
       begin
@@ -731,52 +823,47 @@ begin
       if not libIptInit then raise exception.create('Failure loading libipt');
 
 
-     { if rbLogToFolder.Checked then
+      if rbLogToFolder.Checked then
         ultimap2(processid, size, deTargetFolder.Directory, ranges)
       else
-        ultimap2(processid, size, '', ranges);}
+        ultimap2(processid, size, '', ranges);
 
       for i:=0 to length(workers)-1 do
         workers[i].start;
+
+      state:=rsRecording;
     end
     else
     begin
       //toggle between active/disabled
-      if tbRecordPause.Checked then
+      if state=rsStopped then
       begin
-        ultimap2_resume
+        ultimap2_resume;
+        state:=rsRecording;
       end
       else
+      if state=rsRecording then
       begin
-        ultimap2_pause;
-        if rbLogToFolder.checked then
-        begin
-          //signal the worker threads to start processing
-          for i:=0 to length(workers)-1 do
-          begin
-            workers[i].done:=false;
-            workers[i].processFile.SetEvent;
-          end;
+        FlushResults(nil);
 
-          tbRecordPause.enabled:=false;
-          tActivator.enabled:=true;
-          //when the worker threads are all done, this will become enabled
+        if rbRuntimeParsing.checked then
+        begin
+          ultimap2_pause;
+          state:=rsStopped;
         end;
       end;
     end;
 
-  except
-    tbRecordPause.OnChange:=nil;
-    tbRecordPause.checked:=false;
-    tbRecordPause.OnChange:=@tbRecordPauseChange;
-
-    raise;
-  end;
 end;
 
 procedure TfrmUltimap2.FormCloseQuery(Sender: TObject; var CanClose: boolean);
 begin
   canclose:=MessageDlg('Closing will free all collected data. Continue? (Tip: You can minimize this window instead)', mtConfirmation,[mbyes,mbno], 0, mbno)=mryes;
+end;
+
+procedure TfrmUltimap2.FormCreate(Sender: TObject);
+begin
+  state:=rsStopped;
 end;
 
 function TfrmUltimap2.ModuleSelectEvent(index: integer; listText: string): string;
@@ -817,14 +904,24 @@ begin
   freeandnil(l);
 end;
 
+procedure TfrmUltimap2.ExecuteFilter(Sender: TObject);
+begin
+
+end;
+
+procedure TfrmUltimap2.btnExecutedClick(Sender: TObject);
+begin
+  flushResults(@ExecuteFilter);
+end;
+
 procedure TfrmUltimap2.Button1Click(Sender: TObject);
 begin
-  ultimap2_lockfile(0);
+
 end;
 
 procedure TfrmUltimap2.Button2Click(Sender: TObject);
 begin
-  ultimap2_releasefile(0);
+
 end;
 
 procedure TfrmUltimap2.FormClose(Sender: TObject; var CloseAction: TCloseAction
@@ -854,14 +951,52 @@ begin
   lbRange.clear;
 end;
 
-procedure TfrmUltimap2.tActivatorTimer(Sender: TObject);
-var i: integer;
+procedure TfrmUltimap2.Panel5Click(Sender: TObject);
 begin
-  for i:=0 to length(workers)-1 do
-    if not workers[i].done then exit;
 
-  tbRecordPause.enabled:=true;
+end;
+
+procedure TfrmUltimap2.tActivatorTimer(Sender: TObject);
+var
+  done: boolean;
+  i: integer;
+
+  totalprocessed, totalsize: qword;
+begin
+  done:=true;
+  totalprocessed:=0;
+  totalsize:=0;
+  for i:=0 to length(workers)-1 do
+  begin
+    if not workers[i].done then
+      done:=false;
+
+    if workers[i].totalsize<>0 then
+    begin
+      totalprocessed:=totalprocessed+workers[i].processed;
+      totalsize:=totalsize+workers[i].totalsize;
+    end
+    else
+      totalsize:=totalsize*2;
+  end;
+
+  if not done then
+  begin
+    if totalsize>0 then
+      label1.Caption:='Processing'#13#10'Data'#13#10+format('%.2f', [(totalprocessed / totalsize) * 100])+'%'
+    else
+      label1.Caption:='Processing'#13#10'Data'#13#10'0%';
+
+    exit;
+  end;
+
+  btnRecordPause.enabled:=true;
   tActivator.Enabled:=false;
+
+  state:=rsStopped;
+
+  if assigned(postProcessing) then
+    postProcessing(self);
 end;
 
 

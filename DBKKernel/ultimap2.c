@@ -93,21 +93,27 @@ void suspendThread(PVOID StartContext)
 /* Thread responsible for suspending the target process when the buffer is getting full */
 {
 	NTSTATUS wr;
-	while (UltimapActive)
+	__try
 	{
-		wr = KeWaitForSingleObject(&SuspendEvent, Executive, KernelMode, FALSE, NULL);
-		if (!UltimapActive) return;
-
-		DbgPrint("suspendThread event triggered");
-		KeWaitForSingleObject(&SuspendMutex, Executive, KernelMode, FALSE, NULL);
-		if (!isSuspended)
+		while (UltimapActive)
 		{
-			PsSuspendProcess(CurrentTarget);
-			isSuspended = TRUE;
-		}
-		KeReleaseMutex(&SuspendMutex, FALSE);
-	}
+			wr = KeWaitForSingleObject(&SuspendEvent, Executive, KernelMode, FALSE, NULL);
+			if (!UltimapActive) return;
 
+			DbgPrint("suspendThread event triggered");
+			KeWaitForSingleObject(&SuspendMutex, Executive, KernelMode, FALSE, NULL);
+			if (!isSuspended)
+			{
+				PsSuspendProcess(CurrentTarget);
+				isSuspended = TRUE;
+			}
+			KeReleaseMutex(&SuspendMutex, FALSE);
+		}
+	}
+	__except (1)
+	{
+		DbgPrint("Exception in suspendThread thread\n");
+	}
 }
 
 NTSTATUS ultimap2_continue(int cpunr)
@@ -338,6 +344,7 @@ void ultimap2_ReleaseFile(int cpunr)
 	{
 		PProcessorInfo pi = PInfo[cpunr];
 		KeSetEvent(&pi->FileAccess, 0, FALSE);
+		DbgPrint("Released");
 	}
 }
 
@@ -581,22 +588,30 @@ void PMI(__in struct _KINTERRUPT *Interrupt, __in PVOID ServiceContext)
 {
 	//check if caused by me, if so defer to dpc
 	DbgPrint("PMI");
-	if ((__readmsr(IA32_PERF_GLOBAL_STATUS) >> 55) & 1)
-	{		
-		//DbgPrint("caused by me");	
-		__writemsr(IA32_PERF_GLOBAL_OVF_CTRL, (UINT64)1 << 55); //clear ToPA full status
-
-		PInfo[KeGetCurrentProcessorNumber()]->Interrupted = TRUE;
-
-		KeInsertQueueDpc(&RTID_DPC, NULL, NULL);		
-
-		//clear apic state
-		apic_clearPerfmon();
-	}
-	else
+	__try
 	{
-		DbgPrint("Unexpected PMI");
+		if ((__readmsr(IA32_PERF_GLOBAL_STATUS) >> 55) & 1)
+		{
+			//DbgPrint("caused by me");	
+			__writemsr(IA32_PERF_GLOBAL_OVF_CTRL, (UINT64)1 << 55); //clear ToPA full status
+
+			PInfo[KeGetCurrentProcessorNumber()]->Interrupted = TRUE;
+
+			KeInsertQueueDpc(&RTID_DPC, NULL, NULL);
+
+			//clear apic state
+			apic_clearPerfmon();
+		}
+		else
+		{
+			DbgPrint("Unexpected PMI");
+		}
 	}
+	__except (0)
+	{
+		DbgPrint("PMI exception");
+	}
+
 }
 
 void *pperfmon_hook2 = PMI;
@@ -604,20 +619,33 @@ void *pperfmon_hook2 = PMI;
 
 void ultimap2_disable_dpc(struct _KDPC *Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
-	if (DeferredContext) //only pause
+	DbgPrint("ultimap2_disable_dpc for cpu %d\n", KeGetCurrentProcessorNumber());
+
+	__try
 	{
-		RTIT_CTL ctl;
-		ctl.Value = __readmsr(IA32_RTIT_CTL);
-		ctl.Bits.TraceEn = 0;
-		__writemsr(IA32_RTIT_CTL, ctl.Value);
+		if (DeferredContext) //only pause
+		{
+			RTIT_CTL ctl;
+			DbgPrint("temp disable\n");
+			ctl.Value = __readmsr(IA32_RTIT_CTL);
+			ctl.Bits.TraceEn = 0;
+			__writemsr(IA32_RTIT_CTL, ctl.Value);
+		}
+		else
+		{
+			DbgPrint("%d: disable all\n", KeGetCurrentProcessorNumber());
+
+
+			__writemsr(IA32_RTIT_CTL, 0);
+			__writemsr(IA32_RTIT_STATUS, 0);
+			__writemsr(IA32_RTIT_CR3_MATCH, 0);
+			__writemsr(IA32_RTIT_OUTPUT_BASE, 0);
+			__writemsr(IA32_RTIT_OUTPUT_MASK_PTRS, 0);
+		}
 	}
-	else
+	__except (1)
 	{
-		__writemsr(IA32_RTIT_CTL, 0);
-		__writemsr(IA32_RTIT_STATUS, 0);
-		__writemsr(IA32_RTIT_CR3_MATCH, 0);
-		__writemsr(IA32_RTIT_OUTPUT_BASE, 0);
-		__writemsr(IA32_RTIT_OUTPUT_MASK_PTRS, 0);
+		DbgPrint("ultimap2_disable_dpc exception");
 	}
 }
 
@@ -965,7 +993,13 @@ void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path)
 		PsCreateSystemThread(&PInfo[i]->WriterThreadHandle, 0, NULL, 0, NULL, WriteThreadForSpecificCPU, (PVOID)i); 
 
 	r=HalSetSystemInformation(HalProfileSourceInterruptHandler, sizeof(PVOID*), &pperfmon_hook2); //hook the perfmon interrupt
-	DbgPrint("HalSetSystemInformation returned %x\n", r);		
+	DbgPrint("HalSetSystemInformation returned %x\n", r);	
+
+	if (r != STATUS_SUCCESS)
+	{
+		DbgPrint("Failure hooking the permon interrupt\n");
+		return;
+	}
 
 	forEachCpu(ultimap2_setup_dpc, NULL, NULL, NULL);
 	
@@ -974,6 +1008,7 @@ void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path)
 void DisableUltimap2(void)
 {
 	int i;
+	NTSTATUS r;
 	void *clear = NULL;
 
 	DbgPrint("-------------------->DisableUltimap2<------------------");
@@ -984,7 +1019,8 @@ void DisableUltimap2(void)
 	DbgPrint("-------------------->DisableUltimap2:Stage 1<------------------");
 	
 	forEachCpuAsync(ultimap2_disable_dpc, NULL, NULL, NULL);
-	HalSetSystemInformation(HalProfileSourceInterruptHandler, sizeof(PVOID*), &clear); //unhook the perfmon interrupt
+	r=HalSetSystemInformation(HalProfileSourceInterruptHandler, sizeof(PVOID*), &clear); //unhook the perfmon interrupt
+	DbgPrint("HalSetSystemInformation to disable returned %x\n", r);
 	//HalSetSystemInformation(HalProfileSourceInterruptHandler, sizeof(PVOID*), 0);
 
 	UltimapActive = FALSE;

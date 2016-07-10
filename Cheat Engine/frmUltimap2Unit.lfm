@@ -1,118 +1,30 @@
 object frmUltimap2: TfrmUltimap2
-  Left = 425
-  Height = 529
-  Top = 163
-  Width = 670
+  Left = 632
+  Height = 545
+  Top = 191
+  Width = 708
+  AutoSize = True
   Caption = 'Ultimap 2'
-  ClientHeight = 529
-  ClientWidth = 670
+  ClientHeight = 545
+  ClientWidth = 708
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object Panel5: TPanel
     Left = 0
-    Height = 288
+    Height = 354
     Top = 0
-    Width = 670
+    Width = 708
     Align = alTop
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 288
-    ClientWidth = 670
+    ClientHeight = 354
+    ClientWidth = 708
     TabOrder = 0
-    object btnExecuted: TButton
-      AnchorSideLeft.Control = btnNotExecuted
-      Left = 260
-      Height = 25
-      Top = 48
-      Width = 264
-      Caption = 'Code has been executed'
-      TabOrder = 0
-    end
-    object btnNotExecuted: TButton
-      Tag = 1
-      AnchorSideLeft.Control = lblLastfilterresult
-      AnchorSideTop.Control = lblLastfilterresult
-      AnchorSideTop.Side = asrBottom
-      Left = 260
-      Height = 25
-      Top = 23
-      Width = 264
-      Caption = 'Code did not get executed'
-      TabOrder = 1
-    end
-    object Button6: TButton
-      AnchorSideTop.Control = Panel5
-      AnchorSideRight.Control = btnResetCount
-      AnchorSideRight.Side = asrBottom
-      Left = 569
-      Height = 25
-      Hint = 'If you lost track of what happened, use this. It will set execution count back to 0 of all the branches it has found'
-      Top = 3
-      Width = 74
-      Anchors = [akTop, akRight]
-      BorderSpacing.Top = 3
-      Caption = 'Reset'
-      ParentShowHint = False
-      ShowHint = True
-      TabOrder = 2
-    end
-    object btnNotCalled: TButton
-      Tag = 2
-      AnchorSideLeft.Control = btnNotExecuted
-      Left = 260
-      Height = 25
-      Top = 80
-      Width = 264
-      Caption = 'Filter out everything except CALL'
-      TabOrder = 3
-    end
-    object btnFilterCallCount: TButton
-      Tag = 3
-      AnchorSideLeft.Control = btnNotExecuted
-      Left = 260
-      Height = 25
-      Top = 112
-      Width = 264
-      Caption = 'Filter out routine(s) where callcount is NOT'
-      TabOrder = 4
-    end
-    object edtCallCount: TEdit
-      AnchorSideLeft.Control = btnFilterCallCount
-      AnchorSideLeft.Side = asrBottom
-      AnchorSideTop.Control = btnFilterCallCount
-      AnchorSideTop.Side = asrCenter
-      Left = 527
-      Height = 28
-      Top = 110
-      Width = 40
-      BorderSpacing.Left = 3
-      TabOrder = 5
-      Text = '1'
-    end
-    object lblLastfilterresult: TLabel
-      AnchorSideLeft.Control = deTargetFolder
-      AnchorSideLeft.Side = asrBottom
-      AnchorSideTop.Control = Panel5
-      Left = 260
-      Height = 20
-      Top = 3
-      Width = 110
-      BorderSpacing.Left = 28
-      BorderSpacing.Top = 3
-      Caption = 'Last filter results:'
-      ParentColor = False
-    end
-    object btnFilterModule: TButton
-      AnchorSideLeft.Control = btnNotExecuted
-      Left = 260
-      Height = 25
-      Top = 142
-      Width = 264
-      Caption = 'Filter out routines not in a specific module'
-      TabOrder = 6
-    end
+    OnClick = Panel5Click
     object rbLogToFolder: TRadioButton
       AnchorSideLeft.Control = lblBuffersPerCPU
       AnchorSideTop.Control = edtBufSize
@@ -123,9 +35,11 @@ object frmUltimap2: TfrmUltimap2
       Top = 31
       Width = 229
       Caption = 'Process data after clicking stop'
+      Checked = True
       ParentShowHint = False
       ShowHint = True
-      TabOrder = 7
+      TabOrder = 0
+      TabStop = True
     end
     object rbRuntimeParsing: TRadioButton
       AnchorSideLeft.Control = rbLogToFolder
@@ -136,9 +50,7 @@ object frmUltimap2: TfrmUltimap2
       Top = 83
       Width = 214
       Caption = 'Process data while recording'
-      Checked = True
-      TabOrder = 8
-      TabStop = True
+      TabOrder = 1
     end
     object edtBufSize: TEdit
       AnchorSideLeft.Control = lblBuffersPerCPU
@@ -147,10 +59,10 @@ object frmUltimap2: TfrmUltimap2
       Left = 105
       Height = 28
       Top = 3
-      Width = 80
+      Width = 56
       BorderSpacing.Left = 3
       BorderSpacing.Top = 3
-      TabOrder = 9
+      TabOrder = 2
       Text = '16384'
     end
     object lblBuffersPerCPU: TLabel
@@ -171,7 +83,7 @@ object frmUltimap2: TfrmUltimap2
       AnchorSideBottom.Side = asrBottom
       Left = 5
       Height = 20
-      Top = 268
+      Top = 334
       Width = 8
       Anchors = [akLeft, akBottom]
       Caption = '0'
@@ -179,69 +91,27 @@ object frmUltimap2: TfrmUltimap2
     end
     object lblIPCount: TLabel
       AnchorSideLeft.Control = rbLogToFolder
+      AnchorSideTop.Control = Panel1
       AnchorSideTop.Side = asrBottom
       AnchorSideBottom.Control = Label3
       Left = 5
       Height = 20
-      Top = 248
+      Top = 314
       Width = 179
-      Anchors = [akLeft, akBottom]
+      Anchors = [akTop, akLeft, akBottom]
       Caption = 'Instruction Pointer List Size:'
       ParentColor = False
-    end
-    object btnResetCount: TButton
-      AnchorSideLeft.Control = edtCallCount
-      AnchorSideLeft.Side = asrBottom
-      AnchorSideTop.Control = btnFilterCallCount
-      Left = 570
-      Height = 25
-      Top = 112
-      Width = 73
-      BorderSpacing.Left = 3
-      Caption = 'Reset Count'
-      TabOrder = 10
-    end
-    object cbfilterOutNewEntries: TCheckBox
-      AnchorSideLeft.Control = btnNotExecuted
-      AnchorSideTop.Control = btnFilterModule
-      AnchorSideTop.Side = asrBottom
-      Left = 260
-      Height = 24
-      Hint = 'When this checkbox is ticked all newly added code entry points will be marked as entries that do not match the filters'
-      Top = 167
-      Width = 273
-      Caption = 'Mark all new addresses as filtered out'
-      ParentShowHint = False
-      ShowHint = True
-      TabOrder = 11
-    end
-    object cbFilterFuturePaths: TCheckBox
-      AnchorSideLeft.Control = btnExecuted
-      AnchorSideLeft.Side = asrBottom
-      AnchorSideTop.Control = btnExecuted
-      AnchorSideTop.Side = asrCenter
-      Left = 527
-      Height = 24
-      Hint = 'When checked (default) will mark all subsequent paths after this as filtered out'
-      Top = 48
-      Width = 175
-      BorderSpacing.Left = 3
-      Caption = 'Exclude new addresses'
-      Checked = True
-      ParentShowHint = False
-      ShowHint = True
-      State = cbChecked
-      TabOrder = 12
     end
     object lblKB: TLabel
       AnchorSideLeft.Control = edtBufSize
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = edtBufSize
       AnchorSideTop.Side = asrCenter
-      Left = 185
+      Left = 164
       Height = 20
       Top = 7
       Width = 18
+      BorderSpacing.Left = 3
       Caption = 'KB'
       ParentColor = False
     end
@@ -249,16 +119,19 @@ object frmUltimap2: TfrmUltimap2
       AnchorSideLeft.Control = rbLogToFolder
       AnchorSideTop.Control = rbLogToFolder
       AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = rbLogToFolder
+      AnchorSideRight.Side = asrBottom
       Left = 5
       Height = 28
       Top = 55
-      Width = 227
+      Width = 229
       Directory = 'd:\lotsofspace'
       ShowHidden = False
       ButtonWidth = 23
       NumGlyphs = 1
+      Anchors = [akTop, akLeft, akRight]
       MaxLength = 0
-      TabOrder = 13
+      TabOrder = 3
       Text = 'd:\lotsofspace'
     end
     object gbRange: TGroupBox
@@ -268,14 +141,15 @@ object frmUltimap2: TfrmUltimap2
       AnchorSideRight.Control = deTargetFolder
       AnchorSideRight.Side = asrBottom
       Left = 5
-      Height = 129
+      Height = 139
       Top = 107
-      Width = 227
+      Width = 229
       Anchors = [akTop, akLeft, akRight]
+      AutoSize = True
       Caption = 'Range(s) to log: (Empty for all)'
-      ClientHeight = 104
-      ClientWidth = 223
-      TabOrder = 14
+      ClientHeight = 114
+      ClientWidth = 225
+      TabOrder = 4
       object lbRange: TListBox
         AnchorSideLeft.Control = gbRange
         AnchorSideTop.Control = gbRange
@@ -283,9 +157,9 @@ object frmUltimap2: TfrmUltimap2
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = btnAddRange
         Left = 0
-        Height = 75
+        Height = 80
         Top = 0
-        Width = 223
+        Width = 225
         Anchors = [akTop, akLeft, akRight, akBottom]
         BorderSpacing.Bottom = 2
         ItemHeight = 0
@@ -298,63 +172,261 @@ object frmUltimap2: TfrmUltimap2
         AnchorSideBottom.Control = gbRange
         AnchorSideBottom.Side = asrBottom
         Left = 0
-        Height = 25
-        Top = 77
-        Width = 75
+        Height = 30
+        Top = 82
+        Width = 96
         Anchors = [akLeft, akBottom]
+        AutoSize = True
         BorderSpacing.Bottom = 2
         Caption = 'Add range'
         OnClick = btnAddRangeClick
         TabOrder = 1
       end
     end
-    object tbRecordPause: TToggleBox
+    object Panel1: TPanel
       AnchorSideTop.Control = gbRange
       AnchorSideTop.Side = asrBottom
-      Left = 5
-      Height = 23
-      Top = 239
-      Width = 90
-      BorderSpacing.Top = 3
-      Caption = 'Record/Stop'
-      OnChange = tbRecordPauseChange
-      TabOrder = 15
+      AnchorSideRight.Control = gbRange
+      AnchorSideRight.Side = asrBottom
+      Left = 170
+      Height = 64
+      Top = 248
+      Width = 64
+      Anchors = [akTop, akRight]
+      BorderSpacing.Top = 2
+      BorderSpacing.Bottom = 2
+      ClientHeight = 64
+      ClientWidth = 64
+      Color = clGreen
+      ParentColor = False
+      TabOrder = 5
+      object Label1: TLabel
+        AnchorSideLeft.Control = Panel1
+        AnchorSideLeft.Side = asrCenter
+        AnchorSideTop.Control = Panel1
+        AnchorSideTop.Side = asrCenter
+        Left = 9
+        Height = 20
+        Top = 22
+        Width = 46
+        Alignment = taCenter
+        Caption = 'Paused'
+        ParentColor = False
+        WordWrap = True
+      end
     end
-    object Button1: TButton
-      Left = 305
-      Height = 25
-      Top = 235
-      Width = 75
-      Caption = 'Button1'
-      OnClick = Button1Click
-      TabOrder = 16
+    object btnRecordPause: TButton
+      AnchorSideTop.Control = Panel1
+      AnchorSideTop.Side = asrCenter
+      Left = 0
+      Height = 30
+      Top = 265
+      Width = 125
+      AutoSize = True
+      Caption = 'Record / Pause'
+      OnClick = tbRecordPauseChange
+      TabOrder = 6
     end
-    object Button2: TButton
-      Left = 408
-      Height = 25
-      Top = 232
-      Width = 75
-      Caption = 'Button2'
-      OnClick = Button2Click
-      TabOrder = 17
+    object Panel4: TPanel
+      AnchorSideLeft.Control = gbRange
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Panel5
+      AnchorSideRight.Control = Panel5
+      AnchorSideRight.Side = asrBottom
+      Left = 236
+      Height = 200
+      Top = 0
+      Width = 472
+      Anchors = [akTop, akLeft, akRight]
+      AutoSize = True
+      BorderSpacing.Left = 2
+      BevelOuter = bvNone
+      ClientHeight = 200
+      ClientWidth = 472
+      TabOrder = 7
+      object cbfilterOutNewEntries: TCheckBox
+        AnchorSideLeft.Control = Panel4
+        AnchorSideTop.Control = btnFilterModule
+        AnchorSideTop.Side = asrBottom
+        Left = 0
+        Height = 24
+        Hint = 'When this checkbox is ticked all newly added code entry points will be marked as entries that do not match the filters'
+        Top = 176
+        Width = 273
+        Caption = 'Mark all new addresses as filtered out'
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 0
+      end
+      object btnFilterModule: TButton
+        AnchorSideLeft.Control = Panel4
+        AnchorSideTop.Control = btnFilterCallCount
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = cbFilterFuturePaths
+        Left = 0
+        Height = 30
+        Top = 146
+        Width = 294
+        Anchors = [akTop, akLeft, akRight]
+        AutoSize = True
+        Caption = 'Filter out routines not in a specific module'
+        TabOrder = 1
+      end
+      object btnFilterCallCount: TButton
+        Tag = 3
+        AnchorSideLeft.Control = Panel4
+        AnchorSideTop.Control = btnNotCalled
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = cbFilterFuturePaths
+        Left = 0
+        Height = 30
+        Top = 116
+        Width = 294
+        Anchors = [akTop, akLeft, akRight]
+        AutoSize = True
+        BorderSpacing.Top = 2
+        Caption = 'Filter out routine(s) where callcount is NOT'
+        TabOrder = 2
+      end
+      object edtCallCount: TEdit
+        AnchorSideLeft.Control = btnFilterCallCount
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = btnFilterCallCount
+        AnchorSideTop.Side = asrCenter
+        Left = 297
+        Height = 28
+        Top = 117
+        Width = 40
+        BorderSpacing.Left = 3
+        TabOrder = 3
+        Text = '1'
+      end
+      object btnResetCount: TButton
+        AnchorSideLeft.Control = edtCallCount
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = edtCallCount
+        AnchorSideTop.Side = asrCenter
+        Left = 340
+        Height = 30
+        Top = 116
+        Width = 105
+        AutoSize = True
+        BorderSpacing.Left = 3
+        Caption = 'Reset Count'
+        TabOrder = 4
+      end
+      object btnNotCalled: TButton
+        Tag = 2
+        AnchorSideLeft.Control = Panel4
+        AnchorSideTop.Control = btnExecuted
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = cbFilterFuturePaths
+        Left = 0
+        Height = 30
+        Top = 84
+        Width = 294
+        Anchors = [akTop, akLeft, akRight]
+        AutoSize = True
+        BorderSpacing.Top = 2
+        Caption = 'Filter out everything except CALL'
+        TabOrder = 5
+      end
+      object btnExecuted: TButton
+        AnchorSideLeft.Control = Panel4
+        AnchorSideTop.Control = btnNotExecuted
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = cbFilterFuturePaths
+        Left = 0
+        Height = 30
+        Top = 52
+        Width = 294
+        Anchors = [akTop, akLeft, akRight]
+        AutoSize = True
+        BorderSpacing.Top = 2
+        Caption = 'Code has been executed'
+        OnClick = btnExecutedClick
+        TabOrder = 6
+      end
+      object cbFilterFuturePaths: TCheckBox
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = btnExecuted
+        AnchorSideTop.Side = asrCenter
+        AnchorSideRight.Control = Panel4
+        AnchorSideRight.Side = asrBottom
+        Left = 297
+        Height = 24
+        Hint = 'When checked (default) will mark all subsequent paths after this as filtered out'
+        Top = 55
+        Width = 175
+        Anchors = [akTop, akRight]
+        BorderSpacing.Left = 3
+        Caption = 'Exclude new addresses'
+        Checked = True
+        ParentShowHint = False
+        ShowHint = True
+        State = cbChecked
+        TabOrder = 7
+      end
+      object btnNotExecuted: TButton
+        Tag = 1
+        AnchorSideLeft.Control = cbfilterOutNewEntries
+        AnchorSideTop.Control = lblLastfilterresult
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = cbFilterFuturePaths
+        Left = 0
+        Height = 30
+        Top = 20
+        Width = 294
+        Anchors = [akTop, akLeft, akRight]
+        AutoSize = True
+        Caption = 'Code did not get executed'
+        TabOrder = 8
+      end
+      object lblLastfilterresult: TLabel
+        AnchorSideLeft.Control = Panel4
+        AnchorSideTop.Control = Panel4
+        Left = 0
+        Height = 20
+        Top = 0
+        Width = 110
+        Caption = 'Last filter results:'
+        ParentColor = False
+      end
+      object Button6: TButton
+        AnchorSideTop.Control = Panel4
+        AnchorSideRight.Control = Panel4
+        AnchorSideRight.Side = asrBottom
+        Left = 398
+        Height = 25
+        Hint = 'If you lost track of what happened, use this. It will set execution count back to 0 of all the branches it has found'
+        Top = 3
+        Width = 74
+        Anchors = [akTop, akRight]
+        BorderSpacing.Top = 3
+        Caption = 'Reset'
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 9
+      end
     end
   end
   object Panel2: TPanel
     Left = 0
-    Height = 241
-    Top = 288
-    Width = 670
+    Height = 191
+    Top = 354
+    Width = 708
     Align = alClient
+    AutoSize = True
     BevelOuter = bvNone
     Caption = 'Panel2'
-    ClientHeight = 241
-    ClientWidth = 670
+    ClientHeight = 191
+    ClientWidth = 708
     TabOrder = 1
     object ListView1: TListView
       Left = 0
-      Height = 194
+      Height = 144
       Top = 0
-      Width = 670
+      Width = 708
       Align = alClient
       Columns = <      
         item
@@ -379,19 +451,19 @@ object frmUltimap2: TfrmUltimap2
     object Panel3: TPanel
       Left = 0
       Height = 47
-      Top = 194
-      Width = 670
+      Top = 144
+      Width = 708
       Align = alBottom
       BevelOuter = bvNone
       ClientHeight = 47
-      ClientWidth = 670
+      ClientWidth = 708
       TabOrder = 1
       object Button5: TButton
         AnchorSideLeft.Control = Panel3
         AnchorSideLeft.Side = asrCenter
         AnchorSideTop.Control = Panel3
         AnchorSideTop.Side = asrCenter
-        Left = 243
+        Left = 262
         Height = 30
         Top = 8
         Width = 185
@@ -418,7 +490,7 @@ object frmUltimap2: TfrmUltimap2
     Enabled = False
     Interval = 500
     OnTimer = tActivatorTimer
-    left = 120
-    top = 215
+    left = 272
+    top = 272
   end
 end
