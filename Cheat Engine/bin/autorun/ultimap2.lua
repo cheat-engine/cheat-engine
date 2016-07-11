@@ -594,8 +594,9 @@ function LaunchUltimap2()
 	
   end
 end
-
+--[[
 getMainForm().ProcessLabel.OnClick=function(sender)
   LaunchUltimap2()
   getMainForm().ProcessLabel.OnClick=nil  
 end
+--]]

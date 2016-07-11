@@ -16,9 +16,11 @@ uses
 const
   bifInvalidated=1;
   bifExecuted=2;
+  bifIsCall=4;
 
 type
   TRecordState=(rsStopped, rsProcessing, rsRecording);
+  TFilterOption=(foNone, foExecuted, foNotExecuted, foNonCALLInstructions, foExecuteCountLowerThan, foNotInRange, foResetAll);
 
   TByteInfo=packed record
     count: byte;
@@ -38,15 +40,15 @@ type
 
   TfrmUltimap2=class;
 
-  TUltimap2Worker=class(TThread)
+  TUltimap2Worker=class(TThread) //many
   private
     lastRegion: PRegionInfo;
 
     filemap: TFileMapping;
     function addIPPageToRegionTree(IP: QWORD): PRegionInfo;
     function addIPBlockToRegionTree(IP: QWORD): PRegionInfo;
-    procedure HandleIP(ip: QWORD);
-    procedure HandleIPForRegion(ip: qword; region: PRegionInfo);
+    procedure HandleIP(ip: QWORD; c: pt_insn_class);
+    procedure HandleIPForRegion(ip: qword; c: pt_insn_class; region: PRegionInfo);
 
     function waitForData(timeout: dword; var e: TUltimap2DataEvent): boolean;
     procedure continueFromData(e: TUltimap2DataEvent);
@@ -67,6 +69,19 @@ type
     destructor destroy; override;
   end;
 
+  TUltimap2FilterThread=class(tthread) //1
+  private
+    procedure EnableGUI;
+  public
+    ownerForm: TfrmUltimap2;
+    filteroption: TfilterOption;
+    callcount: integer;
+    rangestart, rangestop: qword;
+    ExcludeFuturePaths: boolean;
+
+    procedure execute; override;
+  end;
+
 
   { TfrmUltimap2 }
 
@@ -79,8 +94,9 @@ type
     btnNotExecuted: TButton;
     btnResetCount: TButton;
     btnRecordPause: TButton;
+    btnCancelFilter: TButton;
     Button5: TButton;
-    Button6: TButton;
+    btnReset: TButton;
     cbFilterFuturePaths: TCheckBox;
     cbfilterOutNewEntries: TCheckBox;
     edtCallCount: TEdit;
@@ -108,8 +124,13 @@ type
     tActivator: TTimer;
     procedure btnAddRangeClick(Sender: TObject);
     procedure btnExecutedClick(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
+    procedure btnFilterCallCountClick(Sender: TObject);
+    procedure btnFilterModuleClick(Sender: TObject);
+    procedure btnNotCalledClick(Sender: TObject);
+    procedure btnNotExecutedClick(Sender: TObject);
+    procedure btnCancelFilterClick(Sender: TObject);
+    procedure btnResetClick(Sender: TObject);
+    procedure cbfilterOutNewEntriesChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
@@ -130,7 +151,13 @@ type
     workers: array of TUltimap2Worker;
 
     fstate: TRecordState;
-    postProcessing: TNotifyEvent; //called when all threads enter the done state
+    PostProcessingFilter: TFilterOption; //called when all threads enter the done state
+    Filtercount: byte;
+    FilterRangeFrom, FilterRangeTo: qword;
+
+    filterThread: TUltimap2FilterThread;
+
+    filterExcludeFuturePaths: boolean;
 
     function RegionCompare(Tree: TAvgLvlTree; Data1, Data2: pointer): integer;
 
@@ -140,7 +167,9 @@ type
     procedure enableConfigGUI;
     procedure disableConfigGUI;
 
-    procedure FlushResults(callOnDoneProcessing: TNotifyEvent);
+    procedure FilterGUI(state: boolean);
+    procedure Filter(filterOption: TFilterOption);
+    procedure FlushResults(f: TFilterOption=foNone);
     procedure ExecuteFilter(Sender: TObject);
 
     procedure setState(state: TRecordState);
@@ -148,6 +177,7 @@ type
     property state:TRecordState read fstate write setState;
   public
     { public declarations }
+    allNewAreInvalid: boolean;
 
   end;
 
@@ -234,7 +264,11 @@ begin
     p^.size:=br;
     p^.memory:=page;
     getmem(p^.info, 4096*sizeof(TByteInfo));
-    zeromemory(p^.info, 4096*sizeof(TByteInfo));
+
+    if ownerform.allNewAreInvalid then
+      FillMemory(p^.info, p^.size, $ff) //marks it as filtered out
+    else
+      zeromemory(p^.info, p^.size*sizeof(TByteInfo));
 
     ownerForm.regiontree.Add(p);
     result:=p;
@@ -323,7 +357,11 @@ begin
           end;
         end;
 
-        zeromemory(p^.info, p^.size*sizeof(TByteInfo));
+        if ownerform.allNewAreInvalid then
+          FillMemory(p^.info, p^.size, $ff)
+        else
+          zeromemory(p^.info, p^.size*sizeof(TByteInfo));
+
         ownerForm.regiontree.Add(p);
 
         result:=p;
@@ -339,27 +377,43 @@ begin
 end;
 
 
-procedure TUltimap2Worker.HandleIPForRegion(ip: qword; region: PRegionInfo);
+procedure TUltimap2Worker.HandleIPForRegion(ip: qword; c: pt_insn_class; region: PRegionInfo);
 var index: integer;
 begin
   //do something with this IP
   index:=ip-region^.address;
+
+  if (region^.info[index].flags=bifInvalidated) then exit;
+
+  if (region^.info[index].count=0) then
+  begin
+    if ownerForm.allNewAreInvalid then
+    begin
+      region^.info[index].flags:=bifInvalidated;
+      exit;
+    end;
+
+    region^.info[index].count:=1;
+    region^.info[index].flags:=bifExecuted;
+
+    if c in [ptic_call, ptic_far_call] then
+      region^.info[index].flags:=region^.info[index].flags or bifIsCall;
+  end
+  else
   if region^.info[index].count<255 then
     inc(region^.info[index].count);
-
-  region^.info[index].flags:=region^.info[index].flags or bifExecuted;
 end;
 
 
 
-procedure TUltimap2Worker.HandleIP(ip: QWORD);
+procedure TUltimap2Worker.HandleIP(ip: QWORD; c: pt_insn_class);
 var
   e: TRegionInfo;
   n: TAvgLvlTreeNode;
 begin
   if (lastRegion<>nil) and ((ip>=lastRegion^.address) and (ip<lastRegion^.address+lastRegion^.size)) then
   begin
-    HandleIPForRegion(ip,lastRegion);
+    HandleIPForRegion(ip,c, lastRegion);
     exit;
   end;
 
@@ -378,7 +432,7 @@ begin
     lastregion:=addIPBlockToRegionTree(ip);
 
   if lastRegion<>nil then
-    HandleIPForRegion(ip,lastRegion);
+    HandleIPForRegion(ip, c, lastRegion);
 end;
 
 function TUltimap2Worker.waitForData(timeout: dword; var e: TUltimap2DataEvent): boolean;
@@ -473,7 +527,7 @@ begin
               begin
                 if insn.iclass=ptic_error then break;
 
-                handleIP(insn.ip);
+                handleIP(insn.ip, insn.iclass);
 
                 inc(i);
                 if i>512 then
@@ -516,6 +570,27 @@ begin
   inherited create(createsuspended);
 
   processFile:=TEvent.Create(nil,false,false,'');
+end;
+
+
+{TUltimap2FilterThread}
+
+procedure TUltimap2FilterThread.EnableGUI;
+begin
+  ownerform.filterThread:=nil;
+  ownerform.FilterGUI(true);
+
+  if ExcludeFuturePaths and (not ownerform.cbfilterOutNewEntries.checked) then
+    ownerform.cbfilterOutNewEntries.checked:=true;
+end;
+
+procedure TUltimap2FilterThread.execute;
+begin
+  freeOnTerminate:=true;
+
+  //scan and check for terminated to see when it should terminate
+
+  Synchronize(@EnableGUI);
 end;
 
 { TfrmUltimap2 }
@@ -566,6 +641,21 @@ begin
   end;
 end;
 
+procedure TfrmUltimap2.FilterGUI(state: boolean);
+begin
+  btnReset.enabled:=state;
+  btnNotExecuted.enabled:=state;
+  btnExecuted.enabled:=state;
+  cbFilterFuturePaths.enabled:=state;
+  btnNotCalled.enabled:=state;
+  btnFilterCallCount.enabled:=state;
+  edtCallCount.enabled:=state;
+  btnResetCount.enabled:=state;
+  btnFilterModule.enabled:=state;
+  cbfilterOutNewEntries.enabled:=state;
+  btnCancelFilter.Visible:=not state;
+end;
+
 procedure TfrmUltimap2.setConfigGUIState(state: boolean);
 begin
   lblBuffersPerCPU.enabled:=state;
@@ -590,7 +680,7 @@ begin
   setConfigGUIState(false);
 end;
 
-procedure TfrmUltimap2.FlushResults(callOnDoneProcessing: TNotifyEvent);
+procedure TfrmUltimap2.FlushResults(f: TFilterOption=foNone);
 var i:integer;
 begin
   ultimap2_flush;
@@ -612,7 +702,7 @@ begin
       tActivator.enabled:=true;
       //when the worker threads are all done, this will become enabled
 
-      postProcessing:=callOnDoneProcessing;
+      PostProcessingFilter:=f;
       state:=rsProcessing;
 
     end;
@@ -621,9 +711,14 @@ begin
   begin
 
     //flush only returns after all data has been handled, so :
-    if assigned(callOnDoneProcessing) then
-      callOnDoneProcessing(self);
+    if f<>foNone then
+      Filter(f);
   end;
+end;
+
+procedure TfrmUltimap2.ExecuteFilter(Sender: TObject);
+begin
+
 end;
 
 procedure TfrmUltimap2.setState(state: TRecordState);
@@ -844,7 +939,7 @@ begin
       else
       if state=rsRecording then
       begin
-        FlushResults(nil);
+        FlushResults(foNone);
 
         if rbRuntimeParsing.checked then
         begin
@@ -904,28 +999,99 @@ begin
   freeandnil(l);
 end;
 
-procedure TfrmUltimap2.ExecuteFilter(Sender: TObject);
+procedure TfrmUltimap2.Filter(filterOption: TFilterOption);
 begin
+  if filterThread<>nil then
+  begin
+    OutputDebugString('Filter operation canceled. A filter operation was still going on');
+    exit;
+  end;
 
+  OutputDebugString('going to launch a filter thread');
+
+  //suspend gui
+  FilterGUI(false);
+
+  //launch the filter thread
+  filterThread:=TUltimap2FilterThread.Create(true);
+  filterthread.filterOption:=filterOption;
+  filterthread.callcount:=Filtercount;
+  filterthread.rangestart:=FilterRangeFrom;
+  filterthread.rangestop:=FilterRangeTo;
+  filterThread.ExcludeFuturePaths:=filterExcludeFuturePaths;
+  filterthread.start;
+
+  //the filter thread will reenable the gui when done and update the windowstate  (it also sets filterthread to nil in the mainthread)
 end;
 
 procedure TfrmUltimap2.btnExecutedClick(Sender: TObject);
 begin
-  flushResults(@ExecuteFilter);
+  flushResults(foNotExecuted); //filters out not executed memory
+  filterExcludeFuturePaths:=cbFilterFuturePaths.checked;
 end;
 
-procedure TfrmUltimap2.Button1Click(Sender: TObject);
+procedure TfrmUltimap2.btnFilterCallCountClick(Sender: TObject);
 begin
-
+  Filtercount:=strtoint(edtCallCount.text);
+  flushResults(foExecuteCountLowerThan);
 end;
 
-procedure TfrmUltimap2.Button2Click(Sender: TObject);
+procedure TfrmUltimap2.btnFilterModuleClick(Sender: TObject);
+var
+  r: string;
+  output: string;
 begin
+  if l=nil then
+    l:=tstringlist.create;
 
+  symhandler.getModuleList(l);
+  output:='';
+  ShowSelectionList(self, 'Module list', 'Select a module or give your own range', l, output, true, @ModuleSelectEvent);
+  if output<>'' then
+  begin
+    //check that output can be parsed
+    if not symhandler.parseRange(output, FilterRangeFrom, FilterRangeTo) then
+    begin
+      MessageDlg(output+' is an invalid range', mtError, [mbok],0);
+      exit;
+    end;
+
+  end;
+
+  freeandnil(l);
+  flushResults(foNotInRange);
 end;
 
-procedure TfrmUltimap2.FormClose(Sender: TObject; var CloseAction: TCloseAction
-  );
+procedure TfrmUltimap2.btnNotCalledClick(Sender: TObject);
+begin
+  flushResults(foNonCALLInstructions);
+end;
+
+procedure TfrmUltimap2.btnNotExecutedClick(Sender: TObject);
+begin
+  flushResults(foExecuted); //filters out executed memory
+end;
+
+procedure TfrmUltimap2.btnCancelFilterClick(Sender: TObject);
+begin
+  if filterThread<>nil then
+  begin
+    filterThread.Terminate;
+    btnCancelFilter.enabled:=false;
+  end;
+end;
+
+procedure TfrmUltimap2.btnResetClick(Sender: TObject);
+begin
+  flushResults(foResetAll);
+end;
+
+procedure TfrmUltimap2.cbfilterOutNewEntriesChange(Sender: TObject);
+begin
+  allNewAreInvalid:=cbfilterOutNewEntries.checked;
+end;
+
+procedure TfrmUltimap2.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
   CloseAction:=caFree;
 end;
@@ -995,8 +1161,8 @@ begin
 
   state:=rsStopped;
 
-  if assigned(postProcessing) then
-    postProcessing(self);
+  if PostProcessingFilter<>foNone then
+    Filter(PostPRocessingFilter);
 end;
 
 
