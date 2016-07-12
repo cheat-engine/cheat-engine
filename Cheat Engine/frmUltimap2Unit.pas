@@ -1113,6 +1113,8 @@ end;
 procedure TfrmUltimap2.cleanup;
 var i: integer;
 begin
+  FreeValidList;
+
   //cleanup everything
   for i:=0 to length(workers)-1 do
     workers[i].Terminate;
