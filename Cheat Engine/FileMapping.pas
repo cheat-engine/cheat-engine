@@ -19,9 +19,11 @@ type TFileMapping=class
     FileMapping: THandle;
     FFileContent: pointer;
     FFileSize: Qword;
+    FFilename: string;
   public
     property fileContent: pointer read FFileContent;
     property filesize: qword read FFileSize;
+    property filename: string read FFilename;
     constructor create(filename: string);
     destructor destroy; override;
 end;
@@ -75,6 +77,7 @@ begin
     FFileContent:= MapViewOfFile(FileMapping, FILE_MAP_COPY , 0, 0, 0);
     if FFileContent=nil then raise exception.Create(rsFailedCreatingAProperView);
 
+    ffilename:=filename;
   except
     on e: exception do
     begin

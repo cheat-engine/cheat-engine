@@ -10,7 +10,7 @@ uses
   windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
   ExtCtrls, StdCtrls, ComCtrls, EditBtn, Menus, libipt, ProcessHandlerUnit,
   DBK32functions, commonTypeDefs, MemFuncs, AvgLvlTree, Math, FileMapping,
-  syncobjs;
+  syncobjs, CEFuncProc, registry, NewKernelHandler;
 
 
 const
@@ -20,13 +20,20 @@ const
 
 type
   TRecordState=(rsStopped, rsProcessing, rsRecording);
-  TFilterOption=(foNone, foExecuted, foNotExecuted, foNonCALLInstructions, foExecuteCountLowerThan, foNotInRange, foResetAll);
+  TFilterOption=(foNone, foExecuted, foNotExecuted, foNonCALLInstructions, foExecuteCountNotEqual, foNotInRange, foResetCount, foResetAll);
 
   TByteInfo=packed record
-    count: byte;
     flags: byte;
+    count: byte;
   end;
   PByteInfo=^TByteInfo;
+
+  TValidEntry=record
+    address: ptruint;
+    byteInfo: PByteInfo;
+  end;
+  PValidEntry=^TValidEntry;
+
 
   TRegionInfo=record
     address: ptruint;
@@ -43,6 +50,7 @@ type
   TUltimap2Worker=class(TThread) //many
   private
     lastRegion: PRegionInfo;
+    filecount: integer; //number of tracefiles saved
 
     filemap: TFileMapping;
     function addIPPageToRegionTree(IP: QWORD): PRegionInfo;
@@ -54,6 +62,7 @@ type
     procedure continueFromData(e: TUltimap2DataEvent);
   public
     id: integer;
+    KeepTraceFiles: boolean;
     filename: string;
     fromFile: boolean;
     processFile: TEvent;
@@ -69,11 +78,46 @@ type
     destructor destroy; override;
   end;
 
+  TUltimap2FilterWorker=class(tthread)
+  private
+    procedure FilterExecuted(ri: TRegionInfo);
+    procedure FilterNotExecuted(ri: TRegionInfo);
+    procedure FilterNonCallInstruction(ri: TRegionInfo);
+    procedure FilterExecutionCountNoEqual(ri: TRegionInfo);
+    procedure FilterNotInRange(ri: TRegionInfo);
+    procedure FilterResetCount(ri: TRegionInfo);
+    procedure FilterResetAll(ri: TRegionInfo);
+  public
+    filteroption: TfilterOption;
+    callcount: integer;
+    rangestart, rangestop: qword;
+    ExcludeFuturePaths: boolean;
+
+    filterSemaphore: THandle;
+    queuepos: pinteger;
+    workqueue: ^PRegionInfo;
+    queueCS: TCriticalSection;
+
+    done: boolean;
+
+    procedure execute; override;
+  end;
+
   TUltimap2FilterThread=class(tthread) //1
   private
+    filterSemaphore: THandle;
+    workqueue: ^PRegionInfo;
+    queueCS: TCriticalSection;
+    queuepos: integer;
+
+    workers: array of TUltimap2FilterWorker;
+
     procedure EnableGUI;
   public
-    ownerForm: TfrmUltimap2;
+    ownerform: TfrmUltimap2;
+    regiontree: TAvgLvlTree;
+    regiontreeMREW: TMultiReadExclusiveWriteSynchronizer;
+
     filteroption: TfilterOption;
     callcount: integer;
     rangestart, rangestop: qword;
@@ -86,41 +130,45 @@ type
   { TfrmUltimap2 }
 
   TfrmUltimap2 = class(TForm)
+    btnAddRange: TButton;
     btnExecuted: TButton;
     btnFilterCallCount: TButton;
     btnFilterModule: TButton;
     btnNotCalled: TButton;
-    btnAddRange: TButton;
     btnNotExecuted: TButton;
-    btnResetCount: TButton;
     btnRecordPause: TButton;
+    btnResetCount: TButton;
     btnCancelFilter: TButton;
+    Button1: TButton;
+    Button2: TButton;
     Button5: TButton;
     btnReset: TButton;
     cbFilterFuturePaths: TCheckBox;
     cbfilterOutNewEntries: TCheckBox;
+    cbDontDeleteTraceFiles: TCheckBox;
+    deTargetFolder: TDirectoryEdit;
+    edtBufSize: TEdit;
     edtCallCount: TEdit;
     gbRange: TGroupBox;
     Label1: TLabel;
+    lblBuffersPerCPU: TLabel;
+    lblIPCount: TLabel;
+    lblKB: TLabel;
     lblLastfilterresult: TLabel;
     lbRange: TListBox;
     miRangeDeleteSelected: TMenuItem;
     miRangeDeleteAll: TMenuItem;
     Panel1: TPanel;
     Panel4: TPanel;
+    Panel6: TPanel;
     pmRangeOptions: TPopupMenu;
-    rbLogToFolder: TRadioButton;
-    rbRuntimeParsing: TRadioButton;
-    deTargetFolder: TDirectoryEdit;
-    edtBufSize: TEdit;
-    lblBuffersPerCPU: TLabel;
     Label3: TLabel;
-    lblKB: TLabel;
-    lblIPCount: TLabel;
     ListView1: TListView;
     Panel2: TPanel;
     Panel3: TPanel;
     Panel5: TPanel;
+    rbLogToFolder: TRadioButton;
+    rbRuntimeParsing: TRadioButton;
     tActivator: TTimer;
     procedure btnAddRangeClick(Sender: TObject);
     procedure btnExecutedClick(Sender: TObject);
@@ -130,14 +178,20 @@ type
     procedure btnNotExecutedClick(Sender: TObject);
     procedure btnCancelFilterClick(Sender: TObject);
     procedure btnResetClick(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
+    procedure Button5Click(Sender: TObject);
     procedure cbfilterOutNewEntriesChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure ListView1Data(Sender: TObject; Item: TListItem);
+    procedure ListView1DblClick(Sender: TObject);
     procedure miRangeDeleteSelectedClick(Sender: TObject);
     procedure miRangeDeleteAllClick(Sender: TObject);
     procedure Panel5Click(Sender: TObject);
+    procedure rbLogToFolderChange(Sender: TObject);
     procedure tActivatorTimer(Sender: TObject);
     procedure tbRecordPauseChange(Sender: TObject);
   private
@@ -159,15 +213,19 @@ type
 
     filterExcludeFuturePaths: boolean;
 
+    validList: TIndexedAVLTree;
+
     function RegionCompare(Tree: TAvgLvlTree; Data1, Data2: pointer): integer;
 
+    function  ValidListCompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
+    procedure FreeValidList;
     procedure freeRegion(r: PRegionInfo);
     procedure cleanup;
     procedure setConfigGUIState(state: boolean);
     procedure enableConfigGUI;
     procedure disableConfigGUI;
 
-    procedure FilterGUI(state: boolean);
+    procedure FilterGUI(state: boolean; showCancel: boolean=true);
     procedure Filter(filterOption: TFilterOption);
     procedure FlushResults(f: TFilterOption=foNone);
     procedure ExecuteFilter(Sender: TObject);
@@ -188,7 +246,7 @@ implementation
 
 {$R *.lfm}
 
-uses symbolhandler, frmSelectionlistunit, cpuidUnit;
+uses symbolhandler, frmSelectionlistunit, cpuidUnit, MemoryBrowserFormUnit;
 
 //worker
 
@@ -394,7 +452,7 @@ begin
     end;
 
     region^.info[index].count:=1;
-    region^.info[index].flags:=bifExecuted;
+
 
     if c in [ptic_call, ptic_far_call] then
       region^.info[index].flags:=region^.info[index].flags or bifIsCall;
@@ -402,6 +460,8 @@ begin
   else
   if region^.info[index].count<255 then
     inc(region^.info[index].count);
+
+  region^.info[index].flags:=region^.info[index].flags or bifExecuted;
 end;
 
 
@@ -459,6 +519,8 @@ begin
         result:=true;
       end;
     end
+    else
+      done:=true; //nothing to process. There is no file...
   end
   else
   begin
@@ -467,13 +529,23 @@ begin
 end;
 
 procedure TUltimap2Worker.continueFromData(e: TUltimap2DataEvent);
+var fn: string;
 begin
   if fromfile then
   begin
     if filemap<>nil then
+    begin
+      fn:=filemap.filename;
       freeandnil(filemap);
 
-
+      if KeepTraceFiles then
+      begin
+        RenameFile(fn, filename+'.processed'+inttostr(filecount));
+        inc(filecount);
+      end
+      else
+        deletefile(fn);
+    end;
 
     done:=true;
   end
@@ -572,6 +644,174 @@ begin
   processFile:=TEvent.Create(nil,false,false,'');
 end;
 
+procedure TUltimap2FilterWorker.FilterExecuted(ri: TRegionInfo);  //removes executed entries
+var
+  i: integer;
+  bi: PByteInfo;
+  w: pword absolute bi;
+
+begin
+  bi:=ri.info;
+  for i:=0 to ri.size-1 do
+  begin
+    if (w[i]>0) and ((w[i] and 1)=0) then //has info and not yet invalidated
+    begin
+      if (bi[i].flags and bifExecuted)<>0 then //filter it out
+        w[i]:=1 //invalidate
+      else //mark as not executed for next filter op
+        bi[i].flags:=bi[i].flags xor bifExecuted;
+    end;
+  end;
+end;
+
+procedure TUltimap2FilterWorker.FilterNotExecuted(ri: TRegionInfo);      //removes entries marked as not executed (since last filter op)
+var
+  i: integer;
+  bi: PByteInfo;
+  w: pword absolute bi;
+
+begin
+  bi:=ri.info;
+  for i:=0 to ri.size-1 do
+  begin
+    if (w[i]>0) and ((w[i] and 1)=0) then //has info and not yet invalidated
+    begin
+      if (bi[i].flags and bifExecuted)=0 then //filter it out
+        w[i]:=1; //invalidate
+
+    end;
+  end;
+end;
+
+procedure TUltimap2FilterWorker.FilterNonCallInstruction(ri: TRegionInfo);    //removes if not call
+var
+  i: integer;
+  bi: PByteInfo;
+  w: pword absolute bi;
+
+begin
+  bi:=ri.info;
+  for i:=0 to ri.size-1 do
+  begin
+    if (w[i]>0) and ((w[i] and 1)=0) then //has info and not yet invalidated
+    begin
+      if (bi[i].flags and bifIsCall)=0 then //filter it out
+        w[i]:=1 //invalidate
+      else //mark as not executed for next filter op
+        bi[i].flags:=bi[i].flags and (not bifExecuted);
+    end;
+  end;
+end;
+
+procedure TUltimap2FilterWorker.FilterExecutionCountNoEqual(ri: TRegionInfo);
+var
+  i: integer;
+  bi: PByteInfo;
+  w: pword absolute bi;
+
+begin
+  bi:=ri.info;
+  for i:=0 to ri.size-1 do
+  begin
+    if (w[i]>0) and ((w[i] and 1)=0) then //has info and not yet invalidated
+    begin
+      if bi[i].count <> callcount then //filter it out
+        w[i]:=1 //invalidate
+      else //mark as not executed for next filter op
+        bi[i].flags:=bi[i].flags and (not bifExecuted);
+    end;
+  end;
+end;
+
+procedure TUltimap2FilterWorker.FilterNotInRange(ri: TRegionInfo); //mark all ranges not in this list as invalid
+var
+  i: integer;
+  bi: PByteInfo;
+  w: pword absolute bi;
+
+  startindex, stopindex: integer;
+begin
+  bi:=ri.info;
+
+       //after it                        before it
+  if (ri.address>rangestop) or (ri.address+ri.size<rangestart) then //mark it all invalid
+    FillMemory(ri.info, sizeof(TByteInfo)*ri.size,$ff)
+  else
+  begin
+    startindex:=rangestart-ri.address;
+
+    if startindex>0 then //invalidate the part up to this point
+      FillMemory(ri.info, sizeof(TByteInfo)*startindex,$ff);
+
+    stopindex:=startindex+(rangestop-rangestart);
+    //everything after stopindex is invalid
+    if stopindex<ri.size then
+      FillMemory(@ri.info[stopindex], sizeof(TByteInfo)*(ri.size-stopindex),$ff);
+  end;
+end;
+
+procedure TUltimap2FilterWorker.FilterResetCount(ri: TRegionInfo);
+var
+  i: integer;
+  bi: PByteInfo;
+  w: pword absolute bi;
+begin
+  bi:=ri.info;
+  for i:=0 to ri.size-1 do
+    if (w[i]>0) and ((w[i] and 1)=0) then //has info and not yet invalidated
+      bi[i].count:=0;
+end;
+
+procedure TUltimap2FilterWorker.FilterResetAll(ri: TRegionInfo);
+begin
+  zeromemory(ri.info, sizeof(TByteInfo)*ri.size);
+end;
+
+procedure TUltimap2FilterWorker.execute;
+var
+  ri: TRegionInfo;
+  i: integer;
+  filterRoutine: procedure(ri: TRegionInfo) of object;
+begin
+  done:=true;
+
+  case filteroption of
+    foExecuted: filterRoutine:=@FilterExecuted;//
+    foNotExecuted: filterRoutine:=@FilterNotExecuted;
+    foNonCALLInstructions: filterRoutine:=@FilterNonCallInstruction;
+    foExecuteCountNotEqual: filterRoutine:=@FilterExecutionCountNoEqual;
+    foNotInRange: filterRoutine:=@FilterNotInRange;
+    foResetCount: filterRoutine:=@FilterResetCount;
+    foResetAll: filterRoutine:=@FilterResetAll;
+    else //unknown, or foNone
+      exit;
+  end;
+
+  while not terminated do
+  begin
+    if WaitForSingleObject(filterSemaphore, 500)=WAIT_OBJECT_0 then
+    begin
+      if terminated then exit;
+
+      queueCS.Enter;
+      dec(queuepos^);
+      if queuepos^<0 then //should never happen as the only time it can happen is after the thread has been set to terminated
+      begin
+        OutputDebugString('error: queuepos<0');
+        queuecs.Leave;
+        exit;
+      end;
+      ri:=workqueue[queuepos^]^;
+      done:=false;
+      queuecs.Leave;
+
+      //scan it's region according to the scan options
+      filterRoutine(ri);
+
+      done:=true;
+    end;
+  end;
+end;
 
 {TUltimap2FilterThread}
 
@@ -582,15 +822,130 @@ begin
 
   if ExcludeFuturePaths and (not ownerform.cbfilterOutNewEntries.checked) then
     ownerform.cbfilterOutNewEntries.checked:=true;
+
+  ownerform.ListView1.Refresh;
+  beep;
 end;
 
 procedure TUltimap2FilterThread.execute;
+var
+  e: TAvgLvlTreeNodeEnumerator;
+  ri: PRegionInfo;
+  added: boolean;
+  alldone: boolean;
+  i: integer;
+  count: integer;
 begin
   freeOnTerminate:=true;
 
-  //scan and check for terminated to see when it should terminate
+  count:=cpucount;
+  queueCS:=TCriticalSection.Create;
+  getmem(workqueue, sizeof(PPRange)*count);
+  filterSemaphore:=CreateSemaphore(nil, 0, count, nil);
 
-  Synchronize(@EnableGUI);
+  setlength(workers, cpucount);
+  for i:=0 to length(workers)-1 do
+  begin
+    workers[i]:=TUltimap2FilterWorker.create(true);
+    workers[i].filteroption:=filterOption;
+    workers[i].callcount:=callcount;
+    workers[i].rangestart:=rangestart;
+    workers[i].rangestop:=rangestop;
+    workers[i].ExcludeFuturePaths:=ExcludeFuturePaths;
+    workers[i].queuepos:=@queuepos;
+    workers[i].workqueue:=workqueue;
+    workers[i].queuecs:=queuecs;
+    workers[i].filterSemaphore:=filterSemaphore;
+    workers[i].start;
+  end;
+
+
+
+  try
+    //scan and check for terminated to see when it should terminate
+    regiontreeMREW.Beginread;
+    try
+      e:=TAvgLvlTreeNodeEnumerator.Create(regiontree);
+
+
+
+
+      while e.MoveNext do
+      begin
+        ri:=e.Current.data;
+        if ri<>nil then
+        begin
+          added:=false;
+          repeat
+            queueCS.enter;
+            if queuepos<count then
+            begin
+              workqueue[queuepos]:=ri;
+              inc(queuepos);
+              ReleaseSemaphore(filterSemaphore, 1,nil);
+
+              added:=true;
+            end;
+            queueCS.Leave;
+
+            if not added then sleep(50);
+          until added or terminated;
+        end;
+      end;
+
+      freeandnil(e);
+    finally
+      regiontreeMREW.Endread;
+    end;
+
+    //wait for all the workers to finish their job
+    if terminated then
+      for i:=0 to length(workers)-1 do
+        workers[i].Terminate;
+
+
+    while (queuepos>0) and (not terminated) do
+      sleep(50);
+
+    //queuepos=0 , wait till the last one is done
+    if not terminated then
+    begin
+      alldone:=false;
+      while not alldone do
+      begin
+        alldone:=true;
+
+        for i:=0 to length(workers)-1 do
+          if not workers[i].done then
+          begin
+            alldone:=false;
+            break;
+          end;
+
+        sleep(50);
+      end;
+    end;
+  finally
+    for i:=0 to length(workers)-1 do
+      workers[i].Terminate;
+
+    ReleaseSemaphore(filterSemaphore, CPUCount, nil);
+
+    for i:=0 to length(workers)-1 do
+    begin
+      workers[i].WaitFor;
+      workers[i].Free;
+    end;
+    setlength(workers,0);
+
+    Synchronize(@EnableGUI);
+
+    closehandle(filterSemaphore);
+    freeandnil(queueCS);
+    freemem(workqueue);
+
+  end;
+
 end;
 
 { TfrmUltimap2 }
@@ -641,7 +996,7 @@ begin
   end;
 end;
 
-procedure TfrmUltimap2.FilterGUI(state: boolean);
+procedure TfrmUltimap2.FilterGUI(state: boolean; showCancel: boolean=true);
 begin
   btnReset.enabled:=state;
   btnNotExecuted.enabled:=state;
@@ -653,7 +1008,7 @@ begin
   btnResetCount.enabled:=state;
   btnFilterModule.enabled:=state;
   cbfilterOutNewEntries.enabled:=state;
-  btnCancelFilter.Visible:=not state;
+  btnCancelFilter.Visible:=(not state) and showCancel;
 end;
 
 procedure TfrmUltimap2.setConfigGUIState(state: boolean);
@@ -661,8 +1016,20 @@ begin
   lblBuffersPerCPU.enabled:=state;
   edtBufSize.enabled:=state;
   lblKB.enabled:=state;
-  rbLogToFolder.enabled:=state;
-  deTargetFolder.enabled:=state;
+  rbLogToFolder.enabled:=false;
+
+  if state then
+  begin
+    deTargetFolder.enabled:=rbLogToFolder.checked;
+    cbDontDeleteTraceFiles.enabled:=rbLogToFolder.checked;
+  end
+  else
+  begin
+    deTargetFolder.enabled:=false;
+    cbDontDeleteTraceFiles.enabled:=false;
+  end;
+
+
   rbRuntimeParsing.enabled:=state;
 
   gbRange.enabled:=state;
@@ -686,31 +1053,29 @@ begin
   ultimap2_flush;
 
 
-  if rbLogToFolder.checked then
+  if rbLogToFolder.checked and (state=rsRecording) then
   begin
-    //signal the worker threads to start processing
-    if state=rsRecording then
+    //signal the worker threads to process the files first
+    for i:=0 to length(workers)-1 do
     begin
-      for i:=0 to length(workers)-1 do
-      begin
-        workers[i].totalsize:=0;
-        workers[i].done:=false;
-        workers[i].processFile.SetEvent;
-      end;
-
-      btnRecordPause.enabled:=false;
-      tActivator.enabled:=true;
-      //when the worker threads are all done, this will become enabled
-
-      PostProcessingFilter:=f;
-      state:=rsProcessing;
-
+      workers[i].totalsize:=0;
+      workers[i].done:=false;
+      workers[i].processFile.SetEvent;
     end;
+
+    btnRecordPause.enabled:=false;
+    tActivator.enabled:=true;
+    //when the worker threads are all done, this will become enabled
+
+    PostProcessingFilter:=f;
+    state:=rsProcessing;
+    if f<>foNone then
+      FilterGUI(false);
   end
   else
   begin
 
-    //flush only returns after all data has been handled, so :
+    //flush only returns after all data has been handled, or the data has already been handled by the file workers
     if f<>foNone then
       Filter(f);
   end;
@@ -849,19 +1214,20 @@ begin
       regiontreeMREW:=TMultiReadExclusiveWriteSynchronizer.Create;
 
       //launch worker threads
-      setlength(workers, CPUCount);
+      setlength(workers, 1);//CPUCount);
       for i:=0 to length(workers)-1 do
       begin
         workers[i]:=TUltimap2Worker.Create(true);
         workers[i].id:=i;
         workers[i].fromFile:=rbLogToFolder.Checked;
-        workers[i].Filename:=deTargetFolder.Directory;
+        workers[i].Filename:=Utf8ToAnsi(deTargetFolder.Directory);
         if workers[i].Filename<>'' then
         begin
           if workers[i].Filename[length(workers[i].Filename)]<>PathDelim then
             workers[i].Filename:=workers[i].Filename+PathDelim;
 
           workers[i].Filename:=workers[i].Filename+'CPU'+inttostr(i)+'.trace';
+          workers[i].KeepTraceFiles:=cbDontDeleteTraceFiles.checked;
         end;
         workers[i].ownerForm:=self;
       end;
@@ -923,6 +1289,8 @@ begin
       else
         ultimap2(processid, size, '', ranges);
 
+      FilterGUI(true);
+
       for i:=0 to length(workers)-1 do
         workers[i].start;
 
@@ -939,13 +1307,12 @@ begin
       else
       if state=rsRecording then
       begin
+        ultimap2_pause;
         FlushResults(foNone);
 
+
         if rbRuntimeParsing.checked then
-        begin
-          ultimap2_pause;
           state:=rsStopped;
-        end;
       end;
     end;
 
@@ -956,9 +1323,76 @@ begin
   canclose:=MessageDlg('Closing will free all collected data. Continue? (Tip: You can minimize this window instead)', mtConfirmation,[mbyes,mbno], 0, mbno)=mryes;
 end;
 
+
+procedure TfrmUltimap2.FormDestroy(Sender: TObject);
+var
+  x: TWindowPosArray;
+  reg: tregistry;
+begin
+  setlength(x,0);
+  SaveFormPosition(self, x);
+
+  reg:=TRegistry.Create;
+  try
+    if Reg.OpenKey('\Software\Cheat Engine',false) then
+    begin
+      Reg.WriteString('Ultimap2 Folder', deTargetFolder.Directory);
+      Reg.WriteBool('Ultimap2 Keep Trace Files', cbDontDeleteTraceFiles.checked);
+    end;
+
+  finally
+    freeandnil(reg);
+  end;
+
+  cleanup;
+  frmUltimap2:=nil;
+end;
+
+procedure TfrmUltimap2.ListView1Data(Sender: TObject; Item: TListItem);
+var data: PValidEntry;
+begin
+  if validlist<>nil then
+  begin
+    data:=validlist[item.index];
+    item.caption:=inttohex(data^.address,8);
+
+    if data^.byteInfo^.count=255 then
+      item.SubItems.Add('>255')
+    else
+      item.SubItems.Add(inttostr(data^.byteInfo^.count));
+
+    if (data^.byteInfo^.flags and bifInvalidated)<>0 then
+      item.SubItems.Add('X');
+  end;
+end;
+
+
+
 procedure TfrmUltimap2.FormCreate(Sender: TObject);
+var
+  x: TWindowPosArray;
+  reg: tregistry;
 begin
   state:=rsStopped;
+  LoadFormPosition(self, x);
+  if LoadFormPosition(self, x) then
+    AutoSize:=false;
+
+  reg:=TRegistry.Create;
+  try
+    if Reg.OpenKey('\Software\Cheat Engine',false) then
+    begin
+      if Reg.ValueExists('Ultimap2 Folder') then
+      begin
+        deTargetFolder.Directory:=Reg.ReadString('Ultimap2 Folder');
+        cbDontDeleteTraceFiles.Checked:=Reg.ReadBool('Ultimap2 Keep Trace Files');
+      end;
+    end;
+  finally
+    freeandnil(reg);
+  end;
+
+  FilterGUI(false, false);
 end;
 
 function TfrmUltimap2.ModuleSelectEvent(index: integer; listText: string): string;
@@ -1014,6 +1448,9 @@ begin
 
   //launch the filter thread
   filterThread:=TUltimap2FilterThread.Create(true);
+  filterthread.ownerform:=self;
+  filterthread.regiontree:=regiontree;
+  filterthread.regiontreeMREW:=regiontreeMREW;
   filterthread.filterOption:=filterOption;
   filterthread.callcount:=Filtercount;
   filterthread.rangestart:=FilterRangeFrom;
@@ -1033,7 +1470,7 @@ end;
 procedure TfrmUltimap2.btnFilterCallCountClick(Sender: TObject);
 begin
   Filtercount:=strtoint(edtCallCount.text);
-  flushResults(foExecuteCountLowerThan);
+  flushResults(foExecuteCountNotEqual);
 end;
 
 procedure TfrmUltimap2.btnFilterModuleClick(Sender: TObject);
@@ -1086,6 +1523,103 @@ begin
   flushResults(foResetAll);
 end;
 
+procedure TfrmUltimap2.Button1Click(Sender: TObject);
+begin
+  FilterGUI(true);
+end;
+
+procedure TfrmUltimap2.Button2Click(Sender: TObject);
+begin
+  filtergui(false);
+end;
+
+procedure TfrmUltimap2.ListView1DblClick(Sender: TObject);
+var entry: PValidEntry;
+begin
+  if (validlist<>nil) and (listview1.Selected<>nil) then
+  begin
+    entry:=validList[listview1.selected.Index];
+    MemoryBrowser.disassemblerview.SelectedAddress:=entry^.address;
+    MemoryBrowser.show;
+  end;
+end;
+
+function TfrmUltimap2.ValidListCompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
+begin
+  result:=CompareValue(PValidEntry(Data1)^.address, PValidEntry(Data2)^.address);
+end;
+
+procedure TfrmUltimap2.FreeValidList;
+var
+  i: integer;
+  n: TIndexedAVLTreeNode;
+begin
+  listview1.Items.Count:=0;
+  if validList<>nil then
+  begin
+    for i:=0 to validList.Count-1 do
+    begin
+      n:=validList.GetNodeAtIndex(i);
+      if (n<>nil) and (n.Data<>nil) then
+      begin
+        freemem(n.data);
+        n.data:=nil
+      end;
+    end;
+    validlist.Clear;
+    freeandnil(validList);
+  end;
+end;
+
+procedure TfrmUltimap2.Button5Click(Sender: TObject);
+var
+  e: TAvgLvlTreeNodeEnumerator;
+  entry: PValidEntry;
+  ri: PRegionInfo;
+
+  i: integer;
+  n: TAvgLvlTreeNode;
+begin
+
+
+  //build a indexable list of all the addresses in the list
+  if regiontreemrew<>nil then
+  begin
+    //check if a list exists, and if so, delete it
+
+    FreeValidList;
+    validlist:=TIndexedAVLTree.CreateObjectCompare(@ValidListCompare);
+
+    regiontreemrew.Beginread;
+    try
+      e:=TAvgLvlTreeNodeEnumerator.Create(regiontree);
+      while e.MoveNext do
+      begin
+        ri:=e.Current.Data;
+        if ri<>nil then
+        begin
+          for i:=0 to ri^.size-1 do
+          begin
+            if (ri^.info[i].count>0) and ((ri^.info[i].flags or bifInvalidated)<>0) then
+            begin
+              getmem(entry, sizeof(TValidEntry));
+              entry^.address:=ri^.address+i;
+              entry^.byteInfo:=@ri^.info[i];
+
+              validlist.Add(entry);
+            end;
+          end;
+        end;
+      end;
+    finally
+      regiontreemrew.Endread;
+    end;
+
+    listview1.Items.Count:=validlist.Count;
+    lblIPCount.Caption:='Instruction Pointer List Size:'+inttostr(validlist.Count);
+  end;
+end;
+
 procedure TfrmUltimap2.cbfilterOutNewEntriesChange(Sender: TObject);
 begin
   allNewAreInvalid:=cbfilterOutNewEntries.checked;
@@ -1098,11 +1632,6 @@ end;
 
 
 
-procedure TfrmUltimap2.FormDestroy(Sender: TObject);
-begin
-  cleanup;
-  frmUltimap2:=nil;
-end;
 
 procedure TfrmUltimap2.miRangeDeleteSelectedClick(Sender: TObject);
 var i: integer;
@@ -1122,11 +1651,19 @@ begin
 
 end;
 
+procedure TfrmUltimap2.rbLogToFolderChange(Sender: TObject);
+begin
+  if rbLogToFolder.enabled then
+  begin
+    deTargetFolder.enabled:=rbLogToFolder.checked;
+    cbDontDeleteTraceFiles.enabled:=rbLogToFolder.checked;
+  end;
+end;
+
 procedure TfrmUltimap2.tActivatorTimer(Sender: TObject);
 var
   done: boolean;
   i: integer;
-
   totalprocessed, totalsize: qword;
 begin
   done:=true;
@@ -1159,10 +1696,14 @@ begin
   btnRecordPause.enabled:=true;
   tActivator.Enabled:=false;
 
-  state:=rsStopped;
 
   if PostProcessingFilter<>foNone then
-    Filter(PostPRocessingFilter);
+  begin
+    Filter(PostProcessingFilter);
+    state:=rsRecording;
+  end
+  else
+    state:=rsStopped;
 end;
 
 

@@ -21,7 +21,7 @@ implementation
 
 constructor TSemaphore.create(maxcount:integer);
 begin
-  handle:=CreateSemaphore(nil,maxcount,maxcount,'');
+  handle:=CreateSemaphore(nil,maxcount,maxcount,nil);
 end;
 
 destructor TSemaphore.destroy;
