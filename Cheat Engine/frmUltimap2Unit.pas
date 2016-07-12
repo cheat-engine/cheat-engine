@@ -215,6 +215,8 @@ type
 
     validList: TIndexedAVLTree;
 
+    maxrangecount: integer;
+
     function RegionCompare(Tree: TAvgLvlTree; Data1, Data2: pointer): integer;
 
     function  ValidListCompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
@@ -249,7 +251,6 @@ implementation
 uses symbolhandler, frmSelectionlistunit, cpuidUnit, MemoryBrowserFormUnit;
 
 //worker
-
 
 
 
@@ -850,7 +851,7 @@ begin
 
   count:=cpucount;
   queueCS:=TCriticalSection.Create;
-  getmem(workqueue, sizeof(PPRange)*count);
+  getmem(workqueue, sizeof(PRegionInfo)*count);
   filterSemaphore:=CreateSemaphore(nil, 0, count, nil);
 
   setlength(workers, cpucount);
@@ -1042,9 +1043,9 @@ begin
 
   rbRuntimeParsing.enabled:=state;
 
-  gbRange.enabled:=state;
-  lbRange.enabled:=state;
-  btnAddRange.enabled:=state;
+  lbRange.enabled:=(maxrangecount>0) and state;
+  btnAddRange.enabled:=(maxrangecount>0) and state;
+  gbRange.enabled:=(maxrangecount>0) and state;
 end;
 
 procedure TfrmUltimap2.enableConfigGUI;
@@ -1163,6 +1164,7 @@ end;
 procedure TfrmUltimap2.tbRecordPauseChange(Sender: TObject);
 var
   size: dword;
+  s: string;
   ranges: TPRangeDynArray;
   r: TCPUIDResult;
   i: integer;
@@ -1174,6 +1176,9 @@ var
 
   n: TAvgLvlTreeNode;
   e: TRegionInfo;
+
+  cpuid14_0: TCPUIDResult;
+  cpuid14_1: TCPUIDResult;
 begin
   if state=rsProcessing then exit;
 
@@ -1197,11 +1202,13 @@ begin
       if (CPUID(7,0).ebx shr 25) and 1=0 then
         raise exception.create('Sorry, but your CPU seems to be lacking the Intel Processor Trace feature which Ultimap2 makes use of');
 
-      if ((CPUID($14,0).ecx shr 1) and 1)=0 then
+      cpuid14_0:=CPUID($14,0);
+      if ((cpuid14_0.ecx shr 1) and 1)=0 then
         raise exception.create('Sorry, but your CPU''s implementation of the Intel Processor Trace feature is too old. Ultimap uses multiple ToPA entries');
 
-      if (CPUID($14,0).ebx and 1)=0 then
+      if (cpuid14_0.ebx and 1)=0 then
         raise exception.create('Sorry, but your CPU doesn''t seem to be able to set a target PROCESS');
+
 
 
       if processid=0 then
@@ -1217,8 +1224,21 @@ begin
 
       setlength(ranges,lbrange.count);
       for i:=0 to lbRange.Count-1 do
-        if symhandler.ParseRange(lbRange.Items[i], ranges[i].startAddress, ranges[i].endaddress)=false then
+      begin
+        s:=lbRange.Items[i];
+
+        if length(s)>=2 then
+        begin
+          if (s[1]='*') and (s[length(s)]='*') then
+          begin
+            s:=copy(s,2,length(s)-2);
+            ranges[i].isStopRange:=1;
+          end;
+        end;
+
+        if symhandler.ParseRange(s, ranges[i].startAddress, ranges[i].endaddress)=false then
           raise exception.create('For some weird reason "'+lbRange.Items[i]+'" can''t be parsed');
+      end;
 
       //still here so everything seems alright.
       //turn off the config GUI
@@ -1299,12 +1319,11 @@ begin
 
       if not libIptInit then raise exception.create('Failure loading libipt');
 
-        {
       if rbLogToFolder.Checked then
         ultimap2(processid, size, deTargetFolder.Directory, ranges)
       else
         ultimap2(processid, size, '', ranges);
-          }
+
       FilterGUI(true);
 
       for i:=0 to length(workers)-1 do
@@ -1388,7 +1407,36 @@ procedure TfrmUltimap2.FormCreate(Sender: TObject);
 var
   x: TWindowPosArray;
   reg: tregistry;
+
+  r: TCPUIDResult;
+  cpuid14_0: TCPUIDResult;
+  cpuid14_1: TCPUIDResult;
 begin
+  maxrangecount:=0;
+
+  r:=CPUID(0);
+  if (r.ebx=1970169159) and (r.ecx=1818588270) and (r.edx=1231384169) and (r.eax>=$14) and (((CPUID(7,0).ebx shr 25) and 1)=1) then
+  begin
+    cpuid14_0:=CPUID($14,0);
+    if (((cpuid14_0.ecx shr 2) and 1)=1) and (cpuid14_0.eax>=1) then
+    begin
+      cpuid14_1:=CPUID($14,1);
+
+      maxrangecount:=cpuid14_1.eax and 7;
+    end;
+
+  end;
+
+  gbRange.caption:=format('Ranges: (Empty for all) (Max %d)',[maxrangecount]);
+
+ { if maxrangecount=0 then
+  begin
+    lbrange.Enabled:=false;
+    btnAddRange.enabled:=false;
+    gbRange.enabled:=false;;
+  end;   }
+
+
   state:=rsStopped;
   LoadFormPosition(self, x);
   if LoadFormPosition(self, x) then
@@ -1431,19 +1479,37 @@ var
   r: string;
   output: string;
   start, stop: uint64;
+  stoprange: boolean;
 begin
   if l=nil then
     l:=tstringlist.create;
 
   symhandler.getModuleList(l);
   output:='';
-  ShowSelectionList(self, 'Module list', 'Select a module or give your own range', l, output, true, @ModuleSelectEvent);
+  ShowSelectionList(self, 'Module list', 'Select a module or give your own range'#13#10'(Put between *''s to mark as an auto stop range)', l, output, true, @ModuleSelectEvent);
   if output<>'' then
   begin
     //check that output can be parsed
+    output:=trim(output);
+    stoprange:=false;
+
+    if length(output)>2 then
+    begin
+      if (output[1]='*') and (output[length(output)]='*') then
+      begin
+        stoprange:=true;
+        messagedlg('The range you have provided is an ''Exit'' range. Be aware that this doesn''t mean it will always stop at that range, or that the result is what you expect. A context switch to another thread between the start and stop can add a lot of other data', mtInformation, [mbok],0);
+      end;
+    end;
 
     if symhandler.parseRange(output, start, stop) then
-      lbrange.Items.Add(inttohex(start,8)+'-'+inttohex(stop,8));
+    begin
+      if stoprange then
+        lbrange.Items.Add('*'+inttohex(start,8)+'-'+inttohex(stop,8)+'*')
+      else
+        lbrange.Items.Add(inttohex(start,8)+'-'+inttohex(stop,8));
+
+    end;
   end;
 
   freeandnil(l);

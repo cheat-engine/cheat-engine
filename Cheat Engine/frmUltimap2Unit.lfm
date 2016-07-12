@@ -272,7 +272,7 @@ object frmUltimap2: TfrmUltimap2
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = gbRange
         AnchorSideRight.Side = asrBottom
-        Left = 121
+        Left = 124
         Height = 64
         Top = 237
         Width = 64
@@ -306,7 +306,7 @@ object frmUltimap2: TfrmUltimap2
         Left = 5
         Height = 25
         Top = 257
-        Width = 111
+        Width = 114
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
         BorderSpacing.Left = 5
@@ -325,11 +325,11 @@ object frmUltimap2: TfrmUltimap2
         Left = 5
         Height = 129
         Top = 106
-        Width = 180
+        Width = 183
         AutoSize = True
-        Caption = 'Range(s) to log: (Empty for all)'
+        Caption = 'Ranges: (Empty for all) (Max 0) '
         ClientHeight = 109
-        ClientWidth = 176
+        ClientWidth = 179
         TabOrder = 2
         object lbRange: TListBox
           AnchorSideLeft.Control = gbRange
@@ -340,7 +340,7 @@ object frmUltimap2: TfrmUltimap2
           Left = 0
           Height = 80
           Top = 0
-          Width = 176
+          Width = 179
           Anchors = [akTop, akLeft, akRight, akBottom]
           BorderSpacing.Bottom = 2
           ItemHeight = 0

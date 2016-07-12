@@ -20,6 +20,7 @@ object frmSelectionList: TfrmSelectionList
     Align = alTop
     Caption = 'caption'
     ParentColor = False
+    WordWrap = True
   end
   object ListBox1: TListBox
     Left = 0
@@ -42,12 +43,13 @@ object frmSelectionList: TfrmSelectionList
     ClientWidth = 313
     TabOrder = 1
     object Button1: TButton
-      Left = 120
-      Height = 25
+      Left = 125
+      Height = 23
       Top = 3
-      Width = 75
+      Width = 65
       Anchors = [akTop]
-      Caption = 'OK'
+      AutoSize = True
+      Caption = '    OK    '
       Default = True
       ModalResult = 1
       TabOrder = 0
