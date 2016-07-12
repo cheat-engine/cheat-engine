@@ -37,6 +37,8 @@ KEVENT FlushData;
 BOOL SaveToFile;
 WCHAR OutputPath[200];
 
+int Ultimap2RangeCount;
+PURANGE Ultimap2Ranges = NULL;
 
 PVOID *Ultimap2_DataReady;
 
@@ -694,7 +696,24 @@ void ultimap2_setup_dpc(struct _KDPC *Dpc, PVOID DeferredContext, PVOID SystemAr
 
 
 		__writemsr(IA32_RTIT_CR3_MATCH, CurrentCR3);
+
+		//ranges
+		for (i = 0; i < Ultimap2RangeCount; i++)
+		{
+			ULONG msr_start = IA32_RTIT_ADDR0_A + (2 * i);
+			ULONG msr_stop = IA32_RTIT_ADDR0_B + (2 * i);
+			int bit = 32 + (i * 4);
+
+			__writemsr(msr_start, Ultimap2Ranges[i].StartAddress);
+			__writemsr(msr_stop, Ultimap2Ranges[i].EndAddress);
+
+			if (Ultimap2Ranges[i].IsStopAddress)
+				ctl.Value |= 2 << bit; //TraceStop This stops all tracing on this cpu. Doesn't get reactivated
+			else
+				ctl.Value |= 1 << bit; //FilterEn
+		}
 		i = 3;
+
 		__writemsr(IA32_RTIT_STATUS, 0);
 		i = 4;
 		__writemsr(IA32_RTIT_CTL, ctl.Value);
@@ -886,7 +905,7 @@ NTSTATUS ultimap2_resume()
 
 
 
-void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path)
+void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, PURANGE Ranges)
 {
 	//for each cpu setup tracing
 	//add the PMI interupt
@@ -907,7 +926,23 @@ void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path)
 	else
 	{
 		DbgPrint("Ultimap2: Runtime processing");
+	}
 
+	if (rangeCount)
+	{
+		if (Ultimap2Ranges)
+		{
+			ExFreePoolWithTag(Ultimap2Ranges, 0);
+			Ultimap2Ranges = NULL;
+		}
+		
+		Ultimap2Ranges = ExAllocatePoolWithTag(NonPagedPool, rangeCount*sizeof(URANGE), 0);
+
+		for (i = 0; i < rangeCount; i++)
+			Ultimap2Ranges[i] = Ranges[i];
+
+		Ultimap2RangeCount = rangeCount;
+		
 	}
 
 
@@ -1133,6 +1168,12 @@ void DisableUltimap2(void)
 		PInfo = NULL;
 
 		DbgPrint("Finished terminating ultimap2");
+	}
+
+	if (Ultimap2Ranges)
+	{
+		ExFreePoolWithTag(Ultimap2Ranges, 0);
+		Ultimap2Ranges = NULL;
 	}
 
 	DbgPrint("-------------------->DisableUltimap2:Finish<------------------");
