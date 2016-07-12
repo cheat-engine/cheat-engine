@@ -1481,6 +1481,12 @@ var
   start, stop: uint64;
   stoprange: boolean;
 begin
+  if lbrange.Items.Count>=maxrangecount then
+  begin
+    MessageDlg('Max amount of ranges reached for your CPU. Clear one first', mtError, [mbok],0);
+    exit;
+  end;
+
   if l=nil then
     l:=tstringlist.create;
 
