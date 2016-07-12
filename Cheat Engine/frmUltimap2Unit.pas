@@ -1200,6 +1200,10 @@ begin
       if ((CPUID($14,0).ecx shr 1) and 1)=0 then
         raise exception.create('Sorry, but your CPU''s implementation of the Intel Processor Trace feature is too old. Ultimap uses multiple ToPA entries');
 
+      if (CPUID($14,0).ebx and 1)=0 then
+        raise exception.create('Sorry, but your CPU doesn''t seem to be able to set a target PROCESS');
+
+
       if processid=0 then
         raise exception.create('First open a process');
 
@@ -1295,12 +1299,12 @@ begin
 
       if not libIptInit then raise exception.create('Failure loading libipt');
 
-
+        {
       if rbLogToFolder.Checked then
         ultimap2(processid, size, deTargetFolder.Directory, ranges)
       else
         ultimap2(processid, size, '', ranges);
-
+          }
       FilterGUI(true);
 
       for i:=0 to length(workers)-1 do
