@@ -654,7 +654,16 @@ void ultimap2_setup_dpc(struct _KDPC *Dpc, PVOID DeferredContext, PVOID SystemAr
 	RTIT_CTL ctl;
 	int i;
 
-	ctl.Value = __readmsr(IA32_RTIT_CTL);
+	__try
+	{	
+		ctl.Value = __readmsr(IA32_RTIT_CTL);
+		
+	}
+	__except (1)
+	{
+		DbgPrint("ultimap2_setup_dpc: IA32_RTIT_CTL in unreadable");
+		return;
+	}
 	
 	ctl.Bits.TraceEn = 1;
 	ctl.Bits.OS = 0;
@@ -698,7 +707,7 @@ void ultimap2_setup_dpc(struct _KDPC *Dpc, PVOID DeferredContext, PVOID SystemAr
 		DbgPrint("Error in ultimap2_setup_dpc.  i=%d",i);
 		DbgPrint("ctl.Value=%p\n", ctl.Value);
 		DbgPrint("CR3=%p\n", CurrentCR3);
-		DbgPrint("OutputBase=%p", __readmsr(IA32_RTIT_OUTPUT_BASE));
+		//DbgPrint("OutputBase=%p", __readmsr(IA32_RTIT_OUTPUT_BASE));
 	}
 	
 }
