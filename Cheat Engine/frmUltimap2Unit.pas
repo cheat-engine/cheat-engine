@@ -599,6 +599,16 @@ begin
               begin
                 if insn.iclass=ptic_error then break;
 
+                {if (insn.flag0 shr 6) and 1=1 then // (interesting, interrupt)
+                begin
+                  beep;
+                end;   }
+                                      {
+                if (insn.flag0 shr 7) and 1=1 then // (data loss, so far hasn't happened for me)
+                begin
+                  beep;
+                end;       }
+
                 handleIP(insn.ip, insn.iclass);
 
                 inc(i);
