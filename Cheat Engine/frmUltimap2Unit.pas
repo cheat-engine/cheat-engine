@@ -1165,7 +1165,7 @@ procedure TfrmUltimap2.tbRecordPauseChange(Sender: TObject);
 var
   size: dword;
   s: string;
-  ranges: TPRangeDynArray;
+  ranges: TURangeArray;
   r: TCPUIDResult;
   i: integer;
 

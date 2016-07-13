@@ -8121,7 +8121,7 @@ end;
 
 
 procedure TMainForm.Label59Click(Sender: TObject);
-var ranges: TPRangeDynArray;
+var ranges: TURangeArray;
 begin
   setlength(ranges,0);
   ultimap2(processid, 16*1024*1024, 'd:\bla',ranges);

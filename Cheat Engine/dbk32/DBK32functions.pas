@@ -198,6 +198,15 @@ type       //The DataEvent structure contains the address and blockid. Use this 
   PUltimap2DataEvent= ^TUltimap2DataEvent;
 
 type
+  TURange=record
+    startAddress: QWORD;
+    endaddress: QWORD;
+    isStopRange: QWORD;
+  end;
+  PURange=^TPRange;
+  TURangeArray=array of TURange;
+  PURangeArray=^TURangeArray;
+
   TPRange=record
     startAddress: QWORD;
     endaddress: QWORD;
@@ -313,7 +322,7 @@ function ultimap_continue(previousdataresult: PUltimapDataEvent): boolean;
 procedure ultimap_flush;
 
 
-procedure ultimap2(processid: dword; size: dword; outputfolder: widestring; ranges: TPRangeDynArray);
+procedure ultimap2(processid: dword; size: dword; outputfolder: widestring; ranges: TURangeArray);
 procedure ultimap2_disable;
 function  ultimap2_waitForData(timeout: dword; var output: TUltimap2DataEvent): boolean;
 procedure ultimap2_continue(cpunr: integer);
@@ -441,14 +450,14 @@ begin
 end;
 
 
-procedure ultimap2(processid: dword; size: dword; outputfolder: widestring; ranges: TPRangeDynArray);
+procedure ultimap2(processid: dword; size: dword; outputfolder: widestring; ranges: TURangeArray);
 var
   inp:record
     PID: UINT32;
     BufferSize: UINT32;
     rangecount: UINT32;
     reserved:   UINT32;
-    range: array[0..7] of TPRange;
+    range: array[0..7] of TURange;
     filename: array [0..199] of WideChar;
   end;
   cc,br: dword;
@@ -458,7 +467,6 @@ begin
   zeromemory(@inp, sizeof(inp));
   inp.PID:=processid;
   inp.BufferSize:=size;
-
 
 
   if outputfolder<>'' then
@@ -478,14 +486,15 @@ begin
   end;
 
   for i:=1 to length(outputfolder) do
-  begin
     inp.filename[i-1]:=outputfolder[i];
-  end;
 
   inp.filename[length(outputfolder)]:=#0;
 
-  for i:=0 to min(7,length(ranges)-1) do
+  inp.rangecount:=min(8,length(ranges));
+
+  for i:=0 to inp.rangecount-1 do
     inp.range[i]:=ranges[i];
+
 
   cc:=IOCTL_CE_ULTIMAP2;
   deviceiocontrol(hdevice,cc,@inp,sizeof(inp),nil,0,br,nil);
