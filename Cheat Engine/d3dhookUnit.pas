@@ -1077,6 +1077,33 @@ begin
   end;
 end;
 
+type
+  TColor32 = packed record
+    B, G, R, A: Byte;
+  end;
+  PColor32=^TColor32;
+  TColor32Array = array[0..0] of TColor32;
+  PColor32Array = ^TColor32Array;
+
+procedure FixAlphaAndMakeTransparant(aPNG: TPortableNetworkGraphic; ColorKey: TColor32);
+var
+  x, y: Integer;
+  Line: PColor32Array;
+begin
+  for y := 0 to aPNG.Height - 1 do
+  begin
+    Line := aPNG.ScanLine[y];
+    for x := 0 to aPNG.Width - 1 do
+    begin
+      if (Line^[x].R=ColorKey.R) and (Line^[x].G=ColorKey.G)  and (Line^[x].B=ColorKey.B) then
+        Line^[x].A := 0 //100% see through
+      else
+        Line^[x].A := 255;
+    end;
+  end;
+end;
+
+
 procedure TD3DHook_FontMap.ChangeFont(font: TFont);
 var s: string;
     i: integer;
@@ -1089,6 +1116,9 @@ var s: string;
 
     newblock: pointer;
     x: ptruint;
+
+    c: longint;
+    tc: TColor32 absolute c;
 begin
   p:=TPicture.Create;
   p.PNG.PixelFormat:=pf32bit;
@@ -1136,6 +1166,11 @@ begin
     localfontmapcopy.WriteBuffer(charwidth,2);
     charpos:=charpos+charwidth;
   end;
+
+  //laz 1.6 makes 32bit png's 100% transparant
+  //so manually make it visible
+  c:=ColorToRGB(p.png.TransparentColor);
+  FixAlphaAndMakeTransparant(p.PNG, tc);
 
   newblock:=pointer(owner.memman.alloc(localfontmapcopy.size));
 
