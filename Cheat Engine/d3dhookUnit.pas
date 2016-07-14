@@ -455,18 +455,12 @@ type
   end;
 
 
-type
-  TColor32 = packed record
-    B, G, R, A: Byte;
-  end;
-  PColor32=^TColor32;
-  TColor32Array = array[0..0] of TColor32;
-  PColor32Array = ^TColor32Array;
+
 
 var D3DHook: TD3DHook;
 
 function safed3dhook(size: integer=16*1024*1024; hookwindow: boolean=true): TD3DHook;
-procedure FixAlphaAndMakeTransparant(aPNG: TPortableNetworkGraphic; ColorKey: TColor32);
+procedure FixAlpha(aPNG: TPortableNetworkGraphic);
 
 implementation
 
@@ -1089,11 +1083,23 @@ end;
 
 
 
-procedure FixAlphaAndMakeTransparant(aPNG: TPortableNetworkGraphic; ColorKey: TColor32);
+procedure FixAlpha(aPNG: TPortableNetworkGraphic);
+type
+  TColor32 = packed record
+    B, G, R, A: Byte;
+  end;
+  PColor32=^TColor32;
+  TColor32Array = array[0..0] of TColor32;
+  PColor32Array = ^TColor32Array;
 var
   x, y: Integer;
   Line: PColor32Array;
+
+  c: longint;
+  ColorKey: TColor32 absolute c;
 begin
+  c:=aPng.TransparentColor;
+
   for y := 0 to aPNG.Height - 1 do
   begin
     Line := aPNG.ScanLine[y];
@@ -1120,9 +1126,6 @@ var s: string;
 
     newblock: pointer;
     x: ptruint;
-
-    c: longint;
-    tc: TColor32 absolute c;
 begin
   p:=TPicture.Create;
   p.PNG.PixelFormat:=pf32bit;
@@ -1173,8 +1176,7 @@ begin
 
   //laz 1.6 makes 32bit png's 100% transparant
   //so manually make it visible
-  c:=ColorToRGB(p.png.TransparentColor);
-  FixAlphaAndMakeTransparant(p.PNG, tc);
+  FixAlpha(p.PNG);
 
   newblock:=pointer(owner.memman.alloc(localfontmapcopy.size));
 
