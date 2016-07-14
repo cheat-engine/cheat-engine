@@ -23,9 +23,11 @@ type
         pte_bad_status_update,pte_no_enable,
         pte_event_ignored);
 
+  {$PACKENUM  4}
   pt_insn_class = (ptic_error,ptic_other,ptic_call,ptic_return,
           ptic_jump,ptic_cond_jump,ptic_far_call,
           ptic_far_return,ptic_far_jump);
+  {$PACKENUM DEFAULT}
 
   pt_exec_mode = (ptem_unknown,ptem_16bit,ptem_32bit,ptem_64bit);
 

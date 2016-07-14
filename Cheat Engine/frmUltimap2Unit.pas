@@ -10,7 +10,8 @@ uses
   windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
   ExtCtrls, StdCtrls, ComCtrls, EditBtn, Menus, libipt, ProcessHandlerUnit,
   DBK32functions, commonTypeDefs, MemFuncs, AvgLvlTree, Math, FileMapping,
-  syncobjs, CEFuncProc, registry, NewKernelHandler;
+  syncobjs, CEFuncProc, registry, NewKernelHandler, LazFileUtils, disassembler,
+  strutils;
 
 
 const
@@ -53,6 +54,8 @@ type
     filecount: integer; //number of tracefiles saved
 
     filemap: TFileMapping;
+
+    disassembler: Tdisassembler;
     function addIPPageToRegionTree(IP: QWORD): PRegionInfo;
     function addIPBlockToRegionTree(IP: QWORD): PRegionInfo;
     procedure HandleIP(ip: QWORD; c: pt_insn_class);
@@ -60,6 +63,8 @@ type
 
     function waitForData(timeout: dword; var e: TUltimap2DataEvent): boolean;
     procedure continueFromData(e: TUltimap2DataEvent);
+
+    procedure parseToStringlist(insn: pt_insn; output: Tstrings);
   public
     id: integer;
     KeepTraceFiles: boolean;
@@ -71,6 +76,10 @@ type
 
     processed: qword;
     totalsize: qword;
+
+    parseAsText: boolean;
+    textFolder: string;
+
 
     procedure execute; override;
 
@@ -139,12 +148,15 @@ type
     btnRecordPause: TButton;
     btnResetCount: TButton;
     btnCancelFilter: TButton;
+    Button1: TButton;
     Button5: TButton;
     btnReset: TButton;
     cbFilterFuturePaths: TCheckBox;
     cbfilterOutNewEntries: TCheckBox;
     cbDontDeleteTraceFiles: TCheckBox;
+    cbParseToTextfile: TCheckBox;
     deTargetFolder: TDirectoryEdit;
+    deTextOut: TDirectoryEdit;
     edtBufSize: TEdit;
     edtCallCount: TEdit;
     gbRange: TGroupBox;
@@ -180,12 +192,14 @@ type
     procedure Button2Click(Sender: TObject);
     procedure Button5Click(Sender: TObject);
     procedure cbfilterOutNewEntriesChange(Sender: TObject);
+    procedure cbParseToTextfileChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure ListView1Data(Sender: TObject; Item: TListItem);
     procedure ListView1DblClick(Sender: TObject);
+    procedure miCloseClick(Sender: TObject);
     procedure miRangeDeleteSelectedClick(Sender: TObject);
     procedure miRangeDeleteAllClick(Sender: TObject);
     procedure Panel5Click(Sender: TObject);
@@ -515,6 +529,7 @@ begin
 
         e.Address:=ptruint(filemap.fileContent);
         e.Size:=filemap.filesize;
+        e.Cpunr:=id;
         result:=true;
       end;
     end
@@ -552,6 +567,101 @@ begin
     ultimap2_continue(e.Cpunr);
 end;
 
+procedure TUltimap2Worker.parseToStringlist(insn: pt_insn; output: Tstrings);
+var
+  s: string;
+  desc: string;
+  ip: ptruint;
+  i: integer;
+begin
+  if insn.iclass=ptic_error then
+  begin
+    output.add('');
+    output.Add('<???>');
+    output.add('');
+  end;
+  ip:=insn.ip;
+
+  disassembler.is64bitOverride:=true;
+  disassembler.is64BitOverrideState:=insn.mode = ptem_64bit;
+  disassembler.disassemble(ip, desc);
+
+  s:=inttohex(insn.ip,8);
+  while length(s)<11 do
+    s:=s+' ';
+
+  s:=s+' - ';
+
+
+  for i:=0 to insn.size-1 do
+    s:=s+inttohex(insn.raw[i],2)+' ';
+
+  while length(s)<35 do
+    s:=s+' ';
+
+  s:=s+' - ';
+
+  s:=s+disassembler.LastDisassembleData.opcode+' '+disassembler.LastDisassembleData.parameters;
+
+  if (insn.flag0 and 1)=1 then
+    s:='*';
+
+  if (insn.flag0 and (1 shl 4))=(1 shl 4) then
+  begin
+    output.add('');
+    output.add('-------Start of new block-------');
+  end;
+
+  if (insn.flag0 and (1 shl 5))=(1 shl 5) then
+  begin
+    output.add('');
+    output.add('-------Resume of current block-------');
+  end;
+
+  output.Add(s);
+
+  if (insn.flag0 and (1 shl 1))=(1 shl 1) then
+  begin
+    output.add('-------Aborted-------');
+    output.add('');
+  end;
+
+  if (insn.flag0 and (1 shl 2))=(1 shl 2) then
+  begin
+    output.add('-------Commited-------');
+    output.add('');
+  end;
+
+  if (insn.flag0 and (1 shl 3))=(1 shl 3) then
+  begin
+    output.add('');
+    output.add('-------End of block-------');
+  end;
+
+
+
+
+
+  if (insn.flag0 and (1 shl 6))=(1 shl 6) then
+  begin
+    output.add('-------Interrupted-------');
+    output.add('');
+  end;
+
+  if (insn.flag0 and (1 shl 7))=(1 shl 7) then
+  begin
+    output.add('-------Resynced-------');
+    output.add('');
+  end;
+
+  if (insn.flag0 and (1 shl 8))=(1 shl 8) then
+  begin
+    output.add('');
+    output.add('-------Stopped-------');
+    output.add('');
+  end;
+end;
+
 procedure TUltimap2Worker.execute;
 var
   e: TUltimap2DataEvent;
@@ -562,6 +672,8 @@ var
   insn: pt_insn;
   i: integer;
 
+  tf: TFileStream;
+  ts: TStringList;
 begin
   callbackImage:=pt_image_alloc('xxx');
   pt_image_set_callback(callbackImage,@iptReadMemory,self);
@@ -569,6 +681,21 @@ begin
   pt_config_init(@iptConfig);
   pt_cpu_read(@iptConfig.cpu);
   pt_cpu_errata(@iptConfig.errata, @iptConfig.cpu);
+
+  tf:=nil;
+
+  if parseAsText then
+  begin
+    ts:=TStringList.Create;
+    disassembler:=TDisassembler.Create;
+    disassembler.showmodules:=true;
+    disassembler.showsymbols:=true;
+    disassembler.dataOnly:=true;
+  end
+  else
+    ts:=nil;
+
+
 
   while not terminated do
   begin
@@ -587,26 +714,31 @@ begin
           try
             pt_insn_set_image(decoder, callbackImage);
 
+            if parseAsText then //create the textfile
+            begin
+              try
+                if FileExists(textFolder+'cpu'+inttostr(e.Cpunr)+'trace.txt') then
+                  tf:=TFileStream.Create(textFolder+'cpu'+inttostr(e.Cpunr)+'trace.txt', fmOpenReadWrite or fmShareDenyNone)
+                else
+                  tf:=TFileStream.Create(textFolder+'cpu'+inttostr(e.Cpunr)+'trace.txt', fmCreate or fmShareDenyNone)
+              except
+                OutputDebugString('failed creating or opening '+textFolder+'cpu'+inttostr(e.Cpunr)+'trace.txt');
+                tf:=nil
+              end
+            end;
+
             //scan through this decoder
 
             i:=0;
             while (pt_insn_sync_forward(decoder)>=0) and (not terminated) do
             begin
-              //percentagetotal
-
               while (pt_insn_next(decoder, @insn, sizeof(insn))>=0) and (not terminated) do
               begin
+                if parseAsText then
+                  parseToStringlist(insn, ts);
+
                 if insn.iclass=ptic_error then break;
 
-                {if (insn.flag0 shr 6) and 1=1 then // (interesting, interrupt)
-                begin
-                  beep;
-                end;   }
-                                      {
-                if (insn.flag0 shr 7) and 1=1 then // (data loss, so far hasn't happened for me)
-                begin
-                  beep;
-                end;       }
 
                 handleIP(insn.ip, insn.iclass);
 
@@ -616,11 +748,35 @@ begin
                   pt_insn_get_offset(decoder, @processed);
 
                   i:=0;
+
+
+                  if parseAsText and (tf<>nil) then //flush to the file
+                  begin
+                    ts.SaveToStream(tf);
+                    ts.clear;
+                  end;
                 end;
+
+
               end;
+
+              ts.add('');
+              ts.add('-----New block-----');
+              ts.add('');
             end;
           finally
             pt_insn_free_decoder(decoder);
+
+            if parseAsText and (tf<>nil) then
+            begin
+              if ts.Count>0 then //flush
+              begin
+                ts.SaveToStream(tf);
+                ts.clear;
+              end;
+
+              freeandnil(tf); //close
+            end;
           end;
         end;
 
@@ -633,6 +789,12 @@ begin
   end;
 
   pt_image_free(callbackImage);
+
+  if ts<>nil then
+    freeandnil(ts);
+
+  if disassembler<>nil then
+    freeandnil(disassembler);
 end;
 
 destructor TUltimap2Worker.destroy;
@@ -846,6 +1008,7 @@ var
   count: integer;
 begin
   freeOnTerminate:=true;
+
 
   count:=cpucount;
   queueCS:=TCriticalSection.Create;
@@ -1180,6 +1343,8 @@ var
 begin
   if state=rsProcessing then exit;
 
+
+
     if ((ultimap2Initialized=0) or (processid<>ultimap2Initialized)) then
     begin
       //first time init
@@ -1238,6 +1403,15 @@ begin
           raise exception.create('For some weird reason "'+lbRange.Items[i]+'" can''t be parsed');
       end;
 
+      if rbLogToFolder.Checked then
+      begin
+        if not DirectoryExistsUTF8(deTargetFolder.Directory) then
+        begin
+          if ForceDirectoriesUTF8(deTargetFolder.Directory)=false then
+            raise exception.create(deTargetFolder.Directory+' does not exist and can not be created');
+        end;
+      end;
+
       //still here so everything seems alright.
       //turn off the config GUI
       disableConfigGUI;
@@ -1248,7 +1422,7 @@ begin
       regiontreeMREW:=TMultiReadExclusiveWriteSynchronizer.Create;
 
       //launch worker threads
-      setlength(workers, 1); //CPUCount);
+      setlength(workers, CPUCount);
       for i:=0 to length(workers)-1 do
       begin
         workers[i]:=TUltimap2Worker.Create(true);
@@ -1261,8 +1435,14 @@ begin
             workers[i].Filename:=workers[i].Filename+PathDelim;
 
           workers[i].Filename:=workers[i].Filename+'CPU'+inttostr(i)+'.trace';
-          workers[i].KeepTraceFiles:=cbDontDeleteTraceFiles.checked;
         end;
+        workers[i].KeepTraceFiles:=cbDontDeleteTraceFiles.checked;
+
+        workers[i].parseAsText:=cbParseToTextfile.Checked;
+        workers[i].textFolder:=Utf8ToAnsi(deTextOut.Directory);
+        if (workers[i].textFolder<>'') and (workers[i].textFolder[length(workers[i].textFolder)]<>PathDelim) then
+          workers[i].textFolder:=workers[i].textFolder+PathDelim;
+
         workers[i].ownerForm:=self;
       end;
 
@@ -1273,8 +1453,12 @@ begin
         for i:=0 to length(ranges)-1 do
         begin
           getmem(p, sizeof(TRegionInfo));
-          p^.address:=ranges[i].startAddress;
-          p^.size:=ranges[i].endaddress-ranges[i].startAddress;
+          p^.address:=ranges[i].startAddress and not qword($fff); //align on a page boundary
+          p^.size:=ranges[i].endaddress-p^.address;
+
+          if (p^.size mod 4096)>0 then    //align on a pagesize
+            inc(p^.size, 4096-p^.size);
+
           getmem(p^.memory, p^.size);
           getmem(p^.info, size*sizeof(TByteInfo));
           ReadProcessMemory(processhandle, pointer(p^.address), p^.memory, p^.size, br);
@@ -1316,6 +1500,7 @@ begin
 
 
       if not libIptInit then raise exception.create('Failure loading libipt');
+      DBK32Initialize;
 
       if rbLogToFolder.Checked then
         ultimap2(processid, size, deTargetFolder.Directory, ranges)
@@ -1372,6 +1557,9 @@ begin
       Reg.WriteString('Ultimap2 Folder', deTargetFolder.Directory);
       Reg.WriteBool('Ultimap2 Keep Trace Files', cbDontDeleteTraceFiles.checked);
       Reg.WriteBool('Ultimap2 Use Disk', rbLogToFolder.Checked);
+
+      Reg.WriteBool('Ultimap2 Parse Trace As Text', cbParseToTextfile.checked);
+      Reg.WriteString('Ultimap2 TextTrace Folder', deTextOut.Directory);
     end;
 
   finally
@@ -1465,6 +1653,12 @@ begin
         else
           rbRuntimeParsing.checked:=true;
       end;
+
+      if Reg.ValueExists('Ultimap2 Parse Trace As Text') then
+        cbParseToTextfile.checked:=reg.ReadBool('Ultimap2 Parse Trace As Text');
+
+      if Reg.ValueExists('Ultimap2 TextTrace Folder') then
+        deTextOut.Directory:=reg.ReadString('Ultimap2 TextTrace Folder');
 
 
     end;
@@ -1629,8 +1823,21 @@ begin
 end;
 
 procedure TfrmUltimap2.Button1Click(Sender: TObject);
+var x: pt_insn;
+  s: tstringlist;
+
 begin
 
+  s:=tstringlist.create;
+  s.add('pt_insn='+inttostr(sizeof(pt_insn)));
+  s.add('size at '+inttostr(ptruint(@x.size-ptruint(@x))));
+  s.add('ip at '+inttostr(ptruint(@x.ip-ptruint(@x))));
+  s.add('iclass at '+inttostr(ptruint(@x.iclass-ptruint(@x))));
+  s.add('mode at '+inttostr(ptruint(@x.mode-ptruint(@x))));
+  s.add('raw0 at '+inttostr(ptruint(@x.raw[0]-ptruint(@x))));
+  s.add('raw14 at '+inttostr(ptruint(@x.raw[14]-ptruint(@x))));
+
+  showmessage(s.text);
 end;
 
 procedure TfrmUltimap2.Button2Click(Sender: TObject);
@@ -1647,6 +1854,11 @@ begin
     MemoryBrowser.disassemblerview.SelectedAddress:=entry^.address;
     MemoryBrowser.show;
   end;
+end;
+
+procedure TfrmUltimap2.miCloseClick(Sender: TObject);
+begin
+  close;
 end;
 
 function TfrmUltimap2.ValidListCompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
@@ -1730,6 +1942,11 @@ begin
   allNewAreInvalid:=cbfilterOutNewEntries.checked;
 end;
 
+procedure TfrmUltimap2.cbParseToTextfileChange(Sender: TObject);
+begin
+  deTextOut.visible:=cbParseToTextfile.Checked;
+end;
+
 procedure TfrmUltimap2.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
   CloseAction:=caFree;
@@ -1760,8 +1977,8 @@ procedure TfrmUltimap2.rbLogToFolderChange(Sender: TObject);
 begin
   if rbLogToFolder.enabled then
   begin
-    deTargetFolder.enabled:=rbLogToFolder.checked;
-    cbDontDeleteTraceFiles.enabled:=rbLogToFolder.checked;
+    deTargetFolder.visible:=rbLogToFolder.checked;
+    cbDontDeleteTraceFiles.visible:=rbLogToFolder.checked;
   end;
 end;
 
