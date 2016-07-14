@@ -1098,7 +1098,7 @@ var
   c: longint;
   ColorKey: TColor32 absolute c;
 begin
-  c:=aPng.TransparentColor;
+  c:=ColorToRGB(aPng.TransparentColor);
 
   for y := 0 to aPNG.Height - 1 do
   begin
