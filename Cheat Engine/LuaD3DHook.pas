@@ -74,6 +74,8 @@ var
   s: string;
 
   p: TPicture;
+  oc: TColor;
+  c: TColor32 absolute oc;
 begin
   d:=luaclass_getClassObject(L);
   result:=0;
@@ -96,8 +98,10 @@ begin
           p.png.width:=tpicture(o).Width;
           p.png.Height:=tpicture(o).height;
 
-
+          oc:=ColorToRGB(p.png.TransparentColor);
           p.png.canvas.CopyRect(rect(0,0,tpicture(o).Width,tpicture(o).Height), tpicture(o).bitmap.canvas, rect(0,0,tpicture(o).Width,tpicture(o).Height));
+
+          FixAlphaAndMakeTransparant(p.png, c);
           luaclass_newClass(L, d.createTexture(p));
           p.free;
         end

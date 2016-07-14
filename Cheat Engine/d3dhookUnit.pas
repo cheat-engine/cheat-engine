@@ -454,9 +454,19 @@ type
     property OnClick: TD3DClickEvent read fonclick write fonclick;
   end;
 
+
+type
+  TColor32 = packed record
+    B, G, R, A: Byte;
+  end;
+  PColor32=^TColor32;
+  TColor32Array = array[0..0] of TColor32;
+  PColor32Array = ^TColor32Array;
+
 var D3DHook: TD3DHook;
 
 function safed3dhook(size: integer=16*1024*1024; hookwindow: boolean=true): TD3DHook;
+procedure FixAlphaAndMakeTransparant(aPNG: TPortableNetworkGraphic; ColorKey: TColor32);
 
 implementation
 
@@ -1077,13 +1087,7 @@ begin
   end;
 end;
 
-type
-  TColor32 = packed record
-    B, G, R, A: Byte;
-  end;
-  PColor32=^TColor32;
-  TColor32Array = array[0..0] of TColor32;
-  PColor32Array = ^TColor32Array;
+
 
 procedure FixAlphaAndMakeTransparant(aPNG: TPortableNetworkGraphic; ColorKey: TColor32);
 var
@@ -1198,7 +1202,7 @@ begin
     end;
   end;
 
-  p.SaveToFile('c:\bla.png');
+ // p.SaveToFile('c:\bla.png');
 end;
 
 destructor TD3DHook_FontMap.destroy;
