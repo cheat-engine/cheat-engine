@@ -30,6 +30,7 @@ object frmMultilineInputQuery: TfrmMultilineInputQuery
     OnKeyDown = Memo1KeyDown
     ScrollBars = ssVertical
     TabOrder = 0
+    WordWrap = False
   end
   object Panel1: TPanel
     Left = 0
