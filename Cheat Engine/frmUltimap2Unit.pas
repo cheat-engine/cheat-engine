@@ -139,8 +139,6 @@ type
     btnRecordPause: TButton;
     btnResetCount: TButton;
     btnCancelFilter: TButton;
-    Button1: TButton;
-    Button2: TButton;
     Button5: TButton;
     btnReset: TButton;
     cbFilterFuturePaths: TCheckBox;
@@ -668,9 +666,7 @@ begin
     if (w[i]>0) and ((w[i] and 1)=0) then //has info and not yet invalidated
     begin
       if (bi[i].flags and bifExecuted)<>0 then //filter it out
-        w[i]:=1 //invalidate
-      else //mark as not executed for next filter op
-        bi[i].flags:=bi[i].flags xor bifExecuted;
+        w[i]:=1; //invalidate
     end;
   end;
 end;
@@ -688,7 +684,9 @@ begin
     if (w[i]>0) and ((w[i] and 1)=0) then //has info and not yet invalidated
     begin
       if (bi[i].flags and bifExecuted)=0 then //filter it out
-        w[i]:=1; //invalidate
+        w[i]:=1 //invalidate
+      else //mark as not executed for next filter op
+        bi[i].flags:=bi[i].flags xor bifExecuted;
 
     end;
   end;
@@ -1250,7 +1248,7 @@ begin
       regiontreeMREW:=TMultiReadExclusiveWriteSynchronizer.Create;
 
       //launch worker threads
-      setlength(workers, 1);//CPUCount);
+      setlength(workers, 1); //CPUCount);
       for i:=0 to length(workers)-1 do
       begin
         workers[i]:=TUltimap2Worker.Create(true);
@@ -1373,6 +1371,7 @@ begin
     begin
       Reg.WriteString('Ultimap2 Folder', deTargetFolder.Directory);
       Reg.WriteBool('Ultimap2 Keep Trace Files', cbDontDeleteTraceFiles.checked);
+      Reg.WriteBool('Ultimap2 Use Disk', rbLogToFolder.Checked);
     end;
 
   finally
@@ -1396,6 +1395,12 @@ begin
     else
       item.SubItems.Add(inttostr(data^.byteInfo^.count));
 
+    if (data^.byteInfo^.flags and bifExecuted)<>0 then
+      item.SubItems.Add('X');
+
+    if (data^.byteInfo^.flags and bifIsCall)<>0 then
+      item.SubItems.Add('X');
+
     if (data^.byteInfo^.flags and bifInvalidated)<>0 then
       item.SubItems.Add('X');
   end;
@@ -1411,6 +1416,7 @@ var
   r: TCPUIDResult;
   cpuid14_0: TCPUIDResult;
   cpuid14_1: TCPUIDResult;
+  d: boolean;
 begin
   maxrangecount:=0;
 
@@ -1429,12 +1435,12 @@ begin
 
   gbRange.caption:=format('Ranges: (Empty for all) (Max %d)',[maxrangecount]);
 
- { if maxrangecount=0 then
+  if maxrangecount=0 then
   begin
     lbrange.Enabled:=false;
     btnAddRange.enabled:=false;
     gbRange.enabled:=false;;
-  end;   }
+  end;
 
 
   state:=rsStopped;
@@ -1447,10 +1453,20 @@ begin
     if Reg.OpenKey('\Software\Cheat Engine',false) then
     begin
       if Reg.ValueExists('Ultimap2 Folder') then
-      begin
         deTargetFolder.Directory:=Reg.ReadString('Ultimap2 Folder');
+
+      if Reg.ValueExists('Ultimap2 Keep Trace Files') then
         cbDontDeleteTraceFiles.Checked:=Reg.ReadBool('Ultimap2 Keep Trace Files');
+
+      if Reg.ValueExists('Ultimap2 Use Disk') then
+      begin
+        if Reg.ReadBool('Ultimap2 Use Disk') then
+          rbLogToFolder.checked:=true
+        else
+          rbRuntimeParsing.checked:=true;
       end;
+
+
     end;
   finally
     freeandnil(reg);
@@ -1609,16 +1625,17 @@ end;
 procedure TfrmUltimap2.btnResetClick(Sender: TObject);
 begin
   flushResults(foResetAll);
+  cbfilterOutNewEntries.Checked:=false;
 end;
 
 procedure TfrmUltimap2.Button1Click(Sender: TObject);
 begin
-  FilterGUI(true);
+
 end;
 
 procedure TfrmUltimap2.Button2Click(Sender: TObject);
 begin
-  filtergui(false);
+
 end;
 
 procedure TfrmUltimap2.ListView1DblClick(Sender: TObject);

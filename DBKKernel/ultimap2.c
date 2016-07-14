@@ -120,25 +120,38 @@ void suspendThread(PVOID StartContext)
 
 NTSTATUS ultimap2_continue(int cpunr)
 {
+	NTSTATUS r = STATUS_UNSUCCESSFUL;
+	if ((cpunr < 0) || (cpunr >= Ultimap2CpuCount))
+	{
+		DbgPrint("ultimap2_continue(%d)", cpunr);
+		return STATUS_UNSUCCESSFUL;
+	}
+
 	if (PInfo)
 	{
 		PProcessorInfo pi = PInfo[cpunr];
-		PVOID Address = (PVOID)pi->MappedAddress;
-		PMDL Mdl = pi->ToPABuffer2MDL;
 
-		pi->MappedAddress = 0;
-		pi->ToPABuffer2MDL = NULL;
+		if (pi->MappedAddress)
+		{
+			MmUnmapLockedPages((PVOID)pi->MappedAddress, pi->ToPABuffer2MDL); //unmap this memory
+			pi->MappedAddress = 0;
+			r = STATUS_SUCCESS;
+		}
+		else
+			DbgPrint("MappedAddress was 0");
+
 		KeSetEvent(&pi->DataProcessed, 0, FALSE); //let the next swap happen if needed
 
-		if ((Address) && (Mdl))
-			MmUnmapLockedPages(Address, Mdl); //unmap this memory
-
+		
 	}
-	return STATUS_SUCCESS;
+	
+	return r;
+	
 }
 
 NTSTATUS ultimap2_waitForData(ULONG timeout, PULTIMAP2DATAEVENT data)
 {
+	NTSTATUS r=STATUS_UNSUCCESSFUL;
 
 
 
@@ -149,7 +162,7 @@ NTSTATUS ultimap2_waitForData(ULONG timeout, PULTIMAP2DATAEVENT data)
 
 	if (UltimapActive)
 	{
-		NTSTATUS r;
+		NTSTATUS wr = STATUS_UNSUCCESSFUL;
 		LARGE_INTEGER wait;
 		PKWAIT_BLOCK waitblock;
 
@@ -159,28 +172,54 @@ NTSTATUS ultimap2_waitForData(ULONG timeout, PULTIMAP2DATAEVENT data)
 		wait.QuadPart = -10000LL * timeout;
 
 		if (timeout == 0xffffffff) //infinite wait
-			r = KeWaitForMultipleObjects(Ultimap2CpuCount, Ultimap2_DataReady, WaitAny, UserRequest, UserMode, TRUE, NULL, waitblock);
+			wr = KeWaitForMultipleObjects(Ultimap2CpuCount, Ultimap2_DataReady, WaitAny, UserRequest, UserMode, TRUE, NULL, waitblock);
 		else
-			r = KeWaitForMultipleObjects(Ultimap2CpuCount, Ultimap2_DataReady, WaitAny, UserRequest, UserMode, TRUE, &wait, waitblock);
+			wr = KeWaitForMultipleObjects(Ultimap2CpuCount, Ultimap2_DataReady, WaitAny, UserRequest, UserMode, TRUE, &wait, waitblock);
 
 		ExFreePool(waitblock);
 
-		cpunr = r - STATUS_WAIT_0;
+		DbgPrint("ultimap2_waitForData wait returned %x", wr);
 
-		if (cpunr < Ultimap2CpuCount)
+		cpunr = wr - STATUS_WAIT_0;
+
+
+		if ((cpunr < Ultimap2CpuCount) && (cpunr>=0))
 		{
 			PProcessorInfo pi = PInfo[cpunr];
-			data->Address = (UINT64)MmMapLockedPagesSpecifyCache(pi->ToPABuffer2MDL, UserMode, MmCached, NULL, FALSE, NormalPagePriority);
-			if (data->Address)
+
+
+			if (pi->Buffer2FlushSize)
 			{
-				data->Size = pi->Buffer2FlushSize;
-				data->CpuID = cpunr;
-				r = STATUS_SUCCESS;
+				__try
+				{
+					data->Address = (UINT64)MmMapLockedPagesSpecifyCache(pi->ToPABuffer2MDL, UserMode, MmCached, NULL, FALSE, NormalPagePriority);
+
+					DbgPrint("MmMapLockedPagesSpecifyCache returned address %p\n", data->Address);
+
+					if (data->Address)
+					{
+						data->Size = pi->Buffer2FlushSize;
+						data->CpuID = cpunr;
+
+						pi->MappedAddress = data->Address;
+						r = STATUS_SUCCESS;
+					}
+				}
+				__except (1)
+				{
+					DbgPrint("ultimap2_waitForData: Failure mapping memory into waiter process. Count=%d", (int)MmGetMdlByteCount(pi->ToPABuffer2MDL));
+				}
+			}
+			else
+			{
+				DbgPrint("ultimap2_waitForData flushsize was 0");
 			}
 		}
+
 	}
 
-	return STATUS_UNSUCCESSFUL;
+	DbgPrint("ultimap2_waitForData returned %x\n", r);
+	return r;
 }
 
 void createUltimap2OutputFile(int cpunr)
@@ -656,6 +695,8 @@ void ultimap2_setup_dpc(struct _KDPC *Dpc, PVOID DeferredContext, PVOID SystemAr
 	RTIT_CTL ctl;
 	int i;
 
+
+
 	__try
 	{	
 		ctl.Value = __readmsr(IA32_RTIT_CTL);
@@ -716,6 +757,7 @@ void ultimap2_setup_dpc(struct _KDPC *Dpc, PVOID DeferredContext, PVOID SystemAr
 
 		__writemsr(IA32_RTIT_STATUS, 0);
 		i = 4;
+		//if (KeGetCurrentProcessorNumber() == 0)
 		__writemsr(IA32_RTIT_CTL, ctl.Value);
 		i = 5;
 
@@ -768,7 +810,7 @@ VOID NTAPI ToPADealloc(__in struct _RTL_GENERIC_TABLE *Table, __in __drv_freesMe
 	ExFreePoolWithTag(Buffer, 0);
 }
 
-void* setupToPA(PToPA_ENTRY *Header, PVOID *OutputBuffer, PRTL_GENERIC_TABLE *gt, ULONG BufferSize)
+void* setupToPA(PToPA_ENTRY *Header, PVOID *OutputBuffer, PMDL *BufferMDL, PRTL_GENERIC_TABLE *gt, ULONG BufferSize)
 {
 	ToPA_LOOKUP tl;
 	PToPA_ENTRY r;
@@ -823,6 +865,10 @@ void* setupToPA(PToPA_ENTRY *Header, PVOID *OutputBuffer, PRTL_GENERIC_TABLE *gt
 	Output = (UINT_PTR)*OutputBuffer;
 	Stop = Output+BufferSize;
 	
+	*BufferMDL = IoAllocateMdl(*OutputBuffer, BufferSize, FALSE, FALSE, NULL);
+
+	MmBuildMdlForNonPagedPool(*BufferMDL);
+
 
 	while (Output<Stop)
 	{
@@ -904,7 +950,7 @@ NTSTATUS ultimap2_resume()
 
 
 
-
+void *clear = NULL;
 void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, PURANGE Ranges)
 {
 	//for each cpu setup tracing
@@ -1003,19 +1049,14 @@ void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, P
 		KeInitializeEvent(&PInfo[i]->InitiateSave, SynchronizationEvent, FALSE);
 		KeInitializeEvent(&PInfo[i]->Buffer2ReadyForSwap, NotificationEvent, TRUE);
 
-		setupToPA(&PInfo[i]->ToPAHeader, &PInfo[i]->ToPABuffer, &PInfo[i]->ToPALookupTable,  BufferSize);
-		setupToPA(&PInfo[i]->ToPAHeader2, &PInfo[i]->ToPABuffer2, &PInfo[i]->ToPALookupTable2, BufferSize);
+		setupToPA(&PInfo[i]->ToPAHeader, &PInfo[i]->ToPABuffer, &PInfo[i]->ToPABufferMDL, &PInfo[i]->ToPALookupTable, BufferSize);
+		setupToPA(&PInfo[i]->ToPAHeader2, &PInfo[i]->ToPABuffer2, &PInfo[i]->ToPABuffer2MDL, &PInfo[i]->ToPALookupTable2, BufferSize);
 
 		DbgPrint("cpu %d:", i);
 		DbgPrint("ToPAHeader=%p ToPABuffer=%p Size=%x", PInfo[i]->ToPAHeader, PInfo[i]->ToPABuffer, BufferSize);
 		DbgPrint("ToPAHeader2=%p ToPABuffer2=%p Size=%x", PInfo[i]->ToPAHeader2, PInfo[i]->ToPABuffer2, BufferSize);
 
 
-		PInfo[i]->ToPABufferMDL = IoAllocateMdl(PInfo[i]->ToPABuffer, BufferSize, FALSE, FALSE, NULL);
-		PInfo[i]->ToPABuffer2MDL = IoAllocateMdl(PInfo[i]->ToPABuffer2, BufferSize, FALSE, FALSE, NULL);
-
-		MmBuildMdlForNonPagedPool(PInfo[i]->ToPABuffer);
-		MmBuildMdlForNonPagedPool(PInfo[i]->ToPABuffer2);
 
 
 
@@ -1037,6 +1078,8 @@ void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, P
 		PsCreateSystemThread(&PInfo[i]->WriterThreadHandle, 0, NULL, 0, NULL, WriteThreadForSpecificCPU, (PVOID)i); 
 
 	r=HalSetSystemInformation(HalProfileSourceInterruptHandler, sizeof(PVOID*), &pperfmon_hook2); //hook the perfmon interrupt
+
+
 	DbgPrint("HalSetSystemInformation returned %x\n", r);	
 
 	if (r != STATUS_SUCCESS)
@@ -1053,7 +1096,6 @@ void DisableUltimap2(void)
 {
 	int i;
 	NTSTATUS r;
-	void *clear = NULL;
 
 	DbgPrint("-------------------->DisableUltimap2<------------------");
 
