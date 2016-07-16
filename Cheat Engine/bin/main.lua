@@ -1066,6 +1066,7 @@ methods
   setMin(integer)- sets the min property
   getPosition() - returns the current position
   setPosition(integer) - sets the current position
+  setPosition2(integer) - sets the current position; without slow progress animation on Win7 and later
 
 
 
