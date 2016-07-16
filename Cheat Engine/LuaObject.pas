@@ -31,6 +31,8 @@ var c: TObject;
   proplist: PPropList;
   m: TMethod;
   ma: array of TMethod;
+
+
 begin
   i:=ifthen(lua_type(L, lua_upvalueindex(1))=LUA_TUSERDATA, lua_upvalueindex(1), 1);
   c:=lua_toceuserdata(L, i);
@@ -38,8 +40,18 @@ begin
   metatable:=lua_gettop(L);
 
   try
-    //enumerate the published methods
-    {
+    //check if it has onDestroy, if so, call it
+    //now cleanup the callers
+
+    if (c is TCustomForm) and assigned(TCustomForm(c).OnDestroy) then
+    begin
+      try
+        TCustomForm(c).OnDestroy(c);
+      except
+        //don't care
+      end;
+    end;
+
     count:=GetPropList(c, proplist);
     for i:=0 to count-1 do
     begin
@@ -53,12 +65,8 @@ begin
         end;
       end;
     end;
-     }
-    c.free;
-    {
-    for i:=0 to length(ma)-1 do
-      CleanupLuaCall(ma[i]);  }
 
+    c.free;
   except
   end;
 
