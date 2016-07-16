@@ -41,15 +41,15 @@ begin
     count:=GetPropList(c, proplist);
     for i:=0 to count-1 do
     begin
-      if proplist^[i].PropType.Kind=tkMethod then
+      if proplist[i]^.PropType.Kind=tkMethod then
       begin
-        m:=GetMethodProp(c, proplist^[i]);
+        m:=GetMethodProp(c, proplist[i]);
         if (m.code<>nil) and (m.data<>nil) then
         begin
           CleanupLuaCall(m);
           m.code:=nil;
           m.data:=nil;
-          SetMethodProp(c, proplist^[i], m);
+          SetMethodProp(c, proplist[i], m);
         end;
       end;
     end;
