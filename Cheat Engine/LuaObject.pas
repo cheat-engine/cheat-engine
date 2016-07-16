@@ -27,7 +27,9 @@ resourcestring
 function object_destroy(L: PLua_State): integer; cdecl;
 var c: TObject;
   metatable: integer;
-  i: integer;
+  i,count: integer;
+  proplist: PPropList;
+  m: TMethod;
 begin
   i:=ifthen(lua_type(L, lua_upvalueindex(1))=LUA_TUSERDATA, lua_upvalueindex(1), 1);
   c:=lua_toceuserdata(L, i);
@@ -35,6 +37,25 @@ begin
   metatable:=lua_gettop(L);
 
   try
+    //enumerate the published methods
+    count:=GetPropList(c, proplist);
+    for i:=0 to count-1 do
+    begin
+      if proplist^[i].PropType.Kind=tkMethod then
+      begin
+        m:=GetMethodProp(c, proplist^[i]);
+        if (m.code<>nil) and (m.data<>nil) then
+        begin
+          CleanupLuaCall(m);
+          m.code:=nil;
+          m.data:=nil;
+          SetMethodProp(c, proplist^[i], m);
+        end;
+      end;
+    end;
+
+
+
     c.free;
   except
   end;

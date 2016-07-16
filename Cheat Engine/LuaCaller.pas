@@ -174,6 +174,7 @@ begin
 
   if lua_isnil(L, luafunctiononstack) then //nil, special case, always succeed
   begin
+    CleanupLuaCall(m);
     m.code:=nil;
     m.data:=nil;
     exit;
