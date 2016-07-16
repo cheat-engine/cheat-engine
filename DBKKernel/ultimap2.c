@@ -504,7 +504,7 @@ void bufferWriterThread(PVOID StartContext)
 	
 	while (UltimapActive)
 	{
-		Timeout.QuadPart = -10000000LL; //- 10000LL;=good //-100000000LL = 10 seconds   -1000000LL= 0.1 second
+		Timeout.QuadPart = -10000LL;  //- 10000LL=1 millisecond //-100000000LL = 10 seconds   -1000000LL= 0.1 second
 		wr = KeWaitForSingleObject(&FlushData, Executive, KernelMode, FALSE, &Timeout);
 		//wr = KeWaitForSingleObject(&FlushData, Executive, KernelMode, FALSE, NULL);
 
