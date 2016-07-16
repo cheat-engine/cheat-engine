@@ -30,6 +30,7 @@ var c: TObject;
   i,count: integer;
   proplist: PPropList;
   m: TMethod;
+  ma: array of TMethod;
 begin
   i:=ifthen(lua_type(L, lua_upvalueindex(1))=LUA_TUSERDATA, lua_upvalueindex(1), 1);
   c:=lua_toceuserdata(L, i);
@@ -38,6 +39,7 @@ begin
 
   try
     //enumerate the published methods
+    {
     count:=GetPropList(c, proplist);
     for i:=0 to count-1 do
     begin
@@ -46,17 +48,17 @@ begin
         m:=GetMethodProp(c, proplist[i]);
         if (m.code<>nil) and (m.data<>nil) then
         begin
-          CleanupLuaCall(m);
-          m.code:=nil;
-          m.data:=nil;
-          SetMethodProp(c, proplist[i], m);
+          setlength(ma, length(ma)+1);
+          ma[Length(ma)-1]:=m;
         end;
       end;
     end;
-
-
-
+     }
     c.free;
+    {
+    for i:=0 to length(ma)-1 do
+      CleanupLuaCall(ma[i]);  }
+
   except
   end;
 
