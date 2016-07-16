@@ -116,6 +116,36 @@ begin
     progressbar.Position:=lua_tointeger(L, -1);
 end;
 
+function progressbar_setPosition2(L: PLua_State): integer; cdecl;
+var
+  progressbar: Tcustomprogressbar;
+  newPos: integer;
+begin
+  result:=0;
+  progressbar:=luaclass_getClassObject(L);
+  if lua_gettop(l)>=1 then
+  begin
+    newPos:=lua_tointeger(L, -1);
+    if newPos>progressbar.Position then
+    begin
+      if newPos=progressbar.Max then
+      begin
+        progressbar.Max:=progressbar.Max+1;
+        progressbar.Position:=newPos+1;
+        progressbar.Position:=newPos;
+        progressbar.Max:=progressbar.Max-1;
+      end
+      else
+      begin
+        progressbar.Position:=newPos+1;
+        progressbar.Position:=newPos;
+      end;
+    end
+    else
+      progressbar.Position:=newPos;
+  end;
+end;
+
 procedure progressbar_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
   wincontrol_addMetaData(L, metatable, userdata);
@@ -127,6 +157,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setMin', progressbar_setMin);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getPosition', progressbar_getPosition);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setPosition', progressbar_setPosition);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setPosition2', progressbar_setPosition2); // without slow progress animation on win7 and later
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'Min', progressbar_getMin, progressbar_setMin);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Max', progressbar_getMax, progressbar_setMax);
