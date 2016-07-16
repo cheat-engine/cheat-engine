@@ -58,11 +58,10 @@ begin
       if proplist[i]^.PropType.Kind=tkMethod then
       begin
         m:=GetMethodProp(c, proplist[i]);
-        if (m.code<>nil) and (m.data<>nil) then
-        begin
-          setlength(ma, length(ma)+1);
-          ma[Length(ma)-1]:=m;
-        end;
+        CleanupLuaCall(m);
+        m.Code:=nil;
+        m.data:=nil;
+        SetMethodProp(c, proplist[i], m);
       end;
     end;
 
