@@ -140,6 +140,7 @@ NTSTATUS ultimap2_continue(int cpunr)
 		else
 			DbgPrint("MappedAddress was 0");
 
+		DbgPrint("%d DataProcessed", cpunr);
 		KeSetEvent(&pi->DataProcessed, 0, FALSE); //let the next swap happen if needed
 
 		
@@ -477,11 +478,12 @@ void WaitForWriteToFinishAndSwapWriteBuffers(BOOL interruptedOnly)
 		PProcessorInfo pi = PInfo[i];
 		if ((pi->ToPABuffer2) && ((pi->Interrupted) || (!interruptedOnly)))
 		{
+
 			KeWaitForSingleObject(&pi->Buffer2ReadyForSwap, Executive, KernelMode, FALSE, NULL);
+
 			if (!UltimapActive) return;
 
-			KeInitializeDpc(&pi->OwnDPC, SwitchToPABuffer, NULL);
-			KeSetTargetProcessorDpc(&pi->OwnDPC, i);
+
 
 			KeInsertQueueDpc(&pi->OwnDPC, NULL, NULL);
 		}
@@ -588,6 +590,8 @@ NTSTATUS ultimap2_flushBuffers()
 	if (!UltimapActive)
 		return STATUS_UNSUCCESSFUL;
 
+	DbgPrint("ultimap2_flushBuffers");
+
 	KeWaitForSingleObject(&SuspendMutex, Executive, KernelMode, FALSE, NULL);
 	if (!isSuspended)
 	{
@@ -598,12 +602,14 @@ NTSTATUS ultimap2_flushBuffers()
 
 	flushallbuffers = TRUE;
 	
-
+	DbgPrint("wait1");
 	WaitForWriteToFinishAndSwapWriteBuffers(FALSE); //write the last saved buffer
+
+	DbgPrint("wait2");
 	WaitForWriteToFinishAndSwapWriteBuffers(FALSE); //write the current buffer
 
 	flushallbuffers = FALSE;
-
+	DbgPrint("after wait");
 	KeWaitForSingleObject(&SuspendMutex, Executive, KernelMode, FALSE, NULL);
 	if (isSuspended)
 	{
@@ -1057,15 +1063,15 @@ void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, P
 		DbgPrint("ToPAHeader2=%p ToPABuffer2=%p Size=%x", PInfo[i]->ToPAHeader2, PInfo[i]->ToPABuffer2, BufferSize);
 
 
-
-
-
 		KeInitializeEvent(&PInfo[i]->DataReady, SynchronizationEvent, FALSE);
 		KeInitializeEvent(&PInfo[i]->DataProcessed, SynchronizationEvent, FALSE);
 
 		KeInitializeEvent(&PInfo[i]->FileAccess, SynchronizationEvent, TRUE);
 
 		Ultimap2_DataReady[i] = &PInfo[i]->DataReady;
+
+		KeInitializeDpc(&PInfo[i]->OwnDPC, SwitchToPABuffer, NULL);
+		KeSetTargetProcessorDpc(&PInfo[i]->OwnDPC, i);
 	}
 	
 	UltimapActive = TRUE;

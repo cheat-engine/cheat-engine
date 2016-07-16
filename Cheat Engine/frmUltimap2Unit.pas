@@ -188,6 +188,7 @@ type
     procedure btnNotExecutedClick(Sender: TObject);
     procedure btnCancelFilterClick(Sender: TObject);
     procedure btnResetClick(Sender: TObject);
+    procedure btnResetCountClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Button5Click(Sender: TObject);
@@ -539,6 +540,10 @@ begin
   else
   begin
     result:=ultimap2_waitForData(timeout, e);
+    if result then
+    begin
+      OutputDebugString('ultimap2_waitForData returned true for cpu '+inttostr(e.Cpunr));
+    end;
   end;
 end;
 
@@ -564,7 +569,10 @@ begin
     done:=true;
   end
   else
+  begin
+    outputdebugstring('Calling ultimap2_continue for cpu '+inttostr(e.cpunr));
     ultimap2_continue(e.Cpunr);
+  end;
 end;
 
 procedure TUltimap2Worker.parseToStringlist(insn: pt_insn; output: Tstrings);
@@ -760,9 +768,12 @@ begin
 
               end;
 
-              ts.add('');
-              ts.add('-----New block-----');
-              ts.add('');
+              if parseAsText then
+              begin
+                ts.add('');
+                ts.add('-----New block-----');
+                ts.add('');
+              end;
             end;
           finally
             pt_insn_free_decoder(decoder);
@@ -1807,6 +1818,11 @@ begin
   flushResults(foExecuted); //filters out executed memory
 end;
 
+procedure TfrmUltimap2.btnResetCountClick(Sender: TObject);
+begin
+  FlushResults(foResetCount);
+end;
+
 procedure TfrmUltimap2.btnCancelFilterClick(Sender: TObject);
 begin
   if filterThread<>nil then
@@ -1821,6 +1837,8 @@ begin
   flushResults(foResetAll);
   cbfilterOutNewEntries.Checked:=false;
 end;
+
+
 
 procedure TfrmUltimap2.Button1Click(Sender: TObject);
 var x: pt_insn;
