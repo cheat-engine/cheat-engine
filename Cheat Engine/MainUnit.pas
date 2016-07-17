@@ -24,7 +24,7 @@ uses
   groupscancommandparser, GraphType, IntfGraphics, RemoteMemoryManager,
   DBK64SecondaryLoader, savedscanhandler, debuggertypedefinitions, networkInterface,
   FrmMemoryRecordDropdownSettingsUnit, xmlutils, zstream, zstreamext, commonTypeDefs,
-  VirtualQueryExCache;
+  VirtualQueryExCache, LazLogger;
 
 //the following are just for compatibility
 
@@ -205,26 +205,36 @@ type
   TMainForm = class(TForm)
     actOpenLuaEngine: TAction;
     actOpenDissectStructure: TAction;
+    btnSetSpeedhack2: TButton;
+    cbCaseSensitive: TCheckBox;
     cbCopyOnWrite: TCheckBox;
     cbExecutable: TCheckBox;
     cbFastScan: TCheckBox;
     cbFloatSimple: TCheckBox;
+    cbHexadecimal: TCheckBox;
     cbPauseWhileScanning: TCheckBox;
+    cbSpeedhack: TCheckBox;
+    cbUnicode: TCheckBox;
+    cbUnrandomizer: TCheckBox;
     cbWritable: TCheckBox;
     CheckBox1: TCheckBox;
     ColorDialog1: TColorDialog;
     CreateGroup: TMenuItem;
+    editSH2: TEdit;
     edtAlignment: TEdit;
     Foundlist3: TListView;
     FromAddress: TMemo;
     ImageList2: TImageList;
     Label1: TLabel;
     Label2: TLabel;
-    Label3: TLabel;
+    Label54: TLabel;
     lblcompareToSavedScan: TLabel;
+    lblSH0: TLabel;
+    lblSH20: TLabel;
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
+    miEnableLCLDebug: TMenuItem;
     miDisassemble: TMenuItem;
     miBindDeactivation: TMenuItem;
     miScanDirtyOnly: TMenuItem;
@@ -297,17 +307,31 @@ type
     miFreezePositive: TMenuItem;
     miFreezeNegative: TMenuItem;
     Panel1: TPanel;
+    Panel10: TPanel;
+    Panel14: TPanel;
     Panel2: TPanel;
     Panel3: TPanel;
     Panel6: TPanel;
     Panel8: TPanel;
+    Panel9: TPanel;
+    pnlFloat: TPanel;
+    pnlScanOptions: TPanel;
+    pnlScanValueOptions: TPanel;
     pmTablist: TPopupMenu;
     pmValueType: TPopupMenu;
     pmResetRange: TPopupMenu;
     pmScanRegion: TPopupMenu;
+    rbBit: TRadioButton;
+    rbDec: TRadioButton;
     rbFsmAligned: TRadioButton;
     rbfsmLastDigts: TRadioButton;
+    rt1: TRadioButton;
+    rt2: TRadioButton;
+    rt3: TRadioButton;
     SettingsButton: TSpeedButton;
+    btnMemoryView: TSpeedButton;
+    btnAddAddressManually: TSpeedButton;
+    tbSpeed: TTrackBar;
     ToAddress: TMemo;
     UpdateTimer: TTimer;
     FreezeTimer: TTimer;
@@ -345,13 +369,8 @@ type
     btnNextScan: TButton;
     ScanType: TComboBox;
     VarType: TComboBox;
-    btnMemoryView: TButton;
-    btnAddAddressManually: TButton;
     ProgressBar1: TProgressBar;
-    cbHexadecimal: TCheckBox;
     UndoScan: TButton;
-    rbBit: TRadioButton;
-    rbDec: TRadioButton;
     scanvalue: TEdit;
     foundlistpopup: TPopupMenu;
     Browsethismemoryarrea1: TMenuItem;
@@ -366,7 +385,6 @@ type
     Copy2: TMenuItem;
     Paste2: TMenuItem;
     Splitter1: TSplitter;
-    cbCaseSensitive: TCheckBox;
     Findoutwhataccessesthisaddress1: TMenuItem;
     Showashexadecimal1: TMenuItem;
     Panel7: TPanel;
@@ -376,25 +394,15 @@ type
     Address1: TMenuItem;
     Type1: TMenuItem;
     Value1: TMenuItem;
-    pnlFloat: TPanel;
-    rt3: TRadioButton;
-    rt1: TRadioButton;
-    rt2: TRadioButton;
-    cbUnicode: TCheckBox;
-    cbUnrandomizer: TCheckBox;
     Changescript1: TMenuItem;
     ActionList1: TActionList;
     actSave: TAction;
     actOpen: TAction;
     actAutoAssemble: TAction;
     Forcerechecksymbols1: TMenuItem;
-    Label5: TLabel;
-    Label38: TLabel;
     Smarteditaddresses1: TMenuItem;
     Pointerscanforthisaddress1: TMenuItem;
-    Label57: TLabel;
     Plugins1: TMenuItem;
-    Label59: TLabel;
     UpdateFoundlisttimer: TTimer;
     Browsethismemoryregioninthedisassembler1: TMenuItem;
     AutoAttachTimer: TTimer;
@@ -402,14 +410,6 @@ type
     Button4: TButton;
     LogoPanel: TPanel;
     Logo: TImage;
-    Panel14: TPanel;
-    btnSetSpeedhack2: TButton;
-    editSH2: TEdit;
-    Label54: TLabel;
-    tbSpeed: TTrackBar;
-    lblSH0: TLabel;
-    lblSH20: TLabel;
-    cbSpeedhack: TCheckBox;
     MainMenu1: TMainMenu;
     File1: TMenuItem;
     Process1: TMenuItem;
@@ -434,11 +434,11 @@ type
     Helpindex1: TMenuItem;
     Plugins2: TMenuItem;
     actMemoryView: TAction;
-    Label61: TLabel;
     actOpenProcesslist: TAction;
     procedure actOpenDissectStructureExecute(Sender: TObject);
     procedure actOpenLuaEngineExecute(Sender: TObject);
     procedure Address1Click(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
     procedure cbFastScanChange(Sender: TObject);
     procedure cbSpeedhackChange(Sender: TObject);
     procedure Description1Click(Sender: TObject);
@@ -518,10 +518,12 @@ type
     procedure Panel5Resize(Sender: TObject);
     procedure pmTablistPopup(Sender: TObject);
     procedure pmValueTypePopup(Sender: TObject);
+    procedure pnlScanOptionsResize(Sender: TObject);
     procedure rbAllMemoryChange(Sender: TObject);
     procedure rbFsmAlignedChange(Sender: TObject);
     procedure Save1Click(Sender: TObject);
     procedure ScanTypeSelect(Sender: TObject);
+    procedure scanvalueChange(Sender: TObject);
     procedure ShowProcessListButtonClick(Sender: TObject);
     procedure btnNewScanClick(Sender: TObject);
     procedure btnNextScanClick(Sender: TObject);
@@ -2766,6 +2768,11 @@ begin
 
 end;
 
+procedure TMainForm.scanvalueChange(Sender: TObject);
+begin
+
+end;
+
 procedure TMainForm.Foundlist3Resize(Sender: TObject);
 begin
 
@@ -2837,6 +2844,24 @@ end;
 procedure TMainForm.Address1Click(Sender: TObject);
 begin
   addresslist.doAddressChange;
+end;
+
+procedure TMainForm.Button1Click(Sender: TObject);
+var llf: TLazLoggerFile;
+begin
+  llf:=GetDebugLogger;
+  if llf<>nil then
+  begin
+    deletefile('cedebug.txt');
+    llf.LogName:='cedebug.txt';
+    llf.Init;
+
+    DebugLn('First log message');
+
+    miEnableLCLDebug.visible:=false;
+  end;
+
+
 end;
 
 procedure TMainForm.actOpenDissectStructureExecute(Sender: TObject);
@@ -2943,35 +2968,8 @@ var t: TRemoteMemoryManager;
 
 
 procedure TMainForm.Label57Click(Sender: TObject);
-var
-  p: pointer;
-var
-  l: TStringList;
-var
-  t: TModuleLoader;
-  q: qword;
 begin
-  t := TModuleLoader.Create(cheatenginedir + 'dbk64.sys');
 
-  // p:=dbvm_kernelalloc(4096);
-  // showmessage(inttohex(ptruint(p),8));
-  // l:=tstringlist.create;
- { if t.loaded then
-  begin
-    ZeroMemory(@dobject, sizeof(dobject));
-    q:=dbvm_executeDriverEntry(pointer(t.entrypoint), @dobject,nil);
-
-
-    showmessage('dobject.DriverUnload='+inttohex(ptruint(dobject.DriverUnload),8));
-    showmessage('dobject.MajorFunction[IRP_MJ_CREATE]='+inttohex(ptruint(dobject.MajorFunction[IRP_MJ_CREATE]),8));
-    showmessage('dobject.MajorFunction[IRP_MJ_CLOSE]='+inttohex(ptruint(dobject.MajorFunction[IRP_MJ_CLOSE]),8));
-    showmessage('dobject.MajorFunction[IRP_MJ_DEVICE_CONTROL]='+inttohex(ptruint(dobject.MajorFunction[IRP_MJ_DEVICE_CONTROL]),8));
-
-  end
-  else
-    showmessage(rsFailedToLoad);
-
-         }
 
 end;
 
@@ -4442,20 +4440,20 @@ procedure TMainForm.UpdateFloatRelatedPositions;
 begin
   if pnlFloat.visible then
   begin
-    cbFloatSimple.Top:=pnlFloat.Top+pnlFloat.Height;
-    cbUnrandomizer.top:=cbFloatSimple.Top+cbFloatSimple.Height;
-    cbFloatSimple.visible:=true;
+ //   cbFloatSimple.Top:=pnlFloat.Top+pnlFloat.Height;
+   // cbUnrandomizer.top:=cbFloatSimple.Top+cbFloatSimple.Height;
+ //   cbFloatSimple.visible:=true;
   end
   else
   begin
-    cbFloatSimple.top:=pnlFloat.top;
-    cbUnrandomizer.top:=gbScanOptions.top;
+ //   cbFloatSimple.top:=pnlFloat.top;
+   // cbUnrandomizer.top:=gbScanOptions.top;
 
-    cbFloatSimple.visible:=(getVarType in [vtSingle, vtDouble, vtAll]) and (GetScanType<>soUnknownValue);
+ //   cbFloatSimple.visible:=(getVarType in [vtSingle, vtDouble, vtAll]) and (GetScanType<>soUnknownValue);
   end;
 
-  if cbpercentage<>nil then
-    cbFloatSimple.Top:=cbpercentage.top+cbpercentage.Height;
+//  if cbpercentage<>nil then
+//    cbFloatSimple.Top:=cbpercentage.top+cbpercentage.Height;
 
 end;
 
@@ -4534,10 +4532,12 @@ begin
 
 end;
 
+
 procedure TMainForm.Panel5Resize(Sender: TObject);
-var widthleft: integer;
+var
+  widthleft: integer;
 begin
-  cbSpeedhack.left := panel5.clientwidth - cbspeedhack.Width;
+  {cbSpeedhack.left := panel5.clientwidth - cbspeedhack.Width;
   cbUnrandomizer.left := cbspeedhack.left;
   gbScanOptions.Left := cbUnrandomizer.left - gbScanOptions.Width - 3;
 
@@ -4574,7 +4574,7 @@ begin
   begin
     foundlist3.columns[1].width:=widthleft;
   end;
-
+       }
 end;
 
 procedure TMainForm.pmTablistPopup(Sender: TObject);
@@ -4598,6 +4598,12 @@ begin
   miDeleteCustomType.Visible := miEditCustomType.Visible;
 
   miShowCustomTypeDebug.visible:=miEditCustomType.Visible and (GetKeyState(VK_SHIFT) and 32768=32768);
+
+end;
+
+procedure TMainForm.pnlScanOptionsResize(Sender: TObject);
+var i: integer;
+begin
 
 end;
 
@@ -5844,7 +5850,6 @@ var
   hexvis: boolean;
   decbitvis: boolean;
   hextext: string;
-  hexwidth: integer;
   casevis: boolean;
 
   oldscantype: integer;
@@ -5878,7 +5883,6 @@ begin
 
   hexvis := True;
   unicodevis := False;
-  hexwidth := 50;
 
   hextext := rsHex;
   casevis := False;
@@ -5976,7 +5980,6 @@ begin
         //cbHexadecimal.checked:=cbCaseSensitive.checked;
         hexvis := False;
         //hextext:='Unicode';
-        hexwidth := 61;
       end;
 
       8:
@@ -6874,6 +6877,9 @@ var
   ReferenceControl: TControl;
   ReferenceSide : TAnchorSideReference;
   Position: integer;
+
+  c: TControl;
+
 begin
   if onetimeonly then
     exit;
@@ -7041,6 +7047,41 @@ begin
 
   if reg<>nil then
     freeandnil(reg);
+
+  btnNewScan.autosize:=true;
+  btnNextScan.AutoSize:=true;
+  btnNewScan.autosize:=false;
+  btnNextScan.AutoSize:=false;
+
+  i:=max(btnNewScan.Width, btnNextScan.Width);
+  btnNewScan.width:=i;
+  btnNextScan.width:=i;
+
+  btnAddAddressManually.autosize:=true;
+  btnAddAddressManually.autosize:=false;
+  btnMemoryView.autosize:=true;
+  btnMemoryView.autosize:=false;
+  i:=max(btnAddAddressManually.Width, btnMemoryView.Width);
+  btnAddAddressManually.width:=i;
+  btnMemoryView.width:=i;
+
+  pnlScanOptions.Constraints.MinHeight:=gbScanOptions.Top-panel9.top;
+  panel10.Constraints.MinWidth:=panel14.Width;
+
+  if pnlScanValueOptions.left<lblScanType.left then
+    c:=pnlScanValueOptions else c:=lblScanType;
+
+  if lblValueType.left<c.left then
+    c:=lblValueType;
+
+  foundlist3.AnchorSide[akRight].Control:=c;
+  foundlist3.AnchorSide[akRight].Side:=asrLeft;
+  foundlist3.BorderSpacing.Right:=4;
+  foundlist3.anchors:= [akTop,akLeft,akBottom, akRight];
+
+  i:=vartype.Canvas.TextWidth(rsMUGenerateGroupscanCommand)+16;
+  vartype.Constraints.MinWidth:=i;
+
 end;
 
 
@@ -8116,15 +8157,13 @@ end;
 
 procedure TMainForm.Label3Click(Sender: TObject);
 begin
-  ultimap2_disable;
+
 end;
 
 
 procedure TMainForm.Label59Click(Sender: TObject);
-var ranges: TURangeArray;
 begin
-  setlength(ranges,0);
-  ultimap2(processid, 16*1024*1024, 'd:\bla',ranges);
+
 end;
 
 procedure ChangeIcon(hModule: HModule; restype: PChar; resname: PChar;
@@ -8658,16 +8697,17 @@ begin
   x := tbSpeed.position;
   case x of
     0: y := 0;
-    1: y := 0.5;
-    2: y := 1;
-    3: y := 2;
-    4: y := 5;
-    5: y := 10;
-    6: y := 20;
-    7: y := 50;
-    8: y := 100;
-    9: y := 200;
-    10: y := 500;
+    1: y := 0.25;
+    2: y := 0.5;
+    3: y := 1;
+    4: y := 2;
+    5: y := 5;
+    6: y := 10;
+    7: y := 20;
+    8: y := 50;
+    9: y := 100;
+    10: y := 200;
+    11: y := 500;
     else
       y := 1;
   end;
