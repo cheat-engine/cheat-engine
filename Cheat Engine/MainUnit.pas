@@ -217,12 +217,17 @@ type
     cbUnicode: TCheckBox;
     cbUnrandomizer: TCheckBox;
     cbWritable: TCheckBox;
+    cbpercentage: TCheckBox;
     ColorDialog1: TColorDialog;
     CreateGroup: TMenuItem;
+    FromAddress: TEdit;
+    andlabel: TLabel;
+    ScanText2: TLabel;
+    scanvalue2: TEdit;
+    ToAddress: TEdit;
     editSH2: TEdit;
     edtAlignment: TEdit;
     Foundlist3: TListView;
-    FromAddress: TMemo;
     ImageList2: TImageList;
     Label1: TLabel;
     Label2: TLabel;
@@ -331,7 +336,6 @@ type
     btnMemoryView: TSpeedButton;
     btnAddAddressManually: TSpeedButton;
     tbSpeed: TTrackBar;
-    ToAddress: TMemo;
     UpdateTimer: TTimer;
     FreezeTimer: TTimer;
     PopupMenu2: TPopupMenu;
@@ -660,10 +664,6 @@ type
     unrandomize: Tunrandomize;
 
 
-    scantext2: tlabel;
-    andlabel: tlabel;
-    scanvalue2: tedit;
-    cbpercentage: tcheckbox;
 
     reinterpretcheck: integer;
 
@@ -2045,15 +2045,7 @@ end;
 
 procedure TMainForm.CreateCbPercentage;
 begin
-  if cbpercentage = nil then
-  begin
-    cbpercentage := tcheckbox.Create(self);
-    cbpercentage.Left := cbUnrandomizer.left;
-    cbpercentage.Top := scantype.Top + 2;
-
-    cbpercentage.Parent := scantype.Parent;
-    cbpercentage.OnChange := cbPercentageOnChange;
-  end;
+  cbpercentage.visible:=true;
 
   if ScanType.Text = strValueBetween then
     cbpercentage.Caption := rsBetween
@@ -2065,71 +2057,29 @@ end;
 
 procedure TMainForm.DestroyCbPercentage;
 begin
-  if cbpercentage <> nil then
-  begin
-    cbpercentage.Checked := False;
-    FreeAndNil(cbpercentage);
-  end;
-  UpdateFloatRelatedPositions;
-
+  cbpercentage.Visible:=false;
 end;
 //------------------
 
 procedure TMainForm.CreateScanValue2;
 var
   oldwidth: integer;
+  editsize: integer;
 begin
-  if scanvalue2 = nil then
-  begin
-    //decrease the width of the scanvalue editbox
-    andlabel := tlabel.Create(self);
-    andlabel.Parent := scanvalue.Parent;
-    andlabel.Caption := rsAnd;
+  scantext2.Caption := scantext.Caption;
 
-    oldwidth := scanvalue.Width;
-    scanvalue.Width := (scanvalue.Width div 2) - (andlabel.Width div 2) - 3;
+  andlabel.Visible:=true;
+  scanvalue2.visible:=true;
+  scantext2.visible:=true;
 
-
-    andlabel.Left := scanvalue.Left + scanvalue.Width + 3;
-    andlabel.Top := scanvalue.Top + (scanvalue.Height div 2) - (andlabel.Height div 2);
-
-    andlabel.Anchors := scantext.Anchors;
-
-
-
-    //create a 2nd editbox
-    scanvalue2 := tedit.Create(self);
-    //scanvalue2.onkeydown:=scanvalueKeyDown;
-    scanvalue2.OnKeyPress := ScanvalueoldKeyPress;
-    scanvalue2.PopupMenu := ccpmenu;
-    scanvalue2.Left := andlabel.left + andlabel.Width + 3;
-    scanvalue2.Width := oldwidth - (scanvalue2.left - scanvalue.left);
-    scanvalue2.Top := scanvalue.top;
-    scanvalue2.Parent := scanvalue.Parent;
-    scanvalue2.Anchors := scanvalue.Anchors;
-    scanvalue2.TabOrder := scanvalue.TabOrder + 1;
-    scanvalue2.Text := oldscanvalue2text;
-
-    scantext2 := tlabel.Create(self);
-    scantext2.Caption := scantext.Caption;
-    scantext2.Left := scanvalue2.Left;
-    scantext2.Top := scantext.top;
-    scantext2.Parent := scantext.parent;
-    scantext2.Anchors := scantext.Anchors;
-
-  end;
+  panel5.OnResize(panel5);
 end;
 
 procedure TMainForm.DestroyScanValue2;
 begin
-  if scanvalue2 <> nil then
-  begin
-    scanvalue.Width := (scanvalue2.left + scanvalue2.Width) - scanvalue.left;
-    oldscanvalue2text := scanvalue2.Text;
-    FreeAndNil(scanvalue2);
-    FreeAndNil(scantext2);
-    FreeAndNil(andlabel);
-  end;
+  scanvalue2.visible:=false;
+  scantext2.visible:=false;
+  andlabel.visible:=false;
 end;
 
 procedure TMainForm.UpdateScanType;
@@ -4441,14 +4391,14 @@ begin
   begin
  //   cbFloatSimple.Top:=pnlFloat.Top+pnlFloat.Height;
    // cbUnrandomizer.top:=cbFloatSimple.Top+cbFloatSimple.Height;
- //   cbFloatSimple.visible:=true;
+    cbFloatSimple.visible:=true;
   end
   else
   begin
  //   cbFloatSimple.top:=pnlFloat.top;
    // cbUnrandomizer.top:=gbScanOptions.top;
 
- //   cbFloatSimple.visible:=(getVarType in [vtSingle, vtDouble, vtAll]) and (GetScanType<>soUnknownValue);
+    cbFloatSimple.visible:=(getVarType in [vtSingle, vtDouble, vtAll]) and (GetScanType<>soUnknownValue);
   end;
 
 //  if cbpercentage<>nil then
@@ -4534,8 +4484,13 @@ end;
 
 procedure TMainForm.Panel5Resize(Sender: TObject);
 var
-  widthleft: integer;
+  widthleft,w,aw: integer;
 begin
+ // scanvalue2.width:=(((panel5.width-5)-scanvalue.left+((andlabel.width+10) div 2)) div 2);
+  w:=(panel5.clientwidth-scanvalue.left)-5 ;
+  aw:=andlabel.width+8;
+  scanvalue2.width:=(w div 2) - (aw div 2);
+
   {cbSpeedhack.left := panel5.clientwidth - cbspeedhack.Width;
   cbUnrandomizer.left := cbspeedhack.left;
   gbScanOptions.Left := cbUnrandomizer.left - gbScanOptions.Width - 3;
@@ -4559,7 +4514,7 @@ begin
   if cbpercentage <> nil then
     cbpercentage.left := scantype.left + scantype.Width + 5;
 
-
+  }
 
   //resize the foundlist columns. Do NOT do this in the onresize of the foundlist
   widthleft:=foundlist3.clientwidth-foundlist3.Columns[0].Width;
@@ -4573,7 +4528,7 @@ begin
   begin
     foundlist3.columns[1].width:=widthleft;
   end;
-       }
+
 end;
 
 procedure TMainForm.pmTablistPopup(Sender: TObject);
@@ -7080,6 +7035,9 @@ begin
 
   i:=vartype.Canvas.TextWidth(rsMUGenerateGroupscanCommand)+16;
   vartype.Constraints.MinWidth:=i;
+
+  pnlScanValueOptions.Constraints.MinHeight:=rbBit.Height+rbDec.height;
+
 
 end;
 
