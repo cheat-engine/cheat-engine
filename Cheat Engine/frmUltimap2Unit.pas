@@ -198,6 +198,7 @@ type
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure ListView1Data(Sender: TObject; Item: TListItem);
     procedure ListView1DblClick(Sender: TObject);
     procedure miCloseClick(Sender: TObject);
@@ -1579,6 +1580,14 @@ begin
 
   cleanup;
   frmUltimap2:=nil;
+end;
+
+procedure TfrmUltimap2.FormShow(Sender: TObject);
+var minwidth: integer;
+begin
+  minwidth:=edtBufSize.Font.GetTextWidth(edtBufSize.Text);
+  if edtBufSize.ClientWidth<minwidth then
+    edtBufSize.ClientWidth:=minwidth;
 end;
 
 procedure TfrmUltimap2.ListView1Data(Sender: TObject; Item: TListItem);

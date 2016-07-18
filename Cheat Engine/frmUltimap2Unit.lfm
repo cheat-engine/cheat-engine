@@ -11,6 +11,7 @@ object frmUltimap2: TfrmUltimap2
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object Panel5: TPanel

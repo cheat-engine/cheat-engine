@@ -5071,11 +5071,6 @@ begin
 
   oldhandle := mainform.handle;
 
-  panel5.Constraints.MinHeight :=
-    gbScanOptions.top + gbScanOptions.Height + speedbutton2.Height + 3;
-  mainform.Constraints.MinWidth := 400;
-  mainform.Constraints.MinHeight := panel5.Height + 150;
-
   addresslist := TAddresslist.Create(self);
   addresslist.Width := 500;
   addresslist.Height := 150;
@@ -5085,6 +5080,7 @@ begin
   addresslist.OnDropByListview := AddresslistDropByListview;
   addresslist.OnAutoAssemblerEdit := AddressListAutoAssemblerEdit;
   addresslist.Align := alClient;
+  addresslist.AutoSize:=true;
 
 
   symhandler.loadCommonModuleList;
@@ -5092,6 +5088,7 @@ begin
   setlength(x, 7);
   if loadformposition(self, x) then
   begin
+    autosize:=false;
     addresslist.headers.Sections[0].Width := x[0];
     addresslist.headers.Sections[1].Width := x[1];
     addresslist.headers.Sections[2].Width := x[2];
@@ -5099,7 +5096,6 @@ begin
     addresslist.headers.Sections[4].Width := x[4];
     panel5.Height := x[5];
     foundlist3.columns[0].Width := x[6];
-
   end;
 
 
@@ -7022,6 +7018,9 @@ begin
   pnlScanOptions.Constraints.MinHeight:=gbScanOptions.Top-panel9.top;
   panel10.Constraints.MinWidth:=panel14.Width;
 
+  pnlScanValueOptions.Constraints.MinHeight:=rbBit.Height+rbDec.height;
+  pnlScanValueOptions.Constraints.MinWidth:=max(rbDec.width, rbBit.width);
+
   if pnlScanValueOptions.left<lblScanType.left then
     c:=pnlScanValueOptions else c:=lblScanType;
 
@@ -7036,9 +7035,9 @@ begin
   i:=vartype.Canvas.TextWidth(rsMUGenerateGroupscanCommand)+16;
   vartype.Constraints.MinWidth:=i;
 
-  pnlScanValueOptions.Constraints.MinHeight:=rbBit.Height+rbDec.height;
 
-
+  panel5.Constraints.MinHeight := gbScanOptions.top + gbScanOptions.Height + max(speedbutton2.Height, btnAddAddressManually.height ) + 5;
+  lblcompareToSavedScan.left:=btnNewScan.left-(lblcompareToSavedScan.Width div 2)+((btnNextScan.left+btnNextScan.Width-btnNewScan.left) div 2);
 end;
 
 

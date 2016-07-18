@@ -8,7 +8,7 @@ uses
   LCLIntf, LCLType, Classes, SysUtils, controls, stdctrls, comctrls, ExtCtrls, graphics,
   math, MemoryRecordUnit, FPCanvas, cefuncproc, newkernelhandler, menus,dom,
   XMLRead,XMLWrite, symbolhandler, AddresslistEditor, inputboxtopunit,
-  frmMemrecComboboxUnit, commonTypeDefs, multilineinputqueryunit;
+  frmMemrecComboboxUnit, commonTypeDefs, multilineinputqueryunit, LazUTF8;
 
 type
   TTreeviewWithScroll=class(TTreeview)
@@ -147,6 +147,7 @@ type
     property OnDropByListview: TDropByListviewEvent read FOnDropByListview write FOnDropByListview;
     property OnAutoAssemblerEdit: TAutoAssemblerEditEvent read fOnAutoAssemblerEdit write fOnAutoAssemblerEdit;
 
+    procedure DoAutoSize; override;
 
 
     property headers: THeaderControl read header;
@@ -1827,7 +1828,7 @@ begin
 
 
         //value
-        sender.Canvas.TextRect(rect(header.Sections[4].left, textrect.top, header.Sections[4].right, textrect.bottom),header.sections[4].left, linetop, AnsiToUtf8(memrec.DisplayValue));
+        sender.Canvas.TextRect(rect(header.Sections[4].left, textrect.top, header.Sections[4].right, textrect.bottom),header.sections[4].left, linetop, WinCPToUTF8(memrec.DisplayValue));
       end;
     end
     else
@@ -1887,6 +1888,15 @@ begin
   end;
 end;
 
+procedure TAddressList.DoAutoSize;
+begin
+  DisableAutoSizing;
+  header.Height:=header.canvas.GetTextHeight('D')+4;
+  EnableAutoSizing;
+
+  inherited DoAutoSize;
+end;
+
 constructor TAddresslist.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -1942,7 +1952,8 @@ begin
   header:=THeaderControl.Create(self);
   header.parent:=self;
   header.Align:=alTop;
-  header.height:=20;
+  header.Height:=header.font.GetTextHeight('D')+4;
+
   with header.Sections.Add do
   begin
     Text:=rsActive;
@@ -1981,6 +1992,7 @@ begin
   header.OnSectionTrack:=SectionTrack;
 
   header.OnSectionClick:=SectionClick;
+  header.AutoSize:=true;
 
   treeview.ScrollBars:=ssVertical;
   treeview.Align:=alClient;
