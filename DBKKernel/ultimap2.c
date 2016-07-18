@@ -699,6 +699,7 @@ void ultimap2_disable_dpc(struct _KDPC *Dpc, PVOID DeferredContext, PVOID System
 void ultimap2_setup_dpc(struct _KDPC *Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
 	RTIT_CTL ctl;
+	RTIT_STATUS s;
 	int i;
 
 
@@ -749,15 +750,21 @@ void ultimap2_setup_dpc(struct _KDPC *Dpc, PVOID DeferredContext, PVOID SystemAr
 		{
 			ULONG msr_start = IA32_RTIT_ADDR0_A + (2 * i);
 			ULONG msr_stop = IA32_RTIT_ADDR0_B + (2 * i);
-			int bit = 32 + (i * 4);
+			UINT64 bit = 32 + (i * 4);
 
+			DbgPrint("Range %d: (%p -> %p)", i, (PVOID)(Ultimap2Ranges[i].StartAddress), (PVOID)(Ultimap2Ranges[i].EndAddress));
+			DbgPrint("Writing range %d to msr %x and %x", i, msr_start, msr_stop);
 			__writemsr(msr_start, Ultimap2Ranges[i].StartAddress);
 			__writemsr(msr_stop, Ultimap2Ranges[i].EndAddress);
 
+			DbgPrint("bit=%d", bit);
+			DbgPrint("Value before=%x", ctl.Value);
 			if (Ultimap2Ranges[i].IsStopAddress)
-				ctl.Value |= 2 << bit; //TraceStop This stops all tracing on this cpu. Doesn't get reactivated
+				ctl.Value |= (UINT64)2ULL << bit; //TraceStop This stops all tracing on this cpu. Doesn't get reactivated
 			else
-				ctl.Value |= 1 << bit; //FilterEn
+				ctl.Value |= (UINT64)1ULL << bit; //FilterEn
+
+			DbgPrint("Value after=%p", (PVOID)ctl.Value);
 		}
 		i = 3;
 
@@ -767,7 +774,13 @@ void ultimap2_setup_dpc(struct _KDPC *Dpc, PVOID DeferredContext, PVOID SystemAr
 		__writemsr(IA32_RTIT_CTL, ctl.Value);
 		i = 5;
 
-		DbgPrint("Setup for cpu %d succesful", KeGetCurrentProcessorNumber());
+	
+			
+		s.Value=__readmsr(IA32_RTIT_STATUS);
+		if (s.Bits.Error)
+			DbgPrint("Setup for cpu %d failed");
+		else
+			DbgPrint("Setup for cpu %d succesful", KeGetCurrentProcessorNumber());
 	}
 	__except (1)
 	{

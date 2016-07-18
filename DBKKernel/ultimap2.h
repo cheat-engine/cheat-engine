@@ -63,6 +63,19 @@ typedef union {
  
 typedef union {
 	struct{
+		UINT64 FilterEn : 1;
+		UINT64 ContextEn : 1;
+		UINT64 TriggerEn : 1;
+		UINT64 Reserved_1 : 1;
+		UINT64 Error : 1;
+		UINT64 Stopped : 1;
+		UINT64 Reserved_2 : 58;
+	} Bits;
+	UINT64 Value;
+}  RTIT_STATUS, *PRTIT_STATUS;
+
+typedef union {
+	struct{
 		UINT64 END : 1;
 		UINT64 Reserved_0 : 1;
 		UINT64 INT : 1;

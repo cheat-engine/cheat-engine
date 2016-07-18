@@ -1645,9 +1645,13 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 					UINT32 Reserved;
 					URANGE Ranges[8];
 					WCHAR OutputPath[200];
-				} *inp = Irp->AssociatedIrp.SystemBuffer;				
+				} *inp = Irp->AssociatedIrp.SystemBuffer;
+				int i;
 
 				DbgPrint("IOCTL_CE_ULTIMAP2");
+				for (i = 0; i < inp->RangeCount; i++)
+					DbgPrint("%d=%p -> %p", i, (PVOID)inp->Ranges[i].StartAddress, (PVOID)inp->Ranges[i].EndAddress);
+
 				SetupUltimap2(inp->PID, inp->Size, inp->OutputPath, inp->RangeCount, inp->Ranges);
 				break;
 			}
