@@ -1,9 +1,9 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 674
+  Left = 731
   Height = 677
   Hint = ' '
-  Top = 221
+  Top = 180
   Width = 648
   HelpContext = 3
   HorzScrollBar.Visible = False
@@ -12,7 +12,6 @@ object MainForm: TMainForm
   Caption = 'Cheat Engine 6.5.1'
   ClientHeight = 657
   ClientWidth = 648
-  Font.Name = 'MS Sans Serif'
   Menu = MainMenu1
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
@@ -26,7 +25,7 @@ object MainForm: TMainForm
     Cursor = crVSplit
     Left = 0
     Height = 7
-    Top = 409
+    Top = 393
     Width = 648
     Align = alTop
     AutoSnap = False
@@ -39,55 +38,43 @@ object MainForm: TMainForm
   object Panel1: TPanel
     Tag = 777
     Left = 0
-    Height = 224
-    Top = 416
+    Height = 236
+    Top = 400
     Width = 648
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
-    ClientHeight = 224
-    ClientWidth = 648
     FullRepaint = False
     PopupMenu = PopupMenu2
     TabOrder = 0
     OnClick = Panel1Click
-    object CheckBox1: TCheckBox
-      Left = 188
-      Height = 20
-      Top = 34
-      Width = 88
-      Caption = 'CheckBox1'
-      TabOrder = 0
-    end
   end
   object Panel4: TPanel
     Left = 0
-    Height = 17
-    Top = 640
+    Height = 21
+    Top = 636
     Width = 648
     Align = alBottom
-    ClientHeight = 17
+    AutoSize = True
+    ClientHeight = 21
     ClientWidth = 648
     TabOrder = 1
     object Label7: TLabel
-      Left = 192
-      Height = 16
-      Top = 0
-      Width = 283
+      Left = 202
+      Height = 15
+      Top = 5
+      Width = 262
       Alignment = taCenter
       Anchors = [akBottom]
       Caption = 'Ctrl+Alt+Page Down brings Cheat Engine to front'
-      Font.Color = clMenuText
-      Font.Name = 'MS Sans Serif'
       ParentColor = False
-      ParentFont = False
     end
     object advancedbutton: TSpeedButton
       Left = 1
-      Height = 20
+      Height = 19
       Hint = 'Codelist and pause'
       Top = 1
-      Width = 115
+      Width = 102
       AutoSize = True
       Caption = 'Advanced Options'
       Flat = True
@@ -96,43 +83,38 @@ object MainForm: TMainForm
       ParentShowHint = False
     end
     object CommentButton: TSpeedButton
-      Left = 567
-      Height = 15
+      Left = 581
+      Height = 19
       Top = 1
-      Width = 80
+      Width = 66
       Align = alRight
       AutoSize = True
       Caption = 'Table Extras'
       Flat = True
-      Font.Name = 'MS Sans Serif'
       OnClick = CommentButtonClick
-      ParentFont = False
       ParentShowHint = False
     end
   end
   object Panel5: TPanel
     Left = 0
-    Height = 409
+    Height = 393
     Top = 0
     Width = 648
     Align = alTop
     BevelOuter = bvNone
-    ClientHeight = 409
+    ClientHeight = 393
     ClientWidth = 648
     TabOrder = 2
     OnResize = Panel5Resize
     object ProcessLabel: TLabel
       Left = -24
-      Height = 16
+      Height = 15
       Top = 0
       Width = 705
       Alignment = taCenter
       Anchors = [akTop, akLeft, akRight]
       Caption = 'No Process Selected'
-      Font.Color = clMenuText
-      Font.Name = 'MS Sans Serif'
       ParentColor = False
-      ParentFont = False
       WordWrap = True
       OnDblClick = ProcessLabelDblClick
       OnMouseDown = ProcessLabelMouseDown
@@ -141,11 +123,11 @@ object MainForm: TMainForm
       AnchorSideLeft.Control = Label6
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Label6
-      Left = 43
-      Height = 16
+      Left = 39
+      Height = 15
       Hint = 'This shows the ammount of addresses found'
       Top = 31
-      Width = 7
+      Width = 6
       BorderSpacing.Left = 2
       Caption = '0'
       ParentColor = False
@@ -155,9 +137,9 @@ object MainForm: TMainForm
     object ScanText: TLabel
       AnchorSideLeft.Control = scanvalue
       Left = 300
-      Height = 16
+      Height = 15
       Top = 80
-      Width = 69
+      Width = 57
       Caption = 'Scan Value'
       Enabled = False
       ParentBidiMode = False
@@ -167,10 +149,10 @@ object MainForm: TMainForm
       AnchorSideTop.Control = ScanType
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = ScanType
-      Left = 232
-      Height = 16
-      Top = 126
-      Width = 66
+      Left = 244
+      Height = 15
+      Top = 125
+      Width = 54
       Anchors = [akTop, akRight]
       BorderSpacing.Right = 2
       Caption = 'Scan Type'
@@ -181,10 +163,10 @@ object MainForm: TMainForm
       AnchorSideTop.Control = VarType
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = VarType
-      Left = 228
-      Height = 16
-      Top = 152
-      Width = 70
+      Left = 240
+      Height = 15
+      Top = 150
+      Width = 58
       Anchors = [akTop, akRight]
       BorderSpacing.Right = 2
       Caption = 'Value Type'
@@ -264,9 +246,9 @@ object MainForm: TMainForm
       AnchorSideTop.Control = Panel7
       AnchorSideTop.Side = asrBottom
       Left = 0
-      Height = 16
+      Height = 15
       Top = 31
-      Width = 41
+      Width = 37
       Caption = 'Found:'
       ParentColor = False
     end
@@ -274,7 +256,7 @@ object MainForm: TMainForm
       Left = 316
       Height = 22
       Hint = 'Delete all addresses from the list'
-      Top = 384
+      Top = 368
       Width = 23
       Anchors = [akBottom]
       Glyph.Data = {
@@ -304,7 +286,7 @@ object MainForm: TMainForm
       Left = 225
       Height = 22
       Hint = 'Copy all selected items to the address list'
-      Top = 358
+      Top = 342
       Width = 22
       Anchors = [akLeft, akBottom]
       Glyph.Data = {
@@ -330,9 +312,10 @@ object MainForm: TMainForm
       AnchorSideLeft.Control = Foundlist3
       AnchorSideLeft.Side = asrBottom
       Left = 255
-      Height = 26
+      Height = 25
       Top = 48
-      Width = 85
+      Width = 76
+      AutoSize = True
       BorderSpacing.Left = 30
       Caption = 'First Scan'
       Enabled = False
@@ -345,7 +328,7 @@ object MainForm: TMainForm
       AnchorSideLeft.Side = asrBottom
       AnchorSideRight.Control = Panel9
       Left = 253
-      Height = 163
+      Height = 157
       Top = 176
       Width = 243
       Anchors = [akTop, akLeft, akRight]
@@ -353,7 +336,7 @@ object MainForm: TMainForm
       BorderSpacing.Left = 6
       BorderSpacing.Right = 6
       Caption = 'Memory Scan Options'
-      ClientHeight = 142
+      ClientHeight = 137
       ClientWidth = 239
       Color = clBtnFace
       Enabled = False
@@ -366,13 +349,13 @@ object MainForm: TMainForm
         AnchorSideRight.Control = gbScanOptions
         AnchorSideRight.Side = asrBottom
         Left = 0
-        Height = 40
+        Height = 38
         Top = 42
         Width = 239
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
         BevelOuter = bvNone
-        ClientHeight = 40
+        ClientHeight = 38
         ClientWidth = 239
         PopupMenu = pmScanRegion
         TabOrder = 0
@@ -380,14 +363,12 @@ object MainForm: TMainForm
           AnchorSideTop.Control = cbWritable
           AnchorSideTop.Side = asrBottom
           Left = 0
-          Height = 20
+          Height = 19
           Hint = 'Unchecked:'#13#10'Do not scan copy-on-write memory'#13#10#13#10'Checked:'#13#10'Only scan copy-on-write memory'#13#10#13#10'Gray:'#13#10'Don''t care if it''s copy-on-write or not'
-          Top = 20
-          Width = 100
+          Top = 19
+          Width = 92
           AllowGrayed = True
           Caption = 'CopyOnWrite'
-          Font.Name = 'MS Sans Serif'
-          ParentFont = False
           ParentShowHint = False
           PopupMenu = pmScanRegion
           ShowHint = True
@@ -397,10 +378,10 @@ object MainForm: TMainForm
           AnchorSideLeft.Control = Panel2
           AnchorSideTop.Control = Panel2
           Left = 0
-          Height = 20
+          Height = 19
           Hint = 'Unchecked:'#13#10'Do not scan writable memory'#13#10#13#10'Checked:'#13#10'Only scan writable memory'#13#10#13#10'Gray:'#13#10'Don''t care if it''s writable memory or not'
           Top = 0
-          Width = 70
+          Width = 64
           AllowGrayed = True
           Caption = 'Writable'
           Checked = True
@@ -416,11 +397,11 @@ object MainForm: TMainForm
           AnchorSideTop.Control = Panel2
           AnchorSideRight.Control = Panel2
           AnchorSideRight.Side = asrBottom
-          Left = 152
-          Height = 20
+          Left = 163
+          Height = 19
           Hint = 'Unchecked:'#13#10'Do not scan executable memory'#13#10#13#10'Checked:'#13#10'Only scan executable memory'#13#10#13#10'Gray:'#13#10'Don''t care if it''s executable or not'
           Top = 0
-          Width = 87
+          Width = 76
           AllowGrayed = True
           Anchors = [akTop, akRight]
           Caption = 'Executable'
@@ -449,23 +430,18 @@ object MainForm: TMainForm
           AnchorSideTop.Control = Panel3
           AnchorSideRight.Control = Panel3
           AnchorSideRight.Side = asrBottom
-          Left = 31
+          Left = 28
           Height = 21
           Top = 0
-          Width = 208
+          Width = 211
           Alignment = taRightJustify
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Left = 4
           Enabled = False
-          Font.CharSet = ANSI_CHARSET
-          Font.Name = 'Courier'
-          Font.Pitch = fpFixed
-          Font.Quality = fqDraft
           Lines.Strings = (
             '00000000'
           )
           MaxLength = 8
-          ParentFont = False
           PopupMenu = pmResetRange
           TabOrder = 0
           WantReturns = False
@@ -475,22 +451,17 @@ object MainForm: TMainForm
           AnchorSideLeft.Control = FromAddress
           AnchorSideRight.Control = Panel3
           AnchorSideRight.Side = asrBottom
-          Left = 31
+          Left = 28
           Height = 21
           Top = 21
-          Width = 208
+          Width = 211
           Alignment = taRightJustify
           Anchors = [akTop, akLeft, akRight]
           Enabled = False
-          Font.CharSet = ANSI_CHARSET
-          Font.Name = 'Courier'
-          Font.Pitch = fpFixed
-          Font.Quality = fqDraft
           Lines.Strings = (
             '7FFFFFFF'
           )
           MaxLength = 8
-          ParentFont = False
           PopupMenu = pmResetRange
           TabOrder = 1
           WantReturns = False
@@ -500,9 +471,9 @@ object MainForm: TMainForm
           AnchorSideTop.Control = ToAddress
           AnchorSideTop.Side = asrCenter
           Left = 0
-          Height = 16
-          Top = 23
-          Width = 28
+          Height = 15
+          Top = 24
+          Width = 24
           Caption = 'Stop'
           Enabled = False
           ParentColor = False
@@ -513,9 +484,9 @@ object MainForm: TMainForm
           AnchorSideTop.Control = FromAddress
           AnchorSideTop.Side = asrCenter
           Left = 0
-          Height = 16
-          Top = 2
-          Width = 27
+          Height = 15
+          Top = 3
+          Width = 24
           Caption = 'Start'
           Enabled = False
           ParentColor = False
@@ -529,13 +500,13 @@ object MainForm: TMainForm
         AnchorSideRight.Control = gbScanOptions
         AnchorSideRight.Side = asrBottom
         Left = 0
-        Height = 60
-        Top = 82
+        Height = 57
+        Top = 80
         Width = 239
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
         BevelOuter = bvNone
-        ClientHeight = 60
+        ClientHeight = 57
         ClientWidth = 239
         TabOrder = 2
         object cbFastScan: TCheckBox
@@ -543,16 +514,14 @@ object MainForm: TMainForm
           AnchorSideTop.Control = edtAlignment
           AnchorSideTop.Side = asrCenter
           Left = 0
-          Height = 20
+          Height = 19
           Hint = 'Speeds up the scan and decreases useless results by skipping unaligned memory, or only scans addresses ending with specific digits'
           Top = 10
-          Width = 80
+          Width = 69
           Caption = 'Fast Scan'
           Checked = True
           Enabled = False
-          Font.Name = 'MS Sans Serif'
           OnChange = cbFastScanChange
-          ParentFont = False
           ParentShowHint = False
           ShowHint = True
           State = cbChecked
@@ -563,8 +532,8 @@ object MainForm: TMainForm
           AnchorSideLeft.Side = asrBottom
           AnchorSideTop.Control = Panel8
           AnchorSideTop.Side = asrCenter
-          Left = 80
-          Height = 24
+          Left = 69
+          Height = 23
           Top = 8
           Width = 40
           BorderSpacing.Top = 8
@@ -580,8 +549,8 @@ object MainForm: TMainForm
           AnchorSideRight.Control = Panel6
           AnchorSideRight.Side = asrBottom
           Left = 0
-          Height = 20
-          Top = 40
+          Height = 19
+          Top = 38
           Width = 239
           Anchors = [akTop, akLeft, akRight]
           Caption = 'Pause the game while scanning'
@@ -595,26 +564,26 @@ object MainForm: TMainForm
           AnchorSideTop.Control = Panel6
           AnchorSideRight.Control = Panel6
           AnchorSideRight.Side = asrBottom
-          Left = 123
-          Height = 40
+          Left = 112
+          Height = 38
           Top = 0
-          Width = 116
+          Width = 127
           Anchors = [akTop, akLeft, akRight]
           AutoSize = True
           BorderSpacing.Left = 3
           BevelOuter = bvNone
-          ClientHeight = 40
-          ClientWidth = 116
+          ClientHeight = 38
+          ClientWidth = 127
           TabOrder = 3
           object rbfsmLastDigts: TRadioButton
             AnchorSideLeft.Control = rbFsmAligned
             AnchorSideTop.Control = rbFsmAligned
             AnchorSideTop.Side = asrBottom
             Left = 0
-            Height = 20
+            Height = 19
             Hint = 'When set and fastscan is enabled will only scan and return addresses that end with the given digits'
-            Top = 20
-            Width = 82
+            Top = 19
+            Width = 74
             Caption = 'Last Digits'
             OnChange = rbFsmAlignedChange
             ParentShowHint = False
@@ -625,10 +594,10 @@ object MainForm: TMainForm
             AnchorSideLeft.Control = Panel8
             AnchorSideTop.Control = Panel8
             Left = 0
-            Height = 20
+            Height = 19
             Hint = 'When set and fastscan is enabled will scan the memory address if it is dividable by the given value'
             Top = 0
-            Width = 79
+            Width = 76
             Caption = 'Alignment'
             Checked = True
             OnChange = rbFsmAlignedChange
@@ -644,16 +613,15 @@ object MainForm: TMainForm
       AnchorSideLeft.Control = btnNewScan
       AnchorSideLeft.Side = asrBottom
       AnchorSideRight.Control = btnNewScan
-      Left = 350
-      Height = 26
+      Left = 341
+      Height = 25
       Top = 48
-      Width = 87
+      Width = 78
+      AutoSize = True
       BorderSpacing.Left = 10
       Caption = 'Next Scan'
       Enabled = False
-      Font.Name = 'MS Sans Serif'
       OnClick = btnNextScanClick
-      ParentFont = False
       TabOrder = 2
     end
     object ScanType: TComboBox
@@ -662,8 +630,8 @@ object MainForm: TMainForm
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = Panel9
       Left = 300
-      Height = 24
-      Top = 122
+      Height = 23
+      Top = 121
       Width = 196
       HelpContext = 9
       Anchors = [akTop, akLeft, akRight]
@@ -671,7 +639,7 @@ object MainForm: TMainForm
       BorderSpacing.Right = 6
       DropDownCount = 9
       Enabled = False
-      ItemHeight = 16
+      ItemHeight = 15
       Items.Strings = (
         'Exact value'
         'Increased value'
@@ -693,8 +661,8 @@ object MainForm: TMainForm
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = Panel9
       Left = 300
-      Height = 24
-      Top = 148
+      Height = 23
+      Top = 146
       Width = 196
       HelpContext = 7
       Anchors = [akTop, akRight]
@@ -702,7 +670,7 @@ object MainForm: TMainForm
       BorderSpacing.Right = 6
       DropDownCount = 11
       Enabled = False
-      ItemHeight = 16
+      ItemHeight = 15
       Items.Strings = (
         'Binary'
         'Byte'
@@ -731,8 +699,8 @@ object MainForm: TMainForm
       Left = 88
       Height = 16
       Hint = 'This shows how far Cheat Engine is with searching'
-      Top = 16
-      Width = 503
+      Top = 15
+      Width = 505
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Left = 5
       BorderSpacing.Right = 5
@@ -743,10 +711,10 @@ object MainForm: TMainForm
     end
     object UndoScan: TButton
       AnchorSideRight.Control = LogoPanel
-      Left = 498
-      Height = 26
+      Left = 510
+      Height = 25
       Top = 48
-      Width = 93
+      Width = 83
       Anchors = [akTop, akRight]
       AutoSize = True
       BorderSpacing.Right = 5
@@ -761,7 +729,7 @@ object MainForm: TMainForm
       AnchorSideRight.Control = Panel5
       AnchorSideRight.Side = asrBottom
       Left = 300
-      Height = 24
+      Height = 23
       Top = 96
       Width = 343
       Anchors = [akTop, akLeft, akRight]
@@ -862,16 +830,16 @@ object MainForm: TMainForm
     object LogoPanel: TPanel
       AnchorSideRight.Control = Panel5
       AnchorSideRight.Side = asrBottom
-      Left = 596
-      Height = 87
+      Left = 598
+      Height = 86
       Top = 0
-      Width = 52
+      Width = 50
       Align = alCustom
       Anchors = [akTop, akRight]
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 87
-      ClientWidth = 52
+      ClientHeight = 86
+      ClientWidth = 50
       FullRepaint = False
       TabOrder = 11
       object Logo: TImage
@@ -1197,10 +1165,10 @@ object MainForm: TMainForm
         Transparent = True
       end
       object SettingsButton: TSpeedButton
-        Left = 0
-        Height = 20
+        Left = 4
+        Height = 19
         Top = 67
-        Width = 52
+        Width = 46
         Anchors = [akTop, akRight]
         AutoSize = True
         Caption = 'Settings'
@@ -1210,9 +1178,9 @@ object MainForm: TMainForm
     end
     object lblcompareToSavedScan: TLabel
       Left = 288
-      Height = 16
+      Height = 15
       Top = 31
-      Width = 240
+      Width = 200
       Caption = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
       ParentColor = False
       Visible = False
@@ -1220,7 +1188,7 @@ object MainForm: TMainForm
     end
     object Foundlist3: TListView
       Left = 0
-      Height = 332
+      Height = 316
       Hint = 'This list shows all the found addresses that matched your last scan'
       Top = 48
       Width = 225
@@ -1240,12 +1208,9 @@ object MainForm: TMainForm
           Width = 3
         end>
       DragMode = dmAutomatic
-      Font.CharSet = ANSI_CHARSET
-      Font.Name = 'Courier'
       HideSelection = False
       MultiSelect = True
       OwnerData = True
-      ParentFont = False
       ParentShowHint = False
       PopupMenu = foundlistpopup
       ReadOnly = True
@@ -1265,23 +1230,23 @@ object MainForm: TMainForm
       AnchorSideTop.Control = scanvalue
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = scanvalue
-      Left = 227
-      Height = 40
+      Left = 234
+      Height = 38
       Top = 88
-      Width = 70
+      Width = 63
       Anchors = [akTop, akRight]
       AutoSize = True
       BorderSpacing.Right = 3
       BevelOuter = bvNone
       ChildSizing.Layout = cclLeftToRightThenTopToBottom
-      ClientHeight = 40
-      ClientWidth = 70
+      ClientHeight = 38
+      ClientWidth = 63
       TabOrder = 13
       object rbBit: TRadioButton
         Left = 0
-        Height = 20
+        Height = 19
         Top = 0
-        Width = 70
+        Width = 63
         HelpContext = 7
         Alignment = taLeftJustify
         Caption = 'Bits'
@@ -1291,9 +1256,9 @@ object MainForm: TMainForm
       end
       object rbDec: TRadioButton
         Left = 0
-        Height = 20
-        Top = 20
-        Width = 70
+        Height = 19
+        Top = 19
+        Width = 63
         HelpContext = 7
         Alignment = taLeftJustify
         Caption = 'Decimal'
@@ -1307,11 +1272,11 @@ object MainForm: TMainForm
         AnchorSideTop.Side = asrCenter
         AnchorSideRight.Control = pnlScanValueOptions
         AnchorSideRight.Side = asrBottom
-        Left = 26
-        Height = 20
+        Left = 23
+        Height = 19
         Hint = 'When checked the value you type in is hexadecimal'
         Top = 10
-        Width = 44
+        Width = 40
         HelpContext = 7
         Alignment = taLeftJustify
         Anchors = [akTop, akRight]
@@ -1328,9 +1293,9 @@ object MainForm: TMainForm
       AnchorSideBottom.Control = Panel5
       AnchorSideBottom.Side = asrBottom
       Left = 5
-      Height = 20
-      Top = 384
-      Width = 89
+      Height = 19
+      Top = 369
+      Width = 82
       Anchors = [akLeft, akBottom]
       AutoSize = True
       BorderSpacing.Left = 5
@@ -1343,10 +1308,10 @@ object MainForm: TMainForm
       AnchorSideRight.Side = asrBottom
       AnchorSideBottom.Control = Panel5
       AnchorSideBottom.Side = asrBottom
-      Left = 497
-      Height = 20
-      Top = 384
-      Width = 146
+      Left = 514
+      Height = 19
+      Top = 369
+      Width = 129
       Anchors = [akRight, akBottom]
       AutoSize = True
       BorderSpacing.Right = 5
@@ -1360,13 +1325,13 @@ object MainForm: TMainForm
       AnchorSideRight.Control = Panel5
       AnchorSideRight.Side = asrBottom
       Left = 502
-      Height = 258
-      Top = 120
+      Height = 250
+      Top = 119
       Width = 146
       Anchors = [akTop, akRight]
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 258
+      ClientHeight = 250
       ClientWidth = 146
       TabOrder = 14
       object pnlScanOptions: TPanel
@@ -1375,14 +1340,14 @@ object MainForm: TMainForm
         AnchorSideRight.Control = Panel9
         AnchorSideRight.Side = asrBottom
         Left = 0
-        Height = 120
+        Height = 114
         Top = 0
-        Width = 135
+        Width = 121
         AutoSize = True
         BorderSpacing.Bottom = 4
         BevelOuter = bvNone
-        ClientHeight = 120
-        ClientWidth = 135
+        ClientHeight = 114
+        ClientWidth = 121
         Constraints.MinHeight = 100
         TabOrder = 0
         OnResize = pnlScanOptionsResize
@@ -1392,21 +1357,21 @@ object MainForm: TMainForm
           AnchorSideTop.Side = asrBottom
           AnchorSideRight.Side = asrBottom
           Left = 0
-          Height = 60
-          Top = 40
-          Width = 135
+          Height = 57
+          Top = 38
+          Width = 121
           AutoSize = True
           BevelOuter = bvNone
-          ClientHeight = 60
-          ClientWidth = 135
+          ClientHeight = 57
+          ClientWidth = 121
           TabOrder = 0
           object rt3: TRadioButton
             AnchorSideTop.Control = rt2
             AnchorSideTop.Side = asrBottom
             Left = 0
-            Height = 20
-            Top = 40
-            Width = 81
+            Height = 19
+            Top = 38
+            Width = 74
             Caption = 'Truncated'
             Checked = True
             TabOrder = 2
@@ -1414,9 +1379,9 @@ object MainForm: TMainForm
           end
           object rt1: TRadioButton
             Left = 0
-            Height = 20
+            Height = 19
             Top = 0
-            Width = 127
+            Width = 116
             Caption = 'Rounded (default)'
             TabOrder = 0
           end
@@ -1424,9 +1389,9 @@ object MainForm: TMainForm
             AnchorSideTop.Control = rt1
             AnchorSideTop.Side = asrBottom
             Left = 0
-            Height = 20
-            Top = 20
-            Width = 135
+            Height = 19
+            Top = 19
+            Width = 121
             Caption = 'Rounded (extreme)'
             TabOrder = 1
           end
@@ -1435,9 +1400,9 @@ object MainForm: TMainForm
           AnchorSideLeft.Control = pnlScanOptions
           AnchorSideTop.Control = pnlScanOptions
           Left = 0
-          Height = 20
+          Height = 19
           Top = 0
-          Width = 71
+          Width = 64
           Caption = 'Unicode'
           TabOrder = 1
           Visible = False
@@ -1447,9 +1412,9 @@ object MainForm: TMainForm
           AnchorSideTop.Control = cbUnicode
           AnchorSideTop.Side = asrBottom
           Left = 0
-          Height = 20
-          Top = 20
-          Width = 108
+          Height = 19
+          Top = 19
+          Width = 93
           Caption = 'Case sensitive'
           Checked = True
           Enabled = False
@@ -1466,9 +1431,9 @@ object MainForm: TMainForm
           AnchorSideTop.Side = asrBottom
           AnchorSideRight.Side = asrBottom
           Left = 0
-          Height = 20
-          Top = 100
-          Width = 133
+          Height = 19
+          Top = 95
+          Width = 118
           Caption = 'Simple values only'
           TabOrder = 3
         end
@@ -1482,22 +1447,22 @@ object MainForm: TMainForm
         AnchorSideBottom.Control = Panel9
         AnchorSideBottom.Side = asrBottom
         Left = 0
-        Height = 134
-        Top = 124
+        Height = 132
+        Top = 118
         Width = 146
         Anchors = [akTop, akLeft, akBottom]
         AutoSize = True
         BevelOuter = bvNone
-        ClientHeight = 134
+        ClientHeight = 132
         ClientWidth = 146
         TabOrder = 1
         object cbUnrandomizer: TCheckBox
           AnchorSideLeft.Control = Panel10
           AnchorSideTop.Control = Panel10
           Left = 0
-          Height = 20
+          Height = 19
           Top = 0
-          Width = 104
+          Width = 95
           Caption = 'Unrandomizer'
           Enabled = False
           OnClick = cbUnrandomizerClick
@@ -1510,10 +1475,10 @@ object MainForm: TMainForm
           AnchorSideTop.Side = asrBottom
           AnchorSideRight.Side = asrBottom
           Left = 0
-          Height = 20
+          Height = 19
           Hint = 'Enable speedhack'
-          Top = 20
-          Width = 136
+          Top = 19
+          Width = 115
           Caption = 'Enable Speedhack'
           Enabled = False
           OnChange = cbSpeedhackChange
@@ -1529,7 +1494,7 @@ object MainForm: TMainForm
           AnchorSideRight.Side = asrBottom
           Left = 0
           Height = 94
-          Top = 40
+          Top = 38
           Width = 146
           BevelOuter = bvNone
           ClientHeight = 94
@@ -1541,9 +1506,9 @@ object MainForm: TMainForm
             AnchorSideTop.Control = editSH2
             AnchorSideTop.Side = asrCenter
             Left = 5
-            Height = 16
+            Height = 15
             Top = 4
-            Width = 41
+            Width = 32
             BorderSpacing.Left = 5
             Caption = 'Speed'
             ParentColor = False
@@ -1553,9 +1518,9 @@ object MainForm: TMainForm
             AnchorSideTop.Control = tbSpeed
             AnchorSideTop.Side = asrBottom
             Left = 11
-            Height = 16
-            Top = 59
-            Width = 7
+            Height = 15
+            Top = 58
+            Width = 6
             BorderSpacing.Left = 6
             Caption = '0'
             ParentColor = False
@@ -1565,10 +1530,10 @@ object MainForm: TMainForm
             AnchorSideTop.Side = asrBottom
             AnchorSideRight.Control = tbSpeed
             AnchorSideRight.Side = asrBottom
-            Left = 122
-            Height = 16
-            Top = 59
-            Width = 21
+            Left = 125
+            Height = 15
+            Top = 58
+            Width = 18
             Anchors = [akTop, akRight]
             BorderSpacing.Right = 3
             Caption = '500'
@@ -1593,8 +1558,8 @@ object MainForm: TMainForm
             AnchorSideLeft.Control = Label54
             AnchorSideLeft.Side = asrBottom
             AnchorSideTop.Control = Panel14
-            Left = 49
-            Height = 24
+            Left = 40
+            Height = 23
             Top = 0
             Width = 54
             BorderSpacing.Left = 3
@@ -1609,7 +1574,7 @@ object MainForm: TMainForm
             AnchorSideRight.Side = asrBottom
             Left = 5
             Height = 33
-            Top = 26
+            Top = 25
             Width = 141
             Max = 11
             OnChange = tbSpeedChange

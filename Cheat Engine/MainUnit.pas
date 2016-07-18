@@ -217,7 +217,6 @@ type
     cbUnicode: TCheckBox;
     cbUnrandomizer: TCheckBox;
     cbWritable: TCheckBox;
-    CheckBox1: TCheckBox;
     ColorDialog1: TColorDialog;
     CreateGroup: TMenuItem;
     editSH2: TEdit;
