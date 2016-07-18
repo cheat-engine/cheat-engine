@@ -7038,6 +7038,8 @@ begin
 
   panel5.Constraints.MinHeight := gbScanOptions.top + gbScanOptions.Height + max(speedbutton2.Height, btnAddAddressManually.height ) + 5;
   lblcompareToSavedScan.left:=btnNewScan.left-(lblcompareToSavedScan.Width div 2)+((btnNextScan.left+btnNextScan.Width-btnNewScan.left) div 2);
+
+  progressbar1.height:=scaley(progressbar1.height, 96);
 end;
 
 

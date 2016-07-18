@@ -247,7 +247,7 @@ object MainForm: TMainForm
     end
     object Label6: TLabel
       AnchorSideLeft.Control = Panel5
-      AnchorSideTop.Control = Panel7
+      AnchorSideTop.Control = ProgressBar1
       AnchorSideTop.Side = asrBottom
       Left = 0
       Height = 15
@@ -720,10 +720,11 @@ object MainForm: TMainForm
       TabOrder = 7
     end
     object UndoScan: TButton
+      AnchorSideTop.Control = btnNextScan
       AnchorSideRight.Control = LogoPanel
       Left = 509
       Height = 25
-      Top = 48
+      Top = 46
       Width = 83
       Anchors = [akTop, akRight]
       AutoSize = True
