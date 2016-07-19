@@ -746,25 +746,29 @@ void ultimap2_setup_dpc(struct _KDPC *Dpc, PVOID DeferredContext, PVOID SystemAr
 		__writemsr(IA32_RTIT_CR3_MATCH, CurrentCR3);
 
 		//ranges
-		for (i = 0; i < Ultimap2RangeCount; i++)
+		if (Ultimap2Ranges && Ultimap2RangeCount)
 		{
-			ULONG msr_start = IA32_RTIT_ADDR0_A + (2 * i);
-			ULONG msr_stop = IA32_RTIT_ADDR0_B + (2 * i);
-			UINT64 bit = 32 + (i * 4);
+			
+			for (i = 0; i < Ultimap2RangeCount; i++)
+			{
+				ULONG msr_start = IA32_RTIT_ADDR0_A + (2 * i);
+				ULONG msr_stop = IA32_RTIT_ADDR0_B + (2 * i);
+				UINT64 bit = 32 + (i * 4);
 
-			DbgPrint("Range %d: (%p -> %p)", i, (PVOID)(Ultimap2Ranges[i].StartAddress), (PVOID)(Ultimap2Ranges[i].EndAddress));
-			DbgPrint("Writing range %d to msr %x and %x", i, msr_start, msr_stop);
-			__writemsr(msr_start, Ultimap2Ranges[i].StartAddress);
-			__writemsr(msr_stop, Ultimap2Ranges[i].EndAddress);
+				DbgPrint("Range %d: (%p -> %p)", i, (PVOID)(Ultimap2Ranges[i].StartAddress), (PVOID)(Ultimap2Ranges[i].EndAddress));
+				DbgPrint("Writing range %d to msr %x and %x", i, msr_start, msr_stop);
+				__writemsr(msr_start, Ultimap2Ranges[i].StartAddress);
+				__writemsr(msr_stop, Ultimap2Ranges[i].EndAddress);
 
-			DbgPrint("bit=%d", bit);
-			DbgPrint("Value before=%x", ctl.Value);
-			if (Ultimap2Ranges[i].IsStopAddress)
-				ctl.Value |= (UINT64)2ULL << bit; //TraceStop This stops all tracing on this cpu. Doesn't get reactivated
-			else
-				ctl.Value |= (UINT64)1ULL << bit; //FilterEn
+				DbgPrint("bit=%d", bit);
+				DbgPrint("Value before=%x", ctl.Value);
+				if (Ultimap2Ranges[i].IsStopAddress)
+					ctl.Value |= (UINT64)2ULL << bit; //TraceStop This stops all tracing on this cpu. Doesn't get reactivated
+				else
+					ctl.Value |= (UINT64)1ULL << bit; //FilterEn
 
-			DbgPrint("Value after=%p", (PVOID)ctl.Value);
+				DbgPrint("Value after=%p", (PVOID)ctl.Value);
+			}
 		}
 		i = 3;
 
@@ -1000,15 +1004,17 @@ void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, P
 			ExFreePoolWithTag(Ultimap2Ranges, 0);
 			Ultimap2Ranges = NULL;
 		}
-		
+
 		Ultimap2Ranges = ExAllocatePoolWithTag(NonPagedPool, rangeCount*sizeof(URANGE), 0);
 
 		for (i = 0; i < rangeCount; i++)
 			Ultimap2Ranges[i] = Ranges[i];
 
 		Ultimap2RangeCount = rangeCount;
-		
+
 	}
+	else
+		Ultimap2RangeCount = 0;
 
 
 	//get the EProcess and CR3 for this PID
@@ -1235,6 +1241,8 @@ void DisableUltimap2(void)
 	{
 		ExFreePoolWithTag(Ultimap2Ranges, 0);
 		Ultimap2Ranges = NULL;
+
+		Ultimap2RangeCount = 0;
 	}
 
 	DbgPrint("-------------------->DisableUltimap2:Finish<------------------");
