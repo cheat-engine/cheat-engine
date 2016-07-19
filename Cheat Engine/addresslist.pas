@@ -1828,7 +1828,7 @@ begin
 
 
         //value
-        sender.Canvas.TextRect(rect(header.Sections[4].left, textrect.top, header.Sections[4].right, textrect.bottom),header.sections[4].left, linetop, WinCPToUTF8(memrec.DisplayValue));
+        sender.Canvas.TextRect(rect(header.Sections[4].left, textrect.top, header.Sections[4].right, textrect.bottom),header.sections[4].left, linetop, memrec.DisplayValue);
       end;
     end
     else

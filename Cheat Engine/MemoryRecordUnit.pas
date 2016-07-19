@@ -8,7 +8,7 @@ interface
 uses
   Windows, forms, graphics, Classes, SysUtils, controls, stdctrls, comctrls,symbolhandler,
   cefuncproc,newkernelhandler, autoassembler, hotkeyhandler, dom, XMLRead,XMLWrite,
-  customtypehandler, fileutil, LCLProc, commonTypeDefs, pointerparser;
+  customtypehandler, fileutil, LCLProc, commonTypeDefs, pointerparser, LazUTF8;
 {$endif}
 
 {$ifdef unix}
@@ -1965,10 +1965,10 @@ begin
         if Extra.stringData.unicode then
         begin
           pba[bufsize-2]:=0;
-          result:={ansitoutf8}(wc);
+          result:=WinCPToUTF8(wc);
         end
         else
-          result:={ansitoutf8}(c);
+          result:=WinCPToUTF8(c);
       end;
 
       vtByteArray:

@@ -19,7 +19,7 @@ uses
   generichotkey, luafile, xmplayer_server, ExtraTrainerComponents, customtimer,
   menus, XMLRead, XMLWrite, DOM,ShellApi, Clipbrd, typinfo, PEInfoFunctions,
   LCLProc, strutils, registry, md5, commonTypeDefs, LResources, Translations,
-  variants;
+  variants, LazUTF8;
 
 
 const MAXTABLERECURSIONLOOKUP=2;
@@ -469,7 +469,8 @@ begin
     begin
       if ((DirInfo.Attr and FaDirectory) <> FaDirectory) then
       begin
-        i:=lua_dofile(luavm, pchar(CheatEngineDir+'autorun'+pathdelim+DirInfo.name));
+
+        i:=lua_dofile(luavm, pchar( UTF8ToWinCP(CheatEngineDir+'autorun'+pathdelim+DirInfo.name)));
         if i<>0 then //error
         begin
           i:=lua_gettop(luavm);

@@ -493,7 +493,10 @@ begin
   inp.rangecount:=min(8,length(ranges));
 
   for i:=0 to inp.rangecount-1 do
+  begin
     inp.range[i]:=ranges[i];
+    OutputDebugString(format('r%d : %x - %x', [i, inp.range[i].startAddress, inp.range[i].endaddress]));
+  end;
 
 
   cc:=IOCTL_CE_ULTIMAP2;
