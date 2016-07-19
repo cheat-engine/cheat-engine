@@ -1336,7 +1336,7 @@ end;
 
 procedure TfrmUltimap2.tbRecordPauseChange(Sender: TObject);
 var
-  size: dword;
+  bsize: dword;
   s: string;
   ranges: TURangeArray;
   r: TCPUIDResult;
@@ -1393,8 +1393,8 @@ begin
         raise exception.create('Target a different process. Ultimap2 will suspend the target when the buffer is full, and suspending the thing that empties the buffer is not a good idea');
 
       //initial checks are OK
-      size:=strtoint(edtBufSize.text)*1024;
-      if size<12*1024 then
+      bsize:=strtoint(edtBufSize.text)*1024;
+      if bsize<12*1024 then
         raise exception.create('The size has to be 12KB or higher');
 
       setlength(ranges,lbrange.count);
@@ -1472,7 +1472,7 @@ begin
             inc(p^.size, 4096-p^.size);
 
           getmem(p^.memory, p^.size);
-          getmem(p^.info, size*sizeof(TByteInfo));
+          getmem(p^.info, p^.size*sizeof(TByteInfo));
           ReadProcessMemory(processhandle, pointer(p^.address), p^.memory, p^.size, br);
           if br=0 then
             freeRegion(p)
@@ -1515,9 +1515,9 @@ begin
       DBK32Initialize;
 
       if rbLogToFolder.Checked then
-        ultimap2(processid, size, deTargetFolder.Directory, ranges)
+        ultimap2(processid, bsize, deTargetFolder.Directory, ranges)
       else
-        ultimap2(processid, size, '', ranges);
+        ultimap2(processid, bsize, '', ranges);
 
       FilterGUI(true);
 
