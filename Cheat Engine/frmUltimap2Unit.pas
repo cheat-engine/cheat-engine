@@ -205,6 +205,7 @@ type
     procedure miRangeDeleteSelectedClick(Sender: TObject);
     procedure miRangeDeleteAllClick(Sender: TObject);
     procedure Panel5Click(Sender: TObject);
+    procedure pmRangeOptionsPopup(Sender: TObject);
     procedure rbLogToFolderChange(Sender: TObject);
     procedure tActivatorTimer(Sender: TObject);
     procedure tbRecordPauseChange(Sender: TObject);
@@ -1590,6 +1591,8 @@ begin
     edtBufSize.ClientWidth:=minwidth;
 end;
 
+
+
 procedure TfrmUltimap2.ListView1Data(Sender: TObject; Item: TListItem);
 var data: PValidEntry;
 begin
@@ -1704,6 +1707,8 @@ begin
   result:=listText+' -error';
 end;
 
+
+
 procedure TfrmUltimap2.btnAddRangeClick(Sender: TObject);
 var
   r: string;
@@ -1711,7 +1716,15 @@ var
   start, stop: uint64;
   stoprange: boolean;
 begin
-  if lbrange.Items.Count>=maxrangecount then
+  if sender=lbRange then
+  begin
+    if lbRange.itemindex=-1 then exit;
+    output:=lbrange.items[lbRange.itemindex];
+  end
+  else
+    output:='';
+
+  if (sender=btnAddRange) and (lbrange.Items.Count>=maxrangecount) then
   begin
     MessageDlg('Max amount of ranges reached for your CPU. Clear one first', mtError, [mbok],0);
     exit;
@@ -1721,7 +1734,7 @@ begin
     l:=tstringlist.create;
 
   symhandler.getModuleList(l);
-  output:='';
+
   ShowSelectionList(self, 'Module list', 'Select a module or give your own range'#13#10'(Put between *''s to mark as an auto stop range)', l, output, true, @ModuleSelectEvent);
   if output<>'' then
   begin
@@ -1740,11 +1753,16 @@ begin
 
     if symhandler.parseRange(output, start, stop) then
     begin
-      if stoprange then
-        lbrange.Items.Add('*'+inttohex(start,8)+'-'+inttohex(stop,8)+'*')
-      else
-        lbrange.Items.Add(inttohex(start,8)+'-'+inttohex(stop,8));
 
+      if stoprange then
+        r:='*'+inttohex(start,8)+'-'+inttohex(stop,8)+'*'
+      else
+        r:=inttohex(start,8)+'-'+inttohex(stop,8);
+
+      if sender=lbRange then
+        lbrange.items[lbRange.itemindex]:=r
+      else
+        lbrange.Items.Add(r);
     end;
   end;
 
@@ -1998,6 +2016,12 @@ end;
 procedure TfrmUltimap2.Panel5Click(Sender: TObject);
 begin
 
+end;
+
+procedure TfrmUltimap2.pmRangeOptionsPopup(Sender: TObject);
+begin
+  miRangeDeleteSelected.enabled:=lbrange.SelCount>0;
+  miRangeDeleteAll.enabled:=lbrange.count>0;
 end;
 
 procedure TfrmUltimap2.rbLogToFolderChange(Sender: TObject);
