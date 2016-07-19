@@ -163,6 +163,7 @@ begin
 
       try
         try
+          if mainformvisible then LoadSettingsFromRegistry;
           LoadTable(tabletoload,false);
           MainForm.Savedialog1.FileName:=tabletoload;
         finally
@@ -176,7 +177,9 @@ begin
           application.Terminate;
         end;
       end;
-    end;
+    end
+    else
+      LoadSettingsFromRegistry;
   except
   end;
 

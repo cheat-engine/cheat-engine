@@ -6919,9 +6919,6 @@ begin
     Messagedlg(
       rsLicenseExpired, mtWarning, [mbOK], 0);
 
-
-  LoadSettingsFromRegistry;
-
   //Load the table if one was suplied
   overridedebug := False;
 
