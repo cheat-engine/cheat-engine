@@ -7,7 +7,7 @@ unit CEFuncProc;
 
 interface
 
-uses jwawindows, zstream, windows, LCLIntf,StdCtrls,Classes,SysUtils,dialogs,{tlhelp32,}forms,messages,
+uses jwawindows, zstream, windows, LazUTF8, LCLIntf,StdCtrls,Classes,SysUtils,dialogs,{tlhelp32,}forms,messages,
 Graphics,
 ComCtrls,
 {reinit, }
