@@ -2059,7 +2059,7 @@ begin
         temp[0]:=#0;
         getwindowtext(winhandle,temp,100);
         temp[100]:=#0;
-        wintitle:=temp;
+        wintitle:=WinCPToUTF8(temp);
 
 
         if ((not ProcessesCurrentUserOnly) or (GetUserNameFromPID(winprocess)=username)) and (length(wintitle)>0) then
