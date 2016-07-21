@@ -590,14 +590,16 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'IMUL';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_r16;paramtype2:par_rm16;paramtype3:par_imm8;bytes:2;bt1:$66;bt2:$6b),
   (mnemonic:'IMUL';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_r32;paramtype2:par_rm32;paramtype3:par_imm8;bytes:1;bt1:$6b),
 
+  (mnemonic:'IMUL';opcode1:eo_reg;opcode2:eo_iw;paramtype1:par_r16;paramtype2:par_imm16;bytes:2;bt1:$66;bt2:$69),
+  (mnemonic:'IMUL';opcode1:eo_reg;opcode2:eo_id;paramtype1:par_r32;paramtype2:par_imm32;bytes:1;bt1:$69),
+
   (mnemonic:'IMUL';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_r16;paramtype2:par_imm8;bytes:2;bt1:$66;bt2:$6b),
   (mnemonic:'IMUL';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_r32;paramtype2:par_imm8;bytes:1;bt1:$6b),
 
   (mnemonic:'IMUL';opcode1:eo_reg;opcode2:eo_iw;paramtype1:par_r16;paramtype2:par_rm16;paramtype3:par_imm16;bytes:2;bt1:$66;bt2:$69),
   (mnemonic:'IMUL';opcode1:eo_reg;opcode2:eo_id;paramtype1:par_r32;paramtype2:par_rm32;paramtype3:par_imm32;bytes:1;bt1:$69),
 
-  (mnemonic:'IMUL';opcode1:eo_reg;opcode2:eo_iw;paramtype1:par_r16;paramtype2:par_imm16;bytes:2;bt1:$66;bt2:$69),
-  (mnemonic:'IMUL';opcode1:eo_reg;opcode2:eo_id;paramtype1:par_r32;paramtype2:par_imm32;bytes:1;bt1:$69),
+
 
   (mnemonic:'IN';opcode1:eo_ib;paramtype1:par_al;paramtype2:par_imm8;bytes:1;bt1:$e4),
   (mnemonic:'IN';opcode1:eo_ib;paramtype1:par_ax;paramtype2:par_imm8;bytes:2;bt1:$66;bt2:$e5),
@@ -4752,25 +4754,6 @@ begin
           //r32,imm32
           if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
           begin
-            if signedvtype=8 then
-            begin
-              //check if there isn't a rm32,imm8 , since that's less bytes
-              k:=startoflist;
-              while (k<=opcodecount) and (opcodes[k].mnemonic=tokens[mnemonic]) do
-              begin
-                if (opcodes[k].paramtype1=par_rm32) and
-                   (opcodes[k].paramtype2=par_imm8) then
-                begin
-                  //yes, there is
-                  addopcode(bytes,k);
-                  result:=createmodrm(bytes,eotoreg(opcodes[k].opcode1),parameter1);
-                  add(bytes,[v]);
-                  exit;
-                end;
-                inc(k);
-              end;
-            end;
-
             if opcodes[j].opcode1=eo_prd then
             begin
               addopcode(bytes,j);
@@ -4789,6 +4772,33 @@ begin
               result:=true;
               exit;
             end;
+
+            if opcodes[j].opcode1=eo_reg then  //probably imul reg,imm32
+            begin
+              if signedvtype=8 then
+              begin
+                k:=startoflist;
+                while (k<=endoflist) and (opcodes[k].mnemonic=tokens[mnemonic]) do //check for an reg,imm8
+                begin
+                  if (opcodes[k].paramtype1=par_r32) and
+                     (opcodes[k].paramtype2=par_imm8) then
+                  begin
+                    addopcode(bytes,k);
+                    createmodrm(bytes,getreg(parameter1),parameter1);
+                    add(bytes,[byte(v)]);
+                    result:=true;
+                    exit;
+                  end;
+                  inc(k);
+                end;
+              end;
+
+              addopcode(bytes,j);
+              createmodrm(bytes,getreg(parameter1),parameter1);
+              AddDword(bytes,v);
+              result:=true;
+              exit;
+            end;
           end;
         end;
 
@@ -4797,13 +4807,23 @@ begin
         begin
           //r32, imm8
 
-            addopcode(bytes,j);
+            if opcodes[j].opcode1=eo_prd then
+            begin
+              addopcode(bytes,j);
+              createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
+              add(bytes,[byte(v)]);
+              result:=true;
+              exit;
+            end;
 
-
-            createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
-            add(bytes,[byte(v)]);
-            result:=true;
-            exit;
+            if opcodes[j].opcode1=eo_reg then  //probably imul reg,imm32
+            begin
+              addopcode(bytes,j);
+              createmodrm(bytes,getreg(parameter1),parameter1);
+              add(bytes,[byte(v)]);
+              result:=true;
+              exit;
+            end;
 
         end;
 

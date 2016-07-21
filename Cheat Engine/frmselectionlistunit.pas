@@ -56,6 +56,8 @@ begin
 
   sl.customInput:=AllowCustomInput;
   sl.SelectionToText:=SelectionToText;
+  if output<>'' then
+    sl.edit1.Text:=output;
 
   result:=-1;
   if sl.ShowModal=mrOK then
