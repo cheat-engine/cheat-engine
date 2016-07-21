@@ -5,7 +5,7 @@ unit ProcessList;
 interface
 
 uses
-  {$ifdef windows}jwawindows, windows, cefuncproc, {$endif}Classes, SysUtils{$ifndef JNI}, StdCtrls{$endif}, ProcessHandlerUnit {$ifndef windows},unixporthelper{$endif},newkernelhandler;
+  {$ifdef windows}jwawindows, windows, cefuncproc, LazUTF8, {$endif}Classes, SysUtils{$ifndef JNI}, StdCtrls{$endif}, ProcessHandlerUnit {$ifndef windows},unixporthelper{$endif},newkernelhandler;
 
 {$ifndef jni}
 procedure GetProcessList(ProcessList: TListBox; NoPID: boolean=false); overload;
@@ -179,15 +179,15 @@ begin
           else
             s:=IntTohex(processentry.th32ProcessID,8)+'-';
 
-          s:=s+ExtractFilename(processentry.szExeFile);
+          s:=s+ExtractFilename(WinCPToUTF8(processentry.szExeFile));
 
 {$ifdef windows}
           if noprocessinfo then
-            ProcessList.Add(AnsiToUtf8(s))
+            ProcessList.Add(s)
           else
-            ProcessList.AddObject(AnsiToUtf8(s), TObject(ProcessListInfo));
+            ProcessList.AddObject(s, TObject(ProcessListInfo));
 {$else}
-          ProcessList.Add(AnsiToUtf8(s))
+          ProcessList.Add(s)
 {$endif}
         end;
       end;
