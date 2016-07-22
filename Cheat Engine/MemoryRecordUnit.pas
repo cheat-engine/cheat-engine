@@ -74,16 +74,20 @@ type
     special: boolean; //if set, look at luaref or text, else just keep it to offset (also, update offset to the latest value while at it)
     text: string; //symhandler interpretable value, or a luastatement
     luaref: integer; //if lua, this contains a reference to the function (so it doesn't have to be parsed each time)
+
+    funparsed: boolean;
     function getOffsetNoBase: integer;
     procedure cleanupluaref;
   public
     function getOffset(currentBase: ptruint): integer;
     procedure setOffset(o: integer);
-    function setOffsetText(s: string): boolean;
+    procedure setOffsetText(s: string);
     constructor create(owner: TMemoryRecord);
     destructor destroy; override;
   published
     property offset: integer read getOffsetNoBase write setOffset;
+    property offsetText: string read text write setOffsetText;
+    property unparsed: boolean read funparsed;
 
   end;
 
@@ -373,15 +377,19 @@ begin
     else
     begin
       memrecluaobjectref:=fowner.getLuaRef;
-      lua_rawgeti(Luavm, LUA_REGISTRYINDEX, memrecluaobjectref);
-      lua_pushinteger(luavm, currentBase);
 
       LUACS.Enter;
       try
         stack:=lua_Gettop(luavm);
 
+        lua_rawgeti(Luavm, LUA_REGISTRYINDEX, LuaRef);
+        lua_rawgeti(Luavm, LUA_REGISTRYINDEX, memrecluaobjectref);
+        lua_pushinteger(luavm, currentBase);
+
         if lua_pcall(Luavm, 2, 1,0)=0 then
           foffset:=lua_tointeger(Luavm, -1);
+
+        lua_pop(luavm, 1);
 
       finally
         lua_settop(luavm, stack);
@@ -405,49 +413,52 @@ end;
 
 procedure TMemrecOffset.setOffset(o: integer);
 begin
-  special:=false;
-  foffset:=o;
+  offsettext:=inttostr(o);
 end;
 
-function TMemrecOffset.setOffsetText(s: string): boolean;
+procedure TMemrecOffset.setOffsetText(s: string);
 var
   e: boolean;
-  ft: tstringlist;
+  s2: string;
   stack: integer;
 begin
+  funparsed:=true;
   cleanupluaref;
+  text:=s;
 
-  special:=not TryStrToInt('$'+s,foffset);
-  result:=special;
-
-  if special then
-  begin
-    text:=s;
-    //parse it as a symbolhandler text, if that fails, try lua
-
-    foffset:=symhandler.getAddressFromName(s, false, e);
-    if e then
-    begin
-      //try lua
-      ft:=tstringlist.create;
-      ft.add('memrec, address=...');
-      ft.add('return '+s);
-
-
-      LUACS.Enter;
-      try
-        stack:=lua_Gettop(luavm);
-        if luaL_loadstring(luavm, pchar(ft.text))=0 then
-          if lua_isfunction(luavm,-1) then //store a reference to this function
-            luaref:=luaL_ref(luavm, LUA_REGISTRYINDEX);
-      finally
-        lua_settop(luavm, stack);
-        LuaCS.Leave;
-      end;
-
-      result:=luaref<>-1;
-    end;
+  try
+    foffset:=StrToQWordEx(ConvertHexStrToRealStr(s));
+    funparsed:=false;
+    exit;
+  except
   end;
+
+
+  special:=true;
+  //parse it as a symbolhandler text, if that fails, try lua
+
+  foffset:=symhandler.getAddressFromName(s, false, e);
+  if e then
+  begin
+    //try lua
+    s2:='memrec, address=... return '+s;
+
+
+    LUACS.Enter;
+    try
+      stack:=lua_Gettop(luavm);
+      if luaL_loadstring(luavm, pchar(s2))=0 then
+        if lua_isfunction(luavm,-1) then //store a reference to this function
+          luaref:=luaL_ref(luavm, LUA_REGISTRYINDEX);
+    finally
+      lua_settop(luavm, stack);
+      LuaCS.Leave;
+    end;
+
+    funparsed:=luaref<>-1;
+
+  end else funparsed:=false;
+
 end;
 
 constructor TMemrecOffset.create(owner: TMemoryRecord);
@@ -960,7 +971,7 @@ begin
       begin
         if tempnode.ChildNodes[i].NodeName='Offset' then
         begin
-          fpointeroffsets[j].offset:=strtoint('$'+tempnode.ChildNodes[i].TextContent);
+          fpointeroffsets[j].offsetText:=tempnode.ChildNodes[i].TextContent;
           inc(j);
         end;
       end;
@@ -1300,7 +1311,7 @@ begin
         Offsets:=cheatEntry.AppendChild(doc.CreateElement('Offsets'));
 
         for i:=0 to offsetCount-1 do
-          Offsets.AppendChild(doc.CreateElement('Offset')).TextContent:=inttohex(fpointeroffsets[i].offset,1);
+          Offsets.AppendChild(doc.CreateElement('Offset')).TextContent:=fpointeroffsets[i].offsetText;
 
         cheatEntry.AppendChild(Offsets);
       end;
@@ -1943,11 +1954,17 @@ begin
 
   if result then
   begin
-
     s:=trim(interpretableaddress);
     fIsOffset:=(s<>'') and (s[1] in ['+','-']);
     baseaddress:=a;
   end;
+
+  for i:=0 to offsetCount-1 do
+    if offsets[i].unparsed then
+    begin
+      offsets[i].offsetText:=offsets[i].offsetText;
+    end;
+
 
   GetRealAddress;
 
