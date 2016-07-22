@@ -250,11 +250,8 @@ var ishex: string;
     f: single;
     d: double;
 begin
-  if s='' then
-  begin
-    result:=s;
-    exit;
-  end;
+  if s='' then exit('');
+
   start:=1;
 
   ishex:='$';
@@ -341,6 +338,13 @@ begin
           end;
         end;
       end;
+
+      '0'..'9', 'a'..'f', 'A'..'F':
+      begin
+        //ok
+      end
+      else
+        exit('');
     end;
 
 

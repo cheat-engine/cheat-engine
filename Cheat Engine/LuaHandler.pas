@@ -5160,19 +5160,40 @@ var
   filename: string;
   parameters: integer;
   merge: boolean;
+  doc: TXMLDocument;
+  s: Tstream;
 begin
   result:=0;
-
+  s:=nil;
   parameters:=lua_gettop(L);
   if parameters>=1 then
   begin
-    filename:=Lua_ToString(L, 1);
+    if lua_isstring(L, 1) then
+    begin
+      filename:=Lua_ToString(L, 1);
+      if (not fileexists(filename)) and (fileexists(wincptoutf8(filename))) then
+        filename:=wincptoutf8(filename);
+    end
+    else
+    begin
+      s:=lua_toceuserdata(L, 1);
+      if s=nil then
+        exit;
+    end;
+
     if parameters>=2 then
       merge:=lua_toboolean(L,2)
     else
       merge:=false;
 
-    loadtable(filename,merge);
+
+    if s<>nil then //read a stream
+    begin
+      ReadXMLFile(doc, s);
+      loadxml(doc, merge);
+    end
+    else
+      loadtable(filename,merge);
   end;
 
   lua_pop(L, lua_gettop(L));

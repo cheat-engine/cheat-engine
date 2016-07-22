@@ -21,6 +21,7 @@ procedure unprotecttrainer(filename: string; stream: TStream);
 procedure SaveTable(Filename: string; protect: boolean=false);
 procedure LoadTable(Filename: string;merge: boolean);
 procedure SaveCEM(Filename:string;address:ptrUint; size:dword);
+procedure LoadXML(doc: TXMLDocument; merge: boolean; isTrainer: boolean=false);
 
 {procedure LoadExe(filename: string);}
 
