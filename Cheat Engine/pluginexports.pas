@@ -929,14 +929,18 @@ begin
     begin
 
       if neededoffsets<>nil then
-        neededOffsets^:=length(m.pointeroffsets);
-
-      if offsets<>nil then
-        for i:=0 to maxoffsets-1 do
-          offsets[i]:=m.pointeroffsets[i];
+        neededOffsets^:=m.offsetCount;
 
       if address<>nil then
         address^:=m.GetRealAddress;
+
+      if offsets<>nil then
+      begin
+        for i:=0 to maxoffsets-1 do
+          offsets[i]:=m.offsets[i].offset;
+      end;
+
+
 
       result:=true;
     end;
@@ -962,11 +966,11 @@ begin
     p:=params;
     if (p.memrec is TMemoryRecord) then
     begin
-      setlength(p.memrec.pointeroffsets, p.offsetcount);
+      p.memrec.offsetCount:=p.offsetcount;
 
       p.memrec.interpretableaddress:=p.address;
       for i:=0 to p.offsetcount-1 do
-        p.memrec.pointeroffsets[i]:=p.offsets[i];
+        p.memrec.offsets[i].offset:=p.offsets[i];
 
       result:=pointer(1);
 

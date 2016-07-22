@@ -24,7 +24,7 @@ uses
   groupscancommandparser, GraphType, IntfGraphics, RemoteMemoryManager,
   DBK64SecondaryLoader, savedscanhandler, debuggertypedefinitions, networkInterface,
   FrmMemoryRecordDropdownSettingsUnit, xmlutils, zstream, zstreamext, commonTypeDefs,
-  VirtualQueryExCache, LazLogger;
+  VirtualQueryExCache, LazLogger, LazUTF8;
 
 //the following are just for compatibility
 
@@ -7696,12 +7696,12 @@ begin
       //create and fill in the offset list
 
       frmpointerscannersettings.cbMustEndWithSpecificOffset.Checked := True;
-      TOffsetEntry(frmpointerscannersettings.offsetlist[0]).offset := memrec.pointeroffsets[0];
+      TOffsetEntry(frmpointerscannersettings.offsetlist[0]).offset := memrec.offsets[0].offset;
 
-      for i := 1 to length(memrec.pointeroffsets) - 1 do
+      for i := 1 to memrec.offsetcount - 1 do
       begin
         frmpointerscannersettings.btnAddOffset.Click;
-        TOffsetEntry(frmpointerscannersettings.offsetlist[i]).offset := memrec.pointeroffsets[i];
+        TOffsetEntry(frmpointerscannersettings.offsetlist[i]).offset := memrec.offsets[i].offset;
       end;
     end;
 
@@ -7766,12 +7766,12 @@ begin
 
   selectedrecord.address := addresslist.selectedRecord.getrealAddress;
   selectedrecord.ispointer := addresslist.selectedRecord.IsPointer;
-  selectedrecord.countoffsets := length(addresslist.selectedRecord.pointeroffsets);
+  selectedrecord.countoffsets := addresslist.selectedRecord.offsetCount;
 
   getmem(offsets, selectedrecord.countoffsets * 4); //don't forget to free
   selectedrecord.offsets := offsets;
   for i := 0 to selectedrecord.countoffsets - 1 do
-    selectedrecord.offsets[i] := addresslist.selectedRecord.pointeroffsets[i];
+    selectedrecord.offsets[i] := addresslist.selectedRecord.offsets[i].offset;
 
   description := addresslist.selectedRecord.Description;
   selectedrecord.description := @description[1];
@@ -7851,7 +7851,7 @@ begin
     address := foundlist.GetAddress(item.Index, extra, Value);
     AddressString:=IntToHex(address,8);
     part:=1;
-    Value := AnsiToUtf8(Value);
+    Value := WinCPToUTF8(Value);
     part:=2;
 
     hexadecimal:=foundlist.isHexadecimal;
@@ -8320,7 +8320,7 @@ begin
     memscan.floatscanWithoutExponents:=cbFloatSimple.checked;
 
     memscan.firstscan(GetScanType2, getVarType2, roundingtype,
-      utf8toansi(scanvalue.Text), utf8toansi(svalue2), scanStart, scanStop,
+      UTF8ToWinCP(scanvalue.Text), UTF8ToWinCP(svalue2), scanStart, scanStop,
       cbHexadecimal.Checked, rbdec.Checked, cbunicode.Checked, cbCaseSensitive.Checked,
       fastscanmethod, edtAlignment.Text,
       TCustomType(vartype.items.objects[vartype.ItemIndex]));
@@ -8525,8 +8525,8 @@ begin
 
   memscan.floatscanWithoutExponents:=cbFloatSimple.checked;
 
-  memscan.nextscan(GetScanType2, roundingtype, utf8toansi(scanvalue.Text),
-    utf8toansi(svalue2), cbHexadecimal.Checked, rbdec.Checked,
+  memscan.nextscan(GetScanType2, roundingtype, UTF8ToWinCP(scanvalue.Text),
+    UTF8ToWinCP(svalue2), cbHexadecimal.Checked, rbdec.Checked,
     cbunicode.Checked, cbCaseSensitive.Checked, percentage, compareToSavedScan,
     currentlySelectedSavedResultname);
   DisableGui;

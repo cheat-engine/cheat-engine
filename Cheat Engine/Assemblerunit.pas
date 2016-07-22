@@ -4816,7 +4816,7 @@ begin
               exit;
             end;
 
-            if opcodes[j].opcode1=eo_reg then  //probably imul reg,imm32
+            if opcodes[j].opcode1=eo_reg then  //probably imul r32,imm8
             begin
               addopcode(bytes,j);
               createmodrm(bytes,getreg(parameter1),parameter1);

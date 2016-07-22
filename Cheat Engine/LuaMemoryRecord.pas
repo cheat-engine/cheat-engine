@@ -19,7 +19,7 @@ var
   memrec: TMemoryRecord;
 begin
   memrec:=luaclass_getClassObject(L);
-  lua_pushinteger(L, length(memrec.pointeroffsets));
+  lua_pushinteger(L, memrec.offsetCount);
   result:=1;
 end;
 
@@ -30,7 +30,7 @@ begin
   result:=0;
   memrec:=luaclass_getClassObject(L);
   if lua_gettop(L)=1 then
-    setlength(memrec.pointeroffsets, lua_tointeger(L, 1));
+    memrec.offsetCount:=lua_tointeger(L, 1);
 end;
 
 function memoryrecord_getOffset(L: PLua_State): integer; cdecl;
@@ -43,7 +43,7 @@ begin
   if lua_gettop(L)=1 then
   begin
     index:=lua_toInteger(L,1);
-    lua_pushinteger(L, memrec.pointeroffsets[index]);
+    lua_pushinteger(L, memrec.offsets[index].offset);
     result:=1;
   end;
 end;
@@ -58,7 +58,7 @@ begin
   if lua_gettop(L)=2 then
   begin
     index:=lua_toInteger(L,1);
-    memrec.pointeroffsets[index]:=lua_tointeger(L, 2);
+    memrec.offsets[index].offset:=lua_tointeger(L, 2);
   end;
 end;
 
@@ -120,10 +120,10 @@ begin
     lua_newtable(L);
     tabletop:=lua_gettop(L);
 
-    for i:=0 to length(memrec.pointeroffsets)-1 do
+    for i:=0 to memrec.offsetCount-1 do
     begin
       lua_pushinteger(L,i+1);
-      lua_pushinteger(L, memrec.pointeroffsets[i]);
+      lua_pushinteger(L, memrec.offsets[i].offset);
       lua_settable(L, tabletop);
     end;
     result:=2;
@@ -143,7 +143,7 @@ begin
     //address
     memrec.interpretableaddress:=Lua_ToString(L, 1);
     memrec.ReinterpretAddress(true);
-    setlength(memrec.pointeroffsets, 0);
+    memrec.offsetCount:=0;
 
     if lua_gettop(L)>=2 then
     begin
@@ -153,12 +153,12 @@ begin
         i:=lua_objlen(L,2);
         if i>512 then exit; //FY
 
-        setlength(memrec.pointeroffsets, i);
-        for i:=0 to length(memrec.pointeroffsets)-1 do
+        memrec.offsetCount:=i;
+        for i:=0 to memrec.offsetCount-1 do
         begin
           lua_pushinteger(L, i+1); //get the offset
           lua_gettable(L, 2); //from the table    (table[i+1])
-          memrec.pointeroffsets[i]:=lua_tointeger(L,-1);
+          memrec.offsets[i].offset:=lua_tointeger(L,-1);
           lua_pop(L,1);
         end;
       end;

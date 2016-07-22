@@ -751,9 +751,9 @@ begin
   memrec.VarType:=vartype;
   memrec.CustomTypeName:=customtypename;
 
-  setlength(memrec.pointeroffsets,offsetcount);
+  memrec.offsetCount:=offsetcount;
   for i:=0 to offsetcount-1 do
-    memrec.pointeroffsets[i]:=offsets[i];
+    memrec.offsets[i].offset:=offsets[i];
 
   case vartype of
     vtString:

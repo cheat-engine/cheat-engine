@@ -173,8 +173,8 @@ type
     function getUnicode: boolean;
     procedure setDescription(s: string);
     function getDescription: string;
-    procedure setAddress(var address: string; var offsets: Toffsetlist);
-    function getAddress(var address: string; var offsets: ToffsetList): boolean;
+    procedure setAddress(var address: string; var offsets: TMemrecOffsetList);
+    function getAddress(var address: string; var offsets: TIntegerDynArray): boolean;
   public
     { Public declarations }
     index: integer;
@@ -745,7 +745,7 @@ end;
 
 { Tformaddresschange }
 
-procedure Tformaddresschange.setAddress(var address: string; var offsets: Toffsetlist);
+procedure Tformaddresschange.setAddress(var address: string; var offsets: TMemrecOffsetList);
 var i: integer;
 begin
   if system.length(offsets)=0 then
@@ -767,14 +767,14 @@ begin
     pointerinfo.setupPositionsAndSizes;
 
     for i:=0 to system.length(offsets)-1 do
-      pointerinfo.offset[i].offset:=offsets[i];
+      pointerinfo.offset[i].offset:=offsets[i].offset;
 
     pointerinfo.processAddress;
   end;
 
 end;
 
-function Tformaddresschange.getAddress(var address: string; var offsets: ToffsetList): boolean;
+function Tformaddresschange.getAddress(var address: string; var offsets: TIntegerDynArray): boolean;
 var
   i: integer;
 begin
@@ -1059,13 +1059,19 @@ end;
 procedure TformAddressChange.setMemoryRecord(rec: TMemoryRecord);
 var i: integer;
     tmp:string;
+
+    list: TMemrecOffsetList;
 begin
   fMemoryRecord:=rec;
 
   description:=rec.Description;
   vartype:=rec.VarType;
 
-  setAddress(rec.interpretableaddress, rec.pointeroffsets);
+  setlength(list, rec.offsetCount);
+  for i:=0 to rec.offsetCount-1 do
+    list[i]:=rec.offsets[i];
+
+  setAddress(rec.interpretableaddress, list);
 
   case fMemoryRecord.vartype of
     vtBinary:
@@ -1102,7 +1108,7 @@ var bit: integer;
     err:integer;
 
     paddress: dword;
-    offsets: array of integer;
+    offsets: TIntegerDynArray;
 
     i: integer;
 begin
@@ -1134,9 +1140,9 @@ begin
 
   getAddress(address, offsets);
   memoryrecord.interpretableaddress:=address;
-  setlength(memoryrecord.pointeroffsets, system.length(offsets));
+  memoryrecord.offsetCount:=system.length(offsets);
   for i:=0 to system.length(offsets)-1 do
-    memoryrecord.pointeroffsets[i]:=offsets[system.length(offsets)-1-i];
+    memoryrecord.offsets[i].offset:=offsets[system.length(offsets)-1-i];
 
 
   modalresult:=mrok;

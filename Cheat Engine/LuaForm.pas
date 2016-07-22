@@ -69,9 +69,9 @@ begin
     CleanupLuaCall(tmethod(control.onClose));
     control.onClose:=nil;
 
-    if lua_isfunction(L,-1) then
+    if lua_isfunction(L,1) then
     begin
-      routine:=Lua_ToString(L,-1);
+      routine:=Lua_ToString(L,1);
       f:=luaL_ref(L,LUA_REGISTRYINDEX);
 
       lc:=TLuaCaller.create;
@@ -79,9 +79,9 @@ begin
       control.OnClose:=lc.CloseEvent;
     end
     else
-    if lua_isstring(L,-1) then
+    if lua_isstring(L,1) then
     begin
-      routine:=lua_tostring(L,-1);
+      routine:=lua_tostring(L,1);
       lc:=TLuaCaller.create;
       lc.luaroutine:=routine;
       control.OnClose:=lc.CloseEvent;
