@@ -47,6 +47,16 @@ type
 
     AddressListEditor: TAddressListEditor;
 
+    fCheckboxActiveSelectedColor: TColor;
+    fCheckboxActiveColor: TColor;
+
+    fCheckboxSelectedColor: TColor;
+    fCheckboxColor: TColor;
+    fSelectedBackgroundColor: TColor;
+    fSelectedSecondaryBackgroundColor: TColor;
+    fExpandSignColor: TColor;
+    fDecreaseArrowColor: TColor;
+    fIncreaseArrowColor: TColor;
 
 
     function getTreeNodes: TTreenodes;
@@ -156,6 +166,17 @@ type
     property SelCount: Integer read GetSelCount;
     property SelectedRecord: TMemoryRecord read getSelectedRecord write setSelectedRecord;
     property PopupMenu: TpopupMenu read getPopupMenu write setPopupMenu;
+
+    property checkboxActiveSelectedColor: TColor read fCheckboxActiveSelectedColor write fCheckboxActiveSelectedColor;
+    property CheckboxActiveColor: TColor read fCheckboxActiveColor write fCheckboxActiveColor;
+
+    property CheckboxSelectedColor: TColor read fCheckboxSelectedColor write fCheckboxSelectedColor;
+    property CheckboxColor: TColor read fCheckboxColor write fCheckboxColor;
+    property SelectedBackgroundColor: TColor read fSelectedBackgroundColor write fSelectedBackgroundColor;
+    property SelectedSecondaryBackgroundColor: TColor read fSelectedSecondaryBackgroundColor write fSelectedSecondaryBackgroundColor;
+    property ExpandSignColor: TColor read fExpandSignColor write fExpandSignColor;
+    property IncreaseArrowColor: TColor read fIncreaseArrowColor write fIncreaseArrowColor;
+    property DecreaseArrowColor: TColor read fDecreaseArrowColor write fDecreaseArrowColor;
   end;
 
 implementation
@@ -1692,9 +1713,9 @@ begin
     if memrec.isSelected then
     begin
       if node.Selected then
-        sender.Canvas.Brush.Color:=clHighlight
+        sender.Canvas.Brush.Color:=SelectedBackgroundColor //clHighlight
       else
-        sender.Canvas.Brush.Color:=clActiveCaption;
+        sender.Canvas.Brush.Color:=SelectedSecondaryBackgroundColor; //clActiveCaption;
 
       oldpenmode:=sender.Canvas.Pen.Mode;
       sender.Canvas.Pen.Mode:=pmMask;
@@ -1707,7 +1728,7 @@ begin
 
     if memrec.isSelected then
     begin
-      sender.canvas.pen.color:=clWindowtext; //InvertColor(clWindowText);
+      sender.canvas.pen.color:=clWindowtext;
       sender.Canvas.Font.Color:=InvertColor(memrec.Color)
     end
     else
@@ -1729,6 +1750,8 @@ begin
     if moManualExpandCollapse in memrec.Options then
     begin
       //draw the expand sign (+/-)  (taken and modified from treeview.inc)
+      oldpencolor:=sender.canvas.pen.color;
+      sender.canvas.pen.color:=expandSignColor;
 
       expandsign:=Rect(textrect.left, textrect.top+((textrect.bottom-textrect.top) div 2-4), textrect.left+9, textrect.top+((textrect.bottom-textrect.top) div 2+5));
       sender.canvas.Rectangle(expandsign);
@@ -1741,23 +1764,35 @@ begin
         sender.canvas.LineTo(expandsign.left+4, expandsign.Bottom - 2);
       end;
       inc(textrect.left,9);
+
+      sender.canvas.pen.color:=oldpencolor;
     end;
 
     //draw checkbox
+    oldpencolor:=sender.canvas.pen.color;
+
+    if memrec.isSelected then
+      sender.canvas.pen.color:=checkboxSelectedColor
+    else
+      sender.canvas.pen.color:=checkboxColor;
+
     checkbox.Left:=textrect.left+1; //(header.Sections[0].Width div 2)-((linerect.bottom-linerect.top) div 2)+1;
     checkbox.Right:=checkbox.left+(linerect.bottom-linerect.top)-2; //(header.Sections[0].Width div 2)+((linerect.bottom-linerect.top) div 2)-1;
     checkbox.Top:=linerect.top+1;
     checkbox.Bottom:=linerect.bottom-1;
     sender.Canvas.Rectangle(checkbox);
 
+    sender.canvas.pen.color:=oldpencolor;
+
     if memrec.Active then //draw a check
     begin
       oldpencolor:=sender.canvas.pen.color;
 
       if memrec.isSelected then
-        sender.canvas.pen.color:=clBlack
+        sender.canvas.pen.color:=checkboxActiveSelectedColor
       else
-        sender.canvas.pen.color:=clRed;
+        sender.canvas.pen.color:=checkboxActiveColor;
+
       sender.canvas.Line(checkbox.left+1,checkbox.Top+1, checkbox.Right-1,checkbox.bottom-1);
       sender.canvas.line(checkbox.right-1-1,checkbox.top+1, checkbox.left,checkbox.bottom-1);
 
@@ -1769,20 +1804,20 @@ begin
         //draw the arrow up/down, unless it's a group or auto assembler type
         if memrec.allowIncrease then
         begin
-          sender.Canvas.Pen.Color:=clGreen;
+          sender.Canvas.Pen.Color:=increaseArrowColor; //clGreen
           sender.canvas.line(checkbox.right+5, checkbox.bottom-1, checkbox.right+5,checkbox.top+1);
           sender.canvas.line(checkbox.right+5,checkbox.top+1,checkbox.Right+5-4,checkbox.top+1+4);
           sender.canvas.line(checkbox.right+5,checkbox.top+1,checkbox.Right+5+4,checkbox.top+1+4);
-          sender.canvas.pen.color:=clWindowtext;
+          sender.canvas.pen.color:=oldpencolor;
         end;
 
         if memrec.allowDecrease then
         begin
-          sender.Canvas.Pen.Color:=clRed;
+          sender.Canvas.Pen.Color:=decreaseArrowColor; //clRed;
           sender.canvas.line(checkbox.right+5, checkbox.bottom-1, checkbox.right+5,checkbox.top+1);
           sender.canvas.line(checkbox.right+5,checkbox.bottom-1,checkbox.Right+5-4,checkbox.bottom-1-4);
           sender.canvas.line(checkbox.right+5,checkbox.bottom-1,checkbox.Right+5+4,checkbox.bottom-1-4);
-          sender.canvas.pen.color:=clWindowtext;
+          sender.canvas.pen.color:=oldpencolor;
         end;
       end;
 
@@ -1998,6 +2033,17 @@ begin
   treeview.Align:=alClient;
 
   symhandler.AddFinishedLoadingSymbolsNotification(SymbolsLoaded);
+
+
+  checkboxActiveSelectedColor:=clBlack;
+  CheckboxActiveColor:=clRed;
+  CheckboxSelectedColor:=clWindowtext;
+  CheckboxColor:=clWindowtext;
+  SelectedBackgroundColor:=clHighlight;
+  SelectedSecondaryBackgroundColor:=clActiveCaption;
+  expandSignColor:=clWindowText;
+  increaseArrowColor:=clGreen;
+  decreaseArrowColor:=clRed;
 
 end;
 
