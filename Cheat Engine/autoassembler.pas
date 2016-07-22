@@ -36,6 +36,7 @@ procedure UnregisterAutoAssemblerCommand(command: string);
 function registerAutoAssemblerPrologue(m: TAutoAssemblerPrologue; postAOBSCAN: boolean=false): integer;
 procedure unregisterAutoAssemblerPrologue(id: integer);
 
+var oldaamessage: boolean;
 
 implementation
 
@@ -47,7 +48,8 @@ uses strutils, memscan, disassembler, networkInterface, networkInterfaceApi,
 
 {$ifdef windows}
 uses simpleaobscanner, StrUtils, LuaHandler, memscan, disassembler, networkInterface,
-     networkInterfaceApi, LuaCaller, SynHighlighterAA, Parsers, Globals, memoryQuery;
+     networkInterfaceApi, LuaCaller, SynHighlighterAA, Parsers, Globals, memoryQuery,
+     MemoryBrowserFormUnit;
 {$endif}
 
 
@@ -2996,22 +2998,43 @@ begin
       {$IFNDEF UNIX}
       if popupmessages then
       begin
+        testPtr:=0;
+
         s1:='';
         for i:=0 to length(globalallocs)-1 do
+        begin
+          if testPtr=0 then testPtr:=globalallocs[i].address;
+
           s1:=s1+#13#10+globalallocs[i].varname+'='+IntToHex(globalallocs[i].address,8);
+        end;
 
 
         for i:=0 to length(allocs)-1 do
+        begin
+          if testPtr=0 then testPtr:=allocs[i].address;
           s1:=s1+#13#10+allocs[i].varname+'='+IntToHex(allocs[i].address,8);
+        end;
 
         if length(kallocs)>0 then
         begin
+          if testPtr=0 then testPtr:=kallocs[i].address;
+
           s1:=#13#10+rsTheFollowingKernelAddressesWhereAllocated+':';
           for i:=0 to length(kallocs)-1 do
             s1:=s1+#13#10+kallocs[i].varname+'='+IntToHex(kallocs[i].address,8);
         end;
 
-        showmessage(rsTheCodeInjectionWasSuccessfull+s1);
+       // if messagedl
+        if (testPtr=0) or (oldaamessage) then
+          showmessage(rsTheCodeInjectionWasSuccessfull+s1)
+        else
+        begin
+          if MessageDlg(rsTheCodeInjectionWasSuccessfull+s1+#13#10+'Go to '+inttohex(testptr,8)+'?', mtInformation,[mbYes, mbNo], 0, mbno)=mrYes then
+          begin
+            memorybrowser.disassemblerview.selectedaddress:=testptr;
+            memorybrowser.show;
+          end;
+        end;
       end;
       {$ENDIF}
     end;
