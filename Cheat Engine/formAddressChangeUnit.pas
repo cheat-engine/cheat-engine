@@ -8,7 +8,7 @@ uses
   windows, LCLIntf, LResources, Messages, SysUtils, Variants, Classes, Graphics,
   Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls, Buttons, Arrow, Spin,
   CEFuncProc, NewKernelHandler, symbolhandler, memoryrecordunit, types, byteinterpreter,
-  math, CustomTypeHandler, commonTypeDefs;
+  math, CustomTypeHandler, commonTypeDefs, lua, lualib, lauxlib, luahandler;
 
 const WM_disablePointer=WM_USER+1;
 
@@ -21,7 +21,9 @@ type
     fowner: TPointerInfo;
     fBaseAddress: ptruint;
     fOffset: Integer; //signed integer
+    fOffsetString: string;
     fInvalidOffset: boolean;
+    fSpecial: boolean;
 
     lblPointerAddressToValue: TLabel; //Address -> Value
     edtOffset: Tedit;
@@ -33,6 +35,7 @@ type
     repeatdirection: integer;
     stepsize: integer;
     procedure setOffset(o: integer);
+    procedure setOffsetString(os: string);
     procedure offsetchange(sender: TObject);
 
     procedure RepeatClick(sender: TObject);
@@ -50,10 +53,13 @@ type
     function getAddressThisPointsTo(var address: ptruint): boolean;
     procedure setTop(var newtop: integer);
     procedure UpdateLabels;
+    function parseOffset: boolean;
     property owner: TPointerinfo read fowner;
-    property offset: integer read foffset write setOffset;
+    property offset: integer read foffset write setOffset;  //obsolete, use offsetString
+    property offsetString: string read fOffsetString write setOffsetString;
     property invalidOffset: boolean read fInvalidOffset;
     property baseAddress: ptruint write setBaseAddress;
+    property special: boolean read fspecial;
   end;
 
 
@@ -174,7 +180,6 @@ type
     procedure setDescription(s: string);
     function getDescription: string;
     procedure setAddress(var address: string; var offsets: TMemrecOffsetList);
-    function getAddress(var address: string; var offsets: TIntegerDynArray): boolean;
   public
     { Public declarations }
     index: integer;
@@ -272,12 +277,14 @@ end;
 
 procedure TOffsetInfo.DecreaseClick(sender: TObject);
 begin
-  offset:=offset-stepsize;
+  if not fspecial then
+    offset:=offset-stepsize;
 end;
 
 procedure TOffsetInfo.IncreaseClick(sender: TObject);
 begin
-  offset:=offset+stepsize;
+  if not fspecial then
+    offset:=offset+stepsize;
 end;
 
 
@@ -372,22 +379,78 @@ begin
 end;
 
 
-procedure TOffsetInfo.setOffset(o: integer);
-var s: string;
+procedure TOffsetInfo.setOffset(o: integer); //obsolete, use offsetstring now
 begin
-  finvalidOffset:=false;
+  offsetString:=IntToHexSigned(o,1);
+end;
 
 
-  s:=lowercase(IntToHexSigned(o,1));
-  if lowercase(edtOffset.text)<>s then //needs to be updated
+function TOffsetInfo.parseOffset: boolean;
+var
+  e: boolean;
+  stack: integer;
+begin
+  finvalidOffset:=true;
+  fSpecial:=false;
+
+  result:=true;
+
+  try
+    try
+      //raise exception.create('bla');
+      foffset:=StrToQWordEx(ConvertHexStrToRealStr(fOffsetString));
+      finvalidOffset:=false;
+    except
+      if fOffsetString='' then exit(false);
+
+      foffset:=symhandler.getAddressFromName(fOffsetString, false, e);
+      if e then //try lua
+      begin
+        luacs.Enter;
+        stack:=lua_gettop(luavm);
+        try
+             //0xb+0x12
+          if luaL_loadstring(luavm, pchar('memrec, address=... return '+fOffsetString))<>0 then exit(false);
+
+          lua_pushnil(luavm);
+          lua_pushinteger(luavm, fBaseAddress);
+          if lua.lua_pcall(Luavm, 2, 1,0)<>0 then exit(false);
+          if not lua_isnumber(luavm, -1) then exit(false);
+
+          foffset:=lua_tointeger(Luavm, -1);
+
+        finally
+          lua_settop(luavm, stack);
+          luacs.Leave;
+        end;
+      end;
+
+      finvalidOffset:=false;
+      fspecial:=true;
+    end;
+
+  finally
+    if fInvalidOffset then
+      edtOffset.Font.Color:=clRed
+    else
+      edtOffset.Font.Color:=clDefault;
+  end;
+end;
+
+procedure TOffsetInfo.setOffsetString(os: string);
+begin
+  fOffsetString:=os;
+  parseOffset;
+
+  if (edtOffset.text<>os) then
   begin
-    edtOffset.OnChange:=nil; //disable the onchange
-    edtOffset.text:=s;
-    edtOffset.OnChange:=offsetchange; //set it back
+    edtOffset.OnChange:=nil;
+    edtOffset.text:=fOffsetString;
+    edtOffset.OnChange:=offsetchange;
   end;
 
-  fOffset:=o;
   owner.processAddress;
+  UpdateLabels;
 end;
 
 procedure TOffsetInfo.setBaseAddress(address: ptruint);
@@ -398,15 +461,7 @@ end;
 
 procedure TOffsetInfo.offsetchange(sender: TObject);
 begin
-  try
-    offset:=StrToQWordEx(ConvertHexStrToRealStr(utf8toansi(tedit(sender).Text)));
-    edtOffset.Font.Color:=clDefault;
-    finvalidOffset:=false;
-  except
-    edtOffset.Font.Color:=clRed;
-    finvalidOffset:=true;
-    UpdateLabels;
-  end;
+  offsetstring:=edtOffset.Text; //raises an exception if invalid
 end;
 
 procedure TOffsetInfo.setTop(var newtop: integer);
@@ -606,12 +661,16 @@ begin
   for i:=offsetcount-1 downto 1 do
   begin
     offset[i].baseaddress:=base;
+    if offset[i].Special then
+      offset[i].parseOffset;
+
     if not offset[i].getAddressThisPointsTo(base) then
       ferror:=true; //signal an error to all subsequent offsets
   end;
 
   //add the last offset
   offset[0].baseaddress:=base;
+  offset[0].parseOffset;
   base:=base+offset[0].offset;
 
   if error then
@@ -767,38 +826,14 @@ begin
     pointerinfo.setupPositionsAndSizes;
 
     for i:=0 to system.length(offsets)-1 do
-      pointerinfo.offset[i].offset:=offsets[i].offset;
+      pointerinfo.offset[i].offsetString:=offsets[i].offsetText;
 
     pointerinfo.processAddress;
   end;
 
 end;
 
-function Tformaddresschange.getAddress(var address: string; var offsets: TIntegerDynArray): boolean;
-var
-  i: integer;
-begin
-  result:=false;
-  if pointerinfo=nil then
-  begin
-    setlength(offsets,0);
-    address:=utf8toansi(editAddress.Text);
-    result:=true;
-  end
-  else
-  begin
-    if not pointerinfo.invalidBaseAddress then
-    begin
-      address:=utf8toansi(pointerinfo.baseAddress.text);
-      setlength(offsets, pointerinfo.offsetcount);
 
-      for i:=pointerinfo.offsetcount-1 downto 0 do //fill the array inverse
-        offsets[i]:=pointerinfo.offset[pointerinfo.offsetcount-1-i].offset;
-
-      result:=true;
-    end;
-  end;
-end;
 
 procedure Tformaddresschange.setDescription(s: string);
 begin
@@ -1108,7 +1143,7 @@ var bit: integer;
     err:integer;
 
     paddress: dword;
-    offsets: TIntegerDynArray;
+   // offsets: TIntegerDynArray;
 
     i: integer;
 begin
@@ -1138,11 +1173,21 @@ begin
 
   memoryrecord.Description:=description;
 
-  getAddress(address, offsets);
-  memoryrecord.interpretableaddress:=address;
-  memoryrecord.offsetCount:=system.length(offsets);
-  for i:=0 to system.length(offsets)-1 do
-    memoryrecord.offsets[i].offset:=offsets[system.length(offsets)-1-i];
+  if pointerinfo<>nil then
+  begin
+    memoryrecord.interpretableaddress:=pointerinfo.baseAddress.text;
+    memoryrecord.offsetCount:=pointerinfo.offsetcount;
+    for i:=0 to pointerinfo.offsetcount-1 do
+      memoryrecord.offsets[i].setOffsetText(pointerinfo.offset[i].offsetString);
+  end
+  else
+  begin
+    memoryrecord.interpretableaddress:=editAddress.text;
+    memoryrecord.offsetCount:=0;
+  end;
+
+
+  memoryrecord.ReinterpretAddress;
 
 
   modalresult:=mrok;
