@@ -5778,15 +5778,34 @@ begin
     groupconfigbutton.top:=scantype.top;
     groupconfigbutton.width:=scantype.width;
     groupconfigbutton.height:=scantype.height;
+
+    groupconfigbutton.AnchorSideTop:=scantype.AnchorSideTop;
+    groupconfigbutton.AnchorSideLeft:=scantype.AnchorSideLeft;
+    groupconfigbutton.AnchorSideRight:=scantype.AnchorSideRight;
+    groupconfigbutton.AnchorSideBottom:=scantype.AnchorSideBottom;
+
+    groupconfigbutton.AnchorSideRight.Control:=VarType;
+    groupconfigbutton.AnchorSideRight.Side:=asrRight;
+
+
     groupconfigbutton.Anchors:=scantype.anchors;
+
+    vartype.AnchorSideTop.Control:=groupconfigbutton;
+
+
     groupconfigbutton.OnClick:=DoGroupconfigButtonClick;
+
+    foundlist3.BringToFront;
   end;
 end;
 
 procedure TMainForm.destroyGroupConfigButton;
 begin
   if groupconfigbutton<>nil then
+  begin
+    vartype.AnchorSideTop.Control:=ScanType;
     freeandnil(groupconfigbutton);
+  end;
 end;
 
 procedure TMainForm.VarTypeChange(Sender: TObject);
