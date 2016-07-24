@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
-  StdCtrls, ExtCtrls, symbolhandler;
+  StdCtrls, ExtCtrls, Menus, symbolhandler, Clipbrd;
 
 type
 
@@ -15,6 +15,8 @@ type
   TfrmReferencedFunctions = class(TForm)
     lbReflist: TListBox;
     lvCallList: TListView;
+    MenuItem1: TMenuItem;
+    PopupMenu1: TPopupMenu;
     Splitter1: TSplitter;
     procedure FormShow(Sender: TObject);
     procedure lbReflistDblClick(Sender: TObject);
@@ -23,6 +25,7 @@ type
     procedure lvCallListDblClick(Sender: TObject);
     procedure lvCallListSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
+    procedure MenuItem1Click(Sender: TObject);
   private
     { private declarations }
     callList: Tlist;
@@ -143,6 +146,11 @@ begin
       end;
     end;
   end;
+end;
+
+procedure TfrmReferencedFunctions.MenuItem1Click(Sender: TObject);
+begin
+  clipboard.AsText:=lbreflist.Items.Text;
 end;
 
 procedure TfrmReferencedFunctions.LoadFunctionlist;

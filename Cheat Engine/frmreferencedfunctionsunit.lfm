@@ -7,7 +7,7 @@ object frmReferencedFunctions: TfrmReferencedFunctions
   ClientHeight = 353
   ClientWidth = 677
   OnShow = FormShow
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.6.0.4'
   object lvCallList: TListView
     Left = 0
     Height = 353
@@ -42,6 +42,7 @@ object frmReferencedFunctions: TfrmReferencedFunctions
     Align = alClient
     ItemHeight = 0
     OnDblClick = lbReflistDblClick
+    PopupMenu = PopupMenu1
     TabOrder = 1
   end
   object Splitter1: TSplitter
@@ -49,5 +50,13 @@ object frmReferencedFunctions: TfrmReferencedFunctions
     Height = 353
     Top = 0
     Width = 5
+  end
+  object PopupMenu1: TPopupMenu
+    left = 539
+    top = 74
+    object MenuItem1: TMenuItem
+      Caption = 'Copy list to clipboard'
+      OnClick = MenuItem1Click
+    end
   end
 end
