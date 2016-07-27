@@ -274,6 +274,8 @@ executeCodeLocal(addres, parameter OPTIONAL): address -  Executes a stdcall func
 
 loadPlugin(dllnameorpath): Loads the given plugin. Returns nil on failure. On success returns a value of 0 or greater
 
+loadFontFromStream(memorystream) : Loads a font from a memory stream and returns an id (handle) to the font for use with unloadLoadedFont
+unloadLoadedFont(id)
 
 
 registerCustomTypeLua(typename, bytecount, bytestovaluefunction, valuetobytesfunction, isFloat)
