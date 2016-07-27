@@ -195,6 +195,7 @@ type
     allCustom: boolean;
 
     floatscanWithoutExponents: boolean;
+    inverseScan: boolean;
 
     //groupdata
     groupdata: TGroupData;
@@ -528,6 +529,7 @@ type
     AddressesFound: TAddresses; //for multi aob scans
 
     floatscanWithoutExponents: boolean;
+    inverseScan: boolean;
 
     procedure execute; override;
     constructor create(suspended: boolean);
@@ -591,9 +593,7 @@ type
     fisHexadecimal: boolean;
 
     ffloatscanWithoutExponents: boolean;
-
-
-
+    fInverseScan: boolean;
 
     procedure DeleteScanfolder;
     procedure createScanfolder;
@@ -639,6 +639,7 @@ type
 
     property nextscanCount: integer read fnextscanCount;
   published
+    property inverseScan: boolean read fInverseScan write fInverseScan;
     property floatscanWithoutExponents: boolean read ffloatscanWithoutExponents write ffloatscanWithoutExponents;
     property OnlyOne: boolean read fOnlyOne write fOnlyOne;
     property VarType: TVariableType read currentVariableType;
@@ -3066,7 +3067,10 @@ var stepsize: integer;
     allfound: boolean;
 
     aob_checkroutine: TMultiAOBCheckRoutine;
+
+    inv: boolean;
 begin
+  inv:=inverseScan;
   _fastscan:=fastscanmethod<>fsmNotAligned;
   p:=buffer;
   lastmem:=ptruint(p)+(size-variablesize); //optimizes compile to use reg if possible
@@ -3158,7 +3162,7 @@ begin
           for j:=0 to customtypecount-1 do customtypesmatch[j]:=true;
         end;
 
-        if checkroutine(p,nil) then //found one
+        if checkroutine(p,nil) xor inv then //found one
           StoreResultRoutine(base+ptruint(p)-ptruint(buffer),p);
 
         inc(p,stepsize);
@@ -3170,7 +3174,7 @@ begin
       while (ptruint(p)<=lastmem) do
       begin
         currentAddress:=base+ptruint(p)-ptruint(buffer);
-        if checkroutine(p,nil) then //found one
+        if checkroutine(p,nil) xor inv then //found one
         begin
           StoreResultRoutine(currentAddress,p);
           if OnlyOne then
@@ -3187,7 +3191,7 @@ begin
     begin
       while (ptruint(p)<=lastmem) do
       begin
-        if checkroutine(p,nil) then //found one
+        if checkroutine(p,nil) xor inv then //found one
         begin
           StoreResultRoutine(base+ptruint(p)-ptruint(buffer),p);
           if OnlyOne then
@@ -3218,7 +3222,9 @@ var stepsize:  integer;
     dividableby4: boolean;
     i:         TVariableType;
     j:         integer;
+    inv: boolean;
 begin
+  inv:=inverseScan;
   p:=buffer;
   oldp:=oldbuffer;
   lastmem:=ptruint(p)+(size-variablesize); //optimizes compile to use reg if possible
@@ -3288,7 +3294,7 @@ begin
         end;
 
 
-        if checkroutine(p,savedscanhandler.getpointertoaddress(base+ptruint(p)-ptruint(buffer),valuetype,nil )) then //found one
+        if checkroutine(p,savedscanhandler.getpointertoaddress(base+ptruint(p)-ptruint(buffer),valuetype,nil )) xor inv then //found one
           StoreResultRoutine(base+ptruint(p)-ptruint(buffer),p);
 
         inc(p, stepsize);
@@ -3299,7 +3305,7 @@ begin
       while ptruint(p)<=lastmem do
       begin
         currentaddress:=base+ptrUint(p)-ptrUint(buffer);
-        if checkroutine(p,savedscanhandler.getpointertoaddress(currentaddress,valuetype,customtype )) then //found one
+        if checkroutine(p,savedscanhandler.getpointertoaddress(currentaddress,valuetype,customtype )) xor inv then //found one
           StoreResultRoutine(currentaddress,p);
 
         inc(p, stepsize);
@@ -3337,7 +3343,7 @@ begin
           for j:=0 to customtypecount-1 do customtypesmatch[j]:=true;
 
 
-        if checkroutine(p,oldp) then //found one
+        if checkroutine(p,oldp) xor inv then //found one
           StoreResultRoutine(base+ptruint(p)-ptruint(buffer),p);
 
         inc(p, stepsize);
@@ -3350,7 +3356,7 @@ begin
       while ptruint(p)<=lastmem do
       begin
         currentaddress:=base+ptruint(p)-ptruint(buffer);
-        if checkroutine(p,oldp) then //found one
+        if checkroutine(p,oldp) xor inv then //found one
           StoreResultRoutine(currentaddress,p);
 
         inc(p, stepsize);
@@ -3361,7 +3367,7 @@ begin
     begin
       while ptruint(p)<=lastmem do
       begin
-        if checkroutine(p,oldp) then //found one
+        if checkroutine(p,oldp) xor inv then //found one
           StoreResultRoutine(base+ptruint(p)-ptruint(buffer),p);
 
         inc(p, stepsize);
@@ -3386,7 +3392,9 @@ var i,j,k: dword;
     so: Tscanoption;
     valuetype: TVariableType;
     phandle: thandle;
+    inv: boolean;
 begin
+  inv:=inverseScan;
   i:=0;
   phandle:=processhandle;
   so:=scanoption;
@@ -3447,7 +3455,7 @@ begin
           else
           begin
             //new address reached
-            if checkroutine(@newmemory[currentaddress-currentbase],savedscanhandler.getpointertoaddress(currentaddress,valuetype, nil )) then
+            if checkroutine(@newmemory[currentaddress-currentbase],savedscanhandler.getpointertoaddress(currentaddress,valuetype, nil )) xor inv then
               StoreResultRoutine(currentaddress,@newmemory[currentaddress-currentbase]);
 
             //clear typesmatch and set current address
@@ -3467,7 +3475,7 @@ begin
 
         end;
 
-        if checkroutine(@newmemory[currentaddress-currentbase],savedscanhandler.getpointertoaddress(currentaddress,valuetype, nil )) then
+        if checkroutine(@newmemory[currentaddress-currentbase],savedscanhandler.getpointertoaddress(currentaddress,valuetype, nil )) xor inv then
           StoreResultRoutine(currentaddress,@newmemory[currentaddress-currentbase]);
 
       end
@@ -3498,7 +3506,7 @@ begin
           begin
             //new address
             //we now have a list of entries with all the same address, k-1 points to the last one
-            if CheckRoutine(@newmemory[currentaddress-currentbase],@oldmem[(k-1)*vsize]) then
+            if CheckRoutine(@newmemory[currentaddress-currentbase],@oldmem[(k-1)*vsize]) xor inv then
               StoreResultRoutine(currentaddress,@newmemory[currentaddress-currentbase]);
 
             //clear typesmatch and set current address
@@ -3518,7 +3526,7 @@ begin
 
         end;
 
-        if CheckRoutine(@newmemory[currentaddress-currentbase],@oldmem[j*vsize]) then
+        if CheckRoutine(@newmemory[currentaddress-currentbase],@oldmem[j*vsize]) xor inv then
           StoreResultRoutine(currentaddress,@newmemory[currentaddress-currentbase]);
       end;
     end;
@@ -3635,7 +3643,9 @@ var
     so: Tscanoption;
     valuetype: TVariableType;
     phandle: thandle;
+    inv: boolean;
 begin
+  inv:=inverseScan;
   i:=0;
   so:=scanoption;
   maxindex:=chunksize-1;
@@ -3702,7 +3712,7 @@ begin
         begin
           currentaddress:=alist[k];
 
-          if checkroutine(@newmemory[alist[k]-currentbase],savedscanhandler.getpointertoaddress(alist[k],valuetype, customType )) then
+          if checkroutine(@newmemory[alist[k]-currentbase],savedscanhandler.getpointertoaddress(alist[k],valuetype, customType )) xor inv then
             StoreResultRoutine(alist[k],@newmemory[alist[k]-currentbase]);
         end;
       end
@@ -3712,7 +3722,7 @@ begin
         begin
           currentaddress:=alist[k];
 
-          if CheckRoutine(@newmemory[alist[k]-currentbase],@oldmem[k*vsize]) then
+          if CheckRoutine(@newmemory[alist[k]-currentbase],@oldmem[k*vsize]) xor inv then
             StoreResultRoutine(alist[k],@newmemory[alist[k]-currentbase]);
         end;
       end;
@@ -5261,6 +5271,7 @@ begin
           scanners[i].variablesize:=variablesize;
           scanners[i].useNextNextscan:=true; //address result scan so nextnextscan
           scanners[i].floatscanWithoutExponents:=floatscanWithoutExponents;
+          scanners[i].inverseScan:=inverseScan;
 
           if variableType=vtGrouped then
             scanners[i].PreviousOffsetCount:=offsetcount;
@@ -5496,6 +5507,7 @@ begin
       scanners[i].variablesize:=variablesize;
       scanners[i].useNextNextscan:=false; //region scan so firstnextscan
       scanners[i].floatscanWithoutExponents:=floatscanWithoutExponents;
+      scanners[i].inverseScan:=inverseScan;
 
       if i=0 then //first thread gets the header part
       begin
@@ -5962,6 +5974,7 @@ begin
       scanners[i].fastscandigitcount:=fastscandigitcount;
       scanners[i].variablesize:=variablesize;
       scanners[i].floatscanWithoutExponents:=floatscanWithoutExponents;
+      scanners[i].inverseScan:=inverseScan;
 
 
       if i=0 then //first thread gets the header part
@@ -6777,6 +6790,7 @@ begin
   scancontroller.unicode:=unicode;
   scancontroller.casesensitive:=casesensitive;
   scancontroller.floatscanWithoutExponents:=floatscanWithoutExponents;
+  scancontroller.inverseScan:=inverseScan;
   scancontroller.percentage:=percentage;
   scancontroller.notifywindow:=notifywindow;
   scancontroller.notifymessage:=notifymessage;
@@ -6863,6 +6877,7 @@ begin
   scancontroller.unicode:=unicode;
   scancontroller.casesensitive:=casesensitive;
   scancontroller.floatscanWithoutExponents:=floatscanWithoutExponents;
+  scancontroller.inverseScan:=InverseScan;
   scancontroller.percentage:=false; //first scan does not have a percentage scan
   scancontroller.notifywindow:=notifywindow;
   scancontroller.notifymessage:=notifymessage;

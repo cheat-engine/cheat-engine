@@ -1,9 +1,9 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 1095
+  Left = 549
   Height = 677
   Hint = ' '
-  Top = 251
+  Top = 127
   Width = 644
   HelpContext = 3
   HorzScrollBar.Visible = False
@@ -26,7 +26,7 @@ object MainForm: TMainForm
     Cursor = crVSplit
     Left = 0
     Height = 7
-    Top = 393
+    Top = 425
     Width = 644
     Align = alTop
     AutoSnap = False
@@ -39,8 +39,8 @@ object MainForm: TMainForm
   object Panel1: TPanel
     Tag = 777
     Left = 0
-    Height = 236
-    Top = 400
+    Height = 204
+    Top = 432
     Width = 644
     Align = alClient
     BevelOuter = bvNone
@@ -98,12 +98,12 @@ object MainForm: TMainForm
   end
   object Panel5: TPanel
     Left = 0
-    Height = 393
+    Height = 425
     Top = 0
     Width = 644
     Align = alTop
     BevelOuter = bvNone
-    ClientHeight = 393
+    ClientHeight = 425
     ClientWidth = 644
     TabOrder = 2
     OnResize = Panel5Resize
@@ -260,7 +260,7 @@ object MainForm: TMainForm
       Left = 314
       Height = 22
       Hint = 'Delete all addresses from the list'
-      Top = 368
+      Top = 400
       Width = 23
       Anchors = [akBottom]
       Glyph.Data = {
@@ -290,7 +290,7 @@ object MainForm: TMainForm
       Left = 221
       Height = 22
       Hint = 'Copy all selected items to the address list'
-      Top = 342
+      Top = 374
       Width = 22
       Anchors = [akLeft, akBottom]
       Glyph.Data = {
@@ -662,7 +662,6 @@ object MainForm: TMainForm
         'Unknown initial value'
       )
       OnChange = ScanTypeChange
-      OnKeyDown = ScanTypeKeyDown
       Style = csDropDownList
       TabOrder = 5
     end
@@ -1222,7 +1221,7 @@ object MainForm: TMainForm
       AnchorSideTop.Side = asrBottom
       AnchorSideBottom.Control = btnMemoryView
       Left = 0
-      Height = 318
+      Height = 350
       Hint = 'This list shows all the found addresses that matched your last scan'
       Top = 46
       Width = 221
@@ -1339,7 +1338,7 @@ object MainForm: TMainForm
       AnchorSideBottom.Side = asrBottom
       Left = 5
       Height = 19
-      Top = 369
+      Top = 401
       Width = 82
       Anchors = [akLeft, akBottom]
       AutoSize = True
@@ -1355,7 +1354,7 @@ object MainForm: TMainForm
       AnchorSideBottom.Side = asrBottom
       Left = 510
       Height = 19
-      Top = 369
+      Top = 401
       Width = 129
       Anchors = [akRight, akBottom]
       AutoSize = True
@@ -1369,13 +1368,13 @@ object MainForm: TMainForm
       AnchorSideRight.Control = Panel5
       AnchorSideRight.Side = asrBottom
       Left = 498
-      Height = 269
+      Height = 288
       Top = 124
       Width = 146
       Anchors = [akTop, akRight]
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 269
+      ClientHeight = 288
       ClientWidth = 146
       TabOrder = 14
       object pnlScanOptions: TPanel
@@ -1384,13 +1383,13 @@ object MainForm: TMainForm
         AnchorSideRight.Control = Panel9
         AnchorSideRight.Side = asrBottom
         Left = 0
-        Height = 133
+        Height = 152
         Top = 0
         Width = 121
         AutoSize = True
         BorderSpacing.Bottom = 4
         BevelOuter = bvNone
-        ClientHeight = 133
+        ClientHeight = 152
         ClientWidth = 121
         Constraints.MinHeight = 100
         TabOrder = 0
@@ -1402,7 +1401,7 @@ object MainForm: TMainForm
           AnchorSideRight.Side = asrBottom
           Left = 0
           Height = 57
-          Top = 57
+          Top = 76
           Width = 121
           AutoSize = True
           BevelOuter = bvNone
@@ -1441,9 +1440,11 @@ object MainForm: TMainForm
           end
         end
         object cbUnicode: TCheckBox
+          AnchorSideTop.Control = cbpercentage
+          AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 19
+          Top = 38
           Width = 64
           Caption = 'Unicode'
           TabOrder = 1
@@ -1451,9 +1452,11 @@ object MainForm: TMainForm
         end
         object cbCaseSensitive: TCheckBox
           AnchorSideLeft.Control = pnlScanOptions
+          AnchorSideTop.Control = cbUnicode
+          AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 38
+          Top = 57
           Width = 93
           Caption = 'Case sensitive'
           Checked = True
@@ -1472,19 +1475,36 @@ object MainForm: TMainForm
           AnchorSideRight.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 114
+          Top = 133
           Width = 118
           Caption = 'Simple values only'
           TabOrder = 3
           Visible = False
         end
         object cbpercentage: TCheckBox
+          AnchorSideTop.Control = cbNot
+          AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 0
+          Top = 19
           Width = 60
           Caption = 'Percent'
           TabOrder = 4
+        end
+        object cbNot: TCheckBox
+          AnchorSideLeft.Control = pnlScanOptions
+          AnchorSideTop.Control = pnlScanOptions
+          Left = 0
+          Height = 19
+          Hint = 'When checked CE will find everything EXCEPT the value/range you''ve given'
+          Top = 0
+          Width = 40
+          Caption = 'Not'
+          Enabled = False
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 5
+          Visible = False
         end
       end
       object Panel10: TPanel
@@ -1497,7 +1517,7 @@ object MainForm: TMainForm
         AnchorSideBottom.Side = asrBottom
         Left = 0
         Height = 132
-        Top = 137
+        Top = 156
         Width = 146
         Anchors = [akTop, akLeft, akBottom]
         AutoSize = True

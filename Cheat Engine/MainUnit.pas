@@ -171,6 +171,15 @@ type
     end;
     foundlistDisplayOverride: integer;
 
+
+    cbNot:record
+      Checked: boolean;
+    end;
+
+    cbfloatSimple: record
+      Checked: boolean;
+    end;
+
   end;
   PScanState = ^TScanState;
 
@@ -218,6 +227,7 @@ type
     cbUnrandomizer: TCheckBox;
     cbWritable: TCheckBox;
     cbpercentage: TCheckBox;
+    cbNot: TCheckBox;
     ColorDialog1: TColorDialog;
     CreateGroup: TMenuItem;
     FromAddress: TEdit;
@@ -619,7 +629,6 @@ type
     procedure AutoAttachTimerTimer(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Button4Click(Sender: TObject);
-    procedure ScanTypeKeyDown(Sender: TObject; var Key: word; Shift: TShiftState);
     procedure FormDestroy(Sender: TObject);
     procedure tbSpeedChange(Sender: TObject);
     procedure btnSetSpeedhack2Click(Sender: TObject);
@@ -1895,6 +1904,8 @@ begin
   btnNewScan.Enabled := False;
   btnNextScan.Enabled := False;
   undoscan.Enabled := False;
+
+  cbNot.Enabled:=false;
 end;
 
 procedure TMainForm.enableGui(isnextscan: boolean);
@@ -1933,6 +1944,8 @@ begin
   lblValueType.Enabled := True;
   cbHexadecimal.Enabled := True;
   cbCaseSensitive.Enabled := True;
+  cbNot.enabled:=true;
+
 
   scanvalue.Visible := True;
   scantext.Visible := True;
@@ -2224,12 +2237,15 @@ begin
       Scantext.Visible := False;
       Scanvalue.Visible := False;
       cbHexadecimal.Visible := False;
+      cbNot.visible:=false;
     end
     else
     begin
       Scantext.Visible := True;
       Scanvalue.Visible := True;
       cbHexadecimal.Visible := hexvis;
+
+      cbNot.Visible:=not (vartype.itemindex in [0,7,8,10]);
     end;
 
     pnlfloat.Visible := floatvis;
@@ -2526,6 +2542,7 @@ begin
     scanvalue.Text := '';
     cbHexadecimal.Enabled := False;
     cbCaseSensitive.Enabled := False;
+    cbNot.Visible:=false;
 
     Updatescantype;
     Scantype.ItemIndex := 0;
@@ -4048,6 +4065,9 @@ begin
 
   scanstate.foundlistDisplayOverride:=foundlistDisplayOverride;
 
+  scanstate.cbNot.Checked:=cbNot.checked;
+  scanstate.cbfloatSimple.Checked:=cbFloatSimple.checked
+
 
 {
   if foundlist3.TopItem<>nil then
@@ -4256,6 +4276,9 @@ begin
     end;
 
     foundlistDisplayOverride:=newstate.foundlistDisplayOverride;
+
+    cbNot.Checked:=newstate.cbNot.checked;
+    cbFloatSimple.checked:=newstate.cbfloatSimple.Checked;
 
     UpdateFloatRelatedPositions;
 
@@ -8336,11 +8359,11 @@ begin
       fastscanmethod := fsmNotAligned;
 
     memscan.floatscanWithoutExponents:=cbFloatSimple.checked;
+    memscan.inversescan:=cbNot.Checked;
 
     memscan.firstscan(GetScanType2, getVarType2, roundingtype,
       UTF8ToWinCP(scanvalue.Text), UTF8ToWinCP(svalue2), scanStart, scanStop,
-      cbHexadecimal.Checked, rbdec.Checked, cbunicode.Checked, cbCaseSensitive.Checked,
-      fastscanmethod, edtAlignment.Text,
+      cbHexadecimal.Checked, rbdec.Checked, cbunicode.Checked, cbCaseSensitive.Checked, fastscanmethod, edtAlignment.Text,
       TCustomType(vartype.items.objects[vartype.ItemIndex]));
 
     DisableGui;
@@ -8542,6 +8565,7 @@ begin
   lastscantype := scantype.ItemIndex;
 
   memscan.floatscanWithoutExponents:=cbFloatSimple.checked;
+  memscan.inverseScan:=cbNot.Checked;
 
   memscan.nextscan(GetScanType2, roundingtype, UTF8ToWinCP(scanvalue.Text),
     UTF8ToWinCP(svalue2), cbHexadecimal.Checked, rbdec.Checked,
@@ -8613,11 +8637,6 @@ begin
 
 end;
 
-
-procedure TMainForm.ScanTypeKeyDown(Sender: TObject; var Key: word; Shift: TShiftState);
-begin
-
-end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
 var
