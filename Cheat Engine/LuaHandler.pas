@@ -7023,6 +7023,39 @@ begin
   end;
 end;
 
+function lua_unloadLoadedFont(L: PLua_state): integer; cdecl;
+begin
+  if lua_isnumber(L, 1) then
+    RemoveFontMemResourceEx(lua_tointeger(L,1));
+end;
+
+function lua_loadFontFromStream(L: PLua_state): integer; cdecl;
+var
+  s: TStream;
+  ms: TMemoryStream absolute s;
+  f: TFont;
+  pc: dword;
+
+  h: THandle;
+begin
+
+  if lua_isuserdata(L, 1) then
+  begin
+    s:=lua_toceuserdata(L, 1);
+    if s is TMemoryStream then
+    begin
+      pc:=1;
+      h:=AddFontMemResourceEx(ms.Memory, ms.Size, 0, @pc);
+      lua_pushinteger(L, h);
+    end;
+
+  end;
+
+
+
+
+end;
+
 
 procedure InitializeLua;
 var
@@ -7491,6 +7524,10 @@ begin
     lua_register(LuaVM, 'generateCodeInjectionScript', lua_GenerateCodeInjectionScript);
     lua_register(LuaVM, 'generateAOBInjectionScript', lua_GenerateAOBInjectionScript);
     lua_register(LuaVM, 'generateFullInjectionScript', lua_GenerateFullInjectionScript);
+
+    lua_register(LuaVM, 'loadFontFromStream', lua_loadFontFromStream);
+    lua_register(LuaVM, 'unloadLoadedFont', lua_unloadLoadedFont);
+
 
     initializeLuaCustomControl;
 
