@@ -7072,6 +7072,12 @@ begin
   if i>lblValueType.left then
     i:=lblValueType.left-4;
 
+  if i>gbScanOptions.left then
+    i:=gbScanOptions.left-4;
+
+  if i+speedbutton3.Width>gbScanOptions.left then
+    dec(i, (i+speedbutton3.Width)-gbScanOptions.left);
+
   foundlist3.width:=i;
 
 
