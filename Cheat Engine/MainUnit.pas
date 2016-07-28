@@ -8359,7 +8359,7 @@ begin
       fastscanmethod := fsmNotAligned;
 
     memscan.floatscanWithoutExponents:=cbFloatSimple.checked;
-    memscan.inversescan:=cbNot.Checked;
+    memscan.inversescan:=cbNot.Checked and cbnot.Visible;
 
     memscan.firstscan(GetScanType2, getVarType2, roundingtype,
       UTF8ToWinCP(scanvalue.Text), UTF8ToWinCP(svalue2), scanStart, scanStop,
@@ -8565,7 +8565,7 @@ begin
   lastscantype := scantype.ItemIndex;
 
   memscan.floatscanWithoutExponents:=cbFloatSimple.checked;
-  memscan.inverseScan:=cbNot.Checked;
+  memscan.inverseScan:=cbNot.Checked and cbnot.Visible;
 
   memscan.nextscan(GetScanType2, roundingtype, UTF8ToWinCP(scanvalue.Text),
     UTF8ToWinCP(svalue2), cbHexadecimal.Checked, rbdec.Checked,
