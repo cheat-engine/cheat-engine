@@ -7076,7 +7076,13 @@ begin
     i:=gbScanOptions.left-4;
 
   if i+speedbutton3.Width>gbScanOptions.left then
-    dec(i, (i+speedbutton3.Width)-gbScanOptions.left);
+    dec(i, (i+speedbutton3.Width)-gbScanOptions.left)
+  else
+  begin
+    gbScanOptions.AnchorSideLeft.Control:=speedbutton3;
+    gbScanOptions.AnchorSideLeft.Side:=asrRight;
+    gbScanOptions.Anchors:=gbScanOptions.Anchors+[akLeft];
+  end;
 
   foundlist3.width:=i;
 
