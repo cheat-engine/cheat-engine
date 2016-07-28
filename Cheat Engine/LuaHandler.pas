@@ -7047,6 +7047,7 @@ begin
       pc:=1;
       h:=AddFontMemResourceEx(ms.Memory, ms.Size, 0, @pc);
       lua_pushinteger(L, h);
+      result:=1;
     end;
 
   end;

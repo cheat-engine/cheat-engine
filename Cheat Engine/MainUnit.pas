@@ -6854,7 +6854,7 @@ var
   year, month, day: word;
   temp: string;
 
-  i: integer;
+  i,j: integer;
   outputfile: textfile;
   go: boolean;
   loadt: boolean;
@@ -6870,7 +6870,6 @@ var
   Position: integer;
 
   c: TControl;
-
 begin
   if onetimeonly then
     exit;
@@ -7008,7 +7007,7 @@ begin
 
 
   panel5resize(panel5);
-
+ {
   btnmemoryview.ClientWidth:=max(btnmemoryview.ClientWidth, canvas.TextWidth(btnMemoryView.Caption)+16);
   btnAddAddressManually.ClientWidth:=max(btnAddAddressManually.ClientWidth, canvas.textwidth(btnAddAddressManually.caption)+16);
   btnNewScan.ClientWidth:=max(max(btnNewScan.ClientWidth, btnNextScan.ClientWidth), max(canvas.textwidth(btnNewScan.caption)+16, canvas.textwidth(btnNextScan.caption)+16 ));
@@ -7019,7 +7018,7 @@ begin
     i:=foundlist3.Width-(lblscantype.left-10);
     foundlist3.width:=lblscantype.left-10;
 
-    btnNewScan.BorderSpacing.Left:=btnNewScan.BorderSpacing.Left+i;
+   // btnNewScan.BorderSpacing.Left:=btnNewScan.BorderSpacing.Left+i;
   end;
 
   if lblValueType.Left<foundlist3.Width then
@@ -7027,8 +7026,8 @@ begin
     i:=foundlist3.Width-(lblValueType.left-10);
     foundlist3.width:=lblValueType.left-10;
 
-    btnNewScan.BorderSpacing.Left:=btnNewScan.BorderSpacing.Left+i;
-  end;
+    //btnNewScan.BorderSpacing.Left:=btnNewScan.BorderSpacing.Left+i;
+  end; }
 
   panel6.clientheight:=cbPauseWhileScanning.top+cbPauseWhileScanning.height+2;
   gbScanOptions.ClientHeight:=panel6.top+panel6.height+2;
@@ -7053,22 +7052,33 @@ begin
   btnAddAddressManually.width:=i;
   btnMemoryView.width:=i;
 
+
+  i:=foundlist3.width;
+  if undoscan.left<btnNextScan.Left+btnNextScan.Width then
+  begin
+    j:=(btnNextScan.Left+btnNextScan.Width)-undoscan.left;
+    i:=foundlist3.width-j;
+  end;
+
   pnlScanOptions.Constraints.MinHeight:=gbScanOptions.Top-panel9.top;
   panel10.Constraints.MinWidth:=panel14.Width;
 
   pnlScanValueOptions.Constraints.MinHeight:=rbBit.Height+rbDec.height;
   pnlScanValueOptions.Constraints.MinWidth:=max(rbDec.width, rbBit.width);
 
-  if pnlScanValueOptions.left<lblScanType.left then
-    c:=pnlScanValueOptions else c:=lblScanType;
+  if i>pnlScanValueOptions.left then
+    i:=pnlScanValueOptions.left-4;
 
-  if lblValueType.left<c.left then
-    c:=lblValueType;
+  if i>lblValueType.left then
+    i:=lblValueType.left-4;
 
-  foundlist3.AnchorSide[akRight].Control:=c;
-  foundlist3.AnchorSide[akRight].Side:=asrLeft;
-  foundlist3.BorderSpacing.Right:=4;
-  foundlist3.anchors:= [akTop,akLeft,akBottom, akRight];
+  foundlist3.width:=i;
+
+
+ // foundlist3.AnchorSide[akRight].Control:=c;
+  //foundlist3.AnchorSide[akRight].Side:=asrLeft;
+ // foundlist3.BorderSpacing.Right:=4+extrasize;
+ // foundlist3.anchors:= [akTop,akLeft,akBottom, akRight];
 
   i:=vartype.Canvas.TextWidth(rsMUGenerateGroupscanCommand)+16;
   vartype.Constraints.MinWidth:=i;
@@ -7078,6 +7088,10 @@ begin
   lblcompareToSavedScan.left:=btnNewScan.left-(lblcompareToSavedScan.Width div 2)+((btnNextScan.left+btnNextScan.Width-btnNewScan.left) div 2);
 
   progressbar1.height:=scaley(progressbar1.height, 96);
+
+  i:=((logopanel.Top+logopanel.height)-scanvalue.top)+2;
+  if i>0 then
+    scantext.BorderSpacing.Top:=scantext.BorderSpacing.Top+i;
 end;
 
 
