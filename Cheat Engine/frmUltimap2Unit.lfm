@@ -1,7 +1,7 @@
 object frmUltimap2: TfrmUltimap2
-  Left = 334
+  Left = 387
   Height = 508
-  Top = 99
+  Top = 139
   Width = 629
   AutoSize = True
   Caption = 'Ultimap 2'
@@ -551,6 +551,7 @@ object frmUltimap2: TfrmUltimap2
       HideSelection = False
       MultiSelect = True
       OwnerData = True
+      PopupMenu = PopupMenu1
       ReadOnly = True
       RowSelect = True
       TabOrder = 0
@@ -604,5 +605,13 @@ object frmUltimap2: TfrmUltimap2
     OnTimer = tActivatorTimer
     left = 224
     top = 240
+  end
+  object PopupMenu1: TPopupMenu
+    left = 112
+    top = 392
+    object MenuItem1: TMenuItem
+      Caption = 'Copy selection to clipboard'
+      OnClick = MenuItem1Click
+    end
   end
 end

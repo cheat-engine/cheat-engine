@@ -11,7 +11,7 @@ uses
   ExtCtrls, StdCtrls, ComCtrls, EditBtn, Menus, libipt, ProcessHandlerUnit,
   DBK32functions, commonTypeDefs, MemFuncs, AvgLvlTree, Math, FileMapping,
   syncobjs, CEFuncProc, registry, NewKernelHandler, LazFileUtils, disassembler,
-  strutils;
+  strutils, Clipbrd;
 
 
 const
@@ -166,6 +166,7 @@ type
     lblKB: TLabel;
     lblLastfilterresult: TLabel;
     lbRange: TListBox;
+    MenuItem1: TMenuItem;
     miRangeDeleteSelected: TMenuItem;
     miRangeDeleteAll: TMenuItem;
     Panel1: TPanel;
@@ -177,6 +178,7 @@ type
     Panel2: TPanel;
     Panel3: TPanel;
     Panel5: TPanel;
+    PopupMenu1: TPopupMenu;
     rbLogToFolder: TRadioButton;
     rbRuntimeParsing: TRadioButton;
     tActivator: TTimer;
@@ -201,6 +203,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure ListView1Data(Sender: TObject; Item: TListItem);
     procedure ListView1DblClick(Sender: TObject);
+    procedure MenuItem1Click(Sender: TObject);
     procedure miCloseClick(Sender: TObject);
     procedure miRangeDeleteSelectedClick(Sender: TObject);
     procedure miRangeDeleteAllClick(Sender: TObject);
@@ -1899,6 +1902,25 @@ begin
     MemoryBrowser.disassemblerview.SelectedAddress:=entry^.address;
     MemoryBrowser.show;
   end;
+end;
+
+procedure TfrmUltimap2.MenuItem1Click(Sender: TObject);
+var
+  i: integer;
+  sl: Tstringlist;
+  s: string;
+begin
+  sl:=tstringlist.create;
+
+  for i:=0 to listview1.Items.Count-1 do
+    if listview1.Items[i].Selected then
+    begin
+      s:=listview1.Items[i].Caption+' - '+ listview1.Items[i].SubItems[0]+' - '+ listview1.Items[i].SubItems[1];
+      sl.add(s);
+    end;
+
+  Clipboard.AsText:=sl.text;
+  sl.free;
 end;
 
 procedure TfrmUltimap2.miCloseClick(Sender: TObject);
