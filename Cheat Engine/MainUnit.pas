@@ -2423,11 +2423,6 @@ var
   fname: string;
   expectedfilename: string;
 begin
-  if savedialog1.Filename <> '' then
-    exit;
-  if opendialog1.Filename <> '' then
-    exit;
-
   Fname := copy(processlabel.Caption, pos('-', processlabel.Caption) + 1,
     length(processLabel.Caption));
 
