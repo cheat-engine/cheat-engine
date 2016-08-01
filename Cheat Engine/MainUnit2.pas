@@ -752,9 +752,11 @@ begin
   MemoryBrowser.Kerneltools1.Enabled:=DBKLoaded;
   {$endif}
 
-
-  mainform.autoattachlist.Delimiter:=';';
-  mainform.autoattachlist.DelimitedText:=formsettings.EditAutoAttach.Text;
+  if mainform.autoattachlist<>nil then
+  begin
+    mainform.autoattachlist.Delimiter:=';';
+    mainform.autoattachlist.DelimitedText:=formsettings.EditAutoAttach.Text;
+  end;
 
 
   if formsettings.cbShowMainMenu.Checked then

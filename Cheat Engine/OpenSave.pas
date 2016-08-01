@@ -902,6 +902,8 @@ var
     doc: TXMLDocument;
     workdir: string;
 begin
+  if mainform.addresslist=nil then exit;
+
   if fileexists(filename)=false then
     filename:=UTF8ToSys(filename); //fix chinese problems I hope
 

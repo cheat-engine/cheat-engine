@@ -4746,7 +4746,13 @@ var
 
   rs: TResourceStream;
 
+  i: integer;
 begin
+ { font.size:=20;
+  i:=FromAddress.Font.Size;
+  FromAddress.Font.Size:=font.size;
+  if i=0 then beep;  }
+
   vartype.Items.Clear;
   vartype.items.add(rs_vtBinary);
   vartype.items.add(rs_vtByte);
@@ -7007,27 +7013,11 @@ begin
 
 
   panel5resize(panel5);
- {
-  btnmemoryview.ClientWidth:=max(btnmemoryview.ClientWidth, canvas.TextWidth(btnMemoryView.Caption)+16);
-  btnAddAddressManually.ClientWidth:=max(btnAddAddressManually.ClientWidth, canvas.textwidth(btnAddAddressManually.caption)+16);
-  btnNewScan.ClientWidth:=max(max(btnNewScan.ClientWidth, btnNextScan.ClientWidth), max(canvas.textwidth(btnNewScan.caption)+16, canvas.textwidth(btnNextScan.caption)+16 ));
-  btnNextScan.ClientWidth:=btnNewScan.clientwidth;
 
-  if lblScanType.Left<foundlist3.Width then
-  begin
-    i:=foundlist3.Width-(lblscantype.left-10);
-    foundlist3.width:=lblscantype.left-10;
 
-   // btnNewScan.BorderSpacing.Left:=btnNewScan.BorderSpacing.Left+i;
-  end;
 
-  if lblValueType.Left<foundlist3.Width then
-  begin
-    i:=foundlist3.Width-(lblValueType.left-10);
-    foundlist3.width:=lblValueType.left-10;
-
-    //btnNewScan.BorderSpacing.Left:=btnNewScan.BorderSpacing.Left+i;
-  end; }
+  edtAlignment.Constraints.MinWidth:=canvas.TextWidth('XXXX');
+  edtAlignment.Constraints.MaxWidth:=canvas.TextWidth('XXXXX');
 
   panel6.clientheight:=cbPauseWhileScanning.top+cbPauseWhileScanning.height+2;
   gbScanOptions.ClientHeight:=panel6.top+panel6.height+2;
@@ -7104,6 +7094,17 @@ begin
   i:=((logopanel.Top+logopanel.height)-scanvalue.top)+2;
   if i>0 then
     scantext.BorderSpacing.Top:=scantext.BorderSpacing.Top+i;
+
+  if pnlScanValueOptions.top+pnlScanValueOptions.Height>scanvalue.top+scanvalue.height then
+    scantype.AnchorSideTop.Control:=pnlScanValueOptions
+  else
+  begin
+    scantype.AnchorSideTop.Control:=scanvalue;
+    scantype.BorderSpacing.Top:=2;
+  end;
+
+  panel9.borderspacing.Top:=(scantype.height div 2)-(cbNot.Height div 2);
+
 end;
 
 

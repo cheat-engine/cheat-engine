@@ -1560,6 +1560,7 @@ procedure TPluginHandler.FillCheckListBox(clb: TCheckListbox);
 var i,j: integer;
     x:Tpathspecifier;
 begin
+  if self=nil then exit;
   j:=clb.count;
 
   for i:=0 to clb.Count-1 do
@@ -1672,6 +1673,8 @@ end;
 function TPluginHandler.handlechangedpointers(section: integer):boolean;
 var i,j: integer;
 begin
+  if self=nil then exit(false);
+
   if assigned(onAPIPointerChange) then
     onAPIPointerChange(nil);
 
