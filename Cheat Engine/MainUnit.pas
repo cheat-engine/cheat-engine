@@ -2588,7 +2588,8 @@ begin
     begin
       if (messagedlg(strKeepList, mtConfirmation, [mbYes, mbNo], 0) = mrNo) then
       begin
-
+        savedialog1.FileName := '';
+        Opendialog1.FileName := '';
         ClearList;
       end
       else
@@ -2632,6 +2633,11 @@ begin
         end;
       end;
 
+    end
+    else
+    begin
+      savedialog1.FileName := '';
+      Opendialog1.FileName := '';
     end;
 
   end;
