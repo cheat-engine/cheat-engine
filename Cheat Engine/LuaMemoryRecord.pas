@@ -436,6 +436,54 @@ begin
   result:=1;
 end;
 
+function memoryrecord_createHotkey(L: PLua_State): integer; cdecl;
+var
+  memoryrecord: Tmemoryrecord;
+  hk: TMemoryRecordHotkey;
+  keys: TKeyCombo;
+  action: TMemrecHotkeyAction;
+  value, description: string;
+  i: integer;
+begin
+  result:=0;
+  memoryrecord:=luaclass_getClassObject(L);
+  if lua_gettop(L)=4 then
+  begin
+    if (not lua_istable(L, 1)) or (not lua_isnumber(L, 2)) then exit(0);
+
+
+
+    for i:=0 to 4 do
+    begin
+
+      lua_pushinteger(L, i+1);
+      lua_gettable(L, 1);
+      if lua_isnil(L, -1) then  //end of the list
+      begin
+        keys[i]:=0;
+        lua_pop(L,1);
+        break;
+      end
+      else
+      begin
+        keys[i]:=lua_tointeger(L,-1);
+        lua_pop(L,1);
+      end;
+    end;
+
+
+    action:=TMemrecHotkeyAction(lua_tointeger(L, 2));
+
+    value:=Lua_ToString(L, 3);
+    description:=Lua_ToString(L, 4);
+
+    hk:=memoryrecord.Addhotkey(keys, action, value, description);
+    result:=1;
+    luaclass_newClass(L, hk);
+  end;
+
+end;
+
 function memoryrecord_getHotkeyCount(L: PLua_State): integer; cdecl;
 var
   memoryrecord: Tmemoryrecord;
@@ -739,6 +787,9 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getHotkey', memoryrecord_getHotkey);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getHotkeyByID', memoryrecord_getHotkeyByID);
 
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'createHotkey', memoryrecord_createHotkey);
+
+
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'Description', memoryrecord_getDescription, memoryrecord_setDescription);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Address', memoryrecord_getAddress, memoryrecord_setAddress);
@@ -749,7 +800,7 @@ begin
   luaclass_addPropertyToTable(L, metatable, userdata, 'Active', memoryrecord_getActive, memoryrecord_setActive);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Selected', memoryrecord_isSelected, nil);
   luaclass_addPropertyToTable(L, metatable, userdata, 'HotkeyCount', memoryrecord_getHotkeyCount, nil);
-  luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Hotkey', memoryrecord_getHotkey, nil);
+  luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Hotkey', memoryrecord_getHotkey);
 
 
 
@@ -758,6 +809,7 @@ begin
 
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'Active', memoryrecord_getActive, memoryrecord_setActive);
+
 
 
 

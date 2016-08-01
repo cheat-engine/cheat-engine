@@ -1613,12 +1613,23 @@ methods
 
 MemoryRecordHotkey Class: (Inheritance: object)
 The memoryrecord hotkey class is mainly readonly with the exception of the event properties to be used to automatically create trainers
-Use the genreric hotkey class if you wish to create your own hotkeys
+Use the generic hotkey class if you wish to create your own hotkeys
 
 properties
   Owner: MemoryRecord - The memoryrecord this hotkey belongs to (ReadOnly)
+  Keys: Table - Table containing the keys(combination) for this hotkey
+  action: integer - The action that should happen when this hotkey triggers
+      mrhToggleActivation(0): Toggles between active/deactive
+      mrhToggleActivationAllowIncrease(1): Toggles between active/deactive. Allows increase when active
+      mrhToggleActivationAllowDecrease(2): Toggles between active/deactive. Allows decrease when active
+      mrhActivate(3): Sets the state to active
+      mrhDeactivate(4):  Sets the state to deactive
+      mrhSetValue(5):  Sets a specific value to the value properyy (see value)
+      mrhIncreaseValue(6):  Increases the current value with the value property (see value)
+      mrhDecreaseValue(7):  Decreases the current value with the value property (see value)
+  value: string - Value used depending on what kind of hotkey is used
   ID: integer - Unique id of this hotkey (ReadOnly)
-  Description: string - The description of this hotkey (ReadOnly)
+  Description: string - The description of this hotkey  
   HotkeyString: string - The hotkey formatted as a string (ReadOnly)
   ActivateSound: string - Tablefile name of a WAV file inside the table which will get played on activate events
   DeactivateSound: string - Tablefile name of a .WAV file inside the table which will get played on deactivate events
@@ -1698,6 +1709,7 @@ methods
   getHotkey(index): Returns the hotkey from the hotkey array
   getHotkeyByID(integer): Returns the hotkey with the given id
 
+  createHotkey({keys}, action, value OPTIONAL): Returns a hotkey object 
 
 global events
   function onMemRecPreExecute(memoryrecord, newstate BOOLEAN):

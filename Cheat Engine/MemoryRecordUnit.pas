@@ -24,7 +24,7 @@ resourcestring
   rsP = 'P->';
   rsError = 'error';
 
-type TMemrecHotkeyAction=(mrhToggleActivation, mrhToggleActivationAllowIncrease, mrhToggleActivationAllowDecrease, mrhActivate, mrhDeactivate, mrhSetValue, mrhIncreaseValue, mrhDecreaseValue);
+type TMemrecHotkeyAction=(mrhToggleActivation=0, mrhToggleActivationAllowIncrease=1, mrhToggleActivationAllowDecrease=2, mrhActivate=3, mrhDeactivate=4, mrhSetValue=5, mrhIncreaseValue=6, mrhDecreaseValue=7);
 
 type TFreezeType=(ftFrozen, ftAllowIncrease, ftAllowDecrease);
 
@@ -156,7 +156,7 @@ type
     function getByteSize: integer;
     function BinaryToString(b: pbytearray; bufsize: integer): string;
     function getAddressString: string;
-    function getuniquehotkeyid: integer;
+
     procedure setActive(state: boolean);
     procedure setAllowDecrease(state: boolean);
     procedure setAllowIncrease(state: boolean);
@@ -209,6 +209,8 @@ type
     isSelected: boolean; //lazarus bypass. Because lazarus does not implement multiselect I have to keep track of which entries are selected
 
     //showAsHex: boolean;
+
+    function getuniquehotkeyid: integer;
 
     //free for editing by user:
     function hasSelectedParent: boolean;
@@ -332,7 +334,7 @@ type
   published
     property ActivateSound: string read factivateSound write factivateSound;
     property DeactivateSound: string read fdeactivateSound write fdeactivateSound;
-    property Description: string read fDescription;
+    property Description: string read fDescription write fDescription;
     property Owner: TMemoryRecord read fOwner;
     property ID: integer read fID;
     property OnHotkey: TNotifyEvent read fOnHotkey write fOnHotkey;

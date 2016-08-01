@@ -343,3 +343,12 @@ GW_HWNDPREV = 3
 GW_HWNDOWNER = 4
 GW_CHILD = 5;
 GW_ENABLEDPOPUP = 6;
+
+mrhToggleActivation=0
+mrhToggleActivationAllowIncrease=1
+mrhToggleActivationAllowDecrease=2
+mrhActivate=3
+mrhDeactivate=4
+mrhSetValue=5
+mrhIncreaseValue=6
+mrhDecreaseValue=7
