@@ -2138,7 +2138,7 @@ begin
   Path := StrAlloc(MAX_PATH);
   SHGetSpecialFolderLocation(0, CSIDL_PERSONAL, PIDL);
   if SHGetPathFromIDList(PIDL, Path) then
-    tablesdir := Path+'\My Cheat Tables';
+    tablesdir := WinCPToUTF8(Path)+'\My Cheat Tables';
   SHGetMalloc(AMalloc);
   AMalloc.Free(PIDL);
   StrDispose(Path);

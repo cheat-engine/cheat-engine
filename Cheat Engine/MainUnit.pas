@@ -700,6 +700,8 @@ type
 
     saveGotCanceled: boolean; //set to true if the last save button click was canceled
 
+    UserDefinedTableName: string; //set when a user opens a table (when set the filename prediction will be turned off)
+
     procedure doNewScan;
     procedure SetExpectedTableName;
 
@@ -2423,10 +2425,8 @@ var
   fname: string;
   expectedfilename: string;
 begin
-  if savedialog1.Filename <> '' then
-    exit;
-  if opendialog1.Filename <> '' then
-    exit;
+  if UserDefinedTableName<>'' then exit;
+
 
   Fname := copy(processlabel.Caption, pos('-', processlabel.Caption) + 1,
     length(processLabel.Caption));
@@ -2588,7 +2588,7 @@ begin
     begin
       if (messagedlg(strKeepList, mtConfirmation, [mbYes, mbNo], 0) = mrNo) then
       begin
-
+        UserDefinedTableName:='';
         ClearList;
       end
       else
@@ -7486,8 +7486,10 @@ begin
     LoadTable(Opendialog1.filename, merge);
     SaveDialog1.filename:=Opendialog1.filename;
 
-    reinterpretaddresses;
+    UserDefinedTableName:=Opendialog1.filename;
 
+
+    reinterpretaddresses;
   end
   else Opendialog1.FileName:=oldFileName;
 
@@ -7540,6 +7542,8 @@ begin
     saveGotCanceled:=false;
     opendialog1.FileName := savedialog1.filename;
     SaveIntialTablesDir(extractfilepath(savedialog1.filename));
+
+    UserDefinedTableName:=savedialog1.filename;
   end
   else Savedialog1.FileName:=oldFileName;
 end;
