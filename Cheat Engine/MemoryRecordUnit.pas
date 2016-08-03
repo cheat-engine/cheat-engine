@@ -415,7 +415,7 @@ end;
 
 procedure TMemrecOffset.setOffset(o: integer);
 begin
-  offsettext:=inttostr(o);
+  offsettext:=inttohex(o,1);
 end;
 
 procedure TMemrecOffset.setOffsetText(s: string);
