@@ -5,13 +5,12 @@ unit LastDisassembleData;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, commonTypeDefs;
 
 type
   TDisAssemblerValueType=(dvtNone=0, dvtAddress=1, dvtValue=2);
 
   TDisassemblerClass=(dcX86, dcArm, dcThumb);
-
 
 
   TLastDisassembleData=record
@@ -31,7 +30,8 @@ type
   //  ValueType: TValueType; //if it's not unknown the value type will say what type of value it is (e.g for the FP types)
 
     datasize: integer;
-//    datatype:
+    isfloat: boolean; //True if the data it reads/writes is a float (only when sure)
+
     hasSib: boolean;
     sibIndex: integer;
     sibScaler: integer;

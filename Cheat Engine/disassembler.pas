@@ -1325,6 +1325,8 @@ var memory: TMemory;
     prefixsize: integer;
     mi: TModuleInfo;
 begin
+
+  LastDisassembleData.isfloat:=false;
   if defaultBinutils<>nil then
   begin
     //use this
@@ -1610,6 +1612,8 @@ begin
     prefixsize:=length(LastDisassembleData.bytes);
     LastDisassembleData.prefixsize:=prefixsize;
 
+
+
     case memory[0] of  //opcode
       $00 : begin
               description:='Add';
@@ -1626,6 +1630,7 @@ begin
               lastdisassembledata.opcode:='add';
               if $66 in prefix2 then lastdisassembledata.parameters:=modrm(memory,prefix2,1,1,last)+r16(memory[1]) else
                                      lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last)+r32(memory[1]);
+
 
               inc(offset,last-1);
             end;
@@ -2035,6 +2040,8 @@ begin
 
 
                 $10 : begin
+                        lastdisassembledata.isfloat:=true;
+
                         if $f2 in prefix2 then
                         begin
                           description:='move scalar double-fp';
@@ -2048,6 +2055,7 @@ begin
                           description:='move scalar single-fp';
                           lastdisassembledata.opcode:='movss';
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          lastdisassembledata.datasize:=4;
                           inc(offset,last-1);
                         end
                         else
@@ -2063,11 +2071,13 @@ begin
                           description:='move unaligned four packed single-fp';
                           lastdisassembledata.opcode:='movups';
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          lastdisassembledata.datasize:=4;
                           inc(offset,last-1);
                         end;
                       end;
 
                 $11 : begin
+                        lastdisassembledata.isfloat:=true;
                         if $f2 in prefix2 then
                         begin
                           description:='move scalar double-fp';
@@ -2081,6 +2091,7 @@ begin
                           description:='move scalar single-fp';
                           lastdisassembledata.opcode:='movss';
                           lastdisassembledata.parameters:=modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
+                          lastdisassembledata.datasize:=4;
                           inc(offset,last-1);
                         end
                         else
@@ -2096,6 +2107,7 @@ begin
                           description:='move unaligned four packed single-fp';
                           lastdisassembledata.opcode:='movups';
                           lastdisassembledata.parameters:=modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
+                          lastdisassembledata.datasize:=4;
                           inc(offset,last-1);
                         end;
 
@@ -2125,6 +2137,7 @@ begin
                       end;
 
                 $13 : begin
+                        lastdisassembledata.isfloat:=true;
                         if $66 in prefix2 then
                         begin
                           description:='move low packed double-fp';
@@ -2137,11 +2150,13 @@ begin
                           description:='move low packed single-fp';
                           lastdisassembledata.opcode:='movlps';
                           lastdisassembledata.parameters:=modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
+                          lastdisassembledata.datasize:=4;
                           inc(offset,last-1);
                         end;
                       end;
 
                 $14 : begin
+                        lastdisassembledata.isfloat:=true;
                         if $66 in prefix2 then
                         begin
                           description:='unpack low packed single-fp';
@@ -2154,11 +2169,13 @@ begin
                           description:='unpack low packed single-fp';
                           lastdisassembledata.opcode:='unpcklps';
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          lastdisassembledata.datasize:=4;
                           inc(offset,last-1);
                         end;
                       end;
 
                 $15 : begin
+                        lastdisassembledata.isfloat:=true;
                         if $66 in prefix2 then
                         begin
                           description:='unpack and interleave high packed double-fp';
@@ -2171,11 +2188,13 @@ begin
                           description:='unpack high packed single-fp';
                           lastdisassembledata.opcode:='unpckhps';
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          lastdisassembledata.datasize:=4;
                           inc(offset,last-1);
                         end;
                       end;
 
                 $16 : begin
+                        lastdisassembledata.isfloat:=true;
                         if $66 in prefix2 then
                         begin
                           description:='move high packed double-precision floating-point value';
@@ -2193,11 +2212,13 @@ begin
                             lastdisassembledata.opcode:='movhps';
 
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          lastdisassembledata.datasize:=4;
                           inc(offset,last-1);
                         end;
                       end;
 
                 $17 : begin
+                        lastdisassembledata.isfloat:=true;
                         if $66 in prefix2 then
                         begin
                           description:='move high packed double-precision floating-point value';
@@ -2210,6 +2231,7 @@ begin
                           description:='high to low packed single-fp';
                           lastdisassembledata.opcode:='movhps';
                           lastdisassembledata.parameters:=modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
+                          lastdisassembledata.datasize:=4;
                           inc(offset,last-1);
                         end;
                       end;
@@ -2291,7 +2313,7 @@ begin
                 $28 : begin
                         if $66 in prefix2 then
                         begin
-                          description:='move aligned packed fouble-fp values';
+                          description:='move aligned packed double-fp values';
                           lastdisassembledata.opcode:='movapd';
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
@@ -2308,7 +2330,7 @@ begin
                 $29 : begin
                         if $66 in prefix2 then
                         begin
-                          description:='move aligned packed fouble-fp values';
+                          description:='move aligned packed double-fp values';
                           lastdisassembledata.opcode:='movapd';
                           lastdisassembledata.parameters:=modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
                           inc(offset,last-1);
@@ -2384,6 +2406,7 @@ begin
                 $2c : begin
                         if $f2 in prefix2 then
                         begin
+
                           description:='convert with truncation scalar double-precision floating point value to signed doubleword integer';
                           lastdisassembledata.opcode:='cvttsd2si';
                           lastdisassembledata.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,4,last);
@@ -2417,6 +2440,7 @@ begin
                       end;
 
                 $2d : begin
+                        lastdisassembledata.isfloat:=true;
                         if $f2 in prefix2 then
                         begin
                           description:='convert scalar double-precision floating-point value to doubleword integer';
@@ -2430,6 +2454,7 @@ begin
                           description:='scalar single-fp to signed int32 conversion';
                           lastdisassembledata.opcode:='cvtss2si';
                           lastdisassembledata.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          lastdisassembledata.datasize:=4;
                           inc(offset,last-1);
                         end
                         else
@@ -2446,12 +2471,14 @@ begin
                             description:='packed single-fp to packed int32 conversion';
                             lastdisassembledata.opcode:='cvtps2pi';
                             lastdisassembledata.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                            lastdisassembledata.datasize:=4;
                             inc(offset,last-1);
                           end;
                         end;
                       end;
 
                 $2e : begin
+                        lastdisassembledata.isfloat:=true;
                         if $66 in prefix2 then
                         begin
                           description:='unordered scalar double-fp compare and set eflags';
@@ -2464,12 +2491,14 @@ begin
                           description:='unordered scalar single-fp compare and set eflags';
                           lastdisassembledata.opcode:='ucomiss';
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          lastdisassembledata.datasize:=4;
                           inc(offset,last-1);
                         end;
                       end;
 
 
                 $2f : begin
+                        lastdisassembledata.isfloat:=true;
                         if $66 in prefix2 then
                         begin
                           description:='compare scalar ordered double-precision floating point values and set eflags';
@@ -2482,6 +2511,7 @@ begin
                           description:='scalar ordered single-fp compare and set eflags';
                           lastdisassembledata.opcode:='comiss';
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          lastdisassembledata.datasize:=4;
                           inc(offset,last-1);
                         end;
                       end;
@@ -2698,8 +2728,10 @@ begin
                       end;
 
                 $50 : begin
+                        lastdisassembledata.isfloat:=true;
                         if $66 in prefix2 then
                         begin
+
                           lastdisassembledata.opcode:='movmskpd';
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,0,last);
                           description:='extract packed double-precision floating-point sign mask';
@@ -2710,6 +2742,7 @@ begin
                           lastdisassembledata.opcode:='movmskps';
 //                          lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last)+xmm(memory[2]);
                           lastdisassembledata.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          lastdisassembledata.datasize:=4;
 
                           description:='move mask to integer';
                           inc(offset,last-1);
@@ -2717,6 +2750,7 @@ begin
                       end;
 
                 $51 : begin
+                        lastdisassembledata.isfloat:=true;
                         if $f2 in prefix2 then
                         begin
                           lastdisassembledata.opcode:='sqrtsd';
@@ -2731,6 +2765,7 @@ begin
                           lastdisassembledata.opcode:='sqrtss';
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           description:='scalar single-fp square root';
+                          lastdisassembledata.datasize:=4;
                           inc(offset,last-1);
                         end
                         else
@@ -2753,12 +2788,14 @@ begin
                       end;
 
                 $52 : begin
+                        lastdisassembledata.isfloat:=true;
                         if $f3 in prefix2 then
                         begin
                           lastdisassembledata.opcode:='rsqrtss';
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
 
                           description:='packed single-fp square root reciprocal';
+                          lastdisassembledata.datasize:=4;
                           inc(offset,last-1);
                         end
                         else
@@ -2767,17 +2804,20 @@ begin
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
 
                           description:='scalar single-fp square root reciprocal';
+                          lastdisassembledata.datasize:=4;
                           inc(offset,last-1);
                         end;
                       end;
 
                 $53 : begin
+                        lastdisassembledata.isfloat:=true;
                         if $f3 in prefix2 then
                         begin
                           lastdisassembledata.opcode:='rcpss';
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
 
                           description:='scalar single-fp reciprocal';
+                          lastdisassembledata.datasize:=4;
                           inc(offset,last-1);
                         end
                         else
@@ -2786,6 +2826,7 @@ begin
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
 
                           description:='packed single-fp reciprocal';
+                          lastdisassembledata.datasize:=4;
                           inc(offset,last-1);
                         end;
                       end;
@@ -2803,6 +2844,7 @@ begin
                         begin
                           lastdisassembledata.opcode:='andps';
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          lastdisassembledata.datasize:=4;
 
                           description:='bit-wise logical and for single fp';
                           inc(offset,last-1);
@@ -2824,7 +2866,7 @@ begin
                           description:='bit-wise logical and not for single-fp';
                           lastdisassembledata.opcode:='andnps';
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-
+                          lastdisassembledata.datasize:=4;
 
                           inc(offset,last-1);
                         end;
@@ -2845,7 +2887,7 @@ begin
                           description:='bit-wise logical or for single-fp';
                           lastdisassembledata.opcode:='orps';
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-
+                          lastdisassembledata.datasize:=4;
 
                           inc(offset,last-1);
                         end;
@@ -2866,13 +2908,14 @@ begin
                           description:='bit-wise logical xor for single-fp data';
                           lastdisassembledata.opcode:='xorps';
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-
+                          lastdisassembledata.datasize:=4;
 
                           inc(offset,last-1);
                         end;
                       end;
 
                 $58 : begin
+                        lastdisassembledata.isfloat:=true;
                         if $f2 in prefix2 then
                         begin
                           //delete the repne from the tempresult
@@ -2892,6 +2935,7 @@ begin
 
                           lastdisassembledata.opcode:='addss';
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          lastdisassembledata.datasize:=4;
 
                           description:='add the lower sp fp number from xmm2/mem to xmm1.';
                           inc(offset,last-1);
@@ -2909,6 +2953,7 @@ begin
                           begin
                             lastdisassembledata.opcode:='addps';
                             lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                            lastdisassembledata.datasize:=4;
 
                             description:='add packed sp fp numbers from xmm2/mem to xmm1';
                             inc(offset,last-1);
@@ -2917,6 +2962,7 @@ begin
                       end;
 
                 $59 : begin
+                        lastdisassembledata.isfloat:=true;
                         if $f2 in prefix2 then
                         begin
 
@@ -2931,6 +2977,7 @@ begin
 
                           lastdisassembledata.opcode:='mulss';
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          lastdisassembledata.datasize:=4;
 
                           description:='scalar single-fp multiply';
                           inc(offset,last-1);
@@ -2947,6 +2994,7 @@ begin
                         begin
                           lastdisassembledata.opcode:='mulps';
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          lastdisassembledata.datasize:=4;
 
                           description:='packed single-fp multiply';
                           inc(offset,last-1);
@@ -2954,6 +3002,7 @@ begin
                       end;
 
                 $5a : begin
+                        lastdisassembledata.isfloat:=true;
                         if $f2 in prefix2 then
                         begin
 
@@ -2969,6 +3018,7 @@ begin
 
                           lastdisassembledata.opcode:='cvtss2sd';
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          lastdisassembledata.datasize:=4;
 
                           description:='convert scalar single-precision floating-point value to scalar double-precision floating-point value';
                           inc(offset,last-1);
@@ -2987,6 +3037,7 @@ begin
                           begin
                             lastdisassembledata.opcode:='cvtps2pd';
                             lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                            lastdisassembledata.datasize:=4;
 
                             description:='convert packed single precision fp values to packed double precision fp values';
                             inc(offset,last-1);
@@ -2995,10 +3046,13 @@ begin
                       end;
 
                 $5b : begin
+
                         if $66 in prefix2 then
                         begin
+                          lastdisassembledata.isfloat:=true;
                           lastdisassembledata.opcode:='cvtps2dq';
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          lastdisassembledata.datasize:=4;
 
                           description:='convert ps-precision fpoint values to packed dword''s ';
                           inc(offset,last-1);
@@ -3014,6 +3068,7 @@ begin
                       end;
 
                 $5c : begin
+                        lastdisassembledata.isfloat:=true;
                         if $f2 in prefix2 then
                         begin
                           lastdisassembledata.opcode:='subsd';
@@ -3027,6 +3082,7 @@ begin
                         begin
                           lastdisassembledata.opcode:='subss';
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          lastdisassembledata.datasize:=4;
 
                           description:='scalar single-fp subtract';
                           inc(offset,last-1);
@@ -3044,6 +3100,7 @@ begin
                         begin
                           lastdisassembledata.opcode:='subps';
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          lastdisassembledata.datasize:=4; //4*4 actually
 
                           description:='packed single-fp subtract';
                           inc(offset,last-1);
@@ -3052,6 +3109,7 @@ begin
 
 
                 $5d : begin
+                        lastdisassembledata.isfloat:=true;
                         if $f2 in prefix2 then
                         begin
 
@@ -3067,6 +3125,7 @@ begin
 
                           lastdisassembledata.opcode:='minss';
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          lastdisassembledata.datasize:=4;
 
                           description:='scalar single-fp minimum';
                           inc(offset,last-1);
@@ -3093,6 +3152,7 @@ begin
                       end;
 
                 $5e : begin
+                        lastdisassembledata.isfloat:=true;
                         if $f2 in prefix2 then
                         begin
 
@@ -3107,6 +3167,7 @@ begin
 
                           lastdisassembledata.opcode:='divss';
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          lastdisassembledata.datasize:=4;
 
                           description:='scalar single-fp divide';
                           inc(offset,last-1);
@@ -3125,6 +3186,7 @@ begin
                           begin
                             lastdisassembledata.opcode:='divps';
                             lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                            lastdisassembledata.datasize:=4;
 
                             description:='packed single-fp divide';
                             inc(offset,last-1);
@@ -3133,6 +3195,7 @@ begin
                       end;
 
                 $5f : begin
+                        lastdisassembledata.isfloat:=true;
                         if $f2 in prefix2 then
                         begin
 
@@ -3148,6 +3211,7 @@ begin
                           description:='scalar single-fp maximum';
                           lastdisassembledata.opcode:='maxss';
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          lastdisassembledata.datasize:=4;
 
                           inc(offset,last-1);
                         end else
@@ -3165,6 +3229,7 @@ begin
                             description:='packed single-fp maximum';
                             lastdisassembledata.opcode:='maxps';
                             lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                            lastdisassembledata.datasize:=4;
 
                             inc(offset,last-1);
                           end;
@@ -3416,6 +3481,7 @@ begin
 
 
                 $6e : begin
+                        //lastdisassembledata.isfloat:=true; //not sure
                         if rex_w then
                         begin
                           description:='move quadword';
@@ -3792,6 +3858,7 @@ begin
                       end;
 
                 $7e : begin
+
                         if $f3 in prefix2 then
                         begin
 
@@ -4823,8 +4890,10 @@ begin
                       end;
 
                 $c2 : begin
+                        lastdisassembledata.isfloat:=true;
                         if $f2 in prefix2 then
                         begin
+
                           description:='compare scalar dpuble-precision floating-point values';
                           lastdisassembledata.opcode:='cmpsd';
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last,128);
@@ -4843,6 +4912,7 @@ begin
                           lastdisassembledata.parametervaluetype:=dvtvalue;
                           lastdisassembledata.parametervalue:=memory[last];
                           lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(lastdisassembledata.parametervalue,2);
+                          lastdisassembledata.datasize:=4;
                           inc(offset,last);
                         end
                         else
@@ -4865,6 +4935,7 @@ begin
                             lastdisassembledata.parametervaluetype:=dvtvalue;
                             lastdisassembledata.parametervalue:=memory[last];
                             lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(lastdisassembledata.parametervalue,2);
+                            lastdisassembledata.datasize:=4;
                             inc(offset,last);
                           end;
                         end;
@@ -4924,6 +4995,7 @@ begin
                       end;
 
                 $c6 : begin
+                        lastdisassembledata.isfloat:=true;
                         if $66 in prefix2 then
                         begin
                           description:='shuffle double-fp';
@@ -4942,6 +5014,7 @@ begin
                           lastdisassembledata.parametervaluetype:=dvtvalue;
                           lastdisassembledata.parametervalue:=memory[last];
                           lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(lastdisassembledata.parametervalue,2);
+                          lastdisassembledata.datasize:=4;
                           inc(offset,last);
                         end;
                       end;
@@ -5060,14 +5133,14 @@ begin
                 $d4 : begin
                         if $66 in prefix2 then
                         begin
-                          description:='add packed quadwprd integers';
+                          description:='add packed quadword integers';
                           lastdisassembledata.opcode:='paddq';
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                         else
                         begin
-                          description:='add packed quadwprd integers';
+                          description:='add packed quadword integers';
                           lastdisassembledata.opcode:='paddq';
                           lastdisassembledata.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
                           inc(offset,last-1);
@@ -9180,8 +9253,10 @@ begin
             end;
 
       $d9 : begin
+              lastdisassembledata.isfloat:=true;
               case memory[1] of
               $00..$bf : begin
+
                            case getreg(memory[1]) of
                            0:  begin
                                  description:='load floating point value';
@@ -9591,6 +9666,7 @@ begin
                                   end;
 
                               5:  begin
+                                    lastdisassembledata.isfloat:=true;
                                     description:='load floating point value';
                                     lastdisassembledata.opcode:='fld';
                                     lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,80);
@@ -9599,6 +9675,7 @@ begin
                                   end;
 
                               7:  begin
+                                    lastdisassembledata.isfloat:=true;
                                     description:='store extended';
                                     lastdisassembledata.opcode:='fstp';
                                     lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,80);
@@ -9668,6 +9745,7 @@ begin
             end;
 
       $dc : begin
+              lastdisassembledata.isfloat:=true;
               case getreg(memory[1]) of
                 0:  begin
                       //fadd
@@ -9800,6 +9878,7 @@ begin
               $0..$bf :  begin
                            case getreg(memory[1]) of
                              0:  begin
+                                   lastdisassembledata.isfloat:=true;
                                    description:='load floating point value';
                                    lastdisassembledata.opcode:='fld';
                                    lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,64);
@@ -9816,6 +9895,7 @@ begin
                                  end;
 
                              2:  begin
+                                   lastdisassembledata.isfloat:=true;
                                    description:='store double';
                                    lastdisassembledata.opcode:='fst';
                                    lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,64);
@@ -9824,6 +9904,7 @@ begin
                                  end;
 
                              3:  begin
+                                   lastdisassembledata.isfloat:=true;
                                    description:='store double';
                                    lastdisassembledata.opcode:='fstp';
                                    lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,64);
@@ -11218,11 +11299,26 @@ begin
       begin
         a:=true;
         x:=0;
+
+        vtype:=vtDword;
         readprocessmemory(processhandle, pointer(value), @buffer[0], 63,x);
         if x>0 then
-          vtype:=FindTypeOfData(value, @buffer[0], x)
+        begin
+          if LastDisassembleData.isfloat then
+          begin
+            case LastDisassembleData.datasize of
+              4: vtype:=vtSingle;
+              8: vtype:=vtDouble;
+              10: vtype:=vtQword; //('ext>'); //exit(format('%.2f',[pextended(@buffer[0])^]);
+            end;
+          end
+          else
+            vtype:=FindTypeOfData(value, @buffer[0], x)
+        end
         else
-          vtype:=vtDword;
+          exit('');
+
+
       end
       else
       begin

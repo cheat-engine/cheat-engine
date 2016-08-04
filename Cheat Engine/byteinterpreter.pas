@@ -577,7 +577,10 @@ begin
 
 
 
+
     i:=address mod 4;
+    if size in [4,8] then i:=0; //skip this test, it's a known size datablock
+
     case i of
       1: //1 byte
       begin

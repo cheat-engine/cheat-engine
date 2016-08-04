@@ -20,6 +20,7 @@ type TTraceDebugInfo=class
     c: _CONTEXT;
     bytes: pbytearray;
     bytesize: PtrUInt;
+    isfloat: boolean;
 
     stack: record
       savedsize: PtrUInt;
@@ -171,6 +172,15 @@ end;
 
 function TTraceDebugInfo.datatype: TVariableType;
 begin
+  if isfloat then
+  begin
+    case bytesize of
+      4: exit(vtSingle);
+      8: exit(vtDouble);
+      10: ;//exit(vtExtended);
+    end;
+  end;
+
   case bytesize of
     1: result:=vtByte;
     2: result:=vtWord;
@@ -281,6 +291,7 @@ var s,s2: string;
     da: TDisassembler;
 
     datasize: integer;
+    isfloat: boolean;
 begin
   //the debuggerthread is now paused so get the context and add it to the list
 
@@ -295,6 +306,8 @@ begin
   datasize:=da.LastDisassembleData.datasize;
   if datasize=0 then
     datasize:=4;
+
+  isfloat:=da.LastDisassembleData.isfloat;
 
   da.free;
 
@@ -322,6 +335,7 @@ begin
   d.c:=debuggerthread.CurrentThread.context^;
   d.instruction:=s;
   d.referencedAddress:=referencedAddress;
+  d.isfloat:=isfloat;
   d.fillbytes(datasize);
 
   if savestack then
