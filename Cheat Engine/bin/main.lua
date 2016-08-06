@@ -239,6 +239,8 @@ keyDown(key) : causes the key to go into down state
 keyUp(key) :causes the key to go up
 doKeyPress(key) : simulates a key press
 
+mouse_event(flags, x OPTIONAL, y OPTIONAL, data OPTIONAL, extra OPTIONAL) - The mouse_event windows API.  Check MSDN for information on how to use
+
 shortCutToText(shortcut): Returns the textual representation of the given shortut value (integer) (6.4+)
 textToShortCut(shortcutstring): Returns an shortcut integer that the given string represents.  (6.4+)
 

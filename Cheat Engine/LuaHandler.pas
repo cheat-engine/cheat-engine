@@ -2187,6 +2187,27 @@ begin
 end;
 
 
+function lua_mouse_event(L: PLua_State): integer; cdecl;
+var
+  flags, x,y,data: dword;
+  extrainfo: ptruint;
+  c: integer;
+begin
+  result:=0;
+
+  c:=lua_gettop(L);
+  if c=0 then exit(0); //flags is important, the rest can be ignored
+
+  flags:=lua_tointeger(L, 1);
+  x:=lua_tointeger(L, 2);
+  y:=lua_tointeger(L, 3);
+  data:=lua_tointeger(L, 4);
+  extrainfo:=lua_tointeger(L, 5);
+
+  mouse_event(flags, x, y, data, extrainfo);
+
+end;
+
 function keyDown(L: PLua_State): integer; cdecl;
 var parameters: integer;
   keyinput: pchar;
@@ -7123,6 +7144,8 @@ begin
 
 
 
+
+    lua_register(LuaVM, 'mouse_event', lua_mouse_event);
     lua_register(LuaVM, 'isKeyPressed', isKeyPressed);
     lua_register(LuaVM, 'keyDown', keyDown);
     lua_register(LuaVM, 'keyUp', keyUp);
