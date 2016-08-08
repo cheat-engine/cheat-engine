@@ -469,9 +469,6 @@ type
     procedure CreateGroupClick(Sender: TObject);
     procedure Foundlist3SelectItem(Sender: TObject; Item: TListItem;
       Selected: boolean);
-    procedure Label3Click(Sender: TObject);
-    procedure Label57Click(Sender: TObject);
-    procedure lblcompareToSavedScanClick(Sender: TObject);
     procedure miBindDeactivationClick(Sender: TObject);
     procedure miDisassembleClick(Sender: TObject);
     procedure miScanDirtyOnlyClick(Sender: TObject);
@@ -531,6 +528,7 @@ type
     procedure Panel5Resize(Sender: TObject);
     procedure pmTablistPopup(Sender: TObject);
     procedure pmValueTypePopup(Sender: TObject);
+    procedure pnlScanOptionsClick(Sender: TObject);
     procedure pnlScanOptionsResize(Sender: TObject);
     procedure rbAllMemoryChange(Sender: TObject);
     procedure rbFsmAlignedChange(Sender: TObject);
@@ -563,7 +561,6 @@ type
     procedure SpeedButton2Click(Sender: TObject);
     procedure SpeedButton3Click(Sender: TObject);
     procedure Selectallitems1Click(Sender: TObject);
-    procedure Label37Click(Sender: TObject);
     procedure Freezealladdresses2Click(Sender: TObject);
     procedure PopupMenu2Popup(Sender: TObject);
     procedure Unfreezealladdresses1Click(Sender: TObject);
@@ -624,7 +621,6 @@ type
     procedure Foundlist3Data(Sender: TObject; Item: TListItem);
     procedure UpdateFoundlisttimerTimer(Sender: TObject);
     procedure Foundlist3KeyDown(Sender: TObject; var Key: word; Shift: TShiftState);
-    procedure Label59Click(Sender: TObject);
     procedure Browsethismemoryregioninthedisassembler1Click(Sender: TObject);
     procedure AutoAttachTimerTimer(Sender: TObject);
     procedure Button2Click(Sender: TObject);
@@ -2933,16 +2929,6 @@ var t: TRemoteMemoryManager;
 
 
 
-procedure TMainForm.Label57Click(Sender: TObject);
-begin
-
-
-end;
-
-procedure TMainForm.lblcompareToSavedScanClick(Sender: TObject);
-begin
-
-end;
 
 
 
@@ -4578,6 +4564,11 @@ begin
 
 end;
 
+procedure TMainForm.pnlScanOptionsClick(Sender: TObject);
+begin
+
+end;
+
 procedure TMainForm.pnlScanOptionsResize(Sender: TObject);
 var i: integer;
 begin
@@ -4697,6 +4688,9 @@ begin
 
   miDisplayDefault.checked:=true;
   foundlistDisplayOverride:=0;
+
+  if formsettings.cbPauseWhenScanningOnByDefault.checked then
+    cbPauseWhileScanning.Checked:=true;
 end;
 
 procedure TMainForm.btnNewScanClick(Sender: TObject);
@@ -6135,10 +6129,7 @@ begin
 
 end;
 
-procedure TMainForm.Label37Click(Sender: TObject);
-begin
-  beep;
-end;
+
 
 procedure TMainForm.Freezealladdresses2Click(Sender: TObject);
 begin
@@ -8182,22 +8173,7 @@ begin
 end;
 
 
-procedure TMainForm.Label3Click(Sender: TObject);
-begin
 
-end;
-
-
-procedure TMainForm.Label59Click(Sender: TObject);
-begin
-
-end;
-
-procedure ChangeIcon(hModule: HModule; restype: PChar; resname: PChar;
-  lparam: thandle); stdcall;
-begin
-
-end;
 
 
 procedure TMainForm.Browsethismemoryregioninthedisassembler1Click(Sender: TObject);

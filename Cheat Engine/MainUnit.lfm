@@ -1,9 +1,9 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 549
+  Left = 1029
   Height = 677
   Hint = ' '
-  Top = 127
+  Top = 179
   Width = 687
   HelpContext = 3
   HorzScrollBar.Visible = False
@@ -1223,7 +1223,6 @@ object MainForm: TMainForm
       Caption = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
       ParentColor = False
       Visible = False
-      OnClick = lblcompareToSavedScanClick
     end
     object pnlScanValueOptions: TPanel
       AnchorSideLeft.Control = SpeedButton3
@@ -1359,6 +1358,7 @@ object MainForm: TMainForm
         ClientWidth = 121
         Constraints.MinHeight = 100
         TabOrder = 0
+        OnClick = pnlScanOptionsClick
         OnResize = pnlScanOptionsResize
         object pnlFloat: TPanel
           AnchorSideLeft.Control = pnlScanOptions
@@ -1382,9 +1382,7 @@ object MainForm: TMainForm
             Top = 38
             Width = 74
             Caption = 'Truncated'
-            Checked = True
             TabOrder = 2
-            TabStop = True
           end
           object rt1: TRadioButton
             Left = 0
@@ -1402,7 +1400,9 @@ object MainForm: TMainForm
             Top = 19
             Width = 121
             Caption = 'Rounded (extreme)'
+            Checked = True
             TabOrder = 1
+            TabStop = True
           end
         end
         object cbUnicode: TCheckBox
