@@ -1,7 +1,7 @@
 object frmStructures2: TfrmStructures2
-  Left = 831
+  Left = 945
   Height = 381
-  Top = 231
+  Top = 325
   Width = 542
   Caption = 'Structure dissect'
   ClientHeight = 361
@@ -349,7 +349,9 @@ object frmStructures2: TfrmStructures2
     top = 264
   end
   object FindDialog1: TFindDialog
-    Options = [frDown, frHideWholeWord, frHideEntireScope]
+    Width = 480
+    Height = 136
+    Options = [frDown, frDisableWholeWord, frHideEntireScope]
     OnFind = FindDialog1Find
     left = 152
     top = 128
