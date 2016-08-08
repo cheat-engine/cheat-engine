@@ -39,6 +39,7 @@ type
     cbWaitAfterGuiUpdate: TCheckBox;
     cgAllTypes: TCheckGroup;
     cbWriteLoggingOn: TCheckBox;
+    cbPauseWhenScanningOnByDefault: TCheckBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
     edtWriteLogSize: TEdit;
@@ -172,6 +173,7 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure cbShowDisassemblerClick(Sender: TObject);
+    procedure Label3Click(Sender: TObject);
     procedure LoadButtonClick(Sender: TObject);
     procedure Panel3Click(Sender: TObject);
     procedure Panel3Resize(Sender: TObject);
@@ -518,6 +520,9 @@ begin
       reg.WriteBool('Pointer appending', cbOldPointerAddMethod.checked);
 
       reg.writebool('skip PAGE_NOCACHE',cbSkip_PAGE_NOCACHE.Checked);
+      reg.writebool('Pause when scanning on by default',cbPauseWhenScanningOnByDefault.Checked);
+
+
       reg.WriteBool('Hide all windows',cbHideAllWindows.checked);
       reg.WriteBool('Really hide all windows',temphideall);
 
@@ -976,6 +981,11 @@ begin
 end;
 
 procedure TformSettings.cbShowDisassemblerClick(Sender: TObject);
+begin
+
+end;
+
+procedure TformSettings.Label3Click(Sender: TObject);
 begin
 
 end;

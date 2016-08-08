@@ -531,6 +531,11 @@ begin
             
           Skip_PAGE_NOCACHE:=cbSkip_PAGE_NOCACHE.Checked;
 
+          if reg.ValueExists('Pause when scanning on by default') then
+            cbPauseWhenScanningOnByDefault.Checked:=reg.readbool('Pause when scanning on by default');
+
+          MainForm.cbPauseWhileScanning.Checked:=cbPauseWhenScanningOnByDefault.checked;
+
 
           if reg.ValueExists('Hide all windows') then
             cbHideAllWindows.Checked:=reg.ReadBool('Hide all windows');

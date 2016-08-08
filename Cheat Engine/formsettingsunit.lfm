@@ -1,7 +1,7 @@
 object formSettings: TformSettings
-  Left = 1053
+  Left = 844
   Height = 540
-  Top = 315
+  Top = 349
   Width = 772
   BorderIcons = [biSystemMenu]
   Caption = 'Cheat Engine settings'
@@ -61,9 +61,9 @@ object formSettings: TformSettings
       Height = 491
       Top = 1
       Width = 622
-      ActivePage = GeneralSettings
+      ActivePage = ScanSettings
       Align = alClient
-      TabIndex = 0
+      TabIndex = 3
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -392,29 +392,29 @@ object formSettings: TformSettings
       end
       object tsHotkeys: TTabSheet
         Caption = 'Hotkeys'
-        ClientHeight = 443
+        ClientHeight = 465
         ClientWidth = 614
         ImageIndex = 7
         inline frameHotkeyConfig: TframeHotkeyConfig
-          Height = 443
+          Height = 465
           Width = 614
           Align = alClient
-          ClientHeight = 443
+          ClientHeight = 465
           ClientWidth = 614
           DesignLeft = 737
           DesignTop = 306
           inherited Panel1: TPanel
-            Height = 381
+            Height = 403
             Top = 62
             Width = 388
-            ClientHeight = 381
+            ClientHeight = 403
             ClientWidth = 388
             inherited Label1: TLabel
               Height = 13
               Width = 388
             end
             inherited ListBox1: TListBox
-              Height = 368
+              Height = 390
               Top = 13
               Width = 388
               ItemHeight = 13
@@ -422,10 +422,10 @@ object formSettings: TformSettings
           end
           inherited Panel2: TPanel
             Left = 388
-            Height = 381
+            Height = 403
             Top = 62
             Width = 226
-            ClientHeight = 381
+            ClientHeight = 403
             ClientWidth = 226
             inherited Label2: TLabel
               Left = 7
@@ -446,10 +446,10 @@ object formSettings: TformSettings
             end
             inherited Panel3: TPanel
               Left = 2
-              Height = 383
+              Height = 405
               Top = 72
               Width = 224
-              ClientHeight = 383
+              ClientHeight = 405
               ClientWidth = 224
               inherited Label52: TLabel
                 Left = 185
@@ -544,7 +544,7 @@ object formSettings: TformSettings
       end
       object ScanSettings: TTabSheet
         Caption = 'Scan Settings'
-        ClientHeight = 443
+        ClientHeight = 465
         ClientWidth = 614
         ImageIndex = 1
         object Label3: TLabel
@@ -552,16 +552,20 @@ object formSettings: TformSettings
           AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 13
-          Top = 289
+          Top = 309
           Width = 67
           BorderSpacing.Top = 5
           Caption = 'Thread priority'
           ParentColor = False
+          OnClick = Label3Click
         end
         object Label1: TLabel
+          AnchorSideTop.Control = EditBufsize
+          AnchorSideTop.Side = asrCenter
+          AnchorSideRight.Control = EditBufsize
           Left = 0
           Height = 13
-          Top = 7
+          Top = 9
           Width = 114
           Caption = 'Size of scanbuffer (KB) :'
           ParentColor = False
@@ -569,9 +573,11 @@ object formSettings: TformSettings
         object Label15: TLabel
           AnchorSideLeft.Control = EditBufsize
           AnchorSideLeft.Side = asrBottom
+          AnchorSideTop.Control = EditBufsize
+          AnchorSideTop.Side = asrCenter
           Left = 168
           Height = 13
-          Top = 7
+          Top = 9
           Width = 136
           BorderSpacing.Left = 3
           Caption = '(Can affect scan speed a lot)'
@@ -582,7 +588,7 @@ object formSettings: TformSettings
           AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 13
-          Top = 214
+          Top = 234
           Width = 189
           BorderSpacing.Top = 10
           Caption = 'Scan the following memory region types:'
@@ -593,7 +599,7 @@ object formSettings: TformSettings
           AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 21
-          Top = 302
+          Top = 322
           Width = 122
           ItemHeight = 13
           ItemIndex = 4
@@ -615,8 +621,9 @@ object formSettings: TformSettings
           AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 26
+          Top = 27
           Width = 130
+          BorderSpacing.Top = 1
           Caption = 'Fast scan on by default'
           Checked = True
           State = cbChecked
@@ -628,7 +635,7 @@ object formSettings: TformSettings
           Left = 0
           Height = 19
           Hint = 'Some systems crash when trying to read memory with this protection. If that happens check this option.'
-          Top = 45
+          Top = 46
           Width = 312
           Caption = 'Don''t scan memory that is protected with the No Cache option'
           ParentShowHint = False
@@ -640,7 +647,7 @@ object formSettings: TformSettings
           AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 246
+          Top = 266
           Width = 355
           Caption = 'MEM_IMAGE:Memory that is mapped into the view of an image section'
           Checked = True
@@ -652,7 +659,7 @@ object formSettings: TformSettings
           AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 265
+          Top = 285
           Width = 531
           Caption = 'MEM_MAPPED:Memory that is mapped into the view of a section. (E.g:File mapping, emulator memory, slow)'
           TabOrder = 4
@@ -662,7 +669,7 @@ object formSettings: TformSettings
           AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 227
+          Top = 247
           Width = 206
           Caption = 'MEM_PRIVATE:Memory that is private.'
           Checked = True
@@ -684,7 +691,7 @@ object formSettings: TformSettings
           AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 151
+          Top = 171
           Width = 292
           Caption = 'Don''t store the temporary scanfiles in the windows tempdir'
           OnChange = cbDontusetempdirChange
@@ -697,7 +704,7 @@ object formSettings: TformSettings
           AnchorSideRight.Control = LoadButton
           Left = 15
           Height = 21
-          Top = 183
+          Top = 203
           Width = 559
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Left = 15
@@ -710,7 +717,7 @@ object formSettings: TformSettings
           AnchorSideTop.Side = asrBottom
           Left = 15
           Height = 13
-          Top = 170
+          Top = 190
           Width = 200
           BorderSpacing.Left = 15
           Caption = 'Store the temporary scanfiles here instead:'
@@ -724,7 +731,7 @@ object formSettings: TformSettings
           AnchorSideRight.Side = asrBottom
           Left = 574
           Height = 25
-          Top = 181
+          Top = 201
           Width = 25
           Anchors = [akTop, akRight]
           BorderSpacing.Right = 15
@@ -759,11 +766,11 @@ object formSettings: TformSettings
           ParentShowHint = False
         end
         object cgAllTypes: TCheckGroup
-          AnchorSideTop.Control = cbSkip_PAGE_NOCACHE
+          AnchorSideTop.Control = cbPauseWhenScanningOnByDefault
           AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 87
-          Top = 64
+          Top = 84
           Width = 227
           AutoFill = True
           AutoSize = True
@@ -793,6 +800,16 @@ object formSettings: TformSettings
           Data = {
             0700000002020202020202
           }
+        end
+        object cbPauseWhenScanningOnByDefault: TCheckBox
+          AnchorSideTop.Control = cbSkip_PAGE_NOCACHE
+          AnchorSideTop.Side = asrBottom
+          Left = 0
+          Height = 19
+          Top = 65
+          Width = 187
+          Caption = 'Pause while scanning on by default'
+          TabOrder = 10
         end
       end
       object Plugins: TTabSheet
@@ -1155,13 +1172,13 @@ object formSettings: TformSettings
       end
       object Extra: TTabSheet
         Caption = 'Extra'
-        ClientHeight = 443
+        ClientHeight = 465
         ClientWidth = 614
         ImageIndex = 6
         object TauntOldOsUser: TLabel
           Left = 0
           Height = 13
-          Top = 430
+          Top = 452
           Width = 614
           Align = alBottom
           Alignment = taCenter
@@ -1505,7 +1522,7 @@ object formSettings: TformSettings
       end
       object CodeFinder: TTabSheet
         Caption = 'CodeFinder'
-        ClientHeight = 442
+        ClientHeight = 465
         ClientWidth = 614
         ImageIndex = 4
         object cbHandleBreakpoints: TCheckBox
