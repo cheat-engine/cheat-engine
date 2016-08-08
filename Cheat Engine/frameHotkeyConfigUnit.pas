@@ -6,10 +6,14 @@ interface
 
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, LResources, CEFuncProc, commonTypeDefs;
+  Dialogs, StdCtrls, ExtCtrls, LResources, Menus, CEFuncProc, commonTypeDefs;
 
 type
+
+  { TframeHotkeyConfig }
+
   TframeHotkeyConfig = class(TFrame)
+    MenuItem1: TMenuItem;
     Panel1: TPanel;
     Label1: TLabel;
     ListBox1: TListBox;
@@ -28,10 +32,12 @@ type
     edtHotkeyDelay: TEdit;
     Label4: TLabel;
     Label5: TLabel;
+    PopupMenu1: TPopupMenu;
     procedure ListBox1Click(Sender: TObject);
     procedure Edit1KeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure Button3Click(Sender: TObject);
+    procedure MenuItem1Click(Sender: TObject);
   private
     { Private declarations }
     currentspeed: integer;
@@ -97,27 +103,27 @@ begin
     case currentspeed of
       1:
       begin
-        edtSHSpeed.text:=format('%.2f',[newspeedhackspeed1.speed]);
+        edtSHSpeed.text:=format('%.3f',[newspeedhackspeed1.speed]);
       end;
 
       2:
       begin
-        edtSHSpeed.text:=format('%.2f',[newspeedhackspeed2.speed]);
+        edtSHSpeed.text:=format('%.3f',[newspeedhackspeed2.speed]);
       end;
 
       3:
       begin
-        edtSHSpeed.text:=format('%.2f',[newspeedhackspeed3.speed]);
+        edtSHSpeed.text:=format('%.3f',[newspeedhackspeed3.speed]);
       end;
 
       4:
       begin
-        edtSHSpeed.text:=format('%.2f',[newspeedhackspeed4.speed]);
+        edtSHSpeed.text:=format('%.3f',[newspeedhackspeed4.speed]);
       end;
 
       5:
       begin
-        edtSHSpeed.text:=format('%.2f',[newspeedhackspeed5.speed]);
+        edtSHSpeed.text:=format('%.3f',[newspeedhackspeed5.speed]);
       end;
     end;
 
@@ -130,9 +136,9 @@ begin
   begin
     increasespeed:=listbox1.itemindex=8;
     if increasespeed then
-      edit4.Text:=format('%.2f',[speedupdelta])
+      edit4.Text:=format('%.3f',[speedupdelta])
     else
-      edit4.Text:=format('%.2f',[slowdowndelta]);
+      edit4.Text:=format('%.3f',[slowdowndelta]);
 
     panel4.visible:=true;
     panel3.Visible:=false;
@@ -180,6 +186,15 @@ begin
     edit1.Text:=ConvertKeyComboToString(newhotkeys[listbox1.ItemIndex]);
     edit1.SetFocus;
   end;
+end;
+
+procedure TframeHotkeyConfig.MenuItem1Click(Sender: TObject);
+var i: integer;
+begin
+  for i:=0 to 30 do
+    newhotkeys[i][0]:=0;
+
+  updatehotkey;
 end;
 
 initialization
