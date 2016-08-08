@@ -174,7 +174,15 @@ begin
     begin
       address:=currentThread.context.{$ifdef cpu64}Rip{$else}eip{$endif};
       if usesdebugregs or useexceptions then //find out the previous opcode
-        address:=previousopcode(address);
+      begin
+        address2:=address;
+        d:=TDisassembler.Create;
+        d.disassemble(address2,desc);
+        if copy(d.LastDisassembleData.opcode,1,3)<>'REP' then
+          address:=previousopcode(address);
+
+        d.free;
+      end;
     end;
 
 
