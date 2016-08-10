@@ -268,6 +268,33 @@ implementation
 
 uses symbolhandler, frmSelectionlistunit, cpuidUnit, MemoryBrowserFormUnit;
 
+resourcestring
+rsRecording2 = 'Recording';
+rsPaused = 'Paused';
+rsProcessingData = 'Processing'#13#10'Data';
+rsOnlyForIntelCPUs = 'Sorry, but Ultimap2 only works on Intel CPU''s';
+rsSorryButYourCPUSeemsToBeLeackingIPTFeature = 'Sorry, but your CPU seems to be lacking the Intel Processor Trace feature which Ultimap2 makes use of';
+rsSorryButYourCPUsImplementationOfTheIPTFeatureIsTooOld = 'Sorry, but your CPU''s implementation of the Intel Processor Trace feature is too old. Ultimap uses multiple ToPA entries';
+rsSorryButYourCPUDoesntSeemToBeAbleToSetATargetProcess = 'Sorry, but your CPU doesn''t seem to be able to set a target PROCESS';
+rsFirstOpenAProcess = 'First open a process';
+rsTargetADifferentProcess = 'Target a different process. Ultimap2 will suspend the target when the buffer is full, and suspending the thing that empties the buffer is not a good idea';
+rsTheSizeHasToBe12KbOrHigher = 'The size has to be 12KB or higher';
+rsForSomeWeirdReason = 'For some weird reason "';
+rsCantBeParsed = '" can''t be parsed';
+rsDoesntExistAndCantBeCreated = ' does not exist and can not be created';
+rsCPU = 'CPU';
+rsFailureLoadingLibipt = 'Failure loading libipt';
+rsClosingWillFreeAllCollectedData = 'Closing will free all collected data. Continue? (Tip: You can minimize this window instead)';
+rsRangesEmptyForAllMax = 'Ranges: (Empty for all) (Max %d)';
+rsDashError = ' -error';
+rsMaxAmountOfRangesReachedForYourCpu = 'Max amount of ranges reached for your CPU. Clear one first';
+rsModuleList = 'Module list';
+rsSelectAModuleOrGiveYourOwnRange = 'Select a module or give your own range';
+rsPutBetweenToMarsAsAnAutoStopRange = '(Put between *''s to mark as an auto stop range)';
+rsTheRangeYouHaveProvidedIsAnExitRangeBeAware = 'The range you have provided is an ''Exit'' range. Be aware that this doesn''t mean it will always stop at that range, or that the result is what you expect. A context switch to another thread between the start and stop can add a lot of other data';
+rsIsAnInvalidRange = ' is an invalid range';
+rsInstructionPointerListSize = 'Instruction Pointer List Size:';
+
 //worker
 
 
@@ -1280,19 +1307,19 @@ begin
   case state of
     rsRecording:
     begin
-      label1.Caption:='Recording';
+      label1.Caption:=rsRecording2;
       panel1.color:=clRed;
     end;
 
     rsStopped:
     begin
-      label1.Caption:='Paused';
+      label1.Caption:=rsPaused;
       panel1.Color:=clGreen;
     end;
 
     rsProcessing:
     begin
-      label1.Caption:='Processing'#13#10'Data';
+      label1.Caption:=rsProcessingData;
       panel1.color:=$ff9900;
     end;
   end;
@@ -1376,30 +1403,30 @@ begin
 
       r:=CPUID(0);
       if (r.ebx<>1970169159) or (r.ecx<>1818588270) or (r.edx<>1231384169) then
-        raise exception.create('Sorry, but Ultimap2 only works on Intel CPU''s');
+        raise exception.create(rsOnlyForIntelCPUs);
 
       if (CPUID(7,0).ebx shr 25) and 1=0 then
-        raise exception.create('Sorry, but your CPU seems to be lacking the Intel Processor Trace feature which Ultimap2 makes use of');
+        raise exception.create(rsSorryButYourCPUSeemsToBeLeackingIPTFeature);
 
       cpuid14_0:=CPUID($14,0);
       if ((cpuid14_0.ecx shr 1) and 1)=0 then
-        raise exception.create('Sorry, but your CPU''s implementation of the Intel Processor Trace feature is too old. Ultimap uses multiple ToPA entries');
+        raise exception.create(rsSorryButYourCPUsImplementationOfTheIPTFeatureIsTooOld);
 
       if (cpuid14_0.ebx and 1)=0 then
-        raise exception.create('Sorry, but your CPU doesn''t seem to be able to set a target PROCESS');
+        raise exception.create(rsSorryButYourCPUDoesntSeemToBeAbleToSetATargetProcess);
 
 
 
       if processid=0 then
-        raise exception.create('First open a process');
+        raise exception.create(rsFirstOpenAProcess);
 
       if processid=GetCurrentProcessId then
-        raise exception.create('Target a different process. Ultimap2 will suspend the target when the buffer is full, and suspending the thing that empties the buffer is not a good idea');
+        raise exception.create(rsTargetADifferentProcess);
 
       //initial checks are OK
       bsize:=strtoint(edtBufSize.text)*1024;
       if bsize<12*1024 then
-        raise exception.create('The size has to be 12KB or higher');
+        raise exception.create(rsTheSizeHasToBe12KbOrHigher);
 
       setlength(ranges,lbrange.count);
       for i:=0 to lbRange.Count-1 do
@@ -1416,7 +1443,7 @@ begin
         end;
 
         if symhandler.ParseRange(s, ranges[i].startAddress, ranges[i].endaddress)=false then
-          raise exception.create('For some weird reason "'+lbRange.Items[i]+'" can''t be parsed');
+          raise exception.create(rsForSomeWeirdReason+lbRange.Items[i]+rsCantBeParsed);
       end;
 
       if rbLogToFolder.Checked then
@@ -1424,7 +1451,7 @@ begin
         if not DirectoryExistsUTF8(deTargetFolder.Directory) then
         begin
           if ForceDirectoriesUTF8(deTargetFolder.Directory)=false then
-            raise exception.create(deTargetFolder.Directory+' does not exist and can not be created');
+            raise exception.create(deTargetFolder.Directory+rsDoesntExistAndCantBeCreated);
         end;
       end;
 
@@ -1450,7 +1477,7 @@ begin
           if workers[i].Filename[length(workers[i].Filename)]<>PathDelim then
             workers[i].Filename:=workers[i].Filename+PathDelim;
 
-          workers[i].Filename:=workers[i].Filename+'CPU'+inttostr(i)+'.trace';
+          workers[i].Filename:=workers[i].Filename+rsCPU+inttostr(i)+'.trace';
         end;
         workers[i].KeepTraceFiles:=cbDontDeleteTraceFiles.checked;
 
@@ -1515,7 +1542,7 @@ begin
       //start the recording
 
 
-      if not libIptInit then raise exception.create('Failure loading libipt');
+      if not libIptInit then raise exception.create(rsFailureLoadingLibipt);
       DBK32Initialize;
 
       if rbLogToFolder.Checked then
@@ -1554,7 +1581,7 @@ end;
 
 procedure TfrmUltimap2.FormCloseQuery(Sender: TObject; var CanClose: boolean);
 begin
-  canclose:=MessageDlg('Closing will free all collected data. Continue? (Tip: You can minimize this window instead)', mtConfirmation,[mbyes,mbno], 0, mbno)=mryes;
+  canclose:=MessageDlg(rsClosingWillFreeAllCollectedData, mtConfirmation,[mbyes,mbno], 0, mbno)=mryes;
 end;
 
 
@@ -1647,7 +1674,7 @@ begin
 
   end;
 
-  gbRange.caption:=format('Ranges: (Empty for all) (Max %d)',[maxrangecount]);
+  gbRange.caption:=format(rsRangesEmptyForAllMax,[maxrangecount]);
 
   if maxrangecount=0 then
   begin
@@ -1707,7 +1734,7 @@ begin
       exit(inttohex(mi.baseaddress,8)+'-'+inttohex(mi.baseaddress+mi.basesize,8));
   end;
 
-  result:=listText+' -error';
+  result:=listText+rsDashError;
 end;
 
 
@@ -1729,7 +1756,7 @@ begin
 
   if (sender=btnAddRange) and (lbrange.Items.Count>=maxrangecount) then
   begin
-    MessageDlg('Max amount of ranges reached for your CPU. Clear one first', mtError, [mbok],0);
+    MessageDlg(rsMaxAmountOfRangesReachedForYourCpu, mtError, [mbok],0);
     exit;
   end;
 
@@ -1738,7 +1765,7 @@ begin
 
   symhandler.getModuleList(l);
 
-  ShowSelectionList(self, 'Module list', 'Select a module or give your own range'#13#10'(Put between *''s to mark as an auto stop range)', l, output, true, @ModuleSelectEvent);
+  ShowSelectionList(self, rsModuleList, rsSelectAModuleOrGiveYourOwnRange+#13#10+rsPutBetweenToMarsAsAnAutoStopRange, l, output, true, @ModuleSelectEvent);
   if output<>'' then
   begin
     //check that output can be parsed
@@ -1750,7 +1777,7 @@ begin
       if (output[1]='*') and (output[length(output)]='*') then
       begin
         stoprange:=true;
-        messagedlg('The range you have provided is an ''Exit'' range. Be aware that this doesn''t mean it will always stop at that range, or that the result is what you expect. A context switch to another thread between the start and stop can add a lot of other data', mtInformation, [mbok],0);
+        messagedlg(rsTheRangeYouHaveProvidedIsAnExitRangeBeAware, mtInformation, [mbok],0);
       end;
     end;
 
@@ -1822,13 +1849,13 @@ begin
 
   symhandler.getModuleList(l);
   output:='';
-  ShowSelectionList(self, 'Module list', 'Select a module or give your own range', l, output, true, @ModuleSelectEvent);
+  ShowSelectionList(self, rsModuleList, rsSelectAModuleOrGiveYourOwnRange, l, output, true, @ModuleSelectEvent);
   if output<>'' then
   begin
     //check that output can be parsed
     if not symhandler.parseRange(output, FilterRangeFrom, FilterRangeTo) then
     begin
-      MessageDlg(output+' is an invalid range', mtError, [mbok],0);
+      MessageDlg(output+rsIsAnInvalidRange, mtError, [mbok],0);
       exit;
     end;
 
@@ -2000,7 +2027,7 @@ begin
     end;
 
     listview1.Items.Count:=validlist.Count;
-    lblIPCount.Caption:='Instruction Pointer List Size:'+inttostr(validlist.Count);
+    lblIPCount.Caption:=rsInstructionPointerListSize+inttostr(validlist.Count);
   end;
 end;
 
@@ -2081,9 +2108,9 @@ begin
   if not done then
   begin
     if totalsize>0 then
-      label1.Caption:='Processing'#13#10'Data'#13#10+format('%.2f', [(totalprocessed / totalsize) * 100])+'%'
+      label1.Caption:=rsProcessingData+#13#10+format('%.2f', [(totalprocessed / totalsize) * 100])+'%'
     else
-      label1.Caption:='Processing'#13#10'Data'#13#10'0%';
+      label1.Caption:=rsProcessingData+#13#10'0%';
 
     exit;
   end;
