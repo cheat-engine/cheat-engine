@@ -215,6 +215,8 @@ type
     actOpenLuaEngine: TAction;
     actOpenDissectStructure: TAction;
     btnSetSpeedhack2: TButton;
+    btnAddAddressManually: TButton;
+    btnMemoryView: TButton;
     cbCaseSensitive: TCheckBox;
     cbCopyOnWrite: TCheckBox;
     cbExecutable: TCheckBox;
@@ -343,8 +345,6 @@ type
     rt2: TRadioButton;
     rt3: TRadioButton;
     SettingsButton: TSpeedButton;
-    btnMemoryView: TSpeedButton;
-    btnAddAddressManually: TSpeedButton;
     tbSpeed: TTrackBar;
     UpdateTimer: TTimer;
     FreezeTimer: TTimer;
@@ -4742,7 +4742,9 @@ var
 
   i: integer;
 begin
- { font.size:=20;
+//Self.AutoAdjustLayout(lapAutoAdjustForDPI, Self.DesignTimeDPI, Screen.PixelsPerInch, Self.Width, ScaleX(Self.Width, Self.DesignTimeDPI));
+//  Self.AutoAdjustLayout(lapAutoAdjustForDPI, Self.DesignTimeDPI, 200, Self.Width, ScaleX(Self.Width, Self.DesignTimeDPI));
+  { font.size:=20;
   i:=FromAddress.Font.Size;
   FromAddress.Font.Size:=font.size;
   if i=0 then beep;  }
@@ -6633,7 +6635,7 @@ begin
     begin
       with TformPointerOrPointee.Create(self) do
       begin
-        button1.Caption := rsFindOutWhatAccessesThisPointer;
+        btnAddAddressManually.Caption := rsFindOutWhatAccessesThisPointer;
         button2.Caption := rsFindWhatAccessesTheAddressPointedAtByThisPointer;
 
         res := showmodal;
@@ -6671,7 +6673,7 @@ begin
     begin
       with TformPointerOrPointee.Create(self) do
       begin
-        button1.Caption := rsFindOutWhatWritesThisPointer;
+        btnAddAddressManually.Caption := rsFindOutWhatWritesThisPointer;
         button2.Caption := rsFindWhatWritesTheAddressPointedAtByThisPointer;
 
         res := showmodal;
@@ -7033,6 +7035,14 @@ begin
   btnAddAddressManually.width:=i;
   btnMemoryView.width:=i;
 
+  i:=canvas.TextHeight('ygGxX');
+  btnAddAddressManually.ClientHeight:=i+2;
+  btnMemoryView.ClientHeight:=i+2;
+
+
+  i:=vartype.Canvas.TextWidth(rsMUGenerateGroupscanCommand)+16;
+  vartype.Constraints.MinWidth:=i;
+
 
   i:=foundlist3.width;
   if undoscan.left<btnNextScan.Left+btnNextScan.Width then
@@ -7065,7 +7075,13 @@ begin
     gbScanOptions.Anchors:=gbScanOptions.Anchors+[akLeft];
   end;
 
-  foundlist3.width:=i;
+  if i<0 then
+  begin
+    clientwidth:=clientwidth+(-i);
+    foundlist3.width:=1;
+  end
+  else
+    foundlist3.width:=i;
 
 
  // foundlist3.AnchorSide[akRight].Control:=c;
@@ -7073,8 +7089,6 @@ begin
  // foundlist3.BorderSpacing.Right:=4+extrasize;
  // foundlist3.anchors:= [akTop,akLeft,akBottom, akRight];
 
-  i:=vartype.Canvas.TextWidth(rsMUGenerateGroupscanCommand)+16;
-  vartype.Constraints.MinWidth:=i;
 
 
   panel5.Constraints.MinHeight := gbScanOptions.top + gbScanOptions.Height + max(speedbutton2.Height, btnAddAddressManually.height ) + 5;

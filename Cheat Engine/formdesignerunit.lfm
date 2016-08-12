@@ -3,6 +3,7 @@ object FormDesigner: TFormDesigner
   Height = 55
   Top = 50
   Width = 1061
+  AutoSize = True
   BorderStyle = bsSizeToolWin
   Caption = 'Form Designer'
   ClientHeight = 35

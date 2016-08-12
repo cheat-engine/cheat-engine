@@ -747,6 +747,7 @@ begin
 end;
 
 constructor TPointerInfo.create(owner: TformAddressChange);
+var i: integer;
 begin
   //create the objects
   inherited create(owner);
@@ -757,8 +758,8 @@ begin
   parent:=owner;
 
   BevelOuter:=bvNone;
-  left:=owner.cbPointer.Left;
-  top:=owner.cbPointer.Top+owner.cbPointer.Height+3;
+  //left:=owner.cbPointer.Left;
+  //top:=owner.cbPointer.Top+owner.cbPointer.Height+3;
 
   taborder:=owner.cbPointer.TabOrder+1;
 
@@ -781,7 +782,7 @@ begin
 
   btnAddOffset:=Tbutton.Create(self);
   btnAddOffset.caption:=rsACAddOffset;
-  btnAddOffset.Left:=owner.btnOk.Left-left;
+  btnAddOffset.Left:=0;
   btnAddOffset.Width:=owner.btnOk.Width;
   btnAddOffset.Height:=owner.btnOk.Height;
   btnAddOffset.OnClick:=AddOffsetClick;
@@ -789,12 +790,33 @@ begin
 
   btnRemoveOffset:=TButton.create(self);
   btnRemoveOffset.caption:=rsACRemoveOffset;
-  btnRemoveOffset.Left:=owner.btnCancel.left-left;
+  btnRemoveOffset.Left:=owner.btnCancel.left-owner.btnOk.left;
   btnRemoveOffset.Width:=btnAddOffset.Width;
   btnRemoveOffset.Height:=btnAddOffset.Height;
   btnRemoveOffset.OnClick:=RemoveOffsetClick;
   btnRemoveOffset.parent:=self;
 
+
+  btnAddOffset.AutoSize:=true;
+  btnAddOffset.AutoSize:=false;
+
+  btnRemoveOffset.autosize:=true;
+  btnRemoveOffset.autosize:=false;
+
+  i:=owner.btnok.width;
+
+  if btnAddOffset.Width>i then
+    i:=btnAddOffset.width;
+
+  if btnRemoveOffset.width>i then
+    i:=btnRemoveOffset.Width;
+
+  btnAddOffset.width:=i;
+  btnRemoveOffset.width:=i;
+
+  btnRemoveOffset.AnchorSideLeft.Control:=btnAddOffset;
+  btnRemoveOffset.AnchorSideLeft.Side:=asrRight;
+  btnRemoveOffset.BorderSpacing.Left:=owner.btnCancel.BorderSpacing.Left;
 
   TOffsetInfo.Create(self);
 
@@ -1032,12 +1054,25 @@ begin
   if cbpointer.checked then
   begin
     if pointerinfo=nil then
+    begin
       pointerinfo:=TPointerInfo.create(self); //creation will do the gui update
+      pointerinfo.AnchorSideLeft.Control:=label1;
+      pointerinfo.AnchorSideLeft.side:=asrLeft;
+
+      pointerinfo.AnchorSideTop.Control:=cbPointer;
+      pointerinfo.AnchorSideTop.side:=asrBottom;
+    end;
+
+    btnOk.AnchorSideTop.Control:=pointerinfo;
+    btnCancel.AnchorSideTop.Control:=pointerinfo;
   end
   else
   begin
     if pointerinfo<>nil then
       freeandnil(pointerinfo);
+
+    btnOk.AnchorSideTop.Control:=cbpointer;
+    btnCancel.AnchorSideTop.Control:=cbpointer;
   end;
 
 end;
@@ -1217,8 +1252,23 @@ begin
 end;
 
 procedure TformAddressChange.FormShow(Sender: TObject);
+var i: integer;
 begin
+  i:=80;
+  btnOk.autosize:=true;
+  btnCancel.autosize:=true;
 
+  btnOk.autosize:=false;
+  btnCancel.autosize:=false;
+
+  if btnok.width>i then
+    i:=btnok.width;
+
+  if btnCancel.width>i then
+    i:=btnCancel.width;
+
+  btnok.width:=i;
+  btncancel.width:=i;
 end;
 
 procedure TformAddressChange.FormWindowStateChange(Sender: TObject);

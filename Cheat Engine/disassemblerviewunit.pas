@@ -110,6 +110,7 @@ type TDisassemblerview=class(TPanel)
     procedure WndProc(var msg: TMessage); override;
     procedure DoEnter; override;
     procedure DoExit; override;
+    procedure DoAutoSize; override;
 
   published
     property OnKeyDown;
@@ -461,6 +462,14 @@ begin
   update;
 end;
 
+procedure TDisassemblerview.DoAutoSize;
+begin
+  DisableAutoSizing;
+  disassembleDescription.ClientHeight:=disassembleDescription.Canvas.TextHeight('GgXx')+4;
+  header.Height:=header.Canvas.TextHeight('GgXx')+4;
+  EnableAutoSizing;
+  inherited DoAutoSize;
+end;
 
 procedure TDisassemblerview.DisCanvasMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 begin
@@ -1059,10 +1068,11 @@ begin
   statusinfo:=tpanel.Create(self);
   with statusinfo do
   begin
+    autosize:=true;
     ParentFont:=false;
     align:=alTop;
     bevelInner:=bvLowered;
-    height:=19;
+//    height:=19;
     parent:=self;
     PopupMenu:=emptymenu;
    // color:=clYellow;
@@ -1074,7 +1084,8 @@ begin
     parentfont:=false;
     align:=alClient;
     Alignment:=taCenter;
-    autosize:=false;
+    autosize:=true;
+    //font.Size:=25;
     //transparent:=false;
     parent:=statusinfo;
     PopupMenu:=emptymenu;
@@ -1084,6 +1095,7 @@ begin
   with disassembleDescription do
   begin
     align:=alBottom;
+    //autosize:=true;
     height:=17;
     bevelInner:=bvLowered;
     bevelOuter:=bvLowered;
@@ -1092,7 +1104,6 @@ begin
     ParentFont:=false;
     Font.Charset:=DEFAULT_CHARSET;
     Font.Color:=clBtnText;
-    Font.Height:=-11;
     Font.Name:='Courier';
     Font.Style:=[];
 
@@ -1147,6 +1158,7 @@ begin
   with header do
   begin
     top:=0;
+    //autosize:=true;
     height:=20;
     OnSectionResize:=headerSectionResize;
     OnSectionTrack:=headerSectionTrack;
@@ -1155,6 +1167,7 @@ begin
     //header.Align:=alTop;
     header.ParentFont:=false;
     PopupMenu:=emptymenu;
+
     name:='Header';
   end;
 

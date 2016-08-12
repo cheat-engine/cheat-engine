@@ -1,24 +1,27 @@
 object formDifferentBitSize: TformDifferentBitSize
-  Left = 1115
-  Height = 163
-  Top = 157
+  Left = 719
+  Height = 128
+  Top = 250
   Width = 329
   VertScrollBar.Visible = False
   BorderIcons = [biSystemMenu]
   Caption = 'Different sized row of bits'
-  ClientHeight = 163
+  ClientHeight = 128
   ClientWidth = 329
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object Labelold: TLabel
-    Left = 120
+    AnchorSideTop.Control = Label1
+    AnchorSideTop.Side = asrBottom
+    Left = 130
     Height = 16
-    Top = 56
+    Top = 51
     Width = 72
+    BorderSpacing.Top = 10
     Caption = 'LabelOld'
     Font.Height = -16
     Font.Name = 'Courier'
@@ -26,10 +29,13 @@ object formDifferentBitSize: TformDifferentBitSize
     ParentFont = False
   end
   object LabelNew: TLabel
-    Left = 120
+    AnchorSideTop.Control = Labelold
+    AnchorSideTop.Side = asrBottom
+    Left = 130
     Height = 16
-    Top = 72
+    Top = 69
     Width = 72
+    BorderSpacing.Top = 2
     Caption = 'LabelNew'
     Font.Height = -16
     Font.Name = 'Courier'
@@ -47,11 +53,15 @@ object formDifferentBitSize: TformDifferentBitSize
     WordWrap = True
   end
   object Edit1: TEdit
-    Left = 136
+    AnchorSideLeft.Control = Button1
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = Button1
+    AnchorSideTop.Side = asrCenter
+    Left = 148
     Height = 21
-    Top = 104
+    Top = 95
     Width = 33
-    Anchors = []
+    BorderSpacing.Top = 3
     OnKeyDown = Edit1KeyDown
     OnKeyPress = Edit1KeyPress
     PopupMenu = PopupMenu1
@@ -59,11 +69,15 @@ object formDifferentBitSize: TformDifferentBitSize
     Text = 'Edit1'
   end
   object Button1: TButton
-    Left = 120
+    AnchorSideLeft.Control = Owner
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = LabelNew
+    AnchorSideTop.Side = asrBottom
+    Left = 127
     Height = 25
-    Top = 102
+    Top = 93
     Width = 75
-    Anchors = []
+    BorderSpacing.Top = 8
     Caption = 'OK'
     Default = True
     OnClick = Button1Click

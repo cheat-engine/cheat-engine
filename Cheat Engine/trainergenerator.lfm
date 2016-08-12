@@ -1,7 +1,7 @@
 object frmTrainerGenerator: TfrmTrainerGenerator
-  Left = 595
+  Left = 299
   Height = 416
-  Top = 199
+  Top = 101
   Width = 703
   Caption = 'Trainer generator'
   ClientHeight = 416

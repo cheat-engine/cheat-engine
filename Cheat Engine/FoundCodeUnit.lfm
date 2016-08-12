@@ -15,7 +15,7 @@ object FoundCodeDialog: TFoundCodeDialog
   OnDestroy = FormDestroy
   OnResize = FormResize
   Position = poOwnerFormCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.6.0.4'
   object Panel1: TPanel
     Left = 276
     Height = 399

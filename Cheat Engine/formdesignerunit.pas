@@ -11,7 +11,7 @@ uses
   JvDesignImp, JvDesignUtils, typinfo, PropEdits, ObjectInspector, LResources,
   maps, ExtDlgs, PopupNotifier, IDEDialogs, ceguicomponents, LMessages, luacaller,
   luahandler, cefuncproc, ListViewPropEdit, TreeViewPropEdit, AnchorEditor,
-  LCLType, GraphicPropEdit, GraphPropEdits, registry;
+  LCLType, GraphicPropEdit, GraphPropEdits, registry, math;
 
 
 
@@ -1073,6 +1073,8 @@ begin
 
 
     ComponentTreeWindowProc:=oid.ComponentTree.WindowProc;
+
+
     oid.ComponentTree.WindowProc:=mousedownhack;
 
     oid.OnSelectPersistentsInOI:=ObjectInspectorSelectionChange;
@@ -1088,7 +1090,9 @@ begin
       oid.left:=0;
       oid.top:=0;
     end;
+
     oid.show;
+    oid.DefaultItemHeight:=max(oid.DefaultItemHeight, oid.Canvas.TextHeight('QFDZj')+2); //make sure the itemheight fits the current dpi
     oid.OnDestroy:=OIDDestroy;
 
 

@@ -1,71 +1,102 @@
 object formAddressChange: TformAddressChange
-  Left = 1241
-  Height = 277
-  Top = 161
+  Left = 674
+  Height = 279
+  Top = 426
   Width = 191
+  AutoSize = True
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Change address'
-  ClientHeight = 277
+  ClientHeight = 279
   ClientWidth = 191
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnShow = FormShow
   PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object Label1: TLabel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
     Left = 8
     Height = 13
     Top = 0
     Width = 41
+    BorderSpacing.Left = 8
     Caption = 'Address:'
     ParentColor = False
   end
   object editAddress: TEdit
+    AnchorSideLeft.Control = Label1
+    AnchorSideTop.Control = Label1
+    AnchorSideTop.Side = asrBottom
     Left = 8
     Height = 21
-    Top = 16
+    Top = 13
     Width = 112
     OnChange = editAddressChange
     OnKeyPress = editAddressKeyPress
     TabOrder = 0
   end
   object btnOk: TButton
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = cbPointer
+    AnchorSideTop.Side = asrBottom
     Left = 8
     Height = 25
-    Top = 240
+    Top = 204
     Width = 80
+    BorderSpacing.Left = 8
+    BorderSpacing.Bottom = 8
     Caption = 'OK'
     Default = True
     OnClick = btnOkClick
     TabOrder = 5
   end
   object btnCancel: TButton
-    Left = 104
+    AnchorSideLeft.Control = btnOk
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = cbPointer
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 96
     Height = 25
-    Top = 240
+    Top = 204
     Width = 80
+    BorderSpacing.Left = 8
+    BorderSpacing.Right = 8
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 6
   end
   object cbPointer: TCheckBox
+    AnchorSideLeft.Control = Label1
+    AnchorSideTop.Control = pnlExtra
+    AnchorSideTop.Side = asrBottom
     Left = 8
     Height = 19
-    Top = 216
+    Top = 185
     Width = 53
     Caption = 'Pointer'
     OnChange = cbPointerClick
     TabOrder = 4
   end
   object cbvarType: TComboBox
+    AnchorSideLeft.Control = Label1
+    AnchorSideTop.Control = Label12
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
     Left = 8
     Height = 21
-    Top = 96
-    Width = 176
+    Top = 85
+    Width = 175
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Right = 8
     ItemHeight = 13
     ItemIndex = 3
     Items.Strings = (
@@ -85,32 +116,41 @@ object formAddressChange: TformAddressChange
     Text = '4 Bytes'
   end
   object pnlExtra: TPanel
+    AnchorSideTop.Control = cbvarType
+    AnchorSideTop.Side = asrBottom
     Left = 8
-    Height = 95
-    Top = 120
-    Width = 176
+    Height = 79
+    Top = 106
+    Width = 160
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 95
-    ClientWidth = 176
+    ClientHeight = 79
+    ClientWidth = 160
     TabOrder = 3
     Visible = False
     object cbunicode: TCheckBox
+      AnchorSideTop.Control = edtSize
+      AnchorSideTop.Side = asrCenter
       Left = 48
       Height = 19
-      Top = 18
+      Top = 14
       Width = 60
       Caption = 'Unicode'
       TabOrder = 0
     end
     object edtSize: TEdit
+      AnchorSideTop.Control = lengthlabel
+      AnchorSideTop.Side = asrBottom
       Left = 0
       Height = 21
-      Top = 16
+      Top = 13
       Width = 45
       TabOrder = 1
       Text = '10'
     end
     object lengthlabel: TLabel
+      AnchorSideLeft.Control = pnlExtra
+      AnchorSideTop.Control = pnlExtra
       Left = 0
       Height = 13
       Top = 0
@@ -119,80 +159,118 @@ object formAddressChange: TformAddressChange
       ParentColor = False
     end
     object pnlBitinfo: TPanel
+      AnchorSideLeft.Control = pnlExtra
+      AnchorSideTop.Control = edtSize
+      AnchorSideTop.Side = asrBottom
       Left = 0
-      Height = 54
-      Top = 39
-      Width = 159
+      Height = 45
+      Top = 34
+      Width = 160
+      AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 54
-      ClientWidth = 159
+      ClientHeight = 45
+      ClientWidth = 160
       TabOrder = 2
       Visible = False
       object Label4: TLabel
-        Left = 6
+        AnchorSideLeft.Control = RadioButton1
+        AnchorSideTop.Control = Label2
+        AnchorSideTop.Side = asrBottom
+        Left = 3
         Height = 13
-        Top = 20
+        Top = 13
         Width = 6
+        BorderSpacing.Left = 3
         Caption = '0'
         ParentColor = False
       end
       object Label5: TLabel
-        Left = 22
+        AnchorSideLeft.Control = RadioButton2
+        AnchorSideTop.Control = Label2
+        AnchorSideTop.Side = asrBottom
+        Left = 23
         Height = 13
-        Top = 20
+        Top = 13
         Width = 6
+        BorderSpacing.Left = 3
         Caption = '1'
         ParentColor = False
       end
       object Label6: TLabel
-        Left = 45
+        AnchorSideLeft.Control = RadioButton3
+        AnchorSideTop.Control = Label2
+        AnchorSideTop.Side = asrBottom
+        Left = 43
         Height = 13
-        Top = 20
+        Top = 13
         Width = 6
+        BorderSpacing.Left = 3
         Caption = '2'
         ParentColor = False
       end
       object Label7: TLabel
-        Left = 66
+        AnchorSideLeft.Control = RadioButton4
+        AnchorSideTop.Control = Label2
+        AnchorSideTop.Side = asrBottom
+        Left = 63
         Height = 13
-        Top = 20
+        Top = 13
         Width = 6
+        BorderSpacing.Left = 3
         Caption = '3'
         ParentColor = False
       end
       object Label8: TLabel
-        Left = 86
+        AnchorSideLeft.Control = RadioButton5
+        AnchorSideTop.Control = Label2
+        AnchorSideTop.Side = asrBottom
+        Left = 83
         Height = 13
-        Top = 20
+        Top = 13
         Width = 6
+        BorderSpacing.Left = 3
         Caption = '4'
         ParentColor = False
       end
       object Label9: TLabel
-        Left = 105
+        AnchorSideLeft.Control = RadioButton6
+        AnchorSideTop.Control = Label2
+        AnchorSideTop.Side = asrBottom
+        Left = 103
         Height = 13
-        Top = 20
+        Top = 13
         Width = 6
+        BorderSpacing.Left = 3
         Caption = '5'
         ParentColor = False
       end
       object Label10: TLabel
-        Left = 124
+        AnchorSideLeft.Control = RadioButton7
+        AnchorSideTop.Control = Label2
+        AnchorSideTop.Side = asrBottom
+        Left = 123
         Height = 13
-        Top = 20
+        Top = 13
         Width = 6
+        BorderSpacing.Left = 3
         Caption = '6'
         ParentColor = False
       end
       object Label11: TLabel
-        Left = 145
+        AnchorSideLeft.Control = RadioButton8
+        AnchorSideTop.Control = Label2
+        AnchorSideTop.Side = asrBottom
+        Left = 143
         Height = 13
-        Top = 20
+        Top = 13
         Width = 6
+        BorderSpacing.Left = 3
         Caption = '7'
         ParentColor = False
       end
       object Label2: TLabel
+        AnchorSideLeft.Control = pnlBitinfo
+        AnchorSideTop.Control = pnlBitinfo
         Left = 0
         Height = 13
         Top = 0
@@ -201,105 +279,154 @@ object formAddressChange: TformAddressChange
         ParentColor = False
       end
       object RadioButton1: TRadioButton
-        Left = 4
+        AnchorSideTop.Control = Label4
+        AnchorSideTop.Side = asrBottom
+        Left = 0
         Height = 19
-        Top = 34
+        Top = 26
         Width = 20
         Checked = True
         TabOrder = 0
         TabStop = True
       end
       object RadioButton2: TRadioButton
+        AnchorSideLeft.Control = RadioButton1
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = Label4
+        AnchorSideTop.Side = asrBottom
         Left = 20
         Height = 19
-        Top = 34
+        Top = 26
         Width = 20
         TabOrder = 1
       end
       object RadioButton3: TRadioButton
-        Left = 43
+        AnchorSideLeft.Control = RadioButton2
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = Label4
+        AnchorSideTop.Side = asrBottom
+        Left = 40
         Height = 19
-        Top = 34
+        Top = 26
         Width = 20
         TabOrder = 2
       end
       object RadioButton4: TRadioButton
-        Left = 64
+        AnchorSideLeft.Control = RadioButton3
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = Label4
+        AnchorSideTop.Side = asrBottom
+        Left = 60
         Height = 19
-        Top = 34
+        Top = 26
         Width = 20
         TabOrder = 3
       end
       object RadioButton5: TRadioButton
-        Left = 84
+        AnchorSideLeft.Control = RadioButton4
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = Label4
+        AnchorSideTop.Side = asrBottom
+        Left = 80
         Height = 19
-        Top = 34
+        Top = 26
         Width = 20
         TabOrder = 4
       end
       object RadioButton6: TRadioButton
-        Left = 103
+        AnchorSideLeft.Control = RadioButton5
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = Label4
+        AnchorSideTop.Side = asrBottom
+        Left = 100
         Height = 19
-        Top = 34
+        Top = 26
         Width = 20
         TabOrder = 5
       end
       object RadioButton7: TRadioButton
-        Left = 122
+        AnchorSideLeft.Control = RadioButton6
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = Label4
+        AnchorSideTop.Side = asrBottom
+        Left = 120
         Height = 19
-        Top = 34
+        Top = 26
         Width = 20
         TabOrder = 6
       end
       object RadioButton8: TRadioButton
-        Left = 143
+        AnchorSideLeft.Control = RadioButton7
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = Label4
+        AnchorSideTop.Side = asrBottom
+        Left = 140
         Height = 19
-        Top = 34
+        Top = 26
         Width = 20
         TabOrder = 7
       end
     end
   end
   object lblValue: TLabel
+    AnchorSideLeft.Control = editAddress
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = editAddress
+    AnchorSideTop.Side = asrCenter
     Left = 120
     Height = 13
-    Top = 19
+    Top = 17
     Width = 33
     Caption = '=Value'
     ParentColor = False
   end
   object editDescription: TEdit
+    AnchorSideLeft.Control = Label1
+    AnchorSideTop.Control = Label3
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
     Left = 8
     Height = 21
-    Top = 56
-    Width = 176
+    Top = 49
+    Width = 175
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Right = 8
     TabOrder = 1
   end
   object Label3: TLabel
+    AnchorSideLeft.Control = Label1
+    AnchorSideTop.Control = editAddress
+    AnchorSideTop.Side = asrBottom
     Left = 8
     Height = 13
-    Top = 40
+    Top = 36
     Width = 53
+    BorderSpacing.Top = 2
     Caption = 'Description'
     ParentColor = False
   end
   object Label12: TLabel
-    Left = 9
+    AnchorSideLeft.Control = Label1
+    AnchorSideTop.Control = editDescription
+    AnchorSideTop.Side = asrBottom
+    Left = 8
     Height = 13
-    Top = 80
+    Top = 72
     Width = 24
+    BorderSpacing.Top = 2
     Caption = 'Type'
     ParentColor = False
   end
   object Timer1: TTimer
     OnTimer = Timer1Timer
-    left = 88
-    top = 40
+    left = 136
+    top = 8
   end
   object Timer2: TTimer
     Interval = 1
     OnTimer = Timer2Timer
-    left = 40
-    top = 40
+    left = 64
+    top = 8
   end
 end

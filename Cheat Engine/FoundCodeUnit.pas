@@ -354,7 +354,12 @@ begin
 end;
 
 procedure TFoundCodedialog.moreinfo;
-var disassembled: array[1..5] of string;
+var
+  disassembled: array[1..5] of record
+    s: string;
+    a: ptruint;
+  end;
+
     address: ptrUint;
     itemindex: integer;
     temp,temp2: string;
@@ -404,22 +409,30 @@ begin
     address:=previousopcode(address);
     address:=previousopcode(address);
 
-    disassembled[1]:=disassemble(address,temp);
-    disassembled[2]:=disassemble(address,temp);
+    disassembled[1].a:=address;
+    disassembled[1].s:=disassemble(address,temp);
+
+    disassembled[2].a:=address;
+    disassembled[2].s:=disassemble(address,temp);
 
     if address<>coderecord.address then
     begin
-      disassembled[1]:='';
-      disassembled[2]:='';
-      disassembled[3]:=coderecord.opcode;
-      disassembled[4]:='';
-      disassembled[5]:='';
+      disassembled[1].s:='';
+      disassembled[2].s:='';
+      disassembled[3].s:=coderecord.opcode;
+      disassembled[4].s:='';
+      disassembled[5].s:='';
     end
     else
     begin
-      disassembled[3]:=disassemble(address,temp);
-      disassembled[4]:=disassemble(address,temp);
-      disassembled[5]:=disassemble(address,temp);
+      disassembled[3].a:=address;
+      disassembled[3].s:=disassemble(address,temp);
+
+      disassembled[4].a:=address;
+      disassembled[4].s:=disassemble(address,temp);
+
+      disassembled[5].a:=address;
+      disassembled[5].s:=disassemble(address,temp);
     end;
 
 
@@ -427,36 +440,44 @@ begin
 
     //convert disassembled strings to address+opcode only (no bytes)
     //xxxxxxxx - xx xx xx - opcode
-    temp:=copy(disassembled[1],pos('-',disassembled[1])+2,length(disassembled[1]));
+    temp:=copy(disassembled[1].s,pos('-',disassembled[1].s)+2,length(disassembled[1].s));
     temp:=copy(temp,pos('-',temp)+2,length(temp));
-    disassembled[1]:=copy(disassembled[1],1,pos('-',disassembled[1]))+' '+temp;
+    disassembled[1].s:=copy(disassembled[1].s,1,pos('-',disassembled[1].s))+' '+temp;
 
-    temp:=copy(disassembled[2],pos('-',disassembled[2])+2,length(disassembled[2]));
+    temp:=copy(disassembled[2].s,pos('-',disassembled[2].s)+2,length(disassembled[2].s));
     temp:=copy(temp,pos('-',temp)+2,length(temp));
-    disassembled[2]:=copy(disassembled[2],1,pos('-',disassembled[2]))+' '+temp;
+    disassembled[2].s:=copy(disassembled[2].s,1,pos('-',disassembled[2].s))+' '+temp;
 
-    temp:=copy(disassembled[3],pos('-',disassembled[3])+2,length(disassembled[3]));
+    temp:=copy(disassembled[3].s,pos('-',disassembled[3].s)+2,length(disassembled[3].s));
     temp:=copy(temp,pos('-',temp)+2,length(temp));
-    disassembled[3]:=copy(disassembled[3],1,pos('-',disassembled[3]))+' '+temp;
+    disassembled[3].s:=copy(disassembled[3].s,1,pos('-',disassembled[3].s))+' '+temp;
 
-    temp:=copy(disassembled[4],pos('-',disassembled[4])+2,length(disassembled[4]));
+    temp:=copy(disassembled[4].s,pos('-',disassembled[4].s)+2,length(disassembled[4].s));
     temp:=copy(temp,pos('-',temp)+2,length(temp));
-    disassembled[4]:=copy(disassembled[4],1,pos('-',disassembled[4]))+' '+temp;
+    disassembled[4].s:=copy(disassembled[4].s,1,pos('-',disassembled[4].s))+' '+temp;
 
-    temp:=copy(disassembled[5],pos('-',disassembled[5])+2,length(disassembled[5]));
+    temp:=copy(disassembled[5].s,pos('-',disassembled[5].s)+2,length(disassembled[5].s));
     temp:=copy(temp,pos('-',temp)+2,length(temp));
-    disassembled[5]:=copy(disassembled[5],1,pos('-',disassembled[5]))+' '+temp;
+    disassembled[5].s:=copy(disassembled[5].s,1,pos('-',disassembled[5].s))+' '+temp;
 
 
 
     with FormFoundCodeListExtra do
     begin
-      Label1.Caption:=disassembled[1];
-      Label2.Caption:=disassembled[2];
-      Label3.Caption:=disassembled[3];
-      Label4.Caption:=disassembled[4];
-      Label5.Caption:=disassembled[5];
+      Label1.Caption:=disassembled[1].s;
+      Label1.tag:=disassembled[1].a;
 
+      Label2.Caption:=disassembled[2].s;
+      Label2.tag:=disassembled[2].a;
+
+      Label3.Caption:=disassembled[3].s;
+      Label3.tag:=disassembled[3].a;
+
+      Label4.Caption:=disassembled[4].s;
+      Label4.tag:=disassembled[4].a;
+
+      Label5.Caption:=disassembled[5].s;
+      Label5.tag:=disassembled[5].a;
 
       if processhandler.SystemArchitecture=archarm then
       begin
@@ -585,12 +606,12 @@ begin
         {$ifdef cpu64}
         if processhandler.is64bit then
         begin
+          pnlRegisters.ChildSizing.ControlsPerLine:=5;
+
           lblR8:=tlabel.Create(FormFoundCodeListExtra);
           lblR8.font:=lblRCX.font;
-          lblR8.Top:=lblRCX.top+(lblRCX.top-lblRBX.top);
-          lblR8.left:=lblRCX.left;
           lblR8.caption:=' R8='+IntToHex(coderecord.context.r8,8);
-          lblR8.parent:=FormFoundCodeListExtra.panel6;
+          lblR8.parent:=FormFoundCodeListExtra.pnlRegisters;
           lblR8.OnMouseDown:=registerMouseDown;
           lblR8.OnDblClick:=RegisterDblClick;
           lblR8.Align:=lblrcx.Align;
@@ -598,73 +619,63 @@ begin
 
           lblR9:=tlabel.Create(FormFoundCodeListExtra);
           lblR9.font:=lblRCX.font;
-          lblR9.Top:=lblRCX.top+(lblRCX.top-lblRBX.top);
-          lblR9.left:=lblRDI.left;
           lblR9.caption:=' R9='+IntToHex(coderecord.context.r9,8);
-          lblR9.parent:=FormFoundCodeListExtra.panel6;
+          lblR9.parent:=FormFoundCodeListExtra.pnlRegisters;
           lblR9.OnMouseDown:=registerMouseDown;
           lblR9.OnDblClick:=RegisterDblClick;
           lblR9.Align:=lblrcx.Align;
 
           lblR10:=tlabel.Create(FormFoundCodeListExtra);
           lblR10.font:=lblRCX.font;
-          lblR10.Top:=lblRCX.top+(lblRCX.top-lblRBX.top);
-          lblR10.left:=lblRIP.left;
           lblR10.caption:='R10='+IntToHex(coderecord.context.r10,8);
-          lblR10.parent:=FormFoundCodeListExtra.panel6;
+          lblR10.parent:=FormFoundCodeListExtra.pnlRegisters;
           lblR10.OnMouseDown:=registerMouseDown;
           lblR10.OnDblClick:=RegisterDblClick;
           lblR10.Align:=lblrcx.Align;
 
           lblR11:=tlabel.Create(FormFoundCodeListExtra);
           lblR11.font:=lblRCX.font;
-          lblR11.Top:=lblR8.top+(lblR8.top-lblRCX.top);
-          lblR11.left:=lblRCX.left;
           lblR11.caption:='R11='+IntToHex(coderecord.context.r11,8);
-          lblR11.parent:=FormFoundCodeListExtra.panel6;
+          lblR11.parent:=FormFoundCodeListExtra.pnlRegisters;
           lblR11.OnMouseDown:=registerMouseDown;
           lblR11.OnDblClick:=RegisterDblClick;
           lblR11.Align:=lblrcx.Align;
 
           lblR12:=tlabel.Create(FormFoundCodeListExtra);
           lblR12.font:=lblRCX.font;
-          lblR12.Top:=lblR8.top+(lblR8.top-lblRCX.top);
-          lblR12.left:=lblRDI.left;
           lblR12.caption:='R12='+IntToHex(coderecord.context.r12,8);
-          lblR12.parent:=FormFoundCodeListExtra.panel6;
+          lblR12.parent:=FormFoundCodeListExtra.pnlRegisters;
           lblR12.OnMouseDown:=registerMouseDown;
           lblR12.OnDblClick:=RegisterDblClick;
           lblR12.Align:=lblrcx.Align;
 
           lblR13:=tlabel.Create(FormFoundCodeListExtra);
           lblR13.font:=lblRCX.font;
-          lblR13.Top:=lblR8.top+(lblR8.top-lblRCX.top);
-          lblR13.left:=lblRIP.left;
           lblR13.caption:='R13='+IntToHex(coderecord.context.r13,8);
-          lblR13.parent:=FormFoundCodeListExtra.panel6;
+          lblR13.parent:=FormFoundCodeListExtra.pnlRegisters;
           lblR13.OnMouseDown:=registerMouseDown;
           lblR13.OnDblClick:=RegisterDblClick;
           lblR13.Align:=lblrcx.Align;
 
           lblR14:=tlabel.Create(FormFoundCodeListExtra);
           lblR14.font:=lblRCX.font;
-          lblR14.Top:=lblR11.top+(lblR11.top-lblR8.top);
-          lblR14.left:=lblRCX.left;
           lblR14.caption:='R14='+IntToHex(coderecord.context.r14,8);
-          lblR14.parent:=FormFoundCodeListExtra.panel6;
+          lblR14.parent:=FormFoundCodeListExtra.pnlRegisters;
           lblR14.OnMouseDown:=registerMouseDown;
           lblR14.OnDblClick:=RegisterDblClick;
           lblR14.Align:=lblrcx.Align;
 
           lblR15:=tlabel.Create(FormFoundCodeListExtra);
           lblR15.font:=lblRCX.font;
-          lblR15.Top:=lblR11.top+(lblR11.top-lblR8.top);
-          lblR15.left:=lblRDI.left;
           lblR15.caption:='R15='+IntToHex(coderecord.context.r15,8);
-          lblR15.parent:=FormFoundCodeListExtra.panel6;
+          lblR15.parent:=FormFoundCodeListExtra.pnlRegisters;
           lblR15.OnMouseDown:=registerMouseDown;
           lblR15.OnDblClick:=RegisterDblClick;
           lblR15.Align:=lblrcx.Align;
+
+          lblRBP.BringToFront;
+          lblRSP.BringToFront;
+          lblRIP.BringToFront;
 
 
           Constraints.MinHeight:=panel6.top+(lblR15.top+lblR15.height)+16+panel5.height;
@@ -681,7 +692,7 @@ begin
     //parse the disassembled[3] string to help the user find the pointer
     //first find the [xxx]
 
-    temp:=lowercase(copy(disassembled[3],pos('[',disassembled[3])+1,(pos(']',disassembled[3])-1)-(pos('[',disassembled[3]))));
+    temp:=lowercase(copy(disassembled[3].s,pos('[',disassembled[3].s)+1,(pos(']',disassembled[3].s)-1)-(pos('[',disassembled[3].s))));
     firstchar:=lowercase(firstchar);
 
     maxregistervalue:=0;

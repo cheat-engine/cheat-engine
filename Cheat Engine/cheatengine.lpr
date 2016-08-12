@@ -7,7 +7,7 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  controls, sysutils, Forms, dialogs, bogus, MainUnit, CEDebugger,
+  controls, sysutils, Forms, dialogs, MainUnit, CEDebugger,
   NewKernelHandler, CEFuncProc, ProcessHandlerUnit, symbolhandler,
   Assemblerunit, hypermode, byteinterpreter, addressparser, autoassembler,
   ProcessWindowUnit, MainUnit2, Filehandler, dbvmPhysicalMemoryHandler,
@@ -205,8 +205,13 @@ begin
   mainform.visible:=mainformvisible;
 end;
 
+var i: integer;
 begin
-  Application.Title:='Cheat Engine 6.5.1';
+  for i:=1 to Paramcount do
+    if ParamStr(i)='DPIAWARE' then
+      setDPIAware;
+
+  Application.Title:='Cheat Engine 6.6';
   Application.Initialize;
   getcedir;
 

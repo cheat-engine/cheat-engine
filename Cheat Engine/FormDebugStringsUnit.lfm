@@ -9,7 +9,7 @@ object FormDebugStrings: TFormDebugStrings
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Position = poOwnerFormCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.6.0.4'
   object ListBox1: TListBox
     Left = 0
     Height = 180
@@ -30,12 +30,15 @@ object FormDebugStrings: TFormDebugStrings
     ClientWidth = 321
     TabOrder = 1
     object Button1: TButton
-      Left = 124
-      Height = 25
+      AnchorSideLeft.Control = Panel1
+      AnchorSideLeft.Side = asrCenter
+      Left = 130
+      Height = 23
       Top = 8
-      Width = 75
-      Anchors = [akTop]
+      Width = 60
+      AutoSize = True
       Caption = 'OK'
+      Constraints.MinWidth = 60
       ModalResult = 1
       OnClick = Button1Click
       TabOrder = 0

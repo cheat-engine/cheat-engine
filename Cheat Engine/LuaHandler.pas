@@ -7089,7 +7089,13 @@ begin
   if pc>=1 then
     s:=Lua_ToString(L, 1);
 
-  if engLang then s:='<speak version="1.0" xml:lang="en">'+s+'</speak>'; // should use default English voice
+  if engLang then
+  begin
+    s:=StringReplace(s,'<','&lt;',[rfReplaceAll]);
+    s:=StringReplace(s,'>','&gt;',[rfReplaceAll]);
+    s:=StringReplace(s,'&','&amp;',[rfReplaceAll]);
+    s:='<speak version="1.0" xml:lang="en">'+s+'</speak>';
+  end;
 
   if pc>=2 then
   begin

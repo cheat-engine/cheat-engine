@@ -1713,6 +1713,7 @@ var x: array of integer;
   reg: tregistry;
   f: TFont;
 begin
+
   MemoryBrowsers.Add(self);
 
   bookmarks[0].setMi:=miSetBookmark0;
