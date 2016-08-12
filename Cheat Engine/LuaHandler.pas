@@ -7091,9 +7091,9 @@ begin
 
   if engLang then
   begin
+    s:=StringReplace(s,'&','&amp;',[rfReplaceAll]);
     s:=StringReplace(s,'<','&lt;',[rfReplaceAll]);
     s:=StringReplace(s,'>','&gt;',[rfReplaceAll]);
-    s:=StringReplace(s,'&','&amp;',[rfReplaceAll]);
     s:='<speak version="1.0" xml:lang="en">'+s+'</speak>';
   end;
 
