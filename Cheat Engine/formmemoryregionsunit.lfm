@@ -2,19 +2,17 @@ object FormMemoryRegions: TFormMemoryRegions
   Left = 672
   Height = 370
   Top = 271
-  Width = 645
+  Width = 696
   BorderIcons = [biSystemMenu]
   Caption = 'Memory regions'
   ClientHeight = 370
-  ClientWidth = 645
-  Font.Height = -14
-  Font.Name = 'MS Sans Serif'
+  ClientWidth = 696
   OnClose = FormClose
   OnShow = FormShow
   Position = poOwnerFormCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.6.0.4'
   object Button1: TButton
-    Left = 363
+    Left = 395
     Height = 31
     Top = 364
     Width = 93
@@ -30,7 +28,7 @@ object FormMemoryRegions: TFormMemoryRegions
     Left = 0
     Height = 370
     Top = 0
-    Width = 645
+    Width = 696
     Align = alClient
     Columns = <    
       item

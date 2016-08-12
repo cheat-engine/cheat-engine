@@ -67,6 +67,7 @@ type
     procedure FormDeactivate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormResize(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure FoundCodeListChange(Sender: TObject; Item: TListItem;
       Change: TItemChange);
     procedure FoundcodeListClick(Sender: TObject);
@@ -849,6 +850,34 @@ procedure TFoundCodeDialog.FormResize(Sender: TObject);
 begin
   FoundCodeList.Column[1].AutoSize:=false;
   FoundCodeList.Column[1].AutoSize:=true;
+end;
+
+procedure TFoundCodeDialog.FormShow(Sender: TObject);
+var i: integer;
+begin
+  btnReplacewithnops.autosize:=true;
+  btnReplacewithnops.autosize:=false;
+
+  btnOpenDisassembler.AutoSize:=true;
+  btnOpenDisassembler.AutoSize:=false;
+
+  btnAddToCodeList.AutoSize:=true;
+  btnAddToCodeList.AutoSize:=false;
+
+  btnExtraInfo.AutoSize:=true;
+  btnExtraInfo.AutoSize:=false;
+
+  i:=btnReplacewithnops.width;
+  i:=max(i, btnOpenDisassembler.width);
+  i:=max(i, btnAddToCodeList.width);
+  i:=max(i, btnExtraInfo.width);
+
+  btnReplacewithnops.width:=i;
+  btnOpenDisassembler.width:=i;
+  btnAddToCodeList.width:=i;
+  btnExtraInfo.width:=i;
+
+  btnOK.width:=i;
 end;
 
 procedure TFoundCodeDialog.FoundCodeListChange(Sender: TObject;
