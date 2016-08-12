@@ -95,7 +95,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   LuaStructureFrm, LuaInternet, SymbolListHandler, processhandlerunit, processlist,
   DebuggerInterface, WindowsDebugger, VEHDebugger, KernelDebuggerInterface,
   DebuggerInterfaceAPIWrapper, Globals, math, speedhack2, CETranslator, binutils,
-  xinput;
+  xinput, winsapi;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -7078,6 +7078,37 @@ begin
 
 end;
 
+function lua_speak(L: Plua_State): integer; cdecl;
+var
+  pc: integer;
+  s: widestring;
+begin
+  result:=0;
+  pc:=lua_gettop(L);
+
+  if pc>=1 then
+    s:=Lua_ToString(L, 1);
+
+  if pc>=2 then
+  begin
+    if lua_isboolean(l,2) then
+    begin
+      lua_pushinteger(L, speak(s, lua_toboolean(L,2)));
+      exit(1);
+    end
+    else
+    begin
+      lua_pushinteger(L, speak(s, lua_tointeger(L,2)));
+      exit(1);
+    end;
+  end
+  else
+  begin
+    lua_pushinteger(L, speak(s));
+    exit(1);
+  end;
+
+end;
 
 procedure InitializeLua;
 var
@@ -7551,6 +7582,8 @@ begin
 
     lua_register(LuaVM, 'loadFontFromStream', lua_loadFontFromStream);
     lua_register(LuaVM, 'unloadLoadedFont', lua_unloadLoadedFont);
+
+    lua_register(LuaVM, 'speak', lua_speak);
 
 
     initializeLuaCustomControl;

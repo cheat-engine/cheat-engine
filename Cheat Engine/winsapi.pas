@@ -2,6 +2,30 @@ unit winsapi;
 
 {
 partial sapi.h conversion for the syntesized voice functions
+
+https://www.w3.org/TR/speech-synthesis/
+
+works:
+<?xml version="1.0"?>
+<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.w3.org/2001/10/synthesis
+                 http://www.w3.org/TR/speech-synthesis/synthesis.xsd"
+       xml:lang="en-US">
+
+hello
+</speak>
+
+this wil freeze it(for a too long time)
+<?xml version="1.0"?>
+<!DOCTYPE speak PUBLIC "-//W3C//DTD SYNTHESIS 1.0//EN"
+                  "http://www.w3.org/TR/speech-synthesis/synthesis.dtd">
+<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis"
+         xml:lang="en-US">
+
+hello
+</speak>
+
 }
 
 {$mode objfpc}{$H+}
@@ -11,7 +35,8 @@ interface
 uses
   windows, Classes, SysUtils, ole2, variants, ActiveX, comobj;
 
-procedure bla(s: widestring);
+function speak(s: widestring; waittilldone: boolean=false): HRESULT; overload;
+function speak(s: widestring; flags: dword): HRESULT; overload;
 
 const
   CLSID_SpVoice: TGUID = (D1:$96749377;D2:$3391;D3:$11D2;D4:($9e,$e3,$00,$c0,$4f,$79,$73,$96));
@@ -311,47 +336,40 @@ type
 
 implementation
 
-var   z: ISpVoice;
-
-procedure bla(s: widestring);
 var
+  voice: ISpVoice;
+  novoice: boolean=false;
 
+function speak(s: widestring; flags: dword): HRESULT;
+var
   sn: ulong;
-  hr: HRESULT;
 begin
- // CLSID_SpVoice
   {
   for c users reading this code, and wondering why I don't call _release.
   FPC will call _Release automatically when the reference count is nil
   }
-  if not assigned(z) then
-    z:=ISpVoice(CreateComObject(CLSID_SpVoice));
+  if not assigned(voice) then
+  begin
+    try
+      voice:=ISpVoice(CreateComObject(CLSID_SpVoice));
+    except
+      exit(-1);
+    end;
+  end;
 
-  if assigned(z) then
-    hr:=z.Speak(pwchar(s),SPF_PURGEBEFORESPEAK or SPF_ASYNC or SPF_PARSE_SSML, nil);
+  if assigned(voice) then
+    result:=voice.Speak(pwchar(s), flags, nil);
+end;
 
-  {
-  works:
-  <?xml version="1.0"?>
-<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://www.w3.org/2001/10/synthesis
-                   http://www.w3.org/TR/speech-synthesis/synthesis.xsd"
-         xml:lang="en-US">
 
-hello
-</speak>
+function speak(s: widestring; waitTillDone: boolean=false): HRESULT; overload;
+var flags: dword;
+begin
+  flags:=SPF_PURGEBEFORESPEAK;
+  if not waittilldone then
+    flags:=flags or SPF_ASYNC;
 
-  this wil freeze it
-  <?xml version="1.0"?>
-  <!DOCTYPE speak PUBLIC "-//W3C//DTD SYNTHESIS 1.0//EN"
-                    "http://www.w3.org/TR/speech-synthesis/synthesis.dtd">
-  <speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis"
-           xml:lang="en-US">
-
-  weee
-  </speak>
-  }
+  result:=speak(s, flags);
 end;
 
 end.

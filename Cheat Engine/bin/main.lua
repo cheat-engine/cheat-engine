@@ -351,6 +351,9 @@ playSound(stream, waittilldone OPTIONAL): Plays the given memorystream containin
 playSound(tablefile, waittilldone OPTIONAL) : Takes the memorystream from the tablefile and plays it.
   There are two tablefiles predeclared inside cheat engine "Activate" and "Deactivate" . You are free to use or override them
 
+speak(text, waittilldone OPTIONAL): Speaks a given text and waits till done.  If waitTillDone is true the thread it's in will be frozen till it is done
+speak(test, flags): Speaks a given text using the given flags. https://msdn.microsoft.com/en-us/library/speechplatform_speakflags.aspx
+
 getUserRegistryEnvironmentVariable(name): string - Returns the environment variable stored in the user registry environment
 setUserRegistryEnvironmentVariable(name, string) - Sets the environment variable stored in the user registry environment
 broadcastEnvironmentUpdate() : Call this when you've changed the environment variables in the registry. This will cause at least the shell to update so you don't have to reboot. (It's always recommended to reboot though)
