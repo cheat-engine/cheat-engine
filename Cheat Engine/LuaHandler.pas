@@ -7078,7 +7078,7 @@ begin
 
 end;
 
-function lua_speak(L: Plua_State): integer; cdecl;
+function lua_speakex(engLang: boolean; L: Plua_State): integer; cdecl;
 var
   pc: integer;
   s: widestring;
@@ -7088,6 +7088,8 @@ begin
 
   if pc>=1 then
     s:=Lua_ToString(L, 1);
+
+  if engLang then s:='<speak version="1.0" xml:lang="en">'+s+'</speak>'; // should use default English voice
 
   if pc>=2 then
   begin
@@ -7109,6 +7111,18 @@ begin
   end;
 
 end;
+
+
+function lua_speak(L: Plua_State): integer; cdecl;
+begin
+  lua_speakEx(false,L);
+end;
+
+function lua_speakEnglish(L: Plua_State): integer; cdecl;
+begin
+  lua_speakEx(true,L);
+end;
+
 
 procedure InitializeLua;
 var
@@ -7584,6 +7598,8 @@ begin
     lua_register(LuaVM, 'unloadLoadedFont', lua_unloadLoadedFont);
 
     lua_register(LuaVM, 'speak', lua_speak);
+    lua_register(LuaVM, 'speakEnglish', lua_speakEnglish);
+
 
 
     initializeLuaCustomControl;
