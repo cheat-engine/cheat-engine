@@ -1,17 +1,18 @@
 object frmAAEditPrefs: TfrmAAEditPrefs
   Left = 487
-  Height = 234
+  Height = 185
   Top = 411
-  Width = 282
+  Width = 168
+  Anchors = [akTop]
   AutoSize = True
   BorderStyle = bsDialog
   Caption = 'Editor preferences'
-  ClientHeight = 234
-  ClientWidth = 282
-  Font.Height = -11
+  ClientHeight = 185
+  ClientWidth = 168
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnShow = FormShow
   PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
@@ -20,24 +21,26 @@ object frmAAEditPrefs: TfrmAAEditPrefs
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = Panel1
     AnchorSideTop.Side = asrBottom
-    Left = 64
-    Height = 25
-    Top = 139
+    Left = 7
+    Height = 26
+    Top = 149
     Width = 155
     AutoSize = True
+    BorderSpacing.Left = 2
     BorderSpacing.Top = 8
     BorderSpacing.Bottom = 3
     BevelOuter = bvNone
-    ClientHeight = 25
+    ClientHeight = 26
     ClientWidth = 155
     TabOrder = 0
     object Button1: TButton
       AnchorSideLeft.Control = Panel2
       AnchorSideTop.Control = Panel2
       Left = 0
-      Height = 25
+      Height = 26
       Top = 0
       Width = 75
+      AutoSize = True
       Caption = 'OK'
       Constraints.MinWidth = 75
       Default = True
@@ -49,9 +52,10 @@ object frmAAEditPrefs: TfrmAAEditPrefs
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Panel2
       Left = 80
-      Height = 25
+      Height = 26
       Top = 0
       Width = 75
+      AutoSize = True
       BorderSpacing.Left = 5
       Cancel = True
       Caption = 'Cancel'
@@ -66,12 +70,12 @@ object frmAAEditPrefs: TfrmAAEditPrefs
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     Left = 0
-    Height = 131
+    Height = 141
     Top = 0
     Width = 161
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 131
+    ClientHeight = 141
     ClientWidth = 161
     TabOrder = 1
     OnClick = Panel1Click
@@ -80,8 +84,8 @@ object frmAAEditPrefs: TfrmAAEditPrefs
       AnchorSideTop.Control = Panel4
       AnchorSideTop.Side = asrBottom
       Left = 0
-      Height = 23
-      Top = 108
+      Height = 26
+      Top = 115
       Width = 161
       AutoSize = True
       BorderSpacing.Top = 3
@@ -93,22 +97,22 @@ object frmAAEditPrefs: TfrmAAEditPrefs
     object Panel3: TPanel
       AnchorSideLeft.Control = Panel4
       AnchorSideTop.Control = Panel1
-      Left = 14
-      Height = 82
+      Left = 4
+      Height = 86
       Top = 0
-      Width = 109
+      Width = 132
       AutoSize = True
       BevelOuter = bvNone
       ChildSizing.Layout = cclLeftToRightThenTopToBottom
       ChildSizing.ControlsPerLine = 1
-      ClientHeight = 82
-      ClientWidth = 109
+      ClientHeight = 86
+      ClientWidth = 132
       TabOrder = 1
       object cbShowLineNumbers: TCheckBox
         Left = 0
-        Height = 19
+        Height = 20
         Top = 6
-        Width = 109
+        Width = 132
         BorderSpacing.Top = 6
         Caption = 'Show line numbers'
         OnClick = cbShowLineNumbersClick
@@ -116,55 +120,56 @@ object frmAAEditPrefs: TfrmAAEditPrefs
       end
       object cbShowGutter: TCheckBox
         Left = 0
-        Height = 19
-        Top = 25
-        Width = 109
+        Height = 20
+        Top = 26
+        Width = 132
         Caption = 'Show bar on left'
         OnClick = cbShowGutterClick
         TabOrder = 1
       end
       object cbSmartTab: TCheckBox
         Left = 0
-        Height = 19
-        Top = 44
-        Width = 109
+        Height = 20
+        Top = 46
+        Width = 132
         Caption = 'Smart tab'
         OnClick = cbSmartTabClick
         TabOrder = 2
       end
       object cbTabsToSpace: TCheckBox
         Left = 0
-        Height = 19
-        Top = 63
-        Width = 109
+        Height = 20
+        Top = 66
+        Width = 132
         Caption = 'Tabs to space'
         OnClick = cbTabsToSpaceClick
         TabOrder = 3
       end
     end
     object Panel4: TPanel
-      AnchorSideLeft.Control = btnFont
-      AnchorSideLeft.Side = asrCenter
+      AnchorSideLeft.Control = Panel1
       AnchorSideTop.Control = Panel3
       AnchorSideTop.Side = asrBottom
-      Left = 14
-      Height = 21
-      Top = 84
-      Width = 132
+      Left = 4
+      Height = 24
+      Top = 88
+      Width = 148
       AutoSize = True
+      BorderSpacing.Left = 4
       BorderSpacing.Top = 2
+      BorderSpacing.Right = 4
       BevelOuter = bvNone
-      ClientHeight = 21
-      ClientWidth = 132
+      ClientHeight = 24
+      ClientWidth = 148
       TabOrder = 2
       object Label1: TLabel
         AnchorSideLeft.Control = Panel4
         AnchorSideTop.Control = edtTabWidth
         AnchorSideTop.Side = asrCenter
         Left = 0
-        Height = 13
+        Height = 16
         Top = 4
-        Width = 50
+        Width = 62
         Caption = 'Tab Width'
         ParentColor = False
       end
@@ -172,11 +177,12 @@ object frmAAEditPrefs: TfrmAAEditPrefs
         AnchorSideLeft.Control = Label1
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = Panel4
-        Left = 52
-        Height = 21
+        Left = 64
+        Height = 24
         Top = 0
         Width = 80
         BorderSpacing.Left = 2
+        BorderSpacing.Right = 4
         OnChange = edtTabWidthChange
         TabOrder = 0
         Text = '4'
@@ -189,7 +195,7 @@ object frmAAEditPrefs: TfrmAAEditPrefs
     MinFontSize = 0
     MaxFontSize = 0
     Options = [fdEffects, fdFixedPitchOnly]
-    left = 264
-    top = 40
+    left = 112
+    top = 24
   end
 end

@@ -148,7 +148,6 @@ type
     btnRecordPause: TButton;
     btnResetCount: TButton;
     btnCancelFilter: TButton;
-    Button1: TButton;
     Button5: TButton;
     btnReset: TButton;
     cbFilterFuturePaths: TCheckBox;
@@ -1898,21 +1897,8 @@ end;
 
 
 procedure TfrmUltimap2.Button1Click(Sender: TObject);
-var x: pt_insn;
-  s: tstringlist;
-
 begin
 
-  s:=tstringlist.create;
-  s.add('pt_insn='+inttostr(sizeof(pt_insn)));
-  s.add('size at '+inttostr(ptruint(@x.size-ptruint(@x))));
-  s.add('ip at '+inttostr(ptruint(@x.ip-ptruint(@x))));
-  s.add('iclass at '+inttostr(ptruint(@x.iclass-ptruint(@x))));
-  s.add('mode at '+inttostr(ptruint(@x.mode-ptruint(@x))));
-  s.add('raw0 at '+inttostr(ptruint(@x.raw[0]-ptruint(@x))));
-  s.add('raw14 at '+inttostr(ptruint(@x.raw[14]-ptruint(@x))));
-
-  showmessage(s.text);
 end;
 
 procedure TfrmUltimap2.Button2Click(Sender: TObject);

@@ -785,7 +785,7 @@ end;
 
 procedure TfrmAutoInject.Panel1Resize(Sender: TObject);
 begin
-  button1.Left:=panel1.Width div 2-button1.Width div 2;
+
 end;
 
 

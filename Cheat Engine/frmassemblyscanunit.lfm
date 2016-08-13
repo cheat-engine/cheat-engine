@@ -9,6 +9,8 @@ object frmAssemblyScan: TfrmAssemblyScan
   ClientWidth = 444
   Constraints.MinHeight = 120
   Constraints.MinWidth = 430
+  OnCreate = FormCreate
+  OnShow = FormShow
   PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
@@ -16,16 +18,16 @@ object frmAssemblyScan: TfrmAssemblyScan
     Left = 0
     Height = 185
     Top = 0
-    Width = 321
+    Width = 357
     Align = alClient
     ClientHeight = 185
-    ClientWidth = 321
+    ClientWidth = 357
     TabOrder = 0
     object lblInputAssemblyCode: TLabel
       Left = 1
       Height = 15
       Top = 1
-      Width = 319
+      Width = 355
       Align = alTop
       Caption = 'Input the assembly code to find. Wildcards( * ) supported.'
       ParentColor = False
@@ -34,19 +36,20 @@ object frmAssemblyScan: TfrmAssemblyScan
       Left = 1
       Height = 168
       Top = 16
-      Width = 319
+      Width = 355
       Align = alClient
       TabOrder = 0
     end
   end
   object Panel2: TPanel
-    Left = 326
+    Left = 362
     Height = 185
     Top = 0
-    Width = 118
+    Width = 82
     Align = alRight
+    AutoSize = True
     ClientHeight = 185
-    ClientWidth = 118
+    ClientWidth = 82
     Constraints.MinHeight = 9
     TabOrder = 1
     object btnOk: TButton
@@ -54,7 +57,7 @@ object frmAssemblyScan: TfrmAssemblyScan
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Control = edtTo
       AnchorSideTop.Side = asrBottom
-      Left = 22
+      Left = 4
       Height = 25
       Top = 82
       Width = 75
@@ -67,7 +70,7 @@ object frmAssemblyScan: TfrmAssemblyScan
       Left = 1
       Height = 23
       Top = 16
-      Width = 116
+      Width = 80
       Align = alTop
       TabOrder = 1
       Text = '0000000000000000'
@@ -76,7 +79,7 @@ object frmAssemblyScan: TfrmAssemblyScan
       Left = 1
       Height = 15
       Top = 1
-      Width = 116
+      Width = 80
       Align = alTop
       Caption = 'From'
       ParentColor = False
@@ -85,7 +88,7 @@ object frmAssemblyScan: TfrmAssemblyScan
       Left = 1
       Height = 15
       Top = 39
-      Width = 116
+      Width = 80
       Align = alTop
       Caption = 'To'
       ParentColor = False
@@ -94,14 +97,14 @@ object frmAssemblyScan: TfrmAssemblyScan
       Left = 1
       Height = 23
       Top = 54
-      Width = 116
+      Width = 80
       Align = alTop
       TabOrder = 2
       Text = 'FFFFFFFFFFFFFFFF'
     end
   end
   object Splitter1: TSplitter
-    Left = 321
+    Left = 357
     Height = 185
     Top = 0
     Width = 5

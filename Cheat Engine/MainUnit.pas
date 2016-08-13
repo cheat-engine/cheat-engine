@@ -7036,8 +7036,8 @@ begin
   btnMemoryView.width:=i;
 
   i:=canvas.TextHeight('ygGxX');
-  btnAddAddressManually.ClientHeight:=i+2;
-  btnMemoryView.ClientHeight:=i+2;
+  btnAddAddressManually.ClientHeight:=i+4;
+  btnMemoryView.ClientHeight:=i+4;
 
 
   i:=vartype.Canvas.TextWidth(rsMUGenerateGroupscanCommand)+16;

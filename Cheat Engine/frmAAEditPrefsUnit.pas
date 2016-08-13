@@ -35,6 +35,7 @@ type
     procedure cbShowGutterClick(Sender: TObject);
     procedure cbSmartTabClick(Sender: TObject);
     procedure cbTabsToSpaceClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure Panel1Click(Sender: TObject);
   private
     { Private declarations }
@@ -141,6 +142,13 @@ begin
   else
     fSynEdit.Options:=fSynEdit.Options-[eoTabsToSpaces];
 
+end;
+
+procedure TfrmAAEditPrefs.FormShow(Sender: TObject);
+begin
+  button1.AutoSize:=false;
+  button2.autosize:=false;
+  if button1.width<button2.width then button1.width:=button2.width else button2.width:=button1.width;
 end;
 
 procedure TfrmAAEditPrefs.Panel1Click(Sender: TObject);

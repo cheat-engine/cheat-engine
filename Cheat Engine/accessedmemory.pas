@@ -105,7 +105,23 @@ end;
 
 procedure TfrmAccessedMemory.FormShow(Sender: TObject);
 begin
-  clientheight:=button1.top+button1.height+5;
+  btnClearSmallSnapshot.autosize:=true;
+  btnClearSmallSnapshot1.autosize:=true;
+  btnClearSmallSnapshot.autosize:=false;
+  btnClearSmallSnapshot1.autosize:=false;
+
+  btnClearSmallSnapshot.ClientHeight:=canvas.TextHeight(btnClearSmallSnapshot.caption)+3;
+  btnClearSmallSnapshot1.ClientHeight:=canvas.TextHeight(btnClearSmallSnapshot.caption)+3;
+
+  button2.autosize:=true;
+  button3.autosize:=true;
+  button2.autosize:=false;
+  button3.autosize:=false;
+
+  if button2.width>button3.width then button3.width:=button2.width else button2.width:=button3.width;
+
+  panel1.autosize:=false;
+  autosize:=false;
 end;
 
 procedure TfrmAccessedMemory.ListView1Data(Sender: TObject; Item: TListItem);

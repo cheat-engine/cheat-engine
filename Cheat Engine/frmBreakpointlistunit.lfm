@@ -6,8 +6,6 @@ object frmBreakpointlist: TfrmBreakpointlist
   Caption = 'Breakpoint list'
   ClientHeight = 292
   ClientWidth = 670
-  Font.Height = -14
-  Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter

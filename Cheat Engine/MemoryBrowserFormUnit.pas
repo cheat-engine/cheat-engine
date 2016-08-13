@@ -21,7 +21,24 @@ type
   { TMemoryBrowser }
 
   TMemoryBrowser = class(TForm)
+    aflabel: TLabel;
+    cflabel: TLabel;
+    CSLabel: TLabel;
+    dflabel: TLabel;
     dispQwords: TMenuItem;
+    DSLabel: TLabel;
+    EAXLabel: TLabel;
+    EBPlabel: TLabel;
+    EBXlabel: TLabel;
+    ECXlabel: TLabel;
+    EDIlabel: TLabel;
+    EDXlabel: TLabel;
+    EIPlabel: TLabel;
+    ESIlabel: TLabel;
+    ESlabel: TLabel;
+    ESPlabel: TLabel;
+    FSlabel: TLabel;
+    GSlabel: TLabel;
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
@@ -108,8 +125,15 @@ type
     memorypopup: TPopupMenu;
     Goto1: TMenuItem;
     debuggerpopup: TPopupMenu;
+    oflabel: TLabel;
+    Panel2: TPanel;
+    Panel6: TPanel;
+    Panel7: TPanel;
+    pflabel: TLabel;
     pmRegisters: TPopupMenu;
     sbShowFloats: TButton;
+    sflabel: TLabel;
+    SSlabel: TLabel;
     Timer2: TTimer;
     Panel1: TPanel;
     Panel4: TPanel;
@@ -135,27 +159,6 @@ type
     View1: TMenuItem;
     Stacktrace1: TMenuItem;
     ScrollBox1: TScrollBox;
-    EAXLabel: TLabel;
-    EBXlabel: TLabel;
-    ECXlabel: TLabel;
-    EDXlabel: TLabel;
-    ESIlabel: TLabel;
-    EDIlabel: TLabel;
-    EBPlabel: TLabel;
-    ESPlabel: TLabel;
-    EIPlabel: TLabel;
-    CSLabel: TLabel;
-    DSLabel: TLabel;
-    SSlabel: TLabel;
-    ESlabel: TLabel;
-    FSlabel: TLabel;
-    GSlabel: TLabel;
-    cflabel: TLabel;
-    pflabel: TLabel;
-    aflabel: TLabel;
-    zflabel: TLabel;
-    sflabel: TLabel;
-    oflabel: TLabel;
     Label14: TLabel;
     Shape1: TShape;
     Label15: TLabel;
@@ -224,7 +227,6 @@ type
     IDTlist1: TMenuItem;
     Newwindow1: TMenuItem;
     Follow1: TMenuItem;
-    dflabel: TLabel;
     Copytoclipboard1: TMenuItem;
     copyBytes: TMenuItem;
     copyOpcodes: TMenuItem;
@@ -262,6 +264,7 @@ type
     N18: TMenuItem;
     stacktrace2: TMenuItem;
     Executetillreturn1: TMenuItem;
+    zflabel: TLabel;
     procedure GotoBookmarkClick(Sender: TObject);
     procedure memorypopupPopup(Sender: TObject);
     procedure MenuItem10Click(Sender: TObject);
@@ -312,6 +315,8 @@ type
     procedure ScrollBox1ConstrainedResize(Sender: TObject; var MinWidth,
       MinHeight, MaxWidth, MaxHeight: TConstraintSize);
     procedure ScrollBox1Paint(Sender: TObject);
+    procedure Shape1ChangeBounds(Sender: TObject);
+    procedure Shape3ChangeBounds(Sender: TObject);
     procedure Splitter1Moved(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -816,6 +821,16 @@ begin
 end;
 
 procedure TMemoryBrowser.ScrollBox1Paint(Sender: TObject);
+begin
+
+end;
+
+procedure TMemoryBrowser.Shape1ChangeBounds(Sender: TObject);
+begin
+
+end;
+
+procedure TMemoryBrowser.Shape3ChangeBounds(Sender: TObject);
 begin
 
 end;
@@ -2650,6 +2665,8 @@ begin
       else
       begin
         //normal reg
+        while length(regname)<3 do
+          regname:=' '+regname;
         tlabel(sender).Caption:=regname+' '+inttohex(value,processhandler.pointersize*2)
       end;
     end;
@@ -4096,10 +4113,8 @@ begin
     if r8label=nil then
     begin
       r8label:=tlabel.create(self);
-      r8label.parent:=scrollbox1;
+      r8label.parent:=panel2;
       r8label.Font:=eaxlabel.Font;
-      r8label.left:=eaxlabel.left;
-      r8label.top:=esplabel.top+(ebxlabel.top-eaxlabel.top);
       r8label.Cursor:=eaxlabel.Cursor;
       r8label.Tag:=6408;
       r8label.PopupMenu:=pmRegisters;
@@ -4110,10 +4125,8 @@ begin
     if r9label=nil then
     begin
       r9label:=tlabel.create(self);
-      r9label.parent:=scrollbox1;
+      r9label.parent:=panel2;
       r9label.Font:=eaxlabel.Font;
-      r9label.left:=eaxlabel.left;
-      r9label.top:=r8label.top+(ebxlabel.top-eaxlabel.top);
       r9label.Cursor:=eaxlabel.Cursor;
       r9label.Tag:=6409;
       r9label.PopupMenu:=pmRegisters;
@@ -4124,10 +4137,8 @@ begin
     if r10label=nil then
     begin
       r10label:=tlabel.create(self);
-      r10label.parent:=scrollbox1;
+      r10label.parent:=panel2;
       r10label.Font:=eaxlabel.Font;
-      r10label.left:=eaxlabel.left;
-      r10label.top:=r9label.top+(ebxlabel.top-eaxlabel.top);
       r10label.Cursor:=eaxlabel.Cursor;
       r10label.Tag:=6410;
       r10label.PopupMenu:=pmRegisters;
@@ -4138,10 +4149,8 @@ begin
     if r11label=nil then
     begin
       r11label:=tlabel.create(self);
-      r11label.parent:=scrollbox1;
+      r11label.parent:=panel2;
       r11label.Font:=eaxlabel.Font;
-      r11label.left:=eaxlabel.left;
-      r11label.top:=r10label.top+(ebxlabel.top-eaxlabel.top);
       r11label.Cursor:=eaxlabel.Cursor;
       r11label.Tag:=6411;
       r11label.PopupMenu:=pmRegisters;
@@ -4152,10 +4161,8 @@ begin
     if r12label=nil then
     begin
       r12label:=tlabel.create(self);
-      r12label.parent:=scrollbox1;
+      r12label.parent:=panel2;
       r12label.Font:=eaxlabel.Font;
-      r12label.left:=eaxlabel.left;
-      r12label.top:=r11label.top+(ebxlabel.top-eaxlabel.top);
       r12label.Cursor:=eaxlabel.Cursor;
       r12label.Tag:=6412;
       r12label.PopupMenu:=pmRegisters;
@@ -4166,10 +4173,8 @@ begin
     if r13label=nil then
     begin
       r13label:=tlabel.create(self);
-      r13label.parent:=scrollbox1;
+      r13label.parent:=panel2;
       r13label.Font:=eaxlabel.Font;
-      r13label.left:=eaxlabel.left;
-      r13label.top:=r12label.top+(ebxlabel.top-eaxlabel.top);
       r13label.Cursor:=eaxlabel.Cursor;
       r13label.Tag:=6413;
       r13label.PopupMenu:=pmRegisters;
@@ -4180,10 +4185,8 @@ begin
     if r14label=nil then
     begin
       r14label:=tlabel.create(self);
-      r14label.parent:=scrollbox1;
+      r14label.parent:=panel2;
       r14label.Font:=eaxlabel.Font;
-      r14label.left:=eaxlabel.left;
-      r14label.top:=r13label.top+(ebxlabel.top-eaxlabel.top);
       r14label.Cursor:=eaxlabel.Cursor;
       r14label.Tag:=6414;
       r14label.PopupMenu:=pmRegisters;
@@ -4194,10 +4197,8 @@ begin
     if r15label=nil then
     begin
       r15label:=tlabel.create(self);
-      r15label.parent:=scrollbox1;
+      r15label.parent:=panel2;
       r15label.Font:=eaxlabel.Font;
-      r15label.left:=eaxlabel.left;
-      r15label.top:=r14label.top+(ebxlabel.top-eaxlabel.top);
       r15label.Cursor:=eaxlabel.Cursor;
       r15label.Tag:=6415;
       r15label.PopupMenu:=pmRegisters;
@@ -4205,34 +4206,12 @@ begin
       r15label.OnMouseDown:=RegisterMouseDown;
     end;
 
-    if processhandler.SystemArchitecture=archX86 then
-      eiplabel.top:=r15label.top+(ebxlabel.top-eaxlabel.top)
-    else
-      eiplabel.top:=r14label.top+(ebxlabel.top-eaxlabel.top);
-
-    label16.top:=eiplabel.top+(ebxlabel.top-eaxlabel.top);
-    Shape3.top:=label16.top+(ebxlabel.top-eaxlabel.top);
-    CSLabel.top:=shape3.top+shape3.height+2;
-    SSLabel.top:=CSLabel.top+(ebxlabel.top-eaxlabel.top);
-    DSLabel.top:=SSLabel.top+(ebxlabel.top-eaxlabel.top);
-    ESLabel.top:=DSLabel.top+(ebxlabel.top-eaxlabel.top);
-    FSLabel.top:=ESLabel.top+(ebxlabel.top-eaxlabel.top);
-    GSLabel.top:=FSLabel.top+(ebxlabel.top-eaxlabel.top);
+    eiplabel.BringToFront;
   end
   else
   begin
     regstart:='E';
     charcount:=8;
-
-    eiplabel.top:=esplabel.top+(ebxlabel.top-eaxlabel.top);
-    label16.top:=eiplabel.top+(ebxlabel.top-eaxlabel.top);
-    Shape3.top:=label16.top+(ebxlabel.top-eaxlabel.top);
-    CSLabel.top:=shape3.top+shape3.height+2;
-    SSLabel.top:=CSLabel.top+(ebxlabel.top-eaxlabel.top);
-    DSLabel.top:=SSLabel.top+(ebxlabel.top-eaxlabel.top);
-    ESLabel.top:=DSLabel.top+(ebxlabel.top-eaxlabel.top);
-    FSLabel.top:=ESLabel.top+(ebxlabel.top-eaxlabel.top);
-    GSLabel.top:=FSLabel.top+(ebxlabel.top-eaxlabel.top);
 
   end;
 
