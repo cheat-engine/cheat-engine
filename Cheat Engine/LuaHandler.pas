@@ -5183,7 +5183,7 @@ var
   merge: boolean;
   doc: TXMLDocument;
   s: Tstream;
-  askifluascript: boolean;
+  ignoreluascriptdialog: boolean;
 begin
   result:=0;
   s:=nil;
@@ -5211,12 +5211,12 @@ begin
 
     if s<>nil then //read a stream
     begin
-      ignoreluascript:=false;
+      ignoreluascriptdialog:=false;
       if parameters>=3 then
-        ignoreluascript:=lua_toboolean(L,3);
+        ignoreluascriptdialog:=lua_toboolean(L,3);
 
       ReadXMLFile(doc, s);
-      loadxml(doc, merge, ignoreluascript);
+      loadxml(doc, merge, ignoreluascriptdialog);
     end
     else
       loadtable(filename,merge);
