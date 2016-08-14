@@ -3,23 +3,24 @@ program cheatengine;
 {$mode objfpc}{$H+}
 
 uses
+  first,
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads,
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  controls, sysutils, Forms, dialogs, MainUnit, CEDebugger,
-  NewKernelHandler, CEFuncProc, ProcessHandlerUnit, symbolhandler,
-  Assemblerunit, hypermode, byteinterpreter, addressparser, autoassembler,
-  ProcessWindowUnit, MainUnit2, Filehandler, dbvmPhysicalMemoryHandler,
-  frameHotkeyConfigUnit, formsettingsunit, HotkeyHandler, formhotkeyunit,
-  AdvancedOptionsUnit, inputboxtopunit, plugin, pluginexports, tlgUnit,
-  aboutunit, frmProcesswatcherExtraUnit, frmProcessWatcherUnit,
-  ModuleSafetyUnit, frmExcludeHideUnit, ConfigUnrandomizerFrm, HotKeys,
-  TypePopup, CommentsUnit, FoundCodeUnit, foundlisthelper, unrandomizer,
-  SaveFirstScan, savedscanhandler, memscan, formScanningUnit, KernelDebugger,
-  formDifferentBitSizeUnit, formAddressChangeUnit, Changeoffsetunit, speedhack2,
-  formPointerOrPointeeUnit, AccessCheck, formmemoryregionsunit, OpenSave,
-  formProcessInfo, frmautoinjectunit, MenuItemExtra, MemoryBrowserFormUnit,
+  controls, sysutils, Forms, dialogs, MainUnit, CEDebugger, NewKernelHandler,
+  CEFuncProc, ProcessHandlerUnit, symbolhandler, Assemblerunit, hypermode,
+  byteinterpreter, addressparser, autoassembler, ProcessWindowUnit, MainUnit2,
+  Filehandler, dbvmPhysicalMemoryHandler, frameHotkeyConfigUnit,
+  formsettingsunit, HotkeyHandler, formhotkeyunit, AdvancedOptionsUnit,
+  inputboxtopunit, plugin, pluginexports, tlgUnit, aboutunit,
+  frmProcesswatcherExtraUnit, frmProcessWatcherUnit, ModuleSafetyUnit,
+  frmExcludeHideUnit, ConfigUnrandomizerFrm, HotKeys, TypePopup, CommentsUnit,
+  FoundCodeUnit, foundlisthelper, unrandomizer, SaveFirstScan, savedscanhandler,
+  memscan, formScanningUnit, KernelDebugger, formDifferentBitSizeUnit,
+  formAddressChangeUnit, Changeoffsetunit, speedhack2, formPointerOrPointeeUnit,
+  AccessCheck, formmemoryregionsunit, OpenSave, formProcessInfo,
+  frmautoinjectunit, MenuItemExtra, MemoryBrowserFormUnit,
   disassemblerviewlinesunit, disassemblerviewunit, PasteTableentryFRM,
   frmBreakpointlistunit, DissectCodeThread, DissectCodeunit, Valuechange,
   FindWindowUnit, stacktrace2, frmstacktraceunit, frmBreakThreadUnit,
@@ -207,12 +208,10 @@ end;
 
 var i: integer;
 begin
-  for i:=1 to Paramcount do
-    if ParamStr(i)='DPIAWARE' then
-      setDPIAware;
-
   Application.Title:='Cheat Engine 6.6';
   Application.Initialize;
+
+
   getcedir;
 
   doTranslation;
@@ -231,6 +230,7 @@ begin
   InitializeLuaScripts;
 
   handleparameters;
+
   Application.Run;
 end.
 

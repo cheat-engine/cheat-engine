@@ -28,7 +28,7 @@ hypermode,
 {$endif}
 {$endif}
  math,syncobjs, shellapi, ProcessHandlerUnit, controls, shlobj, ActiveX, strutils,
-commontypedefs;
+commontypedefs, Win32Int;
 
 
 
@@ -162,8 +162,6 @@ procedure DetachIfPossible;
 {$ifdef windows}
 procedure Log(s: string);
 {$endif}
-
-procedure setDPIAware;
 
 
 const
@@ -3084,37 +3082,7 @@ begin
     SetKernelObjectSecurity(h, DACL_SECURITY_INFORMATION, sa.lpSecurityDescriptor);
 end;
 
-procedure setDPIAware;
-type
-  PROCESS_DPI_AWARENESS=(PROCESS_DPI_UNAWARE=0, PROCESS_SYSTEM_DPI_AWARE=1, PROCESS_PER_MONITOR_DPI_AWARE=2);
 
-var
-  SetProcessDpiAwareness:function(value: PROCESS_DPI_AWARENESS):HRESULT; stdcall;
-  SetProcessDPIAware:function: BOOL; stdcall;
-  l: HModule;
-begin
-  l:=LoadLibrary('Shcore.dll');
-  if l<>0 then
-  begin
-    SetProcessDpiAwareness:=GetProcAddress(l,'SetProcessDpiAwareness');
-
-    if assigned(SetProcessDpiAwareness) then
-    begin
-      SetProcessDpiAwareness(PROCESS_SYSTEM_DPI_AWARE);
-      exit;
-    end;
-  end;
-
-  //still here, probably win8.0 or 7
-  l:=LoadLibrary('user32.dll');
-  if l<>0 then
-  begin
-    SetProcessDPIAware:=GetProcAddress(l,'SetProcessDPIAware');
-    if assigned(SetProcessDPIAware) then
-      SetProcessDPIAware;
-  end;
-
-end;
 
 procedure Log(s: string);
 begin
@@ -3140,6 +3108,7 @@ initialization
   GetSystemInfo(@systeminfo);
 
   username:=GetUserNameFromPID(GetCurrentProcessId);
+
 
 
 finalization
