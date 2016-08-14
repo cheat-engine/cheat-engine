@@ -804,7 +804,7 @@ end;
 
 procedure TAdvancedOptions.Panel1Resize(Sender: TObject);
 begin
-  button1.Left:=panel1.Width div 2 - button1.width div 2;
+
 end;
 
 procedure TAdvancedOptions.Codelist2DblClick(Sender: TObject);

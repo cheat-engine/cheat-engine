@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ComCtrls, ExtCtrls, propedits;
+  ComCtrls, ExtCtrls, propedits, math;
 
 type
 
@@ -30,6 +30,7 @@ type
     procedure btnDeleteClick(Sender: TObject);
     procedure btnOkClick(Sender: TObject);
     procedure edtTextChange(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure TreeView1Change(Sender: TObject; Node: TTreeNode);
     procedure TreeView1SelectionChanged(Sender: TObject);
   private
@@ -87,6 +88,14 @@ procedure TfrmCEListviewItemEditor.edtTextChange(Sender: TObject);
 begin
   if treeview1.selected<>nil then
     treeview1.Selected.text:=edtText.text;
+end;
+
+procedure TfrmCEListviewItemEditor.FormShow(Sender: TObject);
+var i: integer;
+begin
+  i:=max(btnOk.width, btnCancel.Width);
+  btnok.width:=i;
+  btnCancel.width:=i;
 end;
 
 procedure TfrmCEListviewItemEditor.TreeView1Change(Sender: TObject;

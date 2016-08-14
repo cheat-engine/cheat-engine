@@ -42,17 +42,25 @@ object frmDisassemblyscan: TfrmDisassemblyscan
     Top = 0
     Width = 66
     Align = alRight
+    AutoSize = True
     ClientHeight = 157
     ClientWidth = 66
     TabOrder = 1
     OnClick = Panel1Click
     OnResize = Panel1Resize
     object btnCancel: TButton
+      AnchorSideBottom.Control = Panel1
+      AnchorSideBottom.Side = asrBottom
       Left = 3
-      Height = 25
-      Top = 128
-      Width = 59
+      Height = 23
+      Top = 133
+      Width = 60
+      Anchors = [akLeft, akBottom]
+      AutoSize = True
+      BorderSpacing.Left = 2
+      BorderSpacing.Right = 2
       Caption = 'Cancel'
+      Constraints.MinWidth = 60
       OnClick = btnCancelClick
       TabOrder = 0
     end

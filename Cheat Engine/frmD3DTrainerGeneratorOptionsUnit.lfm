@@ -1,182 +1,118 @@
 object frmD3DTrainerGeneratorOptions: TfrmD3DTrainerGeneratorOptions
-  Left = 1065
-  Height = 365
-  Top = 140
-  Width = 418
+  Left = 757
+  Height = 332
+  Top = 333
+  Width = 397
+  AutoSize = True
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'Direct3D Hook Options'
-  ClientHeight = 365
-  ClientWidth = 418
+  ClientHeight = 332
+  ClientWidth = 397
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
-  object cbUseD3DKeys: TCheckBox
-    Left = 8
-    Height = 19
-    Top = 8
-    Width = 188
-    Caption = 'Use button to hide/show trainer'
-    Checked = True
-    OnChange = cbUseD3DKeysChange
-    ParentFont = False
-    State = cbChecked
+  LCLVersion = '1.6.0.4'
+  object Button2: TButton
+    AnchorSideLeft.Control = Panel1
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = imgPreview
+    AnchorSideTop.Side = asrBottom
+    Left = 199
+    Height = 25
+    Top = 231
+    Width = 150
+    AutoSize = True
+    Caption = 'Set background picture'
+    Constraints.MinWidth = 150
+    OnClick = Button2Click
     TabOrder = 0
   end
-  object Label1: TLabel
-    Left = 8
-    Height = 16
-    Top = 56
-    Width = 72
-    Caption = 'Transparency'
-    ParentColor = False
-  end
-  object TrackBar1: TTrackBar
-    Left = 8
-    Height = 25
-    Top = 72
-    Width = 188
-    Frequency = 5
-    Max = 100
-    PageSize = 10
-    Position = 0
-    TabOrder = 1
-  end
-  object edtd3dkeys: TEdit
-    Left = 8
-    Height = 23
-    Top = 32
-    Width = 112
-    OnKeyDown = edtd3dkeysKeyDown
-    ReadOnly = True
-    TabOrder = 2
-  end
-  object btnClear: TButton
-    Left = 121
-    Height = 25
-    Top = 32
-    Width = 75
-    Caption = 'Clear'
-    OnClick = btnClearClick
-    TabOrder = 3
-  end
-  object Button2: TButton
-    Left = 208
-    Height = 25
-    Top = 240
-    Width = 139
-    Caption = 'Set background picture'
-    OnClick = Button2Click
-    TabOrder = 4
-  end
   object imgPreview: TImage
-    Left = 208
+    AnchorSideLeft.Control = Panel1
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Label3
+    AnchorSideTop.Side = asrBottom
+    Left = 199
     Height = 121
-    Top = 112
+    Top = 110
     Width = 192
   end
   object cbStretch: TCheckBox
-    Left = 208
+    AnchorSideLeft.Control = Panel1
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Button2
+    AnchorSideTop.Side = asrBottom
+    Left = 199
     Height = 19
     Hint = 'If selected the background image will get resized so that cheat entries will fit inside it'#13#10'This is useful if you pick a 1x1 pixel size bitmap that you wish to stretch'
-    Top = 264
+    Top = 256
     Width = 170
     Caption = 'Scale the background image'
     OnChange = cbStretchChange
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 5
+    TabOrder = 1
   end
   object Button3: TButton
-    Left = 208
+    AnchorSideLeft.Control = Panel1
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = cbStretch
+    AnchorSideTop.Side = asrBottom
+    Left = 199
     Height = 25
-    Top = 288
-    Width = 139
+    Top = 275
+    Width = 150
+    AutoSize = True
     Caption = 'Set Font'
+    Constraints.MinWidth = 150
     OnClick = Button3Click
-    TabOrder = 6
-  end
-  object cbHasCheckbox: TCheckBox
-    Left = 8
-    Height = 19
-    Top = 104
-    Width = 148
-    Caption = 'Cheats have checkboxes'
-    TabOrder = 7
-  end
-  object rbTopLeft: TRadioButton
-    Left = 216
-    Height = 19
-    Top = 16
-    Width = 61
-    Caption = 'Top left'
-    Checked = True
-    TabOrder = 14
-    TabStop = True
+    TabOrder = 2
   end
   object Label2: TLabel
-    Left = 216
-    Height = 16
+    AnchorSideLeft.Control = Panel1
+    AnchorSideLeft.Side = asrBottom
+    Left = 199
+    Height = 15
     Top = 4
-    Width = 44
+    Width = 43
     Caption = 'Position'
     ParentColor = False
   end
-  object rbBottomLeft: TRadioButton
-    Left = 216
-    Height = 19
-    Top = 34
-    Width = 80
-    Caption = 'Bottom left'
-    TabOrder = 8
-  end
-  object rbTopRight: TRadioButton
-    Left = 312
-    Height = 19
-    Top = 16
-    Width = 69
-    Caption = 'Top right'
-    TabOrder = 9
-  end
-  object rbBottomRight: TRadioButton
-    Left = 312
-    Height = 19
-    Top = 34
-    Width = 88
-    Caption = 'Bottom right'
-    TabOrder = 10
-  end
-  object rbCenter: TRadioButton
-    Left = 216
-    Height = 19
-    Top = 52
-    Width = 55
-    Caption = 'Center'
-    TabOrder = 11
-  end
   object cbAllowDrag: TCheckBox
-    Left = 216
+    AnchorSideLeft.Control = Panel1
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = pnlPosition
+    AnchorSideTop.Side = asrBottom
+    Left = 199
     Height = 19
-    Top = 72
+    Top = 76
     Width = 194
     Caption = 'Allow user to drag trainer around'
-    TabOrder = 12
+    TabOrder = 3
     Visible = False
   end
   object Button4: TButton
-    Left = 176
+    AnchorSideLeft.Control = Owner
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = Button3
+    AnchorSideTop.Side = asrBottom
+    Left = 161
     Height = 25
-    Top = 336
+    Top = 304
     Width = 75
+    AutoSize = True
+    BorderSpacing.Top = 4
+    BorderSpacing.Bottom = 4
     Caption = 'Close'
+    Constraints.MinWidth = 75
     OnClick = Button4Click
-    TabOrder = 13
+    TabOrder = 4
   end
   object lblTextColor: TLabel
-    Left = 352
-    Height = 16
-    Top = 336
-    Width = 47
+    Left = 64
+    Height = 15
+    Top = 272
+    Width = 46
     Caption = 'Font text'
     Font.Color = clWhite
     Font.Quality = fqNonAntialiased
@@ -184,20 +120,10 @@ object frmD3DTrainerGeneratorOptions: TfrmD3DTrainerGeneratorOptions
     ParentFont = False
     Visible = False
   end
-  object cbShowHotkeys: TCheckBox
-    Left = 8
-    Height = 19
-    Top = 123
-    Width = 93
-    Caption = 'Show hotkeys'
-    Checked = True
-    State = cbChecked
-    TabOrder = 15
-  end
   object imgChecked: TImage
-    Left = 312
+    Left = 24
     Height = 13
-    Top = 336
+    Top = 272
     Width = 13
     Picture.Data = {
       1754506F727461626C654E6574776F726B47726170686963DB00000089504E47
@@ -212,9 +138,9 @@ object frmD3DTrainerGeneratorOptions: TfrmD3DTrainerGeneratorOptions
     Visible = False
   end
   object imgUnchecked: TImage
-    Left = 328
+    Left = 40
     Height = 13
-    Top = 336
+    Top = 272
     Width = 13
     Picture.Data = {
       1754506F727461626C654E6574776F726B47726170686963AB00000089504E47
@@ -228,67 +154,285 @@ object frmD3DTrainerGeneratorOptions: TfrmD3DTrainerGeneratorOptions
     Visible = False
   end
   object Label3: TLabel
-    Left = 208
-    Height = 16
-    Top = 96
-    Width = 108
+    AnchorSideLeft.Control = Panel1
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = cbAllowDrag
+    AnchorSideTop.Side = asrBottom
+    Left = 199
+    Height = 15
+    Top = 95
+    Width = 107
     Caption = 'Background picture:'
     ParentColor = False
   end
   object TextOverlayImage: TImage
-    Left = 208
+    AnchorSideLeft.Control = imgPreview
+    AnchorSideTop.Control = imgPreview
+    AnchorSideRight.Control = imgPreview
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = imgPreview
+    AnchorSideBottom.Side = asrBottom
+    Left = 199
     Height = 121
-    Top = 112
+    Top = 110
     Width = 192
+    Anchors = [akTop, akLeft, akRight, akBottom]
     Transparent = True
   end
-  object edtDistanceBetweenLines: TEdit
-    Left = 9
-    Height = 23
-    Top = 168
-    Width = 176
-    TabOrder = 16
-    Text = '4'
+  object Panel1: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    Left = 0
+    Height = 260
+    Top = 0
+    Width = 199
+    AutoSize = True
+    BevelOuter = bvNone
+    ClientHeight = 260
+    ClientWidth = 199
+    TabOrder = 5
+    object cbUseD3DKeys: TCheckBox
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = Panel1
+      Left = 8
+      Height = 19
+      Top = 4
+      Width = 188
+      BorderSpacing.Left = 8
+      BorderSpacing.Top = 4
+      Caption = 'Use button to hide/show trainer'
+      Checked = True
+      OnChange = cbUseD3DKeysChange
+      ParentFont = False
+      State = cbChecked
+      TabOrder = 0
+    end
+    object Label1: TLabel
+      AnchorSideLeft.Control = cbUseD3DKeys
+      AnchorSideTop.Control = edtd3dkeys
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 15
+      Top = 46
+      Width = 71
+      Caption = 'Transparency'
+      ParentColor = False
+    end
+    object TrackBar1: TTrackBar
+      AnchorSideLeft.Control = cbUseD3DKeys
+      AnchorSideTop.Control = Label1
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Panel1
+      AnchorSideRight.Side = asrBottom
+      Left = 8
+      Height = 25
+      Top = 61
+      Width = 191
+      Frequency = 5
+      Max = 100
+      PageSize = 10
+      Position = 0
+      Anchors = [akTop, akLeft, akRight]
+      TabOrder = 1
+    end
+    object edtd3dkeys: TEdit
+      AnchorSideLeft.Control = cbUseD3DKeys
+      AnchorSideTop.Control = cbUseD3DKeys
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 23
+      Top = 23
+      Width = 112
+      OnKeyDown = edtd3dkeysKeyDown
+      ReadOnly = True
+      TabOrder = 2
+    end
+    object btnClear: TButton
+      AnchorSideLeft.Control = edtd3dkeys
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = edtd3dkeys
+      AnchorSideTop.Side = asrCenter
+      Left = 122
+      Height = 25
+      Top = 22
+      Width = 75
+      AutoSize = True
+      BorderSpacing.Left = 2
+      BorderSpacing.Right = 2
+      Caption = 'Clear'
+      Constraints.MinWidth = 75
+      OnClick = btnClearClick
+      TabOrder = 3
+    end
+    object cbHasCheckbox: TCheckBox
+      AnchorSideLeft.Control = cbUseD3DKeys
+      AnchorSideTop.Control = TrackBar1
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 19
+      Top = 90
+      Width = 148
+      BorderSpacing.Top = 4
+      Caption = 'Cheats have checkboxes'
+      TabOrder = 4
+    end
+    object cbShowHotkeys: TCheckBox
+      AnchorSideLeft.Control = cbUseD3DKeys
+      AnchorSideTop.Control = cbHasCheckbox
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 19
+      Top = 111
+      Width = 93
+      BorderSpacing.Top = 2
+      Caption = 'Show hotkeys'
+      Checked = True
+      State = cbChecked
+      TabOrder = 5
+    end
+    object edtDistanceBetweenLines: TEdit
+      AnchorSideLeft.Control = cbUseD3DKeys
+      AnchorSideTop.Control = Label4
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Panel1
+      AnchorSideRight.Side = asrBottom
+      Left = 8
+      Height = 23
+      Top = 149
+      Width = 183
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Right = 8
+      TabOrder = 6
+      Text = '4'
+    end
+    object Label4: TLabel
+      AnchorSideLeft.Control = cbUseD3DKeys
+      AnchorSideTop.Control = cbShowHotkeys
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 15
+      Top = 134
+      Width = 165
+      BorderSpacing.Top = 4
+      Caption = 'Distance between lines in pixels'
+      ParentColor = False
+    end
+    object Label5: TLabel
+      AnchorSideLeft.Control = cbUseD3DKeys
+      AnchorSideTop.Control = edtDistanceBetweenLines
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 15
+      Top = 176
+      Width = 119
+      BorderSpacing.Top = 4
+      Caption = 'Text distance from top'
+      ParentColor = False
+    end
+    object edtDistanceFromTop: TEdit
+      AnchorSideLeft.Control = cbUseD3DKeys
+      AnchorSideTop.Control = Label5
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Panel1
+      AnchorSideRight.Side = asrBottom
+      Left = 8
+      Height = 23
+      Top = 191
+      Width = 183
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Right = 8
+      TabOrder = 7
+      Text = '8'
+    end
+    object edtDistanceFromBorder: TEdit
+      AnchorSideLeft.Control = cbUseD3DKeys
+      AnchorSideTop.Control = Label6
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Panel1
+      AnchorSideRight.Side = asrBottom
+      Left = 8
+      Height = 23
+      Top = 233
+      Width = 183
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Right = 8
+      BorderSpacing.Bottom = 4
+      TabOrder = 8
+      Text = '8'
+    end
+    object Label6: TLabel
+      AnchorSideLeft.Control = cbUseD3DKeys
+      AnchorSideTop.Control = edtDistanceFromTop
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 15
+      Top = 218
+      Width = 136
+      BorderSpacing.Top = 4
+      Caption = 'Text distance from border'
+      ParentColor = False
+    end
   end
-  object Label4: TLabel
-    Left = 9
-    Height = 16
-    Top = 152
-    Width = 166
-    Caption = 'Distance between lines in pixels'
-    ParentColor = False
-  end
-  object Label5: TLabel
-    Left = 9
-    Height = 16
-    Top = 196
-    Width = 120
-    Caption = 'Text distance from top'
-    ParentColor = False
-  end
-  object edtDistanceFromTop: TEdit
-    Left = 9
-    Height = 23
-    Top = 210
-    Width = 176
-    TabOrder = 17
-    Text = '8'
-  end
-  object edtDistanceFromBorder: TEdit
-    Left = 9
-    Height = 23
-    Top = 256
-    Width = 176
-    TabOrder = 18
-    Text = '8'
-  end
-  object Label6: TLabel
-    Left = 9
-    Height = 16
-    Top = 240
-    Width = 137
-    Caption = 'Text distance from border'
-    ParentColor = False
+  object pnlPosition: TPanel
+    AnchorSideLeft.Control = Label2
+    AnchorSideTop.Control = Label2
+    AnchorSideTop.Side = asrBottom
+    Left = 199
+    Height = 57
+    Top = 19
+    Width = 168
+    AutoSize = True
+    BevelOuter = bvNone
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 2
+    ClientHeight = 57
+    ClientWidth = 168
+    TabOrder = 6
+    object rbTopLeft: TRadioButton
+      AnchorSideLeft.Side = asrBottom
+      Left = 0
+      Height = 19
+      Top = 0
+      Width = 80
+      Caption = 'Top left'
+      Checked = True
+      TabOrder = 0
+      TabStop = True
+    end
+    object rbTopRight: TRadioButton
+      Left = 80
+      Height = 19
+      Top = 0
+      Width = 88
+      Caption = 'Top right'
+      TabOrder = 1
+    end
+    object rbBottomLeft: TRadioButton
+      AnchorSideLeft.Side = asrBottom
+      Left = 0
+      Height = 19
+      Top = 19
+      Width = 80
+      Caption = 'Bottom left'
+      TabOrder = 2
+    end
+    object rbBottomRight: TRadioButton
+      Left = 80
+      Height = 19
+      Top = 19
+      Width = 88
+      Caption = 'Bottom right'
+      TabOrder = 3
+    end
+    object rbCenter: TRadioButton
+      AnchorSideLeft.Side = asrBottom
+      Left = 0
+      Height = 19
+      Top = 38
+      Width = 80
+      Caption = 'Center'
+      TabOrder = 4
+    end
   end
   object ColorDialog1: TColorDialog
     Color = clBlack

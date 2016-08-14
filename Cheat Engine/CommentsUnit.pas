@@ -22,6 +22,7 @@ type
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure mLuaScriptChange(Sender: TObject);
     procedure Panel1Resize(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -63,6 +64,11 @@ end;
 procedure TComments.FormDestroy(Sender: TObject);
 begin
   SaveFormPosition(self);
+end;
+
+procedure TComments.FormShow(Sender: TObject);
+begin
+  memo1.font.height:=GetFontData(font.reference.Handle).Height;
 end;
 
 procedure TComments.mLuaScriptChange(Sender: TObject);

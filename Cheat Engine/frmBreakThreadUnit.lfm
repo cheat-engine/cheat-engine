@@ -1,13 +1,13 @@
 object frmbreakthread: Tfrmbreakthread
   Left = 466
-  Height = 204
+  Height = 188
   Top = 226
   Width = 402
   AutoSize = True
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Break Thread'
-  ClientHeight = 204
+  ClientHeight = 188
   ClientWidth = 402
   OnCreate = FormCreate
   OnShow = FormShow

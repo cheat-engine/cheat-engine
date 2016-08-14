@@ -1,11 +1,11 @@
 object MemoryBrowser: TMemoryBrowser
   Left = 283
-  Height = 587
+  Height = 578
   Top = 289
   Width = 716
   HelpContext = 12
   Caption = 'Memory Viewer'
-  ClientHeight = 567
+  ClientHeight = 547
   ClientWidth = 716
   Menu = MainMenu1
   OnClose = FormClose
@@ -49,6 +49,7 @@ object MemoryBrowser: TMemoryBrowser
       Align = alRight
       OnMoved = Splitter2Moved
       ResizeAnchor = akRight
+      Visible = False
     end
     object Panel5: TPanel
       Left = 0
@@ -69,6 +70,7 @@ object MemoryBrowser: TMemoryBrowser
       ClientHeight = 300
       ClientWidth = 215
       TabOrder = 1
+      Visible = False
       object ScrollBox1: TScrollBox
         Left = 1
         Height = 298
@@ -563,18 +565,18 @@ object MemoryBrowser: TMemoryBrowser
   end
   object Panel4: TPanel
     Left = 0
-    Height = 262
+    Height = 242
     Top = 305
     Width = 716
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
-    ClientHeight = 262
+    ClientHeight = 242
     ClientWidth = 716
     TabOrder = 1
     object Splitter3: TSplitter
       Left = 500
-      Height = 260
+      Height = 240
       Top = 1
       Width = 5
       Align = alRight
@@ -585,7 +587,7 @@ object MemoryBrowser: TMemoryBrowser
     end
     object Panel3: TPanel
       Left = 1
-      Height = 260
+      Height = 240
       Top = 1
       Width = 499
       Align = alClient
@@ -594,19 +596,19 @@ object MemoryBrowser: TMemoryBrowser
     end
     object pnlStacktrace: TPanel
       Left = 505
-      Height = 260
+      Height = 240
       Top = 1
       Width = 210
       Align = alRight
       BevelInner = bvLowered
-      ClientHeight = 260
+      ClientHeight = 240
       ClientWidth = 210
       PopupMenu = pmStacktrace
       TabOrder = 1
       Visible = False
       object lvStacktraceData: TListView
         Left = 2
-        Height = 256
+        Height = 236
         Top = 2
         Width = 206
         Align = alClient

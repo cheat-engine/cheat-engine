@@ -1,24 +1,22 @@
 object frmChangedAddresses: TfrmChangedAddresses
   Left = 607
-  Height = 289
+  Height = 285
   Top = 128
-  Width = 385
+  Width = 379
   Caption = 'Changed Addresses'
-  ClientHeight = 289
-  ClientWidth = 385
-  Font.Height = -14
-  Font.Name = 'MS Sans Serif'
+  ClientHeight = 285
+  ClientWidth = 379
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object lblInfo: TLabel
     Left = 0
     Height = 32
     Top = 0
-    Width = 385
+    Width = 379
     Align = alTop
     Caption = 'The following addresses have been changed by the code you selected'
     ParentColor = False
@@ -26,30 +24,42 @@ object frmChangedAddresses: TfrmChangedAddresses
   end
   object Panel1: TPanel
     Left = 0
-    Height = 42
-    Top = 247
-    Width = 385
+    Height = 34
+    Top = 251
+    Width = 379
     Align = alBottom
     Anchors = [akRight, akBottom]
-    ClientHeight = 42
-    ClientWidth = 385
+    AutoSize = True
+    ClientHeight = 34
+    ClientWidth = 379
     TabOrder = 0
     object OKButton: TButton
-      Left = 10
-      Height = 24
-      Top = 8
-      Width = 92
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = Panel1
+      Left = 4
+      Height = 26
+      Top = 4
+      Width = 90
+      AutoSize = True
+      BorderSpacing.Left = 3
+      BorderSpacing.Top = 3
+      BorderSpacing.Bottom = 3
       Caption = 'Stop'
+      Constraints.MinWidth = 90
       Default = True
       OnClick = OKButtonClick
       TabOrder = 0
     end
     object cbDisplayType: TComboBox
-      Left = 198
+      AnchorSideTop.Control = OKButton
+      AnchorSideRight.Control = Panel1
+      AnchorSideRight.Side = asrBottom
+      Left = 196
       Height = 24
-      Top = 8
+      Top = 4
       Width = 179
       Anchors = [akTop, akRight]
+      BorderSpacing.Right = 3
       ItemHeight = 16
       ItemIndex = 2
       Items.Strings = (
@@ -66,9 +76,9 @@ object frmChangedAddresses: TfrmChangedAddresses
   end
   object Changedlist: TListView
     Left = 0
-    Height = 215
+    Height = 219
     Top = 32
-    Width = 385
+    Width = 379
     Align = alClient
     Columns = <    
       item

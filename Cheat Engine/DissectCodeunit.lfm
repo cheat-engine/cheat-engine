@@ -1,23 +1,22 @@
 object frmDissectCode: TfrmDissectCode
-  Left = 808
-  Height = 369
-  Top = 276
-  Width = 379
+  Left = 516
+  Height = 350
+  Top = 188
+  Width = 327
+  AutoSize = True
   Caption = 'Dissect Code'
-  ClientHeight = 369
-  ClientWidth = 379
-  Font.Height = -14
-  Font.Name = 'MS Sans Serif'
+  ClientHeight = 350
+  ClientWidth = 327
   OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.1'
+  LCLVersion = '1.6.0.4'
   object ProgressBar1: TProgressBar
     Left = 0
     Height = 21
-    Top = 348
-    Width = 379
+    Top = 329
+    Width = 327
     Align = alBottom
     ParentShowHint = False
     ShowHint = True
@@ -25,19 +24,20 @@ object frmDissectCode: TfrmDissectCode
   end
   object Panel1: TPanel
     Left = 0
-    Height = 348
+    Height = 329
     Top = 0
-    Width = 218
+    Width = 193
     Align = alClient
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 348
-    ClientWidth = 218
+    ClientHeight = 329
+    ClientWidth = 193
     TabOrder = 0
     object lbModuleList: TListBox
       Left = 0
-      Height = 286
-      Top = 62
-      Width = 218
+      Height = 280
+      Top = 49
+      Width = 193
       Align = alClient
       ItemHeight = 0
       MultiSelect = True
@@ -45,35 +45,44 @@ object frmDissectCode: TfrmDissectCode
     end
     object Panel2: TPanel
       Left = 0
-      Height = 62
+      Height = 49
       Top = 0
-      Width = 218
+      Width = 193
       Align = alTop
+      AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 62
-      ClientWidth = 218
+      ClientHeight = 49
+      ClientWidth = 193
       TabOrder = 1
       object Label2: TLabel
+        AnchorSideLeft.Control = Panel2
+        AnchorSideTop.Control = Panel2
         Left = 0
-        Height = 16
+        Height = 15
         Top = 0
-        Width = 182
+        Width = 161
         Caption = 'Select the module(s) to dissect'
         ParentColor = False
       end
       object Label3: TLabel
+        AnchorSideLeft.Control = Panel2
+        AnchorSideTop.Control = Label2
+        AnchorSideTop.Side = asrBottom
         Left = 0
-        Height = 16
-        Top = 20
-        Width = 169
+        Height = 15
+        Top = 15
+        Width = 151
         Caption = 'Hold CTRL to select multiple'
         ParentColor = False
       end
       object cbIncludesystemModules: TCheckBox
+        AnchorSideLeft.Control = Panel2
+        AnchorSideTop.Control = Label3
+        AnchorSideTop.Side = asrBottom
         Left = 0
-        Height = 20
-        Top = 40
-        Width = 164
+        Height = 19
+        Top = 30
+        Width = 148
         Caption = 'Include system modules'
         OnChange = cbIncludesystemModulesClick
         TabOrder = 0
@@ -81,121 +90,173 @@ object frmDissectCode: TfrmDissectCode
     end
   end
   object Panel3: TPanel
-    Left = 218
-    Height = 348
+    Left = 193
+    Height = 329
     Top = 0
-    Width = 161
+    Width = 134
     Align = alRight
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 348
-    ClientWidth = 161
+    ClientHeight = 329
+    ClientWidth = 134
     TabOrder = 2
     object Label6: TLabel
-      Left = 19
-      Height = 16
-      Top = 9
-      Width = 111
+      AnchorSideLeft.Control = Panel3
+      AnchorSideLeft.Side = asrCenter
+      AnchorSideTop.Control = Panel3
+      Left = 16
+      Height = 15
+      Top = 8
+      Width = 102
+      BorderSpacing.Top = 8
       Caption = 'Estimated time left:'
       ParentColor = False
     end
     object Label7: TLabel
-      Left = 10
-      Height = 16
-      Top = 22
-      Width = 139
+      AnchorSideLeft.Control = Panel3
+      AnchorSideLeft.Side = asrCenter
+      AnchorSideTop.Control = Label6
+      AnchorSideTop.Side = asrBottom
+      Left = 46
+      Height = 15
+      Top = 23
+      Width = 42
       Alignment = taCenter
-      AutoSize = False
       Caption = '00:00:00'
       ParentColor = False
     end
     object Label4: TLabel
+      AnchorSideLeft.Control = Panel3
+      AnchorSideTop.Control = Label7
+      AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 16
-      Top = 56
-      Width = 140
+      Height = 15
+      Top = 46
+      Width = 126
+      BorderSpacing.Left = 8
+      BorderSpacing.Top = 8
       Caption = 'String references found:'
       ParentColor = False
     end
     object lblStringRef: TLabel
+      AnchorSideLeft.Control = Label4
+      AnchorSideTop.Control = Label4
+      AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 16
-      Top = 72
-      Width = 7
+      Height = 15
+      Top = 61
+      Width = 6
       Caption = '0'
       ParentColor = False
     end
     object Label5: TLabel
+      AnchorSideLeft.Control = Label4
+      AnchorSideTop.Control = lblStringRef
+      AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 16
-      Top = 96
-      Width = 113
+      Height = 15
+      Top = 84
+      Width = 102
+      BorderSpacing.Top = 8
       Caption = 'Conditional Jumps:'
       ParentColor = False
     end
     object lblConditionalJumps: TLabel
+      AnchorSideLeft.Control = Label4
+      AnchorSideTop.Control = Label5
+      AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 16
-      Top = 112
-      Width = 7
+      Height = 15
+      Top = 99
+      Width = 6
       Caption = '0'
       ParentColor = False
     end
     object Label9: TLabel
+      AnchorSideLeft.Control = Label4
+      AnchorSideTop.Control = lblConditionalJumps
+      AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 16
-      Top = 136
-      Width = 128
+      Height = 15
+      Top = 122
+      Width = 115
+      BorderSpacing.Top = 8
       Caption = 'Unconditional Jumps:'
       ParentColor = False
     end
     object lblUnConditionalJumps: TLabel
+      AnchorSideLeft.Control = Label4
+      AnchorSideTop.Control = Label9
+      AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 16
-      Top = 152
-      Width = 7
+      Height = 15
+      Top = 137
+      Width = 6
       Caption = '0'
       ParentColor = False
     end
     object Label11: TLabel
+      AnchorSideLeft.Control = Label4
+      AnchorSideTop.Control = lblUnConditionalJumps
+      AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 16
-      Top = 176
-      Width = 33
+      Height = 15
+      Top = 160
+      Width = 28
+      BorderSpacing.Top = 8
       Caption = 'Calls:'
       ParentColor = False
     end
     object lblCalls: TLabel
+      AnchorSideLeft.Control = Label4
+      AnchorSideTop.Control = Label11
+      AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 16
-      Top = 192
-      Width = 7
+      Height = 15
+      Top = 175
+      Width = 6
       Caption = '0'
       ParentColor = False
     end
     object Label1: TLabel
+      AnchorSideLeft.Control = Label4
+      AnchorSideTop.Control = lblCalls
+      AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 16
-      Top = 216
-      Width = 95
+      Height = 15
+      Top = 198
+      Width = 90
+      BorderSpacing.Top = 8
       Caption = 'Maximum offset:'
       ParentColor = False
       Visible = False
     end
     object lblMaxOffset: TLabel
+      AnchorSideLeft.Control = Label4
+      AnchorSideTop.Control = Label1
+      AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 16
-      Top = 232
-      Width = 7
+      Height = 15
+      Top = 213
+      Width = 6
       Caption = '0'
       ParentColor = False
       Visible = False
     end
     object btnStart: TButton
-      Left = 20
-      Height = 31
-      Top = 261
-      Width = 109
+      AnchorSideLeft.Control = Panel3
+      AnchorSideLeft.Side = asrCenter
+      AnchorSideTop.Control = lblMaxOffset
+      AnchorSideTop.Side = asrBottom
+      Left = 17
+      Height = 25
+      Top = 233
+      Width = 100
+      AutoSize = True
+      BorderSpacing.Top = 5
+      BorderSpacing.Bottom = 25
       Caption = 'Start'
+      Constraints.MinWidth = 100
       OnClick = btnStartClick
       TabOrder = 0
     end

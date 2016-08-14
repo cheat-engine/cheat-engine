@@ -23,31 +23,59 @@ type
   { TformSettings }
 
   TformSettings = class(TForm)
+    btnCancel: TButton;
+    btnExcludeProcesses: TButton;
+    btnOK: TButton;
+    cbAlwaysAutoAttach: TCheckBox;
+    cbAlwaysRunScript: TCheckBox;
+    cbAskIfTableHasLuascript: TCheckBox;
+    cbCenterOnPopup: TCheckBox;
     cbDontusetempdir: TCheckBox;
     cbGlobalDebug: TCheckBox;
+    cbHideAllWindows: TCheckBox;
     cbKDebug: TRadioButton;
+    cbOldPointerAddMethod: TCheckBox;
+    cbProcessIcons: TCheckBox;
+    cbProcessIconsOnly: TCheckBox;
+    cbSaveWindowPos: TCheckBox;
     cbShowallWindows: TCheckBox;
-    cbAskIfTableHasLuascript: TCheckBox;
-    cbAlwaysRunScript: TCheckBox;
+    cbShowAsSigned: TCheckBox;
+    cbShowMainMenu: TCheckBox;
+    cbShowProcesslist: TCheckBox;
+    cbShowUndo: TCheckBox;
+    cbsimplecopypaste: TCheckBox;
+    cbUpdatefoundList: TCheckBox;
     cbUseVEHDebugger: TRadioButton;
     cbUseWindowsDebugger: TRadioButton;
+    cbWriteLoggingOn: TCheckBox;
     CheckBox1: TCheckBox;
     cbCanStepKernelcode: TCheckBox;
-    cbShowProcesslist: TCheckBox;
     cbOverrideExistingBPs: TCheckBox;
     cbVEHRealContextOnThreadCreation: TCheckBox;
     cbWaitAfterGuiUpdate: TCheckBox;
     cgAllTypes: TCheckGroup;
-    cbWriteLoggingOn: TCheckBox;
     cbPauseWhenScanningOnByDefault: TCheckBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
-    edtWriteLogSize: TEdit;
+    EditAutoAttach: TEdit;
+    EditFreezeInterval: TEdit;
+    editUpdatefoundInterval: TEdit;
+    EditUpdateInterval: TEdit;
     edtStacksize: TEdit;
     edtTempScanFolder: TEdit;
+    edtWriteLogSize: TEdit;
+    GroupBox1: TGroupBox;
     GroupBox2: TGroupBox;
     GroupBox4: TGroupBox;
+    Label11: TLabel;
+    Label12: TLabel;
+    Label13: TLabel;
+    Label14: TLabel;
+    Label18: TLabel;
+    Label19: TLabel;
     Label2: TLabel;
+    Label23: TLabel;
+    Label24: TLabel;
     Label8: TLabel;
     lblThreadFollowing: TLabel;
     Label4: TLabel;
@@ -55,6 +83,7 @@ type
     Label7: TLabel;
     LoadButton: TSpeedButton;
     Panel1: TPanel;
+    Panel9: TPanel;
     pcDebugConfig: TPageControl;
     pnlConfig: TPanel;
     rbVEHHookThreadCreation: TRadioButton;
@@ -64,6 +93,7 @@ type
     rbDebugAsBreakpoint: TRadioButton;
     rbgDebuggerInterface: TRadioGroup;
     rbInt3AsBreakpoint: TRadioButton;
+    ScrollBox1: TScrollBox;
     SelectDirectoryDialog1: TSelectDirectoryDialog;
     spbDown: TSpeedButton;
     spbUp: TSpeedButton;
@@ -74,28 +104,6 @@ type
     pcSetting: TPageControl;
     GeneralSettings: TTabSheet;
     ScanSettings: TTabSheet;
-    Label11: TLabel;
-    Label12: TLabel;
-    Label13: TLabel;
-    Label14: TLabel;
-    Label18: TLabel;
-    Label19: TLabel;
-    Label23: TLabel;
-    Label24: TLabel;
-    cbShowUndo: TCheckBox;
-    cbCenterOnPopup: TCheckBox;
-    EditUpdateInterval: TEdit;
-    EditFreezeInterval: TEdit;
-    GroupBox1: TGroupBox;
-    cbShowAsSigned: TCheckBox;
-    cbsimplecopypaste: TCheckBox;
-    cbUpdatefoundList: TCheckBox;
-    editUpdatefoundInterval: TEdit;
-    cbHideAllWindows: TCheckBox;
-    btnExcludeProcesses: TButton;
-    EditAutoAttach: TEdit;
-    cbAlwaysAutoAttach: TCheckBox;
-    cbSaveWindowPos: TCheckBox;
     Label3: TLabel;
     Label1: TLabel;
     Label15: TLabel;
@@ -130,11 +138,7 @@ type
     cbIncremental: TCheckBox;
     Panel6: TPanel;
     AboutLabel: TLabel;
-    btnCancel: TButton;
-    btnOK: TButton;
     frameHotkeyConfig: TframeHotkeyConfig;
-    cbProcessIcons: TCheckBox;
-    cbProcessIconsOnly: TCheckBox;
     tsTools: TTabSheet;
     Panel2: TPanel;
     cbShowTools: TCheckBox;
@@ -153,8 +157,6 @@ type
     edtToolsName: TEdit;
     OpenButton: TSpeedButton;
     OpenDialog2: TOpenDialog;
-    cbShowMainMenu: TCheckBox;
-    cbOldPointerAddMethod: TCheckBox;
     Panel7: TPanel;
     Button5: TButton;
     Button4: TButton;
@@ -270,7 +272,6 @@ frmExcludeHideUnit, {
 MemoryBrowserFormUnit,}
 ModuleSafetyUnit,
 frmProcessWatcherUnit,
-ConfigUnrandomizerFrm,
 CustomTypeHandler,
 processlist,
 commonTypeDefs,
@@ -1306,8 +1307,7 @@ end;
 
 procedure TformSettings.Panel6Resize(Sender: TObject);
 begin
-  btnOK.Left:=btnOK.parent.ClientWidth div 2 - btnOK.Width - 10;
-  btnCancel.Left:=btnCancel.parent.ClientWidth div 2 + 10;
+
 end;
 
 procedure TformSettings.cbProcessIconsClick(Sender: TObject);

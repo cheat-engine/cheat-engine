@@ -1,14 +1,13 @@
 object formSettings: TformSettings
   Left = 844
-  Height = 540
+  Height = 530
   Top = 349
-  Width = 772
+  Width = 660
+  AutoSize = True
   BorderIcons = [biSystemMenu]
   Caption = 'Cheat Engine settings'
-  ClientHeight = 540
-  ClientWidth = 772
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  ClientHeight = 530
+  ClientWidth = 660
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -20,10 +19,10 @@ object formSettings: TformSettings
     Left = 0
     Height = 493
     Top = 0
-    Width = 772
+    Width = 660
     Align = alClient
     ClientHeight = 493
-    ClientWidth = 772
+    ClientWidth = 660
     TabOrder = 0
     object tvMenuSelection: TTreeView
       Left = 1
@@ -31,7 +30,7 @@ object formSettings: TformSettings
       Top = 1
       Width = 148
       Align = alLeft
-      DefaultItemHeight = 16
+      DefaultItemHeight = 18
       HideSelection = False
       Indent = 19
       ReadOnly = True
@@ -60,334 +59,468 @@ object formSettings: TformSettings
       Left = 149
       Height = 491
       Top = 1
-      Width = 622
-      ActivePage = ScanSettings
+      Width = 510
+      ActivePage = GeneralSettings
       Align = alClient
-      TabIndex = 3
+      TabIndex = 0
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
         Caption = 'General Settings'
-        ClientHeight = 465
-        ClientWidth = 614
-        object Label11: TLabel
-          Left = 221
-          Height = 13
-          Top = 395
-          Width = 13
-          Caption = 'ms'
-          ParentColor = False
-        end
-        object Label12: TLabel
-          Left = 221
-          Height = 13
-          Top = 419
-          Width = 13
-          Caption = 'ms'
-          ParentColor = False
-        end
-        object Label13: TLabel
-          Left = 87
-          Height = 13
-          Top = 395
-          Width = 72
-          Caption = 'Update interval'
-          ParentColor = False
-        end
-        object Label14: TLabel
-          Left = 90
-          Height = 13
-          Top = 423
-          Width = 69
-          Caption = 'Freeze interval'
-          ParentColor = False
-        end
-        object Label18: TLabel
-          Left = 1
-          Height = 13
-          Top = 446
-          Width = 158
-          Caption = 'Found address list update interval'
-          ParentColor = False
-        end
-        object Label19: TLabel
-          Left = 221
-          Height = 13
-          Top = 443
-          Width = 13
-          Caption = 'ms'
-          ParentColor = False
-        end
-        object Label23: TLabel
-          Left = 10
-          Height = 13
-          Top = 344
-          Width = 193
-          Caption = 'Automatically attach to processes named'
-          ParentColor = False
-        end
-        object Label24: TLabel
-          AnchorSideLeft.Control = EditAutoAttach
-          AnchorSideLeft.Side = asrBottom
-          AnchorSideTop.Control = EditAutoAttach
-          AnchorSideTop.Side = asrCenter
-          Left = 357
-          Height = 13
-          Top = 343
-          Width = 114
-          BorderSpacing.Left = 5
-          Caption = '(Seperate entries with ; )'
-          ParentColor = False
-        end
-        object cbShowUndo: TCheckBox
-          Left = 1
-          Height = 19
-          Top = 2
-          Width = 107
-          Caption = 'Show undo button'
-          Checked = True
-          State = cbChecked
-          TabOrder = 0
-        end
-        object cbCenterOnPopup: TCheckBox
-          Left = 1
-          Height = 19
-          Top = 41
-          Width = 223
-          Caption = 'Center Cheat Engine when bringing to front'
-          Checked = True
-          State = cbChecked
-          TabOrder = 1
-        end
-        object EditUpdateInterval: TEdit
-          Left = 165
-          Height = 21
-          Hint = 'The number of milliseconds that Cheat Engine will wait before refreshing the list of addresses'
-          Top = 391
-          Width = 53
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 2
-          Text = '500'
-        end
-        object EditFreezeInterval: TEdit
-          Left = 165
-          Height = 21
-          Hint = 'The number of milliseconds that Cheat Engine will wait before resetting the frozen addresses to their original value.'
-          Top = 416
-          Width = 53
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 3
-          Text = '100'
-        end
-        object GroupBox1: TGroupBox
+        ClientHeight = 463
+        ClientWidth = 502
+        object ScrollBox1: TScrollBox
           Left = 0
-          Height = 64
-          Top = 272
-          Width = 602
-          Caption = 'Address list specific'
-          ClientHeight = 46
-          ClientWidth = 598
-          TabOrder = 4
-          object cbShowAsSigned: TCheckBox
-            Left = 13
+          Height = 463
+          Top = 0
+          Width = 502
+          HorzScrollBar.Page = 494
+          HorzScrollBar.Tracking = True
+          VertScrollBar.Page = 450
+          VertScrollBar.Tracking = True
+          Align = alClient
+          ClientHeight = 459
+          ClientWidth = 498
+          TabOrder = 0
+          object Label11: TLabel
+            AnchorSideLeft.Control = EditUpdateInterval
+            AnchorSideLeft.Side = asrBottom
+            AnchorSideTop.Control = EditUpdateInterval
+            AnchorSideTop.Side = asrCenter
+            Left = 234
+            Height = 15
+            Top = 377
+            Width = 16
+            Caption = 'ms'
+            ParentColor = False
+          end
+          object Label12: TLabel
+            AnchorSideLeft.Control = EditFreezeInterval
+            AnchorSideLeft.Side = asrBottom
+            AnchorSideTop.Control = EditFreezeInterval
+            AnchorSideTop.Side = asrCenter
+            Left = 234
+            Height = 15
+            Top = 402
+            Width = 16
+            Caption = 'ms'
+            ParentColor = False
+          end
+          object Label13: TLabel
+            AnchorSideTop.Control = EditUpdateInterval
+            AnchorSideTop.Side = asrCenter
+            AnchorSideRight.Control = EditUpdateInterval
+            Left = 97
+            Height = 15
+            Top = 377
+            Width = 80
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 4
+            Caption = 'Update interval'
+            ParentColor = False
+          end
+          object Label14: TLabel
+            AnchorSideTop.Control = EditFreezeInterval
+            AnchorSideTop.Side = asrCenter
+            AnchorSideRight.Control = EditFreezeInterval
+            Left = 102
+            Height = 15
+            Top = 402
+            Width = 75
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 4
+            Caption = 'Freeze interval'
+            ParentColor = False
+          end
+          object Label18: TLabel
+            AnchorSideLeft.Control = ScrollBox1
+            AnchorSideTop.Control = editUpdatefoundInterval
+            AnchorSideTop.Side = asrCenter
+            Left = 0
+            Height = 15
+            Top = 427
+            Width = 177
+            Caption = 'Found address list update interval'
+            ParentColor = False
+          end
+          object Label19: TLabel
+            AnchorSideLeft.Control = editUpdatefoundInterval
+            AnchorSideLeft.Side = asrBottom
+            AnchorSideTop.Control = editUpdatefoundInterval
+            AnchorSideTop.Side = asrCenter
+            Left = 234
+            Height = 15
+            Top = 427
+            Width = 16
+            Caption = 'ms'
+            ParentColor = False
+          end
+          object Label23: TLabel
+            AnchorSideLeft.Control = ScrollBox1
+            AnchorSideTop.Control = EditAutoAttach
+            AnchorSideTop.Side = asrCenter
+            Left = 0
+            Height = 15
+            Top = 333
+            Width = 218
+            Caption = 'Automatically attach to processes named'
+            ParentColor = False
+          end
+          object Label24: TLabel
+            AnchorSideLeft.Control = EditAutoAttach
+            AnchorSideLeft.Side = asrBottom
+            AnchorSideTop.Control = EditAutoAttach
+            AnchorSideTop.Side = asrCenter
+            Left = 368
+            Height = 15
+            Top = 333
+            Width = 126
+            BorderSpacing.Left = 5
+            Caption = '(Seperate entries with ; )'
+            ParentColor = False
+          end
+          object cbShowUndo: TCheckBox
+            AnchorSideLeft.Control = ScrollBox1
+            AnchorSideTop.Control = ScrollBox1
+            Left = 0
             Height = 19
             Top = 0
-            Width = 178
-            Caption = 'Show values as if they are signed'
+            Width = 119
+            Caption = 'Show undo button'
+            Checked = True
+            State = cbChecked
             TabOrder = 0
           end
-          object cbsimplecopypaste: TCheckBox
-            Left = 13
+          object cbCenterOnPopup: TCheckBox
+            AnchorSideLeft.Control = ScrollBox1
+            AnchorSideTop.Control = cbUpdatefoundList
+            AnchorSideTop.Side = asrBottom
+            Left = 0
             Height = 19
-            Top = 24
-            Width = 80
-            Caption = 'Simple paste'
+            Top = 38
+            Width = 251
+            Caption = 'Center Cheat Engine when bringing to front'
+            Checked = True
+            State = cbChecked
             TabOrder = 1
           end
-        end
-        object cbUpdatefoundList: TCheckBox
-          Left = 1
-          Height = 19
-          Top = 22
-          Width = 278
-          Caption = 'Update the list of found addresses even after scanning'
-          Checked = True
-          OnClick = cbUpdatefoundListClick
-          State = cbChecked
-          TabOrder = 5
-        end
-        object editUpdatefoundInterval: TEdit
-          Left = 165
-          Height = 21
-          Hint = 'The number of milliseconds that Cheat Engine will wait before refreshing the list of found addresses'
-          Top = 439
-          Width = 51
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 6
-          Text = '1000'
-        end
-        object cbHideAllWindows: TCheckBox
-          Left = 1
-          Height = 19
-          Top = 60
-          Width = 345
-          Caption = 'Hide some/all windows instead of trying to bring cheat engine to front'
-          Checked = True
-          OnClick = cbHideAllWindowsClick
-          State = cbChecked
-          TabOrder = 7
-        end
-        object btnExcludeProcesses: TButton
-          Left = 351
-          Height = 21
-          Top = 59
-          Width = 90
-          Caption = 'More...'
-          OnClick = btnExcludeProcessesClick
-          TabOrder = 8
-        end
-        object EditAutoAttach: TEdit
-          Left = 209
-          Height = 21
-          Hint = 'Type the name of the process you want to automatically open. Note: Only works when NO process has been opened yet'
-          Top = 339
-          Width = 143
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 9
-        end
-        object cbAlwaysAutoAttach: TCheckBox
-          Left = 10
-          Height = 19
-          Top = 365
-          Width = 334
-          Caption = 'Even autoattach when another process has already been selected'
-          TabOrder = 10
-        end
-        object cbSaveWindowPos: TCheckBox
-          Left = 1
-          Height = 19
-          Top = 135
-          Width = 128
-          Caption = 'Save window positions'
-          Checked = True
-          State = cbChecked
-          TabOrder = 11
-        end
-        object cbProcessIcons: TCheckBox
-          Left = 1
-          Height = 19
-          Top = 207
-          Width = 172
-          Caption = 'Get process icons for processlist'
-          Checked = True
-          OnClick = cbProcessIconsClick
-          State = cbChecked
-          TabOrder = 12
-        end
-        object cbProcessIconsOnly: TCheckBox
-          Left = 20
-          Height = 19
-          Top = 225
-          Width = 180
-          Caption = 'Only show processes with an icon'
-          TabOrder = 13
-        end
-        object cbShowMainMenu: TCheckBox
-          Left = 1
-          Height = 19
-          Top = 171
-          Width = 101
-          Caption = 'Show main menu'
-          Checked = True
-          State = cbChecked
-          TabOrder = 14
-        end
-        object cbOldPointerAddMethod: TCheckBox
-          Left = 1
-          Height = 19
-          Top = 78
-          Width = 259
-          Caption = 'Pointer adding: Append pointerline instead of insert'
-          TabOrder = 15
-        end
-        object cbShowallWindows: TCheckBox
-          Left = 1
-          Height = 19
-          Top = 153
-          Width = 171
-          Caption = 'Show all windows in the taskbar'
-          TabOrder = 16
-        end
-        object cbAskIfTableHasLuascript: TCheckBox
-          Left = 1
-          Height = 19
-          Top = 96
-          Width = 172
-          Caption = 'Ask to run lua scripts from tables'
-          Checked = True
-          OnChange = cbAskIfTableHasLuascriptChange
-          State = cbChecked
-          TabOrder = 17
-        end
-        object cbAlwaysRunScript: TCheckBox
-          Left = 15
-          Height = 19
-          Top = 113
-          Width = 175
-          Caption = 'Always run lua scripts from tables'
-          Enabled = False
-          TabOrder = 18
-        end
-        object cbShowProcesslist: TCheckBox
-          Left = 1
-          Height = 19
-          Top = 189
-          Width = 167
-          Caption = 'Show process list in main menu'
-          TabOrder = 19
-        end
-        object cbWriteLoggingOn: TCheckBox
-          Left = 1
-          Height = 19
-          Hint = 'When enabled CE will record writes done by the user and allows the user to undo those changes'
-          Top = 246
-          Width = 164
-          Caption = 'Enable write logging by default'
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 20
-        end
-        object Label8: TLabel
-          AnchorSideLeft.Control = cbWriteLoggingOn
-          AnchorSideLeft.Side = asrBottom
-          AnchorSideTop.Control = cbWriteLoggingOn
-          AnchorSideTop.Side = asrCenter
-          Left = 170
-          Height = 13
-          Top = 249
-          Width = 122
-          BorderSpacing.Left = 5
-          Caption = 'Max log size (nr of entries)'
-          Enabled = False
-          ParentColor = False
-        end
-        object edtWriteLogSize: TEdit
-          AnchorSideLeft.Control = Label8
-          AnchorSideLeft.Side = asrBottom
-          AnchorSideTop.Control = Label8
-          AnchorSideTop.Side = asrCenter
-          Left = 297
-          Height = 21
-          Top = 245
-          Width = 80
-          BorderSpacing.Left = 5
-          Enabled = False
-          TabOrder = 21
-          Text = '250'
+          object EditUpdateInterval: TEdit
+            AnchorSideLeft.Control = editUpdatefoundInterval
+            AnchorSideTop.Control = cbAlwaysAutoAttach
+            AnchorSideTop.Side = asrBottom
+            Left = 181
+            Height = 23
+            Hint = 'The number of milliseconds that Cheat Engine will wait before refreshing the list of addresses'
+            Top = 373
+            Width = 53
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 2
+            Text = '500'
+          end
+          object EditFreezeInterval: TEdit
+            AnchorSideLeft.Control = editUpdatefoundInterval
+            AnchorSideTop.Control = EditUpdateInterval
+            AnchorSideTop.Side = asrBottom
+            Left = 181
+            Height = 23
+            Hint = 'The number of milliseconds that Cheat Engine will wait before resetting the frozen addresses to their original value.'
+            Top = 398
+            Width = 53
+            BorderSpacing.Top = 2
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 3
+            Text = '100'
+          end
+          object GroupBox1: TGroupBox
+            AnchorSideLeft.Control = ScrollBox1
+            AnchorSideTop.Control = cbWriteLoggingOn
+            AnchorSideTop.Side = asrBottom
+            AnchorSideRight.Control = ScrollBox1
+            AnchorSideRight.Side = asrBottom
+            Left = 0
+            Height = 60
+            Top = 266
+            Width = 498
+            Anchors = [akTop, akLeft, akRight]
+            AutoSize = True
+            Caption = 'Address list specific'
+            ClientHeight = 40
+            ClientWidth = 494
+            TabOrder = 4
+            object cbShowAsSigned: TCheckBox
+              AnchorSideLeft.Control = GroupBox1
+              AnchorSideTop.Control = GroupBox1
+              Left = 16
+              Height = 19
+              Top = 0
+              Width = 192
+              BorderSpacing.Left = 16
+              Caption = 'Show values as if they are signed'
+              TabOrder = 0
+            end
+            object cbsimplecopypaste: TCheckBox
+              AnchorSideLeft.Control = cbShowAsSigned
+              AnchorSideTop.Control = cbShowAsSigned
+              AnchorSideTop.Side = asrBottom
+              Left = 16
+              Height = 19
+              Top = 19
+              Width = 87
+              BorderSpacing.Bottom = 2
+              Caption = 'Simple paste'
+              TabOrder = 1
+            end
+          end
+          object cbUpdatefoundList: TCheckBox
+            AnchorSideLeft.Control = ScrollBox1
+            AnchorSideTop.Control = cbShowUndo
+            AnchorSideTop.Side = asrBottom
+            Left = 0
+            Height = 19
+            Top = 19
+            Width = 305
+            Caption = 'Update the list of found addresses even after scanning'
+            Checked = True
+            OnClick = cbUpdatefoundListClick
+            State = cbChecked
+            TabOrder = 5
+          end
+          object editUpdatefoundInterval: TEdit
+            AnchorSideLeft.Control = Label18
+            AnchorSideLeft.Side = asrBottom
+            AnchorSideTop.Control = EditFreezeInterval
+            AnchorSideTop.Side = asrBottom
+            AnchorSideRight.Control = EditUpdateInterval
+            AnchorSideRight.Side = asrBottom
+            Left = 181
+            Height = 23
+            Hint = 'The number of milliseconds that Cheat Engine will wait before refreshing the list of found addresses'
+            Top = 423
+            Width = 53
+            BorderSpacing.Left = 4
+            BorderSpacing.Top = 2
+            BorderSpacing.Bottom = 4
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 6
+            Text = '1000'
+          end
+          object cbHideAllWindows: TCheckBox
+            AnchorSideLeft.Control = ScrollBox1
+            AnchorSideTop.Control = cbCenterOnPopup
+            AnchorSideTop.Side = asrBottom
+            Left = 0
+            Height = 19
+            Top = 57
+            Width = 392
+            Caption = 'Hide some/all windows instead of trying to bring cheat engine to front'
+            Checked = True
+            OnClick = cbHideAllWindowsClick
+            State = cbChecked
+            TabOrder = 7
+          end
+          object btnExcludeProcesses: TButton
+            AnchorSideLeft.Control = cbHideAllWindows
+            AnchorSideLeft.Side = asrBottom
+            AnchorSideTop.Control = cbHideAllWindows
+            AnchorSideBottom.Control = cbHideAllWindows
+            AnchorSideBottom.Side = asrBottom
+            Left = 396
+            Height = 19
+            Top = 57
+            Width = 90
+            Anchors = [akTop, akLeft, akBottom]
+            AutoSize = True
+            BorderSpacing.Left = 4
+            Caption = 'More...'
+            Constraints.MinWidth = 90
+            OnClick = btnExcludeProcessesClick
+            TabOrder = 8
+          end
+          object EditAutoAttach: TEdit
+            AnchorSideLeft.Control = Label23
+            AnchorSideLeft.Side = asrBottom
+            AnchorSideTop.Control = GroupBox1
+            AnchorSideTop.Side = asrBottom
+            Left = 220
+            Height = 23
+            Hint = 'Type the name of the process you want to automatically open. Note: Only works when NO process has been opened yet'
+            Top = 329
+            Width = 143
+            BorderSpacing.Left = 2
+            BorderSpacing.Top = 3
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 9
+          end
+          object cbAlwaysAutoAttach: TCheckBox
+            AnchorSideLeft.Control = ScrollBox1
+            AnchorSideTop.Control = EditAutoAttach
+            AnchorSideTop.Side = asrBottom
+            Left = 0
+            Height = 19
+            Top = 354
+            Width = 361
+            BorderSpacing.Top = 2
+            Caption = 'Even autoattach when another process has already been selected'
+            TabOrder = 10
+          end
+          object cbSaveWindowPos: TCheckBox
+            AnchorSideLeft.Control = ScrollBox1
+            AnchorSideTop.Control = cbAlwaysRunScript
+            AnchorSideTop.Side = asrBottom
+            Left = 0
+            Height = 19
+            Top = 133
+            Width = 140
+            Caption = 'Save window positions'
+            Checked = True
+            State = cbChecked
+            TabOrder = 11
+          end
+          object cbProcessIcons: TCheckBox
+            AnchorSideLeft.Control = ScrollBox1
+            AnchorSideTop.Control = cbShowProcesslist
+            AnchorSideTop.Side = asrBottom
+            Left = 0
+            Height = 19
+            Top = 209
+            Width = 188
+            Caption = 'Get process icons for processlist'
+            Checked = True
+            OnClick = cbProcessIconsClick
+            State = cbChecked
+            TabOrder = 12
+          end
+          object cbProcessIconsOnly: TCheckBox
+            AnchorSideLeft.Control = ScrollBox1
+            AnchorSideTop.Control = cbProcessIcons
+            AnchorSideTop.Side = asrBottom
+            Left = 16
+            Height = 19
+            Top = 228
+            Width = 198
+            BorderSpacing.Left = 16
+            Caption = 'Only show processes with an icon'
+            TabOrder = 13
+          end
+          object cbShowMainMenu: TCheckBox
+            AnchorSideLeft.Control = ScrollBox1
+            AnchorSideTop.Control = cbShowallWindows
+            AnchorSideTop.Side = asrBottom
+            Left = 0
+            Height = 19
+            Top = 171
+            Width = 113
+            Caption = 'Show main menu'
+            Checked = True
+            State = cbChecked
+            TabOrder = 14
+          end
+          object cbOldPointerAddMethod: TCheckBox
+            AnchorSideLeft.Control = ScrollBox1
+            AnchorSideTop.Control = cbHideAllWindows
+            AnchorSideTop.Side = asrBottom
+            Left = 0
+            Height = 19
+            Top = 76
+            Width = 293
+            Caption = 'Pointer adding: Append pointerline instead of insert'
+            TabOrder = 15
+          end
+          object cbShowallWindows: TCheckBox
+            AnchorSideLeft.Control = ScrollBox1
+            AnchorSideTop.Control = cbSaveWindowPos
+            AnchorSideTop.Side = asrBottom
+            Left = 0
+            Height = 19
+            Top = 152
+            Width = 188
+            Caption = 'Show all windows in the taskbar'
+            TabOrder = 16
+          end
+          object cbAskIfTableHasLuascript: TCheckBox
+            AnchorSideLeft.Control = ScrollBox1
+            AnchorSideTop.Control = cbOldPointerAddMethod
+            AnchorSideTop.Side = asrBottom
+            Left = 0
+            Height = 19
+            Top = 95
+            Width = 193
+            Caption = 'Ask to run lua scripts from tables'
+            Checked = True
+            OnChange = cbAskIfTableHasLuascriptChange
+            State = cbChecked
+            TabOrder = 17
+          end
+          object cbAlwaysRunScript: TCheckBox
+            AnchorSideLeft.Control = ScrollBox1
+            AnchorSideTop.Control = cbAskIfTableHasLuascript
+            AnchorSideTop.Side = asrBottom
+            Left = 16
+            Height = 19
+            Top = 114
+            Width = 197
+            BorderSpacing.Left = 16
+            Caption = 'Always run lua scripts from tables'
+            Enabled = False
+            TabOrder = 18
+          end
+          object cbShowProcesslist: TCheckBox
+            AnchorSideLeft.Control = ScrollBox1
+            AnchorSideTop.Control = cbShowMainMenu
+            AnchorSideTop.Side = asrBottom
+            Left = 0
+            Height = 19
+            Top = 190
+            Width = 187
+            Caption = 'Show process list in main menu'
+            TabOrder = 19
+          end
+          object cbWriteLoggingOn: TCheckBox
+            AnchorSideLeft.Control = ScrollBox1
+            AnchorSideTop.Control = cbProcessIconsOnly
+            AnchorSideTop.Side = asrBottom
+            Left = 0
+            Height = 19
+            Hint = 'When enabled CE will record writes done by the user and allows the user to undo those changes'
+            Top = 247
+            Width = 184
+            Caption = 'Enable write logging by default'
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 20
+          end
+          object Label8: TLabel
+            AnchorSideLeft.Control = cbWriteLoggingOn
+            AnchorSideLeft.Side = asrBottom
+            AnchorSideTop.Control = cbWriteLoggingOn
+            AnchorSideTop.Side = asrCenter
+            Left = 189
+            Height = 15
+            Top = 249
+            Width = 138
+            BorderSpacing.Left = 5
+            Caption = 'Max log size (nr of entries)'
+            Enabled = False
+            ParentColor = False
+          end
+          object edtWriteLogSize: TEdit
+            AnchorSideLeft.Control = Label8
+            AnchorSideLeft.Side = asrBottom
+            AnchorSideTop.Control = Label8
+            AnchorSideTop.Side = asrCenter
+            Left = 332
+            Height = 23
+            Top = 245
+            Width = 80
+            BorderSpacing.Left = 5
+            Enabled = False
+            TabOrder = 21
+            Text = '250'
+          end
         end
       end
       object tsHotkeys: TTabSheet
@@ -417,7 +550,6 @@ object formSettings: TformSettings
               Height = 390
               Top = 13
               Width = 388
-              ItemHeight = 13
             end
           end
           inherited Panel2: TPanel
@@ -598,10 +730,10 @@ object formSettings: TformSettings
           AnchorSideTop.Control = Label3
           AnchorSideTop.Side = asrBottom
           Left = 0
-          Height = 21
+          Height = 23
           Top = 322
           Width = 122
-          ItemHeight = 13
+          ItemHeight = 15
           ItemIndex = 4
           Items.Strings = (
             'Idle'
@@ -783,7 +915,7 @@ object formSettings: TformSettings
           ChildSizing.ShrinkVertical = crsScaleChilds
           ChildSizing.Layout = cclTopToBottomThenLeftToRight
           ChildSizing.ControlsPerLine = 3
-          ClientHeight = 69
+          ClientHeight = 67
           ClientWidth = 223
           ColumnLayout = clVerticalThenHorizontal
           Columns = 3
@@ -911,7 +1043,7 @@ object formSettings: TformSettings
           Top = 305
           Width = 416
           Caption = 'Debugger interface config'
-          ClientHeight = 119
+          ClientHeight = 117
           ClientWidth = 412
           TabOrder = 2
           object pcDebugConfig: TPageControl
@@ -1041,7 +1173,7 @@ object formSettings: TformSettings
           ChildSizing.ShrinkVertical = crsScaleChilds
           ChildSizing.Layout = cclLeftToRightThenTopToBottom
           ChildSizing.ControlsPerLine = 1
-          ClientHeight = 69
+          ClientHeight = 67
           ClientWidth = 157
           TabOrder = 3
           object cbUseVEHDebugger: TRadioButton
@@ -1128,7 +1260,7 @@ object formSettings: TformSettings
           Width = 577
           AutoSize = True
           Caption = 'Prefered breakpoint method'
-          ClientHeight = 51
+          ClientHeight = 49
           ClientWidth = 573
           TabOrder = 6
           object rbDebugAsBreakpoint: TRadioButton
@@ -1172,14 +1304,14 @@ object formSettings: TformSettings
       end
       object Extra: TTabSheet
         Caption = 'Extra'
-        ClientHeight = 465
-        ClientWidth = 614
+        ClientHeight = 463
+        ClientWidth = 593
         ImageIndex = 6
         object TauntOldOsUser: TLabel
           Left = 0
-          Height = 13
-          Top = 452
-          Width = 614
+          Height = 15
+          Top = 448
+          Width = 593
           Align = alBottom
           Alignment = taCenter
           Caption = 'I really recommend upgrading to Windows 2000 or later mister Flintstone'
@@ -1190,17 +1322,17 @@ object formSettings: TformSettings
           Left = 0
           Height = 86
           Top = 0
-          Width = 614
+          Width = 593
           Align = alTop
           Caption = 'Use the following CE Kernel routines instead of the original windows version'
-          ClientHeight = 68
-          ClientWidth = 610
+          ClientHeight = 66
+          ClientWidth = 589
           TabOrder = 0
           object cbKernelQueryMemoryRegion: TCheckBox
             Left = 10
             Height = 19
             Top = 2
-            Width = 159
+            Width = 183
             Caption = 'Query memory region routines'
             OnClick = cbKernelQueryMemoryRegionClick
             TabOrder = 0
@@ -1209,7 +1341,7 @@ object formSettings: TformSettings
             Left = 10
             Height = 19
             Top = 21
-            Width = 282
+            Width = 306
             Caption = 'Read/Write Process Memory  (Will cause slower scans)'
             OnClick = cbKernelQueryMemoryRegionClick
             TabOrder = 1
@@ -1218,7 +1350,7 @@ object formSettings: TformSettings
             Left = 10
             Height = 19
             Top = 40
-            Width = 87
+            Width = 92
             Caption = 'Open Process'
             TabOrder = 2
           end
@@ -1227,7 +1359,7 @@ object formSettings: TformSettings
           Left = 1
           Height = 19
           Top = 94
-          Width = 188
+          Width = 200
           Caption = 'Enable use of the Process Watcher'
           TabOrder = 1
         end
@@ -1235,7 +1367,7 @@ object formSettings: TformSettings
           Left = 7
           Height = 19
           Top = 422
-          Width = 123
+          Width = 135
           Caption = 'Use APC to inject dll''s'
           TabOrder = 2
           Visible = False
@@ -1244,7 +1376,7 @@ object formSettings: TformSettings
           Left = 7
           Height = 19
           Top = 442
-          Width = 169
+          Width = 181
           Caption = 'Use APC to create new threads'
           TabOrder = 3
           Visible = False
@@ -1539,53 +1671,80 @@ object formSettings: TformSettings
   end
   object Panel6: TPanel
     Left = 0
-    Height = 47
+    Height = 37
     Top = 493
-    Width = 772
+    Width = 660
     Align = alBottom
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 47
-    ClientWidth = 772
+    ClientHeight = 37
+    ClientWidth = 660
     TabOrder = 1
     OnResize = Panel6Resize
     object AboutLabel: TLabel
+      AnchorSideRight.Control = Panel6
+      AnchorSideRight.Side = asrBottom
+      AnchorSideBottom.Control = Panel6
+      AnchorSideBottom.Side = asrBottom
       Cursor = crHandPoint
-      Left = 725
-      Height = 13
-      Top = 34
-      Width = 45
+      Left = 610
+      Height = 15
+      Top = 22
+      Width = 50
       Anchors = [akRight, akBottom]
       Caption = 'About CE'
       Font.Color = clBlue
-      Font.Height = -11
-      Font.Name = 'MS Sans Serif'
       Font.Style = [fsUnderline]
       ParentColor = False
       ParentFont = False
       OnClick = AboutLabelClick
     end
-    object btnCancel: TButton
-      Left = 343
-      Height = 22
-      Top = 9
-      Width = 87
-      Anchors = [akTop, akRight]
-      Cancel = True
-      Caption = 'Cancel'
-      ModalResult = 2
-      OnClick = btnCancelClick
+    object Panel9: TPanel
+      AnchorSideLeft.Control = Panel6
+      AnchorSideLeft.Side = asrCenter
+      AnchorSideTop.Control = Panel6
+      Left = 251
+      Height = 25
+      Top = 6
+      Width = 158
+      AutoSize = True
+      BorderSpacing.Top = 6
+      BorderSpacing.Bottom = 6
+      BevelOuter = bvNone
+      ClientHeight = 25
+      ClientWidth = 158
       TabOrder = 0
-    end
-    object btnOK: TButton
-      Left = 239
-      Height = 22
-      Top = 9
-      Width = 87
-      Anchors = [akTop, akRight]
-      Caption = 'OK'
-      Default = True
-      OnClick = btnOKClick
-      TabOrder = 1
+      object btnOK: TButton
+        AnchorSideLeft.Control = Panel9
+        AnchorSideTop.Control = Panel9
+        Left = 0
+        Height = 25
+        Top = 0
+        Width = 75
+        AutoSize = True
+        Caption = 'OK'
+        Constraints.MinWidth = 75
+        Default = True
+        OnClick = btnOKClick
+        TabOrder = 0
+      end
+      object btnCancel: TButton
+        AnchorSideLeft.Control = btnOK
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = Panel9
+        Left = 83
+        Height = 25
+        Top = 0
+        Width = 75
+        AutoSize = True
+        BorderSpacing.Left = 8
+        Cancel = True
+        Caption = 'Cancel'
+        Constraints.MinWidth = 75
+        ModalResult = 2
+        OnClick = btnCancelClick
+        TabOrder = 1
+      end
     end
   end
   object defaultbuffer: TPopupMenu

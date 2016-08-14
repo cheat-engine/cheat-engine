@@ -2,12 +2,10 @@ object AdvancedOptions: TAdvancedOptions
   Left = 511
   Height = 303
   Top = 382
-  Width = 588
+  Width = 571
   Caption = 'Advanced Options'
   ClientHeight = 303
-  ClientWidth = 588
-  Font.Height = -14
-  Font.Name = 'MS Sans Serif'
+  ClientWidth = 571
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnResize = FormResize
@@ -16,14 +14,14 @@ object AdvancedOptions: TAdvancedOptions
   LCLVersion = '1.6.0.4'
   object Panel1: TPanel
     Left = 0
-    Height = 36
-    Top = 267
-    Width = 588
+    Height = 35
+    Top = 268
+    Width = 571
     Align = alBottom
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 36
-    ClientWidth = 588
+    ClientHeight = 35
+    ClientWidth = 571
     TabOrder = 0
     OnResize = Panel1Resize
     object Button1: TButton
@@ -32,8 +30,8 @@ object AdvancedOptions: TAdvancedOptions
       AnchorSideTop.Control = Panel1
       AnchorSideBottom.Control = Panel1
       AnchorSideBottom.Side = asrBottom
-      Left = 248
-      Height = 26
+      Left = 239
+      Height = 25
       Top = 5
       Width = 92
       Anchors = [akTop, akLeft, akBottom]
@@ -48,12 +46,12 @@ object AdvancedOptions: TAdvancedOptions
     Left = 0
     Height = 40
     Top = 0
-    Width = 588
+    Width = 571
     Align = alTop
     AutoSize = True
     BevelOuter = bvNone
     ClientHeight = 40
-    ClientWidth = 588
+    ClientWidth = 571
     TabOrder = 1
     OnResize = Panel2Resize
     object Pausebutton: TSpeedButton
@@ -141,10 +139,10 @@ object AdvancedOptions: TAdvancedOptions
       AnchorSideTop.Control = Panel2
       AnchorSideBottom.Control = Panel2
       AnchorSideBottom.Side = asrBottom
-      Left = 267
-      Height = 16
-      Top = 24
-      Width = 55
+      Left = 261
+      Height = 15
+      Top = 25
+      Width = 49
       Anchors = [akLeft, akBottom]
       Caption = 'Code list:'
       ParentColor = False
@@ -155,9 +153,9 @@ object AdvancedOptions: TAdvancedOptions
     AnchorSideBottom.Control = Panel1
     AnchorSideBottom.Side = asrBottom
     Left = 0
-    Height = 227
+    Height = 228
     Top = 40
-    Width = 588
+    Width = 571
     Align = alClient
     Columns = <    
       item

@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Tag = 2
   Left = 711
-  Height = 708
+  Height = 699
   Hint = ' '
   Top = 202
   Width = 690
@@ -11,7 +11,7 @@ object MainForm: TMainForm
   AllowDropFiles = True
   AutoSize = True
   Caption = 'Cheat Engine 6.6'
-  ClientHeight = 688
+  ClientHeight = 679
   ClientWidth = 690
   Menu = MainMenu1
   OnClose = FormClose
@@ -39,7 +39,7 @@ object MainForm: TMainForm
   object Panel1: TPanel
     Tag = 777
     Left = 0
-    Height = 219
+    Height = 210
     Top = 448
     Width = 690
     Align = alClient
@@ -53,7 +53,7 @@ object MainForm: TMainForm
   object Panel4: TPanel
     Left = 0
     Height = 21
-    Top = 667
+    Top = 658
     Width = 690
     Align = alBottom
     AutoSize = True
