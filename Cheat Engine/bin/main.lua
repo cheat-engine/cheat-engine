@@ -19,6 +19,7 @@ activateProtection(): Prevents basic memory scanners from opening the cheat engi
 fullAccess(address,size): Changes the protection of a block of memory to writable and executable
 
 loadTable(filename, merge OPTIONAL): Loads a .ct or .cetrainer. If merge is provided and set to true it will not clear the old table
+loadTable(stream): Loads a table from a stream object
 saveTable(filename, protect OPTIONAL): Saves the current table. If protect is provided and set to true and the filename has the .CETRAINER extension, it will protect it from reading normally
 
 note: addresses can be strings, they will get interpreted by ce's symbolhandler
