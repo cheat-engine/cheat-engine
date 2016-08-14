@@ -7110,6 +7110,11 @@ begin
 
   panel9.borderspacing.Top:=(scantype.height div 2)-(cbNot.Height div 2);
 
+
+  i:=GetFontData(font.Handle).Height;
+  fromaddress.Font.Height:=i;
+  toaddress.Font.Height:=i;
+
 end;
 
 
