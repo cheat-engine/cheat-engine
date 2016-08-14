@@ -43,14 +43,14 @@ begin
     if assigned(SetProcessDPIAware) then
       SetProcessDPIAware;
   end;
-
+          {
   Metrics.cbSize := SizeOf(Metrics);
   Windows.SystemParametersInfo(SPI_GETNONCLIENTMETRICS, SizeOf(Metrics), @Metrics, 0);
 
   Metrics.lfStatusFont.lfHeight:=20;
 
   Windows.SystemParametersInfo(SPI_SETNONCLIENTMETRICS, SizeOf(Metrics), @Metrics, 0);
-
+          }
 end;
 
 var i: integer;
