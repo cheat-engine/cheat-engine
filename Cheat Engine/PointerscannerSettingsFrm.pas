@@ -1218,8 +1218,6 @@ begin
     MainForm.addresslist.getAddressList(tstrings(cbAddress.tag));
 
   UpdateAddressList(cbAddress);
-
-  //cbAddress.Font.Size:=18;
   cbAddress.ItemHeight:=cbValueType.ItemHeight;
 end;
 
