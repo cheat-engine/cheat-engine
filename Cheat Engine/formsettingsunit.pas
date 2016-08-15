@@ -987,6 +987,7 @@ begin
   i:=max(rbVEHUseProcessWatcher.Top+rbVEHUseProcessWatcher.Height+4, groupbox2.clientheight);
   groupbox2.clientheight:=i;
 
+  autosize:=false;
 
  // GroupBox2.top:=rbgDebuggerInterface.top+rbgDebuggerInterface.height+4;
 end;

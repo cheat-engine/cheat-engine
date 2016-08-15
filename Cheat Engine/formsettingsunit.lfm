@@ -60,9 +60,9 @@ object formSettings: TformSettings
       Height = 491
       Top = 1
       Width = 666
-      ActivePage = Extra
+      ActivePage = Assembler
       Align = alClient
-      TabIndex = 6
+      TabIndex = 5
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -646,20 +646,20 @@ object formSettings: TformSettings
       object ScanSettings: TTabSheet
         Caption = 'Scan Settings'
         ClientHeight = 463
-        ClientWidth = 533
+        ClientWidth = 658
         ImageIndex = 1
         object ScrollBox2: TScrollBox
           Left = 0
           Height = 463
           Top = 0
-          Width = 533
-          HorzScrollBar.Page = 529
+          Width = 658
+          HorzScrollBar.Page = 599
           HorzScrollBar.Tracking = True
           VertScrollBar.Page = 344
           VertScrollBar.Tracking = True
           Align = alClient
-          ClientHeight = 442
-          ClientWidth = 529
+          ClientHeight = 459
+          ClientWidth = 654
           TabOrder = 0
           object Label3: TLabel
             AnchorSideTop.Control = cbMemMapped
@@ -933,10 +933,10 @@ object formSettings: TformSettings
       object Plugins: TTabSheet
         Caption = 'Plugins'
         ClientHeight = 463
-        ClientWidth = 533
+        ClientWidth = 658
         ImageIndex = 3
         object Panel7: TPanel
-          Left = 435
+          Left = 560
           Height = 463
           Top = 0
           Width = 98
@@ -982,17 +982,17 @@ object formSettings: TformSettings
           Left = 0
           Height = 463
           Top = 0
-          Width = 435
+          Width = 560
           Align = alClient
           BevelOuter = bvNone
           ClientHeight = 463
-          ClientWidth = 435
+          ClientWidth = 560
           TabOrder = 1
           object Label22: TLabel
             Left = 0
             Height = 15
             Top = 0
-            Width = 435
+            Width = 560
             Align = alTop
             Caption = 'The following plugins are available:'
             ParentColor = False
@@ -1001,7 +1001,7 @@ object formSettings: TformSettings
             Left = 0
             Height = 448
             Top = 15
-            Width = 435
+            Width = 560
             Align = alClient
             ItemHeight = 0
             TabOrder = 0
@@ -1019,7 +1019,9 @@ object formSettings: TformSettings
           Top = 0
           Width = 658
           HorzScrollBar.Page = 647
+          HorzScrollBar.Tracking = True
           VertScrollBar.Page = 418
+          VertScrollBar.Tracking = True
           Align = alClient
           ClientHeight = 459
           ClientWidth = 654
