@@ -215,6 +215,7 @@ type
 
     procedure FormDestroy(Sender: TObject);
     procedure FormResize(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure lvResultsColumnClick(Sender: TObject; Column: TListColumn);
     procedure lvResultsResize(Sender: TObject);
     procedure miDisconnectClick(Sender: TObject);
@@ -1959,6 +1960,18 @@ end;
 procedure Tfrmpointerscanner.FormResize(Sender: TObject);
 begin
   btnStopRescanLoop.Left:=(clientwidth div 2) - (btnStopRescanLoop.Width div 2);
+end;
+
+procedure Tfrmpointerscanner.FormShow(Sender: TObject);
+var i: integer;
+begin
+  btnIncreaseThreadCount.autosize:=false;
+  btnDecreaseThreadCount.autosize:=false;
+
+  i:=max( btnIncreaseThreadCount.width, btnDecreaseThreadCount.width);
+  i:=max(i, pnlControl.ClientWidth-2);
+  btnIncreaseThreadCount.width:=i;
+  btnDecreaseThreadCount.width:=i;
 end;
 
 procedure Tfrmpointerscanner.lvResultsColumnClick(Sender: TObject; Column: TListColumn);

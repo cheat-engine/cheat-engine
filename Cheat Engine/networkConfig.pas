@@ -26,6 +26,7 @@ type
     ListView1: TListView;
     MenuItem1: TMenuItem;
     Panel1: TPanel;
+    Panel2: TPanel;
     PopupMenu1: TPopupMenu;
     procedure btnConnectClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);

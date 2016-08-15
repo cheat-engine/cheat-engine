@@ -1,21 +1,21 @@
 object frmPaging: TfrmPaging
   Left = 678
-  Height = 240
+  Height = 235
   Top = 262
-  Width = 404
+  Width = 412
   Caption = 'Paging'
-  ClientHeight = 240
-  ClientWidth = 404
+  ClientHeight = 235
+  ClientWidth = 412
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.6.0.4'
   object tvPage: TTreeView
     Left = 0
-    Height = 182
-    Top = 58
-    Width = 404
+    Height = 186
+    Top = 49
+    Width = 412
     Align = alClient
-    DefaultItemHeight = 17
+    DefaultItemHeight = 18
     PopupMenu = PopupMenu1
     ReadOnly = True
     TabOrder = 0
@@ -25,51 +25,73 @@ object frmPaging: TfrmPaging
   end
   object frmPaging: TPanel
     Left = 0
-    Height = 58
+    Height = 49
     Top = 0
-    Width = 404
+    Width = 412
     Align = alTop
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 58
-    ClientWidth = 404
+    ClientHeight = 49
+    ClientWidth = 412
     TabOrder = 1
     object edtCR3: TEdit
+      AnchorSideLeft.Control = Label1
+      AnchorSideRight.Control = Button1
       Left = 5
       Height = 23
       Top = 24
-      Width = 192
+      Width = 222
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Right = 4
+      BorderSpacing.Bottom = 2
       TabOrder = 0
     end
     object Button1: TButton
-      Left = 208
+      AnchorSideRight.Control = Label1
+      AnchorSideRight.Side = asrBottom
+      Left = 231
       Height = 25
       Top = 22
       Width = 75
+      Anchors = [akTop, akRight]
+      BorderSpacing.Bottom = 2
       Caption = 'Go'
       OnClick = Button1Click
       TabOrder = 1
     end
     object Label1: TLabel
+      AnchorSideLeft.Control = frmPaging
+      AnchorSideTop.Control = frmPaging
       Left = 5
-      Height = 16
-      Top = 4
-      Width = 302
+      Height = 15
+      Top = 3
+      Width = 301
+      BorderSpacing.Left = 5
+      BorderSpacing.Top = 3
       Caption = 'Fill in the physical address of the paging base (or just cr3)'
       ParentColor = False
     end
     object cb8byteentries: TCheckBox
-      Left = 312
+      AnchorSideLeft.Control = Label1
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Label1
+      Left = 310
       Height = 19
-      Top = 8
+      Top = 3
       Width = 92
+      BorderSpacing.Left = 4
       Caption = '8-byte entries'
       TabOrder = 2
     end
     object cb64bit: TCheckBox
-      Left = 312
+      AnchorSideLeft.Control = cb8byteentries
+      AnchorSideTop.Control = cb8byteentries
+      AnchorSideTop.Side = asrBottom
+      Left = 310
       Height = 19
-      Top = 32
+      Top = 22
       Width = 51
+      BorderSpacing.Bottom = 2
       Caption = '64-bit'
       OnChange = cb64bitChange
       TabOrder = 3

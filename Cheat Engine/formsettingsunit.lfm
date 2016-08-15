@@ -60,27 +60,27 @@ object formSettings: TformSettings
       Height = 491
       Top = 1
       Width = 666
-      ActivePage = Assembler
+      ActivePage = Extra
       Align = alClient
-      TabIndex = 5
+      TabIndex = 6
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
         Caption = 'General Settings'
         ClientHeight = 463
-        ClientWidth = 502
+        ClientWidth = 658
         object ScrollBox1: TScrollBox
           Left = 0
           Height = 463
           Top = 0
-          Width = 502
+          Width = 658
           HorzScrollBar.Page = 494
           HorzScrollBar.Tracking = True
           VertScrollBar.Page = 450
           VertScrollBar.Tracking = True
           Align = alClient
           ClientHeight = 459
-          ClientWidth = 498
+          ClientWidth = 654
           TabOrder = 0
           OnClick = ScrollBox1Click
           object Label11: TLabel
@@ -243,12 +243,12 @@ object formSettings: TformSettings
             Left = 0
             Height = 60
             Top = 266
-            Width = 498
+            Width = 654
             Anchors = [akTop, akLeft, akRight]
             AutoSize = True
             Caption = 'Address list specific'
             ClientHeight = 40
-            ClientWidth = 494
+            ClientWidth = 650
             TabOrder = 4
             object cbShowAsSigned: TCheckBox
               AnchorSideLeft.Control = GroupBox1
@@ -894,6 +894,7 @@ object formSettings: TformSettings
             AutoSize = True
             Caption = 'The all type includes'
             ChildSizing.LeftRightSpacing = 6
+            ChildSizing.TopBottomSpacing = 6
             ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
             ChildSizing.EnlargeVertical = crsHomogenousChildResize
             ChildSizing.ShrinkHorizontal = crsScaleChilds
@@ -1731,7 +1732,7 @@ object formSettings: TformSettings
               item
                 AutoSize = True
                 Caption = 'Shortcut'
-                Width = 74
+                Width = 118
               end>
             HideSelection = False
             ReadOnly = True

@@ -7,15 +7,15 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  Sockets, resolve, CEFuncProc;
+  ExtCtrls, Sockets, resolve, CEFuncProc;
 
 type
 
   { TfrmPointerscanConnectDialog }
 
   TfrmPointerscanConnectDialog = class(TForm)
-    btnOk: TButton;
     btnCancel: TButton;
+    btnOk: TButton;
     cbPriority: TComboBox;
     cbUseLoadedPointermap: TCheckBox;
     edtHost: TEdit;
@@ -26,6 +26,7 @@ type
     lblHost: TLabel;
     lblPort: TLabel;
     odLoadPointermap: TOpenDialog;
+    Panel1: TPanel;
     procedure btnOkClick(Sender: TObject);
     procedure cbUseLoadedPointermapChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);

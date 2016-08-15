@@ -1,13 +1,13 @@
 object frmNetworkDataCompression: TfrmNetworkDataCompression
   Left = 679
-  Height = 220
+  Height = 235
   Top = 228
   Width = 326
   Caption = 'Compression level'
-  ClientHeight = 220
+  ClientHeight = 235
   ClientWidth = 326
   Position = poScreenCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object Label1: TLabel
     Left = 0
     Height = 60
@@ -27,7 +27,7 @@ object frmNetworkDataCompression: TfrmNetworkDataCompression
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
     Left = 150
-    Height = 160
+    Height = 175
     Top = 60
     Width = 27
     Max = 9
@@ -45,7 +45,7 @@ object frmNetworkDataCompression: TfrmNetworkDataCompression
     AnchorSideBottom.Side = asrBottom
     Left = 181
     Height = 15
-    Top = 201
+    Top = 216
     Width = 89
     Anchors = [akLeft, akBottom]
     BorderSpacing.Left = 4
