@@ -480,6 +480,8 @@ object frmUltimap2: TfrmUltimap2
         Width = 129
         Caption = 'Parse trace to textfile'
         OnChange = cbParseToTextfileChange
+        ParentShowHint = False
+        ShowHint = True
         TabOrder = 8
       end
       object deTextOut: TDirectoryEdit
@@ -521,7 +523,7 @@ object frmUltimap2: TfrmUltimap2
     TabOrder = 1
     object ListView1: TListView
       Left = 0
-      Height = 173
+      Height = 175
       Top = 0
       Width = 642
       Align = alClient
@@ -551,12 +553,13 @@ object frmUltimap2: TfrmUltimap2
     end
     object Panel3: TPanel
       Left = 0
-      Height = 47
-      Top = 173
+      Height = 45
+      Top = 175
       Width = 642
       Align = alBottom
+      AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 47
+      ClientHeight = 45
       ClientWidth = 642
       TabOrder = 1
       object Button5: TButton
@@ -566,9 +569,11 @@ object frmUltimap2: TfrmUltimap2
         AnchorSideTop.Side = asrCenter
         Left = 210
         Height = 25
-        Top = 11
+        Top = 10
         Width = 222
         AutoSize = True
+        BorderSpacing.Top = 10
+        BorderSpacing.Bottom = 10
         Caption = 'Show the current valid instruction list'
         OnClick = Button5Click
         TabOrder = 0
