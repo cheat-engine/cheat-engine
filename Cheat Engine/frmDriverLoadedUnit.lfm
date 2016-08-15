@@ -1,21 +1,23 @@
 object frmDriverLoaded: TfrmDriverLoaded
-  Left = 0
+  Left = 541
   Height = 60
-  Top = 0
+  Top = 311
   Width = 420
   AlphaBlend = True
+  AutoSize = True
   BorderStyle = bsNone
   ClientHeight = 60
   ClientWidth = 420
   FormStyle = fsSystemStayOnTop
-  LCLVersion = '1.1'
+  OnShow = FormShow
+  LCLVersion = '1.6.0.4'
   object Label1: TLabel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
     Left = 0
-    Height = 60
+    Height = 55
     Top = 0
-    Width = 420
-    Align = alClient
-    Alignment = taCenter
+    Width = 364
     Caption = 'DBK64 LOADED'
     Font.CharSet = ANSI_CHARSET
     Font.Height = -48

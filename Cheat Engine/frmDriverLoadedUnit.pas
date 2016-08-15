@@ -108,6 +108,8 @@ end;
 
 procedure TfrmDriverLoaded.FormShow(Sender: TObject);
 begin
+  top:=0;
+  left:=0;
 end;
 
 procedure TfrmDriverLoaded.Timer2Timer(Sender: TObject);

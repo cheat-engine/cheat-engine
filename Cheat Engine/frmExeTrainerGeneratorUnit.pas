@@ -63,6 +63,7 @@ type
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure ListView1ContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
     procedure ListView1SelectItem(Sender: TObject; Item: TListItem; Selected: Boolean);
     procedure miEditFolderClick(Sender: TObject);
@@ -579,6 +580,17 @@ begin
       break;
     end;
 
+end;
+
+procedure TfrmExeTrainerGenerator.FormShow(Sender: TObject);
+var i:integer;
+begin
+  i:=max(max(button3.Width, btnAddFile.Width), btnRemoveFile.Width);
+
+  button3.width:=i;
+  btnAddFile.Width:=i;
+  btnRemoveFile.Width:=i;
+  groupbox3.Constraints.MinHeight:=panel1.height;
 end;
 
 procedure TfrmExeTrainerGenerator.ListView1ContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);

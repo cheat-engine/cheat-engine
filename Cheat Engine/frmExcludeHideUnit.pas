@@ -9,10 +9,14 @@ uses
   Dialogs, StdCtrls,CEFuncProc, ExtCtrls, LResources;
 
 type
+
+  { TfrmExcludeHide }
+
   TfrmExcludeHide = class(TForm)
     Label4: TLabel;
     Panel1: TPanel;
     Label1: TLabel;
+    Panel5: TPanel;
     RadioButton1: TRadioButton;
     RadioButton2: TRadioButton;
     Panel2: TPanel;

@@ -3,7 +3,6 @@ object frmDriverlist: TfrmDriverlist
   Height = 235
   Top = 356
   Width = 326
-  BorderStyle = bsSingle
   Caption = 'Driver list'
   ClientHeight = 235
   ClientWidth = 326
