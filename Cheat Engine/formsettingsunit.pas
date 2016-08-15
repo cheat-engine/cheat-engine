@@ -23,18 +23,26 @@ type
   { TformSettings }
 
   TformSettings = class(TForm)
+    askforreplacewithnops: TCheckBox;
     btnCancel: TButton;
     btnExcludeProcesses: TButton;
     btnOK: TButton;
     cbAlwaysAutoAttach: TCheckBox;
     cbAlwaysRunScript: TCheckBox;
     cbAskIfTableHasLuascript: TCheckBox;
+    cbCanStepKernelcode: TCheckBox;
     cbCenterOnPopup: TCheckBox;
     cbDontusetempdir: TCheckBox;
+    cbFastscan: TCheckBox;
     cbGlobalDebug: TCheckBox;
     cbHideAllWindows: TCheckBox;
     cbKDebug: TRadioButton;
+    cbMemImage: TCheckBox;
+    cbMemMapped: TCheckBox;
+    cbMemPrivate: TCheckBox;
     cbOldPointerAddMethod: TCheckBox;
+    cbOverrideExistingBPs: TCheckBox;
+    cbPauseWhenScanningOnByDefault: TCheckBox;
     cbProcessIcons: TCheckBox;
     cbProcessIconsOnly: TCheckBox;
     cbSaveWindowPos: TCheckBox;
@@ -44,20 +52,20 @@ type
     cbShowProcesslist: TCheckBox;
     cbShowUndo: TCheckBox;
     cbsimplecopypaste: TCheckBox;
+    cbSkip_PAGE_NOCACHE: TCheckBox;
     cbUpdatefoundList: TCheckBox;
     cbUseVEHDebugger: TRadioButton;
     cbUseWindowsDebugger: TRadioButton;
-    cbWriteLoggingOn: TCheckBox;
-    CheckBox1: TCheckBox;
-    cbCanStepKernelcode: TCheckBox;
-    cbOverrideExistingBPs: TCheckBox;
     cbVEHRealContextOnThreadCreation: TCheckBox;
     cbWaitAfterGuiUpdate: TCheckBox;
+    cbWriteLoggingOn: TCheckBox;
     cgAllTypes: TCheckGroup;
-    cbPauseWhenScanningOnByDefault: TCheckBox;
+    CheckBox1: TCheckBox;
+    combothreadpriority: TComboBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
     EditAutoAttach: TEdit;
+    EditBufsize: TEdit;
     EditFreezeInterval: TEdit;
     editUpdatefoundInterval: TEdit;
     EditUpdateInterval: TEdit;
@@ -67,33 +75,40 @@ type
     GroupBox1: TGroupBox;
     GroupBox2: TGroupBox;
     GroupBox4: TGroupBox;
+    Label1: TLabel;
     Label11: TLabel;
     Label12: TLabel;
     Label13: TLabel;
     Label14: TLabel;
+    Label15: TLabel;
     Label18: TLabel;
     Label19: TLabel;
     Label2: TLabel;
+    Label21: TLabel;
     Label23: TLabel;
     Label24: TLabel;
-    Label8: TLabel;
-    lblThreadFollowing: TLabel;
+    Label3: TLabel;
     Label4: TLabel;
     Label6: TLabel;
     Label7: TLabel;
+    Label8: TLabel;
+    lblThreadFollowing: TLabel;
     LoadButton: TSpeedButton;
     Panel1: TPanel;
     Panel9: TPanel;
     pcDebugConfig: TPageControl;
     pnlConfig: TPanel;
-    rbVEHHookThreadCreation: TRadioButton;
-    rbVEHUseProcessWatcher: TRadioButton;
-    rbVEHPollThread: TRadioButton;
-    rbPageExceptions: TRadioButton;
     rbDebugAsBreakpoint: TRadioButton;
     rbgDebuggerInterface: TRadioGroup;
     rbInt3AsBreakpoint: TRadioButton;
+    rbPageExceptions: TRadioButton;
+    rbVEHHookThreadCreation: TRadioButton;
+    rbVEHPollThread: TRadioButton;
+    rbVEHUseProcessWatcher: TRadioButton;
+    replacewithnops: TCheckBox;
     ScrollBox1: TScrollBox;
+    ScrollBox2: TScrollBox;
+    ScrollBox3: TScrollBox;
     SelectDirectoryDialog1: TSelectDirectoryDialog;
     spbDown: TSpeedButton;
     spbUp: TSpeedButton;
@@ -104,23 +119,10 @@ type
     pcSetting: TPageControl;
     GeneralSettings: TTabSheet;
     ScanSettings: TTabSheet;
-    Label3: TLabel;
-    Label1: TLabel;
-    Label15: TLabel;
-    Label21: TLabel;
-    combothreadpriority: TComboBox;
-    cbFastscan: TCheckBox;
-    cbSkip_PAGE_NOCACHE: TCheckBox;
-    cbMemImage: TCheckBox;
-    cbMemMapped: TCheckBox;
-    cbMemPrivate: TCheckBox;
-    EditBufsize: TEdit;
     Plugins: TTabSheet;
     CodeFinder: TTabSheet;
     Assembler: TTabSheet;
     cbHandleBreakpoints: TCheckBox;
-    replacewithnops: TCheckBox;
-    askforreplacewithnops: TCheckBox;
     Extra: TTabSheet;
     TauntOldOsUser: TLabel;
     GroupBox3: TGroupBox;
@@ -193,6 +195,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button4Click(Sender: TObject);
     procedure Button5Click(Sender: TObject);
+    procedure ScrollBox1Click(Sender: TObject);
     procedure spbDownClick(Sender: TObject);
     procedure spbUpClick(Sender: TObject);
     procedure tvMenuSelectionChange(Sender: TObject; Node: TTreeNode);
@@ -975,7 +978,14 @@ begin
 
   cbDebuggerInterfaceChange(nil);
 
+  i:=max(cbVEHRealContextOnThreadCreation.Left+cbVEHRealContextOnThreadCreation.Width+4, checkbox1.ClientWidth);
+  i:=max(groupbox2.ClientWidth, i);
 
+  groupbox2.ClientWidth:=i;
+
+
+  i:=max(rbVEHUseProcessWatcher.Top+rbVEHUseProcessWatcher.Height+4, groupbox2.clientheight);
+  groupbox2.clientheight:=i;
 
 
  // GroupBox2.top:=rbgDebuggerInterface.top+rbgDebuggerInterface.height+4;
@@ -1277,6 +1287,11 @@ begin
 
     dllpath.Free;
   end;
+
+end;
+
+procedure TformSettings.ScrollBox1Click(Sender: TObject);
+begin
 
 end;
 
