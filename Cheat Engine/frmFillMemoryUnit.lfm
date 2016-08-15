@@ -1,86 +1,160 @@
 object frmFillMemory: TfrmFillMemory
   Left = 830
-  Height = 111
+  Height = 109
   Top = 408
-  Width = 168
+  Width = 184
+  AutoSize = True
   BorderIcons = []
   BorderStyle = bsSingle
   Caption = 'Fill memory'
-  ClientHeight = 111
-  ClientWidth = 168
+  ClientHeight = 109
+  ClientWidth = 184
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
+  OnCreate = FormCreate
+  OnShow = FormShow
   PopupMode = pmAuto
   Position = poOwnerFormCenter
   LCLVersion = '1.6.0.4'
-  object Label1: TLabel
-    Left = 16
-    Height = 13
-    Top = 8
-    Width = 23
-    Caption = 'From'
-    ParentColor = False
-  end
-  object Label2: TLabel
-    Left = 26
-    Height = 13
-    Top = 32
-    Width = 13
-    Caption = 'To'
-    ParentColor = False
-  end
-  object Label3: TLabel
-    Left = 5
-    Height = 13
-    Top = 56
-    Width = 34
-    Caption = 'Fill with'
-    ParentColor = False
-  end
-  object Edit1: TEdit
-    Left = 48
-    Height = 21
-    Top = 4
-    Width = 105
-    MaxLength = 8
+  object Panel1: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = Panel2
+    AnchorSideTop.Side = asrBottom
+    Left = 15
+    Height = 25
+    Top = 77
+    Width = 154
+    AutoSize = True
+    BorderSpacing.Left = 6
+    BorderSpacing.Top = 6
+    BorderSpacing.Right = 6
+    BorderSpacing.Bottom = 6
+    BevelOuter = bvNone
+    ClientHeight = 25
+    ClientWidth = 154
     TabOrder = 0
+    object Button1: TButton
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = Panel1
+      Left = 0
+      Height = 25
+      Top = 0
+      Width = 75
+      Caption = 'OK'
+      Default = True
+      OnClick = Button1Click
+      TabOrder = 0
+    end
+    object Button2: TButton
+      AnchorSideLeft.Control = Button1
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Button1
+      Left = 79
+      Height = 25
+      Top = 0
+      Width = 75
+      BorderSpacing.Left = 4
+      Cancel = True
+      Caption = 'Cancel'
+      ModalResult = 2
+      TabOrder = 1
+    end
   end
-  object Button1: TButton
-    Left = 8
-    Height = 25
-    Top = 80
-    Width = 75
-    Caption = 'OK'
-    Default = True
-    OnClick = Button1Click
-    TabOrder = 3
-  end
-  object Button2: TButton
-    Left = 88
-    Height = 25
-    Top = 80
-    Width = 75
-    Cancel = True
-    Caption = 'Cancel'
-    ModalResult = 2
-    TabOrder = 4
-  end
-  object Edit2: TEdit
-    Left = 48
-    Height = 21
-    Top = 28
-    Width = 105
+  object Panel2: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = Owner
+    Left = 22
+    Height = 71
+    Top = 0
+    Width = 141
+    AutoSize = True
+    BorderSpacing.Left = 6
+    BorderSpacing.Right = 6
+    BevelOuter = bvNone
+    ClientHeight = 71
+    ClientWidth = 141
     TabOrder = 1
-  end
-  object Edit3: TEdit
-    Left = 48
-    Height = 21
-    Top = 52
-    Width = 105
-    ParentShowHint = False
-    ShowHint = True
-    TabOrder = 2
-    Text = '0'
+    object Label1: TLabel
+      AnchorSideTop.Control = Edit1
+      AnchorSideTop.Side = asrCenter
+      AnchorSideRight.Control = Edit1
+      Left = 11
+      Height = 13
+      Top = 8
+      Width = 23
+      Anchors = [akTop, akRight]
+      BorderSpacing.Right = 2
+      Caption = 'From'
+      ParentColor = False
+    end
+    object Label2: TLabel
+      AnchorSideRight.Control = Edit2
+      Left = 21
+      Height = 13
+      Top = 32
+      Width = 13
+      Anchors = [akTop, akRight]
+      BorderSpacing.Right = 2
+      Caption = 'To'
+      ParentColor = False
+    end
+    object Label3: TLabel
+      AnchorSideTop.Control = Edit3
+      AnchorSideTop.Side = asrCenter
+      AnchorSideRight.Control = Edit3
+      Left = 0
+      Height = 13
+      Top = 54
+      Width = 34
+      Anchors = [akTop, akRight]
+      BorderSpacing.Right = 2
+      Caption = 'Fill with'
+      ParentColor = False
+    end
+    object Edit1: TEdit
+      AnchorSideTop.Control = Panel2
+      AnchorSideRight.Control = Panel2
+      AnchorSideRight.Side = asrBottom
+      Left = 36
+      Height = 21
+      Top = 4
+      Width = 105
+      Anchors = [akTop, akRight]
+      BorderSpacing.Top = 4
+      MaxLength = 8
+      TabOrder = 0
+    end
+    object Edit2: TEdit
+      AnchorSideTop.Control = Edit1
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Panel2
+      AnchorSideRight.Side = asrBottom
+      Left = 36
+      Height = 21
+      Top = 27
+      Width = 105
+      Anchors = [akTop, akRight]
+      BorderSpacing.Top = 2
+      TabOrder = 1
+    end
+    object Edit3: TEdit
+      AnchorSideTop.Control = Edit2
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Panel2
+      AnchorSideRight.Side = asrBottom
+      Left = 36
+      Height = 21
+      Top = 50
+      Width = 105
+      Anchors = [akTop, akRight]
+      BorderSpacing.Top = 2
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 2
+      Text = '0'
+    end
   end
 end

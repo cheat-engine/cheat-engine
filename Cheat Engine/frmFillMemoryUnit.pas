@@ -5,21 +5,28 @@ unit frmFillMemoryUnit;
 interface
 
 uses
-  windows, LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,CEFuncProc{$ifdef net},netapis{$else},NewKernelHandler{$endif}, LResources;
+  windows, LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls,
+  Forms, Dialogs, StdCtrls, CEFuncProc, NewKernelHandler, LResources, ExtCtrls;
 
 type
+
+  { TfrmFillMemory }
+
   TfrmFillMemory = class(TForm)
-    Label1: TLabel;
-    Label2: TLabel;
-    Edit1: TEdit;
     Button1: TButton;
     Button2: TButton;
+    Edit1: TEdit;
     Edit2: TEdit;
     Edit3: TEdit;
+    Label1: TLabel;
+    Label2: TLabel;
     Label3: TLabel;
+    Panel1: TPanel;
+    Panel2: TPanel;
     procedure Button1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormCreate(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     { Private declarations }
   public
@@ -92,6 +99,16 @@ procedure TfrmFillMemory.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
   action:=cafree;
+end;
+
+procedure TfrmFillMemory.FormCreate(Sender: TObject);
+begin
+
+end;
+
+procedure TfrmFillMemory.FormShow(Sender: TObject);
+begin
+  constraints.MinWidth:=max(panel2.width, panel1.width)+6;
 end;
 
 initialization
