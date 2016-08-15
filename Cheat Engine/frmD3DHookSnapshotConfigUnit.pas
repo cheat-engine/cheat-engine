@@ -13,9 +13,9 @@ type
   { TfrmD3DHookSnapshotConfig }
 
   TfrmD3DHookSnapshotConfig = class(TForm)
-    cbAlsoOutputPng: TCheckBox;
     btnClearFullSnapshot: TButton;
     btnClearSmallSnapshot: TButton;
+    cbAlsoOutputPng: TCheckBox;
     cbProgressive: TCheckBox;
     cbClearDepth: TCheckBox;
     dirSnapshot: TDirectoryEdit;
@@ -27,6 +27,8 @@ type
     mbCancel: TButton;
     mbOk: TButton;
     Panel1: TPanel;
+    Panel2: TPanel;
+    Panel3: TPanel;
     rgPictureFormat: TRadioGroup;
     procedure btnClearFullSnapshotClick(Sender: TObject);
     procedure btnClearSmallSnapshotClick(Sender: TObject);
