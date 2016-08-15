@@ -3,6 +3,7 @@ object frmMemrecCombobox: TfrmMemrecCombobox
   Height = 81
   Top = 268
   Width = 243
+  AutoSize = True
   BorderStyle = bsDialog
   Caption = 'Change value'
   ClientHeight = 81
@@ -12,11 +13,13 @@ object frmMemrecCombobox: TfrmMemrecCombobox
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object cbMemrecCombobox: TComboBox
-    Left = 0
+    Left = 2
     Height = 23
     Top = 15
-    Width = 243
+    Width = 239
     Align = alTop
+    BorderSpacing.Left = 2
+    BorderSpacing.Right = 2
     ItemHeight = 15
     TabOrder = 0
   end
@@ -30,32 +33,47 @@ object frmMemrecCombobox: TfrmMemrecCombobox
     ParentColor = False
   end
   object Panel1: TPanel
-    Left = 0
-    Height = 35
-    Top = 46
-    Width = 243
-    Align = alBottom
+    AnchorSideLeft.Control = Owner
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = cbMemrecCombobox
+    AnchorSideTop.Side = asrBottom
+    Left = 43
+    Height = 25
+    Top = 42
+    Width = 157
+    AutoSize = True
+    BorderSpacing.Top = 4
     BevelOuter = bvNone
-    ClientHeight = 35
-    ClientWidth = 243
+    ClientHeight = 25
+    ClientWidth = 157
     TabOrder = 1
     object btnOk: TButton
-      Left = 40
-      Height = 29
-      Top = 2
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = Panel1
+      Left = 0
+      Height = 25
+      Top = 0
       Width = 75
+      AutoSize = True
       Caption = 'OK'
+      Constraints.MinWidth = 75
       Default = True
       OnClick = btnOkClick
       TabOrder = 0
     end
     object btnCancel: TButton
-      Left = 128
-      Height = 29
-      Top = 2
+      AnchorSideLeft.Control = btnOk
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Panel1
+      Left = 82
+      Height = 25
+      Top = 0
       Width = 75
+      AutoSize = True
+      BorderSpacing.Left = 7
       Cancel = True
       Caption = 'Cancel'
+      Constraints.MinWidth = 75
       ModalResult = 2
       TabOrder = 1
     end

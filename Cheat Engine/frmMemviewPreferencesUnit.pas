@@ -76,9 +76,10 @@ begin
   lblSymbol.font.name:=fontdialog1.Font.Name;
   lblSymbol.font.size:=fontdialog1.Font.size;
 
-  lblregister.Top:=lblNormal.top+lblNormal.height+2;
-  lblSymbol.Top:=lblregister.top+lblregister.height+2;
-  lblHex.top:=lblSymbol.top+lblregister.height+2;
+  lblHex.font.name:=FontDialog1.font.name;
+  lblHex.Font.size:=fontdialog1.Font.Size;
+
+  DoAutoSize;
 end;
 
 procedure TfrmMemviewPreferences.FormCreate(Sender: TObject);
