@@ -144,17 +144,18 @@ type
   { TfrmMemoryAllocHandler }
 
   TfrmMemoryAllocHandler = class(TForm)
+    Label1: TLabel;
+    Label2: TLabel;
+    Label3: TLabel;
+    Label4: TLabel;
+    lblBaseAddress: TLabel;
+    lblFlags: TLabel;
+    lblHeapHandle: TLabel;
+    lblSize: TLabel;
+    Panel2: TPanel;
     StatusBar1: TStatusBar;
     Timer1: TTimer;
     GroupBox1: TGroupBox;
-    Label1: TLabel;
-    Label2: TLabel;
-    lblHeapHandle: TLabel;
-    lblFlags: TLabel;
-    lblBaseAddress: TLabel;
-    Label3: TLabel;
-    Label4: TLabel;
-    lblSize: TLabel;
     Panel1: TPanel;
     Edit1: TEdit;
     Button1: TButton;
@@ -164,6 +165,7 @@ type
     procedure cbHookAllocsChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure GroupBox1Click(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure btnReloadClick(Sender: TObject);
@@ -697,6 +699,11 @@ begin
     closehandle(CEHasHandledItEvent);
 
   //cleanup memory allocs
+end;
+
+procedure TfrmMemoryAllocHandler.GroupBox1Click(Sender: TObject);
+begin
+
 end;
 
 procedure TfrmMemoryAllocHandler.Timer1Timer(Sender: TObject);
