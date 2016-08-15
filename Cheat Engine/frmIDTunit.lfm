@@ -6,19 +6,16 @@ object frmIDT: TfrmIDT
   Caption = 'IDT'
   ClientHeight = 321
   ClientWidth = 299
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.6.0.4'
   object tvIDT: TTreeView
     Left = 0
     Height = 321
     Top = 0
     Width = 299
     Align = alClient
-    DefaultItemHeight = 15
     Indent = 19
     ReadOnly = True
     TabOrder = 0

@@ -1,30 +1,30 @@
 object frmLuaEngine: TfrmLuaEngine
-  Left = 875
-  Height = 307
-  Top = 149
+  Left = 434
+  Height = 332
+  Top = 156
   Width = 570
   HelpContext = 19
   Caption = 'Lua Engine'
-  ClientHeight = 287
+  ClientHeight = 312
   ClientWidth = 570
   Menu = MainMenu1
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poScreenCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object GroupBox1: TGroupBox
     Left = 0
-    Height = 152
+    Height = 177
     Top = 0
     Width = 570
     Align = alClient
     Caption = 'Output'
-    ClientHeight = 132
+    ClientHeight = 157
     ClientWidth = 566
     TabOrder = 1
     object mOutput: TMemo
       Left = 0
-      Height = 132
+      Height = 157
       Top = 0
       Width = 566
       Align = alClient
@@ -36,7 +36,7 @@ object frmLuaEngine: TfrmLuaEngine
   object Panel1: TPanel
     Left = 0
     Height = 130
-    Top = 157
+    Top = 182
     Width = 570
     Align = alBottom
     BevelOuter = bvNone
@@ -75,6 +75,7 @@ object frmLuaEngine: TfrmLuaEngine
       end
       object ToolButton1: TToolButton
         Left = 47
+        Height = 22
         Top = 2
         Width = 5
         Caption = 'ToolButton1'
@@ -102,22 +103,34 @@ object frmLuaEngine: TfrmLuaEngine
       ClientWidth = 570
       TabOrder = 0
       object Panel3: TPanel
-        Left = 488
+        Left = 489
         Height = 104
         Top = 0
-        Width = 82
+        Width = 81
         Align = alRight
+        AutoSize = True
         BevelOuter = bvNone
         ClientHeight = 104
-        ClientWidth = 82
+        ClientWidth = 81
         TabOrder = 1
         OnResize = Panel2Resize
         object btnExecute: TButton
-          Left = 4
-          Height = 56
-          Top = 24
+          AnchorSideLeft.Control = Panel3
+          AnchorSideTop.Control = Panel3
+          AnchorSideBottom.Control = Panel3
+          AnchorSideBottom.Side = asrBottom
+          Left = 3
+          Height = 64
+          Top = 20
           Width = 75
+          Anchors = [akTop, akLeft, akBottom]
+          AutoSize = True
+          BorderSpacing.Left = 3
+          BorderSpacing.Top = 20
+          BorderSpacing.Right = 3
+          BorderSpacing.Bottom = 20
           Caption = 'Execute'
+          Constraints.MinWidth = 75
           OnClick = btnExecuteClick
           TabOrder = 0
         end
@@ -126,7 +139,7 @@ object frmLuaEngine: TfrmLuaEngine
         Left = 0
         Height = 104
         Top = 0
-        Width = 488
+        Width = 489
         Align = alClient
         Font.Height = -13
         Font.Name = 'Courier New'
@@ -656,7 +669,6 @@ object frmLuaEngine: TfrmLuaEngine
           end>
         Options = [eoAutoIndent, eoBracketHighlight, eoGroupUndo, eoSmartTabs, eoTabIndent, eoTabsToSpaces, eoTrimTrailingSpaces]
         VisibleSpecialChars = [vscSpace, vscTabAtLast]
-        SelectedColor.FrameEdges = sfeAround
         SelectedColor.BackPriority = 50
         SelectedColor.ForePriority = 50
         SelectedColor.FramePriority = 50
@@ -664,23 +676,17 @@ object frmLuaEngine: TfrmLuaEngine
         SelectedColor.ItalicPriority = 50
         SelectedColor.UnderlinePriority = 50
         SelectedColor.StrikeOutPriority = 50
-        IncrementColor.FrameEdges = sfeAround
-        HighlightAllColor.FrameEdges = sfeAround
         BracketHighlightStyle = sbhsBoth
         BracketMatchColor.Background = clNone
         BracketMatchColor.Foreground = clNone
-        BracketMatchColor.FrameEdges = sfeAround
         BracketMatchColor.Style = [fsBold]
         FoldedCodeColor.Background = clNone
         FoldedCodeColor.Foreground = clGray
         FoldedCodeColor.FrameColor = clGray
-        FoldedCodeColor.FrameEdges = sfeAround
         MouseLinkColor.Background = clNone
         MouseLinkColor.Foreground = clBlue
-        MouseLinkColor.FrameEdges = sfeAround
         LineHighlightColor.Background = clNone
         LineHighlightColor.Foreground = clNone
-        LineHighlightColor.FrameEdges = sfeAround
         OnGutterClick = mScriptGutterClick
         OnShowHint = mScriptShowHint
         inline SynLeftGutterPartList1: TSynGutterPartList
@@ -696,7 +702,6 @@ object frmLuaEngine: TfrmLuaEngine
             MouseActions = <>
             MarkupInfo.Background = clBtnFace
             MarkupInfo.Foreground = clNone
-            MarkupInfo.FrameEdges = sfeAround
             DigitCount = 2
             ShowOnlyLineNumbersMultiplesOf = 1
             ZeroStart = False
@@ -714,7 +719,6 @@ object frmLuaEngine: TfrmLuaEngine
             MouseActions = <>
             MarkupInfo.Background = clWhite
             MarkupInfo.Foreground = clGray
-            MarkupInfo.FrameEdges = sfeAround
           end
           object SynGutterCodeFolding1: TSynGutterCodeFolding
             Visible = False
@@ -746,7 +750,6 @@ object frmLuaEngine: TfrmLuaEngine
               end>
             MarkupInfo.Background = clNone
             MarkupInfo.Foreground = clGray
-            MarkupInfo.FrameEdges = sfeAround
             MouseActionsExpanded = <            
               item
                 ClickCount = ccAny
@@ -777,7 +780,7 @@ object frmLuaEngine: TfrmLuaEngine
     Cursor = crVSplit
     Left = 0
     Height = 5
-    Top = 152
+    Top = 177
     Width = 570
     Align = alBottom
     ResizeAnchor = akBottom

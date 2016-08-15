@@ -6,11 +6,14 @@ interface
 
 uses
   LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs,CEFuncProc, StdCtrls{$ifdef netclient},netapis{$else},NewKernelHandler{$endif},LResources;
+  Dialogs, CEFuncProc, StdCtrls, NewKernelHandler, LResources, ExtCtrls;
 
 type tbarray=array of byte;
 
 type
+
+  { TfrmLoadMemory }
+
   TfrmLoadMemory = class(TForm)
     Button1: TButton;
     Button2: TButton;
@@ -18,6 +21,7 @@ type
     Label1: TLabel;
     ListBox1: TListBox;
     Button3: TButton;
+    Panel1: TPanel;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button1Click(Sender: TObject);
     procedure ListBox1Click(Sender: TObject);

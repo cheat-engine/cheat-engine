@@ -6,7 +6,7 @@ interface
 
 uses
   windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
-  StdCtrls, cefuncproc, commonTypeDefs;
+  StdCtrls, ExtCtrls, cefuncproc, commonTypeDefs;
 
 type
 
@@ -18,6 +18,7 @@ type
     Button3: TButton;
     edtHotkey: TEdit;
     Label1: TLabel;
+    Panel1: TPanel;
     procedure Button3Click(Sender: TObject);
     procedure edtHotkeyKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
