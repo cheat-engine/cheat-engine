@@ -1,14 +1,16 @@
 object frmMemrecCombobox: TfrmMemrecCombobox
-  Left = 449
+  Left = 402
   Height = 81
-  Top = 268
-  Width = 243
+  Top = 137
+  Width = 250
   AutoSize = True
   BorderStyle = bsDialog
   Caption = 'Change value'
   ClientHeight = 81
-  ClientWidth = 243
+  ClientWidth = 250
+  Constraints.MinWidth = 250
   OnDestroy = FormDestroy
+  OnShow = FormShow
   PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
@@ -16,7 +18,7 @@ object frmMemrecCombobox: TfrmMemrecCombobox
     Left = 2
     Height = 23
     Top = 15
-    Width = 239
+    Width = 246
     Align = alTop
     BorderSpacing.Left = 2
     BorderSpacing.Right = 2
@@ -27,7 +29,7 @@ object frmMemrecCombobox: TfrmMemrecCombobox
     Left = 0
     Height = 15
     Top = 0
-    Width = 243
+    Width = 250
     Align = alTop
     Caption = 'Change value to:'
     ParentColor = False
@@ -37,7 +39,7 @@ object frmMemrecCombobox: TfrmMemrecCombobox
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = cbMemrecCombobox
     AnchorSideTop.Side = asrBottom
-    Left = 43
+    Left = 47
     Height = 25
     Top = 42
     Width = 157
