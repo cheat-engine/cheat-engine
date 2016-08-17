@@ -1609,6 +1609,11 @@ begin
       _state:=0;
 
     result:=deviceiocontrol(hdevice,cc,@_state,1,nil,0,br,nil);
+
+    if result and _state=1 then
+      NewKernelHandler.VirtualProtectEx:=IgnoredVirtualProtectEx;
+    else
+      NewKernelHandler.VirtualProtectEx:=GetProcAddress(WindowsKernel,'VirtualProtectEx');
   end;
 end;
 
