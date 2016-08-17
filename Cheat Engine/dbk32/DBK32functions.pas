@@ -1593,6 +1593,11 @@ begin
     end;
 end;
 
+function IgnoredVirtualProtectEx(hProcess: THandle; lpAddress: Pointer; dwSize, flNewProtect: DWORD; var OldProtect: DWORD): BOOL; stdcall;
+begin
+  result:=true;
+end;
+
 function KernelWritesIgnoreWriteProtection(state: boolean): boolean;
 var
   br,cc: dword;
@@ -1610,8 +1615,10 @@ begin
 
     result:=deviceiocontrol(hdevice,cc,@_state,1,nil,0,br,nil);
 
-    if result and _state=1 then
+    if result and (_state=1) then
+    begin
       NewKernelHandler.VirtualProtectEx:=IgnoredVirtualProtectEx;
+    end
     else
       NewKernelHandler.VirtualProtectEx:=GetProcAddress(WindowsKernel,'VirtualProtectEx');
   end;
