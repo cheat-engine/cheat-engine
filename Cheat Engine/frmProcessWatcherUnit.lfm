@@ -1,23 +1,23 @@
 object frmProcessWatcher: TfrmProcessWatcher
   Left = 901
-  Height = 296
+  Height = 236
   Top = 263
-  Width = 205
+  Width = 264
   BorderIcons = [biSystemMenu]
   Caption = 'Process watcher'
-  ClientHeight = 296
-  ClientWidth = 205
+  ClientHeight = 236
+  ClientWidth = 264
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.6.0.4'
   object tvProcesslist: TTreeView
     Left = 0
-    Height = 228
+    Height = 163
     Top = 0
-    Width = 205
+    Width = 264
     Align = alClient
     DefaultItemHeight = 18
     Indent = 19
@@ -30,32 +30,63 @@ object frmProcessWatcher: TfrmProcessWatcher
   end
   object Panel1: TPanel
     Left = 0
-    Height = 68
-    Top = 228
-    Width = 205
+    Height = 73
+    Top = 163
+    Width = 264
     Align = alBottom
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 68
-    ClientWidth = 205
+    ClientHeight = 73
+    ClientWidth = 264
     TabOrder = 1
     OnResize = Panel1Resize
-    object btnOpen: TButton
-      Left = 39
-      Height = 21
-      Top = 10
-      Width = 110
-      Caption = 'Open process'
-      OnClick = btnOpenClick
+    object Panel2: TPanel
+      AnchorSideLeft.Control = Panel1
+      AnchorSideLeft.Side = asrCenter
+      AnchorSideTop.Control = Panel1
+      Left = 68
+      Height = 57
+      Top = 8
+      Width = 129
+      AutoSize = True
+      BorderSpacing.Top = 8
+      BorderSpacing.Bottom = 8
+      BevelOuter = bvNone
+      ClientHeight = 57
+      ClientWidth = 129
       TabOrder = 0
-    end
-    object btnAttach: TButton
-      Left = 39
-      Height = 21
-      Top = 39
-      Width = 110
-      Caption = 'Attach to process'
-      OnClick = btnAttachClick
-      TabOrder = 1
+      object btnOpen: TButton
+        AnchorSideLeft.Control = Panel2
+        AnchorSideTop.Control = Panel2
+        AnchorSideRight.Control = Panel2
+        AnchorSideRight.Side = asrBottom
+        Left = 0
+        Height = 26
+        Top = 0
+        Width = 129
+        Anchors = [akTop, akLeft, akRight]
+        AutoSize = True
+        Caption = 'Open process'
+        OnClick = btnOpenClick
+        TabOrder = 0
+      end
+      object btnAttach: TButton
+        AnchorSideLeft.Control = Panel2
+        AnchorSideTop.Control = btnOpen
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = Panel2
+        AnchorSideRight.Side = asrBottom
+        Left = 0
+        Height = 26
+        Top = 31
+        Width = 129
+        Anchors = [akTop, akLeft, akRight]
+        AutoSize = True
+        BorderSpacing.Top = 5
+        Caption = 'Attach to process'
+        OnClick = btnAttachClick
+        TabOrder = 1
+      end
     end
   end
   object pmthreadid: TPopupMenu

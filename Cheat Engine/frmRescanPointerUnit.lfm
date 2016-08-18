@@ -1,7 +1,7 @@
 object frmRescanPointer: TfrmRescanPointer
-  Left = 979
+  Left = 574
   Height = 309
-  Top = 212
+  Top = 240
   Width = 330
   BorderStyle = bsDialog
   Caption = 'Rescan pointerlist'

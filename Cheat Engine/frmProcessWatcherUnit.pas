@@ -36,11 +36,15 @@ type tprocesswatchthread=class(tthread)
   end;
 
 type
+
+  { TfrmProcessWatcher }
+
   TfrmProcessWatcher = class(TForm)
+    btnAttach: TButton;
+    btnOpen: TButton;
+    Panel2: TPanel;
     tvProcesslist: TTreeView;
     Panel1: TPanel;
-    btnOpen: TButton;
-    btnAttach: TButton;
     pmthreadid: TPopupMenu;
     ShowThreadIDs1: TMenuItem;
     procedure FormCreate(Sender: TObject);

@@ -10788,7 +10788,13 @@ begin
                       lastdisassembledata.iscall:=true;
 
                       if memory[1]>=$c0 then
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last) else
+                      begin
+                        if is64bit then
+                          lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,64) else
+                          lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,32);
+
+                      end
+                      else
                       begin
                         if is64bit then
                         begin
