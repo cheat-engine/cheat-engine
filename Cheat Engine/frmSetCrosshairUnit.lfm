@@ -1,17 +1,17 @@
 object frmSetCrosshair: TfrmSetCrosshair
   Left = 867
-  Height = 243
+  Height = 274
   Top = 375
   Width = 257
   Caption = 'D3D: Set Crosshair'
-  ClientHeight = 223
+  ClientHeight = 254
   ClientWidth = 257
   Menu = MainMenu1
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.6.0.4'
   object Image1: TImage
     Left = 0
-    Height = 160
+    Height = 192
     Top = 0
     Width = 257
     Align = alClient
@@ -19,60 +19,88 @@ object frmSetCrosshair: TfrmSetCrosshair
   end
   object Panel1: TPanel
     Left = 0
-    Height = 63
-    Top = 160
+    Height = 62
+    Top = 192
     Width = 257
     Align = alBottom
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 63
+    ClientHeight = 62
     ClientWidth = 257
     TabOrder = 0
     OnResize = Panel1Resize
     object Panel2: TPanel
       Left = 0
-      Height = 32
-      Top = 0
+      Height = 29
+      Top = 2
       Width = 257
       Align = alTop
+      AutoSize = True
+      BorderSpacing.Top = 2
+      BorderSpacing.Bottom = 2
       BevelOuter = bvNone
-      ClientHeight = 32
+      ClientHeight = 29
       ClientWidth = 257
       TabOrder = 0
       object Label1: TLabel
-        Left = 7
-        Height = 16
-        Top = 4
-        Width = 62
+        AnchorSideLeft.Control = Panel2
+        AnchorSideTop.Control = TrackBar1
+        AnchorSideTop.Side = asrCenter
+        AnchorSideRight.Control = TrackBar1
+        Left = 0
+        Height = 15
+        Top = 7
+        Width = 61
         Caption = 'Alphablend'
         ParentColor = False
       end
       object TrackBar1: TTrackBar
-        Left = 80
+        AnchorSideLeft.Control = Label1
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = Panel2
+        AnchorSideRight.Control = Panel2
+        AnchorSideRight.Side = asrBottom
+        Left = 61
         Height = 25
-        Top = 0
-        Width = 172
+        Top = 2
+        Width = 196
         Frequency = 10
         Max = 100
         OnChange = TrackBar1Change
         Position = 100
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Top = 2
+        BorderSpacing.Bottom = 2
         TabOrder = 0
       end
     end
     object Panel3: TPanel
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = Panel2
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Panel1
+      AnchorSideRight.Side = asrBottom
       Left = 0
-      Height = 31
-      Top = 32
+      Height = 29
+      Top = 33
       Width = 257
-      Align = alClient
+      Anchors = [akTop, akLeft, akRight]
+      AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 31
+      ClientHeight = 29
       ClientWidth = 257
       TabOrder = 1
       object btnApply: TButton
-        Left = 80
+        AnchorSideLeft.Control = Panel3
+        AnchorSideLeft.Side = asrCenter
+        AnchorSideTop.Control = Panel3
+        Left = 75
         Height = 25
-        Top = 0
-        Width = 91
+        Top = 2
+        Width = 107
+        AutoSize = True
+        BorderSpacing.Top = 2
+        BorderSpacing.Bottom = 2
         Caption = 'Apply crosshair'
         Enabled = False
         OnClick = btnApplyClick

@@ -36,6 +36,8 @@ type
     MenuItem1: TMenuItem;
     odLoadPointermap: TOpenDialog;
     Panel1: TPanel;
+    Panel2: TPanel;
+    Panel3: TPanel;
     pmRescanFiles: TPopupMenu;
     procedure btnNotifySpecificIPsClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);

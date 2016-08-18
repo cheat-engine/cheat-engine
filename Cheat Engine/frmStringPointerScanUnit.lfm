@@ -1,11 +1,12 @@
 object frmStringPointerScan: TfrmStringPointerScan
-  Left = 856
-  Height = 544
-  Top = 277
-  Width = 698
+  Left = 431
+  Height = 530
+  Top = 242
+  Width = 813
+  AutoSize = True
   Caption = 'Structure spider'
-  ClientHeight = 524
-  ClientWidth = 698
+  ClientHeight = 510
+  ClientWidth = 813
   Menu = MainMenu1
   OnClose = FormClose
   OnShow = FormShow
@@ -13,191 +14,230 @@ object frmStringPointerScan: TfrmStringPointerScan
   LCLVersion = '1.6.0.4'
   object Panel1: TPanel
     Left = 0
-    Height = 504
+    Height = 490
     Top = 0
-    Width = 177
+    Width = 188
     Align = alLeft
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 504
-    ClientWidth = 177
+    ClientHeight = 490
+    ClientWidth = 188
     TabOrder = 0
     object edtStructsize: TEdit
+      AnchorSideLeft.Control = lblStructsize
+      AnchorSideTop.Control = lblStructsize
+      AnchorSideTop.Side = asrBottom
       Left = 87
       Height = 23
-      Top = 24
+      Top = 23
       Width = 80
-      TabOrder = 2
+      TabOrder = 0
       Text = '4096'
     end
     object lblStructsize: TLabel
+      AnchorSideLeft.Control = Panel5
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Panel5
       Left = 87
       Height = 15
       Top = 8
       Width = 50
+      BorderSpacing.Left = 3
       Caption = 'Structsize'
       ParentColor = False
     end
-    object btnScan: TButton
-      Left = 48
-      Height = 25
-      Top = 464
-      Width = 80
-      Caption = 'Scan'
-      OnClick = btnScanClick
-      TabOrder = 0
-    end
-    object lblInfo: TLabel
-      Left = 0
-      Height = 15
-      Top = 489
-      Width = 177
-      Align = alBottom
-      Caption = 'Info'
-      ParentColor = False
-    end
-    object lblMaxLevel: TLabel
-      Left = 4
-      Height = 15
-      Top = 8
-      Width = 52
-      Caption = 'Max Level'
-      ParentColor = False
-    end
-    object edtMaxLevel: TEdit
-      Left = 4
-      Height = 23
-      Top = 24
-      Width = 80
-      TabOrder = 1
-      Text = '2'
-    end
     object edtRegExp: TEdit
-      Left = 12
+      AnchorSideLeft.Control = lblString
+      AnchorSideTop.Control = lblString
+      AnchorSideRight.Control = Panel1
+      AnchorSideRight.Side = asrBottom
+      Left = 20
       Height = 23
-      Top = 366
-      Width = 155
-      Enabled = False
-      TabOrder = 11
-    end
-    object cbMustBeStart: TCheckBox
-      Left = 16
-      Height = 19
-      Top = 334
-      Width = 89
-      Caption = 'Must be start'
-      Enabled = False
-      TabOrder = 10
-    end
-    object cbCaseSensitive: TCheckBox
-      Left = 16
-      Height = 19
-      Top = 317
-      Width = 93
-      Caption = 'Case sensitive'
+      Top = 330
+      Width = 164
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Right = 4
       Enabled = False
       TabOrder = 9
     end
-    object cbRegExp: TCheckBox
-      Left = 5
+    object cbMustBeStart: TCheckBox
+      AnchorSideLeft.Control = cbRegExp
+      AnchorSideTop.Control = cbCaseSensitive
+      AnchorSideTop.Side = asrBottom
+      Left = 20
       Height = 19
-      Top = 300
-      Width = 164
-      Caption = 'Strings must match reg exp'
-      OnChange = cbRegExpChange
+      Top = 311
+      Width = 89
+      Caption = 'Must be start'
+      Enabled = False
       TabOrder = 8
     end
-    object rbStringscan: TRadioButton
-      Left = 5
+    object cbCaseSensitive: TCheckBox
+      AnchorSideLeft.Control = cbRegExp
+      AnchorSideTop.Control = cbRegExp
+      AnchorSideTop.Side = asrBottom
+      Left = 20
       Height = 19
-      Top = 280
+      Top = 292
+      Width = 93
+      Caption = 'Case sensitive'
+      Enabled = False
+      TabOrder = 7
+    end
+    object cbRegExp: TCheckBox
+      AnchorSideLeft.Control = rbStringscan
+      AnchorSideTop.Control = rbStringscan
+      AnchorSideTop.Side = asrBottom
+      Left = 20
+      Height = 19
+      Top = 273
+      Width = 164
+      BorderSpacing.Left = 16
+      BorderSpacing.Right = 4
+      Caption = 'Strings must match reg exp'
+      OnChange = cbRegExpChange
+      TabOrder = 6
+    end
+    object rbStringscan: TRadioButton
+      AnchorSideLeft.Control = Panel4
+      AnchorSideTop.Control = Panel4
+      AnchorSideTop.Side = asrBottom
+      Left = 4
+      Height = 19
+      Top = 254
       Width = 78
       Caption = 'String scan'
       OnChange = rbDatascanChange
-      TabOrder = 7
+      TabOrder = 5
     end
     object rbDatascan: TRadioButton
-      Left = 5
+      AnchorSideLeft.Control = rbStringscan
+      AnchorSideTop.Control = edtRegExp
+      AnchorSideTop.Side = asrBottom
+      Left = 4
       Height = 19
-      Top = 398
+      Top = 353
       Width = 71
       Caption = 'Data scan'
       OnChange = rbDatascanChange
-      TabOrder = 12
+      TabOrder = 10
     end
     object edtAlignsize: TEdit
-      Left = 12
+      AnchorSideLeft.Control = lblAlign
+      AnchorSideTop.Control = lblAlign
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Panel1
+      AnchorSideRight.Side = asrBottom
+      Left = 20
       Height = 23
-      Top = 438
-      Width = 153
+      Top = 387
+      Width = 164
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Right = 4
       Enabled = False
-      TabOrder = 13
+      TabOrder = 11
       Text = '4'
     end
     object lblAlign: TLabel
-      Left = 12
+      AnchorSideLeft.Control = rbDatascan
+      AnchorSideTop.Control = rbDatascan
+      AnchorSideTop.Side = asrBottom
+      Left = 20
       Height = 15
-      Top = 418
+      Top = 372
       Width = 47
+      BorderSpacing.Left = 16
       Caption = 'Alignsize'
       Enabled = False
       ParentColor = False
     end
     object edtPointerStart: TEdit
+      AnchorSideLeft.Control = cbPointerInRange
+      AnchorSideTop.Control = cbPointerInRange
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Panel1
+      AnchorSideRight.Side = asrBottom
       Left = 4
       Height = 23
-      Top = 74
-      Width = 155
+      Top = 67
+      Width = 180
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Right = 4
       Enabled = False
-      TabOrder = 4
+      TabOrder = 2
     end
     object cbPointerInRange: TCheckBox
+      AnchorSideLeft.Control = Panel5
+      AnchorSideTop.Control = Panel5
+      AnchorSideTop.Side = asrBottom
       Left = 4
       Height = 19
-      Top = 52
+      Top = 48
       Width = 150
+      BorderSpacing.Top = 2
       Caption = 'Pointer must be in range'
       OnChange = cbPointerInRangeChange
-      TabOrder = 3
+      TabOrder = 1
     end
     object lblAnd: TLabel
+      AnchorSideLeft.Control = cbPointerInRange
+      AnchorSideTop.Control = edtPointerStart
+      AnchorSideTop.Side = asrBottom
       Left = 4
       Height = 15
-      Top = 96
+      Top = 90
       Width = 20
       Caption = 'and'
       Enabled = False
       ParentColor = False
     end
     object edtPointerStop: TEdit
+      AnchorSideLeft.Control = cbPointerInRange
+      AnchorSideTop.Control = lblAnd
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Panel1
+      AnchorSideRight.Side = asrBottom
       Left = 4
       Height = 23
-      Top = 112
-      Width = 155
+      Top = 105
+      Width = 180
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Right = 4
       Enabled = False
-      TabOrder = 5
+      TabOrder = 3
     end
     object lblString: TLabel
-      Left = 13
+      AnchorSideLeft.Control = cbMustBeStart
+      AnchorSideTop.Control = cbMustBeStart
+      AnchorSideTop.Side = asrBottom
+      Left = 20
       Height = 15
-      Top = 352
+      Top = 330
       Width = 34
       Caption = 'String:'
       Enabled = False
       ParentColor = False
     end
     object Panel4: TPanel
-      Left = -1
-      Height = 131
-      Top = 139
-      Width = 170
+      AnchorSideLeft.Control = edtPointerStop
+      AnchorSideTop.Control = edtPointerStop
+      AnchorSideTop.Side = asrBottom
+      Left = 4
+      Height = 122
+      Top = 132
+      Width = 148
+      AutoSize = True
+      BorderSpacing.Top = 4
       BevelOuter = bvNone
-      ClientHeight = 131
-      ClientWidth = 170
-      TabOrder = 6
+      ClientHeight = 122
+      ClientWidth = 148
+      TabOrder = 4
       object rbDiffDontCare: TRadioButton
-        Left = 5
+        AnchorSideLeft.Control = Panel4
+        AnchorSideTop.Control = Panel4
+        Left = 0
         Height = 19
-        Top = 8
+        Top = 0
         Width = 148
         Caption = 'Don''t care for difference'
         Checked = True
@@ -207,9 +247,12 @@ object frmStringPointerScan: TfrmStringPointerScan
         TabStop = True
       end
       object rbMustBeDifferent: TRadioButton
-        Left = 5
+        AnchorSideLeft.Control = Panel4
+        AnchorSideTop.Control = rbDiffDontCare
+        AnchorSideTop.Side = asrBottom
+        Left = 0
         Height = 19
-        Top = 26
+        Top = 19
         Width = 111
         Caption = 'Must be different'
         Enabled = False
@@ -217,9 +260,12 @@ object frmStringPointerScan: TfrmStringPointerScan
         TabOrder = 1
       end
       object rbMustBeSame: TRadioButton
-        Left = 5
+        AnchorSideLeft.Control = Panel4
+        AnchorSideTop.Control = rbMustBeDifferent
+        AnchorSideTop.Side = asrBottom
+        Left = 0
         Height = 19
-        Top = 44
+        Top = 38
         Width = 114
         Caption = 'Must be the same'
         Enabled = False
@@ -227,10 +273,14 @@ object frmStringPointerScan: TfrmStringPointerScan
         TabOrder = 2
       end
       object comboCompareType: TComboBox
-        Left = 25
+        AnchorSideLeft.Control = Panel4
+        AnchorSideTop.Control = lblCompare
+        AnchorSideTop.Side = asrBottom
+        Left = 16
         Height = 23
-        Top = 80
+        Top = 72
         Width = 124
+        BorderSpacing.Left = 16
         Enabled = False
         ItemHeight = 15
         ItemIndex = 3
@@ -250,20 +300,27 @@ object frmStringPointerScan: TfrmStringPointerScan
         Text = '4 Bytes'
       end
       object lblCompare: TLabel
-        Left = 5
+        AnchorSideLeft.Control = Panel4
+        AnchorSideTop.Control = rbMustBeSame
+        AnchorSideTop.Side = asrBottom
+        Left = 0
         Height = 15
-        Top = 64
+        Top = 57
         Width = 75
         Caption = 'Compare type'
         Enabled = False
         ParentColor = False
       end
       object cbMapPointerValues: TCheckBox
-        Left = 5
+        AnchorSideLeft.Control = Panel4
+        AnchorSideTop.Control = comboCompareType
+        AnchorSideTop.Side = asrBottom
+        Left = 0
         Height = 19
         Hint = 'During the scan the values of pointer will be stored in memory for quick lookup when the same address is encountered again'#13#10'If the pointerlist has mostly unique addresses this can cause you to get out of memory errors'#13#10#13#10'Enabled: Fast- Memory gobbler'#13#10'Disabled: Slower- Not too much memory eaten'
-        Top = 104
+        Top = 103
         Width = 148
+        BorderSpacing.Top = 8
         Caption = 'Store values during scan'
         Checked = True
         ParentShowHint = False
@@ -272,32 +329,138 @@ object frmStringPointerScan: TfrmStringPointerScan
         TabOrder = 4
       end
     end
-    object btnNewScan: TButton
-      Left = 6
-      Height = 25
-      Top = 464
-      Width = 75
-      Caption = 'New Scan'
-      OnClick = miNewScanClick
+    object Panel5: TPanel
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = Panel1
+      Left = 4
+      Height = 38
+      Top = 8
+      Width = 80
+      AutoSize = True
+      BorderSpacing.Left = 4
+      BorderSpacing.Top = 8
+      BevelOuter = bvNone
+      ClientHeight = 38
+      ClientWidth = 80
+      TabOrder = 12
+      object edtMaxLevel: TEdit
+        AnchorSideLeft.Control = Panel5
+        AnchorSideTop.Control = lblMaxLevel
+        AnchorSideTop.Side = asrBottom
+        Left = 0
+        Height = 23
+        Top = 15
+        Width = 80
+        TabOrder = 0
+        Text = '2'
+      end
+      object lblMaxLevel: TLabel
+        AnchorSideLeft.Control = Panel5
+        AnchorSideTop.Control = Panel5
+        Left = 0
+        Height = 15
+        Top = 0
+        Width = 52
+        Caption = 'Max Level'
+        ParentColor = False
+      end
+    end
+    object Panel8: TPanel
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = Panel9
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Panel1
+      AnchorSideRight.Side = asrBottom
+      AnchorSideBottom.Control = Panel1
+      AnchorSideBottom.Side = asrBottom
+      Left = 0
+      Height = 41
+      Top = 449
+      Width = 188
+      Anchors = [akTop, akLeft, akRight, akBottom]
+      AutoSize = True
+      BevelOuter = bvNone
+      ClientHeight = 41
+      ClientWidth = 188
+      TabOrder = 13
+      object lblInfo: TLabel
+        Left = 0
+        Height = 15
+        Top = 26
+        Width = 188
+        Align = alBottom
+        Caption = 'Info'
+        ParentColor = False
+      end
+    end
+    object Panel9: TPanel
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = edtAlignsize
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Panel1
+      AnchorSideRight.Side = asrBottom
+      Left = 0
+      Height = 39
+      Top = 410
+      Width = 188
+      Anchors = [akTop, akLeft, akRight]
+      AutoSize = True
+      BevelOuter = bvNone
+      ClientHeight = 39
+      ClientWidth = 188
       TabOrder = 14
-      Visible = False
+      object btnNewScan: TButton
+        AnchorSideLeft.Control = Panel9
+        AnchorSideLeft.Side = asrCenter
+        AnchorSideTop.Control = Panel9
+        Left = 54
+        Height = 25
+        Top = 7
+        Width = 80
+        AutoSize = True
+        BorderSpacing.Top = 7
+        BorderSpacing.Bottom = 7
+        Caption = 'New Scan'
+        Constraints.MinWidth = 80
+        OnClick = miNewScanClick
+        TabOrder = 0
+        Visible = False
+      end
+      object btnScan: TButton
+        AnchorSideLeft.Control = Panel9
+        AnchorSideLeft.Side = asrCenter
+        AnchorSideTop.Control = Panel9
+        Left = 54
+        Height = 25
+        Top = 7
+        Width = 80
+        AutoSize = True
+        BorderSpacing.Left = 7
+        BorderSpacing.Top = 7
+        BorderSpacing.Right = 4
+        BorderSpacing.Bottom = 7
+        Caption = 'Scan'
+        Constraints.MinWidth = 80
+        OnClick = btnScanClick
+        TabOrder = 1
+      end
     end
   end
   object Panel2: TPanel
-    Left = 177
-    Height = 504
+    Left = 188
+    Height = 490
     Top = 0
-    Width = 521
+    Width = 625
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 504
-    ClientWidth = 521
+    ClientHeight = 490
+    ClientWidth = 625
     TabOrder = 1
     object ListView1: TListView
       Left = 0
-      Height = 360
-      Top = 144
-      Width = 521
+      Height = 354
+      Top = 136
+      Width = 625
       Align = alClient
       Columns = <>
       OwnerData = True
@@ -312,167 +475,249 @@ object frmStringPointerScan: TfrmStringPointerScan
     end
     object Panel3: TPanel
       Left = 0
-      Height = 144
+      Height = 136
       Top = 0
-      Width = 521
+      Width = 625
       Align = alTop
+      AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 144
-      ClientWidth = 521
+      ClientHeight = 136
+      ClientWidth = 625
       TabOrder = 1
-      object edtBase: TEdit
-        Left = 8
-        Height = 23
-        Top = 24
-        Width = 127
-        OnChange = edtBaseChange
-        TabOrder = 0
-      end
-      object lblBaseRegion: TLabel
-        Left = 8
-        Height = 15
-        Top = 4
-        Width = 61
-        Caption = 'Base region'
-        ParentColor = False
-      end
       object lblExtra: TLabel
-        Left = 142
+        AnchorSideLeft.Control = Panel6
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = Panel6
+        Left = 133
         Height = 15
-        Top = 4
+        Top = 8
         Width = 90
+        BorderSpacing.Left = 6
         Caption = 'Compare against'
         ParentColor = False
       end
       object edtExtra: TEdit
-        Left = 142
+        AnchorSideLeft.Control = lblExtra
+        AnchorSideTop.Control = lblExtra
+        AnchorSideTop.Side = asrBottom
+        Left = 133
         Height = 23
-        Top = 24
+        Top = 23
         Width = 127
         OnChange = edtExtraChange
-        TabOrder = 1
-      end
-      object comboType: TComboBox
-        Left = 391
-        Height = 23
-        Top = 24
-        Width = 124
-        Anchors = [akTop, akRight]
-        ItemHeight = 15
-        ItemIndex = 0
-        Items.Strings = (
-          'String'
-          '1 Byte'
-          '2 Bytes'
-          '4 Bytes'
-          '8 Bytes'
-          'Float'
-          'Double'
-          'Pointer (hex)'
-        )
-        OnChange = comboTypeChange
-        Style = csDropDownList
-        TabOrder = 2
-        Text = 'String'
-      end
-      object lblvds: TLabel
-        Left = 392
-        Height = 15
-        Top = 4
-        Width = 108
-        Anchors = [akTop, akRight]
-        Caption = 'Variable display type'
-        ParentColor = False
-      end
-      object cbHasShadow: TCheckBox
-        Left = 8
-        Height = 19
-        Hint = 'Use this if you''re spidering a previously saved memory region that currently resides in a different location.'#13#10'Most commonly used for stacks where stack pointers point to it''s own structure'
-        Top = 48
-        Width = 85
-        Caption = 'Has Shadow'
-        OnChange = cbHasShadowChange
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 3
-      end
-      object edtShadowAddress: TEdit
-        Left = 8
-        Height = 23
-        Top = 72
-        Width = 127
-        OnChange = edtBaseChange
-        TabOrder = 4
-        Visible = False
-      end
-      object edtShadowSize: TEdit
-        Left = 8
-        Height = 23
-        Top = 112
-        Width = 80
-        OnChange = edtBaseChange
-        TabOrder = 5
-        Visible = False
-      end
-      object lblSize: TLabel
-        Left = 8
-        Height = 15
-        Top = 96
-        Width = 20
-        Caption = 'Size'
-        ParentColor = False
-        Visible = False
+        TabOrder = 0
       end
       object cbHasShadow2: TCheckBox
-        Left = 142
+        AnchorSideLeft.Control = lblExtra
+        AnchorSideTop.Control = edtExtra
+        AnchorSideTop.Side = asrBottom
+        Left = 133
         Height = 19
         Hint = 'Use this if you''re spidering a previously saved memory region that currently resides in a different location.'#13#10'Most commonly used for stacks where stack pointers point to it''s own structure'
         Top = 48
         Width = 85
+        BorderSpacing.Top = 2
         Caption = 'Has Shadow'
         OnChange = cbHasShadowChange
         ParentShowHint = False
         ShowHint = True
-        TabOrder = 6
+        TabOrder = 1
       end
       object edtShadowAddress2: TEdit
-        Left = 143
+        AnchorSideLeft.Control = lblExtra
+        AnchorSideTop.Control = cbHasShadow2
+        AnchorSideTop.Side = asrBottom
+        Left = 133
         Height = 23
-        Top = 72
+        Top = 67
         Width = 127
         OnChange = edtBaseChange
-        TabOrder = 7
+        TabOrder = 2
         Visible = False
       end
       object lblsize2: TLabel
-        Left = 142
+        AnchorSideLeft.Control = lblExtra
+        AnchorSideTop.Control = edtShadowAddress2
+        AnchorSideTop.Side = asrBottom
+        Left = 133
         Height = 15
-        Top = 96
+        Top = 90
         Width = 20
         Caption = 'Size'
         ParentColor = False
         Visible = False
       end
       object edtShadowSize2: TEdit
-        Left = 142
+        AnchorSideLeft.Control = lblExtra
+        AnchorSideTop.Control = lblsize2
+        AnchorSideTop.Side = asrBottom
+        Left = 133
         Height = 23
-        Top = 112
+        Top = 105
         Width = 80
+        BorderSpacing.Bottom = 8
         OnChange = edtBaseChange
-        TabOrder = 8
+        TabOrder = 3
         Visible = False
+      end
+      object Panel6: TPanel
+        AnchorSideLeft.Control = Panel3
+        AnchorSideTop.Control = Panel3
+        Left = 0
+        Height = 120
+        Top = 8
+        Width = 127
+        AutoSize = True
+        BorderSpacing.Top = 8
+        BorderSpacing.Bottom = 8
+        BevelOuter = bvNone
+        ClientHeight = 120
+        ClientWidth = 127
+        TabOrder = 4
+        object edtShadowSize: TEdit
+          AnchorSideLeft.Control = lblSize
+          AnchorSideTop.Control = lblSize
+          AnchorSideTop.Side = asrBottom
+          Left = 0
+          Height = 23
+          Top = 97
+          Width = 80
+          OnChange = edtBaseChange
+          TabOrder = 0
+          Visible = False
+        end
+        object lblSize: TLabel
+          AnchorSideLeft.Control = Panel6
+          AnchorSideTop.Control = edtShadowAddress
+          AnchorSideTop.Side = asrBottom
+          Left = 0
+          Height = 15
+          Top = 82
+          Width = 20
+          Caption = 'Size'
+          ParentColor = False
+          Visible = False
+        end
+        object edtShadowAddress: TEdit
+          AnchorSideLeft.Control = cbHasShadow
+          AnchorSideTop.Control = cbHasShadow
+          AnchorSideTop.Side = asrBottom
+          Left = 0
+          Height = 23
+          Top = 59
+          Width = 127
+          OnChange = edtBaseChange
+          TabOrder = 1
+          Visible = False
+        end
+        object cbHasShadow: TCheckBox
+          AnchorSideLeft.Control = Panel6
+          AnchorSideTop.Control = edtBase
+          AnchorSideTop.Side = asrBottom
+          Left = 0
+          Height = 19
+          Hint = 'Use this if you''re spidering a previously saved memory region that currently resides in a different location.'#13#10'Most commonly used for stacks where stack pointers point to it''s own structure'
+          Top = 40
+          Width = 85
+          BorderSpacing.Top = 2
+          Caption = 'Has Shadow'
+          OnChange = cbHasShadowChange
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 2
+        end
+        object edtBase: TEdit
+          AnchorSideLeft.Control = Panel6
+          AnchorSideTop.Control = lblBaseRegion
+          AnchorSideTop.Side = asrBottom
+          Left = 0
+          Height = 23
+          Top = 15
+          Width = 127
+          OnChange = edtBaseChange
+          TabOrder = 3
+        end
+        object lblBaseRegion: TLabel
+          AnchorSideLeft.Control = Panel6
+          AnchorSideTop.Control = Panel6
+          Left = 0
+          Height = 15
+          Top = 0
+          Width = 61
+          Caption = 'Base region'
+          ParentColor = False
+        end
+      end
+      object Panel7: TPanel
+        AnchorSideLeft.Control = edtExtra
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = Panel3
+        AnchorSideRight.Control = Panel3
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = Panel3
+        AnchorSideBottom.Side = asrBottom
+        Left = 268
+        Height = 136
+        Top = 0
+        Width = 357
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        AutoSize = True
+        BorderSpacing.Left = 8
+        BevelOuter = bvNone
+        ClientHeight = 136
+        ClientWidth = 357
+        TabOrder = 5
+        object lblvds: TLabel
+          AnchorSideTop.Control = Panel7
+          AnchorSideRight.Control = Panel7
+          AnchorSideRight.Side = asrBottom
+          Left = 249
+          Height = 15
+          Top = 8
+          Width = 108
+          Anchors = [akTop, akRight]
+          BorderSpacing.Top = 8
+          Caption = 'Variable display type'
+          ParentColor = False
+        end
+        object comboType: TComboBox
+          AnchorSideTop.Control = lblvds
+          AnchorSideTop.Side = asrBottom
+          AnchorSideRight.Control = Panel7
+          AnchorSideRight.Side = asrBottom
+          Left = 233
+          Height = 23
+          Top = 23
+          Width = 124
+          Anchors = [akTop, akRight]
+          ItemHeight = 15
+          ItemIndex = 0
+          Items.Strings = (
+            'String'
+            '1 Byte'
+            '2 Bytes'
+            '4 Bytes'
+            '8 Bytes'
+            'Float'
+            'Double'
+            'Pointer (hex)'
+          )
+          OnChange = comboTypeChange
+          Style = csDropDownList
+          TabOrder = 0
+          Text = 'String'
+        end
       end
     end
   end
   object ProgressBar1: TProgressBar
     Left = 0
     Height = 20
-    Top = 504
-    Width = 698
+    Top = 490
+    Width = 813
     Align = alBottom
     Max = 1000
     TabOrder = 2
-    Visible = False
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.sptr'
@@ -483,7 +728,7 @@ object frmStringPointerScan: TfrmStringPointerScan
   end
   object MainMenu1: TMainMenu
     left = 197
-    top = 104
+    top = 168
     object MenuItem1: TMenuItem
       Caption = 'File'
       object MenuItem7: TMenuItem

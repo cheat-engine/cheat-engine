@@ -39,16 +39,19 @@ object frmSelectionList: TfrmSelectionList
     Top = 201
     Width = 313
     Align = alBottom
+    AutoSize = True
     ClientHeight = 31
     ClientWidth = 313
     TabOrder = 1
     object Button1: TButton
       Left = 125
       Height = 23
-      Top = 3
+      Top = 4
       Width = 65
       Anchors = [akTop]
       AutoSize = True
+      BorderSpacing.Top = 3
+      BorderSpacing.Bottom = 3
       Caption = '    OK    '
       Default = True
       ModalResult = 1

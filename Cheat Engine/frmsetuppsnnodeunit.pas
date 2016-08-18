@@ -5,16 +5,16 @@ unit frmSetupPSNNodeUnit;
 interface
 
 uses
-  windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls, math,
-  registry;
+  windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
+  StdCtrls, ExtCtrls, math, registry;
 
 type
 
   { TfrmSetupPSNNode }
 
   TfrmSetupPSNNode = class(TForm)
-    btnOK: TButton;
     btnCancel: TButton;
+    btnOK: TButton;
     Button1: TButton;
     cbAllowParents: TCheckBox;
     cbMaxFoundResults: TCheckBox;
@@ -30,10 +30,10 @@ type
     edtConnectPort: TEdit;
     edtConnectPassword: TEdit;
     edtParentPassword: TEdit;
-    edtThreadCount: TEdit;
     edtPublicname: TEdit;
     edtMaxResultsToFind: TEdit;
     edtMaxTimeToScan: TEdit;
+    edtThreadCount: TEdit;
     lblPasswordParent: TLabel;
     lblListenPort: TLabel;
     lblIP: TLabel;
@@ -41,16 +41,19 @@ type
     lblPasswordChild: TLabel;
     lblPassword: TLabel;
     lblPublicName: TLabel;
-    lblThreadCount: TLabel;
     Label3: TLabel;
     Label4: TLabel;
     lblPriority: TLabel;
+    lblThreadCount: TLabel;
+    Panel1: TPanel;
+    Panel2: TPanel;
     rbConnectAsParent: TRadioButton;
     rbConnectAsChild: TRadioButton;
     procedure btnOKClick(Sender: TObject);
     procedure cbConnectToOtherNodeChange(Sender: TObject);
     procedure edtConnectPasswordChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     { private declarations }
   public
@@ -173,6 +176,13 @@ begin
   finally
     reg.free;
   end;
+
+end;
+
+procedure TfrmSetupPSNNode.FormShow(Sender: TObject);
+var i: integer;
+begin
+  edtThreadCount.width:=max(lblThreadCount.Width, edtThreadCount.width);
 
 end;
 

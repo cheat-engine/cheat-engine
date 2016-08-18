@@ -1,11 +1,11 @@
 object frmSaveSnapshots: TfrmSaveSnapshots
-  Left = 302
+  Left = 459
   Height = 250
-  Top = 164
-  Width = 576
+  Top = 206
+  Width = 645
   Caption = 'Save snapshots'
   ClientHeight = 250
-  ClientWidth = 576
+  ClientWidth = 645
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -16,25 +16,25 @@ object frmSaveSnapshots: TfrmSaveSnapshots
     Left = 0
     Height = 15
     Top = 0
-    Width = 576
+    Width = 645
     Align = alTop
     Caption = 'Select the snapshot(s) you wish to save'
     ParentColor = False
   end
   object Panel1: TPanel
     Left = 0
-    Height = 161
+    Height = 167
     Top = 15
-    Width = 576
+    Width = 645
     Align = alClient
-    ClientHeight = 161
-    ClientWidth = 576
+    ClientHeight = 167
+    ClientWidth = 645
     TabOrder = 0
     object ScrollBar1: TScrollBar
       Left = 1
       Height = 17
-      Top = 143
-      Width = 574
+      Top = 149
+      Width = 643
       Align = alBottom
       PageSize = 0
       TabOrder = 0
@@ -42,9 +42,9 @@ object frmSaveSnapshots: TfrmSaveSnapshots
     end
     object PaintBox1: TPaintBox
       Left = 1
-      Height = 142
+      Height = 148
       Top = 1
-      Width = 574
+      Width = 643
       Align = alClient
       OnMouseDown = PaintBox1MouseDown
       OnPaint = PaintBox1Paint
@@ -53,28 +53,37 @@ object frmSaveSnapshots: TfrmSaveSnapshots
   end
   object Panel2: TPanel
     Left = 0
-    Height = 74
-    Top = 176
-    Width = 576
+    Height = 68
+    Top = 182
+    Width = 645
     Align = alBottom
-    ClientHeight = 74
-    ClientWidth = 576
+    AutoSize = True
+    ClientHeight = 68
+    ClientWidth = 645
+    Constraints.MinWidth = 400
     TabOrder = 1
     OnResize = Panel2Resize
     object btnSave: TButton
-      Left = 216
+      AnchorSideLeft.Control = Panel2
+      AnchorSideLeft.Side = asrCenter
+      AnchorSideTop.Control = Panel2
+      Left = 242
       Height = 25
-      Top = 7
+      Top = 5
       Width = 160
+      BorderSpacing.Top = 4
+      BorderSpacing.Right = 4
       Caption = 'Save selected snapshots'
       OnClick = btnSaveClick
       TabOrder = 0
     end
     object lblSelectAll: TLabel
+      AnchorSideLeft.Control = Panel2
+      AnchorSideTop.Control = Panel2
       Cursor = crHandPoint
       Left = 1
       Height = 15
-      Top = 3
+      Top = 1
       Width = 50
       Caption = 'Select all'
       Font.Color = clBlue
@@ -84,19 +93,28 @@ object frmSaveSnapshots: TfrmSaveSnapshots
       OnClick = lblSelectAllClick
     end
     object btnDone: TButton
-      Left = 256
+      AnchorSideLeft.Control = Panel2
+      AnchorSideLeft.Side = asrCenter
+      AnchorSideTop.Control = btnSave
+      AnchorSideTop.Side = asrBottom
+      Left = 285
       Height = 25
-      Top = 39
+      Top = 36
       Width = 75
+      BorderSpacing.Top = 6
+      BorderSpacing.Bottom = 6
       Caption = 'Done'
       OnClick = btnDoneClick
       TabOrder = 1
     end
     object lblDeselectAll: TLabel
+      AnchorSideLeft.Control = lblSelectAll
+      AnchorSideTop.Control = lblSelectAll
+      AnchorSideTop.Side = asrBottom
       Cursor = crHandPoint
       Left = 1
       Height = 15
-      Top = 23
+      Top = 16
       Width = 64
       Caption = 'Deselect all'
       Font.Color = clBlue
@@ -106,11 +124,16 @@ object frmSaveSnapshots: TfrmSaveSnapshots
       OnClick = lblDeselectAllClick
     end
     object btnCombinedSelect: TButton
-      Left = 468
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = btnSave
+      AnchorSideRight.Control = Panel2
+      AnchorSideRight.Side = asrBottom
+      Left = 537
       Height = 25
-      Top = 7
+      Top = 5
       Width = 107
       Anchors = [akTop, akRight]
+      BorderSpacing.Left = 4
       Caption = 'Combined select'
       OnClick = btnCombinedSelectClick
       TabOrder = 2

@@ -45,8 +45,8 @@ type
   end;
 
   TfrmStringMap = class(TForm)
-    btnScan: TButton;
     btnFree: TButton;
+    btnScan: TButton;
     btnShowList: TButton;
     cbRegExp: TCheckBox;
     cbCaseSensitive: TCheckBox;
@@ -59,6 +59,7 @@ type
     miFind: TMenuItem;
     miNext: TMenuItem;
     Panel1: TPanel;
+    Panel2: TPanel;
     pmStringList: TPopupMenu;
     ProgressBar1: TProgressBar;
     SaveDialog1: TSaveDialog;

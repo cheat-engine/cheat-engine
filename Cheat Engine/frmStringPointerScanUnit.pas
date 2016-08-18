@@ -212,41 +212,41 @@ type
   end;
 
   TfrmStringPointerScan = class(TForm)
-    btnScan: TButton;
     btnNewScan: TButton;
+    btnScan: TButton;
     cbCaseSensitive: TCheckBox;
+    cbHasShadow: TCheckBox;
     cbHasShadow2: TCheckBox;
     cbMustBeStart: TCheckBox;
     cbRegExp: TCheckBox;
     cbPointerInRange: TCheckBox;
     cbMapPointerValues: TCheckBox;
-    cbHasShadow: TCheckBox;
-    comboType: TComboBox;
     comboCompareType: TComboBox;
+    comboType: TComboBox;
+    edtBase: TEdit;
+    edtMaxLevel: TEdit;
     edtShadowAddress: TEdit;
     edtShadowAddress2: TEdit;
-    edtShadowSize: TEdit;
     edtPointerStart: TEdit;
     edtPointerStop: TEdit;
     edtAlignsize: TEdit;
     edtExtra: TEdit;
-    edtBase: TEdit;
-    edtMaxLevel: TEdit;
     edtRegExp: TEdit;
+    edtShadowSize: TEdit;
     edtShadowSize2: TEdit;
     edtStructsize: TEdit;
+    lblBaseRegion: TLabel;
+    lblInfo: TLabel;
+    lblMaxLevel: TLabel;
     lblSize: TLabel;
     lblsize2: TLabel;
-    lblvds: TLabel;
-    lblBaseRegion: TLabel;
     lblStructsize: TLabel;
     lblCompare: TLabel;
     lblAlign: TLabel;
     lblAnd: TLabel;
     lblString: TLabel;
-    lblInfo: TLabel;
-    lblMaxLevel: TLabel;
     lblExtra: TLabel;
+    lblvds: TLabel;
     ListView1: TListView;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
@@ -262,6 +262,11 @@ type
     Panel2: TPanel;
     Panel3: TPanel;
     Panel4: TPanel;
+    Panel5: TPanel;
+    Panel6: TPanel;
+    Panel7: TPanel;
+    Panel8: TPanel;
+    Panel9: TPanel;
     pmPointerfile: TPopupMenu;
     ProgressBar1: TProgressBar;
     rbDiffDontCare: TRadioButton;
@@ -2247,6 +2252,7 @@ end;
 
 procedure TfrmStringPointerScan.FormShow(Sender: TObject);
 begin
+  //panel1.Constraints.MinHeight:=btnNewScan.Top+btnNewScan.Height+lblInfo.Height+4;
   cbHasShadowChange(nil);
 end;
 
