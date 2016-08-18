@@ -6,15 +6,15 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
-  StdCtrls;
+  StdCtrls, ExtCtrls;
 
 type
 
   { TfrmTracerConfig }
 
   TfrmTracerConfig = class(TForm)
-    btnOK: TButton;
     btnCancel: TButton;
+    btnOK: TButton;
     cbDereferenceAddresses: TCheckBox;
     cbSaveStack: TCheckBox;
     cbStepOver: TCheckBox;
@@ -23,6 +23,7 @@ type
     edtCondition: TEdit;
     Label1: TLabel;
     Label2: TLabel;
+    Panel1: TPanel;
     rbBreakOnAccess: TRadioButton;
     rbBreakOnWrite: TRadioButton;
   private

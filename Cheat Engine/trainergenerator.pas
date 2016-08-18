@@ -20,28 +20,28 @@ type
 
   { TfrmTrainerGenerator }
   TfrmTrainerGenerator = class(TForm)
+    btnAddSounds: TButton;
+    btnDelete: TButton;
+    btnAddHotkey: TButton;
     btnDesignForm: TButton;
     Button1: TButton;
     Button2: TButton;
     Button3: TButton;
-    btnAddSounds: TButton;
-    cbConfigD3DHook: TButton;
     Button5: TButton;
-    btnDelete: TButton;
-    btnAddHotkey: TButton;
-    cbPlaySoundOnAction: TCheckBox;
+    cbActivateSound: TComboBox;
     cbCanResize: TCheckBox;
+    cbConfigD3DHook: TButton;
+    cbDeactivateSound: TComboBox;
+    cbOutput: TComboBox;
+    cbPlaySoundOnAction: TCheckBox;
     cbPlayXM: TCheckBox;
     cbPopupOnKeypress: TCheckBox;
     cbProtect: TCheckBox;
     cbStopPlaying: TCheckBox;
     cbSupportCheatEngine: TCheckBox;
     cbUseD3DHook: TCheckBox;
-    cbActivateSound: TComboBox;
-    cbDeactivateSound: TComboBox;
-    CTSaveDialog: TSaveDialog;
-    cbOutput: TComboBox;
     comboProcesslist: TComboBox;
+    CTSaveDialog: TSaveDialog;
     edtCaption: TEdit;
     edtFreezeInterval: TEdit;
     edtPopupHotkey: TEdit;
@@ -61,25 +61,31 @@ type
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     miEditHotkey: TMenuItem;
+    odWave: TOpenDialog;
     OpenDialog1: TOpenDialog;
     OpenDialog2: TOpenDialog;
-    odWave: TOpenDialog;
     OpenPictureDialog1: TOpenPictureDialog;
     Panel1: TPanel;
+    Panel10: TPanel;
     Panel2: TPanel;
     Panel3: TPanel;
     Panel4: TPanel;
+    Panel5: TPanel;
+    Panel6: TPanel;
+    Panel7: TPanel;
+    Panel8: TPanel;
+    Panel9: TPanel;
     PopupMenu1: TPopupMenu;
+    CETRAINERSaveDialog: TSaveDialog;
+    EXESaveDialog: TSaveDialog;
     PopupMenu2: TPopupMenu;
     rbStopWhenAttached: TRadioButton;
     rbStopWhenFocusLost: TRadioButton;
-    CETRAINERSaveDialog: TSaveDialog;
-    EXESaveDialog: TSaveDialog;
-    spbDown: TSpeedButton;
-    spbUp: TSpeedButton;
     sbPlayActivate: TSpeedButton;
     sbPlayDeactivate: TSpeedButton;
     sbPlayStopXM: TSpeedButton;
+    spbDown: TSpeedButton;
+    spbUp: TSpeedButton;
     procedure btnDeleteClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
@@ -526,6 +532,8 @@ begin
       trainerform.top:=br.top;
     end;
   end;
+
+  Constraints.MinHeight:=panel9.top+button5.top+button5.height+label6.height+5;
 end;
 
 procedure TfrmTrainerGenerator.lvCheatsDblClick(Sender: TObject);

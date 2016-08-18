@@ -3,6 +3,7 @@ object frmTracerConfig: TfrmTracerConfig
   Height = 217
   Top = 113
   Width = 249
+  AutoSize = True
   BorderStyle = bsSingle
   Caption = 'Break and Trace config'
   ClientHeight = 217
@@ -11,6 +12,7 @@ object frmTracerConfig: TfrmTracerConfig
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object edtMaxTrace: TEdit
+    AnchorSideLeft.Control = Label1
     AnchorSideTop.Control = Label1
     AnchorSideTop.Side = asrBottom
     Left = 16
@@ -37,6 +39,7 @@ object frmTracerConfig: TfrmTracerConfig
     ParentColor = False
   end
   object Label2: TLabel
+    AnchorSideLeft.Control = Label1
     AnchorSideTop.Control = edtMaxTrace
     AnchorSideTop.Side = asrBottom
     Left = 16
@@ -47,6 +50,7 @@ object frmTracerConfig: TfrmTracerConfig
     ParentColor = False
   end
   object edtCondition: TEdit
+    AnchorSideLeft.Control = Label1
     AnchorSideTop.Control = Label2
     AnchorSideTop.Side = asrBottom
     Left = 16
@@ -55,53 +59,32 @@ object frmTracerConfig: TfrmTracerConfig
     Width = 200
     TabOrder = 1
   end
-  object btnOK: TButton
-    AnchorSideTop.Control = rbBreakOnAccess
-    AnchorSideTop.Side = asrBottom
-    Left = 32
-    Height = 25
-    Top = 184
-    Width = 75
-    BorderSpacing.Top = 5
-    Caption = 'OK'
-    Default = True
-    ModalResult = 1
-    TabOrder = 2
-  end
-  object btnCancel: TButton
-    AnchorSideTop.Control = btnOK
-    Left = 124
-    Height = 25
-    Top = 184
-    Width = 75
-    Cancel = True
-    Caption = 'Cancel'
-    ModalResult = 2
-    TabOrder = 3
-  end
   object cbDereferenceAddresses: TCheckBox
+    AnchorSideLeft.Control = Label1
     AnchorSideTop.Control = edtCondition
     AnchorSideTop.Side = asrBottom
-    Left = 17
+    Left = 16
     Height = 19
     Top = 84
     Width = 213
     Caption = 'Dereference Addresses (Slows down)'
     Checked = True
     State = cbChecked
-    TabOrder = 4
+    TabOrder = 2
   end
   object cbSaveStack: TCheckBox
+    AnchorSideLeft.Control = Label1
     AnchorSideTop.Control = cbDereferenceAddresses
     AnchorSideTop.Side = asrBottom
-    Left = 17
+    Left = 16
     Height = 19
     Top = 103
     Width = 210
     Caption = 'Save stack snapshots (Eats memory)'
-    TabOrder = 5
+    TabOrder = 3
   end
   object rbBreakOnAccess: TRadioButton
+    AnchorSideLeft.Control = Label1
     AnchorSideTop.Control = cbSkipSystemModules
     AnchorSideTop.Side = asrBottom
     Left = 16
@@ -109,7 +92,7 @@ object frmTracerConfig: TfrmTracerConfig
     Top = 160
     Width = 105
     Caption = 'Break on Access'
-    TabOrder = 6
+    TabOrder = 4
     Visible = False
   end
   object rbBreakOnWrite: TRadioButton
@@ -124,28 +107,78 @@ object frmTracerConfig: TfrmTracerConfig
     BorderSpacing.Left = 3
     Caption = 'Break on Write'
     Checked = True
-    TabOrder = 7
+    TabOrder = 5
     TabStop = True
     Visible = False
   end
   object cbStepOver: TCheckBox
+    AnchorSideLeft.Control = Label1
     AnchorSideTop.Control = cbSaveStack
     AnchorSideTop.Side = asrBottom
-    Left = 17
+    Left = 16
     Height = 19
     Top = 122
     Width = 183
     Caption = 'Step over instead of single step'
-    TabOrder = 8
+    TabOrder = 6
   end
   object cbSkipSystemModules: TCheckBox
+    AnchorSideLeft.Control = Label1
     AnchorSideTop.Control = cbStepOver
     AnchorSideTop.Side = asrBottom
-    Left = 17
+    Left = 16
     Height = 19
     Top = 141
     Width = 131
     Caption = 'Skip system modules'
-    TabOrder = 9
+    TabOrder = 7
+  end
+  object Panel1: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = rbBreakOnAccess
+    AnchorSideTop.Side = asrBottom
+    Left = 47
+    Height = 30
+    Top = 181
+    Width = 154
+    AutoSize = True
+    BorderSpacing.Top = 2
+    BorderSpacing.Bottom = 2
+    BevelOuter = bvNone
+    ClientHeight = 30
+    ClientWidth = 154
+    TabOrder = 8
+    object btnCancel: TButton
+      AnchorSideLeft.Control = btnOK
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = btnOK
+      Left = 79
+      Height = 25
+      Top = 5
+      Width = 75
+      AutoSize = True
+      BorderSpacing.Left = 4
+      Cancel = True
+      Caption = 'Cancel'
+      Constraints.MinWidth = 75
+      ModalResult = 2
+      TabOrder = 0
+    end
+    object btnOK: TButton
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = Panel1
+      Left = 0
+      Height = 25
+      Top = 5
+      Width = 75
+      AutoSize = True
+      BorderSpacing.Top = 5
+      Caption = 'OK'
+      Constraints.MinWidth = 75
+      Default = True
+      ModalResult = 1
+      TabOrder = 1
+    end
   end
 end
