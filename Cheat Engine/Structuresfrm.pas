@@ -88,13 +88,6 @@ resourcestring
 
 implementation
 
-
-uses StructuresAddElementfrm,Valuechange,MainUnit, MemoryBrowserFormUnit, OpenSave,
-  frmStructuresConfigUnit, MemoryRecordUnit;
-
-
-
-
 initialization
   {$i Structuresfrm.lrs}
 

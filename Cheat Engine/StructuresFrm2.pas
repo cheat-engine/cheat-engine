@@ -363,13 +363,13 @@ type
     miNewWindow: TMenuItem;
     Open1: TMenuItem;
     OpenDialog1: TOpenDialog;
-    pnlGroups: TPanel;
     pmStructureView: TPopupMenu;
     miRecalculateAddress: TMenuItem;
     Renamestructure1: TMenuItem;
     Save1: TMenuItem;
     SaveDialog1: TSaveDialog;
     saveValues: TSaveDialog;
+    pnlGroups: TScrollBox;
     Structures1: TMenuItem;
     tmFixGui: TTimer;
     updatetimer: TTimer;
@@ -2158,7 +2158,7 @@ begin
 end;
 
 procedure TStructColumn.setFocused(state: boolean);
-var i: integer;
+var i,x: integer;
 begin
   if fFocused=state then exit;
 
@@ -2170,12 +2170,30 @@ begin
   begin
     for i:=0 to parent.parent.columncount-1 do
       if parent.parent.columns[i]<>self then
+      begin
         parent.parent.columns[i].focused:=false;
+      end
+      else
+      begin
+        if state and parent.parent.pnlGroups.HorzScrollBar.IsScrollBarVisible then
+        begin
+
+          x:=parent.parent.columns[i].EditLeft+parent.parent.columns[i].parent.GroupBox.left;
+          //if not visible, then make it visible
+          if not InRange(x+parent.parent.columns[i].EditWidth div 2, parent.parent.pnlGroups.HorzScrollBar.Position,  parent.parent.pnlGroups.ClientWidth) then
+          begin
+            parent.parent.pnlGroups.HorzScrollBar.Position:=x-5;
+          end;
+
+        end;
+      end;
   end;
 
   //make focus visible
   focusedShape.visible:=state;
   fFocused:=state;
+
+
 end;
 
 procedure TStructColumn.clearSavedState;
@@ -2653,6 +2671,7 @@ begin
   GroupBox.Caption:=groupname;
   GroupBox.height:=parent.pnlGroups.ClientHeight;
   groupbox.parent:=parent.pnlGroups;
+  //groupbox.AutoSize:=true;
 
   groupbox.popupmenu:=grouppopup;
 end;
@@ -2760,6 +2779,7 @@ end;
 
 procedure TfrmStructures2.FormShow(Sender: TObject);
 begin
+  HeaderControl1.Height:=canvas.TextHeight('XgjQh'+HeaderControl1.Sections[0].Text)+4;
   if (initialaddress<>0) and (columnCount=0) then  //add the initial address, else it looks so sad...
   begin
     addColumn;
@@ -5317,12 +5337,6 @@ begin
     group[i].GroupBox.ClientHeight:=maxh;
 
 
-  pnlGroups.ClientHeight:=group[0].GroupBox.top+group[0].GroupBox.Height+2;
-  HeaderControl1.Top:=pnlgroups.Top+pnlGroups.Height;
-  tvStructureView.top:=HeaderControl1.Top+HeaderControl1.Height;
-
-
-
 
   for i:=0 to groupcount-1 do
   begin
@@ -5343,6 +5357,8 @@ begin
     else
       group[i].box.width:=20;
   end;
+
+  pnlGroups.ClientHeight:=group[0].GroupBox.top+group[0].GroupBox.Height+2;
 end;
 
 initialization
