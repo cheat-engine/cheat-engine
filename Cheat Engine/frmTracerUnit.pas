@@ -40,8 +40,25 @@ type
   { TfrmTracer }
 
   TfrmTracer = class(TForm)
+    aflabel: TLabel;
     Button1: TButton;
     btnStopSearch: TButton;
+    cflabel: TLabel;
+    CSLabel: TLabel;
+    dflabel: TLabel;
+    DSLabel: TLabel;
+    EAXLabel: TLabel;
+    EBPlabel: TLabel;
+    EBXlabel: TLabel;
+    ECXlabel: TLabel;
+    EDIlabel: TLabel;
+    EDXlabel: TLabel;
+    EIPlabel: TLabel;
+    ESIlabel: TLabel;
+    ESlabel: TLabel;
+    ESPlabel: TLabel;
+    FSlabel: TLabel;
+    GSlabel: TLabel;
     lblInstruction: TLabel;
     lblAddressed: TLabel;
     MainMenu1: TMainMenu;
@@ -55,39 +72,27 @@ type
     MenuItem5: TMenuItem;
     MenuItem6: TMenuItem;
     miSearchNext: TMenuItem;
+    oflabel: TLabel;
     OpenDialog1: TOpenDialog;
     Panel1: TPanel;
-    EAXLabel: TLabel;
-    EBXlabel: TLabel;
-    ECXlabel: TLabel;
-    EDXlabel: TLabel;
-    ESIlabel: TLabel;
-    EDIlabel: TLabel;
-    EBPlabel: TLabel;
-    ESPlabel: TLabel;
-    EIPlabel: TLabel;
-    cflabel: TLabel;
     Panel2: TPanel;
-    pnlSearch: TPanel;
+    Panel3: TPanel;
+    Panel4: TPanel;
+    Panel5: TPanel;
+    Panel6: TPanel;
+    Panel7: TPanel;
     pflabel: TLabel;
-    aflabel: TLabel;
+    pnlSearch: TPanel;
     pmTracer: TPopupMenu;
     ProgressBar1: TProgressBar;
     SaveDialog1: TSaveDialog;
-    sbShowstack: TSpeedButton;
     lvTracer: TTreeView;
-    zflabel: TLabel;
-    sflabel: TLabel;
-    oflabel: TLabel;
-    CSLabel: TLabel;
-    SSlabel: TLabel;
-    DSLabel: TLabel;
-    ESlabel: TLabel;
-    FSlabel: TLabel;
-    GSlabel: TLabel;
-    Splitter1: TSplitter;
-    dflabel: TLabel;
     sbShowFloats: TSpeedButton;
+    sbShowstack: TSpeedButton;
+    sflabel: TLabel;
+    SSlabel: TLabel;
+    Splitter1: TSplitter;
+    zflabel: TLabel;
     procedure btnStopSearchClick(Sender: TObject);
     procedure lvTracerMouseMove(Sender: TObject; Shift: TShiftState; X,
       Y: Integer);
@@ -819,16 +824,6 @@ begin
   begin
     if processhandler.is64Bit then
     begin
-      ebxlabel.top:=eaxlabel.top+eaxlabel.height;
-      ecxlabel.top:=ebxlabel.top+ebxlabel.height;
-      edxlabel.top:=ecxlabel.top+ecxlabel.height;
-      esilabel.top:=edxlabel.top+edxlabel.height;
-      edilabel.top:=esilabel.top+esilabel.height;
-      ebplabel.top:=edilabel.top+edilabel.height;
-      esplabel.top:=ebplabel.top+ebplabel.height;
-
-      p:=esplabel;
-
       setlength(RXlabels,8);
 
       for i:=8 to 15 do
@@ -838,31 +833,17 @@ begin
 
         with l do
         begin
-          parent:=p.parent;
-          font:=p.font;
-          left:=p.left;
-          top:=p.top+esplabel.height;
-          cursor:=p.cursor;
-
+          parent:=panel4;
+          font:=eaxlabel.font;
+          cursor:=eaxlabel.cursor;
 
           tag:=i;
           onclick:=p.onclick;
           OnMouseDown:=RegisterMouseDown;
-
         end;
-        p:=l;
       end;
 
-      eiplabel.top:=p.top+esplabel.height;
-      cslabel.top:=eiplabel.top+eiplabel.height+20;
-      sslabel.top:=cslabel.top+cslabel.height;
-      dslabel.top:=sslabel.top+sslabel.height;
-      eslabel.top:=dslabel.top+dslabel.height;
-      fslabel.top:=eslabel.top+eslabel.height;
-      gslabel.top:=fslabel.top+fslabel.height;
-
-      if clientheight<(gslabel.top+gslabel.height+button1.height+4) then
-        clientheight:=gslabel.top+gslabel.height+button1.height+4;
+      eiplabel.BringToFront;
 
     end;
 
@@ -890,8 +871,8 @@ begin
         if t.referencedAddress<>0 then
           lblAddressed.caption:=inttohex(t.referencedAddress,8)+' = '+DataToString(t.bytes, t.bytesize, t.datatype)
         else
-          lblAddressed.caption:='';
-      end else lblAddressed.Caption:='';
+          lblAddressed.caption:=' ';
+      end else lblAddressed.Caption:=' ';
 
 
       context:=t.c;
@@ -1160,20 +1141,7 @@ end;
 
 procedure TfrmTracer.Panel1Resize(Sender: TObject);
 begin
-  button1.Top:=clientheight-button1.height-3;
 
-  if sbShowstack.visible then
-  begin
-    sbShowFloats.top:=(clientheight div 2)-(sbshowFloats.height);
-    sbShowstack.top:=(clientheight div 2);
-    sbShowFloats.Left:=panel1.ClientWidth-sbshowfloats.width-2;
-    sbShowstack.left:=sbshowfloats.left;
-  end
-  else
-  begin
-    sbShowFloats.top:=(clientheight div 2)-(sbshowFloats.height div 2);
-    sbShowFloats.Left:=panel1.ClientWidth-sbshowfloats.width-2;
-  end;
 end;
 
 procedure TfrmTracer.sbShowFloatsClick(Sender: TObject);

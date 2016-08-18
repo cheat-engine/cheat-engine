@@ -42,6 +42,7 @@ type
     Panel1: TPanel;
     Panel2: TPanel;
     Panel3: TPanel;
+    Panel4: TPanel;
     procedure Button1Click(Sender: TObject);
     procedure ColorClickOld(Sender: TObject);
     procedure comboBackgroundChange(Sender: TObject);

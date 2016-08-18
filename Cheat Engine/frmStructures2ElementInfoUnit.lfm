@@ -1,139 +1,165 @@
 object frmStructures2ElementInfo: TfrmStructures2ElementInfo
-  Left = 982
-  Height = 284
-  Top = 102
-  Width = 302
+  Left = 442
+  Height = 299
+  Top = 393
+  Width = 314
+  AutoSize = True
   BorderStyle = bsSingle
   Caption = 'Structure Info'
-  ClientHeight = 284
-  ClientWidth = 302
+  ClientHeight = 299
+  ClientWidth = 314
   OnCreate = FormCreate
   PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object Label1: TLabel
+    AnchorSideLeft.Control = Label3
+    AnchorSideTop.Control = edtOffset
+    AnchorSideTop.Side = asrBottom
     Left = 20
-    Height = 13
-    Top = 40
-    Width = 53
+    Height = 15
+    Top = 42
+    Width = 60
+    BorderSpacing.Top = 2
     Caption = 'Description'
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
     ParentColor = False
-    ParentFont = False
   end
   object Label2: TLabel
+    AnchorSideLeft.Control = edtByteSize
+    AnchorSideTop.Control = Label4
     Left = 240
-    Height = 13
-    Top = 80
-    Width = 39
+    Height = 15
+    Top = 83
+    Width = 42
     Caption = 'Bytesize'
     Enabled = False
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
     ParentColor = False
-    ParentFont = False
   end
   object Label3: TLabel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
     Left = 20
-    Height = 13
-    Top = 0
-    Width = 28
+    Height = 15
+    Top = 2
+    Width = 32
+    BorderSpacing.Left = 20
+    BorderSpacing.Top = 2
     Caption = 'Offset'
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
     ParentColor = False
-    ParentFont = False
   end
   object cbStructType: TComboBox
+    AnchorSideLeft.Control = Label5
+    AnchorSideTop.Control = Label5
+    AnchorSideTop.Side = asrBottom
     Left = 20
-    Height = 21
-    Top = 206
+    Height = 23
+    Top = 212
     Width = 208
     Enabled = False
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
-    ItemHeight = 13
+    ItemHeight = 15
     ItemIndex = 0
     Items.Strings = (
       'Undefined'
     )
     OnChange = cbStructTypeChange
-    ParentFont = False
     Style = csDropDownList
     TabOrder = 5
     Text = 'Undefined'
   end
   object Button1: TButton
+    AnchorSideLeft.Control = cbExpandChangesAddress
+    AnchorSideTop.Control = cbExpandChangesAddress
+    AnchorSideTop.Side = asrBottom
     Left = 20
-    Height = 24
-    Top = 256
-    Width = 76
+    Height = 25
+    Top = 268
+    Width = 75
+    AutoSize = True
+    BorderSpacing.Top = 10
+    BorderSpacing.Bottom = 6
     Caption = 'OK'
+    Constraints.MinWidth = 75
     Default = True
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
     OnClick = Button1Click
-    ParentFont = False
     TabOrder = 7
   end
   object Button2: TButton
-    Left = 112
-    Height = 24
-    Top = 256
-    Width = 76
+    AnchorSideLeft.Control = Button1
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Button1
+    Left = 102
+    Height = 25
+    Top = 268
+    Width = 75
+    AutoSize = True
+    BorderSpacing.Left = 7
+    BorderSpacing.Bottom = 6
     Cancel = True
     Caption = 'Cancel'
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
+    Constraints.MinWidth = 75
     ModalResult = 2
-    ParentFont = False
     TabOrder = 8
   end
   object edtDescription: TEdit
+    AnchorSideLeft.Control = Label1
+    AnchorSideTop.Control = Label1
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
     Left = 20
-    Height = 21
-    Top = 56
+    Height = 23
+    Top = 57
     Width = 274
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Right = 20
     OnChange = edtDescriptionChange
-    ParentFont = False
     TabOrder = 0
   end
   object edtByteSize: TEdit
+    AnchorSideLeft.Control = cbType
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = cbType
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
     Left = 240
-    Height = 21
-    Top = 96
+    Height = 23
+    Top = 99
     Width = 54
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Left = 12
+    BorderSpacing.Right = 20
+    Constraints.MinWidth = 50
     Enabled = False
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
     OnChange = edtByteSizeChange
-    ParentFont = False
     TabOrder = 2
     Text = '0'
   end
   object edtOffset: TEdit
+    AnchorSideLeft.Control = Label3
+    AnchorSideTop.Control = Label3
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
     Left = 20
-    Height = 21
-    Top = 16
+    Height = 23
+    Top = 17
     Width = 274
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Right = 20
     OnChange = edtOffsetChange
-    ParentFont = False
     TabOrder = 9
     Text = '0'
   end
   object cbType: TComboBox
+    AnchorSideLeft.Control = Label4
+    AnchorSideTop.Control = Label4
+    AnchorSideTop.Side = asrBottom
     Left = 20
-    Height = 21
-    Top = 96
+    Height = 23
+    Top = 99
     Width = 208
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
-    ItemHeight = 13
+    BorderSpacing.Top = 1
+    ItemHeight = 15
     ItemIndex = 2
     Items.Strings = (
       'Byte'
@@ -148,85 +174,115 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
       'Pointer'
     )
     OnChange = cbTypeChange
-    ParentFont = False
     Style = csDropDownList
     TabOrder = 1
     Text = '4 Bytes'
   end
   object Label4: TLabel
+    AnchorSideLeft.Control = edtDescription
+    AnchorSideTop.Control = edtDescription
+    AnchorSideTop.Side = asrBottom
     Left = 20
     Height = 15
-    Top = 80
+    Top = 83
     Width = 26
+    BorderSpacing.Top = 3
     Caption = 'Type'
     ParentColor = False
   end
   object Label5: TLabel
+    AnchorSideLeft.Control = pnlBackground
+    AnchorSideTop.Control = pnlBackground
+    AnchorSideTop.Side = asrBottom
     Left = 20
     Height = 15
-    Top = 190
+    Top = 197
     Width = 106
     Caption = 'Structure pointed to'
     Enabled = False
     ParentColor = False
   end
   object cbHexadecimal: TCheckBox
+    AnchorSideLeft.Control = cbType
+    AnchorSideTop.Control = cbType
+    AnchorSideTop.Side = asrBottom
     Left = 20
     Height = 19
-    Top = 120
+    Top = 130
     Width = 88
+    BorderSpacing.Top = 8
     Caption = 'Hexadecimal'
     OnChange = cbHexadecimalChange
     TabOrder = 3
   end
   object cbSigned: TCheckBox
-    Left = 120
+    AnchorSideLeft.Control = cbHexadecimal
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = cbHexadecimal
+    Left = 124
     Height = 19
-    Top = 120
+    Top = 130
     Width = 56
+    BorderSpacing.Left = 16
     Caption = 'Signed'
     OnChange = cbSignedChange
     TabOrder = 4
   end
   object lblOffsetInto: TLabel
+    AnchorSideLeft.Control = edtChildstart
+    AnchorSideTop.Control = Label5
     Left = 240
-    Height = 13
-    Top = 190
-    Width = 48
+    Height = 15
+    Top = 197
+    Width = 56
     Caption = 'Offset into'
     Enabled = False
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
     ParentColor = False
-    ParentFont = False
   end
   object edtChildstart: TEdit
+    AnchorSideLeft.Control = cbStructType
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = cbStructType
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
     Left = 240
-    Height = 21
-    Top = 206
+    Height = 23
+    Top = 212
     Width = 54
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Left = 12
+    BorderSpacing.Right = 20
+    Constraints.MinWidth = 50
     Enabled = False
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
     OnChange = edtChildstartChange
-    ParentFont = False
     TabOrder = 6
     Text = '0'
   end
   object Label6: TLabel
+    AnchorSideLeft.Control = cbHexadecimal
+    AnchorSideTop.Control = cbHexadecimal
+    AnchorSideTop.Side = asrBottom
     Left = 20
     Height = 15
-    Top = 144
+    Top = 153
     Width = 96
+    BorderSpacing.Top = 4
     Caption = 'Background Color'
     ParentColor = False
   end
   object pnlBackground: TPanel
+    AnchorSideLeft.Control = Label6
+    AnchorSideTop.Control = Label6
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
     Cursor = crHandPoint
     Left = 20
     Height = 29
-    Top = 160
-    Width = 276
+    Top = 168
+    Width = 274
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Right = 20
     BevelOuter = bvNone
     Color = clWindow
     ParentColor = False
@@ -234,10 +290,15 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     OnClick = pnlBackgroundClick
   end
   object cbExpandChangesAddress: TCheckBox
+    AnchorSideLeft.Control = cbStructType
+    AnchorSideTop.Control = cbStructType
+    AnchorSideTop.Side = asrBottom
     Left = 20
     Height = 19
-    Top = 232
+    Top = 239
     Width = 253
+    BorderSpacing.Top = 4
+    BorderSpacing.Right = 20
     Caption = 'Expanding this node will change the address'
     Enabled = False
     TabOrder = 11

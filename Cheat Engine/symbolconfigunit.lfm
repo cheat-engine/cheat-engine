@@ -1,91 +1,139 @@
 object frmSymbolhandler: TfrmSymbolhandler
   Left = 855
-  Height = 338
+  Height = 253
   Top = 258
-  Width = 489
+  Width = 468
   Caption = 'Symbol config'
-  ClientHeight = 338
-  ClientWidth = 489
-  Font.Height = -14
-  Font.Name = 'MS Sans Serif'
+  ClientHeight = 253
+  ClientWidth = 468
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object Panel1: TPanel
-    Left = 320
-    Height = 338
+    Left = 303
+    Height = 253
     Top = 0
-    Width = 169
+    Width = 165
     Align = alRight
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 338
-    ClientWidth = 169
+    ClientHeight = 253
+    ClientWidth = 165
+    Constraints.MinHeight = 250
     TabOrder = 0
-    object Label3: TLabel
-      Left = 32
-      Height = 16
-      Top = 10
-      Width = 124
-      Caption = 'Unique symbolname'
-      ParentColor = False
-    end
     object Label2: TLabel
-      Left = 63
-      Height = 16
-      Top = 59
-      Width = 51
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = edtSymbolname
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Panel1
+      AnchorSideRight.Side = asrBottom
+      Left = 8
+      Height = 15
+      Top = 58
+      Width = 149
+      Alignment = taCenter
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Left = 8
+      BorderSpacing.Top = 4
+      BorderSpacing.Right = 8
       Caption = 'Address'
       ParentColor = False
     end
-    object edtSymbolname: TEdit
-      Left = 10
-      Height = 24
-      Top = 30
+    object edtAddress: TEdit
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = Label2
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 23
+      Top = 73
       Width = 149
+      BorderSpacing.Left = 8
+      BorderSpacing.Right = 8
       TabOrder = 0
     end
-    object edtAddress: TEdit
-      Left = 10
-      Height = 24
-      Top = 79
-      Width = 149
-      TabOrder = 1
-    end
     object Button1: TButton
+      AnchorSideLeft.Control = Panel1
+      AnchorSideLeft.Side = asrCenter
+      AnchorSideTop.Control = edtAddress
+      AnchorSideTop.Side = asrBottom
       Left = 37
-      Height = 31
-      Top = 108
-      Width = 92
+      Height = 25
+      Top = 104
+      Width = 90
+      AutoSize = True
+      BorderSpacing.Top = 8
       Caption = 'Add symbol'
       OnClick = Button1Click
+      TabOrder = 1
+    end
+    object Panel3: TPanel
+      Left = 0
+      Height = 0
+      Top = 144
+      Width = 0
+      AutoSize = True
+      Caption = 'Panel3'
       TabOrder = 2
+    end
+    object Label3: TLabel
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = Panel1
+      AnchorSideRight.Control = Panel1
+      AnchorSideRight.Side = asrBottom
+      Left = 8
+      Height = 15
+      Top = 16
+      Width = 149
+      Alignment = taCenter
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Left = 8
+      BorderSpacing.Top = 16
+      BorderSpacing.Right = 8
+      Caption = 'Unique symbolname'
+      ParentColor = False
+    end
+    object edtSymbolname: TEdit
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = Label3
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Panel1
+      AnchorSideRight.Side = asrBottom
+      Left = 8
+      Height = 23
+      Top = 31
+      Width = 149
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Left = 8
+      BorderSpacing.Right = 8
+      OnChange = edtSymbolnameChange
+      TabOrder = 3
     end
   end
   object Panel2: TPanel
     Left = 0
-    Height = 338
+    Height = 253
     Top = 0
-    Width = 320
+    Width = 303
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 338
-    ClientWidth = 320
+    ClientHeight = 253
+    ClientWidth = 303
     TabOrder = 1
     object Label1: TLabel
       Left = 0
-      Height = 16
+      Height = 15
       Top = 0
-      Width = 320
+      Width = 303
       Align = alTop
       Caption = 'Userdefined symbols:'
       ParentColor = False
     end
     object ListView1: TListView
       Left = 0
-      Height = 322
-      Top = 16
-      Width = 320
+      Height = 238
+      Top = 15
+      Width = 303
       Align = alClient
       Columns = <      
         item

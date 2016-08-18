@@ -16,26 +16,27 @@ type
   TfrmRescanPointer = class(TForm)
     Button1: TButton;
     Button2: TButton;
-    cbDelay: TCheckBox;
     cbBasePointerMustBeInRange: TCheckBox;
-    cbMustStartWithSpecificOffsets: TCheckBox;
-    cbMustEndWithSpecificOffsets: TCheckBox;
-    cbRepeat: TCheckBox;
-    cbNoValueCheck: TCheckBox;
+    cbDelay: TCheckBox;
     cbLuaFilter: TCheckBox;
+    cbMustEndWithSpecificOffsets: TCheckBox;
+    cbMustStartWithSpecificOffsets: TCheckBox;
+    cbNoValueCheck: TCheckBox;
+    cbRepeat: TCheckBox;
     cbUseSavedPointermap: TCheckBox;
-    lblLuaParams: TLabel;
-    edtRescanFunction: TEdit;
-    edtBaseStart: TEdit;
-    edtBaseEnd: TEdit;
-    edtDelay: TEdit;
-    edtAddress: TEdit;
     cbValueType: TComboBox;
+    edtAddress: TEdit;
+    edtBaseEnd: TEdit;
+    edtBaseStart: TEdit;
+    edtDelay: TEdit;
+    edtRescanFunction: TEdit;
     Label1: TLabel;
     lblAnd: TLabel;
+    lblLuaParams: TLabel;
     odLoadPointermap: TOpenDialog;
-    pnlButtons: TPanel;
+    Panel1: TPanel;
     Panel2: TPanel;
+    pnlButtons: TPanel;
     rbFindAddress: TRadioButton;
     rbFindValue: TRadioButton;
     procedure btnNotifySpecificIPsClick(Sender: TObject);
@@ -253,43 +254,57 @@ begin
     endoffsets.OwnsObjects:=true;
 
     e:=TEdit.Create(self);
-    e.Top:=cbMustendWithSpecificOffsets.Top+cbMustendWithSpecificOffsets.Height+3;
-    e.left:=cbMustendWithSpecificOffsets.left;
-    e.Parent:=self;
+    e.AnchorSideTop.Control:=cbMustEndWithSpecificOffsets;
+    e.AnchorSideTop.Side:=asrBottom;
+    e.AnchorSideLeft.Control:=cbMustEndWithSpecificOffsets;
+    e.AnchorSideLeft.Side:=asrLeft;
+    e.Parent:=panel1;
     endoffsets.Add(e);
 
     if lblInfoLastOffset=nil then
     begin
       lblInfoLastOffset:=TLabel.create(self);
       lblInfoLastOffset.caption:=rsRPLastOffset;
-      lblInfoLastOffset.left:=e.Left+e.Width+5;
-      lblInfoLastOffset.parent:=self;
+      lblInfoLastOffset.BorderSpacing.Left:=7;
+      lblInfoLastOffset.parent:=panel1;
       lblInfoLastOffset.visible:=false;
     end;
+
+    lblInfoLastOffset.AnchorSideLeft.Control:=e;
+    lblInfoLastOffset.AnchorSideLeft.Side:=asrRight;
+    lblInfoLastOffset.AnchorSideTop.Control:=e;
+    lblInfoLastOffset.AnchorSideTop.Side:=asrCenter;
 
     if btnAddendOffset=nil then
     begin
       btnAddendOffset:=TButton.create(self);
+      btnAddendOffset.Constraints.MinWidth:=60;
+      btnAddendOffset.autosize:=true;
       btnAddendOffset.caption:=rsAdd;
-      btnAddendOffset.Top:=e.top;
-      btnAddendOffset.left:=e.Left+e.Width+3;
-      btnAddendOffset.width:=60;
-      btnAddendOffset.height:=e.Height;
       btnAddendOffset.onclick:=btnAddendOffsetClick;
-      btnAddendOffset.parent:=self;
+      btnAddendOffset.parent:=panel1;
     end;
+
+    btnAddEndOffset.AnchorSideLeft.Control:=e;
+    btnAddEndOffset.AnchorSideLeft.Side:=asrRight;
+    btnAddEndOffset.AnchorSideTop.Control:=e;
+    btnAddEndOffset.AnchorSideTop.Side:=asrCenter;
+    btnAddEndOffset.BorderSpacing.Left:=7;
 
 
     if btnRemoveendOffset=nil then
     begin
       btnRemoveendOffset:=TButton.create(self);
       btnRemoveendOffset.caption:=rsRemove;
-      btnRemoveendOffset.Top:=btnAddendOffset.top;
-      btnRemoveendOffset.left:=btnAddendOffset.Left+btnAddendOffset.Width+3;
-      btnRemoveendOffset.width:=btnAddendOffset.width;
-      btnRemoveendOffset.height:=btnAddendOffset.height;
+      btnRemoveendOffset.Constraints.MinWidth:=60;
+      btnRemoveendOffset.AnchorSideLeft.Control:=btnAddendOffset;
+      btnRemoveendOffset.AnchorSideLeft.Side:=asrRight;
+      btnRemoveendOffset.AnchorSideTop.Control:=btnAddendOffset;
+      btnRemoveendOffset.AnchorSideTop.Side:=asrTop;
+      btnRemoveendOffset.BorderSpacing.Left:=7;
+      btnRemoveendOffset.AutoSize:=true;
       btnRemoveendOffset.OnClick:=btnRemoveendOffsetClick;
-      btnRemoveendOffset.parent:=self;
+      btnRemoveendOffset.parent:=panel1;
     end;
 
     btnAddendOffset.visible:=true;
@@ -319,51 +334,76 @@ var e: Tedit;
 begin
   if cbMustStartWithSpecificOffsets.checked then
   begin
+
+
     //create the first offset block
     startoffsets:=TComponentList.create;
     startoffsets.OwnsObjects:=true;
 
     e:=TEdit.Create(self);
-    e.left:=cbMustStartWithSpecificOffsets.left;
-    e.Parent:=self;
+    e.Parent:=panel1;
+    e.AnchorSideTop.Control:=cbMustStartWithSpecificOffsets;
+    e.AnchorSideTop.Side:=asrBottom;
+    e.AnchorSideLeft.Control:=cbMustStartWithSpecificOffsets;
+    e.AnchorSideLeft.Side:=asrLeft;
     startoffsets.Add(e);
 
     if lblInfoFirstOffset=nil then
     begin
       lblInfoFirstOffset:=TLabel.create(self);
       lblInfoFirstOffset.caption:=rsRPFirstOffset;
-      lblInfoFirstOffset.left:=e.Left+e.Width+5;
-      lblInfoFirstOffset.parent:=self;
+      lblInfoFirstOffset.parent:=panel1;
+      lblInfoFirstOffset.BorderSpacing.Left:=7;
+
       lblInfoFirstOffset.visible:=false;
     end;
+    lblInfoFirstOffset.AnchorSideLeft.Control:=e;
+    lblInfoFirstOffset.AnchorSideLeft.Side:=asrRight;
+    lblInfoFirstOffset.AnchorSideTop.Control:=e;
+    lblInfoFirstOffset.AnchorSideTop.Side:=asrCenter;
+
 
     if btnAddStartOffset=nil then
     begin
       btnAddStartOffset:=TButton.create(self);
       btnAddStartOffset.caption:=rsAdd;
-      btnAddStartOffset.left:=e.Left+e.Width+3;
-      btnAddStartOffset.width:=60;
-      btnAddStartOffset.height:=e.Height;
+      btnAddStartOffset.Constraints.MinWidth:=60;
+      btnAddStartOffset.AutoSize:=true;
+
       btnAddStartOffset.onclick:=btnAddStartOffsetClick;
-      btnAddStartOffset.parent:=self;
+      btnAddStartOffset.parent:=panel1;
     end;
+
+    btnAddStartOffset.AnchorSideLeft.Control:=e;
+    btnAddStartOffset.AnchorSideLeft.Side:=asrRight;
+    btnAddStartOffset.AnchorSideTop.Control:=e;
+    btnAddStartOffset.AnchorSideTop.Side:=asrCenter;
+    btnAddStartOffset.BorderSpacing.Left:=7;
 
     if btnRemoveStartOffset=nil then
     begin
       btnRemoveStartOffset:=TButton.create(self);
       btnRemoveStartOffset.caption:=rsRemove;
-      btnRemoveStartOffset.left:=btnAddStartOffset.Left+btnAddStartOffset.Width+3;
-      btnRemoveStartOffset.width:=btnAddStartOffset.width;
-      btnRemoveStartOffset.height:=btnAddStartOffset.height;
+      btnRemoveStartOffset.Constraints.MinWidth:=60;
+      btnRemoveStartOffset.AnchorSideLeft.Control:=btnAddStartOffset;
+      btnRemoveStartOffset.AnchorSideLeft.Side:=asrRight;
+      btnRemoveStartOffset.AnchorSideTop.Control:=btnAddStartOffset;
+      btnRemoveStartOffset.AnchorSideTop.Side:=asrTop;
+      btnRemoveStartOffset.BorderSpacing.Left:=7;
+      btnRemoveStartOffset.AutoSize:=true;
       btnRemoveStartOffset.OnClick:=btnRemoveStartOffsetClick;
-      btnRemoveStartOffset.parent:=self;
+      btnRemoveStartOffset.parent:=panel1;
     end;
 
     btnAddStartOffset.visible:=true;
     btnRemoveStartOffset.visible:=true;
+
+    cbMustEndWithSpecificOffsets.AnchorSideTop.Control:=btnAddStartOffset;
   end
   else
   begin
+    cbMustEndWithSpecificOffsets.AnchorSideTop.Control:=cbMustStartWithSpecificOffsets;
+
     //delete all start offsets
     if btnAddStartOffset<>nil then
       btnAddStartOffset.visible:=false;
@@ -448,6 +488,8 @@ var e: Tedit;
   i: integer;
   nextstart: integer;
 begin
+  DoAutoSize;
+  {
   e:=nil;
   if cbMustStartWithSpecificOffsets.Checked then
   begin
@@ -505,17 +547,25 @@ begin
     pnlButtons.top:=cbMustEndWithSpecificOffsets.top+cbMustEndWithSpecificOffsets.height+4;
   end;
 
-  clientheight:=pnlbuttons.top+pnlButtons.height;
+  clientheight:=pnlbuttons.top+pnlButtons.height;  }
 end;
 
 procedure TfrmRescanPointer.btnAddStartOffsetClick(sender: TObject);
 var e: Tedit;
 begin
   e:=Tedit.create(self);
-  e.left:=cbMustStartWithSpecificOffsets.left;
-  e.Parent:=self;
-  startoffsets.Add(e);
+  e.AnchorSideTop.Control:=tcontrol(startoffsets[startoffsets.count-1]);
+  e.AnchorSideTop.Side:=asrBottom;
 
+  e.AnchorSideLeft.Control:=tcontrol(startoffsets[0]);
+  e.AnchorSideLeft.Side:=asrLeft;
+  e.BorderSpacing.Top:=2;
+  e.Parent:=panel1;
+
+  btnAddStartOffset.AnchorSideTop.Control:=e;
+
+  startoffsets.Add(e);
+  lblInfoFirstOffset.Visible:=true;
   updatePositions;
 end;
 
@@ -526,16 +576,33 @@ begin
   else
   begin
     startoffsets.Delete(startoffsets.count-1);
-    updatePositions;
+    if startoffsets.count>=1 then btnAddStartOffset.AnchorSideTop.Control:=tcontrol(startoffsets[startoffsets.count-1]);
+
+    lblInfoFirstOffset.visible:=startoffsets.count>1;
   end;
+
+  updatePositions;
 end;
 
 procedure TfrmRescanPointer.btnAddEndOffsetClick(sender: TObject);
-var e: Tedit;
+var
+  e: Tedit;
+  prev: TEdit;
 begin
   e:=Tedit.create(self);
-  e.left:=cbMustStartWithSpecificOffsets.left;
-  e.Parent:=self;
+  e.AnchorSideTop.Control:=cbMustEndWithSpecificOffsets;
+  e.AnchorSideTop.Side:=asrBottom;
+  e.AnchorSideLeft.Control:=cbMustEndWithSpecificOffsets;
+  e.AnchorSideLeft.Side:=asrLeft;
+  e.BorderSpacing.Top:=2;
+  e.Parent:=panel1;
+
+  prev:=Tedit(endoffsets[0]);
+  prev.AnchorSideTop.Control:=e;
+
+  btnAddEndOffset.AnchorSideTop.Control:=e;
+  lblInfoLastOffset.AnchorSideTop.Control:=tcontrol(endoffsets[endoffsets.count-1]);
+  lblInfoLastOffset.Visible:=true;
   endoffsets.Insert(0,e);
   updatePositions;
 end;
@@ -547,6 +614,18 @@ begin
   else
   begin
     endoffsets.Delete(0);
+
+    if endoffsets.count>0 then
+    begin
+      tcontrol(endoffsets[0]).AnchorSideTop.Control:=cbMustEndWithSpecificOffsets;
+      btnAddEndOffset.AnchorSideTop.Control:=tcontrol(endoffsets[0]);
+
+      lblInfoLastOffset.AnchorSideTop.Control:=tcontrol(endoffsets[endoffsets.count-1]);
+
+      lblInfoLastOffset.visible:=endoffsets.count>1;
+    end;
+
+
     updatePositions;
   end;
 end;
