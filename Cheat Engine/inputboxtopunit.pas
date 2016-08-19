@@ -13,10 +13,11 @@ type
   { TInputboxTop }
 
   TInputboxTop = class(TForm)
-    Edit1: TEdit;
     Button1: TButton;
-    Label1: TLabel;
     Button2: TButton;
+    Edit1: TEdit;
+    Label1: TLabel;
+    Panel1: TPanel;
     Timer1: TTimer;
     procedure FormShow(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);

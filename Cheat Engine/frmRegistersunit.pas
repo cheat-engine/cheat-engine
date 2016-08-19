@@ -14,17 +14,18 @@ type
   { TRegisters }
 
   TRegisters = class(TForm)
-    Panel1: TPanel;
     EAXLabel: TLabel;
+    EBPlabel: TLabel;
     EBXlabel: TLabel;
     ECXlabel: TLabel;
-    EDXlabel: TLabel;
-    ESIlabel: TLabel;
     EDIlabel: TLabel;
-    EBPlabel: TLabel;
-    ESPlabel: TLabel;
+    EDXlabel: TLabel;
     EIPlabel: TLabel;
+    ESIlabel: TLabel;
+    ESPlabel: TLabel;
+    Panel1: TPanel;
     Label14: TLabel;
+    Panel3: TPanel;
     sbShowStack: TSpeedButton;
     Shape1: TShape;
     Panel2: TPanel;
@@ -91,115 +92,92 @@ begin
     begin
       r8label:=TLabel.create(self);
       r8label.font:=eaxlabel.Font;
-      r8label.left:=eaxlabel.left;
-      r8label.top:=esplabel.Top+esplabel.Height;
-      r8label.height:=eaxlabel.height;
       r8label.OnDblClick:=EAXLabelDblClick;
       r8label.OnMouseDown:=RegisterMouseDown;
       r8label.Cursor:=crHandPoint;
       r8label.tag:=9;
-      r8label.parent:=panel1;
+      r8label.parent:=panel3;
     end;
 
     if R9Label=nil then
     begin
       r9label:=TLabel.create(self);
       r9label.font:=eaxlabel.Font;
-      r9label.left:=eaxlabel.left;
-      r9label.top:=r8label.Top+r8label.Height;
-      r9label.height:=eaxlabel.height;
       r9label.OnDblClick:=EAXLabelDblClick;
       r9label.OnMouseDown:=RegisterMouseDown;
       r9label.Cursor:=crHandPoint;
       r9label.tag:=10;
-      r9label.parent:=panel1;
+      r9label.parent:=panel3;
     end;
 
     if R10Label=nil then
     begin
       r10label:=TLabel.create(self);
       r10label.font:=eaxlabel.Font;
-      r10label.left:=eaxlabel.left;
-      r10label.top:=r9label.Top+r9label.Height;
-      r10label.height:=eaxlabel.height;
       r10label.OnDblClick:=EAXLabelDblClick;
       r10label.OnMouseDown:=RegisterMouseDown;
       r10label.Cursor:=crHandPoint;
       r10label.tag:=11;
-      r10label.parent:=panel1;
+      r10label.parent:=panel3;
     end;
 
     if R11Label=nil then
     begin
       r11label:=TLabel.create(self);
       r11label.font:=eaxlabel.Font;
-      r11label.left:=eaxlabel.left;
-      r11label.top:=r10label.Top+r10label.Height;
-      r11label.height:=eaxlabel.height;
       r11label.OnDblClick:=EAXLabelDblClick;
       r11label.OnMouseDown:=RegisterMouseDown;
       r11label.Cursor:=crHandPoint;
       r11label.tag:=12;
-      r11label.parent:=panel1;
+      r11label.parent:=panel3;
     end;
 
     if R12Label=nil then
     begin
       r12label:=TLabel.create(self);
       r12label.font:=eaxlabel.Font;
-      r12label.left:=eaxlabel.left;
-      r12label.top:=r11label.Top+r11label.Height;
-      r12label.height:=eaxlabel.height;
       r12label.OnDblClick:=EAXLabelDblClick;
       r12label.OnMouseDown:=RegisterMouseDown;
       r12label.Cursor:=crHandPoint;
       r12label.tag:=13;
-      r12label.parent:=panel1;
+      r12label.parent:=panel3;
     end;
 
     if R13Label=nil then
     begin
       r13label:=TLabel.create(self);
       r13label.font:=eaxlabel.Font;
-      r13label.left:=eaxlabel.left;
-      r13label.top:=r12label.Top+r12label.Height;
-      r13label.height:=eaxlabel.height;
       r13label.OnDblClick:=EAXLabelDblClick;
       r13label.OnMouseDown:=RegisterMouseDown;
       r13label.Cursor:=crHandPoint;
       r13label.tag:=14;
-      r13label.parent:=panel1;
+      r13label.parent:=panel3;
     end;
 
     if R14Label=nil then
     begin
       r14label:=TLabel.create(self);
       r14label.font:=eaxlabel.Font;
-      r14label.left:=eaxlabel.left;
-      r14label.top:=r13label.Top+r13label.Height;
-      r14label.height:=eaxlabel.height;
       r14label.OnDblClick:=EAXLabelDblClick;
       r14label.OnMouseDown:=RegisterMouseDown;
       r14label.Cursor:=crHandPoint;
       r14label.tag:=15;
-      r14label.parent:=panel1;
+      r14label.parent:=panel3;
     end;
 
     if R15Label=nil then
     begin
       r15label:=TLabel.create(self);
       r15label.font:=eaxlabel.Font;
-      r15label.left:=eaxlabel.left;
-      r15label.top:=r14label.Top+r14label.Height;
-      r15label.height:=eaxlabel.height;
       r15label.OnDblClick:=EAXLabelDblClick;
       r15label.OnMouseDown:=RegisterMouseDown;
       r15label.Cursor:=crHandPoint;
       r15label.tag:=16;
-      r15label.parent:=panel1;
+      r15label.parent:=panel3;
     end;
 
-    eiplabel.top:=r15label.top+r15label.height;
+
+    eiplabel.BringToFront;
   end else
   begin
     pre:='E';

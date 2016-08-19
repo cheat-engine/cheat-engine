@@ -1,11 +1,11 @@
 object frmUltimap2: TfrmUltimap2
-  Left = 707
-  Height = 580
-  Top = 128
+  Left = 407
+  Height = 573
+  Top = 165
   Width = 642
   AutoSize = True
   Caption = 'Ultimap 2'
-  ClientHeight = 580
+  ClientHeight = 573
   ClientWidth = 642
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
@@ -511,19 +511,19 @@ object frmUltimap2: TfrmUltimap2
   end
   object Panel2: TPanel
     Left = 0
-    Height = 220
+    Height = 213
     Top = 360
     Width = 642
     Align = alClient
     AutoSize = True
     BevelOuter = bvNone
     Caption = 'Panel2'
-    ClientHeight = 220
+    ClientHeight = 213
     ClientWidth = 642
     TabOrder = 1
     object ListView1: TListView
       Left = 0
-      Height = 175
+      Height = 168
       Top = 0
       Width = 642
       Align = alClient
@@ -554,7 +554,7 @@ object frmUltimap2: TfrmUltimap2
     object Panel3: TPanel
       Left = 0
       Height = 45
-      Top = 175
+      Top = 168
       Width = 642
       Align = alBottom
       AutoSize = True

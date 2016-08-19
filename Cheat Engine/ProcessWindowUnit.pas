@@ -25,7 +25,14 @@ type
 
   TProcessWindow = class(TForm)
     btnNetwork: TButton;
+    btnProcesslist: TButton;
+    btnProcessWatch: TButton;
+    btnWindowList: TButton;
+    CancelButton: TButton;
     miOwnProcessesOnly: TMenuItem;
+    OKButton: TButton;
+    Panel3: TPanel;
+    Panel4: TPanel;
     ProcessList: TListBox;
     Panel1: TPanel;
     OpenDialog1: TOpenDialog;
@@ -34,14 +41,9 @@ type
     InputPIDmanually1: TMenuItem;
     Filter1: TMenuItem;
     Panel2: TPanel;
-    btnProcessWatch: TButton;
-    btnWindowList: TButton;
-    btnProcesslist: TButton;
     btnOpenFile: TButton;
     btnCreateThread: TButton;
     Button4: TButton;
-    CancelButton: TButton;
-    OKButton: TButton;
     btnProcessListLong: TButton;
     Showinvisiblewindows1: TMenuItem;
     procedure btnNetworkClick(Sender: TObject);
@@ -541,6 +543,7 @@ begin
 end;
 
 procedure TProcessWindow.FormShow(Sender: TObject);
+var i: integer;
 begin
 
   currentchar:=1;
@@ -548,6 +551,41 @@ begin
 
   setbuttons;
 
+  i:=max(btnProcesslist.width, btnWindowList.width);
+
+  if btnProcessWatch.Visible then
+  begin
+    i:=max(i, btnProcessWatch.Width);
+    btnProcesslist.width:=i;
+    btnWindowList.width:=i;
+    btnProcessWatch.width:=i;
+  end
+  else
+  begin
+    btnProcesslist.width:=i;
+    btnWindowList.width:=i;
+    btnProcesslist.BorderSpacing.Left:=40;
+    btnWindowList.BorderSpacing.Right:=40;
+  end;
+
+  autosize:=false;
+
+  panel3.autosize:=false;
+  i:=max(panel3.width, button4.width);
+  panel3.width:=i;
+  cancelbutton.AnchorSideLeft.Control:=nil;
+  cancelbutton.AnchorSideRight.Control:=panel3;
+  cancelbutton.AnchorSideRight.side:=asrRight;
+  cancelbutton.Anchors:=[akTop, akRight];
+
+  if btnProcessWatch.Visible then
+    i:=max(i, btnProcesslist.width+btnWindowList.width+btnProcessWatch.Width+5)
+  else
+    i:=max(i, btnProcesslist.width+btnWindowList.width+3);
+
+
+  clientwidth:=i+40;
+  clientheight:=trunc(panel2.height*1.8);
 end;
 
 procedure TProcessWindow.ProcessListKeyPress(Sender: TObject; var Key: char);
