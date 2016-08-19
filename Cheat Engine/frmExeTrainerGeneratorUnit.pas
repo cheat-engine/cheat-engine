@@ -285,7 +285,11 @@ begin
               addfile(cheatenginedir+'vehdebug-i386.dll');
 
             if cbKernelDebug.checked then
+            begin
               addfile(cheatenginedir+'dbk32.sys');
+              addfile(cheatenginedir+'dbk64.sys');
+              addfile(cheatenginedir+'cheatengine-i386.exe.sig');
+            end;
 
             if cbModPlayer.checked then
               addfile(cheatenginedir+'libmikmod32.dll');
@@ -303,7 +307,10 @@ begin
               addfile(cheatenginedir+'vehdebug-x86_64.dll');
 
             if cbKernelDebug.checked then
+            begin
               addfile(cheatenginedir+'dbk64.sys');
+              addfile(cheatenginedir+'cheatengine-x86_64.exe.sig');
+            end;
 
             if cbModPlayer.checked then
               addfile(cheatenginedir+'libmikmod64.dll');

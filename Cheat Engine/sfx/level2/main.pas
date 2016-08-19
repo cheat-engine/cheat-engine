@@ -135,6 +135,12 @@ begin
       if filename='cheatengine-x86_64.exe' then
         filename:=ExtractFileName(GetModuleName(0)); //give it the same name as the trainer
 
+      if filename='cheatengine-i386.exe.sig' then
+        filename:=ExtractFileName(GetModuleName(0))+'.sig';
+
+      if filename='cheatengine-x86_64.exe.sig' then
+        filename:=ExtractFileName(GetModuleName(0))+'.sig';
+
       filelist.add(launchdir+filename);
       {$ifndef release}
       deletefile(launchdir+filename); //in case it didn't get deleted
