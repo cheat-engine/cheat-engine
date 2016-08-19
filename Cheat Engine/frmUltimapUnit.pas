@@ -58,27 +58,28 @@ type
   { TfrmUltimap }
 
   TfrmUltimap = class(TForm)
+    btnExecuted: TButton;
+    btnFilterCallCount: TButton;
+    btnFilterModule: TButton;
+    btnNotCalled: TButton;
+    btnNotExecuted: TButton;
     btnPause: TButton;
+    btnResetCount: TButton;
+    btnRet: TButton;
     btnStart: TButton;
     btnStop: TButton;
-    btnFilterModule: TButton;
-    btnResetCount: TButton;
-    btnExecuted: TButton;
-    btnNotExecuted: TButton;
     Button5: TButton;
     Button6: TButton;
-    btnNotCalled: TButton;
-    btnFilterCallCount: TButton;
-    btnRet: TButton;
+    cbFilterFuturePaths: TCheckBox;
+    cbfilterOutNewEntries: TCheckBox;
     cbLogToFile: TRadioButton;
     cbParseData: TRadioButton;
     cbPreemptiveFlush: TCheckBox;
-    cbfilterOutNewEntries: TCheckBox;
-    cbFilterFuturePaths: TCheckBox;
     Edit1: TEdit;
     edtBufSize: TEdit;
     edtFilename: TEdit;
     edtWorkerCount: TEdit;
+    Flusher: TTimer;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
@@ -88,17 +89,18 @@ type
     lblLastfilterresult: TLabel;
     ListView1: TListView;
     MenuItem1: TMenuItem;
-    miSetHotkey: TMenuItem;
     MenuItem2: TMenuItem;
     miRemoveHotkey: TMenuItem;
+    miSetHotkey: TMenuItem;
     Panel1: TPanel;
     Panel2: TPanel;
     Panel3: TPanel;
+    Panel4: TPanel;
     Panel5: TPanel;
+    Panel6: TPanel;
     pmSetHotkey: TPopupMenu;
     PopupMenu1: TPopupMenu;
     Timer1: TTimer;
-    Flusher: TTimer;
     procedure btnStartClick(Sender: TObject);
     procedure btnStopClick(Sender: TObject);
     procedure btnPauseClick(Sender: TObject);
@@ -106,6 +108,7 @@ type
     procedure btnResetCountClick(Sender: TObject);
     procedure btnExecutedClick(Sender: TObject);
     procedure btnNotExecutedClick(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
     procedure Button5Click(Sender: TObject);
     procedure Button6Click(Sender: TObject);
     procedure btnNotCalledClick(Sender: TObject);
@@ -118,6 +121,7 @@ type
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure Label7Click(Sender: TObject);
     procedure ListView1Data(Sender: TObject; Item: TListItem);
     procedure ListView1DblClick(Sender: TObject);
@@ -134,6 +138,7 @@ type
     workers: Array of TUltimap_DataHandlerThread;
 
     validlist: array of PBranchdata;
+    userdefinedpos: boolean;
 
     callTable: TMap;
     retTable: TMap;
@@ -574,6 +579,11 @@ begin
   ApplyFilter(1);
 end;
 
+procedure TfrmUltimap.Button1Click(Sender: TObject);
+begin
+
+end;
+
 procedure TfrmUltimap.btnNotCalledClick(Sender: TObject);
 begin
   ApplyFilter(2);
@@ -872,7 +882,8 @@ begin
   setlength(x, 0);
   ne:=nil;
 
-  loadformposition(self,x);
+  userdefinedpos:=loadformposition(self,x);
+
   if length(x)>=3*6 then
   begin
     for i:=0 to 2 do
@@ -923,6 +934,16 @@ begin
   end;
 
   saveformposition(self,x);
+end;
+
+procedure TfrmUltimap.FormShow(Sender: TObject);
+begin
+  autosize:=false;
+  constraints.MinWidth:=panel4.width+panel6.width;
+  if not userdefinedpos then
+    width:=constraints.MinWidth;
+
+
 end;
 
 procedure TfrmUltimap.Label7Click(Sender: TObject);
