@@ -195,6 +195,9 @@ implementation
 
 uses math;
 
+resourcestring
+  rsFailureToInitializeMikMod = 'Failure to initialize MikMod';
+
 const
   MIKMODCMD_PLAYFILE    = 0;
   MIKMODCMD_PLAYMEMORY  = 1;
@@ -313,7 +316,7 @@ begin
     md_mode^:=md_mode^ or DMODE_HQMIXER or DMODE_SOFT_SNDFX;
 
     if MikMod_Init('')<>0 then
-      raise exception.create('Failure to initialize MikMod');
+      raise exception.create(rsFailureToInitializeMikMod);
 
     MikMod_SetNumVoices(-1, 16);
     MikMod_EnableOutput();
