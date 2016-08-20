@@ -42,6 +42,8 @@ implementation
 uses networkConfig;
 {$endif}
 
+resourcestring
+  rsNoConnection = 'No connection';
 
 threadvar connection: TCEConnection;
 
@@ -274,7 +276,7 @@ begin
   else
   begin
     result:=-1;
-    name:='No connection';
+    name:=rsNoConnection;
   end;
 end;
 
