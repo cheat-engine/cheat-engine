@@ -64,6 +64,9 @@ implementation
 
 uses symbolhandler, ProcessHandlerUnit;
 
+resourcestring
+  rsDBKDebug_StartDebuggingFailed ='DBKDebug_StartDebugging failed';
+
 procedure TThreadPoller.CreateThreadEvent(threadid: dword);
 var ie: PInjectedEvent;
 begin
@@ -220,7 +223,7 @@ begin
     threadpoller.Start;
   end
   else
-    raise exception.create('DBKDebug_StartDebugging failed');
+    raise exception.create(rsDBKDebug_StartDebuggingFailed);
 
 
 end;
