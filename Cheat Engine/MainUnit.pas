@@ -1108,6 +1108,8 @@ resourcestring
   rsWidth = '   -   width=';
   rsHeight = ' , height=';
   rsUnableToScanFixYourScanSettings = 'Unable to scan. Fix your scan settings and restart cheat engine';
+  rsCustomLuaType = 'Custom LUA type';
+  rsCustomTypeName = 'Custom Type Name';
 
 var
   ncol: TColor;
@@ -6926,7 +6928,7 @@ begin
 
   //  animatewindow(mainform.Handle,10000,AW_CENTER);
   //mainform.repaint;
-  fronttext := 'brings Cheat engine to front';
+  fronttext := rsBringsCheatEngineToFront;
 
   if dontrunshow then
     exit;
