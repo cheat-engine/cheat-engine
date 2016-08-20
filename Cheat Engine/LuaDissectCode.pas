@@ -13,6 +13,11 @@ implementation
 
 uses DissectCodeThread, luahandler, LuaClass, LuaObject, symbolhandler;
 
+resourcestring
+  rsTheModuleNamed = 'The module named ';
+  rsCouldNotBeFound = ' could not be found';
+  rsInvalidParametersForDissect = 'Invalid parameters for dissect';
+
 function getDissectCode(L: PLua_State): integer; cdecl;
 begin
   if dissectcode=nil then
@@ -46,7 +51,7 @@ begin
       size:=mi.basesize;
     end
     else
-      raise exception.create('The module named '+modulename+' could not be found')
+      raise exception.create(rsTheModuleNamed+modulename+rsCouldNotBeFound)
 
   end
   else
@@ -61,7 +66,7 @@ begin
 
   end
   else
-    raise exception.create('Invalid parameters for dissect');
+    raise exception.create(rsInvalidParametersForDissect);
 
 
   //all date is here, setup a scan config
