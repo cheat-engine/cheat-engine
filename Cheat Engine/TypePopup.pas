@@ -11,24 +11,31 @@ uses
   StdCtrls, ExtCtrls, LResources, MemoryRecordUnit, cefuncproc, customtypehandler, commonTypeDefs;
 
 type
+
+  { TTypeForm }
+
   TTypeForm = class(TForm)
-    Label1: TLabel;
-    VarType: TComboBox;
+    BitPanel: TPanel;
     Button1: TButton;
     Button2: TButton;
-    LengthPanel: TPanel;
+    cbunicode: TCheckBox;
     Edit1: TEdit;
-    lengthlabel: TLabel;
-    BitPanel: TPanel;
+    Edit2: TEdit;
+    Label1: TLabel;
+    Label10: TLabel;
+    Label11: TLabel;
+    Label2: TLabel;
     Label4: TLabel;
     Label5: TLabel;
     Label6: TLabel;
     Label7: TLabel;
     Label8: TLabel;
     Label9: TLabel;
-    Label10: TLabel;
-    Label11: TLabel;
-    Label2: TLabel;
+    lengthlabel: TLabel;
+    LengthPanel: TPanel;
+    Panel1: TPanel;
+    Panel2: TPanel;
+    Panel3: TPanel;
     RadioButton1: TRadioButton;
     RadioButton2: TRadioButton;
     RadioButton3: TRadioButton;
@@ -37,8 +44,7 @@ type
     RadioButton6: TRadioButton;
     RadioButton7: TRadioButton;
     RadioButton8: TRadioButton;
-    Edit2: TEdit;
-    cbunicode: TCheckBox;
+    VarType: TComboBox;
     procedure Button2Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure VarTypeChange(Sender: TObject);

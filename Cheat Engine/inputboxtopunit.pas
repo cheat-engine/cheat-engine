@@ -94,6 +94,10 @@ begin
         combobox.Items.AddStrings(history);
         combobox.Text:=ADefault;
         edit1.Visible:=false;
+
+        panel1.AnchorSideTop.Control:=combobox;
+        combobox.BorderSpacing.Left:=4;
+        combobox.BorderSpacing.Right:=4;
       end;
 
       if showmodal=mrok then

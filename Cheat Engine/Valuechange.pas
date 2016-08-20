@@ -6,13 +6,17 @@ interface
 
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, LResources, commonTypeDefs,NewKernelHandler, CEFuncProc;
+  StdCtrls, LResources, ExtCtrls, commonTypeDefs,NewKernelHandler, CEFuncProc;
                                        
 type
+
+  { TValueChangeForm }
+
   TValueChangeForm = class(TForm)
-    cbVarType: TComboBox;
     Button1: TButton;
     Button2: TButton;
+    cbVarType: TComboBox;
+    Panel1: TPanel;
     ValueText: TEdit;
     cbunicode: TCheckBox;
     procedure Button2Click(Sender: TObject);

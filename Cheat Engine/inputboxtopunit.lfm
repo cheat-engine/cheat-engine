@@ -26,12 +26,15 @@ object InputboxTop: TInputboxTop
     ParentColor = False
   end
   object Edit1: TEdit
+    AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Label1
     AnchorSideTop.Side = asrBottom
-    Left = 5
+    Left = 4
     Height = 21
     Top = 13
     Width = 273
+    BorderSpacing.Left = 4
+    BorderSpacing.Right = 4
     TabOrder = 0
     Text = 'edit1'
   end

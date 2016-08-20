@@ -1565,6 +1565,13 @@ begin
     begin
       if not EXESaveDialog.Execute then exit;
       f:=EXESaveDialog.FileName;
+
+      if uppercase(ExtractFileName(f))=uppercase(comboProcesslist.Text) then
+      begin
+        messagedlg('You may not name your trainer .EXE the same as the process you wish to cheat on', mtError, [mbok],0);
+        exit;
+      end;
+
       protect:=true;
     end;
 
