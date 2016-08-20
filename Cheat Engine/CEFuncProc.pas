@@ -382,6 +382,21 @@ resourcestring
   rsSeparator = 'Separator';
   rsCEFPDllInjectionFailedSymbolLookupError = 'Dll injection failed: symbol lookup error';
   rsCEFPICantGetTheProcessListYouArePropablyUseinWindowsNtEtc = 'I can''t get the process list. You are propably using windows NT. Use the window list instead!';
+  rsPosition = ' Position';
+  rsAll = 'All';
+  rsBinary = 'Binary';
+  rsArrayOfByte = 'Array of byte';
+  rsByte = 'Byte';
+  rs2Bytes = '2 Bytes';
+  rs4Bytes = '4 Bytes';
+  rs8Bytes = '8 Bytes';
+  rsFloat = 'Float';
+  rsDouble = 'Double';
+  rsString = 'String';
+  rsUnicodeString = 'Unicode String';
+  rsPointer = 'Pointer';
+  rsAutoAssemblerScript = 'Auto Assembler Script';
+  rsCustom = 'Custom';
 
 function ProcessID: dword;
 begin
@@ -2403,7 +2418,7 @@ begin
       if Reg.OpenKey('\Software\Cheat Engine\Window Positions',false) then
       begin
         s:=form.Name;
-        s:=s+' Position';
+        s:=s+rsPosition;
 
         if reg.ValueExists(s) then
         begin
@@ -2511,7 +2526,7 @@ begin
 
           //and now save buf to the registry
           s:=form.Name;
-          s:=s+' Position';
+          s:=s+rsPosition;
 
           reg.WriteBinaryData(s,buf.Memory^,buf.Size);
         finally
@@ -2651,20 +2666,20 @@ end;
 function VariableTypeToString(variableType: TVariableType): string;
 begin
   case variabletype of
-    vtAll: result:='All';
-    vtBinary: result:='Binary';
-    vtByteArray: Result:='Array of byte';
-    vtByte: result:='Byte';
-    vtWord: Result:='2 Bytes';
-    vtDword: Result:='4 Bytes';
-    vtQword: Result:='8 Bytes';
-    vtSingle: Result:='Float';
-    vtDouble: Result:='Double';
-    vtString: Result:='String';
-    vtUnicodeString: Result:='Unicode String';
-    vtPointer: result:='Pointer';
-    vtAutoAssembler: Result:='Auto Assembler Script';
-    vtCustom: Result:='Custom';
+    vtAll: result:=rsAll;
+    vtBinary: result:=rsBinary;
+    vtByteArray: Result:=rsArrayOfByte;
+    vtByte: result:=rsByte;
+    vtWord: Result:=rs2Bytes;
+    vtDword: Result:=rs4Bytes;
+    vtQword: Result:=rs8Bytes;
+    vtSingle: Result:=rsFloat;
+    vtDouble: Result:=rsDouble;
+    vtString: Result:=rsString;
+    vtUnicodeString: Result:=rsUnicodeString;
+    vtPointer: result:=rsPointer;
+    vtAutoAssembler: Result:=rsAutoAssemblerScript;
+    vtCustom: Result:=rsCustom;
   end;
 end;
 
