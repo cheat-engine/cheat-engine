@@ -389,6 +389,9 @@ resourcestring
   rsTheDriverCouldntBeOpenedTryAgain = 'The driver couldn''t be opened! It''s not loaded or not responding. I recommend to reboot your system and try again (If you''re on 64-bit windows, you might want to use dbvm)';
   rsTheDriverThatIsCurrentlyLoaded = 'The driver that is currently loaded belongs to a different version of Cheat Engine. Please unload this driver or reboot.';
   rsTheDriverFailedToSuccessfullyInitialize = 'The driver failed to successfully initialize. Some functions may not completely work';
+  rsAPCRules = 'APC rules';
+  rsPleaseRunThe64BitVersionOfCE = 'Please run the 64-bit version of Cheat Engine';
+  rsDBKError = 'DBK Error';
 
 var dataloc: string;
     applicationPath: string;
@@ -1766,7 +1769,7 @@ begin
   s:=inttohex(ptrUint(NormalContext),8)+' - '+inttohex(ptrUint(SystemArgument1),8)+' - '+inttohex(ptrUint(SystemArgument2),8);
 
   //CreateThread(nil,0,systemArgument1,SystemArgument2,false,@tid);
-  messagebox(0,pchar(s),'APC rules',mb_ok);
+  messagebox(0,pchar(s),pchar(rsAPCRules),mb_ok);
 end;
 
 
@@ -2760,7 +2763,7 @@ begin
               {$ifdef cpu32}
               if iswow64 then
               begin
-                ShowMessage('Please run the 64-bit version of Cheat Engine');
+                ShowMessage(rsPleaseRunThe64BitVersionOfCE);
                 exit;
               end;
               {$endif}
@@ -2771,7 +2774,7 @@ begin
           end
           else
           begin
-            messagebox(0,PChar(rsTheDriverCouldntBeOpenedTryAgain),'DBK Error',MB_ICONERROR or MB_OK)
+            messagebox(0,PChar(rsTheDriverCouldntBeOpenedTryAgain),pchar(rsDBKError),MB_ICONERROR or MB_OK)
           end;
 
         end
