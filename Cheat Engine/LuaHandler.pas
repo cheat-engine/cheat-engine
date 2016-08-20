@@ -71,7 +71,6 @@ resourcestring
   rsThisTypeIsNotSupportedHere='This type is not supported here';
   rsIncorrectNumberOfParameters='Incorrect number of parameters';
 
-
 implementation
 
 uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
@@ -1139,7 +1138,7 @@ function LuaPanic(L: Plua_State): Integer; cdecl;
 begin
   result:=0;
   lua_pop(LuaVM, lua_gettop(luavm));
-  raise exception.create('LUA panic!');
+  raise exception.create(rsLUAPanic);
 end;
 
 
