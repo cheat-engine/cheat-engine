@@ -139,6 +139,10 @@ uses foundcodeunit, DebugHelper, MemoryBrowserFormUnit, frmThreadlistunit,
      frmDebugEventsUnit, formdebugstringsunit, symbolhandler,
      networkInterface, networkInterfaceApi, ProcessHandlerUnit;
 
+resourcestring
+  rsDebugHandleAccessViolationDebugEventNow = 'Debug HandleAccessViolationDebugEvent now';
+  rsSpecialCase = 'Special case';
+
 procedure TDebugThreadHandler.frmchangedaddresses_AddRecord;
 begin
   TDebuggerthread(debuggerthread).execlocation:=44;
@@ -1080,7 +1084,7 @@ begin
     begin
       //pagefault while waiting for single step
       {$ifdef DEBUG}
-      Messagebox(0,'Debug HandleAccessViolationDebugEvent now','Special case',0);
+      Messagebox(0,rsDebugHandleAccessViolationDebugEventNow,rsSpecialCase,0);
       {$endif}
       for i:=0 to temporaryDisabledExceptionBreakpoints.Count-1 do
       begin
