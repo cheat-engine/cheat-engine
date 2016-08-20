@@ -194,6 +194,7 @@ resourcestring
   rsFormDesignerCaption = 'Form Designer';
   rsFormFilesFrmFRM = 'Form files(*.frm)|*.FRM';
   rsFormFilesLfmLFM = 'Form files(*.lfm)|*.LFM';
+  rsShowCheckboxesForBoolean = 'Show checkboxes for boolean';
 
 procedure TFormDesigner.setFormName;
 begin
@@ -1058,7 +1059,7 @@ begin
     end;
 
     miChangeCheckboxSetting:=tmenuitem.create(oid.MainPopupMenu);
-    miChangeCheckboxSetting.caption:='Show checkboxes for boolean';
+    miChangeCheckboxSetting.caption:=rsShowCheckboxesForBoolean;
     miChangeCheckboxSetting.checked:=oid.GridControl[oipgpProperties].CheckboxForBoolean;
     miChangeCheckboxSetting.OnClick:=CheckBoxForbooleanClick;
     miChangeCheckboxSetting.AutoCheck:=true;
