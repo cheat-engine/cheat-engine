@@ -128,6 +128,10 @@ uses MainUnit,MainUnit2, AdvancedOptionsUnit, Assemblerunit,disassembler,frmModi
      formsettingsunit, symbolhandler,frmautoinjectunit, manualModuleLoader,
      MemoryRecordUnit, MemoryBrowserFormUnit, LuaHandler, ProcessHandlerUnit, ProcessList;
 
+resourcestring
+  rsLoadModuleFailed = 'LoadModule failed';
+  rsPluginAddress = 'Plugin Address';
+
 var
   plugindisassembler: TDisassembler;
 
@@ -834,7 +838,7 @@ begin
     on e: exception do
     begin
 
-      messagebox(0, pchar(e.Message), 'LoadModule failed', MB_OK);
+      messagebox(0, pchar(e.Message), pchar(rsLoadModuleFailed), MB_OK);
     end;
   end;
 end;
@@ -853,7 +857,7 @@ end;
 
 function ce_createTableEntry2(parameters: pointer): pointer;
 begin
-  result:=MainForm.addresslist.addaddress('Plugin Address', '0',[],0,vtDword);
+  result:=MainForm.addresslist.addaddress(rsPluginAddress, '0',[],0,vtDword);
 end;
 
 function ce_createTableEntry: pointer; stdcall;

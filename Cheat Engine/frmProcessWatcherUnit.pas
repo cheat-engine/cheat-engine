@@ -77,6 +77,10 @@ resourcestring
   rsFailedStartingTheProcessWatcher = 'Failed starting the process watcher';
   rsIsnTAValidProcessID = '%s isn''t a valid processID';
   rsFirstSelectAProcess = 'First select a process!';
+  rsProcessID = 'ProcessID=';
+  rsPEPROCESS = 'PEPROCESS=';
+  rsThreadID = 'ThreadID:';
+  rsConventionalIDs = '----Conventional ID''s----';
 
 procedure tprocesswatchthread.crash;
 begin
@@ -466,14 +470,14 @@ begin
 
     with tfrmprocesswatcherextra.create(self) do
     begin
-      data.lines.add('ProcessID='+inttohex(processes[i].processid,8));
-      data.lines.add('PEPROCESS='+inttohex(processes[i].peprocess,8));
+      data.lines.add(rsProcessID+inttohex(processes[i].processid,8));
+      data.lines.add(rsPEPROCESS+inttohex(processes[i].peprocess,8));
 
       for j:=0 to length(processes[i].threadlist)-1 do
-        data.Lines.Add('ThreadID:'+inttohex(processes[i].threadlist[j].threadid,8));
+        data.Lines.Add(rsThreadID+inttohex(processes[i].threadlist[j].threadid,8));
 
       data.Lines.add('');
-      data.Lines.add('----Conventional ID''s----');
+      data.Lines.add(rsConventionalIDs);
 
       ths:=CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD,0);
       if ths<>0 then
@@ -483,7 +487,7 @@ begin
         begin
           repeat
             if te.th32OwnerProcessID=processes[i].processid then
-              data.lines.add('ThreadID:'+IntToHex(te.th32ThreadID,8));
+              data.lines.add(rsThreadID+IntToHex(te.th32ThreadID,8));
 
           until not thread32Next(ths,te);
         end;

@@ -432,6 +432,12 @@ resourcestring
   rsPSFindByAddressPart1 = 'Find by address requires an address. "';
   rsPSFindByAddressPart2 = '" is not a valid address';
   rsAreYouSureYouWishYouForceADisconnect = 'Are you sure you wish you force a disconnect. The current paths will be lost';
+  rsCEInjectedPointerscan = 'CE Injected Pointerscan';
+  rsSelectMaxPtridAsMaxFromPointerfiles = 'Select max(ptrid) as max from pointerfiles';
+  rsSelectNameFromPointerfiles = 'select name from pointerfiles';
+  rsSelectStarFromPointerfilesWhereName = 'select * from pointerfiles where name="';
+  rsSelectCountStarAsCountFromResultsWherePtrid = 'select count(*) as count from results where ptrid=';
+  rsSelectStarFromResultsWherePtrid = 'select * from results where ptrid=';
 
 //----------------------- scanner info --------------------------
 //----------------------- staticscanner -------------------------
@@ -1359,7 +1365,7 @@ begin
 
       tablenames.free;
 
-      SQLQuery.SQL.Text:='Select ptrid from pointerfiles where name="'+name+'"';
+      SQLQuery.SQL.Text:=rsPSSelectPtridFromPointerFilesWhereName+name+'"';
       SQLQuery.Active:=true;
 
       if SQLQuery.RecordCount>0 then
@@ -1426,7 +1432,7 @@ begin
 
 
 
-      SQLQuery.SQL.Text:='Select max(ptrid) as max from pointerfiles';
+      SQLQuery.SQL.Text:=rsSelectMaxPtridAsMaxFromPointerfiles;
       SQLQuery.Active:=true;
 
       ptrid:=SQLQuery.FieldByName('max').AsString;
@@ -1528,7 +1534,7 @@ begin
     SQLite3.DatabaseName:=filename;
     sqlite3.Connected:=true;
 
-    SQLQuery.SQL.Text:='select name from pointerfiles';
+    SQLQuery.SQL.Text:=rsSelectNameFromPointerfiles;
     SQLQuery.Active:=true;
     if SQLQuery.RecordCount>0 then
     begin
@@ -1568,7 +1574,7 @@ begin
     query2:=nil;
 
 
-    SQLQuery.SQL.Text:='select * from pointerfiles where name="'+name+'"';
+    SQLQuery.SQL.Text:=rsSelectStarFromPointerfilesWhereName+name+'"';
     SQLQuery.Active:=true;
     try
       if (SQLQuery.RecordCount=0) or (SQLQuery.RecordCount>1) then
@@ -1696,13 +1702,13 @@ begin
   }
     importedcount:=0;
 
-    sqlquery.sql.text:='select count(*) as count from results where ptrid='+ptrid;
+    sqlquery.sql.text:=rsSelectCountStarAsCountFromResultsWherePtrid+ptrid;
     SQLQuery.Active:=true;
     totalcount:=SQLQuery.FieldByName('count').AsInteger;
     sqlquery.Active:=false;
 
 
-    sqlquery.sql.text:='select * from results where ptrid='+ptrid;
+    sqlquery.sql.text:=rsSelectStarFromResultsWherePtrid+ptrid;
     SQLQuery.active:=true;
     try
       resultptrfile:=tfilestream.create(filename+'.results.0', fmcreate);
@@ -3426,7 +3432,7 @@ begin
 
 
   {$ifdef injectedpscan}
-  caption:='CE Injected Pointerscan';
+  caption:=rsCEInjectedPointerscan;
   {$endif}
   lvResults.DoubleBuffered:=true;
 

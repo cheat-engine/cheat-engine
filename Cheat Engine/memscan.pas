@@ -693,7 +693,7 @@ resourcestring
   rsMStupidAlignsize = 'Stupid alignsize';
   rsMSCustomTypeIsNil = 'Custom type is nil';
   rsMSTheScanWasForcedToTerminateSubsequentScansMayNotFunctionProperlyEtc = 'The scan was forced to terminate. Subsequent scans may not function properly. It''s recommended to restart Cheat Engine';
-
+  rsThread = 'thread ';
 //===============Local functions================//
 function getBytecountArrayOfByteString(st: string): integer;
 var bytes: tbytes;
@@ -4903,7 +4903,7 @@ begin
     on e: exception do
     begin
       haserror:=true;
-      errorstring:='thread '+inttostr(scannernr)+':'+e.message;
+      errorstring:=rsThread+inttostr(scannernr)+':'+e.message;
 
       log('Scanner exception:'+errorstring);
 

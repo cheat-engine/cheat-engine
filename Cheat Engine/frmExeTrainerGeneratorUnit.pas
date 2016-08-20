@@ -108,6 +108,8 @@ resourcestring
   rsMax = 'Max';
   rsNewFoldername = 'New foldername';
   rsCETrainerMaker = 'CE trainer maker';
+  rsARCHIVE = ' ARCHIVE:';
+  rsDECOMPRESSOR = ' DECOMPRESSOR:';
 
 procedure TfrmExeTrainerGenerator.FormActivate(Sender: TObject);
 begin
@@ -355,14 +357,14 @@ begin
         {_Archive.SaveToFile('c:\bla.dat');}
 
         if not UpdateResourceA(updatehandle, RT_RCDATA, 'ARCHIVE', 0, _archive.memory, _archive.size) then
-          raise exception.create(rsFailureOnWriting+' ARCHIVE:'+inttostr(
+          raise exception.create(rsFailureOnWriting+rsARCHIVE+inttostr(
             getlasterror()));
 
         if not tiny then
         begin
           //tiny has no decompressor
           if not UpdateResourceA(updatehandle, RT_RCDATA, 'DECOMPRESSOR', 0, decompressor.memory, decompressor.size) then
-            raise exception.create(rsFailureOnWriting+' DECOMPRESSOR:'+inttostr(
+            raise exception.create(rsFailureOnWriting+rsDECOMPRESSOR+inttostr(
               getlasterror()));
         end;
 

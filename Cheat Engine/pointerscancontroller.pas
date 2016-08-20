@@ -495,6 +495,9 @@ resourcestring
   rsPSCThePointerlisthandlerWasDestroyedWithoutAGoodReason = 'The pointerlisthandler was destroyed without a good reason';
   rsPSCInvalidCommandWhileWaitingForHello = 'Invalid command while waiting for hello';
   rsPSCAlreadystillConnectedToThisChild = 'Already/still connected to this child';
+  rsInvalidData = 'invalid data:';
+  rsNoUpdateFromTheClientForOver120Sec = 'No update from the client for over 120 seconds';
+  rsAllPathsReceived = 'All paths received';
 
 //------------------------POINTERLISTLOADER-------------
 procedure TPointerlistloader.execute;
@@ -1689,7 +1692,7 @@ begin
         if overflowqueue[i].startlevel>offsetcountperlist then
         begin
           j:=f.Position;
-          raise exception.create('invalid data:'+inttostr(f.position));
+          raise exception.create(rsInvalidData+inttostr(f.position));
         end;
 
         setlength(overflowqueue[i].tempresults, maxlevel+1);
@@ -2481,7 +2484,7 @@ begin
           end;
 
           if (childnodes[i].socket<>nil) and (childnodes[i].scandatauploader=nil) and (GetTickCount64-childnodes[i].LastUpdateReceived>120000) then
-            handleChildException(i, 'No update from the client for over 120 seconds'); //marks the child as disconnected
+            handleChildException(i, rsNoUpdateFromTheClientForOver120Sec); //marks the child as disconnected
 
           inc(i);
         end;
@@ -3253,7 +3256,7 @@ begin
 
       if child^.takePathsAndDisconnect and (updatemsg.localpathqueuecount=0) then
       begin
-        handleChildException(index, 'All paths received');
+        handleChildException(index, rsAllPathsReceived);
       end;
 
       exit;

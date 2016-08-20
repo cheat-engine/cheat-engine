@@ -971,7 +971,8 @@ implementation
 
 uses luahandler,luacaller, formdesignerunit;
 
-
+resourcestring
+  rsInvalidFormData = 'Invalid formdata';
 
 {$ifdef cpu32}
 //In this implementation the data field of treenodes contain a pointer to an 8 byte storage  (I don't think I could just change/add to the Data field of the TTreenode components)
@@ -1381,7 +1382,7 @@ begin
       ResyncWithLua;
     end
     else
-      raise exception.create('Invalid formdata');
+      raise exception.create(rsInvalidFormData);
   end;
 end;
 

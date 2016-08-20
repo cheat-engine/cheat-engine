@@ -647,6 +647,9 @@ resourcestring
   rsSF2Signed = ' (Signed)';
   rsSF2To = ' to ';
   rsP = 'P->';
+  rsUnsignedInteger = 'Unsigned Integer';
+  rsSignedInteger = 'Signed Integer';
+  rsHexadecimal = 'Hexadecimal';
 
 var
   StructureDissectOverrides: array of TStructureDissectOverride;
@@ -728,9 +731,9 @@ end;
 function DisplaymethodToString(d:TdisplayMethod): string;
 begin
   case d of
-    dtUnsignedInteger: result:='Unsigned Integer';
-    dtSignedInteger: result:='Signed Integer';
-    dtHexadecimal: result:='Hexadecimal';
+    dtUnsignedInteger: result:=rsUnsignedInteger;
+    dtSignedInteger: result:=rsSignedInteger;
+    dtHexadecimal: result:=rsHexadecimal;
   end;
 end;
 

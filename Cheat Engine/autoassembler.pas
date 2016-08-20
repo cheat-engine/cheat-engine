@@ -120,6 +120,7 @@ resourcestring
   rsAAError = 'Error: ';
   rsAAModuleNotFound = 'module not found:';
   rsAALuaErrorInTheScriptAtLine = 'Lua error in the script at line ';
+  rsGoTo = 'Go to ';
 
 //type
 //  TregisteredAutoAssemblerCommands =  TFPGList<TRegisteredAutoAssemblerCommand>;
@@ -3029,7 +3030,7 @@ begin
           showmessage(rsTheCodeInjectionWasSuccessfull+s1)
         else
         begin
-          if MessageDlg(rsTheCodeInjectionWasSuccessfull+s1+#13#10+'Go to '+inttohex(testptr,8)+'?', mtInformation,[mbYes, mbNo], 0, mbno)=mrYes then
+          if MessageDlg(rsTheCodeInjectionWasSuccessfull+s1+#13#10+rsGoTo+inttohex(testptr,8)+'?', mtInformation,[mbYes, mbNo], 0, mbno)=mrYes then
           begin
             memorybrowser.disassemblerview.selectedaddress:=testptr;
             memorybrowser.show;

@@ -23,7 +23,14 @@ resourcestring
   rsPqqqqqqqq = 'P->????????';
   rsP = 'P->';
   rsError = 'error';
-
+  rsToggleActivation = 'Toggle Activation';
+  rsToggleActivationAllowIncrease = 'Toggle Activation Allow Increase';
+  rsToggleActivationAllowDecrease = 'Toggle Activation Allow Decrease';
+  rsActivate = 'Activate';
+  rsDeactivate = 'Deactivate';
+  rsSetValue = 'Set Value';
+  rsIncreaseValue = 'Increase Value';
+  rsDecreaseValue = 'Decrease Value';
 type TMemrecHotkeyAction=(mrhToggleActivation=0, mrhToggleActivationAllowIncrease=1, mrhToggleActivationAllowDecrease=2, mrhActivate=3, mrhDeactivate=4, mrhSetValue=5, mrhIncreaseValue=6, mrhDecreaseValue=7);
 
 type TFreezeType=(ftFrozen, ftAllowIncrease, ftAllowDecrease);
@@ -2584,14 +2591,14 @@ begin
   //type TMemrecHotkeyAction=(mrhToggleActivation, mrhToggleActivationAllowIncrease, mrhToggleActivationAllowDecrease, mrhSetValue,
   //mrhIncreaseValue, mrhDecreaseValue);
   case action of
-    mrhToggleActivation: result:='Toggle Activation';
-    mrhToggleActivationAllowIncrease: result:='Toggle Activation Allow Increase';
-    mrhToggleActivationAllowDecrease: result:='Toggle Activation Allow Decrease';
-    mrhActivate: result:='Activate';
-    mrhDeactivate: result:='Deactivate';
-    mrhSetValue: result:='Set Value';
-    mrhIncreaseValue: result:='Increase Value';
-    mrhDecreaseValue: result:='Decrease Value';
+    mrhToggleActivation: result:=rsToggleActivation;
+    mrhToggleActivationAllowIncrease: result:=rsToggleActivationAllowIncrease;
+    mrhToggleActivationAllowDecrease: result:=rsToggleActivationAllowDecrease;
+    mrhActivate: result:=rsActivate;
+    mrhDeactivate: result:=rsDeactivate;
+    mrhSetValue: result:=rsSetValue;
+    mrhIncreaseValue: result:=rsIncreaseValue;
+    mrhDecreaseValue: result:=rsDecreaseValue;
   end;
 end;
 

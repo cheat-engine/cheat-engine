@@ -11,6 +11,12 @@ procedure MakePathAccessible(path: widestring);
 
 implementation
 
+resourcestring
+  rsNoGetNamedSecurityInfo = 'no GetNamedSecurityInfo';
+  rsNoGetSecurityInfo = 'no GetSecurityInfo';
+  rsNoSetEntriesInAcl = 'no SetEntriesInAcl';
+  rsNoSetNamedSecurityInfo = 'no SetNamedSecurityInfo';
+
 const  SECURITY_WORLD_SID_AUTHORITY: TSidIdentifierAuthority = (Value: (0, 0, 0, 0, 0, 1));
 
 type
@@ -70,10 +76,10 @@ begin
   GetSecurityInfo:=getprocaddress(advapi, 'GetSecurityInfo');
   SetEntriesInAcl:=getprocaddress(advapi, 'SetEntriesInAclW');
   SetNamedSecurityInfo:=getprocaddress(advapi, 'SetNamedSecurityInfoW');
-  if not assigned(GetNamedSecurityInfo) then raise exception.create('no GetNamedSecurityInfo');
-  if not assigned(GetSecurityInfo) then raise exception.create('no GetSecurityInfo');
-  if not assigned(SetEntriesInAcl) then raise exception.create('no SetEntriesInAcl');
-  if not assigned(SetNamedSecurityInfo) then raise exception.create('no SetNamedSecurityInfo');
+  if not assigned(GetNamedSecurityInfo) then raise exception.create(rsNoGetNamedSecurityInfo);
+  if not assigned(GetSecurityInfo) then raise exception.create(rsNoGetSecurityInfo);
+  if not assigned(SetEntriesInAcl) then raise exception.create(rsNoSetEntriesInAcl);
+  if not assigned(SetNamedSecurityInfo) then raise exception.create(rsNoSetNamedSecurityInfo);
   //  showmessage(advancedoptionsunit.strcouldntrestorecode);
     //function CreateFile(lpFileName:LPCSTR; dwDesiredAccess:DWORD; dwShareMode:DWORD; lpSecurityAttributes:LPSECURITY_ATTRIBUTES; dwCreationDisposition:DWORD;dwFlagsAndAttributes:DWORD; hTemplateFile:HANDLE):HANDLE; external 'kernel32' name 'CreateFileA';
    // z:=0;
