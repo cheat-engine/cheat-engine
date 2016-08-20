@@ -52,6 +52,7 @@ resourcestring
   rsFailureDuplicatingTheEventHandlesToTheOtherProcess = 'Failure duplicating '
     +'the event handles to the other process';
   rsVEHDebugError = 'VEH Debug error';
+  rsFailureDuplicatingTheFilemapping = 'Failure duplicating the filemapping';
 
 constructor TVEHDebugInterface.create;
 begin
@@ -398,7 +399,7 @@ begin
         rsFailureDuplicatingTheEventHandlesToTheOtherProcess);
 
     if not DuplicateHandle(GetCurrentProcess, ConfigFileMapping, processhandle, @cfm, 0, false, DUPLICATE_SAME_ACCESS	) then
-      raise exception.Create('Failure duplicating the filemapping');
+      raise exception.Create(rsFailureDuplicatingTheFilemapping);
 
 
 
