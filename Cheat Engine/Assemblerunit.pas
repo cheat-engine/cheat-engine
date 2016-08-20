@@ -1659,7 +1659,17 @@ uses {$ifndef autoassemblerdll}CEFuncProc,{$endif}symbolhandler, lua, luahandler
   lualib, assemblerArm, Parsers, NewKernelHandler, LuaCaller;
 {$endif}
 
-
+resourcestring
+  rsInvalidRegister = 'Invalid register';
+  rsInvalid = 'Invalid';
+  rsInvalidMultiplier = 'Invalid multiplier';
+  rsWTFIsA = 'WTF is a ';
+  rsIDontUnderstandWhatYouMeanWith = 'I don''t understand what you mean with ';
+  rsNegativeRegistersCanNotBeEncoded = 'Negative registers can not be encoded';
+  rsInvalidAddress = 'Invalid address';
+  rsTheAssemblerTriedToSetARegisteValueThatIsTooHigh = 'The assembler tried to set a register value that is too high';
+  rsAssemblerError = 'Assembler error';
+  rsOffsetTooBig = 'offset too big';
 var ExtraAssemblers: array of TAssemblerEvent;
 
 
@@ -1886,7 +1896,7 @@ begin
   if (reg='R14') then result:=14;
   if (reg='R15') then result:=15;
 
-  if (result=-1) and exceptonerror then raise exception.Create('Invalid register');
+  if (result=-1) and exceptonerror then raise exception.Create(rsInvalidRegister);
 end;
 
 function getreg(reg: string): integer; overload;
@@ -1922,7 +1932,7 @@ begin
     if (reg='R15') or (reg='R15D') or (reg='R15W') or (reg='R15L') or (reg='MM15') or (reg='XMM15') or (reg='ST(15)') or (reg='PS') or (reg='CR15') or (reg='DR15') then result:=15;
   end;
 
-  if (result=1000) and exceptonerror then raise exception.Create('Invalid register');
+  if (result=1000) and exceptonerror then raise exception.Create(rsInvalidRegister);
 end;
 
 function TSingleLineAssembler.getreg(reg: string): integer; overload;
@@ -2230,7 +2240,7 @@ begin
     if not haserror then
       token:=temp
     else
-      raise exception.create('Invalid');
+      raise exception.create(rsInvalid);
   end;
 
 
@@ -2615,12 +2625,12 @@ begin
         '4': setsibscale(sib, 2); //*4
         '8': setsibscale(sib, 3); //*8
         else
-          raise exception.create('Invalid multiplier');
+          raise exception.create(rsInvalidMultiplier);
 
       end;
 
       if length(reg)>i+1 then
-        raise exception.create('Invalid multiplier');
+        raise exception.create(rsInvalidMultiplier);
 
       break;
     end;
@@ -2641,7 +2651,7 @@ begin
     if pos('EBP',reg)>0 then setsibindex(sib,5) else
     if pos('ESI',reg)>0 then setsibindex(sib,6) else
     if pos('EDI',reg)>0 then setsibindex(sib,7) else
-      raise exception.Create('WTF is a '+reg);
+      raise exception.Create(rsWTFIsA+reg);
   end
   else
   begin
@@ -2661,7 +2671,7 @@ begin
     if pos('R13',reg)>0 then setsibindex(sib,13) else
     if pos('R14',reg)>0 then setsibindex(sib,14) else
     if pos('R15',reg)>0 then setsibindex(sib,15) else
-      raise exception.Create('WTF is a '+reg)
+      raise exception.Create(rsWTFIsA+reg)
 
   end;
 end;
@@ -2731,13 +2741,13 @@ begin
         break;
       end;
 
-    if length(temp)=0 then raise exception.Create('I don''t understand what you mean with '+address);
+    if length(temp)=0 then raise exception.Create(rsIDontUnderstandWhatYouMeanWith+address);
     if temp[1]='$' then val(temp,test,j) else val('$'+temp,test,j);
 
     if j>0 then //a register or a stupid user
     begin
       if increase=false then
-        raise exception.create('Negative registers can not be encoded');
+        raise exception.create(rsNegativeRegistersCanNotBeEncoded);
       regs:=regs+temp+'+';
     end
     else
@@ -2759,7 +2769,7 @@ begin
     if regs[i]='*' then inc(k);
   end;
 
-  if (j>1) or (k>1) then raise exception.Create('I don''t understand what you mean with '+address);
+  if (j>1) or (k>1) then raise exception.Create(rsIDontUnderstandWhatYouMeanWith+address);
 
   if disp=0 then setmod(modrm[0],0) else
   if (integer(disp)>=-128) and (integeR(disp)<=127) then setmod(modrm[0],1) else setmod(modrm[0],2);
@@ -3098,7 +3108,7 @@ begin
 
 
   finally
-    if not found then raise exception.create('Invalid address');
+    if not found then raise exception.create(rsInvalidAddress);
 
     i:=getmod(modrm[0]);
     if i=1 then add(modrm,[byte(disp)]);
@@ -3140,7 +3150,7 @@ begin
     if (param='R13') or (param='R13D') or (param='R13W') or (param='R13L') or (param='MM13') or (param='XMM13') then setrm(modrm[0],13) else
     if (param='R14') or (param='R14D') or (param='R14W') or (param='R14L') or (param='MM14') or (param='XMM14') then setrm(modrm[0],14) else
     if (param='R15') or (param='R15D') or (param='R15W') or (param='R15L') or (param='MM15') or (param='XMM15') then setrm(modrm[0],15) else
-    raise exception.Create('I don''t understand what you mean with '+param);
+    raise exception.Create(rsIDontUnderstandWhatYouMeanWith+param);
   end else setmodrm(modrm,address, length(bytes));
 
   //setreg
@@ -3151,7 +3161,7 @@ begin
       REX_R:=true;
     end
     else
-      raise exception.Create('The assembler tried to set a register value that is too high');
+      raise exception.Create(rsTheAssemblerTriedToSetARegisteValueThatIsTooHigh);
   end;
   if reg=-1 then reg:=0;
 
@@ -3504,7 +3514,7 @@ begin
         'W' : i:=2; //2 byte long entries
         'D' : i:=4; //4 byte long entries
         'Q' : i:=8; //8 byte long entries
-        else raise exception.create('Invalid');
+        else raise exception.create(rsInvalid);
       end;
 
       i:=i*strtoint(tokens[1]);
@@ -5768,7 +5778,7 @@ begin
 
         if RexPrefix<>0 then
         begin
-          if RexPrefixLocation=-1 then raise exception.create('Assembler error');
+          if RexPrefixLocation=-1 then raise exception.create(rsAssemblerError);
           RexPrefix:=RexPrefix or $40; //just make sure this is set
           setlength(bytes,length(bytes)+1);
           for i:=length(bytes)-1 downto RexPrefixLocation+1 do
@@ -5794,7 +5804,7 @@ begin
             //result:=HandleTooBigAddress(opcode,address, bytes, actualdisplacement);
 
             if skiprangecheck=false then  //for syntax checking
-              raise exception.create('offset too big');
+              raise exception.create(rsOffsetTooBig);
           end
           else
             pdword(@bytes[relativeAddressLocation])^:=actualdisplacement-(address+length(bytes));
