@@ -1,9 +1,9 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 711
+  Left = 500
   Height = 699
   Hint = ' '
-  Top = 202
+  Top = 263
   Width = 690
   HelpContext = 3
   HorzScrollBar.Visible = False
@@ -265,10 +265,14 @@ object MainForm: TMainForm
       ParentColor = False
     end
     object SpeedButton2: TSpeedButton
+      AnchorSideLeft.Control = Panel5
+      AnchorSideLeft.Side = asrCenter
+      AnchorSideBottom.Control = Panel5
+      AnchorSideBottom.Side = asrBottom
       Left = 338
       Height = 22
       Hint = 'Delete all addresses from the list'
-      Top = 416
+      Top = 419
       Width = 23
       Anchors = [akBottom]
       Glyph.Data = {
@@ -728,7 +732,7 @@ object MainForm: TMainForm
       Height = 16
       Hint = 'This shows how far Cheat Engine is with searching'
       Top = 15
-      Width = 552
+      Width = 489
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Left = 5
       BorderSpacing.Right = 5
@@ -740,7 +744,7 @@ object MainForm: TMainForm
     object UndoScan: TButton
       AnchorSideTop.Control = btnNextScan
       AnchorSideRight.Control = LogoPanel
-      Left = 555
+      Left = 492
       Height = 25
       Top = 46
       Width = 83
@@ -862,16 +866,16 @@ object MainForm: TMainForm
       AnchorSideTop.Control = Panel5
       AnchorSideRight.Control = Panel5
       AnchorSideRight.Side = asrBottom
-      Left = 643
+      Left = 580
       Height = 87
       Top = 0
-      Width = 47
+      Width = 110
       Align = alCustom
       Anchors = [akTop, akRight]
       AutoSize = True
       BevelOuter = bvNone
       ClientHeight = 87
-      ClientWidth = 47
+      ClientWidth = 110
       FullRepaint = False
       TabOrder = 11
       object Logo: TImage
@@ -883,7 +887,7 @@ object MainForm: TMainForm
         Left = 0
         Height = 68
         Top = 0
-        Width = 47
+        Width = 110
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
         Center = True
@@ -1213,11 +1217,10 @@ object MainForm: TMainForm
         Left = 0
         Height = 19
         Top = 68
-        Width = 47
-        Align = alCustom
-        Anchors = [akTop, akLeft, akRight]
+        Width = 110
+        Anchors = [akTop, akRight]
         AutoSize = True
-        Caption = 'Settings'
+        Caption = 'Settings weeee'
         Flat = True
         OnClick = SettingsClick
       end

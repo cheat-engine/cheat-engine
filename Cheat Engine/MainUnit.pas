@@ -6875,11 +6875,13 @@ const
   designtimedpi=96;
 var
   bm: TBitmap;
+  ng: integer;
 begin
   if screen.PixelsPerInch<>designtimedpi then
   begin
     sb.Transparent:=false;
     sb.Glyph.Transparent:=false;
+    ng:=sb.NumGlyphs;
 
     bm:=TBitmap.Create;
     bm.Assign(sb.Glyph);
@@ -6895,6 +6897,7 @@ begin
 
     sb.Glyph:=bm;
     sb.Glyph.Transparent:=true;
+    sb.NumGlyphs:=ng;
     sb.Transparent:=true;
     bm.free;
   end;
@@ -7062,6 +7065,8 @@ begin
   AdjustSpeedButtonSize(sbOpenProcess);
   AdjustSpeedButtonSize(LoadButton);
   AdjustSpeedButtonSize(SaveButton);
+  AdjustSpeedButtonSize(SpeedButton2);
+  AdjustSpeedButtonSize(SpeedButton3);
 
 
   if panel7.Height>progressbar1.Top+progressbar1.Height then
@@ -7149,12 +7154,9 @@ begin
     foundlist3.width:=i;
 
 
- // foundlist3.AnchorSide[akRight].Control:=c;
-  //foundlist3.AnchorSide[akRight].Side:=asrLeft;
- // foundlist3.BorderSpacing.Right:=4+extrasize;
- // foundlist3.anchors:= [akTop,akLeft,akBottom, akRight];
 
-
+  if speedbutton2.top<btnMemoryView.Top then
+    foundlist3.AnchorSideBottom.Control:=speedbutton2;
 
   panel5.Constraints.MinHeight := gbScanOptions.top + gbScanOptions.Height + max(speedbutton2.Height, btnAddAddressManually.height ) + 5;
   lblcompareToSavedScan.left:=btnNewScan.left-(lblcompareToSavedScan.Width div 2)+((btnNextScan.left+btnNextScan.Width-btnNewScan.left) div 2);
