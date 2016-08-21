@@ -116,7 +116,6 @@ object MainForm: TMainForm
       Anchors = [akTop, akLeft, akRight]
       Caption = 'No Process Selected'
       ParentColor = False
-      ParentFont = False
       WordWrap = True
       OnDblClick = ProcessLabelDblClick
       OnMouseDown = ProcessLabelMouseDown
@@ -1223,7 +1222,6 @@ object MainForm: TMainForm
         Caption = 'Settings'
         Flat = True
         OnClick = SettingsClick
-        ParentFont = False
       end
     end
     object lblcompareToSavedScan: TLabel

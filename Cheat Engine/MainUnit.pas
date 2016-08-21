@@ -7194,7 +7194,7 @@ begin
   if speedbutton2.top<btnMemoryView.Top then
     foundlist3.AnchorSideBottom.Control:=speedbutton2;
 
-  panel5.Constraints.MinHeight := gbScanOptions.top + gbScanOptions.Height + max(speedbutton2.Height, btnAddAddressManually.height ) + 5;
+
   lblcompareToSavedScan.left:=btnNewScan.left-(lblcompareToSavedScan.Width div 2)+((btnNextScan.left+btnNextScan.Width-btnNewScan.left) div 2);
 
   progressbar1.height:=scaley(progressbar1.height, 96);
@@ -7219,6 +7219,7 @@ begin
   toaddress.Font.Height:=i;
 
 
+  panel5.Constraints.MinHeight := gbScanOptions.top + gbScanOptions.Height + max(speedbutton2.Height, btnAddAddressManually.height ) + 10;
 
 
 
