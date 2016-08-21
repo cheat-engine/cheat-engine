@@ -7133,6 +7133,61 @@ begin
   lua_speakEx(true,L);
 end;
 
+function lua_getFileVersion(L: Plua_State): integer; cdecl;
+var
+  filepath: string;
+  h: THandle;
+  size: integer;
+  data: pointer;
+  ffi: ^VS_FIXEDFILEINFO;
+  t: integer;
+
+  v: qword;
+  s: UINT;
+begin
+  result:=0;
+  if lua_gettop(L)=1 then
+  begin
+    filepath:=Lua_ToString(l,1);
+    size:=GetFileVersionInfoSize(pchar(filepath), @h);
+    if size<>0 then
+    begin
+      getmem(data, size);
+
+      if GetFileVersionInfo(pchar(filepath), h, size, data) then
+      begin
+        s:=sizeof(ffi);
+        if VerQueryValue(data, pchar('\'), @ffi, @s) then
+        begin
+          v:=(qword(ffi^.dwFileVersionMS) shl 32) or ffi^.dwFileVersionLS;
+          result:=2;
+          lua_pushinteger(L, v);
+          lua_newtable(L);
+          t:=lua_gettop(L);
+
+          lua_pushstring(L, 'major');
+          lua_pushinteger(L, (v shr 48) and $ffff);
+          lua_settable(L, t);
+
+          lua_pushstring(L, 'minor');
+          lua_pushinteger(L, (v shr 32) and $ffff);
+          lua_settable(L, t);
+
+          lua_pushstring(L, 'release');
+          lua_pushinteger(L, (v shr 16) and $ffff);
+          lua_settable(L, t);
+
+          lua_pushstring(L, 'build');
+          lua_pushinteger(L, v and $ffff);
+          lua_settable(L, t);
+
+        end;
+
+      end;
+      freemem(data);
+    end;
+  end;
+end;
 
 procedure InitializeLua;
 var
@@ -7610,6 +7665,7 @@ begin
     lua_register(LuaVM, 'speak', lua_speak);
     lua_register(LuaVM, 'speakEnglish', lua_speakEnglish);
 
+    lua_register(LuaVM, 'getFileVersion', lua_getFileVersion);
 
 
     initializeLuaCustomControl;

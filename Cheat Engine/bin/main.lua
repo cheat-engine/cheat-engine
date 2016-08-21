@@ -113,6 +113,7 @@ enumModules(processid OPTIONAL):
 
 md5memory(address, size): Returns a md5 sum calculated from the provided memory. 
 md5file(pathtofile): Returns a md5 sum calculated from the file. 
+getFileVersion(pathtofile): returns the 64-bit file version, and a table that has split up the file version into major, minor, release and build
 
 
 getAddress(string, local OPTIONAL): returns the address of a symbol. Can be a modulename or an export. set Local to true if you wish to querry the symboltable of the ce process
