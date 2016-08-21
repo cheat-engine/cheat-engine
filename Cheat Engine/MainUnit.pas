@@ -6876,25 +6876,28 @@ const
 var
   bm: TBitmap;
 begin
-  sb.Transparent:=false;
-  sb.Glyph.Transparent:=false;
+  if screen.PixelsPerInch<>designtimedpi then
+  begin
+    sb.Transparent:=false;
+    sb.Glyph.Transparent:=false;
 
-  bm:=TBitmap.Create;
-  bm.Assign(sb.Glyph);
+    bm:=TBitmap.Create;
+    bm.Assign(sb.Glyph);
 
-  bm.width:=scalex(sb.Glyph.Width, designtimedpi);
-  bm.height:=scaley(sb.Glyph.Height, designtimedpi);
-  bm.Canvas.StretchDraw(rect(0,0, bm.width, bm.height),sb.Glyph);
+    bm.width:=scalex(sb.Glyph.Width, designtimedpi);
+    bm.height:=scaley(sb.Glyph.Height, designtimedpi);
+    bm.Canvas.StretchDraw(rect(0,0, bm.width, bm.height),sb.Glyph);
 
-  sb.Width:=scalex(sb.Width, designtimedpi);
-  sb.Height:=scaley(sb.Height, designtimedpi);
-  bm.TransparentColor:=0;
-  bm.TransparentMode:=tmAuto;
+    sb.Width:=scalex(sb.Width, designtimedpi);
+    sb.Height:=scaley(sb.Height, designtimedpi);
+    bm.TransparentColor:=0;
+    bm.TransparentMode:=tmAuto;
 
-  sb.Glyph:=bm;
-  sb.Glyph.Transparent:=true;
-  sb.Transparent:=true;
-  bm.free;
+    sb.Glyph:=bm;
+    sb.Glyph.Transparent:=true;
+    sb.Transparent:=true;
+    bm.free;
+  end;
 end;
 
 var
