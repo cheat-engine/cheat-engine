@@ -5,7 +5,7 @@ unit formsettingsunit;
 interface
 
 uses
-  windows, LCLProc, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  windows, win32proc, LCLProc, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls,registry, Menus,ComCtrls,CEFuncProc,ExtCtrls,{tlhelp32,}CheckLst,
   Buttons, LResources, frameHotkeyConfigUnit, math,
 
@@ -94,7 +94,6 @@ type
     Label8: TLabel;
     lblThreadFollowing: TLabel;
     LoadButton: TSpeedButton;
-    Panel1: TPanel;
     Panel9: TPanel;
     pcDebugConfig: TPageControl;
     pnlConfig: TPanel;
@@ -938,7 +937,8 @@ procedure TformSettings.FormShow(Sender: TObject);
     result:=true;
   end;
   var reg: TRegistry;
-  i: integer;
+  i,j: integer;
+  m: dword;
 begin
 
   tempstatepopuphide:=laststatePopupHide;
@@ -987,7 +987,28 @@ begin
   i:=max(rbVEHUseProcessWatcher.Top+rbVEHUseProcessWatcher.Height+4, groupbox2.clientheight);
   groupbox2.clientheight:=i;
 
+  j:=tvMenuSelection.Width;
+  for i:=0 to tvMenuSelection.Items.Count-1 do
+    j:=max(j,tvMenuSelection.Canvas.TextWidth(tvMenuSelection.Items[i].Text)+tvMenuSelection.BorderWidth+tvMenuSelection.Indent*2);
+
+
+  tvMenuSelection.Width:=j;
+
+
+  if WindowsVersion>=wvVista then
+    m:=sendmessage(edtStacksize.Handle, EM_GETMARGINS, 0,0)
+  else
+    m:=0;
+
+
+  i:=max(edtStacksize.ClientWidth, canvas.TextWidth('4096')+(m shr 16)+(m and $ffff));
+  edtStacksize.clientwidth:=i;
+
   autosize:=false;
+
+
+
+
 
  // GroupBox2.top:=rbgDebuggerInterface.top+rbgDebuggerInterface.height+4;
 end;

@@ -7,7 +7,7 @@ interface
 uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls,CEFuncProc,ComCtrls, ExtCtrls, LResources, memscan,
-  commonTypeDefs, math;
+  commonTypeDefs, math, win32proc;
 
 const wm_fw_scandone=wm_user+1;
 type
@@ -123,16 +123,19 @@ begin
 end;
 
 procedure TFindWindow.FormShow(Sender: TObject);
+const EM_GETMARGINS=$d4;
 var m: DWord;
 begin
   progressbar.Position:=0;
   
   if firstscan then
   begin
-    editstart.Text:=Inttohex(TMemoryBrowser(Owner).memoryaddress, processhandler.pointersize*2);
 
+    if WindowsVersion>=wvVista then
+      m:=sendmessage(editstart.Handle, EM_GETMARGINS, 0,0)
+    else
+      m:=0;
 
-    m:=sendmessage(editstart.Handle, $D4, 0,0);
     if processhandler.is64bit then
     begin
       editstop.text:='7FFFFFFFFFFFFFFF';

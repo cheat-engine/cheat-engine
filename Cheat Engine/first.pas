@@ -9,7 +9,7 @@ uses
 
 implementation
 
-uses windows;
+uses windows, registry, Win32Int;
 
 procedure setDPIAware;
 type
@@ -23,6 +23,7 @@ var
 
   Metrics: TNonClientMetrics;
 begin
+
   l:=LoadLibrary('Shcore.dll');
   if l<>0 then
   begin

@@ -206,11 +206,28 @@ begin
   mainform.visible:=mainformvisible;
 end;
 
-var i: integer;
+type TFormFucker=class
+  private
+    procedure addFormEvent(Sender: TObject; Form: TCustomForm);
+end;
+
+procedure TFormFucker.addFormEvent(Sender: TObject; Form: TCustomForm);
+begin
+  //fuuuuucking time
+  if form<>nil then
+    form.Font.Size:=15;
+end;
+
+var
+  i: integer;
+  ff: TFormFucker;
 begin
   Application.Title:='Cheat Engine 6.6';
   Application.Initialize;
 
+ // ff:=TFormFucker.Create;
+//  //screen.PixelsPerInch;
+  //screen.AddHandlerFormAdded(@ff.addFormEvent);
 
   getcedir;
 

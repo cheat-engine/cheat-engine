@@ -3102,6 +3102,8 @@ end;
 procedure Log(s: string);
 begin
   OutputDebugString(pchar(s));
+
+
 end;
 
 initialization
@@ -3124,6 +3126,8 @@ initialization
 
   username:=GetUserNameFromPID(GetCurrentProcessId);
 
+
+  Screen.HintFont;
 
 
 finalization

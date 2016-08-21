@@ -196,6 +196,7 @@ resourcestring
   rsFormFilesLfmLFM = 'Form files(*.lfm)|*.LFM';
   rsShowCheckboxesForBoolean = 'Show checkboxes for boolean';
 
+
 procedure TFormDesigner.setFormName;
 begin
   if (GlobalDesignHook.LookupRoot<>nil) and (GlobalDesignHook.LookupRoot is TComponent) then
@@ -1111,10 +1112,6 @@ begin
 
   f.designsurface.PopupMenu:=controlPopup;
   f.show;
-
-  f.BringToFront;
-
-
 end;
 
 

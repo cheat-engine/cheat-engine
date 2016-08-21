@@ -21,6 +21,7 @@ object formSettings: TformSettings
     Top = 0
     Width = 816
     Align = alClient
+    AutoSize = True
     ClientHeight = 493
     ClientWidth = 816
     TabOrder = 0
@@ -60,9 +61,9 @@ object formSettings: TformSettings
       Height = 491
       Top = 1
       Width = 666
-      ActivePage = Extra
+      ActivePage = Assembler
       Align = alClient
-      TabIndex = 6
+      TabIndex = 5
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -1392,9 +1393,6 @@ object formSettings: TformSettings
           Visible = False
         end
         object GroupBox3: TGroupBox
-          AnchorSideLeft.Control = Extra
-          AnchorSideTop.Control = Extra
-          AnchorSideRight.Control = Extra
           Left = 5
           Height = 77
           Top = 0
@@ -1471,14 +1469,6 @@ object formSettings: TformSettings
           Caption = 'Use APC to create new threads'
           TabOrder = 3
           Visible = False
-        end
-        object Panel1: TPanel
-          Left = 183
-          Height = 19
-          Top = 134
-          Width = 368
-          BevelOuter = bvNone
-          TabOrder = 4
         end
       end
       object tsTools: TTabSheet
