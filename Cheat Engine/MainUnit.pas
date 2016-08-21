@@ -4281,6 +4281,8 @@ var
   c: array of tcontrol;
   foundlistheightdiff: integer;
   newstate: PScanState;
+
+  scantabtopcontrol: TControl;
 begin
   if scantablist = nil then
   begin
@@ -4292,15 +4294,36 @@ begin
     foundlistheightdiff := btnMemoryView.top - (foundlist3.top + foundlist3.Height);
 
     scantablist := TTablist.Create(self);
-    scantablist.PopupMenu := pmTablist;
-    scantablist.parent := panel5;
-    scantablist.top := panel7.top + panel7.Height;
-    scantablist.Left := 0;
-    scantablist.Width := clientwidth - logopanel.Width;
-    scantablist.color := panel5.Color;
-    scantablist.Height := 20;
 
+    scantabtopcontrol:=panel7;
+    if scantabtopcontrol.top+scantabtopcontrol.Height<ProgressBar1.Top+ProgressBar1.Height then
+      scantabtopcontrol:=ProgressBar1;
+
+    scantablist.AnchorSideTop.Control:=scantabtopcontrol;
+    scantablist.AnchorSideTop.Side:=asrBottom;
+
+    scantablist.AnchorSideLeft.Control:=panel5;
+    scantablist.AnchorSideLeft.Side:=asrLeft;
+
+    scantablist.AnchorSideRight.Control:=logopanel;
+    if scantabtopcontrol.Top+scantabtopcontrol.Height<(logopanel.Height-4) then
+      scantablist.AnchorSideRight.Side:=asrLeft
+    else
+      scantablist.AnchorSideRight.Side:=asrRight; //it can go under the logo
+
+    scantablist.BorderSpacing.Top:=4;
+
+
+    scantablist.PopupMenu := pmTablist;
+    scantablist.color := panel5.Color;
+    scantablist.Parent:=panel5;
     scantablist.Anchors := [akTop, akLeft, akRight];
+
+    scantablist.Height := scantablist.Canvas.TextHeight('WwJjDdQq')+4;
+
+    label6.AnchorSideTop.Control:=scantablist;
+    lblcompareToSavedScan.AnchorSideTop.Control:=scantablist;
+
 
     i := scantablist.AddTab(rsScan + ' 1'); //original scan
 

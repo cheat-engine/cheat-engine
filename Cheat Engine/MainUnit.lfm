@@ -179,11 +179,15 @@ object MainForm: TMainForm
       ParentColor = False
     end
     object LoadButton: TSpeedButton
-      Left = 32
+      AnchorSideLeft.Control = Panel7
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Panel5
+      Left = 31
       Height = 25
       Top = 3
       Width = 25
       Action = actOpen
+      BorderSpacing.Top = 3
       Glyph.Data = {
         D6020000424DD6020000000000003600000028000000100000000E0000000100
         180000000000A0020000C40E0000C40E00000000000000000000C0C0C0C0C0C0
@@ -213,7 +217,10 @@ object MainForm: TMainForm
       ParentShowHint = False
     end
     object SaveButton: TSpeedButton
-      Left = 58
+      AnchorSideLeft.Control = LoadButton
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = LoadButton
+      Left = 56
       Height = 25
       Top = 3
       Width = 25
@@ -322,6 +329,7 @@ object MainForm: TMainForm
       Width = 76
       AutoSize = True
       Caption = 'First Scan'
+      Constraints.MinWidth = 75
       Enabled = False
       OnClick = btnNewScanClick
       ParentShowHint = False
@@ -641,6 +649,7 @@ object MainForm: TMainForm
       AutoSize = True
       BorderSpacing.Left = 10
       Caption = 'Next Scan'
+      Constraints.MinWidth = 75
       Enabled = False
       OnClick = btnNextScanClick
       TabOrder = 2
@@ -715,11 +724,11 @@ object MainForm: TMainForm
       AnchorSideTop.Control = ProcessLabel
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = LogoPanel
-      Left = 88
+      Left = 86
       Height = 16
       Hint = 'This shows how far Cheat Engine is with searching'
       Top = 15
-      Width = 550
+      Width = 552
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Left = 5
       BorderSpacing.Right = 5
@@ -765,6 +774,7 @@ object MainForm: TMainForm
       Height = 31
       Top = 0
       Width = 31
+      AutoSize = True
       BevelOuter = bvNone
       ClientHeight = 31
       ClientWidth = 31
@@ -777,6 +787,7 @@ object MainForm: TMainForm
         Hint = 'Select a process to open'
         Top = 3
         Width = 25
+        BorderSpacing.Around = 3
         Glyph.Data = {
           46050000424D4605000000000000360400002800000010000000110000000100
           08000000000010010000C40E0000C40E00000001000000000000000000000000
@@ -1216,7 +1227,7 @@ object MainForm: TMainForm
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Control = ProgressBar1
       AnchorSideTop.Side = asrBottom
-      Left = 278
+      Left = 282
       Height = 15
       Top = 31
       Width = 200
