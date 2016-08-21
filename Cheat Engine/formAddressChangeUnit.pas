@@ -873,9 +873,11 @@ begin
   m:=(m shr 16)+(m and $ffff);
 
   if ProcessHandler.is64Bit then
-    baseAddress.ClientWidth:=Canvas.TextWidth('DDDDDDDDDDDDDDDD')+m
+    i:=max(128, Canvas.TextWidth(' DDDDDDDDDDDDDDDD ')+m)
   else
-    baseAddress.ClientWidth:=Canvas.TextWidth('DDDDDDDD')+m;
+    i:=max(88, Canvas.TextWidth(' DDDDDDDD ')+m);
+
+  baseAddress.ClientWidth:=i;
 
   baseAddress.OnChange:=basechange;
 
