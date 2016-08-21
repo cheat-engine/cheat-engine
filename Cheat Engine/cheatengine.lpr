@@ -212,11 +212,12 @@ type TFormFucker=class
     procedure addFormEvent(Sender: TObject; Form: TCustomForm);
 end;
 
+var overridefontsize: integer;
 procedure TFormFucker.addFormEvent(Sender: TObject; Form: TCustomForm);
 begin
   //fuuuuucking time
   if form<>nil then
-    form.Font.Size:=15;
+    form.Font.Size:=overridefontsize;
 end;
 
 var
@@ -226,9 +227,24 @@ begin
   Application.Title:='Cheat Engine 6.6';
   Application.Initialize;
 
- // ff:=TFormFucker.Create;
-//  //screen.PixelsPerInch;
-  //screen.AddHandlerFormAdded(@ff.addFormEvent);
+
+
+
+
+  for i:=1 to Paramcount do
+  begin
+
+    if Copy(uppercase(ParamStr(i)),1,9)='FONTSIZE=' then
+    begin
+      try
+        overridefontsize:=strtoint(copy(ParamStr(i), 10, length(ParamStr(i))));
+        ff:=TFormFucker.Create;
+        screen.AddHandlerFormAdded(@ff.addFormEvent);
+      except
+      end;
+    end;
+  end;
+
 
   getcedir;
 
