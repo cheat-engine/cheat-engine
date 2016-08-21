@@ -6870,6 +6870,20 @@ var
   onetimeonly: boolean = False; //to protect against make mainform visible (.show)
 
 procedure TMainForm.FormShow(Sender: TObject);
+procedure AdjustSpeedButtonSize(sb: TSpeedButton);
+var bm: TBitmap;
+begin
+  bm:=TBitmap.Create;
+  bm.width:=scalex(sb.Glyph.Width, 96);
+  bm.height:=scaley(sb.Glyph.Height, 96);
+  bm.Canvas.CopyRect(rect(0,0,bm.width,bm.height), sb.Glyph.Canvas, rect(0,0,sb.Glyph.width,sb.Glyph.height));
+
+  sb.Width:=scalex(sb.Width, 96);
+  sb.Height:=scaley(sb.Height, 96);
+  sb.Glyph:=bm;
+  bm.free;
+end;
+
 var
   reg: tregistry;
   modifier: dword;
@@ -6895,7 +6909,7 @@ var
 
   c: TControl;
 
-  bm: TBitmap;
+
 begin
   if onetimeonly then
     exit;
@@ -7029,7 +7043,15 @@ begin
   //don't put this in oncreate, just don't
   memscan.setScanDoneCallback(mainform.handle, wm_scandone);
 
+  AdjustSpeedButtonSize(sbOpenProcess);
+  AdjustSpeedButtonSize(LoadButton);
+  AdjustSpeedButtonSize(SaveButton);
 
+
+  if panel7.Height>progressbar1.Top+progressbar1.Height then
+    label6.AnchorSideTop.Control:=panel7
+  else
+    label6.AnchorSideTop.Control:=progressbar1;
 
 
   panel5resize(panel5);
@@ -7142,36 +7164,6 @@ begin
   fromaddress.Font.Height:=i;
   toaddress.Font.Height:=i;
 
-
-  bm:=TBitmap.Create;
-  bm.width:=scalex(sbOpenProcess.Glyph.Width, 70);
-  bm.height:=scaley(sbOpenProcess.Glyph.Height, 70);
-  bm.Canvas.CopyRect(rect(0,0,bm.width,bm.height), sbOpenProcess.Glyph.Canvas, rect(0,0,sbOpenProcess.Glyph.width,sbOpenProcess.Glyph.height));
-
-  sbOpenProcess.Width:=scalex(sbOpenProcess.Width, 70);
-  sbOpenProcess.Height:=scaley(sbOpenProcess.Height, 70);
-  sbOpenProcess.Glyph:=bm;
-  bm.free;
-
-  bm:=TBitmap.Create;
-  bm.width:=scalex(LoadButton.Glyph.Width, 96);
-  bm.height:=scaley(LoadButton.Glyph.Height, 96);
-  bm.Canvas.CopyRect(rect(0,0,bm.width,bm.height), LoadButton.Glyph.Canvas, rect(0,0,LoadButton.Glyph.width,LoadButton.Glyph.height));
-
-  LoadButton.Width:=scalex(LoadButton.Width, 96);
-  LoadButton.Height:=scaley(LoadButton.Height, 96);
-  LoadButton.Glyph:=bm;
-  bm.free;
-
-  bm:=TBitmap.Create;
-  bm.width:=scalex(SaveButton.Glyph.Width, 96);
-  bm.height:=scaley(SaveButton.Glyph.Height, 96);
-  bm.Canvas.CopyRect(rect(0,0,bm.width,bm.height), SaveButton.Glyph.Canvas, rect(0,0,SaveButton.Glyph.width,SaveButton.Glyph.height));
-
-  SaveButton.Width:=scalex(SaveButton.Width, 96);
-  SaveButton.Height:=scaley(SaveButton.Height, 96);
-  SaveButton.Glyph:=bm;
-  bm.free;
 
 
 
