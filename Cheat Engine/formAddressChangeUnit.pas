@@ -5,7 +5,7 @@ unit formAddressChangeUnit;
 interface
 
 uses
-  windows, LCLIntf, LResources, Messages, SysUtils, Variants, Classes, Graphics,
+  windows, win32proc, LCLIntf, LResources, Messages, SysUtils, Variants, Classes, Graphics,
   Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls, Buttons, Arrow, Spin,
   CEFuncProc, NewKernelHandler, symbolhandler, memoryrecordunit, types, byteinterpreter,
   math, CustomTypeHandler, commonTypeDefs, lua, lualib, lauxlib, luahandler;
@@ -500,12 +500,47 @@ begin
 end;
 
 destructor TOffsetInfo.destroy;
+var i: integer;
+  before, after: TOffsetInfo;
 begin
   if lblPointerAddressToValue<>nil then
     freeandnil(lblPointerAddressToValue);
 
   if edtOffset<>nil then
+  begin
+    //find myself in the list, and adjust the previous and next one to point to eachother
+    i:=fowner.offsets.IndexOf(self);
+    if i<>-1 then
+    begin
+      if i=0 then before:=nil else before:=fowner.offset[i-1];
+      if i=fowner.offsetcount-1 then after:=nil else after:=fowner.offset[i];
+
+      if after<>nil then
+      begin
+        if before=nil then
+        begin
+          after.edtOffset.AnchorSideTop.Control:=fowner;
+          after.edtOffset.AnchorSideTop.Side:=asrTop;
+        end
+        else
+        begin
+          after.edtOffset.AnchorSideTop.Control:=before.edtOffset;
+          after.edtOffset.AnchorSideTop.Side:=asrBottom;
+        end;
+      end
+      else
+      begin
+        if before<>nil then
+        begin
+          fowner.baseAddress.AnchorSideTop.Control:=before.edtOffset;
+          fowner.baseAddress.AnchorSideTop.side:=asrBottom;
+        end;
+      end;
+
+    end;
+
     freeandnil(edtOffset);
+  end;
 
   if sbDecrease<>nil then
     freeandnil(sbDecrease);
@@ -518,7 +553,10 @@ begin
 end;
 
 constructor TOffsetInfo.create(parent: TPointerinfo);
-var insertinsteadofadd: boolean;
+var
+  insertinsteadofadd: boolean;
+  before: TOffsetInfo;
+  after: TOffsetInfo;
 begin
   stepsize:=4;
   fowner:=parent;
@@ -529,10 +567,24 @@ begin
   if (((GetKeyState(VK_CONTROL) shr 15) and 1)=1) then
     insertinsteadofadd:=not insertinsteadofadd;
 
+
+  before:=nil;
+  after:=nil;
+
   if insertinsteadofadd then
+  begin
+    if fowner.offsets.Count>0 then
+      after:=fowner.offsets[0];
+
     fowner.offsets.Insert(0, self)
+  end
   else
+  begin
+    if fowner.offsets.Count>0 then
+      before:=fowner.offsets[fowner.offsets.Count-1];
+
     fowner.offsets.Add(self);
+  end;
 
   //create a pointeraddress label (visible if not first)
   lblPointerAddressToValue:=TLabel.Create(parent);
@@ -550,8 +602,12 @@ begin
 
   //two buttons, one for + and one for -
   sbDecrease:=TSpeedButton.create(parent);
-  sbDecrease.height:=edtOffset.height;
-  sbDecrease.width:=sbDecrease.height;
+  sbDecrease.Width:=edtOffset.Height;
+  sbDecrease.Height:=edtOffset.Height;
+  sbDecrease.AnchorSideTop.Control:=edtOffset;
+  sbDecrease.AnchorSideTop.Side:=asrCenter;
+  sbDecrease.AnchorSideLeft.Control:=parent;
+  sbDecrease.AnchorSideLeft.Side:=asrLeft;
   sbDecrease.caption:='<';
  // sbDecrease.OnClick:=DecreaseClick;
   sbDecrease.OnMouseDown:=DecreaseDown;
@@ -561,12 +617,49 @@ begin
   sbIncrease:=TSpeedButton.create(parent);
   sbIncrease.height:=sbDecrease.height;
   sbIncrease.width:=sbDecrease.width;
+  sbIncrease.AnchorSideTop.Control:=edtOffset;
+  sbIncrease.AnchorSideTop.Side:=asrCenter;
+  sbIncrease.AnchorSideLeft.Control:=edtOffset;
+  sbIncrease.AnchorSideLeft.Side:=asrRight;
+  sbIncrease.Anchors:=[akTop, akLeft];
   sbIncrease.caption:='>';
  // sbIncrease.OnClick:=IncreaseClick;
   sbIncrease.OnMouseDown:=IncreaseDown;
   sbIncrease.OnMouseUp:=IncreaseDecreaseUp;
 
   edtOffset.width:=owner.baseAddress.Width-2*sbIncrease.Height-2;
+
+
+  edtOffset.AnchorSideLeft.Control:=sbIncrease;
+  edtOffset.AnchorSideLeft.Side:=asrRight;
+  edtOffset.BorderSpacing.Bottom:=2;
+
+  if before=nil then
+  begin
+    edtOffset.AnchorSideTop.Control:=parent;
+    edtOffset.AnchorSideTop.Side:=asrTop;
+  end
+  else
+  begin
+    edtOffset.AnchorSideTop.Control:=before.edtOffset;
+    edtOffset.AnchorSideTop.Side:=asrBottom;
+  end;
+
+  if after<>nil then
+  begin
+    after.edtOffset.AnchorSideTop.control:=edtOffset;
+    after.edtOffset.AnchorSideTop.side:=asrBottom;
+  end
+  else
+  begin
+    fowner.baseAddress.AnchorSideTop.Control:=edtOffset;
+    fowner.baseAddress.AnchorSideTop.side:=asrBottom;
+  end;
+
+  lblPointerAddressToValue.AnchorSideTop.Control:=edtOffset;
+  lblPointerAddressToValue.AnchorSideTop.Side:=asrCenter;
+  lblPointerAddressToValue.AnchorSideLeft.Control:=sbIncrease;
+  lblPointerAddressToValue.AnchorSideLeft.Side:=asrRight;
 
 
 end;
@@ -747,7 +840,9 @@ begin
 end;
 
 constructor TPointerInfo.create(owner: TformAddressChange);
-var i: integer;
+var
+    i: integer;
+    m: dword;
 begin
   //create the objects
   inherited create(owner);
@@ -765,11 +860,22 @@ begin
 
   baseAddress:=tedit.create(self);
   baseAddress.parent:=self;
-  baseAddress.left:=0;
-  if ProcessHandler.is64Bit then
-    baseAddress.Width:=128
+
+  baseAddress.AnchorSideLeft.Control:=self;
+  baseAddress.AnchorSideLeft.Side:=asrLeft;
+  //baseAddress.left:=0;
+
+  if WindowsVersion>=wvVista then
+    m:=sendmessage(baseAddress.Handle, EM_GETMARGINS, 0,0)
   else
-    baseAddress.Width:=88;
+    m:=10;
+
+  m:=(m shr 16)+(m and $ffff);
+
+  if ProcessHandler.is64Bit then
+    baseAddress.ClientWidth:=Canvas.TextWidth('DDDDDDDDDDDDDDDD')+m
+  else
+    baseAddress.ClientWidth:=Canvas.TextWidth('DDDDDDDD')+m;
 
   baseAddress.OnChange:=basechange;
 
@@ -777,24 +883,43 @@ begin
   baseValue:=tlabel.create(self);
   baseValue.caption:=' ';
   baseValue.parent:=self;
-  baseValue.left:=baseAddress.left+baseAddress.Width+3;
-  baseValue.top:=baseAddress.Top+(baseAddress.Height div 2)-(baseValue.height div 2);
+  baseValue.AnchorSideLeft.Control:=baseAddress;
+  baseValue.AnchorSideLeft.Side:=asrRight;
+  baseValue.BorderSpacing.Left:=3;
+
+  baseValue.AnchorSideTop.Control:=baseAddress;
+  baseValue.AnchorSideTop.Side:=asrCenter;
+
+//  baseValue.left:=baseAddress.left+baseAddress.Width+3;
+//  baseValue.top:=baseAddress.Top+(baseAddress.Height div 2)-(baseValue.height div 2);
 
   btnAddOffset:=Tbutton.Create(self);
   btnAddOffset.caption:=rsACAddOffset;
-  btnAddOffset.Left:=0;
-  btnAddOffset.Width:=owner.btnOk.Width;
-  btnAddOffset.Height:=owner.btnOk.Height;
+
+  btnAddOffset.AnchorSideLeft.Control:=self;
+  btnAddOffset.AnchorSideLeft.Side:=asrLeft;
+
+  //btnAddOffset.Left:=0;
+  btnAddOffset.Constraints.MinWidth:=owner.btnOk.Width;
+  btnAddOffset.Constraints.MinHeight:=owner.btnOk.Height;
   btnAddOffset.OnClick:=AddOffsetClick;
   btnAddOffset.parent:=self;
 
+
   btnRemoveOffset:=TButton.create(self);
   btnRemoveOffset.caption:=rsACRemoveOffset;
-  btnRemoveOffset.Left:=owner.btnCancel.left-owner.btnOk.left;
-  btnRemoveOffset.Width:=btnAddOffset.Width;
-  btnRemoveOffset.Height:=btnAddOffset.Height;
+
+  btnRemoveOffset.AnchorSideLeft.Control:=btnAddOffset;
+  btnRemoveOffset.AnchorSideLeft.Side:=asrRight;
+  btnRemoveOffset.BorderSpacing.Left:=owner.btnCancel.BorderSpacing.Left;
+
+
+//  btnRemoveOffset.Left:=owner.btnCancel.left-owner.btnOk.left;
+  btnRemoveOffset.Constraints.MinWidth:=owner.btnOk.Width;
+  btnRemoveOffset.Constraints.MinHeight:=owner.btnOk.Height;
   btnRemoveOffset.OnClick:=RemoveOffsetClick;
   btnRemoveOffset.parent:=self;
+
 
 
   btnAddOffset.AutoSize:=true;
@@ -813,10 +938,6 @@ begin
 
   btnAddOffset.width:=i;
   btnRemoveOffset.width:=i;
-
-  btnRemoveOffset.AnchorSideLeft.Control:=btnAddOffset;
-  btnRemoveOffset.AnchorSideLeft.Side:=asrRight;
-  btnRemoveOffset.BorderSpacing.Left:=owner.btnCancel.BorderSpacing.Left;
 
   TOffsetInfo.Create(self);
 

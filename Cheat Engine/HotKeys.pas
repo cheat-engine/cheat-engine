@@ -444,8 +444,20 @@ end;
 
 procedure THotKeyForm.FormShow(Sender: TObject);
 begin
+  pagecontrol1.PageIndex:=1;
+  autosize:=false;
+  pagecontrol1.PageIndex:=0;
+
   if editHotkey then
     edtHotkey.SetFocus;
+
+
+  panel1.Constraints.MinHeight:=btnCancel.Top+btnCancel.Height+2;
+
+  constraints.MinWidth:=sbPlayActivate.Left+sbPlayActivate.Width;
+  Constraints.MinHeight:=panel2.height+panel1.Constraints.MinHeight+3*edtDescription.Height;
+
+
 end;
 
 procedure THotKeyForm.ListView1SelectItem(Sender: TObject; Item: TListItem;

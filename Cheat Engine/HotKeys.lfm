@@ -1,10 +1,10 @@
 object HotKeyForm: THotKeyForm
-  Left = 518
+  Left = 735
   Height = 328
-  Top = 325
+  Top = 350
   Width = 509
+  AutoSize = True
   BorderIcons = []
-  BorderStyle = bsSingle
   Caption = 'Set/Change hotkey'
   ClientHeight = 328
   ClientWidth = 509
@@ -16,10 +16,11 @@ object HotKeyForm: THotKeyForm
   LCLVersion = '1.6.0.4'
   object ListView1: TListView
     Left = 0
-    Height = 123
+    Height = 120
     Top = 0
     Width = 509
     Align = alClient
+    AutoWidthLastColumn = True
     Columns = <    
       item
         Caption = 'Hotkey'
@@ -38,8 +39,7 @@ object HotKeyForm: THotKeyForm
       end    
       item
         Caption = 'Description'
-        MinWidth = 1
-        Width = 90
+        Width = 155
       end>
     HideSelection = False
     PopupMenu = pmHotkeylist
@@ -51,16 +51,17 @@ object HotKeyForm: THotKeyForm
   end
   object Panel1: TPanel
     Left = 0
-    Height = 205
-    Top = 123
+    Height = 208
+    Top = 120
     Width = 509
     Align = alBottom
-    ClientHeight = 205
+    AutoSize = True
+    ClientHeight = 208
     ClientWidth = 509
     TabOrder = 1
     object PageControl1: TPageControl
       Left = 1
-      Height = 170
+      Height = 173
       Top = 1
       Width = 507
       ActivePage = TabSheet2
@@ -70,22 +71,32 @@ object HotKeyForm: THotKeyForm
       TabOrder = 0
       object TabSheet1: TTabSheet
         Caption = 'TabSheet1'
-        ClientHeight = 158
-        ClientWidth = 468
+        ClientHeight = 27
+        ClientWidth = 499
         object btnCreateHotkey: TButton
-          Left = 11
+          AnchorSideLeft.Control = TabSheet1
+          AnchorSideTop.Control = TabSheet1
+          Left = 4
           Height = 25
-          Top = 7
-          Width = 75
+          Top = 2
+          Width = 99
+          AutoSize = True
+          BorderSpacing.Left = 4
+          BorderSpacing.Top = 2
           Caption = 'Create hotkey'
           OnClick = btnCreateHotkeyClick
           TabOrder = 0
         end
         object btnEditHotkey: TButton
-          Left = 92
+          AnchorSideLeft.Control = btnCreateHotkey
+          AnchorSideLeft.Side = asrBottom
+          AnchorSideTop.Control = btnCreateHotkey
+          Left = 110
           Height = 25
-          Top = 7
-          Width = 75
+          Top = 2
+          Width = 87
+          AutoSize = True
+          BorderSpacing.Left = 7
           Caption = 'Edit Hotkey'
           Enabled = False
           OnClick = btnEditHotkeyClick
@@ -94,7 +105,7 @@ object HotKeyForm: THotKeyForm
       end
       object TabSheet2: TTabSheet
         Caption = 'TabSheet2'
-        ClientHeight = 162
+        ClientHeight = 165
         ClientWidth = 499
         object Label1: TLabel
           AnchorSideLeft.Control = TabSheet2
@@ -148,6 +159,7 @@ object HotKeyForm: THotKeyForm
           Width = 75
           AutoSize = True
           BorderSpacing.Top = 4
+          BorderSpacing.Bottom = 2
           Caption = 'Apply'
           Constraints.MinWidth = 75
           OnClick = btnApplyClick
@@ -199,6 +211,7 @@ object HotKeyForm: THotKeyForm
           Width = 75
           AutoSize = True
           BorderSpacing.Left = 2
+          BorderSpacing.Bottom = 2
           Caption = 'Cancel'
           Constraints.MinWidth = 75
           OnClick = btnCancelClick
@@ -401,7 +414,7 @@ object HotKeyForm: THotKeyForm
     object Panel2: TPanel
       Left = 1
       Height = 33
-      Top = 171
+      Top = 174
       Width = 507
       Align = alBottom
       AutoSize = True
