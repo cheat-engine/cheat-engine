@@ -6871,16 +6871,29 @@ var
 
 procedure TMainForm.FormShow(Sender: TObject);
 procedure AdjustSpeedButtonSize(sb: TSpeedButton);
-var bm: TBitmap;
+const
+  designtimedpi=96;
+var
+  bm: TBitmap;
 begin
-  bm:=TBitmap.Create;
-  bm.width:=scalex(sb.Glyph.Width, 96);
-  bm.height:=scaley(sb.Glyph.Height, 96);
-  bm.Canvas.CopyRect(rect(0,0,bm.width,bm.height), sb.Glyph.Canvas, rect(0,0,sb.Glyph.width,sb.Glyph.height));
+  sb.Transparent:=false;
+  sb.Glyph.Transparent:=false;
 
-  sb.Width:=scalex(sb.Width, 96);
-  sb.Height:=scaley(sb.Height, 96);
+  bm:=TBitmap.Create;
+  bm.Assign(sb.Glyph);
+
+  bm.width:=scalex(sb.Glyph.Width, designtimedpi);
+  bm.height:=scaley(sb.Glyph.Height, designtimedpi);
+  bm.Canvas.StretchDraw(rect(0,0, bm.width, bm.height),sb.Glyph);
+
+  sb.Width:=scalex(sb.Width, designtimedpi);
+  sb.Height:=scaley(sb.Height, designtimedpi);
+  bm.TransparentColor:=0;
+  bm.TransparentMode:=tmAuto;
+
   sb.Glyph:=bm;
+  sb.Glyph.Transparent:=true;
+  sb.Transparent:=true;
   bm.free;
 end;
 
