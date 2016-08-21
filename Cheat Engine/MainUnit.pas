@@ -6928,6 +6928,8 @@ var
 
   c: TControl;
 
+  logopic: TPicture;
+  rs: TResourceStream;
 
 begin
   if onetimeonly then
@@ -7061,6 +7063,40 @@ begin
 
   //don't put this in oncreate, just don't
   memscan.setScanDoneCallback(mainform.handle, wm_scandone);
+
+  logo.Width:=settingsbutton.width;
+
+  if logo.Width>=90 then
+  begin
+    rs := TResourceStream.Create(HInstance, 'IMAGES_CELOGO', RT_RCDATA);
+    logopic:=TPicture.Create;
+    logopic.LoadFromStreamWithFileExt(rs,'.PNG');
+    logo.Picture:=logopic;
+    logo.Stretch:=true;
+
+
+    logopic.free;
+    freeandnil(rs);
+  end;
+
+  if settingsbutton.Width>logo.Picture.Width then
+    logo.Width:=settingsbutton.width;
+
+  if logo.Width>=80 then
+  begin
+    rs := TResourceStream.Create(HInstance, 'IMAGES_CELOGO', RT_RCDATA);
+    logopic:=TPicture.Create;
+    logopic.LoadFromStreamWithFileExt(rs,'.PNG');
+    logo.Picture:=logopic;
+    logo.Stretch:=true;
+
+
+    logopic.free;
+    freeandnil(rs);
+  end;
+
+  logo.Height:=trunc((logo.Width / logo.picture.Width)*logo.picture.Height);
+
 
   AdjustSpeedButtonSize(sbOpenProcess);
   AdjustSpeedButtonSize(LoadButton);

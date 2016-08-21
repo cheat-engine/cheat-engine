@@ -95,6 +95,7 @@ uses
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in
 //{$R Sounds.rc}
+{$R images.rc}
 {$R Sounds.res}
 
 {$ifdef cpu32}
