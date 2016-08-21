@@ -7,8 +7,6 @@ object frmAutoInject: TfrmAutoInject
   Caption = 'Auto assemble'
   ClientHeight = 311
   ClientWidth = 431
-  Font.Height = -14
-  Font.Name = 'MS Sans Serif'
   Menu = MainMenu1
   OnClose = FormClose
   OnCreate = FormCreate

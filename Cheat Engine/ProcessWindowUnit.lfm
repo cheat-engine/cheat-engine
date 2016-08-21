@@ -9,8 +9,6 @@ object ProcessWindow: TProcessWindow
   Caption = 'Process List'
   ClientHeight = 449
   ClientWidth = 275
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   OnResize = FormResize
   OnShow = FormShow
@@ -19,11 +17,11 @@ object ProcessWindow: TProcessWindow
   LCLVersion = '1.6.0.4'
   object ProcessList: TListBox
     Left = 0
-    Height = 257
+    Height = 243
     Top = 0
     Width = 275
     Align = alClient
-    ItemHeight = 16
+    ItemHeight = 0
     OnDblClick = OKButtonClick
     OnDrawItem = ProcessListDrawItem
     OnKeyPress = ProcessListKeyPress
@@ -33,25 +31,25 @@ object ProcessWindow: TProcessWindow
   end
   object Panel1: TPanel
     Left = 0
-    Height = 192
-    Top = 257
+    Height = 206
+    Top = 243
     Width = 275
     Align = alBottom
     AutoSize = True
     BevelInner = bvLowered
     BevelOuter = bvNone
-    ClientHeight = 192
+    ClientHeight = 206
     ClientWidth = 275
     TabOrder = 1
     object Panel2: TPanel
       Left = 1
-      Height = 190
+      Height = 204
       Top = 1
       Width = 273
       Align = alClient
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 190
+      ClientHeight = 204
       ClientWidth = 273
       TabOrder = 0
       object btnOpenFile: TButton
@@ -61,8 +59,8 @@ object ProcessWindow: TProcessWindow
         AnchorSideRight.Control = Button4
         AnchorSideRight.Side = asrBottom
         Left = 49
-        Height = 23
-        Top = 88
+        Height = 25
+        Top = 92
         Width = 175
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
@@ -78,8 +76,8 @@ object ProcessWindow: TProcessWindow
         AnchorSideRight.Control = Button4
         AnchorSideRight.Side = asrBottom
         Left = 49
-        Height = 23
-        Top = 64
+        Height = 25
+        Top = 66
         Width = 175
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
@@ -94,7 +92,7 @@ object ProcessWindow: TProcessWindow
         AnchorSideTop.Control = Panel3
         AnchorSideTop.Side = asrBottom
         Left = 49
-        Height = 23
+        Height = 25
         Top = 40
         Width = 175
         AutoSize = True
@@ -111,10 +109,11 @@ object ProcessWindow: TProcessWindow
         AnchorSideLeft.Side = asrCenter
         AnchorSideTop.Control = btnNetwork
         AnchorSideTop.Side = asrBottom
-        Left = 72
-        Height = 21
-        Top = 169
-        Width = 129
+        Left = 77
+        Height = 25
+        Top = 179
+        Width = 119
+        AutoSize = True
         Caption = 'Process List(long)'
         OnClick = btnProcessListLongClick
         TabOrder = 3
@@ -124,10 +123,10 @@ object ProcessWindow: TProcessWindow
         AnchorSideLeft.Side = asrCenter
         AnchorSideTop.Control = Panel4
         AnchorSideTop.Side = asrBottom
-        Left = 103
-        Height = 23
-        Top = 146
-        Width = 66
+        Left = 101
+        Height = 25
+        Top = 154
+        Width = 71
         AutoSize = True
         BorderSpacing.Top = 2
         Caption = 'Network'
@@ -191,25 +190,25 @@ object ProcessWindow: TProcessWindow
         AnchorSideTop.Control = btnOpenFile
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Side = asrBottom
-        Left = 2
-        Height = 23
-        Top = 121
-        Width = 269
+        Left = -6
+        Height = 25
+        Top = 127
+        Width = 285
         AutoSize = True
         BorderSpacing.Left = 2
         BorderSpacing.Top = 10
         BorderSpacing.Right = 2
         BevelOuter = bvNone
-        ClientHeight = 23
-        ClientWidth = 269
+        ClientHeight = 25
+        ClientWidth = 285
         TabOrder = 6
         object btnProcesslist: TButton
           AnchorSideLeft.Control = Panel4
           AnchorSideTop.Control = Panel4
           Left = 4
-          Height = 23
+          Height = 25
           Top = 0
-          Width = 83
+          Width = 87
           AutoSize = True
           BorderSpacing.Left = 4
           Caption = 'Process List'
@@ -220,10 +219,10 @@ object ProcessWindow: TProcessWindow
           AnchorSideLeft.Control = btnProcesslist
           AnchorSideLeft.Side = asrBottom
           AnchorSideTop.Control = Panel4
-          Left = 88
-          Height = 23
+          Left = 92
+          Height = 25
           Top = 0
-          Width = 84
+          Width = 91
           AutoSize = True
           BorderSpacing.Left = 1
           Caption = 'Window List'
@@ -234,10 +233,10 @@ object ProcessWindow: TProcessWindow
           AnchorSideLeft.Control = btnWindowList
           AnchorSideLeft.Side = asrBottom
           AnchorSideTop.Control = Panel4
-          Left = 173
-          Height = 23
+          Left = 184
+          Height = 25
           Top = 0
-          Width = 96
+          Width = 101
           AutoSize = True
           BorderSpacing.Left = 1
           Caption = 'Process watch'

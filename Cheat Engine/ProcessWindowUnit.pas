@@ -535,16 +535,17 @@ begin
   processlist.Canvas.FillRect(rect);
 
 
-  processlist.Canvas.TextOut(rect.Left+16,rect.Top,processlist.Items[index]);
+  processlist.Canvas.TextOut(rect.Left+rect.Bottom-rect.Top,rect.Top,processlist.Items[index]);
 
   if (processlist.Items.Objects[index]<>nil) and (PProcessListInfo(processlist.Items.Objects[index])^.processIcon>0) then
-    DrawIconEx(processlist.Canvas.Handle, rect.left, rect.Top, PProcessListInfo(processlist.Items.Objects[index])^.processIcon, 16,16,0,0,DI_NORMAL);
+    DrawIconEx(processlist.Canvas.Handle, rect.left, rect.Top, PProcessListInfo(processlist.Items.Objects[index])^.processIcon, rect.Bottom-rect.Top,rect.Bottom-rect.Top,0,0,DI_NORMAL);
 
 end;
 
 procedure TProcessWindow.FormShow(Sender: TObject);
 var i: integer;
 begin
+  ProcessList.ItemHeight:=canvas.TextHeight('QqJjWwSs')+2;
 
   currentchar:=1;
   btnProcesslist.click;

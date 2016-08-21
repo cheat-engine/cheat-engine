@@ -535,6 +535,7 @@ var i,j: integer;
     currentline: string;
     instring: boolean;
     incomment: boolean;
+    bracecomment: boolean;
 begin
   //remove comments
   instring:=false;
@@ -547,13 +548,15 @@ begin
     begin
       if incomment then
       begin
+
+
         //inside a comment, remove everything till a } is encountered
-        if ((currentline[j]='}') and (processhandler.SystemArchitecture<>archArm)) or
-           ((currentline[j]='*') and (j<length(currentline)) and (currentline[j+1]='/')) then
+        if (bracecomment and ((currentline[j]='}') and (processhandler.SystemArchitecture<>archArm))) or
+           ((not bracecomment) and (currentline[j]='*') and (j<length(currentline)) and (currentline[j+1]='/')) then
         begin
           incomment:=false; //and continue parsing the code...
 
-          if ((currentline[j]='*') and (j<length(currentline)) and (currentline[j+1]='/')) then
+          if (not bracecomment) then
             currentline[j+1]:=' ';
         end;
 
@@ -578,6 +581,8 @@ begin
              ((currentline[j]='/') and (j<length(currentline)) and (currentline[j+1]='*')) then
           begin
             incomment:=true;
+            bracecomment:=currentline[j]='{';
+
             currentline[j]:=' '; //replace from here till the first } with spaces, this goes on for multiple lines
           end;
         end;

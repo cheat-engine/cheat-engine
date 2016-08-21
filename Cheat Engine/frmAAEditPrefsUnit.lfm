@@ -26,8 +26,9 @@ object frmAAEditPrefs: TfrmAAEditPrefs
     Top = 149
     Width = 155
     AutoSize = True
-    BorderSpacing.Left = 2
+    BorderSpacing.Left = 3
     BorderSpacing.Top = 8
+    BorderSpacing.Right = 3
     BorderSpacing.Bottom = 3
     BevelOuter = bvNone
     ClientHeight = 26
@@ -72,23 +73,25 @@ object frmAAEditPrefs: TfrmAAEditPrefs
     Left = 0
     Height = 141
     Top = 0
-    Width = 161
+    Width = 167
     AutoSize = True
     BevelOuter = bvNone
     ClientHeight = 141
-    ClientWidth = 161
+    ClientWidth = 167
     TabOrder = 1
     OnClick = Panel1Click
     object btnFont: TButton
       AnchorSideLeft.Control = Panel1
       AnchorSideTop.Control = Panel4
       AnchorSideTop.Side = asrBottom
-      Left = 0
+      Left = 3
       Height = 26
       Top = 115
       Width = 161
       AutoSize = True
+      BorderSpacing.Left = 3
       BorderSpacing.Top = 3
+      BorderSpacing.Right = 3
       Caption = 'font'
       Constraints.MinWidth = 161
       OnClick = btnFontClick
@@ -100,47 +103,62 @@ object frmAAEditPrefs: TfrmAAEditPrefs
       Left = 4
       Height = 86
       Top = 0
-      Width = 132
+      Width = 135
       AutoSize = True
       BevelOuter = bvNone
       ChildSizing.Layout = cclLeftToRightThenTopToBottom
       ChildSizing.ControlsPerLine = 1
       ClientHeight = 86
-      ClientWidth = 132
+      ClientWidth = 135
       TabOrder = 1
       object cbShowLineNumbers: TCheckBox
-        Left = 0
+        AnchorSideLeft.Control = Panel3
+        AnchorSideTop.Control = Panel3
+        Left = 3
         Height = 20
         Top = 6
         Width = 132
+        BorderSpacing.Left = 3
         BorderSpacing.Top = 6
         Caption = 'Show line numbers'
         OnClick = cbShowLineNumbersClick
         TabOrder = 0
       end
       object cbShowGutter: TCheckBox
-        Left = 0
+        AnchorSideLeft.Control = Panel3
+        AnchorSideTop.Control = cbShowLineNumbers
+        AnchorSideTop.Side = asrBottom
+        Left = 3
         Height = 20
         Top = 26
-        Width = 132
+        Width = 114
+        BorderSpacing.Left = 3
         Caption = 'Show bar on left'
         OnClick = cbShowGutterClick
         TabOrder = 1
       end
       object cbSmartTab: TCheckBox
-        Left = 0
+        AnchorSideLeft.Control = Panel3
+        AnchorSideTop.Control = cbShowGutter
+        AnchorSideTop.Side = asrBottom
+        Left = 3
         Height = 20
         Top = 46
-        Width = 132
+        Width = 77
+        BorderSpacing.Left = 3
         Caption = 'Smart tab'
         OnClick = cbSmartTabClick
         TabOrder = 2
       end
       object cbTabsToSpace: TCheckBox
-        Left = 0
+        AnchorSideLeft.Control = Panel3
+        AnchorSideTop.Control = cbSmartTab
+        AnchorSideTop.Side = asrBottom
+        Left = 3
         Height = 20
         Top = 66
-        Width = 132
+        Width = 107
+        BorderSpacing.Left = 3
         Caption = 'Tabs to space'
         OnClick = cbTabsToSpaceClick
         TabOrder = 3
@@ -153,23 +171,24 @@ object frmAAEditPrefs: TfrmAAEditPrefs
       Left = 4
       Height = 24
       Top = 88
-      Width = 148
+      Width = 151
       AutoSize = True
       BorderSpacing.Left = 4
       BorderSpacing.Top = 2
       BorderSpacing.Right = 4
       BevelOuter = bvNone
       ClientHeight = 24
-      ClientWidth = 148
+      ClientWidth = 151
       TabOrder = 2
       object Label1: TLabel
         AnchorSideLeft.Control = Panel4
         AnchorSideTop.Control = edtTabWidth
         AnchorSideTop.Side = asrCenter
-        Left = 0
+        Left = 3
         Height = 16
         Top = 4
         Width = 62
+        BorderSpacing.Left = 3
         Caption = 'Tab Width'
         ParentColor = False
       end
@@ -177,7 +196,7 @@ object frmAAEditPrefs: TfrmAAEditPrefs
         AnchorSideLeft.Control = Label1
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = Panel4
-        Left = 64
+        Left = 67
         Height = 24
         Top = 0
         Width = 80
