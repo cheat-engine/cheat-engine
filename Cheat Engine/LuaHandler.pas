@@ -7165,22 +7165,11 @@ begin
           lua_newtable(L);
           t:=lua_gettop(L);
 
-          lua_pushstring(L, 'major');
-          lua_pushinteger(L, (v shr 48) and $ffff);
-          lua_settable(L, t);
 
-          lua_pushstring(L, 'minor');
-          lua_pushinteger(L, (v shr 32) and $ffff);
-          lua_settable(L, t);
-
-          lua_pushstring(L, 'release');
-          lua_pushinteger(L, (v shr 16) and $ffff);
-          lua_settable(L, t);
-
-          lua_pushstring(L, 'build');
-          lua_pushinteger(L, v and $ffff);
-          lua_settable(L, t);
-
+          lua_setbasictableentry(L, t, 'major', (v shr 48) and $ffff);
+          lua_setbasictableentry(L, t, 'minor', (v shr 32) and $ffff);
+          lua_setbasictableentry(L, t, 'release', (v shr 16) and $ffff);
+          lua_setbasictableentry(L, t, 'build', v and $ffff);
         end;
 
       end;
