@@ -15,11 +15,11 @@ type
 
   THotKeyForm = class(TForm)
     BitBtn1: TBitBtn;
-    Button2: TButton;
     btnApply: TButton;
     btnCreateHotkey: TButton;
     btnEditHotkey: TButton;
     btnCancel: TButton;
+    Button2: TButton;
     cbActivateSound: TComboBox;
     cbDeactivateSound: TComboBox;
     cbFreezedirection: TComboBox;
@@ -38,6 +38,7 @@ type
     PageControl1: TPageControl;
     Panel1: TPanel;
     Panel2: TPanel;
+    Panel3: TPanel;
     pmHotkeylist: TPopupMenu;
     pmAddSound: TPopupMenu;
     sbPlayActivate: TSpeedButton;
@@ -84,7 +85,7 @@ type
 
 implementation
 
-uses MainUnit, trainergenerator, luafile, LuaHandler;
+uses MainUnit, trainergenerator, luafile, LuaHandler, DPIHelper;
 
 resourcestring
   rsHotkeyID = 'Hotkey ID=%s';
@@ -443,19 +444,78 @@ begin
 end;
 
 procedure THotKeyForm.FormShow(Sender: TObject);
+var
+  i, maxwidth: integer;
+  s: string;
+  cbi: TComboboxInfo;
 begin
-  pagecontrol1.PageIndex:=1;
-  autosize:=false;
-  pagecontrol1.PageIndex:=0;
+  PageControl1.PageIndex:=1;
+
+  cbActivateSound.Top:=edtFreezeValue.Top;
+
+  AdjustSpeedButtonSize(sbPlayActivate);
+  AdjustSpeedButtonSize(sbPlayDeactivate);
+
+
+  constraints.MinWidth:=panel1.Width+4;
+  Constraints.MinHeight:=panel2.height+panel1.Height+3*edtDescription.Height;
+
+
+
+  maxwidth:=0;
+  for i:=0 to cbFreezedirection.Items.Count-1 do
+  begin
+    s:=cbFreezedirection.Items[i];
+    maxwidth:=max(maxwidth, Canvas.TextWidth(s));
+  end;
+
+  cbi.cbSize:=sizeof(cbi);
+  if GetComboBoxInfo(cbFreezedirection.Handle, @cbi) then
+  begin
+    i:=maxwidth-(cbi.rcItem.Right-cbi.rcItem.Left)+4;
+
+    cbFreezedirection.width:=cbFreezedirection.width+i;
+  end
+  else
+    cbFreezedirection.width:=maxwidth+16;
+
+  maxwidth:=0;
+  for i:=0 to cbActivateSound.Items.Count-1 do
+  begin
+    s:=cbActivateSound.Items[i];
+    maxwidth:=max(maxwidth, Canvas.TextWidth(s));
+  end;
+
+  cbi.cbSize:=sizeof(cbi);
+  if GetComboBoxInfo(cbActivateSound.Handle, @cbi) then
+  begin
+    i:=maxwidth-(cbi.rcItem.Right-cbi.rcItem.Left)+4;
+
+    cbActivateSound.width:=cbActivateSound.width+i;
+  end
+  else
+    cbActivateSound.width:=maxwidth+16;
+
+  cbDeactivateSound.width:=cbActivateSound.Width;
+
+  if cbFreezedirection.width>edtHotkey.Width then
+    edtHotkey.Width:=cbFreezedirection.width;
+
+
+  PageControl1.PageIndex:=0;
+ // autosize:=false;
 
   if editHotkey then
+  begin
+    PageControl1.PageIndex:=1;
     edtHotkey.SetFocus;
+  end;
 
 
-  panel1.Constraints.MinHeight:=btnCancel.Top+btnCancel.Height+2;
+ // panel1.Constraints.MinHeight:=btnCancel.Top+btnCancel.Height+2;
 
-  constraints.MinWidth:=sbPlayActivate.Left+sbPlayActivate.Width;
-  Constraints.MinHeight:=panel2.height+panel1.Constraints.MinHeight+3*edtDescription.Height;
+
+
 
 
 end;

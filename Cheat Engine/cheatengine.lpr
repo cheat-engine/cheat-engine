@@ -15,9 +15,9 @@ uses
   formsettingsunit, HotkeyHandler, formhotkeyunit, AdvancedOptionsUnit,
   inputboxtopunit, plugin, pluginexports, tlgUnit, aboutunit,
   frmProcesswatcherExtraUnit, frmProcessWatcherUnit, ModuleSafetyUnit,
-  frmExcludeHideUnit, HotKeys, TypePopup, CommentsUnit,
-  FoundCodeUnit, foundlisthelper, unrandomizer, SaveFirstScan, savedscanhandler,
-  memscan, formScanningUnit, KernelDebugger, formDifferentBitSizeUnit,
+  frmExcludeHideUnit, HotKeys, TypePopup, CommentsUnit, FoundCodeUnit,
+  foundlisthelper, unrandomizer, SaveFirstScan, savedscanhandler, memscan,
+  formScanningUnit, KernelDebugger, formDifferentBitSizeUnit,
   formAddressChangeUnit, Changeoffsetunit, speedhack2, formPointerOrPointeeUnit,
   AccessCheck, formmemoryregionsunit, OpenSave, formProcessInfo,
   frmautoinjectunit, MenuItemExtra, MemoryBrowserFormUnit,
@@ -90,7 +90,8 @@ uses
   Parsers, Globals, NullStream, RipRelativeScanner, LuaRipRelativeScanner,
   VirtualQueryExCache, disassemblerthumb, AccessedMemory, LuaStructureFrm,
   MemoryQuery, pointerparser, GnuAssembler, binutils, dbvmLoadManual, mikmod,
-  frmEditHistoryUnit, LuaInternet, xinput, frmUltimap2Unit, cpuidunit, libipt;
+  frmEditHistoryUnit, LuaInternet, xinput, frmUltimap2Unit, cpuidunit, libipt,
+  DPIHelper;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in

@@ -1,13 +1,13 @@
 object HotKeyForm: THotKeyForm
-  Left = 735
-  Height = 328
-  Top = 350
-  Width = 509
+  Left = 598
+  Height = 381
+  Top = 327
+  Width = 548
   AutoSize = True
   BorderIcons = []
   Caption = 'Set/Change hotkey'
-  ClientHeight = 328
-  ClientWidth = 509
+  ClientHeight = 381
+  ClientWidth = 548
   OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow
@@ -16,9 +16,9 @@ object HotKeyForm: THotKeyForm
   LCLVersion = '1.6.0.4'
   object ListView1: TListView
     Left = 0
-    Height = 120
+    Height = 173
     Top = 0
-    Width = 509
+    Width = 548
     Align = alClient
     AutoWidthLastColumn = True
     Columns = <    
@@ -39,7 +39,7 @@ object HotKeyForm: THotKeyForm
       end    
       item
         Caption = 'Description'
-        Width = 155
+        Width = 194
       end>
     HideSelection = False
     PopupMenu = pmHotkeylist
@@ -52,18 +52,18 @@ object HotKeyForm: THotKeyForm
   object Panel1: TPanel
     Left = 0
     Height = 208
-    Top = 120
-    Width = 509
+    Top = 173
+    Width = 548
     Align = alBottom
     AutoSize = True
     ClientHeight = 208
-    ClientWidth = 509
+    ClientWidth = 548
     TabOrder = 1
     object PageControl1: TPageControl
       Left = 1
       Height = 173
       Top = 1
-      Width = 507
+      Width = 546
       ActivePage = TabSheet2
       Align = alClient
       ShowTabs = False
@@ -106,54 +106,12 @@ object HotKeyForm: THotKeyForm
       object TabSheet2: TTabSheet
         Caption = 'TabSheet2'
         ClientHeight = 165
-        ClientWidth = 499
-        object Label1: TLabel
-          AnchorSideLeft.Control = TabSheet2
-          AnchorSideTop.Control = TabSheet2
-          Left = 4
-          Height = 15
-          Top = 2
-          Width = 229
-          BorderSpacing.Left = 4
-          BorderSpacing.Top = 2
-          Caption = 'Type the keys you want to set the hotkey to'
-          ParentColor = False
-        end
-        object edtHotkey: TEdit
-          AnchorSideLeft.Control = Label1
-          AnchorSideTop.Control = Label1
-          AnchorSideTop.Side = asrBottom
-          Left = 4
-          Height = 23
-          Top = 19
-          Width = 235
-          BorderSpacing.Top = 2
-          OnKeyDown = edtHotkeyKeyDown
-          OnMouseDown = edtHotkeyMouseDown
-          ReadOnly = True
-          TabOrder = 0
-        end
-        object Button2: TButton
-          AnchorSideLeft.Control = edtHotkey
-          AnchorSideLeft.Side = asrBottom
-          AnchorSideTop.Control = edtHotkey
-          AnchorSideBottom.Control = edtHotkey
-          AnchorSideBottom.Side = asrBottom
-          Left = 239
-          Height = 23
-          Top = 19
-          Width = 53
-          Anchors = [akTop, akLeft, akBottom]
-          AutoSize = True
-          Caption = 'Clear'
-          OnClick = Button2Click
-          TabOrder = 1
-        end
+        ClientWidth = 538
         object btnApply: TButton
-          AnchorSideLeft.Control = Label1
-          AnchorSideTop.Control = edtDescription
+          AnchorSideLeft.Control = Panel3
+          AnchorSideTop.Control = Panel3
           AnchorSideTop.Side = asrBottom
-          Left = 4
+          Left = 0
           Height = 25
           Top = 138
           Width = 75
@@ -163,49 +121,13 @@ object HotKeyForm: THotKeyForm
           Caption = 'Apply'
           Constraints.MinWidth = 75
           OnClick = btnApplyClick
-          TabOrder = 2
-        end
-        object cbFreezedirection: TComboBox
-          AnchorSideLeft.Control = Label1
-          AnchorSideTop.Control = edtHotkey
-          AnchorSideTop.Side = asrBottom
-          Left = 4
-          Height = 23
-          Top = 44
-          Width = 145
-          BorderSpacing.Top = 2
-          ItemHeight = 15
-          ItemIndex = 0
-          Items.Strings = (
-            'Toggle freeze'
-            'Toggle freeze and allow increase'
-            'Toggle freeze and allow decrease'
-            'Set value to:'
-            'Decrease value with:'
-            'Increase value with:'
-          )
-          OnSelect = cbFreezedirectionSelect
-          Style = csDropDownList
-          TabOrder = 3
-          Text = 'Toggle freeze'
-        end
-        object edtFreezeValue: TEdit
-          AnchorSideLeft.Control = Label1
-          AnchorSideTop.Control = cbFreezedirection
-          AnchorSideTop.Side = asrBottom
-          Left = 4
-          Height = 23
-          Top = 69
-          Width = 235
-          BorderSpacing.Top = 2
-          Enabled = False
-          TabOrder = 4
+          TabOrder = 0
         end
         object btnCancel: TButton
           AnchorSideLeft.Control = btnApply
           AnchorSideLeft.Side = asrBottom
           AnchorSideTop.Control = btnApply
-          Left = 81
+          Left = 77
           Height = 25
           Top = 138
           Width = 75
@@ -215,92 +137,157 @@ object HotKeyForm: THotKeyForm
           Caption = 'Cancel'
           Constraints.MinWidth = 75
           OnClick = btnCancelClick
-          TabOrder = 5
+          TabOrder = 1
         end
-        object Label2: TLabel
-          AnchorSideLeft.Control = Label1
-          AnchorSideTop.Control = edtFreezeValue
-          AnchorSideTop.Side = asrBottom
-          Left = 4
-          Height = 15
-          Top = 94
-          Width = 117
-          BorderSpacing.Top = 2
-          Caption = 'Description (Optional)'
-          ParentColor = False
-        end
-        object edtDescription: TEdit
-          AnchorSideLeft.Control = Label1
-          AnchorSideTop.Control = Label2
-          AnchorSideTop.Side = asrBottom
-          Left = 4
-          Height = 23
-          Hint = 'When autogenerating a trainer this field will be used as description'
-          Top = 111
-          Width = 236
-          BorderSpacing.Top = 2
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 6
+        object Panel3: TPanel
+          AnchorSideLeft.Control = TabSheet2
+          AnchorSideTop.Control = TabSheet2
+          Left = 0
+          Height = 134
+          Top = 0
+          Width = 292
+          AutoSize = True
+          BevelOuter = bvNone
+          ClientHeight = 134
+          ClientWidth = 292
+          TabOrder = 2
+          object Label1: TLabel
+            AnchorSideLeft.Control = Panel3
+            AnchorSideTop.Control = Panel3
+            Left = 4
+            Height = 15
+            Top = 2
+            Width = 229
+            BorderSpacing.Left = 4
+            BorderSpacing.Top = 2
+            Caption = 'Type the keys you want to set the hotkey to'
+            ParentColor = False
+          end
+          object edtHotkey: TEdit
+            AnchorSideLeft.Control = Label1
+            AnchorSideTop.Control = Label1
+            AnchorSideTop.Side = asrBottom
+            Left = 4
+            Height = 23
+            Top = 19
+            Width = 235
+            BorderSpacing.Top = 2
+            OnKeyDown = edtHotkeyKeyDown
+            OnMouseDown = edtHotkeyMouseDown
+            ReadOnly = True
+            TabOrder = 0
+          end
+          object Button2: TButton
+            AnchorSideLeft.Control = edtHotkey
+            AnchorSideLeft.Side = asrBottom
+            AnchorSideTop.Control = edtHotkey
+            AnchorSideBottom.Control = edtHotkey
+            AnchorSideBottom.Side = asrBottom
+            Left = 239
+            Height = 23
+            Top = 19
+            Width = 53
+            Anchors = [akTop, akLeft, akBottom]
+            AutoSize = True
+            Caption = 'Clear'
+            OnClick = Button2Click
+            TabOrder = 1
+          end
+          object cbFreezedirection: TComboBox
+            AnchorSideLeft.Control = Label1
+            AnchorSideTop.Control = edtHotkey
+            AnchorSideTop.Side = asrBottom
+            Left = 4
+            Height = 23
+            Top = 44
+            Width = 145
+            BorderSpacing.Top = 2
+            ItemHeight = 15
+            ItemIndex = 0
+            Items.Strings = (
+              'Toggle freeze'
+              'Toggle freeze and allow increase'
+              'Toggle freeze and allow decrease'
+              'Set value to:'
+              'Decrease value with:'
+              'Increase value with:'
+            )
+            OnSelect = cbFreezedirectionSelect
+            Style = csDropDownList
+            TabOrder = 2
+            Text = 'Toggle freeze'
+          end
+          object edtFreezeValue: TEdit
+            AnchorSideLeft.Control = Label1
+            AnchorSideTop.Control = cbFreezedirection
+            AnchorSideTop.Side = asrBottom
+            AnchorSideRight.Control = edtHotkey
+            AnchorSideRight.Side = asrBottom
+            Left = 4
+            Height = 23
+            Top = 69
+            Width = 235
+            Anchors = [akTop, akLeft, akRight]
+            BorderSpacing.Top = 2
+            Enabled = False
+            TabOrder = 3
+          end
+          object Label2: TLabel
+            AnchorSideLeft.Control = Label1
+            AnchorSideTop.Control = edtFreezeValue
+            AnchorSideTop.Side = asrBottom
+            Left = 4
+            Height = 15
+            Top = 94
+            Width = 117
+            BorderSpacing.Top = 2
+            Caption = 'Description (Optional)'
+            ParentColor = False
+          end
+          object edtDescription: TEdit
+            AnchorSideLeft.Control = Label1
+            AnchorSideTop.Control = Label2
+            AnchorSideTop.Side = asrBottom
+            AnchorSideRight.Control = edtHotkey
+            AnchorSideRight.Side = asrBottom
+            Left = 4
+            Height = 23
+            Hint = 'When autogenerating a trainer this field will be used as description'
+            Top = 111
+            Width = 235
+            Anchors = [akTop, akLeft, akRight]
+            BorderSpacing.Top = 2
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 4
+          end
         end
         object lblActivateSound: TLabel
-          AnchorSideLeft.Control = Button2
+          AnchorSideLeft.Control = Panel3
           AnchorSideLeft.Side = asrBottom
-          AnchorSideTop.Control = cbFreezedirection
-          AnchorSideTop.Side = asrBottom
+          AnchorSideTop.Control = Panel3
           AnchorSideRight.Control = lblDeactivateSound
           AnchorSideRight.Side = asrBottom
-          AnchorSideBottom.Control = cbFreezedirection
-          AnchorSideBottom.Side = asrBottom
-          Left = 297
+          AnchorSideBottom.Control = cbActivateSound
+          Left = 300
           Height = 15
-          Top = 52
+          Top = 53
           Width = 79
           Anchors = [akLeft, akBottom]
-          BorderSpacing.Left = 5
+          BorderSpacing.Left = 8
           Caption = 'Activate sound'
           Enabled = False
           ParentColor = False
-        end
-        object lblDeactivateSound: TLabel
-          AnchorSideLeft.Control = lblActivateSound
-          AnchorSideTop.Control = cbActivateSound
-          AnchorSideTop.Side = asrBottom
-          Left = 297
-          Height = 15
-          Top = 94
-          Width = 91
-          BorderSpacing.Top = 2
-          Caption = 'Deactivate sound'
-          Enabled = False
-          ParentColor = False
-        end
-        object cbDeactivateSound: TComboBox
-          AnchorSideLeft.Control = lblDeactivateSound
-          AnchorSideTop.Control = lblDeactivateSound
-          AnchorSideTop.Side = asrBottom
-          Left = 297
-          Height = 23
-          Top = 111
-          Width = 119
-          BorderSpacing.Top = 2
-          Enabled = False
-          ItemHeight = 15
-          Items.Strings = (
-            'Deactivate'
-          )
-          PopupMenu = pmAddSound
-          Style = csDropDownList
-          TabOrder = 7
         end
         object cbActivateSound: TComboBox
           AnchorSideLeft.Control = lblActivateSound
           AnchorSideTop.Control = lblActivateSound
           AnchorSideTop.Side = asrBottom
-          Left = 297
+          Left = 300
           Height = 23
-          Top = 69
+          Top = 70
           Width = 119
+          Anchors = [akLeft]
           BorderSpacing.Top = 2
           Enabled = False
           ItemHeight = 15
@@ -309,16 +296,16 @@ object HotKeyForm: THotKeyForm
           )
           PopupMenu = pmAddSound
           Style = csDropDownList
-          TabOrder = 8
+          TabOrder = 3
         end
         object sbPlayActivate: TSpeedButton
           AnchorSideLeft.Control = cbActivateSound
           AnchorSideLeft.Side = asrBottom
           AnchorSideTop.Control = cbActivateSound
           AnchorSideTop.Side = asrCenter
-          Left = 418
+          Left = 421
           Height = 22
-          Top = 69
+          Top = 70
           Width = 23
           BorderSpacing.Left = 2
           Enabled = False
@@ -360,14 +347,45 @@ object HotKeyForm: THotKeyForm
           }
           OnClick = sbPlayActivateClick
         end
+        object lblDeactivateSound: TLabel
+          AnchorSideLeft.Control = lblActivateSound
+          AnchorSideTop.Control = cbActivateSound
+          AnchorSideTop.Side = asrBottom
+          Left = 300
+          Height = 15
+          Top = 95
+          Width = 91
+          BorderSpacing.Top = 2
+          Caption = 'Deactivate sound'
+          Enabled = False
+          ParentColor = False
+        end
+        object cbDeactivateSound: TComboBox
+          AnchorSideLeft.Control = lblActivateSound
+          AnchorSideTop.Control = lblDeactivateSound
+          AnchorSideTop.Side = asrBottom
+          Left = 300
+          Height = 23
+          Top = 112
+          Width = 119
+          BorderSpacing.Top = 2
+          Enabled = False
+          ItemHeight = 15
+          Items.Strings = (
+            'Deactivate'
+          )
+          PopupMenu = pmAddSound
+          Style = csDropDownList
+          TabOrder = 4
+        end
         object sbPlayDeactivate: TSpeedButton
-          AnchorSideLeft.Control = cbDeactivateSound
+          AnchorSideLeft.Control = cbActivateSound
           AnchorSideLeft.Side = asrBottom
           AnchorSideTop.Control = cbDeactivateSound
           AnchorSideTop.Side = asrCenter
-          Left = 418
+          Left = 421
           Height = 22
-          Top = 111
+          Top = 112
           Width = 23
           BorderSpacing.Left = 2
           Enabled = False
@@ -415,17 +433,17 @@ object HotKeyForm: THotKeyForm
       Left = 1
       Height = 33
       Top = 174
-      Width = 507
+      Width = 546
       Align = alBottom
       AutoSize = True
       ClientHeight = 33
-      ClientWidth = 507
+      ClientWidth = 546
       TabOrder = 1
       OnResize = Panel2Resize
       object BitBtn1: TBitBtn
         AnchorSideLeft.Control = Panel2
         AnchorSideLeft.Side = asrCenter
-        Left = 218
+        Left = 238
         Height = 25
         Top = 4
         Width = 70
@@ -438,7 +456,7 @@ object HotKeyForm: THotKeyForm
         TabOrder = 0
       end
       object lblID: TLabel
-        Left = 502
+        Left = 541
         Height = 1
         Top = 23
         Width = 1
