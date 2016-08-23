@@ -1,0 +1,168 @@
+unit com;
+
+{$mode objfpc}{$H+}
+
+interface
+
+uses
+  windows, Classes, SysUtils, syncobjs;
+
+
+type
+  TServer=class(TThread) //server pipe for dealing with initialization
+  private
+    pipe: THandle;
+  protected
+    procedure execute; override;
+  public
+  end;
+
+  TCEConnection=class
+  private
+    cs: TCriticalSection;
+    pipe: THandle;
+    connected: boolean;
+  public
+    function DoCommand(s: string): qword;
+    constructor create;
+    destructor destroy; override;
+  end;
+
+var
+  CEConnection: TCEConnection;
+  server: TServer;
+
+implementation
+
+uses proc;
+
+
+
+procedure TServer.execute;
+var
+  command: byte;
+  x: DWORD;
+  hwnd: qword;
+  pa: qword;
+begin
+  server:=self;
+
+  while not terminated do
+  begin
+    pipe:=CreateNamedPipe(pchar('\\.\pipe\CEWINHOOKC'+inttostr(GetProcessID)), PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE or PIPE_READMODE_BYTE or PIPE_WAIT, 255, 16, 8192, 0, nil);
+
+    if ConnectNamedPipe(pipe, nil) or (GetLastError = ERROR_PIPE_CONNECTED) then
+    begin
+      //connected
+      //send this pipe of to the handler and create a new pipe
+      while not terminated do
+      begin
+        command:=0;
+        readfile(pipe, command, sizeof(command), x, nil);
+        case command of
+          1: //get WNDPROC of hWND
+          begin
+            readfile(pipe, hwnd, sizeof(hwnd), x,nil);
+            pa:=GetWindowLongPtr(hwnd, GWL_WNDPROC);
+            writeFile(pipe, pa, sizeof(pa), x, nil);
+          end;
+
+          2: //set WNDPROC of hWND
+          begin
+            readfile(pipe, hwnd, sizeof(hwnd), x,nil);
+            SetWindowLongPtrA(hwnd, GWL_WNDPROC, qword(@wp));
+            pa:=1;
+            WriteFile(pipe, pa,1,x,nil);
+          end;
+
+          3: //set specifically (usually restore)
+          begin
+            readfile(pipe, hwnd, sizeof(hwnd), x,nil);
+            readfile(pipe, pa, sizeof(pa), x,nil);
+            SetWindowLongPtrA(hwnd, GWL_WNDPROC, pa);
+            pa:=1;
+            WriteFile(pipe, pa,1,x,nil);
+
+          end
+
+          else
+          begin
+            closeHandle(pipe);
+            break; //invalid command
+          end;
+        end;
+      end;
+
+    end
+    else
+    begin
+      CloseHandle(pipe); //failure, try again
+    end;
+  end;
+
+
+end;
+
+//connection
+
+constructor TCEConnection.create;
+var
+  pipename: string;
+  starttime: qword;
+begin
+  cs:=TCriticalSection.Create;
+  pipename:='CEWINHOOK'+inttostr(GetProcessID);
+  starttime:=GetTickCount64;
+  while GetTickCount64<starttime+5000 do
+  begin
+    pipe:=CreateFile(pchar('\\.\pipe\'+pipename), GENERIC_READ or GENERIC_WRITE, FILE_SHARE_READ or FILE_SHARE_WRITE, nil, OPEN_EXISTING, 0, 0);
+    if (pipe<>INVALID_HANDLE_VALUE) then
+    begin
+      Connected:=true;
+      break; //open
+    end
+    else sleep(100);
+  end;
+end;
+
+destructor TCEConnection.destroy;
+begin
+  closehandle(pipe);
+  inherited destroy;
+end;
+
+function TCEConnection.DoCommand(s: string): qword;
+var
+  m: tmemorystream;
+  r: qword=0;
+  x: dword=0;
+begin
+  if not connected then exit(0);
+
+  m:=TMemoryStream.Create;
+  m.writebyte(1); //execute lua script
+  m.WriteDWord(length(s));
+  m.WriteBuffer(s[1],length(s));
+  m.writeQword(0);
+
+  cs.Enter;
+  WriteFile(pipe, m.Memory^, m.Size, x, nil);
+  ReadFile(pipe, r, sizeof(r), x, nil);
+  cs.Leave;
+  result:=r;
+
+  m.free;
+end;
+
+finalization
+  if server<>nil then
+  begin
+    server.Terminate;
+    TerminateThread(server.Handle,60);
+  end;
+
+  if ceconnection<>nil then
+    freeandnil(ceconnection);
+
+end.
+

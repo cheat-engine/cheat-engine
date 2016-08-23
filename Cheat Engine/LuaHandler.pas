@@ -7178,6 +7178,145 @@ begin
   end;
 end;
 
+function lua_hookWndProc(L: Plua_State): integer; cdecl;
+var
+  s: tstringlist;
+  hWnd: THandle;
+  f: integer;
+
+  orig: qword;
+  ts: string;
+
+  wndhooklist_table, hwnd_table: integer;
+  i: integer;
+  b: boolean;
+
+  pc: TLuaPipeClient;
+begin
+  result:=0;
+  lua_getglobal(L, 'CEWindowProcEvent_Internal');
+
+
+  if lua_isnil(L, -1) then
+  begin
+    lua_pop(L, 1);
+
+    s:=TStringList.Create;
+    s.add('wndhooklist={}');
+    s.add('function CEWindowProcEvent_Internal(hWnd, Msg, lParam, wParam)');
+    s.add('  if (wndhooklist[hWnd].f) then');
+    s.add('    local r=wndhooklist[hWnd].f(hWnd, Msg, lParam, wParam)');
+    s.add('    if (r==0) or (r==1) then return r end');
+    s.add('  end');
+    s.add('  return wndhooklist[hWnd].orig');
+    s.add('end');
+
+    LUA_DoScript(s.Text);
+    s.free;
+  end
+  else
+    lua_pop(L, 1);
+
+  //setup the server if needed
+  ts:='CEWINHOOK'+inttostr(processid);
+  if luaserverExists(ts)=false then
+  begin
+    tluaserver.create(ts);
+
+    if processhandler.is64Bit then
+      ts:='x86_64'
+    else
+      ts:='i386';
+
+    try
+      cefuncproc.InjectDll(CheatEngineDir+'winhook-'+ts+'.dll');
+    except
+    end;
+  end;
+
+
+  //get the windowhandle and function parameter
+  if (lua_gettop(L)=2) and lua_isnumber(L, 1) and lua_isfunction(L, 2) then
+  begin
+    hWnd:=lua_tointeger(L, 1);
+    pc:=TLuaPipeClient.create('CEWINHOOKC'+inttostr(processid));
+    try
+      pc.writeByte(1);
+      pc.writeQword(hWnd);
+      orig:=pc.readQword;
+
+      lua_getglobal(L, 'wndhooklist');
+      wndhooklist_table:=lua_gettop(L);
+
+      lua_pushinteger(L, hWnd);
+      lua_newtable(L);
+
+      //fill the hWnd table entry
+      hwnd_table:=lua_gettop(L);
+      lua_pushstring(L, 'f');
+      lua_pushvalue(L, 2);
+      lua_settable(L, hwnd_table);
+
+      lua_pushstring(L, 'orig');
+      lua_pushinteger(L, orig);
+      lua_settable(L, hwnd_table);
+
+      lua_settable(L, wndhooklist_table);
+
+
+      //SetWindowLongPtr(hWnd, GWL_WNDPROC, winhookdllProcAddress);
+
+      pc.writeByte(2);
+      pc.writeQword(hWnd);
+      if pc.readByte=1 then
+      begin
+        lua_pushboolean(L, true);
+        result:=1;
+      end;
+
+    finally
+      pc.free;
+    end;
+  end;
+
+  //get the old proc event of the window
+
+end;
+
+function lua_unhookWndProc(L: Plua_State): integer; cdecl;
+var pc: TLuaPipeClient;
+begin
+  result:=0;
+  if (lua_gettop(L)=1) and lua_isnumber(L, 1) then
+  begin
+    lua_getglobal(L, 'wndhooklist');
+
+    lua_pushinteger(L, lua_tointeger(L, 1));
+    lua_gettable(L,-2);
+    if lua_istable(L, -1) then
+    begin
+      lua_pushstring(L, 'orig');
+      lua_gettable(L, -2);
+      if lua_isnumber(L, -1) then
+      begin
+        pc:=TLuaPipeClient.create('CEWINHOOKC'+inttostr(processid));
+        try
+          pc.writeByte(3);
+          pc.writeQword(lua_tointeger(L, 1));
+          pc.writeQword(lua_tointeger(L, -1));
+          if pc.readByte=1 then
+          begin
+            lua_pushboolean(L, true);
+            result:=1;
+          end;
+        finally
+          pc.free;
+        end;
+      end;
+    end;
+  end;
+end;
+
 procedure InitializeLua;
 var
   s: tstringlist;
@@ -7655,6 +7794,10 @@ begin
     lua_register(LuaVM, 'speakEnglish', lua_speakEnglish);
 
     lua_register(LuaVM, 'getFileVersion', lua_getFileVersion);
+
+    lua_register(LuaVM, 'hookWndProc', lua_hookWndProc);
+    lua_register(LuaVM, 'unhookWndProc', lua_unhookWndProc);
+
 
 
     initializeLuaCustomControl;

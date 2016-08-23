@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectSession>
+    <PathDelim Value="\"/>
+    <Version Value="9"/>
+    <BuildModes Active="Debug 64"/>
+    <Units Count="12">
+      <Unit0>
+        <Filename Value="winhook.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <CursorPos X="9" Y="17"/>
+        <UsageCount Value="29"/>
+        <Loaded Value="True"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="com.pas"/>
+        <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="4"/>
+        <TopLine Value="22"/>
+        <CursorPos X="3" Y="48"/>
+        <UsageCount Value="29"/>
+        <Loaded Value="True"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="proc.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="10"/>
+        <TopLine Value="5"/>
+        <CursorPos X="23" Y="13"/>
+        <UsageCount Value="26"/>
+        <Loaded Value="True"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="C:\lazarus\fpc\3.0.0\source\rtl\objpas\classes\classesh.inc"/>
+        <EditorIndex Value="11"/>
+        <TopLine Value="1631"/>
+        <CursorPos X="17" Y="1643"/>
+        <UsageCount Value="14"/>
+        <Loaded Value="True"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="C:\lazarus\fpc\3.0.0\source\rtl\win\wininc\ascdef.inc"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="253"/>
+        <CursorPos X="10" Y="265"/>
+        <UsageCount Value="13"/>
+        <Loaded Value="True"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="C:\lazarus\fpc\3.0.0\source\rtl\win\wininc\base.inc"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="177"/>
+        <CursorPos X="6" Y="190"/>
+        <UsageCount Value="13"/>
+        <Loaded Value="True"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="C:\lazarus\fpc\3.0.0\source\packages\fcl-base\src\syncobjs.pp"/>
+        <EditorIndex Value="9"/>
+        <TopLine Value="15"/>
+        <CursorPos X="3" Y="28"/>
+        <UsageCount Value="13"/>
+        <Loaded Value="True"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="C:\lazarus\fpc\3.0.0\source\rtl\inc\objpash.inc"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="180"/>
+        <CursorPos X="23" Y="193"/>
+        <UsageCount Value="12"/>
+        <Loaded Value="True"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="C:\lazarus\fpc\3.0.0\source\rtl\objpas\sysutils\sysutilh.inc"/>
+        <EditorIndex Value="6"/>
+        <TopLine Value="15"/>
+        <CursorPos X="10" Y="28"/>
+        <UsageCount Value="12"/>
+        <Loaded Value="True"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="C:\lazarus\fpc\3.0.0\source\rtl\win\wininc\func.inc"/>
+        <EditorIndex Value="8"/>
+        <TopLine Value="248"/>
+        <CursorPos X="21" Y="261"/>
+        <UsageCount Value="12"/>
+        <Loaded Value="True"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="C:\lazarus\fpc\3.0.0\source\rtl\win\sysutils.pp"/>
+        <EditorIndex Value="7"/>
+        <TopLine Value="637"/>
+        <CursorPos Y="643"/>
+        <UsageCount Value="12"/>
+        <Loaded Value="True"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="C:\lazarus\fpc\3.0.0\source\rtl\win\tthread.inc"/>
+        <EditorIndex Value="5"/>
+        <TopLine Value="82"/>
+        <CursorPos Y="95"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit11>
+    </Units>
+    <JumpHistory Count="30" HistoryIndex="29">
+      <Position1>
+        <Filename Value="proc.pas"/>
+        <Caret Line="22" TopLine="5"/>
+      </Position1>
+      <Position2>
+        <Filename Value="proc.pas"/>
+        <Caret Line="23" TopLine="5"/>
+      </Position2>
+      <Position3>
+        <Filename Value="proc.pas"/>
+        <Caret Line="25" TopLine="5"/>
+      </Position3>
+      <Position4>
+        <Filename Value="proc.pas"/>
+        <Caret Line="26" TopLine="5"/>
+      </Position4>
+      <Position5>
+        <Filename Value="proc.pas"/>
+        <Caret Line="20" TopLine="5"/>
+      </Position5>
+      <Position6>
+        <Filename Value="com.pas"/>
+        <Caret Line="78" Column="52" TopLine="61"/>
+      </Position6>
+      <Position7>
+        <Filename Value="com.pas"/>
+        <Caret Line="82" Column="24" TopLine="59"/>
+      </Position7>
+      <Position8>
+        <Filename Value="com.pas"/>
+        <Caret Line="78" Column="52" TopLine="62"/>
+      </Position8>
+      <Position9>
+        <Filename Value="com.pas"/>
+        <Caret Line="56" TopLine="44"/>
+      </Position9>
+      <Position10>
+        <Filename Value="com.pas"/>
+        <Caret Line="57" TopLine="50"/>
+      </Position10>
+      <Position11>
+        <Filename Value="com.pas"/>
+        <Caret Line="58" TopLine="50"/>
+      </Position11>
+      <Position12>
+        <Filename Value="com.pas"/>
+        <Caret Line="61" TopLine="50"/>
+      </Position12>
+      <Position13>
+        <Filename Value="com.pas"/>
+        <Caret Line="62" TopLine="50"/>
+      </Position13>
+      <Position14>
+        <Filename Value="com.pas"/>
+        <Caret Line="63" TopLine="50"/>
+      </Position14>
+      <Position15>
+        <Filename Value="com.pas"/>
+        <Caret Line="74" Column="3" TopLine="56"/>
+      </Position15>
+      <Position16>
+        <Filename Value="com.pas"/>
+        <Caret Line="76" TopLine="56"/>
+      </Position16>
+      <Position17>
+        <Filename Value="com.pas"/>
+        <Caret Line="77" TopLine="57"/>
+      </Position17>
+      <Position18>
+        <Filename Value="com.pas"/>
+        <Caret Line="78" TopLine="58"/>
+      </Position18>
+      <Position19>
+        <Filename Value="com.pas"/>
+        <Caret Line="79" TopLine="59"/>
+      </Position19>
+      <Position20>
+        <Filename Value="com.pas"/>
+        <Caret Line="80" TopLine="60"/>
+      </Position20>
+      <Position21>
+        <Filename Value="com.pas"/>
+        <Caret Line="32" Column="19" TopLine="17"/>
+      </Position21>
+      <Position22>
+        <Filename Value="com.pas"/>
+        <Caret Line="151" TopLine="130"/>
+      </Position22>
+      <Position23>
+        <Filename Value="com.pas"/>
+        <Caret Line="78" TopLine="71"/>
+      </Position23>
+      <Position24>
+        <Filename Value="com.pas"/>
+        <Caret Line="79" TopLine="71"/>
+      </Position24>
+      <Position25>
+        <Filename Value="com.pas"/>
+        <Caret Line="80" TopLine="71"/>
+      </Position25>
+      <Position26>
+        <Filename Value="com.pas"/>
+        <Caret Line="81" TopLine="71"/>
+      </Position26>
+      <Position27>
+        <Filename Value="com.pas"/>
+        <Caret Line="82" TopLine="71"/>
+      </Position27>
+      <Position28>
+        <Filename Value="com.pas"/>
+        <Caret Line="56" TopLine="44"/>
+      </Position28>
+      <Position29>
+        <Filename Value="com.pas"/>
+        <Caret Line="48" Column="18" TopLine="44"/>
+      </Position29>
+      <Position30>
+        <Filename Value="com.pas"/>
+        <Caret Line="33" Column="17" TopLine="9"/>
+      </Position30>
+    </JumpHistory>
+  </ProjectSession>
+  <Debugging>
+    <Watches Count="1">
+      <Item1>
+        <Expression Value="@wp"/>
+      </Item1>
+    </Watches>
+  </Debugging>
+</CONFIG>

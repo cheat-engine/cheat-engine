@@ -330,9 +330,10 @@ getWindowCaption(windowhandle) : string - Returns the caption of the window
 getWindowClassName(windowhandle): string - Returns the classname of the window
 getWindowProcessID(windowhandle): processid - Returns the processid of the process this window belongs to
 getForegroundWindow() - windowhandle : Returns the windowhandle of the topmost window
+
 sendMessage(hwnd, msg, wparam, lparam): result - Sends a message to a window. Those that wish to use it, should know how to use it (and fill in the msg id's yourself)
-
-
+hookWndProc(hwnd, function(hwnd, msg, wparam, lparam)) - Hooks a window's wndproc procedure. The given function will receive all functions.  Return 0 to say you handled it. 1 to let the default windows handler deal with it. Or anything else, to let the original handler deal with it
+unhookWndProc(hwnd) - call this when done with the hook.  Not calling this will result in the process window behaving badly when you exit CE
 
 
 cheatEngineIs64Bit(): Returns true if CE is 64-bit, false if 32-bit

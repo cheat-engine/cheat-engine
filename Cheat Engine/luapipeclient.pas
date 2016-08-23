@@ -13,16 +13,18 @@ uses
 
 procedure initializeLuaPipeClient;
 
-implementation
-
-uses LuaHandler;
-
 type
   TLuaPipeClient=class(TPipeConnection)
   private
   public
     constructor create(pipename: string);
   end;
+
+implementation
+
+uses LuaHandler;
+
+
 
 constructor TLuaPipeClient.create(pipename: string);
 begin
