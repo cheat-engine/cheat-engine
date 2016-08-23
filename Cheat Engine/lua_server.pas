@@ -21,7 +21,12 @@ type
     pipe: THandle;
     exec: tstringlist;
     result: qword;
+
+    returncount: byte;
+    results: array of qword;
     procedure ExecuteLuaScript;
+    procedure ExecuteLuaScriptVar;
+    //executeLuaFunction
     procedure ExecuteScript;
   protected
     procedure execute; override;
@@ -84,7 +89,7 @@ end;
 
 procedure TLuaServerHandler.ExecuteScript;
 var
-  i: integer;
+  i,j: integer;
   top: integer;
 
 begin
@@ -97,11 +102,111 @@ begin
     else
       result:=0;
 
+    if returncount>0 then
+    begin
+      if length(results)<returncount then
+        setlength(results, returncount);
+
+      for i:=0 to returncount-1 do
+        results[(returncount-1)-i]:=lua_tointeger(Luavm, -1-i);
+
+    end;
+
     lua_settop(Luavm, top);
 
   finally
     luacs.leave;
   end;
+end;
+
+
+{
+todo: ExecuteLuaScriptEx
+Variable paramcount
+setup:
+functionref: byte
+if functionref=0 then
+  functionnamelength: byte
+  functionname[functionnamelength]: char
+end
+
+paramcount: byte
+params[paramcount]: record
+    paramtype: byte  - 0=nil, 1=integer64, 2=double, 3=string,  4=table perhaps ?
+    value:
+      --if paramtype=2 then
+      stringlength: word
+      string[strinbglength]: char
+      --else
+      value: 8byte
+  end
+
+returncount: byte
+
+
+--returns:
+actualreturncount: byte
+
+}
+
+procedure TLuaServerHandler.ExecuteLuaScriptVar;
+{
+Same as ExecuteLuaScript but can return more than one return value qword
+}
+  procedure error;
+  begin
+    OutputDebugString('Read error');
+    terminate;
+  end;
+
+var
+  scriptsize: integer;
+  br: dword;
+  script: pchar;
+
+  parameter: qword;
+  i: integer;
+begin
+  if readfile(pipe, scriptsize, sizeof(scriptsize), br, nil) then
+  begin
+    getmem(script, scriptsize+1);
+
+    try
+      if readfile(pipe, script^, scriptsize, br, nil) then
+      begin
+        script[scriptsize]:=#0;
+
+        if readfile(pipe, parameter, 8, br, nil) then
+        begin
+          if readfile(pipe, returncount, 1, br, nil) then
+          begin
+            exec.clear;
+            exec.Text:=script;
+
+            exec.Insert(0, 'function _luaservercall'+inttostr(GetCurrentThreadId)+'(parameter)');
+            exec.add('end');
+            exec.add('return _luaservercall'+inttostr(GetCurrentThreadId)+'('+inttostr(parameter)+')');
+
+            setlength(results, returncount);
+            synchronize(executescript);
+
+            for i:=0 to returncount-1 do
+              if writefile(pipe, results[i], 8, br, nil)=false then error;
+
+          end;
+        end
+        else
+          error;
+      end
+      else
+        error;
+
+    finally
+      freemem(script);
+    end;
+  end
+  else
+    error;
 end;
 
 procedure TLuaServerHandler.ExecuteLuaScript;
@@ -118,6 +223,7 @@ var
 
   parameter: qword;
 begin
+  returncount:=1;
   if readfile(pipe, scriptsize, sizeof(scriptsize), br, nil) then
   begin
     getmem(script, scriptsize+1);
@@ -167,6 +273,7 @@ begin
       ReadFile(pipe, command, sizeof(command), br, nil);
       case command of
         1: ExecuteLuaScript;
+        2: ExecuteLuaScriptVar;
         else terminate;
       end;
     end;

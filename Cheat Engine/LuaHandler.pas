@@ -7205,10 +7205,11 @@ begin
     s.add('wndhooklist={}');
     s.add('function CEWindowProcEvent_Internal(hWnd, Msg, lParam, wParam)');
     s.add('  if (wndhooklist[hWnd].f) then');
-    s.add('    local r=wndhooklist[hWnd].f(hWnd, Msg, lParam, wParam)');
-    s.add('    if (r==0) or (r==1) then return r end');
+    s.add('    local r, hWnd2, Msg2, lParam2, wParam2');
+    s.add('    r,hWnd2,Msg2,lParam2,wParam2=wndhooklist[hWnd].f(hWnd, Msg, lParam, wParam)');
+    s.add('    if (r==0) or (r==1) then return r,(hWnd2 or hWnd),(Msg2 or Msg),(lParam2 or lParam),(wParam2 or wParam) end');
     s.add('  end');
-    s.add('  return wndhooklist[hWnd].orig');
+    s.add('  return wndhooklist[hWnd].orig,(hWnd2 or hWnd),(Msg2 or Msg),(lParam2 or lParam),(wParam2 or wParam)');
     s.add('end');
 
     LUA_DoScript(s.Text);

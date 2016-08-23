@@ -24,6 +24,7 @@ type
     connected: boolean;
   public
     function DoCommand(s: string): qword;
+    procedure DoCommandMR(s: string; returncount: integer; results: PQword);
     constructor create;
     destructor destroy; override;
   end;
@@ -129,6 +130,33 @@ destructor TCEConnection.destroy;
 begin
   closehandle(pipe);
   inherited destroy;
+end;
+
+procedure TCEConnection.DoCommandMR(s: string; returncount: integer; results: PQword);
+var
+  m: tmemorystream;
+  r: qword=0;
+  x: dword=0;
+  i: integer;
+begin
+  if not connected then exit;
+
+  m:=TMemoryStream.Create;
+  m.writebyte(2); //execute lua function, with a variable paramcount and returncount
+  m.WriteDWord(length(s));
+  m.WriteBuffer(s[1],length(s));
+  m.writeQword(0);
+  m.writeByte(returncount);
+
+  cs.Enter;
+  WriteFile(pipe, m.Memory^, m.Size, x, nil);
+  for i:=0 to returncount-1 do
+    ReadFile(pipe, results[i], sizeof(QWORD), x, nil);
+
+  cs.Leave;
+
+  m.free;
+
 end;
 
 function TCEConnection.DoCommand(s: string): qword;

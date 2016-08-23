@@ -17,8 +17,11 @@ function wp (hWND:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT;stdcall;
 var
   r: QWORD;
   PrevWndFunc: WNDPROC absolute r;
+  results: array of QWord;
 begin
-  r:=CEConnection.DoCommand('return CEWindowProcEvent_Internal('+IntToStr(hWnd)+','+IntToStr(Msg)+','+IntToStr(wParam)+','+IntToStr(lParam)+')');
+  setlength(results,5);
+  CEConnection.DoCommandMR('return CEWindowProcEvent_Internal('+IntToStr(hWnd)+','+IntToStr(Msg)+','+IntToStr(wParam)+','+IntToStr(lParam)+')',5,@results[0]);
+  r:=results[0];
   if r=0 then exit(0);
   if r=1 then exit(DefWindowProc(hwnd, Msg, wParam, lParam));
 
