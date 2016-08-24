@@ -58,6 +58,8 @@ type
     fDecreaseArrowColor: TColor;
     fIncreaseArrowColor: TColor;
 
+    hasSetIndent: boolean;
+
 
     function getTreeNodes: TTreenodes;
     procedure setTreeNodes(t: TTreenodes);
@@ -1686,6 +1688,11 @@ var
   n: Ttreenode;
 begin
   //multiselect implementation
+
+
+
+
+
   DefaultDraw:=true;
   PaintImages:=true;
 
@@ -1781,6 +1788,11 @@ begin
     checkbox.Top:=linerect.top+1;
     checkbox.Bottom:=linerect.bottom-1;
     sender.Canvas.Rectangle(checkbox);
+
+    if hasSetIndent=false then
+    begin
+      treeview.Indent:=checkbox.Bottom-checkbox.Top;
+    end;
 
     sender.canvas.pen.color:=oldpencolor;
 
@@ -1959,7 +1971,7 @@ begin
 
 
   treeview.AutoExpand:=true;
-  treeview.Options:=treeview.options+[tvoAutoExpand, tvoNoDoubleClickExpand];
+  treeview.Options:=treeview.options+[tvoAutoExpand, tvoNoDoubleClickExpand ];
 
 
   treeview.OnAdvancedCustomDrawItem:=AdvancedCustomDrawItem;
@@ -1971,7 +1983,8 @@ begin
   treeview.OnDragDrop:=DragDrop;
   treeview.OnEndDrag:=DragEnd;
  // treeview.OnKeyDown:=treeviewkeydown;
-  //treeview.Indent:=2;
+//  treeview.Indent:=32;
+
   treeview.OnCollapsing:=TreeviewOnCollapse;
   treeview.OnExpanding:=TreeviewOnExpand;
 
@@ -1981,6 +1994,10 @@ begin
   //treeview.Options:=treeview.Options+[tvoAllowMultiselect];    Horribly broken
 
   treeview.parent:=self;
+
+  treeview.Options:=treeview.options-[tvoAutoItemHeight];
+  treeview.Options:=treeview.options+[tvoAutoItemHeight];
+
 
 
 
