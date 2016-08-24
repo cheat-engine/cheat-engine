@@ -5148,7 +5148,6 @@ begin
     foundlist3.columns[0].Width := x[6];
   end;
 
-
   mainform:=self;
 
 
@@ -6899,7 +6898,7 @@ var
 
   logopic: TPicture;
   rs: TResourceStream;
-
+  cleanrun: boolean;
 begin
   if onetimeonly then
     exit;
@@ -7024,7 +7023,8 @@ begin
 
 
   //SMenu:=GetSystemMenu(handle,false);
-
+  cleanrun:=autosize;
+  autosize:=false;
 
 
   memscan := tmemscan.Create(progressbar1);
@@ -7190,6 +7190,33 @@ begin
 
   panel5.Constraints.MinHeight := gbScanOptions.top + gbScanOptions.Height + max(speedbutton2.Height, btnAddAddressManually.height ) + 10;
 
+
+
+  if cleanrun then //clean setup
+  begin
+    foundlist3.Column[0].AutoSize:=true;
+    foundlist3.Column[1].AutoSize:=true;
+    foundlist3.Column[2].AutoSize:=true;
+
+
+    i:=foundlist3.Column[0].Width+foundlist3.Column[1].Width+foundlist3.Column[2].Width  ;
+
+    foundlist3.Column[0].AutoSize:=false;
+    foundlist3.Column[1].AutoSize:=false;
+    foundlist3.Column[2].AutoSize:=false;
+
+    if foundlist3.clientWidth<i then
+      width:=width+(i-foundlist3.clientWidth);
+
+    i:=panel5.Height+splitter1.height+addresslist.headers.Height+btnNewScan.Height*4;
+    if clientheight<i then
+      clientheight:=i;
+
+    self.position:=poDesigned;
+    self.position:=poScreenCenter;
+  end;
+
+  panel5.OnResize(panel5);
 
 
  // ImageList2.GetBitmap(0);

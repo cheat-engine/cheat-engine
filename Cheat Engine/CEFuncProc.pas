@@ -2415,7 +2415,7 @@ begin
           if reg.readbool('Save window positions') = false then exit;
       end;
 
-      if Reg.OpenKey('\Software\Cheat Engine\Window Positions',false) then
+      if Reg.OpenKey('\Software\Cheat Engine\Window Positions '+inttostr(screen.PixelsPerInch),false) or Reg.OpenKey('\Software\Cheat Engine\Window Positions',false) then
       begin
         s:=form.Name;
         s:=s+rsPosition;
@@ -2502,7 +2502,7 @@ begin
       end;
 
 
-      if Reg.OpenKey('\Software\Cheat Engine\Window Positions',true) then
+      if Reg.OpenKey('\Software\Cheat Engine\Window Positions '+inttostr(screen.PixelsPerInch),true) then
       begin
         //registry is open, gather data
         buf:=tmemorystream.Create;
