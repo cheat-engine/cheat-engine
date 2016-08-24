@@ -1207,7 +1207,9 @@ begin
     while n<>nil do
     begin
       if moManualExpandCollapse in  TMemoryRecord(n.data).Options then
-        inc(textrect.left,9);
+      begin
+        inc(textrect.left,treeview.indent div 2);
+      end;
 
       n:=n.parent;
     end;
@@ -1225,7 +1227,7 @@ begin
 
         treeview.OnCollapsing:=TreeviewOnCollapse;
       end;
-      inc(textrect.left,9);
+      inc(textrect.left,treeview.indent div 2);
     end;
 
     checkboxstart:=textrect.left+1;
@@ -1684,6 +1686,8 @@ var
   linetop: integer;
 
   expandsign: Trect;
+  expandsignsize: integer;
+  expandsignlineborderspace: integer;
 
   n: Ttreenode;
 begin
@@ -1760,6 +1764,7 @@ begin
       oldpencolor:=sender.canvas.pen.color;
       sender.canvas.pen.color:=expandSignColor;
 
+      {
       expandsign:=Rect(textrect.left, textrect.top+((textrect.bottom-textrect.top) div 2-4), textrect.left+9, textrect.top+((textrect.bottom-textrect.top) div 2+5));
       sender.canvas.Rectangle(expandsign);
       sender.canvas.MoveTo(expandsign.Left + 2, textrect.top+(textrect.bottom-textrect.top)  div 2);
@@ -1771,6 +1776,32 @@ begin
         sender.canvas.LineTo(expandsign.left+4, expandsign.Bottom - 2);
       end;
       inc(textrect.left,9);
+      }
+
+      expandsignsize:=treeview.indent div 2;
+      if expandsignsize mod 2=0 then
+        dec(expandsignsize);
+
+      if expandsignsize<9 then
+        expandsignsize:=9;
+
+      expandsignlineborderspace:=expandsignsize div 4;
+
+      if expandsignsize mod 4>2 then //round up
+        inc(expandsignlineborderspace);
+
+
+      expandsign:=Rect(textrect.left, textrect.top+((textrect.bottom-textrect.top) div 2-(expandsignsize div 2)), textrect.left+expandsignsize, textrect.top+((textrect.bottom-textrect.top) div 2+(expandsignsize div 2))+1);
+      sender.canvas.Rectangle(expandsign);
+      sender.canvas.MoveTo(expandsign.Left + expandsignlineborderspace, textrect.top+(textrect.bottom-textrect.top)  div 2);
+      sender.canvas.LineTo(expandsign.Right - expandsignlineborderspace, textrect.top+(textrect.bottom-textrect.top)  div 2);
+
+      if memrec.treenode.Expanded then
+      begin
+        sender.canvas.MoveTo(expandsign.left+expandsignsize div 2, expandsign.Top + expandsignlineborderspace);
+        sender.canvas.LineTo(expandsign.left+expandsignsize div 2, expandsign.Bottom - expandsignlineborderspace);
+      end;
+      inc(textrect.left,expandsignsize+1);
 
       sender.canvas.pen.color:=oldpencolor;
     end;
