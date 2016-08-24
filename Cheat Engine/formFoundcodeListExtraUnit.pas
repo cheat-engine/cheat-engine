@@ -181,7 +181,19 @@ end;
 
 procedure TFormFoundCodeListExtra.FormShow(Sender: TObject);
 begin
+  label3.font.color:=clRed;
+  label10.font.color:=clred;
+
+  panel1.Font.Height:=GetFontData(font.reference.Handle).Height;     ;
+  pnlRegisters.Font.Height:=panel1.Font.Height;
+
+  label3.Font.Height:=GetFontData(font.reference.Handle).Height;     ;
+  label10.Font.Height:=panel1.Font.Height;
+
+
   Constraints.MaxHeight:=panel5.Top+panel5.height+10;
+  Constraints.MinHeight:=Constraints.MaxHeight;
+
 end;
 
 procedure TFormFoundCodeListExtra.Label1DblClick(Sender: TObject);

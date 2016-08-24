@@ -494,7 +494,6 @@ begin
         lblRIP.caption:=' R8='+IntToHex(coderecord.armcontext.R8,8);
 
         lblR9:=tlabel.Create(FormFoundCodeListExtra);
-        lblR9.font:=lblRCX.font;
         lblR9.Top:=lblRCX.top+(lblRCX.top-lblRBX.top);
         lblR9.left:=lblRCX.left;
         lblR9.caption:=' R9='+IntToHex(coderecord.armcontext.R9,8);
@@ -504,7 +503,6 @@ begin
         lblR9.Align:=lblrcx.Align;
 
         lblR10:=tlabel.Create(FormFoundCodeListExtra);
-        lblR10.font:=lblRCX.font;
         lblR10.Top:=lblRCX.top+(lblRCX.top-lblRBX.top);
         lblR10.left:=lblRDI.left;
         lblR10.caption:='R10='+IntToHex(coderecord.armcontext.R10,8);
@@ -514,7 +512,6 @@ begin
         lblR10.Align:=lblrcx.Align;
 
         lblR11:=tlabel.Create(FormFoundCodeListExtra);
-        lblR11.font:=lblRCX.font;
         lblR11.Top:=lblRCX.top+(lblRCX.top-lblRBX.top);
         lblR11.left:=lblRIP.left;
         lblR11.caption:=' FP='+IntToHex(coderecord.armcontext.FP,8);
@@ -524,7 +521,6 @@ begin
         lblR11.Align:=lblrcx.Align;
                 //new row
         lblR12:=tlabel.Create(FormFoundCodeListExtra);
-        lblR12.font:=lblRCX.font;
         lblR12.Top:=lblR9.top+(lblRCX.top-lblRBX.top);
         lblR12.left:=lblRCX.left;
         lblR12.caption:=' IP='+IntToHex(coderecord.armcontext.IP,8);
@@ -534,7 +530,6 @@ begin
         lblR12.Align:=lblrcx.Align;
 
         lblR13:=tlabel.Create(FormFoundCodeListExtra);
-        lblR13.font:=lblRCX.font;
         lblR13.Top:=lblR9.top+(lblRCX.top-lblRBX.top);
         lblR13.left:=lblRDI.left;
         lblR13.caption:=' SP='+IntToHex(coderecord.armcontext.SP,8);
@@ -544,7 +539,6 @@ begin
         lblR13.Align:=lblrcx.Align;
 
         lblR14:=tlabel.Create(FormFoundCodeListExtra);
-        lblR14.font:=lblRCX.font;
         lblR14.Top:=lblR9.top+(lblRCX.top-lblRBX.top);
         lblR14.left:=lblRIP.left;
         lblR14.caption:=' LR='+IntToHex(coderecord.armcontext.LR,8);
@@ -555,7 +549,6 @@ begin
         //new line
 
         lblR15:=tlabel.Create(FormFoundCodeListExtra);
-        lblR15.font:=lblRCX.font;
         lblR15.Top:=lblR12.top+(lblRCX.top-lblRBX.top);
         lblR15.left:=lblRCX.left;
         lblR15.caption:=' PC='+IntToHex(coderecord.armcontext.PC,8);
@@ -565,7 +558,6 @@ begin
         lblR15.Align:=lblrcx.Align;
 
         lblR16:=tlabel.Create(FormFoundCodeListExtra);
-        lblR16.font:=lblRCX.font;
         lblR16.Top:=lblR12.top+(lblRCX.top-lblRBX.top);
         lblR16.left:=lblRDI.left;
         lblR16.caption:=' CPSR='+IntToHex(coderecord.armcontext.CPSR,8);
@@ -575,7 +567,6 @@ begin
         lblR16.Align:=lblrcx.Align;
 
         lblR17:=tlabel.Create(FormFoundCodeListExtra);
-        lblR17.font:=lblRCX.font;
         lblR17.Top:=lblR12.top+(lblRCX.top-lblRBX.top);
         lblR17.left:=lblRIP.left;
         lblR17.caption:=' ORIG_R0='+IntToHex(coderecord.armcontext.ORIG_R0,8);
@@ -584,9 +575,9 @@ begin
         lblR17.OnDblClick:=RegisterDblClick;
         lblR17.Align:=lblrcx.Align;
 
-        Constraints.MinHeight:=panel6.top+(lblR17.top+lblR17.height)+16+panel5.height;
+        {Constraints.MinHeight:=panel6.top+(lblR17.top+lblR17.height)+16+panel5.height;
         if height<Constraints.MinHeight then
-          height:=Constraints.MinHeight;
+          height:=Constraints.MinHeight;   }
       end
       else
       begin
@@ -610,7 +601,6 @@ begin
           pnlRegisters.ChildSizing.ControlsPerLine:=5;
 
           lblR8:=tlabel.Create(FormFoundCodeListExtra);
-          lblR8.font:=lblRCX.font;
           lblR8.caption:=' R8='+IntToHex(coderecord.context.r8,8);
           lblR8.parent:=FormFoundCodeListExtra.pnlRegisters;
           lblR8.OnMouseDown:=registerMouseDown;
@@ -619,7 +609,6 @@ begin
 
 
           lblR9:=tlabel.Create(FormFoundCodeListExtra);
-          lblR9.font:=lblRCX.font;
           lblR9.caption:=' R9='+IntToHex(coderecord.context.r9,8);
           lblR9.parent:=FormFoundCodeListExtra.pnlRegisters;
           lblR9.OnMouseDown:=registerMouseDown;
@@ -627,7 +616,6 @@ begin
           lblR9.Align:=lblrcx.Align;
 
           lblR10:=tlabel.Create(FormFoundCodeListExtra);
-          lblR10.font:=lblRCX.font;
           lblR10.caption:='R10='+IntToHex(coderecord.context.r10,8);
           lblR10.parent:=FormFoundCodeListExtra.pnlRegisters;
           lblR10.OnMouseDown:=registerMouseDown;
@@ -635,7 +623,6 @@ begin
           lblR10.Align:=lblrcx.Align;
 
           lblR11:=tlabel.Create(FormFoundCodeListExtra);
-          lblR11.font:=lblRCX.font;
           lblR11.caption:='R11='+IntToHex(coderecord.context.r11,8);
           lblR11.parent:=FormFoundCodeListExtra.pnlRegisters;
           lblR11.OnMouseDown:=registerMouseDown;
@@ -643,7 +630,6 @@ begin
           lblR11.Align:=lblrcx.Align;
 
           lblR12:=tlabel.Create(FormFoundCodeListExtra);
-          lblR12.font:=lblRCX.font;
           lblR12.caption:='R12='+IntToHex(coderecord.context.r12,8);
           lblR12.parent:=FormFoundCodeListExtra.pnlRegisters;
           lblR12.OnMouseDown:=registerMouseDown;
@@ -651,7 +637,6 @@ begin
           lblR12.Align:=lblrcx.Align;
 
           lblR13:=tlabel.Create(FormFoundCodeListExtra);
-          lblR13.font:=lblRCX.font;
           lblR13.caption:='R13='+IntToHex(coderecord.context.r13,8);
           lblR13.parent:=FormFoundCodeListExtra.pnlRegisters;
           lblR13.OnMouseDown:=registerMouseDown;
@@ -659,7 +644,6 @@ begin
           lblR13.Align:=lblrcx.Align;
 
           lblR14:=tlabel.Create(FormFoundCodeListExtra);
-          lblR14.font:=lblRCX.font;
           lblR14.caption:='R14='+IntToHex(coderecord.context.r14,8);
           lblR14.parent:=FormFoundCodeListExtra.pnlRegisters;
           lblR14.OnMouseDown:=registerMouseDown;
@@ -667,7 +651,6 @@ begin
           lblR14.Align:=lblrcx.Align;
 
           lblR15:=tlabel.Create(FormFoundCodeListExtra);
-          lblR15.font:=lblRCX.font;
           lblR15.caption:='R15='+IntToHex(coderecord.context.r15,8);
           lblR15.parent:=FormFoundCodeListExtra.pnlRegisters;
           lblR15.OnMouseDown:=registerMouseDown;
@@ -679,9 +662,9 @@ begin
           lblRIP.BringToFront;
 
 
-          Constraints.MinHeight:=panel6.top+(lblR15.top+lblR15.height)+16+panel5.height;
+     {     Constraints.MinHeight:=panel6.top+(lblR15.top+lblR15.height)+16+panel5.height;
           if height<Constraints.MinHeight then
-            height:=Constraints.MinHeight;
+            height:=Constraints.MinHeight;     }
   //        if panel6.clientheight<lblR15.top+lblR15.height then //make room
   //          height:=height+(lblR15.top+lblR15.height)-(lblRDI.top+lblRDI.height);
         end;
