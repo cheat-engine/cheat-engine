@@ -33,14 +33,15 @@ type
     Label5: TLabel;
     Image1: TImage;
     Button1: TButton;
+    Label8: TLabel;
+    Label9: TLabel;
     Panel1: TPanel;
     Panel2: TPanel;
     Button2: TButton;
-    Label8: TLabel;
-    Label9: TLabel;
     Label10: TLabel;
     lblDBVM: TLabel;
     Panel3: TPanel;
+    Panel4: TPanel;
     procedure Button1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button2Click(Sender: TObject);
@@ -97,6 +98,7 @@ end;
 procedure TAbout.FormShow(Sender: TObject);
 var
     a,b,c,d: dword;
+    i: integer;
 begin
   {$ifdef net}
     groupbox1.Caption:=unit2.CEnorm;
@@ -105,7 +107,19 @@ begin
   {$endif}
 
 
+  i:=GetFontData(font.Handle).Height;
+  Label8.Font.Height:=i;
+  Label9.Font.Height:=i;
 
+
+  if panel4.top<label1.top+label1.height then
+  begin
+    panel4.AnchorSideTop.control:=label1;
+    panel4.AnchorSideTop.side:=asrBottom;
+  end;
+
+  if panel4.top+panel4.height>image1.Top+image1.height then
+    label10.AnchorSideTop.Control:=panel4;
 
   UpdateDBVMStatus;
 end;

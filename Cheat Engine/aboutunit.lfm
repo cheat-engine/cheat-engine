@@ -1,15 +1,15 @@
 object About: TAbout
-  Left = 1069
+  Left = 922
   Height = 274
-  Top = 300
-  Width = 366
+  Top = 326
+  Width = 352
   HelpContext = 2
   AutoSize = True
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'About Cheat Engine'
   ClientHeight = 274
-  ClientWidth = 366
+  ClientWidth = 352
   OnClose = FormClose
   OnShow = FormShow
   PopupMode = pmAuto
@@ -19,23 +19,13 @@ object About: TAbout
     Left = 0
     Height = 274
     Top = 0
-    Width = 366
+    Width = 352
     Align = alClient
     AutoSize = True
     Caption = 'Cheat Engine 6.6'
     ClientHeight = 254
-    ClientWidth = 362
+    ClientWidth = 348
     TabOrder = 0
-    object Label1: TLabel
-      AnchorSideLeft.Control = GroupBox1
-      AnchorSideLeft.Side = asrCenter
-      Left = 130
-      Height = 15
-      Top = 0
-      Width = 102
-      Caption = 'Made by: Dark Byte'
-      ParentColor = False
-    end
     object Label2: TLabel
       AnchorSideTop.Control = Label10
       AnchorSideTop.Side = asrBottom
@@ -384,37 +374,6 @@ object About: TAbout
       Stretch = True
       Transparent = True
     end
-    object Label8: TLabel
-      AnchorSideTop.Control = Label1
-      AnchorSideTop.Side = asrBottom
-      Cursor = crHandPoint
-      Left = 97
-      Height = 15
-      Top = 30
-      Width = 42
-      BorderSpacing.Top = 15
-      Caption = 'Website'
-      Font.Color = clBlue
-      Font.Style = [fsUnderline]
-      ParentColor = False
-      ParentFont = False
-      OnClick = Label8Click
-    end
-    object Label9: TLabel
-      AnchorSideTop.Control = Label8
-      AnchorSideTop.Side = asrBottom
-      Cursor = crHandPoint
-      Left = 97
-      Height = 15
-      Top = 45
-      Width = 80
-      Caption = 'Message Board'
-      Font.Color = clBlue
-      Font.Style = [fsUnderline]
-      ParentColor = False
-      ParentFont = False
-      OnClick = Label9Click
-    end
     object Label10: TLabel
       AnchorSideLeft.Control = GroupBox1
       AnchorSideTop.Control = Image1
@@ -453,7 +412,7 @@ object About: TAbout
       AnchorSideRight.Side = asrBottom
       AnchorSideBottom.Control = GroupBox1
       AnchorSideBottom.Side = asrBottom
-      Left = 319
+      Left = 305
       Height = 25
       Top = 228
       Width = 42
@@ -469,7 +428,7 @@ object About: TAbout
       AnchorSideTop.Control = GroupBox1
       AnchorSideRight.Control = GroupBox1
       AnchorSideRight.Side = asrBottom
-      Left = 282
+      Left = 268
       Height = 41
       Top = 0
       Width = 80
@@ -639,6 +598,64 @@ object About: TAbout
         Caption = 'Atom0s'
         ParentColor = False
       end
+    end
+    object Panel4: TPanel
+      AnchorSideLeft.Control = Image1
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Image1
+      AnchorSideTop.Side = asrCenter
+      Left = 95
+      Height = 30
+      Top = 30
+      Width = 80
+      AutoSize = True
+      BorderSpacing.Left = 20
+      BevelOuter = bvNone
+      ClientHeight = 30
+      ClientWidth = 80
+      TabOrder = 3
+      object Label8: TLabel
+        AnchorSideLeft.Control = Panel4
+        AnchorSideTop.Control = Panel4
+        Cursor = crHandPoint
+        Left = 0
+        Height = 15
+        Top = 0
+        Width = 42
+        Caption = 'Website'
+        Font.Color = clBlue
+        Font.Style = [fsUnderline]
+        ParentColor = False
+        ParentFont = False
+        OnClick = Label8Click
+      end
+      object Label9: TLabel
+        AnchorSideLeft.Control = Label8
+        AnchorSideTop.Control = Label8
+        AnchorSideTop.Side = asrBottom
+        Cursor = crHandPoint
+        Left = 0
+        Height = 15
+        Top = 15
+        Width = 80
+        Caption = 'Message Board'
+        Font.Color = clBlue
+        Font.Style = [fsUnderline]
+        ParentColor = False
+        ParentFont = False
+        OnClick = Label9Click
+      end
+    end
+    object Label1: TLabel
+      AnchorSideLeft.Control = GroupBox1
+      AnchorSideLeft.Side = asrCenter
+      AnchorSideTop.Control = GroupBox1
+      Left = 123
+      Height = 15
+      Top = 0
+      Width = 102
+      Caption = 'Made by: Dark Byte'
+      ParentColor = False
     end
   end
 end
