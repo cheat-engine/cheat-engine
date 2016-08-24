@@ -1792,6 +1792,7 @@ begin
     if hasSetIndent=false then
     begin
       treeview.Indent:=checkbox.Bottom-checkbox.Top;
+      hasSetIndent:=true;
     end;
 
     sender.canvas.pen.color:=oldpencolor;
