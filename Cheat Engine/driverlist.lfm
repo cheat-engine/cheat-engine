@@ -6,8 +6,6 @@ object frmDriverlist: TfrmDriverlist
   Caption = 'Driver list'
   ClientHeight = 235
   ClientWidth = 326
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter

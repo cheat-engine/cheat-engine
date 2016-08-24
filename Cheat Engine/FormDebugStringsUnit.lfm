@@ -6,13 +6,11 @@ object FormDebugStrings: TFormDebugStrings
   Caption = 'Debug strings'
   ClientHeight = 221
   ClientWidth = 321
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
   Position = poOwnerFormCenter
   LCLVersion = '1.6.0.4'
   object ListBox1: TListBox
     Left = 0
-    Height = 180
+    Height = 188
     Top = 0
     Width = 321
     Align = alClient
@@ -21,24 +19,29 @@ object FormDebugStrings: TFormDebugStrings
   end
   object Panel1: TPanel
     Left = 0
-    Height = 41
-    Top = 180
+    Height = 33
+    Top = 188
     Width = 321
     Align = alBottom
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 41
+    ClientHeight = 33
     ClientWidth = 321
     TabOrder = 1
     object Button1: TButton
       AnchorSideLeft.Control = Panel1
       AnchorSideLeft.Side = asrCenter
-      Left = 130
-      Height = 23
-      Top = 8
-      Width = 60
+      AnchorSideTop.Control = Panel1
+      Left = 123
+      Height = 25
+      Top = 4
+      Width = 75
       AutoSize = True
+      BorderSpacing.Top = 4
+      BorderSpacing.Bottom = 4
       Caption = 'OK'
-      Constraints.MinWidth = 60
+      Constraints.MinHeight = 25
+      Constraints.MinWidth = 75
       ModalResult = 1
       OnClick = Button1Click
       TabOrder = 0
