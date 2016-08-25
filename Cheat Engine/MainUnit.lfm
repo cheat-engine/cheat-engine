@@ -1674,9 +1674,11 @@ object MainForm: TMainForm
         end>
       Constraints.MinWidth = 1
       DragMode = dmAutomatic
+      Font.Name = 'Courier'
       HideSelection = False
       MultiSelect = True
       OwnerData = True
+      ParentFont = False
       ParentShowHint = False
       PopupMenu = foundlistpopup
       ReadOnly = True

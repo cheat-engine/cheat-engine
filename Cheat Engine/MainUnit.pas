@@ -7186,6 +7186,7 @@ begin
   i:=GetFontData(font.Handle).Height;
   fromaddress.Font.Height:=i;
   toaddress.Font.Height:=i;
+  Foundlist3.Font.Height:=i;
 
 
   panel5.Constraints.MinHeight := gbScanOptions.top + gbScanOptions.Height + max(speedbutton2.Height, btnAddAddressManually.height ) + 10;
@@ -7198,10 +7199,14 @@ begin
     foundlist3.Column[1].AutoSize:=true;
     foundlist3.Column[2].AutoSize:=true;
 
-
-    i:=foundlist3.Column[0].Width+foundlist3.Column[1].Width+foundlist3.Column[2].Width  ;
+    j:=max(canvas.textwidth('DDDDDDDDDDDDDDDD'), foundlist3.Column[0].Width);
 
     foundlist3.Column[0].AutoSize:=false;
+    foundlist3.Column[0].Width:=j;
+
+    i:=j+foundlist3.Column[1].Width+foundlist3.Column[2].Width  ;
+
+
     foundlist3.Column[1].AutoSize:=false;
     foundlist3.Column[2].AutoSize:=false;
 
