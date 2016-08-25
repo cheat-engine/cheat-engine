@@ -6,13 +6,17 @@ interface
 
 uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, LResources;
+  Dialogs, StdCtrls, LResources, ExtCtrls;
 
 type
+
+  { TformPointerOrPointee }
+
   TformPointerOrPointee = class(TForm)
-    Label1: TLabel;
     Button1: TButton;
     Button2: TButton;
+    Label1: TLabel;
+    Panel1: TPanel;
   private
     { Private declarations }
   public

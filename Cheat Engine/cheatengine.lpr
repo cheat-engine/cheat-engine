@@ -17,7 +17,7 @@ uses
   frmProcesswatcherExtraUnit, frmProcessWatcherUnit, ModuleSafetyUnit,
   frmExcludeHideUnit, HotKeys, TypePopup, CommentsUnit, FoundCodeUnit,
   foundlisthelper, unrandomizer, SaveFirstScan, savedscanhandler, memscan,
-  formScanningUnit, KernelDebugger, formDifferentBitSizeUnit,
+  KernelDebugger, formDifferentBitSizeUnit,
   formAddressChangeUnit, Changeoffsetunit, speedhack2, formPointerOrPointeeUnit,
   AccessCheck, formmemoryregionsunit, OpenSave, formProcessInfo,
   frmautoinjectunit, MenuItemExtra, MemoryBrowserFormUnit,

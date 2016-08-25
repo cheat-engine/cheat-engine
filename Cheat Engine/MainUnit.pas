@@ -894,7 +894,7 @@ implementation
 
 
 uses mainunit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup, HotKeys,
-  aboutunit, formScanningUnit, formhotkeyunit, formDifferentBitSizeUnit,
+  aboutunit, formhotkeyunit, formDifferentBitSizeUnit,
   CommentsUnit, formsettingsunit, formAddressChangeUnit, Changeoffsetunit,
   FoundCodeUnit, advancedoptionsunit, frmProcessWatcherUnit,
   formPointerOrPointeeUnit, OpenSave, formmemoryregionsunit, formProcessInfo,
@@ -1439,8 +1439,6 @@ begin
 
         if not btnNewScan.Enabled then
           exit; //only when no process is opened
-        if (formscanning <> nil) and (formscanning.Visible) then
-          exit; //it's scanning
 
         i := vartype.ItemIndex;
 
@@ -1456,8 +1454,7 @@ begin
 
         if not btnNewScan.Enabled then
           exit;
-        if (formscanning <> nil) and (formscanning.Visible) then
-          exit; //it's scanning
+
         i := vartype.ItemIndex;
         s := scanvalue.Text;
         if s = '' then
@@ -1478,8 +1475,6 @@ begin
 
         if not btnNewScan.Enabled then
           exit;
-        if (formscanning <> nil) and (formscanning.Visible) then
-          exit; //it's scanning
 
         i := vartype.ItemIndex;
 
@@ -1500,8 +1495,7 @@ begin
 
         if not btnNewScan.Enabled then
           exit;
-        if (formscanning <> nil) and (formscanning.Visible) then
-          exit; //it's scanning
+
 
         if btnNextScan.Enabled then
         begin
@@ -1519,8 +1513,7 @@ begin
 
         if not btnNewScan.Enabled then
           exit;
-        if (formscanning <> nil) and (formscanning.Visible) then
-          exit; //it's scanning
+
 
         if btnNextScan.Enabled then
         begin
@@ -1538,8 +1531,7 @@ begin
 
         if not btnNewScan.Enabled then
           exit;
-        if (formscanning <> nil) and (formscanning.Visible) then
-          exit; //it's scanning
+
 
         if btnNextScan.Enabled then
         begin
@@ -1557,8 +1549,7 @@ begin
 
         if not btnNewScan.Enabled then
           exit;
-        if (formscanning <> nil) and (formscanning.Visible) then
-          exit; //it's scanning
+
 
         if btnNextScan.Enabled then
         begin
@@ -1576,8 +1567,7 @@ begin
 
         if not btnNewScan.Enabled then
           exit;
-        if (formscanning <> nil) and (formscanning.Visible) then
-          exit; //it's scanning
+
 
         if btnNextScan.Enabled then
         begin
@@ -1594,8 +1584,7 @@ begin
       begin
         if not btnNewScan.Enabled then
           exit;
-        if (formscanning <> nil) and (formscanning.Visible) then
-          exit; //it's scanning
+
 
         if btnNextScan.Enabled then
         begin
@@ -1613,8 +1602,7 @@ begin
 
         if not btnNewScan.Enabled then
           exit;
-        if (formscanning <> nil) and (formscanning.Visible) then
-          exit; //it's scanning
+
 
         if undoscan.Enabled then
           undoscan.Click
@@ -5820,6 +5808,7 @@ begin
   if groupconfigbutton=nil then
   begin
     groupconfigbutton:=Tbutton.create(self);
+    groupconfigbutton.Name:='groupconfigbutton';
     groupconfigbutton.caption:=rsMUGenerateGroupscanCommand;
     groupconfigbutton.parent:=scantype.Parent;
     groupconfigbutton.Left:=scantype.left;
@@ -5828,15 +5817,14 @@ begin
     groupconfigbutton.height:=scantype.height;
 
     groupconfigbutton.AnchorSideTop:=scantype.AnchorSideTop;
-    groupconfigbutton.AnchorSideLeft:=scantype.AnchorSideLeft;
-    groupconfigbutton.AnchorSideRight:=scantype.AnchorSideRight;
-    groupconfigbutton.AnchorSideBottom:=scantype.AnchorSideBottom;
-
+    groupconfigbutton.AnchorSideLeft.Control:=VarType;
+    groupconfigbutton.AnchorSideLeft.Side:=asrLeft;
     groupconfigbutton.AnchorSideRight.Control:=VarType;
     groupconfigbutton.AnchorSideRight.Side:=asrRight;
 
 
     groupconfigbutton.Anchors:=scantype.anchors;
+
 
     vartype.AnchorSideTop.Control:=groupconfigbutton;
 
@@ -6025,8 +6013,7 @@ begin
   else
   begin
     //destroy button if it exists
-    if groupconfigbutton<>nil then
-      freeandnil(groupconfigbutton);
+    destroyGroupConfigButton;
   end;
 
 
@@ -6899,6 +6886,9 @@ var
   logopic: TPicture;
   rs: TResourceStream;
   cleanrun: boolean;
+
+  cbi: TComboboxInfo;
+  extrasize: integer;
 begin
   if onetimeonly then
     exit;
@@ -7082,6 +7072,15 @@ begin
 
   panel5resize(panel5);
 
+  if WindowsVersion>=wvVista then
+  begin
+    i:=sendmessage(scanvalue.Handle, EM_GETMARGINS, 0,0);
+    i:=(i shr 16)+(i and $ffff);
+  end
+  else
+    i:=8;
+
+  editSH2.Constraints.MinWidth:=canvas.TextWidth('500.0 ')+i;
 
 
   edtAlignment.Constraints.MinWidth:=canvas.TextWidth('XXXX');
@@ -7115,7 +7114,28 @@ begin
   btnMemoryView.ClientHeight:=i+4;
 
 
-  i:=vartype.Canvas.TextWidth(rsMUGenerateGroupscanCommand)+16;
+  cbi.cbSize:=sizeof(cbi);
+  if GetComboBoxInfo(vartype.handle, @cbi) then
+    extrasize:=cbi.rcButton.Right-cbi.rcButton.Left+cbi.rcItem.Left
+  else
+    extrasize:=16;
+
+  i:=Canvas.TextWidth(rsMUGenerateGroupscanCommand)+extrasize;
+  i:=max(i, Canvas.TextWidth(strExactValue)+extrasize);
+  i:=max(i, Canvas.TextWidth(strBiggerThan)+extrasize);
+  i:=max(i, Canvas.TextWidth(strsmallerThan)+extrasize);
+  i:=max(i, Canvas.TextWidth(strValueBetween)+extrasize);
+  i:=max(i, Canvas.TextWidth(strUnknownInitialValue)+extrasize);
+  i:=max(i, Canvas.TextWidth(strIncreasedValue)+extrasize);
+  i:=max(i, Canvas.TextWidth(strIncreasedValueBy)+extrasize);
+  i:=max(i, Canvas.TextWidth(strDecreasedValue)+extrasize);
+  i:=max(i, Canvas.TextWidth(strDecreasedValueBy)+extrasize);
+  i:=max(i, Canvas.TextWidth(strChangedValue)+extrasize);
+  i:=max(i, Canvas.TextWidth(strUnchangedValue)+extrasize);
+  i:=max(i, Canvas.TextWidth(strCompareToLastScan)+extrasize);
+  i:=max(i, Canvas.TextWidth(strCompareToFirstScan)+extrasize);
+  i:=max(i, Canvas.TextWidth(strcompareToSavedScan)+extrasize);
+
   vartype.Constraints.MinWidth:=i;
 
 
@@ -7126,8 +7146,14 @@ begin
     i:=foundlist3.width-j;
   end;
 
+  pnlFloat.Visible:=true;
+  panel9.Constraints.MinWidth:=panel9.Width;
+  pnlFloat.Visible:=false;
+
+
+
   pnlScanOptions.Constraints.MinHeight:=gbScanOptions.Top-panel9.top;
-  panel10.Constraints.MinWidth:=panel14.Width;
+  panel10.Constraints.MinWidth:=max(panel14.Width, panel10.Width);
 
   pnlScanValueOptions.Constraints.MinHeight:=rbBit.Height+rbDec.height;
   pnlScanValueOptions.Constraints.MinWidth:=max(rbDec.width, rbBit.width);
@@ -7182,8 +7208,9 @@ begin
 
   panel9.borderspacing.Top:=(scantype.height div 2)-(cbNot.Height div 2);
 
-
   i:=GetFontData(font.Handle).Height;
+
+
   fromaddress.Font.Height:=i;
   toaddress.Font.Height:=i;
   Foundlist3.Font.Height:=i;
@@ -7199,7 +7226,7 @@ begin
     foundlist3.Column[1].AutoSize:=true;
     foundlist3.Column[2].AutoSize:=true;
 
-    j:=max(canvas.textwidth('DDDDDDDDDDDDDDDD'), foundlist3.Column[0].Width);
+    j:=max(foundlist3.canvas.textwidth('DDDDDDDDDDDDD'), foundlist3.Column[0].Width);
 
     foundlist3.Column[0].AutoSize:=false;
     foundlist3.Column[0].Width:=j;
@@ -7222,6 +7249,13 @@ begin
   end;
 
   panel5.OnResize(panel5);
+
+  btnSetSpeedhack2.AutoSize:=false;
+  btnSetSpeedhack2.Height:=btnAddAddressManually.Height;
+
+  scantype.Anchors:=[akRight];
+  scantype.AnchorSideTop.Control:=nil;
+  scantype.Anchors:=[akRight, akTop];
 
 
  // ImageList2.GetBitmap(0);
@@ -8839,7 +8873,15 @@ begin
     else
       y := 1;
   end;
-  editSH2.Text := format('%.1f', [y]);
+
+  if x>=3 then
+    editSH2.Text := format('%.0f', [y])
+  else
+  if x>=2 then
+    editSH2.Text := format('%.1f', [y])
+  else
+  if x<2 then
+    editSH2.Text := format('%.2f', [y]);
 end;
 
 procedure TMainForm.btnSetSpeedhack2Click(Sender: TObject);

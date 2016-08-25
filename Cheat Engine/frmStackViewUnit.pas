@@ -186,7 +186,7 @@ end;
 procedure TfrmStackView.miSetColorClick(Sender: TObject);
 var i: integer;
   a: ptruint;
-  c: tcolor;
+  oldc, c: tcolor;
 begin
   if lvStack.selected<>nil then
   begin
@@ -202,11 +202,15 @@ begin
         if lvstack.items[i].Selected then
         begin
           a:=ptruint(lvStack.items[i].Data);
-          colors.Add(a, c);
+          if colors.HasId(a) then
+            colors.SetData(a, c)
+          else
+            colors.Add(a, c);
         end;
       end;
     end;
 
+    lvStack.Refresh;
     lvStack.Repaint;
 
   end;
@@ -260,6 +264,21 @@ begin
       lvstack.Column[1].width:=x[1];
       lvstack.Column[2].width:=x[2];
     end;
+  end
+  else
+  begin
+    {$ifdef cpu32}
+    lvStack.Column[0].Width:=lvStack.Canvas.TextWidth('DDDDDDDD');
+    lvStack.Column[1].Width:=lvStack.Canvas.TextWidth('DDDDDDDD');
+    {$else}
+    lvStack.Column[0].Width:=lvStack.Canvas.TextWidth('DDDDDDDDDDDDD');
+    lvStack.Column[1].Width:=lvStack.Canvas.TextWidth('DDDDDDDDDDDDD');
+
+    if clientwidth<lvStack.Column[0].Width+lvStack.Column[1].Width+20 then
+      lvStack.Column[0].Width:=lvStack.Column[0].Width+lvStack.Column[1].Width+20;
+    {$endif}
+
+
   end;
 end;
 

@@ -2122,7 +2122,7 @@ begin
   fHexFont:=tfont.create;
   fHexFont.Charset:=DEFAULT_CHARSET;
   fHexFont.Color:=clwindowText;
-  fHexFont.Height:=-11;
+  fHexFont.Height:=GetFontData(MainForm.Font.handle).Height;
   fHexFont.Name:='Courier';
   fHexFont.Style:=[];
 

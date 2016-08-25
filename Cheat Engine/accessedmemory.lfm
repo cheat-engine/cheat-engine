@@ -16,18 +16,18 @@ object frmAccessedMemory: TfrmAccessedMemory
     Left = 0
     Height = 285
     Top = 0
-    Width = 305
+    Width = 308
     Align = alLeft
     AutoSize = True
     BevelOuter = bvNone
     ClientHeight = 285
-    ClientWidth = 305
+    ClientWidth = 308
     TabOrder = 0
     object Label2: TLabel
       Left = 0
       Height = 120
       Top = 0
-      Width = 305
+      Width = 308
       Align = alTop
       Caption = 'This function will try to find out all accessed memory regions over a period of time and store it''s results into an .mregion file which you can use with other functions that can make use of it (e.g pointerscan)'#13#10#13#10'Note: This will enable the dbk kernel module and if your windows version isn''t supported this could potentially BSOD you. (So save your data)'
       ParentColor = False
@@ -95,11 +95,14 @@ object frmAccessedMemory: TfrmAccessedMemory
       AnchorSideLeft.Control = Edit1
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Edit1
-      AnchorSideTop.Side = asrCenter
+      AnchorSideBottom.Control = Edit1
+      AnchorSideBottom.Side = asrBottom
       Left = 148
-      Height = 17
-      Top = 148
-      Width = 43
+      Height = 23
+      Top = 145
+      Width = 53
+      Anchors = [akTop, akLeft, akBottom]
+      AutoSize = True
       BorderSpacing.Left = 5
       Caption = 'Clear'
       OnClick = btnClearSmallSnapshotClick
@@ -109,11 +112,14 @@ object frmAccessedMemory: TfrmAccessedMemory
       AnchorSideLeft.Control = Edit2
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Edit2
-      AnchorSideTop.Side = asrCenter
+      AnchorSideBottom.Control = Edit2
+      AnchorSideBottom.Side = asrBottom
       Left = 148
-      Height = 17
-      Top = 190
-      Width = 43
+      Height = 23
+      Top = 187
+      Width = 53
+      Anchors = [akTop, akLeft, akBottom]
+      AutoSize = True
       BorderSpacing.Left = 5
       Caption = 'Clear'
       OnClick = btnClearSmallSnapshot1Click
@@ -123,13 +129,15 @@ object frmAccessedMemory: TfrmAccessedMemory
       AnchorSideLeft.Control = btnClearSmallSnapshot
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Edit1
-      Left = 221
+      Left = 231
       Height = 25
       Top = 145
       Width = 75
+      AutoSize = True
       BorderSpacing.Left = 30
       BorderSpacing.Right = 2
       Caption = 'Start'
+      Constraints.MinWidth = 75
       OnClick = startMonitor
       TabOrder = 4
     end
@@ -137,13 +145,15 @@ object frmAccessedMemory: TfrmAccessedMemory
       AnchorSideLeft.Control = btnClearSmallSnapshot
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Edit2
-      Left = 221
+      Left = 231
       Height = 25
       Top = 187
       Width = 75
+      AutoSize = True
       BorderSpacing.Left = 30
       BorderSpacing.Right = 2
       Caption = 'Stop'
+      Constraints.MinWidth = 75
       Enabled = False
       OnClick = stopMonitor
       TabOrder = 5
@@ -167,16 +177,16 @@ object frmAccessedMemory: TfrmAccessedMemory
     end
   end
   object Splitter1: TSplitter
-    Left = 305
+    Left = 308
     Height = 285
     Top = 0
     Width = 5
   end
   object ListView1: TListView
-    Left = 310
+    Left = 313
     Height = 285
     Top = 0
-    Width = 229
+    Width = 226
     Align = alClient
     Columns = <    
       item

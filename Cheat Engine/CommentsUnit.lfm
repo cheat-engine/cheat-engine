@@ -1,7 +1,7 @@
 object Comments: TComments
-  Left = 595
+  Left = 1026
   Height = 257
-  Top = 194
+  Top = 213
   Width = 335
   HelpContext = 11
   BorderIcons = [biMaximize]
