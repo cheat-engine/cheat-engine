@@ -1504,7 +1504,10 @@ begin
         maxsize:=50;
 
       if parameters>=3 then
-        usewidechar:=lua_toboolean(L,3)
+      begin
+        usewidechar:=lua_toboolean(L,3);
+        maxsize:=maxsize+1;
+      end
       else
         usewidechar:=false;
 
