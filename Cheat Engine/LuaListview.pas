@@ -41,6 +41,24 @@ begin
   listview.clear;
 end;
 
+function listview_beginupdate(L: Plua_State): integer; cdecl;
+var
+  listview: TcustomListView;
+begin
+  result:=0;
+  listview:=luaclass_getClassObject(L);
+  listview.BeginUpdate;
+end;
+
+function listview_endupdate(L: Plua_State): integer; cdecl;
+var
+  listview: TcustomListView;
+begin
+  result:=0;
+  listview:=luaclass_getClassObject(L);
+  listview.EndUpdate;
+end;
+
 function listview_getColumns(L: PLua_State): integer; cdecl;
 var
   o: Tobject;
@@ -133,6 +151,8 @@ end;
 procedure listview_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
   wincontrol_addMetaData(L, metatable, userdata);
+
+
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'clear', listview_clear);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getColumns', listview_getColumns);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getItems', listview_getItems);
@@ -140,6 +160,8 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getItemIndex', listview_getItemIndex);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setItemIndex', listview_setItemIndex);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getCanvas', listview_getCanvas);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'beginUpdate', listview_beginUpdate);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'endUpdate', listview_beginUpdate);
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'Columns', listview_getColumns, nil);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Items', listview_getItems, listview_setItems);

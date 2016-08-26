@@ -1218,6 +1218,8 @@ methods
   getItemIndex(): integer -  Returns the currently selected index in the Items object
   setItemIndex(index: integer)- Sets the current itemindex
   getCanvas() : Canvas - Returns the canvas object used to render the listview
+  beginUpdate() - Tells the listview to stop updating while you're busy
+  endUpdate() - Applies all updates between beginUpdate and endUpdate
 
 
 TreeNode class : (Inheritance: TObject)
@@ -1270,6 +1272,8 @@ properties
   Selected: TreeNode - The currently selected treenode
 
 methods
+  beginUpdate()
+  endUpdate()
   getItems()
   getSelected()
   setSelected()

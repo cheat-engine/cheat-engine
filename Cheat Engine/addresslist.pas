@@ -58,9 +58,6 @@ type
     fDecreaseArrowColor: TColor;
     fIncreaseArrowColor: TColor;
 
-    hasSetIndent: boolean;
-
-
     function getTreeNodes: TTreenodes;
     procedure setTreeNodes(t: TTreenodes);
 
@@ -1820,11 +1817,7 @@ begin
     checkbox.Bottom:=linerect.bottom-1;
     sender.Canvas.Rectangle(checkbox);
 
-    if hasSetIndent=false then
-    begin
-      treeview.Indent:=checkbox.Bottom-checkbox.Top;
-      hasSetIndent:=true;
-    end;
+
 
     sender.canvas.pen.color:=oldpencolor;
 
@@ -1971,6 +1964,9 @@ procedure TAddressList.DoAutoSize;
 begin
   DisableAutoSizing;
   header.Height:=header.canvas.GetTextHeight('D')+4;
+
+  treeview.Indent:=Treeview.DefaultItemHeight; //checkbox.Bottom-checkbox.Top;
+
   EnableAutoSizing;
 
   inherited DoAutoSize;
