@@ -4984,7 +4984,7 @@ begin
     s:=Lua_ToString(L, -1);
     lua_pop(L, parameters);
 
-    lua_pushstring(L, Utf8ToAnsi(s));
+    lua_pushstring(L, UTF8ToWinCP(s));
     result:=1;
   end
   else
@@ -5004,7 +5004,7 @@ begin
     s:=Lua_ToString(L, -1);
     lua_pop(L, parameters);
 
-    lua_pushstring(L, AnsiToUtf8(s));
+    lua_pushstring(L, WinCPToUTF8(s));
     result:=1;
   end
   else
