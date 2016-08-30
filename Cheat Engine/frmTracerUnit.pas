@@ -300,119 +300,127 @@ var s,s2: string;
 begin
   //the debuggerthread is now paused so get the context and add it to the list
 
-  address:=debuggerthread.CurrentThread.context.{$ifdef CPU64}rip{$else}eip{$endif};
-  a:=address;
-  s:=disassemble(a);
+  try
 
-  a:=address;
-  da:=tdisassembler.Create;
-  s:=da.disassemble(a, s2);
+    address:=debuggerthread.CurrentThread.context.{$ifdef CPU64}rip{$else}eip{$endif};
+    a:=address;
+    s:=disassemble(a);
 
-  datasize:=da.LastDisassembleData.datasize;
-  if datasize=0 then
-    datasize:=4;
+    a:=address;
+    da:=tdisassembler.Create;
+    s:=da.disassemble(a, s2);
 
-  isfloat:=da.LastDisassembleData.isfloat;
+    datasize:=da.LastDisassembleData.datasize;
+    if datasize=0 then
+      datasize:=4;
 
-  da.free;
+    isfloat:=da.LastDisassembleData.isfloat;
+
+    da.free;
 
 
 
-  referencedAddress:=0;
-  if dereference then
-  begin
-    i:=pos('[',s)+1;
-    if i>0 then
+    referencedAddress:=0;
+    if dereference then
     begin
-      s2:=copy(s,i,pos(']',s)-i);
-      referencedAddress:=symhandler.getAddressFromName(s2, false, haserror, debuggerthread.CurrentThread.context);
+      i:=pos('[',s)+1;
+      if i>0 then
+      begin
+        s2:=copy(s,i,pos(']',s)-i);
+        referencedAddress:=symhandler.getAddressFromName(s2, false, haserror, debuggerthread.CurrentThread.context);
+      end;
     end;
-  end;
 
 
-  i:=posex('-',s);
-  i:=posex('-',s,i+1);
-  s:=copy(s,i+2,length(s));
+    i:=posex('-',s);
+    i:=posex('-',s,i+1);
+    s:=copy(s,i+2,length(s));
 
 
-  d:=TTraceDebugInfo.Create;
-  d.instructionsize:=a-address;
-  d.c:=debuggerthread.CurrentThread.context^;
-  d.instruction:=s;
-  d.referencedAddress:=referencedAddress;
-  d.isfloat:=isfloat;
-  d.fillbytes(datasize);
+    d:=TTraceDebugInfo.Create;
+    d.instructionsize:=a-address;
+    d.c:=debuggerthread.CurrentThread.context^;
+    d.instruction:=s;
+    d.referencedAddress:=referencedAddress;
+    d.isfloat:=isfloat;
+    d.fillbytes(datasize);
 
-  if savestack then
-    d.savestack;
+    if savestack then
+      d.savestack;
 
-  s:=inttohex(address,8)+' - '+s;
+    s:=inttohex(address,8)+' - '+s;
 
-  if returnfromignore then
-  begin
-    //00500DD9
-    returnfromignore:=false;
-    if (currentAppendage<>nil) then
-      currentAppendage:=currentAppendage.Parent;
-  end;
-
-  if currentAppendage<>nil then
-    thisnode:=lvTracer.Items.AddChildObject(currentAppendage,s,d)
-  else
-    thisnode:=lvTracer.Items.AddObject(nil,s,d);
-
-  if not stepover and defaultDisassembler.LastDisassembleData.iscall then
-    currentAppendage:=thisnode;
-
-  if (defaultDisassembler.LastDisassembleData.isret) {or returnfromignore} then
-  begin
-    returnfromignore:=false;
-    if currentAppendage<>nil then
+    if returnfromignore then
     begin
-      currentAppendage:=currentAppendage.Parent;
+      //00500DD9
+      returnfromignore:=false;
+      if (currentAppendage<>nil) then
+        currentAppendage:=currentAppendage.Parent;
+    end;
 
+    if currentAppendage<>nil then
+      thisnode:=lvTracer.Items.AddChildObject(currentAppendage,s,d)
+    else
+      thisnode:=lvTracer.Items.AddObject(nil,s,d);
+
+    if not stepover and defaultDisassembler.LastDisassembleData.iscall then
+      currentAppendage:=thisnode;
+
+    if (defaultDisassembler.LastDisassembleData.isret) {or returnfromignore} then
+    begin
+      returnfromignore:=false;
       if currentAppendage<>nil then
       begin
-        //check if the return is valid, could be it's a parent jump
-        d:=TTraceDebugInfo(currentAppendage.Data);
+        currentAppendage:=currentAppendage.Parent;
 
-        if d=nil then exit; //cleanup underway
-
-        if (d.c.{$ifdef cpu64}Rip{$else}eip{$endif}+d.instructionsize<>a) then
+        if currentAppendage<>nil then
         begin
-          //see if a parent can be found that does match
-          x:=currentappendage.Parent;
-          while x<>nil do
+          //check if the return is valid, could be it's a parent jump
+          d:=TTraceDebugInfo(currentAppendage.Data);
+
+          if d=nil then exit; //cleanup underway
+
+          if (d.c.{$ifdef cpu64}Rip{$else}eip{$endif}+d.instructionsize<>a) then
           begin
-            d:=TTraceDebugInfo(x.Data);
-
-            if d=nil then exit; //cleanup underway
-
-            if (d.c.{$ifdef cpu64}Rip{$else}eip{$endif}+d.instructionsize=a) then
+            //see if a parent can be found that does match
+            x:=currentappendage.Parent;
+            while x<>nil do
             begin
-              //match found
-              currentAppendage:=x;
-              exit;
+              d:=TTraceDebugInfo(x.Data);
+
+              if d=nil then exit; //cleanup underway
+
+              if (d.c.{$ifdef cpu64}Rip{$else}eip{$endif}+d.instructionsize=a) then
+              begin
+                //match found
+                currentAppendage:=x;
+                exit;
+              end;
+
+              x:=x.parent;
             end;
-
-            x:=x.parent;
           end;
+
         end;
-
-      end;
-    end
-    else
-    begin
-      //create a node at the top and append the current top node to it
-      thisnode:=lvTracer.items.AddFirst(nil,'');
-
-      thatnode:=thisnode.GetNextSibling;
-      while thatnode<>nil do
+      end
+      else
       begin
-        thatnode.MoveTo(thisnode, naAddChild);
+        //create a node at the top and append the current top node to it
+        thisnode:=lvTracer.items.AddFirst(nil,'');
+
         thatnode:=thisnode.GetNextSibling;
+        while thatnode<>nil do
+        begin
+          thatnode.MoveTo(thisnode, naAddChild);
+          thatnode:=thisnode.GetNextSibling;
+        end;
       end;
     end;
+
+
+  except
+    on e: exception do
+      OutputDebugString('tracer addRecord failed with error:'+e.Message);
   end;
 
 end;

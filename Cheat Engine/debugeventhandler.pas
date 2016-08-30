@@ -594,20 +594,25 @@ var
 
   ignored: boolean;
 begin
+  ignored:=false;
+
   TDebuggerthread(debuggerthread).execlocation:=37;
 
-  ignored:=IgnoredModuleListHandler.InIgnoredModuleRange(context.{$ifdef cpu64}rip{$else}eip{$endif});
+  if IgnoredModuleListHandler<>nil then
+    ignored:=IgnoredModuleListHandler.InIgnoredModuleRange(context.{$ifdef cpu64}rip{$else}eip{$endif});
 
   if (not ignored) and traceNoSystem and symhandler.inSystemModule(context.{$ifdef cpu64}rip{$else}eip{$endif}) then
     ignored:=true;
 
+  TDebuggerthread(debuggerthread).execlocation:=371;
   if (tracewindow<>nil) and (not ignored) then
   begin
+
     TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), tracewindow.AddRecord);
     TDebuggerthread(debuggerthread).guiupdate:=true;
   end;
 
-  TDebuggerthread(debuggerthread).execlocation:=371;
+  TDebuggerthread(debuggerthread).execlocation:=372;
 
   dec(tracecount);
   if tracecount>0 then
@@ -616,7 +621,7 @@ begin
     begin
       if CheckIfConditionIsMet(nil, 'return '+traceQuitCondition) then
       begin
-        TDebuggerthread(debuggerthread).execlocation:=372;
+        TDebuggerthread(debuggerthread).execlocation:=373;
         //quit condition is met
         if tracewindow<>nil then
           TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), tracewindow.Finish);
@@ -629,21 +634,21 @@ begin
       end;
     end;
 
-    TDebuggerthread(debuggerthread).execlocation:=373;
+    TDebuggerthread(debuggerthread).execlocation:=374;
 
     if ignored then
     begin
-      TDebuggerthread(debuggerthread).execlocation:=374;
+      TDebuggerthread(debuggerthread).execlocation:=375;
       tracewindow.returnfromignore:=true;
       ReadProcessMemory(processhandle, pointer(context.{$ifdef cpu64}rsp{$else}esp{$endif}), @r, sizeof(processhandler.pointersize), x);
       b:=TDebuggerthread(debuggerthread).SetOnExecuteBreakpoint(r , false, ThreadId);
       b.OneTimeOnly:=true;
-      TDebuggerthread(debuggerthread).execlocation:=375;
+      TDebuggerthread(debuggerthread).execlocation:=376;
       ContinueFromBreakpoint(nil, co_run);
     end
     else
     begin
-      TDebuggerthread(debuggerthread).execlocation:=376;
+      TDebuggerthread(debuggerthread).execlocation:=377;
       if tracestepover then
         ContinueFromBreakpoint(nil, co_stepover)
       else
@@ -652,15 +657,15 @@ begin
   end
   else
   begin
-    TDebuggerthread(debuggerthread).execlocation:=377;
+    TDebuggerthread(debuggerthread).execlocation:=378;
     //outputdebugstring('tracecount=0');
     if tracewindow<>nil then
     begin
-      TDebuggerthread(debuggerthread).execlocation:=378;
+      TDebuggerthread(debuggerthread).execlocation:=379;
       TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), tracewindow.Finish);
     end;
 
-    TDebuggerthread(debuggerthread).execlocation:=379;
+    TDebuggerthread(debuggerthread).execlocation:=380;
 
     ContinueFromBreakpoint(nil, co_run);
     isTracing:=false;
