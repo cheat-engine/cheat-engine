@@ -1,7 +1,7 @@
 object frmSelectionList: TfrmSelectionList
-  Left = 397
+  Left = 277
   Height = 232
-  Top = 165
+  Top = 235
   Width = 313
   BorderIcons = [biSystemMenu]
   Caption = 'title'

@@ -978,14 +978,10 @@ begin
 
   cbDebuggerInterfaceChange(nil);
 
-  i:=max(cbVEHRealContextOnThreadCreation.Left+cbVEHRealContextOnThreadCreation.Width+4, checkbox1.ClientWidth);
-  i:=max(groupbox2.ClientWidth, i);
-
-  groupbox2.ClientWidth:=i;
+  cbVEHRealContextOnThreadCreation.AutoSize:=false;
+  cbVEHRealContextOnThreadCreation.AutoSize:=true;
 
 
-  i:=max(rbVEHUseProcessWatcher.Top+rbVEHUseProcessWatcher.Height+4, groupbox2.clientheight);
-  groupbox2.clientheight:=i;
 
   j:=tvMenuSelection.Width;
   for i:=0 to tvMenuSelection.Items.Count-1 do
@@ -1337,9 +1333,34 @@ end;
 
 procedure TformSettings.tvMenuSelectionChange(Sender: TObject;
   Node: TTreeNode);
+var w,h: integer;
 begin
   if node.Data<>nil then
     pcSetting.ActivePage:=TTabSheet(node.data);
+
+  if pcSetting.ActivePage=self.Assembler then
+  begin
+    groupbox2.AutoSize:=true;
+
+    pcDebugConfig.PageIndex:=0;
+    w:=groupbox2.Width;
+    h:=groupbox2.Height;
+
+    pcDebugConfig.PageIndex:=1;
+    w:=max(groupbox2.Width, w);
+    h:=max(groupbox2.Height, h);
+
+    pcDebugConfig.PageIndex:=2;
+    w:=max(groupbox2.Width, w);
+    h:=max(groupbox2.Height, h);
+
+    cbDebuggerInterfaceChange(nil);
+
+    groupbox2.AutoSize:=false;
+
+    groupbox2.Width:=w;
+    groupbox2.Height:=h;
+  end;
 end;
 
 procedure TformSettings.Panel6Resize(Sender: TObject);

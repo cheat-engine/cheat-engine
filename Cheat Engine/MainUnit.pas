@@ -5827,6 +5827,7 @@ begin
 
 
     vartype.AnchorSideTop.Control:=groupconfigbutton;
+    panel9.AnchorSideTop.Control:=groupconfigbutton;
 
 
     groupconfigbutton.OnClick:=DoGroupconfigButtonClick;
@@ -5840,6 +5841,7 @@ begin
   if groupconfigbutton<>nil then
   begin
     vartype.AnchorSideTop.Control:=ScanType;
+    panel9.AnchorSideTop.Control:=ScanType;
     freeandnil(groupconfigbutton);
   end;
 end;
