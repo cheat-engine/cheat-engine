@@ -2679,16 +2679,32 @@ void setupVMX(pcpuinfo currentcpuinfo)
     {
       //it has a secondary entry
       //enable rdtscp
-      sendstringf("Enabling rdtscp\n");
+      QWORD secondarycpu=0;
+
+
       if ((IA32_VMX_SECONDARY_PROCBASED_CTLS >> 32) & SPBEF_ENABLE_RDTSCP) //can it enable rdtscp ?
-        vmwrite(vm_execution_controls_cpu_secondary, SPBEF_ENABLE_RDTSCP); //enable rdtscp
+      {
+        sendstringf("Enabling rdtscp\n");
+        secondarycpu|=SPBEF_ENABLE_RDTSCP;
+      }
+
 
 
       if ((IA32_VMX_SECONDARY_PROCBASED_CTLS >> 32) & SPBEF_ENABLE_XSAVES) //can it enable XSAVES ?
       {
         sendstringf("Enabling xsaves\n");
-        vmwrite(vm_execution_controls_cpu_secondary, SPBEF_ENABLE_XSAVES); //enable XSAVES/XRSTORS
+        secondarycpu|=SPBEF_ENABLE_XSAVES;
       }
+
+      if ((IA32_VMX_SECONDARY_PROCBASED_CTLS >> 32) & SPBEF_ENABLE_INVPCID) //can it enable INVPCID ?
+      {
+        sendstringf("Enabling INVPCID\n");
+        secondarycpu|=SPBEF_ENABLE_INVPCID;
+      }
+
+      vmwrite(vm_execution_controls_cpu_secondary, secondarycpu);
+
+
 
     }
 
