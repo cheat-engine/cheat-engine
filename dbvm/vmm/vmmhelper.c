@@ -2682,6 +2682,14 @@ void setupVMX(pcpuinfo currentcpuinfo)
       sendstringf("Enabling rdtscp\n");
       if ((IA32_VMX_SECONDARY_PROCBASED_CTLS >> 32) & SPBEF_ENABLE_RDTSCP) //can it enable rdtscp ?
         vmwrite(vm_execution_controls_cpu_secondary, SPBEF_ENABLE_RDTSCP); //enable rdtscp
+
+
+      if ((IA32_VMX_SECONDARY_PROCBASED_CTLS >> 32) & SPBEF_ENABLE_XSAVES) //can it enable XSAVES ?
+      {
+        sendstringf("Enabling xsaves\n");
+        vmwrite(vm_execution_controls_cpu_secondary, SPBEF_ENABLE_XSAVES); //enable XSAVES/XRSTORS
+      }
+
     }
 
 

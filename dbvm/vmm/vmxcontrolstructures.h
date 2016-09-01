@@ -42,6 +42,7 @@
 
 //secondary processor based vm-execution flags
 #define SPBEF_ENABLE_RDTSCP         (1<<3)
+#define SPBEF_ENABLE_XSAVES         (1<<20)
 
 //vm-exit controls
 #define SAVE_DEBUG_CONTROLS           (1<<2)

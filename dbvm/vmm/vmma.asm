@@ -1263,7 +1263,7 @@ db 0xcc
 %macro	_inthandler	1
 global inthandler%1
 inthandler%1:
-xchg bx,bx
+;xchg bx,bx
 
 cli ;is probably already done, but just to be sure
 push %1
