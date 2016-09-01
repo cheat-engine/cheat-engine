@@ -73,7 +73,6 @@ typedef struct
 	UINT64 Mdl; //go ahead, scream
 } ULTIMAPDATAEVENT, *PULTIMAPDATAEVENT;
 
-
 NTSTATUS ultimap_continue(PULTIMAPDATAEVENT data);
 NTSTATUS ultimap_waitForData(ULONG timeout, PULTIMAPDATAEVENT data);
 NTSTATUS ultimap(UINT64 cr3, UINT64 dbgctl_msr, int DS_AREA_SIZE, BOOL savetofile, WCHAR *filename, int handlerCount);
@@ -81,6 +80,8 @@ void ultimap_disable(void);
 void ultimap_flushBuffers(void);
 void setup_APIC_BASE(void);
 void clean_APIC_BASE(void);
+
+void apic_clearPerfmon();
 
 PDS_AREA_MANAGEMENT DS_AREA[256]; //used to store the addresses. (reading the msr that holds the DS_AREA is impossible with dbvm active)
 int DS_AREA_SIZE;
@@ -130,6 +131,6 @@ typedef volatile struct {
 	UINT128 Reserved10;
 } APIC, *PAPIC;
 
-
+extern volatile PAPIC APIC_BASE;
 
 #endif

@@ -41,7 +41,6 @@ var
   frmDriverLoaded: TfrmDriverLoaded;
   s,s2,t: string;
   i: integer;
-  h: hwnd;
 
   a,b: array [0..1] of boolean;
 
@@ -109,6 +108,8 @@ end;
 
 procedure TfrmDriverLoaded.FormShow(Sender: TObject);
 begin
+  top:=0;
+  left:=0;
 end;
 
 procedure TfrmDriverLoaded.Timer2Timer(Sender: TObject);

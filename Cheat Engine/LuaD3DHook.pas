@@ -96,8 +96,9 @@ begin
           p.png.width:=tpicture(o).Width;
           p.png.Height:=tpicture(o).height;
 
-
           p.png.canvas.CopyRect(rect(0,0,tpicture(o).Width,tpicture(o).Height), tpicture(o).bitmap.canvas, rect(0,0,tpicture(o).Width,tpicture(o).Height));
+
+          FixAlpha(p.png);
           luaclass_newClass(L, d.createTexture(p));
           p.free;
         end

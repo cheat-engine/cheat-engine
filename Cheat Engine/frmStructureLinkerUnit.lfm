@@ -3,17 +3,19 @@ object frmStructureLinker: TfrmStructureLinker
   Height = 244
   Top = 270
   Width = 457
+  AutoSize = True
   BorderStyle = bsSingle
   Caption = 'Structure linker'
   ClientHeight = 244
   ClientWidth = 457
   OnCreate = FormCreate
   OnShow = FormShow
-  LCLVersion = '1.1'
+  PopupMode = pmAuto
+  LCLVersion = '1.6.0.4'
   object sgStructureAddress: TStringGrid
     Left = 0
-    Height = 156
-    Top = 50
+    Height = 158
+    Top = 55
     Width = 457
     Align = alClient
     ColCount = 2
@@ -27,6 +29,7 @@ object frmStructureLinker: TfrmStructureLinker
         Title.Caption = 'Address'
         Width = 150
       end>
+    Constraints.MinHeight = 150
     FixedCols = 0
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goAlwaysShowEditor, goSmoothScroll]
     RowCount = 1
@@ -34,58 +37,93 @@ object frmStructureLinker: TfrmStructureLinker
   end
   object Panel1: TPanel
     Left = 0
-    Height = 38
-    Top = 206
+    Height = 31
+    Top = 213
     Width = 457
     Align = alBottom
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 38
+    ClientHeight = 31
     ClientWidth = 457
     TabOrder = 1
     OnResize = Panel1Resize
-    object btnLink: TButton
-      Left = 152
+    object Panel3: TPanel
+      AnchorSideLeft.Control = Panel1
+      AnchorSideLeft.Side = asrCenter
+      AnchorSideTop.Control = Panel1
+      Left = 150
       Height = 25
-      Top = 8
-      Width = 75
-      Caption = 'Link'
-      Default = True
-      OnClick = btnLinkClick
+      Top = 3
+      Width = 157
+      AutoSize = True
+      BorderSpacing.Top = 3
+      BorderSpacing.Bottom = 3
+      BevelOuter = bvNone
+      ClientHeight = 25
+      ClientWidth = 157
       TabOrder = 0
-    end
-    object btnCancel: TButton
-      Left = 232
-      Height = 25
-      Top = 8
-      Width = 75
-      Cancel = True
-      Caption = 'Cancel'
-      ModalResult = 2
-      TabOrder = 1
+      object btnCancel: TButton
+        AnchorSideLeft.Control = btnLink
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = btnLink
+        Left = 82
+        Height = 25
+        Top = 0
+        Width = 75
+        AutoSize = True
+        BorderSpacing.Left = 7
+        Cancel = True
+        Caption = 'Cancel'
+        Constraints.MinWidth = 75
+        ModalResult = 2
+        TabOrder = 0
+      end
+      object btnLink: TButton
+        AnchorSideLeft.Control = Panel3
+        AnchorSideTop.Control = Panel3
+        Left = 0
+        Height = 25
+        Top = 0
+        Width = 75
+        AutoSize = True
+        Caption = 'Link'
+        Constraints.MinWidth = 75
+        Default = True
+        OnClick = btnLinkClick
+        TabOrder = 1
+      end
     end
   end
   object Panel2: TPanel
     Left = 0
-    Height = 50
+    Height = 55
     Top = 0
     Width = 457
     Align = alTop
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 50
+    ClientHeight = 55
     ClientWidth = 457
     TabOrder = 2
     object Label1: TLabel
+      AnchorSideLeft.Control = Panel2
+      AnchorSideTop.Control = Panel2
       Left = 2
       Height = 15
-      Top = 0
+      Top = 2
       Width = 451
+      BorderSpacing.Left = 2
+      BorderSpacing.Top = 2
       Caption = 'Fill in the known addresses of these structures (Can be blank if unknown or unrelated)'
       ParentColor = False
     end
     object cbNoExactMatches: TCheckBox
+      AnchorSideLeft.Control = Label1
+      AnchorSideTop.Control = Label1
+      AnchorSideTop.Side = asrBottom
       Left = 2
       Height = 19
-      Top = 16
+      Top = 17
       Width = 333
       Caption = 'Fill in pointers that point into a structure instead of the start'
       Checked = True
@@ -93,18 +131,25 @@ object frmStructureLinker: TfrmStructureLinker
       TabOrder = 0
     end
     object cbFillLocal: TCheckBox
+      AnchorSideLeft.Control = cbNoExactMatches
+      AnchorSideTop.Control = cbNoExactMatches
+      AnchorSideTop.Side = asrBottom
       Left = 2
       Height = 19
-      Top = 32
+      Top = 36
       Width = 140
       Caption = 'Fill in ''Local'' structures'
       TabOrder = 1
     end
     object cbOverrideLocal: TCheckBox
-      Left = 165
+      AnchorSideLeft.Control = cbFillLocal
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = cbFillLocal
+      Left = 150
       Height = 19
-      Top = 32
+      Top = 36
       Width = 231
+      BorderSpacing.Left = 8
       Caption = 'Override ''Local'' structures when needed'
       TabOrder = 2
     end

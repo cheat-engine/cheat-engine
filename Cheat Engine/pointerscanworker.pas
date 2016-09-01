@@ -311,7 +311,7 @@ end;
 
 function TPointerscanWorker.HasResultsPending: boolean;
 begin
-  fHasResults:=true;
+  result:=fHasResults;
 end;
 
 constructor TPointerscanWorker.create(suspended:boolean);
@@ -626,6 +626,8 @@ begin
   begin
     startvalue:=valuetofind-structsize;
     stopvalue:=valuetofind;
+
+    if startvalue>stopvalue then startvalue:=0;
 
     if useheapdata then
     begin

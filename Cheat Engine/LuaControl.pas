@@ -372,6 +372,7 @@ function control_doClick(L: PLua_State): integer; cdecl;
 var
   c: TControl;
 begin
+  result:=0;
   c:=luaclass_getClassObject(L);
   if assigned(c.OnClick) then
     c.OnClick(c);

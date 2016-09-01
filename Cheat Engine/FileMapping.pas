@@ -18,15 +18,19 @@ type TFileMapping=class
     FileHandle: THandle;
     FileMapping: THandle;
     FFileContent: pointer;
-    FFileSize: Dword;
+    FFileSize: Qword;
+    FFilename: string;
   public
     property fileContent: pointer read FFileContent;
-    property filesize: dword read FFileSize;
+    property filesize: qword read FFileSize;
+    property filename: string read FFilename;
     constructor create(filename: string);
     destructor destroy; override;
 end;
 
 implementation
+
+//function GetFileSize(hFile:HANDLE; lpFileSizeHigh:LPDWORD):DWORD; external 'kernel32' name 'GetFileSize';
 
 resourcestring
   rsDoesNotExist = '%s does not exist';
@@ -61,7 +65,9 @@ begin
     if FileHandle = INVALID_HANDLE_VALUE then
       raise exception.create(Format(rsDoesNotExist, [filename]));
 
-    FFileSize:=GetFileSize(FileHandle,nil);
+
+    FFileSize:=0;
+    FFileSize:=GetFileSize(FileHandle,pointer(ptruint(@fileSize)+4));
 
     //still here, so create filemapping
     FileMapping := CreateFileMapping(FileHandle, nil, PAGE_WRITECOPY	, 0, 0, nil);
@@ -71,6 +77,7 @@ begin
     FFileContent:= MapViewOfFile(FileMapping, FILE_MAP_COPY , 0, 0, 0);
     if FFileContent=nil then raise exception.Create(rsFailedCreatingAProperView);
 
+    ffilename:=filename;
   except
     on e: exception do
     begin

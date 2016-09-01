@@ -1,68 +1,102 @@
 object frmAddToCodeList: TfrmAddToCodeList
-  Left = 919
-  Height = 85
-  Top = 300
-  Width = 169
+  Left = 763
+  Height = 76
+  Top = 378
+  Width = 209
+  AutoSize = True
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Region to add'
-  ClientHeight = 85
-  ClientWidth = 169
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  ClientHeight = 76
+  ClientWidth = 209
   OnClose = FormClose
+  OnCreate = FormCreate
   OnShow = FormShow
+  PopupMode = pmAuto
   Position = poOwnerFormCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.6.0.4'
   object Label1: TLabel
-    Left = 30
-    Height = 14
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Edit1
+    AnchorSideTop.Side = asrCenter
+    Left = 2
+    Height = 15
     Top = 8
-    Width = 24
+    Width = 28
+    BorderSpacing.Left = 2
     Caption = 'From'
     ParentColor = False
   end
   object Label2: TLabel
-    Left = 40
-    Height = 14
-    Top = 32
+    AnchorSideTop.Control = Edit2
+    AnchorSideTop.Side = asrCenter
+    AnchorSideRight.Control = Edit2
+    Left = 18
+    Height = 15
+    Top = 31
     Width = 14
+    Anchors = [akTop, akRight]
     Caption = 'To'
     ParentColor = False
   end
   object Edit1: TEdit
-    Left = 56
-    Height = 21
+    AnchorSideLeft.Control = Label1
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 32
+    Height = 23
     Top = 4
-    Width = 81
+    Width = 175
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Left = 2
+    BorderSpacing.Top = 4
+    BorderSpacing.Right = 2
     TabOrder = 0
     Text = 'DDDDDDDD'
   end
   object Button1: TButton
+    AnchorSideTop.Control = Edit2
+    AnchorSideTop.Side = asrBottom
     Left = 8
     Height = 25
-    Top = 56
+    Top = 52
     Width = 75
+    BorderSpacing.Left = 2
+    BorderSpacing.Top = 2
+    BorderSpacing.Bottom = 2
     Caption = 'OK'
     Default = True
     OnClick = Button1Click
     TabOrder = 2
   end
   object Button2: TButton
+    AnchorSideTop.Control = Edit2
+    AnchorSideTop.Side = asrBottom
     Left = 88
     Height = 25
-    Top = 56
+    Top = 52
     Width = 75
+    BorderSpacing.Top = 2
+    BorderSpacing.Right = 2
+    BorderSpacing.Bottom = 2
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 3
   end
   object Edit2: TEdit
-    Left = 56
-    Height = 21
-    Top = 28
-    Width = 81
+    AnchorSideLeft.Control = Edit1
+    AnchorSideTop.Control = Edit1
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Edit1
+    AnchorSideRight.Side = asrBottom
+    Left = 32
+    Height = 23
+    Top = 27
+    Width = 175
+    Anchors = [akTop, akLeft, akRight]
     TabOrder = 1
     Text = 'FFFFFFFF'
   end

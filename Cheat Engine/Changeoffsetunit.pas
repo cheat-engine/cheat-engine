@@ -6,16 +6,20 @@ interface
 
 uses
   LCLIntf, Messages, SysUtils, classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ComCtrls, LResources,symbolhandler;
+  Dialogs, StdCtrls, ComCtrls, LResources, ExtCtrls,symbolhandler, math;
 
 type
+
+  { TChangeOffset }
+
   TChangeOffset = class(TForm)
-    TabControl1: TTabControl;
+    Cancel: TButton;
     Change: TButton;
-    Button2: TButton;
+    TabControl1: TTabControl;
     cbHexadecimal: TCheckBox;
     Edit1: TEdit;
     procedure ChangeClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure TabControl1Changing(Sender: TObject;
       var AllowChange: Boolean);
@@ -78,7 +82,13 @@ begin
   end;
 end;
 
+procedure TChangeOffset.FormCreate(Sender: TObject);
+begin
+  //tabcontrol1.AutoSize:=true;
+end;
+
 procedure TChangeOffset.FormShow(Sender: TObject);
+var r: trect;
 begin
   if tabcontrol1.TabIndex=0 then
   begin
@@ -89,6 +99,16 @@ begin
   begin
     edit1.Text:=IntToHex(toaddress,8);
   end;
+
+  change.autosize:=false;
+  cancel.autosize:=false;
+
+  change.width:=max(change.width, cancel.width);
+  cancel.width:=max(change.width, cancel.width);
+
+  clientheight:=cancel.top+cancel.Height+tabcontrol1.TabHeight+5;
+
+  ClientWidth:=(cancel.left+cancel.width)*2;
 end;
 
 procedure TChangeOffset.TabControl1Changing(Sender: TObject;

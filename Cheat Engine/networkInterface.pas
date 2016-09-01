@@ -226,6 +226,8 @@ var ModulelistCommand: packed record
 
 begin
 
+  result:=false;
+
   if ((hSnapshot shr 24) and $ff)= $ce then
   begin
     if isfirst then
@@ -261,9 +263,8 @@ begin
 
       end;
     end;
-  end
-  else
-    result:=false;
+  end;
+
 end;
 
 function TCEConnection.Module32First(hSnapshot: HANDLE; var lpme: MODULEENTRY32): BOOL;
@@ -286,6 +287,8 @@ var ProcesslistCommand: packed record
   pname: pchar;
 
 begin
+  result:=false;
+
   //OutputDebugString('TCEConnection.Process32Next');
   if ((hSnapshot shr 24) and $ff)= $ce then
   begin
@@ -321,9 +324,7 @@ begin
 
       end;
     end;
-  end
-  else
-    result:=false;
+  end;
 end;
 
 function TCEConnection.Process32First(hSnapshot: HANDLE; var lppe: PROCESSENTRY32): BOOL;
@@ -341,6 +342,7 @@ var CTSCommand: packed record
 
 var r: integer;
 begin
+  result:=0;
 
   OutputDebugString('TCEConnection.CreateToolhelp32Snapshot()');
   CTSCommand.command:=CMD_CREATETOOLHELP32SNAPSHOT;
@@ -783,6 +785,7 @@ var
 begin
   if isNetworkHandle(hProcess) then
   begin
+    result:=0;
     input.command:=CMD_CREATETHREAD;
     input.hProcess:=hProcess and $ffffff;
     input.startaddress:=ptruint(lpStartAddress);
@@ -856,6 +859,7 @@ begin
 
   if isNetworkHandle(hProcess) then
   begin
+    result:=false;
     input.command:=CMD_FREE;
     input.hProcess:=hProcess and $ffffff;
     input.address:=ptruint(lpAddress);
@@ -1639,6 +1643,7 @@ var
   input: Pinput;
   r:uint32;
 begin
+  result:=false;
   if isNetworkHandle(hProcess) then
   begin
     getmem(input, sizeof(TInput)+length(modulepath));
@@ -1788,7 +1793,7 @@ begin
 
   //connect
   socket:=FPSocket(AF_INET, SOCK_STREAM, 0);
-  if (socket=INVALID_SOCKET) then
+  if (socket=cint(INVALID_SOCKET)) then
   begin
     OutputDebugString('Socket creation failed. Check permissions');
     exit;
@@ -1798,9 +1803,9 @@ begin
 
   OutputDebugString('socket='+inttostr(socket));
 
-  SockAddr.Family := AF_INET;
-  SockAddr.Port := port;
-  SockAddr.Addr := host.s_addr;
+  SockAddr.sin_family := AF_INET;
+  SockAddr.sin_port := port;
+  SockAddr.sin_addr.s_addr := host.s_addr;
 
   B:=TRUE;
 
@@ -1824,7 +1829,7 @@ end;
 
 destructor TCEConnection.destroy;
 begin
-  if socket<>INVALID_SOCKET then
+  if socket<>cint(INVALID_SOCKET) then
     CloseSocket(socket);
 
   if VirtualQueryExCacheMap<>nil then

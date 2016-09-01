@@ -1,95 +1,98 @@
 object frmPEInfo: TfrmPEInfo
-  Left = 644
+  Left = 621
   Height = 318
-  Top = 381
+  Top = 385
   Width = 485
   Caption = 'Portable Executable (PE) Info'
   ClientHeight = 318
   ClientWidth = 485
-  Font.Height = -14
-  Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.6.0.4'
   object GroupBox2: TGroupBox
-    Left = 177
+    Left = 176
     Height = 318
     Top = 0
-    Width = 308
+    Width = 309
     Align = alClient
     Caption = 'Info'
-    ClientHeight = 300
-    ClientWidth = 304
+    ClientHeight = 297
+    ClientWidth = 305
     TabOrder = 0
     object PageControl1: TPageControl
       Left = 0
-      Height = 300
+      Height = 297
       Top = 0
-      Width = 304
+      Width = 305
       ActivePage = TabSheet1
       Align = alClient
+      PopupMenu = pmInfo
       TabIndex = 0
       TabOrder = 0
       object TabSheet1: TTabSheet
         Caption = 'All'
-        ClientHeight = 271
-        ClientWidth = 296
+        ClientHeight = 268
+        ClientWidth = 297
         object PEItv: TTreeView
           Left = 0
-          Height = 271
+          Height = 268
           Top = 0
-          Width = 296
+          Width = 297
           Align = alClient
           DefaultItemHeight = 18
           Indent = 19
+          PopupMenu = pmInfo
           TabOrder = 0
         end
       end
       object TabSheet2: TTabSheet
         Caption = 'Imports'
-        ClientHeight = 267
+        ClientHeight = 268
         ClientWidth = 296
         ImageIndex = 1
         object lbImports: TListBox
           Left = 0
-          Height = 267
+          Height = 268
           Top = 0
           Width = 296
           Align = alClient
           ItemHeight = 0
+          PopupMenu = pmInfo
           TabOrder = 0
         end
       end
       object TabSheet3: TTabSheet
         Caption = 'Exports'
-        ClientHeight = 267
+        ClientHeight = 268
         ClientWidth = 296
         ImageIndex = 2
         object lbExports: TListBox
           Left = 0
-          Height = 267
+          Height = 268
           Top = 0
           Width = 296
           Align = alClient
           ItemHeight = 0
+          PopupMenu = pmInfo
           TabOrder = 0
         end
       end
       object TabSheet4: TTabSheet
         Caption = 'Base Relocations'
-        ClientHeight = 267
+        ClientHeight = 268
         ClientWidth = 296
         ImageIndex = 3
         object lbBaseReloc: TListBox
           Left = 0
-          Height = 267
+          Height = 268
           Top = 0
           Width = 296
           Align = alClient
           ItemHeight = 0
+          PopupMenu = pmInfo
           TabOrder = 0
         end
       end
@@ -99,17 +102,24 @@ object frmPEInfo: TfrmPEInfo
     Left = 0
     Height = 318
     Top = 0
-    Width = 177
+    Width = 176
     Align = alLeft
+    AutoSize = True
     BevelOuter = bvNone
     ClientHeight = 318
-    ClientWidth = 177
+    ClientWidth = 176
     TabOrder = 1
     object LoadButton: TSpeedButton
-      Left = 59
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = GroupBox1
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Panel1
+      AnchorSideRight.Side = asrBottom
+      Left = 145
       Height = 30
-      Top = 201
+      Top = 198
       Width = 31
+      Anchors = [akTop, akRight]
       Glyph.Data = {
         D6020000424DD6020000000000003600000028000000100000000E0000000100
         180000000000A0020000C40E0000C40E00000000000000000000C0C0C0C0C0C0
@@ -135,34 +145,43 @@ object frmPEInfo: TfrmPEInfo
         00C0C0C0000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0
         C0C0C0C0C0000000000000000000C0C0C0C0C0C0C0C0C0C0C0C0
       }
-      NumGlyphs = 0
       OnClick = LoadButtonClick
       ShowHint = True
       ParentShowHint = False
     end
     object Label1: TLabel
+      AnchorSideLeft.Control = RadioButton1
+      AnchorSideTop.Control = RadioButton1
+      AnchorSideTop.Side = asrBottom
       Left = 10
-      Height = 17
-      Top = 236
-      Width = 89
+      Height = 16
+      Top = 218
+      Width = 88
       Caption = 'No file opened'
       ParentColor = False
     end
     object Label2: TLabel
+      AnchorSideLeft.Control = RadioButton1
+      AnchorSideTop.Control = Label1
+      AnchorSideTop.Side = asrBottom
       Left = 10
-      Height = 17
-      Top = 256
-      Width = 51
+      Height = 16
+      Top = 234
+      Width = 50
       Caption = 'address'
       ParentColor = False
     end
     object GroupBox1: TGroupBox
+      AnchorSideLeft.Control = RadioButton2
+      AnchorSideTop.Control = RadioButton2
+      AnchorSideTop.Side = asrBottom
       Left = 10
       Height = 178
       Top = 20
       Width = 161
+      BorderSpacing.Right = 5
       Caption = 'MZ-Start'
-      ClientHeight = 160
+      ClientHeight = 157
       ClientWidth = 157
       TabOrder = 0
       object edtAddress: TEdit
@@ -192,18 +211,24 @@ object frmPEInfo: TfrmPEInfo
       end
     end
     object RadioButton1: TRadioButton
+      AnchorSideLeft.Control = RadioButton2
+      AnchorSideTop.Control = GroupBox1
+      AnchorSideTop.Side = asrBottom
       Left = 10
       Height = 20
-      Top = 207
+      Top = 198
       Width = 42
       Caption = 'File'
       TabOrder = 1
     end
     object RadioButton2: TRadioButton
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = Panel1
       Left = 10
       Height = 20
       Top = 0
       Width = 69
+      BorderSpacing.Left = 10
       Caption = 'Memory'
       Checked = True
       TabOrder = 2
@@ -215,5 +240,17 @@ object frmPEInfo: TfrmPEInfo
     Options = [ofFileMustExist, ofEnableSizing]
     left = 104
     top = 168
+  end
+  object pmInfo: TPopupMenu
+    left = 237
+    top = 93
+    object miCopyTab: TMenuItem
+      Caption = 'Copy tab to clipboard'
+      OnClick = miCopyTabClick
+    end
+    object miCopyEverything: TMenuItem
+      Caption = 'Copy everything to clipboard'
+      OnClick = miCopyEverythingClick
+    end
   end
 end

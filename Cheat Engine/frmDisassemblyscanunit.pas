@@ -7,7 +7,7 @@ interface
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs,disassembler,{$ifndef net}NewKernelHandler,{$endif}CEFuncProc, ExtCtrls, StdCtrls,
-  ComCtrls, LResources, LCLProc, Menus, strutils, OldRegExpr, RegExpr;
+  ComCtrls, LResources, LCLProc, Menus, strutils, OldRegExpr, RegExpr, Clipbrd;
 
 type
   TfrmDisassemblyscan = class;
@@ -36,6 +36,7 @@ type
     ListBox1: TListBox;
     Label1: TLabel;
     MenuItem1: TMenuItem;
+    MenuItem2: TMenuItem;
     Panel1: TPanel;
     PopupMenu1: TPopupMenu;
     Timer1: TTimer;
@@ -43,6 +44,7 @@ type
       );
     procedure ListBox1KeyPress(Sender: TObject; var Key: char);
     procedure MenuItem1Click(Sender: TObject);
+    procedure MenuItem2Click(Sender: TObject);
     procedure Panel1Click(Sender: TObject);
     procedure Panel1Resize(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
@@ -110,6 +112,7 @@ var ok: boolean;
    i,j: integer;
    matchpos,offset: integer;
 begin
+  result:=0;
   for i:=0 to length(regexpressions)-1 do
   begin
     //check if it confirms to the search querry
@@ -199,6 +202,21 @@ end;
 procedure TfrmDisassemblyscan.MenuItem1Click(Sender: TObject);
 begin
   listbox1.OnDblClick(listbox1);
+end;
+
+procedure TfrmDisassemblyscan.MenuItem2Click(Sender: TObject);
+var
+   i: integer;
+   sl: tstringlist;
+begin
+  sl:=tstringlist.create;
+
+  for i:=0 to listbox1.Items.count-1 do
+    if listbox1.Selected[i] then
+      sl.add(listbox1.items[i]);
+
+  clipboard.AsText:=sl.text;
+  sl.free;
 end;
 
 procedure TfrmDisassemblyscan.ListBox1KeyDown(Sender: TObject; var Key: Word;

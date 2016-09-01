@@ -61,6 +61,20 @@ implementation
 
 uses simpleaobscanner, symbolhandler, binutils, elftypes, elfconsts, MemoryQuery;
 
+resourcestring
+  rsInvalidELFFile = 'Invalid ELF file';
+  rsDoesntSeemToBeAValidELFFile = ' doesn''t seem to be a valid ELF file';
+  rsConfigureAValidBinutilsSetupFirst = 'Configure a valid binutils setup first';
+  rsTheAOBFor = 'The AOB for ';
+  rsCouldNotBeFound = ' could not be found';
+  rsTheProperFormatOfAsectionIs = 'The proper format of .asection is : .asection <name> <preferedaddress>';
+  rsTheProperFormatOfMsectionIs = 'The proper format of .msection is : .msection <name> <address> <optional expected size>';
+  rsNoBinutilsInstalled = 'No binutils installed';
+  rsTook = ' took ';
+  rsBytesWhile = ' bytes while ';
+  rsWhereExpected = ' where expected';
+  rsGNUAssemblerError = 'GNU Assembler error';
+
 type
 
 
@@ -82,13 +96,13 @@ var
 begin
   Header:=@mem[16];
 
-  if Header^.SectHdrOffset>size then raise exception.create('Invalid ELF file');
+  if Header^.SectHdrOffset>size then raise exception.create(rsInvalidELFFile);
   SectionHeaders:=@mem[Header^.SectHdrOffset];
 
-  if ptruint(@SectionHeaders[Header^.SectHdrNum-1])-ptruint(mem)>size then raise exception.create('Invalid ELF file');
+  if ptruint(@SectionHeaders[Header^.SectHdrNum-1])-ptruint(mem)>size then raise exception.create(rsInvalidELFFile);
 
   stringsection:=Header^.NameTableIndex;
-  if stringsection>Header^.SectHdrNum then raise exception.create('Invalid ELF file');
+  if stringsection>Header^.SectHdrNum then raise exception.create(rsInvalidELFFile);
 
   sectionstrings:=@mem[SectionHeaders[stringsection].Offset];
 
@@ -119,13 +133,13 @@ var
 begin
   Header:=@mem[16];
 
-  if Header^.SectHdrOffset>size then raise exception.create('Invalid ELF file');
+  if Header^.SectHdrOffset>size then raise exception.create(rsInvalidELFFile);
   SectionHeaders:=@mem[Header^.SectHdrOffset];
 
-  if ptruint(@SectionHeaders[Header^.SectHdrNum-1])-ptruint(mem)>size then raise exception.create('Invalid ELF file');
+  if ptruint(@SectionHeaders[Header^.SectHdrNum-1])-ptruint(mem)>size then raise exception.create(rsInvalidELFFile);
 
   stringsection:=Header^.NameTableIndex;
-  if stringsection>Header^.SectHdrNum then raise exception.create('Invalid ELF file');
+  if stringsection>Header^.SectHdrNum then raise exception.create(rsInvalidELFFile);
 
   sectionstrings:=@mem[SectionHeaders[stringsection].Offset];
 
@@ -155,7 +169,7 @@ begin
     ms.LoadFromFile(elffile);
     buf:=PElfIdent(ms.Memory);
 
-    if buf^.Magic<>ELFMAGIC then raise exception.create(elffile+' doesn''t seem to be a valid ELF file');
+    if buf^.Magic<>ELFMAGIC then raise exception.create(elffile+rsDoesntSeemToBeAValidELFFile);
 
     if buf^.ElfClass=ELFCLASS32 then GetSectionsFromElf32(PByte(buf), ms.size, sections) else
     if buf^.ElfClass=ELFCLASS64 then GetSectionsFromElf64(PByte(buf), ms.size, sections);
@@ -205,7 +219,7 @@ var
   bu: TBinUtils;
 begin
   if (binutilslist.count=0) then
-    raise exception.create('Configure a valid binutils setup first');
+    raise exception.create(rsConfigureAValidBinutilsSetupFirst);
 
   bu:=nil;
 
@@ -244,7 +258,7 @@ begin
                   end;
                   a:=findaob(p2);
 
-                  if a=0 then raise exception.create('The AOB for '+p1+' could not be found');
+                  if a=0 then raise exception.create(rsTheAOBFor+p1+rsCouldNotBeFound);
 
                   script[i]:='.msection '+p1+' 0x'+inttohex(a,8);
                   continue;
@@ -254,7 +268,7 @@ begin
                 begin
                   j:=wordcount(line, [' ']);
                   if (j<=1) or (j>3) then
-                    raise exception.create('The proper format of .asection is : .asection <name> <preferedaddress>');
+                    raise exception.create(rsTheProperFormatOfAsectionIs);
 
                   p1:=extractword(2, line, [' ']);
 
@@ -348,7 +362,7 @@ begin
                 begin
                   j:=wordcount(line, [' ']);
                   if (j<=1) or (j>4) then
-                    raise exception.create('The proper format of .msection is : .msection <name> <address> <optional expected size');
+                    raise exception.create(rsTheProperFormatOfMsectionIs);
 
                   p1:=extractword(2, line, [' ']);
                   p2:=extractword(3, line, [' ']);
@@ -407,7 +421,7 @@ begin
         bu:=TBinUtils(binutilslist[0]);
 
       if bu=nil then
-        raise exception.create('No binutils installed');
+        raise exception.create(rsNoBinutilsInstalled);
 
 
       bu.assemble(script, extraparams_as, o);
@@ -523,7 +537,7 @@ begin
             begin
               //write it
               if (sections[i].expectedsize>0) and (sections[i].expectedsize<length(binarysections[j].data)) then
-                raise exception.create(sections[i].name+' took '+inttostr(length(binarysections[j].data))+' bytes while '+inttostr(sections[i].expectedsize)+' where expected');
+                raise exception.create(sections[i].name+rsTook+inttostr(length(binarysections[j].data))+rsBytesWhile+inttostr(sections[i].expectedsize)+rsWhereExpected);
               break;
             end;
 
@@ -558,7 +572,7 @@ begin
   except
     on e: exception do
     begin
-      MessageDlg('GNU Assembler error',e.message,mtError, [mbok],0);
+      MessageDlg(rsGNUAssemblerError,e.message,mtError, [mbok],0);
     end;
   end;
 

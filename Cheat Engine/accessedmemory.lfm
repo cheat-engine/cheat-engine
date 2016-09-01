@@ -1,82 +1,92 @@
 object frmAccessedMemory: TfrmAccessedMemory
-  Left = 292
-  Height = 250
-  Top = 200
-  Width = 636
+  Left = 551
+  Height = 305
+  Top = 187
+  Width = 539
+  AutoSize = True
   Caption = 'Find accessed memory regions'
-  ClientHeight = 230
-  ClientWidth = 636
+  ClientHeight = 285
+  ClientWidth = 539
   Menu = MainMenu1
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object Panel1: TPanel
     Left = 0
-    Height = 230
+    Height = 285
     Top = 0
-    Width = 379
+    Width = 308
     Align = alLeft
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 230
-    ClientWidth = 379
+    ClientHeight = 285
+    ClientWidth = 308
     TabOrder = 0
     object Label2: TLabel
       Left = 0
-      Height = 105
+      Height = 120
       Top = 0
-      Width = 379
+      Width = 308
       Align = alTop
       Caption = 'This function will try to find out all accessed memory regions over a period of time and store it''s results into an .mregion file which you can use with other functions that can make use of it (e.g pointerscan)'#13#10#13#10'Note: This will enable the dbk kernel module and if your windows version isn''t supported this could potentially BSOD you. (So save your data)'
       ParentColor = False
       WordWrap = True
     end
     object Edit2: TEdit
+      AnchorSideLeft.Control = Panel1
       AnchorSideTop.Control = Label3
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = Label3
       AnchorSideRight.Side = asrBottom
-      Left = 0
+      Left = 2
       Height = 23
-      Top = 172
+      Top = 187
       Width = 141
       Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Left = 2
       OnKeyDown = Edit2KeyDown
       ReadOnly = True
       TabOrder = 0
     end
     object Edit1: TEdit
+      AnchorSideLeft.Control = Panel1
       AnchorSideTop.Control = Label1
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = Label3
       AnchorSideRight.Side = asrBottom
-      Left = 0
+      Left = 2
       Height = 23
-      Top = 130
+      Top = 145
       Width = 141
       Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Left = 2
       OnKeyDown = Edit1KeyDown
       ReadOnly = True
       TabOrder = 1
     end
     object Label3: TLabel
+      AnchorSideLeft.Control = Panel1
       AnchorSideTop.Control = Edit1
       AnchorSideTop.Side = asrBottom
-      Left = 0
+      Left = 2
       Height = 15
-      Top = 157
+      Top = 172
       Width = 141
+      BorderSpacing.Left = 2
       BorderSpacing.Top = 4
       Caption = 'Hotkey to stop monitoring'
       ParentColor = False
     end
     object Label1: TLabel
+      AnchorSideLeft.Control = Panel1
       AnchorSideTop.Control = Label2
       AnchorSideTop.Side = asrBottom
-      Left = 0
+      Left = 2
       Height = 15
-      Top = 115
+      Top = 130
       Width = 159
+      BorderSpacing.Left = 2
       BorderSpacing.Top = 10
       Caption = 'Hotkey to (re)start monitoring'
       ParentColor = False
@@ -85,11 +95,14 @@ object frmAccessedMemory: TfrmAccessedMemory
       AnchorSideLeft.Control = Edit1
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Edit1
-      AnchorSideTop.Side = asrCenter
-      Left = 146
-      Height = 17
-      Top = 133
-      Width = 43
+      AnchorSideBottom.Control = Edit1
+      AnchorSideBottom.Side = asrBottom
+      Left = 148
+      Height = 23
+      Top = 145
+      Width = 53
+      Anchors = [akTop, akLeft, akBottom]
+      AutoSize = True
       BorderSpacing.Left = 5
       Caption = 'Clear'
       OnClick = btnClearSmallSnapshotClick
@@ -99,11 +112,14 @@ object frmAccessedMemory: TfrmAccessedMemory
       AnchorSideLeft.Control = Edit2
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Edit2
-      AnchorSideTop.Side = asrCenter
-      Left = 146
-      Height = 17
-      Top = 175
-      Width = 43
+      AnchorSideBottom.Control = Edit2
+      AnchorSideBottom.Side = asrBottom
+      Left = 148
+      Height = 23
+      Top = 187
+      Width = 53
+      Anchors = [akTop, akLeft, akBottom]
+      AutoSize = True
       BorderSpacing.Left = 5
       Caption = 'Clear'
       OnClick = btnClearSmallSnapshot1Click
@@ -113,12 +129,15 @@ object frmAccessedMemory: TfrmAccessedMemory
       AnchorSideLeft.Control = btnClearSmallSnapshot
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Edit1
-      Left = 219
+      Left = 231
       Height = 25
-      Top = 130
+      Top = 145
       Width = 75
+      AutoSize = True
       BorderSpacing.Left = 30
+      BorderSpacing.Right = 2
       Caption = 'Start'
+      Constraints.MinWidth = 75
       OnClick = startMonitor
       TabOrder = 4
     end
@@ -126,12 +145,15 @@ object frmAccessedMemory: TfrmAccessedMemory
       AnchorSideLeft.Control = btnClearSmallSnapshot
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Edit2
-      Left = 219
+      Left = 231
       Height = 25
-      Top = 172
+      Top = 187
       Width = 75
+      AutoSize = True
       BorderSpacing.Left = 30
+      BorderSpacing.Right = 2
       Caption = 'Stop'
+      Constraints.MinWidth = 75
       Enabled = False
       OnClick = stopMonitor
       TabOrder = 5
@@ -141,28 +163,30 @@ object frmAccessedMemory: TfrmAccessedMemory
       AnchorSideTop.Control = Edit2
       AnchorSideTop.Side = asrBottom
       AnchorSideBottom.Side = asrBottom
-      Left = 24
-      Height = 27
-      Top = 200
-      Width = 92
+      Left = 0
+      Height = 25
+      Top = 215
+      Width = 95
+      AutoSize = True
       BorderSpacing.Top = 5
       BorderSpacing.Bottom = 10
       Caption = 'Set hotkeys'
+      Constraints.MinWidth = 95
       OnClick = Button1Click
       TabOrder = 6
     end
   end
   object Splitter1: TSplitter
-    Left = 379
-    Height = 230
+    Left = 308
+    Height = 285
     Top = 0
     Width = 5
   end
   object ListView1: TListView
-    Left = 384
-    Height = 230
+    Left = 313
+    Height = 285
     Top = 0
-    Width = 252
+    Width = 226
     Align = alClient
     Columns = <    
       item
@@ -181,8 +205,8 @@ object frmAccessedMemory: TfrmAccessedMemory
     OnData = ListView1Data
   end
   object MainMenu1: TMainMenu
-    left = 80
-    top = 24
+    left = 584
+    top = 32
     object MenuItem1: TMenuItem
       Caption = 'File'
       object MenuItem2: TMenuItem

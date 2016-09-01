@@ -1,33 +1,38 @@
 object frmDriverlist: TfrmDriverlist
   Left = 717
-  Height = 229
+  Height = 235
   Top = 356
   Width = 326
-  BorderStyle = bsSingle
   Caption = 'Driver list'
-  ClientHeight = 229
+  ClientHeight = 235
   ClientWidth = 326
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.6.0.4'
   object ListBox1: TListBox
+    AnchorSideBottom.Control = Button1
     Left = 0
-    Height = 193
+    Height = 200
     Top = 0
     Width = 326
     Align = alTop
+    Anchors = [akTop, akLeft, akRight, akBottom]
     ItemHeight = 0
     PopupMenu = PopupMenu1
     TabOrder = 0
   end
   object Button1: TButton
+    AnchorSideTop.Control = Owner
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
     Left = 128
     Height = 25
-    Top = 200
+    Top = 205
     Width = 75
+    Anchors = [akLeft, akBottom]
+    BorderSpacing.Top = 5
+    BorderSpacing.Bottom = 5
     Caption = 'OK'
     ModalResult = 1
     OnClick = Button1Click

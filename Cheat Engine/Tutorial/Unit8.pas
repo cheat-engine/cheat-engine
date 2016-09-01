@@ -41,7 +41,7 @@ resourcestring
   rsStep7CodeInjectionPW = 'Step 7: Code Injection: (PW=%s)';
   rsTryAgain8 = 'Code injections too tough? No problem, memory scanning and basic pointers should be enough to get you experienced enough and you can always '
     +'try the tutorial later. Are you sure you want to quit?';
-  rsLOSER = 'LOSER';
+  rsLOSER = 'BOO';
 
   rsTutorialStep7=
     'Code injection is a technique where one injects a piece of code into the target process, and then reroute the '+

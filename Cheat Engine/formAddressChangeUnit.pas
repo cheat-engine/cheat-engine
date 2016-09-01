@@ -5,10 +5,10 @@ unit formAddressChangeUnit;
 interface
 
 uses
-  windows, LCLIntf, LResources, Messages, SysUtils, Variants, Classes, Graphics,
+  windows, win32proc, LCLIntf, LResources, Messages, SysUtils, Variants, Classes, Graphics,
   Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls, Buttons, Arrow, Spin,
   CEFuncProc, NewKernelHandler, symbolhandler, memoryrecordunit, types, byteinterpreter,
-  math, CustomTypeHandler, commonTypeDefs;
+  math, CustomTypeHandler, commonTypeDefs, lua, lualib, lauxlib, luahandler;
 
 const WM_disablePointer=WM_USER+1;
 
@@ -21,7 +21,9 @@ type
     fowner: TPointerInfo;
     fBaseAddress: ptruint;
     fOffset: Integer; //signed integer
+    fOffsetString: string;
     fInvalidOffset: boolean;
+    fSpecial: boolean;
 
     lblPointerAddressToValue: TLabel; //Address -> Value
     edtOffset: Tedit;
@@ -33,6 +35,7 @@ type
     repeatdirection: integer;
     stepsize: integer;
     procedure setOffset(o: integer);
+    procedure setOffsetString(os: string);
     procedure offsetchange(sender: TObject);
 
     procedure RepeatClick(sender: TObject);
@@ -50,10 +53,13 @@ type
     function getAddressThisPointsTo(var address: ptruint): boolean;
     procedure setTop(var newtop: integer);
     procedure UpdateLabels;
+    function parseOffset: boolean;
     property owner: TPointerinfo read fowner;
-    property offset: integer read foffset write setOffset;
+    property offset: integer read foffset write setOffset;  //obsolete, use offsetString
+    property offsetString: string read fOffsetString write setOffsetString;
     property invalidOffset: boolean read fInvalidOffset;
     property baseAddress: ptruint write setBaseAddress;
+    property special: boolean read fspecial;
   end;
 
 
@@ -173,8 +179,7 @@ type
     function getUnicode: boolean;
     procedure setDescription(s: string);
     function getDescription: string;
-    procedure setAddress(var address: string; var offsets: Toffsetlist);
-    function getAddress(var address: string; var offsets: ToffsetList): boolean;
+    procedure setAddress(var address: string; var offsets: TMemrecOffsetList);
   public
     { Public declarations }
     index: integer;
@@ -226,8 +231,10 @@ begin
 
   if ssCtrl in shift then
     stepsize:=1
+  else if ssShift in shift then
+    stepsize:=ifthen(processhandler.pointersize=8, 4, 8)
   else
-    stepsize:=4;
+    stepsize:=ifthen(istop, 4, processhandler.pointersize);
 
   repeatstart:=GetTickCount;
   repeatdirection:=0; //tell the timer to decrease
@@ -246,8 +253,10 @@ begin
 
   if ssCtrl in shift then
     stepsize:=1
+  else if ssShift in shift then
+    stepsize:=ifthen(processhandler.pointersize=8, 4, 8)
   else
-    stepsize:=4;
+    stepsize:=ifthen(istop, 4, processhandler.pointersize);
 
   repeatstart:=GetTickCount;
   repeatdirection:=1; //tell the timer to increase
@@ -268,12 +277,14 @@ end;
 
 procedure TOffsetInfo.DecreaseClick(sender: TObject);
 begin
-  offset:=offset-stepsize;
+  if not fspecial then
+    offset:=offset-stepsize;
 end;
 
 procedure TOffsetInfo.IncreaseClick(sender: TObject);
 begin
-  offset:=offset+stepsize;
+  if not fspecial then
+    offset:=offset+stepsize;
 end;
 
 
@@ -368,22 +379,78 @@ begin
 end;
 
 
-procedure TOffsetInfo.setOffset(o: integer);
-var s: string;
+procedure TOffsetInfo.setOffset(o: integer); //obsolete, use offsetstring now
 begin
-  finvalidOffset:=false;
+  offsetString:=IntToHexSigned(o,1);
+end;
 
 
-  s:=lowercase(IntToHexSigned(o,1));
-  if lowercase(edtOffset.text)<>s then //needs to be updated
+function TOffsetInfo.parseOffset: boolean;
+var
+  e: boolean;
+  stack: integer;
+begin
+  finvalidOffset:=true;
+  fSpecial:=false;
+
+  result:=true;
+
+  try
+    try
+      //raise exception.create('bla');
+      foffset:=StrToQWordEx(ConvertHexStrToRealStr(fOffsetString));
+      finvalidOffset:=false;
+    except
+      if fOffsetString='' then exit(false);
+
+      foffset:=symhandler.getAddressFromName(fOffsetString, false, e);
+      if e then //try lua
+      begin
+        luacs.Enter;
+        stack:=lua_gettop(luavm);
+        try
+             //0xb+0x12
+          if luaL_loadstring(luavm, pchar('memrec, address=... return '+fOffsetString))<>0 then exit(false);
+
+          lua_pushnil(luavm);
+          lua_pushinteger(luavm, fBaseAddress);
+          if lua.lua_pcall(Luavm, 2, 1,0)<>0 then exit(false);
+          if not lua_isnumber(luavm, -1) then exit(false);
+
+          foffset:=lua_tointeger(Luavm, -1);
+
+        finally
+          lua_settop(luavm, stack);
+          luacs.Leave;
+        end;
+      end;
+
+      finvalidOffset:=false;
+      fspecial:=true;
+    end;
+
+  finally
+    if fInvalidOffset then
+      edtOffset.Font.Color:=clRed
+    else
+      edtOffset.Font.Color:=clDefault;
+  end;
+end;
+
+procedure TOffsetInfo.setOffsetString(os: string);
+begin
+  fOffsetString:=os;
+  parseOffset;
+
+  if (edtOffset.text<>os) then
   begin
-    edtOffset.OnChange:=nil; //disable the onchange
-    edtOffset.text:=s;
-    edtOffset.OnChange:=offsetchange; //set it back
+    edtOffset.OnChange:=nil;
+    edtOffset.text:=fOffsetString;
+    edtOffset.OnChange:=offsetchange;
   end;
 
-  fOffset:=o;
   owner.processAddress;
+  UpdateLabels;
 end;
 
 procedure TOffsetInfo.setBaseAddress(address: ptruint);
@@ -394,15 +461,7 @@ end;
 
 procedure TOffsetInfo.offsetchange(sender: TObject);
 begin
-  try
-    offset:=StrToQWordEx(ConvertHexStrToRealStr(utf8toansi(tedit(sender).Text)));
-    edtOffset.Font.Color:=clDefault;
-    finvalidOffset:=false;
-  except
-    edtOffset.Font.Color:=clRed;
-    finvalidOffset:=true;
-    UpdateLabels;
-  end;
+  offsetstring:=edtOffset.Text; //raises an exception if invalid
 end;
 
 procedure TOffsetInfo.setTop(var newtop: integer);
@@ -441,12 +500,47 @@ begin
 end;
 
 destructor TOffsetInfo.destroy;
+var i: integer;
+  before, after: TOffsetInfo;
 begin
   if lblPointerAddressToValue<>nil then
     freeandnil(lblPointerAddressToValue);
 
   if edtOffset<>nil then
+  begin
+    //find myself in the list, and adjust the previous and next one to point to eachother
+    i:=fowner.offsets.IndexOf(self);
+    if i<>-1 then
+    begin
+      if i=0 then before:=nil else before:=fowner.offset[i-1];
+      if i=fowner.offsetcount-1 then after:=nil else after:=fowner.offset[i];
+
+      if after<>nil then
+      begin
+        if before=nil then
+        begin
+          after.edtOffset.AnchorSideTop.Control:=fowner;
+          after.edtOffset.AnchorSideTop.Side:=asrTop;
+        end
+        else
+        begin
+          after.edtOffset.AnchorSideTop.Control:=before.edtOffset;
+          after.edtOffset.AnchorSideTop.Side:=asrBottom;
+        end;
+      end
+      else
+      begin
+        if before<>nil then
+        begin
+          fowner.baseAddress.AnchorSideTop.Control:=before.edtOffset;
+          fowner.baseAddress.AnchorSideTop.side:=asrBottom;
+        end;
+      end;
+
+    end;
+
     freeandnil(edtOffset);
+  end;
 
   if sbDecrease<>nil then
     freeandnil(sbDecrease);
@@ -459,7 +553,10 @@ begin
 end;
 
 constructor TOffsetInfo.create(parent: TPointerinfo);
-var insertinsteadofadd: boolean;
+var
+  insertinsteadofadd: boolean;
+  before: TOffsetInfo;
+  after: TOffsetInfo;
 begin
   stepsize:=4;
   fowner:=parent;
@@ -470,10 +567,24 @@ begin
   if (((GetKeyState(VK_CONTROL) shr 15) and 1)=1) then
     insertinsteadofadd:=not insertinsteadofadd;
 
+
+  before:=nil;
+  after:=nil;
+
   if insertinsteadofadd then
+  begin
+    if fowner.offsets.Count>0 then
+      after:=fowner.offsets[0];
+
     fowner.offsets.Insert(0, self)
+  end
   else
+  begin
+    if fowner.offsets.Count>0 then
+      before:=fowner.offsets[fowner.offsets.Count-1];
+
     fowner.offsets.Add(self);
+  end;
 
   //create a pointeraddress label (visible if not first)
   lblPointerAddressToValue:=TLabel.Create(parent);
@@ -491,8 +602,12 @@ begin
 
   //two buttons, one for + and one for -
   sbDecrease:=TSpeedButton.create(parent);
-  sbDecrease.height:=edtOffset.height;
-  sbDecrease.width:=sbDecrease.height;
+  sbDecrease.Width:=edtOffset.Height;
+  sbDecrease.Height:=edtOffset.Height;
+  sbDecrease.AnchorSideTop.Control:=edtOffset;
+  sbDecrease.AnchorSideTop.Side:=asrCenter;
+  sbDecrease.AnchorSideLeft.Control:=parent;
+  sbDecrease.AnchorSideLeft.Side:=asrLeft;
   sbDecrease.caption:='<';
  // sbDecrease.OnClick:=DecreaseClick;
   sbDecrease.OnMouseDown:=DecreaseDown;
@@ -502,12 +617,49 @@ begin
   sbIncrease:=TSpeedButton.create(parent);
   sbIncrease.height:=sbDecrease.height;
   sbIncrease.width:=sbDecrease.width;
+  sbIncrease.AnchorSideTop.Control:=edtOffset;
+  sbIncrease.AnchorSideTop.Side:=asrCenter;
+  sbIncrease.AnchorSideLeft.Control:=edtOffset;
+  sbIncrease.AnchorSideLeft.Side:=asrRight;
+  sbIncrease.Anchors:=[akTop, akLeft];
   sbIncrease.caption:='>';
  // sbIncrease.OnClick:=IncreaseClick;
   sbIncrease.OnMouseDown:=IncreaseDown;
   sbIncrease.OnMouseUp:=IncreaseDecreaseUp;
 
   edtOffset.width:=owner.baseAddress.Width-2*sbIncrease.Height-2;
+
+
+  edtOffset.AnchorSideLeft.Control:=sbIncrease;
+  edtOffset.AnchorSideLeft.Side:=asrRight;
+  edtOffset.BorderSpacing.Bottom:=2;
+
+  if before=nil then
+  begin
+    edtOffset.AnchorSideTop.Control:=parent;
+    edtOffset.AnchorSideTop.Side:=asrTop;
+  end
+  else
+  begin
+    edtOffset.AnchorSideTop.Control:=before.edtOffset;
+    edtOffset.AnchorSideTop.Side:=asrBottom;
+  end;
+
+  if after<>nil then
+  begin
+    after.edtOffset.AnchorSideTop.control:=edtOffset;
+    after.edtOffset.AnchorSideTop.side:=asrBottom;
+  end
+  else
+  begin
+    fowner.baseAddress.AnchorSideTop.Control:=edtOffset;
+    fowner.baseAddress.AnchorSideTop.side:=asrBottom;
+  end;
+
+  lblPointerAddressToValue.AnchorSideTop.Control:=edtOffset;
+  lblPointerAddressToValue.AnchorSideTop.Side:=asrCenter;
+  lblPointerAddressToValue.AnchorSideLeft.Control:=sbIncrease;
+  lblPointerAddressToValue.AnchorSideLeft.Side:=asrRight;
 
 
 end;
@@ -602,12 +754,16 @@ begin
   for i:=offsetcount-1 downto 1 do
   begin
     offset[i].baseaddress:=base;
+    if offset[i].Special then
+      offset[i].parseOffset;
+
     if not offset[i].getAddressThisPointsTo(base) then
       ferror:=true; //signal an error to all subsequent offsets
   end;
 
   //add the last offset
   offset[0].baseaddress:=base;
+  offset[0].parseOffset;
   base:=base+offset[0].offset;
 
   if error then
@@ -684,6 +840,9 @@ begin
 end;
 
 constructor TPointerInfo.create(owner: TformAddressChange);
+var
+    i: integer;
+    m: dword;
 begin
   //create the objects
   inherited create(owner);
@@ -694,18 +853,31 @@ begin
   parent:=owner;
 
   BevelOuter:=bvNone;
-  left:=owner.cbPointer.Left;
-  top:=owner.cbPointer.Top+owner.cbPointer.Height+3;
+  //left:=owner.cbPointer.Left;
+  //top:=owner.cbPointer.Top+owner.cbPointer.Height+3;
 
   taborder:=owner.cbPointer.TabOrder+1;
 
   baseAddress:=tedit.create(self);
   baseAddress.parent:=self;
-  baseAddress.left:=0;
-  if ProcessHandler.is64Bit then
-    baseAddress.Width:=128
+
+  baseAddress.AnchorSideLeft.Control:=self;
+  baseAddress.AnchorSideLeft.Side:=asrLeft;
+  //baseAddress.left:=0;
+
+  if WindowsVersion>=wvVista then
+    m:=sendmessage(baseAddress.Handle, EM_GETMARGINS, 0,0)
   else
-    baseAddress.Width:=88;
+    m:=10;
+
+  m:=(m shr 16)+(m and $ffff);
+
+  if ProcessHandler.is64Bit then
+    i:=max(128, Canvas.TextWidth(' DDDDDDDDDDDDDDDD ')+m)
+  else
+    i:=max(88, Canvas.TextWidth(' DDDDDDDD ')+m);
+
+  baseAddress.ClientWidth:=i;
 
   baseAddress.OnChange:=basechange;
 
@@ -713,25 +885,61 @@ begin
   baseValue:=tlabel.create(self);
   baseValue.caption:=' ';
   baseValue.parent:=self;
-  baseValue.left:=baseAddress.left+baseAddress.Width+3;
-  baseValue.top:=baseAddress.Top+(baseAddress.Height div 2)-(baseValue.height div 2);
+  baseValue.AnchorSideLeft.Control:=baseAddress;
+  baseValue.AnchorSideLeft.Side:=asrRight;
+  baseValue.BorderSpacing.Left:=3;
+
+  baseValue.AnchorSideTop.Control:=baseAddress;
+  baseValue.AnchorSideTop.Side:=asrCenter;
+
+//  baseValue.left:=baseAddress.left+baseAddress.Width+3;
+//  baseValue.top:=baseAddress.Top+(baseAddress.Height div 2)-(baseValue.height div 2);
 
   btnAddOffset:=Tbutton.Create(self);
   btnAddOffset.caption:=rsACAddOffset;
-  btnAddOffset.Left:=owner.btnOk.Left-left;
-  btnAddOffset.Width:=owner.btnOk.Width;
-  btnAddOffset.Height:=owner.btnOk.Height;
+
+  btnAddOffset.AnchorSideLeft.Control:=self;
+  btnAddOffset.AnchorSideLeft.Side:=asrLeft;
+
+  //btnAddOffset.Left:=0;
+  btnAddOffset.Constraints.MinWidth:=owner.btnOk.Width;
+  btnAddOffset.Constraints.MinHeight:=owner.btnOk.Height;
   btnAddOffset.OnClick:=AddOffsetClick;
   btnAddOffset.parent:=self;
 
+
   btnRemoveOffset:=TButton.create(self);
   btnRemoveOffset.caption:=rsACRemoveOffset;
-  btnRemoveOffset.Left:=owner.btnCancel.left-left;
-  btnRemoveOffset.Width:=btnAddOffset.Width;
-  btnRemoveOffset.Height:=btnAddOffset.Height;
+
+  btnRemoveOffset.AnchorSideLeft.Control:=btnAddOffset;
+  btnRemoveOffset.AnchorSideLeft.Side:=asrRight;
+  btnRemoveOffset.BorderSpacing.Left:=owner.btnCancel.BorderSpacing.Left;
+
+
+//  btnRemoveOffset.Left:=owner.btnCancel.left-owner.btnOk.left;
+  btnRemoveOffset.Constraints.MinWidth:=owner.btnOk.Width;
+  btnRemoveOffset.Constraints.MinHeight:=owner.btnOk.Height;
   btnRemoveOffset.OnClick:=RemoveOffsetClick;
   btnRemoveOffset.parent:=self;
 
+
+
+  btnAddOffset.AutoSize:=true;
+  btnAddOffset.AutoSize:=false;
+
+  btnRemoveOffset.autosize:=true;
+  btnRemoveOffset.autosize:=false;
+
+  i:=owner.btnok.width;
+
+  if btnAddOffset.Width>i then
+    i:=btnAddOffset.width;
+
+  if btnRemoveOffset.width>i then
+    i:=btnRemoveOffset.Width;
+
+  btnAddOffset.width:=i;
+  btnRemoveOffset.width:=i;
 
   TOffsetInfo.Create(self);
 
@@ -741,7 +949,7 @@ end;
 
 { Tformaddresschange }
 
-procedure Tformaddresschange.setAddress(var address: string; var offsets: Toffsetlist);
+procedure Tformaddresschange.setAddress(var address: string; var offsets: TMemrecOffsetList);
 var i: integer;
 begin
   if system.length(offsets)=0 then
@@ -763,38 +971,14 @@ begin
     pointerinfo.setupPositionsAndSizes;
 
     for i:=0 to system.length(offsets)-1 do
-      pointerinfo.offset[i].offset:=offsets[i];
+      pointerinfo.offset[i].offsetString:=offsets[i].offsetText;
 
     pointerinfo.processAddress;
   end;
 
 end;
 
-function Tformaddresschange.getAddress(var address: string; var offsets: ToffsetList): boolean;
-var
-  i: integer;
-begin
-  result:=false;
-  if pointerinfo=nil then
-  begin
-    setlength(offsets,0);
-    address:=utf8toansi(editAddress.Text);
-    result:=true;
-  end
-  else
-  begin
-    if not pointerinfo.invalidBaseAddress then
-    begin
-      address:=utf8toansi(pointerinfo.baseAddress.text);
-      setlength(offsets, pointerinfo.offsetcount);
 
-      for i:=pointerinfo.offsetcount-1 downto 0 do //fill the array inverse
-        offsets[i]:=pointerinfo.offset[pointerinfo.offsetcount-1-i].offset;
-
-      result:=true;
-    end;
-  end;
-end;
 
 procedure Tformaddresschange.setDescription(s: string);
 begin
@@ -993,12 +1177,25 @@ begin
   if cbpointer.checked then
   begin
     if pointerinfo=nil then
+    begin
       pointerinfo:=TPointerInfo.create(self); //creation will do the gui update
+      pointerinfo.AnchorSideLeft.Control:=label1;
+      pointerinfo.AnchorSideLeft.side:=asrLeft;
+
+      pointerinfo.AnchorSideTop.Control:=cbPointer;
+      pointerinfo.AnchorSideTop.side:=asrBottom;
+    end;
+
+    btnOk.AnchorSideTop.Control:=pointerinfo;
+    btnCancel.AnchorSideTop.Control:=pointerinfo;
   end
   else
   begin
     if pointerinfo<>nil then
       freeandnil(pointerinfo);
+
+    btnOk.AnchorSideTop.Control:=cbpointer;
+    btnCancel.AnchorSideTop.Control:=cbpointer;
   end;
 
 end;
@@ -1055,13 +1252,19 @@ end;
 procedure TformAddressChange.setMemoryRecord(rec: TMemoryRecord);
 var i: integer;
     tmp:string;
+
+    list: TMemrecOffsetList;
 begin
   fMemoryRecord:=rec;
 
   description:=rec.Description;
   vartype:=rec.VarType;
 
-  setAddress(rec.interpretableaddress, rec.pointeroffsets);
+  setlength(list, rec.offsetCount);
+  for i:=0 to rec.offsetCount-1 do
+    list[i]:=rec.offsets[i];
+
+  setAddress(rec.interpretableaddress, list);
 
   case fMemoryRecord.vartype of
     vtBinary:
@@ -1098,7 +1301,7 @@ var bit: integer;
     err:integer;
 
     paddress: dword;
-    offsets: array of integer;
+   // offsets: TIntegerDynArray;
 
     i: integer;
 begin
@@ -1128,11 +1331,21 @@ begin
 
   memoryrecord.Description:=description;
 
-  getAddress(address, offsets);
-  memoryrecord.interpretableaddress:=address;
-  setlength(memoryrecord.pointeroffsets, system.length(offsets));
-  for i:=0 to system.length(offsets)-1 do
-    memoryrecord.pointeroffsets[i]:=offsets[system.length(offsets)-1-i];
+  if pointerinfo<>nil then
+  begin
+    memoryrecord.interpretableaddress:=pointerinfo.baseAddress.text;
+    memoryrecord.offsetCount:=pointerinfo.offsetcount;
+    for i:=0 to pointerinfo.offsetcount-1 do
+      memoryrecord.offsets[i].setOffsetText(pointerinfo.offset[i].offsetString);
+  end
+  else
+  begin
+    memoryrecord.interpretableaddress:=editAddress.text;
+    memoryrecord.offsetCount:=0;
+  end;
+
+
+  memoryrecord.ReinterpretAddress;
 
 
   modalresult:=mrok;
@@ -1162,8 +1375,23 @@ begin
 end;
 
 procedure TformAddressChange.FormShow(Sender: TObject);
+var i: integer;
 begin
+  i:=80;
+  btnOk.autosize:=true;
+  btnCancel.autosize:=true;
 
+  btnOk.autosize:=false;
+  btnCancel.autosize:=false;
+
+  if btnok.width>i then
+    i:=btnok.width;
+
+  if btnCancel.width>i then
+    i:=btnCancel.width;
+
+  btnok.width:=i;
+  btncancel.width:=i;
 end;
 
 procedure TformAddressChange.FormWindowStateChange(Sender: TObject);

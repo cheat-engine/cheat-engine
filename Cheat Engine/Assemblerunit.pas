@@ -14,7 +14,7 @@ uses  sysutils, ProcessHandlerUnit;
 uses dialogs,LCLIntf,sysutils,imagehlp, ProcessHandlerUnit;
 {$endif}
 
-const opcodecount=1097; //I wish there was a easier way than to handcount
+const opcodecount=1103; //I wish there was a easier way than to handcount
 
 
 
@@ -459,6 +459,10 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'FISTP';opcode1:eo_reg3;paramtype1:par_m16;bytes:1;bt1:$df; norexw: true),
   (mnemonic:'FISTP';opcode1:eo_reg7;paramtype1:par_m64;bytes:1;bt1:$df; norexw: true),
 
+  (mnemonic:'FISTTP';opcode1:eo_reg1;paramtype1:par_m32;bytes:1;bt1:$db; norexw: true),
+  (mnemonic:'FISTTP';opcode1:eo_reg1;paramtype1:par_m16;bytes:1;bt1:$df; norexw: true),
+  (mnemonic:'FISTTP';opcode1:eo_reg1;paramtype1:par_m64;bytes:1;bt1:$dd; norexw: true),
+
   (mnemonic:'FISUB';opcode1:eo_reg4;paramtype1:par_m32;bytes:1;bt1:$da; norexw: true),
   (mnemonic:'FISUB';opcode1:eo_reg4;paramtype1:par_m16;bytes:1;bt1:$de; norexw: true),
   (mnemonic:'FISUBR';opcode1:eo_reg5;paramtype1:par_m32;bytes:1;bt1:$da; norexw: true),
@@ -586,14 +590,16 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'IMUL';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_r16;paramtype2:par_rm16;paramtype3:par_imm8;bytes:2;bt1:$66;bt2:$6b),
   (mnemonic:'IMUL';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_r32;paramtype2:par_rm32;paramtype3:par_imm8;bytes:1;bt1:$6b),
 
+  (mnemonic:'IMUL';opcode1:eo_reg;opcode2:eo_iw;paramtype1:par_r16;paramtype2:par_imm16;bytes:2;bt1:$66;bt2:$69),
+  (mnemonic:'IMUL';opcode1:eo_reg;opcode2:eo_id;paramtype1:par_r32;paramtype2:par_imm32;bytes:1;bt1:$69),
+
   (mnemonic:'IMUL';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_r16;paramtype2:par_imm8;bytes:2;bt1:$66;bt2:$6b),
   (mnemonic:'IMUL';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_r32;paramtype2:par_imm8;bytes:1;bt1:$6b),
 
   (mnemonic:'IMUL';opcode1:eo_reg;opcode2:eo_iw;paramtype1:par_r16;paramtype2:par_rm16;paramtype3:par_imm16;bytes:2;bt1:$66;bt2:$69),
   (mnemonic:'IMUL';opcode1:eo_reg;opcode2:eo_id;paramtype1:par_r32;paramtype2:par_rm32;paramtype3:par_imm32;bytes:1;bt1:$69),
 
-  (mnemonic:'IMUL';opcode1:eo_reg;opcode2:eo_iw;paramtype1:par_r16;paramtype2:par_imm16;bytes:2;bt1:$66;bt2:$69),
-  (mnemonic:'IMUL';opcode1:eo_reg;opcode2:eo_id;paramtype1:par_r32;paramtype2:par_imm32;bytes:1;bt1:$69),
+
 
   (mnemonic:'IN';opcode1:eo_ib;paramtype1:par_al;paramtype2:par_imm8;bytes:1;bt1:$e4),
   (mnemonic:'IN';opcode1:eo_ib;paramtype1:par_ax;paramtype2:par_imm8;bytes:2;bt1:$66;bt2:$e5),
@@ -1062,6 +1068,9 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'PREFETCH2';opcode1:eo_reg3;paramtype1:par_m8;bytes:2;bt1:$0f;bt2:$18),
   (mnemonic:'PREFETCHA';opcode1:eo_reg0;paramtype1:par_m8;bytes:2;bt1:$0f;bt2:$18),
 
+  (mnemonic:'PREFETCHW';opcode1:eo_reg1;paramtype1:par_m8;bytes:2;bt1:$0f;bt2:$0d),
+  (mnemonic:'PREFETCHWT1';opcode1:eo_reg2;paramtype1:par_m8;bytes:2;bt1:$0f;bt2:$0d),
+
   (mnemonic:'PSADBW';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$f6),
   (mnemonic:'PSADBW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$f6),
 
@@ -1463,6 +1472,7 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'SUBSS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m32;bytes:3;bt1:$f3;bt2:$0f;bt3:$5c),
   (mnemonic:'SWAPGS';bytes:3;bt1:$0f;bt2:$01;bt3:$f8),
 
+  (mnemonic:'SYSCALL';bytes:2;bt1:$0f;bt2:$05{; invalidin32bit:true}),
   (mnemonic:'SYSENTER';bytes:2;bt1:$0f;bt2:$34),
   (mnemonic:'SYSEXIT';bytes:2;bt1:$0f;bt2:$35),
 
@@ -1574,7 +1584,7 @@ type
 type ttokens=array of string;
 type TAssemblerBytes=array of byte;
 
-type TAssemblerEvent=procedure(address:integer; instruction: string; var bytes: TAssemblerBytes) of object;
+type TAssemblerEvent=procedure(address:qword; instruction: string; var bytes: TAssemblerBytes) of object;
 
 type TassemblerPreference=(apNone, apShort, apLong);
 
@@ -1646,10 +1656,20 @@ uses symbolhandler, assemblerArm, Parsers, NewKernelHandler;
 
 {$ifdef windows}
 uses {$ifndef autoassemblerdll}CEFuncProc,{$endif}symbolhandler, lua, luahandler,
-  lualib, assemblerArm, Parsers, NewKernelHandler;
+  lualib, assemblerArm, Parsers, NewKernelHandler, LuaCaller;
 {$endif}
 
-
+resourcestring
+  rsInvalidRegister = 'Invalid register';
+  rsInvalid = 'Invalid';
+  rsInvalidMultiplier = 'Invalid multiplier';
+  rsWTFIsA = 'WTF is a ';
+  rsIDontUnderstandWhatYouMeanWith = 'I don''t understand what you mean with ';
+  rsNegativeRegistersCanNotBeEncoded = 'Negative registers can not be encoded';
+  rsInvalidAddress = 'Invalid address';
+  rsTheAssemblerTriedToSetARegisteValueThatIsTooHigh = 'The assembler tried to set a register value that is too high';
+  rsAssemblerError = 'Assembler error';
+  rsOffsetTooBig = 'offset too big';
 var ExtraAssemblers: array of TAssemblerEvent;
 
 
@@ -1674,7 +1694,10 @@ end;
 procedure unregisterAssembler(id: integer);
 begin
   if id<length(ExtraAssemblers) then
+  begin
+    CleanupLuaCall(TMethod(ExtraAssemblers[id]));
     ExtraAssemblers[id]:=nil;
+  end;
 end;
 
 
@@ -1873,7 +1896,7 @@ begin
   if (reg='R14') then result:=14;
   if (reg='R15') then result:=15;
 
-  if (result=-1) and exceptonerror then raise exception.Create('Invalid register');
+  if (result=-1) and exceptonerror then raise exception.Create(rsInvalidRegister);
 end;
 
 function getreg(reg: string): integer; overload;
@@ -1909,7 +1932,7 @@ begin
     if (reg='R15') or (reg='R15D') or (reg='R15W') or (reg='R15L') or (reg='MM15') or (reg='XMM15') or (reg='ST(15)') or (reg='PS') or (reg='CR15') or (reg='DR15') then result:=15;
   end;
 
-  if (result=1000) and exceptonerror then raise exception.Create('Invalid register');
+  if (result=1000) and exceptonerror then raise exception.Create(rsInvalidRegister);
 end;
 
 function TSingleLineAssembler.getreg(reg: string): integer; overload;
@@ -2082,7 +2105,7 @@ begin
 end;
 
 function gettokentype(var token:string;token2: string): TTokenType;
-var i,err: integer;
+var err: integer;
     temp:string;
     i64: int64;
 begin
@@ -2186,18 +2209,17 @@ begin
 end;
 
 function rewrite(var token:string): boolean;
-var i,j,k,err,err2: integer;
+var i,j,err,err2: integer;
     a,b: qword;
     tokens: array of string;
     last: integer;
 
     temp: string;
     haserror: boolean;
-    f: double;
     inQuote: boolean;
     quotechar: char;
 begin
-  if length(token)=0 then exit; //empty string
+  if length(token)=0 then exit(false); //empty string
 
 
   quotechar:=#0;
@@ -2218,7 +2240,7 @@ begin
     if not haserror then
       token:=temp
     else
-      raise exception.create('Invalid');
+      raise exception.create(rsInvalid);
   end;
 
 
@@ -2366,8 +2388,6 @@ end;
 
 function tokenize(opcode:string; var tokens: ttokens): boolean;
 var i,j,last: integer;
-    spacecount: integer;
-    seperatorcount: integer;
 
     quoted: boolean;
     quotechar: char;
@@ -2588,7 +2608,6 @@ end;
 
 procedure TSingleLineAssembler.createsibscaleindex(var sib:byte;reg:string);
 var
-  i2,i4,i8: integer;
   i: integer;
   hasmultiply: boolean;
 begin
@@ -2606,12 +2625,12 @@ begin
         '4': setsibscale(sib, 2); //*4
         '8': setsibscale(sib, 3); //*8
         else
-          raise exception.create('Invalid multiplier');
+          raise exception.create(rsInvalidMultiplier);
 
       end;
 
       if length(reg)>i+1 then
-        raise exception.create('Invalid multiplier');
+        raise exception.create(rsInvalidMultiplier);
 
       break;
     end;
@@ -2632,7 +2651,7 @@ begin
     if pos('EBP',reg)>0 then setsibindex(sib,5) else
     if pos('ESI',reg)>0 then setsibindex(sib,6) else
     if pos('EDI',reg)>0 then setsibindex(sib,7) else
-      raise exception.Create('WTF is a '+reg);
+      raise exception.Create(rsWTFIsA+reg);
   end
   else
   begin
@@ -2652,7 +2671,7 @@ begin
     if pos('R13',reg)>0 then setsibindex(sib,13) else
     if pos('R14',reg)>0 then setsibindex(sib,14) else
     if pos('R15',reg)>0 then setsibindex(sib,15) else
-      raise exception.Create('WTF is a '+reg)
+      raise exception.Create(rsWTFIsA+reg)
 
   end;
 end;
@@ -2662,7 +2681,7 @@ end;
 procedure TSingleLineAssembler.setmodrm(var modrm:tassemblerbytes;address:string; offset: integer);
 var regs: string;
     disp,test: qword;
-    i,j,k,l: integer;
+    i,j,k: integer;
     start: integer;
     increase: boolean;
 
@@ -2722,13 +2741,13 @@ begin
         break;
       end;
 
-    if length(temp)=0 then raise exception.Create('I don''t understand what you mean with '+address);
+    if length(temp)=0 then raise exception.Create(rsIDontUnderstandWhatYouMeanWith+address);
     if temp[1]='$' then val(temp,test,j) else val('$'+temp,test,j);
 
     if j>0 then //a register or a stupid user
     begin
       if increase=false then
-        raise exception.create('Negative registers can not be encoded');
+        raise exception.create(rsNegativeRegistersCanNotBeEncoded);
       regs:=regs+temp+'+';
     end
     else
@@ -2750,7 +2769,7 @@ begin
     if regs[i]='*' then inc(k);
   end;
 
-  if (j>1) or (k>1) then raise exception.Create('I don''t understand what you mean with '+address);
+  if (j>1) or (k>1) then raise exception.Create(rsIDontUnderstandWhatYouMeanWith+address);
 
   if disp=0 then setmod(modrm[0],0) else
   if (integer(disp)>=-128) and (integeR(disp)<=127) then setmod(modrm[0],1) else setmod(modrm[0],2);
@@ -3089,7 +3108,7 @@ begin
 
 
   finally
-    if not found then raise exception.create('Invalid address');
+    if not found then raise exception.create(rsInvalidAddress);
 
     i:=getmod(modrm[0]);
     if i=1 then add(modrm,[byte(disp)]);
@@ -3131,7 +3150,7 @@ begin
     if (param='R13') or (param='R13D') or (param='R13W') or (param='R13L') or (param='MM13') or (param='XMM13') then setrm(modrm[0],13) else
     if (param='R14') or (param='R14D') or (param='R14W') or (param='R14L') or (param='MM14') or (param='XMM14') then setrm(modrm[0],14) else
     if (param='R15') or (param='R15D') or (param='R15W') or (param='R15L') or (param='MM15') or (param='XMM15') then setrm(modrm[0],15) else
-    raise exception.Create('I don''t understand what you mean with '+param);
+    raise exception.Create(rsIDontUnderstandWhatYouMeanWith+param);
   end else setmodrm(modrm,address, length(bytes));
 
   //setreg
@@ -3142,7 +3161,7 @@ begin
       REX_R:=true;
     end
     else
-      raise exception.Create('The assembler tried to set a register value that is too high');
+      raise exception.Create(rsTheAssemblerTriedToSetARegisteValueThatIsTooHigh);
   end;
   if reg=-1 then reg:=0;
 
@@ -3159,7 +3178,6 @@ begin
 end;
 
 procedure TSingleLineAssembler.addopcode(var bytes:tassemblerbytes;i:integer);
-var itterator: integer;
 begin
   RexPrefixLocation:=length(bytes);
 
@@ -3196,7 +3214,6 @@ procedure TSingleLineAssembler.setRex_W(state: boolean);
 {
 Set bit 3 to the appropriate state
 }
-var s: integer;
 begin
   if state then
     rexprefix:=(rexprefix and $f7) or 8
@@ -3213,7 +3230,6 @@ procedure TSingleLineAssembler.setRex_R(state: boolean);
 {
 Set bit 2 to the appropriate state
 }
-var s: integer;
 begin
   if state then
     rexprefix:=(rexprefix and $fb) or 4
@@ -3231,7 +3247,6 @@ procedure TSingleLineAssembler.setRex_X(state: boolean);
 {
 Set bit 2 to the appropriate state
 }
-var s: integer;
 begin
   if state then
     rexprefix:=(rexprefix and $fd) or 2
@@ -3249,7 +3264,6 @@ procedure TSingleLineAssembler.setRex_B(state: boolean);
 {
 Set bit 2 to the appropriate state
 }
-var s: integer;
 begin
   if state then
     rexprefix:=(rexprefix and $fe) or 1
@@ -3500,7 +3514,7 @@ begin
         'W' : i:=2; //2 byte long entries
         'D' : i:=4; //4 byte long entries
         'Q' : i:=8; //8 byte long entries
-        else raise exception.create('Invalid');
+        else raise exception.create(rsInvalid);
       end;
 
       i:=i*strtoint(tokens[1]);
@@ -4750,25 +4764,6 @@ begin
           //r32,imm32
           if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
           begin
-            if signedvtype=8 then
-            begin
-              //check if there isn't a rm32,imm8 , since that's less bytes
-              k:=startoflist;
-              while (k<=opcodecount) and (opcodes[k].mnemonic=tokens[mnemonic]) do
-              begin
-                if (opcodes[k].paramtype1=par_rm32) and
-                   (opcodes[k].paramtype2=par_imm8) then
-                begin
-                  //yes, there is
-                  addopcode(bytes,k);
-                  result:=createmodrm(bytes,eotoreg(opcodes[k].opcode1),parameter1);
-                  add(bytes,[v]);
-                  exit;
-                end;
-                inc(k);
-              end;
-            end;
-
             if opcodes[j].opcode1=eo_prd then
             begin
               addopcode(bytes,j);
@@ -4787,6 +4782,33 @@ begin
               result:=true;
               exit;
             end;
+
+            if opcodes[j].opcode1=eo_reg then  //probably imul reg,imm32
+            begin
+              if signedvtype=8 then
+              begin
+                k:=startoflist;
+                while (k<=endoflist) and (opcodes[k].mnemonic=tokens[mnemonic]) do //check for an reg,imm8
+                begin
+                  if (opcodes[k].paramtype1=par_r32) and
+                     (opcodes[k].paramtype2=par_imm8) then
+                  begin
+                    addopcode(bytes,k);
+                    createmodrm(bytes,getreg(parameter1),parameter1);
+                    add(bytes,[byte(v)]);
+                    result:=true;
+                    exit;
+                  end;
+                  inc(k);
+                end;
+              end;
+
+              addopcode(bytes,j);
+              createmodrm(bytes,getreg(parameter1),parameter1);
+              AddDword(bytes,v);
+              result:=true;
+              exit;
+            end;
           end;
         end;
 
@@ -4795,13 +4817,23 @@ begin
         begin
           //r32, imm8
 
-            addopcode(bytes,j);
+            if opcodes[j].opcode1=eo_prd then
+            begin
+              addopcode(bytes,j);
+              createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
+              add(bytes,[byte(v)]);
+              result:=true;
+              exit;
+            end;
 
-
-            createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
-            add(bytes,[byte(v)]);
-            result:=true;
-            exit;
+            if opcodes[j].opcode1=eo_reg then  //probably imul r32,imm8
+            begin
+              addopcode(bytes,j);
+              createmodrm(bytes,getreg(parameter1),parameter1);
+              add(bytes,[byte(v)]);
+              result:=true;
+              exit;
+            end;
 
         end;
 
@@ -5746,7 +5778,7 @@ begin
 
         if RexPrefix<>0 then
         begin
-          if RexPrefixLocation=-1 then raise exception.create('Assembler error');
+          if RexPrefixLocation=-1 then raise exception.create(rsAssemblerError);
           RexPrefix:=RexPrefix or $40; //just make sure this is set
           setlength(bytes,length(bytes)+1);
           for i:=length(bytes)-1 downto RexPrefixLocation+1 do
@@ -5772,7 +5804,7 @@ begin
             //result:=HandleTooBigAddress(opcode,address, bytes, actualdisplacement);
 
             if skiprangecheck=false then  //for syntax checking
-              raise exception.create('offset too big');
+              raise exception.create(rsOffsetTooBig);
           end
           else
             pdword(@bytes[relativeAddressLocation])^:=actualdisplacement-(address+length(bytes));
@@ -5885,7 +5917,7 @@ begin
   end;
 end;
 
-var i,j,k,l,m: integer;
+var i,j,k: integer;
     lastentry: integer=1;
     lastindex: PIndexArray=nil;
 

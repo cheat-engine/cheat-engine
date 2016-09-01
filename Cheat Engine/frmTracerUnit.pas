@@ -20,6 +20,7 @@ type TTraceDebugInfo=class
     c: _CONTEXT;
     bytes: pbytearray;
     bytesize: PtrUInt;
+    isfloat: boolean;
 
     stack: record
       savedsize: PtrUInt;
@@ -39,8 +40,25 @@ type
   { TfrmTracer }
 
   TfrmTracer = class(TForm)
+    aflabel: TLabel;
     Button1: TButton;
     btnStopSearch: TButton;
+    cflabel: TLabel;
+    CSLabel: TLabel;
+    dflabel: TLabel;
+    DSLabel: TLabel;
+    EAXLabel: TLabel;
+    EBPlabel: TLabel;
+    EBXlabel: TLabel;
+    ECXlabel: TLabel;
+    EDIlabel: TLabel;
+    EDXlabel: TLabel;
+    EIPlabel: TLabel;
+    ESIlabel: TLabel;
+    ESlabel: TLabel;
+    ESPlabel: TLabel;
+    FSlabel: TLabel;
+    GSlabel: TLabel;
     lblInstruction: TLabel;
     lblAddressed: TLabel;
     MainMenu1: TMainMenu;
@@ -54,39 +72,27 @@ type
     MenuItem5: TMenuItem;
     MenuItem6: TMenuItem;
     miSearchNext: TMenuItem;
+    oflabel: TLabel;
     OpenDialog1: TOpenDialog;
     Panel1: TPanel;
-    EAXLabel: TLabel;
-    EBXlabel: TLabel;
-    ECXlabel: TLabel;
-    EDXlabel: TLabel;
-    ESIlabel: TLabel;
-    EDIlabel: TLabel;
-    EBPlabel: TLabel;
-    ESPlabel: TLabel;
-    EIPlabel: TLabel;
-    cflabel: TLabel;
     Panel2: TPanel;
-    pnlSearch: TPanel;
+    Panel3: TPanel;
+    Panel4: TPanel;
+    Panel5: TPanel;
+    Panel6: TPanel;
+    Panel7: TPanel;
     pflabel: TLabel;
-    aflabel: TLabel;
+    pnlSearch: TPanel;
     pmTracer: TPopupMenu;
     ProgressBar1: TProgressBar;
     SaveDialog1: TSaveDialog;
-    sbShowstack: TSpeedButton;
     lvTracer: TTreeView;
-    zflabel: TLabel;
-    sflabel: TLabel;
-    oflabel: TLabel;
-    CSLabel: TLabel;
-    SSlabel: TLabel;
-    DSLabel: TLabel;
-    ESlabel: TLabel;
-    FSlabel: TLabel;
-    GSlabel: TLabel;
-    Splitter1: TSplitter;
-    dflabel: TLabel;
     sbShowFloats: TSpeedButton;
+    sbShowstack: TSpeedButton;
+    sflabel: TLabel;
+    SSlabel: TLabel;
+    Splitter1: TSplitter;
+    zflabel: TLabel;
     procedure btnStopSearchClick(Sender: TObject);
     procedure lvTracerMouseMove(Sender: TObject; Shift: TShiftState; X,
       Y: Integer);
@@ -132,12 +138,15 @@ type
     fSkipconfig: boolean;
 
     stepover: boolean;
+    nosystem: boolean;
 
     procedure configuredisplay;
     procedure setSavestack(x: boolean);
     procedure updatestackview;
   public
     { Public declarations }
+    returnfromignore: boolean;
+
     procedure setDataTrace(state: boolean);
     procedure addRecord;
     procedure finish;
@@ -168,6 +177,15 @@ end;
 
 function TTraceDebugInfo.datatype: TVariableType;
 begin
+  if isfloat then
+  begin
+    case bytesize of
+      4: exit(vtSingle);
+      8: exit(vtDouble);
+      10: ;//exit(vtExtended);
+    end;
+  end;
+
   case bytesize of
     1: result:=vtByte;
     2: result:=vtWord;
@@ -278,104 +296,131 @@ var s,s2: string;
     da: TDisassembler;
 
     datasize: integer;
+    isfloat: boolean;
 begin
   //the debuggerthread is now paused so get the context and add it to the list
 
-  address:=debuggerthread.CurrentThread.context.{$ifdef CPU64}rip{$else}eip{$endif};
-  a:=address;
-  s:=disassemble(a);
+  try
 
-  a:=address;
-  da:=tdisassembler.Create;
-  s:=da.disassemble(a, s2);
+    address:=debuggerthread.CurrentThread.context.{$ifdef CPU64}rip{$else}eip{$endif};
+    a:=address;
+    s:=disassemble(a);
 
-  datasize:=da.LastDisassembleData.datasize;
-  if datasize=0 then
-    datasize:=4;
+    a:=address;
+    da:=tdisassembler.Create;
+    s:=da.disassemble(a, s2);
 
-  da.free;
+    datasize:=da.LastDisassembleData.datasize;
+    if datasize=0 then
+      datasize:=4;
+
+    isfloat:=da.LastDisassembleData.isfloat;
+
+    da.free;
 
 
 
-  referencedAddress:=0;
-  if dereference then
-  begin
-    i:=pos('[',s)+1;
-    if i>0 then
+    referencedAddress:=0;
+    if dereference then
     begin
-      s2:=copy(s,i,pos(']',s)-i);
-      referencedAddress:=symhandler.getAddressFromName(s2, false, haserror, debuggerthread.CurrentThread.context);
+      i:=pos('[',s)+1;
+      if i>0 then
+      begin
+        s2:=copy(s,i,pos(']',s)-i);
+        referencedAddress:=symhandler.getAddressFromName(s2, false, haserror, debuggerthread.CurrentThread.context);
+      end;
     end;
-  end;
 
 
-  i:=posex('-',s);
-  i:=posex('-',s,i+1);
-  s:=copy(s,i+2,length(s));
+    i:=posex('-',s);
+    i:=posex('-',s,i+1);
+    s:=copy(s,i+2,length(s));
 
 
-  d:=TTraceDebugInfo.Create;
-  d.instructionsize:=a-address;
-  d.c:=debuggerthread.CurrentThread.context^;
-  d.instruction:=s;
-  d.referencedAddress:=referencedAddress;
-  d.fillbytes(datasize);
+    d:=TTraceDebugInfo.Create;
+    d.instructionsize:=a-address;
+    d.c:=debuggerthread.CurrentThread.context^;
+    d.instruction:=s;
+    d.referencedAddress:=referencedAddress;
+    d.isfloat:=isfloat;
+    d.fillbytes(datasize);
 
-  if savestack then
-    d.savestack;
+    if savestack then
+      d.savestack;
 
-  s:=inttohex(address,8)+' - '+s;
+    s:=inttohex(address,8)+' - '+s;
 
-  if currentAppendage<>nil then
-    thisnode:=lvTracer.Items.AddChildObject(currentAppendage,s,d)
-  else
-    thisnode:=lvTracer.Items.AddObject(nil,s,d);
-
-  if not stepover and defaultDisassembler.LastDisassembleData.iscall then
-    currentAppendage:=thisnode;
-
-  if defaultDisassembler.LastDisassembleData.isret then
-  begin
-    if currentAppendage<>nil then
+    if returnfromignore then
     begin
-      currentAppendage:=currentAppendage.Parent;
+      //00500DD9
+      returnfromignore:=false;
+      if (currentAppendage<>nil) then
+        currentAppendage:=currentAppendage.Parent;
+    end;
 
+    if currentAppendage<>nil then
+      thisnode:=lvTracer.Items.AddChildObject(currentAppendage,s,d)
+    else
+      thisnode:=lvTracer.Items.AddObject(nil,s,d);
+
+    if not stepover and defaultDisassembler.LastDisassembleData.iscall then
+      currentAppendage:=thisnode;
+
+    if (defaultDisassembler.LastDisassembleData.isret) {or returnfromignore} then
+    begin
+      returnfromignore:=false;
       if currentAppendage<>nil then
       begin
-        //check if the return is valid, could be it's a parent jump
-        d:=TTraceDebugInfo(currentAppendage.Data);
-        if (d.c.{$ifdef cpu64}Rip{$else}eip{$endif}+d.instructionsize<>a) then
+        currentAppendage:=currentAppendage.Parent;
+
+        if currentAppendage<>nil then
         begin
-          //see if a parent can be found that does match
-          x:=currentappendage.Parent;
-          while x<>nil do
+          //check if the return is valid, could be it's a parent jump
+          d:=TTraceDebugInfo(currentAppendage.Data);
+
+          if d=nil then exit; //cleanup underway
+
+          if (d.c.{$ifdef cpu64}Rip{$else}eip{$endif}+d.instructionsize<>a) then
           begin
-            d:=TTraceDebugInfo(x.Data);
-            if (d.c.{$ifdef cpu64}Rip{$else}eip{$endif}+d.instructionsize=a) then
+            //see if a parent can be found that does match
+            x:=currentappendage.Parent;
+            while x<>nil do
             begin
-              //match found
-              currentAppendage:=x;
-              exit;
+              d:=TTraceDebugInfo(x.Data);
+
+              if d=nil then exit; //cleanup underway
+
+              if (d.c.{$ifdef cpu64}Rip{$else}eip{$endif}+d.instructionsize=a) then
+              begin
+                //match found
+                currentAppendage:=x;
+                exit;
+              end;
+
+              x:=x.parent;
             end;
-
-            x:=x.parent;
           end;
+
         end;
-
-      end;
-    end
-    else
-    begin
-      //create a node at the top and append the current top node to it
-      thisnode:=lvTracer.items.AddFirst(nil,'');
-
-      thatnode:=thisnode.GetNextSibling;
-      while thatnode<>nil do
+      end
+      else
       begin
-        thatnode.MoveTo(thisnode, naAddChild);
+        //create a node at the top and append the current top node to it
+        thisnode:=lvTracer.items.AddFirst(nil,'');
+
         thatnode:=thisnode.GetNextSibling;
+        while thatnode<>nil do
+        begin
+          thatnode.MoveTo(thisnode, naAddChild);
+          thatnode:=thisnode.GetNextSibling;
+        end;
       end;
     end;
+
+
+  except
+    on e: exception do
+      OutputDebugString('tracer addRecord failed with error:'+e.Message);
   end;
 
 end;
@@ -421,6 +466,7 @@ begin
         tcount:=strtoint(edtMaxTrace.text);
         condition:=edtCondition.text;
         stepover:=cbStepOver.checked;
+        nosystem:=cbSkipSystemModules.checked;
 
         if startdebuggerifneeded then
         begin
@@ -439,14 +485,14 @@ begin
               memorybrowser.hexview.GetSelectionRange(fromaddress,toaddress);
 
             //set the breakpoint
-            debuggerthread.setBreakAndTraceBreakpoint(self, fromaddress, bpTrigger, 1+(toaddress-fromaddress), tcount, condition, stepover);
+            debuggerthread.setBreakAndTraceBreakpoint(self, fromaddress, bpTrigger, 1+(toaddress-fromaddress), tcount, condition, stepover, nosystem);
           end
           else
           begin
             if (owner is TMemoryBrowser) then
-              debuggerthread.setBreakAndTraceBreakpoint(self, (owner as TMemoryBrowser).disassemblerview.SelectedAddress, bptExecute, 1, tcount, condition, StepOver)
+              debuggerthread.setBreakAndTraceBreakpoint(self, (owner as TMemoryBrowser).disassemblerview.SelectedAddress, bptExecute, 1, tcount, condition, StepOver, Nosystem)
             else
-              debuggerthread.setBreakAndTraceBreakpoint(self, memorybrowser.disassemblerview.SelectedAddress, bptExecute,1, tcount, condition, StepOver);
+              debuggerthread.setBreakAndTraceBreakpoint(self, memorybrowser.disassemblerview.SelectedAddress, bptExecute,1, tcount, condition, StepOver, nosystem);
           end;
         end;
 
@@ -755,7 +801,10 @@ begin
   for i:=0 to lvTracer.Items.Count-1 do
   begin
     if lvTracer.Items[i].data<>nil then
+    begin
       TTraceDebugInfo(lvTracer.Items[i].data).Free;
+      lvTracer.Items[i].data:=nil;
+    end;
   end;
 
   action:=cafree;
@@ -783,16 +832,6 @@ begin
   begin
     if processhandler.is64Bit then
     begin
-      ebxlabel.top:=eaxlabel.top+eaxlabel.height;
-      ecxlabel.top:=ebxlabel.top+ebxlabel.height;
-      edxlabel.top:=ecxlabel.top+ecxlabel.height;
-      esilabel.top:=edxlabel.top+edxlabel.height;
-      edilabel.top:=esilabel.top+esilabel.height;
-      ebplabel.top:=edilabel.top+edilabel.height;
-      esplabel.top:=ebplabel.top+ebplabel.height;
-
-      p:=esplabel;
-
       setlength(RXlabels,8);
 
       for i:=8 to 15 do
@@ -802,31 +841,17 @@ begin
 
         with l do
         begin
-          parent:=p.parent;
-          font:=p.font;
-          left:=p.left;
-          top:=p.top+esplabel.height;
-          cursor:=p.cursor;
-
+          parent:=panel4;
+          font:=eaxlabel.font;
+          cursor:=eaxlabel.cursor;
 
           tag:=i;
           onclick:=p.onclick;
           OnMouseDown:=RegisterMouseDown;
-
         end;
-        p:=l;
       end;
 
-      eiplabel.top:=p.top+esplabel.height;
-      cslabel.top:=eiplabel.top+eiplabel.height+20;
-      sslabel.top:=cslabel.top+cslabel.height;
-      dslabel.top:=sslabel.top+sslabel.height;
-      eslabel.top:=dslabel.top+dslabel.height;
-      fslabel.top:=eslabel.top+eslabel.height;
-      gslabel.top:=fslabel.top+fslabel.height;
-
-      if clientheight<(gslabel.top+gslabel.height+button1.height+4) then
-        clientheight:=gslabel.top+gslabel.height+button1.height+4;
+      eiplabel.BringToFront;
 
     end;
 
@@ -854,8 +879,8 @@ begin
         if t.referencedAddress<>0 then
           lblAddressed.caption:=inttohex(t.referencedAddress,8)+' = '+DataToString(t.bytes, t.bytesize, t.datatype)
         else
-          lblAddressed.caption:='';
-      end else lblAddressed.Caption:='';
+          lblAddressed.caption:=' ';
+      end else lblAddressed.Caption:=' ';
 
 
       context:=t.c;
@@ -1124,20 +1149,7 @@ end;
 
 procedure TfrmTracer.Panel1Resize(Sender: TObject);
 begin
-  button1.Top:=clientheight-button1.height-3;
 
-  if sbShowstack.visible then
-  begin
-    sbShowFloats.top:=(clientheight div 2)-(sbshowFloats.height);
-    sbShowstack.top:=(clientheight div 2);
-    sbShowFloats.Left:=panel1.ClientWidth-sbshowfloats.width-2;
-    sbShowstack.left:=sbshowfloats.left;
-  end
-  else
-  begin
-    sbShowFloats.top:=(clientheight div 2)-(sbshowFloats.height div 2);
-    sbShowFloats.Left:=panel1.ClientWidth-sbshowfloats.width-2;
-  end;
 end;
 
 procedure TfrmTracer.sbShowFloatsClick(Sender: TObject);

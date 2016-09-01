@@ -270,7 +270,7 @@ void vmxoffload(PCWSTR dbvmimgpath)
 
 				if (statusblock.Status==STATUS_SUCCESS)
 				{
-					DWORD vmmsize=fsi.EndOfFile.LowPart-(startsector*512);
+					DWORD vmmsize = fsi.EndOfFile.LowPart;// -(startsector * 512);
 
 					//now read the vmdisk into the allocated memory
 					DbgPrint("The startsector=%d (that's offset %d)\n",startsector,startsector*512);

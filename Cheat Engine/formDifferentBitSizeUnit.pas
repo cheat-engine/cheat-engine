@@ -67,6 +67,10 @@ begin
   label1.caption:=Format(rsTheLastTimeYouScannedTheNumberOfBitsWasAndNowItIsP, [IntToStr(length(oldbit)), IntToStr(length(newbit))]);
 
   setlength(bitscan,0);
+
+  i:=GetFontData(font.reference.Handle).Height;
+  Labelold.Font.Height:=i;
+  LabelNew.Font.Height:=i;
 end;
 
 procedure TformDifferentBitSize.Edit1KeyDown(Sender: TObject;

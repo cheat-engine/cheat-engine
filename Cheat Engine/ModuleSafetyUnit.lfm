@@ -1,7 +1,7 @@
 object frmModuleSafety: TfrmModuleSafety
-  Left = 216
+  Left = 1370
   Height = 263
-  Top = 122
+  Top = 228
   Width = 298
   BorderStyle = bsSingle
   Caption = 'Module safety'
@@ -10,7 +10,7 @@ object frmModuleSafety: TfrmModuleSafety
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.6.0.4'
   object ListBox1: TListBox
     Left = 8
     Height = 153

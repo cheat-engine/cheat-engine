@@ -22,6 +22,7 @@ type
     cbType: TComboBox;
     cbHexadecimal: TCheckBox;
     cbSigned: TCheckBox;
+    cbExpandChangesAddress: TCheckBox;
     ColorDialog1: TColorDialog;
     edtByteSize: TEdit;
     edtChildstart: TEdit;
@@ -72,6 +73,9 @@ type
     function getChildStruct: TDissectedStruct;
     procedure setChildStructStart(o: integer);
     function getChildStructStart: integer;
+
+    function getExpandChangedAddress: boolean;
+    procedure setExpandChangedaddress(s: boolean);
   public
     { public declarations }
     ChangedDescription: boolean;
@@ -95,6 +99,7 @@ type
     property backgroundColor: TColor read getBackgroundColor write setBackgroundColor;
     property childstruct: TDissectedStruct read getChildStruct write setChildStruct;
     property childstructstart: integer read getchildstructstart write setChildStructStart;
+    property ExpandChangesAddress: boolean read getExpandChangedAddress write setExpandChangedAddress;
   end; 
 
 var
@@ -129,11 +134,24 @@ begin
   //still here so it's a "local" type
   localChild:=s;
   cbStructType.ItemIndex:=cbStructType.Items.AddObject(rsS2EILocalStruct+s.name, s);
+
+  if s<>nil then
+    cbExpandChangesAddress.enabled:=true;
 end;
 
 function TfrmStructures2ElementInfo.getChildStruct: TDissectedStruct;
 begin
   result:=TDissectedStruct(cbStructType.Items.Objects[cbStructType.ItemIndex]);
+end;
+
+function TfrmStructures2ElementInfo.getExpandChangedAddress: boolean;
+begin
+  result:=cbExpandChangesAddress.checked;
+end;
+
+procedure TfrmStructures2ElementInfo.setExpandChangedaddress(s: boolean);
+begin
+  cbExpandChangesAddress.checked:=s;
 end;
 
 function TfrmStructures2ElementInfo.getChildstructstart: integer;
@@ -241,6 +259,7 @@ end;
 
 function TfrmStructures2ElementInfo.getCustomType: TCustomType;
 begin
+  result:=nil;
   if (cbType.ItemIndex<>-1) then
     result:=TCustomType(cbType.Items.Objects[cbType.ItemIndex]); //returns nil or the custom type
 end;
@@ -419,6 +438,10 @@ end;
 procedure TfrmStructures2ElementInfo.cbStructTypeChange(Sender: TObject);
 begin
   ChangedChildStruct:=true;
+  cbExpandChangesAddress.enabled:=cbStructType.ItemIndex>=1;
+
+  if cbExpandChangesAddress.enabled=false then
+    cbExpandChangesAddress.checked:=false;
 end;
 
 procedure TfrmStructures2ElementInfo.edtOffsetChange(Sender: TObject);

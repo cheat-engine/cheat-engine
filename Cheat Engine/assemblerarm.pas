@@ -51,7 +51,28 @@ implementation
 
 uses DisassemblerArm;
 
-
+resourcestring
+  rsTheValue = 'The value ';
+  rsCanNotBeEncoded = ' can not be encoded using 8 bits and double rotate';
+  rsInvalidShiftParameters = 'invalid shift parameters';
+  rsThisInstructionClassDoesNotAllow = 'This instruction class does not allow a register based shift';
+  rsInvalidShiftRegister = 'Invalid shift register';
+  rsTheDestinationAddressMustBeDividableBy4 = 'The destination address must be dividable by 4';
+  rsDistanceIsTooBig = 'Distance is too big';
+  rsTodoChangeThisToA12ByteInstruction = 'Todo: Change this to a 12 byte instruction: LDR/STR [PC,#16] - B PC - DD offset';
+  rsInvalidRegister = 'Invalid register';
+  rsInvalidShift = 'Invalid shift';
+  rsTheDistanceIsTooBig = 'The distance is too big';
+  rsInvalidParameter1 = 'Invalid parameter 1';
+  rsInvalidParameters = 'invalid parameters';
+  rsInvalidOpcode = 'Invalid opcode';
+  rsInvalidDestinationRegister = 'Invalid destination register';
+  rsInvalidFirstOperandRegister = 'Invalid first operand register';
+  rsInvalidRegisterList = 'Invalid register list';
+  rsInvalidRegisterInRegisterList = 'Invalid register in register list:';
+  rsInvalidParameter2 = 'Invalid parameter 2';
+  rsInvalidParameter3 = 'Invalid parameter 3';
+  rsInvalidParameter4 = 'Invalid parameter 4';
 
 type Tparser=function(address: int32; instruction: string): int32;
 
@@ -149,7 +170,7 @@ begin
       end;
     end;
 
-    if smallest.value>255 then raise ENeedRewrite.create('The value '+inttohex(value,1)+' can not be encoded using 8 bits and double rotate');
+    if smallest.value>255 then raise ENeedRewrite.create(rsTheValue+inttohex(value,1)+rsCanNotBeEncoded);
 
     rotate:=smallest.rolcount;
     imm:=smallest.value;
@@ -201,19 +222,19 @@ begin
     _result:=_result or (shiftnumber shl 5);
 
     _param:=GetParam(instruction, parserpos);
-    if _param='' then raise exception.create('invalid shift parameters');
+    if _param='' then raise exception.create(rsInvalidShiftParameters);
 
     if _param[1]='R' then
     begin
       //shift with register
       if noregisterbasedshift then
-        raise exception.create('This instruction class does not allow a register based shift');
+        raise exception.create(rsThisInstructionClassDoesNotAllow);
 
       _result:=_result or (1 shl 4);
       _Rs:=_param;
       Rs:=GetRegNumber(_rs);
       if (rs=-1) then
-        raise exception.create('Invalid shift register');
+        raise exception.create(rsInvalidShiftRegister);
 
       _result:=_result or (rs shl 8);
 
@@ -337,7 +358,7 @@ begin
   rn:=getRegNumber(_param);
 
   if rn=-1 then
-    raise exception.create('Invalid register');
+    raise exception.create(rsInvalidRegister);
 
   result:=result or rn; //set the register bits
 
@@ -387,7 +408,7 @@ begin
 
   destinationaddress:=symhandler.getAddressFromName(_param);
 
-  if destinationaddress mod 4<>0 then raise exception.create('The destination address must be dividable by 4');
+  if destinationaddress mod 4<>0 then raise exception.create(rsTheDestinationAddressMustBeDividableBy4);
 
   offset:=destinationaddress-(address+8);
   offset:=offset shr 2;
@@ -396,7 +417,7 @@ begin
 
   if abs(offset)>16777215 then
   begin
-    e:=ENeedRewrite.create('Distance is too big');
+    e:=ENeedRewrite.create(rsDistanceIsTooBig);
     //push the destination into the stack and pop it out into pc
 
 
@@ -432,12 +453,12 @@ end;
 
 function CMPParser(address: int32; instruction:string):int32;
 begin
-  result:=$ffffffff;
+  result:=int32($ffffffff);
 end;
 
 function CDPPArser(address: int32; instruction:string): int32;
 begin
-
+  result:=0; //NYI
 end;
 
 
@@ -481,7 +502,7 @@ begin
 
     if abs(offset)>$fff then
     begin
-      e:=ENeedRewrite.create('Todo: Change this to a 12 byte instruction: LDR/STR [PC,#16] - B PC - DD offset');
+      e:=ENeedRewrite.create(rsTodoChangeThisToA12ByteInstruction);
       e.useinstead.add(copy(instruction, 1, oldparserpos)+'PC,4]');
 
       if instruction[length(instruction)]='!' then
@@ -533,10 +554,10 @@ begin
       _rm:=_param;
       rm:=GetRegNumber(_rm);
       if rm=-1 then
-        raise exception.create('Invalid register');
+        raise exception.create(rsInvalidRegister);
 
       if ParseShift(instruction, parserpos, result)=false then
-        raise exception.create('Invalid shift'); //ParseShift returns false if there IS a parameter, but it's not a shift
+        raise exception.create(rsInvalidShift); //ParseShift returns false if there IS a parameter, but it's not a shift
 
 
     end
@@ -581,7 +602,7 @@ begin
 
   offset:=destination-(address+8);
 
-  if abs(offset)>$fff then raise ENeedRewrite.create('The distance is too big');
+  if abs(offset)>$fff then raise ENeedRewrite.create(rsTheDistanceIsTooBig);
 
   result:=result or $fff;
 end;
@@ -627,7 +648,7 @@ begin
 
   rd:=getRegNumber(getParam(instruction, parserpos));
   if rd=-1 then
-    raise exception.create('Invalid parameter 1');
+    raise exception.create(rsInvalidParameter1);
 
   result:=result or (rd shl 12);
 
@@ -672,7 +693,7 @@ var
 begin
   //<Op2>
   _param:=GetParam(instruction, parserpos);
-  if _param='' then raise exception.create('invalid parameters');
+  if _param='' then raise exception.create(rsInvalidParameters);
 
   rm:=getRegNumber(_param);
   if rm<>-1 then
@@ -681,7 +702,7 @@ begin
     result:=result or rm;
 
     if ParseShift(instruction, parserpos, result)=false then
-      raise exception.create('Invalid shift'); //ParseShift returns false if there IS a parameter, but it's not a shift
+      raise exception.create(rsInvalidShift); //ParseShift returns false if there IS a parameter, but it's not a shift
 
     //else leave shift 0
   end
@@ -736,7 +757,7 @@ begin
       break;
     end;
 
-  if opcode=-1 then raise exception.create('Invalid opcode');
+  if opcode=-1 then raise exception.create(rsInvalidOpcode);
 
   result:=result or (opcode shl 21);
 
@@ -762,7 +783,7 @@ begin
     _Rd:=GetParam(instruction, parserpos);
     rd:=GetRegNumber(_Rd);
     if rd=-1 then
-      raise exception.create('Invalid destination register');
+      raise exception.create(rsInvalidDestinationRegister);
 
     result:=result or (rd shl 12);
 
@@ -777,8 +798,8 @@ begin
 
     _Rn:=GetParam(instruction, parserpos);
     rn:=GetRegNumber(_Rn);
-    if rd=-1 then
-      raise exception.create('Invalid first operand register');
+    if rn=-1 then
+      raise exception.create(rsInvalidFirstOperandRegister);
 
     result:=result or (rn shl 16);
     DataProcessingParser_OP2(address, instruction, parserpos, result);
@@ -798,7 +819,7 @@ begin
     _Rd:=GetParam(instruction, parserpos);
     rd:=GetRegNumber(_Rd);
     if rd=-1 then
-      raise exception.create('Invalid destination register');
+      raise exception.create(rsInvalidDestinationRegister);
 
     result:=result or (rd shl 12);
 
@@ -806,7 +827,7 @@ begin
     _Rn:=GetParam(instruction, parserpos);
     rn:=GetRegNumber(_Rn);
     if rn=-1 then
-      raise exception.create('Invalid first operand register');
+      raise exception.create(rsInvalidFirstOperandRegister);
 
     result:=result or (rn shl 16);
 
@@ -856,7 +877,7 @@ begin
       case _modename[2] of
         'A': ;   // 0 - 0
         'B': result:=result or bP;
-        else raise exception.create('Invalid opcode');
+        else raise exception.create(rsInvalidOpcode);
       end;
 
     'E':
@@ -878,7 +899,7 @@ begin
           end;
         end
 
-        else raise exception.create('Invalid opcode');
+        else raise exception.create(rsInvalidOpcode);
       end;
 
     'F':
@@ -899,22 +920,22 @@ begin
             result:=result or bP;
         end;
 
-        else raise exception.create('Invalid opcode');
+        else raise exception.create(rsInvalidOpcode);
       end;
 
     'I':
       case _modename[2] of
         'A': result:=result or bU;
         'B': result:=result or bU or bP;
-        else raise exception.create('Invalid opcode');
+        else raise exception.create(rsInvalidOpcode);
       end;
 
-    else raise exception.create('Invalid opcode');
+    else raise exception.create(rsInvalidOpcode);
   end;
 
   rn:=getRegNumber(getParam(instruction, parserpos));
   if rn=-1 then
-    raise exception.create('Invalid register');
+    raise exception.create(rsInvalidRegister);
 
   result:=result or (rn shl 16);
 
@@ -944,7 +965,7 @@ begin
         reg:=getRegNumber(trim(copy(_param,1,i-1)));
         reg2:=getRegNumber(trim(copy(_param,i+1,length(_param))));
 
-        if (reg=-1) or (reg2=-1) then raise exception.create('Invalid register list');
+        if (reg=-1) or (reg2=-1) then raise exception.create(rsInvalidRegisterList);
 
         for i:=reg to reg2 do
           result:=result or (1 shl i);
@@ -956,7 +977,7 @@ begin
       begin
         reg:=getRegNumber(_param);
         if reg=-1 then
-          raise exception.create('Invalid register in register list:'+_param);
+          raise exception.create(rsInvalidRegisterInRegisterList+_param);
 
         result:=result or (1 shl reg);
       end;
@@ -1075,20 +1096,20 @@ begin
 
   rd:=getRegNumber(getParam(instruction, parserpos));
   if rd=-1 then
-    raise exception.create('Invalid parameter 1');
+    raise exception.create(rsInvalidParameter1);
 
   result:=result or (rd shl 16);
 
 
   rm:=getRegNumber(getParam(instruction, parserpos));
   if rm=-1 then
-    raise exception.create('Invalid parameter 2');
+    raise exception.create(rsInvalidParameter2);
 
   result:=result or rm;
 
   rs:=getRegNumber(getParam(instruction, parserpos));
   if rs=-1 then
-    raise exception.create('Invalid parameter 3');
+    raise exception.create(rsInvalidParameter3);
 
   result:=result or (rs shl 8);
 
@@ -1100,7 +1121,7 @@ begin
 
     rn:=getRegNumber(getParam(instruction, parserpos));
     if rn=-1 then
-      raise exception.create('Invalid parameter 4');
+      raise exception.create(rsInvalidParameter4);
 
     result:=result or (rn shl 12);
 
@@ -1130,7 +1151,7 @@ begin
   rn:=getRegNumber(getParam(instruction, parserpos));
 
   if (rd=-1) or (rm=-1) or (rn=-1) then
-    raise exception.create('Invalid register');
+    raise exception.create(rsInvalidRegister);
 
   result:=result or (rd shl 12);
   result:=result or rm;

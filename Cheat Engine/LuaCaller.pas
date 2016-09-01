@@ -12,7 +12,7 @@ interface
 uses
   Classes, Controls, SysUtils, ceguicomponents, forms, lua, lualib, lauxlib,
   comctrls, StdCtrls, CEFuncProc, typinfo, Graphics, disassembler, LuaDisassembler,
-  LastDisassembleData, Assemblerunit, commonTypeDefs;
+  LastDisassembleData, Assemblerunit, commonTypeDefs, ExtCtrls;
 
 type
   TLuaCaller=class
@@ -41,6 +41,7 @@ type
       procedure LVSelectItemEvent(Sender: TObject; Item: TListItem; Selected: Boolean);
       procedure LVCompareEvent(Sender: TObject; Item1, Item2: TListItem; Data: Integer; var Compare: Integer);
 
+      procedure CanResizeEvent(Sender: TObject; var NewSize: Integer; var Accept: Boolean);
 
       procedure CloseEvent(Sender: TObject; var CloseAction: TCloseAction);
       procedure CloseQueryEvent(Sender: TObject; var CanClose: boolean);
@@ -63,8 +64,9 @@ type
       function AddressLookupCallback(address: ptruint): string;
       function SymbolLookupCallback(s: string): ptruint;
       function StructureNameLookup(var address: ptruint; var name: string): boolean;
-      procedure AssemblerEvent(address:integer; instruction: string; var bytes: TAssemblerBytes);
+      procedure AssemblerEvent(address:qword; instruction: string; var bytes: TAssemblerBytes);
       procedure AutoAssemblerPrologueEvent(code: TStrings; syntaxcheckonly: boolean);
+      procedure AutoAssemblerTemplateCallback(script: TStrings; sender: TObject);
       procedure ScreenFormEvent(Sender: TObject; Form: TCustomForm);
 
       function BreakpointEvent(bp: pointer; context: pointer):boolean;
@@ -95,6 +97,7 @@ function LuaCaller_KeyEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_TreeViewExpandOrCloseEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_LVCheckedItemEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_LVSelectItemEvent(L: PLua_state): integer; cdecl;
+
 function LuaCaller_MemoryRecordActivateEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_DisassemblerSelectionChangeEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_ByteSelectEvent(L: PLua_state): integer; cdecl;  //(sender: TObject; address: ptruint; address2: ptruint);
@@ -121,6 +124,12 @@ implementation
 uses
   luahandler, LuaByteTable, MainUnit, MemoryRecordUnit, disassemblerviewunit,
   hexviewunit, d3dhookUnit, luaclass, debuggertypedefinitions;
+
+resourcestring
+  rsThisTypeOfMethod = 'This type of method:';
+  rsIsNotYetSupported = ' is not yet supported';
+  rsAutoAssemblerCallbackLuaFunctionError = 'AutoAssemblerCallback: Lua Function error(';
+  rsStructureDissectEventLuaFunctionError = 'StructureDissectEvent: Lua Function error(';
 
 type
   TLuaCallData=class(tobject)
@@ -165,6 +174,7 @@ begin
 
   if lua_isnil(L, luafunctiononstack) then //nil, special case, always succeed
   begin
+    CleanupLuaCall(m);
     m.code:=nil;
     m.data:=nil;
     exit;
@@ -172,7 +182,7 @@ begin
 
   i:=LuaCallList.IndexOf(typename);
   if i=-1 then
-    raise exception.create('This type of method:'+typename+' is not yet supported');
+    raise exception.create(rsThisTypeOfMethod+typename+rsIsNotYetSupported);
 
   newcode:=TLuaCallData(LuaCallList.Objects[i]).SetMethodProp;
 
@@ -220,7 +230,7 @@ var
 begin
   i:=LuaCallList.IndexOf(typename);
   if i=-1 then
-    raise exception.create('This type of method:'+typename+' is not yet supported');
+    raise exception.create(rsThisTypeOfMethod+typename+rsIsNotYetSupported);
 
   f:=TLuaCallData(LuaCallList.Objects[i]).GetMethodProp;
 
@@ -856,6 +866,27 @@ begin
   end;
 end;
 
+procedure TLuaCaller.CanResizeEvent(Sender: TObject; var NewSize: Integer; var Accept: Boolean);
+var oldstack: integer;
+begin
+  Luacs.enter;
+  try
+    oldstack:=lua_gettop(Luavm);
+    pushFunction;
+    luaclass_newClass(luavm, sender);
+    lua_pushinteger(luavm, newsize);
+
+    if lua_pcall(LuaVM, 2, 2, 0)=0 then
+    begin
+      newsize:=lua_tointeger(luavm, 1);
+      accept:=lua_toboolean(luavm, 2);
+    end;
+  finally
+    lua_settop(Luavm, oldstack);
+    luacs.leave;
+  end;
+end;
+
 function TLuaCaller.DisassembleEvent(sender: TObject; address: ptruint; var ldd: TLastDisassembleData; var output: string; var description: string): boolean;
 var oldstack: integer;
   lddentry: integer;
@@ -916,7 +947,7 @@ begin
       result:=Lua_ToString(luavm, -2);
     end
     else
-      raise exception.create('AutoAssemblerCallback: Lua Function error('+lua_tostring(luavm, -1)+')');
+      raise exception.create(rsAutoAssemblerCallbackLuaFunctionError+lua_tostring(luavm, -1)+')');
 
   finally
     lua_settop(Luavm, oldstack);
@@ -939,7 +970,7 @@ begin
     if lua_pcall(Luavm, 2,1,0)=0 then
       result:=lua_toboolean(luavm, -1)
     else
-      raise exception.create('StructureDissectEvent: Lua Function error('+lua_tostring(luavm, -1)+')');
+      raise exception.create(rsStructureDissectEventLuaFunctionError+lua_tostring(luavm, -1)+')');
   finally
     lua_settop(Luavm, oldstack);
     luacs.leave;
@@ -1053,7 +1084,7 @@ begin
   end;
 end;
 
-procedure TLuaCaller.AssemblerEvent(address:integer; instruction: string; var bytes: TAssemblerBytes);
+procedure TLuaCaller.AssemblerEvent(address:qword; instruction: string; var bytes: TAssemblerBytes);
 var
   oldstack: integer;
   tableindex: integer;
@@ -1098,6 +1129,23 @@ begin
     PushFunction;
     luaclass_newClass(luavm, code);
     lua_pushboolean(luavm, syntaxcheckonly);
+    lua_pcall(Luavm, 2,0,0);
+  finally
+    lua_settop(Luavm, oldstack);
+    luacs.leave;
+  end;
+end;
+
+procedure TLuaCaller.AutoAssemblerTemplateCallback(script: TStrings; sender: TObject);
+var oldstack: integer;
+begin
+  Luacs.Enter;
+  try
+    oldstack:=lua_gettop(Luavm);
+
+    PushFunction;
+    luaclass_newClass(luavm, script);
+    luaclass_newClass(luavm, sender);
     lua_pcall(Luavm, 2,0,0);
   finally
     lua_settop(Luavm, oldstack);
@@ -1477,6 +1525,35 @@ begin
     lua_pop(L, lua_gettop(L));
 end;
 
+function LuaCaller_CanResizeEvent(L: PLua_state): integer; cdecl;
+var
+  parameters: integer;
+  m: TMethod;
+  sender: TObject;
+  newsize: integer;
+  accept: boolean;
+begin
+  result:=0;
+
+  if lua_gettop(L)=2 then
+  begin
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_toceuserdata(L, 1);
+    newsize:=lua_tointeger(L, 2);
+    lua_pop(L, lua_gettop(L));
+
+    accept:=true;
+    TCanResizeEvent(m)(sender,newsize, accept);
+
+    lua_pushinteger(L,newsize);
+    lua_pushboolean(L,accept);
+    result:=2;
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
 function LuaCaller_MemoryRecordActivateEvent(L: PLua_state): integer; cdecl;
 var
   m: TMethod;
@@ -1825,6 +1902,7 @@ initialization
   registerLuaCall('TLVDeletedEvent', LuaCaller_LVCheckedItemEvent, pointer(TLuaCaller.LVCheckedItemEvent),'function %s(sender, listitem)'#13#10#13#10'end'#13#10);
   registerLuaCall('TLVColumnClickEvent', LuaCaller_LVColumnClickEvent, pointer(TLuaCaller.LVColumnClickEvent),'function %s(sender, listcolumn)'#13#10#13#10'end'#13#10);
   registerLuaCall('TLVCompareEvent', LuaCaller_LVCompareEvent, pointer(TLuaCaller.LVCompareEvent),'function %s(sender, listitem1, listitem2, data)'#13#10#13#10' return 0 --0=equal -1=smaller 1=bigger'#13#10'end'#13#10);
+  registerLuaCall('TCanResizeEvent', LuaCaller_CanResizeEvent, pointer(TLuaCaller.CanResizeEvent),'function %s(sender, newsize)'#13#10#13#10' local accept=true'#13#10'return newsize, accept'#13#10'end'#13#10);
   registerLuaCall('TLVSelectItemEvent', LuaCaller_LVSelectItemEvent, pointer(TLuaCaller.LVSelectItemEvent),'function %s(sender, listitem, selected)'#13#10#13#10'end'#13#10);
 
   registerLuaCall('TMemoryRecordActivateEvent', LuaCaller_MemoryRecordActivateEvent, pointer(TLuaCaller.MemoryRecordActivateEvent),'function %s(sender, before, current)'#13#10#13#10'end'#13#10);

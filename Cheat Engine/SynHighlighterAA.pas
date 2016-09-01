@@ -315,6 +315,7 @@ type
     function Func101: TtkTokenKind; //fullaccess/loadbinary/struct
     function Func108: TtkTokenKind; //CreateThread
     function Func117: TtkTokenKind; //loadlibrary
+    function Func123: TtkTokenKind; //aobscanregion
     function Func124: TtkTokenKind; //endstruct
     function Func125: TtkTokenKind; //aobscanmodule
     function Func187: TtkTokenKind; //registersymbol
@@ -440,7 +441,7 @@ procedure aa_RemoveExtraCommand(command:pchar);
 begin
   if extracommands<>nil then
   begin
-    extracommands.Delete(extracommands.IndexOf(command));
+    if extracommands.IndexOf(command)<>-1 then extracommands.Delete(extracommands.IndexOf(command));
     if extracommands.Count=0 then
       freeandnil(extracommands);
   end;
@@ -528,6 +529,7 @@ begin
   fIdentFuncTable[101] := {$IFDEF FPC}@{$ENDIF}Func101;
   fIdentFuncTable[108] := {$IFDEF FPC}@{$ENDIF}Func108;
   fIdentFuncTable[117] := {$IFDEF FPC}@{$ENDIF}Func117;
+  fIdentFuncTable[123] := {$IFDEF FPC}@{$ENDIF}Func123;
   fIdentFuncTable[124] := {$IFDEF FPC}@{$ENDIF}Func124;
   fIdentFuncTable[125] := {$IFDEF FPC}@{$ENDIF}Func125;
   fIdentFuncTable[187] := {$IFDEF FPC}@{$ENDIF}Func187;
@@ -968,6 +970,12 @@ begin
     Result := tkIdentifier;
 end;
 
+function TSynAASyn.Func123: TtkTokenKind; //aobscanregion
+begin
+  if KeyComp('aobscanregion') then Result := tkKey else
+    Result := tkIdentifier;
+end;
+
 function TSynAASyn.Func124: TtkTokenKind; //endstruct
 begin
   if KeyComp('endstruct') then Result := tkKey else
@@ -1223,8 +1231,11 @@ begin
 end;
 
 procedure TSynAASyn.BraceOpenProc;
+var l: integer;
 begin
-  if (Run=0) and (fLine[Run + 1] = '$') and   //{$LUA}
+  l:=StrLen(fLine);
+
+  if (Run=0) and (l>=6) and (fLine[Run + 1] = '$') and   //{$LUA}
      (uppercase(fLine[Run + 2]) = 'L') and
      (uppercase(fLine[Run + 3]) = 'U') and
      (uppercase(fLine[Run + 4]) = 'A') and
@@ -1244,7 +1255,7 @@ begin
     exit;
   end
   else
-  if (Run=0) and (fLine[Run + 1] = '$') and   //{$ASM}
+  if (Run=0) and (l>=6) and (fLine[Run + 1] = '$') and   //{$ASM}
      (uppercase(fLine[Run + 2]) = 'A') and
      (uppercase(fLine[Run + 3]) = 'S') and
      (uppercase(fLine[Run + 4]) = 'M') and
@@ -1253,6 +1264,21 @@ begin
   begin
     FTokenID:=tkIdentifier;
     inc(run,5);
+    exit;
+  end
+  else
+  if (Run=0) and (l>=9) and (fLine[Run + 1] = '$') and   //{$STRICT}
+     (uppercase(fLine[Run + 2]) = 'S') and
+     (uppercase(fLine[Run + 3]) = 'T') and
+     (uppercase(fLine[Run + 4]) = 'R') and
+     (uppercase(fLine[Run + 5]) = 'I') and
+     (uppercase(fLine[Run + 6]) = 'C') and
+     (uppercase(fLine[Run + 7]) = 'T') and
+     (fLine[Run + 8] = '}')
+  then
+  begin
+    FTokenID:=tkIdentifier;
+    inc(run,8);
     exit;
   end
   else

@@ -6,7 +6,7 @@ interface
 
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, LResources, ComCtrls, LuaHandler;
+  Dialogs, StdCtrls, ExtCtrls, LResources, ComCtrls, LuaHandler, CEFuncProc;
 
 type
 
@@ -21,6 +21,8 @@ type
     procedure btnExecuteScriptClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure mLuaScriptChange(Sender: TObject);
     procedure Panel1Resize(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -56,6 +58,17 @@ end;
 procedure TComments.FormCreate(Sender: TObject);
 begin
   pagecontrol1.ActivePage:=tsComment;
+  LoadFormPosition(self);
+end;
+
+procedure TComments.FormDestroy(Sender: TObject);
+begin
+  SaveFormPosition(self);
+end;
+
+procedure TComments.FormShow(Sender: TObject);
+begin
+  memo1.font.height:=GetFontData(font.reference.Handle).Height;
 end;
 
 procedure TComments.mLuaScriptChange(Sender: TObject);
@@ -70,7 +83,7 @@ end;
 
 procedure TComments.Panel1Resize(Sender: TObject);
 begin
-  button1.Left:=(panel1.ClientWidth div 2) - (button1.Width div 2);
+
 end;
 
 procedure TComments.FormClose(Sender: TObject; var Action: TCloseAction);

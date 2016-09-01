@@ -1,100 +1,167 @@
 object frmPasteTableentry: TfrmPasteTableentry
   Left = 730
-  Height = 139
+  Height = 133
   Top = 406
-  Width = 294
-  BorderStyle = bsSingle
+  Width = 330
+  AutoSize = True
   Caption = 'Paste table entries'
-  ClientHeight = 139
-  ClientWidth = 294
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  ClientHeight = 133
+  ClientWidth = 330
+  OnShow = FormShow
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.6.0.4'
   object GroupBox1: TGroupBox
-    Left = 7
-    Height = 105
-    Top = 1
-    Width = 137
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Panel1
+    Left = 0
+    Height = 101
+    Top = 0
+    Width = 163
+    Anchors = [akTop, akLeft, akRight]
+    AutoSize = True
     Caption = 'Description'
-    ClientHeight = 87
-    ClientWidth = 133
+    ClientHeight = 81
+    ClientWidth = 159
     TabOrder = 0
     object Label1: TLabel
-      Left = 8
-      Height = 14
-      Top = 3
-      Width = 57
+      AnchorSideLeft.Control = GroupBox1
+      AnchorSideTop.Control = GroupBox1
+      Left = 0
+      Height = 15
+      Top = 0
+      Width = 63
       Caption = 'Text to find:'
       ParentColor = False
     end
     object Label2: TLabel
-      Left = 8
-      Height = 14
-      Top = 39
-      Width = 66
+      AnchorSideLeft.Control = GroupBox1
+      AnchorSideTop.Control = edtFind
+      AnchorSideTop.Side = asrBottom
+      Left = 0
+      Height = 15
+      Top = 38
+      Width = 70
       Caption = 'Replace with:'
       ParentColor = False
     end
     object edtFind: TEdit
-      Left = 8
-      Height = 21
-      Top = 19
-      Width = 121
+      AnchorSideLeft.Control = GroupBox1
+      AnchorSideTop.Control = Label1
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = GroupBox1
+      AnchorSideRight.Side = asrBottom
+      Left = 3
+      Height = 23
+      Top = 15
+      Width = 153
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Left = 3
+      BorderSpacing.Right = 3
       TabOrder = 0
     end
     object edtReplace: TEdit
-      Left = 8
-      Height = 21
-      Top = 51
-      Width = 121
+      AnchorSideLeft.Control = GroupBox1
+      AnchorSideTop.Control = Label2
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = GroupBox1
+      AnchorSideRight.Side = asrBottom
+      Left = 3
+      Height = 23
+      Top = 53
+      Width = 153
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Left = 3
+      BorderSpacing.Right = 3
+      BorderSpacing.Bottom = 5
       TabOrder = 1
     end
   end
   object GroupBox2: TGroupBox
-    Left = 152
-    Height = 105
+    AnchorSideLeft.Control = Panel1
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = GroupBox1
+    AnchorSideBottom.Side = asrBottom
+    Left = 167
+    Height = 100
     Top = 1
-    Width = 137
+    Width = 163
+    Anchors = [akTop, akLeft, akRight, akBottom]
     Caption = 'Address'
-    ClientHeight = 87
-    ClientWidth = 133
+    ClientHeight = 80
+    ClientWidth = 159
     TabOrder = 1
+    OnClick = GroupBox2Click
     object Label3: TLabel
+      AnchorSideTop.Control = GroupBox2
       Left = 8
-      Height = 14
-      Top = 3
-      Width = 90
+      Height = 15
+      Top = 0
+      Width = 99
       Caption = 'Adjust address by: '
       ParentColor = False
     end
     object edtOffset: TEdit
-      Left = 8
-      Height = 21
-      Top = 19
-      Width = 121
+      AnchorSideLeft.Control = GroupBox2
+      AnchorSideTop.Control = Label3
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = GroupBox2
+      AnchorSideRight.Side = asrBottom
+      Left = 3
+      Height = 23
+      Top = 15
+      Width = 153
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Left = 3
+      BorderSpacing.Right = 3
       TabOrder = 0
       Text = '0'
     end
   end
   object Button1: TButton
-    Left = 69
+    AnchorSideTop.Control = GroupBox1
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Panel1
+    Left = 88
     Height = 25
-    Top = 111
+    Top = 105
     Width = 75
+    Anchors = [akTop, akRight]
+    AutoSize = True
+    BorderSpacing.Top = 4
+    BorderSpacing.Bottom = 4
     Caption = 'Paste'
+    Constraints.MinWidth = 75
     Default = True
     ModalResult = 1
     TabOrder = 2
   end
   object Button2: TButton
-    Left = 152
+    AnchorSideLeft.Control = Panel1
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Button1
+    Left = 167
     Height = 25
-    Top = 111
+    Top = 105
     Width = 75
+    AutoSize = True
     Cancel = True
     Caption = 'Cancel'
+    Constraints.MinWidth = 75
     ModalResult = 2
     TabOrder = 3
+  end
+  object Panel1: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideLeft.Side = asrCenter
+    Left = 163
+    Height = 70
+    Top = 8
+    Width = 4
+    BevelOuter = bvNone
+    TabOrder = 4
   end
 end

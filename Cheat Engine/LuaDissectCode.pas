@@ -13,6 +13,11 @@ implementation
 
 uses DissectCodeThread, luahandler, LuaClass, LuaObject, symbolhandler;
 
+resourcestring
+  rsTheModuleNamed = 'The module named ';
+  rsCouldNotBeFound = ' could not be found';
+  rsInvalidParametersForDissect = 'Invalid parameters for dissect';
+
 function getDissectCode(L: PLua_State): integer; cdecl;
 begin
   if dissectcode=nil then
@@ -46,7 +51,7 @@ begin
       size:=mi.basesize;
     end
     else
-      raise exception.create('The module named '+modulename+' could not be found')
+      raise exception.create(rsTheModuleNamed+modulename+rsCouldNotBeFound)
 
   end
   else
@@ -61,7 +66,7 @@ begin
 
   end
   else
-    raise exception.create('Invalid parameters for dissect');
+    raise exception.create(rsInvalidParametersForDissect);
 
 
   //all date is here, setup a scan config
@@ -142,6 +147,7 @@ var dc: TDissectCodeThread;
     da: tdissectarray;
     i,t: integer;
 begin
+  result:=1;
   dc:=luaclass_getClassObject(L);
   if lua_type(L,1)=LUA_TSTRING then
     address:=symhandler.getAddressFromName(Lua_ToString(L,1))
@@ -163,10 +169,9 @@ begin
       lua_settable(L, t);
     end;
 
-    result:=1;
   end
   else
-    result:=0;
+    lua_pushnil(L);
 
 end;
 
@@ -178,7 +183,7 @@ var dc: TDissectCodeThread;
 
     sr: TStringReference;
 begin
-  result:=0;
+  result:=1;
   dc:=luaclass_getClassObject(L);
 
   s:=TStringList.create;
@@ -199,14 +204,45 @@ begin
       sr.free;
     end;
 
-    result:=1;
-
-  end;
+  end
+  else
+    lua_pushnil(L);
 
   s.free;
 
 end;
 
+function dissectcode_getReferencedFunctions(L: PLua_State): integer; cdecl;
+var
+  dc: TDissectCodeThread;
+  callList: TList;
+  i: integer;
+begin
+  result:=1;
+  dc:=luaclass_getClassObject(L);
+  lua_pop(L, lua_gettop(L));
+
+  callList:=tlist.create;
+  dc.getCallList(callList);
+
+  if callList.count>0 then
+  begin
+    lua_newtable(L);
+
+    for i:=0 to callList.count-1 do
+    begin
+      lua_pushinteger(L, i+1);
+      lua_pushinteger(L, TDissectReference(callList[i]).address);
+      lua_settable(L, -3);
+      TDissectReference(callList[i]).free;
+    end;
+
+  end
+  else
+    lua_pushnil(L);
+
+  callList.free;
+end;
 
 function dissectcode_saveToFile(L: PLua_State): integer; cdecl;
 var dc: TDissectCodeThread;
@@ -260,6 +296,7 @@ begin
 
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getReferences', dissectcode_getReferences);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getReferencedStrings', dissectcode_getReferencedStrings);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getReferencedFunctions', dissectcode_getReferencedFunctions);
 
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'saveToFile', dissectcode_saveToFile);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'loadFromFile', dissectcode_loadFromFile);

@@ -165,6 +165,8 @@ type
     lblPassword: TLabel;
     lblThreadPriority: TLabel;
     lblProgressbar1: TLabel;
+    miDisconnect: TMenuItem;
+    miForceDisconnect: TMenuItem;
     miExportTosqlite: TMenuItem;
     MenuItem2: TMenuItem;
     miImportFromsqlite: TMenuItem;
@@ -187,6 +189,7 @@ type
     Pointerscanner1: TMenuItem;
     Method3Fastspeedandaveragememoryusage1: TMenuItem;   //I should probably rename this, it's not really, 'average memory usage' anymore...
     N1: TMenuItem;
+    miInfoPopup: TPopupMenu;
     ProgressBar1: TProgressBar;
     Rescanmemory1: TMenuItem;
     SaveDialog1: TSaveDialog;
@@ -212,11 +215,15 @@ type
 
     procedure FormDestroy(Sender: TObject);
     procedure FormResize(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure lvResultsColumnClick(Sender: TObject; Column: TListColumn);
     procedure lvResultsResize(Sender: TObject);
+    procedure miDisconnectClick(Sender: TObject);
+    procedure miForceDisconnectClick(Sender: TObject);
     procedure miExportTosqliteClick(Sender: TObject);
     procedure miImportFromsqliteClick(Sender: TObject);
     procedure miCreatePSNnodeClick(Sender: TObject);
+    procedure miInfoPopupPopup(Sender: TObject);
     procedure miMergePointerscanResultsClick(Sender: TObject);
     procedure miResumeClick(Sender: TObject);
     procedure miSetWorkFolderClick(Sender: TObject);
@@ -424,6 +431,13 @@ resourcestring
   rsPSREscanning = 'Rescanning';
   rsPSFindByAddressPart1 = 'Find by address requires an address. "';
   rsPSFindByAddressPart2 = '" is not a valid address';
+  rsAreYouSureYouWishYouForceADisconnect = 'Are you sure you wish you force a disconnect. The current paths will be lost';
+  rsCEInjectedPointerscan = 'CE Injected Pointerscan';
+  rsSelectMaxPtridAsMaxFromPointerfiles = 'Select max(ptrid) as max from pointerfiles';
+  rsSelectNameFromPointerfiles = 'select name from pointerfiles';
+  rsSelectStarFromPointerfilesWhereName = 'select * from pointerfiles where name="';
+  rsSelectCountStarAsCountFromResultsWherePtrid = 'select count(*) as count from results where ptrid=';
+  rsSelectStarFromResultsWherePtrid = 'select * from results where ptrid=';
 
 //----------------------- scanner info --------------------------
 //----------------------- staticscanner -------------------------
@@ -487,6 +501,8 @@ begin
     messagedlg(rsErrorDuringScan+': '+staticscanner.errorString, mtError, [mbok] , 0);
 
   doneui;
+
+  if SkipNextScanSettings then close;
 end;
 
 {
@@ -709,8 +725,10 @@ var
   config: Tfilestream;
   maxlevel: integer;
   structsize: integer;
+  totalpathsevaluated: qword;
   compressedptr: boolean;
   unalligned: boolean;
+  staticonly: boolean;
   noloop: boolean;
   muststartwithbase: boolean;
   LimitToMaxOffsetsPerNode:boolean;
@@ -751,9 +769,10 @@ begin
 
     maxlevel:=config.ReadDWord;
     structsize:=config.ReadDWord;
-   // totalpathsevaluated:=config.ReadQWord; //IGNORED
+    totalpathsevaluated:=config.ReadQWord; //IGNORED
     compressedptr:=config.ReadByte=1;
     unalligned:=config.ReadByte=1;
+    staticonly:=config.ReadByte=1;
     noloop:=config.ReadByte=1;
     muststartwithbase:=config.ReadByte=1;
     LimitToMaxOffsetsPerNode:=config.ReadByte=1;
@@ -816,6 +835,7 @@ begin
       pnlProgress.Visible:=true;
 
       try
+        staticscanner.initializer:=true;
         staticscanner.OnStartScan:=PointerscanStart;
         staticscanner.OnScanDone:=PointerscanDone;
         staticscanner.threadcount:=threadcount;
@@ -824,6 +844,7 @@ begin
         staticscanner.sz:=structsize;
         staticscanner.compressedptr:=compressedptr;
         staticscanner.unalligned:=unalligned;
+        staticscanner.staticonly:=staticonly;
         staticscanner.noLoop:=noloop;
         staticscanner.mustStartWithBase:=muststartwithbase;
         staticscanner.LimitToMaxOffsetsPerNode:=LimitToMaxOffsetsPerNode;
@@ -921,7 +942,6 @@ var
   SkipNextScanSettingsWasTrue: boolean;
 begin
   SkipNextScanSettingsWasTrue:=SkipNextScanSettings;
-  SkipNextScanSettings:=false;
 
   FloatSettings:=DefaultFormatSettings;
 
@@ -937,7 +957,11 @@ begin
 
     if frmpointerscannersettings.rbGeneratePointermap.checked then //show a .scandata dialog instad of a .ptr
     begin
-      if not savedialog2.execute then exit;
+      if not savedialog2.execute then
+      begin
+        if SkipNextScanSettings then close;
+        exit;
+      end;
       filename:=savedialog2.filename;
     end
     else
@@ -1045,12 +1069,6 @@ begin
       staticscanner.progressbar:=progressbar1;
       staticscanner.threadcount:=frmpointerscannersettings.threadcount;
       staticscanner.scannerpriority:=frmpointerscannersettings.scannerpriority;
-       {
-      staticscanner.distributedScanning:=frmpointerscannersettings.cbDistributedScanning.checked;
-      staticscanner.distributedport:=frmpointerscannersettings.distributedPort;
-
-      staticscanner.broadcastThisScanner:=frmpointerscannersettings.cbBroadcast.checked;
-      staticscanner.potentialWorkerList:=frmpointerscannersettings.resolvediplist;    }
 
 
       staticscanner.mustStartWithBase:=frmpointerscannersettings.cbMustStartWithBase.checked;
@@ -1208,6 +1226,37 @@ begin
   end;
 end;
 
+procedure Tfrmpointerscanner.miDisconnectClick(Sender: TObject);
+var childid: integer;
+begin
+  if (tvinfo.Selected<>nil) and (tvinfo.Selected.Data<>nil) then
+  begin
+    childid:=ptruint(tvinfo.Selected.Data);
+
+    if Staticscanner<>nil then
+      Staticscanner.disconnectChild(childid, false);
+
+    miForceDisconnect.Enabled:=true;
+  end;
+end;
+
+procedure Tfrmpointerscanner.miForceDisconnectClick(Sender: TObject);
+var childid: integer;
+begin
+  //disconnect this one
+
+  if MessageDlg(rsAreYouSureYouWishYouForceADisconnect, mtWarning, [mbyes, mbno], 0, mbNo)<>mryes then exit;
+
+  if (tvinfo.Selected<>nil) and (tvinfo.Selected.Data<>nil) then
+  begin
+    childid:=ptruint(tvinfo.Selected.Data);
+
+    if Staticscanner<>nil then
+      Staticscanner.disconnectChild(childid, true);
+  end;
+
+end;
+
 procedure Tfrmpointerscanner.miExportTosqliteClick(Sender: TObject);
 var
   filename: string;
@@ -1316,7 +1365,7 @@ begin
 
       tablenames.free;
 
-      SQLQuery.SQL.Text:='Select ptrid from pointerfiles where name="'+name+'"';
+      SQLQuery.SQL.Text:=rsPSSelectPtridFromPointerFilesWhereName+name+'"';
       SQLQuery.Active:=true;
 
       if SQLQuery.RecordCount>0 then
@@ -1383,7 +1432,7 @@ begin
 
 
 
-      SQLQuery.SQL.Text:='Select max(ptrid) as max from pointerfiles';
+      SQLQuery.SQL.Text:=rsSelectMaxPtridAsMaxFromPointerfiles;
       SQLQuery.Active:=true;
 
       ptrid:=SQLQuery.FieldByName('max').AsString;
@@ -1485,7 +1534,7 @@ begin
     SQLite3.DatabaseName:=filename;
     sqlite3.Connected:=true;
 
-    SQLQuery.SQL.Text:='select name from pointerfiles';
+    SQLQuery.SQL.Text:=rsSelectNameFromPointerfiles;
     SQLQuery.Active:=true;
     if SQLQuery.RecordCount>0 then
     begin
@@ -1525,7 +1574,7 @@ begin
     query2:=nil;
 
 
-    SQLQuery.SQL.Text:='select * from pointerfiles where name="'+name+'"';
+    SQLQuery.SQL.Text:=rsSelectStarFromPointerfilesWhereName+name+'"';
     SQLQuery.Active:=true;
     try
       if (SQLQuery.RecordCount=0) or (SQLQuery.RecordCount>1) then
@@ -1653,13 +1702,13 @@ begin
   }
     importedcount:=0;
 
-    sqlquery.sql.text:='select count(*) as count from results where ptrid='+ptrid;
+    sqlquery.sql.text:=rsSelectCountStarAsCountFromResultsWherePtrid+ptrid;
     SQLQuery.Active:=true;
     totalcount:=SQLQuery.FieldByName('count').AsInteger;
     sqlquery.Active:=false;
 
 
-    sqlquery.sql.text:='select * from results where ptrid='+ptrid;
+    sqlquery.sql.text:=rsSelectStarFromResultsWherePtrid+ptrid;
     SQLQuery.active:=true;
     try
       resultptrfile:=tfilestream.create(filename+'.results.0', fmcreate);
@@ -1821,6 +1870,12 @@ begin
   f.free;
 end;
 
+procedure Tfrmpointerscanner.miInfoPopupPopup(Sender: TObject);
+begin
+  miDisconnect.Visible:=(tvinfo.Selected<>nil) and (tvinfo.Selected.Data<>nil);
+  miForceDisconnect.Visible:=(tvinfo.Selected<>nil) and (tvinfo.Selected.Data<>nil);
+end;
+
 procedure Tfrmpointerscanner.miMergePointerscanResultsClick(Sender: TObject);
 begin
 
@@ -1889,6 +1944,8 @@ begin
       4: scannerpriority:=tpHigher;
       5: scannerpriority:=tpHighest;
       6: scannerpriority:=tpTimeCritical;
+      else
+        scannerpriority:=tpNormal;
     end;
 
     staticscanner.changeWorkerPriority(scannerpriority);
@@ -1909,6 +1966,18 @@ end;
 procedure Tfrmpointerscanner.FormResize(Sender: TObject);
 begin
   btnStopRescanLoop.Left:=(clientwidth div 2) - (btnStopRescanLoop.Width div 2);
+end;
+
+procedure Tfrmpointerscanner.FormShow(Sender: TObject);
+var i: integer;
+begin
+  btnIncreaseThreadCount.autosize:=false;
+  btnDecreaseThreadCount.autosize:=false;
+
+  i:=max( btnIncreaseThreadCount.width, btnDecreaseThreadCount.width);
+  i:=max(i, pnlControl.ClientWidth-2);
+  btnIncreaseThreadCount.width:=i;
+  btnDecreaseThreadCount.width:=i;
 end;
 
 procedure Tfrmpointerscanner.lvResultsColumnClick(Sender: TObject; Column: TListColumn);
@@ -2279,6 +2348,7 @@ begin
           end;
 
           infonodes.network.connectedToNodes[i].node.Text:=s;
+          infonodes.network.connectedToNodes[i].node.Data:=pointer(ptruint(connectionlist[i].childid));
 
           with infonodes.network.connectedToNodes[i].data do
           begin
@@ -2393,8 +2463,10 @@ function TRescanWorker.isMatchToValue(p:pointer): boolean;
 begin
   case valuetype of
     vtDword: result:=pdword(p)^=valuescandword;
-    vtSingle: result:=(psingle(p)^>=valuescansingle) and (psingle(p)^<valuescansinglemax);
-    vtDouble: result:=(pdouble(p)^>=valuescandouble) and (pdouble(p)^<valuescandoublemax);
+    vtSingle: result:=(psingle(p)^>=valuescansingle) and (psingle(p)^<=valuescansinglemax);
+    vtDouble: result:=(pdouble(p)^>=valuescandouble) and (pdouble(p)^<=valuescandoublemax);
+    else
+      result:=false;
   end;
 end;
 
@@ -3360,7 +3432,7 @@ begin
 
 
   {$ifdef injectedpscan}
-  caption:='CE Injected Pointerscan';
+  caption:=rsCEInjectedPointerscan;
   {$endif}
   lvResults.DoubleBuffered:=true;
 

@@ -1,53 +1,95 @@
 object frmbreakthread: Tfrmbreakthread
   Left = 466
-  Height = 204
+  Height = 188
   Top = 226
-  Width = 439
+  Width = 402
+  AutoSize = True
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Break Thread'
-  ClientHeight = 204
-  ClientWidth = 439
-  Font.Height = -14
-  Font.Name = 'MS Sans Serif'
+  ClientHeight = 188
+  ClientWidth = 402
   OnCreate = FormCreate
+  OnShow = FormShow
+  PopupMode = pmAuto
   Position = poOwnerFormCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.6.0.4'
   object Label1: TLabel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
     Left = 6
-    Height = 17
+    Height = 15
     Top = 0
-    Width = 429
+    Width = 380
+    BorderSpacing.Left = 6
+    BorderSpacing.Right = 6
     Caption = 'This process has more than 1 thread. Select the thread you wish to break'
     ParentColor = False
   end
   object Threadlistbox: TListBox
+    AnchorSideLeft.Control = Label1
+    AnchorSideTop.Control = Label1
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
     Left = 6
     Height = 139
-    Top = 20
-    Width = 427
+    Top = 15
+    Width = 390
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Right = 6
     ItemHeight = 0
     OnDblClick = ThreadlistboxDblClick
     TabOrder = 0
   end
   object Button1: TButton
-    Left = 118
-    Height = 31
-    Top = 167
-    Width = 92
+    AnchorSideTop.Control = Threadlistbox
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Panel1
+    Left = 128
+    Height = 26
+    Top = 157
+    Width = 68
+    Anchors = [akTop, akRight]
+    AutoSize = True
+    BorderSpacing.Top = 3
+    BorderSpacing.Bottom = 3
     Caption = 'OK'
+    Constraints.MinHeight = 26
+    Constraints.MinWidth = 68
     Default = True
     OnClick = Button1Click
     TabOrder = 1
   end
   object Button2: TButton
-    Left = 236
-    Height = 31
-    Top = 167
-    Width = 93
+    AnchorSideLeft.Control = Panel1
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Threadlistbox
+    AnchorSideTop.Side = asrBottom
+    Left = 206
+    Height = 26
+    Top = 157
+    Width = 68
+    AutoSize = True
+    BorderSpacing.Top = 3
+    BorderSpacing.Bottom = 3
     Cancel = True
     Caption = 'Cancel'
+    Constraints.MinHeight = 26
+    Constraints.MinWidth = 68
     ModalResult = 2
     TabOrder = 2
+  end
+  object Panel1: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = Threadlistbox
+    AnchorSideTop.Side = asrBottom
+    Left = 196
+    Height = 32
+    Top = 154
+    Width = 10
+    BevelOuter = bvNone
+    TabOrder = 3
   end
 end

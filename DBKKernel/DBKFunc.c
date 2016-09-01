@@ -52,7 +52,7 @@ calls a specific function for each cpu that runs in passive mode
 
 
 			
-			DbgPrint("Calling passive function for cpunr %d\n", cpunr);
+			//DbgPrint("Calling passive function for cpunr %d\n", cpunr);
 			//set affinity
 
 			newaffinity=(KAFFINITY)(1 << cpunr);
@@ -126,7 +126,7 @@ calls a specified dpcfunction for each cpu on the system
 		{
 			//bit is set
 			
-			DbgPrint("Calling dpc routine for cpunr %d\n", cpunr);
+			//DbgPrint("Calling dpc routine for cpunr %d\n", cpunr);
 
 			KeInitializeDpc(&dpc[dpcnr], dpcfunction, DeferredContext);
 			KeSetTargetProcessorDpc (&dpc[dpcnr], cpunr);
@@ -138,6 +138,61 @@ calls a specified dpcfunction for each cpu on the system
 		cpus=cpus / 2;
 		cpunr++;
 	}
+
+
+	ExFreePool(dpc);
+}
+
+
+void forEachCpuAsync(PKDEFERRED_ROUTINE dpcfunction, PVOID DeferredContext, PVOID  SystemArgument1, PVOID  SystemArgument2)
+/*
+calls a specified dpcfunction for each cpu on the system
+*/
+{
+	CCHAR cpunr;
+	KAFFINITY cpus;
+	ULONG cpucount;
+	PKDPC dpc;
+	int dpcnr;
+
+
+	//KeIpiGenericCall is not present in xp
+
+	//count cpus first KeQueryActiveProcessorCount is not present in xp)
+	cpucount = 0;
+	cpus = KeQueryActiveProcessors();
+	while (cpus)
+	{
+		if (cpus % 2)
+			cpucount++;
+
+		cpus = cpus / 2;
+	}
+
+	dpc = ExAllocatePool(NonPagedPool, sizeof(KDPC)*cpucount);
+
+	cpus = KeQueryActiveProcessors();
+	cpunr = 0;
+	dpcnr = 0;
+	while (cpus)
+	{
+		if (cpus % 2)
+		{
+			//bit is set
+
+			//DbgPrint("Calling dpc routine for cpunr %d\n", cpunr);
+
+			KeInitializeDpc(&dpc[dpcnr], dpcfunction, DeferredContext);
+			KeSetTargetProcessorDpc(&dpc[dpcnr], cpunr);
+			KeInsertQueueDpc(&dpc[dpcnr], SystemArgument1, SystemArgument2);			
+			dpcnr++;
+		}
+
+		cpus = cpus / 2;
+		cpunr++;
+	}
+
+	KeFlushQueuedDpcs();
 
 
 	ExFreePool(dpc);

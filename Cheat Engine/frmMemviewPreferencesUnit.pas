@@ -76,9 +76,10 @@ begin
   lblSymbol.font.name:=fontdialog1.Font.Name;
   lblSymbol.font.size:=fontdialog1.Font.size;
 
-  lblregister.Top:=lblNormal.top+lblNormal.height+2;
-  lblSymbol.Top:=lblregister.top+lblregister.height+2;
-  lblHex.top:=lblSymbol.top+lblregister.height+2;
+  lblHex.font.name:=FontDialog1.font.name;
+  lblHex.Font.size:=fontdialog1.Font.Size;
+
+  DoAutoSize;
 end;
 
 procedure TfrmMemviewPreferences.FormCreate(Sender: TObject);
@@ -148,9 +149,19 @@ begin
 
   fontdialog1.font.Charset:=DEFAULT_CHARSET;
   fontdialog1.font.Color:=clwindowText;
-  fontdialog1.font.Height:=-11;
-  fontdialog1.font.Name:='Courier';
+  fontdialog2.font.Size:=10;
+  fontdialog1.font.Name:='MS Sans Serif';
   fontdialog1.font.Style:=[];
+
+  fontdialog2.font.Charset:=DEFAULT_CHARSET;
+  fontdialog2.font.Color:=clwindowText;
+  fontdialog2.font.Height:=-11;
+  fontdialog2.font.Size:=10;
+  fontdialog2.font.Name:='Courier';
+  fontdialog2.font.Style:=[];
+
+
+
 
   applyfont;
 end;

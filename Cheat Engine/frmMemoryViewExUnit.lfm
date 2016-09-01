@@ -1,21 +1,24 @@
 object frmMemoryViewEx: TfrmMemoryViewEx
   Left = 497
-  Height = 453
+  Height = 482
   Top = 230
-  Width = 884
+  Width = 836
   Caption = 'Graphical Memory View '
-  ClientHeight = 453
-  ClientWidth = 884
+  ClientHeight = 482
+  ClientWidth = 836
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poScreenCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object Panel1: TPanel
     Left = 0
-    Height = 274
-    Top = 16
-    Width = 680
+    Height = 355
+    Top = 15
+    Width = 690
+    Align = alClient
     BevelOuter = bvNone
+    Color = clLime
+    ParentColor = False
     TabOrder = 0
     OnDblClick = Panel1DblClick
   end
@@ -23,164 +26,234 @@ object frmMemoryViewEx: TfrmMemoryViewEx
     Left = 0
     Height = 15
     Top = 0
-    Width = 45
+    Width = 836
+    Align = alTop
     Caption = 'Address:'
     ParentColor = False
   end
-  object tbPitch: TTrackBar
-    Left = 696
-    Height = 25
-    Top = 64
-    Width = 136
-    Max = 2048
-    Min = 4
-    OnChange = tbPitchChange
-    Position = 32
+  object Panel2: TPanel
+    Left = 690
+    Height = 355
+    Top = 15
+    Width = 146
+    Align = alRight
+    AutoSize = True
+    BevelOuter = bvNone
+    ClientHeight = 355
+    ClientWidth = 146
     TabOrder = 1
+    object tbPitch: TTrackBar
+      AnchorSideLeft.Control = Label2
+      AnchorSideTop.Control = edtPitch
+      AnchorSideTop.Side = asrBottom
+      Left = 5
+      Height = 25
+      Top = 38
+      Width = 136
+      Max = 2048
+      Min = 4
+      OnChange = tbPitchChange
+      Position = 32
+      TabOrder = 0
+    end
+    object edtPitch: TEdit
+      AnchorSideLeft.Control = Label2
+      AnchorSideTop.Control = Label2
+      AnchorSideTop.Side = asrBottom
+      Left = 5
+      Height = 23
+      Hint = 'Number of bytes a row exists out'
+      Top = 15
+      Width = 80
+      OnChange = edtPitchChange
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 1
+      Text = '32'
+    end
+    object Label2: TLabel
+      AnchorSideLeft.Control = Panel2
+      AnchorSideTop.Control = Panel2
+      Left = 5
+      Height = 15
+      Top = 0
+      Width = 71
+      BorderSpacing.Left = 5
+      Caption = 'Pixels per line'
+      ParentColor = False
+    end
+    object cbColor: TComboBox
+      AnchorSideLeft.Control = Label3
+      AnchorSideTop.Control = Label3
+      AnchorSideTop.Side = asrBottom
+      Left = 5
+      Height = 23
+      Top = 88
+      Width = 136
+      BorderSpacing.Right = 5
+      ItemHeight = 15
+      ItemIndex = 2
+      Items.Strings = (
+        'Dithered (1 Byte/pixel)'
+        'RGA (3 Bytes/Pixel)'
+        'RGBA (4 Bytes/Pixel)'
+      )
+      OnChange = cbColorChange
+      Style = csDropDownList
+      TabOrder = 2
+      Text = 'RGBA (4 Bytes/Pixel)'
+    end
+    object Label3: TLabel
+      AnchorSideLeft.Control = tbPitch
+      AnchorSideTop.Control = tbPitch
+      AnchorSideTop.Side = asrBottom
+      Left = 5
+      Height = 15
+      Top = 73
+      Width = 29
+      BorderSpacing.Top = 10
+      Caption = 'Color'
+      ParentColor = False
+    end
   end
-  object edtPitch: TEdit
-    Left = 696
-    Height = 23
-    Hint = 'Number of bytes a row exists out'
-    Top = 32
-    Width = 80
-    OnChange = edtPitchChange
-    ParentShowHint = False
-    ShowHint = True
+  object Panel3: TPanel
+    Left = 0
+    Height = 112
+    Top = 370
+    Width = 836
+    Align = alBottom
+    AutoSize = True
+    BevelOuter = bvNone
+    ClientHeight = 112
+    ClientWidth = 836
     TabOrder = 2
-    Text = '32'
-  end
-  object Label2: TLabel
-    Left = 696
-    Height = 15
-    Top = 16
-    Width = 71
-    Caption = 'Pixels per line'
-    ParentColor = False
-  end
-  object cbAddresslistOnly: TCheckBox
-    Left = 8
-    Height = 19
-    Top = 328
-    Width = 182
-    Caption = 'Only show addresslist memory'
-    OnChange = cbAddresslistOnlyChange
-    TabOrder = 3
-  end
-  object cbAddresslist: TComboBox
-    Left = 8
-    Height = 23
-    Top = 352
-    Width = 182
-    Enabled = False
-    ItemHeight = 15
-    ItemIndex = 0
-    Items.Strings = (
-      'Current Memory'
-      'Last Scan'
-      'First'
-      'Undo'
-      'Saved X'
-      'Saved Y'
-    )
-    OnChange = cbAddresslistChange
-    OnDropDown = cbAddresslistDropDown
-    Style = csDropDownList
-    TabOrder = 4
-    Text = 'Current Memory'
-  end
-  object rbOr: TRadioButton
-    Left = 148
-    Height = 19
-    Top = 376
-    Width = 33
-    Caption = 'Or'
-    Checked = True
-    Enabled = False
-    OnChange = cbSavedListChange
-    TabOrder = 9
-    TabStop = True
-  end
-  object rbAnd: TRadioButton
-    Left = 148
-    Height = 19
-    Top = 394
-    Width = 42
-    Caption = 'And'
-    Enabled = False
-    OnChange = cbSavedListChange
-    TabOrder = 5
-  end
-  object rbXor: TRadioButton
-    Left = 148
-    Height = 19
-    Top = 410
-    Width = 38
-    Caption = 'Xor'
-    Enabled = False
-    OnChange = cbSavedListChange
-    TabOrder = 6
-  end
-  object cbSavedList: TComboBox
-    Left = 8
-    Height = 23
-    Top = 400
-    Width = 128
-    Enabled = False
-    ItemHeight = 15
-    ItemIndex = 0
-    Items.Strings = (
-      'Current Memory'
-      'Last Scan'
-      'First'
-      'Undo'
-      'Saved X'
-      'Saved Y'
-    )
-    OnChange = cbSavedListChange
-    OnDropDown = cbAddresslistDropDown
-    Style = csDropDownList
-    TabOrder = 7
-    Text = 'Current Memory'
-  end
-  object cbCompare: TCheckBox
-    Left = 8
-    Height = 19
-    Top = 376
-    Width = 110
-    Caption = 'Compare against'
-    OnChange = cbCompareChange
-    TabOrder = 8
-  end
-  object cbColor: TComboBox
-    Left = 696
-    Height = 23
-    Top = 120
-    Width = 136
-    ItemHeight = 15
-    ItemIndex = 2
-    Items.Strings = (
-      'Dithered (1 Byte/pixel)'
-      'RGA (3 Bytes/Pixel)'
-      'RGBA (4 Bytes/Pixel)'
-    )
-    OnChange = cbColorChange
-    Style = csDropDownList
-    TabOrder = 10
-    Text = 'RGBA (4 Bytes/Pixel)'
-  end
-  object Label3: TLabel
-    Left = 696
-    Height = 15
-    Top = 104
-    Width = 29
-    Caption = 'Color'
-    ParentColor = False
+    object cbAddresslistOnly: TCheckBox
+      AnchorSideTop.Control = Panel3
+      Left = 4
+      Height = 19
+      Top = 5
+      Width = 182
+      BorderSpacing.Left = 4
+      BorderSpacing.Top = 5
+      Caption = 'Only show addresslist memory'
+      OnChange = cbAddresslistOnlyChange
+      TabOrder = 0
+    end
+    object cbAddresslist: TComboBox
+      AnchorSideTop.Control = cbAddresslistOnly
+      AnchorSideTop.Side = asrBottom
+      Left = 4
+      Height = 23
+      Top = 24
+      Width = 182
+      Enabled = False
+      ItemHeight = 15
+      ItemIndex = 0
+      Items.Strings = (
+        'Current Memory'
+        'Last Scan'
+        'First'
+        'Undo'
+        'Saved X'
+        'Saved Y'
+      )
+      OnChange = cbAddresslistChange
+      OnDropDown = cbAddresslistDropDown
+      Style = csDropDownList
+      TabOrder = 1
+      Text = 'Current Memory'
+    end
+    object cbSavedList: TComboBox
+      AnchorSideTop.Control = cbCompare
+      AnchorSideTop.Side = asrBottom
+      Left = 4
+      Height = 23
+      Top = 70
+      Width = 128
+      Enabled = False
+      ItemHeight = 15
+      ItemIndex = 0
+      Items.Strings = (
+        'Current Memory'
+        'Last Scan'
+        'First'
+        'Undo'
+        'Saved X'
+        'Saved Y'
+      )
+      OnChange = cbSavedListChange
+      OnDropDown = cbAddresslistDropDown
+      Style = csDropDownList
+      TabOrder = 2
+      Text = 'Current Memory'
+    end
+    object cbCompare: TCheckBox
+      AnchorSideTop.Control = cbAddresslist
+      AnchorSideTop.Side = asrBottom
+      Left = 4
+      Height = 19
+      Top = 51
+      Width = 110
+      BorderSpacing.Top = 4
+      Caption = 'Compare against'
+      OnChange = cbCompareChange
+      TabOrder = 3
+    end
+    object Panel4: TPanel
+      AnchorSideLeft.Control = cbSavedList
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = cbCompare
+      Left = 144
+      Height = 57
+      Top = 51
+      Width = 42
+      AutoSize = True
+      BorderSpacing.Left = 12
+      BorderSpacing.Bottom = 4
+      BevelOuter = bvNone
+      ChildSizing.Layout = cclLeftToRightThenTopToBottom
+      ChildSizing.ControlsPerLine = 1
+      ClientHeight = 57
+      ClientWidth = 42
+      TabOrder = 4
+      object rbOr: TRadioButton
+        Left = 0
+        Height = 19
+        Top = 0
+        Width = 42
+        Caption = 'Or'
+        Checked = True
+        Enabled = False
+        OnChange = cbSavedListChange
+        TabOrder = 0
+        TabStop = True
+      end
+      object rbAnd: TRadioButton
+        Left = 0
+        Height = 19
+        Top = 19
+        Width = 42
+        Caption = 'And'
+        Enabled = False
+        OnChange = cbSavedListChange
+        TabOrder = 1
+      end
+      object rbXor: TRadioButton
+        Left = 0
+        Height = 19
+        Top = 38
+        Width = 42
+        Caption = 'Xor'
+        Enabled = False
+        OnChange = cbSavedListChange
+        TabOrder = 2
+      end
+    end
   end
   object Timer1: TTimer
     OnTimer = Timer1Timer
-    left = 464
-    top = 344
+    left = 608
+    top = 320
   end
   object pmMemview: TPopupMenu
     left = 72

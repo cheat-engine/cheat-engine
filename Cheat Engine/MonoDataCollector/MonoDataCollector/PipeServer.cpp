@@ -2,6 +2,7 @@
 #include "PipeServer.h"
 
 BOOL ExpectingAccessViolations = FALSE;
+DWORD ExpectingAccessViolationsThread = 0;
 
 void ErrorThrow(void)
 {
@@ -10,10 +11,10 @@ void ErrorThrow(void)
 
 LONG NTAPI ErrorFilter(struct _EXCEPTION_POINTERS *ExceptionInfo)
 {
-	if ((ExpectingAccessViolations) && (ExceptionInfo->ExceptionRecord->ExceptionCode == 0xc0000005))
+	if ((ExpectingAccessViolations) && (GetCurrentThreadId() == ExpectingAccessViolationsThread) && (ExceptionInfo->ExceptionRecord->ExceptionCode == 0xc0000005))
 	{
 #ifdef _AMD64_
-		ExceptionInfo->ContextRecord->Rip = (DWORD)ErrorThrow;
+		ExceptionInfo->ContextRecord->Rip = (UINT_PTR)ErrorThrow;
 #else
 		ExceptionInfo->ContextRecord->Eip = (DWORD)ErrorThrow;
 #endif
@@ -260,7 +261,7 @@ void CPipeServer::Object_GetClass()
 	//OutputDebugStringA("MONOCMD_OBJECT_GETCLASS");
 
 
-	ExpectingAccessViolations = TRUE; //cause access violations to throw an exception
+	//ExpectingAccessViolations = TRUE; //cause access violations to throw an exception
 	try
 	{
 		unsigned int i;
@@ -296,7 +297,7 @@ void CPipeServer::Object_GetClass()
 		WriteQword(0); //failure. Invalid object
 	}
 
-	ExpectingAccessViolations = FALSE; //back to normal behaviour
+	//ExpectingAccessViolations = FALSE; //back to normal behaviour
 }
 
 void _cdecl DomainEnumerator(void *domain, std::vector<UINT64> *v)
@@ -947,17 +948,31 @@ void CPipeServer::LoadAssemblyFromFile(void)
 
 void CPipeServer::GetFullTypeName(void)
 {
-	void *klass = (void *)ReadQword();
-	char isKlass = ReadByte();
-	void *ptype = klass && isKlass ? mono_class_get_type(klass) : klass;
-	int nameformat = ReadDword();
-	char *fullname = ptype && mono_type_get_name_full ? mono_type_get_name_full(ptype, nameformat) : NULL;
-	if (fullname) {
-		WriteWord(strlen(fullname));
-		Write(fullname, strlen(fullname));
-	} else {
-		WriteWord(0);
+	//ExpectingAccessViolations = TRUE;
+
+	try
+	{
+		void *klass = (void *)ReadQword();
+		char isKlass = ReadByte();
+		void *ptype = klass && isKlass ? mono_class_get_type(klass) : klass;
+		int nameformat = ReadDword();
+		char *fullname = ptype && mono_type_get_name_full ? mono_type_get_name_full(ptype, nameformat) : NULL;
+		if (fullname) {
+			WriteWord(strlen(fullname));
+			Write(fullname, strlen(fullname));
+		}
+		else {
+			WriteWord(0);
+		}
 	}
+	catch (...)
+	{
+		OutputDebugStringA("GetFullTypeName exception\n");
+		WriteWord(0);		
+	}
+	//ExpectingAccessViolations = FALSE;
+
+		
 }
 
 void CPipeServer::Start(void)
@@ -972,6 +987,10 @@ void CPipeServer::Start(void)
 			while (TRUE)
 			{
 				command = ReadByte();
+
+				ExpectingAccessViolations = TRUE;
+				ExpectingAccessViolationsThread = GetCurrentThreadId();
+
 
 				switch (command)
 				{
@@ -1106,6 +1125,8 @@ void CPipeServer::Start(void)
 					GetFullTypeName();
 					break;
 				}
+
+				ExpectingAccessViolations = FALSE;
 			}
 		}
 		catch (char *e)

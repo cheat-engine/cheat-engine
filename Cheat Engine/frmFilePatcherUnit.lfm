@@ -1,14 +1,15 @@
 object frmFilePatcher: TfrmFilePatcher
   Left = 547
-  Height = 247
+  Height = 230
   Top = 283
   Width = 320
   BorderStyle = bsSingle
   Caption = 'File patcher'
-  ClientHeight = 247
+  ClientHeight = 230
   ClientWidth = 320
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.6.0.4'
   object rbAuto: TRadioButton
     Left = 0
     Height = 19
@@ -33,7 +34,7 @@ object frmFilePatcher: TfrmFilePatcher
   end
   object lblFilename: TLabel
     Left = 0
-    Height = 16
+    Height = 15
     Top = 126
     Width = 320
     Align = alTop
@@ -44,17 +45,19 @@ object frmFilePatcher: TfrmFilePatcher
   object edtBaseAddress: TEdit
     Left = 0
     Height = 23
-    Top = 184
-    Width = 128
+    Top = 179
+    Width = 320
+    Align = alTop
     Enabled = False
     TabOrder = 1
     Text = '00400000'
   end
   object lblBaseAddress: TLabel
     Left = 0
-    Height = 16
-    Top = 168
-    Width = 136
+    Height = 15
+    Top = 164
+    Width = 320
+    Align = alTop
     Caption = 'Base address (MZ header)'
     Enabled = False
     ParentColor = False
@@ -62,22 +65,25 @@ object frmFilePatcher: TfrmFilePatcher
   object filename: TFileNameEdit
     Left = 0
     Height = 23
-    Top = 144
-    Width = 296
+    Top = 141
+    Width = 320
     DialogOptions = []
     FilterIndex = 0
     HideDirectories = False
     ButtonWidth = 23
-    NumGlyphs = 0
+    NumGlyphs = 1
+    Align = alTop
     Enabled = False
     MaxLength = 0
     TabOrder = 2
   end
   object Button1: TButton
-    Left = 128
+    Left = 0
     Height = 25
-    Top = 216
-    Width = 75
+    Top = 202
+    Width = 320
+    Align = alTop
+    AutoSize = True
     Caption = 'Patch'
     OnClick = Button1Click
     TabOrder = 3

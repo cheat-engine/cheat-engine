@@ -684,7 +684,7 @@ begin
       end;
 
       if application.Terminated then
-        ExitProcess(-1); //there's nothing to return to...
+        ExitProcess(UINT(-1)); //there's nothing to return to...
 
       LuaDebugForm.mScript.ReadOnly:=false;
 

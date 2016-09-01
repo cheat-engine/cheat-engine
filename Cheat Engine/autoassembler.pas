@@ -33,9 +33,10 @@ end;
 
 procedure RegisterAutoAssemblerCommand(command: string; callback: TAutoAssemblerCallback);
 procedure UnregisterAutoAssemblerCommand(command: string);
-function registerAutoAssemblerPrologue(m: TAutoAssemblerPrologue): integer;
+function registerAutoAssemblerPrologue(m: TAutoAssemblerPrologue; postAOBSCAN: boolean=false): integer;
 procedure unregisterAutoAssemblerPrologue(id: integer);
 
+var oldaamessage: boolean;
 
 implementation
 
@@ -47,7 +48,8 @@ uses strutils, memscan, disassembler, networkInterface, networkInterfaceApi,
 
 {$ifdef windows}
 uses simpleaobscanner, StrUtils, LuaHandler, memscan, disassembler, networkInterface,
-     networkInterfaceApi, LuaCaller, SynHighlighterAA, Parsers, Globals, memoryQuery;
+     networkInterfaceApi, LuaCaller, SynHighlighterAA, Parsers, Globals, memoryQuery,
+     MemoryBrowserFormUnit;
 {$endif}
 
 
@@ -77,6 +79,8 @@ resourcestring
   rsTheArrayOfByteCouldNotBeFound = 'The array of byte ''%s'' could not be found';
   rsWrongSyntaxAOBSCANName11223355 = 'Wrong syntax. AOBSCAN(name,11 22 33 ** 55)';
   rsWrongSyntaxAOBSCANMODULEName11223355 = 'Wrong syntax. AOBSCANMODULE(name, module, 11 22 33 ** 55)';
+  rsWrongSyntaxAOBSCANREGION = 'Wrong syntax. AOBSCANREGION(name, startaddress, stopaddress, 11 22 33 ** 55)';
+
 
   rsDefineAlreadyDefined = 'Define %s already defined';
   rsWrongSyntaxDEFINENameWhatever = 'Wrong syntax. DEFINE(name,whatever)';
@@ -116,37 +120,67 @@ resourcestring
   rsAAError = 'Error: ';
   rsAAModuleNotFound = 'module not found:';
   rsAALuaErrorInTheScriptAtLine = 'Lua error in the script at line ';
+  rsGoTo = 'Go to ';
 
 //type
 //  TregisteredAutoAssemblerCommands =  TFPGList<TRegisteredAutoAssemblerCommand>;
 
+type
+  TAutoAssemblerPrologues=array of TAutoAssemblerPrologue;
+  PAutoAssemblerPrologues=^TAutoAssemblerPrologues;
 var
   registeredAutoAssemblerCommands: TList;
 
-  AutoAssemblerPrologues: array of TAutoAssemblerPrologue;
+  AutoAssemblerPrologues: TAutoAssemblerPrologues;
+  AutoAssemblerProloguesPostAOBSCAN: TAutoAssemblerPrologues;
 
-function registerAutoAssemblerPrologue(m: TAutoAssemblerPrologue): integer;
+function registerAutoAssemblerPrologue(m: TAutoAssemblerPrologue; postAOBSCAN: boolean=false): integer;
 var i: integer;
+    prologues: PAutoAssemblerPrologues;
 begin
-  for i:=0 to length(AutoAssemblerPrologues)-1 do
+  if postAOBSCAN then prologues:=@AutoAssemblerProloguesPostAOBSCAN
+                 else prologues:=@AutoAssemblerPrologues;
+  for i:=0 to length(prologues^)-1 do
   begin
-    if assigned(AutoAssemblerPrologues[i])=false then
+    if assigned(prologues^[i])=false then
     begin
-      AutoAssemblerPrologues[i]:=m;
-      result:=i;
+      prologues^[i]:=m;
+      result:=i+1;
+
+      if postAOBSCAN then
+        result:=-result;
+
       exit;
     end
   end;
 
-  result:=length(AutoAssemblerPrologues);
-  setlength(AutoAssemblerPrologues, result+1);
-  AutoAssemblerPrologues[result]:=m;
+  result:=length(prologues^)+1;  //first one is id 1
+  setlength(prologues^, result);
+  prologues^[result-1]:=m;
+
+  if postAOBSCAN then
+    result:=-result; //first one is id -1
 end;
 
 procedure unregisterAutoAssemblerPrologue(id: integer);
+var
+  prologues: PAutoAssemblerPrologues;
 begin
-  if id<length(AutoAssemblerPrologues) then
-    AutoAssemblerPrologues[id]:=nil;
+  if id=0 then exit; //does not exist
+
+  if id<0 then
+  begin
+    prologues:=@AutoAssemblerProloguesPostAOBSCAN;
+    id:=-id;
+  end
+  else
+    prologues:=@AutoAssemblerPrologues;
+
+  if id<=length(prologues^) then
+  begin
+    CleanupLuaCall(TMethod(prologues^[id-1]));
+    prologues^[id-1]:=nil;
+  end;
 end;
 
 procedure RegisterAutoAssemblerCommand(command: string; callback: TAutoAssemblerCallback);
@@ -157,16 +191,9 @@ begin
   if registeredAutoAssemblerCommands=nil then
     registeredAutoAssemblerCommands:=TList.Create;
 
-  command:=uppercase(command);
-  for i:=0 to registeredAutoAssemblerCommands.Count-1 do
-    if TRegisteredAutoAssemblerCommand(registeredAutoAssemblerCommands[i]).command=command then
-    begin
-      //update
-      CleanupLuaCall(tmethod(TRegisteredAutoAssemblerCommand(registeredAutoAssemblerCommands[i]).callback));
-      TRegisteredAutoAssemblerCommand(registeredAutoAssemblerCommands[i]).callback:=nil;//TAutoAssemblerCallback(callback);
-      exit;
-    end;
+  UnregisterAutoAssemblerCommand(command);
 
+  command:=uppercase(command);
   c:=TRegisteredAutoAssemblerCommand.create;
   c.command:=command;
   c.callback:=callback;
@@ -252,12 +279,12 @@ begin
   result:=input;
   tokens:=tstringlist.Create;
   try
-    tokenize(input,tokens);
-    for i:=0 to tokens.Count-1 do
+    tokenize(result,tokens);
+    for i:=tokens.Count-1 downto 0 do
       if tokens[i]=token then
       begin
         j:=integer(tokens.Objects[i]);
-        result:=copy(input,1,j-1)+replacewith+copy(input,j+length(token),length(input));
+        result:=copy(result,1,j-1)+replacewith+copy(result,j+length(token),length(result));
       end;
 
   finally
@@ -496,7 +523,10 @@ begin
   begin
     currentline:=trim(code[i]);
     if (currentline<>'') and (currentline[length(currentline)]=':') then
-      labels.add(copy(currentline,1,length(currentline)-1));
+    begin
+      if (pos('+', currentline)=0) and (pos('.', currentline)=0) then
+        labels.add(copy(currentline,1,length(currentline)-1));
+    end;
   end;
 end;
 
@@ -505,6 +535,7 @@ var i,j: integer;
     currentline: string;
     instring: boolean;
     incomment: boolean;
+    bracecomment: boolean;
 begin
   //remove comments
   instring:=false;
@@ -517,13 +548,15 @@ begin
     begin
       if incomment then
       begin
+
+
         //inside a comment, remove everything till a } is encountered
-        if ((currentline[j]='}') and (processhandler.SystemArchitecture<>archArm)) or
-           ((currentline[j]='*') and (j<length(currentline)) and (currentline[j+1]='/')) then
+        if (bracecomment and ((currentline[j]='}') and (processhandler.SystemArchitecture<>archArm))) or
+           ((not bracecomment) and (currentline[j]='*') and (j<length(currentline)) and (currentline[j+1]='/')) then
         begin
           incomment:=false; //and continue parsing the code...
 
-          if ((currentline[j]='*') and (j<length(currentline)) and (currentline[j+1]='/')) then
+          if (not bracecomment) then
             currentline[j+1]:=' ';
         end;
 
@@ -548,6 +581,8 @@ begin
              ((currentline[j]='/') and (j<length(currentline)) and (currentline[j+1]='*')) then
           begin
             incomment:=true;
+            bracecomment:=currentline[j]='{';
+
             currentline[j]:=' '; //replace from here till the first } with spaces, this goes on for multiple lines
           end;
         end;
@@ -678,9 +713,9 @@ var i,j,k, m: integer;
       memscan: TMemScan;
     end;
 
-    a,b,c,d: integer;
+    a,b,c,d,e: integer;
     currentline: string;
-    s1,s2, s3: string;
+    s1,s2, s3,s4: string;
     testptr: ptruint;
 
     cpucount: integer;
@@ -692,6 +727,8 @@ var i,j,k, m: integer;
     errorstring: string;
 
     aob1, aob2: dword;
+
+    startaddress, stopaddress: ptruint;
 
   procedure finished(f: integer);
   //cleanup a memscan and fill in the results
@@ -804,7 +841,7 @@ begin
                 aobscanmodules[m].maxaddress:=$7fffffff;
             end;
 
-            aobscanmodules[m].maxaddress:=$ffffffffffffffff;
+            aobscanmodules[m].maxaddress:=qword($ffffffffffffffff);
             setlength(aobscanmodules[m].entries,0); //shouldn't be needed, but do it anyhow
           end;
 
@@ -835,7 +872,7 @@ begin
       if (a>0) and (b>0) and (c>0) then
       begin
         s1:=trim(copy(currentline,a+1,b-a-1));
-        s2:=uppercase(trim(copy(currentline,b+1,c-b-1)));
+        s2:=trim(copy(currentline,b+1,c-b-1));
         s3:=trim(copy(currentline,c+1,d-c-1));
 
         //s1=varname
@@ -847,7 +884,7 @@ begin
           //find the s2 module
           m:=-1;
           for j:=0 to length(aobscanmodules)-1 do
-            if aobscanmodules[j].name=s2 then
+            if aobscanmodules[j].name=uppercase(s2) then
             begin
               m:=j;
               break;
@@ -858,14 +895,26 @@ begin
             setlength(aobscanmodules, length(aobscanmodules)+1);
             m:=length(aobscanmodules)-1;
 
-            aobscanmodules[m].name:=s2;
+            aobscanmodules[m].name:=uppercase(s2);
             if symhandler.getmodulebyname(s2, mi) then
             begin
               aobscanmodules[m].minaddress:=mi.baseaddress;
               aobscanmodules[m].maxaddress:=mi.baseaddress+mi.basesize;
             end
             else
-              raise exception.create(rsAAModuleNotFound+s2);
+            begin
+              //modulename not found. Perhaps a symbol was used
+              try
+                testptr:=symhandler.getAddressFromName(s2);
+                if symhandler.getmodulebyaddress(testptr, mi) then
+                begin
+                  aobscanmodules[m].minaddress:=mi.baseaddress;
+                  aobscanmodules[m].maxaddress:=mi.baseaddress+mi.basesize;
+                end;
+              except
+                raise exception.create(rsAAModuleNotFound+s2);
+              end;
+            end;
 
             setlength(aobscanmodules[m].entries,0);
           end;
@@ -881,8 +930,60 @@ begin
 
       end else raise exception.Create(rsWrongSyntaxAOBSCANMODULEName11223355);
     end;
-  end;
 
+    if uppercase(copy(currentline,1,14))='AOBSCANREGION(' then //AOBSCANREGION(varname, startaddress, stopaddress, bytestring)
+    begin
+      a:=pos('(',currentline);
+      b:=pos(',',currentline);
+      c:=PosEx(',',currentline,b+1);
+      d:=PosEx(',',currentline,c+1);
+      e:=pos(')',currentline);
+
+      if (d<=a) or (b<=a) or (c<=a) or (d<=a) or (e<=a) then raise exception.create(rsWrongSyntaxAOBSCANREGION);
+
+      s1:=trim(copy(currentline,a+1,b-a-1));
+      s2:=trim(copy(currentline,b+1,c-b-1));
+      s3:=trim(copy(currentline,c+1,d-c-1));
+      s4:=trim(copy(currentline,d+1,e-d-1));
+
+      if (not syntaxcheckonly) then
+      begin
+        startaddress:=symhandler.getAddressFromName(s2);
+        stopaddress:=symhandler.getAddressFromName(s3);
+
+        //see if this region is already being scanned
+        m:=-1;
+        for j:=0 to length(aobscanmodules)-1 do
+        begin
+          //exact address only. No widening/appending of the groups is possible (Users may want to scan for 00 00 in a 16 byte region)
+          if (startaddress=aobscanmodules[j].minaddress) and (stopaddress=aobscanmodules[j].maxaddress) then
+          begin
+            m:=j;
+            break;
+          end;
+        end;
+
+        if m=-1 then
+        begin
+          setlength(aobscanmodules, length(aobscanmodules)+1);
+          m:=length(aobscanmodules)-1;
+          aobscanmodules[m].name:='<REGION>';
+          aobscanmodules[m].minaddress:=startaddress;
+          aobscanmodules[m].maxaddress:=stopaddress;
+          setlength(aobscanmodules[m].entries,0);
+        end;
+
+        j:=length(aobscanmodules[m].entries);
+        setlength(aobscanmodules[m].entries, j+1);
+        aobscanmodules[m].entries[j].name:=s1;
+        aobscanmodules[m].entries[j].aobstring:=s4;
+        aobscanmodules[m].entries[j].linenumber:=i;
+      end
+      else
+        code[i]:='DEFINE('+s1+', 00000000)';
+
+    end;
+  end;
   //do simultaneous scans for the selected modules
   for i:=0 to length(aobscanmodules)-1 do
   begin
@@ -927,6 +1028,7 @@ begin
 
 
 end;
+
 
 procedure luacode(code: TStrings; syntaxcheckonly: boolean);
 {
@@ -1040,6 +1142,8 @@ begin
 end;
 
 
+var nextaaid: longint;
+
 function autoassemble2(code: tstrings;popupmessages: boolean;syntaxcheckonly:boolean; targetself: boolean ;var ceallocarray:TCEAllocArray; registeredsymbols: tstringlist=nil):boolean;
 {
 registeredsymbols is a stringlist that is initialized by the caller as case insensitive and no duplicates
@@ -1137,6 +1241,9 @@ var i,j,k,l,e: integer;
 
 
     connection: TCEConnection;
+
+    aaid: longint;
+    strictmode: boolean;
 begin
   setlength(readmems,0);
   setlength(allocs,0);
@@ -1146,6 +1253,8 @@ begin
   setlength(createthread,0);
 
   currentaddress:=0;
+
+
 
 
   if syntaxcheckonly and (registeredsymbols<>nil) then
@@ -1186,11 +1295,13 @@ begin
 {$ifndef jni}
   if pluginhandler=nil then exit; //Error. Cheat Engine is not properly configured
 
-  pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 0); //tell the plugins that an autoassembler script is about to get executed
+  aaid:=InterLockedIncrement(nextaaid);
+  pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 0, aaid); //tell the plugins that an autoassembler script is about to get executed
 {$endif}
 
 
   potentiallabels:=tstringlist.create;
+  potentiallabels.CaseSensitive:=false;
 
 //2 pass scanner
   try
@@ -1217,15 +1328,27 @@ begin
 
     luacode(code, syntaxcheckonly);
 
+    strictmode:=false;
+    for i:=0 to code.count-1 do
+      if uppercase(TrimRight(code[i]))='{$STRICT}' then
+        strictmode:=true;
+
     removecomments(code);  //also trims each line
     unlabeledlabels(code);
 
-    getPotentialLabels(code, potentiallabels);
+    if not strictmode then
+      getPotentialLabels(code, potentiallabels);
+
 
     //6.3: do the aobscans first
     //this will break scripts that use define(state,33) aobscan(name, 11 22 state 44 55), but really, live with it
 
     aobscans(code, syntaxcheckonly);
+
+    if not targetself then
+      for i:=0 to length(AutoAssemblerProloguesPostAOBSCAN)-1 do
+        if assigned(AutoAssemblerProloguesPostAOBSCAN[i]) then
+          AutoAssemblerProloguesPostAOBSCAN[i](code, syntaxcheckonly);
 
     //first pass
 
@@ -1240,6 +1363,8 @@ begin
           //check if useless
           if length(currentline)=0 then continue;
           if copy(currentline,1,2)='//' then continue; //skip
+
+
 
           //do this first. Do not touch registersymbol with any kind of define/label/whatsoever
           if uppercase(copy(currentline,1,15))='REGISTERSYMBOL(' then
@@ -1325,7 +1450,7 @@ begin
           //plugins
           currentlinep:=@currentline[1];
           {$ifndef jni}
-          pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 1);
+          pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 1,aaid);
           {$endif}
           currentline:=currentlinep;
 
@@ -1413,6 +1538,7 @@ begin
                     end else raise exception.Create(Format(rsTheMemoryAtCanNotBeRead, [s1]));
                   finally
                     freemem(bytebuf);
+                    bytebuf:=nil;
                   end;
 
                 end
@@ -1459,11 +1585,24 @@ begin
           begin
             a:=pos('(',currentline);
             b:=pos(',',currentline);
-            c:=pos(')',currentline);
-            if (a>0) and (b>0) and (c>0) then
+            c:=PosEx(',',currentline,b+1);
+            d:=pos(')',currentline);
+
+            if (a>0) and (b>0) and (d>0) then
             begin
               s1:=trim(copy(currentline,a+1,b-a-1));
-              s2:=trim(copy(currentline,b+1,c-b-1));
+
+              if c>0 then
+              begin
+                s2:=trim(copy(currentline,b+1,c-b-1));
+                s3:=trim(copy(currentline,c+1,d-c-1));
+              end
+              else
+              begin
+                s2:=trim(copy(currentline,b+1,d-b-1));
+                s3:='';
+              end;
+
 
               try
                 x:=strtoint(s2);
@@ -1472,12 +1611,16 @@ begin
               end;
 
               //define it here already
-              symhandler.SetUserdefinedSymbolAllocSize(s1,x);
+              if s3<>'' then
+                symhandler.SetUserdefinedSymbolAllocSize(s1,x, symhandler.getAddressFromName(s3))
+              else
+                symhandler.SetUserdefinedSymbolAllocSize(s1,x);
 
               setlength(globalallocs,length(globalallocs)+1);
               globalallocs[length(globalallocs)-1].address:=symhandler.GetUserdefinedSymbolByName(s1);
               globalallocs[length(globalallocs)-1].varname:=s1;
               globalallocs[length(globalallocs)-1].size:=x;
+
 
               setlength(assemblerlines,length(assemblerlines)-1);
               continue;
@@ -1662,7 +1805,10 @@ begin
                 on e:exception do
                 begin
                   if bytebuf<>nil then
+                  begin
                     freemem(bytebuf);
+                    bytebuf:=nil;
+                  end;
 
                   raise exception.create(e.Message);
                 end;
@@ -2062,7 +2208,10 @@ begin
 
 
             except
-              //add this as a label
+              //add this as a label if a potential label
+              if potentiallabels.IndexOf(copy(currentline,1,length(currentline)-1))=-1 then
+                raise exception.Create(rsThisAddressSpecifierIsNotValid);
+
               j:=length(labels);
               setlength(labels,j+1);
 
@@ -2323,7 +2472,10 @@ begin
         if allocs[i].prefered<>0 then
         begin
           //if yes, is it the same as the previous entry? (or was the previous one that doesn't care?)
-          if (prefered<>allocs[i].prefered) and (prefered<>0) then
+          if prefered=0 then
+            prefered:=allocs[i].prefered;
+
+          if (prefered<>allocs[i].prefered) then
           begin
             //different prefered address
 
@@ -2353,11 +2505,15 @@ begin
               x:=0;
             end;
 
-
             //new prefered address
             j:=i;
             prefered:=allocs[i].prefered;
+
+
+
+
           end;
+
         end;
 
         //no prefered location specified, OR same prefered location
@@ -2429,7 +2585,7 @@ begin
       if length(currentline)>0 then
       begin
         currentlinep:=@currentline[1];
-        pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 2);
+        pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 2,aaid);
         currentline:=currentlinep;
         //if handled currentline will have it's identifiers regarding the plugin's previously registered stuff replaced
         //note that this can be called in a multithreaded situation, so the plugin must hld storage containers on a threadid base and handle the locking itself
@@ -2713,11 +2869,12 @@ begin
 
           for i:=0 to length(ceallocarray)-1 do
           begin
-            if ceallocarray[i].address<baseaddress then
-              baseaddress:=ceallocarray[i].address;
+            virtualfreeex(processhandle,pointer(dealloc[i]),0,MEM_RELEASE);
+{            if ceallocarray[i].address<baseaddress then
+              baseaddress:=ceallocarray[i].address;}
           end;
 
-          virtualfreeex(processhandle,pointer(baseaddress),0,MEM_RELEASE);
+          //virtualfreeex(processhandle,pointer(baseaddress),0,MEM_RELEASE);
         end;
 
         setlength(ceallocarray,length(allocs));
@@ -2847,22 +3004,43 @@ begin
       {$IFNDEF UNIX}
       if popupmessages then
       begin
+        testPtr:=0;
+
         s1:='';
         for i:=0 to length(globalallocs)-1 do
+        begin
+          if testPtr=0 then testPtr:=globalallocs[i].address;
+
           s1:=s1+#13#10+globalallocs[i].varname+'='+IntToHex(globalallocs[i].address,8);
+        end;
 
 
         for i:=0 to length(allocs)-1 do
+        begin
+          if testPtr=0 then testPtr:=allocs[i].address;
           s1:=s1+#13#10+allocs[i].varname+'='+IntToHex(allocs[i].address,8);
+        end;
 
         if length(kallocs)>0 then
         begin
+          if testPtr=0 then testPtr:=kallocs[i].address;
+
           s1:=#13#10+rsTheFollowingKernelAddressesWhereAllocated+':';
           for i:=0 to length(kallocs)-1 do
             s1:=s1+#13#10+kallocs[i].varname+'='+IntToHex(kallocs[i].address,8);
         end;
 
-        showmessage(rsTheCodeInjectionWasSuccessfull+s1);
+       // if messagedl
+        if (testPtr=0) or (oldaamessage) then
+          showmessage(rsTheCodeInjectionWasSuccessfull+s1)
+        else
+        begin
+          if MessageDlg(rsTheCodeInjectionWasSuccessfull+s1+#13#10+rsGoTo+inttohex(testptr,8)+'?', mtInformation,[mbYes, mbNo], 0, mbno)=mrYes then
+          begin
+            memorybrowser.disassemblerview.selectedaddress:=testptr;
+            memorybrowser.show;
+          end;
+        end;
       end;
       {$ENDIF}
     end;
@@ -2877,7 +3055,10 @@ begin
 
     for i:=0 to length(readmems)-1 do
       if readmems[i].bytes<>nil then
+      begin
         freemem(readmems[i].bytes);
+        readmems[i].bytes:=nil;
+      end;
 
     setlength(readmems,0);
 
@@ -2886,7 +3067,7 @@ begin
       freeandnil(tokens);
 
     {$IFNDEF UNIX}
-    pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 3); //tell the plugins to free their data
+    pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 3,aaid); //tell the plugins to free their data
 
     if targetself then
     begin

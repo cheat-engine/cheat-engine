@@ -110,6 +110,7 @@ type TDisassemblerview=class(TPanel)
     procedure WndProc(var msg: TMessage); override;
     procedure DoEnter; override;
     procedure DoExit; override;
+    procedure DoAutoSize; override;
 
   published
     property OnKeyDown;
@@ -129,7 +130,6 @@ type TDisassemblerview=class(TPanel)
     procedure setheaderWidth(headerid: integer; size: integer);
 
     property Totalvisibledisassemblerlines: integer read fTotalvisibledisassemblerlines;
-    property OnSelectionChange: TDisassemblerSelectionChangeEvent read fOnSelectionChange write fOnSelectionChange;
 
     procedure getDefaultColors(var c: Tdisassemblerviewcolors);
 
@@ -145,6 +145,7 @@ type TDisassemblerview=class(TPanel)
     property TopAddress: ptrUint read fTopAddress write setTopAddress;
     property SelectedAddress: ptrUint read fSelectedAddress write setSelectedAddress;
     property SelectedAddress2: ptrUint read fSelectedAddress2 write setSelectedAddress2;
+    property OnSelectionChange: TDisassemblerSelectionChangeEvent read fOnSelectionChange write fOnSelectionChange;
     property PopupMenu: TPopupMenu read getOriginalPopupMenu write SetOriginalPopupMenu;
     property Osb: TBitmap read offscreenbitmap;
     property OnExtraLineRender: TDisassemblerExtraLineRender read fOnExtraLineRender write fOnExtraLineRender;
@@ -188,7 +189,9 @@ end;
 function TDisassemblerview.getOnDblClick: TNotifyEvent;
 begin
   if discanvas<>nil then
-    result:=disCanvas.OnDblClick;
+    result:=disCanvas.OnDblClick
+  else
+    result:=nil;
 end;
 
 procedure TDisassemblerview.setOnDblClick(x: TNotifyEvent);
@@ -200,7 +203,9 @@ end;
 function TDisassemblerview.getheaderWidth(headerid: integer): integer;
 begin
   if header<>nil then
-    result:=header.Sections[headerid].width;
+    result:=header.Sections[headerid].width
+  else
+    result:=0;
 end;
 
 procedure TDisassemblerview.setheaderWidth(headerid: integer; size: integer);
@@ -457,6 +462,14 @@ begin
   update;
 end;
 
+procedure TDisassemblerview.DoAutoSize;
+begin
+  DisableAutoSizing;
+  disassembleDescription.ClientHeight:=disassembleDescription.Canvas.TextHeight('GgXx')+4;
+  header.Height:=header.Canvas.TextHeight('GgXx')+4;
+  EnableAutoSizing;
+  inherited DoAutoSize;
+end;
 
 procedure TDisassemblerview.DisCanvasMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 begin
@@ -475,6 +488,7 @@ begin
   if (y<0) or (y>discanvas.Height) then exit; //moved out of range
 
   //find the selected line
+  line:=nil;
   found:=false;
   for i:=0 to fTotalvisibledisassemblerlines-1 do
   begin
@@ -486,7 +500,8 @@ begin
       break;
     end;
   end;
-  if not found then exit; //not found, which is weird, but whatever...
+  if (line=nil) or (not found) then exit; //not found, which is weird, but whatever...
+
 
 
   if line.address<>fSelectedAddress then
@@ -526,6 +541,8 @@ var
   jumplineoffset: integer;
 begin
   jumplineoffset:=4;
+
+  found:=false;
 
   for i:=0 to fTotalvisibledisassemblerlines-1 do
   begin
@@ -1051,10 +1068,11 @@ begin
   statusinfo:=tpanel.Create(self);
   with statusinfo do
   begin
+    autosize:=true;
     ParentFont:=false;
     align:=alTop;
     bevelInner:=bvLowered;
-    height:=19;
+//    height:=19;
     parent:=self;
     PopupMenu:=emptymenu;
    // color:=clYellow;
@@ -1066,7 +1084,8 @@ begin
     parentfont:=false;
     align:=alClient;
     Alignment:=taCenter;
-    autosize:=false;
+    autosize:=true;
+    //font.Size:=25;
     //transparent:=false;
     parent:=statusinfo;
     PopupMenu:=emptymenu;
@@ -1076,6 +1095,7 @@ begin
   with disassembleDescription do
   begin
     align:=alBottom;
+    //autosize:=true;
     height:=17;
     bevelInner:=bvLowered;
     bevelOuter:=bvLowered;
@@ -1084,7 +1104,6 @@ begin
     ParentFont:=false;
     Font.Charset:=DEFAULT_CHARSET;
     Font.Color:=clBtnText;
-    Font.Height:=-11;
     Font.Name:='Courier';
     Font.Style:=[];
 
@@ -1139,6 +1158,7 @@ begin
   with header do
   begin
     top:=0;
+    //autosize:=true;
     height:=20;
     OnSectionResize:=headerSectionResize;
     OnSectionTrack:=headerSectionTrack;
@@ -1147,6 +1167,7 @@ begin
     //header.Align:=alTop;
     header.ParentFont:=false;
     PopupMenu:=emptymenu;
+
     name:='Header';
   end;
 

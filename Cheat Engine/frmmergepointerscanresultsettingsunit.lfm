@@ -1,42 +1,43 @@
 object frmMergePointerscanResultSettings: TfrmMergePointerscanResultSettings
-  Left = 343
-  Height = 155
-  Top = 159
+  Left = 557
+  Height = 113
+  Top = 172
   Width = 320
+  AutoSize = True
   BorderIcons = [biSystemMenu]
   Caption = 'Merge pointerscan results'
-  ClientHeight = 155
+  ClientHeight = 113
   ClientWidth = 320
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.6.0.4'
   object Panel2: TPanel
     Left = 0
-    Height = 112
+    Height = 79
     Top = 0
     Width = 320
     Align = alTop
-    ClientHeight = 112
+    AutoSize = True
+    ClientHeight = 79
     ClientWidth = 320
     TabOrder = 0
     object rgGroupMethod: TRadioGroup
       Left = 1
-      Height = 110
+      Height = 77
       Top = 1
-      Width = 104
+      Width = 97
       Align = alLeft
       AutoFill = True
+      AutoSize = True
       Caption = 'Group method'
-      ChildSizing.LeftRightSpacing = 6
-      ChildSizing.TopBottomSpacing = 6
       ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
       ChildSizing.EnlargeVertical = crsHomogenousChildResize
       ChildSizing.ShrinkHorizontal = crsScaleChilds
       ChildSizing.ShrinkVertical = crsScaleChilds
       ChildSizing.Layout = cclLeftToRightThenTopToBottom
       ChildSizing.ControlsPerLine = 1
-      ClientHeight = 92
-      ClientWidth = 100
+      ClientHeight = 57
+      ClientWidth = 93
       ItemIndex = 1
       Items.Strings = (
         'Copy'
@@ -47,20 +48,20 @@ object frmMergePointerscanResultSettings: TfrmMergePointerscanResultSettings
       TabOrder = 0
     end
     object GroupBox1: TGroupBox
-      Left = 105
-      Height = 110
+      Left = 98
+      Height = 77
       Top = 1
-      Width = 214
+      Width = 221
       Align = alClient
       Caption = 'Description'
-      ClientHeight = 92
-      ClientWidth = 210
+      ClientHeight = 57
+      ClientWidth = 217
       TabOrder = 1
       object lblDescription: TLabel
         Left = 0
-        Height = 92
+        Height = 57
         Top = 0
-        Width = 210
+        Width = 217
         Align = alClient
         Caption = 'Label1'#13#10'aaa'
         ParentColor = False
@@ -71,33 +72,46 @@ object frmMergePointerscanResultSettings: TfrmMergePointerscanResultSettings
   object Panel1: TPanel
     AnchorSideLeft.Control = Panel2
     AnchorSideLeft.Side = asrCenter
-    Left = 72
-    Height = 26
-    Top = 120
-    Width = 176
+    AnchorSideTop.Control = Panel2
+    AnchorSideTop.Side = asrBottom
+    Left = 82
+    Height = 25
+    Top = 83
+    Width = 157
+    AutoSize = True
+    BorderSpacing.Top = 4
+    BorderSpacing.Bottom = 4
     BevelOuter = bvNone
-    ClientHeight = 26
-    ClientWidth = 176
+    ClientHeight = 25
+    ClientWidth = 157
     TabOrder = 1
     object Button1: TButton
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = Panel1
       Left = 0
-      Height = 26
+      Height = 25
       Top = 0
-      Width = 85
-      Align = alLeft
+      Width = 75
+      AutoSize = True
       Caption = 'OK'
+      Constraints.MinWidth = 75
       Default = True
       ModalResult = 1
       TabOrder = 0
     end
     object Button2: TButton
-      Left = 91
-      Height = 26
+      AnchorSideLeft.Control = Button1
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Panel1
+      Left = 82
+      Height = 25
       Top = 0
-      Width = 85
-      Align = alRight
+      Width = 75
+      AutoSize = True
+      BorderSpacing.Left = 7
       Cancel = True
       Caption = 'Cancel'
+      Constraints.MinWidth = 75
       ModalResult = 2
       TabOrder = 1
     end

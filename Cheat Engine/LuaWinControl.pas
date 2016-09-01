@@ -5,7 +5,7 @@ unit LuaWinControl;
 interface
 
 uses
-  Classes, SysUtils, controls, lua, lualib, lauxlib,LuaHandler, graphics;
+  windows, Classes, SysUtils, controls, lua, lualib, lauxlib,LuaHandler, graphics;
 
 procedure initializeLuaWinControl;
 procedure wincontrol_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
@@ -13,6 +13,12 @@ procedure wincontrol_addMetaData(L: PLua_state; metatable: integer; userdata: in
 implementation
 
 uses LuaCaller, luacontrol, luaclass;
+
+function wincontrol_getHandle(L: PLua_State): integer; cdecl;
+begin
+  lua_pushinteger(L, twincontrol(luaclass_getClassObject(L)).Handle);
+  result:=1;
+end;
 
 function wincontrol_getDoubleBuffered(L: PLua_State): integer; cdecl;
 begin
@@ -208,6 +214,36 @@ begin
   end;
 end;
 
+
+function wincontrol_setLayeredAttributes(L: PLua_State): integer; cdecl;
+var
+  h: thandle;
+  key: dword;
+  alpha: byte;
+  flags: byte;
+begin
+  //only works on forms in windows 7 and earlier, but also works on child components in windows 8 and later
+  result:=0;
+
+  if lua_gettop(L)>=3 then
+  begin
+    h:=twincontrol(luaclass_getClassObject(L)).handle;
+    if SetWindowLong(h, GWL_EXSTYLE, GetWindowLong(h, GWL_EXSTYLE) or WS_EX_LAYERED)=0 then
+    begin
+      result:=1;
+      lua_pushboolean(L, false);
+      exit; //not supported
+    end;
+
+    key:=lua_tointeger(L, 1);
+    alpha:=lua_tointeger(L, 2);
+    flags:=lua_tointeger(L, 3);
+
+    result:=1;
+    lua_pushboolean(L, SetLayeredWindowAttributes(h, key, alpha, flags));
+  end;
+end;
+
 procedure wincontrol_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
   control_addMetaData(L, metatable, userdata);
@@ -220,12 +256,14 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'focused', wincontrol_focused);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setFocus', wincontrol_setFocus);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setShape', wincontrol_setShape);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setLayeredAttributes', wincontrol_setLayeredAttributes);
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'DoubleBuffered', wincontrol_getDoubleBuffered, wincontrol_setDoubleBuffered);
   luaclass_addPropertyToTable(L, metatable, userdata, 'ControlCount', wincontrol_getControlCount, nil);
   luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Control', wincontrol_getControl);
-  luaclass_addPropertyToTable(L, metatable, userdata, 'OnEnter', wincontrol_setOnEnter, nil);
-  luaclass_addPropertyToTable(L, metatable, userdata, 'OnExit', wincontrol_setOnExit, nil);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'OnEnter', wincontrol_getOnEnter, wincontrol_setOnEnter);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'OnExit', wincontrol_getOnExit, wincontrol_setOnExit);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Handle', wincontrol_getHandle, nil);
 end;
 
 procedure initializeLuaWinControl;

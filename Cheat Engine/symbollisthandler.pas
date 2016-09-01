@@ -42,7 +42,7 @@ type
 
 type
   TExtraSymbolDataEntry=class
-    name: string;
+    name: string;            //rebuild ce instead of compile if you see this error. (or perhaps FPC fixes this one day)
     vtype: string;
     position: string;
     syminfo: TSYMBOL_INFO; //just in case it might be useful

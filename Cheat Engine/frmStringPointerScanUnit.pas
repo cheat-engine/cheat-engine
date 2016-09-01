@@ -212,41 +212,41 @@ type
   end;
 
   TfrmStringPointerScan = class(TForm)
-    btnScan: TButton;
     btnNewScan: TButton;
+    btnScan: TButton;
     cbCaseSensitive: TCheckBox;
+    cbHasShadow: TCheckBox;
     cbHasShadow2: TCheckBox;
     cbMustBeStart: TCheckBox;
     cbRegExp: TCheckBox;
     cbPointerInRange: TCheckBox;
     cbMapPointerValues: TCheckBox;
-    cbHasShadow: TCheckBox;
-    comboType: TComboBox;
     comboCompareType: TComboBox;
+    comboType: TComboBox;
+    edtBase: TEdit;
+    edtMaxLevel: TEdit;
     edtShadowAddress: TEdit;
     edtShadowAddress2: TEdit;
-    edtShadowSize: TEdit;
     edtPointerStart: TEdit;
     edtPointerStop: TEdit;
     edtAlignsize: TEdit;
     edtExtra: TEdit;
-    edtBase: TEdit;
-    edtMaxLevel: TEdit;
     edtRegExp: TEdit;
+    edtShadowSize: TEdit;
     edtShadowSize2: TEdit;
     edtStructsize: TEdit;
+    lblBaseRegion: TLabel;
+    lblInfo: TLabel;
+    lblMaxLevel: TLabel;
     lblSize: TLabel;
     lblsize2: TLabel;
-    lblvds: TLabel;
-    lblBaseRegion: TLabel;
     lblStructsize: TLabel;
     lblCompare: TLabel;
     lblAlign: TLabel;
     lblAnd: TLabel;
     lblString: TLabel;
-    lblInfo: TLabel;
-    lblMaxLevel: TLabel;
     lblExtra: TLabel;
+    lblvds: TLabel;
     ListView1: TListView;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
@@ -262,6 +262,11 @@ type
     Panel2: TPanel;
     Panel3: TPanel;
     Panel4: TPanel;
+    Panel5: TPanel;
+    Panel6: TPanel;
+    Panel7: TPanel;
+    Panel8: TPanel;
+    Panel9: TPanel;
     pmPointerfile: TPopupMenu;
     ProgressBar1: TProgressBar;
     rbDiffDontCare: TRadioButton;
@@ -1981,18 +1986,22 @@ begin
 
 
     baseaddress:=symhandler.getAddressFromName(edtBase.text);
+    baseaddress2:=0;
 
+    shadow:=0;
+    shadowsize:=0;
+    shadow2:=0;
+    shadowsize2:=0;
+
+    pointerstart:=0;
+    pointerstop:=0;
+    alignsize:=4;
 
 
     if cbHasShadow.checked then
     begin
       shadow:=symhandler.getAddressFromName(edtShadowAddress.text);
       shadowsize:=strtoint(edtShadowSize.text);
-    end
-    else
-    begin
-      shadow:=0;
-      shadowsize:=0;
     end;
 
     if ((shadow<>0) and (not isreadable(shadow))) or
@@ -2009,13 +2018,8 @@ begin
       baseaddress2:=symhandler.getAddressFromName(edtExtra.text);
       if cbHasShadow2.checked then
       begin
-        shadow:=symhandler.getAddressFromName(edtShadowAddress2.text);
-        shadowsize:=strtoint(edtShadowSize2.text);
-      end
-      else
-      begin
-        shadow2:=0;
-        shadowsize2:=0;
+        shadow2:=symhandler.getAddressFromName(edtShadowAddress2.text);
+        shadowsize2:=strtoint(edtShadowSize2.text);
       end;
 
 
@@ -2027,8 +2031,8 @@ begin
 
       if cbPointerInRange.checked then
       begin
-        pointerstart:=StrToQWordEx('$'+edtPointerStart.text);
-        pointerstop:=StrToQWordEx('$'+edtPointerStop.text);
+        pointerstart:=symhandler.getAddressFromName(edtPointerStart.text);
+        pointerstop:=symhandler.getAddressFromName(edtPointerStop.text);
       end;
     end;
 
@@ -2233,7 +2237,7 @@ begin
   rbDiffDontCare.enabled:=hasAddress2;
 
   try
-    address2:=StrToQword('$'+edtExtra.text);
+    address2:=symhandler.getAddressFromName(edtExtra.text);
     listview1.Refresh;
   except
   end;
@@ -2248,6 +2252,7 @@ end;
 
 procedure TfrmStringPointerScan.FormShow(Sender: TObject);
 begin
+  //panel1.Constraints.MinHeight:=btnNewScan.Top+btnNewScan.Height+lblInfo.Height+4;
   cbHasShadowChange(nil);
 end;
 

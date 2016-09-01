@@ -50,6 +50,7 @@ type
     function GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false):  BOOL; override;
 
     function GetLastBranchRecords(lbr: pointer): integer; override;
+    function canReportExactDebugRegisterTrigger: boolean; override;
 
     procedure injectEvent(e: pointer);
     function DebugActiveProcess(dwProcessId: DWORD): WINBOOL; override;
@@ -62,6 +63,9 @@ implementation
 
 
 uses symbolhandler, ProcessHandlerUnit;
+
+resourcestring
+  rsDBKDebug_StartDebuggingFailed ='DBKDebug_StartDebugging failed';
 
 procedure TThreadPoller.CreateThreadEvent(threadid: dword);
 var ie: PInjectedEvent;
@@ -219,7 +223,7 @@ begin
     threadpoller.Start;
   end
   else
-    raise exception.create('DBKDebug_StartDebugging failed');
+    raise exception.create(rsDBKDebug_StartDebuggingFailed);
 
 
 end;
@@ -434,6 +438,11 @@ begin
       lpDebugEvent.Exception.ExceptionRecord.ExceptionAddress:=pointer(ptrUint(currentdebuggerstate.eip));
     end;
   end;
+end;
+
+function TKernelDebugInterface.canReportExactDebugRegisterTrigger: boolean;
+begin
+  result:=not globalDebug;
 end;
 
 destructor TKernelDebugInterface.destroy;

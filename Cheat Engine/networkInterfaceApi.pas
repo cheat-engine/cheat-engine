@@ -42,6 +42,8 @@ implementation
 uses networkConfig;
 {$endif}
 
+resourcestring
+  rsNoConnection = 'No connection';
 
 threadvar connection: TCEConnection;
 
@@ -274,7 +276,7 @@ begin
   else
   begin
     result:=-1;
-    name:='No connection';
+    name:=rsNoConnection;
   end;
 end;
 
@@ -313,7 +315,7 @@ begin
 
   newkernelhandler.OpenProcess:=@NetworkOpenProcess;
   newkernelhandler.ReadProcessMemory:=@NetworkReadProcessMemory;
-  newkernelhandler.WriteProcessMemory:=@NetworkWriteProcessMemory;
+  newkernelhandler.WriteProcessMemoryActual:=@NetworkWriteProcessMemory;
   newkernelhandler.VirtualProtectEx:=@NetworkVirtualProtectEx;
   newkernelhandler.VirtualQueryEx:=@NetworkVirtualQueryEx;
   newkernelhandler.CreateToolhelp32Snapshot:=@NetworkCreateToolhelp32Snapshot;

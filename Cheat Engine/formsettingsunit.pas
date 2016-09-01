@@ -5,7 +5,7 @@ unit formsettingsunit;
 interface
 
 uses
-  windows, LCLProc, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  windows, win32proc, LCLProc, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls,registry, Menus,ComCtrls,CEFuncProc,ExtCtrls,{tlhelp32,}CheckLst,
   Buttons, LResources, frameHotkeyConfigUnit, math,
 
@@ -23,44 +23,94 @@ type
   { TformSettings }
 
   TformSettings = class(TForm)
-    cbDontusetempdir: TCheckBox;
-    cbGlobalDebug: TCheckBox;
-    cbKDebug: TRadioButton;
-    cbShowallWindows: TCheckBox;
-    cbAskIfTableHasLuascript: TCheckBox;
+    askforreplacewithnops: TCheckBox;
+    btnCancel: TButton;
+    btnExcludeProcesses: TButton;
+    btnOK: TButton;
+    cbAlwaysAutoAttach: TCheckBox;
     cbAlwaysRunScript: TCheckBox;
+    cbAskIfTableHasLuascript: TCheckBox;
+    cbCanStepKernelcode: TCheckBox;
+    cbCenterOnPopup: TCheckBox;
+    cbDontusetempdir: TCheckBox;
+    cbFastscan: TCheckBox;
+    cbGlobalDebug: TCheckBox;
+    cbHideAllWindows: TCheckBox;
+    cbKDebug: TRadioButton;
+    cbMemImage: TCheckBox;
+    cbMemMapped: TCheckBox;
+    cbMemPrivate: TCheckBox;
+    cbOldPointerAddMethod: TCheckBox;
+    cbOverrideExistingBPs: TCheckBox;
+    cbPauseWhenScanningOnByDefault: TCheckBox;
+    cbProcessIcons: TCheckBox;
+    cbProcessIconsOnly: TCheckBox;
+    cbSaveWindowPos: TCheckBox;
+    cbShowallWindows: TCheckBox;
+    cbShowAsSigned: TCheckBox;
+    cbShowMainMenu: TCheckBox;
+    cbShowProcesslist: TCheckBox;
+    cbShowUndo: TCheckBox;
+    cbsimplecopypaste: TCheckBox;
+    cbSkip_PAGE_NOCACHE: TCheckBox;
+    cbUpdatefoundList: TCheckBox;
     cbUseVEHDebugger: TRadioButton;
     cbUseWindowsDebugger: TRadioButton;
-    CheckBox1: TCheckBox;
-    cbCanStepKernelcode: TCheckBox;
-    cbShowProcesslist: TCheckBox;
-    cbOverrideExistingBPs: TCheckBox;
     cbVEHRealContextOnThreadCreation: TCheckBox;
     cbWaitAfterGuiUpdate: TCheckBox;
+    cbWriteLoggingOn: TCheckBox;
     cgAllTypes: TCheckGroup;
+    CheckBox1: TCheckBox;
+    combothreadpriority: TComboBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
+    EditAutoAttach: TEdit;
+    EditBufsize: TEdit;
+    EditFreezeInterval: TEdit;
+    editUpdatefoundInterval: TEdit;
+    EditUpdateInterval: TEdit;
     edtStacksize: TEdit;
     edtTempScanFolder: TEdit;
+    edtWriteLogSize: TEdit;
+    GroupBox1: TGroupBox;
     GroupBox2: TGroupBox;
     GroupBox4: TGroupBox;
+    Label1: TLabel;
+    Label11: TLabel;
+    Label12: TLabel;
+    Label13: TLabel;
+    Label14: TLabel;
+    Label15: TLabel;
+    Label18: TLabel;
+    Label19: TLabel;
     Label2: TLabel;
-    lblThreadFollowing: TLabel;
+    Label21: TLabel;
+    Label23: TLabel;
+    Label24: TLabel;
+    Label3: TLabel;
     Label4: TLabel;
     Label6: TLabel;
     Label7: TLabel;
+    Label8: TLabel;
+    lblThreadFollowing: TLabel;
     LoadButton: TSpeedButton;
-    Panel1: TPanel;
+    Panel9: TPanel;
     pcDebugConfig: TPageControl;
     pnlConfig: TPanel;
-    rbVEHHookThreadCreation: TRadioButton;
-    rbVEHUseProcessWatcher: TRadioButton;
-    rbVEHPollThread: TRadioButton;
-    rbPageExceptions: TRadioButton;
     rbDebugAsBreakpoint: TRadioButton;
     rbgDebuggerInterface: TRadioGroup;
     rbInt3AsBreakpoint: TRadioButton;
+    rbPageExceptions: TRadioButton;
+    rbVEHHookThreadCreation: TRadioButton;
+    rbVEHPollThread: TRadioButton;
+    rbVEHUseProcessWatcher: TRadioButton;
+    replacewithnops: TCheckBox;
+    ScrollBox1: TScrollBox;
+    ScrollBox2: TScrollBox;
+    ScrollBox3: TScrollBox;
     SelectDirectoryDialog1: TSelectDirectoryDialog;
+    spbDown: TSpeedButton;
+    spbUp: TSpeedButton;
     tsKernelDebugConfig: TTabSheet;
     tsVEHDebugConfig: TTabSheet;
     tsWindowsDebuggerConfig: TTabSheet;
@@ -68,45 +118,10 @@ type
     pcSetting: TPageControl;
     GeneralSettings: TTabSheet;
     ScanSettings: TTabSheet;
-    Label11: TLabel;
-    Label12: TLabel;
-    Label13: TLabel;
-    Label14: TLabel;
-    Label18: TLabel;
-    Label19: TLabel;
-    Label23: TLabel;
-    Label24: TLabel;
-    cbShowUndo: TCheckBox;
-    cbCenterOnPopup: TCheckBox;
-    EditUpdateInterval: TEdit;
-    EditFreezeInterval: TEdit;
-    GroupBox1: TGroupBox;
-    cbShowAsSigned: TCheckBox;
-    cbsimplecopypaste: TCheckBox;
-    cbUpdatefoundList: TCheckBox;
-    editUpdatefoundInterval: TEdit;
-    cbHideAllWindows: TCheckBox;
-    btnExcludeProcesses: TButton;
-    EditAutoAttach: TEdit;
-    cbAlwaysAutoAttach: TCheckBox;
-    cbSaveWindowPos: TCheckBox;
-    Label3: TLabel;
-    Label1: TLabel;
-    Label15: TLabel;
-    Label21: TLabel;
-    combothreadpriority: TComboBox;
-    cbFastscan: TCheckBox;
-    cbSkip_PAGE_NOCACHE: TCheckBox;
-    cbMemImage: TCheckBox;
-    cbMemMapped: TCheckBox;
-    cbMemPrivate: TCheckBox;
-    EditBufsize: TEdit;
     Plugins: TTabSheet;
     CodeFinder: TTabSheet;
     Assembler: TTabSheet;
     cbHandleBreakpoints: TCheckBox;
-    replacewithnops: TCheckBox;
-    askforreplacewithnops: TCheckBox;
     Extra: TTabSheet;
     TauntOldOsUser: TLabel;
     GroupBox3: TGroupBox;
@@ -124,11 +139,7 @@ type
     cbIncremental: TCheckBox;
     Panel6: TPanel;
     AboutLabel: TLabel;
-    btnCancel: TButton;
-    btnOK: TButton;
     frameHotkeyConfig: TframeHotkeyConfig;
-    cbProcessIcons: TCheckBox;
-    cbProcessIconsOnly: TCheckBox;
     tsTools: TTabSheet;
     Panel2: TPanel;
     cbShowTools: TCheckBox;
@@ -147,8 +158,6 @@ type
     edtToolsName: TEdit;
     OpenButton: TSpeedButton;
     OpenDialog2: TOpenDialog;
-    cbShowMainMenu: TCheckBox;
-    cbOldPointerAddMethod: TCheckBox;
     Panel7: TPanel;
     Button5: TButton;
     Button4: TButton;
@@ -167,7 +176,10 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure cbShowDisassemblerClick(Sender: TObject);
+    procedure Label3Click(Sender: TObject);
     procedure LoadButtonClick(Sender: TObject);
+    procedure Panel3Click(Sender: TObject);
+    procedure Panel3Resize(Sender: TObject);
     procedure pcSettingChange(Sender: TObject);
     procedure rbInt3AsBreakpointChange(Sender: TObject);
     procedure replacewithnopsClick(Sender: TObject);
@@ -182,6 +194,9 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button4Click(Sender: TObject);
     procedure Button5Click(Sender: TObject);
+    procedure ScrollBox1Click(Sender: TObject);
+    procedure spbDownClick(Sender: TObject);
+    procedure spbUpClick(Sender: TObject);
     procedure tvMenuSelectionChange(Sender: TObject; Node: TTreeNode);
     procedure Panel6Resize(Sender: TObject);
     procedure cbProcessIconsClick(Sender: TObject);
@@ -259,10 +274,10 @@ frmExcludeHideUnit, {
 MemoryBrowserFormUnit,}
 ModuleSafetyUnit,
 frmProcessWatcherUnit,
-ConfigUnrandomizerFrm,
 CustomTypeHandler,
 processlist,
 commonTypeDefs,
+frmEditHistoryUnit,
 Globals;
 
 
@@ -351,6 +366,7 @@ var processhandle2: Thandle;
     dllpath: Tpathspecifier;
 
     cpu: string;
+    WriteLogSize: integer;
 begin
 
   {$ifdef cpu64}
@@ -373,10 +389,10 @@ begin
   if not ((cbMemPrivate.checked) or (cbMemImage.Checked) or (cbMemMapped.Checked)) then
     if messagedlg(rsYouHavenTSelectedAnyMemoryTypeThisWillResultInChea, mtWarning, [mbyes, mbno], 0)<>mryes then exit;
 
+  WriteLogSize:=strtoint(edtWriteLogSize.text);
+
   val(edtStacksize.text, stacksize, error);
   if (error<>0) or (stacksize<=0) then raise exception.Create(Format(rsIsNotAValidInterval, [edtStacksize.text]));
-
-
 
 
 
@@ -507,6 +523,9 @@ begin
       reg.WriteBool('Pointer appending', cbOldPointerAddMethod.checked);
 
       reg.writebool('skip PAGE_NOCACHE',cbSkip_PAGE_NOCACHE.Checked);
+      reg.writebool('Pause when scanning on by default',cbPauseWhenScanningOnByDefault.Checked);
+
+
       reg.WriteBool('Hide all windows',cbHideAllWindows.checked);
       reg.WriteBool('Really hide all windows',temphideall);
 
@@ -534,7 +553,9 @@ begin
 
       if frmModuleSafety<>nil then //modified
       begin
-        freemem(modulelist);
+        if modulelist<>nil then
+          freemem(modulelist);
+
         modulelist:=tempmodulelist;
         modulelistsize:=tempmodulelistsize;
         tempmodulelist:=nil;
@@ -685,7 +706,6 @@ begin
       reg.WriteBool('Wait After Gui Update', waitafterguiupdate);
 
 
-
       unrandomizersettings.defaultreturn:=strtoint(edtdefault.Text);
       unrandomizersettings.incremental:=cbincremental.Checked;
       reg.WriteInteger('Unrandomizer: default value',unrandomizersettings.defaultreturn);
@@ -694,6 +714,11 @@ begin
       reg.writebool('Show tools menu', cbShowTools.checked);
       mainform.ools1.Visible:=cbShowTools.checked;
 
+      reg.writebool('WriteLogging', cbWriteLoggingOn.checked);
+      reg.WriteInteger('WriteLoggingSize', WriteLogSize);
+
+      logWrites:=cbWriteLoggingOn.checked;
+      setMaxWriteLogSize(writelogsize);
     end;
 
 
@@ -912,7 +937,8 @@ procedure TformSettings.FormShow(Sender: TObject);
     result:=true;
   end;
   var reg: TRegistry;
-  i: integer;
+  i,j: integer;
+  m: dword;
 begin
 
   tempstatepopuphide:=laststatePopupHide;
@@ -952,6 +978,32 @@ begin
 
   cbDebuggerInterfaceChange(nil);
 
+  cbVEHRealContextOnThreadCreation.AutoSize:=false;
+  cbVEHRealContextOnThreadCreation.AutoSize:=true;
+
+
+
+  j:=tvMenuSelection.Width;
+  for i:=0 to tvMenuSelection.Items.Count-1 do
+    j:=max(j,tvMenuSelection.Canvas.TextWidth(tvMenuSelection.Items[i].Text)+tvMenuSelection.BorderWidth+tvMenuSelection.Indent*2);
+
+
+  tvMenuSelection.Width:=j;
+
+
+  if WindowsVersion>=wvVista then
+    m:=sendmessage(edtStacksize.Handle, EM_GETMARGINS, 0,0)
+  else
+    m:=0;
+
+
+  i:=max(edtStacksize.ClientWidth, canvas.TextWidth('4096')+(m shr 16)+(m and $ffff));
+  edtStacksize.clientwidth:=i;
+
+  autosize:=false;
+
+
+
 
 
  // GroupBox2.top:=rbgDebuggerInterface.top+rbgDebuggerInterface.height+4;
@@ -962,10 +1014,25 @@ begin
 
 end;
 
+procedure TformSettings.Label3Click(Sender: TObject);
+begin
+
+end;
+
 procedure TformSettings.LoadButtonClick(Sender: TObject);
 begin
   if SelectDirectoryDialog1.Execute then
     edtTempScanFolder.text:=SelectDirectoryDialog1.FileName;
+end;
+
+procedure TformSettings.Panel3Click(Sender: TObject);
+begin
+
+end;
+
+procedure TformSettings.Panel3Resize(Sender: TObject);
+begin
+  spbDown.top:=panel4.top-spbDown.height;
 end;
 
 procedure TformSettings.pcSettingChange(Sender: TObject);
@@ -1170,6 +1237,8 @@ begin
 
 
   tvMenuSelection.FullExpand;
+
+
 end;
 
 procedure TformSettings.cbKernelQueryMemoryRegionClick(Sender: TObject);
@@ -1239,17 +1308,64 @@ begin
 
 end;
 
+procedure TformSettings.ScrollBox1Click(Sender: TObject);
+begin
+
+end;
+
+
+procedure TformSettings.spbUpClick(Sender: TObject);
+var
+  i: integer;
+  li: TListItem;
+begin
+  //move up
+  if lvtools.ItemIndex>=1 then
+    lvtools.items.Move(lvtools.ItemIndex, lvtools.ItemIndex-1);
+end;
+
+procedure TformSettings.spbDownClick(Sender: TObject);
+begin
+  if (lvtools.ItemIndex<>-1) and (lvtools.ItemIndex<lvtools.items.Count-1) then
+    lvtools.items.Move(lvtools.ItemIndex, lvtools.ItemIndex+1);
+end;
+
+
 procedure TformSettings.tvMenuSelectionChange(Sender: TObject;
   Node: TTreeNode);
+var w,h: integer;
 begin
   if node.Data<>nil then
     pcSetting.ActivePage:=TTabSheet(node.data);
+
+  if pcSetting.ActivePage=self.Assembler then
+  begin
+    groupbox2.AutoSize:=true;
+
+    pcDebugConfig.PageIndex:=0;
+    w:=groupbox2.Width;
+    h:=groupbox2.Height;
+
+    pcDebugConfig.PageIndex:=1;
+    w:=max(groupbox2.Width, w);
+    h:=max(groupbox2.Height, h);
+
+    pcDebugConfig.PageIndex:=2;
+    w:=max(groupbox2.Width, w);
+    h:=max(groupbox2.Height, h);
+
+    cbDebuggerInterfaceChange(nil);
+
+    groupbox2.AutoSize:=false;
+
+    groupbox2.Width:=w;
+    groupbox2.Height:=h;
+  end;
 end;
 
 procedure TformSettings.Panel6Resize(Sender: TObject);
 begin
-  btnOK.Left:=btnOK.parent.ClientWidth div 2 - btnOK.Width - 10;
-  btnCancel.Left:=btnCancel.parent.ClientWidth div 2 + 10;
+
 end;
 
 procedure TformSettings.cbProcessIconsClick(Sender: TObject);
@@ -1352,6 +1468,10 @@ begin
     lblShortcutText.caption:=lvtools.Selected.SubItems[1];
     edtToolsName.SetFocus;
   end;
+
+  spbDown.enabled:=lvTools.selected<>nil;
+  spbUp.Enabled:=spbDown.enabled;
+
 end;
 
 procedure TformSettings.edtApplicationToolChange(Sender: TObject);

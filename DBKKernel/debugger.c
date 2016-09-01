@@ -205,7 +205,7 @@ VOID debugger_initHookForCurrentCPU_DPC(IN struct _KDPC *Dpc, IN PVOID  Deferred
 
 int debugger_removeHookForCurrentCPU(UINT_PTR params)
 {
-	DbgPrint("Unhooking int1 for this cpu\n");
+	//DbgPrint("Unhooking int1 for this cpu\n");
     return inthook_UnhookInterrupt(1);	
 }
 

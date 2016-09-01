@@ -43,7 +43,7 @@ begin
   if lua_gettop(L)>=1 then
   begin
     s:=lua_tostring(L, -1);
-    strings.Delete(strings.IndexOf(s));
+    if strings.IndexOf(s)<>-1 then strings.Delete(strings.IndexOf(s));
   end;
 end;
 
@@ -208,7 +208,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'clear', strings_clear);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'delete', strings_delete);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getText', strings_getText);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setText', strings_getText);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setText', strings_setText);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'indexOf', strings_indexOf);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'insert', strings_insert);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getCount', strings_getCount);

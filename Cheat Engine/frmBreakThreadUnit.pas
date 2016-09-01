@@ -6,16 +6,21 @@ interface
 
 uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, LResources,CEDebugger, debughelper;
+  Dialogs, StdCtrls, LResources, ExtCtrls,CEDebugger, debughelper;
 
 type
+
+  { Tfrmbreakthread }
+
   Tfrmbreakthread = class(TForm)
     Label1: TLabel;
+    Panel1: TPanel;
     Threadlistbox: TListBox;
     Button1: TButton;
     Button2: TButton;
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure ThreadlistboxDblClick(Sender: TObject);
   private
     { Private declarations }
@@ -70,6 +75,14 @@ begin
     end;
   end;
 
+end;
+
+procedure Tfrmbreakthread.FormShow(Sender: TObject);
+begin
+  button1.autosize:=false;
+  button2.autosize:=false;
+  if button2.Width>button1.width then
+    button1.width:=button2.width else button2.width:=button1.width;
 end;
 
 procedure Tfrmbreakthread.ThreadlistboxDblClick(Sender: TObject);

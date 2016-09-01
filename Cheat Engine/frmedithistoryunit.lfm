@@ -1,0 +1,115 @@
+object frmEditHistory: TfrmEditHistory
+  Left = 549
+  Height = 326
+  Top = 208
+  Width = 320
+  Caption = 'Write log'
+  ClientHeight = 326
+  ClientWidth = 320
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '1.6.0.4'
+  object lvWriteLog: TListView
+    Left = 0
+    Height = 238
+    Top = 0
+    Width = 320
+    Align = alClient
+    Columns = <    
+      item
+        Caption = 'Address'
+        Width = 54
+      end    
+      item
+        Caption = 'Original bytes'
+        Width = 85
+      end    
+      item
+        Caption = 'New bytes'
+        Width = 177
+      end>
+    HideSelection = False
+    MultiSelect = True
+    PopupMenu = PopupMenu1
+    ReadOnly = True
+    RowSelect = True
+    TabOrder = 0
+    ViewStyle = vsReport
+    OnDblClick = lvWriteLogDblClick
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 88
+    Top = 238
+    Width = 320
+    Align = alBottom
+    AutoSize = True
+    BevelOuter = bvNone
+    ClientHeight = 88
+    ClientWidth = 320
+    TabOrder = 1
+    object Button1: TButton
+      AnchorSideLeft.Control = Panel1
+      AnchorSideLeft.Side = asrCenter
+      AnchorSideTop.Control = edtMaxWriteLogSize
+      AnchorSideTop.Side = asrBottom
+      AnchorSideBottom.Control = Panel1
+      AnchorSideBottom.Side = asrBottom
+      Left = 123
+      Height = 25
+      Top = 60
+      Width = 75
+      AutoSize = True
+      BorderSpacing.Top = 3
+      BorderSpacing.Bottom = 3
+      Caption = 'Refresh'
+      Constraints.MinWidth = 75
+      OnClick = Button1Click
+      TabOrder = 2
+    end
+    object cbLogWrites: TCheckBox
+      Left = 0
+      Height = 19
+      Top = 0
+      Width = 320
+      Align = alTop
+      Caption = 'Enable write logging'
+      OnChange = cbLogWritesChange
+      TabOrder = 0
+    end
+    object edtMaxWriteLogSize: TEdit
+      Left = 0
+      Height = 23
+      Top = 34
+      Width = 320
+      Align = alTop
+      OnChange = edtMaxWriteLogSizeChange
+      TabOrder = 1
+      Text = '250'
+    end
+    object Label1: TLabel
+      Left = 0
+      Height = 15
+      Top = 19
+      Width = 320
+      Align = alTop
+      Caption = 'Max log size (nr of entries)'
+      ParentColor = False
+    end
+  end
+  object PopupMenu1: TPopupMenu
+    left = 87
+    top = 68
+    object miUndo: TMenuItem
+      Caption = 'Undo'
+      ShortCut = 16474
+      OnClick = miUndoClick
+    end
+  end
+  object Timer1: TTimer
+    Interval = 100
+    OnTimer = Timer1Timer
+    left = 92
+    top = 158
+  end
+end

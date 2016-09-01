@@ -129,6 +129,9 @@ implementation
 
 uses ProcessHandlerUnit, parsers;
 
+resourcestring
+  rsInvalidDissectCodeFile = 'Invalid dissect code file';
+  rsTDissectCodeThreadgetCallListCalledWithANonEmptyList = 'TDissectCodeThread.getCallList called with a non empty list';
 
 { TDissectCodeThread }
 
@@ -237,7 +240,7 @@ begin
   clear;
   try
     if fs.ReadDWord<>$ce00dc01 then
-      raise exception.create('Invalid dissect code file');
+      raise exception.create(rsInvalidDissectCodeFile);
 
 
     loadListFromStream(calllist, fs);
@@ -282,8 +285,13 @@ begin
   while not mi.EOM do
   begin
     mi.GetData(al);
-    freemem(al.a);
-    freemem(al);
+    if al<>nil then
+    begin
+      if al.a<>nil then
+        freemem(al.a);
+
+      freemem(al);
+    end;
     mi.Next;
   end;
 
@@ -434,7 +442,7 @@ var
   i: integer;
 begin
   if s.Count>0 then
-    raise exception.create('TDissectCodeThread.getCallList called with a non empty list');
+    raise exception.create(rsTDissectCodeThreadgetCallListCalledWithANonEmptyList);
 
   cs.enter;
   mi:=TMapIterator.Create(calllist);

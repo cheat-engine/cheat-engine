@@ -14,6 +14,18 @@ type
   { TFormFoundCodeListExtra }
 
   TFormFoundCodeListExtra = class(TForm)
+    Label18: TLabel;
+    lblRAX: TLabel;
+    lblRBP: TLabel;
+    lblRBX: TLabel;
+    lblRCX: TLabel;
+    lblRDI: TLabel;
+    lblRDX: TLabel;
+    lblRIP: TLabel;
+    lblRSI: TLabel;
+    lblRSP: TLabel;
+    pnlRegisters: TPanel;
+    Panel8: TPanel;
     pmCopy: TPopupMenu;
     Copyaddresstoclipboard1: TMenuItem;
     Panel1: TPanel;
@@ -23,7 +35,6 @@ type
     Label5: TLabel;
     Label2: TLabel;
     Label1: TLabel;
-    Panel2: TPanel;
     Panel3: TPanel;
     Panel4: TPanel;
     Label6: TLabel;
@@ -31,16 +42,6 @@ type
     Panel5: TPanel;
     Button1: TButton;
     Panel6: TPanel;
-    lblRAX: TLabel;
-    lblRBX: TLabel;
-    lblRCX: TLabel;
-    lblRDX: TLabel;
-    lblRBP: TLabel;
-    lblRSP: TLabel;
-    lblRDI: TLabel;
-    lblRIP: TLabel;
-    lblRSI: TLabel;
-    Label18: TLabel;
     pmCopy2: TPopupMenu;
     Copyguesstoclipboard1: TMenuItem;
     pmEmpty: TPopupMenu;
@@ -52,6 +53,8 @@ type
     procedure Copyguesstoclipboard1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure Label1DblClick(Sender: TObject);
     procedure RegisterDblClick(Sender: TObject);
     procedure RegisterMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
@@ -60,6 +63,7 @@ type
     procedure sbShowFloatsClick(Sender: TObject);
   private
     { Private declarations }
+    fIs64bit: boolean;
     fprobably: ptrUint;
     fpp:       TfrmFloatingPointPanel;
     stackview: TfrmStackView;
@@ -80,7 +84,7 @@ type
     lblR13: tlabel;
     lblR14: tlabel;
     lblR15: tlabel;
-    lblR16: tlabel;
+    lblR16: tlabel; //arm
     lblR17: tlabel;
     property probably: ptrUint read fprobably write setprobably;
   end;
@@ -175,6 +179,32 @@ begin
   saveformposition(self,[]);
 end;
 
+procedure TFormFoundCodeListExtra.FormShow(Sender: TObject);
+begin
+  label3.font.color:=clRed;
+  label10.font.color:=clred;
+
+  panel1.Font.Height:=GetFontData(font.reference.Handle).Height;     ;
+  pnlRegisters.Font.Height:=panel1.Font.Height;
+
+  label3.Font.Height:=GetFontData(font.reference.Handle).Height;     ;
+  label10.Font.Height:=panel1.Font.Height;
+
+
+  Constraints.MaxHeight:=panel5.Top+panel5.height+10;
+  Constraints.MinHeight:=Constraints.MaxHeight;
+
+end;
+
+procedure TFormFoundCodeListExtra.Label1DblClick(Sender: TObject);
+begin
+  if (sender is tlabel) then
+  begin
+    memorybrowser.disassemblerview.SelectedAddress:=tlabel(sender).tag;
+    memorybrowser.show;
+  end;
+end;
+
 procedure TFormFoundCodeListExtra.RegisterDblClick(Sender: TObject);
 var s: string;
 i: integer;
@@ -219,7 +249,7 @@ end;
 procedure TFormFoundCodeListExtra.Panel6Resize(Sender: TObject);
 var maxrightwidth: integer;
 begin
-  maxrightwidth:=lblRBP.width;
+  {maxrightwidth:=lblRBP.width;
   maxrightwidth:=max(maxrightwidth, lblRSP.Width);
   maxrightwidth:=max(maxrightwidth, lblRIP.Width);
   if lblR10<>nil then
@@ -255,7 +285,7 @@ begin
 
   label18.top:=panel6.clientheight-label18.height;
 
-
+         }
 end;
 
 procedure TFormFoundCodeListExtra.sbShowStackClick(Sender: TObject);

@@ -8,7 +8,7 @@ uses
   LCLIntf, LCLType, Classes, SysUtils, controls, stdctrls, comctrls, ExtCtrls, graphics,
   math, MemoryRecordUnit, FPCanvas, cefuncproc, newkernelhandler, menus,dom,
   XMLRead,XMLWrite, symbolhandler, AddresslistEditor, inputboxtopunit,
-  frmMemrecComboboxUnit, commonTypeDefs, multilineinputqueryunit;
+  frmMemrecComboboxUnit, commonTypeDefs, multilineinputqueryunit, LazUTF8;
 
 type
   TTreeviewWithScroll=class(TTreeview)
@@ -47,7 +47,16 @@ type
 
     AddressListEditor: TAddressListEditor;
 
+    fCheckboxActiveSelectedColor: TColor;
+    fCheckboxActiveColor: TColor;
 
+    fCheckboxSelectedColor: TColor;
+    fCheckboxColor: TColor;
+    fSelectedBackgroundColor: TColor;
+    fSelectedSecondaryBackgroundColor: TColor;
+    fExpandSignColor: TColor;
+    fDecreaseArrowColor: TColor;
+    fIncreaseArrowColor: TColor;
 
     function getTreeNodes: TTreenodes;
     procedure setTreeNodes(t: TTreenodes);
@@ -147,6 +156,7 @@ type
     property OnDropByListview: TDropByListviewEvent read FOnDropByListview write FOnDropByListview;
     property OnAutoAssemblerEdit: TAutoAssemblerEditEvent read fOnAutoAssemblerEdit write fOnAutoAssemblerEdit;
 
+    procedure DoAutoSize; override;
 
 
     property headers: THeaderControl read header;
@@ -155,15 +165,27 @@ type
     property SelCount: Integer read GetSelCount;
     property SelectedRecord: TMemoryRecord read getSelectedRecord write setSelectedRecord;
     property PopupMenu: TpopupMenu read getPopupMenu write setPopupMenu;
+
+    property checkboxActiveSelectedColor: TColor read fCheckboxActiveSelectedColor write fCheckboxActiveSelectedColor;
+    property CheckboxActiveColor: TColor read fCheckboxActiveColor write fCheckboxActiveColor;
+
+    property CheckboxSelectedColor: TColor read fCheckboxSelectedColor write fCheckboxSelectedColor;
+    property CheckboxColor: TColor read fCheckboxColor write fCheckboxColor;
+    property SelectedBackgroundColor: TColor read fSelectedBackgroundColor write fSelectedBackgroundColor;
+    property SelectedSecondaryBackgroundColor: TColor read fSelectedSecondaryBackgroundColor write fSelectedSecondaryBackgroundColor;
+    property ExpandSignColor: TColor read fExpandSignColor write fExpandSignColor;
+    property IncreaseArrowColor: TColor read fIncreaseArrowColor write fIncreaseArrowColor;
+    property DecreaseArrowColor: TColor read fDecreaseArrowColor write fDecreaseArrowColor;
   end;
 
 implementation
 
-uses dialogs, formAddressChangeUnit, TypePopup, PasteTableentryFRM, mainunit, ProcessHandlerUnit;
+uses dialogs, formAddressChangeUnit, TypePopup, PasteTableentryFRM, mainunit,
+  ProcessHandlerUnit, frmEditHistoryUnit;
 
 resourcestring
-  rsDoYouWantToDeleteTheSelectedAddress = 'Do you want to delete the selected '
-    +'address%s?';
+  rsDoYouWantToDeleteTheSelectedAddress = 'Do you want to delete the selected address?';
+  rsDoYouWantToDeleteTheSelectedAddresses = 'Do you want to delete the selected addresses?';
   rsChangeDescription = 'Change Description';
   rsWhatWillBeTheNewDescription = 'What will be the new description?';
   rsChangeValue = 'Change Value';
@@ -355,19 +377,19 @@ end;
 
 procedure TAddresslist.DeleteSelected(ask: boolean=true);
 var i: integer;
-multi: string;
+question: string;
 oldindex: integer;
 begin
 
   if count=0 then exit;
 
   if selcount=0 then exit;
-  if selcount=1 then multi:='' else multi:='es';
+  if selcount=1 then question:=rsDoYouWantToDeleteTheSelectedAddress else question:=rsDoYouWantToDeleteTheSelectedAddresses;
 
   oldindex:=selectedRecord.treenode.AbsoluteIndex;
 
 
-  if (not ask) or (messagedlg(Format(rsDoYouWantToDeleteTheSelectedAddress, [multi]), mtConfirmation, [mbyes, mbno], 0) = mryes) then
+  if (not ask) or (messagedlg(question, mtConfirmation, [mbyes, mbno], 0) = mryes) then
   begin
     i:=0;
     while i<count do
@@ -389,10 +411,19 @@ end;
 
 procedure TAddresslist.ApplyFreeze;
 {Freeze all the records that are active}
-var i: integer;
+var
+  i: integer;
+  oldlogWrites: boolean;
 begin
-  for i:=0 to count-1 do
-    memrecitems[i].ApplyFreeze;
+  oldlogWrites:=logwrites;
+  //oldlogWrites:=false;
+
+  try
+    for i:=0 to count-1 do
+      memrecitems[i].ApplyFreeze;
+  finally
+    logWrites:=oldlogWrites;
+  end;
 end;
 
 procedure TAddresslist.saveTableXMLToNode(CheatEntries: TDOMNode; selectedOnly: boolean=false);
@@ -718,6 +749,8 @@ begin
 
   //treeview.EndUpdate;
 
+  mainform.editedsincelastsave:=true;
+
   result:=mr;
 end;
 
@@ -738,9 +771,9 @@ begin
   memrec.VarType:=vartype;
   memrec.CustomTypeName:=customtypename;
 
-  setlength(memrec.pointeroffsets,offsetcount);
+  memrec.offsetCount:=offsetcount;
   for i:=0 to offsetcount-1 do
-    memrec.pointeroffsets[i]:=offsets[i];
+    memrec.offsets[i].offset:=offsets[i];
 
   case vartype of
     vtString:
@@ -1171,7 +1204,9 @@ begin
     while n<>nil do
     begin
       if moManualExpandCollapse in  TMemoryRecord(n.data).Options then
-        inc(textrect.left,9);
+      begin
+        inc(textrect.left,treeview.indent div 2);
+      end;
 
       n:=n.parent;
     end;
@@ -1189,7 +1224,7 @@ begin
 
         treeview.OnCollapsing:=TreeviewOnCollapse;
       end;
-      inc(textrect.left,9);
+      inc(textrect.left,treeview.indent div 2);
     end;
 
     checkboxstart:=textrect.left+1;
@@ -1363,10 +1398,9 @@ end;
 
 function Taddresslist.descriptioncompare(a: tmemoryrecord; b: tmemoryrecord): integer;
 begin
+  result:=0; //equal
   if b.description>a.description then
     result:=1;
-  if b.description=a.description then
-    result:=0;
   if b.description<a.description then
     result:=-1;
 end;
@@ -1649,10 +1683,17 @@ var
   linetop: integer;
 
   expandsign: Trect;
+  expandsignsize: integer;
+  expandsignlineborderspace: integer;
 
   n: Ttreenode;
 begin
   //multiselect implementation
+
+
+
+
+
   DefaultDraw:=true;
   PaintImages:=true;
 
@@ -1680,9 +1721,9 @@ begin
     if memrec.isSelected then
     begin
       if node.Selected then
-        sender.Canvas.Brush.Color:=clHighlight
+        sender.Canvas.Brush.Color:=SelectedBackgroundColor //clHighlight
       else
-        sender.Canvas.Brush.Color:=clActiveCaption;
+        sender.Canvas.Brush.Color:=SelectedSecondaryBackgroundColor; //clActiveCaption;
 
       oldpenmode:=sender.Canvas.Pen.Mode;
       sender.Canvas.Pen.Mode:=pmMask;
@@ -1695,7 +1736,7 @@ begin
 
     if memrec.isSelected then
     begin
-      sender.canvas.pen.color:=clWindowtext; //InvertColor(clWindowText);
+      sender.canvas.pen.color:=clWindowtext;
       sender.Canvas.Font.Color:=InvertColor(memrec.Color)
     end
     else
@@ -1717,7 +1758,10 @@ begin
     if moManualExpandCollapse in memrec.Options then
     begin
       //draw the expand sign (+/-)  (taken and modified from treeview.inc)
+      oldpencolor:=sender.canvas.pen.color;
+      sender.canvas.pen.color:=expandSignColor;
 
+      {
       expandsign:=Rect(textrect.left, textrect.top+((textrect.bottom-textrect.top) div 2-4), textrect.left+9, textrect.top+((textrect.bottom-textrect.top) div 2+5));
       sender.canvas.Rectangle(expandsign);
       sender.canvas.MoveTo(expandsign.Left + 2, textrect.top+(textrect.bottom-textrect.top)  div 2);
@@ -1729,23 +1773,63 @@ begin
         sender.canvas.LineTo(expandsign.left+4, expandsign.Bottom - 2);
       end;
       inc(textrect.left,9);
+      }
+
+      expandsignsize:=treeview.indent div 2;
+      if expandsignsize mod 2=0 then
+        dec(expandsignsize);
+
+      if expandsignsize<9 then
+        expandsignsize:=9;
+
+      expandsignlineborderspace:=expandsignsize div 4;
+
+      if expandsignsize mod 4>2 then //round up
+        inc(expandsignlineborderspace);
+
+
+      expandsign:=Rect(textrect.left, textrect.top+((textrect.bottom-textrect.top) div 2-(expandsignsize div 2)), textrect.left+expandsignsize, textrect.top+((textrect.bottom-textrect.top) div 2+(expandsignsize div 2))+1);
+      sender.canvas.Rectangle(expandsign);
+      sender.canvas.MoveTo(expandsign.Left + expandsignlineborderspace, textrect.top+(textrect.bottom-textrect.top)  div 2);
+      sender.canvas.LineTo(expandsign.Right - expandsignlineborderspace, textrect.top+(textrect.bottom-textrect.top)  div 2);
+
+      if memrec.treenode.Expanded then
+      begin
+        sender.canvas.MoveTo(expandsign.left+expandsignsize div 2, expandsign.Top + expandsignlineborderspace);
+        sender.canvas.LineTo(expandsign.left+expandsignsize div 2, expandsign.Bottom - expandsignlineborderspace);
+      end;
+      inc(textrect.left,expandsignsize+1);
+
+      sender.canvas.pen.color:=oldpencolor;
     end;
 
     //draw checkbox
+    oldpencolor:=sender.canvas.pen.color;
+
+    if memrec.isSelected then
+      sender.canvas.pen.color:=checkboxSelectedColor
+    else
+      sender.canvas.pen.color:=checkboxColor;
+
     checkbox.Left:=textrect.left+1; //(header.Sections[0].Width div 2)-((linerect.bottom-linerect.top) div 2)+1;
     checkbox.Right:=checkbox.left+(linerect.bottom-linerect.top)-2; //(header.Sections[0].Width div 2)+((linerect.bottom-linerect.top) div 2)-1;
     checkbox.Top:=linerect.top+1;
     checkbox.Bottom:=linerect.bottom-1;
     sender.Canvas.Rectangle(checkbox);
 
+
+
+    sender.canvas.pen.color:=oldpencolor;
+
     if memrec.Active then //draw a check
     begin
       oldpencolor:=sender.canvas.pen.color;
 
       if memrec.isSelected then
-        sender.canvas.pen.color:=clBlack
+        sender.canvas.pen.color:=checkboxActiveSelectedColor
       else
-        sender.canvas.pen.color:=clRed;
+        sender.canvas.pen.color:=checkboxActiveColor;
+
       sender.canvas.Line(checkbox.left+1,checkbox.Top+1, checkbox.Right-1,checkbox.bottom-1);
       sender.canvas.line(checkbox.right-1-1,checkbox.top+1, checkbox.left,checkbox.bottom-1);
 
@@ -1757,20 +1841,20 @@ begin
         //draw the arrow up/down, unless it's a group or auto assembler type
         if memrec.allowIncrease then
         begin
-          sender.Canvas.Pen.Color:=clGreen;
+          sender.Canvas.Pen.Color:=increaseArrowColor; //clGreen
           sender.canvas.line(checkbox.right+5, checkbox.bottom-1, checkbox.right+5,checkbox.top+1);
           sender.canvas.line(checkbox.right+5,checkbox.top+1,checkbox.Right+5-4,checkbox.top+1+4);
           sender.canvas.line(checkbox.right+5,checkbox.top+1,checkbox.Right+5+4,checkbox.top+1+4);
-          sender.canvas.pen.color:=clWindowtext;
+          sender.canvas.pen.color:=oldpencolor;
         end;
 
         if memrec.allowDecrease then
         begin
-          sender.Canvas.Pen.Color:=clRed;
+          sender.Canvas.Pen.Color:=decreaseArrowColor; //clRed;
           sender.canvas.line(checkbox.right+5, checkbox.bottom-1, checkbox.right+5,checkbox.top+1);
           sender.canvas.line(checkbox.right+5,checkbox.bottom-1,checkbox.Right+5-4,checkbox.bottom-1-4);
           sender.canvas.line(checkbox.right+5,checkbox.bottom-1,checkbox.Right+5+4,checkbox.bottom-1-4);
-          sender.canvas.pen.color:=clWindowtext;
+          sender.canvas.pen.color:=oldpencolor;
         end;
       end;
 
@@ -1816,7 +1900,7 @@ begin
 
 
         //value
-        sender.Canvas.TextRect(rect(header.Sections[4].left, textrect.top, header.Sections[4].right, textrect.bottom),header.sections[4].left, linetop, AnsiToUtf8(memrec.DisplayValue));
+        sender.Canvas.TextRect(rect(header.Sections[4].left, textrect.top, header.Sections[4].right, textrect.bottom),header.sections[4].left, linetop, memrec.DisplayValue);
       end;
     end
     else
@@ -1876,6 +1960,18 @@ begin
   end;
 end;
 
+procedure TAddressList.DoAutoSize;
+begin
+  DisableAutoSizing;
+  header.Height:=header.canvas.GetTextHeight('D')+4;
+
+  treeview.Indent:=Treeview.DefaultItemHeight; //checkbox.Bottom-checkbox.Top;
+
+  EnableAutoSizing;
+
+  inherited DoAutoSize;
+end;
+
 constructor TAddresslist.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -1903,7 +1999,7 @@ begin
 
 
   treeview.AutoExpand:=true;
-  treeview.Options:=treeview.options+[tvoAutoExpand, tvoNoDoubleClickExpand];
+  treeview.Options:=treeview.options+[tvoAutoExpand, tvoNoDoubleClickExpand ];
 
 
   treeview.OnAdvancedCustomDrawItem:=AdvancedCustomDrawItem;
@@ -1915,7 +2011,8 @@ begin
   treeview.OnDragDrop:=DragDrop;
   treeview.OnEndDrag:=DragEnd;
  // treeview.OnKeyDown:=treeviewkeydown;
-  //treeview.Indent:=2;
+//  treeview.Indent:=32;
+
   treeview.OnCollapsing:=TreeviewOnCollapse;
   treeview.OnExpanding:=TreeviewOnExpand;
 
@@ -1926,12 +2023,17 @@ begin
 
   treeview.parent:=self;
 
+  treeview.Options:=treeview.options-[tvoAutoItemHeight];
+  treeview.Options:=treeview.options+[tvoAutoItemHeight];
+
+
 
 
   header:=THeaderControl.Create(self);
   header.parent:=self;
   header.Align:=alTop;
-  header.height:=20;
+  header.Height:=header.font.GetTextHeight('D')+4;
+
   with header.Sections.Add do
   begin
     Text:=rsActive;
@@ -1970,11 +2072,23 @@ begin
   header.OnSectionTrack:=SectionTrack;
 
   header.OnSectionClick:=SectionClick;
+  header.AutoSize:=true;
 
   treeview.ScrollBars:=ssVertical;
   treeview.Align:=alClient;
 
   symhandler.AddFinishedLoadingSymbolsNotification(SymbolsLoaded);
+
+
+  checkboxActiveSelectedColor:=clBlack;
+  CheckboxActiveColor:=clRed;
+  CheckboxSelectedColor:=clWindowtext;
+  CheckboxColor:=clWindowtext;
+  SelectedBackgroundColor:=clHighlight;
+  SelectedSecondaryBackgroundColor:=clActiveCaption;
+  expandSignColor:=clWindowText;
+  increaseArrowColor:=clGreen;
+  decreaseArrowColor:=clRed;
 
 end;
 

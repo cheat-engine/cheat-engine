@@ -1,129 +1,217 @@
 object frmAAEditPrefs: TfrmAAEditPrefs
-  Left = 782
-  Height = 173
-  Top = 296
-  Width = 189
+  Left = 487
+  Height = 171
+  Top = 411
+  Width = 172
+  Anchors = [akTop]
+  AutoSize = True
   BorderStyle = bsDialog
   Caption = 'Editor preferences'
-  ClientHeight = 173
-  ClientWidth = 189
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  ClientHeight = 171
+  ClientWidth = 172
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnShow = FormShow
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.6.0.4'
   object Panel2: TPanel
-    Left = 0
-    Height = 41
-    Top = 132
-    Width = 189
-    Align = alBottom
+    AnchorSideLeft.Control = Owner
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = Panel1
+    AnchorSideTop.Side = asrBottom
+    Left = 9
+    Height = 25
+    Top = 143
+    Width = 155
+    AutoSize = True
+    BorderSpacing.Left = 3
+    BorderSpacing.Top = 8
+    BorderSpacing.Right = 3
+    BorderSpacing.Bottom = 3
     BevelOuter = bvNone
-    ClientHeight = 41
-    ClientWidth = 189
+    ClientHeight = 25
+    ClientWidth = 155
     TabOrder = 0
     object Button1: TButton
-      Left = 14
+      AnchorSideLeft.Control = Panel2
+      AnchorSideTop.Control = Panel2
+      Left = 0
       Height = 25
-      Top = 8
+      Top = 0
       Width = 75
+      AutoSize = True
       Caption = 'OK'
+      Constraints.MinWidth = 75
       Default = True
       ModalResult = 1
       TabOrder = 0
     end
     object Button2: TButton
-      Left = 100
+      AnchorSideLeft.Control = Button1
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Panel2
+      Left = 80
       Height = 25
-      Top = 8
+      Top = 0
       Width = 75
+      AutoSize = True
+      BorderSpacing.Left = 5
       Cancel = True
       Caption = 'Cancel'
+      Constraints.MinWidth = 75
       ModalResult = 2
       TabOrder = 1
     end
   end
   object Panel1: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
     Left = 0
-    Height = 132
+    Height = 135
     Top = 0
-    Width = 189
-    Align = alClient
+    Width = 167
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 132
-    ClientWidth = 189
+    ClientHeight = 135
+    ClientWidth = 167
     TabOrder = 1
-    object cbShowLineNumbers: TCheckBox
-      Left = 32
-      Height = 19
-      Top = 8
-      Width = 109
-      Caption = 'Show line numbers'
-      OnClick = cbShowLineNumbersClick
+    OnClick = Panel1Click
+    object btnFont: TButton
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = Panel4
+      AnchorSideTop.Side = asrBottom
+      Left = 3
+      Height = 25
+      Top = 110
+      Width = 161
+      AutoSize = True
+      BorderSpacing.Left = 3
+      BorderSpacing.Top = 3
+      BorderSpacing.Right = 3
+      Caption = 'font'
+      Constraints.MinWidth = 161
+      OnClick = btnFontClick
       TabOrder = 0
     end
-    object cbShowGutter: TCheckBox
-      Left = 32
-      Height = 19
-      Top = 24
-      Width = 97
-      Caption = 'Show bar on left'
-      OnClick = cbShowGutterClick
+    object Panel3: TPanel
+      AnchorSideLeft.Control = Panel4
+      AnchorSideTop.Control = Panel1
+      Left = 4
+      Height = 82
+      Top = 0
+      Width = 124
+      AutoSize = True
+      BevelOuter = bvNone
+      ChildSizing.Layout = cclLeftToRightThenTopToBottom
+      ChildSizing.ControlsPerLine = 1
+      ClientHeight = 82
+      ClientWidth = 124
       TabOrder = 1
+      object cbShowLineNumbers: TCheckBox
+        AnchorSideLeft.Control = Panel3
+        AnchorSideTop.Control = Panel3
+        Left = 3
+        Height = 19
+        Top = 6
+        Width = 121
+        BorderSpacing.Left = 3
+        BorderSpacing.Top = 6
+        Caption = 'Show line numbers'
+        OnClick = cbShowLineNumbersClick
+        TabOrder = 0
+      end
+      object cbShowGutter: TCheckBox
+        AnchorSideLeft.Control = Panel3
+        AnchorSideTop.Control = cbShowLineNumbers
+        AnchorSideTop.Side = asrBottom
+        Left = 3
+        Height = 19
+        Top = 25
+        Width = 106
+        BorderSpacing.Left = 3
+        Caption = 'Show bar on left'
+        OnClick = cbShowGutterClick
+        TabOrder = 1
+      end
+      object cbSmartTab: TCheckBox
+        AnchorSideLeft.Control = Panel3
+        AnchorSideTop.Control = cbShowGutter
+        AnchorSideTop.Side = asrBottom
+        Left = 3
+        Height = 19
+        Top = 44
+        Width = 71
+        BorderSpacing.Left = 3
+        Caption = 'Smart tab'
+        OnClick = cbSmartTabClick
+        TabOrder = 2
+      end
+      object cbTabsToSpace: TCheckBox
+        AnchorSideLeft.Control = Panel3
+        AnchorSideTop.Control = cbSmartTab
+        AnchorSideTop.Side = asrBottom
+        Left = 3
+        Height = 19
+        Top = 63
+        Width = 92
+        BorderSpacing.Left = 3
+        Caption = 'Tabs to space'
+        OnClick = cbTabsToSpaceClick
+        TabOrder = 3
+      end
     end
-    object cbSmartTab: TCheckBox
-      Left = 32
-      Height = 19
-      Top = 40
-      Width = 65
-      Caption = 'Smart tab'
-      OnClick = cbSmartTabClick
+    object Panel4: TPanel
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = Panel3
+      AnchorSideTop.Side = asrBottom
+      Left = 4
+      Height = 23
+      Top = 84
+      Width = 144
+      AutoSize = True
+      BorderSpacing.Left = 4
+      BorderSpacing.Top = 2
+      BorderSpacing.Right = 4
+      BevelOuter = bvNone
+      ClientHeight = 23
+      ClientWidth = 144
       TabOrder = 2
-    end
-    object btnFont: TButton
-      Left = 16
-      Height = 25
-      Top = 104
-      Width = 161
-      Caption = 'font'
-      OnClick = btnFontClick
-      TabOrder = 3
-    end
-    object cbTabsToSpace: TCheckBox
-      Left = 32
-      Height = 19
-      Top = 56
-      Width = 88
-      Caption = 'Tabs to space'
-      OnClick = cbTabsToSpaceClick
-      TabOrder = 4
-    end
-    object edtTabWidth: TEdit
-      Left = 88
-      Height = 21
-      Top = 80
-      Width = 80
-      OnChange = edtTabWidthChange
-      TabOrder = 5
-      Text = '4'
-    end
-    object Label1: TLabel
-      Left = 31
-      Height = 14
-      Top = 83
-      Width = 51
-      Caption = 'Tab Width'
-      ParentColor = False
+      object Label1: TLabel
+        AnchorSideLeft.Control = Panel4
+        AnchorSideTop.Control = edtTabWidth
+        AnchorSideTop.Side = asrCenter
+        Left = 3
+        Height = 15
+        Top = 4
+        Width = 55
+        BorderSpacing.Left = 3
+        Caption = 'Tab Width'
+        ParentColor = False
+      end
+      object edtTabWidth: TEdit
+        AnchorSideLeft.Control = Label1
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = Panel4
+        Left = 60
+        Height = 23
+        Top = 0
+        Width = 80
+        BorderSpacing.Left = 2
+        BorderSpacing.Right = 4
+        OnChange = edtTabWidthChange
+        TabOrder = 0
+        Text = '4'
+      end
     end
   end
   object FontDialog1: TFontDialog
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
     MinFontSize = 0
     MaxFontSize = 0
     Options = [fdEffects, fdFixedPitchOnly]
-    left = 136
-    top = 8
+    left = 112
+    top = 24
   end
 end

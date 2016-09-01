@@ -213,6 +213,7 @@ begin
     index:=(addressliststart-7) div sizeof(TBitAddress);
   end;
 
+  varsize:= 1;
 
   case valuetype of
     vtbyte: varsize:= 1;

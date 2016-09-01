@@ -120,6 +120,11 @@ implementation
 
 uses DBK32functions, cefuncproc, PEInfoFunctions, NewKernelHandler, Globals;
 
+resourcestring
+rsInvalidInstruction = 'Invalid instruction';
+rsBigError = 'Error';
+rsSmallError = 'error';
+
 var vmcall :function(vmcallinfo:pointer; level1pass: dword): PtrUInt; stdcall;
 
 function vmcallUnSupported(vmcallinfo:pointer; level1pass: dword): PtrUInt; stdcall;
@@ -131,7 +136,7 @@ end;
 procedure invalidinstruction;
 begin
  // ShowMessage('Invalid instruction');
-  raise exception.create('Invalid instruction');
+  raise exception.create(rsInvalidInstruction);
 end;
 
 function vmcallexceptiontest(ExceptionInfo: PEXCEPTION_POINTERS): LONG; stdcall;
@@ -387,7 +392,7 @@ begin
     result:=vmcall(@vmcallinfo,vmx_password1);
   except
     result:=0; //read 0 bytes
-    messagebox(0,'Error','error',mb_ok);
+    messagebox(0,pchar(rsBigError),pchar(rsSmallError),mb_ok);
   end;
 end;
 

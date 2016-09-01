@@ -1,188 +1,295 @@
 object frmProcessInfo: TfrmProcessInfo
-  Left = 441
+  Left = 448
   Height = 259
-  Top = 112
-  Width = 211
+  Top = 221
+  Width = 250
+  AutoSize = True
   BorderIcons = []
   Caption = 'Process/System Info'
   ClientHeight = 259
-  ClientWidth = 211
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  ClientWidth = 250
+  Constraints.MinWidth = 250
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
-  object Label1: TLabel
-    Left = 63
-    Height = 14
-    Top = 56
-    Width = 25
-    Caption = 'CR3:'
-    ParentColor = False
-  end
-  object Label2: TLabel
-    Left = 63
-    Height = 14
-    Top = 72
-    Width = 25
-    Caption = 'CR4:'
-    ParentColor = False
-  end
-  object Label3: TLabel
-    Left = 32
-    Height = 14
-    Top = 8
-    Width = 56
-    Caption = 'PEProcess:'
-    ParentColor = False
-  end
-  object Label4: TLabel
-    Left = 66
-    Height = 14
-    Top = 136
-    Width = 22
-    Caption = 'IDT:'
-    ParentColor = False
-  end
-  object lblcr3: TLabel
-    Left = 96
-    Height = 14
-    Top = 56
-    Width = 26
-    Caption = 'lblcr3'
-    ParentColor = False
-  end
-  object lblcr4: TLabel
-    Left = 96
-    Height = 14
-    Top = 72
-    Width = 26
-    Caption = 'lblcr4'
-    ParentColor = False
-  end
-  object lblPEPROCESS: TLabel
-    Left = 96
-    Height = 14
-    Top = 8
-    Width = 76
-    Caption = 'lblPEPROCESS'
-    ParentColor = False
-    OnDblClick = lblclick
-  end
-  object Label8: TLabel
-    Left = 24
-    Height = 14
-    Top = 24
-    Width = 64
-    Caption = 'Valid Handle:'
-    ParentColor = False
-  end
-  object lblisvalid: TLabel
-    Left = 96
-    Height = 14
-    Top = 24
-    Width = 40
-    Caption = 'lblisvalid'
-    ParentColor = False
-  end
-  object Label5: TLabel
-    Left = 62
-    Height = 14
-    Top = 88
-    Width = 26
-    Caption = 'SDT:'
-    ParentColor = False
-  end
-  object lblSdt: TLabel
-    Left = 96
-    Height = 14
-    Top = 88
-    Width = 27
-    Caption = 'lblSdt'
-    ParentColor = False
-    OnDblClick = lblclick
-  end
-  object Label6: TLabel
-    Left = 55
-    Height = 14
-    Top = 104
-    Width = 33
-    Caption = 'SSDT:'
-    ParentColor = False
-  end
-  object lblSsdt: TLabel
-    Left = 96
-    Height = 14
-    Top = 104
-    Width = 32
-    Caption = 'lblSsdt'
-    ParentColor = False
-    OnDblClick = lblclick
-  end
-  object Label7: TLabel
-    Left = 61
-    Height = 14
-    Top = 120
-    Width = 27
-    Caption = 'GDT:'
-    ParentColor = False
-  end
-  object lblGdt: TLabel
-    Left = 96
-    Height = 14
-    Top = 120
-    Width = 28
-    Caption = 'lblGdt'
-    ParentColor = False
-    OnDblClick = lblclick
-  end
-  object Label9: TLabel
-    Left = 63
-    Height = 14
-    Top = 40
-    Width = 25
-    Caption = 'CR0:'
-    ParentColor = False
-  end
-  object lblcr0: TLabel
-    Left = 96
-    Height = 14
-    Top = 40
-    Width = 26
-    Caption = 'lblcr0'
-    ParentColor = False
-  end
-  object lbidt: TListBox
-    Left = 96
-    Height = 57
-    Top = 136
-    Width = 112
-    Anchors = [akTop, akLeft, akRight]
-    ItemHeight = 0
-    OnDblClick = lbidtDblClick
-    TabOrder = 0
-  end
+  LCLVersion = '1.6.0.4'
   object Button1: TButton
-    Left = 75
+    AnchorSideLeft.Control = Owner
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = Button2
+    AnchorSideTop.Side = asrBottom
+    Left = 88
     Height = 25
-    Top = 224
+    Top = 235
     Width = 75
-    Anchors = [akTop]
+    BorderSpacing.Top = 8
+    BorderSpacing.Bottom = 4
     Caption = 'OK'
     Default = True
     ModalResult = 1
     OnClick = Button1Click
-    TabOrder = 1
+    TabOrder = 0
   end
   object Button2: TButton
-    Left = 133
-    Height = 17
-    Top = 200
-    Width = 75
+    AnchorSideTop.Control = Panel2
+    AnchorSideTop.Side = asrBottom
+    Left = 163
+    Height = 25
+    Top = 202
+    Width = 84
     Anchors = [akTop, akRight]
+    AutoSize = True
     Caption = 'Threads>>'
     OnClick = Button2Click
+    TabOrder = 1
+  end
+  object Panel2: TPanel
+    Left = 3
+    Height = 199
+    Top = 3
+    Width = 244
+    Align = alTop
+    AutoSize = True
+    BorderSpacing.Left = 3
+    BorderSpacing.Top = 3
+    BorderSpacing.Right = 3
+    BevelOuter = bvNone
+    ClientHeight = 199
+    ClientWidth = 244
     TabOrder = 2
+    object Label1: TLabel
+      AnchorSideTop.Control = Label9
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Panel1
+      Left = 96
+      Height = 15
+      Top = 59
+      Width = 24
+      Anchors = [akTop, akRight]
+      BorderSpacing.Top = 2
+      Caption = 'CR3:'
+      ParentColor = False
+    end
+    object Label2: TLabel
+      AnchorSideTop.Control = Label1
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Panel1
+      Left = 96
+      Height = 15
+      Top = 76
+      Width = 24
+      Anchors = [akTop, akRight]
+      BorderSpacing.Top = 2
+      Caption = 'CR4:'
+      ParentColor = False
+    end
+    object Label3: TLabel
+      AnchorSideTop.Control = Panel2
+      AnchorSideRight.Control = Panel1
+      Left = 64
+      Height = 15
+      Top = 8
+      Width = 56
+      Anchors = [akTop, akRight]
+      BorderSpacing.Top = 8
+      Caption = 'PEProcess:'
+      ParentColor = False
+    end
+    object Label4: TLabel
+      AnchorSideTop.Control = Label7
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Panel1
+      Left = 99
+      Height = 15
+      Top = 144
+      Width = 21
+      Anchors = [akTop, akRight]
+      BorderSpacing.Top = 2
+      Caption = 'IDT:'
+      ParentColor = False
+    end
+    object lblcr3: TLabel
+      AnchorSideLeft.Control = Panel1
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Label1
+      Left = 124
+      Height = 15
+      Top = 59
+      Width = 29
+      Caption = 'lblcr3'
+      ParentColor = False
+    end
+    object lblcr4: TLabel
+      AnchorSideLeft.Control = Panel1
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Label2
+      Left = 124
+      Height = 15
+      Top = 76
+      Width = 29
+      Caption = 'lblcr4'
+      ParentColor = False
+    end
+    object lblPEPROCESS: TLabel
+      AnchorSideLeft.Control = Panel1
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Label3
+      Left = 124
+      Height = 15
+      Top = 8
+      Width = 75
+      Caption = 'lblPEPROCESS'
+      ParentColor = False
+      OnClick = lblPEPROCESSClick
+      OnDblClick = lblclick
+    end
+    object Label8: TLabel
+      AnchorSideTop.Control = Label3
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Panel1
+      Left = 50
+      Height = 15
+      Top = 25
+      Width = 70
+      Anchors = [akTop, akRight]
+      BorderSpacing.Top = 2
+      Caption = 'Valid Handle:'
+      ParentColor = False
+    end
+    object lblisvalid: TLabel
+      AnchorSideLeft.Control = Panel1
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Label8
+      Left = 124
+      Height = 15
+      Top = 25
+      Width = 46
+      Caption = 'lblisvalid'
+      ParentColor = False
+    end
+    object Label5: TLabel
+      AnchorSideTop.Control = Label2
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Panel1
+      Left = 96
+      Height = 15
+      Top = 93
+      Width = 24
+      Anchors = [akTop, akRight]
+      BorderSpacing.Top = 2
+      Caption = 'SDT:'
+      ParentColor = False
+    end
+    object lblSdt: TLabel
+      AnchorSideLeft.Control = Panel1
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Label5
+      Left = 124
+      Height = 15
+      Top = 93
+      Width = 30
+      Caption = 'lblSdt'
+      ParentColor = False
+      OnDblClick = lblclick
+    end
+    object Label6: TLabel
+      AnchorSideTop.Control = Label5
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Panel1
+      Left = 90
+      Height = 15
+      Top = 110
+      Width = 30
+      Anchors = [akTop, akRight]
+      BorderSpacing.Top = 2
+      Caption = 'SSDT:'
+      ParentColor = False
+    end
+    object lblSsdt: TLabel
+      AnchorSideLeft.Control = Panel1
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Label6
+      Left = 124
+      Height = 15
+      Top = 110
+      Width = 35
+      Caption = 'lblSsdt'
+      ParentColor = False
+      OnDblClick = lblclick
+    end
+    object Label7: TLabel
+      AnchorSideTop.Control = Label6
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Panel1
+      Left = 94
+      Height = 15
+      Top = 127
+      Width = 26
+      Anchors = [akTop, akRight]
+      BorderSpacing.Top = 2
+      Caption = 'GDT:'
+      ParentColor = False
+    end
+    object lblGdt: TLabel
+      AnchorSideLeft.Control = Panel1
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Label7
+      Left = 124
+      Height = 15
+      Top = 127
+      Width = 32
+      Caption = 'lblGdt'
+      ParentColor = False
+      OnDblClick = lblclick
+    end
+    object Label9: TLabel
+      AnchorSideTop.Control = Label8
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Panel1
+      Left = 96
+      Height = 15
+      Top = 42
+      Width = 24
+      Anchors = [akTop, akRight]
+      BorderSpacing.Top = 2
+      Caption = 'CR0:'
+      ParentColor = False
+    end
+    object lblcr0: TLabel
+      AnchorSideLeft.Control = Panel1
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Label9
+      Left = 124
+      Height = 15
+      Top = 42
+      Width = 29
+      Caption = 'lblcr0'
+      ParentColor = False
+    end
+    object lbidt: TListBox
+      AnchorSideLeft.Control = Panel1
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = lblGdt
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Side = asrBottom
+      Left = 124
+      Height = 57
+      Top = 142
+      Width = 991
+      Anchors = [akTop, akLeft, akRight]
+      ItemHeight = 0
+      OnDblClick = lbidtDblClick
+      TabOrder = 0
+    end
+    object Panel1: TPanel
+      AnchorSideLeft.Control = Panel2
+      AnchorSideLeft.Side = asrCenter
+      Left = 120
+      Height = 168
+      Top = 2
+      Width = 4
+      BevelOuter = bvNone
+      TabOrder = 1
+    end
   end
 end

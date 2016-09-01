@@ -8,6 +8,7 @@ object frmDBVMLoadManual: TfrmDBVMLoadManual
   AutoSize = True
   BorderIcons = [biSystemMenu]
   Caption = 'Manual load DBVM'
+  OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
   LCLVersion = '1.3'

@@ -34,7 +34,6 @@ type
     Timer1: TTimer;
     Panel1: TPanel;
     Button1: TButton;
-    Button4: TButton;
     Panel2: TPanel;
     Pausebutton: TSpeedButton;
     SaveButton: TSpeedButton;
@@ -292,6 +291,8 @@ begin
     li.Caption:=inttohex(address,8);
 
   li.SubItems.Add(newstring);
+
+  mainform.editedsincelastsave:=true;
 end;
 
 
@@ -774,62 +775,8 @@ resourcestring
   rsAOYouCanOnlyLoadExeFiles = 'You can only load EXE files';
 
 procedure TAdvancedOptions.Button4Click(Sender: TObject);
-var i:integer;
-    fname,expectedFilename: string;
-    oldtitle: string;
-
 begin
-  (*
-  {$ifndef net}
-  oldtitle:=opendialog1.Title;
-  opendialog1.Title:=StrSelectExeFor3D;
 
-  if Opendialog1.Execute then
-  begin
-    hyperscanview.HookDirect3d:=true;
-    hyperscanview.asktocontinue:=true;
-
-    KeysFileMapping:=CreateFileMapping($FFFFFFFF,nil,PAGE_READWRITE,0,sizeof(tkeys),'CEKEYS');
-    if KeysFileMapping=0 then
-      raise exception.Create(rsAOErrorWhileTryingToCreateTheSharedKeyStructureEtc);
-
-    keys:=MapViewOfFile(KeysFileMapping,FILE_MAP_ALL_ACCESS,0,0,0);
-    if keys=nil then
-    begin
-      closehandle(KeysFileMapping);
-      raise exception.Create(rsAOCheatEngineFailedToGetIntoTheConfigOfSelectedProgram);
-    end;
-
-    keys.configured:=false;
-
-
-    HyperscanView.HookDirect3d:=true;
-    HyperscanView.HookOpenGL:=false;
-
-
-    unpause;
-    detachIfPossible;
-    if Uppercase(extractfileext(opendialog1.FileName))<>'.EXE' then raise Exception.Create(rsAOYouCanOnlyLoadExeFiles);
-
-    Debuggerthread:=TDebugger.MyCreate(opendialog1.FileName);
-
-    while (debuggerthread<>nil) and (debuggerthread.attaching) do sleep(1);
-
-    mainForm.ProcessLabel.caption:=IntToHex(processid,8)+'-'+ExtractFileName(opendialog1.FileName);
-
-
-    mainform.debugproc:=true;
-
-    if formsettings.cbBreakOnAttach.checked then
-      memorybrowser.show;
-
-    mainform.enablegui(false);
-
-    with TFrmDirectx.Create(self) do show;
-  end;
-
-  opendialog1.title:=oldtitle;
-  {$endif} *)
 end;
 
 procedure TAdvancedOptions.FormCreate(Sender: TObject);
@@ -843,8 +790,6 @@ begin
   {$endif}
   {$endif}
 
-
-  button4.Visible:=false;
   savebutton.Visible:=false;
  // pausebutton.Left:=savebutton.Left;
 
@@ -859,7 +804,7 @@ end;
 
 procedure TAdvancedOptions.Panel1Resize(Sender: TObject);
 begin
-  button1.Left:=panel1.Width div 2 - button1.width div 2;
+
 end;
 
 procedure TAdvancedOptions.Codelist2DblClick(Sender: TObject);

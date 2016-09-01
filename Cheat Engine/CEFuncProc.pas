@@ -7,7 +7,7 @@ unit CEFuncProc;
 
 interface
 
-uses jwawindows, zstream, windows, LCLIntf,StdCtrls,Classes,SysUtils,dialogs,{tlhelp32,}forms,messages,
+uses jwawindows, zstream, windows, LazUTF8, LCLIntf,StdCtrls,Classes,SysUtils,dialogs,{tlhelp32,}forms,messages,
 Graphics,
 ComCtrls,
 {reinit, }
@@ -28,7 +28,7 @@ hypermode,
 {$endif}
 {$endif}
  math,syncobjs, shellapi, ProcessHandlerUnit, controls, shlobj, ActiveX, strutils,
-commontypedefs;
+commontypedefs, Win32Int;
 
 
 
@@ -56,7 +56,8 @@ function GetUserNameFromPID(ProcessId: DWORD): string;
 //procedure GetProcessList(ProcessList: TStrings; NoPID: boolean=false; noProcessInfo: boolean=false);  overload;
 procedure GetThreadList(threadlist: TStrings);
 //procedure cleanProcessList(processlist: TStrings);
-procedure GetWindowList(ProcessList: TListBox; showInvisible: boolean=true);
+procedure GetWindowList(ProcessList: TStrings; showInvisible: boolean=true); overload;
+procedure GetWindowList(ProcessListBox: TListBox; showInvisible: boolean=true); overload;
 procedure GetModuleList(ModuleList: TStrings; withSystemModules: boolean);
 procedure cleanModuleList(ModuleList: TStrings);
 
@@ -114,8 +115,10 @@ Function GetRelativeFilePath(filename: string):string;
 
 function GetCPUCount: integer;
 function HasHyperthreading: boolean;
-procedure SaveFormPosition(form: TCustomform; extra: array of integer);
-function LoadFormPosition(form: TCustomform; var x: TWindowPosArray):boolean;
+procedure SaveFormPosition(form: TCustomform; extra: array of integer); overload;
+procedure SaveFormPosition(form: TCustomform); overload;
+function LoadFormPosition(form: TCustomform; var x: TWindowPosArray):boolean; overload;
+function LoadFormPosition(form: TCustomform):boolean; overload;
 
 function heapflagstostring(heapflags: dword): string;
 function allocationtypetostring(alloctype: dword): string;
@@ -323,7 +326,7 @@ implementation
 uses disassembler,CEDebugger,debughelper, symbolhandler,frmProcessWatcherUnit,
      kerneldebugger, formsettingsunit, MemoryBrowserFormUnit, savedscanhandler,
      networkInterface, networkInterfaceApi, vartypestrings, processlist, Parsers,
-     Globals;
+     Globals, xinput;
 
 
 resourcestring
@@ -379,6 +382,21 @@ resourcestring
   rsSeparator = 'Separator';
   rsCEFPDllInjectionFailedSymbolLookupError = 'Dll injection failed: symbol lookup error';
   rsCEFPICantGetTheProcessListYouArePropablyUseinWindowsNtEtc = 'I can''t get the process list. You are propably using windows NT. Use the window list instead!';
+  rsPosition = ' Position';
+  rsAll = 'All';
+  rsBinary = 'Binary';
+  rsArrayOfByte = 'Array of byte';
+  rsByte = 'Byte';
+  rs2Bytes = '2 Bytes';
+  rs4Bytes = '4 Bytes';
+  rs8Bytes = '8 Bytes';
+  rsFloat = 'Float';
+  rsDouble = 'Double';
+  rsString = 'String';
+  rsUnicodeString = 'Unicode String';
+  rsPointer = 'Pointer';
+  rsAutoAssemblerScript = 'Auto Assembler Script';
+  rsCustom = 'Custom';
 
 function ProcessID: dword;
 begin
@@ -436,6 +454,7 @@ begin
       x[bufsize]:=#0;
       result:=x;
       freemem(x);
+      x:=nil;
     end;
 
     8: //array of bytes
@@ -467,6 +486,8 @@ begin
         vk_lbutton: newstr:=rsLeftMB;
         vk_mbutton: newstr:=rsMiddleMB;
         vk_rbutton: newstr:=rsRightMB;
+        VK_XBUTTON1: newstr:='MB 4';
+        VK_XBUTTON2: newstr:='MB 5';
         VK_CANCEL: newstr:=rsBreak;
         VK_BACK	: newstr:=rsBackspace;
         VK_SHIFT: newstr:=rsShift;
@@ -552,7 +573,38 @@ begin
         VK_OEM_6 : newstr:=']';
         VK_OEM_7 : newstr:='''';
 
-
+        VK_PAD_A : newstr:='[A]';
+        VK_PAD_B : newstr:='[B]';
+        VK_PAD_X : newstr:='[X]';
+        VK_PAD_Y : newstr:='[Y]';
+        VK_PAD_RSHOULDER : newstr:='[Right Shoulder]';
+        VK_PAD_LSHOULDER : newstr:='[Left Shoulder]';
+        VK_PAD_LTRIGGER : newstr:='[Left Trigger]';
+        VK_PAD_RTRIGGER : newstr:='[Right Trigger]';
+        VK_PAD_DPAD_UP : newstr:='[Up]';
+        VK_PAD_DPAD_DOWN : newstr:='[Down]';
+        VK_PAD_DPAD_LEFT : newstr:='[Left]';
+        VK_PAD_DPAD_RIGHT : newstr:='[Right]';
+        VK_PAD_START : newstr:='[Start]';
+        VK_PAD_BACK : newstr:='[Back]';
+        VK_PAD_LTHUMB_PRESS : newstr:='[Left Thumbstick]';
+        VK_PAD_RTHUMB_PRESS : newstr:='[Right Thumbstick]';
+        VK_PAD_LTHUMB_UP : newstr:='[Left: Up]';
+        VK_PAD_LTHUMB_DOWN : newstr:='[Left: Down]';
+        VK_PAD_LTHUMB_RIGHT : newstr:='[Left: Right]';
+        VK_PAD_LTHUMB_LEFT : newstr:='[Left: Left]';
+        VK_PAD_LTHUMB_UPLEFT : newstr:='[Left: Up Left]';
+        VK_PAD_LTHUMB_UPRIGHT : newstr:='[Left: Up Right]';
+        VK_PAD_LTHUMB_DOWNRIGHT : newstr:='[Left: Down Right]';
+        VK_PAD_LTHUMB_DOWNLEFT : newstr:='[Left: Down Left]';
+        VK_PAD_RTHUMB_UP : newstr:='[Right: Up]';
+        VK_PAD_RTHUMB_DOWN : newstr:='[Right: Down]';
+        VK_PAD_RTHUMB_RIGHT : newstr:='[Right: Right]';
+        VK_PAD_RTHUMB_LEFT : newstr:='[Right: Left]';
+        VK_PAD_RTHUMB_UPLEFT : newstr:='[Right: Up Left]';
+        VK_PAD_RTHUMB_UPRIGHT : newstr:='[Right: Up Right]';
+        VK_PAD_RTHUMB_DOWNRIGHT : newstr:='[Right: Down Right]';
+        VK_PAD_RTHUMB_DOWNLEFT : newstr:='[Right: Down Left]';
 
         48..57      : newstr:=chr(x[i]);
         65..90      : newstr:=chr(x[i]);
@@ -957,21 +1009,30 @@ begin
           dec(counter);
         end;
 
-        closehandle(threadhandle);
+        try
 
-        if (counter=0) then
-          raise exception.Create(rsTheInjectionThreadTookLongerThan10SecondsToExecute);
 
-        if getexitcodethread(threadhandle,res) then
-        begin
-          case res of
-            1: ;//success
-            2: raise exception.Create(rsFailedInjectingTheDLL);
-            3: raise exception.Create(rsFailedExecutingTheFunctionOfTheDll);
-            else raise exception.Create(rsUnknownErrorDuringInjection);
-          end;
-        end; //else unsure, did it work or not , or is it crashing?
+          if (counter=0) then
+            raise exception.Create(rsTheInjectionThreadTookLongerThan10SecondsToExecute);
 
+          if getexitcodethread(threadhandle,res) then
+          begin
+            case res of
+              1: ;//success
+              2: raise exception.Create(utf8toansi(rsFailedInjectingTheDLL));
+              3: raise exception.Create(utf8toansi(rsFailedExecutingTheFunctionOfTheDll));
+              else raise exception.Create(utf8toansi(rsUnknownErrorDuringInjection));
+            end;
+          end
+          else
+          begin
+            OutputDebugString('failure to get the exitcode of the thread.'+inttostr(GetLastError));
+          end; //else unsure, did it work or not , or is it crashing?
+
+
+        finally
+          closehandle(threadhandle);
+        end;
       end;
     finally
       FreeLibrary(h);
@@ -1848,6 +1909,7 @@ var
   user, domain: string;
 begin
   Result := '';
+  pUser:=nil;
   ProcessHandle := OpenProcess(PROCESS_QUERY_INFORMATION, False, ProcessId);
   if ProcessHandle <> 0 then
   begin
@@ -1877,43 +1939,16 @@ begin
         end;
       end;
 
-      if bSuccess then FreeMem(pUser);
-
     end;
     CloseHandle(ProcessHandle);
   end;
-end;
 
-{
-procedure GetProcessList(ProcessList: TListBox; NoPID: boolean=false);
-var sl: tstringlist;
-    i: integer;
-    pli: PProcessListInfo;
-begin
-  sl:=tstringlist.create;
-  try
-    processlist.Sorted:=false;
-    for i:=0 to processlist.Items.count-1 do
-      if processlist.Items.Objects[i]<>nil then
-      begin
-        pli:=pointer(processlist.Items.Objects[i]);
-        if pli.processIcon>0 then
-          DestroyIcon(pli.processIcon);
-        freemem(pli);
-      end;
-
-    processlist.Items.Clear;
-
-    
-    GetProcessList(sl, NoPID);
-    processlist.Items.AddStrings(sl);
-  finally
-    sl.free;
+  if puser<>nil then
+  begin
+    FreeMem(pUser);
+    pUser:=nil;
   end;
 end;
-   }
-
-
 
 procedure GetModuleList(ModuleList: TStrings; withSystemModules: boolean);
 var ths: thandle;
@@ -1978,24 +2013,7 @@ begin
   ModuleList.Clear;
 end;
 
-{
 
-procedure cleanProcessList(processlist: TStrings);
-var
-  i: integer;
-  ProcessListInfo: PProcessListInfo;
-begin
-  for i:=0 to processlist.count-1 do
-    if processlist.Objects[i]<>nil then
-    begin
-      ProcessListInfo:= pointer( processlist.Objects[i]);
-      if ProcessListInfo.processIcon>0 then
-        DestroyIcon(ProcessListInfo.processIcon);
-      freemem(ProcessListInfo);
-    end;
-
-  processlist.clear;
-end;     }
 
 procedure GetThreadList(threadlist: TStrings);
 var
@@ -2015,98 +2033,9 @@ begin
   closehandle(ths);
 end;
 
-{
-procedure GetProcessList(ProcessList: TStrings; NoPID: boolean=false; noProcessInfo: boolean=false);
-var SNAPHandle: THandle;
-    ProcessEntry: PROCESSENTRY32;
-    Check: Boolean;
-
-    HI: HICON;
-    ProcessListInfo: PProcessListInfo;
-    i,j: integer;
-    s: string;
-begin
-
-  HI:=0;
-
-  j:=0;
 
 
-
-  cleanProcessList(ProcessList);
-
-  if processhandler.isNetwork then
-    noProcessInfo:=true;
-
-
-  SNAPHandle:=CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS,0);
-  If SnapHandle>0 then
-  begin
-    ZeroMemory(@ProcessEntry, sizeof(ProcessEntry));
-    ProcessEntry.dwSize:=SizeOf(ProcessEntry);
-
-    Check:=Process32First(SnapHandle,ProcessEntry);
-    while check do
-    begin
-      if (noprocessinfo=false) and getprocessicons then
-      begin
-        s:='';
-
-
-        HI:=ExtractIcon(hinstance,ProcessEntry.szExeFile,0);
-        if HI=0 then
-        begin
-          i:=getlasterror;
-
-          //alternative method:
-          if (processentry.th32ProcessID>0) and (uppercase(copy(ExtractFileName(ProcessEntry.szExeFile), 1,3))<>'AVG') then //february 2014: AVG freezes processes that do createtoolhelp32snapshot on it's processes for several seconds. AVG has multiple processes...
-          begin
-            s:=GetFirstModuleName(processentry.th32ProcessID);
-            OutputDebugString(s);
-            HI:=ExtractIcon(hinstance,pchar(s),0);
-          end;
-        end;
-
-      end;
-
-      if (noprocessinfo) or (not (ProcessesWithIconsOnly and (hi=0))) and ((not ProcessesCurrentUserOnly) or (GetUserNameFromPID(processentry.th32ProcessID)=username)) then
-      begin
-        if processentry.th32ProcessID<>0 then
-        begin
-
-          if noprocessinfo=false then
-          begin
-            // get some processinfo
-            getmem(ProcessListInfo,sizeof(TProcessListInfo));
-            ProcessListInfo.processID:=processentry.th32ProcessID;
-            ProcessListInfo.processIcon:=HI;
-
-
-          end;
-
-          if noPID then
-            s:=''
-          else
-            s:=IntTohex(processentry.th32ProcessID,8)+'-';
-
-          s:=s+ExtractFilename(processentry.szExeFile);
-
-          if noprocessinfo then
-            ProcessList.Add(AnsiToUtf8(s))
-          else
-            ProcessList.AddObject(AnsiToUtf8(s), TObject(ProcessListInfo));
-        end;
-      end;
-
-
-      check:=Process32Next(SnapHandle,ProcessEntry);
-    end;
-
-    closehandle(snaphandle);
-  end else raise exception.Create(rsICanTGetTheProcessListYouArePropablyUsingWindowsNT);
-end;    }
-
-procedure GetWindowList(ProcessList: TListBox; showInvisible: boolean=true);
+procedure GetWindowList(ProcessList: TStrings; showInvisible: boolean=true);
 var previouswinhandle, winhandle: Hwnd;
     winprocess: Dword;
     temp: Pchar;
@@ -2122,14 +2051,15 @@ begin
   try
     x:=tstringlist.Create;
 
-    for i:=0 to processlist.items.count-1 do
-      if processlist.items.Objects[i]<>nil then
+    for i:=0 to processlist.count-1 do
+      if processlist.Objects[i]<>nil then
       begin
-        ProcessListInfo:=PProcessListInfo(processlist.items.Objects[i]);
+        ProcessListInfo:=PProcessListInfo(processlist.Objects[i]);
         if ProcessListInfo.processIcon>0 then
           DestroyIcon(ProcessListInfo.processIcon);
 
         freemem(ProcessListInfo);
+        ProcessListInfo:=nil;
       end;
     processlist.clear;
 
@@ -2146,7 +2076,7 @@ begin
         temp[0]:=#0;
         getwindowtext(winhandle,temp,100);
         temp[100]:=#0;
-        wintitle:=temp;
+        wintitle:=WinCPToUTF8(temp);
 
 
         if ((not ProcessesCurrentUserOnly) or (GetUserNameFromPID(winprocess)=username)) and (length(wintitle)>0) then
@@ -2185,15 +2115,31 @@ begin
       winhandle:=getwindow(winhandle,GW_HWNDNEXT);
 
       if winhandle=previouswinhandle then break;
-      
+
       inc(i);
     end;
 
     x.Sort;
-    processlist.Items.Assign(x);
+    processlist.Assign(x);
   finally
     freemem(temp);
+    temp:=nil;
   end;
+end;
+
+procedure GetWindowList(ProcessListBox: TListBox; showInvisible: boolean=true);
+var previouswinhandle, winhandle: Hwnd;
+    winprocess: Dword;
+    temp: Pchar;
+    wintitle: string;
+
+    x: tstringlist;
+    i,j:integer;
+
+    ProcessListInfo: PProcessListInfo;
+    tempdword: dword;
+begin
+  GetWindowList(ProcessListBox.Items, showInvisible);
 end;
 
 function GetCEdir:string;
@@ -2209,14 +2155,14 @@ begin
   Path := StrAlloc(MAX_PATH);
   SHGetSpecialFolderLocation(0, CSIDL_PERSONAL, PIDL);
   if SHGetPathFromIDList(PIDL, Path) then
-    tablesdir := Path+'\My Cheat Tables';
+    tablesdir := WinCPToUTF8(Path)+'\My Cheat Tables';
   SHGetMalloc(AMalloc);
   AMalloc.Free(PIDL);
   StrDispose(Path);
 
 
   if DirectoryExists(tablesdir)=false then
-    CreateDir(tablesdir);
+    tablesdir:='';
 
 end;
 
@@ -2230,6 +2176,7 @@ begin
     WindowsDir:=x;
   end;
   freemem(x);
+  x:=nil;
 end;
 
 Procedure Shutdown;
@@ -2240,6 +2187,7 @@ begin
   deletefile(CheatEngineDir+'Memory.UNDO');
   deletefile(CheatEngineDir+'Addresses.UNDO');
   freemem(memory);
+  memory:=nil;
  // Closehandle(processhandle);
 
 end;
@@ -2302,26 +2250,8 @@ begin
   begin
     result:=rewritedata(processhandle,address,buffer,size);
 
-  FlushInstructionCache(processhandle,pointer(address),size);
-
-  {
-  else
-  begin
-    //go through a loop of single pages and write as much as possible
-    bytesleft:=size;
-    size:=0;
-
-    //do the first part
-
-    init:=min(size, bytesleft);
-    writeprocessmemory(
-
-
-
-
+    FlushInstructionCache(processhandle,pointer(address),size);
   end;
-  }
-end;
 
 end;
 
@@ -2358,6 +2288,7 @@ begin
       end;
     finally
       freemem(l);
+      l:=nil;
     end;
   end;
 
@@ -2468,6 +2399,9 @@ var reg: tregistry;
     buf: PIntegerArray;
     i: integer;
     z: integer;
+
+    r: trect;
+    m: TMonitor;
 begin
   result:=false;
   buf:=nil;
@@ -2481,10 +2415,10 @@ begin
           if reg.readbool('Save window positions') = false then exit;
       end;
 
-      if Reg.OpenKey('\Software\Cheat Engine\Window Positions',false) then
+      if Reg.OpenKey('\Software\Cheat Engine\Window Positions '+inttostr(screen.PixelsPerInch),false) or Reg.OpenKey('\Software\Cheat Engine\Window Positions',false) then
       begin
         s:=form.Name;
-        s:=s+' Position';
+        s:=s+rsPosition;
 
         if reg.ValueExists(s) then
         begin
@@ -2501,12 +2435,24 @@ begin
           form.width:=buf[2];
           form.height:=buf[3];
 
-          if form.top<screen.WorkAreaTop then form.top:=screen.WorkAreaTop;
-          if form.left<screen.WorkAreaLeft then form.left:=screen.WorkAreaLeft;
+          r.top:=buf[0];
+          r.Left:=buf[1];
+          r.Right:=buf[2]+buf[1];
+          r.Bottom:=buf[3]+buf[0];
 
 
-          if form.Top>Screen.WorkAreaHeight-form.height then form.top:=screen.WorkAreaHeight-form.height;
-          if form.Left>Screen.WorkAreaWidth-form.Width then form.left:=screen.WorkAreaWidth-form.Width;
+          m:=screen.MonitorFromRect(r, mdNull);
+          if m=nil then
+          begin
+            m:=screen.MonitorFromRect(r);
+
+            if form.top<m.WorkareaRect.Top then form.top:=m.WorkareaRect.Top;
+            if form.left<m.WorkareaRect.Left then form.left:=m.WorkareaRect.Left;
+
+
+            if form.Top>m.WorkareaRect.Bottom-form.height then form.top:=m.WorkareaRect.Bottom-form.height;
+            if form.Left>m.WorkareaRect.Right-form.Width then form.left:=m.WorkareaRect.Right-form.Width;
+          end;
 
 
           for i:=0 to length(x)-1 do
@@ -2519,7 +2465,10 @@ begin
       end;
     finally
       if buf<>nil then
+      begin
         freemem(buf);
+        buf:=nil;
+      end;
 
       reg.free;
     end;
@@ -2553,7 +2502,7 @@ begin
       end;
 
 
-      if Reg.OpenKey('\Software\Cheat Engine\Window Positions',true) then
+      if Reg.OpenKey('\Software\Cheat Engine\Window Positions '+inttostr(screen.PixelsPerInch),true) then
       begin
         //registry is open, gather data
         buf:=tmemorystream.Create;
@@ -2577,7 +2526,7 @@ begin
 
           //and now save buf to the registry
           s:=form.Name;
-          s:=s+' Position';
+          s:=s+rsPosition;
 
           reg.WriteBinaryData(s,buf.Memory^,buf.Size);
         finally
@@ -2589,6 +2538,18 @@ begin
     end;
 
   end;
+end;
+
+procedure SaveFormPosition(form: TCustomform); overload;
+var extra: array of integer;
+begin
+  SaveFormPosition(form, extra);
+end;
+
+function LoadFormPosition(form: TCustomform):boolean; overload;
+var extra: array of integer;
+begin
+  LoadFormPosition(form, extra);
 end;
 
 function GetRelativeFilePath(filename: string):string;
@@ -2608,8 +2569,6 @@ var buf: array [0..31] of byte;
     actualread: PtrUInt;
     i,j: integer;
     st: string;
-    offset: dword;
-    haserror: boolean;
 
     dis: TDisassembler;
 begin
@@ -2707,26 +2666,28 @@ end;
 function VariableTypeToString(variableType: TVariableType): string;
 begin
   case variabletype of
-    vtAll: result:='All';
-    vtBinary: result:='Binary';
-    vtByteArray: Result:='Array of byte';
-    vtByte: result:='Byte';
-    vtWord: Result:='2 Bytes';
-    vtDword: Result:='4 Bytes';
-    vtQword: Result:='8 Bytes';
-    vtSingle: Result:='Float';
-    vtDouble: Result:='Double';
-    vtString: Result:='String';
-    vtUnicodeString: Result:='Unicode String';
-    vtPointer: result:='Pointer';
-    vtAutoAssembler: Result:='Auto Assembler Script';
-    vtCustom: Result:='Custom';
+    vtAll: result:=rsAll;
+    vtBinary: result:=rsBinary;
+    vtByteArray: Result:=rsArrayOfByte;
+    vtByte: result:=rsByte;
+    vtWord: Result:=rs2Bytes;
+    vtDword: Result:=rs4Bytes;
+    vtQword: Result:=rs8Bytes;
+    vtSingle: Result:=rsFloat;
+    vtDouble: Result:=rsDouble;
+    vtString: Result:=rsString;
+    vtUnicodeString: Result:=rsUnicodeString;
+    vtPointer: result:=rsPointer;
+    vtAutoAssembler: Result:=rsAutoAssemblerScript;
+    vtCustom: Result:=rsCustom;
   end;
 end;
 
 function StringToVariableType(s: string): TVariableType;
 //NEVER translate this, use the vartypestrings unit for that
 begin
+  result:=vtByte;
+
   s:=trim(lowercase(s));
   if s='all' then result:=vtAll else
   if s='binary' then result :=vtBinary else
@@ -2941,10 +2902,12 @@ begin
 
       finally
         freemem(drivername);
+        drivername:=nil;
       end;
     end;
   finally
     freemem(x);
+    x:=nil;
   end;
 end;
 
@@ -3083,7 +3046,7 @@ begin
               end;
 
               freemem(buf);
-
+              buf:=nil;
 
             end;
           end;
@@ -3134,9 +3097,13 @@ begin
     SetKernelObjectSecurity(h, DACL_SECURITY_INFORMATION, sa.lpSecurityDescriptor);
 end;
 
+
+
 procedure Log(s: string);
 begin
   OutputDebugString(pchar(s));
+
+
 end;
 
 initialization
@@ -3160,10 +3127,16 @@ initialization
   username:=GetUserNameFromPID(GetCurrentProcessId);
 
 
+  Screen.HintFont;
+
+
 finalization
 
   if tempdir<>nil then
+  begin
     freemem(tempdir);
+    tempdir:=nil;
+  end;
 
 end.
 

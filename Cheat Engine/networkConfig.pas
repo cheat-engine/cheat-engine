@@ -26,6 +26,7 @@ type
     ListView1: TListView;
     MenuItem1: TMenuItem;
     Panel1: TPanel;
+    Panel2: TPanel;
     PopupMenu1: TPopupMenu;
     procedure btnConnectClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -58,6 +59,11 @@ implementation
 
 uses networkInterfaceApi;
 
+resourcestring
+  rsHost = 'host:';
+  rsCouldNotBeResolved = ' could not be resolved';
+  rsFailureCreatingSocket = 'Failure creating socket';
+  rsFailedConnectingToTheServer = 'Failed connecting to the server';
 
 type TDiscovery=class(tthread)
   private
@@ -87,14 +93,14 @@ end;
 
 destructor TDiscovery.destroy;
 begin
-  if s<>INVALID_SOCKET then
+  if s<>cint(INVALID_SOCKET) then
     closeSocket(s);
 end;
 
 procedure TDiscovery.terminate;
 var olds: cint;
 begin
-  if s<>INVALID_SOCKET then
+  if s<>cint(INVALID_SOCKET) then
   begin
     olds:=s;
     s:=cint(INVALID_SOCKET);
@@ -190,7 +196,7 @@ begin
     end;
   end;
 
-  if s<>INVALID_SOCKET then
+  if s<>cint(INVALID_SOCKET) then
   begin
     closesocket(s);
     s:=cint(invalid_socket);
@@ -211,7 +217,7 @@ begin
       if hr.NameLookup(hostname) then
         host:=hr.NetHostAddress
       else
-        raise exception.create('host:'+hostname+' could not be resolved');
+        raise exception.create(rsHost+hostname+rsCouldNotBeResolved);
 
     end;
 
@@ -223,7 +229,7 @@ begin
   port:=ShortHostToNet(p);
 
   if getConnection=nil then
-    raise exception.create('Failed connecting to the server');
+    raise exception.create(rsFailedConnectingToTheServer);
 
 
   InitializeNetworkInterface;

@@ -6,14 +6,18 @@ interface
 
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, LResources;
+  Dialogs, StdCtrls, LResources, ExtCtrls;
 
 type
+
+  { TFormHotkey }
+
   TFormHotkey = class(TForm)
-    Edit1: TEdit;
-    Label1: TLabel;
     Button1: TButton;
     Button2: TButton;
+    Edit1: TEdit;
+    Label1: TLabel;
+    Panel1: TPanel;
     procedure Edit1KeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure Button1Click(Sender: TObject);

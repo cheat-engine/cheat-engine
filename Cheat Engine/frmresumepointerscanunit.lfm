@@ -1,168 +1,43 @@
 object frmResumePointerscan: TfrmResumePointerscan
-  Left = 891
-  Height = 153
-  Top = 145
-  Width = 653
+  Left = 504
+  Height = 140
+  Top = 351
+  Width = 625
+  AutoSize = True
   Caption = 'Resume pointerscan'
-  ClientHeight = 153
-  ClientWidth = 653
+  ClientHeight = 140
+  ClientWidth = 625
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.3'
-  object cbDistributedScanning: TCheckBox
-    Left = 8
-    Height = 19
-    Hint = 'Opens a port that other systems running the pointerscanner can connect to and help out with the scan'
-    Top = 32
-    Width = 161
-    Caption = 'Allow distributed scanning'
-    OnChange = cbDistributedScanningChange
-    ParentShowHint = False
-    ShowHint = True
-    TabOrder = 0
-  end
-  object edtDistributedPort: TEdit
-    AnchorSideLeft.Control = lblPort
-    AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = lblPort
-    AnchorSideTop.Side = asrCenter
-    Left = 49
-    Height = 23
-    Top = 50
-    Width = 103
-    TabOrder = 1
-    Text = '52737'
-  end
-  object lblPort: TLabel
-    AnchorSideLeft.Control = cbDistributedScanning
-    AnchorSideTop.Control = cbDistributedScanning
-    AnchorSideTop.Side = asrBottom
-    Left = 24
-    Height = 15
-    Top = 54
-    Width = 25
-    BorderSpacing.Left = 16
-    BorderSpacing.Top = 3
-    Caption = 'Port:'
-    ParentColor = False
-  end
-  object cbBroadcast: TCheckBox
-    AnchorSideLeft.Control = lblPort
-    AnchorSideTop.Control = edtDistributedPort
-    AnchorSideTop.Side = asrBottom
-    Left = 24
-    Height = 19
-    Hint = 'When checked will send a broadcast message on the local network which will tell pointer scanner systems to join this scan if they are set to auto join'#13#10#13#10'You can use "Setup specific IP''s to notify" to notify systems of this scan that are outside of the local network'
-    Top = 73
-    Width = 192
-    Caption = 'Broadcast that a scan has started'
-    Enabled = False
-    ParentShowHint = False
-    ShowHint = True
-    TabOrder = 2
-  end
-  object btnNotifySpecificIPs: TButton
-    AnchorSideLeft.Control = cbBroadcast
-    AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = cbBroadcast
-    AnchorSideTop.Side = asrCenter
-    Left = 220
-    Height = 25
-    Top = 70
-    Width = 156
-    BorderSpacing.Left = 4
-    Caption = 'Setup specific IP''s to notify'
-    Enabled = False
-    OnClick = btnNotifySpecificIPsClick
-    TabOrder = 3
-  end
-  object ComboBox1: TComboBox
-    Left = 236
-    Height = 23
-    Top = 8
-    Width = 140
-    ItemHeight = 15
-    ItemIndex = 3
-    Items.Strings = (
-      'Idle'
-      'Lowest'
-      'Lower'
-      'Normal'
-      'Higher'
-      'Highest'
-      'TimeCritical'
-    )
-    Style = csDropDownList
-    TabOrder = 4
-    Text = 'Normal'
-  end
-  object edtThreadcount: TEdit
-    AnchorSideRight.Side = asrBottom
-    Left = 134
-    Height = 23
-    Top = 6
-    Width = 97
-    TabOrder = 5
-    Text = '2'
-  end
-  object Label9: TLabel
-    AnchorSideRight.Control = edtThreadcount
-    Left = 8
-    Height = 15
-    Top = 8
-    Width = 126
-    Anchors = [akTop, akRight]
-    Caption = 'Nr of threads scanning: '
-    ParentColor = False
-  end
-  object Button1: TButton
-    Left = 112
-    Height = 25
-    Top = 118
-    Width = 75
-    Caption = 'Resume'
-    Default = True
-    OnClick = Button1Click
-    TabOrder = 6
-  end
-  object Button2: TButton
-    Left = 200
-    Height = 25
-    Top = 118
-    Width = 75
-    Cancel = True
-    Caption = 'Cancel'
-    ModalResult = 2
-    TabOrder = 7
-  end
+  LCLVersion = '1.6.0.4'
   object Panel1: TPanel
-    Left = 386
-    Height = 153
+    Left = 381
+    Height = 140
     Top = 0
-    Width = 267
-    Align = alRight
-    Anchors = [akTop, akLeft, akRight, akBottom]
+    Width = 244
+    Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 153
-    ClientWidth = 267
-    TabOrder = 8
+    ClientHeight = 140
+    ClientWidth = 244
+    TabOrder = 0
     OnResize = Panel1Resize
     object Label1: TLabel
       Left = 0
       Height = 15
       Top = 0
-      Width = 267
+      Width = 244
       Align = alTop
       Caption = 'Rescan pointermaps'
       ParentColor = False
     end
     object ListView1: TListView
       Left = 0
-      Height = 138
+      Height = 125
       Top = 15
-      Width = 267
+      Width = 244
       Align = alClient
       Columns = <      
         item
@@ -179,6 +54,7 @@ object frmResumePointerscan: TfrmResumePointerscan
           Caption = 'Found'
           Width = 70
         end>
+      PopupMenu = pmRescanFiles
       ReadOnly = True
       RowSelect = True
       TabOrder = 0
@@ -186,12 +62,198 @@ object frmResumePointerscan: TfrmResumePointerscan
       OnDblClick = ListView1DblClick
     end
   end
+  object Panel2: TPanel
+    Left = 0
+    Height = 140
+    Top = 0
+    Width = 381
+    Align = alLeft
+    AutoSize = True
+    BevelOuter = bvNone
+    ClientHeight = 140
+    ClientWidth = 381
+    TabOrder = 1
+    object cbDistributedScanning: TCheckBox
+      AnchorSideLeft.Control = Label9
+      AnchorSideTop.Control = edtThreadcount
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 19
+      Hint = 'Opens a port that other systems running the pointerscanner can connect to and help out with the scan'
+      Top = 26
+      Width = 161
+      Caption = 'Allow distributed scanning'
+      OnChange = cbDistributedScanningChange
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 0
+    end
+    object edtDistributedPort: TEdit
+      AnchorSideLeft.Control = lblPort
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = cbDistributedScanning
+      AnchorSideTop.Side = asrBottom
+      Left = 49
+      Height = 23
+      Top = 45
+      Width = 103
+      TabOrder = 1
+      Text = '52737'
+    end
+    object lblPort: TLabel
+      AnchorSideLeft.Control = cbDistributedScanning
+      AnchorSideTop.Control = cbDistributedScanning
+      AnchorSideTop.Side = asrBottom
+      Left = 24
+      Height = 15
+      Top = 48
+      Width = 25
+      BorderSpacing.Left = 16
+      BorderSpacing.Top = 3
+      Caption = 'Port:'
+      ParentColor = False
+    end
+    object cbBroadcast: TCheckBox
+      AnchorSideLeft.Control = lblPort
+      AnchorSideTop.Control = edtDistributedPort
+      AnchorSideTop.Side = asrBottom
+      Left = 24
+      Height = 19
+      Hint = 'When checked will send a broadcast message on the local network which will tell pointer scanner systems to join this scan if they are set to auto join'#13#10#13#10'You can use "Setup specific IP''s to notify" to notify systems of this scan that are outside of the local network'
+      Top = 68
+      Width = 192
+      Caption = 'Broadcast that a scan has started'
+      Enabled = False
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 2
+    end
+    object btnNotifySpecificIPs: TButton
+      AnchorSideLeft.Control = cbBroadcast
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = cbBroadcast
+      AnchorSideTop.Side = asrCenter
+      Left = 220
+      Height = 25
+      Top = 65
+      Width = 156
+      BorderSpacing.Left = 4
+      BorderSpacing.Right = 5
+      Caption = 'Setup specific IP''s to notify'
+      Enabled = False
+      OnClick = btnNotifySpecificIPsClick
+      TabOrder = 3
+    end
+    object ComboBox1: TComboBox
+      AnchorSideLeft.Control = edtThreadcount
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = edtThreadcount
+      AnchorSideTop.Side = asrCenter
+      Left = 235
+      Height = 23
+      Top = 3
+      Width = 140
+      BorderSpacing.Left = 4
+      BorderSpacing.Right = 5
+      ItemHeight = 15
+      ItemIndex = 3
+      Items.Strings = (
+        'Idle'
+        'Lowest'
+        'Lower'
+        'Normal'
+        'Higher'
+        'Highest'
+        'TimeCritical'
+      )
+      Style = csDropDownList
+      TabOrder = 4
+      Text = 'Normal'
+    end
+    object edtThreadcount: TEdit
+      AnchorSideLeft.Control = Label9
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Panel2
+      AnchorSideRight.Side = asrBottom
+      Left = 134
+      Height = 23
+      Top = 3
+      Width = 97
+      BorderSpacing.Top = 3
+      TabOrder = 5
+      Text = '2'
+    end
+    object Label9: TLabel
+      AnchorSideLeft.Control = Panel2
+      AnchorSideTop.Control = edtThreadcount
+      AnchorSideTop.Side = asrCenter
+      AnchorSideRight.Control = edtThreadcount
+      Left = 8
+      Height = 15
+      Top = 7
+      Width = 126
+      BorderSpacing.Left = 8
+      Caption = 'Nr of threads scanning: '
+      ParentColor = False
+    end
+    object Panel3: TPanel
+      AnchorSideLeft.Control = Panel2
+      AnchorSideLeft.Side = asrCenter
+      AnchorSideTop.Control = btnNotifySpecificIPs
+      AnchorSideTop.Side = asrBottom
+      Left = 112
+      Height = 25
+      Top = 98
+      Width = 157
+      AutoSize = True
+      BorderSpacing.Top = 8
+      BorderSpacing.Bottom = 8
+      BevelOuter = bvNone
+      ClientHeight = 25
+      ClientWidth = 157
+      TabOrder = 6
+      object Button1: TButton
+        AnchorSideLeft.Control = Panel3
+        AnchorSideTop.Control = Panel3
+        Left = 0
+        Height = 25
+        Top = 0
+        Width = 75
+        Caption = 'Resume'
+        Default = True
+        OnClick = Button1Click
+        TabOrder = 0
+      end
+      object Button2: TButton
+        AnchorSideLeft.Control = Button1
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = Button1
+        Left = 82
+        Height = 25
+        Top = 0
+        Width = 75
+        BorderSpacing.Left = 7
+        Cancel = True
+        Caption = 'Cancel'
+        ModalResult = 2
+        TabOrder = 1
+      end
+    end
+  end
+  object pmRescanFiles: TPopupMenu
+    left = 443
+    top = 90
+    object MenuItem1: TMenuItem
+      Caption = 'Add pointermap'
+      OnClick = MenuItem1Click
+    end
+  end
   object odLoadPointermap: TOpenDialog
     DefaultExt = '.scandata'
     Filter = 'All files (*.*)|*.*|scandata files (*.scandata)|*.scandata'
     FilterIndex = 2
     Options = [ofFileMustExist, ofEnableSizing, ofViewDetail]
-    left = 288
-    top = 8
+    left = 316
+    top = 36
   end
 end

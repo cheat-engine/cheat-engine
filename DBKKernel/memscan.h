@@ -2,6 +2,7 @@
 
 #ifdef AMD64
 #define PAGETABLEBASE 0xfffff68000000000ULL
+//win10 1607 it's random
 #else
 #define PAGETABLEBASE 0xc0000000
 #endif

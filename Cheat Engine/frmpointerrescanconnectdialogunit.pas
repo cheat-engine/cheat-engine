@@ -5,20 +5,23 @@ unit frmpointerrescanconnectdialogunit;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls, resolve, Sockets;
+  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
+  ExtCtrls, resolve, Sockets;
 
 type
 
   { TfrmPointerrescanConnectDialog }
 
   TfrmPointerrescanConnectDialog = class(TForm)
-    btnOK: TButton;
     btnCancel: TButton;
+    btnOK: TButton;
     edtHost: TEdit;
     edtPort: TEdit;
     lblHost: TLabel;
     lblPort: TLabel;
+    Panel1: TPanel;
     procedure btnOKClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     { private declarations }
   public
@@ -33,6 +36,10 @@ var
 implementation
 
 {$R *.lfm}
+
+resourcestring
+  rsHost = 'host:';
+  rsCouldNotBeResolved = ' could not be resolved';
 
 { TfrmPointerrescanConnectDialog }
 
@@ -49,7 +56,7 @@ begin
       if hr.NameLookup(edtHost.text) then
         host:=hr.NetHostAddress
       else
-        raise exception.create('host:'+edtHost.text+' could not be resolved');
+        raise exception.create(rsHost+edtHost.text+rsCouldNotBeResolved);
     end;
 
 
@@ -61,6 +68,11 @@ begin
   port:=strtoint(edtport.text);
 
   modalresult:=mrok;
+end;
+
+procedure TfrmPointerrescanConnectDialog.FormCreate(Sender: TObject);
+begin
+
 end;
 
 end.

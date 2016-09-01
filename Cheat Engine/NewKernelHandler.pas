@@ -8,7 +8,7 @@ interface
 uses classes, sysutils, unixporthelper;
 {$else}
 uses jwawindows, windows,LCLIntf,sysutils, dialogs, classes, controls,
-     dbk32functions, vmxfunctions,debug, multicpuexecution;
+     dbk32functions, vmxfunctions,debug, multicpuexecution, contnrs;
 {$endif}
 
 const dbkdll='DBK32.dll';
@@ -593,6 +593,9 @@ function Is64BitProcess(processhandle: THandle): boolean;
 
 //I could of course have made it a parameter thing, but I'm lazy
 
+function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL; stdcall;
+
+
 var
   EnumDeviceDrivers       :TEnumDeviceDrivers;
   GetDeviceDriverBaseNameA:TGetDeviceDriverBaseNameA;
@@ -601,7 +604,7 @@ var
 
   ReadProcessMemory     :TReadProcessMemory;
   ReadProcessMemory64   :TReadProcessMemory64;  
-  WriteProcessMemory    :TWriteProcessMemory;
+  WriteProcessMemoryActual  :TWriteProcessMemory;
   //WriteProcessMemory64  :TWriteProcessMemory64;
   GetThreadContext      :TGetThreadContext;
   SetThreadContext      :TSetThreadContext;
@@ -766,7 +769,7 @@ uses
      dbvmPhysicalMemoryHandler, //'' for physical mem
      {$endif}
      filehandler,  //so I can let readprocessmemory point to ReadProcessMemoryFile in filehandler
-     autoassembler;
+     autoassembler, frmEditHistoryUnit;
 {$endif}
 
 
@@ -780,6 +783,43 @@ resourcestring
   rsTheDriverNeedsToBeLoadedToBeAbleToUseThisFunction = 'The driver needs to be loaded to be able to use this function.';
   rsYourCpuMustBeAbleToRunDbvmToUseThisFunction = 'Your cpu must be able to run dbvm to use this function';
   rsCouldnTBeOpened = '%s couldn''t be opened';
+  rsDBVMIsNotLoadedThisFeatureIsNotUsable = 'DBVM is not loaded. This feature is not usable';
+
+
+
+
+function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL; stdcall;
+var
+  wle: PWriteLogEntry;
+  x: PTRUINT;
+
+begin
+  wle:=nil;
+  if logWrites then
+  begin
+    if nsize<64*1024*1024 then
+    begin
+      getmem(wle, sizeof(TWriteLogEntry));
+      zeromemory(wle, sizeof(TWriteLogEntry));
+
+      wle^.address:=ptruint(lpBaseAddress);
+
+      getmem(wle.originalbytes, nsize);
+      ReadProcessMemory(hProcess, lpBaseaddress,wle.originalbytes, nsize, x);
+      wle^.originalsize:=x;
+    end;
+  end;
+
+  result:=WriteProcessMemoryActual(hProcess, lpBaseAddress, lpbuffer, nSize, lpNumberOfBytesWritten);
+  if result and logwrites and (wle<>nil) then
+  begin
+    getmem(wle^.newbytes, lpNumberOfBytesWritten);
+    ReadProcessMemory(hProcess, lpBaseaddress,wle^.newbytes, lpNumberOfBytesWritten, x);
+    wle^.newsize:=x;
+    addWriteLogEntryToList(wle);
+  end;
+
+end;
 
 function VirtualQueryEx_StartCache_stub(hProcess: THandle; flags: dword): boolean;
 begin
@@ -850,7 +890,7 @@ begin
     end;
 
     if not isRunningDBVM then
-      raise exception.create('DBVM is not loaded. This feature is not usable');
+      raise exception.create(rsDBVMIsNotLoadedThisFeatureIsNotUsable);
   end;
 {$endif}
 
@@ -859,6 +899,8 @@ end;
 function loaddbvmifneeded: BOOL;  stdcall;
 var signed: BOOL;
 begin
+  result:=false;
+
 {$ifndef JNI}
   loaddbk32;
   if assigned(isDriverLoaded) then
@@ -1147,7 +1189,7 @@ begin
   usephysical:=false;
   Usephysicaldbvm:=false;
   ReadProcessMemory:=@ReadProcessMemoryFile;
-  WriteProcessMemory:=@WriteProcessMemoryFile;
+  WriteProcessMemoryActual:=@WriteProcessMemoryFile;
   VirtualQueryEx:=@VirtualQueryExFile;
 
 
@@ -1211,7 +1253,7 @@ begin
   usephysical:=false;
   usephysicaldbvm:=true;
   ReadProcessMemory:=@ReadProcessMemoryPhys;
-  WriteProcessMemory:=@WriteProcessMemoryPhys;
+  WriteProcessMemoryActual:=@WriteProcessMemoryPhys;
   VirtualQueryEx:=@VirtualQueryExPhys;
 
 
@@ -1232,7 +1274,7 @@ begin
   if usefileasmemory then closehandle(filehandle);
   usefileasmemory:=false;
   ReadProcessMemory:=@ReadPhysicalMemory;
-  WriteProcessMemory:=@WritePhysicalMemory;
+  WriteProcessMemoryActual:=@WritePhysicalMemory;
   VirtualQueryEx:=@VirtualQueryExPhysical;
 
 
@@ -1311,7 +1353,7 @@ begin
 {$ifdef windows}
   DBKReadWrite:=false;
   ReadProcessMemory:=GetProcAddress(WindowsKernel,'ReadProcessMemory');
-  WriteProcessMemory:=GetProcAddress(WindowsKernel,'WriteProcessMemory');
+  WriteProcessMemoryActual:=GetProcAddress(WindowsKernel,'WriteProcessMemory');
   VirtualAllocEx:=GetProcAddress(WindowsKernel,'VirtualAllocEx');
   if usephysical then DbkPhysicalMemory;
   if usephysicaldbvm then DBKPhysicalMemoryDBVM;
@@ -1332,7 +1374,7 @@ begin
   If DBKLoaded=false then exit;
   UseDBKOpenProcess;
   ReadProcessMemory:=@RPM;
-  WriteProcessMemory:=@WPM;
+  WriteProcessMemoryActual:=@WPM;
   VirtualAllocEx:=@VAE;
   DBKReadWrite:=true;
   if usephysical then DbkPhysicalMemory;
@@ -1431,6 +1473,7 @@ begin
     mapsline:=mappedfilename;
 
     freemem(mappedfilename);
+    mappedfilename:=nil;
   end;
 end;
 {$endif}
@@ -1442,7 +1485,7 @@ begin
   mapsline:='';
 end;
 
-var x: string;
+var
   psa: thandle;
   u32: thandle;
 
@@ -1476,7 +1519,7 @@ initialization
 
   //by default point to these exports:
   ReadProcessMemory:=GetProcAddress(WindowsKernel,'ReadProcessMemory');
-  WriteProcessMemory:=GetProcAddress(WindowsKernel,'WriteProcessMemory');
+  WriteProcessMemoryActual:=GetProcAddress(WindowsKernel,'WriteProcessMemory');
 
   OpenProcess:=GetProcAddress(WindowsKernel,'OpenProcess');
 

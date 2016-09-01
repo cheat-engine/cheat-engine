@@ -290,10 +290,11 @@ begin
     
 
   finally
-    memoryfile.free;
-    outaddress.free;
-    outmemory.free;
+    freeandnil(memoryfile);
+    freeandnil(outaddress);
+    freeandnil(outmemory);
     freemem(buf);
+    buf:=nil;
   end;
 
   //still here, not crashed, so out with the old, in with the new...
@@ -387,14 +388,13 @@ begin
   if addressfile=nil then exit;
 
   si:=-1;
+  l:=foundlist.VisibleRowCount;
+
   if foundlist.TopItem<>nil then
   begin
     si:=foundlist.TopItem.index;
     if si>=0 then
     begin
-
-      l:=foundlist.VisibleRowCount;
-
       setlength(oldvalues,l);
       j:=0;
       for i:=si to si+l-1 do
@@ -461,7 +461,7 @@ var last: integer;
     n: TAvgLvlTreeNode;
     lr: TLookupRecord;
 begin
-  result:=-1;
+  result:=qword(-1);
   if lookupTree=nil then
   begin
     lookuptree:=TAvgLvlTree.Create(AddressLookupCompare);
@@ -506,7 +506,7 @@ begin
   extra:=0;
   result:=0;
 
-  if i=-1 then exit;
+  if i=qword(-1) then exit;
   if i>=foundlist.Items.Count then exit;
 
   if addressfile=nil then exit; //during a scan
@@ -580,7 +580,7 @@ var j,k,l: integer;
 
     groupdata: PGroupAddress;
 begin
-  if i=-1 then exit;
+  if i=qword(-1) then exit;
 
 
 
@@ -816,7 +816,7 @@ begin
     //log('using fmemscan');
     //guess the default display types
     //can later be overriden
-    self.hexadecimal:=memscan.VarType=vtByteArray;
+    self.hexadecimal:=memscan.isHexadecimal;   //memscan.VarType=vtByteArray;
     self.varlength:=memscan.Getbinarysize div 8;
 
     self.unicode:=memscan.isUnicode;

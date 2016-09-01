@@ -10,7 +10,7 @@ process will set it to the different tab's process
 
 interface
 
-uses {$ifndef jni}LCLIntf, {$endif}newkernelhandler, classes;
+uses {$ifndef jni}LCLIntf, {$endif}newkernelhandler, classes, sysutils;
 
 type
   TSystemArchitecture=(archX86=0, archArm=1);
@@ -29,6 +29,7 @@ type TProcessHandler=class
 
     procedure Open;
     function isNetwork: boolean;  //perhaps name it isLinux ?
+    procedure overridePointerSize(newsize: integer);
     property is64Bit: boolean read fIs64Bit;
     property pointersize: integer read fPointersize;
     property processhandle: THandle read fProcessHandle write setProcessHandle;
@@ -47,8 +48,13 @@ implementation
 {$ifdef jni}
 uses networkinterface, networkInterfaceApi;
 {$else}
-uses LuaHandler, mainunit, networkinterface, networkInterfaceApi;
+uses LuaHandler, mainunit, networkinterface, networkInterfaceApi, ProcessList, lua, FileUtil;
 {$endif}
+
+procedure TProcessHandler.overridePointerSize(newsize: integer);
+begin
+  fpointersize:=newsize;
+end;
 
 function TProcessHandler.isNetwork: boolean;
 begin
@@ -137,8 +143,22 @@ begin
 end;
 
 procedure TProcessHandler.Open;
+{$ifdef windows}
+var mn: string;
+{$endif}
 begin
+  //GetFirstModuleNa
   {$ifndef jni}
+  {$ifdef windows}
+  if processid<>0 then
+  begin
+    mn:=GetFirstModuleName(processid);
+    lua_pushstring(luavm, pchar(extractfilename(mn)));
+    lua_setglobal(luavm, 'process');
+  end;
+
+  {$endif}
+
   LUA_functioncall('onOpenProcess', [ptruint(processid)]);   //todo: Change to a callback array/list
   {$endif}
 end;

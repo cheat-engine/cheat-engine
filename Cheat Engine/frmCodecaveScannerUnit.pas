@@ -25,6 +25,9 @@ type TCodeCaveScanner=class(tthread)
 end;
 
 type
+
+  { TfrmCodecaveScanner }
+
   TfrmCodecaveScanner = class(TForm)
     lbCodecaveList: TListBox;
     Panel1: TPanel;
@@ -43,6 +46,7 @@ type
     procedure btnStartClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure FormShow(Sender: TObject);
     procedure lbCodecaveListDblClick(Sender: TObject);
     procedure Copytoclipboard1Click(Sender: TObject);
   private
@@ -259,6 +263,15 @@ procedure TfrmCodecaveScanner.FormCloseQuery(Sender: TObject;
 begin
   if codecavescanner<>nil then
     canclose:=messagedlg(rsClosingThisWindowWillAlsoStopTheScannerAreYouSure, mtconfirmation, [mbyes, mbno], 0)=mryes;
+end;
+
+procedure TfrmCodecaveScanner.FormShow(Sender: TObject);
+var fh: integer;
+begin
+  fh:=GetFontData(font.reference.Handle).Height;
+  editstart.font.height:=fh;
+  editstop.font.height:=fh;
+  editsize.font.height:=fh;
 end;
 
 procedure TfrmCodecaveScanner.lbCodecaveListDblClick(Sender: TObject);

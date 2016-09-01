@@ -49,23 +49,26 @@ type
   { TfrmMemoryViewEx }
 
   TfrmMemoryViewEx = class(TForm)
-    cbAddresslistOnly: TCheckBox;
-    cbCompare: TCheckBox;
     cbAddresslist: TComboBox;
-    cbSavedList: TComboBox;
+    cbAddresslistOnly: TCheckBox;
     cbColor: TComboBox;
+    cbCompare: TCheckBox;
+    cbSavedList: TComboBox;
     edtPitch: TEdit;
+    Label2: TLabel;
     Label3: TLabel;
     lblAddress: TLabel;
-    Label2: TLabel;
     MenuItem1: TMenuItem;
     Panel1: TPanel;
+    Panel2: TPanel;
+    Panel3: TPanel;
+    Panel4: TPanel;
     pmMemview: TPopupMenu;
-    rbOr: TRadioButton;
     rbAnd: TRadioButton;
+    rbOr: TRadioButton;
     rbXor: TRadioButton;
-    Timer1: TTimer;
     tbPitch: TTrackBar;
+    Timer1: TTimer;
     procedure cbAddresslistChange(Sender: TObject);
     procedure cbAddresslistOnlyChange(Sender: TObject);
     procedure cbAddresslistDropDown(Sender: TObject);
@@ -194,11 +197,9 @@ begin
   begin
 
     a:=address;
+    i:=qword(-1);
     if faddresslistonly then
-    begin
       i:=addresslist.FindClosestAddress(address-fvarsize+1); //all following accesses will be sequential
-
-    end;
 
 
     toread:=bufsize;

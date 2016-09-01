@@ -20,6 +20,9 @@ implementation
 
 uses LuaForm, LuaObject, DotNetPipe;
 
+resourcestring
+  rsGroup1 = 'Group 1';
+  rsGroupD = 'Group %d';
 
 function createStructureForm(L: PLua_State): integer; cdecl;
 var
@@ -43,7 +46,7 @@ begin
 
   structname:='';
   address:='';
-  groupname:='Group 1';
+  groupname:=rsGroup1;
 
   if parameters>=3 then structname:=lua_tostring(L,3);
   if parameters>=2 then groupname:=lua_tostring(L,2);
@@ -102,7 +105,7 @@ var
 begin
   result:=0;
   frm:=luaclass_getClassObject(L);
-  groupname:=Format('Group %d',[frm.groupCount+1]);
+  groupname:=Format(rsGroupD,[frm.groupCount+1]);
   parameters:=lua_gettop(L);
   if parameters>=1 then
     if not lua_isnil(L,-1) then

@@ -8,10 +8,10 @@ object frmDebugEvents: TfrmDebugEvents
   ClientWidth = 641
   OnClose = FormClose
   Position = poScreenCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object lbDebugEvents: TListBox
     Left = 0
-    Height = 251
+    Height = 270
     Top = 0
     Width = 641
     Align = alClient
@@ -22,20 +22,29 @@ object frmDebugEvents: TfrmDebugEvents
   end
   object Panel1: TPanel
     Left = 0
-    Height = 50
-    Top = 251
+    Height = 31
+    Top = 270
     Width = 641
     Align = alBottom
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 50
+    ClientHeight = 31
     ClientWidth = 641
     TabOrder = 1
     object Button1: TButton
-      Left = 288
+      AnchorSideLeft.Control = Panel1
+      AnchorSideLeft.Side = asrCenter
+      AnchorSideTop.Control = Panel1
+      Left = 283
       Height = 25
-      Top = 16
+      Top = 3
       Width = 75
+      AutoSize = True
+      BorderSpacing.Top = 3
+      BorderSpacing.Bottom = 3
+      Cancel = True
       Caption = 'Close'
+      Constraints.MinWidth = 75
       OnClick = Button1Click
       TabOrder = 0
     end

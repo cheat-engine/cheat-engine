@@ -16,8 +16,8 @@ type
   { TFrmMemoryRecordDropdownSettings }
 
   TFrmMemoryRecordDropdownSettings = class(TForm)
-    btnOk: TButton;
     btnCancel: TButton;
+    btnOk: TButton;
     cbDisallowUserInput: TCheckBox;
     cbOnlyShowDescription: TCheckBox;
     cbDisplayAsDropdownItem: TCheckBox;
@@ -25,6 +25,7 @@ type
     Label2: TLabel;
     memoDropdownItems: TMemo;
     Panel1: TPanel;
+    Panel2: TPanel;
     procedure btnOkClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure memoDropdownItemsKeyDown(Sender: TObject; var Key: Word;

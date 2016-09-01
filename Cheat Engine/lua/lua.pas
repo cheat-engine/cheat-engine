@@ -462,8 +462,15 @@ begin
 end;
 
 function lua_tointeger(L: Plua_State; idx: Integer): lua_Integer; cdecl;
+var
+  isnum: Integer;
 begin
-  result:=lua_tointegerx(L,idx,nil);
+  result:=lua_tointegerx(L,idx,@isnum);
+  if isnum=0 then
+  begin
+    result:=trunc(lua_tonumberx(L,idx,@isnum));
+    if isnum=0 then result:=0;
+  end;
 end;
 
 function lua_toboolean(L: Plua_State; idx: Integer): LongBool; cdecl; external LUA_NAME;
@@ -535,7 +542,7 @@ function lua_dump(L: Plua_State; writer: lua_Writer; data: Pointer): Integer; cd
 function lua_yieldk(L: Plua_State; nresults: integer; ctx: lua_KContext; h: lua_KFunction):integer; cdecl; external LUA_NAME;
 function lua_yield(L: Plua_State; nresults: Integer): Integer; cdecl;
 begin
-  lua_yieldk(L, nresults, 0, nil)
+  result:=lua_yieldk(L, nresults, 0, nil);
 end;
 
 function lua_resume(L: Plua_State; narg: Integer): Integer; cdecl; external LUA_NAME;

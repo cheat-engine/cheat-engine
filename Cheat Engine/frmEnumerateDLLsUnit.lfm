@@ -7,15 +7,13 @@ object frmEnumerateDLLs: TfrmEnumerateDLLs
   Caption = 'Enumerate DLL''s'
   ClientHeight = 303
   ClientWidth = 369
-  Font.Height = -14
-  Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.6.0.4'
   object Label2: TLabel
     Left = 0
-    Height = 17
+    Height = 15
     Top = 0
     Width = 369
     Align = alTop
@@ -25,13 +23,12 @@ object frmEnumerateDLLs: TfrmEnumerateDLLs
   end
   object TreeView1: TTreeView
     Left = 0
-    Height = 236
-    Top = 17
+    Height = 247
+    Top = 15
     Width = 369
     Align = alClient
-    DefaultItemHeight = 16
+    DefaultItemHeight = 18
     Font.CharSet = ANSI_CHARSET
-    Font.Height = -15
     Font.Name = 'Courier'
     HideSelection = False
     Indent = 19
@@ -45,29 +42,40 @@ object frmEnumerateDLLs: TfrmEnumerateDLLs
   end
   object Panel1: TPanel
     Left = 0
-    Height = 50
-    Top = 253
+    Height = 41
+    Top = 262
     Width = 369
     Align = alBottom
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 50
+    ClientHeight = 41
     ClientWidth = 369
     TabOrder = 1
     object Button1: TButton
-      Left = 144
-      Height = 30
-      Top = 9
-      Width = 92
-      Anchors = [akBottom]
+      AnchorSideLeft.Control = Panel1
+      AnchorSideLeft.Side = asrCenter
+      AnchorSideTop.Control = Panel1
+      Left = 139
+      Height = 25
+      Top = 8
+      Width = 90
+      AutoSize = True
+      BorderSpacing.Top = 8
+      BorderSpacing.Bottom = 8
       Caption = 'Close'
+      Constraints.MinWidth = 90
       OnClick = Button1Click
       TabOrder = 0
     end
     object Button2: TButton
+      AnchorSideLeft.Control = Panel1
+      AnchorSideBottom.Control = Panel1
+      AnchorSideBottom.Side = asrBottom
       Left = 0
       Height = 20
-      Top = 30
+      Top = 21
       Width = 92
+      Anchors = [akLeft, akBottom]
       Caption = 'Cancel Enum'
       OnClick = Button2Click
       TabOrder = 1

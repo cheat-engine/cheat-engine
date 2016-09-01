@@ -15,24 +15,34 @@ type
 
   THotKeyForm = class(TForm)
     BitBtn1: TBitBtn;
-    Button2: TButton;
     btnApply: TButton;
     btnCreateHotkey: TButton;
     btnEditHotkey: TButton;
     btnCancel: TButton;
+    Button2: TButton;
+    cbActivateSound: TComboBox;
+    cbDeactivateSound: TComboBox;
     cbFreezedirection: TComboBox;
     edtDescription: TEdit;
     edtFreezeValue: TEdit;
     edtHotkey: TEdit;
     Label1: TLabel;
     Label2: TLabel;
+    lblActivateSound: TLabel;
+    lblDeactivateSound: TLabel;
     lblID: TLabel;
     ListView1: TListView;
+    miAddSound: TMenuItem;
     miDelete: TMenuItem;
+    odWave: TOpenDialog;
     PageControl1: TPageControl;
     Panel1: TPanel;
     Panel2: TPanel;
+    Panel3: TPanel;
     pmHotkeylist: TPopupMenu;
+    pmAddSound: TPopupMenu;
+    sbPlayActivate: TSpeedButton;
+    sbPlayDeactivate: TSpeedButton;
     TabSheet1: TTabSheet;
     TabSheet2: TTabSheet;
     procedure BitBtn1Click(Sender: TObject);
@@ -42,16 +52,22 @@ type
     procedure btnCancelClick(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure cbFreezedirectionSelect(Sender: TObject);
+    procedure cbPlaySoundChange(Sender: TObject);
     procedure edtHotkeyKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    procedure edtHotkeyMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure ListView1SelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
+    procedure miAddSoundClick(Sender: TObject);
     procedure miDeleteClick(Sender: TObject);
     procedure Panel2Resize(Sender: TObject);
     procedure pmHotkeylistPopup(Sender: TObject);
+    procedure sbPlayActivateClick(Sender: TObject);
+    procedure sbPlayDeactivateClick(Sender: TObject);
   private
     { Private declarations }
     keys: tkeycombo;
@@ -69,7 +85,7 @@ type
 
 implementation
 
-uses MainUnit;
+uses MainUnit, trainergenerator, luafile, LuaHandler, DPIHelper;
 
 resourcestring
   rsHotkeyID = 'Hotkey ID=%s';
@@ -89,6 +105,7 @@ resourcestring
 
 function THotkeyform.getHotkeyAction: TMemrecHotkeyAction;
 begin
+  result:=mrhToggleActivation;
   if fmemrec.vartype=vtAutoAssembler then
   begin
     case cbFreezedirection.ItemIndex of
@@ -162,7 +179,7 @@ begin
       cbFreezedirection.items.add(rsEnableScript);
       cbFreezedirection.items.add(rsDisableScript);
       cbFreezedirection.ItemIndex:=0;
-      edtFreezeValue.visible:=false;
+      edtFreezeValue.enabled:=false;
     end;
 
     listview1.clear;
@@ -218,6 +235,8 @@ begin
 
   if visible then
     edtHotkey.SetFocus;
+
+  cbFreezedirectionSelect(cbFreezedirection);
 end;
 
 procedure THotKeyForm.BitBtn1Click(Sender: TObject);
@@ -229,8 +248,10 @@ begin
 end;
 
 procedure THotKeyForm.btnEditHotkeyClick(Sender: TObject);
-var s: TListitem;
-i: integer;
+var
+  s: TListitem;
+  i: integer;
+  hk: TMemoryRecordHotkey;
 begin
   s:=listview1.selected;
 
@@ -258,6 +279,13 @@ begin
     edtHotkey.SetFocus;
 
   editHotkey:=true;
+
+  hk:=TMemoryRecordHotkey(listview1.Selected.data);
+
+  cbActivateSound.ItemIndex:=cbActivateSound.Items.IndexOf(hk.activateSound);
+  cbDeactivateSound.ItemIndex:=cbDeactivateSound.Items.IndexOf(hk.deactivateSound);
+
+  cbFreezedirection.OnSelect(cbFreezedirection);
 end;
 
 procedure THotKeyForm.btnApplyClick(Sender: TObject);
@@ -273,6 +301,9 @@ begin
   end
   else
     hk:=memrec.Addhotkey(keys, getHotkeyAction, edtFreezeValue.text, edtDescription.text );
+
+  hk.activateSound:=cbActivateSound.Text;
+  hk.deactivatesound:=cbDeactivateSound.text;
 
   listview1.selected.Caption:=edtHotkey.Text;
   listview1.Selected.SubItems[0]:=cbFreezedirection.Text;
@@ -305,8 +336,37 @@ begin
 end;
 
 procedure THotKeyForm.cbFreezedirectionSelect(Sender: TObject);
+var
+  onpossible: boolean;
+  offpossible: boolean;
+
 begin
-  edtFreezeValue.enabled:=cbFreezeDirection.itemindex >=3; //set value, increase by and decrease by
+  edtFreezeValue.enabled:=(memrec.VarType<>vtAutoAssembler) and (cbFreezeDirection.itemindex >=5); //set value, increase by and decrease by
+
+  if (memrec.VarType=vtAutoAssembler) then
+  begin
+    onpossible:=cbFreezeDirection.itemindex in [0,1];
+    offpossible:=cbFreezeDirection.itemindex in [0,2];
+  end
+  else
+  begin
+    onpossible:=cbFreezeDirection.itemindex in [0,1,2,3,5,6,7];
+    offpossible:=cbFreezeDirection.itemindex in [0,1,2,4];
+  end;
+
+  lblActivateSound.enabled:=onpossible;
+  cbActivateSound.enabled:=onpossible;
+  sbPlayActivate.enabled:=onpossible;
+
+  lblDeactivateSound.enabled:=offpossible;
+  cbDeactivateSound.enabled:=offpossible;
+  sbPlayDeactivate.enabled:=offpossible;
+
+end;
+
+procedure THotKeyForm.cbPlaySoundChange(Sender: TObject);
+begin
+  cbFreezedirectionSelect(cbFreezedirection);
 end;
 
 procedure THotKeyForm.edtHotkeyKeyDown(Sender: TObject; var Key: Word;
@@ -327,6 +387,21 @@ begin
   edtHotkey.Text:=ConvertKeyComboToString(keys);
 
   key:=0;
+end;
+
+procedure THotKeyForm.edtHotkeyMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+var key: word;
+begin
+  key:=0;
+  case button of
+    mbMiddle: key:=VK_MBUTTON;
+    mbExtra1: key:=VK_XBUTTON1;
+    mbExtra2: key:=VK_XBUTTON2;
+  end;
+
+  if key<>0 then
+    edtHotkeyKeyDown(edtHotkey, key, shift);
 end;
 
 procedure THotKeyForm.FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -358,12 +433,91 @@ begin
   cbFreezedirection.itemindex:=0;
 
 
+  cbActivateSound.Items.Clear;
+  cbDeactivateSound.Items.Clear;
+
+  cbActivateSound.Items.add('');
+  cbDeactivateSound.Items.add('');
+
+  FillSoundList(cbActivateSound.Items);
+  FillSoundList(cbDeactivateSound.Items);
 end;
 
 procedure THotKeyForm.FormShow(Sender: TObject);
+var
+  i, maxwidth: integer;
+  s: string;
+  cbi: TComboboxInfo;
 begin
+  PageControl1.PageIndex:=1;
+
+  cbActivateSound.Top:=edtFreezeValue.Top;
+
+  AdjustSpeedButtonSize(sbPlayActivate);
+  AdjustSpeedButtonSize(sbPlayDeactivate);
+
+
+  constraints.MinWidth:=panel1.Width+4;
+  Constraints.MinHeight:=panel2.height+panel1.Height+3*edtDescription.Height;
+
+
+
+  maxwidth:=0;
+  for i:=0 to cbFreezedirection.Items.Count-1 do
+  begin
+    s:=cbFreezedirection.Items[i];
+    maxwidth:=max(maxwidth, Canvas.TextWidth(s));
+  end;
+
+  cbi.cbSize:=sizeof(cbi);
+  if GetComboBoxInfo(cbFreezedirection.Handle, @cbi) then
+  begin
+    i:=maxwidth-(cbi.rcItem.Right-cbi.rcItem.Left)+4;
+
+    cbFreezedirection.width:=cbFreezedirection.width+i;
+  end
+  else
+    cbFreezedirection.width:=maxwidth+16;
+
+  maxwidth:=0;
+  for i:=0 to cbActivateSound.Items.Count-1 do
+  begin
+    s:=cbActivateSound.Items[i];
+    maxwidth:=max(maxwidth, Canvas.TextWidth(s));
+  end;
+
+  cbi.cbSize:=sizeof(cbi);
+  if GetComboBoxInfo(cbActivateSound.Handle, @cbi) then
+  begin
+    i:=maxwidth-(cbi.rcItem.Right-cbi.rcItem.Left)+4;
+
+    cbActivateSound.width:=cbActivateSound.width+i;
+  end
+  else
+    cbActivateSound.width:=maxwidth+16;
+
+  cbDeactivateSound.width:=cbActivateSound.Width;
+
+  if cbFreezedirection.width>edtHotkey.Width then
+    edtHotkey.Width:=cbFreezedirection.width;
+
+
+  PageControl1.PageIndex:=0;
+ // autosize:=false;
+
   if editHotkey then
+  begin
+    PageControl1.PageIndex:=1;
     edtHotkey.SetFocus;
+  end;
+
+
+ // panel1.Constraints.MinHeight:=btnCancel.Top+btnCancel.Height+2;
+
+
+
+
+
 end;
 
 procedure THotKeyForm.ListView1SelectItem(Sender: TObject; Item: TListItem;
@@ -376,6 +530,41 @@ begin
     lblid.caption:=Format(rsHotkeyID, [inttostr(TMemoryRecordHotkey(listview1.selected.data).id)])
   else
     lblid.caption:='';
+end;
+
+procedure THotKeyForm.miAddSoundClick(Sender: TObject);
+var
+  i: integer;
+  s: tmemorystream;
+  lf: TLuafile;
+
+  oldactivate, olddeactivate: string;
+begin
+  odwave.InitialDir:=GetCEdir;
+  if odwave.execute then
+  begin
+    for i:=0 to odwave.Files.Count-1 do
+    begin
+      s := TMemorystream.Create;
+      try
+        s.LoadFromFile(odwave.files[i]);
+        lf := TLuaFile.Create(extractfilename(odwave.files[i]), s);
+
+        MainForm.LuaFiles.Add(lf);
+      finally
+        s.free;
+      end;
+    end;
+
+    oldactivate:=cbActivateSound.text;
+    olddeactivate:=cbDeactivateSound.Text;
+
+    FillSoundList(cbActivateSound.Items);
+    FillSoundList(cbDeactivateSound.Items);
+
+    cbActivateSound.Itemindex:=cbActivateSound.Items.IndexOf(oldactivate);
+    cbDeactivateSound.Itemindex:=cbActivateSound.Items.IndexOf(olddeactivate);
+  end;
 end;
 
 procedure THotKeyForm.miDeleteClick(Sender: TObject);
@@ -398,6 +587,16 @@ end;
 procedure THotKeyForm.pmHotkeylistPopup(Sender: TObject);
 begin
   midelete.visible:=listview1.enabled and (listview1.Selected<>nil);
+end;
+
+procedure THotKeyForm.sbPlayActivateClick(Sender: TObject);
+begin
+  LUA_DoScript('playSound(findTableFile([['+cbActivateSound.Text+']]))');
+end;
+
+procedure THotKeyForm.sbPlayDeactivateClick(Sender: TObject);
+begin
+  LUA_DoScript('playSound(findTableFile([['+cbDeactivateSound.Text+']]))');
 end;
 
 initialization

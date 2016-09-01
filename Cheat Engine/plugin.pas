@@ -7,7 +7,7 @@ interface
 uses lclproc, windows, classes, sysutils,LCLIntf,checklst,menus,dialogs,CEFuncProc,
      NewKernelHandler, graphics, syncobjs, commonTypeDefs;
 
-const CurrentPluginVersion=5;
+const CurrentPluginVersion=6;
 
 //todo: Move the type definitions to a different unit
 
@@ -783,7 +783,8 @@ end;
 //plugin type 6:
 //where: rightclick context of the disassembler
 type TPluginfunction6=function(selectedAddress: pptruint):bool; stdcall;
-type Tpluginfuntion6OnContext=function(selectedAddress: ptruint; addressofname: pointer):bool; stdcall;
+type Tpluginfuntion6OnContext=function(selectedAddress: ptruint; addressofname: pointer; show: pbool):bool; stdcall;
+type Tpluginfuntion6OnContextVersion5=function(selectedAddress: ptruint; addressofname: pointer):bool; stdcall;
 
 //private plugin data
 type TPluginfunctionType6=class
@@ -808,7 +809,9 @@ end;
 
 //plugin type 8
 //where: when the autoassembler is used in the first and 2nd stage
-type TPluginFunction8=procedure(line: ppchar; phase: integer); stdcall;
+type TPluginFunction8=procedure(line: ppchar; phase: integer; id: integer); stdcall;
+type TPluginFunction8Version5=procedure(line: ppchar; phase: integer); stdcall;
+
 type TPluginfunctionType8=class
   public
     pluginid: integer;
@@ -853,7 +856,7 @@ type TPluginHandler=class
     procedure FillCheckListBox(clb: TCheckListbox);
     procedure EnablePlugin(pluginid: integer);
     procedure DisablePlugin(pluginid: integer);
-    procedure handleAutoAssemblerPlugin(line: ppchar; phase: integer);
+    procedure handleAutoAssemblerPlugin(line: ppchar; phase: integer; id: integer);
     procedure handledisassemblerContextPopup(address: ptruint);
     procedure handledisassemblerplugins(address: ptruint; addressStringPointer: pointer; bytestringpointer: pointer; opcodestringpointer: pointer; specialstringpointer: pointer; textcolor: PColor);
     function handledebuggerplugins(devent:PDebugEvent):integer;
@@ -1557,6 +1560,7 @@ procedure TPluginHandler.FillCheckListBox(clb: TCheckListbox);
 var i,j: integer;
     x:Tpathspecifier;
 begin
+  if self=nil then exit;
   j:=clb.count;
 
   for i:=0 to clb.Count-1 do
@@ -1574,14 +1578,20 @@ begin
   pluginCS.Leave;
 end;
 
-procedure TPluginHandler.handleAutoAssemblerPlugin(line: ppchar; phase: integer);
+procedure TPluginHandler.handleAutoAssemblerPlugin(line: ppchar; phase: integer; id: integer);
 var i,j: integer;
 begin
   pluginCS.Enter;
   try
     for i:=0 to length(plugins)-1 do
       for j:=0 to length(plugins[i].RegisteredFunctions8)-1 do
-        plugins[i].RegisteredFunctions8[j].callback(line,phase);
+      begin
+        if plugins[i].pluginversion<=5 then
+          TPluginFunction8Version5(plugins[i].Registeredfunctions8[j].callback)(line,phase)
+        else
+          plugins[i].RegisteredFunctions8[j].callback(line,phase,id);
+
+      end;
   finally
     pluginCS.Leave;
   end;
@@ -1591,6 +1601,7 @@ procedure TPluginHandler.handledisassemblerContextPopup(address: ptruint);
 var i,j: integer;
     addressofmenuitemstring: pchar;
     s: string;
+    show: bool;
 begin
   pluginCS.Enter;
   try
@@ -1599,8 +1610,14 @@ begin
       begin
         s:=plugins[i].RegisteredFunctions6[j].menuitem.Caption;
         addressofmenuitemstring:=@s[1];
-        plugins[i].RegisteredFunctions6[j].callbackOnContext(address, @addressofmenuitemstring);
+        show:=true;
+        if plugins[i].pluginversion<=5 then
+          Tpluginfuntion6OnContextVersion5(plugins[i].RegisteredFunctions6[j].callbackOnContext)(address, @addressofmenuitemstring)
+        else
+          plugins[i].RegisteredFunctions6[j].callbackOnContext(address, @addressofmenuitemstring, @show);
+
         plugins[i].RegisteredFunctions6[j].menuitem.Caption:=addressofmenuitemstring;
+        plugins[i].RegisteredFunctions6[j].menuitem.Visible:=show;
       end;
   finally
     pluginCS.Leave;
@@ -1656,6 +1673,8 @@ end;
 function TPluginHandler.handlechangedpointers(section: integer):boolean;
 var i,j: integer;
 begin
+  if self=nil then exit(false);
+
   if assigned(onAPIPointerChange) then
     onAPIPointerChange(nil);
 
@@ -1718,7 +1737,7 @@ begin
 
   //pointers to the address that contains the pointers to the functions
   exportedfunctions.ReadProcessMemory:=@@ReadProcessMemory;
-  exportedfunctions.WriteProcessMemory:=@@WriteProcessMemory;
+  exportedfunctions.WriteProcessMemory:=@@WriteProcessMemoryActual;
   exportedfunctions.GetThreadContext:=@@GetThreadContext;
   exportedfunctions.SetThreadContext:=@@SetThreadContext;
   exportedfunctions.SuspendThread:=@@SuspendThread;

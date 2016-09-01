@@ -6,36 +6,43 @@ interface
 
 uses
   LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,CEFuncProc,NewKernelHandler, LResources,memorybrowserformunit;
+  Dialogs, StdCtrls, CEFuncProc, NewKernelHandler, LResources, ExtCtrls,
+  memorybrowserformunit;
 
 type
+
+  { TfrmProcessInfo }
+
   TfrmProcessInfo = class(TForm)
+    Button1: TButton;
+    Button2: TButton;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
+    Label5: TLabel;
+    Label6: TLabel;
+    Label7: TLabel;
+    Label8: TLabel;
+    Label9: TLabel;
+    lbidt: TListBox;
+    lblcr0: TLabel;
     lblcr3: TLabel;
     lblcr4: TLabel;
-    lblPEPROCESS: TLabel;
-    lbidt: TListBox;
-    Button1: TButton;
-    Label8: TLabel;
-    lblisvalid: TLabel;
-    Button2: TButton;
-    Label5: TLabel;
-    lblSdt: TLabel;
-    Label6: TLabel;
-    lblSsdt: TLabel;
-    Label7: TLabel;
     lblGdt: TLabel;
-    Label9: TLabel;
-    lblcr0: TLabel;
+    lblisvalid: TLabel;
+    lblPEPROCESS: TLabel;
+    lblSdt: TLabel;
+    lblSsdt: TLabel;
+    Panel1: TPanel;
+    Panel2: TPanel;
     procedure FormCreate(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure lblclick(Sender: TObject);
     procedure lbidtDblClick(Sender: TObject);
     procedure Button2Click(Sender: TObject);
+    procedure lblPEPROCESSClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -96,7 +103,7 @@ end;
 procedure TfrmProcessInfo.lblclick(Sender: TObject);
 begin
 
-  memorybrowser.memoryaddress:=strtoint('$'+tlabel(sender).caption);
+  memorybrowser.memoryaddress:=StrToInt64('$'+tlabel(sender).caption);
 
   if not memorybrowser.visible then
     memorybrowser.show;
@@ -127,6 +134,11 @@ begin
   end;
 
   frmThreadlistEx.updatelist;
+end;
+
+procedure TfrmProcessInfo.lblPEPROCESSClick(Sender: TObject);
+begin
+
 end;
 
 initialization

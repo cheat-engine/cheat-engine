@@ -1,41 +1,19 @@
 object frmSetupPSNNode: TfrmSetupPSNNode
   Left = 386
-  Height = 450
+  Height = 431
   Top = 133
-  Width = 370
+  Width = 362
+  AutoSize = True
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Setup pointerscan network node'
-  ClientHeight = 450
-  ClientWidth = 370
+  ClientHeight = 431
+  ClientWidth = 362
   OnCreate = FormCreate
+  OnShow = FormShow
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.3'
-  object edtThreadCount: TEdit
-    AnchorSideLeft.Control = lblThreadCount
-    AnchorSideTop.Control = lblThreadCount
-    AnchorSideTop.Side = asrBottom
-    Left = 14
-    Height = 23
-    Hint = 'The number of threads to scan.'#13#10'Hint: Can be 0'
-    Top = 15
-    Width = 80
-    ParentShowHint = False
-    ShowHint = True
-    TabOrder = 0
-    Text = '0'
-  end
-  object lblThreadCount: TLabel
-    AnchorSideLeft.Control = Owner
-    AnchorSideTop.Control = Owner
-    Left = 14
-    Height = 15
-    Top = 0
-    Width = 68
-    BorderSpacing.Left = 14
-    Caption = 'Threadcount'
-    ParentColor = False
-  end
+  LCLVersion = '1.6.0.4'
   object cbMaxFoundResults: TCheckBox
     AnchorSideLeft.Control = cbConnectToOtherNode
     AnchorSideTop.Control = edtConnectIP
@@ -46,10 +24,11 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     Top = 285
     Width = 265
     BorderSpacing.Top = 3
+    BorderSpacing.Right = 3
     Caption = 'Stop scans after finding max amount of results'
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 1
+    TabOrder = 0
   end
   object edtMaxResultsToFind: TEdit
     AnchorSideLeft.Control = cbMaxFoundResults
@@ -59,7 +38,7 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     Height = 23
     Top = 304
     Width = 80
-    TabOrder = 2
+    TabOrder = 1
   end
   object cbMaxTimeToScan: TCheckBox
     AnchorSideLeft.Control = edtMaxResultsToFind
@@ -73,7 +52,7 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     Caption = 'Stop scans after specific time'
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 3
+    TabOrder = 2
   end
   object edtMaxTimeToScan: TEdit
     AnchorSideLeft.Control = cbMaxTimeToScan
@@ -83,7 +62,7 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     Height = 23
     Top = 346
     Width = 80
-    TabOrder = 4
+    TabOrder = 3
   end
   object Label4: TLabel
     AnchorSideLeft.Control = edtMaxTimeToScan
@@ -111,43 +90,10 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     Caption = 'Found pointer paths'
     ParentColor = False
   end
-  object btnOK: TButton
-    AnchorSideTop.Control = edtMaxTimeToScan
-    AnchorSideTop.Side = asrBottom
-    AnchorSideBottom.Control = Owner
-    AnchorSideBottom.Side = asrBottom
-    Left = 97
-    Height = 25
-    Top = 419
-    Width = 90
-    Anchors = [akLeft, akBottom]
-    BorderSpacing.Top = 8
-    BorderSpacing.Bottom = 6
-    Caption = 'Launch'
-    Default = True
-    OnClick = btnOKClick
-    TabOrder = 5
-  end
-  object btnCancel: TButton
-    AnchorSideTop.Control = edtMaxTimeToScan
-    AnchorSideTop.Side = asrBottom
-    AnchorSideBottom.Control = Owner
-    AnchorSideBottom.Side = asrBottom
-    Left = 192
-    Height = 25
-    Top = 419
-    Width = 90
-    Anchors = [akLeft, akBottom]
-    BorderSpacing.Top = 8
-    BorderSpacing.Bottom = 6
-    Cancel = True
-    Caption = 'Cancel'
-    ModalResult = 2
-    TabOrder = 6
-  end
   object cbPriority: TComboBox
     AnchorSideLeft.Control = lblPriority
-    AnchorSideTop.Control = edtThreadCount
+    AnchorSideTop.Control = lblPriority
+    AnchorSideTop.Side = asrBottom
     Left = 104
     Height = 23
     Top = 15
@@ -164,13 +110,13 @@ object frmSetupPSNNode: TfrmSetupPSNNode
       'TimeCritical'
     )
     Style = csDropDownList
-    TabOrder = 7
+    TabOrder = 4
     Text = 'Lower'
   end
   object lblPriority: TLabel
-    AnchorSideLeft.Control = edtThreadCount
+    AnchorSideLeft.Control = Panel2
     AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = lblThreadCount
+    AnchorSideTop.Control = Owner
     Left = 104
     Height = 15
     Top = 0
@@ -180,8 +126,8 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     ParentColor = False
   end
   object lblPublicName: TLabel
-    AnchorSideLeft.Control = lblThreadCount
-    AnchorSideTop.Control = edtThreadCount
+    AnchorSideLeft.Control = Panel2
+    AnchorSideTop.Control = Panel2
     AnchorSideTop.Side = asrBottom
     Left = 14
     Height = 15
@@ -194,11 +140,14 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     AnchorSideLeft.Control = lblPublicName
     AnchorSideTop.Control = lblPublicName
     AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = cbPriority
+    AnchorSideRight.Side = asrBottom
     Left = 14
     Height = 23
     Top = 53
     Width = 230
-    TabOrder = 8
+    Anchors = [akTop, akLeft, akRight]
+    TabOrder = 5
   end
   object lblListenPort: TLabel
     AnchorSideLeft.Control = edtPublicname
@@ -219,7 +168,7 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     Height = 23
     Top = 91
     Width = 144
-    TabOrder = 9
+    TabOrder = 6
     Text = '52737'
   end
   object edtParentPassword: TEdit
@@ -235,7 +184,7 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     EchoMode = emPassword
     OnChange = edtConnectPasswordChange
     PasswordChar = '*'
-    TabOrder = 10
+    TabOrder = 7
   end
   object cbConnectToOtherNode: TCheckBox
     AnchorSideLeft.Control = cbAllowChildren
@@ -251,7 +200,7 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     OnChange = cbConnectToOtherNodeChange
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 11
+    TabOrder = 8
   end
   object cbAutoTrustChildren: TCheckBox
     AnchorSideLeft.Control = lblPasswordChild
@@ -262,12 +211,13 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     Hint = 'Normally when a worker terminates before the scan is done it will send all it''s paths to it''s connected node and then close, but if the system would crash it wouldn''t be able to send it''s queues to the node, causing in a loss of possible paths to examine'#13#10#13#10'When unchecked the owning controller/scanner will only send it one pointerpath queue element at a time and remembers that queue element until the worker reports that it has 0 queue elements, meaning it successfully completed the work item.'#13#10'Also note that under normal circumstaces the node will accept new paths from the worker, but in the case of non stable workers this is not done and the worker has to do all the sub paths it generated itself'#13#10#13#10'In the node screen you will be able to change the state of a worker'
     Top = 198
     Width = 280
+    BorderSpacing.Right = 3
     Caption = 'Automatically trust stability of all new childnodes'
     Checked = True
     ParentShowHint = False
     ShowHint = True
     State = cbChecked
-    TabOrder = 12
+    TabOrder = 9
   end
   object edtChildPassword: TEdit
     AnchorSideLeft.Control = lblPasswordParent
@@ -282,7 +232,7 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     EchoMode = emPassword
     MaxLength = 16
     PasswordChar = '*'
-    TabOrder = 13
+    TabOrder = 10
   end
   object cbAllowChildren: TCheckBox
     AnchorSideLeft.Control = cbAllowParents
@@ -295,7 +245,7 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     Caption = 'Allow children to connect to me'
     Checked = True
     State = cbChecked
-    TabOrder = 14
+    TabOrder = 11
   end
   object edtConnectPort: TEdit
     AnchorSideLeft.Control = edtConnectIP
@@ -307,7 +257,7 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     Width = 69
     BorderSpacing.Left = 5
     Enabled = False
-    TabOrder = 15
+    TabOrder = 12
     Text = '52737'
   end
   object lblPort: TLabel
@@ -331,11 +281,12 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     Top = 259
     Width = 109
     BorderSpacing.Left = 5
+    BorderSpacing.Right = 8
     EchoMode = emPassword
     Enabled = False
     OnChange = edtConnectPasswordChange
     PasswordChar = '*'
-    TabOrder = 16
+    TabOrder = 13
   end
   object edtConnectIP: TEdit
     AnchorSideLeft.Control = lblIP
@@ -346,7 +297,7 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     Top = 259
     Width = 145
     Enabled = False
-    TabOrder = 17
+    TabOrder = 14
     Text = '127.0.0.1'
   end
   object lblIP: TLabel
@@ -372,7 +323,7 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     Caption = 'Allow parents to connect to me'
     Checked = True
     State = cbChecked
-    TabOrder = 18
+    TabOrder = 15
   end
   object lblPasswordParent: TLabel
     AnchorSideLeft.Control = cbAllowParents
@@ -420,7 +371,7 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     BorderSpacing.Left = 5
     Caption = 'parent'
     Enabled = False
-    TabOrder = 19
+    TabOrder = 16
   end
   object rbConnectAsChild: TRadioButton
     AnchorSideLeft.Control = rbConnectAsParent
@@ -434,16 +385,24 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     Caption = 'child'
     Checked = True
     Enabled = False
-    TabOrder = 20
+    TabOrder = 17
     TabStop = True
   end
   object Button1: TButton
-    Left = 230
+    AnchorSideLeft.Control = edtChildPassword
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = edtChildPassword
+    AnchorSideTop.Side = asrCenter
+    Left = 228
     Height = 25
-    Top = 173
-    Width = 128
+    Top = 174
+    Width = 127
+    AutoSize = True
+    BorderSpacing.Left = 3
+    BorderSpacing.Right = 8
     Caption = 'Setup trusted IP list'
-    TabOrder = 21
+    TabOrder = 18
+    Visible = False
   end
   object cbAllowTempFiles: TCheckBox
     AnchorSideLeft.Control = edtMaxTimeToScan
@@ -459,6 +418,94 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     ParentShowHint = False
     ShowHint = True
     State = cbChecked
-    TabOrder = 22
+    TabOrder = 19
+  end
+  object Panel1: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = cbAllowTempFiles
+    AnchorSideTop.Side = asrBottom
+    Left = 103
+    Height = 39
+    Top = 388
+    Width = 157
+    AutoSize = True
+    BevelOuter = bvNone
+    ClientHeight = 39
+    ClientWidth = 157
+    TabOrder = 20
+    object btnOK: TButton
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = Panel1
+      AnchorSideBottom.Side = asrBottom
+      Left = 0
+      Height = 25
+      Top = 8
+      Width = 75
+      AutoSize = True
+      BorderSpacing.Top = 8
+      BorderSpacing.Bottom = 6
+      Caption = 'Launch'
+      Constraints.MinWidth = 75
+      Default = True
+      OnClick = btnOKClick
+      TabOrder = 0
+    end
+    object btnCancel: TButton
+      AnchorSideLeft.Control = btnOK
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = btnOK
+      AnchorSideBottom.Side = asrBottom
+      Left = 82
+      Height = 25
+      Top = 8
+      Width = 75
+      AutoSize = True
+      BorderSpacing.Left = 7
+      BorderSpacing.Bottom = 6
+      Cancel = True
+      Caption = 'Cancel'
+      Constraints.MinWidth = 75
+      ModalResult = 2
+      TabOrder = 1
+    end
+  end
+  object Panel2: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    Left = 14
+    Height = 38
+    Top = 0
+    Width = 80
+    AutoSize = True
+    BorderSpacing.Left = 14
+    BevelOuter = bvNone
+    ClientHeight = 38
+    ClientWidth = 80
+    TabOrder = 21
+    object lblThreadCount: TLabel
+      AnchorSideLeft.Control = Panel2
+      AnchorSideTop.Control = Panel2
+      Left = 0
+      Height = 15
+      Top = 0
+      Width = 68
+      Caption = 'Threadcount'
+      ParentColor = False
+    end
+    object edtThreadCount: TEdit
+      AnchorSideLeft.Control = lblThreadCount
+      AnchorSideTop.Control = lblThreadCount
+      AnchorSideTop.Side = asrBottom
+      Left = 0
+      Height = 23
+      Hint = 'The number of threads to scan.'#13#10'Hint: Can be 0'
+      Top = 15
+      Width = 80
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 0
+      Text = '0'
+    end
   end
 end

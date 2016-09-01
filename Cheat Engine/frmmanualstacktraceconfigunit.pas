@@ -5,15 +5,16 @@ unit frmManualStacktraceConfigUnit;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls;
+  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
+  ExtCtrls;
 
 type
 
   { TfrmManualStacktraceConfig }
 
   TfrmManualStacktraceConfig = class(TForm)
-    btnOK: TButton;
     btnCancel: TButton;
+    btnOK: TButton;
     cbUseShadow: TCheckBox;
     edtEIP: TEdit;
     edtESP: TEdit;
@@ -28,6 +29,7 @@ type
     lblEBP: TLabel;
     lblESP: TLabel;
     lblEIP: TLabel;
+    Panel1: TPanel;
     procedure btnOKClick(Sender: TObject);
   private
     { private declarations }

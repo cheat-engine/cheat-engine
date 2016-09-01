@@ -1318,6 +1318,8 @@ begin
 
   imm12:=(i shl 12) or (imm3 shl 8) or v;
 
+  imm32:=0;
+
   if (imm12 shr 10)=0 then
   begin
     case (imm12 shr 8) and 3 of
@@ -4676,6 +4678,7 @@ var w,rn: byte;
 begin
   w:=(opcode shr 5) and 1;
   if w=1 then _w:='!' else _w:='';
+  rn:=opcode and $f;
 
   LastDisassembleData.opcode:='RFEDB';
   LastDisassembleData.parameters:=ArmRegisters[rn]+_w;
@@ -4687,6 +4690,7 @@ var w,rn: byte;
 begin
   w:=(opcode shr 5) and 1;
   if w=1 then _w:='!' else _w:='';
+  rn:=opcode and $f;
 
   LastDisassembleData.opcode:='RFE';
   LastDisassembleData.parameters:=ArmRegisters[rn]+_w;

@@ -1,8 +1,9 @@
 object frmdissectWindow: TfrmdissectWindow
-  Left = 322
+  Left = 835
   Height = 296
-  Top = 452
+  Top = 444
   Width = 303
+  AutoSize = True
   Caption = 'Dissect Windows'
   ClientHeight = 296
   ClientWidth = 303
@@ -10,17 +11,20 @@ object frmdissectWindow: TfrmdissectWindow
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   OnCreate = FormCreate
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.1'
+  LCLVersion = '1.6.0.4'
   object TreeView1: TTreeView
     Left = 0
-    Height = 211
+    Height = 224
     Top = 0
     Width = 303
     Align = alClient
-    DefaultItemHeight = 16
+    DefaultItemHeight = 18
+    Font.Name = 'MS Sans Serif'
     HideSelection = False
     Indent = 19
+    ParentFont = False
     ReadOnly = True
     TabOrder = 0
     Options = [tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips]
@@ -37,38 +41,55 @@ object frmdissectWindow: TfrmdissectWindow
   end
   object Panel1: TPanel
     Left = 0
-    Height = 85
-    Top = 211
+    Height = 72
+    Top = 224
     Width = 303
     Align = alBottom
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 85
+    ClientHeight = 72
     ClientWidth = 303
     TabOrder = 2
     object Button2: TButton
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = Panel1
       Left = 8
-      Height = 19
+      Height = 23
       Top = 8
-      Width = 89
+      Width = 91
+      AutoSize = True
+      BorderSpacing.Left = 8
+      BorderSpacing.Top = 8
       Caption = 'Toggle visible'
       OnClick = Button2Click
       TabOrder = 0
     end
     object Button3: TButton
-      Left = 104
-      Height = 19
+      AnchorSideLeft.Control = Button2
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Panel1
+      Left = 107
+      Height = 23
       Top = 8
-      Width = 89
+      Width = 91
+      AutoSize = True
+      BorderSpacing.Left = 8
+      BorderSpacing.Top = 8
+      BorderSpacing.Right = 8
       Caption = 'Close window'
       OnClick = Button3Click
       TabOrder = 1
     end
     object Button5: TButton
+      AnchorSideTop.Control = Button3
+      AnchorSideTop.Side = asrBottom
       Left = 116
       Height = 25
-      Top = 56
+      Top = 39
       Width = 75
       Anchors = [akTop]
+      BorderSpacing.Top = 8
+      BorderSpacing.Bottom = 8
       Caption = 'OK'
       ModalResult = 1
       TabOrder = 2
@@ -85,10 +106,19 @@ object frmdissectWindow: TfrmdissectWindow
       Visible = False
     end
     object Button6: TButton
-      Left = 200
-      Height = 19
+      AnchorSideLeft.Control = Button3
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Panel1
+      AnchorSideRight.Control = Panel1
+      AnchorSideRight.Side = asrBottom
+      Left = 206
+      Height = 23
       Top = 8
-      Width = 89
+      Width = 83
+      AutoSize = True
+      BorderSpacing.Left = 8
+      BorderSpacing.Top = 8
+      BorderSpacing.Right = 8
       Caption = 'Change text'
       OnClick = Button6Click
       TabOrder = 4

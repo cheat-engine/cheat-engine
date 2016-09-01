@@ -3,7 +3,6 @@
 //#include "CorDebugManagedCallback2.h"
 #include "MyIcorDebugDataTarget.h"
 #include "MyICLRDebuggingLibraryProvider.h"
-#include "MyIcorDebugManagedCallback.h"
 
 #define CMD_TARGETPROCESS 0
 #define CMD_CLOSEPROCESSANDQUIT 1

@@ -6,7 +6,8 @@ interface
 
 uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,CEFuncProc,ComCtrls, ExtCtrls, LResources, memscan, commonTypeDefs;
+  Dialogs, StdCtrls,CEFuncProc,ComCtrls, ExtCtrls, LResources, memscan,
+  commonTypeDefs, math, win32proc;
 
 const wm_fw_scandone=wm_user+1;
 type
@@ -122,21 +123,33 @@ begin
 end;
 
 procedure TFindWindow.FormShow(Sender: TObject);
+const EM_GETMARGINS=$d4;
+var m: DWord;
 begin
   progressbar.Position:=0;
   
   if firstscan then
   begin
 
-
-
-    editstart.Text:=Inttohex(TMemoryBrowser(Owner).memoryaddress, processhandler.pointersize*2);
+    if WindowsVersion>=wvVista then
+      m:=sendmessage(editstart.Handle, EM_GETMARGINS, 0,0)
+    else
+      m:=0;
 
     if processhandler.is64bit then
+    begin
       editstop.text:='7FFFFFFFFFFFFFFF';
+      editstart.clientwidth:=canvas.TextWidth('DDDDDDDDDDDDDDDD')+(m shr 16)+(m and $ffff);
+    end
+    else
+    begin
+      editstart.clientwidth:=canvas.TextWidth('DDDDDDDD')+(m shr 16)+(m and $ffff);
+    end;
 
-    height:=185;
-    progressbar.Top:=96;
+
+
+
+
 
     labelType.visible:=true;
     labelarray.visible:=true;
@@ -153,9 +166,6 @@ begin
   end
   else
   begin
-    clientheight:=progressbar.height+4;
-    progressbar.top:=2;
-
     labelType.visible:=false;
     labelarray.visible:=false;
     rbtext.visible:=false;
@@ -169,6 +179,15 @@ begin
     label3.Visible:=false;
     timer1.enabled:=true; //bah, I wanted to do execute here but it seems thats not possible
   end;
+
+  btnok.AutoSize:=true;
+  btnok.AutoSize:=false;
+
+  btnCancel.autosize:=true;
+  btnCancel.autosize:=false;
+
+  btnok.width:=max(btnok.width, btncancel.width);
+  btncancel.width:=max(btnok.width, btncancel.width);
 end;
 
 procedure TFindWindow.Timer1Timer(Sender: TObject);

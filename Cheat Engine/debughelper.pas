@@ -100,7 +100,7 @@ type
     function  isBreakpoint(address: uint_ptr; address2: uint_ptr=0; includeinactive: boolean=false): PBreakpoint;
     function  CodeFinderStop(codefinder: TFoundCodeDialog): boolean;
     function  setChangeRegBreakpoint(regmod: PRegisterModificationBP): PBreakpoint;
-    procedure setBreakAndTraceBreakpoint(frmTracer: TFrmTracer; address: ptrUint; BreakpointTrigger: TBreakpointTrigger; bpsize: integer; count: integer; condition:string=''; stepover: boolean=false);
+    procedure setBreakAndTraceBreakpoint(frmTracer: TFrmTracer; address: ptrUint; BreakpointTrigger: TBreakpointTrigger; bpsize: integer; count: integer; condition:string=''; stepover: boolean=false; nosystem: boolean=false);
     function  stopBreakAndTrace(frmTracer: TFrmTracer): boolean;
     function FindWhatCodeAccesses(address: uint_ptr; FoundCodeDialog:TFoundCodeDialog=nil): tfrmChangedAddresses;
     function  FindWhatCodeAccessesStop(frmchangedaddresses: Tfrmchangedaddresses): boolean;
@@ -189,7 +189,16 @@ resourcestring
   rsDebuggerFailedToAttach = 'Debugger failed to attach';
   rsThisDebuggerInterfaceDoesnTSupportBreakOnEntryYet = 'This debugger '
     +'interface :''%s'' doesn''t support Break On Entry yet';
-
+  rsLastLocation = ' (Last location:';
+  rsCalledFromMainThread = 'Called from main thread';
+  rsCalledFromDebuggerThread = 'Called from debugger thread';
+  rsCalledFromAnUnexpectedThread = 'Called from an unexpected thread';
+  rsDebuggerthreadIsAtPoint = 'debuggerthread is at point ';
+  rsBreakpointError = 'Breakpoint error:';
+  rsNoForm = 'No form';
+  rsDebuggerAttachTimeout = 'Debugger attach timeout';
+  rsTheDebuggerAttachHasTimedOut = 'The debugger attach has timed out. This could indicate that the target has crashed, or that your system is just slow. Do you wish to wait another ';
+  rsSeconds = ' seconds';
 
 procedure TDebuggerthread.Execute;
 var
@@ -316,7 +325,7 @@ begin
 
     except
       on e: exception do
-        messagebox(0, pchar(utf8toansi(rsDebuggerCrash)+':'+e.message+' (Last location:'+inttostr(execlocation)+')'), '', 0);
+        messagebox(0, pchar(utf8toansi(rsDebuggerCrash)+':'+e.message+rsLastLocation+inttostr(execlocation)+')'), '', 0);
     end;
 
   finally
@@ -662,24 +671,24 @@ begin
   debuginfo:=tstringlist.create;
 
   if GetCurrentThreadId=MainThreadID then
-    debuginfo.Add('Called from main thread');
+    debuginfo.Add(rsCalledFromMainThread);
 
   if getCurrentThreadId=debuggerthread.ThreadID then
-    debuginfo.Add('Called from debugger thread');
+    debuginfo.Add(rsCalledFromDebuggerThread);
 
   if getCurrentThreadId=debuggerthread.ThreadID then
-    debuginfo.Add('Called from an unexpected thread');
+    debuginfo.Add(rsCalledFromAnUnexpectedThread);
 
   debuginfo.add('action='+breakpointActionToString(breakpoint.breakpointAction));
   debuginfo.add('method='+breakpointMethodToString(breakpoint.breakpointMethod));
   debuginfo.add('trigger='+breakpointTriggerToString(breakpoint.breakpointTrigger));
   debuginfo.add('debugreg='+inttostr(breakpoint.debugRegister));
 
-  debuginfo.add('debuggerthread is at point '+inttostr(debuggerthread.execlocation));
+  debuginfo.add(rsDebuggerthreadIsAtPoint+inttostr(debuggerthread.execlocation));
 
   Clipboard.AsText:=debuginfo.text;
 
-  MessageBox(0,pchar('Breakpoint error:'+reason), pchar(debuginfo.text), MB_OK);
+  MessageBox(0,pchar(rsBreakpointError+reason), pchar(debuginfo.text), MB_OK);
 
   debuginfo.free;
 end;
@@ -692,14 +701,14 @@ begin
   //debug code to find out why this one gets reactivated
   if (breakpoint^.breakpointAction=bo_FindCode) and (breakpoint^.FoundcodeDialog=nil) then
   begin
-    DisplayDebugInfo('No form');
+    DisplayDebugInfo(rsNoForm);
     result:=false;
     exit;
   end;
 
   if (breakpoint^.breakpointAction=bo_FindWhatCodeAccesses) and (breakpoint^.frmchangedaddresses=nil) then
   begin
-    DisplayDebugInfo('No form');
+    DisplayDebugInfo(rsNoForm);
     result:=false;
     exit;
   end;
@@ -1456,6 +1465,7 @@ begin
 
 
   setlength(bplist, 0);
+  usedDebugRegister:=-1;
   if method=bpmDebugRegister then
   begin
     GetBreakpointList(address, size, bplist);
@@ -1602,6 +1612,7 @@ begin
 
 
   method:=preferedBreakpointMethod;
+  usedDebugRegister:=-1;
   if method=bpmDebugRegister then
   begin
     usedDebugRegister := GetUsableDebugRegister(bptExecute);
@@ -1623,7 +1634,7 @@ begin
 
 end;
 
-procedure TDebuggerthread.setBreakAndTraceBreakpoint(frmTracer: TFrmTracer; address: ptrUint; BreakpointTrigger: TBreakpointTrigger; bpsize: integer; count: integer; condition:string=''; stepover: boolean=false);
+procedure TDebuggerthread.setBreakAndTraceBreakpoint(frmTracer: TFrmTracer; address: ptrUint; BreakpointTrigger: TBreakpointTrigger; bpsize: integer; count: integer; condition:string=''; stepover: boolean=false; nosystem: boolean=false);
 var
   method: TBreakpointMethod;
   useddebugregister: integer;
@@ -1670,6 +1681,7 @@ begin
     begin
       bp.traceendcondition:=strnew(pchar(condition));
       bp.traceStepOver:=stepover;
+      bp.traceNosystem:=nosystem;
     end;
 
 
@@ -1681,6 +1693,7 @@ begin
       bpsecondary:=AddBreakpoint(bp, bplist[i].address, bplist[i].size, BreakpointTrigger, method, bo_BreakAndTrace, usedDebugregister,  nil, 0, nil,frmTracer,count);
       bpsecondary.traceendcondition:=strnew(pchar(condition));
       bpsecondary.traceStepOver:=stepover;
+      bpsecondary.traceNosystem:=nosystem;
     end;
 
 
@@ -1698,11 +1711,13 @@ var
   s: string;
   tempaddress: ptruint;
 begin
+  result:=nil;
   if foundCodeDialog<>nil then  //this is linked to a foundcode dialog
     method:=bpmInt3
   else
     method:=preferedBreakpointMethod;
 
+  usedDebugRegister:=-1;
   if method=bpmDebugRegister then
   begin
     usedDebugRegister := GetUsableDebugRegister(bptExecute);
@@ -2299,7 +2314,7 @@ begin
       if result=wrSignaled then break;
     end;
 
-    userWantsToAttach:=(result<>wrSignaled) and (MessageDlg('Debugger attach timeout', 'The debugger attach has timed out. This could indicate that the target has crashed, or that your system is just slow. Do you wish to wait another '+inttostr(timeout div 1000)+' seconds', mtConfirmation, [mbyes,mbno],0 )=mryes);
+    userWantsToAttach:=(result<>wrSignaled) and (MessageDlg(rsDebuggerAttachTimeout, rsTheDebuggerAttachHasTimedOut+inttostr(timeout div 1000)+rsSeconds, mtConfirmation, [mbyes,mbno],0 )=mryes);
   end;
 
 

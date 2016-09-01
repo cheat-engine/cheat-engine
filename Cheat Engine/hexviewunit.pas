@@ -54,7 +54,7 @@ type
     usablewidth: integer;
     bytesPerLine: integer;
     fbytesPerSeperator: integer; //only 8, 4 or 2
-    lockedRowSize: integer; //if 0 then bytesPerLine is calculated by the size of the object, else it's lockedRowSize
+    flockedRowSize: integer; //if 0 then bytesPerLine is calculated by the size of the object, else it's lockedRowSize
 
     totallines: integer;
     charstart: integer;
@@ -149,7 +149,7 @@ type
     procedure KeyPress(var Key: char); override;
   public
     fadetimer: integer;
-    procedure LockRowsize;
+    procedure LockRowsize(size: integer=0);
     procedure UnlockRowsize;
     procedure CopySelectionToClipboard;
     procedure GetSelectionRange(var start: ptruint; var stop: ptruint);
@@ -192,6 +192,7 @@ type
     property PaintBox: TPaintbox read mbCanvas;
     property OSBitmap: TBitmap read offscreenBitmap;
     property HexFont: TFont read fHexFont write setHexFont;
+    property LockedRowSize: integer read fLockedRowSize write fLockedRowSize;
   end;
 
 implementation
@@ -297,14 +298,17 @@ begin
   update;
 end;
 
-procedure THexView.LockRowsize;
+procedure THexView.LockRowsize(size: integer=0);
 begin
-  lockedRowSize:=bytesPerLine;
+  if size=0 then
+    flockedRowSize:=bytesPerLine
+  else
+    flockedRowSize:=size;
 end;
 
 procedure THexView.UnlockRowsize;
 begin
-  lockedRowSize:=0;
+  flockedRowSize:=0;
   hexviewResize(self);
   update;
 end;
@@ -861,6 +865,8 @@ begin
       dtQword, dtQwordDec: vartype:=vtQword;
       dtSingle: vartype:=vtSingle;
       dtDouble: vartype:=vtDouble;
+      else
+        vartype:=vtDword;
     end;
 
     mainform.addresslist.addAddressManually(inttohex(selected,8), Vartype);
@@ -897,6 +903,8 @@ begin
     fromAddress:=MinX(selected,selected2);
     toAddress:=MaxX(selected,selected2);
 
+
+
     if selectiontype=hrChar then
     begin
       while fromaddress<=toAddress do
@@ -919,23 +927,37 @@ begin
     end
     else
     begin
-      //byte array
+
+      toAddress:=toAddress+DisplayTypeByteSize[fDisplayType]-1;
+      s:='';
       while fromaddress<=toAddress do
       begin
-        b:=getByte(fromAddress,unreadable);
-        if not unreadable then
-        begin
-          s:=s+inttohex(b,2)+' ';
-        end
-        else
-          s:=s+'?? ';
+        case fDisplayType of
+          dtByte: s:=s+getByte(fromaddress);
+          dtByteDec: s:=s+getByteDec(fromaddress, true);
+          dtWord: s:=s+getWord(fromaddress);
+          dtWordDec: s:=s+getWordDec(fromaddress, true);
+          dtDword: s:=s+getDWord(fromaddress);
+          dtDwordDec: s:=s+getDWordDec(fromaddress, true);
+          dtQword: s:=s+getQWord(fromaddress);
+          dtQwordDec: s:=s+getQWordDec(fromaddress, true);
+          dtSingle: s:=s+getSingle(fromaddress, true);
+          dtDouble: s:=s+getDouble(fromaddress, true);
+        end;
 
+         //byte array
+        //b:=getByte(fromAddress,unreadable);
+        //if not unreadable then
+        //begin
+        //  s:=s+inttohex(b,2)+' ';
+        //end
+        //else
+        //  s:=s+'?? ';
 
-        inc(fromAddress);
+        inc(fromAddress, DisplayTypeByteSize[fDisplayType]);
+        if fromaddress<=toAddress then
+          s:=s+' ';
       end;
-
-      if s<>'' then
-        s:=copy(s,1,length(s)-1);
     end;
 
     Clipboard.AsText:=s;
@@ -1395,7 +1417,9 @@ begin
 
   unreadable:=not pi.readable;
   if pi.readable then
-    result:=pi.data[offset];
+    result:=pi.data[offset]
+  else
+    result:=0;
 end;
 
 function THexView.getByte(a: ptrUint): string; overload;
@@ -1929,8 +1953,8 @@ begin
 
   usablewidth:=mbCanvas.ClientWidth-addresswidth-8;
 
-  if lockedRowSize>0 then
-    bytesPerLine:=lockedRowSize
+  if flockedRowSize>0 then
+    bytesPerLine:=flockedRowSize
   else
     bytesPerLine:=(usablewidth div bytesize) and $fffffff8;
 
@@ -2098,7 +2122,7 @@ begin
   fHexFont:=tfont.create;
   fHexFont.Charset:=DEFAULT_CHARSET;
   fHexFont.Color:=clwindowText;
-  fHexFont.Height:=-11;
+  fHexFont.Height:=GetFontData(MainForm.Font.handle).Height;
   fHexFont.Name:='Courier';
   fHexFont.Style:=[];
 

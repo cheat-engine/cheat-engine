@@ -203,7 +203,7 @@ begin
 
     lua_pushinteger(L, i);
     lua_pushinteger(L, address);
-    if lua_pcall(l,1,bytesize,0)=0 then
+    if lua_pcall(l,2,bytesize,0)=0 then
     begin
       r:=lua_gettop(L);
       if r>0 then
@@ -513,7 +513,7 @@ var i: integer;
   //lua vars
   returncount: integer;
 
-  templua: Plua_State;
+//  templua: Plua_State;
 
   ftn,tn: pchar;
 
@@ -559,6 +559,7 @@ begin
         begin
           newpreferedalignment:=-1;
           newScriptUsesFloat:=false;
+          newScriptUsesCDecl:=false;
 
           //find alloc "ConvertRoutine"
           for i:=0 to length(c)-1 do
@@ -620,24 +621,20 @@ begin
     end
     else
     begin
-      //create a new lua state and load this script
-      templua:=luaL_newstate;
-      if templua=nil then
-        raise exception.create(rsFailureCreatingLuaObject);
-
       try
-        if lua_dostring(templua, pchar(script))=0 then //success
+        lua_pop(luavm, lua_gettop(luavm));
+        if lua_dostring(luavm, pchar(script))=0 then //success, lua script loaded
         begin
-          returncount:=lua_gettop(templua);
+          returncount:=lua_gettop(luavm);
           if returncount<>3 then
             raise exception.create(rsOnlyReturnTypenameBytecountAndFunctiontypename);
 
           //-1=functiontypename
           //-2=bytecount
           //-3=typename
-          ftn:=lua.lua_tostring(templua,-1);
-          bytesize:=lua_tointeger(templua,-2);
-          tn:=lua.lua_tostring(templua,-3);
+          ftn:=lua.lua_tostring(luavm,-1);
+          bytesize:=lua_tointeger(luavm,-2);
+          tn:=lua.lua_tostring(luavm,-3);
 
           if bytesize=0 then raise exception.create(rsBytesizeIs0);
           if ftn=nil then raise exception.create(rsInvalidFunctiontypename);
@@ -650,28 +647,17 @@ begin
         else
         begin
           //something went wrong
-          if lua_gettop(templua)>0 then
+          if lua_gettop(luavm)>0 then
           begin
-            error:=lua.lua_tostring(templua,-1);
+            error:=lua.lua_tostring(luavm,-1);
             raise exception.create(error);
           end else raise exception.create(rsUndefinedError);
         end;
 
       finally
-        lua_close(templua);
+        lua_pop(luavm, lua_gettop(luavm));
       end;
       //still here so the script got loaded and passed the tests
-
-      //now load the script into the actual vm
-      if lua_dostring(LuaVM, pchar(script))<>0 then
-      begin
-        if lua_gettop(LuaVM)>0 then
-        begin
-          error:=lua.lua_tostring(LuaVM,-1);
-          raise exception.create(error);
-        end else raise exception.create(rsUndefinedError);
-      end else lua_pop(LuaVM,3);
-
 
       fCustomTypeType:=cttLuaScript;
       if currentscript=nil then
@@ -800,6 +786,9 @@ begin
     typename:=Lua_ToString(L, 1);
     bytecount:=lua_tointeger(L, 2);
 
+    f_bytestovalue:=0;
+    f_valuetobytes:=0;
+
     if lua_isfunction(L, 3) then
     begin
       lua_pushvalue(L, 3);
@@ -881,6 +870,7 @@ var
 begin
   {$IFNDEF UNIX}
   result:=0;
+  bytecount:=1;
   parameters:=lua_gettop(L);
   if parameters=3 then
   begin

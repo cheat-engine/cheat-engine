@@ -1,24 +1,30 @@
 object frmStructures2: TfrmStructures2
-  Left = 833
+  Left = 945
   Height = 381
-  Top = 231
-  Width = 540
+  Top = 325
+  Width = 542
   Caption = 'Structure dissect'
   ClientHeight = 361
-  ClientWidth = 540
+  ClientWidth = 542
   Menu = MainMenu1
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object tvStructureView: TTreeView
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = HeaderControl1
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
     Left = 0
-    Height = 297
-    Top = 64
-    Width = 540
-    Align = alBottom
+    Height = 282
+    Top = 79
+    Width = 542
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderStyle = bsNone
     DefaultItemHeight = 16
@@ -34,7 +40,7 @@ object frmStructures2: TfrmStructures2
     ReadOnly = True
     RowSelect = True
     ShowRoot = False
-    TabOrder = 1
+    TabOrder = 0
     OnAdvancedCustomDrawItem = tvStructureViewAdvancedCustomDrawItem
     OnCollapsed = tvStructureViewCollapsed
     OnCollapsing = tvStructureViewCollapsing
@@ -44,22 +50,13 @@ object frmStructures2: TfrmStructures2
     OnMouseDown = tvStructureViewMouseDown
     Options = [tvoAllowMultiselect, tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoToolTips]
   end
-  object pnlGroups: TPanel
-    Left = 0
-    Height = 51
-    Top = 0
-    Width = 540
-    Align = alTop
-    BevelOuter = bvNone
-    BorderStyle = bsSingle
-    TabOrder = 0
-    OnClick = pnlGroupsClick
-  end
   object HeaderControl1: THeaderControl
+    AnchorSideTop.Control = pnlGroups
+    AnchorSideTop.Side = asrBottom
     Left = 0
     Height = 21
-    Top = 50
-    Width = 540
+    Top = 58
+    Width = 542
     DragReorder = False
     Sections = <    
       item
@@ -72,6 +69,21 @@ object frmStructures2: TfrmStructures2
     OnSectionResize = HeaderControl1SectionResize
     OnSectionTrack = HeaderControl1SectionTrack
     Anchors = [akTop, akLeft, akRight]
+  end
+  object pnlGroups: TScrollBox
+    Left = 0
+    Height = 58
+    Top = 0
+    Width = 542
+    HorzScrollBar.Increment = 1
+    HorzScrollBar.Page = 1
+    HorzScrollBar.Smooth = True
+    HorzScrollBar.Tracking = True
+    VertScrollBar.Page = 1
+    VertScrollBar.Visible = False
+    Align = alTop
+    Constraints.MinHeight = 50
+    TabOrder = 2
   end
   object MainMenu1: TMainMenu
     left = 512
@@ -349,7 +361,9 @@ object frmStructures2: TfrmStructures2
     top = 264
   end
   object FindDialog1: TFindDialog
-    Options = [frDown, frHideWholeWord, frHideEntireScope]
+    Width = 480
+    Height = 136
+    Options = [frDown, frDisableWholeWord, frHideEntireScope]
     OnFind = FindDialog1Find
     left = 152
     top = 128

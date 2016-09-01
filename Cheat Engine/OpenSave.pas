@@ -15,12 +15,13 @@ uses windows, forms, LCLIntf,registry, SysUtils,AdvancedOptionsUnit,CommentsUnit
      zstream, luafile, disassemblerComments, commonTypeDefs;
 
 
-var CurrentTableVersion: dword=19;
+var CurrentTableVersion: dword=21;
 procedure protecttrainer(filename: string);
 procedure unprotecttrainer(filename: string; stream: TStream);
 procedure SaveTable(Filename: string; protect: boolean=false);
 procedure LoadTable(Filename: string;merge: boolean);
 procedure SaveCEM(Filename:string;address:ptrUint; size:dword);
+procedure LoadXML(doc: TXMLDocument; merge: boolean; isTrainer: boolean=false);
 
 {procedure LoadExe(filename: string);}
 
@@ -654,52 +655,71 @@ begin
     begin
       if not isTrainer then
       begin
+        reg:=TRegistry.Create;
+        try
+          Reg.RootKey := HKEY_CURRENT_USER;
 
-        if formSettings.cbAskIfTableHasLuascript.checked then
-        begin
-
-          r:=MessageDlg(rsThisTableContainsALuaScriptDoYouWantToRunIt, mtConfirmation, [mbyes, mbno, mbyestoall, mbNoToAll], 0);
-
-          if r in [mrYesToAll, mrNoToAll] then
+          if Reg.OpenKey('\Software\Cheat Engine',false) then   //fill it from the registry (in case it's loaded before the settings are loaded)
           begin
-            case r of
+            if reg.ValueExists('Ask if table has lua script') then
+              formSettings.cbAskIfTableHasLuascript.checked:=reg.ReadBool('Ask if table has lua script')
+            else
+              formSettings.cbAskIfTableHasLuascript.checked:=true;
 
-              mrYesToAll:
-              begin
-                r:=mryes;
-                formsettings.cbAskIfTableHasLuascript.Checked:=false;
-                formsettings.cbAlwaysRunScript.checked:=true;
+            if reg.ValueExists('Always run script') then
+              formsettings.cbAlwaysRunScript.Checked:=reg.ReadBool('Always run script')
+            else
+              formsettings.cbAlwaysRunScript.Checked:=false;
+
+          end
+          else
+            formSettings.cbAskIfTableHasLuascript.checked:=true; //no registry settings yet.
+
+          if formSettings.cbAskIfTableHasLuascript.checked then
+          begin
+
+            r:=MessageDlg(rsThisTableContainsALuaScriptDoYouWantToRunIt, mtConfirmation, [mbyes, mbno, mbyestoall, mbNoToAll], 0);
+
+            if r in [mrYesToAll, mrNoToAll] then
+            begin
+              case r of
+
+                mrYesToAll:
+                begin
+                  r:=mryes;
+                  formsettings.cbAskIfTableHasLuascript.Checked:=false;
+                  formsettings.cbAlwaysRunScript.checked:=true;
+                end;
+
+                mrNoToAll:
+                begin
+                  r:=mrNo;
+                  formsettings.cbAskIfTableHasLuascript.Checked:=false;
+                  formsettings.cbAlwaysRunScript.checked:=false;
+                end;
               end;
 
-              mrNoToAll:
-              begin
-                r:=mrNo;
-                formsettings.cbAskIfTableHasLuascript.Checked:=false;
-                formsettings.cbAlwaysRunScript.checked:=false;
-              end;
-            end;
 
-            reg:=TRegistry.Create;
-            try
-              Reg.RootKey := HKEY_CURRENT_USER;
               if Reg.OpenKey('\Software\Cheat Engine',true) then
               begin
                 reg.WriteBool('Ask if table has lua script',formsettings.cbAskIfTableHasLuascript.Checked);
                 reg.WriteBool('Always run script',formsettings.cbAlwaysRunScript.Checked);
               end;
-            finally
-              reg.free;
+
             end;
+
+
+          end
+          else
+          begin
+            if formSettings.cbAlwaysRunScript.checked then
+              r:=mrYes
+            else
+              r:=mrNo;
           end;
 
-
-        end
-        else
-        begin
-          if formSettings.cbAlwaysRunScript.checked then
-            r:=mrYes
-          else
-            r:=mrNo;
+        finally
+          reg.free;
         end;
 
       end
@@ -748,8 +768,9 @@ begin
       memfile.WriteBuffer(buf^,size);
     end else messagedlg(Format(rsTheRegionAtWasPartiallyOrCompletlyUnreadable, [IntToHex(address, 8)]), mterror, [mbok], 0);
   finally
-    memfile.free;
+    freeandnil(memfile);
     freemem(buf);
+    buf:=nil;
   end;
 end;
 
@@ -782,7 +803,10 @@ begin
     end else raise exception.Create(Format(rsDoesnTContainNeededInformationWhereToPlaceTheMemor, [filename]));
   finally
     freemem(check);
+    check:=nil;
+
     memfile.free;
+    memfile:=nil;
   end;
 end;
 
@@ -878,6 +902,8 @@ var
     doc: TXMLDocument;
     workdir: string;
 begin
+  if mainform.addresslist=nil then exit;
+
   if fileexists(filename)=false then
     filename:=UTF8ToSys(filename); //fix chinese problems I hope
 
@@ -1210,6 +1236,7 @@ begin
         end;
       finally
         freemem(b);
+        b:=nil;
       end;
     end;
   end
@@ -1233,11 +1260,15 @@ begin
 
     finally
       freemem(b);
+      b:=nil;
     end;
   end;
 
-  d.free;
-  f.free;
+  if d<>nil then
+    freeandnil(d);
+
+  if f<>nil then
+    freeandnil(f);
 end;
 
 procedure protecttrainer(filename: string);
@@ -1268,8 +1299,8 @@ begin
   i:=f.size;
   c.write(i, sizeof(i));
   c.write(f.Memory^, f.size);
-  c.free;
-  f.free;
+  freeandnil(c);
+  freeandnil(f);
 
 
   k:=$ce;
@@ -1290,7 +1321,7 @@ begin
 
   f2.SaveToFile(filename);
 
-  f2.free;
+  freeandnil(f2);
 end;
 
 

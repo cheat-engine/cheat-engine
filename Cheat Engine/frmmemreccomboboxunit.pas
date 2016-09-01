@@ -20,6 +20,7 @@ type
     Panel1: TPanel;
     procedure btnOkClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     { private declarations }
     valuelist: tstringlist;
@@ -42,6 +43,17 @@ procedure TfrmMemrecCombobox.FormDestroy(Sender: TObject);
 begin
   if valuelist<>nil then
     freeandnil(valuelist);
+end;
+
+procedure TfrmMemrecCombobox.FormShow(Sender: TObject);
+var i,maxwidth: integer;
+begin
+  maxwidth:=clientwidth;
+  for i:=0 to cbMemrecCombobox.Items.Count-1 do
+    maxwidth:=max(maxwidth, cbMemrecCombobox.Canvas.TextWidth(cbMemrecCombobox.items[i]));
+
+  if maxwidth<>clientwidth then
+    Constraints.MinWidth:=maxwidth+16;
 end;
 
 procedure TfrmMemrecCombobox.btnOkClick(Sender: TObject);
@@ -88,12 +100,7 @@ begin
   self.memrec:=memrec;
 
   cbMemrecCombobox.DropDownCount:=min(16, cbMemrecCombobox.items.count);
-  maxwidth:=width;
-  for i:=0 to cbMemrecCombobox.Items.Count-1 do
-    maxwidth:=max(maxwidth, cbMemrecCombobox.Canvas.TextWidth(cbMemrecCombobox.items[i]));
 
-  if maxwidth<>width then
-    width:=maxwidth+16;
 
 end;
 

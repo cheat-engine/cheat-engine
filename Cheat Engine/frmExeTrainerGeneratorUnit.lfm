@@ -1,53 +1,63 @@
 object frmExeTrainerGenerator: TfrmExeTrainerGenerator
   Left = 781
-  Height = 270
+  Height = 250
   Top = 314
-  Width = 576
+  Width = 597
+  AutoSize = True
   Caption = 'Exe Trainer Generator'
-  ClientHeight = 270
-  ClientWidth = 576
-  Constraints.MinHeight = 270
-  Constraints.MinWidth = 490
+  ClientHeight = 250
+  ClientWidth = 597
+  Constraints.MinHeight = 20
+  Constraints.MinWidth = 20
   OnActivate = FormActivate
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
+  OnShow = FormShow
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object Panel1: TPanel
     Left = 0
-    Height = 220
+    Height = 206
     Top = 0
-    Width = 328
-    Align = alLeft
+    Width = 321
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 220
-    ClientWidth = 328
+    ClientHeight = 206
+    ClientWidth = 321
     TabOrder = 0
     object GroupBox1: TGroupBox
       Left = 0
-      Height = 62
-      Top = 40
-      Width = 328
+      Height = 58
+      Top = 39
+      Width = 321
       Align = alTop
+      AutoSize = True
       Caption = 'Process'
-      ClientHeight = 44
-      ClientWidth = 324
+      ClientHeight = 38
+      ClientWidth = 317
       TabOrder = 0
       object rb32: TRadioButton
-        Left = 10
+        AnchorSideLeft.Control = GroupBox1
+        AnchorSideTop.Control = GroupBox1
+        Left = 8
         Height = 19
-        Top = -4
+        Top = 0
         Width = 142
+        BorderSpacing.Left = 8
         Caption = 'Target process is 32-bit'
         Checked = True
         TabOrder = 0
         TabStop = True
       end
       object rb64: TRadioButton
-        Left = 10
+        AnchorSideLeft.Control = rb32
+        AnchorSideTop.Control = rb32
+        AnchorSideTop.Side = asrBottom
+        Left = 8
         Height = 19
-        Top = 16
+        Top = 19
         Width = 142
         Caption = 'Target process is 64-bit'
         TabOrder = 1
@@ -55,77 +65,94 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
     end
     object GroupBox2: TGroupBox
       Left = 0
-      Height = 74
-      Top = 102
-      Width = 328
+      Height = 61
+      Top = 97
+      Width = 321
       Align = alTop
+      AutoSize = True
       Caption = 'Features used'
-      ClientHeight = 56
-      ClientWidth = 324
+      ChildSizing.HorizontalSpacing = 8
+      ChildSizing.VerticalSpacing = 3
+      ChildSizing.Layout = cclLeftToRightThenTopToBottom
+      ChildSizing.ControlsPerLine = 3
+      ClientHeight = 41
+      ClientWidth = 317
       TabOrder = 1
-      object cbVEHDebug: TCheckBox
-        Left = 10
+      object cbSpeedhack: TCheckBox
+        Left = 0
         Height = 19
-        Top = 26
+        Top = 0
+        Width = 97
+        Caption = 'Speedhack'
+        TabOrder = 3
+      end
+      object cbModPlayer: TCheckBox
+        Left = 105
+        Height = 19
+        Top = 0
+        Width = 96
+        Caption = 'Module Player'
+        TabOrder = 2
+      end
+      object cbD3DHook: TCheckBox
+        Left = 209
+        Height = 19
+        Top = 0
+        Width = 71
+        Caption = 'D3DHook'
+        TabOrder = 4
+      end
+      object cbVEHDebug: TCheckBox
+        Left = 0
+        Height = 19
+        Top = 22
         Width = 97
         Caption = 'VEH Debugger'
         TabOrder = 0
       end
       object cbKernelDebug: TCheckBox
-        Left = 150
+        Left = 105
         Height = 19
-        Top = 26
-        Width = 85
+        Top = 22
+        Width = 96
         Caption = 'Kernel Tools'
         TabOrder = 1
       end
-      object cbXMPlayer: TCheckBox
-        Left = 150
-        Height = 19
-        Top = 2
-        Width = 70
-        Caption = 'XMPlayer'
-        TabOrder = 2
-      end
-      object cbSpeedhack: TCheckBox
-        Left = 10
-        Height = 19
-        Top = 2
-        Width = 77
-        Caption = 'Speedhack'
-        TabOrder = 3
-      end
-      object cbD3DHook: TCheckBox
-        Left = 254
-        Height = 19
-        Top = 2
-        Width = 71
-        Caption = 'D3DHook'
-        TabOrder = 4
-      end
       object cbDotNet: TCheckBox
-        Left = 254
+        Left = 209
         Height = 19
-        Top = 26
-        Width = 45
+        Top = 22
+        Width = 71
         Caption = '.NET'
         TabOrder = 5
       end
     end
     object Button1: TButton
-      Left = 56
+      AnchorSideLeft.Control = Panel4
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Panel4
+      AnchorSideTop.Side = asrCenter
+      Left = 48
       Height = 25
-      Top = 182
-      Width = 99
+      Top = 170
+      Width = 115
+      AutoSize = True
+      BorderSpacing.Left = 4
+      BorderSpacing.Bottom = 5
       Caption = 'Change EXE Icon'
       OnClick = Button1Click
       TabOrder = 2
     end
     object comboCompression: TComboBox
-      Left = 232
+      AnchorSideLeft.Control = Label1
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Label1
+      AnchorSideTop.Side = asrCenter
+      Left = 241
       Height = 23
-      Top = 184
+      Top = 171
       Width = 80
+      BorderSpacing.Left = 3
       ItemHeight = 15
       ItemIndex = 3
       Items.Strings = (
@@ -139,18 +166,29 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
       Text = 'Max'
     end
     object Label1: TLabel
-      Left = 160
+      AnchorSideLeft.Control = Button1
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Button1
+      AnchorSideTop.Side = asrCenter
+      Left = 168
       Height = 15
-      Top = 187
+      Top = 175
       Width = 70
+      BorderSpacing.Left = 5
       Caption = 'Compression'
       ParentColor = False
     end
     object Panel4: TPanel
-      Left = 11
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = GroupBox2
+      AnchorSideTop.Side = asrBottom
+      Left = 4
       Height = 40
-      Top = 175
+      Top = 162
       Width = 40
+      BorderSpacing.Left = 4
+      BorderSpacing.Top = 4
+      BorderSpacing.Bottom = 4
       BevelOuter = bvNone
       BorderStyle = bsSingle
       ClientHeight = 36
@@ -167,20 +205,25 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
     end
     object GroupBox4: TGroupBox
       Left = 0
-      Height = 40
+      Height = 39
       Top = 0
-      Width = 328
+      Width = 321
       Align = alTop
+      AutoSize = True
       Caption = 'Trainer size'
-      ClientHeight = 22
-      ClientWidth = 324
+      ClientHeight = 19
+      ClientWidth = 317
       TabOrder = 5
       object cbTiny: TRadioButton
-        Left = 86
+        AnchorSideLeft.Control = cbGigantic
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = GroupBox4
+        Left = 76
         Height = 19
         Hint = 'Only put the trainer data in the trainer. The user must have Cheat Engine installed to run this trainer'
         Top = 0
         Width = 43
+        BorderSpacing.Left = 4
         Caption = 'Tiny'
         OnChange = cbTrainersizeChange
         ParentShowHint = False
@@ -188,11 +231,14 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
         TabOrder = 0
       end
       object cbGigantic: TRadioButton
-        Left = 10
+        AnchorSideLeft.Control = GroupBox4
+        AnchorSideTop.Control = GroupBox4
+        Left = 8
         Height = 19
         Hint = 'Puts the Cheat Engine executable, dll''s and other requirements into the trainer'
         Top = 0
         Width = 64
+        BorderSpacing.Left = 8
         Caption = 'Gigantic'
         Checked = True
         OnChange = cbTrainersizeChange
@@ -204,41 +250,58 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
     end
   end
   object Panel2: TPanel
+    AnchorSideTop.Control = GroupBox3
+    AnchorSideTop.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
     Left = 0
-    Height = 50
-    Top = 220
-    Width = 576
-    Align = alBottom
+    Height = 41
+    Top = 209
+    Width = 597
+    Anchors = [akLeft, akRight, akBottom]
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 50
-    ClientWidth = 576
+    ClientHeight = 41
+    ClientWidth = 597
     TabOrder = 1
     object btnGenerateTrainer: TButton
-      Left = 251
+      Left = 263
       Height = 25
-      Top = 16
-      Width = 75
+      Top = 8
+      Width = 73
       Anchors = [akTop]
+      AutoSize = True
+      BorderSpacing.Top = 8
+      BorderSpacing.Bottom = 8
       Caption = 'Generate'
+      Default = True
       OnClick = btnGenerateTrainerClick
       TabOrder = 0
     end
   end
   object GroupBox3: TGroupBox
-    Left = 328
-    Height = 220
+    AnchorSideLeft.Control = Panel1
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Panel1
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Panel2
+    Left = 324
+    Height = 209
     Top = 0
-    Width = 248
-    Align = alClient
+    Width = 273
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    AutoSize = True
+    BorderSpacing.Left = 3
     Caption = 'Extra files'
-    ClientHeight = 202
-    ClientWidth = 244
+    ClientHeight = 189
+    ClientWidth = 269
     TabOrder = 2
     object ListView1: TListView
       Left = 0
-      Height = 167
+      Height = 156
       Top = 0
-      Width = 244
+      Width = 269
       Align = alClient
       Columns = <      
         item
@@ -260,42 +323,62 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
     end
     object Panel3: TPanel
       Left = 0
-      Height = 35
-      Top = 167
-      Width = 244
+      Height = 33
+      Top = 156
+      Width = 269
       Align = alBottom
+      AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 35
-      ClientWidth = 244
+      ClientHeight = 33
+      ClientWidth = 269
       TabOrder = 1
       object btnRemoveFile: TButton
-        Left = 170
+        AnchorSideLeft.Control = btnAddFile
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = Button3
+        Left = 174
         Height = 25
-        Top = 8
-        Width = 75
-        Anchors = [akTop, akRight]
+        Top = 4
+        Width = 88
+        AutoSize = True
+        BorderSpacing.Left = 4
+        BorderSpacing.Right = 4
+        BorderSpacing.Bottom = 4
         Caption = 'Remove file'
+        Constraints.MinWidth = 75
         Enabled = False
         OnClick = btnRemoveFileClick
         TabOrder = 0
       end
       object btnAddFile: TButton
+        AnchorSideLeft.Control = Button3
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = Button3
         Left = 90
         Height = 25
-        Top = 8
-        Width = 75
-        Anchors = [akTop, akRight]
+        Top = 4
+        Width = 80
+        AutoSize = True
+        BorderSpacing.Left = 4
+        BorderSpacing.Bottom = 4
         Caption = 'Add file(s)'
+        Constraints.MinWidth = 75
         OnClick = btnAddFileClick
         TabOrder = 1
       end
       object Button3: TButton
-        Left = 9
+        AnchorSideLeft.Control = Panel3
+        AnchorSideTop.Control = Panel3
+        Left = 4
         Height = 25
-        Top = 8
-        Width = 75
-        Anchors = [akTop, akRight]
+        Top = 4
+        Width = 82
+        AutoSize = True
+        BorderSpacing.Left = 4
+        BorderSpacing.Top = 4
+        BorderSpacing.Bottom = 4
         Caption = 'Add folder'
+        Constraints.MinWidth = 75
         OnClick = Button3Click
         TabOrder = 2
       end

@@ -8,7 +8,8 @@ object frmProcessWatcherExtra: TfrmProcessWatcherExtra
   ClientWidth = 245
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
-  LCLVersion = '0.9.31'
+  PopupMode = pmAuto
+  LCLVersion = '1.6.0.4'
   object data: TMemo
     Left = 0
     Height = 165

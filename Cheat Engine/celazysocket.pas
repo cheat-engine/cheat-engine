@@ -52,6 +52,15 @@ var
 
 implementation
 
+resourcestring
+  rsWhoopdeedoo = 'Whoopdeedoo';
+  rsTimeoutWhileSendingData = 'Timeout while sending data';
+  rsErrorWhileSendingData = 'Error while sending data: ';
+  rsDisconnectedWhileSendingData = 'Disconnected while sending data';
+  rsTimeoutWhileReceivingData = 'Timeout while receiving data';
+  rsErrorWhileReceivingData = 'Error while receiving data: ';
+  rsDisconnectedWhileReceivingData = 'Disconnected while receiving data';
+
 function TSocketStream.Read(var Buffer; Count: Longint): Longint;
 begin
   if writer.position>0 then flushwrites; //first make sure everything is sent before reading
@@ -98,7 +107,9 @@ begin
   begin
     result:=send(s, writer.memory, writer.position, ftimeout);
     writer.position:=0;
-  end;
+  end
+  else
+    result:=0;
 end;
 
 destructor TSocketStream.destroy;
@@ -123,7 +134,7 @@ begin
 
   {$ifdef windows}
     bm:=1;
-    ioctlsocket(sockethandle, FIONBIO, bm);
+    ioctlsocket(sockethandle, longint(FIONBIO), bm);
   {$else}
     fcntl(fSocket, F_SETFL, fcntl(socketfd, F_GETFL, 0) | O_NONBLOCK);
   {$endif}
@@ -143,7 +154,7 @@ begin
   {$endif}
 
   if debug_connectionfailure then
-    raise TSocketException.Create('Whoopdeedoo');
+    raise TSocketException.Create(rsWhoopdeedoo);
 
 
   result:=0;
@@ -175,18 +186,18 @@ begin
             i:=select(socket, nil, @fdset, nil, nil);
 
           if i=0 then
-            raise TSocketException.create('Timeout while sending data');
+            raise TSocketException.create(rsTimeoutWhileSendingData);
 
           if i<0 then
-            raise TSocketException.create('Error while sending data: '+inttostr(socketerror));
+            raise TSocketException.create(rsErrorWhileSendingData+inttostr(socketerror));
 
           i:=0;
         end
         else
-          raise TSocketException.Create('Error while sending data: '+inttostr(i));
+          raise TSocketException.Create(rsErrorWhileSendingData+inttostr(i));
       end
       else
-        raise TSocketException.Create('Disconnected while sending data');
+        raise TSocketException.Create(rsDisconnectedWhileSendingData);
     end;
 
     inc(result, i);
@@ -204,7 +215,7 @@ begin
   {$endif}
 
   if debug_connectionfailure then
-    raise TSocketException.Create('Whoopdeedoo');
+    raise TSocketException.Create(rsWhoopdeedoo);
 
   result:=0;
   while (result<size) do
@@ -240,20 +251,20 @@ begin
           if i=0 then
           begin
             OutputDebugString('Timeout');
-            raise TSocketException.create('Timeout while receiving data');
+            raise TSocketException.create(rsTimeoutWhileReceivingData);
           end;
 
           if i<0 then
-            raise TSocketException.create('Error while receiving data: '+inttostr(i));
+            raise TSocketException.create(rsErrorWhileReceivingData+inttostr(i));
 
           i:=0;
 
         end
         else
-          raise TSocketException.Create('Error while receiving data: '+inttostr(i));
+          raise TSocketException.Create(rsErrorWhileReceivingData+inttostr(i));
       end
       else
-        raise TSocketException.Create('Disconnected while receiving data');
+        raise TSocketException.Create(rsDisconnectedWhileReceivingData);
     end;
 
     inc(result, i);

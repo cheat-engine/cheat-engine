@@ -1,109 +1,184 @@
 object frmTracerConfig: TfrmTracerConfig
   Left = 555
-  Height = 220
+  Height = 217
   Top = 113
-  Width = 231
+  Width = 249
+  AutoSize = True
   BorderStyle = bsSingle
   Caption = 'Break and Trace config'
-  ClientHeight = 220
-  ClientWidth = 231
+  ClientHeight = 217
+  ClientWidth = 249
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.6.0.4'
   object edtMaxTrace: TEdit
+    AnchorSideLeft.Control = Label1
+    AnchorSideTop.Control = Label1
+    AnchorSideTop.Side = asrBottom
     Left = 16
     Height = 23
-    Top = 25
+    Top = 23
     Width = 200
     TabOrder = 0
     Text = '1000'
   end
   object Label1: TLabel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
     Left = 16
-    Height = 16
+    Height = 15
     Top = 8
-    Width = 112
+    Width = 217
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Left = 16
+    BorderSpacing.Top = 8
+    BorderSpacing.Right = 16
     Caption = 'Maximal trace count:'
     ParentColor = False
   end
   object Label2: TLabel
+    AnchorSideLeft.Control = Label1
+    AnchorSideTop.Control = edtMaxTrace
+    AnchorSideTop.Side = asrBottom
     Left = 16
-    Height = 16
-    Top = 56
-    Width = 203
+    Height = 15
+    Top = 46
+    Width = 202
     Caption = 'Stop condition (Optional, LUA format)'
     ParentColor = False
   end
   object edtCondition: TEdit
+    AnchorSideLeft.Control = Label1
+    AnchorSideTop.Control = Label2
+    AnchorSideTop.Side = asrBottom
     Left = 16
     Height = 23
-    Top = 74
+    Top = 61
     Width = 200
     TabOrder = 1
   end
-  object btnOK: TButton
-    Left = 40
-    Height = 25
-    Top = 192
-    Width = 75
-    Caption = 'OK'
-    Default = True
-    ModalResult = 1
-    TabOrder = 2
-  end
-  object btnCancel: TButton
-    Left = 132
-    Height = 25
-    Top = 192
-    Width = 75
-    Cancel = True
-    Caption = 'Cancel'
-    ModalResult = 2
-    TabOrder = 3
-  end
   object cbDereferenceAddresses: TCheckBox
-    Left = 17
+    AnchorSideLeft.Control = Label1
+    AnchorSideTop.Control = edtCondition
+    AnchorSideTop.Side = asrBottom
+    Left = 16
     Height = 19
-    Top = 104
+    Top = 84
     Width = 213
     Caption = 'Dereference Addresses (Slows down)'
     Checked = True
     State = cbChecked
-    TabOrder = 4
+    TabOrder = 2
   end
   object cbSaveStack: TCheckBox
-    Left = 17
-    Height = 19
-    Top = 127
-    Width = 210
-    Caption = 'Save stack snapshots (Eats memory)'
-    TabOrder = 5
-  end
-  object rbBreakOnAccess: TRadioButton
+    AnchorSideLeft.Control = Label1
+    AnchorSideTop.Control = cbDereferenceAddresses
+    AnchorSideTop.Side = asrBottom
     Left = 16
     Height = 19
-    Top = 168
+    Top = 103
+    Width = 210
+    Caption = 'Save stack snapshots (Eats memory)'
+    TabOrder = 3
+  end
+  object rbBreakOnAccess: TRadioButton
+    AnchorSideLeft.Control = Label1
+    AnchorSideTop.Control = cbSkipSystemModules
+    AnchorSideTop.Side = asrBottom
+    Left = 16
+    Height = 19
+    Top = 160
     Width = 105
     Caption = 'Break on Access'
-    TabOrder = 6
+    TabOrder = 4
     Visible = False
   end
   object rbBreakOnWrite: TRadioButton
-    Left = 128
+    AnchorSideLeft.Control = rbBreakOnAccess
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = cbSkipSystemModules
+    AnchorSideTop.Side = asrBottom
+    Left = 124
     Height = 19
-    Top = 168
+    Top = 160
     Width = 97
+    BorderSpacing.Left = 3
     Caption = 'Break on Write'
     Checked = True
-    TabOrder = 7
+    TabOrder = 5
     TabStop = True
     Visible = False
   end
   object cbStepOver: TCheckBox
-    Left = 17
+    AnchorSideLeft.Control = Label1
+    AnchorSideTop.Control = cbSaveStack
+    AnchorSideTop.Side = asrBottom
+    Left = 16
     Height = 19
-    Top = 149
+    Top = 122
     Width = 183
     Caption = 'Step over instead of single step'
+    TabOrder = 6
+  end
+  object cbSkipSystemModules: TCheckBox
+    AnchorSideLeft.Control = Label1
+    AnchorSideTop.Control = cbStepOver
+    AnchorSideTop.Side = asrBottom
+    Left = 16
+    Height = 19
+    Top = 141
+    Width = 131
+    Caption = 'Skip system modules'
+    TabOrder = 7
+  end
+  object Panel1: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = rbBreakOnAccess
+    AnchorSideTop.Side = asrBottom
+    Left = 47
+    Height = 30
+    Top = 181
+    Width = 154
+    AutoSize = True
+    BorderSpacing.Top = 2
+    BorderSpacing.Bottom = 2
+    BevelOuter = bvNone
+    ClientHeight = 30
+    ClientWidth = 154
     TabOrder = 8
+    object btnCancel: TButton
+      AnchorSideLeft.Control = btnOK
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = btnOK
+      Left = 79
+      Height = 25
+      Top = 5
+      Width = 75
+      AutoSize = True
+      BorderSpacing.Left = 4
+      Cancel = True
+      Caption = 'Cancel'
+      Constraints.MinWidth = 75
+      ModalResult = 2
+      TabOrder = 0
+    end
+    object btnOK: TButton
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = Panel1
+      Left = 0
+      Height = 25
+      Top = 5
+      Width = 75
+      AutoSize = True
+      BorderSpacing.Top = 5
+      Caption = 'OK'
+      Constraints.MinWidth = 75
+      Default = True
+      ModalResult = 1
+      TabOrder = 1
+    end
   end
 end

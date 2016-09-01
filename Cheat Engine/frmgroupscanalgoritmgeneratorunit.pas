@@ -5,24 +5,26 @@ unit frmgroupscanalgoritmgeneratorunit;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
+  windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ExtCtrls, CustomTypeHandler, math, strutils, cefuncproc, groupscancommandparser,
   vartypestrings, commonTypeDefs;
 
 type
   { TfrmGroupScanAlgoritmGenerator }
   TfrmGroupScanAlgoritmGenerator = class(TForm)
-    btnOK: TButton;
     btnCancel: TButton;
-    cbTypeAligned: TCheckBox;
+    btnOK: TButton;
     cbOutOfOrder: TCheckBox;
+    cbTypeAligned: TCheckBox;
     edtBlockalignment: TEdit;
     edtBlocksize: TEdit;
-    lblBlocksize: TLabel;
     lblBlockAlignment: TLabel;
-    lblWildcardExplanation: TLabel;
-    lblMustBeDividable: TLabel;
+    lblBlocksize: TLabel;
     lblMin: TLabel;
+    lblMustBeDividable: TLabel;
+    lblWildcardExplanation: TLabel;
+    Panel1: TPanel;
+    Panel2: TPanel;
     ScrollBox1: TScrollBox;
     procedure btnOKClick(Sender: TObject);
     procedure cbOutOfOrderChange(Sender: TObject);
@@ -198,7 +200,11 @@ begin
 end;
 
 constructor TVariableInfo.Create(frm: TfrmGroupScanAlgoritmGenerator);
-var i: integer;
+var
+  i: integer;
+  maxwidth: integer;
+
+  cbi: TComboboxInfo;
 begin
   inherited create(frm);
   AutoSize:=false;
@@ -253,8 +259,16 @@ begin
   for i:=0 to customTypes.count-1 do
     cbVartype.items.AddObject(TCustomType(customtypes[i]).name, customtypes[i]);
 
+  maxwidth:=0;
+  for i:=0 to cbVartype.items.count-1 do
+    maxwidth:=max(frm.Canvas.TextWidth(cbVartype.items[i]), maxwidth);
+
+
+
   cbvartype.Style:=csDropDownList;
   cbVartype.DropDownCount:=min(16,cbVartype.items.count);
+
+
 
   cbPicked:=TCheckBox.create(self);
   cbPicked.Caption:=rsAdd;
@@ -300,6 +314,15 @@ begin
   edtValue.visible:=false;
 
 
+  cbi.cbSize:=sizeof(cbi);
+  if GetComboBoxInfo(cbVartype.Handle, @cbi) then
+  begin
+    i:=maxwidth-(cbi.rcItem.Right-cbi.rcItem.Left)+4;
+
+    cbvartype.width:=cbvartype.width+i;
+  end;
+
+
   setPosition;
 end;
 
@@ -332,9 +355,6 @@ procedure TfrmGroupScanAlgoritmGenerator.FormCreate(Sender: TObject);
 begin
   Varinfolist:=TList.Create;
 
-  autosize:=false;
-
-  //create the initial variableinfo
   TVariableInfo.create(self);
 end;
 
@@ -387,8 +407,23 @@ begin
 end;
 
 procedure TfrmGroupScanAlgoritmGenerator.FormShow(Sender: TObject);
+var i: integer;
 begin
-  clientheight:=btnOK.top+btnOK.height+10;
+//  clientheight:=panel1.top+btnOK.top+btnOK.height+10;
+  autosize:=false;
+
+  //create the initial variableinfo
+  btnok.autosize:=false;
+  btncancel.autosize:=false;
+
+  i:=max(btnok.width, btncancel.width);
+  btnok.width:=i;
+  btncancel.width:=i;
+
+  i:=(TVariableInfo(varinfolist[0]).cbVartype.Height+5)-scrollbox1.ClientHeight;
+  if i>0 then
+    height:=height+i+15;
+
 end;
 
 procedure TfrmGroupScanAlgoritmGenerator.sizechange;

@@ -6,7 +6,7 @@ interface
 
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ComCtrls, LResources;
+  Dialogs, StdCtrls, ComCtrls, LResources, ExtCtrls;
 
 type TTimerMessage = record
   handle: Thandle;
@@ -16,12 +16,16 @@ type TTimerMessage = record
 end;
 
 type
+
+  { TfrmCapturedTimers }
+
   TfrmCapturedTimers = class(TForm)
     Button1: TButton;
+    Button2: TButton;
+    Edit1: TEdit;
     Label1: TLabel;
     ListView1: TListView;
-    Edit1: TEdit;
-    Button2: TButton;
+    Panel1: TPanel;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);

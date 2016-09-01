@@ -47,7 +47,7 @@ resourcestring
   rsStep2ExactValueScanningPW = 'Step 2: Exact Value scanning (PW=';
   rsQuittingOnStep2ThisIsTheEasiestStepThereIsFindHeal = 'Quitting on step2? This is the easiest step there is. Find health, change health, done.... Sure you '
     +'want to quit?';
-  rsLOSER = 'LOSER';
+  rsLOSER = 'BOO';
 
   rsTutorialStep2=
     'Now that you have opened the tutorial with Cheat Engine let''s get on with the next step.'+#13#10+

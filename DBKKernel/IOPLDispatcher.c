@@ -18,6 +18,7 @@
 #include "vmxhelper.h"
 #include "vmxoffload.h"
 #include "ultimap.h"
+#include "ultimap2.h"
 
 UINT64 PhysicalMemoryRanges=0; //initialized once, and used thereafter. If the user adds/removes ram at runtime, screw him and make him the reload the driver
 UINT64 PhysicalMemoryRangesListSize=0;
@@ -258,7 +259,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 					if (PsLookupProcessByProcessId((PVOID)(UINT_PTR)(processid),&selectedprocess)==STATUS_SUCCESS)
 					{		
 
-							DbgPrint("Calling ObOpenObjectByPointer\n");
+							//DbgPrint("Calling ObOpenObjectByPointer\n");
 							ntStatus=ObOpenObjectByPointer ( 
 										selectedprocess,
 										0,
@@ -268,7 +269,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 										KernelMode, //UserMode,
 										&ProcessHandle);
 
-							DbgPrint("ntStatus=%x",ntStatus);
+							//DbgPrint("ntStatus=%x",ntStatus);
 					}
 				}
 				__except(1)
@@ -384,55 +385,14 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 			{
 				//PEPROCESS selectedprocess=NULL;
 
+				KIRQL old;
 				DbgPrint("test\n");
 
-				/*
-				__try
-				{
-					PMDL mdl=NULL;
-					char *buffer;
+				old=KeRaiseIrqlToDpcLevel();
+				//PsSuspendProcess(PsGetCurrentProcess());				
+				//DbgPrint("after suspend\n");
 
-					mdl = IoAllocateMdl((PVOID)0x00400000, 0x4096, FALSE, TRUE, NULL);
-					if (!mdl)
-					{
-						DbgPrint("Not enough memory dude!!!!\n");
-						ntStatus = STATUS_INSUFFICIENT_RESOURCES;
-						break;
-					}
-
-			        //PsLookupProcessByProcessId((PVOID)696,&selectedprocess);
-
-					DbgPrint("Before\n");
-					DbgPrint("mdl->Process=%x",mdl->Process);
-					DbgPrint("mdl->MappedSystemVa=%x",mdl->MappedSystemVa);
-					DbgPrint("mdl->StartVa=%x",mdl->StartVa);
-
-
-					//KeAttachProcess((PEPROCESS)selectedprocess);
-					MmProbeAndLockPages(mdl, UserMode, IoReadAccess);
-					
-					DbgPrint("After\n");
-					DbgPrint("mdl->Process=%x",mdl->Process);
-					DbgPrint("mdl->MappedSystemVa=%x",mdl->MappedSystemVa);
-					DbgPrint("mdl->StartVa=%x",mdl->StartVa);
-					
-
-					buffer = MmGetSystemAddressForMdlSafe(mdl, NormalPagePriority );
-					//KeDetachProcess();
-
-					
-					DbgPrint("buffer=%x\n",(ULONG)buffer);
-					//MmUnlockPages(mdl);
-					//IoFreeMdl(mdl); 
-				}
-				__except(1)
-				{
-					DbgPrint("Damn\n");
-
-				}
-				*/
-			
-
+				KeLowerIrql(old);
 
 				break;
 			}
@@ -1120,10 +1080,6 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				BaseAddress=(PVOID)(UINT_PTR)inp->BaseAddress;
 				RegionSize=(SIZE_T)(inp->Size);
 
-				
-
-
-
 
 				if (PsLookupProcessByProcessId((PVOID)(UINT64)(inp->ProcessID),&selectedprocess)==STATUS_SUCCESS)	
 				{
@@ -1186,7 +1142,6 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 					ULONG Size;
 				} *inp;
 				PVOID address;
-				char *x;
 				int size;
 
 				inp=Irp->AssociatedIrp.SystemBuffer;
@@ -1203,18 +1158,199 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				{
 					DbgPrint("Alloc success. Cleaning memory... (size=%d)\n",size);					
 					
-					x=address;
-					DbgPrint("x=%p\n", x);
-					RtlZeroMemory(x, size);
-
-					x=Irp->AssociatedIrp.SystemBuffer;
+					DbgPrint("address=%p\n", address);
+					RtlZeroMemory(address, size);
 				
 					ntStatus=STATUS_SUCCESS;
 				}
 
 				break;
 			}
-			
+
+		case IOCTL_CE_FREE_NONPAGED:
+			{
+				struct input
+				{
+					UINT64 Address;
+				} *inp;
+
+				inp = Irp->AssociatedIrp.SystemBuffer;
+
+				ExFreePool((PVOID)inp->Address);
+
+				ntStatus = STATUS_SUCCESS;
+
+				break;
+			}
+
+
+		case IOCTL_CE_MAP_MEMORY:
+			{
+				struct input
+				{
+					UINT64 FromPID;
+					UINT64 ToPID;
+					UINT64 address;
+					DWORD size;
+				} *inp;
+
+				struct output
+				{
+					UINT64 FromMDL;
+					UINT64 Address;
+				} *outp;
+
+				KAPC_STATE apc_state;
+				PEPROCESS selectedprocess;
+				PMDL FromMDL=NULL;
+
+				inp = Irp->AssociatedIrp.SystemBuffer;
+				outp = Irp->AssociatedIrp.SystemBuffer;
+
+				DbgPrint("IOCTL_CE_MAP_MEMORY\n");
+				DbgPrint("address %x size %d\n", inp->address, inp->size);
+				ntStatus = STATUS_UNSUCCESSFUL;				
+
+				if (inp->FromPID)			
+				{
+					//switch
+					DbgPrint("From PID %d\n", inp->FromPID);
+					if (PsLookupProcessByProcessId((PVOID)(UINT64)(inp->FromPID), &selectedprocess) == STATUS_SUCCESS)
+					{
+						__try
+						{
+							RtlZeroMemory(&apc_state, sizeof(apc_state));
+							KeStackAttachProcess((PVOID)selectedprocess, &apc_state); 
+
+							__try
+							{
+								FromMDL=IoAllocateMdl((PVOID)inp->address, inp->size, FALSE, FALSE, NULL);
+								if (FromMDL)
+									MmProbeAndLockPages(FromMDL, KernelMode, IoReadAccess);
+							}
+							__finally
+							{
+								KeUnstackDetachProcess(&apc_state);
+							}
+
+						}
+						__except (1)
+						{
+							DbgPrint("Exception\n");
+							ntStatus = STATUS_UNSUCCESSFUL;
+							break;
+						}						
+					}
+				}
+				else
+				{
+					DbgPrint("From kernel or self\n", inp->FromPID);
+					__try
+					{
+						FromMDL = IoAllocateMdl((PVOID)inp->address, inp->size, FALSE, FALSE, NULL);
+						if (FromMDL)
+						{
+							DbgPrint("IoAllocateMdl success\n");
+							MmProbeAndLockPages(FromMDL, KernelMode, IoReadAccess);
+						}
+					}
+					__except (1)
+					{
+						DbgPrint("Exception\n");
+
+						if (FromMDL)
+						{
+							IoFreeMdl(FromMDL);
+							FromMDL = NULL;
+						}
+					}
+				}
+
+				if (FromMDL)
+				{
+					DbgPrint("FromMDL is valid\n");
+
+					if (inp->ToPID)
+					{
+						//switch
+						DbgPrint("To PID %d\n", inp->ToPID);
+						if (PsLookupProcessByProcessId((PVOID)(UINT64)(inp->ToPID), &selectedprocess) == STATUS_SUCCESS)
+						{
+							__try
+							{
+								RtlZeroMemory(&apc_state, sizeof(apc_state));
+								KeStackAttachProcess((PVOID)selectedprocess, &apc_state);
+
+								__try
+								{
+									outp->Address = (UINT64)MmMapLockedPagesSpecifyCache(FromMDL, UserMode, MmWriteCombined, NULL, FALSE, NormalPagePriority);
+									outp->FromMDL = (UINT64)FromMDL;
+									ntStatus = STATUS_SUCCESS;
+								}
+								__finally
+								{
+									KeUnstackDetachProcess(&apc_state);
+								}
+
+							}
+							__except (1)
+							{
+								DbgPrint("Exception part 2\n");
+								ntStatus = STATUS_UNSUCCESSFUL;
+								break;
+							}
+						}
+					}
+					else
+					{
+						DbgPrint("To kernel or self\n", inp->FromPID);
+
+						__try
+						{
+							outp->Address = (UINT64)MmMapLockedPagesSpecifyCache(FromMDL, UserMode, MmWriteCombined, NULL, FALSE, NormalPagePriority);
+							outp->FromMDL = (UINT64)FromMDL;
+							ntStatus = STATUS_SUCCESS;
+						}
+						__except (1)
+						{
+							DbgPrint("Exception part 2\n");
+						}
+					}
+
+
+
+					
+
+				}
+				else
+					DbgPrint("FromMDL==NULL\n");
+
+
+				
+				break;
+			}
+
+		case IOCTL_CE_UNMAP_MEMORY:
+			{
+				struct output
+				{
+					UINT64 FromMDL;
+					UINT64 Address;
+				} *inp;
+
+				PMDL mdl;
+
+				inp = Irp->AssociatedIrp.SystemBuffer;
+				mdl = (PMDL)inp->FromMDL;
+
+				MmUnmapLockedPages((PMDL)inp->Address, mdl);
+
+				IoFreeMdl(mdl);
+
+				ntStatus = STATUS_SUCCESS; //no BSOD means success ;)
+
+				break;
+			}
 
 		case IOCTL_CE_GETPROCADDRESS:
 			{
@@ -1496,6 +1632,86 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				{
 					ntStatus=STATUS_UNSUCCESSFUL;
 				}
+				break;
+			}
+
+		case IOCTL_CE_ULTIMAP2:
+			{
+				struct input
+				{
+					UINT32 PID;	
+					UINT32 Size;
+					UINT32 RangeCount;
+					UINT32 Reserved;
+					URANGE Ranges[8];
+					WCHAR OutputPath[200];
+				} *inp = Irp->AssociatedIrp.SystemBuffer;
+				int i;
+
+				DbgPrint("IOCTL_CE_ULTIMAP2");
+				for (i = 0; i < inp->RangeCount; i++)
+					DbgPrint("%d=%p -> %p", i, (PVOID)inp->Ranges[i].StartAddress, (PVOID)inp->Ranges[i].EndAddress);
+
+				SetupUltimap2(inp->PID, inp->Size, inp->OutputPath, inp->RangeCount, inp->Ranges);
+				break;
+			}
+
+		case IOCTL_CE_ULTIMAP2_WAITFORDATA:
+		{
+
+			ULONG timeout = *(ULONG *)Irp->AssociatedIrp.SystemBuffer;
+			PULTIMAP2DATAEVENT output = Irp->AssociatedIrp.SystemBuffer;
+			output->Address = 0;
+
+			ntStatus = ultimap2_waitForData(timeout, output);
+
+			break;
+		}
+
+		case IOCTL_CE_ULTIMAP2_LOCKFILE:
+		{
+			int cpunr = *(int *)Irp->AssociatedIrp.SystemBuffer;
+			ultimap2_LockFile(cpunr);
+			break;
+		}
+
+		case IOCTL_CE_ULTIMAP2_RELEASEFILE:
+		{
+			int cpunr = *(int *)Irp->AssociatedIrp.SystemBuffer;
+			ultimap2_ReleaseFile(cpunr);
+			break;
+		}
+
+
+		case IOCTL_CE_ULTIMAP2_CONTINUE:
+		{
+			int cpunr=*(int*)Irp->AssociatedIrp.SystemBuffer;
+			ntStatus = ultimap2_continue(cpunr);
+
+			break;
+		}
+
+		case IOCTL_CE_ULTIMAP2_FLUSH:
+		{			
+			ntStatus = ultimap2_flushBuffers();
+			break;
+		}
+
+		case IOCTL_CE_ULTIMAP2_PAUSE:
+		{
+			ntStatus = ultimap2_pause();
+			break;
+		}
+
+		case IOCTL_CE_ULTIMAP2_RESUME:
+		{
+			ntStatus = ultimap2_resume();
+			break;
+		}
+
+		case IOCTL_CE_DISABLEULTIMAP2:
+			{
+				DisableUltimap2();
 				break;
 			}
 

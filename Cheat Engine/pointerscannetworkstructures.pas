@@ -24,6 +24,7 @@ type
   TPublicConnectionEntry=record //information publicly available about children
     parentconnectedto: boolean; //true if the parent connected to the child
     ip: string;
+    childid: integer;
     port: word;
     queued: boolean;
     queuesize: integer;

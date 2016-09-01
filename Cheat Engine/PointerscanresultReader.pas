@@ -12,6 +12,7 @@ uses windows, LCLIntf, sysutils, classes, CEFuncProc, NewKernelHandler, symbolha
 resourcestring
   rsPSRCorruptedPointerscanFile = 'Corrupted pointerscan file';
   rsPSRInvalidPointerscanFileVersion = 'Invalid pointerscan file version';
+  rsBuggedList = 'BuggedList';
 
 function GetFileSizeEx(hFile:HANDLE; FileSize:PQWord):BOOL; stdcall; external 'kernel32.dll' name 'GetFileSizeEx';
 
@@ -357,7 +358,7 @@ begin
   if (modulenr>=0) and (modulenr<modulelist.Count) then
     result:=modulelist[modulenr]
   else
-    result:='BuggedList';
+    result:=rsBuggedList;
 end;
 
 function TPointerscanresultReader.getPointer(i: uint64): PPointerscanResult;

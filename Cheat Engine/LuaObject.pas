@@ -19,10 +19,20 @@ implementation
 
 uses LuaClass, LuaHandler, pluginexports, LuaCaller, symbolhandler;
 
+resourcestring
+  rsThisIsAnInvalidClassOrMethodProperty = 'This is an invalid class or method property';
+  rsThisTypeOfMethod = 'This type of method:';
+  rsIsNotYetSupported = ' is not yet supported';
+
 function object_destroy(L: PLua_State): integer; cdecl;
 var c: TObject;
   metatable: integer;
-  i: integer;
+  i,count: integer;
+  proplist: PPropList;
+  m: TMethod;
+  ma: array of TMethod;
+
+
 begin
   i:=ifthen(lua_type(L, lua_upvalueindex(1))=LUA_TUSERDATA, lua_upvalueindex(1), 1);
   c:=lua_toceuserdata(L, i);
@@ -30,6 +40,31 @@ begin
   metatable:=lua_gettop(L);
 
   try
+    //check if it has onDestroy, if so, call it
+    //now cleanup the callers
+
+    if (c is TCustomForm) and assigned(TCustomForm(c).OnDestroy) then
+    begin
+      try
+        TCustomForm(c).OnDestroy(c);
+      except
+        //don't care
+      end;
+    end;
+
+    count:=GetPropList(c, proplist);
+    for i:=0 to count-1 do
+    begin
+      if proplist[i]^.PropType.Kind=tkMethod then
+      begin
+        m:=GetMethodProp(c, proplist[i]);
+        CleanupLuaCall(m);
+        m.Code:=nil;
+        m.data:=nil;
+        SetMethodProp(c, proplist[i], m);
+      end;
+    end;
+
     c.free;
   except
   end;
@@ -101,7 +136,9 @@ begin
     begin
       p:=Lua_ToString(L,1);
       if p<>'' then
-        c:=pointer(StrToInt64(p));
+        c:=pointer(StrToInt64(p))
+      else
+        exit;
     end;
 
     p:=Lua_ToString(L, 2);
@@ -256,7 +293,9 @@ begin
     begin
       p:=Lua_ToString(L,1);
       if p<>'' then
-        c:=pointer(StrToInt64(p));
+        c:=pointer(StrToInt64(p))
+      else
+        exit;
     end;
 
     p:=Lua_ToString(L,2);
@@ -269,7 +308,7 @@ begin
 
     if (pi=nil) or (pi.proptype=nil) or (pi.PropType.Kind<>tkMethod) then
     begin
-      raise exception.create('This is an invalid class or method property');
+      raise exception.create(rsThisIsAnInvalidClassOrMethodProperty);
     end;
 
 
@@ -317,7 +356,9 @@ begin
     begin
       p:=Lua_ToString(L,1);
       if p<>'' then
-        c:=pointer(StrToInt64(p));
+        c:=pointer(StrToInt64(p))
+      else
+        exit;
     end;
 
     p:=Lua_ToString(L,2);
@@ -375,7 +416,7 @@ begin
       else
       begin
         lc.free;
-        raise exception.create('This type of method:'+pi.PropType.Name+' is not yet supported');
+        raise exception.create(rsThisTypeOfMethod+pi.PropType.Name+rsIsNotYetSupported);
       end;
 
       luacaller.setMethodProperty(c,p,m);
@@ -384,7 +425,7 @@ begin
     else
     begin
       lc.free;
-      raise exception.create('This is an invalid class or method property');
+      raise exception.create(rsThisIsAnInvalidClassOrMethodProperty);
     end;
 
 

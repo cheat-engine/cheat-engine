@@ -186,6 +186,9 @@ end;
 
 procedure TfrmEnumerateDLLs.FormShow(Sender: TObject);
 begin
+  button2.autosize:=true;
+  button2.height:=canvas.TextHeight(button2.caption)+4;
+  treeview1.font.height:=GetFontData(font.Handle).Height;
 
 end;
 

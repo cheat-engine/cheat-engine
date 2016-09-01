@@ -13,18 +13,20 @@ type
   { TfrmSymbolhandler }
 
   TfrmSymbolhandler = class(TForm)
+    edtSymbolname: TEdit;
+    Label3: TLabel;
     MenuItem1: TMenuItem;
     Panel1: TPanel;
-    Label3: TLabel;
-    edtSymbolname: TEdit;
     Label2: TLabel;
     edtAddress: TEdit;
     Button1: TButton;
     Panel2: TPanel;
     Label1: TLabel;
     ListView1: TListView;
+    Panel3: TPanel;
     PopupMenu1: TPopupMenu;
     Delete1: TMenuItem;
+    procedure edtSymbolnameChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure ListView1Click(Sender: TObject);
@@ -99,6 +101,12 @@ end;
 procedure TfrmSymbolhandler.FormShow(Sender: TObject);
 begin
   refreshlist;
+  panel2.Width:=listview1.Column[0].Width+listview1.Column[1].Width+listview1.Column[2].Width;
+end;
+
+procedure TfrmSymbolhandler.edtSymbolnameChange(Sender: TObject);
+begin
+
 end;
 
 procedure TfrmSymbolhandler.Button1Click(Sender: TObject);

@@ -6,29 +6,45 @@ interface
 
 uses
   LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,CEDebugger,debughelper, KernelDebugger,CEFuncProc,NewKernelHandler,symbolhandler, LResources;
+  Dialogs, StdCtrls, CEDebugger, debughelper, KernelDebugger, CEFuncProc,
+  NewKernelHandler, symbolhandler, LResources, ExtCtrls;
 
 type
 
   { TfrmModifyRegisters }
 
   TfrmModifyRegisters = class(TForm)
+    Button1: TButton;
+    Button2: TButton;
+    cbAF: TCheckBox;
+    cbCF: TCheckBox;
+    cbOF: TCheckBox;
+    cbPF: TCheckBox;
+    cbSF: TCheckBox;
+    cbZF: TCheckBox;
     edtEAX: TEdit;
-    edtR8: TEdit;
-    edtR9: TEdit;
+    edtEBP: TEdit;
+    edtEBX: TEdit;
+    edtECX: TEdit;
+    edtEDI: TEdit;
+    edtEDX: TEdit;
+    edtEIP: TEdit;
+    edtESI: TEdit;
+    edtESP: TEdit;
     edtR10: TEdit;
     edtR11: TEdit;
     edtR12: TEdit;
     edtR13: TEdit;
     edtR14: TEdit;
     edtR15: TEdit;
+    edtR8: TEdit;
+    edtR9: TEdit;
     Label1: TLabel;
-    edtEBX: TEdit;
+    Label16: TLabel;
     Label17: TLabel;
     Label18: TLabel;
     Label19: TLabel;
     Label2: TLabel;
-    edtECX: TEdit;
     Label20: TLabel;
     Label21: TLabel;
     Label22: TLabel;
@@ -36,27 +52,16 @@ type
     Label24: TLabel;
     Label25: TLabel;
     Label3: TLabel;
-    edtEDX: TEdit;
     Label4: TLabel;
-    edtESI: TEdit;
     Label5: TLabel;
-    edtEDI: TEdit;
     Label6: TLabel;
-    edtEBP: TEdit;
     Label7: TLabel;
-    edtESP: TEdit;
     Label8: TLabel;
-    edtEIP: TEdit;
     Label9: TLabel;
-    cbCF: TCheckBox;
-    cbPF: TCheckBox;
-    cbAF: TCheckBox;
-    cbZF: TCheckBox;
-    cbSF: TCheckBox;
-    cbOF: TCheckBox;
-    Button1: TButton;
-    Button2: TButton;
-    Label16: TLabel;
+    Panel1: TPanel;
+    Panel2: TPanel;
+    Panel3: TPanel;
+    Panel4: TPanel;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -264,7 +269,6 @@ procedure TfrmModifyRegisters.FormShow(Sender: TObject);
 begin
   if not processhandler.is64Bit then
   begin
-    clientheight:=label9.top+label9.height+8+button1.height;
     label17.visible:=false;
     label18.visible:=false;
     label19.visible:=false;
@@ -282,6 +286,8 @@ begin
     edtR13.visible:=false;
     edtR14.visible:=false;
     edtR15.visible:=false;
+
+    DoAutoSize;
   end;
 end;
 

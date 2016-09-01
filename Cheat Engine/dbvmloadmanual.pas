@@ -13,6 +13,7 @@ type
   { TfrmDBVMLoadManual }
 
   TfrmDBVMLoadManual = class(TForm)
+    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
   private
     { private declarations }
@@ -24,27 +25,62 @@ type
 
   end;
 
+var
+  frmDBVMLoadManual: TfrmDBVMLoadManual;
+
 implementation
 
 {$R *.lfm}
 
 uses aboutunit, Parsers, DBK32functions, vmxfunctions;
 
+resourcestring
+  rsCpuAlreadyRunningDBVM='This cpu is already running DBVM';
+  rsCpu = 'CPU ';
+  rsChecking = '<Checking>';
+  rsLoaded = 'Loaded:';
+  rsNotLoaded = 'Not loaded';
+  
 { TfrmDBVMLoadManual }
 
 procedure TfrmDBVMLoadManual.launchDBVMForCpuClick(Sender: TObject);
-var cpuid: integer;
+var
+  cpuid: integer;
+  proc, sys: DWORD_PTR;
 begin
   //LoadDBK32;
+  GetProcessAffinityMask(GetCurrentProcess, proc, sys);
 
-  if (sender is TButton) then
-  begin
-    cpuid:=TButton(sender).tag;
-    OutputDebugString(pchar('launchDBVMForCpuClick('+inttostr(cpuid)+')'));
-    LaunchDBVM(cpuid);
+  try
+    if (sender is TButton) then
+    begin
+      cpuid:=TButton(sender).tag;
+      SetProcessAffinityMask(GetCurrentProcess, 1 shl cpuid);
+      sleep(10);
+
+      if dbvm_version=0 then
+      begin
+        OutputDebugString(pchar('launchDBVMForCpuClick('+inttostr(cpuid)+')'));
+        LaunchDBVM(cpuid);
+      end
+      else
+        raise exception.create(rsCpuAlreadyRunningDBVM);
+    end;
+
+
+
+  finally
+    checkfordbvm;
+    SetProcessAffinityMask(GetCurrentProcess, proc);
   end;
 
-  checkfordbvm;
+end;
+
+procedure TfrmDBVMLoadManual.FormClose(Sender: TObject;
+  var CloseAction: TCloseAction);
+begin
+  frmDBVMLoadManual:=nil;
+  closeaction:=caFree;
 end;
 
 procedure TfrmDBVMLoadManual.FormCreate(Sender: TObject);
@@ -55,6 +91,7 @@ var
   b: TButton;
   l: TLabel;
 begin
+  frmDBVMLoadManual:=self;
   oldp:=nil;
   GetProcessAffinityMask(GetCurrentProcess, process,sys);
   for i:=0 to {$ifdef cpu64}63{$else}31{$endif} do
@@ -82,11 +119,11 @@ begin
       p.BorderSpacing.top:=5;
 
       b:=Tbutton.create(p);
-      b.caption:='CPU '+inttostr(i);
+      b.caption:=rsCpu+inttostr(i);
       b.parent:=p;
 
       l:=TLabel.create(p);
-      l.caption:='<Checking>';
+      l.caption:=rsChecking;
       l.parent:=p;
 
       b.AnchorSideTop.Control:=p;
@@ -122,26 +159,30 @@ var i: integer;
   proc, sys: DWORD_PTR;
 
   allactive: boolean;
+  id: integer;
 begin
   GetProcessAffinityMask(GetCurrentProcess, proc, sys);
   allactive:=true;
   for i:=0 to length(cpulabels)-1 do
   begin
+    id:=TLabel(cpulabels[i]).Tag;
 
-    SetProcessAffinityMask(GetCurrentProcess, 1 shl TLabel(cpulabels[i]).Tag);
-    OutputDebugString(pchar('Testing '+inttostr(TLabel(cpulabels[i]).Tag)));
+    if id=-1 then continue; //already on loaded
 
+    SetProcessAffinityMask(GetCurrentProcess, 1 shl id);
+    OutputDebugString(pchar('Testing '+inttostr(id)));
     sleep(10);
 
     if dbvm_version>0 then
     begin
-      cpulabels[i].caption:='Loaded:'+inttostr(dbvm_version and $ffffff);
+      cpulabels[i].caption:=rsLoaded+inttostr(dbvm_version and $ffffff);
       cpulabels[i].font.color:=clGreen;
+      cpulabels[i].tag:=-1;
     end
     else
     begin
       allactive:=false;
-      cpulabels[i].caption:='Not loaded';
+      cpulabels[i].caption:=rsNotLoaded;
       cpulabels[i].font.color:=clWindowText;
     end;
   end;

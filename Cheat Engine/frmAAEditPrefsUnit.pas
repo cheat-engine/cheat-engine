@@ -13,18 +13,20 @@ type
   { TfrmAAEditPrefs }
 
   TfrmAAEditPrefs = class(TForm)
+    cbShowGutter: TCheckBox;
+    cbShowLineNumbers: TCheckBox;
+    cbSmartTab: TCheckBox;
+    cbTabsToSpace: TCheckBox;
     edtTabWidth: TEdit;
     Label1: TLabel;
     Panel2: TPanel;
     Button1: TButton;
     Button2: TButton;
     Panel1: TPanel;
-    cbShowLineNumbers: TCheckBox;
-    cbShowGutter: TCheckBox;
-    cbSmartTab: TCheckBox;
     FontDialog1: TFontDialog;
     btnFont: TButton;
-    cbTabsToSpace: TCheckBox;
+    Panel3: TPanel;
+    Panel4: TPanel;
     procedure btnFontClick(Sender: TObject);
     procedure edtTabWidthChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -33,6 +35,8 @@ type
     procedure cbShowGutterClick(Sender: TObject);
     procedure cbSmartTabClick(Sender: TObject);
     procedure cbTabsToSpaceClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure Panel1Click(Sender: TObject);
   private
     { Private declarations }
     fSynEdit: TSynEdit;
@@ -137,6 +141,18 @@ begin
     fSynEdit.Options:=fSynEdit.Options+[eoTabsToSpaces]
   else
     fSynEdit.Options:=fSynEdit.Options-[eoTabsToSpaces];
+
+end;
+
+procedure TfrmAAEditPrefs.FormShow(Sender: TObject);
+begin
+  button1.AutoSize:=false;
+  button2.autosize:=false;
+  if button1.width<button2.width then button1.width:=button2.width else button2.width:=button1.width;
+end;
+
+procedure TfrmAAEditPrefs.Panel1Click(Sender: TObject);
+begin
 
 end;
 

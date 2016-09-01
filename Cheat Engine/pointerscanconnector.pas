@@ -57,6 +57,14 @@ type
 
 implementation
 
+resourcestring
+  rsHost = 'host:';
+  rsCouldNotBeResolved = ' could not be resolved';
+  rsFailureCreatingSocket = 'Failure creating socket';
+  rsInvalidResponseFrom = 'invalid response from ';
+  rsSomeoneForgotToGiveThisConnector = 'Someone forgot to give this connector an OnConnected event...';
+  rsErrorWhileConnecting = 'Error while connecting: ';
+
 procedure TPointerscanConnector.GetList(var l: TConnectEntryArray);
 {
 Passes a copy of the list of entries to the caller
@@ -218,7 +226,7 @@ begin
           if hr.NameLookup(entry.ip) then
             sockaddr.sin_addr:=hr.NetHostAddress
           else
-            raise exception.create('host:'+entry.ip+' could not be resolved');
+            raise exception.create(rsHost+entry.ip+rsCouldNotBeResolved);
         end;
 
         if sockaddr.sin_addr.s_bytes[4]<>0 then
@@ -226,7 +234,7 @@ begin
           //connect
           sockethandle:=socket(AF_INET, SOCK_STREAM, 0);
           if sockethandle=INVALID_SOCKET then
-            raise exception.create('Failure creating socket');
+            raise exception.create(rsFailureCreatingSocket);
 
           sockaddr.sin_family:=AF_INET;
           sockaddr.sin_port:=htons(entry.port);
@@ -253,7 +261,7 @@ begin
             end;
 
             if result<>0 then
-              raise exception.create('invalid response from '+entry.ip)
+              raise exception.create(rsInvalidResponseFrom+entry.ip)
             else
             begin
               if Assigned(fOnConnected) then
@@ -265,7 +273,7 @@ begin
                 continue;
               end
               else
-                raise exception.create('Someone forgot to give this connector an OnConnected event...');
+                raise exception.create(rsSomeoneForgotToGiveThisConnector);
             end;
           end
           else
@@ -284,7 +292,7 @@ begin
         if sockethandle<>INVALID_SOCKET then
           closesocket(sockethandle);
 
-        OutputDebugString('Error while connecting: '+e.message);
+        OutputDebugString(rsErrorWhileConnecting+e.message);
         log(e.message);
         sleep(1000);
       end;

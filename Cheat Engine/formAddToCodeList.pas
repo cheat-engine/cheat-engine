@@ -6,9 +6,12 @@ interface
 
 uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, LResources, cefuncproc, newkernelhandler;
+  Dialogs, StdCtrls, LResources, ExtCtrls, cefuncproc, newkernelhandler;
 
 type
+
+  { TfrmAddToCodeList }
+
   TfrmAddToCodeList = class(TForm)
     Label1: TLabel;
     Edit1: TEdit;
@@ -17,6 +20,7 @@ type
     Edit2: TEdit;
     Label2: TLabel;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Button1Click(Sender: TObject);
   private
@@ -45,6 +49,11 @@ procedure TfrmAddToCodeList.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
   if addtocodelist then action:=cafree;
+end;
+
+procedure TfrmAddToCodeList.FormCreate(Sender: TObject);
+begin
+
 end;
 
 procedure TfrmAddToCodeList.FormShow(Sender: TObject);

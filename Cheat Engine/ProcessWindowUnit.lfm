@@ -1,27 +1,27 @@
 object ProcessWindow: TProcessWindow
-  Left = 370
-  Height = 353
-  Top = 329
-  Width = 245
+  Left = 514
+  Height = 449
+  Top = 331
+  Width = 275
   HelpContext = 4
+  AutoSize = True
   BorderIcons = [biSystemMenu]
   Caption = 'Process List'
-  ClientHeight = 353
-  ClientWidth = 245
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  ClientHeight = 449
+  ClientWidth = 275
   OnClose = FormClose
   OnResize = FormResize
   OnShow = FormShow
+  PopupMode = pmAuto
   Position = poMainFormCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object ProcessList: TListBox
     Left = 0
-    Height = 167
+    Height = 243
     Top = 0
-    Width = 245
+    Width = 275
     Align = alClient
-    ItemHeight = 16
+    ItemHeight = 0
     OnDblClick = OKButtonClick
     OnDrawItem = ProcessListDrawItem
     OnKeyPress = ProcessListKeyPress
@@ -31,116 +31,218 @@ object ProcessWindow: TProcessWindow
   end
   object Panel1: TPanel
     Left = 0
-    Height = 186
-    Top = 167
-    Width = 245
+    Height = 206
+    Top = 243
+    Width = 275
     Align = alBottom
+    AutoSize = True
     BevelInner = bvLowered
     BevelOuter = bvNone
-    ClientHeight = 186
-    ClientWidth = 245
+    ClientHeight = 206
+    ClientWidth = 275
     TabOrder = 1
     object Panel2: TPanel
       Left = 1
-      Height = 184
+      Height = 204
       Top = 1
-      Width = 243
+      Width = 273
       Align = alClient
+      AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 184
-      ClientWidth = 243
+      ClientHeight = 204
+      ClientWidth = 273
       TabOrder = 0
-      object btnProcessWatch: TButton
-        Left = 164
-        Height = 20
-        Top = 120
-        Width = 76
-        Caption = 'Process watch'
-        OnClick = btnProcessWatchClick
-        TabOrder = 0
-      end
-      object btnWindowList: TButton
-        Left = 83
-        Height = 20
-        Top = 120
-        Width = 76
-        Caption = 'Window List'
-        OnClick = btnWindowListClick
-        TabOrder = 1
-      end
-      object btnProcesslist: TButton
-        Left = 7
-        Height = 20
-        Top = 120
-        Width = 76
-        Caption = 'Process List'
-        OnClick = btnProcesslistClick
-        TabOrder = 2
-      end
       object btnOpenFile: TButton
-        Left = 32
-        Height = 21
-        Top = 88
-        Width = 177
+        AnchorSideLeft.Control = Button4
+        AnchorSideTop.Control = btnCreateThread
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = Button4
+        AnchorSideRight.Side = asrBottom
+        Left = 49
+        Height = 25
+        Top = 92
+        Width = 175
+        Anchors = [akTop, akLeft, akRight]
+        AutoSize = True
+        BorderSpacing.Top = 1
         Caption = 'Open file'
         OnClick = btnOpenFileClick
-        TabOrder = 3
+        TabOrder = 0
       end
       object btnCreateThread: TButton
-        Left = 32
-        Height = 21
-        Top = 64
-        Width = 177
+        AnchorSideLeft.Control = Button4
+        AnchorSideTop.Control = Button4
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = Button4
+        AnchorSideRight.Side = asrBottom
+        Left = 49
+        Height = 25
+        Top = 66
+        Width = 175
+        Anchors = [akTop, akLeft, akRight]
+        AutoSize = True
+        BorderSpacing.Top = 1
         Caption = 'Create process'
         OnClick = btnCreateThreadClick
-        TabOrder = 4
+        TabOrder = 1
       end
       object Button4: TButton
-        Left = 32
-        Height = 21
+        AnchorSideLeft.Control = Panel2
+        AnchorSideLeft.Side = asrCenter
+        AnchorSideTop.Control = Panel3
+        AnchorSideTop.Side = asrBottom
+        Left = 49
+        Height = 25
         Top = 40
-        Width = 177
+        Width = 175
+        AutoSize = True
+        BorderSpacing.Left = 30
+        BorderSpacing.Top = 6
+        BorderSpacing.Right = 30
         Caption = 'Attach debugger to process'
+        Constraints.MinWidth = 175
         OnClick = Button4Click
-        TabOrder = 5
-      end
-      object CancelButton: TButton
-        Left = 134
-        Height = 25
-        Top = 8
-        Width = 75
-        Cancel = True
-        Caption = 'Cancel'
-        OnClick = CancelButtonClick
-        TabOrder = 6
-      end
-      object OKButton: TButton
-        Left = 32
-        Height = 25
-        Top = 8
-        Width = 75
-        Caption = 'Open'
-        Default = True
-        OnClick = OKButtonClick
-        TabOrder = 7
+        TabOrder = 2
       end
       object btnProcessListLong: TButton
-        Left = 55
-        Height = 21
-        Top = 164
-        Width = 129
+        AnchorSideLeft.Control = Panel2
+        AnchorSideLeft.Side = asrCenter
+        AnchorSideTop.Control = btnNetwork
+        AnchorSideTop.Side = asrBottom
+        Left = 77
+        Height = 25
+        Top = 179
+        Width = 119
+        AutoSize = True
         Caption = 'Process List(long)'
         OnClick = btnProcessListLongClick
-        TabOrder = 8
+        TabOrder = 3
       end
       object btnNetwork: TButton
-        Left = 83
-        Height = 20
-        Top = 142
-        Width = 76
+        AnchorSideLeft.Control = Panel2
+        AnchorSideLeft.Side = asrCenter
+        AnchorSideTop.Control = Panel4
+        AnchorSideTop.Side = asrBottom
+        Left = 101
+        Height = 25
+        Top = 154
+        Width = 71
+        AutoSize = True
+        BorderSpacing.Top = 2
         Caption = 'Network'
         OnClick = btnNetworkClick
-        TabOrder = 9
+        TabOrder = 4
+      end
+      object Panel3: TPanel
+        AnchorSideLeft.Control = Panel2
+        AnchorSideLeft.Side = asrCenter
+        AnchorSideTop.Control = Panel2
+        AnchorSideRight.Side = asrBottom
+        Left = 58
+        Height = 30
+        Top = 4
+        Width = 157
+        AutoSize = True
+        BorderSpacing.Top = 4
+        BevelOuter = bvNone
+        ClientHeight = 30
+        ClientWidth = 157
+        ParentColor = False
+        TabOrder = 5
+        object OKButton: TButton
+          AnchorSideLeft.Control = Panel3
+          AnchorSideTop.Control = Panel3
+          Left = 0
+          Height = 30
+          Top = 0
+          Width = 75
+          AutoSize = True
+          Caption = 'Open'
+          Constraints.MinHeight = 30
+          Constraints.MinWidth = 75
+          Default = True
+          OnClick = OKButtonClick
+          TabOrder = 0
+        end
+        object CancelButton: TButton
+          AnchorSideLeft.Control = OKButton
+          AnchorSideLeft.Side = asrBottom
+          AnchorSideTop.Control = Panel3
+          AnchorSideRight.Control = Panel3
+          AnchorSideRight.Side = asrBottom
+          Left = 82
+          Height = 30
+          Top = 0
+          Width = 75
+          AutoSize = True
+          BorderSpacing.Left = 7
+          Cancel = True
+          Caption = 'Cancel'
+          Constraints.MinHeight = 30
+          Constraints.MinWidth = 75
+          OnClick = CancelButtonClick
+          TabOrder = 1
+        end
+      end
+      object Panel4: TPanel
+        AnchorSideLeft.Control = Panel2
+        AnchorSideLeft.Side = asrCenter
+        AnchorSideTop.Control = btnOpenFile
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Side = asrBottom
+        Left = -6
+        Height = 25
+        Top = 127
+        Width = 285
+        AutoSize = True
+        BorderSpacing.Left = 2
+        BorderSpacing.Top = 10
+        BorderSpacing.Right = 2
+        BevelOuter = bvNone
+        ClientHeight = 25
+        ClientWidth = 285
+        TabOrder = 6
+        object btnProcesslist: TButton
+          AnchorSideLeft.Control = Panel4
+          AnchorSideTop.Control = Panel4
+          Left = 4
+          Height = 25
+          Top = 0
+          Width = 87
+          AutoSize = True
+          BorderSpacing.Left = 4
+          Caption = 'Process List'
+          OnClick = btnProcesslistClick
+          TabOrder = 0
+        end
+        object btnWindowList: TButton
+          AnchorSideLeft.Control = btnProcesslist
+          AnchorSideLeft.Side = asrBottom
+          AnchorSideTop.Control = Panel4
+          Left = 92
+          Height = 25
+          Top = 0
+          Width = 91
+          AutoSize = True
+          BorderSpacing.Left = 1
+          Caption = 'Window List'
+          OnClick = btnWindowListClick
+          TabOrder = 1
+        end
+        object btnProcessWatch: TButton
+          AnchorSideLeft.Control = btnWindowList
+          AnchorSideLeft.Side = asrBottom
+          AnchorSideTop.Control = Panel4
+          Left = 184
+          Height = 25
+          Top = 0
+          Width = 101
+          AutoSize = True
+          BorderSpacing.Left = 1
+          Caption = 'Process watch'
+          OnClick = btnProcessWatchClick
+          TabOrder = 2
+        end
       end
     end
   end

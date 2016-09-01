@@ -24,20 +24,28 @@ implementation
 uses mainunit, hotkeyhandler, LuaCaller;
 
 procedure TGenericHotkey.setDelayBetweenActivate(delay: integer);
+var ghi: PHotkeyItem;
 begin
   CSKeys.enter;
   try
-    getGenericHotkeyKeyItem(self).delayBetweenActivate:=delay;
+    ghi:=getGenericHotkeyKeyItem(self);
+    if ghi<>nil then
+      ghi.delayBetweenActivate:=delay;
   finally
     CSKeys.leave;
   end;
 end;
 
 function TGenericHotkey.getDelayBetweenActivate: integer;
+var ghi: PHotkeyItem;
 begin
   CSKeys.enter;
   try
-    result:=getGenericHotkeyKeyItem(self).delayBetweenActivate;
+    ghi:=getGenericHotkeyKeyItem(self);
+    if ghi<>nil then
+      result:=ghi.delayBetweenActivate
+    else
+      result:=0;
   finally
     CSKeys.leave;
   end;

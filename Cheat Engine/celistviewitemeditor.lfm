@@ -1,28 +1,30 @@
 object frmCEListviewItemEditor: TfrmCEListviewItemEditor
-  Left = 805
-  Height = 240
-  Top = 359
-  Width = 349
+  Left = 524
+  Height = 231
+  Top = 402
+  Width = 360
   Caption = 'Item editor'
-  ClientHeight = 240
-  ClientWidth = 349
+  ClientHeight = 231
+  ClientWidth = 360
+  OnShow = FormShow
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.6.0.4'
   object Panel1: TPanel
     Left = 0
-    Height = 200
+    Height = 196
     Top = 0
-    Width = 349
+    Width = 360
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 200
-    ClientWidth = 349
+    ClientHeight = 196
+    ClientWidth = 360
     TabOrder = 0
     object TreeView1: TTreeView
       Left = 0
-      Height = 200
+      Height = 196
       Top = 0
-      Width = 207
+      Width = 218
       Align = alClient
       DefaultItemHeight = 18
       HideSelection = False
@@ -32,13 +34,14 @@ object frmCEListviewItemEditor: TfrmCEListviewItemEditor
       Options = [tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
     end
     object Panel2: TPanel
-      Left = 207
-      Height = 200
+      Left = 218
+      Height = 196
       Top = 0
       Width = 142
       Align = alRight
+      AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 200
+      ClientHeight = 196
       ClientWidth = 142
       TabOrder = 1
       object edtText: TEdit
@@ -49,16 +52,17 @@ object frmCEListviewItemEditor: TfrmCEListviewItemEditor
         AnchorSideRight.Side = asrBottom
         Left = 6
         Height = 23
-        Top = 28
+        Top = 27
         Width = 130
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
+        Constraints.MinWidth = 130
         OnChange = edtTextChange
         TabOrder = 0
       end
       object lblText: TLabel
         Left = 6
-        Height = 16
+        Height = 15
         Top = 6
         Width = 130
         Align = alTop
@@ -74,11 +78,13 @@ object frmCEListviewItemEditor: TfrmCEListviewItemEditor
         AnchorSideRight.Side = asrBottom
         Left = 6
         Height = 25
-        Top = 57
+        Top = 56
         Width = 130
         Anchors = [akTop, akLeft, akRight]
+        AutoSize = True
         BorderSpacing.Around = 6
         Caption = 'Add Item'
+        Constraints.MinWidth = 130
         OnClick = btnAddItemClick
         TabOrder = 1
       end
@@ -90,11 +96,13 @@ object frmCEListviewItemEditor: TfrmCEListviewItemEditor
         AnchorSideRight.Side = asrBottom
         Left = 6
         Height = 25
-        Top = 88
+        Top = 87
         Width = 130
         Anchors = [akTop, akLeft, akRight]
+        AutoSize = True
         BorderSpacing.Around = 6
         Caption = 'Add SubItem'
+        Constraints.MinWidth = 130
         Enabled = False
         OnClick = btnAddSubItemClick
         TabOrder = 2
@@ -107,11 +115,13 @@ object frmCEListviewItemEditor: TfrmCEListviewItemEditor
         AnchorSideRight.Side = asrBottom
         Left = 6
         Height = 25
-        Top = 119
+        Top = 118
         Width = 130
         Anchors = [akTop, akLeft, akRight]
+        AutoSize = True
         BorderSpacing.Around = 6
         Caption = 'Delete'
+        Constraints.MinWidth = 130
         Enabled = False
         OnClick = btnDeleteClick
         TabOrder = 3
@@ -120,37 +130,43 @@ object frmCEListviewItemEditor: TfrmCEListviewItemEditor
   end
   object Panel3: TPanel
     Left = 0
-    Height = 40
-    Top = 200
-    Width = 349
+    Height = 35
+    Top = 196
+    Width = 360
     Align = alBottom
-    Anchors = [akTop, akLeft, akRight, akBottom]
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 40
-    ClientWidth = 349
+    ClientHeight = 35
+    ClientWidth = 360
     TabOrder = 1
     object Panel4: TPanel
-      AnchorSideRight.Control = Panel3
-      AnchorSideRight.Side = asrCenter
-      Left = 94
-      Height = 26
-      Top = 8
-      Width = 159
-      Anchors = [akTop, akRight]
+      AnchorSideLeft.Control = Panel3
+      AnchorSideLeft.Side = asrCenter
+      AnchorSideTop.Control = Panel3
+      Left = 103
+      Height = 25
+      Top = 5
+      Width = 155
+      AutoSize = True
+      BorderSpacing.Top = 5
+      BorderSpacing.Bottom = 5
       BevelOuter = bvNone
-      ClientHeight = 26
-      ClientWidth = 159
+      ClientHeight = 25
+      ClientWidth = 155
       TabOrder = 0
       object btnCancel: TButton
+        AnchorSideLeft.Control = btnOk
+        AnchorSideLeft.Side = asrBottom
         AnchorSideRight.Control = Panel4
         AnchorSideRight.Side = asrBottom
-        Left = 84
+        Left = 80
         Height = 25
         Top = 0
         Width = 75
-        Anchors = [akTop, akRight]
+        BorderSpacing.Left = 5
         Cancel = True
         Caption = 'Cancel'
+        Constraints.MinWidth = 75
         ModalResult = 2
         TabOrder = 0
       end
@@ -161,8 +177,8 @@ object frmCEListviewItemEditor: TfrmCEListviewItemEditor
         Height = 25
         Top = 0
         Width = 75
-        BorderSpacing.Right = 10
         Caption = 'OK'
+        Constraints.MinWidth = 75
         Default = True
         OnClick = btnOkClick
         TabOrder = 1

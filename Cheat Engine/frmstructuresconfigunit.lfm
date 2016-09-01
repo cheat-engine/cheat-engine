@@ -1,8 +1,9 @@
 object frmStructuresConfig: TfrmStructuresConfig
-  Left = 769
+  Left = 558
   Height = 261
-  Top = 245
+  Top = 294
   Width = 499
+  AutoSize = True
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Dissect Data Config'
@@ -10,38 +11,44 @@ object frmStructuresConfig: TfrmStructuresConfig
   ClientWidth = 499
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.6.0.4'
   object Panel1: TPanel
     Left = 0
-    Height = 221
+    Height = 226
     Top = 0
     Width = 499
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 221
+    ClientHeight = 226
     ClientWidth = 499
     TabOrder = 0
     object GroupBox1: TGroupBox
       Left = 0
-      Height = 221
+      Height = 226
       Top = 0
-      Width = 105
+      Width = 104
       Align = alLeft
+      AutoSize = True
       Caption = 'Colors'
-      ClientHeight = 203
-      ClientWidth = 101
+      ClientHeight = 206
+      ClientWidth = 100
       Color = clWindow
       ParentColor = False
       TabOrder = 0
       object Label7: TLabel
         Tag = 2
         Cursor = crHandPoint
-        Left = 32
-        Height = 16
+        Left = 0
+        Height = 15
         Hint = 'Color used when only one group and all columns have the same value'
         Top = 40
-        Width = 30
+        Width = 100
+        Align = alTop
+        Alignment = taCenter
+        BorderSpacing.Top = 1
+        BorderSpacing.Bottom = 1
         Caption = 'Equal'
         ParentColor = False
         ParentShowHint = False
@@ -52,11 +59,15 @@ object frmStructuresConfig: TfrmStructuresConfig
       object Label1: TLabel
         Tag = 1
         Cursor = crHandPoint
-        Left = 28
-        Height = 16
+        Left = 0
+        Height = 15
         Hint = 'Color used when only one column'
         Top = 24
-        Width = 39
+        Width = 100
+        Align = alTop
+        Alignment = taCenter
+        BorderSpacing.Top = 1
+        BorderSpacing.Bottom = 1
         Caption = 'Default'
         ParentColor = False
         ParentShowHint = False
@@ -67,11 +78,15 @@ object frmStructuresConfig: TfrmStructuresConfig
       object Label2: TLabel
         Tag = 3
         Cursor = crHandPoint
-        Left = 24
-        Height = 16
+        Left = 0
+        Height = 15
         Hint = 'Color used when only one group and not all columns have the same value, or when multiple groups but not every group has matching columns'
         Top = 56
-        Width = 47
+        Width = 100
+        Align = alTop
+        Alignment = taCenter
+        BorderSpacing.Top = 1
+        BorderSpacing.Bottom = 1
         Caption = 'Different'
         ParentColor = False
         ParentShowHint = False
@@ -82,11 +97,15 @@ object frmStructuresConfig: TfrmStructuresConfig
       object Label3: TLabel
         Tag = 4
         Cursor = crHandPoint
-        Left = 14
-        Height = 16
+        Left = 0
+        Height = 15
         Hint = 'Color used when multiple groups and every member of every group has the same value, and that value matches that of each group'
         Top = 72
-        Width = 66
+        Width = 100
+        Align = alTop
+        Alignment = taCenter
+        BorderSpacing.Top = 1
+        BorderSpacing.Bottom = 1
         Caption = 'Group Equal'
         ParentColor = False
         ParentShowHint = False
@@ -97,11 +116,15 @@ object frmStructuresConfig: TfrmStructuresConfig
       object Label9: TLabel
         Tag = 5
         Cursor = crHandPoint
-        Left = 6
-        Height = 16
+        Left = 0
+        Height = 15
         Hint = 'Color used when multiple groups and every member of every group has the same value, but not each group has the same value'
         Top = 88
-        Width = 83
+        Width = 100
+        Align = alTop
+        Alignment = taCenter
+        BorderSpacing.Top = 1
+        BorderSpacing.Bottom = 1
         Caption = 'Group Different'
         ParentColor = False
         ParentShowHint = False
@@ -113,7 +136,7 @@ object frmStructuresConfig: TfrmStructuresConfig
         Left = 0
         Height = 23
         Top = 0
-        Width = 101
+        Width = 100
         Align = alTop
         ItemHeight = 15
         ItemIndex = 0
@@ -128,80 +151,102 @@ object frmStructuresConfig: TfrmStructuresConfig
       end
     end
     object Panel3: TPanel
-      Left = 105
-      Height = 221
+      Left = 104
+      Height = 226
       Top = 0
-      Width = 394
+      Width = 395
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 221
-      ClientWidth = 394
+      ClientHeight = 226
+      ClientWidth = 395
       TabOrder = 1
       object GroupBox2: TGroupBox
         Left = 0
-        Height = 161
+        Height = 164
         Top = 0
-        Width = 394
+        Width = 395
         Align = alClient
+        AutoSize = True
         Caption = 'Default options for new structures'
-        ClientHeight = 143
-        ClientWidth = 390
+        ClientHeight = 144
+        ClientWidth = 391
         TabOrder = 0
         object cbAutoCreate: TCheckBox
+          AnchorSideLeft.Control = GroupBox2
+          AnchorSideTop.Control = GroupBox2
           Left = 5
           Height = 19
           Top = 0
           Width = 380
+          BorderSpacing.Left = 5
           Caption = 'Autocreate local structures when expanding undefined pointer types'
           Checked = True
           State = cbChecked
           TabOrder = 0
         end
         object edtAutostructsize: TEdit
+          AnchorSideLeft.Control = Label4
+          AnchorSideTop.Control = Label4
+          AnchorSideTop.Side = asrBottom
           Left = 5
           Height = 23
-          Top = 40
+          Top = 34
           Width = 72
           TabOrder = 1
           Text = '4096'
         end
         object cbAutoDestroyLocal: TCheckBox
+          AnchorSideLeft.Control = edtAutostructsize
+          AnchorSideTop.Control = edtAutostructsize
+          AnchorSideTop.Side = asrBottom
           Left = 5
           Height = 19
-          Top = 72
+          Top = 57
           Width = 237
           Caption = 'Autodestroy local structures when closed'
           TabOrder = 2
         end
         object cbDoNotSaveLocal: TCheckBox
+          AnchorSideLeft.Control = cbAutoDestroyLocal
+          AnchorSideTop.Control = cbAutoDestroyLocal
+          AnchorSideTop.Side = asrBottom
           Left = 5
           Height = 19
-          Top = 96
+          Top = 76
           Width = 231
           Caption = 'Do not save autocreated local structures'
           TabOrder = 3
         end
         object cbAutoFillGaps: TCheckBox
+          AnchorSideLeft.Control = cbDefaultHex
+          AnchorSideTop.Control = cbDefaultHex
+          AnchorSideTop.Side = asrBottom
           Left = 5
           Height = 19
-          Top = 120
+          Top = 114
           Width = 138
           Caption = 'Fill gaps automatically'
           TabOrder = 4
           Visible = False
         end
         object Label4: TLabel
+          AnchorSideLeft.Control = cbAutoCreate
+          AnchorSideTop.Control = cbAutoCreate
+          AnchorSideTop.Side = asrBottom
           Left = 5
-          Height = 16
-          Top = 21
-          Width = 131
+          Height = 15
+          Top = 19
+          Width = 130
           Caption = 'Autocreate structure size'
           ParentColor = False
         end
         object cbDefaultHex: TCheckBox
+          AnchorSideLeft.Control = cbDoNotSaveLocal
+          AnchorSideTop.Control = cbDoNotSaveLocal
+          AnchorSideTop.Side = asrBottom
           Left = 5
           Height = 19
-          Top = 120
+          Top = 95
           Width = 262
           Caption = 'Default to hexadecimal for new integer entries'
           TabOrder = 5
@@ -209,35 +254,47 @@ object frmStructuresConfig: TfrmStructuresConfig
       end
       object GroupBox3: TGroupBox
         Left = 0
-        Height = 60
-        Top = 161
-        Width = 394
+        Height = 62
+        Top = 164
+        Width = 395
         Align = alBottom
+        AutoSize = True
         Caption = 'Global options'
         ClientHeight = 42
-        ClientWidth = 390
+        ClientWidth = 391
         TabOrder = 1
         object cbAutoGuessCustomTypes: TCheckBox
-          Left = 6
+          AnchorSideLeft.Control = GroupBox3
+          AnchorSideTop.Control = GroupBox3
+          Left = 5
           Height = 19
           Top = 0
           Width = 150
+          BorderSpacing.Left = 5
           Caption = 'Autoguess custom types'
           TabOrder = 0
         end
         object Label5: TLabel
+          AnchorSideLeft.Control = cbAutoGuessCustomTypes
+          AnchorSideTop.Control = edtMaxAutoExpandLevel
+          AnchorSideTop.Side = asrCenter
           Left = 5
-          Height = 16
-          Top = 22
-          Width = 123
+          Height = 15
+          Top = 23
+          Width = 122
           Caption = 'Max auto-expand level:'
           ParentColor = False
         end
         object edtMaxAutoExpandLevel: TEdit
-          Left = 127
+          AnchorSideLeft.Control = Label5
+          AnchorSideLeft.Side = asrBottom
+          AnchorSideTop.Control = cbAutoGuessCustomTypes
+          AnchorSideTop.Side = asrBottom
+          Left = 130
           Height = 23
-          Top = 18
+          Top = 19
           Width = 31
+          BorderSpacing.Left = 3
           TabOrder = 1
           Text = '1'
         end
@@ -246,32 +303,55 @@ object frmStructuresConfig: TfrmStructuresConfig
   end
   object Panel2: TPanel
     Left = 0
-    Height = 40
-    Top = 221
+    Height = 35
+    Top = 226
     Width = 499
     Align = alBottom
-    ClientHeight = 40
+    AutoSize = True
+    ClientHeight = 35
     ClientWidth = 499
     TabOrder = 1
-    object Button1: TButton
-      Left = 168
+    object Panel4: TPanel
+      AnchorSideLeft.Control = Panel2
+      AnchorSideLeft.Side = asrCenter
+      AnchorSideTop.Control = Panel2
+      Left = 171
       Height = 25
-      Top = 3
-      Width = 75
-      Caption = 'OK'
-      Default = True
-      OnClick = Button1Click
+      Top = 5
+      Width = 157
+      AutoSize = True
+      BorderSpacing.Top = 4
+      BorderSpacing.Bottom = 4
+      BevelOuter = bvNone
+      ClientHeight = 25
+      ClientWidth = 157
       TabOrder = 0
-    end
-    object Button2: TButton
-      Left = 256
-      Height = 25
-      Top = 3
-      Width = 75
-      Cancel = True
-      Caption = 'Cancel'
-      ModalResult = 2
-      TabOrder = 1
+      object Button1: TButton
+        AnchorSideLeft.Control = Panel4
+        AnchorSideTop.Control = Panel4
+        Left = 0
+        Height = 25
+        Top = 0
+        Width = 75
+        Caption = 'OK'
+        Default = True
+        OnClick = Button1Click
+        TabOrder = 0
+      end
+      object Button2: TButton
+        AnchorSideLeft.Control = Button1
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = Panel4
+        Left = 82
+        Height = 25
+        Top = 0
+        Width = 75
+        BorderSpacing.Left = 7
+        Cancel = True
+        Caption = 'Cancel'
+        ModalResult = 2
+        TabOrder = 1
+      end
     end
   end
   object ColorDialog1: TColorDialog

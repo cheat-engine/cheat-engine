@@ -11,10 +11,10 @@ uses windows, dialogs,forms,classes,LCLIntf, LCLProc, sysutils,registry,ComCtrls
      memscan,plugin, hotkeyhandler,frmProcessWatcherunit, newkernelhandler,
      debuggertypedefinitions, commonTypeDefs;
 
-const ceversion=6.4;
+const ceversion=6.6;
 
 resourcestring
-  cename = 'Cheat Engine 6.4';
+  cename = 'Cheat Engine 6.6';
   rsPleaseWait = 'Please Wait!';
 
 procedure UpdateToolsMenu;
@@ -24,7 +24,7 @@ procedure initcetitle;
 
 
 
-const beta=''; //empty this for a release
+const beta=' Beta 1'; //empty this for a release
 
 var
   CEnorm:string;
@@ -88,7 +88,7 @@ resourcestring
 implementation
 
 
-uses KernelDebugger,mainunit, DebugHelper, CustomTypeHandler, ProcessList, Globals;
+uses KernelDebugger,mainunit, DebugHelper, CustomTypeHandler, ProcessList, Globals, frmEditHistoryUnit;
 
 procedure UpdateToolsMenu;
 var i: integer;
@@ -531,6 +531,11 @@ begin
             
           Skip_PAGE_NOCACHE:=cbSkip_PAGE_NOCACHE.Checked;
 
+          if reg.ValueExists('Pause when scanning on by default') then
+            cbPauseWhenScanningOnByDefault.Checked:=reg.readbool('Pause when scanning on by default');
+
+          MainForm.cbPauseWhileScanning.Checked:=cbPauseWhenScanningOnByDefault.checked;
+
 
           if reg.ValueExists('Hide all windows') then
             cbHideAllWindows.Checked:=reg.ReadBool('Hide all windows');
@@ -561,8 +566,6 @@ begin
           try cbKernelQueryMemoryRegion.checked:=reg.ReadBool('Use dbk32 QueryMemoryRegionEx'); except end;
           try cbKernelReadWriteProcessMemory.checked:=reg.ReadBool('Use dbk32 ReadWriteProcessMemory'); except end;
           try cbKernelOpenProcess.checked:=reg.ReadBool('Use dbk32 OpenProcess'); except end;
-
-          {$ifndef net}
 
 
           try unrandomizersettings.defaultreturn:=reg.ReadInteger('Unrandomizer: default value'); except end;
@@ -642,12 +645,18 @@ begin
             if (frmProcessWatcher=nil) then //propably yes
               frmProcessWatcher:=tfrmprocesswatcher.Create(mainform); //start the process watcher
 
-          {$endif}
 
 
+          if reg.ValueExists('WriteLogging') then
+            cbWriteLoggingOn.checked:=reg.ReadBool('WriteLogging');
 
+          if reg.ValueExists('WriteLoggingSize') then
+          begin
+            edtWriteLogSize.text:=inttostr(reg.ReadInteger('WriteLoggingSize'));
+            setMaxWriteLogSize(reg.ReadInteger('WriteLoggingSize'));
+          end;
 
-
+          logWrites:=cbWriteLoggingOn.checked;
         end;
 
 
@@ -748,9 +757,11 @@ begin
   MemoryBrowser.Kerneltools1.Enabled:=DBKLoaded;
   {$endif}
 
-
-  mainform.autoattachlist.Delimiter:=';';
-  mainform.autoattachlist.DelimitedText:=formsettings.EditAutoAttach.Text;
+  if mainform.autoattachlist<>nil then
+  begin
+    mainform.autoattachlist.Delimiter:=';';
+    mainform.autoattachlist.DelimitedText:=formsettings.EditAutoAttach.Text;
+  end;
 
 
   if formsettings.cbShowMainMenu.Checked then

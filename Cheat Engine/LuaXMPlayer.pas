@@ -38,7 +38,9 @@ begin
         s:=TStream(o)
       else
       if o is TLuafile then
-        s:=TLuafile(o).stream;
+        s:=TLuafile(o).stream
+      else
+        exit;
 
       xmplayer.playXM(s, noloop)
     end
@@ -84,8 +86,8 @@ begin
   result:=0;
   lua_pop(L, lua_gettop(L));
 
-  if xmplayer<>nil then
-     xmplayer.stop;
+  if (xmplayer<>nil) then
+    xmplayer.stop();
 end;
 
 function xmplayer_isPlaying(L: Plua_State): integer; cdecl;
@@ -126,6 +128,8 @@ procedure xmplayer_addMetaData(L: PLua_state; metatable: integer; userdata: inte
 begin
   object_addMetaData(L, metatable, userdata);
 
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setVolume', xmplayer_setVolume);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'isPlaying', xmplayer_isPlaying);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'playXM', xmplayer_playXM);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'pause', xmplayer_pause);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'resume', xmplayer_resume);

@@ -17,6 +17,9 @@ implementation
 
 uses luaclass, LuaCustomControl;
 
+resourcestring
+  rsTheGivenFormIsNotCompatible = 'The given form is not compatible. Formclass=';
+
 function createForm(L: Plua_State): integer; cdecl;
 var f: tcustomform;
   parameters: integer;
@@ -32,8 +35,8 @@ begin
 
   lua_pop(L, lua_gettop(L));
 
-
   f:=ce_createForm(visible);  //not relly a customform, but it inherits from it, so good enough
+  f.PopupMode:=pmAuto;
   luaclass_newClass(L, f);
   result:=1;
 
@@ -66,9 +69,9 @@ begin
     CleanupLuaCall(tmethod(control.onClose));
     control.onClose:=nil;
 
-    if lua_isfunction(L,-1) then
+    if lua_isfunction(L,1) then
     begin
-      routine:=Lua_ToString(L,-1);
+      routine:=Lua_ToString(L,1);
       f:=luaL_ref(L,LUA_REGISTRYINDEX);
 
       lc:=TLuaCaller.create;
@@ -76,9 +79,9 @@ begin
       control.OnClose:=lc.CloseEvent;
     end
     else
-    if lua_isstring(L,-1) then
+    if lua_isstring(L,1) then
     begin
-      routine:=lua_tostring(L,-1);
+      routine:=lua_tostring(L,1);
       lc:=TLuaCaller.create;
       lc.luaroutine:=routine;
       control.OnClose:=lc.CloseEvent;
@@ -224,6 +227,7 @@ function customform_dragNow(L: Plua_State): integer; cdecl;
 var
   f: TCustomForm;
 begin
+  result:=0;
   f:=luaclass_getClassObject(L);
   ReleaseCapture;
   SendMessageA(f.Handle,WM_SYSCOMMAND,$F012,0);
@@ -280,7 +284,7 @@ begin
       end;
     end
     else
-      raise exception.create('The given form is not compatible. Formclass='+f.ClassName);
+      raise exception.create(rsTheGivenFormIsNotCompatible+f.ClassName);
   end
   else
     lua_pop(L, lua_gettop(L));

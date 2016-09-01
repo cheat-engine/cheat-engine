@@ -10,6 +10,8 @@ require("defines")
 List of CE specific functions and variables:
 
 TrainerOrigin : A variable that contains the path of the trainer that launched cheat engine (Only set when launched as a trainer)
+process : A variable that contains the main modulename of the currently opened process
+
 getCEVersion(): Returns a floating point value specifying the version of cheat engine
 
 
@@ -17,6 +19,7 @@ activateProtection(): Prevents basic memory scanners from opening the cheat engi
 fullAccess(address,size): Changes the protection of a block of memory to writable and executable
 
 loadTable(filename, merge OPTIONAL): Loads a .ct or .cetrainer. If merge is provided and set to true it will not clear the old table
+loadTable(stream ,merge OPTIONAL, ignoreluascriptdialog BOOLEAN): Loads a table from a stream object
 saveTable(filename, protect OPTIONAL): Saves the current table. If protect is provided and set to true and the filename has the .CETRAINER extension, it will protect it from reading normally
 
 note: addresses can be strings, they will get interpreted by ce's symbolhandler
@@ -100,12 +103,17 @@ ansiToUtf8(string): Converts a string in Ansi encoding to UTF8
 utf8ToAnsi(string): Converts a string in UTF8 encoding to Ansi
 Note: GUI components mainly show in UTF8, some other functions use Ansi, try to find out which ones...
 
+
 enumModules(processid OPTIONAL):
   Returns a table containing information about each module in the current process, or the specified processid
   Each entry is a table with fields
     Name : String containing the modulename    Address: Integer representing the address the module is loaded
     Is64Bit: Boolean set to true if it's a 64-bit module
     PathToFile: String to the location this module is loaded
+
+md5memory(address, size): Returns a md5 sum calculated from the provided memory. 
+md5file(pathtofile): Returns a md5 sum calculated from the file. 
+getFileVersion(pathtofile): returns the 64-bit file version, and a table that has split up the file version into major, minor, release and build
 
 
 getAddress(string, local OPTIONAL): returns the address of a symbol. Can be a modulename or an export. set Local to true if you wish to querry the symboltable of the ce process
@@ -178,12 +186,21 @@ registerAssembler(function(address, instruction):bytetable)
 
 unregisterAssembler(ID): Unregisters the registered assembler
 
-registerAutoAssemblerPrologue(function(script, syntaxcheck))
+registerAutoAssemblerPrologue(function(script, syntaxcheck), postAOB:boolean=false)
   Registers a function to be called when the auto assembler is about to parse an auto assembler script. The script you get is after the [ENABLE] and [DISABLE] tags have been used to strip the script to the according one, but before comment stripping and trimming has occured
 
   script is a Strings object which when changed has direct effect to the script
 
 unregisterAutoAssemblerPrologue(ID)
+
+registerAutoAssemblerTemplate(name, function(script: TStrings; sender: TFrmAutoInject): id - Registers an template for the auto assembler. The script parameter is a TStrings object that has a direct connection to the current script. (All script parsing is up to you...).  Returns an ID
+unregisterAutoAssemblerTemplate(ID)
+
+
+generateCodeInjectionScript(script: Tstrings, address: string): Adds a default codeinjection script to the given script
+generateAOBInjectionScript(script: Tstrings, symbolname: string, address: string): Adds an AOB injection script to the given script
+generateFullInjectionScript(script: Tstrings, address: string): Adds a Full Injection script to the given script
+
 
 
 showMessage(text) : shows a messagebox with the given text
@@ -193,7 +210,12 @@ sleep(milliseconds): pauses for the number of specified milliseconds (1000= 1 se
 
 getProcesslist(Strings): Fills a Strings inherited object with the processlist of the system. Format: %x-pidname
 getProcesslist(): Returns a table with the processlist  (pid - name )
+getWindowlist(Strings): Fills a Strings inherited object with the top-window list of the system. Format: %x-windowcaption
+getWindowlist(): Returns a table with the windowlist (pid - window caption )
+
 getThreadlist(List): fills a List object with the threadlist of the currently opened process. Format: %x
+
+
 
 function onOpenProcess(processid):
   If this function is defined it will be called whenever cheat engine opens a process.
@@ -205,6 +227,7 @@ getOpenedProcessID() : Returns the currently opened process. If none is open, re
 getProcessIDFromProcessName(name) : returns a processid
 openProcess(processid) : causes cheat engine to open the given processid
 openProcess(processname): causes cheat engine to find and open the given process
+setPointerSize(size): Sets the size cheat engine will deal with pointers in bytes. (Some 64-bit processes can only use 32-bit addresses)
 pause() : pauses the current opened process
 unpause(): resumes the current opened process
 
@@ -216,7 +239,9 @@ setMousePos(x,y): sets the mouse position
 isKeyPressed(key) : returns true if the specified key is currently pressed
 keyDown(key) : causes the key to go into down state
 keyUp(key) :causes the key to go up
-doKeyPress(key) : simmulates a key press
+doKeyPress(key) : simulates a key press
+
+mouse_event(flags, x OPTIONAL, y OPTIONAL, data OPTIONAL, extra OPTIONAL) - The mouse_event windows API.  Check MSDN for information on how to use
 
 shortCutToText(shortcut): Returns the textual representation of the given shortut value (integer) (6.4+)
 textToShortCut(shortcutstring): Returns an shortcut integer that the given string represents.  (6.4+)
@@ -225,7 +250,7 @@ convertKeyComboToString(key1,...): Returns a string representation of the given 
 convertKeyComboToString({key1,...}): ^
 
 
-outputDebugString(text): Outputs a message using the windows OutputDebugString message. You can use tools like dbgview to read this. Useful for testing situations where the gui freezes
+outputDebugString(text): Outputs a message using the windows OutputDebugString message. You can use tools like dbgview to read this. Useful for testing situations where the GUI freezes
 
 shellExecute(command, parameters OPTIONAL, folder OPTIONAL, showcommand OPTIONAL): Executes a given command
 
@@ -236,18 +261,25 @@ integerToUserData(int):  Converts a given integer to a userdata variable
 userDataToInteger(UserDataVar):  Converts a given userdata variable to an integer
 
 synchronize(function(...), ...): Calls the given function from the main thread. Returns the return value of the given function
+queue(function(...),...): calls the given function from the main thread. Does not wait for the result
 checkSynchronize(): Calls this from an infinite loop in the main thread when using threading and synchronize calls. This will execute any queued synchronize calls
 
 writeToClipboard(text):  Writes the given text to the clipboard
 readFromClipboard():  Reads the text from the clipboard
 
+
+
 speedhack_setSpeed(speed) : Enables the speedhack if needed and sets the specific speed
 speedhack_getSpeed(): Returns the last set speed
 
 injectDLL(filename): Injects a dll, and returns true on success
+executeCode(address, parameter OPTIONAL, timeout OPTIONAL) : address - Executes a stdcall function with 1 parameter at the given address in the target process  and wait for it to return. The return value is the result of the function that was called
+executeCodeLocal(addres, parameter OPTIONAL): address -  Executes a stdcall function with 1 parameter at the given address in the target process. The return value is the result of the function that was called
 
 loadPlugin(dllnameorpath): Loads the given plugin. Returns nil on failure. On success returns a value of 0 or greater
 
+loadFontFromStream(memorystream) : Loads a font from a memory stream and returns an id (handle) to the font for use with unloadLoadedFont
+unloadLoadedFont(id)
 
 
 registerCustomTypeLua(typename, bytecount, bytestovaluefunction, valuetobytesfunction, isFloat)
@@ -291,6 +323,19 @@ allocateSharedMemory(name, size):
 
 getForegroundProcess() : Returns the processID of the process that is currently on top
 
+
+findWindow(classname OPTIONAL, caption OPTIONAL): windowhandle - Finds a window with the given classname and/or windowname
+getWindow(windowhandle, command) : windowhandle - Gets a specific window based on the given window (Check MSDN getWindow for the command description)
+getWindowCaption(windowhandle) : string - Returns the caption of the window
+getWindowClassName(windowhandle): string - Returns the classname of the window
+getWindowProcessID(windowhandle): processid - Returns the processid of the process this window belongs to
+getForegroundWindow() - windowhandle : Returns the windowhandle of the topmost window
+
+sendMessage(hwnd, msg, wparam, lparam): result - Sends a message to a window. Those that wish to use it, should know how to use it (and fill in the msg id's yourself)
+hookWndProc(hwnd, function(hwnd, msg, wparam, lparam)) - Hooks a window's wndproc procedure. The given function will receive all functions.  Return 0 to say you handled it. 1 to let the default windows handler deal with it. Or anything else, to let the original handler deal with it.  Besides the return value, you can also return hWnd, Msg, lParam and wParam, modified, or nil for the original value
+unhookWndProc(hwnd) - call this when done with the hook.  Not calling this will result in the process window behaving badly when you exit CE
+
+
 cheatEngineIs64Bit(): Returns true if CE is 64-bit, false if 32-bit
 targetIs64Bit(): Returns true if the target process is 64-bit, false if 32-bit
 
@@ -308,6 +353,10 @@ beep() : Plays the fabulous beep/ping sound!
 playSound(stream, waittilldone OPTIONAL): Plays the given memorystream containing a .WAV formatted memory object. If waittilldone is true the script will stop executing till the sound has stopped
 playSound(tablefile, waittilldone OPTIONAL) : Takes the memorystream from the tablefile and plays it.
   There are two tablefiles predeclared inside cheat engine "Activate" and "Deactivate" . You are free to use or override them
+
+speak(text, waittilldone OPTIONAL): Speaks a given text.  If waitTillDone is true the thread it's in will be frozen till it is done
+speak(text, flags): Speaks a given text using the given flags. https://msdn.microsoft.com/en-us/library/speechplatform_speakflags.aspx
+speakEnglish(text, waittilldone OPTIONAL) - will try the English voice by wrapping the given text into an XML statement specifying the english voice. fallback to default voice on failure. Do not use SPF_IS_NOT_XML flag and SPF_PARSE_SSML won't work in this situation
 
 getUserRegistryEnvironmentVariable(name): string - Returns the environment variable stored in the user registry environment
 setUserRegistryEnvironmentVariable(name, string) - Sets the environment variable stored in the user registry environment
@@ -334,6 +383,37 @@ getUpdateTimer() : Returns the update timer object
 
 setGlobalKeyPollInterval(integer): Sets the global keypoll interval. The interval determines the speed of how often CE checks if a key has been pressed or not. Lower is more accurate, but eats more cpu power
 setGlobalDelayBetweenHotkeyActivation(integer): Sets the minimum delay between the activation of the same hotey in milliseconds. Affects all hotkeys that do not set their own minimum delay
+
+getXBox360ControllerState(ControllerID OPTIONAL) : table - Fetches the state of the connected xbox controller. Returns a table containing the following fields on success:
+    ControllerID : The id of the controller (between 0 and 3)
+    PacketNumber : The packet id of the state you see. (use to detect changes)
+    GAMEPAD_DPAD_UP : D-PAD Up (boolean)
+    GAMEPAD_DPAD_DOWN: D-PAD Down (boolean)
+    GAMEPAD_DPAD_LEFT: D-PAD Left (boolean)
+    GAMEPAD_DPAD_RIGHT: D-PAD Right (boolean)
+    GAMEPAD_START: Start button (boolean)
+    GAMEPAD_BACK: Back button (boolean)
+    GAMEPAD_LEFT_THUMB: Left thumb stick down (boolean)
+    GAMEPAD_RIGHT_THUMB: Right thumb stick down (boolean)
+
+    GAMEPAD_LEFT_SHOULDER: Left shoulder button (boolean)
+    GAMEPAD_RIGHT_SHOULDER: Right shoulder button (boolean)
+
+    GAMEPAD_A: A button (boolean)
+    GAMEPAD_B: B button (boolean)
+    GAMEPAD_X: X button (boolean)
+    GAMEPAD_Y: Y button (boolean)
+
+    LeftTrigger: Left trigger (integer ranging from 0 to 255)
+    RightTrigger: Right trigger (integer ranging from 0 to 255)
+
+    ThumbLeftX: Horizontal position of the left thumbstick (-32768 to 32767)
+    ThumbLeftY: Verital position of the left thumbstick (-32768 to 32767)
+    ThumbRightX: Horizontal position of the right thumbstick (-32768 to 32767)
+    ThumbRightY: Vertical position of the right thumbstick (-32768 to 32767)  
+
+
+setXBox360ControllerVibration(ControllerID, leftMotor, rightMotor) - Sets the speed of the left and right vibrating motor inside the controller. Range (0 to 65535 where 0 is off)
 
 
 
@@ -379,8 +459,9 @@ alignmentparam is a string which either holds the value the addresses must be di
 
 debug variables
 EFLAGS
-32-bit: EAX, EBX, ECX, EDX, EDI, ESP, EBP, ESP, EIP
-64-bit: RAX, EBX, RBX, RDX, RDI, RSP, RBP, RSP, RIP, R8, R9, R10, R11, R12, R13, R14, R15 : The value of the register
+32/64-bit: EAX, EBX, ECX, EDX, EDI, ESI, EBP, ESP, EIP
+64-bit only: RAX, RBX, RCX, RDX, RDI, RSI, RBP, RSP, RIP, R8, R9, R10, R11, R12, R13, R14, R15 : The value of the register
+
 
 Debug related routines:
 function debugger_onBreakpoint():
@@ -395,7 +476,8 @@ debugProcess(interface OPT): starts the debugger for the currently opened proces
 
 debug_isDebugging(): Returns true if the debugger has been started
 debug_getCurrentDebuggerInterface() : Returns the current debuggerinterface used (1=windows, 2=VEH 3=Kernel, nil=no debugging active)
-debug_canBreak(): Returns true if there is a possibility the target can stop in a breakpoint. 6.4+
+debug_canBreak(): Returns true if there is a possibility the target can stop on a breakpoint. 6.4+
+debug_isBroken(): Returns true if the debugger is currently halted on a thread
 debug_getBreakpointList(): Returns a lua table containing all the breakpoint addresses
 
 debug_addThreadToNoBreakList(threadid): This will cause breakpoints on the provided thread to be ignored
@@ -428,12 +510,36 @@ Changing registers:
 When the debugger is waiting to continue you can change the register variables. When you continue those register values will be set in the thread's context
 
 
+If the target is currently stopped on a breakpoint, but not done through an onBreakpoint function. The context won't be set.
+You can get and set the context back with these functions before execution continues"
+debug_getContext(BOOL extraregs) - Fills the global variables for the regular registers. If extraregs is true, it will also set FP0 to FP7 and XMM0 to XMM15
+debug_setContext(BOOL extraregs)
+debug_updateGUI() - Will refresh the userinterface to reflect the new context if the debugger was broken
+
+
+
 detachIfPossible() : Detaches the debugger from the target process (if it was attached)
 
 getComment(address) : Gets the userdefined comment at the specified address
 setComment(address, text) : Sets a userdefined comment at the specifried address. %s is used to display the autoguess value if there is one
 getHeader(address) : Gets the userdefined header at the specified address
 setHeader(address) : Sets the userdefined header at the specified address
+
+registerBinUtil(config) Registers a binutils toolset with CE (for assembling and disassembling in other cpu instruction sets)
+config is a table containing several fields that describe the tools, and lets you specify extra parameters
+
+Name : The displayed name in the binutils menu in memview
+Description: The description for this toolset
+Architecture: used by the objdump -m<architecture>  (required)
+ASParam : extra parameters to pass on to AS (optional)
+LDParam : extra parameters to pass on to LD
+OBJDUMPParam: extra parameters to pass on to OBJDUMP
+OnDisassemble: a lua function that gets called each time an address is disassembled. The return value will be passed on to OBJDUMP
+Path: filepath to the binutils set
+Prefix: prefix  (e.g: "arm-linux-androideabi-")
+DisassemblerCommentChar: Depending on which target you're disassembling, the comment character  can be different. (ARM=";"  x86='#' )
+
+
 
 
 
@@ -444,6 +550,7 @@ inheritsFromControl(object): Returns true if the given object inherits from the 
 inheritsFromWinControl(object): Returns true if the given object inherits from the WinControl class
 
 createClass(classname): Creates an object of the specified class (Assuming it's a registered class and has a default constructor)
+createComponentClass(classname, owner): Creates an object of the specified component inherited class 
 
 
 Class definitions
@@ -462,7 +569,7 @@ properties
   Component[int]: Component - Array containing the child components. Starts at 0. Readonly
   ComponentByName[string]: Component - Returns a component based on the name. Readonly
   Name: string - The name of the component
-  Tag: integer - Free to use storage space. (Usefull for id's)
+  Tag: integer - Free to use storage space. (Useful for id's)
   Owner: Component - Returns the owner of this object. Nil if it has none
 
 methods
@@ -505,7 +612,7 @@ methods:
   setWidth(integer)
   getHeight()
   setHeight()
-  setCaption(caption) : sets the text on a control. All the gui objects fall in this category
+  setCaption(caption) : sets the text on a control. All the GUI objects fall in this category
   getCaption() : Returns the text of the control
   setPosition(x,y): sets the x and y position of the object base don the top left position (relative to the client array of the owner object)
   getPosition(): returns the x and y position of the object (relative to the client array of the owner object)
@@ -548,6 +655,7 @@ methods
 
 WinControl Class: (Inheritance: Control->Component->Object)
 properties
+  Handle: Integer - The internal windows handle
   DoubleBuffered: boolean - Graphical updates will go to a offscreen bitmap which will then be shown on the screen instead of directly to the screen. May reduce flickering
   ControlCount : integer - The number of child controls of this wincontrol
   Control[] : Control - Array to access a child control
@@ -567,6 +675,9 @@ methods
   getOnEnter()
   setOnExit(function) : Sets an onExit event. (Triggered on lost focus)
   getOnExit()
+  setLayeredAttributes(Key, Alpha, Flags) : Sets the layered state for the control if possible (Only Forms are supported in in windows 7 and earlier)
+      flags can be a combination of LWA_ALPHA and/or LWA_COLORKEY
+      See msdn SetLayeredWindowAttributes for more information
 
 
 MenuItem class(Inheritance: Component->Object)
@@ -774,16 +885,34 @@ createEdit(owner): Creates an Edit class object which belongs to the given owner
 
 properties
   Text: string - The current contents of the editfield
+  SelText: string - The current selected contents of the edit field (readonly)
+  SelStart: number - The starting index of the current selection (zero-indexed, readonly)
+  SelLength: number - The length of the current selection. (readonly)
   OnChange: function - The function to call when the editfield is changed
+  OnKeyPress: function - The function to call for the KeyPress event.
+  OnKeyUp: function - The function to call for the KeyUp event.
+  OnKeyDown: function - The function to call for the KeyDown event.
 
 methods
   clear()
-  selectAll()
-  clearSelection()
   copyToClipboard()
   cutToClipboard()
   pasteFromClipboard()
-  onChange(function)
+  selectAll()
+  select(start, length OPTIONAL)
+  selectText(start, length OPTIONAL) : Set the control's current selection. If no length is specified, selects everything after start.
+  clearSelection()
+  getSelText()
+  getSelStart()
+  getSelLength()
+  getOnChange()
+  setOnChange(function)
+  getOnKeyPress()
+  setOnKeyPress(function)
+  getOnKeyUp()
+  setOnKeyUp(function)
+  getOnKeyDown()
+  setOnKeyDown(function)
 
 
 Memo Class: (Inheritance: Edit->WinControl->Control->Component->Object)
@@ -948,6 +1077,7 @@ methods
   setMin(integer)- sets the min property
   getPosition() - returns the current position
   setPosition(integer) - sets the current position
+  setPosition2(integer) - sets the current position; without slow progress animation on Win7 and later
 
 
 
@@ -968,8 +1098,8 @@ methods
   setMin(trackbar, integer)
   getPosition(progressbar)
   setPosition(progressbar, integer)
-  getOnChange(function)
-  setOnChange()
+  getOnChange()
+  setOnChange(function)
 
 
 CollectionItem Class: (Inheritance: Object)
@@ -1031,7 +1161,7 @@ properties
 methods
   add(): Returns a new ListColumn object
   getColumn(index): Returns a ListColum object;
-  setColumn(index, listcolumns): Sets a ListColum object (not recomended, use add instead)
+  setColumn(index, listcolumns): Sets a ListColum object (not recommended, use add instead)
 
 ListItem Class : (Inheritance: TObject)
 properties
@@ -1088,6 +1218,8 @@ methods
   getItemIndex(): integer -  Returns the currently selected index in the Items object
   setItemIndex(index: integer)- Sets the current itemindex
   getCanvas() : Canvas - Returns the canvas object used to render the listview
+  beginUpdate() - Tells the listview to stop updating while you're busy
+  endUpdate() - Applies all updates between beginUpdate and endUpdate
 
 
 TreeNode class : (Inheritance: TObject)
@@ -1140,6 +1272,8 @@ properties
   Selected: TreeNode - The currently selected treenode
 
 methods
+  beginUpdate()
+  endUpdate()
   getItems()
   getSelected()
   setSelected()
@@ -1157,15 +1291,15 @@ createTimer(owner OPT, enabled OPT):
 properties
   Interval: integer - The number of milliseconds (1000=1 second) between executions
   Enabled: boolean
-  OnTimer: function - The function to call when the timer triggers
+  OnTimer: function(timer) - The function to call when the timer triggers
 
 methods
   getInterval()
   setInterval(interval) : Sets the speed on how often the timer should trigger. In milliseconds (1000=1 second)
   getOnTimer()
-  setOnTimer(function)
+  setOnTimer(function(timer))
   getEnabled()
-  setEnabled()boolean)
+  setEnabled(boolean)
 
 CustomControl class (CustomControl->WinControl->Control->Component->Object)
 properties
@@ -1205,7 +1339,7 @@ methods
   floodFill(x,y)
   ellipse(x1,y1,x2,y2)
   gradientFill(x1,y1,x2,y2, startcolor, stopcolor, direction) : Gradient fills a rectangle. Direction can be 0 or 1. 0=Vertical 1=Horizontal
-  copyRect(dest_x1,dest_y1,dest_x2,dest_y2, sourceCanvas, source_x1,source_y1,source_x2,source_y2) : Draws an image from one source to another. Usefull in cases of doublebuffering
+  copyRect(dest_x1,dest_y1,dest_x2,dest_y2, sourceCanvas, source_x1,source_y1,source_x2,source_y2) : Draws an image from one source to another. Useful in cases of doublebuffering
   draw(x,y, graphic) : Draw the image of a specific Graphic class
   getClipRect() : Returns a table containing the fields Left, Top, Right and Bottom, which define the invalidated region of the graphical object. Use this to only render what needs to be rendered in the onPaint event of objects
 
@@ -1344,7 +1478,7 @@ FileDialog Class: (Inheritance: CommonDialog->Component->Object)
 properties
 
   DefaultExt: string - When not using filters this will be the default extention used if no extension is given
-  Files: Strings - Stringlist containing all seleced files if multiple files are selected
+  Files: Strings - Stringlist containing all selected files if multiple files are selected
   FileName: string - The filename that was selected
   Filter: string - A filter formatted string
   FilterIndex: integer - The index of which filter to use
@@ -1406,7 +1540,7 @@ properties
 
 methods
   copyFrom(stream, count) - Copies count bytes from the given stream to this stream
-  read(count): bytetable - Returns a bytetable containing the bytes of the stream. This increases the posion
+  read(count): bytetable - Returns a bytetable containing the bytes of the stream. This increases the position
   write(bytetable, count OPTIONAL)- Writes the given bytetable to the stream
 
 
@@ -1424,20 +1558,28 @@ methods
 FileStream Class (Inheritance: HandleStream->Stream->Object)
 createFileStream(filename, mode)
 
+StringStream Class (Inheritance: Stream->Object)
+createStringStream(string)
+
+properties
+DataString: The internal string
+
 
 TableFile class (Inheritance: Object)
 findTableFile(filename): Returns the TableFile class object for the saved file
+createTableFile(filename, filepath OPTIONAL): TableFile - Add a new file to your table. If no filepath is specified, it will create a blank file. Otherwise, it will read the contents from disk.
 
 properties
   Name: string
   Stream: MemoryStream
 
 methods
+  delete() : Deletes this file from your table.
   saveToFile(filename)
   getData() : Gets a MemoryStream object
 
 
-xmplayer class.
+xmplayer class
 The xmplayer class has already been defined as xmplayer, no need to create it manually
 
 properties
@@ -1445,6 +1587,7 @@ properties
   Initialized: boolean - Indicator that the xmplayer is actually actively loaded in memory
 
 methods
+  setVolume(int)
   playXM(filename, OPTIONAL noloop)
   playXM(tablefile, OPTIONAL noloop)
   playXM(Stream, OPTIONAL noloop)
@@ -1483,15 +1626,29 @@ methods
 
 MemoryRecordHotkey Class: (Inheritance: object)
 The memoryrecord hotkey class is mainly readonly with the exception of the event properties to be used to automatically create trainers
-Use the genreric hotkey class if you wish to create your own hotkeys
+Use the generic hotkey class if you wish to create your own hotkeys
 
 properties
   Owner: MemoryRecord - The memoryrecord this hotkey belongs to (ReadOnly)
+  Keys: Table - Table containing the keys(combination) for this hotkey
+  action: integer - The action that should happen when this hotkey triggers
+      mrhToggleActivation(0): Toggles between active/deactive
+      mrhToggleActivationAllowIncrease(1): Toggles between active/deactive. Allows increase when active
+      mrhToggleActivationAllowDecrease(2): Toggles between active/deactive. Allows decrease when active
+      mrhActivate(3): Sets the state to active
+      mrhDeactivate(4):  Sets the state to deactive
+      mrhSetValue(5):  Sets a specific value to the value properyy (see value)
+      mrhIncreaseValue(6):  Increases the current value with the value property (see value)
+      mrhDecreaseValue(7):  Decreases the current value with the value property (see value)
+  value: string - Value used depending on what kind of hotkey is used
   ID: integer - Unique id of this hotkey (ReadOnly)
-  Description: string - The description of this hotkey (ReadOnly)
+  Description: string - The description of this hotkey  
   HotkeyString: string - The hotkey formatted as a string (ReadOnly)
+  ActivateSound: string - Tablefile name of a WAV file inside the table which will get played on activate events
+  DeactivateSound: string - Tablefile name of a .WAV file inside the table which will get played on deactivate events
   OnHotkey: function(sender) - Function to be called when a hotkey has just been pressed
   OnPostHotkey: function(sender) - Function to be called when a hotkey has been pressed and the action has been performed
+
 
 methods
   doHotkey: Executes the hotkey as if it got triggered by the keyboard
@@ -1504,7 +1661,7 @@ properties
   ID: Integer - Unique ID
   Index: Integer - The index ID for this record. 0 is top. (ReadOnly)
   Description: string- The description of the memory record
-  Address: string - Get/set the interpretable address string. Usefull for simple address settings.
+  Address: string - Get/set the interpretable address string. Useful for simple address settings.
   OffsetCount: integer - The number of offsets. Set to 0 for a normal address
   Offset[] : integer - Array to access each offset
   CurrentAddress: integer - The address the memoryrecord points to
@@ -1517,7 +1674,7 @@ properties
       Binary.Startbit: First bit to start reading from
       Binary.Size : Number of bits
 
-    If the type is vtByteArray then the following propertes are available
+    If the type is vtByteArray then the following properties are available
       Aob.Size : Number of bytes
 
   CustomTypeName: String - If the type is vtCustomType this will contain the name of the CustomType
@@ -1526,6 +1683,13 @@ properties
   Selected: boolean - Set to true if selected (ReadOnly)
   Active: boolean - Set to true to activate/freeze, false to deactivate/unfreeze
   Color: integer
+  ShowAsHex: boolean - Self explanatory
+  ShowAsSigned: boolean - Self explanatory
+  AllowIncrease: boolean - Allow value increasing, unfreeze will reset it to false
+  AllowDecrease: boolean - Allow value decreasing, unfreeze will reset it to false
+  Collapsed: boolean - Set to true to collapse this record or false to expand it. Use expand/collapse methods for recursive operations. 
+  IsGroupHeader: boolean - Set to true if the record was created as a Group Header with no address or value info. (ReadOnly)
+  IsReadable: boolean - Set to false if record contains an unreadable address. NOTE: This property will not be set until the value property is accessed at least once. (ReadOnly)
 
   Count: Number of children
   Child[index] : Array to access the child records
@@ -1534,9 +1698,11 @@ properties
   HotkeyCount: integer - Number of hotkeys attached to this memory record
   Hotkey[] : Array to index the hotkeys
 
-  OnActivate: function()
-  OnDeactivate: function()
-  OnDestroy: function()
+  OnActivate: function(memoryrecord,before,currentstate):boolean - The function to call when the memoryrecord will change (or changed) Active to true. If before is true, not returning true will cause the activation to stop.
+  OnDeactivate: function(memoryrecord,before,currentstate):boolean - The function to call when the memoryrecord will change (or changed) Active to false. If before is true, not returning true will cause the deactivation to stop.
+  OnDestroy: function() - Called when the memoryrecord is destroyed.
+  DontSave: boolean - Don't save this memoryrecord and it's children
+
 methods
   getDescription()
   setDescription()
@@ -1556,6 +1722,23 @@ methods
   getHotkey(index): Returns the hotkey from the hotkey array
   getHotkeyByID(integer): Returns the hotkey with the given id
 
+  createHotkey({keys}, action, value OPTIONAL): Returns a hotkey object 
+
+global events
+  function onMemRecPreExecute(memoryrecord, newstate BOOLEAN):
+    If above function is defined it will be called before action* has been performed.
+    Active property is about to change to newState.
+  
+  function onMemRecPostExecute(memoryrecord, newState BOOLEAN, succeeded BOOLEAN):
+    If above function is defined it will be called after action*.
+    Active property was supposed to change to newState.
+    If 'succeeded' is true it means that Active state has changed and is newState.
+    
+    newState and succeeded are read only.
+  
+    *action can be: running auto assembler script (ENABLE or DISABLE section), freezing and unfreezing.
+  
+
 
 Addresslist Class: (Inheritance: Panel->WinControl->Control->Component->Object)
 properties
@@ -1574,10 +1757,10 @@ methods
 
   getSelectedRecords():  Returns a table containing all the selected records
 
-  doDescriptionChange() : Will show the gui window to change the description of the selected entry
-  doAddressChange() : Will show the gui window to change the address of the selected entry
-  doTypeChange() : Will show the gui window to change the type of the selected entries
-  doValueChange() : Will show the gui window to change the value of the selected entries
+  doDescriptionChange() : Will show the GUI window to change the description of the selected entry
+  doAddressChange() : Will show the GUI window to change the address of the selected entry
+  doTypeChange() : Will show the GUI window to change the type of the selected entries
+  doValueChange() : Will show the GUI window to change the value of the selected entries
 
   getSelectedRecord() : Gets the main selected memoryrecord
   setSelectedRecord(memrec) : Sets the currently selected memoryrecord. This will unselect all other entries
@@ -1623,7 +1806,7 @@ methods
 
     roundingtype: Defined the way scans for exact value floating points are handled
       rtRounded : Normal rounded scans. If exact value = "3" then it includes 3.0 to 3.49999999. If exact value is "3.0" it includes 3.00 to 3.0499999999
-      rtTruncated: Truncated algoritm. If exact value = "3" then it includes 3.0 to 3.99999999. If exact value is "3.0" it includes 3.00 to 3.099999999
+      rtTruncated: Truncated algorithm. If exact value = "3" then it includes 3.0 to 3.99999999. If exact value is "3.0" it includes 3.00 to 3.099999999
       rtExtremerounded: Rounded Extreme. If exact value = "3" then it includes 2.0000001 to 3.99999999. If exact value is "3.0" it includes 2.900000001 to 3.099999999
 
     input1: If required by the scanoption this is a string of the given variable type
@@ -1760,8 +1943,14 @@ createNativeThread(function(Thread,...), ...) :
   The function returns the Thread class object
   function declaration: function (Thread, ...)
 
+createNativeThreadSuspended(function(Thread,...), ...) :
+  Same as createNativeThread nut it won't run until resume is called on it
+
+
 properties
   name: string - This name will be shown when the thread terminated abnormally
+  Finished: boolean - Returns true if the thread has reached the end.  Do not rely on this if the thread is freeOnTerminate(true) (which is the default)
+  Terminated: boolean - Returns true if the Terminate method has been called
 
 methods
   freeOnTerminate(state) :
@@ -1770,11 +1959,20 @@ methods
 
   synchronize(function(thread, ...), ...) :
     Called from inside the thread. This wil cause the tread to get the main thread to execute the given function and wait for it to finish.
-    Usually for gui access
+    Usually for GUI access
     Returns the return value of the given function
 
   waitfor() :
     Waits for the given thread to finish (Not recommended to call this from inside the thread itself)
+
+  suspend() :
+    Suspend the thread's execution
+
+  resume() :
+    Resume the thread;s executionmm
+
+  terminate() :
+    Tells the thread it should terminate. The Terminated property will become true
 
 
 
@@ -1922,6 +2120,14 @@ dbk_getPhysicalAddress(address): Returns the physical address of the given addre
 dbk_writesIgnoreWriteProtection(state): Set to true if you do not wish to initiate copy-on-write behaviour
 
 dbvm_getCR4(): Returns the real Control Register 4 state
+
+allocateKernelMemory(size) : Allocates a block of nonpaged memory and returns the address
+freeKernelMemory(address) : Frees the given memory region
+
+mapMemory(address, size,  frompid OPTIONAL, topid OPTIONAL): maps a specific address to the usermode context from the given PID to the given PID. If the PID is 0 or not specified, the cheat engine process is selected. This functions returns 2 results. Address and MDL. The MDL you will need for unmapMemory()
+unmapMemory(address, mdl)                                                         
+
+
 
 
 onAPIPointerChange(function): Registers a callback when an api pointer is changed (can happen when the user clicks ok in settings, or when dbk_use*** is used. Does NOT happen when setAPIPointer is called)
@@ -2132,19 +2338,21 @@ methods:
 
   addReference(fromAddress, ToAddress, type, OPTIONAL isstring):
     Adds a reference. Type can be jtCall, jtUnconditional, jtConditional, jtMemory
-    In case of rtMemory setting isstring to true will add it to the referenced strings list
+    In case of jtMemory setting isstring to true will add it to the referenced strings list
 
   deleteReference(fromAddress, ToAddress)
 
 
   getReferences(address) : Returns a table containing the addresses that reference this address and the type
   getReferencedStrings(): Returns a table of addresses and their strings that have been referenced. Use getReferences to find out which addresses that are
+  getReferencedFunctions(): Returns a table of functions that have been referenced. Use getReferences to find out which callers that are
 
   saveToFile(filename)
   loadFromFile(filename)
 
 RIPRelativeScanner class: (Inheritance: Object)
-createRipRelativeScanner(modulename): Creates a RIP relative scanner. This will scan the provided module for RIP relative instructions which you can use for whatever you like
+createRipRelativeScanner(startaddress, stopaddress, includejumpsandcalls OPTIONAL):
+createRipRelativeScanner(modulename, includejumpsandcalls OPTIONAL): Creates a RIP relative scanner. This will scan the provided module for RIP relative instructions which you can use for whatever you like
 properties:
   Count: integer - The number of instructions found that have a RIP relative address
   Address[]: integer - An array to access the results. The address is the address of the RIP relative offset in the instruction
@@ -2230,7 +2438,7 @@ Settings class
   This class can be used to read out and set settings of cheat engine and of plugins, and store your own data
 
 global functions
-  getSettings(path Optional): Settings - Returns a settings object. If path is nil it will points to the Cheat Engine main settings (Registry) . If name is provides the settings currently accessed will be the one at the subkey provided
+  getSettings(path Optional): Settings - Returns a settings object. If path is nil it will points to the Cheat Engine main settings (Registry) . If name is provided the settings currently accessed will be the one at the subkey provided
   Note: Keep in mind that it returns a new object each call, even if he same name is used multiple times
 
 
@@ -2298,6 +2506,16 @@ TabSheet class (WinControl->Control->Component->Object)
 properties
   TabIndex: integer - the current index in the pagelist of the owning pagecontrol
 methods
+
+Internet class (Object)
+global functions
+  getInternet(string) - Returns an internet class object
+
+properties
+  Header : string - the additional header to be sent with the next getURL request
+methods
+  getURL(path) - returns a string containing the contents of the url. nil on failure
+
 
 
 --]]

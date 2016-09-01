@@ -12,11 +12,17 @@ interface
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, CEFuncProc, NewKernelHandler, Buttons, StdCtrls, ExtCtrls,
-  ComCtrls, LResources, symbolhandler, PEInfoFunctions, commonTypeDefs;
+  ComCtrls, LResources, Menus, symbolhandler, PEInfoFunctions, commonTypeDefs,
+  Clipbrd;
 
 type
+
+  { TfrmPEInfo }
+
   TfrmPEInfo = class(TForm)
     GroupBox2: TGroupBox;
+    miCopyTab: TMenuItem;
+    miCopyEverything: TMenuItem;
     Panel1: TPanel;
     GroupBox1: TGroupBox;
     edtAddress: TEdit;
@@ -26,6 +32,7 @@ type
     OpenDialog1: TOpenDialog;
     Label2: TLabel;
     PageControl1: TPageControl;
+    pmInfo: TPopupMenu;
     TabSheet1: TTabSheet;
     TabSheet2: TTabSheet;
     TabSheet3: TTabSheet;
@@ -40,6 +47,8 @@ type
     procedure LoadButtonClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure miCopyEverythingClick(Sender: TObject);
+    procedure miCopyTabClick(Sender: TObject);
     procedure modulelistClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Button1Click(Sender: TObject);
@@ -253,20 +262,13 @@ function peinfo_getheadersize(header: pointer): dword;
 var
     ImageNTHeader: PImageNtHeaders;
 begin
-  if PImageDosHeader(header)^.e_magic<>IMAGE_DOS_SIGNATURE then
-  begin
-    result:=0;
-    exit;
-  end;
+  result:=0;
+  if PImageDosHeader(header)^.e_magic<>IMAGE_DOS_SIGNATURE then exit;
 
   ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
   if ptrUint(ImageNTHeader)-ptrUint(header)>$1000 then exit;
-  
-  if ImageNTHeader.Signature<>IMAGE_NT_SIGNATURE then
-  begin
-    result:=0;
-    exit;
-  end;
+  if ImageNTHeader.Signature<>IMAGE_NT_SIGNATURE then exit;
+
   result:=ImageNTHeader.OptionalHeader.SizeOfHeaders;
 end;
 
@@ -324,6 +326,8 @@ var MZheader: ttreenode;
     tempaddress,tempaddress2: ptrUint;
 
     tempstring: pchar;
+
+    s: string;
 begin
 
   PEItv.Items.BeginUpdate;
@@ -638,7 +642,6 @@ begin
           ImageImportDirectory:=PImageImportDirectory(ptrUint(loadedmodule)+ImageNTHeader^.OptionalHeader.DataDirectory[i].VirtualAddress);
 
 
-
         while (j<45) do
         begin
           if ImageImportDirectory.name=0 then break;
@@ -646,7 +649,9 @@ begin
           if j>0 then
             lbImports.Items.Add('');
 
-          lbImports.Items.Add(format('%s', [pchar(ptrUint(loadedmodule)+ImageImportDirectory.name)]));
+          s:=pchar(ptrUint(loadedmodule)+ImageImportDirectory.name);
+
+          lbImports.Items.Add(format('%s', [s]));
 
 
           tempnode2:=PEItv.Items.addchild(tempnode,format(rsPEImport,[j, pchar(ptrUint(loadedmodule)+ImageImportDirectory.name)]));
@@ -675,7 +680,33 @@ begin
 
                 if InRangeX(importaddress, ptrUint(loadedmodule), ptrUint(loadedmodule)+memorycopysize) then
                 begin
-                  importfunctionname:=pchar(ptrUint(loadedmodule)+pdword(importaddress)^+2);
+
+                  if loaded then
+                  begin
+                    //lookup
+                    tempaddress2:=pqwordarray(ptrUint(loadedmodule)+ImageImportDirectory.FirstThunk)[k];
+                    importfunctionname:=symhandler.getNameFromAddress(tempaddress2);
+
+                    if uppercase(inttohex(tempaddress2,8))=uppercase(importfunctionname) then
+                    begin
+                      //failure to convert the address to an import
+                      inc(k);
+                      continue;
+                    end;
+                  end
+                  else
+                  begin
+                    //get the name from the file
+                    tempaddress:=ptrUint(loadedmodule)+pqwordarray(ptrUint(loadedmodule)+ImageImportDirectory.FirstThunk)[k]+2;
+                    if InRangeX(tempaddress, ptruint(loadedmodule), ptruint(loadedmodule)+memorycopysize-100) then
+                    begin
+                      setlength(importfunctionname, 100);
+                      CopyMemory(@importfunctionname[1], pointer(tempaddress), 99);
+                      importfunctionname[99]:=#0;
+                    end
+                    else
+                      importfunctionname:='err';
+                  end;
 
                   PEItv.Items.addchild(tempnode3, format('%x (%x) - %s',[PUINT64(ptrUint(loadedmodule)+ImageImportDirectory.FirstThunk+8*k)^, importaddress, importfunctionname]));
                   lbImports.Items.Add( format('%x (%x) - %s',[PUINT64(ptrUint(loadedmodule)+ImageImportDirectory.FirstThunk+8*k)^, importaddress, importfunctionname]));
@@ -722,7 +753,6 @@ begin
                   end
                   else
                     importfunctionname:='err';
-
                 end;
 
                 PEItv.Items.addchild(tempnode3, format('%x (%x) - %s',[pdwordarray(ptrUint(loadedmodule)+ImageImportDirectory.FirstThunk)[k], importaddress, importfunctionname]));
@@ -909,6 +939,75 @@ end;
 procedure TfrmPEInfo.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   action:=cafree;
+end;
+
+procedure TfrmPEInfo.miCopyEverythingClick(Sender: TObject);
+var
+  ss: TStringStream;
+  i: integer;
+begin
+  ss:=TStringStream.Create('');
+  try
+    PEItv.SaveToStream(ss);
+
+    ss.WriteString(#13#10#13#10);
+    ss.WriteString('---Imports---'+#13#10);
+    ss.WriteString(lbImports.Items.Text);
+    ss.WriteString(#13#10#13#10);
+    ss.WriteString('---Exports---'+#13#10);
+    ss.WriteString(lbExports.Items.Text);
+    ss.WriteString(#13#10#13#10);
+    ss.WriteString('---Relocs---'+#13#10);
+    ss.WriteString(lbBaseReloc.Items.Text);
+
+
+    ss.Position:=0;
+    while ss.Position<ss.Size do
+    begin
+      if ss.ReadByte=0 then
+      begin
+        ss.position:=ss.position-1;
+        ss.WriteByte(ord('.'));
+      end;
+    end;
+
+
+    clipboard.AsText:=ss.DataString;
+
+
+  finally
+    ss.free;
+  end;
+end;
+
+procedure TfrmPEInfo.miCopyTabClick(Sender: TObject);
+var ss: TStringStream;
+begin
+  case PageControl1.TabIndex of
+    0:
+      begin
+        ss:=TStringStream.Create('');
+        PEItv.SaveToStream(ss);
+        Clipboard.AsText:=ss.DataString;
+
+        ss.Position:=0;
+        while ss.Position<ss.Size do
+        begin
+          if ss.ReadByte=0 then
+          begin
+            ss.position:=ss.position-1;
+            ss.WriteByte(ord('.'));
+          end;
+        end;
+
+        ss.free;
+      end;
+
+    1: Clipboard.AsText:=lbImports.Items.Text;
+    2: Clipboard.AsText:=lbExports.Items.Text;
+    3: Clipboard.AsText:=lbBaseReloc.Items.Text;
+  end;
+
 end;
 
 procedure TfrmPEInfo.modulelistClick(Sender: TObject);

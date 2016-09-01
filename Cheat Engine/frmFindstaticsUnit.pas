@@ -398,6 +398,11 @@ var diff: integer;
 begin
   listview1.clear;
 
+  if processhandler.is64Bit then
+  begin
+    edit1.Constraints.MinWidth:=canvas.TextWidth('DDDDDDDDDDDDDDDD')+4;
+  end;
+
 end;
 
 procedure TfrmFindStatics.ListView1Compare(Sender: TObject; Item1,

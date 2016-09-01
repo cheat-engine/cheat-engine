@@ -7,28 +7,30 @@ object frmHeaps: TfrmHeaps
   Caption = 'Current Heaplist'
   ClientHeight = 316
   ClientWidth = 253
-  Font.Height = -14
-  Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.6.0.4'
   object Panel1: TPanel
     Left = 0
-    Height = 50
-    Top = 266
+    Height = 34
+    Top = 282
     Width = 253
     Align = alBottom
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 50
+    ClientHeight = 34
     ClientWidth = 253
     TabOrder = 0
     object Button1: TButton
-      Left = 79
-      Height = 31
-      Top = 10
-      Width = 92
+      Left = 95
+      Height = 26
+      Top = 4
+      Width = 61
       Anchors = [akTop]
+      AutoSize = True
+      BorderSpacing.Top = 4
+      BorderSpacing.Bottom = 4
       Caption = 'Close'
       ModalResult = 1
       OnClick = Button1Click
@@ -37,7 +39,7 @@ object frmHeaps: TfrmHeaps
   end
   object ListView1: TListView
     Left = 0
-    Height = 266
+    Height = 282
     Top = 0
     Width = 253
     Align = alClient

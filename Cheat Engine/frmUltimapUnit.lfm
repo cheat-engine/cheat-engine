@@ -1,25 +1,27 @@
 object frmUltimap: TfrmUltimap
-  Left = 754
-  Height = 451
-  Top = 254
-  Width = 747
+  Left = 435
+  Height = 516
+  Top = 172
+  Width = 847
+  AutoSize = True
   Caption = 'Ultimap'
-  ClientHeight = 451
-  ClientWidth = 747
+  ClientHeight = 516
+  ClientWidth = 847
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object Panel1: TPanel
     Left = 0
-    Height = 451
+    Height = 516
     Top = 0
-    Width = 747
+    Width = 847
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 451
-    ClientWidth = 747
+    ClientHeight = 516
+    ClientWidth = 847
     TabOrder = 0
     object Label4: TLabel
       Left = 322
@@ -31,20 +33,20 @@ object frmUltimap: TfrmUltimap
     end
     object Panel2: TPanel
       Left = 0
-      Height = 219
-      Top = 232
-      Width = 747
+      Height = 289
+      Top = 227
+      Width = 847
       Align = alClient
       BevelOuter = bvNone
       Caption = 'Panel2'
-      ClientHeight = 219
-      ClientWidth = 747
+      ClientHeight = 289
+      ClientWidth = 847
       TabOrder = 0
       object ListView1: TListView
         Left = 0
-        Height = 156
+        Height = 230
         Top = 0
-        Width = 747
+        Width = 847
         Align = alClient
         Columns = <        
           item
@@ -59,6 +61,7 @@ object frmUltimap: TfrmUltimap
             Caption = 'Count'
           end>
         HideSelection = False
+        MultiSelect = True
         OwnerData = True
         PopupMenu = PopupMenu1
         ReadOnly = True
@@ -70,30 +73,40 @@ object frmUltimap: TfrmUltimap
       end
       object Panel3: TPanel
         Left = 0
-        Height = 63
-        Top = 156
-        Width = 747
+        Height = 59
+        Top = 230
+        Width = 847
         Align = alBottom
+        AutoSize = True
         BevelOuter = bvNone
-        ClientHeight = 63
-        ClientWidth = 747
+        ClientHeight = 59
+        ClientWidth = 847
         TabOrder = 1
         object Button5: TButton
-          Left = 294
+          AnchorSideLeft.Control = Panel3
+          AnchorSideLeft.Side = asrCenter
+          AnchorSideTop.Control = Panel3
+          Left = 346
           Height = 25
-          Top = 3
+          Top = 2
           Width = 155
-          Anchors = [akTop]
+          AutoSize = True
+          BorderSpacing.Top = 2
+          BorderSpacing.Bottom = 2
           Caption = 'Show matching routines'
           OnClick = Button5Click
           TabOrder = 0
         end
         object Label6: TLabel
+          AnchorSideTop.Control = Button5
+          AnchorSideTop.Side = asrBottom
+          AnchorSideRight.Control = Panel3
+          AnchorSideRight.Side = asrBottom
           Left = 0
           Height = 30
-          Top = 33
-          Width = 747
-          Align = alBottom
+          Top = 29
+          Width = 847
+          Anchors = [akTop, akLeft, akRight]
           Caption = 'General tip: "Pause/Resume", "Code did not get executed" and "Code has been executed" can be rightclicked and assigned a hotkey for use inside games so you don''t have to alt tab out'
           ParentColor = False
           WordWrap = True
@@ -102,239 +115,419 @@ object frmUltimap: TfrmUltimap
     end
     object Panel5: TPanel
       Left = 0
-      Height = 232
+      Height = 227
       Top = 0
-      Width = 747
+      Width = 847
       Align = alTop
+      AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 232
-      ClientWidth = 747
+      ClientHeight = 227
+      ClientWidth = 847
       TabOrder = 1
-      object btnExecuted: TButton
-        Left = 344
-        Height = 25
-        Top = 48
-        Width = 264
-        Caption = 'Code has been executed'
-        OnClick = btnExecutedClick
-        PopupMenu = pmSetHotkey
+      object Panel4: TPanel
+        AnchorSideLeft.Control = Panel5
+        AnchorSideTop.Control = Panel5
+        AnchorSideBottom.Control = Panel5
+        AnchorSideBottom.Side = asrBottom
+        Left = 0
+        Height = 227
+        Top = 0
+        Width = 274
+        Anchors = [akTop, akLeft, akBottom]
+        AutoSize = True
+        BevelOuter = bvNone
+        ClientHeight = 227
+        ClientWidth = 274
         TabOrder = 0
+        object btnStart: TButton
+          AnchorSideLeft.Control = cbPreemptiveFlush
+          AnchorSideTop.Control = cbPreemptiveFlush
+          AnchorSideTop.Side = asrBottom
+          Left = 8
+          Height = 25
+          Top = 119
+          Width = 75
+          AutoSize = True
+          BorderSpacing.Top = 8
+          Caption = 'Start'
+          Constraints.MinWidth = 75
+          OnClick = btnStartClick
+          TabOrder = 0
+        end
+        object edtWorkerCount: TEdit
+          AnchorSideLeft.Control = Label1
+          AnchorSideLeft.Side = asrBottom
+          AnchorSideTop.Control = cbParseData
+          AnchorSideTop.Side = asrBottom
+          Left = 90
+          Height = 23
+          Top = 69
+          Width = 80
+          BorderSpacing.Left = 2
+          TabOrder = 1
+          Text = '1'
+        end
+        object cbLogToFile: TRadioButton
+          AnchorSideLeft.Control = Label2
+          AnchorSideTop.Control = edtFilename
+          AnchorSideTop.Side = asrCenter
+          Left = 8
+          Height = 19
+          Top = 29
+          Width = 115
+          Caption = 'Log directly to file'
+          TabOrder = 2
+        end
+        object edtFilename: TEdit
+          AnchorSideLeft.Control = cbLogToFile
+          AnchorSideLeft.Side = asrBottom
+          AnchorSideTop.Control = edtBufSize
+          AnchorSideTop.Side = asrBottom
+          AnchorSideRight.Control = btnStop
+          AnchorSideRight.Side = asrBottom
+          Left = 125
+          Height = 23
+          Top = 27
+          Width = 145
+          Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Left = 2
+          BorderSpacing.Top = 2
+          TabOrder = 3
+          Text = 'c:\log.dat'
+        end
+        object Label1: TLabel
+          AnchorSideLeft.Control = cbParseData
+          AnchorSideTop.Control = edtWorkerCount
+          AnchorSideTop.Side = asrCenter
+          Left = 8
+          Height = 15
+          Top = 73
+          Width = 80
+          Caption = 'Worker threads'
+          ParentColor = False
+        end
+        object cbParseData: TRadioButton
+          AnchorSideLeft.Control = cbLogToFile
+          AnchorSideTop.Control = cbLogToFile
+          AnchorSideTop.Side = asrBottom
+          Left = 8
+          Height = 19
+          Top = 50
+          Width = 74
+          BorderSpacing.Top = 2
+          Caption = 'Parse data'
+          Checked = True
+          TabOrder = 4
+          TabStop = True
+        end
+        object edtBufSize: TEdit
+          AnchorSideLeft.Control = Label2
+          AnchorSideLeft.Side = asrBottom
+          AnchorSideTop.Control = Panel4
+          Left = 96
+          Height = 23
+          Top = 2
+          Width = 95
+          BorderSpacing.Left = 2
+          BorderSpacing.Top = 2
+          TabOrder = 5
+          Text = '4194304'
+        end
+        object Label2: TLabel
+          AnchorSideLeft.Control = Panel4
+          AnchorSideTop.Control = edtBufSize
+          AnchorSideTop.Side = asrCenter
+          Left = 8
+          Height = 15
+          Top = 6
+          Width = 86
+          BorderSpacing.Left = 8
+          BorderSpacing.Top = 3
+          Caption = 'Event buffer size'
+          ParentColor = False
+        end
+        object btnStop: TButton
+          AnchorSideLeft.Control = btnPause
+          AnchorSideLeft.Side = asrBottom
+          AnchorSideTop.Control = btnStart
+          Left = 195
+          Height = 25
+          Top = 119
+          Width = 75
+          AutoSize = True
+          BorderSpacing.Left = 4
+          BorderSpacing.Right = 4
+          Caption = 'Stop'
+          Constraints.MinWidth = 75
+          Enabled = False
+          OnClick = btnStopClick
+          TabOrder = 6
+        end
+        object Label3: TLabel
+          AnchorSideLeft.Control = Label5
+          AnchorSideTop.Control = Label5
+          AnchorSideTop.Side = asrBottom
+          Left = 8
+          Height = 15
+          Top = 167
+          Width = 6
+          Caption = '0'
+          ParentColor = False
+        end
+        object btnPause: TButton
+          Tag = 2
+          AnchorSideLeft.Control = btnStart
+          AnchorSideLeft.Side = asrBottom
+          AnchorSideTop.Control = btnStart
+          Left = 87
+          Height = 25
+          Top = 119
+          Width = 104
+          AutoSize = True
+          BorderSpacing.Left = 4
+          Caption = 'Pause/Resume'
+          Constraints.MinWidth = 100
+          Enabled = False
+          OnClick = btnPauseClick
+          PopupMenu = pmSetHotkey
+          TabOrder = 7
+        end
+        object Label5: TLabel
+          AnchorSideLeft.Control = btnStart
+          AnchorSideTop.Control = btnStart
+          AnchorSideTop.Side = asrBottom
+          Left = 8
+          Height = 15
+          Top = 152
+          Width = 75
+          BorderSpacing.Top = 8
+          Caption = 'Banch targets:'
+          ParentColor = False
+        end
+        object cbPreemptiveFlush: TCheckBox
+          AnchorSideLeft.Control = Label1
+          AnchorSideTop.Control = edtWorkerCount
+          AnchorSideTop.Side = asrBottom
+          Left = 8
+          Height = 19
+          Hint = 'When enabled Cheat Engine will flush the data for each cpu instead of only when the buffer is full'
+          Top = 92
+          Width = 126
+          Caption = 'Preemptive flushing'
+          Checked = True
+          OnChange = cbPreemptiveFlushChange
+          ParentShowHint = False
+          ShowHint = True
+          State = cbChecked
+          TabOrder = 8
+        end
       end
-      object btnNotExecuted: TButton
-        Tag = 1
-        Left = 344
-        Height = 25
-        Top = 16
-        Width = 264
-        Caption = 'Code did not get executed'
-        OnClick = btnNotExecutedClick
-        PopupMenu = pmSetHotkey
+      object Panel6: TPanel
+        AnchorSideLeft.Control = Panel4
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = Panel5
+        AnchorSideRight.Control = Panel5
+        AnchorSideRight.Side = asrBottom
+        Left = 459
+        Height = 227
+        Top = 0
+        Width = 388
+        Anchors = [akTop, akRight]
+        AutoSize = True
+        BevelOuter = bvNone
+        ClientHeight = 227
+        ClientWidth = 388
         TabOrder = 1
-      end
-      object Button6: TButton
-        Left = 672
-        Height = 25
-        Top = 0
-        Width = 74
-        Caption = 'Reset'
-        OnClick = Button6Click
-        TabOrder = 2
-      end
-      object btnNotCalled: TButton
-        Tag = 2
-        Left = 344
-        Height = 25
-        Top = 80
-        Width = 264
-        Caption = 'Filter out routine(s) that where not CALL''ed'
-        OnClick = btnNotCalledClick
-        TabOrder = 3
-      end
-      object btnFilterCallCount: TButton
-        Tag = 3
-        Left = 344
-        Height = 25
-        Top = 144
-        Width = 264
-        Caption = 'Filter out routine(s) where callcount is NOT'
-        OnClick = FilterClick
-        TabOrder = 4
-      end
-      object Edit1: TEdit
-        Left = 617
-        Height = 23
-        Top = 144
-        Width = 40
-        OnKeyDown = Edit1KeyDown
-        TabOrder = 5
-        Text = '1'
-      end
-      object lblLastfilterresult: TLabel
-        Left = 343
-        Height = 15
-        Top = 1
-        Width = 88
-        Caption = 'Last filter results:'
-        ParentColor = False
-      end
-      object btnFilterModule: TButton
-        Left = 344
-        Height = 25
-        Top = 176
-        Width = 264
-        Caption = 'Filter out routines not in a specific module'
-        OnClick = btnFilterModuleClick
-        TabOrder = 6
-      end
-      object btnStart: TButton
-        Left = 9
-        Height = 25
-        Top = 120
-        Width = 75
-        Caption = 'Start'
-        OnClick = btnStartClick
-        TabOrder = 7
-      end
-      object edtWorkerCount: TEdit
-        Left = 90
-        Height = 23
-        Top = 69
-        Width = 80
-        TabOrder = 8
-        Text = '1'
-      end
-      object cbLogToFile: TRadioButton
-        Left = 8
-        Height = 19
-        Top = 24
-        Width = 115
-        Caption = 'Log directly to file'
-        TabOrder = 9
-      end
-      object edtFilename: TEdit
-        Left = 130
-        Height = 23
-        Top = 24
-        Width = 80
-        TabOrder = 10
-        Text = 'c:\log.dat'
-      end
-      object Label1: TLabel
-        Left = 8
-        Height = 15
-        Top = 72
-        Width = 80
-        Caption = 'Worker threads'
-        ParentColor = False
-      end
-      object cbParseData: TRadioButton
-        Left = 8
-        Height = 19
-        Top = 48
-        Width = 74
-        Caption = 'Parse data'
-        Checked = True
-        TabOrder = 11
-        TabStop = True
-      end
-      object edtBufSize: TEdit
-        Left = 98
-        Height = 23
-        Top = 0
-        Width = 80
-        TabOrder = 12
-        Text = '4194304'
-      end
-      object Label2: TLabel
-        Left = 8
-        Height = 15
-        Top = 4
-        Width = 86
-        Caption = 'Event buffer size'
-        ParentColor = False
-      end
-      object btnStop: TButton
-        Left = 192
-        Height = 25
-        Top = 120
-        Width = 75
-        Caption = 'Stop'
-        Enabled = False
-        OnClick = btnStopClick
-        TabOrder = 13
-      end
-      object Label3: TLabel
-        Left = 8
-        Height = 15
-        Top = 168
-        Width = 6
-        Caption = '0'
-        ParentColor = False
-      end
-      object btnPause: TButton
-        Tag = 2
-        Left = 88
-        Height = 25
-        Top = 120
-        Width = 98
-        Caption = 'Pause/Resume'
-        Enabled = False
-        OnClick = btnPauseClick
-        PopupMenu = pmSetHotkey
-        TabOrder = 14
-      end
-      object Label5: TLabel
-        Left = 8
-        Height = 15
-        Top = 153
-        Width = 75
-        Caption = 'Banch targets:'
-        ParentColor = False
-      end
-      object btnResetCount: TButton
-        Left = 665
-        Height = 25
-        Top = 142
-        Width = 73
-        Caption = 'Reset Count'
-        OnClick = btnResetCountClick
-        TabOrder = 15
-      end
-      object btnRet: TButton
-        Tag = 5
-        Left = 344
-        Height = 25
-        Top = 112
-        Width = 264
-        Caption = 'Filter out return from RET''s'
-        OnClick = btnRetClick
-        TabOrder = 16
-      end
-      object cbPreemptiveFlush: TCheckBox
-        Left = 8
-        Height = 19
-        Hint = 'When enabled Cheat Engine will flush the data for each cpu instead of only when the buffer is full'
-        Top = 96
-        Width = 126
-        Caption = 'Preemptive flushing'
-        Checked = True
-        OnChange = cbPreemptiveFlushChange
-        ParentShowHint = False
-        ShowHint = True
-        State = cbChecked
-        TabOrder = 17
-      end
-      object cbfilterOutNewEntries: TCheckBox
-        Left = 344
-        Height = 19
-        Hint = 'When this checkbox is ticked all newly added code entry points will be marked as entries that do not match the filters'
-        Top = 207
-        Width = 200
-        Caption = 'Mark all new entries as filtered out'
-        OnChange = cbfilterOutNewEntriesChange
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 18
+        object btnExecuted: TButton
+          AnchorSideLeft.Control = Panel6
+          AnchorSideTop.Control = btnNotExecuted
+          AnchorSideTop.Side = asrBottom
+          AnchorSideRight.Control = cbFilterFuturePaths
+          Left = 0
+          Height = 25
+          Top = 48
+          Width = 254
+          Anchors = [akTop, akLeft, akRight]
+          AutoSize = True
+          BorderSpacing.Top = 8
+          Caption = 'Code has been executed'
+          OnClick = btnExecutedClick
+          TabOrder = 0
+        end
+        object btnNotExecuted: TButton
+          Tag = 1
+          AnchorSideLeft.Control = Panel6
+          AnchorSideTop.Control = lblLastfilterresult
+          AnchorSideTop.Side = asrBottom
+          AnchorSideRight.Control = cbFilterFuturePaths
+          Left = 0
+          Height = 25
+          Top = 15
+          Width = 254
+          Anchors = [akTop, akLeft, akRight]
+          AutoSize = True
+          Caption = 'Code did not get executed'
+          OnClick = btnNotExecutedClick
+          TabOrder = 1
+        end
+        object Button6: TButton
+          AnchorSideTop.Control = Panel6
+          AnchorSideRight.Control = Panel6
+          AnchorSideRight.Side = asrBottom
+          Left = 334
+          Height = 25
+          Hint = 'If you lost track of what happened, use this. It will set execution count back to 0 of all the branches it has found'
+          Top = 0
+          Width = 54
+          Anchors = [akTop, akRight]
+          AutoSize = True
+          Caption = 'Reset'
+          OnClick = Button6Click
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 2
+        end
+        object btnNotCalled: TButton
+          Tag = 2
+          AnchorSideLeft.Control = Panel6
+          AnchorSideTop.Control = btnExecuted
+          AnchorSideTop.Side = asrBottom
+          AnchorSideRight.Control = cbFilterFuturePaths
+          Left = 0
+          Height = 25
+          Top = 81
+          Width = 254
+          Anchors = [akTop, akLeft, akRight]
+          AutoSize = True
+          BorderSpacing.Top = 8
+          Caption = 'Filter out routine(s) that where not CALL''ed'
+          OnClick = btnNotCalledClick
+          TabOrder = 3
+        end
+        object btnFilterCallCount: TButton
+          Tag = 3
+          AnchorSideLeft.Control = Panel6
+          AnchorSideTop.Control = btnRet
+          AnchorSideTop.Side = asrBottom
+          AnchorSideRight.Control = cbFilterFuturePaths
+          Left = 0
+          Height = 25
+          Top = 147
+          Width = 254
+          Anchors = [akTop, akLeft, akRight]
+          AutoSize = True
+          BorderSpacing.Top = 8
+          Caption = 'Filter out routine(s) where callcount is NOT'
+          OnClick = FilterClick
+          TabOrder = 4
+        end
+        object Edit1: TEdit
+          AnchorSideLeft.Control = btnFilterCallCount
+          AnchorSideLeft.Side = asrBottom
+          AnchorSideTop.Control = btnFilterCallCount
+          AnchorSideTop.Side = asrCenter
+          Left = 254
+          Height = 23
+          Top = 148
+          Width = 40
+          OnKeyDown = Edit1KeyDown
+          TabOrder = 5
+          Text = '1'
+        end
+        object lblLastfilterresult: TLabel
+          AnchorSideLeft.Control = Panel6
+          AnchorSideTop.Control = Panel6
+          Left = 0
+          Height = 15
+          Top = 0
+          Width = 88
+          Caption = 'Last filter results:'
+          ParentColor = False
+        end
+        object btnFilterModule: TButton
+          AnchorSideLeft.Control = Panel6
+          AnchorSideTop.Control = btnFilterCallCount
+          AnchorSideTop.Side = asrBottom
+          AnchorSideRight.Control = cbFilterFuturePaths
+          Left = 0
+          Height = 25
+          Top = 180
+          Width = 254
+          Anchors = [akTop, akLeft, akRight]
+          AutoSize = True
+          BorderSpacing.Top = 8
+          Caption = 'Filter out routines not in a specific module'
+          OnClick = btnFilterModuleClick
+          TabOrder = 6
+        end
+        object btnResetCount: TButton
+          AnchorSideLeft.Control = Edit1
+          AnchorSideLeft.Side = asrBottom
+          AnchorSideTop.Control = Edit1
+          AnchorSideTop.Side = asrCenter
+          AnchorSideRight.Control = Panel6
+          AnchorSideRight.Side = asrBottom
+          Left = 294
+          Height = 25
+          Top = 147
+          Width = 90
+          AutoSize = True
+          Caption = 'Reset Count'
+          OnClick = btnResetCountClick
+          TabOrder = 7
+        end
+        object btnRet: TButton
+          Tag = 5
+          AnchorSideLeft.Control = Panel6
+          AnchorSideTop.Control = btnNotCalled
+          AnchorSideTop.Side = asrBottom
+          AnchorSideRight.Control = cbFilterFuturePaths
+          Left = 0
+          Height = 25
+          Top = 114
+          Width = 254
+          Anchors = [akTop, akLeft, akRight]
+          AutoSize = True
+          BorderSpacing.Top = 8
+          Caption = 'Filter out return from RET''s'
+          OnClick = btnRetClick
+          TabOrder = 8
+        end
+        object cbfilterOutNewEntries: TCheckBox
+          AnchorSideLeft.Control = Panel6
+          AnchorSideTop.Control = btnFilterModule
+          AnchorSideTop.Side = asrBottom
+          Left = 0
+          Height = 19
+          Hint = 'When this checkbox is ticked all newly added code entry points will be marked as entries that do not match the filters'
+          Top = 208
+          Width = 213
+          BorderSpacing.Top = 3
+          Caption = 'Mark all new branches as filtered out'
+          OnChange = cbfilterOutNewEntriesChange
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 9
+        end
+        object cbFilterFuturePaths: TCheckBox
+          AnchorSideTop.Control = btnExecuted
+          AnchorSideTop.Side = asrCenter
+          AnchorSideRight.Control = Panel6
+          AnchorSideRight.Side = asrBottom
+          Left = 256
+          Height = 19
+          Hint = 'When checked (default) will mark all subsequent paths after this as filtered out'
+          Top = 51
+          Width = 132
+          Anchors = [akTop, akRight]
+          BorderSpacing.Left = 2
+          Caption = 'Filter future branches'
+          Checked = True
+          ParentShowHint = False
+          ShowHint = True
+          State = cbChecked
+          TabOrder = 10
+        end
       end
     end
   end
@@ -344,10 +537,22 @@ object frmUltimap: TfrmUltimap
     left = 85
     top = 320
   end
+  object PopupMenu1: TPopupMenu
+    left = 85
+    top = 258
+    object MenuItem2: TMenuItem
+      Caption = 'Flush buffers'
+      OnClick = MenuItem2Click
+    end
+    object MenuItem1: TMenuItem
+      Caption = 'Add selection to code list'
+      OnClick = MenuItem1Click
+    end
+  end
   object pmSetHotkey: TPopupMenu
     OnPopup = pmSetHotkeyPopup
-    left = 268
-    top = 28
+    left = 296
+    top = 56
     object miSetHotkey: TMenuItem
       Caption = 'Set hotkey'
       OnClick = miSetHotkeyClick
@@ -357,18 +562,10 @@ object frmUltimap: TfrmUltimap
       OnClick = miRemoveHotkeyClick
     end
   end
-  object PopupMenu1: TPopupMenu
-    left = 85
-    top = 258
-    object MenuItem2: TMenuItem
-      Caption = 'Flush buffers'
-      OnClick = MenuItem2Click
-    end
-  end
   object Flusher: TTimer
     Interval = 100
     OnTimer = FlusherTimer
-    left = 176
-    top = 72
+    left = 224
+    top = 64
   end
 end

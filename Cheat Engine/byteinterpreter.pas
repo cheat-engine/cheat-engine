@@ -89,6 +89,7 @@ begin
       end;
     finally
       freemem(ba);
+      ba:=nil;
     end;
 
     setlength(b,0);
@@ -144,6 +145,7 @@ begin
           end;
         finally
           freemem(ba);
+          ba:=nil;
         end;
       end;
     end;
@@ -249,6 +251,7 @@ begin
         result:=ws;
       finally
         freemem(ws);
+        ws:=nil;
       end;
     end;
 
@@ -342,6 +345,7 @@ begin
           result:=readAndParsePointer(address, buf2, variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
       finally
         freemem(buf2);
+        buf2:=nil;
       end;
     end;
 
@@ -355,7 +359,8 @@ begin
 
 
       finally
-        freemem(buf2)
+        freemem(buf2);
+        buf2:=nil;
       end;
 
     end;
@@ -368,6 +373,7 @@ begin
           result:=readAndParsePointer(address, buf2, variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
       finally
         freemem(buf2);
+        buf2:=nil;
       end;
     end;
 
@@ -382,6 +388,7 @@ begin
 
         finally
           freemem(buf2);
+          buf2:=nil;
         end;
       end;
     end;
@@ -414,6 +421,7 @@ begin
         result:=pchar(tempbuf);
       finally
         freemem(tempbuf);
+        tempbuf:=nil;
       end;
     end;
 
@@ -430,6 +438,7 @@ begin
 
       finally
         freemem(tempbuf);
+        tempbuf:=nil;
       end;
     end;
 
@@ -568,7 +577,10 @@ begin
 
 
 
+
     i:=address mod 4;
+    if size in [4,8] then i:=0; //skip this test, it's a known size datablock
+
     case i of
       1: //1 byte
       begin
@@ -656,16 +668,24 @@ begin
             //check if the value isn't bigger or smaller than 100000 or smaller than -100000
             if (pdouble(@buf[0])^<100000) and (pdouble(@buf[0])^>-100000) then
             begin
+
               if result=vtSingle then
               begin
                 if pdouble(@buf[0])^>psingle(@buf[0])^ then exit; //float has a smaller value
               end;
 
-              //if 4 bytes after this address is a float then override thise double to a single type
-              if FindTypeOfData(address+4, @buf[4], size-4)=vtSingle then
-                result:=vtSingle
-              else
-                result:=vtDouble;
+              result:=vtDouble;
+
+              if Pdword(@buf[0])^<>0 then
+              begin
+                x:=floattostr(PSingle(@buf[0])^);
+                if (pos('E',x)=0) then
+                begin
+                  //if 4 bytes after this address is a float then override thise double to a single type
+                  if FindTypeOfData(address+4, @buf[4], size-4)=vtSingle then
+                    result:=vtSingle;
+                end;
+              end;
 
               exit;
             end;

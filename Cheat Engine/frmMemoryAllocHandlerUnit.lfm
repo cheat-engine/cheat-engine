@@ -1,98 +1,39 @@
 object frmMemoryAllocHandler: TfrmMemoryAllocHandler
   Left = 631
-  Height = 279
+  Height = 180
   Top = 372
-  Width = 525
+  Width = 446
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'Memory Allocations'
-  ClientHeight = 279
-  ClientWidth = 525
-  Font.Height = -14
-  Font.Name = 'MS Sans Serif'
+  ClientHeight = 180
+  ClientWidth = 446
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poScreenCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object GroupBox1: TGroupBox
     Left = 0
-    Height = 238
-    Top = 41
-    Width = 525
+    Height = 143
+    Top = 37
+    Width = 446
     Align = alClient
     Caption = 'Data'
-    ClientHeight = 217
-    ClientWidth = 521
+    ClientHeight = 123
+    ClientWidth = 442
     TabOrder = 0
-    object Label1: TLabel
-      Left = 40
-      Height = 16
-      Top = 64
-      Width = 37
-      Caption = 'Flags:'
-      ParentColor = False
-    end
-    object Label2: TLabel
-      Left = 40
-      Height = 16
-      Top = 16
-      Width = 89
-      Caption = 'Base Address:'
-      ParentColor = False
-    end
-    object lblHeapHandle: TLabel
-      Left = 144
-      Height = 1
-      Top = 48
-      Width = 1
-      ParentColor = False
-    end
-    object lblFlags: TLabel
-      Left = 144
-      Height = 1
-      Top = 64
-      Width = 1
-      ParentColor = False
-    end
-    object lblBaseAddress: TLabel
-      Left = 144
-      Height = 1
-      Top = 16
-      Width = 1
-      ParentColor = False
-    end
-    object Label3: TLabel
-      Left = 40
-      Height = 16
-      Top = 48
-      Width = 78
-      Caption = 'HeapHandle'
-      ParentColor = False
-    end
-    object Label4: TLabel
-      Left = 40
-      Height = 16
-      Top = 32
-      Width = 29
-      Caption = 'Size:'
-      ParentColor = False
-    end
-    object lblSize: TLabel
-      Left = 144
-      Height = 1
-      Top = 32
-      Width = 1
-      ParentColor = False
-    end
+    OnClick = GroupBox1Click
     object lblErr: TLabel
-      Left = 40
-      Height = 16
-      Top = 88
-      Width = 387
+      AnchorSideLeft.Control = Panel2
+      AnchorSideTop.Control = Panel2
+      AnchorSideTop.Side = asrBottom
+      Left = 6
+      Height = 15
+      Top = 65
+      Width = 358
+      BorderSpacing.Top = 5
       Caption = 'Couldn''t find in heap. Found using the Alloc hook. (Not very useful)'
       Font.Color = clRed
-      Font.Height = -14
-      Font.Name = 'MS Sans Serif'
       ParentColor = False
       ParentFont = False
       Visible = False
@@ -100,8 +41,8 @@ object frmMemoryAllocHandler: TfrmMemoryAllocHandler
     object StatusBar1: TStatusBar
       Left = 0
       Height = 23
-      Top = 194
-      Width = 521
+      Top = 100
+      Width = 442
       Panels = <      
         item
           Text = '-'
@@ -113,47 +54,182 @@ object frmMemoryAllocHandler: TfrmMemoryAllocHandler
         end>
       SimplePanel = False
     end
+    object Panel2: TPanel
+      AnchorSideLeft.Control = GroupBox1
+      AnchorSideTop.Control = GroupBox1
+      Left = 6
+      Height = 60
+      Top = 0
+      Width = 97
+      AutoSize = True
+      BorderSpacing.Left = 6
+      BevelOuter = bvNone
+      ClientHeight = 60
+      ClientWidth = 97
+      TabOrder = 1
+      object Label2: TLabel
+        AnchorSideTop.Control = lblBaseAddress
+        AnchorSideRight.Control = lblBaseAddress
+        Left = 0
+        Height = 15
+        Top = 0
+        Width = 72
+        Anchors = [akTop, akRight]
+        BorderSpacing.Right = 5
+        Caption = 'Base Address:'
+        ParentColor = False
+      end
+      object lblBaseAddress: TLabel
+        AnchorSideTop.Control = Panel2
+        AnchorSideRight.Control = Panel2
+        AnchorSideRight.Side = asrBottom
+        Left = 77
+        Height = 15
+        Top = 0
+        Width = 20
+        Anchors = [akTop, akRight]
+        Caption = 'xxxx'
+        ParentColor = False
+      end
+      object lblSize: TLabel
+        AnchorSideLeft.Control = lblBaseAddress
+        AnchorSideTop.Control = lblBaseAddress
+        AnchorSideTop.Side = asrBottom
+        Left = 77
+        Height = 15
+        Top = 15
+        Width = 20
+        Caption = 'xxxx'
+        ParentColor = False
+      end
+      object Label4: TLabel
+        AnchorSideTop.Control = lblSize
+        AnchorSideRight.Control = lblSize
+        Left = 49
+        Height = 15
+        Top = 15
+        Width = 23
+        Anchors = [akTop, akRight]
+        BorderSpacing.Right = 5
+        Caption = 'Size:'
+        ParentColor = False
+      end
+      object Label3: TLabel
+        AnchorSideTop.Control = lblHeapHandle
+        AnchorSideRight.Control = lblHeapHandle
+        Left = 6
+        Height = 15
+        Top = 30
+        Width = 66
+        Anchors = [akTop, akRight]
+        BorderSpacing.Right = 5
+        Caption = 'HeapHandle'
+        ParentColor = False
+      end
+      object lblHeapHandle: TLabel
+        AnchorSideLeft.Control = lblBaseAddress
+        AnchorSideTop.Control = lblSize
+        AnchorSideTop.Side = asrBottom
+        Left = 77
+        Height = 15
+        Top = 30
+        Width = 20
+        Caption = 'xxxx'
+        ParentColor = False
+      end
+      object lblFlags: TLabel
+        AnchorSideLeft.Control = lblBaseAddress
+        AnchorSideTop.Control = lblHeapHandle
+        AnchorSideTop.Side = asrBottom
+        Left = 77
+        Height = 15
+        Top = 45
+        Width = 20
+        Caption = 'xxxx'
+        ParentColor = False
+      end
+      object Label1: TLabel
+        AnchorSideTop.Control = lblHeapHandle
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = lblFlags
+        Left = 42
+        Height = 15
+        Top = 45
+        Width = 30
+        Anchors = [akTop, akRight]
+        BorderSpacing.Right = 5
+        Caption = 'Flags:'
+        ParentColor = False
+      end
+    end
   end
   object Panel1: TPanel
     Left = 0
-    Height = 41
+    Height = 37
     Top = 0
-    Width = 525
+    Width = 446
     Align = alTop
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 41
-    ClientWidth = 525
+    ClientHeight = 37
+    ClientWidth = 446
     TabOrder = 1
     object Edit1: TEdit
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = Panel1
       Left = 8
-      Height = 24
+      Height = 23
       Top = 8
       Width = 121
+      BorderSpacing.Left = 8
+      BorderSpacing.Top = 8
       TabOrder = 0
     end
     object Button1: TButton
-      Left = 136
+      AnchorSideLeft.Control = Edit1
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Edit1
+      AnchorSideTop.Side = asrCenter
+      Left = 131
       Height = 25
-      Top = 8
-      Width = 105
+      Top = 7
+      Width = 104
+      AutoSize = True
+      BorderSpacing.Left = 2
+      BorderSpacing.Bottom = 5
       Caption = 'Check Address'
       OnClick = Button1Click
       TabOrder = 1
     end
     object btnReload: TButton
-      Left = 440
+      AnchorSideLeft.Control = cbHookAllocs
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Edit1
+      AnchorSideTop.Side = asrCenter
+      AnchorSideRight.Control = Panel1
+      AnchorSideRight.Side = asrBottom
+      Left = 376
       Height = 25
-      Top = 8
-      Width = 75
+      Top = 7
+      Width = 62
+      Anchors = [akTop, akRight]
+      AutoSize = True
+      BorderSpacing.Right = 8
+      BorderSpacing.Bottom = 5
       Caption = 'Reload'
       OnClick = btnReloadClick
       TabOrder = 2
     end
     object cbHookAllocs: TCheckBox
-      Left = 256
-      Height = 20
-      Top = 12
-      Width = 140
+      AnchorSideLeft.Control = Button1
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Edit1
+      AnchorSideTop.Side = asrCenter
+      Left = 243
+      Height = 19
+      Top = 10
+      Width = 130
+      BorderSpacing.Left = 8
       Caption = 'Hook alloc functions'
       OnClick = cbHookAllocsClick
       TabOrder = 3
@@ -161,7 +237,7 @@ object frmMemoryAllocHandler: TfrmMemoryAllocHandler
   end
   object Timer1: TTimer
     OnTimer = Timer1Timer
-    left = 4
-    top = 83
+    left = 456
+    top = 64
   end
 end

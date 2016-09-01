@@ -1218,10 +1218,16 @@ begin
 end;
 
 function TJvDesignBander.GetPaintRect: TRect;
+var c: TControl;
 begin
   Result := FDragRect;
-  with GetClient.ClientToScreen(Point(0, 0)) do
-    OffsetRect(Result, X, Y);
+  c:=GetClient;
+
+  if c<>nil then
+  begin
+    with GetClient.ClientToScreen(Point(0, 0)) do
+      OffsetRect(Result, X, Y);
+  end;
 end;
 
 procedure TJvDesignBander.PaintDragRect;

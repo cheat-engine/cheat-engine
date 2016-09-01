@@ -3,14 +3,17 @@ object frmSortPointerlist: TfrmSortPointerlist
   Height = 85
   Top = 225
   Width = 320
+  AutoSize = True
   BorderStyle = bsSingle
   Caption = 'Sorting'
   ClientHeight = 85
   ClientWidth = 320
+  Constraints.MinWidth = 320
   OnClose = FormClose
   OnDestroy = FormDestroy
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.2.0.3'
+  LCLVersion = '1.6.0.4'
   object Label1: TLabel
     Left = 0
     Height = 15
@@ -22,10 +25,16 @@ object frmSortPointerlist: TfrmSortPointerlist
     ParentColor = False
   end
   object Button1: TButton
-    Left = 128
+    AnchorSideLeft.Control = Owner
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = ProgressBar1
+    AnchorSideTop.Side = asrBottom
+    Left = 123
     Height = 25
-    Top = 56
+    Top = 53
     Width = 75
+    BorderSpacing.Top = 3
+    BorderSpacing.Bottom = 3
     Caption = 'Cancel'
     Default = True
     ModalResult = 2

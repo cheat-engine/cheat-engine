@@ -14,6 +14,13 @@ implementation
 
 uses dbk32functions, vmxfunctions, ManualModuleLoader, ctypes, Globals;
 
+resourcestring
+  rsSeemsLikeDbvmIsntLoadedAfterAll = 'seems like dbvm isn''t loaded after all';
+  rsSuccessTheDriverHasBeenLoaded = 'Success. The driver has been loaded thanks to dbvm';
+  rsTheDriverFailedToInitialize = 'The driver failed to initialize';
+  rsModuleLoaderDailedToMDbk64sysToMemoryap = 'ModuleLoader failed to map dbk64.sys to memory';
+  rsErrorWhileTryingToLoadTheDriverAtPart = 'Error while trying to load the driver at part ';
+
 const IRP_MJ_CREATE                   =$00;
 const IRP_MJ_CREATE_NAMED_PIPE        =$01;
 const IRP_MJ_CLOSE                    =$02;
@@ -87,7 +94,7 @@ begin
     //load the 64 bit driver
     if dbvm_version =0 then
     begin
-      showmessage('seems like dbvm isn''t loaded after all');
+      showmessage(rsSeemsLikeDbvmIsntLoadedAfterAll);
       exit;
     end;
 
@@ -108,19 +115,19 @@ begin
       begin
         result:=$fff00fff;
         part:=6;
-        ShowMessage('Success. The driver has been loaded thanks to dbvm');
+        ShowMessage(rsSuccessTheDriverHasBeenLoaded);
       end
       else
-        showMessage('The driver failed to initialize');
+        showMessage(rsTheDriverFailedToInitialize);
       part:=7;
     end
     else
-      showmessage('ModuleLoader failed to map dbk64.sys to memory');
+      showmessage(rsModuleLoaderDailedToMDbk64sysToMemoryap);
 
     part:=8;
   except
     on e: exception do
-      showmessage('Error while trying to load the driver at part '+inttostr(part)+': '+e.message);
+      showmessage(rsErrorWhileTryingToLoadTheDriverAtPart+inttostr(part)+': '+e.message);
   end;
 end;
 

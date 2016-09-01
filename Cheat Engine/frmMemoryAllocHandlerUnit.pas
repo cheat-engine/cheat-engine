@@ -144,17 +144,18 @@ type
   { TfrmMemoryAllocHandler }
 
   TfrmMemoryAllocHandler = class(TForm)
+    Label1: TLabel;
+    Label2: TLabel;
+    Label3: TLabel;
+    Label4: TLabel;
+    lblBaseAddress: TLabel;
+    lblFlags: TLabel;
+    lblHeapHandle: TLabel;
+    lblSize: TLabel;
+    Panel2: TPanel;
     StatusBar1: TStatusBar;
     Timer1: TTimer;
     GroupBox1: TGroupBox;
-    Label1: TLabel;
-    Label2: TLabel;
-    lblHeapHandle: TLabel;
-    lblFlags: TLabel;
-    lblBaseAddress: TLabel;
-    Label3: TLabel;
-    Label4: TLabel;
-    lblSize: TLabel;
     Panel1: TPanel;
     Edit1: TEdit;
     Button1: TButton;
@@ -164,6 +165,7 @@ type
     procedure cbHookAllocsChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure GroupBox1Click(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure btnReloadClick(Sender: TObject);
@@ -212,7 +214,9 @@ resourcestring
   rsHeapcount = 'Heapcount=%s';
   rsFailureToInitialize = 'Failure to initialize';
   rsFailureToHook = 'Failure to hook';
-
+  rsEvent1Failure = 'Event1 failure:';
+  rsEvent2Failure = 'Event2 failure:';
+  rsEvent3Failure = 'Event3 failure:';
 
 procedure TDisplayThread.removeaddress(addresslist: PMemrecTableArray; memallocevent: TmemoryAllocevent );
 var
@@ -637,15 +641,15 @@ begin
 
     x:=0;
     if not DuplicateHandle(GetCurrentProcess, HasSetupDataEvent, processhandle, @x, 0, false, DUPLICATE_SAME_ACCESS	) then
-      raise exception.Create('Event1 failure:'+inttostr(getlasterror));
+      raise exception.Create(rsEvent1Failure+inttostr(getlasterror));
 
     y:=0;
     if not DuplicateHandle(GetCurrentProcess, CEHasHandledItEvent, processhandle, @y, 0, false, DUPLICATE_SAME_ACCESS	) then
-      raise exception.Create('Event2 failure:'+inttostr(getlasterror));
+      raise exception.Create(rsEvent2Failure+inttostr(getlasterror));
 
     z:=0;
     if not DuplicateHandle(GetCurrentProcess, CEInitializationFinished, processhandle, @z, 0, false, DUPLICATE_SAME_ACCESS	) then
-      raise exception.Create('Event3 failure:'+inttostr(getlasterror));
+      raise exception.Create(rsEvent3Failure+inttostr(getlasterror));
 
     //set event handles
     injectionscript.Add('HasSetupDataEvent:');
@@ -695,6 +699,11 @@ begin
     closehandle(CEHasHandledItEvent);
 
   //cleanup memory allocs
+end;
+
+procedure TfrmMemoryAllocHandler.GroupBox1Click(Sender: TObject);
+begin
+
 end;
 
 procedure TfrmMemoryAllocHandler.Timer1Timer(Sender: TObject);

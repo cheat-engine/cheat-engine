@@ -1,8 +1,4 @@
 TFRMSETUPPSNNODE.CAPTION=Setup pointerscan network node
-TFRMSETUPPSNNODE.EDTTHREADCOUNT.HINT=The number of threads to scan.
-Hint: Can be 0
-TFRMSETUPPSNNODE.EDTTHREADCOUNT.TEXT=0
-TFRMSETUPPSNNODE.LBLTHREADCOUNT.CAPTION=Threadcount
 TFRMSETUPPSNNODE.CBMAXFOUNDRESULTS.HINT=This will terminate all the children and disconnect from the parent after having found at least the given amount of results
 It's slightly innacurate as the check is only done every 10 seconds or so
 
@@ -14,8 +10,6 @@ Note: This only has effect when there is at least one parent in the queue. Other
 TFRMSETUPPSNNODE.CBMAXTIMETOSCAN.CAPTION=Stop scans after specific time
 TFRMSETUPPSNNODE.LABEL4.CAPTION=Seconds
 TFRMSETUPPSNNODE.LABEL3.CAPTION=Found pointer paths
-TFRMSETUPPSNNODE.BTNOK.CAPTION=Launch
-TFRMSETUPPSNNODE.BTNCANCEL.CAPTION=Cancel
 TFRMSETUPPSNNODE.CBPRIORITY.TEXT=Lower
 TFRMSETUPPSNNODE.LBLPRIORITY.CAPTION=Priority
 TFRMSETUPPSNNODE.LBLPUBLICNAME.CAPTION=Public name
@@ -47,3 +41,9 @@ If it's unchecked these files will stay in memory in their original file format 
 
 This can be useful when on a system with no disk access but lots of RAM
 TFRMSETUPPSNNODE.CBALLOWTEMPFILES.CAPTION=Allow temp file usage
+TFRMSETUPPSNNODE.BTNOK.CAPTION=Launch
+TFRMSETUPPSNNODE.BTNCANCEL.CAPTION=Cancel
+TFRMSETUPPSNNODE.LBLTHREADCOUNT.CAPTION=Threadcount
+TFRMSETUPPSNNODE.EDTTHREADCOUNT.HINT=The number of threads to scan.
+Hint: Can be 0
+TFRMSETUPPSNNODE.EDTTHREADCOUNT.TEXT=0

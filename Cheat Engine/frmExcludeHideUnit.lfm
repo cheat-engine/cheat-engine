@@ -1,21 +1,22 @@
 object frmExcludeHide: TfrmExcludeHide
   Left = 903
-  Height = 359
+  Height = 415
   Top = 176
-  Width = 453
+  Width = 486
   Caption = 'Show/Hide settings'
-  ClientHeight = 359
-  ClientWidth = 453
+  ClientHeight = 415
+  ClientWidth = 486
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
+  PopupMode = pmAuto
   Position = poOwnerFormCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.6.0.4'
   object Label4: TLabel
     Left = 0
     Height = 41
     Top = 0
-    Width = 453
+    Width = 486
     Align = alTop
     AutoSize = False
     Caption = 'Select the way cheat Engine hides/shows windows. (Will not work if a window that gets hidden or shown is not responding. E.g:Paused)'
@@ -24,31 +25,34 @@ object frmExcludeHide: TfrmExcludeHide
   end
   object Panel1: TPanel
     Left = 0
-    Height = 318
+    Height = 374
     Top = 41
-    Width = 453
+    Width = 486
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 318
-    ClientWidth = 453
+    ClientHeight = 374
+    ClientWidth = 486
     TabOrder = 0
     OnResize = Panel1Resize
     object Label1: TLabel
+      AnchorSideTop.Control = RadioButton2
+      AnchorSideTop.Side = asrBottom
       Left = 0
-      Height = 40
-      Top = 39
-      Width = 448
+      Height = 32
+      Top = 40
+      Width = 481
       Anchors = [akTop, akLeft, akRight]
-      AutoSize = False
       Caption = 'Select the processes you want to exclude from being hidden. Doubleclick the process to add it to the list. (Or remove it from the list)'
       Enabled = False
       ParentColor = False
       WordWrap = True
     end
     object RadioButton1: TRadioButton
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = Panel1
       Left = 0
       Height = 20
-      Top = -1
+      Top = 0
       Width = 247
       Caption = 'Only hide/show the foreground window'
       Checked = True
@@ -57,39 +61,55 @@ object frmExcludeHide: TfrmExcludeHide
       TabStop = True
     end
     object RadioButton2: TRadioButton
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = RadioButton1
+      AnchorSideTop.Side = asrBottom
       Left = 0
       Height = 20
-      Top = 19
+      Top = 20
       Width = 164
       Caption = 'Hide/show ALL windows'
       OnClick = RadioButton1Click
       TabOrder = 1
     end
     object Panel2: TPanel
+      AnchorSideTop.Control = Label1
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Panel5
+      AnchorSideBottom.Control = Panel4
       Left = 0
-      Height = 185
-      Top = 80
-      Width = 214
+      Height = 260
+      Top = 72
+      Width = 242
+      Anchors = [akTop, akLeft, akRight, akBottom]
       BevelOuter = bvNone
-      ClientHeight = 185
-      ClientWidth = 214
+      ClientHeight = 260
+      ClientWidth = 242
       TabOrder = 2
       object Label2: TLabel
-        Left = 0
-        Height = 17
+        Left = 3
+        Height = 16
         Top = 0
-        Width = 214
+        Width = 239
         Align = alTop
+        BorderSpacing.Left = 3
         Caption = 'Current process list'
         Enabled = False
         ParentColor = False
       end
       object ListBox1: TListBox
+        AnchorSideTop.Control = Label2
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = Panel2
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = Panel2
+        AnchorSideBottom.Side = asrBottom
         Left = 0
-        Height = 168
-        Top = 17
-        Width = 214
-        Align = alClient
+        Height = 244
+        Top = 16
+        Width = 242
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        BorderSpacing.Left = 3
         Enabled = False
         ItemHeight = 0
         OnDblClick = ListBox1DblClick
@@ -97,30 +117,46 @@ object frmExcludeHide: TfrmExcludeHide
       end
     end
     object Panel3: TPanel
-      Left = 219
-      Height = 185
-      Top = 80
-      Width = 214
+      AnchorSideLeft.Control = Panel5
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Label1
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Panel1
+      AnchorSideRight.Side = asrBottom
+      AnchorSideBottom.Control = Panel4
+      Left = 244
+      Height = 260
+      Top = 72
+      Width = 242
+      Anchors = [akTop, akLeft, akRight, akBottom]
       BevelOuter = bvNone
-      ClientHeight = 185
-      ClientWidth = 214
+      ClientHeight = 260
+      ClientWidth = 242
       TabOrder = 3
       object Label3: TLabel
         Left = 0
-        Height = 17
+        Height = 16
         Top = 0
-        Width = 214
+        Width = 239
         Align = alTop
+        BorderSpacing.Right = 3
         Caption = 'List of processes that will not hide'
         Enabled = False
         ParentColor = False
       end
       object ListBox2: TListBox
+        AnchorSideTop.Control = Label3
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = Panel3
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = Panel3
+        AnchorSideBottom.Side = asrBottom
         Left = 0
-        Height = 168
-        Top = 17
-        Width = 214
-        Align = alClient
+        Height = 244
+        Top = 16
+        Width = 239
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        BorderSpacing.Right = 3
         Enabled = False
         ItemHeight = 0
         OnDblClick = ListBox2DblClick
@@ -128,34 +164,64 @@ object frmExcludeHide: TfrmExcludeHide
       end
     end
     object Panel4: TPanel
-      Left = 120
-      Height = 41
-      Top = 272
-      Width = 195
+      AnchorSideLeft.Control = Panel1
+      AnchorSideLeft.Side = asrCenter
+      AnchorSideTop.Control = Panel2
+      AnchorSideTop.Side = asrBottom
+      AnchorSideBottom.Control = Panel1
+      AnchorSideBottom.Side = asrBottom
+      Left = 149
+      Height = 26
+      Top = 340
+      Width = 188
+      Anchors = [akLeft, akBottom]
+      AutoSize = True
+      BorderSpacing.Top = 8
+      BorderSpacing.Bottom = 8
       BevelOuter = bvNone
-      ClientHeight = 41
-      ClientWidth = 195
+      ClientHeight = 26
+      ClientWidth = 188
       TabOrder = 4
       object Button2: TButton
-        Left = 101
-        Height = 31
-        Top = 2
-        Width = 92
+        AnchorSideLeft.Control = Button1
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = Button1
+        Left = 98
+        Height = 26
+        Top = 0
+        Width = 90
+        AutoSize = True
+        BorderSpacing.Left = 8
         Cancel = True
         Caption = 'Cancel'
+        Constraints.MinWidth = 90
         ModalResult = 2
         TabOrder = 0
       end
       object Button1: TButton
-        Left = 5
-        Height = 31
-        Top = 2
-        Width = 92
+        AnchorSideLeft.Control = Panel4
+        AnchorSideTop.Control = Panel4
+        Left = 0
+        Height = 26
+        Top = 0
+        Width = 90
+        AutoSize = True
         Caption = 'OK'
+        Constraints.MinWidth = 90
         Default = True
         OnClick = Button1Click
         TabOrder = 1
       end
+    end
+    object Panel5: TPanel
+      AnchorSideLeft.Control = Panel1
+      AnchorSideLeft.Side = asrCenter
+      Left = 242
+      Height = 279
+      Top = 121
+      Width = 2
+      BevelOuter = bvNone
+      TabOrder = 5
     end
   end
 end

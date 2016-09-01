@@ -1,15 +1,16 @@
 object frmMultilineInputQuery: TfrmMultilineInputQuery
   Left = 845
-  Height = 113
+  Height = 110
   Top = 172
   Width = 273
-  ClientHeight = 113
+  ClientHeight = 110
   ClientWidth = 273
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.6.0.4'
   object lblPrompt: TLabel
     Left = 0
-    Height = 16
+    Height = 15
     Top = 0
     Width = 273
     Align = alTop
@@ -19,8 +20,8 @@ object frmMultilineInputQuery: TfrmMultilineInputQuery
   end
   object Memo1: TMemo
     Left = 0
-    Height = 67
-    Top = 16
+    Height = 64
+    Top = 15
     Width = 273
     Align = alClient
     Lines.Strings = (
@@ -29,36 +30,60 @@ object frmMultilineInputQuery: TfrmMultilineInputQuery
     OnKeyDown = Memo1KeyDown
     ScrollBars = ssVertical
     TabOrder = 0
+    WordWrap = False
   end
   object Panel1: TPanel
     Left = 0
-    Height = 30
-    Top = 83
+    Height = 31
+    Top = 79
     Width = 273
     Align = alBottom
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 30
+    ClientHeight = 31
     ClientWidth = 273
     TabOrder = 1
     object Button1: TButton
+      AnchorSideRight.Control = Panel2
       Left = 56
       Height = 25
-      Top = 1
+      Top = 3
       Width = 75
+      Anchors = [akTop, akRight]
+      AutoSize = True
+      BorderSpacing.Top = 3
+      BorderSpacing.Bottom = 3
       Caption = 'OK'
+      Constraints.MinWidth = 75
       Default = True
       ModalResult = 1
       TabOrder = 0
     end
     object Button2: TButton
-      Left = 144
+      AnchorSideLeft.Control = Panel2
+      AnchorSideLeft.Side = asrBottom
+      Left = 142
       Height = 25
-      Top = 1
+      Top = 3
       Width = 75
+      AutoSize = True
+      BorderSpacing.Top = 3
+      BorderSpacing.Bottom = 3
       Cancel = True
       Caption = 'Cancel'
+      Constraints.MinWidth = 75
       ModalResult = 2
       TabOrder = 1
+    end
+    object Panel2: TPanel
+      AnchorSideLeft.Control = Panel1
+      AnchorSideLeft.Side = asrCenter
+      Left = 131
+      Height = 20
+      Top = 6
+      Width = 11
+      BevelOuter = bvNone
+      TabOrder = 2
     end
   end
 end

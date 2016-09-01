@@ -144,6 +144,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setSubItems', listitem_setSubItems);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getSubItems', listitem_getSubItems);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'makeVisible', listitem_makeVisible);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'delete', listitem_delete);
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'Caption', listitem_getCaption, listitem_setCaption);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Checked', listitem_getChecked, listitem_setChecked);

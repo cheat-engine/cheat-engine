@@ -84,6 +84,22 @@ begin
   bt:=d;
 end;
 
+function StrToFloatEx(s: string): double;
+var fs: TFormatSettings;
+begin
+  try
+    fs:=DefaultFormatSettings;
+    result:=StrToFloat(s, fs);
+  except
+    if fs.DecimalSeparator='.' then
+      fs.DecimalSeparator:=','
+    else
+      fs.DecimalSeparator:='.';
+
+    result:=StrToFloat(s, fs);
+  end;
+end;
+
 function StrToQWordEx(s: string): qword;
 {
 This routine will use StrToQword unless it is a negative value, in which case it will use StrToInt64
@@ -94,10 +110,14 @@ begin
     raise exception.create(rsInvalidInteger)
   else
   begin
-    if s[1]='-' then
-      result:=StrToInt64(s)
-    else
-      result:=StrToQWord(s);
+    try
+      if s[1]='-' then
+        result:=StrToInt64(s)
+      else
+        result:=StrToQWord(s);
+    except
+      result:=trunc(StrToFloatEx(s)); //in case the user decided to give a float.
+    end;
   end;
 end;
 
@@ -230,11 +250,8 @@ var ishex: string;
     f: single;
     d: double;
 begin
-  if s='' then
-  begin
-    result:=s;
-    exit;
-  end;
+  if s='' then exit('');
+
   start:=1;
 
   ishex:='$';
@@ -321,6 +338,13 @@ begin
           end;
         end;
       end;
+
+      '0'..'9', 'a'..'f', 'A'..'F','-','+':
+      begin
+        //ok
+      end
+      else
+        exit('');
     end;
 
 

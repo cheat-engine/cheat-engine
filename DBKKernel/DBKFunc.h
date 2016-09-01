@@ -245,6 +245,7 @@ void csEnter(PcriticalSection CS);
 void csLeave(PcriticalSection CS);
 
 void forEachCpu(PKDEFERRED_ROUTINE dpcfunction,  PVOID DeferredContext, PVOID  SystemArgument1, PVOID  SystemArgument2);
+void forEachCpuAsync(PKDEFERRED_ROUTINE dpcfunction, PVOID DeferredContext, PVOID  SystemArgument1, PVOID  SystemArgument2);
 void forEachCpuPassive(PF f, UINT_PTR param);
 
 #endif;

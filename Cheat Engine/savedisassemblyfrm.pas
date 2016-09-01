@@ -5,8 +5,9 @@ unit savedisassemblyfrm;
 interface
 
 uses
-  LCLIntf, LResources, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs,symbolhandler,disassembler, StdCtrls, ComCtrls, ActnList, Clipbrd, strutils;
+  LCLIntf, LResources, Messages, SysUtils, Variants, Classes, Graphics,
+  Controls, Forms, Dialogs, symbolhandler, disassembler, StdCtrls, ComCtrls,
+  ActnList, Clipbrd, ExtCtrls, strutils;
 
 type
   TfrmSavedisassembly = class;
@@ -28,18 +29,21 @@ type
 
   TfrmSavedisassembly = class(TForm)
     Button1: TButton;
+    cbAddress: TCheckBox;
+    cbBytes: TCheckBox;
+    cbOpcode: TCheckBox;
     Edit1: TEdit;
     Edit2: TEdit;
     Label1: TLabel;
     Label2: TLabel;
-    cbAddress: TCheckBox;
-    cbBytes: TCheckBox;
-    cbOpcode: TCheckBox;
+    Panel1: TPanel;
+    Panel2: TPanel;
     SaveDialog1: TSaveDialog;
     ProgressBar1: TProgressBar;
     procedure Button1Click(Sender: TObject);
     procedure actCancelExecute(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     { Private declarations }
     SaveDisassemblyThread: TSaveDisassemblyThread;
@@ -92,6 +96,7 @@ begin
   end
   else
   begin
+    cpbuf:=nil;
     assignfile(f,filename);
     rewrite(f);
   end;
@@ -283,6 +288,11 @@ begin
     SaveDisassemblyThread.WaitFor;
     freeandnil(SaveDisassemblyThread);
   end;
+end;
+
+procedure TfrmSavedisassembly.FormShow(Sender: TObject);
+begin
+
 end;
 
 procedure TfrmSavedisassembly.waittilldone;

@@ -202,10 +202,15 @@ function LaunchMonoDataCollector()
 
   end
 
+  if (monoSettings==nil) then
+    monoSettings=getSettings("MonoExtension")  
+  end
+
   return monoBase
 end
 
 function mono_structureDissectOverrideCallback(structure, baseaddress)
+--  print("oc")
   local realaddress, classaddress=mono_object_findRealStartOfObject(baseaddress)
   if (realaddress==baseaddress) then
     local smap = {}
@@ -220,18 +225,37 @@ end
 function mono_structureNameLookupCallback(address)
   local currentaddress, classaddress, classname
 
+  local always=monoSettings.Value["AlwaysUseForDissect"]
+  local r
+  if (always==nil) or (always=="") then
+    r=messageDialog("Do you wish to let the mono extention figure out the name and start address? If it's not a proper object this may crash the target.", mtConfirmation, mbYes, mbNo, mbYesToAll, mbNoToAll)    
+  else
+    if (always=="1") then
+      r=mrYes
+    else
+      r=mrNo
+    end
+  end
+  
+  
+  if (r==mrYes) or (r==mbYesToAll) then
+    currentaddress, classaddress, classname=mono_object_findRealStartOfObject(address)
 
-  --messageDialog("Do you wish to let the mono extention figure out the name and start address? If it's not a proper object this may crash the target.", mtConfirmation, mbYes, mbNo)==mrYes then
-      currentaddress, classaddress, classname=mono_object_findRealStartOfObject(address)
-
-      if (currentaddress~=nil) then
-       -- print("currentaddress~=nil : "..currentaddress)
-        return classname,currentaddress
-      else
+    if (currentaddress~=nil) then
+      -- print("currentaddress~=nil : "..currentaddress)
+      return classname,currentaddress
+    else
       --  print("currentaddress==nil")
-        return nil
-      end
-  --end
+      return nil
+    end
+  end
+
+  --still alive, so the user made a good choice
+  if (r==mrYesToAll) then
+    monoSettings.Value["AlwaysUseForDissect"]="1"
+  elseif (r==mrNoToAll) then
+    monoSettings.Value["AlwaysUseForDissect"]="0"
+  end
 end
 
 
@@ -295,8 +319,14 @@ function mono_addressLookupCallback(address)
 --]]
     if (ji.method~=0) then
       local class=mono_method_getClass(ji.method)
+
+      if class==nil then return nil end
+
+
       local classname=mono_class_getName(class)
       local namespace=mono_class_getNamespace(class)
+      if (classname==nil) or (namespace==nil) then return nil end
+
       if namespace~='' then
         namespace=namespace..':'
       end
@@ -338,6 +368,9 @@ end
 
 function mono_enumDomains()
   if debug_canBreak() then return nil end
+
+  if monopipe==nil then return nil end
+
 
   monopipe.lock()
   monopipe.writeByte(MONOCMD_ENUMDOMAINS)
@@ -680,13 +713,14 @@ function mono_object_findRealStartOfObject(address, maxsize)
     local classaddress,classname=mono_object_getClass(currentaddress)
 
     if (classaddress~=nil) and (classname~=nil) then
-      local classname = monoform_escapename(mono_class_getFullName(classaddress))
       classname=classname:match "^%s*(.-)%s*$" --trim
       if (classname~='') then
-          --local r=string.find(classname, "[^%a%d_.]", 1)  --scan for characters that are not decimal or characters, or have a _ or . in the name
-          --if (r==nil) or (r>=5) then
-            return currentaddress, classaddress, classname --good enough
-          --end
+        local r=string.find(classname, "[^%a%d_.]", 1)  --scan for characters that are not decimal or characters, or have a _ or . in the name
+
+
+        if (r==nil) or (r>=5) then
+          return currentaddress, classaddress, classname --good enough
+        end
       end
     end
 
@@ -1120,7 +1154,9 @@ function monoform_miRejitClick(sender)
     local node=monoForm.TV.Selected
     if (node~=nil) and (node.Level==4) and (node.Parent.Text=='methods') then
       local r=mono_compile_method(node.Data)
-      print(string.format("Method at %x", r))
+      getMemoryViewForm().DisassemblerView.SelectedAddress=r
+      getMemoryViewForm().show()
+--      print(string.format("Method at %x", r))
     end
   end
 end
@@ -1474,11 +1510,17 @@ function mono_TVExpanding(sender, node)
     elseif (node.Level>=3) and (node.Text=='methods') then --methods
       monoform_EnumMethods(node)
     elseif (node.Level>=3) and (node.Text=='base class') then 
-      local klass = node.Data
-      local classname=mono_class_getName(klass)
-      local namespace=mono_class_getNamespace(klass)
-      local fqname=mono_class_getFullName(klass)
-      monoform_AddClass(node, klass, namespace, classname, fqname)
+      if (monoForm.autoExpanding==nil) or (monoForm.autoExpanding==false) then
+        local klass = node.Data
+        if (klass ~= 0) then
+          local classname=mono_class_getName(klass)
+          local namespace=mono_class_getNamespace(klass)
+          local fqname=mono_class_getFullName(klass)
+          monoform_AddClass(node, klass, namespace, classname, fqname)
+        end
+      else
+        allow=false --don't auto expand the base classes
+      end
     end
 
   end
@@ -1556,7 +1598,9 @@ end
 function monoform_miExpandAllClick(sender)
   if messageDialog("Are you sure you wish to expand the whole tree? This can take a while and Cheat Engine may look like it has crashed (It has not)", mtConfirmation, mbYes, mbNo)==mrYes then
     monoForm.TV.beginUpdate()
+    monoForm.autoExpanding=true --special feature where a base object can contain extra lua variables
     monoForm.TV.fullExpand()
+    monoForm.autoExpanding=false
     monoForm.TV.endUpdate()
   end
 end
@@ -1586,10 +1630,13 @@ function mono_dissect()
 
   local domains=mono_enumDomains()
   local i
-  for i=1, #domains do
-    n=monoForm.TV.Items.add(string.format("%x", domains[i]))
-    n.Data=domains[i]
-    monoForm.TV.Items[i-1].HasChildren=true
+
+  if (domains~=nil) then
+    for i=1, #domains do
+      n=monoForm.TV.Items.add(string.format("%x", domains[i]))
+      n.Data=domains[i]
+      monoForm.TV.Items[i-1].HasChildren=true
+    end
   end
 
 end
@@ -1629,21 +1676,24 @@ function mono_OpenProcessMT(t)
     --create a menu item if needed
     if (miMonoTopMenuItem==nil) then
       local mfm=getMainForm().Menu
-      local mi
-      miMonoTopMenuItem=createMenuItem(mfm)
-      miMonoTopMenuItem.Caption="Mono"
-      mfm.Items.insert(mfm.Items.Count-1, miMonoTopMenuItem) --add it before help
+      
+	  if (mfm) then
+	    local mi
+        miMonoTopMenuItem=createMenuItem(mfm)
+		miMonoTopMenuItem.Caption="Mono"
+		mfm.Items.insert(mfm.Items.Count-1, miMonoTopMenuItem) --add it before help
 
-      mi=createMenuItem(miMonoTopMenuItem)
-      mi.Caption="Activate mono features"
-      mi.OnClick=miMonoActivateClick
-      miMonoTopMenuItem.Add(mi)
+		mi=createMenuItem(miMonoTopMenuItem)
+		mi.Caption="Activate mono features"
+		mi.OnClick=miMonoActivateClick
+		miMonoTopMenuItem.Add(mi)
 
-      mi=createMenuItem(miMonoTopMenuItem)
-      mi.Caption="Dissect mono"
-      mi.Shortcut="Ctrl+Alt+M"
-      mi.OnClick=miMonoDissectClick
-      miMonoTopMenuItem.Add(mi)
+		mi=createMenuItem(miMonoTopMenuItem)
+		mi.Caption="Dissect mono"
+		mi.Shortcut="Ctrl+Alt+M"
+		mi.OnClick=miMonoDissectClick
+		miMonoTopMenuItem.Add(mi)
+	  end
     end
 
   else
@@ -1996,18 +2046,24 @@ function monoform_exportStruct(caddr, typename, recursive, static, structmap, ma
   return monoform_exportStructInternal(s, caddr, recursive, static, structmap, makeglobal)
 end
 
+mono_StringStruct=nil
   
 function monoform_exportStructInternal(s, caddr, recursive, static, structmap, makeglobal)
+  --print("a")
   if caddr==0 or caddr==nil then return nil end
+
+ -- print("b")
   
   local className = mono_class_getFullName(caddr)
   --print('Populating '..className)
   
   -- handle Array as separate case
+
   if string.sub(className,-2)=='[]' then
     local elemtype = mono_class_getArrayElementClass(caddr)
     return monoform_exportArrayStructInternal(s, caddr, elemtype, recursive, structmap, makeglobal, true)
   end
+
   
   local hasStatic = false
   structure_beginUpdate(s)
@@ -2029,30 +2085,43 @@ function monoform_exportStructInternal(s, caddr, recursive, static, structmap, m
       e.Offset=fields[i].offset
       e.Vartype=monoTypeToVarType(ft)
             
-      -- print(string.format("  Field: %d: %d: %d: %s", e.Offset, e.Vartype, ft, fieldname))
+      --print(string.format("  Field: %d: %d: %d: %s", e.Offset, e.Vartype, ft, fieldname))
+
       if ft==MONO_TYPE_STRING then
-         if str==nil then
-            str = structmap["String"]
-         end
-         if str==nil then
-           str = createStructure("String")
-           structmap["String"] = str
-           structure_addToGlobalStructureList(str)
-           structure_beginUpdate(str)
-           local ce=str.addElement()
+--print(string.format("  Field: %d: %d: %d: %s", e.Offset, e.Vartype, ft, fieldname))
+
+         if mono_StringStruct==nil then
+         --  print("Creating string object")
+
+           mono_StringStruct = createStructure("String")
+           
+           mono_StringStruct.beginUpdate()
+           local ce=mono_StringStruct.addElement()
            ce.Name="Length"
-           ce.Offset=0x8
+           if targetIs64Bit() then
+             ce.Offset=0x10
+	   else
+             ce.Offset=0x8
+	   end
+
            ce.Vartype=vtDword
-           ce=str.addElement()
+           ce=mono_StringStruct.addElement()
            ce.Name="Value"
-           ce.Offset=0xC
+           if targetIs64Bit() then
+             ce.Offset=0x14
+           else
+             ce.Offset=0xC 
+           end
            ce.Vartype=vtUnicodeString
            ce.Bytesize=128
-           structure_endUpdate(str)
+           mono_StringStruct.endUpdate()
+           mono_StringStruct.addToGlobalStructureList()
          end
-         e.setChildStruct(str)
+         e.setChildStruct(mono_StringStruct)
+--[[
       elseif ft == MONO_TYPE_PTR or ft == MONO_TYPE_CLASS or ft == MONO_TYPE_BYREF 
           or ft == MONO_TYPE_GENERICINST then
+        --print("bla")
         local typename = monoform_escapename(fields[i].typename)
         if typename ~= nil then
           local typeval = mono_type_getClass(fields[i].field)
@@ -2061,12 +2130,16 @@ function monoform_exportStructInternal(s, caddr, recursive, static, structmap, m
           if cs~=nil then e.setChildStruct(cs) end
         end
       elseif ft == MONO_TYPE_SZARRAY then
+        --print("bla2")
         local typename = monoform_escapename(fields[i].typename)
         local arraytype = mono_type_getClass(fields[i].field)
         local elemtype = mono_class_getArrayElementClass(arraytype)
-        local acs = monoform_exportArrayStruct(arraytype, elemtype, typename, recursive, static, structmap, makeglobal, false)
-        if acs~=nil then e.setChildStruct(acs) end
-      end      
+	--print(typename)
+
+        --local acs = monoform_exportArrayStruct(arraytype, elemtype, typename, recursive, static, structmap, makeglobal, false)
+        --if acs~=nil then e.setChildStruct(acs) end --]]
+      end
+    
     end
   end
 
@@ -2098,10 +2171,17 @@ function monoform_exportArrayStructInternal(acs, arraytype, elemtype, recursive,
       ce.setChildStruct(cs)
       
       local j
+      local psize
+      if targetIs64Bit() then
+        psize=8
+      else
+        psize=4
+      end
+ 	
       for j=0, 9 do -- Arbitrarily add 10 elements
         ce=acs.addElement()
         ce.Name=string.format("Item[%d]",j)
-        ce.Offset=j*4+0x10
+        ce.Offset=j*psize+0x10
         ce.Vartype=vtPointer
         ce.setChildStruct(cs)
       end

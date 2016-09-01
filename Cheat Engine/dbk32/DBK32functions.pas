@@ -13,7 +13,7 @@ uses jwawindows, windows, sysutils, classes, types, registry, multicpuexecution,
 
 
 
-const currentversion=2000017;
+const currentversion=2000019;
 
 const FILE_ANY_ACCESS=0;
 const FILE_SPECIAL_ACCESS=FILE_ANY_ACCESS;
@@ -114,7 +114,21 @@ const IOCTL_CE_ENUMACCESSEDMEMORY     = (IOCTL_UNKNOWN_BASE shl 16) or ($0849 sh
 const IOCTL_CE_GETACCESSEDMEMORYLIST  = (IOCTL_UNKNOWN_BASE shl 16) or ($084a shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
 const IOCTL_CE_WRITESIGNOREWP         = (IOCTL_UNKNOWN_BASE shl 16) or ($084b shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_FREE_NONPAGED          = (IOCTL_UNKNOWN_BASE shl 16) or ($084c shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
+const IOCTL_CE_MAP_MEMORY             = (IOCTL_UNKNOWN_BASE shl 16) or ($084d shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_UNMAP_MEMORY           = (IOCTL_UNKNOWN_BASE shl 16) or ($084e shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+
+const IOCTL_CE_ULTIMAP2               = (IOCTL_UNKNOWN_BASE shl 16) or ($084f shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_DISABLEULTIMAP2        = (IOCTL_UNKNOWN_BASE shl 16) or ($0850 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+
+const IOCTL_CE_ULTIMAP2_WAITFORDATA   = (IOCTL_UNKNOWN_BASE shl 16) or ($0851 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_ULTIMAP2_CONTINUE      = (IOCTL_UNKNOWN_BASE shl 16) or ($0852 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_ULTIMAP2_FLUSH         = (IOCTL_UNKNOWN_BASE shl 16) or ($0853 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_ULTIMAP2_PAUSE         = (IOCTL_UNKNOWN_BASE shl 16) or ($0854 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_ULTIMAP2_RESUME        = (IOCTL_UNKNOWN_BASE shl 16) or ($0855 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_ULTIMAP2_LOCKFILE      = (IOCTL_UNKNOWN_BASE shl 16) or ($0856 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_ULTIMAP2_RELEASEFILE   = (IOCTL_UNKNOWN_BASE shl 16) or ($0857 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
 
 
@@ -159,6 +173,12 @@ type
   TUltimapEventArray=array [0..0] of TUltimapEvent;
   PUltimapEventArray=^TUltimapEventArray;
 
+
+  TMapMemoryResult=record
+    address: uint64;
+    mdladdress: uint64;
+  end;
+
 type       //The DataEvent structure contains the address and blockid. Use this when done handling the event
   TUltimapDataEvent=packed record
     Address: Qword;
@@ -170,11 +190,26 @@ type       //The DataEvent structure contains the address and blockid. Use this 
   end;
   PUltimapDataEvent= ^TUltimapDataEvent;
 
+  TUltimap2DataEvent=packed record
+    Address:Qword;
+    Size: Qword;
+    Cpunr: Qword;
+  end;
+  PUltimap2DataEvent= ^TUltimap2DataEvent;
 
 type
+  TURange=record
+    startAddress: QWORD;
+    endaddress: QWORD;
+    isStopRange: QWORD;
+  end;
+  PURange=^TPRange;
+  TURangeArray=array of TURange;
+  PURangeArray=^TURangeArray;
+
   TPRange=record
-    startAddress: UINT64;
-    endaddress: uint64;
+    startAddress: QWORD;
+    endaddress: QWORD;
   end;
   PPRange=^TPRange;
 
@@ -268,6 +303,10 @@ function DBKResumeProcess(ProcessID:dword):boolean; stdcall;
 
 function KernelAlloc(size: dword):pointer; stdcall;
 function KernelAlloc64(size: dword):uint64; stdcall;
+procedure KernelFree(address: uint64); stdcall;
+function MapMemory(address: ptruint; size: dword; frompid: dword=0; topid: dword=0):TMapMemoryResult;
+procedure UnmapMemory(r: TMapMemoryResult);
+
 function GetKProcAddress(s: pwidechar):pointer; stdcall;
 function GetKProcAddress64(s: pwidechar):uint64; stdcall;
 
@@ -282,6 +321,27 @@ function ultimap_waitForData(timeout: dword; output: PUltimapDataEvent): boolean
 function ultimap_continue(previousdataresult: PUltimapDataEvent): boolean;
 procedure ultimap_flush;
 
+
+procedure ultimap2(processid: dword; size: dword; outputfolder: widestring; ranges: TURangeArray);
+procedure ultimap2_disable;
+function  ultimap2_waitForData(timeout: dword; var output: TUltimap2DataEvent): boolean;
+procedure ultimap2_continue(cpunr: integer);
+procedure ultimap2_flush;
+procedure ultimap2_pause;
+procedure ultimap2_resume;
+procedure ultimap2_lockfile(cpunr: integer);
+procedure ultimap2_releasefile(cpunr: integer);
+
+{
+const IOCTL_CE_ULTIMAP2_WAITFORDATA   = (IOCTL_UNKNOWN_BASE shl 16) or ($0851 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_ULTIMAP2_CONTINUE      = (IOCTL_UNKNOWN_BASE shl 16) or ($0852 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_ULTIMAP2_FLUSH         = (IOCTL_UNKNOWN_BASE shl 16) or ($0853 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_ULTIMAP2_PAUSE         = (IOCTL_UNKNOWN_BASE shl 16) or ($0854 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_ULTIMAP2_RESUME        = (IOCTL_UNKNOWN_BASE shl 16) or ($0855 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+
+}
+
+procedure dbk_test;
 
 procedure LaunchDBVM(cpuid: integer); stdcall;
 
@@ -313,6 +373,25 @@ var kernel32dll: thandle;
 implementation
 
 uses vmxfunctions, DBK64SecondaryLoader, NewKernelHandler, frmDriverLoadedUnit, CEFuncProc, Parsers;
+
+resourcestring
+
+  rsInvalidMsrAddress = 'Invalid MSR address:';
+  rsMsrsAreUnavailable = 'msrs are unavailable';
+  rsCouldNotLaunchDbvm = 'Could not launch DBVM: The Intel-VT feature has been disabled in your BIOS';
+  rsYouAreMissingTheDriver = 'You are missing the driver. Try reinstalling cheat engine, and try to disable your anti-virus before doing so.';
+  rsDriverError = 'Driver error';
+  rsFailureToConfigureTheDriver = 'Failure to configure the driver';
+  rsPleaseRebootAndPressF8DuringBoot = 'Please reboot and press F8 during boot. Then choose "allow unsigned drivers". '+#13#10+'Alternatively you could sign the driver yourself.'+#13#10+'Just buy yourself a class 3 business signing certificate and sign the driver. Then you''ll never have to reboot again to use this driver';
+  rsDbk32Error = 'DBK32 error';
+  rsTheServiceCouldntGetOpened = 'The service couldn''t get opened and also couldn''t get created.'+' Check if you have the needed rights to create a service, or call your system admin (Who''ll probably beat you up for even trying this). Untill this is fixed you won''t be able to make use of the enhancements the driver gives you';
+  rsTheDriverCouldntBeOpened = 'The driver couldn''t be opened! It''s not loaded or not responding. Luckely you are running dbvm so it''s not a total waste. Do you wish to force load the driver?';
+  rsTheDriverCouldntBeOpenedTryAgain = 'The driver couldn''t be opened! It''s not loaded or not responding. I recommend to reboot your system and try again (If you''re on 64-bit windows, you might want to use dbvm)';
+  rsTheDriverThatIsCurrentlyLoaded = 'The driver that is currently loaded belongs to a different version of Cheat Engine. Please unload this driver or reboot.';
+  rsTheDriverFailedToSuccessfullyInitialize = 'The driver failed to successfully initialize. Some functions may not completely work';
+  rsAPCRules = 'APC rules';
+  rsPleaseRunThe64BitVersionOfCE = 'Please run the 64-bit version of Cheat Engine';
+  rsDBKError = 'DBK Error';
 
 var dataloc: string;
     applicationPath: string;
@@ -363,6 +442,134 @@ end;
 
 {$W+}
 
+
+procedure ultimap2_disable;
+var
+  cc,br: dword;
+begin
+  OutputDebugString('disable ultimap2');
+  cc:=IOCTL_CE_DISABLEULTIMAP2;
+  deviceiocontrol(hdevice,cc,nil,0,nil,0,br,nil);
+end;
+
+
+procedure ultimap2(processid: dword; size: dword; outputfolder: widestring; ranges: TURangeArray);
+var
+  inp:record
+    PID: UINT32;
+    BufferSize: UINT32;
+    rangecount: UINT32;
+    reserved:   UINT32;
+    range: array[0..7] of TURange;
+    filename: array [0..199] of WideChar;
+  end;
+  cc,br: dword;
+  i: integer;
+begin
+  OutputDebugString('ultimap2:'+outputfolder);
+  zeromemory(@inp, sizeof(inp));
+  inp.PID:=processid;
+  inp.BufferSize:=size;
+
+
+  if outputfolder<>'' then
+  begin
+    if DirectoryExists(outputfolder) then
+    begin
+      outputfolder:='\DosDevices\'+outputfolder;
+
+      if outputfolder[length(outputfolder)]<>PathDelim then
+        outputfolder:=outputfolder+PathDelim;
+    end
+    else
+    begin
+      OutputDebugString(outputfolder+' could not be found');
+      outputfolder:='';
+    end;
+  end;
+
+  for i:=1 to length(outputfolder) do
+    inp.filename[i-1]:=outputfolder[i];
+
+  inp.filename[length(outputfolder)]:=#0;
+
+  inp.rangecount:=min(8,length(ranges));
+
+  for i:=0 to inp.rangecount-1 do
+  begin
+    inp.range[i]:=ranges[i];
+    OutputDebugString(format('r%d : %x - %x', [i, inp.range[i].startAddress, inp.range[i].endaddress]));
+  end;
+
+
+  cc:=IOCTL_CE_ULTIMAP2;
+  deviceiocontrol(hdevice,cc,@inp,sizeof(inp),nil,0,br,nil);
+end;
+
+function  ultimap2_waitForData(timeout: dword; var output: TUltimap2DataEvent): boolean;
+var cc: dword;
+begin
+  if (hdevice<>INVALID_HANDLE_VALUE) then
+    result:=deviceiocontrol(hdevice,IOCTL_CE_ULTIMAP2_WAITFORDATA,@timeout,sizeof(timeout),@output,sizeof(TUltimap2DataEvent),cc,nil)
+  else
+    result:=false;
+end;
+
+
+procedure ultimap2_continue(cpunr: integer);
+var cc: dword;
+begin
+  if (hdevice<>INVALID_HANDLE_VALUE) then
+    deviceiocontrol(hdevice,IOCTL_CE_ULTIMAP2_CONTINUE,@cpunr,sizeof(cpunr),nil,0,cc,nil);
+end;
+
+procedure ultimap2_flush;
+var
+  cc,br: dword;
+begin
+  cc:=IOCTL_CE_ULTIMAP2_FLUSH;
+  deviceiocontrol(hdevice,cc,nil,0,nil,0,br,nil);
+end;
+
+
+procedure ultimap2_pause;
+var
+  cc,br: dword;
+begin
+  cc:=IOCTL_CE_ULTIMAP2_PAUSE;
+  deviceiocontrol(hdevice,cc,nil,0,nil,0,br,nil);
+end;
+
+procedure ultimap2_resume;
+var
+  cc,br: dword;
+begin
+  cc:=IOCTL_CE_ULTIMAP2_RESUME;
+  deviceiocontrol(hdevice,cc,nil,0,nil,0,br,nil);
+end;
+
+procedure ultimap2_lockfile(cpunr: integer);
+var cc: dword;
+begin
+  if (hdevice<>INVALID_HANDLE_VALUE) then
+    deviceiocontrol(hdevice,IOCTL_CE_ULTIMAP2_LOCKFILE,@cpunr,sizeof(cpunr),nil,0,cc,nil);
+end;
+
+procedure ultimap2_releasefile(cpunr: integer);
+var cc: dword;
+begin
+  if (hdevice<>INVALID_HANDLE_VALUE) then
+    deviceiocontrol(hdevice,IOCTL_CE_ULTIMAP2_RELEASEFILE,@cpunr,sizeof(cpunr),nil,0,cc,nil);
+end;
+
+
+procedure dbk_test;
+var cc,br: dword;
+begin
+  OutputDebugString('dbk_test');
+  cc:=IOCTL_CE_TEST;
+  deviceiocontrol(hdevice,cc,nil,0,nil,0,br,nil);
+end;
 
 function GetGDT(limit: pword):dword; stdcall;
 var cc,br: dword;
@@ -1283,6 +1490,10 @@ begin
       result:=0;
   end else result:=windows.OpenProcess(dwDesiredAccess,bInheritHandle,dwProcessID);
 
+{$ifdef badopen}
+  result:=0;
+{$endif}
+
   if result=0 then //you can still access memory using the low level stuff, just not normal stuff
   begin
     valid:=false;
@@ -1385,6 +1596,11 @@ begin
     end;
 end;
 
+function IgnoredVirtualProtectEx(hProcess: THandle; lpAddress: Pointer; dwSize, flNewProtect: DWORD; var OldProtect: DWORD): BOOL; stdcall;
+begin
+  result:=true;
+end;
+
 function KernelWritesIgnoreWriteProtection(state: boolean): boolean;
 var
   br,cc: dword;
@@ -1401,6 +1617,13 @@ begin
       _state:=0;
 
     result:=deviceiocontrol(hdevice,cc,@_state,1,nil,0,br,nil);
+
+    if result and (_state=1) then
+    begin
+      NewKernelHandler.VirtualProtectEx:=IgnoredVirtualProtectEx;
+    end
+    else
+      NewKernelHandler.VirtualProtectEx:=GetProcAddress(WindowsKernel,'VirtualProtectEx');
   end;
 end;
 
@@ -1546,7 +1769,7 @@ begin
   s:=inttohex(ptrUint(NormalContext),8)+' - '+inttohex(ptrUint(SystemArgument1),8)+' - '+inttohex(ptrUint(SystemArgument2),8);
 
   //CreateThread(nil,0,systemArgument1,SystemArgument2,false,@tid);
-  messagebox(0,pchar(s),'APC rules',mb_ok);
+  messagebox(0,pchar(s),pchar(rsAPCRules),mb_ok);
 end;
 
 
@@ -1685,6 +1908,75 @@ begin
     //try allocating using dbvm
     result:=uint64(dbvm_kernelalloc(size));
   end;
+end;
+
+procedure KernelFree(address: uint64); stdcall;
+var cc: dword;
+    x: record
+      address: uint64;
+    end;
+begin
+  x.address:=address;
+
+  if (hdevice<>INVALID_HANDLE_VALUE) then
+  begin
+    cc:=IOCTL_CE_FREE_NONPAGED;
+    deviceiocontrol(hdevice,cc,@x,sizeof(x),@output,sizeof(output),cc,nil);
+  end;
+end;
+
+
+
+function MapMemory(address: ptruint; size: dword; frompid: dword=0; topid: dword=0):TMapMemoryResult;
+var cc: dword;
+    input: record
+      FromPID: uint64;
+      ToPid: uint64;
+      address: uint64;
+      size: dword;
+    end;
+    output: record
+      mdl: uint64;
+      address: uint64;
+    end;
+begin
+  result.address:=0;
+  result.mdladdress:=0;
+  input.frompid:=frompid;
+  input.topid:=topid;
+  input.address:=address;
+  input.size:=size;
+
+  if (hdevice<>INVALID_HANDLE_VALUE) then
+  begin
+    cc:=IOCTL_CE_MAP_MEMORY;
+    if deviceiocontrol(hdevice,cc,@input,sizeof(input),@output,sizeof(output),cc,nil) then
+    begin
+      result.mdladdress:=output.mdl;
+      result.address:=output.address;
+    end;
+
+  end;
+end;
+
+procedure UnmapMemory(r: TMapMemoryResult);
+var
+  input: record
+    mdl: uint64;
+    address: uint64;
+  end;
+  cc: dword;
+begin
+  input.mdl:=r.mdladdress;
+  input.address:=r.address;
+
+  if (hdevice<>INVALID_HANDLE_VALUE) then
+  begin
+    cc:=IOCTL_CE_UNMAP_MEMORY;
+    deviceiocontrol(hdevice,cc,@input,sizeof(input),nil,0,cc,nil);
+  end;
+
+
 end;
 
 function GetKProcAddress(s: pwidechar):pointer; stdcall;
@@ -1903,10 +2195,10 @@ begin
     if deviceiocontrol(hdevice,cc,@msr,sizeof(msr),@msrvalue,sizeof(msrvalue),cc,nil) then
       result:=msrvalue
     else
-      raise exception.create('Invalid MSR address:'+inttohex(msr,1));
+      raise exception.create(rsInvalidMsrAddress+inttohex(msr,1));
   end
   else
-    raise exception.create('msrs are unavailable');
+    raise exception.create(rsMsrsAreUnavailable);
 end;
 
 procedure writeMSR(msr: dword; value: qword);
@@ -1929,7 +2221,7 @@ begin
     deviceiocontrol(hdevice,cc,@input,sizeof(input),nil,0,cc,nil);
   end
   else
-  raise exception.create('msrs are unavailable');
+  raise exception.create(rsMsrsAreUnavailable);
 end;
 
 
@@ -2007,7 +2299,7 @@ begin
       begin
         //the feature control msr is locked
         if (fc and (1 shl 2))=0 then
-          raise exception.create('Could not launch DBVM: The Intel-VT feature has been disabled in your BIOS');
+          raise exception.create(rsCouldNotLaunchDbvm);
       end;
       OutputDebugString('C');
     end;
@@ -2049,7 +2341,10 @@ begin
   end;
 
   if (cpuid=-1) or (AllCoresHaveDBVMLoaded) then
+  begin
+    OutputDebugString('All cpu cores loaded. Activate kernelmode dbvm support');
     configure_vmx_kernel;
+  end;
 end;
 
 
@@ -2365,7 +2660,7 @@ begin
 
       if not fileexists(driverloc) then
       begin
-        messagebox(0,'You are missing the driver. Try reinstalling cheat engine, and try to disable your anti-virus before doing so.','Driver error',MB_ICONERROR or mb_ok);
+        messagebox(0,PChar(rsYouAreMissingTheDriver),PChar(rsDriverError),MB_ICONERROR or mb_ok);
         hDevice:=INVALID_HANDLE_VALUE;
         exit;
       end;
@@ -2420,7 +2715,7 @@ begin
           reg.RootKey:=HKEY_LOCAL_MACHINE;
           if not reg.OpenKey('\SYSTEM\CurrentControlSet\Services\'+servicename,false) then
           begin
-            messagebox(0,'Failure to configure the driver','Driver Error',MB_ICONERROR or mb_ok);
+            messagebox(0,PChar(rsFailureToConfigureTheDriver),PChar(rsDriverError),MB_ICONERROR or mb_ok);
             hDevice:=INVALID_HANDLE_VALUE;
             exit;
           end;
@@ -2435,7 +2730,7 @@ begin
             if getlasterror=577 then
             begin
               if dbvm_version=0 then
-                messagebox(0,'Please reboot and press F8 during boot. Then choose "allow unsigned drivers". '+#13#10+'Alternatively you could sign the driver yourself.'+#13#10+'Just buy yourself a class 3 business signing certificate and sign the driver. Then you''ll never have to reboot again to use this driver','DBK32 error',MB_ICONERROR or mb_ok);
+                messagebox(0,PChar(rsPleaseRebootAndPressF8DuringBoot),PChar(rsDbk32Error),MB_ICONERROR or mb_ok);
               failedduetodriversigning:=true;
             end; //else could already be started
           end;
@@ -2443,7 +2738,7 @@ begin
           closeservicehandle(hservice);
         end else
         begin
-          messagebox(0,'The service couldn''t get opened and also couldn''t get created.'+' Check if you have the needed rights to create a service, or call your system admin (Who''ll probably beat you up for even trying this). Untill this is fixed you won''t be able to make use of the enhancements the driver gives you','DBK32 Error',MB_ICONERROR or mb_ok);
+          messagebox(0,PChar(rsTheServiceCouldntGetOpened),PChar(rsDbk32Error),MB_ICONERROR or mb_ok);
           hDevice:=INVALID_HANDLE_VALUE;
           exit;
         end;
@@ -2462,13 +2757,13 @@ begin
         begin
           if dbvm_version>$ce000000 then
           begin
-            if MessageDlg('The driver couldn''t be opened! It''s not loaded or not responding. Luckely you are running dbvm so it''s not a total waste. Do you wish to force load the driver?', mtconfirmation, [mbyes, mbno],0)=mryes then
+            if MessageDlg(rsTheDriverCouldntBeOpened, mtconfirmation, [mbyes, mbno],0)=mryes then
             begin
               OutputDebugString('Calling SecondaryDriverLoad');
               {$ifdef cpu32}
               if iswow64 then
               begin
-                ShowMessage('Please run the 64-bit version of Cheat Engine');
+                ShowMessage(rsPleaseRunThe64BitVersionOfCE);
                 exit;
               end;
               {$endif}
@@ -2479,7 +2774,7 @@ begin
           end
           else
           begin
-            messagebox(0,'The driver couldn''t be opened! It''s not loaded or not responding. I recommend to reboot your system and try again (If you''re on 64-bit windows, you might want to use dbvm)','DBK32.DLL Error',MB_ICONERROR or MB_OK)
+            messagebox(0,PChar(rsTheDriverCouldntBeOpenedTryAgain),pchar(rsDBKError),MB_ICONERROR or MB_OK)
           end;
 
         end
@@ -2493,7 +2788,7 @@ begin
           if GetDriverVersion<>currentversion then
           begin
             closehandle(hdevice);
-            messagebox(0,'The driver that is currently loaded belongs to a different version of Cheat Engine. Please unload this driver or reboot.','DBK32.dll',MB_ICONERROR or MB_OK);
+            messagebox(0,PChar(rsTheDriverThatIsCurrentlyLoaded),'DBK',MB_ICONERROR or MB_OK);
 
             hdevice:=INVALID_HANDLE_VALUE;
           end
@@ -2502,7 +2797,7 @@ begin
             InitializeDriver(0,0);
             {
             if not InitializeDriver(0,0) then
-              messagebox(0,'The driver failed to successfully initialize. Some functions may not completely work','DBK32.dll',MB_ICONERROR or MB_OK);
+              messagebox(0,rsTheDriverFailedToSuccessfullyInitialize,'DBK',MB_ICONERROR or MB_OK);
               }
 
           end;

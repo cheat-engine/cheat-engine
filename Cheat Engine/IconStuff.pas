@@ -245,6 +245,7 @@ begin
           iconpicker.clientheight:=maxheight+10;
 
         iconpicker.Position:=poScreenCenter;
+        iconpicker.PopupMode:=pmAuto;
 
         if iconlist.count>1 then
           iconpicker.showmodal;

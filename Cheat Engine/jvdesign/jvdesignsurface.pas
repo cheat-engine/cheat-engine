@@ -49,7 +49,7 @@ uses
   win32proc,
   messages,
   {$endif}
-  ExtCtrls, Contnrs,LMessages, Menus;
+  ExtCtrls, Contnrs,LMessages, Menus, strutils;
 
 type
   TJvDesignSurface = class;
@@ -166,6 +166,8 @@ type
     FPopupMenu: TPopupMenu;
 
     procedure MessengerOnChange(sender: tobject);
+    procedure fcce(Reader: TReader; const cn: string;
+    var ComponentClass: TComponentClass);
   protected
     FOnChange: TNotifyEvent;
     FOnGetAddClass: TJvDesignGetAddClassEvent;
@@ -752,6 +754,7 @@ begin
       CO.BoundsRect := GetBounds;
       CO.PopupMenu:= container.PopupMenu;
 
+
       Select(CO);
     end;
     Messenger.DesignComponent(C, Active);
@@ -840,19 +843,64 @@ end;
 
 procedure TJvDesignSurface.CopyComponents;
 var
-  I: Integer;
+  LFMStream: TStringStream;
+  BinStream: TMemoryStream;
+  DestroyDriver: Boolean;
+  w: TWriter;
+  i,j: integer;
+
+  found: boolean;
 begin
-  with TJvDesignComponentClipboard.Create(Container) do
+  LFMStream:=tstringstream.create('');
+
   try
-    OpenWrite;
-    try
-      for I := 0 to Count - 1 do
-        SetComponent(Selection[I]);
-    finally
-      CloseWrite;
+    for i:=0 to count-1 do
+    begin
+      if (selected[i] is TComponent) then
+      begin
+        found:=false;
+        for j:=0 to count-1 do
+          if selection[j].IsParentOf(selection[i]) then
+          begin
+            found:=true;
+            break;
+          end;
+
+        if found then continue; //don't save children of selected objects
+
+        BinStream:=TMemoryStream.Create;
+        try
+          try
+            // write component to binary stream
+
+            DestroyDriver:=false;
+            w:=CreateLRSWriter(BinStream,DestroyDriver);
+            try
+              w.Root:=container;
+              w.WriteComponent(TComponent(selected[i]));
+            finally
+              if DestroyDriver then w.Driver.Free;
+              w.Free;
+            end;
+          except
+            exit;
+          end;
+          try
+            // transform binary to text
+            BinStream.Position:=0;
+            LRSObjectBinaryToText(BinStream,LFMStream);
+          except
+            exit;
+          end;
+        finally
+          binstream.free;
+        end
+      end;
     end;
+
+    clipboard.AsText:=LFMStream.DataString;
   finally
-    Free;
+    LFMStream.free;
   end;
 end;
 
@@ -862,11 +910,21 @@ begin
   DeleteComponents;
 end;
 
+procedure TJvDesignSurface.fcce(Reader: TReader; const cn: string;
+    var ComponentClass: TComponentClass);
+begin
+  //find component class event
+  ComponentClass:=TComponentClass(GetClass(cn));
+
+end;
+
 procedure TJvDesignSurface.PasteComponents;
 var
   CO: TControl;
   C: TComponent;
   P: TWinControl;
+  s: tstringstream;
+  ms: TMemoryStream;
 
   procedure KeepInParent;
   begin
@@ -894,32 +952,44 @@ var
 
   end;
 
+
+  var l: TObjectList;
+    i: integer;
+
 begin
-  with TJvDesignComponentClipboard.Create(Container) do
+  s:=TStringStream.Create(clipboard.AsText);
+  ms:=TMemoryStream.Create;
+
   try
-    OpenRead;
-    try
-      C := GetComponent;
-      if (C <> nil) then
-      begin
-        P := SelectedContainer;
-        ClearSelection;
-        repeat
-          PasteComponent;
-          C := GetComponent;
-        until C = nil;
-        SelectionChange;
-        Change;
+    LRSObjectTextToBinary(s,ms);
+    ms.position:=0;
+
+    l:=tobjectlist.create;
+    ClearSelection;
+    while ms.position<ms.size do
+    begin
+      C:=nil;
+      try
+        ReadComponentFromBinaryStream(ms, C, @fcce, container, SelectedContainer, container);
+        l.add(c);
+      except
+        break;
       end;
-    finally
-      CloseRead;
     end;
+
   finally
-    Free;
+    ms.free;
+    s.free;
   end;
+
+
 
   active:=false;
   active:=true;
+
+  for i:=0 to l.count-1 do
+    selector.AddToSelection(TControl(l[i]));
+  SelectionChange;
 
 end;
 

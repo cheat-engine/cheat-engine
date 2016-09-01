@@ -20,14 +20,15 @@ type
   { TfrmStructureLinker }
 
   TfrmStructureLinker = class(TForm)
-    btnLink: TButton;
     btnCancel: TButton;
+    btnLink: TButton;
     cbNoExactMatches: TCheckBox;
     cbOverrideLocal: TCheckBox;
     cbFillLocal: TCheckBox;
     Label1: TLabel;
     Panel1: TPanel;
     Panel2: TPanel;
+    Panel3: TPanel;
     sgStructureAddress: TStringGrid;
     procedure btnLinkClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);

@@ -33,6 +33,48 @@ begin
   result:=1;
 end;
 
+function memoryrecordhotkey_getKeys(L: PLua_State): integer; cdecl;
+var
+  memoryrecordhotkey: TMemoryRecordHotkey;
+  t, i: integer;
+begin
+  memoryrecordhotkey:=luaclass_getClassObject(L);
+  lua_newtable(L);
+  result:=1;
+
+  t:=lua_gettop(L); //1
+
+  for i:=0 to 4 do
+  begin
+    if memoryrecordhotkey.keys[i]=0 then break;
+    lua_pushinteger(L, i+1);
+    lua_pushinteger(L, memoryrecordhotkey.keys[i]);
+    lua_settable(L, t);
+  end;
+end;
+
+function memoryrecordhotkey_setKeys(L: PLua_State): integer; cdecl;
+var
+  memoryrecordhotkey: TMemoryRecordHotkey;
+  i: integer;
+begin
+  result:=0;
+  memoryrecordhotkey:=luaclass_getClassObject(L);
+
+  if lua_istable(L,1) then
+  begin
+    i:=0;
+    for i:=0 to 4 do
+    begin
+      lua_pushinteger(L, i+1);
+      lua_gettable(L, 1);
+      memoryrecordhotkey.keys[i]:=lua_tointeger(L, -1);
+      if memoryrecordhotkey.keys[i]=0 then exit;
+    end;
+
+  end;
+end;
+
 function memoryrecordhotkey_getID(L: PLua_State): integer; cdecl;
 var
   memoryrecordhotkey: TMemoryRecordHotkey;
@@ -96,6 +138,9 @@ begin
   object_addMetaData(L, metatable, userdata);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'doHotkey', memoryrecordhotkey_doHotkey);
   luaclass_addPropertyToTable(L, metatable, userdata, 'HotkeyString', memoryrecordhotkey_getHotkeyString, nil);
+
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Keys', memoryrecordhotkey_getKeys, memoryrecordhotkey_setKeys);
+
 end;
 
 procedure initializeMemoryRecordHotkey;

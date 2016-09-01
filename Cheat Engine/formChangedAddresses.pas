@@ -62,7 +62,6 @@ type
     { Private declarations }
     addresslist: TMap;
     procedure refetchValues(specificaddress: ptruint=0);
-    function getBase(entry: TAddressEntry): ptruint;
   public
     { Public declarations }
     equation: string;
@@ -76,7 +75,7 @@ implementation
 
 uses CEDebugger, MainUnit, frmRegistersunit, MemoryBrowserFormUnit, debughelper,
   debugeventhandler, debuggertypedefinitions, FoundCodeUnit, StructuresFrm2,
-  processhandlerunit, Globals, Parsers;
+  processhandlerunit, Globals, Parsers, frmStackViewUnit, frmSelectionlistunit;
 
 resourcestring
   rsStop='Stop';
@@ -102,12 +101,6 @@ begin
   end;
 end;
 
-
-function TfrmChangedAddresses.getBase(entry: TAddressEntry): ptruint;
-//parse the equation
-begin
-
-end;
 
 procedure TfrmChangedAddresses.AddRecord;
 var
@@ -200,37 +193,81 @@ var
   ae: TAddressEntry;
   ap: TAddressParser;
   address: ptruint;
-  sf: TfrmStructures2;
+
+  s: tstringlist;
+  f: TfrmSelectionList;
+
+  structurefrm: TfrmStructures2;
+  new: boolean;
+
+  maxoffset: dword;
+
 begin
+  ap:=TAddressParser.Create;
 
-
-  if changedlist.Items.Count>0 then
+  if changedlist.SelCount>0 then
   begin
-    ap:=TAddressParser.Create;
+    //find out which data dissect windows are open
+    s:=tstringlist.create;
 
-    sf:=TfrmStructures2.Create(application);
-    sf.show;
+    if frmStructures2=nil then
+      raise exception.create(rsTheStructuresListIsBroken);
 
-    for i:=0 to changedlist.Items.Count-1 do
+    for i:=0 to frmStructures2.Count-1 do
+      s.add(TfrmStructures2(frmStructures2[i]).Caption);
+
+    s.add(rsNewWindow);
+
+    f:=TfrmSelectionList.Create(self, s);
+
+    f.caption:=rsLockAndAddToStructureDissect;
+    f.label1.Caption:=rsSelectTheStructureDissectWindowYouWishToAddThisReg;
+
+    if f.showmodal=mrok then
     begin
-      if changedlist.Items[i].Selected then
-      begin
-        ae:=changedlist.items[i].data;
-        ap.setSpecialContext(@ae.context);
-        address:=ap.getBaseAddress(equation);
+      if f.itemindex=-1 then f.itemindex:=0;
 
-        if address<>0 then
-          sf.addColumn.Address:=address;
+      if f.itemindex>=frmStructures2.Count then       //new window
+      begin
+        structurefrm:=tfrmstructures2.create(application);
+        structurefrm.show;
+      end
+      else
+        structurefrm:=TfrmStructures2(frmStructures2[f.itemindex]);
+
+      //add the addresses
+
+
+      maxoffset:=4096;
+      for i:=0 to changedlist.Items.Count-1 do
+      begin
+        if changedlist.Items[i].Selected then
+        begin
+          ae:=changedlist.items[i].data;
+          ap.setSpecialContext(@ae.context);
+          address:=ap.getBaseAddress(equation);
+
+          maxoffset:=max(maxoffset, 8+strtoint64('$'+changedlist.Items[i].Caption)-address);
+
+          if address<>0 then
+            structurefrm.addColumn.Address:=address;
+        end;
       end;
+
+
+      structurefrm.show;
+
+      if structurefrm.mainStruct=nil then //if no structure is selected define it then
+        structurefrm.DefineNewStructure(maxoffset);
+
     end;
 
-
-
-
-
-    ap.free;
-
   end;
+
+
+
+  ap.free;
+
 end;
 
 procedure TfrmChangedAddresses.ChangedlistColumnClick(Sender: TObject;

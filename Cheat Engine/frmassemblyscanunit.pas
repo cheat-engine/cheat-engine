@@ -24,6 +24,8 @@ type
     Panel2: TPanel;
     Splitter1: TSplitter;
     procedure btnOkClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     { private declarations }
   public
@@ -40,11 +42,23 @@ implementation
 
 { TfrmAssemblyScan }
 
+uses symbolhandler;
+
 procedure TfrmAssemblyScan.btnOkClick(Sender: TObject);
 begin
-  startaddress:=StrToQWordEx('$'+edtFrom.Text);
-  stopaddress:=StrToQWordEx('$'+edtTo.Text);
+  startaddress:=symhandler.getAddressFromName(edtFrom.Text);
+  stopaddress:=symhandler.getAddressFromName(edtTo.Text);
   modalresult:=mrok;
+end;
+
+procedure TfrmAssemblyScan.FormCreate(Sender: TObject);
+begin
+
+end;
+
+procedure TfrmAssemblyScan.FormShow(Sender: TObject);
+begin
+  panel2.autosize:=false;
 end;
 
 end.

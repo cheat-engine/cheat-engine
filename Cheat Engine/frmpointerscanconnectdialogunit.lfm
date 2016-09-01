@@ -3,17 +3,22 @@ object frmPointerscanConnectDialog: TfrmPointerscanConnectDialog
   Height = 170
   Top = 114
   Width = 264
+  AutoSize = True
   BorderStyle = bsSingle
   Caption = 'Connect to active pointerscanner'
   ClientHeight = 170
   ClientWidth = 264
   OnCreate = FormCreate
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object edtHost: TEdit
-    Left = 8
+    AnchorSideLeft.Control = lblHost
+    AnchorSideTop.Control = lblHost
+    AnchorSideTop.Side = asrBottom
+    Left = 6
     Height = 23
-    Top = 24
+    Top = 19
     Width = 152
     TabOrder = 0
     Text = 'localhost'
@@ -22,60 +27,70 @@ object frmPointerscanConnectDialog: TfrmPointerscanConnectDialog
     AnchorSideLeft.Control = edtHost
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = edtHost
-    Left = 175
+    Left = 173
     Height = 23
-    Top = 24
+    Top = 19
     Width = 80
     BorderSpacing.Left = 15
     TabOrder = 1
     Text = '52737'
   end
   object lblHost: TLabel
-    AnchorSideLeft.Control = edtHost
-    AnchorSideTop.Side = asrBottom
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
     AnchorSideBottom.Control = edtHost
-    Left = 8
+    Left = 6
     Height = 15
-    Top = 9
+    Top = 4
     Width = 25
-    Anchors = [akLeft, akBottom]
+    BorderSpacing.Left = 6
+    BorderSpacing.Top = 4
     Caption = 'Host'
     ParentColor = False
   end
   object lblPort: TLabel
     AnchorSideLeft.Control = edtPort
     AnchorSideBottom.Control = edtPort
-    Left = 175
+    Left = 173
     Height = 15
-    Top = 9
+    Top = 4
     Width = 22
     Anchors = [akLeft, akBottom]
     Caption = 'Port'
     ParentColor = False
   end
   object lblNrOfThread: TLabel
+    AnchorSideLeft.Control = edtHost
     AnchorSideTop.Control = edtThreadcount
     AnchorSideTop.Side = asrCenter
-    Left = 8
+    Left = 6
     Height = 15
-    Top = 54
+    Top = 51
     Width = 126
     Caption = 'Nr of threads scanning: '
     ParentColor = False
   end
   object edtThreadcount: TEdit
-    Left = 175
+    AnchorSideLeft.Control = edtPort
+    AnchorSideTop.Control = edtPort
+    AnchorSideTop.Side = asrBottom
+    Left = 173
     Height = 23
-    Top = 50
+    Top = 47
     Width = 80
+    BorderSpacing.Top = 5
     TabOrder = 2
     Text = '2'
   end
   object cbPriority: TComboBox
-    Left = 175
+    AnchorSideLeft.Control = edtPort
+    AnchorSideTop.Control = edtThreadcount
+    AnchorSideTop.Side = asrBottom
+    Left = 173
     Height = 23
-    Top = 78
+    Top = 75
     Width = 80
+    BorderSpacing.Top = 5
     ItemHeight = 15
     ItemIndex = 3
     Items.Strings = (
@@ -91,52 +106,83 @@ object frmPointerscanConnectDialog: TfrmPointerscanConnectDialog
     Text = 'Normal'
   end
   object lblPriority: TLabel
+    AnchorSideLeft.Control = edtHost
     AnchorSideTop.Control = cbPriority
     AnchorSideTop.Side = asrCenter
-    Left = 8
+    Left = 6
     Height = 15
-    Top = 82
+    Top = 79
     Width = 38
     Caption = 'Priority'
     ParentColor = False
   end
-  object btnOk: TButton
-    Left = 48
-    Height = 25
-    Top = 136
-    Width = 75
-    Caption = 'Connect'
-    Default = True
-    OnClick = btnOkClick
-    TabOrder = 4
-  end
-  object btnCancel: TButton
-    Left = 136
-    Height = 25
-    Top = 136
-    Width = 75
-    Cancel = True
-    Caption = 'Cancel'
-    ModalResult = 2
-    TabOrder = 5
-  end
   object cbUseLoadedPointermap: TCheckBox
-    Left = 8
+    AnchorSideLeft.Control = edtHost
+    AnchorSideTop.Control = cbPriority
+    AnchorSideTop.Side = asrBottom
+    Left = 6
     Height = 19
     Hint = 'If you use this option you can omit the downloading of the pointermap'
-    Top = 104
+    Top = 98
     Width = 137
     Caption = 'Use saved pointermap'
     OnChange = cbUseLoadedPointermapChange
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 6
+    TabOrder = 4
+  end
+  object Panel1: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = cbUseLoadedPointermap
+    AnchorSideTop.Side = asrBottom
+    Left = 54
+    Height = 25
+    Top = 119
+    Width = 157
+    AutoSize = True
+    BorderSpacing.Top = 2
+    BorderSpacing.Bottom = 3
+    BevelOuter = bvNone
+    ClientHeight = 25
+    ClientWidth = 157
+    TabOrder = 5
+    object btnOk: TButton
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = Panel1
+      Left = 0
+      Height = 25
+      Top = 0
+      Width = 75
+      AutoSize = True
+      Caption = 'Connect'
+      Constraints.MinWidth = 75
+      Default = True
+      OnClick = btnOkClick
+      TabOrder = 0
+    end
+    object btnCancel: TButton
+      AnchorSideLeft.Control = btnOk
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = btnOk
+      Left = 82
+      Height = 25
+      Top = 0
+      Width = 75
+      AutoSize = True
+      BorderSpacing.Left = 7
+      Cancel = True
+      Caption = 'Cancel'
+      Constraints.MinWidth = 75
+      ModalResult = 2
+      TabOrder = 1
+    end
   end
   object odLoadPointermap: TOpenDialog
     DefaultExt = '.scandata'
     Filter = 'All files (*.*)|*.*|scandata files|*.scandata'
     FilterIndex = 2
     left = 120
-    top = 64
+    top = 40
   end
 end

@@ -52,6 +52,7 @@ resourcestring
   rsFailureDuplicatingTheEventHandlesToTheOtherProcess = 'Failure duplicating '
     +'the event handles to the other process';
   rsVEHDebugError = 'VEH Debug error';
+  rsFailureDuplicatingTheFilemapping = 'Failure duplicating the filemapping';
 
 constructor TVEHDebugInterface.create;
 begin
@@ -339,8 +340,8 @@ begin
 
     result:=false;
 
-    if symhandler.getmodulebyname('vehdebug'+prefix+'.dll',mi) then
-      exit; //no reattach supported right now
+   { if symhandler.getmodulebyname('vehdebug'+prefix+'.dll',mi) then
+      exit; //no reattach supported right now     }
 
 
 
@@ -398,13 +399,16 @@ begin
         rsFailureDuplicatingTheEventHandlesToTheOtherProcess);
 
     if not DuplicateHandle(GetCurrentProcess, ConfigFileMapping, processhandle, @cfm, 0, false, DUPLICATE_SAME_ACCESS	) then
-      raise exception.Create('Failure duplicating the filemapping');
+      raise exception.Create(rsFailureDuplicatingTheFilemapping);
 
 
 
     symhandler.waitforsymbolsloaded(true,'kernel32.dll');
 
-    InjectDll(cheatenginedir+'vehdebug'+prefix+'.dll');
+    try
+      InjectDll(cheatenginedir+'vehdebug'+prefix+'.dll');
+    except
+    end;
     symhandler.reinitialize;
     symhandler.waitforsymbolsloaded(true,'vehdebug'+prefix+'.dll');
 
@@ -446,7 +450,7 @@ begin
   except
     on e: exception do
     begin
-      messagebox(0, pchar(e.message), pchar(rsVEHDebugError), MB_OK or MB_ICONERROR);
+      messagebox(0, pchar(e.message), pchar(utf8toansi(rsVEHDebugError)), MB_OK or MB_ICONERROR);
       result:=false;
     end;
   end;

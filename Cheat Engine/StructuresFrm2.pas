@@ -12,7 +12,7 @@ uses
   XMLRead, XMLWrite, Clipbrd, CustomTypeHandler, strutils, dotnetpipe, DotNetTypes, commonTypeDefs;
 
 
-
+const structureversion=2;
 
   { TfrmStructures2 }
 type
@@ -35,6 +35,7 @@ type
     fdisplayMethod: TdisplayMethod;
     fchildstruct: TDissectedStruct;
     fchildstructstart: integer; //offset into the childstruct where this pointer starts. Always 0 for local structs, can be higher than 0 for other defined structs
+    fExpandChangesAddress: boolean;
   public
     delayLoadedStructname: string;
     constructor createFromXMLElement(parent:TDissectedStruct; element: TDOMElement);
@@ -82,6 +83,7 @@ type
     property ChildStructStart: integer read fchildstructstart write setChildStructStart;
     property index: integer read getIndex;
     property parent: TDissectedStruct read getParent;
+    property ExpandChangesAddress: boolean read fExpandChangesAddress write fExpandChangesAddress;
   end;
 
 
@@ -143,7 +145,7 @@ type
     procedure endUpdate;
     procedure DoElementChangeNotification(element: TStructelement);
 
-    procedure OnDeleteStructNotification(structtodelete: TDissectedStruct);
+    procedure OnDeleteStructNotification(structtodelete: TDissectedStruct; path: TList);
 
     procedure sortElements;
     function addElement(name: string=''; offset: integer=0; vartype: TVariableType=vtByte; customtype:TCustomtype=nil; bytesize: integer=0; childstruct: TDissectedStruct=nil): TStructelement;
@@ -361,13 +363,13 @@ type
     miNewWindow: TMenuItem;
     Open1: TMenuItem;
     OpenDialog1: TOpenDialog;
-    pnlGroups: TPanel;
     pmStructureView: TPopupMenu;
     miRecalculateAddress: TMenuItem;
     Renamestructure1: TMenuItem;
     Save1: TMenuItem;
     SaveDialog1: TSaveDialog;
     saveValues: TSaveDialog;
+    pnlGroups: TScrollBox;
     Structures1: TMenuItem;
     tmFixGui: TTimer;
     updatetimer: TTimer;
@@ -548,7 +550,7 @@ implementation
 
 uses MainUnit, mainunit2, frmStructures2ElementInfoUnit, MemoryBrowserFormUnit,
   frmStructureLinkerUnit, frmgroupscanalgoritmgeneratorunit, frmStringPointerScanUnit,
-  ProcessHandlerUnit, Parsers;
+  ProcessHandlerUnit, Parsers, LuaCaller;
 
 resourcestring
   rsAddressValue = 'Address: Value';
@@ -644,7 +646,10 @@ resourcestring
   rsSF2Hex = ' (Hex)';
   rsSF2Signed = ' (Signed)';
   rsSF2To = ' to ';
-
+  rsP = 'P->';
+  rsUnsignedInteger = 'Unsigned Integer';
+  rsSignedInteger = 'Signed Integer';
+  rsHexadecimal = 'Hexadecimal';
 
 var
   StructureDissectOverrides: array of TStructureDissectOverride;
@@ -671,7 +676,10 @@ end;
 procedure unregisterStructureNameLookup(id: integer);
 begin
   if id<length(StructureNameLookups) then
+  begin
+    CleanupLuaCall(TMethod(StructureNameLookups[id]));
     StructureNameLookups[id]:=nil;
+  end;
 end;
 
 function registerStructureDissectOverride(m: TStructureDissectOverride): integer;
@@ -695,7 +703,10 @@ end;
 procedure unregisterStructureDissectOverride(id: integer);
 begin
   if id<length(StructureDissectOverrides) then
+  begin
+    CleanupLuaCall(TMethod(StructureDissectOverrides[id]));
     StructureDissectOverrides[id]:=nil;
+  end;
 end;
 
 function lookupStructureName(address: ptruint; defaultName: string) : string;
@@ -720,9 +731,9 @@ end;
 function DisplaymethodToString(d:TdisplayMethod): string;
 begin
   case d of
-    dtUnsignedInteger: result:='Unsigned Integer';
-    dtSignedInteger: result:='Signed Integer';
-    dtHexadecimal: result:='Hexadecimal';
+    dtUnsignedInteger: result:=rsUnsignedInteger;
+    dtSignedInteger: result:=rsSignedInteger;
+    dtHexadecimal: result:=rsHexadecimal;
   end;
 end;
 
@@ -900,7 +911,7 @@ begin
   if vartype=vtPointer then
   begin
     ashex:=true;
-    result:='P->';
+    result:=rsP;
 
     if processhandler.is64Bit then
       vt:=vtQword
@@ -938,7 +949,7 @@ begin
     hex:=true;
 
     //strip optional P-> part
-    if copy(value, 1,3)='P->' then
+    if copy(value, 1,3)=rsP then
       value:=copy(value,4, length(value)-3);
   end
   else
@@ -1106,7 +1117,10 @@ end;
 
 function TDissectedStruct.getElementCount: integer;
 begin
-  result:=structelementlist.Count;
+  if structelementlist<>nil then
+    result:=structelementlist.Count
+  else
+    result:=0;
 end;
 
 function TDissectedStruct.getElement(index: integer): TStructelement;
@@ -1120,6 +1134,7 @@ end;
 
 function TDissectedStruct.isUpdating: boolean;
 begin
+
   result:=fUpdateCounter>0;
 end;
 
@@ -1327,7 +1342,8 @@ var
   offset: integer;
   elemsize: integer;
 begin
-  if frmStructuresConfig.cbAutoGuessCustomTypes.checked then
+
+  if (frmStructuresConfig<>nil) and frmStructuresConfig.cbAutoGuessCustomTypes.checked then
     ctp:=@customtype
   else
     ctp:=nil;
@@ -1482,8 +1498,10 @@ begin
 
 
 
+    x:=0;
+    readprocessmemory(processhandle,pointer(baseaddress),@buf[0],bytesize,x);
 
-    if readprocessmemory(processhandle,pointer(baseaddress),@buf[0],bytesize,x) then
+    if x>0 then
     begin
       currentOffset:=offset;
 
@@ -1597,7 +1615,7 @@ begin
   //if nothing is found result will contain the current count, resulting in nothing
 end;
 
-procedure TDissectedStruct.OnDeleteStructNotification(structtodelete: TDissectedStruct);
+procedure TDissectedStruct.OnDeleteStructNotification(structtodelete: TDissectedStruct; path: TList);
 var
   i: integer;
   s: TDissectedStruct;
@@ -1605,7 +1623,10 @@ begin
   //remove all mentioning of this struct
   if structtodelete=self then exit;
 
+  if structelementlist=nil then exit; //destroyed structure called (bug)
+
   beginUpdate;
+
   for i:=0 to count-1 do
   begin
     s:=element[i].ChildStruct;
@@ -1617,8 +1638,12 @@ begin
       else
       begin
         //a struct but not the deleted one. Make sure it is a LOCAL one to prevent an infinite loop (a global struct can point to itself)
-        if not s.isInGlobalStructList then
-          s.OnDeleteStructNotification(structtodelete);
+        if (not s.isInGlobalStructList) and (path.IndexOf(self)=-1) then
+        begin
+          path.Add(self); //prevents infinite loops
+          s.OnDeleteStructNotification(structtodelete, path);
+          path.Remove(self);
+        end;
       end;
     end;
   end;
@@ -1626,19 +1651,30 @@ begin
 end;
 
 procedure TDissectedStruct.DoDeleteStructNotification;
-var i: integer;
+var
+  i: integer;
+  infiniteLoopProtection: tlist;
 begin
+  //tell each structure that it should remove all the childstruct mentions of this structure
+
+  for i:=0 to DissectedStructs.count-1 do
+  begin
+    if DissectedStructs[i]<>self then
+    begin
+      infiniteLoopProtection:=TList.create;
+      try
+        TDissectedStruct(DissectedStructs[i]).OnDeleteStructNotification(self, infiniteLoopProtection);
+      finally
+        infiniteLoopProtection.Free;
+      end;
+    end;
+  end;
+
   //tell each form that it should close this structure
   for i:=0 to frmStructures2.Count-1 do
     TfrmStructures2(frmStructures2[i]).OnStructureDelete(self);
 
 
-  //tell each structure that it should remove all the childstruct mentions of this structure
-  for i:=0 to DissectedStructs.count-1 do
-  begin
-    if DissectedStructs[i]<>self then
-      TDissectedStruct(DissectedStructs[i]).OnDeleteStructNotification(self);
-  end;
 end;
 
 
@@ -1992,6 +2028,8 @@ begin
   beginUpdate; //never endupdate
 
 
+  DoDeleteStructNotification;
+
   if structelementlist<>nil then
   begin
     while structelementlist.Count>0 do
@@ -2000,7 +2038,6 @@ begin
     freeandnil(structelementlist);
   end;
 
-  DoDeleteStructNotification;
 
   removeFromGlobalStructList;
 
@@ -2124,7 +2161,7 @@ begin
 end;
 
 procedure TStructColumn.setFocused(state: boolean);
-var i: integer;
+var i,x: integer;
 begin
   if fFocused=state then exit;
 
@@ -2136,12 +2173,30 @@ begin
   begin
     for i:=0 to parent.parent.columncount-1 do
       if parent.parent.columns[i]<>self then
+      begin
         parent.parent.columns[i].focused:=false;
+      end
+      else
+      begin
+        if state and parent.parent.pnlGroups.HorzScrollBar.IsScrollBarVisible then
+        begin
+
+          x:=parent.parent.columns[i].EditLeft+parent.parent.columns[i].parent.GroupBox.left;
+          //if not visible, then make it visible
+          if not InRange(x+parent.parent.columns[i].EditWidth div 2, parent.parent.pnlGroups.HorzScrollBar.Position,  parent.parent.pnlGroups.ClientWidth) then
+          begin
+            parent.parent.pnlGroups.HorzScrollBar.Position:=x-5;
+          end;
+
+        end;
+      end;
   end;
 
   //make focus visible
   focusedShape.visible:=state;
   fFocused:=state;
+
+
 end;
 
 procedure TStructColumn.clearSavedState;
@@ -2619,6 +2674,7 @@ begin
   GroupBox.Caption:=groupname;
   GroupBox.height:=parent.pnlGroups.ClientHeight;
   groupbox.parent:=parent.pnlGroups;
+  //groupbox.AutoSize:=true;
 
   groupbox.popupmenu:=grouppopup;
 end;
@@ -2726,6 +2782,7 @@ end;
 
 procedure TfrmStructures2.FormShow(Sender: TObject);
 begin
+  HeaderControl1.Height:=canvas.TextHeight('XgjQh'+HeaderControl1.Sections[0].Text)+4;
   if (initialaddress<>0) and (columnCount=0) then  //add the initial address, else it looks so sad...
   begin
     addColumn;
@@ -2777,6 +2834,7 @@ var
   displacement: integer;
 
   parentelement: TStructelement;
+  n: TStructelement;
 begin
   baseaddress:=column.Address;
   setlength(offsetlist,0);
@@ -2798,7 +2856,15 @@ begin
     else
       displacement:=0;
 
-    offsetlist[i]:=getStructElementFromNode(node).Offset-displacement;
+    n:=getStructElementFromNode(node);
+    if n=nil then
+    begin
+      baseaddress:=0;
+      setlength(offsetlist,0);
+      exit;
+    end;
+
+    offsetlist[i]:=n.Offset-displacement;
     inc(i);
 
     node:=prevnode;
@@ -2995,19 +3061,32 @@ end;
 
 procedure TfrmStructures2.setupNodeWithElement(node: TTreenode; element: TStructElement);
 begin
-  if (element.isPointer) then
-  begin
-    node.Data:=element.ChildStruct;
-    node.HasChildren:=true;
-  end
-  else
-  begin
-    //an update caused this node to lose it's pointerstate. If it had children, it doesn't anymore
-    node.data:=nil;
-    if node.HasChildren then
-      node.DeleteChildren;
+  tvStructureView.OnCollapsing:=nil;
+  tvStructureView.OnCollapsed:=nil;
 
-    node.haschildren:=false;
+  try
+    if (element.isPointer) then
+    begin
+      node.Data:=element.ChildStruct;
+      if node.data=nil then
+        node.DeleteChildren;
+
+      node.HasChildren:=true;
+    end
+    else
+    begin
+      //an update caused this node to lose it's pointerstate. If it had children, it doesn't anymore
+      node.data:=nil;
+      node.DeleteChildren;
+      node.haschildren:=false;
+    end;
+
+
+
+
+  finally
+    tvStructureView.OnCollapsing:=tvStructureViewCollapsing;
+    tvStructureView.OnCollapsed:=tvStructureViewCollapsed;
   end;
 end;
 
@@ -3065,7 +3144,16 @@ begin
   tvStructureView.BeginUpdate;
   try
     if node.HasChildren then
+    begin
+      tvStructureView.OnCollapsing:=nil;
+      tvStructureView.OnCollapsed:=nil;
+
       node.DeleteChildren; //delete the children when collapsed
+
+      tvStructureView.OnCollapsing:=tvStructureViewCollapsing;
+      tvStructureView.OnCollapsed:=tvStructureViewCollapsed;
+
+    end;
 
     if node.parent<>nil then //almost always, and then it IS a child
     begin
@@ -3073,7 +3161,7 @@ begin
 
       struct:=getStructFromNode(node);
 
-      if struct.structelementlist=nil then exit; //this whole structure is destroyed
+      if (struct=nil) or (struct.structelementlist=nil) then exit; //this whole structure is destroyed
 
       //now get the element this node represents and check if it is a pointer
       node.HasChildren:=struct[node.Index].isPointer;
@@ -3138,6 +3226,31 @@ var n: TStructelement;
 begin
   AllowExpansion:=true;
   n:=getStructElementFromNode(node);
+
+
+  if (n<>nil) and (n.ExpandChangesAddress) then
+  begin
+    //change address and the structure if needed
+    AllowExpansion:=false;
+
+    c:=getFocusedColumn;
+    address:=getAddressFromNode(node, c, error);
+    if not error then
+    begin
+      //dereference the pointer and fill it in if possible
+      if ReadProcessMemory(processhandle, pointer(address), @address, processhandler.pointersize, x) then
+      begin
+        c:=getFocusedColumn;
+
+        c.Address:=address-n.ChildStructStart;
+        mainStruct:=n.ChildStruct;
+      end;
+    end;
+
+    exit;
+  end;
+
+
   if (n<>nil) and (n.isPointer) and (n.ChildStruct=nil) then
   begin
     if miAutoCreate.Checked then
@@ -3244,11 +3357,36 @@ begin
 end;
 
 procedure TfrmStructures2.onStructureDelete(sender: TDissectedStruct);
+var n: TTreenode;
 begin
   if sender=mainStruct then
   begin
     mainstruct:=nil;
     tvStructureView.Items.Clear;
+  end
+  else
+  begin
+    tvStructureView.OnCollapsing:=nil;
+    tvStructureView.OnCollapsed:=nil;
+
+    try
+      n:=tvStructureView.Items.GetFirstNode;
+
+      while n<>nil do
+      begin
+        if n.data=sender then
+        begin
+          n.data:=nil;
+          n.Collapse(true);
+          n.DeleteChildren;
+        end;
+        n:=n.GetNext;
+      end;
+
+    finally
+      tvStructureView.OnCollapsing:=tvStructureViewCollapsing;
+      tvStructureView.OnCollapsed:=tvStructureViewCollapsed;
+    end;
   end;
 end;
 
@@ -3310,7 +3448,33 @@ var i: integer;
     n: Ttreenode;
 begin
   //find the treenodes that belong to this specific element and change them accordingly
-  for i:=0 to tvStructureView.Items.Count-1 do
+  i:=0;
+  n:=tvStructureView.Items.GetFirstNode;
+  while n<>nil do
+  begin
+    if n.data=struct then
+    begin
+      if n.expanded then
+      begin
+        if n.Count>=element.index then
+          setupNodeWithElement(n[element.index], element)
+        else
+        begin
+          tvStructureView.OnCollapsing:=nil;
+          tvStructureView.OnCollapsed:=nil;
+
+          n.DeleteChildren;
+
+          tvStructureView.OnCollapsing:=tvStructureViewCollapsing;
+          tvStructureView.OnCollapsed:=tvStructureViewCollapsed;
+        end;
+      end;
+    end;
+    n:=n.GetNext;
+  end;
+
+{  while i<tvStructureView.Items.Count do
+  begin
     if tvStructureView.Items[i].Data=struct then //this node contains the element
     begin
       if tvStructureView.Items[i].Expanded then
@@ -3321,6 +3485,8 @@ begin
         setupNodeWithElement(n, element);
       end;
     end;
+    inc(i);
+  end;   }
 
 
 
@@ -3448,11 +3614,14 @@ var i: integer;
   n: TTreenode;
 begin
   //find the structure this node belongs
+  result:=nil;
+
   if (node<>nil) and (node.level>0) then
   begin
     pse:=getStructElementFromNode(node.parent);
     nodestruct:=TDissectedStruct(node.parent.data);
 
+    if nodestruct=nil then exit;
 
     if pse<>nil then
       i:=nodestruct.getIndexOfOffset(pse.ChildStructStart)
@@ -3460,11 +3629,7 @@ begin
       i:=0;
 
     result:=nodestruct[node.index+i];
-  end
-  else
-    result:=nil;
-
-
+  end;
 end;
 
 function TfrmStructures2.getStructFromNode(node: TTreenode): TDissectedStruct;
@@ -3516,6 +3681,8 @@ begin
     hexadecimal:=structelement.displayMethod=dtHexadecimal;
     signed:=structelement.displaymethod=dtSignedInteger;
 
+    ExpandChangesAddress:=structelement.ExpandChangesAddress;
+
 
     if tvStructureView.SelectionCount>1 then
       edtOffset.Enabled:=false;
@@ -3549,6 +3716,8 @@ begin
 
         structElement.parent.beginUpdate;
         try
+          structelement.ExpandChangesAddress:=ExpandChangesAddress;
+
           if changedDescription then
             structElement.name:=description;
 
@@ -3592,6 +3761,8 @@ begin
             structelement.ChildStruct:=nil;
             structelement.ChildStructStart:=0;
           end;
+
+
 
         finally
           structElement.parent.endupdate;
@@ -3679,6 +3850,7 @@ begin
         end;
 
         structElement.BackgroundColor:=backgroundColor;
+        structElement.ExpandChangesAddress:=ExpandChangesAddress;
 
 
 
@@ -4002,9 +4174,9 @@ var elementlist: Tlist;
   originalindex: integer;
 begin
   //save the old selection pos
-  if tvStructureView.Selected<>nil then
+ { if tvStructureView.Selected<>nil then
     originalindex:=tvStructureView.Selected.AbsoluteIndex
-  else
+  else    }
     originalindex:=-1;
 
 
@@ -4014,6 +4186,11 @@ begin
   try
     for i:=0 to tvStructureView.SelectionCount-1 do
     begin
+      if originalindex=-1 then
+        originalindex:=tvStructureView.Selections[i].AbsoluteIndex;
+
+      originalindex:=min(tvStructureView.Selections[i].AbsoluteIndex, originalindex);
+
       e:=getStructElementFromNode(tvStructureView.Selections[i]);
       if (e<>nil) and ((struct=nil) or (e.parent=struct))  then //the element can be null if it's the origin
       begin
@@ -4046,7 +4223,9 @@ begin
 
   //restore the selection pos
   if originalindex>=0 then
+  begin
     tvStructureView.Items.SelectOnlyThis(tvStructureView.Items[min(tvStructureView.items.count-1, originalindex)]);
+  end;
 
 end;
 
@@ -5161,12 +5340,6 @@ begin
     group[i].GroupBox.ClientHeight:=maxh;
 
 
-  pnlGroups.ClientHeight:=group[0].GroupBox.top+group[0].GroupBox.Height+2;
-  HeaderControl1.Top:=pnlgroups.Top+pnlGroups.Height;
-  tvStructureView.top:=HeaderControl1.Top+HeaderControl1.Height;
-
-
-
 
   for i:=0 to groupcount-1 do
   begin
@@ -5187,6 +5360,8 @@ begin
     else
       group[i].box.width:=20;
   end;
+
+  pnlGroups.ClientHeight:=group[0].GroupBox.top+group[0].GroupBox.Height+2;
 end;
 
 initialization

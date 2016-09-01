@@ -58,26 +58,28 @@ type
   { TfrmUltimap }
 
   TfrmUltimap = class(TForm)
+    btnExecuted: TButton;
+    btnFilterCallCount: TButton;
+    btnFilterModule: TButton;
+    btnNotCalled: TButton;
+    btnNotExecuted: TButton;
     btnPause: TButton;
+    btnResetCount: TButton;
+    btnRet: TButton;
     btnStart: TButton;
     btnStop: TButton;
-    btnFilterModule: TButton;
-    btnResetCount: TButton;
-    btnExecuted: TButton;
-    btnNotExecuted: TButton;
     Button5: TButton;
     Button6: TButton;
-    btnNotCalled: TButton;
-    btnFilterCallCount: TButton;
-    btnRet: TButton;
+    cbFilterFuturePaths: TCheckBox;
+    cbfilterOutNewEntries: TCheckBox;
     cbLogToFile: TRadioButton;
     cbParseData: TRadioButton;
     cbPreemptiveFlush: TCheckBox;
-    cbfilterOutNewEntries: TCheckBox;
     Edit1: TEdit;
     edtBufSize: TEdit;
     edtFilename: TEdit;
     edtWorkerCount: TEdit;
+    Flusher: TTimer;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
@@ -86,17 +88,19 @@ type
     Label6: TLabel;
     lblLastfilterresult: TLabel;
     ListView1: TListView;
-    miSetHotkey: TMenuItem;
+    MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     miRemoveHotkey: TMenuItem;
+    miSetHotkey: TMenuItem;
     Panel1: TPanel;
     Panel2: TPanel;
     Panel3: TPanel;
+    Panel4: TPanel;
     Panel5: TPanel;
+    Panel6: TPanel;
     pmSetHotkey: TPopupMenu;
     PopupMenu1: TPopupMenu;
     Timer1: TTimer;
-    Flusher: TTimer;
     procedure btnStartClick(Sender: TObject);
     procedure btnStopClick(Sender: TObject);
     procedure btnPauseClick(Sender: TObject);
@@ -104,6 +108,7 @@ type
     procedure btnResetCountClick(Sender: TObject);
     procedure btnExecutedClick(Sender: TObject);
     procedure btnNotExecutedClick(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
     procedure Button5Click(Sender: TObject);
     procedure Button6Click(Sender: TObject);
     procedure btnNotCalledClick(Sender: TObject);
@@ -116,9 +121,11 @@ type
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure Label7Click(Sender: TObject);
     procedure ListView1Data(Sender: TObject; Item: TListItem);
     procedure ListView1DblClick(Sender: TObject);
+    procedure MenuItem1Click(Sender: TObject);
     procedure miSetHotkeyClick(Sender: TObject);
     procedure MenuItem2Click(Sender: TObject);
     procedure miRemoveHotkeyClick(Sender: TObject);
@@ -131,6 +138,7 @@ type
     workers: Array of TUltimap_DataHandlerThread;
 
     validlist: array of PBranchdata;
+    userdefinedpos: boolean;
 
     callTable: TMap;
     retTable: TMap;
@@ -172,7 +180,7 @@ implementation
 
 {$R *.lfm}
 
-uses MemoryBrowserFormUnit, vmxfunctions, ProcessHandlerUnit;
+uses MemoryBrowserFormUnit, vmxfunctions, ProcessHandlerUnit, AdvancedOptionsUnit;
 
 resourcestring
   rsRemoveHotkey = 'Remove hotkey (%s)';
@@ -562,11 +570,18 @@ end;
 procedure TfrmUltimap.btnExecutedClick(Sender: TObject);
 begin
   ApplyFilter(0);
+  if cbFilterFuturePaths.checked then
+    cbfilterOutNewEntries.checked:=true;
 end;
 
 procedure TfrmUltimap.btnNotExecutedClick(Sender: TObject);
 begin
   ApplyFilter(1);
+end;
+
+procedure TfrmUltimap.Button1Click(Sender: TObject);
+begin
+
 end;
 
 procedure TfrmUltimap.btnNotCalledClick(Sender: TObject);
@@ -865,7 +880,10 @@ begin
   flushcs:=TCriticalSection.Create;
 
   setlength(x, 0);
-  loadformposition(self,x);
+  ne:=nil;
+
+  userdefinedpos:=loadformposition(self,x);
+
   if length(x)>=3*6 then
   begin
     for i:=0 to 2 do
@@ -891,6 +909,7 @@ begin
     end;
 
   end;
+
 end;
 
 procedure TfrmUltimap.FormDestroy(Sender: TObject);
@@ -915,6 +934,16 @@ begin
   end;
 
   saveformposition(self,x);
+end;
+
+procedure TfrmUltimap.FormShow(Sender: TObject);
+begin
+  autosize:=false;
+  constraints.MinWidth:=panel4.width+panel6.width;
+  if not userdefinedpos then
+    width:=constraints.MinWidth;
+
+
 end;
 
 procedure TfrmUltimap.Label7Click(Sender: TObject);
@@ -949,6 +978,32 @@ begin
 
     if memorybrowser.visible=false then
       memorybrowser.show;
+  end;
+end;
+
+procedure TfrmUltimap.MenuItem1Click(Sender: TObject);
+var
+  i: integer;
+  p: tpoint;
+  a,a2: ptruint;
+  size: integer;
+begin
+  p:=PopupMenu1.PopupPoint;
+  for i:=0 to listview1.Items.count-1 do
+  begin
+    if listview1.Items[i].Selected then
+    begin
+      if p.x>listview1.Column[0].Width then
+        a:=validlist[listview1.selected.Index].lastFromAddress
+      else
+        a:=validlist[listview1.selected.Index].toAddress;
+    end;
+
+    a2:=a;
+    disassemble(a2);
+
+
+    advancedoptions.AddToCodeList(a, a2-a,false);
   end;
 end;
 
@@ -1069,6 +1124,9 @@ begin
   isFlushing:=false;  //no more wasted cycles checking the critical section
 
 end;
+
+initialization
+//{$i frmUltimapUnit.lrs}
 
 end.
 

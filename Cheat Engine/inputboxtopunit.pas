@@ -13,10 +13,11 @@ type
   { TInputboxTop }
 
   TInputboxTop = class(TForm)
-    Edit1: TEdit;
     Button1: TButton;
-    Label1: TLabel;
     Button2: TButton;
+    Edit1: TEdit;
+    Label1: TLabel;
+    Panel1: TPanel;
     Timer1: TTimer;
     procedure FormShow(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
@@ -35,6 +36,8 @@ function InputBoxTop(const ACaption, APrompt, ADefault: string; Aselecttext: boo
 
 implementation
 
+
+uses MemoryBrowserFormUnit;
 
 
   
@@ -64,7 +67,7 @@ var
 begin
 
 
-  inputbox:=TInputboxtop.Create(Application);
+  inputbox:=TInputboxtop.Create(Memorybrowser);
   with inputbox do
   begin
    // button1.setfocus;
@@ -91,6 +94,10 @@ begin
         combobox.Items.AddStrings(history);
         combobox.Text:=ADefault;
         edit1.Visible:=false;
+
+        panel1.AnchorSideTop.Control:=combobox;
+        combobox.BorderSpacing.Left:=4;
+        combobox.BorderSpacing.Right:=4;
       end;
 
       if showmodal=mrok then

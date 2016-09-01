@@ -30,7 +30,7 @@ type
     cbKernelDebug: TCheckBox;
     cbSpeedhack: TCheckBox;
     cbVEHDebug: TCheckBox;
-    cbXMPlayer: TCheckBox;
+    cbModPlayer: TCheckBox;
     cbD3DHook: TCheckBox;
     cbDotNet: TCheckBox;
     comboCompression: TComboBox;
@@ -63,6 +63,7 @@ type
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure ListView1ContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
     procedure ListView1SelectItem(Sender: TObject; Item: TListItem; Selected: Boolean);
     procedure miEditFolderClick(Sender: TObject);
@@ -107,6 +108,8 @@ resourcestring
   rsMax = 'Max';
   rsNewFoldername = 'New foldername';
   rsCETrainerMaker = 'CE trainer maker';
+  rsARCHIVE = ' ARCHIVE:';
+  rsDECOMPRESSOR = ' DECOMPRESSOR:';
 
 procedure TfrmExeTrainerGenerator.FormActivate(Sender: TObject);
 begin
@@ -284,13 +287,14 @@ begin
               addfile(cheatenginedir+'vehdebug-i386.dll');
 
             if cbKernelDebug.checked then
-              addfile(cheatenginedir+'dbk32.sys');
-
-            if cbDotNet.checked then
             begin
-              addfile(cheatenginedir+'DotNetDataCollector32.exe');
-              addfile(cheatenginedir+'DotNetDataCollector64.exe');
+              addfile(cheatenginedir+'dbk32.sys');
+              addfile(cheatenginedir+'dbk64.sys');
+              addfile(cheatenginedir+'cheatengine-i386.exe.sig');
             end;
+
+            if cbModPlayer.checked then
+              addfile(cheatenginedir+'libmikmod32.dll');
 
           end
           else
@@ -305,11 +309,21 @@ begin
               addfile(cheatenginedir+'vehdebug-x86_64.dll');
 
             if cbKernelDebug.checked then
+            begin
               addfile(cheatenginedir+'dbk64.sys');
+              addfile(cheatenginedir+'cheatengine-x86_64.exe.sig');
+            end;
+
+            if cbModPlayer.checked then
+              addfile(cheatenginedir+'libmikmod64.dll');
+
           end;
 
-          if cbXMPlayer.checked then
-            addfile(cheatenginedir+'xmplayer.exe');
+          if cbDotNet.checked then
+          begin
+            addfile(cheatenginedir+'DotNetDataCollector32.exe');
+            addfile(cheatenginedir+'DotNetDataCollector64.exe');
+          end;
 
           if cbD3DHook.checked then
           begin
@@ -343,14 +357,14 @@ begin
         {_Archive.SaveToFile('c:\bla.dat');}
 
         if not UpdateResourceA(updatehandle, RT_RCDATA, 'ARCHIVE', 0, _archive.memory, _archive.size) then
-          raise exception.create(rsFailureOnWriting+' ARCHIVE:'+inttostr(
+          raise exception.create(rsFailureOnWriting+rsARCHIVE+inttostr(
             getlasterror()));
 
         if not tiny then
         begin
           //tiny has no decompressor
           if not UpdateResourceA(updatehandle, RT_RCDATA, 'DECOMPRESSOR', 0, decompressor.memory, decompressor.size) then
-            raise exception.create(rsFailureOnWriting+' DECOMPRESSOR:'+inttostr(
+            raise exception.create(rsFailureOnWriting+rsDECOMPRESSOR+inttostr(
               getlasterror()));
         end;
 
@@ -473,7 +487,7 @@ begin
   rb64.enabled:=cbGigantic.checked;
   cbSpeedhack.enabled:=cbGigantic.Checked;
   cbVEHDebug.enabled:=cbGigantic.checked;
-  cbXMPlayer.Enabled:=cbGigantic.checked;
+  cbModPlayer.Enabled:=cbGigantic.checked;
   cbKernelDebug.enabled:=cbGigantic.Checked;
 
   label1.enabled:=cbGigantic.checked;
@@ -558,7 +572,7 @@ begin
   s:=lowercase(mainform.frmLuaTableScript.assemblescreen.Text);
 
   cbSpeedhack.checked:=pos('speedhack_',s)>0;
-  cbXMPlayer.checked:=(pos('xmplayer_',s)>0) or (pos('xmplayer.',s)>0);
+  cbModPlayer.checked:=(pos('xmplayer_',s)>0) or (pos('xmplayer.',s)>0);
   cbKernelDebug.checked:=pos('dbk_',s)>0;
   cbD3DHook.checked:=pos('created3dhook',s)>0;
   cbDotNet.checked:=symhandler.hasDotNetAccess or (pos('dotnet',s)>0);
@@ -575,6 +589,17 @@ begin
       break;
     end;
 
+end;
+
+procedure TfrmExeTrainerGenerator.FormShow(Sender: TObject);
+var i:integer;
+begin
+  i:=max(max(button3.Width, btnAddFile.Width), btnRemoveFile.Width);
+
+  button3.width:=i;
+  btnAddFile.Width:=i;
+  btnRemoveFile.Width:=i;
+  groupbox3.Constraints.MinHeight:=panel1.height;
 end;
 
 procedure TfrmExeTrainerGenerator.ListView1ContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
