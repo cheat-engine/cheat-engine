@@ -120,6 +120,7 @@ object formAddressChange: TformAddressChange
     Text = '4 Bytes'
   end
   object pnlExtra: TPanel
+    AnchorSideLeft.Control = Label1
     AnchorSideTop.Control = cbvarType
     AnchorSideTop.Side = asrBottom
     Left = 8
@@ -180,11 +181,10 @@ object formAddressChange: TformAddressChange
         AnchorSideLeft.Control = RadioButton1
         AnchorSideTop.Control = Label2
         AnchorSideTop.Side = asrBottom
-        Left = 3
+        Left = 0
         Height = 15
         Top = 15
         Width = 6
-        BorderSpacing.Left = 3
         Caption = '0'
         ParentColor = False
       end
@@ -192,11 +192,10 @@ object formAddressChange: TformAddressChange
         AnchorSideLeft.Control = RadioButton2
         AnchorSideTop.Control = Label2
         AnchorSideTop.Side = asrBottom
-        Left = 23
+        Left = 20
         Height = 15
         Top = 15
         Width = 6
-        BorderSpacing.Left = 3
         Caption = '1'
         ParentColor = False
       end
@@ -204,11 +203,10 @@ object formAddressChange: TformAddressChange
         AnchorSideLeft.Control = RadioButton3
         AnchorSideTop.Control = Label2
         AnchorSideTop.Side = asrBottom
-        Left = 43
+        Left = 40
         Height = 15
         Top = 15
         Width = 6
-        BorderSpacing.Left = 3
         Caption = '2'
         ParentColor = False
       end
@@ -216,11 +214,10 @@ object formAddressChange: TformAddressChange
         AnchorSideLeft.Control = RadioButton4
         AnchorSideTop.Control = Label2
         AnchorSideTop.Side = asrBottom
-        Left = 63
+        Left = 60
         Height = 15
         Top = 15
         Width = 6
-        BorderSpacing.Left = 3
         Caption = '3'
         ParentColor = False
       end
@@ -228,11 +225,10 @@ object formAddressChange: TformAddressChange
         AnchorSideLeft.Control = RadioButton5
         AnchorSideTop.Control = Label2
         AnchorSideTop.Side = asrBottom
-        Left = 83
+        Left = 80
         Height = 15
         Top = 15
         Width = 6
-        BorderSpacing.Left = 3
         Caption = '4'
         ParentColor = False
       end
@@ -240,11 +236,10 @@ object formAddressChange: TformAddressChange
         AnchorSideLeft.Control = RadioButton6
         AnchorSideTop.Control = Label2
         AnchorSideTop.Side = asrBottom
-        Left = 103
+        Left = 100
         Height = 15
         Top = 15
         Width = 6
-        BorderSpacing.Left = 3
         Caption = '5'
         ParentColor = False
       end
@@ -252,11 +247,10 @@ object formAddressChange: TformAddressChange
         AnchorSideLeft.Control = RadioButton7
         AnchorSideTop.Control = Label2
         AnchorSideTop.Side = asrBottom
-        Left = 123
+        Left = 120
         Height = 15
         Top = 15
         Width = 6
-        BorderSpacing.Left = 3
         Caption = '6'
         ParentColor = False
       end
@@ -264,11 +258,10 @@ object formAddressChange: TformAddressChange
         AnchorSideLeft.Control = RadioButton8
         AnchorSideTop.Control = Label2
         AnchorSideTop.Side = asrBottom
-        Left = 143
+        Left = 140
         Height = 15
         Top = 15
         Width = 6
-        BorderSpacing.Left = 3
         Caption = '7'
         ParentColor = False
       end
@@ -381,6 +374,7 @@ object formAddressChange: TformAddressChange
     Height = 15
     Top = 19
     Width = 37
+    BorderSpacing.Right = 5
     Caption = '=Value'
     ParentColor = False
   end

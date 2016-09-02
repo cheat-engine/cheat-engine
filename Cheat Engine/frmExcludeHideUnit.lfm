@@ -6,8 +6,6 @@ object frmExcludeHide: TfrmExcludeHide
   Caption = 'Show/Hide settings'
   ClientHeight = 415
   ClientWidth = 486
-  Font.Height = -14
-  Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
   PopupMode = pmAuto
   Position = poOwnerFormCenter

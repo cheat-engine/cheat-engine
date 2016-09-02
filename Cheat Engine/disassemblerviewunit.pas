@@ -467,6 +467,9 @@ begin
   DisableAutoSizing;
   disassembleDescription.ClientHeight:=disassembleDescription.Canvas.TextHeight('GgXx')+4;
   header.Height:=header.Canvas.TextHeight('GgXx')+4;
+
+  disassembleDescription.Font.Height:=GetFontData(font.Handle).Height;
+
   EnableAutoSizing;
   inherited DoAutoSize;
 end;
@@ -1069,7 +1072,7 @@ begin
   with statusinfo do
   begin
     autosize:=true;
-    ParentFont:=false;
+    ParentFont:=true;
     align:=alTop;
     bevelInner:=bvLowered;
 //    height:=19;
@@ -1081,7 +1084,7 @@ begin
   statusinfolabel:=TLabel.Create(self);
   with statusinfolabel do
   begin
-    parentfont:=false;
+    parentfont:=true;
     align:=alClient;
     Alignment:=taCenter;
     autosize:=true;

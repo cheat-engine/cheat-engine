@@ -380,6 +380,7 @@ end;
 
 procedure TfrmFloatingPointPanel.FormShow(Sender: TObject);
 begin
+  memo1.Font.Height:=GetFontData(font.Handle).Height;
   UpdatedContext;
 end;
 

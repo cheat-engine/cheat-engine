@@ -11,8 +11,8 @@ object frmPaging: TfrmPaging
   LCLVersion = '1.6.0.4'
   object tvPage: TTreeView
     Left = 0
-    Height = 186
-    Top = 49
+    Height = 185
+    Top = 50
     Width = 412
     Align = alClient
     DefaultItemHeight = 18
@@ -25,13 +25,13 @@ object frmPaging: TfrmPaging
   end
   object frmPaging: TPanel
     Left = 0
-    Height = 49
+    Height = 50
     Top = 0
     Width = 412
     Align = alTop
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 49
+    ClientHeight = 50
     ClientWidth = 412
     TabOrder = 1
     object edtCR3: TEdit
@@ -47,11 +47,13 @@ object frmPaging: TfrmPaging
       TabOrder = 0
     end
     object Button1: TButton
+      AnchorSideTop.Control = edtCR3
+      AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = Label1
       AnchorSideRight.Side = asrBottom
       Left = 231
       Height = 25
-      Top = 22
+      Top = 23
       Width = 75
       Anchors = [akTop, akRight]
       BorderSpacing.Bottom = 2

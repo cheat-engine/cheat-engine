@@ -63,6 +63,7 @@ type
     procedure dlgReplaceReplace(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure MenuItem10Click(Sender: TObject);
     procedure MenuItem11Click(Sender: TObject);
     procedure MenuItem13Click(Sender: TObject);
@@ -977,6 +978,14 @@ procedure TfrmLuaEngine.FormDestroy(Sender: TObject);
 begin
 
   SaveFormPosition(self, [panel1.height, integer(ifthen(miResizeOutput.checked, 1,0))]);
+end;
+
+procedure TfrmLuaEngine.FormShow(Sender: TObject);
+var i: integer;
+begin
+  i:=GetFontData(font.handle).Height;
+  if i<mScript.Font.Height then
+    mScript.Font.Height:=i;
 end;
 
 

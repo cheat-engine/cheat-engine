@@ -7,8 +7,6 @@ object frmFloatingPointPanel: TfrmFloatingPointPanel
   Caption = 'FPU'
   ClientHeight = 322
   ClientWidth = 353
-  Font.Height = -14
-  Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
   OnShow = FormShow
   LCLVersion = '1.6.0.4'
@@ -23,29 +21,29 @@ object frmFloatingPointPanel: TfrmFloatingPointPanel
     TabOrder = 0
     object TabSheet2: TTabSheet
       Caption = 'Extended'
-      ClientHeight = 293
+      ClientHeight = 294
       ClientWidth = 345
       ImageIndex = 1
       object Panel1: TPanel
         Left = 0
-        Height = 57
+        Height = 55
         Top = 0
         Width = 345
         Align = alTop
         AutoSize = True
         BevelOuter = bvNone
-        ClientHeight = 57
+        ClientHeight = 55
         ClientWidth = 345
         TabOrder = 0
         object ComboBox3: TComboBox
           AnchorSideLeft.Control = Panel1
           AnchorSideTop.Control = Panel1
           Left = 0
-          Height = 24
+          Height = 23
           Top = 3
           Width = 169
           BorderSpacing.Top = 3
-          ItemHeight = 16
+          ItemHeight = 15
           ItemIndex = 1
           Items.Strings = (
             'FPURegisters'
@@ -60,12 +58,12 @@ object frmFloatingPointPanel: TfrmFloatingPointPanel
           AnchorSideTop.Control = ComboBox3
           AnchorSideTop.Side = asrBottom
           Left = 0
-          Height = 24
-          Top = 30
+          Height = 23
+          Top = 29
           Width = 169
           BorderSpacing.Top = 3
           BorderSpacing.Bottom = 3
-          ItemHeight = 16
+          ItemHeight = 15
           ItemIndex = 4
           Items.Strings = (
             'Byte'
@@ -84,8 +82,8 @@ object frmFloatingPointPanel: TfrmFloatingPointPanel
       end
       object Memo1: TMemo
         Left = 0
-        Height = 236
-        Top = 57
+        Height = 239
+        Top = 55
         Width = 345
         Align = alClient
         Font.CharSet = ANSI_CHARSET

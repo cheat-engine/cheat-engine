@@ -6,8 +6,6 @@ object frmDisassemblyscan: TfrmDisassemblyscan
   Caption = 'Assemblyscan'
   ClientHeight = 170
   ClientWidth = 447
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   OnDestroy = FormDestroy
   OnShow = FormShow
@@ -15,8 +13,8 @@ object frmDisassemblyscan: TfrmDisassemblyscan
   LCLVersion = '1.6.0.4'
   object Label1: TLabel
     Left = 0
-    Height = 13
-    Top = 157
+    Height = 15
+    Top = 155
     Width = 447
     Align = alBottom
     Alignment = taCenter
@@ -25,9 +23,9 @@ object frmDisassemblyscan: TfrmDisassemblyscan
   end
   object ListBox1: TListBox
     Left = 0
-    Height = 157
+    Height = 155
     Top = 0
-    Width = 381
+    Width = 379
     Align = alClient
     ItemHeight = 0
     MultiSelect = True
@@ -37,14 +35,14 @@ object frmDisassemblyscan: TfrmDisassemblyscan
     TabOrder = 0
   end
   object Panel1: TPanel
-    Left = 381
-    Height = 157
+    Left = 379
+    Height = 155
     Top = 0
-    Width = 66
+    Width = 68
     Align = alRight
     AutoSize = True
-    ClientHeight = 157
-    ClientWidth = 66
+    ClientHeight = 155
+    ClientWidth = 68
     TabOrder = 1
     OnClick = Panel1Click
     OnResize = Panel1Resize
@@ -52,13 +50,14 @@ object frmDisassemblyscan: TfrmDisassemblyscan
       AnchorSideBottom.Control = Panel1
       AnchorSideBottom.Side = asrBottom
       Left = 3
-      Height = 23
-      Top = 133
-      Width = 60
+      Height = 25
+      Top = 127
+      Width = 62
       Anchors = [akLeft, akBottom]
       AutoSize = True
       BorderSpacing.Left = 2
       BorderSpacing.Right = 2
+      BorderSpacing.Bottom = 2
       Caption = 'Cancel'
       Constraints.MinWidth = 60
       OnClick = btnCancelClick

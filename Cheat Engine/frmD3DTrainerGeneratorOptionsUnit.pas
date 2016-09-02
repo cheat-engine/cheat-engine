@@ -17,10 +17,10 @@ type
     Button2: TButton;
     Button3: TButton;
     Button4: TButton;
+    cbAllowDrag: TCheckBox;
     cbHasCheckbox: TCheckBox;
     cbShowHotkeys: TCheckBox;
     cbStretch: TCheckBox;
-    cbAllowDrag: TCheckBox;
     cbUseD3DKeys: TCheckBox;
     ColorDialog1: TColorDialog;
     edtd3dkeys: TEdit;
@@ -28,11 +28,19 @@ type
     edtDistanceFromBorder: TEdit;
     edtDistanceFromTop: TEdit;
     FontDialog1: TFontDialog;
+    imgChecked: TImage;
+    imgPreview: TImage;
+    imgUnchecked: TImage;
     Label1: TLabel;
+    Label2: TLabel;
+    Label3: TLabel;
     Label4: TLabel;
     Label5: TLabel;
     Label6: TLabel;
+    lblTextColor: TLabel;
+    OpenPictureDialog1: TOpenPictureDialog;
     Panel1: TPanel;
+    Panel2: TPanel;
     pnlPosition: TPanel;
     rbBottomLeft: TRadioButton;
     rbBottomRight: TRadioButton;
@@ -40,13 +48,6 @@ type
     rbTopLeft: TRadioButton;
     rbTopRight: TRadioButton;
     TextOverlayImage: TImage;
-    imgChecked: TImage;
-    imgUnchecked: TImage;
-    imgPreview: TImage;
-    Label2: TLabel;
-    Label3: TLabel;
-    lblTextColor: TLabel;
-    OpenPictureDialog1: TOpenPictureDialog;
     TrackBar1: TTrackBar;
     procedure btnClearClick(Sender: TObject);
     procedure Button2Click(Sender: TObject);
@@ -57,6 +58,7 @@ type
     procedure edtd3dkeysKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure FormCreate(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     { private declarations }
     procedure updatefontexample;
@@ -83,6 +85,11 @@ begin
   imgPreview.Picture.Bitmap.Canvas.Pixels[0,0]:=imgPreview.Picture.Bitmap.Canvas.Pixels[0,0];
 
   updatefontexample;
+end;
+
+procedure TfrmD3DTrainerGeneratorOptions.FormShow(Sender: TObject);
+begin
+  lblTextColor.Font.Height:=GetFontData(font.handle).height;
 end;
 
 procedure TfrmD3DTrainerGeneratorOptions.Button4Click(Sender: TObject);

@@ -6,8 +6,6 @@ object frmGDTinfo: TfrmGDTinfo
   Caption = 'GDT'
   ClientHeight = 325
   ClientWidth = 299
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
@@ -18,7 +16,6 @@ object frmGDTinfo: TfrmGDTinfo
     Top = 0
     Width = 299
     Align = alClient
-    DefaultItemHeight = 15
     Indent = 19
     ReadOnly = True
     TabOrder = 0

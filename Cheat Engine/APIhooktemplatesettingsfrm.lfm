@@ -129,14 +129,14 @@ object frmAPIhookTemplateSettings: TfrmAPIhookTemplateSettings
     AnchorSideTop.Control = Edit3
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = Panel1
-    Left = 53
+    Left = 87
     Height = 25
     Top = 136
-    Width = 109
+    Width = 75
     Anchors = [akTop, akRight]
     AutoSize = True
     BorderSpacing.Top = 3
-    Caption = 'OK whatever lol'
+    Caption = 'OK'
     Constraints.MinWidth = 75
     Default = True
     ModalResult = 1

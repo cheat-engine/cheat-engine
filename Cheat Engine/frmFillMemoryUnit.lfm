@@ -1,7 +1,7 @@
 object frmFillMemory: TfrmFillMemory
-  Left = 830
+  Left = 688
   Height = 109
-  Top = 408
+  Top = 409
   Width = 184
   AutoSize = True
   BorderIcons = []
@@ -9,8 +9,6 @@ object frmFillMemory: TfrmFillMemory
   Caption = 'Fill memory'
   ClientHeight = 109
   ClientWidth = 184
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow
@@ -24,13 +22,11 @@ object frmFillMemory: TfrmFillMemory
     AnchorSideTop.Side = asrBottom
     Left = 15
     Height = 25
-    Top = 77
+    Top = 83
     Width = 154
     AutoSize = True
-    BorderSpacing.Left = 6
     BorderSpacing.Top = 6
-    BorderSpacing.Right = 6
-    BorderSpacing.Bottom = 6
+    BorderSpacing.Bottom = 4
     BevelOuter = bvNone
     ClientHeight = 25
     ClientWidth = 154
@@ -42,7 +38,9 @@ object frmFillMemory: TfrmFillMemory
       Height = 25
       Top = 0
       Width = 75
+      AutoSize = True
       Caption = 'OK'
+      Constraints.MinWidth = 75
       Default = True
       OnClick = Button1Click
       TabOrder = 0
@@ -55,36 +53,37 @@ object frmFillMemory: TfrmFillMemory
       Height = 25
       Top = 0
       Width = 75
+      AutoSize = True
       BorderSpacing.Left = 4
       Cancel = True
       Caption = 'Cancel'
+      Constraints.MinWidth = 75
       ModalResult = 2
       TabOrder = 1
     end
   end
   object Panel2: TPanel
     AnchorSideLeft.Control = Owner
-    AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = Owner
-    Left = 22
-    Height = 71
+    Left = 10
+    Height = 77
     Top = 0
-    Width = 141
+    Width = 148
     AutoSize = True
-    BorderSpacing.Left = 6
-    BorderSpacing.Right = 6
+    BorderSpacing.Left = 10
+    BorderSpacing.Right = 10
     BevelOuter = bvNone
-    ClientHeight = 71
-    ClientWidth = 141
+    ClientHeight = 77
+    ClientWidth = 148
     TabOrder = 1
     object Label1: TLabel
       AnchorSideTop.Control = Edit1
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = Edit1
-      Left = 11
-      Height = 13
+      Left = 13
+      Height = 15
       Top = 8
-      Width = 23
+      Width = 28
       Anchors = [akTop, akRight]
       BorderSpacing.Right = 2
       Caption = 'From'
@@ -92,10 +91,10 @@ object frmFillMemory: TfrmFillMemory
     end
     object Label2: TLabel
       AnchorSideRight.Control = Edit2
-      Left = 21
-      Height = 13
+      Left = 27
+      Height = 15
       Top = 32
-      Width = 13
+      Width = 14
       Anchors = [akTop, akRight]
       BorderSpacing.Right = 2
       Caption = 'To'
@@ -106,9 +105,9 @@ object frmFillMemory: TfrmFillMemory
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = Edit3
       Left = 0
-      Height = 13
-      Top = 54
-      Width = 34
+      Height = 15
+      Top = 58
+      Width = 41
       Anchors = [akTop, akRight]
       BorderSpacing.Right = 2
       Caption = 'Fill with'
@@ -118,8 +117,8 @@ object frmFillMemory: TfrmFillMemory
       AnchorSideTop.Control = Panel2
       AnchorSideRight.Control = Panel2
       AnchorSideRight.Side = asrBottom
-      Left = 36
-      Height = 21
+      Left = 43
+      Height = 23
       Top = 4
       Width = 105
       Anchors = [akTop, akRight]
@@ -132,9 +131,9 @@ object frmFillMemory: TfrmFillMemory
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = Panel2
       AnchorSideRight.Side = asrBottom
-      Left = 36
-      Height = 21
-      Top = 27
+      Left = 43
+      Height = 23
+      Top = 29
       Width = 105
       Anchors = [akTop, akRight]
       BorderSpacing.Top = 2
@@ -145,9 +144,9 @@ object frmFillMemory: TfrmFillMemory
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = Panel2
       AnchorSideRight.Side = asrBottom
-      Left = 36
-      Height = 21
-      Top = 50
+      Left = 43
+      Height = 23
+      Top = 54
       Width = 105
       Anchors = [akTop, akRight]
       BorderSpacing.Top = 2

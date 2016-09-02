@@ -220,6 +220,7 @@ begin
   //fuuuuucking time
   if form<>nil then
     form.Font.Size:=overridefontsize;
+
 end;
 
 var
@@ -242,6 +243,7 @@ begin
         overridefontsize:=strtoint(copy(ParamStr(i), 10, length(ParamStr(i))));
         ff:=TFormFucker.Create;
         screen.AddHandlerFormAdded(@ff.addFormEvent);
+
       except
       end;
     end;

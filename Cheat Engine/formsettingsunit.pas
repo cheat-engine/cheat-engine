@@ -1208,8 +1208,9 @@ begin
   //64-bit check
   if is64bitos then
   begin
-    TauntOldOsUser.Visible:=true;
-    TauntOldOsUser.Caption:=rsPleaseBootWithUnsignedDriversAllowedF8DuringBootOr;
+
+    {TauntOldOsUser.Visible:=true;
+    TauntOldOsUser.Caption:=rsPleaseBootWithUnsignedDriversAllowedF8DuringBootOr;   }
 
 
 

@@ -2,10 +2,11 @@ object frmCodecaveScanner: TfrmCodecaveScanner
   Left = 528
   Height = 324
   Top = 213
-  Width = 353
+  Width = 279
+  AutoSize = True
   Caption = 'Scan for codecaves'
   ClientHeight = 324
-  ClientWidth = 353
+  ClientWidth = 279
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnShow = FormShow
@@ -18,7 +19,7 @@ object frmCodecaveScanner: TfrmCodecaveScanner
     Left = 0
     Height = 288
     Top = 0
-    Width = 229
+    Width = 155
     Anchors = [akTop, akLeft, akRight]
     Font.CharSet = ANSI_CHARSET
     Font.Name = 'Courier'
@@ -32,7 +33,7 @@ object frmCodecaveScanner: TfrmCodecaveScanner
   end
   object Panel1: TPanel
     AnchorSideTop.Control = Owner
-    Left = 229
+    Left = 155
     Height = 179
     Top = 0
     Width = 124
@@ -186,20 +187,23 @@ object frmCodecaveScanner: TfrmCodecaveScanner
     Left = 0
     Height = 36
     Top = 288
-    Width = 353
+    Width = 279
     Anchors = [akTop, akLeft, akRight]
     AutoSize = True
     BevelOuter = bvNone
     ClientHeight = 36
-    ClientWidth = 353
+    ClientWidth = 279
     TabOrder = 2
     object cbNoExecute: TCheckBox
       AnchorSideLeft.Control = Panel2
       AnchorSideTop.Control = Panel2
+      AnchorSideRight.Control = Panel2
+      AnchorSideRight.Side = asrBottom
       Left = 0
       Height = 19
       Top = 0
-      Width = 257
+      Width = 279
+      Anchors = [akTop, akLeft, akRight]
       Caption = 'Also scan non-executable read-only memory'
       Checked = True
       State = cbChecked
@@ -212,7 +216,7 @@ object frmCodecaveScanner: TfrmCodecaveScanner
       Left = 0
       Height = 17
       Top = 19
-      Width = 353
+      Width = 279
       Anchors = [akTop, akLeft, akRight]
       TabOrder = 1
     end

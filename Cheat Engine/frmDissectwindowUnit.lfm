@@ -2,13 +2,11 @@ object frmdissectWindow: TfrmdissectWindow
   Left = 835
   Height = 296
   Top = 444
-  Width = 303
+  Width = 314
   AutoSize = True
   Caption = 'Dissect Windows'
   ClientHeight = 296
-  ClientWidth = 303
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  ClientWidth = 314
   OnClose = FormClose
   OnCreate = FormCreate
   PopupMode = pmAuto
@@ -16,15 +14,13 @@ object frmdissectWindow: TfrmdissectWindow
   LCLVersion = '1.6.0.4'
   object TreeView1: TTreeView
     Left = 0
-    Height = 224
+    Height = 222
     Top = 0
-    Width = 303
+    Width = 314
     Align = alClient
     DefaultItemHeight = 18
-    Font.Name = 'MS Sans Serif'
     HideSelection = False
     Indent = 19
-    ParentFont = False
     ReadOnly = True
     TabOrder = 0
     Options = [tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips]
@@ -41,22 +37,22 @@ object frmdissectWindow: TfrmdissectWindow
   end
   object Panel1: TPanel
     Left = 0
-    Height = 72
-    Top = 224
-    Width = 303
+    Height = 74
+    Top = 222
+    Width = 314
     Align = alBottom
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 72
-    ClientWidth = 303
+    ClientHeight = 74
+    ClientWidth = 314
     TabOrder = 2
     object Button2: TButton
       AnchorSideLeft.Control = Panel1
       AnchorSideTop.Control = Panel1
       Left = 8
-      Height = 23
+      Height = 25
       Top = 8
-      Width = 91
+      Width = 99
       AutoSize = True
       BorderSpacing.Left = 8
       BorderSpacing.Top = 8
@@ -68,10 +64,10 @@ object frmdissectWindow: TfrmdissectWindow
       AnchorSideLeft.Control = Button2
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Panel1
-      Left = 107
-      Height = 23
+      Left = 115
+      Height = 25
       Top = 8
-      Width = 91
+      Width = 100
       AutoSize = True
       BorderSpacing.Left = 8
       BorderSpacing.Top = 8
@@ -83,19 +79,21 @@ object frmdissectWindow: TfrmdissectWindow
     object Button5: TButton
       AnchorSideTop.Control = Button3
       AnchorSideTop.Side = asrBottom
-      Left = 116
+      Left = 122
       Height = 25
-      Top = 39
+      Top = 41
       Width = 75
       Anchors = [akTop]
+      AutoSize = True
       BorderSpacing.Top = 8
       BorderSpacing.Bottom = 8
       Caption = 'OK'
+      Constraints.MinWidth = 75
       ModalResult = 1
       TabOrder = 2
     end
     object Button4: TButton
-      Left = 90
+      Left = 96
       Height = 19
       Top = 32
       Width = 129
@@ -111,10 +109,10 @@ object frmdissectWindow: TfrmdissectWindow
       AnchorSideTop.Control = Panel1
       AnchorSideRight.Control = Panel1
       AnchorSideRight.Side = asrBottom
-      Left = 206
-      Height = 23
+      Left = 223
+      Height = 25
       Top = 8
-      Width = 83
+      Width = 89
       AutoSize = True
       BorderSpacing.Left = 8
       BorderSpacing.Top = 8

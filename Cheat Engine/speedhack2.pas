@@ -5,7 +5,7 @@ unit speedhack2;
 interface
 
 uses Classes,LCLIntf, SysUtils, NewKernelHandler,CEFuncProc, symbolhandler,
-     autoassembler, dialogs,Clipbrd, commonTypeDefs;
+     autoassembler, dialogs,Clipbrd, commonTypeDefs, controls;
 
 type TSpeedhack=class
   private
@@ -170,7 +170,8 @@ begin
       else
         generateAPIHookScript(script, 'GetTickCount', 'speedhackversion_GetTickCount', 'realgettickcount');
 
-
+      if ssCtrl in GetKeyShiftState then //debug code
+        Clipboard.AsText:=script.text;
 
       try
         setlength(AllocArray,0);

@@ -8,7 +8,7 @@ uses
   windows, win32proc, LCLIntf, LResources, Messages, SysUtils, Variants, Classes, Graphics,
   Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls, Buttons, Arrow, Spin,
   CEFuncProc, NewKernelHandler, symbolhandler, memoryrecordunit, types, byteinterpreter,
-  math, CustomTypeHandler, commonTypeDefs, lua, lualib, lauxlib, luahandler;
+  math, CustomTypeHandler, commonTypeDefs, lua, lualib, lauxlib, luahandler, CommCtrl;
 
 const WM_disablePointer=WM_USER+1;
 
@@ -1376,7 +1376,43 @@ end;
 
 procedure TformAddressChange.FormShow(Sender: TObject);
 var i: integer;
+    m: dword;
+    h: THandle;
+    r: trect;
 begin
+
+
+  if WindowsVersion>=wvVista then
+  begin
+    zeromemory(@r, sizeof(r));
+    sendmessage(radiobutton1.Handle, BCM_SETTEXTMARGIN , 0, ptruint(@r));
+    sendmessage(radiobutton2.Handle, BCM_SETTEXTMARGIN , 0, ptruint(@r));
+    sendmessage(radiobutton3.Handle, BCM_SETTEXTMARGIN , 0, ptruint(@r));
+    sendmessage(radiobutton4.Handle, BCM_SETTEXTMARGIN , 0, ptruint(@r));
+    sendmessage(radiobutton5.Handle, BCM_SETTEXTMARGIN , 0, ptruint(@r));
+    sendmessage(radiobutton6.Handle, BCM_SETTEXTMARGIN , 0, ptruint(@r));
+    sendmessage(radiobutton7.Handle, BCM_SETTEXTMARGIN , 0, ptruint(@r));
+    sendmessage(radiobutton8.Handle, BCM_SETTEXTMARGIN , 0, ptruint(@r));
+
+    m:=sendmessage(editAddress.Handle, EM_GETMARGINS, 0,0);
+  end
+  else
+    m:=10;
+
+  m:=(m shr 16)+(m and $ffff);
+
+  {$ifdef cpu32}
+    editAddress.ClientWidth:=canvas.TextWidth('DDDDDDDD')+m;
+  {$else}
+    editAddress.ClientWidth:=canvas.TextWidth('DDDDDDDDDDDD')+m;
+  {$endif}
+
+  lblValue.Constraints.MinWidth:=canvas.TextWidth('=XXXXX');
+
+
+
+
+
   i:=80;
   btnOk.autosize:=true;
   btnCancel.autosize:=true;

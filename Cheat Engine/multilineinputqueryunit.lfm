@@ -3,6 +3,7 @@ object frmMultilineInputQuery: TfrmMultilineInputQuery
   Height = 110
   Top = 172
   Width = 273
+  AutoSize = True
   ClientHeight = 110
   ClientWidth = 273
   PopupMode = pmAuto

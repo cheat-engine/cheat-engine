@@ -453,7 +453,6 @@ type
     procedure Address1Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure cbFastScanChange(Sender: TObject);
-    procedure cbSpeedhackChange(Sender: TObject);
     procedure Description1Click(Sender: TObject);
     procedure edtAlignmentKeyPress(Sender: TObject; var Key: char);
     procedure FormActivate(Sender: TObject);
@@ -628,7 +627,7 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure tbSpeedChange(Sender: TObject);
     procedure btnSetSpeedhack2Click(Sender: TObject);
-    procedure cbSpeedhackClick(Sender: TObject);
+    procedure cbSpeedhackChange(Sender: TObject);
     procedure Process1Click(Sender: TObject);
     procedure About1Click(Sender: TObject);
     procedure CreateProcess1Click(Sender: TObject);
@@ -2882,10 +2881,6 @@ begin
   VarType.OnChange(vartype);
 end;
 
-procedure TMainForm.cbSpeedhackChange(Sender: TObject);
-begin
-
-end;
 
 
 
@@ -8935,7 +8930,7 @@ begin
   end;
 end;
 
-procedure TMainForm.cbSpeedhackClick(Sender: TObject);
+procedure TMainForm.cbSpeedhackChange(Sender: TObject);
 begin
   if cbSpeedhack.Checked then
   begin
