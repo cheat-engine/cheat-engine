@@ -364,7 +364,17 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 					ShowResult=1;
 				
 
-				ntStatus=GetMemoryRegionData((DWORD)PInputBuf->ProcessID,NULL,(PVOID)(PInputBuf->StartAddress),&(POutputBuf->protection),&length,&BaseAddress);
+				__try
+				{
+					ntStatus = GetMemoryRegionData((DWORD)PInputBuf->ProcessID, NULL, (PVOID)(PInputBuf->StartAddress), &(POutputBuf->protection), &length, &BaseAddress);
+				}
+				__except(1)
+				{
+					DbgPrint("GetMemoryRegionData error");
+					ntStatus = STATUS_UNSUCCESSFUL;
+					break;
+				}
+
 				POutputBuf->length=(UINT64)length;
 
 				if (ShowResult)
