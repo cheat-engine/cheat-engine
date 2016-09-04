@@ -1107,7 +1107,7 @@ begin
     ParentFont:=false;
     Font.Charset:=DEFAULT_CHARSET;
     Font.Color:=clBtnText;
-    Font.Name:='Courier';
+    Font.Name:='Courier New';
     Font.Style:=[];
 
     parent:=self;

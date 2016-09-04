@@ -34,6 +34,7 @@ type
     procedure Button1Click(Sender: TObject);
     procedure DontIncludeClick(Sender: TObject);
     procedure Button3Click(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure lbRegionsDblClick(Sender: TObject);
     procedure miClearListClick(Sender: TObject);
   private
@@ -199,6 +200,13 @@ begin
 
   dontinclude.Enabled:=lbregions.Items.Count<=1;
   if lbregions.Items.Count>1 then dontinclude.Checked:=false;
+
+end;
+
+procedure TfrmSaveMemoryRegion.FormShow(Sender: TObject);
+begin
+  editfrom.ClientWidth:=canvas.textwidth('DDDDDDDDDDDD');
+  editTo.ClientWidth:=editfrom.ClientWidth;
 
 end;
 

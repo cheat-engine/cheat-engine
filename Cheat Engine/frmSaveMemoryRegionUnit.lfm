@@ -8,23 +8,23 @@ object frmSaveMemoryRegion: TfrmSaveMemoryRegion
   Caption = 'Save memoryregion'
   ClientHeight = 280
   ClientWidth = 274
-  Font.Name = 'MS Sans Serif'
+  OnShow = FormShow
   PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object Panel1: TPanel
     Left = 0
-    Height = 232
+    Height = 234
     Top = 0
     Width = 274
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 232
+    ClientHeight = 234
     ClientWidth = 274
     TabOrder = 0
     object Label1: TLabel
       Left = 0
-      Height = 16
+      Height = 15
       Top = 0
       Width = 274
       Align = alTop
@@ -34,8 +34,8 @@ object frmSaveMemoryRegion: TfrmSaveMemoryRegion
     end
     object lbRegions: TListBox
       Left = 0
-      Height = 216
-      Top = 16
+      Height = 219
+      Top = 15
       Width = 172
       Align = alClient
       ItemHeight = 0
@@ -45,22 +45,22 @@ object frmSaveMemoryRegion: TfrmSaveMemoryRegion
     end
     object Panel4: TPanel
       Left = 172
-      Height = 216
-      Top = 16
+      Height = 219
+      Top = 15
       Width = 102
       Align = alRight
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 216
+      ClientHeight = 219
       ClientWidth = 102
       TabOrder = 1
       object Label2: TLabel
         AnchorSideLeft.Control = editFrom
         AnchorSideTop.Control = Panel4
         Left = 6
-        Height = 16
+        Height = 15
         Top = 2
-        Width = 31
+        Width = 28
         BorderSpacing.Top = 2
         Caption = 'From'
         ParentColor = False
@@ -70,9 +70,9 @@ object frmSaveMemoryRegion: TfrmSaveMemoryRegion
         AnchorSideTop.Control = editFrom
         AnchorSideTop.Side = asrBottom
         Left = 6
-        Height = 16
-        Top = 42
-        Width = 17
+        Height = 15
+        Top = 40
+        Width = 14
         Caption = 'To'
         ParentColor = False
       end
@@ -81,8 +81,8 @@ object frmSaveMemoryRegion: TfrmSaveMemoryRegion
         AnchorSideTop.Control = Label2
         AnchorSideTop.Side = asrBottom
         Left = 6
-        Height = 24
-        Top = 18
+        Height = 23
+        Top = 17
         Width = 90
         BorderSpacing.Left = 6
         BorderSpacing.Right = 6
@@ -93,8 +93,8 @@ object frmSaveMemoryRegion: TfrmSaveMemoryRegion
         AnchorSideTop.Control = Label3
         AnchorSideTop.Side = asrBottom
         Left = 6
-        Height = 24
-        Top = 58
+        Height = 23
+        Top = 55
         Width = 89
         BorderSpacing.Right = 6
         TabOrder = 1
@@ -105,8 +105,8 @@ object frmSaveMemoryRegion: TfrmSaveMemoryRegion
         AnchorSideTop.Control = editTo
         AnchorSideTop.Side = asrBottom
         Left = 13
-        Height = 26
-        Top = 84
+        Height = 25
+        Top = 80
         Width = 75
         AutoSize = True
         BorderSpacing.Top = 2
@@ -120,22 +120,22 @@ object frmSaveMemoryRegion: TfrmSaveMemoryRegion
   end
   object Panel2: TPanel
     Left = 0
-    Height = 48
-    Top = 232
+    Height = 46
+    Top = 234
     Width = 274
     Align = alBottom
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 48
+    ClientHeight = 46
     ClientWidth = 274
     TabOrder = 1
     object DontInclude: TCheckBox
       AnchorSideTop.Control = Panel3
       AnchorSideTop.Side = asrBottom
       Left = 0
-      Height = 20
-      Top = 28
-      Width = 259
+      Height = 19
+      Top = 27
+      Width = 235
       Caption = 'Don''t include Cheat Engine header in file'
       OnClick = DontIncludeClick
       TabOrder = 0
@@ -145,20 +145,20 @@ object frmSaveMemoryRegion: TfrmSaveMemoryRegion
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Control = Panel2
       Left = 59
-      Height = 26
+      Height = 25
       Top = 2
       Width = 157
       AutoSize = True
       BorderSpacing.Top = 2
       BevelOuter = bvNone
-      ClientHeight = 26
+      ClientHeight = 25
       ClientWidth = 157
       TabOrder = 1
       object Button1: TButton
         AnchorSideLeft.Control = Panel3
         AnchorSideTop.Control = Panel3
         Left = 0
-        Height = 26
+        Height = 25
         Top = 0
         Width = 75
         AutoSize = True
@@ -173,7 +173,7 @@ object frmSaveMemoryRegion: TfrmSaveMemoryRegion
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = Button1
         Left = 82
-        Height = 26
+        Height = 25
         Top = 0
         Width = 75
         AutoSize = True

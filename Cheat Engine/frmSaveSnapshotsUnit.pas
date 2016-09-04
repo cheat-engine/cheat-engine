@@ -34,6 +34,7 @@ type
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure lblDeselectAllClick(Sender: TObject);
     procedure lblSelectAllClick(Sender: TObject);
     procedure PaintBox1MouseDown(Sender: TObject; Button: TMouseButton;
@@ -212,6 +213,12 @@ begin
     if snapshots[i].pic<>nil then
       FreeAndNil(snapshots[i].pic);
   end;
+end;
+
+procedure TfrmSaveSnapshots.FormShow(Sender: TObject);
+begin
+  lblSelectAll.Font.height:=GetFontData(font.handle).height;
+  lblDeselectAll.Font.height:=GetFontData(font.handle).height;
 end;
 
 procedure TfrmSaveSnapshots.lblDeselectAllClick(Sender: TObject);

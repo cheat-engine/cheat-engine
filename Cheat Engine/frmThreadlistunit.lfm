@@ -7,8 +7,6 @@ object frmThreadlist: TfrmThreadlist
   Caption = 'Threadlist'
   ClientHeight = 187
   ClientWidth = 313
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow

@@ -30,6 +30,7 @@ type
     Shape1: TShape;
     Panel2: TPanel;
     sbShowFloats: TSpeedButton;
+    procedure FormShow(Sender: TObject);
     procedure RegisterMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure sbShowFloatsClick(Sender: TObject);
@@ -91,7 +92,6 @@ begin
     if R8Label=nil then
     begin
       r8label:=TLabel.create(self);
-      r8label.font:=eaxlabel.Font;
       r8label.OnDblClick:=EAXLabelDblClick;
       r8label.OnMouseDown:=RegisterMouseDown;
       r8label.Cursor:=crHandPoint;
@@ -102,7 +102,6 @@ begin
     if R9Label=nil then
     begin
       r9label:=TLabel.create(self);
-      r9label.font:=eaxlabel.Font;
       r9label.OnDblClick:=EAXLabelDblClick;
       r9label.OnMouseDown:=RegisterMouseDown;
       r9label.Cursor:=crHandPoint;
@@ -113,7 +112,6 @@ begin
     if R10Label=nil then
     begin
       r10label:=TLabel.create(self);
-      r10label.font:=eaxlabel.Font;
       r10label.OnDblClick:=EAXLabelDblClick;
       r10label.OnMouseDown:=RegisterMouseDown;
       r10label.Cursor:=crHandPoint;
@@ -124,7 +122,6 @@ begin
     if R11Label=nil then
     begin
       r11label:=TLabel.create(self);
-      r11label.font:=eaxlabel.Font;
       r11label.OnDblClick:=EAXLabelDblClick;
       r11label.OnMouseDown:=RegisterMouseDown;
       r11label.Cursor:=crHandPoint;
@@ -135,7 +132,6 @@ begin
     if R12Label=nil then
     begin
       r12label:=TLabel.create(self);
-      r12label.font:=eaxlabel.Font;
       r12label.OnDblClick:=EAXLabelDblClick;
       r12label.OnMouseDown:=RegisterMouseDown;
       r12label.Cursor:=crHandPoint;
@@ -146,7 +142,6 @@ begin
     if R13Label=nil then
     begin
       r13label:=TLabel.create(self);
-      r13label.font:=eaxlabel.Font;
       r13label.OnDblClick:=EAXLabelDblClick;
       r13label.OnMouseDown:=RegisterMouseDown;
       r13label.Cursor:=crHandPoint;
@@ -157,7 +152,6 @@ begin
     if R14Label=nil then
     begin
       r14label:=TLabel.create(self);
-      r14label.font:=eaxlabel.Font;
       r14label.OnDblClick:=EAXLabelDblClick;
       r14label.OnMouseDown:=RegisterMouseDown;
       r14label.Cursor:=crHandPoint;
@@ -168,7 +162,6 @@ begin
     if R15Label=nil then
     begin
       r15label:=TLabel.create(self);
-      r15label.font:=eaxlabel.Font;
       r15label.OnDblClick:=EAXLabelDblClick;
       r15label.OnMouseDown:=RegisterMouseDown;
       r15label.Cursor:=crHandPoint;
@@ -265,6 +258,11 @@ begin
       end;
     end;
   end;
+end;
+
+procedure TRegisters.FormShow(Sender: TObject);
+begin
+
 end;
 
 procedure TRegisters.FormClose(Sender: TObject; var Action: TCloseAction);

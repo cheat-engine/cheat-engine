@@ -7,8 +7,6 @@ object frmSelectionList: TfrmSelectionList
   Caption = 'title'
   ClientHeight = 232
   ClientWidth = 313
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
   PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'

@@ -9,6 +9,7 @@ object frmSaveSnapshots: TfrmSaveSnapshots
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnShow = FormShow
   PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'

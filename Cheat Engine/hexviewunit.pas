@@ -2126,7 +2126,7 @@ begin
   if fHexFont.Height>-11 then
     fHexFont.Height:=-11;
 
-  fHexFont.Name:='Courier';
+  fHexFont.Name:='Courier New';
   fHexFont.Style:=[];
 
   mbCanvas:=TPaintbox.Create(self);

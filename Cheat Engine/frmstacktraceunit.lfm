@@ -7,8 +7,6 @@ object frmStacktrace: TfrmStacktrace
   Caption = 'Stacktrace'
   ClientHeight = 274
   ClientWidth = 683
-  Font.Height = -14
-  Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poOwnerFormCenter

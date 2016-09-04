@@ -6,10 +6,9 @@ object Registers: TRegisters
   Caption = 'Registers'
   ClientHeight = 308
   ClientWidth = 151
-  Font.Height = -14
-  Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   OnResize = FormResize
+  OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object Panel1: TPanel
@@ -25,9 +24,9 @@ object Registers: TRegisters
       AnchorSideLeft.Control = Panel1
       AnchorSideTop.Control = Panel1
       Left = 9
-      Height = 16
+      Height = 15
       Top = 1
-      Width = 61
+      Width = 50
       BorderSpacing.Left = 8
       Caption = 'Registers:'
       ParentColor = False
@@ -38,7 +37,7 @@ object Registers: TRegisters
       AnchorSideTop.Side = asrBottom
       Left = 9
       Height = 2
-      Top = 17
+      Top = 16
       Width = 56
       Brush.Color = clBlack
     end
@@ -51,8 +50,8 @@ object Registers: TRegisters
       AnchorSideBottom.Control = Panel1
       AnchorSideBottom.Side = asrBottom
       Left = 9
-      Height = 279
-      Top = 28
+      Height = 280
+      Top = 27
       Width = 120
       Anchors = [akTop, akLeft, akRight, akBottom]
       AutoSize = True
@@ -61,20 +60,19 @@ object Registers: TRegisters
       ChildSizing.VerticalSpacing = 7
       ChildSizing.Layout = cclLeftToRightThenTopToBottom
       ChildSizing.ControlsPerLine = 1
-      ClientHeight = 279
+      ClientHeight = 280
       ClientWidth = 120
+      Font.Name = 'Courier New'
+      ParentFont = False
       TabOrder = 0
       object EAXLabel: TLabel
         Cursor = crHandPoint
         Left = 0
-        Height = 13
+        Height = 18
         Top = 0
-        Width = 96
+        Width = 120
         Caption = 'EAX 00000000'
-        Font.Height = -15
-        Font.Name = 'Courier'
         ParentColor = False
-        ParentFont = False
         OnDblClick = EAXLabelDblClick
         OnMouseDown = RegisterMouseDown
       end
@@ -82,14 +80,11 @@ object Registers: TRegisters
         Tag = 1
         Cursor = crHandPoint
         Left = 0
-        Height = 13
-        Top = 20
-        Width = 96
+        Height = 18
+        Top = 25
+        Width = 120
         Caption = 'EBX 00000000'
-        Font.Height = -15
-        Font.Name = 'Courier'
         ParentColor = False
-        ParentFont = False
         OnDblClick = EAXLabelDblClick
         OnMouseDown = RegisterMouseDown
       end
@@ -97,14 +92,11 @@ object Registers: TRegisters
         Tag = 2
         Cursor = crHandPoint
         Left = 0
-        Height = 13
-        Top = 40
-        Width = 96
+        Height = 18
+        Top = 50
+        Width = 120
         Caption = 'ECX 00000000'
-        Font.Height = -15
-        Font.Name = 'Courier'
         ParentColor = False
-        ParentFont = False
         OnDblClick = EAXLabelDblClick
         OnMouseDown = RegisterMouseDown
       end
@@ -112,14 +104,11 @@ object Registers: TRegisters
         Tag = 3
         Cursor = crHandPoint
         Left = 0
-        Height = 13
-        Top = 60
-        Width = 96
+        Height = 18
+        Top = 75
+        Width = 120
         Caption = 'EDX 00000000'
-        Font.Height = -15
-        Font.Name = 'Courier'
         ParentColor = False
-        ParentFont = False
         OnDblClick = EAXLabelDblClick
         OnMouseDown = RegisterMouseDown
       end
@@ -127,14 +116,11 @@ object Registers: TRegisters
         Tag = 4
         Cursor = crHandPoint
         Left = 0
-        Height = 13
-        Top = 80
-        Width = 96
+        Height = 18
+        Top = 100
+        Width = 120
         Caption = 'ESI 00000000'
-        Font.Height = -15
-        Font.Name = 'Courier'
         ParentColor = False
-        ParentFont = False
         OnDblClick = EAXLabelDblClick
         OnMouseDown = RegisterMouseDown
       end
@@ -142,14 +128,11 @@ object Registers: TRegisters
         Tag = 5
         Cursor = crHandPoint
         Left = 0
-        Height = 13
-        Top = 100
-        Width = 96
+        Height = 18
+        Top = 125
+        Width = 120
         Caption = 'EDI 00000000'
-        Font.Height = -15
-        Font.Name = 'Courier'
         ParentColor = False
-        ParentFont = False
         OnDblClick = EAXLabelDblClick
         OnMouseDown = RegisterMouseDown
       end
@@ -157,14 +140,11 @@ object Registers: TRegisters
         Tag = 6
         Cursor = crHandPoint
         Left = 0
-        Height = 13
-        Top = 120
-        Width = 96
+        Height = 18
+        Top = 150
+        Width = 120
         Caption = 'EBP 00000000'
-        Font.Height = -15
-        Font.Name = 'Courier'
         ParentColor = False
-        ParentFont = False
         OnDblClick = EAXLabelDblClick
         OnMouseDown = RegisterMouseDown
       end
@@ -172,14 +152,11 @@ object Registers: TRegisters
         Tag = 7
         Cursor = crHandPoint
         Left = 0
-        Height = 13
-        Top = 140
-        Width = 96
+        Height = 18
+        Top = 175
+        Width = 120
         Caption = 'ESP 00000000'
-        Font.Height = -15
-        Font.Name = 'Courier'
         ParentColor = False
-        ParentFont = False
         OnDblClick = EAXLabelDblClick
         OnMouseDown = RegisterMouseDown
       end
@@ -187,14 +164,11 @@ object Registers: TRegisters
         Tag = 8
         Cursor = crHandPoint
         Left = 0
-        Height = 13
-        Top = 160
-        Width = 96
+        Height = 18
+        Top = 200
+        Width = 120
         Caption = 'EIP 00000000'
-        Font.Height = -15
-        Font.Name = 'Courier'
         ParentColor = False
-        ParentFont = False
         OnDblClick = EAXLabelDblClick
         OnMouseDown = RegisterMouseDown
       end

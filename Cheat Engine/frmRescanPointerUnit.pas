@@ -472,6 +472,7 @@ end;
 
 procedure TfrmRescanPointer.FormShow(Sender: TObject);
 begin
+  edtRescanFunction.Constraints.MinWidth:=canvas.TextWidth('RescanFilter ');
   updatePositions;
 end;
 

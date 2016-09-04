@@ -807,7 +807,7 @@ begin
     end;
   end;
 
-  action:=cafree;
+  action:=cahide; //free;
 end;
 
 procedure TfrmTracer.Button1Click(Sender: TObject);
@@ -1149,7 +1149,9 @@ end;
 
 procedure TfrmTracer.Panel1Resize(Sender: TObject);
 begin
-
+  panel7.Top:=(panel1.ClientHeight div 2)-panel7.Height;
+  if panel7.top<(panel6.top+panel6.height) then
+    panel7.top:=panel6.top+panel6.height;
 end;
 
 procedure TfrmTracer.sbShowFloatsClick(Sender: TObject);
@@ -1169,6 +1171,14 @@ end;
 
 procedure TfrmTracer.FormShow(Sender: TObject);
 begin
+  panel1.Font.Height:=GetFontData(font.Handle).Height;
+  if panel1.Font.Height>-13 then
+    panel1.Font.Height:=-13;
+
+  lblInstruction.font:=font;
+  sbShowFloats.font:=font;
+  sbShowstack.font:=font;
+  button1.Font:=font;;
   Panel1Resize(panel1);
 end;
 

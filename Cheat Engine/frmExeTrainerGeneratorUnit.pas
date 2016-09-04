@@ -96,6 +96,7 @@ uses MainUnit,ceguicomponents, opensave, Globals;
 resourcestring
   rsSaving = 'Saving...';
   rsGenerate = 'Generate';
+  rsupdateFailed='Failure updating the trainer resource information: %d';
   rsFailureOnWriting = 'failure on writing';
   rsIconUpdateError = 'icon update error';
   rsFailureOpeningTheTrainerForResourceUpdates = 'Failure opening the trainer '
@@ -356,57 +357,63 @@ begin
 
         {_Archive.SaveToFile('c:\bla.dat');}
 
-        if not UpdateResourceA(updatehandle, RT_RCDATA, 'ARCHIVE', 0, _archive.memory, _archive.size) then
-          raise exception.create(rsFailureOnWriting+rsARCHIVE+inttostr(
-            getlasterror()));
-
-        if not tiny then
-        begin
-          //tiny has no decompressor
-          if not UpdateResourceA(updatehandle, RT_RCDATA, 'DECOMPRESSOR', 0, decompressor.memory, decompressor.size) then
-            raise exception.create(rsFailureOnWriting+rsDECOMPRESSOR+inttostr(
-              getlasterror()));
-        end;
-
-        icon:=tmemorystream.create;
         try
-          image1.picture.icon.SaveToStream(icon);
-         // sizeof(TBitmapInfoHeader)
 
-          //GetIconInfo();
+          if not UpdateResourceA(updatehandle, RT_RCDATA, 'ARCHIVE', 0, _archive.memory, _archive.size) then
+            raise exception.create(rsFailureOnWriting+rsARCHIVE+inttostr(
+              getlasterror()));
 
-          z:=TIcon.create;
-         // z.LoadFromFile('F:\svn\favicon.ico');
-          //z.SaveToStream(icon);
-
-          ii:=icon.memory;
-
-          if ii.idType=1 then
+          if not tiny then
           begin
-            if ii.idCount>0 then
-            begin
-              //update the icon
-              if not updateResourceA(updatehandle,pchar(RT_ICON),MAKEINTRESOURCE(1),1033, pointer(ptruint(icon.Memory)+ii.icondirentry[0].dwImageOffset), ii.icondirentry[0].dwBytesInRes) then
-                raise exception.create(rsIconUpdateError+' 2');
-
-              //update the group
-              gii.idCount:=1;
-              gii.icondirentry[0].id:=1;
-              if not updateResourceA(updatehandle,pchar(RT_GROUP_ICON),MAKEINTRESOURCE(101),1033, gii, sizeof(TGRPICONDIR)+sizeof(TGRPICONDIRENTRY)) then
-                raise exception.create(rsIconUpdateError+' 3');
-
-
-            end;
+            //tiny has no decompressor
+            if not UpdateResourceA(updatehandle, RT_RCDATA, 'DECOMPRESSOR', 0, decompressor.memory, decompressor.size) then
+              raise exception.create(rsFailureOnWriting+rsDECOMPRESSOR+inttostr(
+                getlasterror()));
           end;
+
+          icon:=tmemorystream.create;
+          try
+            image1.picture.icon.SaveToStream(icon);
+           // sizeof(TBitmapInfoHeader)
+
+            //GetIconInfo();
+
+            z:=TIcon.create;
+           // z.LoadFromFile('F:\svn\favicon.ico');
+            //z.SaveToStream(icon);
+
+            ii:=icon.memory;
+
+            if ii.idType=1 then
+            begin
+              if ii.idCount>0 then
+              begin
+                //update the icon
+                if not updateResourceA(updatehandle,pchar(RT_ICON),MAKEINTRESOURCE(1),1033, pointer(ptruint(icon.Memory)+ii.icondirentry[0].dwImageOffset), ii.icondirentry[0].dwBytesInRes) then
+                  raise exception.create(rsIconUpdateError+' 2');
+
+                //update the group
+                gii.idCount:=1;
+                gii.icondirentry[0].id:=1;
+                if not updateResourceA(updatehandle,pchar(RT_GROUP_ICON),MAKEINTRESOURCE(101),1033, gii, sizeof(TGRPICONDIR)+sizeof(TGRPICONDIRENTRY)) then
+                  raise exception.create(rsIconUpdateError+' 3');
+
+
+              end
+              else
+                raise exception.create(rsIconUpdateError+' 4 (Invalid icon)');
+            end
+            else
+              raise exception.create(rsIconUpdateError+' 5 (Invalid icon type)');
+          finally
+            icon.free;
+
+          end;
+
         finally
-          icon.free;
-
+          if EndUpdateResource(updatehandle, false)=false then
+            raise exception.create(format(rsUpdateFailed,[getLastError]));
         end;
-
-
-
-
-        EndUpdateResource(updatehandle, false);
       end else raise exception.create(
         rsFailureOpeningTheTrainerForResourceUpdates);
     end;

@@ -7244,7 +7244,7 @@ begin
     self.position:=poDesigned;
     self.position:=poScreenCenter;
 
-    i:=addresslist.headers.Canvas.TextWidth(addresslist.headers.Sections[0].Text);
+    i:=addresslist.headers.Canvas.TextWidth(addresslist.headers.Sections[0].Text+' ');
     if i>addresslist.headers.Sections[0].Width then addresslist.headers.Sections[0].Width:=i;
 
     i:=max(addresslist.headers.Canvas.TextWidth(addresslist.headers.Sections[1].Text), addresslist.headers.Canvas.TextWidth(strNoDescription));

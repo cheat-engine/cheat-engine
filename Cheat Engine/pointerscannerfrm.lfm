@@ -16,19 +16,23 @@ object frmPointerScanner: TfrmPointerScanner
   LCLVersion = '1.6.0.4'
   object Panel1: TPanel
     Left = 0
-    Height = 24
+    Height = 27
     Top = 0
     Width = 749
     Align = alTop
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 24
+    ClientHeight = 27
     ClientWidth = 749
     TabOrder = 0
     object cbType: TComboBox
+      AnchorSideTop.Control = Panel1
       Left = 0
       Height = 23
-      Top = 0
+      Top = 2
       Width = 145
+      BorderSpacing.Top = 2
+      BorderSpacing.Bottom = 2
       ItemHeight = 15
       Items.Strings = (
         '4 Byte'
@@ -41,10 +45,12 @@ object frmPointerScanner: TfrmPointerScanner
       Visible = False
     end
     object cbTestCrappyConnection: TCheckBox
-      Left = 312
+      AnchorSideLeft.Control = Panel1
+      Left = 320
       Height = 19
-      Top = 0
+      Top = 2
       Width = 146
+      Anchors = [akTop]
       Caption = 'Simulate no connection'
       OnChange = cbTestCrappyConnectionChange
       TabOrder = 1
@@ -53,7 +59,7 @@ object frmPointerScanner: TfrmPointerScanner
     object cbNonResponsive: TCheckBox
       Left = 480
       Height = 19
-      Top = 0
+      Top = 2
       Width = 165
       Caption = 'Non responsive connection'
       OnChange = cbNonResponsiveChange
@@ -127,18 +133,18 @@ object frmPointerScanner: TfrmPointerScanner
   end
   object pnlData: TPanel
     Left = 0
-    Height = 389
-    Top = 24
+    Height = 386
+    Top = 27
     Width = 749
     Align = alClient
     BevelOuter = bvNone
     Caption = 'pnlData'
-    ClientHeight = 389
+    ClientHeight = 386
     ClientWidth = 749
     TabOrder = 4
     object tvInfo: TTreeView
       Left = 0
-      Height = 360
+      Height = 357
       Top = 0
       Width = 590
       Align = alClient
@@ -154,7 +160,7 @@ object frmPointerScanner: TfrmPointerScanner
     object pnlStop: TPanel
       Left = 0
       Height = 29
-      Top = 360
+      Top = 357
       Width = 749
       Align = alBottom
       AutoSize = True
@@ -181,13 +187,13 @@ object frmPointerScanner: TfrmPointerScanner
     end
     object pnlControl: TPanel
       Left = 590
-      Height = 360
+      Height = 357
       Top = 0
       Width = 159
       Align = alRight
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 360
+      ClientHeight = 357
       ClientWidth = 159
       TabOrder = 2
       object cbPriority: TComboBox
