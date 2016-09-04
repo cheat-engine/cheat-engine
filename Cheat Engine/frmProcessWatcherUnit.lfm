@@ -1,21 +1,19 @@
 object frmProcessWatcher: TfrmProcessWatcher
-  Left = 901
+  Left = 676
   Height = 236
-  Top = 263
+  Top = 245
   Width = 264
   BorderIcons = [biSystemMenu]
   Caption = 'Process watcher'
   ClientHeight = 236
   ClientWidth = 264
-  Font.Height = -14
-  Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object tvProcesslist: TTreeView
     Left = 0
-    Height = 163
+    Height = 165
     Top = 0
     Width = 264
     Align = alClient
@@ -30,13 +28,13 @@ object frmProcessWatcher: TfrmProcessWatcher
   end
   object Panel1: TPanel
     Left = 0
-    Height = 73
-    Top = 163
+    Height = 71
+    Top = 165
     Width = 264
     Align = alBottom
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 73
+    ClientHeight = 71
     ClientWidth = 264
     TabOrder = 1
     OnResize = Panel1Resize
@@ -44,16 +42,16 @@ object frmProcessWatcher: TfrmProcessWatcher
       AnchorSideLeft.Control = Panel1
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Control = Panel1
-      Left = 68
-      Height = 57
+      Left = 73
+      Height = 55
       Top = 8
-      Width = 129
+      Width = 118
       AutoSize = True
       BorderSpacing.Top = 8
       BorderSpacing.Bottom = 8
       BevelOuter = bvNone
-      ClientHeight = 57
-      ClientWidth = 129
+      ClientHeight = 55
+      ClientWidth = 118
       TabOrder = 0
       object btnOpen: TButton
         AnchorSideLeft.Control = Panel2
@@ -61,9 +59,9 @@ object frmProcessWatcher: TfrmProcessWatcher
         AnchorSideRight.Control = Panel2
         AnchorSideRight.Side = asrBottom
         Left = 0
-        Height = 26
+        Height = 25
         Top = 0
-        Width = 129
+        Width = 118
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
         Caption = 'Open process'
@@ -77,9 +75,9 @@ object frmProcessWatcher: TfrmProcessWatcher
         AnchorSideRight.Control = Panel2
         AnchorSideRight.Side = asrBottom
         Left = 0
-        Height = 26
-        Top = 31
-        Width = 129
+        Height = 25
+        Top = 30
+        Width = 118
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
         BorderSpacing.Top = 5

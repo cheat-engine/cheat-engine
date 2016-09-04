@@ -2787,7 +2787,13 @@ begin
   begin
     addColumn;
     columns[0].setAddress(initialaddress);
+    columns[0].setFocused(true);
+    columns[0].edtAddress.SetFocus;
   end;
+
+  tvStructureView.Font.Height:=GetFontData(font.handle).Height;
+  if tvStructureView.Font.Height>-15 then
+    tvStructureView.Font.Height:=-15;
 end;
 
 

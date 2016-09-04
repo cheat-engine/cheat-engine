@@ -20,7 +20,8 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     Left = 8
     Height = 25
     Top = 23
-    Width = 179
+    Width = 175
+    AutoSize = True
     BorderSpacing.Left = 8
     Caption = 'Change disassembler font'
     Constraints.MinWidth = 175
@@ -31,10 +32,13 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     AnchorSideLeft.Control = btnFont
     AnchorSideTop.Control = btnFont
     AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = btnFont
+    AnchorSideRight.Side = asrBottom
     Left = 8
     Height = 23
     Top = 53
-    Width = 179
+    Width = 175
+    Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Top = 5
     Constraints.MinWidth = 175
     ItemHeight = 15
@@ -62,7 +66,7 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     Left = 8
     Height = 135
     Top = 78
-    Width = 179
+    Width = 175
     Anchors = [akTop, akLeft, akRight]
     AutoSize = True
     BorderSpacing.Top = 2
@@ -72,7 +76,7 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
     ClientHeight = 115
-    ClientWidth = 175
+    ClientWidth = 171
     TabOrder = 2
     OnClick = GroupBox1Click
     object lblNormal: TLabel
@@ -153,7 +157,7 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     AnchorSideLeft.Control = btnFont
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = Owner
-    Left = 63
+    Left = 61
     Height = 15
     Top = 8
     Width = 69
@@ -165,7 +169,7 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     AnchorSideLeft.Control = btnHexFont
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = Label1
-    Left = 262
+    Left = 256
     Height = 15
     Top = 8
     Width = 44
@@ -177,10 +181,11 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = Label1
     AnchorSideTop.Side = asrBottom
-    Left = 195
+    Left = 191
     Height = 25
     Top = 23
-    Width = 179
+    Width = 175
+    AutoSize = True
     BorderSpacing.Left = 8
     BorderSpacing.Right = 8
     Caption = 'Change hexview font'

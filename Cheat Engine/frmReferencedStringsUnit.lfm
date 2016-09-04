@@ -6,8 +6,6 @@ object frmReferencedStrings: TfrmReferencedStrings
   Caption = 'Referenced Strings'
   ClientHeight = 288
   ClientWidth = 616
-  Font.Height = -13
-  Font.Name = 'MS Sans Serif'
   Menu = MainMenu1
   OnClose = FormClose
   OnShow = FormShow

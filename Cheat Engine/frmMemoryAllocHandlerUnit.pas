@@ -165,6 +165,7 @@ type
     procedure cbHookAllocsChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure GroupBox1Click(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure Button1Click(Sender: TObject);
@@ -699,6 +700,14 @@ begin
     closehandle(CEHasHandledItEvent);
 
   //cleanup memory allocs
+end;
+
+procedure TfrmMemoryAllocHandler.FormShow(Sender: TObject);
+begin
+  if processhandler.is64Bit then
+    edit1.ClientWidth:=canvas.TextWidth(' DDDDDDDD ')
+  else
+    edit1.ClientWidth:=canvas.TextWidth(' DDDDDDDDDDDDD ')
 end;
 
 procedure TfrmMemoryAllocHandler.GroupBox1Click(Sender: TObject);

@@ -439,12 +439,6 @@ begin
   end;
 
 
-
-
-
-
-
-
   if debuggerthread<>nil then
     bp:=debuggerthread.isBreakpoint(faddress)
   else

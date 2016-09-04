@@ -2665,7 +2665,7 @@ begin
     vtUnicodeString: Result:='Unicode String';
     vtPointer: result:='Pointer';
     vtAutoAssembler: Result:='Auto Assembler Script';
-    vtCustom: Result:='Custom';;
+    vtCustom: Result:='Custom';
   end;
 end;
 
