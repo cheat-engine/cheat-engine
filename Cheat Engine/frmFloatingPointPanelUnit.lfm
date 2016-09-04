@@ -89,7 +89,7 @@ object frmFloatingPointPanel: TfrmFloatingPointPanel
         Font.CharSet = ANSI_CHARSET
         Font.Color = clBlack
         Font.Height = -13
-        Font.Name = 'Courier'
+        Font.Name = 'Courier New'
         ParentFont = False
         ReadOnly = True
         ScrollBars = ssBoth

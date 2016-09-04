@@ -8,8 +8,6 @@ object InputboxTop: TInputboxTop
   BorderStyle = bsDialog
   ClientHeight = 66
   ClientWidth = 283
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
   FormStyle = fsStayOnTop
   OnShow = FormShow
   PopupMode = pmAuto

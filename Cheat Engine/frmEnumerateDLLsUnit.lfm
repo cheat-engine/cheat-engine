@@ -27,9 +27,8 @@ object frmEnumerateDLLs: TfrmEnumerateDLLs
     Top = 15
     Width = 369
     Align = alClient
-    DefaultItemHeight = 18
     Font.CharSet = ANSI_CHARSET
-    Font.Name = 'Courier'
+    Font.Name = 'Courier New'
     HideSelection = False
     Indent = 19
     ParentFont = False

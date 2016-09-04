@@ -5,7 +5,7 @@ object MemoryBrowser: TMemoryBrowser
   Width = 716
   HelpContext = 12
   Caption = 'Memory Viewer'
-  ClientHeight = 547
+  ClientHeight = 558
   ClientWidth = 716
   Menu = MainMenu1
   OnClose = FormClose
@@ -85,7 +85,8 @@ object MemoryBrowser: TMemoryBrowser
         AutoScroll = False
         ClientHeight = 294
         ClientWidth = 209
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -15
+        Font.Name = 'Courier New'
         ParentFont = False
         TabOrder = 0
         OnClick = ScrollBox1Click
@@ -94,9 +95,9 @@ object MemoryBrowser: TMemoryBrowser
           AnchorSideLeft.Control = ScrollBox1
           AnchorSideTop.Control = ScrollBox1
           Left = 8
-          Height = 16
+          Height = 17
           Top = 0
-          Width = 61
+          Width = 90
           BorderSpacing.Left = 8
           Caption = 'Registers:'
           ParentColor = False
@@ -109,8 +110,8 @@ object MemoryBrowser: TMemoryBrowser
           AnchorSideRight.Side = asrBottom
           Left = 8
           Height = 2
-          Top = 17
-          Width = 61
+          Top = 18
+          Width = 90
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Top = 1
           Brush.Color = clBlack
@@ -120,10 +121,10 @@ object MemoryBrowser: TMemoryBrowser
           AnchorSideLeft.Control = Panel2
           AnchorSideLeft.Side = asrBottom
           AnchorSideTop.Control = ScrollBox1
-          Left = 119
-          Height = 16
+          Left = 131
+          Height = 17
           Top = 0
-          Width = 34
+          Width = 45
           BorderSpacing.Left = 15
           Caption = 'Flags'
           ParentColor = False
@@ -133,10 +134,10 @@ object MemoryBrowser: TMemoryBrowser
           AnchorSideTop.Control = Shape1
           AnchorSideRight.Control = Label15
           AnchorSideRight.Side = asrBottom
-          Left = 119
+          Left = 131
           Height = 2
-          Top = 17
-          Width = 34
+          Top = 18
+          Width = 45
           Anchors = [akTop, akLeft, akRight]
           Brush.Color = clBlack
         end
@@ -145,9 +146,9 @@ object MemoryBrowser: TMemoryBrowser
           AnchorSideTop.Control = Panel2
           AnchorSideTop.Side = asrBottom
           Left = 8
-          Height = 16
-          Top = 157
-          Width = 115
+          Height = 17
+          Top = 194
+          Width = 153
           BorderSpacing.Top = 5
           Caption = 'Segment Registers'
           ParentColor = False
@@ -160,8 +161,8 @@ object MemoryBrowser: TMemoryBrowser
           AnchorSideRight.Side = asrBottom
           Left = 8
           Height = 2
-          Top = 173
-          Width = 115
+          Top = 211
+          Width = 153
           Anchors = [akTop, akLeft, akRight]
           Brush.Color = clBlack
           OnChangeBounds = Shape3ChangeBounds
@@ -183,28 +184,25 @@ object MemoryBrowser: TMemoryBrowser
           AnchorSideTop.Control = Shape1
           AnchorSideTop.Side = asrBottom
           Left = 8
-          Height = 133
-          Top = 19
-          Width = 96
+          Height = 169
+          Top = 20
+          Width = 108
           AutoSize = True
           BevelOuter = bvNone
           ChildSizing.VerticalSpacing = 2
           ChildSizing.Layout = cclLeftToRightThenTopToBottom
           ChildSizing.ControlsPerLine = 1
-          ClientHeight = 133
-          ClientWidth = 96
+          ClientHeight = 169
+          ClientWidth = 108
           TabOrder = 1
           object EAXLabel: TLabel
             Cursor = crHandPoint
             Left = 0
-            Height = 13
+            Height = 17
             Top = 0
-            Width = 96
+            Width = 108
             Caption = 'EAX 00000000'
-            Font.Height = -15
-            Font.Name = 'Courier'
             ParentColor = False
-            ParentFont = False
             PopupMenu = pmRegisters
             OnClick = EAXLabelDblClick
             OnMouseDown = RegisterMouseDown
@@ -213,14 +211,11 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 1
             Cursor = crHandPoint
             Left = 0
-            Height = 13
-            Top = 15
-            Width = 96
+            Height = 17
+            Top = 19
+            Width = 108
             Caption = 'EBX 00000000'
-            Font.Height = -15
-            Font.Name = 'Courier'
             ParentColor = False
-            ParentFont = False
             PopupMenu = pmRegisters
             OnClick = EAXLabelDblClick
             OnMouseDown = RegisterMouseDown
@@ -229,14 +224,11 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 2
             Cursor = crHandPoint
             Left = 0
-            Height = 13
-            Top = 30
-            Width = 96
+            Height = 17
+            Top = 38
+            Width = 108
             Caption = 'ECX 00000000'
-            Font.Height = -15
-            Font.Name = 'Courier'
             ParentColor = False
-            ParentFont = False
             PopupMenu = pmRegisters
             OnClick = EAXLabelDblClick
             OnMouseDown = RegisterMouseDown
@@ -245,14 +237,11 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 3
             Cursor = crHandPoint
             Left = 0
-            Height = 13
-            Top = 45
-            Width = 96
+            Height = 17
+            Top = 57
+            Width = 108
             Caption = 'EDX 00000000'
-            Font.Height = -15
-            Font.Name = 'Courier'
             ParentColor = False
-            ParentFont = False
             PopupMenu = pmRegisters
             OnClick = EAXLabelDblClick
             OnMouseDown = RegisterMouseDown
@@ -261,14 +250,11 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 4
             Cursor = crHandPoint
             Left = 0
-            Height = 13
-            Top = 60
-            Width = 96
+            Height = 17
+            Top = 76
+            Width = 108
             Caption = 'ESI 00000000'
-            Font.Height = -15
-            Font.Name = 'Courier'
             ParentColor = False
-            ParentFont = False
             PopupMenu = pmRegisters
             OnClick = EAXLabelDblClick
             OnMouseDown = RegisterMouseDown
@@ -277,14 +263,11 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 5
             Cursor = crHandPoint
             Left = 0
-            Height = 13
-            Top = 75
-            Width = 96
+            Height = 17
+            Top = 95
+            Width = 108
             Caption = 'EDI 00000000'
-            Font.Height = -15
-            Font.Name = 'Courier'
             ParentColor = False
-            ParentFont = False
             PopupMenu = pmRegisters
             OnClick = EAXLabelDblClick
             OnMouseDown = RegisterMouseDown
@@ -293,14 +276,11 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 6
             Cursor = crHandPoint
             Left = 0
-            Height = 13
-            Top = 90
-            Width = 96
+            Height = 17
+            Top = 114
+            Width = 108
             Caption = 'EBP 00000000'
-            Font.Height = -15
-            Font.Name = 'Courier'
             ParentColor = False
-            ParentFont = False
             PopupMenu = pmRegisters
             OnClick = EAXLabelDblClick
             OnMouseDown = RegisterMouseDown
@@ -309,14 +289,11 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 7
             Cursor = crHandPoint
             Left = 0
-            Height = 13
-            Top = 105
-            Width = 96
+            Height = 17
+            Top = 133
+            Width = 108
             Caption = 'ESP 00000000'
-            Font.Height = -15
-            Font.Name = 'Courier'
             ParentColor = False
-            ParentFont = False
             PopupMenu = pmRegisters
             OnClick = EAXLabelDblClick
             OnMouseDown = RegisterMouseDown
@@ -325,14 +302,11 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 8
             Cursor = crHandPoint
             Left = 0
-            Height = 13
-            Top = 120
-            Width = 96
+            Height = 17
+            Top = 152
+            Width = 108
             Caption = 'EIP 00000000'
-            Font.Height = -15
-            Font.Name = 'Courier'
             ParentColor = False
-            ParentFont = False
             PopupMenu = pmRegisters
             OnClick = EAXLabelDblClick
             OnMouseDown = RegisterMouseDown
@@ -343,99 +317,81 @@ object MemoryBrowser: TMemoryBrowser
           AnchorSideTop.Control = Shape3
           AnchorSideTop.Side = asrBottom
           Left = 8
-          Height = 88
-          Top = 175
-          Width = 56
+          Height = 112
+          Top = 213
+          Width = 63
           AutoSize = True
           BevelOuter = bvNone
           ChildSizing.VerticalSpacing = 2
           ChildSizing.Layout = cclLeftToRightThenTopToBottom
           ChildSizing.ControlsPerLine = 1
-          ClientHeight = 88
-          ClientWidth = 56
+          ClientHeight = 112
+          ClientWidth = 63
           TabOrder = 2
           object CSLabel: TLabel
             Tag = 9
             Cursor = crHandPoint
             Left = 0
-            Height = 13
+            Height = 17
             Top = 0
-            Width = 56
+            Width = 63
             Caption = 'CS 0000'
-            Font.Height = -15
-            Font.Name = 'Courier'
             ParentColor = False
-            ParentFont = False
             OnClick = EAXLabelDblClick
           end
           object SSlabel: TLabel
             Tag = 10
             Cursor = crHandPoint
             Left = 0
-            Height = 13
-            Top = 15
-            Width = 56
+            Height = 17
+            Top = 19
+            Width = 63
             Caption = 'SS 0000'
-            Font.Height = -15
-            Font.Name = 'Courier'
             ParentColor = False
-            ParentFont = False
             OnClick = EAXLabelDblClick
           end
           object DSLabel: TLabel
             Tag = 11
             Cursor = crHandPoint
             Left = 0
-            Height = 13
-            Top = 30
-            Width = 56
+            Height = 17
+            Top = 38
+            Width = 63
             Caption = 'DS 0000'
-            Font.Height = -15
-            Font.Name = 'Courier'
             ParentColor = False
-            ParentFont = False
             OnClick = EAXLabelDblClick
           end
           object ESlabel: TLabel
             Tag = 12
             Cursor = crHandPoint
             Left = 0
-            Height = 13
-            Top = 45
-            Width = 56
+            Height = 17
+            Top = 57
+            Width = 63
             Caption = 'ES 0000'
-            Font.Height = -15
-            Font.Name = 'Courier'
             ParentColor = False
-            ParentFont = False
             OnClick = EAXLabelDblClick
           end
           object FSlabel: TLabel
             Tag = 13
             Cursor = crHandPoint
             Left = 0
-            Height = 13
-            Top = 60
-            Width = 56
+            Height = 17
+            Top = 76
+            Width = 63
             Caption = 'FS 0000'
-            Font.Height = -15
-            Font.Name = 'Courier'
             ParentColor = False
-            ParentFont = False
             OnClick = EAXLabelDblClick
           end
           object GSlabel: TLabel
             Tag = 14
             Cursor = crHandPoint
             Left = 0
-            Height = 13
-            Top = 75
-            Width = 56
+            Height = 17
+            Top = 95
+            Width = 63
             Caption = 'GS 0000'
-            Font.Height = -15
-            Font.Name = 'Courier'
             ParentColor = False
-            ParentFont = False
             OnClick = EAXLabelDblClick
           end
         end
@@ -443,30 +399,27 @@ object MemoryBrowser: TMemoryBrowser
           AnchorSideLeft.Control = Shape2
           AnchorSideTop.Control = Shape2
           AnchorSideTop.Side = asrBottom
-          Left = 119
-          Height = 103
-          Top = 19
-          Width = 32
+          Left = 131
+          Height = 131
+          Top = 20
+          Width = 36
           AutoSize = True
           BevelOuter = bvNone
           ChildSizing.VerticalSpacing = 2
           ChildSizing.Layout = cclLeftToRightThenTopToBottom
           ChildSizing.ControlsPerLine = 1
-          ClientHeight = 103
-          ClientWidth = 32
+          ClientHeight = 131
+          ClientWidth = 36
           TabOrder = 3
           object oflabel: TLabel
             Tag = 26
             AnchorSideTop.Side = asrBottom
             Left = 0
-            Height = 13
+            Height = 17
             Top = 0
-            Width = 32
+            Width = 36
             Caption = 'OF 0'
-            Font.Height = -15
-            Font.Name = 'Courier'
             ParentColor = False
-            ParentFont = False
             OnClick = EAXLabelDblClick
             OnDblClick = EAXLabelDblClick
           end
@@ -474,14 +427,11 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 25
             AnchorSideTop.Side = asrBottom
             Left = 0
-            Height = 13
-            Top = 15
-            Width = 32
+            Height = 17
+            Top = 19
+            Width = 36
             Caption = 'DF 0'
-            Font.Height = -15
-            Font.Name = 'Courier'
             ParentColor = False
-            ParentFont = False
             OnClick = EAXLabelDblClick
             OnDblClick = EAXLabelDblClick
           end
@@ -489,14 +439,11 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 24
             AnchorSideTop.Side = asrBottom
             Left = 0
-            Height = 13
-            Top = 30
-            Width = 32
+            Height = 17
+            Top = 38
+            Width = 36
             Caption = 'SF 0'
-            Font.Height = -15
-            Font.Name = 'Courier'
             ParentColor = False
-            ParentFont = False
             OnClick = EAXLabelDblClick
             OnDblClick = EAXLabelDblClick
           end
@@ -504,14 +451,11 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 23
             AnchorSideTop.Side = asrBottom
             Left = 0
-            Height = 13
-            Top = 45
-            Width = 32
+            Height = 17
+            Top = 57
+            Width = 36
             Caption = 'ZF 0'
-            Font.Height = -15
-            Font.Name = 'Courier'
             ParentColor = False
-            ParentFont = False
             OnClick = EAXLabelDblClick
             OnDblClick = EAXLabelDblClick
           end
@@ -519,14 +463,11 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 22
             AnchorSideTop.Side = asrBottom
             Left = 0
-            Height = 13
-            Top = 60
-            Width = 32
+            Height = 17
+            Top = 76
+            Width = 36
             Caption = 'AF 0'
-            Font.Height = -15
-            Font.Name = 'Courier'
             ParentColor = False
-            ParentFont = False
             OnClick = EAXLabelDblClick
             OnDblClick = EAXLabelDblClick
           end
@@ -534,14 +475,11 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 21
             AnchorSideTop.Side = asrBottom
             Left = 0
-            Height = 13
-            Top = 75
-            Width = 32
+            Height = 17
+            Top = 95
+            Width = 36
             Caption = 'PF 0'
-            Font.Height = -15
-            Font.Name = 'Courier'
             ParentColor = False
-            ParentFont = False
             OnClick = EAXLabelDblClick
             OnDblClick = EAXLabelDblClick
           end
@@ -549,14 +487,11 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 20
             AnchorSideLeft.Side = asrBottom
             Left = 0
-            Height = 13
-            Top = 90
-            Width = 32
+            Height = 17
+            Top = 114
+            Width = 36
             Caption = 'CF 0'
-            Font.Height = -15
-            Font.Name = 'Courier'
             ParentColor = False
-            ParentFont = False
             OnClick = EAXLabelDblClick
           end
         end
@@ -565,18 +500,18 @@ object MemoryBrowser: TMemoryBrowser
   end
   object Panel4: TPanel
     Left = 0
-    Height = 242
+    Height = 253
     Top = 305
     Width = 716
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
-    ClientHeight = 242
+    ClientHeight = 253
     ClientWidth = 716
     TabOrder = 1
     object Splitter3: TSplitter
       Left = 500
-      Height = 240
+      Height = 251
       Top = 1
       Width = 5
       Align = alRight
@@ -587,7 +522,7 @@ object MemoryBrowser: TMemoryBrowser
     end
     object Panel3: TPanel
       Left = 1
-      Height = 240
+      Height = 251
       Top = 1
       Width = 499
       Align = alClient
@@ -596,19 +531,19 @@ object MemoryBrowser: TMemoryBrowser
     end
     object pnlStacktrace: TPanel
       Left = 505
-      Height = 240
+      Height = 251
       Top = 1
       Width = 210
       Align = alRight
       BevelInner = bvLowered
-      ClientHeight = 240
+      ClientHeight = 251
       ClientWidth = 210
       PopupMenu = pmStacktrace
       TabOrder = 1
       Visible = False
       object lvStacktraceData: TListView
         Left = 2
-        Height = 236
+        Height = 247
         Top = 2
         Width = 206
         Align = alClient

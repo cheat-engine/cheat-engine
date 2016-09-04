@@ -9,8 +9,6 @@ object TypeForm: TTypeForm
   Caption = 'Type'
   ClientHeight = 118
   ClientWidth = 764
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
   OnShow = FormShow
   PopupMode = pmAuto
   Position = poScreenCenter

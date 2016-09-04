@@ -1,11 +1,11 @@
 object FormFoundCodeListExtra: TFormFoundCodeListExtra
   Left = 565
-  Height = 253
+  Height = 270
   Top = 453
   Width = 435
   AutoSize = True
   Caption = 'Extra info'
-  ClientHeight = 253
+  ClientHeight = 270
   ClientWidth = 435
   OnClose = FormClose
   OnCreate = FormCreate
@@ -18,15 +18,15 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
     Left = 0
-    Height = 97
+    Height = 107
     Top = 0
-    Width = 74
+    Width = 82
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 97
-    ClientWidth = 74
+    ClientHeight = 107
+    ClientWidth = 82
     Font.CharSet = ANSI_CHARSET
-    Font.Name = 'courier'
+    Font.Name = 'Courier New'
     ParentFont = False
     TabOrder = 0
     object Label10: TLabel
@@ -34,9 +34,9 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       AnchorSideTop.Control = Label3
       AnchorSideTop.Side = asrCenter
       Left = 0
-      Height = 16
-      Top = 43
-      Width = 18
+      Height = 18
+      Top = 47
+      Width = 20
       Caption = '>>'
       ParentColor = False
     end
@@ -45,10 +45,10 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Label2
       AnchorSideTop.Side = asrBottom
-      Left = 20
-      Height = 16
-      Top = 43
-      Width = 54
+      Left = 22
+      Height = 18
+      Top = 47
+      Width = 60
       BorderSpacing.Left = 2
       BorderSpacing.Top = 3
       Caption = 'Label3'
@@ -60,10 +60,10 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Label3
       AnchorSideTop.Side = asrBottom
-      Left = 20
-      Height = 16
-      Top = 62
-      Width = 54
+      Left = 22
+      Height = 18
+      Top = 68
+      Width = 60
       BorderSpacing.Left = 2
       BorderSpacing.Top = 3
       Caption = 'Label4'
@@ -75,10 +75,10 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Label4
       AnchorSideTop.Side = asrBottom
-      Left = 20
-      Height = 16
-      Top = 81
-      Width = 54
+      Left = 22
+      Height = 18
+      Top = 89
+      Width = 60
       BorderSpacing.Left = 2
       BorderSpacing.Top = 3
       Caption = 'Label5'
@@ -90,10 +90,10 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Label1
       AnchorSideTop.Side = asrBottom
-      Left = 20
-      Height = 16
-      Top = 24
-      Width = 54
+      Left = 22
+      Height = 18
+      Top = 26
+      Width = 60
       BorderSpacing.Left = 2
       BorderSpacing.Top = 3
       Caption = 'Label2'
@@ -104,10 +104,10 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       AnchorSideLeft.Control = Label10
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Panel1
-      Left = 20
-      Height = 16
+      Left = 22
+      Height = 18
       Top = 5
-      Width = 54
+      Width = 60
       BorderSpacing.Left = 2
       BorderSpacing.Top = 5
       Caption = 'Label1'
@@ -121,7 +121,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     AnchorSideTop.Side = asrBottom
     Left = 0
     Height = 34
-    Top = 97
+    Top = 107
     Width = 62
     AutoSize = True
     BevelOuter = bvNone
@@ -179,7 +179,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     AnchorSideTop.Side = asrBottom
     Left = 0
     Height = 36
-    Top = 219
+    Top = 229
     Width = 435
     Anchors = [akTop, akLeft, akRight]
     AutoSize = True
@@ -216,7 +216,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     AnchorSideRight.Side = asrBottom
     Left = 4
     Height = 60
-    Top = 136
+    Top = 146
     Width = 431
     Anchors = [akTop, akLeft, akRight]
     AutoSize = True
@@ -231,7 +231,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       AnchorSideLeft.Control = Panel6
       AnchorSideRight.Control = Panel8
       Left = 0
-      Height = 54
+      Height = 60
       Top = 0
       Width = 406
       Anchors = [akTop, akLeft, akRight]
@@ -243,14 +243,14 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
       ChildSizing.Layout = cclTopToBottomThenLeftToRight
       ChildSizing.ControlsPerLine = 3
-      ClientHeight = 54
+      ClientHeight = 60
       ClientWidth = 406
-      Font.Name = 'Courier'
+      Font.Name = 'Courier New'
       ParentFont = False
       TabOrder = 0
       object lblRAX: TLabel
         Left = 0
-        Height = 16
+        Height = 18
         Top = 0
         Width = 122
         Caption = 'EAX=DDDDDDDD'
@@ -261,8 +261,8 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       end
       object lblRBX: TLabel
         Left = 0
-        Height = 16
-        Top = 19
+        Height = 18
+        Top = 21
         Width = 122
         Caption = 'EBX=DDDDDDDD'
         ParentColor = False
@@ -272,8 +272,8 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       end
       object lblRCX: TLabel
         Left = 0
-        Height = 16
-        Top = 38
+        Height = 18
+        Top = 42
         Width = 122
         Caption = 'ECX=DDDDDDDD'
         ParentColor = False
@@ -283,7 +283,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       end
       object lblRDX: TLabel
         Left = 142
-        Height = 16
+        Height = 18
         Top = 0
         Width = 122
         Caption = 'EDX=DDDDDDDD'
@@ -294,8 +294,8 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       end
       object lblRSI: TLabel
         Left = 142
-        Height = 16
-        Top = 19
+        Height = 18
+        Top = 21
         Width = 122
         Caption = 'ESI=DDDDDDDD'
         ParentColor = False
@@ -305,8 +305,8 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       end
       object lblRDI: TLabel
         Left = 142
-        Height = 16
-        Top = 38
+        Height = 18
+        Top = 42
         Width = 122
         Caption = 'EDI=DDDDDDDD'
         ParentColor = False
@@ -316,7 +316,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       end
       object lblRBP: TLabel
         Left = 284
-        Height = 16
+        Height = 18
         Top = 0
         Width = 122
         Caption = 'EBP=DDDDDDDD'
@@ -327,8 +327,8 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       end
       object lblRSP: TLabel
         Left = 284
-        Height = 16
-        Top = 19
+        Height = 18
+        Top = 21
         Width = 122
         Caption = 'ESP=DDDDDDDD'
         ParentColor = False
@@ -338,8 +338,8 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       end
       object lblRIP: TLabel
         Left = 284
-        Height = 16
-        Top = 38
+        Height = 18
+        Top = 42
         Width = 122
         Caption = 'EIP=DDDDDDDD'
         ParentColor = False
@@ -403,7 +403,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     AnchorSideTop.Side = asrBottom
     Left = 4
     Height = 15
-    Top = 204
+    Top = 214
     Width = 530
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Left = 4

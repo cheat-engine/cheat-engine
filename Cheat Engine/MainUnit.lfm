@@ -345,7 +345,7 @@ object MainForm: TMainForm
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = Panel9
       Left = 344
-      Height = 170
+      Height = 174
       Top = 178
       Width = 200
       Anchors = [akTop, akRight]
@@ -354,7 +354,7 @@ object MainForm: TMainForm
       BorderSpacing.Top = 6
       BorderSpacing.Right = 6
       Caption = 'Memory Scan Options'
-      ClientHeight = 150
+      ClientHeight = 154
       ClientWidth = 196
       Color = clBtnFace
       Constraints.MinWidth = 10
@@ -369,7 +369,7 @@ object MainForm: TMainForm
         AnchorSideRight.Side = asrBottom
         Left = 0
         Height = 38
-        Top = 50
+        Top = 54
         Width = 196
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
@@ -437,13 +437,13 @@ object MainForm: TMainForm
       object Panel3: TPanel
         AnchorSideRight.Side = asrBottom
         Left = 0
-        Height = 50
+        Height = 54
         Top = 0
         Width = 196
         Align = alTop
         AutoSize = True
         BevelOuter = bvNone
-        ClientHeight = 50
+        ClientHeight = 54
         ClientWidth = 196
         TabOrder = 1
         object Label2: TLabel
@@ -452,7 +452,7 @@ object MainForm: TMainForm
           AnchorSideTop.Side = asrCenter
           Left = 5
           Height = 15
-          Top = 31
+          Top = 34
           Width = 24
           BorderSpacing.Left = 5
           Caption = 'Stop'
@@ -466,7 +466,7 @@ object MainForm: TMainForm
           AnchorSideTop.Side = asrCenter
           Left = 5
           Height = 15
-          Top = 5
+          Top = 6
           Width = 24
           BorderSpacing.Left = 5
           Caption = 'Start'
@@ -481,14 +481,14 @@ object MainForm: TMainForm
           AnchorSideRight.Control = FromAddress
           AnchorSideRight.Side = asrBottom
           Left = 35
-          Height = 24
-          Top = 26
+          Height = 26
+          Top = 28
           Width = 155
           Alignment = taRightJustify
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Top = 2
           Font.CharSet = ANSI_CHARSET
-          Font.Name = 'Courier'
+          Font.Name = 'Courier New'
           Font.Pitch = fpFixed
           Font.Quality = fqDraft
           ParentFont = False
@@ -502,14 +502,14 @@ object MainForm: TMainForm
           AnchorSideRight.Control = Panel3
           AnchorSideRight.Side = asrBottom
           Left = 35
-          Height = 24
+          Height = 26
           Top = 0
           Width = 155
           Alignment = taRightJustify
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Left = 6
           BorderSpacing.Right = 6
-          Font.Name = 'Courier'
+          Font.Name = 'Courier New'
           ParentFont = False
           TabOrder = 1
           Text = '00000000'
@@ -523,7 +523,7 @@ object MainForm: TMainForm
         AnchorSideRight.Side = asrBottom
         Left = 0
         Height = 62
-        Top = 88
+        Top = 92
         Width = 196
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True

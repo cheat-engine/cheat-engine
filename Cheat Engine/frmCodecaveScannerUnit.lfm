@@ -22,7 +22,7 @@ object frmCodecaveScanner: TfrmCodecaveScanner
     Width = 155
     Anchors = [akTop, akLeft, akRight]
     Font.CharSet = ANSI_CHARSET
-    Font.Name = 'Courier'
+    Font.Name = 'Courier New'
     Font.Style = [fsBold]
     ItemHeight = 0
     MultiSelect = True
@@ -34,13 +34,13 @@ object frmCodecaveScanner: TfrmCodecaveScanner
   object Panel1: TPanel
     AnchorSideTop.Control = Owner
     Left = 155
-    Height = 179
+    Height = 185
     Top = 0
     Width = 124
     Anchors = [akTop, akRight]
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 179
+    ClientHeight = 185
     ClientWidth = 124
     TabOrder = 1
     object Label1: TLabel
@@ -67,7 +67,7 @@ object frmCodecaveScanner: TfrmCodecaveScanner
       AnchorSideRight.Side = asrBottom
       Left = 2
       Height = 15
-      Top = 41
+      Top = 43
       Width = 120
       Alignment = taCenter
       Anchors = [akTop, akLeft, akRight]
@@ -85,7 +85,7 @@ object frmCodecaveScanner: TfrmCodecaveScanner
       AnchorSideRight.Side = asrBottom
       Left = 2
       Height = 15
-      Top = 82
+      Top = 86
       Width = 120
       Alignment = taCenter
       Anchors = [akTop, akLeft, akRight]
@@ -102,7 +102,7 @@ object frmCodecaveScanner: TfrmCodecaveScanner
       AnchorSideTop.Side = asrBottom
       Left = 25
       Height = 25
-      Top = 124
+      Top = 130
       Width = 75
       AutoSize = True
       BorderSpacing.Top = 3
@@ -120,7 +120,7 @@ object frmCodecaveScanner: TfrmCodecaveScanner
       AnchorSideRight.Control = Panel1
       AnchorSideRight.Side = asrBottom
       Left = 2
-      Height = 24
+      Height = 26
       Top = 15
       Width = 120
       Anchors = [akTop, akLeft, akRight]
@@ -129,7 +129,7 @@ object frmCodecaveScanner: TfrmCodecaveScanner
       CharCase = ecUppercase
       Constraints.MinWidth = 120
       Font.CharSet = ANSI_CHARSET
-      Font.Name = 'Courier'
+      Font.Name = 'Courier New'
       MaxLength = 8
       ParentFont = False
       TabOrder = 1
@@ -142,8 +142,8 @@ object frmCodecaveScanner: TfrmCodecaveScanner
       AnchorSideRight.Control = Panel1
       AnchorSideRight.Side = asrBottom
       Left = 2
-      Height = 24
-      Top = 56
+      Height = 26
+      Top = 58
       Width = 120
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Left = 2
@@ -151,7 +151,7 @@ object frmCodecaveScanner: TfrmCodecaveScanner
       CharCase = ecUppercase
       Constraints.MinWidth = 120
       Font.CharSet = ANSI_CHARSET
-      Font.Name = 'Courier'
+      Font.Name = 'Courier New'
       MaxLength = 8
       ParentFont = False
       TabOrder = 2
@@ -164,15 +164,15 @@ object frmCodecaveScanner: TfrmCodecaveScanner
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Side = asrBottom
       Left = 2
-      Height = 24
-      Top = 97
+      Height = 26
+      Top = 101
       Width = 120
       BorderSpacing.Left = 2
       BorderSpacing.Right = 2
       CharCase = ecUppercase
       Constraints.MinWidth = 120
       Font.CharSet = ANSI_CHARSET
-      Font.Name = 'Courier'
+      Font.Name = 'Courier New'
       ParentFont = False
       TabOrder = 3
       Text = '12'

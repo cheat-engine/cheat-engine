@@ -8,8 +8,6 @@ object frmStructuresAddElement: TfrmStructuresAddElement
   Caption = 'Add Element'
   ClientHeight = 171
   ClientWidth = 300
-  Font.Height = -14
-  Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
@@ -19,59 +17,47 @@ object frmStructuresAddElement: TfrmStructuresAddElement
     AnchorSideTop.Control = edtOffset
     AnchorSideTop.Side = asrBottom
     Left = 20
-    Height = 13
-    Top = 38
-    Width = 51
+    Height = 15
+    Top = 42
+    Width = 59
     BorderSpacing.Top = 2
     Caption = 'description'
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
     ParentColor = False
-    ParentFont = False
   end
   object Label2: TLabel
     AnchorSideLeft.Control = edtByteSize
     AnchorSideBottom.Control = edtByteSize
-    Left = 240
-    Height = 13
-    Top = 78
-    Width = 39
+    Left = 232
+    Height = 15
+    Top = 84
+    Width = 42
     Anchors = [akLeft, akBottom]
     BorderSpacing.Right = 4
     Caption = 'Bytesize'
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
     ParentColor = False
-    ParentFont = False
   end
   object Label3: TLabel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
     Left = 20
-    Height = 13
+    Height = 15
     Top = 2
-    Width = 28
+    Width = 32
     BorderSpacing.Left = 20
     BorderSpacing.Top = 2
     Caption = 'Offset'
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
     ParentColor = False
-    ParentFont = False
   end
   object cbType: TComboBox
     AnchorSideLeft.Control = cbPointerto
     AnchorSideTop.Control = cbPointerto
     AnchorSideTop.Side = asrBottom
     Left = 20
-    Height = 21
-    Top = 91
+    Height = 23
+    Top = 99
     Width = 208
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
-    ItemHeight = 13
+    ItemHeight = 15
     OnChange = cbTypeChange
-    ParentFont = False
     Style = csDropDownList
     TabOrder = 2
   end
@@ -81,12 +67,9 @@ object frmStructuresAddElement: TfrmStructuresAddElement
     AnchorSideTop.Side = asrBottom
     Left = 20
     Height = 19
-    Top = 72
-    Width = 67
+    Top = 80
+    Width = 75
     Caption = 'pointer to:'
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
-    ParentFont = False
     TabOrder = 1
   end
   object Button1: TButton
@@ -94,8 +77,8 @@ object frmStructuresAddElement: TfrmStructuresAddElement
     AnchorSideTop.Control = cbType
     AnchorSideTop.Side = asrBottom
     Left = 20
-    Height = 23
-    Top = 120
+    Height = 25
+    Top = 130
     Width = 75
     AutoSize = True
     BorderSpacing.Top = 8
@@ -103,11 +86,8 @@ object frmStructuresAddElement: TfrmStructuresAddElement
     Caption = 'OK'
     Constraints.MinWidth = 75
     Default = True
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
     ModalResult = 1
     OnClick = Button1Click
-    ParentFont = False
     TabOrder = 4
   end
   object Button2: TButton
@@ -115,8 +95,8 @@ object frmStructuresAddElement: TfrmStructuresAddElement
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = Button1
     Left = 102
-    Height = 23
-    Top = 120
+    Height = 25
+    Top = 130
     Width = 75
     AutoSize = True
     BorderSpacing.Left = 7
@@ -125,10 +105,7 @@ object frmStructuresAddElement: TfrmStructuresAddElement
     Cancel = True
     Caption = 'Cancel'
     Constraints.MinWidth = 75
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
     ModalResult = 2
-    ParentFont = False
     TabOrder = 5
   end
   object edtDescription: TEdit
@@ -138,29 +115,26 @@ object frmStructuresAddElement: TfrmStructuresAddElement
     AnchorSideRight.Control = cbType
     AnchorSideRight.Side = asrBottom
     Left = 20
-    Height = 21
-    Top = 51
+    Height = 23
+    Top = 57
     Width = 208
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Right = 4
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
-    ParentFont = False
     TabOrder = 0
     Text = 'undefined'
   end
   object edtByteSize: TEdit
+    AnchorSideLeft.Control = cbType
+    AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = cbType
-    Left = 240
-    Height = 21
-    Top = 91
+    Left = 232
+    Height = 23
+    Top = 99
     Width = 54
+    BorderSpacing.Left = 4
     BorderSpacing.Right = 4
     Enabled = False
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
     OnChange = edtByteSizeChange
-    ParentFont = False
     TabOrder = 3
     Text = '0'
   end
@@ -171,15 +145,12 @@ object frmStructuresAddElement: TfrmStructuresAddElement
     AnchorSideRight.Control = cbType
     AnchorSideRight.Side = asrBottom
     Left = 20
-    Height = 21
-    Top = 15
+    Height = 23
+    Top = 17
     Width = 208
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Right = 4
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
     OnChange = edtOffsetChange
-    ParentFont = False
     TabOrder = 6
     Text = '0'
   end

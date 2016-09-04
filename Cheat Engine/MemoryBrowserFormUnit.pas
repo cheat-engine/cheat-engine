@@ -1698,6 +1698,9 @@ begin
   GDTlist1.Visible:=not is64bitos;
   IDTlist1.Visible:=not is64bitos;
 
+  scrollbox1.Font.Height:=GetFontData(font.handle).height;
+  if scrollbox1.Font.Height>-13 then
+    scrollbox1.Font.Height:=-13;
 end;
 
 procedure TMemoryBrowser.disassemblerviewDblClick(Sender: TObject);

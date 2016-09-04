@@ -1,13 +1,13 @@
 object formDifferentBitSize: TformDifferentBitSize
   Left = 719
-  Height = 141
+  Height = 145
   Top = 250
   Width = 329
   VertScrollBar.Visible = False
   AutoSize = True
   BorderIcons = [biSystemMenu]
   Caption = 'Different sized row of bits'
-  ClientHeight = 141
+  ClientHeight = 145
   ClientWidth = 329
   OnCreate = FormCreate
   OnShow = FormShow
@@ -17,13 +17,13 @@ object formDifferentBitSize: TformDifferentBitSize
     AnchorSideTop.Control = Label1
     AnchorSideTop.Side = asrBottom
     Left = 130
-    Height = 16
+    Height = 18
     Top = 70
-    Width = 72
+    Width = 80
     BorderSpacing.Top = 10
     Caption = 'LabelOld'
     Font.Height = -16
-    Font.Name = 'Courier'
+    Font.Name = 'Courier New'
     ParentColor = False
     ParentFont = False
   end
@@ -31,13 +31,13 @@ object formDifferentBitSize: TformDifferentBitSize
     AnchorSideTop.Control = Labelold
     AnchorSideTop.Side = asrBottom
     Left = 130
-    Height = 16
-    Top = 88
-    Width = 72
+    Height = 18
+    Top = 90
+    Width = 80
     BorderSpacing.Top = 2
     Caption = 'LabelNew'
     Font.Height = -16
-    Font.Name = 'Courier'
+    Font.Name = 'Courier New'
     ParentColor = False
     ParentFont = False
   end
@@ -58,7 +58,7 @@ object formDifferentBitSize: TformDifferentBitSize
     AnchorSideTop.Side = asrCenter
     Left = 148
     Height = 23
-    Top = 113
+    Top = 117
     Width = 33
     BorderSpacing.Top = 3
     OnKeyDown = Edit1KeyDown
@@ -74,7 +74,7 @@ object formDifferentBitSize: TformDifferentBitSize
     AnchorSideTop.Side = asrBottom
     Left = 127
     Height = 25
-    Top = 112
+    Top = 116
     Width = 75
     BorderSpacing.Top = 8
     Caption = 'OK'

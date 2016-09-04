@@ -8,8 +8,6 @@ object tlg: Ttlg
   Caption = 'TLG:The Lame Game'
   ClientHeight = 348
   ClientWidth = 483
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   Position = poMainFormCenter
   LCLVersion = '1.6.0.4'

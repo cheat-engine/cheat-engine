@@ -6,8 +6,6 @@ object frmThreadlistEx: TfrmThreadlistEx
   Caption = 'ThreadInfo'
   ClientHeight = 220
   ClientWidth = 272
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   LCLVersion = '1.6.0.4'
   object TreeView1: TTreeView

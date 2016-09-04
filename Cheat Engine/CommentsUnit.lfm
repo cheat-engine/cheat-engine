@@ -65,7 +65,7 @@ object Comments: TComments
         Align = alClient
         Font.CharSet = ANSI_CHARSET
         Font.Height = -15
-        Font.Name = 'Courier'
+        Font.Name = 'Courier New'
         Font.Pitch = fpFixed
         Font.Quality = fqDraft
         ParentFont = False

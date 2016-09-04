@@ -2,15 +2,13 @@ object ValueChangeForm: TValueChangeForm
   Left = 1245
   Height = 106
   Top = 568
-  Width = 242
+  Width = 265
   AutoSize = True
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Change Offset: ########'
   ClientHeight = 106
-  ClientWidth = 242
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  ClientWidth = 265
   OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow
@@ -22,13 +20,13 @@ object ValueChangeForm: TValueChangeForm
     AnchorSideTop.Control = ValueText
     AnchorSideTop.Side = asrBottom
     Left = 6
-    Height = 21
-    Top = 31
+    Height = 23
+    Top = 33
     Width = 149
     BorderSpacing.Left = 6
     BorderSpacing.Top = 4
     BorderSpacing.Right = 6
-    ItemHeight = 13
+    ItemHeight = 15
     ItemIndex = 0
     Items.Strings = (
       '1 Byte'
@@ -51,7 +49,7 @@ object ValueChangeForm: TValueChangeForm
     AnchorSideRight.Control = cbunicode
     AnchorSideRight.Side = asrBottom
     Left = 6
-    Height = 21
+    Height = 23
     Top = 6
     Width = 254
     BorderSpacing.Left = 6
@@ -68,10 +66,10 @@ object ValueChangeForm: TValueChangeForm
     AnchorSideTop.Side = asrCenter
     Left = 161
     Height = 19
-    Top = 32
-    Width = 101
+    Top = 35
+    Width = 64
     BorderSpacing.Left = 4
-    Caption = 'Unicode weeeee'
+    Caption = 'Unicode'
     TabOrder = 2
     Visible = False
   end
@@ -80,22 +78,22 @@ object ValueChangeForm: TValueChangeForm
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = cbVarType
     AnchorSideTop.Side = asrBottom
-    Left = 43
-    Height = 23
-    Top = 59
+    Left = 54
+    Height = 25
+    Top = 63
     Width = 157
     AutoSize = True
     BorderSpacing.Top = 7
     BorderSpacing.Bottom = 7
     BevelOuter = bvNone
-    ClientHeight = 23
+    ClientHeight = 25
     ClientWidth = 157
     TabOrder = 3
     object Button1: TButton
       AnchorSideLeft.Control = Panel1
       AnchorSideTop.Control = Panel1
       Left = 0
-      Height = 23
+      Height = 25
       Top = 0
       Width = 75
       AutoSize = True
@@ -110,7 +108,7 @@ object ValueChangeForm: TValueChangeForm
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Button1
       Left = 82
-      Height = 23
+      Height = 25
       Top = 0
       Width = 75
       AutoSize = True

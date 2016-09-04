@@ -30,7 +30,7 @@ object frmStructures2: TfrmStructures2
     DefaultItemHeight = 16
     Font.CharSet = ANSI_CHARSET
     Font.Height = -15
-    Font.Name = 'Courier'
+    Font.Name = 'Courier New'
     HideSelection = False
     Indent = 19
     MultiSelect = True
