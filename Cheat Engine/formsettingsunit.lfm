@@ -1,7 +1,7 @@
 object formSettings: TformSettings
-  Left = 690
+  Left = 450
   Height = 646
-  Top = 297
+  Top = 301
   Width = 1053
   AutoSize = True
   BorderIcons = [biSystemMenu]
@@ -61,27 +61,27 @@ object formSettings: TformSettings
       Height = 607
       Top = 1
       Width = 903
-      ActivePage = Extra
+      ActivePage = GeneralSettings
       Align = alClient
-      TabIndex = 6
+      TabIndex = 0
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
         Caption = 'General Settings'
-        ClientHeight = 463
-        ClientWidth = 658
+        ClientHeight = 579
+        ClientWidth = 895
         object ScrollBox1: TScrollBox
           Left = 0
-          Height = 463
+          Height = 579
           Top = 0
-          Width = 658
+          Width = 895
           HorzScrollBar.Page = 494
           HorzScrollBar.Tracking = True
-          VertScrollBar.Page = 450
+          VertScrollBar.Page = 469
           VertScrollBar.Tracking = True
           Align = alClient
-          ClientHeight = 459
-          ClientWidth = 654
+          ClientHeight = 575
+          ClientWidth = 891
           TabOrder = 0
           OnClick = ScrollBox1Click
           object Label11: TLabel
@@ -91,7 +91,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrCenter
             Left = 234
             Height = 15
-            Top = 377
+            Top = 396
             Width = 16
             Caption = 'ms'
             ParentColor = False
@@ -103,7 +103,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrCenter
             Left = 234
             Height = 15
-            Top = 402
+            Top = 421
             Width = 16
             Caption = 'ms'
             ParentColor = False
@@ -114,7 +114,7 @@ object formSettings: TformSettings
             AnchorSideRight.Control = EditUpdateInterval
             Left = 97
             Height = 15
-            Top = 377
+            Top = 396
             Width = 80
             Anchors = [akTop, akRight]
             BorderSpacing.Right = 4
@@ -127,7 +127,7 @@ object formSettings: TformSettings
             AnchorSideRight.Control = EditFreezeInterval
             Left = 102
             Height = 15
-            Top = 402
+            Top = 421
             Width = 75
             Anchors = [akTop, akRight]
             BorderSpacing.Right = 4
@@ -140,7 +140,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrCenter
             Left = 0
             Height = 15
-            Top = 427
+            Top = 446
             Width = 177
             Caption = 'Found address list update interval'
             ParentColor = False
@@ -152,7 +152,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrCenter
             Left = 234
             Height = 15
-            Top = 427
+            Top = 446
             Width = 16
             Caption = 'ms'
             ParentColor = False
@@ -163,7 +163,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrCenter
             Left = 0
             Height = 15
-            Top = 333
+            Top = 352
             Width = 218
             Caption = 'Automatically attach to processes named'
             ParentColor = False
@@ -175,7 +175,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrCenter
             Left = 368
             Height = 15
-            Top = 333
+            Top = 352
             Width = 126
             BorderSpacing.Left = 5
             Caption = '(Seperate entries with ; )'
@@ -213,7 +213,7 @@ object formSettings: TformSettings
             Left = 181
             Height = 23
             Hint = 'The number of milliseconds that Cheat Engine will wait before refreshing the list of addresses'
-            Top = 373
+            Top = 392
             Width = 53
             ParentShowHint = False
             ShowHint = True
@@ -227,7 +227,7 @@ object formSettings: TformSettings
             Left = 181
             Height = 23
             Hint = 'The number of milliseconds that Cheat Engine will wait before resetting the frozen addresses to their original value.'
-            Top = 398
+            Top = 417
             Width = 53
             BorderSpacing.Top = 2
             ParentShowHint = False
@@ -243,13 +243,13 @@ object formSettings: TformSettings
             AnchorSideRight.Side = asrBottom
             Left = 0
             Height = 60
-            Top = 266
-            Width = 654
+            Top = 285
+            Width = 891
             Anchors = [akTop, akLeft, akRight]
             AutoSize = True
             Caption = 'Address list specific'
             ClientHeight = 40
-            ClientWidth = 650
+            ClientWidth = 887
             TabOrder = 4
             object cbShowAsSigned: TCheckBox
               AnchorSideLeft.Control = GroupBox1
@@ -299,7 +299,7 @@ object formSettings: TformSettings
             Left = 181
             Height = 23
             Hint = 'The number of milliseconds that Cheat Engine will wait before refreshing the list of found addresses'
-            Top = 423
+            Top = 442
             Width = 53
             BorderSpacing.Left = 4
             BorderSpacing.Top = 2
@@ -349,7 +349,7 @@ object formSettings: TformSettings
             Left = 220
             Height = 23
             Hint = 'Type the name of the process you want to automatically open. Note: Only works when NO process has been opened yet'
-            Top = 329
+            Top = 348
             Width = 143
             BorderSpacing.Left = 2
             BorderSpacing.Top = 3
@@ -363,7 +363,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrBottom
             Left = 0
             Height = 19
-            Top = 354
+            Top = 373
             Width = 361
             BorderSpacing.Top = 2
             Caption = 'Even autoattach when another process has already been selected'
@@ -371,11 +371,11 @@ object formSettings: TformSettings
           end
           object cbSaveWindowPos: TCheckBox
             AnchorSideLeft.Control = ScrollBox1
-            AnchorSideTop.Control = cbAlwaysRunScript
+            AnchorSideTop.Control = cbDPIAware
             AnchorSideTop.Side = asrBottom
             Left = 0
             Height = 19
-            Top = 133
+            Top = 152
             Width = 140
             Caption = 'Save window positions'
             Checked = True
@@ -388,7 +388,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrBottom
             Left = 0
             Height = 19
-            Top = 209
+            Top = 228
             Width = 188
             Caption = 'Get process icons for processlist'
             Checked = True
@@ -402,7 +402,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrBottom
             Left = 16
             Height = 19
-            Top = 228
+            Top = 247
             Width = 198
             BorderSpacing.Left = 16
             Caption = 'Only show processes with an icon'
@@ -414,7 +414,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrBottom
             Left = 0
             Height = 19
-            Top = 171
+            Top = 190
             Width = 113
             Caption = 'Show main menu'
             Checked = True
@@ -438,7 +438,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrBottom
             Left = 0
             Height = 19
-            Top = 152
+            Top = 171
             Width = 188
             Caption = 'Show all windows in the taskbar'
             TabOrder = 16
@@ -476,7 +476,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrBottom
             Left = 0
             Height = 19
-            Top = 190
+            Top = 209
             Width = 187
             Caption = 'Show process list in main menu'
             TabOrder = 19
@@ -488,7 +488,7 @@ object formSettings: TformSettings
             Left = 0
             Height = 19
             Hint = 'When enabled CE will record writes done by the user and allows the user to undo those changes'
-            Top = 247
+            Top = 266
             Width = 184
             Caption = 'Enable write logging by default'
             ParentShowHint = False
@@ -502,7 +502,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrCenter
             Left = 189
             Height = 15
-            Top = 249
+            Top = 268
             Width = 138
             BorderSpacing.Left = 5
             Caption = 'Max log size (nr of entries)'
@@ -516,12 +516,54 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrCenter
             Left = 332
             Height = 23
-            Top = 245
+            Top = 264
             Width = 80
             BorderSpacing.Left = 5
             Enabled = False
             TabOrder = 21
             Text = '250'
+          end
+          object cbOverrideDefaultFont: TCheckBox
+            AnchorSideLeft.Control = ScrollBox1
+            AnchorSideTop.Control = cbDPIAware
+            AnchorSideTop.Side = asrBottom
+            Left = 0
+            Height = 19
+            Top = 152
+            Width = 251
+            Caption = 'Override the default font (Requires a restart)'
+            OnChange = cbOverrideDefaultFontChange
+            TabOrder = 22
+          end
+          object btnSetFont: TButton
+            AnchorSideLeft.Control = cbOverrideDefaultFont
+            AnchorSideLeft.Side = asrBottom
+            AnchorSideTop.Control = cbOverrideDefaultFont
+            AnchorSideBottom.Control = cbOverrideDefaultFont
+            AnchorSideBottom.Side = asrBottom
+            Left = 251
+            Height = 19
+            Top = 152
+            Width = 69
+            Anchors = [akTop, akLeft, akBottom]
+            AutoSize = True
+            Caption = 'Set Font'
+            Enabled = False
+            OnClick = btnSetFontClick
+            TabOrder = 23
+          end
+          object cbDPIAware: TCheckBox
+            AnchorSideLeft.Control = ScrollBox1
+            AnchorSideTop.Control = cbAlwaysRunScript
+            AnchorSideTop.Side = asrBottom
+            Left = 0
+            Height = 19
+            Top = 133
+            Width = 74
+            Caption = 'DPI Aware'
+            Checked = True
+            State = cbChecked
+            TabOrder = 24
           end
         end
       end
@@ -934,27 +976,31 @@ object formSettings: TformSettings
       end
       object Plugins: TTabSheet
         Caption = 'Plugins'
-        ClientHeight = 463
-        ClientWidth = 658
+        ClientHeight = 579
+        ClientWidth = 895
         ImageIndex = 3
         object Panel7: TPanel
-          Left = 560
-          Height = 463
+          Left = 797
+          Height = 579
           Top = 0
           Width = 98
           Align = alRight
           AutoSize = True
           BevelOuter = bvNone
-          ClientHeight = 463
+          ClientHeight = 579
           ClientWidth = 98
           TabOrder = 0
           object Button5: TButton
+            AnchorSideLeft.Control = Panel7
             AnchorSideTop.Control = Button4
             AnchorSideTop.Side = asrBottom
+            AnchorSideRight.Control = Panel7
+            AnchorSideRight.Side = asrBottom
             Left = 4
             Height = 25
             Top = 37
             Width = 90
+            Anchors = [akTop, akLeft, akRight]
             AutoSize = True
             BorderSpacing.Left = 4
             BorderSpacing.Top = 4
@@ -965,11 +1011,15 @@ object formSettings: TformSettings
             TabOrder = 0
           end
           object Button4: TButton
+            AnchorSideLeft.Control = Panel7
             AnchorSideTop.Control = Panel7
+            AnchorSideRight.Control = Panel7
+            AnchorSideRight.Side = asrBottom
             Left = 4
             Height = 25
             Top = 8
             Width = 90
+            Anchors = [akTop, akLeft, akRight]
             AutoSize = True
             BorderSpacing.Left = 4
             BorderSpacing.Top = 8
@@ -982,28 +1032,28 @@ object formSettings: TformSettings
         end
         object Panel8: TPanel
           Left = 0
-          Height = 463
+          Height = 579
           Top = 0
-          Width = 560
+          Width = 797
           Align = alClient
           BevelOuter = bvNone
-          ClientHeight = 463
-          ClientWidth = 560
+          ClientHeight = 579
+          ClientWidth = 797
           TabOrder = 1
           object Label22: TLabel
             Left = 0
             Height = 15
             Top = 0
-            Width = 560
+            Width = 797
             Align = alTop
             Caption = 'The following plugins are available:'
             ParentColor = False
           end
           object clbPlugins: TCheckListBox
             Left = 0
-            Height = 448
+            Height = 564
             Top = 15
-            Width = 560
+            Width = 797
             Align = alClient
             ItemHeight = 0
             TabOrder = 0
@@ -1851,5 +1901,11 @@ object formSettings: TformSettings
   object SelectDirectoryDialog1: TSelectDirectoryDialog
     left = 8
     top = 176
+  end
+  object FontDialog1: TFontDialog
+    MinFontSize = 0
+    MaxFontSize = 0
+    left = 801
+    top = 143
   end
 end

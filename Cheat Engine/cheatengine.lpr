@@ -91,7 +91,7 @@ uses
   VirtualQueryExCache, disassemblerthumb, AccessedMemory, LuaStructureFrm,
   MemoryQuery, pointerparser, GnuAssembler, binutils, dbvmLoadManual, mikmod,
   frmEditHistoryUnit, LuaInternet, xinput, frmUltimap2Unit, cpuidunit, libipt,
-  DPIHelper;
+  DPIHelper, Graphics, fontSaveLoadRegistry, registry;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in
@@ -214,33 +214,71 @@ type TFormFucker=class
     procedure addFormEvent(Sender: TObject; Form: TCustomForm);
 end;
 
-var overridefontsize: integer;
+var overridefont: TFont;
 procedure TFormFucker.addFormEvent(Sender: TObject; Form: TCustomForm);
 begin
   //fuuuuucking time
-  if form<>nil then
-    form.Font.Size:=overridefontsize;
+  if (form<>nil) and (overridefont<>nil) then
+    form.Font:=overridefont;
+
 
 end;
 
 var
   i: integer;
+  istrainer: boolean;
   ff: TFormFucker;
+  r: TRegistry;
 begin
   Application.Title:='Cheat Engine 6.6';
   Application.Initialize;
 
+  overridefont:=nil;
 
+  //first check if this is a trainer.
+  istrainer:=false;
+  for i:=1 to Paramcount do
+  begin
+    if pos('.CETRAINER', uppercase(ParamStr(i)))>0 then
+    begin
+      istrainer:=true; //a trainer could give some extra parameters like dpiaware , but that is fine
+      break;
+    end;
+  end;
 
+  if not istrainer then
+  begin
+    //check the user preferences
+    r := TRegistry.Create;
+    r.RootKey := HKEY_CURRENT_USER;
+    if r.OpenKey('\Software\Cheat Engine',false) then
+    begin
+      if r.ValueExists('Override Default Font') then
+      begin
+        if r.ReadBool('Override Default Font') then
+        begin
+          if r.OpenKey('Font', false) then
+          begin
+            overridefont:=TFont.create;
+            LoadFontFromRegistry(overridefont,r);
 
+            ff:=TFormFucker.Create;
+            screen.AddHandlerFormAdded(@ff.addFormEvent)
+          end;
+        end;
+      end;
+    end;
+  end;
 
   for i:=1 to Paramcount do
   begin
-
     if Copy(uppercase(ParamStr(i)),1,9)='FONTSIZE=' then
     begin
       try
-        overridefontsize:=strtoint(copy(ParamStr(i), 10, length(ParamStr(i))));
+        if overridefont=nil then
+          overridefont:=TFont.create;
+
+        overridefont.size:=strtoint(copy(ParamStr(i), 10, length(ParamStr(i))));
         ff:=TFormFucker.Create;
         screen.AddHandlerFormAdded(@ff.addFormEvent);
 
@@ -248,7 +286,6 @@ begin
       end;
     end;
   end;
-
 
   getcedir;
 

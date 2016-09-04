@@ -27,6 +27,7 @@ type
     btnCancel: TButton;
     btnExcludeProcesses: TButton;
     btnOK: TButton;
+    btnSetFont: TButton;
     cbAlwaysAutoAttach: TCheckBox;
     cbAlwaysRunScript: TCheckBox;
     cbAskIfTableHasLuascript: TCheckBox;
@@ -61,6 +62,8 @@ type
     cbWriteLoggingOn: TCheckBox;
     cgAllTypes: TCheckGroup;
     CheckBox1: TCheckBox;
+    cbOverrideDefaultFont: TCheckBox;
+    cbDPIAware: TCheckBox;
     combothreadpriority: TComboBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
@@ -72,6 +75,7 @@ type
     edtStacksize: TEdit;
     edtTempScanFolder: TEdit;
     edtWriteLogSize: TEdit;
+    FontDialog1: TFontDialog;
     GroupBox1: TGroupBox;
     GroupBox2: TGroupBox;
     GroupBox4: TGroupBox;
@@ -166,10 +170,12 @@ type
     clbPlugins: TCheckListBox;
     procedure btnOKClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
+    procedure btnSetFontClick(Sender: TObject);
     procedure cbAskIfTableHasLuascriptChange(Sender: TObject);
     procedure cbDontusetempdirChange(Sender: TObject);
     procedure cbDebuggerInterfaceChange(Sender: TObject);
     procedure cbKernelQueryMemoryRegionChange(Sender: TObject);
+    procedure cbOverrideDefaultFontChange(Sender: TObject);
     procedure CheckBox1Change(Sender: TObject);
     procedure EditBufSizeKeyPress(Sender: TObject; var Key: Char);
     procedure Default1Click(Sender: TObject);
@@ -278,7 +284,8 @@ CustomTypeHandler,
 processlist,
 commonTypeDefs,
 frmEditHistoryUnit,
-Globals;
+Globals,
+fontSaveLoadRegistry;
 
 
 
@@ -719,8 +726,17 @@ begin
 
       logWrites:=cbWriteLoggingOn.checked;
       setMaxWriteLogSize(writelogsize);
+
+      reg.WriteBool('DPI Aware', cbDPIAware.Checked);
+      reg.writebool('Override Default Font', cbOverrideDefaultFont.Checked);
     end;
 
+
+    if cbOverrideDefaultFont.checked then
+    begin
+      if reg.OpenKey('\Software\Cheat Engine\Font', true) then
+        SaveFontToRegistry(fontdialog1.Font, reg);
+    end;
 
 
 
@@ -846,6 +862,15 @@ begin
 
 end;
 
+procedure TformSettings.btnSetFontClick(Sender: TObject);
+begin
+  if fontdialog1.Execute then
+  begin
+    cbOverrideDefaultFont.Font.assign(fontdialog1.Font);
+    btnSetFont.Font.assign(fontdialog1.Font);
+  end;
+end;
+
 procedure TformSettings.cbAskIfTableHasLuascriptChange(Sender: TObject);
 begin
   cbAlwaysRunScript.enabled:=not cbAskIfTableHasLuascript.checked;
@@ -883,6 +908,11 @@ end;
 procedure TformSettings.cbKernelQueryMemoryRegionChange(Sender: TObject);
 begin
 
+end;
+
+procedure TformSettings.cbOverrideDefaultFontChange(Sender: TObject);
+begin
+  btnSetFont.enabled:=cbOverrideDefaultFont.Checked;
 end;
 
 procedure TformSettings.CheckBox1Change(Sender: TObject);
@@ -939,6 +969,8 @@ procedure TformSettings.FormShow(Sender: TObject);
   var reg: TRegistry;
   i,j: integer;
   m: dword;
+
+  fd: TFontData;
 begin
 
   tempstatepopuphide:=laststatePopupHide;
@@ -1002,9 +1034,21 @@ begin
 
   autosize:=false;
 
+  if FontDialog1.Font.Height=0 then
+  begin
+    //first time init
+    fd:=GetFontData(font.handle);
 
+    FontDialog1.Font.Height:=fd.Height;
+    FontDialog1.Font.Pitch:=fd.Pitch;
+    FontDialog1.Font.Style:=fd.Style;
+    FontDialog1.Font.CharSet:=fd.CharSet;
+    FontDialog1.Font.Quality:=fd.Quality;
+    FontDialog1.Font.Name:=fd.Name;
+    FontDialog1.Font.Orientation:=fd.Orientation;
+    FontDialog1.Font.color:=font.color;
 
-
+  end;
 
  // GroupBox2.top:=rbgDebuggerInterface.top+rbgDebuggerInterface.height+4;
 end;

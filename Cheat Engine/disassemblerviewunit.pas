@@ -465,8 +465,8 @@ end;
 procedure TDisassemblerview.DoAutoSize;
 begin
   DisableAutoSizing;
-  disassembleDescription.ClientHeight:=disassembleDescription.Canvas.TextHeight('GgXx')+4;
-  header.Height:=header.Canvas.TextHeight('GgXx')+4;
+  disassembleDescription.ClientHeight:=disassembleDescription.Canvas.TextHeight('GgXxYj')+4;
+  header.Height:=header.Canvas.TextHeight('GgXxyJjlL')+4;
 
   disassembleDescription.Font.Height:=GetFontData(font.Handle).Height;
 
@@ -1162,13 +1162,13 @@ begin
   begin
     top:=0;
     //autosize:=true;
-    height:=20;
+    //height:=20;
     OnSectionResize:=headerSectionResize;
     OnSectionTrack:=headerSectionTrack;
     parent:=scrollbox;
     onenter:=OnLostFocus;
     //header.Align:=alTop;
-    header.ParentFont:=false;
+    //header.ParentFont:=false;
     PopupMenu:=emptymenu;
 
     name:='Header';

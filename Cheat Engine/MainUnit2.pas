@@ -657,6 +657,12 @@ begin
           end;
 
           logWrites:=cbWriteLoggingOn.checked;
+
+          if reg.ValueExists('DPI Aware') then
+            cbDPIAware.Checked:=reg.readBool('DPI Aware');
+
+          if reg.ValueExists('Override Default Font') then
+            cbOverrideDefaultFont.Checked:=reg.readbool('Override Default Font');
         end;
 
 
