@@ -7,7 +7,7 @@ interface
 
 uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, Unit8, StdCtrls, Buttons, LResources, math;
+  Dialogs, Unit8, StdCtrls, Buttons, LResources, ExtCtrls, math;
 
 type
   TPlayer=class
@@ -36,6 +36,7 @@ type
     Button7: TButton;
     Button8: TButton;
     Label10: TLabel;
+    Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
     Label5: TLabel;
@@ -43,6 +44,11 @@ type
     Label7: TLabel;
     Label8: TLabel;
     Label9: TLabel;
+    Panel1: TPanel;
+    Panel2: TPanel;
+    Panel3: TPanel;
+    Panel4: TPanel;
+    Panel5: TPanel;
     procedure Button2Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
@@ -255,12 +261,13 @@ end;
 
 procedure TForm10.FormCreate(Sender: TObject);
 begin
+
       //31337157
   memo1.lines.text:=rsTutorialStep9;
   memo1.Lines.Insert(0, Format(rsStep9SharedCodePW, [inttostr(313)+inttostr(37157)]));
 
   button3.Click;
-
+  font.size:=12;
 end;
 
 procedure TForm10.SpeedButton1Click(Sender: TObject);

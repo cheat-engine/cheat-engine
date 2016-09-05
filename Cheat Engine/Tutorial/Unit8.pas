@@ -109,6 +109,7 @@ begin
   memo1.lines.text:=rsTutorialStep7;
   memo1.Lines.Insert(0, Format(rsStep7CodeInjectionPW, [inttostr(0)+inttostr(13370)]));
   memo1.SelStart:=0;
+  font.size:=12;
 end;
 
 procedure TForm8.Button2Click(Sender: TObject);

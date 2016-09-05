@@ -100,6 +100,7 @@ begin
   memo1.lines.text:=rsTutorialStep4;
   memo1.Lines.Insert(0, rsStep4FloatingPointsPW+inttostr(890124)+')');
   memo1.SelStart:=0;
+  font.size:=12;
 end;
 
 procedure TForm5.Button1Click(Sender: TObject);

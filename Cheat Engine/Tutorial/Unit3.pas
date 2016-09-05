@@ -83,6 +83,7 @@ begin
 
   memo1.Lines.Insert(0, rsStep3UnknownInitialValuePW+inttostr(419482)+')');
   memo1.SelStart:=0;
+  font.size:=12;
 end;
 
 procedure TForm3.Button2Click(Sender: TObject);

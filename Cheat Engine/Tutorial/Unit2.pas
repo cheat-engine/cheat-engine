@@ -134,7 +134,7 @@ begin
   memo1.SelStart:=0;
   health:=100;
 
-
+  font.size:=12;
 end;
 
 procedure TForm2.Timer1Timer(Sender: TObject);

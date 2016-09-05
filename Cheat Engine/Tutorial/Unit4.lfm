@@ -1,43 +1,88 @@
 object Form4: TForm4
-  Left = 263
-  Height = 85
-  Top = 682
-  Width = 378
+  Left = 436
+  Height = 125
+  Top = 717
+  Width = 427
+  AutoSize = True
   BorderIcons = []
   BorderStyle = bsDialog
   Caption = 'Tutorial End'
-  ClientHeight = 85
-  ClientWidth = 378
+  ClientHeight = 125
+  ClientWidth = 427
   Color = clBtnFace
-  Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
   OnClose = FormClose
+  OnCreate = FormCreate
+  OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object Label1: TLabel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
     Left = 8
-    Height = 13
+    Height = 15
     Top = 8
-    Width = 271
+    Width = 305
+    BorderSpacing.Left = 8
+    BorderSpacing.Top = 8
+    BorderSpacing.Right = 8
     Caption = 'Well done, you''ve completed the tutorial of Cheat Engine.'
     ParentColor = False
   end
   object Label2: TLabel
+    AnchorSideLeft.Control = Label1
+    AnchorSideTop.Control = Label1
+    AnchorSideTop.Side = asrBottom
     Left = 8
-    Height = 13
-    Top = 24
-    Width = 361
+    Height = 15
+    Top = 23
+    Width = 408
+    BorderSpacing.Right = 8
     Caption = 'Just play around with the tutorial and learn how the other scanmethods work.'
     ParentColor = False
   end
   object Button1: TButton
-    Left = 160
+    AnchorSideLeft.Control = Owner
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = Label4
+    AnchorSideTop.Side = asrBottom
+    Left = 176
     Height = 25
-    Top = 48
+    Top = 91
     Width = 75
+    AutoSize = True
+    BorderSpacing.Top = 4
+    BorderSpacing.Bottom = 4
     Caption = 'OK'
+    Constraints.MinWidth = 75
     OnClick = Button1Click
     TabOrder = 0
+  end
+  object Label3: TLabel
+    AnchorSideTop.Control = Label2
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 8
+    Height = 30
+    Top = 42
+    Width = 411
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 4
+    BorderSpacing.Right = 8
+    Caption = 'And you can always check out the Cheat Engine Forum for useful information and ask for help'
+    ParentColor = False
+    WordWrap = True
+  end
+  object Label4: TLabel
+    AnchorSideTop.Control = Label3
+    AnchorSideTop.Side = asrBottom
+    Cursor = crHandPoint
+    Left = 160
+    Height = 15
+    Top = 72
+    Width = 108
+    Caption = 'Cheat Engine Forum'
+    ParentColor = False
+    OnClick = Label4Click
   end
 end

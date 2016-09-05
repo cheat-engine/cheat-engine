@@ -190,6 +190,7 @@ begin
   memo1.lines.text:=rstutorialStep6;
   memo1.Lines.Insert(0, Format(rsStep6PointersPW, [inttostr(0)+inttostr(98712)]));
   memo1.SelStart:=0;
+  font.size:=12;
 end;
 
 

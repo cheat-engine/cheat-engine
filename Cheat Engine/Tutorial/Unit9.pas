@@ -188,6 +188,7 @@ begin
   memo1.lines.text:=rsTutorialStep8;
   memo1.Lines.Insert(0, Format(rsStep8MultilevelPointersPW, [inttostr(525)+inttostr(927)]));
   memo1.SelStart:=0;
+  font.size:=12;
 end;
 
 procedure TForm9.Button1Click(Sender: TObject);

@@ -114,6 +114,7 @@ begin
   memo1.lines.text:=rsTutorialStep5;
   memo1.Lines.Insert(0, Format(rsStep5CodeFinderPW, [inttostr(888899)]));
   memo1.SelStart:=0;
+  font.size:=12;
 end;
 
 procedure TForm6.FormClose(Sender: TObject; var Action: TCloseAction);

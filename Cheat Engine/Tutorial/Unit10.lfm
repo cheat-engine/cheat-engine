@@ -1,7 +1,9 @@
 inherited Form10: TForm10
-  Left = 993
-  Top = 355
+  Left = 573
+  Top = 340
+  Width = 640
   Caption = 'Step 9'
+  ClientWidth = 640
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   Visible = True
@@ -11,35 +13,31 @@ inherited Form10: TForm10
     AnchorSideBottom.Control = nil
     Left = 478
     Top = 10
-    Width = 21
+    Width = 18
     Caption = '100'
     Visible = False
   end
-  object Label2: TLabel[1]
-    Left = 440
-    Height = 16
-    Top = 10
-    Width = 42
-    Caption = 'Health:'
-    ParentColor = False
-    Visible = False
-  end
-  inherited SpeedButton1: TSpeedButton[2]
+  inherited SpeedButton1: TSpeedButton
     AnchorSideRight.Control = Owner
     AnchorSideBottom.Control = Owner
+    Left = 614
   end
-  inherited Memo1: TMemo[3]
-    AnchorSideBottom.Control = Label7
-    Height = 156
+  inherited Memo1: TMemo
+    AnchorSideBottom.Control = Panel5
+    Height = 160
+    Width = 640
     Lines.Strings = (
       ''
     )
   end
-  inherited Button2: TButton[4]
+  inherited Button2: TButton
     AnchorSideBottom.Control = Owner
+    Left = 283
+    AutoSize = True
+    Constraints.MinWidth = 75
     OnClick = Button2Click
   end
-  inherited Button1: TButton[5]
+  inherited Button1: TButton
     AnchorSideLeft.Control = nil
     AnchorSideLeft.Side = asrTop
     AnchorSideBottom.Control = nil
@@ -51,191 +49,274 @@ inherited Form10: TForm10
     OnClick = Button1Click
     Visible = False
   end
-  object Label3: TLabel[6]
-    AnchorSideTop.Control = Label5
-    AnchorSideRight.Control = Label5
-    Left = 29
-    Height = 16
-    Top = 156
-    Width = 88
-    Anchors = [akTop, akRight]
-    BorderSpacing.Right = 15
-    Caption = 'Player 1: Dave'
+  object Label2: TLabel[5]
+    Left = 440
+    Height = 15
+    Top = 10
+    Width = 38
+    Caption = 'Health:'
     ParentColor = False
+    Visible = False
   end
-  object Label4: TLabel[7]
-    AnchorSideLeft.Control = Label3
-    AnchorSideLeft.Side = asrCenter
-    AnchorSideTop.Control = Label3
-    AnchorSideTop.Side = asrBottom
-    Left = 40
-    Height = 16
-    Top = 172
-    Width = 66
-    Caption = 'Health: 100'
-    ParentColor = False
-  end
-  object Label5: TLabel[8]
-    AnchorSideLeft.Control = Label6
-    AnchorSideLeft.Side = asrCenter
-    AnchorSideRight.Control = Button6
-    AnchorSideBottom.Control = Label6
-    Left = 132
-    Height = 16
-    Top = 156
-    Width = 78
-    Anchors = [akLeft, akBottom]
-    BorderSpacing.Right = 3
-    Caption = 'Player 2: Eric'
-    ParentColor = False
-  end
-  object Label6: TLabel[9]
-    AnchorSideLeft.Control = Button7
-    AnchorSideLeft.Side = asrCenter
-    AnchorSideBottom.Control = Button7
-    Left = 138
-    Height = 16
-    Top = 172
-    Width = 66
-    Anchors = [akLeft, akBottom]
-    Caption = 'Health: 100'
-    ParentColor = False
-  end
-  object Button3: TButton[10]
-    AnchorSideLeft.Control = Memo1
-    AnchorSideLeft.Side = asrCenter
-    AnchorSideBottom.Control = Button6
-    Left = 247
-    Height = 26
-    Top = 188
-    Width = 107
-    Anchors = [akLeft, akBottom]
-    AutoSize = True
-    BorderSpacing.Bottom = 6
-    Caption = 'Restart game'
-    OnClick = Button3Click
-    TabOrder = 3
-  end
-  object Label7: TLabel[11]
-    AnchorSideLeft.Control = Button4
-    AnchorSideLeft.Side = asrCenter
-    AnchorSideBottom.Control = Label8
-    Left = 380
-    Height = 16
-    Top = 156
-    Width = 96
-    Anchors = [akLeft, akBottom]
-    Caption = 'C. Player 3: HAL'
-    ParentColor = False
-  end
-  object Label8: TLabel[12]
-    AnchorSideLeft.Control = Button4
-    AnchorSideLeft.Side = asrCenter
-    AnchorSideBottom.Control = Button4
-    Left = 395
-    Height = 16
-    Top = 172
-    Width = 66
-    Anchors = [akLeft, akBottom]
-    Caption = 'Health: 500'
-    ParentColor = False
-  end
-  object Label9: TLabel[13]
-    AnchorSideLeft.Control = Label7
-    AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = Label7
-    Left = 491
-    Height = 16
-    Top = 156
-    Width = 99
-    BorderSpacing.Left = 15
-    Caption = 'C. Player 4: KITT'
-    ParentColor = False
-  end
-  object Label10: TLabel[14]
-    AnchorSideLeft.Control = Label9
-    AnchorSideLeft.Side = asrCenter
-    AnchorSideTop.Control = Label9
-    AnchorSideTop.Side = asrBottom
-    Left = 507
-    Height = 16
-    Top = 172
-    Width = 66
-    Caption = 'Health: 500'
-    ParentColor = False
-  end
-  object Button4: TButton[15]
-    AnchorSideLeft.Control = Button6
-    AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = Button3
-    AnchorSideBottom.Control = Button3
-    AnchorSideBottom.Side = asrBottom
-    Left = 397
-    Height = 26
-    Top = 188
-    Width = 63
-    AutoSize = True
-    BorderSpacing.Left = 3
-    Caption = 'Attack'
-    OnClick = Button4Click
-    TabOrder = 4
-  end
-  object Button5: TButton[16]
-    AnchorSideLeft.Control = Label10
-    AnchorSideLeft.Side = asrCenter
-    AnchorSideTop.Control = Label10
-    AnchorSideTop.Side = asrBottom
-    Left = 509
-    Height = 26
-    Top = 188
-    Width = 63
-    AutoSize = True
-    Caption = 'Attack'
-    OnClick = Button5Click
-    TabOrder = 5
-  end
-  object Button6: TButton[17]
+  object Button6: TButton[6]
     AnchorSideLeft.Control = Memo1
     AnchorSideLeft.Side = asrCenter
     AnchorSideBottom.Control = Button2
-    Left = 206
-    Height = 26
-    Top = 220
-    Width = 188
+    Left = 237
+    Height = 25
+    Top = 221
+    Width = 167
     Anchors = [akLeft, akBottom]
     AutoSize = True
     BorderSpacing.Bottom = 9
     Caption = 'Restart game and autoplay'
     OnClick = Button6Click
-    TabOrder = 6
+    TabOrder = 3
   end
-  object Button7: TButton[18]
-    AnchorSideLeft.Control = Label5
-    AnchorSideTop.Control = Button3
-    AnchorSideRight.Control = Button6
-    Left = 140
-    Height = 26
-    Top = 188
-    Width = 63
-    Anchors = [akTop, akRight]
+  object Panel5: TPanel[7]
+    AnchorSideLeft.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Button6
+    Left = 0
+    Height = 61
+    Top = 160
+    Width = 640
+    Anchors = [akLeft, akRight, akBottom]
     AutoSize = True
-    BorderSpacing.Right = 3
-    Caption = 'Attack'
-    OnClick = Button7Click
-    TabOrder = 7
-  end
-  object Button8: TButton[19]
-    AnchorSideLeft.Control = Label4
-    AnchorSideLeft.Side = asrCenter
-    AnchorSideTop.Control = Label4
-    AnchorSideTop.Side = asrBottom
-    Left = 42
-    Height = 26
-    Top = 188
-    Width = 63
-    AutoSize = True
-    Caption = 'Attack'
-    OnClick = Button8Click
-    TabOrder = 8
+    BevelOuter = bvNone
+    ClientHeight = 61
+    ClientWidth = 640
+    TabOrder = 4
+    object Panel1: TPanel
+      AnchorSideRight.Control = Panel2
+      AnchorSideBottom.Control = Button3
+      AnchorSideBottom.Side = asrBottom
+      Left = 101
+      Height = 55
+      Top = 0
+      Width = 73
+      Anchors = [akRight, akBottom]
+      AutoSize = True
+      BorderSpacing.Right = 15
+      BevelOuter = bvNone
+      ClientHeight = 55
+      ClientWidth = 73
+      TabOrder = 0
+      object Label3: TLabel
+        AnchorSideLeft.Control = Panel1
+        AnchorSideTop.Control = Panel1
+        Left = 0
+        Height = 15
+        Top = 0
+        Width = 73
+        Caption = 'Player 1: Dave'
+        ParentColor = False
+      end
+      object Label4: TLabel
+        AnchorSideLeft.Control = Panel1
+        AnchorSideTop.Control = Label3
+        AnchorSideTop.Side = asrBottom
+        Left = 0
+        Height = 15
+        Top = 15
+        Width = 59
+        Caption = 'Health: 100'
+        ParentColor = False
+      end
+      object Button8: TButton
+        AnchorSideLeft.Control = Panel1
+        AnchorSideLeft.Side = asrCenter
+        AnchorSideTop.Control = Label4
+        AnchorSideTop.Side = asrBottom
+        Left = 6
+        Height = 25
+        Top = 30
+        Width = 60
+        AutoSize = True
+        Caption = 'Attack'
+        OnClick = Button8Click
+        TabOrder = 0
+      end
+    end
+    object Panel2: TPanel
+      AnchorSideRight.Control = Button3
+      AnchorSideBottom.Control = Button3
+      AnchorSideBottom.Side = asrBottom
+      Left = 189
+      Height = 55
+      Top = 0
+      Width = 69
+      Anchors = [akRight, akBottom]
+      AutoSize = True
+      BorderSpacing.Right = 15
+      BevelOuter = bvNone
+      ClientHeight = 55
+      ClientWidth = 69
+      TabOrder = 1
+      object Label5: TLabel
+        AnchorSideLeft.Control = Panel2
+        AnchorSideTop.Control = Panel2
+        AnchorSideBottom.Control = Label6
+        Left = 0
+        Height = 15
+        Top = 0
+        Width = 66
+        BorderSpacing.Right = 3
+        Caption = 'Player 2: Eric'
+        ParentColor = False
+      end
+      object Label6: TLabel
+        AnchorSideLeft.Control = Panel2
+        AnchorSideTop.Control = Label5
+        AnchorSideTop.Side = asrBottom
+        AnchorSideBottom.Control = Button7
+        Left = 0
+        Height = 15
+        Top = 15
+        Width = 59
+        Caption = 'Health: 100'
+        ParentColor = False
+      end
+      object Button7: TButton
+        AnchorSideLeft.Control = Panel2
+        AnchorSideLeft.Side = asrCenter
+        AnchorSideTop.Control = Label6
+        AnchorSideTop.Side = asrBottom
+        Left = 4
+        Height = 25
+        Top = 30
+        Width = 60
+        AutoSize = True
+        BorderSpacing.Right = 3
+        Caption = 'Attack'
+        OnClick = Button7Click
+        TabOrder = 0
+      end
+    end
+    object Button3: TButton
+      AnchorSideLeft.Control = Panel5
+      AnchorSideLeft.Side = asrCenter
+      AnchorSideBottom.Control = Panel5
+      AnchorSideBottom.Side = asrBottom
+      Left = 273
+      Height = 25
+      Top = 30
+      Width = 95
+      Anchors = [akLeft, akBottom]
+      AutoSize = True
+      BorderSpacing.Bottom = 6
+      Caption = 'Restart game'
+      OnClick = Button3Click
+      TabOrder = 2
+    end
+    object Panel3: TPanel
+      AnchorSideLeft.Control = Button3
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideBottom.Control = Button3
+      AnchorSideBottom.Side = asrBottom
+      Left = 383
+      Height = 55
+      Top = 0
+      Width = 84
+      Anchors = [akLeft, akBottom]
+      AutoSize = True
+      BorderSpacing.Left = 15
+      BevelOuter = bvNone
+      ClientHeight = 55
+      ClientWidth = 84
+      TabOrder = 3
+      object Button4: TButton
+        AnchorSideLeft.Control = Panel3
+        AnchorSideLeft.Side = asrCenter
+        AnchorSideTop.Control = Label8
+        AnchorSideTop.Side = asrBottom
+        AnchorSideBottom.Side = asrBottom
+        Left = 12
+        Height = 25
+        Top = 30
+        Width = 60
+        AutoSize = True
+        BorderSpacing.Left = 3
+        Caption = 'Attack'
+        OnClick = Button4Click
+        TabOrder = 0
+      end
+      object Label8: TLabel
+        AnchorSideLeft.Control = Panel3
+        AnchorSideTop.Control = Label7
+        AnchorSideTop.Side = asrBottom
+        AnchorSideBottom.Control = Button4
+        Left = 0
+        Height = 15
+        Top = 15
+        Width = 59
+        Caption = 'Health: 500'
+        ParentColor = False
+      end
+      object Label7: TLabel
+        AnchorSideLeft.Control = Panel3
+        AnchorSideTop.Control = Panel3
+        AnchorSideBottom.Control = Label8
+        Left = 0
+        Height = 15
+        Top = 0
+        Width = 84
+        Caption = 'C. Player 3: HAL'
+        ParentColor = False
+      end
+    end
+    object Panel4: TPanel
+      AnchorSideLeft.Control = Panel3
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideBottom.Control = Button3
+      AnchorSideBottom.Side = asrBottom
+      Left = 482
+      Height = 55
+      Top = 0
+      Width = 85
+      Anchors = [akLeft, akBottom]
+      AutoSize = True
+      BorderSpacing.Left = 15
+      BevelOuter = bvNone
+      ClientHeight = 55
+      ClientWidth = 85
+      TabOrder = 4
+      object Label9: TLabel
+        AnchorSideLeft.Control = Panel4
+        AnchorSideTop.Control = Panel4
+        Left = 0
+        Height = 15
+        Top = 0
+        Width = 85
+        Caption = 'C. Player 4: KITT'
+        ParentColor = False
+      end
+      object Label10: TLabel
+        AnchorSideLeft.Control = Panel4
+        AnchorSideTop.Control = Label9
+        AnchorSideTop.Side = asrBottom
+        Left = 0
+        Height = 15
+        Top = 15
+        Width = 59
+        Caption = 'Health: 500'
+        ParentColor = False
+      end
+      object Button5: TButton
+        AnchorSideLeft.Control = Panel4
+        AnchorSideLeft.Side = asrCenter
+        AnchorSideTop.Control = Label10
+        AnchorSideTop.Side = asrBottom
+        Left = 12
+        Height = 25
+        Top = 30
+        Width = 60
+        AutoSize = True
+        Caption = 'Attack'
+        OnClick = Button5Click
+        TabOrder = 0
+      end
+    end
   end
 end

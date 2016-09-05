@@ -5,16 +5,24 @@ unit Unit4;
 interface
 
 uses
-  LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
+  windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, LResources;
 
 type
+
+  { TForm4 }
+
   TForm4 = class(TForm)
     Label1: TLabel;
     Label2: TLabel;
     Button1: TButton;
+    Label3: TLabel;
+    Label4: TLabel;
     procedure Button1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormCreate(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure Label4Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -35,6 +43,23 @@ end;
 procedure TForm4.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   application.Terminate;
+end;
+
+procedure TForm4.FormCreate(Sender: TObject);
+begin
+  font.size:=12;
+end;
+
+procedure TForm4.FormShow(Sender: TObject);
+begin
+  label4.Font.Color:=clBlue;
+  label4.Font.size:=12;
+  label4.Font.Style:=[fsUnderline];
+end;
+
+procedure TForm4.Label4Click(Sender: TObject);
+begin
+  ShellExecute(0, PChar('open'), PChar('http://forum.cheatengine.org/'),PChar(''), PChar(''), SW_MAXIMIZE);
 end;
 
 initialization
