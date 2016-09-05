@@ -2433,6 +2433,9 @@ openLuaServer(Name):
 
     the return value of this function is the return value of the lua function (integer)
 
+    UINT_PTR CELUA_ExecuteFunctionAsync(char *luacode, UINT_PTR parameter)
+      See CELUA_ExecuteFunction but runs in the server thread instead of passing it to the main GUI and then wait for it's return
+
 
 Settings class
   This class can be used to read out and set settings of cheat engine and of plugins, and store your own data

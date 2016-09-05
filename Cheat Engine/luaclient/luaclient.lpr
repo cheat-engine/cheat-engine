@@ -8,6 +8,7 @@ uses
 
 exports CELUA_Initialize;
 exports CELUA_ExecuteFunction;
+exports CELUA_ExecuteFunctionAsync;
 
 begin
 end.

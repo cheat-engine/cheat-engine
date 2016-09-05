@@ -9,6 +9,7 @@ uses
 
 function CELUA_Initialize(pipename: pchar): BOOL; stdcall;
 function CELUA_ExecuteFunction(script: pchar; parameters: UINT_PTR): UINT_PTR; stdcall;
+function CELUA_ExecuteFunctionAsync(script: pchar; parameters: UINT_PTR): UINT_PTR; stdcall;
 
 implementation
 
@@ -22,7 +23,7 @@ begin
   pipe:=INVALID_HANDLE_VALUE;
 end;
 
-function CELUA_ExecuteFunction(script: pchar; parameters: UINT_PTR): UINT_PTR; stdcall;
+function CELUA_ExecuteFunction_Internal(script: pchar; parameters: UINT_PTR; async: boolean=false): UINT_PTR;
 var
   command: byte;
   bw: dword;
@@ -37,7 +38,11 @@ begin
 
     if pipe<>INVALID_HANDLE_VALUE then
     begin
-      command:=1;
+      if async then
+        command:=4 //async
+      else
+        command:=1; //sync
+
       if writefile(pipe, command,sizeof(command), bw, nil) then
       begin
         l:=strlen(script);
@@ -70,7 +75,16 @@ begin
   finally
     cs.leave;
   end;
+end;
 
+function CELUA_ExecuteFunction(script: pchar; parameters: UINT_PTR): UINT_PTR; stdcall;
+begin
+  result:=CELUA_ExecuteFunction_Internal(script, parameters, false);
+end;
+
+function CELUA_ExecuteFunctionAsync(script: pchar; parameters: UINT_PTR): UINT_PTR; stdcall;
+begin
+  result:=CELUA_ExecuteFunction_Internal(script, parameters, true);
 end;
 
 
