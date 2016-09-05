@@ -7194,6 +7194,8 @@ var
   i: integer;
   b: boolean;
 
+  async: boolean;
+
   pc: TLuaPipeClient;
 begin
   result:=0;
@@ -7240,8 +7242,13 @@ begin
 
 
   //get the windowhandle and function parameter
-  if (lua_gettop(L)=2) and lua_isnumber(L, 1) and lua_isfunction(L, 2) then
+  if (lua_gettop(L)>=2) and lua_isnumber(L, 1) and lua_isfunction(L, 2) then
   begin
+    if lua_gettop(L)>=3 then
+      async:=lua_toboolean(L, 3)
+    else
+      async:=false;
+
     hWnd:=lua_tointeger(L, 1);
     pc:=TLuaPipeClient.create('CEWINHOOKC'+inttostr(processid));
     try
@@ -7268,9 +7275,11 @@ begin
       lua_settable(L, wndhooklist_table);
 
 
-      //SetWindowLongPtr(hWnd, GWL_WNDPROC, winhookdllProcAddress);
+      pc.writeByte(4); //set async state
+      pc.writeByte(ifthen(async,1,0));
+      pc.readByte;
 
-      pc.writeByte(2);
+      pc.writeByte(2); //hook
       pc.writeQword(hWnd);
       if pc.readByte=1 then
       begin

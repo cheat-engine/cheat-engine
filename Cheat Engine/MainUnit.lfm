@@ -4,7 +4,7 @@ object MainForm: TMainForm
   Height = 699
   Hint = ' '
   Top = 177
-  Width = 671
+  Width = 613
   HelpContext = 3
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
@@ -12,7 +12,7 @@ object MainForm: TMainForm
   AutoSize = True
   Caption = 'Cheat Engine 6.6'
   ClientHeight = 679
-  ClientWidth = 671
+  ClientWidth = 613
   Menu = MainMenu1
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
@@ -27,7 +27,7 @@ object MainForm: TMainForm
     Left = 0
     Height = 7
     Top = 441
-    Width = 671
+    Width = 613
     Align = alTop
     AutoSnap = False
     Beveled = True
@@ -41,7 +41,7 @@ object MainForm: TMainForm
     Left = 0
     Height = 210
     Top = 448
-    Width = 671
+    Width = 613
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
@@ -54,14 +54,14 @@ object MainForm: TMainForm
     Left = 0
     Height = 21
     Top = 658
-    Width = 671
+    Width = 613
     Align = alBottom
     AutoSize = True
     ClientHeight = 21
-    ClientWidth = 671
+    ClientWidth = 613
     TabOrder = 1
     object Label7: TLabel
-      Left = 214
+      Left = 184
       Height = 15
       Top = 5
       Width = 262
@@ -84,7 +84,7 @@ object MainForm: TMainForm
       ParentShowHint = False
     end
     object CommentButton: TSpeedButton
-      Left = 604
+      Left = 546
       Height = 19
       Top = 1
       Width = 66
@@ -100,18 +100,18 @@ object MainForm: TMainForm
     Left = 0
     Height = 441
     Top = 0
-    Width = 671
+    Width = 613
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 441
-    ClientWidth = 671
+    ClientWidth = 613
     TabOrder = 2
     OnResize = Panel5Resize
     object ProcessLabel: TLabel
       Left = -24
       Height = 15
       Top = 0
-      Width = 728
+      Width = 670
       Alignment = taCenter
       Anchors = [akTop, akLeft, akRight]
       Caption = 'No Process Selected'
@@ -139,7 +139,7 @@ object MainForm: TMainForm
       AnchorSideLeft.Control = scanvalue
       AnchorSideTop.Control = btnNewScan
       AnchorSideTop.Side = asrBottom
-      Left = 344
+      Left = 286
       Height = 15
       Top = 79
       Width = 57
@@ -153,7 +153,7 @@ object MainForm: TMainForm
       AnchorSideTop.Control = ScanType
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = ScanType
-      Left = 288
+      Left = 230
       Height = 15
       Top = 128
       Width = 54
@@ -167,7 +167,7 @@ object MainForm: TMainForm
       AnchorSideTop.Control = VarType
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = VarType
-      Left = 284
+      Left = 226
       Height = 15
       Top = 153
       Width = 58
@@ -268,7 +268,7 @@ object MainForm: TMainForm
       AnchorSideLeft.Side = asrCenter
       AnchorSideBottom.Control = Panel5
       AnchorSideBottom.Side = asrBottom
-      Left = 328
+      Left = 299
       Height = 22
       Hint = 'Delete all addresses from the list'
       Top = 419
@@ -298,7 +298,7 @@ object MainForm: TMainForm
       AnchorSideLeft.Side = asrBottom
       AnchorSideBottom.Control = Foundlist3
       AnchorSideBottom.Side = asrBottom
-      Left = 248
+      Left = 217
       Height = 22
       Hint = 'Copy all selected items to the address list'
       Top = 391
@@ -326,7 +326,7 @@ object MainForm: TMainForm
     object btnNewScan: TButton
       AnchorSideLeft.Control = gbScanOptions
       AnchorSideTop.Control = Foundlist3
-      Left = 344
+      Left = 286
       Height = 25
       Top = 46
       Width = 76
@@ -344,7 +344,7 @@ object MainForm: TMainForm
       AnchorSideTop.Control = VarType
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = Panel9
-      Left = 344
+      Left = 286
       Height = 174
       Top = 178
       Width = 200
@@ -645,7 +645,7 @@ object MainForm: TMainForm
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Foundlist3
       AnchorSideRight.Control = btnNewScan
-      Left = 430
+      Left = 372
       Height = 25
       Top = 46
       Width = 78
@@ -662,7 +662,7 @@ object MainForm: TMainForm
       AnchorSideTop.Control = pnlScanValueOptions
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = Panel9
-      Left = 344
+      Left = 286
       Height = 23
       Top = 124
       Width = 200
@@ -692,7 +692,7 @@ object MainForm: TMainForm
       AnchorSideTop.Control = ScanType
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = Panel9
-      Left = 344
+      Left = 286
       Height = 23
       Top = 149
       Width = 200
@@ -732,7 +732,7 @@ object MainForm: TMainForm
       Height = 16
       Hint = 'This shows how far Cheat Engine is with searching'
       Top = 15
-      Width = 533
+      Width = 475
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Left = 5
       BorderSpacing.Right = 5
@@ -744,7 +744,7 @@ object MainForm: TMainForm
     object UndoScan: TButton
       AnchorSideTop.Control = btnNextScan
       AnchorSideRight.Control = LogoPanel
-      Left = 536
+      Left = 478
       Height = 25
       Top = 46
       Width = 83
@@ -761,7 +761,7 @@ object MainForm: TMainForm
       AnchorSideTop.Control = ScanText
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = andlabel
-      Left = 344
+      Left = 286
       Height = 23
       Top = 94
       Width = 216
@@ -866,7 +866,7 @@ object MainForm: TMainForm
       AnchorSideTop.Control = Panel5
       AnchorSideRight.Control = Panel5
       AnchorSideRight.Side = asrBottom
-      Left = 624
+      Left = 566
       Height = 83
       Top = 0
       Width = 47
@@ -1230,7 +1230,7 @@ object MainForm: TMainForm
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Control = ProgressBar1
       AnchorSideTop.Side = asrBottom
-      Left = 263
+      Left = 205
       Height = 15
       Top = 31
       Width = 200
@@ -1245,7 +1245,7 @@ object MainForm: TMainForm
       AnchorSideTop.Control = scanvalue
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = scanvalue
-      Left = 278
+      Left = 220
       Height = 38
       Top = 86
       Width = 63
@@ -1316,7 +1316,7 @@ object MainForm: TMainForm
       AnchorSideTop.Control = ScanType
       AnchorSideRight.Control = Panel5
       AnchorSideRight.Side = asrBottom
-      Left = 550
+      Left = 492
       Height = 292
       Top = 124
       Width = 121
@@ -1615,7 +1615,7 @@ object MainForm: TMainForm
       AnchorSideTop.Control = scanvalue
       AnchorSideRight.Control = Panel5
       AnchorSideRight.Side = asrBottom
-      Left = 590
+      Left = 532
       Height = 23
       Top = 94
       Width = 76
@@ -1631,7 +1631,7 @@ object MainForm: TMainForm
     object ScanText2: TLabel
       AnchorSideLeft.Control = scanvalue2
       AnchorSideTop.Control = ScanText
-      Left = 590
+      Left = 532
       Height = 15
       Top = 79
       Width = 57
@@ -1644,7 +1644,7 @@ object MainForm: TMainForm
       AnchorSideTop.Control = scanvalue
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = scanvalue2
-      Left = 565
+      Left = 507
       Height = 15
       Top = 98
       Width = 20
@@ -1660,7 +1660,7 @@ object MainForm: TMainForm
       Height = 367
       Hint = 'This list shows all the found addresses that matched your last scan'
       Top = 46
-      Width = 248
+      Width = 217
       Anchors = [akTop, akLeft, akRight, akBottom]
       BorderSpacing.Bottom = 5
       Color = clBtnFace
@@ -1702,7 +1702,7 @@ object MainForm: TMainForm
       AnchorSideRight.Side = asrBottom
       AnchorSideBottom.Control = Panel5
       AnchorSideBottom.Side = asrBottom
-      Left = 521
+      Left = 463
       Height = 18
       Top = 418
       Width = 145

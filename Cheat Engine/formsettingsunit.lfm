@@ -559,8 +559,8 @@ object formSettings: TformSettings
             Left = 0
             Height = 19
             Top = 133
-            Width = 74
-            Caption = 'DPI Aware'
+            Width = 175
+            Caption = 'DPI Aware (Requires a restart)'
             Checked = True
             State = cbChecked
             TabOrder = 24

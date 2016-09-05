@@ -1030,6 +1030,7 @@ var x: array of integer;
 
   miChangeCheckboxSetting: TMenuItem;
   reg: Tregistry;
+  i: integer;
 begin
   GlobalDesignHook.LookupRoot:=f;
 
@@ -1094,6 +1095,15 @@ begin
     end;
 
     oid.show;
+    {
+    oipgpProperties,
+    oipgpEvents,
+    oipgpFavorite,
+    oipgpRestricted
+    }
+
+
+
     oid.DefaultItemHeight:=max(oid.DefaultItemHeight, oid.Canvas.TextHeight('QFDZj')+2); //make sure the itemheight fits the current dpi
     oid.OnDestroy:=OIDDestroy;
 

@@ -24,10 +24,12 @@ type
 
     returncount: byte;
     results: array of qword;
-    procedure ExecuteLuaScript;
+    L: Plua_State;
+    procedure ExecuteLuaScript(async: boolean=false);
     procedure ExecuteLuaScriptVar;
     procedure ExecuteLuaFunction;
     procedure ExecuteScript;
+    procedure ExecuteScriptAsync;
   protected
     procedure execute; override;
 
@@ -121,6 +123,48 @@ begin
   end;
 end;
 
+procedure TLuaServerHandler.ExecuteScriptAsync;
+var
+  i,top: integer;
+  s: string;
+begin
+  if L=nil then
+  begin
+    luacs.Enter;
+    i:=lua_gettop(L);
+    try
+      L:=lua_newthread(LuaVM);
+
+      s:='CELUATHREAD_'+IntToHex(ptruint(L),8);
+      lua_setglobal(LuaVM, pchar(s));
+
+      lua_sethook(L, nil, 0, 0);
+
+    finally
+      lua_settop(L,i);
+      luacs.leave;
+    end;
+  end;
+
+  top:=lua_gettop(L);
+  i:=luahandler.lua_dostring(L, pchar(exec.text));
+  if i=0 then
+    result:=lua_tointeger(L, -1)
+  else
+    result:=0;
+
+  if returncount>0 then
+  begin
+    if length(results)<returncount then
+      setlength(results, returncount);
+
+    for i:=0 to returncount-1 do
+      results[(returncount-1)-i]:=lua_tointeger(L, -1-i);
+
+  end;
+
+  lua_settop(Luavm, top);
+end;
 
 procedure TLuaServerHandler.ExecuteLuaFunction;
 type TParamType=(ptNil=0, ptBoolean=1, ptInt64=2, ptNumber=3, ptString=4, ptTable=5);
@@ -356,7 +400,15 @@ var
 
   parameter: qword;
   i: integer;
+  async: BOOLEAN;
 begin
+  async:=FALSE;
+  if readfile(pipe, async, 1, br, nil)=false then
+  begin
+    error;
+    exit
+  end;
+
   if readfile(pipe, scriptsize, sizeof(scriptsize), br, nil) then
   begin
     getmem(script, scriptsize+1);
@@ -378,7 +430,11 @@ begin
             exec.add('return _luaservercall'+inttostr(GetCurrentThreadId)+'('+inttostr(parameter)+')');
 
             setlength(results, returncount);
-            synchronize(executescript);
+
+            if not async then
+              synchronize(executescript)
+            else
+              ExecuteScriptAsync;
 
             for i:=0 to returncount-1 do
               if writefile(pipe, results[i], 8, br, nil)=false then error;
@@ -401,7 +457,7 @@ begin
 
 end;
 
-procedure TLuaServerHandler.ExecuteLuaScript;
+procedure TLuaServerHandler.ExecuteLuaScript(async: boolean=false);
   procedure error;
   begin
     OutputDebugString('Read error');
@@ -434,7 +490,10 @@ begin
           exec.add('end');
           exec.add('return _luaservercall'+inttostr(GetCurrentThreadId)+'('+inttostr(parameter)+')');
 
-          synchronize(executescript);
+          if async then
+            executeScriptAsync
+          else
+            synchronize(executescript);
 
           if writefile(pipe, result, 8, br, nil)=false then
             error;
@@ -464,9 +523,10 @@ begin
     begin
       ReadFile(pipe, command, sizeof(command), br, nil);
       case command of
-        1: ExecuteLuaScript;
+        1: ExecuteLuaScript(false);
         2: ExecuteLuaScriptVar;
         3: synchronize(ExecuteLuaFunction);
+        4: ExecuteLuaScript(true);
         else terminate;
       end;
     end;

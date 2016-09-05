@@ -5,7 +5,7 @@ unit com;
 interface
 
 uses
-  windows, Classes, SysUtils, syncobjs;
+  windows, Classes, SysUtils, syncobjs, math;
 
 
 type
@@ -24,7 +24,7 @@ type
     connected: boolean;
   public
     function DoCommand(s: string): qword;
-    procedure DoCommandMR(s: string; returncount: integer; results: PQword);
+    procedure DoCommandMR(async: boolean; s: string; returncount: integer; results: PQword);
     constructor create;
     destructor destroy; override;
   end;
@@ -83,7 +83,13 @@ begin
             SetWindowLongPtrA(hwnd, GWL_WNDPROC, pa);
             pa:=1;
             WriteFile(pipe, pa,1,x,nil);
+          end;
 
+          4: //set async state
+          begin
+            async:=false;
+            readfile(pipe, async, 1,x,nil);
+            WriteFile(pipe, async,1,x,nil);
           end
 
           else
@@ -132,7 +138,7 @@ begin
   inherited destroy;
 end;
 
-procedure TCEConnection.DoCommandMR(s: string; returncount: integer; results: PQword);
+procedure TCEConnection.DoCommandMR(async: boolean; s: string; returncount: integer; results: PQword);
 var
   m: tmemorystream;
   r: qword=0;
@@ -143,6 +149,7 @@ begin
 
   m:=TMemoryStream.Create;
   m.writebyte(2); //execute lua function, with a variable paramcount and returncount
+  m.writebyte(ifthen(async,1,0));
   m.WriteDWord(length(s));
   m.WriteBuffer(s[1],length(s));
   m.writeQword(0);
