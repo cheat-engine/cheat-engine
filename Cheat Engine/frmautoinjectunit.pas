@@ -1363,6 +1363,7 @@ begin
     begin
       luaserverinit.add('sub rsp,20');
       luaserverinit.add('call CELUA_ExecuteFunction //this function is defined in the luaclient dll');
+      luaserverinit.add('//call CELUA_ExecuteFunctionAsync //Use this if you don''t need GUI access in your code, or want to handle it yourself');
       luaserverinit.add('add rsp,20');
       luaserverinit.add('add rsp,8 //undo scratchpace (alignment fix) you can also combine it into add rsp,28');
       luaserverinit.add('ret');
@@ -1372,6 +1373,7 @@ begin
       luaserverinit.add('push [ebp+c]');
       luaserverinit.add('push [ebp+8]');
       luaserverinit.add('call CELUA_ExecuteFunction');
+      luaserverinit.add('//call CELUA_ExecuteFunctionAsync //Use this if you don''t need GUI access in your code, or want to handle it yourself');
       luaserverinit.add('pop ebp');
       luaserverinit.add('ret 8');
     end;
