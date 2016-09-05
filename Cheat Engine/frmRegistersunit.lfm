@@ -1,11 +1,11 @@
 object Registers: TRegisters
-  Left = 1493
+  Left = 1096
   Height = 308
-  Top = 290
-  Width = 151
+  Top = 254
+  Width = 176
   Caption = 'Registers'
   ClientHeight = 308
-  ClientWidth = 151
+  ClientWidth = 176
   OnClose = FormClose
   OnResize = FormResize
   OnShow = FormShow
@@ -15,10 +15,11 @@ object Registers: TRegisters
     Left = 0
     Height = 308
     Top = 0
-    Width = 130
+    Width = 153
     Align = alClient
+    AutoSize = True
     ClientHeight = 308
-    ClientWidth = 130
+    ClientWidth = 153
     TabOrder = 0
     object Label14: TLabel
       AnchorSideLeft.Control = Panel1
@@ -52,16 +53,17 @@ object Registers: TRegisters
       Left = 9
       Height = 280
       Top = 27
-      Width = 120
+      Width = 135
       Anchors = [akTop, akLeft, akRight, akBottom]
       AutoSize = True
       BorderSpacing.Top = 9
+      BorderSpacing.Right = 8
       BevelOuter = bvNone
       ChildSizing.VerticalSpacing = 7
       ChildSizing.Layout = cclLeftToRightThenTopToBottom
       ChildSizing.ControlsPerLine = 1
       ClientHeight = 280
-      ClientWidth = 120
+      ClientWidth = 135
       Font.Name = 'Courier New'
       ParentFont = False
       TabOrder = 0
@@ -175,41 +177,56 @@ object Registers: TRegisters
     end
   end
   object Panel2: TPanel
-    Left = 130
+    Left = 153
     Height = 308
     Top = 0
-    Width = 21
+    Width = 23
     Align = alRight
+    AutoSize = True
     ClientHeight = 308
-    ClientWidth = 21
+    ClientWidth = 23
     TabOrder = 1
-    object sbShowFloats: TSpeedButton
-      Left = 0
-      Height = 30
-      Hint = 'Floating point registers'
-      Top = 72
+    object Panel4: TPanel
+      AnchorSideLeft.Control = Panel2
+      AnchorSideTop.Control = Panel2
+      AnchorSideTop.Side = asrCenter
+      Left = 1
+      Height = 61
+      Top = 124
       Width = 21
       AutoSize = True
-      Constraints.MinHeight = 30
-      Constraints.MinWidth = 21
-      Caption = 'F'
-      OnClick = sbShowFloatsClick
-      ShowHint = True
-      ParentShowHint = False
-    end
-    object sbShowStack: TSpeedButton
-      Left = 0
-      Height = 30
-      Hint = 'Stack view'
-      Top = 100
-      Width = 21
-      AutoSize = True
-      Constraints.MinHeight = 30
-      Constraints.MinWidth = 21
-      Caption = 'S'
-      OnClick = sbShowStackClick
-      ShowHint = True
-      ParentShowHint = False
+      BevelOuter = bvNone
+      ClientHeight = 61
+      ClientWidth = 21
+      TabOrder = 0
+      object sbShowStack: TSpeedButton
+        Left = 0
+        Height = 30
+        Hint = 'Stack view'
+        Top = 31
+        Width = 21
+        AutoSize = True
+        Constraints.MinHeight = 30
+        Constraints.MinWidth = 21
+        Caption = 'S'
+        OnClick = sbShowStackClick
+        ShowHint = True
+        ParentShowHint = False
+      end
+      object sbShowFloats: TSpeedButton
+        Left = 0
+        Height = 30
+        Hint = 'Floating point registers'
+        Top = 0
+        Width = 21
+        AutoSize = True
+        Constraints.MinHeight = 30
+        Constraints.MinWidth = 21
+        Caption = 'F'
+        OnClick = sbShowFloatsClick
+        ShowHint = True
+        ParentShowHint = False
+      end
     end
   end
 end

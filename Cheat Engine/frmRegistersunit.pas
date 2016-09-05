@@ -26,10 +26,11 @@ type
     Panel1: TPanel;
     Label14: TLabel;
     Panel3: TPanel;
+    Panel4: TPanel;
+    sbShowFloats: TSpeedButton;
     sbShowStack: TSpeedButton;
     Shape1: TShape;
     Panel2: TPanel;
-    sbShowFloats: TSpeedButton;
     procedure FormShow(Sender: TObject);
     procedure RegisterMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
