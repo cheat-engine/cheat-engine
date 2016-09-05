@@ -25,11 +25,15 @@ type
     returncount: byte;
     results: array of qword;
     L: Plua_State;
+    ExecuteLuaFunctionAsync: boolean; //set to true if async
     procedure ExecuteLuaScript(async: boolean=false);
     procedure ExecuteLuaScriptVar;
+    procedure ExecuteLuaFunction_Internal;
     procedure ExecuteLuaFunction;
     procedure ExecuteScript;
     procedure ExecuteScriptAsync;
+
+    procedure createLuaStateIfNeeded;
   protected
     procedure execute; override;
 
@@ -123,12 +127,12 @@ begin
   end;
 end;
 
-procedure TLuaServerHandler.ExecuteScriptAsync;
+procedure TLuaServerHandler.createLuaStateIfNeeded;
 var
-  i,top: integer;
+  i: integer;
   s: string;
 begin
-  if L=nil then
+  if l=nil then
   begin
     luacs.Enter;
     i:=lua_gettop(L);
@@ -145,6 +149,15 @@ begin
       luacs.leave;
     end;
   end;
+end;
+
+procedure TLuaServerHandler.ExecuteScriptAsync;
+var
+  i,top: integer;
+  s: string;
+begin
+
+  createLuaStateIfNeeded;
 
   top:=lua_gettop(L);
   i:=luahandler.lua_dostring(L, pchar(exec.text));
@@ -166,8 +179,8 @@ begin
   lua_settop(Luavm, top);
 end;
 
-procedure TLuaServerHandler.ExecuteLuaFunction;
-type TParamType=(ptNil=0, ptBoolean=1, ptInt64=2, ptNumber=3, ptString=4, ptTable=5);
+procedure TLuaServerHandler.ExecuteLuaFunction_Internal;
+type TParamType=(ptNil=0, ptBoolean=1, ptInt64=2, ptInt32=3, ptNumber=4, ptString=5, ptTable=6, ptUnknown=255);
 {
 todo: ExecuteLuaFunction
 Variable paramcount
@@ -213,6 +226,7 @@ var
   paramtype: byte;
 
   value: qword;
+  value32: dword absolute value;
   doublevalue: double absolute value;
   v8: byte absolute value;
 
@@ -222,14 +236,25 @@ var
 
   valid: integer;
 
+  lvm: Plua_State;
+  oldtop: integer;
 begin
+  if ExecuteLuaFunctionAsync then
+    lvm:=L
+  else
+  begin
+    lvm:=LuaVM;
+    luacs.enter;
+  end;
+
   try
+    oldtop:=lua_gettop(lvm);
 
     if readfile(pipe, functionref, sizeof(functionref), br, nil)=false then raise EPipeError.Create('');
 
     if functionref<>0 then
     begin
-      lua_rawgeti(Luavm, LUA_REGISTRYINDEX, functionref);
+      lua_rawgeti(lvm, LUA_REGISTRYINDEX, functionref);
     end
     else
     begin
@@ -240,7 +265,7 @@ begin
 
       functionname[functionnamelength]:=#0;
 
-      lua_getglobal(Luavm, pchar(functionname));
+      lua_getglobal(lvm, pchar(functionname));
 
       freemem(functionname);
     end;
@@ -253,24 +278,30 @@ begin
       if readfile(pipe, paramtype, sizeof(paramtype), br, nil)=false then raise EPipeError.Create('');
 
       case TParamType(paramtype) of
-        ptNil: lua_pushnil(LuaVM);
+        ptNil: lua_pushnil(lvm);
 
         ptBoolean: //int
         begin
           if readfile(pipe, v8, sizeof(v8), br, nil)=false then raise EPipeError.Create('');
-          lua_pushboolean(LuaVM, v8<>0);
+          lua_pushboolean(lvm, v8<>0);
+        end;
+
+        ptInt32: //int32
+        begin
+          if readfile(pipe, value32, sizeof(value32), br, nil)=false then raise EPipeError.Create('');
+          lua_pushinteger(lvm, value32);
         end;
 
         ptInt64: //int
         begin
           if readfile(pipe, value, sizeof(value), br, nil)=false then raise EPipeError.Create('');
-          lua_pushinteger(LuaVM, value);
+          lua_pushinteger(lvm, value);
         end;
 
         ptNumber: //number
         begin
           if readfile(pipe, value, sizeof(value), br, nil)=false then raise EPipeError.Create('');
-          lua_pushnumber(LuaVM, doublevalue);
+          lua_pushnumber(lvm, doublevalue);
         end;
 
         ptString: //string
@@ -281,15 +312,15 @@ begin
           if readfile(pipe, tempstring[0], stringlength, br, nil)=false then raise EPipeError.Create('');
 
           tempstring[stringlength]:=#0;
-          lua.lua_pushstring(LuaVM, tempstring);
+          lua.lua_pushstring(lvm, tempstring);
 
           freemem(tempstring);
         end;
 
        { 4: //table
         begin
-          lua_newtable(LuaVM);
-          t:=lua_gettop(LuaVM);
+          lua_newtable(lvm);
+          t:=lua_gettop(lvm);
           LoadLuaTable(t);
         end;   }
       end;
@@ -299,14 +330,14 @@ begin
     if readfile(pipe, returncount, sizeof(returncount), br, nil)=false then raise EPipeError.Create('');
 
 
-    if lua_pcall(LuaVM, paramcount, returncount, 0)=0 then
+    if lua_pcall(lvm, paramcount, returncount, 0)=0 then
     begin
       writefile(pipe, returncount, sizeof(returncount), br,nil);
       for i:=0 to returncount-1 do
       begin
         j:=-returncount+i;
 
-        case lua_type(LuaVM, j) of
+        case lua_type(lvm, j) of
           LUA_TNIL:
           begin
             paramtype:=byte(ptNil);
@@ -318,14 +349,14 @@ begin
             paramtype:=byte(ptBoolean);
             if writefile(pipe, paramtype, sizeof(paramtype), br, nil)=false then raise EPipeError.Create('');
 
-            if lua_toboolean(Luavm, j) then v8:=1 else v8:=0;
+            if lua_toboolean(lvm, j) then v8:=1 else v8:=0;
             if writefile(pipe, v8, sizeof(v8), br, nil)=false then raise EPipeError.Create('');
           end;
 
           LUA_TNUMBER:
           begin
             valid:=0;
-            value:=lua_tointegerx(Luavm,j,@valid);
+            value:=lua_tointegerx(lvm,j,@valid);
 
             if valid<>0 then
             begin
@@ -338,7 +369,7 @@ begin
               paramtype:=byte(ptNumber);
               if writefile(pipe, paramtype, sizeof(paramtype), br, nil)=false then raise EPipeError.Create('');
 
-              doublevalue:=lua_tonumber(LuaVM, j);
+              doublevalue:=lua_tonumber(lvm, j);
               if writefile(pipe, doublevalue, sizeof(doublevalue), br, nil)=false then raise EPipeError.Create('');
             end;
           end;
@@ -348,10 +379,17 @@ begin
             paramtype:=byte(ptString);
             if writefile(pipe, paramtype, sizeof(paramtype), br, nil)=false then raise EPipeError.Create('');
 
-            tempstring:=lua.Lua_ToString(LuaVM, j);
+            tempstring:=lua.Lua_ToString(lvm, j);
             stringlength:=length(tempstring);
 
+            if writefile(pipe, stringlength, sizeof(stringlength), br, nil)=false then raise EPipeError.Create('');
             if writefile(pipe, tempstring[0], stringlength, br, nil)=false then raise EPipeError.Create('');
+          end;
+
+          else
+          begin
+            paramtype:=255;
+            if writefile(pipe, paramtype, sizeof(paramtype), br, nil)=false then raise EPipeError.Create('');
           end;
           {
           LUA_TNIL           = 0;
@@ -379,8 +417,38 @@ begin
   except
     error;
   end;
+
+  lua_settop(lvm, oldtop);
+
+  if ExecuteLuaFunctionAsync then
+    luacs.leave;
 end;
 
+
+procedure TLuaServerHandler.ExecuteLuaFunction;
+var
+  async: byte;
+  br: dword;
+begin
+  if readfile(pipe, async, 1, br, nil)=false then
+  begin
+    OutputDebugString('Read error');
+    terminate;
+  end;
+
+  if async<>0 then
+  begin
+    ExecuteLuaFunctionAsync:=true;
+    createLuaStateIfNeeded;
+    ExecuteLuaFunction_Internal;
+  end
+  else
+  begin
+    ExecuteLuaFunctionAsync:=false;
+    synchronize(ExecuteLuaFunction_Internal);
+  end;
+
+end;
 
 
 procedure TLuaServerHandler.ExecuteLuaScriptVar;
@@ -524,9 +592,9 @@ begin
       ReadFile(pipe, command, sizeof(command), br, nil);
       case command of
         1: ExecuteLuaScript(false);
-        2: ExecuteLuaScriptVar;
-        3: synchronize(ExecuteLuaFunction);
         4: ExecuteLuaScript(true);
+        2: ExecuteLuaScriptVar;
+        3: ExecuteLuaFunction;
         else terminate;
       end;
     end;

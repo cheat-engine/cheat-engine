@@ -2421,7 +2421,7 @@ openLuaServer(Name):
   Opens a pipe with the given name. The LuaClient dll needs this name to connect to ce
 
 
-  LuaClient.dll functions:
+  LuaClient.dll functions:  (STDCALL calling machanic)
     BOOL CELUA_Initialize(char *name) : Initializes
     UINT_PTR CELUA_ExecuteFunction(char *luacode, UINT_PTR parameter)
       This function executes a lua function with parameters (parameter) and with the luacode as body Parameter will be treated as an integer
@@ -2435,6 +2435,13 @@ openLuaServer(Name):
 
     UINT_PTR CELUA_ExecuteFunctionAsync(char *luacode, UINT_PTR parameter)
       See CELUA_ExecuteFunction but runs in the server thread instead of passing it to the main GUI and then wait for it's return
+
+    integer CELUA_GetFunctionReferenceFromName(char *functionname): Returns a reference ID you can pass on to CELUA_ExecuteFunctionByReference
+    UINT_PTR CELUA_ExecuteFunctionByReference(int refid, int paramcount, PVOID *parameters, BOOL async):
+      This functions executes the function specified by reference id. If async is true, the code will run in a seperate thread instead of the main thread
+      paramcount is the number of parameters to pass on to the function
+      parameters is a pointer to a list of integers.  32-bit in 32-bit targets, 64-bit in 64-bit targets
+
 
 
 Settings class
