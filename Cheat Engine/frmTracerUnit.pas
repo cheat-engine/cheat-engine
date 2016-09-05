@@ -807,7 +807,7 @@ begin
     end;
   end;
 
-  action:=cahide; //free;
+  action:=cafree; //if still buggy, change to cahide
 end;
 
 procedure TfrmTracer.Button1Click(Sender: TObject);

@@ -77,6 +77,7 @@ type
     function singleStep(var dwContinueStatus: dword): boolean;
 
     procedure ModifyRegisters(bp: PBreakpoint);
+    procedure TraceWindowAddRecord;
     procedure handleTrace;
     procedure HandleBreak(bp: PBreakpoint);
     procedure ContinueFromBreakpoint(bp: PBreakpoint; continueoption: TContinueOption);
@@ -99,7 +100,9 @@ type
     armcontext: TArmContext;
 
 
+
     procedure UpdateMemoryBrowserContext;
+
     procedure TracerQuit;
     procedure suspend;
     procedure resume;
@@ -582,9 +585,22 @@ end;
 procedure TDebugThreadHandler.TracerQuit;
 begin
   tracewindow:=nil;
+
+  if isTracing then
+  begin
+    fillContext;
+    context^.EFlags:=eflags_setTF(context^.EFlags,0); //unsef TF
+    setContext;
+  end;
+
   TDebuggerthread(debuggerthread).execlocation:=45;
 end;
 
+procedure TDebugThreadHandler.TraceWindowAddRecord;
+begin
+  if traceWindow<>nil then
+    tracewindow.addRecord;
+end;
 
 procedure TDebugThreadHandler.handleTrace;
 var
@@ -594,6 +610,13 @@ var
 
   ignored: boolean;
 begin
+  if tracewindow=nil then
+  begin
+    isTracing:=false;
+    ContinueFromBreakpoint(nil, co_run);
+    exit;
+  end;
+
   ignored:=false;
 
   TDebuggerthread(debuggerthread).execlocation:=37;
@@ -607,8 +630,7 @@ begin
   TDebuggerthread(debuggerthread).execlocation:=371;
   if (tracewindow<>nil) and (not ignored) then
   begin
-
-    TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), tracewindow.AddRecord);
+    TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), TraceWindowAddRecord);
     TDebuggerthread(debuggerthread).guiupdate:=true;
   end;
 

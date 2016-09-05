@@ -1526,6 +1526,8 @@ begin
     if Result then
       RemoveBreakpoint(bp); //unsets and removes all breakpoints that belong to this
 
+    for i:=0 to ThreadList.Count-1 do
+      TDebugThreadHandler(ThreadList[i]).TracerQuit;
 
   finally
     debuggercs.leave;
