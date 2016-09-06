@@ -1279,6 +1279,7 @@ var
   curr: string;
   mi: TMenuItem;
 begin
+  n:='';
   cleanupLanguageList;
 
   curr:=currentTranslation;
@@ -1331,7 +1332,9 @@ begin
     mi.RadioItem:=true;
     if uppercase(e.foldername)=uppercase(curr) then
     begin
-      lblCurrentLanguage.Caption:=n;
+      if (self<>nil) and (lblCurrentLanguage<>nil) then //should always be the case
+        lblCurrentLanguage.Caption:=n;
+
       n:='>>'+n;
       mi.Checked:=true;
     end;
