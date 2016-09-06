@@ -1302,103 +1302,82 @@ begin
     else
       luaserverinit.add('globalalloc(luaserverinitialized, 4)');
 
-    luaserverinit.add('globalalloc(luaservername, 12)');
     luaserverinit.add('');
-    luaserverinit.add('luaservername:');
+    luaserverinit.add('CELUA_ServerName:');
     luaserverinit.add('db ''CELUASERVER'',0');
     luaserverinit.add('');
-    luaserverinit.add('luainit:');
 
-    if processhandler.is64Bit then
-      luaserverinit.add('sub rsp,8 //local scratchspace (and alignment)');
-
-    luaserverinit.add('cmp [luaserverinitialized],0');
-    luaserverinit.add('jne luainit_exit');
-
-
-    if processhandler.is64Bit then
-    begin
-      luaserverinit.add('sub rsp,20 //allocate 32 bytes scratchspace for CELUA_Initialize');
-      luaserverinit.add('mov rcx,luaservername');
-    end
-    else
-      luaserverinit.add('push luaservername');
-
-    luaserverinit.add('call CELUA_Initialize //this function is defined in the luaclient dll');
-    if processhandler.is64Bit then
-      luaserverinit.add('add rsp,20');
-
-    luaserverinit.add('mov [luaserverinitialized],eax');
-    luaserverinit.add('luainit_exit:');
-    if processhandler.is64Bit then
-      luaserverinit.add('add rsp,8  //undo local scratchspace ');
-
-    luaserverinit.add('ret');
-    luaserverinit.add('');
-
-    luaserverinit.add('LuaFunctionCall:');
-    if processhandler.is64bit then
-    begin
-      luaserverinit.add('sub rsp,8 //private scratchspace for this function');
-      luaserverinit.add('mov [rsp+10],rcx //save address with function into pre-allocated scratchspace');
-      luaserverinit.add('mov [rsp+18],rdx //save integer val');
-      luaserverinit.add('sub rsp,20 //allocate 32 bytes of "shadow space" for the callee (not needed here, but good practice) ');
-    end
-    else
-    begin
-      luaserverinit.add('push ebp');
-      luaserverinit.add('mov ebp,esp');
-    end;
-    luaserverinit.add('call luainit');
-
-    if processhandler.is64bit then
-    begin
-      luaserverinit.add('add rsp,20');
-      luaserverinit.add('mov rcx,[esp+10] //restore address of function');
-      luaserverinit.add('mov rdx,[esp+18] //restore value');
-    end;
-    luaserverinit.add('');
-
-    if processhandler.is64Bit then
-    begin
-      luaserverinit.add('sub rsp,20');
-      luaserverinit.add('call CELUA_ExecuteFunction //this function is defined in the luaclient dll');
-      luaserverinit.add('//call CELUA_ExecuteFunctionAsync //Use this if you don''t need GUI access in your code, or want to handle it yourself');
-      luaserverinit.add('add rsp,20');
-      luaserverinit.add('add rsp,8 //undo scratchpace (alignment fix) you can also combine it into add rsp,28');
-      luaserverinit.add('ret');
-    end
-    else
-    begin
-      luaserverinit.add('push [ebp+c]');
-      luaserverinit.add('push [ebp+8]');
-      luaserverinit.add('call CELUA_ExecuteFunction');
-      luaserverinit.add('//call CELUA_ExecuteFunctionAsync //Use this if you don''t need GUI access in your code, or want to handle it yourself');
-      luaserverinit.add('pop ebp');
-      luaserverinit.add('ret 8');
-    end;
-
+    luaserverinit.add('{');
     luaserverinit.add('//luacall call example:');
     if processhandler.is64bit then
     begin
       luaserverinit.add('//Make sure rsp is aligned on a 16-byte boundary when calling this function');
-      luaserverinit.add('//mov rcx, addresstostringwithfunction //(The lua function will have access to the variable passed by name "parameter")');
-      luaserverinit.add('//mov rdx, integervariableyouwishtopasstolua');
-      luaserverinit.add('//sub rsp,20');
-      luaserverinit.add('//call LuaFunctionCall');
-      luaserverinit.add('//add rsp,20');
-      luaserverinit.add('//When done RAX will contain the result of the lua function');
+      luaserverinit.add('mov rcx, addresstostringwithfunction //(The lua function will have access to the variable passed by name "parameter")');
+      luaserverinit.add('mov rdx, integervariableyouwishtopasstolua');
+      luaserverinit.add('sub rsp,20');
+      luaserverinit.add('call CELUA_ExecuteFunction // or CELUA_ExecuteFunctionAsync you don''t need GUI access or want to handle it yourself');
+      luaserverinit.add('add rsp,20');
+      luaserverinit.add('');
+      luaserverinit.add('//------');
+      luaserverinit.add('//Alternate call by ref example:');
+      luaserverinit.add('');
+      luaserverinit.add('mov ecx,[addresswithluafunctionidstored]');
+      luaserverinit.add('test ecx,ecx');
+      luaserverinit.add('jne short hasrefid');
+      luaserverinit.add('');
+      luaserverinit.add('mov rcx,addresswithluafunctionname');
+      luaserverinit.add('call CELUA_GetFunctionReferenceFromName');
+      luaserverinit.add('mov [addresswithluafunctionidstored],eax');
+      luaserverinit.add('mov ecx,eax');
+      luaserverinit.add('');
+      luaserverinit.add('hasrefid:');
+      luaserverinit.add('mov edx,numberofparameterstopass');
+      luaserverinit.add('mov r8,addresswithparameterlist  //could be the stack.  e.g lea r8,[rsp+8]');
+      luaserverinit.add('mov [r8],param1');
+      luaserverinit.add('mov [r8+8],param2');
+      luaserverinit.add('mov [r8+c],param3');
+      luaserverinit.add('//...');
+      luaserverinit.add('mov r9,0 //0=no async, 1=async.  Use async if you do not wish to update the GUI. Faster');
+      luaserverinit.add('call CELUA_ExecuteFunctionByReference');
+      luaserverinit.add('');
+      luaserverinit.add('When done RAX will contain the result of the lua function');
+      luaserverinit.add('And as per 64-bit calling convention, RCX, RDX, R8, R9, R10, R11 may have been altered. So save/restore them beforehand');
+
+
     end
     else
     begin
-      luaserverinit.add('//push integervariableyouwishtopasstolua');
-      luaserverinit.add('//push addresstostringwithfunction  //(The lua function will have access to the variable passed by name "parameter")');
-      luaserverinit.add('//call LuaFunctionCall');
-      luaserverinit.add('//When done EAX will contain the result of the lua function');
+      luaserverinit.add('push integervariableyouwishtopasstolua');
+      luaserverinit.add('push addresstostringwithfunction  //(The lua function will have access to the variable passed by name "parameter")');
+      luaserverinit.add('call CELUA_ExecuteFunction');
+      luaserverinit.add('');
+      luaserverinit.add('//------');
+      luaserverinit.add('//Alternate call by ref example:');
+      luaserverinit.add('');
+      luaserverinit.add('mov eax,[addresswithluafunctionidstored]');
+      luaserverinit.add('test eax,eax');
+      luaserverinit.add('jne short hasrefid');
+      luaserverinit.add('');
+      luaserverinit.add('push addresswithluafunctionname');
+      luaserverinit.add('call CELUA_GetFunctionReferenceFromName');
+
+      luaserverinit.add('hasrefid:');
+      luaserverinit.add('mov [addresswithparameterlist],param1');
+      luaserverinit.add('mov [addresswithparameterlist+4],param2');
+      luaserverinit.add('mov [addresswithparameterlist+8],param3');
+      luaserverinit.add('//...');
+      luaserverinit.add('push 0 //0=no async, 1=async.  Use async if you do not wish to update the GUI. Faster');
+      luaserverinit.add('push addresswithparameterlist');
+      luaserverinit.add('push numberofparameterstopass');
+      luaserverinit.add('push eax //push the reference ID of the function');
+      luaserverinit.add('call CELUA_ExecuteFunctionByReference');
+      luaserverinit.add('');
+
+      luaserverinit.add('When done EAX will contain the result of the lua function');
+      luaserverinit.add('And as per common 32-bit calling convention, EDX and ECX could have been altered. So save/restore them beforehand');
     end;
 
-
-
+    luaserverinit.add('}');
 
     for i:=0 to luaserverinit.count-1 do
       assemblescreen.Lines.Insert(0+i, luaserverinit[i]);
@@ -1429,7 +1408,6 @@ var starts,stops: string;
 
 begin
 {$ifndef standalonetrainerwithassembler}
-
   starts:=inttohex(memorybrowser.disassemblerview.SelectedAddress,8);
   stops:=inttohex(memorybrowser.disassemblerview.SelectedAddress+128,8);
 

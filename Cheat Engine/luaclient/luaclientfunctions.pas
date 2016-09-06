@@ -14,11 +14,15 @@ function CELUA_ExecuteFunctionAsync(script: pchar; parameters: UINT_PTR): UINT_P
 function CELUA_GetFunctionReferenceFromName(functionname: pchar): integer; stdcall;
 function CELUA_ExecuteFunctionByReference(ref: integer; paramcount: integer; AddressOfParameters: PPointer; async: BOOLEAN): UINT_PTR; stdcall;
 
+var CELUA_ServerName: array [0..255] of char;
+
 implementation
 
 var
   pipe: THandle=INVALID_HANDLE_VALUE;
   cs: TCriticalSection;
+
+
 
 procedure CELUA_Error;
 begin
@@ -42,7 +46,11 @@ var
   stringlength: word;
   s: pchar;
 begin
+  if pipe=INVALID_HANDLE_VALUE then
+    CELUA_Initialize(CELUA_ServerName);
+
   result:=0;
+  command:=3;
 
   {$ifdef cpu32}
   valtype:=ptInt32;
@@ -56,7 +64,7 @@ begin
   try
     if pipe<>INVALID_HANDLE_VALUE then
     begin
-      command:=3;
+
       if writefile(pipe, command, sizeof(command), bw, nil) then
 
       if async then a:=1 else a:=0;
@@ -147,6 +155,9 @@ var
   p: qword; //biggest common denominator
   r: qword;
 begin
+  if pipe=INVALID_HANDLE_VALUE then
+    CELUA_Initialize(CELUA_ServerName);
+
   bw:=0;
   r:=0;
   cs.enter;
@@ -215,6 +226,9 @@ begin
   if cs=nil then
     cs:=TCriticalSection.create;
 
+  if pipename<>CELUA_ServerName then
+    strcopy(CELUA_ServerName,pipename);
+
   cs.enter;
   try
     if pipe<>INVALID_HANDLE_VALUE then
@@ -226,6 +240,10 @@ begin
     cs.leave;
   end;
 end;
+
+initialization
+  ZeroMemory(@CELUA_ServerName,255);
+  strcopy(CELUA_ServerName,pchar('CELUASERVER'));
 
 end.
 

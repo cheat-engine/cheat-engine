@@ -135,7 +135,7 @@ begin
   if l=nil then
   begin
     luacs.Enter;
-    i:=lua_gettop(L);
+    i:=lua_gettop(Luavm);
     try
       L:=lua_newthread(LuaVM);
 
@@ -145,7 +145,7 @@ begin
       lua_sethook(L, nil, 0, 0);
 
     finally
-      lua_settop(L,i);
+      lua_settop(Luavm,i);
       luacs.leave;
     end;
   end;

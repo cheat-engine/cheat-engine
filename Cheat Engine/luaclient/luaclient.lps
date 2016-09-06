@@ -3,13 +3,13 @@
   <ProjectSession>
     <PathDelim Value="\"/>
     <Version Value="9"/>
-    <BuildModes Active="Release 64"/>
-    <Units Count="2">
+    <BuildModes Active="Debug"/>
+    <Units Count="3">
       <Unit0>
         <Filename Value="luaclient.lpr"/>
         <IsPartOfProject Value="True"/>
-        <CursorPos X="35" Y="11"/>
-        <UsageCount Value="22"/>
+        <CursorPos X="9" Y="14"/>
+        <UsageCount Value="30"/>
         <Loaded Value="True"/>
       </Unit0>
       <Unit1>
@@ -17,16 +17,152 @@
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
-        <CursorPos X="36" Y="12"/>
-        <UsageCount Value="22"/>
+        <TopLine Value="218"/>
+        <CursorPos Y="226"/>
+        <UsageCount Value="30"/>
         <Loaded Value="True"/>
       </Unit1>
+      <Unit2>
+        <Filename Value="C:\lazarus\fpc\3.0.0\source\rtl\win\wininc\defines.inc"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="1712"/>
+        <CursorPos X="6" Y="1726"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit2>
     </Units>
-    <JumpHistory Count="1">
+    <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="luaclientfunctions.pas"/>
-        <Caret Line="21" Column="16"/>
+        <Caret Line="72" TopLine="51"/>
       </Position1>
+      <Position2>
+        <Filename Value="luaclientfunctions.pas"/>
+        <Caret Line="69" TopLine="51"/>
+      </Position2>
+      <Position3>
+        <Filename Value="luaclientfunctions.pas"/>
+        <Caret Line="71" TopLine="51"/>
+      </Position3>
+      <Position4>
+        <Filename Value="luaclientfunctions.pas"/>
+        <Caret Line="72" TopLine="51"/>
+      </Position4>
+      <Position5>
+        <Filename Value="luaclientfunctions.pas"/>
+        <Caret Line="69" TopLine="51"/>
+      </Position5>
+      <Position6>
+        <Filename Value="luaclientfunctions.pas"/>
+        <Caret Line="71" TopLine="51"/>
+      </Position6>
+      <Position7>
+        <Filename Value="luaclientfunctions.pas"/>
+        <Caret Line="72" TopLine="51"/>
+      </Position7>
+      <Position8>
+        <Filename Value="luaclientfunctions.pas"/>
+        <Caret Line="69" TopLine="51"/>
+      </Position8>
+      <Position9>
+        <Filename Value="luaclientfunctions.pas"/>
+        <Caret Line="75" TopLine="53"/>
+      </Position9>
+      <Position10>
+        <Filename Value="luaclientfunctions.pas"/>
+        <Caret Line="76" TopLine="63"/>
+      </Position10>
+      <Position11>
+        <Filename Value="luaclientfunctions.pas"/>
+        <Caret Line="79" TopLine="63"/>
+      </Position11>
+      <Position12>
+        <Filename Value="luaclientfunctions.pas"/>
+        <Caret Line="80" Column="13" TopLine="63"/>
+      </Position12>
+      <Position13>
+        <Filename Value="luaclientfunctions.pas"/>
+        <Caret Line="83" TopLine="69"/>
+      </Position13>
+      <Position14>
+        <Filename Value="luaclientfunctions.pas"/>
+        <Caret Line="85" TopLine="69"/>
+      </Position14>
+      <Position15>
+        <Filename Value="luaclientfunctions.pas"/>
+        <Caret Line="87" Column="14" TopLine="69"/>
+      </Position15>
+      <Position16>
+        <Filename Value="luaclientfunctions.pas"/>
+        <Caret Line="97" TopLine="84"/>
+      </Position16>
+      <Position17>
+        <Filename Value="luaclientfunctions.pas"/>
+        <Caret Line="98" TopLine="110"/>
+      </Position17>
+      <Position18>
+        <Filename Value="luaclientfunctions.pas"/>
+        <Caret Line="208" TopLine="192"/>
+      </Position18>
+      <Position19>
+        <Filename Value="luaclientfunctions.pas"/>
+        <Caret Line="197" TopLine="192"/>
+      </Position19>
+      <Position20>
+        <Filename Value="luaclientfunctions.pas"/>
+        <Caret Line="208" TopLine="192"/>
+      </Position20>
+      <Position21>
+        <Filename Value="luaclientfunctions.pas"/>
+        <Caret Line="207" TopLine="192"/>
+      </Position21>
+      <Position22>
+        <Filename Value="luaclientfunctions.pas"/>
+        <Caret Line="208" TopLine="192"/>
+      </Position22>
+      <Position23>
+        <Filename Value="luaclientfunctions.pas"/>
+        <Caret Line="197" TopLine="192"/>
+      </Position23>
+      <Position24>
+        <Filename Value="luaclientfunctions.pas"/>
+        <Caret Line="208" TopLine="192"/>
+      </Position24>
+      <Position25>
+        <Filename Value="luaclientfunctions.pas"/>
+        <Caret Line="207" TopLine="192"/>
+      </Position25>
+      <Position26>
+        <Filename Value="luaclient.lpr"/>
+        <Caret Line="14" Column="25"/>
+      </Position26>
+      <Position27>
+        <Filename Value="luaclientfunctions.pas"/>
+        <Caret Line="224" Column="22" TopLine="208"/>
+      </Position27>
+      <Position28>
+        <Filename Value="luaclientfunctions.pas"/>
+        <Caret Line="212" Column="22" TopLine="197"/>
+      </Position28>
+      <Position29>
+        <Filename Value="luaclientfunctions.pas"/>
+        <Caret Line="200" Column="10" TopLine="186"/>
+      </Position29>
+      <Position30>
+        <Filename Value="luaclientfunctions.pas"/>
+        <Caret Line="53" Column="16" TopLine="36"/>
+      </Position30>
     </JumpHistory>
   </ProjectSession>
+  <Debugging>
+    <BreakPoints Count="1">
+      <Item1>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="luaclientfunctions.pas"/>
+        <Line Value="226"/>
+      </Item1>
+    </BreakPoints>
+  </Debugging>
 </CONFIG>

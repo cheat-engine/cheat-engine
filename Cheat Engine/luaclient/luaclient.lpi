@@ -35,18 +35,14 @@
           </SearchPaths>
           <CodeGeneration>
             <RelocatableUnit Value="True"/>
+            <TargetCPU Value="x86_64"/>
+            <TargetOS Value="win64"/>
           </CodeGeneration>
           <Linking>
             <Options>
               <ExecutableType Value="Library"/>
             </Options>
           </Linking>
-          <Other>
-            <CompilerMessages>
-              <MsgFileName Value=""/>
-            </CompilerMessages>
-            <CompilerPath Value="$(CompPath)"/>
-          </Other>
         </CompilerOptions>
       </Item2>
       <Item3 Name="Release 64">
@@ -78,12 +74,6 @@
               <ExecutableType Value="Library"/>
             </Options>
           </Linking>
-          <Other>
-            <CompilerMessages>
-              <MsgFileName Value=""/>
-            </CompilerMessages>
-            <CompilerPath Value="$(CompPath)"/>
-          </Other>
         </CompilerOptions>
       </Item3>
     </BuildModes>
@@ -95,18 +85,17 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
+        <HostApplicationFilename Value="D:\svn\Cheat Engine\bin\tutorial-x86_64.exe"/>
       </local>
     </RunParams>
     <Units Count="2">
       <Unit0>
         <Filename Value="luaclient.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="luaclient"/>
       </Unit0>
       <Unit1>
         <Filename Value="luaclientfunctions.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="luaclientfunctions"/>
       </Unit1>
     </Units>
   </ProjectOptions>
@@ -138,12 +127,6 @@
         <ExecutableType Value="Library"/>
       </Options>
     </Linking>
-    <Other>
-      <CompilerMessages>
-        <MsgFileName Value=""/>
-      </CompilerMessages>
-      <CompilerPath Value="$(CompPath)"/>
-    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">
