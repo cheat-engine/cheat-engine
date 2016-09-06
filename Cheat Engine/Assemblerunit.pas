@@ -4019,7 +4019,7 @@ begin
           begin
             k:=pos('[',parameter2);
             l:=pos(']',parameter2);
-            val('$'+copy(parameter2,k+l,l-k-1),v,k);
+            val('$'+copy(parameter2,k+1,l-k-1),v,k);
             if k=0 then
             begin
               //verified, it doesn't have a registerbase in it
@@ -4098,7 +4098,7 @@ begin
           begin
             k:=pos('[',parameter2);
             l:=pos(']',parameter2);
-            val('$'+copy(parameter2,k+l,l-k-1),v,k);
+            val('$'+copy(parameter2,k+1,l-k-1),v,k);
             if k=0 then
             begin
               //verified, it doesn't have a registerbase in it
