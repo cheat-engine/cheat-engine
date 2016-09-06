@@ -7,7 +7,7 @@ interface
 uses
   windows, Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics,
   ExtCtrls, dialogs, StdCtrls, ComCtrls, Menus, cefuncproc, IconStuff, zstream,
-  registry, MainUnit2, symbolhandler;
+  registry, MainUnit2, symbolhandler, lua, lualib, lauxlib;
 
 
 type
@@ -33,7 +33,6 @@ type
     cbModPlayer: TCheckBox;
     cbD3DHook: TCheckBox;
     cbDotNet: TCheckBox;
-    CheckBox1: TCheckBox;
     comboCompression: TComboBox;
     GroupBox1: TGroupBox;
     GroupBox2: TGroupBox;
@@ -88,11 +87,17 @@ type
 var
   frmExeTrainerGenerator: TfrmExeTrainerGenerator;
 
+  exeTrainerFeatures: array of record
+    featurename: string;
+    functionid: integer;
+    cb: TCheckBox;
+  end;
+
 implementation
 
 { TfrmExeTrainerGenerator }
 
-uses MainUnit,ceguicomponents, opensave, Globals;
+uses MainUnit,ceguicomponents, opensave, Globals, LuaHandler;
 
 resourcestring
   rsSaving = 'Saving...';
@@ -194,11 +199,14 @@ var DECOMPRESSOR: TMemorystream;
   gii: PGRPICONDIR absolute ii;
 
   compression: Tcompressionlevel;
-  i: integer;
+  i,j,t,t2,ltop: integer;
 
   tiny: boolean;
 
   basefile: string;
+
+  filepath: string;
+  relpath: string;
 
 begin
 
@@ -345,6 +353,60 @@ begin
               addfile(cheatenginedir+'ced3d11hook64.dll');
             end;
           end;
+
+          //do the exe trainer features
+          for i:=0 to length(exeTrainerFeatures)-1 do
+            if (exeTrainerFeatures[i].cb<>nil) and exeTrainerFeatures[i].cb.checked then
+            begin
+              luacs.enter;
+              try
+                ltop:=lua_gettop(luavm);
+                lua_rawgeti(luavm, LUA_REGISTRYINDEX, exeTrainerFeatures[i].functionid) ;
+                if lua_pcall(luavm, 0,1,0)=0 then
+                begin
+                  if lua_istable(luavm,-1) then
+                  begin
+                    t:=lua_gettop(luavm);
+                    for j:=1 to lua_objlen(luavm, t) do
+                    begin
+                      lua_pushinteger(luavm, j);
+                      lua_gettable(luavm, t);
+                      if lua_istable(luavm, -1) then
+                      begin
+                        t2:=lua_gettop(Luavm);
+                        lua_pushstring(Luavm,'PathToFile');
+                        lua_gettable(Luavm, t2);
+                        if lua_isstring(Luavm, -1) then
+                          filepath:=Lua_ToString(LuaVM,-1)
+                        else
+                          filepath:='';
+
+                        lua_pop(luavm,1);
+
+                        if filepath<>'' then
+                        begin
+                          lua_pushstring(Luavm,'RelativePath');
+                          lua_gettable(Luavm, t2);
+                          if lua_isstring(Luavm, -1) then
+                            relpath:=Lua_ToString(LuaVM,-1)
+                          else
+                            relpath:='';
+
+                          lua_pop(luavm,1);
+
+                          addFile(filepath,relpath);
+                        end;
+
+                      end;
+                      lua_pop(luavm,1);
+                    end;
+                  end;
+                end;
+
+              finally
+                lua_settop(luavm,ltop);
+              end;
+            end;
 
           archive.free;
 
@@ -550,6 +612,10 @@ begin
 
   for i:=0 to ListView1.Items.Count-1 do
     TFiledata(listview1.items[i].Data).free;
+
+  for i:=0 to length(exeTrainerFeatures)-1 do
+    if exeTrainerFeatures[i].cb<>nil then
+      freeandnil(exeTrainerFeatures[i].cb);
 end;
 
 procedure TfrmExeTrainerGenerator.FormCloseQuery(Sender: TObject;
@@ -597,6 +663,13 @@ begin
       break;
     end;
 
+  for i:=0 to length(exeTrainerFeatures)-1 do
+    if exeTrainerFeatures[i].featurename<>'' then
+    begin
+      exeTrainerFeatures[i].cb:=TCheckBox.Create(self);
+      exeTrainerFeatures[i].cb.Caption:=exeTrainerFeatures[i].featurename;
+      exeTrainerFeatures[i].cb.Parent:=GroupBox2;
+    end;
 end;
 
 procedure TfrmExeTrainerGenerator.FormShow(Sender: TObject);

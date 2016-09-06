@@ -1,11 +1,11 @@
 object frmExeTrainerGenerator: TfrmExeTrainerGenerator
   Left = 781
-  Height = 279
+  Height = 252
   Top = 314
   Width = 597
   AutoSize = True
   Caption = 'Exe Trainer Generator'
-  ClientHeight = 279
+  ClientHeight = 252
   ClientWidth = 597
   Constraints.MinHeight = 20
   Constraints.MinWidth = 20
@@ -19,12 +19,12 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
   LCLVersion = '1.6.0.4'
   object Panel1: TPanel
     Left = 0
-    Height = 228
+    Height = 206
     Top = 0
     Width = 321
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 228
+    ClientHeight = 206
     ClientWidth = 321
     TabOrder = 0
     object GroupBox1: TGroupBox
@@ -65,7 +65,7 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
     end
     object GroupBox2: TGroupBox
       Left = 0
-      Height = 83
+      Height = 61
       Top = 97
       Width = 321
       Align = alTop
@@ -75,7 +75,7 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
       ChildSizing.VerticalSpacing = 3
       ChildSizing.Layout = cclLeftToRightThenTopToBottom
       ChildSizing.ControlsPerLine = 3
-      ClientHeight = 63
+      ClientHeight = 41
       ClientWidth = 317
       TabOrder = 1
       object cbSpeedhack: TCheckBox
@@ -126,17 +126,6 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
         Caption = '.NET'
         TabOrder = 5
       end
-      object CheckBox1: TCheckBox
-        Left = 0
-        Height = 19
-        Hint = 'Enable this if you have taken into account that text can have different sizes on other displays.  It will result in a more crisp trainer display, but if you didn''t your trainer will look bad on those systems. (The basic trainer genator is NOT DPI Aware. So it''s not recommended to use that)'
-        Top = 44
-        Width = 97
-        Caption = 'DPI Aware'
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 6
-      end
     end
     object Button1: TButton
       AnchorSideLeft.Control = Panel4
@@ -145,7 +134,7 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
       AnchorSideTop.Side = asrCenter
       Left = 48
       Height = 25
-      Top = 192
+      Top = 170
       Width = 115
       AutoSize = True
       BorderSpacing.Left = 4
@@ -161,7 +150,7 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
       AnchorSideTop.Side = asrCenter
       Left = 241
       Height = 23
-      Top = 193
+      Top = 171
       Width = 80
       BorderSpacing.Left = 3
       ItemHeight = 15
@@ -183,7 +172,7 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
       AnchorSideTop.Side = asrCenter
       Left = 168
       Height = 15
-      Top = 197
+      Top = 175
       Width = 70
       BorderSpacing.Left = 5
       Caption = 'Compression'
@@ -195,7 +184,7 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
       AnchorSideTop.Side = asrBottom
       Left = 4
       Height = 40
-      Top = 184
+      Top = 162
       Width = 40
       BorderSpacing.Left = 4
       BorderSpacing.Top = 4
@@ -267,7 +256,7 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
     AnchorSideBottom.Side = asrBottom
     Left = 0
     Height = 41
-    Top = 238
+    Top = 211
     Width = 597
     Anchors = [akLeft, akRight, akBottom]
     AutoSize = True
@@ -298,19 +287,19 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Panel2
     Left = 324
-    Height = 238
+    Height = 211
     Top = 0
     Width = 273
     Anchors = [akTop, akLeft, akRight, akBottom]
     AutoSize = True
     BorderSpacing.Left = 3
     Caption = 'Extra files'
-    ClientHeight = 218
+    ClientHeight = 191
     ClientWidth = 269
     TabOrder = 2
     object ListView1: TListView
       Left = 0
-      Height = 185
+      Height = 158
       Top = 0
       Width = 269
       Align = alClient
@@ -335,7 +324,7 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
     object Panel3: TPanel
       Left = 0
       Height = 33
-      Top = 185
+      Top = 158
       Width = 269
       Align = alBottom
       AutoSize = True

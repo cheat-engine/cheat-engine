@@ -94,7 +94,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   LuaStructureFrm, LuaInternet, SymbolListHandler, processhandlerunit, processlist,
   DebuggerInterface, WindowsDebugger, VEHDebugger, KernelDebuggerInterface,
   DebuggerInterfaceAPIWrapper, Globals, math, speedhack2, CETranslator, binutils,
-  xinput, winsapi;
+  xinput, winsapi, frmExeTrainerGeneratorUnit;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -7330,6 +7330,46 @@ begin
   end;
 end;
 
+function lua_registerEXETrainerFeature(L: Plua_State): integer; cdecl;
+var i,j: integer;
+begin
+  result:=0;
+  if (lua_gettop(L)=2) and lua_isstring(L,1) and lua_isfunction(L,2) then
+  begin
+    j:=length(exeTrainerFeatures);
+    for i:=0 to length(exeTrainerFeatures)-1 do
+      if exeTrainerFeatures[i].featurename='' then
+      begin
+        j:=i;
+        break;
+      end;
+
+    if j=length(exeTrainerFeatures) then
+      setlength(exeTrainerFeatures,j+1);
+
+    exeTrainerFeatures[j].featurename:=Lua_ToString(L, 1);
+    exeTrainerFeatures[j].functionid:=luaL_ref(L, LUA_REGISTRYINDEX);
+
+    lua_pushinteger(L, j);
+    result:=1;
+  end;
+end;
+
+function lua_unregisterEXETrainerFeature(L: Plua_State): integer; cdecl;
+var i: integer;
+begin
+  if (lua_gettop(L)=1) and lua_isnumber(L, 1) then
+  begin
+    i:=lua_tointeger(L,1);
+    if i<length(exeTrainerFeatures) then
+    begin
+      exeTrainerFeatures[i].featurename:='';
+      luaL_unref(L, LUA_REGISTRYINDEX, exeTrainerFeatures[i].functionid);
+      exeTrainerFeatures[i].functionid:=0;
+    end;
+  end;
+end;
+
 procedure InitializeLua;
 var
   s: tstringlist;
@@ -7811,6 +7851,8 @@ begin
     lua_register(LuaVM, 'hookWndProc', lua_hookWndProc);
     lua_register(LuaVM, 'unhookWndProc', lua_unhookWndProc);
 
+    lua_register(LuaVM, 'registerEXETrainerFeature', lua_registerEXETrainerFeature);
+    lua_register(LuaVM, 'unregisterEXETrainerFeature', lua_unregisterEXETrainerFeature);
 
 
     initializeLuaCustomControl;

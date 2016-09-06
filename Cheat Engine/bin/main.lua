@@ -129,6 +129,18 @@ errorOnLookupFailure(state): If set to true (default) address lookups in stringf
 generateAPIHookScript(address, addresstojumpto, addresstogetnewcalladdress OPT) : Generates an auto assembler script which will hook the given address when executed
 autoAssemble(text, targetself OPTIONAL) : runs the auto assembler with the given text. Returns true on success (if targetself is set it will assemble into Cheat Engine itself)
 
+registerExeTrainerFeature(FeatureName:String, function():table): adds a new feature to the exe trainer generator window, and calls your function when the user builds an .exe trainer.  The function should return a table with table entries: PathToFile and RelativePath.
+  example output:
+    [1]: 
+      PathToFile=c:\cefolder\autorun\mycode.lua
+      RelativePath="autorun\"
+
+    [2]: 
+      PathToFile=c:\cefolder\autorun\dlls\mycode.lua
+      RelativePath="autorun\mylib.dll"
+                  
+
+
 registerAutoAssemblerCommand(command, function(parameters, syntaxcheckonly)): Registers an auto assembler command to call the specified function. The command will be replaced by the string this function returns when executed. The function can be called twice. Once for syntax check and symbol lookup(1), and the second time for actual execution by the assembler(2) if it has not been removed in phase1.
   Note: The callback function can return multiple values
   Nil, <String>: Will raise an error with the given string
