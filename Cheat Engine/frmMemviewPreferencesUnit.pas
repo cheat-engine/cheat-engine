@@ -67,17 +67,10 @@ resourcestring
 
 procedure TfrmMemviewPreferences.applyfont;
 begin
-  lblNormal.font.Name:=fontdialog1.Font.Name;
-  lblnormal.Font.Size:=fontdialog1.font.Size;
-
-  lblRegister.font.Name:=fontdialog1.Font.Name;
-  lblRegister.font.size:=fontdialog1.Font.size;
-
-  lblSymbol.font.name:=fontdialog1.Font.Name;
-  lblSymbol.font.size:=fontdialog1.Font.size;
-
-  lblHex.font.name:=FontDialog1.font.name;
-  lblHex.Font.size:=fontdialog1.Font.Size;
+  lblNormal.font:=fontdialog1.Font;
+  lblRegister.font:=fontdialog1.Font;
+  lblSymbol.font:=fontdialog1.Font;
+  lblHex.font:=FontDialog1.font;
 
   DoAutoSize;
 end;
@@ -167,7 +160,14 @@ begin
 end;
 
 procedure TfrmMemviewPreferences.btnFontClick(Sender: TObject);
+var s: string;
+  f:tfont;
+  fd: TFontData;
 begin
+  fd:=Graphics.GetFontData(lblNormal.Font.Handle);
+  fd.Handle:=fontdialog1.Font.Handle;
+  fontdialog1.Font.FontData:=fd;
+
   if fontdialog1.execute then
   begin
     btnFont.Caption:=fontdialog1.Font.Name+' '+inttostr(fontdialog1.Font.Size);
@@ -176,6 +176,7 @@ begin
 end;
 
 procedure TfrmMemviewPreferences.btnHexFontClick(Sender: TObject);
+var fd: TFontData;
 begin
   if fontdialog2.execute then
     btnHexFont.Caption:=fontdialog2.Font.Name+' '+inttostr(fontdialog2.Font.Size);

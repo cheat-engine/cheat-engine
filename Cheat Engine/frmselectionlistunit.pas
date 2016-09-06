@@ -63,6 +63,8 @@ begin
   if sl.ShowModal=mrOK then
   begin
     result:=sl.ListBox1.ItemIndex;
+    if result=-1 then exit;
+
     if AllowCustomInput then
       output:=sl.Edit1.text
     else

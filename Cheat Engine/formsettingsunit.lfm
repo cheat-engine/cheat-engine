@@ -1,7 +1,7 @@
 object formSettings: TformSettings
-  Left = 450
+  Left = 660
   Height = 404
-  Top = 301
+  Top = 279
   Width = 1053
   AutoSize = True
   BorderIcons = [biSystemMenu]
@@ -1138,7 +1138,7 @@ object formSettings: TformSettings
             TabOrder = 2
             object btnSelectLanguage: TButton
               AnchorSideLeft.Control = Panel10
-              AnchorSideTop.Control = Label16
+              AnchorSideTop.Control = lblCurrentLanguage
               AnchorSideTop.Side = asrBottom
               AnchorSideRight.Control = Panel10
               AnchorSideRight.Side = asrBottom
@@ -1167,7 +1167,7 @@ object formSettings: TformSettings
               Caption = 'Current Language:'
               ParentColor = False
             end
-            object Label16: TLabel
+            object lblCurrentLanguage: TLabel
               AnchorSideLeft.Control = Panel10
               AnchorSideTop.Control = Label10
               AnchorSideTop.Side = asrBottom

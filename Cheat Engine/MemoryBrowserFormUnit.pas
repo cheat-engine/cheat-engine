@@ -13,7 +13,7 @@ uses
   NewKernelHandler, ComCtrls, LResources, byteinterpreter, StrUtils, hexviewunit,
   debughelper, debuggertypedefinitions,frmMemviewPreferencesUnit, registry,
   scrollboxex, disassemblercomments, multilineinputqueryunit, frmMemoryViewExUnit,
-  LastDisassembleData, ProcessHandlerUnit, commonTypeDefs, binutils;
+  LastDisassembleData, ProcessHandlerUnit, commonTypeDefs, binutils,fontSaveLoadRegistry;
 
 
 type
@@ -1652,15 +1652,9 @@ var
 begin
   with TfrmMemviewPreferences.create(self) do
   begin
-    fd:=GetFontData(disassemblerview.font.handle);
-    fontdialog1.Font.Height:=fd.Height;
-    fontdialog1.Font.Pitch:=fd.Pitch;
-    fontdialog1.Font.Style:=fd.Style;
-    fontdialog1.Font.CharSet:=fd.CharSet;
-    fontdialog1.Font.Quality:=fd.Quality;
-    fontdialog1.Font.Name:=fd.Name;
-    fontdialog1.Font.Orientation:=fd.Orientation;
-
+    fd:=Graphics.GetFontData(disassemblerview.font.handle);
+    fd.handle:=fontdialog1.font.handle;
+    fontdialog1.font.FontData:=fd;
 
     btnFont.Caption:=fontdialog1.Font.Name+' '+inttostr(fontdialog1.Font.Size);
 
@@ -1671,14 +1665,9 @@ begin
     cbColorGroupChange(cbColorGroup);
 
     //FontDialog2.Font.Assign(hexview.HexFont);
-    fd:=GetFontData(hexview.HexFont.handle);
-    fontdialog2.Font.Height:=fd.Height;
-    fontdialog2.Font.Pitch:=fd.Pitch;
-    fontdialog2.Font.Style:=fd.Style;
-    fontdialog2.Font.CharSet:=fd.CharSet;
-    fontdialog2.Font.Quality:=fd.Quality;
-    fontdialog2.Font.Name:=fd.Name;
-    fontdialog2.Font.Orientation:=fd.Orientation;
+    fd:=Graphics.GetFontData(hexview.HexFont.handle);
+    fd.handle:=fontdialog2.Font.handle;
+    fontdialog2.Font.FontData:=fd;
 
 
     if showmodal=mrok then
@@ -1699,17 +1688,13 @@ begin
   reg:=Tregistry.Create;
   try
     if reg.OpenKey('\Software\Cheat Engine\Disassemblerview\',true) then
-    begin
       reg.WriteBinaryData('colors', disassemblerview.colors, sizeof(disassemblerview.colors));
-      reg.WriteString('font.name', disassemblerview.font.name);
-      reg.WriteInteger('font.size', disassemblerview.font.size);
-    end;
 
-    if reg.OpenKey('\Software\Cheat Engine\Hexview\',true) then
-    begin
-      reg.WriteString('font.name', hexview.hexfont.name);
-      reg.WriteInteger('font.size', hexview.hexfont.size);
-    end;
+    if reg.OpenKey('\Software\Cheat Engine\Disassemblerview\Font',true) then
+      SaveFontToRegistry(disassemblerview.font, reg);
+
+    if reg.OpenKey('\Software\Cheat Engine\Hexview\Font',true) then
+      SaveFontToRegistry(hexview.font, reg);
 
   finally
     reg.free;
@@ -1815,32 +1800,20 @@ begin
   //load from the registry
   reg:=Tregistry.Create;
   try
+    if reg.OpenKey('\Software\Cheat Engine\Disassemblerview\Font',false) then
+      LoadFontFromRegistry(disassemblerview.font, reg);
+
     if reg.OpenKey('\Software\Cheat Engine\Disassemblerview\',false) then
     begin
       if reg.ValueExists('colors') then
         reg.ReadBinaryData('colors', disassemblerview.colors, sizeof(disassemblerview.colors));
 
-      if reg.ValueExists('font.name') then
-        disassemblerview.font.name:=reg.ReadString('font.name');
-
-      if reg.ValueExists('font.size') then
-        disassemblerview.font.size:=reg.ReadInteger('font.size');
-
       disassemblerview.reinitialize;
     end;
 
-    if reg.OpenKey('\Software\Cheat Engine\Hexview\',false) then
-    begin
-      f:=hexview.hexfont;
+    if reg.OpenKey('\Software\Cheat Engine\Hexview\Font',false) then
+      LoadFontFromRegistry(hexview.hexfont, reg);
 
-      if reg.ValueExists('font.name') then
-        f.name:=reg.ReadString('font.name');
-
-      if reg.ValueExists('font.size') then
-        f.size:=reg.ReadInteger('font.size');
-
-      hexview.hexfont:=f;
-    end;
 
   finally
     reg.free;

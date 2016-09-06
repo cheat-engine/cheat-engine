@@ -1286,7 +1286,7 @@ begin
     curr:=newlanguage;
 
 
-  if curr='*' then
+  if curr='' then
   begin
     lbLanguages.Items.Add('>>English');
     lblCurrentLanguage.Caption:='English';
@@ -1298,9 +1298,10 @@ begin
   mi.Caption:='English';
   mi.Tag:=0;
   mi.RadioItem:=true;
-  mi.OnClick:=LanguageMenuItemClick;
   if curr='' then
     mi.Checked:=true;
+  mi.OnClick:=LanguageMenuItemClick;
+
   mainform.miLanguages.Add(mi);
 
   f:=TStringList.Create;
@@ -1324,8 +1325,6 @@ begin
     mi.Caption:=n;
     mi.Tag:=i+1;
     mi.RadioItem:=true;
-    mi.OnClick:=LanguageMenuItemClick;
-
     if uppercase(e.foldername)=uppercase(curr) then
     begin
       lblCurrentLanguage.Caption:=n;
@@ -1333,6 +1332,7 @@ begin
       mi.Checked:=true;
     end;
 
+    mi.OnClick:=LanguageMenuItemClick;
     lbLanguages.Items.AddObject(n,e);
     mainform.miLanguages.Add(mi);
 
