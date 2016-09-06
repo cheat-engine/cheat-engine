@@ -1264,15 +1264,15 @@ function monoform_AddStaticClass(domain, image, class)
         -- mr.Address=string.format("[[%s.Static]+%X]+C",symclassname,offset)
         mr.Address=symclassname..'.Static'
         mr.OffsetCount=2
-        mr.Offset[0]="C"
-        mr.Offset[1]=string.format("%X",offset)
+        mr.Offset[0]=0xC
+        mr.Offset[1]=offset
         mr.Type=vtString
         memoryrecord_string_setUnicode(mr, true)
         memoryrecord_string_setSize(mr, 80)
       else
         mr.Address=symclassname..'.Static'
         mr.OffsetCount=1
-        mr.Offset[0]=string.format("%X",offset)
+        mr.Offset[0]=offset
         mr.Type=monoTypeToVarType(fields[i].monotype)
       end
       if rootmr~=nil then
@@ -1325,7 +1325,7 @@ function monoform_AddStaticClassField(domain, image, class, fieldclass, field)
       if fields[i].monotype==MONO_TYPE_STRING then
         mr.Address=symclassname..'.'..symfieldname
         mr.OffsetCount=1
-        mr.Offset[0]="C"
+        mr.Offset[0]=0xC
         mr.Type=vtString
         memoryrecord_string_setUnicode(mr, true)
         memoryrecord_string_setSize(mr, 80)
