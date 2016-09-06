@@ -1283,8 +1283,12 @@ begin
 
   curr:=currentTranslation;
   if hasSetNewLanguage then
-    curr:=newlanguage;
-
+  begin
+    if newlanguage<>'*' then
+      curr:=newlanguage
+    else
+      curr:='';
+  end;
 
   if curr='' then
   begin
