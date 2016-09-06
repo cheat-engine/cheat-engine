@@ -943,7 +943,7 @@ begin
   end;
 
 
-  settingsvis:=formSettings.Visible;
+  {settingsvis:=formSettings.Visible;
 
   MemoryBrowser.Free;
   MainForm.free;
@@ -958,7 +958,7 @@ begin
   LoadSettingsFromRegistry;
 
   if settingsvis then
-    modalresult:=formsettings.ShowModal;
+    modalresult:=formsettings.ShowModal;  }
 
 
 end;
