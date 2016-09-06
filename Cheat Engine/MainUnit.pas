@@ -640,6 +640,8 @@ type
     procedure actOpenProcesslistExecute(Sender: TObject);
     procedure Type1Click(Sender: TObject);
   private
+    onetimeonly: boolean; //to protect against make mainform visible (.show)
+
     tabcounter: integer;
     //variable that only goes up, doesn't go down when a tab is deleted
     scantablist: TTablist;
@@ -6852,8 +6854,7 @@ begin
 end;
 
 
-var
-  onetimeonly: boolean = False; //to protect against make mainform visible (.show)
+
 
 procedure TMainForm.FormShow(Sender: TObject);
 
@@ -6891,6 +6892,8 @@ var
   extrasize: integer;
   s: string;
 begin
+
+
   if onetimeonly then
     exit;
 
@@ -8838,6 +8841,12 @@ var
   i: integer;
   oldscanstate: PScanState;
 begin
+  if flashprocessbutton<>nil then
+  begin
+    flashprocessbutton.Terminate;
+    flashprocessbutton.WaitFor;
+    flashprocessbutton.Free;
+  end;
 
   saveformposition(self, [addresslist.headers.Sections[0].Width,
     addresslist.headers.Sections[1].Width,

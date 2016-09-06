@@ -306,7 +306,7 @@ commonTypeDefs,
 frmEditHistoryUnit,
 Globals,
 fontSaveLoadRegistry,
-CETranslator;
+CETranslator, MemoryBrowserFormUnit;
 
 
 type TLanguageEntry=class
@@ -385,7 +385,7 @@ resourcestring
   rsChangedValue = 'Changed Value';
   rsUnchangedValue = 'Unchanged Value';
   rsNewLanguageSet = 'New language set';
-  rsRestartCE = 'You must restart Cheat Engine for this change to take effect';
+  rsRestartCE = 'It is recommended to restart Cheat Engine for this change to take effect';
 procedure TformSettings.btnOKClick(Sender: TObject);
 var processhandle2: Thandle;
     reg: TRegistry;
@@ -908,7 +908,10 @@ var
   preferedLanguage: string;
   ini: TIniFile;
   old: string;
+
+  settingsvis: boolean;
 begin
+
   if lbLanguages.ItemIndex<>-1 then
   begin
     l:=TLanguageEntry(lbLanguages.Items.Objects[lbLanguages.ItemIndex]);
@@ -927,6 +930,8 @@ begin
 
         ScanForLanguages;
 
+        doTranslation;
+
         if uppercase(old)<>uppercase(preferedLanguage) then
           MessageDlg(rsNewLanguageSet, rsRestartCE, mtInformation, [mbok], 0);
 
@@ -936,6 +941,26 @@ begin
     except
     end;
   end;
+
+
+  settingsvis:=formSettings.Visible;
+
+  MemoryBrowser.Free;
+  MainForm.free;
+
+  Application.CreateForm(TMainForm, MainForm);
+  Application.CreateForm(TMemoryBrowser, MemoryBrowser);
+
+  MainForm.show;
+
+  Application.CreateForm(TformSettings, formSettings);
+
+  LoadSettingsFromRegistry;
+
+  if settingsvis then
+    modalresult:=formsettings.ShowModal;
+
+
 end;
 
 procedure TformSettings.cbAskIfTableHasLuascriptChange(Sender: TObject);
@@ -1002,7 +1027,7 @@ end;
 
 procedure TformSettings.FormDestroy(Sender: TObject);
 begin
-  formsettings:=nil;
+
 end;
 
 procedure TformSettings.FormShow(Sender: TObject);
@@ -1195,6 +1220,8 @@ end;
 
 procedure TformSettings.AboutLabelClick(Sender: TObject);
 begin
+  free;
+  exit;
 
   with tabout.create(self) do
   begin

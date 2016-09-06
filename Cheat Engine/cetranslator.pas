@@ -326,7 +326,12 @@ begin
   end;
 
   if LocalTranslator<>nil then
-    LRSTranslator := LocalTranslator;
+    LRSTranslator := LocalTranslator
+  else
+  begin
+    if assigned(LRSTranslator) then
+      freeandnil(LRSTranslator);
+  end;
 end;
 
 
