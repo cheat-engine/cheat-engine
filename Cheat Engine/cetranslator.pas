@@ -124,6 +124,7 @@ begin
       lini:=TIniFile.Create(cheatenginedir+'languages' + DirectorySeparator+'language.ini');
       try
         lang:=lini.ReadString('Language','PreferedLanguage','');
+        if lang='*' then exit('');
       finally
         lini.Free;
       end;
@@ -273,6 +274,8 @@ begin
   // search first po translation resources
   try
      lcfn := FindLocaleFileName('.po');
+
+     if lcfn='' then exit;
 
      translationfilepath:=ExtractFilePath(lcfn);
      currentTranslation:=ExtractFileName(ExtractFileDir(translationfilepath));
