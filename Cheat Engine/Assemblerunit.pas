@@ -3959,7 +3959,7 @@ begin
           begin
             k:=pos('[',parameter1);
             l:=pos(']',parameter1);
-            val('$'+copy(parameter1,k+l,l-k-1),v,k);
+            val('$'+copy(parameter1,k+1,l-k-1),v,k);
             if k=0 then
             begin
               //verified, it doesn't have a registerbase in it
