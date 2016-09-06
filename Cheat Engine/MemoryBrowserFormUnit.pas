@@ -1648,12 +1648,19 @@ var
   x: TfrmMemviewPreferences;
   i: TDisassemblerViewColorsState;
   reg: tregistry;
+  fd: TFontData;
 begin
   with TfrmMemviewPreferences.create(self) do
   begin
+    fd:=GetFontData(disassemblerview.font.handle);
+    fontdialog1.Font.Height:=fd.Height;
+    fontdialog1.Font.Pitch:=fd.Pitch;
+    fontdialog1.Font.Style:=fd.Style;
+    fontdialog1.Font.CharSet:=fd.CharSet;
+    fontdialog1.Font.Quality:=fd.Quality;
+    fontdialog1.Font.Name:=fd.Name;
+    fontdialog1.Font.Orientation:=fd.Orientation;
 
-    fontdialog1.Font.name:=disassemblerview.Font.name;
-    fontdialog1.Font.size:=disassemblerview.Font.size;
 
     btnFont.Caption:=fontdialog1.Font.Name+' '+inttostr(fontdialog1.Font.Size);
 
@@ -1663,7 +1670,16 @@ begin
     //and now apply those colors
     cbColorGroupChange(cbColorGroup);
 
-    FontDialog2.Font.Assign(hexview.HexFont);
+    //FontDialog2.Font.Assign(hexview.HexFont);
+    fd:=GetFontData(hexview.HexFont.handle);
+    fontdialog2.Font.Height:=fd.Height;
+    fontdialog2.Font.Pitch:=fd.Pitch;
+    fontdialog2.Font.Style:=fd.Style;
+    fontdialog2.Font.CharSet:=fd.CharSet;
+    fontdialog2.Font.Quality:=fd.Quality;
+    fontdialog2.Font.Name:=fd.Name;
+    fontdialog2.Font.Orientation:=fd.Orientation;
+
 
     if showmodal=mrok then
     begin

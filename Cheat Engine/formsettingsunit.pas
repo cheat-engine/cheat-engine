@@ -88,7 +88,7 @@ type
     Label13: TLabel;
     Label14: TLabel;
     Label15: TLabel;
-    Label16: TLabel;
+    lblCurrentLanguage: TLabel;
     Label18: TLabel;
     Label19: TLabel;
     Label2: TLabel;
@@ -918,7 +918,7 @@ begin
     if l<>nil then
       preferedLanguage:=l.foldername
     else
-      preferedLanguage:='';
+      preferedLanguage:='*';
 
     try
       ini:=TIniFile.Create(cheatenginedir+'languages' + DirectorySeparator+'language.ini');
@@ -1286,8 +1286,11 @@ begin
     curr:=newlanguage;
 
 
-  if curr='' then
-    lbLanguages.Items.Add('>>English')
+  if curr='*' then
+  begin
+    lbLanguages.Items.Add('>>English');
+    lblCurrentLanguage.Caption:='English';
+  end
   else
     lbLanguages.Items.Add('English');
 
@@ -1325,6 +1328,7 @@ begin
 
     if uppercase(e.foldername)=uppercase(curr) then
     begin
+      lblCurrentLanguage.Caption:=n;
       n:='>>'+n;
       mi.Checked:=true;
     end;
