@@ -1237,6 +1237,11 @@ var
 
   hk: TMemoryRecordHotkey;
   gh: TGenericHotkey;
+
+  hOtherWin : THandle;
+  OtherThreadID : DWORD;
+  CurrentThreadID : DWORD;
+  lockTimeOut: DWORD;
 begin
   if message.LParam <> 0 then
   begin
@@ -1265,6 +1270,18 @@ begin
           exit;
         end;
 
+        hOtherWin := GetForegroundWindow;
+        GetWindowThreadProcessID( hOtherWin, OtherThreadID);
+        CurrentThreadID := GetCurrentThreadID;
+
+        if CurrentThreadID<>OtherThreadID then
+        begin
+          AttachThreadInput( CurrentThreadID, OtherThreadID, true );
+          SystemParametersInfo(SPI_GETFOREGROUNDLOCKTIMEOUT, 0, @lockTimeOut, 0);
+          SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT, 0, 0, 0);
+          AllowSetForegroundWindow(ASFW_ANY);
+        end;
+
         beep;
 
         if formsettings.cbHideAllWindows.Checked then
@@ -1279,7 +1296,14 @@ begin
                 SWP_NOZORDER or SWP_NOACTIVATE);
 
           if not allwindowsareback then
-            application.BringToFront
+          begin
+            application.BringToFront;
+            if CurrentThreadID<>OtherThreadID then
+            begin
+              SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT, 0, @lockTimeOut, 0);
+              AttachThreadInput( CurrentThreadID, OtherThreadID, false );
+            end;
+          end
           else
             setforegroundwindow(lastforeground);
 
@@ -1291,6 +1315,12 @@ begin
         SetForegroundWindow(mainform.Handle);
 
         mainform.SetFocus;
+
+        if CurrentThreadID<>OtherThreadID then
+        begin
+          SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT, 0, @lockTimeOut, 0);
+          AttachThreadInput( CurrentThreadID, OtherThreadID, false );
+        end;
 
         if formsettings.cbCenterOnPopup.Checked then
           setwindowpos(mainform.Handle, HWND_NOTOPMOST, (screen.Width div 2) -
