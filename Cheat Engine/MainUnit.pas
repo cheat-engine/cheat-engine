@@ -4663,6 +4663,9 @@ begin
     FreeAndNil(SaveFirstScanThread);
   end;
 
+  if PreviousResults<>nil then
+    freeandnil(PreviousResults);
+
   fastscan := formsettings.cbFastscan.Checked;
   //close files in case of a bug i might have missed...
 
@@ -4704,6 +4707,8 @@ begin
 
   if formsettings.cbPauseWhenScanningOnByDefault.checked then
     cbPauseWhileScanning.Checked:=true;
+
+  foundlist3.Column[2].Caption:=rsPrevious;
 end;
 
 procedure TMainForm.btnNewScanClick(Sender: TObject);
