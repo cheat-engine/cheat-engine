@@ -60,6 +60,7 @@ type
     MenuItem24: TMenuItem;
     MenuItem25: TMenuItem;
     MenuItem26: TMenuItem;
+    miSetAddress: TMenuItem;
     miGNUAssembler: TMenuItem;
     miBinutilsSelect: TMenuItem;
     miBinUtils: TMenuItem;
@@ -277,6 +278,7 @@ type
     procedure MenuItem22Click(Sender: TObject);
     procedure MenuItem25Click(Sender: TObject);
     procedure MenuItem26Click(Sender: TObject);
+    procedure miSetAddressClick(Sender: TObject);
     procedure miGNUAssemblerClick(Sender: TObject);
     procedure miBinutilsSelectClick(Sender: TObject);
     procedure SetBookmarkClick(Sender: TObject);
@@ -1130,6 +1132,18 @@ begin
     frmUltimap2:=TfrmUltimap2.create(application);
 
   frmUltimap2.show;
+end;
+
+procedure TMemoryBrowser.miSetAddressClick(Sender: TObject);
+begin
+  if (debuggerthread<>nil) and (debuggerthread.isWaitingToContinue) then
+  begin
+    debuggerthread.CurrentThread.context.{$ifdef cpu32}eip{$else}Rip{$endif}:=disassemblerview.SelectedAddress;
+    debuggerthread.CurrentThread.setContext;
+    debuggerthread.CurrentThread.UpdateMemoryBrowserContext;
+    UpdateDebugContext(debuggerthread.CurrentThread.Handle, debuggerthread.CurrentThread.ThreadId);
+  end;
+
 end;
 
 procedure TMemoryBrowser.miGNUAssemblerClick(Sender: TObject);
@@ -4233,6 +4247,7 @@ begin
   step1.Enabled:=true;
   stepover1.Enabled:=true;
   runtill1.Enabled:=true;
+  miSetAddress.enabled:=true;
   stacktrace1.Enabled:=true;
   Executetillreturn1.Enabled:=true;
 

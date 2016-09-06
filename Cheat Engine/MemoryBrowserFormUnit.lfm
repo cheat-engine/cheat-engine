@@ -1301,6 +1301,12 @@ object MemoryBrowser: TMemoryBrowser
         ShortCut = 115
         OnClick = Runtill1Click
       end
+      object miSetAddress: TMenuItem
+        Caption = 'Set Address'
+        Enabled = False
+        ShortCut = 16499
+        OnClick = miSetAddressClick
+      end
       object Setbreakpoint1: TMenuItem
         Caption = 'Toggle breakpoint'
         ShortCut = 116
