@@ -1,12 +1,12 @@
 object formSettings: TformSettings
   Left = 450
-  Height = 646
+  Height = 404
   Top = 301
   Width = 1053
   AutoSize = True
   BorderIcons = [biSystemMenu]
   Caption = 'Cheat Engine settings'
-  ClientHeight = 646
+  ClientHeight = 404
   ClientWidth = 1053
   OnClose = FormClose
   OnCreate = FormCreate
@@ -17,17 +17,17 @@ object formSettings: TformSettings
   LCLVersion = '1.6.0.4'
   object pnlConfig: TPanel
     Left = 0
-    Height = 609
+    Height = 367
     Top = 0
     Width = 1053
     Align = alClient
     AutoSize = True
-    ClientHeight = 609
+    ClientHeight = 367
     ClientWidth = 1053
     TabOrder = 0
     object tvMenuSelection: TTreeView
       Left = 1
-      Height = 607
+      Height = 365
       Top = 1
       Width = 148
       Align = alLeft
@@ -43,7 +43,7 @@ object formSettings: TformSettings
       OnCollapsing = tvMenuSelectionCollapsing
       Options = [tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoRightClickSelect, tvoShowButtons, tvoShowLines, tvoToolTips]
       Items.Data = {
-        F9FFFFFF020007000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF010000000000
+        F9FFFFFF020008000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF010000000000
         0000011000000047656E6572616C2053657474696E6773FFFFFFFFFFFFFFFFFF
         FFFFFFFFFFFFFF00000000000000000005000000546F6F6C73FFFFFFFFFFFFFF
         FFFFFFFFFFFFFFFFFF00000000000000000007000000486F746B657973FFFFFF
@@ -51,37 +51,38 @@ object formSettings: TformSettings
         6F6D697A6572FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000000000000000000D
         0000005363616E2053657474696E6773FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
         00000000000000000007000000506C7567696E73FFFFFFFFFFFFFFFFFFFFFFFF
-        FFFFFFFF000000000000000000100000004465627567676572204F7074696F6E
-        73FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000050000004578
-        747261
+        FFFFFFFF000000000000000000090000004C616E677561676573FFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFF00000000000000000010000000446562756767657220
+        4F7074696F6E73FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000
+        050000004578747261
       }
     end
     object pcSetting: TPageControl
       Left = 149
-      Height = 607
+      Height = 365
       Top = 1
       Width = 903
-      ActivePage = GeneralSettings
+      ActivePage = Languages
       Align = alClient
-      TabIndex = 0
+      TabIndex = 5
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
         Caption = 'General Settings'
-        ClientHeight = 579
+        ClientHeight = 337
         ClientWidth = 895
         object ScrollBox1: TScrollBox
           Left = 0
-          Height = 579
+          Height = 337
           Top = 0
           Width = 895
           HorzScrollBar.Page = 494
           HorzScrollBar.Tracking = True
-          VertScrollBar.Page = 469
+          VertScrollBar.Page = 333
           VertScrollBar.Tracking = True
           Align = alClient
-          ClientHeight = 575
-          ClientWidth = 891
+          ClientHeight = 333
+          ClientWidth = 874
           TabOrder = 0
           OnClick = ScrollBox1Click
           object Label11: TLabel
@@ -244,12 +245,12 @@ object formSettings: TformSettings
             Left = 0
             Height = 60
             Top = 285
-            Width = 891
+            Width = 874
             Anchors = [akTop, akLeft, akRight]
             AutoSize = True
             Caption = 'Address list specific'
             ClientHeight = 40
-            ClientWidth = 887
+            ClientWidth = 870
             TabOrder = 4
             object cbShowAsSigned: TCheckBox
               AnchorSideLeft.Control = GroupBox1
@@ -1060,6 +1061,134 @@ object formSettings: TformSettings
           end
         end
       end
+      object Languages: TTabSheet
+        Caption = 'Languages'
+        ClientHeight = 337
+        ClientWidth = 895
+        object Panel1: TPanel
+          AnchorSideLeft.Control = Languages
+          AnchorSideTop.Control = Languages
+          AnchorSideRight.Control = Languages
+          AnchorSideRight.Side = asrBottom
+          AnchorSideBottom.Control = Languages
+          AnchorSideBottom.Side = asrBottom
+          Left = 0
+          Height = 337
+          Top = 0
+          Width = 895
+          Anchors = [akTop, akLeft, akRight, akBottom]
+          BevelOuter = bvNone
+          ClientHeight = 337
+          ClientWidth = 895
+          TabOrder = 0
+          object cbShowLanguageMenuItem: TCheckBox
+            AnchorSideLeft.Control = Panel1
+            AnchorSideBottom.Control = Panel1
+            AnchorSideBottom.Side = asrBottom
+            Left = 0
+            Height = 19
+            Top = 318
+            Width = 312
+            Anchors = [akLeft, akBottom]
+            Caption = 'Show language selection menu item at the main screen'
+            Checked = True
+            State = cbChecked
+            TabOrder = 0
+          end
+          object lbLanguages: TListBox
+            AnchorSideLeft.Control = Panel1
+            AnchorSideTop.Control = Label9
+            AnchorSideTop.Side = asrBottom
+            AnchorSideRight.Control = Panel10
+            AnchorSideBottom.Control = cbShowLanguageMenuItem
+            Left = 0
+            Height = 303
+            Top = 15
+            Width = 775
+            Anchors = [akTop, akLeft, akRight, akBottom]
+            ItemHeight = 0
+            OnDblClick = btnSelectLanguageClick
+            PopupMenu = miLanguages
+            TabOrder = 1
+          end
+          object Label9: TLabel
+            AnchorSideLeft.Control = Panel1
+            AnchorSideTop.Control = Panel1
+            Left = 0
+            Height = 15
+            Top = 0
+            Width = 198
+            Caption = 'The folowing languages are available:'
+            ParentColor = False
+          end
+          object Panel10: TPanel
+            AnchorSideTop.Control = Label9
+            AnchorSideTop.Side = asrBottom
+            AnchorSideRight.Control = Panel1
+            AnchorSideRight.Side = asrBottom
+            Left = 775
+            Height = 67
+            Top = 15
+            Width = 120
+            Anchors = [akTop, akRight]
+            AutoSize = True
+            BevelOuter = bvNone
+            ClientHeight = 67
+            ClientWidth = 120
+            TabOrder = 2
+            object btnSelectLanguage: TButton
+              AnchorSideLeft.Control = Panel10
+              AnchorSideTop.Control = Label16
+              AnchorSideTop.Side = asrBottom
+              AnchorSideRight.Control = Panel10
+              AnchorSideRight.Side = asrBottom
+              Left = 4
+              Height = 25
+              Top = 42
+              Width = 112
+              Anchors = [akTop, akLeft, akRight]
+              AutoSize = True
+              BorderSpacing.Left = 4
+              BorderSpacing.Right = 4
+              Caption = 'Select Language'
+              Default = True
+              OnClick = btnSelectLanguageClick
+              TabOrder = 0
+            end
+            object Label10: TLabel
+              AnchorSideLeft.Control = Panel10
+              AnchorSideTop.Control = Panel10
+              Left = 4
+              Height = 15
+              Top = 0
+              Width = 98
+              BorderSpacing.Left = 4
+              BorderSpacing.Right = 4
+              Caption = 'Current Language:'
+              ParentColor = False
+            end
+            object Label16: TLabel
+              AnchorSideLeft.Control = Panel10
+              AnchorSideTop.Control = Label10
+              AnchorSideTop.Side = asrBottom
+              AnchorSideRight.Control = Panel10
+              AnchorSideRight.Side = asrBottom
+              Left = 4
+              Height = 15
+              Top = 21
+              Width = 112
+              Alignment = taCenter
+              Anchors = [akTop, akLeft, akRight]
+              BorderSpacing.Left = 4
+              BorderSpacing.Top = 6
+              BorderSpacing.Right = 4
+              BorderSpacing.Bottom = 6
+              Caption = 'English'
+              ParentColor = False
+            end
+          end
+        end
+      end
       object Assembler: TTabSheet
         Caption = 'Debugger Options'
         ClientHeight = 579
@@ -1803,7 +1932,7 @@ object formSettings: TformSettings
   object Panel6: TPanel
     Left = 0
     Height = 37
-    Top = 609
+    Top = 367
     Width = 1053
     Align = alBottom
     AutoSize = True
@@ -1855,7 +1984,6 @@ object formSettings: TformSettings
         AutoSize = True
         Caption = 'OK'
         Constraints.MinWidth = 75
-        Default = True
         OnClick = btnOKClick
         TabOrder = 0
       end
@@ -1907,5 +2035,13 @@ object formSettings: TformSettings
     MaxFontSize = 0
     left = 801
     top = 143
+  end
+  object miLanguages: TPopupMenu
+    left = 227
+    top = 76
+    object MenuItem1: TMenuItem
+      Caption = 'Refresh'
+      OnClick = MenuItem1Click
+    end
   end
 end

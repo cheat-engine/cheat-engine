@@ -10,7 +10,7 @@ uses
   Buttons, LResources, frameHotkeyConfigUnit, math,
 
   kerneldebugger,plugin,NewKernelHandler,CEDebugger,hotkeyhandler, debugHelper,
-  formhotkeyunit, debuggertypedefinitions;
+  formhotkeyunit, debuggertypedefinitions, FileUtil, IniFiles;
 
 
 type Tpathspecifier=class(TObject)
@@ -28,6 +28,7 @@ type
     btnExcludeProcesses: TButton;
     btnOK: TButton;
     btnSetFont: TButton;
+    btnSelectLanguage: TButton;
     cbAlwaysAutoAttach: TCheckBox;
     cbAlwaysRunScript: TCheckBox;
     cbAskIfTableHasLuascript: TCheckBox;
@@ -64,6 +65,7 @@ type
     CheckBox1: TCheckBox;
     cbOverrideDefaultFont: TCheckBox;
     cbDPIAware: TCheckBox;
+    cbShowLanguageMenuItem: TCheckBox;
     combothreadpriority: TComboBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
@@ -80,11 +82,13 @@ type
     GroupBox2: TGroupBox;
     GroupBox4: TGroupBox;
     Label1: TLabel;
+    Label10: TLabel;
     Label11: TLabel;
     Label12: TLabel;
     Label13: TLabel;
     Label14: TLabel;
     Label15: TLabel;
+    Label16: TLabel;
     Label18: TLabel;
     Label19: TLabel;
     Label2: TLabel;
@@ -96,11 +100,17 @@ type
     Label6: TLabel;
     Label7: TLabel;
     Label8: TLabel;
+    Label9: TLabel;
     lblThreadFollowing: TLabel;
+    lbLanguages: TListBox;
     LoadButton: TSpeedButton;
+    MenuItem1: TMenuItem;
+    Panel1: TPanel;
+    Panel10: TPanel;
     Panel9: TPanel;
     pcDebugConfig: TPageControl;
     pnlConfig: TPanel;
+    miLanguages: TPopupMenu;
     rbDebugAsBreakpoint: TRadioButton;
     rbgDebuggerInterface: TRadioGroup;
     rbInt3AsBreakpoint: TRadioButton;
@@ -115,6 +125,7 @@ type
     SelectDirectoryDialog1: TSelectDirectoryDialog;
     spbDown: TSpeedButton;
     spbUp: TSpeedButton;
+    Languages: TTabSheet;
     tsKernelDebugConfig: TTabSheet;
     tsVEHDebugConfig: TTabSheet;
     tsWindowsDebuggerConfig: TTabSheet;
@@ -171,6 +182,7 @@ type
     procedure btnOKClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
     procedure btnSetFontClick(Sender: TObject);
+    procedure btnSelectLanguageClick(Sender: TObject);
     procedure cbAskIfTableHasLuascriptChange(Sender: TObject);
     procedure cbDontusetempdirChange(Sender: TObject);
     procedure cbDebuggerInterfaceChange(Sender: TObject);
@@ -184,6 +196,7 @@ type
     procedure cbShowDisassemblerClick(Sender: TObject);
     procedure Label3Click(Sender: TObject);
     procedure LoadButtonClick(Sender: TObject);
+    procedure MenuItem1Click(Sender: TObject);
     procedure Panel3Click(Sender: TObject);
     procedure Panel3Resize(Sender: TObject);
     procedure pcSettingChange(Sender: TObject);
@@ -233,7 +246,11 @@ type
 
     deletedmodules: tstringlist;
 
+    hasSetNewLanguage: boolean;
+    newLanguage: string;
+
     procedure SetAssociations;
+    procedure LanguageMenuItemClick(Sender: TObject);
   public
     { Public declarations }
     
@@ -252,6 +269,9 @@ type
                             defaultreturn: integer;
                             incremental: boolean;
                           end;
+
+    procedure cleanupLanguageList;
+    procedure ScanForLanguages;
 
   published
     property SettingsTreeView: TTreeView read tvMenuSelection;   //just some stuff to make things look nicer. You're not required to use them
@@ -285,9 +305,13 @@ processlist,
 commonTypeDefs,
 frmEditHistoryUnit,
 Globals,
-fontSaveLoadRegistry;
+fontSaveLoadRegistry,
+CETranslator;
 
 
+type TLanguageEntry=class
+  foldername: string;
+end;
 
 
 
@@ -331,6 +355,7 @@ resourcestring
   rsUnrandomizer = 'Unrandomizer';
   rsScanSettings = 'Scan Settings';
   rsPlugins = 'Plugins';
+  rsLanguages = 'Languages';
   rsDebuggerOptions = 'Debugger Options';
   rsExtra = 'Extra';
   rsNoName = 'No Name';
@@ -359,6 +384,8 @@ resourcestring
   rsDecreasedValue = 'Decreased Value';
   rsChangedValue = 'Changed Value';
   rsUnchangedValue = 'Unchanged Value';
+  rsNewLanguageSet = 'New language set';
+  rsRestartCE = 'You must restart Cheat Engine for this change to take effect';
 procedure TformSettings.btnOKClick(Sender: TObject);
 var processhandle2: Thandle;
     reg: TRegistry;
@@ -727,6 +754,10 @@ begin
       logWrites:=cbWriteLoggingOn.checked;
       setMaxWriteLogSize(writelogsize);
 
+      reg.WriteBool('Show Language MenuItem', cbShowLanguageMenuItem.checked);
+      MainForm.miLanguages.visible:=cbShowLanguageMenuItem.checked and (lbLanguages.Count>1);
+
+
       reg.WriteBool('DPI Aware', cbDPIAware.Checked);
       reg.writebool('Override Default Font', cbOverrideDefaultFont.Checked);
     end;
@@ -871,6 +902,42 @@ begin
   end;
 end;
 
+procedure TformSettings.btnSelectLanguageClick(Sender: TObject);
+var
+  l: TLanguageEntry;
+  preferedLanguage: string;
+  ini: TIniFile;
+  old: string;
+begin
+  if lbLanguages.ItemIndex<>-1 then
+  begin
+    l:=TLanguageEntry(lbLanguages.Items.Objects[lbLanguages.ItemIndex]);
+    if l<>nil then
+      preferedLanguage:=l.foldername
+    else
+      preferedLanguage:='';
+
+    try
+      ini:=TIniFile.Create(cheatenginedir+'languages' + DirectorySeparator+'language.ini');
+      try
+        old:=ini.ReadString('Language','PreferedLanguage','');
+        ini.WriteString('Language','PreferedLanguage',preferedLanguage);
+        hasSetNewLanguage:=true;
+        newLanguage:=preferedLanguage;
+
+        ScanForLanguages;
+
+        if uppercase(old)<>uppercase(preferedLanguage) then
+          MessageDlg(rsNewLanguageSet, rsRestartCE, mtInformation, [mbok], 0);
+
+      finally
+        ini.free;
+      end;
+    except
+    end;
+  end;
+end;
+
 procedure TformSettings.cbAskIfTableHasLuascriptChange(Sender: TObject);
 begin
   cbAlwaysRunScript.enabled:=not cbAskIfTableHasLuascript.checked;
@@ -973,6 +1040,7 @@ procedure TformSettings.FormShow(Sender: TObject);
   fd: TFontData;
 begin
 
+
   tempstatepopuphide:=laststatePopupHide;
   temppopupmodifier:=lastpopupmodifier;
   tempstatepause:=laststatePause;
@@ -1069,6 +1137,11 @@ begin
     edtTempScanFolder.text:=SelectDirectoryDialog1.FileName;
 end;
 
+procedure TformSettings.MenuItem1Click(Sender: TObject);
+begin
+  ScanForLanguages;
+end;
+
 procedure TformSettings.Panel3Click(Sender: TObject);
 begin
 
@@ -1148,6 +1221,111 @@ begin
   {$endif}
 end;
 
+procedure TformSettings.cleanupLanguageList;
+var
+  i:integer;
+  e:TLanguageEntry;
+
+begin
+  for i:=0 to lbLanguages.Count-1 do
+  begin
+    e:=TLanguageEntry(lbLanguages.Items.Objects[i]);
+    if e<>nil then
+      e.free;
+    lbLanguages.Items.Objects[i]:=nil;
+  end;
+
+  lbLanguages.Clear;
+
+  for i:=mainform.miLanguages.Count-1 downto 0 do
+    mainform.miLanguages.Items[i].Free;
+end;
+
+procedure TformSettings.ScanForLanguages;
+var
+  i: integer;
+  f: TStringList;
+  n: string;
+  e: TLanguageEntry;
+  ini: TIniFile;
+
+  curr: string;
+  mi: TMenuItem;
+begin
+  cleanupLanguageList;
+
+  curr:=currentTranslation;
+  if hasSetNewLanguage then
+    curr:=newlanguage;
+
+
+  if curr='' then
+    lbLanguages.Items.Add('>>English')
+  else
+    lbLanguages.Items.Add('English');
+
+  mi:=TMenuItem.Create(mainform.MainMenu1);
+  mi.Caption:='English';
+  mi.Tag:=0;
+  mi.RadioItem:=true;
+  mi.OnClick:=LanguageMenuItemClick;
+  if curr='' then
+    mi.Checked:=true;
+  mainform.miLanguages.Add(mi);
+
+  f:=TStringList.Create;
+  FindAllDirectories(f,CheatEngineDir+'\languages',false);
+  for i:=0 to f.Count-1 do
+  begin
+    n:=f[i];
+    if not (fileexists(n+'\cheatengine.po') or fileexists(n+'\cheatengine-x86_64.po') or fileexists(n+'\cheatengine-i386.po')) then
+      continue;
+
+
+    e:=TLanguageEntry.Create;
+    e.foldername:=ExtractFileName(n);
+
+    if FileExists(f[i]+'\name.txt') then
+      n:=ReadFileToString(f[i]+'\name.txt')
+    else
+      n:=e.foldername;
+
+    mi:=TMenuItem.Create(mainform.MainMenu1);
+    mi.Caption:=n;
+    mi.Tag:=i+1;
+    mi.RadioItem:=true;
+    mi.OnClick:=LanguageMenuItemClick;
+
+    if uppercase(e.foldername)=uppercase(curr) then
+    begin
+      n:='>>'+n;
+      mi.Checked:=true;
+    end;
+
+    lbLanguages.Items.AddObject(n,e);
+    mainform.miLanguages.Add(mi);
+
+  end;
+
+
+
+  if tvMenuSelection.Items[6].Visible=false then
+    tvMenuSelection.Items[6].Visible:=lbLanguages.count>1;
+
+  f.free;
+end;
+
+procedure TformSettings.LanguageMenuItemClick(Sender: TObject);
+var mi: TMenuItem;
+begin
+  if sender is TMenuItem then
+  begin
+    mi:=TMenuItem(sender);
+    lbLanguages.ItemIndex:=mi.Tag;
+    btnSelectLanguage.Click;
+  end;
+end;
+
 procedure TformSettings.FormCreate(Sender: TObject);
 var i: integer;
 begin
@@ -1161,15 +1339,15 @@ begin
   tvMenuSelection.Items[3].Data:=Unrandomizer;
   tvMenuSelection.Items[4].Data:=ScanSettings;
   tvMenuSelection.Items[5].Data:=Plugins;
-  tvMenuSelection.Items[6].Data:=self.Assembler;
-  tvMenuSelection.Items[7].Data:=Extra;
+  tvMenuSelection.Items[6].Data:=Languages;
+  tvMenuSelection.Items[7].Data:=self.Assembler;
+  tvMenuSelection.Items[8].Data:=Extra;
 
+  tvMenuSelection.Items[6].Visible:=false;
 
   pcSetting.ShowTabs:=false;
 
-
-
-
+  ScanForLanguages;
 
   combothreadpriority.Items.Clear;
   with combothreadpriority.items do
@@ -1228,8 +1406,9 @@ begin
   tvMenuSelection.Items[3].Text:=rsUnrandomizer;
   tvMenuSelection.Items[4].Text:=rsScanSettings;
   tvMenuSelection.Items[5].Text:=rsPlugins;
-  tvMenuSelection.Items[6].Text:=rsDebuggerOptions;
-  tvMenuSelection.Items[7].Text:=rsExtra;
+  tvMenuSelection.Items[6].Text:=rsLanguages;
+  tvMenuSelection.Items[7].Text:=rsDebuggerOptions;
+  tvMenuSelection.Items[8].Text:=rsExtra;
 
 
 

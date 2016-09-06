@@ -65,7 +65,9 @@ type
   end;
 
 
-var translationfilepath: string;
+var
+  translationfilepath: string;
+  currentTranslation: string;
 
 procedure doTranslation;
 
@@ -273,6 +275,7 @@ begin
      lcfn := FindLocaleFileName('.po');
 
      translationfilepath:=ExtractFilePath(lcfn);
+     currentTranslation:=ExtractFileName(ExtractFileDir(translationfilepath));
 
      lcfn:=SysToUTF8(lcfn);
 
@@ -298,6 +301,11 @@ begin
     // try now with MO traslation resources
     try
       lcfn := FindLocaleFileName('.mo');
+      translationfilepath:=ExtractFilePath(lcfn);
+      currentTranslation:=ExtractFileName(translationfilepath);
+
+      lcfn:=SysToUTF8(lcfn);
+
       if lcfn <> '' then
       begin
         GetText.TranslateResourceStrings(UTF8ToSys(lcfn));

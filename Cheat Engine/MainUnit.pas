@@ -234,6 +234,7 @@ type
     CreateGroup: TMenuItem;
     FromAddress: TEdit;
     andlabel: TLabel;
+    miLanguages: TMenuItem;
     ScanText2: TLabel;
     scanvalue2: TEdit;
     ToAddress: TEdit;
@@ -902,7 +903,7 @@ uses mainunit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup, HotKeys,
   frmSetCrosshairUnit, StructuresFrm2, frmMemoryViewExUnit,
   frmD3DHookSnapshotConfigUnit, frmSaveSnapshotsUnit, frmsnapshothandlerUnit,
   frmNetworkDataCompressionUnit, ProcessHandlerUnit, ProcessList, pointeraddresslist,
-  PointerscanresultReader, Parsers, Globals, GnuAssembler, xinput, DPIHelper;
+  PointerscanresultReader, Parsers, Globals, GnuAssembler, xinput, DPIHelper, multilineinputqueryunit;
 
 resourcestring
   rsInvalidStartAddress = 'Invalid start address: %s';
@@ -1109,6 +1110,8 @@ resourcestring
   rsUnableToScanFixYourScanSettings = 'Unable to scan. Fix your scan settings and restart cheat engine';
   rsCustomLuaType = 'Custom LUA type';
   rsCustomTypeName = 'Custom Type Name';
+  rsLanguage = 'Language';
+  rsChooseLanguage = 'Which language do you wish to use?';
 
 var
   ncol: TColor;
@@ -6886,6 +6889,7 @@ var
 
   cbi: TComboboxInfo;
   extrasize: integer;
+  s: string;
 begin
   if onetimeonly then
     exit;
@@ -6927,6 +6931,16 @@ begin
   if firsttime then
   begin
     reg.WriteBool('First Time User', False);
+
+    if formsettings.lbLanguages.Count>1 then
+    begin
+      i:=ShowSelectionList(self, rsLanguage, rsChooseLanguage, formSettings.lbLanguages.Items, s);
+      if i<>-1 then
+      begin
+        formSettings.lbLanguages.ItemIndex:=i;
+        formsettings.btnSelectLanguage.Click;
+      end;
+    end;
 
     if messagedlg(rsTryTutorial, mtConfirmation, [mbYes, mbNo], 0) = mrYes then
       miTutorial.Click;

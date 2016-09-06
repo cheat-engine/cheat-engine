@@ -2484,6 +2484,9 @@ object MainForm: TMainForm
       Caption = 'P&lugins'
       Visible = False
     end
+    object miLanguages: TMenuItem
+      Caption = 'Languages'
+    end
     object Help1: TMenuItem
       Caption = '&Help'
       object Helpindex1: TMenuItem

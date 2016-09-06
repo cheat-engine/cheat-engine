@@ -658,6 +658,11 @@ begin
 
           logWrites:=cbWriteLoggingOn.checked;
 
+          if reg.ValueExists('Show Language MenuItem') then
+            cbShowLanguageMenuItem.Checked:=reg.ReadBool('Show Language MenuItem');
+
+          MainForm.miLanguages.Visible:=cbShowLanguageMenuItem.Checked and (lbLanguages.Count>1);
+
           if reg.ValueExists('DPI Aware') then
             cbDPIAware.Checked:=reg.readBool('DPI Aware');
 
