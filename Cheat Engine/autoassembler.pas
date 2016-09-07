@@ -1242,6 +1242,7 @@ var i,j,k,l,e: integer;
 
     connection: TCEConnection;
 
+    mi: TModuleInfo;
     aaid: longint;
     strictmode: boolean;
 begin
@@ -1730,9 +1731,12 @@ begin
               end; //else direct file path
 
               try
-                InjectDll(s1,'');
-                symhandler.reinitialize;
-                symhandler.waitforsymbolsloaded
+                if symhandler.getmodulebyname(extractfilename(s1), mi)=false then //check if it's already injected
+                begin
+                  InjectDll(s1,'');
+                  symhandler.reinitialize;
+                end;
+                symhandler.waitforsymbolsloaded;
               except
                 raise exception.create(Format(rsCouldNotBeInjected, [s1]));
               end;
