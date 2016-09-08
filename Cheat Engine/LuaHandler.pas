@@ -19,7 +19,7 @@ uses
   generichotkey, luafile, xmplayer_server, ExtraTrainerComponents, customtimer,
   menus, XMLRead, XMLWrite, DOM,ShellApi, Clipbrd, typinfo, PEInfoFunctions,
   LCLProc, strutils, registry, md5, commonTypeDefs, LResources, Translations,
-  variants, LazUTF8;
+  variants, LazUTF8, zstream;
 
 
 const MAXTABLERECURSIONLOOKUP=2;
@@ -94,7 +94,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   LuaStructureFrm, LuaInternet, SymbolListHandler, processhandlerunit, processlist,
   DebuggerInterface, WindowsDebugger, VEHDebugger, KernelDebuggerInterface,
   DebuggerInterfaceAPIWrapper, Globals, math, speedhack2, CETranslator, binutils,
-  xinput, winsapi, frmExeTrainerGeneratorUnit;
+  xinput, winsapi, frmExeTrainerGeneratorUnit, CustomBase85;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -7370,6 +7370,100 @@ begin
   end;
 end;
 
+function lwriter(L: Plua_State; const p: Pointer; sz: size_t; ud: Pointer): Integer; cdecl;
+var s: TStream;
+begin
+  s:=tstream(ud);
+  s.WriteBuffer(p^,sz);
+  result:=0;
+end;
+
+function lua_encodeFunction(L: Plua_State): integer; cdecl;
+var
+  s: TMemoryStream;
+  cs: Tcompressionstream;
+  i: integer;
+
+  output: pchar;
+
+  new: pchar;
+begin
+  s:=TMemoryStream.Create;
+  cs:=Tcompressionstream.create(clmax, s);
+
+
+  if (lua_gettop(L)=1) and (lua_isfunction(L, -1)) then
+    lua_dump(L, @lwriter, cs, 1);
+
+  cs.free;
+
+  getmem(output, (s.size div 4) * 5 + 5 );
+  BinToBase85(pchar(s.Memory), output, s.size);
+
+  lua_pushstring(L, output);
+  freemem(output);
+
+  s.free;
+
+  result:=1;
+end;
+
+function lreader(L: Plua_State; ud: Pointer; sz: Psize_t): PChar; cdecl;
+var s: TMemoryStream;
+begin
+  s:=TMemoryStream(ud);
+
+  result:=pchar(ptruint(s.Memory)+s.Position);
+  sz^:=s.Size-s.position;
+
+  s.position:=s.position+sz^;
+end;
+
+function lua_decodeFunction(L: Plua_State): integer; cdecl;
+var
+  ds: Tdecompressionstream;
+  s: TMemoryStream;
+
+  decompressed: TMemoryStream;
+  i: integer;
+
+  size: integer;
+  input, output: pchar;
+begin
+  result:=1;
+  if (lua_gettop(L)=1) and lua_isstring(L,1) then
+  begin
+    input:=lua.lua_tostring(L,1);
+
+    size:=(length(input) div 5)*4+(length(input) mod 5);
+    getmem(output, size*2);
+
+
+    size:=Base85ToBin(input, output);
+    lua_pushlstring(L, output, size);
+
+    s:=TMemoryStream.Create;
+    s.WriteBuffer(output^, size);
+    s.position:=0;
+    ds:=Tdecompressionstream.create(s);
+
+    decompressed:=TMemoryStream.create;
+    decompressed.CopyFrom(ds,0);
+
+    decompressed.position:=0;
+    lua_load(L, @lreader, decompressed,'cechunk', 'b');
+
+
+    decompressed.free;
+    ds.free;
+    s.free;
+    freemem(output);
+
+    result:=1;
+  end;
+
+end;
+
 procedure InitializeLua;
 var
   s: tstringlist;
@@ -7853,6 +7947,10 @@ begin
 
     lua_register(LuaVM, 'registerEXETrainerFeature', lua_registerEXETrainerFeature);
     lua_register(LuaVM, 'unregisterEXETrainerFeature', lua_unregisterEXETrainerFeature);
+
+    lua_register(LuaVM, 'encodeFunction', lua_encodefunction);
+    lua_register(LuaVM, 'decodeFunction', lua_decodeFunction);
+
 
 
     initializeLuaCustomControl;

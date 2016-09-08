@@ -92,6 +92,9 @@ createRef(...): integer - Returns an integer reference that you can use with get
 getRef(integer): ... - Returns whatever the reference points out
 destroyRef(integer) - Removes the reference
 
+encodeFunction(function): string - Converts a given function into an encoded string that you can pass on to decodeFunction
+decodeFunction(string): function - Converts an encoded string back into a function.  Note that the string must be made on the same architecture as it is currently running. 32-bit can onyl load 32-bit, 64-bit can only load 64-bit.  So either have two scripts ready, or limit to only one architecture. (Like .EXE trainers)
+
 reloadSettingsFromRegistry(): This will cause cheat engine to reload the settings from the registry and apply them
 
 getTranslationFolder(): Returns the path of the current translation files. Empty if there is no translation going on

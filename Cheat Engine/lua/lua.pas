@@ -246,9 +246,9 @@ procedure lua_call(L: Plua_State; nargs, nresults: Integer); cdecl;
 function lua_pcall(L: Plua_State; nargs, nresults, errf: Integer): Integer; cdecl;
 
 function lua_cpcall(L: Plua_State; func: lua_CFunction; ud: Pointer): Integer; cdecl;
-function lua_load(L: Plua_State; reader: lua_Reader; dt: Pointer; const chunkname: PChar): Integer; cdecl;
+function lua_load(L: Plua_State; reader: lua_Reader; dt: Pointer; const chunkname: PChar; const mode: pchar): Integer; cdecl;
 
-function lua_dump(L: Plua_State; writer: lua_Writer; data: Pointer): Integer; cdecl;
+function lua_dump(L: Plua_State; writer: lua_Writer; data: Pointer; strip: integer): Integer; cdecl;
 
 (*
 ** coroutine functions
@@ -535,9 +535,9 @@ begin
   result:=lua_pcall(L,1,0,0);
 end;
 
-function lua_load(L: Plua_State; reader: lua_Reader; dt: Pointer; const chunkname: PChar): Integer; cdecl; external LUA_NAME;
+function lua_load(L: Plua_State; reader: lua_Reader; dt: Pointer; const chunkname: PChar; const mode: PChar): Integer; cdecl; external LUA_NAME;
 
-function lua_dump(L: Plua_State; writer: lua_Writer; data: Pointer): Integer; cdecl; external LUA_NAME;
+function lua_dump(L: Plua_State; writer: lua_Writer; data: Pointer; strip: integer): Integer; cdecl; external LUA_NAME;
 
 function lua_yieldk(L: Plua_State; nresults: integer; ctx: lua_KContext; h: lua_KFunction):integer; cdecl; external LUA_NAME;
 function lua_yield(L: Plua_State; nresults: Integer): Integer; cdecl;
