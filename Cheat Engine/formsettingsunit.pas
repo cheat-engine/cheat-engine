@@ -1220,9 +1220,6 @@ end;
 
 procedure TformSettings.AboutLabelClick(Sender: TObject);
 begin
-  free;
-  exit;
-
   with tabout.create(self) do
   begin
     showmodal;

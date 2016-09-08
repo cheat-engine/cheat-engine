@@ -204,6 +204,13 @@ begin
 end;
 
 //Lua functions
+
+function lua_getCPUCount(L: PLua_State): integer; cdecl;
+begin
+  result:=1;
+  lua_pushinteger(L, GetCPUCount);
+end;
+
 function createNativeThread(L: PLua_State): integer; cdecl;
 begin
   result:=createNativeThreadInternal(L, false);
@@ -320,6 +327,9 @@ procedure initializeLuaThread;
 begin
   lua_register(LuaVM, 'createNativeThread', createNativeThread);
   lua_register(LuaVM, 'createNativeThreadSuspended', createNativeThreadSuspended);
+  lua_register(LuaVM, 'createThread', createNativeThread);
+  lua_register(LuaVM, 'createThreadSuspended', createNativeThreadSuspended);
+  lua_register(LuaVM, 'getCPUCount', lua_getCPUCount);
   lua_register(LuaVM, 'thread_freeOnTerminate', thread_freeOnTerminate);
   lua_register(LuaVM, 'thread_synchronize', thread_synchronize);
   lua_register(LuaVM, 'thread_waitfor', thread_waitfor);

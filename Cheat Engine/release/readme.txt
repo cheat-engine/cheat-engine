@@ -1,42 +1,57 @@
-Cheat Engine 6.5.1
+Cheat Engine 6.6
 
 Fixes:
-Fixed increased value by/decreased value by for float values
-Fixed disassembling/assembling some instructions (64-bit)
-Fixed the autoassembler tokenizing wrong words
-Fixed several bugs related to the structure dissect window (mainly shown when autodestroy was on)
-Fixed a small saving issue
-Groupscans now deal with alignment issues better
-Fixed java support for 32-bit
-
+Fixed saving of hotkey sounds
+Fixed the CF flag in the disassembler stepping mode
+Fixed Kernelmode VirtualQueryEx for Windows 10 build 14393
+Fixed DBVM for Windows 10 build 14393
+Fixed the shortest assembler instruction picking for some instructions
+Fixed a few bugs in the break and trace routine when you'd stop it while the thread still had a single step set
+Fixed several ansi to UTF8 incompatbilities that poped up between 6.5 and 6.5.1
+Fixed the stackview not properly setting the color, and giving an error when trying to change a color
+Fixed the exe generator not adding both .sys files or the .sig files when using kernel functions
+Fixed some places of the disassembler where it helps guessing if something is a float or not
+When using the code finder, it won't show the previous instruction anymore if it's on a REP MOVS* instruction
+Fixed an issue when editing memoryrecords with strings, where wordwrap would add newline characters
+Fixed D3D alpha channel for textures and fontmaps
+The installer will now mark the CE destination folder as accessible by APPS. (fixes speedhack for some APPS)
+Fixed the form designed crashing is resized 'wrong'
 
 
 Additions and changes:
-Signed with a sha256 signature as well (for OS'es that support it)
-Changed Ultimap to use an official way to get the perfmon interrupt instead of IDT hooking (less BSOD on win10)
-Individual hotkeys can now play sounds
-Now compiled with fpc 3.0/lazarus 1.6 (Previously 2.7/1.1)
-You can now search in the string list
-PEInfo now has a copy to clipboard
-Some places can now deal better with mistakes
-Lazarus .LFM files can now be loaded and saved
+Ultimap 2 for Intel CPU's of generation 6 and later (no DBVM needed for those)
+Language select if you have multiple language files for CE
+Memoryrecord pointer offsets can use calculations, symbols and lua code now
+While stepping in the debugger you can now easily change the EIP/RIP register by pressing ctrl+f4
+changed the way CE is brought to front when a hotkey is pressed
+Made the GUI more adaptive to different fontsizes and DPI
+Several font and minor GUI changes
+Added DPIAware and a font override to the settings window. (DPI aware is on by default, but can be turned of if experiencing issues)
+Added option to enable pause by default
+Disassembling mega jumps/calls now show the code in one line
+The standalone auto assembler window will now give an option to go to the first allocated memory address
+Changed the point where the settings are loaded in CE's startup sequence
+The formdesigner now allows copy and paste of multiple objects, and uses text
+Added scrollbox and radiogroup to the formdesigner
+Added Middle, MD5 and MD5 as allowable hotkeys
+Added controller keys as hotkeys
 
 
 lua:
-Fixed several incompatibilities between lua that popped up in 6.5 (due to the lua 5.1 to 5.3 change)
-Fixed the OnSelectionChange callback property in the memoryview object
-MemoryRecords now have an Collapsed property
-Added TCanResizeEvent to the splitter
-Fixed setBreakpoint not setting a proper trigger if not provided
-Fixed executeCode* parameter passing
-Fixed several memory leaks where unregistering hooks/addons didn't free the internal call object
-Some tableFile additions
-Fixed registerAssemble assembler commands 
-Added kernelmode alloc and (un)mapping functionality
-Added an easy way to add auto assembler templates
-Added window related functions including sendMessage
-Added Xbox360 controller support functions
-Added more thread functions
+speak(): Text to speech
+hookWndProc: a function that lets you hook the windows message handler of a window
+registerEXETrainerFeature: Lets you add extra files to the exe trainer file packer
+getFileVersion(): A function to get version information from a file
+mouse_event() : Lets you send mouse events to windows. (move, click, etc...)
+loadFontFromStream() : Lets you load a font from a memory stream. (Useful for trainers that use a custom font)
+
+lua changes:
+dbk_writesIgnoreWriteProtection() now also disables virtualprotectex calls from CE
+loadTable() can now also load from a Stream object. 
+the addresslist has some Color properties published for better customization
+
+the LUA server has had some new commands added so hooked code can do more efficient calls. (LUAClient dll has been updated to use them in a basic way)
+
 
 
 

@@ -19,9 +19,6 @@ var
   SetProcessDpiAwareness:function(value: PROCESS_DPI_AWARENESS):HRESULT; stdcall;
   SetProcessDPIAware:function: BOOL; stdcall;
   l: HModule;
-
-
-  Metrics: TNonClientMetrics;
 begin
 
   l:=LoadLibrary('Shcore.dll');

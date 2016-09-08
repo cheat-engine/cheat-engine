@@ -3147,16 +3147,22 @@ var
 
   lf: TLuafile;
   s: TMemorystream;
+  i: integer;
 begin
   f := TOpendialog.Create(self);
   try
+    f.Options:=f.options+[ofAllowMultiSelect, ofFileMustExist];
     if f.Execute then
     begin
       s := TMemorystream.Create;
-      s.LoadFromFile(f.filename);
-      lf := TLuaFile.Create(extractfilename(f.filename), s);
-      LuaFiles.add(lf);
 
+      for i:=0 to f.Files.Count-1 do
+      begin
+        s.clear;
+        s.LoadFromFile(f.Files[i]);
+        lf := TLuaFile.Create(extractfilename(f.files[i]), s);
+        LuaFiles.add(lf);
+      end;
       s.Free;
       s:=nil;
     end;

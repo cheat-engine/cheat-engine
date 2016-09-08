@@ -228,7 +228,6 @@ getWindowlist(): Returns a table with the windowlist (pid - window caption )
 getThreadlist(List): fills a List object with the threadlist of the currently opened process. Format: %x
 
 
-
 function onOpenProcess(processid):
   If this function is defined it will be called whenever cheat engine opens a process.
   Note: The the same process might be opened multiple times in a row internally
@@ -243,6 +242,8 @@ setPointerSize(size): Sets the size cheat engine will deal with pointers in byte
 pause() : pauses the current opened process
 unpause(): resumes the current opened process
 
+
+getCPUCount(): Returns the number of CPU's
 
 getPixel(x,y) : returns the rgb value of the pixel at the specific screen coordinate
 getMousePos: returns the x,y coordinates of the mouse
@@ -1956,7 +1957,7 @@ createNativeThread(function(Thread,...), ...) :
   function declaration: function (Thread, ...)
 
 createNativeThreadSuspended(function(Thread,...), ...) :
-  Same as createNativeThread nut it won't run until resume is called on it
+  Same as createNativeThread but it won't run until resume is called on it
 
 
 properties

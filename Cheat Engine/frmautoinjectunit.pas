@@ -1293,14 +1293,8 @@ begin
     else
       luaserverinit.add('loadlibrary(luaclient-i386.dll)');
 
+
     luaserverinit.add('luacall(openLuaServer(''CELUASERVER''))');
-    luaserverinit.add('globalalloc(luainit, 128)');
-    luaserverinit.add('globalalloc(LuaFunctionCall, 128)');
-    luaserverinit.add('label(luainit_exit)');
-    if processhandler.is64bit then
-      luaserverinit.add('globalalloc(luaserverinitialized, 8)')
-    else
-      luaserverinit.add('globalalloc(luaserverinitialized, 4)');
 
     luaserverinit.add('');
     luaserverinit.add('CELUA_ServerName:');
@@ -1315,7 +1309,7 @@ begin
       luaserverinit.add('mov rcx, addresstostringwithfunction //(The lua function will have access to the variable passed by name "parameter")');
       luaserverinit.add('mov rdx, integervariableyouwishtopasstolua');
       luaserverinit.add('sub rsp,20');
-      luaserverinit.add('call CELUA_ExecuteFunction // or CELUA_ExecuteFunctionAsync you don''t need GUI access or want to handle it yourself');
+      luaserverinit.add('call CELUA_ExecuteFunction // or CELUA_ExecuteFunctionAsync if you don''t need GUI access or want to handle it yourself');
       luaserverinit.add('add rsp,20');
       luaserverinit.add('');
       luaserverinit.add('//------');
@@ -1326,7 +1320,7 @@ begin
       luaserverinit.add('jne short hasrefid');
       luaserverinit.add('');
       luaserverinit.add('mov rcx,addresswithluafunctionname');
-      luaserverinit.add('call CELUA_GetFunctionReferenceFromName');
+      luaserverinit.add('call CELUA_GetFunctionReferenceFromName  //Basically calls createRef(functionname) and returns the value');
       luaserverinit.add('mov [addresswithluafunctionidstored],eax');
       luaserverinit.add('mov ecx,eax');
       luaserverinit.add('');
@@ -1359,7 +1353,8 @@ begin
       luaserverinit.add('jne short hasrefid');
       luaserverinit.add('');
       luaserverinit.add('push addresswithluafunctionname');
-      luaserverinit.add('call CELUA_GetFunctionReferenceFromName');
+      luaserverinit.add('call CELUA_GetFunctionReferenceFromName  //Basically calls createRef(functionname) and returns the value');
+      luaserverinit.add('mov [addresswithluafunctionidstored],eax');
 
       luaserverinit.add('hasrefid:');
       luaserverinit.add('mov [addresswithparameterlist],param1');
