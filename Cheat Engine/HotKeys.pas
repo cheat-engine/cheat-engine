@@ -7,7 +7,7 @@ interface
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Buttons, registry, CEFuncProc, ExtCtrls, LResources,
-  comCtrls, menus, hotkeyhandler, MemoryRecordUnit, commonTypeDefs;
+  comCtrls, menus, hotkeyhandler, MemoryRecordUnit, commonTypeDefs, strutils;
 
 type
 
@@ -23,6 +23,10 @@ type
     cbActivateSound: TComboBox;
     cbDeactivateSound: TComboBox;
     cbFreezedirection: TComboBox;
+    cbForceEnglishActivate: TCheckBox;
+    cbForceEnglishDeactivate: TCheckBox;
+    edtActivateText: TEdit;
+    edtDeactivateText: TEdit;
     edtDescription: TEdit;
     edtFreezeValue: TEdit;
     edtHotkey: TEdit;
@@ -51,6 +55,8 @@ type
     procedure btnApplyClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
     procedure Button2Click(Sender: TObject);
+    procedure cbActivateSoundChange(Sender: TObject);
+    procedure cbDeactivateSoundChange(Sender: TObject);
     procedure cbFreezedirectionSelect(Sender: TObject);
     procedure cbPlaySoundChange(Sender: TObject);
     procedure edtHotkeyKeyDown(Sender: TObject; var Key: Word;
@@ -73,6 +79,7 @@ type
     keys: tkeycombo;
     editHotkey: boolean;
     fmemrec: TMemoryRecord;
+    procedure SpeakText(s:string; forceEnglish: boolean=false);
     procedure SetMemrec(x: TMemoryRecord);
     function HotkeyActionToText(a: TMemrecHotkeyAction): string;
     function getHotkeyAction: TMemrecHotkeyAction;
@@ -100,6 +107,7 @@ resourcestring
   rsSetValueTo = 'Set value to:';
   rsDecreaseValueWith = 'Decrease value with:';
   rsIncreaseValueWith = 'Increase value with:';
+  rsSpeakText = 'Speak Text';
 
 
 
@@ -335,6 +343,16 @@ begin
   edtHotkey.SetFocus;
 end;
 
+procedure THotKeyForm.cbActivateSoundChange(Sender: TObject);
+begin
+  edtActivateText.visible:=cbActivateSound.ItemIndex=cbActivateSound.Items.Count-1;
+end;
+
+procedure THotKeyForm.cbDeactivateSoundChange(Sender: TObject);
+begin
+  edtDeactivateText.visible:=cbDeactivateSound.ItemIndex=cbDeactivateSound.Items.Count-1;
+end;
+
 procedure THotKeyForm.cbFreezedirectionSelect(Sender: TObject);
 var
   onpossible: boolean;
@@ -441,6 +459,9 @@ begin
 
   FillSoundList(cbActivateSound.Items);
   FillSoundList(cbDeactivateSound.Items);
+
+  cbActivateSound.Items.Add(rsSpeakText);
+  cbDeactivateSound.Items.Add(rsSpeakText);
 end;
 
 procedure THotKeyForm.FormShow(Sender: TObject);
@@ -451,7 +472,7 @@ var
 begin
   PageControl1.PageIndex:=1;
 
-  cbActivateSound.Top:=edtFreezeValue.Top;
+  cbActivateSound.Top:=edtHotkey.Top;
 
   AdjustSpeedButtonSize(sbPlayActivate);
   AdjustSpeedButtonSize(sbPlayDeactivate);
@@ -495,8 +516,6 @@ begin
   end
   else
     cbActivateSound.width:=maxwidth+16;
-
-  cbDeactivateSound.width:=cbActivateSound.Width;
 
   if cbFreezedirection.width>edtHotkey.Width then
     edtHotkey.Width:=cbFreezedirection.width;
@@ -562,6 +581,9 @@ begin
     FillSoundList(cbActivateSound.Items);
     FillSoundList(cbDeactivateSound.Items);
 
+    cbActivateSound.Items.Add(rsSpeakText);
+    cbDeactivateSound.Items.Add(rsSpeakText);
+
     cbActivateSound.Itemindex:=cbActivateSound.Items.IndexOf(oldactivate);
     cbDeactivateSound.Itemindex:=cbActivateSound.Items.IndexOf(olddeactivate);
   end;
@@ -589,14 +611,31 @@ begin
   midelete.visible:=listview1.enabled and (listview1.Selected<>nil);
 end;
 
+procedure THotKeyForm.SpeakText(s:string; forceEnglish: boolean=false);
+begin
+  s:=StringReplace(s,'{MRDescription}', memrec.Description,[rfIgnoreCase, rfReplaceAll]);
+  s:=StringReplace(s,'{Description}', edtDescription.Text, [rfIgnoreCase, rfReplaceAll]);
+
+  if forceEnglish then
+    LUA_DoScript('speakEnglish([['+s+']])')
+  else
+    LUA_DoScript('speak([['+s+']])');
+end;
+
 procedure THotKeyForm.sbPlayActivateClick(Sender: TObject);
 begin
-  LUA_DoScript('playSound(findTableFile([['+cbActivateSound.Text+']]))');
+  if cbActivateSound.ItemIndex=cbActivateSound.Items.Count-1 then
+    SpeakText(edtActivateText.text)
+  else
+    LUA_DoScript('playSound(findTableFile([['+cbActivateSound.Text+']]))');
 end;
 
 procedure THotKeyForm.sbPlayDeactivateClick(Sender: TObject);
 begin
-  LUA_DoScript('playSound(findTableFile([['+cbDeactivateSound.Text+']]))');
+  if cbDeactivateSound.ItemIndex=cbDeactivateSound.Items.Count-1 then
+    SpeakText(edtDeactivateText.text)
+  else
+    LUA_DoScript('playSound(findTableFile([['+cbDeactivateSound.Text+']]))');
 end;
 
 initialization

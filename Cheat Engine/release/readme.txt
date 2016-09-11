@@ -35,6 +35,7 @@ The formdesigner now allows copy and paste of multiple objects, and uses text
 Added scrollbox and radiogroup to the formdesigner
 Added Middle, MD5 and MD5 as allowable hotkeys
 Added controller keys as hotkeys
+Single stepping now shows an indication if an condition jump will be taken
 
 
 lua:
