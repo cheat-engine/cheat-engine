@@ -31,7 +31,21 @@ hypermode,
 commontypedefs, Win32Int;
 
 
-
+const
+  EFLAGS_CF=(1 shl 0);
+  EFLAGS_PF=(1 shl 2);
+  EFLAGS_AF=(1 shl 4);
+  EFLAGS_ZF=(1 shl 6);
+  EFLAGS_SF=(1 shl 7);
+  EFLAGS_TF=(1 shl 8);
+  EFLAGS_IF=(1 shl 9);
+  EFLAGS_DF=(1 shl 10);
+  EFLAGS_OF=(1 shl 11);
+  EFLAGS_NT=(1 shl 14);
+  EFLAGS_RF=(1 shl 16);
+  EFLAGS_VM=(1 shl 17);
+  EFLAGS_AC=(1 shl 18);
+  EFLAGS_ID=(1 shl 21);
 
 
 
@@ -1444,12 +1458,6 @@ begin
 
   result:=copy(result,1,length(result)-1);
 end;
-
-
-
-
-
-
 
 
 function eflags_setCF(flagvalue: dword; value: integer): DWORD;

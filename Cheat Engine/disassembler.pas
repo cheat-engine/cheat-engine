@@ -105,6 +105,8 @@ type
     MarkIPRelativeInstructions: boolean;
 
 
+    context: PCONTEXT;
+
 //    showvalues: boolean;
     function disassemble(var offset: ptrUint; var description: string): string;
     procedure splitDisassembledString(disassembled: string; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string; context: PContext=nil);
@@ -3936,6 +3938,9 @@ begin
                         lastdisassembledata.opcode:='jo';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+                        if context<>nil then
+                          lastdisassembledata.willJumpAccordingToContext:=(context^.EFlags and EFLAGS_OF)<>0;
+
                         inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
@@ -3962,6 +3967,9 @@ begin
                         lastdisassembledata.opcode:='jno';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+                        if context<>nil then
+                          lastdisassembledata.willJumpAccordingToContext:=(context^.EFlags and EFLAGS_OF)=0;
+
                         inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
@@ -3990,6 +3998,10 @@ begin
                         lastdisassembledata.opcode:='jb';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+
+                        if context<>nil then
+                          lastdisassembledata.willJumpAccordingToContext:=(context^.EFlags and EFLAGS_CF)<>0;
+
                         inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
@@ -4017,6 +4029,9 @@ begin
                         lastdisassembledata.opcode:='jae';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+                        if context<>nil then
+                          lastdisassembledata.willJumpAccordingToContext:=(context^.EFlags and EFLAGS_CF)=0;
+
                         inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
@@ -4044,6 +4059,9 @@ begin
                         lastdisassembledata.opcode:='je';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+                        if context<>nil then
+                          lastdisassembledata.willJumpAccordingToContext:=(context^.EFlags and EFLAGS_ZF)<>0;
+
                         inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
@@ -4071,6 +4089,9 @@ begin
                         lastdisassembledata.opcode:='jne';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+                        if context<>nil then
+                          lastdisassembledata.willJumpAccordingToContext:=(context^.EFlags and EFLAGS_ZF)=0;
+
                         inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
@@ -4098,6 +4119,9 @@ begin
                         lastdisassembledata.opcode:='jbe';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+                        if context<>nil then
+                          lastdisassembledata.willJumpAccordingToContext:=(context^.EFlags and (EFLAGS_CF or EFLAGS_ZF))<>0;
+
                         inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
@@ -4125,6 +4149,10 @@ begin
                         lastdisassembledata.opcode:='ja';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+                        if context<>nil then
+                             lastdisassembledata.willJumpAccordingToContext:=(context^.EFlags and (EFLAGS_CF or EFLAGS_ZF))=0;
+
+
                         inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
@@ -4151,6 +4179,9 @@ begin
                         lastdisassembledata.opcode:='js';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+                        if context<>nil then
+                          lastdisassembledata.willJumpAccordingToContext:=(context^.EFlags and EFLAGS_SF)<>0;
+
                         inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
@@ -4177,6 +4208,9 @@ begin
                         lastdisassembledata.opcode:='jns';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+                        if context<>nil then
+                          lastdisassembledata.willJumpAccordingToContext:=(context^.EFlags and EFLAGS_SF)=0;
+
                         inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
@@ -4203,6 +4237,9 @@ begin
                         lastdisassembledata.opcode:='jp';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+                        if context<>nil then
+                          lastdisassembledata.willJumpAccordingToContext:=(context^.EFlags and EFLAGS_PF)<>0;
+
                         inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
@@ -4229,6 +4266,9 @@ begin
                         lastdisassembledata.opcode:='jnp';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+                        if context<>nil then
+                          lastdisassembledata.willJumpAccordingToContext:=(context^.EFlags and EFLAGS_PF)=0;
+
                         inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
@@ -4255,6 +4295,9 @@ begin
                         lastdisassembledata.opcode:='jl';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+                        if context<>nil then
+                          lastdisassembledata.willJumpAccordingToContext:=(context^.EFlags and EFLAGS_SF)<>(context^.EFlags and EFLAGS_OF);
+
                         inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
@@ -4281,6 +4324,9 @@ begin
                         lastdisassembledata.opcode:='jnl';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+                        if context<>nil then
+                          lastdisassembledata.willJumpAccordingToContext:=(context^.EFlags and EFLAGS_SF)=(context^.EFlags and EFLAGS_OF);
+
                         inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
@@ -4307,6 +4353,10 @@ begin
                         lastdisassembledata.opcode:='jng';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+                        if context<>nil then
+                          lastdisassembledata.willJumpAccordingToContext:=((context^.EFlags and EFLAGS_SF)<>(context^.EFlags and EFLAGS_OF)) or ((context^.EFlags and EFLAGS_ZF)<>0);
+
+
                         inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
@@ -4333,6 +4383,10 @@ begin
                         lastdisassembledata.opcode:='jg';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+                        if context<>nil then
+                          lastdisassembledata.willJumpAccordingToContext:=((context^.EFlags and EFLAGS_SF)=(context^.EFlags and EFLAGS_OF)) and ((context^.EFlags and EFLAGS_ZF)=0);
+
+
                         inc(offset,1+4);
                         if MarkIPRelativeInstructions then
                         begin
@@ -6701,6 +6755,9 @@ begin
               lastdisassembledata.opcode:='jo';
               lastdisassembledata.isjump:=true;
               lastdisassembledata.isconditionaljump:=true;
+              if context<>nil then
+                lastdisassembledata.willJumpAccordingToContext:=(context^.EFlags and EFLAGS_OF)<>0;
+
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6724,6 +6781,9 @@ begin
               lastdisassembledata.opcode:='jno';
               lastdisassembledata.isjump:=true;
               lastdisassembledata.isconditionaljump:=true;
+              if context<>nil then
+                          lastdisassembledata.willJumpAccordingToContext:=(context^.EFlags and EFLAGS_OF)=0;
+
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6745,6 +6805,8 @@ begin
               lastdisassembledata.opcode:='jb';
               lastdisassembledata.isjump:=true;
               lastdisassembledata.isconditionaljump:=true;
+              if context<>nil then
+                          lastdisassembledata.willJumpAccordingToContext:=(context^.EFlags and EFLAGS_CF)<>0;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6766,6 +6828,9 @@ begin
               lastdisassembledata.opcode:='jae';
               lastdisassembledata.isjump:=true;
               lastdisassembledata.isconditionaljump:=true;
+              if context<>nil then
+                          lastdisassembledata.willJumpAccordingToContext:=(context^.EFlags and EFLAGS_CF)=0;
+
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6787,6 +6852,9 @@ begin
               lastdisassembledata.opcode:='je';
               lastdisassembledata.isjump:=true;
               lastdisassembledata.isconditionaljump:=true;
+              if context<>nil then
+                          lastdisassembledata.willJumpAccordingToContext:=(context^.EFlags and EFLAGS_ZF)<>0;
+
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6810,6 +6878,8 @@ begin
               lastdisassembledata.opcode:='jne';
               lastdisassembledata.isjump:=true;
               lastdisassembledata.isconditionaljump:=true;
+              if context<>nil then
+                          lastdisassembledata.willJumpAccordingToContext:=(context^.EFlags and EFLAGS_ZF)=0;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6831,6 +6901,10 @@ begin
               lastdisassembledata.opcode:='jna';
               lastdisassembledata.isjump:=true;
               lastdisassembledata.isconditionaljump:=true;
+              if context<>nil then
+                Lastdisassembledata.willJumpAccordingToContext:=(context^.EFlags and (EFLAGS_CF or EFLAGS_ZF))<>0;
+
+
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6852,6 +6926,10 @@ begin
               lastdisassembledata.opcode:='ja';
               lastdisassembledata.isjump:=true;
               lastdisassembledata.isconditionaljump:=true;
+              if context<>nil then
+                Lastdisassembledata.willJumpAccordingToContext:=(context^.EFlags and (EFLAGS_CF or EFLAGS_ZF))=0;
+
+
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6873,6 +6951,9 @@ begin
               lastdisassembledata.opcode:='js';
               lastdisassembledata.isjump:=true;
               lastdisassembledata.isconditionaljump:=true;
+              if context<>nil then
+                          lastdisassembledata.willJumpAccordingToContext:=(context^.EFlags and EFLAGS_SF)<>0;
+
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6894,6 +6975,9 @@ begin
               lastdisassembledata.opcode:='jns';
               lastdisassembledata.isjump:=true;
               lastdisassembledata.isconditionaljump:=true;
+              if context<>nil then
+                          lastdisassembledata.willJumpAccordingToContext:=(context^.EFlags and EFLAGS_SF)=0;
+
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6915,6 +6999,9 @@ begin
               lastdisassembledata.opcode:='jp';
               lastdisassembledata.isjump:=true;
               lastdisassembledata.isconditionaljump:=true;
+              if context<>nil then
+                          lastdisassembledata.willJumpAccordingToContext:=(context^.EFlags and EFLAGS_PF)<>0;
+
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6936,6 +7023,9 @@ begin
               lastdisassembledata.opcode:='jnp';
               lastdisassembledata.isjump:=true;
               lastdisassembledata.isconditionaljump:=true;
+              if context<>nil then
+                          lastdisassembledata.willJumpAccordingToContext:=(context^.EFlags and EFLAGS_PF)=0;
+
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6957,6 +7047,10 @@ begin
               lastdisassembledata.opcode:='jl'; //jnge
               lastdisassembledata.isjump:=true;
               lastdisassembledata.isconditionaljump:=true;
+              if context<>nil then
+                          lastdisassembledata.willJumpAccordingToContext:=(context^.EFlags and EFLAGS_SF)<>(context^.EFlags and EFLAGS_OF);
+
+
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6978,6 +7072,10 @@ begin
               lastdisassembledata.opcode:='jnl';
               lastdisassembledata.isjump:=true;
               lastdisassembledata.isconditionaljump:=true;
+              if context<>nil then
+                          lastdisassembledata.willJumpAccordingToContext:=(context^.EFlags and EFLAGS_SF)=(context^.EFlags and EFLAGS_OF);
+
+
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6999,6 +7097,10 @@ begin
               lastdisassembledata.opcode:='jle';
               lastdisassembledata.isjump:=true;
               lastdisassembledata.isconditionaljump:=true;
+              if context<>nil then
+                          lastdisassembledata.willJumpAccordingToContext:=((context^.EFlags and EFLAGS_SF)<>(context^.EFlags and EFLAGS_OF)) or ((context^.EFlags and EFLAGS_ZF)<>0);
+
+
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -7018,6 +7120,10 @@ begin
               lastdisassembledata.opcode:='jg';
               lastdisassembledata.isjump:=true;
               lastdisassembledata.isconditionaljump:=true;
+              if context<>nil then
+                          lastdisassembledata.willJumpAccordingToContext:=((context^.EFlags and EFLAGS_SF)=(context^.EFlags and EFLAGS_OF)) and ((context^.EFlags and EFLAGS_ZF)=0);
+
+
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -10237,6 +10343,8 @@ begin
               description:='loop according to ecx counter';
               lastdisassembledata.isjump:=true;
               lastdisassembledata.isconditionaljump:=true;
+              if context<>nil then
+                          lastdisassembledata.willJumpAccordingToContext:=(context^.EFlags and EFLAGS_ZF)=0;
 
               lastdisassembledata.opcode:='loopne';
 
@@ -10258,6 +10366,8 @@ begin
               description:='loop according to ecx counter';
               lastdisassembledata.isjump:=true;
               lastdisassembledata.isconditionaljump:=true;
+              if context<>nil then
+                          lastdisassembledata.willJumpAccordingToContext:=(context^.EFlags and EFLAGS_ZF)<>0;
 
               lastdisassembledata.opcode:='loope';
               inc(offset);
@@ -10277,6 +10387,9 @@ begin
       $e2 : begin
               description:='loop according to ecx counting';
               lastdisassembledata.opcode:='loop';
+              if context<>nil then
+                lastdisassembledata.willJumpAccordingToContext:=context^.{$ifdef CPU64}RCX{$else}ECX{$endif}<>0;
+
               lastdisassembledata.isjump:=true;
               inc(offset);
 
@@ -10298,9 +10411,19 @@ begin
               lastdisassembledata.isconditionaljump:=true;
 
               if $66 in prefix2 then
-                lastdisassembledata.opcode:='jcxz'
+              begin
+                lastdisassembledata.opcode:='jcxz';
+                if context<>nil then
+                  lastdisassembledata.willJumpAccordingToContext:=((context^.{$ifdef CPU64}RCX{$else}ECX{$endif}) and $ffff)=0;
+
+              end
               else
+              begin
                 lastdisassembledata.opcode:='jecxz';
+                if context<>nil then
+                  lastdisassembledata.willJumpAccordingToContext:=context^.{$ifdef CPU64}RCX{$else}ECX{$endif}=0;
+
+              end;
               inc(offset);
 
               lastdisassembledata.parametervaluetype:=dvtaddress;

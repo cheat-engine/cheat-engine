@@ -251,7 +251,10 @@ var
 
     found :boolean;
     extrasymboldata: TExtraSymbolData;
+
+    iscurrentinstruction: boolean;
 begin
+  iscurrentinstruction:=MemoryBrowser.lastdebugcontext.{$ifdef cpu64}rip{$else}EIP{$endif}=address;
 
   self.focused:=focused;
 
@@ -294,6 +297,11 @@ begin
 
 
 
+  if iscurrentinstruction then
+    visibleDisassembler.context:=@MemoryBrowser.lastdebugcontext
+  else
+    visibleDisassembler.context:=nil;
+
   fdisassembled:=visibleDisassembler.disassemble(address,fdescription);
 
   addressstring:=inttohex(visibleDisassembler.LastDisassembleData.address,8);
@@ -302,6 +310,10 @@ begin
 
   parameterstring:=visibleDisassembler.LastDisassembleData.parameters+' ';
   specialstring:=visibleDisassembler.DecodeLastParametersToString;
+
+  if iscurrentinstruction and visibleDisassembler.LastDisassembleData.isconditionaljump and visibleDisassembler.LastDisassembleData.willJumpAccordingToContext then
+    parameterstring:=parameterstring+'  ---> ';
+
 
 
   //userdefined comments
@@ -434,7 +446,11 @@ begin
     else
     begin
       if visibleDisassembler.LastDisassembleData.isconditionaljump then
-        fjumpcolor:=clRed
+      begin
+        fjumpcolor:=clRed;
+
+
+      end
       else
         fjumpcolor:=clGreen;
     end;
@@ -617,7 +633,7 @@ begin
 
 
 
-  if MemoryBrowser.lastdebugcontext.{$ifdef cpu64}rip{$else}EIP{$endif}=faddress then
+  if iscurrentinstruction then
     addressString:='>>'+addressString;
 
 
