@@ -88,6 +88,8 @@ begin
     begin
       tvpage.items[i].Expand(true);
       inc(i);
+
+      if tvpage.items[i].Level>5 then raise exception.create('wtf');
     end;
   finally
     tvpage.Items.EndUpdate;

@@ -1745,6 +1745,7 @@ procedure TMemoryBrowser.FormCreate(Sender: TObject);
 var x: array of integer;
   reg: tregistry;
   f: TFont;
+  i: integer;
 begin
 
   MemoryBrowsers.Add(self);

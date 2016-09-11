@@ -1268,8 +1268,8 @@ begin
   c[csSecondaryHighlighted].backgroundcolor:=clGradientActiveCaption;
   c[csSecondaryHighlighted].normalcolor:=clHighlightText;
   c[csSecondaryHighlighted].registercolor:=clRed;
-  c[csSecondaryHighlighted].symbolcolor:=clLime;
-  c[csSecondaryHighlighted].hexcolor:=clYellow;
+  c[csSecondaryHighlighted].symbolcolor:=clBlue;
+  c[csSecondaryHighlighted].hexcolor:=clOlive;
 
   c[csBreakpoint].backgroundcolor:=clRed;
   c[csBreakpoint].normalcolor:=clBlack;
@@ -1288,6 +1288,25 @@ begin
   c[csSecondaryHighlightedbreakpoint].registercolor:=clRed;
   c[csSecondaryHighlightedbreakpoint].symbolcolor:=clLime;
   c[csSecondaryHighlightedbreakpoint].hexcolor:=clBlue;
+
+  //ultimap2
+  c[csUltimap].backgroundcolor:=clYellow;
+  c[csUltimap].normalcolor:=clBlack;
+  c[csUltimap].registercolor:=clGreen;
+  c[csUltimap].symbolcolor:=clBlue;
+  c[csUltimap].hexcolor:=clBlue;
+
+  c[csHighlightedUltimap].backgroundcolor:=clGreen;
+  c[csHighlightedUltimap].normalcolor:=clWhite;
+  c[csHighlightedUltimap].registercolor:=clRed;
+  c[csHighlightedUltimap].symbolcolor:=clLime;
+  c[csHighlightedUltimap].hexcolor:=clBlue;
+
+  c[csSecondaryHighlightedUltimap].backgroundcolor:=clGreen;
+  c[csSecondaryHighlightedUltimap].normalcolor:=clWhite;
+  c[csSecondaryHighlightedUltimap].registercolor:=clRed;
+  c[csSecondaryHighlightedUltimap].symbolcolor:=clLime;
+  c[csSecondaryHighlightedUltimap].hexcolor:=clBlue;
 end;
 
 

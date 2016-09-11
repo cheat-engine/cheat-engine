@@ -9,8 +9,8 @@ uses LCLIntf,sysutils, classes,ComCtrls, graphics, CEFuncProc, disassembler,
      disassemblerComments, SymbolListHandler, ProcessHandlerUnit;
 
 type
-  TDisassemblerViewColorsState=(csUndefined=-1, csNormal=0, csHighlighted=1, csSecondaryHighlighted=2, csBreakpoint=3, csHighlightedbreakpoint=4, csSecondaryHighlightedbreakpoint=5);
-  TDisassemblerViewColors=array [csNormal..csSecondaryHighlightedbreakpoint] of record
+  TDisassemblerViewColorsState=(csUndefined=-1, csNormal=0, csHighlighted=1, csSecondaryHighlighted=2, csBreakpoint=3, csHighlightedbreakpoint=4, csSecondaryHighlightedbreakpoint=5, csUltimap=6, csHighlightedUltimap=7, csSecondaryHighlightedUltimap=8);
+  TDisassemblerViewColors=array [csNormal..csSecondaryHighlightedUltimap] of record
     backgroundcolor: TColor;
     normalcolor: TColor;
     registercolor: TColor;
@@ -55,7 +55,7 @@ type
 
     refferencedByStart: integer;
 
-    isbp: boolean;
+    isbp,isultimap: boolean;
     focused: boolean;
 
     function truncatestring(s: string; maxwidth: integer): string;
@@ -89,7 +89,9 @@ end;
 
 implementation
 
-uses MemoryBrowserFormUnit, dissectCodeThread,debuggertypedefinitions, dissectcodeunit, disassemblerviewunit;
+uses
+  MemoryBrowserFormUnit, dissectCodeThread,debuggertypedefinitions,
+  dissectcodeunit, disassemblerviewunit, frmUltimap2Unit;
 
 resourcestring
   rsUn = '(Unconditional)';
@@ -446,7 +448,10 @@ begin
 
 
   isbp:=(bp<>nil) and (bp.breakpointTrigger=bptExecute) and (bp.active) and (bp.markedfordeletion=false);
-  
+  isultimap:=(frmUltimap2<>nil) and frmUltimap2.IsMatchingAddress(faddress);
+
+
+
   if selected then
   begin
     if not isbp then
@@ -454,13 +459,29 @@ begin
       //default
       if not focused then
       begin
-        fcanvas.Brush.Color:=fcolors^[csSecondaryHighlighted].backgroundcolor;
-        fcanvas.Font.Color:=fcolors^[csSecondaryHighlighted].normalcolor;
+        if isultimap then
+        begin
+          fcanvas.Brush.Color:=fcolors^[csSecondaryHighlightedUltimap].backgroundcolor;
+          fcanvas.Font.Color:=fcolors^[csSecondaryHighlightedUltimap].normalcolor;
+        end
+        else
+        begin
+          fcanvas.Brush.Color:=fcolors^[csSecondaryHighlighted].backgroundcolor;
+          fcanvas.Font.Color:=fcolors^[csSecondaryHighlighted].normalcolor;
+        end;
       end
       else
       begin
-        fcanvas.Brush.Color:=fcolors^[csHighlighted].backgroundcolor;
-        fcanvas.Font.Color:=fcolors^[csHighlighted].normalcolor;
+        if isultimap then
+        begin
+          fcanvas.Brush.Color:=fcolors^[csHighlightedUltimap].backgroundcolor;
+          fcanvas.Font.Color:=fcolors^[csHighlightedUltimap].normalcolor;
+        end
+        else
+        begin
+          fcanvas.Brush.Color:=fcolors^[csHighlighted].backgroundcolor;
+          fcanvas.Font.Color:=fcolors^[csHighlighted].normalcolor;
+        end;
       end;
     end
     else
@@ -481,13 +502,22 @@ begin
     begin
       fCanvas.Brush.Color:=fcolors^[csbreakpoint].backgroundcolor;
       fCanvas.font.Color:=fcolors^[csbreakpoint].normalcolor;
-      fcanvas.Refresh
     end else
     begin
-      fCanvas.Brush.Color:=fcolors^[csNormal].backgroundcolor;
-      fCanvas.font.Color:=fcolors^[csNormal].normalcolor;
-      fcanvas.Refresh
+      if isultimap then
+      begin
+        fCanvas.Brush.Color:=fcolors^[csUltimap].backgroundcolor;
+        fCanvas.font.Color:=fcolors^[csUltimap].normalcolor;
+      end
+      else
+      begin
+        fCanvas.Brush.Color:=fcolors^[csNormal].backgroundcolor;
+        fCanvas.font.Color:=fcolors^[csNormal].normalcolor;
+      end;
+
     end;
+
+    fcanvas.Refresh
   end;
 
   //height may not change after this
@@ -682,12 +712,37 @@ var defaultfontcolor: TColor;
 
   procedure setcolor;
   begin
-    if (not isselected and not isbp) then colorstate:=csNormal else
-    if (not isselected and isbp) then colorstate:=csBreakpoint else
-    if (isselected and not isbp and focused) then colorstate:=csHighlighted else
-    if (isselected and not isbp and not focused) then colorstate:=csSecondaryHighlighted else
-    if (isselected and isbp and focused) then colorstate:=csHighlightedbreakpoint else
-    if (isselected and isbp and not focused) then colorstate:=csSecondaryHighlightedbreakpoint;
+    if isselected then
+    begin
+      if isbp then
+        colorstate:=csSecondaryHighlightedbreakpoint
+      else
+      if isultimap then
+        colorstate:=csSecondaryHighlightedUltimap
+      else
+        colorstate:=csSecondaryHighlighted;
+
+      if focused then
+      begin
+        if isbp then
+          colorstate:=csHighlightedbreakpoint
+        else
+        if isultimap then
+          colorstate:=csHighlightedUltimap
+        else
+          colorstate:=csHighlighted;
+      end;
+    end
+    else
+    begin
+      if isbp then
+        colorstate:=csBreakpoint
+      else
+      if isultimap then
+        colorstate:=csUltimap
+      else
+        colorstate:=csNormal;
+    end;
 
     case colorcode of
       0: fcanvas.font.color:=fcolors^[colorstate].normalcolor;

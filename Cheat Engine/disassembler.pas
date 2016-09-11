@@ -10846,6 +10846,9 @@ begin
                       begin
                         if (memory[1]=$25) and (pdword(@memory[2])^=0) then //special 14 byte jmp
                         begin
+                          LastDisassembleData.parameterValue:=pqword(@memory[6])^;
+                          LastDisassembleData.parameterValueType:=dvtAddress;
+
                           lastdisassembledata.parameters:=inttohexs(pqword(@memory[6])^,8);
                           inc(last,8+4+2);
 

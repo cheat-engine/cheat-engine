@@ -256,6 +256,7 @@ type
     { public declarations }
     allNewAreInvalid: boolean;
 
+    function IsMatchingAddress(address: ptruint): boolean;
   end;
 
 var
@@ -1631,18 +1632,24 @@ begin
     item.caption:=inttohex(data^.address,8);
 
     if data^.byteInfo^.count=255 then
-      item.SubItems.Add('>255')
+      item.SubItems.Add('>=255')
     else
       item.SubItems.Add(inttostr(data^.byteInfo^.count));
-
+          {
     if (data^.byteInfo^.flags and bifExecuted)<>0 then
-      item.SubItems.Add('X');
+      item.SubItems.Add('X')
+    else
+      item.SubItems.Add('');
 
     if (data^.byteInfo^.flags and bifIsCall)<>0 then
-      item.SubItems.Add('X');
+      item.SubItems.Add('X')
+    else
+      item.SubItems.Add('');   }
 
     if (data^.byteInfo^.flags and bifInvalidated)<>0 then
-      item.SubItems.Add('X');
+      item.SubItems.Add('X')
+    else
+      item.SubItems.Add('');
   end;
 end;
 
@@ -1965,6 +1972,37 @@ begin
     end;
     validlist.Clear;
     freeandnil(validList);
+  end;
+end;
+
+function TfrmUltimap2.IsMatchingAddress(address: ptruint): boolean;
+var
+  s: TValidEntry;
+  r: PValidEntry;
+  n: TAvgLvlTreeNode;
+begin
+  result:=false;
+  if self<>nil then
+  begin
+    if regiontreemrew<>nil then
+    begin
+      regiontreemrew.Beginread;
+      try
+        if validlist<>nil then
+        begin
+          s.address:=address;
+
+          n:=validlist.find(@s);
+          if n<>nil then
+          begin
+            r:=n.Data;
+            result:=(r^.byteInfo^.flags and bifInvalidated)=0;
+          end;
+        end;
+      finally
+        regiontreemrew.Endread;
+      end;
+    end;
   end;
 end;
 

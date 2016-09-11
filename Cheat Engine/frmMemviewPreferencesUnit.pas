@@ -65,6 +65,16 @@ resourcestring
   rsRegisterColor = 'Register color';
   rsSymbolColor = 'Symbol color';
 
+  rsDCNormal='Normal';
+  rsDCHighlighted='Highlighted';
+  rsDCHighlightedSecondary='Highlighted secondary';
+  rsDCBreakpoint='Breakpoint';
+  rsDCHighlightedBreakpoint='Highlighted breakpoint';
+  rsDCHighlightedBreakpointSecondary='Highlighted breakpoint secondary';
+  rsDCUltimap2='Ultimap2';
+  rsDCHighlightedUltimap2='Highlighted Ultimap2';
+  rsDCHighlightedUltimap2Secondary='Highlighted Ultimap2 secondary';
+
 procedure TfrmMemviewPreferences.applyfont;
 begin
   lblNormal.font:=fontdialog1.Font;
@@ -78,6 +88,17 @@ end;
 procedure TfrmMemviewPreferences.FormCreate(Sender: TObject);
 begin
   oldstate:=csUndefined;
+  cbColorGroup.Items.Clear;
+
+  cbColorGroup.Items.Add(rsDCNormal);
+  cbColorGroup.Items.Add(rsDCHighlighted);
+  cbColorGroup.Items.Add(rsDCHighlightedSecondary);
+  cbColorGroup.Items.Add(rsDCBreakpoint);
+  cbColorGroup.Items.Add(rsDCHighlightedBreakpoint);
+  cbColorGroup.Items.Add(rsDCHighlightedBreakpointSecondary);
+  cbColorGroup.Items.Add(rsDCUltimap2);
+  cbColorGroup.Items.Add(rsDCHighlightedUltimap2);
+  cbColorGroup.Items.Add(rsDCHighlightedUltimap2Secondary);
 end;
 
 procedure TfrmMemviewPreferences.FormShow(Sender: TObject);

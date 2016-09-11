@@ -1042,7 +1042,7 @@ begin
 
     for i:=0 to length(originalcode)-1 do
     begin
-      if hasAddress(originalcode[i], tempaddress, nil ) then
+      {if hasAddress(originalcode[i], tempaddress, nil ) then
       begin
         if InRangeX(tempaddress, b,b+codesize) then
         begin
@@ -1060,7 +1060,7 @@ begin
 
           inc(specifiernr);
         end;
-      end;
+      end;  }
       add(originalcode[i]);
     end;
 
