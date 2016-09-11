@@ -5,7 +5,7 @@ unit frmRegistersunit;
 interface
 
 uses
-  windows, LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  win32proc, jwawindows, windows, LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, Buttons, ExtCtrls, StdCtrls, frmFloatingPointPanelUnit, NewKernelHandler,
   cefuncproc, LResources,Clipbrd, frmStackViewunit;
 
@@ -262,8 +262,39 @@ begin
 end;
 
 procedure TRegisters.FormShow(Sender: TObject);
+const CCHILDREN_TITLEBAR=5;
+type
+  TTitleBarInfoEx=record
+    cbSize: DWORD;
+    rcTitleBar: TRECT;
+    rgstate: array [0..CCHILDREN_TITLEBAR] of DWORD;
+    rgrect: array [0..CCHILDREN_TITLEBAR] of TRECT;
+  end;
+var
+  tbi: TTITLEBARINFOEX;
+  i: integer;
+  widthneeded: integer;
 begin
+  widthneeded:=canvas.TextWidth(' '+caption+' ');
+  constraints.MinWidth:=widthneeded;
 
+  if WindowsVersion>=wvVista then
+  begin
+    tbi.cbSize:=sizeof(tbi);
+    sendmessage(handle, WM_GETTITLEBARINFOEX, 0, ptruint(@tbi));
+
+
+    autosize:=false;
+    i:=tbi.rcTitleBar.Right-tbi.rcTitleBar.Left;
+    dec(i,tbi.rgrect[5].Right-tbi.rgrect[5].left);
+    dec(i,tbi.rgrect[3].Right-tbi.rgrect[3].left);
+    dec(i,tbi.rgrect[2].Right-tbi.rgrect[2].left);
+    dec(i, GetSystemMetrics(SM_CXSIZE));
+    dec(i, GetSystemMetrics(SM_CXPADDEDBORDER));
+    dec(i, GetSystemMetrics(SM_CXBORDER));
+
+    Width:=width+(widthneeded-i);
+  end;
 end;
 
 procedure TRegisters.FormClose(Sender: TObject; var Action: TCloseAction);

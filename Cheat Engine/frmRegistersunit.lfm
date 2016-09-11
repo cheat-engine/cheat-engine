@@ -1,11 +1,11 @@
 object Registers: TRegisters
   Left = 1096
-  Height = 308
+  Height = 303
   Top = 254
-  Width = 176
+  Width = 213
   Caption = 'Registers'
-  ClientHeight = 308
-  ClientWidth = 176
+  ClientHeight = 303
+  ClientWidth = 213
   OnClose = FormClose
   OnResize = FormResize
   OnShow = FormShow
@@ -13,21 +13,21 @@ object Registers: TRegisters
   LCLVersion = '1.6.0.4'
   object Panel1: TPanel
     Left = 0
-    Height = 308
+    Height = 303
     Top = 0
-    Width = 153
+    Width = 190
     Align = alClient
     AutoSize = True
-    ClientHeight = 308
-    ClientWidth = 153
+    ClientHeight = 303
+    ClientWidth = 190
     TabOrder = 0
     object Label14: TLabel
       AnchorSideLeft.Control = Panel1
       AnchorSideTop.Control = Panel1
       Left = 9
-      Height = 15
+      Height = 20
       Top = 1
-      Width = 50
+      Width = 63
       BorderSpacing.Left = 8
       Caption = 'Registers:'
       ParentColor = False
@@ -38,7 +38,7 @@ object Registers: TRegisters
       AnchorSideTop.Side = asrBottom
       Left = 9
       Height = 2
-      Top = 16
+      Top = 21
       Width = 56
       Brush.Color = clBlack
     end
@@ -51,9 +51,9 @@ object Registers: TRegisters
       AnchorSideBottom.Control = Panel1
       AnchorSideBottom.Side = asrBottom
       Left = 9
-      Height = 280
-      Top = 27
-      Width = 135
+      Height = 270
+      Top = 32
+      Width = 172
       Anchors = [akTop, akLeft, akRight, akBottom]
       AutoSize = True
       BorderSpacing.Top = 9
@@ -62,17 +62,17 @@ object Registers: TRegisters
       ChildSizing.VerticalSpacing = 7
       ChildSizing.Layout = cclLeftToRightThenTopToBottom
       ChildSizing.ControlsPerLine = 1
-      ClientHeight = 280
-      ClientWidth = 135
+      ClientHeight = 270
+      ClientWidth = 172
       Font.Name = 'Courier New'
       ParentFont = False
       TabOrder = 0
       object EAXLabel: TLabel
         Cursor = crHandPoint
         Left = 0
-        Height = 18
+        Height = 22
         Top = 0
-        Width = 120
+        Width = 144
         Caption = 'EAX 00000000'
         ParentColor = False
         OnDblClick = EAXLabelDblClick
@@ -82,9 +82,9 @@ object Registers: TRegisters
         Tag = 1
         Cursor = crHandPoint
         Left = 0
-        Height = 18
-        Top = 25
-        Width = 120
+        Height = 22
+        Top = 29
+        Width = 144
         Caption = 'EBX 00000000'
         ParentColor = False
         OnDblClick = EAXLabelDblClick
@@ -94,9 +94,9 @@ object Registers: TRegisters
         Tag = 2
         Cursor = crHandPoint
         Left = 0
-        Height = 18
-        Top = 50
-        Width = 120
+        Height = 22
+        Top = 58
+        Width = 144
         Caption = 'ECX 00000000'
         ParentColor = False
         OnDblClick = EAXLabelDblClick
@@ -106,9 +106,9 @@ object Registers: TRegisters
         Tag = 3
         Cursor = crHandPoint
         Left = 0
-        Height = 18
-        Top = 75
-        Width = 120
+        Height = 22
+        Top = 87
+        Width = 144
         Caption = 'EDX 00000000'
         ParentColor = False
         OnDblClick = EAXLabelDblClick
@@ -118,9 +118,9 @@ object Registers: TRegisters
         Tag = 4
         Cursor = crHandPoint
         Left = 0
-        Height = 18
-        Top = 100
-        Width = 120
+        Height = 22
+        Top = 116
+        Width = 144
         Caption = 'ESI 00000000'
         ParentColor = False
         OnDblClick = EAXLabelDblClick
@@ -130,9 +130,9 @@ object Registers: TRegisters
         Tag = 5
         Cursor = crHandPoint
         Left = 0
-        Height = 18
-        Top = 125
-        Width = 120
+        Height = 22
+        Top = 145
+        Width = 144
         Caption = 'EDI 00000000'
         ParentColor = False
         OnDblClick = EAXLabelDblClick
@@ -142,9 +142,9 @@ object Registers: TRegisters
         Tag = 6
         Cursor = crHandPoint
         Left = 0
-        Height = 18
-        Top = 150
-        Width = 120
+        Height = 22
+        Top = 174
+        Width = 144
         Caption = 'EBP 00000000'
         ParentColor = False
         OnDblClick = EAXLabelDblClick
@@ -154,9 +154,9 @@ object Registers: TRegisters
         Tag = 7
         Cursor = crHandPoint
         Left = 0
-        Height = 18
-        Top = 175
-        Width = 120
+        Height = 22
+        Top = 203
+        Width = 144
         Caption = 'ESP 00000000'
         ParentColor = False
         OnDblClick = EAXLabelDblClick
@@ -166,9 +166,9 @@ object Registers: TRegisters
         Tag = 8
         Cursor = crHandPoint
         Left = 0
-        Height = 18
-        Top = 200
-        Width = 120
+        Height = 22
+        Top = 232
+        Width = 144
         Caption = 'EIP 00000000'
         ParentColor = False
         OnDblClick = EAXLabelDblClick
@@ -177,13 +177,13 @@ object Registers: TRegisters
     end
   end
   object Panel2: TPanel
-    Left = 153
-    Height = 308
+    Left = 190
+    Height = 303
     Top = 0
     Width = 23
     Align = alRight
     AutoSize = True
-    ClientHeight = 308
+    ClientHeight = 303
     ClientWidth = 23
     TabOrder = 1
     object Panel4: TPanel
@@ -192,7 +192,7 @@ object Registers: TRegisters
       AnchorSideTop.Side = asrCenter
       Left = 1
       Height = 61
-      Top = 124
+      Top = 121
       Width = 21
       AutoSize = True
       BevelOuter = bvNone

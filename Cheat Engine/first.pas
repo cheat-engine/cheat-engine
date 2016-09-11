@@ -73,7 +73,7 @@ initialization
     r.RootKey := HKEY_CURRENT_USER;
     if r.OpenKey('\Software\Cheat Engine',false) then
     begin
-      if r.ValueExists('DPI Aware') and r.ReadBool('DPI Aware') then
+      if (r.ValueExists('DPI Aware')=false) or r.ReadBool('DPI Aware') then
         setDPIAware;
     end
     else

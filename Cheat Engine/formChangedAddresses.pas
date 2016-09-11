@@ -493,7 +493,7 @@ begin
   begin
     with TRegisters.create(self) do
     begin
-      borderstyle:=bsSingle;
+      //borderstyle:=bsSingle;
 
       ae:=TAddressEntry(changedlist.Selected.Data);
 
