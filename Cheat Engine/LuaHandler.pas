@@ -7101,7 +7101,8 @@ begin
     s:=StringReplace(s,'&','&amp;',[rfReplaceAll]);
     s:=StringReplace(s,'<','&lt;',[rfReplaceAll]);
     s:=StringReplace(s,'>','&gt;',[rfReplaceAll]);
-    s:='<speak version="1.0" xml:lang="en">'+s+'</speak>';
+    //s:='<speak version="1.0" xml:lang="en">'+s+'</speak>';
+    s:='<voice required="Language=409">'+s+'</voice>';   //413=dutch
   end;
 
   if pc>=2 then
