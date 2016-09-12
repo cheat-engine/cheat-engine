@@ -1716,6 +1716,9 @@ begin
             begin
               s1:=trim(copy(currentline,a+1,b-a-1));
 
+              if (length(s1)>1) and ((s1[1]='''') or (s1[1]='"')) then
+                s1:=AnsiDequotedStr(s1,s1[1]);
+
               if pos(':',s1)=0 then
               begin
                 s2:=extractfilename(s1);
