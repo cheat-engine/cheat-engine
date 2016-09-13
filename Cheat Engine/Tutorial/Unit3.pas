@@ -50,6 +50,9 @@ resourcestring
   rsTutorialStep3=
     'Ok, seeing that you''ve figured out how to find a value using exact value let''s move on to the next step.'+#13#10+
           ''+#13#10+
+          'First things first though. Since you are doing a new scan, you have to click on New Scan first, to start a new scan. (You may think this is straighforward, but you''d be surprised how many people get stuck on that step) I won''t be explaining this step again, so keep this in mind'+#13#10+
+          'Now that you''ve started a new scan, let''s continue'+#13#10+
+          ''+#13#10+
           'In the previous test we knew the initial value so we could do a exact value, but now we have a status bar where '+
           'we don''t know the starting value.'+#13#10+
           'We only know that the value is between 0 and 500. And each time you click ''hit me'' you lose some health. The '+
