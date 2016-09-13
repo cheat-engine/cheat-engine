@@ -907,7 +907,6 @@ begin
   LUACS.Enter;
   try
     stack:=lua_gettop(luavm);
-    Clipboard.AsText:=s;
     i:=lua_dostring(luavm, pchar(s));
     if i<>0 then
     begin
