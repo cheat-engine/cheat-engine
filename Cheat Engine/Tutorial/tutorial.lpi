@@ -20,7 +20,7 @@
       <CharSet Value=""/>
       <StringTable ProductVersion=""/>
     </VersionInfo>
-    <BuildModes Count="4" Active="release 64-Bit">
+    <BuildModes Count="4" Active="release 32-Bit">
       <Item1 Name="debug" Default="True"/>
       <Item2 Name="release">
         <CompilerOptions>

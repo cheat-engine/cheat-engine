@@ -4392,11 +4392,11 @@ begin
 
     foundlist3.Height := btnMemoryView.top - foundlist3.top - foundlistheightdiff;
 
-    panel5.Constraints.MinHeight :=
+   { panel5.Constraints.MinHeight :=
       gbScanOptions.top + gbScanOptions.Height + speedbutton2.Height + 3;
 
     if panel5.Height < panel5.Constraints.MinHeight then
-      panel5.Height := panel5.Constraints.MinHeight;
+      panel5.Height := panel5.Constraints.MinHeight;  }
 
   end
   else
@@ -6806,6 +6806,9 @@ end;
 procedure TMainForm.SetHotkey1Click(Sender: TObject);
 begin
   {  HotKeyForm.recnr:=lastselected;}
+  if addresslist.selectedRecord.isBeingEdited then
+    exit;
+
   with THotKeyForm.Create(self) do
   begin
     memrec := addresslist.selectedRecord;
@@ -7415,11 +7418,7 @@ end;
 procedure TMainForm.Splitter1CanResize(Sender: TObject; var NewSize: integer;
   var Accept: boolean);
 begin
-  if newsize < 305 then
-  begin
-    newsize := 305;
-    accept := False;
-  end;
+
 end;
 
 procedure TMainForm.Splitter1Moved(Sender: TObject);

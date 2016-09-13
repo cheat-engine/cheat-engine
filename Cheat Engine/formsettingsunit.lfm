@@ -1,7 +1,7 @@
 object formSettings: TformSettings
-  Left = 660
+  Left = 166
   Height = 404
-  Top = 279
+  Top = 71
   Width = 1053
   AutoSize = True
   BorderIcons = [biSystemMenu]
@@ -62,9 +62,9 @@ object formSettings: TformSettings
       Height = 365
       Top = 1
       Width = 903
-      ActivePage = Languages
+      ActivePage = Assembler
       Align = alClient
-      TabIndex = 5
+      TabIndex = 6
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -1091,8 +1091,6 @@ object formSettings: TformSettings
             Width = 312
             Anchors = [akLeft, akBottom]
             Caption = 'Show language selection menu item at the main screen'
-            Checked = True
-            State = cbChecked
             TabOrder = 0
           end
           object lbLanguages: TListBox
@@ -1191,21 +1189,21 @@ object formSettings: TformSettings
       end
       object Assembler: TTabSheet
         Caption = 'Debugger Options'
-        ClientHeight = 579
+        ClientHeight = 337
         ClientWidth = 895
         ImageIndex = 5
         object ScrollBox3: TScrollBox
           Left = 0
-          Height = 579
+          Height = 337
           Top = 0
           Width = 895
           HorzScrollBar.Page = 647
           HorzScrollBar.Tracking = True
-          VertScrollBar.Page = 448
+          VertScrollBar.Page = 333
           VertScrollBar.Tracking = True
           Align = alClient
-          ClientHeight = 575
-          ClientWidth = 891
+          ClientHeight = 333
+          ClientWidth = 874
           TabOrder = 0
           object replacewithnops: TCheckBox
             AnchorSideLeft.Control = Label4
@@ -1481,11 +1479,10 @@ object formSettings: TformSettings
             AnchorSideLeft.Control = cbWaitAfterGuiUpdate
             AnchorSideTop.Control = cbWaitAfterGuiUpdate
             AnchorSideTop.Side = asrBottom
-            Left = 24
+            Left = 8
             Height = 19
             Top = 149
             Width = 309
-            BorderSpacing.Left = 16
             Caption = 'Override existing breakpoints when setting breakpoints'
             Checked = True
             State = cbChecked

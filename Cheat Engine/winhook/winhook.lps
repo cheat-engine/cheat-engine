@@ -3,7 +3,7 @@
   <ProjectSession>
     <PathDelim Value="\"/>
     <Version Value="9"/>
-    <BuildModes Active="Release 64"/>
+    <BuildModes Active="Release 32"/>
     <Units Count="13">
       <Unit0>
         <Filename Value="winhook.lpr"/>
@@ -17,7 +17,7 @@
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="4"/>
-        <TopLine Value="62"/>
+        <TopLine Value="74"/>
         <CursorPos X="38" Y="92"/>
         <UsageCount Value="79"/>
         <Loaded Value="True"/>

@@ -907,6 +907,7 @@ begin
   LUACS.Enter;
   try
     stack:=lua_gettop(luavm);
+    Clipboard.AsText:=s;
     i:=lua_dostring(luavm, pchar(s));
     if i<>0 then
     begin
@@ -7102,7 +7103,8 @@ begin
     s:=StringReplace(s,'<','&lt;',[rfReplaceAll]);
     s:=StringReplace(s,'>','&gt;',[rfReplaceAll]);
     //s:='<speak version="1.0" xml:lang="en">'+s+'</speak>';
-    s:='<voice required="Language=409">'+s+'</voice>';   //413=dutch
+    //s:='<lang langid="409">'+s+'</lang>';
+    s:='<voice required="Language=409">'+s+'</voice>';   //413=dutch (while running under a debugger, this is slow. But normal usage is fine)
   end;
 
   if pc>=2 then

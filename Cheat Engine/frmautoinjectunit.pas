@@ -2122,7 +2122,7 @@ begin
 
       add('');
       add('address'+nr+':');
-      add('  jmp code'+nr+'');
+      add('  jmp newmem'+nr+'');
       while codesize>5 do
       begin
         add('  nop');
@@ -2397,7 +2397,7 @@ begin
 
       add('');
       add(symbolNameWithOffset + ':');
-      add('  jmp code' + nr + '');
+      add('  jmp newmem' + nr + '');
       for i := 6 to codesize do
         add('  nop');
       add('return' + nr + ':');

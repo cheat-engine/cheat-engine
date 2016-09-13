@@ -372,7 +372,7 @@ playSound(tablefile, waittilldone OPTIONAL) : Takes the memorystream from the ta
 
 speak(text, waittilldone OPTIONAL): Speaks a given text.  If waitTillDone is true the thread it's in will be frozen till it is done
 speak(text, flags): Speaks a given text using the given flags. https://msdn.microsoft.com/en-us/library/speechplatform_speakflags.aspx
-speakEnglish(text, waittilldone OPTIONAL) - will try the English voice by wrapping the given text into an XML statement specifying the english voice. fallback to default voice on failure. Do not use SPF_IS_NOT_XML flag and SPF_PARSE_SSML won't work in this situation
+speakEnglish(text, waittilldone OPTIONAL) - will try the English voice by wrapping the given text into an XML statement specifying the english voice. Will not say anything if no Egnlish language is present. Do not use SPF_IS_NOT_XML flag and SPF_PARSE_SSML won't work in this situation
 
 getUserRegistryEnvironmentVariable(name): string - Returns the environment variable stored in the user registry environment
 setUserRegistryEnvironmentVariable(name, string) - Sets the environment variable stored in the user registry environment

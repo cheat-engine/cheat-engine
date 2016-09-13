@@ -319,12 +319,17 @@ type
     property offsets[index: integer]: TMemrecOffset read getPointerOffset;
   end;
 
+  THKSoundFlag=(hksPlaySound=0, hksSpeakText=1, hksSpeakTextEnglish=2); //playSound excludes speakText
+
   TMemoryRecordHotkey=class
   private
     fOnHotkey: TNotifyevent;
     fOnPostHotkey: TNotifyevent;
     factivateSound: string;
     fdeactivateSound: string;
+    fActivateSoundFlag: THKSoundFlag;
+    fDeactivateSoundFlag: THKSoundFlag;
+
   public
     fID: integer;
     fDescription: string;
@@ -334,11 +339,16 @@ type
     value: string;
 
 
+    procedure playActivateSound;
+    procedure playDeactivateSound;
 
     procedure doHotkey;
     constructor create(AnOwner: TMemoryRecord);
     destructor destroy; override;
   published
+    property ActivateSoundFlag: THKSoundFlag read fActivateSoundFlag write fActivateSoundFlag;
+    property DeactivateSoundFlag: THKSoundFlag read fDeactivateSoundFlag write fDeactivateSoundFlag;
+
     property ActivateSound: string read factivateSound write factivateSound;
     property DeactivateSound: string read fdeactivateSound write fdeactivateSound;
     property Description: string read fDescription write fDescription;
@@ -356,7 +366,7 @@ implementation
 
 {$ifdef windows}
 uses mainunit, addresslist, formsettingsunit, LuaHandler, lua, lauxlib, lualib,
-  processhandlerunit, Parsers;
+  processhandlerunit, Parsers, winsapi;
 {$endif}
 
 {$ifdef unix}
@@ -519,6 +529,51 @@ begin
   if assigned(fonPostHotkey) then
     fOnPostHotkey(self);
 end;
+
+procedure TMemoryRecordHotkey.playActivateSound;
+var s: string;
+begin
+  if activateSound<>'' then
+  begin
+    if ActivateSoundFlag in [hksSpeakText, hksSpeakTextEnglish] then
+    begin
+      s:=ActivateSound;
+      s:=StringReplace(s,'{MRDescription}', fowner.Description,[rfIgnoreCase, rfReplaceAll]);
+      s:=StringReplace(s,'{Description}', Description, [rfIgnoreCase, rfReplaceAll]);
+
+
+      if ActivateSoundFlag=hksSpeakTextEnglish then
+        LUA_DoScript('speakEnglish([['+s+']])')
+      else
+        LUA_DoScript('speak([['+s+']])');
+
+    end
+    else
+      LUA_DoScript('playSound(findTableFile([['+activateSound+']]))');
+  end;
+end;
+
+procedure TMemoryRecordHotkey.playDeactivateSound;
+var s: string;
+begin
+  if DeactivateSound<>'' then
+  begin
+    if DeactivateSoundFlag in [hksSpeakText, hksSpeakTextEnglish] then
+    begin
+      s:=DeactivateSound;
+      s:=StringReplace(s,'{MRDescription}', fowner.Description,[rfIgnoreCase, rfReplaceAll]);
+      s:=StringReplace(s,'{Description}', Description, [rfIgnoreCase, rfReplaceAll]);
+
+      if DeactivateSoundFlag=hksSpeakTextEnglish then
+        LUA_DoScript('speakEnglish([['+s+']])')
+      else
+        LUA_DoScript('speak([['+s+']])');
+    end
+    else
+      LUA_DoScript('playSound(findTableFile([['+deactivateSound+']]))');
+  end;
+end;
+
 
 {---------------------------------MemoryRecord---------------------------------}
 
@@ -1025,11 +1080,37 @@ begin
 
           tempnode2:=tempnode.childnodes[i].findnode('ActivateSound');
           if tempnode2<>nil then
+          begin
             hk.activateSound:=tempnode2.TextContent;
+
+            a:=tempnode2.Attributes.GetNamedItem('TTS');
+            if (a<>nil) then
+            begin
+              if (a.TextContent='EN') then
+                hk.ActivateSoundFlag:=hksSpeakTextEnglish
+              else
+                hk.ActivateSoundFlag:=hksSpeakText;
+            end
+            else
+              hk.ActivateSoundFlag:=hksPlaySound;
+          end;
 
           tempnode2:=tempnode.childnodes[i].findnode('DeactivateSound');
           if tempnode2<>nil then
+          begin
             hk.deactivateSound:=tempnode2.TextContent;
+
+            a:=tempnode2.Attributes.GetNamedItem('TTS');
+            if (a<>nil) then
+            begin
+              if (a.TextContent='EN') then
+                hk.DeactivateSoundFlag:=hksSpeakTextEnglish
+              else
+                hk.DeactivateSoundFlag:=hksSpeakText;
+            end
+            else
+              hk.DeactivateSoundFlag:=hksPlaySound;
+          end;
 
           tempnode2:=tempnode.ChildNodes[i].FindNode('Keys');
           if tempnode2<>nil then
@@ -1118,6 +1199,7 @@ var
   hks, hk,hkkc: TDOMNode;
   opt: TDOMNode;
   laststate: TDOMNode;
+  soundentry: TDOMNode;
 
   tn: TTreenode;
   i,j: integer;
@@ -1356,10 +1438,39 @@ begin
         hk.AppendChild(doc.CreateElement('ID')).TextContent:=inttostr(hotkey[i].id);
 
       if hotkey[i].activateSound<>'' then
-        hk.AppendChild(doc.CreateElement('ActivateSound')).TextContent:=hotkey[i].activateSound;
+      begin
+        soundentry:=hk.AppendChild(doc.CreateElement('ActivateSound'));;
+        soundentry.TextContent:=hotkey[i].activateSound;
+
+        if hotkey[i].ActivateSoundFlag<>hksPlaySound then
+        begin
+          a:=doc.CreateAttribute('TTS');
+          if hotkey[i].ActivateSoundFlag=hksSpeakTextEnglish then
+            a.TextContent:='EN'
+          else
+            a.TextContent:='';
+
+          soundentry.Attributes.SetNamedItem(a);
+        end;
+
+      end;
 
       if hotkey[i].deactivateSound<>'' then
-        hk.AppendChild(doc.CreateElement('DeactivateSound')).TextContent:=hotkey[i].deactivateSound;
+      begin
+        soundentry:=hk.AppendChild(doc.CreateElement('DeactivateSound'));
+        soundentry.TextContent:=hotkey[i].deactivateSound;
+
+        if hotkey[i].DeactivateSoundFlag<>hksPlaySound then
+        begin
+          a:=doc.CreateAttribute('TTS');
+          if hotkey[i].DeactivateSoundFlag=hksSpeakTextEnglish then
+            a.TextContent:='EN'
+          else
+            a.TextContent:='';
+
+          soundentry.Attributes.SetNamedItem(a);
+        end;
+      end;
 
     end;
 
@@ -1631,33 +1742,29 @@ begin
         begin
           active:=not active;
 
-          if (hk.activateSound<>'') and active then
-            LUA_DoScript('playSound(findTableFile([['+hk.activateSound+']]))');
-
-          if (hk.deactivateSound<>'') and (not active) then
-            LUA_DoScript('playSound(findTableFile([['+hk.deactivateSound+']]))'); //also gives a signal when failing to activate
+          if active then
+            hk.playActivateSound
+          else
+            hk.playDeactivateSound;
         end;
 
         mrhSetValue:
         begin
           SetValue(hk.value);
 
-          if (hk.activateSound<>'') then
-            LUA_DoScript('playSound(findTableFile([['+hk.activateSound+']]))');
+          hk.playActivateSound;
         end;
 
         mrhIncreaseValue:
         begin
           increaseValue(hk.value);
-          if (hk.activateSound<>'') then
-            LUA_DoScript('playSound(findTableFile([['+hk.activateSound+']]))');
+          hk.playActivateSound;
         end;
 
         mrhDecreaseValue:
         begin
           decreaseValue(hk.value);
-          if (hk.activateSound<>'') then
-            LUA_DoScript('playSound(findTableFile([['+hk.activateSound+']]))');
+          hk.playActivateSound;
         end;
 
 
@@ -1666,11 +1773,10 @@ begin
           allowDecrease:=True;
           active:=not active;
 
-          if (hk.activateSound<>'') and active then
-            LUA_DoScript('playSound(findTableFile([['+hk.activateSound+']]))');
-
-          if (hk.deactivateSound<>'') and (not active) then
-            LUA_DoScript('playSound(findTableFile([['+hk.deactivateSound+']]))'); //also gives a signal when failing to activate
+          if active then
+            hk.playActivateSound
+          else
+            hk.playDeactivateSound; //also gives a signal when failing to activate
         end;
 
         mrhToggleActivationAllowIncrease:
@@ -1678,26 +1784,25 @@ begin
           allowIncrease:=True;
           active:=not active;
 
-          if (hk.activateSound<>'') and active then
-            LUA_DoScript('playSound(findTableFile([['+hk.activateSound+']]))');
-
-          if (hk.deactivateSound<>'') and (not active) then
-            LUA_DoScript('playSound(findTableFile([['+hk.deactivateSound+']]))'); //also gives a signal when failing to activate
+          if active then
+            hk.playActivateSound
+          else
+            hk.playDeactivateSound; //also gives a signal when failing to activate
 
         end;
 
         mrhActivate:
         begin
           active:=true;
-          if (hk.activateSound<>'') and active then
-            LUA_DoScript('playSound(findTableFile([['+hk.activateSound+']]))');
+          if active then
+            hk.playActivateSound;
         end;
 
         mrhDeactivate:
         begin
           active:=false;
-          if (hk.deactivateSound<>'') and (not active) then
-            LUA_DoScript('playSound(findTableFile([['+hk.deactivateSound+']]))'); //also gives a signal when failing to activate
+          if not active then
+            hk.playDeactivateSound;  //also gives a signal when failing to activate
         end;
 
 

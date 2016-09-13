@@ -1151,6 +1151,8 @@ begin
   AdjustHeightAndButtons;
 
   processaddress;
+
+  Repaint;
 end;
 
 procedure TformAddressChange.btnCancelClick(Sender: TObject);
@@ -1206,36 +1208,10 @@ begin
 end;
 
 procedure TformAddressChange.AdjustHeightAndButtons;
-var i: integer;
 begin
-  if pnlExtra.visible then
-  begin
-
-    //check if pnlbits is visible
-    if pnlBitinfo.visible then
-      pnlExtra.height:=pnlBitinfo.Top+pnlBitinfo.Height+3
-    else
-      pnlExtra.height:=edtSize.top+edtSize.Height+3;
-
-
-    cbPointer.top:=pnlExtra.top+pnlExtra.Height+3;
-  end
-  else
-    cbPointer.top:=cbvarType.top+cbvarType.Height+3;
-
-
-  if pointerinfo=nil then
-    btnok.top:=cbPointer.Top+cbPointer.Height+3
-  else
-  begin
-    pointerinfo.top:=cbPointer.Top+cbPointer.Height+3;
-    btnok.top:=pointerinfo.Top+pointerinfo.Height+3;
-
+  if pointerinfo<>nil then
     pointerinfo.setupPositionsAndSizes;
-  end;
 
-
-  btnCancel.top:=btnok.top;
   clientheight:=btncancel.top+btnCancel.height+6;
 end;
 
