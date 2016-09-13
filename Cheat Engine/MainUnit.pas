@@ -905,7 +905,7 @@ uses mainunit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup, HotKeys,
   frmSetCrosshairUnit, StructuresFrm2, frmMemoryViewExUnit,
   frmD3DHookSnapshotConfigUnit, frmSaveSnapshotsUnit, frmsnapshothandlerUnit,
   frmNetworkDataCompressionUnit, ProcessHandlerUnit, ProcessList, pointeraddresslist,
-  PointerscanresultReader, Parsers, Globals, GnuAssembler, xinput, DPIHelper, multilineinputqueryunit;
+  PointerscanresultReader, Parsers, Globals, GnuAssembler, xinput, DPIHelper, multilineinputqueryunit, winsapi;
 
 resourcestring
   rsInvalidStartAddress = 'Invalid start address: %s';

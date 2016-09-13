@@ -26,6 +26,8 @@ type PHotkeyItem=^THotkeyItem;
 
 type Thotkeythread=class(tthread)
   private
+    memrechk: pointer;
+    procedure memrechotkey;
   public
     suspended: boolean;
     hotkeylist: array of thotkeyitem;
@@ -59,7 +61,7 @@ var hotkeythread: THotkeythread;
 
 implementation
 
-uses MemoryRecordUnit, xinput;
+uses MemoryRecordUnit, xinput, winsapi, MainUnit;
 
 type tkeystate=(ks_undefined=0, ks_pressed=1, ks_notpressed=2);
 
@@ -416,6 +418,15 @@ begin
   inherited create(suspended);
 end;
 
+procedure Thotkeythread.memrechotkey;
+begin
+//  sendmessage(mainform.handle,integer(cefuncproc.WM_HOTKEY2),0,ptrUint(memrechk));
+
+  //not 100% sure why sendmessage works here but not from within the thread...
+  //but since we're here anyhow:
+  TMemoryRecordHotkey(memrechk).DoHotkey;
+end;
+
 procedure THotkeyThread.execute;
 type
   TActiveHotkeyData=record   //structure to hold hotkey and keycount
@@ -491,7 +502,10 @@ begin
               if tempHotkey.hotkeylistItem.handler2 then
               begin
                 if tempHotkey.hotkeylistItem.memrechotkey<>nil then
-                  sendmessage(a,integer(cefuncproc.WM_HOTKEY2),0,ptrUint(tempHotkey.hotkeylistItem.memrechotkey))
+                begin
+                  memrechk:=tempHotkey.hotkeylistItem.memrechotkey;
+                  Synchronize(memrechotkey);
+                end
                 else
                 if tempHotkey.hotkeylistItem.generichotkey<>nil then
                   sendmessage(a,integer(cefuncproc.WM_HOTKEY2),1,ptrUint(tempHotkey.hotkeylistItem.genericHotkey))

@@ -542,11 +542,11 @@ begin
       s:=StringReplace(s,'{Description}', Description, [rfIgnoreCase, rfReplaceAll]);
 
 
-      if ActivateSoundFlag=hksSpeakTextEnglish then
-        LUA_DoScript('speakEnglish([['+s+']])')
-      else
-        LUA_DoScript('speak([['+s+']])');
 
+      if ActivateSoundFlag=hksSpeakTextEnglish then
+        speak('<voice required="Language=409">'+s+'</voice>')
+      else
+        speak(s)
     end
     else
       LUA_DoScript('playSound(findTableFile([['+activateSound+']]))');
@@ -565,9 +565,9 @@ begin
       s:=StringReplace(s,'{Description}', Description, [rfIgnoreCase, rfReplaceAll]);
 
       if DeactivateSoundFlag=hksSpeakTextEnglish then
-        LUA_DoScript('speakEnglish([['+s+']])')
+        speak('<voice required="Language=409">'+s+'</voice>')
       else
-        LUA_DoScript('speak([['+s+']])');
+        speak(s);
     end
     else
       LUA_DoScript('playSound(findTableFile([['+deactivateSound+']]))');
