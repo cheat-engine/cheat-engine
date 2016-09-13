@@ -234,6 +234,9 @@ type
     CreateGroup: TMenuItem;
     FromAddress: TEdit;
     andlabel: TLabel;
+    miFlFindWhatAccesses: TMenuItem;
+    MenuItem13: TMenuItem;
+    miFlFindWhatWrites: TMenuItem;
     miLanguages: TMenuItem;
     ScanText2: TLabel;
     scanvalue2: TEdit;
@@ -469,8 +472,10 @@ type
     procedure CreateGroupClick(Sender: TObject);
     procedure Foundlist3SelectItem(Sender: TObject; Item: TListItem;
       Selected: boolean);
+    procedure miFlFindWhatAccessesClick(Sender: TObject);
     procedure miBindDeactivationClick(Sender: TObject);
     procedure miDisassembleClick(Sender: TObject);
+    procedure miFlFindWhatWritesClick(Sender: TObject);
     procedure miScanDirtyOnlyClick(Sender: TObject);
     procedure miCompressionClick(Sender: TObject);
     procedure miGeneratePointermapClick(Sender: TObject);
@@ -2944,6 +2949,8 @@ begin
 end;
 
 
+
+
 var t: TRemoteMemoryManager;
 
 
@@ -3578,6 +3585,8 @@ begin
     memorybrowser.Show;
   end;
 end;
+
+
 
 
 
@@ -8325,6 +8334,38 @@ begin
   {$else}
   shellexecute(0, 'open', pchar(cheatenginedir+'Tutorial-i386.exe'), nil, nil, sw_show);
   {$endif}
+end;
+
+procedure TMainForm.miFlFindWhatAccessesClick(Sender: TObject);
+var
+  address: ptrUint;
+  res: word;
+begin
+  if foundlist3.Selected<>nil then
+  begin
+    address:=foundlist.GetAddress(foundlist3.Selected.Index);
+    if (not startdebuggerifneeded) then
+      exit;
+
+    DebuggerThread.FindWhatAccesses(address, memscan.Getbinarysize div 8);
+  end;
+end;
+
+procedure TMainForm.miFlFindWhatWritesClick(Sender: TObject);
+var
+  address: ptrUint;
+  extra: dword;
+  res: word;
+begin
+  if foundlist3.Selected<>nil then
+  begin
+    address:=foundlist.GetAddress(foundlist3.Selected.Index);
+    if (not startdebuggerifneeded) then
+      exit;
+
+    DebuggerThread.FindWhatWrites(address, memscan.Getbinarysize div 8);
+  end;
+
 end;
 
 procedure TMainForm.miChangeValueClick(Sender: TObject);

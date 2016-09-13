@@ -2004,6 +2004,19 @@ object MainForm: TMainForm
       Checked = True
       OnClick = miShowPreviousValueClick
     end
+    object MenuItem13: TMenuItem
+      Caption = '-'
+    end
+    object miFlFindWhatAccesses: TMenuItem
+      Caption = 'Find out what accesses this address'
+      ShortCut = 16500
+      OnClick = miFlFindWhatAccessesClick
+    end
+    object miFlFindWhatWrites: TMenuItem
+      Caption = 'Find out what writes to this address'
+      ShortCut = 16501
+      OnClick = miFlFindWhatWritesClick
+    end
     object MenuItem19: TMenuItem
       Caption = '-'
     end
