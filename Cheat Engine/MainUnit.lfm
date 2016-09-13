@@ -1394,8 +1394,8 @@ object MainForm: TMainForm
           Left = 0
           Height = 19
           Top = 38
-          Width = 64
-          Caption = 'Unicode'
+          Width = 58
+          Caption = 'UTF-16'
           TabOrder = 1
           Visible = False
         end
