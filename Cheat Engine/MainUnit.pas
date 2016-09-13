@@ -8348,7 +8348,7 @@ begin
       begin
         if foundlist3.Items[i].Selected then
         begin
-          a:=foundlist.GetAddress(foundlist3.Selected.Index, extra, Value);
+          a:=foundlist.GetAddress(i, extra, Value);
 
           if foundlist.vartype=vtAll then  //all, extra contains the vartype
           begin
