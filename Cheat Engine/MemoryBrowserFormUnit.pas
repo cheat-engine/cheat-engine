@@ -60,6 +60,7 @@ type
     MenuItem24: TMenuItem;
     MenuItem25: TMenuItem;
     MenuItem26: TMenuItem;
+    MenuItem27: TMenuItem;
     miSetAddress: TMenuItem;
     miGNUAssembler: TMenuItem;
     miBinutilsSelect: TMenuItem;
@@ -278,6 +279,7 @@ type
     procedure MenuItem22Click(Sender: TObject);
     procedure MenuItem25Click(Sender: TObject);
     procedure MenuItem26Click(Sender: TObject);
+    procedure MenuItem27Click(Sender: TObject);
     procedure miSetAddressClick(Sender: TObject);
     procedure miGNUAssemblerClick(Sender: TObject);
     procedure miBinutilsSelectClick(Sender: TObject);
@@ -632,7 +634,8 @@ uses Valuechange,
   AccessedMemory,
   Parsers,
   GnuAssembler,
-  frmEditHistoryUnit;
+  frmEditHistoryUnit,
+  frmWatchlistUnit;
 
 
 resourcestring
@@ -1132,6 +1135,15 @@ begin
     frmUltimap2:=TfrmUltimap2.create(application);
 
   frmUltimap2.show;
+end;
+
+procedure TMemoryBrowser.MenuItem27Click(Sender: TObject);
+begin
+  if frmWatchlist=nil then
+    frmWatchlist:=tfrmWatchlist.create(Application);
+
+  frmWatchlist.UpdateContext(@lastdebugcontext);
+  frmWatchlist.show;
 end;
 
 procedure TMemoryBrowser.miSetAddressClick(Sender: TObject);
@@ -4623,6 +4635,9 @@ begin
 
   if not memorybrowser.Visible then
     memorybrowser.show;
+
+  if (frmWatchlist<>nil) and (frmWatchlist.Visible) then
+    frmWatchlist.UpdateContext(@lastdebugcontext);
 end;
 
 initialization

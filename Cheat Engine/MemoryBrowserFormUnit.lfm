@@ -5,7 +5,7 @@ object MemoryBrowser: TMemoryBrowser
   Width = 716
   HelpContext = 12
   Caption = 'Memory Viewer'
-  ClientHeight = 553
+  ClientHeight = 558
   ClientWidth = 716
   Menu = MainMenu1
   OnClose = FormClose
@@ -500,18 +500,18 @@ object MemoryBrowser: TMemoryBrowser
   end
   object Panel4: TPanel
     Left = 0
-    Height = 248
+    Height = 253
     Top = 305
     Width = 716
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
-    ClientHeight = 248
+    ClientHeight = 253
     ClientWidth = 716
     TabOrder = 1
     object Splitter3: TSplitter
       Left = 500
-      Height = 246
+      Height = 251
       Top = 1
       Width = 5
       Align = alRight
@@ -522,7 +522,7 @@ object MemoryBrowser: TMemoryBrowser
     end
     object Panel3: TPanel
       Left = 1
-      Height = 246
+      Height = 251
       Top = 1
       Width = 499
       Align = alClient
@@ -531,19 +531,19 @@ object MemoryBrowser: TMemoryBrowser
     end
     object pnlStacktrace: TPanel
       Left = 505
-      Height = 246
+      Height = 251
       Top = 1
       Width = 210
       Align = alRight
       BevelInner = bvLowered
-      ClientHeight = 246
+      ClientHeight = 251
       ClientWidth = 210
       PopupMenu = pmStacktrace
       TabOrder = 1
       Visible = False
       object lvStacktraceData: TListView
         Left = 2
-        Height = 242
+        Height = 247
         Top = 2
         Width = 206
         Align = alClient
@@ -1121,6 +1121,11 @@ object MemoryBrowser: TMemoryBrowser
         Caption = 'Stacktrace'
         OnClick = Stacktrace1Click
       end
+      object MenuItem27: TMenuItem
+        Caption = 'Watchlist'
+        ShortCut = 16471
+        OnClick = MenuItem27Click
+      end
       object Breakpointlist1: TMenuItem
         Caption = 'Breakpointlist'
         ShortCut = 16450
@@ -1371,7 +1376,7 @@ object MemoryBrowser: TMemoryBrowser
       end
       object Disectwindow1: TMenuItem
         Caption = 'Dissect window(s)'
-        ShortCut = 16471
+        ShortCut = 49239
         OnClick = Disectwindow1Click
       end
       object DissectPEheaders1: TMenuItem

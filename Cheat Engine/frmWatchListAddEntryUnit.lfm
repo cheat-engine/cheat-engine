@@ -1,0 +1,111 @@
+object frmWatchListAddEntry: TfrmWatchListAddEntry
+  Left = 851
+  Height = 219
+  Top = 639
+  Width = 231
+  AutoSize = True
+  Caption = 'Add watcher entry'
+  ClientHeight = 219
+  ClientWidth = 231
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '1.6.0.4'
+  object edtExpression: TEdit
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = rgType
+    AnchorSideRight.Side = asrBottom
+    Left = 4
+    Height = 23
+    Top = 4
+    Width = 153
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Left = 4
+    BorderSpacing.Top = 4
+    TabOrder = 0
+    TextHint = 'Expression'
+  end
+  object rgType: TRadioGroup
+    AnchorSideLeft.Control = edtExpression
+    AnchorSideTop.Control = edtExpression
+    AnchorSideTop.Side = asrBottom
+    Left = 4
+    Height = 115
+    Top = 29
+    Width = 169
+    AutoFill = True
+    AutoSize = True
+    BorderSpacing.Top = 2
+    BorderSpacing.Right = 4
+    Caption = 'Type'
+    ChildSizing.LeftRightSpacing = 6
+    ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+    ChildSizing.EnlargeVertical = crsHomogenousChildResize
+    ChildSizing.ShrinkHorizontal = crsScaleChilds
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclTopToBottomThenLeftToRight
+    ChildSizing.ControlsPerLine = 5
+    ClientHeight = 95
+    ClientWidth = 165
+    ColumnLayout = clVerticalThenHorizontal
+    Columns = 2
+    ItemIndex = 0
+    Items.Strings = (
+      'Autoguess'
+      'Byte'
+      '2 Byte'
+      '4 Byte'
+      '8 Byte'
+      'Float'
+      'Double'
+      'String'
+      'Widestring'
+    )
+    TabOrder = 1
+  end
+  object Panel1: TPanel
+    AnchorSideLeft.Control = rgType
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = rgType
+    AnchorSideTop.Side = asrBottom
+    Left = 12
+    Height = 25
+    Top = 146
+    Width = 153
+    AutoSize = True
+    BorderSpacing.Top = 2
+    BorderSpacing.Bottom = 3
+    BevelOuter = bvNone
+    ClientHeight = 25
+    ClientWidth = 153
+    TabOrder = 2
+    object btnOK: TButton
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = Panel1
+      Left = 0
+      Height = 25
+      Top = 0
+      Width = 75
+      Caption = 'OK'
+      Constraints.MinWidth = 75
+      Default = True
+      ModalResult = 1
+      TabOrder = 0
+    end
+    object btnCancel: TButton
+      AnchorSideLeft.Control = btnOK
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Panel1
+      Left = 78
+      Height = 25
+      Top = 0
+      Width = 75
+      BorderSpacing.Left = 3
+      Cancel = True
+      Caption = 'Cancel'
+      Constraints.MinWidth = 75
+      ModalResult = 2
+      TabOrder = 1
+    end
+  end
+end

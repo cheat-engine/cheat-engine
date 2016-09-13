@@ -1,0 +1,94 @@
+object frmWatchlist: TfrmWatchlist
+  Left = 466
+  Height = 169
+  Top = 202
+  Width = 441
+  BorderStyle = bsSizeToolWin
+  Caption = 'Watch list'
+  ClientHeight = 169
+  ClientWidth = 441
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '1.6.0.4'
+  object lvWatchlist: TListView
+    Left = 0
+    Height = 169
+    Top = 0
+    Width = 441
+    Align = alClient
+    AutoWidthLastColumn = True
+    Columns = <    
+      item
+        Caption = 'Address/Expression'
+        Width = 114
+      end    
+      item
+        AutoSize = True
+        Caption = 'Value'
+        Width = 323
+      end>
+    ColumnClick = False
+    HideSelection = False
+    MultiSelect = True
+    PopupMenu = pmWatchlist
+    ReadOnly = True
+    RowSelect = True
+    TabOrder = 0
+    ViewStyle = vsReport
+    OnDblClick = lvWatchlistDblClick
+  end
+  object pmWatchlist: TPopupMenu
+    OnPopup = pmWatchlistPopup
+    left = 71
+    top = 69
+    object miAddItem: TMenuItem
+      Caption = 'Add Item'
+      ShortCut = 45
+      OnClick = miAddItemClick
+    end
+    object miEditItem: TMenuItem
+      Caption = 'Edit Item'
+      Default = True
+      OnClick = miEditItemClick
+    end
+    object miDeleteItems: TMenuItem
+      Caption = 'Delete Item(s)'
+      ShortCut = 46
+      OnClick = miDeleteItemsClick
+    end
+    object MenuItem2: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem4: TMenuItem
+      Caption = 'Browse memory region'
+      ShortCut = 32
+      OnClick = MenuItem4Click
+    end
+    object MenuItem1: TMenuItem
+      Caption = '-'
+    end
+    object miCopyToClipboard: TMenuItem
+      Caption = 'Copy expression(s) to clipboard'
+      ShortCut = 16451
+      OnClick = miCopyToClipboardClick
+    end
+    object miCopyToClipboardEx: TMenuItem
+      Caption = 'Copy expression(s) and value(s) to clipboard'
+      OnClick = miCopyToClipboardExClick
+    end
+    object miPasteFromClipboard: TMenuItem
+      Caption = 'Paste expression(s) from clipboard'
+      ShortCut = 16470
+      OnClick = miPasteFromClipboardClick
+    end
+    object miRefresh: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem3: TMenuItem
+      Caption = 'Refresh values'
+      OnClick = MenuItem3Click
+    end
+  end
+end

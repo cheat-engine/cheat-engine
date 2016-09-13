@@ -91,7 +91,8 @@ uses
   VirtualQueryExCache, disassemblerthumb, AccessedMemory, LuaStructureFrm,
   MemoryQuery, pointerparser, GnuAssembler, binutils, dbvmLoadManual, mikmod,
   frmEditHistoryUnit, LuaInternet, xinput, frmUltimap2Unit, cpuidunit, libipt,
-  DPIHelper, Graphics, fontSaveLoadRegistry, registry;
+  DPIHelper, Graphics, fontSaveLoadRegistry, registry, frmWatchlistUnit,
+frmWatchListAddEntryUnit;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in
