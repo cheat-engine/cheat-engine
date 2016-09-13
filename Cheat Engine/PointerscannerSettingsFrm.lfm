@@ -264,6 +264,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         Width = 210
         Caption = 'Only find paths with a static address'
         Checked = True
+        OnChange = cbStaticOnlyChange
         ParentShowHint = False
         ShowHint = True
         State = cbChecked

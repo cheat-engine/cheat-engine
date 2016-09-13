@@ -170,6 +170,7 @@ type
     procedure cbMaxOffsetsPerNodeChange(Sender: TObject);
     procedure cbMustEndWithSpecificOffsetChange(Sender: TObject);
     procedure cbShowAdvancedOptionsChange(Sender: TObject);
+    procedure cbStaticOnlyChange(Sender: TObject);
     procedure cbStaticStacksChange(Sender: TObject);
     procedure cbUseLoadedPointermapChange(Sender: TObject);
     procedure cbCompareToOtherPointermapsChange(Sender: TObject);
@@ -822,6 +823,9 @@ procedure TfrmPointerScannerSettings.cbMustStartWithBaseChange(Sender: TObject);
 begin
   panel12.visible:=cbMustStartWithBase.checked;
   updatepositions;
+
+  if cbMustStartWithBase.checked then
+    cbStaticOnly.Checked:=true;
 end;
 
 procedure TfrmPointerScannerSettings.iplistResize(Sender: TObject);
@@ -961,6 +965,12 @@ procedure TfrmPointerScannerSettings.cbShowAdvancedOptionsChange(Sender: TObject
 begin
   panel3.visible:=cbShowAdvancedOptions.checked;
   updatepositions;
+end;
+
+procedure TfrmPointerScannerSettings.cbStaticOnlyChange(Sender: TObject);
+begin
+  if cbStaticOnly.Checked=false then
+    cbMustStartWithBase.Checked:=false;
 end;
 
 procedure TfrmPointerScannerSettings.cbLimitScanToRegionFileChange(
