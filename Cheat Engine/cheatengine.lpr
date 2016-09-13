@@ -8,7 +8,7 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  controls, sysutils, Forms, dialogs, MainUnit, CEDebugger, NewKernelHandler,
+  controls, sysutils, Forms, LazUTF8, dialogs, MainUnit, CEDebugger, NewKernelHandler,
   CEFuncProc, ProcessHandlerUnit, symbolhandler, Assemblerunit, hypermode,
   byteinterpreter, addressparser, autoassembler, ProcessWindowUnit, MainUnit2,
   Filehandler, dbvmPhysicalMemoryHandler, frameHotkeyConfigUnit,
@@ -153,11 +153,11 @@ begin
       //it needs to load a table
       if fileexists(tabletoload)=false then //try to fix this
       begin
-        if fileexists(ansitoutf8(tabletoload)) then
-          tabletoload:=ansitoutf8(tabletoload)
+        if fileexists(WinCPToUTF8(tabletoload)) then
+          tabletoload:=WinCPToUTF8(tabletoload)
         else
-        if fileexists(utf8toansi(tabletoload)) then
-          tabletoload:=utf8toansi(tabletoload);
+        if fileexists(UTF8ToWinCP(tabletoload)) then
+          tabletoload:=UTF8ToWinCP(tabletoload);
       end;
 
       if origin='' then

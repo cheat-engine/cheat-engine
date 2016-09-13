@@ -36,6 +36,8 @@ Added scrollbox and radiogroup to the formdesigner
 Added Middle, MD5 and MD5 as allowable hotkeys
 Added controller keys as hotkeys
 Single stepping now shows an indication if an condition jump will be taken
+Added a watchlist to the debugger
+Added the 'align' assembler pseudo command (allocates memory so the next line is aligned on a block of the required size)
 
 
 lua:

@@ -6,7 +6,7 @@ interface
 
 {$ifdef windows}
 uses windows, LCLIntf, sysutils, symbolhandler, CEFuncProc, NewKernelHandler, math,
-  CustomTypeHandler, ProcessHandlerUnit, commonTypeDefs;
+  CustomTypeHandler, ProcessHandlerUnit, commonTypeDefs, LazUTF8;
 {$endif}
 
 {$ifdef unix}
@@ -249,7 +249,7 @@ begin
       try
         pbytearray(ws)[bytesize+1]:=0;
         pbytearray(ws)[bytesize]:=0;
-        result:=ws;
+        result:=utf16toutf8(ws);
       finally
         freemem(ws);
         ws:=nil;

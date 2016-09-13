@@ -8153,9 +8153,6 @@ begin
     valuetype:=foundlist.vartype;
     address := foundlist.GetAddress(item.Index, extra, Value);
     AddressString:=IntToHex(address,8);
-    part:=1;
-    Value := WinCPToUTF8(Value);
-    part:=2;
 
     hexadecimal:=foundlist.isHexadecimal;
 
@@ -8641,7 +8638,7 @@ begin
     memscan.inversescan:=cbNot.Checked and cbnot.Visible;
 
     memscan.firstscan(GetScanType2, getVarType2, roundingtype,
-      UTF8ToWinCP(scanvalue.Text), UTF8ToWinCP(svalue2), scanStart, scanStop,
+      scanvalue.Text, svalue2, scanStart, scanStop,
       cbHexadecimal.Checked, rbdec.Checked, cbunicode.Checked, cbCaseSensitive.Checked, fastscanmethod, edtAlignment.Text,
       TCustomType(vartype.items.objects[vartype.ItemIndex]));
 

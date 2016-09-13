@@ -8,7 +8,7 @@ interface
 
 uses jwawindows, windows, classes,LCLIntf,imagehlp,{psapi,}sysutils, cefuncproc,
   newkernelhandler,syncobjs, SymbolListHandler, fgl, typinfo, cvconst, PEInfoFunctions,
-  DotNetPipe, DotNetTypes, commonTypeDefs, math;
+  DotNetPipe, DotNetTypes, commonTypeDefs, math, LazUTF8;
 {$endif}
 
 {$ifdef unix}
@@ -2788,7 +2788,8 @@ function TSymhandler.loadmodulelist: boolean;  //todo: change to a quicker looku
 var
   ths: thandle;
   me32:MODULEENTRY32;
-  x: pchar;
+  s: string;
+  x: string;
 
   i: integer;
 
@@ -2851,11 +2852,12 @@ begin
           try
             if module32first(ths,me32) then
             repeat
-              x:=me32.szExePath;
-              if (x[0]<>'[') then //do not extract the filename if it's a 'special' marker
-                modulename:=extractfilename(x)
+              s:=WinCPToUTF8(pchar(@me32.szExePath[0]));
+              x:=s;
+              if (s[1]<>'[') then //do not extract the filename if it's a 'special' marker
+                modulename:=extractfilename(s)
               else
-                modulename:=x;
+                modulename:=s;
 
 
               alreadyInTheList:=false;

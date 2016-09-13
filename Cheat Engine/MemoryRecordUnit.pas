@@ -2292,10 +2292,10 @@ begin
         if Extra.stringData.unicode then
         begin
           pba[bufsize-2]:=0;
-          result:=WinCPToUTF8(wc);
+          result:=UTF16ToUTF8(wc)
         end
         else
-          result:=WinCPToUTF8(c);
+          result:=c;
       end;
 
       vtByteArray:
@@ -2589,17 +2589,10 @@ begin
         tempsa:=currentvalue;
 
         //copy the string to the buffer
-        for i:=0 to x-1 do
-        begin
-          if extra.stringData.unicode then
-          begin
-            wc[i]:=pwidechar(tempsw)[i];
-          end
-          else
-          begin
-            c[i]:=pchar(tempsa)[i];
-          end;
-        end;
+        if extra.stringData.unicode then
+          CopyMemory(buf, @tempsw[1], x*2)
+        else
+          CopyMemory(buf, @tempsa[1], x);
 
         if extra.stringData.unicode then
           bufsize:=x*2 //two times the number of characters

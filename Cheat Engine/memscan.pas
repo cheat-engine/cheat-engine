@@ -14,7 +14,7 @@ interface
 uses windows, FileUtil, LCLIntf,sysutils, classes,ComCtrls,dialogs, NewKernelHandler,math,
      SyncObjs, windows7taskbar,SaveFirstScan, savedscanhandler, autoassembler,
      symbolhandler, CEFuncProc,shellapi, customtypehandler,lua,lualib,lauxlib,
-     LuaHandler, fileaccess, groupscancommandparser, commonTypeDefs;
+     LuaHandler, fileaccess, groupscancommandparser, commonTypeDefs, LazUTF8;
 {$define customtypeimplemented}
 {$endif}
 
@@ -1916,19 +1916,21 @@ end;
 function TScanner.CaseSensitiveUnicodeStringExact(newvalue,oldvalue: pointer):boolean;
 var i: integer;
 begin
-  result:=false;
+ // result:=false;
 
-  for i:=1 to length(scanvalue1) do
-    if widescanvalue1[i]<>(pwidechar(newvalue)[i-1]) then exit;
+ { for i:=1 to length(scanvalue1) do
+    if widescanvalue1[i]<>(pwidechar(newvalue)[i-1]) then exit;   }
 
-  result:=true;
+  result:=strcomp(@widescanvalue1[1], pwidechar(newvalue))=0;
+
+ // result:=true;
 end;
 
 function TScanner.CaseInsensitiveUnicodeStringExact(newvalue,oldvalue: pointer):boolean;
 var i: integer;
 begin
-  result:=false;
-  i:=0;
+  result:=stricomp(@widescanvalue1[1], pwidechar(newvalue))=0;
+ { i:=0;
 
   for i:=1 to length(scanvalue1) do
   begin
@@ -1938,7 +1940,7 @@ begin
     if widescanvalue1[i]<>(pwidechar(newvalue)[i-1]) then exit;
   end;
 
-  result:=true; //it got here, so a match
+  result:=true; //it got here, so a match }
 end;
 
 function TScanner.ArrayOfByteExact_NibbleWildcardSupport(newvalue,oldvalue: pointer):boolean;
@@ -4007,7 +4009,7 @@ begin
     if variableType = vtString then
     begin
 
-      widescanvalue1:=scanvalue1;
+      widescanvalue1:=UTF8ToUTF16(scanvalue1);
     end;    
 
     nibbleSupport:=false;
