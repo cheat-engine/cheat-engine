@@ -295,7 +295,7 @@ type
     function Func39: TtkTokenKind; //enable
     function Func40: TtkTokenKind; //esp
     function Func42: TtkTokenKind; //ends
-    function Func43: TtkTokenKind; //alloc /define //rax   /rip
+    function Func43: TtkTokenKind; //alloc /define //rax   /rip /align
     function Func44: TtkTokenKind; //resb
     function Func45: TtkTokenKind;
     function Func46: TtkTokenKind; //resd
@@ -817,7 +817,8 @@ begin
   {$endif}
       if KeyComp('alloc') then Result := tkKey else
         if KeyComp('define') then Result := tkKey else
-          Result := tkIdentifier;
+          if KeyComp('align') then Result := tkKey else
+            Result := tkIdentifier;
 end;
 
 function TSynAASyn.Func44: TtkTokenKind; //rbx

@@ -3322,6 +3322,32 @@ begin
 
   if nroftokens=0 then exit;
 
+  if tokens[0][1]='A' then  //A* //allign
+  begin
+    if tokens[0]='ALIGN' then
+    begin
+      if nroftokens>=2 then
+      begin
+        i:=HexStrToInt(tokens[1]);
+
+        if nroftokens>=3 then
+          b:=HexStrToInt(tokens[2])
+        else
+          b:=0;
+
+        k:=i-(address mod i);
+
+        if k=i then exit(true);
+
+        for i:=0 to k-1 do
+          Add(bytes, b);
+
+        result:=true;
+        exit;
+      end;
+    end;
+  end;
+
   if tokens[0][1]='D' then  //D*
   begin
     if tokens[0]='DB' then
