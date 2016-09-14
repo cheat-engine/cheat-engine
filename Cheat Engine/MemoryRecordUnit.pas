@@ -2579,20 +2579,25 @@ begin
         if extra.stringData.unicode then
           x:=bufsize div 2; //each character is 2 bytes so only half the size is available
 
-        if Extra.stringData.ZeroTerminate then
-          x:=min(length(currentValue)+1,x) //also copy the zero terminator
-        else
-          x:=min(length(currentValue),x);
+
 
 
         tempsw:=currentvalue;
         tempsa:=currentvalue;
 
+
+
         //copy the string to the buffer
         if extra.stringData.unicode then
+        begin
+          x:=min(x,length(tempsw));
           CopyMemory(buf, @tempsw[1], x*2)
+        end
         else
+        begin
+          x:=min(x,length(tempsa));
           CopyMemory(buf, @tempsa[1], x);
+        end;
 
         if extra.stringData.unicode then
           bufsize:=x*2 //two times the number of characters
