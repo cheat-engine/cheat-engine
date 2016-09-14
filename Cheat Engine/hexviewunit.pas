@@ -534,7 +534,7 @@ begin
   begin
     if CharEncoding=ceutf8 then
     begin
-      b:=UTF8Length(wkey);
+      b:=Length(wkey);
       WriteProcessMemory(processhandle, pointer(selected), @wkey[1],b, bw);
       selected:=selected+1;
     end
