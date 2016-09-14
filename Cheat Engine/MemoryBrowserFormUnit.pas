@@ -1667,8 +1667,17 @@ begin
     fd:=Graphics.GetFontData(disassemblerview.font.handle);
     fd.handle:=fontdialog1.font.handle;
     fontdialog1.font.FontData:=fd;
+    fontdialog1.font.height:=fd.height;  //force a size update (gui only)
 
     btnFont.Caption:=fontdialog1.Font.Name+' '+inttostr(fontdialog1.Font.Size);
+
+
+
+    //FontDialog2.Font.Assign(hexview.HexFont);
+    fd:=Graphics.GetFontData(hexview.HexFont.handle);
+    fd.handle:=fontdialog2.Font.handle;
+    fontdialog2.Font.FontData:=fd;
+    fontdialog2.Font.Height:=fd.height;
 
     //set the current colors
     colors:=disassemblerview.colors;
@@ -1676,17 +1685,10 @@ begin
     //and now apply those colors
     cbColorGroupChange(cbColorGroup);
 
-    //FontDialog2.Font.Assign(hexview.HexFont);
-    fd:=Graphics.GetFontData(hexview.HexFont.handle);
-    fd.handle:=fontdialog2.Font.handle;
-    fontdialog2.Font.FontData:=fd;
-
-
     if showmodal=mrok then
     begin
       //set the colors and save to registry
-      disassemblerview.Font.Name:=fontdialog1.Font.name;
-      disassemblerview.Font.size:=fontdialog1.Font.size;
+      disassemblerview.Font:=fontdialog1.Font;
       disassemblerview.colors:=colors;
 
       hexview.HexFont:=fontdialog2.Font;
@@ -1794,6 +1796,7 @@ begin
   disassembler:=true;
 
   disassemblerview:=TDisassemblerview.Create(self);
+  disassemblerview.font:=mainform.font;
   disassemblerview.Align:=alClient;
   disassemblerview.Parent:=panel5;
   disassemblerview.PopupMenu:=debuggerpopup;
@@ -1801,6 +1804,9 @@ begin
   disassemblerview.OnDblClick:=disassemblerviewDblClick;
   disassemblerview.TopAddress:=$00400000;
   disassemblerview.name:='DisassemblerView';
+
+  if GetFontData(disassemblerview.font.handle).height>-13 then
+    disassemblerview.font.height:=-13;
 
   hexview:=THexview.create(self);
   hexview.Align:=alClient;

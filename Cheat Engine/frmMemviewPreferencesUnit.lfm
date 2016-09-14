@@ -18,9 +18,9 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     AnchorSideTop.Control = Label1
     AnchorSideTop.Side = asrBottom
     Left = 8
-    Height = 30
-    Top = 28
-    Width = 197
+    Height = 25
+    Top = 23
+    Width = 175
     AutoSize = True
     BorderSpacing.Left = 8
     Caption = 'Change disassembler font'
@@ -35,13 +35,13 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     AnchorSideRight.Control = btnFont
     AnchorSideRight.Side = asrBottom
     Left = 8
-    Height = 28
-    Top = 63
-    Width = 197
+    Height = 23
+    Top = 53
+    Width = 175
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Top = 5
     Constraints.MinWidth = 175
-    ItemHeight = 20
+    ItemHeight = 15
     ItemIndex = 0
     Items.Strings = (
       'Normal'
@@ -66,9 +66,9 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     AnchorSideRight.Side = asrBottom
     Cursor = crHandPoint
     Left = 8
-    Height = 160
-    Top = 93
-    Width = 197
+    Height = 135
+    Top = 78
+    Width = 175
     Anchors = [akTop, akLeft, akRight]
     AutoSize = True
     BorderSpacing.Top = 2
@@ -77,16 +77,16 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     ChildSizing.VerticalSpacing = 15
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
-    ClientHeight = 135
-    ClientWidth = 193
+    ClientHeight = 115
+    ClientWidth = 171
     TabOrder = 2
     OnClick = GroupBox1Click
     object lblNormal: TLabel
       Cursor = crHandPoint
       Left = 0
-      Height = 20
+      Height = 15
       Top = 5
-      Width = 125
+      Width = 98
       Caption = 'Default color'
       ParentColor = False
       OnClick = lblNormalClick
@@ -94,9 +94,9 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     object lblRegister: TLabel
       Cursor = crHandPoint
       Left = 0
-      Height = 20
-      Top = 40
-      Width = 125
+      Height = 15
+      Top = 35
+      Width = 98
       Caption = 'Register color'
       ParentColor = False
       OnClick = lblRegisterClick
@@ -104,9 +104,9 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     object lblSymbol: TLabel
       Cursor = crHandPoint
       Left = 0
-      Height = 20
-      Top = 75
-      Width = 125
+      Height = 15
+      Top = 65
+      Width = 98
       Caption = 'Symbol color'
       ParentColor = False
       OnClick = lblSymbolClick
@@ -114,9 +114,9 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     object lblHex: TLabel
       Cursor = crHandPoint
       Left = 0
-      Height = 20
-      Top = 110
-      Width = 125
+      Height = 15
+      Top = 95
+      Width = 98
       Caption = 'Hexadecimal color'
       ParentColor = False
       OnClick = lblHexClick
@@ -127,8 +127,8 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     AnchorSideTop.Control = GroupBox1
     AnchorSideTop.Side = asrBottom
     Left = 8
-    Height = 30
-    Top = 256
+    Height = 25
+    Top = 216
     Width = 75
     AutoSize = True
     BorderSpacing.Top = 3
@@ -144,8 +144,8 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = Button2
     Left = 87
-    Height = 30
-    Top = 256
+    Height = 25
+    Top = 216
     Width = 75
     AutoSize = True
     BorderSpacing.Left = 4
@@ -159,10 +159,10 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     AnchorSideLeft.Control = btnFont
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = Owner
-    Left = 62
-    Height = 20
+    Left = 61
+    Height = 15
     Top = 8
-    Width = 88
+    Width = 69
     BorderSpacing.Top = 8
     Caption = 'Disassembler'
     ParentColor = False
@@ -171,10 +171,10 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     AnchorSideLeft.Control = btnHexFont
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = Label1
-    Left = 272
-    Height = 20
+    Left = 256
+    Height = 15
     Top = 8
-    Width = 56
+    Width = 44
     Caption = 'Hexview'
     ParentColor = False
   end
@@ -183,9 +183,9 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = Label1
     AnchorSideTop.Side = asrBottom
-    Left = 213
-    Height = 30
-    Top = 28
+    Left = 191
+    Height = 25
+    Top = 23
     Width = 175
     AutoSize = True
     BorderSpacing.Left = 8

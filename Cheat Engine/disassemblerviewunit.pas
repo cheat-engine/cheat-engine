@@ -1099,7 +1099,6 @@ begin
   begin
     align:=alBottom;
     //autosize:=true;
-    height:=17;
     bevelInner:=bvLowered;
     bevelOuter:=bvLowered;
     Color:=clWhite;
@@ -1216,10 +1215,13 @@ begin
   disCanvas:=TPaintbox.Create(self);
   with disCanvas do
   begin
-    top:=header.Top+header.height;
+    AnchorSideTop.control:=header;
+    anchorsidetop.Side:=asrBottom;
     ParentFont:=true; //False;
 
-    height:=scrollbox.ClientHeight-header.height;
+    AnchorSideBottom.control:=scrollbox;
+    AnchorSideBottom.side:=asrBottom;
+
     anchors:=[akBottom, akLeft, akTop, akRight];
 
 

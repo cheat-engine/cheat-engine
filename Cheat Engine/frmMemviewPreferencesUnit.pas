@@ -77,10 +77,15 @@ resourcestring
 
 procedure TfrmMemviewPreferences.applyfont;
 begin
+  cbColorGroupChange(cbColorGroup); //save the current colors
+
   lblNormal.font:=fontdialog1.Font;
   lblRegister.font:=fontdialog1.Font;
   lblSymbol.font:=fontdialog1.Font;
   lblHex.font:=FontDialog1.font;
+
+  oldstate:=csUndefined;
+  cbColorGroupChange(cbColorGroup); //restore the colors
 
   DoAutoSize;
 end;
@@ -104,6 +109,9 @@ end;
 procedure TfrmMemviewPreferences.FormShow(Sender: TObject);
 begin
   applyfont;
+
+  oldstate:=csUndefined;
+  cbColorGroupChange(cbColorGroup);
 end;
 
 procedure TfrmMemviewPreferences.GroupBox1Click(Sender: TObject);
@@ -178,6 +186,8 @@ begin
 
 
   applyfont;
+  oldstate:=csUndefined;
+  cbColorGroupChange(cbColorGroup);
 end;
 
 procedure TfrmMemviewPreferences.btnFontClick(Sender: TObject);
@@ -192,7 +202,10 @@ begin
   if fontdialog1.execute then
   begin
     btnFont.Caption:=fontdialog1.Font.Name+' '+inttostr(fontdialog1.Font.Size);
+    oldstate:=csUndefined;
     applyfont;
+
+    cbColorGroupChange(cbColorGroup);
   end;
 end;
 
@@ -223,11 +236,14 @@ begin
 
   //load the new state
   oldstate:=TDisassemblerViewColorsState(cbColorGroup.ItemIndex);
-  groupbox1.Color:=colors[oldstate].backgroundcolor;
-  lblnormal.font.color:=colors[oldstate].normalcolor;
-  lblRegister.font.color:=colors[oldstate].registercolor;
-  lblSymbol.font.color:=colors[oldstate].symbolcolor;
-  lblHex.Font.color:=colors[oldstate].hexcolor;
+  if oldstate<>csUndefined then
+  begin
+    groupbox1.Color:=colors[oldstate].backgroundcolor;
+    lblnormal.font.color:=colors[oldstate].normalcolor;
+    lblRegister.font.color:=colors[oldstate].registercolor;
+    lblSymbol.font.color:=colors[oldstate].symbolcolor;
+    lblHex.Font.color:=colors[oldstate].hexcolor;
+  end;
 end;
 
 initialization

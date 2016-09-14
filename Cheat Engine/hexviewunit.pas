@@ -2123,8 +2123,8 @@ begin
   fHexFont.Charset:=DEFAULT_CHARSET;
   fHexFont.Color:=clwindowText;
   fHexFont.Height:=GetFontData(MainForm.font.handle).Height;
-  if fHexFont.Height>-11 then
-    fHexFont.Height:=-11;
+  if fHexFont.Height>-13 then
+    fHexFont.Height:=-13;
 
   fHexFont.Name:='Courier New';
   fHexFont.Style:=[];
