@@ -1916,12 +1916,13 @@ end;
 function TScanner.CaseSensitiveUnicodeStringExact(newvalue,oldvalue: pointer):boolean;
 var i: integer;
 begin
+  i:=length(widescanvalue1);
  // result:=false;
 
  { for i:=1 to length(scanvalue1) do
     if widescanvalue1[i]<>(pwidechar(newvalue)[i-1]) then exit;   }
 
-  result:=strcomp(@widescanvalue1[1], pwidechar(newvalue))=0;
+  result:=strlcomp(@widescanvalue1[1], pwidechar(newvalue),i)=0;
 
  // result:=true;
 end;
@@ -1929,7 +1930,8 @@ end;
 function TScanner.CaseInsensitiveUnicodeStringExact(newvalue,oldvalue: pointer):boolean;
 var i: integer;
 begin
-  result:=stricomp(@widescanvalue1[1], pwidechar(newvalue))=0;
+  i:=length(widescanvalue1);
+  result:=strlicomp(@widescanvalue1[1], pwidechar(newvalue), i)=0;
  { i:=0;
 
   for i:=1 to length(scanvalue1) do
