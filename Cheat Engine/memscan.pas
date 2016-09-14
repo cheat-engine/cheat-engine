@@ -1931,7 +1931,13 @@ function TScanner.CaseInsensitiveUnicodeStringExact(newvalue,oldvalue: pointer):
 var i: integer;
 begin
   i:=length(widescanvalue1);
-  result:=strlicomp(@widescanvalue1[1], pwidechar(newvalue), i)=0;
+
+  result:=true;
+
+  for i:=1 to length(widescanvalue1) do
+    if system.UpCase(widescanvalue1[i])<>system.UpCase(pwidechar(newvalue)[i-1]) then exit(false);
+
+  //result:=strlicomp(@widescanvalue1[1], pwidechar(newvalue), i)=0;
  { i:=0;
 
   for i:=1 to length(scanvalue1) do
