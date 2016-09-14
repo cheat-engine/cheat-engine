@@ -8858,8 +8858,8 @@ begin
   memscan.floatscanWithoutExponents:=cbFloatSimple.checked;
   memscan.inverseScan:=cbNot.Checked and cbnot.Visible;
 
-  memscan.nextscan(GetScanType2, roundingtype, UTF8ToWinCP(scanvalue.Text),
-    UTF8ToWinCP(svalue2), cbHexadecimal.Checked, rbdec.Checked,
+  memscan.nextscan(GetScanType2, roundingtype, scanvalue.Text,
+    svalue2, cbHexadecimal.Checked, rbdec.Checked,
     cbunicode.Checked, cbCaseSensitive.Checked, percentage, compareToSavedScan,
     currentlySelectedSavedResultname);
   DisableGui;
