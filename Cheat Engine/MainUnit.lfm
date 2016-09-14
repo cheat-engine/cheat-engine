@@ -1483,7 +1483,7 @@ object MainForm: TMainForm
           Width = 95
           Caption = 'Unrandomizer'
           Enabled = False
-          OnClick = cbUnrandomizerClick
+          OnChange = cbUnrandomizerClick
           OnMouseDown = cbUnrandomizerMouseDown
           TabOrder = 0
         end

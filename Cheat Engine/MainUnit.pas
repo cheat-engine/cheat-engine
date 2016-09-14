@@ -457,6 +457,7 @@ type
     procedure Address1Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure cbFastScanChange(Sender: TObject);
+    procedure cbUnrandomizerChange(Sender: TObject);
     procedure Description1Click(Sender: TObject);
     procedure edtAlignmentKeyPress(Sender: TObject; var Key: char);
     procedure FormActivate(Sender: TObject);
@@ -2919,6 +2920,11 @@ begin
 
   alignsizechangedbyuser := False;
   VarType.OnChange(vartype);
+end;
+
+procedure TMainForm.cbUnrandomizerChange(Sender: TObject);
+begin
+
 end;
 
 
@@ -7603,10 +7609,19 @@ begin
       begin
 
         progressbar := tprogressbar.Create(self);
-        progressbar.left := twincontrol(Sender).Left;
-        progressbar.top := twincontrol(Sender).top;
-        progressbar.Width := twincontrol(Sender).Width;
-        progressbar.Height := twincontrol(Sender).Height;
+        progressbar.AnchorSideLeft.control:=cbunrandomizer;
+        progressbar.AnchorSideLeft.side:=asrLeft;
+
+        progressbar.AnchorSideRight.control:=cbunrandomizer;
+        progressbar.AnchorSideRight.side:=asrRight;
+
+        progressbar.AnchorSideTop.control:=cbunrandomizer;
+        progressbar.AnchorSideTop.side:=asrTop;
+
+        progressbar.AnchorSideBottom.control:=cbunrandomizer;
+        progressbar.AnchorSideBottom.side:=asrBottom;
+
+        progressbar.Anchors:=[akTop, akLeft, akRight, akBottom];
 
         progressbar.parent := self;
         cbunrandomizer.Enabled := False;

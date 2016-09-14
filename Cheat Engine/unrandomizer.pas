@@ -6,18 +6,19 @@ unit unrandomizer;
 
 interface
 
-uses windows, CEFuncProc,dialogs,classes,comctrls,LCLIntf,sysutils,formsettingsunit,NewKernelHandler, commonTypeDefs,
-  MemFuncs;
+uses windows, CEFuncProc,dialogs,classes,comctrls,LCLIntf,sysutils,formsettingsunit,
+     NewKernelHandler, commonTypeDefs, MemFuncs;
 
 type Tunrandomize=class(tthread)
 private
   processid,processhandle: dword;
   originalcode: array of record
-                           address: dword;
+                           address: ptruint;
                            code: array of byte;
                          end;
   threaddone: boolean;
-  procedure save(address:dword; buf: pointer; size: integer);
+  procedure unrandomize64bit;
+  procedure save(address:ptruint; buf: pointer; size: integer);
   procedure done;
 public
   progressbar: tprogressbar;
@@ -30,11 +31,14 @@ end;
 
 implementation
 
-uses MainUnit, ProcessHandlerUnit;
+uses MainUnit, ProcessHandlerUnit, symbolhandler, autoassembler;
 
 resourcestring
   rsTheFollowingAddressesGotChanged = 'The following addresses got changed';
   rsTheUnrandomizerWillCurrentlyNotWorkOn64BitApplicat = 'The unrandomizer will currently not work on 64-bit applications';
+
+type
+  tcodereplace=array of byte;
 
 destructor TUnrandomize.destroy;
 begin
@@ -60,6 +64,7 @@ end;
 procedure TUnrandomize.showaddresses;
 var s: string;
     i: integer;
+    e: integer;
 begin
   if threaddone then
   begin
@@ -69,6 +74,7 @@ begin
 
     showmessage(s);
   end;
+
 
 end;
 
@@ -80,7 +86,7 @@ begin
     processhandle:=processhandlerunit.ProcessHandle; //e.g debugger
 
   //restore the replaced code with the original
-  for i:=0 to length(originalcode)-1 do
+  for i:=length(originalcode)-1 downto 0 do
   begin
     l:=length(originalcode[i].code);
     rewritecode(processhandle,originalcode[i].address,originalcode[i].code,l);
@@ -90,7 +96,7 @@ begin
   setlength(originalcode,0);
 end;
 
-procedure TUnrandomize.save(address:dword; buf: pointer; size: integer);
+procedure TUnrandomize.save(address:ptruint; buf: pointer; size: integer);
 var i: integer;
 begin
   i:=length(originalcode);
@@ -103,8 +109,200 @@ begin
 
 end;
 
+procedure TUnrandomize.unrandomize64bit;
+var memoryregion: tmemoryregions;
+    i,j: integer;
+    totalmemory: dword;
+    ar,aw: ptrUint;
+    buffer: array of byte;
+    totalread: dword;
+
+    defaultreturn: integer;
+    incremental: boolean;
+    counter: pointer;
+
+    genericreplace: tcodereplace;
+
+    l: dword;
+    c: tstringlist;
+
+    a: ptruint;
+    e: boolean;
+begin
+  processid:=processhandlerunit.ProcessID;
+  processhandle:=processhandlerunit.ProcessHandle;
+
+  c:=tstringlist.Create;
+
+  c.add('globalalloc(randomvalue,8)');
+  try
+    autoassemble(c,false);
+  except
+  end;
+
+  setlength(genericreplace,10);
+
+    //mov eax,defaultvalue
+  genericreplace[0]:=$a1;
+  pqword(@genericreplace[1])^:=symhandler.getAddressFromName('randomvalue');
+  genericreplace[9]:=$c3;
+
+  setlength(buffer,length(genericreplace));
+
+
+  a:=symhandler.getAddressFromName('msvcrt120.rand',true, e);
+  if not e then
+  begin
+    readprocessmemory(processhandle, pointer(a), @buffer[0], length(genericreplace), ar);
+    save(a,@buffer[j],length(genericreplace));
+    l:=length(genericreplace);
+    rewritecode(processhandle,a,@genericreplace[0],l);
+  end;
+
+  a:=symhandler.getAddressFromName('ntdll.rtlrandom',true, e);
+  if not e then
+  begin
+    readprocessmemory(processhandle, pointer(a), @buffer[0], length(genericreplace), ar);
+    save(a,@buffer[j],length(genericreplace));
+    l:=length(genericreplace);
+    rewritecode(processhandle,a,@genericreplace[0],l);
+  end;
+
+  a:=symhandler.getAddressFromName('rand',true, e);
+  if not e then
+  begin
+    readprocessmemory(processhandle, pointer(a), @buffer[0], length(genericreplace), ar);
+    save(a,@buffer[j],length(genericreplace));
+    l:=length(genericreplace);
+    rewritecode(processhandle,a,@genericreplace[0],l);
+  end;
+
+
+
+      {
+  c.clear;
+  c.Add('msvr120.rand:');
+  c.add('mov rax,[randomvalue]');
+  c.add('ret');
+  try
+    autoassemble(c,false);
+  except
+  end;
+
+  c.clear;
+  c.Add('ntdll.rtlrandom:');
+  c.add('mov rax,[randomvalue]');
+  c.add('ret');
+  try
+    autoassemble(c,false);
+  except
+  end;
+
+
+  c.clear;
+  c.Add('rand:');
+  c.add('mov rax,[randomvalue]');
+  c.add('ret');
+  try
+    autoassemble(c,false);
+  except
+  end;
+          }
+
+
+  totalmemory:=0;
+  ar:=0;
+  getexecutablememoryregionsfromregion(0,qword($7fffffffffffffff),memoryregion);
+  for i:=0 to length(memoryregion)-1 do
+  begin
+    totalmemory:=totalmemory+memoryregion[i].MemorySize;
+    if ar<memoryregion[i].MemorySize then ar:=memoryregion[i].MemorySize;
+  end;
+
+  totalread:=0;
+  progressbar.Max:=100;
+  progressbar.Position:=0;
+
+  setlength(buffer,ar);
+
+
+  for i:=0 to length(memoryregion)-1 do
+  begin
+
+    if terminated then break;
+
+    ar:=0;
+    if readprocessmemory(processhandle,pointer(memoryregion[i].baseaddress),@buffer[0],memoryregion[i].MemorySize,ar) then
+    begin
+      for j:=0 to ar-1 do
+      begin
+        //vc
+        if (j<ar-21) and
+           (buffer[j]=$48) and
+           (buffer[j+1]=$83) and
+           (buffer[j+4]=$e8) and
+           (buffer[j+9]=$69) and
+           (buffer[j+12]=$fd) and
+           (buffer[j+13]=$43) and
+           (buffer[j+14]=$03) and
+           (buffer[j+15]=$00) and
+           (buffer[j+16]=$81) and
+           (buffer[j+18]=$c3) and
+           (buffer[j+19]=$9e) and
+           (buffer[j+20]=$26) and
+           (buffer[j+21]=$00) then
+        begin
+          l:=length(genericreplace);
+          save(memoryregion[i].BaseAddress+j,@buffer[j],l);
+          rewritecode(processhandle,memoryregion[i].BaseAddress+j,@genericreplace[0],l);
+        end;
+
+        //fpc
+        //48 8d * * * 8b * * * * * 3b * * * * * 74 * c7 * * * * * 71 02 00 00 81 * * * * * 70 02 00 00
+
+        if (j<ar-39) and
+           (buffer[j]=$48) and
+           (buffer[j+1]=$8d) and
+           (buffer[j+5]=$8b) and
+           (buffer[j+11]=$3b) and
+           (buffer[j+17]=$74) and
+           (buffer[j+19]=$c7) and
+           (buffer[j+25]=$71) and
+           (buffer[j+26]=$02) and
+           (buffer[j+27]=$00) and
+           (buffer[j+28]=$00) and
+           (buffer[j+29]=$81) and
+           (buffer[j+35]=$70) and
+           (buffer[j+36]=$02) and
+           (buffer[j+37]=$00) and
+           (buffer[j+38]=$00) then
+        begin
+          l:=length(genericreplace);
+          save(memoryregion[i].BaseAddress+j,@buffer[j],l);
+          rewritecode(processhandle,memoryregion[i].BaseAddress+j,@genericreplace[0],l);
+        end;
+
+
+
+      end;
+
+    end;
+
+    inc(totalread,memoryregion[i].MemorySize);
+
+    progressbar.Position:=trunc((totalmemory/totalread)*100);
+  end;
+
+
+  c.free;
+
+  if terminated then synchronize(restore);
+  synchronize(done);
+
+
+end;
+
 procedure TUnrandomize.execute;
-type tcodereplace=array of byte;
 var memoryregion: tmemoryregions;
     i,j: integer;
     totalmemory: dword;
@@ -123,7 +321,11 @@ var memoryregion: tmemoryregions;
 
     l: dword;
 begin
-  if processhandler.is64bit then raise exception.create(rsTheUnrandomizerWillCurrentlyNotWorkOn64BitApplicat);
+  if processhandler.is64bit then
+  begin
+    unrandomize64bit; //raise exception.create(rsTheUnrandomizerWillCurrentlyNotWorkOn64BitApplicat);
+    exit;
+  end;
 
   defaultreturn:=formsettings.unrandomizersettings.defaultreturn;
 
