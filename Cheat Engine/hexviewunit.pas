@@ -8,7 +8,7 @@ uses
   windows, Classes, SysUtils, forms, controls, StdCtrls, ExtCtrls, comctrls, graphics,
   lmessages, menus,commctrl, symbolhandler, cefuncproc, newkernelhandler, math,
   Clipbrd,dialogs, changelist, DebugHelper, debuggertypedefinitions, maps, contnrs,
-  strutils, byteinterpreter, commonTypeDefs;
+  strutils, byteinterpreter, commonTypeDefs, lazutf8, lcltype;
 
 type
   TDisplayType = (dtByte, dtByteDec, dtWord, dtWordDec, dtDword, dtDwordDec, dtQword, dtQwordDec, dtSingle, dtDouble);
@@ -129,7 +129,7 @@ type
     procedure mbCanvasDoubleClick(Sender: TObject);
     function getAddressFromPosition(x, y: integer; var region: THexRegion): ptrUint;
     procedure RefocusIfNeeded;
-    procedure HandleEditKeyPress(key: char);
+    procedure HandleEditKeyPress(wkey: tutf8char);
     procedure setDisplayType(newdt: TDisplaytype);
     procedure setCharEncoding(newce: TCharEncoding);
 
@@ -146,7 +146,7 @@ type
 
   protected
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
-    procedure KeyPress(var Key: char); override;
+    procedure UTF8KeyPress(var UTF8Key: TUTF8Char); override;
   public
     fadetimer: integer;
     procedure LockRowsize(size: integer=0);
@@ -381,8 +381,10 @@ begin
   hexviewResize(self);
 end;
 
-procedure THexView.HandleEditKeyPress(key: char);
-var b: byte;
+procedure THexView.HandleEditKeyPress(wkey: TUTF8Char);
+var
+    b: byte;
+    w: widestring;
     unreadable: boolean;
     bw: ptrUint;
     x: byte;
@@ -391,12 +393,16 @@ var b: byte;
 
     vtype: TVariableType;
     hex: boolean;
+
+    key: char;
+
 begin
   if not isediting then exit;
 
   b:=getByte(selected,unreadable);
   if unreadable then exit; //unreadable
 
+  key:=wkey[1];
 
 
   if (editingtype=hrByte) then
@@ -526,9 +532,19 @@ begin
     end;
   end else
   begin
-    b:=ord(key);
-    WriteProcessMemory(processhandle, pointer(selected), @b, 1, bw);
-    selected:=selected+1;
+    if CharEncoding=ceutf8 then
+    begin
+      b:=UTF8Length(wkey);
+      WriteProcessMemory(processhandle, pointer(selected), @wkey[1],b, bw);
+      selected:=selected+1;
+    end
+    else
+    begin
+      w:=UTF8ToUTF16(wkey);
+
+      WriteProcessMemory(processhandle, pointer(selected), @w[1], length(w)*2, bw);
+      selected:=selected+2;
+    end;
   end;
 
 
@@ -611,16 +627,27 @@ begin
 
       region:=hrChar;
       result:=fAddress+bytesperline*row+column;
+
+      if CharEncoding=ceUtf16 then
+        result:=result-(result mod 2);
+
     end;
   end; //else it's a headerclick
 
 end;
-
+  {
 procedure THexView.KeyPress(var Key: char);
 begin
   inherited KeyPress(Key);
 
   HandleEditKeyPress(key);
+end;  }
+
+procedure THexView.UTF8KeyPress(var UTF8Key: TUTF8Char);
+begin
+  inherited UTF8KeyPress(UTF8Key);
+
+  HandleEditKeyPress(UTF8Key);
 end;
 
 procedure THexView.KeyDown(var Key: Word; Shift: TShiftState);
@@ -1761,7 +1788,7 @@ begin
         offscreenbitmap.canvas.Font.Color:=clRed;
 
 
-      if isEditing and (currentAddress=selected) then
+      if isEditing and ((currentAddress=selected) or ((editingtype=hrchar) and ((CharEncoding=ceUtf16) and (currentaddress=selected+1)))) then
       begin
         if (editingtype=hrByte) then
         begin
@@ -1842,7 +1869,7 @@ begin
         offscreenbitmap.canvas.TextOut(bytestart+bytepos*charsize, (2+i)*textheight, changelist.values[itemnr]);
 
 
-      if isEditing and (currentAddress=selected) then
+      if isEditing and ((currentAddress=selected) or ((editingtype=hrByte) and ((CharEncoding=ceUtf16) and (currentaddress=selected+1)))) then
       begin
         if (editingtype=hrChar) then
         begin

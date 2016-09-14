@@ -24,7 +24,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
       <MinorVersionNr Value="6"/>
-      <BuildNr Value="4822"/>
+      <BuildNr Value="4824"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="6.6.0"/>
@@ -328,11 +328,11 @@
         <PackageName Value="LCL"/>
       </Item7>
     </RequiredPackages>
-    <Units Count="403">
+    <Units Count="407">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="27"/>
+        <EditorIndex Value="40"/>
         <TopLine Value="281"/>
         <CursorPos Y="298"/>
         <UsageCount Value="211"/>
@@ -353,7 +353,7 @@
         <ComponentName Value="MainForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="9"/>
+        <EditorIndex Value="16"/>
         <TopLine Value="1218"/>
         <CursorPos Y="1251"/>
         <UsageCount Value="211"/>
@@ -371,7 +371,7 @@
       <Unit4>
         <Filename Value="CEFuncProc.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="31"/>
+        <EditorIndex Value="44"/>
         <TopLine Value="185"/>
         <CursorPos X="3" Y="200"/>
         <UsageCount Value="204"/>
@@ -380,7 +380,7 @@
       <Unit5>
         <Filename Value="ProcessHandlerUnit.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="13"/>
+        <EditorIndex Value="25"/>
         <TopLine Value="147"/>
         <CursorPos Y="168"/>
         <UsageCount Value="204"/>
@@ -389,7 +389,7 @@
       <Unit6>
         <Filename Value="symbolhandler.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="12"/>
+        <EditorIndex Value="24"/>
         <TopLine Value="2335"/>
         <CursorPos Y="2350"/>
         <UsageCount Value="204"/>
@@ -401,7 +401,7 @@
       <Unit7>
         <Filename Value="Assemblerunit.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="13"/>
         <TopLine Value="4710"/>
         <CursorPos X="29" Y="4718"/>
         <UsageCount Value="203"/>
@@ -424,7 +424,7 @@
       <Unit10>
         <Filename Value="byteinterpreter.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="16"/>
+        <EditorIndex Value="28"/>
         <TopLine Value="20"/>
         <CursorPos X="10" Y="35"/>
         <UsageCount Value="200"/>
@@ -448,7 +448,7 @@
       <Unit13>
         <Filename Value="autoassembler.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="11"/>
         <TopLine Value="1704"/>
         <CursorPos Y="1722"/>
         <UsageCount Value="200"/>
@@ -524,7 +524,7 @@
         <Filename Value="hotkeyhandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="HotkeyHandler"/>
-        <EditorIndex Value="22"/>
+        <EditorIndex Value="35"/>
         <TopLine Value="411"/>
         <CursorPos X="71" Y="441"/>
         <UsageCount Value="202"/>
@@ -536,7 +536,7 @@
         <ComponentName Value="FormHotkey"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="24"/>
+        <EditorIndex Value="37"/>
         <TopLine Value="49"/>
         <CursorPos X="64" Y="6"/>
         <UsageCount Value="202"/>
@@ -642,7 +642,7 @@
         <ComponentName Value="HotKeyForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="25"/>
+        <EditorIndex Value="38"/>
         <TopLine Value="229"/>
         <CursorPos Y="259"/>
         <UsageCount Value="211"/>
@@ -709,10 +709,11 @@
       <Unit39>
         <Filename Value="memscan.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="3636"/>
-        <CursorPos X="40" Y="3643"/>
+        <EditorIndex Value="18"/>
+        <TopLine Value="1924"/>
+        <CursorPos X="98" Y="1938"/>
         <UsageCount Value="209"/>
+        <Loaded Value="True"/>
       </Unit39>
       <Unit40>
         <Filename Value="savedscanhandler.pas"/>
@@ -754,7 +755,7 @@
         <ComponentName Value="formAddressChange"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="23"/>
+        <EditorIndex Value="36"/>
         <TopLine Value="1145"/>
         <CursorPos X="11" Y="1155"/>
         <UsageCount Value="203"/>
@@ -811,7 +812,7 @@
       <Unit50>
         <Filename Value="OpenSave.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="30"/>
+        <EditorIndex Value="43"/>
         <CursorPos X="34" Y="18"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
@@ -860,12 +861,12 @@
         <ComponentName Value="MemoryBrowser"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="10"/>
-        <TopLine Value="1140"/>
-        <CursorPos X="68" Y="1144"/>
+        <EditorIndex Value="17"/>
+        <TopLine Value="1234"/>
+        <CursorPos X="3" Y="1236"/>
         <UsageCount Value="220"/>
         <Bookmarks Count="1">
-          <Item0 X="8" Y="3451" ID="1"/>
+          <Item0 X="8" Y="3457" ID="1"/>
         </Bookmarks>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -874,8 +875,7 @@
         <Filename Value="disassemblerviewlinesunit.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="3"/>
-        <TopLine Value="303"/>
-        <CursorPos X="44" Y="315"/>
+        <CursorPos X="44" Y="12"/>
         <UsageCount Value="218"/>
         <Loaded Value="True"/>
       </Unit55>
@@ -883,8 +883,8 @@
         <Filename Value="disassemblerviewunit.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="2"/>
-        <TopLine Value="559"/>
-        <CursorPos X="42" Y="1272"/>
+        <TopLine Value="1045"/>
+        <CursorPos X="19" Y="1069"/>
         <UsageCount Value="218"/>
         <Loaded Value="True"/>
       </Unit56>
@@ -1453,10 +1453,15 @@
       <Unit112>
         <Filename Value="hexviewunit.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="2134"/>
-        <CursorPos X="27" Y="2130"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="4"/>
+        <TopLine Value="525"/>
+        <CursorPos Y="538"/>
         <UsageCount Value="208"/>
+        <Bookmarks Count="1">
+          <Item0 X="16" Y="405" ID="8"/>
+        </Bookmarks>
+        <Loaded Value="True"/>
       </Unit112>
       <Unit113>
         <Filename Value="debugeventhandler.pas"/>
@@ -1522,7 +1527,7 @@
       <Unit119>
         <Filename Value="MemoryRecordUnit.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="29"/>
+        <EditorIndex Value="42"/>
         <TopLine Value="529"/>
         <CursorPos X="61" Y="547"/>
         <ExtraEditorCount Value="1"/>
@@ -1710,7 +1715,7 @@
       <Unit140>
         <Filename Value="LuaHandler.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="28"/>
+        <EditorIndex Value="41"/>
         <TopLine Value="7221"/>
         <CursorPos X="40" Y="7106"/>
         <ExtraEditorCount Value="1"/>
@@ -1740,9 +1745,9 @@
         <ComponentName Value="frmMemviewPreferences"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="32"/>
-        <TopLine Value="88"/>
-        <CursorPos Y="91"/>
+        <EditorIndex Value="45"/>
+        <TopLine Value="219"/>
+        <CursorPos Y="241"/>
         <UsageCount Value="234"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -1969,10 +1974,11 @@
       <Unit168>
         <Filename Value="disassemblerComments.pas"/>
         <IsPartOfProject Value="True"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="395"/>
-        <CursorPos Y="414"/>
+        <EditorIndex Value="10"/>
+        <TopLine Value="253"/>
+        <CursorPos Y="269"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
       </Unit168>
       <Unit169>
         <Filename Value="frmFilePatcherUnit.pas"/>
@@ -2067,8 +2073,8 @@
         <Filename Value="symbollisthandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="SymbolListHandler"/>
-        <EditorIndex Value="7"/>
-        <TopLine Value="320"/>
+        <EditorIndex Value="14"/>
+        <TopLine Value="299"/>
         <CursorPos Y="336"/>
         <UsageCount Value="202"/>
         <Loaded Value="True"/>
@@ -2076,7 +2082,7 @@
       <Unit181>
         <Filename Value="networkInterface.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="8"/>
+        <EditorIndex Value="15"/>
         <TopLine Value="1636"/>
         <CursorPos Y="1651"/>
         <UsageCount Value="222"/>
@@ -2303,7 +2309,7 @@
         <ComponentName Value="frmMultilineInputQuery"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="34"/>
+        <EditorIndex Value="48"/>
         <TopLine Value="76"/>
         <CursorPos Y="80"/>
         <UsageCount Value="209"/>
@@ -3142,7 +3148,7 @@
         <Filename Value="commontypedefs.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="commonTypeDefs"/>
-        <EditorIndex Value="17"/>
+        <EditorIndex Value="29"/>
         <CursorPos X="87" Y="15"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
@@ -3347,10 +3353,10 @@
       <Unit334>
         <Filename Value="C:\lazarus\lcl\comctrls.pp"/>
         <UnitName Value="ComCtrls"/>
-        <EditorIndex Value="20"/>
+        <EditorIndex Value="33"/>
         <TopLine Value="1192"/>
         <CursorPos X="14" Y="1213"/>
-        <UsageCount Value="79"/>
+        <UsageCount Value="80"/>
         <Loaded Value="True"/>
       </Unit334>
       <Unit335>
@@ -3378,25 +3384,28 @@
       </Unit337>
       <Unit338>
         <Filename Value="C:\lazarus\lcl\include\control.inc"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="941"/>
-        <CursorPos Y="954"/>
-        <UsageCount Value="11"/>
+        <EditorIndex Value="21"/>
+        <TopLine Value="4768"/>
+        <CursorPos Y="4793"/>
+        <UsageCount Value="12"/>
+        <Loaded Value="True"/>
       </Unit338>
       <Unit339>
         <Filename Value="C:\lazarus\lcl\controls.pp"/>
         <UnitName Value="Controls"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="1590"/>
-        <CursorPos X="14" Y="1602"/>
+        <EditorIndex Value="7"/>
+        <TopLine Value="2046"/>
+        <CursorPos X="15" Y="2061"/>
         <UsageCount Value="124"/>
+        <Loaded Value="True"/>
       </Unit339>
       <Unit340>
         <Filename Value="C:\lazarus\lcl\include\wincontrol.inc"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="7736"/>
-        <CursorPos Y="7749"/>
+        <EditorIndex Value="9"/>
+        <TopLine Value="5664"/>
+        <CursorPos X="3" Y="5669"/>
         <UsageCount Value="80"/>
+        <Loaded Value="True"/>
       </Unit340>
       <Unit341>
         <Filename Value="libipt.pas"/>
@@ -3412,7 +3421,7 @@
         <ComponentName Value="frmUltimap2"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="33"/>
+        <EditorIndex Value="47"/>
         <TopLine Value="1633"/>
         <CursorPos X="31" Y="1652"/>
         <UsageCount Value="236"/>
@@ -3422,23 +3431,28 @@
       <Unit343>
         <Filename Value="C:\lazarus\lcl\graphics.pp"/>
         <UnitName Value="Graphics"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="264"/>
-        <CursorPos X="3" Y="276"/>
-        <UsageCount Value="98"/>
+        <EditorIndex Value="22"/>
+        <TopLine Value="545"/>
+        <CursorPos X="14" Y="562"/>
+        <UsageCount Value="99"/>
+        <Loaded Value="True"/>
       </Unit343>
       <Unit344>
         <Filename Value="C:\lazarus\components\lazutils\lazutf8.pas"/>
         <UnitName Value="LazUTF8"/>
-        <EditorIndex Value="-1"/>
-        <UsageCount Value="6"/>
+        <EditorIndex Value="5"/>
+        <TopLine Value="106"/>
+        <CursorPos X="11" Y="79"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
       </Unit344>
       <Unit345>
         <Filename Value="C:\lazarus\lcl\include\font.inc"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="611"/>
-        <CursorPos X="3" Y="620"/>
-        <UsageCount Value="92"/>
+        <EditorIndex Value="19"/>
+        <TopLine Value="1291"/>
+        <CursorPos X="3" Y="1295"/>
+        <UsageCount Value="93"/>
+        <Loaded Value="True"/>
       </Unit345>
       <Unit346>
         <Filename Value="C:\lazarus\lcl\include\customedit.inc"/>
@@ -3457,10 +3471,10 @@
       </Unit347>
       <Unit348>
         <Filename Value="C:\lazarus\fpc\3.0.0\source\rtl\objpas\sysutils\sysstrh.inc"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="12"/>
         <TopLine Value="91"/>
         <CursorPos X="23" Y="101"/>
-        <UsageCount Value="40"/>
+        <UsageCount Value="41"/>
         <Loaded Value="True"/>
       </Unit348>
       <Unit349>
@@ -3487,10 +3501,10 @@
       </Unit351>
       <Unit352>
         <Filename Value="C:\lazarus\fpc\3.0.0\source\rtl\inc\objpash.inc"/>
-        <EditorIndex Value="15"/>
+        <EditorIndex Value="27"/>
         <TopLine Value="378"/>
         <CursorPos X="7" Y="393"/>
-        <UsageCount Value="35"/>
+        <UsageCount Value="36"/>
         <Loaded Value="True"/>
       </Unit352>
       <Unit353>
@@ -3503,7 +3517,7 @@
       <Unit354>
         <Filename Value="winsapi.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="26"/>
+        <EditorIndex Value="39"/>
         <TopLine Value="345"/>
         <CursorPos Y="361"/>
         <UsageCount Value="234"/>
@@ -3659,7 +3673,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="11"/>
         <CursorPos Y="24"/>
-        <UsageCount Value="149"/>
+        <UsageCount Value="152"/>
       </Unit375>
       <Unit376>
         <Filename Value="C:\lazarus\fpc\3.0.0\source\packages\fcl-registry\src\winreg.inc"/>
@@ -3686,10 +3700,11 @@
       <Unit379>
         <Filename Value="C:\lazarus\fpc\3.0.0\source\packages\fcl-image\src\fpcanvas.pp"/>
         <UnitName Value="FPCanvas"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="78"/>
-        <CursorPos X="15" Y="91"/>
-        <UsageCount Value="21"/>
+        <EditorIndex Value="20"/>
+        <TopLine Value="86"/>
+        <CursorPos X="14" Y="101"/>
+        <UsageCount Value="22"/>
+        <Loaded Value="True"/>
       </Unit379>
       <Unit380>
         <Filename Value="C:\lazarus\fpc\3.0.0\source\packages\fcl-image\src\fpfont.inc"/>
@@ -3812,15 +3827,12 @@
         <Filename Value="frmWatchlistUnit.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="frmWatchlist"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="11"/>
-        <TopLine Value="100"/>
-        <CursorPos X="100" Y="113"/>
-        <UsageCount Value="51"/>
-        <Bookmarks Count="1">
-          <Item0 X="20" Y="94" ID="8"/>
-        </Bookmarks>
+        <EditorIndex Value="23"/>
+        <TopLine Value="176"/>
+        <CursorPos X="48" Y="186"/>
+        <UsageCount Value="54"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit396>
@@ -3828,11 +3840,12 @@
         <Filename Value="frmWatchListAddEntryUnit.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="frmWatchListAddEntry"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="21"/>
+        <EditorIndex Value="34"/>
         <TopLine Value="12"/>
         <CursorPos X="10" Y="23"/>
-        <UsageCount Value="25"/>
+        <UsageCount Value="28"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit397>
@@ -3845,16 +3858,16 @@
       </Unit398>
       <Unit399>
         <Filename Value="C:\lazarus\fpc\3.0.0\source\rtl\objpas\sysutils\sysunih.inc"/>
-        <EditorIndex Value="19"/>
-        <TopLine Value="38"/>
-        <CursorPos X="10" Y="57"/>
-        <UsageCount Value="11"/>
+        <EditorIndex Value="31"/>
+        <TopLine Value="34"/>
+        <CursorPos X="10" Y="50"/>
+        <UsageCount Value="12"/>
         <Loaded Value="True"/>
       </Unit399>
       <Unit400>
         <Filename Value="C:\lazarus\fpc\3.0.0\source\packages\rtl-objpas\src\inc\strutils.pp"/>
-        <EditorIndex Value="18"/>
-        <UsageCount Value="11"/>
+        <EditorIndex Value="30"/>
+        <UsageCount Value="12"/>
         <Loaded Value="True"/>
       </Unit400>
       <Unit401>
@@ -3866,12 +3879,45 @@
       </Unit401>
       <Unit402>
         <Filename Value="C:\lazarus\lcl\include\listitems.inc"/>
-        <EditorIndex Value="14"/>
+        <EditorIndex Value="26"/>
         <TopLine Value="28"/>
         <CursorPos Y="54"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="11"/>
         <Loaded Value="True"/>
       </Unit402>
+      <Unit403>
+        <Filename Value="C:\lazarus\lcl\dialogs.pp"/>
+        <UnitName Value="Dialogs"/>
+        <EditorIndex Value="46"/>
+        <TopLine Value="345"/>
+        <CursorPos X="14" Y="360"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit403>
+      <Unit404>
+        <Filename Value="C:\lazarus\fpc\3.0.0\source\rtl\objpas\sysutils\sysuni.inc"/>
+        <EditorIndex Value="32"/>
+        <TopLine Value="306"/>
+        <CursorPos X="5" Y="294"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit404>
+      <Unit405>
+        <Filename Value="C:\lazarus\lcl\lcltype.pp"/>
+        <UnitName Value="LCLType"/>
+        <EditorIndex Value="8"/>
+        <TopLine Value="45"/>
+        <CursorPos X="3" Y="61"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit405>
+      <Unit406>
+        <Filename Value="C:\lazarus\components\lazutils\lazutf16.pas"/>
+        <EditorIndex Value="6"/>
+        <TopLine Value="22"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit406>
     </Units>
     <OtherDefines Count="9">
       <Define0 Value="NOTMULTITHREADED"/>
@@ -3884,126 +3930,126 @@
       <Define7 Value="XDEBUG"/>
       <Define8 Value="memleaksearch"/>
     </OtherDefines>
-    <JumpHistory Count="30" HistoryIndex="28">
+    <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2432" TopLine="2425"/>
+        <Filename Value="hexviewunit.pas"/>
+        <Caret Line="11" Column="53"/>
       </Position1>
       <Position2>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2440" TopLine="2428"/>
+        <Filename Value="hexviewunit.pas"/>
+        <Caret Line="135" Column="39" TopLine="117"/>
       </Position2>
       <Position3>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2441" TopLine="2428"/>
+        <Filename Value="hexviewunit.pas"/>
+        <Caret Line="641" Column="3" TopLine="630"/>
       </Position3>
       <Position4>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2444" TopLine="2434"/>
+        <Filename Value="hexviewunit.pas"/>
+        <Caret Line="646" Column="32" TopLine="630"/>
       </Position4>
       <Position5>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2447" TopLine="2434"/>
+        <Filename Value="hexviewunit.pas"/>
+        <Caret Line="650" Column="24" TopLine="630"/>
       </Position5>
       <Position6>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2454" TopLine="2440"/>
+        <Filename Value="hexviewunit.pas"/>
+        <Caret Line="132" Column="38" TopLine="118"/>
       </Position6>
       <Position7>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2462" TopLine="2452"/>
+        <Filename Value="hexviewunit.pas"/>
+        <Caret Line="384" Column="44" TopLine="384"/>
       </Position7>
       <Position8>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2463" TopLine="2461"/>
+        <Filename Value="hexviewunit.pas"/>
+        <Caret Line="405" Column="16" TopLine="384"/>
       </Position8>
       <Position9>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2465" TopLine="2459"/>
+        <Filename Value="hexviewunit.pas"/>
+        <Caret Line="132" Column="44" TopLine="118"/>
       </Position9>
       <Position10>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2467" TopLine="2459"/>
+        <Filename Value="hexviewunit.pas"/>
+        <Caret Line="133" Column="38" TopLine="118"/>
       </Position10>
       <Position11>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2469" TopLine="2459"/>
+        <Filename Value="hexviewunit.pas"/>
+        <Caret Line="11" Column="62"/>
       </Position11>
       <Position12>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2470" TopLine="2459"/>
+        <Filename Value="hexviewunit.pas"/>
+        <Caret Line="640" Column="31" TopLine="629"/>
       </Position12>
       <Position13>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2476" TopLine="2459"/>
+        <Filename Value="hexviewunit.pas"/>
+        <Caret Line="11" Column="62"/>
       </Position13>
       <Position14>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2484" TopLine="2471"/>
+        <Filename Value="hexviewunit.pas"/>
+        <Caret Line="647" Column="18" TopLine="629"/>
       </Position14>
       <Position15>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2485" TopLine="2471"/>
+        <Filename Value="hexviewunit.pas"/>
+        <Caret Line="149" Column="21" TopLine="133"/>
       </Position15>
       <Position16>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2492" TopLine="2471"/>
+        <Filename Value="hexviewunit.pas"/>
+        <Caret Line="647" Column="30" TopLine="639"/>
       </Position16>
       <Position17>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2494" TopLine="2480"/>
+        <Filename Value="hexviewunit.pas"/>
+        <Caret Line="132" Column="34" TopLine="118"/>
       </Position17>
       <Position18>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2496" TopLine="2483"/>
+        <Filename Value="hexviewunit.pas"/>
+        <Caret Line="408" TopLine="384"/>
       </Position18>
       <Position19>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2654" TopLine="2606"/>
+        <Filename Value="symbollisthandler.pas"/>
+        <Caret Line="336" TopLine="320"/>
       </Position19>
       <Position20>
-        <Filename Value="frmWatchlistUnit.pas"/>
-        <Caret Line="110" Column="75" TopLine="97"/>
+        <Filename Value="hexviewunit.pas"/>
+        <Caret Line="649" Column="16" TopLine="633"/>
       </Position20>
       <Position21>
-        <Filename Value="byteinterpreter.pas"/>
-        <Caret Line="35" Column="99" TopLine="20"/>
+        <Filename Value="hexviewunit.pas"/>
+        <Caret Line="538" Column="70" TopLine="523"/>
       </Position21>
       <Position22>
-        <Filename Value="frmWatchlistUnit.pas"/>
-        <Caret Line="110" Column="75" TopLine="97"/>
+        <Filename Value="hexviewunit.pas"/>
+        <Caret Line="408" TopLine="393"/>
       </Position22>
       <Position23>
-        <Filename Value="frmWatchlistUnit.pas"/>
-        <Caret Line="111" Column="75" TopLine="98"/>
+        <Filename Value="hexviewunit.pas"/>
+        <Caret Line="545" Column="78" TopLine="532"/>
       </Position23>
       <Position24>
-        <Filename Value="frmWatchlistUnit.pas"/>
-        <Caret Line="113" Column="75" TopLine="100"/>
+        <Filename Value="hexviewunit.pas"/>
+        <Caret Line="543" TopLine="525"/>
       </Position24>
       <Position25>
-        <Filename Value="frmWatchlistUnit.pas"/>
-        <Caret Line="88" Column="5" TopLine="71"/>
+        <Filename Value="hexviewunit.pas"/>
+        <Caret Line="545" TopLine="525"/>
       </Position25>
       <Position26>
-        <Filename Value="frmWatchlistUnit.pas"/>
-        <Caret Line="186" Column="48" TopLine="176"/>
+        <Filename Value="hexviewunit.pas"/>
+        <Caret Line="543" TopLine="525"/>
       </Position26>
       <Position27>
-        <Filename Value="frmWatchlistUnit.pas"/>
-        <Caret Line="188" Column="26" TopLine="168"/>
+        <Filename Value="hexviewunit.pas"/>
+        <Caret Line="545" TopLine="525"/>
       </Position27>
       <Position28>
-        <Filename Value="frmWatchlistUnit.pas"/>
-        <Caret Line="59" Column="80" TopLine="46"/>
+        <Filename Value="hexviewunit.pas"/>
+        <Caret Line="543" TopLine="525"/>
       </Position28>
       <Position29>
-        <Filename Value="frmWatchlistUnit.pas"/>
-        <Caret Line="113" Column="94" TopLine="100"/>
+        <Filename Value="hexviewunit.pas"/>
+        <Caret Line="545" TopLine="525"/>
       </Position29>
       <Position30>
-        <Filename Value="byteinterpreter.pas"/>
-        <Caret Line="35" Column="10" TopLine="20"/>
+        <Filename Value="hexviewunit.pas"/>
+        <Caret Line="543" TopLine="525"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
@@ -4059,7 +4105,7 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <BreakPoints Count="17">
+    <BreakPoints Count="16">
       <Item1>
         <Kind Value="bpkSource"/>
         <WatchScope Value="wpsLocal"/>
@@ -4162,25 +4208,18 @@
         <Kind Value="bpkSource"/>
         <WatchScope Value="wpsLocal"/>
         <WatchKind Value="wpkWrite"/>
-        <Source Value="frmMemviewPreferencesUnit.pas"/>
-        <Line Value="91"/>
+        <Source Value="autoassembler.pas"/>
+        <Line Value="1719"/>
       </Item15>
       <Item16>
         <Kind Value="bpkSource"/>
         <WatchScope Value="wpsLocal"/>
         <WatchKind Value="wpkWrite"/>
-        <Source Value="autoassembler.pas"/>
-        <Line Value="1719"/>
-      </Item16>
-      <Item17>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
         <Source Value="LuaHandler.pas"/>
         <Line Value="7133"/>
-      </Item17>
+      </Item16>
     </BreakPoints>
-    <Watches Count="3">
+    <Watches Count="4">
       <Item1>
         <Expression Value="address"/>
         <DisplayStyle Value="wdfHex"/>
@@ -4192,6 +4231,10 @@
         <Expression Value="data^.address"/>
         <DisplayStyle Value="wdfHex"/>
       </Item3>
+      <Item4>
+        <Expression Value="fd.handle"/>
+        <DisplayStyle Value="wdfHex"/>
+      </Item4>
     </Watches>
     <Exceptions Count="8" IgnoreAll="True">
       <Item1>

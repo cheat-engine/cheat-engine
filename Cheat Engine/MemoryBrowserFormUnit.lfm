@@ -704,7 +704,6 @@ object MemoryBrowser: TMemoryBrowser
     end
     object MenuItem21: TMenuItem
       Caption = 'Text Encoding'
-      Visible = False
       object miTextEncoding8: TMenuItem
         AutoCheck = True
         Caption = '8 Bit'
