@@ -123,7 +123,8 @@ procedure findAllResultFilesForThisPtr(filename: string; rs: TStrings);
 
 implementation
 
-uses ProcessHandlerUnit, PointerscanStructures;
+uses ProcessHandlerUnit, PointerscanStructures, Maps, AvgLvlTree;
+
 
 procedure findAllResultFilesForThisPtr(filename: string; rs: TStrings);
 var
@@ -137,20 +138,64 @@ var
   sepindex: integer;
   temp: string;
   swap: boolean;
+
+  filemap: TMap;
+
+  f: string;
+  fn: pchar;
+
+  path: string;
+
+
+  it: TMapIterator;
 begin
   //search the folder this ptr file is in for .result.* files
   //extract1
+
+  filemap:=TMap.Create(its8, sizeof(pointer));
+
+  path:=ExtractFilePath(filename);
+
   if FindFirst(filename+'.results.*', 0, fr)=0 then
   begin
     repeat
-      rs.add(extractfilepath(filename)+fr.Name);
+      ext1:=ExtractFileExt(fr.name);
+      ext1:=copy(ext1, 2, length(ext1)-1);
+
+      if TryStrToInt64('$'+ext1, v1) then
+      begin
+        f:=path+fr.name;
+        getmem(fn, length(f)+1);
+        strcopy(fn, @f[1]);
+
+        filemap.Add(v1, fn);
+      end;
     until FindNext(fr)<>0;
 
     FindClose(fr);
   end;
 
+  it:=TMapIterator.Create(filemap);
+  it.First;
+  while not it.EOM do
+  begin
+    it.GetData(fn);
+    rs.add(fn);
+    freemem(fn);
+    it.Next;
+  end;
+
+  it.free;
+  filemap.Clear;
+  filemap.Free;
+
+  //add to rs
+  //      rs.add(extractfilepath(filename)+fr.Name);
+
   //sort the results based on the extension
   //keep in mind that base address sorting has as extention "moduleid-offset"
+
+ (*
   if rs.count>0 then
   begin
   {  basesort:=pos('-', ExtractFileExt(rs[0]))>0;     }
@@ -188,11 +233,11 @@ begin
       end;
     except
       //one of these could not be interpreted as a proper hexadecimal offset, so no need to sort, it's unsorted
-      beep;
+      //beep;
     end;
 
   end;
-
+   *)
  // showmessage(rs.text);
 
 
@@ -634,6 +679,7 @@ begin
 
   //get the filenames
   fnames:=tstringlist.create;
+
   findAllResultFilesForThisPtr(filename, fnames);
   setlength(filenames, fnames.count);
   for i:=0 to fnames.count-1 do
