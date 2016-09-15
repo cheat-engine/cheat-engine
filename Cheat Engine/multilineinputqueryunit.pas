@@ -55,10 +55,6 @@ begin
   f.memo1.Lines.AddStrings(values);
 
 
-  i:=f.lblPrompt.Canvas.TextWidth(APrompt);
-  if f.ClientWidth<i+6 then
-    f.width:=i+6;
-
   if f.showmodal=mrok then
   begin
     values.Clear;

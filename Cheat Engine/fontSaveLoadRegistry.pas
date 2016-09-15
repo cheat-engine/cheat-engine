@@ -8,7 +8,7 @@ unit fontSaveLoadRegistry;
 interface
 
 uses
-  Classes, SysUtils, registry, Graphics;
+  Classes, SysUtils, registry, Graphics, LazUTF8;
 
 procedure SaveFontToRegistry(f: TFont; reg: TRegistry);
 procedure LoadFontFromRegistry(f: TFont; reg: TRegistry);
@@ -26,17 +26,20 @@ begin
   reg.WriteInteger('Style', integer(fd.Style));
   reg.WriteInteger('CharSet', integer(fd.CharSet));
   reg.WriteInteger('Quality', integer(fd.Quality));
-  reg.WriteString('Name', fd.Name);
+  reg.WriteString('Name', WinCPToUTF8(fd.Name));
   reg.WriteInteger('Orientation', fd.Orientation);
   reg.WriteInteger('Color', f.Color);
 end;
 
 procedure LoadFontFromRegistry(f: TFont; reg: TRegistry);
-var fd: TFontData;
+var
+  fd: TFontData;
+  s: string;
 begin
   try
     f.Height:=reg.ReadInteger('Height');
-    f.Name:=reg.ReadString('Name');
+    s:=UTF8ToWinCP(reg.ReadString('Name'));
+    f.Name:=s;
     f.Color:=reg.ReadInteger('Color');
     integer(fd.Pitch):=reg.ReadInteger('Pitch');
     integer(fd.Style):=reg.ReadInteger('Style');
