@@ -61,6 +61,7 @@ type
     MenuItem25: TMenuItem;
     MenuItem26: TMenuItem;
     MenuItem27: TMenuItem;
+    miTextEncodingUTF8: TMenuItem;
     miSetAddress: TMenuItem;
     miGNUAssembler: TMenuItem;
     miBinutilsSelect: TMenuItem;
@@ -85,7 +86,7 @@ type
     miGotoBookmark7: TMenuItem;
     miGotoBookmark8: TMenuItem;
     miGotoBookmark9: TMenuItem;
-    miTextEncoding8: TMenuItem;
+    miTextEncodingAscii: TMenuItem;
     miTextEncoding16: TMenuItem;
     miReferencedFunctions: TMenuItem;
     miUserDefinedHeader: TMenuItem;
@@ -1233,7 +1234,10 @@ end;
 
 procedure TMemoryBrowser.miTextEncodingClick(Sender: TObject);
 begin
-  if miTextEncoding8.checked then
+  if miTextEncodingAscii.checked then
+    hexview.CharEncoding:=ceAscii
+  else
+  if miTextEncodingUTF8.checked then
     hexview.CharEncoding:=ceUtf8
   else
     hexview.CharEncoding:=ceUtf16;

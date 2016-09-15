@@ -8,11 +8,11 @@ uses
   windows, Classes, SysUtils, forms, controls, StdCtrls, ExtCtrls, comctrls, graphics,
   lmessages, menus,commctrl, symbolhandler, cefuncproc, newkernelhandler, math,
   Clipbrd,dialogs, changelist, DebugHelper, debuggertypedefinitions, maps, contnrs,
-  strutils, byteinterpreter, commonTypeDefs, lazutf8, lcltype;
+  strutils, byteinterpreter, commonTypeDefs, lazutf8, lazutf16, lcltype;
 
 type
   TDisplayType = (dtByte, dtByteDec, dtWord, dtWordDec, dtDword, dtDwordDec, dtQword, dtQwordDec, dtSingle, dtDouble);
-  TCharEncoding = (ceUtf8, ceUtf16);
+  TCharEncoding = (ceAscii, ceUtf8, ceUtf16);
 
 const
   DisplayTypeByteSize: array [dtByte..dtDouble] of integer =(1,1, 2,2, 4, 4, 8,8, 4, 8); //update both if adding something new
@@ -108,10 +108,15 @@ type
     procedure setAddress(a: ptrUint);
     procedure render;
     procedure setByte(a: ptrUint;value: byte);
+
+    function getUTF8CharByteLength(a: ptruint): integer;
+    function getUTF16CharByteLength(a: ptruint): integer;
+
     function getByte(a: ptrUint; var unreadable: boolean): byte; overload;
     function getByte(a: ptrUint): string; overload;
     function getWord(a: ptrUint): string;
     function getDWord(a: ptrUint): string;
+    function getDwordValue(a: ptruint; out unreadable: boolean): dword;
     function getQWord(a: ptrUint): string;
     function getByteDec(a: ptrUint; full: boolean=false): string;
     function getWordDec(a: ptrUint; full: boolean=false): string;
@@ -119,7 +124,7 @@ type
     function getQWordDec(a: ptrUint; full: boolean=false): string;
     function getSingle(a: ptrUint; full: boolean=false): string;
     function getDouble(a: ptrUint; full: boolean=false): string;
-    function getChar(a: ptrUint): string;
+    function getChar(a: ptrUint; out charlength: integer): string;
     function inModule(a: ptrUint): boolean;
     procedure MouseScroll(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
     procedure ScrollBarScroll(Sender: TObject; ScrollCode: TScrollCode; var ScrollPos: Integer);
@@ -532,13 +537,18 @@ begin
     end;
   end else
   begin
+    if CharEncoding=ceAscii then
+      WriteProcessMemory(processhandle, pointer(selected), @wkey[1],1, bw)
+    else
     if CharEncoding=ceutf8 then
     begin
+     // testcode: wkey:='한글';
       b:=Length(wkey);
       WriteProcessMemory(processhandle, pointer(selected), @wkey[1],b, bw);
-      selected:=selected+1;
+      selected:=selected+b;
     end
     else
+    if charencoding=ceUtf16 then
     begin
       w:=UTF8ToUTF16(wkey);
 
@@ -1383,7 +1393,7 @@ begin
 
 
     if symhandler.getmodulebyaddress(fAddress,mi) then
-      memoryInfo:=memoryInfo+' '+rsModule+'='+ansitoutf8(mi.modulename);
+      memoryInfo:=memoryInfo+' '+rsModule+'='+mi.modulename;
 
   except
   end;
@@ -1649,13 +1659,22 @@ begin
 end;
 
 
-function THexView.getChar(a: ptrUint): string;
+function THexView.getChar(a: ptrUint; out charlength: integer): string;
 var err: boolean;
     w: word;
     b,b2: byte;
+    dw: dword;
 
     wc: widechar;
+
+    ws: WideString;
+
+    c: TUTF8Char;
+    i,l: integer;
+
 begin
+
+  charlength:=1;
   b:=getbyte(a,err);
   if err then
   begin
@@ -1663,16 +1682,50 @@ begin
     exit;
   end;
 
-  if fCharEncoding=ceUtf8 then
+  if fCharEncoding=ceAscii then
   begin
     if b in [0..31] then
       result:='.'
     else
       result:=chr(b);
+
+
+  end
+  else
+  if fCharEncoding=ceutf8 then
+  begin
+    dw:=getDwordValue(a, err);
+
+    if err then exit('?');
+
+    l:=UTF8CharacterLength(pchar(@dw));
+    if l=0 then l:=1;
+    charlength:=l;
+
+    setlength(result,l);
+    CopyMemory(@result[1], @dw, l);
+
   end
   else
   if fCharEncoding=ceUtf16 then
   begin
+    dw:=getDwordValue(a, err);
+
+    if err then exit('?');
+
+    l:=UTF16CharacterLength(pwidechar(@dw));
+    if l=0 then l:=1;
+    charlength:=l*sizeof(widechar);
+
+    if l>1 then
+    asm
+      nop;
+    end;
+    setlength(ws, l);
+    copymemory(@ws[1], @dw,l*sizeof(widechar));
+
+    result:=ws;
+    {
     b2:=getByte(a+1,err);
     if err then
       result:='?'
@@ -1682,8 +1735,50 @@ begin
       wc:=widechar(w);
 
       result:=wc;
-    end;
+    end; }
   end;
+end;
+
+function THexView.getDwordValue(a: ptruint; out unreadable: boolean): dword;
+var
+  pdw: PByteArray;
+begin
+  pdw:=@result;
+  pdw[0]:=getbyte(a,unreadable);
+  if not unreadable then
+    pdw[1]:=getbyte(a+1,unreadable);
+
+  if not unreadable then
+    pdw[2]:=getbyte(a+2,unreadable);
+
+  if not unreadable then
+    pdw[3]:=getbyte(a+3,unreadable);
+end;
+
+function THexView.getUTF8CharByteLength(a: ptruint): integer;
+var
+  dw: dword;
+
+  err: boolean;
+begin
+  dw:=getDwordValue(a, err);
+  if not err then
+    result:=max(1,UTF8CharacterLength(pchar(@dw)))
+  else
+    result:=1;
+end;
+
+function THexView.getUTF16CharByteLength(a: ptruint): integer;
+var
+  dw: dword;
+
+  err: boolean;
+begin
+  dw:=getDwordValue(a, err);
+  if not err then
+    result:=max(2,UTF16CharacterLength(pwidechar(@dw))*sizeof(widechar))
+  else
+    result:=2;
 end;
 
 
@@ -1711,6 +1806,12 @@ var
   different: boolean;
 
   bp: PBreakpoint;
+
+  char: string;
+  nextCharAddress: ptruint;
+  lastcharsize: integer;
+
+  selectedcharsize: integer;
 begin
   if bytesperline<=0 then exit;
   if Parent=nil then exit;
@@ -1733,6 +1834,7 @@ begin
   seperatorindex:=0;
 
   currentaddress:=fAddress;
+  nextCharAddress:=currentaddress;
 
   offscreenbitmap.Canvas.TextOut(0,0,memoryInfo);
   offscreenbitmap.Canvas.TextOut(0, textheight, rsAddress);
@@ -1772,6 +1874,16 @@ begin
 
   itemnr:=0;
 
+  if isEditing then
+  begin
+    case CharEncoding of
+      ceAscii: selectedcharsize:=1;
+      ceUtf8: selectedcharsize:=getUTF8CharByteLength(selected);
+      ceUtf16: selectedcharsize:=getUTF16CharByteLength(selected);
+    end;
+
+  end;
+
   for i:=0 to totallines-1 do
   begin
     offscreenbitmap.Canvas.TextOut(0, (2+i)*textheight,inttohex(currentaddress,8));
@@ -1788,9 +1900,12 @@ begin
         offscreenbitmap.canvas.Font.Color:=clRed;
 
 
-      if isEditing and ((currentAddress=selected) or ((editingtype=hrchar) and ((CharEncoding=ceUtf16) and (currentaddress=selected+1)))) then
+
+
+      //if isEditing and ((currentAddress=selected) or ((editingtype=hrchar) and ((CharEncoding=ceUtf16) and (currentaddress=selected+1)))) then
+      if isEditing and inrangex(currentAddress, selected, selected+selectedcharsize-1) then
       begin
-        if (editingtype=hrByte) then
+        if (editingtype=hrByte) and (currentaddress=selected) then
         begin
           offscreenbitmap.canvas.Brush.Color:=clHighlight;
           offscreenbitmap.canvas.Font.Color:=clHighlightText;
@@ -1869,9 +1984,10 @@ begin
         offscreenbitmap.canvas.TextOut(bytestart+bytepos*charsize, (2+i)*textheight, changelist.values[itemnr]);
 
 
-      if isEditing and ((currentAddress=selected) or ((editingtype=hrByte) and ((CharEncoding=ceUtf16) and (currentaddress=selected+1)))) then
+      //if isEditing and ((currentAddress=selected) or ((editingtype=hrByte) and ((CharEncoding=ceUtf16) and (currentaddress=selected+1)))) then
+      if isEditing and inrangex(currentAddress, selected, selected+selectedcharsize-1) then
       begin
-        if (editingtype=hrChar) then
+        if (editingtype=hrChar) and (currentaddress=selected) then
         begin
           offscreenbitmap.canvas.Brush.Color:=clHighlight;
           offscreenbitmap.canvas.Font.Color:=clHighlightText;
@@ -1883,8 +1999,13 @@ begin
         end;
       end;
 
-      if (fCharEncoding=ceUtf8) or (j mod 2=0) then
-        offscreenbitmap.canvas.TextOut(charstart+j*charsize, (2+i)*textheight, getChar(currentAddress)); //char
+      if currentAddress=nextCharAddress then //(fCharEncoding in [ceAscii, ceUtf8]) or (j mod 2=0) then
+      begin
+        char:=getChar(currentAddress, lastcharsize);
+        offscreenbitmap.canvas.TextOut(charstart+j*charsize, (2+i)*textheight, char); //char
+
+        inc(nextCharAddress, lastcharsize);
+      end;
 
 
       offscreenbitmap.canvas.Font.Color:=clWindowText;

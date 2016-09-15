@@ -704,17 +704,24 @@ object MemoryBrowser: TMemoryBrowser
     end
     object MenuItem21: TMenuItem
       Caption = 'Text Encoding'
-      object miTextEncoding8: TMenuItem
+      object miTextEncodingAscii: TMenuItem
         AutoCheck = True
-        Caption = '8 Bit'
+        Caption = 'Ascii'
         Checked = True
+        GroupIndex = 1
+        RadioItem = True
+        OnClick = miTextEncodingClick
+      end
+      object miTextEncodingUTF8: TMenuItem
+        AutoCheck = True
+        Caption = 'UTF-8'
         GroupIndex = 1
         RadioItem = True
         OnClick = miTextEncodingClick
       end
       object miTextEncoding16: TMenuItem
         AutoCheck = True
-        Caption = '16 Bit'
+        Caption = 'UTF-16'
         GroupIndex = 1
         RadioItem = True
         OnClick = miTextEncodingClick
