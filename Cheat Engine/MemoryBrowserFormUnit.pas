@@ -1669,9 +1669,13 @@ begin
   with TfrmMemviewPreferences.create(self) do
   begin
     fd:=Graphics.GetFontData(disassemblerview.font.handle);
-    fd.handle:=fontdialog1.font.handle;
-    fontdialog1.font.FontData:=fd;
-    fontdialog1.font.height:=fd.height;  //force a size update (gui only)
+    fontdialog1.font.Name:=fd.Name;
+    fontdialog1.font.height:=fd.height;
+    fontdialog1.font.Pitch:=fd.Pitch;
+    fontdialog1.font.Style:=fd.Style;
+    fontdialog1.font.CharSet:=fd.CharSet;
+    fontdialog1.font.Quality:=fd.Quality;
+    fontdialog1.font.Orientation:=fd.Orientation;
 
     btnFont.Caption:=fontdialog1.Font.Name+' '+inttostr(fontdialog1.Font.Size);
 
@@ -1679,9 +1683,15 @@ begin
 
     //FontDialog2.Font.Assign(hexview.HexFont);
     fd:=Graphics.GetFontData(hexview.HexFont.handle);
-    fd.handle:=fontdialog2.Font.handle;
-    fontdialog2.Font.FontData:=fd;
-    fontdialog2.Font.Height:=fd.height;
+    fontdialog2.font.Name:=fd.Name;
+    fontdialog2.font.height:=fd.height;
+    fontdialog2.font.Pitch:=fd.Pitch;
+    fontdialog2.font.Style:=fd.Style;
+    fontdialog2.font.CharSet:=fd.CharSet;
+    fontdialog2.font.Quality:=fd.Quality;
+    fontdialog2.font.Orientation:=fd.Orientation;
+
+
 
     //set the current colors
     colors:=disassemblerview.colors;
