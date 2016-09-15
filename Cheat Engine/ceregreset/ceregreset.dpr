@@ -19,7 +19,28 @@ uses
   registry;
 
 
+procedure DeleteFullRegKey(reg: Tregistry; keyname: string);
+var i: integer;
+    r: Tregistry;
+    s: tstringlist;
+begin
+  r:=TRegistry.Create;
+  r.RootKey:=HKEY_CURRENT_USER;
+  if r.OpenKey(reg.CurrentPath+'\'+keyname, false) then
+  begin
+    s:=tstringlist.create;
+    r.GetKeyNames(s);
+    for i:=0 to s.count-1 do
+      DeleteFullRegKey(r, s[i]);
 
+    s.free;
+    r.free;
+  end;
+
+  reg.DeleteKey(keyname);
+end;
+
+procedure resetSettings;
 var reg: tregistry;
     silent: boolean;
     i,j: integer;
@@ -33,7 +54,6 @@ var reg: tregistry;
     ki: TRegKeyInfo;
 begin
   silent:=false;
-  { TODO -oUser -cConsole Main : Insert code here }
 
   needsToSaveStuff:=false;
   deletecustomtypes:=true;
@@ -84,7 +104,7 @@ begin
             reg.DeleteKey(names[i]);
         end
         else
-        reg.DeleteKey(names[i]);
+          deleteFullRegKey(reg, names[i]);
       end;
 
 
@@ -106,5 +126,12 @@ begin
     if not silent then
       messagebox(0,'Couldn''t reset the settings','Registry Reset',0);
   end;
+end;
+
+
+
+
+begin
+  resetSettings;
 end.
  
