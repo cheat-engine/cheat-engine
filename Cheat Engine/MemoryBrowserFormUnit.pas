@@ -1821,10 +1821,16 @@ begin
   hexview.Name:='HexadecimalView';
 
   //load from the registry
+  f:=TFont.create;
   reg:=Tregistry.Create;
   try
+
+
     if reg.OpenKey('\Software\Cheat Engine\Disassemblerview\Font',false) then
-      LoadFontFromRegistry(disassemblerview.font, reg);
+    begin
+      LoadFontFromRegistry(f, reg);
+      disassemblerview.font:=f;
+    end;
 
     if reg.OpenKey('\Software\Cheat Engine\Disassemblerview\',false) then
     begin
@@ -1835,10 +1841,14 @@ begin
     end;
 
     if reg.OpenKey('\Software\Cheat Engine\Hexview\Font',false) then
-      LoadFontFromRegistry(hexview.hexfont, reg);
+    begin
+      LoadFontFromRegistry(f, reg);
+      hexview.hexfont:=f;
+    end;
 
 
   finally
+    f.free;
     reg.free;
   end;
 
