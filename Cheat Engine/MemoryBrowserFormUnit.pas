@@ -1712,7 +1712,7 @@ begin
       SaveFontToRegistry(disassemblerview.font, reg);
 
     if reg.OpenKey('\Software\Cheat Engine\Hexview\Font',true) then
-      SaveFontToRegistry(hexview.font, reg);
+      SaveFontToRegistry(hexview.hexfont, reg);
 
   finally
     reg.free;
