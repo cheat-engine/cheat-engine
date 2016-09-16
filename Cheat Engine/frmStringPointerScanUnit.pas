@@ -251,7 +251,7 @@ type
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
     miNewScan: TMenuItem;
-    MenuItem3: TMenuItem;
+    miOpen: TMenuItem;
     MenuItem4: TMenuItem;
     MenuItem7: TMenuItem;
     miClearCache: TMenuItem;
@@ -290,7 +290,7 @@ type
     procedure ListView1Data(Sender: TObject; Item: TListItem);
     procedure ListView1DblClick(Sender: TObject);
     procedure miNewScanClick(Sender: TObject);
-    procedure MenuItem3Click(Sender: TObject);
+    procedure miOpenClick(Sender: TObject);
     procedure MenuItem7Click(Sender: TObject);
     procedure miClearCacheClick(Sender: TObject);
     procedure MenuItem6Click(Sender: TObject);
@@ -323,9 +323,10 @@ type
     procedure scanDone(var m: tmessage); message wm_sps_done;
 
     function getStringFromPointer(address: ptruint; offsets: TDwordArray; level, bytesize: integer; unicode: boolean; var a: ptruint): string;
+    procedure setGUIStateEnabled(state: boolean);
   public
     { public declarations }
-    procedure disableGui(control: TWinControl);
+    procedure disableGui;
     procedure enablegui;
   end;
 
@@ -2039,8 +2040,7 @@ begin
     if savedialog1.execute then
     begin
       //we got till this point so everything is fine, disable the gui
-      disableGui(panel1);
-      disablegui(Panel3);
+      disableGui;
 
       if rbMustBeSame.checked then
         diffkind:=dkMustBeSame
@@ -2132,38 +2132,25 @@ end;
 
 procedure TfrmStringPointerScan.cbHasShadowChange(Sender: TObject);
 begin
-  if cbHasShadow.checked or cbHasShadow2.checked then
-  begin
-    panel3.height:=edtShadowSize.Top+edtShadowSize.Height+5;
-    edtShadowAddress.visible:=true;
-    edtShadowAddress2.Visible:=true;
-    lblSize.visible:=true;
-    edtShadowSize.visible:=true;
-    edtShadowSize2.visible:=true;
+
+
+    edtShadowAddress.visible:=cbHasShadow.checked or cbHasShadow2.checked;
+    edtShadowAddress2.Visible:=edtShadowAddress.visible;
+    lblSize.visible:=edtShadowAddress.visible;
+    lblSize2.visible:=edtShadowAddress.visible;
+    edtShadowSize.visible:=edtShadowAddress.visible;
+    edtShadowSize2.visible:=edtShadowAddress.visible;
     edtBaseChange(edtBase);
-  end
-  else
-  begin
-    panel3.height:=cbHasShadow.Top+cbHasShadow.Height+5;
-    edtShadowAddress.visible:=false;
-    edtShadowAddress2.visible:=false;
-    lblSize.visible:=false;
-    edtShadowSize.visible:=false;
-    edtShadowSize2.visible:=false;
+
     shadow:=0;
-  end;
-
-
-
-
 end;
 
 procedure TfrmStringPointerScan.cbRegExpChange(Sender: TObject);
 begin
-  cbCaseSensitive.enabled:=cbRegExp.checked;
-  cbMustBeStart.enabled:=cbRegExp.checked;
-  edtRegExp.enabled:=cbRegExp.checked;
-  lblString.enabled:=cbRegExp.checked;
+  cbCaseSensitive.enabled:=cbRegExp.enabled and cbRegExp.checked;
+  cbMustBeStart.enabled:=cbCaseSensitive.enabled;
+  edtRegExp.enabled:=cbCaseSensitive.enabled;
+  lblString.enabled:=cbCaseSensitive.enabled;
 end;
 
 procedure TfrmStringPointerScan.cbPointerInRangeChange(Sender: TObject);
@@ -2299,12 +2286,11 @@ begin
   end;
 end;
 
-procedure TfrmStringPointerScan.MenuItem3Click(Sender: TObject);
+procedure TfrmStringPointerScan.miOpenClick(Sender: TObject);
 begin
   if (scanner=nil) and (rescanner=nil) and OpenDialog1.Execute then
   begin
     OpenPointerfile(opendialog1.filename);
-    disablegui(Panel1);
     enablegui;
   end;
 
@@ -2331,25 +2317,24 @@ end;
 
 procedure TfrmStringPointerScan.rbDatascanChange(Sender: TObject);
 begin
-  cbRegExp.enabled:=rbStringscan.checked;
-  cbCaseSensitive.enabled:=rbStringscan.checked and cbRegExp.checked;
-  cbMustBeStart.enabled:=rbStringscan.checked and cbRegExp.checked;
-  lblString.enabled:=rbStringscan.checked and cbRegExp.checked;
-  edtRegExp.enabled:=rbStringscan.checked and cbRegExp.checked;
+  cbRegExp.enabled:=rbStringscan.enabled and rbStringscan.checked;
+  cbCaseSensitive.enabled:=cbRegExp.enabled and rbStringscan.checked and cbRegExp.checked;
+  cbMustBeStart.enabled:=cbCaseSensitive.enabled;
+  lblString.enabled:=cbCaseSensitive.enabled;
+  edtRegExp.enabled:=cbCaseSensitive.enabled;
 
-  lblAlign.enabled:=rbDatascan.checked;
-  edtAlignsize.enabled:=rbDatascan.checked;
-  edtPointerStart.enabled:=rbDatascan.checked and cbPointerInRange.checked;
-  lblAnd.enabled:=rbDatascan.checked and cbPointerInRange.checked;
-  edtPointerStop.enabled:=rbDatascan.checked and cbPointerInRange.checked;
+  lblAlign.enabled:=rbDatascan.enabled and rbDatascan.checked;
+  edtAlignsize.enabled:=lblAlign.enabled;
+  edtPointerStart.enabled:=cbPointerInRange.enabled and cbPointerInRange.checked;
+  lblAnd.enabled:=edtPointerStart.enabled;
+  edtPointerStop.enabled:=edtPointerStart.enabled;
 end;
 
 procedure TfrmStringPointerScan.rbDiffDontCareChange(Sender: TObject);
 begin
-  lblCompare.enabled:=rbDiffDontCare.checked = false;
-  comboCompareType.enabled:=rbDiffDontCare.checked = false;
-
-  cbMapPointerValues.Enabled:=rbDiffDontCare.checked = false;
+  lblCompare.enabled:=rbDiffDontCare.enabled and (rbDiffDontCare.checked = false);
+  comboCompareType.enabled:=lblCompare.enabled;
+  cbMapPointerValues.Enabled:=comboCompareType.enabled;
 end;
 
 procedure TfrmStringPointerScan.statusupdaterTimer(Sender: TObject);
@@ -2387,58 +2372,53 @@ begin
 
 end;
 
-procedure TfrmStringPointerScan.disableGui(control: TWinControl);
-var i: integer;
+procedure TfrmStringPointerScan.setGUIStateEnabled(state: boolean);
 begin
-  for i:=0 to control.ControlCount-1 do
-  begin
-    if control.Controls[i]<>btnScan then
-      control.Controls[i].enabled:=false;
+  lblBaseRegion.enabled:=state;
+  lblExtra.enabled:=state;
 
-    if (control.Controls[i] is TWinControl) then
-      disableGui(TWinControl(control.Controls[i]));
-  end;
+  cbPointerInRange.enabled:=state;
+  cbPointerInRange.OnChange(cbPointerInRange);
 
+  lblBaseRegion.enabled:=state;
+  lblExtra.enabled:=state;
+  lblvds.enabled:=state;
+
+  edtBase.enabled:=state;
+  edtExtra.enabled:=state;
+  edtExtra.OnChange(edtExtra); //makes the difftypes enabled or not
+
+  rbDatascan.enabled:=state;
+  rbStringscan.enabled:=state;
+
+  cbRegExpChange(rbStringscan);
+  comboType.enabled:=state;
+
+  rbDatascanChange(Nil);
+
+  cbHasShadow.enabled:=state;
+  cbHasShadow2.enabled:=state;
+
+  edtShadowAddress.Enabled:=state;
+  edtShadowAddress2.enabled:=state;
+
+  edtShadowSize.enabled:=state;
+  edtShadowSize2.enabled:=state;
+
+  lblSize.enabled:=state;
+  lblSize2.enabled:=state;
+
+  btnScan.enabled:=state;
+end;
+
+procedure TfrmStringPointerScan.disableGui;
+begin
+  setGUIStateEnabled(false);
 end;
 
 procedure TfrmStringPointerScan.enableGui;
 begin
-  panel4.enabled:=true;
-  lblBaseRegion.enabled:=true;
-  lblExtra.enabled:=true;
-
-  cbPointerInRange.enabled:=true;
-  cbPointerInRange.OnChange(cbPointerInRange);
-
-  lblBaseRegion.enabled:=true;
-  lblExtra.enabled:=true;
-  lblvds.enabled:=true;
-
-  edtBase.enabled:=true;
-  edtExtra.enabled:=true;
-  edtExtra.OnChange(edtExtra); //makes the difftypes enabled or not
-
-  rbDatascan.enabled:=true;
-  rbStringscan.enabled:=true;
-
-  cbRegExpChange(rbStringscan);
-  comboType.enabled:=true;
-
-  rbDatascanChange(Nil);
-
-  cbHasShadow.enabled:=true;
-  cbHasShadow2.enabled:=true;
-
-  edtShadowAddress.Enabled:=true;
-  edtShadowAddress2.enabled:=true;
-
-  edtShadowSize.enabled:=true;
-  edtShadowSize2.enabled:=true;
-
-  lblSize.enabled:=true;
-  lblSize2.enabled:=true;
-
-  btnScan.enabled:=true;
+  setGUIStateEnabled(true);
 end;
 
 initialization

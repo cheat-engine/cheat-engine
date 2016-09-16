@@ -742,9 +742,9 @@ object frmStringPointerScan: TfrmStringPointerScan
         Caption = 'New scan'
         OnClick = miNewScanClick
       end
-      object MenuItem3: TMenuItem
+      object miOpen: TMenuItem
         Caption = 'Open'
-        OnClick = MenuItem3Click
+        OnClick = miOpenClick
       end
     end
     object MenuItem5: TMenuItem
