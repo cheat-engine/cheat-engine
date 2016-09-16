@@ -1730,12 +1730,12 @@ begin
       begin
         if pathqueuelength<MAXQUEUESIZE then
         begin
-          pathqueue[(length(overflowqueue)-1)-i]:=overflowqueue[i];
-
+          pathqueue[pathqueuelength]:=overflowqueue[i];
+          inc(pathqueuelength);
 
           overflowqueue[i].tempresults[0]:=$cece;
           inc(addedToQueue);
-          inc(pathqueuelength);
+
         end else break;
       end;
 
@@ -1827,6 +1827,8 @@ var
   savedqueue: TFilestream;
   scandatawriter: TScanDataWriter;
 
+  terminatedTime: qword;
+
 
   cs: Tcompressionstream;
   s: TFileStream;
@@ -1860,6 +1862,8 @@ var
   end;
 
 begin
+  terminatedTime:=0;
+
 
   //scan the buffer
   savedqueue:=nil;
@@ -1977,6 +1981,10 @@ begin
         outofdiskspace:=getDiskFreeFromPath(filename)<64*1024*1024*length(localscanners); //64MB for each thread
 
 
+        if haserror then
+          break;
+
+
         if Terminated then
         begin
        {   OutputDebugString('Forced terminate. Telling the scanworkers to die as well');
@@ -2008,6 +2016,18 @@ begin
               savedqueue:=TFileStream.Create(filename+'.resume.queue', fmCreate);
               savedqueue.WriteDWord(maxlevel); //just to be safe
             end;
+          end;
+
+          if terminatedTime=0 then
+            terminatedTime:=GetTickCount64;
+
+          if GetTickCount64>terminatedTime+10000 then
+          begin
+            if messagebox(0,'The pointerscanner seems to take a long time to terminate. Force it?', 'Pointerscan Timeout', MB_YESNO)=IDYES then break;
+
+
+            terminatedTime:=GetTickCount;
+
           end;
 
         end;
@@ -3410,16 +3430,24 @@ begin
 end;
 
 procedure TPointerscanController.InitializeEmptyPathQueue;
-var i: integer;
+var i,j: integer;
 begin
   pathqueueCS.enter;
   try
     pathqueuelength:=0;
     for i:=0 to MAXQUEUESIZE-1 do
     begin
-      setlength(pathqueue[i].tempresults, maxlevel+1);
+      setlength(pathqueue[i].tempresults, maxlevel+2);
+      for j:=0 to maxlevel+1 do
+        pathqueue[i].tempresults[j]:=$cececece;
+
+
       if noLoop then
-        setlength(pathqueue[i].valuelist, maxlevel+1);
+      begin
+        setlength(pathqueue[i].valuelist, maxlevel+2);
+        for j:=0 to maxlevel+1 do
+          pathqueue[i].valuelist[j]:=$cececececececece;
+      end;
     end;
 
   finally
@@ -3590,6 +3618,7 @@ begin
 
   InitializeEmptyPathQueue;
   InitializeCompressedPtrVariables;
+
 
 
 
@@ -4352,7 +4381,10 @@ begin
     result:=nil;
 
     if resumescan then
-      resumeptrfilereader:=TPointerscanresultReader.create(filename)
+    begin
+      resumeptrfilereader:=TPointerscanresultReader.create(filename);
+      resumeptrfilereader.ReleaseFiles;
+    end
     else
     begin
       //not a resume, delete the old files
@@ -4489,7 +4521,6 @@ begin
     //setup the pathqueue
     InitializeEmptyPathQueue;
     InitializeCompressedPtrVariables;
-
 
 
     reverseScanCS:=tcriticalsection.Create;

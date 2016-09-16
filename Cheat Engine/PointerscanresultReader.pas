@@ -95,6 +95,9 @@ type
     function getPointer(i: qword): PPointerscanResult; overload;
     function getPointer(i: qword; var pointsto: ptrUint): PPointerscanResult; overload;
     procedure getFileList(list: TStrings);
+
+    procedure ReleaseFiles;
+
     constructor create(filename: string; original: TPointerscanresultReader=nil);
 
     destructor destroy; override;
@@ -188,59 +191,6 @@ begin
   it.free;
   filemap.Clear;
   filemap.Free;
-
-  //add to rs
-  //      rs.add(extractfilepath(filename)+fr.Name);
-
-  //sort the results based on the extension
-  //keep in mind that base address sorting has as extention "moduleid-offset"
-
- (*
-  if rs.count>0 then
-  begin
-  {  basesort:=pos('-', ExtractFileExt(rs[0]))>0;     }
-
-    try
-      for i:=0 to rs.count-2 do
-      begin
-        ext1:=ExtractFileExt(rs[i]);
-        ext1:=copy(ext1, 2, length(ext1)-1);
-
-        v1:=StrToInt64('$'+ext1);
-
-        for j:=i+1 to rs.count-1 do
-        begin
-          ext2:=ExtractFileExt(rs[j]);
-          ext2:=copy(ext2, 2, length(ext2)-1);
-
-          swap:=false;
-
-          v2:=StrToInt64('$'+ext2);
-          if v1>v2 then
-            swap:=true;
-
-          if swap then
-          begin
-            temp:=rs[i];
-            rs[i]:=rs[j];
-            rs[j]:=temp;
-            v1:=v2;
-          end;
-
-
-
-        end;
-      end;
-    except
-      //one of these could not be interpreted as a proper hexadecimal offset, so no need to sort, it's unsorted
-      //beep;
-    end;
-
-  end;
-   *)
- // showmessage(rs.text);
-
-
 
 end;
 
@@ -559,6 +509,8 @@ begin
     list.add(files[i].FileName);
 end;
 
+
+
 constructor TPointerscanresultReader.create(filename: string; original: TPointerscanresultReader=nil);
 var
   configfile: TFileStream;
@@ -751,6 +703,20 @@ begin
   fCanResume:=fileexists(filename+'.resume.config') and fileexists(filename+'.resume.scandata') and fileexists(filename+'.resume.queue');
 end;
 
+procedure TPointerscanresultReader.ReleaseFiles;
+//if only the config file is needed. This releases the results
+var i: integer;
+begin
+  for i:=0 to length(files)-1 do
+    if files[i].f<>0 then
+    begin
+      if files[i].fm<>0 then
+        closehandle(files[i].fm);
+
+      closehandle(files[i].f);
+    end;
+end;
+
 destructor TPointerscanresultReader.destroy;
 var i: integer;
 begin
@@ -760,14 +726,7 @@ begin
   if cache2<>nil then
     UnmapViewOfFile(cache2);
 
-  for i:=0 to length(files)-1 do
-    if files[i].f<>0 then
-    begin
-      if files[i].fm<>0 then
-        closehandle(files[i].fm);
-
-      closehandle(files[i].f);
-    end;
+  ReleaseFiles;
 
   if compressedTempBuffer<>nil then
     freemem(compressedTempBuffer);

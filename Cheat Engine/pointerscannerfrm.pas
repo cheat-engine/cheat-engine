@@ -805,6 +805,7 @@ begin
       for i:=0 to length(instantrescanentries)-1 do
         f.instantrescanfiles.AddObject(instantrescanentries[i].filename, tobject(instantrescanentries[i].address));
 
+    new1.Click;
     if f.showmodal=mrOK then
     begin
       threadcount:=f.threadcount;
@@ -813,7 +814,7 @@ begin
         instantrescanentries[i].filename:=f.instantrescanfiles[i];
 
 
-      new1.click;
+      //new1.click;
 
       //default scan
       staticscanner:=TPointerscanController.Create(true);
@@ -3399,6 +3400,7 @@ begin
   open1.Enabled:=true;
   new1.enabled:=true;
   rescanmemory1.Enabled:=false;
+  miResume.enabled:=false;
 
   lvResults.Items.BeginUpdate;
   lvResults.columns.BeginUpdate;
@@ -3415,6 +3417,9 @@ begin
   if Pointerscanresults<>nil then
     freeandnil(Pointerscanresults);
 
+  new1.enabled:=false;
+
+  caption:=rsPointerScan;
 end;
 
 
