@@ -392,7 +392,6 @@ resourcestring
   rsPSExporting = 'Exporting...';
   rsPSThisDatabaseDoesntContainAnyPointerFiles = 'This database does not contain any pointer files';
   rsPSInvalidDatabase = 'Invalid database';
-  rsPSSelectPtridFromPointerFilesWhereName = 'Select ptrid from pointerfiles where name="';
   rsPSThereIsAlreadyaPointerFileWithThsiNamePresentinThisDatabase = 'There is already a pointerfile with this name present in this database. Replace it''s content with this one ?';
   rsPSExportAborted = 'Export aborted';
   rsPSImporting = 'Importing...';
@@ -435,11 +434,6 @@ resourcestring
   rsPSFindByAddressPart2 = '" is not a valid address';
   rsAreYouSureYouWishYouForceADisconnect = 'Are you sure you wish you force a disconnect. The current paths will be lost';
   rsCEInjectedPointerscan = 'CE Injected Pointerscan';
-  rsSelectMaxPtridAsMaxFromPointerfiles = 'Select max(ptrid) as max from pointerfiles';
-  rsSelectNameFromPointerfiles = 'select name from pointerfiles';
-  rsSelectStarFromPointerfilesWhereName = 'select * from pointerfiles where name="';
-  rsSelectCountStarAsCountFromResultsWherePtrid = 'select count(*) as count from results where ptrid=';
-  rsSelectStarFromResultsWherePtrid = 'select * from results where ptrid=';
 
 //----------------------- scanner info --------------------------
 //----------------------- staticscanner -------------------------
@@ -1385,7 +1379,7 @@ begin
 
       tablenames.free;
 
-      SQLQuery.SQL.Text:=rsPSSelectPtridFromPointerFilesWhereName+name+'"';
+      SQLQuery.SQL.Text:='Select ptrid from pointerfiles where name="'+name+'"';
       SQLQuery.Active:=true;
 
       if SQLQuery.RecordCount>0 then
@@ -1452,7 +1446,7 @@ begin
 
 
 
-      SQLQuery.SQL.Text:=rsSelectMaxPtridAsMaxFromPointerfiles;
+      SQLQuery.SQL.Text:='Select max(ptrid) as max from pointerfiles';
       SQLQuery.Active:=true;
 
       ptrid:=SQLQuery.FieldByName('max').AsString;
@@ -1554,7 +1548,7 @@ begin
     SQLite3.DatabaseName:=filename;
     sqlite3.Connected:=true;
 
-    SQLQuery.SQL.Text:=rsSelectNameFromPointerfiles;
+    SQLQuery.SQL.Text:='select name from pointerfiles';
     SQLQuery.Active:=true;
     if SQLQuery.RecordCount>0 then
     begin
@@ -1594,7 +1588,7 @@ begin
     query2:=nil;
 
 
-    SQLQuery.SQL.Text:=rsSelectStarFromPointerfilesWhereName+name+'"';
+    SQLQuery.SQL.Text:='select * from pointerfiles where name="'+name+'"';
     SQLQuery.Active:=true;
     try
       if (SQLQuery.RecordCount=0) or (SQLQuery.RecordCount>1) then
@@ -1722,13 +1716,13 @@ begin
   }
     importedcount:=0;
 
-    sqlquery.sql.text:=rsSelectCountStarAsCountFromResultsWherePtrid+ptrid;
+    sqlquery.sql.text:='select count(*) as count from results where ptrid='+ptrid;
     SQLQuery.Active:=true;
     totalcount:=SQLQuery.FieldByName('count').AsInteger;
     sqlquery.Active:=false;
 
 
-    sqlquery.sql.text:=rsSelectStarFromResultsWherePtrid+ptrid;
+    sqlquery.sql.text:='select * from results where ptrid='+ptrid;
     SQLQuery.active:=true;
     try
       resultptrfile:=tfilestream.create(filename+'.results.0', fmcreate);
