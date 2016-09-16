@@ -24,6 +24,7 @@ type
     GroupBox1: TGroupBox;
     Label1: TLabel;
     Label2: TLabel;
+    lblHexExample: TLabel;
     lblRegister: TLabel;
     lblNormal: TLabel;
     lblSymbol: TLabel;
@@ -83,6 +84,8 @@ begin
   lblRegister.font:=fontdialog1.Font;
   lblSymbol.font:=fontdialog1.Font;
   lblHex.font:=FontDialog1.font;
+
+  lblHexExample.Font:=fontdialog2.font;
 
   oldstate:=csUndefined;
   cbColorGroupChange(cbColorGroup); //restore the colors
@@ -213,7 +216,10 @@ procedure TfrmMemviewPreferences.btnHexFontClick(Sender: TObject);
 var fd: TFontData;
 begin
   if fontdialog2.execute then
+  begin
     btnHexFont.Caption:=fontdialog2.Font.Name+' '+inttostr(fontdialog2.Font.Size);
+    applyfont;
+  end;
 end;
 
 procedure TfrmMemviewPreferences.Button2Click(Sender: TObject);

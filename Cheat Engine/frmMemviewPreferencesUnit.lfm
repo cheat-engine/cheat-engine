@@ -195,6 +195,17 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     OnClick = btnHexFontClick
     TabOrder = 5
   end
+  object lblHexExample: TLabel
+    AnchorSideLeft.Control = btnHexFont
+    AnchorSideTop.Control = cbColorGroup
+    AnchorSideTop.Side = asrCenter
+    Left = 191
+    Height = 15
+    Top = 57
+    Width = 44
+    Caption = 'Example'
+    ParentColor = False
+  end
   object ColorDialog1: TColorDialog
     Color = clBlack
     CustomColors.Strings = (

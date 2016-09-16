@@ -1691,7 +1691,7 @@ begin
     fontdialog2.font.Quality:=fd.Quality;
     fontdialog2.font.Orientation:=fd.Orientation;
 
-
+    btnHexFont.Caption:=fontdialog2.Font.Name+' '+inttostr(fontdialog2.Font.Size);
 
     //set the current colors
     colors:=disassemblerview.colors;
