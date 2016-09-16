@@ -26,7 +26,7 @@ begin
   reg.WriteInteger('Style', integer(fd.Style));
   reg.WriteInteger('CharSet', integer(fd.CharSet));
   reg.WriteInteger('Quality', integer(fd.Quality));
-  reg.WriteString('Name', WinCPToUTF8(fd.Name));
+  reg.WriteString('Name', UTF8ToWinCP(fd.Name));
   reg.WriteInteger('Orientation', fd.Orientation);
   reg.WriteInteger('Color', f.Color);
 end;
@@ -38,7 +38,7 @@ var
 begin
   try
     f.Height:=reg.ReadInteger('Height');
-    s:=UTF8ToWinCP(reg.ReadString('Name'));
+    s:=WinCPToUTF8(reg.ReadString('Name'));
     f.Name:=s;
     f.Color:=reg.ReadInteger('Color');
     integer(fd.Pitch):=reg.ReadInteger('Pitch');
