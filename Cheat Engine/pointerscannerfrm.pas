@@ -3063,15 +3063,6 @@ begin
   if rescan<>nil then
     freeandnil(rescan);
 
-  rescan:=trescanpointers.create(true);
-  rescan.ownerform:=self;
-  rescan.progressbar:=progressbar1;
-
-  lblProgressbar1.caption:=rsPSREscanning;
-  pnlProgress.visible:=true;
-
-
-
 
   try
     if rescanpointerform=nil then
@@ -3083,7 +3074,14 @@ begin
       begin
         if ((savedialog1.filename<>'') and rescanpointerform.cbRepeat.checked) or savedialog1.Execute then
         begin
+          rescan:=trescanpointers.create(true);
+          rescan.ownerform:=self;
+          rescan.progressbar:=progressbar1;
+
           rescan.novaluecheck:=cbNoValueCheck.checked;
+
+          lblProgressbar1.caption:=rsPSREscanning;
+          pnlProgress.visible:=true;
 
 
           if cbUseSavedPointermap.checked then

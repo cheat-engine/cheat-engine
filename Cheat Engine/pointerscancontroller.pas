@@ -1861,6 +1861,24 @@ var
     waitForAndHandleNetworkEvent;
   end;
 
+  procedure CreateWriterAndQueue;
+  begin
+    if scandatawriter=nil then
+    begin
+      scandatawriter:=TScanDataWriter.Create(true);
+      scandatawriter.progressbar:=progressbar;
+      scandatawriter.filename:=filename+'.resume.scandata';
+      scandatawriter.pointerlisthandler:=pointerlisthandler;
+      scandatawriter.Start;
+    end;
+
+    if savedqueue=nil then
+    begin
+      savedqueue:=TFileStream.Create(filename+'.resume.queue', fmCreate);
+      savedqueue.WriteDWord(maxlevel); //just to be safe
+    end;
+  end;
+
 begin
   terminatedTime:=0;
 
@@ -2001,22 +2019,9 @@ begin
           end;
 
           if terminated and savestate then
-          begin
-            if scandatawriter=nil then
-            begin
-              scandatawriter:=TScanDataWriter.Create(true);
-              scandatawriter.progressbar:=progressbar;
-              scandatawriter.filename:=filename+'.resume.scandata';
-              scandatawriter.pointerlisthandler:=pointerlisthandler;
-              scandatawriter.Start;
-            end;
+            createWriterAndQueue;
 
-            if savedqueue=nil then
-            begin
-              savedqueue:=TFileStream.Create(filename+'.resume.queue', fmCreate);
-              savedqueue.WriteDWord(maxlevel); //just to be safe
-            end;
-          end;
+
 
           if terminatedTime=0 then
             terminatedTime:=GetTickCount64;
@@ -2064,7 +2069,10 @@ begin
 
 
           if terminated and savestate then
+          begin
+            createWriterAndQueue;
             saveAndClearQueue(savedqueue);
+          end;
 
           pathqueueCS.Leave;
         end;
@@ -2073,7 +2081,6 @@ begin
 
 
     end;
-
 
 
     //all threads are done
