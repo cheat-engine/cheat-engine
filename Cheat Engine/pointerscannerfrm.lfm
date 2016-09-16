@@ -496,6 +496,10 @@ object frmPointerScanner: TfrmPointerScanner
       Caption = 'Resync modulelist'
       OnClick = Resyncmodulelist1Click
     end
+    object MenuItem1: TMenuItem
+      Caption = 'Show modulelist'
+      OnClick = MenuItem1Click
+    end
   end
   object odMerge: TOpenDialog
     DefaultExt = '.ptr'

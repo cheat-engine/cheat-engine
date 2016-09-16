@@ -165,6 +165,7 @@ type
     lblPassword: TLabel;
     lblThreadPriority: TLabel;
     lblProgressbar1: TLabel;
+    MenuItem1: TMenuItem;
     miDisconnect: TMenuItem;
     miForceDisconnect: TMenuItem;
     miExportTosqlite: TMenuItem;
@@ -218,6 +219,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure lvResultsColumnClick(Sender: TObject; Column: TListColumn);
     procedure lvResultsResize(Sender: TObject);
+    procedure MenuItem1Click(Sender: TObject);
     procedure miDisconnectClick(Sender: TObject);
     procedure miForceDisconnectClick(Sender: TObject);
     procedure miExportTosqliteClick(Sender: TObject);
@@ -1225,6 +1227,23 @@ begin
     l:=max(120,l);
     lvResults.Columns[lvResults.columns.count-1].Width:=l;
   end;
+end;
+
+procedure Tfrmpointerscanner.MenuItem1Click(Sender: TObject);
+var
+  i: integer;
+  s: tstringlist;
+begin
+  if pointerscanresults<>nil then
+  begin
+    s:=tstringlist.create;
+    for i:=0 to pointerscanresults.modulelistCount-1 do
+      s.add(inttohex(pointerscanresults.modulebase[i],8)+' = '+pointerscanresults.modulename[i]);
+
+    showmessage(s.text);
+    s.free;
+  end;
+
 end;
 
 procedure Tfrmpointerscanner.miDisconnectClick(Sender: TObject);

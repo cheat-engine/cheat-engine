@@ -106,6 +106,7 @@ type
     property filename: string read FFilename;
     property entrySize: integer read sizeOfEntry;
     property modulelistCount: integer read getModuleListcount;
+    property modulename[index: integer]: string read getModuleName;
     property modulebase[index: integer]: ptruint read getModuleBase write setModuleBase;
     property mergedresultcount: integer read getMergedResultCount;
     property mergedresults[index: integer]: integer read getMergedResult;
@@ -530,6 +531,8 @@ var
 
   fnames: tstringlist;
 
+  pscanversion: byte;
+
 begin
   FFilename:=filename;
   configfile:=TFileStream.Create(filename, fmOpenRead or fmShareDenyWrite);
@@ -537,7 +540,8 @@ begin
   if configfile.ReadByte<>$ce then
     raise exception.create(rsPSRCorruptedPointerscanFile);
 
-  if configfile.ReadByte<>pointerscanfileversion then
+  pscanversion:=configfile.ReadByte;
+  if pscanversion>pointerscanfileversion then
     raise exception.create(rsPSRInvalidPointerscanFileVersion);
 
   configfile.ReadBuffer(modulelistlength,sizeof(modulelistlength));
