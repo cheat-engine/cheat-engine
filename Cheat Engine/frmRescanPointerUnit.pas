@@ -25,17 +25,25 @@ type
     cbRepeat: TCheckBox;
     cbUseSavedPointermap: TCheckBox;
     cbValueType: TComboBox;
+    cbChangeBasePointerOffset: TCheckBox;
+    edtNewBase: TEdit;
     edtAddress: TEdit;
     edtBaseEnd: TEdit;
     edtBaseStart: TEdit;
     edtDelay: TEdit;
     edtRescanFunction: TEdit;
     Label1: TLabel;
+    Label2: TLabel;
+    Label3: TLabel;
+    lblOriginalBase: TLabel;
+    lblOffset: TLabel;
     lblAnd: TLabel;
     lblLuaParams: TLabel;
     odLoadPointermap: TOpenDialog;
     Panel1: TPanel;
     Panel2: TPanel;
+    Panel3: TPanel;
+    pnlRangeOffset: TPanel;
     pnlButtons: TPanel;
     rbFindAddress: TRadioButton;
     rbFindValue: TRadioButton;
@@ -44,6 +52,7 @@ type
     procedure Button2Click(Sender: TObject);
     procedure cbBasePointerMustBeInRangeChange(Sender: TObject);
     procedure cbBroadcastChange(Sender: TObject);
+    procedure cbChangeBasePointerOffsetChange(Sender: TObject);
     procedure cbDistributedRescanChange(Sender: TObject);
     procedure cbLuaFilterChange(Sender: TObject);
     procedure cbMustEndWithSpecificOffsetsChange(Sender: TObject);
@@ -135,6 +144,11 @@ end;
 procedure TfrmRescanPointer.cbBroadcastChange(Sender: TObject);
 begin
 
+end;
+
+procedure TfrmRescanPointer.cbChangeBasePointerOffsetChange(Sender: TObject);
+begin
+  pnlRangeOffset.enabled:=cbChangeBasePointerOffset.checked;
 end;
 
 procedure TfrmRescanPointer.cbDistributedRescanChange(Sender: TObject);
@@ -659,6 +673,8 @@ begin
   finally
     reg.free;
   end;
+
+  lblOriginalBase.BorderSpacing.Top:=(edtNewBase.height div 2)-(lblOriginalBase.Height div 2);
 end;
 
 initialization

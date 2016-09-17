@@ -3083,6 +3083,17 @@ begin
 
     with rescanpointerform do
     begin
+
+      cbChangeBasePointerOffset.visible:=pointerscanresults.DidBaseRangeScan;
+      pnlRangeOffset.visible:=cbChangeBasePointerOffset.visible;
+
+      if pointerscanresults.DidBaseRangeScan then
+      begin
+        lblOriginalBase.Caption:=inttohex(pointerscanresults.BaseScanRange,8);
+        edtNewBase.Text:=inttohex(pointerscanresults.BaseScanRange,8);
+      end;
+
+
       if ((not rescanpointerform.canceled) and rescanpointerform.cbRepeat.checked) or (showmodal=mrok) then
       begin
         if ((savedialog1.filename<>'') and rescanpointerform.cbRepeat.checked) or savedialog1.Execute then

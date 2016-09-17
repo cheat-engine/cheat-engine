@@ -25,3 +25,9 @@ TFRMRESCANPOINTER.LBLLUAPARAMS.CAPTION=(base, offsets, target):bool
 TFRMRESCANPOINTER.CBUSESAVEDPOINTERMAP.HINT=Normally this should not be used. Saved pointermaps are best suited for the initial scan.
 One case where it could be useful is where you have a pointerfile that is too big to send to someone else, but the scandata file is not. In that case, ask the other person for the scandata and do the scan on your system against the current pointerfile
 TFRMRESCANPOINTER.CBUSESAVEDPOINTERMAP.CAPTION=Use saved pointermap
+TFRMRESCANPOINTER.CBCHANGEBASEPOINTEROFFSET.CAPTION=Change base pointer address by specific offset
+TFRMRESCANPOINTER.LABEL3.CAPTION=Original base address
+TFRMRESCANPOINTER.LBLORIGINALBASE.CAPTION=<address>
+TFRMRESCANPOINTER.LABEL2.CAPTION=New base address
+TFRMRESCANPOINTER.EDTNEWBASE.TEXT=12345678
+TFRMRESCANPOINTER.LBLOFFSET.CAPTION==XXXX

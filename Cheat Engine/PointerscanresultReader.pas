@@ -69,6 +69,8 @@ type
     fEndsWithOffsetList: array of dword;
 
     fCanResume: boolean;
+    fdidBaseRangeScan: boolean;
+    foriginalBaseScanRange: qword;
 
 
     CompressedPointerScanResult: PPointerscanResult;
@@ -121,6 +123,8 @@ type
     property MaxBitCountOffset: dword read fMaxBitCountOffset;
     property LastRawPointer: pointer read fLastRawPointer;
     property CanResume: boolean read fCanResume;
+    property DidBaseRangeScan: boolean read fdidBaseRangeScan;
+    property BaseScanRange: qword read foriginalBaseScanRange;
 end;
 
 procedure findAllResultFilesForThisPtr(filename: string; rs: TStrings);
@@ -593,8 +597,9 @@ begin
   //read maxlevel
   configfile.Read(maxlevel,sizeof(maxlevel));
 
-  //read compressedptr info
 
+
+  //read compressedptr info
   fCompressedPtr:=configfile.ReadByte=1;
   if fCompressedPtr then
   begin
@@ -622,12 +627,17 @@ begin
 
     getmem(CompressedPointerScanResult, 16+4*maxlevel);
     getmem(CompressedTempBuffer, sizeofentry+4);
-
-
   end
   else
   begin
     sizeofentry:=16+(4*maxlevel)
+  end;
+
+  if pscanversion>=2 then
+  begin
+    fdidBaseRangeScan:=configFile.readByte=1;
+    if fdidBaseRangeScan then
+      foriginalBaseScanRange:=configfile.ReadQWord;
   end;
 
 
