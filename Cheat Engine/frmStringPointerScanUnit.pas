@@ -2110,6 +2110,7 @@ begin
 
       end;
       btnScan.caption:=rsStop;
+      btnScan.enabled:=true;
       progressbar1.visible:=true;
       statusupdater.enabled:=true;
     end;
