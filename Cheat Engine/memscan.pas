@@ -14,7 +14,7 @@ interface
 uses windows, FileUtil, LCLIntf,sysutils, classes,ComCtrls,dialogs, NewKernelHandler,math,
      SyncObjs, windows7taskbar,SaveFirstScan, savedscanhandler, autoassembler,
      symbolhandler, CEFuncProc,shellapi, customtypehandler,lua,lualib,lauxlib,
-     LuaHandler, fileaccess, groupscancommandparser, commonTypeDefs, LazUTF8;
+     LuaHandler, fileaccess, groupscancommandparser, commonTypeDefs, LazUTF8, forms;
 {$define customtypeimplemented}
 {$endif}
 
@@ -594,6 +594,7 @@ type
 
     ffloatscanWithoutExponents: boolean;
     fInverseScan: boolean;
+    fGUIScanner: boolean;
 
     procedure DeleteScanfolder;
     procedure createScanfolder;
@@ -639,6 +640,7 @@ type
 
     property nextscanCount: integer read fnextscanCount;
   published
+    property GUIScanner: Boolean read fGUIScanner write fGUIScanner;
     property inverseScan: boolean read fInverseScan write fInverseScan;
     property floatscanWithoutExponents: boolean read ffloatscanWithoutExponents write ffloatscanWithoutExponents;
     property OnlyOne: boolean read fOnlyOne write fOnlyOne;
@@ -650,6 +652,7 @@ type
     property LastScanType: TScanType read FLastScanType;
     property ScanresultFolder: string read fScanResultFolder; //read only, it's configured during creation
     property OnScanDone: TNotifyEvent read fOnScanDone write fOnScanDone;
+
   end;
 
 
@@ -659,7 +662,7 @@ type
 implementation
 
 {$ifdef windows}
-uses formsettingsunit, StrUtils, foundlisthelper, processhandlerunit, parsers,Globals;
+uses formsettingsunit, StrUtils, foundlisthelper, processhandlerunit, parsers,Globals, frmBusyUnit;
 {$endif}
 
 {$ifdef android}
@@ -6759,6 +6762,17 @@ begin
 
   if scanController<>nil then
   begin
+    if GUIScanner and (WaitForSingleObject(scancontroller.handle, 500)<>WAIT_OBJECT_0) then
+    begin
+      if frmBusy=nil then
+      begin
+
+        frmBusy:=TfrmBusy.create(nil);
+        frmBusy.WaitForHandle:=scancontroller.handle;
+        frmBusy.Showmodal;
+      end;
+
+    end;
 
     scancontroller.WaitFor; //could be it's still saving the results of the previous scan
     freeandnil(scanController);
@@ -6767,6 +6781,16 @@ begin
   {$IFNDEF LOWMEMORYUSAGE}
   if SaveFirstScanThread<>nil then
   begin
+    if GUIScanner and (WaitForSingleObject(SaveFirstScanThread.handle, 500)<>WAIT_OBJECT_0) then
+    begin
+      if frmBusy=nil then
+      begin
+        frmBusy:=TfrmBusy.create(nil);
+        frmBusy.WaitForHandle:=SaveFirstScanThread.handle;
+        frmBusy.Showmodal;
+      end;
+
+    end;
 
     SaveFirstScanThread.WaitFor; //wait till it's done
     freeandnil(SaveFirstScanThread);

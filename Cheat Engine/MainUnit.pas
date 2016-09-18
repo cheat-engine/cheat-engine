@@ -4116,6 +4116,7 @@ begin
   else
   begin
     scanstate.memscan := tmemscan.Create(progressbar1);
+    scanstate.memscan.GuiScanner:=true;
     scanstate.foundlist := TFoundList.Create(foundlist3, scanstate.memscan);    //build again
     scanstate.memscan.setScanDoneCallback(mainform.handle, wm_scandone);
   end;
@@ -7091,6 +7092,7 @@ begin
 
 
   memscan := tmemscan.Create(progressbar1);
+  memscan.GuiScanner:=true;
   foundlist := tfoundlist.Create(foundlist3, memscan);
 
   //don't put this in oncreate, just don't
@@ -7483,6 +7485,7 @@ begin
       memscan.Free;
 
     memscan := tmemscan.Create(progressbar1);
+    memscan.GuiScanner:=true;
     memscan.setScanDoneCallback(mainform.handle, wm_scandone);
   end;
 end;

@@ -1,0 +1,34 @@
+object frmBusy: TfrmBusy
+  Left = 271
+  Height = 34
+  Top = 412
+  Width = 374
+  AutoSize = True
+  BorderIcons = []
+  BorderStyle = bsSingle
+  Caption = 'Cheat Engine Scan Busy'
+  ClientHeight = 34
+  ClientWidth = 374
+  FormStyle = fsStayOnTop
+  OnClose = FormClose
+  OnDestroy = FormDestroy
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '1.6.0.4'
+  object Label1: TLabel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    Left = 0
+    Height = 20
+    Top = 0
+    Width = 352
+    Caption = 'The previous scan is still being processed. Please wait'
+    ParentColor = False
+  end
+  object Timer1: TTimer
+    Enabled = False
+    Interval = 50
+    OnTimer = Timer1Timer
+    left = 120
+  end
+end
