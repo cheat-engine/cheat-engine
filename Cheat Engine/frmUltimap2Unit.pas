@@ -7,7 +7,7 @@ unit frmUltimap2Unit;
 interface
 
 uses
-  windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
+  win32proc,  windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
   ExtCtrls, StdCtrls, ComCtrls, EditBtn, Menus, libipt, ProcessHandlerUnit,
   DBK32functions, commonTypeDefs, MemFuncs, AvgLvlTree, Math, FileMapping,
   syncobjs, CEFuncProc, registry, NewKernelHandler, LazFileUtils, disassembler,
@@ -1614,11 +1614,27 @@ begin
 end;
 
 procedure TfrmUltimap2.FormShow(Sender: TObject);
-var minwidth: integer;
+var i, minwidth: integer;
 begin
-  minwidth:=edtBufSize.Font.GetTextWidth(edtBufSize.Text);
+  if WindowsVersion>=wvVista then
+  begin
+    i:=sendmessage(edtBufSize.Handle, EM_GETMARGINS, 0,0);
+    i:=(i shr 16)+(i and $ffff);
+  end
+  else
+    i:=8;
+
+  minwidth:=i+canvas.GetTextWidth(edtBufSize.Text);
   if edtBufSize.ClientWidth<minwidth then
     edtBufSize.ClientWidth:=minwidth;
+
+  if label1.Width+4>panel1.Height then
+  begin
+    panel1.Width:=label1.width+4;
+    panel1.Height:=panel1.Width;
+  end;
+
+  btnReset.Height:=canvas.TextHeight(btnReset.caption)+3;
 end;
 
 
@@ -2063,6 +2079,12 @@ end;
 procedure TfrmUltimap2.cbParseToTextfileChange(Sender: TObject);
 begin
   deTextOut.visible:=cbParseToTextfile.Checked;
+  deTextOut.Update;
+  deTextOut.Refresh;
+  deTextOut.Repaint;
+
+  deTextOut.ButtonOnlyWhenFocused:=true;
+  deTextOut.ButtonOnlyWhenFocused:=false;
 end;
 
 procedure TfrmUltimap2.FormClose(Sender: TObject; var CloseAction: TCloseAction);
