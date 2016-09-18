@@ -70,6 +70,8 @@ type
     baseStart: ptruint;
     baseEnd: ptruint;
 
+    offsetBase: ptrint;
+
     startOffsetValues: array of dword;
     endoffsetvalues: array of dword;
 
@@ -129,6 +131,8 @@ type
     mustbeinrange: boolean;
     baseStart: ptruint;
     baseEnd: ptruint;
+
+    offsetBase: ptrint;
 
     startOffsetValues: array of dword;
     endoffsetvalues: array of dword;
@@ -2571,6 +2575,7 @@ begin
       while evaluated < self.EntriesToCheck do
       begin
         p:=Pointerscanresults.getPointer(currentEntry);
+
         if p<>nil then
         begin
           valid:=true;
@@ -2584,10 +2589,15 @@ begin
           else
             address:=pointermap.getAddressFromModuleIndexPlusOffset(p.modulenr,p.moduleoffset);
 
-          baseaddress:=address;
+
+
+
 
           if address>0 then
           begin
+            inc(address, offsetBase);
+            baseaddress:=address;
+
             //if the base must be in a range then check if the base address is in the given range
             if (not mustbeinrange) or (inrangex(address, baseStart, baseEnd)) then
             begin
@@ -2955,6 +2965,7 @@ begin
 
       rescanworkers[i].useluafilter:=useluafilter;
       rescanworkers[i].luafilter:=luafilter;
+      rescanworkers[i].offsetBase:=offsetBase;
 
 
       threadhandles[i]:=rescanworkers[i].Handle;
@@ -3256,6 +3267,7 @@ begin
 
           rescan.originalptrfile:=Pointerscanresults.filename;
 
+          rescan.offsetBase:=offset;
 
 
 

@@ -4614,6 +4614,10 @@ begin
             result.writeDword(mustendwithoffsetlist[i]);
         end;
 
+        result.writebyte(ifthen(mustStartWithBase,1,0));
+        if mustStartWithBase then
+          result.WriteQWord(BaseStart);
+
       end;
 
     finally

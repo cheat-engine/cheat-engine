@@ -371,6 +371,7 @@ object frmRescanPointer: TfrmRescanPointer
       BevelOuter = bvNone
       ClientHeight = 38
       ClientWidth = 284
+      Enabled = False
       TabOrder = 16
       Visible = False
       object Panel3: TPanel
@@ -439,6 +440,7 @@ object frmRescanPointer: TfrmRescanPointer
         Height = 23
         Top = 15
         Width = 112
+        OnChange = edtNewBaseChange
         TabOrder = 1
         Text = '12345678'
       end

@@ -59,6 +59,7 @@ type
     procedure cbMustStartWithSpecificOffsetsChange(Sender: TObject);
     procedure cbNoValueCheckChange(Sender: TObject);
     procedure cbUseSavedPointermapChange(Sender: TObject);
+    procedure edtNewBaseChange(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Notebook1ChangeBounds(Sender: TObject);
@@ -83,6 +84,9 @@ type
     fBaseEnd: ptruint;
 
     iplist: TStringList;
+    fOffset: ptrint;
+    procedure setOffset(o: ptrint);
+    function getOffset:ptrint;
 
     procedure updatepositions;
     procedure btnAddStartOffsetClick(sender: TObject);
@@ -99,6 +103,7 @@ type
     property Delay: integer read fdelay;
     property BaseStart: ptruint read fBaseStart;
     property BaseEnd: ptruint read fBaseEnd;
+    property offset: ptrint read getOffset write setOffset;
   end;
 
 implementation
@@ -229,6 +234,8 @@ begin
 
 
   end;
+
+  edtNewBaseChange(edtNewBase);
 
   canceled:=false;
   modalresult:=mrok;
@@ -475,6 +482,34 @@ begin
     cbRepeat.Enabled:=true;
     cbNoValueCheck.Enabled:=true;
     cbDelay.enabled:=true;
+  end;
+end;
+
+procedure TfrmRescanPointer.setOffset(o: ptrint);
+begin
+  foffset:=o;
+  if fOffset<0 then
+    lblOffset.caption:='=-'+inttohex(fOffset,1)
+  else
+    lblOffset.caption:='='+inttohex(fOffset,1);
+end;
+
+function TfrmRescanPointer.getOffset: ptrint;
+begin
+  if cbChangeBasePointerOffset.checked then
+    result:=fOffset
+  else
+    result:=0;
+end;
+
+procedure TfrmRescanPointer.edtNewBaseChange(Sender: TObject);
+var i: PtrInt;
+begin
+  try
+    offset:=symhandler.getAddressFromName(edtNewBase.text)-strtoint('$'+lblOriginalBase.Caption);
+    edtNewBase.font.color:=clDefault
+  except
+    edtNewBase.font.color:=clred;
   end;
 end;
 
