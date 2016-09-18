@@ -489,7 +489,7 @@ procedure TfrmRescanPointer.setOffset(o: ptrint);
 begin
   foffset:=o;
   if fOffset<0 then
-    lblOffset.caption:='=-'+inttohex(fOffset,1)
+    lblOffset.caption:='=-'+inttohex(-fOffset,1)
   else
     lblOffset.caption:='='+inttohex(fOffset,1);
 end;
