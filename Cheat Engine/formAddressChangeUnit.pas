@@ -5,10 +5,11 @@ unit formAddressChangeUnit;
 interface
 
 uses
-  windows, win32proc, LCLIntf, LResources, Messages, SysUtils, Variants, Classes, Graphics,
-  Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls, Buttons, Arrow, Spin,
-  CEFuncProc, NewKernelHandler, symbolhandler, memoryrecordunit, types, byteinterpreter,
-  math, CustomTypeHandler, commonTypeDefs, lua, lualib, lauxlib, luahandler, CommCtrl;
+  windows, win32proc, LCLIntf, LResources, Messages, SysUtils, Variants,
+  Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
+  Buttons, Arrow, Spin, Menus, CEFuncProc, NewKernelHandler, symbolhandler,
+  memoryrecordunit, types, byteinterpreter, math, CustomTypeHandler,
+  commonTypeDefs, lua, lualib, lauxlib, luahandler, CommCtrl;
 
 const WM_disablePointer=WM_USER+1;
 
@@ -34,6 +35,9 @@ type
     repeattimer: TTimer;
     repeatdirection: integer;
     stepsize: integer;
+    fReinterpretUpdateOnly: boolean;
+    fOnlyUpdateAfterInterval: boolean;
+    fUpdateInterval: integer;
     procedure setOffset(o: integer);
     procedure setOffsetString(os: string);
     procedure offsetchange(sender: TObject);
@@ -60,6 +64,10 @@ type
     property invalidOffset: boolean read fInvalidOffset;
     property baseAddress: ptruint write setBaseAddress;
     property special: boolean read fspecial;
+
+    property OnlyUpdateWithReinterpret: boolean read fReinterpretUpdateOnly write fReinterpretUpdateOnly;
+    property OnlyUpdateAfterInterval: boolean read fOnlyUpdateAfterInterval write fOnlyUpdateAfterInterval;
+    property UpdateInterval: integer read fUpdateInterval write fUpdateInterval;
   end;
 
 
@@ -109,6 +117,8 @@ type
     Label12: TLabel;
     Label3: TLabel;
     lblValue: TLabel;
+    miUpdateOnReinterpretOnly: TMenuItem;
+    miUpdateAfterInterval: TMenuItem;
     pnlBitinfo: TPanel;
     cbunicode: TCheckBox;
     cbvarType: TComboBox;
@@ -129,6 +139,7 @@ type
     Label9: TLabel;
     lengthlabel: TLabel;
     pnlExtra: TPanel;
+    pmOffset: TPopupMenu;
     RadioButton1: TRadioButton;
     RadioButton2: TRadioButton;
     RadioButton3: TRadioButton;
@@ -153,7 +164,10 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormWindowStateChange(Sender: TObject);
+    procedure miUpdateAfterIntervalClick(Sender: TObject);
+    procedure miUpdateOnReinterpretOnlyClick(Sender: TObject);
     procedure pcExtraChange(Sender: TObject);
+    procedure pmOffsetPopup(Sender: TObject);
     procedure tsStartbitContextPopup(Sender: TObject; MousePos: TPoint;
       var Handled: Boolean);
     procedure Timer1Timer(Sender: TObject);
@@ -402,6 +416,7 @@ begin
       finvalidOffset:=false;
     except
       if fOffsetString='' then exit(false);
+      fspecial:=true;
 
       foffset:=symhandler.getAddressFromName(fOffsetString, false, e);
       if e then //try lua
@@ -426,7 +441,6 @@ begin
       end;
 
       finvalidOffset:=false;
-      fspecial:=true;
     end;
 
   finally
@@ -593,11 +607,14 @@ begin
 
   //an offset editbox
   fOffset:=0;
+  fOffsetString:='0';
   edtOffset:=Tedit.create(parent);
   edtOffset.Text:='0';
 
   edtOffset.Alignment:=taCenter;
   edtOffset.OnChange:=OffsetChange;
+  edtOffset.PopupMenu:=fowner.owner.pmOffset;
+  edtOffset.Tag:=ptrint(self);
 
 
   //two buttons, one for + and one for -
@@ -925,10 +942,7 @@ begin
 
 
   btnAddOffset.AutoSize:=true;
-  btnAddOffset.AutoSize:=false;
-
   btnRemoveOffset.autosize:=true;
-  btnRemoveOffset.autosize:=false;
 
   i:=owner.btnok.width;
 
@@ -937,6 +951,10 @@ begin
 
   if btnRemoveOffset.width>i then
     i:=btnRemoveOffset.Width;
+
+  btnAddOffset.Constraints.MinWidth:=i;
+  btnRemoveOffset.Constraints.MinWidth:=i;
+
 
   btnAddOffset.width:=i;
   btnRemoveOffset.width:=i;
@@ -971,7 +989,12 @@ begin
     pointerinfo.setupPositionsAndSizes;
 
     for i:=0 to system.length(offsets)-1 do
+    begin
       pointerinfo.offset[i].offsetString:=offsets[i].offsetText;
+      pointerinfo.offset[i].UpdateInterval:=offsets[i].UpdateInterval;
+      pointerinfo.offset[i].OnlyUpdateAfterInterval:=offsets[i].OnlyUpdateAfterInterval;
+      pointerinfo.offset[i].OnlyUpdateWithReinterpret:=offsets[i].OnlyUpdateWithReinterpret;
+    end;
 
     pointerinfo.processAddress;
   end;
@@ -1312,7 +1335,12 @@ begin
     memoryrecord.interpretableaddress:=pointerinfo.baseAddress.text;
     memoryrecord.offsetCount:=pointerinfo.offsetcount;
     for i:=0 to pointerinfo.offsetcount-1 do
+    begin
       memoryrecord.offsets[i].setOffsetText(pointerinfo.offset[i].offsetString);
+      memoryrecord.offsets[i].UpdateInterval:=pointerinfo.offset[i].UpdateInterval;
+      memoryrecord.offsets[i].OnlyUpdateAfterInterval:=pointerinfo.offset[i].OnlyUpdateAfterInterval;
+      memoryrecord.offsets[i].OnlyUpdateWithReinterpret:=pointerinfo.offset[i].OnlyUpdateWithReinterpret;
+    end;
   end
   else
   begin
@@ -1411,9 +1439,59 @@ begin
 
 end;
 
+procedure TformAddressChange.miUpdateAfterIntervalClick(Sender: TObject);
+var
+  oi: TOffsetInfo;
+  v: string;
+begin
+
+  if pmOffset.PopupComponent is TEdit then
+  begin
+    oi:=TOffsetInfo(tedit(pmOffset.PopupComponent).tag);
+    if oi.OnlyUpdateAfterInterval=false then
+    begin
+      if oi.UpdateInterval=0 then
+        oi.UpdateInterval:=1000;
+
+      v:=inttostr(oi.UpdateInterval);
+      if InputQuery('Offset update','Enter the interval in which the offset should be updated. In milliseconds', v) then
+        oi.UpdateInterval:=strtoint(v);
+    end;
+
+    oi.OnlyUpdateAfterInterval:=miUpdateAfterInterval.Checked;
+  end;
+end;
+
+procedure TformAddressChange.miUpdateOnReinterpretOnlyClick(Sender: TObject);
+var oi: TOffsetInfo;
+begin
+
+  if pmOffset.PopupComponent is TEdit then
+  begin
+    oi:=TOffsetInfo(tedit(pmOffset.PopupComponent).tag);
+    oi.OnlyUpdateWithReinterpret:=miUpdateOnReinterpretOnly.Checked;
+  end;
+end;
+
 procedure TformAddressChange.pcExtraChange(Sender: TObject);
 begin
 
+end;
+
+procedure TformAddressChange.pmOffsetPopup(Sender: TObject);
+var oi: TOffsetInfo;
+begin
+
+  if pmOffset.PopupComponent is TEdit then
+  begin
+    oi:=TOffsetInfo(tedit(pmOffset.PopupComponent).tag);
+
+    miUpdateOnReinterpretOnly.visible:=oi.special;
+    miUpdateAfterInterval.visible:=oi.special;
+
+    miUpdateOnReinterpretOnly.Checked:=oi.fReinterpretUpdateOnly;
+    miUpdateAfterInterval.Checked:=oi.fOnlyUpdateAfterInterval;
+  end;
 end;
 
 procedure TformAddressChange.tsStartbitContextPopup(Sender: TObject;

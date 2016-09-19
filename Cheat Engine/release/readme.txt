@@ -14,6 +14,7 @@ Fixed some places of the disassembler where it helps guessing if something is a 
 When using the code finder, it won't show the previous instruction anymore if it's on a REP MOVS* instruction
 Fixed an issue when editing memoryrecords with strings, where wordwrap would add newline characters
 Fixed D3D alpha channel for textures and fontmaps
+Fixed the helpfile not being searchable
 The installer will now mark the CE destination folder as accessible by APPS. (fixes speedhack for some APPS)
 Fixed the form designed crashing is resized 'wrong'
 

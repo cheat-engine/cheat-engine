@@ -259,7 +259,7 @@ resourcestring
   strMaxOffsetsIsStupid = 'Sorry, but the max offsets should be 1 or higher, or else disable the checkbox'; //'Are you a fucking retard?';
   rsUseLoadedPointermap = 'Use saved pointermap';
 
-  rsNoCompareFiles = 'You will get billions of useless results and giga/terrabytes of wasted diskspace if you do not use the compare results option. Are you sure ?';
+  rsNoCompareFiles = 'You will get billions of useless results and giga/terrabytes of wasted diskspace if you do not use the compare results with other saved pointermap option. Are you sure ?';
   rsSelectAFile = '<Select a file>';
   rsScandataFilter = 'All files (*.*)|*.*|Scan Data (*.scandata)|*.scandata';
   rsReusedTheSameFile = 'This file is already in the list of scandata files to be used'; //alternatively: 'For fucks sake dude. You already picked this file. Pick something else!'
@@ -679,6 +679,7 @@ var
   r: THostResolver;
   p: ptruint;
   comparecount: integer;
+  reg: TRegistry;
 begin
   if cbMaxOffsetsPerNode.checked then
   begin
@@ -714,6 +715,16 @@ begin
     begin
       //bug the user one time about this
       if (not warnedAboutDisablingInstantRescan) and (MessageDlg(rsNoCompareFiles, mtConfirmation, [mbyes, mbno], 0)<>mryes) then
+        exit;
+
+      warnedAboutDisablingInstantRescan:=true;
+    end;
+  end
+  else
+  begin
+    if (cbMustStartWithBase.Checked=false) then
+    begin
+      if  (not warnedAboutDisablingInstantRescan) and (MessageDlg(rsNoCompareFiles, mtConfirmation, [mbyes, mbno], 0)<>mryes) then
         exit;
 
       warnedAboutDisablingInstantRescan:=true;

@@ -427,4 +427,19 @@ object formAddressChange: TformAddressChange
     left = 64
     top = 8
   end
+  object pmOffset: TPopupMenu
+    OnPopup = pmOffsetPopup
+    left = 96
+    top = 128
+    object miUpdateOnReinterpretOnly: TMenuItem
+      AutoCheck = True
+      Caption = 'Only update the offset when the memory record gets reinterpreted'
+      OnClick = miUpdateOnReinterpretOnlyClick
+    end
+    object miUpdateAfterInterval: TMenuItem
+      AutoCheck = True
+      Caption = 'Only update the offset after a specific amount of time'
+      OnClick = miUpdateAfterIntervalClick
+    end
+  end
 end

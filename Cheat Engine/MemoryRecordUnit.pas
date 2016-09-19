@@ -82,10 +82,22 @@ type
     text: string; //symhandler interpretable value, or a luastatement
     luaref: integer; //if lua, this contains a reference to the function (so it doesn't have to be parsed each time)
 
+    finvalid: boolean;
     funparsed: boolean;
+
+    hasValue: boolean;
+
+
+    fOnlyUpdateAfterInterval: boolean;
+    fOnlyUpdateWithReinterpret: boolean;
+    fUpdateInterval: dword;
+    LastUpdateInterval: qword;
+    forced: boolean; //set to true if you wish to let getOffset ignore the no-update rules
+
     function getOffsetNoBase: integer;
     procedure cleanupluaref;
   public
+    procedure forceUpdate;
     function getOffset(currentBase: ptruint): integer;
     procedure setOffset(o: integer);
     procedure setOffsetText(s: string);
@@ -95,7 +107,11 @@ type
     property offset: integer read getOffsetNoBase write setOffset;
     property offsetText: string read text write setOffsetText;
     property unparsed: boolean read funparsed;
+    property invalid: boolean read fInvalid;
 
+    property OnlyUpdateWithReinterpret: boolean read fOnlyUpdateWithReinterpret write fOnlyUpdateWithReinterpret;
+    property OnlyUpdateAfterInterval: boolean read fOnlyUpdateAfterInterval write fOnlyUpdateAfterInterval;
+    property UpdateInterval: DWORD read fUpdateInterval write fUpdateInterval;
   end;
 
   TMemrecOffsetList=array of TMemrecOffset;
@@ -375,6 +391,11 @@ uses processhandlerunit, Parsers;
 
 {-----------------------------TMemrecOffset---------------------------------}
 
+procedure TMemrecOffset.forceUpdate;
+begin
+  Forced:=true;
+end;
+
 function TMemrecOffset.getOffsetNoBase: integer;
 begin
   result:=getOffset(0);
@@ -388,11 +409,25 @@ var
 begin
   if special then
   begin
+    if (not forced) then
+    begin
+      if OnlyUpdateWithReinterpret and hasValue then exit(foffset);
+
+      if OnlyUpdateAfterInterval and (GetTickCount64<LastUpdateInterval+UpdateInterval) then exit(foffset);
+    end
+    else
+      forced:=false;
+
+    LastUpdateInterval:=GetTickCount;
+
+
+    finvalid:=true;
+    hasValue:=false;
     foffset:=0;
 
     //parse it/call the lua function
     if luaref=-1 then
-      foffset:=symhandler.getAddressFromName(text, false, e)
+      foffset:=symhandler.getAddressFromName(text, false, finvalid)
     else
     begin
       memrecluaobjectref:=fowner.getLuaRef;
@@ -406,7 +441,11 @@ begin
         lua_pushinteger(luavm, currentBase);
 
         if lua_pcall(Luavm, 2, 1,0)=0 then
-          foffset:=lua_tointeger(Luavm, -1);
+          if lua_isnumber(Luavm, -1) then
+          begin
+            foffset:=lua_tointeger(Luavm, -1);
+            finvalid:=false;
+          end;
 
         lua_pop(luavm, 1);
 
@@ -417,7 +456,13 @@ begin
 
 
     end;
-  end;
+
+    if not finvalid then
+      hasValue:=true;
+  end
+  else
+    finvalid:=false;
+
   result:=foffset;
 end;
 
@@ -445,6 +490,8 @@ begin
   cleanupluaref;
   text:=s;
 
+  special:=false;
+
   try
     foffset:=StrToQWordEx(ConvertHexStrToRealStr(s));
     funparsed:=false;
@@ -469,12 +516,25 @@ begin
       if luaL_loadstring(luavm, pchar(s2))=0 then
         if lua_isfunction(luavm,-1) then //store a reference to this function
           luaref:=luaL_ref(luavm, LUA_REGISTRYINDEX);
+
     finally
       lua_settop(luavm, stack);
       LuaCS.Leave;
     end;
 
-    funparsed:=luaref<>-1;
+    funparsed:=luaref=-1;
+
+    if not funparsed then
+    begin
+      //call it to be sure it's ok and not returning nil
+      forceUpdate;
+      getOffsetNoBase;
+      if finvalid then
+      begin
+        funparsed:=true;
+        cleanupluaref;
+      end;
+    end;
 
   end else funparsed:=false;
 
@@ -1033,9 +1093,26 @@ begin
       j:=0;
       for i:=0 to tempnode.ChildNodes.Count-1 do
       begin
-        if tempnode.ChildNodes[i].NodeName='Offset' then
+        tempnode2:=tempnode.ChildNodes[i];
+        if tempnode2.NodeName='Offset' then
         begin
-          fpointeroffsets[j].offsetText:=tempnode.ChildNodes[i].TextContent;
+          fpointeroffsets[j].offsetText:=tempnode2.TextContent;
+
+          a:=tempnode2.Attributes.GetNamedItem('Interval');
+          if (a<>nil) then
+          begin
+            try
+              fpointeroffsets[j].UpdateInterval:=StrToInt(a.TextContent);
+              fpointeroffsets[j].OnlyUpdateAfterInterval:=true;
+            except
+            end;
+          end;
+
+          a:=tempnode2.Attributes.GetNamedItem('UpdateOnFullRefresh');
+          if (a<>nil) and (a.TextContent='1') then
+            fpointeroffsets[j].OnlyUpdateWithReinterpret:=true;
+
+
           inc(j);
         end;
       end;
@@ -1208,6 +1285,7 @@ var
   s: ansistring;
 
   ddl: TDOMNode;
+  offset: TDOMNode;
 {$ENDIF}
 begin
   {$IFNDEF UNIX}
@@ -1402,7 +1480,28 @@ begin
         Offsets:=cheatEntry.AppendChild(doc.CreateElement('Offsets'));
 
         for i:=0 to offsetCount-1 do
-          Offsets.AppendChild(doc.CreateElement('Offset')).TextContent:=fpointeroffsets[i].offsetText;
+        begin
+          offset:=Offsets.AppendChild(doc.CreateElement('Offset'));
+          offset.TextContent:=fpointeroffsets[i].offsetText;
+
+          if fpointeroffsets[i].OnlyUpdateAfterInterval then
+          begin
+            a:=doc.CreateAttribute('Interval');
+            a.TextContent:=inttostr(fpointeroffsets[i].UpdateInterval);
+            offset.Attributes.SetNamedItem(a);
+
+
+          end;
+
+          if fpointeroffsets[i].OnlyUpdateWithReinterpret then
+          begin
+            a:=doc.CreateAttribute('UpdateOnFullRefresh');
+            a.TextContent:='1';
+            offset.Attributes.SetNamedItem(a);
+          end;
+
+
+        end;
 
         cheatEntry.AppendChild(Offsets);
       end;
@@ -2074,10 +2173,14 @@ begin
   end;
 
   for i:=0 to offsetCount-1 do
+  begin
     if offsets[i].unparsed then
-    begin
       offsets[i].offsetText:=offsets[i].offsetText;
-    end;
+
+    if offsets[i].invalid or offsets[i].OnlyUpdateWithReinterpret then
+      offsets[i].forced:=true;
+  end;
+
 
 
   GetRealAddress;
@@ -2661,25 +2764,40 @@ var
   check: boolean;
   realaddress, realaddress2: PtrUInt;
   i: integer;
-  count: dword;
-  list: array of integer;
+  count: ptruint;
+  o: integer;
 begin
   realAddress:=0;
-  realAddress2:=0;
 
   if isPointer then //it's a pointer
   begin
-    setlength(list, offsetCount);
-    for i:=0 to offsetCount-1 do
-      list[i]:=offsets[i].offset;
+    realAddress2:=getBaseAddress;
 
-    //find the address this pointer points to
-    result:=getPointerAddress(getBaseAddress, list, UnreadablePointer);
-    if UnreadablePointer then
+    for i:=offsetCount-1 downto 0 do
     begin
-      realAddress:=0;
-      result:=0;
+      check:=readprocessmemory(processhandle,pointer(realaddress2),@realaddress,processhandler.pointersize,count);
+      if check and (count=processhandler.pointersize) then
+      begin
+        o:=offsets[i].getOffset(realaddress);
+        if not offsets[i].invalid then
+          realaddress2:=realaddress+o
+        else
+        begin
+          UnreadablePointer:=true;
+          self.RealAddress:=0;
+          exit(0);
+        end;
+      end
+      else
+      begin
+        UnreadablePointer:=true;
+        self.RealAddress:=0;
+        exit(0);
+      end;
     end;
+
+    UnreadablePointer:=false;
+    result:=realaddress2;
   end
   else
     result:=getBaseAddress; //not a pointer
