@@ -10,7 +10,7 @@ type TSemaphore=class
   private
     handle: THandle;
   public
-    procedure Aquire;
+    procedure Acquire;
     procedure Release;
     constructor create(maxcount: integer);
     destructor destroy;  override;
@@ -30,7 +30,7 @@ begin
   inherited destroy;
 end;
 
-procedure TSemaphore.Aquire;
+procedure TSemaphore.Acquire;
 begin
   waitforsingleobject(handle,infinite);
 end;

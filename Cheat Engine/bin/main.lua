@@ -1991,6 +1991,54 @@ methods
     Tells the thread it should terminate. The Terminated property will become true
 
 
+CriticalSection class: (Inheritance: Object)
+createCriticalSection(): Returns a critical section object
+
+properties
+-
+
+methods
+  enter()
+  leave()
+  tryEnter(): Returns true if entered, false if not
+
+
+Event class: (Inheritance: Object)
+createEvent(ManualReset, InitialState): Returns an event object
+
+properties
+-
+
+methods
+  resetEvent()
+  setEvent()
+  waitFor(timeout): Waits for the event to be set. Returns wrSignaled(0), wrTimeout(1), wrAbandoned(2) or wrError(3);  
+
+
+Semaphore class: (Inheritance: Object)
+createSemaphore(count): Returns an semaphore object
+properties
+-
+
+methods
+  acquire()
+  release()
+
+
+MultiReadExclusiveWriteSynchronizer class: (Inheritance: Object)
+createMultiReadExclusiveWriteSynchronizer(): Returns a createMultiReadExclusiveWriteSynchronizer
+
+properties
+-
+
+methods
+  beginWrite()
+  endWrite()
+  beginRead()
+  endRead()
+
+
+
 
 StructureFrm class:
 createStructureForm(address)

@@ -8,7 +8,7 @@ unit LuaClass;
 interface
 
 uses
-  Classes, SysUtils, controls, lua, lauxlib, lualib, math;
+  Classes, SysUtils, controls, lua, lauxlib, lualib, math, AvgLvlTree, syncobjs;
 
 type TAddMetaDataFunction=procedure(L: PLua_state; metatable: integer; userdata: integer );
 
@@ -57,6 +57,9 @@ implementation
 uses LuaClassArray, LuaObject, LuaComponent, luahandler;
 
 var classlist: Tlist;
+    lookuphelp: TPointerToPointerTree;
+    lookuphelpmrew: TMultiReadExclusiveWriteSynchronizer;
+
     objectcomparefunctionref: integer=0;
 
 type
@@ -105,7 +108,11 @@ var cle: PClasslistentry;
     t: TClass;
 begin
   if classlist=nil then
+  begin
     classlist:=tlist.create;
+    lookuphelpmrew:=TMultiReadExclusiveWriteSynchronizer.Create;
+    lookuphelp:=TPointerToPointerTree.Create;
+  end;
 
   getmem(cle, sizeof(TClasslistentry));
 
@@ -124,30 +131,43 @@ begin
 end;
 
 function findBestClassForObject(O: TObject): TAddMetaDataFunction;
-var lowest: TClass;
+var
     i: integer;
     cle: PClassListEntry;
 
-    best: TClasslistentry;
+    best: PClassListEntry; //TClasslistentry;
+
+    oclass: Tclass;
 begin
   result:=nil;
   if o=nil then exit;
 
-  best.depth:=0;
-  best.c:=nil;
-  best.f:=nil;
+  oclass:=o.ClassType;
+
+  lookuphelpmrew.Beginread;
+  best:=lookuphelp.Values[oclass];
+  lookuphelpmrew.Endread;
+
+  if best<>nil then
+    exit(best^.f);
 
   if classlist<>nil then
   begin
     for i:=0 to classlist.Count-1 do
     begin
       cle:=classlist[i];
-      if o.InheritsFrom(cle.c) and (cle.depth>best.depth) then
-        best:=cle^;
+      if o.InheritsFrom(cle.c) and ((best=nil) or (cle.depth>best^.depth)) then
+        best:=cle;
     end;
+
+    result:=best^.f;
+
+    lookuphelpmrew.Beginwrite;
+    lookuphelp.Values[oclass]:=best;
+    lookuphelpmrew.Endwrite;
   end;
 
-  result:=best.f;
+
 end;
 
 procedure luaclass_newClassFunction(L: PLua_State; InitialAddMetaDataFunction: TAddMetaDataFunction);
