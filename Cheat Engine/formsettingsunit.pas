@@ -1027,7 +1027,7 @@ end;
 
 procedure TformSettings.FormDestroy(Sender: TObject);
 begin
-
+  formSettings:=nil;
 end;
 
 procedure TformSettings.FormShow(Sender: TObject);

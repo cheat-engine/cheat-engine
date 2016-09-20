@@ -952,6 +952,7 @@ begin
 
   if frmpointerscannersettings.Visible then exit; //already open, so no need to make again
 
+
   if SkipNextScanSettingsWasTrue or (frmpointerscannersettings.Showmodal=mrok) then
   begin
     new1.click;

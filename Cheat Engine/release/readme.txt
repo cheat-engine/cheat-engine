@@ -52,6 +52,7 @@ registerEXETrainerFeature: Lets you add extra files to the exe trainer file pack
 getFileVersion(): A function to get version information from a file
 mouse_event() : Lets you send mouse events to windows. (move, click, etc...)
 loadFontFromStream() : Lets you load a font from a memory stream. (Useful for trainers that use a custom font)
+added several thread synchronization objects
 
 lua changes:
 dbk_writesIgnoreWriteProtection() now also disables virtualprotectex calls from CE

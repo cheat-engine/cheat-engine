@@ -378,3 +378,8 @@ SPF_NLP_SPEAK_PUNC	= ( 1 << 6 )
 SPF_PARSE_SAPI	= ( 1 << 7 ) 
 SPF_PARSE_SSML	= ( 1 << 8 ) 
 SPF_PARSE_AUTODETECT	= 0
+
+wrSignaled=0
+wrTimeout=1
+wrAbandoned=2
+wrError=3
