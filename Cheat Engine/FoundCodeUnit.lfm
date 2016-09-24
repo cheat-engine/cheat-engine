@@ -2,11 +2,11 @@ object FoundCodeDialog: TFoundCodeDialog
   Left = 574
   Height = 399
   Top = 253
-  Width = 398
+  Width = 413
   BorderIcons = [biSystemMenu]
   Caption = 'The following opcodes changed the selected address'
   ClientHeight = 399
-  ClientWidth = 398
+  ClientWidth = 413
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
@@ -16,21 +16,21 @@ object FoundCodeDialog: TFoundCodeDialog
   Position = poOwnerFormCenter
   LCLVersion = '1.6.0.4'
   object Panel1: TPanel
-    Left = 279
+    Left = 250
     Height = 399
     Top = 0
-    Width = 119
+    Width = 163
     Align = alRight
     AutoSize = True
     BevelOuter = bvNone
     ClientHeight = 399
-    ClientWidth = 119
+    ClientWidth = 163
     TabOrder = 0
     object Description: TLabel
       Left = 0
-      Height = 216
-      Top = 143
-      Width = 119
+      Height = 219
+      Top = 140
+      Width = 163
       Align = alClient
       Alignment = taCenter
       AutoSize = False
@@ -41,18 +41,18 @@ object FoundCodeDialog: TFoundCodeDialog
       Left = 0
       Height = 40
       Top = 359
-      Width = 119
+      Width = 163
       Align = alBottom
       AutoSize = True
       BevelOuter = bvNone
       ClientHeight = 40
-      ClientWidth = 119
+      ClientWidth = 163
       TabOrder = 0
       object btnOK: TButton
         AnchorSideLeft.Control = Panel2
         AnchorSideLeft.Side = asrCenter
         AnchorSideTop.Control = Panel2
-        Left = 22
+        Left = 44
         Height = 30
         Top = 5
         Width = 75
@@ -70,24 +70,28 @@ object FoundCodeDialog: TFoundCodeDialog
     end
     object Panel3: TPanel
       Left = 0
-      Height = 143
+      Height = 140
       Top = 0
-      Width = 119
+      Width = 163
       Align = alTop
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 143
-      ClientWidth = 119
+      ClientHeight = 140
+      ClientWidth = 163
       TabOrder = 1
       object btnExtraInfo: TButton
         AnchorSideLeft.Control = Panel3
         AnchorSideTop.Control = btnAddToCodeList
         AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = Panel3
+        AnchorSideRight.Side = asrBottom
         Left = 5
-        Height = 31
+        Height = 30
         Hint = 'Shows more information about the state of the system when that instruction got executed'
-        Top = 112
-        Width = 109
+        Top = 110
+        Width = 153
+        Anchors = [akTop, akLeft, akRight]
+        AutoSize = True
         BorderSpacing.Left = 5
         BorderSpacing.Top = 5
         BorderSpacing.Right = 5
@@ -104,11 +108,15 @@ object FoundCodeDialog: TFoundCodeDialog
         AnchorSideLeft.Control = Panel3
         AnchorSideTop.Control = btnOpenDisassembler
         AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = Panel3
+        AnchorSideRight.Side = asrBottom
         Left = 5
         Height = 30
         Hint = 'The selected addresses will be added to the code list in the advanced options window.'
-        Top = 77
-        Width = 109
+        Top = 75
+        Width = 153
+        Anchors = [akTop, akLeft, akRight]
+        AutoSize = True
         BorderSpacing.Left = 5
         BorderSpacing.Top = 5
         BorderSpacing.Right = 5
@@ -125,11 +133,15 @@ object FoundCodeDialog: TFoundCodeDialog
         AnchorSideLeft.Control = Panel3
         AnchorSideTop.Control = btnReplacewithnops
         AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = Panel3
+        AnchorSideRight.Side = asrBottom
         Left = 5
-        Height = 31
+        Height = 30
         Hint = 'This will open the memoryview and bring the disassemblerview to the selected address'
-        Top = 41
-        Width = 109
+        Top = 40
+        Width = 153
+        Anchors = [akTop, akLeft, akRight]
+        AutoSize = True
         BorderSpacing.Left = 5
         BorderSpacing.Top = 5
         BorderSpacing.Right = 5
@@ -145,11 +157,15 @@ object FoundCodeDialog: TFoundCodeDialog
       object btnReplacewithnops: TButton
         AnchorSideLeft.Control = Panel3
         AnchorSideTop.Control = Panel3
+        AnchorSideRight.Control = Panel3
+        AnchorSideRight.Side = asrBottom
         Left = 5
-        Height = 31
+        Height = 30
         Hint = 'This will replace the selected addresses with code that does nothing. (Nops)'
         Top = 5
-        Width = 109
+        Width = 153
+        Anchors = [akTop, akLeft, akRight]
+        AutoSize = True
         BorderSpacing.Left = 5
         BorderSpacing.Top = 5
         BorderSpacing.Right = 5
@@ -168,17 +184,17 @@ object FoundCodeDialog: TFoundCodeDialog
     Left = 0
     Height = 399
     Top = 0
-    Width = 279
+    Width = 250
     Align = alClient
     BevelOuter = bvNone
     ClientHeight = 399
-    ClientWidth = 279
+    ClientWidth = 250
     TabOrder = 1
     object FoundCodeList: TListView
       Left = 0
       Height = 237
       Top = 0
-      Width = 279
+      Width = 250
       Align = alClient
       Columns = <      
         item
@@ -206,7 +222,7 @@ object FoundCodeDialog: TFoundCodeDialog
       Left = 0
       Height = 157
       Top = 242
-      Width = 279
+      Width = 250
       Align = alBottom
       ReadOnly = True
       ScrollBars = ssBoth
@@ -218,7 +234,7 @@ object FoundCodeDialog: TFoundCodeDialog
       Left = 0
       Height = 5
       Top = 237
-      Width = 279
+      Width = 250
       Align = alBottom
       ResizeAnchor = akBottom
     end

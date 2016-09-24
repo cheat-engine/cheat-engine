@@ -838,7 +838,7 @@ end;
 procedure TFoundCodeDialog.FormShow(Sender: TObject);
 var i: integer;
 begin
-  btnReplacewithnops.autosize:=true;
+ { btnReplacewithnops.autosize:=true;
   btnReplacewithnops.autosize:=false;
 
   btnOpenDisassembler.AutoSize:=true;
@@ -860,7 +860,7 @@ begin
   btnAddToCodeList.width:=i;
   btnExtraInfo.width:=i;
 
-  btnOK.width:=i;
+  btnOK.width:=i;}
 end;
 
 procedure TFoundCodeDialog.FoundCodeListChange(Sender: TObject;
@@ -1117,6 +1117,7 @@ begin
   MoreInfo1.Enabled:=foundcodelist.itemindex<>-1;
 
   Copyselectiontoclipboard1.enabled:=foundcodelist.selcount>0;
+  miSaveTofile.enabled:=Copyselectiontoclipboard1.Enabled;
 end;
 
 procedure TFoundCodeDialog.Copyselectiontoclipboard1Click(Sender: TObject);

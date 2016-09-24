@@ -234,6 +234,7 @@ type
     CreateGroup: TMenuItem;
     FromAddress: TEdit;
     andlabel: TLabel;
+    MenuItem12: TMenuItem;
     miFlFindWhatAccesses: TMenuItem;
     MenuItem13: TMenuItem;
     miFlFindWhatWrites: TMenuItem;
@@ -473,6 +474,7 @@ type
     procedure CreateGroupClick(Sender: TObject);
     procedure Foundlist3SelectItem(Sender: TObject; Item: TListItem;
       Selected: boolean);
+    procedure MenuItem12Click(Sender: TObject);
     procedure miFlFindWhatAccessesClick(Sender: TObject);
     procedure miBindDeactivationClick(Sender: TObject);
     procedure miDisassembleClick(Sender: TObject);
@@ -2952,6 +2954,11 @@ procedure TMainForm.Foundlist3SelectItem(Sender: TObject; Item: TListItem;
   Selected: boolean);
 begin
 
+end;
+
+procedure TMainForm.MenuItem12Click(Sender: TObject);
+begin
+  shellexecute(0, 'open', pchar(cheatenginedir+'Tutorial-x86_64.exe'), nil, nil, sw_show);
 end;
 
 
@@ -8344,11 +8351,7 @@ end;
 
 procedure TMainForm.miTutorialClick(Sender: TObject);
 begin
-  {$ifdef TUT64}
-  shellexecute(0, 'open', pchar(cheatenginedir+'Tutorial-x86_64.exe'), nil, nil, sw_show);
-  {$else}
   shellexecute(0, 'open', pchar(cheatenginedir+'Tutorial-i386.exe'), nil, nil, sw_show);
-  {$endif}
 end;
 
 procedure TMainForm.miFlFindWhatAccessesClick(Sender: TObject);

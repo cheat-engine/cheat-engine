@@ -2508,6 +2508,10 @@ object MainForm: TMainForm
         Caption = 'Cheat Engine Tutorial'
         OnClick = miTutorialClick
       end
+      object MenuItem12: TMenuItem
+        Caption = 'Cheat Engine Tutorial (64-Bit)'
+        OnClick = MenuItem12Click
+      end
       object miEnableLCLDebug: TMenuItem
         Caption = 'Enable LCL Debug'
         Visible = False
