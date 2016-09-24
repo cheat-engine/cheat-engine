@@ -283,6 +283,7 @@ begin
     tbi.cbSize:=sizeof(tbi);
     sendmessage(handle, WM_GETTITLEBARINFOEX, 0, ptruint(@tbi));
 
+    DoAutoSize;
 
     autosize:=false;
     i:=tbi.rcTitleBar.Right-tbi.rcTitleBar.Left;
@@ -293,7 +294,8 @@ begin
     dec(i, GetSystemMetrics(SM_CXPADDEDBORDER));
     dec(i, GetSystemMetrics(SM_CXBORDER));
 
-    Width:=width+(widthneeded-i);
+    if i<widthneeded then
+      Width:=width+(widthneeded-i);
   end;
 end;
 

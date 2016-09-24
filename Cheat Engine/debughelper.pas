@@ -1576,6 +1576,8 @@ var
   i: integer;
   bp: PBreakpoint;
 begin
+  if self=nil then exit;
+
   Result := False;
   debuggercs.enter;
   try
