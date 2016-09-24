@@ -1,7 +1,7 @@
 object frmStackView: TfrmStackView
-  Left = 976
+  Left = 368
   Height = 211
-  Top = 644
+  Top = 522
   Width = 374
   BorderStyle = bsSizeToolWin
   Caption = 'Stack View'
@@ -115,6 +115,8 @@ object frmStackView: TfrmStackView
     end
   end
   object FindDialog1: TFindDialog
+    Width = 480
+    Height = 136
     Options = [frDown, frHideMatchCase, frHideWholeWord, frHideUpDown, frHideEntireScope, frHidePromptOnReplace]
     OnFind = FindDialog1Find
     left = 208

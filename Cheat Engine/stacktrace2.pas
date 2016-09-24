@@ -94,7 +94,7 @@ begin
         offsetstring:='('+pref+'bp+'+inttohex(offset,1)+')';
     end;
 
-    address:=inttohex(esp,8)+offsetstring;
+    address:=inttohex(esp,8)+' '+offsetstring;
 
 
     if processhandler.is64bit then

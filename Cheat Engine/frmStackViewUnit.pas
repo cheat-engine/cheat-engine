@@ -218,6 +218,7 @@ end;
 
 procedure TfrmStackView.miFindClick(Sender: TObject);
 begin
+
   finddialog1.execute;
 end;
 

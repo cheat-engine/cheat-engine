@@ -1028,7 +1028,7 @@ begin
 
             if CurrentDebuggerInterface is TWindowsDebuggerInterface then
             begin
-              if (currentthread.context.Dr6<>0) and (currentthread.context.dr6<>$ffff0ff0) then
+              if (currentthread.context.Dr6<>0) and (word(currentthread.context.dr6)<>$0ff0) then
               begin
                 //the breakpoint in this thread can not be deactivated yet. Leave it activated
                 //(touching the DR registers with setthreadcontext clears DR6 in win7 )
@@ -1738,6 +1738,7 @@ begin
   end;
 
   frmchangedaddresses:=tfrmChangedAddresses.Create(application) ;
+  frmchangedaddresses.address:=address;
   tempaddress:=address;
   s:=disassemble(tempaddress); //tempaddress gets changed by this, so don't use the real one
   i:=pos('[',s)+1;
