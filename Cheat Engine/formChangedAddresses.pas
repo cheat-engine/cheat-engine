@@ -61,12 +61,15 @@ type
   private
     { Private declarations }
     addresslist: TMap;
+    faddress: ptruint;
     procedure refetchValues(specificaddress: ptruint=0);
+    procedure setAddress(a: ptruint);
   public
     { Public declarations }
     equation: string;
     foundcodedialog: pointer;
     procedure AddRecord;
+    property address: ptruint read fAddress write setAddress;
   end;
 
 
@@ -81,6 +84,7 @@ resourcestring
   rsStop='Stop';
   rsClose='Close';
   rsNoDescription = 'No Description';
+  rsChangedAddressesBy = 'Changed Addresses by %x';
 
 destructor TAddressEntry.destroy;
 begin
@@ -513,6 +517,12 @@ begin
     if not memorybrowser.visible then
       memorybrowser.show;
   end;
+end;
+
+procedure TfrmChangedAddresses.setAddress(a: ptruint);
+begin
+  faddress:=a;
+  caption:=format(rsChangedAddressesBy, [a]);
 end;
 
 procedure TfrmChangedAddresses.FormDestroy(Sender: TObject);
