@@ -1691,7 +1691,7 @@ begin
     //if currentthread.needstocleanup then
     currentthread.fillContext;
 
-    if (not TDebuggerthread(debuggerthread).usesGlobalDebug) and (processhandler.SystemArchitecture=archX86) and ((dwContinueStatus=DBG_CONTINUE) or (currentThread.context.Dr6=0) or (currentThread.context.dr6=$ffff0ff0)) then
+    if (not TDebuggerthread(debuggerthread).usesGlobalDebug) and (processhandler.SystemArchitecture=archX86) and ((dwContinueStatus=DBG_CONTINUE) or (currentThread.context.Dr6=0) or (word(currentThread.context.dr6)=$0ff0)) then
     begin
       //continued or not an unhandled debug register exception
       currentthread.context.dr6:=0;
