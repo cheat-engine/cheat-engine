@@ -1176,6 +1176,8 @@ begin
   processaddress;
 
   Repaint;
+
+  autosize:=true;
 end;
 
 procedure TformAddressChange.btnCancelClick(Sender: TObject);
@@ -1502,13 +1504,15 @@ end;
 
 procedure TformAddressChange.Timer1Timer(Sender: TObject);
 begin
+  if cbvarType.DroppedDown then
+    autosize:=false;
+
   timer1.Interval:=1000;
   if visible and cbpointer.checked then
     if pointerinfo<>nil then
       pointerinfo.processaddress;
 
   processaddress;
-
 end;
 
 procedure TformAddressChange.Timer2Timer(Sender: TObject);
