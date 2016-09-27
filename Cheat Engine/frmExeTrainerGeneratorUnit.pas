@@ -117,7 +117,9 @@ resourcestring
   rsCETrainerMaker = 'CE trainer maker';
   rsARCHIVE = ' ARCHIVE:';
   rsDECOMPRESSOR = ' DECOMPRESSOR:';
-
+  rsInvalidIcon = '(Invalid icon)';
+  rsInvalidIconType = '(Invalid icon type)';
+  
 procedure TfrmExeTrainerGenerator.FormActivate(Sender: TObject);
 begin
 
@@ -464,10 +466,10 @@ begin
 
               end
               else
-                raise exception.create(rsIconUpdateError+' 4 (Invalid icon)');
+                raise exception.create(rsIconUpdateError+' 4 '+rsInvalidIcon);
             end
             else
-              raise exception.create(rsIconUpdateError+' 5 (Invalid icon type)');
+              raise exception.create(rsIconUpdateError+' 5 '+rsInvalidIconType);
           finally
             icon.free;
 
