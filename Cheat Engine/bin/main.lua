@@ -653,6 +653,8 @@ methods:
   setOnClick(functionnameorstring) : Sets the onclick routine
   getOnClick(): Gets the onclick function
   doClick():  Executes the current function under onClick
+  bringToFront(): Changes the z-order of the control so it'd at the top
+  sendToBack(): Changes the z-order of the control so it'd at the back
 
 GraphicsObject : (GraphicsObject->Object)
 
