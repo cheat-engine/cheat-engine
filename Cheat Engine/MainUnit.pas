@@ -6712,7 +6712,7 @@ begin
     begin
       with TformPointerOrPointee.Create(self) do
       begin
-        btnAddAddressManually.Caption := rsFindOutWhatAccessesThisPointer;
+        button1.Caption := rsFindOutWhatAccessesThisPointer;
         button2.Caption := rsFindWhatAccessesTheAddressPointedAtByThisPointer;
 
         res := showmodal;
@@ -6750,7 +6750,7 @@ begin
     begin
       with TformPointerOrPointee.Create(self) do
       begin
-        btnAddAddressManually.Caption := rsFindOutWhatWritesThisPointer;
+        button1.Caption := rsFindOutWhatWritesThisPointer;
         button2.Caption := rsFindWhatWritesTheAddressPointedAtByThisPointer;
 
         res := showmodal;
