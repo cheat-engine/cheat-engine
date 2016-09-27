@@ -650,6 +650,8 @@ resourcestring
   rsUnsignedInteger = 'Unsigned Integer';
   rsSignedInteger = 'Signed Integer';
   rsHexadecimal = 'Hexadecimal';
+  rsDefinePointer = 'Define pointer';
+  rsUpgradePointer = 'Upgrade child structure to full structure';
 
 var
   StructureDissectOverrides: array of TStructureDissectOverride;
@@ -4002,7 +4004,16 @@ begin
   childstruct:=getChildStructFromNode(tvStructureView.selected);
   structelement:=getStructElementFromNode(tvStructureView.Selected);
 
-  miFullUpgrade.visible:=(childstruct<>nil) and (not childstruct.isInGlobalStructList);
+  miFullUpgrade.visible:=((childstruct=nil) and (structelement<>nil) and (structelement.isPointer)) or ((childstruct<>nil) and (not childstruct.isInGlobalStructList));
+  if miFullUpgrade.visible then
+  begin
+    if (childstruct=nil) then
+      miFullUpgrade.caption:=rsDefinePointer
+    else
+      miFullUpgrade.caption:=rsUpgradePointer;
+
+  end;
+
   miAddElement.visible:=(ownerstruct<>nil) or (childstruct<>nil);
   miAddChildElement.visible:=(childstruct<>nil);
   miDeleteElement.visible:=tvStructureView.Selected<>nil;
@@ -4977,11 +4988,46 @@ end;
 
 
 procedure TfrmStructures2.miFullUpgradeClick(Sender: TObject);
-var struct: TDissectedStruct;
+var
+  struct: TDissectedStruct;
+  f: TfrmStructures2;
+  a,p: ptruint;
+
+  node: TTreenode;
+  e: boolean;
+  x: ptruint;
+
+  se: TStructelement;
 begin
   struct:=getChildStructFromNode(tvStructureView.Selected);
   if struct<>nil then
-    struct.addToGlobalStructList;
+    struct.addToGlobalStructList
+  else
+  begin
+    //create a new structure from this entry
+    node:=tvStructureView.Selected;
+    if node=nil then exit;
+
+    a:=getAddressFromNode(node, getFocusedColumn, e);
+    if not e then
+    begin
+      p:=0;
+      ReadProcessMemory(processhandle, pointer(a), @p, ProcessHandler.pointersize, x);
+      if x=ProcessHandler.pointersize then
+      begin
+        f:=tfrmstructures2.create(application);
+        f.initialaddress:=p;
+        f.show;
+        struct:=f.DefineNewStructure(4096);
+
+        se:=getStructElementFromNode(node);
+        if se<>nil then
+          se.ChildStruct:=struct;
+
+      end;
+    end;
+  end;
+
 end;
 
 procedure TfrmStructures2.miSelectStructureClick(Sender: tobject);
