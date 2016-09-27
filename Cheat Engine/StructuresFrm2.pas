@@ -5012,9 +5012,12 @@ begin
     if not e then
     begin
       p:=0;
+      x:=0;
       ReadProcessMemory(processhandle, pointer(a), @p, ProcessHandler.pointersize, x);
       if x=ProcessHandler.pointersize then
       begin
+        if p=0 then exit;
+
         f:=tfrmstructures2.create(application);
         f.initialaddress:=p;
         f.show;
