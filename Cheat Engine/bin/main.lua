@@ -2591,7 +2591,6 @@ properties
   Header : string - the additional header to be sent with the next getURL request
 methods
   getURL(path) - returns a string containing the contents of the url. nil on failure
-
-
+  postURL(path, urlencodeddata) - posts the given data to the path and returns the results
 
 --]]
