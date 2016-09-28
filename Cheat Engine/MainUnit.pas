@@ -1367,7 +1367,7 @@ begin
           cbspeedhack.Checked := True;
           if cbspeedhack.Checked then
           begin
-            editsh2.Text := format('%.2f', [speedhackspeed1.speed]);  //Just rebuild. I wish this would get fixed in fpc someday...
+            editsh2.Text := format('%.3f', [speedhackspeed1.speed]);  //Just rebuild. I wish this would get fixed in fpc someday...
             btnSetSpeedhack2.Click;
           end;
         end;
@@ -1380,7 +1380,7 @@ begin
           cbspeedhack.Checked := True;
           if cbspeedhack.Checked then
           begin
-            editsh2.Text := format('%.2f', [speedhackspeed2.speed]);
+            editsh2.Text := format('%.3f', [speedhackspeed2.speed]);
             btnSetSpeedhack2.Click;
           end;
         end;
@@ -1393,7 +1393,7 @@ begin
           cbspeedhack.Checked := True;
           if cbspeedhack.Checked then
           begin
-            editsh2.Text := format('%.2f', [speedhackspeed3.speed]);
+            editsh2.Text := format('%.3f', [speedhackspeed3.speed]);
             btnSetSpeedhack2.Click;
           end;
         end;
@@ -1406,7 +1406,7 @@ begin
           cbspeedhack.Checked := True;
           if cbspeedhack.Checked then
           begin
-            editsh2.Text := format('%.2f', [speedhackspeed4.speed]);
+            editsh2.Text := format('%.3f', [speedhackspeed4.speed]);
             btnSetSpeedhack2.Click;
           end;
         end;
@@ -1419,7 +1419,7 @@ begin
           cbspeedhack.Checked := True;
           if cbspeedhack.Checked then
           begin
-            editsh2.Text := format('%.2f', [speedhackspeed5.speed]);
+            editsh2.Text := format('%.3f', [speedhackspeed5.speed]);
             btnSetSpeedhack2.Click;
           end;
         end;
@@ -1436,7 +1436,7 @@ begin
             begin
               a := strtofloat(editsh2.Text);
               a := a + speedupdelta;
-              editsh2.Text := format('%.2f', [a]);
+              editsh2.Text := format('%.3f', [a]);
               btnSetSpeedhack2.Click;
             end;
           end;
@@ -1457,7 +1457,7 @@ begin
             begin
               b := strtofloat(editsh2.Text);
               b := b - slowdowndelta;
-              editsh2.Text := format('%.2f', [b]);
+              editsh2.Text := format('%.3f', [b]);
               btnSetSpeedhack2.Click;
             end;
           end;
@@ -4994,11 +4994,13 @@ begin
         {$ifdef cpu64}
         ZeroMemory(@tp, sizeof(tp));
         ZeroMemory(@prev, sizeof(prev));
-        if lookupPrivilegeValue(nil, 'SeLockMemoryPrivilege', tp.Privileges[0].Luid) then
+
+        if lookupPrivilegeValue(nil, SE_LOCK_MEMORY_NAME, tp.Privileges[0].Luid) then
         begin
           tp.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
           tp.PrivilegeCount := 1; // One privilege to set
           AdjustTokenPrivileges(tokenhandle, False, tp, sizeof(tp), prev, returnlength);
+
         end;
 
         {$endif}
