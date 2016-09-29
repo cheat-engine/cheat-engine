@@ -7,7 +7,7 @@ interface
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs,CEFuncProc,imagehlp, StdCtrls, ComCtrls, ExtCtrls, ActnList,
-  Menus, LResources,symbolhandler, FindDialogFix;
+  Menus, LResources,symbolhandler, FindDialogFix, commonTypeDefs;
 
 type tenumthread=class(tthread)
   public
@@ -198,13 +198,23 @@ begin
 end;
 
 procedure TfrmEnumerateDLLs.FormCreate(Sender: TObject);
+var x: TWindowPosArray;
 begin
-  LoadFormPosition(self);
+  LoadFormPosition(self,x);
+  if length(x)>=2 then
+  begin
+    findpos.x:=x[0];
+    findpos.y:=x[1];
+  end;
 end;
 
 procedure TfrmEnumerateDLLs.FormDestroy(Sender: TObject);
+var x: TWindowPosArray;
 begin
-  SaveFormPosition(self);
+  setlength(x,2);
+  x[0]:=findpos.x;
+  x[1]:=findpos.y;
+  SaveFormPosition(self,x);
 end;
 
 procedure TfrmEnumerateDLLs.FormShow(Sender: TObject);

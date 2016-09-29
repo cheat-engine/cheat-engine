@@ -61,7 +61,10 @@ end;
 
 function TFindDialog.GetPositionFix: TPoint;
 begin
-  Result:=Point(FFormLeft, FFormTop);
+  if assigned(FFindForm) then
+    Result:=Point(FFindForm.Left, FFindForm.Top)
+  else
+    Result:=Point(FFormLeft, FFormTop);
 end;
 
 procedure TFindDialog.SetPositionFix(p: TPoint);
