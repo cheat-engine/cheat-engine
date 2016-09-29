@@ -1811,7 +1811,10 @@ begin
             end;
 
       $0f : begin  //simd extensions
-              lastdisassembledata.prefix:=''; //these usually treat the f2/f3 prefix differently
+              if $f0 in prefix2 then
+                lastdisassembledata.prefix:='lock '
+              else
+                lastdisassembledata.prefix:=''; //these usually treat the f2/f3 prefix differently
 
               case memory[1] of
                 $00 : begin
