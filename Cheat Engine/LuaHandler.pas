@@ -254,7 +254,7 @@ end;
 
 procedure lua_pushrect(L: PLua_state; r: TRect);
 begin
-  lua_newtable(L);
+  lua_createtable(L, 0,4);
   lua_pushstring(L, 'Left');
   lua_pushinteger(L, r.left);
   lua_settable(L, -3);
@@ -1858,7 +1858,7 @@ begin
   begin
     if tableversion then
     begin
-      lua_newtable(L);
+      lua_createtable(L, x,0);
       for i:=0 to x-1 do
       begin
         lua_pushinteger(L, i+1);
@@ -7530,7 +7530,7 @@ begin
 
   list:=FindAllFiles(path,mask,subdirs,attrib);
 
-  lua_newtable(L);
+  lua_createtable(L, list.count, 0);
   result:=1;
 
   for i:=0 to list.count-1 do
@@ -7568,7 +7568,7 @@ begin
 
   list:=FindAllDirectories(path,subdirs);
 
-  lua_newtable(L);
+  lua_createtable(L, list.count, 0);
   result:=1;
 
   for i:=0 to list.count-1 do
