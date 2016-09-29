@@ -316,6 +316,14 @@ object frmStructures2: TfrmStructures2
       ShortCut = 16469
       OnClick = miUpdateOffsetsClick
     end
+    object N5: TMenuItem
+      Caption = '-'
+    end
+    object miBack: TMenuItem
+      Caption = 'Back'
+      ShortCut = 8
+      OnClick = miBackClick
+    end
     object N4: TMenuItem
       Caption = '-'
     end

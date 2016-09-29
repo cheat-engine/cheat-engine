@@ -124,6 +124,9 @@ end;
 procedure TfrmStructures2ElementInfo.setChildStruct(s: TDissectedStruct);
 var i: integer;
 begin
+  if s<>nil then
+    cbExpandChangesAddress.enabled:=true;
+
   for i:=0 to cbStructType.items.count-1 do
     if cbStructType.Items.Objects[i]=s then
     begin
@@ -135,8 +138,7 @@ begin
   localChild:=s;
   cbStructType.ItemIndex:=cbStructType.Items.AddObject(rsS2EILocalStruct+s.name, s);
 
-  if s<>nil then
-    cbExpandChangesAddress.enabled:=true;
+
 end;
 
 function TfrmStructures2ElementInfo.getChildStruct: TDissectedStruct;

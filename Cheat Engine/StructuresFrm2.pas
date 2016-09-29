@@ -9,7 +9,8 @@ uses
   windows, Classes, LCLProc, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls, math,
   StdCtrls, ComCtrls, Menus, lmessages, scrolltreeview, byteinterpreter, symbolhandler, cefuncproc,
   newkernelhandler, frmSelectionlistunit, frmStructuresConfigUnit, registry, Valuechange, DOM,
-  XMLRead, XMLWrite, Clipbrd, CustomTypeHandler, strutils, dotnetpipe, DotNetTypes, commonTypeDefs;
+  XMLRead, XMLWrite, Clipbrd, CustomTypeHandler, strutils, dotnetpipe, DotNetTypes, commonTypeDefs,
+  contnrs;
 
 
 const structureversion=2;
@@ -249,6 +250,8 @@ type
 
     fcompareValue: string;
 
+    backlist: Tstack;
+
     procedure ChangeGroupClick(sender: tobject);
     procedure DeleteClick(sender: TObject);
     procedure ToggleLockClick(sender: TObject);
@@ -297,6 +300,9 @@ type
     function isXInColumn(x: integer): boolean;
     procedure SetProperEditboxPosition;
 
+    procedure pushAddress;
+    procedure popAddress;
+    function canPopAddress: boolean;
   published
     property EditWidth: integer read getEditwidth;
     property EditLeft: integer read getEditleft;
@@ -312,6 +318,8 @@ type
     MenuItem5: TMenuItem;
     MenuItem6: TMenuItem;
     MenuItem7: TMenuItem;
+    miBack: TMenuItem;
+    N5: TMenuItem;
     miExpandAll: TMenuItem;
     miExpandAllDefined: TMenuItem;
     miClear: TMenuItem;
@@ -381,6 +389,7 @@ type
     procedure MenuItem3Click(Sender: TObject);
     procedure MenuItem5Click(Sender: TObject);
     procedure MenuItem6Click(Sender: TObject);
+    procedure miBackClick(Sender: TObject);
     procedure miExpandAllClick(Sender: TObject);
     procedure miExpandAllDefinedClick(Sender: TObject);
     procedure miClearClick(Sender: TObject);
@@ -456,8 +465,6 @@ type
     fMatchColorHighlighted: tcolor; //The color to use when all elements in the group match
     fAllMatchColorSameHighlighted: TColor; //The color to use when all groups have matching elements AND the same value
     fAllMatchColorDiffHighlighted: TColor; //The color to use when all groups have matching alements but different values between groups
-
-
 
     procedure UpdateCurrentStructOptions;
     procedure setupColors;
@@ -2058,6 +2065,22 @@ end;
 
 { TStructColumn }
 
+procedure TStructColumn.pushAddress;
+begin
+  backlist.Push(pointer(faddress));
+end;
+
+procedure TStructColumn.popAddress;
+begin
+  if canPopAddress then
+    Address:=ptruint(backlist.Pop);
+end;
+
+function TStructColumn.canPopAddress: boolean;
+begin
+  result:=backlist.Count>0;
+end;
+
 procedure TStructColumn.setNewParent(group: TStructGroup);
 begin
   parent.fcolumns.Remove(self);
@@ -2556,6 +2579,8 @@ begin
 
   parent.setPositions;
   Address:=MemoryBrowser.hexview.address;
+
+  backlist:=TStack.Create;
 end;
 
 destructor TStructColumn.destroy;
@@ -2582,6 +2607,9 @@ begin
       parent.Free;
   end;
 
+
+  if backlist<>nil then
+    freeandnil(backlist);
 end;
 
 { Tstructgroup }
@@ -2779,6 +2807,8 @@ begin
 
 
   setupColors; //load colors and default struct options
+
+
 end;
 
 procedure TfrmStructures2.FormClose(Sender: TObject;
@@ -3261,6 +3291,7 @@ begin
         if ReadProcessMemory(processhandle, pointer(address2), @address2, 1, x) then
         begin
           c:=getFocusedColumn;
+          c.pushAddress;
           c.Address:=address2-n.ChildStructStart;
           mainStruct:=n.ChildStruct;
         end;
@@ -4014,6 +4045,7 @@ procedure TfrmStructures2.pmStructureViewPopup(Sender: TObject);
 var childstruct: TDissectedStruct;
   ownerstruct: TDissectedStruct;
   structelement: TStructelement;
+  c: TStructColumn;
 begin
   ownerstruct:=getStructFromNode(tvStructureView.selected);
   childstruct:=getChildStructFromNode(tvStructureView.selected);
@@ -4053,6 +4085,9 @@ begin
   mipaste.Visible:=structelement<>nil;
   n4.visible:=n3.visible and (miCopy.visible or mipaste.visible);
 
+  c:=getFocusedColumn;
+  n5.Visible:=(c<>nil) and c.canPopAddress;
+  miBack.visible:=n5.Visible;
 end;
 
 procedure TfrmStructures2.miNewWindowClick(Sender: TObject);
@@ -4136,6 +4171,8 @@ end;
 function TfrmStructures2.getFocusedColumn: TStructColumn;
 var i: integer;
 begin
+  if columncount=0 then exit(nil); //rare/impossible
+
   for i:=0 to columnCount-1 do
     if columns[i].Focused then
     begin
@@ -4469,6 +4506,13 @@ end;
 procedure TfrmStructures2.MenuItem6Click(Sender: TObject);
 begin
   finddialog1.Execute;
+end;
+
+procedure TfrmStructures2.miBackClick(Sender: TObject);
+var c: TStructColumn;
+begin
+  c:=getFocusedColumn;
+  if c<>nil then c.popAddress;
 end;
 
 
