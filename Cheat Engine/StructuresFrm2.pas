@@ -3964,6 +3964,9 @@ begin
         end;
       end;
 
+      for i:=0 to DissectedStructs.count-1 do
+        TDissectedStruct(DissectedStructs[i]).fillDelayLoadedChildstructs;
+
 
     end;
 
