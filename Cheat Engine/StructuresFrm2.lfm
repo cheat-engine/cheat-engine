@@ -1,7 +1,7 @@
 object frmStructures2: TfrmStructures2
-  Left = 945
+  Left = 450
   Height = 381
-  Top = 325
+  Top = 149
   Width = 542
   Caption = 'Structure dissect'
   ClientHeight = 361
@@ -27,7 +27,6 @@ object frmStructures2: TfrmStructures2
     Width = 542
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderStyle = bsNone
-    DefaultItemHeight = 16
     Font.CharSet = ANSI_CHARSET
     Font.Height = -15
     Font.Name = 'Courier New'
@@ -276,6 +275,7 @@ object frmStructures2: TfrmStructures2
     end
     object miFullUpgrade: TMenuItem
       Caption = 'Upgrade this child to full structure'
+      ShortCut = 49232
       OnClick = miFullUpgradeClick
     end
     object N2: TMenuItem

@@ -763,6 +763,9 @@ begin
   if self.Name<>'' then
     elementnode.SetAttribute('Description', utf8toansi(self.Name));
 
+  if ExpandChangesAddress then
+    elementnode.SetAttribute('ExpandChangesAddress', '1');
+
   elementnode.SetAttribute('Vartype', VariableTypeToString(self.VarType));
   if self.CustomType<>nil then
     elementnode.SetAttribute('Customtype', self.CustomType.name);
@@ -774,6 +777,7 @@ begin
     elementnode.SetAttribute('ChildStructStart', IntToStr(self.ChildStructStart));
 
   elementnode.SetAttribute('BackgroundColor', IntToHex(backgroundcolor, 6));
+
 
   if (self.isPointer) and (self.ChildStruct<>nil) then
   begin
@@ -1069,6 +1073,8 @@ var ChildStructStartS: string;
   childname: string;
 
   s: string;
+
+  e: TDOMAttr;
 begin
   fparent:=parent;
   fbackgroundcolor:=clWindow;
@@ -1081,6 +1087,8 @@ begin
   s:=element.GetAttribute('BackgroundColor');
   if s<>'' then
     self.fbackgroundcolor:=HexStrToInt(s);
+
+  self.fExpandChangesAddress:=element.GetAttribute('ExpandChangesAddress')='1';
 
 
   ChildStructStartS:=element.GetAttribute('ChildStructStart');
@@ -3226,7 +3234,8 @@ procedure TfrmStructures2.tvStructureViewExpanding(Sender: TObject;
   Node: TTreeNode; var AllowExpansion: Boolean);
 var n: TStructelement;
   error: boolean;
-  address: ptruint;
+
+  address, address2: ptruint;
   c: TStructColumn;
   x: ptruint;
   savedstate: PtrUInt;
@@ -3246,12 +3255,15 @@ begin
     if not error then
     begin
       //dereference the pointer and fill it in if possible
-      if ReadProcessMemory(processhandle, pointer(address), @address, processhandler.pointersize, x) then
+      address2:=0;
+      if ReadProcessMemory(processhandle, pointer(address), @address2, processhandler.pointersize, x) then
       begin
-        c:=getFocusedColumn;
-
-        c.Address:=address-n.ChildStructStart;
-        mainStruct:=n.ChildStruct;
+        if ReadProcessMemory(processhandle, pointer(address2), @address2, 1, x) then
+        begin
+          c:=getFocusedColumn;
+          c.Address:=address2-n.ChildStructStart;
+          mainStruct:=n.ChildStruct;
+        end;
       end;
     end;
 
