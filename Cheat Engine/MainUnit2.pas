@@ -24,7 +24,7 @@ procedure initcetitle;
 
 
 
-const beta=' Beta 2'; //empty this for a release
+const beta=' Release Candidate 2'; //empty this for a release
 
 var
   CEnorm:string;
@@ -228,11 +228,17 @@ begin
           else
             speedhackspeed1.speed:=1;
 
+          if reg.ValueExists('Speedhack 1 disablewhenreleased') then
+            speedhackspeed1.disablewhenreleased:=reg.ReadBool('Speedhack 1 disablewhenreleased');
+
 
           if reg.ValueExists('Speedhack 2 speed') then
             speedhackspeed2.speed:=reg.ReadFloat('Speedhack 2 speed')
           else
             speedhackspeed2.speed:=1;
+
+          if reg.ValueExists('Speedhack 2 disablewhenreleased') then
+            speedhackspeed2.disablewhenreleased:=reg.ReadBool('Speedhack 2 disablewhenreleased');
 
 
 
@@ -241,18 +247,25 @@ begin
           else
             speedhackspeed3.speed:=1;
 
+          if reg.ValueExists('Speedhack 3 disablewhenreleased') then
+            speedhackspeed3.disablewhenreleased:=reg.ReadBool('Speedhack 3 disablewhenreleased');
 
           if reg.ValueExists('Speedhack 4 speed') then
             speedhackspeed4.speed:=reg.ReadFloat('Speedhack 4 speed')
           else
             speedhackspeed4.speed:=1;
 
+          if reg.ValueExists('Speedhack 4 disablewhenreleased') then
+            speedhackspeed4.disablewhenreleased:=reg.ReadBool('Speedhack 4 disablewhenreleased');
 
 
           if reg.ValueExists('Speedhack 5 speed') then
             speedhackspeed5.speed:=reg.ReadFloat('Speedhack 5 speed')
           else
             speedhackspeed5.speed:=1;
+
+          if reg.ValueExists('Speedhack 5 disablewhenreleased') then
+            speedhackspeed5.disablewhenreleased:=reg.ReadBool('Speedhack 5 disablewhenreleased');
 
 
 
@@ -279,17 +292,27 @@ begin
           if reg.ValueExists('Set Speedhack speed 1 Hotkey') then
             reg.ReadBinaryData('Set Speedhack speed 1 Hotkey',temphotkeylist[3][0],10);
 
+          speedhackspeed1.keycombo:=temphotkeylist[3];
+
           if reg.ValueExists('Set Speedhack speed 2 Hotkey') then
             reg.ReadBinaryData('Set Speedhack speed 2 Hotkey',temphotkeylist[4][0],10);
+
+          speedhackspeed2.keycombo:=temphotkeylist[4];
 
           if reg.ValueExists('Set Speedhack speed 3 Hotkey') then
             reg.ReadBinaryData('Set Speedhack speed 3 Hotkey',temphotkeylist[5][0],10);
 
+          speedhackspeed3.keycombo:=temphotkeylist[5];
+
           if reg.ValueExists('Set Speedhack speed 4 Hotkey') then
             reg.ReadBinaryData('Set Speedhack speed 4 Hotkey',temphotkeylist[6][0],10);
 
+          speedhackspeed4.keycombo:=temphotkeylist[6];
+
           if reg.ValueExists('Set Speedhack speed 5 Hotkey') then
             reg.ReadBinaryData('Set Speedhack speed 5 Hotkey',temphotkeylist[7][0],10);
+
+          speedhackspeed5.keycombo:=temphotkeylist[7];
 
           if reg.ValueExists('Increase Speedhack speed') then
             reg.ReadBinaryData('Increase Speedhack speed',temphotkeylist[8][0],10);

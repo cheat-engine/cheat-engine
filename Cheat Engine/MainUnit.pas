@@ -708,6 +708,9 @@ type
 
     UserDefinedTableName: string; //set when a user opens a table (when set the filename prediction will be turned off)
 
+    speedhackDisableTimer: TTimer;
+    procedure CheckForSpeedhackKey(sender: TObject);
+
     procedure doNewScan;
     procedure SetExpectedTableName;
 
@@ -715,7 +718,6 @@ type
     function CheckIfSaved: boolean;
     procedure checkpaste;
     procedure hotkey(var Message: TMessage); message WM_HOTKEY;
-    procedure WMGetMinMaxInfo(var Message: TMessage); message WM_GETMINMAXINFO;
     procedure Hotkey2(var Message: TMessage); message wm_hotkey2;
     procedure ScanDone(var message: TMessage); message WM_SCANDONE;
     procedure PluginSync(var m: TMessage); message wm_pluginsync;
@@ -1220,20 +1222,30 @@ begin
   end;
 end;
 
-procedure TMainForm.WMGetMinMaxInfo(var Message: TMessage);
+procedure TMainForm.CheckForSpeedhackKey(sender: TObject);
 var
-  MMInfo: ^MINMAXINFO;
-begin //the constraint function of the form behaves weird when draging from the top or left side, so I have to do this myself.
-  //mainform.pix
-  MMInfo := pointer(message.LParam);
-  if pixelsperinch = 96 then
+  s: integer;
+  down: boolean;
+begin
+//  if speed
+  s:=ttimer(sender).tag;
+  down:=false;
+
+  case s of
+    1: down:=CheckKeyCombo(speedhackspeed1.keycombo);
+    2: down:=CheckKeyCombo(speedhackspeed2.keycombo);
+    3: down:=CheckKeyCombo(speedhackspeed3.keycombo);
+    4: down:=CheckKeyCombo(speedhackspeed4.keycombo);
+    5: down:=CheckKeyCombo(speedhackspeed5.keycombo);
+  end;
+
+  if not down then
   begin
-    MMInfo.ptMinTrackSize := point(490, 460);
+    editsh2.Text := '1';
+    btnSetSpeedhack2.Click;
+    ttimer(sender).enabled:=false;
   end;
 end;
-
-
-
 
 procedure TMainForm.Hotkey2(var Message: TMessage);
 type
@@ -1361,7 +1373,7 @@ begin
 
       //3..7=set speedhack speed
       3:
-      begin
+      begin         //todo;active while key down   (launch timer that checks keycombo)
         if cbspeedhack.Enabled then
         begin
           cbspeedhack.Checked := True;
@@ -1369,6 +1381,21 @@ begin
           begin
             editsh2.Text := format('%.3f', [speedhackspeed1.speed]);  //Just rebuild. I wish this would get fixed in fpc someday...
             btnSetSpeedhack2.Click;
+
+            if speedhackspeed1.disablewhenreleased then
+            begin
+              //spawn a timer
+              if speedhackDisableTimer=nil then
+              begin
+                speedhackDisableTimer:=TTimer.create(self);
+                speedhackDisableTimer.OnTimer:=CheckForSpeedhackKey;
+              end;
+
+              speedhackDisableTimer.Interval:=hotkeyPollInterval;
+              speedhackDisableTimer.Tag:=1;
+              speedhackDisableTimer.enabled:=true;
+            end;
+
           end;
         end;
       end;
@@ -1382,6 +1409,20 @@ begin
           begin
             editsh2.Text := format('%.3f', [speedhackspeed2.speed]);
             btnSetSpeedhack2.Click;
+
+            if speedhackspeed1.disablewhenreleased then
+            begin
+              //spawn a timer
+              if speedhackDisableTimer=nil then
+              begin
+                speedhackDisableTimer:=TTimer.create(self);
+                speedhackDisableTimer.OnTimer:=CheckForSpeedhackKey;
+              end;
+
+              speedhackDisableTimer.Interval:=hotkeyPollInterval;
+              speedhackDisableTimer.Tag:=2;
+              speedhackDisableTimer.enabled:=true;
+            end;
           end;
         end;
       end;
@@ -1395,6 +1436,20 @@ begin
           begin
             editsh2.Text := format('%.3f', [speedhackspeed3.speed]);
             btnSetSpeedhack2.Click;
+
+            if speedhackspeed1.disablewhenreleased then
+            begin
+              //spawn a timer
+              if speedhackDisableTimer=nil then
+              begin
+                speedhackDisableTimer:=TTimer.create(self);
+                speedhackDisableTimer.OnTimer:=CheckForSpeedhackKey;
+              end;
+
+              speedhackDisableTimer.Interval:=hotkeyPollInterval;
+              speedhackDisableTimer.Tag:=3;
+              speedhackDisableTimer.enabled:=true;
+            end;
           end;
         end;
       end;
@@ -1408,6 +1463,20 @@ begin
           begin
             editsh2.Text := format('%.3f', [speedhackspeed4.speed]);
             btnSetSpeedhack2.Click;
+
+            if speedhackspeed1.disablewhenreleased then
+            begin
+              //spawn a timer
+              if speedhackDisableTimer=nil then
+              begin
+                speedhackDisableTimer:=TTimer.create(self);
+                speedhackDisableTimer.OnTimer:=CheckForSpeedhackKey;
+              end;
+
+              speedhackDisableTimer.Interval:=hotkeyPollInterval;
+              speedhackDisableTimer.Tag:=4;
+              speedhackDisableTimer.enabled:=true;
+            end;
           end;
         end;
       end;
@@ -1421,6 +1490,20 @@ begin
           begin
             editsh2.Text := format('%.3f', [speedhackspeed5.speed]);
             btnSetSpeedhack2.Click;
+
+            if speedhackspeed1.disablewhenreleased then
+            begin
+              //spawn a timer
+              if speedhackDisableTimer=nil then
+              begin
+                speedhackDisableTimer:=TTimer.create(self);
+                speedhackDisableTimer.OnTimer:=CheckForSpeedhackKey;
+              end;
+
+              speedhackDisableTimer.Interval:=hotkeyPollInterval;
+              speedhackDisableTimer.Tag:=5;
+              speedhackDisableTimer.enabled:=true;
+            end;
           end;
         end;
       end;
