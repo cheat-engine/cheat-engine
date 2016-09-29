@@ -1410,7 +1410,7 @@ begin
             editsh2.Text := format('%.3f', [speedhackspeed2.speed]);
             btnSetSpeedhack2.Click;
 
-            if speedhackspeed1.disablewhenreleased then
+            if speedhackspeed2.disablewhenreleased then
             begin
               //spawn a timer
               if speedhackDisableTimer=nil then
@@ -1437,7 +1437,7 @@ begin
             editsh2.Text := format('%.3f', [speedhackspeed3.speed]);
             btnSetSpeedhack2.Click;
 
-            if speedhackspeed1.disablewhenreleased then
+            if speedhackspeed3.disablewhenreleased then
             begin
               //spawn a timer
               if speedhackDisableTimer=nil then
@@ -1464,7 +1464,7 @@ begin
             editsh2.Text := format('%.3f', [speedhackspeed4.speed]);
             btnSetSpeedhack2.Click;
 
-            if speedhackspeed1.disablewhenreleased then
+            if speedhackspeed4.disablewhenreleased then
             begin
               //spawn a timer
               if speedhackDisableTimer=nil then
@@ -1491,7 +1491,7 @@ begin
             editsh2.Text := format('%.3f', [speedhackspeed5.speed]);
             btnSetSpeedhack2.Click;
 
-            if speedhackspeed1.disablewhenreleased then
+            if speedhackspeed5.disablewhenreleased then
             begin
               //spawn a timer
               if speedhackDisableTimer=nil then

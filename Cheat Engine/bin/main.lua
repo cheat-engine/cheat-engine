@@ -788,9 +788,13 @@ methods
 Application Class: (Inheritance: CustomApplication->Component->Object)
 properties
   Title: The title of cheat engine in the bar
+  Icon: The icon of Cheat Engine inn the bar
 
 methods
   bringToFront(): Shows the cheat engine app
+  processMessages()
+  terminate()
+  minimize()
 
 
 Form Class: (Inheritance: ScrollingWinControl->CustomControl->WinControl->Control->Component->Object)
@@ -1432,6 +1436,8 @@ createPNG(width, height) - Returns a PortableNetworkGraphic object
 JpegImage Class: (Inheritence: CustomBitmap->RasterImage->Graphic->Object)
 createJpeg(width, height) - Returns a Jpeg object
 
+Icon Class: (Inheritence: CustomBitmap->RasterImage->Graphic->Object)
+createIcon(width, height) - Returns an Icon object
 
 
 Picture Class : (Inheritance: Object) : Container for the Graphic class
@@ -1442,18 +1448,13 @@ properties
   PNG
   Bitmap
   Jpeg
+  Icon
 
 methods
   loadFromFile(filename)
   saveToFile(filename)
   loadFromStream(stream, originalextension OPTIONAL) : Loads a picture from a stream. Note that the stream position must be set to the start of the picture
   assign(sourcepicture)
-  getGraphic() : Gets the Graphic object of this picture
-  getPNG(): Returns a PortableNetworkGraphic Class object (Can be used from scratch)
-  getBitmap(): Returns a Bitmap Class object (Can be used from scratch)
-  getJpeg(): Returns a JpegImage Class object (Picture must be initialized with a jpeg file first)
-
-
 
 
 GenericHotkey Class : (Inheritance:  Object)

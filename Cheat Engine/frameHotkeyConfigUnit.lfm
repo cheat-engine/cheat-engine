@@ -110,6 +110,7 @@ object frameHotkeyConfig: TframeHotkeyConfig
       BorderSpacing.Top = 2
       BorderSpacing.Right = 2
       OnKeyDown = Edit1KeyDown
+      OnMouseDown = Edit1MouseDown
       ReadOnly = True
       TabOrder = 0
     end

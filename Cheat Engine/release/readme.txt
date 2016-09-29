@@ -40,7 +40,7 @@ Single stepping now shows an indication if an condition jump will be taken
 Added a watchlist to the debugger
 Added the 'align' assembler pseudo command (allocates memory so the next line is aligned on a block of the required size)
 Added the 'Not' option for scans, which causes all addresses that match the given entry as invalid
-Changed the Unicode text to UTF-16. Text scans are now UTF8/UTF16 (no wincp)
+Changed the Unicode text to UTF-16. Text scans are now UTF8/UTF16 (no codepage)
 Hexview can now show and edit values in 3 different textencodings. (Ascii, UTF-8 and UTF-16)
 Rescan pointerscans on pointerscans that where done on a range can now change the offset
 
@@ -53,6 +53,7 @@ getFileVersion(): A function to get version information from a file
 mouse_event() : Lets you send mouse events to windows. (move, click, etc...)
 loadFontFromStream() : Lets you load a font from a memory stream. (Useful for trainers that use a custom font)
 added several thread synchronization objects
+control class: added bringToFront and sendToBack
 
 lua changes:
 dbk_writesIgnoreWriteProtection() now also disables virtualprotectex calls from CE

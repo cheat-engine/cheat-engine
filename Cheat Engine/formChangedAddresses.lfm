@@ -14,7 +14,7 @@ object frmChangedAddresses: TfrmChangedAddresses
   LCLVersion = '1.6.0.4'
   object lblInfo: TLabel
     Left = 0
-    Height = 32
+    Height = 15
     Top = 0
     Width = 379
     Align = alTop
@@ -24,20 +24,20 @@ object frmChangedAddresses: TfrmChangedAddresses
   end
   object Panel1: TPanel
     Left = 0
-    Height = 34
-    Top = 251
+    Height = 33
+    Top = 252
     Width = 379
     Align = alBottom
     Anchors = [akRight, akBottom]
     AutoSize = True
-    ClientHeight = 34
+    ClientHeight = 33
     ClientWidth = 379
     TabOrder = 0
     object OKButton: TButton
       AnchorSideLeft.Control = Panel1
       AnchorSideTop.Control = Panel1
       Left = 4
-      Height = 26
+      Height = 25
       Top = 4
       Width = 90
       AutoSize = True
@@ -55,12 +55,12 @@ object frmChangedAddresses: TfrmChangedAddresses
       AnchorSideRight.Control = Panel1
       AnchorSideRight.Side = asrBottom
       Left = 196
-      Height = 24
+      Height = 23
       Top = 4
       Width = 179
       Anchors = [akTop, akRight]
       BorderSpacing.Right = 3
-      ItemHeight = 16
+      ItemHeight = 15
       ItemIndex = 2
       Items.Strings = (
         'Byte'
@@ -76,8 +76,8 @@ object frmChangedAddresses: TfrmChangedAddresses
   end
   object Changedlist: TListView
     Left = 0
-    Height = 219
-    Top = 32
+    Height = 237
+    Top = 15
     Width = 379
     Align = alClient
     Columns = <    

@@ -34,6 +34,8 @@ type
     Label4: TLabel;
     Label5: TLabel;
     PopupMenu1: TPopupMenu;
+    procedure Edit1MouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
     procedure edtSHSpeedChange(Sender: TObject);
     procedure ListBox1Click(Sender: TObject);
     procedure Edit1KeyDown(Sender: TObject; var Key: Word;
@@ -179,6 +181,21 @@ end;
 procedure TframeHotkeyConfig.edtSHSpeedChange(Sender: TObject);
 begin
 
+end;
+
+procedure TframeHotkeyConfig.Edit1MouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var key: word;
+begin
+  key:=0;
+  case button of
+    mbMiddle: key:=VK_MBUTTON;
+    mbExtra1: key:=VK_XBUTTON1;
+    mbExtra2: key:=VK_XBUTTON2;
+  end;
+
+  if key<>0 then
+    Edit1KeyDown(edit1, key, shift);
 end;
 
 procedure TframeHotkeyConfig.Edit1KeyDown(Sender: TObject; var Key: Word;

@@ -1,7 +1,7 @@
 object formPointerOrPointee: TformPointerOrPointee
-  Left = 626
+  Left = 169
   Height = 99
-  Top = 269
+  Top = 810
   Width = 354
   AutoSize = True
   BorderIcons = [biSystemMenu]

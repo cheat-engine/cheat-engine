@@ -289,7 +289,8 @@ end;
 
 type tspeedhackspeed=record
   speed: single;
-  sleeptime: dword; //obsolete
+  disablewhenreleased: boolean;
+  keycombo: TKeyCombo;
 end;
 
 
