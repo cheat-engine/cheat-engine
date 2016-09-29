@@ -118,6 +118,9 @@ md5memory(address, size): Returns a md5 sum calculated from the provided memory.
 md5file(pathtofile): Returns a md5 sum calculated from the file. 
 getFileVersion(pathtofile): returns the 64-bit file version, and a table that has split up the file version into major, minor, release and build
 
+getFileList(Path:string, searchMask:string OPTIONAL, SearchSubDirs: boolean, DirAttrib: integer): Returns an indexed table with filenames
+getDirectoryList(Path:string, SearchSubDirs: boolean): Returns an indexed table with directory names
+
 
 getAddress(string, local OPTIONAL): returns the address of a symbol. Can be a modulename or an export. set Local to true if you wish to querry the symboltable of the ce process
 getSymbolInfo(symbolname): Returns a table as defined by the SymbolList class object (modulename, searchkey, address, size)
@@ -1683,6 +1686,8 @@ properties
   Address: string - Get/set the interpretable address string. Useful for simple address settings.
   OffsetCount: integer - The number of offsets. Set to 0 for a normal address
   Offset[] : integer - Array to access each offset
+  OffsetText[] : string - Array to access each offset using the interpretable text style
+
   CurrentAddress: integer - The address the memoryrecord points to
   Type: ValueType - The variable type of this record. See vtByte to vtCustom
     If the type is vtString then the following properties are available:

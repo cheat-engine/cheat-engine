@@ -62,6 +62,36 @@ begin
   end;
 end;
 
+function memoryrecord_getOffsetText(L: PLua_State): integer; cdecl;
+var
+  memrec: TMemoryRecord;
+  index: integer;
+begin
+  result:=0;
+  memrec:=luaclass_getClassObject(L);
+  if lua_gettop(L)=1 then
+  begin
+    index:=lua_toInteger(L,1);
+    lua_pushstring(L, memrec.offsets[index].offsetText);
+    result:=1;
+  end;
+end;
+
+function memoryrecord_setOffsetText(L: PLua_State): integer; cdecl;
+var
+  memrec: TMemoryRecord;
+  index: integer;
+begin
+  result:=0;
+  memrec:=luaclass_getClassObject(L);
+  if lua_gettop(L)=2 then
+  begin
+    index:=lua_toInteger(L,1);
+    memrec.offsets[index].offsetText:=Lua_ToString(L, 2);
+  end;
+end;
+
+
 function memoryrecord_getchild(L: PLUA_State): integer; cdecl;
 var
   memrec: TMemoryRecord;
@@ -806,6 +836,7 @@ begin
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'OffsetCount', memoryrecord_getOffsetCount, memoryrecord_setOffsetCount);
   luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Offset', memoryrecord_getOffset, memoryrecord_setOffset);
+  luaclass_addArrayPropertyToTable(L, metatable, userdata, 'OffsetText', memoryrecord_getOffsetText, memoryrecord_setOffsetText);
 
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'Active', memoryrecord_getActive, memoryrecord_setActive);

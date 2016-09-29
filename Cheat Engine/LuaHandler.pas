@@ -94,7 +94,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   LuaStructureFrm, LuaInternet, SymbolListHandler, processhandlerunit, processlist,
   DebuggerInterface, WindowsDebugger, VEHDebugger, KernelDebuggerInterface,
   DebuggerInterfaceAPIWrapper, Globals, math, speedhack2, CETranslator, binutils,
-  xinput, winsapi, frmExeTrainerGeneratorUnit, CustomBase85;
+  xinput, winsapi, frmExeTrainerGeneratorUnit, CustomBase85, FileUtil;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -7496,6 +7496,91 @@ begin
 
 end;
 
+function lua_getFileList(L: Plua_State): integer; cdecl;
+var
+  list: Tstringlist;
+  path: string;
+  mask: string;
+  subdirs: boolean;
+  attrib: word;
+
+  paramcount: integer;
+  i: integer;
+begin
+  paramcount:=lua_gettop(L);
+  if paramcount=0 then exit(0);
+
+  path:=lua_tostring(L,1);
+  if paramcount>1 then
+    mask:=Lua_ToString(L, 2)
+  else
+    mask:='';
+
+  if paramcount>2 then
+    subdirs:=lua_toboolean(L,3)
+  else
+    subdirs:=false;
+
+  if paramcount>3 then
+    attrib:=lua_tointeger(L, 4)
+  else
+    attrib:=faDirectory;
+
+  lua_pop(L, paramcount);
+
+  list:=FindAllFiles(path,mask,subdirs,attrib);
+
+  lua_newtable(L);
+  result:=1;
+
+  for i:=0 to list.count-1 do
+  begin
+    lua_pushinteger(L, i+1);
+    lua_pushstring(L, list[i]);
+    lua_settable(L, 1);
+  end;
+
+  list.free;
+end;
+
+function lua_getDirectoryList(L: Plua_State): integer; cdecl;
+var
+  list: Tstringlist;
+  path: string;
+  mask: string;
+  subdirs: boolean;
+  attrib: word;
+
+  paramcount: integer;
+  i: integer;
+begin
+  paramcount:=lua_gettop(L);
+  if paramcount=0 then exit(0);
+
+  path:=lua_tostring(L,1);
+
+  if paramcount>1 then
+    subdirs:=lua_toboolean(L,2)
+  else
+    subdirs:=false;
+
+  lua_pop(L, paramcount);
+
+  list:=FindAllDirectories(path,subdirs);
+
+  lua_newtable(L);
+  result:=1;
+
+  for i:=0 to list.count-1 do
+  begin
+    lua_pushinteger(L, i+1);
+    lua_pushstring(L, list[i]);
+    lua_settable(L, 1);
+  end;
+
+  list.free;
+end;
+
 procedure InitializeLua;
 var
   s: tstringlist;
@@ -7983,6 +8068,9 @@ begin
 
     lua_register(LuaVM, 'encodeFunction', lua_encodefunction);
     lua_register(LuaVM, 'decodeFunction', lua_decodeFunction);
+
+    lua_register(LuaVM, 'getFileList', lua_getFileList);
+    lua_register(LuaVM, 'getDirectoryList', lua_getDirectoryList);
 
 
 
