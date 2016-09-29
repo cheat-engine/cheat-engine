@@ -81,13 +81,14 @@ begin
       begin
         if HttpSendRequest(r,pchar(h),length(h),pchar(urlencodedpostdata), length(urlencodedpostdata)) then
         begin
+
           while InternetQueryDataAvailable(r, available, 0, 0) do
           begin
             if available=0 then break;
 
             getmem(buf, available+32);
             try
-              if InternetReadFile(r, buf, available+32,actualread)=false then break;
+              if InternetReadFile(r, buf, available,actualread)=false then break;
               if actualread>0 then
               begin
                 results.WriteBuffer(buf[0], actualread);

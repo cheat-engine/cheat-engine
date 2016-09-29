@@ -4902,6 +4902,36 @@ begin
   result:=1;
 end;
 
+function createIcon(L: Plua_State): integer; cdecl;
+var
+  Icon: TIcon;
+  parameters: integer;
+  width, height: integer;
+begin
+  result:=0;
+
+  parameters:=lua_gettop(L);
+  if parameters>=1 then
+    width:=lua_tointeger(L, 1)
+  else
+    width:=64;
+
+  if parameters>=2 then
+    height:=lua_tointeger(L, 2)
+  else
+    height:=64;
+
+
+  lua_pop(L, parameters);
+
+  icon:=TIcon.Create;
+  icon.Width:=width;
+  icon.Height:=height;
+
+
+  luaclass_newClass(L, icon);
+  result:=1;
+end;
 
 function errorOnLookupFailure(L: Plua_State): integer; cdecl;
 var
@@ -7811,6 +7841,7 @@ begin
     lua_register(LuaVM, 'createBitmap', createBitmap);
     lua_register(LuaVM, 'createPNG', createPNG);
     lua_register(LuaVM, 'createJpeg', createJpeg);
+    lua_register(LuaVM, 'createIcon', createIcon);
     lua_register(LuaVM, 'errorOnLookupFailure', errorOnLookupFailure);
 
     lua_register(LuaVM, 'loadPlugin', loadPlugin);
