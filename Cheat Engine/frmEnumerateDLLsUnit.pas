@@ -7,7 +7,7 @@ interface
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs,CEFuncProc,imagehlp, StdCtrls, ComCtrls, ExtCtrls, ActnList,
-  Menus, LResources,symbolhandler;
+  Menus, LResources,symbolhandler, FindDialogFix;
 
 type tenumthread=class(tthread)
   public
@@ -37,6 +37,7 @@ type
     pmSymbol: TPopupMenu;
     Find1: TMenuItem;
     procedure Button1Click(Sender: TObject);
+    procedure FindDialog1Close(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -48,6 +49,7 @@ type
   private
     { Private declarations }
     enumthread: tenumthread;
+    findpos: tpoint;
 
   public
     { Public declarations }
@@ -181,6 +183,12 @@ begin
   close;
 end;
 
+procedure TfrmEnumerateDLLs.FindDialog1Close(Sender: TObject);
+begin
+  findpos.x:=finddialog1.left;
+  findpos.y:=finddialog1.top;
+end;
+
 procedure TfrmEnumerateDLLs.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
@@ -244,8 +252,21 @@ begin
 end;
 
 procedure TfrmEnumerateDLLs.FindExecute(Sender: TObject);
+var p: TPoint;
 begin
   finddialog1.Execute;
+
+  if (findpos.x<>0) or (findpos.y<>0) then
+  begin
+    finddialog1.left:=findpos.x;
+    finddialog1.top:=findpos.y;
+  end
+  else
+  begin
+    finddialog1.Left:=left+((width div 2)-(finddialog1.width div 2));
+    finddialog1.Top:=top+((height div 2)-(finddialog1.height div 2));
+  end;
+
 end;
 
 procedure TfrmEnumerateDLLs.FindDialog1Find(Sender: TObject);

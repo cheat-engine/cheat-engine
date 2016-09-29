@@ -83,6 +83,9 @@ object frmEnumerateDLLs: TfrmEnumerateDLLs
     end
   end
   object FindDialog1: TFindDialog
+    OnClose = FindDialog1Close
+    Width = 480
+    Height = 136
     Options = [frDown, frFindNext, frDisableMatchCase, frDisableUpDown, frDisableWholeWord]
     OnFind = FindDialog1Find
     left = 8
