@@ -22,6 +22,9 @@ type tenumthread=class(tthread)
 end;
 
 type
+
+  { TfrmEnumerateDLLs }
+
   TfrmEnumerateDLLs = class(TForm)
     Label2: TLabel;
     TreeView1: TTreeView;
@@ -35,6 +38,8 @@ type
     Find1: TMenuItem;
     procedure Button1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure TreeView1DblClick(Sender: TObject);
     procedure Button2Click(Sender: TObject);
@@ -182,6 +187,16 @@ begin
   canceled:=true;
   action:=cafree;
   frmEnumerateDLLS:=nil;
+end;
+
+procedure TfrmEnumerateDLLs.FormCreate(Sender: TObject);
+begin
+  LoadFormPosition(self);
+end;
+
+procedure TfrmEnumerateDLLs.FormDestroy(Sender: TObject);
+begin
+  SaveFormPosition(self);
 end;
 
 procedure TfrmEnumerateDLLs.FormShow(Sender: TObject);

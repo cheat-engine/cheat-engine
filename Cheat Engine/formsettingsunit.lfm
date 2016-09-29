@@ -12,7 +12,6 @@ object formSettings: TformSettings
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  PopupMode = pmAuto
   Position = poMainFormCenter
   LCLVersion = '1.6.0.4'
   object pnlConfig: TPanel

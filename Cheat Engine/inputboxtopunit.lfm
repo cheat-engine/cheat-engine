@@ -15,7 +15,7 @@ object InputboxTop: TInputboxTop
   LCLVersion = '1.6.0.4'
   object Label1: TLabel
     Left = 0
-    Height = 13
+    Height = 15
     Top = 0
     Width = 283
     Align = alTop
@@ -28,8 +28,8 @@ object InputboxTop: TInputboxTop
     AnchorSideTop.Control = Label1
     AnchorSideTop.Side = asrBottom
     Left = 4
-    Height = 21
-    Top = 13
+    Height = 23
+    Top = 15
     Width = 273
     BorderSpacing.Left = 4
     BorderSpacing.Right = 4
@@ -42,21 +42,21 @@ object InputboxTop: TInputboxTop
     AnchorSideTop.Control = Edit1
     AnchorSideTop.Side = asrBottom
     Left = 63
-    Height = 23
-    Top = 37
+    Height = 25
+    Top = 41
     Width = 157
     AutoSize = True
     BorderSpacing.Top = 3
     BorderSpacing.Bottom = 3
     BevelOuter = bvNone
-    ClientHeight = 23
+    ClientHeight = 25
     ClientWidth = 157
     TabOrder = 1
     object Button1: TButton
       AnchorSideLeft.Control = Panel1
       AnchorSideTop.Control = Panel1
       Left = 0
-      Height = 23
+      Height = 25
       Top = 0
       Width = 75
       AutoSize = True
@@ -71,7 +71,7 @@ object InputboxTop: TInputboxTop
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Button1
       Left = 82
-      Height = 23
+      Height = 25
       Top = 0
       Width = 75
       AutoSize = True

@@ -10,7 +10,6 @@ object ChangeOffset: TChangeOffset
   ClientWidth = 238
   OnCreate = FormCreate
   OnShow = FormShow
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object TabControl1: TTabControl

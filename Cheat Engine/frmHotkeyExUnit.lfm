@@ -8,7 +8,6 @@ object frmHotkeyEx: TfrmHotkeyEx
   Caption = 'Set Hotkey'
   ClientHeight = 79
   ClientWidth = 294
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object edtHotkey: TEdit

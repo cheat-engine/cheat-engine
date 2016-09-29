@@ -12,7 +12,6 @@ object About: TAbout
   ClientWidth = 352
   OnClose = FormClose
   OnShow = FormShow
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object GroupBox1: TGroupBox

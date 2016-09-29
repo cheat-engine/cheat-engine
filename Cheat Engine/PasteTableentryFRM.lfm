@@ -8,7 +8,6 @@ object frmPasteTableentry: TfrmPasteTableentry
   ClientHeight = 133
   ClientWidth = 330
   OnShow = FormShow
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object GroupBox1: TGroupBox

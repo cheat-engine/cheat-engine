@@ -10,7 +10,6 @@ object frmD3DHookSnapshotConfig: TfrmD3DHookSnapshotConfig
   ClientHeight = 232
   ClientWidth = 298
   OnCreate = FormCreate
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object dirSnapshot: TDirectoryEdit

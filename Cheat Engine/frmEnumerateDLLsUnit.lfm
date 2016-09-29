@@ -1,13 +1,15 @@
 object frmEnumerateDLLs: TfrmEnumerateDLLs
-  Left = 735
+  Left = 876
   Height = 303
-  Top = 298
+  Top = 424
   Width = 369
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Enumerate DLL''s'
   ClientHeight = 303
   ClientWidth = 369
   OnClose = FormClose
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'

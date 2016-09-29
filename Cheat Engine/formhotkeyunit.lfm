@@ -10,7 +10,6 @@ object FormHotkey: TFormHotkey
   ClientHeight = 67
   ClientWidth = 240
   Constraints.MinWidth = 240
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object Label1: TLabel
