@@ -1,0 +1,83 @@
+ceshare is a lua extension that, in the background, connects to a website (by 
+default cheatengine.org, but you're free to implement your own database...) and
+querries information about the currently opened process
+
+Information about the process is gained from initially doing a md5sum of 
+the first 4096 bytes of the process and the processname. (this allows for 
+version specific data, as the peheader also has information like section sizes 
+which often change on different builds)
+
+If that still ends up being ambiguous(the server tells you), do a md5sum of the 
+whole file, or give an md5 sum of a modulename list that the server tells you to 
+check instead. (e.g in case of unchanged game.exe but different game.dll)
+
+If still ambiguous, let the user pick from a list
+
+once a correct build has been found, (or there is version independant data based
+on the processname ) show the user some options.
+Like loading a table, or just open a browser window with information about using
+CE on it. (Or even executing a cheat directly from that window, e.g luascript)
+
+Each entry should have a kind of rating (symbolized using 5 stars) and perhaps 
+comments as well
+
+People should be able to add their own data and tables to the database, if they 
+have a CE username and password
+
+They can decide to have their entry editable by everyone, or only those in an 
+specific access list. 
+
+database schema:
+
+  CheatList
+    id: integer
+    owneruserid: integer
+    description: string
+    public: bool - Editable by everyone, else editable only by the owner and by people in the accesslist
+    processnamemd5: string (index)
+    versionIndependant: bool --if set, only the processname matters
+    ratingtotal: integer
+    ratingcount: integer    -ratingtotal/ratingcount = stars
+  
+    
+    headermd5: string (index)
+    fullfilehashmd5: string - if set, and there are multiple results, use this
+    secondarymodulename: string -- if set, use this. (before fullfilehash)
+    secondaryfullfilehashmd5: string  
+    LuaScriptToCheckForMatch: string/blob --only for very trusted members, let the user execute this lua script. If it returns true, it's valid
+    
+    
+    
+  Ratings --keep track of what the users have rated (rating is only possible when logged in)
+    id: integer
+    userid: integer
+    rated: integer
+    
+  Comments:
+    id: integer
+    userid: integer
+    comment: string
+    lastcommenttime: integer --to prevent flooding
+
+  AccessList:
+    id: integer
+    userid: integer
+    
+  CheatData
+    id: integer
+    datatype: integer - 0=table, 1=URL, 2=Lua script 
+    data: BLOB
+    
+
+php api:
+  QueryProcess(processnamemd5, headermd5)   
+    Returns all entries matching this process and header, or only process if versionIndependant is true
+    format: (xml)  
+    
+    
+    If multiple results, the lua script will have to check fullfilehash and secondarymodulename to filter out entries that do not match
+    Then show the results to the user
+    
+  GetCheatData(id)
+  
+    
