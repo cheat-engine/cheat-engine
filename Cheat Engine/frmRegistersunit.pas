@@ -275,6 +275,13 @@ var
   i: integer;
   widthneeded: integer;
 begin
+  i:=GetFontData(font.Handle).Height;
+  if i>-13 then
+    i:=-13;
+
+  panel3.Font.Height:=i;
+
+
   widthneeded:=canvas.TextWidth(' '+caption+' ');
   constraints.MinWidth:=widthneeded;
 
@@ -297,6 +304,8 @@ begin
     if i<widthneeded then
       Width:=width+(widthneeded-i);
   end;
+
+
 end;
 
 procedure TRegisters.FormClose(Sender: TObject; var Action: TCloseAction);

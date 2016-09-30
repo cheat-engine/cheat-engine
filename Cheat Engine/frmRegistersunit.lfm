@@ -1,7 +1,7 @@
 object Registers: TRegisters
-  Left = 232
+  Left = 396
   Height = 303
-  Top = 115
+  Top = 134
   Width = 212
   AutoSize = True
   Caption = 'Registers'
@@ -42,10 +42,13 @@ object Registers: TRegisters
       AnchorSideLeft.Control = Label14
       AnchorSideTop.Control = Label14
       AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Label14
+      AnchorSideRight.Side = asrBottom
       Left = 8
       Height = 2
       Top = 15
-      Width = 56
+      Width = 50
+      Anchors = [akTop, akLeft, akRight]
       Brush.Color = clBlack
     end
     object Panel3: TPanel
