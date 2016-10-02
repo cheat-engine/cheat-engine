@@ -434,6 +434,8 @@ getXBox360ControllerState(ControllerID OPTIONAL) : table - Fetches the state of 
 
 setXBox360ControllerVibration(ControllerID, leftMotor, rightMotor) - Sets the speed of the left and right vibrating motor inside the controller. Range (0 to 65535 where 0 is off)
 
+connectToCEServer(hostname,port) - Connects to the given host and port. 
+
 
 
 undefined property functions. Not all properties of all classes have been explicitly exposed to lua, but if you know the name of a property of a specific class you can still access them (assuming they are declared as published in the pascal class declaration)

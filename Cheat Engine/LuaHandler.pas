@@ -94,7 +94,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   LuaStructureFrm, LuaInternet, SymbolListHandler, processhandlerunit, processlist,
   DebuggerInterface, WindowsDebugger, VEHDebugger, KernelDebuggerInterface,
   DebuggerInterfaceAPIWrapper, Globals, math, speedhack2, CETranslator, binutils,
-  xinput, winsapi, frmExeTrainerGeneratorUnit, CustomBase85, FileUtil;
+  xinput, winsapi, frmExeTrainerGeneratorUnit, CustomBase85, FileUtil, networkConfig;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -7581,6 +7581,20 @@ begin
   list.free;
 end;
 
+function lua_connectToCEServer(L: Plua_State): integer; cdecl;
+var
+  hostname: string;
+  port: integer;
+begin
+  result:=0;
+  if lua_gettop(L)=2 then
+  begin
+    hostname:=Lua_ToString(L, 1);
+    port:=lua_tointeger(L, 2);
+    CEconnect(hostname, port);
+  end;
+end;
+
 procedure InitializeLua;
 var
   s: tstringlist;
@@ -8071,6 +8085,8 @@ begin
 
     lua_register(LuaVM, 'getFileList', lua_getFileList);
     lua_register(LuaVM, 'getDirectoryList', lua_getDirectoryList);
+
+    lua_register(LuaVM, 'connectToCEServer', lua_connectToCEServer);
 
 
 
