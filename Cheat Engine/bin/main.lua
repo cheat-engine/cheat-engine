@@ -434,7 +434,7 @@ getXBox360ControllerState(ControllerID OPTIONAL) : table - Fetches the state of 
 
 setXBox360ControllerVibration(ControllerID, leftMotor, rightMotor) - Sets the speed of the left and right vibrating motor inside the controller. Range (0 to 65535 where 0 is off)
 
-connectToCEServer(hostname,port) - Connects to the given host and port. 
+connectToCEServer(hostname,port) - Connects to the given host and port. On success, most commands subsequent will be handled by the server. Like processlist, memory reading, etc...
 
 
 
