@@ -457,6 +457,15 @@ begin
   memoryrecord.free;
 end;
 
+function memoryrecord_reinterpretAddress(L: PLua_State): integer; cdecl;
+var
+  memoryrecord: Tmemoryrecord;
+begin
+  result:=0;
+  memoryrecord:=luaclass_getClassObject(L);
+  memoryrecord.ReinterpretAddress(true);
+end;
+
 function memoryrecord_getID(L: PLua_State): integer; cdecl;
 var
   memoryrecord: Tmemoryrecord;
@@ -813,6 +822,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'isSelected', memoryrecord_isSelected);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'appendToEntry', memoryrecord_appendToEntry);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'delete', memoryrecord_delete);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'reinterpret', memoryrecord_reinterpretAddress);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getHotkeyCount', memoryrecord_getHotkeyCount);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getHotkey', memoryrecord_getHotkey);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getHotkeyByID', memoryrecord_getHotkeyByID);

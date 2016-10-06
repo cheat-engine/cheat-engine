@@ -1748,6 +1748,7 @@ methods
   getHotkey(index): Returns the hotkey from the hotkey array
   getHotkeyByID(integer): Returns the hotkey with the given id
 
+  reinterpret()
   createHotkey({keys}, action, value OPTIONAL): Returns a hotkey object 
 
 global events

@@ -9,7 +9,7 @@ uses
   Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
   Buttons, Arrow, Spin, Menus, CEFuncProc, NewKernelHandler, symbolhandler,
   memoryrecordunit, types, byteinterpreter, math, CustomTypeHandler,
-  commonTypeDefs, lua, lualib, lauxlib, luahandler, CommCtrl;
+  commonTypeDefs, lua, lualib, lauxlib, luahandler, CommCtrl, LuaClass;
 
 const WM_disablePointer=WM_USER+1;
 
@@ -424,10 +424,9 @@ begin
         luacs.Enter;
         stack:=lua_gettop(luavm);
         try
-             //0xb+0x12
           if luaL_loadstring(luavm, pchar('memrec, address=... return '+fOffsetString))<>0 then exit(false);
 
-          lua_pushnil(luavm);
+          luaclass_newClass(luavm, owner.owner.memoryrecord);
           lua_pushinteger(luavm, fBaseAddress);
           if lua.lua_pcall(Luavm, 2, 1,0)<>0 then exit(false);
           if not lua_isnumber(luavm, -1) then exit(false);

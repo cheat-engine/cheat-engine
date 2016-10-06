@@ -296,7 +296,7 @@ type
     property visible: boolean read fVisible write setVisible;
 
     property Child[index: integer]: TMemoryRecord read getChild; default;
-
+    property offsets[index: integer]: TMemrecOffset read getPointerOffset;
 
 
   published
@@ -332,7 +332,7 @@ type
     property OnDeactivate: TMemoryRecordActivateEvent read fOnDeActivate write fOndeactivate;
     property OnDestroy: TNotifyEvent read fOnDestroy write fOnDestroy;
     property offsetCount: integer read getoffsetCount write setOffsetCount;
-    property offsets[index: integer]: TMemrecOffset read getPointerOffset;
+
   end;
 
   THKSoundFlag=(hksPlaySound=0, hksSpeakText=1, hksSpeakTextEnglish=2); //playSound excludes speakText
@@ -1637,7 +1637,10 @@ end;
 
 function TMemoryRecord.getPointerOffset(index: integer): TMemrecOffset;
 begin
-  result:=fpointeroffsets[index];
+  if (index>=0) and (index<length(fpointeroffsets)) then
+    result:=fpointeroffsets[index]
+  else
+    result:=nil;
 end;
 
 procedure TMemoryRecord.setOffsetCount(c: integer);
