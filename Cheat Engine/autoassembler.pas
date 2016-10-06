@@ -2669,7 +2669,7 @@ begin
               ok1:=true;
             end else currentline:=replacetoken(currentline,labels[j].labelname,IntToHex(labels[j].address,8));
 
-            break;
+            //break;
           end;
         end;
       end;
