@@ -32,21 +32,29 @@ database schema:
   CheatList
     id: integer
     owneruserid: integer
-    description: string
+    description: text
     public: bool - Editable by everyone, else editable only by the owner and by people in the accesslist
-    processnamemd5: string (index)
+    processnamemd5: binary(16) (index)
     versionIndependant: bool --if set, only the processname matters
+    isRequest: bool --if set this is a request. In that case, rating(or just ratingcount) is used to determine if other people want it as well, and there will be no cheatData
     ratingtotal: integer
     ratingcount: integer    -ratingtotal/ratingcount = stars
   
     
-    headermd5: string (index)
-    fullfilehashmd5: string - if set, and there are multiple results, use this
+    headermd5: binary(16) (index)
+    fullfilehashmd5: binary(16) - if set, and there are multiple results, use this
     secondarymodulename: string -- if set, use this. (before fullfilehash)
-    secondaryfullfilehashmd5: string  
+    secondaryfullfilehashmd5: binary(16)  
     LuaScriptToCheckForMatch: string/blob --only for very trusted members, let the user execute this lua script. If it returns true, it's valid
     
+  History
+    Id: integer
+    lasteditor: integer 
+    edittime: integer
+    datatype: integer
+    data: BLOB    
     
+
     
   Ratings --keep track of what the users have rated (rating is only possible when logged in)
     id: integer
@@ -56,8 +64,8 @@ database schema:
   Comments:
     id: integer
     userid: integer
-    comment: string
-    lastcommenttime: integer --to prevent flooding
+    comment: text
+    commentDateTime: dateTime --time of the comment
 
   AccessList:
     id: integer
@@ -65,12 +73,21 @@ database schema:
     
   CheatData
     id: integer
-    datatype: integer - 0=table, 1=URL, 2=Lua script 
+    datatype: integer - 0=table, 1=URL, 2=Lua script
     data: BLOB
     
+  Sessions
+    sessionid: binary(16)
+    ip: integer
+    userid: integer
+    lastUpdate: integer --if longer than 1 hour delete this entry
+    
+  LoginFloodProtect  
+    ip: integer
+    lastloginattempt: integer    
 
 php api:
-  QueryProcess(processnamemd5, headermd5)   
+  QueryProcessCheats(processnamemd5, headermd5)   
     Returns all entries matching this process and header, or only process if versionIndependant is true
     format: (xml)  
     
@@ -78,6 +95,33 @@ php api:
     If multiple results, the lua script will have to check fullfilehash and secondarymodulename to filter out entries that do not match
     Then show the results to the user
     
+  QueryProcessRequests(processnamemd5, headermd5)
+    Same as QueryProcessCheats, but for requests
+    
   GetCheatData(id)
+    Returns the type and data
+  
+  Login(username, password)    
+    On success, returns a sessionid you can use for things that require a login (sessionid is only valid for the IP used to login)
+    <Session id="123456789abcdef0123456789abcdef0"/>
+  
+  Logout(sessionid):  
+    Expires the session   
+    
+  PublishCheat()
+  ModifyCheat()
+  
+  PublishRequest()
   
     
+    
+  GetComments(id, startcount, maxcount):
+    Returns the comments
+   
+   
+  CheckForUpdate()
+    Returns the current version
+    
+  GetLatestVersion()
+    Returns the updated files
+    <filelist><file relativepath="/">urltofile</file><file relativepath="/xml/">urltofile</file>
