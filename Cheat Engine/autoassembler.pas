@@ -2838,6 +2838,8 @@ begin
 
     for i:=0 to length(assembled)-1 do
     begin
+      if length(assembled[i].bytes)=0 then continue;
+
       testptr:=assembled[i].address;
       ok1:=virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),PAGE_EXECUTE_READWRITE,op);
       ok1:=WriteProcessMemory(processhandle,pointeR(testptr),@assembled[i].bytes[0],length(assembled[i].bytes),x);
