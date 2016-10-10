@@ -32,6 +32,9 @@ database schema:
   CheatList
     id: integer
     owneruserid: integer
+    lastEditorUserID: integer
+    lastEditorIP: integer    
+    lastEditTime: integer    
     description: text
     public: bool - Editable by everyone, else editable only by the owner and by people in the accesslist
     processnamemd5: binary(16) (index)
@@ -46,38 +49,48 @@ database schema:
     secondarymodulename: string -- if set, use this. (before fullfilehash)
     secondaryfullfilehashmd5: binary(16)  
     LuaScriptToCheckForMatch: string/blob --only for very trusted members, let the user execute this lua script. If it returns true, it's valid
+    datatype: integer - 0=table, 1=URL, 2=Lua script
     
   History
-    Id: integer
-    lasteditor: integer 
-    edittime: integer
-    datatype: integer
-    data: BLOB    
+    Historyid: integer;
+    Id: integer    
+    edittime: integer    
+    olddescription: integer
+    olddatatype: integer
+    olddata: BLOB    
+    oldlastEditorUserID: integer;
+    oldlastEditorIP: integer
+    
+  Reports:
+    -reportid: integer
+    cheatid: integer;
+    commentid: integer -can be null if cheat report
+    explenation: text
     
 
     
   Ratings --keep track of what the users have rated (rating is only possible when logged in)
-    id: integer
-    userid: integer
+    -id: integer
+    -userid: integer
     rated: integer
     
   Comments:
-    id: integer
+    -commentid: integer
+    -cheatid: integer
     userid: integer
     comment: text
     commentDateTime: dateTime --time of the comment
 
   AccessList:
-    id: integer
-    userid: integer
+    -id: integer
+    -userid: integer
     
   CheatData
-    id: integer
-    datatype: integer - 0=table, 1=URL, 2=Lua script
+    -id: integer
     data: BLOB
     
   Sessions
-    sessionid: binary(16)
+    -sessionid: binary(16)
     ip: integer
     userid: integer
     lastUpdate: integer --if longer than 1 hour delete this entry
@@ -89,7 +102,12 @@ database schema:
 php api:
   QueryProcessCheats(processnamemd5, headermd5)   
     Returns all entries matching this process and header, or only process if versionIndependant is true
-    format: (xml)  
+    format: (xml) 
+    <CheatList>
+      <CheatEntry ID=int Owner=string VersionIndependant=bool Public=bool Rating=int RatingCount=int LastUpdate=date>description</CheatEntry>
+      <CheatEntry ID=int Owner=string VersionIndependant=bool Public=bool Rating=int RatingCount=int LastUpdate=date FullFileHash=string SecondaryModuleName=false SecondaryFullFileHash=string CheckCode=text>description</CheatEntry>      ...
+    </CheatList>
+    
     
     
     If multiple results, the lua script will have to check fullfilehash and secondarymodulename to filter out entries that do not match
@@ -112,6 +130,9 @@ php api:
   ModifyCheat()
   
   PublishRequest()
+  
+  ReportCheat(cheatid, reason) --no need to login
+  ReportComment(commentid, reason)
   
     
     
