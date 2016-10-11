@@ -92,8 +92,8 @@ function ceshare:QueryProcessCheats(processnamemd5, headermd5)
               local entry={}
               entry.ID=tonumber(CheatEntry["@ID"])
               entry.Owner=CheatEntry["@Owner"]
-              entry.VersionIndependant=CheatEntry["@VersionIndependant"]=1
-              entry.Public=CheatEntry["@Public"]=1
+              entry.VersionIndependant=CheatEntry["@VersionIndependant"]==1
+              entry.Public=CheatEntry["@Public"]==1
               entry.Rating=tonumber(CheatEntry["@Rating"])
               entry.RatingCount=tonumber(CheatEntry["@RatingCount"])
               entry.LastUpdate=os.date("*t", CheatEntry["@LastUpdate"])                            
