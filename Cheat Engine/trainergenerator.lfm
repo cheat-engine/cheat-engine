@@ -4,6 +4,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
   Top = 152
   Width = 778
   AutoSize = True
+  BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Trainer generator'
   ClientHeight = 412
   ClientWidth = 778
