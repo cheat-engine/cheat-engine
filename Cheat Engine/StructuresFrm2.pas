@@ -100,6 +100,7 @@ type
     fAutoDestroy: boolean;
     fAutoFill: boolean;
     fDefaultHex: boolean;
+    fRLECompression: boolean;
 
 
     fUpdateCounter: integer;
@@ -124,6 +125,7 @@ type
     procedure setAutoDestroy(state: boolean);
     procedure setAutoFill(state: boolean);
     procedure setDefaultHex(state: boolean);
+    procedure setRLECompression(state: boolean);
   public
     constructor create(name: string);
     constructor createFromXMLNode(structure: TDOMNode);
@@ -171,6 +173,7 @@ type
     property AutoFill: boolean read fAutoFill write setAutoFill;
     property count: integer read getElementCount;
     property element[Index: Integer]: TStructelement read getElement; default;
+    property RLECompression: boolean read fRLECompression write setRLECompression;
   published
     property DefaultHex: boolean read fDefaultHex write setDefaultHex;
   end;
@@ -330,6 +333,7 @@ type
     miEverythingHex: TMenuItem;
     miGenerateGroupscan: TMenuItem;
     miDefaultHexadecimal: TMenuItem;
+    miRLECompression: TMenuItem;
     miFindRelations: TMenuItem;
     miShowTypeForEntriesWithNoDescription: TMenuItem;
     miAutoDestroyLocal: TMenuItem;
@@ -408,6 +412,7 @@ type
     procedure miAutostructsizeClick(Sender: TObject);
     procedure miChangeColorsClick(Sender: TObject);
     procedure miDefaultHexadecimalClick(Sender: TObject);
+    procedure miRLECompressionClick(Sender: TObject);
     procedure miDoNotSaveLocalClick(Sender: TObject);
     procedure miFillGapsClick(Sender: TObject);
     procedure miFindRelationsClick(Sender: TObject);
@@ -797,7 +802,10 @@ begin
     begin
       //local struct, only save if allowed
       if (parent<>nil) and (parent.doNotSaveLocal=false) then  //save this whole struct
+      begin
+        ChildStruct.fRLECompression:=parent.fRLECompression;
         ChildStruct.WriteToXMLNode(elementnode);
+      end;
     end;
   end;
 
@@ -1697,7 +1705,8 @@ end;
 
 procedure TDissectedStruct.WriteToXMLNode(node: TDOMNode);
 var
-  i: integer;
+  i,j: integer;
+  RLECount: integer;
   doc: TDOMDocument;
 
   structnode: TDOMElement;
@@ -1716,11 +1725,40 @@ begin
   TDOMElement(structnode).SetAttribute('AutoDestroy',BoolToStr(fAutoDestroy,'1','0'));
   TDOMElement(structnode).SetAttribute('AutoFill',BoolToStr(fAutoFill,'1','0'));
   TDOMElement(structnode).SetAttribute('DefaultHex',BoolToStr(fDefaultHex,'1','0'));
+  TDOMElement(structnode).SetAttribute('RLECompression',BoolToStr(fRLECompression,'1','0'));
 
   elementnodes:=TDOMElement(structnode.AppendChild(TDOMNode(doc.CreateElement('Elements'))));
 
+  RLECount:=0;
   for i:=0 to count-1 do
+  begin
+    if RLECount>0 then begin dec(RLECount); Continue; end;
+
+    if fRLECompression then
+    for j:=i to count-2 do
+      if ( element[j].Bytesize=element[j+1].Bytesize ) and
+         ( element[j].Name=element[j+1].Name ) and
+         ( element[j].DisplayMethod=element[j+1].DisplayMethod ) and
+         ( element[j].BackgroundColor=element[j+1].BackgroundColor ) and
+         ( (element[j].Bytesize+element[j].Offset) = element[j+1].Offset ) and
+         ( element[j].VarType=element[j+1].VarType ) and
+         ( element[j].ChildStruct=nil ) and ( element[j+1].ChildStruct=nil ) and
+
+         ( ((element[j].CustomType=nil) and (element[j+1].CustomType=nil)) or
+           ((element[j].CustomType<>nil) and (element[j+1].CustomType<>nil) and
+            (element[j].CustomType.name=element[j+1].CustomType.name)) )
+
+      then Inc(RLECount) else break;
+
     element[i].WriteToXMLNode(elementnodes);
+
+    if RLECount<>0 then
+    begin
+      TDOMElement(elementnodes.LastChild).SetAttribute('RLECount',IntToStr(RLECount+1));
+      if element[i].VarType=vtPointer then
+        TDOMElement(elementnodes.LastChild).SetAttribute('PointerSize',IntToStr(element[i].Bytesize));
+    end;
+  end;
 end;
 
 procedure TDissectedStruct.fillDelayLoadedChildstructs;
@@ -1791,12 +1829,19 @@ begin
   DoOptionsChangedNotification;
 end;
 
+procedure TDissectedStruct.setRLECompression(state: boolean);
+begin
+  fRLECompression:=state;
+  DoOptionsChangedNotification;
+end;
+
 procedure TDissectedStruct.setupDefaultSettings;
 //loads the default settings for new structures
 var reg: Tregistry;
 begin
   fAutoCreate:=true; //default settings in case of no previous settings
   fAutoCreateStructsize:=4096;
+  fRLECompression:=true;
 
   reg:=tregistry.create;
   try
@@ -1980,7 +2025,7 @@ constructor TDissectedStruct.createFromXMLNode(structure: TDOMNode);
 var
   elementnodes, elementnode: TDOMElement;
   childnode: TDOMElement;
-  i: integer;
+  i,j: integer;
   se: TStructelement;
 
   offset: integer;
@@ -2013,13 +2058,33 @@ begin
       fAutoDestroy:=TDOMElement(structure).GetAttribute('AutoDestroy')='1';
       fAutoFill:=TDOMElement(structure).GetAttribute('AutoFill')='1';
       fDefaultHex:=TDOMElement(structure).GetAttribute('DefaultHex')='1';
+      fRLECompression:=TDOMElement(structure).GetAttribute('RLECompression')='1';
 
 
       elementnodes:=TDOMElement(structure.FindNode('Elements'));
       if elementnodes<>nil then
       begin
         for i:=0 to elementnodes.ChildNodes.Count-1 do
-          structelementlist.Add(TStructelement.createFromXMLElement(self, TDOMELement(elementnodes.ChildNodes[i])));
+        begin
+          elementnode:=TDOMELement(elementnodes.ChildNodes[i]);
+
+          if elementnode.Attributes.GetNamedItem('RLECount')=nil then
+            structelementlist.Add(TStructelement.createFromXMLElement(self,elementnode))
+          else
+          begin
+            if elementnode.Attributes.GetNamedItem('PointerSize')<>nil then
+              Bytesize:=strtoint(elementnode.GetAttribute('PointerSize'));
+
+            for j:=1 to strtoint(elementnode.GetAttribute('RLECount')) do
+            begin
+              se:=TStructelement.createFromXMLElement(self,TDOMELement(elementnode));
+              if se.VarType=vtPointer then se.Offset:=se.Offset+   Bytesize*(j-1)
+              else                         se.Offset:=se.Offset+se.Bytesize*(j-1);
+              structelementlist.Add(se);
+            end;
+          end;
+
+        end;
 
 
         sortElements;
@@ -5001,6 +5066,7 @@ begin
     miDoNotSaveLocal.checked:=mainstruct.DoNotSaveLocal;
     miAutoFillGaps.Checked:=mainStruct.AutoFill;
     miDefaultHexadecimal.checked:=mainstruct.DefaultHex;
+    miRLECompression.checked:=mainstruct.RLECompression;
 
     caption:=rsStructureDissect+':'+mainStruct.name;
   end
@@ -5026,6 +5092,12 @@ procedure TfrmStructures2.miDefaultHexadecimalClick(Sender: TObject);
 begin
   if mainstruct<>nil then
     mainstruct.DefaultHex:=not mainstruct.DefaultHex;
+end;
+
+procedure TfrmStructures2.miRLECompressionClick(Sender: TObject);
+begin
+  if mainstruct<>nil then
+    mainstruct.RLECompression:=not mainstruct.RLECompression;
 end;
 
 
