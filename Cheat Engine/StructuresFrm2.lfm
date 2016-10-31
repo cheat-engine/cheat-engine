@@ -242,6 +242,10 @@ object frmStructures2: TfrmStructures2
         Caption = 'New integer types default to hexadecimal'
         OnClick = miDefaultHexadecimalClick
       end
+      object miRLECompression: TMenuItem
+        Caption = 'Enable RLE Compression'
+        OnClick = miRLECompressionClick
+      end
     end
   end
   object pmStructureView: TPopupMenu
