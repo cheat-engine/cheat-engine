@@ -1330,12 +1330,12 @@ function TScanner.AllExact(newvalue,oldvalue: pointer):boolean;
 var i: TVariableType;
   j: integer;
 begin
-  typesmatch[vtByte]:=typesmatch[vtByte] and ByteExact(newvalue,oldvalue); //oldvalue=nil, but give it anyhow
-  typesmatch[vtWord]:=typesmatch[vtWord] and WordExact(newvalue,oldvalue);
-  typesmatch[vtDword]:=typesmatch[vtDword] and DwordExact(newvalue,oldvalue);
-  typesmatch[vtQword]:=typesmatch[vtQword] and qwordExact(newvalue,oldvalue);
-  typesmatch[vtSingle]:=typesmatch[vtSingle] and singleExact(newvalue,oldvalue);
-  typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleExact(newvalue,oldvalue);
+  typesmatch[vtByte]:=typesmatch[vtByte] and (ByteExact(newvalue,oldvalue) xor inverseScan); //oldvalue=nil, but give it anyhow
+  typesmatch[vtWord]:=typesmatch[vtWord] and (WordExact(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtDword]:=typesmatch[vtDword] and (DwordExact(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtQword]:=typesmatch[vtQword] and (qwordExact(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtSingle]:=typesmatch[vtSingle] and (singleExact(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtDouble]:=typesmatch[vtDouble] and (doubleExact(newvalue,oldvalue) xor inverseScan);
 
   {$ifdef customtypeimplemented}
   if allCustom then
@@ -1346,9 +1346,9 @@ begin
       customtype:=tcustomtype(customTypes[j]);
 
       if customtype.scriptUsesFloat then
-        customtypesmatch[j]:=customtypesmatch[j] and CustomFloatExact(newvalue,oldvalue)
+        customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatExact(newvalue,oldvalue) xor inverseScan)
       else
-        customtypesmatch[j]:=customtypesmatch[j] and CustomExact(newvalue,oldvalue)
+        customtypesmatch[j]:=customtypesmatch[j] and (CustomExact(newvalue,oldvalue) xor inverseScan)
     end;
   end;
   {$ENDIF}
@@ -1375,12 +1375,12 @@ function TScanner.AllBetween(newvalue,oldvalue: pointer):boolean;
 var i: TVariableType;
   j: integer;
 begin
-  typesmatch[vtByte]:=typesmatch[vtByte] and ByteBetween(newvalue,oldvalue);
-  typesmatch[vtWord]:=typesmatch[vtWord] and WordBetween(newvalue,oldvalue);
-  typesmatch[vtDword]:=typesmatch[vtDword] and DwordBetween(newvalue,oldvalue);
-  typesmatch[vtQword]:=typesmatch[vtQword] and qwordBetween(newvalue,oldvalue);
-  typesmatch[vtSingle]:=typesmatch[vtSingle] and singleBetween(newvalue,oldvalue);
-  typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleBetween(newvalue,oldvalue);
+  typesmatch[vtByte]:=typesmatch[vtByte] and (ByteBetween(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtWord]:=typesmatch[vtWord] and (WordBetween(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtDword]:=typesmatch[vtDword] and (DwordBetween(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtQword]:=typesmatch[vtQword] and (qwordBetween(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtSingle]:=typesmatch[vtSingle] and (singleBetween(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtDouble]:=typesmatch[vtDouble] and (doubleBetween(newvalue,oldvalue) xor inverseScan);
 
   {$ifdef customtypeimplemented}
   if allCustom then
@@ -1391,9 +1391,9 @@ begin
       customtype:=tcustomtype(customTypes[j]);
 
       if customtype.scriptUsesFloat then
-        customtypesmatch[j]:=customtypesmatch[j] and CustomFloatBetween(newvalue,oldvalue)
+        customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatBetween(newvalue,oldvalue) xor inverseScan)
       else
-        customtypesmatch[j]:=customtypesmatch[j] and CustomBetween(newvalue,oldvalue)
+        customtypesmatch[j]:=customtypesmatch[j] and (CustomBetween(newvalue,oldvalue) xor inverseScan)
     end;
   end;
   {$ENDIF}
@@ -1419,12 +1419,12 @@ function TScanner.AllBetweenPercentage(newvalue,oldvalue: pointer):boolean;
 var i: TVariableType;
     j: integer;
 begin
-  typesmatch[vtByte]:=typesmatch[vtByte] and ByteBetweenPercentage(newvalue,oldvalue);
-  typesmatch[vtWord]:=typesmatch[vtWord] and WordBetweenPercentage(newvalue,oldvalue);
-  typesmatch[vtDword]:=typesmatch[vtDword] and DwordBetweenPercentage(newvalue,oldvalue);
-  typesmatch[vtQword]:=typesmatch[vtQword] and qwordBetweenPercentage(newvalue,oldvalue);
-  typesmatch[vtSingle]:=typesmatch[vtSingle] and singleBetweenPercentage(newvalue,oldvalue);
-  typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleBetweenPercentage(newvalue,oldvalue);
+  typesmatch[vtByte]:=typesmatch[vtByte] and (ByteBetweenPercentage(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtWord]:=typesmatch[vtWord] and (WordBetweenPercentage(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtDword]:=typesmatch[vtDword] and (DwordBetweenPercentage(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtQword]:=typesmatch[vtQword] and (qwordBetweenPercentage(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtSingle]:=typesmatch[vtSingle] and (singleBetweenPercentage(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtDouble]:=typesmatch[vtDouble] and (doubleBetweenPercentage(newvalue,oldvalue) xor inverseScan);
 
   {$ifdef customtypeimplemented}
   if allCustom then
@@ -1435,9 +1435,9 @@ begin
       customtype:=tcustomtype(customTypes[j]);
 
       if customtype.scriptUsesFloat then
-        customtypesmatch[j]:=customtypesmatch[j] and CustomFloatBetweenPercentage(newvalue,oldvalue)
+        customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatBetweenPercentage(newvalue,oldvalue) xor inverseScan)
       else
-        customtypesmatch[j]:=customtypesmatch[j] and CustomBetweenPercentage(newvalue,oldvalue)
+        customtypesmatch[j]:=customtypesmatch[j] and (CustomBetweenPercentage(newvalue,oldvalue) xor inverseScan)
     end;
   end;
   {$ENDIF}
@@ -1463,12 +1463,12 @@ function TScanner.AllBiggerThan(newvalue,oldvalue: pointer):boolean;
 var i: TVariableType;
       j: integer;
 begin
-  typesmatch[vtByte]:=typesmatch[vtByte] and ByteBiggerThan(newvalue,oldvalue);
-  typesmatch[vtWord]:=typesmatch[vtWord] and WordBiggerThan(newvalue,oldvalue);
-  typesmatch[vtDword]:=typesmatch[vtDword] and DwordBiggerThan(newvalue,oldvalue);
-  typesmatch[vtQword]:=typesmatch[vtQword] and qwordBiggerThan(newvalue,oldvalue);
-  typesmatch[vtSingle]:=typesmatch[vtSingle] and singleBiggerThan(newvalue,oldvalue);
-  typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleBiggerThan(newvalue,oldvalue);
+  typesmatch[vtByte]:=typesmatch[vtByte] and (ByteBiggerThan(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtWord]:=typesmatch[vtWord] and (WordBiggerThan(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtDword]:=typesmatch[vtDword] and (DwordBiggerThan(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtQword]:=typesmatch[vtQword] and (qwordBiggerThan(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtSingle]:=typesmatch[vtSingle] and (singleBiggerThan(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtDouble]:=typesmatch[vtDouble] and (doubleBiggerThan(newvalue,oldvalue) xor inverseScan);
 
   {$ifdef customtypeimplemented}
   if allCustom then
@@ -1478,9 +1478,9 @@ begin
     begin
       customtype:=tcustomtype(customTypes[j]);
       if customtype.scriptUsesFloat then
-        customtypesmatch[j]:=customtypesmatch[j] and CustomFloatBiggerThan(newvalue,oldvalue)
+        customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatBiggerThan(newvalue,oldvalue) xor inverseScan)
       else
-        customtypesmatch[j]:=customtypesmatch[j] and CustomBiggerThan(newvalue,oldvalue)
+        customtypesmatch[j]:=customtypesmatch[j] and (CustomBiggerThan(newvalue,oldvalue) xor inverseScan)
     end;
   end;
   {$ENDIF}
@@ -1506,12 +1506,12 @@ function TScanner.AllSmallerThan(newvalue,oldvalue: pointer):boolean;
 var i: TVariableType;
         j: integer;
 begin
-  typesmatch[vtByte]:=typesmatch[vtByte] and ByteSmallerThan(newvalue,oldvalue);
-  typesmatch[vtWord]:=typesmatch[vtWord] and WordSmallerThan(newvalue,oldvalue);
-  typesmatch[vtDword]:=typesmatch[vtDword] and DwordSmallerThan(newvalue,oldvalue);
-  typesmatch[vtQword]:=typesmatch[vtQword] and qwordSmallerThan(newvalue,oldvalue);
-  typesmatch[vtSingle]:=typesmatch[vtSingle] and singleSmallerThan(newvalue,oldvalue);
-  typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleSmallerThan(newvalue,oldvalue);
+  typesmatch[vtByte]:=typesmatch[vtByte] and (ByteSmallerThan(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtWord]:=typesmatch[vtWord] and (WordSmallerThan(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtDword]:=typesmatch[vtDword] and (DwordSmallerThan(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtQword]:=typesmatch[vtQword] and (qwordSmallerThan(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtSingle]:=typesmatch[vtSingle] and (singleSmallerThan(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtDouble]:=typesmatch[vtDouble] and (doubleSmallerThan(newvalue,oldvalue) xor inverseScan);
 
   {$ifdef customtypeimplemented}
   if allCustom then
@@ -1521,9 +1521,9 @@ begin
     begin
       customtype:=tcustomtype(customTypes[j]);
       if customtype.scriptUsesFloat then
-        customtypesmatch[j]:=customtypesmatch[j] and CustomFloatSmallerThan(newvalue,oldvalue)
+        customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatSmallerThan(newvalue,oldvalue) xor inverseScan)
       else
-        customtypesmatch[j]:=customtypesmatch[j] and CustomSmallerThan(newvalue,oldvalue)
+        customtypesmatch[j]:=customtypesmatch[j] and (CustomSmallerThan(newvalue,oldvalue) xor inverseScan)
     end;
   end;
   {$ENDIF}
@@ -1549,12 +1549,12 @@ function TScanner.AllIncreasedValue(newvalue,oldvalue: pointer):boolean;
 var i: TVariableType;
   j: integer;
 begin
-  typesmatch[vtByte]:=typesmatch[vtByte] and ByteIncreasedValue(newvalue,oldvalue);
-  typesmatch[vtWord]:=typesmatch[vtWord] and WordIncreasedValue(newvalue,oldvalue);
-  typesmatch[vtDword]:=typesmatch[vtDword] and DwordIncreasedValue(newvalue,oldvalue);
-  typesmatch[vtQword]:=typesmatch[vtQword] and qwordIncreasedValue(newvalue,oldvalue);
-  typesmatch[vtSingle]:=typesmatch[vtSingle] and singleIncreasedValue(newvalue,oldvalue);
-  typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleIncreasedValue(newvalue,oldvalue);
+  typesmatch[vtByte]:=typesmatch[vtByte] and (ByteIncreasedValue(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtWord]:=typesmatch[vtWord] and (WordIncreasedValue(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtDword]:=typesmatch[vtDword] and (DwordIncreasedValue(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtQword]:=typesmatch[vtQword] and (qwordIncreasedValue(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtSingle]:=typesmatch[vtSingle] and (singleIncreasedValue(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtDouble]:=typesmatch[vtDouble] and (doubleIncreasedValue(newvalue,oldvalue) xor inverseScan);
 
   {$ifdef customtypeimplemented}
   if allCustom then
@@ -1564,9 +1564,9 @@ begin
     begin
       customtype:=tcustomtype(customTypes[j]);
       if customtype.scriptUsesFloat then
-        customtypesmatch[j]:=customtypesmatch[j] and CustomFloatIncreasedValue(newvalue,oldvalue)
+        customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatIncreasedValue(newvalue,oldvalue) xor inverseScan)
       else
-        customtypesmatch[j]:=customtypesmatch[j] and CustomIncreasedValue(newvalue,oldvalue)
+        customtypesmatch[j]:=customtypesmatch[j] and (CustomIncreasedValue(newvalue,oldvalue) xor inverseScan)
     end;
   end;
   {$ENDIF}
@@ -1592,12 +1592,12 @@ function TScanner.AllIncreasedValueBy(newvalue,oldvalue: pointer):boolean;
 var i: TVariableType;
   j: integer;
 begin
-  typesmatch[vtByte]:=typesmatch[vtByte] and ByteIncreasedValueBy(newvalue,oldvalue);
-  typesmatch[vtWord]:=typesmatch[vtWord] and WordIncreasedValueBy(newvalue,oldvalue);
-  typesmatch[vtDword]:=typesmatch[vtDword] and DwordIncreasedValueBy(newvalue,oldvalue);
-  typesmatch[vtQword]:=typesmatch[vtQword] and qwordIncreasedValueBy(newvalue,oldvalue);
-  typesmatch[vtSingle]:=typesmatch[vtSingle] and singleIncreasedValueBy(newvalue,oldvalue);
-  typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleIncreasedValueBy(newvalue,oldvalue);
+  typesmatch[vtByte]:=typesmatch[vtByte] and (ByteIncreasedValueBy(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtWord]:=typesmatch[vtWord] and (WordIncreasedValueBy(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtDword]:=typesmatch[vtDword] and (DwordIncreasedValueBy(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtQword]:=typesmatch[vtQword] and (qwordIncreasedValueBy(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtSingle]:=typesmatch[vtSingle] and (singleIncreasedValueBy(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtDouble]:=typesmatch[vtDouble] and (doubleIncreasedValueBy(newvalue,oldvalue) xor inverseScan);
 
   {$ifdef customtypeimplemented}
   if allCustom then
@@ -1607,9 +1607,9 @@ begin
     begin
       customtype:=tcustomtype(customTypes[j]);
       if customtype.scriptUsesFloat then
-        customtypesmatch[j]:=customtypesmatch[j] and CustomFloatIncreasedValueBy(newvalue,oldvalue)
+        customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatIncreasedValueBy(newvalue,oldvalue) xor inverseScan)
       else
-        customtypesmatch[j]:=customtypesmatch[j] and CustomIncreasedValueBy(newvalue,oldvalue)
+        customtypesmatch[j]:=customtypesmatch[j] and (CustomIncreasedValueBy(newvalue,oldvalue) xor inverseScan)
     end;
   end;
   {$ENDIF}
@@ -1635,12 +1635,12 @@ function TScanner.AllIncreasedValueByPercentage(newvalue,oldvalue: pointer):bool
 var i: TVariableType;
   j: integer;
 begin
-  typesmatch[vtByte]:=typesmatch[vtByte] and ByteIncreasedValueByPercentage(newvalue,oldvalue);
-  typesmatch[vtWord]:=typesmatch[vtWord] and WordIncreasedValueByPercentage(newvalue,oldvalue);
-  typesmatch[vtDword]:=typesmatch[vtDword] and DwordIncreasedValueByPercentage(newvalue,oldvalue);
-  typesmatch[vtQword]:=typesmatch[vtQword] and qwordIncreasedValueByPercentage(newvalue,oldvalue);
-  typesmatch[vtSingle]:=typesmatch[vtSingle] and singleIncreasedValueByPercentage(newvalue,oldvalue);
-  typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleIncreasedValueByPercentage(newvalue,oldvalue);
+  typesmatch[vtByte]:=typesmatch[vtByte] and (ByteIncreasedValueByPercentage(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtWord]:=typesmatch[vtWord] and (WordIncreasedValueByPercentage(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtDword]:=typesmatch[vtDword] and (DwordIncreasedValueByPercentage(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtQword]:=typesmatch[vtQword] and (qwordIncreasedValueByPercentage(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtSingle]:=typesmatch[vtSingle] and (singleIncreasedValueByPercentage(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtDouble]:=typesmatch[vtDouble] and (doubleIncreasedValueByPercentage(newvalue,oldvalue) xor inverseScan);
 
   {$ifdef customtypeimplemented}
   if allCustom then
@@ -1650,9 +1650,9 @@ begin
     begin
       customtype:=tcustomtype(customTypes[j]);
       if customtype.scriptUsesFloat then
-        customtypesmatch[j]:=customtypesmatch[j] and CustomFloatIncreasedValueByPercentage(newvalue,oldvalue)
+        customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatIncreasedValueByPercentage(newvalue,oldvalue) xor inverseScan)
       else
-        customtypesmatch[j]:=customtypesmatch[j] and CustomIncreasedValueByPercentage(newvalue,oldvalue)
+        customtypesmatch[j]:=customtypesmatch[j] and (CustomIncreasedValueByPercentage(newvalue,oldvalue) xor inverseScan)
     end;
   end;
   {$ENDIF}
@@ -1679,12 +1679,12 @@ function TScanner.AllDecreasedValue(newvalue,oldvalue: pointer):boolean;
 var i: TVariableType;
   j: integer;
 begin
-  typesmatch[vtByte]:=typesmatch[vtByte] and ByteDecreasedValue(newvalue,oldvalue);
-  typesmatch[vtWord]:=typesmatch[vtWord] and WordDecreasedValue(newvalue,oldvalue);
-  typesmatch[vtDword]:=typesmatch[vtDword] and DwordDecreasedValue(newvalue,oldvalue);
-  typesmatch[vtQword]:=typesmatch[vtQword] and qwordDecreasedValue(newvalue,oldvalue);
-  typesmatch[vtSingle]:=typesmatch[vtSingle] and singleDecreasedValue(newvalue,oldvalue);
-  typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleDecreasedValue(newvalue,oldvalue);
+  typesmatch[vtByte]:=typesmatch[vtByte] and (ByteDecreasedValue(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtWord]:=typesmatch[vtWord] and (WordDecreasedValue(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtDword]:=typesmatch[vtDword] and (DwordDecreasedValue(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtQword]:=typesmatch[vtQword] and (qwordDecreasedValue(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtSingle]:=typesmatch[vtSingle] and (singleDecreasedValue(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtDouble]:=typesmatch[vtDouble] and (doubleDecreasedValue(newvalue,oldvalue) xor inverseScan);
 
   {$ifdef customtypeimplemented}
   if allCustom then
@@ -1694,9 +1694,9 @@ begin
     begin
       customtype:=tcustomtype(customTypes[j]);
       if customtype.scriptUsesFloat then
-        customtypesmatch[j]:=customtypesmatch[j] and CustomFloatDecreasedValue(newvalue,oldvalue)
+        customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatDecreasedValue(newvalue,oldvalue) xor inverseScan)
       else
-        customtypesmatch[j]:=customtypesmatch[j] and CustomDecreasedValue(newvalue,oldvalue)
+        customtypesmatch[j]:=customtypesmatch[j] and (CustomDecreasedValue(newvalue,oldvalue) xor inverseScan)
     end;
   end;
   {$ENDIF}
@@ -1722,12 +1722,12 @@ function TScanner.AllDecreasedValueBy(newvalue,oldvalue: pointer):boolean;
 var i: TVariableType;
   j: integer;
 begin
-  typesmatch[vtByte]:=typesmatch[vtByte] and ByteDecreasedValueBy(newvalue,oldvalue);
-  typesmatch[vtWord]:=typesmatch[vtWord] and WordDecreasedValueBy(newvalue,oldvalue);
-  typesmatch[vtDword]:=typesmatch[vtDword] and DwordDecreasedValueBy(newvalue,oldvalue);
-  typesmatch[vtQword]:=typesmatch[vtQword] and qwordDecreasedValueBy(newvalue,oldvalue);
-  typesmatch[vtSingle]:=typesmatch[vtSingle] and singleDecreasedValueBy(newvalue,oldvalue);
-  typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleDecreasedValueBy(newvalue,oldvalue);
+  typesmatch[vtByte]:=typesmatch[vtByte] and (ByteDecreasedValueBy(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtWord]:=typesmatch[vtWord] and (WordDecreasedValueBy(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtDword]:=typesmatch[vtDword] and (DwordDecreasedValueBy(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtQword]:=typesmatch[vtQword] and (qwordDecreasedValueBy(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtSingle]:=typesmatch[vtSingle] and (singleDecreasedValueBy(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtDouble]:=typesmatch[vtDouble] and (doubleDecreasedValueBy(newvalue,oldvalue) xor inverseScan);
 
   {$ifdef customtypeimplemented}
   if allCustom then
@@ -1737,9 +1737,9 @@ begin
     begin
       customtype:=tcustomtype(customTypes[j]);
       if customtype.scriptUsesFloat then
-        customtypesmatch[j]:=customtypesmatch[j] and CustomFloatDecreasedValueBy(newvalue,oldvalue)
+        customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatDecreasedValueBy(newvalue,oldvalue) xor inverseScan)
       else
-        customtypesmatch[j]:=customtypesmatch[j] and CustomDecreasedValueBy(newvalue,oldvalue)
+        customtypesmatch[j]:=customtypesmatch[j] and (CustomDecreasedValueBy(newvalue,oldvalue) xor inverseScan)
     end;
   end;
   {$ENDIF}
@@ -1765,12 +1765,12 @@ function TScanner.AllDecreasedValueByPercentage(newvalue,oldvalue: pointer):bool
 var i: TVariableType;
   j: integer;
 begin
-  typesmatch[vtByte]:=typesmatch[vtByte] and ByteDecreasedValueByPercentage(newvalue,oldvalue);
-  typesmatch[vtWord]:=typesmatch[vtWord] and WordDecreasedValueByPercentage(newvalue,oldvalue);
-  typesmatch[vtDword]:=typesmatch[vtDword] and DwordDecreasedValueByPercentage(newvalue,oldvalue);
-  typesmatch[vtQword]:=typesmatch[vtQword] and qwordDecreasedValueByPercentage(newvalue,oldvalue);
-  typesmatch[vtSingle]:=typesmatch[vtSingle] and singleDecreasedValueByPercentage(newvalue,oldvalue);
-  typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleDecreasedValueByPercentage(newvalue,oldvalue);
+  typesmatch[vtByte]:=typesmatch[vtByte] and (ByteDecreasedValueByPercentage(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtWord]:=typesmatch[vtWord] and (WordDecreasedValueByPercentage(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtDword]:=typesmatch[vtDword] and (DwordDecreasedValueByPercentage(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtQword]:=typesmatch[vtQword] and (qwordDecreasedValueByPercentage(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtSingle]:=typesmatch[vtSingle] and (singleDecreasedValueByPercentage(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtDouble]:=typesmatch[vtDouble] and (doubleDecreasedValueByPercentage(newvalue,oldvalue) xor inverseScan);
 
   {$ifdef customtypeimplemented}
   if allCustom then
@@ -1780,9 +1780,9 @@ begin
     begin
       customtype:=tcustomtype(customTypes[j]);
       if customtype.scriptUsesFloat then
-        customtypesmatch[j]:=customtypesmatch[j] and CustomFloatDecreasedValueByPercentage(newvalue,oldvalue)
+        customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatDecreasedValueByPercentage(newvalue,oldvalue) xor inverseScan)
       else
-        customtypesmatch[j]:=customtypesmatch[j] and CustomDecreasedValueByPercentage(newvalue,oldvalue)
+        customtypesmatch[j]:=customtypesmatch[j] and (CustomDecreasedValueByPercentage(newvalue,oldvalue) xor inverseScan)
     end;
   end;
   {$ENDIF}
@@ -1808,12 +1808,12 @@ function TScanner.Allchanged(newvalue,oldvalue: pointer):boolean;
 var i: TVariableType;
   j: integer;
 begin
-  typesmatch[vtByte]:=typesmatch[vtByte] and ByteChanged(newvalue,oldvalue);
-  typesmatch[vtWord]:=typesmatch[vtWord] and WordChanged(newvalue,oldvalue);
-  typesmatch[vtDword]:=typesmatch[vtDword] and DwordChanged(newvalue,oldvalue);
-  typesmatch[vtQword]:=typesmatch[vtQword] and qwordChanged(newvalue,oldvalue);
-  typesmatch[vtSingle]:=typesmatch[vtSingle] and singleChanged(newvalue,oldvalue);
-  typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleChanged(newvalue,oldvalue);
+  typesmatch[vtByte]:=typesmatch[vtByte] and (ByteChanged(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtWord]:=typesmatch[vtWord] and (WordChanged(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtDword]:=typesmatch[vtDword] and (DwordChanged(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtQword]:=typesmatch[vtQword] and (qwordChanged(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtSingle]:=typesmatch[vtSingle] and (singleChanged(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtDouble]:=typesmatch[vtDouble] and (doubleChanged(newvalue,oldvalue) xor inverseScan);
 
   {$ifdef customtypeimplemented}
   if allCustom then
@@ -1823,9 +1823,9 @@ begin
     begin
       customtype:=tcustomtype(customTypes[j]);
       if customtype.scriptUsesFloat then
-        customtypesmatch[j]:=customtypesmatch[j] and CustomFloatChanged(newvalue,oldvalue)
+        customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatChanged(newvalue,oldvalue) xor inverseScan)
       else
-        customtypesmatch[j]:=customtypesmatch[j] and CustomChanged(newvalue,oldvalue)
+        customtypesmatch[j]:=customtypesmatch[j] and (CustomChanged(newvalue,oldvalue) xor inverseScan)
     end;
   end;
   {$ENDIF}
@@ -1851,12 +1851,12 @@ function TScanner.AllUnchanged(newvalue,oldvalue: pointer):boolean;
 var i: TVariableType;
   j: integer;
 begin
-  typesmatch[vtByte]:=typesmatch[vtByte] and ByteUnchanged(newvalue,oldvalue);
-  typesmatch[vtWord]:=typesmatch[vtWord] and WordUnchanged(newvalue,oldvalue);
-  typesmatch[vtDword]:=typesmatch[vtDword] and DwordUnchanged(newvalue,oldvalue);
-  typesmatch[vtQword]:=typesmatch[vtQword] and qwordUnchanged(newvalue,oldvalue);
-  typesmatch[vtSingle]:=typesmatch[vtSingle] and singleUnchanged(newvalue,oldvalue);
-  typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleUnchanged(newvalue,oldvalue);
+  typesmatch[vtByte]:=typesmatch[vtByte] and (ByteUnchanged(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtWord]:=typesmatch[vtWord] and (WordUnchanged(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtDword]:=typesmatch[vtDword] and (DwordUnchanged(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtQword]:=typesmatch[vtQword] and (qwordUnchanged(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtSingle]:=typesmatch[vtSingle] and (singleUnchanged(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtDouble]:=typesmatch[vtDouble] and (doubleUnchanged(newvalue,oldvalue) xor inverseScan);
 
   {$ifdef customtypeimplemented}
   if allCustom then
@@ -1866,9 +1866,9 @@ begin
     begin
       customtype:=tcustomtype(customTypes[j]);
       if customtype.scriptUsesFloat then
-        customtypesmatch[j]:=customtypesmatch[j] and CustomFloatUnchanged(newvalue,oldvalue)
+        customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatUnchanged(newvalue,oldvalue) xor inverseScan)
       else
-        customtypesmatch[j]:=customtypesmatch[j] and CustomUnchanged(newvalue,oldvalue)
+        customtypesmatch[j]:=customtypesmatch[j] and (CustomUnchanged(newvalue,oldvalue) xor inverseScan)
     end;
   end;
   {$ENDIF}
@@ -3175,7 +3175,7 @@ begin
           for j:=0 to customtypecount-1 do customtypesmatch[j]:=true;
         end;
 
-        if checkroutine(p,nil) xor inv then //found one
+        if checkroutine(p,nil) then //found one
           StoreResultRoutine(base+ptruint(p)-ptruint(buffer),p);
 
         inc(p,stepsize);
@@ -3307,7 +3307,7 @@ begin
         end;
 
 
-        if checkroutine(p,savedscanhandler.getpointertoaddress(base+ptruint(p)-ptruint(buffer),valuetype,nil )) xor inv then //found one
+        if checkroutine(p,savedscanhandler.getpointertoaddress(base+ptruint(p)-ptruint(buffer),valuetype,nil )) then //found one
           StoreResultRoutine(base+ptruint(p)-ptruint(buffer),p);
 
         inc(p, stepsize);
@@ -3356,7 +3356,7 @@ begin
           for j:=0 to customtypecount-1 do customtypesmatch[j]:=true;
 
 
-        if checkroutine(p,oldp) xor inv then //found one
+        if checkroutine(p,oldp) then //found one
           StoreResultRoutine(base+ptruint(p)-ptruint(buffer),p);
 
         inc(p, stepsize);
@@ -3468,7 +3468,7 @@ begin
           else
           begin
             //new address reached
-            if checkroutine(@newmemory[currentaddress-currentbase],savedscanhandler.getpointertoaddress(currentaddress,valuetype, nil )) xor inv then
+            if checkroutine(@newmemory[currentaddress-currentbase],savedscanhandler.getpointertoaddress(currentaddress,valuetype, nil )) then
               StoreResultRoutine(currentaddress,@newmemory[currentaddress-currentbase]);
 
             //clear typesmatch and set current address
@@ -3488,7 +3488,7 @@ begin
 
         end;
 
-        if checkroutine(@newmemory[currentaddress-currentbase],savedscanhandler.getpointertoaddress(currentaddress,valuetype, nil )) xor inv then
+        if checkroutine(@newmemory[currentaddress-currentbase],savedscanhandler.getpointertoaddress(currentaddress,valuetype, nil )) then
           StoreResultRoutine(currentaddress,@newmemory[currentaddress-currentbase]);
 
       end
@@ -3519,7 +3519,7 @@ begin
           begin
             //new address
             //we now have a list of entries with all the same address, k-1 points to the last one
-            if CheckRoutine(@newmemory[currentaddress-currentbase],@oldmem[(k-1)*vsize]) xor inv then
+            if CheckRoutine(@newmemory[currentaddress-currentbase],@oldmem[(k-1)*vsize]) then
               StoreResultRoutine(currentaddress,@newmemory[currentaddress-currentbase]);
 
             //clear typesmatch and set current address
@@ -3539,7 +3539,7 @@ begin
 
         end;
 
-        if CheckRoutine(@newmemory[currentaddress-currentbase],@oldmem[j*vsize]) xor inv then
+        if CheckRoutine(@newmemory[currentaddress-currentbase],@oldmem[j*vsize]) then
           StoreResultRoutine(currentaddress,@newmemory[currentaddress-currentbase]);
       end;
     end;
