@@ -788,7 +788,8 @@ begin
   if self.ChildStructStart<>0 then
     elementnode.SetAttribute('ChildStructStart', IntToStr(self.ChildStructStart));
 
-  elementnode.SetAttribute('BackgroundColor', IntToHex(backgroundcolor, 6));
+  if backgroundcolor<>clWindow then
+    elementnode.SetAttribute('BackgroundColor', IntToHex(backgroundcolor, 6));
 
 
   if (self.isPointer) and (self.ChildStruct<>nil) then
