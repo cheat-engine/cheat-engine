@@ -4003,6 +4003,7 @@ begin
 
             onFullStructChange(mainstruct);
             RefreshStructureList;
+            UpdateCurrentStructOptions;
           end;
         end;
       end;
