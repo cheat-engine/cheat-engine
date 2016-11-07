@@ -373,7 +373,9 @@ begin
 
   if id<length(SymbolLookupCallbacks[cbp]) then
   begin
+    {$ifdef windows}
     CleanupLuaCall(TMethod(SymbolLookupCallbacks[cbp][id]));
+    {$endif}
     SymbolLookupCallbacks[cbp][id]:=nil;
   end;
 end;
@@ -399,7 +401,9 @@ procedure unregisterAddressLookupCallback(id: integer);
 begin
   if id<length(AddressLookupCallbacks) then
   begin
+    {$ifdef windows}
     CleanupLuaCall(TMethod(AddressLookupCallbacks[id]));
+    {$endif}
     AddressLookupCallbacks[id]:=nil;
   end;
 end;
@@ -1604,7 +1608,11 @@ begin
       }
       if (globalallocpid<>processid) or (globalalloc=nil) or (globalallocsizeleft<size) then //new alloc
       begin
+        {$ifdef windows}
         base:=FindFreeBlockForRegion(preferedaddress,max(65536,size));
+        {$else}
+        base:=0;
+        {$endif}
 
         globalalloc:=virtualallocex(processhandle,base,max(65536,size),MEM_COMMIT or MEM_RESERVE , PAGE_EXECUTE_READWRITE);
         globalallocpid:=processid;
@@ -1639,7 +1647,7 @@ begin
         if (globalallocpid<>processid) or (globalalloc=nil) or (globalallocsizeleft<size) then //new alloc
         begin
           globalallocpid:=processid;
-          globalalloc:=virtualallocex(processhandle,FindFreeBlockForRegion(preferedaddress,max(65536,size)),max(65536,size),MEM_COMMIT or MEM_RESERVE , PAGE_EXECUTE_READWRITE);
+          globalalloc:=virtualallocex(processhandle,{$ifdef windows}FindFreeBlockForRegion(preferedaddress,max(65536,size)){$else}0{$endif},max(65536,size),MEM_COMMIT or MEM_RESERVE , PAGE_EXECUTE_READWRITE);
           globalallocsizeleft:=max(65536,size);
         end;
 

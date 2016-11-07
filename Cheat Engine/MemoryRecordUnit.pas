@@ -418,7 +418,7 @@ begin
     else
       forced:=false;
 
-    LastUpdateInterval:=GetTickCount;
+    LastUpdateInterval:=GetTickCount64;
 
 
     finvalid:=true;
@@ -430,7 +430,9 @@ begin
       foffset:=symhandler.getAddressFromName(text, false, finvalid)
     else
     begin
+      {$ifndef JNI}
       memrecluaobjectref:=fowner.getLuaRef;
+
 
       LUACS.Enter;
       try
@@ -454,7 +456,7 @@ begin
         luacs.Leave;
       end;
 
-
+      {$endif}
     end;
 
     if not finvalid then
@@ -468,11 +470,13 @@ end;
 
 procedure TMemrecOffset.cleanupluaref;
 begin
+  {$ifndef JNI}
   if luaref<>-1 then //dereference this lua function
   begin
     luaL_unref(LuaVM, LUA_REGISTRYINDEX, luaref);
     luaref:=-1;
   end;
+  {$endif}
 end;
 
 procedure TMemrecOffset.setOffset(o: integer);
@@ -509,7 +513,7 @@ begin
     //try lua
     s2:='memrec, address=... return '+s;
 
-
+{$ifndef JNI}
     LUACS.Enter;
     try
       stack:=lua_Gettop(luavm);
@@ -522,8 +526,11 @@ begin
       LuaCS.Leave;
     end;
 
-    funparsed:=luaref=-1;
 
+    funparsed:=luaref=-1;
+{$else}
+    funparsed:=true;
+{$endif}
     if not funparsed then
     begin
       //call it to be sure it's ok and not returning nil
@@ -593,6 +600,7 @@ end;
 procedure TMemoryRecordHotkey.playActivateSound;
 var s: string;
 begin
+{$ifdef windows}
   if activateSound<>'' then
   begin
     if ActivateSoundFlag in [hksSpeakText, hksSpeakTextEnglish] then
@@ -611,11 +619,14 @@ begin
     else
       LUA_DoScript('playSound(findTableFile([['+activateSound+']]))');
   end;
+{$endif}
+
 end;
 
 procedure TMemoryRecordHotkey.playDeactivateSound;
 var s: string;
 begin
+  {$ifdef windows}
   if DeactivateSound<>'' then
   begin
     if DeactivateSoundFlag in [hksSpeakText, hksSpeakTextEnglish] then
@@ -632,6 +643,7 @@ begin
     else
       LUA_DoScript('playSound(findTableFile([['+deactivateSound+']]))');
   end;
+  {$endif}
 end;
 
 
@@ -639,15 +651,19 @@ end;
 
 function TMemoryRecord.GetCollapsed: boolean;
 begin
+  {$ifndef unix}
   result:=not treenode.Expanded;
+  {$endif}
 end;
 
 procedure TMemoryRecord.SetCollapsed(state: boolean);
 begin
+  {$ifndef unix}
   if state then
     treenode.Collapse(false)
   else
     treenode.Expand(false);
+  {$endif}
 end;
 
 
@@ -727,12 +743,14 @@ end;
 
 function TMemoryRecord.getLuaRef: integer;
 begin
+  {$ifndef unix}
   if luaref=-1 then
   begin
     luaclass_newClass(luavm, self);
     luaref:=luaL_ref(luavm, LUA_REGISTRYINDEX);
   end;
 
+  {$endif}
   result:=luaref;
 end;
 
@@ -788,9 +806,10 @@ begin
 
   if fDropDownList<>nil then
     freeandnil(fDropDownList);
-
+  {$ifndef unix}
   if luaref<>-1 then
     luaL_unref(LuaVM, LUA_REGISTRYINDEX, luaref);
+  {$endif}
 
   inherited Destroy;
 
@@ -1958,7 +1977,9 @@ begin
 }
 
   //6.5+
+  {$ifndef unix}
   LUA_functioncall('onMemRecPreExecute',[self, state]);
+  {$endif}
 
   //6.1+
   if state then
@@ -2064,7 +2085,9 @@ begin
 }
 
   //6.5+
+{$ifndef unix}
   LUA_functioncall('onMemRecPostExecute',[self, state, fActive=state]);
+{$endif}
 
   //6.1+
   if state and assigned(fonactivate) then fonactivate(self, false, factive); //activated , after

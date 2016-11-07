@@ -85,9 +85,14 @@ begin
         //fill combobox
         combobox:=tcombobox.Create(inputbox);
 
+        combobox.AnchorSideTop:=edit1.AnchorSideTop;
+        combobox.AnchorSideLeft:=edit1.AnchorSideLeft;
+        combobox.AnchorSideRight:=edit1.AnchorSideRight;
+        combobox.Anchors:=edit1.Anchors;
+
         combobox.Visible:=true;
-        combobox.Left:=edit1.left;
-        combobox.Top:=edit1.Top;
+        {combobox.Left:=edit1.left;
+        combobox.Top:=edit1.Top;   }
         combobox.Width:=edit1.Width;
         combobox.style:=csDropDown;
         combobox.Parent:=inputbox;

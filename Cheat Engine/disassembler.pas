@@ -27,6 +27,24 @@ const BIT_REX_R=4;
 const BIT_REX_X=2;
 const BIT_REX_B=1;
 
+  {$ifdef UNIX}
+const
+  EFLAGS_CF=(1 shl 0);
+  EFLAGS_PF=(1 shl 2);
+  EFLAGS_AF=(1 shl 4);
+  EFLAGS_ZF=(1 shl 6);
+  EFLAGS_SF=(1 shl 7);
+  EFLAGS_TF=(1 shl 8);
+  EFLAGS_IF=(1 shl 9);
+  EFLAGS_DF=(1 shl 10);
+  EFLAGS_OF=(1 shl 11);
+  EFLAGS_NT=(1 shl 14);
+  EFLAGS_RF=(1 shl 16);
+  EFLAGS_VM=(1 shl 17);
+  EFLAGS_AC=(1 shl 18);
+  EFLAGS_ID=(1 shl 21);
+  {$endif}
+
 type
 
   TDisassembleEvent=function(sender: TObject; address: ptruint; var ldd: TLastDisassembleData; var output: string; var description: string): boolean of object;
@@ -197,7 +215,9 @@ procedure unregisterGlobalDisassembleOverride(id: integer);
 begin
   if id<length(GlobalDisassembleOverrides) then
   begin
+    {$ifndef unix}
     CleanupLuaCall(TMethod(GlobalDisassembleOverrides[id]));
+    {$endif}
     GlobalDisassembleOverrides[id]:=nil;
   end;
 end;
@@ -1329,6 +1349,7 @@ var memory: TMemory;
 begin
 
   LastDisassembleData.isfloat:=false;
+  {$ifndef unix}
   if defaultBinutils<>nil then
   begin
     //use this
@@ -1363,7 +1384,7 @@ begin
 
     exit;
   end;
-
+  {$endif}
   if is64bitOverride then
     is64bit:=is64BitOverrideState
   else

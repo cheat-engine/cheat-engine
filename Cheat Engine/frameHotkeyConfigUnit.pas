@@ -6,7 +6,8 @@ interface
 
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, LResources, Menus, CEFuncProc, commonTypeDefs;
+  Dialogs, StdCtrls, ExtCtrls, LResources, Menus, Buttons, CEFuncProc,
+  commonTypeDefs;
 
 type
 

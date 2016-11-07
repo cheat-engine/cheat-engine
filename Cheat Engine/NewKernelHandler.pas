@@ -593,7 +593,10 @@ function Is64BitProcess(processhandle: THandle): boolean;
 
 //I could of course have made it a parameter thing, but I'm lazy
 
+
 function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL; stdcall;
+
+
 
 
 var
@@ -787,7 +790,7 @@ resourcestring
 
 
 
-
+{$ifndef JNI}
 function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL; stdcall;
 var
   wle: PWriteLogEntry;
@@ -820,6 +823,14 @@ begin
   end;
 
 end;
+{$else}
+
+function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL; stdcall;
+begin
+  result:=WriteProcessMemoryActual(hProcess, lpBaseAddress, lpbuffer, nSize, lpNumberOfBytesWritten);
+end;
+
+{$endif}
 
 function VirtualQueryEx_StartCache_stub(hProcess: THandle; flags: dword): boolean;
 begin

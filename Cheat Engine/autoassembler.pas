@@ -178,7 +178,9 @@ begin
 
   if id<=length(prologues^) then
   begin
+    {$ifndef unix}
     CleanupLuaCall(TMethod(prologues^[id-1]));
+    {$endif}
     prologues^[id-1]:=nil;
   end;
 end;

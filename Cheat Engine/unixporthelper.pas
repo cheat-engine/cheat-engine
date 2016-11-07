@@ -183,6 +183,11 @@ function QueryPerformanceCounter(var currenttick: TLargeInteger): boolean;
 procedure log(l: string);
 
 
+function WinCPToUTF8(s: string): string;
+function UTF8ToUTF16(s: string): widestring;
+function UTF16ToUTF8(s: widestring): string;
+
+
 {$ifndef cefuncproc}
 //for now...
 function InRangeX(const AValue, AMin, AMax: ptrUint): Boolean;inline;
@@ -192,6 +197,23 @@ function InRangeQ(const AValue, AMin, AMax: QWord): Boolean;inline;
 {$endif}
 
 implementation
+
+function UTF16ToUTF8(s: widestring): string;
+begin
+  result:=s;
+end;
+
+function UTF8ToUTF16(s: string): widestring;
+begin
+  result:=s;
+end;
+
+function WinCPToUTF8(s: string): string;
+begin
+  result:=AnsiToUtf8(s);
+end;
+
+
 
 function TListViewItems.getItem(index: integer): TListViewItem;
 begin

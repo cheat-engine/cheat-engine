@@ -1695,7 +1695,9 @@ procedure unregisterAssembler(id: integer);
 begin
   if id<length(ExtraAssemblers) then
   begin
+    {$ifndef unix}
     CleanupLuaCall(TMethod(ExtraAssemblers[id]));
+    {$endif}
     ExtraAssemblers[id]:=nil;
   end;
 end;

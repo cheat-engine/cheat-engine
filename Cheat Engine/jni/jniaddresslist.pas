@@ -171,10 +171,14 @@ begin
     penv^.SetBooleanField(penv, result, active_fieldid, ifthen(r.active,1,0));
 
     //assign the offsets (if there are any)
-    offsetsarr:=penv^.NewIntArray(penv, length(r.pointeroffsets));
+
+
+    offsetsarr:=penv^.NewIntArray(penv, r.offsetCount);
     offsets:=penv^.GetIntArrayElements(penv, offsetsarr, iscopy);
-    for i:=0 to length(r.pointeroffsets)-1 do
-      PIntegerArray(offsets)[i]:=r.pointeroffsets[i];
+
+
+    for i:=0 to r.offsetCount-1 do
+      PIntegerArray(offsets)[i]:=r.offsets[i].offset;
 
     penv^.ReleaseIntArrayElements(penv, offsetsarr, offsets, 0);
 
@@ -256,9 +260,9 @@ begin
     offsetlist:=PJintArray(penv^.GetIntArrayElements(penv,offsets, iscopy));
     if offsetlist<>nil then
     begin
-      setlength(r.pointeroffsets, l);
+      r.offsetCount:=l;
       for i:=0 to l-1 do
-        r.pointeroffsets[i]:=offsetlist[i];
+        r.offsets[i].offset:=offsetlist[i];
 
       penv^.ReleaseIntArrayElements(penv, offsets, PJint(offsetlist),JNI_ABORT);
     end

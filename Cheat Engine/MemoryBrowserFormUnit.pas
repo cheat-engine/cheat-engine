@@ -2416,7 +2416,6 @@ begin
 
   if x<>'' then assemblercode:=x;
 
-
 //  copy
 
   assemblercode:=InputboxTop(rsCheatEngineSingleLingeAssembler, Format(rsTypeYourAssemblerCodeHereAddress, [inttohex(disassemblerview.SelectedAddress, 8)]), assemblercode, x='', canceled, assemblerHistory);

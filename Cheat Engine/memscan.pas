@@ -6762,6 +6762,7 @@ begin
 
   if scanController<>nil then
   begin
+    {$ifdef windows}
     if GUIScanner and (WaitForSingleObject(scancontroller.handle, 500)<>WAIT_OBJECT_0) then
     begin
       if frmBusy=nil then
@@ -6773,6 +6774,7 @@ begin
       end;
 
     end;
+    {$endif}
 
     scancontroller.WaitFor; //could be it's still saving the results of the previous scan
     freeandnil(scanController);
