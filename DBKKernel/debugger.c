@@ -764,7 +764,7 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 			{
 				UINT64 x;
 				x=__readmsr(MSR_LASTBRANCH_0+i);
-				LBR_Stack[count]=x;
+				LBR_Stack[count]=(UINT_PTR)x;
 				__writemsr(MSR_LASTBRANCH_0+i,0); //it has been read out, so can be erased now
 
 				count++;

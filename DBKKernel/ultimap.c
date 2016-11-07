@@ -228,7 +228,7 @@ int perfmon_interrupt_centry(void)
 	if (causedbyme)
 		ultimap_cleanstate();	
 
-	blocksize=DS_AREA[cpunr()]->BTS_IndexBaseAddress-DS_AREA[cpunr()]->BTS_BufferBaseAddress;
+	blocksize=(UINT_PTR)(DS_AREA[cpunr()]->BTS_IndexBaseAddress-DS_AREA[cpunr()]->BTS_BufferBaseAddress);
 	
 	{	
 		if (KeGetCurrentIrql() < DISPATCH_LEVEL)

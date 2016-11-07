@@ -562,13 +562,14 @@ BOOL walkPagingLayout(PEPROCESS PEProcess, UINT_PTR MaxAddress, PRESENTPAGECALLB
 #endif
 
 	
-
+#ifdef AMD64
 				if ((PPML4E) && (PPML4E->P == 0))
 				{
 					currentAddress &= 0xffffff8000000000ULL;
 					currentAddress += 0x8000000000ULL;	
 					continue;
 				}
+#endif
 
 				if ((PPDPE) && (PPDPE->P == 0))
 				{		

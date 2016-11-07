@@ -42,6 +42,30 @@ PURANGE Ultimap2Ranges = NULL;
 
 PVOID *Ultimap2_DataReady;
 
+
+#if (NTDDI_VERSION < NTDDI_VISTA)
+//implement this function for XP
+unsigned int KeQueryMaximumProcessorCount()
+{
+	CCHAR cpunr;
+	KAFFINITY cpus, original;
+	ULONG cpucount;
+
+	cpucount = 0;
+	cpus = KeQueryActiveProcessors();
+	original = cpus;
+	while (cpus)
+	{
+		if (cpus % 2)
+			cpucount++;
+
+		cpus = cpus / 2;
+	}
+
+	return cpucount;
+}
+#endif
+
 typedef struct
 {	
 	PToPA_ENTRY ToPAHeader;
@@ -232,12 +256,15 @@ void createUltimap2OutputFile(int cpunr)
 	IO_STATUS_BLOCK iosb;
 	WCHAR Buffer[200];
 	
-	
-
+#ifdef AMD64	
 	DbgPrint("OutputPath=%S", OutputPath);
 	swprintf_s(Buffer, 200, L"%sCPU%d.trace", OutputPath, cpunr);
+#else
+	RtlStringCbPrintfW(Buffer, 200, L"%sCPU%d.trace", OutputPath, cpunr);
+#endif
 
 	DbgPrint("Buffer=%S", Buffer);
+
 
 	RtlInitUnicodeString(&usFile, Buffer);
 
@@ -1090,7 +1117,7 @@ void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, P
 		Ultimap2_DataReady[i] = &PInfo[i]->DataReady;
 
 		KeInitializeDpc(&PInfo[i]->OwnDPC, SwitchToPABuffer, NULL);
-		KeSetTargetProcessorDpc(&PInfo[i]->OwnDPC, i);
+		KeSetTargetProcessorDpc(&PInfo[i]->OwnDPC, (CCHAR)i);
 	}
 	
 	UltimapActive = TRUE;

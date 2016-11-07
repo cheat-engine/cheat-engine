@@ -723,7 +723,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 						__try
 						{
-							cr3reg=getCR3();
+							cr3reg=(UINT_PTR)getCR3();
 
 						}
 						__finally
@@ -1659,7 +1659,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				int i;
 
 				DbgPrint("IOCTL_CE_ULTIMAP2");
-				for (i = 0; i < inp->RangeCount; i++)
+				for (i = 0; i < (int)(inp->RangeCount); i++)
 					DbgPrint("%d=%p -> %p", i, (PVOID)inp->Ranges[i].StartAddress, (PVOID)inp->Ranges[i].EndAddress);
 
 				SetupUltimap2(inp->PID, inp->Size, inp->OutputPath, inp->RangeCount, inp->Ranges);
