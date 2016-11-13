@@ -745,9 +745,6 @@ var
   s: string;
   self: TSymbolloaderthread;
 
-  x: DWORD;
-  type_symtag: Tsymtagenum;
-
   isparam: boolean;
 
   esde: TExtraSymbolDataEntry;
@@ -815,12 +812,6 @@ var
   s: string;
   sym: PCESymbolInfo;
 
-  tempstring: pchar;
-  x: dword;
-  i: integer;
-
-  pSymInfo2:PSYMBOL_INFO;
-
   ExtraSymbolData: TExtraSymbolData;
 begin
 
@@ -869,8 +860,6 @@ begin
   //todo: Add to structure dissect
   result:=true;
 end;
-
-var test: boolean;
 
 function EM(ModuleName:PSTR; BaseOfDll:dword64; UserContext:pointer):bool;stdcall;
 var self: TSymbolloaderthread;
@@ -932,16 +921,10 @@ var sp: pchar;
     c: TCEConnection;
 
     mpl: Tstringlist;
-    i,j,k,l,m: integer;
+    i,j: integer;
 
     dotNetdomains: TDotNetDomainArray;
     dotNetmodules: TDotNetModuleArray;
-    dotnettypedefs: TDotNetTypeDefArray;
-    dotnetmethods: TDotNetMethodArray;
-
-    address:qword;
-    size: integer;
-    name: string;
 
 
 
@@ -1512,7 +1495,6 @@ begin
 end;
 
 procedure TSymhandler.Waitforsymbolsloaded(apisymbolsonly: boolean=false; specificmodule: string='');
-var checkcondition: pboolean;
 begin
   symbolloadervalid.beginread;
 
@@ -2121,24 +2103,10 @@ end;
 function TSymhandler.getNameFromAddress(address:ptrUint;symbols:boolean; modules: boolean; baseaddress: PUINT64=nil; found: PBoolean=nil; hexcharsize: integer=8):string;
 var //symbol :PSYMBOL_INFO;
     offset: qword;
-    s: string;
     mi: tmoduleinfo;
     si: PCESymbolInfo;
-    processhandle: thandle;
     i: integer;
 begin
-{$ifdef windows}
-  if targetself then
-  begin
-    processhandle:=getcurrentprocess;
-  end
-  else
-{$endif}
-  begin
-    processhandle:=processhandlerunit.ProcessHandle;
-  end;
-
-
   for i:=0 to length(AddressLookupCallbacks)-1 do
   begin
     if assigned(AddressLookupCallbacks[i]) then
@@ -2335,14 +2303,9 @@ var mi: tmoduleinfo;
     offset: integer;
     i,j: integer;
 
-    slcindex: integer;
-
     p: pchar;
     ws: widestring;
     pws: pwidechar;
-    error: boolean;
-
-    processhandle: thandle;
 
     tokens: TTokens;
     mathstring: string;
@@ -2420,19 +2383,6 @@ begin
 
     end;
   end;
-
-  {$ifdef windows}
-  if targetself then
-  begin
-    processhandle:=getcurrentprocess;
-  end
-  else
-  {$endif}
-  begin
-    processhandle:=processhandlerunit.ProcessHandle;
-  end;
-
-
 
   val('$'+name,result,i);
   if i=0 then exit; //it's a valid hexadecimal string
