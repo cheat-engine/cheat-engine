@@ -2990,7 +2990,7 @@ function TSymhandler.GetAddressFromPointer(s: string; var error: boolean):ptrUin
 Will return the address of a pointer noted as [[[xxx+xx]+xx]+xx]+xx
 If it is a invalid pointer, or can not be resolved, the result is NULL 
 }
-var i: integer;
+var i, pointersize: integer;
     list: tstringlist;
     offsets: array of integer;
     baseaddress: ptruint;
@@ -2998,9 +2998,21 @@ var i: integer;
     realaddress, realaddress2: ptrUint;
     check: boolean;
     count: PtrUInt;
+    processhandle: THandle;
 begin
   result:=0;
   error:=true;
+
+  if not targetself then
+  begin
+    processhandle:=processhandlerunit.processhandle;
+    pointersize:=processhandler.pointersize;
+  end
+  else
+  begin
+    processhandle:=GetCurrentProcess;
+    pointersize:={$ifdef cpu32}4{$else}8{$endif};
+  end;
 
   list:=tstringlist.create;
   try
@@ -3031,8 +3043,8 @@ begin
     for i:=0 to length(offsets)-1 do
     begin
       realaddress:=0;
-      check:=readprocessmemory(processhandle,pointer(realaddress2),@realaddress,processhandler.pointersize,count);
-      if check and (count=processhandler.pointersize) then
+      check:=readprocessmemory(processhandle,pointer(realaddress2),@realaddress,pointersize,count);
+      if check and (count=pointersize) then
         realaddress2:=realaddress+offsets[i]
       else
         exit;
