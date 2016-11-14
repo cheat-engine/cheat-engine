@@ -89,7 +89,7 @@ type
 
     procedure remove;  //call this instead of destroy
     procedure showDebugInfo;
-
+  published
     property name: string read fName write setName;
     property functiontypename: string read ffunctiontypename write setfunctiontypename; //lua
     property CustomTypeType: TCustomTypeType read fCustomTypeType;
@@ -110,7 +110,7 @@ var customTypes: TList; //list holding all the custom types
 implementation
 
 {$ifdef windows}
-uses mainunit, LuaHandler;
+uses mainunit, LuaHandler, LuaClass;
 {$endif}
 
 resourcestring
@@ -852,6 +852,9 @@ begin
 
     customtypes.Add(ct);
     mainform.RefreshCustomTypes;
+
+    luaclass_newClass(L, ct);
+    result:=1;
   end
   else lua_pop(L, parameters);
   {$ENDIF}
@@ -899,6 +902,9 @@ begin
   end;
 
   mainform.RefreshCustomTypes;
+  luaclass_newClass(L, ct);
+  result:=1;
+
   {$ENDIF}
 
 end;

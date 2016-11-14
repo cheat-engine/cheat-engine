@@ -94,7 +94,8 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   LuaStructureFrm, LuaInternet, SymbolListHandler, processhandlerunit, processlist,
   DebuggerInterface, WindowsDebugger, VEHDebugger, KernelDebuggerInterface,
   DebuggerInterfaceAPIWrapper, Globals, math, speedhack2, CETranslator, binutils,
-  xinput, winsapi, frmExeTrainerGeneratorUnit, CustomBase85, FileUtil, networkConfig;
+  xinput, winsapi, frmExeTrainerGeneratorUnit, CustomBase85, FileUtil, networkConfig,
+  LuaCustomType;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -7904,8 +7905,7 @@ begin
     lua_register(LuaVM, 'hexadecimalview_onAddressChange', hexadecimalview_onAddressChange);
     lua_register(LuaVM, 'hexadecimalview_onByteSelect', hexadecimalview_onByteSelect);
 
-    lua_register(LuaVM, 'registerCustomTypeLua', registerCustomTypeLua);
-    lua_register(LuaVM, 'registerCustomTypeAutoAssembler', registerCustomTypeAutoAssembler);
+
 
     lua_register(LuaVM, 'getForegroundProcess', getForegroundProcess);
 
@@ -8090,6 +8090,7 @@ begin
 
 
 
+
     initializeLuaCustomControl;
 
 
@@ -8125,6 +8126,7 @@ begin
 
     initializeLuaStructureFrm;
     initializeLuaInternet;
+    initializeLuaCustomType;
 
 
 

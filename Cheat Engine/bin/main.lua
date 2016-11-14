@@ -301,14 +301,7 @@ loadFontFromStream(memorystream) : Loads a font from a memory stream and returns
 unloadLoadedFont(id)
 
 
-registerCustomTypeLua(typename, bytecount, bytestovaluefunction, valuetobytesfunction, isFloat)
-  Registers a Custom type based on lua functions
-  The bytes to value function should be defined as "function bytestovalue (b1,b2,b3,b4)" and return an integer as result
-  The value to bytes function should be defined as "function valuetobytes (integer)" and return the bytes it should write
 
-
-registerCustomTypeAutoAssembler(script)
-  Registers a custom type based on an auto assembler script. The script must allocate an "ConvertRoutine" and "ConvertBackRoutine"
 
 onAutoGuess(function) :
   Registers an function to be called whenever autoguess is used to predict a variable type
@@ -2602,4 +2595,35 @@ methods
   getURL(path) - returns a string containing the contents of the url. nil on failure
   postURL(path, urlencodeddata) - posts the given data to the path and returns the results
 
+
+CustomType class (Object)
+The custom type is an convertor of raw data, to a human readable interpretation.
+
+global functions
+  registerCustomTypeLua(typename, bytecount, bytestovaluefunction, valuetobytesfunction, isFloat)
+    Registers a Custom type based on lua functions
+    The bytes to value function should be defined as "function bytestovalue (b1,b2,b3,b4)" and return an integer as result
+    The value to bytes function should be defined as "function valuetobytes (integer)" and return the bytes it should write
+
+    returns the Custom Type object
+
+
+  registerCustomTypeAutoAssembler(script)
+    Registers a custom type based on an auto assembler script. The script must allocate an "ConvertRoutine" and "ConvertBackRoutine"
+
+    returns the Custom Type object
+
+  getCustomType(typename) : Returns the custom type object, or nil if not found
+
+properties
+  name: string
+  functiontypename: string
+  CustomTypeType: TCustomTypeType - The type of the script
+  script: string - The custom type script
+  scriptUsesFloat: boolean - True if this script interprets it's user side values as float
+
+methods
+  byteTableToValue({bytetable},Address Optional)
+  valueToByteTable(value)
 --]]
+
