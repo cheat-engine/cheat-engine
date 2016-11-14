@@ -109,7 +109,7 @@ implementation
 
 { TfrmLuaEngine }
 
-uses luaclass;
+uses luaclass, SynEditTypes;
 
 resourcestring
   rsError = 'Script Error';
@@ -912,48 +912,66 @@ begin
 end;
 
 procedure TfrmLuaEngine.dlgReplaceFind(Sender: TObject);
-var
-  s: string;
-  i: integer;
+var so: TSynSearchOptions;
 begin
-  //find
-  if sender=FindDialog1 then
-    s:=finddialog1.FindText
-  else
-    s:=dlgReplace.FindText;
+  so:=[];
+  if not (frDown in dlgReplace.Options) then
+    so:=so+[ssoBackwards];
 
-  i:=PosEx(s, mscript.Text, mscript.selstart+1);
+  if (frEntireScope in dlgReplace.Options) then
+    so:=so+[ssoEntireScope];
 
-  if i>0 then
-  begin
-    mScript.SelStart:=i;
-    mscript.SelEnd:=i+length(s);
-  end
-  else
-    beep;//weeeeee
+  if (frMatchCase in dlgReplace.Options) then
+    so:=so+[ssoMatchCase];
+
+  if (frPromptOnReplace in dlgReplace.Options) then
+    so:=so+[ssoPrompt];
+
+  if (frFindNext in dlgReplace.Options) then
+    so:=so+[ssoFindContinue];
+
+  if (frWholeWord in dlgReplace.Options) then
+    so:=so+[ssoWholeWord];
+
+  {if mscript.SelAvail then     todo: Try to get this to work in all cases
+    so:=so+[ssoSelectedOnly];  }
+
+  mscript.SearchReplace(dlgReplace.FindText,'',so);
 end;
 
 procedure TfrmLuaEngine.dlgReplaceReplace(Sender: TObject);
-var oldselstart: integer;
+var so: TSynSearchOptions;
 begin
-  //replace
-  repeat
-    oldselstart:=mScript.SelStart;
-    dlgReplaceFind(sender);
-    if oldselstart=mScript.SelStart then break;  //nothing found
+  so:=[];
+  if not (frDown in dlgReplace.Options) then
+    so:=so+[ssoBackwards];
+
+  if (frEntireScope in dlgReplace.Options) then
+    so:=so+[ssoEntireScope];
+
+  if (frMatchCase in dlgReplace.Options) then
+    so:=so+[ssoMatchCase];
+
+  if (frPromptOnReplace in dlgReplace.Options) then
+    so:=so+[ssoPrompt];
+
+  if (frReplace in dlgReplace.Options) then
+    so:=so+[ssoReplace];
+
+  if (frReplaceAll in dlgReplace.Options) then
+    so:=so+[ssoReplaceAll];
+
+  if (frFindNext in dlgReplace.Options) then
+    so:=so+[ssoFindContinue];
+
+  if (frWholeWord in dlgReplace.Options) then
+    so:=so+[ssoWholeWord];
+
+{  if mscript.SelAvail and not (ssoFindContinue in so) then
+    so:=so+[ssoSelectedOnly];}
 
 
-    if mscript.SelEnd>mscript.SelStart then
-    begin
-      oldselstart:=mScript.SelStart;
-      mScript.SelText:=dlgReplace.ReplaceText;
-      mscript.selstart:=oldselstart;
-      mscript.SelEnd:=oldselstart+length(dlgreplace.replacetext);
-    end
-    else
-      break;
-  until (frReplaceAll in dlgReplace.Options=false);
-
+  mscript.SearchReplace(dlgReplace.FindText,dlgReplace.ReplaceText,so);
 end;
 
 procedure TfrmLuaEngine.FormCreate(Sender: TObject);

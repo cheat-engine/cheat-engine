@@ -84,6 +84,7 @@ type
     File1: TMenuItem;
     menuAOBInjection: TMenuItem;
     menuFullInjection: TMenuItem;
+    MenuItem1: TMenuItem;
     mifindNext: TMenuItem;
     miCallLua: TMenuItem;
     miNewWindow: TMenuItem;
@@ -91,6 +92,7 @@ type
     Button1: TButton;
     Load1: TMenuItem;
     Panel2: TPanel;
+    ReplaceDialog1: TReplaceDialog;
     Save1: TMenuItem;
     OpenDialog1: TOpenDialog;
     SaveDialog1: TSaveDialog;
@@ -125,9 +127,12 @@ type
     procedure Load1Click(Sender: TObject);
     procedure menuAOBInjectionClick(Sender: TObject);
     procedure menuFullInjectionClick(Sender: TObject);
+    procedure MenuItem1Click(Sender: TObject);
     procedure mifindNextClick(Sender: TObject);
     procedure miCallLuaClick(Sender: TObject);
     procedure miNewWindowClick(Sender: TObject);
+    procedure ReplaceDialog1Find(Sender: TObject);
+    procedure ReplaceDialog1Replace(Sender: TObject);
     procedure Save1Click(Sender: TObject);
     procedure Exit1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -226,7 +231,7 @@ implementation
 
 
 uses frmAAEditPrefsUnit,MainUnit,memorybrowserformunit,APIhooktemplatesettingsfrm,
-  Globals, Parsers, MemoryQuery, GnuAssembler, LuaCaller;
+  Globals, Parsers, MemoryQuery, GnuAssembler, LuaCaller, SynEditTypes;
 
 resourcestring
   rsExecuteScript = 'Execute script';
@@ -531,6 +536,7 @@ end;
 
 procedure TfrmAutoInject.mifindNextClick(Sender: TObject);
 begin
+  finddialog1.Options:=finddialog1.Options+[frFindNext];
   finddialog1.OnFind(finddialog1);
 end;
 
@@ -543,6 +549,70 @@ begin
   f.scriptmode:=ScriptMode;
 
   f.show;
+end;
+
+procedure TfrmAutoInject.ReplaceDialog1Find(Sender: TObject);
+var so: TSynSearchOptions;
+begin
+  so:=[];
+  if not (frDown in ReplaceDialog1.Options) then
+    so:=so+[ssoBackwards];
+
+  if (frEntireScope in ReplaceDialog1.Options) then
+    so:=so+[ssoEntireScope];
+
+  if (frMatchCase in ReplaceDialog1.Options) then
+    so:=so+[ssoMatchCase];
+
+  if (frPromptOnReplace in ReplaceDialog1.Options) then
+    so:=so+[ssoPrompt];
+
+  if (frFindNext in ReplaceDialog1.Options) then
+    so:=so+[ssoFindContinue];
+
+  if (frWholeWord in ReplaceDialog1.Options) then
+    so:=so+[ssoWholeWord];
+
+ { if assemblescreen.SelAvail then
+    so:=so+[ssoSelectedOnly];   }
+
+  assemblescreen.SearchReplace(ReplaceDialog1.FindText,'',so);
+end;
+
+procedure TfrmAutoInject.ReplaceDialog1Replace(Sender: TObject);
+var so: TSynSearchOptions;
+begin
+  so:=[];
+  if not (frDown in ReplaceDialog1.Options) then
+    so:=so+[ssoBackwards];
+
+  if (frEntireScope in ReplaceDialog1.Options) then
+    so:=so+[ssoEntireScope];
+
+  if (frMatchCase in ReplaceDialog1.Options) then
+    so:=so+[ssoMatchCase];
+
+  if (frPromptOnReplace in ReplaceDialog1.Options) then
+    so:=so+[ssoPrompt];
+
+  if (frReplace in ReplaceDialog1.Options) then
+    so:=so+[ssoReplace];
+
+  if (frReplaceAll in ReplaceDialog1.Options) then
+    so:=so+[ssoReplaceAll];
+
+  if (frFindNext in ReplaceDialog1.Options) then
+    so:=so+[ssoFindContinue];
+
+  if (frWholeWord in ReplaceDialog1.Options) then
+    so:=so+[ssoWholeWord];
+
+{  if assemblescreen.SelAvail then
+    so:=so+[ssoSelectedOnly];   }
+
+
+
+  assemblescreen.SearchReplace(ReplaceDialog1.FindText,ReplaceDialog1.ReplaceText,so);
 end;
 
 procedure TfrmAutoInject.Save1Click(Sender: TObject);
@@ -1906,6 +1976,7 @@ end;
 
 procedure TfrmAutoInject.Find1Click(Sender: TObject);
 begin
+  finddialog1.Options:=finddialog1.Options-[frFindNext];
   if finddialog1.Execute then
     mifindNext.visible:=true;
 
@@ -1914,9 +1985,11 @@ end;
 procedure TfrmAutoInject.FindDialog1Find(Sender: TObject);
 begin
   //scan the text for the given text
-  assemblescreen.SearchReplace(finddialog1.FindText,'',[]);
+  ReplaceDialog1.Options:=finddialog1.Options;
+  ReplaceDialog1.FindText:=finddialog1.FindText;
+  ReplaceDialog1.OnFind(ReplaceDialog1);
 
-  FindDialog1.close;
+  finddialog1.options:=finddialog1.options+[frFindNext];
 end;
 
 //follow is just a emergency fix since undo is messed up. At least it's better than nothing
@@ -2236,6 +2309,11 @@ begin
 
   if inputquery(rsCodeInjectTemplate, rsOnWhatAddressDoYouWantTheJump, address) then
     generateFullInjectionScript(assemblescreen.Lines, address);
+end;
+
+procedure TfrmAutoInject.MenuItem1Click(Sender: TObject);
+begin
+  ReplaceDialog1.execute;
 end;
 
 procedure GenerateAOBInjectionScript(script: TStrings; address: string; symbolname: string);

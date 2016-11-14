@@ -1,7 +1,7 @@
 object frmAutoInject: TfrmAutoInject
-  Left = 248
+  Left = 301
   Height = 331
-  Top = 99
+  Top = 117
   Width = 431
   HelpContext = 1089
   Caption = 'Auto assemble'
@@ -208,6 +208,11 @@ object frmAutoInject: TfrmAutoInject
       Visible = False
       OnClick = mifindNextClick
     end
+    object MenuItem1: TMenuItem
+      Caption = 'Replace'
+      ShortCut = 16466
+      OnClick = MenuItem1Click
+    end
   end
   object closemenu: TPopupMenu
     left = 232
@@ -218,14 +223,24 @@ object frmAutoInject: TfrmAutoInject
     end
   end
   object FindDialog1: TFindDialog
-    Options = [frDown, frHideMatchCase, frHideWholeWord, frHideUpDown]
+    Width = 480
+    Height = 136
     OnFind = FindDialog1Find
-    left = 8
-    top = 104
+    left = 332
+    top = 112
   end
   object undotimer: TTimer
     Interval = 250
     left = 40
     top = 72
+  end
+  object ReplaceDialog1: TReplaceDialog
+    Width = 495
+    Height = 184
+    Options = [frDown, frReplace, frReplaceAll]
+    OnFind = ReplaceDialog1Find
+    OnReplace = ReplaceDialog1Replace
+    left = 332
+    top = 46
   end
 end
