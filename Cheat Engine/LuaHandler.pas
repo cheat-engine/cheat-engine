@@ -7596,6 +7596,117 @@ begin
   end;
 end;
 
+function lua_copyMemory(L: Plua_State): integer; cdecl;
+var
+  sourceAddress: ptruint;
+  destinationAddress: ptruint;
+  Method: integer;
+  size: integer;
+
+  pc: integer;
+  temp: Pointer;
+  ar: ptruint;
+begin
+  result:=0;
+  pc:=lua_gettop(L);
+  if pc=0 then exit;
+
+  sourceAddress:=lua_tointeger(L,1);
+
+  if pc>1 then
+    size:=lua_tointeger(L,2);
+
+  if pc>3 then
+    Method:=lua_tointeger(L, 4)
+  else
+    Method:=0;
+
+  if (pc>2) and (not lua_isnil(L,3)) then
+    destinationAddress:=lua_tointeger(L, 3)
+  else
+  begin
+    //allocate the memory
+    case method of
+      0,2:
+      begin
+        //target process
+        destinationAddress:=ptruint(VirtualAllocEx(processhandle, nil,size,MEM_COMMIT or MEM_RESERVE,PAGE_EXECUTE_READWRITE));
+        if destinationAddress=0 then exit;
+      end;
+
+      1,3:
+      begin
+        //ce memory
+        destinationAddress:=ptruint(VirtualAlloc(nil,size,MEM_COMMIT or MEM_RESERVE, PAGE_EXECUTE_READWRITE));
+        if destinationAddress=0 then exit;
+      end;
+    end;
+  end;
+
+
+  case method of
+    0: //target to target
+    begin
+      temp:=VirtualAlloc(nil,size,MEM_COMMIT or MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+      try
+        if readprocessmemory(processhandle, pointer(sourceAddress), temp, size, ar) then
+        begin
+          if ar=size then
+          begin
+            if WriteProcessMemory(processhandle, pointer(destinationAddress), temp, size, ar) then
+            begin
+              if ar=size then
+              begin
+                lua_pushinteger(L, destinationAddress);
+                exit(1);
+              end;
+            end;
+          end;
+        end;
+
+      finally
+        VirtualFree(temp,0, MEM_RELEASE);
+      end;
+    end;
+
+    1: //target to CE
+    begin
+      if readprocessmemory(processhandle, pointer(sourceAddress), pointer(destinationAddress), size, ar) then
+      begin
+        if ar=size then
+        begin
+          lua_pushinteger(L, destinationAddress);
+          exit(1);
+        end;
+      end;
+    end;
+
+    2: //CE to target
+    begin
+      if writeprocessmemory(processhandle, pointer(sourceAddress), pointer(destinationAddress), size, ar) then
+      begin
+        if ar=size then
+        begin
+          lua_pushinteger(L, destinationAddress);
+          exit(1);
+        end;
+      end;
+    end;
+
+    3: //CE to CE
+    begin
+      try
+        RtlCopyMemory(pointer(destinationAddress), pointer(sourceAddress), size);
+        lua_pushinteger(L, destinationAddress);
+        exit(1);
+      except
+      end;
+    end;
+  end;
+
+
+end;
+
 procedure InitializeLua;
 var
   s: tstringlist;
@@ -8087,6 +8198,8 @@ begin
     lua_register(LuaVM, 'getDirectoryList', lua_getDirectoryList);
 
     lua_register(LuaVM, 'connectToCEServer', lua_connectToCEServer);
+
+    lua_register(LuaVM, 'copyMemory', lua_copyMemory);
 
 
 

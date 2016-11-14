@@ -24,6 +24,19 @@ saveTable(filename, protect OPTIONAL): Saves the current table. If protect is pr
 
 note: addresses can be strings, they will get interpreted by ce's symbolhandler
 
+copyMemory(sourceAddress: integer, size: integer, destinationAddress:integer SEMIOPTIONAL, Method:integer OPTIONAL): 
+  Copies memory from the given address to the destination address
+  If no destinationAddress is given(or nil), CE will allocate a random address for you
+
+  Method can be:
+    nil/0: Copy from target process to target process
+    1: Copy from target process to CE Memory
+    2: Copy from CE Memory to target process
+    3: Copy from CE Memory to CE Memory
+
+  Returns the address of the copy on success, nil on failure
+  
+
 readBytes(address,bytecount, ReturnAsTable ) : returns the bytes at the given address. If ReturnAsTable is true it will return a table instead of multiple bytes
   Reads the bytes at the given address and returns a table containing the read out bytes
 
@@ -2624,6 +2637,6 @@ properties
 
 methods
   byteTableToValue({bytetable},Address Optional)
-  valueToByteTable(value)
+  valueToByteTable(value, Address Optional)
 --]]
 
