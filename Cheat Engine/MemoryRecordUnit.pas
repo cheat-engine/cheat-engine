@@ -2587,7 +2587,7 @@ begin
   if (vartype=vtbinary) and (bufsize=3) then bufsize:=4;
   if (vartype=vtbinary) and (bufsize>4) then bufsize:=8;
 
-  getmem(buf,bufsize);
+  getmem(buf,bufsize+2);
 
 
 
@@ -2700,14 +2700,13 @@ begin
         begin
           extra.stringData.length:=length(currentValue);
           freemem(buf);
-          bufsize:=getbytesize;
+          bufsize:=getbytesize+2;
           getmem(buf, bufsize);
         end;
 
         x:=bufsize;
         if extra.stringData.unicode then
           x:=bufsize div 2; //each character is 2 bytes so only half the size is available
-
 
 
 
@@ -2720,11 +2719,17 @@ begin
         if extra.stringData.unicode then
         begin
           x:=min(x,length(tempsw));
+          if extra.stringData.ZeroTerminate then
+            inc(x); //include the zero terminator
+
           CopyMemory(buf, @tempsw[1], x*2)
         end
         else
         begin
           x:=min(x,length(tempsa));
+          if extra.stringData.ZeroTerminate then
+            inc(x); //include the zero terminator
+
           CopyMemory(buf, @tempsa[1], x);
         end;
 
