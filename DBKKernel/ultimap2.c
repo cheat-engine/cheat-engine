@@ -113,6 +113,7 @@ KEVENT SuspendEvent;
 HANDLE SuspendThreadHandle;
 volatile int suspendCount;
 BOOL ultimapEnabled = FALSE;
+BOOL singleToPASystem = FALSE;
 
 
 void suspendThread(PVOID StartContext)
@@ -866,24 +867,165 @@ void* setupToPA(PToPA_ENTRY *Header, PVOID *OutputBuffer, PMDL *BufferMDL, PRTL_
 	PToPA_ENTRY r;
 	UINT_PTR Output, Stop;
 	ULONG ToPAIndex = 0;
+	int PABlockSize = 0;
+	int BlockSize = BufferSize / 512;
 
 	PRTL_GENERIC_TABLE x;
 	int i;
-	
-	*OutputBuffer = ExAllocatePoolWithTag(NonPagedPool, BufferSize, 0);
-	if (*OutputBuffer == NULL)
-	{
-		DbgPrint("setupToPA: Failure allocating output buffer");
-		return NULL;
-	}
+	int cpuid_r[4];
 
-	r = ExAllocatePoolWithTag(NonPagedPool, getToPAHeaderSize(BufferSize), 0);
-	if (r == NULL)
+
+	if (singleToPASystem)
 	{
-		ExFreePoolWithTag(*OutputBuffer,0);
-		*OutputBuffer = NULL;
-		DbgPrint("setupToPA: Failure allocating header for buffer");
-		return NULL;
+		
+		PHYSICAL_ADDRESS ha;
+		ULONG newsize;
+		
+		
+
+		//get the closest possible
+		if (BlockSize > 64 * 1024 * 1024)
+			{
+				PABlockSize = 15;
+				BlockSize = 128 * 1024 * 1024;
+			}
+			else
+				if (BlockSize > 32 * 1024 * 1024)
+				{
+					PABlockSize = 14;
+					BlockSize = 64 * 1024 * 1024;
+				}
+				else
+					if (BlockSize > 16 * 1024 * 1024)
+					{
+						PABlockSize = 13;
+						BlockSize = 32 * 1024 * 1024;
+					}
+					else
+						if (BlockSize > 8 * 1024 * 1024)
+						{
+							PABlockSize = 12;
+							BlockSize = 16 * 1024 * 1024;
+						}
+						else
+							if (BlockSize > 4 * 1024 * 1024)
+							{
+								PABlockSize = 11;
+								BlockSize = 8 * 1024 * 1024;
+							}
+							else
+								if (BlockSize > 2 * 1024 * 1024)
+								{
+									PABlockSize = 10;
+									BlockSize = 4 * 1024 * 1024;
+								}
+								else
+									if (BlockSize > 1 * 1024 * 1024)
+									{
+										PABlockSize = 9;
+										BlockSize = 2 * 1024 * 1024;
+									}
+									else
+										if (BlockSize > 512 * 1024)
+										{
+											PABlockSize = 8;
+											BlockSize = 1 * 1024 * 1024;
+										}
+										else
+											if (BlockSize > 256 * 1024)
+											{
+												PABlockSize = 7;
+												BlockSize = 512 * 1024;
+											}
+											else
+												if (BlockSize > 128 * 1024)
+												{
+													PABlockSize = 6;
+													BlockSize = 256 * 1024;
+												}
+												else
+													if (BlockSize > 64 * 1024)
+													{
+														PABlockSize = 5;
+														BlockSize = 128 * 1024;
+													}
+													else
+														if (BlockSize > 32 * 1024)
+														{
+															PABlockSize = 4;
+															BlockSize = 64 * 1024;
+														}
+														else
+															if (BlockSize > 16*1024)
+															{
+																PABlockSize = 3;
+																BlockSize = 32 * 1024;
+															}
+															else
+																if (BlockSize > 8 * 1024)
+																{
+																	PABlockSize = 2;
+																	BlockSize = 16 * 1024;
+																}
+																else
+																	if (BlockSize > 4 * 1024)
+																	{
+																		PABlockSize = 1;
+																		BlockSize = 8 * 1024;
+																	}
+																	else
+																	{
+																		PABlockSize = 0;
+																		BlockSize = 4096;
+																	}
+
+		//adjust the buffersize so it is dividable by the blocksize
+		newsize = ((BufferSize / BlockSize)+1) * BlockSize;
+		DbgPrint("BufferSize=%x\n", BufferSize);
+		DbgPrint("BlockSize=%x (PABlockSize=%d)\n", PABlockSize);
+		DbgPrint("newsize=%x\n", PABlockSize);
+
+		ha.QuadPart = 0xFFFFFFFFFFFFFFFFULL;
+		*OutputBuffer=MmAllocateContiguousMemory(newsize, ha);
+
+		BufferSize = newsize;
+
+		if (*OutputBuffer == NULL)
+		{
+			DbgPrint("setupToPA (Single ToPA System): Failure allocating output buffer");
+			return NULL;
+		}
+
+		r = ExAllocatePoolWithTag(NonPagedPool, 4096, 0);
+		if (r == NULL)
+		{
+			MmFreeContiguousMemory(*OutputBuffer);
+			*OutputBuffer = NULL;
+			DbgPrint("setupToPA (Single ToPA System): Failure allocating header for buffer");
+			return NULL;
+		}
+
+	}
+	else
+	{
+		//Not a single ToPA system
+		BlockSize = 4096;
+
+		*OutputBuffer = ExAllocatePoolWithTag(NonPagedPool, BufferSize, 0);
+		if (*OutputBuffer == NULL)
+		{
+			DbgPrint("setupToPA: Failure allocating output buffer");
+			return NULL;
+		}
+
+		r = ExAllocatePoolWithTag(NonPagedPool, getToPAHeaderSize(BufferSize), 0);
+		if (r == NULL)
+		{
+			ExFreePoolWithTag(*OutputBuffer, 0);
+			*OutputBuffer = NULL;
+			DbgPrint("setupToPA: Failure allocating header for buffer");
+			return NULL;
+		}
 	}
 	
 
@@ -894,7 +1036,10 @@ void* setupToPA(PToPA_ENTRY *Header, PVOID *OutputBuffer, PMDL *BufferMDL, PRTL_
 	if (*gt == NULL)
 	{
 		DbgPrint("Failure allocating table");
-		ExFreePoolWithTag(*OutputBuffer,0);
+		if (singleToPASystem)
+			MmFreeContiguousMemory(*OutputBuffer);
+		else
+			ExFreePoolWithTag(*OutputBuffer,0);
 		*OutputBuffer = NULL;
 
 		ExFreePoolWithTag(*Header,0);
@@ -915,9 +1060,15 @@ void* setupToPA(PToPA_ENTRY *Header, PVOID *OutputBuffer, PMDL *BufferMDL, PRTL_
 	Output = (UINT_PTR)*OutputBuffer;
 	Stop = Output+BufferSize;
 	
-	*BufferMDL = IoAllocateMdl(*OutputBuffer, BufferSize, FALSE, FALSE, NULL);
-
-	MmBuildMdlForNonPagedPool(*BufferMDL);
+	if (!singleToPASystem)
+	{
+		*BufferMDL = IoAllocateMdl(*OutputBuffer, BufferSize, FALSE, FALSE, NULL);
+		MmBuildMdlForNonPagedPool(*BufferMDL);
+	}
+	else
+	{
+		*BufferMDL = NULL;
+	}
 
 
 	while (Output<Stop)
@@ -925,6 +1076,12 @@ void* setupToPA(PToPA_ENTRY *Header, PVOID *OutputBuffer, PMDL *BufferMDL, PRTL_
 		//fill in the topa entries pointing to eachother
 		if ((ToPAIndex+1) % 512 == 0)
 		{
+			if (singleToPASystem)
+			{
+				DbgPrint("singleToPASystem assertion failure. Output went over the page boundary");
+				return NULL;
+			}
+
 			//point it to the next ToPA table
 			r[ToPAIndex].Value = MmGetPhysicalAddress(&r[ToPAIndex+1]).QuadPart;
 			r[ToPAIndex].Bits.END = 1;
@@ -936,7 +1093,8 @@ void* setupToPA(PToPA_ENTRY *Header, PVOID *OutputBuffer, PMDL *BufferMDL, PRTL_
 		else
 		{
 			r[ToPAIndex].Value = (UINT64)MmGetPhysicalAddress((PVOID)Output).QuadPart;
-			Output += 4096;
+			r[ToPAIndex].Bits.Size = PABlockSize;
+			Output += BlockSize;
 		}
 
 		ToPAIndex++;
@@ -1008,6 +1166,17 @@ void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, P
 	int i;
 	UNICODE_STRING s;
 	NTSTATUS r;
+	int cpuid_r[4];
+
+	__cpuidex(cpuid_r, 0x14, 0);
+
+	if ((cpuid_r[3] & 2) == 0)
+	{
+		DbgPrint("Single ToPA System");
+		singleToPASystem = TRUE;
+	}
+
+
 
 	DbgPrint("Path[0]=%d\n", Path[0]);
 
@@ -1214,13 +1383,20 @@ void DisableUltimap2(void)
 
 				if (PInfo[i]->ToPABuffer)
 				{
-					ExFreePoolWithTag(PInfo[i]->ToPABuffer, 0);
+					if (singleToPASystem)
+						MmFreeContiguousMemory(PInfo[i]->ToPABuffer);
+					else
+						ExFreePoolWithTag(PInfo[i]->ToPABuffer, 0);
 					PInfo[i]->ToPABuffer = NULL;
 				}
 				
 				if (PInfo[i]->ToPABuffer2)
 				{
-					ExFreePoolWithTag(PInfo[i]->ToPABuffer2, 0);
+					if (singleToPASystem)
+						MmFreeContiguousMemory(PInfo[i]->ToPABuffer2);
+					else
+						ExFreePoolWithTag(PInfo[i]->ToPABuffer2, 0);
+
 					PInfo[i]->ToPABuffer2 = NULL;
 				}
 
