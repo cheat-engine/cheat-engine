@@ -1409,8 +1409,8 @@ begin
         raise exception.create(rsSorryButYourCPUSeemsToBeLeackingIPTFeature);
 
       cpuid14_0:=CPUID($14,0);
-      if ((cpuid14_0.ecx shr 1) and 1)=0 then
-        raise exception.create(rsSorryButYourCPUsImplementationOfTheIPTFeatureIsTooOld);
+      //if ((cpuid14_0.ecx shr 1) and 1)=0 then
+      //  raise exception.create(rsSorryButYourCPUsImplementationOfTheIPTFeatureIsTooOld);
 
       if (cpuid14_0.ebx and 1)=0 then
         raise exception.create(rsSorryButYourCPUDoesntSeemToBeAbleToSetATargetProcess);

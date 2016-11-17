@@ -980,10 +980,13 @@ void* setupToPA(PToPA_ENTRY *Header, PVOID *OutputBuffer, PMDL *BufferMDL, PRTL_
 																	}
 
 		//adjust the buffersize so it is dividable by the blocksize
-		newsize = ((BufferSize / BlockSize)+1) * BlockSize;
+		newsize = (BufferSize / BlockSize) * BlockSize;
+		if (newsize < BlockSize)
+			newsize = BlockSize;
+			
 		DbgPrint("BufferSize=%x\n", BufferSize);
-		DbgPrint("BlockSize=%x (PABlockSize=%d)\n", PABlockSize);
-		DbgPrint("newsize=%x\n", PABlockSize);
+		DbgPrint("BlockSize=%x (PABlockSize=%d)\n", BlockSize, PABlockSize);
+		DbgPrint("newsize=%x\n", newsize);
 
 		ha.QuadPart = 0xFFFFFFFFFFFFFFFFULL;
 		*OutputBuffer=MmAllocateContiguousMemory(newsize, ha);
@@ -1074,27 +1077,31 @@ void* setupToPA(PToPA_ENTRY *Header, PVOID *OutputBuffer, PMDL *BufferMDL, PRTL_
 	while (Output<Stop)
 	{
 		//fill in the topa entries pointing to eachother
-		if ((ToPAIndex+1) % 512 == 0)
+
+		if (singleToPASystem && ToPAIndex && ((ToPAIndex) % 512 == 0)) //just to be sure
 		{
-			if (singleToPASystem)
-			{
-				DbgPrint("singleToPASystem assertion failure. Output went over the page boundary");
-				return NULL;
-			}
+			DbgPrint("singleToPASystem assertion failed. More pages where needed");
+		}
 
-			//point it to the next ToPA table
-			r[ToPAIndex].Value = MmGetPhysicalAddress(&r[ToPAIndex+1]).QuadPart;
-			r[ToPAIndex].Bits.END = 1;
+		
+		if (((ToPAIndex + 1) % 512 == 0) && (!singleToPASystem))
+		{
+				//point it to the next ToPA table
+				r[ToPAIndex].Value = MmGetPhysicalAddress(&r[ToPAIndex + 1]).QuadPart;
+				r[ToPAIndex].Bits.END = 1;
 
-			tl.index = tl.index++;
-			tl.PhysicalAddress = MmGetPhysicalAddress(&r[ToPAIndex + 1]).QuadPart;
-			RtlInsertElementGenericTable(x, &tl, sizeof(tl), NULL);
+				tl.index = tl.index++;
+				tl.PhysicalAddress = MmGetPhysicalAddress(&r[ToPAIndex + 1]).QuadPart;
+				RtlInsertElementGenericTable(x, &tl, sizeof(tl), NULL);
 		}
 		else
 		{
 			r[ToPAIndex].Value = (UINT64)MmGetPhysicalAddress((PVOID)Output).QuadPart;
 			r[ToPAIndex].Bits.Size = PABlockSize;
 			Output += BlockSize;
+
+			if (singleToPASystem && ToPAIndex && ((ToPAIndex+1) % 512 == 0)) //just to be sure
+				r[ToPAIndex].Bits.STOP = 1;		
 		}
 
 		ToPAIndex++;
