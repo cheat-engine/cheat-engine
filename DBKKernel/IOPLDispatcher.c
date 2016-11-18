@@ -1785,6 +1785,20 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				break;
 			}
 
+		case IOCTL_CE_ULTIMAP_PAUSE:
+		{			
+			ultimap_pause();
+			ntStatus = STATUS_SUCCESS;
+			break;
+		}
+
+		case IOCTL_CE_ULTIMAP_RESUME:
+		{			
+			ultimap_resume();
+			ntStatus = STATUS_SUCCESS;
+			break;
+		}
+
 			/*
 		case IOCTL_CE_GETCPUIDS:
 			{

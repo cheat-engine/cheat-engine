@@ -405,6 +405,25 @@ skip_original_perfmon:
 }
 #endif
 
+VOID ultimap_pause_dpc(IN struct _KDPC *Dpc, IN PVOID DeferredContext, IN PVOID SystemArgumen1, IN PVOID SystemArgument2)
+{
+	vmx_ultimap_pause();
+}
+
+void ultimap_pause(void)
+{
+	forEachCpu(ultimap_pause_dpc, NULL, NULL, NULL);
+}
+
+VOID ultimap_resume_dpc(IN struct _KDPC *Dpc, IN PVOID DeferredContext, IN PVOID SystemArgumen1, IN PVOID SystemArgument2)
+{
+	vmx_ultimap_resume();
+}
+
+void ultimap_resume(void)
+{
+	forEachCpu(ultimap_resume_dpc, NULL, NULL, NULL);
+}
 
 VOID ultimap_disable_dpc(IN struct _KDPC *Dpc, IN PVOID DeferredContext, IN PVOID SystemArgumen1, IN PVOID SystemArgument2)
 {
@@ -422,6 +441,8 @@ VOID ultimap_disable_dpc(IN struct _KDPC *Dpc, IN PVOID DeferredContext, IN PVOI
 		}
 	}
 }
+
+
 
 void ultimap_disable(void)
 {

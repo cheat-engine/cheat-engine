@@ -502,29 +502,17 @@ begin
   errorbeep;
 end;
 
-function ultimap_pause(value: pointer): BOOL; stdcall;
-begin
-  dbvm_ultimap_pause; //stops setting the debugctl msr for the target process but does not reset logged the values
-  result:=true;
-end;
-
-function ultimap_resume(value: pointer): BOOL; stdcall;
-begin
-  dbvm_ultimap_resume; //stops setting the debugctl msr for the target process but does not reset logged the values
-  result:=true;
-end;
-
 procedure TfrmUltimap.btnPauseClick(Sender: TObject);
 begin
   if not paused then
   begin
-    foreachcpu(ultimap_pause,nil);
+    ultimap_pause;
     paused:=true;
     btnPause.caption:=rsUUResume;
   end
   else
   begin
-    foreachcpu(ultimap_resume,nil);
+    ultimap_resume;
     paused:=false;
     btnPause.caption:=rsUUPause;
   end;
@@ -994,16 +982,16 @@ begin
     if listview1.Items[i].Selected then
     begin
       if p.x>listview1.Column[0].Width then
-        a:=validlist[listview1.selected.Index].lastFromAddress
+        a:=validlist[i].lastFromAddress
       else
-        a:=validlist[listview1.selected.Index].toAddress;
+        a:=validlist[i].toAddress;
     end;
 
     a2:=a;
     disassemble(a2);
 
 
-    advancedoptions.AddToCodeList(a, a2-a,false);
+    advancedoptions.AddToCodeList(a, a2-a,false,true);
   end;
 end;
 

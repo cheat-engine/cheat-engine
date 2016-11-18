@@ -328,6 +328,42 @@ unsigned int vmx_ultimap_disable()
 	return (unsigned int)dovmcall(&vmcallinfo, vmx_password1);
 }
 
+unsigned int vmx_ultimap_pause()
+{
+#pragma pack(1)
+	struct
+	{
+		unsigned int structsize;
+		unsigned int level2pass;
+		unsigned int command;
+	} vmcallinfo;
+#pragma pack()
+
+	vmcallinfo.structsize = sizeof(vmcallinfo);
+	vmcallinfo.level2pass = vmx_password2;
+	vmcallinfo.command = VMCALL_ULTIMAP_PAUSE;
+
+	return (unsigned int)dovmcall(&vmcallinfo, vmx_password1);
+}
+
+unsigned int vmx_ultimap_resume()
+{
+#pragma pack(1)
+	struct
+	{
+		unsigned int structsize;
+		unsigned int level2pass;
+		unsigned int command;
+	} vmcallinfo;
+#pragma pack()
+
+	vmcallinfo.structsize = sizeof(vmcallinfo);
+	vmcallinfo.level2pass = vmx_password2;
+	vmcallinfo.command = VMCALL_ULTIMAP_RESUME;
+
+	return (unsigned int)dovmcall(&vmcallinfo, vmx_password1);
+}
+
 unsigned int vmx_disable_dataPageFaults()
 {
 	#pragma pack(1)

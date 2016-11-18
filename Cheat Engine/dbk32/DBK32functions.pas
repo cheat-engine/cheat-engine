@@ -13,7 +13,7 @@ uses jwawindows, windows, sysutils, classes, types, registry, multicpuexecution,
 
 
 
-const currentversion=2000019;
+const currentversion=2000020;
 
 const FILE_ANY_ACCESS=0;
 const FILE_SPECIAL_ACCESS=FILE_ANY_ACCESS;
@@ -130,6 +130,8 @@ const IOCTL_CE_ULTIMAP2_RESUME        = (IOCTL_UNKNOWN_BASE shl 16) or ($0855 sh
 const IOCTL_CE_ULTIMAP2_LOCKFILE      = (IOCTL_UNKNOWN_BASE shl 16) or ($0856 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_ULTIMAP2_RELEASEFILE   = (IOCTL_UNKNOWN_BASE shl 16) or ($0857 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
+const IOCTL_CE_ULTIMAP_PAUSE          = (IOCTL_UNKNOWN_BASE shl 16) or ($0858 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_ULTIMAP_RESUME         = (IOCTL_UNKNOWN_BASE shl 16) or ($0859 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
 
 type TDeviceIoControl=function(hDevice: THandle; dwIoControlCode: DWORD; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesReturned: DWORD; lpOverlapped: POverlapped): BOOL; stdcall;
@@ -320,6 +322,9 @@ function ultimap_disable: BOOLEAN; stdcall;
 function ultimap_waitForData(timeout: dword; output: PUltimapDataEvent): boolean;
 function ultimap_continue(previousdataresult: PUltimapDataEvent): boolean;
 procedure ultimap_flush;
+
+procedure ultimap_pause;
+procedure ultimap_resume;
 
 
 procedure ultimap2(processid: dword; size: dword; outputfolder: widestring; ranges: TURangeArray);
@@ -2169,6 +2174,26 @@ begin
   begin
     cc:=IOCTL_CE_ULTIMAP_DISABLE;
     result:=deviceiocontrol(hdevice,cc,nil,0,nil,0,cc,nil);
+  end;
+end;
+
+procedure ultimap_pause;
+var cc: dword;
+begin
+  if (hdevice<>INVALID_HANDLE_VALUE) then
+  begin
+    cc:=IOCTL_CE_ULTIMAP_PAUSE;
+    deviceiocontrol(hdevice,cc,nil,0,nil,0,cc,nil);
+  end;
+end;
+
+procedure ultimap_resume;
+var cc: dword;
+begin
+  if (hdevice<>INVALID_HANDLE_VALUE) then
+  begin
+    cc:=IOCTL_CE_ULTIMAP_RESUME;
+    deviceiocontrol(hdevice,cc,nil,0,nil,0,cc,nil);
   end;
 end;
 

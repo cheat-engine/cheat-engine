@@ -810,7 +810,7 @@ void ultimap2_setup_dpc(struct _KDPC *Dpc, PVOID DeferredContext, PVOID SystemAr
 			
 		s.Value=__readmsr(IA32_RTIT_STATUS);
 		if (s.Bits.Error)
-			DbgPrint("Setup for cpu %d failed");
+			DbgPrint("Setup for cpu %d failed", KeGetCurrentProcessorNumber());
 		else
 			DbgPrint("Setup for cpu %d succesful", KeGetCurrentProcessorNumber());
 	}

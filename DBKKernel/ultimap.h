@@ -76,6 +76,9 @@ typedef struct
 NTSTATUS ultimap_continue(PULTIMAPDATAEVENT data);
 NTSTATUS ultimap_waitForData(ULONG timeout, PULTIMAPDATAEVENT data);
 NTSTATUS ultimap(UINT64 cr3, UINT64 dbgctl_msr, int DS_AREA_SIZE, BOOL savetofile, WCHAR *filename, int handlerCount);
+void ultimap_pause();
+void ultimap_resume();
+
 void ultimap_disable(void);
 void ultimap_flushBuffers(void);
 void setup_APIC_BASE(void);
