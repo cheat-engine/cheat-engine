@@ -1051,8 +1051,8 @@ void* setupToPA(PToPA_ENTRY *Header, PVOID *OutputBuffer, PMDL *BufferMDL, PRTL_
 		ha.QuadPart = 0xFFFFFFFFFFFFFFFFULL;
 		boundary.QuadPart = BlockSize;
 
-		MmAllocateContiguousMemorySpecifyCache(newsize, la, ha, boundary, MmCached);
-		*OutputBuffer=MmAllocateContiguousMemory(newsize, ha);
+		*OutputBuffer=MmAllocateContiguousMemorySpecifyCache(newsize, la, ha, boundary, MmCached);
+		//*OutputBuffer=MmAllocateContiguousMemory(newsize, ha);
 
 		DbgPrint("Allocated OutputBuffer at %p", MmGetPhysicalAddress(*OutputBuffer).QuadPart);
 
