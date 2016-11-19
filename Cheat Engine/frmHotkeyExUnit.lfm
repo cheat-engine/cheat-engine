@@ -37,13 +37,16 @@ object frmHotkeyEx: TfrmHotkeyEx
     ParentColor = False
   end
   object Button3: TButton
+    AnchorSideLeft.Control = edtHotkey
+    AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = edtHotkey
     AnchorSideTop.Side = asrCenter
-    Left = 234
+    Left = 237
     Height = 25
     Top = 14
     Width = 53
     AutoSize = True
+    BorderSpacing.Left = 3
     BorderSpacing.Right = 8
     Caption = 'Clear'
     OnClick = Button3Click

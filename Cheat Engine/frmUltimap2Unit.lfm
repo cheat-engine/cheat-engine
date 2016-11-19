@@ -208,6 +208,7 @@ object frmUltimap2: TfrmUltimap2
         Width = 88
         Caption = 'Last filter results:'
         ParentColor = False
+        Visible = False
       end
       object btnReset: TButton
         AnchorSideTop.Control = Panel4
@@ -566,7 +567,7 @@ object frmUltimap2: TfrmUltimap2
       ClientHeight = 45
       ClientWidth = 737
       TabOrder = 1
-      object Button5: TButton
+      object btnShowResults: TButton
         AnchorSideLeft.Control = Panel3
         AnchorSideLeft.Side = asrCenter
         AnchorSideTop.Control = Panel3
@@ -579,7 +580,7 @@ object frmUltimap2: TfrmUltimap2
         BorderSpacing.Top = 10
         BorderSpacing.Bottom = 10
         Caption = 'Show the current valid instruction list'
-        OnClick = Button5Click
+        OnClick = btnShowResultsClick
         TabOrder = 0
       end
     end

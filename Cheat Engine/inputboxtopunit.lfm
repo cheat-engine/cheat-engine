@@ -27,12 +27,16 @@ object InputboxTop: TInputboxTop
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Label1
     AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
     Left = 4
     Height = 23
     Top = 15
-    Width = 273
+    Width = 275
+    Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Left = 4
     BorderSpacing.Right = 4
+    Constraints.MinWidth = 275
     TabOrder = 0
     Text = 'edit1'
   end

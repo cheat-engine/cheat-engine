@@ -352,6 +352,7 @@ object frmUltimap: TfrmUltimap
           BorderSpacing.Top = 8
           Caption = 'Code has been executed'
           OnClick = btnExecutedClick
+          PopupMenu = pmSetHotkey
           TabOrder = 0
         end
         object btnNotExecuted: TButton
@@ -368,6 +369,7 @@ object frmUltimap: TfrmUltimap
           AutoSize = True
           Caption = 'Code did not get executed'
           OnClick = btnNotExecutedClick
+          PopupMenu = pmSetHotkey
           TabOrder = 1
         end
         object Button6: TButton
