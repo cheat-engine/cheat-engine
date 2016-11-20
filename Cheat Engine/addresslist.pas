@@ -603,6 +603,8 @@ begin
               if insertAfter<>nil then
                 memrec.treenode.MoveTo(insertafter, naInsertBehind);
 
+              insertAfter:=memrec.treenode;
+
               //fill the entry with the node info
               memrec.setXMLnode(currentEntry);
 
