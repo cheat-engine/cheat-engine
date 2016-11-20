@@ -351,8 +351,8 @@ type
     fDescription: string;
     fOwner: TMemoryRecord;
     keys: Tkeycombo;
-    action: TMemrecHotkeyAction;
-    value: string;
+    fAction: TMemrecHotkeyAction;
+    fValue: string;
 
 
     procedure playActivateSound;
@@ -368,6 +368,8 @@ type
     property ActivateSound: string read factivateSound write factivateSound;
     property DeactivateSound: string read fdeactivateSound write fdeactivateSound;
     property Description: string read fDescription write fDescription;
+    property Action: TMemrecHotkeyAction read fAction write fAction;
+    property Value: string read fValue write fValue;
     property Owner: TMemoryRecord read fOwner;
     property ID: integer read fID;
     property OnHotkey: TNotifyEvent read fOnHotkey write fOnHotkey;
