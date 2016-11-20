@@ -1787,17 +1787,18 @@ begin
       end
       else
       begin
-        if VarType in [vtByte, vtWord, vtDword, vtQword, vtCustom] then
+        if (VarType in [vtSingle, vtDouble]) or
+           ((VarType=vtCustom) and (customtype<>nil) and customtype.scriptUsesFloat) then
+        begin
+          oldvaluedouble:=StrToFloat(getValue);
+          increasevalueDouble:=StrToFloatEx(value);
+          setvalue(FloatToStr(oldvaluedouble+increasevalueDouble));
+        end
+        else
         begin
           oldvalue:=StrToQWordEx(getvalue);
           increasevalue:=StrToQWordEx(value);
           setvalue(IntToStr(oldvalue+increasevalue));
-        end
-        else
-        begin
-          oldvaluedouble:=StrToFloat(getValue);
-          increasevalueDouble:=StrToFloat(value);
-          setvalue(FloatToStr(oldvaluedouble+increasevalueDouble));
         end;
       end;
     except
@@ -1813,7 +1814,7 @@ var
   decreasevalue: qword;
   decreasevaluedouble: double;
 begin
-  if VarType in [vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble] then
+  if VarType in [vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble, vtCustom] then
   begin
     try
       if showAsHex then //separate handler for hexadecimal. (handle as int, even for the float types)
@@ -1824,17 +1825,18 @@ begin
       end
       else
       begin
-        if VarType in [vtByte, vtWord, vtDword, vtQword] then
+        if (VarType in [vtSingle, vtDouble]) or
+           ((VarType=vtCustom) and (customtype<>nil) and customtype.scriptUsesFloat) then
+        begin
+          oldvaluedouble:=StrToFloat(getValue);
+          decreasevalueDouble:=StrToFloatEx(value);
+          setvalue(FloatToStr(oldvaluedouble-decreasevalueDouble));
+        end
+        else
         begin
           oldvalue:=StrToQWordEx(getvalue);
           decreasevalue:=StrToQWordEx(value);
           setvalue(IntToStr(oldvalue-decreasevalue));
-        end
-        else
-        begin
-          oldvaluedouble:=StrToFloat(getValue);
-          decreasevalueDouble:=StrToFloat(value);
-          setvalue(FloatToStr(oldvaluedouble-decreasevalueDouble));
         end;
       end;
     except
@@ -2515,7 +2517,6 @@ var
 
   unparsedvalue: string;
   check: boolean;
-  fs: TFormatSettings;
 
   oldluatop: integer;
 begin
@@ -2627,7 +2628,7 @@ begin
         if customtype<>nil then
         Begin
           if customtype.scriptUsesFloat then
-            customtype.ConvertFloatToData(strtofloat(currentValue), ps, RealAddress)
+            customtype.ConvertFloatToData(StrToFloatEx(currentValue), ps, RealAddress)
           else
             customtype.ConvertIntegerToData(strtoint(currentValue), pdw, RealAddress);
 
@@ -2640,34 +2641,10 @@ begin
       vtDword: pdw^:=StrToQWordEx(currentValue);
       vtQword: pqw^:=StrToQWordEx(currentValue);
       vtSingle: if (not fShowAsHex) or (not TryStrToInt('$'+currentvalue, li^)) then
-      begin
-        try
-          fs:=DefaultFormatSettings;
-          ps^:=StrToFloat(currentValue, fs);
-        except
-          if fs.DecimalSeparator='.' then
-            fs.DecimalSeparator:=','
-          else
-          fs.DecimalSeparator:='.';
-
-          ps^:=StrToFloat(currentValue, fs);
-        end;
-      end;
+        ps^:=StrToFloatEx(currentValue);
 
       vtDouble: if (not fShowAsHex) or (not TryStrToQWord('$'+currentvalue, li64^)) then
-      begin
-        try
-          fs:=DefaultFormatSettings;
-          pd^:=StrToFloat(currentValue, fs);
-        except
-          if fs.DecimalSeparator='.' then
-            fs.DecimalSeparator:=','
-          else
-          fs.DecimalSeparator:='.';
-
-          pd^:=StrToFloat(currentValue, fs);
-        end;
-      end;
+        pd^:=StrToFloatEx(currentValue);
 
       vtBinary:
       begin
