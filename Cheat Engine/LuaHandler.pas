@@ -5923,12 +5923,13 @@ begin
 end;
 
 function lua_stringToMD5String(L:PLua_State): integer; cdecl;
-var s: string;
+var msg: pchar;
+    size: integer;
 begin
   if lua_gettop(L)=1 then
   begin
-    s:=Lua_ToString(L,1);
-    lua_pushstring(L, MD5Print(MD5String(s)));
+    msg:=lua_tolstring(L, 1, @size);
+    lua_pushstring(L, MD5Print(MD5Buffer(msg^,size)));
     result:=1;
   end
   else
