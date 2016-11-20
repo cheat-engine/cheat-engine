@@ -12,6 +12,7 @@ uses
 procedure ConvertStringToBytes(scanvalue:string; hex:boolean;var bytes: TBytes; canHandleNibbleWildcards: boolean=false);
 function BinToInt(s: string): int64;
 function IntToBin(i: qword): string;
+function StrToFloatEx(s: string): double;
 function StrToQWordEx(s: string): qword;
 function getbit(bitnr: integer; bt: qword):integer; inline;
 procedure setbit(bitnr: integer; var bt: Byte;state:integer); overload;
