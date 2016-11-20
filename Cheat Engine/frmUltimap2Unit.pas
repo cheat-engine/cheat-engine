@@ -2081,7 +2081,7 @@ begin
         begin
           for i:=0 to ri^.size-1 do
           begin
-            if (ri^.info[i].count>0) and ((ri^.info[i].flags or bifInvalidated)<>0) then
+            if (ri^.info[i].count>0) and ((ri^.info[i].flags and bifInvalidated)=0) then
             begin
               getmem(entry, sizeof(TValidEntry));
               entry^.address:=ri^.address+i;
