@@ -424,7 +424,7 @@ begin
         luacs.Enter;
         stack:=lua_gettop(luavm);
         try
-          if luaL_loadstring(luavm, pchar('memrec, address=... return '+fOffsetString))<>0 then exit(false);
+          if luaL_loadstring(luavm, pchar('local memrec, address=... ; return '+fOffsetString))<>0 then exit(false);
 
           luaclass_newClass(luavm, owner.owner.memoryrecord);
           lua_pushinteger(luavm, fBaseAddress);
