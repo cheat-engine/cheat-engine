@@ -513,7 +513,7 @@ begin
   if e then
   begin
     //try lua
-    s2:='memrec, address=... return '+s;
+    s2:='local memrec, address=... ; return '+s;
 
 {$ifndef JNI}
     LUACS.Enter;
