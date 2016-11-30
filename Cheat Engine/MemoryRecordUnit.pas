@@ -2405,7 +2405,9 @@ begin
           if customtype.scriptUsesFloat then
             result:=FloatToStr(customtype.ConvertDataToFloat(buf, RealAddress))
           else
-            if showashex then result:=inttohex(customtype.ConvertDataToInteger(buf, RealAddress),8) else if showassigned then result:=inttostr(integer(customtype.ConvertDataToInteger(buf, RealAddress))) else result:=inttostr(customtype.ConvertDataToInteger(buf, RealAddress));
+            if showashex         then result:=inttohex(customtype.ConvertDataToInteger(buf, RealAddress),8) 
+            else if showassigned then result:=inttostr(integer(customtype.ConvertDataToInteger(buf, RealAddress)))
+            else                      result:=inttostr(dword(customtype.ConvertDataToInteger(buf, RealAddress)));
         end
         else
           result:=rsError;
