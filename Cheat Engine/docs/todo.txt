@@ -1,0 +1,20 @@
+structure dissect: If you name an address, show name name in the header
+structure spider: don't generate tyhe stringmap on new scan, reuse  (and for string scan use compare so that the secondary is at least readable)
+
+aa alloc 'do you want to go there now' doesn't add the old address to the history
+dissect data: memory browse(follow) pointer on 64-bit seems to fail to 0 (when using a shadow)
+add a search for value in the structure spider results
+structure spider must be different not showing diferent results. (actually 0 different, only equal)  (using a shadow)
+
+auto assembler with a saved script should have the name in the title
+
+symhandler: add symbol+[symbol]*4 support
+
+lua: mousepos to clientpos
+break and trace: doubleclick register truncates
+
+activing aa scripts: Add option for async activation
+process/system info: resizing is shitty
+
+kernel: Add an noexception method that will stop all exceptions 
+ceshare: continue with it
