@@ -1086,7 +1086,7 @@ end;
 procedure FixAlpha(aPNG: TPortableNetworkGraphic);
 type
   TColor32 = packed record
-    B, G, R, A: Byte;
+    R, G, B, A: Byte;
   end;
   PColor32=^TColor32;
   TColor32Array = array[0..0] of TColor32;
