@@ -1086,7 +1086,7 @@ end;
 procedure FixAlpha(aPNG: TPortableNetworkGraphic);
 type
   TColor32 = packed record
-    R, G, B, A: Byte;
+    B, G, R, A: Byte;
   end;
   PColor32=^TColor32;
   TColor32Array = array[0..0] of TColor32;
@@ -1099,6 +1099,7 @@ var
   ColorKey: TColor32 absolute c;
 begin
   c:=ColorToRGB(aPng.TransparentColor);
+  c:=(c and $ff00) or ((c shr 16) and $ff) or ((c shl 16) and $ff0000);
 
   for y := 0 to aPNG.Height - 1 do
   begin
