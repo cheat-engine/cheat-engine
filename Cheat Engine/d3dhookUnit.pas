@@ -1099,6 +1099,7 @@ var
   ColorKey: TColor32 absolute c;
 begin
   c:=ColorToRGB(aPng.TransparentColor);
+  c:=(c and $ff00) or ((c shr 16) and $ff) or ((c shl 16) and $ff0000);
 
   for y := 0 to aPNG.Height - 1 do
   begin
