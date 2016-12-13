@@ -3163,7 +3163,10 @@ begin
       raise exception.Create(rsErrorAllocatingMemory);
 
     if messagedlg(Format(rsAtLeastBytesHaveBeenAllocatedAtGoThereNow, [IntToStr(memsize), IntToHex(ptrUint(baseaddress), 8)]), mtinformation, [mbyes, mbno], 0) = mryes then
+    begin
+      backlist.Push(pointer(disassemblerview.SelectedAddress));
       disassemblerview.SelectedAddress:=ptrUint(baseaddress);
+    end;
   end;
   {$endif}
 end;
