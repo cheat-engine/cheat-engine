@@ -483,7 +483,7 @@ type
     memorybrowserHistory: TStringList;
     assemblerHistory: TStringList;
 
-    backlist: TStack;
+
 
     lastspecialwidth: integer;
     FShowValues: boolean;
@@ -539,7 +539,7 @@ type
     cancelsearch: boolean;
 
     ischild: boolean; //determines if it's the main memorybrowser or a child
-
+    backlist: TStack;
 
     procedure FindwhatThiscodeAccesses(address: ptrUint);
 
