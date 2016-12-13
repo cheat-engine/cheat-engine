@@ -236,6 +236,7 @@ type
     edtShadowSize: TEdit;
     edtShadowSize2: TEdit;
     edtStructsize: TEdit;
+    FindDialog1: TFindDialog;
     lblBaseRegion: TLabel;
     lblInfo: TLabel;
     lblMaxLevel: TLabel;
@@ -251,6 +252,8 @@ type
     ListView1: TListView;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
+    miFind: TMenuItem;
+    miFindNext: TMenuItem;
     miNewScan: TMenuItem;
     miOpen: TMenuItem;
     MenuItem4: TMenuItem;
@@ -284,17 +287,20 @@ type
     procedure comboTypeChange(Sender: TObject);
     procedure edtBaseChange(Sender: TObject);
     procedure edtExtraChange(Sender: TObject);
+    procedure FindDialog1Find(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormShow(Sender: TObject);
     procedure ListView1CustomDrawItem(Sender: TCustomListView; Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
 
     procedure ListView1Data(Sender: TObject; Item: TListItem);
     procedure ListView1DblClick(Sender: TObject);
+    procedure miFindClick(Sender: TObject);
     procedure miNewScanClick(Sender: TObject);
     procedure miOpenClick(Sender: TObject);
     procedure MenuItem7Click(Sender: TObject);
     procedure miClearCacheClick(Sender: TObject);
     procedure MenuItem6Click(Sender: TObject);
+    procedure Panel3Click(Sender: TObject);
     procedure rbDatascanChange(Sender: TObject);
     procedure rbDiffDontCareChange(Sender: TObject);
     procedure statusupdaterTimer(Sender: TObject);
@@ -1827,6 +1833,11 @@ begin
     MemoryBrowser.hexview.address:=pointerfilereader.getAddressFromPointerRecord(pointerfilereader.getPointerRec(listview1.Selected.Index), address, shadow, shadowsize2);
 end;
 
+procedure TfrmStringPointerScan.miFindClick(Sender: TObject);
+begin
+  finddialog1.execute;
+end;
+
 procedure TfrmStringPointerScan.OpenPointerfile(filename: string);
 var lc: TListColumn;
   i: integer;
@@ -2256,6 +2267,37 @@ begin
   rbDiffDontCareChange(nil);
 end;
 
+procedure TfrmStringPointerScan.FindDialog1Find(Sender: TObject);
+var
+  i,start: integer;
+  s: string;
+  FindText: string;
+  cs: boolean;
+begin
+  FindText:=finddialog1.FindText;
+  if FindText='' then exit;
+
+  miFindNext.enabled:=true;
+
+  cs:=frMatchCase in finddialog1.Options;
+  if not cs then findtext:=uppercase(findtext);
+
+  for i:=listview1.ItemIndex+1 to listview1.Items.Count-1 do
+  begin
+    s:=listview1.items[i].SubItems.Text;
+    if not cs then s:=uppercase(s);
+
+    if pos(FindText, s)>0 then
+    begin
+      listview1.ItemIndex:=i;
+      listview1.Items[i].MakeVisible(false);
+      exit;
+    end;
+  end;
+
+  beep;
+end;
+
 procedure TfrmStringPointerScan.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
   cleanup;
@@ -2335,6 +2377,11 @@ begin
 end;
 
 procedure TfrmStringPointerScan.MenuItem6Click(Sender: TObject);
+begin
+
+end;
+
+procedure TfrmStringPointerScan.Panel3Click(Sender: TObject);
 begin
 
 end;

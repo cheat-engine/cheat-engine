@@ -478,6 +478,7 @@ object frmStringPointerScan: TfrmStringPointerScan
       Width = 625
       Align = alClient
       Columns = <>
+      HideSelection = False
       OwnerData = True
       PopupMenu = pmPointerfile
       ReadOnly = True
@@ -499,6 +500,7 @@ object frmStringPointerScan: TfrmStringPointerScan
       ClientHeight = 136
       ClientWidth = 625
       TabOrder = 1
+      OnClick = Panel3Click
       object lblExtra: TLabel
         AnchorSideLeft.Control = Panel6
         AnchorSideLeft.Side = asrBottom
@@ -791,5 +793,24 @@ object frmStringPointerScan: TfrmStringPointerScan
       Caption = 'Clear pointer cache'
       OnClick = miClearCacheClick
     end
+    object miFind: TMenuItem
+      Caption = 'Find...'
+      ShortCut = 16454
+      OnClick = miFindClick
+    end
+    object miFindNext: TMenuItem
+      Caption = 'Find Next'
+      Enabled = False
+      ShortCut = 114
+      OnClick = FindDialog1Find
+    end
+  end
+  object FindDialog1: TFindDialog
+    Width = 480
+    Height = 136
+    Options = [frDown, frHideWholeWord, frHideUpDown, frDisableUpDown, frHideEntireScope, frHidePromptOnReplace]
+    OnFind = FindDialog1Find
+    left = 268
+    top = 243
   end
 end
