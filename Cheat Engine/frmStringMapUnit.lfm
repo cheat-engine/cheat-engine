@@ -8,6 +8,7 @@ object frmStringMap: TfrmStringMap
   ClientHeight = 400
   ClientWidth = 480
   OnClose = FormClose
+  OnDestroy = FormDestroy
   OnResize = FormResize
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'

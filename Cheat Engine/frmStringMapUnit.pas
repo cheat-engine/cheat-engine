@@ -69,6 +69,7 @@ type
     procedure cbRegExpChange(Sender: TObject);
     procedure FindDialog1Find(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
+    procedure FormDestroy(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure ListView1DblClick(Sender: TObject);
     procedure miFindClick(Sender: TObject);
@@ -575,6 +576,11 @@ end;
 procedure TfrmStringMap.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
   isfillinglist:=false;
+end;
+
+procedure TfrmStringMap.FormDestroy(Sender: TObject);
+begin
+  cleanup;
 end;
 
 procedure TfrmStringMap.FormResize(Sender: TObject);

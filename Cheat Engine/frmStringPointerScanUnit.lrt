@@ -27,6 +27,7 @@ TFRMSTRINGPOINTERSCAN.LBLMAXLEVEL.CAPTION=Max Level
 TFRMSTRINGPOINTERSCAN.LBLINFO.CAPTION=Info
 TFRMSTRINGPOINTERSCAN.BTNNEWSCAN.CAPTION=New Scan
 TFRMSTRINGPOINTERSCAN.BTNSCAN.CAPTION=Scan
+TFRMSTRINGPOINTERSCAN.CBREUSESTRINGMAP.CAPTION=Use existing stringmap
 TFRMSTRINGPOINTERSCAN.LBLEXTRA.CAPTION=Compare against
 TFRMSTRINGPOINTERSCAN.CBHASSHADOW2.HINT=Use this if you're spidering a previously saved memory region that currently resides in a different location.
 Most commonly used for stacks where stack pointers point to it's own structure

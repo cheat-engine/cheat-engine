@@ -221,6 +221,7 @@ type
     cbRegExp: TCheckBox;
     cbPointerInRange: TCheckBox;
     cbMapPointerValues: TCheckBox;
+    cbReuseStringmap: TCheckBox;
     comboCompareType: TComboBox;
     comboType: TComboBox;
     edtBase: TEdit;
@@ -320,7 +321,7 @@ type
     function pointerCompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
     procedure cleanup;
     procedure OpenPointerfile(filename: string);
-    procedure scanDone(var m: tmessage); message wm_sps_done;
+    procedure scanDone;
 
     function getStringFromPointer(address: ptruint; offsets: TDwordArray; level, bytesize: integer; unicode: boolean; var a: ptruint): string;
     procedure setGUIStateEnabled(state: boolean);
@@ -635,7 +636,8 @@ begin
     v:=pointerfilereader.getByteFromAddress(a, error);
     result:=not error;
 
-    if result and (diffkind<>dkDontCare) then
+
+    if result and (address2<>0) then
     begin
       a:=pointerfilereader.getAddressFromPointerRecord(p, address2, shadow2, shadowsize2);
       if a<>0 then
@@ -643,7 +645,7 @@ begin
         v2:=pointerfilereader.getByteFromAddress(a, error);
         result:=not error;
 
-        if result then
+        if result and (diffkind<>dkDontcare) then
         begin
           if diffkind=dkMustBeDifferent then
             result:=v<>v2
@@ -670,7 +672,7 @@ begin
     v:=pointerfilereader.getWordFromAddress(a, error);
     result:=not error;
 
-    if result and (diffkind<>dkDontCare) then
+    if result and (address2<>0) then
     begin
       a:=pointerfilereader.getAddressFromPointerRecord(p, address2, shadow2, shadowsize2);
       if a<>0 then
@@ -678,7 +680,7 @@ begin
         v2:=pointerfilereader.getWordFromAddress(a, error);
         result:=not error;
 
-        if result then
+        if result and (diffkind<>dkDontCare) then
         begin
           if diffkind=dkMustBeDifferent then
             result:=v<>v2
@@ -705,7 +707,7 @@ begin
     v:=pointerfilereader.getDwordFromAddress(a, error);
     result:=not error;
 
-    if result and (diffkind<>dkDontCare) then
+    if result and (address2<>0) then
     begin
       a:=pointerfilereader.getAddressFromPointerRecord(p, address2, shadow2, shadowsize2);
       if a<>0 then
@@ -713,7 +715,7 @@ begin
         v2:=pointerfilereader.getDwordFromAddress(a, error);
         result:=not error;
 
-        if result then
+        if result and (diffkind<>dkDontCare) then
         begin
           if diffkind=dkMustBeDifferent then
             result:=v<>v2
@@ -740,7 +742,7 @@ begin
     v:=pointerfilereader.getQwordFromAddress(a, error);
     result:=not error;
 
-    if result and (diffkind<>dkDontCare) then
+    if result and (address2<>0) then
     begin
       a:=pointerfilereader.getAddressFromPointerRecord(p, address2, shadow2, shadowsize2);
       if a<>0 then
@@ -748,7 +750,7 @@ begin
         v2:=pointerfilereader.getQwordFromAddress(a, error);
         result:=not error;
 
-        if result then
+        if result and (diffkind<>dkDontCare) then
         begin
           if diffkind=dkMustBeDifferent then
             result:=v<>v2
@@ -775,7 +777,7 @@ begin
     v:=pointerfilereader.getSingleFromAddress(a, error);
     result:=not error;
 
-    if result and (diffkind<>dkDontCare) then
+    if result and (address2<>0) then
     begin
       a:=pointerfilereader.getAddressFromPointerRecord(p, address2, shadow2, shadowsize2);
       if a<>0 then
@@ -783,7 +785,7 @@ begin
         v2:=pointerfilereader.getSingleFromAddress(a, error);
         result:=not error;
 
-        if result then
+        if result and (diffkind<>dkDontCare) then
         begin
           if diffkind=dkMustBeDifferent then
             result:=v<>v2
@@ -810,7 +812,7 @@ begin
     v:=pointerfilereader.getDoubleFromAddress(a, error);
     result:=not error;
 
-    if result and (diffkind<>dkDontCare) then
+    if result and (address2<>0) then
     begin
       a:=pointerfilereader.getAddressFromPointerRecord(p, address2, shadow2, shadowsize2);
       if a<>0 then
@@ -818,7 +820,7 @@ begin
         v2:=pointerfilereader.getDoubleFromAddress(a, error);
         result:=not error;
 
-        if result then
+        if result and (diffkind<>dkDontCare) then
         begin
           if diffkind=dkMustBeDifferent then
             result:=v<>v2
@@ -845,7 +847,7 @@ begin
     v:=pointerfilereader.getPointerFromAddress(a, error);
     result:=not error;
 
-    if result and (diffkind<>dkDontCare) then
+    if result and (address2<>0) then
     begin
       a:=pointerfilereader.getAddressFromPointerRecord(p, address2, shadow2, shadowsize2);
       if a<>0 then
@@ -853,7 +855,7 @@ begin
         v2:=pointerfilereader.getPointerFromAddress(a, error);
         result:=not error;
 
-        if result then
+        if result and (diffkind<>dkDontCare) then
         begin
           if diffkind=dkMustBeDifferent then
             result:=v<>v2
@@ -933,20 +935,28 @@ begin
               passed:=false;
 
 
-            if passed and (diffkind<>dkDontCare) then
+            if passed and (address2<>0) then
             begin
               s2:=pointerfilereader.getStringFromPointerRecord(p, address2, shadow2, shadowsize2);
 
-              if diffkind=dkMustBeDifferent then
-                passed:=s<>s2
+              if (s2<>'') then
+              begin
+                if (diffkind<>dkDontCare) then
+                begin
+                  if diffkind=dkMustBeDifferent then
+                    passed:=s<>s2
+                  else
+                    passed:=s=s2;
+                end;
+              end
               else
-                passed:=s=s2;
+                passed:=false;
 
               if (passed) and (regex<>nil) then
               begin
                 index:=0;
                 len:=0;
-                passed:=RegExprPos(regex, pchar(s), index, len);
+                passed:=RegExprPos(regex, pchar(s2), index, len);
 
                 if passed and mustbestart then
                   passed:=index=0;
@@ -980,10 +990,12 @@ begin
     if pointerfilereader<>nil then
       freeandnil(pointerfilereader);
 
-    deletefile(outputfilename);
-    RenameFileUTF8(outputfilename+'.temp', outputfilename);
+    if deletefile(outputfilename)=false then
+      OutputDebugString('Failure deleting '+outputfilename);
 
-    PostMessage(ownerFrmStringPointerScan.Handle, wm_sps_done, 0,0);
+    RenameFile(outputfilename+'.temp', outputfilename);
+
+    Queue(TfrmStringPointerScan(ownerFrmStringPointerScan).scandone);
   end;
 
 
@@ -1031,7 +1043,7 @@ begin
     end;
   end;
 
-  deletefile(outputfilename+'.temp');
+
 
   outputfile:=TFileStream.Create(outputfilename+'.temp', fmCreate or fmShareDenyNone);
   outputfile.Free;     //so it can be reopened by other processes
@@ -1448,8 +1460,12 @@ begin
   if value[0]=0 then exit; //marked as unreadable
   if value2[0]=0 then exit; //  "    "     "
 
+  if diffkind=dkDontCare then exit(true);
+
   value:=@value[1];
   value2:=@value2[1];
+
+
 
   if address=address2 then
   begin
@@ -1476,7 +1492,7 @@ end;
 function TScanner.addStringPath(level: integer; path: tpointerpath; stringsize: integer; unicode: BOOL): boolean;
 begin
   result:=false;
-  if (diffkind<>dkDontCare) and (not comparePath(level, path, stringsize)) then exit;
+  if (baseaddress2<>0) and (not comparePath(level, path, stringsize)) then exit;
 
 
   results.WriteBuffer(level, sizeof(level));
@@ -1615,7 +1631,7 @@ begin
 
   finally
     //reached the end, tell the main thread that the scan is done
-    PostMessage(OwnerFrmStringPointerScan.Handle, wm_sps_done, 0,0);
+    Queue(TfrmStringPointerScan(ownerFrmStringPointerScan).scandone);
   end;
 end;
 
@@ -1644,7 +1660,7 @@ begin
 
   self.ownerFrmStringPointerScan:=ownerFrmStringPointerScan;
 
-  if diffkind<>dkDontCare then
+  //if diffkind<>dkDontCare then
   begin
     case vartype of
       vtString: variablesize:=8; //string
@@ -1855,7 +1871,7 @@ begin
   btnScan.tag:=1;
 end;
 
-procedure TfrmStringPointerScan.scanDone(var m: tmessage);
+procedure TfrmStringPointerScan.scanDone;
 begin
   if scanner<>nil then
     lblInfo.caption:=rsSPSUFound+inttostr(scanner.count);
@@ -1975,17 +1991,10 @@ var baseaddress: ptruint;
 
   oldpointerfile: string;
 begin
+
   vartype:=vtPointer;
   if (scanner=nil) and (rescanner=nil) then
   begin
-    if pointerfilereader<>nil then
-      oldpointerfile:=pointerfilereader.filename
-    else
-      oldpointerfile:='';
-
-    cleanup;
-
-
     baseaddress:=symhandler.getAddressFromName(edtBase.text);
     baseaddress2:=0;
 
@@ -1997,7 +2006,6 @@ begin
     pointerstart:=0;
     pointerstop:=0;
     alignsize:=4;
-
 
     if cbHasShadow.checked then
     begin
@@ -2022,8 +2030,6 @@ begin
         shadow2:=symhandler.getAddressFromName(edtShadowAddress2.text);
         shadowsize2:=strtoint(edtShadowSize2.text);
       end;
-
-
     end;
 
     if rbDatascan.checked then
@@ -2039,6 +2045,17 @@ begin
 
     if savedialog1.execute then
     begin
+      if pointerfilereader<>nil then
+        oldpointerfile:=pointerfilereader.filename
+      else
+        oldpointerfile:='';
+
+      cleanup;
+
+
+
+
+
       //we got till this point so everything is fine, disable the gui
       disableGui;
 
@@ -2050,19 +2067,22 @@ begin
       else
         diffkind:=dkDontCare;
 
-      if diffkind<>dkDontCare then
-      begin
-        case comboCompareType.itemindex of
-          0: vartype:=vtString;
-          1: vartype:=vtByte;
-          2: vartype:=vtWord;
-          3: vartype:=vtDword;
-          4: vartype:=vtQword;
-          5: vartype:=vtSingle;
-          6: vartype:=vtDouble;
-          7: vartype:=vtPointer;
-        end;
+      if diffkind=dkDontCare then
+        vartype:=vtByte
+      else
+      case comboCompareType.itemindex of
+        0: vartype:=vtString;
+        1: vartype:=vtByte;
+        2: vartype:=vtWord;
+        3: vartype:=vtDword;
+        4: vartype:=vtQword;
+        5: vartype:=vtSingle;
+        6: vartype:=vtDouble;
+        7: vartype:=vtPointer;
       end;
+
+      if rbStringscan.checked then
+          vartype:=vtString;
 
       if btnScan.tag=0 then //first scan
       begin
@@ -2074,20 +2094,27 @@ begin
 
         if rbStringscan.checked then
         begin
+          vartype:=vtString;
+
+          if (frmStringMap<>nil) and (cbReuseStringmap.checked=false) then
+            freeandnil(frmStringMap);
+
           if frmStringMap=nil then
+          begin
             frmStringMap:=tfrmStringMap.Create(application);
 
-          //fill the stringmap
+            //fill the stringmap
+            frmstringmap.cbRegExp.checked:=cbRegExp.checked;
+            frmstringmap.cbCaseSensitive.checked:=cbCaseSensitive.checked;
+            frmstringmap.cbMustBeStart.checked:=cbMustBeStart.checked;
+            frmstringmap.edtRegExp.text:=edtRegExp.text;
 
-          frmstringmap.cbRegExp.checked:=cbRegExp.checked;
-          frmstringmap.cbCaseSensitive.checked:=cbCaseSensitive.checked;
-          frmstringmap.cbMustBeStart.checked:=cbMustBeStart.checked;
-          frmstringmap.edtRegExp.text:=edtRegExp.text;
+            frmstringmap.btnScan.click;
+            lblInfo.caption:=rsGeneratingStringmap;
+            lblInfo.Repaint;
+            frmstringmap.scanner.WaitFor;
 
-          frmstringmap.btnScan.click;
-          lblInfo.caption:=rsGeneratingStringmap;
-          lblInfo.Repaint;
-          frmstringmap.scanner.WaitFor;
+          end;
 
         end;
         lblInfo.caption:=rsGeneratedScanning;
@@ -2102,12 +2129,8 @@ begin
       else
       begin
         //next scan aka Rescan
-        pointerfilereader:=TPointerfileReader.create(oldpointerfile);
-        pointerfilereader.vartype:=vartype;
-
         listview1.items.count:=0;
         rescanner:=trescan.create(false, address, address2, cbpointerinrange.checked, pointerstart, pointerstop, rbStringscan.checked, cbCaseSensitive.checked, cbMustBeStart.checked, edtRegExp.text, diffkind, vartype, oldpointerfile, savedialog1.filename , self);
-
       end;
       btnScan.caption:=rsStop;
       btnScan.enabled:=true;
