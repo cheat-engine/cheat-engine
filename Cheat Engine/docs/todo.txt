@@ -19,3 +19,5 @@ ultimap2: Finish the timed/space based processing of file results
 memscan: Don't combine the scanresults into a single file. Leave them split up
 
 hexview: editing by typing chars seems broken (ascii)
+
+memscan: Add a wincp scan option to text scans

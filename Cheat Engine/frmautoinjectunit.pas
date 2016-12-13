@@ -530,6 +530,14 @@ begin
     savedialog1.FileName:=opendialog1.filename;
     assemblescreen.AfterLoadFromFile;
 
+    SaveDialog1.FileName:=opendialog1.FileName;
+
+    case ScriptMode of
+      smAutoAssembler: caption:=rsAutoAssembler+':'+extractfilename(opendialog1.FileName);
+      smLua: caption:=rsLUAScript+':'+extractfilename(opendialog1.FileName);
+      smGnuAssembler: caption:=rsGNUAScript+':'+extractfilename(opendialog1.FileName);
+    end;
+
   end;
 {$endif}
 end;
@@ -627,6 +635,15 @@ begin
     f.Write(s[1],length(assemblescreen.text));
 
     assemblescreen.MarkTextAsSaved;
+
+
+    case ScriptMode of
+      smAutoAssembler: caption:=rsAutoAssembler+':'+extractfilename(savedialog1.FileName);
+      smLua: caption:=rsLUAScript+':'+extractfilename(savedialog1.FileName);
+      smGnuAssembler: caption:=rsGNUAScript+':'+extractfilename(savedialog1.FileName);
+    end;
+
+    OpenDialog1.FileName:=SaveDialog1.FileName;
 
   finally
     f.Free;
