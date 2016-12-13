@@ -3010,9 +3010,9 @@ var realaddress, realaddress2: PtrUInt;
     savedstate: ptruint;
 begin
   savedstate:=ptruint(c.getSavedState);
-
-
   realaddress2:=address;
+
+
   for i:=length(offsets)-1 downto 0 do
   begin
     realaddress:=0;
@@ -3025,6 +3025,7 @@ begin
       realaddress2:=realaddress+offsets[i]
     else
     begin
+      hasError:=true;
       result:=0;
 
       exit;
@@ -3032,6 +3033,8 @@ begin
   end;
 
   result:=realAddress2;
+
+
   hasError:=false;
 end;
 
@@ -3345,6 +3348,7 @@ var n: TStructelement;
   address, address2: ptruint;
   c: TStructColumn;
   x: ptruint;
+  temp: byte;
   savedstate: PtrUInt;
   structName: string;
 begin
@@ -3398,6 +3402,7 @@ begin
       if not error then
       begin
         //dereference the pointer and fill it in if possible
+
         if ReadProcessMemory(processhandle, pointer(address), @address, processhandler.pointersize, x) then
         begin
           //adjust the address again if it's inside the savedstate
@@ -3405,7 +3410,7 @@ begin
             address:=address+(savedstate-c.address);
 
           //check if the address pointed to is readable
-          if ReadProcessMemory(processhandle, pointer(address), @x, 1, x) then 
+          if ReadProcessMemory(processhandle, pointer(address), @temp, 1, x) then
           begin
             structName:=lookupStructureName(address, rsSF2AutocreatedFrom+inttohex(address,8));
             n.AutoCreateChildStruct(structName, address)
@@ -4936,11 +4941,21 @@ var
   a: ptruint;
   error: boolean;
   x: ptruint;
+  c: TStructColumn;
+  savedstate: ptruint;
 begin
   n:=tvStructureView.Selected;
   if n<>nil then
   begin
-    a:=getAddressFromNode(n, getFocusedColumn, error);
+    c:=getFocusedColumn;
+    a:=getAddressFromNode(n, c, error);
+
+    savedstate:=ptruint(c.getSavedState);
+
+    if (savedstate<>0) and (InRangeX(a, c.Address, c.address+ c.getSavedStateSize)) then
+       a:=a+(savedstate-c.address);
+
+
 
     if not error then
     begin
