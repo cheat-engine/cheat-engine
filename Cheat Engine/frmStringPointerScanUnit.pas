@@ -1098,12 +1098,10 @@ begin
   begin
     if (shadow<>0) and (InRangeQ(address, baseaddress, baseaddress+shadowsize)) then
       address:=address+(shadow-baseaddress);
-
-
   end
   else
   begin
-    if (shadow2<>0) and (InRangeQ(address, baseaddress, baseaddress+shadowsize2)) then
+    if (shadow2<>0) and (InRangeQ(address, baseaddress2, baseaddress2+shadowsize2)) then
       address:=address+(shadow2-baseaddress2);
   end;
 
@@ -1382,6 +1380,19 @@ var x: ptruint;
   i: integer;
 begin
   result:=base+path[0];
+
+  if column=1 then
+  begin
+    if (shadow<>0) and (InRangeQ(result, baseaddress, baseaddress+shadowsize)) then
+      result:=result+(shadow-baseaddress);
+  end
+  else
+  begin
+    if (shadow2<>0) and (InRangeQ(result, baseaddress2, baseaddress2+shadowsize2)) then
+      result:=result+(shadow2-baseaddress2);
+  end;
+
+
   for i:=1 to level do
   begin
     result:=getPointerValue(result, column);
@@ -1532,8 +1543,9 @@ begin
   if shadow<>0 then
   begin
     if inrangeq(blockaddress, baseaddress, baseaddress+shadowsize) then
-        blockaddress:=blockaddress+(shadow-baseaddress);
+      blockaddress:=blockaddress+(shadow-baseaddress);
   end;
+
 
   if level>0 then
   begin

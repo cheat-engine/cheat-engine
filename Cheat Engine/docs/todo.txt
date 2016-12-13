@@ -1,7 +1,3 @@
-dissect data: memory browse(follow) pointer on 64-bit seems to fail to 0 (when using a shadow)
-add a search for value in the structure spider results
-structure spider must be different not showing diferent results. (actually 0 different, only equal)  (using a shadow)
-
 auto assembler with a saved script should have the name in the title
 
 symhandler: add symbol+[symbol]*4 support
@@ -21,3 +17,5 @@ lua: Add the openFile equivalent for openProcess to lua
 ultimap2: Finish the timed/space based processing of file results
 
 memscan: Don't combine the scanresults into a single file. Leave them split up
+
+hexview: editing by typing chars seems broken (ascii)
