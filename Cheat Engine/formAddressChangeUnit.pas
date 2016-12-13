@@ -1504,7 +1504,13 @@ end;
 procedure TformAddressChange.Timer1Timer(Sender: TObject);
 begin
   if cbvarType.DroppedDown then
-    autosize:=false;
+    autosize:=false
+  else
+  begin
+    if autosize=false then
+      autosize:=true;
+  end;
+
 
   timer1.Interval:=1000;
   if visible and cbpointer.checked then
