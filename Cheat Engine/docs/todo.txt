@@ -1,5 +1,4 @@
-structure dissect: If you name an address, show name name in the header
-structure spider: don't generate tyhe stringmap on new scan, reuse  (and for string scan use compare so that the secondary is at least readable)
+structure spider: don't generate the stringmap on new scan, reuse  (and for string scan use compare so that the secondary is at least readable)
 
 aa alloc 'do you want to go there now' doesn't add the old address to the history
 dissect data: memory browse(follow) pointer on 64-bit seems to fail to 0 (when using a shadow)
