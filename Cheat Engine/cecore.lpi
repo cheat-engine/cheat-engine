@@ -31,13 +31,10 @@
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="2">
+    <RequiredPackages Count="1">
       <Item1>
-        <PackageName Value="FCL"/>
-      </Item1>
-      <Item2>
         <PackageName Value="LazUtils"/>
-      </Item2>
+      </Item1>
     </RequiredPackages>
     <Units Count="38">
       <Unit0>
@@ -47,7 +44,6 @@
       <Unit1>
         <Filename Value="networkInterfaceApi.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="networkInterfaceApi"/>
       </Unit1>
       <Unit2>
         <Filename Value="networkInterface.pas"/>
@@ -56,7 +52,6 @@
       <Unit3>
         <Filename Value="NewKernelHandler.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="NewKernelHandler"/>
       </Unit3>
       <Unit4>
         <Filename Value="unixporthelper.pas"/>
@@ -73,6 +68,7 @@
       <Unit7>
         <Filename Value="processlist.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="ProcessList"/>
       </Unit7>
       <Unit8>
         <Filename Value="memscan.pas"/>
@@ -131,7 +127,6 @@
       <Unit21>
         <Filename Value="symbolhandler.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="symbolhandler"/>
       </Unit21>
       <Unit22>
         <Filename Value="dotnettypes.pas"/>
@@ -144,7 +139,6 @@
       <Unit24>
         <Filename Value="byteinterpreter.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="byteinterpreter"/>
       </Unit24>
       <Unit25>
         <Filename Value="jni\jnisymbolhandler.pas"/>
@@ -199,7 +193,6 @@
       <Unit36>
         <Filename Value="disassembler.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="disassembler"/>
       </Unit36>
       <Unit37>
         <Filename Value="jni\jnitdisassembler.pas"/>
@@ -212,7 +205,7 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="..\ceandroid\workspace\CheatEngine\libs\armeabi\cecore.so"/>
+      <Filename Value="..\ceandroid\workspace\CheatEngine\libs\armeabi\cecore"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
@@ -225,7 +218,7 @@
       </SyntaxOptions>
     </Parsing>
     <CodeGeneration>
-      <RelocatableUnit Value="True"/>
+      <TargetCPU Value="arm"/>
       <TargetOS Value="android"/>
     </CodeGeneration>
     <Linking>
@@ -235,6 +228,8 @@
     </Linking>
     <Other>
       <CustomOptions Value="-OoFASTMATH
+-Cg
+-fPIC
 -dJNI
 -dlowmemoryusage
 -dNOLUA"/>

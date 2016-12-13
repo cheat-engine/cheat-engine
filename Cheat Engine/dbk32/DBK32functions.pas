@@ -13,7 +13,7 @@ uses jwawindows, windows, sysutils, classes, types, registry, multicpuexecution,
 
 
 
-const currentversion=2000020;
+const currentversion=2000021;
 
 const FILE_ANY_ACCESS=0;
 const FILE_SPECIAL_ACCESS=FILE_ANY_ACCESS;
@@ -132,6 +132,9 @@ const IOCTL_CE_ULTIMAP2_RELEASEFILE   = (IOCTL_UNKNOWN_BASE shl 16) or ($0857 sh
 
 const IOCTL_CE_ULTIMAP_PAUSE          = (IOCTL_UNKNOWN_BASE shl 16) or ($0858 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_ULTIMAP_RESUME         = (IOCTL_UNKNOWN_BASE shl 16) or ($0859 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+
+const IOCTL_CE_ULTIMAP2_GETTRACESIZE  = (IOCTL_UNKNOWN_BASE shl 16) or ($085a shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_ULTIMAP2_RESETTRACESIZE= (IOCTL_UNKNOWN_BASE shl 16) or ($085b shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
 
 type TDeviceIoControl=function(hDevice: THandle; dwIoControlCode: DWORD; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesReturned: DWORD; lpOverlapped: POverlapped): BOOL; stdcall;
@@ -554,17 +557,36 @@ begin
 end;
 
 procedure ultimap2_lockfile(cpunr: integer);
-var cc: dword;
+var br: dword;
 begin
   if (hdevice<>INVALID_HANDLE_VALUE) then
-    deviceiocontrol(hdevice,IOCTL_CE_ULTIMAP2_LOCKFILE,@cpunr,sizeof(cpunr),nil,0,cc,nil);
+    deviceiocontrol(hdevice,IOCTL_CE_ULTIMAP2_LOCKFILE,@cpunr,sizeof(cpunr),nil,0,br,nil);
 end;
 
 procedure ultimap2_releasefile(cpunr: integer);
-var cc: dword;
+var br: dword;
 begin
   if (hdevice<>INVALID_HANDLE_VALUE) then
-    deviceiocontrol(hdevice,IOCTL_CE_ULTIMAP2_RELEASEFILE,@cpunr,sizeof(cpunr),nil,0,cc,nil);
+    deviceiocontrol(hdevice,IOCTL_CE_ULTIMAP2_RELEASEFILE,@cpunr,sizeof(cpunr),nil,0,br,nil);
+end;
+
+function ultimap2_getTraceSize: UINT64;
+var
+  br: dword;
+  size: uint64;
+begin
+  size:=0;
+  if (hdevice<>INVALID_HANDLE_VALUE) then
+    deviceiocontrol(hdevice,IOCTL_CE_ULTIMAP2_GETTRACESIZE,nil,0,@size,sizeof(size),br,nil);
+
+  result:=size;
+end;
+
+procedure ultimap2_resetTraceSize;
+var br: dword;
+begin
+  if (hdevice<>INVALID_HANDLE_VALUE) then
+    deviceiocontrol(hdevice,IOCTL_CE_ULTIMAP2_RESETTRACESIZE,nil,0,nil,0,br,nil);
 end;
 
 

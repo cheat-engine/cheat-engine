@@ -41,6 +41,24 @@ object AdvancedOptions: TAdvancedOptions
       OnClick = Button1Click
       TabOrder = 0
     end
+    object Button2: TButton
+      Left = 0
+      Height = 25
+      Top = 0
+      Width = 75
+      Caption = 'Button2'
+      OnClick = Button2Click
+      TabOrder = 1
+    end
+    object Button3: TButton
+      Left = 96
+      Height = 25
+      Top = 0
+      Width = 75
+      Caption = 'Button3'
+      OnClick = Button3Click
+      TabOrder = 2
+    end
   end
   object Panel2: TPanel
     Left = 0

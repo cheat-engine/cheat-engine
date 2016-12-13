@@ -97,6 +97,7 @@ type
     procedure FilterResetCount(ri: TRegionInfo);
     procedure FilterResetAll(ri: TRegionInfo);
   public
+    invalidated: integer;
     filteroption: TfilterOption;
     callcount: integer;
     rangestart, rangestop: qword;
@@ -154,12 +155,18 @@ type
     cbfilterOutNewEntries: TCheckBox;
     cbDontDeleteTraceFiles: TCheckBox;
     cbParseToTextfile: TCheckBox;
+    cbAutoProcessWhenDiskFull: TCheckBox;
+    cbPauseTargetWhileProcessing: TCheckBox;
     deTargetFolder: TDirectoryEdit;
     deTextOut: TDirectoryEdit;
+    Edit1: TEdit;
+    edtMaxFilesize: TEdit;
     edtBufSize: TEdit;
     edtCallCount: TEdit;
     gbRange: TGroupBox;
     Label1: TLabel;
+    Label2: TLabel;
+    Label4: TLabel;
     lblBuffersPerCPU: TLabel;
     lblIPCount: TLabel;
     lblKB: TLabel;
@@ -178,9 +185,12 @@ type
     Panel3: TPanel;
     Panel5: TPanel;
     PopupMenu1: TPopupMenu;
+    rbWhenFilesizeAbove: TRadioButton;
+    rbTraceInterval: TRadioButton;
     rbLogToFolder: TRadioButton;
     rbRuntimeParsing: TRadioButton;
     tActivator: TTimer;
+    tProcessor: TTimer;
     procedure btnAddRangeClick(Sender: TObject);
     procedure btnExecutedClick(Sender: TObject);
     procedure btnFilterCallCountClick(Sender: TObject);
@@ -211,6 +221,7 @@ type
     procedure rbLogToFolderChange(Sender: TObject);
     procedure tActivatorTimer(Sender: TObject);
     procedure tbRecordPauseChange(Sender: TObject);
+    procedure tProcessorTimer(Sender: TObject);
   private
     { private declarations }
     debugmode: boolean; //when set the kernelmode part is disabled, but processing of files sitll happens
@@ -267,7 +278,7 @@ implementation
 
 {$R *.lfm}
 
-uses symbolhandler, frmSelectionlistunit, cpuidUnit, MemoryBrowserFormUnit;
+uses symbolhandler, frmSelectionlistunit, cpuidUnit, MemoryBrowserFormUnit, AdvancedOptionsUnit;
 
 resourcestring
 rsRecording2 = 'Recording';
@@ -886,7 +897,10 @@ begin
     if (w[i]>0) and ((w[i] and 1)=0) then //has info and not yet invalidated
     begin
       if (bi[i].flags and bifExecuted)<>0 then //filter it out
+      begin
         w[i]:=1; //invalidate
+        inc(invalidated);
+      end;
     end;
   end;
 end;
@@ -904,7 +918,10 @@ begin
     if (w[i]>0) and ((w[i] and 1)=0) then //has info and not yet invalidated
     begin
       if (bi[i].flags and bifExecuted)=0 then //filter it out
-        w[i]:=1 //invalidate
+      begin
+        w[i]:=1; //invalidate
+        inc(invalidated);
+      end
       else //mark as not executed for next filter op
         bi[i].flags:=bi[i].flags xor bifExecuted;
 
@@ -925,7 +942,10 @@ begin
     if (w[i]>0) and ((w[i] and 1)=0) then //has info and not yet invalidated
     begin
       if (bi[i].flags and bifIsCall)=0 then //filter it out
-        w[i]:=1 //invalidate
+      begin
+        w[i]:=1; //invalidate
+        inc(invalidated);
+      end
       else //mark as not executed for next filter op
         bi[i].flags:=bi[i].flags and (not bifExecuted);
     end;
@@ -945,7 +965,10 @@ begin
     if (w[i]>0) and ((w[i] and 1)=0) then //has info and not yet invalidated
     begin
       if bi[i].count <> callcount then //filter it out
-        w[i]:=1 //invalidate
+      begin
+        w[i]:=1; //invalidate
+        inc(invalidated);
+      end
       else //mark as not executed for next filter op
         bi[i].flags:=bi[i].flags and (not bifExecuted);
     end;
@@ -1291,9 +1314,15 @@ begin
   OutputDebugString('TfrmUltimap2.FlushResults');
   ultimap2_flush;
 
-
   if rbLogToFolder.checked and (state=rsRecording) then
   begin
+    if cbPauseTargetWhileProcessing.checked then
+    begin
+      advancedoptions.Pausebutton.down := True;
+      advancedoptions.Pausebutton.Click;
+    end;
+
+
     //signal the worker threads to process the files first
     for i:=0 to length(workers)-1 do
     begin
@@ -1609,6 +1638,11 @@ begin
 
 end;
 
+procedure TfrmUltimap2.tProcessorTimer(Sender: TObject);
+begin
+  FlushResults(foNone);
+end;
+
 procedure TfrmUltimap2.FormCloseQuery(Sender: TObject; var CanClose: boolean);
 begin
   canclose:=MessageDlg(rsClosingWillFreeAllCollectedData, mtConfirmation,[mbyes,mbno], 0, mbno)=mryes;
@@ -1657,6 +1691,17 @@ begin
   minwidth:=i+canvas.GetTextWidth(edtBufSize.Text);
   if edtBufSize.ClientWidth<minwidth then
     edtBufSize.ClientWidth:=minwidth;
+
+  minwidth:=i+canvas.GetTextWidth('XXXXX');
+  if edtMaxFilesize.ClientWidth<minwidth then
+    edtMaxFilesize.ClientWidth:=minwidth;
+
+  minwidth:=i+canvas.GetTextWidth('XXXX');
+  if edit1.ClientWidth<minwidth then
+    edit1.ClientWidth:=minwidth;
+
+
+
 
   if label1.Width+4>panel1.Height then
   begin
@@ -2190,6 +2235,13 @@ begin
 
     exit;
   end;
+
+  if cbPauseTargetWhileProcessing.checked then
+  begin
+    advancedoptions.Pausebutton.down := false;
+    advancedoptions.Pausebutton.Click;
+  end;
+
 
   btnShowResults.Enabled:=true;
   btnRecordPause.enabled:=true;

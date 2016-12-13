@@ -92,7 +92,7 @@ uses
   MemoryQuery, pointerparser, GnuAssembler, binutils, dbvmLoadManual, mikmod,
   frmEditHistoryUnit, LuaInternet, xinput, frmUltimap2Unit, cpuidunit, libipt,
   DPIHelper, Graphics, fontSaveLoadRegistry, registry, frmWatchlistUnit,
-frmWatchListAddEntryUnit, frmBusyUnit, FindDialogFix;
+frmWatchListAddEntryUnit, frmBusyUnit, FindDialogFix, LuaCustomType;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in

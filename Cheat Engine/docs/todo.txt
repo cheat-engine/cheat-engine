@@ -19,3 +19,7 @@ process/system info: resizing is shitty
 kernel: Add an noexception method that will stop all exceptions 
 kernel: When using the processwatcher obtain handles for them on creation (use circular buffer and keep track which ones ce has opened)
 ceshare: continue with it
+
+lua: Add the openFile equivalent for openProcess to lua
+
+ultimap2: Finish the timed/space based processing of file results

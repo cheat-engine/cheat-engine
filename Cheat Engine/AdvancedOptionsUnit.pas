@@ -19,6 +19,8 @@ type
   { TAdvancedOptions }
 
   TAdvancedOptions = class(TForm)
+    Button2: TButton;
+    Button3: TButton;
     PopupMenu2: TPopupMenu;
     miReplaceWithNops: TMenuItem;
     miRestoreWithOriginal: TMenuItem;
@@ -40,6 +42,7 @@ type
     Label1: TLabel;
     N3: TMenuItem;
     Codelist2: TListView;
+    procedure Button3Click(Sender: TObject);
     procedure Codelist2Resize(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormResize(Sender: TObject);
@@ -299,6 +302,11 @@ end;
 procedure TAdvancedOptions.Codelist2Resize(Sender: TObject);
 begin
 
+end;
+
+procedure TAdvancedOptions.Button3Click(Sender: TObject);
+begin
+    ntResumeProcess(processhandle);
 end;
 
 procedure TAdvancedOptions.FormDestroy(Sender: TObject);
@@ -648,7 +656,7 @@ begin
 
       if (assigned(ntsuspendprocess)) then
       begin
-        OutputDebugString('Calling ntsuspendProcess');
+       // OutputDebugString('Calling ntsuspendProcess');
         ntsuspendProcess(processhandle);
       end;
 
@@ -799,7 +807,7 @@ end;
 
 procedure TAdvancedOptions.Button2Click(Sender: TObject);
 begin
-
+  ntSuspendProcess(processhandle);
 end;
 
 procedure TAdvancedOptions.Panel1Resize(Sender: TObject);

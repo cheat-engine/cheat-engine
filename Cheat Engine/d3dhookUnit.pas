@@ -1095,17 +1095,18 @@ var
   x, y: Integer;
   Line: PColor32Array;
 
-  c: longint;
-  ColorKey: TColor32 absolute c;
+  R,G,B: Integer;
 begin
-  c:=ColorToRGB(aPng.TransparentColor);
+  R := aPng.TransparentColor and $ff;
+  G := (aPng.TransparentColor shr 8) and $ff;
+  B := (aPng.TransparentColor shr 16) and $ff;
 
   for y := 0 to aPNG.Height - 1 do
   begin
     Line := aPNG.ScanLine[y];
     for x := 0 to aPNG.Width - 1 do
     begin
-      if (Line^[x].R=ColorKey.R) and (Line^[x].G=ColorKey.G)  and (Line^[x].B=ColorKey.B) then
+      if (Line^[x].R=R) and (Line^[x].G=G)  and (Line^[x].B=B) then
         Line^[x].A := 0 //100% see through
       else
         Line^[x].A := 255;

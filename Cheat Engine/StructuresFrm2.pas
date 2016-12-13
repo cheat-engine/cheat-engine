@@ -2493,11 +2493,22 @@ begin
 end;
 
 procedure TStructColumn.SetCaptionClick(sender: TObject);
-var newname: string;
+var
+  i: integer;
+  newname: string;
 begin
   newname:=lblname.caption;
   if InputQuery(rsSF2NewColumnName, rsSF2WhatNameShouldThisColumnHave, newname) then
     lblname.caption:=newname;
+
+  //update the header text as well
+  for i:=0 to parent.parent.columnCount-1 do
+    if parent.parent.columns[i]=self then
+    begin
+      parent.parent.HeaderControl1.Sections[i+1].Text:=newname;
+      break;
+    end;
+
 
   parent.setPositions;
 end;

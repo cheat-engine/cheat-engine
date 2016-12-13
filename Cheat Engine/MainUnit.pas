@@ -474,6 +474,7 @@ type
     procedure CreateGroupClick(Sender: TObject);
     procedure Foundlist3SelectItem(Sender: TObject; Item: TListItem;
       Selected: boolean);
+    procedure Label3Click(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
     procedure miFlFindWhatAccessesClick(Sender: TObject);
     procedure miBindDeactivationClick(Sender: TObject);
@@ -3035,6 +3036,11 @@ end;
 
 procedure TMainForm.Foundlist3SelectItem(Sender: TObject; Item: TListItem;
   Selected: boolean);
+begin
+
+end;
+
+procedure TMainForm.Label3Click(Sender: TObject);
 begin
 
 end;
