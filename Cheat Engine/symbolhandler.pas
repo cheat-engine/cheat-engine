@@ -8,7 +8,7 @@ interface
 
 uses jwawindows, windows, classes,LCLIntf,imagehlp,{psapi,}sysutils, cefuncproc,
   newkernelhandler,syncobjs, SymbolListHandler, fgl, typinfo, cvconst, PEInfoFunctions,
-  DotNetPipe, DotNetTypes, commonTypeDefs, math, LazUTF8;
+  DotNetPipe, DotNetTypes, commonTypeDefs, math, LazUTF8, contnrs;
 {$endif}
 
 {$ifdef unix}
@@ -2301,7 +2301,7 @@ type TCalculation=(calcAddition, calcSubstraction);
 var mi: tmoduleinfo;
     si: PCESymbolInfo;
     offset: integer;
-    i,j: integer;
+    i,j,k: integer;
 
     p: pchar;
     ws: widestring;
@@ -2316,8 +2316,16 @@ var mi: tmoduleinfo;
 
     //symbol: PSYMBOL_INFO;
     s: string;
-    a: ptruint;
+    a,br: ptruint;
+
+    pointerstartlist: array of integer;
+    pointerstartpos,pointerstartmax: integer;
 begin
+  pointerstartpos:=0;
+  pointerstartmax:=16;
+  setlength(pointerstartlist,pointerstartmax);
+
+  hasMultiplication:=false;
   name:=trim(name);
   hasPointer:=false;
   haserror:=false;
@@ -2645,7 +2653,61 @@ begin
         //it's not a real token
         case tokens[i][1] of
           '*' : hasMultiplication:=true;
-          '[',']': hasPointer:=true;
+          '[':
+          begin
+            hasPointer:=true;
+
+            pointerstartlist[pointerstartpos]:=i;
+            inc(pointerstartpos);
+            if pointerstartpos>=pointerstartmax then
+            begin
+              pointerstartmax:=pointerstartmax*2;
+              setlength(pointerstartlist, pointerstartmax);
+            end;
+
+          end;
+
+          ']':
+          begin
+            if haspointer then
+            begin
+              //parse since the last pointerstart
+              s:='';
+              if pointerstartpos=0 then
+              begin
+                haserror:=true;
+                exit;
+              end;
+
+              dec(pointerstartpos);
+              k:=pointerstartlist[pointerstartpos];
+
+              for j:=k+1 to i-1 do
+              begin
+                s:=s+tokens[j];
+                tokens[j]:='';
+              end;
+
+              a:=getAddressFromName(s,waitforsymbols, haserror, context);
+              if haserror then exit;
+
+              haserror:=not readprocessmemory(processhandle, pointer(a),@a,processhandler.pointersize,br);
+
+              if haserror then exit;
+
+              tokens[i]:='';
+              tokens[k]:=inttohex(a,8);
+
+              if pointerstartpos=0 then
+                haspointer:=false;
+            end
+            else
+            begin
+              haserror:=true;
+              exit;
+            end;
+
+          end;
         end;
       end;
     end;
@@ -2655,14 +2717,35 @@ begin
   end;
 
 
-  mathstring:='';
+{  mathstring:='';
   for i:=0 to length(tokens)-1 do
     mathstring:=mathstring+tokens[i];
-
+    }
+     {
   if haspointer then
   begin
     result:=GetAddressFromPointer(mathstring,haserror);
     exit;
+  end;  }
+
+  if hasmultiplication then
+  begin
+    //remove the empty tokens
+    i:=0;
+    while i<length(tokens)-1 do
+    begin
+      if tokens[i]='' then
+      begin
+        for j:=i to length(tokens)-2 do
+          tokens[j]:=tokens[j+1];
+
+        setlength(tokens, length(tokens)-1);
+        continue;
+      end;
+
+      inc(i);
+    end;
+
   end;
 
 

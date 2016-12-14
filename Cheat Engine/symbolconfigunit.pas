@@ -115,6 +115,8 @@ var symbolname:string;
     li: tlistitem;
 begin
   symbolname:=edtsymbolname.Text;
+
+  symhandler.DeleteUserdefinedSymbol(symbolname);
   symhandler.AddUserdefinedSymbol(edtaddress.Text,symbolname);
 
   li:=listview1.Items.Add;
