@@ -1,7 +1,3 @@
-auto assembler with a saved script should have the name in the title
-
-symhandler: add symbol+[symbol]*4 support
-
 lua: mousepos to clientpos
 break and trace: doubleclick register truncates
 
@@ -21,3 +17,7 @@ memscan: Don't combine the scanresults into a single file. Leave them split up
 hexview: editing by typing chars seems broken (ascii)
 
 memscan: Add a wincp scan option to text scans
+
+symbol condig window: tab 0 isn't on the symbolname
+
+lua:autoassembler: Make autoAssembler return the alloclist which can then be passed to disable scripts

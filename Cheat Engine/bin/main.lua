@@ -666,6 +666,8 @@ methods:
   doClick():  Executes the current function under onClick
   bringToFront(): Changes the z-order of the control so it'd at the top
   sendToBack(): Changes the z-order of the control so it'd at the back
+  screenToClient(): Converts screen x,y coordinates to x,y coordinates on the control
+  clientToScreen(): Converts control x,y coordinates to screen coordinates
 
 GraphicsObject : (GraphicsObject->Object)
 
