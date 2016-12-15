@@ -826,7 +826,7 @@ if the process is 64-bit create r8-r15 and move all objects closer
 }
 var
   i: integer;
-  p,l: tlabel;
+  l: tlabel;
 begin
   if not isConfigured then
   begin
@@ -846,7 +846,7 @@ begin
           cursor:=eaxlabel.cursor;
 
           tag:=i;
-          onclick:=p.onclick;
+          OnDblClick:=EAXLabelDblClick;
           OnMouseDown:=RegisterMouseDown;
         end;
       end;
@@ -1136,7 +1136,7 @@ procedure TfrmTracer.EAXLabelDblClick(Sender: TObject);
 var s: string;
 begin
   s:=tlabel(sender).Caption;
-  s:=copy(s,5,8);
+  s:=copy(s,5,length(s)-4);
 
   memorybrowser.memoryaddress:=StrToQWordEx('$'+s);
 end;
