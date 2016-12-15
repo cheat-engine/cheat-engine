@@ -73,6 +73,7 @@ type TMemRecExtraData=record
 type
   TMemoryRecordHotkey=class;
   TMemoryRecord=class;
+  TMemoryRecordProcessingThread=class;
 
   TMemrecOffset=class
   private
@@ -168,6 +169,11 @@ type
 
     fDontSave: boolean;
 
+    fAsync: boolean;
+    processingThread: TMemoryRecordProcessingThread; //not nil when doing work
+    wantedstate: boolean; //last state the user wanted to set it to
+
+
     luaref: integer; //luaclass object to this instance
 
     fonactivate, fondeactivate: TMemoryRecordActivateEvent;
@@ -210,6 +216,8 @@ type
 
     function GetCollapsed: boolean;
     procedure SetCollapsed(state: boolean);
+
+    procedure processingDone; //called by the processingThread when finished
   public
 
 
@@ -285,6 +293,7 @@ type
 
     procedure cleanupPointerOffsets;
     function getLuaRef: integer;
+    function isProcessing: boolean;
 
     constructor Create(AOwner: TObject);
     destructor destroy; override;
@@ -331,8 +340,9 @@ type
     property OnActivate: TMemoryRecordActivateEvent read fOnActivate write fOnActivate;
     property OnDeactivate: TMemoryRecordActivateEvent read fOnDeActivate write fOndeactivate;
     property OnDestroy: TNotifyEvent read fOnDestroy write fOnDestroy;
-    property offsetCount: integer read getoffsetCount write setOffsetCount;
-
+    property OffsetCount: integer read getoffsetCount write setOffsetCount;
+    property Async: Boolean read fAsync write fAsync;
+    property AsyncProcessing: Boolean read isProcessing;
   end;
 
   THKSoundFlag=(hksPlaySound=0, hksSpeakText=1, hksSpeakTextEnglish=2); //playSound excludes speakText
@@ -376,6 +386,15 @@ type
     property OnPostHotkey: TNotifyEvent read fOnPostHotkey write fOnPostHotkey;
   end;
 
+  TMemoryRecordProcessingThread=class(TThread)
+  private
+    owner: TMemoryRecord;
+    state: boolean;
+  public
+    procedure Execute; override;
+    constructor Create(o: TMemoryRecord; s: boolean);
+  end;
+
 
 function MemRecHotkeyActionToText(action: TMemrecHotkeyAction): string;
 function TextToMemRecHotkeyAction(text: string): TMemrecHotkeyAction;
@@ -390,6 +409,30 @@ uses mainunit, addresslist, formsettingsunit, LuaHandler, lua, lauxlib, lualib,
 {$ifdef unix}
 uses processhandlerunit, Parsers;
 {$endif}
+
+{---------------------TMemoryRecordProcessingThread-------------------------}
+procedure TMemoryRecordProcessingThread.Execute;
+begin
+  try
+    if autoassemble(owner.autoassemblerdata.script, false, state, false, false, owner.autoassemblerdata.allocs, owner.autoassemblerdata.registeredsymbols) then
+    begin
+      owner.fActive:=state;
+      if owner.autoassemblerdata.registeredsymbols.Count>0 then //if it has a registered symbol then reinterpret all addresses
+        TAddresslist(owner.fOwner).ReinterpretAddresses;
+    end;
+  except
+    //running the script failed, state unchanged
+  end;
+
+  Queue(owner.processingDone);
+end;
+
+constructor TMemoryRecordProcessingThread.Create(o: TMemoryRecord; s: boolean);
+begin
+  owner:=o;
+  state:=s;
+  inherited create(false);
+end;
 
 {-----------------------------TMemrecOffset---------------------------------}
 
@@ -581,6 +624,7 @@ begin
 {$ifdef windows}
   UnregisterAddressHotkey(self);
 {$endif}
+
 
   //remove this hotkey from the memoryrecord
   if owner<>nil then
@@ -776,6 +820,13 @@ end;
 destructor TMemoryRecord.destroy;
 var i: integer;
 begin
+  if processingThread<>nil then
+  begin
+    processingThread.Terminate;
+    processingThread.WaitFor;
+    freeandnil(processingThread);
+  end;
+
   if assigned(fOnDestroy) then
     fOnDestroy(self);
 
@@ -1642,7 +1693,7 @@ end;
 
 function TMemoryRecord.isBeingEdited: boolean;
 begin
-  result:=editcount>0;
+  result:=(editcount>0) or (processingThread<>nil);
 end;
 
 procedure TMemoryRecord.beginEdit;
@@ -1964,11 +2015,64 @@ begin
   {$ENDIF}
 end;
 
+function TMemoryRecord.isProcessing: boolean;
+begin
+  result:=processingThread<>nil;
+end;
+
+procedure TMemoryRecord.processingDone;
+//called after an aa script has finished processing
+var i: integer;
+begin
+  if not fActive then
+  begin
+    //on disable or failure setting the state to true, also reset the option if it's allowed to increase/decrease
+    allowDecrease:=false;
+    allowIncrease:=false;
+  end;
+
+  if processingThread<>nil then
+    freeandnil(processingThread);
+
+  {$IFNDEF UNIX}
+  treenode.update;
+  {$ENDIF}
+
+  {$IFNDEF UNIX}
+  if active and (moActivateChildrenAsWell in options) then
+  begin
+    //apply this state to all the children
+    for i:=0 to treenode.Count-1 do
+      TMemoryRecord(treenode[i].data).setActive(true);
+  end;
+
+  if (not active) and (moDeactivateChildrenAsWell in options) then
+  begin
+    //apply this state to all the children
+    for i:=0 to treenode.Count-1 do
+      TMemoryRecord(treenode[i].data).setActive(false);
+  end;
+  {$ENDIF}
+
+  //6.5+
+{$ifndef unix}
+  LUA_functioncall('onMemRecPostExecute',[self, wantedstate, fActive=wantedstate]);
+{$endif}
+
+  //6.1+
+  if wantedstate and assigned(fonactivate) then fonactivate(self, false, factive); //activated , after
+  if not wantedstate and assigned(fondeactivate) then fondeactivate(self, false, factive); //deactivated , after
+
+  SetVisibleChildrenState;
+end;
+
 procedure TMemoryRecord.setActive(state: boolean);
 var f: string;
     i: integer;
 begin
   if state=fActive then exit; //no need to execute this is it's the same state
+  if processingThread<>nil then exit; //don't change the state while processing
+
   outputdebugstring('setting active state with description:'+description+' to '+BoolToStr(state,true));
 
 { deprecated
@@ -1997,6 +2101,7 @@ begin
       if not fondeactivate(self, true, fActive) then exit; //do not deactivate if it returns false
   end;
 
+  wantedstate:=state;
 
   if not fisGroupHeader then
   begin
@@ -2004,18 +2109,31 @@ begin
     begin
       {$IFNDEF UNIX}
       //aa script
-      try
-        if autoassemblerdata.registeredsymbols=nil then
-          autoassemblerdata.registeredsymbols:=tstringlist.create;
+      if autoassemblerdata.registeredsymbols=nil then
+        autoassemblerdata.registeredsymbols:=tstringlist.create;
 
-        if autoassemble(autoassemblerdata.script, false, state, false, false, autoassemblerdata.allocs, autoassemblerdata.registeredsymbols) then
-        begin
-          fActive:=state;
-          if autoassemblerdata.registeredsymbols.Count>0 then //if it has a registered symbol then reinterpret all addresses
-            TAddresslist(fOwner).ReinterpretAddresses;
+
+
+      if async then
+      begin
+        //spawn a thread to activate this entry.
+        //set the state to "Activating"
+        processingThread:=TMemoryRecordProcessingThread.Create(self,state);
+        treenode.update;
+        exit;
+      end
+      else
+      begin
+        try
+          if autoassemble(autoassemblerdata.script, false, state, false, false, autoassemblerdata.allocs, autoassemblerdata.registeredsymbols) then
+          begin
+            fActive:=state;
+            if autoassemblerdata.registeredsymbols.Count>0 then //if it has a registered symbol then reinterpret all addresses
+              TAddresslist(fOwner).ReinterpretAddresses;
+          end;
+        except
+          //running the script failed, state unchanged
         end;
-      except
-        //running the script failed, state unchanged
       end;
       {$ENDIF}
 
@@ -2055,50 +2173,7 @@ begin
   end else fActive:=state;
 
 
-  if state=false then
-  begin
-    //on disable or failure setting the state to true, also reset the option if it's allowed to increase/decrease
-    allowDecrease:=false;
-    allowIncrease:=false;
-  end;
-
-  {$IFNDEF UNIX}
-  treenode.update;
-  if active and (moActivateChildrenAsWell in options) then
-  begin
-    //apply this state to all the children
-    for i:=0 to treenode.Count-1 do
-      TMemoryRecord(treenode[i].data).setActive(true);
-  end;
-
-  if (not active) and (moDeactivateChildrenAsWell in options) then
-  begin
-    //apply this state to all the children
-    for i:=0 to treenode.Count-1 do
-      TMemoryRecord(treenode[i].data).setActive(false);
-  end;
-  {$ENDIF}
-
-{ deprecated
-
-  //6.0 compatibility
-  if state then
-    LUA_memrec_callback(self, '_memrec_'+description+'_activated')
-  else
-    LUA_memrec_callback(self, '_memrec_'+description+'_deactivated');
-}
-
-  //6.5+
-{$ifndef unix}
-  LUA_functioncall('onMemRecPostExecute',[self, state, fActive=state]);
-{$endif}
-
-  //6.1+
-  if state and assigned(fonactivate) then fonactivate(self, false, factive); //activated , after
-  if not state and assigned(fondeactivate) then fondeactivate(self, false, factive); //deactivated , after
-
-  SetVisibleChildrenState;
-
+  processingDone;
 end;
 
 procedure TMemoryRecord.setVisible(state: boolean);

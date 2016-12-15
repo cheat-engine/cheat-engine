@@ -1720,6 +1720,8 @@ begin
       exit;
 
 
+
+
     if memrec.isSelected then
     begin
       if node.Selected then
@@ -1805,63 +1807,72 @@ begin
       sender.canvas.pen.color:=oldpencolor;
     end;
 
+
+
     //draw checkbox
     oldpencolor:=sender.canvas.pen.color;
-
-    if memrec.isSelected then
-      sender.canvas.pen.color:=checkboxSelectedColor
-    else
-      sender.canvas.pen.color:=checkboxColor;
-
     checkbox.Left:=textrect.left+1; //(header.Sections[0].Width div 2)-((linerect.bottom-linerect.top) div 2)+1;
     checkbox.Right:=checkbox.left+(linerect.bottom-linerect.top)-2; //(header.Sections[0].Width div 2)+((linerect.bottom-linerect.top) div 2)-1;
     checkbox.Top:=linerect.top+1;
     checkbox.Bottom:=linerect.bottom-1;
-    sender.Canvas.Rectangle(checkbox);
 
-
-
-    sender.canvas.pen.color:=oldpencolor;
-
-    if memrec.Active then //draw a check
+    if not memrec.AsyncProcessing then
     begin
-      oldpencolor:=sender.canvas.pen.color;
-
       if memrec.isSelected then
-        sender.canvas.pen.color:=checkboxActiveSelectedColor
+        sender.canvas.pen.color:=checkboxSelectedColor
       else
-        sender.canvas.pen.color:=checkboxActiveColor;
+        sender.canvas.pen.color:=checkboxColor;
 
-      sender.canvas.Line(checkbox.left+1,checkbox.Top+1, checkbox.Right-1,checkbox.bottom-1);
-      sender.canvas.line(checkbox.right-1-1,checkbox.top+1, checkbox.left,checkbox.bottom-1);
+      sender.Canvas.Rectangle(checkbox);
+
+
+
 
       sender.canvas.pen.color:=oldpencolor;
 
-
-      if (not memrec.isGroupHeader) and (memrec.VarType<>vtAutoAssembler) then
+      if memrec.Active then //draw a check
       begin
-        //draw the arrow up/down, unless it's a group or auto assembler type
-        if memrec.allowIncrease then
+        oldpencolor:=sender.canvas.pen.color;
+
+        if memrec.isSelected then
+          sender.canvas.pen.color:=checkboxActiveSelectedColor
+        else
+          sender.canvas.pen.color:=checkboxActiveColor;
+
+        sender.canvas.Line(checkbox.left+1,checkbox.Top+1, checkbox.Right-1,checkbox.bottom-1);
+        sender.canvas.line(checkbox.right-1-1,checkbox.top+1, checkbox.left,checkbox.bottom-1);
+
+        sender.canvas.pen.color:=oldpencolor;
+
+
+        if (not memrec.isGroupHeader) and (memrec.VarType<>vtAutoAssembler) then
         begin
-          sender.Canvas.Pen.Color:=increaseArrowColor; //clGreen
-          sender.canvas.line(checkbox.right+5, checkbox.bottom-1, checkbox.right+5,checkbox.top+1);
-          sender.canvas.line(checkbox.right+5,checkbox.top+1,checkbox.Right+5-4,checkbox.top+1+4);
-          sender.canvas.line(checkbox.right+5,checkbox.top+1,checkbox.Right+5+4,checkbox.top+1+4);
-          sender.canvas.pen.color:=oldpencolor;
+          //draw the arrow up/down, unless it's a group or auto assembler type
+          if memrec.allowIncrease then
+          begin
+            sender.Canvas.Pen.Color:=increaseArrowColor; //clGreen
+            sender.canvas.line(checkbox.right+5, checkbox.bottom-1, checkbox.right+5,checkbox.top+1);
+            sender.canvas.line(checkbox.right+5,checkbox.top+1,checkbox.Right+5-4,checkbox.top+1+4);
+            sender.canvas.line(checkbox.right+5,checkbox.top+1,checkbox.Right+5+4,checkbox.top+1+4);
+            sender.canvas.pen.color:=oldpencolor;
+          end;
+
+          if memrec.allowDecrease then
+          begin
+            sender.Canvas.Pen.Color:=decreaseArrowColor; //clRed;
+            sender.canvas.line(checkbox.right+5, checkbox.bottom-1, checkbox.right+5,checkbox.top+1);
+            sender.canvas.line(checkbox.right+5,checkbox.bottom-1,checkbox.Right+5-4,checkbox.bottom-1-4);
+            sender.canvas.line(checkbox.right+5,checkbox.bottom-1,checkbox.Right+5+4,checkbox.bottom-1-4);
+            sender.canvas.pen.color:=oldpencolor;
+          end;
         end;
 
-        if memrec.allowDecrease then
-        begin
-          sender.Canvas.Pen.Color:=decreaseArrowColor; //clRed;
-          sender.canvas.line(checkbox.right+5, checkbox.bottom-1, checkbox.right+5,checkbox.top+1);
-          sender.canvas.line(checkbox.right+5,checkbox.bottom-1,checkbox.Right+5-4,checkbox.bottom-1-4);
-          sender.canvas.line(checkbox.right+5,checkbox.bottom-1,checkbox.Right+5+4,checkbox.bottom-1-4);
-          sender.canvas.pen.color:=oldpencolor;
-        end;
       end;
-
+    end
+    else
+    begin
+      //todo: animate something nice
     end;
-
     descriptionstart:=max(checkbox.right+10,header.Sections[1].Left);
 
 

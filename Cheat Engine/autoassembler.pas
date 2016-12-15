@@ -771,7 +771,10 @@ var i,j,k, m: integer;
       for i:=0 to length(aobscanmodules[f].entries)-1 do
         aoblist:=aoblist+aobscanmodules[f].entries[i].name+' ';
 
-      errorstring:=rsAAErrorWhileSacnningForAobs+aoblist+#13#10#13#10+rsAAError+aobscanmodules[f].memscan.GetErrorString;
+      if aobscanmodules[f].memscan.GetErrorString<>'' then
+        errorstring:=rsAAErrorWhileSacnningForAobs+aoblist+#13#10#13#10+rsAAError+aobscanmodules[f].memscan.GetErrorString
+      else
+        errorstring:=rsAAErrorWhileSacnningForAobs+aoblist+#13#10#13#10+rsAAError+'Not all results found';
 
 
     end;
