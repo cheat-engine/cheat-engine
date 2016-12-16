@@ -28,6 +28,10 @@ var
   LuaVM: Plua_State;
   LuaCS: Tcriticalsection;
 
+threadvar
+  Thread_LuaVM: PLua_State;
+  Thread_LuaRef: integer;
+
 function lua_strtofloat(s: string): double;
 function lua_strtoint(s: string): integer;
 
@@ -61,6 +65,7 @@ procedure InitializeLua;
 function LuaValueToDescription(L: PLua_state; i: integer; recursivetablecount: integer=0): string;
 
 function GetLuaState: PLUA_State; stdcall;
+
 
 
 function lua_oldprintoutput:TStrings;
@@ -136,7 +141,19 @@ end;
 
 function GetLuaState: PLUA_State; stdcall;
 begin
-  result:=LuaVM;
+  if Thread_LuaVM=nil then
+  begin
+    luacs.Enter;
+    try
+      Thread_LuaVM:=lua_newthread(luavm);
+      Thread_LuaRef:=luaL_ref(luavm, LUA_REGISTRYINDEX);
+    finally
+      luacs.leave;
+    end;
+  end;
+
+  result:=Thread_LuaVM;
+
 end;
 
 procedure lua_register(L: Plua_State; const n: PChar; f: lua_CFunction);
@@ -7713,9 +7730,14 @@ var
   s: tstringlist;
   k32: THandle;
   i: integer;
+
+
 begin
 
+
+
   LuaVM:=lua_open();
+  Thread_LuaVM:=LuaVM;
 
   if LuaVM<>nil then
   begin
@@ -8355,9 +8377,33 @@ begin
 
 end;
 
+var
+  tm: TThreadManager;
+  oldReleaseThreadVars: procedure;
+
+procedure ReleaseLuaThreadVars;
+begin
+  if Thread_LuaVM<>nil then
+  begin
+    if Thread_LuaRef<>0 then
+      lua_unref(Thread_LuaVM, Thread_LuaRef);
+
+    Thread_LuaVM:=nil;
+  end;
+
+  if assigned(oldReleaseThreadVars) then
+    oldReleaseThreadVars();
+end;
+
 initialization
   LuaCS:=TCriticalSection.create;
   luarefcs:=TCriticalSection.create;
+
+  GetThreadManager(tm);
+  oldReleaseThreadVars:=tm.ReleaseThreadVars;
+  tm.ReleaseThreadVars:=@ReleaseLuaThreadVars;
+  SetThreadManager(tm);
+
 
   InitializeLua;
 

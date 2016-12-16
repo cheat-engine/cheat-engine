@@ -58,6 +58,10 @@ type
     fDecreaseArrowColor: TColor;
     fIncreaseArrowColor: TColor;
 
+    animationtimer: TTimer;
+
+    procedure doAnimation(sender: TObject);
+
     function getTreeNodes: TTreenodes;
     procedure setTreeNodes(t: TTreenodes);
 
@@ -1667,6 +1671,37 @@ begin
   end;
 end;
 
+procedure TAddresslist.doAnimation(sender: TObject);
+var
+  i: integer;
+  updated: boolean;
+  start,stop: integer;
+begin
+  updated:=false;
+
+  if treeview.TopItem<>nil then
+    start:=treeview.TopItem.Index
+  else
+    start:=0;
+
+  if treeview.BottomItem<>nil then
+    stop:=treeview.BottomItem.Index
+  else
+    stop:=count-1;
+
+  for i:=start to stop do
+  begin
+    if TMemoryRecord(Treeview.items[i].data).isProcessing then
+    begin
+      memrecitems[i].treenode.Update;
+      updated:=true;
+    end;
+  end;
+
+  if not updated then
+    animationtimer.enabled:=false;
+end;
+
 procedure TAddresslist.AdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState; Stage: TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
 var
   textrect: trect;
@@ -1689,6 +1724,10 @@ var
   expandsignlineborderspace: integer;
 
   n: Ttreenode;
+  t:integer;
+  cx,cy: integer;
+  x,y: single;
+  r: single;
 begin
   //multiselect implementation
 
@@ -1871,7 +1910,51 @@ begin
     end
     else
     begin
-      //todo: animate something nice
+      //draw a clock
+      if memrec.isSelected then
+        sender.canvas.pen.color:=checkboxSelectedColor
+      else
+        sender.canvas.pen.color:=checkboxColor;
+
+      sender.Canvas.Ellipse(checkbox);
+
+      r:=(checkbox.right-checkbox.left) div 2;
+      cx:=trunc(checkbox.left+r);
+      cy:=trunc(checkbox.top+r);
+
+      t:=memrec.AsyncProcessingTime mod 1000; //every time t=0 the line should be up (value 0)
+      t:=trunc(t*0.36); //every second is a full rotation
+
+      x:=cx+cos(pi*(270+t mod 360)/180)*r;
+      y:=cy+sin(pi*(270+t mod 360)/180)*r;
+
+      sender.Canvas.Line(cx,cy,trunc(x),trunc(y));
+
+
+      if memrec.isSelected then
+        sender.canvas.pen.color:=IncreaseArrowColor
+      else
+        sender.canvas.pen.color:=DecreaseArrowColor;
+
+      t:=(memrec.AsyncProcessingTime div 1000) mod 60; //every 60 seconds (t=0) the second handle should be up
+      t:=t*6;
+
+      x:=cx+cos(pi*(270+t mod 360)/180)*r;
+      y:=cy+sin(pi*(270+t mod 360)/180)*r;
+
+      sender.Canvas.Line(cx,cy,trunc(x),trunc(y));
+
+
+      sender.canvas.pen.color:=oldpencolor;
+
+      if animationtimer=nil then
+      begin
+        animationtimer:=TTimer.Create(self);
+        animationtimer.interval:=16;
+        animationtimer.OnTimer:=DoAnimation;
+      end;
+
+      animationtimer.enabled:=true;
     end;
     descriptionstart:=max(checkbox.right+10,header.Sections[1].Left);
 

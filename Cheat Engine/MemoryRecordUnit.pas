@@ -171,6 +171,7 @@ type
 
     fAsync: boolean;
     processingThread: TMemoryRecordProcessingThread; //not nil when doing work
+    processingTimeStart: qword;
     wantedstate: boolean; //last state the user wanted to set it to
 
 
@@ -294,6 +295,7 @@ type
     procedure cleanupPointerOffsets;
     function getLuaRef: integer;
     function isProcessing: boolean;
+    function getProcessingTime: qword;
 
     constructor Create(AOwner: TObject);
     destructor destroy; override;
@@ -343,6 +345,7 @@ type
     property OffsetCount: integer read getoffsetCount write setOffsetCount;
     property Async: Boolean read fAsync write fAsync;
     property AsyncProcessing: Boolean read isProcessing;
+    property AsyncProcessingTime: qword read getProcessingTime;
   end;
 
   THKSoundFlag=(hksPlaySound=0, hksSpeakText=1, hksSpeakTextEnglish=2); //playSound excludes speakText
@@ -1147,6 +1150,8 @@ begin
           AutoAssemblerData.script:=tstringlist.Create;
           AutoAssemblerData.script.text:=tempnode.TextContent;
 
+          a:=tempnode.Attributes.GetNamedItem('Async');
+          if (a<>nil) then fAsync:=a.TextContent='1';
         end;
       end;
 
@@ -1350,6 +1355,8 @@ var
   laststate: TDOMNode;
   soundentry: TDOMNode;
 
+  n: TDOMNode;
+
   tn: TTreenode;
   i,j: integer;
   a:TDOMAttr;
@@ -1428,8 +1435,6 @@ begin
       a.TextContent:='1';
       opt.Attributes.SetNamedItem(a);
     end;
-
-
 
 
   end;
@@ -1539,7 +1544,15 @@ begin
 
       vtAutoAssembler:
       begin
-        cheatEntry.AppendChild(doc.CreateElement('AssemblerScript')).TextContent:=AutoAssemblerData.script.Text;
+        n:=cheatEntry.AppendChild(doc.CreateElement('AssemblerScript'));
+        if fAsync then
+        begin
+          a:=doc.CreateAttribute('Async');
+          a.TextContent:='1';
+          n.Attributes.SetNamedItem(a);
+        end;
+
+        n.TextContent:=AutoAssemblerData.script.Text;
       end;
     end;
 
@@ -2020,6 +2033,14 @@ begin
   result:=processingThread<>nil;
 end;
 
+function TMemoryRecord.getProcessingTime: qword;
+begin
+  if isProcessing then
+    result:=GetTickCount64-processingTimeStart
+  else
+    result:=0;
+end;
+
 procedure TMemoryRecord.processingDone;
 //called after an aa script has finished processing
 var i: integer;
@@ -2118,6 +2139,7 @@ begin
       begin
         //spawn a thread to activate this entry.
         //set the state to "Activating"
+        processingTimeStart:=gettickcount64;
         processingThread:=TMemoryRecordProcessingThread.Create(self,state);
         treenode.update;
         exit;

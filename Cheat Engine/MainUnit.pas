@@ -235,6 +235,7 @@ type
     FromAddress: TEdit;
     andlabel: TLabel;
     MenuItem12: TMenuItem;
+    miAsyncScript: TMenuItem;
     miFlFindWhatAccesses: TMenuItem;
     MenuItem13: TMenuItem;
     miFlFindWhatWrites: TMenuItem;
@@ -476,6 +477,7 @@ type
       Selected: boolean);
     procedure Label3Click(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
+    procedure miAsyncScriptClick(Sender: TObject);
     procedure miFlFindWhatAccessesClick(Sender: TObject);
     procedure miBindDeactivationClick(Sender: TObject);
     procedure miDisassembleClick(Sender: TObject);
@@ -3051,15 +3053,7 @@ begin
 end;
 
 
-
-
 var t: TRemoteMemoryManager;
-
-
-
-
-
-
 
 procedure TMainForm.miScanDirtyOnlyClick(Sender: TObject);
 begin
@@ -6394,6 +6388,10 @@ begin
   Changescript1.Visible := (addresslist.selectedRecord <> nil) and
     (addresslist.selectedrecord.VarType = vtAutoAssembler);
 
+  miAsyncScript.visible:=Changescript1.Visible;
+  if miAsyncScript.visible then
+    miAsyncScript.Checked:=addresslist.selectedrecord.Async;
+
   n5.Visible := (addresslist.selectedRecord <> nil);
 
   Pointerscanforthisaddress1.Visible :=
@@ -7954,6 +7952,14 @@ begin
   end;
 
 end;
+
+procedure TMainForm.miAsyncScriptClick(Sender: TObject);
+begin
+  if (addresslist.selectedRecord <> nil) and
+    (addresslist.selectedRecord.VarType = vtAutoAssembler) then
+     addresslist.selectedRecord.Async:=miAsyncScript.Checked;
+end;
+
 
 procedure TMainForm.Changescript1Click(Sender: TObject);
 begin

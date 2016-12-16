@@ -1852,6 +1852,13 @@ object MainForm: TMainForm
       Visible = False
       OnClick = Changescript1Click
     end
+    object miAsyncScript: TMenuItem
+      AutoCheck = True
+      Caption = 'Execute asynchronious'
+      ShowAlwaysCheckable = True
+      Visible = False
+      OnClick = miAsyncScriptClick
+    end
     object N5: TMenuItem
       Caption = '-'
       GroupIndex = 2

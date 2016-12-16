@@ -1050,6 +1050,7 @@ var
   stack: integer;
   str: string;
   error: boolean;
+  L: Plua_State;
 begin
   i:=0;
 
@@ -1082,21 +1083,23 @@ begin
 
 
 {$ifndef NOLUA}
-          LUACS.Enter;
+          L:=GetLuaState;
+
+
           try
-            stack:=lua_Gettop(luavm);
+            stack:=lua_Gettop(L);
 
             error:=false;
 
-            luaL_loadstring(luavm, pchar(s.text));
-            if lua_isfunction(luavm, -1) then
+            luaL_loadstring(L, pchar(s.text));
+            if lua_isfunction(L, -1) then
             begin
-              lua_pushboolean(luavm, syntaxcheckonly);
-              if lua.lua_pcall(luavm, 1, 1, 0)=0 then
+              lua_pushboolean(L, syntaxcheckonly);
+              if lua.lua_pcall(L, 1, 1, 0)=0 then
               begin
-                if lua_isstring(luavm,-1) then
+                if lua_isstring(L,-1) then
                 begin
-                  str:=Lua_ToString(luavm, -1);
+                  str:=Lua_ToString(L, -1);
                   s:=tstringlist.create;
                   s.text:=str;
 
@@ -1115,16 +1118,15 @@ begin
 
             if error then
             begin
-              if lua_isstring(luavm, -1) then
-                raise exception.create(rsAALuaErrorInTheScriptAtLine+inttostr(integer(code.Objects[i]))+':'+lua_tostring(luavm, -1))
+              if lua_isstring(L, -1) then
+                raise exception.create(rsAALuaErrorInTheScriptAtLine+inttostr(integer(code.Objects[i]))+':'+lua_tostring(L, -1))
               else
                 raise exception.create(rsAALuaErrorInTheScriptAtLine+inttostr(integer(code.Objects[i])));
 
             end;
 
           finally
-            lua_settop(Luavm, stack);
-            LUACS.Leave;
+            lua_settop(L, stack);
           end;
 {$endif}
           break;
