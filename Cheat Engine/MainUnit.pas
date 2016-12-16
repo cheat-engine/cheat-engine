@@ -7914,13 +7914,18 @@ var
   x: TFrmAutoInject;
   y: array of integer;
 begin
+  if memrec.AsyncProcessing then exit;
+
   if memrec.isBeingEdited then
   begin
-    if memrec.autoAssembleWindow.WindowState<>wsNormal then
-      memrec.autoAssembleWindow.WindowState:=wsNormal;
+    if memrec.autoAssembleWindow<>nil then
+    begin
+      if memrec.autoAssembleWindow.WindowState<>wsNormal then
+        memrec.autoAssembleWindow.WindowState:=wsNormal;
 
-    memrec.autoAssembleWindow.show;
-    memrec.autoAssembleWindow.BringToFront;
+      memrec.autoAssembleWindow.show;
+      memrec.autoAssembleWindow.BringToFront;
+    end;
   end
   else
   begin

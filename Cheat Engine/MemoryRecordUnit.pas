@@ -1706,7 +1706,7 @@ end;
 
 function TMemoryRecord.isBeingEdited: boolean;
 begin
-  result:=(editcount>0) or (processingThread<>nil);
+  result:=(editcount>0);
 end;
 
 procedure TMemoryRecord.beginEdit;

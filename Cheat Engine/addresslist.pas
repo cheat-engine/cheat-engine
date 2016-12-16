@@ -231,9 +231,9 @@ end;
 procedure TAddresslist.clear;
 var i: integer;
 begin
-  //first check if it's being edited
+  //first check if it's being edited/or busy
   for i:=0 to count-1 do
-    if (MemRecItems[i].isBeingEdited) then exit;
+    if (MemRecItems[i].isBeingEdited) or (memrecitems[i].AsyncProcessing) then exit;
 
   //still here so nothing is being edited, so, delete
   while count>0 do
@@ -398,7 +398,7 @@ begin
     i:=0;
     while i<count do
     begin
-      if MemRecItems[i].isSelected and (MemRecItems[i].isBeingEdited=false) then
+      if MemRecItems[i].isSelected and (MemRecItems[i].isBeingEdited=false) and (MemRecItems[i].AsyncProcessing=false) then
         MemRecItems[i].Free //Free also cleans up it's associated treenode, and all it's children
       else
         inc(i);
