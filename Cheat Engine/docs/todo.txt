@@ -2,7 +2,7 @@ process/system info: resizing is shitty
 
 kernel: Add an noexception method that will stop all exceptions 
 kernel: When using the processwatcher obtain handles for them on creation (use circular buffer and keep track which ones ce has opened)
-ceshare: continue with it
+
 
 lua: Add the openFile equivalent for openProcess to lua
 
@@ -17,3 +17,9 @@ memscan: Add a wincp scan option to text scans
 symbol condig window: tab 0 isn't on the symbolname
 
 lua:autoassembler: Make autoAssembler return the alloclist which can then be passed to disable scripts
+
+linux: make a 32-bit linux build with .so injection support
+
+replace: selection only
+
+ceshare: continue with it

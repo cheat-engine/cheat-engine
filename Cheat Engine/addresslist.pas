@@ -1925,7 +1925,7 @@ begin
       t:=memrec.AsyncProcessingTime mod 1000; //every time t=0 the line should be up (value 0)
       t:=trunc(t*0.36); //every second is a full rotation
 
-      x:=cx+cos(pi*(270+t mod 360)/180)*r;
+      x:=cx+cos(pi*(270+t mod 360)/180)*r*ifthen(memrec.Active,-1,1);
       y:=cy+sin(pi*(270+t mod 360)/180)*r;
 
       sender.Canvas.Line(cx,cy,trunc(x),trunc(y));
@@ -1939,7 +1939,7 @@ begin
       t:=(memrec.AsyncProcessingTime div 1000) mod 60; //every 60 seconds (t=0) the second handle should be up
       t:=t*6;
 
-      x:=cx+cos(pi*(270+t mod 360)/180)*r;
+      x:=cx+cos(pi*(270+t mod 360)/180)*r*ifthen(memrec.Active,-1,1);
       y:=cy+sin(pi*(270+t mod 360)/180)*r;
 
       sender.Canvas.Line(cx,cy,trunc(x),trunc(y));

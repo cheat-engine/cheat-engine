@@ -7480,15 +7480,28 @@ begin
 end;
 
 procedure TMainForm.Cut2Click(Sender: TObject);
+var e: TEdit;
 begin
-  if scanvalue.SelLength > 0 then
-    scanvalue.CutToClipboard;
+  e:=nil;
+  if scanvalue.Focused then e:=scanvalue;
+  if (scanvalue2<>nil) and scanvalue2.Focused then e:=scanvalue2;
+  if e=nil then exit;
+
+  if e.SelLength > 0 then
+    e.CutToClipboard;
 end;
 
 procedure TMainForm.Copy2Click(Sender: TObject);
+var e: tedit;
 begin
-  if scanvalue.SelLength > 0 then
-    scanvalue.CopyToClipboard;
+  e:=nil;
+  if scanvalue.Focused then e:=scanvalue;
+  if (scanvalue2<>nil) and scanvalue2.Focused then e:=scanvalue2;
+
+  if e=nil then exit;
+
+  if e.SelLength > 0 then
+    e.CopyToClipboard;
 end;
 
 procedure TMainForm.Paste2Click(Sender: TObject);
@@ -7497,18 +7510,23 @@ var
   Text: string;
   i: integer;
   allow: boolean;
+  e: tedit;
 begin
   cb := tclipboard.Create;
-  if cb.HasFormat(CF_TEXT) then
-  begin
-    if scanvalue.Focused then
-      scanvalue.PasteFromClipboard;
+  try
+    if cb.HasFormat(CF_TEXT) then
+    begin
+      e:=nil;
+      if scanvalue.Focused then e:=scanvalue;
+      if (scanvalue2<>nil) and scanvalue2.Focused then e:=scanvalue2;
 
-    if (scanvalue2 <> nil) and (scanvalue2.Focused) then
-      scanvalue2.PasteFromClipboard;
+      if e=nil then exit;
+
+      e.PasteFromClipboard;
+    end;
+  finally
+    cb.Free;
   end;
-
-  cb.Free;
 end;
 
 procedure TMainForm.checkpaste;
