@@ -44,6 +44,7 @@ writeBytes(address, x,x,x,x,...) : Write the given bytes to the given address fr
 writeBytes(address, table) : Write the given bytes to the given address from a table
 
 
+readSmallInteger(address) : Reads a small integer from the specified address
 readInteger(address) : Reads an integer from the specified address
 readQword(address): Reads a 64-bit integer from the specified address
 readPointer(address): In a 64-bit target this equals readQword, in a 32-bit target readInteger()
@@ -57,12 +58,14 @@ writeDouble(address,value) : Writes a double precision floating point to the spe
 writeString(address,text, widechar OPTIONAL) : Write a string to the specified address. Returns true on success
 
 readBytesLocal(address,bytecount, ReturnAsTable) : See readBytes but then it's for Cheat engine's memory
+readSmallIntegerLocal(address) : Reads a small integer from the specified address in CE's memory
 readIntegerLocal(address) : Reads an integer from the specified address in CE's memory
 readQwordLocal(address) : Reads a 64-bit integer from the specified address in CE's memory
 readPointerLocal(address) : ReadQwordLocal/ReadIntegerLocal depending on the cheat engine build
 readFloatLocal(address) : Reads a single precision floating point value from the specified address in CE's memory
 readDoubleLocal(address) : Reads a double precision floating point value from the specified address in CE's memory
 readStringLocal(address, maxlength, widechar OPTIONAL)
+writeSmallIntegerLocal(address,value) : Writes a small integer to the specified address in CE's memory. Returns true on success
 writeIntegerLocal(address,value) : Writes an integer to the specified address in CE's memory. Returns true on success
 writeQwordLocal(address,value) : Writes a 64-bit integer to the specified address in CE's memory. Returns true on success
 writeFloatLocal(address,value) : Writes a single precision floating point to the specified address in CE's memory. Returns true on success
@@ -71,6 +74,8 @@ writeStringLocal(address,string, widechar OPTIONAL)
 writeBytesLocal(address, x,x,x,x,...) : See writeBytes but then it's for Cheat Engine's memory
 writeBytesLocal(address, table, , count) : See writeBytes but then it's for Cheat Engine's memory
 
+readSmallInteger, readInteger, readSmallIntegerLocal, readIntegerLocal
+can also have second boolean parameter.If true, value will be signed.
 
 wordToByteTable(number): {}          - Converts a word to a bytetable
 dwordToByteTable(number): {}         - Converts a dword to a bytetable
