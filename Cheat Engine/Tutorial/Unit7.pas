@@ -44,7 +44,7 @@ resourcestring
   rsYouVeGotSecondsLeftToChangeTheValueTo5000 = 'You have %s second%s left to change the value to 5000';
   rsStep6PointersPW = 'Step 6: Pointers: (PW=%s)';
   rsTryAgain7 = 'So, pointers are too difficult eh? Don''t worry, try again later. For most beginners this is difficult to grasp. But I have to tell you it''s'
-    +' a powerfull feature if you learn to use it. Are you sure you want to quit?';
+    +' a powerful feature if you learn to use it. Are you sure you want to quit?';
   rsLOSER = 'BOO';
 
   rsTutorialStep6=
