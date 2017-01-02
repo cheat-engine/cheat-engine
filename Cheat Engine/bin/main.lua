@@ -11,6 +11,8 @@ List of CE specific functions and variables:
 
 TrainerOrigin : A variable that contains the path of the trainer that launched cheat engine (Only set when launched as a trainer)
 process : A variable that contains the main modulename of the currently opened process
+MainForm: The main ce gui
+AddressList: The address list of the main ce gui
 
 getCEVersion(): Returns a floating point value specifying the version of cheat engine
 
