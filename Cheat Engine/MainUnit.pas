@@ -918,7 +918,8 @@ uses mainunit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup, HotKeys,
   frmSetCrosshairUnit, StructuresFrm2, frmMemoryViewExUnit,
   frmD3DHookSnapshotConfigUnit, frmSaveSnapshotsUnit, frmsnapshothandlerUnit,
   frmNetworkDataCompressionUnit, ProcessHandlerUnit, ProcessList, pointeraddresslist,
-  PointerscanresultReader, Parsers, Globals, GnuAssembler, xinput, DPIHelper, multilineinputqueryunit, winsapi;
+  PointerscanresultReader, Parsers, Globals, GnuAssembler, xinput, DPIHelper,
+  multilineinputqueryunit, winsapi, LuaClass;
 
 resourcestring
   rsInvalidStartAddress = 'Invalid start address: %s';
@@ -5296,6 +5297,12 @@ begin
 
 
   XInputMessages(true);
+
+  luaclass_newClass(LuaVM, self);
+  lua_setglobal(LuaVM,'MainForm');
+
+  luaclass_newClass(LuaVM, addresslist);
+  lua_setglobal(LuaVM,'AddressList');
 end;
 
 procedure TMainForm.ChangedHandle(Sender: TObject);
