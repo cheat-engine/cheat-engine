@@ -22,7 +22,7 @@ type
   TDropByListviewEvent=procedure(sender: TObject; node: TTreenode; attachmode: TNodeAttachMode) of object;
   TAutoAssemblerEditEvent=procedure(sender: TObject; memrec: TMemoryRecord) of object;
   TCompareRoutine=function(a: tmemoryrecord; b: tmemoryrecord): integer of object;
-
+  TMemRecChangeEvent=function(sender: TObject; memrec: TMemoryRecord):boolean of object;
 
 
 
@@ -57,6 +57,11 @@ type
     fExpandSignColor: TColor;
     fDecreaseArrowColor: TColor;
     fIncreaseArrowColor: TColor;
+
+    fOnDescriptionChange: TMemRecChangeEvent;
+    fOnAddressChange: TMemRecChangeEvent;
+    fOnTypeChange: TMemRecChangeEvent;
+    fOnValueChange: TMemRecChangeEvent;
 
     animationtimer: TTimer;
 
@@ -165,6 +170,7 @@ type
 
     property headers: THeaderControl read header;
   published
+
     property Count: Integer read GetCount;
     property SelCount: Integer read GetSelCount;
     property SelectedRecord: TMemoryRecord read getSelectedRecord write setSelectedRecord;
@@ -180,6 +186,11 @@ type
     property ExpandSignColor: TColor read fExpandSignColor write fExpandSignColor;
     property IncreaseArrowColor: TColor read fIncreaseArrowColor write fIncreaseArrowColor;
     property DecreaseArrowColor: TColor read fDecreaseArrowColor write fDecreaseArrowColor;
+
+    property OnDescriptionChange: TMemRecChangeEvent read fOnDescriptionChange write fOnDescriptionChange;
+    property OnAddressChange: TMemRecChangeEvent read fOnAddressChange write fOnAddressChange;
+    property OnTypeChange: TMemRecChangeEvent read fOnTypeChange write fOnTypeChange;
+    property OnValueChange: TMemRecChangeEvent read fOnValueChange write fOnValueChange;
   end;
 
 implementation
@@ -844,17 +855,18 @@ procedure TAddresslist.doDescriptionChange;
 begin
   if treeview.selected<>nil then
     descriptiondblclick(treeview.selected);
-
 end;
 
 procedure TAddresslist.doAddressChange;
 begin
-  if treeview.selected<>nil then addressdblclick(treeview.selected);
+  if treeview.selected<>nil then
+    addressdblclick(treeview.selected);
 end;
 
 procedure TAddresslist.doTypeChange;
 begin
-  if treeview.selected<>nil then typedblclick(treeview.selected);
+  if treeview.selected<>nil then
+    typedblclick(treeview.selected);
 end;
 
 procedure TAddresslist.doValueChange;
@@ -874,6 +886,9 @@ procedure TAddresslist.descriptiondblclick(node: TTreenode);
 var i: integer;
     description: string;
 begin
+  if assigned(fOnDescriptionChange) and fOnDescriptionChange(self,tmemoryrecord(node.data)) then exit;
+
+
   description:=tmemoryrecord(node.data).description;
 
   if InputQuery(rsChangeDescription, rsWhatWillBeTheNewDescription, description) then
@@ -897,6 +912,8 @@ end;
 
 procedure TAddresslist.addressdblclick(node: TTreenode);
 begin
+  if assigned(fOnAddressChange) and fOnAddressChange(self,tmemoryrecord(treeview.selected.Data)) then exit;
+
   if TMemoryRecord(node.data).isGroupHeader then exit;
 
   with TFormaddresschange.Create(self) do
@@ -921,8 +938,11 @@ var
   CustomTypeName: string;
 begin
   TypeForm.RefreshCustomTypes;
-
   memrec:=TMemoryRecord(node.data);
+
+  if assigned(fOnTypeChange) and fOnTypeChange(self,memrec) then exit;
+
+
 
   if memrec.isGroupHeader then exit;
 
@@ -1073,6 +1093,10 @@ var
 
 begin
   memrec:=TMemoryRecord(node.data);
+
+  if assigned(fOnValueChange) and fOnValueChange(self,memrec) then exit;
+
+
   value:=memrec.GetValue;
 
   if (selcount=1) and (selectedRecord.VarType=vtAutoAssembler) then
@@ -1103,6 +1127,10 @@ procedure TAddresslist.ValueClick(node: TTreenode);
 var memrec: TMemoryrecord;
 begin
   memrec:=TMemoryRecord(node.data);
+  if assigned(fOnValueChange) and fOnValueChange(self,memrec) then exit;
+
+
+
   if (memrec.VarType<>vtAutoAssembler) and (selcount<=1) and (memrec.DropDownList.count=0) then
   begin
 

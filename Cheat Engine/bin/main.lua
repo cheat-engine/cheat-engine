@@ -1791,6 +1791,22 @@ properties
   MemoryRecord[]: MemoryRecord - Array to access the individial memory records
   [] = MemoryRecord - Default accessor
 
+  CheckboxActiveSelectedColor: color
+  CheckboxActiveColor: color
+  CheckboxSelectedColor: color
+  CheckboxColor: color
+  SelectedBackgroundColor: color
+  SelectedSecondaryBackgroundColor: color
+  ExpandSignColor: color
+  IncreaseArrowColor: color
+  DecreaseArrowColor: color
+
+  OnDescriptionChange: function(addresslist,memrec):boolean - called when the user initiates a description column change on a record. Return true if you handle it, false for normal behaviour
+  OnAddressChange: function(addresslist,memrec):boolean - called when the user initiates an address column change on a record. Return true if you handle it, false for normal behaviour
+  OnTypeChange: function(addresslist,memrec):boolean - called when the user initiates a type column change on a record. Return true if you handle it, false for normal behaviour
+  OnValueChange: function(addresslist,memrec):boolean - called when the user initiates a value column change on a record. Return true if you handle it, false for normal behaviour
+
+
 methods
   getCount()
   getMemoryRecord(index)

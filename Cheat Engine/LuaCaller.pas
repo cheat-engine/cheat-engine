@@ -12,7 +12,7 @@ interface
 uses
   Classes, Controls, SysUtils, ceguicomponents, forms, lua, lualib, lauxlib,
   comctrls, StdCtrls, CEFuncProc, typinfo, Graphics, disassembler, LuaDisassembler,
-  LastDisassembleData, Assemblerunit, commonTypeDefs, ExtCtrls;
+  LastDisassembleData, Assemblerunit, commonTypeDefs, ExtCtrls, addresslist, MemoryRecordUnit;
 
 type
   TLuaCaller=class
@@ -70,6 +70,7 @@ type
       procedure ScreenFormEvent(Sender: TObject; Form: TCustomForm);
 
       function BreakpointEvent(bp: pointer; context: pointer):boolean;
+      function MemRecChangeEvent(al: TObject; memrec: TMemoryRecord): boolean;
 
 
 
@@ -122,7 +123,7 @@ function luacaller_getFunctionHeaderAndMethodForType(typeinfo: PTypeInfo; lc: po
 implementation
 
 uses
-  luahandler, LuaByteTable, MainUnit, MemoryRecordUnit, disassemblerviewunit,
+  luahandler, LuaByteTable, MainUnit, disassemblerviewunit,
   hexviewunit, d3dhookUnit, luaclass, debuggertypedefinitions;
 
 resourcestring
@@ -1017,6 +1018,31 @@ begin
   end;
 end;
 
+function TLuaCaller.MemRecChangeEvent(al: TObject; memrec: TMemoryRecord): boolean;
+var oldstack: integer;
+begin
+  result:=false;
+
+  Luacs.Enter;
+  try
+    oldstack:=lua_gettop(Luavm);
+
+    if canRun then
+    begin
+      PushFunction;
+      luaclass_newClass(LuaVM, al);
+      luaclass_newClass(LuaVM, memrec);
+
+      if lua_pcall(Luavm, 2,1,0)=0 then
+        if not lua_isnil(luavm, -1) then
+          result:=lua_toboolean(luavm, -1);
+    end;
+  finally
+    lua_settop(Luavm, oldstack);
+    luacs.leave;
+  end;
+end;
+
 function TLuaCaller.AddressLookupCallback(address: ptruint): string;
 var oldstack: integer;
 begin
@@ -1874,6 +1900,27 @@ begin
 end;
 
 
+function LuaCaller_MemRecChangeEvent(L: PLua_state): integer; cdecl;  //(al: TObject; memrec: TMemoryRecord)
+var
+  m: TMethod;
+  al: TObject;
+  mr: TMemoryRecord;
+begin
+  result:=0;
+  if lua_gettop(L)=2 then
+  begin
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    al:=lua_ToCEUserData(L, 1);
+    mr:=lua_ToCEUserData(L, 2);
+    lua_pop(L, lua_gettop(L));
+
+    TMemRecChangeEvent(m)(al, mr);
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
 
 procedure registerLuaCall(typename: string; getmethodprop: lua_CFunction; setmethodprop: pointer; luafunctionheader: string);
 var t: TLuaCallData;
@@ -1917,6 +1964,8 @@ initialization
 
   registerLuaCall('TDisassembleEvent', LuaCaller_DisassembleEvent, pointer(TLuaCaller.DisassembleEvent),'function %s(sender, address, ldd)'#13#10#13#10'  return disassembledstring, description'#13#10'end'#13#10);
   registerLuaCall('TDropFilesEvent', LuaCaller_DropFilesEvent, pointer(TLuaCaller.DropFilesEvent),'function %s(sender, filename)'#13#10#13#10'end'#13#10);
+
+  registerLuaCall('TMemRecChangeEvent', LuaCaller_MemRecChangeEvent, pointer(TLuaCaller.MemRecChangeEvent),'function %s(al, memrec)'#13#10#13#10'  return false'#13#10'end'#13#10);
 
 
 
