@@ -469,6 +469,7 @@ begin
     begin
       if editscript then
       begin
+
         //check if both scripts are valid before allowing the edit
 
         setlength(aa,1);
@@ -478,8 +479,8 @@ begin
 
 
         try
-          check:=autoassemble(assemblescreen.lines,false,true,true,injectintomyself,aa,registeredsymbols) and
-                 autoassemble(assemblescreen.lines,false,false,true,injectintomyself,aa,registeredsymbols);
+          check:=autoassemble(assemblescreen.lines,false,true,true,injectintomyself,aa,registeredsymbols,memrec) and
+                 autoassemble(assemblescreen.lines,false,false,true,injectintomyself,aa,registeredsymbols,memrec);
 
           if not check then
             errmsg:=format(rsNotAllCodeIsInjectable,['']);

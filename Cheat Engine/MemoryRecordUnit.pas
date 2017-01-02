@@ -7,7 +7,7 @@ interface
 {$ifdef windows}
 uses
   Windows, forms, graphics, Classes, SysUtils, controls, stdctrls, comctrls,symbolhandler,
-  cefuncproc,newkernelhandler, autoassembler, hotkeyhandler, dom, XMLRead,XMLWrite,
+  cefuncproc,newkernelhandler, hotkeyhandler, dom, XMLRead,XMLWrite,
   customtypehandler, fileutil, LCLProc, commonTypeDefs, pointerparser, LazUTF8, LuaClass;
 {$endif}
 
@@ -406,7 +406,7 @@ implementation
 
 {$ifdef windows}
 uses mainunit, addresslist, formsettingsunit, LuaHandler, lua, lauxlib, lualib,
-  processhandlerunit, Parsers, winsapi;
+  processhandlerunit, Parsers, winsapi,autoassembler;
 {$endif}
 
 {$ifdef unix}
@@ -417,7 +417,7 @@ uses processhandlerunit, Parsers;
 procedure TMemoryRecordProcessingThread.Execute;
 begin
   try
-    if autoassemble(owner.autoassemblerdata.script, false, state, false, false, owner.autoassemblerdata.allocs, owner.autoassemblerdata.registeredsymbols) then
+    if autoassemble(owner.autoassemblerdata.script, false, state, false, false, owner.autoassemblerdata.allocs, owner.autoassemblerdata.registeredsymbols, owner) then
     begin
       owner.fActive:=state;
       if owner.autoassemblerdata.registeredsymbols.Count>0 then //if it has a registered symbol then reinterpret all addresses

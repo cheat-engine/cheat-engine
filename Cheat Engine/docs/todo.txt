@@ -22,4 +22,6 @@ linux: make a 32-bit linux build with .so injection support
 
 replace: selection only
 
+break and trace: Search upwards
+
 ceshare: continue with it

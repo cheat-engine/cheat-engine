@@ -13,7 +13,7 @@ uses unixporthelper, Assemblerunit, classes, symbolhandler, sysutils,
 {$ifdef windows}
 uses jwawindows, windows, Assemblerunit, classes, LCLIntf,symbolhandler,
      sysutils,dialogs,controls, CEFuncProc, NewKernelHandler ,plugin,
-     ProcessHandlerUnit, lua, lualib, lauxlib, commonTypeDefs;
+     ProcessHandlerUnit, lua, lualib, lauxlib, luaclass, commonTypeDefs;
 {$endif}
 
 
@@ -22,7 +22,7 @@ uses jwawindows, windows, Assemblerunit, classes, LCLIntf,symbolhandler,
 function getenableanddisablepos(code:tstrings;var enablepos,disablepos: integer): boolean;
 function autoassemble(code: tstrings;popupmessages: boolean):boolean; overload;
 function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean):boolean; overload;
-function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean;var CEAllocarray: TCEAllocArray; registeredsymbols: tstringlist=nil): boolean; overload;
+function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean;var CEAllocarray: TCEAllocArray; registeredsymbols: tstringlist=nil; memrec: pointer=nil): boolean; overload;
 
 type TAutoAssemblerPrologue=procedure(code: TStrings; syntaxcheckonly: boolean) of object;
 type TAutoAssemblerCallback=function(parameters: string; syntaxcheckonly: boolean): string of object;
@@ -49,7 +49,7 @@ uses strutils, memscan, disassembler, networkInterface, networkInterfaceApi,
 {$ifdef windows}
 uses simpleaobscanner, StrUtils, LuaHandler, memscan, disassembler, networkInterface,
      networkInterfaceApi, LuaCaller, SynHighlighterAA, Parsers, Globals, memoryQuery,
-     MemoryBrowserFormUnit;
+     MemoryBrowserFormUnit, MemoryRecordUnit;
 {$endif}
 
 
@@ -1035,7 +1035,7 @@ begin
 end;
 
 
-procedure luacode(code: TStrings; syntaxcheckonly: boolean);
+procedure luacode(code: TStrings; syntaxcheckonly: boolean; memrec: TMemoryRecord=nil);
 {
 Find and execute the LUA parts:
 function (syntaxcheck)
@@ -1069,7 +1069,8 @@ begin
         if (j=code.count) or (uppercase(TrimRight(code[j]))='{$ASM}') then
         begin
           s:=TStringList.create;
-          s.add('local syntaxcheck=...');
+
+          s.add('local syntaxcheck,memrec=...');
 
           code[i]:='';
           for k:=i+1 to j-1 do
@@ -1095,7 +1096,9 @@ begin
             if lua_isfunction(L, -1) then
             begin
               lua_pushboolean(L, syntaxcheckonly);
-              if lua.lua_pcall(L, 1, 1, 0)=0 then
+              luaclass_newClass(L, memrec);
+
+              if lua.lua_pcall(L, 2, 1, 0)=0 then
               begin
                 if lua_isstring(L,-1) then
                 begin
@@ -1151,7 +1154,7 @@ end;
 
 var nextaaid: longint;
 
-function autoassemble2(code: tstrings;popupmessages: boolean;syntaxcheckonly:boolean; targetself: boolean ;var ceallocarray:TCEAllocArray; registeredsymbols: tstringlist=nil):boolean;
+function autoassemble2(code: tstrings;popupmessages: boolean;syntaxcheckonly:boolean; targetself: boolean ;var ceallocarray:TCEAllocArray; registeredsymbols: tstringlist=nil; memrec: TMemoryRecord=nil):boolean;
 {
 registeredsymbols is a stringlist that is initialized by the caller as case insensitive and no duplicates
 }
@@ -1334,7 +1337,7 @@ begin
         if assigned(AutoAssemblerPrologues[i]) then
           AutoAssemblerPrologues[i](code, syntaxcheckonly);
 
-    luacode(code, syntaxcheckonly);
+    luacode(code, syntaxcheckonly, memrec);
 
     strictmode:=false;
     for i:=0 to code.count-1 do
@@ -3237,7 +3240,7 @@ begin
   end;
 end;
 
-function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean;var CEAllocarray: TCEAllocArray; registeredsymbols: tstringlist=nil): boolean; overload;
+function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean;var CEAllocarray: TCEAllocArray; registeredsymbols: tstringlist=nil; memrec:pointer=nil): boolean; overload;
 {
 targetself defines if the process that gets injected to is CE itself or the target process
 }
@@ -3302,7 +3305,7 @@ begin
     if targetself then
       Stripcpuspecificcode(tempstrings);
 
-    result:=autoassemble2(tempstrings,popupmessages,syntaxcheckonly,targetself,ceallocarray, registeredsymbols);
+    result:=autoassemble2(tempstrings,popupmessages,syntaxcheckonly,targetself,ceallocarray, registeredsymbols, memrec);
   finally
     tempstrings.Free;
   end;
