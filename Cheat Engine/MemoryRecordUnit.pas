@@ -70,6 +70,8 @@ type TMemRecExtraData=record
   end;
 
 
+
+
 type
   TMemoryRecordHotkey=class;
   TMemoryRecord=class;
@@ -119,6 +121,7 @@ type
 
 
   TMemoryRecordActivateEvent=function (sender: TObject; before, currentstate: boolean): boolean of object;
+  TGetDisplayValueEvent=function(sender: TObject; var value: string): boolean of object;
 
   TMemoryRecord=class
   private
@@ -179,6 +182,7 @@ type
 
     fonactivate, fondeactivate: TMemoryRecordActivateEvent;
     fOnDestroy: TNotifyEvent;
+    fOnGetDisplayValue: TGetDisplayValueEvent;
 
     fpointeroffsets: array of TMemrecOffset; //if longer than 0, this is a pointer
     function getPointerOffset(index: integer): TMemrecOffset;
@@ -342,6 +346,7 @@ type
     property OnActivate: TMemoryRecordActivateEvent read fOnActivate write fOnActivate;
     property OnDeactivate: TMemoryRecordActivateEvent read fOnDeActivate write fOndeactivate;
     property OnDestroy: TNotifyEvent read fOnDestroy write fOnDestroy;
+    property OnGetDisplayValue: TGetDisplayValueEvent read fOnGetDisplayValue write fOnGetDisplayValue;
     property OffsetCount: integer read getoffsetCount write setOffsetCount;
     property Async: Boolean read fAsync write fAsync;
     property AsyncProcessing: Boolean read isProcessing;
@@ -2429,6 +2434,8 @@ var
   c: integer;
 begin
   result:=getValue;
+  if assigned(fOnGetDisplayValue) and fOnGetDisplayValue(self, result) then exit;
+
   c:=DropDowncount;
 
   if fDisplayAsDropDownListItem and (c>0) then

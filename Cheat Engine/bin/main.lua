@@ -1743,6 +1743,7 @@ properties
   OnActivate: function(memoryrecord,before,currentstate):boolean - The function to call when the memoryrecord will change (or changed) Active to true. If before is true, not returning true will cause the activation to stop.
   OnDeactivate: function(memoryrecord,before,currentstate):boolean - The function to call when the memoryrecord will change (or changed) Active to false. If before is true, not returning true will cause the deactivation to stop.
   OnDestroy: function() - Called when the memoryrecord is destroyed.
+  OnGetDisplayValue: function(memoryrecord,valuestring):boolean,string - This function gets called when rendering the value of a memory record. Return true and a new string to override the value shown
   DontSave: boolean - Don't save this memoryrecord and it's children
 
 methods

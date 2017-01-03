@@ -71,6 +71,7 @@ type
 
       function BreakpointEvent(bp: pointer; context: pointer):boolean;
       function MemRecChangeEvent(al: TObject; memrec: TMemoryRecord): boolean;
+      function GetDisplayValueEvent(mr: TObject; var value: string): boolean;
 
 
 
@@ -1043,6 +1044,33 @@ begin
   end;
 end;
 
+function TLuaCaller.GetDisplayValueEvent(mr: TObject; var value: string): boolean;
+var
+  oldstack: integer;
+begin
+  result:=false;
+  Luacs.Enter;
+  try
+    oldstack:=lua_gettop(Luavm);
+    if canRun then
+    begin
+      PushFunction;
+      luaclass_newClass(LuaVM, mr);
+      lua_pushstring(Luavm, value);
+      if lua_pcall(Luavm, 2,2,0)=0 then
+      begin
+        result:=lua_toboolean(luavm, -2);
+        if result then
+          value:=Lua_ToString(luavm, -1);
+      end;
+    end;
+
+  finally
+    lua_settop(Luavm, oldstack);
+    luacs.leave;
+  end;
+end;
+
 function TLuaCaller.AddressLookupCallback(address: ptruint): string;
 var oldstack: integer;
 begin
@@ -1915,11 +1943,39 @@ begin
     mr:=lua_ToCEUserData(L, 2);
     lua_pop(L, lua_gettop(L));
 
-    TMemRecChangeEvent(m)(al, mr);
+    lua_pushboolean(L, TMemRecChangeEvent(m)(al, mr));
+    result:=1;
   end
   else
     lua_pop(L, lua_gettop(L));
 end;
+
+
+
+function LuaCaller_GetDisplayValueEvent(L: PLua_state): integer; cdecl;  //(mr: TObject; value:string):true/newvalue
+var
+  m: TMethod;
+  mr: TObject;
+  value: string;
+  r: boolean;
+begin
+  result:=0;
+  if lua_gettop(L)=2 then
+  begin
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    mr:=lua_ToCEUserData(L, 1);
+    value:=Lua_ToString(L, 2);
+    lua_pop(L, lua_gettop(L));
+
+    lua_pushboolean(L, TGetDisplayValueEvent(m)(mr, value));
+    lua_pushstring(L, value);
+    result:=2;
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
 
 
 procedure registerLuaCall(typename: string; getmethodprop: lua_CFunction; setmethodprop: pointer; luafunctionheader: string);
@@ -1966,6 +2022,8 @@ initialization
   registerLuaCall('TDropFilesEvent', LuaCaller_DropFilesEvent, pointer(TLuaCaller.DropFilesEvent),'function %s(sender, filename)'#13#10#13#10'end'#13#10);
 
   registerLuaCall('TMemRecChangeEvent', LuaCaller_MemRecChangeEvent, pointer(TLuaCaller.MemRecChangeEvent),'function %s(al, memrec)'#13#10#13#10'  return false'#13#10'end'#13#10);
+  registerLuaCall('TGetDisplayValueEvent', LuaCaller_GetDisplayValueEvent, pointer(TLuaCaller.GetDisplayValueEvent),'function %s(memrec, value)'#13#10#13#10'  return false,value'#13#10'end'#13#10);
+
 
 
 
