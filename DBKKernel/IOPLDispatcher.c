@@ -1663,6 +1663,8 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 					DbgPrint("%d=%p -> %p", i, (PVOID)inp->Ranges[i].StartAddress, (PVOID)inp->Ranges[i].EndAddress);
 
 				SetupUltimap2(inp->PID, inp->Size, inp->OutputPath, inp->RangeCount, inp->Ranges);
+
+				ntStatus = STATUS_SUCCESS;
 				break;
 			}
 
@@ -1682,6 +1684,8 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 		{
 			int cpunr = *(int *)Irp->AssociatedIrp.SystemBuffer;
 			ultimap2_LockFile(cpunr);
+
+			ntStatus = STATUS_SUCCESS;
 			break;
 		}
 
@@ -1689,6 +1693,22 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 		{
 			int cpunr = *(int *)Irp->AssociatedIrp.SystemBuffer;
 			ultimap2_ReleaseFile(cpunr);
+
+			ntStatus = STATUS_SUCCESS;				
+			break;
+		}
+
+		case IOCTL_CE_ULTIMAP2_GETTRACESIZE:
+		{
+			*(UINT64*)Irp->AssociatedIrp.SystemBuffer = ultimap2_GetTraceFileSize();
+			ntStatus = STATUS_SUCCESS;
+			break;
+		}
+
+		case IOCTL_CE_ULTIMAP2_RESETTRACESIZE:
+		{
+			ultimap2_ResetTraceFileSize();
+			ntStatus = STATUS_SUCCESS;
 			break;
 		}
 

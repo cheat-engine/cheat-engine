@@ -17,6 +17,7 @@
 #include "interruptHook.h"
 #include "ultimap.h"
 #include "ultimap2.h"
+#include "noexceptions.h"
 
 #if (AMD64 && TOBESIGNED)
 #include "sigcheck.h"
@@ -151,6 +152,7 @@ VOID TestThread(__in PVOID StartContext)
 	
 }
 
+#pragma optimize( "", off )  
 NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject,
                      IN PUNICODE_STRING RegistryPath)
 /*++
@@ -534,10 +536,28 @@ Return Value:
 		DbgPrint("LVT_Performance_Monitor=%x\n", (UINT_PTR)&y.LVT_Performance_Monitor-(UINT_PTR)&y);
 	}
 
+	DbgPrint("No exceptions test:");
+	if (NoExceptions_Enter())
+	{
+		int o = 45678;
+		int x=0, r=0;
+		//r=NoExceptions_CopyMemory(&x, &o, sizeof(x));
+
+		r = NoExceptions_CopyMemory(&x, (PVOID)0, sizeof(x));
+
+		DbgPrint("o=%d x=%d r=%d", o, x, r);
+
+
+		DbgPrint("Leaving NoExceptions mode");
+		NoExceptions_Leave();
+	}
+
 
 	
     return STATUS_SUCCESS;
 }
+
+#pragma optimize( "", on )  
 
 
 NTSTATUS DispatchCreate(IN PDEVICE_OBJECT DeviceObject,
@@ -608,6 +628,8 @@ void UnloadDriver(PDRIVER_OBJECT DriverObject)
 	DisableUltimap2();
 
 	clean_APIC_BASE();
+
+	NoExceptions_Cleanup();
 	
 
 	if (KeServiceDescriptorTableShadow && registered) //I can't unload without a shadotw table (system service registered)

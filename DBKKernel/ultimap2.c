@@ -100,6 +100,7 @@ typedef struct
 	//for saveToFile mode
 	HANDLE FileHandle;
 	KEVENT FileAccess;
+	UINT64 TraceFileSize;
 
 	volatile BOOL Interrupted;
 }  ProcessorInfo, *PProcessorInfo;
@@ -363,6 +364,8 @@ void WriteThreadForSpecificCPU(PVOID StartContext)
 								createUltimap2OutputFile(cpunr); 
 
 							r = ZwWriteFile(pi->FileHandle, NULL, NULL, NULL, &iosb, pi->ToPABuffer2, (ULONG)Size, NULL, NULL);
+
+							pi->TraceFileSize += Size;
 							//DbgPrint("%d: ZwCreateFile(%p, %d)=%x\n", (int)StartContext, pi->ToPABuffer2, (ULONG)Size, r);
 
 							KeSetEvent(&pi->FileAccess, 0, FALSE);
@@ -404,16 +407,19 @@ void WriteThreadForSpecificCPU(PVOID StartContext)
 
 void ultimap2_LockFile(int cpunr)
 {
+	if ((cpunr < 0) || (cpunr >= Ultimap2CpuCount))
+		return;
+
 	if (PInfo)
 	{
 		NTSTATUS wr;
 		PProcessorInfo pi = PInfo[cpunr];
 
-		DbgPrint("AcquireUltimap2File()");
+		//DbgPrint("AcquireUltimap2File()");
 		wr = KeWaitForSingleObject(&pi->FileAccess, Executive, KernelMode, FALSE, NULL);
 		if (wr == STATUS_SUCCESS)
 		{
-			DbgPrint("Acquired");
+			//DbgPrint("Acquired");
 			if (pi->FileHandle)
 			{
 				ZwClose(pi->FileHandle);
@@ -425,13 +431,42 @@ void ultimap2_LockFile(int cpunr)
 
 void ultimap2_ReleaseFile(int cpunr)
 {
+	if ((cpunr < 0) || (cpunr >= Ultimap2CpuCount))
+		return;
+
 	if (PInfo)
 	{
 		PProcessorInfo pi = PInfo[cpunr];
 		KeSetEvent(&pi->FileAccess, 0, FALSE);
-		DbgPrint("Released");
+		//DbgPrint("Released");
 	}
 }
+
+UINT64 ultimap2_GetTraceFileSize()
+//Gets an aproximation of the filesize.  Don't take this too exact
+{
+	UINT64 size = 0;
+	
+	if (PInfo)
+	{
+		int i;
+		for (i = 0; i < Ultimap2CpuCount; i++)
+			size += PInfo[i]->TraceFileSize;
+	}
+	
+	return size;
+}
+
+void ultimap2_ResetTraceFileSize()
+{
+	if (PInfo)
+	{
+		int i;
+		for (i = 0; i < Ultimap2CpuCount; i++)
+			PInfo[i]->TraceFileSize = 0;
+	}	
+}
+
 
 void SwitchToPABuffer(struct _KDPC *Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 /*
@@ -475,16 +510,16 @@ Only called when buffer2 is ready for flushing
 			{
 				INT64 offset = __readmsr(IA32_RTIT_OUTPUT_MASK_PTRS);
 
-				if (KeGetCurrentProcessorNumber() == 0)
+				/*if (KeGetCurrentProcessorNumber() == 0)
 				{
 					DbgPrint("pi->CurrentOutputBase=%p", pi->CurrentOutputBase);
 					DbgPrint("offset=%p", offset);
-				}
+				}*/
 
 				offset = offset >> 32;
 
-				if (KeGetCurrentProcessorNumber() == 0)
-					DbgPrint("offset=%p", offset);
+				//if (KeGetCurrentProcessorNumber() == 0)
+				//	DbgPrint("offset=%p", offset);
 
 				if ((!flushallbuffers) && (((pi->CurrentOutputBase == 0) || (offset < 8192))))
 					return; //don't flush yet
@@ -492,17 +527,17 @@ Only called when buffer2 is ready for flushing
 		}
 		else
 		{
-			DbgPrint("Flushing because of interrupt");
+			DbgPrint("%d:Flushing because of interrupt", KeGetCurrentProcessorNumber());
 		}
 
-		DbgPrint("%d: Flush this data", KeGetCurrentProcessorNumber());
-		DbgPrint("%d: pi->CurrentOutputBase=%p __readmsr(IA32_RTIT_OUTPUT_BASE)=%p __readmsr(IA32_RTIT_OUTPUT_MASK_PTRS)=%p", KeGetCurrentProcessorNumber(), pi->CurrentOutputBase, __readmsr(IA32_RTIT_OUTPUT_BASE), __readmsr(IA32_RTIT_OUTPUT_MASK_PTRS));
+		DbgPrint("%d: Flush this data (%p)", KeGetCurrentProcessorNumber(), __readmsr(IA32_RTIT_OUTPUT_MASK_PTRS));
+		//DbgPrint("%d: pi->CurrentOutputBase=%p __readmsr(IA32_RTIT_OUTPUT_BASE)=%p __readmsr(IA32_RTIT_OUTPUT_MASK_PTRS)=%p", KeGetCurrentProcessorNumber(), pi->CurrentOutputBase, __readmsr(IA32_RTIT_OUTPUT_BASE), __readmsr(IA32_RTIT_OUTPUT_MASK_PTRS));
 
 		__writemsr(IA32_RTIT_CTL, 0); //disable packet generation
 		__writemsr(IA32_RTIT_STATUS, 0);
 
 
-		DbgPrint("%d: pi->CurrentOutputBase=%p __readmsr(IA32_RTIT_OUTPUT_BASE)=%p __readmsr(IA32_RTIT_OUTPUT_MASK_PTRS)=%p", KeGetCurrentProcessorNumber(), pi->CurrentOutputBase, __readmsr(IA32_RTIT_OUTPUT_BASE), __readmsr(IA32_RTIT_OUTPUT_MASK_PTRS));
+		//DbgPrint("%d: pi->CurrentOutputBase=%p __readmsr(IA32_RTIT_OUTPUT_BASE)=%p __readmsr(IA32_RTIT_OUTPUT_MASK_PTRS)=%p", KeGetCurrentProcessorNumber(), pi->CurrentOutputBase, __readmsr(IA32_RTIT_OUTPUT_BASE), __readmsr(IA32_RTIT_OUTPUT_MASK_PTRS));
 
 		
 		
@@ -704,6 +739,7 @@ NTSTATUS ultimap2_flushBuffers()
 	}
 	KeReleaseMutex(&SuspendMutex, FALSE);	
 
+	DbgPrint("ultimap2_flushBuffers exit");
 	return STATUS_SUCCESS;
 }
 
@@ -1128,16 +1164,8 @@ void* setupToPA(PToPA_ENTRY *Header, PVOID *OutputBuffer, PMDL *BufferMDL, PRTL_
 	Output = (UINT_PTR)*OutputBuffer;
 	Stop = Output+BufferSize;
 	
-	if (!singleToPASystem)
-	{
-		*BufferMDL = IoAllocateMdl(*OutputBuffer, BufferSize, FALSE, FALSE, NULL);
-		MmBuildMdlForNonPagedPool(*BufferMDL);
-	}
-	else
-	{
-		*BufferMDL = NULL;
-	}
-
+	*BufferMDL = IoAllocateMdl(*OutputBuffer, BufferSize, FALSE, FALSE, NULL);
+	MmBuildMdlForNonPagedPool(*BufferMDL);
 
 	if (singleToPASystem)
 	{
@@ -1247,7 +1275,7 @@ void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, P
 
 	__cpuidex(cpuid_r, 0x14, 0);
 
-	if ((cpuid_r[2] & 2) == 0)
+	//if ((cpuid_r[2] & 2) == 0)
 	{
 		DbgPrint("Single ToPA System");
 		singleToPASystem = TRUE;
@@ -1458,6 +1486,12 @@ void DisableUltimap2(void)
 				ZwClose(PInfo[i]->WriterThreadHandle);
 				PInfo[i]->WriterThreadHandle = NULL;
 
+				if (PInfo[i]->ToPABufferMDL)
+				{
+					IoFreeMdl(PInfo[i]->ToPABufferMDL);
+					PInfo[i]->ToPABufferMDL = NULL;
+				}
+
 				if (PInfo[i]->ToPABuffer)
 				{
 					if (singleToPASystem)
@@ -1465,6 +1499,12 @@ void DisableUltimap2(void)
 					else
 						ExFreePoolWithTag(PInfo[i]->ToPABuffer, 0);
 					PInfo[i]->ToPABuffer = NULL;
+				}
+
+				if (PInfo[i]->ToPABuffer2MDL)
+				{
+					IoFreeMdl(PInfo[i]->ToPABuffer2MDL);
+					PInfo[i]->ToPABufferMDL = NULL;
 				}
 				
 				if (PInfo[i]->ToPABuffer2)

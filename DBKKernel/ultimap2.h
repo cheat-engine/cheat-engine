@@ -112,5 +112,7 @@ NTSTATUS ultimap2_pause();
 NTSTATUS ultimap2_resume();
 void ultimap2_LockFile(int cpunr);
 void ultimap2_ReleaseFile(int cpunr);
+UINT64 ultimap2_GetTraceFileSize();
+void ultimap2_ResetTraceFileSize();
 
 #endif
