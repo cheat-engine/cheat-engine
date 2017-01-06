@@ -2653,7 +2653,7 @@ begin
 
                         pi:=rescanhelper.FindPage((address shr 12)+1);
                         if pi.data<>nil then
-                          copymemory(pointer(ptruint(@address)+k), @pi.data[0], pointersize-k)
+                          copymemory(pointer(ptruint(@tempaddress)+k), @pi.data[0], pointersize-k)
                         else
                         begin
                           valid:=false;
