@@ -56,6 +56,7 @@ type
     tempbuffer: TMemoryStream;
 
     novaluecheck: boolean;
+    filterOutFalsePositiveValid: boolean;
     PointerAddressToFind: ptrUint;
     forvalue: boolean;
     valuetype: TVariableType;
@@ -138,6 +139,7 @@ type
     endoffsetvalues: array of dword;
 
     novaluecheck: boolean; //when set to true the value and final address are not compared, just check that he final address is in fact readable
+    filterOutFalsePositiveValid: boolean; //when set to true, final address should be not accessible
     useluafilter: boolean; //when set to true each pointer will be passed on to the luafilter function
     luafilter: string; //function name of the luafilter
 
@@ -2512,6 +2514,7 @@ var
     pi: TPageInfo;
     x: dword;
     valid: boolean;
+    rangeAndStartOffsetsEndOffsets_Valid: boolean;
 
     tempvalue: pointer;
     value: pointer;
@@ -2630,6 +2633,8 @@ begin
                 end;
               end;
 
+              rangeAndStartOffsetsEndOffsets_Valid:=valid;
+
               if valid then
               begin
                 //evaluate the pointer to address
@@ -2695,7 +2700,16 @@ begin
                 end;
               end;
 
-              if valid then
+              //mgr.inz.Player patch:
+              //if everything until "evaluate the pointer to address" was fine
+              //and user wants all valid (false positive valid) pointers to be removed
+              //(so, wants to keep with final address not evaluated), invert valid status.
+              //Also, do not check final address readability and do not compare address/value.
+
+              if filterOutFalsePositiveValid and rangeAndStartOffsetsEndOffsets_Valid then
+                valid:=not valid;
+
+              if (not filterOutFalsePositiveValid) and valid then
               begin
                 if novaluecheck or forvalue then
                 begin
@@ -2933,6 +2947,7 @@ begin
       rescanworkers[i].pointermap:=pointermap;
       rescanworkers[i].PointerAddressToFind:=self.address;
       rescanworkers[i].novaluecheck:=novaluecheck;
+      rescanworkers[i].filterOutFalsePositiveValid:=filterOutFalsePositiveValid;
 
       rescanworkers[i].forvalue:=forvalue;
       rescanworkers[i].valuesize:=valuesize;
@@ -3115,6 +3130,7 @@ begin
           rescan.progressbar:=progressbar1;
 
           rescan.novaluecheck:=cbNoValueCheck.checked;
+          rescan.filterOutFalsePositiveValid:=cbFilterOutFalsePositiveValid.checked;
 
           lblProgressbar1.caption:=rsPSREscanning;
           pnlProgress.visible:=true;
@@ -3192,7 +3208,7 @@ begin
           Rescanmemory1.Enabled:=false;
           new1.Enabled:=false;
 
-          if cbNoValueCheck.checked=false then
+          if (cbNoValueCheck.checked=false) and (cbFilterOutFalsePositiveValid.checked=false) then
           begin
             if rbFindAddress.Checked then
             begin

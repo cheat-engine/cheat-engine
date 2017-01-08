@@ -22,6 +22,7 @@ type
     cbMustEndWithSpecificOffsets: TCheckBox;
     cbMustStartWithSpecificOffsets: TCheckBox;
     cbNoValueCheck: TCheckBox;
+    cbFilterOutFalsePositiveValid: TCheckBox;
     cbRepeat: TCheckBox;
     cbUseSavedPointermap: TCheckBox;
     cbValueType: TComboBox;
@@ -58,6 +59,7 @@ type
     procedure cbMustEndWithSpecificOffsetsChange(Sender: TObject);
     procedure cbMustStartWithSpecificOffsetsChange(Sender: TObject);
     procedure cbNoValueCheckChange(Sender: TObject);
+    procedure cbFilterOutFalsePositiveValidChange(Sender: TObject);
     procedure cbUseSavedPointermapChange(Sender: TObject);
     procedure edtNewBaseChange(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -446,6 +448,24 @@ procedure TfrmRescanPointer.cbNoValueCheckChange(Sender: TObject);
 var newstate: boolean;
 begin
   newstate:=not cbNoValueCheck.checked;
+
+  if cbNoValueCheck.checked then cbFilterOutFalsePositiveValid.checked:=false;
+  if newstate and cbFilterOutFalsePositiveValid.checked then exit;
+
+  rbFindAddress.enabled:=newstate;
+  rbFindValue.enabled:=newstate;
+  edtAddress.enabled:=newstate;
+  cbValueType.enabled:=newstate;
+end;
+
+procedure TfrmRescanPointer.cbFilterOutFalsePositiveValidChange(Sender: TObject);
+var newstate: boolean;
+begin
+  newstate:=not cbFilterOutFalsePositiveValid.checked;
+
+  if cbFilterOutFalsePositiveValid.checked then cbNoValueCheck.checked:=false;
+  if newstate and cbNoValueCheck.checked then exit;
+
   rbFindAddress.enabled:=newstate;
   rbFindValue.enabled:=newstate;
   edtAddress.enabled:=newstate;
