@@ -162,7 +162,7 @@ object frmRescanPointer: TfrmRescanPointer
     object edtDelay: TEdit
       AnchorSideLeft.Control = cbDelay
       AnchorSideLeft.Side = asrBottom
-      AnchorSideTop.Control = cbFilterOutFalsePositiveValid
+      AnchorSideTop.Control = cbFilterOutAccessible
       AnchorSideTop.Side = asrBottom
       Left = 115
       Height = 23
@@ -287,7 +287,7 @@ object frmRescanPointer: TfrmRescanPointer
       OnChange = cbNoValueCheckChange
       TabOrder = 11
     end
-    object cbFilterOutFalsePositiveValid: TCheckBox
+    object cbFilterOutAccessible: TCheckBox
       AnchorSideLeft.Control = edtAddress
       AnchorSideTop.Control = cbNoValueCheck
       AnchorSideTop.Side = asrBottom
@@ -295,8 +295,8 @@ object frmRescanPointer: TfrmRescanPointer
       Height = 19
       Top = 81
       Width = 242
-      Caption = 'Only filter out False-Positive valid pointers'
-      OnChange = cbFilterOutFalsePositiveValidChange
+      Caption = 'Only filter out accessible pointers'
+      OnChange = cbFilterOutAccessibleChange
       TabOrder = 17
     end
     object cbLuaFilter: TCheckBox

@@ -56,7 +56,7 @@ type
     tempbuffer: TMemoryStream;
 
     novaluecheck: boolean;
-    filterOutFalsePositiveValid: boolean;
+    filterOutAccessible: boolean;
     PointerAddressToFind: ptrUint;
     forvalue: boolean;
     valuetype: TVariableType;
@@ -139,7 +139,7 @@ type
     endoffsetvalues: array of dword;
 
     novaluecheck: boolean; //when set to true the value and final address are not compared, just check that he final address is in fact readable
-    filterOutFalsePositiveValid: boolean; //when set to true, final address should be not accessible
+    filterOutAccessible: boolean; //when set to true, final address should be not accessible
     useluafilter: boolean; //when set to true each pointer will be passed on to the luafilter function
     luafilter: string; //function name of the luafilter
 
@@ -2706,10 +2706,10 @@ begin
               //(so, wants to keep with final address not evaluated), invert valid status.
               //Also, do not check final address readability and do not compare address/value.
 
-              if filterOutFalsePositiveValid and rangeAndStartOffsetsEndOffsets_Valid then
+              if filterOutAccessible and rangeAndStartOffsetsEndOffsets_Valid then
                 valid:=not valid;
 
-              if (not filterOutFalsePositiveValid) and valid then
+              if (not filterOutAccessible) and valid then
               begin
                 if novaluecheck or forvalue then
                 begin
@@ -2947,7 +2947,7 @@ begin
       rescanworkers[i].pointermap:=pointermap;
       rescanworkers[i].PointerAddressToFind:=self.address;
       rescanworkers[i].novaluecheck:=novaluecheck;
-      rescanworkers[i].filterOutFalsePositiveValid:=filterOutFalsePositiveValid;
+      rescanworkers[i].filterOutAccessible:=filterOutAccessible;
 
       rescanworkers[i].forvalue:=forvalue;
       rescanworkers[i].valuesize:=valuesize;
@@ -3130,7 +3130,7 @@ begin
           rescan.progressbar:=progressbar1;
 
           rescan.novaluecheck:=cbNoValueCheck.checked;
-          rescan.filterOutFalsePositiveValid:=cbFilterOutFalsePositiveValid.checked;
+          rescan.filterOutAccessible:=cbfilterOutAccessible.checked;
 
           lblProgressbar1.caption:=rsPSREscanning;
           pnlProgress.visible:=true;
@@ -3208,7 +3208,7 @@ begin
           Rescanmemory1.Enabled:=false;
           new1.Enabled:=false;
 
-          if (cbNoValueCheck.checked=false) and (cbFilterOutFalsePositiveValid.checked=false) then
+          if (cbNoValueCheck.checked=false) and (cbfilterOutAccessible.checked=false) then
           begin
             if rbFindAddress.Checked then
             begin
