@@ -39,7 +39,7 @@ _ExceptionlessCopy_Internal PROC
 		pop edi
 		pop ecx		
 		pop ebp
-		ret 12
+		ret
 
 _ExceptionlessCopy_Internal ENDP
 

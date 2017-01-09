@@ -10,6 +10,7 @@
 #include "DBKFunc.h"
 
 #include "vmxhelper.h"
+#include "noexceptions.h"
 /*#include "deepkernel.h"
 */
 
@@ -205,11 +206,21 @@ BOOLEAN WriteProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Siz
 					}
 				}
 
-
-				RtlCopyMemory(target, source, Size);
+				
+				if ((loadedbydbvm) || ((UINT_PTR)target < 0x8000000000000000ULL))
+				{
+					RtlCopyMemory(target, source, Size);
+					ntStatus = STATUS_SUCCESS;
+				}
+				else
+				{
+					i = NoExceptions_CopyMemory(target, source, Size);
+					if (i != Size)
+						ntStatus = STATUS_UNSUCCESSFUL;
+					else
+						ntStatus = STATUS_SUCCESS;
+				}
 				   
-				ntStatus = STATUS_SUCCESS;	
-
 				if ((loadedbydbvm) || (disabledWP))
 				{
 					UINT_PTR lastError=0;
@@ -298,9 +309,22 @@ BOOLEAN ReadProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Size
 					vmx_disable_dataPageFaults();
 				}
 
-				RtlCopyMemory(target,source,Size);
-
-				ntStatus = STATUS_SUCCESS;	
+			
+				if ((loadedbydbvm) || ((UINT_PTR)source < 0x8000000000000000ULL))
+				{
+					RtlCopyMemory(target, source, Size);
+					ntStatus = STATUS_SUCCESS;
+				}
+				else
+				{
+					i=NoExceptions_CopyMemory(target, source, Size);
+					if (i != Size)
+						ntStatus = STATUS_UNSUCCESSFUL;
+					else
+						ntStatus = STATUS_SUCCESS;
+				}
+				
+				
 
 				if (loadedbydbvm)
 				{
@@ -445,6 +469,8 @@ UINT_PTR getPageTableBase()
 
 			KnownPageTableBase = ((UINT_PTR)r) & 0xFFFFFF8000000000ULL;
 
+			MAX_PTE_POS = KnownPageTableBase + 0x7FFFFFFFF8ULL;
+			MAX_PDE_POS = KnownPageTableBase + 0x7B7FFFFFF8ULL;
 		
 			/*
 			//0x00400000 should be readable by ce's design.			
