@@ -20,7 +20,7 @@ object frmRescanPointer: TfrmRescanPointer
     AnchorSideTop.Side = asrBottom
     Left = 110
     Height = 25
-    Top = 287
+    Top = 306
     Width = 157
     AutoSize = True
     BorderSpacing.Top = 4
@@ -65,12 +65,12 @@ object frmRescanPointer: TfrmRescanPointer
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
     Left = 0
-    Height = 283
+    Height = 302
     Top = 0
     Width = 344
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 283
+    ClientHeight = 302
     ClientWidth = 344
     TabOrder = 1
     object edtAddress: TEdit
@@ -154,7 +154,7 @@ object frmRescanPointer: TfrmRescanPointer
       AnchorSideTop.Side = asrCenter
       Left = 8
       Height = 19
-      Top = 83
+      Top = 102
       Width = 104
       Caption = 'Delay rescan for'
       TabOrder = 3
@@ -162,11 +162,11 @@ object frmRescanPointer: TfrmRescanPointer
     object edtDelay: TEdit
       AnchorSideLeft.Control = cbDelay
       AnchorSideLeft.Side = asrBottom
-      AnchorSideTop.Control = cbNoValueCheck
+      AnchorSideTop.Control = cbFilterOutAccessible
       AnchorSideTop.Side = asrBottom
       Left = 115
       Height = 23
-      Top = 81
+      Top = 100
       Width = 32
       BorderSpacing.Left = 3
       TabOrder = 4
@@ -179,7 +179,7 @@ object frmRescanPointer: TfrmRescanPointer
       AnchorSideTop.Side = asrCenter
       Left = 150
       Height = 15
-      Top = 85
+      Top = 104
       Width = 43
       BorderSpacing.Left = 3
       Caption = 'seconds'
@@ -191,7 +191,7 @@ object frmRescanPointer: TfrmRescanPointer
       AnchorSideTop.Side = asrBottom
       Left = 8
       Height = 19
-      Top = 146
+      Top = 165
       Width = 177
       Caption = 'Base pointer must be in range'
       OnChange = cbBasePointerMustBeInRangeChange
@@ -203,7 +203,7 @@ object frmRescanPointer: TfrmRescanPointer
       AnchorSideTop.Side = asrBottom
       Left = 24
       Height = 23
-      Top = 165
+      Top = 184
       Width = 112
       BorderSpacing.Left = 16
       CharCase = ecUppercase
@@ -217,7 +217,7 @@ object frmRescanPointer: TfrmRescanPointer
       AnchorSideTop.Side = asrBottom
       Left = 8
       Height = 19
-      Top = 245
+      Top = 264
       Width = 137
       Caption = 'Must start with offsets'
       OnChange = cbMustStartWithSpecificOffsetsChange
@@ -230,7 +230,7 @@ object frmRescanPointer: TfrmRescanPointer
       AnchorSideTop.Side = asrCenter
       Left = 162
       Height = 23
-      Top = 165
+      Top = 184
       Width = 112
       BorderSpacing.Left = 3
       CharCase = ecUppercase
@@ -245,7 +245,7 @@ object frmRescanPointer: TfrmRescanPointer
       AnchorSideTop.Side = asrCenter
       Left = 139
       Height = 15
-      Top = 169
+      Top = 188
       Width = 20
       BorderSpacing.Left = 3
       Caption = 'and'
@@ -258,7 +258,7 @@ object frmRescanPointer: TfrmRescanPointer
       AnchorSideTop.Side = asrBottom
       Left = 8
       Height = 19
-      Top = 264
+      Top = 283
       Width = 134
       Caption = 'Must end with offsets'
       OnChange = cbMustEndWithSpecificOffsetsChange
@@ -270,7 +270,7 @@ object frmRescanPointer: TfrmRescanPointer
       AnchorSideTop.Side = asrBottom
       Left = 8
       Height = 19
-      Top = 104
+      Top = 123
       Width = 166
       Caption = 'Repeat rescan until stopped'
       TabOrder = 10
@@ -287,6 +287,18 @@ object frmRescanPointer: TfrmRescanPointer
       OnChange = cbNoValueCheckChange
       TabOrder = 11
     end
+    object cbFilterOutAccessible: TCheckBox
+      AnchorSideLeft.Control = edtAddress
+      AnchorSideTop.Control = cbNoValueCheck
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 19
+      Top = 81
+      Width = 242
+      Caption = 'Only filter out accessible pointers'
+      OnChange = cbFilterOutAccessibleChange
+      TabOrder = 17
+    end
     object cbLuaFilter: TCheckBox
       AnchorSideLeft.Control = edtAddress
       AnchorSideTop.Control = edtRescanFunction
@@ -294,7 +306,7 @@ object frmRescanPointer: TfrmRescanPointer
       Left = 8
       Height = 19
       Hint = 'When checked this will call the given function for every pointer being evaluated. Return true if it''s valid, false if not'#13#10'base is the base address (integer)'#13#10'offset is a table with offsets'#13#10'target is the address the pointer points to. Can be nil'
-      Top = 125
+      Top = 144
       Width = 117
       Caption = 'Lua filter. function'
       OnChange = cbLuaFilterChange
@@ -309,7 +321,7 @@ object frmRescanPointer: TfrmRescanPointer
       AnchorSideTop.Side = asrBottom
       Left = 127
       Height = 23
-      Top = 123
+      Top = 142
       Width = 72
       BorderSpacing.Left = 2
       Enabled = False
@@ -323,7 +335,7 @@ object frmRescanPointer: TfrmRescanPointer
       AnchorSideTop.Side = asrCenter
       Left = 202
       Height = 15
-      Top = 127
+      Top = 146
       Width = 137
       BorderSpacing.Left = 3
       BorderSpacing.Right = 5
@@ -351,7 +363,7 @@ object frmRescanPointer: TfrmRescanPointer
       AnchorSideTop.Side = asrBottom
       Left = 8
       Height = 19
-      Top = 188
+      Top = 207
       Width = 264
       Caption = 'Change base pointer address by specific offset'
       OnChange = cbChangeBasePointerOffsetChange
@@ -364,7 +376,7 @@ object frmRescanPointer: TfrmRescanPointer
       AnchorSideTop.Side = asrBottom
       Left = 8
       Height = 38
-      Top = 207
+      Top = 226
       Width = 284
       AutoSize = True
       BevelOuter = bvNone
