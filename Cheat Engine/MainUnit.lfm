@@ -1,9 +1,9 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 663
+  Left = 853
   Height = 699
   Hint = ' '
-  Top = 182
+  Top = 195
   Width = 701
   HelpContext = 3
   HorzScrollBar.Visible = False
@@ -1854,7 +1854,7 @@ object MainForm: TMainForm
     end
     object miAsyncScript: TMenuItem
       AutoCheck = True
-      Caption = 'Execute asynchronious'
+      Caption = 'Execute asynchronous'
       ShowAlwaysCheckable = True
       Visible = False
       OnClick = miAsyncScriptClick

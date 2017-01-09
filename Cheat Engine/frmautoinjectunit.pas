@@ -916,12 +916,11 @@ var a,b: integer;
     aa:TCEAllocArray;
     registeredsymbols: TStringlist;
 begin
-{$ifndef standalonetrainerwithassembler}
-  {$ifndef net}
-
   registeredsymbols:=tstringlist.Create;
   registeredsymbols.CaseSensitive:=false;
   registeredsymbols.Duplicates:=dupIgnore;
+
+
 
   try
     setlength(aa,0);
@@ -933,15 +932,11 @@ begin
     begin
       //add a entry with type 255
       mainform.AddAutoAssembleScript(assemblescreen.text);
-
-
     end
     else showmessage(rsFailedToAddToTableNotAllCodeIsInjectable);
   finally
-    registeredsymbols.Free;
+    freeandnil(registeredsymbols);
   end;
-  {$endif}
-  {$endif}
 end;
 
 procedure Getjumpandoverwrittenbytes(address,addressto: ptrUint; jumppart,originalcodepart: tstrings);

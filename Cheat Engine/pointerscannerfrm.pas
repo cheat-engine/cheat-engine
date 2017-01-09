@@ -2537,6 +2537,7 @@ begin
     if useluafilter then
     begin
       //create a new lua thread
+      //todo: use GetLuaState;
       luacs.enter;
       try
         l:=lua_newthread(luavm); //pushes the thread on the luavm stack.

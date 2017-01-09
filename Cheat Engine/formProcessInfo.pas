@@ -34,7 +34,6 @@ type
     lblPEPROCESS: TLabel;
     lblSdt: TLabel;
     lblSsdt: TLabel;
-    Panel1: TPanel;
     Panel2: TPanel;
     procedure FormCreate(Sender: TObject);
     procedure Button1Click(Sender: TObject);
@@ -71,6 +70,7 @@ begin
     lblcr3.caption:=inttohex(cr3,8)
   else
     lblcr3.Caption:='---';
+
 
   lblcr0.caption:=inttohex(getcr0(),8);
   lblcr4.caption:=inttohex(getcr4(),8);

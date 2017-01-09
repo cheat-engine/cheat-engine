@@ -281,8 +281,8 @@ function GetCR3FromPID(pid: system.QWORD;var CR3:system.QWORD):BOOL; stdcall;
 
 //function SetCR3(hProcess:THANDLE;CR3: DWORD):BOOL; stdcall;
 function GetCR0:DWORD; stdcall;
-function GetSDT:DWORD; stdcall;
-function GetSDTShadow:DWORD; stdcall;
+function GetSDT:PtrUInt; stdcall;
+function GetSDTShadow:PtrUInt; stdcall;
 
 function StartProcessWatch:BOOL;stdcall;
 function WaitForProcessListData(processpointer:pointer;threadpointer:pointer;timeout:dword):dword; stdcall;
@@ -353,7 +353,7 @@ procedure dbk_test;
 
 procedure LaunchDBVM(cpuid: integer); stdcall;
 
-function GetGDT(limit: pword):dword; stdcall;
+function GetGDT(limit: pword):ptruint; stdcall;
 
 function isDriverLoaded(SigningIsTheCause: PBOOL): BOOL; stdcall;
 
@@ -598,7 +598,7 @@ begin
   deviceiocontrol(hdevice,cc,nil,0,nil,0,br,nil);
 end;
 
-function GetGDT(limit: pword):dword; stdcall;
+function GetGDT(limit: pword):ptruint; stdcall;
 var cc,br: dword;
     gdtdescriptor: packed record
                      wLimit: word;
@@ -770,12 +770,12 @@ begin
   result:=debugport;
 end;
 
-function GetSDTShadow:DWORD; stdcall;
+function GetSDTShadow:ptruint; stdcall;
 begin
   result:=SDTShadow;
 end;
 
-function GetSDT:DWORD; stdcall;
+function GetSDT:ptruint; stdcall;
 var x,cc:dword;
     res: uint64;
 begin
