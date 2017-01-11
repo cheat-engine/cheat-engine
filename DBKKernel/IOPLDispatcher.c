@@ -1,5 +1,6 @@
 #pragma warning( disable: 4103)
 
+
 #include "IOPLDispatcher.h"
 #include "DBKFunc.h"
 #include "DBKDrvr.h"
@@ -20,8 +21,13 @@
 #include "ultimap.h"
 #include "ultimap2.h"
 
+
+
 UINT64 PhysicalMemoryRanges=0; //initialized once, and used thereafter. If the user adds/removes ram at runtime, screw him and make him the reload the driver
 UINT64 PhysicalMemoryRangesListSize=0;
+
+PVOID DRMHandle = NULL;
+PEPROCESS DRMProcess = NULL;
 
 PSERVICE_DESCRIPTOR_TABLE KeServiceDescriptorTableShadow=NULL;
 PSERVICE_DESCRIPTOR_TABLE KeServiceDescriptorTable=NULL;
@@ -130,9 +136,120 @@ void CreateRemoteAPC(ULONG threadid,PVOID addresstoexecute)
                     );
 
 	KeInsertQueueApc (kApc, addresstoexecute, addresstoexecute, 0);
-	
-	
 }
+
+#define PROCESS_TERMINATE                  (0x0001)  
+#define PROCESS_CREATE_THREAD              (0x0002)  
+#define PROCESS_SET_SESSIONID              (0x0004)  
+#define PROCESS_VM_OPERATION               (0x0008)  
+#define PROCESS_VM_READ                    (0x0010)  
+#define PROCESS_VM_WRITE                   (0x0020)  
+#define PROCESS_DUP_HANDLE                 (0x0040)  
+#define PROCESS_CREATE_PROCESS             (0x0080)  
+#define PROCESS_SET_QUOTA                  (0x0100)  
+#define PROCESS_SET_INFORMATION            (0x0200)  
+#define PROCESS_QUERY_INFORMATION          (0x0400)  
+#define PROCESS_SUSPEND_RESUME             (0x0800)  
+#define PROCESS_QUERY_LIMITED_INFORMATION  (0x1000)  
+
+
+
+OB_PREOP_CALLBACK_STATUS ThreadPreCallback(PVOID RegistrationContext, POB_PRE_OPERATION_INFORMATION OperationInformation)
+{		
+	if (DRMProcess == NULL)
+		return OB_PREOP_SUCCESS;
+
+	if (PsGetCurrentProcess() == DRMProcess)
+		return OB_PREOP_SUCCESS;
+
+	if (OperationInformation->ObjectType == *PsThreadType)
+	{
+
+		if (PsGetProcessId(DRMProcess) == PsGetThreadProcessId(OperationInformation->Object))
+		{
+			//probably block it
+
+			if (OperationInformation->Operation == OB_OPERATION_HANDLE_CREATE)
+			{
+				//create handle			
+
+				ACCESS_MASK da = OperationInformation->Parameters->CreateHandleInformation.DesiredAccess;
+
+				DbgPrint("PID %d opened a handle to the a CE thread with access mask %x", PsGetCurrentProcessId(), da);
+
+				da = da & (THREAD_SET_LIMITED_INFORMATION | THREAD_QUERY_LIMITED_INFORMATION);
+
+				OperationInformation->Parameters->CreateHandleInformation.DesiredAccess = da;
+			}
+			else if (OperationInformation->Operation == OB_OPERATION_HANDLE_DUPLICATE)
+			{
+				//duplicate handle
+				ACCESS_MASK da = OperationInformation->Parameters->DuplicateHandleInformation.DesiredAccess;
+
+				DbgPrint("PID %d duplicated a handle to a CE thread with access mask %x", PsGetCurrentProcessId(), da);
+
+				da = da & (THREAD_SET_LIMITED_INFORMATION | THREAD_QUERY_LIMITED_INFORMATION);
+				OperationInformation->Parameters->DuplicateHandleInformation.DesiredAccess = da;
+			}
+		}
+	}
+	return OB_PREOP_SUCCESS;
+}
+
+
+VOID ThreadPostCallback(PVOID RegistrationContext, POB_POST_OPERATION_INFORMATION OperationInformation)
+{
+	//DbgPrint("ProcessPostCallback");
+}
+
+
+OB_PREOP_CALLBACK_STATUS ProcessPreCallback(PVOID RegistrationContext, POB_PRE_OPERATION_INFORMATION OperationInformation)
+{
+	if (DRMProcess == NULL)
+		return OB_PREOP_SUCCESS;
+
+	if (PsGetCurrentProcess() == DRMProcess)
+		return OB_PREOP_SUCCESS;
+
+	if (OperationInformation->ObjectType == *PsProcessType)
+	{
+		if (OperationInformation->Object == DRMProcess)
+		{
+			//probably block it
+
+			if (OperationInformation->Operation == OB_OPERATION_HANDLE_CREATE)
+			{
+				//create handle			
+				
+				ACCESS_MASK da = OperationInformation->Parameters->CreateHandleInformation.DesiredAccess;
+
+				DbgPrint("PID %d opened a handle to the CE process with access mask %x", PsGetCurrentProcessId(), da);
+
+				da = da & (PROCESS_TERMINATE | PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_SUSPEND_RESUME);
+
+				OperationInformation->Parameters->CreateHandleInformation.DesiredAccess = da;
+			}
+			else if (OperationInformation->Operation == OB_OPERATION_HANDLE_DUPLICATE)
+			{
+				//duplicate handle
+				ACCESS_MASK da = OperationInformation->Parameters->DuplicateHandleInformation.DesiredAccess;
+
+				DbgPrint("PID %d duplicated a handle to the CE process with access mask %x", PsGetCurrentProcessId(), da);
+
+				da = da & (PROCESS_TERMINATE | PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_SUSPEND_RESUME);
+				OperationInformation->Parameters->DuplicateHandleInformation.DesiredAccess = da;
+			}
+		}
+	}
+	return OB_PREOP_SUCCESS;
+}
+
+
+VOID ProcessPostCallback(PVOID RegistrationContext, POB_POST_OPERATION_INFORMATION OperationInformation)
+{
+	//DbgPrint("ProcessPostCallback");
+}
+
 
 BOOL DispatchIoctlDBVM(IN PDEVICE_OBJECT DeviceObject, ULONG IoControlCode, PVOID lpInBuffer, DWORD nInBufferSize, PVOID lpOutBuffer, DWORD nOutBufferSize, PDWORD lpBytesReturned)
 /*
@@ -247,35 +364,36 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 			{					
 				PEPROCESS selectedprocess;
 				ULONG processid=*(PULONG)Irp->AssociatedIrp.SystemBuffer;
-				HANDLE ProcessHandle;
+				HANDLE ProcessHandle = GetHandleForProcessID((HANDLE)processid);
 
-
-				ntStatus=STATUS_SUCCESS;
-
-				__try
+				ntStatus = STATUS_SUCCESS;
+				if (ProcessHandle == 0)
 				{
-					ProcessHandle=0;
+					__try
+					{
+						ProcessHandle = 0;
 
-					if (PsLookupProcessByProcessId((PVOID)(UINT_PTR)(processid),&selectedprocess)==STATUS_SUCCESS)
-					{		
+						if (PsLookupProcessByProcessId((PVOID)(UINT_PTR)(processid), &selectedprocess) == STATUS_SUCCESS)
+						{
 
 							//DbgPrint("Calling ObOpenObjectByPointer\n");
-							ntStatus=ObOpenObjectByPointer ( 
-										selectedprocess,
-										0,
-										NULL,
-										PROCESS_ALL_ACCESS,
-										*PsProcessType,
-										KernelMode, //UserMode,
-										&ProcessHandle);
+							ntStatus = ObOpenObjectByPointer(
+								selectedprocess,
+								0,
+								NULL,
+								PROCESS_ALL_ACCESS,
+								*PsProcessType,
+								KernelMode, //UserMode,
+								&ProcessHandle);
 
 							//DbgPrint("ntStatus=%x",ntStatus);
+						}
+					}
+					__except (1)
+					{
+						ntStatus = STATUS_UNSUCCESSFUL;
 					}
 				}
-				__except(1)
-				{
-					ntStatus=STATUS_UNSUCCESSFUL;
-				}		
 				
 				*(PUINT64)Irp->AssociatedIrp.SystemBuffer=(UINT64)ProcessHandle;
 				break;
@@ -928,21 +1046,31 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 		case IOCTL_CE_STARTPROCESSWATCH:
 			{
-				KIRQL OldIrql;
+				NTSTATUS r;
 
-
-				KeAcquireSpinLock(&ProcesslistSL,&OldIrql);
+				ExAcquireResourceExclusiveLite(&ProcesslistR, TRUE);				
 				ProcessEventCount=0;				
-				KeReleaseSpinLock(&ProcesslistSL,OldIrql);
+				ExReleaseResourceLite(&ProcesslistR);
 				
-
 				DbgPrint("IOCTL_CE_STARTPROCESSWATCH\n");
+
+				CleanProcessList();
+				WatcherProcess = PsGetCurrentProcess();
 				
 				if (CreateProcessNotifyRoutineEnabled==FALSE)
 				{
+					
 					DbgPrint("calling PsSetCreateProcessNotifyRoutine\n");
-				    CreateProcessNotifyRoutineEnabled=(PsSetCreateProcessNotifyRoutine(CreateProcessNotifyRoutine,FALSE)==STATUS_SUCCESS);
-					CreateThreadNotifyRoutineEnabled=(PsSetCreateThreadNotifyRoutine(CreateThreadNotifyRoutine)==STATUS_SUCCESS);
+
+					
+#if (NTDDI_VERSION >= NTDDI_VISTASP1) 
+					r=PsSetCreateProcessNotifyRoutineEx(CreateProcessNotifyRoutineEx, FALSE);
+					CreateProcessNotifyRoutineEnabled = r== STATUS_SUCCESS;
+#else
+				    CreateProcessNotifyRoutineEnabled = (PsSetCreateProcessNotifyRoutine(CreateProcessNotifyRoutine,FALSE)==STATUS_SUCCESS);					
+#endif
+					if (CreateProcessNotifyRoutineEnabled)
+						CreateThreadNotifyRoutineEnabled = (PsSetCreateThreadNotifyRoutine(CreateThreadNotifyRoutine) == STATUS_SUCCESS);
 				}
 
 				ntStatus=(CreateProcessNotifyRoutineEnabled) ? STATUS_SUCCESS : STATUS_UNSUCCESSFUL;
@@ -950,7 +1078,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				if (ntStatus==STATUS_SUCCESS)
 					DbgPrint("CreateProcessNotifyRoutineEnabled worked\n");
 				else
-					DbgPrint("CreateProcessNotifyRoutineEnabled failed\n");
+					DbgPrint("CreateProcessNotifyRoutineEnabled failed (r=%x)\n",r);
 					
 
 				break;
@@ -960,15 +1088,14 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 		case IOCTL_CE_GETPROCESSEVENTS:
 			{
-				KIRQL OldIrql;
 				
-				KeAcquireSpinLock(&ProcesslistSL,&OldIrql);
+				ExAcquireResourceExclusiveLite(&ProcesslistR, TRUE);
 
 				*(PUCHAR)Irp->AssociatedIrp.SystemBuffer=ProcessEventCount;	
 				RtlCopyMemory((PVOID)((UINT_PTR)Irp->AssociatedIrp.SystemBuffer+1),&ProcessEventdata[0],ProcessEventCount*sizeof(ProcessEventdta));
 				ProcessEventCount=0; //there's room for new events
 
-				KeReleaseSpinLock(&ProcesslistSL,OldIrql);
+				ExReleaseResourceLite(&ProcesslistR);
 
 				ntStatus=STATUS_SUCCESS;
 				break;
@@ -977,15 +1104,13 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 		case IOCTL_CE_GETTHREADEVENTS:
 			{
-				KIRQL OldIrql;
-				
-				KeAcquireSpinLock(&ProcesslistSL,&OldIrql);
+				ExAcquireResourceExclusiveLite(&ProcesslistR, TRUE);
 
 				*(PUCHAR)Irp->AssociatedIrp.SystemBuffer=ThreadEventCount;	
 				RtlCopyMemory((PVOID)((UINT_PTR)Irp->AssociatedIrp.SystemBuffer+1),&ThreadEventData[0],ThreadEventCount*sizeof(ThreadEventDta));
 				ThreadEventCount=0; //there's room for new events
 
-				KeReleaseSpinLock(&ProcesslistSL,OldIrql);
+				ExReleaseResourceLite(&ProcesslistR);
 
 				ntStatus=STATUS_SUCCESS;
 				break;
@@ -2030,6 +2155,59 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 					DbgPrint("Virtualization_Enabled=0\n");
 					vmxusable=0;
 				}
+				
+				break;
+			}
+
+		case IOCTL_CE_ENABLE_DRM:
+			{
+				DRMProcess = PsGetCurrentProcess();
+
+				if (DRMHandle == NULL)
+				{
+					WCHAR wcAltitude[10];
+					UNICODE_STRING usAltitude;
+					OB_CALLBACK_REGISTRATION r;
+					LARGE_INTEGER tc;
+					OB_OPERATION_REGISTRATION obr[2];
+					int RandomVal;
+
+					tc.QuadPart = 0;
+					KeQueryTickCount(&tc);
+					RandomVal = 1000 + (tc.QuadPart % 50000);
+
+					DbgPrint("Activating CE's super advanced DRM"); //yeah right....
+
+					DbgPrint("RandomVal=%d", RandomVal);
+					RtlStringCbPrintfW(wcAltitude, sizeof(wcAltitude) - 2, L"%d", RandomVal);
+
+					DbgPrint("wcAltitude=%S", wcAltitude);
+					RtlInitUnicodeString(&usAltitude, wcAltitude);
+
+					r.Version = OB_FLT_REGISTRATION_VERSION;
+					r.Altitude = usAltitude;
+					r.RegistrationContext = NULL;
+
+
+					obr[0].ObjectType = PsProcessType;
+					obr[0].Operations = OB_OPERATION_HANDLE_CREATE | OB_OPERATION_HANDLE_DUPLICATE;
+					obr[0].PreOperation = ProcessPreCallback;
+					obr[0].PostOperation = ProcessPostCallback;
+
+					obr[1].ObjectType = PsThreadType;
+					obr[1].Operations = OB_OPERATION_HANDLE_CREATE | OB_OPERATION_HANDLE_DUPLICATE;
+					obr[1].PreOperation = ThreadPreCallback;
+					obr[1].PostOperation = ThreadPostCallback;
+
+					r.OperationRegistration = obr;
+					r.OperationRegistrationCount = 2;
+
+					ntStatus = ObRegisterCallbacks(&r, &DRMHandle);
+					DbgPrint("ntStatus=%X", ntStatus);
+				}
+				else
+					ntStatus = STATUS_SUCCESS;
+
 				
 				break;
 			}

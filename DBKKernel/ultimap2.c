@@ -8,17 +8,6 @@
 #include "ultimap2.h"
 
 
-typedef ULONG(NTUSERSETWINDOWSHOOKEX)(
-	IN HANDLE hmod,
-	IN PUNICODE_STRING pstrLib OPTIONAL,
-	IN DWORD idThread,
-	IN int nFilterType,
-	IN PVOID pfnFilterProc,
-	IN DWORD dwFlags
-	);
-NTUSERSETWINDOWSHOOKEX OldNtUserSetWindowsHookEx;
-
-
 typedef NTSTATUS(*PSSUSPENDPROCESS)(PEPROCESS p);
 
 
@@ -937,7 +926,7 @@ RTL_GENERIC_COMPARE_RESULTS NTAPI ToPACompare(__in struct _RTL_GENERIC_TABLE *Ta
 {
 	//DbgPrint("Comparing %p with %p", FirstStruct->PhysicalAddress, FirstStruct->PhysicalAddress);
 
-	if (FirstStruct->PhysicalAddress == FirstStruct->PhysicalAddress)
+	if (FirstStruct->PhysicalAddress == SecondStruct->PhysicalAddress)
 		return GenericEqual;
 	else
 	{

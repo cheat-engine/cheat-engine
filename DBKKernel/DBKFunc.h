@@ -2,6 +2,9 @@
 #define DBKFUNC_H
 
 #include "ntifs.h"
+//#include <ntifs.h>
+#include <ntstrsafe.h>
+
 #include <windef.h>
 
 #include "interruptHook.h"

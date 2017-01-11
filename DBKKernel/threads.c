@@ -60,45 +60,45 @@ void DBKSuspendThread(ULONG ThreadID)
 	struct ThreadData *t_data;
 
 
-    KeAcquireSpinLock(&ProcesslistSL,&OldIrql); 
-
-	DbgPrint("Going to suspend this thread\n");
-
-	//find the thread in the threadlist
-
-
-	//find the threadid in the processlist
-	t_data=GetThreaddata(ThreadID);
-	if (t_data)
+	if (ExAcquireResourceSharedLite(&ProcesslistR, TRUE))
 	{
-		DbgPrint("Suspending thread....\n");	
+		DbgPrint("Going to suspend this thread\n");
 
-		
+		//find the thread in the threadlist
 
-		if (!t_data->PEThread)
+
+		//find the threadid in the processlist
+		t_data = GetThreaddata(ThreadID);
+		if (t_data)
 		{
-			//not yet initialized
-			t_data->PEThread=(PETHREAD)getPEThread(ThreadID);
-			KeInitializeApc(&t_data->SuspendApc,
-							(PKTHREAD)t_data->PEThread,
-							0,
-							(PKKERNEL_ROUTINE)Ignore,
-							(PKRUNDOWN_ROUTINE)NULL,
-							(PKNORMAL_ROUTINE)SuspendThreadAPCRoutine,
-							KernelMode,
-							t_data);
+			DbgPrint("Suspending thread....\n");
 
-		}	
-		DbgPrint("x should be %p",t_data);
-		t_data->suspendcount++;
 
-		if (t_data->suspendcount==1) //not yet suspended so suspend it
-            KeInsertQueueApc(&t_data->SuspendApc, t_data, t_data, 0);		
+
+			if (!t_data->PEThread)
+			{
+				//not yet initialized
+				t_data->PEThread = (PETHREAD)getPEThread(ThreadID);
+				KeInitializeApc(&t_data->SuspendApc,
+					(PKTHREAD)t_data->PEThread,
+					0,
+					(PKKERNEL_ROUTINE)Ignore,
+					(PKRUNDOWN_ROUTINE)NULL,
+					(PKNORMAL_ROUTINE)SuspendThreadAPCRoutine,
+					KernelMode,
+					t_data);
+
+			}
+			DbgPrint("x should be %p", t_data);
+			t_data->suspendcount++;
+
+			if (t_data->suspendcount == 1) //not yet suspended so suspend it
+				KeInsertQueueApc(&t_data->SuspendApc, t_data, t_data, 0);
+		}
+		else
+			DbgPrint("Thread not found in the list\n");
 	}
-	else
-		DbgPrint("Thread not found in the list\n");
-
-	KeReleaseSpinLock(&ProcesslistSL,OldIrql);
+	ExReleaseResourceLite(&ProcesslistR);
 }
 
 void DBKResumeThread(ULONG ThreadID)
@@ -108,29 +108,29 @@ void DBKResumeThread(ULONG ThreadID)
 	struct ThreadData *t_data;
 
 
-    KeAcquireSpinLock(&ProcesslistSL,&OldIrql); 
-
-
-	DbgPrint("Going to resume this thread\n");
-
-	//find the thread in the threadlist
-
-
-	//find the threadid in the processlist
-	t_data=GetThreaddata(ThreadID);
-	if (t_data)
+	if (ExAcquireResourceSharedLite(&ProcesslistR, TRUE))
 	{
-		if (t_data->suspendcount)
-		{
-			t_data->suspendcount--;
-			if (!t_data->suspendcount) //suspendcount=0 so resume
-				KeReleaseSemaphore(&t_data->SuspendSemaphore,0,1,FALSE);
-		}
-	}
-	else
-		DbgPrint("Thread not found in the list\n");
 
-	KeReleaseSpinLock(&ProcesslistSL,OldIrql);
+		DbgPrint("Going to resume this thread\n");
+
+		//find the thread in the threadlist
+
+
+		//find the threadid in the processlist
+		t_data = GetThreaddata(ThreadID);
+		if (t_data)
+		{
+			if (t_data->suspendcount)
+			{
+				t_data->suspendcount--;
+				if (!t_data->suspendcount) //suspendcount=0 so resume
+					KeReleaseSemaphore(&t_data->SuspendSemaphore, 0, 1, FALSE);
+			}
+		}
+		else
+			DbgPrint("Thread not found in the list\n");
+	}
+	ExReleaseResourceLite(&ProcesslistR);
 
 }
 
@@ -142,60 +142,61 @@ void DBKSuspendProcess(ULONG ProcessID)
 	struct ProcessData *tempProcessData=NULL;
 
 
-    KeAcquireSpinLock(&ProcesslistSL,&OldIrql); 
-	
-
-	DbgPrint("Going to suspend this process\n");
-
-	//find the process in the threadlist
-
-	tempProcessData=processlist;
-	while (tempProcessData)
+	if (ExAcquireResourceSharedLite(&ProcesslistR, TRUE))
 	{
-		if (tempProcessData->ProcessID==(HANDLE)(UINT_PTR)ProcessID)
+
+
+		DbgPrint("Going to suspend this process\n");
+
+		//find the process in the threadlist
+
+		tempProcessData = processlist;
+		while (tempProcessData)
 		{
-			t_data=tempProcessData->Threads;
-			break;
+			if (tempProcessData->ProcessID == (HANDLE)(UINT_PTR)ProcessID)
+			{
+				t_data = tempProcessData->Threads;
+				break;
+			}
+			tempProcessData = tempProcessData->next;
 		}
-		tempProcessData=tempProcessData->next;
-	}
 
-	if (!t_data)
-	{
-		DbgPrint("This process was not found\n");
-		KeReleaseSpinLock(&ProcesslistSL,OldIrql);
-		return; //no process found
-	}
-
-
-	while (t_data)
-	{
-		DbgPrint("Suspending thread....\n");		
-
-		if (!t_data->PEThread)
+		if (!t_data)
 		{
-			//not yet initialized
-			t_data->PEThread=(PETHREAD)getPEThread((UINT_PTR)t_data->ThreadID);
-			KeInitializeApc(&t_data->SuspendApc,
-							(PKTHREAD)t_data->PEThread,
-							0,
-							(PKKERNEL_ROUTINE)Ignore,
-							(PKRUNDOWN_ROUTINE)NULL,
-							(PKNORMAL_ROUTINE)SuspendThreadAPCRoutine,
-							KernelMode,
-							t_data);
+			DbgPrint("This process was not found\n");
+			ExReleaseResourceLite(&ProcesslistR);
+			return; //no process found
+		}
 
-		}	
-		DbgPrint("x should be %p",t_data); 
-		t_data->suspendcount++;
 
-		if (t_data->suspendcount==1) //not yet suspended so suspend it
-			KeInsertQueueApc(&t_data->SuspendApc, t_data, t_data, 0);
+		while (t_data)
+		{
+			DbgPrint("Suspending thread....\n");
 
-		t_data=t_data->next; //next thread
+			if (!t_data->PEThread)
+			{
+				//not yet initialized
+				t_data->PEThread = (PETHREAD)getPEThread((UINT_PTR)t_data->ThreadID);
+				KeInitializeApc(&t_data->SuspendApc,
+					(PKTHREAD)t_data->PEThread,
+					0,
+					(PKKERNEL_ROUTINE)Ignore,
+					(PKRUNDOWN_ROUTINE)NULL,
+					(PKNORMAL_ROUTINE)SuspendThreadAPCRoutine,
+					KernelMode,
+					t_data);
+
+			}
+			DbgPrint("x should be %p", t_data);
+			t_data->suspendcount++;
+
+			if (t_data->suspendcount == 1) //not yet suspended so suspend it
+				KeInsertQueueApc(&t_data->SuspendApc, t_data, t_data, 0);
+
+			t_data = t_data->next; //next thread
+		}
 	}
-
-	KeReleaseSpinLock(&ProcesslistSL,OldIrql);
+	ExReleaseResourceLite(&ProcesslistR);
 
 }
 
@@ -207,47 +208,47 @@ void DBKResumeProcess(ULONG ProcessID)
 	struct ProcessData *tempProcessData=NULL;
 
 
-	KeAcquireSpinLock(&ProcesslistSL,&OldIrql);
-	
-
-	DbgPrint("Going to suspend this process\n");
-
-	//find the process in the threadlist
-
-	tempProcessData=processlist;
-	while (tempProcessData)
+	if (ExAcquireResourceSharedLite(&ProcesslistR, TRUE))
 	{
-		if (tempProcessData->ProcessID==(HANDLE)(UINT_PTR)ProcessID)
+
+		DbgPrint("Going to suspend this process\n");
+
+		//find the process in the threadlist
+
+		tempProcessData = processlist;
+		while (tempProcessData)
 		{
-			t_data=tempProcessData->Threads;
-			break;
+			if (tempProcessData->ProcessID == (HANDLE)(UINT_PTR)ProcessID)
+			{
+				t_data = tempProcessData->Threads;
+				break;
+			}
+			tempProcessData = tempProcessData->next;
 		}
-		tempProcessData=tempProcessData->next;
-	}
 
-	if (!t_data)
-	{
-		DbgPrint("This process was not found\n");
-		KeReleaseSpinLock(&ProcesslistSL,OldIrql);
-		return; //no process found
-	}
-
-
-	while (t_data)
-	{
-		DbgPrint("Resuming thread....\n");		
-
-		if (t_data->suspendcount)
+		if (!t_data)
 		{
-			t_data->suspendcount--;
-			if (!t_data->suspendcount) //suspendcount=0 so resume
-				KeReleaseSemaphore(&t_data->SuspendSemaphore,0,1,FALSE);
+			DbgPrint("This process was not found\n");
+			ExReleaseResourceLite(&ProcesslistR);
+			return; //no process found
 		}
 
 
-		t_data=t_data->next; //next thread
-	}
+		while (t_data)
+		{
+			DbgPrint("Resuming thread....\n");
 
-	KeReleaseSpinLock(&ProcesslistSL,OldIrql);
+			if (t_data->suspendcount)
+			{
+				t_data->suspendcount--;
+				if (!t_data->suspendcount) //suspendcount=0 so resume
+					KeReleaseSemaphore(&t_data->SuspendSemaphore, 0, 1, FALSE);
+			}
+
+
+			t_data = t_data->next; //next thread
+		}
+	}
+	ExReleaseResourceLite(&ProcesslistR);
 }
 

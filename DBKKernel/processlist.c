@@ -5,6 +5,34 @@
 #include "threads.h"
 #include "memscan.h"
 
+PRTL_GENERIC_TABLE InternalProcessList = NULL;
+
+
+RTL_GENERIC_COMPARE_RESULTS NTAPI ProcessListCompare(__in struct _RTL_GENERIC_TABLE *Table, __in PProcessListData FirstStruct, __in PProcessListData SecondStruct)
+{
+	if (FirstStruct->ProcessID  == SecondStruct->ProcessID)
+		return GenericEqual;
+	else
+	{
+		if (SecondStruct->ProcessID < FirstStruct->ProcessID)
+			return GenericLessThan;
+		else
+			return GenericGreaterThan;
+	}
+}
+
+PVOID NTAPI ProcessListAlloc(__in struct _RTL_GENERIC_TABLE *Table, __in CLONG ByteSize)
+{
+	PVOID r=ExAllocatePoolWithTag(PagedPool, ByteSize, 0);
+	RtlZeroMemory(r, ByteSize);
+}
+
+VOID NTAPI ProcessListDealloc(__in struct _RTL_GENERIC_TABLE *Table, __in __drv_freesMem(Mem) __post_invalid PVOID Buffer)
+{
+	ExFreePoolWithTag(Buffer, 0);
+}
+
+
 VOID GetThreadData(IN PDEVICE_OBJECT  DeviceObject, IN PVOID  Context)
 {
 	KIRQL OldIrql;
@@ -23,36 +51,37 @@ VOID GetThreadData(IN PDEVICE_OBJECT  DeviceObject, IN PVOID  Context)
 
 	selectedthread=NULL;
 
-	KeAcquireSpinLock(&ProcesslistSL,&OldIrql);
-	tid=tempThreadEntry->ThreadID;
-	AP=&tempThreadEntry->SuspendApc;
-	PsLookupThreadByThreadId((PVOID)tid,&selectedthread);
-	
-	if (selectedthread)
+	if (ExAcquireResourceSharedLite(&ProcesslistR, TRUE))
 	{
-		DbgPrint("PEThread=%p\n",selectedthread);
-		KeInitializeApc(AP,
-					(PKTHREAD)selectedthread,
-					0,
-					(PKKERNEL_ROUTINE)Ignore,
-					(PKRUNDOWN_ROUTINE)NULL,
-					(PKNORMAL_ROUTINE)SuspendThreadAPCRoutine,
-					KernelMode,
-					NULL);
 
-		ObDereferenceObject(selectedthread);
-	}
-	else 
-	{
-		DbgPrint("Failed getting the pethread.\n");
-	}
+		tid = tempThreadEntry->ThreadID;
+		AP = &tempThreadEntry->SuspendApc;
+		PsLookupThreadByThreadId((PVOID)tid, &selectedthread);
 
-	KeReleaseSpinLock(&ProcesslistSL,OldIrql);
+		if (selectedthread)
+		{
+			DbgPrint("PEThread=%p\n", selectedthread);
+			KeInitializeApc(AP,
+				(PKTHREAD)selectedthread,
+				0,
+				(PKKERNEL_ROUTINE)Ignore,
+				(PKRUNDOWN_ROUTINE)NULL,
+				(PKNORMAL_ROUTINE)SuspendThreadAPCRoutine,
+				KernelMode,
+				NULL);
+
+			ObDereferenceObject(selectedthread);
+		}
+		else
+		{
+			DbgPrint("Failed getting the pethread.\n");
+		}
+	}
+	ExReleaseResourceLite(&ProcesslistR);
 }
 
 VOID CreateThreadNotifyRoutine(IN HANDLE  ProcessId,IN HANDLE  ThreadId,IN BOOLEAN  Create)
 {
-	KIRQL OldIrql;
 	PETHREAD CurrentThread;	
 
 	if (KeGetCurrentIrql()==PASSIVE_LEVEL)
@@ -62,120 +91,184 @@ VOID CreateThreadNotifyRoutine(IN HANDLE  ProcessId,IN HANDLE  ThreadId,IN BOOLE
 		//	PsSetContextThread (bah, xp only)
 		}*/
 
-        KeAcquireSpinLock(&ProcesslistSL,&OldIrql);  //perhaps a check for winxp and then call KeAcquireInStackQueuedSpinLock instead....
-		
-
-		if (ThreadEventCount<50)
-		{		
-			ThreadEventData[ThreadEventCount].Created=Create;
-			ThreadEventData[ThreadEventCount].ProcessID=(UINT_PTR)ProcessId;
-			ThreadEventData[ThreadEventCount].ThreadID=(UINT_PTR)ThreadId;
-
-		/*	if (Create)
-                DbgPrint("Create ProcessID=%x\nThreadID=%x\n",(UINT_PTR)ProcessId,(UINT_PTR)ThreadId);
-			else
-				DbgPrint("Destroy ProcessID=%x\nThreadID=%x\n",(UINT_PTR)ProcessId,(UINT_PTR)ThreadId);
-		*/			
-
-			ThreadEventCount++;
-		}
-
-
-		KeReleaseSpinLock(&ProcesslistSL,OldIrql);
-		
-		/*
-		if (CurrentThread!=NULL)
+		if (ExAcquireResourceExclusiveLite(&ProcesslistR, TRUE))
 		{
-			DbgPrint("Dereferencing thread\n");
-		}*/
+			if (ThreadEventCount < 50)
+			{
+				ThreadEventData[ThreadEventCount].Created = Create;
+				ThreadEventData[ThreadEventCount].ProcessID = (UINT_PTR)ProcessId;
+				ThreadEventData[ThreadEventCount].ThreadID = (UINT_PTR)ThreadId;
 
-		//signal thread event (if there's one waiting for a signal)
+				/*	if (Create)
+						DbgPrint("Create ProcessID=%x\nThreadID=%x\n",(UINT_PTR)ProcessId,(UINT_PTR)ThreadId);
+						else
+						DbgPrint("Destroy ProcessID=%x\nThreadID=%x\n",(UINT_PTR)ProcessId,(UINT_PTR)ThreadId);
+						*/
+
+				ThreadEventCount++;
+			}
+		}
+		ExReleaseResourceLite(&ProcesslistR);
+
 		KeSetEvent(ThreadEvent, 0, FALSE);
 		KeClearEvent(ThreadEvent);
-
 	}
 }
 
 VOID CreateProcessNotifyRoutine( IN HANDLE  ParentId, IN HANDLE  ProcessId, IN BOOLEAN  Create)
 {	
-	//LARGE_INTEGER wt;
-	//HANDLE TH;
-	KIRQL OldIrql;
-	PEPROCESS CurrentProcess;
-	//CLIENT_ID CI;
+	PEPROCESS CurrentProcess = NULL;
+	HANDLE ProcessHandle = 0;
 
-	//DbgPrint("CreateProcessNotifyRoutine called (ParentID=%x ProcessID=%d Create=%d\n",ParentId, ProcessId, Create);
-
+	
 	if (KeGetCurrentIrql()==PASSIVE_LEVEL)
 	{
 		struct ProcessData *tempProcessEntry;
-	
-		CurrentProcess=NULL;
-		PsLookupProcessByProcessId((PVOID)ProcessId,&CurrentProcess);
 
 		//aquire a spinlock
-		KeAcquireSpinLock(&ProcesslistSL,&OldIrql);  //perhaps a check for winxp and then call KeAcquireInStackQueuedSpinLock instead....
-		
-		//fill in a processcreateblock with data
-		if (ProcessEventCount<50)
-		{		
-			ProcessEventdata[ProcessEventCount].Created=Create;
-			ProcessEventdata[ProcessEventCount].ProcessID=(UINT_PTR)ProcessId;
-			ProcessEventdata[ProcessEventCount].PEProcess=(UINT_PTR)CurrentProcess;
-			ProcessEventCount++;
-		}
-
-		//if (!HiddenDriver)
-		if (FALSE) //moved till next version
-		{		
-			if (Create)
+		if (ExAcquireResourceExclusiveLite(&ProcesslistR, TRUE))
+		{
+			if (WatcherProcess)
 			{
-				
-				//allocate a block of memory for the processlist
-	            
-				tempProcessEntry=ExAllocatePoolWithTag(NonPagedPool,sizeof(struct ProcessData),0);
-				tempProcessEntry->ProcessID=ProcessId;
-				tempProcessEntry->PEProcess=CurrentProcess;
-				tempProcessEntry->Threads=NULL;
-				
-				DbgPrint("Allocated a process at:%p\n",tempProcessEntry);
-
-				if (!processlist)
+				if (PsLookupProcessByProcessId((PVOID)ProcessId, &CurrentProcess) == STATUS_SUCCESS)
 				{
-					processlist=tempProcessEntry;
-					processlist->next=NULL;
-					processlist->previous=NULL;
+					if (Create)
+					{
+						//Open a handle to this process
+						KAPC_STATE oldstate;
+						KeStackAttachProcess(WatcherProcess, &oldstate);						
+						__try
+						{
+							__try
+							{
+								NTSTATUS r = ObOpenObjectByPointer(CurrentProcess, 0, NULL, PROCESS_ALL_ACCESS, *PsProcessType, KernelMode, &ProcessHandle);
+								if (r == STATUS_SUCCESS)
+									DbgPrint("Opened handle for pid %d", ProcessId);
+								else
+									DbgPrint("Failed opening handle for pid %d");
+							}
+							__except (1)
+							{
+								DbgPrint("Exception during ObOpenObjectByPointer");
+							}
+						}
+						__finally
+						{
+							KeUnstackDetachProcess(&oldstate);
+						}
+					}
+				}
+
+				if (InternalProcessList == NULL)
+				{
+					InternalProcessList = ExAllocatePoolWithTag(PagedPool, sizeof(RTL_GENERIC_TABLE), 0);
+					if (InternalProcessList)
+						RtlInitializeGenericTable(InternalProcessList, ProcessListCompare, ProcessListAlloc, ProcessListDealloc, NULL);
+				}
+
+				if (InternalProcessList)
+				{
+					ProcessListData d, *r;
+
+					d.ProcessID = ProcessId;
+					d.PEProcess = CurrentProcess;
+					d.ProcessHandle = ProcessHandle;
+
+					r = RtlLookupElementGenericTable(InternalProcessList, &d);
+
+					if (Create)
+					{
+						//add it to the list
+						if (r) //weird
+							RtlDeleteElementGenericTable(InternalProcessList, r);
+
+						RtlInsertElementGenericTable(InternalProcessList, &d, sizeof(ProcessListData), NULL);
+					}
+					else
+					{
+						//remove it from the list (if it's there)
+						if (r)
+						{
+							if (r->ProcessHandle)
+								ZwClose(r->ProcessHandle);
+
+							RtlDeleteElementGenericTable(InternalProcessList, r);
+						}
+
+						if (CurrentProcess == WatcherProcess)
+						{
+							DbgPrint("CE Closed");
+							WatcherProcess = 0;
+
+							CleanProcessList(); //CE closed
+						}
+					}
+				}
+				else
+					ZwClose(ProcessHandle);
+			}
+
+
+			//fill in a processcreateblock with data
+			if (ProcessEventCount < 50)
+			{
+				ProcessEventdata[ProcessEventCount].Created = Create;
+				ProcessEventdata[ProcessEventCount].ProcessID = (UINT_PTR)ProcessId;
+				ProcessEventdata[ProcessEventCount].PEProcess = (UINT_PTR)CurrentProcess;
+				ProcessEventCount++;
+			}
+
+			//if (!HiddenDriver)
+			if (FALSE) //moved till next version
+			{
+				if (Create)
+				{
+
+					//allocate a block of memory for the processlist
+
+					tempProcessEntry = ExAllocatePoolWithTag(PagedPool, sizeof(struct ProcessData), 0);
+					tempProcessEntry->ProcessID = ProcessId;
+					tempProcessEntry->PEProcess = CurrentProcess;
+					tempProcessEntry->Threads = NULL;
+
+					DbgPrint("Allocated a process at:%p\n", tempProcessEntry);
+
+					if (!processlist)
+					{
+						processlist = tempProcessEntry;
+						processlist->next = NULL;
+						processlist->previous = NULL;
+					}
+					else
+					{
+						tempProcessEntry->next = processlist;
+						tempProcessEntry->previous = NULL;
+						processlist->previous = tempProcessEntry;
+						processlist = tempProcessEntry;
+					}
 				}
 				else
 				{
-					tempProcessEntry->next=processlist;
-					tempProcessEntry->previous=NULL;
-					processlist->previous=tempProcessEntry;
-					processlist=tempProcessEntry;
-				}
-			}
-			else
-			{
-				//find this process and delete it
-				tempProcessEntry=processlist;
-				while (tempProcessEntry)
-				{
-					if (tempProcessEntry->ProcessID==ProcessId)
+					//find this process and delete it
+					tempProcessEntry = processlist;
+					while (tempProcessEntry)
 					{
-						int i;
-						if (tempProcessEntry->next)
-							tempProcessEntry->next->previous=tempProcessEntry->previous;
-
-						if (tempProcessEntry->previous)
-							tempProcessEntry->previous->next=tempProcessEntry->next;
-						else 
-							processlist=tempProcessEntry->next;	//it had no previous entry, so it's the root
-
-
-
-						/*
-						if (tempProcessEntry->Threads)
+						if (tempProcessEntry->ProcessID == ProcessId)
 						{
+							int i;
+							if (tempProcessEntry->next)
+								tempProcessEntry->next->previous = tempProcessEntry->previous;
+
+							if (tempProcessEntry->previous)
+								tempProcessEntry->previous->next = tempProcessEntry->next;
+							else
+								processlist = tempProcessEntry->next;	//it had no previous entry, so it's the root
+
+
+
+							/*
+							if (tempProcessEntry->Threads)
+							{
 							struct ThreadData *tempthread,*tempthread2;
 							KIRQL OldIrql2;
 
@@ -186,39 +279,38 @@ VOID CreateProcessNotifyRoutine( IN HANDLE  ParentId, IN HANDLE  ProcessId, IN B
 
 							while (tempthread)
 							{
-								tempthread=tempthread->next;
-								DbgPrint("Free thread %p (next thread=%p)\n",tempthread2,tempthread);
-								ExFreePool(tempthread2);
-								tempthread2=tempthread;
-							}	
+							tempthread=tempthread->next;
+							DbgPrint("Free thread %p (next thread=%p)\n",tempthread2,tempthread);
+							ExFreePool(tempthread2);
+							tempthread2=tempthread;
+							}
 
+							}
+
+
+							ExFreePool(tempProcessEntry);*/
+
+							i = 0;
+							tempProcessEntry = processlist;
+							while (tempProcessEntry)
+							{
+								i++;
+								tempProcessEntry = tempProcessEntry->next;
+							}
+
+							DbgPrint("There are %d processes in the list\n", i);
+
+							break;
 						}
-
-						
-						ExFreePool(tempProcessEntry);*/
-
-						i=0;
-						tempProcessEntry=processlist;
-						while (tempProcessEntry)
-						{
-							i++;
-							tempProcessEntry=tempProcessEntry->next;
-						}
-
-						DbgPrint("There are %d processes in the list\n",i);
-
-						break;
+						tempProcessEntry = tempProcessEntry->next;
 					}
-					tempProcessEntry=tempProcessEntry->next;
+
+
 				}
-				
 
 			}
-		
 		}
-
-		//release spinlock
-		KeReleaseSpinLock(&ProcesslistSL,OldIrql);
+		ExReleaseResourceLite(&ProcesslistR);
 
 		if (CurrentProcess!=NULL)
 			ObDereferenceObject(CurrentProcess);
@@ -230,7 +322,45 @@ VOID CreateProcessNotifyRoutine( IN HANDLE  ParentId, IN HANDLE  ProcessId, IN B
 			KeClearEvent(ProcessEvent);
 		}
 	}
-
-
 }
 
+VOID CreateProcessNotifyRoutineEx(IN HANDLE  ParentId, IN HANDLE  ProcessId, __in_opt PPS_CREATE_NOTIFY_INFO CreateInfo)
+{
+	DbgPrint("CreateProcessNotifyRoutineEx");
+	CreateProcessNotifyRoutine(ParentId, ProcessId, CreateInfo!=NULL);
+}
+
+HANDLE GetHandleForProcessID(IN HANDLE ProcessID)
+{
+	if (InternalProcessList)
+	{
+		ProcessListData d, *r;
+
+		d.ProcessID = ProcessID;
+		r = RtlLookupElementGenericTable(InternalProcessList, &d);
+		if (r)
+			return r->ProcessHandle;
+	}
+	else
+		return 0;
+}
+
+VOID CleanProcessList()
+{
+	if (InternalProcessList)
+	{
+		PProcessListData li;
+
+		while (li = RtlGetElementGenericTable(InternalProcessList, 0))
+		{
+			if (li->ProcessHandle)
+				ZwClose(li->ProcessHandle);
+
+			RtlDeleteElementGenericTable(InternalProcessList, li);
+		}
+
+		ExFreePoolWithTag(InternalProcessList, 0);
+		InternalProcessList = NULL;
+	}
+
+}

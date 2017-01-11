@@ -387,9 +387,8 @@ Return Value:
 
 	//Processlist init
 #ifndef CETC
-
 	ProcessEventCount=0;
-	KeInitializeSpinLock(&ProcesslistSL);
+	ExInitializeResourceLite(&ProcesslistR);	
 #endif
 
 	CreateProcessNotifyRoutineEnabled=FALSE;
@@ -673,7 +672,15 @@ void UnloadDriver(PDRIVER_OBJECT DriverObject)
 
 			if (CreateProcessNotifyRoutineEnabled)
 			{
+				DbgPrint("Removing process watch");
+#if (NTDDI_VERSION >= NTDDI_VISTASP1)
+				PsSetCreateProcessNotifyRoutineEx(CreateProcessNotifyRoutineEx,TRUE);
+#else
 				PsSetCreateProcessNotifyRoutine(CreateProcessNotifyRoutine,TRUE);
+#endif
+
+				
+				DbgPrint("Removing thread watch");
 				PsRemoveCreateThreadNotifyRoutine2(CreateThreadNotifyRoutine);
 			}
 
@@ -700,4 +707,16 @@ void UnloadDriver(PDRIVER_OBJECT DriverObject)
 	ExFreePool(BufDeviceString);
 #endif
 
+	CleanProcessList();
+
+	ExDeleteResourceLite(&ProcesslistR);
+
+	RtlZeroMemory(&ProcesslistR, sizeof(ProcesslistR));
+
+	if (DRMHandle)
+	{
+		DbgPrint("Unregistering DRM handle");
+		ObUnRegisterCallbacks(DRMHandle);
+		DRMHandle = NULL;
+	}
 }

@@ -1,6 +1,7 @@
 @echo off
 command /C echo changing to dos-16 file structure
 set C_DEFINES=
+set LINKER_FLAGS=/INTEGRITYCHECK
 
 set copycmd=/Y
 copy sources.cesigned sources

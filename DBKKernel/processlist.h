@@ -4,6 +4,7 @@
 
 
 VOID CreateProcessNotifyRoutine(IN HANDLE ParentId, IN HANDLE ProcessId, IN BOOLEAN Create);
+VOID CreateProcessNotifyRoutineEx(IN HANDLE  ParentId, IN HANDLE  ProcessId, __in_opt PPS_CREATE_NOTIFY_INFO CreateInfo);
 
 struct ThreadData
 {
@@ -15,6 +16,14 @@ struct ThreadData
 	struct ThreadData *previous;
 	struct ThreadData *next;
 };
+
+typedef struct
+{
+	HANDLE ProcessID;
+	PEPROCESS PEProcess;
+	HANDLE ProcessHandle;
+} ProcessListData, *PProcessListData;
+
 
 struct ProcessData
 {
@@ -37,7 +46,7 @@ PKEVENT ProcessEvent;
 //HANDLE  ProcessEventHandle;
 
 BOOLEAN CreateProcessNotifyRoutineEnabled;
-KSPIN_LOCK ProcesslistSL;
+ERESOURCE ProcesslistR;
 
 
 VOID CreateThreadNotifyRoutine(IN HANDLE ProcessId, IN HANDLE ThreadId, IN BOOLEAN Create);
@@ -52,4 +61,7 @@ UCHAR ThreadEventCount;
 PKEVENT ThreadEvent;
 //HANDLE  ThreadEventHandle;
 
+PEPROCESS WatcherProcess;
 BOOLEAN CreateThreadNotifyRoutineEnabled;
+VOID CleanProcessList();
+HANDLE GetHandleForProcessID(IN HANDLE ProcessID);
