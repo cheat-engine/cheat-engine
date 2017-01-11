@@ -18,6 +18,8 @@ getCEVersion(): Returns a floating point value specifying the version of cheat e
 
 
 activateProtection(): Prevents basic memory scanners from opening the cheat engine process
+enableDRM() : Prevents normal memory scanners from reading the Cheat Engine process (kernelmode)
+
 fullAccess(address,size): Changes the protection of a block of memory to writable and executable
 
 loadTable(filename, merge OPTIONAL): Loads a .ct or .cetrainer. If merge is provided and set to true it will not clear the old table
@@ -2234,6 +2236,7 @@ freeKernelMemory(address) : Frees the given memory region
 
 mapMemory(address, size,  frompid OPTIONAL, topid OPTIONAL): maps a specific address to the usermode context from the given PID to the given PID. If the PID is 0 or not specified, the cheat engine process is selected. This functions returns 2 results. Address and MDL. The MDL you will need for unmapMemory()
 unmapMemory(address, mdl)                                                         
+
 
 
 

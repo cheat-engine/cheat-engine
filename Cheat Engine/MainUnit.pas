@@ -554,6 +554,7 @@ type
     procedure AddressKeyPress(Sender: TObject; var Key: char);
     procedure FoundListDblClick(Sender: TObject);
     procedure Browsethismemoryarrea1Click(Sender: TObject);
+    procedure testClick(Sender: TObject);
     procedure TrackBar1Change(Sender: TObject);
     procedure UpdateTimerTimer(Sender: TObject);
     procedure FreezeTimerTimer(Sender: TObject);
@@ -5357,6 +5358,11 @@ begin
     MemoryBrowser.memoryaddress := foundlist.GetAddress(foundlist3.ItemIndex, b, s);
     memorybrowser.Show;
   end;
+end;
+
+procedure TMainForm.testClick(Sender: TObject);
+begin
+  dbk_enabledrm;
 end;
 
 procedure TMainForm.TrackBar1Change(Sender: TObject);

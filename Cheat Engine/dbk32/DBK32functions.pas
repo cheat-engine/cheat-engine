@@ -13,7 +13,7 @@ uses jwawindows, windows, sysutils, classes, types, registry, multicpuexecution,
 
 
 
-const currentversion=2000021;
+const currentversion=2000022;
 
 const FILE_ANY_ACCESS=0;
 const FILE_SPECIAL_ACCESS=FILE_ANY_ACCESS;
@@ -135,6 +135,9 @@ const IOCTL_CE_ULTIMAP_RESUME         = (IOCTL_UNKNOWN_BASE shl 16) or ($0859 sh
 
 const IOCTL_CE_ULTIMAP2_GETTRACESIZE  = (IOCTL_UNKNOWN_BASE shl 16) or ($085a shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_ULTIMAP2_RESETTRACESIZE= (IOCTL_UNKNOWN_BASE shl 16) or ($085b shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+
+const IOCTL_CE_ENABLE_DRM             = (IOCTL_UNKNOWN_BASE shl 16) or ($085c shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+
 
 
 type TDeviceIoControl=function(hDevice: THandle; dwIoControlCode: DWORD; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesReturned: DWORD; lpOverlapped: POverlapped): BOOL; stdcall;
@@ -339,6 +342,8 @@ procedure ultimap2_pause;
 procedure ultimap2_resume;
 procedure ultimap2_lockfile(cpunr: integer);
 procedure ultimap2_releasefile(cpunr: integer);
+
+procedure dbk_enabledrm;
 
 {
 const IOCTL_CE_ULTIMAP2_WAITFORDATA   = (IOCTL_UNKNOWN_BASE shl 16) or ($0851 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
@@ -587,6 +592,13 @@ var br: dword;
 begin
   if (hdevice<>INVALID_HANDLE_VALUE) then
     deviceiocontrol(hdevice,IOCTL_CE_ULTIMAP2_RESETTRACESIZE,nil,0,nil,0,br,nil);
+end;
+
+procedure dbk_enabledrm;
+var
+  br: dword;
+begin
+  deviceiocontrol(hdevice,IOCTL_CE_ENABLE_DRM,nil,0,nil,0,br,nil);
 end;
 
 

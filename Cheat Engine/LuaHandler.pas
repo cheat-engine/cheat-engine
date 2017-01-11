@@ -7837,8 +7837,12 @@ begin
       end;
     end;
   end;
+end;
 
-
+function lua_enableDRM(L: Plua_State): integer; cdecl;
+begin
+  DBK32Initialize;
+  dbk_enabledrm;
 end;
 
 procedure InitializeLua;
@@ -8343,6 +8347,7 @@ begin
     lua_register(LuaVM, 'connectToCEServer', lua_connectToCEServer);
 
     lua_register(LuaVM, 'copyMemory', lua_copyMemory);
+    lua_register(LuaVM, 'enableDRM', lua_enableDRM);
 
 
 
