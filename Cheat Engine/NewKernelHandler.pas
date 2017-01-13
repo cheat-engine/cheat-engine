@@ -1413,6 +1413,8 @@ begin
 {$endif}
 end;
 
+var hooked: boolean=false;
+
 procedure UseDBKOpenProcess;
 var
   nthookscript: Tstringlist;
@@ -1433,17 +1435,20 @@ begin
   autoassemble(nthookscript, false, true, false, true);
 
 
-  nthookscript.clear;
+  if not hooked then
+  begin
+    nthookscript.clear;
 
-  ntdll:=loadlibrary('ntdll.dll');
-  zwc:=GetProcAddress(ntdll,'NtClose');
+    ntdll:=loadlibrary('ntdll.dll');
+    zwc:=GetProcAddress(ntdll,'NtClose');
 
-  old:=@oldZwClose;
-  olds:=inttohex(ptruint(old),8);
-  generateAPIHookScript(nthookscript,IntToHex(ptruint(zwc),8),IntToHex(ptruint(@ZC),8),IntToHex(ptruint(@oldZwClose),8),'0',true);
- // clipboard.AsText:=nthookscript.Text;
+    old:=@oldZwClose;
+    olds:=inttohex(ptruint(old),8);
+    generateAPIHookScript(nthookscript,IntToHex(ptruint(zwc),8),IntToHex(ptruint(@ZC),8),IntToHex(ptruint(@oldZwClose),8),'0',true);
+   // clipboard.AsText:=nthookscript.Text;
 
-  autoassemble(nthookscript, false, true, false, true);
+    hooked:=autoassemble(nthookscript, false, true, false, true);
+  end;
 
 
 
