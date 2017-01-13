@@ -348,7 +348,7 @@ procedure ultimap2_resume;
 procedure ultimap2_lockfile(cpunr: integer);
 procedure ultimap2_releasefile(cpunr: integer);
 
-procedure dbk_enabledrm(preferedAltitude: word=0);
+function dbk_enabledrm(preferedAltitude: word=0): boolean;
 
 {
 const IOCTL_CE_ULTIMAP2_WAITFORDATA   = (IOCTL_UNKNOWN_BASE shl 16) or ($0851 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
@@ -599,11 +599,11 @@ begin
     deviceiocontrol(hdevice,IOCTL_CE_ULTIMAP2_RESETTRACESIZE,nil,0,nil,0,br,nil);
 end;
 
-procedure dbk_enabledrm(preferedAltitude: word=0);
+function dbk_enabledrm(preferedAltitude: word=0): boolean;
 var
   br: dword;
 begin
-  deviceiocontrol(hdevice,IOCTL_CE_ENABLE_DRM,@preferedAltitude,sizeof(preferedAltitude),nil,0,br,nil);
+  result:=deviceiocontrol(hdevice,IOCTL_CE_ENABLE_DRM,@preferedAltitude,sizeof(preferedAltitude),nil,0,br,nil);
 end;
 
 

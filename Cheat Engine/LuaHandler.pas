@@ -100,7 +100,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   DebuggerInterface, WindowsDebugger, VEHDebugger, KernelDebuggerInterface,
   DebuggerInterfaceAPIWrapper, Globals, math, speedhack2, CETranslator, binutils,
   xinput, winsapi, frmExeTrainerGeneratorUnit, CustomBase85, FileUtil, networkConfig,
-  LuaCustomType;
+  LuaCustomType, Filehandler;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -7849,7 +7849,53 @@ begin
   else
     PreferedAltitude:=0;
 
-  dbk_enabledrm(preferedAltitude);
+  result:=1;
+  lua_pushboolean(L, dbk_enabledrm(preferedAltitude));
+end;
+
+function lua_openFileAsProcess(L: Plua_State): integer; cdecl;
+var
+  filename: string;
+  is64bit: boolean;
+  oldprocessname: string;
+  oldprocess: dword;
+  oldprocesshandle: thandle;
+
+begin
+  result:=1;
+  if lua_gettop(L)>=1 then
+  begin
+    filename:=Lua_ToString(L,1);
+
+    if lua_gettop(L)>=1 then
+      is64bit:=lua_toboolean(L,2)
+    else
+      is64bit:=false;
+
+    DetachIfPossible;
+    oldprocessname := copy(mainform.ProcessLabel.Caption, pos('-', mainform.ProcessLabel.Caption) + 1, length(mainform.ProcessLabel.Caption));
+    oldprocess := processID;
+    oldprocesshandle := processhandle;
+
+    try
+      DBKFileAsMemory(filename);
+
+    except
+      lua_pushboolean(L,false);
+      exit;
+    end;
+
+    ProcessHandler.ProcessHandle:=filehandle;
+
+    MainForm.ProcessLabel.caption:=extractfilename(filename);
+    ProcessHandler.processid:=$FFFFFFFF;
+
+    ProcessHandler.is64Bit:=true;
+
+    mainform.openProcessEpilogue(oldprocessname, oldprocess, oldprocesshandle,true);
+
+    lua_pushboolean(L,true);
+  end;
 end;
 
 procedure InitializeLua;
@@ -8355,6 +8401,8 @@ begin
 
     lua_register(LuaVM, 'copyMemory', lua_copyMemory);
     lua_register(LuaVM, 'enableDRM', lua_enableDRM);
+
+    lua_register(LuaVM, 'openFileAsProcess', lua_openFileAsProcess);
 
 
 

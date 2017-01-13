@@ -267,6 +267,7 @@ getOpenedProcessID() : Returns the currently opened process. If none is open, re
 getProcessIDFromProcessName(name) : returns a processid
 openProcess(processid) : causes cheat engine to open the given processid
 openProcess(processname): causes cheat engine to find and open the given process
+openFileAsProcess(filename,is64bit): causes cheat engine to open the file with memory access as if it's a process
 setPointerSize(size): Sets the size cheat engine will deal with pointers in bytes. (Some 64-bit processes can only use 32-bit addresses)
 pause() : pauses the current opened process
 unpause(): resumes the current opened process

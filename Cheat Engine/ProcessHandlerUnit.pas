@@ -30,7 +30,7 @@ type TProcessHandler=class
     procedure Open;
     function isNetwork: boolean;  //perhaps name it isLinux ?
     procedure overridePointerSize(newsize: integer);
-    property is64Bit: boolean read fIs64Bit;
+    property is64Bit: boolean read fIs64Bit write setIs64bit;
     property pointersize: integer read fPointersize;
     property processhandle: THandle read fProcessHandle write setProcessHandle;
     property SystemArchitecture: TSystemArchitecture read fSystemArchitecture;

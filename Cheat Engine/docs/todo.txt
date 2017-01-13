@@ -1,8 +1,3 @@
-
-kernel: When using the processwatcher obtain handles for them on creation (use circular buffer and keep track which ones ce has opened)
-
-
-lua: Add the openFile equivalent for openProcess to lua
 lua: forms, add option to save the current state as base
 
 ultimap2: Finish the timed/space based processing of file results
