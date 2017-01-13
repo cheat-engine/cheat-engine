@@ -2179,20 +2179,27 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 		case IOCTL_CE_ENABLE_DRM:
 			{
+				WORD PreferedAltitude = *(PWORD)Irp->AssociatedIrp.SystemBuffer;
+
 				DRMProcess = PsGetCurrentProcess();
 
 				if (DRMHandle == NULL)
 				{
+					
 					WCHAR wcAltitude[10];
 					UNICODE_STRING usAltitude;
 					OB_CALLBACK_REGISTRATION r;
 					LARGE_INTEGER tc;
 					OB_OPERATION_REGISTRATION obr[2];
-					int RandomVal;
+					int RandomVal = PreferedAltitude;
+					int trycount = 0;
 
-					tc.QuadPart = 0;
-					KeQueryTickCount(&tc);
-					RandomVal = 1000 + (tc.QuadPart % 50000);
+					if (RandomVal == 0)
+					{
+						tc.QuadPart = 0;
+						KeQueryTickCount(&tc);
+						RandomVal = 1000 + (tc.QuadPart % 50000);
+					}
 
 					DbgPrint("Activating CE's super advanced DRM"); //yeah right....
 
@@ -2221,6 +2228,19 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 					r.OperationRegistrationCount = 2;
 
 					ntStatus = ObRegisterCallbacks(&r, &DRMHandle);
+
+					while ((ntStatus == STATUS_FLT_INSTANCE_ALTITUDE_COLLISION) && (trycount<10))
+					{
+						RandomVal++;
+						RtlStringCbPrintfW(wcAltitude, sizeof(wcAltitude) - 2, L"%d", RandomVal);
+						RtlInitUnicodeString(&usAltitude, wcAltitude);
+						r.Altitude = usAltitude;
+
+						trycount++;
+
+						ntStatus = ObRegisterCallbacks(&r, &DRMHandle);
+					}
+
 					DbgPrint("ntStatus=%X", ntStatus);
 				}
 				else

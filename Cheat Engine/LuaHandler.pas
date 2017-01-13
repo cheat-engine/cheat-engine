@@ -7840,9 +7840,16 @@ begin
 end;
 
 function lua_enableDRM(L: Plua_State): integer; cdecl;
+var PreferedAltitude: word;
 begin
   DBK32Initialize;
-  dbk_enabledrm;
+
+  if lua_gettop(L)=1 then
+    PreferedAltitude:=lua_tointeger(L,1)
+  else
+    PreferedAltitude:=0;
+
+  dbk_enabledrm(preferedAltitude);
 end;
 
 procedure InitializeLua;
