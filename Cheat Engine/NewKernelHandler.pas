@@ -8,7 +8,7 @@ interface
 uses classes, sysutils, unixporthelper;
 {$else}
 uses jwawindows, windows,LCLIntf,sysutils, dialogs, classes, controls,
-     dbk32functions, vmxfunctions,debug, multicpuexecution, contnrs;
+     dbk32functions, vmxfunctions,debug, multicpuexecution, contnrs, Clipbrd;
 {$endif}
 
 const dbkdll='DBK32.dll';
@@ -772,7 +772,7 @@ uses
      dbvmPhysicalMemoryHandler, //'' for physical mem
      {$endif}
      filehandler,  //so I can let readprocessmemory point to ReadProcessMemoryFile in filehandler
-     autoassembler, frmEditHistoryUnit;
+     autoassembler, frmEditHistoryUnit, frmautoinjectunit;
 {$endif}
 
 
@@ -1416,6 +1416,10 @@ end;
 procedure UseDBKOpenProcess;
 var
   nthookscript: Tstringlist;
+  zwc: pointer;
+  ntdll: HModule;
+  old: pointer;
+  olds: string;
 begin
 {$ifdef windows}
   LoadDBK32;
@@ -1426,8 +1430,23 @@ begin
   nthookscript:=tstringlist.create;
   nthookscript.add('NtOpenProcess:');
   nthookscript.add('jmp '+IntToHex(ptruint(@NOP),8));
+  autoassemble(nthookscript, false, true, false, true);
+
+
+  nthookscript.clear;
+
+  ntdll:=loadlibrary('ntdll.dll');
+  zwc:=GetProcAddress(ntdll,'NtClose');
+
+  old:=@oldZwClose;
+  olds:=inttohex(ptruint(old),8);
+  generateAPIHookScript(nthookscript,IntToHex(ptruint(zwc),8),IntToHex(ptruint(@ZC),8),IntToHex(ptruint(@oldZwClose),8),'0',true);
+ // clipboard.AsText:=nthookscript.Text;
 
   autoassemble(nthookscript, false, true, false, true);
+
+
+
 
   nthookscript.free;
 

@@ -115,6 +115,8 @@ begin
   begin
     fSystemArchitecture:=archX86;
     setIs64Bit(newkernelhandler.Is64BitProcess(fProcessHandle));
+
+
   end;
 
   {$ifdef ARMTEST}

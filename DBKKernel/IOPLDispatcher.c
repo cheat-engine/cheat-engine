@@ -365,10 +365,17 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				PEPROCESS selectedprocess;
 				ULONG processid=*(PULONG)Irp->AssociatedIrp.SystemBuffer;
 				HANDLE ProcessHandle = GetHandleForProcessID((HANDLE)processid);
+				struct out
+				{
+					UINT64 h;
+					BYTE   Special;
+				} *POutput = Irp->AssociatedIrp.SystemBuffer;
+
 
 				ntStatus = STATUS_SUCCESS;
 				if (ProcessHandle == 0)
 				{
+					POutput->Special = 0;
 					__try
 					{
 						ProcessHandle = 0;
@@ -394,8 +401,13 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 						ntStatus = STATUS_UNSUCCESSFUL;
 					}
 				}
+				else
+				{
+					//DbgPrint("ProcessHandle=%x", (int)ProcessHandle);
+					POutput->Special = 1;					
+				}
 				
-				*(PUINT64)Irp->AssociatedIrp.SystemBuffer=(UINT64)ProcessHandle;
+				POutput->h=(UINT64)ProcessHandle;
 				break;
 			}
 			
@@ -1046,18 +1058,24 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 		case IOCTL_CE_STARTPROCESSWATCH:
 			{
-				NTSTATUS r;
+				NTSTATUS r = STATUS_SUCCESS;
 
 				ExAcquireResourceExclusiveLite(&ProcesslistR, TRUE);				
 				ProcessEventCount=0;				
 				ExReleaseResourceLite(&ProcesslistR);
 				
-				DbgPrint("IOCTL_CE_STARTPROCESSWATCH\n");
+				//DbgPrint("IOCTL_CE_STARTPROCESSWATCH\n");
 
 				CleanProcessList();
-				WatcherProcess = PsGetCurrentProcess();
+				if (WatcherProcess == NULL)
+				{
+					WatcherProcess = PsGetCurrentProcess();
+					//r = ObOpenObjectByPointer(WatcherProcess, OBJ_KERNEL_HANDLE, NULL, PROCESS_ALL_ACCESS, *PsProcessType, KernelMode, &WatcherHandle);
+			
+				}
+					
 				
-				if (CreateProcessNotifyRoutineEnabled==FALSE)
+				if ((r == STATUS_SUCCESS) && (CreateProcessNotifyRoutineEnabled == FALSE))
 				{
 					
 					DbgPrint("calling PsSetCreateProcessNotifyRoutine\n");

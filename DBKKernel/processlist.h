@@ -22,6 +22,7 @@ typedef struct
 	HANDLE ProcessID;
 	PEPROCESS PEProcess;
 	HANDLE ProcessHandle;
+	BOOLEAN Deleted;
 } ProcessListData, *PProcessListData;
 
 
@@ -61,7 +62,8 @@ UCHAR ThreadEventCount;
 PKEVENT ThreadEvent;
 //HANDLE  ThreadEventHandle;
 
-PEPROCESS WatcherProcess;
+extern HANDLE WatcherHandle;
+extern PEPROCESS WatcherProcess;
 BOOLEAN CreateThreadNotifyRoutineEnabled;
 VOID CleanProcessList();
 HANDLE GetHandleForProcessID(IN HANDLE ProcessID);

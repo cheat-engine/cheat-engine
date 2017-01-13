@@ -7,9 +7,13 @@
 
 PRTL_GENERIC_TABLE InternalProcessList = NULL;
 
+PEPROCESS WatcherProcess = NULL;
+
 
 RTL_GENERIC_COMPARE_RESULTS NTAPI ProcessListCompare(__in struct _RTL_GENERIC_TABLE *Table, __in PProcessListData FirstStruct, __in PProcessListData SecondStruct)
 {
+	//DbgPrint("ProcessListCompate");
+
 	if (FirstStruct->ProcessID  == SecondStruct->ProcessID)
 		return GenericEqual;
 	else
@@ -25,10 +29,14 @@ PVOID NTAPI ProcessListAlloc(__in struct _RTL_GENERIC_TABLE *Table, __in CLONG B
 {
 	PVOID r=ExAllocatePoolWithTag(PagedPool, ByteSize, 0);
 	RtlZeroMemory(r, ByteSize);
+
+	//DbgPrint("ProcessListAlloc %d",(int)ByteSize);
+	return r;
 }
 
 VOID NTAPI ProcessListDealloc(__in struct _RTL_GENERIC_TABLE *Table, __in __drv_freesMem(Mem) __post_invalid PVOID Buffer)
 {
+	//DbgPrint("ProcessListDealloc");
 	ExFreePoolWithTag(Buffer, 0);
 }
 
@@ -135,17 +143,28 @@ VOID CreateProcessNotifyRoutine( IN HANDLE  ParentId, IN HANDLE  ProcessId, IN B
 					if (Create)
 					{
 						//Open a handle to this process
+
+						/*
+						
+						HANDLE ph = 0;
+						NTSTATUS r = ObOpenObjectByPointer(CurrentProcess, 0, NULL, PROCESS_ALL_ACCESS, *PsProcessType, KernelMode, &ph);
+
+						DbgPrint("CreateProcessNotifyRoutine: ObOpenObjectByPointer=%x  ph=%x", r, ph);
+						r = ZwDuplicateObject(ZwCurrentProcess(), ph, WatcherHandle, &ProcessHandle, PROCESS_ALL_ACCESS, 0, DUPLICATE_CLOSE_SOURCE);
+
+						DbgPrint("CreateProcessNotifyRoutine: ZwDuplicateObject=%x (handle=%x)", r, ProcessHandle);
+						*/
+						
 						KAPC_STATE oldstate;
+						ObReferenceObject(CurrentProcess);
+
+						
 						KeStackAttachProcess(WatcherProcess, &oldstate);						
 						__try
 						{
 							__try
 							{
-								NTSTATUS r = ObOpenObjectByPointer(CurrentProcess, 0, NULL, PROCESS_ALL_ACCESS, *PsProcessType, KernelMode, &ProcessHandle);
-								if (r == STATUS_SUCCESS)
-									DbgPrint("Opened handle for pid %d", ProcessId);
-								else
-									DbgPrint("Failed opening handle for pid %d");
+								ObOpenObjectByPointer(CurrentProcess, 0, NULL, PROCESS_ALL_ACCESS, *PsProcessType, KernelMode, &ProcessHandle);
 							}
 							__except (1)
 							{
@@ -156,6 +175,7 @@ VOID CreateProcessNotifyRoutine( IN HANDLE  ParentId, IN HANDLE  ProcessId, IN B
 						{
 							KeUnstackDetachProcess(&oldstate);
 						}
+					
 					}
 				}
 
@@ -179,33 +199,43 @@ VOID CreateProcessNotifyRoutine( IN HANDLE  ParentId, IN HANDLE  ProcessId, IN B
 					if (Create)
 					{
 						//add it to the list
+						BOOLEAN newElement = FALSE;
 						if (r) //weird
+						{
+							DbgPrint("Duplicate PID detected...");
 							RtlDeleteElementGenericTable(InternalProcessList, r);
+						}
 
-						RtlInsertElementGenericTable(InternalProcessList, &d, sizeof(ProcessListData), NULL);
+						r = RtlInsertElementGenericTable(InternalProcessList, &d, sizeof(d), &newElement);
+
+
+						DbgPrint("Added handle %x for pid %d to the list (newElement=%d r=%p)", (int)d.ProcessHandle, (int)d.ProcessID, newElement, r);
 					}
 					else
 					{
 						//remove it from the list (if it's there)
+						DbgPrint("Process %d destruction. r=%p", (int)d.ProcessID, r);
 						if (r)
 						{
-							if (r->ProcessHandle)
-								ZwClose(r->ProcessHandle);
+							DbgPrint("Process that was in the list has been closed");
+							//if (r->ProcessHandle)
+							//	ZwClose(r->ProcessHandle);
 
-							RtlDeleteElementGenericTable(InternalProcessList, r);
+							//RtlDeleteElementGenericTable(InternalProcessList, r);
+							r->Deleted = 1;
 						}
 
 						if (CurrentProcess == WatcherProcess)
 						{
 							DbgPrint("CE Closed");
-							WatcherProcess = 0;
+							
+							//ZwClose(WatcherHandle);
 
 							CleanProcessList(); //CE closed
+							WatcherProcess = 0;
 						}
 					}
 				}
-				else
-					ZwClose(ProcessHandle);
 			}
 
 
@@ -339,7 +369,12 @@ HANDLE GetHandleForProcessID(IN HANDLE ProcessID)
 		d.ProcessID = ProcessID;
 		r = RtlLookupElementGenericTable(InternalProcessList, &d);
 		if (r)
-			return r->ProcessHandle;
+		{
+			DbgPrint("Found a handle for PID %d (%x)", (int)ProcessID, (int)r->ProcessHandle);
+			return (int)r->ProcessHandle; // r->ProcessHandle;
+		}
+		
+			
 	}
 	else
 		return 0;
@@ -351,16 +386,29 @@ VOID CleanProcessList()
 	{
 		PProcessListData li;
 
-		while (li = RtlGetElementGenericTable(InternalProcessList, 0))
+		if (ExAcquireResourceExclusiveLite(&ProcesslistR, TRUE))
 		{
-			if (li->ProcessHandle)
-				ZwClose(li->ProcessHandle);
+			KAPC_STATE oldstate;
+			BOOLEAN ChangedContext;
 
-			RtlDeleteElementGenericTable(InternalProcessList, li);
+			if ((WatcherProcess) && (WatcherProcess != PsGetCurrentProcess()))
+			{				
+				KeStackAttachProcess(WatcherProcess, &oldstate);
+				ChangedContext = TRUE;
+			}
+
+			while (li = RtlGetElementGenericTable(InternalProcessList, 0))
+			{
+				if ((li->ProcessHandle) && (WatcherProcess))
+					ZwClose(li->ProcessHandle);
+
+				RtlDeleteElementGenericTable(InternalProcessList, li);
+			}
+			
+			ExFreePoolWithTag(InternalProcessList, 0);
+			InternalProcessList = NULL;
 		}
-
-		ExFreePoolWithTag(InternalProcessList, 0);
-		InternalProcessList = NULL;
+		ExReleaseResourceLite(&ProcesslistR);
 	}
 
 }

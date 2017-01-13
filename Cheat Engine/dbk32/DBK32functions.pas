@@ -5,7 +5,7 @@ unit DBK32functions;
 interface
 
 uses jwawindows, windows, sysutils, classes, types, registry, multicpuexecution,
-  forms,dialogs, controls;
+  forms,dialogs, controls, maps;
 
 //xp sp2
 //ThreadsProcess=220
@@ -229,6 +229,7 @@ type
 
 var hdevice: thandle=INVALID_HANDLE_VALUE; //handle to my the device driver
     handlelist: array of thandlelist;
+    handlemap: TMap;
     driverloc: string;
     iamprotected:boolean;
     SDTShadow: DWORD;
@@ -247,6 +248,8 @@ var hdevice: thandle=INVALID_HANDLE_VALUE; //handle to my the device driver
 
     saferQueryPhysicalMemory: boolean=true;
 
+    oldZwClose: pointer;
+
 function CTL_CODE(DeviceType, Func, Method, Access : integer) : integer;
 function IsValidHandle(hProcess:THandle):BOOL; stdcall;
 Function {OpenProcess}OP(dwDesiredAccess:DWORD;bInheritHandle:BOOL;dwProcessId:DWORD):THANDLE; stdcall;
@@ -259,6 +262,8 @@ function {WriteProcessMemory}WriteProcessMemory64(hProcess:THANDLE;BaseAddress:q
 
 function {VirtualQueryEx}VQE(hProcess: THandle; address: pointer; var mbi: _MEMORY_BASIC_INFORMATION; bufsize: DWORD):dword; stdcall;
 Function {NtOpenProcess}NOP(var Handle: THandle; AccessMask: dword; objectattributes: pointer; clientid: PClient_ID):DWORD; stdcall;
+Function {ZwClose}ZC(Handle: THandle): NTSTATUS; stdcall;
+
 Function {NtOpenThread}NtOT(var Handle: THandle; AccessMask: dword; objectattributes: pointer; clientid: PClient_ID):DWORD; stdcall;
 Function {VirtualAllocEx}VAE(hProcess: THandle; lpAddress: Pointer; dwSize, flAllocationType: DWORD; flProtect: DWORD): Pointer; stdcall;
 Function CreateRemoteAPC(threadid: dword; lpStartAddress: TFNAPCProc): THandle; stdcall;
@@ -1506,9 +1511,15 @@ end;
 
 function {OpenProcess}OP(dwDesiredAccess:DWORD;bInheritHandle:BOOL;dwProcessId:DWORD):THANDLE; stdcall;
 var valid:boolean;
-    Processhandle: uint64;
+    output: record
+      Processhandle: uint64;
+      Special: byte;
+    end;
+
     i:integer;
     cc,x: dword;
+    pbi: _OBJECT_BASIC_INFORMATION;
+    z: NTSTATUS;
 begin
   valid:=true;
   if dwProcessId=0 then
@@ -1521,12 +1532,41 @@ begin
   begin
     cc:=IOCTL_CE_OPENPROCESS;
 
-    if deviceiocontrol(hdevice,cc,@dwProcessId,4,@processhandle,8,x,nil) then
+    OutputDebugString(inttostr(dwProcessid)+' OpenProcess kernelmode');
+    if deviceiocontrol(hdevice,cc,@dwProcessId,4,@output,sizeof(output),x,nil) then
     begin
-      result:=processhandle
+      result:=output.Processhandle;
+
+      if output.Special<>0 then  //do not call close on these
+      begin
+        if handlemap=nil then
+          handlemap:=tmap.Create(ituPtrSize,4);
+
+        if handlemap.HasId(result) then
+          handlemap.Delete(result);
+
+        handlemap.Add(result,dwProcessId);
+      end;
+      {
+      z:=NtQueryObject(processhandle, ObjectBasicInformation, @pbi, sizeof(pbi),@x);
+      OutputDebugString(inttostr(dwProcessid)+' NtQueryObject='+inttohex(z,8));
+
+      if z<>0 then
+        result:=0
+      else
+      if pbi.GrantedAccess and (PROCESS_VM_READ or PROCESS_VM_WRITE) <>(PROCESS_VM_READ or PROCESS_VM_WRITE) then
+      begin
+        result:=0;
+        OutputDebugString(inttostr(dwProcessid)+' failed access');
+      end;
+
+      OutputDebugString(inttostr(dwProcessid)+' OpenProcess GrantedAccess='+inttohex(pbi.GrantedAccess,8));   }
     end
     else
+    begin
+      OutputDebugString(inttostr(dwProcessid)+' deviceiocontrol returned false');
       result:=0;
+    end;
   end else result:=windows.OpenProcess(dwDesiredAccess,bInheritHandle,dwProcessID);
 
 {$ifdef badopen}
@@ -1562,7 +1602,7 @@ end;
 
 Function {NtOpenThread}NtOT(var Handle: THandle; AccessMask: dword; objectattributes: pointer; clientid: PClient_ID):DWORD; stdcall;
 begin
-  handle:=OP(STANDARD_RIGHTS_REQUIRED or windows.synchronize or $3ff,true,clientid.processid);
+  handle:=OT(STANDARD_RIGHTS_REQUIRED or windows.synchronize or $3ff,true,clientid.processid);
   if handle<>0 then result:=0 else result:=$c000000e;
 end;
 
@@ -1570,6 +1610,16 @@ Function {NtOpenProcess}NOP(var Handle: THandle; AccessMask: dword; objectattrib
 begin
   Handle:=OP(process_all_access,true,clientid.processid);
   if handle<>0 then result:=0 else result:=$C000000E;
+end;
+
+Function {ZwClose}ZC(Handle: THandle): NTSTATUS; stdcall;
+type z=function (Handle: THandle): NTSTATUS; stdcall;
+begin
+  //check if the handle is a kernelmode opened one, and if so, don't
+  if (handlemap<>nil) and (handlemap.HasId(handle)) then exit;
+
+  //still here
+  result:=z(oldZwClose)(Handle);
 end;
 
 function MarkAllPagesAsNonAccessed(hProcess: THandle):boolean;
