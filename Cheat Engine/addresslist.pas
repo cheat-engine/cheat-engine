@@ -219,7 +219,8 @@ resourcestring
   rsALAutoAssembleScritp = 'Auto Assemble script';
 
 procedure TTreeviewWithScroll.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var n: TTreenode;
+var
+  n: TTreenode;
 begin
   //retarded solution for dealing with the expand click
   n:=GetNodeAt(X, Y);
@@ -1223,8 +1224,13 @@ var
   n: ttreenode;
 
   i: integer;
+  p: tpoint;
 begin
 //  self.Parent;
+  p:=treeview.ScreenToClient(mouse.cursorpos);
+  x:=p.x;
+  y:=p.y;
+
   node:=treeview.GetNodeAt(x,y);
   if node<>nil then
   begin
