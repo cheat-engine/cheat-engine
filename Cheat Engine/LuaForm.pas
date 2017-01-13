@@ -311,6 +311,15 @@ begin
     form.DoNotSaveInTable:=lua_toboolean(L,-1);
 end;
 
+function ceform_saveCurrentStateAsDesign(L: PLua_State): integer; cdecl;
+var
+  form: Tceform;
+begin
+  result:=0;
+  form:=luaclass_getClassObject(L);
+  form.SaveCurrentStateasDesign;
+end;
+
 function customform_getModalResult(L: PLua_State): integer; cdecl;
 var
   form: TCustomForm;
@@ -354,6 +363,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'printToRasterImage', customform_printToRasterImage);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'dragNow', customform_dragNow);
 
+
   luaclass_addPropertyToTable(L, metatable, userdata, 'OnClose', customform_getOnClose, customform_setOnClose);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Menu', customform_getMenu, customform_setMenu);
   luaclass_addPropertyToTable(L, metatable, userdata, 'ModalResult', customform_getModalResult, customform_setModalResult);
@@ -365,6 +375,8 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'saveToFile', ceform_saveToFile);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setDoNotSaveInTable', ceform_setDoNotSaveInTable);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getDoNotSaveInTable', ceform_getDoNotSaveInTable);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'saveCurrentStateAsDesign', ceform_saveCurrentStateasDesign);
+
   luaclass_addPropertyToTable(L, metatable, userdata, 'DoNotSaveInTable', ceform_getDoNotSaveInTable, ceform_setDoNotSaveInTable);
 
 end;

@@ -861,6 +861,7 @@ methods
   saveToFile(filename): Saves a userdefined form
   getDoNotSaveInTable(): Returns the DoNotSaveInTable property
   setDoNotSaveInTable(boolean): Sets the DoNotSaveInTable property
+  saveCurrentStateAsDesign() : Sets the current state of the form as the state that will be saved when the table is saved
 
 
 GraphicControl Class: (Inheritance: Control->Component->Object)
