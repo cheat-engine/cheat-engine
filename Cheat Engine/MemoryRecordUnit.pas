@@ -584,7 +584,7 @@ begin
 {$else}
     funparsed:=true;
 {$endif}
-    if not funparsed then
+    {if not funparsed then
     begin
       //call it to be sure it's ok and not returning nil
       forceUpdate;
@@ -594,7 +594,7 @@ begin
         funparsed:=true;
         cleanupluaref;
       end;
-    end;
+    end;  }
 
   end else funparsed:=false;
 

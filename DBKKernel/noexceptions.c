@@ -21,7 +21,7 @@ BOOL NoExceptions_Enter()
 	int i;
 	int cpunr;
 
-	DbgPrint("NoExceptions_Enter");
+	//DbgPrint("NoExceptions_Enter");
 
 	__try
 	{
@@ -57,7 +57,7 @@ BOOL NoExceptions_Enter()
 				return FALSE;
 		}
 
-		DbgPrint("cpustate setup here");
+		//DbgPrint("cpustate setup here");
 
 		KeRaiseIrql(HIGH_LEVEL, &old);
 		cpunr = KeGetCurrentProcessorNumber();
@@ -77,7 +77,7 @@ BOOL NoExceptions_Enter()
 			
 			RtlCopyMemory(cpustate[cpunr].NoExceptionVectorList, cpustate[cpunr].OriginalIDT.vector, cpustate[cpunr].OriginalIDT.wLimit + 1);				
 
-			DbgPrint("idt. Limit=%d Vector=%p", (int)cpustate[cpunr].OriginalIDT.wLimit, cpustate[cpunr].OriginalIDT.vector);
+			//DbgPrint("idt. Limit=%d Vector=%p", (int)cpustate[cpunr].OriginalIDT.wLimit, cpustate[cpunr].OriginalIDT.vector);
 
 			//hook cpustate[cpunr].NoExceptionVectorList[0-15]
 			//DbgPrint("")

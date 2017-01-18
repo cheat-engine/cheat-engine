@@ -137,7 +137,8 @@ const IOCTL_CE_ULTIMAP2_GETTRACESIZE  = (IOCTL_UNKNOWN_BASE shl 16) or ($085a sh
 const IOCTL_CE_ULTIMAP2_RESETTRACESIZE= (IOCTL_UNKNOWN_BASE shl 16) or ($085b shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
 const IOCTL_CE_ENABLE_DRM             = (IOCTL_UNKNOWN_BASE shl 16) or ($085c shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
-
+const IOCTL_CE_GET_PEB                = (IOCTL_UNKNOWN_BASE shl 16) or ($085d shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_QUERYINFORMATIONPROCESS= (IOCTL_UNKNOWN_BASE shl 16) or ($085e shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
 
 type TDeviceIoControl=function(hDevice: THandle; dwIoControlCode: DWORD; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesReturned: DWORD; lpOverlapped: POverlapped): BOOL; stdcall;
@@ -157,11 +158,16 @@ type
 
 
 
-type thandlelist=record
-  processhandle: thandle;
-  processid: dword;
-  validhandle: boolean;
-end;
+type
+  THandleListEntry=record
+    processid: dword;
+    validhandle: boolean; //it's a real handle. Else a pseudo handle
+    specialHandle: boolean; //do not close this
+  end;
+
+  PHandleListEntry=^THandleListEntry;
+
+
 
 type TClient_ID=record
   processid: thandle;
@@ -228,8 +234,8 @@ type
 
 
 var hdevice: thandle=INVALID_HANDLE_VALUE; //handle to my the device driver
-    handlelist: array of thandlelist;
     handlemap: TMap;
+    handlemapMREW: TMultiReadExclusiveWriteSynchronizer;
     driverloc: string;
     iamprotected:boolean;
     SDTShadow: DWORD;
@@ -248,7 +254,11 @@ var hdevice: thandle=INVALID_HANDLE_VALUE; //handle to my the device driver
 
     saferQueryPhysicalMemory: boolean=true;
 
-    oldZwClose: pointer;
+    oldZwClose: function (Handle: THandle): NTSTATUS; stdcall;
+    oldNtQueryInformationProcess: function(ProcessHandle: HANDLE; ProcessInformationClass: PROCESSINFOCLASS; ProcessInformation: PVOID; ProcessInformationLength: ULONG; ReturnLength: PULONG): NTSTATUS; stdcall;
+    oldNtReadVirtualMemory: function(ProcessHandle : HANDLE; BaseAddress : PVOID; Buffer : PVOID; BufferLength : ULONG; ReturnLength : PULONG): NTSTATUS; stdcall;
+
+    NextPseudoHandle: integer=$ce000000;
 
 function CTL_CODE(DeviceType, Func, Method, Access : integer) : integer;
 function IsValidHandle(hProcess:THandle):BOOL; stdcall;
@@ -263,6 +273,9 @@ function {WriteProcessMemory}WriteProcessMemory64(hProcess:THANDLE;BaseAddress:q
 function {VirtualQueryEx}VQE(hProcess: THandle; address: pointer; var mbi: _MEMORY_BASIC_INFORMATION; bufsize: DWORD):dword; stdcall;
 Function {NtOpenProcess}NOP(var Handle: THandle; AccessMask: dword; objectattributes: pointer; clientid: PClient_ID):DWORD; stdcall;
 Function {ZwClose}ZC(Handle: THandle): NTSTATUS; stdcall;
+
+function DBK_NtQueryInformationProcess(ProcessHandle: HANDLE; ProcessInformationClass: PROCESSINFOCLASS; ProcessInformation: PVOID; ProcessInformationLength: ULONG; ReturnLength: PULONG): NTSTATUS; stdcall;
+function DBK_NtReadVirtualMemory(ProcessHandle : HANDLE; BaseAddress : PVOID; Buffer : PVOID; BufferLength : ULONG; ReturnLength : PULONG): NTSTATUS; stdcall;
 
 Function {NtOpenThread}NtOT(var Handle: THandle; AccessMask: dword; objectattributes: pointer; clientid: PClient_ID):DWORD; stdcall;
 Function {VirtualAllocEx}VAE(hProcess: THandle; lpAddress: Pointer; dwSize, flAllocationType: DWORD; flProtect: DWORD): Pointer; stdcall;
@@ -348,7 +361,8 @@ procedure ultimap2_resume;
 procedure ultimap2_lockfile(cpunr: integer);
 procedure ultimap2_releasefile(cpunr: integer);
 
-function dbk_enabledrm(preferedAltitude: word=0): boolean;
+function dbk_enabledrm(preferedAltitude: word=0; protectedEProcess: qword=0): boolean;
+function dbk_getPEB(EProcess: qword): QWORD;
 
 {
 const IOCTL_CE_ULTIMAP2_WAITFORDATA   = (IOCTL_UNKNOWN_BASE shl 16) or ($0851 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
@@ -599,13 +613,30 @@ begin
     deviceiocontrol(hdevice,IOCTL_CE_ULTIMAP2_RESETTRACESIZE,nil,0,nil,0,br,nil);
 end;
 
-function dbk_enabledrm(preferedAltitude: word=0): boolean;
+function dbk_enabledrm(preferedAltitude: word=0; protectedEProcess: qword=0): boolean;
 var
+  inp:record
+    preferedAltitude: qword;
+    protectedEProcess: qword;
+  end;
   br: dword;
 begin
-  result:=deviceiocontrol(hdevice,IOCTL_CE_ENABLE_DRM,@preferedAltitude,sizeof(preferedAltitude),nil,0,br,nil);
+  inp.preferedAltitude:=preferedAltitude;
+  inp.protectedEProcess:=protectedEProcess;
+  result:=deviceiocontrol(hdevice,IOCTL_CE_ENABLE_DRM,@inp,sizeof(inp),nil,0,br,nil);
 end;
 
+function dbk_getPEB(EProcess: qword): QWORD;
+var
+  br: dword;
+  r: qword;
+begin
+  r:=0;
+  if deviceiocontrol(hdevice,IOCTL_CE_GET_PEB,@EProcess,sizeof(EProcess),@r,sizeof(r),br,nil) then
+    result:=r
+  else
+    result:=0;
+end;
 
 procedure dbk_test;
 var cc,br: dword;
@@ -810,20 +841,26 @@ var cc:dword;
     x,y:dword;
     i: integer;
     _cr3: uint64;
+    l: THandleListEntry;
 begin
   result:=false;
   if hdevice<>INVALID_HANDLE_VALUE then
   begin
-    for i:=0 to length(handlelist)-1 do
-      if handlelist[i].processhandle=hProcess then
+    handlemapmrew.Beginread;
+    try
+      if handlemap.GetData(hProcess,l) then
       begin
         cc:=IOCTL_CE_GETCR3;
-        x:=handlelist[i].processid;
+        x:=l.processid;
         result:=deviceiocontrol(hdevice,cc,@x,4,@_cr3,8,y,nil);
 
         outputdebugstring(pchar('GetCR3: return '+inttohex(_cr3,16)));
         if result then CR3:=_cr3 else cr3:=$11223344;
       end;
+
+    finally
+      handlemapmrew.Endread;
+    end;
   end;
 end;
 
@@ -980,22 +1017,28 @@ var cc: dword;
     x: dword;
     i: integer;
 
+    l: THandleListEntry;
 begin
   result:=false;
   if hdevice<>INVALID_HANDLE_VALUE then
   begin
     cc:=IOCTL_CE_GETPHYSICALADDRESS;
 
-    for i:=0 to length(handlelist)-1 do
-      if handlelist[i].processhandle=hProcess then
+    handlemapmrew.Beginread;
+    try
+      if handlemap.GetData(hProcess,l) then
       begin
-        input.ProcessID:=handlelist[i].processid;
+        input.ProcessID:=l.processid;
         input.BaseAddress:=ptrUint(lpBaseAddresS);
 //        outputdebugstring(pchar(format('ProcessID(%p)=%x Baseaddress(%p)=%x',[@input.ProcessID, input.processid, @input.BaseAddress, input.baseaddress])));
 
         result:=deviceiocontrol(hdevice,cc,@input,sizeof(TInputstruct),@physicaladdress,8,x,nil);
         if result then address:=physicaladdress else address:=0;
       end;
+
+    finally
+      handlemapmrew.Endread;
+    end;
   end;
 end;
 
@@ -1321,15 +1364,20 @@ end;
 
 function IsValidHandle(hProcess:THandle):BOOL; stdcall;
 var i: integer;
+    l: THandleListEntry;
 begin
   outputdebugstring('IsValidHandle');
   result:=false;
-  for i:=0 to length(handlelist)-1 do
-    if handlelist[i].processhandle=hProcess then
+  handlemapmrew.Beginread;
+  try
+    if handlemap.GetData(hProcess,l) then
     begin
-      result:=handlelist[i].validhandle;
+      result:=l.validhandle;
       exit;
     end;
+  finally
+    handlemapmrew.Endread;
+  end;
 end;
 
 function RPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:PtrUInt):BOOL; stdcall;
@@ -1354,58 +1402,65 @@ var //ao: array [0..600] of byte; //give it some space
     mempointer: qword;
     bufpointer: ptrUint;
     toread: dword;
+
+    l: THandleListEntry;
+    validhandle: boolean;
 begin
   result:=false;
   numberofbytesread:=0;
   //find the hprocess in the handlelist, if it isn't use the normal method (I could of course use NtQueryProcessInformation but it's undocumented and I'm too lazy to dig it up
 
-  for i:=0 to length(handlelist)-1 do
-    if handlelist[i].processhandle=hProcess then
+  handlemapmrew.Beginread;
+  validhandle:=handlemap.GetData(hProcess,l);
+  handlemapmrew.Endread;
+
+
+  if validhandle then
+  begin
+    if hdevice<>INVALID_HANDLE_VALUE then
     begin
-      if hdevice<>INVALID_HANDLE_VALUE then
+      cc:=IOCTL_CE_READMEMORY;
+      mempointer:=lpBaseAddress;
+      bufpointer:=ptrUint(lpbuffer);
+
+      ok:=true;
+      while ok do
       begin
-        cc:=IOCTL_CE_READMEMORY;
-        mempointer:=lpBaseAddress;
-        bufpointer:=ptrUint(lpbuffer);
-
-        ok:=true;
-        while ok do
+        input.processid:=l.processid;
+        if (mempointer and $fff) > 0 then //uneven
         begin
-          input.processid:=handlelist[i].processid;
-          if (mempointer and $fff) > 0 then //uneven
-          begin
-            toread:=4096-(mempointer and $fff);
-            if toread>(nSize-numberofbytesread) then toread:=nSize-numberofbytesread;
-          end
+          toread:=4096-(mempointer and $fff);
+          if toread>(nSize-numberofbytesread) then toread:=nSize-numberofbytesread;
+        end
+        else
+        begin
+          if nSize-numberofbytesread>=4096 then
+            toread:=4096
           else
-          begin
-            if nSize-numberofbytesread>=4096 then
-              toread:=4096
-            else
-              toread:=nSize-numberofbytesread;
-          end;
-
-          input.bytestoread:=toread;
-          input.startaddress:=mempointer;
-
-          if not deviceiocontrol(hdevice,cc,@input,sizeof(input),pointer(bufpointer),toread,br,nil) then
-            exit;
-
-          inc(mempointer,toread);
-          inc(bufpointer,toread);
-          inc(numberofbytesread,toread);
-
-          if numberofbytesread=nSize then
-          begin
-            result:=true;
-            exit;
-          end;
+            toread:=nSize-numberofbytesread;
         end;
 
-        exit;
-      end else if not handlelist[i].validhandle then exit; //else use the normal method...
-    end;
+        input.bytestoread:=toread;
+        input.startaddress:=mempointer;
 
+        if not deviceiocontrol(hdevice,cc,@input,sizeof(input),pointer(bufpointer),toread,br,nil) then
+          exit;
+
+        inc(mempointer,toread);
+        inc(bufpointer,toread);
+        inc(numberofbytesread,toread);
+
+        if numberofbytesread=nSize then
+        begin
+          result:=true;
+          exit;
+        end;
+      end;
+
+      exit;
+    end else if not l.validhandle then exit; //else use the normal method...
+
+  end;
   //not found so ....
   result:=windows.ReadProcessMemory(hProcess,pointer(ptrUint(lpBaseAddress)),lpBuffer,nSize,NumberOfBytesRead);
 end;
@@ -1433,61 +1488,187 @@ var ao: array [0..511] of byte;
     bufpointer: ptrUint;
     bufpointer2: pointer;
     towrite: dword;
+
+    l: THandleListEntry;
+    validhandle: boolean;
 begin
   result:=false;
   NumberOfByteswritten:=0;
   //find the hprocess in the handlelist, if it isn't use the normal method (I could of course use NtQueryProcessInformation but it's undocumented and I'm too lazy to dig it up
 
-  for i:=0 to length(handlelist)-1 do
-    if handlelist[i].processhandle=hProcess then
+  handlemapmrew.Beginread;
+  validhandle:=handlemap.GetData(hProcess,l);
+  handlemapmrew.Endread;
+
+  if validhandle then
+  begin
+    if hdevice<>INVALID_HANDLE_VALUE then
     begin
-      if hdevice<>INVALID_HANDLE_VALUE then
+      cc:=IOCTL_CE_WRITEMEMORY;
+      mempointer:=BaseAddress;
+      bufpointer:=ptrUint(lpbuffer);
+
+      ok:=true;
+      while ok do
       begin
-        cc:=IOCTL_CE_WRITEMEMORY;
-        mempointer:=BaseAddress;
-        bufpointer:=ptrUint(lpbuffer);
+        zeromemory(@ao[0],512);
 
-        ok:=true;
-        while ok do
-        begin
-          zeromemory(@ao[0],512);
+        input.processid:=l.processid;
+        if nSize-NumberOfByteswritten>=(512-sizeof(TInputstruct)) then
+          towrite:=(512-sizeof(TInputstruct))
+        else
+          towrite:=nSize-NumberOfByteswritten;
 
-          input.processid:=handlelist[i].processid;
-          if nSize-NumberOfByteswritten>=(512-sizeof(TInputstruct)) then
-            towrite:=(512-sizeof(TInputstruct))
-          else
-            towrite:=nSize-NumberOfByteswritten;
+        input.bytestowrite:=towrite;
+        input.startaddress:=mempointer;
 
-          input.bytestowrite:=towrite;
-          input.startaddress:=mempointer;
-
-          bufpointer2:=pointer(bufpointer);
-          copymemory(@ao[sizeof(tinputstruct)],bufpointer2,towrite);
+        bufpointer2:=pointer(bufpointer);
+        copymemory(@ao[sizeof(tinputstruct)],bufpointer2,towrite);
 
 //          OutputDebugString(pchar('sizeof(TInputstruct)='+inttostr(sizeof(TInputstruct))));
-          if not deviceiocontrol(hdevice,cc,@ao[0],512,@ao[0],512,br,nil) then exit;
+        if not deviceiocontrol(hdevice,cc,@ao[0],512,@ao[0],512,br,nil) then exit;
 
-          inc(mempointer,towrite);
-          inc(bufpointer,towrite);
-          inc(NumberOfByteswritten,towrite);
+        inc(mempointer,towrite);
+        inc(bufpointer,towrite);
+        inc(NumberOfByteswritten,towrite);
 
-          if NumberOfByteswritten=nSize then
-          begin
-            result:=true;
-            exit;
-          end;
+        if NumberOfByteswritten=nSize then
+        begin
+          result:=true;
+          exit;
         end;
+      end;
 
-        exit;
-      end else if not handlelist[i].validhandle then exit;
-    end;
+      exit;
+    end else if not l.validhandle then exit;
+  end;
 
-  //not found so ....
-
+  //still here
   if (BaseAddress>=qword($8000000000000000)) and (vmx_enabled and (dbvm_version>=$ce000005)) then //if dbvm is running and it's a kernel accesses use dbvm
     result:=dbvm_copyMemory(pointer(BaseAddress), lpBuffer, nSize)
   else
     result:=windows.writeProcessMemory(hProcess,pointer(ptrUint(BaseAddress)),lpBuffer,nSize,NumberOfByteswritten);
+end;
+
+function DBK_NtReadVirtualMemory(ProcessHandle : HANDLE; BaseAddress : PVOID; Buffer : PVOID; BufferLength : ULONG; ReturnLength : PULONG): NTSTATUS; stdcall;
+begin
+  result:=oldNtReadVirtualMemory(processhandle, BaseAddress, Buffer, BufferLEngth, ReturnLength);
+end;
+
+function DBK_NtQueryInformationProcess(ProcessHandle: HANDLE; ProcessInformationClass: PROCESSINFOCLASS; ProcessInformation: PVOID; ProcessInformationLength: ULONG; ReturnLength: PULONG): NTSTATUS; stdcall;
+type
+  toutput=record
+    result: QWORD;
+    returnlength: QWORD;
+    data: array [0..2000] of byte;
+  end;
+  poutput=^toutput;
+
+var
+  l: THandleListEntry;
+  validhandle: boolean;
+  cc: dword;
+
+  inp: record
+    processid: qword;
+    ProcessInformationAddress: qword;
+    ProcessInformationClass: qword;
+    ProcessInformationLength: qword;
+  end;
+
+  outp: poutput;
+
+  br: dword;
+begin
+  outp:=nil;
+
+  if (handlemapMREW=nil) or (handlemap=nil) then
+    exit(oldNtQueryInformationProcess(ProcessHandle, ProcessInformationClass, ProcessInformation, ProcessInformationLength, ReturnLength));
+
+  //if (ProcessHandle=-1) or (ProcessInformationClass<>ProcessBasicInformation) then
+//    exit(oldNtQueryInformationProcess(ProcessHandle, ProcessInformationClass, ProcessInformation, ProcessInformationLength, ReturnLength));
+
+  outputdebugstring('----DBK_NtQueryInformationProcess----');
+  handlemapMREW.Beginread;
+  validhandle:=handlemap.GetData(ProcessHandle, l);
+  handlemapMREW.Endread;
+
+  if validhandle then
+  begin
+//    if not l.validhandle then
+    begin
+
+      outputdebugstring('Using kernelmode NtQueryInformationProcess');
+
+      //try kernelmode
+      if hdevice<>INVALID_HANDLE_VALUE then
+      begin
+        cc:=IOCTL_CE_QUERYINFORMATIONPROCESS;
+        inp.processid:=l.processid;
+        inp.ProcessInformationAddress:=qword(ProcessInformation);
+        inp.ProcessInformationClass:=qword(ProcessInformationClass);
+        inp.ProcessInformationLength:=qword(ProcessInformationLength);
+
+        if ProcessInformationLength>65535 then
+        begin
+          //too big, possibly some bad code somewhere
+          OutputDebugString('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Too big!!!!!!!!!!!!!!!!!!!!!!!!!');
+          result:=DBK_NtQueryInformationProcess(ProcessHandle, ProcessInformationClass, ProcessInformation, 65535,ReturnLength);
+          exit;
+        end;
+
+        //still here, so not too big
+
+        OutputDebugString('DBK_NtQueryInformationProcess('+inttostr(integer(ProcessInformationClass))+')');
+
+        getmem(outp, sizeof(qword)*2+ProcessInformationLength);
+
+        try
+
+          if deviceiocontrol(hdevice,cc,@inp,sizeof(inp),outp,sizeof(qword)*2+ProcessInformationLength,br,nil) then
+          begin
+            OutputDebugString('deviceiocontrol=true');
+            OutputDebugString(format('outp.result=%x',[outp.result]));
+            OutputDebugString(format('outp.returnlength=%x',[outp.returnlength]));
+
+            result:=outp.result;
+            if ReturnLength<>nil then
+              ReturnLength^:=outp.returnlength;
+
+
+            OutPutDebugString('Before Copy');
+
+            if (ProcessInformation<>nil) and (result<$80000000) then
+            try
+              copymemory(ProcessInformation, @(outp^.data[0]),outp.returnlength);
+            except
+              result:=STATUS_ACCESS_VIOLATION;
+            end;
+            OutPutDebugString('After Copy');
+          end
+          else
+          begin
+            OutputDebugString('deviceiocontrol=false '+inttohex(getlasterror,8));
+            if l.validhandle then
+            begin
+              OutputDebugString('Valid handle');
+              result:=oldNtQueryInformationProcess(ProcessHandle, ProcessInformationClass, ProcessInformation, ProcessInformationLength, ReturnLength)
+            end
+            else
+              result:=STATUS_ACCESS_VIOLATION;
+          end;
+
+        finally
+          freemem(outp);
+        end;
+
+        exit;
+      end;
+    end;
+  end;
+
+  OutputDebugString('Unknown handle. Using original code');
+  result:=oldNtQueryInformationProcess(ProcessHandle, ProcessInformationClass, ProcessInformation, ProcessInformationLength, ReturnLength);
 end;
 
 function {OpenThread}OT(dwDesiredAccess:DWORD;bInheritHandle:BOOL;dwThreadId:DWORD):THANDLE; stdcall;
@@ -1520,6 +1701,8 @@ var valid:boolean;
     cc,x: dword;
     pbi: _OBJECT_BASIC_INFORMATION;
     z: NTSTATUS;
+
+    l: thandlelistEntry;
 begin
   valid:=true;
   if dwProcessId=0 then
@@ -1532,23 +1715,25 @@ begin
   begin
     cc:=IOCTL_CE_OPENPROCESS;
 
-    OutputDebugString(inttostr(dwProcessid)+' OpenProcess kernelmode');
+//    OutputDebugString(inttostr(dwProcessid)+' OpenProcess kernelmode');
     if deviceiocontrol(hdevice,cc,@dwProcessId,4,@output,sizeof(output),x,nil) then
     begin
       result:=output.Processhandle;
 
-      if output.Special<>0 then  //do not call close on these
-      begin
-        if handlemap=nil then
-          handlemap:=tmap.Create(ituPtrSize,4);
-
+      if handlemapMREW.Beginwrite then
+      try
         if handlemap.HasId(result) then
           handlemap.Delete(result);
 
-        handlemap.Add(result,dwProcessId);
+        l.processid:=dwProcessID;
+        l.specialHandle:=output.Special<>0;
+        l.validhandle:=true;
+        handlemap.Add(result,l);
+      finally
+        handlemapMREW.Endwrite;
       end;
-      {
-      z:=NtQueryObject(processhandle, ObjectBasicInformation, @pbi, sizeof(pbi),@x);
+
+     { z:=NtQueryObject(processhandle, ObjectBasicInformation, @pbi, sizeof(pbi),@x);
       OutputDebugString(inttostr(dwProcessid)+' NtQueryObject='+inttohex(z,8));
 
       if z<>0 then
@@ -1557,10 +1742,11 @@ begin
       if pbi.GrantedAccess and (PROCESS_VM_READ or PROCESS_VM_WRITE) <>(PROCESS_VM_READ or PROCESS_VM_WRITE) then
       begin
         result:=0;
-        OutputDebugString(inttostr(dwProcessid)+' failed access');
-      end;
+        closehandle(processhandle);
+        //OutputDebugString(inttostr(dwProcessid)+' failed access');
+      end;  }
 
-      OutputDebugString(inttostr(dwProcessid)+' OpenProcess GrantedAccess='+inttohex(pbi.GrantedAccess,8));   }
+      //OutputDebugString(inttostr(dwProcessid)+' OpenProcess GrantedAccess='+inttohex(pbi.GrantedAccess,8));
     end
     else
     begin
@@ -1577,27 +1763,21 @@ begin
   begin
     valid:=false;
     //openprocess isn't working
-    if length(handlelist)=0 then result:=100+random(32000)
-    else
-      result:=handlelist[length(handlelist)-1].processhandle+1;
-  end;
 
-  //check for a duplicate handle and replace it (closehandle/openproces gets you the same handle)
-  for i:=0 to length(handlelist)-1 do
-  begin
-    if handlelist[i].processhandle=result then
-    begin
-      handlelist[i].processid:=dwProcessID;
-      handlelist[i].validhandle:=valid;
-      exit;
+    result:=InterLockedIncrement(NextPseudoHandle);
+    if handlemapmrew.Beginwrite then
+    try
+      if handlemap.HasId(result) then
+        handlemap.Delete(result);
+
+      l.processid:=dwProcessID;
+      l.specialHandle:=false;
+      l.validhandle:=false;
+      handlemap.Add(result,l);
+    finally
+      handlemapmrew.Endwrite;
     end;
-
   end;
-
-  setlength(handlelist,length(handlelist)+1);
-  handlelist[length(handlelist)-1].processhandle:=result;
-  handlelist[length(handlelist)-1].processid:=dwProcessID;
-  handlelist[length(handlelist)-1].validhandle:=valid;
 end;
 
 Function {NtOpenThread}NtOT(var Handle: THandle; AccessMask: dword; objectattributes: pointer; clientid: PClient_ID):DWORD; stdcall;
@@ -1613,13 +1793,28 @@ begin
 end;
 
 Function {ZwClose}ZC(Handle: THandle): NTSTATUS; stdcall;
-type z=function (Handle: THandle): NTSTATUS; stdcall;
+var
+  hl: PHandleListEntry;
+  allow: boolean;
 begin
   //check if the handle is a kernelmode opened one, and if so, don't
-  if (handlemap<>nil) and (handlemap.HasId(handle)) then exit;
+  allow:=true;
+  if handlemapMREW<>nil then
+  begin
+    handlemapMREW.Beginread;
+    if handlemap<>nil then
+    begin
+      hl:=handlemap.GetDataPtr(handle);
+      if hl<>nil then
+        allow:=not hl^.specialHandle;
+    end;
+    handlemapMREW.Endread;
+  end;
+
+  if not allow then exit(0);
 
   //still here
-  result:=z(oldZwClose)(Handle);
+  result:=oldZwClose(Handle);
 end;
 
 function MarkAllPagesAsNonAccessed(hProcess: THandle):boolean;
@@ -1629,24 +1824,30 @@ var
     ProcessID: QWORD;
   end;
   br,cc: dword;
+  l: THandleListEntry;
+  validhandle: boolean;
 begin
   //OutputDebugString('MarkAllPagesAsNonAccessed');
   result:=false;
-  for i:=0 to length(handlelist)-1 do
-    if handlelist[i].processhandle=hProcess then
+
+  handlemapMREW.Beginread;
+  validhandle:=handlemap.GetData(hProcess, l);
+  handlemapMREW.Endread;
+
+  if validhandle then
+  begin
+    if hdevice<>INVALID_HANDLE_VALUE then
     begin
-      if hdevice<>INVALID_HANDLE_VALUE then
-      begin
-        //OutputDebugString('going to call IOCTL_CE_STARTACCESMONITOR');
+      //OutputDebugString('going to call IOCTL_CE_STARTACCESMONITOR');
 
-        input.ProcessID:=handlelist[i].processid;
-        cc:=IOCTL_CE_STARTACCESMONITOR;
-        if deviceiocontrol(hdevice,cc,@input,sizeof(input),nil,0,br,nil) then
-          result:=true;
+      input.ProcessID:=l.processid;
+      cc:=IOCTL_CE_STARTACCESMONITOR;
+      if deviceiocontrol(hdevice,cc,@input,sizeof(input),nil,0,br,nil) then
+        result:=true;
 
-        exit;
-      end;
+      exit;
     end;
+  end;
 end;
 
 function EnumAccessedPages(hProcess: THandle):integer;
@@ -1657,32 +1858,38 @@ var
   end;
   br,cc: dword;
   sizeneeded: integer;
+
+  l: THandleListEntry;
+  validhandle: boolean;
 begin
-  OutputDebugString('EnumAccessedPages');
+  //OutputDebugString('EnumAccessedPages');
   result:=0;
-  for i:=0 to length(handlelist)-1 do
-    if handlelist[i].processhandle=hProcess then
+  handlemapMREW.Beginread;
+  validhandle:=handlemap.GetData(hProcess, l);
+  handlemapMREW.Endread;
+
+  if validhandle then
+  begin
+    if hdevice<>INVALID_HANDLE_VALUE then
     begin
-      if hdevice<>INVALID_HANDLE_VALUE then
+     // OutputDebugString('going to call IOCTL_CE_ENUMACCESSEDMEMORY');
+
+      input.ProcessID:=l.processid;
+      cc:=IOCTL_CE_ENUMACCESSEDMEMORY;
+      if deviceiocontrol(hdevice,cc,@input,sizeof(input),@sizeneeded,sizeof(sizeneeded),br,nil) then
       begin
-       // OutputDebugString('going to call IOCTL_CE_ENUMACCESSEDMEMORY');
-
-        input.ProcessID:=handlelist[i].processid;
-        cc:=IOCTL_CE_ENUMACCESSEDMEMORY;
-        if deviceiocontrol(hdevice,cc,@input,sizeof(input),@sizeneeded,sizeof(sizeneeded),br,nil) then
-        begin
-         // OutputDebugString('sizeneeded='+inttostr(sizeneeded));
-          result:=sizeneeded;
-        end
-        else
-        begin
-          result:=0;
-          //outputdebugstring('EnumAccessedPages:fail');
-        end;
-
-        exit;
+       // OutputDebugString('sizeneeded='+inttostr(sizeneeded));
+        result:=sizeneeded;
+      end
+      else
+      begin
+        result:=0;
+        //outputdebugstring('EnumAccessedPages:fail');
       end;
+
+      exit;
     end;
+  end;
 end;
 
 function IgnoredVirtualProtectEx(hProcess: THandle; lpAddress: Pointer; dwSize, flNewProtect: DWORD; var OldProtect: DWORD): BOOL; stdcall;
@@ -1774,37 +1981,44 @@ var
 
   i: integer;
   br,cc: dword;
+  l: THandleListEntry;
+  validhandle: boolean;
 begin
   result:=0;
-  for i:=0 to length(handlelist)-1 do
-    if handlelist[i].processhandle=hProcess then
+
+  handlemapMREW.Beginread;
+  validhandle:=handlemap.GetData(hProcess, l);
+  handlemapMREW.Endread;
+
+
+  if validhandle then
+  begin
+    if hdevice<>INVALID_HANDLE_VALUE then
     begin
-      if hdevice<>INVALID_HANDLE_VALUE then
+      input.ProcessID:=l.processid;
+      input.StartAddress:=ptrUint(address);
+
+      cc:=IOCTL_CE_QUERY_VIRTUAL_MEMORY;
+      if deviceiocontrol(hdevice,cc,@input,sizeof(input),@output,sizeof(output),br,nil) then
       begin
-        input.ProcessID:=handlelist[i].processid;
-        input.StartAddress:=ptrUint(address);
+        mbi.BaseAddress:=pointer((ptrUint(address) div $1000) *$1000);
+        mbi.AllocationBase:=mbi.BaseAddress;
+        mbi.AllocationProtect:=output.protection;
+        mbi.RegionSize:=output.length;
+        if output.protection=PAGE_NOACCESS then
+          mbi.state:=MEM_FREE
+        else
+          mbi.State:=MEM_COMMIT;
 
-        cc:=IOCTL_CE_QUERY_VIRTUAL_MEMORY;
-        if deviceiocontrol(hdevice,cc,@input,sizeof(input),@output,sizeof(output),br,nil) then
-        begin
-          mbi.BaseAddress:=pointer((ptrUint(address) div $1000) *$1000);
-          mbi.AllocationBase:=mbi.BaseAddress;
-          mbi.AllocationProtect:=output.protection;
-          mbi.RegionSize:=output.length;
-          if output.protection=PAGE_NOACCESS then
-            mbi.state:=MEM_FREE
-          else
-            mbi.State:=MEM_COMMIT;
+        mbi.Protect:=output.protection;
+        mbi._Type:=MEM_PRIVATE;
 
-          mbi.Protect:=output.protection;
-          mbi._Type:=MEM_PRIVATE;
-
-          result:=sizeof(mbi);
-        end;
-        
-        exit; //we're done here
+        result:=sizeof(mbi);
       end;
+
+      exit; //we're done here
     end;
+  end;
 
 
 
@@ -1822,30 +2036,38 @@ var i: integer;
       Protect: uint64;
     end;
     r: uint64;
+
+    l: THandleListEntry;
+    validhandle: boolean;
 begin
   OutputDebugString('Kernelmode VirtualAllocEx: lpAddress='+inttohex(ptruint(lpAddress),1));
   result:=nil;
-  for i:=0 to length(handlelist)-1 do
-    if handlelist[i].processhandle=hProcess then
+
+
+  handlemapMREW.Beginread;
+  validhandle:=handlemap.GetData(hProcess, l);
+  handlemapMREW.Endread;
+
+  if validhandle then
+  begin
+    if hdevice<>INVALID_HANDLE_VALUE then
     begin
-      if hdevice<>INVALID_HANDLE_VALUE then
+      x.processid:=l.processid;
+      x.baseaddress:=ptrUint(lpAddress);
+      x.size:=dwsize;
+      x.AllocationType:=flAllocationType;
+      x.Protect:=flProtect;
+
+      cc:=IOCTL_CE_ALLOCATEMEM;
+      if deviceiocontrol(hdevice,cc,@x,sizeof(x),@r,sizeof(r),br,nil) then
       begin
-        x.processid:=handlelist[i].processid;
-        x.baseaddress:=ptrUint(lpAddress);
-        x.size:=dwsize;
-        x.AllocationType:=flAllocationType;
-        x.Protect:=flProtect;
-
-        cc:=IOCTL_CE_ALLOCATEMEM;
-        if deviceiocontrol(hdevice,cc,@x,sizeof(x),@r,sizeof(r),br,nil) then
-        begin
-          result:=pointer(r);
-          exit;
-        end;
-
-
+        result:=pointer(r);
+        exit;
       end;
+
+
     end;
+  end;
 
   //still here
   result:=VirtualAllocEx(hprocess,lpAddress,dwSize,flAllocationType,flProtect);
@@ -2704,7 +2926,6 @@ begin
     //  usealternatedebugmethod:=false;
       iamprotected:=false;
       apppath:=nil;
-      setlength(handlelist,0);
       hSCManager := OpenSCManager(nil, nil, GENERIC_READ or GENERIC_WRITE);
       try
         getmem(apppath,250);
@@ -2940,9 +3161,16 @@ initialization
   w:=LoadLibrary('kernel32.dll');
   VirtualAllocEx:=GetProcAddress(w,'VirtualAllocEx');
 
+  handlemapMREW:=TMultiReadExclusiveWriteSynchronizer.Create;
+  handlemap:=tmap.Create(ituPtrSize,sizeof(THandleListEntry));
+
+
 finalization
 begin
   if ownprocess<>0 then
     closehandle(ownprocess);
+
+  freeandnil(handlemap);
+  freeandnil(handlemapmrew);
 end;
 end.

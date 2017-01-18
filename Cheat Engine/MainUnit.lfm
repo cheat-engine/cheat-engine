@@ -1725,6 +1725,15 @@ object MainForm: TMainForm
       OnClick = btnMemoryViewClick
       TabOrder = 17
     end
+    object Button1: TButton
+      Left = 326
+      Height = 25
+      Top = 52
+      Width = 75
+      Caption = 'Button1'
+      OnClick = Button1Click
+      TabOrder = 18
+    end
   end
   object UpdateTimer: TTimer
     Interval = 500
@@ -2522,7 +2531,7 @@ object MainForm: TMainForm
       object miEnableLCLDebug: TMenuItem
         Caption = 'Enable LCL Debug'
         Visible = False
-        OnClick = Button1Click
+        OnClick = EnableLCLClick
       end
       object N8: TMenuItem
         Caption = '-'

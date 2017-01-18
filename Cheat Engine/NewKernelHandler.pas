@@ -746,7 +746,10 @@ var
   dbvm_read_physical_memory: Tdbvm_read_physical_memory;
   dbvm_write_physical_memory: Tdbvm_write_physical_memory; }
 
-var WindowsKernel: Thandle;
+var
+    WindowsKernel: Thandle;
+    NTDLLHandle: THandle;
+
     //DarkByteKernel: Thandle;
     DBKLoaded: boolean;
 
@@ -1379,6 +1382,11 @@ end;
 
 procedure UseDBKReadWriteMemory;
 {Changes the redirection of ReadProcessMemory, WriteProcessMemory and VirtualQueryEx to the DBK32 equiv: RPM, WPM and VAE }
+var
+  nthookscript: Tstringlist;
+  func: pointer;
+  old: pointer;
+  olds: string;
 begin
 {$ifdef windows}
   LoadDBK32;
@@ -1398,6 +1406,23 @@ begin
   {$endif}
 {$endif}
 
+  if not assigned(OldNtQueryInformationProcess) then
+  begin
+    nthookscript:=tstringlist.create;
+
+    func:=GetProcAddress(NTDLLHandle,'NtQueryInformationProcess');
+    generateAPIHookScript(nthookscript,IntToHex(ptruint(func),8),IntToHex(ptruint(@dbk_NtQueryInformationProcess),8),inttohex(ptruint(@@oldNtQueryInformationProcess),8),'0',true);
+    autoassemble(nthookscript, false, true, false, true);
+
+    nthookscript.clear;
+
+    func:=GetProcAddress(NTDLLHandle,'NtReadVirtualMemory');
+    generateAPIHookScript(nthookscript,IntToHex(ptruint(func),8),IntToHex(ptruint(@dbk_NtReadVirtualMemory),8),inttohex(ptruint(@@oldNtReadVirtualMemory),8),'0',true);
+    autoassemble(nthookscript, false, true, false, true);
+
+    nthookscript.free;
+  end;
+
 end;
 
 procedure DontUseDBKOpenProcess;
@@ -1413,15 +1438,10 @@ begin
 {$endif}
 end;
 
-var hooked: boolean=false;
-
 procedure UseDBKOpenProcess;
 var
   nthookscript: Tstringlist;
   zwc: pointer;
-  ntdll: HModule;
-  old: pointer;
-  olds: string;
 begin
 {$ifdef windows}
   LoadDBK32;
@@ -1435,22 +1455,17 @@ begin
   autoassemble(nthookscript, false, true, false, true);
 
 
-  if not hooked then
+  if not assigned(oldZwClose) then
   begin
     nthookscript.clear;
 
-    ntdll:=loadlibrary('ntdll.dll');
-    zwc:=GetProcAddress(ntdll,'NtClose');
+    zwc:=GetProcAddress(NTDLLHandle,'NtClose');
 
-    old:=@oldZwClose;
-    olds:=inttohex(ptruint(old),8);
-    generateAPIHookScript(nthookscript,IntToHex(ptruint(zwc),8),IntToHex(ptruint(@ZC),8),IntToHex(ptruint(@oldZwClose),8),'0',true);
+    generateAPIHookScript(nthookscript,IntToHex(ptruint(zwc),8),IntToHex(ptruint(@ZC),8),IntToHex(ptruint(@@oldZwClose),8),'0',true);
    // clipboard.AsText:=nthookscript.Text;
 
-    hooked:=autoassemble(nthookscript, false, true, false, true);
+    autoassemble(nthookscript, false, true, false, true);
   end;
-
-
 
 
   nthookscript.free;
@@ -1549,6 +1564,8 @@ initialization
 {$ifndef jni}
   WindowsKernel:=LoadLibrary('Kernel32.dll'); //there is no kernel33.dll
   if WindowsKernel=0 then Raise Exception.create(rsFucked);
+
+  NTDLLHandle:=LoadLibrary('ntdll.dll');
 
 
 

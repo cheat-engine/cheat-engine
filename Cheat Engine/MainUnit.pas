@@ -217,6 +217,7 @@ type
     btnSetSpeedhack2: TButton;
     btnAddAddressManually: TButton;
     btnMemoryView: TButton;
+    Button1: TButton;
     cbCaseSensitive: TCheckBox;
     cbCopyOnWrite: TCheckBox;
     cbExecutable: TCheckBox;
@@ -458,6 +459,7 @@ type
     procedure actOpenLuaEngineExecute(Sender: TObject);
     procedure Address1Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
+    procedure EnableLCLClick(Sender: TObject);
     procedure cbFastScanChange(Sender: TObject);
     procedure cbUnrandomizerChange(Sender: TObject);
     procedure Description1Click(Sender: TObject);
@@ -476,6 +478,7 @@ type
     procedure Foundlist3SelectItem(Sender: TObject; Item: TListItem;
       Selected: boolean);
     procedure Label3Click(Sender: TObject);
+    procedure Label6Click(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
     procedure miAsyncScriptClick(Sender: TObject);
     procedure miFlFindWhatAccessesClick(Sender: TObject);
@@ -2929,6 +2932,12 @@ begin
 end;
 
 procedure TMainForm.Button1Click(Sender: TObject);
+begin
+  dbk_test;
+
+end;
+
+procedure TMainForm.EnableLCLClick(Sender: TObject);
 var llf: TLazLoggerFile;
 begin
   llf:=GetDebugLogger;
@@ -3045,6 +3054,11 @@ begin
 end;
 
 procedure TMainForm.Label3Click(Sender: TObject);
+begin
+
+end;
+
+procedure TMainForm.Label6Click(Sender: TObject);
 begin
 
 end;

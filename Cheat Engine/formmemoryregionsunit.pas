@@ -27,6 +27,7 @@ type
     SelectAllReadableMemory1: TMenuItem;
     Setselectedregionstobewritable1: TMenuItem;
     N1: TMenuItem;
+    StatusBar1: TStatusBar;
     procedure FormShow(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -88,8 +89,18 @@ var address: PtrUInt;
     temp:string;
     mappedfilename: string;
     i: integer;
+
+    kernelmode: boolean=false;
 begin
-    listview1.Clear;
+  if DBKLoaded then
+  begin
+    kernelmode:=ssCtrl in GetKeyShiftState;
+    if not kernelmode then
+      statusbar1.Visible:=true;
+  end;
+
+
+   listview1.Clear;
 
     //query the process for the memory regions
     address:=0;
@@ -153,6 +164,17 @@ begin
 
 
       inc(address,mbi.RegionSize);
+
+      if not kernelmode then
+      begin
+        if processhandler.is64Bit then
+        begin
+          if (address>=QWORD($8000000000000000)) then exit;
+
+        end
+        else
+          if (address>=$80000000) then exit;
+      end;
     end;
 
 end;

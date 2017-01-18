@@ -7840,17 +7840,24 @@ begin
 end;
 
 function lua_enableDRM(L: Plua_State): integer; cdecl;
-var PreferedAltitude: word;
+var
+  PreferedAltitude: word;
+  ProtectedProcess: qword; //eprocess
 begin
   DBK32Initialize;
 
-  if lua_gettop(L)=1 then
+  if lua_gettop(L)>=1 then
     PreferedAltitude:=lua_tointeger(L,1)
   else
     PreferedAltitude:=0;
 
+  if lua_gettop(L)>=2 then
+    ProtectedProcess:=lua_tointeger(L,2)
+  else
+    ProtectedProcess:=0;
+
   result:=1;
-  lua_pushboolean(L, dbk_enabledrm(preferedAltitude));
+  lua_pushboolean(L, dbk_enabledrm(preferedAltitude, ProtectedProcess));
 end;
 
 function lua_openFileAsProcess(L: Plua_State): integer; cdecl;
@@ -7896,6 +7903,30 @@ begin
 
     lua_pushboolean(L,true);
   end;
+end;
+
+function lua_getPEB(L: Plua_State): integer; cdecl;
+var peb: qword;
+  pbi: TProcessBasicInformation;
+  x: ulong;
+begin
+
+  if DBKLoaded then
+    peb:=dbk_getPEB(GetPEProcess(processid))
+  else
+  begin
+    if NtQueryInformationProcess(processhandle, ProcessBasicInformation, @pbi, sizeof(pbi), @x)=STATUS_SUCCESS then
+      peb:=qword(pbi.PebBaseAddress)
+    else
+      peb:=0;
+  end;
+
+  lua_pushinteger(L, peb);
+  result:=1;
+end;
+
+function lua_getTEB(L: Plua_State): integer; cdecl;
+begin
 end;
 
 procedure InitializeLua;
@@ -8404,6 +8435,8 @@ begin
 
     lua_register(LuaVM, 'openFileAsProcess', lua_openFileAsProcess);
 
+    lua_register(LuaVM, 'getPEB', lua_getPEB);
+    lua_register(LuaVM, 'getTEB', lua_getTEB);
 
 
 
@@ -8522,6 +8555,7 @@ begin
       s.add('math.pow=function(x,y) return x^y end');
       s.add('math.atan2=math.atan');
       s.add('math.ldexp=function(x,exp) return x * 2.0^exp end');
+      s.add('math.mod=math.fmod');
       s.add('string.gfind=string.gmatch');
 
       s.add('BinUtils={}');

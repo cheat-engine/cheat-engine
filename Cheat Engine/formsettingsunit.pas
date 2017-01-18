@@ -34,6 +34,7 @@ type
     cbAskIfTableHasLuascript: TCheckBox;
     cbCanStepKernelcode: TCheckBox;
     cbCenterOnPopup: TCheckBox;
+    cbDontOpenHandle: TCheckBox;
     cbDontusetempdir: TCheckBox;
     cbFastscan: TCheckBox;
     cbGlobalDebug: TCheckBox;
@@ -66,6 +67,7 @@ type
     cbOverrideDefaultFont: TCheckBox;
     cbDPIAware: TCheckBox;
     cbShowLanguageMenuItem: TCheckBox;
+    CheckBox2: TCheckBox;
     combothreadpriority: TComboBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
@@ -186,6 +188,7 @@ type
     procedure cbAskIfTableHasLuascriptChange(Sender: TObject);
     procedure cbDontusetempdirChange(Sender: TObject);
     procedure cbDebuggerInterfaceChange(Sender: TObject);
+    procedure cbKernelOpenProcessChange(Sender: TObject);
     procedure cbKernelQueryMemoryRegionChange(Sender: TObject);
     procedure cbOverrideDefaultFontChange(Sender: TObject);
     procedure CheckBox1Change(Sender: TObject);
@@ -1000,6 +1003,11 @@ begin
   rbPageExceptions.enabled:=not cbKDebug.checked; //currently the kerneldebugger doesn't handle pageexceptions yet (can be added, but not right now)
   if rbPageExceptions.checked and not rbPageExceptions.enabled then
     rbDebugAsBreakpoint.checked:=true;
+end;
+
+procedure TformSettings.cbKernelOpenProcessChange(Sender: TObject);
+begin
+  cbDontOpenHandle.enabled:=cbKernelOpenProcess.Checked;
 end;
 
 procedure TformSettings.cbKernelQueryMemoryRegionChange(Sender: TObject);

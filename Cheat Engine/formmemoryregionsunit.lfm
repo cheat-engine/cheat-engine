@@ -26,7 +26,7 @@ object FormMemoryRegions: TFormMemoryRegions
   end
   object ListView1: TListView
     Left = 0
-    Height = 370
+    Height = 347
     Top = 0
     Width = 696
     Align = alClient
@@ -68,6 +68,19 @@ object FormMemoryRegions: TFormMemoryRegions
     ViewStyle = vsReport
     OnDblClick = ListView1DblClick
     OnResize = ListView1Resize
+  end
+  object StatusBar1: TStatusBar
+    Left = 0
+    Height = 23
+    Top = 347
+    Width = 696
+    Panels = <    
+      item
+        Text = 'Hold ctrl when opening this window to also see kernelmode regions'
+        Width = 50
+      end>
+    SimplePanel = False
+    Visible = False
   end
   object PopupMenu1: TPopupMenu
     OnPopup = PopupMenu1Popup

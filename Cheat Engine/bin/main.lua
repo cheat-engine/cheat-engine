@@ -1414,7 +1414,13 @@ createFont(): Returns a font object (default initialized based on the main ce wi
 properties
   Name: string
   Size: integer
+  Height: integer
+  Orientation: integer
+  Pitch: string - 'fpDefault', 'fpVariable', 'fpFixed'
   Color: integer
+  CharSet: integer
+  Quality: string - 'fqDefault', 'fqDraft', 'fqProof', 'fqNonAntialiased', 'fqAntialiased', 'fqCleartype', 'fqCleartypeNatural' 
+  Style: string set - ['fsBold', 'fsItalic', 'fsStrikeOut', 'fsUnderline']
 
 methods
   getName(): Gets the fontname of the font
