@@ -1385,7 +1385,7 @@ begin
   result:=ReadProcessMemory64(hProcess, uint64(ptrUint(lpBaseAddress)), lpBuffer, nSize, NumberOfBytesRead);
 end;
 
-function ReadProcessMemory64(hProcess:THANDLE;lpBaseAddress:UINT64;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:PtrUInt):BOOL; stdcall;
+function ReadProcessMemory64_Internal(processid:dword;lpBaseAddress:UINT64;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:PtrUInt):BOOL; stdcall;
 type TInputstruct=packed record
   processid: uint64;
   startaddress: uint64;
@@ -1410,58 +1410,70 @@ begin
   numberofbytesread:=0;
   //find the hprocess in the handlelist, if it isn't use the normal method (I could of course use NtQueryProcessInformation but it's undocumented and I'm too lazy to dig it up
 
+  if hdevice<>INVALID_HANDLE_VALUE then
+  begin
+    cc:=IOCTL_CE_READMEMORY;
+    mempointer:=lpBaseAddress;
+    bufpointer:=ptrUint(lpbuffer);
+
+    ok:=true;
+    while ok do
+    begin
+      input.processid:=processid;
+      if (mempointer and $fff) > 0 then //uneven
+      begin
+        toread:=4096-(mempointer and $fff);
+        if toread>(nSize-numberofbytesread) then toread:=nSize-numberofbytesread;
+      end
+      else
+      begin
+        if nSize-numberofbytesread>=4096 then
+          toread:=4096
+        else
+          toread:=nSize-numberofbytesread;
+      end;
+
+      input.bytestoread:=toread;
+      input.startaddress:=mempointer;
+
+      if not deviceiocontrol(hdevice,cc,@input,sizeof(input),pointer(bufpointer),toread,br,nil) then
+        exit;
+
+      inc(mempointer,toread);
+      inc(bufpointer,toread);
+      inc(numberofbytesread,toread);
+
+      if numberofbytesread=nSize then
+      begin
+        result:=true;
+        exit;
+      end;
+    end;
+  end;
+end;
+
+function ReadProcessMemory64(hProcess:THANDLE;lpBaseAddress:UINT64;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:PtrUInt):BOOL; stdcall;
+var
+  l: THandleListEntry;
+  validhandle: boolean;
+begin
+  result:=false;
+  numberofbytesread:=0;
+  //find the hprocess in the handlelist, if it isn't use the normal method (I could of course use NtQueryProcessInformation but it's undocumented and I'm too lazy to dig it up
+
   handlemapmrew.Beginread;
   validhandle:=handlemap.GetData(hProcess,l);
   handlemapmrew.Endread;
 
-
   if validhandle then
   begin
-    if hdevice<>INVALID_HANDLE_VALUE then
-    begin
-      cc:=IOCTL_CE_READMEMORY;
-      mempointer:=lpBaseAddress;
-      bufpointer:=ptrUint(lpbuffer);
+    if (hdevice<>INVALID_HANDLE_VALUE) then
+      exit(ReadProcessMemory64_Internal(l.processid,lpBaseAddress, lpBuffer, nSize,NumberOfBytesRead));
 
-      ok:=true;
-      while ok do
-      begin
-        input.processid:=l.processid;
-        if (mempointer and $fff) > 0 then //uneven
-        begin
-          toread:=4096-(mempointer and $fff);
-          if toread>(nSize-numberofbytesread) then toread:=nSize-numberofbytesread;
-        end
-        else
-        begin
-          if nSize-numberofbytesread>=4096 then
-            toread:=4096
-          else
-            toread:=nSize-numberofbytesread;
-        end;
-
-        input.bytestoread:=toread;
-        input.startaddress:=mempointer;
-
-        if not deviceiocontrol(hdevice,cc,@input,sizeof(input),pointer(bufpointer),toread,br,nil) then
-          exit;
-
-        inc(mempointer,toread);
-        inc(bufpointer,toread);
-        inc(numberofbytesread,toread);
-
-        if numberofbytesread=nSize then
-        begin
-          result:=true;
-          exit;
-        end;
-      end;
-
-      exit;
-    end else if not l.validhandle then exit; //else use the normal method...
-
+    if not l.validhandle then exit; //else use the normal method...
   end;
-  //not found so ....
+
+  //not found, or driver not loaded and a valid handle
   result:=windows.ReadProcessMemory(hProcess,pointer(ptrUint(lpBaseAddress)),lpBuffer,nSize,NumberOfBytesRead);
 end;
 
@@ -1551,8 +1563,41 @@ begin
 end;
 
 function DBK_NtReadVirtualMemory(ProcessHandle : HANDLE; BaseAddress : PVOID; Buffer : PVOID; BufferLength : ULONG; ReturnLength : PULONG): NTSTATUS; stdcall;
+var
+  l: THandleListEntry;
+  validhandle: boolean;
+  br: ptruint;
 begin
-  result:=oldNtReadVirtualMemory(processhandle, BaseAddress, Buffer, BufferLEngth, ReturnLength);
+  //outputdebugstring('----DBK_NtReadVirtualMemory----');    (don't do this, inf loop)
+  handlemapMREW.Beginread;
+  validhandle:=handlemap.GetData(ProcessHandle, l);
+  handlemapMREW.Endread;
+
+  if validhandle then
+  begin
+    if hdevice<>INVALID_HANDLE_VALUE then
+    begin
+      //read/write using kernelmode rpm
+      if ReturnLength<>nil then
+        br:=returnlength^;
+
+      try
+        if ReadProcessMemory64_Internal(l.processid, qword(baseaddress), buffer,bufferlength, br) then
+        begin
+          result:=0;
+          ReturnLength^:=br;
+        end
+        else
+          result:=STATUS_ACCESS_DENIED;
+      except
+        result:=STATUS_ACCESS_VIOLATION;
+      end;
+
+      if result=0 then exit;
+    end;
+  end;
+
+  result:=oldNtReadVirtualMemory(processhandle, BaseAddress, Buffer, BufferLength, ReturnLength);
 end;
 
 function DBK_NtQueryInformationProcess(ProcessHandle: HANDLE; ProcessInformationClass: PROCESSINFOCLASS; ProcessInformation: PVOID; ProcessInformationLength: ULONG; ReturnLength: PULONG): NTSTATUS; stdcall;
@@ -1588,7 +1633,6 @@ begin
   //if (ProcessHandle=-1) or (ProcessInformationClass<>ProcessBasicInformation) then
 //    exit(oldNtQueryInformationProcess(ProcessHandle, ProcessInformationClass, ProcessInformation, ProcessInformationLength, ReturnLength));
 
-  outputdebugstring('----DBK_NtQueryInformationProcess----');
   handlemapMREW.Beginread;
   validhandle:=handlemap.GetData(ProcessHandle, l);
   handlemapMREW.Endread;
