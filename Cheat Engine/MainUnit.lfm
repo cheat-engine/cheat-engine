@@ -1316,13 +1316,13 @@ object MainForm: TMainForm
       AnchorSideRight.Control = Panel5
       AnchorSideRight.Side = asrBottom
       Left = 580
-      Height = 292
+      Height = 311
       Top = 124
       Width = 121
       Anchors = [akTop, akRight]
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 292
+      ClientHeight = 311
       ClientWidth = 121
       TabOrder = 14
       object pnlScanOptions: TPanel
@@ -1331,13 +1331,13 @@ object MainForm: TMainForm
         AnchorSideRight.Control = Panel9
         AnchorSideRight.Side = asrBottom
         Left = 0
-        Height = 152
+        Height = 171
         Top = 0
         Width = 121
         AutoSize = True
         BorderSpacing.Bottom = 4
         BevelOuter = bvNone
-        ClientHeight = 152
+        ClientHeight = 171
         ClientWidth = 121
         Constraints.MinHeight = 100
         TabOrder = 0
@@ -1350,7 +1350,7 @@ object MainForm: TMainForm
           AnchorSideRight.Side = asrBottom
           Left = 0
           Height = 57
-          Top = 76
+          Top = 95
           Width = 121
           AutoSize = True
           BevelOuter = bvNone
@@ -1389,13 +1389,14 @@ object MainForm: TMainForm
           end
         end
         object cbUnicode: TCheckBox
-          AnchorSideTop.Control = cbpercentage
+          AnchorSideTop.Control = cbCodePage
           AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 38
+          Top = 57
           Width = 58
           Caption = 'UTF-16'
+          OnChange = cbUnicodeChange
           TabOrder = 1
           Visible = False
         end
@@ -1405,7 +1406,7 @@ object MainForm: TMainForm
           AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 57
+          Top = 76
           Width = 93
           Caption = 'Case sensitive'
           Checked = True
@@ -1424,13 +1425,14 @@ object MainForm: TMainForm
           AnchorSideRight.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 133
+          Top = 152
           Width = 118
           Caption = 'Simple values only'
           TabOrder = 3
           Visible = False
         end
         object cbpercentage: TCheckBox
+          AnchorSideLeft.Control = pnlScanOptions
           AnchorSideTop.Control = cbNot
           AnchorSideTop.Side = asrBottom
           Left = 0
@@ -1455,6 +1457,19 @@ object MainForm: TMainForm
           TabOrder = 5
           Visible = False
         end
+        object cbCodePage: TCheckBox
+          AnchorSideLeft.Control = cbpercentage
+          AnchorSideTop.Control = cbpercentage
+          AnchorSideTop.Side = asrBottom
+          Left = 0
+          Height = 19
+          Top = 38
+          Width = 74
+          Caption = 'Codepage'
+          OnChange = cbCodePageChange
+          TabOrder = 6
+          Visible = False
+        end
       end
       object Panel10: TPanel
         AnchorSideLeft.Control = Panel9
@@ -1466,7 +1481,7 @@ object MainForm: TMainForm
         AnchorSideBottom.Side = asrBottom
         Left = 0
         Height = 136
-        Top = 156
+        Top = 175
         Width = 115
         Anchors = [akTop, akLeft, akBottom]
         AutoSize = True

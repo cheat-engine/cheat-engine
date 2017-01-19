@@ -233,12 +233,16 @@ begin
         result:=floattostr(pdouble(@buf[0])^);
     end;
 
-    vtString:
+    vtString, vtCodePageString:
     begin
       getmem(s, bytesize+1);
       CopyMemory(s, buf, bytesize);
       s[bytesize]:=#0;
-      result:=s;
+
+      if variableType=vtCodePageString then
+        result:=WinCPToUTF8(s)
+      else
+        result:=s;
     end;
 
     vtUnicodeString:
@@ -338,7 +342,7 @@ begin
         result:=readAndParsePointer(address, @buf[0], variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
     end;
 
-    vtString:
+    vtString, vtCodePageString:
     begin
       getmem(buf2, bytesize+1);
       try
@@ -363,8 +367,9 @@ begin
         freemem(buf2);
         buf2:=nil;
       end;
-
     end;
+
+
 
     vtByteArray:
     begin

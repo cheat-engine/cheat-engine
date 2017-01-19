@@ -42,6 +42,7 @@ type TMemrecOptions=set of TMemrecOption;
 
 type TMemrecStringData=record
   unicode: boolean;
+  codepage: boolean;
   length: integer;
   ZeroTerminate: boolean;
 end;
@@ -912,6 +913,15 @@ begin
     begin
       fvartype:=vtString;
       extra.stringData.unicode:=true;
+      extra.stringData.codepage:=false;
+      extra.stringData.ZeroTerminate:=true;
+    end;
+
+    vtCodePageString:
+    begin
+      fvartype:=vtString;
+      extra.stringData.unicode:=false;
+      extra.stringData.codepage:=true;
       extra.stringData.ZeroTerminate:=true;
     end;
 
@@ -1126,6 +1136,10 @@ begin
         tempnode:=CheatEntry.FindNode('Unicode');
         if tempnode<>nil then
           extra.stringData.Unicode:=tempnode.TextContent='1';
+
+        tempnode:=CheatEntry.FindNode('Codepage');
+        if tempnode<>nil then
+          extra.stringData.Codepage:=tempnode.TextContent='1';
 
         tempnode:=CheatEntry.FindNode('ZeroTerminate');
         if tempnode<>nil then
@@ -1538,6 +1552,7 @@ begin
       begin
         cheatEntry.AppendChild(doc.CreateElement('Length')).TextContent:=inttostr(extra.stringData.length);
         cheatEntry.AppendChild(doc.CreateElement('Unicode')).TextContent:=BoolToStr(extra.stringData.unicode,'1','0');
+        cheatEntry.AppendChild(doc.CreateElement('CodePage')).TextContent:=BoolToStr(extra.stringData.codepage,'1','0');
         cheatEntry.AppendChild(doc.CreateElement('ZeroTerminate')).TextContent:=BoolToStr(extra.stringData.ZeroTerminate,'1','0');
 
       end;
@@ -2534,6 +2549,11 @@ begin
           result:=UTF16ToUTF8(wc)
         end
         else
+        if Extra.stringData.codepage then
+        begin
+          result:=WinCPToUTF8(c);
+        end
+        else
           result:=c;
       end;
 
@@ -2811,6 +2831,9 @@ begin
         end
         else
         begin
+          if extra.stringData.codepage then
+            tempsa:=UTF8ToWinCP(tempsa);
+
           x:=min(x,length(tempsa));
           if extra.stringData.ZeroTerminate then
             inc(x); //include the zero terminator

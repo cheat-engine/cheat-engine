@@ -19,6 +19,7 @@ type
     Button1: TButton;
     Button2: TButton;
     cbunicode: TCheckBox;
+    cbCodePage: TCheckBox;
     Edit1: TEdit;
     Edit2: TEdit;
     Label1: TLabel;
@@ -47,6 +48,8 @@ type
     VarType: TComboBox;
     procedure Button2Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
+    procedure cbCodePageChange(Sender: TObject);
+    procedure cbunicodeChange(Sender: TObject);
     procedure VarTypeChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
@@ -131,6 +134,7 @@ begin
     lengthlabel.visible:=true;
     clientwidth:=lengthpanel.left+lengthpanel.Width;
     cbunicode.visible:=vartype.itemindex=7;
+    cbCodePage.visible:=cbunicode.Visible;
   end else
   begin
     bitpanel.visible:=false;
@@ -217,6 +221,7 @@ begin
     val(edit1.Text,MemoryRecord.Extra.stringData.length,err);
 
     MemoryRecord.Extra.stringData.unicode:=cbunicode.checked;
+    MemoryRecord.Extra.stringData.codepage:=cbCodePage.checked;
   end;
 
   if memoryrecord.vartype=vtByteArray then
@@ -227,6 +232,16 @@ begin
   end;
 
   modalresult:=mryes;
+end;
+
+procedure TTypeForm.cbCodePageChange(Sender: TObject);
+begin
+  if cbCodePage.checked then cbunicode.checked:=false;
+end;
+
+procedure TTypeForm.cbunicodeChange(Sender: TObject);
+begin
+  if cbunicode.checked then cbCodePage.checked:=false;
 end;
 
 procedure TTypeForm.VarTypeChange(Sender: TObject);

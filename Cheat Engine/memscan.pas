@@ -585,6 +585,8 @@ type
     fLastScanValue: String;
     fscanresultfolder: string; //the location where all the scanfiles will be stored
 
+    fCodePage: boolean;
+
     fnextscanCount: integer;
 
 
@@ -646,6 +648,7 @@ type
     property OnlyOne: boolean read fOnlyOne write fOnlyOne;
     property VarType: TVariableType read currentVariableType;
     property CustomType: TCustomType read currentCustomType;
+    property codePage: boolean read fCodePage write fCodePage;
     property isUnicode: boolean read stringUnicode;
     property isHexadecimal: boolean read fisHexadecimal; //gui
     property LastScanValue: string read fLastScanValue;
@@ -6816,6 +6819,12 @@ begin
   scanController.fastscanmethod:=fastscanmethod;
   scancontroller.fastscandigitcount:=fastscandigitcount;
 
+  if codepage then
+  begin
+    scanvalue1:=UTF8ToWinCP(scanvalue1);
+    scanValue2:=UTF8ToWinCP(scanvalue1);
+  end;
+
   scanController.scanValue1:=scanvalue1; //usual scanvalue
   scanController.scanValue2:=scanValue2; //2nd value for between scan
   scanController.startaddress:=self.startaddress;
@@ -6902,8 +6911,15 @@ begin
   scanController.fastscanmethod:=fastscanmethod;
   scancontroller.fastscandigitcount:=fastscandigitcount;
 
+  if codepage then
+  begin
+    scanvalue1:=UTF8ToWinCP(scanvalue1);
+    scanValue2:=UTF8ToWinCP(scanvalue1);
+  end;
+
   scanController.scanValue1:=scanvalue1; //usual scanvalue
   scanController.scanValue2:=scanValue2; //2nd value for between scan
+
 
   scanController.startaddress:=startaddress;
   scanController.stopaddress:=stopaddress;

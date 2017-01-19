@@ -807,6 +807,14 @@ begin
       memrec.Extra.stringData.length:=length;
     end;
 
+    vtCodePageString:
+    begin
+      memrec.vartype:=vtString;
+      memrec.extra.stringData.unicode:=false;
+      memrec.extra.stringData.codepage:=false;
+      memrec.Extra.stringData.length:=length;
+    end;
+
     vtBinary:
     begin
       memrec.Extra.bitData.Bit:=startbit;
@@ -980,12 +988,14 @@ begin
       TypeForm.VarType.itemindex:=7;
       TypeForm.Edit1.text:=inttostr(memrec.Extra.stringData.length);
       typeform.cbunicode.checked:=memrec.Extra.stringData.unicode;
+      typeform.cbCodePage.checked:=memrec.Extra.stringData.codepage;
     end;
     vtByteArray:
     begin
       TypeForm.edit1.text:=inttostr(memrec.Extra.byteData.bytelength);
       TypeForm.VarType.itemindex:=8;
       Typeform.cbunicode.visible:=false;
+      Typeform.cbCodePage.visible:=false;
     end;
   end;
 

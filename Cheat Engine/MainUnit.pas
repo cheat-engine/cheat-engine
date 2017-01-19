@@ -77,6 +77,11 @@ type
       visible: boolean;
     end;
 
+    cbcodepage: record
+      checked: boolean;
+      visible: boolean;
+    end;
+
     cbCaseSensitive: record
       checked: boolean;
       visible: boolean;
@@ -231,6 +236,7 @@ type
     cbWritable: TCheckBox;
     cbpercentage: TCheckBox;
     cbNot: TCheckBox;
+    cbCodePage: TCheckBox;
     ColorDialog1: TColorDialog;
     CreateGroup: TMenuItem;
     FromAddress: TEdit;
@@ -459,6 +465,8 @@ type
     procedure actOpenLuaEngineExecute(Sender: TObject);
     procedure Address1Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
+    procedure cbCodePageChange(Sender: TObject);
+    procedure cbUnicodeChange(Sender: TObject);
     procedure EnableLCLClick(Sender: TObject);
     procedure cbFastScanChange(Sender: TObject);
     procedure cbUnrandomizerChange(Sender: TObject);
@@ -2532,9 +2540,10 @@ begin
       m.Extra.bitData.showasbinary := rbBit.Checked
     else
     if (m.VarType = vtString) then
+    begin
       m.Extra.stringData.unicode := foundlist.isUnicode;
-
-
+      m.Extra.stringData.codepage := memscan.codePage;
+    end;
   end;
 
 end;
@@ -2935,6 +2944,16 @@ procedure TMainForm.Button1Click(Sender: TObject);
 begin
   dbk_test;
 
+end;
+
+procedure TMainForm.cbCodePageChange(Sender: TObject);
+begin
+  if cbCodePage.checked then cbunicode.Checked:=false;
+end;
+
+procedure TMainForm.cbUnicodeChange(Sender: TObject);
+begin
+  if cbunicode.checked then cbCodePage.checked:=false;
 end;
 
 procedure TMainForm.EnableLCLClick(Sender: TObject);
@@ -4181,6 +4200,8 @@ begin
 
   scanstate.cbunicode.Visible := cbunicode.visible;
   scanstate.cbunicode.checked := cbunicode.checked;
+  scanstate.cbcodepage.Visible := cbcodepage.visible;
+  scanstate.cbcodepage.checked := cbcodepage.checked;
   scanstate.cbCaseSensitive.Visible := cbCaseSensitive.visible;
   scanstate.cbCaseSensitive.checked := cbCaseSensitive.checked;
 
@@ -4394,6 +4415,8 @@ begin
 
     cbunicode.Visible := newstate.cbunicode.visible;
     cbunicode.checked := newstate.cbunicode.checked;
+    cbCodePage.Visible := newstate.cbCodePage.visible;
+    cbCodePage.checked := newstate.cbCodePage.checked;
     cbCaseSensitive.Visible := newstate.cbCaseSensitive.visible;
     cbCaseSensitive.checked := newstate.cbCaseSensitive.checked;
 
@@ -6202,6 +6225,7 @@ begin
 
 
   cbunicode.Visible := unicodevis;
+  cbCodePage.visible:= unicodevis;
 
   cbCaseSensitive.Visible := casevis;
 
@@ -8805,6 +8829,9 @@ begin
     memscan.floatscanWithoutExponents:=cbFloatSimple.checked;
     memscan.inversescan:=cbNot.Checked and cbnot.Visible;
 
+    memscan.codePage:=cbCodePage.checked;
+
+
     memscan.firstscan(GetScanType2, getVarType2, roundingtype,
       scanvalue.Text, svalue2, scanStart, scanStop,
       cbHexadecimal.Checked, rbdec.Checked, cbunicode.Checked, cbCaseSensitive.Checked, fastscanmethod, edtAlignment.Text,
@@ -9010,6 +9037,7 @@ begin
 
   memscan.floatscanWithoutExponents:=cbFloatSimple.checked;
   memscan.inverseScan:=cbNot.Checked and cbnot.Visible;
+  memscan.codePage:=cbCodePage.checked;
 
   memscan.nextscan(GetScanType2, roundingtype, scanvalue.Text,
     svalue2, cbHexadecimal.Checked, rbdec.Checked,

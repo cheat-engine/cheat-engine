@@ -2,13 +2,13 @@ object formAddressChange: TformAddressChange
   Left = 1005
   Height = 279
   Top = 464
-  Width = 191
+  Width = 201
   AutoSize = True
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Change address'
   ClientHeight = 279
-  ClientWidth = 191
+  ClientWidth = 201
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
@@ -97,7 +97,7 @@ object formAddressChange: TformAddressChange
     Left = 8
     Height = 23
     Top = 95
-    Width = 175
+    Width = 185
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Right = 8
     ItemHeight = 15
@@ -125,11 +125,11 @@ object formAddressChange: TformAddressChange
     Left = 8
     Height = 87
     Top = 118
-    Width = 160
+    Width = 190
     AutoSize = True
     BevelOuter = bvNone
     ClientHeight = 87
-    ClientWidth = 160
+    ClientWidth = 190
     TabOrder = 3
     Visible = False
     object cbunicode: TCheckBox
@@ -140,6 +140,7 @@ object formAddressChange: TformAddressChange
       Top = 17
       Width = 64
       Caption = 'Unicode'
+      OnChange = cbunicodeChange
       TabOrder = 0
     end
     object edtSize: TEdit
@@ -363,6 +364,19 @@ object formAddressChange: TformAddressChange
         TabOrder = 7
       end
     end
+    object cbCodePage: TCheckBox
+      AnchorSideLeft.Control = cbunicode
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = cbunicode
+      Left = 116
+      Height = 19
+      Top = 17
+      Width = 74
+      BorderSpacing.Left = 4
+      Caption = 'Codepage'
+      OnChange = cbCodePageChange
+      TabOrder = 3
+    end
   end
   object lblValue: TLabel
     AnchorSideLeft.Control = editAddress
@@ -386,7 +400,7 @@ object formAddressChange: TformAddressChange
     Left = 8
     Height = 23
     Top = 55
-    Width = 175
+    Width = 185
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Right = 8
     TabOrder = 1
@@ -428,8 +442,8 @@ object formAddressChange: TformAddressChange
   end
   object pmOffset: TPopupMenu
     OnPopup = pmOffsetPopup
-    left = 96
-    top = 128
+    left = 112
+    top = 88
     object miUpdateOnReinterpretOnly: TMenuItem
       AutoCheck = True
       Caption = 'Only update the offset when the memory record gets reinterpreted'

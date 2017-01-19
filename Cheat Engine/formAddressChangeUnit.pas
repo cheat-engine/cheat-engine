@@ -113,6 +113,7 @@ type
   { TformAddressChange }
 
   TformAddressChange = class(TForm)
+    cbCodePage: TCheckBox;
     editDescription: TEdit;
     Label12: TLabel;
     Label3: TLabel;
@@ -151,6 +152,8 @@ type
     Timer1: TTimer;
     Timer2: TTimer;
     procedure btnCancelClick(Sender: TObject);
+    procedure cbCodePageChange(Sender: TObject);
+    procedure cbunicodeChange(Sender: TObject);
     procedure cbvarTypeChange(Sender: TObject);
     procedure editAddressChange(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -191,6 +194,8 @@ type
     function getStartbit: integer;
     procedure setUnicode(state: boolean);
     function getUnicode: boolean;
+    procedure setCodePage(state: boolean);
+    function getCodePage: boolean;
     procedure setDescription(s: string);
     function getDescription: string;
     procedure setAddress(var address: string; var offsets: TMemrecOffsetList);
@@ -203,6 +208,7 @@ type
     property length: integer read gLength write sLength;
     property startbit: integer read getStartbit write setStartbit;
     property unicode: boolean read getUnicode write setUnicode;
+    property codepage: boolean read getCodepage write setCodepage;
     property description: string read getDescription write setDescription;
   end;
 
@@ -1022,6 +1028,16 @@ begin
   result:=cbunicode.checked;
 end;
 
+procedure Tformaddresschange.setCodePage(state: boolean);
+begin
+  cbCodePage.checked:=state;
+end;
+
+function Tformaddresschange.getCodePage: boolean;
+begin
+  result:=cbCodePage.checked;
+end;
+
 procedure Tformaddresschange.setStartbit(b: integer);
 begin
   case b of
@@ -1117,7 +1133,16 @@ begin
     4: result:=vtQword;
     5: result:=vtSingle;
     6: result:=vtDouble;
-    7: result:=vtString;
+    7:
+    begin
+      if cbunicode.checked then
+        result:=vtUnicodeString
+      else
+      if cbCodePage.checked then
+        result:=vtCodePageString
+      else
+        result:=vtString;
+    end;
     8: result:=vtByteArray;
     else
       result:=vtCustom;
@@ -1169,6 +1194,7 @@ begin
   pnlExtra.visible:=cbvarType.itemindex in [0,7,8];
   pnlBitinfo.visible:=cbvarType.itemindex = 0;
   cbunicode.visible:=cbvarType.itemindex = 7;
+  cbCodePage.visible:=cbunicode.Visible;
 
   AdjustHeightAndButtons;
 
@@ -1182,6 +1208,18 @@ end;
 procedure TformAddressChange.btnCancelClick(Sender: TObject);
 begin
 
+end;
+
+procedure TformAddressChange.cbCodePageChange(Sender: TObject);
+begin
+  if cbCodePage.checked then
+    cbunicode.checked:=false;
+end;
+
+procedure TformAddressChange.cbunicodeChange(Sender: TObject);
+begin
+  if cbunicode.checked then
+    cbCodePage.checked:=false;
 end;
 
 procedure TformAddressChange.editAddressChange(Sender: TObject);
@@ -1276,6 +1314,7 @@ begin
     vtString:
     begin
       unicode:=rec.Extra.stringData.unicode;
+      codepage:=rec.Extra.stringData.codepage;
       length:=rec.Extra.stringData.length;
     end;
 
@@ -1319,6 +1358,7 @@ begin
     begin
       memoryrecord.Extra.stringData.length:=length;
       memoryrecord.Extra.stringData.unicode:=unicode;
+      memoryrecord.Extra.stringData.codepage:=codepage;
     end;
 
     vtByteArray:

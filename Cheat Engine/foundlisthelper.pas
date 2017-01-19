@@ -51,6 +51,7 @@ type
     hexadecimal: boolean; //show result in hexadecimal notation (when possible)
     signed: boolean;
     unicode: boolean;
+    codepage: boolean;
     binaryasdecimal: boolean;
 
     lastrebase: integer;
@@ -105,6 +106,7 @@ type
     property isHexadecimal: boolean read hexadecimal;
     property isSigned: boolean read signed;
     property isUnicode: boolean read unicode;
+    property isCodePage: boolean read codepage;
     property isUnknownInitialValue: boolean read fisUnknownInitialValue;
     property count: uint64 read fCount;
     property listName: string read fListname write setListName;
@@ -664,7 +666,14 @@ begin
           nrofbytes:=varlength*2;
         end
         else
+        begin
+          if fmemscan<>nil then
+            if fmemscan.codePage then
+              vtype:=vtCodePageString;
+
           nrofbytes:=varlength;
+        end;
+
       end;
 
       vtByteArray: nrofbytes:=varlength;
@@ -820,6 +829,7 @@ begin
     self.varlength:=memscan.Getbinarysize div 8;
 
     self.unicode:=memscan.isUnicode;
+    self.codepage:=memscan.codePage;
   end
   else
     OutputDebugString('no fmemscan');

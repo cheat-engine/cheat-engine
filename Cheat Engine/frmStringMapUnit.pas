@@ -151,7 +151,6 @@ begin
   e.stringsize:=size;
   e.unicode:=unicode;
 
-
   n:=stringtree.Add(e);
   prev:=stringtree.FindPrecessor(n);
   next:=stringtree.FindSuccessor(n);
