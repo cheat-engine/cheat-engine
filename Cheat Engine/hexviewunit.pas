@@ -538,7 +538,10 @@ begin
   end else
   begin
     if CharEncoding=ceAscii then
-      WriteProcessMemory(processhandle, pointer(selected), @wkey[1],1, bw)
+    begin
+      WriteProcessMemory(processhandle, pointer(selected), @wkey[1],1, bw);
+      inc(Selected);
+    end
     else
     if CharEncoding=ceutf8 then
     begin
