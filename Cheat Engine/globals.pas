@@ -130,7 +130,7 @@ var
   iswin2kplus: boolean;
   scanpriority: TThreadPriority;
 
-  useAPCtoInjectDLL: boolean;
+  useAPCtoInjectDLL: boolean=false;
 
 
   tempdir: pchar;

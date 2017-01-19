@@ -1,7 +1,7 @@
 object formSettings: TformSettings
-  Left = 306
+  Left = 413
   Height = 539
-  Top = 197
+  Top = 205
   Width = 813
   AutoSize = True
   BorderIcons = [biSystemMenu]
@@ -1629,7 +1629,6 @@ object formSettings: TformSettings
             Caption = 'Do not try to obtain handles'
             Enabled = False
             TabOrder = 3
-            Visible = False
           end
         end
         object cbProcessWatcher: TCheckBox
@@ -1641,16 +1640,20 @@ object formSettings: TformSettings
           Top = 77
           Width = 200
           Caption = 'Enable use of the Process Watcher'
+          OnChange = cbProcessWatcherChange
           TabOrder = 1
         end
-        object CheckBox3: TCheckBox
-          Left = 7
+        object cbInjectDLLWithAPC: TCheckBox
+          AnchorSideLeft.Control = cbProcessWatcher
+          AnchorSideTop.Control = cbProcessWatcher
+          AnchorSideTop.Side = asrBottom
+          Left = 5
           Height = 19
-          Top = 422
+          Top = 112
           Width = 135
+          BorderSpacing.Top = 16
           Caption = 'Use APC to inject dll''s'
           TabOrder = 2
-          Visible = False
         end
         object CheckBox4: TCheckBox
           Left = 7
@@ -1661,7 +1664,7 @@ object formSettings: TformSettings
           TabOrder = 3
           Visible = False
         end
-        object CheckBox2: TCheckBox
+        object cbProcessWatcherOpensHandles: TCheckBox
           AnchorSideLeft.Control = cbProcessWatcher
           AnchorSideLeft.Side = asrBottom
           AnchorSideTop.Control = cbProcessWatcher
@@ -2065,8 +2068,8 @@ object formSettings: TformSettings
     top = 143
   end
   object miLanguages: TPopupMenu
-    left = 184
-    top = 128
+    left = 272
+    top = 176
     object MenuItem1: TMenuItem
       Caption = 'Refresh'
       OnClick = MenuItem1Click

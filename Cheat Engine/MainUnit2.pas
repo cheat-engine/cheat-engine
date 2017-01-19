@@ -88,7 +88,8 @@ resourcestring
 implementation
 
 
-uses KernelDebugger,mainunit, DebugHelper, CustomTypeHandler, ProcessList, Globals, frmEditHistoryUnit;
+uses KernelDebugger,mainunit, DebugHelper, CustomTypeHandler, ProcessList, Globals,
+     frmEditHistoryUnit, DBK32functions;
 
 procedure UpdateToolsMenu;
 var i: integer;
@@ -691,6 +692,21 @@ begin
 
           if reg.ValueExists('Override Default Font') then
             cbOverrideDefaultFont.Checked:=reg.readbool('Override Default Font');
+
+          if reg.ValueExists('DoNotOpenProcessHandles') then
+            cbDontOpenHandle.Checked:=reg.readbool('DoNotOpenProcessHandles');
+
+          DoNotOpenProcessHandles:=cbDontOpenHandle.checked;
+
+          if reg.ValueExists('ProcessWatcherOpensHandles') then
+            cbProcessWatcherOpensHandles.Checked:=reg.readbool('ProcessWatcherOpensHandles');
+
+          ProcessWatcherOpensHandles:=cbProcessWatcherOpensHandles.checked;
+
+          if reg.ValueExists('useapctoinjectdll') then
+            cbInjectDLLWithAPC.Checked:=reg.readbool('useapctoinjectdll');
+
+          useapctoinjectdll:=cbInjectDLLWithAPC.checked;
         end;
 
 

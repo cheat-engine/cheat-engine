@@ -1057,6 +1057,8 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 			{
 				NTSTATUS r = STATUS_SUCCESS;
 
+				ProcessWatcherOpensHandles = *(char *)Irp->AssociatedIrp.SystemBuffer != 0;
+				
 				ExAcquireResourceExclusiveLite(&ProcesslistR, TRUE);				
 				ProcessEventCount=0;				
 				ExReleaseResourceLite(&ProcesslistR);

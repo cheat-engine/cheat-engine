@@ -1,7 +1,7 @@
 object frmRescanPointer: TfrmRescanPointer
-  Left = 574
+  Left = 1527
   Height = 342
-  Top = 240
+  Top = 540
   Width = 377
   AutoSize = True
   BorderStyle = bsDialog
@@ -294,7 +294,7 @@ object frmRescanPointer: TfrmRescanPointer
       Left = 8
       Height = 19
       Top = 81
-      Width = 242
+      Width = 195
       Caption = 'Only filter out accessible pointers'
       OnChange = cbFilterOutAccessibleChange
       TabOrder = 17

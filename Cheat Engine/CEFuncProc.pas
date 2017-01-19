@@ -979,12 +979,12 @@ begin
         //in 64-bit the apc runs in 64-bit mode. I could do a jmp 23:xxxx but then there's the stack and other stuff to setup as well
 
         //suspend , message, resume is needed to prevent a crash when it is in a message loop
-        ntsuspendprocess(processhandle);
+        //ntsuspendprocess(processhandle);
         x:=getathreadid(processid);
         PostThreadMessage(x,wm_paint,0,0);
         CreateRemoteAPC(x,pointer(startaddress));
         PostThreadMessage(x,wm_paint,0,0);
-        ntresumeprocess(processhandle);
+       // ntresumeprocess(processhandle);
 
         sleep(1000);
       end

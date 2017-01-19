@@ -67,7 +67,7 @@ type
     cbOverrideDefaultFont: TCheckBox;
     cbDPIAware: TCheckBox;
     cbShowLanguageMenuItem: TCheckBox;
-    CheckBox2: TCheckBox;
+    cbProcessWatcherOpensHandles: TCheckBox;
     combothreadpriority: TComboBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
@@ -146,7 +146,7 @@ type
     cbKernelReadWriteProcessMemory: TCheckBox;
     cbKernelOpenProcess: TCheckBox;
     cbProcessWatcher: TCheckBox;
-    CheckBox3: TCheckBox;
+    cbInjectDLLWithAPC: TCheckBox;
     CheckBox4: TCheckBox;
     tsHotkeys: TTabSheet;
     OpenDialog1: TOpenDialog;
@@ -191,6 +191,7 @@ type
     procedure cbKernelOpenProcessChange(Sender: TObject);
     procedure cbKernelQueryMemoryRegionChange(Sender: TObject);
     procedure cbOverrideDefaultFontChange(Sender: TObject);
+    procedure cbProcessWatcherChange(Sender: TObject);
     procedure CheckBox1Change(Sender: TObject);
     procedure EditBufSizeKeyPress(Sender: TObject; var Key: Char);
     procedure Default1Click(Sender: TObject);
@@ -294,22 +295,10 @@ var
 implementation
 
 uses
-aboutunit,
-
-
-MainUnit,
-MainUnit2,
-frmExcludeHideUnit, {
-MemoryBrowserFormUnit,}
-ModuleSafetyUnit,
-frmProcessWatcherUnit,
-CustomTypeHandler,
-processlist,
-commonTypeDefs,
-frmEditHistoryUnit,
-Globals,
-fontSaveLoadRegistry,
-CETranslator, MemoryBrowserFormUnit;
+  aboutunit, MainUnit, MainUnit2, frmExcludeHideUnit, ModuleSafetyUnit,
+  frmProcessWatcherUnit, CustomTypeHandler, processlist, commonTypeDefs,
+  frmEditHistoryUnit, Globals, fontSaveLoadRegistry, CETranslator,
+  MemoryBrowserFormUnit, DBK32functions;
 
 
 type TLanguageEntry=class
@@ -768,6 +757,17 @@ begin
 
       reg.WriteBool('DPI Aware', cbDPIAware.Checked);
       reg.writebool('Override Default Font', cbOverrideDefaultFont.Checked);
+
+      reg.WriteBool('DoNotOpenProcessHandles', cbDontOpenHandle.Checked);
+      DoNotOpenProcessHandles:=cbDontOpenHandle.Checked;
+
+      reg.WriteBool('ProcessWatcherOpensHandles', cbProcessWatcherOpensHandles.Checked);
+      ProcessWatcherOpensHandles:=cbProcessWatcherOpensHandles.Checked;
+
+      reg.WriteBool('ProcessWatcherOpensHandles', cbProcessWatcherOpensHandles.Checked);
+
+      reg.WriteBool('useapctoinjectdll', cbInjectDLLWithAPC.Checked);
+      useapctoinjectdll:=cbInjectDLLWithAPC.checked;
     end;
 
 
@@ -1018,6 +1018,11 @@ end;
 procedure TformSettings.cbOverrideDefaultFontChange(Sender: TObject);
 begin
   btnSetFont.enabled:=cbOverrideDefaultFont.Checked;
+end;
+
+procedure TformSettings.cbProcessWatcherChange(Sender: TObject);
+begin
+  cbProcessWatcherOpensHandles.enabled:=cbProcessWatcher.Checked;
 end;
 
 procedure TformSettings.CheckBox1Change(Sender: TObject);

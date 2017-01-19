@@ -64,6 +64,8 @@ PKEVENT ThreadEvent;
 
 extern HANDLE WatcherHandle;
 extern PEPROCESS WatcherProcess;
+extern BOOLEAN ProcessWatcherOpensHandles;
+
 BOOLEAN CreateThreadNotifyRoutineEnabled;
 VOID CleanProcessList();
 HANDLE GetHandleForProcessID(IN HANDLE ProcessID);

@@ -8,6 +8,8 @@
 PRTL_GENERIC_TABLE InternalProcessList = NULL;
 
 PEPROCESS WatcherProcess = NULL;
+BOOLEAN ProcessWatcherOpensHandles = TRUE;
+
 
 
 RTL_GENERIC_COMPARE_RESULTS NTAPI ProcessListCompare(__in struct _RTL_GENERIC_TABLE *Table, __in PProcessListData FirstStruct, __in PProcessListData SecondStruct)
@@ -136,7 +138,7 @@ VOID CreateProcessNotifyRoutine( IN HANDLE  ParentId, IN HANDLE  ProcessId, IN B
 		//aquire a spinlock
 		if (ExAcquireResourceExclusiveLite(&ProcesslistR, TRUE))
 		{
-			if (WatcherProcess)
+			if ((ProcessWatcherOpensHandles) && (WatcherProcess))
 			{
 				if (PsLookupProcessByProcessId((PVOID)ProcessId, &CurrentProcess) == STATUS_SUCCESS)
 				{

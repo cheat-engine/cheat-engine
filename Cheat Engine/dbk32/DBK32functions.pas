@@ -259,6 +259,8 @@ var hdevice: thandle=INVALID_HANDLE_VALUE; //handle to my the device driver
     oldNtReadVirtualMemory: function(ProcessHandle : HANDLE; BaseAddress : PVOID; Buffer : PVOID; BufferLength : ULONG; ReturnLength : PSIZE_T): NTSTATUS; stdcall;
 
     NextPseudoHandle: integer=$ce000000;
+    DoNotOpenProcessHandles: Boolean=false;
+    ProcessWatcherOpensHandles: Boolean=true;
 
 function CTL_CODE(DeviceType, Func, Method, Access : integer) : integer;
 function IsValidHandle(hProcess:THandle):BOOL; stdcall;
@@ -1748,57 +1750,57 @@ var valid:boolean;
 
     l: thandlelistEntry;
 begin
+  result:=0;
   valid:=true;
   if dwProcessId=0 then
-  begin
-    result:=0;
     exit;
-  end;
 
-  if hdevice<>INVALID_HANDLE_VALUE then
+  if not DoNotOpenProcessHandles then
   begin
-    cc:=IOCTL_CE_OPENPROCESS;
-
-//    OutputDebugString(inttostr(dwProcessid)+' OpenProcess kernelmode');
-    if deviceiocontrol(hdevice,cc,@dwProcessId,4,@output,sizeof(output),x,nil) then
+    if hdevice<>INVALID_HANDLE_VALUE then
     begin
-      result:=output.Processhandle;
+      cc:=IOCTL_CE_OPENPROCESS;
 
-      if handlemapMREW.Beginwrite then
-      try
-        if handlemap.HasId(result) then
-          handlemap.Delete(result);
-
-        l.processid:=dwProcessID;
-        l.specialHandle:=output.Special<>0;
-        l.validhandle:=true;
-        handlemap.Add(result,l);
-      finally
-        handlemapMREW.Endwrite;
-      end;
-
-     { z:=NtQueryObject(processhandle, ObjectBasicInformation, @pbi, sizeof(pbi),@x);
-      OutputDebugString(inttostr(dwProcessid)+' NtQueryObject='+inttohex(z,8));
-
-      if z<>0 then
-        result:=0
-      else
-      if pbi.GrantedAccess and (PROCESS_VM_READ or PROCESS_VM_WRITE) <>(PROCESS_VM_READ or PROCESS_VM_WRITE) then
+  //    OutputDebugString(inttostr(dwProcessid)+' OpenProcess kernelmode');
+      if deviceiocontrol(hdevice,cc,@dwProcessId,4,@output,sizeof(output),x,nil) then
       begin
+        result:=output.Processhandle;
+
+        if handlemapMREW.Beginwrite then
+        try
+          if handlemap.HasId(result) then
+            handlemap.Delete(result);
+
+          l.processid:=dwProcessID;
+          l.specialHandle:=output.Special<>0;
+          l.validhandle:=true;
+          handlemap.Add(result,l);
+        finally
+          handlemapMREW.Endwrite;
+        end;
+
+       { z:=NtQueryObject(processhandle, ObjectBasicInformation, @pbi, sizeof(pbi),@x);
+        OutputDebugString(inttostr(dwProcessid)+' NtQueryObject='+inttohex(z,8));
+
+        if z<>0 then
+          result:=0
+        else
+        if pbi.GrantedAccess and (PROCESS_VM_READ or PROCESS_VM_WRITE) <>(PROCESS_VM_READ or PROCESS_VM_WRITE) then
+        begin
+          result:=0;
+          closehandle(processhandle);
+          //OutputDebugString(inttostr(dwProcessid)+' failed access');
+        end;  }
+
+        //OutputDebugString(inttostr(dwProcessid)+' OpenProcess GrantedAccess='+inttohex(pbi.GrantedAccess,8));
+      end
+      else
+      begin
+        OutputDebugString(inttostr(dwProcessid)+' deviceiocontrol returned false');
         result:=0;
-        closehandle(processhandle);
-        //OutputDebugString(inttostr(dwProcessid)+' failed access');
-      end;  }
-
-      //OutputDebugString(inttostr(dwProcessid)+' OpenProcess GrantedAccess='+inttohex(pbi.GrantedAccess,8));
-    end
-    else
-    begin
-      OutputDebugString(inttostr(dwProcessid)+' deviceiocontrol returned false');
-      result:=0;
-    end;
-  end else result:=windows.OpenProcess(dwDesiredAccess,bInheritHandle,dwProcessID);
-
+      end;
+    end else result:=windows.OpenProcess(dwDesiredAccess,bInheritHandle,dwProcessID);
+  end;
 {$ifdef badopen}
   result:=0;
 {$endif}
@@ -2203,15 +2205,21 @@ end;
 
 
 function StartProcessWatch:BOOL;stdcall;
-var cc,x: dword;
+var
+  cc,x: dword;
+  openhandles: byte;
 begin
+  if ProcessWatcherOpensHandles then
+    openhandles:=1
+  else
+    openhandles:=0;
 
   result:=false;
   if (hdevice<>INVALID_HANDLE_VALUE) then
   begin
-    OutputDebugString('StartProcessWatch');
+    //OutputDebugString('StartProcessWatch');
     cc:=IOCTL_CE_STARTPROCESSWATCH;
-    result:=deviceiocontrol(hdevice,cc,@x,0,@x,0,x,nil);
+    result:=deviceiocontrol(hdevice,cc,@openhandles,1,nil,0,x,nil);
   end;
 end;
 
