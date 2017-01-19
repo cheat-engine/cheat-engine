@@ -9,3 +9,6 @@ void DBKResumeThread(ULONG ThreadID);
 
 void DBKResumeProcess(ULONG ProcessID);
 void DBKSuspendProcess(ULONG ProcessID);
+
+
+//NTSTATUS NTAPI DBKGetContextThread(IN PETHREAD Thread, IN OUT PCONTEXT ThreadContext);

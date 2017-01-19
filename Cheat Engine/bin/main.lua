@@ -269,6 +269,7 @@ openProcess(processid) : causes cheat engine to open the given processid
 openProcess(processname): causes cheat engine to find and open the given process
 openFileAsProcess(filename,is64bit): causes cheat engine to open the file with memory access as if it's a process
 setPointerSize(size): Sets the size cheat engine will deal with pointers in bytes. (Some 64-bit processes can only use 32-bit addresses)
+setAssemblerMode(int): 0=32-bit, 1=64-bit
 pause() : pauses the current opened process
 unpause(): resumes the current opened process
 
@@ -352,6 +353,9 @@ AOBScan(aobstring): see above but here you just input one string
 Regarding eventhandlers. You can initialize them using both a string of a functionname or the function itself.
 If initialized using a function itself it won't be able to get saved in the table
 
+
+allocateMemory(size): Allocates some memory into the target process
+
 allocateSharedMemory(name, size):
   Creates a shared memory object of the given size if it doesn't exist yet. If size is not given and there is no shared region with this name then the default size of 4096 is used
   It then maps this shared memory block into the currently targeted process. It returns the address of mapped region in the target process
@@ -374,6 +378,7 @@ unhookWndProc(hwnd) - call this when done with the hook.  Not calling this will 
 
 cheatEngineIs64Bit(): Returns true if CE is 64-bit, false if 32-bit
 targetIs64Bit(): Returns true if the target process is 64-bit, false if 32-bit
+
 
 
 getCheatEngineDir(): Returns the folder Cheat Engine is located at

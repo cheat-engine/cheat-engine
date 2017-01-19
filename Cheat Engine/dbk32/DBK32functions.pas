@@ -256,7 +256,7 @@ var hdevice: thandle=INVALID_HANDLE_VALUE; //handle to my the device driver
 
     oldZwClose: function (Handle: THandle): NTSTATUS; stdcall;
     oldNtQueryInformationProcess: function(ProcessHandle: HANDLE; ProcessInformationClass: PROCESSINFOCLASS; ProcessInformation: PVOID; ProcessInformationLength: ULONG; ReturnLength: PULONG): NTSTATUS; stdcall;
-    oldNtReadVirtualMemory: function(ProcessHandle : HANDLE; BaseAddress : PVOID; Buffer : PVOID; BufferLength : ULONG; ReturnLength : PULONG): NTSTATUS; stdcall;
+    oldNtReadVirtualMemory: function(ProcessHandle : HANDLE; BaseAddress : PVOID; Buffer : PVOID; BufferLength : ULONG; ReturnLength : PSIZE_T): NTSTATUS; stdcall;
 
     NextPseudoHandle: integer=$ce000000;
 
@@ -275,7 +275,7 @@ Function {NtOpenProcess}NOP(var Handle: THandle; AccessMask: dword; objectattrib
 Function {ZwClose}ZC(Handle: THandle): NTSTATUS; stdcall;
 
 function DBK_NtQueryInformationProcess(ProcessHandle: HANDLE; ProcessInformationClass: PROCESSINFOCLASS; ProcessInformation: PVOID; ProcessInformationLength: ULONG; ReturnLength: PULONG): NTSTATUS; stdcall;
-function DBK_NtReadVirtualMemory(ProcessHandle : HANDLE; BaseAddress : PVOID; Buffer : PVOID; BufferLength : ULONG; ReturnLength : PULONG): NTSTATUS; stdcall;
+function DBK_NtReadVirtualMemory(ProcessHandle : HANDLE; BaseAddress : PVOID; Buffer : PVOID; BufferLength : ULONG; ReturnLength : PSIZE_T): NTSTATUS; stdcall;
 
 Function {NtOpenThread}NtOT(var Handle: THandle; AccessMask: dword; objectattributes: pointer; clientid: PClient_ID):DWORD; stdcall;
 Function {VirtualAllocEx}VAE(hProcess: THandle; lpAddress: Pointer; dwSize, flAllocationType: DWORD; flProtect: DWORD): Pointer; stdcall;
@@ -1562,7 +1562,7 @@ begin
     result:=windows.writeProcessMemory(hProcess,pointer(ptrUint(BaseAddress)),lpBuffer,nSize,NumberOfByteswritten);
 end;
 
-function DBK_NtReadVirtualMemory(ProcessHandle : HANDLE; BaseAddress : PVOID; Buffer : PVOID; BufferLength : ULONG; ReturnLength : PULONG): NTSTATUS; stdcall;
+function DBK_NtReadVirtualMemory(ProcessHandle : HANDLE; BaseAddress : PVOID; Buffer : PVOID; BufferLength : ULONG; ReturnLength : PSIZE_T): NTSTATUS; stdcall;
 var
   l: THandleListEntry;
   validhandle: boolean;
@@ -2132,7 +2132,7 @@ Function CreateRemoteAPC(threadid: dword; lpStartAddress: TFNAPCProc): THandle; 
 var
     br,cc: dword;
     x:record
-      threadid: dword;
+      threadid: uint64;
       addresstoexecute: uint64;
     end;
 

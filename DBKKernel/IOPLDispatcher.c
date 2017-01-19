@@ -58,6 +58,7 @@ void mykapc2(PKAPC Apc, PKNORMAL_ROUTINE NormalRoutine, PVOID NormalContext, PVO
 	ExFreePool(Apc);
 	DbgPrint("My second kernelmode apc!!!!\n");
 	DbgPrint("SystemArgument1=%x\n",*(PULONG)SystemArgument1);
+	DbgPrint("SystemArgument2=%x\n", *(PULONG)SystemArgument2);
 }
 
 void nothing2(PVOID arg1, PVOID arg2, PVOID arg3)
@@ -74,14 +75,15 @@ void mykapc(PKAPC Apc, PKNORMAL_ROUTINE NormalRoutine, PVOID NormalContext, PVOI
 
 	kApc = ExAllocatePool(NonPagedPool, sizeof(KAPC));
 
-
 	ExFreePool(Apc);
-	DbgPrint("My kernelmode apc!!!!\n");
+
+	DbgPrint("My kernelmode apc!!!!(irql=%d)\n", KeGetCurrentIrql());
 	
-	DbgPrint("NormalRoutine=%x\n",*(PUINT_PTR)NormalRoutine);
-	DbgPrint("NormalContext=%x\n",*(PUINT_PTR)NormalContext);
-	DbgPrint("SystemArgument1=%x\n",*(PUINT_PTR)SystemArgument1);
-	DbgPrint("SystemArgument1=%x\n",*(PUINT_PTR)SystemArgument2);
+	DbgPrint("NormalRoutine=%p\n",*(PUINT_PTR)NormalRoutine);
+	DbgPrint("NormalContext=%p\n",*(PUINT_PTR)NormalContext);
+	DbgPrint("SystemArgument1=%p\n",*(PUINT_PTR)SystemArgument1);
+	DbgPrint("SystemArgument2=%p\n",*(PUINT_PTR)SystemArgument2);
+	
 	
 	
 	KeInitializeApc(kApc,
@@ -120,8 +122,8 @@ void CreateRemoteAPC(ULONG threadid,PVOID addresstoexecute)
 
 	kThread=(PKTHREAD)getPEThread(threadid);
 	DbgPrint("(PVOID)KThread=%p\n",kThread);
-
-
+	DbgPrint("addresstoexecute=%p\n", addresstoexecute);
+	
    
 	KeInitializeApc(kApc,
 		            kThread,
@@ -1135,7 +1137,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 			{
 				struct input
 				{
-					ULONG threadid;
+					UINT64 threadid;
 					UINT64 addresstoexecute;										
 				} *inp;
 				inp=Irp->AssociatedIrp.SystemBuffer;
@@ -2291,7 +2293,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 			__finally
 			{
 				KeUnstackDetachProcess(&oldstate);
-			}
+			}	
 
 			
 			break;

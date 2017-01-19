@@ -7925,8 +7925,49 @@ begin
   result:=1;
 end;
 
-function lua_getTEB(L: Plua_State): integer; cdecl;
+function lua_createAPC(L: Plua_State): integer; cdecl;
+var address: ptruint;
 begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    address:=lua_tointeger(L,1);
+    CreateRemoteAPC(getathreadid(processid), pointer(address));
+  end;
+end;
+
+function lua_setAssemblerMode(L: Plua_State): integer; cdecl;
+var mode: integer;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    mode:=lua_tointeger(L,1);
+    if mode=0 then
+      processhandler.is64Bit:=false;
+
+    if mode=1 then
+      processhandler.is64Bit:=true;
+  end;
+end;
+
+function lua_allocateMemory(l: Plua_State): integer; cdecl;
+var
+  size: integer;
+  a: pointer;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    size:=lua_tointeger(L,1);
+    a:=VirtualAllocEx(processhandle,nil,size,MEM_COMMIT or MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+    if a=nil then
+      lua_pushnil(L)
+    else
+      lua_pushnumber(L, ptruint(a));
+
+    result:=1;
+  end;
 end;
 
 procedure InitializeLua;
@@ -8436,9 +8477,10 @@ begin
     lua_register(LuaVM, 'openFileAsProcess', lua_openFileAsProcess);
 
     lua_register(LuaVM, 'getPEB', lua_getPEB);
-    lua_register(LuaVM, 'getTEB', lua_getTEB);
 
-
+    lua_register(LuaVM, 'createAPC', lua_createAPC);
+    lua_register(LuaVM, 'setAssemblerMode', lua_setAssemblerMode);
+    lua_register(LuaVM, 'allocateMemory', lua_allocateMemory);
 
     initializeLuaCustomControl;
 

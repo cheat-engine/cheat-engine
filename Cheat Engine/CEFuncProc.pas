@@ -167,6 +167,7 @@ procedure errorbeep;
 
 {$ifndef net}
 procedure SetLanguage;
+function getathreadid(processid:dword):dword;
 
 {$endif}
 
@@ -972,31 +973,22 @@ begin
 
       if not writeprocessmemory(processhandle, injectionlocation, @inject[0], position2, x) then raise exception.Create(rsFailedToInjectTheDllLoader);
 
-      {$ifndef standalonetrainer}
-      {$ifndef net}
 
-      useapctoinjectdll:=false;
-      if useapctoinjectdll then
+      if useapctoinjectdll and ((Is64bitOS and processhandler.is64Bit) or (Is64bitOS=false)) then
       begin
-
+        //in 64-bit the apc runs in 64-bit mode. I could do a jmp 23:xxxx but then there's the stack and other stuff to setup as well
 
         //suspend , message, resume is needed to prevent a crash when it is in a message loop
-        ntsuspendprocess(processid);
+        ntsuspendprocess(processhandle);
         x:=getathreadid(processid);
         PostThreadMessage(x,wm_paint,0,0);
         CreateRemoteAPC(x,pointer(startaddress));
-        ntresumeprocess(processid);
+        PostThreadMessage(x,wm_paint,0,0);
+        ntresumeprocess(processhandle);
+
+        sleep(1000);
       end
       else
-
-
-      {$endif}
-      {$endif}
-
-      //showmessage('injected code at:'+inttohex(startaddress,8));
-      //exit;
-
-
       begin
         threadhandle:=createremotethread(processhandle,nil,0,pointer(startaddress),nil,0,tid);
         if threadhandle=0 then raise exception.Create(rsFailedToExecuteTheDllLoader);
@@ -1043,8 +1035,8 @@ begin
     end;
 
   end;
-
 end;
+
 
 procedure ToggleOtherWindows;
 type Tprocesslistitem = record
