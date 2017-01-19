@@ -155,11 +155,11 @@ type
     cbfilterOutNewEntries: TCheckBox;
     cbDontDeleteTraceFiles: TCheckBox;
     cbParseToTextfile: TCheckBox;
-    cbAutoProcessWhenDiskFull: TCheckBox;
+    cbAutoProcess: TCheckBox;
     cbPauseTargetWhileProcessing: TCheckBox;
     deTargetFolder: TDirectoryEdit;
     deTextOut: TDirectoryEdit;
-    Edit1: TEdit;
+    edtFlushInterval: TEdit;
     edtMaxFilesize: TEdit;
     edtBufSize: TEdit;
     edtCallCount: TEdit;
@@ -185,8 +185,8 @@ type
     Panel3: TPanel;
     Panel5: TPanel;
     PopupMenu1: TPopupMenu;
-    rbWhenFilesizeAbove: TRadioButton;
-    rbTraceInterval: TRadioButton;
+    cbWhenFilesizeAbove: TCheckBox;
+    cbTraceInterval: TCheckBox;
     rbLogToFolder: TRadioButton;
     rbRuntimeParsing: TRadioButton;
     tActivator: TTimer;
@@ -205,6 +205,10 @@ type
     procedure btnShowResultsClick(Sender: TObject);
     procedure cbfilterOutNewEntriesChange(Sender: TObject);
     procedure cbParseToTextfileChange(Sender: TObject);
+    procedure cbTraceIntervalChange(Sender: TObject);
+    procedure cbWhenFilesizeAboveChange(Sender: TObject);
+    procedure edtFlushIntervalChange(Sender: TObject);
+    procedure edtMaxFilesizeChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
@@ -246,6 +250,10 @@ type
     validList: TIndexedAVLTree;
 
     maxrangecount: integer;
+
+    ticks: integer;
+    FlushInterval: integer;
+    maxfilesize: integer;
 
     function RegionCompare(Tree: TAvgLvlTree; Data1, Data2: pointer): integer;
 
@@ -1290,7 +1298,6 @@ begin
     cbDontDeleteTraceFiles.enabled:=false;
   end;
 
-
   rbRuntimeParsing.enabled:=state;
 
   lbRange.enabled:=(maxrangecount>0) and state;
@@ -1312,6 +1319,7 @@ procedure TfrmUltimap2.FlushResults(f: TFilterOption=foNone);
 var i:integer;
 begin
   OutputDebugString('TfrmUltimap2.FlushResults');
+  ultimap2_resetTraceSize;
   ultimap2_flush;
 
   if rbLogToFolder.checked and (state=rsRecording) then
@@ -1354,12 +1362,20 @@ end;
 
 procedure TfrmUltimap2.setState(state: TRecordState);
 begin
+  tProcessor.enabled:=false;
+
   fstate:=state;
   case state of
     rsRecording:
     begin
       label1.Caption:=rsRecording2;
       panel1.color:=clRed;
+
+      if rbLogToFolder.checked then
+      begin
+        if cbAutoProcess.checked then
+          tProcessor.enabled:=true;
+      end;
     end;
 
     rsStopped:
@@ -1509,7 +1525,20 @@ begin
           if ForceDirectoriesUTF8(deTargetFolder.Directory)=false then
             raise exception.create(deTargetFolder.Directory+rsDoesntExistAndCantBeCreated);
         end;
+
+        if cbAutoProcess.Checked then
+        begin
+          if cbTraceInterval.checked then
+            flushinterval:=strtoint(edtFlushInterval.Text);
+
+          if cbWhenFilesizeAbove.checked then
+            maxfilesize:=strtoint(edtMaxFilesize.Text)*4096*4096;
+        end;
+
       end;
+
+
+
 
       //still here so everything seems alright.
       //turn off the config GUI
@@ -1640,7 +1669,25 @@ end;
 
 procedure TfrmUltimap2.tProcessorTimer(Sender: TObject);
 begin
-  FlushResults(foNone);
+  //check the state
+  inc(ticks);
+
+  if cbTraceInterval.checked then
+  begin
+    //check if the interval has passed
+    if (FlushInterval>0) and (ticks mod FlushInterval=0) then
+      FlushResults;
+  end;
+
+  if cbWhenFilesizeAbove.checked then
+  begin
+    //check if the filesize has reached the proper size
+    if ultimap2_getTraceSize>MaxFileSize then
+      FlushResults;
+  end;
+ // FlushResults(foNone);
+
+ // ultimap2_getTraceSize
 end;
 
 procedure TfrmUltimap2.FormCloseQuery(Sender: TObject; var CanClose: boolean);
@@ -1664,6 +1711,13 @@ begin
       Reg.WriteString('Ultimap2 Folder', deTargetFolder.Directory);
       Reg.WriteBool('Ultimap2 Keep Trace Files', cbDontDeleteTraceFiles.checked);
       Reg.WriteBool('Ultimap2 Use Disk', rbLogToFolder.Checked);
+      Reg.WriteBool('Ultimap2 Auto Process', cbAutoProcess.Checked);
+      Reg.WriteBool('Ultimap2 Auto Process Every Interval', cbTraceInterval.Checked);
+      Reg.WriteString('Ultimap2 Auto Process Interval', edtFlushInterval.text);
+      Reg.WriteBool('Ultimap2 Auto Process When Filesize Above', cbWhenFilesizeAbove.Checked);
+      Reg.WriteString('Ultimap2 Auto Process Max Filesize', edtMaxFilesize.text);
+      Reg.WriteBool('Ultimap2 Pause while processing', cbPauseTargetWhileProcessing.Checked);
+      Reg.WriteBool('Ultimap2 Don''t delete tracefiles', cbDontDeleteTraceFiles.Checked);
 
       Reg.WriteBool('Ultimap2 Parse Trace As Text', cbParseToTextfile.checked);
       Reg.WriteString('Ultimap2 TextTrace Folder', deTextOut.Directory);
@@ -1697,8 +1751,8 @@ begin
     edtMaxFilesize.ClientWidth:=minwidth;
 
   minwidth:=i+canvas.GetTextWidth('XXXX');
-  if edit1.ClientWidth<minwidth then
-    edit1.ClientWidth:=minwidth;
+  if edtFlushInterval.ClientWidth<minwidth then
+    edtFlushInterval.ClientWidth:=minwidth;
 
 
 
@@ -1804,12 +1858,32 @@ begin
           rbRuntimeParsing.checked:=true;
       end;
 
+      if Reg.ValueExists('Ultimap2 Auto Process') then
+        cbAutoProcess.Checked:=Reg.ReadBool('Ultimap2 Use Disk');
+
+      if Reg.ValueExists('Ultimap2 Auto Process Every Interval') then
+        cbTraceInterval.Checked:=Reg.ReadBool('Ultimap2 Auto Process Every Interval');
+
+      if Reg.ValueExists('Ultimap2 Auto Process Interval') then
+        edtFlushInterval.text:=Reg.ReadString('Ultimap2 Auto Process Interval');
+
+      if Reg.ValueExists('Ultimap2 Auto Process When Filesize Above') then
+        cbWhenFilesizeAbove.Checked:=Reg.ReadBool('Ultimap2 Auto Process When Filesize Above');
+
+      if Reg.ValueExists('Ultimap2 Auto Process Max Filesize') then
+        edtMaxFilesize.text:=Reg.ReadString('Ultimap2 Auto Process Max Filesize');
+
+      if Reg.ValueExists('Ultimap2 Pause while processing') then
+        cbPauseTargetWhileProcessing.Checked:=Reg.ReadBool('Ultimap2 Pause while processing');
+
+      if Reg.ValueExists('Ultimap2 Don''t delete tracefiles') then
+        cbDontDeleteTraceFiles.Checked:=Reg.ReadBool('Ultimap2 Don''t delete tracefiles');
+
       if Reg.ValueExists('Ultimap2 Parse Trace As Text') then
         cbParseToTextfile.checked:=reg.ReadBool('Ultimap2 Parse Trace As Text');
 
       if Reg.ValueExists('Ultimap2 TextTrace Folder') then
         deTextOut.Directory:=reg.ReadString('Ultimap2 TextTrace Folder');
-
 
     end;
   finally
@@ -2160,6 +2234,52 @@ begin
 
   deTextOut.ButtonOnlyWhenFocused:=true;
   deTextOut.ButtonOnlyWhenFocused:=false;
+end;
+
+procedure TfrmUltimap2.cbTraceIntervalChange(Sender: TObject);
+begin
+  if cbTraceInterval.checked then
+  begin
+    edtFlushInterval.enabled:=true;
+    edtFlushIntervalChange(sender);
+  end
+  else
+    edtFlushInterval.Enabled:=false;
+
+end;
+
+procedure TfrmUltimap2.cbWhenFilesizeAboveChange(Sender: TObject);
+begin
+  if cbWhenFilesizeAbove.checked then
+  begin
+    edtMaxFilesize.Enabled:=true;
+    edtMaxFilesizeChange(sender);
+  end
+  else
+    edtMaxFilesize.enabled:=false;
+end;
+
+procedure TfrmUltimap2.edtFlushIntervalChange(Sender: TObject);
+begin
+  try
+    flushinterval:=strtoint(edtFlushInterval.Text);
+    if FlushInterval=0 then
+      FlushInterval:=1;
+
+    edtFlushInterval.Font.Color:=clDefault;
+  except
+    edtFlushInterval.Font.Color:=clRed;
+  end;
+end;
+
+procedure TfrmUltimap2.edtMaxFilesizeChange(Sender: TObject);
+begin
+  try
+    maxfilesize:=strtoint(edtMaxFilesize.Text)*4096*4096;
+    edtMaxFilesize.Font.Color:=clDefault;
+  except
+    edtMaxFilesize.Font.Color:=clRed;
+  end;
 end;
 
 procedure TfrmUltimap2.FormClose(Sender: TObject; var CloseAction: TCloseAction);

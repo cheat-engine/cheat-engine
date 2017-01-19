@@ -1,15 +1,11 @@
-lua: forms, add option to save the current state as base
-
-ultimap2: Finish the timed/space based processing of file results
-
-memscan: Don't combine the scanresults into a single file. Leave them split up
 
 hexview: editing by typing chars seems broken (ascii)
 
 memscan: Add a wincp scan option to text scans
+memscan: Don't combine the scanresults into a single file. Leave them split up
 
 
-symbol condig window: tab 0 isn't on the symbolname
+symbol config window: tab 0 isn't on the symbolname
 
 lua:autoassembler: Make autoAssembler return the alloclist which can then be passed to disable scripts
 

@@ -512,13 +512,13 @@ object frmUltimap2: TfrmUltimap2
         Visible = False
         Text = 'd:\lotsofspace'
       end
-      object cbAutoProcessWhenDiskFull: TCheckBox
+      object cbAutoProcess: TCheckBox
         AnchorSideLeft.Control = cbDontDeleteTraceFiles
         AnchorSideTop.Control = deTargetFolder
         AnchorSideTop.Side = asrBottom
         Left = 21
         Height = 19
-        Hint = 'When enabled this will check the filesize every few seconds, and will process the files when they have grown beyond the given size'#13#10#13#10'Note: Due to the way the processing is done, trace data will still be written to disk during the processing. If you generate more data than can be processed at a time, the filesize will keep growing. You can combine this with the "Pause target while processing" option so that it shouldn''t generate too much data'
+        Hint = 'When enabled this will check the filesize every few seconds, and will process the files when they have grown beyond the given size.'#13#10#13#10'Note: Due to the way the processing is done, trace data will still be written to disk during the processing. If you generate more data than can be processed at a time, the filesize will keep growing. You can combine this with the "Pause target while processing" option so that it shouldn''t generate too much data'
         Top = 87
         Width = 136
         Caption = 'Autoprocess tracefiles'
@@ -527,14 +527,16 @@ object frmUltimap2: TfrmUltimap2
         TabOrder = 10
       end
       object edtMaxFilesize: TEdit
-        AnchorSideLeft.Control = rbWhenFilesizeAbove
+        AnchorSideLeft.Control = cbWhenFilesizeAbove
         AnchorSideLeft.Side = asrBottom
-        AnchorSideTop.Control = Edit1
+        AnchorSideTop.Control = edtFlushInterval
         AnchorSideTop.Side = asrBottom
         Left = 159
         Height = 23
         Top = 129
         Width = 48
+        Enabled = False
+        OnChange = edtMaxFilesizeChange
         TabOrder = 11
         Text = '2048'
       end
@@ -552,7 +554,7 @@ object frmUltimap2: TfrmUltimap2
         ParentColor = False
       end
       object cbPauseTargetWhileProcessing: TCheckBox
-        AnchorSideLeft.Control = cbAutoProcessWhenDiskFull
+        AnchorSideLeft.Control = cbAutoProcess
         AnchorSideTop.Control = edtMaxFilesize
         AnchorSideTop.Side = asrBottom
         Left = 21
@@ -562,8 +564,8 @@ object frmUltimap2: TfrmUltimap2
         Caption = 'Pause target while processing'
         TabOrder = 12
       end
-      object rbWhenFilesizeAbove: TRadioButton
-        AnchorSideLeft.Control = rbTraceInterval
+      object cbWhenFilesizeAbove: TCheckBox
+        AnchorSideLeft.Control = cbTraceInterval
         AnchorSideTop.Control = edtMaxFilesize
         AnchorSideTop.Side = asrCenter
         Left = 37
@@ -571,35 +573,39 @@ object frmUltimap2: TfrmUltimap2
         Top = 131
         Width = 122
         Caption = 'when filesize above'
+        OnChange = cbWhenFilesizeAboveChange
         TabOrder = 13
       end
-      object rbTraceInterval: TRadioButton
-        AnchorSideLeft.Control = cbAutoProcessWhenDiskFull
-        AnchorSideTop.Control = Edit1
+      object cbTraceInterval: TCheckBox
+        AnchorSideLeft.Control = cbAutoProcess
+        AnchorSideTop.Control = edtFlushInterval
         Left = 37
         Height = 19
         Top = 106
         Width = 51
         BorderSpacing.Left = 16
         Caption = 'every '
+        OnChange = cbTraceIntervalChange
         TabOrder = 14
       end
-      object Edit1: TEdit
-        AnchorSideLeft.Control = rbTraceInterval
+      object edtFlushInterval: TEdit
+        AnchorSideLeft.Control = cbTraceInterval
         AnchorSideLeft.Side = asrBottom
-        AnchorSideTop.Control = cbAutoProcessWhenDiskFull
+        AnchorSideTop.Control = cbAutoProcess
         AnchorSideTop.Side = asrBottom
         Left = 88
         Height = 23
         Top = 106
         Width = 42
+        Enabled = False
+        OnChange = edtFlushIntervalChange
         TabOrder = 15
         Text = '10'
       end
       object Label4: TLabel
-        AnchorSideLeft.Control = Edit1
+        AnchorSideLeft.Control = edtFlushInterval
         AnchorSideLeft.Side = asrBottom
-        AnchorSideTop.Control = Edit1
+        AnchorSideTop.Control = edtFlushInterval
         AnchorSideTop.Side = asrCenter
         Left = 132
         Height = 15

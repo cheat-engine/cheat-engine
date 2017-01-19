@@ -363,6 +363,9 @@ procedure ultimap2_resume;
 procedure ultimap2_lockfile(cpunr: integer);
 procedure ultimap2_releasefile(cpunr: integer);
 
+function ultimap2_getTraceSize: UINT64;
+procedure ultimap2_resetTraceSize;
+
 function dbk_enabledrm(preferedAltitude: word=0; protectedEProcess: qword=0): boolean;
 function dbk_getPEB(EProcess: qword): QWORD;
 
