@@ -1177,8 +1177,8 @@ end;
 
 procedure TAddresslist.TreeviewDblClick(Sender: TObject);
 var
-  tvRect: TRect;
-  node: TTreenode;
+  textrect, linerect: TRect;
+  node, n: TTreenode;
   i: integer;
   p: tpoint;
 begin
@@ -1189,6 +1189,20 @@ begin
   begin
     //at least something was clicked
 
+    textrect:=node.DisplayRect(true);
+    linerect:=node.DisplayRect(false);
+
+    n:=node;
+    while n<>nil do
+    begin
+      if moManualExpandCollapse in  TMemoryRecord(n.data).Options then
+        inc(textrect.left,treeview.indent div 2);
+      n:=n.parent;
+    end;
+
+    // compare x with arrowEnd (arrowEnd = checkboxEnd+9 = ...; see TreeviewMouseDown)
+    // prevents double click
+    if p.x<=textrect.left+(linerect.bottom-linerect.top)+8 then exit;
 
     for i:=0 to header.Sections.count-1 do
       if inrange(p.x,header.Sections[i].Left,header.Sections[i].right) then
