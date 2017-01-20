@@ -1372,7 +1372,7 @@ function IsValidHandle(hProcess:THandle):BOOL; stdcall;
 var i: integer;
     l: THandleListEntry;
 begin
-  outputdebugstring('IsValidHandle');
+  //outputdebugstring('IsValidHandle');
   result:=true; //not in the list is ok
   handlemapmrew.Beginread;
   try
