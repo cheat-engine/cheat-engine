@@ -7857,7 +7857,7 @@ begin
     ProtectedProcess:=0;
 
   result:=1;
-  lua_pushboolean(L, dbk_enabledrm(preferedAltitude, dbk_getPEProcess(ProtectedProcess)));
+  lua_pushboolean(L, dbk_enabledrm(preferedAltitude, GetPEProcess(ProtectedProcess)));
 end;
 
 function lua_openFileAsProcess(L: Plua_State): integer; cdecl;
