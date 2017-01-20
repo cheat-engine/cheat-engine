@@ -677,6 +677,7 @@ begin
   end;
 
   //no exit yet, so use a enumeration of all threads and this processid
+
   ths:=CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD,0);
   if ths<>0 then
   begin
@@ -974,10 +975,8 @@ begin
       if not writeprocessmemory(processhandle, injectionlocation, @inject[0], position2, x) then raise exception.Create(rsFailedToInjectTheDllLoader);
 
 
-      if useapctoinjectdll and ((Is64bitOS and processhandler.is64Bit) or (Is64bitOS=false)) then
+      if useapctoinjectdll then
       begin
-        //in 64-bit the apc runs in 64-bit mode. I could do a jmp 23:xxxx but then there's the stack and other stuff to setup as well
-
         //suspend , message, resume is needed to prevent a crash when it is in a message loop
         //ntsuspendprocess(processhandle);
         x:=getathreadid(processid);
