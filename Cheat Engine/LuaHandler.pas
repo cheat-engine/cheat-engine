@@ -7852,7 +7852,12 @@ begin
     PreferedAltitude:=0;
 
   if lua_gettop(L)>=2 then
-    ProtectedProcess:=lua_tointeger(L,2)
+  begin
+    if lua_isstring(L,2) then
+      ProtectedProcess:=ce_getProcessIDFromProcessName(pchar(Lua_ToString(L,2)))
+    else
+      ProtectedProcess:=lua_tointeger(L,2);
+  end
   else
     ProtectedProcess:=0;
 
