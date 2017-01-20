@@ -684,7 +684,7 @@ begin
           ntresumeprocess(processhandle)
         else
           if DBKLoaded then
-            DBKSuspendProcess(processid);
+            DBKResumeProcess(processid);
       end;
 
       pausebutton.Hint:=rsPauseTheGame+pausehotkeystring;
