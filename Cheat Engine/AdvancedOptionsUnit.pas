@@ -635,6 +635,7 @@ var i: integer;
     ct: _Context;
 
     down: boolean;
+    x: dword;
 begin
   down:=pausebutton.down;
   if down=oldpausestate then exit;
@@ -659,7 +660,10 @@ begin
       begin
        // OutputDebugString('Calling ntsuspendProcess');
         if IsValidHandle(processhandle) then
-          ntsuspendProcess(processhandle)
+        begin
+          x:=ntsuspendProcess(processhandle);
+          if (x<>0) and (DBKLoaded) then DBKSuspendProcess(processid);
+        end
         else
           if DBKLoaded then
             DBKSuspendProcess(processid);
@@ -681,7 +685,10 @@ begin
       if assigned(ntresumeprocess) then
       begin
         if IsValidHandle(processhandle) then
-          ntresumeprocess(processhandle)
+        begin
+          x:=ntresumeprocess(processhandle);
+          if (x<>0) and (DBKLoaded) then DBKResumeProcess(processid);
+        end
         else
           if DBKLoaded then
             DBKResumeProcess(processid);
