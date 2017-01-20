@@ -145,6 +145,7 @@ void DBKResumeThread(ULONG ThreadID)
 
 void DBKSuspendProcess(ULONG ProcessID)
 {
+
 	KIRQL OldIrql;
 	
 	struct ThreadData *t_data=NULL;

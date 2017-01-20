@@ -8,7 +8,7 @@
 #include "ultimap2.h"
 
 
-typedef NTSTATUS(*PSSUSPENDPROCESS)(PEPROCESS p);
+
 
 
 PSSUSPENDPROCESS PsSuspendProcess;
@@ -1331,11 +1331,7 @@ void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, P
 	}
 
 
-	RtlInitUnicodeString(&s, L"PsSuspendProcess");
-	PsSuspendProcess = MmGetSystemRoutineAddress(&s);
 
-	RtlInitUnicodeString(&s, L"PsResumeProcess");
-	PsResumeProcess = MmGetSystemRoutineAddress(&s);
 
 	if ((PsSuspendProcess == NULL) || (PsResumeProcess == NULL))
 	{

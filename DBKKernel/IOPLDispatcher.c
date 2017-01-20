@@ -1189,11 +1189,25 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				} *inp;
 				inp=Irp->AssociatedIrp.SystemBuffer;
 
-				DbgPrint("IOCTL_CE_SUSPENDPROCESS\n");
-				DBKSuspendProcess(inp->processid);
-				ntStatus=STATUS_SUCCESS;
-				break;
 				
+
+				DbgPrint("IOCTL_CE_SUSPENDPROCESS\n");
+
+				if (PsSuspendProcess)
+				{
+					PEPROCESS selectedprocess;
+					if (PsLookupProcessByProcessId((PVOID)(UINT64)(inp->processid), &selectedprocess) == STATUS_SUCCESS)
+					{
+						ntStatus = PsSuspendProcess(selectedprocess);
+						ObDereferenceObject(selectedprocess);
+					}
+					else
+						ntStatus = STATUS_NOT_FOUND;
+				}
+				else
+					ntStatus = STATUS_NOT_IMPLEMENTED;
+
+				break;				
 			}
 			
 
@@ -1201,14 +1215,28 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 			{
 				struct input
 				{
-					ULONG processid;							
+					ULONG processid;
 				} *inp;
-				inp=Irp->AssociatedIrp.SystemBuffer;
+				inp = Irp->AssociatedIrp.SystemBuffer;
 
-                DbgPrint("IOCTL_CE_RESUMEPROCESS\n");
 
-				DBKResumeProcess(inp->processid);
-				ntStatus=STATUS_SUCCESS;
+
+				DbgPrint("IOCTL_CE_RESUMEPROCESS\n");
+
+				if (PsResumeProcess)
+				{
+					PEPROCESS selectedprocess;
+					if (PsLookupProcessByProcessId((PVOID)(UINT64)(inp->processid), &selectedprocess) == STATUS_SUCCESS)
+					{
+						ntStatus = PsResumeProcess(selectedprocess);
+						ObDereferenceObject(selectedprocess);
+					}
+					else
+						ntStatus = STATUS_NOT_FOUND;
+				}
+				else
+					ntStatus = STATUS_NOT_IMPLEMENTED;
+
 				break;
             }
 

@@ -1372,7 +1372,7 @@ var i: integer;
     l: THandleListEntry;
 begin
   outputdebugstring('IsValidHandle');
-  result:=false;
+  result:=true; //not in the list is ok
   handlemapmrew.Beginread;
   try
     if handlemap.GetData(hProcess,l) then

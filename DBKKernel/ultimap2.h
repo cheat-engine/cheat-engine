@@ -115,4 +115,9 @@ void ultimap2_ReleaseFile(int cpunr);
 UINT64 ultimap2_GetTraceFileSize();
 void ultimap2_ResetTraceFileSize();
 
+typedef NTSTATUS(*PSSUSPENDPROCESS)(PEPROCESS p);
+
+extern PSSUSPENDPROCESS PsSuspendProcess;
+extern PSSUSPENDPROCESS PsResumeProcess;
+
 #endif

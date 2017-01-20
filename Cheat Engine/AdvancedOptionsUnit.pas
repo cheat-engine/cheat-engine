@@ -120,7 +120,8 @@ uses MainUnit, MemoryBrowserFormUnit,
   standaloneunit,}
   formsettingsunit,
   MainUnit2,
-  processhandlerunit;
+  processhandlerunit,
+  DBK32functions;
 
 
 
@@ -657,10 +658,14 @@ begin
       if (assigned(ntsuspendprocess)) then
       begin
        // OutputDebugString('Calling ntsuspendProcess');
-        ntsuspendProcess(processhandle);
+        if IsValidHandle(processhandle) then
+          ntsuspendProcess(processhandle)
+        else
+          if DBKLoaded then
+            DBKSuspendProcess(processid);
       end;
 
-      pausebutton.Hint:=rsResumeTheGame+pausehotkeystring;
+       pausebutton.Hint:=rsResumeTheGame+pausehotkeystring;
 
       red:=false;
       mainform.ProcessLabel.font.Color:=clred;
@@ -674,7 +679,13 @@ begin
     begin
       //resume
       if assigned(ntresumeprocess) then
-        ntresumeprocess(processhandle);
+      begin
+        if IsValidHandle(processhandle) then
+          ntresumeprocess(processhandle)
+        else
+          if DBKLoaded then
+            DBKSuspendProcess(processid);
+      end;
 
       pausebutton.Hint:=rsPauseTheGame+pausehotkeystring;
 

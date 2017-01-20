@@ -555,6 +555,11 @@ Return Value:
 	}
 
 
+	RtlInitUnicodeString(&temp, L"PsSuspendProcess");
+	PsSuspendProcess = MmGetSystemRoutineAddress(&temp);
+
+	RtlInitUnicodeString(&temp, L"PsResumeProcess");
+	PsResumeProcess = MmGetSystemRoutineAddress(&temp);
 	
     return STATUS_SUCCESS;
 }
