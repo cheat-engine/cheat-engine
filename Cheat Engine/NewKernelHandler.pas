@@ -1442,6 +1442,7 @@ procedure UseDBKOpenProcess;
 var
   nthookscript: Tstringlist;
   zwc: pointer;
+  func: pointer;
 begin
 {$ifdef windows}
   LoadDBK32;
@@ -1450,20 +1451,27 @@ begin
   OpenThread:=@OT;
 
   nthookscript:=tstringlist.create;
-  nthookscript.add('NtOpenProcess:');
-  nthookscript.add('jmp '+IntToHex(ptruint(@NOP),8));
-  autoassemble(nthookscript, false, true, false, true);
+
+  if not assigned(oldNtOpenProcess) then
+  begin
+    nthookscript.clear;
+    func:=GetProcAddress(NTDLLHandle,'NtOpenProcess');
+    generateAPIHookScript(nthookscript,IntToHex(ptruint(func),8),IntToHex(ptruint(@NOP),8),IntToHex(ptruint(@@oldNtOpenProcess),8),'0',true);
+    autoassemble(nthookscript, false, true, false, true);
+  end;
+
+
+
+  //nthookscript.add('NtOpenProcess:');
+  //nthookscript.add('jmp '+IntToHex(ptruint(@NOP),8));
+  //autoassemble(nthookscript, false, true, false, true);
 
 
   if not assigned(oldZwClose) then
   begin
     nthookscript.clear;
-
-    zwc:=GetProcAddress(NTDLLHandle,'NtClose');
-
-    generateAPIHookScript(nthookscript,IntToHex(ptruint(zwc),8),IntToHex(ptruint(@ZC),8),IntToHex(ptruint(@@oldZwClose),8),'0',true);
-   // clipboard.AsText:=nthookscript.Text;
-
+    func:=GetProcAddress(NTDLLHandle,'NtClose');
+    generateAPIHookScript(nthookscript,IntToHex(ptruint(func),8),IntToHex(ptruint(@ZC),8),IntToHex(ptruint(@@oldZwClose),8),'0',true);
     autoassemble(nthookscript, false, true, false, true);
   end;
 

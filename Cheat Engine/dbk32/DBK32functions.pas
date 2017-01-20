@@ -257,6 +257,7 @@ var hdevice: thandle=INVALID_HANDLE_VALUE; //handle to my the device driver
     oldZwClose: function (Handle: THandle): NTSTATUS; stdcall;
     oldNtQueryInformationProcess: function(ProcessHandle: HANDLE; ProcessInformationClass: PROCESSINFOCLASS; ProcessInformation: PVOID; ProcessInformationLength: ULONG; ReturnLength: PULONG): NTSTATUS; stdcall;
     oldNtReadVirtualMemory: function(ProcessHandle : HANDLE; BaseAddress : PVOID; Buffer : PVOID; BufferLength : ULONG; ReturnLength : PSIZE_T): NTSTATUS; stdcall;
+    oldNtOpenProcess: function(Handle: PHandle; AccessMask: dword; objectattributes: pointer; clientid: PClient_ID):DWORD; stdcall;
 
     NextPseudoHandle: integer=$ce000000;
     DoNotOpenProcessHandles: Boolean=false;
@@ -273,7 +274,7 @@ function {WriteProcessMemory}WPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer
 function {WriteProcessMemory}WriteProcessMemory64(hProcess:THANDLE;BaseAddress:qword;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:PtrUInt):BOOL; stdcall;
 
 function {VirtualQueryEx}VQE(hProcess: THandle; address: pointer; var mbi: _MEMORY_BASIC_INFORMATION; bufsize: DWORD):dword; stdcall;
-Function {NtOpenProcess}NOP(var Handle: THandle; AccessMask: dword; objectattributes: pointer; clientid: PClient_ID):DWORD; stdcall;
+Function {NtOpenProcess}NOP(Handle: PHandle; AccessMask: dword; objectattributes: pointer; clientid: PClient_ID):DWORD; stdcall;
 Function {ZwClose}ZC(Handle: THandle): NTSTATUS; stdcall;
 
 function DBK_NtQueryInformationProcess(ProcessHandle: HANDLE; ProcessInformationClass: PROCESSINFOCLASS; ProcessInformation: PVOID; ProcessInformationLength: ULONG; ReturnLength: PULONG): NTSTATUS; stdcall;
@@ -1716,7 +1717,7 @@ begin
     end;
   end;
 
-  OutputDebugString('Unknown handle. Using original code');
+//  OutputDebugString('Unknown handle. Using original code');
   result:=oldNtQueryInformationProcess(ProcessHandle, ProcessInformationClass, ProcessInformation, ProcessInformationLength, ReturnLength);
 end;
 
@@ -1758,13 +1759,13 @@ begin
   if dwProcessId=0 then
     exit;
 
-  if not DoNotOpenProcessHandles then
+  if (not DoNotOpenProcessHandles) then
   begin
     if hdevice<>INVALID_HANDLE_VALUE then
     begin
       cc:=IOCTL_CE_OPENPROCESS;
 
-  //    OutputDebugString(inttostr(dwProcessid)+' OpenProcess kernelmode');
+     // OutputDebugString(inttostr(dwProcessid)+' OpenProcess kernelmode');
       if deviceiocontrol(hdevice,cc,@dwProcessId,4,@output,sizeof(output),x,nil) then
       begin
         result:=output.Processhandle;
@@ -1835,10 +1836,32 @@ begin
   if handle<>0 then result:=0 else result:=$c000000e;
 end;
 
-Function {NtOpenProcess}NOP(var Handle: THandle; AccessMask: dword; objectattributes: pointer; clientid: PClient_ID):DWORD; stdcall;
+Function {NtOpenProcess}NOP(Handle: PHandle; AccessMask: dword; objectattributes: pointer; clientid: PClient_ID):DWORD; stdcall;
+var h: thandle;
 begin
-  Handle:=OP(process_all_access,true,clientid.processid);
-  if handle<>0 then result:=0 else result:=$C000000E;
+  //comment this out to fix the c0000008 exception while debugging (do call oldNtOpenProcess)
+
+  //OutputDebugString('NtOpenProcess hook');
+  if ((hdevice<>INVALID_HANDLE_VALUE) and (clientid<>nil)) and (clientid^.processid<>GetCurrentProcessId) then
+  begin
+    h:=OP(process_all_access,true,clientid^.processid);
+    if h<>0 then
+    begin
+      result:=0;
+      if handle<>nil then
+      begin
+        try
+          handle^:=h;
+        except
+          result:=STATUS_ACCESS_VIOLATION;
+        end;
+      end;
+    end
+    else result:=$C000000E;
+
+  end
+  else
+    result:=oldNtOpenProcess(Handle, AccessMask, objectattributes, clientid);
 end;
 
 Function {ZwClose}ZC(Handle: THandle): NTSTATUS; stdcall;

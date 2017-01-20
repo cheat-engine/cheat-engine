@@ -1032,6 +1032,9 @@ begin
 
         SymbolsLoaded:=SymInitialize(thisprocesshandle, sp, true);
 
+        if symbolsloaded=false then
+          SymbolsLoaded:=SymInitialize(thisprocesshandle, sp, false);
+
         if symbolsloaded then
         begin
           symsetoptions(symgetoptions or SYMOPT_CASE_INSENSITIVE);
