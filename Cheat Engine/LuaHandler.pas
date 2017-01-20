@@ -7842,7 +7842,7 @@ end;
 function lua_enableDRM(L: Plua_State): integer; cdecl;
 var
   PreferedAltitude: word;
-  ProtectedProcess: qword; //eprocess
+  ProtectedProcess: dword; //pid
 begin
   DBK32Initialize;
 
@@ -7857,7 +7857,7 @@ begin
     ProtectedProcess:=0;
 
   result:=1;
-  lua_pushboolean(L, dbk_enabledrm(preferedAltitude, ProtectedProcess));
+  lua_pushboolean(L, dbk_enabledrm(preferedAltitude, dbk_getPEProcess(ProtectedProcess)));
 end;
 
 function lua_openFileAsProcess(L: Plua_State): integer; cdecl;
