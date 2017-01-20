@@ -55,10 +55,21 @@ VOID GetCPUIDS_all(PCPULISTFILLSTRUCT p)
 
 void mykapc2(PKAPC Apc, PKNORMAL_ROUTINE NormalRoutine, PVOID NormalContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
+	ULONG_PTR iswow64;
 	ExFreePool(Apc);
 	DbgPrint("My second kernelmode apc!!!!\n");
 	DbgPrint("SystemArgument1=%x\n",*(PULONG)SystemArgument1);
 	DbgPrint("SystemArgument2=%x\n", *(PULONG)SystemArgument2);
+
+	if (ZwQueryInformationProcess(ZwCurrentProcess(), ProcessWow64Information, &iswow64, sizeof(iswow64), NULL) == STATUS_SUCCESS)
+	{
+		if (iswow64)
+		{
+			DbgPrint("WOW64 apc");
+			PsWrapApcWow64Thread(NormalContext, (PVOID*)NormalRoutine);
+		}
+	}
+
 }
 
 void nothing2(PVOID arg1, PVOID arg2, PVOID arg3)
