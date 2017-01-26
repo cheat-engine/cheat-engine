@@ -2948,22 +2948,22 @@ end;
 
 function MemRecHotkeyActionToText(action: TMemrecHotkeyAction): string;
 begin
-  //type TMemrecHotkeyAction=(mrhToggleActivation, mrhToggleActivationAllowIncrease, mrhToggleActivationAllowDecrease, mrhSetValue,
-  //mrhIncreaseValue, mrhDecreaseValue);
+  //DO NOT TRANSLATE THIS
   case action of
-    mrhToggleActivation: result:=rsToggleActivation;
-    mrhToggleActivationAllowIncrease: result:=rsToggleActivationAllowIncrease;
-    mrhToggleActivationAllowDecrease: result:=rsToggleActivationAllowDecrease;
-    mrhActivate: result:=rsActivate;
-    mrhDeactivate: result:=rsDeactivate;
-    mrhSetValue: result:=rsSetValue;
-    mrhIncreaseValue: result:=rsIncreaseValue;
-    mrhDecreaseValue: result:=rsDecreaseValue;
+    mrhToggleActivation: result:='Toggle Activation';
+    mrhToggleActivationAllowIncrease: result:='Toggle Activation Allow Increase';
+    mrhToggleActivationAllowDecrease: result:='Toggle Activation Allow Decrease';
+    mrhActivate: result:='Activate';
+    mrhDeactivate: result:='Deactivate';
+    mrhSetValue: result:='Set Value';
+    mrhIncreaseValue: result:='Increase Value';
+    mrhDecreaseValue: result:='Decrease Value';
   end;
 end;
 
 function TextToMemRecHotkeyAction(text: string): TMemrecHotkeyAction;
 begin
+  //DO NOT TRANSLATE THIS
   if text = 'Toggle Activation' then result:=mrhToggleActivation else
   if text = 'Toggle Activation Allow Increase' then result:=mrhToggleActivationAllowIncrease else
   if text = 'Toggle Activation Allow Decrease' then result:=mrhToggleActivationAllowDecrease else
