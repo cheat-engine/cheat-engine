@@ -812,6 +812,9 @@ type
 
     procedure createGroupConfigButton;
     procedure destroyGroupConfigButton;
+
+    procedure MemscanGuiUpdate(sender: TObject; totaladdressestoscan: qword; currentlyscanned: qword; foundcount: qword);
+
   public
     { Public declarations }
     addresslist: TAddresslist;
@@ -4243,6 +4246,7 @@ begin
   begin
     scanstate.memscan := tmemscan.Create(progressbar1);
     scanstate.memscan.GuiScanner:=true;
+    scanstate.memscan.OnGuiUpdate:=MemscanGuiUpdate;
     scanstate.foundlist := TFoundList.Create(foundlist3, scanstate.memscan);    //build again
     scanstate.memscan.setScanDoneCallback(mainform.handle, wm_scandone);
   end;
@@ -7211,6 +7215,7 @@ begin
 
   memscan := tmemscan.Create(progressbar1);
   memscan.GuiScanner:=true;
+  memscan.OnGuiUpdate:=MemscanGuiUpdate;
   foundlist := tfoundlist.Create(foundlist3, memscan);
 
   //don't put this in oncreate, just don't
@@ -7622,6 +7627,7 @@ begin
 
     memscan := tmemscan.Create(progressbar1);
     memscan.GuiScanner:=true;
+    memscan.OnGuiUpdate:=memscanGuiUpdate;
     memscan.setScanDoneCallback(mainform.handle, wm_scandone);
   end;
 end;
@@ -9525,6 +9531,10 @@ begin
   end;
 end;
 
+procedure TMainForm.MemscanGuiUpdate(sender: TObject; totaladdressestoscan: qword; currentlyscanned: qword; foundcount: qword);
+begin
+  self.foundcount:=foundcount;
+end;
 
 initialization
   DecimalSeparator := '.';

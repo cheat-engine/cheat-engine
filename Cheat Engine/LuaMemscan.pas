@@ -203,6 +203,28 @@ begin
   end;
 end;
 
+function memscan_getProgress(L: Plua_State): integer; cdecl;
+var
+  memscan: Tmemscan;
+  totaladdressestoscan, currentlyscanned,resultsfound: qword;
+begin
+  memscan:=luaclass_getClassObject(L);
+
+  memscan.GetProgress(totaladdressestoscan, currentlyscanned,resultsfound);
+  lua_newtable(L);
+  lua_pushstring(L, 'TotalAddressesToScan');
+  lua_pushinteger(L,totaladdressestoscan);
+  lua_settable(L,-3);
+
+  lua_pushstring(L, 'CurrentlyScanned');
+  lua_pushinteger(L,currentlyscanned);
+  lua_settable(L,-3);
+
+  lua_pushstring(L, 'ResultsFound');
+  lua_pushinteger(L,resultsfound);
+  lua_settable(L,-3);
+  result:=1;
+end;
 
 procedure memscan_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
@@ -211,6 +233,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'nextScan', memscan_nextScan);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'newScan', memscan_newScan);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'waitTillDone', memscan_waitTillDone);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getProgress', memscan_getProgress);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'saveCurrentResults', memscan_saveCurrentResults);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getAttachedFoundlist', memscan_getAttachedFoundlist);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setOnlyOneResult', memscan_setreturnOnlyOneResult);

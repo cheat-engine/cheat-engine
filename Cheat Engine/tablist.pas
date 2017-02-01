@@ -41,11 +41,12 @@ type
     procedure Paint; override;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    property TabData[Index: Integer]: pointer read getTabData write setTabData;
   published
     property MinTabWidth: integer read fMinTabWidth write fMinTabWidth;
     property OnTabChange: TTabChangeEvent read fOnTabChange write fOnTabChange;
     property SelectedTab: integer read fSelectedTab write setSelectedTab;
-    property TabData[Index: Integer]: pointer read getTabData write setTabData;
     property TabText[Index: Integer]: string read getTabText write setTabText;
     property Count: integer read getCount;
 end;

@@ -1,4 +1,3 @@
-memscan: keep track of total found addresses during scan and update the foundcount during scan
 memscan: Don't combine the scanresults into a single file. Leave them split up
 
 bunch of scantabs=messed up ce gui, scans start to fail

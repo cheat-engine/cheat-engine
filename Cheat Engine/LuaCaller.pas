@@ -72,7 +72,7 @@ type
       function BreakpointEvent(bp: pointer; context: pointer):boolean;
       function MemRecChangeEvent(al: TObject; memrec: TMemoryRecord): boolean;
       function GetDisplayValueEvent(mr: TObject; var value: string): boolean;
-
+      procedure MemScanGuiUpdateRoutine(sender: TObject; totaladdressestoscan: qword; currentlyscanned: qword; foundcount: qword);
 
 
       procedure synchronize;
@@ -125,7 +125,7 @@ implementation
 
 uses
   luahandler, LuaByteTable, MainUnit, disassemblerviewunit,
-  hexviewunit, d3dhookUnit, luaclass, debuggertypedefinitions;
+  hexviewunit, d3dhookUnit, luaclass, debuggertypedefinitions, memscan;
 
 resourcestring
   rsThisTypeOfMethod = 'This type of method:';
@@ -1071,6 +1071,29 @@ begin
   end;
 end;
 
+procedure TLuaCaller.MemScanGuiUpdateRoutine(sender: TObject; totaladdressestoscan: qword; currentlyscanned: qword; foundcount: qword);
+var
+  oldstack: integer;
+  l: Plua_State;
+begin
+  l:=luahandler.GetLuaState;
+
+  try
+    oldstack:=lua_gettop(l);
+    if canRun then
+    begin
+      PushFunction;
+      luaclass_newClass(l, sender);
+      lua_pushinteger(l, totaladdressestoscan);
+      lua_pushinteger(l, currentlyscanned);
+      lua_pushinteger(l, foundcount);
+      lua_pcall(l, 4,0,0);
+    end;
+  finally
+    lua_settop(l, oldstack);
+  end;
+end;
+
 function TLuaCaller.AddressLookupCallback(address: ptruint): string;
 var oldstack: integer;
 begin
@@ -1976,7 +1999,26 @@ begin
     lua_pop(L, lua_gettop(L));
 end;
 
+function LuaCaller_MemScanGuiUpdateRoutine(L: PLua_state): integer; cdecl; //(sender, TotalAddressesToScan, CurrentlyScanned, ResultsFound)
+var
+  m: TMethod;
+  ms: TObject;
+  TotalAddressesToScan, CurrentlyScanned, ResultsFound: qword;
+begin
+  result:=0;
+  if lua_gettop(L)=5 then
+  begin
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    ms:=lua_ToCEUserData(L, 1);
+    TotalAddressesToScan:=lua_tointeger(L, 2);
+    CurrentlyScanned:=lua_tointeger(L, 3);
+    ResultsFound:=lua_tointeger(L, 4);
 
+    TMemScanGuiUpdateRoutine(m)(ms, TotalAddressesToScan, CurrentlyScanned, ResultsFound);
+    result:=0;
+  end;
+end;
 
 procedure registerLuaCall(typename: string; getmethodprop: lua_CFunction; setmethodprop: pointer; luafunctionheader: string);
 var t: TLuaCallData;
@@ -2023,6 +2065,7 @@ initialization
 
   registerLuaCall('TMemRecChangeEvent', LuaCaller_MemRecChangeEvent, pointer(TLuaCaller.MemRecChangeEvent),'function %s(al, memrec)'#13#10#13#10'  return false'#13#10'end'#13#10);
   registerLuaCall('TGetDisplayValueEvent', LuaCaller_GetDisplayValueEvent, pointer(TLuaCaller.GetDisplayValueEvent),'function %s(memrec, value)'#13#10#13#10'  return false,value'#13#10'end'#13#10);
+  registerLuaCall('TMemScanGuiUpdateRoutine', LuaCaller_MemScanGuiUpdateRoutine, pointer(TLuaCaller.MemScanGuiUpdateRoutine),'function %s(Sender, TotalAddressesToScan, CurrentlyScanned, ResultsFound)'#13#10#13#10'end'#13#10);
 
 
 

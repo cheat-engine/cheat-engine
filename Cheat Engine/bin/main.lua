@@ -1849,6 +1849,7 @@ createMemScan(progressbar OPTIONAL) : Returns a new MemScan class object
 
 properties
   OnScanDone: function(memscan) - Set a function to be called when the scan has finished
+  OnGuiUpdate: function(memscan, TotalAddressesToScan, CurrentlyScanned, ResultsFound) - Called during the scan so you can update the interface if needed
   FoundList: FoundList - The foundlist currently attached to this memscan object
   OnlyOneResult: boolean - If this is set to true memscan will stop scanning after having found the first result, and written the address to "Result"
   Result: Integer - If OnlyOneResult is used this will contain the address after a scan has finished
@@ -1944,7 +1945,7 @@ methods
 
   setOnlyOneResult(state): If set to true before you start a scan, this will cause the scanner to only return one result. Note that it does not work with a foundlist
   getOnlyResult(): Only works if returnOnlyOneResult is true. Returns nil if not found, else returns the address that was found (integer)
-
+  getProgress(): returns a table with fields: TotalAddressesToScan, CurrentlyScanned, ResultsFound
 
 
 FoundList

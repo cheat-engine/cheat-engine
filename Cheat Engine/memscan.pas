@@ -27,14 +27,15 @@ uses sysutils, unixporthelper, customtypehandler, commonTypeDefs, classes,
 {$endif}
 
 
-type TCheckRoutine=function(newvalue,oldvalue: pointer):boolean of object;
-type TMultiAOBCheckRoutine=function(newvalue: pointer; mabsindex: integer):boolean of object;
-type TStoreResultRoutine=procedure(address: ptruint; oldvalue: pointer) of object;
-type TFlushRoutine=procedure of object;
+type
+  TMemScanGuiUpdateRoutine=procedure(sender: TObject; totaladdressestoscan: qword; currentlyscanned: qword; foundcount: qword) of object;
+  TCheckRoutine=function(newvalue,oldvalue: pointer):boolean of object;
+  TMultiAOBCheckRoutine=function(newvalue: pointer; mabsindex: integer):boolean of object;
+  TStoreResultRoutine=procedure(address: ptruint; oldvalue: pointer) of object;
+  TFlushRoutine=procedure of object;
 
-type Tscanregionpreference=(scanDontCare, scanExclude, scanInclude);
-
-type TAddresses=array of PtrUInt;
+  Tscanregionpreference=(scanDontCare, scanExclude, scanInclude);
+  TAddresses=array of PtrUInt;
 
 
 type
@@ -598,11 +599,14 @@ type
     fInverseScan: boolean;
     fGUIScanner: boolean;
 
+
+
     procedure DeleteScanfolder;
     procedure createScanfolder;
     function DeleteFolder(dir: string) : boolean;
   protected
     fOnScanDone: TNotifyEvent;
+    fOnGuiUpdate: TMemScanGuiUpdateRoutine;
     procedure ScanDone; virtual; //called by the scancontroller
   public
 
@@ -614,7 +618,7 @@ type
 
     attachedFoundlist: TObject;
     procedure parseProtectionflags(protectionflags: string);
-    function GetProgress(var totaladdressestoscan:qword; var currentlyscanned: qword):integer;
+    function GetProgress(var totaladdressestoscan:qword; var currentlyscanned: qword; var resultsfound: qword):integer;
     function GetErrorString: string;
     function GetFoundCount: uint64;
     function Getbinarysize: int64; //returns the number of bits of the current type
@@ -655,7 +659,7 @@ type
     property LastScanType: TScanType read FLastScanType;
     property ScanresultFolder: string read fScanResultFolder; //read only, it's configured during creation
     property OnScanDone: TNotifyEvent read fOnScanDone write fOnScanDone;
-
+    property OnGuiUpdate: TMemscanGuiUpdateRoutine read fOnGuiUpdate write fOnGuiUpdate;
   end;
 
 
@@ -5004,15 +5008,18 @@ end;
 //===============TScanController===============//
 
 procedure TScanController.updategui;
-var totaladdressestoscan, currentlyscanned: qword;
+var totaladdressestoscan, currentlyscanned, foundcount: qword;
 begin
   //runs in mainthread
   if OwningMemScan.progressbar<>nil then
   begin
-    OwningMemScan.progressbar.Position:=OwningMemScan.GetProgress(totaladdressestoscan,currentlyscanned);
+    OwningMemScan.progressbar.Position:=OwningMemScan.GetProgress(totaladdressestoscan,currentlyscanned, foundcount);
     {$ifdef windows}
     SetProgressValue(OwningMemScan.progressbar.Position, OwningMemScan.progressbar.Max);
     {$endif}
+
+    if assigned(owningmemscan.OnGuiUpdate) then
+      owningmemscan.OnGuiUpdate(OwningMemScan, totaladdressestoscan,currentlyscanned, foundcount);
   end;
 end;
 
@@ -6650,13 +6657,14 @@ begin
   result:=ScanresultFolder;
 end;
 
-function TMemscan.GetProgress(var totaladdressestoscan:qword; var currentlyscanned: qword):integer;
+function TMemscan.GetProgress(var totaladdressestoscan:qword; var currentlyscanned: qword; var resultsfound: qword):integer;
 {returns a value between 1 and 1000 representing how far the scan is}
 var i: integer;
 begin
   result:=0;
   totaladdressestoscan:=0;
   currentlyscanned:=0;
+  resultsfound:=0;
 
   //Take care of memory
   if self.scanController<>nil then
@@ -6666,7 +6674,10 @@ begin
     scanController.scannersCS.enter;
     try
       for i:=0 to length(self.scanController.scanners)-1 do
+      begin
         inc(currentlyscanned,self.scanController.scanners[i].scanned);
+        inc(resultsfound, self.scanController.scanners[i].totalfound+self.scanController.scanners[i].found);
+      end;
 
     finally
       scanController.scannersCS.Leave;
