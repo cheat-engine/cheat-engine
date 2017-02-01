@@ -1254,6 +1254,7 @@ object MainForm: TMainForm
       BevelOuter = bvNone
       ClientHeight = 38
       ClientWidth = 63
+      ParentColor = False
       TabOrder = 13
       object rbBit: TRadioButton
         AnchorSideLeft.Control = pnlScanValueOptions
@@ -1739,15 +1740,6 @@ object MainForm: TMainForm
       Caption = 'Memory view'
       OnClick = btnMemoryViewClick
       TabOrder = 17
-    end
-    object Button1: TButton
-      Left = 326
-      Height = 25
-      Top = 52
-      Width = 75
-      Caption = 'Button1'
-      OnClick = Button1Click
-      TabOrder = 18
     end
   end
   object UpdateTimer: TTimer

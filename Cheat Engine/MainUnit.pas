@@ -222,7 +222,6 @@ type
     btnSetSpeedhack2: TButton;
     btnAddAddressManually: TButton;
     btnMemoryView: TButton;
-    Button1: TButton;
     cbCaseSensitive: TCheckBox;
     cbCopyOnWrite: TCheckBox;
     cbExecutable: TCheckBox;
@@ -2942,7 +2941,7 @@ end;
 
 procedure TMainForm.Button1Click(Sender: TObject);
 begin
-  dbk_test;
+
 
 end;
 
@@ -4517,7 +4516,7 @@ begin
     //make space for the tabs
     //luckely this routine is not called often
 
-    for i := 0 to panel5.ControlCount - 1 do
+   { for i := 0 to panel5.ControlCount - 1 do
     begin
       if ( panel5.Controls[i] <> panel7) and (panel5.Controls[i] <> LoadButton) and
         (panel5.Controls[i] <> SaveButton) and (panel5.Controls[i] <> ProcessLabel) and
@@ -4529,13 +4528,15 @@ begin
         //c[i].Parent:=p;
       end;
 
-    end;
+    end;   }
 
     scantablist.Color := clBtnFace;
     scantablist.Brush.Color := clBtnFace;
 
 
     foundlist3.Height := btnMemoryView.top - foundlist3.top - foundlistheightdiff;
+
+    scantype.Top:=scantype.top+scantablist.Height+4;
 
    { panel5.Constraints.MinHeight :=
       gbScanOptions.top + gbScanOptions.Height + speedbutton2.Height + 3;
@@ -7831,7 +7832,9 @@ begin
   if foundlist <> nil then
   begin
     if foundlist.inmodule(item.index) then
-      foundlist3.Canvas.Font.Color := clgreen;
+      foundlist3.Canvas.Font.Color := clgreen
+    else
+      foundlist3.Canvas.Font.Color := Graphics.clDefault;
   end;
 end;
 

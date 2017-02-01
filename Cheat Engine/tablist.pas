@@ -5,7 +5,7 @@ unit tablist;
 interface
 
 uses
-  Classes, SysUtils,controls,ExtCtrls,graphics;
+  Classes, SysUtils,controls,ExtCtrls,graphics, math;
 
 type
   TTabChangeEvent=procedure(sender: TObject; oldselection: integer) of object;
@@ -13,13 +13,18 @@ type
   TTablist=class(TCustomControl)
   private
     fTabs: tstringlist;
-    ftabWidth: integer;
+    fmintabWidth: integer;
     fselectedTab: integer;
     fOnTabChange: TTabChangeEvent;
 
     ftabData: array of pointer;
 
     offset: integer; //defines how many tabs must be shifted to the left
+    hasarrows: boolean;
+    arrowwidth: integer;
+
+    function getTabWidth(i: integer): integer;
+    function getTabXPos(i: integer): integer;
 
     procedure setSelectedTab(i: integer);
     function getTabData(i: integer):pointer;
@@ -37,7 +42,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    property TabWidth: integer read fTabWidth write fTabWidth;
+    property MinTabWidth: integer read fMinTabWidth write fMinTabWidth;
     property OnTabChange: TTabChangeEvent read fOnTabChange write fOnTabChange;
     property SelectedTab: integer read fSelectedTab write setSelectedTab;
     property TabData[Index: Integer]: pointer read getTabData write setTabData;
@@ -92,35 +97,55 @@ begin
     fOnTabChange(self,old);
 end;
 
+function TTablist.getTabXPos(i: integer): integer;
+var j: integer;
+begin
+  result:=0;
+  for j:=0 to i-1 do
+    inc(result, getTabWidth(j));
+end;
+
 function TTablist.GetTabIndexAt(x,y: integer): integer;
 {
 Returns the index of the tab at position x,y
 If no tab, return -1
 }
-var i: integer;
+var
+  i: integer;
+  startx, stopx: integer;
 begin
   result:=-1;
 
-  //find what is selected
-  i:=offset+(x div fTabWidth);
+  startx:=0;
 
-  if i<fTabs.count then
-    result:=i;
+  for i:=offset to fTabs.Count-1 do
+  begin
+    stopx:=startx+getTabWidth(i);
+
+    if InRange(x, startx, stopx) then exit(i);
+
+    startx:=stopx;
+  end;
 end;
 
 procedure TTablist.MouseDown(Button: TMouseButton; Shift:TShiftState; X,Y:Integer);
 var i: integer;
 begin
-  if (fTabs.count*fTabWidth>width) and (x>width-30) then
+  if hasArrows and (x>width-arrowwidth*2+2) then
   begin
     //clicked on an arrow
-    if x>width-15 then
+    if x>width-arrowwidth+1 then
     begin
       //click right
       //check if you can go left
+      i:=ftabs.count-1;
 
-      if (fTabs.count-offset)*fTabWidth>width then //if you can still scroll to the right then increase offset
-        inc(offset)
+      if getTabXPos(i-offset)+getTabWidth(i)>width then
+        inc(offset);
+
+
+      {if (fTabs.count-offset)*fTabWidth>width then //if you can still scroll to the right then increase offset
+        inc(offset) }
     end
     else
     begin
@@ -174,23 +199,38 @@ begin
   repaint;
 end;
 
+function TTabList.GetTabWidth(i: integer): integer;
+begin
+  result:=max(fmintabWidth, canvas.GetTextWidth(fTabs[i])+8);
+end;
+
 procedure TTablist.Paint;
-var i,j: integer;
-gradientColor: Tcolor;
-oldstyle: TBrushStyle;
+var
+  i,j: integer;
+  gradientColor: Tcolor;
+  oldstyle: TBrushStyle;
+
+  tabwidth: integer;
+
+  lastx: integer;
+
+  selectedx: integer;
+
 
 begin
   inherited Paint;
 
-
+  lastx:=0;
 
   //create a total of 'fTabs.count' tabs
   for j:=offset to fTabs.count-1 do
   begin
     i:=j-offset;
+    tabwidth:=GetTabWidth(j);
 
     if j=fselectedTab then
     begin
+      selectedx:=lastx;
       gradientColor:=color;
     end
     else
@@ -199,26 +239,30 @@ begin
     end;
 
     Canvas.Pen.Color:=$a0a0a0;
-    canvas.Rectangle(i*ftabWidth,0,ftabWidth+i*ftabWidth,height);
-    Canvas.GradientFill(rect(i*ftabWidth+1,1,(ftabWidth-1)+i*ftabWidth,height-1),clWhite,gradientColor, gdVertical);
+    canvas.Rectangle(lastx,0,lastx+tabWidth,height);
+    Canvas.GradientFill(rect(lastx+1,1,lastx+tabwidth-1,height-1),clWhite,gradientColor, gdVertical);
 
     oldstyle:=canvas.Brush.Style;
-    canvas.Brush.Style:=bsClear;
 
-    Canvas.TextRect(rect(i*ftabWidth,0,ftabWidth+i*ftabWidth,height),i*ftabWidth+((ftabwidth div 2)-(canvas.TextWidth(ftabs[j]) div 2)) ,(height div 2)-(canvas.TextHeight(ftabs[j]) div 2),fTabs[j]);
+    canvas.Brush.Style:=bsClear;
+    Canvas.TextRect(rect(lastx, 0, lastx+tabWidth,height),lastx+((tabwidth div 2) - (canvas.TextWidth(ftabs[j]) div 2)),(height div 2)-(canvas.TextHeight(ftabs[j]) div 2),fTabs[j]);
     canvas.Brush.Style:=OldStyle;
+
+    inc(lastx, tabwidth);
   end;
 
-  //self.Canvas.TextOut(0,0,'Fag');
   canvas.Pen.Color:=$808080;
   canvas.Line(0,height-1,width,height-1);
 
   canvas.Pen.Color:=color;
-  Canvas.Line((fselectedTab-offset)*ftabWidth,height-1,(fselectedTab-offset)*ftabwidth+ftabwidth,height-1);
+  Canvas.Line(selectedx,height-1,selectedx+getTabWidth(fselectedTab),height-1);
 
-  if fTabs.count*fTabWidth>width then //if there are more tabs than visible
+
+  if (offset>0) or (lastx>width) then //if there are more tabs than visible
   begin
-    if (fTabs.count-offset)*fTabWidth>width then
+    hasarrows:=true;
+
+    if lastx>width then
     begin
       canvas.Pen.Color:=clred;
       canvas.Brush.color:=clblue;
@@ -228,7 +272,10 @@ begin
       Canvas.pen.color:=clInactiveBorder;
       Canvas.brush.color:=clInactiveCaption;
     end;
-    canvas.Polygon([point(width-14, 2), point(width-14, height-2), point(width-1, (height div 2))]);
+
+    arrowwidth:=(height div 2) + (height div 3);
+
+    canvas.Polygon([point(width-arrowwidth, 2), point(width-arrowwidth, height-2), point(width-1, (height div 2))]);
 
     if (offset>0) then //can you scroll to the left
     begin
@@ -240,8 +287,10 @@ begin
       Canvas.pen.color:=clInactiveBorder;
       Canvas.brush.color:=clInactiveCaption;
     end;
-    canvas.Polygon([point(width-16, 2), point(width-16, height-2), point(width-30, (height div 2))]);
-  end;
+    canvas.Polygon([point(width-(arrowwidth+2), 2), point(width-(arrowwidth+2), height-2), point(width-(arrowwidth*2+2), (height div 2))]);
+  end
+  else
+    hasarrows:=false;
 end;
 
 constructor TTablist.Create(AOwner: TComponent);
@@ -249,7 +298,7 @@ begin
   Inherited create(AOwner);
   fselectedTab:=0;
   fTabs:=TStringlist.create;
-  tabWidth:=80;
+  fMinTabWidth:=80;
 end;
 
 destructor TTablist.Destroy;
