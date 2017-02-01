@@ -41,7 +41,7 @@ type
     procedure Paint; override;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-
+  published
     property MinTabWidth: integer read fMinTabWidth write fMinTabWidth;
     property OnTabChange: TTabChangeEvent read fOnTabChange write fOnTabChange;
     property SelectedTab: integer read fSelectedTab write setSelectedTab;
@@ -142,10 +142,6 @@ begin
 
       if getTabXPos(i-offset)+getTabWidth(i)>width then
         inc(offset);
-
-
-      {if (fTabs.count-offset)*fTabWidth>width then //if you can still scroll to the right then increase offset
-        inc(offset) }
     end
     else
     begin

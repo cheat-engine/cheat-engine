@@ -4454,14 +4454,10 @@ var
 begin
   if scantablist = nil then
   begin
-    {setlength(c, panel5.ControlCount);
-    for i := 0 to panel5.controlcount - 1 do
-      c[i] := panel5.Controls[i];  }
-
-
     foundlistheightdiff := btnMemoryView.top - (foundlist3.top + foundlist3.Height);
 
     scantablist := TTablist.Create(self);
+    scantablist.Name:='ScantabList';
 
     scantabtopcontrol:=panel7;
     if scantabtopcontrol.top+scantabtopcontrol.Height<ProgressBar1.Top+ProgressBar1.Height then
@@ -4511,25 +4507,6 @@ begin
     tabcounter := 3;
 
 
-    //p.height:=p.TabHeight;
-
-    //make space for the tabs
-    //luckely this routine is not called often
-
-   { for i := 0 to panel5.ControlCount - 1 do
-    begin
-      if ( panel5.Controls[i] <> panel7) and (panel5.Controls[i] <> LoadButton) and
-        (panel5.Controls[i] <> SaveButton) and (panel5.Controls[i] <> ProcessLabel) and
-        (panel5.Controls[i] <> Progressbar1) and (panel5.Controls[i] <> logopanel) and
-        (panel5.Controls[i] <> btnMemoryView) and (panel5.Controls[i] <> speedbutton2) and
-        (panel5.Controls[i] <> btnAddAddressManually) and (panel5.Controls[i] <> scantablist) then
-      begin
-        panel5.Controls[i].Top := panel5.Controls[i].Top + 20; //p.height;
-        //c[i].Parent:=p;
-      end;
-
-    end;   }
-
     scantablist.Color := clBtnFace;
     scantablist.Brush.Color := clBtnFace;
 
@@ -4537,13 +4514,6 @@ begin
     foundlist3.Height := btnMemoryView.top - foundlist3.top - foundlistheightdiff;
 
     scantype.Top:=scantype.top+scantablist.Height+4;
-
-   { panel5.Constraints.MinHeight :=
-      gbScanOptions.top + gbScanOptions.Height + speedbutton2.Height + 3;
-
-    if panel5.Height < panel5.Constraints.MinHeight then
-      panel5.Height := panel5.Constraints.MinHeight;  }
-
   end
   else
   begin
