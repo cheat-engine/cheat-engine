@@ -8,6 +8,6 @@ For the latest version:
 For older versions, check out https://github.com/cheat-engine/cheat-engine/releases
 
 
-The forum is down, and may stay down (though I will grant access to people later to get their data)
+The forum is up/down depending on DDoS attacks and negotiations. In the chance it works, you can read posts at http://174.142.61.111/forum
 
 You can also follow cheat engine on twitter: https://twitter.com/_cheatengine
