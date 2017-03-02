@@ -383,3 +383,6 @@ wrSignaled=0
 wrTimeout=1
 wrAbandoned=2
 wrError=3
+
+fsSurface=0
+fsBorder=1

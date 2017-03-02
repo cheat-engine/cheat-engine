@@ -833,6 +833,10 @@ begin
       lvResults.Visible:=false;
 
 
+      if lblProgressbar1.Height>progressbar1.Height then
+        ProgressBar1.Height:=lblProgressbar1.height;
+
+      lblProgressbar1.Top:=progressbar1.Top+(progressbar1.height div 2)-(lblProgressbar1.Height div 2);
 
 
       pnlProgress.Visible:=true;
@@ -883,6 +887,7 @@ begin
 
           pb.left:=ProgressBar1.left;
           pb.width:=ProgressBar1.width;
+          pb.height:=Progressbar1.Height;
           pb.Anchors:=ProgressBar1.Anchors;
 
           lb:=TLabel.create(self);
@@ -1416,6 +1421,10 @@ begin
       lblProgressbar1.Caption:=rsPSExporting;
       progressbar1.position:=0;
       progressbar1.max:=100;
+      if lblProgressbar1.Height>progressbar1.Height then
+        ProgressBar1.Height:=lblProgressbar1.height;
+
+      lblProgressbar1.Top:=progressbar1.Top+(progressbar1.height div 2)-(lblProgressbar1.Height div 2);
       pnlProgress.visible:=true;
 
       Update;
@@ -1710,6 +1719,12 @@ begin
     lblProgressbar1.Caption:=rsPSImporting;
     progressbar1.position:=0;
     progressbar1.max:=100;
+
+    if lblProgressbar1.Height>progressbar1.Height then
+     ProgressBar1.Height:=lblProgressbar1.height;
+
+    lblProgressbar1.Top:=progressbar1.Top+(progressbar1.height div 2)-(lblProgressbar1.Height div 2);
+
     pnlProgress.visible:=true;
 
     Update;
@@ -3134,6 +3149,11 @@ begin
           rescan.filterOutAccessible:=cbfilterOutAccessible.checked;
 
           lblProgressbar1.caption:=rsPSREscanning;
+          if lblProgressbar1.Height>progressbar1.Height then
+           ProgressBar1.Height:=lblProgressbar1.height;
+
+          lblProgressbar1.Top:=progressbar1.Top+(progressbar1.height div 2)-(lblProgressbar1.Height div 2);
+
           pnlProgress.visible:=true;
 
 
@@ -3362,8 +3382,6 @@ begin
         if pnlProgressBar.Controls[i]<>Progressbar1 then
           pnlProgressBar.Controls[i].Visible:=false;
       end;
-
-      pnlProgress.height:=ProgressBar1.height+1;
 
       ProgressBar1.visible:=true;
       Progressbar1.Position:=0;

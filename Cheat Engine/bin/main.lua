@@ -1388,7 +1388,12 @@ methods
   getTextHeight(text)
   getPixel(x,y)
   setPixel(x,y,color)
-  floodFill(x,y)
+  floodFill(x,y, color OPTIONAL default=brush.Color, filltype OPTIONAL default=fsSurface): Fills the picture till/with a color.  
+    filltype can be 
+      fsSurface: fill till the color (it fills all except this color)        
+      fsBorder:  fill this color (it fills only connected pixels of this color)      
+
+
   ellipse(x1,y1,x2,y2)
   gradientFill(x1,y1,x2,y2, startcolor, stopcolor, direction) : Gradient fills a rectangle. Direction can be 0 or 1. 0=Vertical 1=Horizontal
   copyRect(dest_x1,dest_y1,dest_x2,dest_y2, sourceCanvas, source_x1,source_y1,source_x2,source_y2) : Draws an image from one source to another. Useful in cases of doublebuffering

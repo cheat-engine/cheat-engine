@@ -4712,7 +4712,7 @@ begin
                                 begin
                                   description:='Load Fence';
                                   lastdisassembledata.opcode:='lfence';
-                                  inc(offset,1);
+                                  inc(offset,2);
                                 end
                                 else
                                 begin

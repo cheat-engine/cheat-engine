@@ -8,6 +8,10 @@ pointerscan dpi: generate pointermap doesn't fit
 symbol config window: tab 0 isn't on the symbolname
 
 lua:autoassembler: Make autoAssembler return the alloclist which can then be passed to disable scripts
+lua:add database access for who knows why
+
+lua: add an uncheck all addresses without executing
+
 
 linux: make a 32-bit linux build with .so injection support
 

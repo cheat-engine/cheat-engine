@@ -79,22 +79,23 @@ object frmPointerScanner: TfrmPointerScanner
   end
   object pnlProgress: TPanel
     Left = 0
-    Height = 27
-    Top = 413
+    Height = 25
+    Top = 415
     Width = 749
     Align = alBottom
-    ClientHeight = 27
+    AutoSize = True
+    ClientHeight = 25
     ClientWidth = 749
     TabOrder = 3
     Visible = False
     object pnlProgressName: TPanel
       Left = 1
-      Height = 25
+      Height = 23
       Top = 1
       Width = 143
       Align = alLeft
       BevelOuter = bvNone
-      ClientHeight = 25
+      ClientHeight = 23
       ClientWidth = 143
       TabOrder = 0
       object lblProgressbar1: TLabel
@@ -109,11 +110,11 @@ object frmPointerScanner: TfrmPointerScanner
     end
     object pnlProgressBar: TPanel
       Left = 144
-      Height = 25
+      Height = 23
       Top = 1
       Width = 604
       Align = alClient
-      ClientHeight = 25
+      ClientHeight = 23
       ClientWidth = 604
       TabOrder = 1
       object ProgressBar1: TProgressBar
@@ -133,18 +134,18 @@ object frmPointerScanner: TfrmPointerScanner
   end
   object pnlData: TPanel
     Left = 0
-    Height = 386
+    Height = 388
     Top = 27
     Width = 749
     Align = alClient
     BevelOuter = bvNone
     Caption = 'pnlData'
-    ClientHeight = 386
+    ClientHeight = 388
     ClientWidth = 749
     TabOrder = 4
     object tvInfo: TTreeView
       Left = 0
-      Height = 357
+      Height = 359
       Top = 0
       Width = 590
       Align = alClient
@@ -160,7 +161,7 @@ object frmPointerScanner: TfrmPointerScanner
     object pnlStop: TPanel
       Left = 0
       Height = 29
-      Top = 357
+      Top = 359
       Width = 749
       Align = alBottom
       AutoSize = True
@@ -187,13 +188,13 @@ object frmPointerScanner: TfrmPointerScanner
     end
     object pnlControl: TPanel
       Left = 590
-      Height = 357
+      Height = 359
       Top = 0
       Width = 159
       Align = alRight
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 357
+      ClientHeight = 359
       ClientWidth = 159
       TabOrder = 2
       object cbPriority: TComboBox
