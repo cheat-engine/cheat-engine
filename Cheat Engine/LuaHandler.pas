@@ -5186,12 +5186,12 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    if lua_isstring(L, -1) then
-      address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
+    if lua_isstring(L, 1) then
+      address:=symhandler.getAddressFromNameL(lua_tostring(L,1))
     else
-      address:=lua_tointeger(L,-2);
+      address:=lua_tointeger(L,1);
 
-    size:=lua_tointeger(L,-1);
+    size:=lua_tointeger(L,2);
 
     lua_pop(L, lua_gettop(l));
 
