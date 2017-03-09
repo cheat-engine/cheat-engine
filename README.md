@@ -8,6 +8,10 @@ For the latest version:
 For older versions, check out https://github.com/cheat-engine/cheat-engine/releases
 
 
-The forum is up/down depending on DDoS attacks and negotiations. In the chance it works, you can read posts at http://174.142.61.111/forum
+The forum is up/down depending on DDoS attacks. In the chance it works, you can read posts at http://174.142.61.111/forum
+
+Alternate websites:
+http://reddit.com/r/cheatengine
+http://fearlessrevolution.com/index.php
 
 You can also follow cheat engine on twitter: https://twitter.com/_cheatengine
