@@ -12,6 +12,7 @@ The forum is up/down depending on DDoS attacks. In the chance it works, you can 
 
 Alternate websites:
 http://reddit.com/r/cheatengine
+
 http://fearlessrevolution.com/index.php
 
 You can also follow cheat engine on twitter: https://twitter.com/_cheatengine
