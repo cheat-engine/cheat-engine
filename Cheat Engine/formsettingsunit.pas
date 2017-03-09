@@ -758,6 +758,7 @@ begin
       reg.WriteBool('DPI Aware', cbDPIAware.Checked);
       reg.writebool('Override Default Font', cbOverrideDefaultFont.Checked);
 
+      {$ifdef privatebuild}
       reg.WriteBool('DoNotOpenProcessHandles', cbDontOpenHandle.Checked);
       DoNotOpenProcessHandles:=cbDontOpenHandle.Checked;
 
@@ -768,6 +769,9 @@ begin
 
       reg.WriteBool('useapctoinjectdll', cbInjectDLLWithAPC.Checked);
       useapctoinjectdll:=cbInjectDLLWithAPC.checked;
+      {$else}
+      useapctoinjectdll:=false;
+      {$endif}
     end;
 
 
@@ -1515,6 +1519,11 @@ begin
 
   tvMenuSelection.FullExpand;
 
+  {$ifdef privatebuild}
+  cbDontOpenHandle.visible:=true;
+  cbProcessWatcherOpensHandles.visible:=true;
+  cbInjectDLLWithAPC.visible:=true;
+  {$endif}
 
 end;
 

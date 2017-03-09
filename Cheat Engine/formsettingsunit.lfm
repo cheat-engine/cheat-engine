@@ -1,7 +1,7 @@
 object formSettings: TformSettings
-  Left = 413
+  Left = 879
   Height = 539
-  Top = 205
+  Top = 165
   Width = 813
   AutoSize = True
   BorderIcons = [biSystemMenu]
@@ -1629,6 +1629,7 @@ object formSettings: TformSettings
             Caption = 'Do not try to obtain handles'
             Enabled = False
             TabOrder = 3
+            Visible = False
           end
         end
         object cbProcessWatcher: TCheckBox
@@ -1654,11 +1655,12 @@ object formSettings: TformSettings
           BorderSpacing.Top = 16
           Caption = 'Use APC to inject dll''s'
           TabOrder = 2
+          Visible = False
         end
         object CheckBox4: TCheckBox
-          Left = 7
+          Left = 0
           Height = 19
-          Top = 442
+          Top = 296
           Width = 181
           Caption = 'Use APC to create new threads'
           TabOrder = 3
@@ -1679,6 +1681,7 @@ object formSettings: TformSettings
           Enabled = False
           State = cbChecked
           TabOrder = 4
+          Visible = False
         end
       end
       object tsTools: TTabSheet

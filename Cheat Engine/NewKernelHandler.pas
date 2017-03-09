@@ -1406,6 +1406,7 @@ begin
   {$endif}
 {$endif}
 
+{$ifdef privatebuild}
   if not assigned(OldNtQueryInformationProcess) then
   begin
     nthookscript:=tstringlist.create;
@@ -1422,6 +1423,7 @@ begin
 
     nthookscript.free;
   end;
+{$endif}
 
 end;
 
@@ -1450,6 +1452,7 @@ begin
   OpenProcess:=@OP; //gives back the real handle, or if it fails it gives back a value only valid for the dll
   OpenThread:=@OT;
 
+  {$ifdef privatebuild}
   nthookscript:=tstringlist.create;
 
   if not assigned(oldNtOpenProcess) then
@@ -1477,11 +1480,12 @@ begin
 
 
   nthookscript.free;
+  {$endif}  //bypass
 
   {$ifdef cemain}
   pluginhandler.handlechangedpointers(10);
   {$endif}
-{$endif}
+{$endif}  //windows
 end;
 
 function GetLargePageMinimumStub: SIZE_T; stdcall;

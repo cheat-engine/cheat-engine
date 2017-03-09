@@ -693,6 +693,7 @@ begin
           if reg.ValueExists('Override Default Font') then
             cbOverrideDefaultFont.Checked:=reg.readbool('Override Default Font');
 
+          {$ifdef privatebuild}
           if reg.ValueExists('DoNotOpenProcessHandles') then
             cbDontOpenHandle.Checked:=reg.readbool('DoNotOpenProcessHandles');
 
@@ -707,6 +708,11 @@ begin
             cbInjectDLLWithAPC.Checked:=reg.readbool('useapctoinjectdll');
 
           useapctoinjectdll:=cbInjectDLLWithAPC.checked;
+          {$else}
+          DoNotOpenProcessHandles:=false;
+          ProcessWatcherOpensHandles:=false;
+          useapctoinjectdll:=false;
+          {$endif}
         end;
 
 
