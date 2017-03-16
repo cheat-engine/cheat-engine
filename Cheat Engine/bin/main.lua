@@ -1263,6 +1263,11 @@ properties
 
   OnData: function(sender, ListItem) - Called when a listview with OwnerData true renders a line
 
+  OnCustomDraw: function(Sender, {Top, Left, Bottom, Right}, DefaultDraw Optional): NewDefaultDraw
+  OnCustomDrawItem: function(Sender, ListItem, {cdsSelected=true/false(nil), cdsGrayed=true/false(nil), cdsDisabled, cdsChecked, cdsFocused, cdsDefault, cdsHot, cdsMarked, cdsIndeterminate}, DefaultDraw Optional): NewDefaultDraw
+  OnCustomDrawSubItem: function(Sender, ListItem, SubItemIndex, {cdsSelected=true/false(nil), cdsGrayed=true/false(nil), cdsDisabled, cdsChecked, cdsFocused, cdsDefault, cdsHot, cdsMarked, cdsIndeterminate}, DefaultDraw Optional): NewDefaultDraw
+
+
 methods
   clear()
   getColumns() : ListColumns - Returns a ListColumns object

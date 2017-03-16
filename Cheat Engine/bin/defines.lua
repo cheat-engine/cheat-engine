@@ -386,3 +386,13 @@ wrError=3
 
 fsSurface=0
 fsBorder=1
+
+cdsSelected=0
+cdsGrayed=1
+cdsDisabled=2
+cdsChecked=3
+cdsFocused=4
+cdsDefault=5
+cdsHot=6
+cdsMarked=7
+cdsIndeterminate=8
