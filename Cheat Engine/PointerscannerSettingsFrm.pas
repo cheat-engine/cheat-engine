@@ -1212,6 +1212,10 @@ begin
     edtReverseStop.MaxLength:=edtReverseStart.MaxLength;
   end;
 
+  i:=editMaxLevel.left+editMaxLevel.width;
+  combobox1.width:=combobox1.width+(i-(combobox1.left+combobox1.width));
+
+
   i:=max(edtReverseStart.clientwidth, max(canvas.TextWidth(edtReverseStart.text), canvas.TextWidth(edtReverseStop.text)))+8;
   edtReverseStart.clientwidth:=i;
   edtReverseStop.clientwidth:=i;
@@ -1224,7 +1228,6 @@ begin
   btnCancel.autosize:=false;
   btnok.width:=i;
   btnCancel.width:=i;
-
 
   firstshow:=false;
 

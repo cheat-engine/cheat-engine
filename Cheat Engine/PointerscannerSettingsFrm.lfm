@@ -1,7 +1,7 @@
 object frmPointerScannerSettings: TfrmPointerScannerSettings
-  Left = 449
+  Left = 225
   Height = 523
-  Top = 291
+  Top = 146
   Width = 869
   AutoSize = True
   BorderStyle = bsSingle
@@ -547,16 +547,16 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = Panel9
     AnchorSideTop.Side = asrBottom
-    Left = 269
+    Left = 267
     Height = 86
     Top = 401
-    Width = 330
+    Width = 335
     AutoSize = True
     BorderSpacing.Top = 8
     BorderSpacing.Bottom = 4
     BevelOuter = bvNone
     ClientHeight = 86
-    ClientWidth = 330
+    ClientWidth = 335
     Constraints.MinWidth = 330
     TabOrder = 7
     OnClick = Panel1Click
@@ -648,12 +648,12 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       Left = 190
       Height = 86
       Top = 0
-      Width = 140
+      Width = 145
       AutoSize = True
       BorderSpacing.Left = 7
       BevelOuter = bvNone
       ClientHeight = 86
-      ClientWidth = 140
+      ClientWidth = 145
       TabOrder = 1
       object Label12: TLabel
         AnchorSideLeft.Control = Panel7
@@ -675,6 +675,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         Height = 23
         Top = 0
         Width = 140
+        BorderSpacing.Right = 5
         ItemHeight = 15
         ItemIndex = 3
         Items.Strings = (
@@ -704,6 +705,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Left = 4
         BorderSpacing.Top = 10
+        Constraints.MinWidth = 80
         TabOrder = 1
         Text = '5'
       end

@@ -1788,6 +1788,9 @@ methods
   reinterpret()
   createHotkey({keys}, action, value OPTIONAL): Returns a hotkey object 
 
+  disableWithoutExecute(): Sets the entry to disabled without executing the disable section
+
+
 global events
   function onMemRecPreExecute(memoryrecord, newstate BOOLEAN):
     If above function is defined it will be called before action* has been performed.
@@ -1845,6 +1848,7 @@ methods
   getSelectedRecord() : Gets the main selected memoryrecord
   setSelectedRecord(memrec) : Sets the currently selected memoryrecord. This will unselect all other entries
 
+  disableAllWithoutExecute(): Disables all memory records without executinbg their [Disable] section
 
 
 

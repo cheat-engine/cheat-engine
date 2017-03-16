@@ -363,6 +363,12 @@ begin
   result:=1;
 end;
 
+function memoryrecord_disableWithoutExecute(L: PLua_State): integer; cdecl;
+begin
+  result:=0;
+  TMemoryRecord(luaclass_getClassObject(L)).disablewithoutexecute;
+end;
+
 function memoryrecord_setActive(L: PLua_State): integer; cdecl;
 var
   memrec: TMemoryRecord;
@@ -841,6 +847,8 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setScript', memoryrecord_setScript);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getActive', memoryrecord_getActive);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setActive', memoryrecord_setActive);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'disableWithoutExecute', memoryrecord_disableWithoutExecute);
+
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getChild', memoryrecord_getChild);
 
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'isSelected', memoryrecord_isSelected);
@@ -874,8 +882,6 @@ begin
 
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'Active', memoryrecord_getActive, memoryrecord_setActive);
-
-
 
 
   recordEntries:=Trecordentries.create;

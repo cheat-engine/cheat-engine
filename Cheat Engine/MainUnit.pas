@@ -2750,10 +2750,7 @@ begin
           if (messagedlg(rsThereAreOneOrMoreAutoAssemblerEntriesOrCodeChanges,
             mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
           begin
-            for j := 0 to addresslist.Count - 1 do
-              if (addresslist[j].VarType = vtAutoAssembler) and
-                (addresslist[j].active) then
-                addresslist[j].disablewithoutexecute;
+            addresslist.disableAllWithoutExecute;
 
             for i := 0 to length(AdvancedOptions.code) - 1 do
               AdvancedOptions.code[i].changed := False;

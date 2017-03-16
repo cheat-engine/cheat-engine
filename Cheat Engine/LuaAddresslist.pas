@@ -123,6 +123,12 @@ begin
   TAddresslist(luaclass_getClassObject(L)).doTypeChange;
 end;
 
+function addresslist_disableAllWithoutExecute(L: PLua_State): integer; cdecl;
+begin
+  result:=0;
+  TAddresslist(luaclass_getClassObject(L)).disableAllWithoutExecute;
+end;
+
 function addresslist_doValueChange(L: PLua_State): integer; cdecl;
 begin
   result:=0;
@@ -169,6 +175,11 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'doValueChange', addresslist_doValueChange);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getSelectedRecord', addresslist_getSelectedRecord);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setSelectedRecord', addresslist_setSelectedRecord);
+
+
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'disableAllWithoutExecute', addresslist_disableAllWithoutExecute);
+
+
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'Count', addresslist_getCount, nil);
   luaclass_addPropertyToTable(L, metatable, userdata, 'SelectedRecord', addresslist_getSelectedRecord, addresslist_setSelectedRecord);

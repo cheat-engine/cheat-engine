@@ -153,6 +153,8 @@ type
     procedure doTypeChange;
     procedure doValueChange;
 
+    procedure disableAllWithoutExecute;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     property Items: TTreeNodes read getTreeNodes write SetTreeNodes;
@@ -890,6 +892,13 @@ begin
 end;
 
 
+procedure TAddresslist.disableAllWithoutExecute;
+var i: integer;
+begin
+  for i := 0 to Count - 1 do
+    if (MemRecItems[i].VarType = vtAutoAssembler) and (MemRecItems[i].active) then
+      MemRecItems[i].disablewithoutexecute;
+end;
 
 procedure TAddresslist.descriptiondblclick(node: TTreenode);
 var i: integer;
