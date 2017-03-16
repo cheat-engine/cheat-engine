@@ -105,9 +105,9 @@ published
   property OnColumnClick;
   property OnCompare;
 //  property OnContextPopup;
-//  property OnCustomDraw;
-//  property OnCustomDrawItem;
-//  property OnCustomDrawSubItem;
+  property OnCustomDraw;
+  property OnCustomDrawItem;
+  property OnCustomDrawSubItem;
   property OnData;
   property OnDblClick;
  // property OnDeletion;

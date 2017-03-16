@@ -58,6 +58,7 @@ function lua_ToCEUserData(L: PLua_state; i: integer): pointer;
 function lua_tovariant(L: PLua_state; i: integer): variant;
 procedure lua_pushvariant(L: PLua_state; v: variant);
 procedure lua_pushrect(L: PLua_state; r: TRect);
+function lua_toRect(L: PLua_State; index: integer): TRect;
 procedure InitializeLuaScripts;
 procedure InitializeLua;
 
@@ -268,6 +269,41 @@ begin
 
 
 //unclear should there be a result:=Utf8ToAnsi(s); ?
+end;
+
+function lua_toRect(L: PLua_State; index: integer): TRect;
+var i: integer;
+begin
+  ZeroMemory(@result,sizeof(trect));
+
+  if index<0 then
+    i:=(lua_gettop(L)+1)+index
+  else
+    i:=index;
+
+  if lua_istable(L, i) then
+  begin
+    lua_pushstring(L,'Left');
+    lua_gettable(L, i);
+    result.Left:=lua_tointeger(L,-1);
+    lua_pop(L,1);
+
+    lua_pushstring(L,'Top');
+    lua_gettable(L, i);
+    result.Top:=lua_tointeger(L,-1);
+    lua_pop(L,1);
+
+    lua_pushstring(L,'Right');
+    lua_gettable(L, i);
+    result.Right:=lua_tointeger(L,-1);
+    lua_pop(L,1);
+
+    lua_pushstring(L,'Bottom');
+    lua_gettable(L, i);
+    result.Bottom:=lua_tointeger(L,-1);
+    lua_pop(L,1);
+  end;
+
 end;
 
 procedure lua_pushrect(L: PLua_state; r: TRect);

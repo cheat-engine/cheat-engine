@@ -1,8 +1,6 @@
-
-bunch of scantabs=messed up ce gui, scans start to fail
-
 lua:autoassembler: Make autoAssembler return the alloclist which can then be passed to disable scripts
 lua:add database access for who knows why
+lua:add a stacktrace override
 
 
 

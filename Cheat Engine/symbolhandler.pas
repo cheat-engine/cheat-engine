@@ -289,11 +289,33 @@ procedure unregisterAddressLookupCallback(id: integer);
 
 
 {$ifdef windows}
+type TSTACKFRAME_EX = record
+        AddrPC : TADDRESS64;
+        AddrReturn : TADDRESS64;
+        AddrFrame : TADDRESS64;
+        AddrStack : TADDRESS64;
+        AddrBStore : TADDRESS64;
+        FuncTableEntry : POINTER;
+        Params : array[0..3] of DWORD64;
+        Far : BOOL;
+        Virtual : BOOL;
+        Reserved : array[0..2] of DWORD64;
+        KdHelp : TKDHELP64;
+        StackFrameSize: DWORD;
+        InlineFrameContext: DWORD;
+     end;
+
+  PStackframe_ex=^TSTACKFRAME_EX;
+
+
 type TSymFromName=function(hProcess: HANDLE; Name: LPSTR; Symbol: PSYMBOL_INFO): BOOL; stdcall;
 type TSymFromAddr=function(hProcess:THANDLE; Address:dword64; Displacement:PDWORD64; Symbol:PSYMBOL_INFO):BOOL;stdcall;
 
 var SymFromName: TSymFromName;
     SymFromAddr: TSymFromAddr;
+
+    StackWalkEx:function(MachineType:dword; hProcess:THANDLE; hThread:THANDLE; StackFrame:PStackframe_ex; ContextRecord:pointer; ReadMemoryRoutine:TREAD_PROCESS_MEMORY_ROUTINE64; FunctionTableAccessRoutine:TFUNCTION_TABLE_ACCESS_ROUTINE64; GetModuleBaseRoutine:TGET_MODULE_BASE_ROUTINE64; TranslateAddress:TTRANSLATE_ADDRESS_ROUTINE64; flags: dword):bool;stdcall;
+
 {$endif}
 
 procedure symhandlerInitialize;
@@ -3434,6 +3456,8 @@ begin
 
   SymFromName:=GetProcAddress(dbghlp,'SymFromName');
   SymFromAddr:=GetProcAddress(dbghlp,'SymFromAddr');
+  StackWalkEx:=GetProcAddress(dbghlp,'StackWalkEx');
+
 
   psa:=loadlibrary('Psapi.dll');
   EnumProcessModules:=GetProcAddress(psa,'EnumProcessModules');
