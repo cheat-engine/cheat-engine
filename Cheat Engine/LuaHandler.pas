@@ -2181,12 +2181,24 @@ end;
 function autoAssemble_lua(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
-  code: TStringlist;
+  code: TStringlist=nil;
+  registeredsymbols: TStringlist=nil;
+
   r: boolean;
   targetself: boolean;
   CEAllocArray: TCEAllocArray;
+
+  i: integer;
+
+  secondaryResultTable: integer;
+  tableIndex, tableIndex2: integer;
+  disableInfoIndex: integer;
+  enable: boolean;
 begin
   result:=1;
+  enable:=true;
+
+
   parameters:=lua_gettop(L);
   if parameters=0 then
   begin
@@ -2194,24 +2206,164 @@ begin
     exit;
   end;
 
+  setlength(CEAllocArray,0);
+
   code:=tstringlist.create;
+  registeredsymbols:=tstringlist.create;
+
   try
-    code.text:=lua_tostring(L, -parameters);
-    if parameters>1 then
-      targetself:=lua_toboolean(L, -parameters+1)
+    code.text:=lua_tostring(L, 1);
+    if (parameters>1) and lua_isboolean(L,2) then
+      targetself:=lua_toboolean(L, 2)
     else
       targetself:=false;
 
+    disableInfoIndex:=0;
+    if (parameters>1) and lua_istable(L,2) then
+      disableInfoIndex:=2
+    else
+    if (parameters>2) and lua_istable(L,3) then
+      disableInfoIndex:=3;
+
+
+
+    if disableInfoIndex>0 then
+    begin
+      try
+        if lua_istable(L, disableInfoIndex) then
+        begin
+          enable:=false;
+          lua_pushstring(L,'allocs');
+          lua_gettable(L,disableInfoIndex);
+          if lua_isnil(L,disableInfoIndex+1)=false then
+          begin
+            if lua_istable(L,disableInfoIndex+1)=false then raise exception.create('Corrupt disableInfo section at the allocs side');
+            //enum all the entries
+
+            lua_pushnil(L);
+            while lua_next(L, disableInfoIndex+1)<>0 do
+            begin
+              i:=length(CEAllocArray);
+              setlength(ceallocarray,i+1);
+
+              CEAllocArray[i].varname:=Lua_ToString(L,-2);
+
+              tableindex:=lua_gettop(L);
+
+              lua_pushstring(L,'address');
+              lua_gettable(L,tableindex);
+              if lua_isnumber(L,-1)=false then raise exception.create('Corrupt disableInfo section at '+CEAllocArray[i].varname+'.address');
+              CEAllocArray[i].address:=lua_tointeger(L,-1);
+              lua_pop(L,1);
+
+              lua_pushstring(L,'size');
+              lua_gettable(L,tableindex);
+              if lua_isnumber(L,-1)=false then raise exception.create('Corrupt disableInfo section at '+CEAllocArray[i].varname+'.size');
+              CEAllocArray[i].size:=lua_tointeger(L,-1);
+              lua_pop(L,1);
+
+              lua_pushstring(L,'prefered');
+              lua_gettable(L,tableindex);
+              if lua_isnil(L,-1)=false then
+              begin
+                if lua_isnumber(L,-1)=false then raise exception.create('Corrupt disableInfo section at '+CEAllocArray[i].varname+'.prefered');
+                CEAllocArray[i].size:=lua_tointeger(L,-1);
+              end;
+              lua_pop(L,1);
+
+              lua_pop(L,1);
+            end;
+          end;
+          lua_pop(L,1);
+
+          lua_pushstring(L,'registeredsymbols');
+          lua_gettable(L,disableInfoIndex);
+          if not lua_isnil(L,-1) then
+          begin
+            if lua_istable(L,-1)=false then raise exception.create('Corrupt disableInfo section at the registeredsymbols side');
+            lua_pushnil(L);
+            while lua_next(L, disableInfoIndex+1)<>0 do
+            begin
+              registeredsymbols.Add(Lua_ToString(L,-1));
+              lua_pop(L,1);
+            end;
+
+
+          end;
+          lua_pop(L,1);
+        end
+        else raise exception.create('Not a valid disableInfo variable');
+
+      except
+        on e:exception do
+        begin
+          lua_pushboolean(L,false);
+          lua_pushstring(L,e.Message);
+          exit(2);
+        end;
+      end;
+    end;
+
+
     try
-      r:=autoassemble(code, false, true, false, targetself, CEAllocArray);
+      r:=autoassemble(code, false, enable, false, targetself, CEAllocArray, registeredsymbols);
     except
-      r:=false;
+      on e:exception do
+      begin
+        lua_pushboolean(L,false);
+        lua_pushstring(L,e.Message);
+        exit(2);
+      end;
     end;
 
     lua_pop(L, parameters);
     lua_pushboolean(L, r);
+
+    if r and enable then
+    begin
+      result:=2;
+      lua_newtable(L);
+      secondaryResultTable:=lua_gettop(L); //should be 2
+
+      lua_pushstring(L,'allocs');
+      lua_newtable(L);
+      tableIndex:=lua_gettop(L);
+
+      for i:=0 to length(CEAllocArray)-1 do
+      begin
+        lua_pushstring(L, CEAllocArray[i].varname);
+        lua_newtable(L);
+        tableindex2:=lua_gettop(L);
+
+        lua_setbasictableentry(L, tableindex2, 'address',CEAllocArray[i].address);
+        lua_setbasictableentry(L, tableindex2, 'size',CEAllocArray[i].size);
+        if CEAllocArray[i].prefered<>0 then
+          lua_setbasictableentry(L, tableindex2, 'prefered',CEAllocArray[i].prefered);
+
+        lua_settable(L, tableindex);
+      end;
+      lua_settable(l,secondaryResultTable);
+
+      lua_pushstring(L,'registeredsymbols');
+      lua_newtable(L);
+      tableIndex:=lua_gettop(L);
+
+      for i:=0 to registeredsymbols.Count-1 do
+      begin
+        lua_pushinteger(L,i+1);
+        lua_pushstring(L, registeredsymbols[i]);
+        lua_settable(L, tableIndex);
+      end;
+
+      lua_settable(L, secondaryResultTable);
+
+    end;
   finally
-    code.free;
+    if code<>nil then
+      code.free;
+
+    if registeredsymbols<>nil then
+      registeredsymbols.free;
   end;
 
 end;

@@ -156,7 +156,8 @@ errorOnLookupFailure(state): If set to true (default) address lookups in stringf
 6.4+:Returns the original state
 
 generateAPIHookScript(address, addresstojumpto, addresstogetnewcalladdress OPT) : Generates an auto assembler script which will hook the given address when executed
-autoAssemble(text, targetself OPTIONAL) : runs the auto assembler with the given text. Returns true on success (if targetself is set it will assemble into Cheat Engine itself)
+autoAssemble(text, targetself OPTIONAL, disableInfo OPTIONAL) : runs the auto assembler with the given text. Returns true on success, with as secondary a table you can use when disabling (if targetself is set it will assemble into Cheat Engine itself). If disableInfo is provided the [Disable] section will be handled
+autoAssemble(text, disableInfo OPTIONAL)
 
 registerExeTrainerFeature(FeatureName:String, function():table): adds a new feature to the exe trainer generator window, and calls your function when the user builds an .exe trainer.  The function should return a table with table entries: PathToFile and RelativePath.
   example output:
