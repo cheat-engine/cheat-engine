@@ -1737,6 +1737,7 @@ properties
     If the type is vtString then the following properties are available:
      String.Size: Number of characters in the string
      String.Unicode: boolean
+     String.Codepage: boolean
 
     If the type is vtBinary then the following properties are available
       Binary.Startbit: First bit to start reading from
