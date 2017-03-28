@@ -1337,7 +1337,7 @@ end;
 function TMemoryRecord.hasParent: boolean;
 begin
   {$IFNDEF UNIX}
-  result:=treenode.parent<>nil;
+  result:=(treenode<>nil) and (treenode.parent<>nil);
   {$ENDIF}
 end;
 
