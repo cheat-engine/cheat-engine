@@ -1,3 +1,6 @@
+generating pointmap looks like "generating P"
+pointerscan network fields are not dpi fixed
+
 lua:add database access for who knows why
 lua:add a stacktrace override
 
@@ -13,5 +16,21 @@ break and trace: Search upwards
 
 ceshare: continue with it
 
-memscan: Don't combine the scanresults into a single file. Leave them split up (skip: mayby for 6.7 or 7.0)
+memscan: Don't combine the scanresults into a single file. Leave them split up (skip: for 6.7 or 7.0)
 
+taborder from start->stop is wrong
+something covering the next scan button
+
+value edit (enter) shows in low size
+
+foundcodelist: count is too small on high dpi
+ADD TO CODELIST not dpi aware
+what addresses this code accesses: count and address to small
+structure dissect addresses are too small for high dpi
+add a clear address list to changed addresses
+
+memview: Add spacing option to hexview/memview
+memview: add asembler highlight color override
+
+exe trainer generator compression isn't properly sized
+don't forget the test buttons in advanced options
