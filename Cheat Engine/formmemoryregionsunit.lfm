@@ -9,6 +9,7 @@ object FormMemoryRegions: TFormMemoryRegions
   ClientWidth = 696
   OnClose = FormClose
   OnShow = FormShow
+  PopupMode = pmAuto
   Position = poOwnerFormCenter
   LCLVersion = '1.6.0.4'
   object Button1: TButton

@@ -8,6 +8,7 @@ object frmTracerConfig: TfrmTracerConfig
   Caption = 'Break and Trace config'
   ClientHeight = 217
   ClientWidth = 249
+  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object edtMaxTrace: TEdit

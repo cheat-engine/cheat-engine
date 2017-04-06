@@ -9,6 +9,7 @@ object frmdissectWindow: TfrmdissectWindow
   ClientWidth = 314
   OnClose = FormClose
   OnCreate = FormCreate
+  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object TreeView1: TTreeView

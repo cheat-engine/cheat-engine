@@ -11,6 +11,7 @@ object frmSortPointerlist: TfrmSortPointerlist
   Constraints.MinWidth = 320
   OnClose = FormClose
   OnDestroy = FormDestroy
+  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object Label1: TLabel

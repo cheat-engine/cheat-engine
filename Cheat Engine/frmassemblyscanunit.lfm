@@ -11,6 +11,7 @@ object frmAssemblyScan: TfrmAssemblyScan
   Constraints.MinWidth = 430
   OnCreate = FormCreate
   OnShow = FormShow
+  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object Panel1: TPanel

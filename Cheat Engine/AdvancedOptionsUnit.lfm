@@ -1,7 +1,7 @@
 object AdvancedOptions: TAdvancedOptions
-  Left = 511
+  Left = 256
   Height = 303
-  Top = 382
+  Top = 192
   Width = 571
   Caption = 'Advanced Options'
   ClientHeight = 303
@@ -10,6 +10,7 @@ object AdvancedOptions: TAdvancedOptions
   OnDestroy = FormDestroy
   OnResize = FormResize
   OnShow = FormShow
+  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object Panel1: TPanel
@@ -49,6 +50,7 @@ object AdvancedOptions: TAdvancedOptions
       Caption = 'Button2'
       OnClick = Button2Click
       TabOrder = 1
+      Visible = False
     end
     object Button3: TButton
       Left = 96
@@ -58,6 +60,7 @@ object AdvancedOptions: TAdvancedOptions
       Caption = 'Button3'
       OnClick = Button3Click
       TabOrder = 2
+      Visible = False
     end
   end
   object Panel2: TPanel

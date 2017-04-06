@@ -9,6 +9,7 @@ object frmMergePointerscanResultSettings: TfrmMergePointerscanResultSettings
   ClientHeight = 113
   ClientWidth = 320
   OnCreate = FormCreate
+  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object Panel2: TPanel
@@ -30,6 +31,7 @@ object frmMergePointerscanResultSettings: TfrmMergePointerscanResultSettings
       AutoFill = True
       AutoSize = True
       Caption = 'Group method'
+      ChildSizing.LeftRightSpacing = 6
       ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
       ChildSizing.EnlargeVertical = crsHomogenousChildResize
       ChildSizing.ShrinkHorizontal = crsScaleChilds

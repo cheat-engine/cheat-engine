@@ -11,6 +11,8 @@ procedure AdjustSpeedButtonSize(sb: TSpeedButton);
 
 implementation
 
+uses globals;
+
 procedure AdjustSpeedButtonSize(sb: TSpeedButton);
 const
   designtimedpi=96;
@@ -19,7 +21,7 @@ var
   bm: TBitmap;
   ng: integer;
 begin
-  if screen.PixelsPerInch<>designtimedpi then
+  if (fontmultiplication<>1.0) or (screen.PixelsPerInch<>designtimedpi) then
   begin
     sb.Transparent:=false;
     sb.Glyph.Transparent:=false;
@@ -28,12 +30,28 @@ begin
     bm:=TBitmap.Create;
     bm.Assign(sb.Glyph);
 
-    bm.width:=scalex(sb.Glyph.Width, designtimedpi);
-    bm.height:=scaley(sb.Glyph.Height, designtimedpi);
+    if (screen.PixelsPerInch<>designtimedpi) then
+    begin
+      bm.width:=scalex(sb.Glyph.Width, designtimedpi);
+      bm.height:=scaley(sb.Glyph.Height, designtimedpi);
+    end
+    else
+    begin
+      bm.width:=trunc(bm.width*fontmultiplication);
+      bm.height:=trunc(bm.height*fontmultiplication);
+    end;
     bm.Canvas.StretchDraw(rect(0,0, bm.width, bm.height),sb.Glyph);
 
-    sb.Width:=scalex(sb.Width, designtimedpi);
-    sb.Height:=scaley(sb.Height, designtimedpi);
+    if (screen.PixelsPerInch<>designtimedpi) then
+    begin
+      sb.Width:=scalex(sb.Width, designtimedpi);
+      sb.Height:=scaley(sb.Height, designtimedpi);
+    end
+    else
+    begin
+      sb.width:=trunc(sb.width*fontmultiplication);
+      sb.height:=trunc(sb.height*fontmultiplication);
+    end;
     bm.TransparentColor:=0;
     bm.TransparentMode:=tmAuto;
 

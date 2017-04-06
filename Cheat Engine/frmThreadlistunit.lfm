@@ -10,6 +10,7 @@ object frmThreadlist: TfrmThreadlist
   OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow
+  PopupMode = pmAuto
   Position = poOwnerFormCenter
   LCLVersion = '1.6.0.4'
   object threadTreeview: TTreeView

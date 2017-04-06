@@ -9,6 +9,7 @@ object frmProcessWatcher: TfrmProcessWatcher
   ClientWidth = 264
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object tvProcesslist: TTreeView

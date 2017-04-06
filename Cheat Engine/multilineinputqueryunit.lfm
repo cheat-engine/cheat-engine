@@ -7,6 +7,7 @@ object frmMultilineInputQuery: TfrmMultilineInputQuery
   ClientHeight = 106
   ClientWidth = 218
   OnShow = FormShow
+  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object lblPrompt: TLabel

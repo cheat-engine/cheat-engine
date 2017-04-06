@@ -8,6 +8,7 @@ object frmBreakpointlist: TfrmBreakpointlist
   ClientWidth = 670
   OnClose = FormClose
   OnCreate = FormCreate
+  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object ListView1: TListView

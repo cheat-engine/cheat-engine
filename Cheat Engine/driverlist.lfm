@@ -8,6 +8,7 @@ object frmDriverlist: TfrmDriverlist
   ClientWidth = 326
   OnClose = FormClose
   OnCreate = FormCreate
+  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object ListBox1: TListBox

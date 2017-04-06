@@ -7,6 +7,7 @@ object frmExcludeHide: TfrmExcludeHide
   ClientHeight = 415
   ClientWidth = 486
   OnCreate = FormCreate
+  PopupMode = pmAuto
   Position = poOwnerFormCenter
   LCLVersion = '1.6.0.4'
   object Label4: TLabel
@@ -35,8 +36,8 @@ object frmExcludeHide: TfrmExcludeHide
       AnchorSideTop.Control = RadioButton2
       AnchorSideTop.Side = asrBottom
       Left = 0
-      Height = 32
-      Top = 40
+      Height = 30
+      Top = 38
       Width = 481
       Anchors = [akTop, akLeft, akRight]
       Caption = 'Select the processes you want to exclude from being hidden. Doubleclick the process to add it to the list. (Or remove it from the list)'
@@ -48,9 +49,9 @@ object frmExcludeHide: TfrmExcludeHide
       AnchorSideLeft.Control = Panel1
       AnchorSideTop.Control = Panel1
       Left = 0
-      Height = 20
+      Height = 19
       Top = 0
-      Width = 247
+      Width = 232
       Caption = 'Only hide/show the foreground window'
       Checked = True
       OnClick = RadioButton1Click
@@ -62,9 +63,9 @@ object frmExcludeHide: TfrmExcludeHide
       AnchorSideTop.Control = RadioButton1
       AnchorSideTop.Side = asrBottom
       Left = 0
-      Height = 20
-      Top = 20
-      Width = 164
+      Height = 19
+      Top = 19
+      Width = 151
       Caption = 'Hide/show ALL windows'
       OnClick = RadioButton1Click
       TabOrder = 1
@@ -75,17 +76,17 @@ object frmExcludeHide: TfrmExcludeHide
       AnchorSideRight.Control = Panel5
       AnchorSideBottom.Control = Panel4
       Left = 0
-      Height = 260
-      Top = 72
+      Height = 265
+      Top = 68
       Width = 242
       Anchors = [akTop, akLeft, akRight, akBottom]
       BevelOuter = bvNone
-      ClientHeight = 260
+      ClientHeight = 265
       ClientWidth = 242
       TabOrder = 2
       object Label2: TLabel
         Left = 3
-        Height = 16
+        Height = 15
         Top = 0
         Width = 239
         Align = alTop
@@ -102,8 +103,8 @@ object frmExcludeHide: TfrmExcludeHide
         AnchorSideBottom.Control = Panel2
         AnchorSideBottom.Side = asrBottom
         Left = 0
-        Height = 244
-        Top = 16
+        Height = 250
+        Top = 15
         Width = 242
         Anchors = [akTop, akLeft, akRight, akBottom]
         BorderSpacing.Left = 3
@@ -122,17 +123,17 @@ object frmExcludeHide: TfrmExcludeHide
       AnchorSideRight.Side = asrBottom
       AnchorSideBottom.Control = Panel4
       Left = 244
-      Height = 260
-      Top = 72
+      Height = 265
+      Top = 68
       Width = 242
       Anchors = [akTop, akLeft, akRight, akBottom]
       BevelOuter = bvNone
-      ClientHeight = 260
+      ClientHeight = 265
       ClientWidth = 242
       TabOrder = 3
       object Label3: TLabel
         Left = 0
-        Height = 16
+        Height = 15
         Top = 0
         Width = 239
         Align = alTop
@@ -149,8 +150,8 @@ object frmExcludeHide: TfrmExcludeHide
         AnchorSideBottom.Control = Panel3
         AnchorSideBottom.Side = asrBottom
         Left = 0
-        Height = 244
-        Top = 16
+        Height = 250
+        Top = 15
         Width = 239
         Anchors = [akTop, akLeft, akRight, akBottom]
         BorderSpacing.Right = 3
@@ -168,15 +169,15 @@ object frmExcludeHide: TfrmExcludeHide
       AnchorSideBottom.Control = Panel1
       AnchorSideBottom.Side = asrBottom
       Left = 149
-      Height = 26
-      Top = 340
+      Height = 25
+      Top = 341
       Width = 188
       Anchors = [akLeft, akBottom]
       AutoSize = True
       BorderSpacing.Top = 8
       BorderSpacing.Bottom = 8
       BevelOuter = bvNone
-      ClientHeight = 26
+      ClientHeight = 25
       ClientWidth = 188
       TabOrder = 4
       object Button2: TButton
@@ -184,7 +185,7 @@ object frmExcludeHide: TfrmExcludeHide
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = Button1
         Left = 98
-        Height = 26
+        Height = 25
         Top = 0
         Width = 90
         AutoSize = True
@@ -199,7 +200,7 @@ object frmExcludeHide: TfrmExcludeHide
         AnchorSideLeft.Control = Panel4
         AnchorSideTop.Control = Panel4
         Left = 0
-        Height = 26
+        Height = 25
         Top = 0
         Width = 90
         AutoSize = True

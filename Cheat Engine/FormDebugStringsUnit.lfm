@@ -6,6 +6,7 @@ object FormDebugStrings: TFormDebugStrings
   Caption = 'Debug strings'
   ClientHeight = 221
   ClientWidth = 321
+  PopupMode = pmAuto
   Position = poOwnerFormCenter
   LCLVersion = '1.6.0.4'
   object ListBox1: TListBox

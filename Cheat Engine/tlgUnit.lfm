@@ -9,6 +9,7 @@ object tlg: Ttlg
   ClientHeight = 348
   ClientWidth = 483
   OnClose = FormClose
+  PopupMode = pmAuto
   Position = poMainFormCenter
   LCLVersion = '1.6.0.4'
   object Image1: TImage
@@ -33,9 +34,9 @@ object tlg: Ttlg
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
     Left = 0
-    Height = 13
+    Height = 15
     Top = 0
-    Width = 31
+    Width = 32
     Caption = 'Score:'
     ParentColor = False
   end
@@ -43,8 +44,8 @@ object tlg: Ttlg
     AnchorSideLeft.Control = Label1
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = Label1
-    Left = 31
-    Height = 13
+    Left = 32
+    Height = 15
     Top = 0
     Width = 6
     Caption = '0'

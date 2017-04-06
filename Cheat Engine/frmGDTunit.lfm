@@ -8,14 +8,16 @@ object frmGDTinfo: TfrmGDTinfo
   ClientWidth = 299
   OnClose = FormClose
   OnCreate = FormCreate
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.6.0.4'
   object TreeView1: TTreeView
     Left = 0
     Height = 325
     Top = 0
     Width = 299
     Align = alClient
+    DefaultItemHeight = 18
     Indent = 19
     ReadOnly = True
     TabOrder = 0

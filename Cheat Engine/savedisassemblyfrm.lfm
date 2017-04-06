@@ -10,6 +10,7 @@ object frmSavedisassembly: TfrmSavedisassembly
   ClientWidth = 191
   OnDestroy = FormDestroy
   OnShow = FormShow
+  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object Button1: TButton

@@ -8,6 +8,7 @@ object frmNetworkConfig: TfrmNetworkConfig
   ClientWidth = 293
   OnCreate = FormCreate
   OnShow = FormShow
+  PopupMode = pmAuto
   Position = poOwnerFormCenter
   LCLVersion = '1.6.0.4'
   object GroupBox1: TGroupBox

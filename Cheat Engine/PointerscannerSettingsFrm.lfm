@@ -1,16 +1,17 @@
 object frmPointerScannerSettings: TfrmPointerScannerSettings
-  Left = 225
+  Left = 747
   Height = 523
-  Top = 146
-  Width = 869
+  Top = 213
+  Width = 682
   AutoSize = True
   BorderStyle = bsSingle
   Caption = 'Pointerscanner scanoptions'
   ClientHeight = 523
-  ClientWidth = 869
+  ClientWidth = 682
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
+  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object cbValueType: TComboBox
@@ -19,7 +20,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     AnchorSideTop.Control = cbAddress
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 742
+    Left = 555
     Height = 23
     Top = 43
     Width = 124
@@ -533,7 +534,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Left = 8
     Height = 21
     Top = 43
-    Width = 731
+    Width = 544
     Anchors = [akTop, akLeft, akRight]
     DropDownCount = 0
     ItemHeight = 15
@@ -547,7 +548,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = Panel9
     AnchorSideTop.Side = asrBottom
-    Left = 267
+    Left = 174
     Height = 86
     Top = 401
     Width = 335
@@ -558,6 +559,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     ClientHeight = 86
     ClientWidth = 335
     Constraints.MinWidth = 330
+    ParentColor = False
     TabOrder = 7
     OnClick = Panel1Click
     object Panel8: TPanel

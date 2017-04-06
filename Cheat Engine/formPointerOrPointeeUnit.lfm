@@ -1,7 +1,7 @@
 object formPointerOrPointee: TformPointerOrPointee
-  Left = 169
+  Left = 358
   Height = 99
-  Top = 810
+  Top = 798
   Width = 354
   AutoSize = True
   BorderIcons = [biSystemMenu]
@@ -9,6 +9,7 @@ object formPointerOrPointee: TformPointerOrPointee
   Caption = 'Cheat Engine Pointer'
   ClientHeight = 99
   ClientWidth = 354
+  PopupMode = pmAuto
   Position = poMainFormCenter
   LCLVersion = '1.6.0.4'
   object Label1: TLabel

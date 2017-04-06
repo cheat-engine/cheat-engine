@@ -11,6 +11,7 @@ object frmStructuresConfig: TfrmStructuresConfig
   ClientWidth = 550
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object Panel1: TPanel

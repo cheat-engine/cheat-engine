@@ -10,6 +10,7 @@ object frmPEInfo: TfrmPEInfo
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
+  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object GroupBox2: TGroupBox
@@ -19,12 +20,12 @@ object frmPEInfo: TfrmPEInfo
     Width = 309
     Align = alClient
     Caption = 'Info'
-    ClientHeight = 297
+    ClientHeight = 298
     ClientWidth = 305
     TabOrder = 0
     object PageControl1: TPageControl
       Left = 0
-      Height = 297
+      Height = 298
       Top = 0
       Width = 305
       ActivePage = TabSheet1
@@ -34,11 +35,11 @@ object frmPEInfo: TfrmPEInfo
       TabOrder = 0
       object TabSheet1: TTabSheet
         Caption = 'All'
-        ClientHeight = 268
+        ClientHeight = 270
         ClientWidth = 297
         object PEItv: TTreeView
           Left = 0
-          Height = 268
+          Height = 270
           Top = 0
           Width = 297
           Align = alClient
@@ -117,7 +118,7 @@ object frmPEInfo: TfrmPEInfo
       AnchorSideRight.Side = asrBottom
       Left = 145
       Height = 30
-      Top = 198
+      Top = 197
       Width = 31
       Anchors = [akTop, akRight]
       Glyph.Data = {
@@ -154,9 +155,9 @@ object frmPEInfo: TfrmPEInfo
       AnchorSideTop.Control = RadioButton1
       AnchorSideTop.Side = asrBottom
       Left = 10
-      Height = 16
-      Top = 218
-      Width = 88
+      Height = 15
+      Top = 216
+      Width = 78
       Caption = 'No file opened'
       ParentColor = False
     end
@@ -165,9 +166,9 @@ object frmPEInfo: TfrmPEInfo
       AnchorSideTop.Control = Label1
       AnchorSideTop.Side = asrBottom
       Left = 10
-      Height = 16
-      Top = 234
-      Width = 50
+      Height = 15
+      Top = 231
+      Width = 40
       Caption = 'address'
       ParentColor = False
     end
@@ -177,16 +178,16 @@ object frmPEInfo: TfrmPEInfo
       AnchorSideTop.Side = asrBottom
       Left = 10
       Height = 178
-      Top = 20
+      Top = 19
       Width = 161
       BorderSpacing.Right = 5
       Caption = 'MZ-Start'
-      ClientHeight = 157
+      ClientHeight = 158
       ClientWidth = 157
       TabOrder = 0
       object edtAddress: TEdit
         Left = 10
-        Height = 24
+        Height = 23
         Top = 5
         Width = 107
         TabOrder = 0
@@ -215,9 +216,9 @@ object frmPEInfo: TfrmPEInfo
       AnchorSideTop.Control = GroupBox1
       AnchorSideTop.Side = asrBottom
       Left = 10
-      Height = 20
-      Top = 198
-      Width = 42
+      Height = 19
+      Top = 197
+      Width = 38
       Caption = 'File'
       TabOrder = 1
     end
@@ -225,9 +226,9 @@ object frmPEInfo: TfrmPEInfo
       AnchorSideLeft.Control = Panel1
       AnchorSideTop.Control = Panel1
       Left = 10
-      Height = 20
+      Height = 19
       Top = 0
-      Width = 69
+      Width = 65
       BorderSpacing.Left = 10
       Caption = 'Memory'
       Checked = True

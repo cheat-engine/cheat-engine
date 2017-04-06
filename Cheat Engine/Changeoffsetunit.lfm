@@ -10,6 +10,7 @@ object ChangeOffset: TChangeOffset
   ClientWidth = 238
   OnCreate = FormCreate
   OnShow = FormShow
+  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object TabControl1: TTabControl
@@ -20,7 +21,7 @@ object ChangeOffset: TChangeOffset
     TabStop = False
     OnChange = TabControl1Change
     OnChanging = TabControl1Changing
-    TabIndex = 1
+    TabIndex = 0
     Tabs.Strings = (
       'Change by offset'
       'Change to address'

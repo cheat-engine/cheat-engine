@@ -10,15 +10,16 @@ object FormHotkey: TFormHotkey
   ClientHeight = 67
   ClientWidth = 240
   Constraints.MinWidth = 240
+  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object Label1: TLabel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
     Left = 0
-    Height = 13
+    Height = 15
     Top = 0
-    Width = 207
+    Width = 233
     Caption = 'Press the new hotkey combination in below:'
     ParentColor = False
   end
@@ -29,8 +30,8 @@ object FormHotkey: TFormHotkey
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     Left = 8
-    Height = 21
-    Top = 13
+    Height = 23
+    Top = 15
     Width = 224
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Left = 8
@@ -46,7 +47,7 @@ object FormHotkey: TFormHotkey
     AnchorSideTop.Side = asrBottom
     Left = 43
     Height = 25
-    Top = 37
+    Top = 41
     Width = 155
     AutoSize = True
     BorderSpacing.Top = 3

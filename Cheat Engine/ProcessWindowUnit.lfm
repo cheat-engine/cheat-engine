@@ -12,6 +12,7 @@ object ProcessWindow: TProcessWindow
   OnClose = FormClose
   OnResize = FormResize
   OnShow = FormShow
+  PopupMode = pmAuto
   Position = poMainFormCenter
   LCLVersion = '1.6.0.4'
   object ProcessList: TListBox

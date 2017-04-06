@@ -12,6 +12,7 @@ object formSettings: TformSettings
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
+  PopupMode = pmAuto
   Position = poMainFormCenter
   LCLVersion = '1.6.0.4'
   object pnlConfig: TPanel
@@ -1991,7 +1992,7 @@ object formSettings: TformSettings
               item
                 AutoSize = True
                 Caption = 'Shortcut'
-                Width = 92
+                Width = 250
               end>
             HideSelection = False
             ReadOnly = True

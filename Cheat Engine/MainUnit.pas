@@ -7076,6 +7076,8 @@ begin
 
   fontmultiplication:=ProcessLabel.Height/15; //normal dpi/font settings have this at 15.
 
+  screen.HintFont:=font;
+
 
   onetimeonly := True;
   Set8087CW($133f);

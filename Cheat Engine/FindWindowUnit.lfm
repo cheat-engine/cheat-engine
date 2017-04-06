@@ -10,6 +10,7 @@ object FindWindow: TFindWindow
   ClientHeight = 167
   ClientWidth = 294
   OnShow = FormShow
+  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object ProgressBar: TProgressBar

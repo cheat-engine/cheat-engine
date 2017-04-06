@@ -11,6 +11,7 @@ object frmSetupPSNNode: TfrmSetupPSNNode
   ClientWidth = 362
   OnCreate = FormCreate
   OnShow = FormShow
+  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object cbMaxFoundResults: TCheckBox

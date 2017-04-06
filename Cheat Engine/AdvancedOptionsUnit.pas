@@ -307,7 +307,7 @@ end;
 
 procedure TAdvancedOptions.Button3Click(Sender: TObject);
 begin
-    ntResumeProcess(processhandle);
+
 end;
 
 procedure TAdvancedOptions.FormDestroy(Sender: TObject);
@@ -825,7 +825,7 @@ end;
 
 procedure TAdvancedOptions.Button2Click(Sender: TObject);
 begin
-  ntSuspendProcess(processhandle);
+
 end;
 
 procedure TAdvancedOptions.Panel1Resize(Sender: TObject);

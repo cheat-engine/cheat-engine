@@ -1220,7 +1220,7 @@ begin
   edtReverseStart.clientwidth:=i;
   edtReverseStop.clientwidth:=i;
 
-  i:=max(canvas.TextWidth(editStructsize.text), editStructsize.width)+4;
+  i:=max(canvas.TextWidth(editStructsize.text)+4, editStructsize.clientwidth);
   editStructsize.clientwidth:=i;
 
   i:=max(btnOk.width, btnCancel.width);

@@ -8,6 +8,7 @@ object frmIDT: TfrmIDT
   ClientWidth = 299
   OnClose = FormClose
   OnCreate = FormCreate
+  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object tvIDT: TTreeView
@@ -16,6 +17,7 @@ object frmIDT: TfrmIDT
     Top = 0
     Width = 299
     Align = alClient
+    DefaultItemHeight = 18
     Indent = 19
     ReadOnly = True
     TabOrder = 0

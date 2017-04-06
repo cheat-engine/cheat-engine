@@ -9,8 +9,9 @@ object frmReferencedStrings: TfrmReferencedStrings
   Menu = MainMenu1
   OnClose = FormClose
   OnShow = FormShow
+  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.0.4'
   object Splitter1: TSplitter
     Left = 490
     Height = 288
