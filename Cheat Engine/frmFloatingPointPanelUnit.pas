@@ -16,6 +16,9 @@ resourcestring
   rsFPPExtended = 'Extended';
 
 type
+
+  { TfrmFloatingPointPanel }
+
   TfrmFloatingPointPanel = class(TForm)
     PageControl1: TPageControl;
     TabSheet2: TTabSheet;
@@ -23,6 +26,7 @@ type
     ComboBox3: TComboBox;
     ComboBox2: TComboBox;
     Memo1: TMemo;
+    procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure ComboBox1Select(Sender: TObject);
     procedure Label4Click(Sender: TObject);
@@ -69,10 +73,15 @@ procedure extendedtodouble(float80:pointer;var outdouble:double); assembler;
 
 
 procedure TfrmFloatingPointPanel.SetContextPointer(context: PContext);
+var oldscrollpos: integer;
 begin
   self.context:=context;
   self.contextCopy:=context^;
+
+  oldscrollpos:=memo1.VertScrollBar.Position;
   UpdatedContext;
+  if memo1.VertScrollBar.Range>memo1.VertScrollBar.Position then
+    memo1.VertScrollBar.Position:=oldscrollpos;
 end;
 
 procedure TfrmFloatingPointPanel.UpdatedContext;
@@ -103,9 +112,12 @@ var i,j: integer;
     lw: longword;
     max: integer;
 
+    oldscrollpos: integer;
 begin
   if context=nil then exit;
 
+  memo1.lines.BeginUpdate;
+  try
     memo1.Clear;
     case combobox3.ItemIndex of
       0: //fpu
@@ -374,14 +386,20 @@ begin
 
       end;
     end;
-
-
+  finally
+    memo1.lines.endupdate;
+  end;
 end;
 
 procedure TfrmFloatingPointPanel.FormShow(Sender: TObject);
 begin
   memo1.Font.Height:=GetFontData(font.Handle).Height;
   UpdatedContext;
+end;
+
+procedure TfrmFloatingPointPanel.FormDestroy(Sender: TObject);
+begin
+  SaveFormPosition(self);
 end;
 
 procedure TfrmFloatingPointPanel.ComboBox1Select(Sender: TObject);
@@ -402,6 +420,7 @@ end;
 procedure TfrmFloatingPointPanel.FormCreate(Sender: TObject);
 begin
   combobox2.ItemIndex:=4;
+  LoadFormPosition(self);
 end;
 
 initialization

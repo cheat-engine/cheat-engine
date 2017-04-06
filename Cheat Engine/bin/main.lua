@@ -796,6 +796,8 @@ methods
 
   getString(index) : gets the string at the given index
   setString(index, string) : Replaces the string at the given index
+  beginUpdate() : Stops updates from triggering other events (prevents flashing)
+  endUpdate(): call after beginUpdate
 
 
 

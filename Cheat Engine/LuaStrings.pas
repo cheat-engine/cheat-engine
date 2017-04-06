@@ -33,6 +33,24 @@ begin
   strings.Clear;
 end;
 
+function strings_beginUpdate(L: Plua_State): integer; cdecl;
+var
+  strings: TStrings;
+begin
+  result:=0;
+  strings:=luaclass_getClassObject(L);
+  strings.beginupdate;
+end;
+
+function strings_endUpdate(L: Plua_State): integer; cdecl;
+var
+  strings: TStrings;
+begin
+  result:=0;
+  strings:=luaclass_getClassObject(L);
+  strings.endupdate;
+end;
+
 function strings_remove(L: Plua_State): integer; cdecl;  //compat with ce 6
 var
   strings: TStrings;
@@ -217,6 +235,8 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setString', strings_setString);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'loadFromFile', strings_loadFromFile);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'saveToFile', strings_saveToFile);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'beginUpdate', strings_beginUpdate);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'endUpdate', strings_endUpdate);
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'Count', strings_getCount, nil);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Text', strings_getText, strings_setText);

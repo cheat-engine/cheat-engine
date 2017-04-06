@@ -1,13 +1,14 @@
 object frmFloatingPointPanel: TfrmFloatingPointPanel
-  Left = 1078
+  Left = 852
   Height = 322
-  Top = 254
+  Top = 191
   Width = 353
   BorderStyle = bsSizeToolWin
   Caption = 'FPU'
   ClientHeight = 322
   ClientWidth = 353
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnShow = FormShow
   PopupMode = pmAuto
   LCLVersion = '1.6.0.4'
