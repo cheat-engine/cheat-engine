@@ -7,8 +7,8 @@ interface
 uses
   windows, Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics,
   Dialogs, StdCtrls, Menus, ExtCtrls, SynMemo, SynCompletion, SynEdit, lua,
-  lauxlib, lualib, LuaSyntax, luahandler, cefuncproc, strutils, InterfaceBase,
-  ComCtrls, SynGutterBase, SynEditMarks, PopupNotifier, ActnList,
+  lauxlib, lualib, LuaSyntax, luahandler, cefuncproc, sqldb, strutils,
+  InterfaceBase, ComCtrls, SynGutterBase, SynEditMarks, PopupNotifier, ActnList,
   SynEditHighlighter, AvgLvlTree, math;
 
 type
@@ -89,6 +89,7 @@ type
       Y: Integer);
     procedure mScriptShowHint(Sender: TObject; HintInfo: PHintInfo);
     procedure Panel2Resize(Sender: TObject);
+    procedure SQLConnector1AfterConnect(Sender: TObject);
     procedure tbRunClick(Sender: TObject);
     procedure tbSingleStepClick(Sender: TObject);
     procedure tbStopDebugClick(Sender: TObject);
@@ -129,6 +130,11 @@ var
 procedure TfrmLuaEngine.Panel2Resize(Sender: TObject);
 begin
   btnexecute.Height:=panel2.clientheight-(2*btnexecute.top);
+end;
+
+procedure TfrmLuaEngine.SQLConnector1AfterConnect(Sender: TObject);
+begin
+
 end;
 
 procedure TfrmLuaEngine.tbRunClick(Sender: TObject);

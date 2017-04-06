@@ -689,7 +689,7 @@ resourcestring
   rsDiskWriteError = 'Disk write error:%s';
   rsNoReadableMemoryFound = 'No readable memory found';
   rsFailureAllocatingMemoryForCopyTriedAllocatingKB = 'Failure allocating memory for copy. Tried allocating %s KB';
-  rsErrorWhenWhileLoadingResult = 'Error when while loading result';
+  rsErrorWhenWhileLoadingResult = 'Error while loading result';
   rsNotEnoughDiskspaceForTheAddressFile = 'Not enough diskspace for the address file';
   rsNotEnoughDiskspaceForTheMemoryFile = 'Not enough diskspace for the memory file';
   rsDiskWriteError2 = 'Disk Write Error:%s';
@@ -6229,7 +6229,8 @@ begin
 
         deletefile(OwningMemScan.ScanresultFolder+'ADDRESSES.UNDO');
         renamefile(OwningMemScan.ScanresultFolder+'ADDRESSES.TMP',OwningMemScan.ScanresultFolder+'ADDRESSES.UNDO');
-        renamefile(scanners[0].Addressfilename, OwningMemScan.ScanresultFolder+'ADDRESSES.TMP');
+        if not renamefile(scanners[0].Addressfilename, OwningMemScan.ScanresultFolder+'ADDRESSES.TMP') then
+          RenameFileUTF8(scanners[0].Addressfilename, OwningMemScan.ScanresultFolder+'ADDRESSES.TMP');
 
         //memory
         deletefile(OwningMemScan.ScanresultFolder+'MEMORY.UNDO');
@@ -6241,7 +6242,7 @@ begin
           AddressFile:=TFileStream.Create(OwningMemScan.ScanresultFolder+'ADDRESSES.TMP',fmOpenWrite or fmShareDenyNone);
           MemoryFile:=TFileStream.Create(OwningMemScan.ScanresultFolder+'MEMORY.TMP',fmOpenWrite or fmsharedenynone);
         except
-          raise exception.create(rsErrorWhenWhileLoadingResult);
+          raise exception.create(rsErrorWhenWhileLoadingResult+' ('+OwningMemScan.ScanresultFolder+'ADDRESSES.TMP'+')');
         end;
 
 

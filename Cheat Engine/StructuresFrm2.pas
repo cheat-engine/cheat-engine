@@ -6,7 +6,7 @@ unit StructuresFrm2;
 interface
 
 uses
-  windows, Classes, LCLProc, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls, math,
+  windows, win32proc, Classes, LCLProc, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls, math,
   StdCtrls, ComCtrls, Menus, lmessages, scrolltreeview, byteinterpreter, symbolhandler, cefuncproc,
   newkernelhandler, frmSelectionlistunit, frmStructuresConfigUnit, registry, Valuechange, DOM,
   XMLRead, XMLWrite, Clipbrd, CustomTypeHandler, strutils, dotnetpipe, DotNetTypes, commonTypeDefs,
@@ -205,6 +205,7 @@ type
     procedure RenameClick(sender: tobject);
     procedure DeleteClick(sender: Tobject);
     procedure setGroupName(newname: string);
+    procedure groupboxresize(sender: TObject);
   public
     function getParent: TfrmStructures2;
     function AColumnHasSetCaption: boolean;
@@ -437,6 +438,7 @@ type
     procedure miUpdateIntervalClick(Sender: TObject);
     procedure pnlGroupsClick(Sender: TObject);
     procedure miRecalculateAddressClick(Sender: TObject);
+    procedure pnlGroupsResize(Sender: TObject);
     procedure Renamestructure1Click(Sender: TObject);
     procedure Save1Click(Sender: TObject);
     procedure tmFixGuiTimer(Sender: TObject);
@@ -2497,9 +2499,19 @@ var
   i: integer;
   newname: string;
 begin
+  parent.parent.AutoSize:=false;
+
   newname:=lblname.caption;
   if InputQuery(rsSF2NewColumnName, rsSF2WhatNameShouldThisColumnHave, newname) then
     lblname.caption:=newname;
+
+  lblname.visible:=lblname.caption<>'';
+
+  if lblname.Width+4>edtAddress.Width then
+  begin
+    edtAddress.Width:=lblname.width+4;
+    focusedShape.Width:=edtAddress.width+2*(focusedshape.Pen.Width);
+  end;
 
   //update the header text as well
   for i:=0 to parent.parent.columnCount-1 do
@@ -2509,8 +2521,6 @@ begin
       break;
     end;
 
-
-  parent.setPositions;
 end;
 
 procedure TStructColumn.MenuPopup(sender: TObject);
@@ -2521,48 +2531,17 @@ begin
 end;
 
 procedure TStructColumn.SetProperEditboxPosition;
-var
-  i: integer;
-  edtWidth: integer;
-  edtLeft: integer;
 begin
-  i:=parent.fcolumns.IndexOf(self);
 
-  if i=0 then
-  begin
-    edtWidth:=120;
-    edtLeft:=3;
-  end
-  else
-  begin
-    //get the editwidth of the previous item in the columns list
-    edtWidth:=parent.columns[i-1].EditWidth;
-    edtLeft:=parent.columns[i-1].EditLeft+edtWidth+3;
-  end;
-
-  edtAddress.left:=edtLeft;
-  edtAddress.ClientWidth:=edtWidth;
-
-
-
-  if parent.AColumnHasSetCaption then
-    edtAddress.top:=((parent.box.clientHeight div 2)-((edtAddress.height+lblname.height) div 2))
-  else
-    edtAddress.top:=(parent.box.clientHeight div 2)-(edtAddress.height div 2);
-
-  focusedShape.Left:=edtAddress.left-1;
-  focusedShape.Width:=edtAddress.width+2;
-  focusedShape.Top:=edtAddress.top-1;
-  focusedShape.Height:=edtAddress.Height+2;
-
-  lblname.left:=edtAddress.left;
-  lblname.width:=edtAddress.width;
-  lblname.Top:=edtAddress.top+edtAddress.height+2;
 end;
 
 constructor TStructColumn.create(parent: TStructGroup);
 var hsection: THeaderSection;
   s: TMenuItem;
+  i: integer;
+  marginsize: integer;
+
+  fsmultiplication: single;
 begin
   if parent=nil then raise exception.create(rsSF2TStructColumnCreateError);
   self.parent:=parent;
@@ -2629,12 +2608,13 @@ begin
 
 
 
-  parent.fcolumns.add(self);
+  i:=parent.fcolumns.add(self);
 
   focusedShape:=TShape.Create(parent.parent);
   focusedShape.Shape:=stRectangle;  //stRoundRect;
   focusedShape.visible:=false;
   focusedShape.parent:=parent.box;
+
 
   edtAddress:=TEdit.Create(parent.parent);
   edtAddress.Tag:=ptruint(self);
@@ -2644,29 +2624,89 @@ begin
   edtAddress.Parent:=parent.box;
   edtAddress.OnMouseDown:=edtaddressMousedown;
 
+  if i=0 then
+  begin
+    edtAddress.AnchorSideTop.control:=parent.box;
+    edtAddress.AnchorSideTop.side:=asrTop;
+    edtAddress.BorderSpacing.Top:=4;
+
+    edtAddress.AnchorSideTop.control:=parent.box;
+    edtAddress.AnchorSideTop.side:=asrLeft;
+    edtAddress.BorderSpacing.Left:=4;
+  end
+  else
+  begin
+    edtAddress.AnchorSideTop.control:=parent.columns[i-1].edtAddress;
+    edtAddress.AnchorSideTop.side:=asrTop;
+    edtAddress.AnchorSideLeft.control:=parent.columns[i-1].edtAddress;
+    edtAddress.AnchorSideLeft.side:=asrRight;
+    edtAddress.BorderSpacing.Left:=4;
+  end;
+
+  edtAddress.BorderSpacing.Bottom:=3;
+  edtAddress.BorderSpacing.Right:=4;
+
+  focusedShape.AnchorSideLeft.Control:=edtAddress;
+  focusedShape.AnchorSideLeft.Side:=asrCenter;
+  focusedShape.AnchorSideTop.Control:=edtAddress;
+  focusedShape.AnchorSideTop.Side:=asrCenter;
+
+  if WindowsVersion>=wvVista then
+  begin
+    marginsize:=sendmessage(edtAddress.Handle, EM_GETMARGINS, 0,0);
+    marginsize:=(marginsize shr 16)+(marginsize and $ffff);
+  end
+  else
+    marginsize:=8;
+
+  edtAddress.ClientWidth:=parent.parent.Canvas.TextWidth('DDDDDDDD')+marginsize;
+  edtAddress.Constraints.MinWidth:=edtAddress.Width;
+
+  focusedShape.Width:=edtAddress.width+2*(focusedshape.Pen.Width);
+  focusedShape.Height:=edtAddress.Height+2*(focusedshape.Pen.Width);
+
+
+
   hsection:=parent.parent.headercontrol1.Sections.Add;
   hsection.Text:=rsAddressValue;
   hsection.Width:=parent.parent.headercontrol1.Sections[parent.parent.headercontrol1.Sections.Count-2].width;
   hsection.MinWidth:=20;
 
   lblName:=tlabel.create(parent.parent);
-  lblName.AutoSize:=false;
+  lblName.AutoSize:=true;
   lblName.parent:=edtAddress.Parent;
   lblName.Alignment:=taCenter;
+  lblName.visible:=false;
+  lblname.AnchorSideTop.Control:=edtAddress;
+  lblname.AnchorSideTop.Side:=asrBottom;
+  lblname.AnchorSideLeft.control:=edtAddress;
+  lblname.AnchorSideLeft.side:=asrCenter;
 
   parent.setPositions;
   Address:=MemoryBrowser.hexview.address;
 
   backlist:=TStack.Create;
+
 end;
 
 destructor TStructColumn.destroy;
 var i: integer;
 begin
+  for i:=0 to parent.columnCount-2 do
+    if parent.columns[i]=self then
+    begin
+      parent.columns[i+1].edtAddress.BorderSpacing:=edtaddress.BorderSpacing;
+      parent.columns[i+1].edtAddress.AnchorSideTop:=edtAddress.AnchorSideTop;
+      parent.columns[i+1].edtAddress.AnchorSideLeft:=edtAddress.AnchorSideLeft;
+      break;
+    end;
+
   parent.fcolumns.remove(self);
   parent.parent.headercontrol1.Sections.Delete(parent.parent.HeaderControl1.Sections.Count-1);
 
   clearSavedState;
+
+
 
   if edtAddress<>nil then
     freeandnil(edtAddress);
@@ -2674,7 +2714,10 @@ begin
   if focusedShape<>nil then
     focusedShape.free;
 
-  parent.setPositions;
+  if lblname<>nil then
+    lblname.free;
+
+  //parent.setPositions;
 
   if parent.fcolumns.Count=0 then
   begin
@@ -2729,6 +2772,21 @@ begin
     free;
 end;
 
+procedure TStructGroup.groupboxresize(sender: TObject);
+var
+  i: integer;
+  preferedheight: integer;
+begin
+  groupbox.OnResize:=nil;
+  preferedheight:=10;
+  for i:=0 to parent.groupcount-1 do
+    preferedheight:=max(parent.group[i].GroupBox.Height+2, preferedheight);
+
+  parent.pnlGroups.ClientHeight:=preferedheight;
+
+  groupbox.OnResize:=groupboxresize;
+end;
+
 function TStructGroup.getColumnCount: integer;
 begin
   result:=fcolumns.count;
@@ -2765,9 +2823,10 @@ begin
 end;
 
 constructor TStructGroup.create(parent: TfrmStructures2; GroupName: string);
+var i: integer;
 begin
   self.parent:=parent;
-  parent.fgroups.Add(self);
+  i:=parent.fgroups.Add(self);
 
   fGroupName:=groupname;
 
@@ -2789,9 +2848,30 @@ begin
   GroupBox.Caption:=groupname;
   GroupBox.height:=parent.pnlGroups.ClientHeight;
   groupbox.parent:=parent.pnlGroups;
-  //groupbox.AutoSize:=true;
+  groupbox.AutoSize:=true;
+
+  groupbox.OnResize:=groupboxresize;
 
   groupbox.popupmenu:=grouppopup;
+
+  if i=0 then
+  begin
+    groupbox.AnchorSideTop.Control:=parent.pnlGroups;
+    groupbox.AnchorSideTop.Side:=asrTop;
+
+    groupbox.AnchorSideLeft.Control:=parent.pnlGroups;
+    groupbox.AnchorSideLeft.Side:=asrLeft;
+  end
+  else
+  begin
+    groupbox.AnchorSideTop.Control:=parent.group[i-1].GroupBox;
+    groupbox.AnchorSideTop.Side:=asrTop;
+
+    groupbox.AnchorSideLeft.Control:=parent.group[i-1].GroupBox;
+    groupbox.AnchorSideLeft.Side:=asrRight;
+    groupbox.BorderSpacing.Left:=8;
+  end;
+
 end;
 
 destructor TStructGroup.destroy;
@@ -2809,9 +2889,6 @@ begin
 
   if grouppopup<>nil then
     freeandnil(grouppopup);
-
-  //reposition
-  setPositions;
 
   inherited destroy;
 end;
@@ -4315,6 +4392,11 @@ begin
   end;
 end;
 
+procedure TfrmStructures2.pnlGroupsResize(Sender: TObject);
+begin
+
+end;
+
 
 procedure TfrmStructures2.miDeleteElementClick(Sender: TObject);
 var elementlist: Tlist;
@@ -5533,6 +5615,7 @@ var
   maxh: integer;
   i,j, h: integer;
 begin
+  {
   maxh:=0;
 
   //first get the height needed
@@ -5575,7 +5658,7 @@ begin
       group[i].box.width:=20;
   end;
 
-  pnlGroups.ClientHeight:=group[0].GroupBox.top+group[0].GroupBox.Height+2;
+  pnlGroups.ClientHeight:=group[0].GroupBox.top+group[0].GroupBox.Height+2;  }
 end;
 
 initialization

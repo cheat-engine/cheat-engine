@@ -22,8 +22,8 @@ object frmStructures2: TfrmStructures2
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
     Left = 0
-    Height = 282
-    Top = 79
+    Height = 290
+    Top = 71
     Width = 542
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderStyle = bsNone
@@ -54,7 +54,7 @@ object frmStructures2: TfrmStructures2
     AnchorSideTop.Side = asrBottom
     Left = 0
     Height = 21
-    Top = 58
+    Top = 50
     Width = 542
     DragReorder = False
     Sections = <    
@@ -71,7 +71,7 @@ object frmStructures2: TfrmStructures2
   end
   object pnlGroups: TScrollBox
     Left = 0
-    Height = 58
+    Height = 50
     Top = 0
     Width = 542
     HorzScrollBar.Increment = 1
@@ -83,6 +83,7 @@ object frmStructures2: TfrmStructures2
     Align = alTop
     Constraints.MinHeight = 50
     TabOrder = 2
+    OnResize = pnlGroupsResize
   end
   object MainMenu1: TMainMenu
     left = 512

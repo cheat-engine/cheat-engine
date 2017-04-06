@@ -2827,7 +2827,10 @@ begin
           if extra.stringData.ZeroTerminate then
             inc(x); //include the zero terminator
 
-          CopyMemory(buf, @tempsw[1], x*2)
+          if length(tempsw)=0 then
+            zeromemory(buf, x*2)
+          else
+            CopyMemory(buf, @tempsw[1], x*2)
         end
         else
         begin
@@ -2838,7 +2841,10 @@ begin
           if extra.stringData.ZeroTerminate then
             inc(x); //include the zero terminator
 
-          CopyMemory(buf, @tempsa[1], x);
+          if length(tempsa)=0 then
+            zeromemory(buf, x)
+          else
+            CopyMemory(buf, @tempsa[1], x);
         end;
 
         if extra.stringData.unicode then

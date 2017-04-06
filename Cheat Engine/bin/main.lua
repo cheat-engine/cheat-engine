@@ -803,8 +803,8 @@ Stringlist Class: (Inheritance : Strings->Object)
 createStringlist() : Creates a stringlist class object (for whatever reason, lua strings are probably easier to use)
 
 properties
-  Duplicates : DuplicatesType - Determines how duplicates should be handled
   Sorted : boolean - Determines if the list should be sorted
+  Duplicates : DuplicatesType - Determines how duplicates should be handled when the list is sorted
   CaseSensitive: boolean - Determines if the list is case sensitive or not.
 
 methods
@@ -1195,7 +1195,7 @@ methods
   setWidth(width)
 
 
-Collection Class: (Inheritance: TObject)
+Collection Class: (Inheritance: Object)
 
 properties
   Count: integer
@@ -2697,5 +2697,280 @@ properties
 methods
   byteTableToValue({bytetable},Address Optional)
   valueToByteTable(value, Address Optional)
+
+----SQL Classes----
+CustomConnection class (Inheritance: Component->Object)
+properties
+  Connected: Boolean - Gets the current connection state, and lets you connect as well
+  LoginPrompt: Boolean
+  AfterConnect: function(sender)
+  AfterDisconnect: function(sender)
+  BeforeConnect: function(sender)
+  BeforeDisconnect: function(sender)
+  
+methods
+  close(forceClose:Boolean Optional)
+  open()
+
+
+Database Class (Inheritance: CustomConnection->Component->Object)
+properties
+  Connected: Boolean
+  DatabaseName: string
+  KeepConnection: Boolean
+  Params: Strings 
+  TransactionCount: integer readonly
+
+methods
+
+SQLConnection Class (Inheritance: Database->CustomConnection->Component->Object)
+properties
+  Password: String
+  UserName: string
+  Transaction: SQLTransaction - SQLTransaction object. Needs to be set
+  CharSet: string
+  HostName: string
+  Options: string set - [scoExplicitConnect, scoApplyUpdatesChecksRowsAffected]
+
+methods
+  startTransaction()
+  endTransaction()
+  executeDirect(sql)
+
+
+SQLite3Connection class(Inheritance: SQLConnection->Database->CustomConnection->Component->Object) 
+createSQLite3Connection(owner) - creates an SQLite3Connection object
+setSQLiteLibraryName(pathwithdllname)- Lets you set the path to the sqlite3.dll in case it's not .\win*\sqlite3.dll
+
+properties
+methods
+  createDB()
+  dropDB()
+  getInsertID(): integer
+
+ODBCConnection class(Inheritance: SQLConnection->Database->CustomConnection->Component->Object) 
+createODBCConnection(owner) - creates an ODBCConnection object
+properties
+  Driver: string
+  FileDSN: string
+
+methods
+
+
+
+DBTransaction class (Inheritance: Component->Object)
+properties
+  Active: boolean
+  DataBase: Database
+methods
+  closeDataSets()
+
+SQLTransaction class (Inheritence: DBTransaction->Component->Object)
+createSQLTransaction(owner): Creates an SQLTransaction object
+properties
+  SQLConnection: SQLConnection
+  Params: StringList
+  Options: string - set of [stoUseImplicit, stoExplicitStart]
+  Action: string - options between caNone, caCommit, caCommitRetaining, caRollback,
+    caRollbackRetaining
+
+methods
+  commit()  
+  commitRetaining()
+  rollback()
+  rollbackRetaining()
+  startTransaction()
+  endTransaction()
+
+
+Param class (Inheritence: CollectionItem->Object))
+properties
+  Name: string
+  Value: something
+  DataType: string
+  AsBoolean
+  AsByteTable
+  AsInteger
+  AsNumber
+  AsString
+  Text  
+  Size
+  Precision
+  IsNull: boolean
+
+   
+methods
+
+
+
+Params class (Inheritence: Collection->Object)
+properties
+  Items[index]: Param
+
+methods
+  AddParam(Param)
+
+
+Field class (Inheritance: Component->Object)
+properties
+  FieldName: string
+  Index: integer
+  Value: something
+  DataType: string
+  AsBoolean
+  AsByteTable
+  AsInteger
+  AsNumber
+  AsString
+  Text  
+  Size
+  IsNull: boolean
+  
+methods
+
+
+Fields class (Inheritence: Object)
+properties
+  Count: integer
+  Fields[index]: Field
+methods
+  add(Field)
+  fieldByName(name): Field
+  fieldByNumber(field): Field
+  indexOf(field): integer
+
+
+
+Dataset class (Inheritance: Component->Object)
+properties
+  BlockReadSize: integer
+  BOF: boolean; READONLY
+  CanModify: boolean READONLY
+  DefaultFields: boolean READONLY
+  EOF: boolean; READONLY
+  FieldCount: integer; READONLY
+  Fields: Fields READONLY
+  Found: boolean READONLY
+  Modified: boolean READONLY
+  IsUniDirectional: boolean READONLY
+  RecordCount: integer READONLY
+  RecNo: integer
+  
+  FieldValues[fieldname]: something
+  Filter: string
+  Filtered: boolean
+  FilterOptions: set of [foCaseInsensitive, foNoPartialCompare]
+  Active: boolean
+  AutoCalcFields: boolean
+
+
+methods
+  append()
+  appendRecord({values})
+  cancel()
+  checkBrowseMode()
+  clearFields()
+  close();
+  controlsDisabled(): boolean
+  cursorPosChanged;
+  delete;
+  disableControls;
+  edit;
+  enableControls;
+  fieldByName(fieldname): Field
+  findField(fieldname): Field
+  findFirst() boolean
+  findLast()
+  findNext()
+  findPrior()
+  first()
+  insert()
+  isEmpty()
+  last()
+  locate(KeyFields, KeyValues, options:"[loCaseInsensitive, loPartialKey]"): boolean
+  lookup(keyfields, KeyValues, ResultFields): something
+  moveBy(distance)
+  next()
+  open()
+  post()
+  prior()
+  refresh()
+  updateCursorPos()
+  updateRecord() 
+
+
+
+DBDataset class (Inheritance: Dataset->Component->Object)
+properties
+  DataBase: Database
+  Transaction: DBTransaction
+
+methods
+-
+
+
+CustomBufDataset class (Inheritance: DBDataset->Dataset->Component->Object)
+properties
+  FileName: string
+  PacketRecords: integer
+  UniDirectional: boolean
+  IndexName: string
+
+methods
+  applyUpdates(MaxErrors Optional)
+  cancelUpdates()  
+  loadFromStream(stream)
+  saveToStream(stream)
+  loadFromFile(filename)
+  saveToFile(filename)
+  createDataset()
+
+
+CustomSQLQuery class (Inheritance: CustomBufDataset->DBDataset->Dataset->Component->Object) 
+properties
+  prepared: boolean READONLY
+  SQLConnection: SQLConnection
+  SQLTransaction: SQLTransaction
+  ChangeCount: integer
+  MaxIndexesCount: inteher
+  ReadOnly: boolean
+
+      
+methods
+  prepare()
+  unprepare()
+  execSQL()
+  RowsAffected()
+  paramByName(paramname): Param
+
+
+
+
+SQLQuery class (Inheritance: CustomSQLQuery->CustomBufDataset->DBDataset->Dataset->Component->Object) 
+createSQLQuery(owner)
+properties
+  SchemaType: string READFONLY - can be: stNoSchema, stTables, stSysTables, stProcedures, stColumns, stProcedureParams, stIndexes, stPackages, stSchemata, stSequences
+  StatementType: string READONLY - can be :stUnknown, stSelect, stInsert, stUpdate, stDelete,
+      stDDL, stGetSegment, stPutSegment, stExecProcedure,
+      stStartTrans, stCommit, stRollback, stSelectForUpd
+
+  Params: Params object
+  ParamCheck: Boolean
+  ParseSQL: Boolean
+  UpdateMode: string - can be :upWhereAll, upWhereChanged, upWhereKeyOnly
+  UsePrimaryKeyAsKey: boolean
+  ReadOnly: boolean
+
+
+  SQL: stringlist
+  InsertSQL: stringlist
+  UpdateSQL: stringlist
+  DeleteSQL: stringlist
+  RefreshSQL: stringlist
+  Options: string - set of [sqoKeepOpenOnCommit, sqoAutoApplyUpdates, sqoAutoCommit, 
+      sqoCancelUpdatesOnRefresh, sqoRefreshUsingSelect]
+
+
+methods
 --]]
 

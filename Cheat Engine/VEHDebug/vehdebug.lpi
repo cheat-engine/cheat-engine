@@ -11,7 +11,7 @@
       <MainUnit Value="0"/>
       <Title Value="vehdebug"/>
       <ResourceType Value="res"/>
-      <ActiveWindowIndexAtStart Value="0"/>
+      <ActiveWindowIndexAtStart Value="1"/>
     </General>
     <VersionInfo>
       <Language Value=""/>
@@ -47,9 +47,6 @@
               <ExecutableType Value="Library"/>
             </Options>
           </Linking>
-          <Other>
-            <CompilerPath Value="$(CompPath)"/>
-          </Other>
         </CompilerOptions>
       </Item2>
       <Item3 Name="release 64">
@@ -88,9 +85,6 @@
               <ExecutableType Value="Library"/>
             </Options>
           </Linking>
-          <Other>
-            <CompilerPath Value="$(CompPath)"/>
-          </Other>
         </CompilerOptions>
       </Item3>
       <Item4 Name="release 32">
@@ -129,9 +123,6 @@
               <ExecutableType Value="Library"/>
             </Options>
           </Linking>
-          <Other>
-            <CompilerPath Value="$(CompPath)"/>
-          </Other>
         </CompilerOptions>
       </Item4>
     </BuildModes>
@@ -152,6 +143,7 @@
       <Unit0>
         <Filename Value="vehdebug.lpr"/>
         <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
         <CursorPos X="12" Y="11"/>
         <UsageCount Value="191"/>
         <Loaded Value="True"/>
@@ -161,12 +153,9 @@
       <Unit1>
         <Filename Value="init.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="init"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="0"/>
         <WindowIndex Value="1"/>
-        <TopLine Value="122"/>
-        <CursorPos X="15" Y="126"/>
+        <TopLine Value="2"/>
+        <CursorPos X="3" Y="14"/>
         <UsageCount Value="191"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -174,11 +163,10 @@
       <Unit2>
         <Filename Value="DebugHandler.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="DebugHandler"/>
         <EditorIndex Value="4"/>
         <WindowIndex Value="1"/>
-        <TopLine Value="131"/>
-        <CursorPos X="28" Y="145"/>
+        <TopLine Value="89"/>
+        <CursorPos X="19" Y="106"/>
         <UsageCount Value="191"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -210,11 +198,11 @@
       <Unit7>
         <Filename Value="VEHDebugSharedMem.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="VEHDebugSharedMem"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="3"/>
         <WindowIndex Value="1"/>
-        <TopLine Value="16"/>
-        <CursorPos X="14" Y="31"/>
+        <TopLine Value="18"/>
+        <CursorPos X="6" Y="45"/>
         <UsageCount Value="191"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -240,10 +228,8 @@
       <Unit11>
         <Filename Value="threadpoll.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="threadpoll"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="1"/>
-        <TopLine Value="87"/>
         <CursorPos X="7" Y="108"/>
         <UsageCount Value="151"/>
         <Loaded Value="True"/>
@@ -306,10 +292,8 @@
       <Unit21>
         <Filename Value="extcont.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="extcont"/>
         <EditorIndex Value="8"/>
         <WindowIndex Value="1"/>
-        <TopLine Value="1"/>
         <CursorPos X="7" Y="11"/>
         <UsageCount Value="119"/>
         <Loaded Value="True"/>
@@ -331,7 +315,6 @@
       <Unit24>
         <Filename Value="SimpleThread.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="SimpleThread"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="1"/>
         <TopLine Value="6"/>
@@ -448,7 +431,7 @@
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit40>
     </Units>
-    <JumpHistory Count="19" HistoryIndex="18">
+    <JumpHistory Count="23" HistoryIndex="22">
       <Position1>
         <Filename Value="init.pas"/>
         <Caret Line="84" Column="57" TopLine="68"/>
@@ -525,6 +508,22 @@
         <Filename Value="init.pas"/>
         <Caret Line="133" Column="107" TopLine="109"/>
       </Position19>
+      <Position20>
+        <Filename Value="init.pas"/>
+        <Caret Line="180" Column="60" TopLine="166"/>
+      </Position20>
+      <Position21>
+        <Filename Value="DebugHandler.pas"/>
+        <Caret Line="162" Column="15" TopLine="139"/>
+      </Position21>
+      <Position22>
+        <Filename Value="DebugHandler.pas"/>
+        <Caret Line="106" Column="19" TopLine="89"/>
+      </Position22>
+      <Position23>
+        <Filename Value="init.pas"/>
+        <Caret Line="14" Column="3" TopLine="2"/>
+      </Position23>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
@@ -560,9 +559,6 @@
         <ExecutableType Value="Library"/>
       </Options>
     </Linking>
-    <Other>
-      <CompilerPath Value="$(CompPath)"/>
-    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">
@@ -577,5 +573,4 @@
       </Item3>
     </Exceptions>
   </Debugging>
-  <EditorMacros Count="0"/>
 </CONFIG>

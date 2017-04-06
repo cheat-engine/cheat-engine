@@ -141,6 +141,8 @@ var
   waitafterguiupdate: boolean;
 
 
+  fontmultiplication: single=1.0; //for some gui stuff
+
 
 implementation
 

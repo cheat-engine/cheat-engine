@@ -207,4 +207,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\src\lua53.def">
+      <Filter>Source Files</Filter>
+    </None>
+  </ItemGroup>
 </Project>

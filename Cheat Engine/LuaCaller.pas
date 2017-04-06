@@ -365,22 +365,23 @@ begin
 end;
 
 procedure TLuaCaller.NotifyEvent(sender: TObject);
-var oldstack: integer;
+var
+  oldstack: integer;
+  l: Plua_State;
 begin
-  Luacs.Enter;
   try
-    oldstack:=lua_gettop(Luavm);
+    l:=GetLuaState;
+    oldstack:=lua_gettop(L);
 
     if canRun then
     begin
-      PushFunction;
-      luaclass_newclass(Luavm, sender);
+      PushFunction(L);
+      luaclass_newclass(L, sender);
 
-      lua_pcall(Luavm, 1,0,0); //procedure(sender)
+      lua_pcall(L, 1,0,0); //procedure(sender)
     end;
   finally
-    lua_settop(Luavm, oldstack);
-    luacs.leave;
+    lua_settop(L, oldstack);
   end;
 end;
 
@@ -1330,7 +1331,7 @@ var
   sender: TObject;
 begin
   result:=0;
-  parameters:=lua_gettop(L);;
+  parameters:=lua_gettop(L);
 
   if parameters=1 then
   begin

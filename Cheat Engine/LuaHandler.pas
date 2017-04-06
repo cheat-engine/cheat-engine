@@ -101,7 +101,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   DebuggerInterface, WindowsDebugger, VEHDebugger, KernelDebuggerInterface,
   DebuggerInterfaceAPIWrapper, Globals, math, speedhack2, CETranslator, binutils,
   xinput, winsapi, frmExeTrainerGeneratorUnit, CustomBase85, FileUtil, networkConfig,
-  LuaCustomType, Filehandler;
+  LuaCustomType, Filehandler, LuaSQL;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -1191,7 +1191,7 @@ end;
 function LuaPanic(L: Plua_State): Integer; cdecl;
 begin
   result:=0;
-  lua_pop(LuaVM, lua_gettop(luavm));
+  lua_pop(L, lua_gettop(L));
   raise exception.create(rsLUAPanic);
 end;
 
@@ -3464,11 +3464,18 @@ begin
 
     lua_pop(L, lua_gettop(l));
 
-
-    if not local then
-      lua_pushinteger(L,symhandler.getAddressFromNameL(s))
-    else
-      lua_pushinteger(L,selfsymhandler.getAddressFromNameL(s));
+    try
+      if not local then
+        lua_pushinteger(L,symhandler.getAddressFromNameL(s))
+      else
+        lua_pushinteger(L,selfsymhandler.getAddressFromNameL(s));
+    except
+      on e:exception do
+      begin
+        lua_pushstring(L,e.Message);
+        lua_error(L);
+      end;
+    end;
 
     result:=1;
   end
@@ -8163,6 +8170,51 @@ begin
   end;
 end;
 
+function lua_try(l: Plua_State): integer; cdecl;
+//nice idea, but the return value of this function seems broken after an raise exception in a function called by pcall (lua_error does function properly)
+begin
+  result:=2;
+  if lua_gettop(L)>=1 then
+  begin
+    if lua_isfunction(L,1) then
+    begin
+
+      try
+        if lua.lua_pcall(L,lua_gettop(L)-1,LUA_MULTRET,0)=0 then
+        begin
+          lua_pushboolean(L,true);
+          lua_insert(L,1);
+          result:=lua_gettop(L);
+        end
+        else
+        begin
+          lua_pushboolean(L,false);
+          lua_pushvalue(L,-2);
+        end;
+      except
+        on e:exception do
+        begin
+          lua_pop(L,lua_gettop(L));
+          lua_pop(L,1);
+          lua_pushboolean(L,false);
+          lua_pushstring(L,e.message);
+        end;
+      end;
+
+    end
+    else
+    begin
+      lua_pushboolean(L,false);
+      lua_pushstring(L,'First parameter for try is not a function');
+    end;
+  end
+  else
+  begin
+    lua_pushboolean(L,false);
+    lua_pushstring(L,'No parameter given');
+  end;
+end;
+
 procedure InitializeLua;
 var
   s: tstringlist;
@@ -8675,6 +8727,8 @@ begin
     lua_register(LuaVM, 'setAssemblerMode', lua_setAssemblerMode);
     lua_register(LuaVM, 'allocateMemory', lua_allocateMemory);
 
+    lua_register(LuaVM, 'try', lua_try);
+
     initializeLuaCustomControl;
 
 
@@ -8711,6 +8765,7 @@ begin
     initializeLuaStructureFrm;
     initializeLuaInternet;
     initializeLuaCustomType;
+    initializeLuaSQL;
 
 
 

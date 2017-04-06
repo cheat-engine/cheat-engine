@@ -88,6 +88,7 @@ type
     procedure Copyselectiontoclipboard1Click(Sender: TObject);
   private
     { Private declarations }
+    setcountwidth: boolean;
     procedure addInfo(Coderecord: TCoderecord);
     procedure moreinfo;
     function getSelection: string;
@@ -800,6 +801,12 @@ begin
 
   setlength(x,0);
   loadformposition(self,x);
+
+  if length(x)>=1 then
+  begin
+    foundcodelist.Columns[0].Width:=x[1];
+    setcountwidth:=true;
+  end;
 end;
 
 procedure TFoundCodeDialog.FormDeactivate(Sender: TObject);
@@ -826,41 +833,21 @@ begin
   end;
 
 
-  saveformposition(self,[]);
+  saveformposition(self,[FoundCodeList.Columns[0].Width]);
 end;
 
 procedure TFoundCodeDialog.FormResize(Sender: TObject);
 begin
-  FoundCodeList.Column[1].AutoSize:=false;
-  FoundCodeList.Column[1].AutoSize:=true;
+
 end;
 
 procedure TFoundCodeDialog.FormShow(Sender: TObject);
-var i: integer;
 begin
- { btnReplacewithnops.autosize:=true;
-  btnReplacewithnops.autosize:=false;
-
-  btnOpenDisassembler.AutoSize:=true;
-  btnOpenDisassembler.AutoSize:=false;
-
-  btnAddToCodeList.AutoSize:=true;
-  btnAddToCodeList.AutoSize:=false;
-
-  btnExtraInfo.AutoSize:=true;
-  btnExtraInfo.AutoSize:=false;
-
-  i:=btnReplacewithnops.width;
-  i:=max(i, btnOpenDisassembler.width);
-  i:=max(i, btnAddToCodeList.width);
-  i:=max(i, btnExtraInfo.width);
-
-  btnReplacewithnops.width:=i;
-  btnOpenDisassembler.width:=i;
-  btnAddToCodeList.width:=i;
-  btnExtraInfo.width:=i;
-
-  btnOK.width:=i;}
+  if not setcountwidth then
+  begin
+    FoundCodeList.Column[0].Width:=max(FoundCodeList.Column[0].Width, FoundCodeList.Canvas.TextWidth('9999'));
+    setcountwidth:=true;
+  end;
 end;
 
 procedure TFoundCodeDialog.FoundCodeListChange(Sender: TObject;

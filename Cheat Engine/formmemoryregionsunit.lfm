@@ -1,7 +1,7 @@
 object FormMemoryRegions: TFormMemoryRegions
-  Left = 672
+  Left = 337
   Height = 370
-  Top = 271
+  Top = 136
   Width = 696
   BorderIcons = [biSystemMenu]
   Caption = 'Memory regions'

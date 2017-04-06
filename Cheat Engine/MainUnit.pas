@@ -7071,11 +7071,10 @@ var
   extrasize: integer;
   s: string;
 begin
-
-
   if onetimeonly then
     exit;
 
+  fontmultiplication:=ProcessLabel.Height/15; //normal dpi/font settings have this at 15.
 
 
   onetimeonly := True;

@@ -1,7 +1,7 @@
 object formSettings: TformSettings
-  Left = 455
+  Left = 228
   Height = 539
-  Top = 285
+  Top = 143
   Width = 950
   AutoSize = True
   BorderIcons = [biSystemMenu]

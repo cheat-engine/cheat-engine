@@ -1,36 +1,35 @@
 object FoundCodeDialog: TFoundCodeDialog
-  Left = 574
+  Left = 772
   Height = 399
-  Top = 253
-  Width = 413
+  Top = 427
+  Width = 430
   BorderIcons = [biSystemMenu]
   Caption = 'The following opcodes changed the selected address'
   ClientHeight = 399
-  ClientWidth = 413
+  ClientWidth = 430
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  OnResize = FormResize
   OnShow = FormShow
   Position = poOwnerFormCenter
   LCLVersion = '1.6.0.4'
   object Panel1: TPanel
-    Left = 250
+    Left = 294
     Height = 399
     Top = 0
-    Width = 163
+    Width = 136
     Align = alRight
     AutoSize = True
     BevelOuter = bvNone
     ClientHeight = 399
-    ClientWidth = 163
+    ClientWidth = 136
     TabOrder = 0
     object Description: TLabel
       Left = 0
       Height = 219
       Top = 140
-      Width = 163
+      Width = 136
       Align = alClient
       Alignment = taCenter
       AutoSize = False
@@ -41,18 +40,18 @@ object FoundCodeDialog: TFoundCodeDialog
       Left = 0
       Height = 40
       Top = 359
-      Width = 163
+      Width = 136
       Align = alBottom
       AutoSize = True
       BevelOuter = bvNone
       ClientHeight = 40
-      ClientWidth = 163
+      ClientWidth = 136
       TabOrder = 0
       object btnOK: TButton
         AnchorSideLeft.Control = Panel2
         AnchorSideLeft.Side = asrCenter
         AnchorSideTop.Control = Panel2
-        Left = 44
+        Left = 31
         Height = 30
         Top = 5
         Width = 75
@@ -72,12 +71,12 @@ object FoundCodeDialog: TFoundCodeDialog
       Left = 0
       Height = 140
       Top = 0
-      Width = 163
+      Width = 136
       Align = alTop
       AutoSize = True
       BevelOuter = bvNone
       ClientHeight = 140
-      ClientWidth = 163
+      ClientWidth = 136
       TabOrder = 1
       object btnExtraInfo: TButton
         AnchorSideLeft.Control = Panel3
@@ -89,7 +88,7 @@ object FoundCodeDialog: TFoundCodeDialog
         Height = 30
         Hint = 'Shows more information about the state of the system when that instruction got executed'
         Top = 110
-        Width = 153
+        Width = 126
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
         BorderSpacing.Left = 5
@@ -114,7 +113,7 @@ object FoundCodeDialog: TFoundCodeDialog
         Height = 30
         Hint = 'The selected addresses will be added to the code list in the advanced options window.'
         Top = 75
-        Width = 153
+        Width = 126
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
         BorderSpacing.Left = 5
@@ -139,7 +138,7 @@ object FoundCodeDialog: TFoundCodeDialog
         Height = 30
         Hint = 'This will open the memoryview and bring the disassemblerview to the selected address'
         Top = 40
-        Width = 153
+        Width = 126
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
         BorderSpacing.Left = 5
@@ -163,7 +162,7 @@ object FoundCodeDialog: TFoundCodeDialog
         Height = 30
         Hint = 'This will replace the selected addresses with code that does nothing. (Nops)'
         Top = 5
-        Width = 153
+        Width = 126
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
         BorderSpacing.Left = 5
@@ -184,27 +183,27 @@ object FoundCodeDialog: TFoundCodeDialog
     Left = 0
     Height = 399
     Top = 0
-    Width = 250
+    Width = 294
     Align = alClient
     BevelOuter = bvNone
     ClientHeight = 399
-    ClientWidth = 250
+    ClientWidth = 294
     TabOrder = 1
     object FoundCodeList: TListView
       Left = 0
       Height = 237
       Top = 0
-      Width = 250
+      Width = 294
       Align = alClient
+      AutoWidthLastColumn = True
       Columns = <      
         item
           Caption = 'Count'
           Width = 30
         end      
         item
-          AutoSize = True
           Caption = 'Instruction'
-          Width = 245
+          Width = 260
         end>
       ColumnClick = False
       HideSelection = False
@@ -222,7 +221,7 @@ object FoundCodeDialog: TFoundCodeDialog
       Left = 0
       Height = 157
       Top = 242
-      Width = 250
+      Width = 294
       Align = alBottom
       ReadOnly = True
       ScrollBars = ssBoth
@@ -234,7 +233,7 @@ object FoundCodeDialog: TFoundCodeDialog
       Left = 0
       Height = 5
       Top = 237
-      Width = 250
+      Width = 294
       Align = alBottom
       ResizeAnchor = akBottom
     end

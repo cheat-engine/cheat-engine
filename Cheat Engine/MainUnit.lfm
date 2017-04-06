@@ -1,9 +1,9 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 853
+  Left = 427
   Height = 699
   Hint = ' '
-  Top = 195
+  Top = 98
   Width = 701
   HelpContext = 3
   HorzScrollBar.Visible = False
@@ -125,7 +125,7 @@ object MainForm: TMainForm
       AnchorSideTop.Control = Label6
       Left = 39
       Height = 15
-      Hint = 'This shows the ammount of addresses found'
+      Hint = 'This shows the amount of addresses found'
       Top = 31
       Width = 6
       BorderSpacing.Left = 2

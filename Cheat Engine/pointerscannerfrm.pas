@@ -1394,6 +1394,8 @@ begin
       SQLQuery.SQL.Text:='Select ptrid from pointerfiles where name="'+name+'"';
       SQLQuery.Active:=true;
 
+      SQLQuery.Params;
+
       if SQLQuery.RecordCount>0 then
       begin
         ptrid:=SQLQuery.FieldByName('ptrid').text;

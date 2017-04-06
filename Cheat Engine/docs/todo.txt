@@ -8,7 +8,7 @@ lua:add a stacktrace override
 foundlist3: add a shortcut to change value
 
 
-linux: make a 32-bit linux build with .so injection support
+
 
 replace: selection only
 
@@ -16,7 +16,6 @@ break and trace: Search upwards
 
 ceshare: continue with it
 
-memscan: Don't combine the scanresults into a single file. Leave them split up (skip: for 6.7 or 7.0)
 
 taborder from start->stop is wrong
 something covering the next scan button
@@ -31,6 +30,23 @@ add a clear address list to changed addresses
 
 memview: Add spacing option to hexview/memview
 memview: add asembler highlight color override
+memview hexview: Add a header showing details about the selection (bytecount, hex->dec)
+
+memview: ctrl+f ->adjust from region 
 
 exe trainer generator compression isn't properly sized
 don't forget the test buttons in advanced options
+
+add a filter in the processlist to filter out system processes
+make an "Appication list" process window
+
+pointerscan: for value scans should scan first and put every result in the secondary queue, that way resume works better
+
+
+open file: add a commit changes
+memview->view->all strings(string map): progressbar is not sized properly 
+string map: Free the current list when shown takes a long time (I think it updates on each delete)
+
+
+linux: make a 32-bit linux build with .so injection support
+memscan: Don't combine the scanresults into a single file. Leave them split up (skip: for 6.7 or 7.0)

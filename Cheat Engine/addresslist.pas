@@ -64,7 +64,7 @@ type
     fOnValueChange: TMemRecChangeEvent;
 
     animationtimer: TTimer;
-
+    expandsignsize: integer;
     procedure doAnimation(sender: TObject);
 
     function getTreeNodes: TTreenodes;
@@ -198,7 +198,7 @@ type
 implementation
 
 uses dialogs, formAddressChangeUnit, TypePopup, PasteTableentryFRM, mainunit,
-  ProcessHandlerUnit, frmEditHistoryUnit;
+  ProcessHandlerUnit, frmEditHistoryUnit, globals;
 
 resourcestring
   rsDoYouWantToDeleteTheSelectedAddress = 'Do you want to delete the selected address?';
@@ -1287,7 +1287,7 @@ begin
     if moManualExpandCollapse in mr.options then
     begin
       //check for expand/collapse sign click
-      if inrange(x, textrect.left, textrect.left+9) then
+      if inrange(x, textrect.left, textrect.left+expandsignsize) then
       begin
         treeview.OnCollapsing:=nil;
         if node.Expanded then
@@ -1787,7 +1787,7 @@ var
   linetop: integer;
 
   expandsign: Trect;
-  expandsignsize: integer;
+
   expandsignlineborderspace: integer;
 
   n: Ttreenode;
@@ -1795,6 +1795,8 @@ var
   cx,cy: integer;
   x,y: single;
   r: single;
+
+  bordersize: integer;
 begin
   //multiselect implementation
 
@@ -1825,6 +1827,18 @@ begin
     if not memrec.visible then //don't render it
       exit;
 
+
+    bordersize:=1*trunc(fontmultiplication);
+
+    if expandsignsize=0 then
+    begin
+      expandsignsize:=treeview.indent div 2;
+      if expandsignsize mod 2=0 then
+        dec(expandsignsize);    //has to be uneven
+
+      if expandsignsize<9 then
+        expandsignsize:=9;
+    end;
 
 
 
@@ -1859,11 +1873,15 @@ begin
     while n<>nil do
     begin
       if moManualExpandCollapse in TMemoryRecord(n.Data).Options then
-        inc(textrect.left,9);
+        inc(textrect.left,expandsignsize+1);
 
 
       n:=n.Parent;
     end;
+
+    sender.canvas.Pen.JoinStyle:=pjsMiter;
+    sender.canvas.Pen.EndCap:=pecFlat;
+    sender.canvas.pen.Width:=1;
 
     if moManualExpandCollapse in memrec.Options then
     begin
@@ -1871,26 +1889,7 @@ begin
       oldpencolor:=sender.canvas.pen.color;
       sender.canvas.pen.color:=expandSignColor;
 
-      {
-      expandsign:=Rect(textrect.left, textrect.top+((textrect.bottom-textrect.top) div 2-4), textrect.left+9, textrect.top+((textrect.bottom-textrect.top) div 2+5));
-      sender.canvas.Rectangle(expandsign);
-      sender.canvas.MoveTo(expandsign.Left + 2, textrect.top+(textrect.bottom-textrect.top)  div 2);
-      sender.canvas.LineTo(expandsign.Right - 2, textrect.top+(textrect.bottom-textrect.top)  div 2);
 
-      if memrec.treenode.Expanded then
-      begin
-        sender.canvas.MoveTo(expandsign.left+4, expandsign.Top + 2);
-        sender.canvas.LineTo(expandsign.left+4, expandsign.Bottom - 2);
-      end;
-      inc(textrect.left,9);
-      }
-
-      expandsignsize:=treeview.indent div 2;
-      if expandsignsize mod 2=0 then
-        dec(expandsignsize);
-
-      if expandsignsize<9 then
-        expandsignsize:=9;
 
       expandsignlineborderspace:=expandsignsize div 4;
 
@@ -1900,11 +1899,15 @@ begin
 
       expandsign:=Rect(textrect.left, textrect.top+((textrect.bottom-textrect.top) div 2-(expandsignsize div 2)), textrect.left+expandsignsize, textrect.top+((textrect.bottom-textrect.top) div 2+(expandsignsize div 2))+1);
       sender.canvas.Rectangle(expandsign);
-      sender.canvas.MoveTo(expandsign.Left + expandsignlineborderspace, textrect.top+(textrect.bottom-textrect.top)  div 2);
-      sender.canvas.LineTo(expandsign.Right - expandsignlineborderspace, textrect.top+(textrect.bottom-textrect.top)  div 2);
+
+      //horizontal line
+      sender.canvas.MoveTo(expandsign.Left + expandsignlineborderspace, textrect.top+(textrect.bottom-textrect.top) div 2);
+      sender.canvas.LineTo(expandsign.Right - expandsignlineborderspace, textrect.top+(textrect.bottom-textrect.top) div 2);
+
 
       if memrec.treenode.Expanded then
       begin
+        //vertical line
         sender.canvas.MoveTo(expandsign.left+expandsignsize div 2, expandsign.Top + expandsignlineborderspace);
         sender.canvas.LineTo(expandsign.left+expandsignsize div 2, expandsign.Bottom - expandsignlineborderspace);
       end;
@@ -1913,6 +1916,8 @@ begin
       sender.canvas.pen.color:=oldpencolor;
     end;
 
+    sender.canvas.pen.Width:=bordersize;
+    sender.canvas.pen.EndCap:=pecFlat;
 
 
     //draw checkbox
@@ -1922,14 +1927,10 @@ begin
     checkbox.Top:=linerect.top+1;
     checkbox.Bottom:=linerect.bottom-1;
 
+
+
     if not memrec.AsyncProcessing then
     begin
-      if memrec.isSelected then
-        sender.canvas.pen.color:=checkboxSelectedColor
-      else
-        sender.canvas.pen.color:=checkboxColor;
-
-      sender.Canvas.Rectangle(checkbox);
 
 
 
@@ -1945,8 +1946,16 @@ begin
         else
           sender.canvas.pen.color:=checkboxActiveColor;
 
+
+
+
+   {
+        //default: this is good
         sender.canvas.Line(checkbox.left+1,checkbox.Top+1, checkbox.Right-1,checkbox.bottom-1);
-        sender.canvas.line(checkbox.right-1-1,checkbox.top+1, checkbox.left,checkbox.bottom-1);
+        sender.canvas.line(checkbox.left+1,checkbox.bottom-2, checkbox.right-1,checkbox.top);  }
+
+        sender.canvas.Line(checkbox.left,checkbox.Top, checkbox.Right-1,checkbox.bottom-1);
+        sender.canvas.line(checkbox.left,checkbox.bottom-1, checkbox.right-1,checkbox.top);
 
         sender.canvas.pen.color:=oldpencolor;
 
@@ -1974,6 +1983,18 @@ begin
         end;
 
       end;
+
+      //draw the rectangle over the cross
+      if memrec.isSelected then
+        sender.canvas.pen.color:=checkboxSelectedColor
+      else
+        sender.canvas.pen.color:=checkboxColor;
+
+
+      sender.Canvas.Brush.Style:=bsClear;
+      sender.Canvas.Rectangle(checkbox);
+      sender.Canvas.Brush.Style:=bsSolid;
+
     end
     else
     begin
