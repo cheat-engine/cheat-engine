@@ -2659,7 +2659,7 @@ begin
   else
     marginsize:=8;
 
-  edtAddress.ClientWidth:=parent.parent.Canvas.TextWidth('DDDDDDDD')+marginsize;
+  edtAddress.ClientWidth:=parent.parent.Canvas.TextWidth('DDDDDDDDFFFF')+marginsize;
   edtAddress.Constraints.MinWidth:=edtAddress.Width;
 
   focusedShape.Width:=edtAddress.width+2*(focusedshape.Pen.Width);
@@ -2988,6 +2988,9 @@ begin
   tvStructureView.Font.Height:=GetFontData(font.handle).Height;
   if tvStructureView.Font.Height>-15 then
     tvStructureView.Font.Height:=-15;
+
+  if (frmStructuresConfig<>nil) and (frmStructuresConfig.customfont) then
+    tvStructureView.font.Assign(frmStructuresConfig.GroupBox1.Font);
 end;
 
 
@@ -5188,13 +5191,18 @@ end;
 procedure TfrmStructures2.miChangeColorsClick(Sender: TObject);
 begin
   //show and wait for the user
+  frmStructuresConfig.groupbox1.Font.assign(tvStructureView.Font);
+
   if frmStructuresConfig.showmodal=mrok then
   begin
     //just apply new colors
     setupColors; //gets the colors from the structures config
 
+
     //and show the new colors
     RefreshVisibleNodes;
+
+    tvStructureView.Font.Assign(frmStructuresConfig.groupbox1.Font);
   end;
 end;
 

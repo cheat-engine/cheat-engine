@@ -2,13 +2,13 @@ object frmStructuresConfig: TfrmStructuresConfig
   Left = 558
   Height = 261
   Top = 294
-  Width = 499
+  Width = 550
   AutoSize = True
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Dissect Data Config'
   ClientHeight = 261
-  ClientWidth = 499
+  ClientWidth = 550
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poScreenCenter
@@ -17,35 +17,43 @@ object frmStructuresConfig: TfrmStructuresConfig
     Left = 0
     Height = 226
     Top = 0
-    Width = 499
+    Width = 550
     Align = alClient
     BevelOuter = bvNone
     ClientHeight = 226
-    ClientWidth = 499
+    ClientWidth = 550
     TabOrder = 0
     object GroupBox1: TGroupBox
       Left = 0
       Height = 226
       Top = 0
-      Width = 104
+      Width = 154
       Align = alLeft
       AutoSize = True
       Caption = 'Colors'
-      ClientHeight = 206
-      ClientWidth = 100
+      ClientHeight = 203
+      ClientWidth = 150
       Color = clWindow
+      Font.CharSet = ANSI_CHARSET
+      Font.Name = 'Courier New'
       ParentColor = False
+      ParentFont = False
       TabOrder = 0
       object Label7: TLabel
         Tag = 2
+        AnchorSideLeft.Control = GroupBox1
+        AnchorSideTop.Control = Label1
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = GroupBox1
+        AnchorSideRight.Side = asrBottom
         Cursor = crHandPoint
         Left = 0
-        Height = 15
+        Height = 18
         Hint = 'Color used when only one group and all columns have the same value'
-        Top = 40
-        Width = 100
-        Align = alTop
+        Top = 46
+        Width = 150
         Alignment = taCenter
+        Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Top = 1
         BorderSpacing.Bottom = 1
         Caption = 'Equal'
@@ -57,14 +65,19 @@ object frmStructuresConfig: TfrmStructuresConfig
       end
       object Label1: TLabel
         Tag = 1
+        AnchorSideLeft.Control = GroupBox1
+        AnchorSideTop.Control = Panel5
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = GroupBox1
+        AnchorSideRight.Side = asrBottom
         Cursor = crHandPoint
         Left = 0
-        Height = 15
+        Height = 18
         Hint = 'Color used when only one column'
-        Top = 24
-        Width = 100
-        Align = alTop
+        Top = 27
+        Width = 150
         Alignment = taCenter
+        Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Top = 1
         BorderSpacing.Bottom = 1
         Caption = 'Default'
@@ -76,14 +89,19 @@ object frmStructuresConfig: TfrmStructuresConfig
       end
       object Label2: TLabel
         Tag = 3
+        AnchorSideLeft.Control = GroupBox1
+        AnchorSideTop.Control = Label7
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = GroupBox1
+        AnchorSideRight.Side = asrBottom
         Cursor = crHandPoint
         Left = 0
-        Height = 15
+        Height = 18
         Hint = 'Color used when only one group and not all columns have the same value, or when multiple groups but not every group has matching columns'
-        Top = 56
-        Width = 100
-        Align = alTop
+        Top = 65
+        Width = 150
         Alignment = taCenter
+        Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Top = 1
         BorderSpacing.Bottom = 1
         Caption = 'Different'
@@ -95,14 +113,19 @@ object frmStructuresConfig: TfrmStructuresConfig
       end
       object Label3: TLabel
         Tag = 4
+        AnchorSideLeft.Control = GroupBox1
+        AnchorSideTop.Control = Label2
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = GroupBox1
+        AnchorSideRight.Side = asrBottom
         Cursor = crHandPoint
         Left = 0
-        Height = 15
+        Height = 18
         Hint = 'Color used when multiple groups and every member of every group has the same value, and that value matches that of each group'
-        Top = 72
-        Width = 100
-        Align = alTop
+        Top = 84
+        Width = 150
         Alignment = taCenter
+        Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Top = 1
         BorderSpacing.Bottom = 1
         Caption = 'Group Equal'
@@ -114,14 +137,19 @@ object frmStructuresConfig: TfrmStructuresConfig
       end
       object Label9: TLabel
         Tag = 5
+        AnchorSideLeft.Control = GroupBox1
+        AnchorSideTop.Control = Label3
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = GroupBox1
+        AnchorSideRight.Side = asrBottom
         Cursor = crHandPoint
         Left = 0
-        Height = 15
+        Height = 18
         Hint = 'Color used when multiple groups and every member of every group has the same value, but not each group has the same value'
-        Top = 88
-        Width = 100
-        Align = alTop
+        Top = 103
+        Width = 150
         Alignment = taCenter
+        Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Top = 1
         BorderSpacing.Bottom = 1
         Caption = 'Group Different'
@@ -131,44 +159,81 @@ object frmStructuresConfig: TfrmStructuresConfig
         OnClick = Color2Click
         OnMouseDown = ColorClick
       end
-      object comboBackground: TComboBox
+      object Button3: TButton
+        AnchorSideLeft.Control = GroupBox1
+        AnchorSideRight.Control = GroupBox1
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = GroupBox1
+        AnchorSideBottom.Side = asrBottom
         Left = 0
-        Height = 23
-        Top = 0
-        Width = 100
-        Align = alTop
-        ItemHeight = 15
-        ItemIndex = 0
-        Items.Strings = (
-          'Normal'
-          'Highlighted'
-        )
-        OnChange = comboBackgroundChange
-        Style = csDropDownList
+        Height = 28
+        Top = 174
+        Width = 150
+        Anchors = [akLeft, akRight, akBottom]
+        AutoSize = True
+        BorderSpacing.Bottom = 1
+        Caption = 'Font'
+        OnClick = Button3Click
         TabOrder = 0
-        Text = 'Normal'
+      end
+      object Panel5: TPanel
+        AnchorSideLeft.Control = GroupBox1
+        AnchorSideTop.Control = GroupBox1
+        AnchorSideRight.Control = GroupBox1
+        AnchorSideRight.Side = asrBottom
+        Left = 0
+        Height = 26
+        Top = 0
+        Width = 150
+        Anchors = [akTop, akLeft, akRight]
+        AutoSize = True
+        BevelOuter = bvNone
+        ClientHeight = 26
+        ClientWidth = 150
+        TabOrder = 1
+        object comboBackground: TComboBox
+          AnchorSideLeft.Control = Panel5
+          AnchorSideTop.Control = Panel5
+          AnchorSideRight.Control = Panel5
+          AnchorSideRight.Side = asrBottom
+          Left = 0
+          Height = 26
+          Top = 0
+          Width = 150
+          Anchors = [akTop, akLeft, akRight]
+          ItemHeight = 18
+          ItemIndex = 0
+          Items.Strings = (
+            'Normal'
+            'Highlighted'
+          )
+          OnChange = comboBackgroundChange
+          Style = csDropDownList
+          TabOrder = 0
+          Text = 'Normal'
+        end
       end
     end
     object Panel3: TPanel
-      Left = 104
+      Left = 154
       Height = 226
       Top = 0
-      Width = 395
+      Width = 396
       Align = alClient
       BevelOuter = bvNone
       ClientHeight = 226
-      ClientWidth = 395
+      ClientWidth = 396
       TabOrder = 1
       object GroupBox2: TGroupBox
         Left = 0
         Height = 164
         Top = 0
-        Width = 395
+        Width = 396
         Align = alClient
         AutoSize = True
         Caption = 'Default options for new structures'
         ClientHeight = 144
-        ClientWidth = 391
+        ClientWidth = 392
         TabOrder = 0
         object cbAutoCreate: TCheckBox
           AnchorSideLeft.Control = GroupBox2
@@ -255,12 +320,12 @@ object frmStructuresConfig: TfrmStructuresConfig
         Left = 0
         Height = 62
         Top = 164
-        Width = 395
+        Width = 396
         Align = alBottom
         AutoSize = True
         Caption = 'Global options'
         ClientHeight = 42
-        ClientWidth = 391
+        ClientWidth = 392
         TabOrder = 1
         object cbAutoGuessCustomTypes: TCheckBox
           AnchorSideLeft.Control = GroupBox3
@@ -304,17 +369,17 @@ object frmStructuresConfig: TfrmStructuresConfig
     Left = 0
     Height = 35
     Top = 226
-    Width = 499
+    Width = 550
     Align = alBottom
     AutoSize = True
     ClientHeight = 35
-    ClientWidth = 499
+    ClientWidth = 550
     TabOrder = 1
     object Panel4: TPanel
       AnchorSideLeft.Control = Panel2
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Control = Panel2
-      Left = 171
+      Left = 197
       Height = 25
       Top = 5
       Width = 157
@@ -332,7 +397,10 @@ object frmStructuresConfig: TfrmStructuresConfig
         Height = 25
         Top = 0
         Width = 75
+        AutoSize = True
         Caption = 'OK'
+        Constraints.MinHeight = 25
+        Constraints.MinWidth = 75
         Default = True
         OnClick = Button1Click
         TabOrder = 0
@@ -345,9 +413,12 @@ object frmStructuresConfig: TfrmStructuresConfig
         Height = 25
         Top = 0
         Width = 75
+        AutoSize = True
         BorderSpacing.Left = 7
         Cancel = True
         Caption = 'Cancel'
+        Constraints.MinHeight = 25
+        Constraints.MinWidth = 75
         ModalResult = 2
         TabOrder = 1
       end
@@ -379,5 +450,11 @@ object frmStructuresConfig: TfrmStructuresConfig
     )
     left = 32
     top = 152
+  end
+  object FontDialog1: TFontDialog
+    MinFontSize = 0
+    MaxFontSize = 0
+    left = 440
+    top = 200
   end
 end

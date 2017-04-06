@@ -10,7 +10,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
-  ComCtrls, StdCtrls, ExtCtrls, registry;
+  ComCtrls, StdCtrls, ExtCtrls, registry, windows, fontSaveLoadRegistry;
 
 type
 
@@ -19,6 +19,7 @@ type
   TfrmStructuresConfig = class(TForm)
     Button1: TButton;
     Button2: TButton;
+    Button3: TButton;
     cbAutoCreate: TCheckBox;
     cbAutoDestroyLocal: TCheckBox;
     cbAutoFillGaps: TCheckBox;
@@ -29,6 +30,7 @@ type
     comboBackground: TComboBox;
     edtMaxAutoExpandLevel: TEdit;
     edtAutostructsize: TEdit;
+    FontDialog1: TFontDialog;
     GroupBox1: TGroupBox;
     GroupBox2: TGroupBox;
     GroupBox3: TGroupBox;
@@ -43,7 +45,9 @@ type
     Panel2: TPanel;
     Panel3: TPanel;
     Panel4: TPanel;
+    Panel5: TPanel;
     procedure Button1Click(Sender: TObject);
+    procedure Button3Click(Sender: TObject);
     procedure ColorClickOld(Sender: TObject);
     procedure comboBackgroundChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -67,6 +71,7 @@ type
     fselectedGroupEqualText: TColor;
     fselectedGroupDifferentText: TColor;
 
+    fcustomfont: boolean;
 
 
 //    procedure setbackgroundcolor(x: TColor);
@@ -103,6 +108,8 @@ type
     property selectedDifferentText: TColor read fselectedDifferentText write setselectedDifferentText;
     property selectedGroupEqualText: TColor read fselectedGroupEqualText write setselectedGroupEqualText;
     property selectedgroupDifferentText: TColor read fselectedgroupDifferentText write setselectedgroupdifferentText;
+
+    property customfont: boolean read fcustomfont;
   end;
 
 var
@@ -306,6 +313,11 @@ begin
       reg.writeBool('Autoguess Custom Types', cbAutoGuessCustomTypes.checked);
       reg.WriteInteger('Max Auto-Expand Level',maxautoexpandlevel);
 
+      if customfont then
+      begin
+        if Reg.OpenKey('\Software\Cheat Engine\DissectData\Font',true) then
+          SaveFontToRegistry(groupbox1.Font, reg);
+      end;
     end;
   finally
     reg.free;
@@ -314,6 +326,34 @@ begin
   modalresult:=mrok;
 
 
+end;
+
+procedure TfrmStructuresConfig.Button3Click(Sender: TObject);
+var
+  i: integer;
+  cbi: TComboboxInfo;
+begin
+  fontdialog1.font.Assign(groupbox1.Font);
+  if fontdialog1.Execute then
+  begin
+    groupbox1.font.Assign(fontdialog1.font);
+
+    groupbox1.AutoSize:=false;
+    groupbox1.AutoSize:=true;
+
+    autosize:=false;
+    autosize:=true;
+
+    cbi.cbSize:=sizeof(cbi);
+    if GetComboBoxInfo(comboBackground.Handle, @cbi) then
+    begin
+      i:=cbi.rcButton.Bottom-cbi.rcButton.Top;
+      panel5.autosize:=false;
+      panel5.clientheight:=i;
+    end;
+
+    fcustomfont:=true;
+  end;
 end;
 
 procedure TfrmStructuresConfig.FormCreate(Sender: TObject);
@@ -363,7 +403,11 @@ begin
       if reg.ValueExists('Max Auto-Expand Level') then maxautoexpandlevel:=reg.ReadInteger('Max Auto-Expand Level');
 
 
-
+      if Reg.OpenKey('\Software\Cheat Engine\DissectData\Font',false) then
+      begin
+        LoadFontFromRegistry(groupbox1.Font,reg);
+        fcustomfont:=true;
+      end;
 
     end;
   finally
