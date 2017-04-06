@@ -2284,4 +2284,7 @@ begin
   inherited destroy;
 end;
 
+initialization
+  registerclass(TAddresslist);       //yes...
+
 end.

@@ -902,6 +902,8 @@ begin
 
 
           pnlProgress.ClientHeight:=pb.Top+pb.height+1;
+          if pnlProgressname.clientwidth<lb.width then
+            pnlProgressName.ClientWidth:=lb.width+10;
 
         end;
 
@@ -1135,6 +1137,8 @@ begin
 
 
             pnlProgress.ClientHeight:=pb.Top+pb.height+1;
+            if pnlProgressname.clientwidth<lb.width then
+              pnlProgressName.ClientWidth:=lb.width+10;
           end;
         end;
 
@@ -1394,7 +1398,7 @@ begin
       SQLQuery.SQL.Text:='Select ptrid from pointerfiles where name="'+name+'"';
       SQLQuery.Active:=true;
 
-      SQLQuery.Params;
+      //SQLQuery.Params;
 
       if SQLQuery.RecordCount>0 then
       begin
@@ -3179,6 +3183,9 @@ begin
             rescan.pointermapprogressbarlabel.showhint:=true;
 
             pnlProgress.ClientHeight:=rescan.pointermapprogressbar.Top+rescan.pointermapprogressbar.height+1;
+
+            if pnlProgressname.clientwidth<rescan.pointermapprogressbarlabel.width then
+              pnlProgressName.ClientWidth:=rescan.pointermapprogressbarlabel.width+10;
 
           end;
 

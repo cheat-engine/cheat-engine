@@ -2738,6 +2738,7 @@ methods
   startTransaction()
   endTransaction()
   executeDirect(sql)
+  getTableNames() : Returns a counted table with all tablenames
 
 
 SQLite3Connection class(Inheritance: SQLConnection->Database->CustomConnection->Component->Object) 
@@ -2837,8 +2838,9 @@ properties
   Fields[index]: Field
 methods
   add(Field)
+  clear()
   fieldByName(name): Field
-  fieldByNumber(field): Field
+  fieldByNumber(integer): Field
   indexOf(field): integer
 
 
@@ -2917,6 +2919,9 @@ properties
   PacketRecords: integer
   UniDirectional: boolean
   IndexName: string
+  MaxIndexesCount: integer
+  ChangeCount: integer
+  ReadOnly: boolean
 
 methods
   applyUpdates(MaxErrors Optional)
@@ -2933,16 +2938,14 @@ properties
   prepared: boolean READONLY
   SQLConnection: SQLConnection
   SQLTransaction: SQLTransaction
-  ChangeCount: integer
-  MaxIndexesCount: inteher
-  ReadOnly: boolean
+
 
       
 methods
   prepare()
   unprepare()
   execSQL()
-  RowsAffected()
+  rowsAffected()
   paramByName(paramname): Param
 
 
@@ -2951,6 +2954,8 @@ methods
 SQLQuery class (Inheritance: CustomSQLQuery->CustomBufDataset->DBDataset->Dataset->Component->Object) 
 createSQLQuery(owner)
 properties
+  Database: Database
+
   SchemaType: string READFONLY - can be: stNoSchema, stTables, stSysTables, stProcedures, stColumns, stProcedureParams, stIndexes, stPackages, stSchemata, stSequences
   StatementType: string READONLY - can be :stUnknown, stSelect, stInsert, stUpdate, stDelete,
       stDDL, stGetSegment, stPutSegment, stExecProcedure,
@@ -2964,7 +2969,7 @@ properties
   ReadOnly: boolean
 
 
-  SQL: stringlist
+  SQL: string
   InsertSQL: stringlist
   UpdateSQL: stringlist
   DeleteSQL: stringlist

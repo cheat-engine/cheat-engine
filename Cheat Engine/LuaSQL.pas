@@ -14,6 +14,20 @@ implementation
 
 uses LuaHandler, LuaCollection, LuaCollectionItem, LuaByteTable;
 
+function createSQLQuery(L: Plua_State): integer; cdecl;
+var owner: TComponent;
+begin
+  if lua_gettop(L)=1 then
+    owner:=lua_toceuserdata(L, 1)
+  else
+    owner:=nil;
+
+  luaclass_newClass(L, TSQLQuery.Create(owner));
+  result:=1;
+
+end;
+
+
 function createSQLTransaction(L: Plua_State): integer; cdecl;
 var owner: TComponent;
 begin
@@ -134,6 +148,77 @@ begin
       end;
     end;
   end;
+end;
+
+//procedure GetFieldNames(const TableName : string; List : TStrings); virtual;
+function sqlconnection_getFieldNames(L: Plua_State): integer; cdecl;
+var
+  tablename: string;
+  s: tstringlist;
+  i: integer;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    tablename:=Lua_ToString(L,1);
+    try
+      s:=tstringlist.create;
+      try
+        TSQLConnection(luaclass_getClassObject(L)).GetFieldNames(tablename,s);
+
+        result:=1;
+        lua_newtable(L);
+        for i:=0 to s.Count-1 do
+        begin
+          lua_pushinteger(L,i+1);
+          lua_pushstring(L,s[i]);
+          lua_settable(L,-3);
+        end;
+      finally
+        s.free;
+      end;
+    except
+      on e:exception do
+      begin
+        lua_pushstring(L, e.message);
+        lua_error(L);
+      end;
+    end;
+  end;
+end;
+
+
+function sqlconnection_getTableNames(L: Plua_State): integer; cdecl;
+var
+  s: tstringlist;
+  i: integer;
+begin
+  result:=0;
+
+  try
+    s:=tstringlist.create;
+    try
+      TSQLConnection(luaclass_getClassObject(L)).GetTableNames(s);
+
+      result:=1;
+      lua_newtable(L);
+      for i:=0 to s.Count-1 do
+      begin
+        lua_pushinteger(L,i+1);
+        lua_pushstring(L,s[i]);
+        lua_settable(L,-3);
+      end;
+    finally
+      s.free;
+    end;
+  except
+    on e:exception do
+    begin
+      lua_pushstring(L, e.message);
+      lua_error(L);
+    end;
+  end;
+
 end;
 
 function database_getTransactionCount(L: Plua_State): integer; cdecl;
@@ -745,14 +830,125 @@ begin
   luaclass_addPropertyToTable(L, metatable, userdata, 'Transaction', dbdataset_getTransaction, dbdataset_setTransaction);
 end;
 
+function custombufdataset_getMaxIndexesCount(L: Plua_State): integer; cdecl;
+begin
+  result:=1;
+  lua_pushinteger(L, TCustomBufDataset(luaclass_getClassObject(L)).MaxIndexesCount);
+end;
+
+function custombufdataset_setMaxIndexesCount(L: Plua_State): integer; cdecl;
+begin
+  result:=0;
+  TCustomBufDataset(luaclass_getClassObject(L)).MaxIndexesCount:=lua_tointeger(L,1);
+end;
+
+function custombufdataset_getChangeCount(L: Plua_State): integer; cdecl;
+begin
+  result:=1;
+  lua_pushinteger(L, TCustomBufDataset(luaclass_getClassObject(L)).ChangeCount);
+end;
+
+function custombufdataset_getReadOnly(L: Plua_State): integer; cdecl;
+begin
+  result:=1;
+  lua_pushboolean(L, TCustomBufDataset(luaclass_getClassObject(L)).ReadOnly);
+end;
+
+function custombufdataset_setReadOnly(L: Plua_State): integer; cdecl;
+begin
+  result:=0;
+  TCustomBufDataset(luaclass_getClassObject(L)).ReadOnly:=lua_toboolean(L,1);
+end;
+
 procedure custombufdataset_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
   dbdataset_addMetaData(L, metatable, userdata);
+
+  luaclass_addPropertyToTable(L, metatable, userdata, 'MaxIndexesCount', custombufdataset_getMaxIndexesCount, custombufdataset_setMaxIndexesCount);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'ChangeCount', custombufdataset_getChangeCount, nil);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'ReadOnly', custombufdataset_getReadOnly, custombufdataset_setReadOnly);
+end;
+
+
+function customsqlquery_getPrepared(L: Plua_State): integer; cdecl;
+begin
+  lua_pushboolean(L, TCustomSQLQuery(luaclass_getClassObject(L)).Prepared);
+  result:=1;
+end;
+
+function customsqlquery_getSQLConnection(L: Plua_State): integer; cdecl;
+begin
+  luaclass_newClass(L, TCustomSQLQuery(luaclass_getClassObject(L)).SQLConnection);
+  result:=1;
+end;
+
+function customsqlquery_setSQLConnection(L: Plua_State): integer; cdecl;
+begin
+  result:=0;
+  TCustomSQLQuery(luaclass_getClassObject(L)).SQLConnection:=lua_ToCEUserData(L,1);
+end;
+
+function customsqlquery_getSQLTransaction(L: Plua_State): integer; cdecl;
+begin
+  luaclass_newClass(L, TCustomSQLQuery(luaclass_getClassObject(L)).SQLTransaction);
+  result:=1;
+end;
+
+function customsqlquery_setSQLTransaction(L: Plua_State): integer; cdecl;
+begin
+  result:=0;
+  TCustomSQLQuery(luaclass_getClassObject(L)).SQLTransaction:=lua_ToCEUserData(L,1);
+end;
+
+function customsqlquery_getChangeCount(L: Plua_State): integer; cdecl;
+begin
+  lua_pushinteger(L, TCustomSQLQuery(luaclass_getClassObject(L)).ChangeCount);
+  result:=1;
+end;
+
+function customsqlquery_prepare(L: Plua_State): integer; cdecl;
+begin
+  TCustomSQLQuery(luaclass_getClassObject(L)).Prepare;
+  result:=0;
+end;
+
+function customsqlquery_unprepare(L: Plua_State): integer; cdecl;
+begin
+  TCustomSQLQuery(luaclass_getClassObject(L)).unPrepare;
+  result:=0;
+end;
+
+function customsqlquery_execSQL(L: Plua_State): integer; cdecl;
+begin
+  TCustomSQLQuery(luaclass_getClassObject(L)).ExecSQL;
+  result:=0;
+end;
+
+function customsqlquery_rowsAffected(L: Plua_State): integer; cdecl;
+begin
+  lua_pushinteger(L, TCustomSQLQuery(luaclass_getClassObject(L)).rowsAffected);
+  result:=1;
+end;
+
+function customsqlquery_paramByName(L: Plua_State): integer; cdecl;
+begin
+  luaclass_newClass(L, TCustomSQLQuery(luaclass_getClassObject(L)).ParamByName(Lua_ToString(L,1)));
+  result:=1;
 end;
 
 procedure customsqlquery_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
   custombufdataset_addMetaData(L, metatable, userdata);
+
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Prepared', customsqlquery_getPrepared, nil);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'SQLConnection', customsqlquery_getSQLConnection, customsqlquery_setSQLConnection);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'SQLTransaction', customsqlquery_getSQLTransaction, customsqlquery_setSQLTransaction);
+
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'prepare', customsqlquery_prepare);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'unprepare', customsqlquery_unprepare);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'execSQL', customsqlquery_execSQL);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'rowsAffected', customsqlquery_rowsAffected);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'paramByName', customsqlquery_paramByName);
 end;
 
 
@@ -1053,6 +1249,87 @@ begin
   luaclass_addPropertyToTable(L, metatable, userdata, 'IsNull', field_isNull, nil);
 end;
 
+function fields_getCount(L: Plua_State): integer; cdecl;
+begin
+  lua_pushInteger(L, tfields(luaclass_getClassObject(L)).Count);
+  result:=1;
+end;
+
+function fields_getFields(L: PLua_State): integer; cdecl;
+var
+  fields: Tfields;
+  index: integer;
+begin
+  result:=0;
+  fields:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+  begin
+    index:=lua_toInteger(L,1);
+    luaclass_newClass(L, fields.Fields[index]);
+    result:=1;
+  end;
+end;
+
+function fields_setFields(L: PLua_State): integer; cdecl;
+var
+  fields: Tfields;
+  index: integer;
+begin
+  result:=0;
+  fields:=luaclass_getClassObject(L);
+  if lua_gettop(L)=2 then
+  begin
+    index:=lua_toInteger(L,1);
+    fields.Fields[index]:=lua_ToCEUserData(L,2);
+  end;
+end;
+
+function fields_add(L: Plua_State): integer; cdecl;
+begin
+  tfields(luaclass_getClassObject(L)).Add(tfield(lua_ToCEUserData(L,1)));
+  result:=0;
+end;
+
+function fields_clear(L: Plua_State): integer; cdecl;
+begin
+  tfields(luaclass_getClassObject(L)).clear;
+  result:=0;
+end;
+
+function fields_fieldByName(L: Plua_State): integer; cdecl;
+begin
+  luaclass_newClass(L, tfields(luaclass_getClassObject(L)).FieldByName(Lua_ToString(L,1)));
+  result:=1;
+end;
+
+function fields_fieldByNumber(L: Plua_State): integer; cdecl;
+begin
+  luaclass_newClass(L, tfields(luaclass_getClassObject(L)).FieldByNumber(lua_tointeger(L,1)));
+  result:=1;
+end;
+
+function fields_indexOf(L: Plua_State): integer; cdecl;
+begin
+  lua_pushinteger(L, tfields(luaclass_getClassObject(L)).IndexOf(tfield(lua_ToCEUserData(L,1))));
+  result:=1;
+end;
+
+procedure fields_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+begin
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Count', fields_getCount, nil);
+  luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Fields', fields_getFields, fields_setFields);
+  luaclass_setDefaultArrayProperty(L, metatable, userdata, fields_getFields, fields_setFields);
+
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'add', fields_add);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'clear', fields_clear);
+
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'fieldByName', fields_fieldByName);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'fieldByNumber', fields_fieldByNumber);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'indexOf', fields_indexOf);
+end;
+
+
+
 
 procedure params_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
@@ -1119,12 +1396,14 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'startTransaction', sqlconnection_startTransaction);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'endTransaction', sqlconnection_endTransaction);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'executeDirect', sqlconnection_executeDirect);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getTableNames', sqlconnection_getTableNames);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getFieldNames', sqlconnection_getFieldNames);
+
 end;
 
 procedure odbcconnection_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
   sqlconnection_addMetaData(L, metatable, userdata);
- // TODBCConnection(0);
 end;
 
 procedure sqlite3connection_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
@@ -1142,7 +1421,12 @@ begin
   lua_register(LuaVM, 'createSQLite3Connection', createSQLite3Connection);
   lua_register(LuaVM, 'createODBCConnection', createODBCConnection);
   lua_register(LuaVM, 'createSQLTransaction', createSQLTransaction);
+
+  lua_register(LuaVM, 'createSQLQuery', createSQLQuery);
+
   lua_register(LuaVM, 'setSQLiteLibraryName', setSQLiteLibraryName);
+
+
 
 end;
 
@@ -1168,6 +1452,8 @@ initialization
 
   luaclass_register(TParam, param_addMetaData);
   luaclass_register(TParams, params_addMetaData);
+
+  luaclass_register(TField, field_addMetaData);
 
 
 

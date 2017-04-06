@@ -93,7 +93,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getCaseSensitive', stringlist_getCaseSensitive);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setCaseSensitive', stringlist_setCaseSensitive);
 
-  luaclass_addPropertyToTable(L, metatable, userdata, 'Duplcates', stringlist_getDuplicates, stringlist_setDuplicates);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Duplicates', stringlist_getDuplicates, stringlist_setDuplicates);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Sorted', stringlist_getSorted, stringlist_setSorted);
   luaclass_addPropertyToTable(L, metatable, userdata, 'CaseSensitive', stringlist_getCaseSensitive, stringlist_setCaseSensitive);
 end;

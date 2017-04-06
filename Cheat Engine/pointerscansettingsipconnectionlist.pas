@@ -144,7 +144,7 @@ begin
   if TheOwner is TWinControl then
   begin
     parent:=twincontrol(TheOwner);
-    width:=twincontrol(TheOwner).ClientWidth;
+    //width:=twincontrol(TheOwner).ClientWidth;
 
     bevelouter:=bvNone;
     edtHost:=Tedit.create(self);
@@ -185,7 +185,7 @@ begin
     edtPort.BorderSpacing.Left:=4;
     edtPort.anchors:=[akLeft, akTop];
 
-    clientheight:=edtHost.height+1;
+    autosize:=true;
   end;
 
   visible:=true;
@@ -347,6 +347,10 @@ begin
 
     btnAdd.parent:=self;
     btnRemove.parent:=self;
+
+    btnAdd.autosize:=true;
+    btnRemove.AutoSize:=true;
+
     btnRemove.ClientWidth:=self.Canvas.GetTextWidth(btnRemove.caption)+8;
 
     btnAdd.Width:=btnRemove.Width;
