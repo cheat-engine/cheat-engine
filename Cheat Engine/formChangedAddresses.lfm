@@ -145,5 +145,18 @@ object frmChangedAddresses: TfrmChangedAddresses
       ShortCut = 49219
       OnClick = ChangedlistDblClick
     end
+    object MenuItem2: TMenuItem
+      Caption = '-'
+    end
+    object miDeleteSelectedEntries: TMenuItem
+      Caption = 'Delete selected entries'
+      ShortCut = 46
+      OnClick = miDeleteSelectedEntriesClick
+    end
+    object miResetCount: TMenuItem
+      Caption = 'Reset count'
+      ShortCut = 49234
+      OnClick = miResetCountClick
+    end
   end
 end

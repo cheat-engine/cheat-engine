@@ -2,9 +2,6 @@
 find higher resolution icons
 
 
-structure dissect addresses are too small for high dpi
-add a clear address list to changed addresses
-
 memview: Add spacing option to hexview/memview
 memview: add asembler highlight color override
 memview hexview: Add a header showing details about the selection (bytecount, hex->dec)
