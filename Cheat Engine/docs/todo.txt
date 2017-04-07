@@ -2,9 +2,6 @@
 find higher resolution icons
 
 
-something covering the next scan button
-
-
 foundcodelist: count is too small on high dpi
 ADD TO CODELIST not dpi aware
 what addresses this code accesses: count and address to small

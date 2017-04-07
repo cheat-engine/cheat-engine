@@ -804,7 +804,7 @@ begin
 
   if length(x)>=1 then
   begin
-    foundcodelist.Columns[0].Width:=x[1];
+    foundcodelist.Columns[0].Width:=x[0];
     setcountwidth:=true;
   end;
 end;
