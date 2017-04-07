@@ -1,12 +1,114 @@
 unit LuaSQL;
 
+{
+routines for SQL access
+example script:
+c=createSQLite3Connection()
+c.DatabaseName='e:\\something.sqlite3'
+c.Connected=true
+
+t=createSQLTransaction()
+t.SQLConnection=c
+t.Active=true
+
+tn=c.getTableNames()
+if #tn==0 then
+  print("empty")
+
+  c.ExecuteDirect([[
+    CREATE TABLE something (
+    'id' INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    'processname' char(256) NOT NULL,
+    'rating' INTEGER);
+  ]])
+  tn=c.getTableNames()
+  if #tn==0 then error('no table created') end
+
+end
+
+print("tables:")
+local hassomething=false
+local i
+for i=1,#tn do
+  print(tn[i])
+  if tn[i]=='something' then hassomething=true end
+end
+
+if hassomething then
+  pn=process
+  if (pn==nil) or (p=='nil') then pn='no process'  end
+
+  --check if pn is in the table, if so, increment rating, else add it
+  q=createSQLQuery()
+  q.SQLConnection=c
+  q.SQLTransaction=t
+
+  q.SQL.Text=string.format([[ Select * from something where processname='%s' ]],pn) --not secure, I know, just an example
+  q.Active=true
+
+  if q.RecordCount>0 then
+    print("In the list")
+    fields=q.Fields
+    print("fieldcount="..fields.Count)
+
+    local id=q.FieldByName('id').asInteger
+    print("id="..id)
+
+    local rating=q.FieldByName('rating')
+    print("rating="..rating.asInteger)
+
+    q.Active=false
+    q.StatementType='stUpdate'
+    q.SQL.Text=string.format([[update something set rating=rating+1 where id=%d]], id)
+    q.ExecSQL()
+
+  else
+    print("Not yet in the list")
+    c.ExecuteDirect(string.format([[insert into something(processname,rating) values('%s',1)]],pn))
+  end
+
+  q.Active=false
+
+  q.StatementType='stSelect'
+  q.SQL.Text=[[select * from something]]
+  q.Active=true
+
+  count=1
+  print(string.format("RecordCount=%d", q.RecordCount))
+  while not q.EOF do
+    print("line "..count)
+    local i
+    for i=0, q.Fields.Count-1 do
+      print(string.format("  %s = %s", q.Fields[i].FieldName, q.Fields[i].Value))
+    end
+
+    q.next()
+    count=count+1
+  end
+
+  q.Active=false
+  q.destroy()
+
+else
+  error("something doesn't exist")
+end
+
+t.Commit()
+t.Active=false
+c.Connected=false
+
+t.destroy()
+c.destroy()
+
+}
+
 {$mode delphi}
 
 interface
 
 uses
   Classes, SysUtils, db, sqldb, sqlite3, sqlite3conn, odbcconn, BufDataset,
-  LuaComponent, LuaClass, lua, lualib, lauxlib, typinfo;
+  LuaComponent, LuaClass, luaobject, lua, lualib, lauxlib, typinfo;
 
 procedure initializeLuaSQL;
 
@@ -1316,6 +1418,8 @@ end;
 
 procedure fields_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
+  object_addMetaData(L, metatable, userdata);
+
   luaclass_addPropertyToTable(L, metatable, userdata, 'Count', fields_getCount, nil);
   luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Fields', fields_getFields, fields_setFields);
   luaclass_setDefaultArrayProperty(L, metatable, userdata, fields_getFields, fields_setFields);
@@ -1454,6 +1558,7 @@ initialization
   luaclass_register(TParams, params_addMetaData);
 
   luaclass_register(TField, field_addMetaData);
+  luaclass_register(TFields, fields_addMetaData);
 
 
 

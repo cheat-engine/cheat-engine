@@ -92,30 +92,31 @@ object frmPointerScanner: TfrmPointerScanner
       Left = 1
       Height = 23
       Top = 1
-      Width = 143
+      Width = 123
       Align = alLeft
       BevelOuter = bvNone
       ClientHeight = 23
-      ClientWidth = 143
+      ClientWidth = 123
       TabOrder = 0
       object lblProgressbar1: TLabel
         AnchorSideTop.Side = asrCenter
         Left = 0
         Height = 15
-        Top = 2
+        Top = 3
         Width = 123
+        AutoSize = False
         Caption = 'Generating pointermap'
         ParentColor = False
       end
     end
     object pnlProgressBar: TPanel
-      Left = 144
+      Left = 124
       Height = 23
       Top = 1
-      Width = 604
+      Width = 624
       Align = alClient
       ClientHeight = 23
-      ClientWidth = 604
+      ClientWidth = 624
       TabOrder = 1
       object ProgressBar1: TProgressBar
         AnchorSideLeft.Control = pnlProgressBar
@@ -125,7 +126,7 @@ object frmPointerScanner: TfrmPointerScanner
         Left = 1
         Height = 21
         Top = 1
-        Width = 602
+        Width = 622
         Anchors = [akTop, akLeft, akRight]
         Step = 1
         TabOrder = 0

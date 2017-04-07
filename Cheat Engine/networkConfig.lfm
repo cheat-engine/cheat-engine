@@ -1,11 +1,11 @@
 object frmNetworkConfig: TfrmNetworkConfig
   Left = 329
-  Height = 199
+  Height = 289
   Top = 205
-  Width = 293
+  Width = 442
   Caption = 'Connect to server'
-  ClientHeight = 199
-  ClientWidth = 293
+  ClientHeight = 289
+  ClientWidth = 442
   OnCreate = FormCreate
   OnShow = FormShow
   PopupMode = pmAuto
@@ -13,19 +13,19 @@ object frmNetworkConfig: TfrmNetworkConfig
   LCLVersion = '1.6.0.4'
   object GroupBox1: TGroupBox
     Left = 0
-    Height = 128
+    Height = 218
     Top = 0
-    Width = 293
+    Width = 442
     Align = alClient
     Caption = 'Discovered servers'
-    ClientHeight = 108
-    ClientWidth = 289
+    ClientHeight = 198
+    ClientWidth = 438
     TabOrder = 0
     object ListView1: TListView
       Left = 0
-      Height = 108
+      Height = 198
       Top = 0
-      Width = 289
+      Width = 438
       Align = alClient
       Columns = <      
         item
@@ -48,13 +48,13 @@ object frmNetworkConfig: TfrmNetworkConfig
   object Panel1: TPanel
     Left = 0
     Height = 71
-    Top = 128
-    Width = 293
+    Top = 218
+    Width = 442
     Align = alBottom
     AutoSize = True
     BevelOuter = bvNone
     ClientHeight = 71
-    ClientWidth = 293
+    ClientWidth = 442
     TabOrder = 1
     object edtHost: TEdit
       AnchorSideLeft.Control = Label1
@@ -69,9 +69,10 @@ object frmNetworkConfig: TfrmNetworkConfig
     object edtPort: TEdit
       AnchorSideLeft.Control = edtHost
       AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = edtHost
       Left = 230
       Height = 23
-      Top = 16
+      Top = 15
       Width = 48
       BorderSpacing.Left = 6
       TabOrder = 1
@@ -90,10 +91,13 @@ object frmNetworkConfig: TfrmNetworkConfig
     end
     object Label2: TLabel
       AnchorSideLeft.Control = edtPort
+      AnchorSideTop.Control = edtPort
+      AnchorSideBottom.Control = edtPort
       Left = 230
       Height = 15
       Top = 0
       Width = 22
+      Anchors = [akLeft, akBottom]
       Caption = 'Port'
       ParentColor = False
     end
@@ -102,7 +106,7 @@ object frmNetworkConfig: TfrmNetworkConfig
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Control = edtHost
       AnchorSideTop.Side = asrBottom
-      Left = 68
+      Left = 143
       Height = 25
       Top = 42
       Width = 157
@@ -120,7 +124,9 @@ object frmNetworkConfig: TfrmNetworkConfig
         Height = 25
         Top = 0
         Width = 75
+        AutoSize = True
         Caption = 'Connect'
+        Constraints.MinHeight = 25
         Constraints.MinWidth = 75
         Default = True
         OnClick = btnConnectClick
@@ -134,9 +140,11 @@ object frmNetworkConfig: TfrmNetworkConfig
         Height = 25
         Top = 0
         Width = 75
+        AutoSize = True
         BorderSpacing.Left = 7
         Cancel = True
         Caption = 'Cancel'
+        Constraints.MinHeight = 25
         Constraints.MinWidth = 75
         ModalResult = 2
         TabOrder = 1
