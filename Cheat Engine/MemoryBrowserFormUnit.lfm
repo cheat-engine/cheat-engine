@@ -13,7 +13,6 @@ object MemoryBrowser: TMemoryBrowser
   OnDestroy = FormDestroy
   OnResize = FormResize
   OnShow = FormShow
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object Splitter1: TSplitter

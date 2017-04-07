@@ -2,7 +2,6 @@
 find higher resolution icons
 
 
-what addresses this code accesses: count and address to small
 structure dissect addresses are too small for high dpi
 add a clear address list to changed addresses
 

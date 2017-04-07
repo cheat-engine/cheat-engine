@@ -60,6 +60,7 @@ type
     procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
+    hassetsizes: boolean;
     addresslist: TMap;
     faddress: ptruint;
     procedure refetchValues(specificaddress: ptruint=0);
@@ -398,6 +399,16 @@ end;
 procedure TfrmChangedAddresses.FormShow(Sender: TObject);
 begin
   OKButton.Caption:=rsStop;
+
+  if not hassetsizes then
+  begin
+    changedlist.Column[0].Width:=max(changedlist.Column[0].Width, canvas.TextWidth('DDDDDDDDFFFFF'));
+    changedlist.Column[1].Width:=max(changedlist.Column[1].Width, canvas.TextWidth('9999999.999'));
+    changedlist.Column[2].Width:=max(changedlist.Column[2].Width, canvas.TextWidth('999999'));
+
+    ClientWidth:=max(clientwidth, changedlist.Column[0].Width+changedlist.Column[1].Width+changedlist.Column[2].Width+20);
+    hassetsizes:=true;
+  end;
 end;
 
 procedure TfrmChangedAddresses.ChangedlistDblClick(Sender: TObject);
@@ -540,7 +551,7 @@ begin
     debuggerthread.FindWhatCodeAccessesStop(self);
 
 
-  saveformposition(self,[]);
+  saveformposition(self,[changedlist.Column[0].Width,changedlist.Column[1].Width,changedlist.Column[2].Width]);
   if addresslist<>nil then
     addresslist.Free;
 end;
@@ -552,7 +563,17 @@ begin
   okbutton.caption:=rsStop;
 
   setlength(x, 0);
-  loadformposition(self,x);
+  if loadformposition(self,x) then
+  begin
+    if length(x)>0 then
+    begin
+      changedlist.Column[0].Width:=x[0];
+      changedlist.Column[1].Width:=x[1];
+      changedlist.Column[2].Width:=x[2];
+      hassetsizes:=true;
+    end;
+
+  end;
 
   //fill in the custom types
   for i:=0 to customTypes.count-1 do
