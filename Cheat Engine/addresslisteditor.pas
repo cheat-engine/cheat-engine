@@ -183,6 +183,7 @@ begin
   self.text:=memrec.Value;
 
 
+  self.font:=owner.Font;
   self.Font.Color:=clred;
 
   updateposition(left);

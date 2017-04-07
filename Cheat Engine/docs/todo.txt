@@ -12,7 +12,6 @@ break and trace: Search upwards
 taborder from start->stop is wrong
 something covering the next scan button
 
-value edit (enter) shows in low size
 
 foundcodelist: count is too small on high dpi
 ADD TO CODELIST not dpi aware
