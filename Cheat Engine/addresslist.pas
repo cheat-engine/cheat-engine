@@ -812,8 +812,7 @@ begin
     vtCodePageString:
     begin
       memrec.vartype:=vtString;
-      memrec.extra.stringData.unicode:=false;
-      memrec.extra.stringData.codepage:=false;
+      memrec.extra.stringData.codepage:=true;
       memrec.Extra.stringData.length:=length;
     end;
 
@@ -2067,13 +2066,21 @@ begin
         //type
         case memrec.vartype of
           vtCustom: sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, memrec.CustomTypeName);
-          vtString: sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, VariableTypeToString(memrec.VarType)+'['+inttostr(memrec.Extra.stringData.length)+']');
+          vtString:
+          begin
+            if not (memrec.Extra.stringData.unicode or memrec.Extra.stringData.codepage) then
+              sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, VariableTypeToTranslatedString(memrec.VarType)+'['+inttostr(memrec.Extra.stringData.length)+']')
+            else if memrec.Extra.stringData.unicode then
+              sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, VariableTypeToTranslatedString(vtUnicodeString)+'['+inttostr(memrec.Extra.stringData.length)+']')
+            else
+              sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, VariableTypeToTranslatedString(vtCodePageString)+'['+inttostr(memrec.Extra.stringData.length)+']');
+          end;
           vtBinary:
           begin
             if memrec.Extra.bitData.bitlength=0 then
-              sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, VariableTypeToString(memrec.VarType)+':'+inttostr(memrec.Extra.bitData.Bit)+'->idiot')
+              sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, VariableTypeToTranslatedString(memrec.VarType)+':'+inttostr(memrec.Extra.bitData.Bit)+'->idiot')
             else
-              sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, VariableTypeToString(memrec.VarType)+':'+inttostr(memrec.Extra.bitData.Bit)+'->'+inttostr(memrec.Extra.bitData.Bit+memrec.Extra.bitData.bitlength-1));
+              sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, VariableTypeToTranslatedString(memrec.VarType)+':'+inttostr(memrec.Extra.bitData.Bit)+'->'+inttostr(memrec.Extra.bitData.Bit+memrec.Extra.bitData.bitlength-1));
           end
           else
           begin

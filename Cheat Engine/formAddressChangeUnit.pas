@@ -1133,16 +1133,7 @@ begin
     4: result:=vtQword;
     5: result:=vtSingle;
     6: result:=vtDouble;
-    7:
-    begin
-      if cbunicode.checked then
-        result:=vtUnicodeString
-      else
-      if cbCodePage.checked then
-        result:=vtCodePageString
-      else
-        result:=vtString;
-    end;
+    7: result:=vtString;
     8: result:=vtByteArray;
     else
       result:=vtCustom;
