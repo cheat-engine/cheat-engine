@@ -1994,6 +1994,7 @@ object MainForm: TMainForm
     end
     object miChangeValue: TMenuItem
       Caption = 'Change value of selected addresses'
+      ShortCut = 16453
       OnClick = miChangeValueClick
     end
     object Browsethismemoryarrea1: TMenuItem

@@ -1,12 +1,5 @@
-generating pointmap looks like "generating P"
-pointerscan network fields are not dpi fixed
 
-lua:add database access for who knows why
-lua:add a stacktrace override
-
-
-foundlist3: add a shortcut to change value
-
+find higher resolution icons
 
 
 
@@ -14,7 +7,6 @@ replace: selection only
 
 break and trace: Search upwards
 
-ceshare: continue with it
 
 
 taborder from start->stop is wrong
@@ -50,3 +42,7 @@ string map: Free the current list when shown takes a long time (I think it updat
 
 linux: make a 32-bit linux build with .so injection support
 memscan: Don't combine the scanresults into a single file. Leave them split up (skip: for 6.7 or 7.0)
+ceshare: continue with it
+
+
+autosize pnlgroups in structure dissect
