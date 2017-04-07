@@ -2,8 +2,6 @@
 find higher resolution icons
 
 
-
-taborder from start->stop is wrong
 something covering the next scan button
 
 

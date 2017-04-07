@@ -616,10 +616,8 @@ begin
   if (frWholeWord in ReplaceDialog1.Options) then
     so:=so+[ssoWholeWord];
 
-{  if assemblescreen.SelAvail then
-    so:=so+[ssoSelectedOnly];   }
-
-
+  if assemblescreen.SelAvail then
+    so:=so+[ssoSelectedOnly];
 
   assemblescreen.SearchReplace(ReplaceDialog1.FindText,ReplaceDialog1.ReplaceText,so);
 end;

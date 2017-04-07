@@ -900,7 +900,7 @@ object frmLuaEngine: TfrmLuaEngine
   end
   object dlgReplace: TReplaceDialog
     Width = 480
-    Height = 184
+    Height = 385
     Options = [frDown, frReplaceAll]
     OnFind = dlgReplaceFind
     OnReplace = dlgReplaceReplace

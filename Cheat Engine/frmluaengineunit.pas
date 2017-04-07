@@ -973,8 +973,8 @@ begin
   if (frWholeWord in dlgReplace.Options) then
     so:=so+[ssoWholeWord];
 
-{  if mscript.SelAvail and not (ssoFindContinue in so) then
-    so:=so+[ssoSelectedOnly];}
+  if mscript.SelAvail then
+    so:=so+[ssoSelectedOnly];
 
 
   mscript.SearchReplace(dlgReplace.FindText,dlgReplace.ReplaceText,so);
