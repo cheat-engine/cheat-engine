@@ -2644,6 +2644,7 @@ begin
     vtDouble: Result:=rs_vtDouble;
     vtString: Result:=rs_vtString;
     vtUnicodeString: Result:=rs_vtUnicodeString;
+    vtCodePageString: Result:=rs_vtCodePageString;
     vtPointer: result:=rs_vtPointer;
     vtAutoAssembler: Result:=rs_vtAutoAssembler;
     vtCustom: Result:=rs_vtCustom;
