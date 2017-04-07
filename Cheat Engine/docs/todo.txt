@@ -2,8 +2,6 @@
 find higher resolution icons
 
 
-foundcodelist: count is too small on high dpi
-ADD TO CODELIST not dpi aware
 what addresses this code accesses: count and address to small
 structure dissect addresses are too small for high dpi
 add a clear address list to changed addresses
@@ -32,5 +30,3 @@ linux: make a 32-bit linux build with .so injection support
 memscan: Don't combine the scanresults into a single file. Leave them split up (skip: for 6.7 or 7.0)
 ceshare: continue with it
 
-
-autosize pnlgroups in structure dissect

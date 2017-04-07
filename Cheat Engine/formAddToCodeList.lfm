@@ -1,13 +1,13 @@
 object frmAddToCodeList: TfrmAddToCodeList
   Left = 763
-  Height = 76
+  Height = 90
   Top = 378
   Width = 209
   AutoSize = True
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Region to add'
-  ClientHeight = 76
+  ClientHeight = 90
   ClientWidth = 209
   OnClose = FormClose
   OnCreate = FormCreate
@@ -53,6 +53,7 @@ object frmAddToCodeList: TfrmAddToCodeList
     BorderSpacing.Left = 2
     BorderSpacing.Top = 4
     BorderSpacing.Right = 2
+    Constraints.MinWidth = 175
     TabOrder = 0
     Text = 'DDDDDDDD'
   end
@@ -61,28 +62,35 @@ object frmAddToCodeList: TfrmAddToCodeList
     AnchorSideTop.Side = asrBottom
     Left = 8
     Height = 25
-    Top = 52
+    Top = 55
     Width = 75
+    AutoSize = True
     BorderSpacing.Left = 2
-    BorderSpacing.Top = 2
-    BorderSpacing.Bottom = 2
+    BorderSpacing.Top = 5
+    BorderSpacing.Bottom = 3
     Caption = 'OK'
+    Constraints.MinHeight = 25
+    Constraints.MinWidth = 75
     Default = True
     OnClick = Button1Click
     TabOrder = 2
   end
   object Button2: TButton
-    AnchorSideTop.Control = Edit2
-    AnchorSideTop.Side = asrBottom
-    Left = 88
+    AnchorSideLeft.Control = Button1
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Button1
+    Left = 87
     Height = 25
-    Top = 52
+    Top = 55
     Width = 75
-    BorderSpacing.Top = 2
+    AutoSize = True
+    BorderSpacing.Left = 4
     BorderSpacing.Right = 2
-    BorderSpacing.Bottom = 2
+    BorderSpacing.Bottom = 3
     Cancel = True
     Caption = 'Cancel'
+    Constraints.MinHeight = 25
+    Constraints.MinWidth = 75
     ModalResult = 2
     TabOrder = 3
   end
@@ -97,6 +105,7 @@ object frmAddToCodeList: TfrmAddToCodeList
     Top = 27
     Width = 175
     Anchors = [akTop, akLeft, akRight]
+    Constraints.MinWidth = 175
     TabOrder = 1
     Text = 'FFFFFFFF'
   end
