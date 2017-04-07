@@ -1,11 +1,11 @@
 object frmTracer: TfrmTracer
-  Left = 671
-  Height = 430
-  Top = 232
+  Left = 1034
+  Height = 433
+  Top = 343
   Width = 439
   BorderIcons = [biSystemMenu]
   Caption = 'Tracer'
-  ClientHeight = 410
+  ClientHeight = 413
   ClientWidth = 439
   Menu = MainMenu1
   OnClose = FormClose
@@ -17,7 +17,7 @@ object frmTracer: TfrmTracer
   LCLVersion = '1.6.0.4'
   object Splitter1: TSplitter
     Left = 208
-    Height = 410
+    Height = 413
     Top = 0
     Width = 4
     Align = alRight
@@ -25,12 +25,12 @@ object frmTracer: TfrmTracer
   end
   object Panel1: TPanel
     Left = 212
-    Height = 410
+    Height = 413
     Top = 0
     Width = 227
     Align = alRight
     BevelOuter = bvNone
-    ClientHeight = 410
+    ClientHeight = 413
     ClientWidth = 227
     Font.Height = -13
     Font.Name = 'Courier New'
@@ -45,7 +45,7 @@ object frmTracer: TfrmTracer
       AnchorSideBottom.Side = asrBottom
       Left = 76
       Height = 25
-      Top = 382
+      Top = 385
       Width = 75
       Anchors = [akLeft, akBottom]
       AutoSize = True
@@ -367,7 +367,7 @@ object frmTracer: TfrmTracer
       AnchorSideRight.Side = asrBottom
       Left = 195
       Height = 38
-      Top = 186
+      Top = 188
       Width = 32
       Anchors = [akRight]
       AutoSize = True
@@ -417,19 +417,19 @@ object frmTracer: TfrmTracer
   end
   object Panel2: TPanel
     Left = 0
-    Height = 410
+    Height = 413
     Top = 0
     Width = 208
     Align = alClient
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 410
+    ClientHeight = 413
     ClientWidth = 208
     TabOrder = 2
     object pnlSearch: TPanel
       Left = 0
       Height = 48
-      Top = 362
+      Top = 365
       Width = 208
       Align = alBottom
       AutoSize = True
@@ -485,7 +485,7 @@ object frmTracer: TfrmTracer
     end
     object lvTracer: TTreeView
       Left = 0
-      Height = 362
+      Height = 365
       Top = 0
       Width = 208
       Align = alClient
@@ -563,5 +563,13 @@ object frmTracer: TfrmTracer
     Filter = 'CE Trace (*.cetrace)|*.cetrace|All file (*.*)|*.*'
     left = 72
     top = 248
+  end
+  object FindDialog1: TFindDialog
+    Width = 619
+    Height = 136
+    Title = 'Type the (LUA) condition you want to search for (Example: EAX==0x1234)'
+    Options = [frDown, frHideMatchCase, frHideWholeWord, frHideEntireScope, frHidePromptOnReplace]
+    left = 70
+    top = 16
   end
 end

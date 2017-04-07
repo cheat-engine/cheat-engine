@@ -3,12 +3,6 @@ find higher resolution icons
 
 
 
-replace: selection only
-
-break and trace: Search upwards
-
-
-
 taborder from start->stop is wrong
 something covering the next scan button
 
