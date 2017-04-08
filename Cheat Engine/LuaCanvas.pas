@@ -478,7 +478,9 @@ begin
 end;
 
 procedure initializeLuaCanvas;
+var luavm: plua_state;
 begin
+  luavm:=GetLuaState;
   lua_register(LuaVM, 'canvas_getBrush', canvas_getBrush);
   lua_register(LuaVM, 'canvas_getPen', canvas_getPen);
   lua_register(LuaVM, 'canvas_getFont', canvas_getFont);

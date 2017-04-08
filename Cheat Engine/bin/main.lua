@@ -2444,6 +2444,7 @@ unregisterGlobalDisassembleOverride(id)
 properties
   LastDisassembleData : Table
   OnDisassembleOverride: function(sender: Disassembler, address: integer, LastDisassembleData: Table): opcode, description
+  OnPostDisassemble: function(sender: Disassembler, address: integer, LastDisassembleData: Table, result: string, description: string): result, string
   syntaxhighlighting: boolean : This property is set if the syntax highlighting codes are accepted or not
 
 Methods

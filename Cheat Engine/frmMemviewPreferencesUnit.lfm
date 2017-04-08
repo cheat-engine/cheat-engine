@@ -1,11 +1,11 @@
 object frmMemviewPreferences: TfrmMemviewPreferences
   Left = 514
-  Height = 269
+  Height = 339
   Top = 198
   Width = 392
   AutoSize = True
   Caption = 'Disassembler Preferences'
-  ClientHeight = 269
+  ClientHeight = 339
   ClientWidth = 392
   OnCreate = FormCreate
   OnShow = FormShow
@@ -128,8 +128,9 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     AnchorSideTop.Side = asrBottom
     Left = 8
     Height = 25
-    Top = 216
+    Top = 288
     Width = 75
+    Anchors = [akLeft]
     AutoSize = True
     BorderSpacing.Top = 3
     BorderSpacing.Bottom = 4
@@ -145,7 +146,7 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     AnchorSideTop.Control = Button2
     Left = 87
     Height = 25
-    Top = 216
+    Top = 288
     Width = 75
     AutoSize = True
     BorderSpacing.Left = 4

@@ -192,37 +192,31 @@ begin
 {$ifndef unix}
   l:=LuaVM;
 
-  LuaCS.Enter;
-  try
-    if lua_valuetobytesfunctionid=-1 then
-    begin
-      lua_getglobal(LuaVM, pchar(lua_valuetobytes));
-      lua_valuetobytesfunctionid:=luaL_ref(LuaVM,LUA_REGISTRYINDEX);
-    end;
-    lua_rawgeti(Luavm, LUA_REGISTRYINDEX, lua_valuetobytesfunctionid);
-
-    lua_pushinteger(L, i);
-    lua_pushinteger(L, address);
-    if lua_pcall(l,2,bytesize,0)=0 then
-    begin
-      r:=lua_gettop(L);
-      if r>0 then
-      begin
-        b:=0;
-        for c:=-r to -1 do
-        begin
-          output[b]:=lua_tointeger(L, c);
-          inc(b);
-        end;
-
-        lua_pop(L,r);
-      end;
-    end;
-
-
-  finally
-    LuaCS.Leave;
+  if lua_valuetobytesfunctionid=-1 then
+  begin
+    lua_getglobal(LuaVM, pchar(lua_valuetobytes));
+    lua_valuetobytesfunctionid:=luaL_ref(LuaVM,LUA_REGISTRYINDEX);
   end;
+  lua_rawgeti(Luavm, LUA_REGISTRYINDEX, lua_valuetobytesfunctionid);
+
+  lua_pushinteger(L, i);
+  lua_pushinteger(L, address);
+  if lua_pcall(l,2,bytesize,0)=0 then
+  begin
+    r:=lua_gettop(L);
+    if r>0 then
+    begin
+      b:=0;
+      for c:=-r to -1 do
+      begin
+        output[b]:=lua_tointeger(L, c);
+        inc(b);
+      end;
+
+      lua_pop(L,r);
+    end;
+  end;
+
 {$endif}
 
 end;
@@ -260,8 +254,7 @@ begin
   {$IFNDEF UNIX}
   l:=LuaVM;
 
-  LuaCS.Enter;
-  try
+
     result:=0;
 
     if lua_bytestovaluefunctionid=-1 then
@@ -293,9 +286,7 @@ begin
     result:=lua_tointeger(L, -1);
 
     lua_pop(L,lua_gettop(l));
-  finally
-    LuaCS.Leave;
-  end;
+
   {$ENDIF}
 
 end;
@@ -341,14 +332,12 @@ begin
   {$IFNDEF UNIX}
   l:=LuaVM;
 
-  LuaCS.Enter;
-  try
     if lua_valuetobytesfunctionid=-1 then
     begin
-      lua_getglobal(LuaVM, pchar(lua_valuetobytes));
+      lua_getglobal(L, pchar(lua_valuetobytes));
       lua_valuetobytesfunctionid:=luaL_ref(LuaVM,LUA_REGISTRYINDEX);
     end;
-    lua_rawgeti(Luavm, LUA_REGISTRYINDEX, lua_valuetobytesfunctionid);
+    lua_rawgeti(L, LUA_REGISTRYINDEX, lua_valuetobytesfunctionid);
 
     lua_pushnumber(L, f);
     lua_pushinteger(L, address);
@@ -369,9 +358,6 @@ begin
     end;
 
 
-  finally
-    LuaCS.Leave;
-  end;
   {$ENDIF}
 end;
 
@@ -409,30 +395,27 @@ begin
   {$IFNDEF UNIX}
   l:=LuaVM;
 
-  LuaCS.Enter;
-  try
+
     if lua_bytestovaluefunctionid=-1 then
     begin
-      lua_getglobal(LuaVM, pchar(lua_bytestovalue));
-      lua_bytestovaluefunctionid:=luaL_ref(LuaVM,LUA_REGISTRYINDEX);
+      lua_getglobal(L, pchar(lua_bytestovalue));
+      lua_bytestovaluefunctionid:=luaL_ref(L,LUA_REGISTRYINDEX);
     end;
 
 
-    lua_rawgeti(Luavm, LUA_REGISTRYINDEX, lua_bytestovaluefunctionid);
+    lua_rawgeti(L, LUA_REGISTRYINDEX, lua_bytestovaluefunctionid);
 
 
     for i:=0 to bytesize-1 do
       lua_pushinteger(L,data[i]);
 
-    lua_pushinteger(Luavm, address);
+    lua_pushinteger(L, address);
 
     lua_call(L, bytesize+1,1);
     result:=lua_tonumber(L, -1);
 
     lua_pop(L,lua_gettop(l));
-  finally
-    LuaCS.Leave;
-  end;
+
   {$ENDIF}
 
 end;

@@ -345,9 +345,8 @@ end;
 procedure TLuaCaller.SelectionChangeEvent(Sender: TObject; User: boolean);
 var oldstack: integer;
 begin
-  Luacs.Enter;
+  oldstack:=lua_gettop(Luavm);
   try
-    oldstack:=lua_gettop(Luavm);
 
     if canRun then
     begin
@@ -360,7 +359,6 @@ begin
     end;
   finally
     lua_settop(Luavm, oldstack);
-    luacs.leave;
   end;
 end;
 
@@ -389,22 +387,23 @@ procedure TLuaCaller.CloseEvent(Sender: TObject; var CloseAction: TCloseAction);
 var
   oldstack: integer;
   ca: integer;
+  l: Plua_state;
 begin
-  Luacs.Enter;
-  try
-    oldstack:=lua_gettop(Luavm);
+  L:=GetLuaState;
+  oldstack:=lua_gettop(L);
 
+  try
     if canRun then
     begin
       PushFunction;
-      luaclass_newClass(Luavm, sender);
+      luaclass_newClass(L, sender);
 
 
-      if lua_pcall(Luavm, 1,1,0)=0 then //procedure(sender)  lua_pcall returns 0 if success
+      if lua_pcall(L, 1,1,0)=0 then //procedure(sender)  lua_pcall returns 0 if success
       begin
-        if lua_gettop(Luavm)>0 then
+        if lua_gettop(L)>0 then
         begin
-          ca:=lua_tointeger(LuaVM,-1);
+          ca:=lua_tointeger(L,-1);
           CloseAction:=TCloseAction(ca);
         end;
       end
@@ -417,62 +416,62 @@ begin
     end
     else closeaction:=caHide;
   finally
-    lua_settop(Luavm, oldstack);
-    luacs.leave;
+    lua_settop(L, oldstack);
   end;
 end;
 
 procedure TLuaCaller.CloseQueryEvent(Sender: TObject; var CanClose: boolean);
 var
   oldstack: integer;
+  L: Plua_State;
 begin
-  Luacs.Enter;
-  try
-    oldstack:=lua_gettop(Luavm);
+  L:=GetLuaState;
+  oldstack:=lua_gettop(L);
 
+  try
     if canRun then
     begin
       PushFunction;
-      luaclass_newClass(Luavm, sender);
+      luaclass_newClass(L, sender);
 
 
-      if lua_pcall(Luavm, 1,1,0)=0 then
+      if lua_pcall(L, 1,1,0)=0 then
       begin
-        if lua_gettop(Luavm)>0 then
-          canclose:=lua_toboolean(LuaVM,-1);
+        if lua_gettop(L)>0 then
+          canclose:=lua_toboolean(L,-1);
       end;
     end;
   finally
-    lua_settop(Luavm, oldstack);
-    luacs.leave;
+    lua_settop(L, oldstack);
   end;
 end;
 
 function TLuaCaller.MemoryRecordActivateEvent(sender: tobject; before, currentstate: boolean): boolean;
-var oldstack: integer;
+var
+  oldstack: integer;
+  l: Plua_State;
 begin
   result:=true;
-  Luacs.Enter;
-  try
-    oldstack:=lua_gettop(Luavm);
+  l:=GetLuaState;
+  oldstack:=lua_gettop(L);
 
+  try
     if canRun then
     begin
       PushFunction;
-      luaclass_newClass(Luavm, sender);
-      lua_pushboolean(luavm, before);
-      lua_pushboolean(luavm, currentstate);
+      luaclass_newClass(L, sender);
+      lua_pushboolean(L, before);
+      lua_pushboolean(L, currentstate);
 
 
-      lua_pcall(Luavm, 3,1,0); //function(sender, before, currentstate):boolean
+      lua_pcall(L, 3,1,0); //function(sender, before, currentstate):boolean
 
-      if lua_gettop(Luavm)>0 then
-        result:=lua_toboolean(LuaVM,-1);
+      if lua_gettop(L)>0 then
+        result:=lua_toboolean(L,-1);
 
     end;
   finally
-    lua_settop(Luavm, oldstack);
-    luacs.leave;
+    lua_settop(L, oldstack);
   end;
 end;
 
@@ -480,9 +479,9 @@ function TLuaCaller.DisassemblerExtraLineRender(sender: TObject; Address: ptruin
 var oldstack: integer;
 begin
   result:=nil;
-  Luacs.Enter;
+  oldstack:=lua_gettop(Luavm);
+
   try
-    oldstack:=lua_gettop(Luavm);
 
     if canrun then
     begin
@@ -504,16 +503,15 @@ begin
     end;
   finally
     lua_settop(Luavm, oldstack);
-    luacs.leave;
   end;
 end;
 
 procedure TLuaCaller.DisassemblerSelectionChangeEvent(sender: tobject; address, address2: ptruint);
 var oldstack: integer;
 begin
-  Luacs.Enter;
+  oldstack:=lua_gettop(Luavm);
+
   try
-    oldstack:=lua_gettop(Luavm);
 
     if canRun then
     begin
@@ -527,16 +525,15 @@ begin
     end;
   finally
     lua_settop(Luavm, oldstack);
-    luacs.leave;
   end;
 end;
 
 procedure TLuaCaller.ByteSelectEvent(sender: TObject; address: ptruint; address2: ptruint);
 var oldstack: integer;
 begin
-  Luacs.Enter;
+  oldstack:=lua_gettop(Luavm);
+
   try
-    oldstack:=lua_gettop(Luavm);
 
     if canRun then
     begin
@@ -549,7 +546,6 @@ begin
     end;
   finally
     lua_settop(Luavm, oldstack);
-    luacs.leave;
   end;
 end;
 
@@ -557,9 +553,9 @@ function TLuaCaller.D3DKeyDownEvent(VirtualKey: dword; char: pchar): boolean;
 var oldstack: integer;
 begin
   result:=true;
-  Luacs.Enter;
+  oldstack:=lua_gettop(Luavm);
+
   try
-    oldstack:=lua_gettop(Luavm);
 
     if canRun then
     begin
@@ -571,16 +567,15 @@ begin
     end;
   finally
     lua_settop(Luavm, oldstack);
-    luacs.leave;
   end;
 end;
 
 procedure TLuaCaller.D3DClickEvent(renderobject: TObject; x,y: integer);
 var oldstack: integer;
 begin
-  Luacs.Enter;
+  oldstack:=lua_gettop(Luavm);
+
   try
-    oldstack:=lua_gettop(Luavm);
 
     if canRun then
     begin
@@ -592,16 +587,15 @@ begin
     end;
   finally
     lua_settop(Luavm, oldstack);
-    luacs.leave;
   end;
 end;
 
 procedure TLuaCaller.AddressChangeEvent(sender: TObject; address: ptruint);
 var oldstack: integer;
 begin
-  Luacs.Enter;
+  oldstack:=lua_gettop(Luavm);
+
   try
-    oldstack:=lua_gettop(Luavm);
 
     if canRun then
     begin
@@ -613,7 +607,6 @@ begin
     end;
   finally
     lua_settop(Luavm, oldstack);
-    luacs.leave;
   end;
 end;
 
@@ -623,9 +616,9 @@ var
   i: integer;
   t: integer;
 begin
-  Luacs.Enter;
+  oldstack:=lua_gettop(Luavm);
+
   try
-    oldstack:=lua_gettop(Luavm);
 
     if canRun then
     begin
@@ -646,7 +639,6 @@ begin
     end;
   finally
     lua_settop(Luavm, oldstack);
-    luacs.leave;
   end;
 end;
 
@@ -654,9 +646,9 @@ end;
 function TLuaCaller.AutoGuessEvent(address: ptruint; originalVariableType: TVariableType): TVariableType;
 var oldstack: integer;
 begin
-  Luacs.enter;
+  oldstack:=lua_gettop(Luavm);
+
   try
-    oldstack:=lua_gettop(Luavm);
 
     PushFunction;
     lua_pushinteger(luavm, address);
@@ -665,22 +657,17 @@ begin
       result:=TVariableType(lua_tointeger(LuaVM,-1))
     else
       result:=originalVariableType;
-
-
-
-
   finally
     lua_settop(Luavm, oldstack);
-    luacs.leave;
   end;
 end;
 
 procedure TLuaCaller.MouseWheelUpDownEvent(Sender: TObject; Shift: TShiftState; MousePos: TPoint; var h: Boolean);
 var oldstack: integer;
 begin
-  Luacs.enter;
+  oldstack:=lua_gettop(Luavm);
+
   try
-    oldstack:=lua_gettop(Luavm);
     pushFunction;
     luaclass_newClass(luavm, sender);
     lua_pushinteger(luavm, MousePos.x);
@@ -692,16 +679,15 @@ begin
 
   finally
     lua_settop(Luavm, oldstack);
-    luacs.leave;
   end;
 end;
 
 procedure TLuaCaller.MouseMoveEvent(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 var oldstack: integer;
 begin
-  Luacs.enter;
+  oldstack:=lua_gettop(Luavm);
+
   try
-    oldstack:=lua_gettop(Luavm);
     pushFunction;
     luaclass_newClass(luavm, sender);
     lua_pushinteger(luavm, x);
@@ -710,16 +696,15 @@ begin
     lua_pcall(LuaVM, 3, 0, 0);
   finally
     lua_settop(Luavm, oldstack);
-    luacs.leave;
   end;
 end;
 
 procedure TLuaCaller.MouseEvent(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var oldstack: integer;
 begin
-  Luacs.enter;
+  oldstack:=lua_gettop(Luavm);
+
   try
-    oldstack:=lua_gettop(Luavm);
     pushFunction;
     luaclass_newClass(luavm, sender);
     lua_pushinteger(luavm, integer(Button));
@@ -729,7 +714,6 @@ begin
     lua_pcall(LuaVM, 4, 0, 0);
   finally
     lua_settop(Luavm, oldstack);
-    luacs.leave;
   end;
 end;
 
@@ -737,9 +721,9 @@ procedure TLuaCaller.KeyPressEvent(Sender: TObject; var Key: char);
 var oldstack: integer;
   s: string;
 begin
-  Luacs.enter;
+  oldstack:=lua_gettop(Luavm);
+
   try
-    oldstack:=lua_gettop(Luavm);
     pushFunction;
     luaclass_newClass(luavm, sender);
     lua_pushstring(luavm, key);
@@ -761,16 +745,15 @@ begin
     end;
   finally
     lua_settop(Luavm, oldstack);
-    luacs.leave;
   end;
 end;
 
 procedure TLuaCaller.KeyEvent(Sender: TObject; var Key: Word; Shift: TShiftState);
 var oldstack: integer;
 begin
-  Luacs.enter;
+  oldstack:=lua_gettop(Luavm);
+
   try
-    oldstack:=lua_gettop(Luavm);
     pushFunction;
     luaclass_newClass(luavm, sender);
     lua_pushinteger(luavm, key);
@@ -781,16 +764,15 @@ begin
     end;
   finally
     lua_settop(Luavm, oldstack);
-    luacs.leave;
   end;
 end;
 
 procedure TLuaCaller.TreeViewExpandOrCloseEvent(Sender: TObject; Node: TTreeNode; var Allow: Boolean);
 var oldstack: integer;
 begin
-  Luacs.enter;
+  oldstack:=lua_gettop(Luavm);
+
   try
-    oldstack:=lua_gettop(Luavm);
     pushFunction;
     luaclass_newClass(luavm, sender);
     luaclass_newClass(luavm, node);
@@ -801,23 +783,21 @@ begin
     end;
   finally
     lua_settop(Luavm, oldstack);
-    luacs.leave;
   end;
 end;
 
 procedure TLuaCaller.LVCheckedItemEvent(Sender: TObject; Item: TListItem);
 var oldstack: integer;
 begin
-  Luacs.enter;
+  oldstack:=lua_gettop(Luavm);
+
   try
-    oldstack:=lua_gettop(Luavm);
     pushFunction;
     luaclass_newClass(luavm, sender);
     luaclass_newClass(luavm, item);
     lua_pcall(LuaVM, 2, 0, 0);
   finally
     lua_settop(Luavm, oldstack);
-    luacs.leave;
   end
 end;
 
@@ -825,25 +805,24 @@ end;
 procedure TLuaCaller.LVColumnClickEvent(Sender: TObject; c: TListColumn);
 var oldstack: integer;
 begin
-  Luacs.enter;
+  oldstack:=lua_gettop(Luavm);
+
   try
-    oldstack:=lua_gettop(Luavm);
     pushFunction;
     luaclass_newClass(luavm, sender);
     luaclass_newClass(luavm, c);
     lua_pcall(LuaVM, 2, 0, 0);
   finally
     lua_settop(Luavm, oldstack);
-    luacs.leave;
   end
 end;
 
 procedure TLuaCaller.LVSelectItemEvent(Sender: TObject; Item: TListItem; selected: boolean);
 var oldstack: integer;
 begin
-  Luacs.enter;
+  oldstack:=lua_gettop(Luavm);
+
   try
-    oldstack:=lua_gettop(Luavm);
     pushFunction;
     luaclass_newClass(luavm, sender);
     luaclass_newClass(luavm, item);
@@ -851,16 +830,15 @@ begin
     lua_pcall(LuaVM, 3, 0, 0);
   finally
     lua_settop(Luavm, oldstack);
-    luacs.leave;
   end;
 end;
 
 procedure TLuaCaller.LVCompareEvent(Sender: TObject; Item1, Item2: TListItem; Data: Integer; var Compare: Integer);
 var oldstack: integer;
 begin
-  Luacs.enter;
+  oldstack:=lua_gettop(Luavm);
+
   try
-    oldstack:=lua_gettop(Luavm);
     pushFunction;
     luaclass_newClass(luavm, sender);
     luaclass_newClass(luavm, item1);
@@ -870,7 +848,6 @@ begin
       compare:=lua_tointeger(luavm,-1);
   finally
     lua_settop(Luavm, oldstack);
-    luacs.leave;
   end;
 end;
 
@@ -962,73 +939,84 @@ end;
 
 
 procedure TLuaCaller.CanResizeEvent(Sender: TObject; var NewSize: Integer; var Accept: Boolean);
-var oldstack: integer;
+var
+  oldstack: integer;
+  l: Plua_State;
 begin
-  Luacs.enter;
   try
-    oldstack:=lua_gettop(Luavm);
+    l:=GetLuaState;
+    oldstack:=lua_gettop(L);
     pushFunction;
-    luaclass_newClass(luavm, sender);
-    lua_pushinteger(luavm, newsize);
+    luaclass_newClass(L, sender);
+    lua_pushinteger(L, newsize);
 
-    if lua_pcall(LuaVM, 2, 2, 0)=0 then
+    if lua_pcall(L, 2, 2, 0)=0 then
     begin
-      newsize:=lua_tointeger(luavm, 1);
-      accept:=lua_toboolean(luavm, 2);
+      newsize:=lua_tointeger(L, 1);
+      accept:=lua_toboolean(L, 2);
     end;
   finally
-    lua_settop(Luavm, oldstack);
-    luacs.leave;
+    lua_settop(L, oldstack);
   end;
 end;
 
 function TLuaCaller.DisassembleEvent(sender: TObject; address: ptruint; var ldd: TLastDisassembleData; var output: string; var description: string): boolean;
-var oldstack: integer;
+var
+  oldstack: integer;
   lddentry: integer;
+  l: Plua_State;
 begin
   result:=false;
-  Luacs.enter;
   try
-    oldstack:=lua_gettop(Luavm);
+    L:=GetLuaState;
+    oldstack:=lua_gettop(L);
 
-    lua_newtable(Luavm);
-    lddentry:=lua_gettop(Luavm);
-    LastDisassemblerDataToTable(luavm, lddentry, ldd); //initialize it
+    lua_newtable(L);
+    lddentry:=lua_gettop(L);
+    LastDisassemblerDataToTable(L, lddentry, ldd); //initialize it
 
     pushFunction;
-    luaclass_newClass(luavm, sender);
-    lua_pushinteger(luavm, address);
-    lua_pushvalue(luavm, lddentry);
+    luaclass_newClass(l, sender);
+    lua_pushinteger(L, address);
+    lua_pushvalue(L, lddentry);
+    if output<>'' then
+      lua_pushstring(l,output)
+    else
+      lua_pushnil(l);
 
-    if lua_pcall(LuaVM, 3, 2, 0)=0 then
+    if description<>'' then
+      lua_pushstring(l,description)
+    else
+      lua_pushnil(l);
+
+    if lua_pcall(L, 5, 2, 0)=0 then
     begin
-      if not lua_isnil(Luavm, -2) then
+      if not lua_isnil(L, -2) then
       begin
         result:=true;
-        output:=Lua_ToString(Luavm, -2);
+        output:=Lua_ToString(L, -2);
 
-        if not lua_isnil(Luavm, -1) then
-          description:=Lua_ToString(Luavm, -1)
+        if not lua_isnil(L, -1) then
+          description:=Lua_ToString(L, -1)
         else
           description:='';
 
-        LastDisassemblerDataFromTable(luavm, lddentry, ldd);
+        LastDisassemblerDataFromTable(L, lddentry, ldd);
       end;
     end;
 
 
   finally
-    lua_settop(Luavm, oldstack);
-    luacs.leave;
+    lua_settop(L, oldstack);
   end
 end;
 
 function TLuaCaller.AutoAssemblerCallback(parameters: string; syntaxcheckonly: boolean): string;
 var oldstack: integer;
 begin
-  Luacs.Enter;
+  oldstack:=lua_gettop(Luavm);
+
   try
-    oldstack:=lua_gettop(Luavm);
 
 
     PushFunction;
@@ -1046,7 +1034,6 @@ begin
 
   finally
     lua_settop(Luavm, oldstack);
-    luacs.leave;
   end;
 end;
 
@@ -1054,9 +1041,9 @@ function TLuaCaller.StructureDissectEvent(structure: TObject; address: ptruint):
 var oldstack: integer;
 begin
   result:=false;
-  Luacs.Enter;
+  oldstack:=lua_gettop(Luavm);
+
   try
-    oldstack:=lua_gettop(Luavm);
 
 
     PushFunction;
@@ -1068,16 +1055,15 @@ begin
       raise exception.create(rsStructureDissectEventLuaFunctionError+lua_tostring(luavm, -1)+')');
   finally
     lua_settop(Luavm, oldstack);
-    luacs.leave;
   end;
 end;
 
 procedure TLuaCaller.ScreenFormEvent(Sender: TObject; Form: TCustomForm);
 var oldstack: integer;
 begin
-  Luacs.Enter;
+  oldstack:=lua_gettop(Luavm);
+
   try
-    oldstack:=lua_gettop(Luavm);
 
     if canRun then
     begin
@@ -1087,16 +1073,14 @@ begin
     end;
   finally
     lua_settop(Luavm, oldstack);
-    luacs.leave;
   end;
 end;
 
 function TLuaCaller.BreakpointEvent(bp: Pointer; context: pointer):boolean;
 var oldstack: integer;
 begin
-  Luacs.Enter;
+  oldstack:=lua_gettop(Luavm);
   try
-    oldstack:=lua_gettop(Luavm);
 
     if canRun then
     begin
@@ -1108,7 +1092,6 @@ begin
     end;
   finally
     lua_settop(Luavm, oldstack);
-    luacs.leave;
   end;
 end;
 
@@ -1117,9 +1100,8 @@ var oldstack: integer;
 begin
   result:=false;
 
-  Luacs.Enter;
+  oldstack:=lua_gettop(Luavm);
   try
-    oldstack:=lua_gettop(Luavm);
 
     if canRun then
     begin
@@ -1133,7 +1115,6 @@ begin
     end;
   finally
     lua_settop(Luavm, oldstack);
-    luacs.leave;
   end;
 end;
 
@@ -1142,9 +1123,8 @@ var
   oldstack: integer;
 begin
   result:=false;
-  Luacs.Enter;
+  oldstack:=lua_gettop(Luavm);
   try
-    oldstack:=lua_gettop(Luavm);
     if canRun then
     begin
       PushFunction;
@@ -1160,7 +1140,6 @@ begin
 
   finally
     lua_settop(Luavm, oldstack);
-    luacs.leave;
   end;
 end;
 
@@ -1191,11 +1170,8 @@ function TLuaCaller.AddressLookupCallback(address: ptruint): string;
 var oldstack: integer;
 begin
   result:='';
-  Luacs.Enter;
+  oldstack:=lua_gettop(Luavm);
   try
-    oldstack:=lua_gettop(Luavm);
-
-
     PushFunction;
     lua_pushinteger(luavm, address);
     if lua_pcall(Luavm, 1,1,0)=0 then
@@ -1205,7 +1181,6 @@ begin
 
   finally
     lua_settop(Luavm, oldstack);
-    luacs.leave;
   end;
 end;
 
@@ -1213,10 +1188,8 @@ function TLuaCaller.SymbolLookupCallback(s: string): ptruint;
 var oldstack: integer;
 begin
   result:=0;
-  Luacs.Enter;
+  oldstack:=lua_gettop(Luavm);
   try
-    oldstack:=lua_gettop(Luavm);
-
     PushFunction;
     lua_pushstring(luavm, s);
     if lua_pcall(Luavm, 1,1,0)=0 then
@@ -1224,7 +1197,6 @@ begin
         result:=lua_tointeger(luavm,-1);
   finally
     lua_settop(Luavm, oldstack);
-    luacs.leave;
   end;
 end;
 
@@ -1232,9 +1204,8 @@ function TLuaCaller.StructureNameLookup(var address: ptruint; var name: string):
 var oldstack: integer;
 begin
   result:=false;
-  Luacs.Enter;
+  oldstack:=lua_gettop(Luavm);
   try
-    oldstack:=lua_gettop(Luavm);
 
     PushFunction;
     lua_pushinteger(luavm, address);
@@ -1250,7 +1221,6 @@ begin
     end;
   finally
     lua_settop(Luavm, oldstack);
-    luacs.leave;
   end;
 end;
 
@@ -1262,9 +1232,8 @@ var
 begin
   setlength(bytes,0);
 
-  Luacs.Enter;
+  oldstack:=lua_gettop(Luavm);
   try
-    oldstack:=lua_gettop(Luavm);
 
     PushFunction;
     lua_pushinteger(luavm, address);
@@ -1284,7 +1253,6 @@ begin
     end;
   finally
     lua_settop(Luavm, oldstack);
-    luacs.leave;
   end;
 end;
 
@@ -1292,9 +1260,8 @@ end;
 procedure TLuaCaller.AutoAssemblerPrologueEvent(code: TStrings; syntaxcheckonly: boolean);
 var oldstack: integer;
 begin
-  Luacs.Enter;
+  oldstack:=lua_gettop(Luavm);
   try
-    oldstack:=lua_gettop(Luavm);
 
     PushFunction;
     luaclass_newClass(luavm, code);
@@ -1302,16 +1269,14 @@ begin
     lua_pcall(Luavm, 2,0,0);
   finally
     lua_settop(Luavm, oldstack);
-    luacs.leave;
   end;
 end;
 
 procedure TLuaCaller.AutoAssemblerTemplateCallback(script: TStrings; sender: TObject);
 var oldstack: integer;
 begin
-  Luacs.Enter;
+  oldstack:=lua_gettop(Luavm);
   try
-    oldstack:=lua_gettop(Luavm);
 
     PushFunction;
     luaclass_newClass(luavm, script);
@@ -1319,7 +1284,6 @@ begin
     lua_pcall(Luavm, 2,0,0);
   finally
     lua_settop(Luavm, oldstack);
-    luacs.leave;
   end;
 end;
 

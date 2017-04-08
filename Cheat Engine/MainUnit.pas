@@ -5308,11 +5308,11 @@ begin
 
   XInputMessages(true);
 
-  luaclass_newClass(LuaVM, self);
-  lua_setglobal(LuaVM,'MainForm');
+  luaclass_newClass(luavm, self);
+  lua_setglobal(luavm,'MainForm');
 
-  luaclass_newClass(LuaVM, addresslist);
-  lua_setglobal(LuaVM,'AddressList');
+  luaclass_newClass(luavm, addresslist);
+  lua_setglobal(luavm,'AddressList');
 end;
 
 procedure TMainForm.ChangedHandle(Sender: TObject);

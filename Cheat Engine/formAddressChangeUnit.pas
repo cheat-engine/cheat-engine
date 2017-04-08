@@ -409,7 +409,9 @@ function TOffsetInfo.parseOffset: boolean;
 var
   e: boolean;
   stack: integer;
+  luavm: Plua_state;
 begin
+  luavm:=GetLuaState;
   finvalidOffset:=true;
   fSpecial:=false;
 
@@ -427,7 +429,7 @@ begin
       foffset:=symhandler.getAddressFromName(fOffsetString, false, e);
       if e then //try lua
       begin
-        luacs.Enter;
+
         stack:=lua_gettop(luavm);
         try
           if luaL_loadstring(luavm, pchar('local memrec, address=... ; return '+fOffsetString))<>0 then exit(false);
@@ -441,7 +443,6 @@ begin
 
         finally
           lua_settop(luavm, stack);
-          luacs.Leave;
         end;
       end;
 

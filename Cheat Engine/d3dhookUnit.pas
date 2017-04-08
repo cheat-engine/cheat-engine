@@ -635,12 +635,10 @@ begin
       //execute the command
       console.log.add(console.commandline.Text);
 
-      LuaCS.enter;
       old:=lua_oldprintoutput;
       lua_setPrintOutput(console.log);
       lua_dostring(LuaVM, pchar(console.commandline.Text));
       lua_setPrintOutput(old);
-      luacs.Leave;
 
       //calculate the max number of lines
       maxlines:=trunc((console.seperator.y-console.background.y) / console.output.FontMap.height);

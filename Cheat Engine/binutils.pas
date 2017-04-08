@@ -172,8 +172,11 @@ var entry: TDisassemblerCacheEntry;
   param: string;
   comment: string;
   found: boolean;
+
+  luavm: PLua_state;
 begin
   //check if this address is in the disassembled cache, and if so, add it
+  luavm:=GetLuaState;
 
   getmem(buffer, 512);
   try
@@ -231,9 +234,9 @@ begin
       //lua
       if OnDisassemble<>0 then
       begin
-        LuaCS.enter;
+        //LuaCS.enter;
+        t:=lua_gettop(luavm);
         try
-          t:=lua_gettop(luavm);
           lua_rawgeti(luavm, LUA_REGISTRYINDEX, OnDisassemble);
           lua_pushinteger(Luavm, ldd.address);
           if lua_pcall(luavm, 1, 1, 0)=0 then
@@ -243,10 +246,8 @@ begin
             for i:=1 to WordCount(s, [' ']) do
               p.parameters.Add(ExtractWord(i,s,[' ']));
           end;
-
-          lua_settop(luavm, t);
         finally
-          luacs.leave;
+          lua_settop(luavm, t);
         end;
       end;
 

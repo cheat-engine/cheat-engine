@@ -795,8 +795,6 @@ begin
     end;
   end;
 
-  luacs.Enter;
-
   oldstack:=lua_gettop(luavm);
 
   oldprintoutput:=lua_oldprintoutput;
@@ -904,10 +902,6 @@ begin
     lua_settop(luavm, oldstack);
 
     lua_setPrintOutput(oldprintoutput);
-    luacs.Leave;
-
-
-
   end;
 end;
 

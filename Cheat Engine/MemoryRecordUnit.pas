@@ -487,11 +487,8 @@ begin
       {$ifndef JNI}
       memrecluaobjectref:=fowner.getLuaRef;
 
-
-      LUACS.Enter;
+      stack:=lua_Gettop(luavm);
       try
-        stack:=lua_Gettop(luavm);
-
         lua_rawgeti(Luavm, LUA_REGISTRYINDEX, LuaRef);
         lua_rawgeti(Luavm, LUA_REGISTRYINDEX, memrecluaobjectref);
         lua_pushinteger(luavm, currentBase);
@@ -507,7 +504,6 @@ begin
 
       finally
         lua_settop(luavm, stack);
-        luacs.Leave;
       end;
 
       {$endif}
@@ -568,16 +564,14 @@ begin
     s2:='local memrec, address=... ; return '+s;
 
 {$ifndef JNI}
-    LUACS.Enter;
+    stack:=lua_Gettop(luavm);
     try
-      stack:=lua_Gettop(luavm);
       if luaL_loadstring(luavm, pchar(s2))=0 then
         if lua_isfunction(luavm,-1) then //store a reference to this function
           luaref:=luaL_ref(luavm, LUA_REGISTRYINDEX);
 
     finally
       lua_settop(luavm, stack);
-      LuaCS.Leave;
     end;
 
 
@@ -2736,15 +2730,13 @@ begin
       CurrentValue:=trim(CurrentValue);
       if (length(CurrentValue)>2) and (CurrentValue[1]='[') and (currentValue[length(CurrentValue)]=']') then
       begin
-        LuaCS.enter;
+
+        oldluatop:=lua_gettop(luavm);
         try
-          oldluatop:=lua_gettop(luavm);
           if lua_dostring(luavm, pchar('return '+copy(CurrentValue,2, length(CurrentValue)-2)))=0 then
             currentValue:=lua_tostring(luavm, -1);
-
-          lua_settop(luavm, oldluatop);
         finally
-          luacs.Leave;
+          lua_settop(luavm, oldluatop);
         end;
       end;
     end;

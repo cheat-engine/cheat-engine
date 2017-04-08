@@ -50,7 +50,6 @@ type
   TDisassembleEvent=function(sender: TObject; address: ptruint; var ldd: TLastDisassembleData; var output: string; var description: string): boolean of object;
 
 
-
   TDisassembler=class
   private
     inttohexs: TIntToHexS;
@@ -64,6 +63,7 @@ type
 
     fsyntaxhighlighting: boolean;
     fOnDisassembleOverride: TDisassembleEvent;
+    fOnPostDisassemble: TDisassembleEvent;
 
     ArmDisassembler: TArmDisassembler;
 
@@ -137,6 +137,7 @@ type
   published
     property syntaxhighlighting: boolean read fsyntaxhighlighting write setSyntaxHighlighting;
     property OnDisassembleOverride: TDisassembleEvent read fOnDisassembleOverride write fOnDisassembleOverride;
+    property OnPostDisassemble: TDisassembleEvent read fOnPostDisassemble write fOnPostDisassemble;
 end;
 
 
@@ -1324,8 +1325,8 @@ end;
 function TDisassembler.disassemble(var offset: ptrUint; var description: string): string;
 var memory: TMemory;
     actualread: PtrUInt;
-    startoffset: ptrUint;
-    tempresult: string;
+    startoffset, initialoffset: ptrUint;
+    tempresult, tempdescription: string;
     tempst: string;
     wordptr: ^word;
     dwordptr: ^dword;
@@ -1486,6 +1487,7 @@ begin
   prefix2:=[];
 
   startoffset:=offset;
+  initialoffset:=offset;
   actualread:=0;
   readprocessmemory(processhandle,pointer(offset),@memory,24,actualread);
 
@@ -11134,6 +11136,19 @@ begin
     result:=result+LastDisassembleData.prefix+LastDisassembleData.opcode;
     result:=result+' ';
     result:=result+LastDisassembleData.parameters;
+  end;
+
+  if assigned(OnPostDisassemble) then
+  begin
+    tempresult:=result;
+    tempdescription:=description;
+
+    if OnPostDisassemble(self, initialoffset, LastDisassembleData, tempresult, tempdescription) then
+    begin
+      result:=tempresult;
+      description:=tempdescription;
+      offset:=initialoffset+length(LastDisassembleData.Bytes);
+    end;
   end;
 end;
 

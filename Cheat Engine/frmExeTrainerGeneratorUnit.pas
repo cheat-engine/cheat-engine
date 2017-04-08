@@ -360,7 +360,6 @@ begin
           for i:=0 to length(exeTrainerFeatures)-1 do
             if (exeTrainerFeatures[i].cb<>nil) and exeTrainerFeatures[i].cb.checked then
             begin
-              luacs.enter;
               try
                 ltop:=lua_gettop(luavm);
                 lua_rawgeti(luavm, LUA_REGISTRYINDEX, exeTrainerFeatures[i].functionid) ;

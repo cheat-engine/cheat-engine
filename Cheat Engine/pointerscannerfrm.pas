@@ -2558,15 +2558,7 @@ begin
     if useluafilter then
     begin
       //create a new lua thread
-      //todo: use GetLuaState;
-      luacs.enter;
-      try
-        l:=lua_newthread(luavm); //pushes the thread on the luavm stack.
-        lref:=luaL_ref(luavm,LUA_REGISTRYINDEX); //add a reference so the garbage collector wont destroy the thread (pops the thread off the stack)
-      finally
-        luacs.leave;
-      end;
-
+      L:=GetLuaState;
 
       lua_getglobal(L, pchar(luafilter));
       lfun:=lua_gettop(L);
@@ -2833,18 +2825,7 @@ begin
         freeandnil(tempbuffer);
 
       if l<>nil then
-      begin
         lua_settop(L, 0);
-
-        //remove the reference to the thread
-        luacs.enter;
-        try
-          luaL_unref(LuaVM, LUA_REGISTRYINDEX, lref);
-        finally
-          luacs.leave;
-        end;
-
-      end;
 
       done:=true;
 

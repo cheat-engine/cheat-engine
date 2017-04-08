@@ -101,30 +101,25 @@ var
   top: integer;
 
 begin
-  LuaCS.Enter;
-  try
-    top:=lua_gettop(Luavm);
-    i:=luahandler.lua_dostring(luavm, pchar(exec.text));
-    if i=0 then
-      result:=lua_tointeger(Luavm, -1)
-    else
-      result:=0;
+  top:=lua_gettop(Luavm);
+  i:=luahandler.lua_dostring(luavm, pchar(exec.text));
+  if i=0 then
+    result:=lua_tointeger(Luavm, -1)
+  else
+    result:=0;
 
-    if returncount>0 then
-    begin
-      if length(results)<returncount then
-        setlength(results, returncount);
+  if returncount>0 then
+  begin
+    if length(results)<returncount then
+      setlength(results, returncount);
 
-      for i:=0 to returncount-1 do
-        results[(returncount-1)-i]:=lua_tointeger(Luavm, -1-i);
+    for i:=0 to returncount-1 do
+      results[(returncount-1)-i]:=lua_tointeger(Luavm, -1-i);
 
-    end;
-
-    lua_settop(Luavm, top);
-
-  finally
-    luacs.leave;
   end;
+
+  lua_settop(Luavm, top);
+
 end;
 
 procedure TLuaServerHandler.createLuaStateIfNeeded;
@@ -134,7 +129,6 @@ var
 begin
   if l=nil then
   begin
-    luacs.Enter;
     i:=lua_gettop(Luavm);
     try
       L:=lua_newthread(LuaVM);
@@ -146,7 +140,6 @@ begin
 
     finally
       lua_settop(Luavm,i);
-      luacs.leave;
     end;
   end;
 end;
@@ -244,7 +237,6 @@ begin
   else
   begin
     lvm:=LuaVM;
-    luacs.enter;
   end;
 
   try
@@ -419,9 +411,6 @@ begin
   end;
 
   lua_settop(lvm, oldtop);
-
-  if ExecuteLuaFunctionAsync then
-    luacs.leave;
 end;
 
 

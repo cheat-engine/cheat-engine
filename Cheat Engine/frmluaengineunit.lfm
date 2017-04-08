@@ -11,7 +11,6 @@ object frmLuaEngine: TfrmLuaEngine
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object GroupBox1: TGroupBox

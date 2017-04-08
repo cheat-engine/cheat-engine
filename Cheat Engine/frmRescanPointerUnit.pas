@@ -176,8 +176,11 @@ var
   i: integer;
   s: string;
   r: THostResolver;
+  luavm: PLua_state;
 begin
   //evaluate the given offsets and range
+  luavm:=GetLuaState;
+
   fDelay:=strtoint(edtDelay.Text);
 
 

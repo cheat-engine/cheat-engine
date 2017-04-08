@@ -1,7 +1,7 @@
 object frmAutoInject: TfrmAutoInject
-  Left = 452
+  Left = 741
   Height = 331
-  Top = 132
+  Top = 430
   Width = 431
   HelpContext = 1089
   Caption = 'Auto assemble'
@@ -12,7 +12,6 @@ object frmAutoInject: TfrmAutoInject
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object Panel1: TPanel
