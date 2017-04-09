@@ -342,12 +342,14 @@ var i: integer;
 begin
   clear;
 
-  commentstring:='';
-  headerstring:='';
+
 
 
   for i:=0 to node.ChildNodes.Count-1 do
   begin
+    commentstring:='';
+    headerstring:='';
+
     n:=node.ChildNodes[i];
 
     if n.NodeName='DisassemblerComment' then
