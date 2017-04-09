@@ -226,7 +226,8 @@ begin
 
   if memoryrecord.vartype=vtByteArray then
   begin
-    MemoryRecord.Extra.byteData.bytelength:=bit;
+    val(edit1.Text,MemoryRecord.Extra.byteData.bytelength,err);
+
     if wasNotAOB then //it wasn't an aob before, set the hexadecimal value
       MemoryRecord.showAsHex:=true;
   end;
