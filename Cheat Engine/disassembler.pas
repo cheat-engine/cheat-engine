@@ -11147,7 +11147,9 @@ begin
     begin
       result:=tempresult;
       description:=tempdescription;
-      offset:=initialoffset+length(LastDisassembleData.Bytes);
+
+      if length(LastDisassembleData.Bytes)>0 then
+        offset:=initialoffset+length(LastDisassembleData.Bytes);
     end;
   end;
 end;

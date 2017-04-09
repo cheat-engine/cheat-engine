@@ -60,7 +60,7 @@ type
 
     function truncatestring(s: string; maxwidth: integer): string;
     procedure buildReferencedByString(sl: tstringlist);
-    procedure DrawTextRectWithColor(const ARect: TRect; X, Y: integer; const Text: string);
+    function DrawTextRectWithColor(const ARect: TRect; X, Y: integer; const Text: string): integer;
   public
 
 
@@ -342,7 +342,7 @@ begin
     addressString:=truncatestring(addressString, fHeaders.Items[0].Width-2);
 
   bytestring:=truncatestring(bytestring, fHeaders.Items[1].Width-2);
-  opcodestring:=truncatestring(opcodestring, fHeaders.Items[2].Width-2);
+  //opcodestring:=truncatestring(opcodestring, fHeaders.Items[2].Width-2);
   //specialstring:=truncatestring(specialstring, fHeaders.Items[3].Width-2);
 
 
@@ -661,14 +661,14 @@ begin
   fcanvas.font.color:=textcolor;
 
 
-  fcanvas.TextRect(rect(fHeaders.Items[0].Left, linestart, fHeaders.Items[0].Right, linestart+height), fHeaders.Items[0].Left+1,linestart, AnsiToUtf8(paddressString));
-  fcanvas.TextRect(rect(fHeaders.Items[1].Left, linestart, fHeaders.Items[1].Right, linestart+height),fHeaders.Items[1].Left+1,linestart, AnsiToUtf8(pbytestring));
+  fcanvas.TextRect(rect(fHeaders.Items[0].Left, linestart, fHeaders.Items[0].Right, linestart+height), fHeaders.Items[0].Left+1,linestart, paddressString);
+  fcanvas.TextRect(rect(fHeaders.Items[1].Left, linestart, fHeaders.Items[1].Right, linestart+height),fHeaders.Items[1].Left+1,linestart, pbytestring);
 
   fcanvas.font.Style:=fcanvas.font.Style+[fsBold];
-  fcanvas.TextRect(rect(fHeaders.Items[2].Left, linestart, fHeaders.Items[2].Right, linestart+height),fHeaders.Items[2].Left+1,linestart, AnsiToUtf8(popcodestring));
+  i:=DrawTextRectWithColor(rect(fHeaders.Items[2].Left, linestart, fHeaders.Items[2].Right, linestart+height),fHeaders.Items[2].Left+1,linestart, popcodestring);
   fcanvas.font.Style:=fcanvas.font.Style-[fsBold];
 
-  i:=fcanvas.TextWidth(popcodestring+'  ');
+  inc(i, fcanvas.TextWidth('  '));
   j:=fcanvas.textwidth('XXXXXXX');
 
   if i>j then
@@ -716,15 +716,20 @@ begin
     refferencedbystrings.free;
 end;
 
-procedure TDisassemblerLine.DrawTextRectWithColor(const ARect: TRect; X, Y: integer; const Text: string);
-var defaultfontcolor: TColor;
+function TDisassemblerLine.DrawTextRectWithColor(const ARect: TRect; X, Y: integer; const Text: string): integer;
+var defaultfontcolor, defaultbrushcolor: TColor;
     i: integer;
-    start: integer;
+    start,startx: integer;
 
-    s: string;
+    s,s2: string;
 
-    colorcode: integer; //0=normal, 1=hex, 2=reg, 3=symbol
+    colorcode: integer; //0=normal, 1=hex, 2=reg, 3=symbol 4=rgb
+    bcolorcode: integer; //0=normal, 1=rgb
+    rgbcolor: integer;
+    brgbcolor: integer;
     colorstate: TDisassemblerViewColorsState;
+
+    ts: TTextStyle;
 
   procedure setcolor;
   begin
@@ -765,19 +770,41 @@ var defaultfontcolor: TColor;
       1: fcanvas.font.color:=fcolors^[colorstate].hexcolor;
       2: fcanvas.font.color:=fcolors^[colorstate].registercolor;
       3: fcanvas.font.color:=fcolors^[colorstate].symbolcolor;
+      4: fcanvas.font.color:=rgbcolor;
+    end;
+
+    case bcolorcode of
+      0:
+      begin
+        ts:=fcanvas.TextStyle;
+        ts.Opaque:=true;
+        fcanvas.TextStyle:=ts;
+        fcanvas.Brush.color:=defaultbrushcolor;
+      end;
+      1:
+      begin
+        ts:=fcanvas.TextStyle;
+        ts.Opaque:=true;
+        fcanvas.TextStyle:=ts;
+
+        fcanvas.Brush.color:=brgbcolor;
+      end;
     end;
   end;
 
 begin
+  defaultbrushcolor:=fcanvas.Brush.color;
   defaultfontcolor:=fcanvas.Font.color;
   start:=1;
+  startx:=x;
   s:='';
   i:=1;
   colorcode:=0;
+  bcolorcode:=0;
 
   if processhandler.SystemArchitecture=archx86 then
   begin
-    while i<length(text) do
+    while i<=length(text) do
     begin
       case text[i] of
         '{':
@@ -789,13 +816,29 @@ begin
           x:=x+fcanvas.TextWidth(s);
 
           inc(i);
-          while i<length(text) do
+          while i<=length(text) do
           begin
             case text[i] of
-              'N': colorcode:=0;
+              'N':
+              begin
+                colorcode:=0;
+                bcolorcode:=0;
+              end;
               'H': colorcode:=1;
               'R': colorcode:=2;
               'S': colorcode:=3;
+              'B': //followed by RRGGBB colorcode
+              begin
+                s2:=copy(text, i+1,6);
+                if trystrtoint('$'+s2, brgbcolor) then bcolorcode:=1;
+                inc(i,6);
+              end;
+              'C': //followed by RRGGBB colorcode
+              begin
+                s2:=copy(text, i+1,6);
+                if trystrtoint('$'+s2, rgbcolor) then colorcode:=4;
+                inc(i,6);
+              end;
               '}':
               begin
                 inc(i);
@@ -825,6 +868,10 @@ begin
   fcanvas.TextRect(ARect,x,y,AnsiToUtf8(s));
 
   fcanvas.Font.color:=defaultfontcolor;
+  fcanvas.brush.color:=defaultbrushcolor;
+
+  x:=x+fcanvas.TextWidth(s);
+  result:=x-startx;
 end;
 
 procedure TDisassemblerLine.handledisassemblerplugins(addressStringPointer: pointer; bytestringpointer: pointer; opcodestringpointer: pointer; specialstringpointer: pointer; textcolor: PColor);

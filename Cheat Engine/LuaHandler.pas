@@ -8207,7 +8207,7 @@ begin
   L:=LUAVM;
   if L<>nil then
   begin
-    luaL_openlibs(LuaVM);
+    luaL_openlibs(L);
 
     lua_atpanic(L, LuaPanic);
     lua_register(L, 'print', print);

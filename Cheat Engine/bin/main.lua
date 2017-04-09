@@ -2434,7 +2434,7 @@ Disassembler Class (Inheritance: Object)
 
 createDisassembler() - Creates a disassembler object that can be used to disassemble an instruction and at the same time get more data
 getDefaultDisassembler() - Returns the default disassembler object used by a lot of ce's disassembler routines
-getVisibleDisassembler() - Returns the disassembler used by the disassemblerview. Special codes are: {H}=Hex value {R}=Register {S}=Symbol {N}=Nothing special
+getVisibleDisassembler() - Returns the disassembler used by the disassemblerview. Special codes are: {H}=Hex value {R}=Register {S}=Symbol {N}=Nothing special {C######}=RGB color were ###### is 0xRRGGBB {b######}=Background RGB color
 
 registerGlobalDisassembleOverride(function(sender: Disassembler, address: integer, LastDisassembleData: Table): opcode, description): Same as Disassembler.OnDisassembleOverride, but does it for all disassemblers, including newly created ones.  Tip: Check the sender to see if you should use syntax highlighting codes or not
   This function returns an ID you can pass on to unregisterGlobalDisassembleOverride()  6.4+
@@ -2444,7 +2444,7 @@ unregisterGlobalDisassembleOverride(id)
 properties
   LastDisassembleData : Table
   OnDisassembleOverride: function(sender: Disassembler, address: integer, LastDisassembleData: Table): opcode, description
-  OnPostDisassemble: function(sender: Disassembler, address: integer, LastDisassembleData: Table, result: string, description: string): result, string
+  OnPostDisassemble: function(sender: Disassembler, address: integer, LastDisassembleData: Table, result: string, description: string): result, description
   syntaxhighlighting: boolean : This property is set if the syntax highlighting codes are accepted or not
 
 Methods
