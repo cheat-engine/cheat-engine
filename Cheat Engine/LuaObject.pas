@@ -85,12 +85,41 @@ begin
   result:=1;
 end;
 
+function object_fieldAddress(L: PLua_state): integer; cdecl;
+var c: TObject;
+begin
+  c:=luaclass_getClassObject(L);
+  lua_pushinteger(L, ptruint(c.FieldAddress(lua_tostring(L,1))));
+  result:=1;
+end;
+
+function object_methodAddress(L: PLua_state): integer; cdecl;
+var c: TObject;
+begin
+  c:=luaclass_getClassObject(L);
+  lua_pushinteger(L, ptruint(c.MethodAddress(lua_tostring(L,1))));
+  result:=1;
+end;
+
+function object_methodName(L: PLua_state): integer; cdecl;
+var c: TObject;
+begin
+  c:=luaclass_getClassObject(L);
+  lua_pushstring(L, c.MethodName(pointer(lua_tointeger(L,1))));
+  result:=1;
+end;
+
 procedure object_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
   //no parent class metadata to add
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getClassName', object_getClassName);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'fieldAddress', object_fieldAddress);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'methodAddress', object_methodAddress);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'methodName', object_methodName);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'destroy', object_destroy);
   luaclass_addPropertyToTable(L, metatable, userdata, 'ClassName', object_getClassName, nil);
+
+
 end;
 
 function getPropertyList(L: PLua_state): integer; cdecl;

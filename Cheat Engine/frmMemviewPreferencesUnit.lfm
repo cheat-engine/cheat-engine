@@ -420,6 +420,20 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       TabOrder = 1
       Text = '0'
     end
+    object cbShowStatusBar: TCheckBox
+      AnchorSideLeft.Control = edtHexSpaceBetweenLines
+      AnchorSideTop.Control = edtHexSpaceBetweenLines
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 19
+      Top = 106
+      Width = 100
+      BorderSpacing.Top = 4
+      Caption = 'Show statusbar'
+      Checked = True
+      State = cbChecked
+      TabOrder = 2
+    end
   end
   object ColorDialog1: TColorDialog
     Color = clBlack

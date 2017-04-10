@@ -97,6 +97,8 @@ type
     fHexFont: Tfont;
     fspaceBetweenLines: integer;
 
+
+
     procedure setHexFont(f: TFont);
 
     procedure LoadMemoryRegion;
@@ -118,6 +120,7 @@ type
     function getWord(a: ptrUint): string;
     function getDWord(a: ptrUint): string;
     function getDwordValue(a: ptruint; out unreadable: boolean): dword;
+    function getQWordValue(a: ptruint; out unreadable: boolean): qword;
     function getQWord(a: ptrUint): string;
     function getByteDec(a: ptrUint; full: boolean=false): string;
     function getWordDec(a: ptrUint; full: boolean=false): string;
@@ -155,6 +158,7 @@ type
     procedure UTF8KeyPress(var UTF8Key: TUTF8Char); override;
   public
     fadetimer: integer;
+    statusbar: TStatusbar;
     procedure LockRowsize(size: integer=0);
     procedure UnlockRowsize;
     procedure CopySelectionToClipboard;
@@ -173,7 +177,6 @@ type
     procedure Unlock;
     function isLocked: boolean;
     function isShowingDifference: boolean;
-
 
 
     constructor create(AOwner: TComponent); override;
@@ -1492,7 +1495,7 @@ begin
     result:=inttohex(w,4);
 end;
 
-function THexView.getQWord(a: ptrUint): string;
+function THexView.getQWordValue(a: ptruint; out unreadable: boolean): qword;
 var
   qw: qword;
   pqw: pbytearray;
@@ -1508,7 +1511,17 @@ begin
   pqw[6]:=getbyte(a+6,err7);
   pqw[7]:=getbyte(a+7,err8);
 
-  if err or err2 or err3 or err4 or err5 or err6 or err7 or err8 then
+  unreadable:=err or err2 or err3 or err4 or err5 or err6 or err7 or err8;
+  result:=qw;
+end;
+
+function THexView.getQWord(a: ptrUint): string;
+var
+  qw: qword;
+  err: boolean;
+begin
+  qw:=getqwordValue(a,err);
+  if err then
     result:='????????????????'
   else
     result:=inttohex(qw,16);
@@ -1817,6 +1830,16 @@ var
   lastcharsize: integer;
 
   selectedcharsize: integer;
+
+  unreadable: boolean;
+  s: string;
+  v_qword: int64;
+  v_double: double absolute v_qword;
+  v_byte: shortint absolute v_qword;
+  v_word: smallint absolute v_qword;
+  v_int: integer absolute v_qword;
+  v_float: single absolute v_qword;
+  selstart,selstop: ptruint;
 begin
   if bytesperline<=0 then exit;
   if Parent=nil then exit;
@@ -2054,6 +2077,23 @@ begin
   offscreenbitmap.Canvas.Pen.Color:=clBlack;
   offscreenbitmap.Canvas.PenPos:=point(0,textheight*2);
   offscreenbitmap.Canvas.LineTo(charstart+bytesperline*charsize,textheight*2);
+
+
+  selstart:=minx(selected,selected2);
+  selstop:=maxx(selected,selected2);
+
+  v_qword:=getQWordValue(selstart, unreadable);
+  if not unreadable then
+    s:=format('%.8x: (byte: %d word: %d integer: %d int64: %d float:%f double: %f)',[selstart, integer(v_byte), integer(v_word), v_int, v_qword,v_float, v_double])
+  else
+    s:='';
+
+
+  if selected<>selected2 then
+    statusbar.SimpleText:=format('Selected %.8x to %.8x (%d bytes) %s',[selstart, selstop, selstop-selstart, s])
+  else
+    statusbar.SimpleText:=s;
+
 end;
 
 procedure THexView.setAddress(a: ptrUint);
@@ -2238,7 +2278,9 @@ begin
 end;
 
 
+
 constructor THexView.create(AOwner: TComponent);
+var sp: TStatusPanel;
 begin
   inherited create(AOwner);
 
@@ -2282,6 +2324,20 @@ begin
   fHexFont.Name:='Courier New';
   fHexFont.Style:=[];
 
+  statusbar:=TStatusBar.Create(self);
+  statusbar.ParentFont:=true;
+  statusbar.AutoSize:=false;
+  statusbar.Name:='statusbar';
+  statusbar.SimplePanel:=true;
+  statusbar.align:=alBottom;
+  statusbar.parent:=self;
+
+  statusbar.simpletext:='Selection: <none>';
+
+
+
+
+
   mbCanvas:=TPaintbox.Create(self);
   with mbCanvas do
   begin
@@ -2308,8 +2364,8 @@ begin
   charsize:=offscreenbitmap.Canvas.TextWidth('X');
   byteSize:=offscreenbitmap.Canvas.TextWidth('XX X'); //byte space and the character it represents
   byteSizeWithoutChar:=offscreenbitmap.Canvas.TextWidth('XX ');
-  update;
 
+  update;
 end;
 
 end.

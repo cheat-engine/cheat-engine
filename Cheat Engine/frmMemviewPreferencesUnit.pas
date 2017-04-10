@@ -19,6 +19,7 @@ type
     Button2: TButton;
     Button3: TButton;
     cbColorGroup: TComboBox;
+    cbShowStatusBar: TCheckBox;
     ColorDialog1: TColorDialog;
     edtSpaceBetweenLines: TEdit;
     edtHexSpaceBetweenLines: TEdit;

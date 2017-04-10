@@ -1704,6 +1704,7 @@ begin
     lblConditionalJump.font.color:=disassemblerview.jlconditionalJumpColor;
     spaceBetweenLines:=disassemblerview.spaceBetweenLines;
     hexSpaceBetweenLines:=hexview.spaceBetweenLines;
+    cbShowStatusBar.checked:=hexview.statusbar.Visible;
 
     if showmodal=mrok then
     begin
@@ -1720,6 +1721,7 @@ begin
 
       hexview.HexFont:=fontdialog2.Font;
       hexview.spaceBetweenLines:=hexSpaceBetweenLines;
+      hexview.statusbar.Visible:=cbShowStatusBar.checked;
       hexview.OnResize(hexview);
     end;
     free;
@@ -1746,7 +1748,10 @@ begin
       SaveFontToRegistry(disassemblerview.font, reg);
 
     if reg.OpenKey('\Software\Cheat Engine\Hexview',true) then
+    begin
       reg.writeInteger('spaceBetweenLines', hexview.spaceBetweenLines);
+      reg.WriteBool('showStatusBar', hexview.statusbar.Visible);
+    end;
 
     if reg.OpenKey('\Software\Cheat Engine\Hexview\Font',true) then
       SaveFontToRegistry(hexview.hexfont, reg);
@@ -1772,6 +1777,8 @@ begin
   scrollbox1.Font.Height:=GetFontData(font.handle).height;
   if scrollbox1.Font.Height>-13 then
     scrollbox1.Font.Height:=-13;
+
+  hexview.statusbar.Height:=Canvas.TextHeight('BLA')+hexview.statusbar.BorderWidth;
 end;
 
 procedure TMemoryBrowser.disassemblerviewDblClick(Sender: TObject);
@@ -1859,6 +1866,8 @@ begin
   hexview.OnKeyDown:=hexviewKeyDown;
   hexview.Name:='HexadecimalView';
 
+
+
   //load from the registry
   f:=TFont.create;
   reg:=Tregistry.Create;
@@ -1902,6 +1911,10 @@ begin
     begin
       if reg.ValueExists('spaceBetweenLines') then
         hexview.spaceBetweenLines:=reg.ReadInteger('spaceBetweenLines');
+
+      if reg.ValueExists('showStatusBar') then
+        hexview.statusbar.Visible:=reg.ReadBool('showStatusBar');
+
     end;
 
     if reg.OpenKey('\Software\Cheat Engine\Hexview\Font',false) then

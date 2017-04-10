@@ -1553,6 +1553,7 @@ initialization
 
   RegisterClass(TPageControl);
   RegisterClass(TTrayIcon);
+  registerclass(TStatusBar);
 
 
   RegisterPropertyEditor(ClassTypeInfo(TListItems), TCEListView, 'Items', TCEListViewItemsPropertyEditor);

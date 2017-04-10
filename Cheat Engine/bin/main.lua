@@ -603,6 +603,9 @@ Properties:
   ClassName: String - The name of class (Read only)
 Methods:
   getClassName(): Returns the classname
+  fieldAddress(fieldname: string): Returns the address of the specific field
+  methodAddress(methodname: string)
+  methodName(address: integer)
   destroy(): Destroys the object
 
 
