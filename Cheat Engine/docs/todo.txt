@@ -1,9 +1,6 @@
 
 find higher resolution icons
 
-
-memview: Add spacing option to hexview/memview
-memview: add asembler highlight color override
 memview hexview: Add a header showing details about the selection (bytecount, hex->dec)
 
 memview: ctrl+f ->adjust from region 
@@ -26,3 +23,4 @@ linux: make a 32-bit linux build with .so injection support
 memscan: Don't combine the scanresults into a single file. Leave them split up (skip: for 6.7 or 7.0)
 ceshare: continue with it
 
+implement the "Friends Endorcing Cheat Engine System"
