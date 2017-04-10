@@ -7334,7 +7334,6 @@ begin
 
   vartype.Constraints.MinWidth:=i;
 
-
   i:=foundlist3.width;
   if undoscan.left<btnNextScan.Left+btnNextScan.Width then
   begin

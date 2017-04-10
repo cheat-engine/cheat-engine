@@ -1699,13 +1699,28 @@ begin
     //and now apply those colors
     cbColorGroupChange(cbColorGroup);
 
+    lblCall.font.color:=disassemblerview.jlCallColor;
+    lblUnconditionalJump.font.color:=disassemblerview.jlUnconditionalJumpColor;
+    lblConditionalJump.font.color:=disassemblerview.jlconditionalJumpColor;
+    spaceBetweenLines:=disassemblerview.spaceBetweenLines;
+    hexSpaceBetweenLines:=hexview.spaceBetweenLines;
+
     if showmodal=mrok then
     begin
       //set the colors and save to registry
       disassemblerview.Font:=fontdialog1.Font;
       disassemblerview.colors:=colors;
+      disassemblerview.jlCallColor:=lblCall.font.color;
+      disassemblerview.jlUnconditionalJumpColor:=lblUnconditionalJump.font.color;
+      disassemblerview.jlconditionalJumpColor:=lblConditionalJump.font.color;
+      disassemblerview.spaceBetweenLines:=spaceBetweenLines;
+
+      disassemblerview.jlThickness:=jlThickness;
+      disassemblerview.jlSpacing:=jlSpacing;
 
       hexview.HexFont:=fontdialog2.Font;
+      hexview.spaceBetweenLines:=hexSpaceBetweenLines;
+      hexview.OnResize(hexview);
     end;
     free;
   end;
@@ -1716,13 +1731,26 @@ begin
   reg:=Tregistry.Create;
   try
     if reg.OpenKey('\Software\Cheat Engine\Disassemblerview\',true) then
+    begin
       reg.WriteBinaryData('colors', disassemblerview.colors, sizeof(disassemblerview.colors));
+      reg.WriteInteger('jlCallColor', integer(disassemblerview.jlCallColor));
+      reg.WriteInteger('jlUnconditionalJumpColor', integer(disassemblerview.jlUnconditionalJumpColor));
+      reg.WriteInteger('jlConditionalJumpColor', integer(disassemblerview.jlconditionalJumpColor));
+
+      reg.writeInteger('spaceBetweenLines', disassemblerview.spaceBetweenLines);
+      reg.writeInteger('jlThickness', disassemblerview.jlThickness);
+      reg.writeInteger('jlSpacing', disassemblerview.jlSpacing);
+    end;
 
     if reg.OpenKey('\Software\Cheat Engine\Disassemblerview\Font',true) then
       SaveFontToRegistry(disassemblerview.font, reg);
 
+    if reg.OpenKey('\Software\Cheat Engine\Hexview',true) then
+      reg.writeInteger('spaceBetweenLines', hexview.spaceBetweenLines);
+
     if reg.OpenKey('\Software\Cheat Engine\Hexview\Font',true) then
       SaveFontToRegistry(hexview.hexfont, reg);
+
 
   finally
     reg.free;
@@ -1774,6 +1802,7 @@ var x: array of integer;
   reg: tregistry;
   f: TFont;
   i: integer;
+  c: tcolor;
 begin
 
   MemoryBrowsers.Add(self);
@@ -1847,7 +1876,32 @@ begin
       if reg.ValueExists('colors') then
         reg.ReadBinaryData('colors', disassemblerview.colors, sizeof(disassemblerview.colors));
 
+
+      if reg.ValueExists('jlCallColor') then
+        disassemblerview.jlCallColor:=tcolor(reg.ReadInteger('jlCallColor'));
+
+      if reg.ValueExists('jlUnconditionalJumpColor') then
+        disassemblerview.jlUnconditionalJumpColor:=tcolor(reg.ReadInteger('jlUnconditionalJumpColor'));
+
+      if reg.ValueExists('jlConditionalJumpColor') then
+        disassemblerview.jlConditionalJumpColor:=tcolor(reg.ReadInteger('jlConditionalJumpColor'));
+
+      if reg.ValueExists('spaceBetweenLines') then
+        disassemblerview.spaceBetweenLines:=reg.ReadInteger('spaceBetweenLines');
+
+      if reg.ValueExists('jlThickness') then
+        disassemblerview.jlThickness:=reg.ReadInteger('jlThickness');
+
+      if reg.ValueExists('jlSpacing') then
+        disassemblerview.jlSpacing:=reg.ReadInteger('jlSpacing');
+
       disassemblerview.reinitialize;
+    end;
+
+    if reg.OpenKey('\Software\Cheat Engine\Hexview',false) then
+    begin
+      if reg.ValueExists('spaceBetweenLines') then
+        hexview.spaceBetweenLines:=reg.ReadInteger('spaceBetweenLines');
     end;
 
     if reg.OpenKey('\Software\Cheat Engine\Hexview\Font',false) then
@@ -2240,6 +2294,7 @@ procedure TMemoryBrowser.miAddToTheCodelistClick(Sender: TObject);
 var {start,stop: string;
     a,b: dword;
     i: integer;}
+
     desc: string;
 
 begin

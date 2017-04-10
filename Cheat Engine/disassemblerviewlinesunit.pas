@@ -72,7 +72,7 @@ type
     function getTop: integer;
     property description:string read fdescription;
     property disassembled:string read fdisassembled;
-    procedure renderLine(var address: ptrUint; linestart: integer; selected: boolean=false; focused: boolean=false);
+    procedure renderLine(var address: ptrUint; linestart: integer; selected: boolean=false; focused: boolean=false; spacebetweenlines:integer=0);
     procedure drawJumplineTo(yposition: integer; offset: integer; showendtriangle: boolean=true);
     procedure handledisassemblerplugins(addressStringPointer: pointer; bytestringpointer: pointer; opcodestringpointer: pointer; specialstringpointer: pointer; textcolor: PColor);
     constructor create(owner: TObject; bitmap: TBitmap; headersections: THeaderSections; colors: PDisassemblerViewColors);
@@ -104,17 +104,22 @@ resourcestring
 procedure TDisassemblerLine.drawJumplineTo(yposition: integer; offset: integer; showendtriangle: boolean=true);
 var
   oldpenstyle: Tpenstyle;
+  oldpenwidth: integer;
   oldpencolor, oldbrushcolor: TColor;
-begin
+  jlThickness: integer;
 
+  triangleheight: integer;
+begin
+  jlThickness:=TDisassemblerview(owner).jlThickness;
 
   oldpenstyle:=fCanvas.Pen.Style;
+  oldpenwidth:=fcanvas.pen.Width;
   oldpencolor:=fCanvas.Pen.color;
   oldbrushcolor:=fCanvas.Brush.color;
 
   fCanvas.Pen.Color:=fjumpcolor;
   fCanvas.Pen.Style:=psDot;
-
+  fcanvas.Pen.Width:=jlThickness;
 
   fCanvas.PenPos:=point(fHeaders.items[2].Left,instructioncenter);
   fCanvas.LineTo(fHeaders.items[2].Left-offset,instructioncenter);
@@ -124,9 +129,11 @@ begin
   fCanvas.Pen.Style:=oldpenstyle;
   if showendtriangle then
   begin
+    triangleheight:=defaultHeight div 4;
+
     fCanvas.Brush.Style:=bsSolid; //should be the default, but in case something fucked with it (not in the planning, never intended, so even if someone did do it, I'll undo it)
     fCanvas.Brush.Color:=fjumpcolor;
-    fCanvas.Polygon([point(fheaders.items[2].Left-4,yposition-4),point(fheaders.items[2].Left,yposition),point(fheaders.items[2].Left-4,yposition+4)]);
+    fCanvas.Polygon([point(fheaders.items[2].Left-triangleheight,yposition-triangleheight),point(fheaders.items[2].Left,yposition),point(fheaders.items[2].Left-triangleheight,yposition+triangleheight)]);
   end;
   fCanvas.Brush.Color:=oldbrushcolor;
   fCanvas.Pen.Color:=oldpencolor;
@@ -220,7 +227,7 @@ begin
   end;
 end;
 
-procedure TDisassemblerLine.renderLine(var address: ptrUint; linestart: integer; selected: boolean=false; focused: boolean=false);
+procedure TDisassemblerLine.renderLine(var address: ptrUint; linestart: integer; selected: boolean=false; focused: boolean=false; spacebetweenlines:integer=0);
 var
     baseofsymbol: qword;
     symbolname: string;
@@ -253,7 +260,9 @@ var
     extrasymboldata: TExtraSymbolData;
 
     iscurrentinstruction: boolean;
+
 begin
+
   iscurrentinstruction:=MemoryBrowser.lastdebugcontext.{$ifdef cpu64}rip{$else}EIP{$endif}=address;
 
   self.focused:=focused;
@@ -279,7 +288,6 @@ begin
 
 
   isselected:=selected;
-
 
   refferencedbystrings:=nil;
   fheight:=0;
@@ -357,7 +365,6 @@ begin
   fheight:=fheight+boldheight+1;
   fDefaultHeight:=fHeight;   //the height without anything special
 
-
   //calculate how big the comments are. (beyond the default height)
   for i:=1 to specialstrings.count-1 do
     inc(fHeight, fcanvas.textHeight(specialstrings[i]));
@@ -365,6 +372,8 @@ begin
   //calculae the custom headersize
   for i:=0 to customheaderstrings.count-1 do
     inc(fheight, fCanvas.TextHeight(customheaderstrings[i]));
+
+  inc(fHeight, spacebetweenlines);
 
   if ExtraLineRenderAbove<>nil then
   begin
@@ -441,18 +450,15 @@ begin
   begin
     cefuncproc.isjumporcall(faddress, fJumpsTo);
 
+
     if visibleDisassembler.LastDisassembleData.iscall then
-      fjumpcolor:=clYellow
+      fjumpcolor:= TDisassemblerview(owner).jlCallColor
     else
     begin
       if visibleDisassembler.LastDisassembleData.isconditionaljump then
-      begin
-        fjumpcolor:=clRed;
-
-
-      end
+        fjumpcolor:=TDisassemblerview(owner).jlConditionalJumpColor
       else
-        fjumpcolor:=clGreen;
+        fjumpcolor:=TDisassemblerview(owner).jlUnConditionalJumpColor ;
     end;
   end;
 
@@ -538,6 +544,8 @@ begin
 
   //height may not change after this
   fcanvas.FillRect(rect(0,top,fbitmap.width,top+height));
+
+  inc(linestart, spacebetweenlines div 2);
 
   if ExtraLineRenderAbove<>nil then
   begin
@@ -676,7 +684,6 @@ begin
   else
     i:=fHeaders.Items[2].Left+1+j;
 
-
   DrawTextRectWithColor(rect(fHeaders.Items[2].Left, linestart, fHeaders.Items[2].Right, linestart+height),i,linestart, parameterstring);
   fInstructionCenter:=linestart+(fcanvas.TextHeight(opcodestring) div 2);
 
@@ -714,6 +721,8 @@ begin
 
   if refferencedbystrings<>nil then
     refferencedbystrings.free;
+
+
 end;
 
 function TDisassemblerLine.DrawTextRectWithColor(const ARect: TRect; X, Y: integer; const Text: string): integer;

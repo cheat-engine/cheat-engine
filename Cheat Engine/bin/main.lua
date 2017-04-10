@@ -1364,6 +1364,7 @@ methods
 CustomControl class (CustomControl->WinControl->Control->Component->Object)
 properties
   Canvas : The canvas object for drawing on the control/. Readonly
+  OnPaint: an OnPaint event you can assign to do some extra painting
 methods
   getCanvas() : Returns the Canvas object for the given object that has inherited from customControl
 
@@ -2434,7 +2435,7 @@ Disassembler Class (Inheritance: Object)
 
 createDisassembler() - Creates a disassembler object that can be used to disassemble an instruction and at the same time get more data
 getDefaultDisassembler() - Returns the default disassembler object used by a lot of ce's disassembler routines
-getVisibleDisassembler() - Returns the disassembler used by the disassemblerview. Special codes are: {H}=Hex value {R}=Register {S}=Symbol {N}=Nothing special {C######}=RGB color were ###### is 0xRRGGBB {b######}=Background RGB color
+getVisibleDisassembler() - Returns the disassembler used by the disassemblerview. Special codes are: {H}=Hex value {R}=Register {S}=Symbol {N}=Nothing special {C######}=RGB color , {B######}=Background RGB color were ###### is 0xBBGGRR 
 
 registerGlobalDisassembleOverride(function(sender: Disassembler, address: integer, LastDisassembleData: Table): opcode, description): Same as Disassembler.OnDisassembleOverride, but does it for all disassemblers, including newly created ones.  Tip: Check the sender to see if you should use syntax highlighting codes or not
   This function returns an ID you can pass on to unregisterGlobalDisassembleOverride()  6.4+

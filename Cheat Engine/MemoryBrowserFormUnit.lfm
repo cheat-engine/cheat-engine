@@ -1276,7 +1276,7 @@ object MemoryBrowser: TMemoryBrowser
         end
       end
       object miTextPreferences: TMenuItem
-        Caption = 'Text preferences'
+        Caption = 'Preferences'
         OnClick = miTextPreferencesClick
       end
     end

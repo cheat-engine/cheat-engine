@@ -13,7 +13,6 @@ object FormDesigner: TFormDesigner
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  PopupMode = pmAuto
   LCLVersion = '1.6.0.4'
   object ToolBar1: TToolBar
     Left = 0

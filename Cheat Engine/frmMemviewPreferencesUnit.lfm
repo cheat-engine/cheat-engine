@@ -1,144 +1,34 @@
 object frmMemviewPreferences: TfrmMemviewPreferences
-  Left = 514
-  Height = 339
-  Top = 198
-  Width = 392
+  Left = 512
+  Height = 508
+  Top = 167
+  Width = 735
   AutoSize = True
   Caption = 'Disassembler Preferences'
-  ClientHeight = 339
-  ClientWidth = 392
+  ClientHeight = 508
+  ClientWidth = 735
   OnCreate = FormCreate
   OnShow = FormShow
   PopupMenu = pmColors
   PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
-  object btnFont: TButton
-    AnchorSideLeft.Control = Owner
-    AnchorSideTop.Control = Label1
-    AnchorSideTop.Side = asrBottom
-    Left = 8
-    Height = 25
-    Top = 23
-    Width = 175
-    AutoSize = True
-    BorderSpacing.Left = 8
-    Caption = 'Change disassembler font'
-    Constraints.MinWidth = 175
-    OnClick = btnFontClick
-    TabOrder = 0
-  end
-  object cbColorGroup: TComboBox
-    AnchorSideLeft.Control = btnFont
-    AnchorSideTop.Control = btnFont
-    AnchorSideTop.Side = asrBottom
-    AnchorSideRight.Control = btnFont
-    AnchorSideRight.Side = asrBottom
-    Left = 8
-    Height = 23
-    Top = 53
-    Width = 175
-    Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Top = 5
-    Constraints.MinWidth = 175
-    ItemHeight = 15
-    ItemIndex = 0
-    Items.Strings = (
-      'Normal'
-      'Highlighted'
-      'Highlighted secondary'
-      'Breakpoint'
-      'Highlighted breakpoint'
-      'Highlighted breakpoint secondary'
-      'Ultimap'
-      'Highlighted Ultimap'
-    )
-    OnChange = cbColorGroupChange
-    Style = csDropDownList
-    TabOrder = 1
-    Text = 'Normal'
-  end
-  object GroupBox1: TGroupBox
-    AnchorSideLeft.Control = cbColorGroup
-    AnchorSideTop.Control = cbColorGroup
-    AnchorSideTop.Side = asrBottom
-    AnchorSideRight.Control = btnFont
-    AnchorSideRight.Side = asrBottom
-    Cursor = crHandPoint
-    Left = 8
-    Height = 135
-    Top = 78
-    Width = 175
-    Anchors = [akTop, akLeft, akRight]
-    AutoSize = True
-    BorderSpacing.Top = 2
-    Caption = 'Normal'
-    ChildSizing.TopBottomSpacing = 5
-    ChildSizing.VerticalSpacing = 15
-    ChildSizing.Layout = cclLeftToRightThenTopToBottom
-    ChildSizing.ControlsPerLine = 1
-    ClientHeight = 115
-    ClientWidth = 171
-    TabOrder = 2
-    OnClick = GroupBox1Click
-    object lblNormal: TLabel
-      Cursor = crHandPoint
-      Left = 0
-      Height = 15
-      Top = 5
-      Width = 98
-      Caption = 'Default color'
-      ParentColor = False
-      OnClick = lblNormalClick
-    end
-    object lblRegister: TLabel
-      Cursor = crHandPoint
-      Left = 0
-      Height = 15
-      Top = 35
-      Width = 98
-      Caption = 'Register color'
-      ParentColor = False
-      OnClick = lblRegisterClick
-    end
-    object lblSymbol: TLabel
-      Cursor = crHandPoint
-      Left = 0
-      Height = 15
-      Top = 65
-      Width = 98
-      Caption = 'Symbol color'
-      ParentColor = False
-      OnClick = lblSymbolClick
-    end
-    object lblHex: TLabel
-      Cursor = crHandPoint
-      Left = 0
-      Height = 15
-      Top = 95
-      Width = 98
-      Caption = 'Hexadecimal color'
-      ParentColor = False
-      OnClick = lblHexClick
-    end
-  end
   object Button2: TButton
-    AnchorSideLeft.Control = btnFont
-    AnchorSideTop.Control = GroupBox1
+    AnchorSideTop.Control = GroupBox2
     AnchorSideTop.Side = asrBottom
     Left = 8
     Height = 25
-    Top = 288
+    Top = 353
     Width = 75
-    Anchors = [akLeft]
     AutoSize = True
     BorderSpacing.Top = 3
     BorderSpacing.Bottom = 4
     Caption = 'Apply'
+    Constraints.MinHeight = 25
     Constraints.MinWidth = 75
     Default = True
     OnClick = Button2Click
-    TabOrder = 3
+    TabOrder = 0
   end
   object Button3: TButton
     AnchorSideLeft.Control = Button2
@@ -146,66 +36,390 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     AnchorSideTop.Control = Button2
     Left = 87
     Height = 25
-    Top = 288
+    Top = 353
     Width = 75
     AutoSize = True
     BorderSpacing.Left = 4
     Cancel = True
     Caption = 'Cancel'
+    Constraints.MinHeight = 25
     Constraints.MinWidth = 75
     ModalResult = 2
-    TabOrder = 4
+    TabOrder = 1
   end
-  object Label1: TLabel
-    AnchorSideLeft.Control = btnFont
-    AnchorSideLeft.Side = asrCenter
+  object GroupBox2: TGroupBox
+    AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
-    Left = 61
-    Height = 15
-    Top = 8
-    Width = 69
-    BorderSpacing.Top = 8
-    Caption = 'Disassembler'
-    ParentColor = False
-  end
-  object Label2: TLabel
-    AnchorSideLeft.Control = btnHexFont
-    AnchorSideLeft.Side = asrCenter
-    AnchorSideTop.Control = Label1
-    Left = 256
-    Height = 15
-    Top = 8
-    Width = 44
-    Caption = 'Hexview'
-    ParentColor = False
-  end
-  object btnHexFont: TButton
-    AnchorSideLeft.Control = btnFont
-    AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = Label1
-    AnchorSideTop.Side = asrBottom
-    Left = 191
-    Height = 25
-    Top = 23
-    Width = 175
+    Left = 0
+    Height = 350
+    Top = 0
+    Width = 187
     AutoSize = True
-    BorderSpacing.Left = 8
-    BorderSpacing.Right = 8
-    Caption = 'Change hexview font'
-    Constraints.MinWidth = 175
-    OnClick = btnHexFontClick
-    TabOrder = 5
+    Caption = 'Disassembler'
+    ClientHeight = 330
+    ClientWidth = 183
+    TabOrder = 2
+    object btnFont: TButton
+      AnchorSideLeft.Control = GroupBox2
+      AnchorSideTop.Control = GroupBox2
+      AnchorSideRight.Control = cbColorGroup
+      AnchorSideRight.Side = asrBottom
+      Left = 8
+      Height = 25
+      Top = 0
+      Width = 175
+      AutoSize = True
+      BorderSpacing.Left = 8
+      Caption = 'Change disassembler font'
+      Constraints.MinWidth = 175
+      OnClick = btnFontClick
+      TabOrder = 0
+    end
+    object cbColorGroup: TComboBox
+      AnchorSideLeft.Control = btnFont
+      AnchorSideTop.Control = btnFont
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = btnFont
+      AnchorSideRight.Side = asrBottom
+      Left = 8
+      Height = 23
+      Top = 30
+      Width = 175
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Top = 5
+      Constraints.MinWidth = 175
+      ItemHeight = 15
+      ItemIndex = 0
+      Items.Strings = (
+        'Normal'
+        'Highlighted'
+        'Highlighted secondary'
+        'Breakpoint'
+        'Highlighted breakpoint'
+        'Highlighted breakpoint secondary'
+        'Ultimap'
+        'Highlighted Ultimap'
+      )
+      OnChange = cbColorGroupChange
+      Style = csDropDownList
+      TabOrder = 1
+      Text = 'Normal'
+    end
+    object GroupBox1: TGroupBox
+      AnchorSideLeft.Control = cbColorGroup
+      AnchorSideTop.Control = cbColorGroup
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = GroupBox2
+      AnchorSideRight.Side = asrBottom
+      Cursor = crHandPoint
+      Left = 8
+      Height = 104
+      Top = 55
+      Width = 175
+      Anchors = [akTop, akLeft, akRight]
+      AutoSize = True
+      BorderSpacing.Top = 2
+      Caption = 'Normal'
+      ChildSizing.TopBottomSpacing = 3
+      ChildSizing.VerticalSpacing = 6
+      ChildSizing.Layout = cclLeftToRightThenTopToBottom
+      ChildSizing.ControlsPerLine = 1
+      ClientHeight = 84
+      ClientWidth = 171
+      TabOrder = 2
+      OnClick = GroupBox1Click
+      object lblNormal: TLabel
+        Cursor = crHandPoint
+        Left = 0
+        Height = 15
+        Top = 3
+        Width = 98
+        Caption = 'Default color'
+        ParentColor = False
+        ParentFont = False
+        OnClick = lblNormalClick
+      end
+      object lblRegister: TLabel
+        Cursor = crHandPoint
+        Left = 0
+        Height = 15
+        Top = 24
+        Width = 98
+        Caption = 'Register color'
+        ParentColor = False
+        OnClick = lblRegisterClick
+      end
+      object lblSymbol: TLabel
+        Cursor = crHandPoint
+        Left = 0
+        Height = 15
+        Top = 45
+        Width = 98
+        Caption = 'Symbol color'
+        ParentColor = False
+        OnClick = lblSymbolClick
+      end
+      object lblHex: TLabel
+        Cursor = crHandPoint
+        Left = 0
+        Height = 15
+        Top = 66
+        Width = 98
+        Caption = 'Hexadecimal color'
+        ParentColor = False
+        OnClick = lblHexClick
+      end
+    end
+    object edtSpaceBetweenLines: TEdit
+      AnchorSideLeft.Control = Label1
+      AnchorSideTop.Control = Label1
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Label1
+      AnchorSideRight.Side = asrBottom
+      Left = 8
+      Height = 23
+      Top = 179
+      Width = 106
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Top = 1
+      TabOrder = 3
+      Text = '0'
+    end
+    object Label1: TLabel
+      AnchorSideLeft.Control = GroupBox1
+      AnchorSideTop.Control = GroupBox1
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 15
+      Top = 163
+      Width = 106
+      BorderSpacing.Top = 4
+      BorderSpacing.Right = 4
+      Caption = 'Space between lines'
+      ParentColor = False
+    end
+    object Label2: TLabel
+      Left = 0
+      Height = 1
+      Top = 272
+      Width = 1
+      ParentColor = False
+    end
+    object GroupBox4: TGroupBox
+      AnchorSideLeft.Control = edtSpaceBetweenLines
+      AnchorSideTop.Control = edtSpaceBetweenLines
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Side = asrBottom
+      Left = 8
+      Height = 126
+      Top = 204
+      Width = 172
+      AutoSize = True
+      BorderSpacing.Top = 2
+      Caption = 'Jumplines'
+      ClientHeight = 106
+      ClientWidth = 168
+      TabOrder = 4
+      object lblConditionalJump: TLabel
+        AnchorSideLeft.Control = GroupBox4
+        AnchorSideTop.Control = Panel3
+        AnchorSideTop.Side = asrBottom
+        Left = 0
+        Height = 15
+        Top = 43
+        Width = 123
+        BorderSpacing.Top = 5
+        Caption = 'Conditional jump color'
+        ParentColor = False
+        OnClick = lblConditionalJumpClick
+      end
+      object lblUnconditionalJump: TLabel
+        AnchorSideLeft.Control = lblConditionalJump
+        AnchorSideTop.Control = lblConditionalJump
+        AnchorSideTop.Side = asrBottom
+        Left = 0
+        Height = 15
+        Top = 64
+        Width = 136
+        BorderSpacing.Top = 6
+        Caption = 'Unconditional jump color'
+        ParentColor = False
+        OnClick = lblUnconditionalJumpClick
+      end
+      object lblCall: TLabel
+        AnchorSideLeft.Control = lblUnconditionalJump
+        AnchorSideTop.Control = lblUnconditionalJump
+        AnchorSideTop.Side = asrBottom
+        Left = 0
+        Height = 15
+        Top = 85
+        Width = 50
+        BorderSpacing.Top = 6
+        BorderSpacing.Bottom = 6
+        Caption = 'Call color'
+        ParentColor = False
+        OnClick = lblCallClick
+      end
+      object Panel3: TPanel
+        AnchorSideLeft.Control = GroupBox4
+        AnchorSideTop.Control = GroupBox4
+        Left = 0
+        Height = 38
+        Top = 0
+        Width = 168
+        AutoSize = True
+        BevelOuter = bvNone
+        ChildSizing.HorizontalSpacing = 8
+        ChildSizing.Layout = cclLeftToRightThenTopToBottom
+        ChildSizing.ControlsPerLine = 2
+        ClientHeight = 38
+        ClientWidth = 168
+        TabOrder = 0
+        object Panel2: TPanel
+          Left = 0
+          Height = 38
+          Top = 0
+          Width = 80
+          AutoSize = True
+          BevelOuter = bvNone
+          ClientHeight = 38
+          ClientWidth = 80
+          Constraints.MinWidth = 80
+          TabOrder = 1
+          object Label4: TLabel
+            Left = 0
+            Height = 15
+            Top = 0
+            Width = 52
+            Caption = 'Thickness'
+            ParentColor = False
+          end
+          object edtJLThickness: TEdit
+            AnchorSideLeft.Control = Panel2
+            AnchorSideTop.Control = Label4
+            AnchorSideTop.Side = asrBottom
+            AnchorSideRight.Control = Panel2
+            AnchorSideRight.Side = asrBottom
+            Left = 0
+            Height = 23
+            Top = 15
+            Width = 80
+            Anchors = [akTop, akLeft, akRight]
+            Constraints.MinWidth = 80
+            TabOrder = 0
+            Text = '1'
+          end
+        end
+        object Panel1: TPanel
+          AnchorSideLeft.Side = asrBottom
+          Left = 88
+          Height = 38
+          Top = 0
+          Width = 80
+          AutoSize = True
+          BevelOuter = bvNone
+          ClientHeight = 38
+          ClientWidth = 80
+          Constraints.MinWidth = 80
+          TabOrder = 0
+          object Label5: TLabel
+            AnchorSideLeft.Control = Panel1
+            AnchorSideTop.Control = Panel1
+            Left = 0
+            Height = 15
+            Top = 0
+            Width = 42
+            Caption = 'Spacing'
+            ParentColor = False
+          end
+          object edtJLSpacing: TEdit
+            AnchorSideLeft.Control = Label5
+            AnchorSideTop.Control = Label5
+            AnchorSideTop.Side = asrBottom
+            AnchorSideRight.Control = Panel1
+            AnchorSideRight.Side = asrBottom
+            Left = 0
+            Height = 23
+            Top = 15
+            Width = 80
+            Anchors = [akTop, akLeft, akRight]
+            Constraints.MinWidth = 80
+            TabOrder = 0
+            Text = '2'
+          end
+        end
+      end
+    end
   end
-  object lblHexExample: TLabel
-    AnchorSideLeft.Control = btnHexFont
-    AnchorSideTop.Control = cbColorGroup
-    AnchorSideTop.Side = asrCenter
-    Left = 191
-    Height = 15
-    Top = 57
-    Width = 44
-    Caption = 'Example'
-    ParentColor = False
+  object GroupBox3: TGroupBox
+    AnchorSideLeft.Control = GroupBox2
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Owner
+    AnchorSideBottom.Control = GroupBox2
+    AnchorSideBottom.Side = asrBottom
+    Left = 187
+    Height = 350
+    Top = 0
+    Width = 195
+    Anchors = [akTop, akLeft, akBottom]
+    AutoSize = True
+    Caption = 'Hexview'
+    ClientHeight = 330
+    ClientWidth = 191
+    TabOrder = 3
+    object lblHexExample: TLabel
+      AnchorSideLeft.Control = btnHexFont
+      AnchorSideTop.Control = btnHexFont
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 15
+      Top = 33
+      Width = 44
+      BorderSpacing.Top = 8
+      Caption = 'Example'
+      ParentColor = False
+    end
+    object btnHexFont: TButton
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 25
+      Top = 0
+      Width = 175
+      AutoSize = True
+      BorderSpacing.Left = 8
+      BorderSpacing.Right = 8
+      Caption = 'Change hexview font'
+      Constraints.MinWidth = 175
+      OnClick = btnHexFontClick
+      TabOrder = 0
+    end
+    object Label3: TLabel
+      AnchorSideLeft.Control = lblHexExample
+      AnchorSideTop.Control = lblHexExample
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 15
+      Top = 64
+      Width = 106
+      BorderSpacing.Top = 16
+      Caption = 'Space between lines'
+      ParentColor = False
+    end
+    object edtHexSpaceBetweenLines: TEdit
+      AnchorSideLeft.Control = Label3
+      AnchorSideTop.Control = Label3
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Label3
+      AnchorSideRight.Side = asrBottom
+      Left = 8
+      Height = 23
+      Top = 79
+      Width = 106
+      Anchors = [akTop, akLeft, akRight]
+      TabOrder = 1
+      Text = '0'
+    end
   end
   object ColorDialog1: TColorDialog
     Color = clBlack
@@ -243,8 +457,8 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     MinFontSize = 0
     MaxFontSize = 0
     PreviewText = 'mov'
-    left = 240
-    top = 112
+    left = 288
+    top = 192
   end
   object pmColors: TPopupMenu
     left = 240

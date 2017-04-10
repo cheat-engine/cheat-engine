@@ -73,6 +73,10 @@ type TDisassemblerview=class(TPanel)
     fOnSelectionChange: TDisassemblerSelectionChangeEvent;
     fOnExtraLineRender: TDisassemblerExtraLineRender;
 
+    fspaceBetweenLines: integer;
+    fjlThickness: integer;
+    fjlSpacing: integer;
+
     scrolltimer: ttimer;
     procedure updateScrollbox;
     procedure scrollboxResize(Sender: TObject);
@@ -118,6 +122,10 @@ type TDisassemblerview=class(TPanel)
 
   public
     colors: TDisassemblerViewColors;
+    jlCallColor: TColor;
+    jlConditionalJumpColor: TColor;
+    jlUnConditionalJumpColor: TColor;
+
 
     procedure reinitialize; //deletes the assemblerlines
 
@@ -140,6 +148,9 @@ type TDisassemblerview=class(TPanel)
     constructor create(AOwner: TComponent); override;
     destructor destroy; override;
   published
+    property SpaceBetweenLines: integer read fspaceBetweenLines write fspaceBetweenLines;
+    property jlThickness: integer read fjlThickness write fjlThickness;
+    property jlSpacing: integer read fjlSpacing write fjlSpacing;
     property ShowJumplines: boolean read fShowJumplines write setJumpLines;
     property ShowJumplineState: TShowJumplineState read fShowjumplinestate write setJumplineState;
     property TopAddress: ptrUint read fTopAddress write setTopAddress;
@@ -541,9 +552,13 @@ var
   address: ptrUint;
 
   found: boolean;
+  trianglesize: integer;
   jumplineoffset: integer;
 begin
-  jumplineoffset:=4;
+  if fTotalvisibledisassemblerlines=0 then exit;
+
+  trianglesize:=TDisassemblerLine(disassemblerlines[0]).defaultHeight div 4;
+  jumplineoffset:=trianglesize;
 
   found:=false;
 
@@ -588,7 +603,7 @@ begin
         end;
       end;
 
-      inc(jumplineoffset,2);
+      inc(jumplineoffset,jlSpacing);
     end;
   end;
 end;
@@ -709,7 +724,7 @@ begin
       currentline:=disassemblerlines[i];
 
 
-      currentline.renderLine(currentAddress,currenttop, inrangeX(currentAddress,selStart,selStop), currentAddress=fSelectedAddress);
+      currentline.renderLine(currentAddress,currenttop, inrangeX(currentAddress,selStart,selStop), currentAddress=fSelectedAddress, fspaceBetweenLines);
 
       inc(currenttop, currentline.getHeight);
       inc(i);
@@ -1062,6 +1077,9 @@ var emptymenu: TPopupMenu;
 begin
   inherited create(AOwner);
 
+  jlSpacing:=2;
+  jlThickness:=1;
+
   emptymenu:=TPopupMenu.create(self);
 
   tabstop:=true;
@@ -1244,6 +1262,8 @@ begin
   self.OnMouseWheel:=mousescroll;
 
 
+
+
   getDefaultColors(colors);
 
 
@@ -1309,6 +1329,10 @@ begin
   c[csSecondaryHighlightedUltimap].registercolor:=clRed;
   c[csSecondaryHighlightedUltimap].symbolcolor:=clLime;
   c[csSecondaryHighlightedUltimap].hexcolor:=clBlue;
+
+  jlConditionalJumpColor:=clRed;
+  jlUnconditionalJumpColor:=clGreen;
+  jlCallColor:=clYellow;
 end;
 
 

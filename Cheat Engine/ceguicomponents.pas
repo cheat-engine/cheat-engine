@@ -1555,8 +1555,6 @@ initialization
   RegisterClass(TTrayIcon);
 
 
-
-
   RegisterPropertyEditor(ClassTypeInfo(TListItems), TCEListView, 'Items', TCEListViewItemsPropertyEditor);
 
   //Hide some properties (mainly for the newer objects that have been introduced since 6.4+)
