@@ -2164,7 +2164,6 @@ var
   enable: boolean;
   targetself: boolean;
 begin
-  script:=tstringlist.create;
   if lua_gettop(L)=0 then
   begin
     lua_pushboolean(L,false);
@@ -2172,6 +2171,7 @@ begin
     exit(2);
   end;
 
+  script:=tstringlist.create;
   try
     script.text:=Lua_ToString(L,1);
     if lua_gettop(L)=2 then
