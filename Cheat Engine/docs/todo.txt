@@ -1,13 +1,6 @@
 
 find higher resolution icons
 
-memview hexview: Add a header showing details about the selection (bytecount, hex->dec)
-
-memview: ctrl+f ->adjust from region 
-
-exe trainer generator compression isn't properly sized
-don't forget the test buttons in advanced options
-
 add a filter in the processlist to filter out system processes
 make an "Appication list" process window
 

@@ -2285,6 +2285,8 @@ begin
 
   if findwindow=nil then findwindow:=TFindwindow.create(self);
   findwindow.firstscan:=true;
+  findwindow.editStart.text:=inttohex(hexview.SelectionStart,8);
+
   findwindow.ShowModal;
 end;
 

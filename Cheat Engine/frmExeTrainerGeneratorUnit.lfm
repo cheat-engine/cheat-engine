@@ -21,22 +21,22 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
     Left = 0
     Height = 206
     Top = 0
-    Width = 321
+    Width = 312
     AutoSize = True
     BevelOuter = bvNone
     ClientHeight = 206
-    ClientWidth = 321
+    ClientWidth = 312
     TabOrder = 0
     object GroupBox1: TGroupBox
       Left = 0
       Height = 58
       Top = 39
-      Width = 321
+      Width = 312
       Align = alTop
       AutoSize = True
       Caption = 'Process'
       ClientHeight = 38
-      ClientWidth = 317
+      ClientWidth = 308
       TabOrder = 0
       object rb32: TRadioButton
         AnchorSideLeft.Control = GroupBox1
@@ -67,7 +67,7 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
       Left = 0
       Height = 61
       Top = 97
-      Width = 321
+      Width = 312
       Align = alTop
       AutoSize = True
       Caption = 'Features used'
@@ -76,7 +76,7 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
       ChildSizing.Layout = cclLeftToRightThenTopToBottom
       ChildSizing.ControlsPerLine = 3
       ClientHeight = 41
-      ClientWidth = 317
+      ClientWidth = 308
       TabOrder = 1
       object cbSpeedhack: TCheckBox
         Left = 0
@@ -151,7 +151,7 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
       Left = 241
       Height = 23
       Top = 171
-      Width = 80
+      Width = 71
       BorderSpacing.Left = 3
       ItemHeight = 15
       ItemIndex = 3
@@ -207,12 +207,12 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
       Left = 0
       Height = 39
       Top = 0
-      Width = 321
+      Width = 312
       Align = alTop
       AutoSize = True
       Caption = 'Trainer size'
       ClientHeight = 19
-      ClientWidth = 317
+      ClientWidth = 308
       TabOrder = 5
       object cbTiny: TRadioButton
         AnchorSideLeft.Control = cbGigantic
@@ -286,22 +286,22 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Panel2
-    Left = 324
+    Left = 315
     Height = 211
     Top = 0
-    Width = 273
+    Width = 282
     Anchors = [akTop, akLeft, akRight, akBottom]
     AutoSize = True
     BorderSpacing.Left = 3
     Caption = 'Extra files'
     ClientHeight = 191
-    ClientWidth = 269
+    ClientWidth = 278
     TabOrder = 2
     object ListView1: TListView
       Left = 0
       Height = 158
       Top = 0
-      Width = 269
+      Width = 278
       Align = alClient
       Columns = <      
         item
@@ -325,12 +325,12 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
       Left = 0
       Height = 33
       Top = 158
-      Width = 269
+      Width = 278
       Align = alBottom
       AutoSize = True
       BevelOuter = bvNone
       ClientHeight = 33
-      ClientWidth = 269
+      ClientWidth = 278
       TabOrder = 1
       object btnRemoveFile: TButton
         AnchorSideLeft.Control = btnAddFile

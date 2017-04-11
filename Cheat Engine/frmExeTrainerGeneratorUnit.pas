@@ -674,7 +674,10 @@ begin
 end;
 
 procedure TfrmExeTrainerGenerator.FormShow(Sender: TObject);
-var i:integer;
+var
+  i,s:integer;
+  cbi: TComboboxInfo;
+  extrasize: integer;
 begin
   i:=max(max(button3.Width, btnAddFile.Width), btnRemoveFile.Width);
 
@@ -682,6 +685,18 @@ begin
   btnAddFile.Width:=i;
   btnRemoveFile.Width:=i;
   groupbox3.Constraints.MinHeight:=panel1.height;
+
+  cbi.cbSize:=sizeof(cbi);
+  if GetComboBoxInfo(comboCompression.handle, @cbi) then
+    extrasize:=cbi.rcButton.Right-cbi.rcButton.Left+cbi.rcItem.Left
+  else
+    extrasize:=16;
+
+  s:=0;
+  for i:=0 to comboCompression.Items.Count-1 do
+    s:=max(s, canvas.GetTextWidth(comboCompression.items[i]));
+
+  comboCompression.Constraints.MinWidth:=s+extrasize;
 end;
 
 procedure TfrmExeTrainerGenerator.ListView1ContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);

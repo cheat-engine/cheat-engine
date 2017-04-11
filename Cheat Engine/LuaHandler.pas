@@ -2158,6 +2158,49 @@ begin
   result:=deAllocEx(getcurrentprocess, L);
 end;
 
+function AutoAssembleCheck_lua(L: PLua_State): integer; cdecl;
+var
+  script: tstringlist;
+  enable: boolean;
+  targetself: boolean;
+begin
+  script:=tstringlist.create;
+  if lua_gettop(L)=0 then
+  begin
+    lua_pushboolean(L,false);
+    lua_pushstring(L,'No parameters given');
+    exit(2);
+  end;
+
+  try
+    script.text:=Lua_ToString(L,1);
+    if lua_gettop(L)=2 then
+      enable:=lua_toboolean(L,2)
+    else
+      enable:=true;
+
+    if lua_gettop(L)=3 then
+      targetself:=lua_toboolean(L,3)
+    else
+      targetself:=false;
+
+    try
+      lua_pushboolean(L,autoassemble(script,false,enable,true,targetself));
+      exit(1);
+    except
+      on e:exception do
+      begin
+        lua_pushboolean(L,false);
+        lua_pushstring(L,e.message);
+        exit(2);
+      end;
+    end;
+
+  finally
+    script.free;
+  end;
+end;
+
 function autoAssemble_lua(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
@@ -8250,6 +8293,7 @@ begin
     lua_register(L, 'readBytesLocal', readbyteslocal);
     lua_register(L, 'writeBytesLocal', writebyteslocal);
     lua_register(L, 'autoAssemble', autoAssemble_lua);
+    lua_register(L, 'autoAssembleCheck', AutoAssembleCheck_lua);
     lua_register(L, 'deAlloc', deAlloc_lua);
     lua_register(L, 'deAllocLocal', deAllocLocal_lua);
     lua_register(L, 'showMessage', showMessage_lua);
