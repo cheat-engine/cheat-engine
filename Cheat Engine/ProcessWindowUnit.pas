@@ -29,6 +29,7 @@ type
     btnProcessWatch: TButton;
     btnWindowList: TButton;
     CancelButton: TButton;
+    cbSkipSystemProcesses: TCheckBox;
     miOwnProcessesOnly: TMenuItem;
     OKButton: TButton;
     Panel3: TPanel;
@@ -48,6 +49,7 @@ type
     Showinvisiblewindows1: TMenuItem;
     procedure btnNetworkClick(Sender: TObject);
     procedure CancelButtonClick(Sender: TObject);
+    procedure cbSkipSystemProcessesChange(Sender: TObject);
     procedure miOwnProcessesOnlyClick(Sender: TObject);
     procedure OKButtonClick(Sender: TObject);
     procedure btnProcesslistClick(Sender: TObject);
@@ -162,15 +164,37 @@ begin
 end;
 
 procedure TProcessWindow.filterlist;
-var i:integer;
+var
+    i:integer;
+    pli: PProcessListInfo;
+    s: string;
 begin
-  if filter='' then exit;
+  if (filter='') and (cbSkipSystemProcesses.checked=false) then exit;
+
+  ffilter:=uppercase(ffilter);
 
   i:=0;
   while i<processlist.Items.Count do
   begin
-    if pos(uppercase(filter),uppercase(processlist.Items[i]))=0 then
-      processlist.Items.Delete(i)
+    pli:=PProcessListInfo(processlist.items.Objects[i]);
+
+    if pos('cheatengine', lowercase(processlist.Items[i]))>0 then
+    begin
+      beep;
+    end;
+
+    if ((ffilter<>'') and (pos(ffilter,uppercase(processlist.Items[i]))=0)) or ((pli<>nil) and cbSkipSystemProcesses.checked and pli^.issystemprocess) then
+    begin
+      if pli<>nil then
+      begin
+        if pli^.processIcon>0 then
+          DestroyIcon(pli^.processIcon);
+
+        freemem(pli);
+      end;
+
+      processlist.Items.Delete(i);
+    end
     else
       inc(i);
   end;
@@ -193,6 +217,11 @@ begin
 
   //ProcessWindow.close;
   ModalResult:=mrCancel;
+end;
+
+procedure TProcessWindow.cbSkipSystemProcessesChange(Sender: TObject);
+begin
+  btnProcesslist.Click;
 end;
 
 procedure TProcessWindow.miOwnProcessesOnlyClick(Sender: TObject);
@@ -307,7 +336,10 @@ var oldselection: string;
     oldselectionIndex: integer;
     i: integer;
     found: boolean;
+
+   // pl: Tstringlist;
 begin
+  cbSkipSystemProcesses.visible:=true;
 
   Showinvisiblewindows1.visible:=false;
   oldselectionindex:=processlist.ItemIndex;
@@ -318,7 +350,12 @@ begin
 
   currentlist:=0;
 
+  //pl:=tstringlist.create;
+
   getprocesslist(processlist);
+//  getprocesslist(pl);
+
+
 
 
   if formsettings.cbKernelReadWriteProcessMemory.checked or (dbvm_version>=$ce000004) then //driver is active
@@ -357,6 +394,8 @@ end;
 
 procedure TProcessWindow.btnWindowListClick(Sender: TObject);
 begin
+  cbSkipSystemProcesses.visible:=false;
+
   currentlist:=1;
   Showinvisiblewindows1.visible:=true;
   getwindowlist(processlist,Showinvisiblewindows1.Checked);

@@ -61,6 +61,7 @@ type ToffsetList=array of integer;
 type TProcessListInfo=record
   processID: dword;
   processIcon: HICON;
+  issystemprocess: boolean;
 end;
 PProcessListInfo=^TProcessListInfo;
 

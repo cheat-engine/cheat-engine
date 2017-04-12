@@ -12,7 +12,7 @@ procedure control_addMetaData(L: PLua_state; metatable: integer; userdata: integ
 
 implementation
 
-uses luahandler, pluginexports, LuaCaller, LuaComponent, LuaClass;
+uses luahandler, pluginexports, LuaCaller, LuaComponent, LuaClass, LuaObject;
 
 function control_repaint(L: PLua_State): integer; cdecl;
 begin
@@ -364,7 +364,14 @@ var
   i: integer;
 begin
   c:=luaclass_getClassObject(L);
-  luaclass_newClass(L, c.PopupMenu);
+
+  luaclass_newClass(L,c);
+  lua_pushstring(L,'PopupMenu');
+  lua_getProperty(L);
+
+  if lua_isnil(L,-1) then
+    luaclass_newClass(L, c.PopupMenu);
+
   result:=1;
 end;
 
