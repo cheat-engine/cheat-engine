@@ -1832,6 +1832,10 @@ var
 
   cs: Tcompressionstream;
   s: TFileStream;
+  overflowqueuebuffer: TDynPathQueue;
+  overfloqeueuebufferpos: integer;
+  oldstart: integer;
+
   procedure handleNetwork;
   begin
     if useLoadedPointermap=false then  //one time init. (no incomming connections will get accepted during this time
@@ -1879,6 +1883,8 @@ var
     end;
   end;
 
+
+
 begin
   terminatedTime:=0;
 
@@ -1889,6 +1895,7 @@ begin
 
 
   alldone:=false;
+
 
   try
     if maxlevel>0 then
@@ -1903,6 +1910,15 @@ begin
 
         if Self.findValueInsteadOfAddress then
         begin
+          overfloqeueuebufferpos:=0;
+          setlength(overflowqueuebuffer,128);
+          for i:=0 to 127 do
+          begin
+            overflowqueuebuffer[i].startlevel:=0;
+            setlength(overflowqueuebuffer[i].tempresults,maxlevel+1);
+            setlength(overflowqueuebuffer[i].valuelist,maxlevel+1);
+          end;
+
           //scan the memory for the value
           ValueFinder:=TValueFinder.create(startaddress,stopaddress);
           ValueFinder.alligned:=not unalligned;
@@ -1917,42 +1933,62 @@ begin
           while (not terminated) and (currentaddress>0) do
           begin
             //if found, find a idle thread and tell it to look for this address starting from level 0 (like normal)
-            addedToQueue:=false;
-            while (not terminated) and (not addedToQueue) do
+
+
+            if pathqueuelength<MAXQUEUESIZE-1 then
             begin
+              pathqueueCS.enter;
+              //setup the queueelement
               if pathqueuelength<MAXQUEUESIZE-1 then
               begin
-                pathqueueCS.enter;
-                //setup the queueelement
-                if pathqueuelength<MAXQUEUESIZE-1 then
-                begin
-                  pathqueue[pathqueuelength].startlevel:=0;
-                  pathqueue[pathqueuelength].valuetofind:=currentaddress;
-                  inc(pathqueuelength);
+                pathqueue[pathqueuelength].startlevel:=0;
+                pathqueue[pathqueuelength].valuetofind:=currentaddress;
+                inc(pathqueuelength);
 
-                  ReleaseSemaphore(pathqueueSemaphore, 1, nil);
+                ReleaseSemaphore(pathqueueSemaphore, 1, nil);
 
-                  if unalligned then
-                    currentaddress:=ValueFinder.FindValue(currentaddress+1)
-                  else
-                    currentaddress:=ValueFinder.FindValue(currentaddress+4);
 
-                  addedToQueue:=true;
-                end;
 
-                pathqueueCS.leave;
+
               end;
 
-              if (not addedToQueue) and (not terminated) then
-              begin
-                if hasNetworkResponsibility then
-                  handleNetwork
-                else
-                  sleep(500); //wait till there is space in the queue
-              end;
+              pathqueueCS.leave;
             end;
 
+            if (not addedToQueue) and (not terminated) then
+            begin
+              //add it to the overflow queue
+              overflowqueuebuffer[overfloqeueuebufferpos].valuetofind:=currentaddress;
+              inc(overfloqeueuebufferpos);
+              if overfloqeueuebufferpos>=128 then
+              begin
+                overflowqueuecs.enter;
+                oldstart:=length(overflowqueue);
+                setlength(overflowqueue,length(overflowqueue)+128);
+                for i:=0 to 127 do
+                  overflowqueue[oldstart+i]:=overflowqueuebuffer[i];
+
+                overflowqueuecs.leave;
+              end;
+
+
+            end;
+
+            if unalligned then
+              currentaddress:=ValueFinder.FindValue(currentaddress+1)
+            else
+              currentaddress:=ValueFinder.FindValue(currentaddress+4);
+
           end;
+
+          overflowqueuecs.enter;
+          oldstart:=length(overflowqueue);
+          setlength(overflowqueue,length(overflowqueue)+length(overflowqueuebuffer));
+          for i:=0 to length(overflowqueuebuffer)-1 do
+            overflowqueue[oldstart+i]:=overflowqueuebuffer[i];
+
+          overflowqueuecs.leave;
+
 
           //done with the value finder, wait till all threads are done
           valuefinder.free;

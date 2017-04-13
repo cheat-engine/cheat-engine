@@ -1,11 +1,6 @@
 
 find higher resolution icons
 
-add a filter in the processlist to filter out system processes
-make an "Appication list" process window
-
-pointerscan: for value scans should scan first and put every result in the secondary queue, that way resume works better
-
 
 open file: add a commit changes
 memview->view->all strings(string map): progressbar is not sized properly 
