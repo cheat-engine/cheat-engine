@@ -2025,16 +2025,24 @@ function getBaseParentFromWindowHandle(winhandle: HWnd): HWND;
 var
   last: hwnd;
   i: integer;
+
+  lastwithcaption: hwnd;
+  lastcaption: string;
 begin
   i:=0;
   while (winhandle<>0) and (i<10000) do
   begin
     last:=winhandle;
+
+    if GetWindowTextLength(last)>0 then
+      lastwithcaption:=last;
+
     winhandle:=getwindow(winhandle, GW_OWNER);
     inc(i);
   end;
 
-  result:=last;
+  //result:=last;
+  result:=lastwithcaption;
 end;
 
 function SendMessageTimeout(hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM; fuFlags, uTimeout: UINT; var lpdwResult: ptruint): LRESULT;external 'user32' name 'SendMessageTimeoutA';
@@ -2120,7 +2128,7 @@ begin
 
         if not pidlist.HasId(winprocess) then
         begin
-          pidlist.Add(winprocess,b);
+
           basehandle:=getBaseParentFromWindowHandle(winhandle);
 
 
@@ -2131,6 +2139,8 @@ begin
 
           if ((not ProcessesCurrentUserOnly) or (GetUserNameFromPID(winprocess)=username)) and (length(wintitle)>0) then
           begin
+            pidlist.Add(winprocess,b);
+
             getmem(ProcessListInfo,sizeof(TProcessListInfo));
             ProcessListInfo.processID:=winprocess;
             ProcessListInfo.processIcon:=0;
