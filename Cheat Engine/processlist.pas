@@ -144,7 +144,6 @@ begin
       begin
 
 
-
         HI:=ExtractIcon(hinstance,ProcessEntry.szExeFile,0);
         if HI=0 then
         begin

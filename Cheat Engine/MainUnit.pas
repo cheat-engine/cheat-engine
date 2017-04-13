@@ -3164,7 +3164,7 @@ begin
   if Processwindow = nil then
     ProcessWindow := TProcessWindow.Create(application);
 
-  ProcessWindow.btnOpenFile.click;
+  ProcessWindow.miOpenFile.click;
 
   if ProcessWindow.modalresult=mrOK then
     openProcessEpilogue(oldprocessname, oldprocess, oldprocesshandle);
@@ -9359,7 +9359,7 @@ begin
     oldprocesshandle := processhandle;
     with TProcessWindow.Create(self) do
     begin
-      btnCreateThread.Click;
+      miCreateProcess.Click;
       Free;
     end;
 
