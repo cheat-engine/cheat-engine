@@ -1131,7 +1131,7 @@ begin
         if tempnode<>nil then
           extra.stringData.Unicode:=tempnode.TextContent='1';
 
-        tempnode:=CheatEntry.FindNode('Codepage');
+        tempnode:=CheatEntry.FindNode('CodePage');
         if tempnode<>nil then
           extra.stringData.Codepage:=tempnode.TextContent='1';
 
