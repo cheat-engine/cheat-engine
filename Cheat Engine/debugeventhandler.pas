@@ -202,14 +202,22 @@ begin
   TDebuggerthread(debuggerthread).execlocation:=41;
   UpdateMemoryBrowserContext;
 
+  TDebuggerthread(debuggerthread).execlocation:=411;
+
   if (currentbp<>nil) and (assigned(currentbp.OnBreakpoint)) then
     WaitingToContinue:=currentbp.OnBreakpoint(currentbp, context)
   else
     WaitingToContinue:=not lua_onBreakpoint(context);
 
+  TDebuggerthread(debuggerthread).execlocation:=412;
+
 
   if WaitingToContinue then //no lua script or it returned 0
+  begin
+    TDebuggerthread(debuggerthread).execlocation:=413;
     MemoryBrowser.UpdateDebugContext(self.Handle, self.ThreadId);
+  end;
+  TDebuggerthread(debuggerthread).execlocation:=414;
 
 end;
 
