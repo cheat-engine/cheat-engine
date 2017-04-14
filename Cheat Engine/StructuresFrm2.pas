@@ -5586,7 +5586,7 @@ begin
   //if first column is doubleclicked edit the type, else edit the value
   m:=mouse.CursorPos;
   m:=tvStructureView.ScreenToClient(m);
-  c:=getColumnAtXPos(m.x);
+  c:=getColumnAtXPos(m.x+tvStructureView.ScrolledLeft);
 
   if c=nil then
     miChangeElementClick(miChangeElement)
