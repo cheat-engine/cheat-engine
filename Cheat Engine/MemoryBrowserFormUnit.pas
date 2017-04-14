@@ -1702,6 +1702,8 @@ begin
     lblCall.font.color:=disassemblerview.jlCallColor;
     lblUnconditionalJump.font.color:=disassemblerview.jlUnconditionalJumpColor;
     lblConditionalJump.font.color:=disassemblerview.jlconditionalJumpColor;
+    jlThickness:=disassemblerview.jlThickness;
+    jlSpacing:=disassemblerview.jlSpacing;
     spaceAboveLines:=disassemblerview.spaceAboveLines;
     spaceBelowLines:=disassemblerview.spaceBelowLines;
     hexSpaceBetweenLines:=hexview.spaceBetweenLines;
