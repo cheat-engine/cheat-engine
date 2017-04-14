@@ -2,7 +2,6 @@
 find higher resolution icons
 
 
-memview->view->all strings(string map): progressbar is not sized properly 
 string map: Free the current list when shown takes a long time (I think it updates on each delete)
 
 
