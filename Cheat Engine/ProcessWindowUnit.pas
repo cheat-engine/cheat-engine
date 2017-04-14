@@ -124,6 +124,8 @@ resourcestring
   rsProcessListLong = 'Process List(long)';
   rsProcessList = 'Process List';
 
+var errortrace: integer;
+
 procedure TProcessListLong.drawprocesses;
 var i: integer;
 begin
@@ -618,67 +620,101 @@ var
     oldselectionindex: integer;
     oldselection: string;
     found: boolean;
+
 begin
-  oldselectionindex:=processlist.ItemIndex;
+  errortrace:=0;
 
-  if oldselectionindex<>-1 then
-    oldselection:=processlist.Items[oldselectionIndex];
+  try
+    oldselectionindex:=processlist.ItemIndex;
+    errortrace:=1;
 
-  case tabcontrol1.TabIndex of
-    0:
-    begin
-      getwindowlist2(processlist.Items);
-      miSkipSystemProcesses.enabled:=true;
+    if oldselectionindex<>-1 then
+      oldselection:=processlist.Items[oldselectionIndex];
+
+    errortrace:=2;
+
+    case tabcontrol1.TabIndex of
+      0:
+      begin
+        errortrace:=3;
+        getwindowlist2(processlist.Items);
+        miSkipSystemProcesses.enabled:=true;
+      end;
+
+      1:
+      begin
+        errortrace:=4;
+        getprocesslist(processlist.items);
+
+        miSkipSystemProcesses.enabled:=true;
+      end;
+
+      2:
+      begin
+        errortrace:=5;
+        GetWindowList(processlist.Items, miShowInvisibleItems.Checked);
+        miSkipSystemProcesses.enabled:=false;
+        processlist.ItemIndex:=processlist.Items.Count-1;
+      end;
     end;
 
-    1:
+    errortrace:=6;
+    filterlist;
+    errortrace:=7;
+
+    if oldselectionindex=-1 then
     begin
-      getprocesslist(processlist.items);
-
-      miSkipSystemProcesses.enabled:=true;
-    end;
-
-    2:
-    begin
-      GetWindowList(processlist.Items, miShowInvisibleItems.Checked);
-      miSkipSystemProcesses.enabled:=false;
-      processlist.ItemIndex:=processlist.Items.Count-1;
-    end;
-  end;
-
-  filterlist;
-
-  if oldselectionindex=-1 then
-    processlist.ItemIndex:=processlist.Items.Count-1 //go to the end
-  else
-  begin
-    i:=processlist.Items.IndexOf(oldselection);
-    if i>=0 then
-      processlist.ItemIndex:=i
+      errortrace:=8;
+      processlist.ItemIndex:=processlist.Items.Count-1; //go to the end
+      errortrace:=9;
+    end
     else
     begin
-      //strip out the processid part and search for a entry with the appropriate processname (e.g restarted game)
-      oldselection:=copy(oldselection,pos('-',oldselection)+1,length(oldselection));
+      errortrace:=10;
+      i:=processlist.Items.IndexOf(oldselection);
+      if i>=0 then
+      begin
+        errortrace:=11;
+        processlist.ItemIndex:=i;
+        errortrace:=12;
+      end
+      else
+      begin
+        //strip out the processid part and search for a entry with the appropriate processname (e.g restarted game)
+        errortrace:=13;
+        oldselection:=copy(oldselection,pos('-',oldselection)+1,length(oldselection));
 
-      found:=false;
-      for i:=0 to processlist.Items.Count-1 do
-        if pos(oldselection, processlist.items[i])>0 then
-        begin
-          processlist.ItemIndex:=i;
-          found:=true;
+        errortrace:=14;
+        found:=false;
+        for i:=0 to processlist.Items.Count-1 do
+          if pos(oldselection, processlist.items[i])>0 then
+          begin
+            processlist.ItemIndex:=i;
+            found:=true;
 
-          break;
-        end;
+            break;
+          end;
 
-      if not found then
-        processlist.ItemIndex:=processlist.Items.Count-1;
+        errortrace:=15;
+
+        if not found then
+          processlist.ItemIndex:=processlist.Items.Count-1;
+
+        errortrace:=16;
+      end;
     end;
+
+
+    errortrace:=17;
+    if formsettings.cbKernelReadWriteProcessMemory.checked or (dbvm_version>=$ce000004) then //driver is active
+    begin
+      errortrace:=18;
+      processlist.Items.Insert(0, '00000000-['+rsPhysicalMemory+']');
+    end;
+
+  except
+    on e: exception do exception.create('Exception ('+e.message+') at part '+inttostr(errortrace));
   end;
-
-
-
-  if formsettings.cbKernelReadWriteProcessMemory.checked or (dbvm_version>=$ce000004) then //driver is active
-    processlist.Items.Insert(0, '00000000-['+rsPhysicalMemory+']');
 end;
 
 procedure TProcessWindow.miShowInvisibleItemsClick(Sender: TObject);
