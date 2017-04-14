@@ -2121,7 +2121,10 @@ begin
       begin
         ProcessListInfo:=PProcessListInfo(processlist.Objects[i]);
         if ProcessListInfo.processIcon>0 then
-          DestroyIcon(ProcessListInfo.processIcon);
+        begin
+          if ProcessListInfo^.processID<>GetCurrentProcessId then
+            DestroyIcon(ProcessListInfo^.processIcon);
+        end;
 
         freemem(ProcessListInfo);
         ProcessListInfo:=nil;
@@ -2158,6 +2161,8 @@ begin
           wintitle:=WinCPToUTF8(temp);
 
 
+
+
           if ((not ProcessesCurrentUserOnly) or (GetUserNameFromPID(winprocess)=username)) and (length(wintitle)>0) then
           begin
             if basehandlelist.GetData(basehandle,basehandlemapentry)=false then
@@ -2173,8 +2178,17 @@ begin
 
               if formsettings.cbProcessIcons.checked then
               begin
+
+                if pos('Cheat Engine',temp)>0 then
+                begin
+                  asm
+                  nop
+                  end;
+                end;
+
+
                 tempptruint:=0;
-                if SendMessageTimeout(basehandle,WM_GETICON,ICON_SMALL,0,SMTO_ABORTIFHUNG, 100, tempptruint )<>0 then
+                if SendMessageTimeout(basehandle,WM_GETICON,ICON_BIG,0,SMTO_ABORTIFHUNG, 100, tempptruint )<>0 then
                 begin
                   ProcessListInfo.processIcon:=tempptruint;
                   if ProcessListInfo.processIcon=0 then
@@ -2183,7 +2197,7 @@ begin
                       ProcessListInfo.processIcon:=tempptruint;
 
                     if ProcessListInfo.processIcon=0 then
-                      if SendMessageTimeout(basehandle,WM_GETICON,ICON_BIG,0,SMTO_ABORTIFHUNG, 100, tempptruint	)<>0 then
+                      if SendMessageTimeout(basehandle,WM_GETICON,ICON_SMALL,0,SMTO_ABORTIFHUNG, 100, tempptruint	)<>0 then
                         ProcessListInfo.processIcon:=tempptruint;
 
                     if ProcessListInfo.processIcon=0 then
@@ -2290,7 +2304,11 @@ begin
       begin
         ProcessListInfo:=PProcessListInfo(processlist.Objects[i]);
         if ProcessListInfo.processIcon>0 then
-          DestroyIcon(ProcessListInfo.processIcon);
+        begin
+          if ProcessListInfo^.processID<>GetCurrentProcessId then
+            DestroyIcon(ProcessListInfo^.processIcon);
+          ProcessListInfo.processIcon:=0;
+        end;
 
         freemem(ProcessListInfo);
         ProcessListInfo:=nil;

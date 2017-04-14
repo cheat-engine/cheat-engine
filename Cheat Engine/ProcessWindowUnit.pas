@@ -200,7 +200,12 @@ begin
       if pli<>nil then
       begin
         if pli^.processIcon>0 then
-          DestroyIcon(pli^.processIcon);
+        begin
+          if pli^.processID<>GetCurrentProcessId then
+            DestroyIcon(pli^.processIcon);
+
+          pli^.processIcon:=0;
+        end;
 
         freemem(pli);
       end;

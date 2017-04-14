@@ -69,9 +69,16 @@ begin
     begin
       ProcessListInfo:= pointer( processlist.Objects[i]);
 {$ifdef windows}
-      if ProcessListInfo.processIcon>0 then
-        DestroyIcon(ProcessListInfo.processIcon);
+      if ProcessListInfo^.processIcon>0 then
+      begin
+        if ProcessListInfo^.processID<>GetCurrentProcessId then
+          DestroyIcon(ProcessListInfo^.processIcon);
+
+        ProcessListInfo^.processIcon:=0;
+      end;
 {$endif}
+
+
       freemem(ProcessListInfo);
 
       processlist.Objects[i]:=nil;
@@ -232,7 +239,12 @@ begin
       begin
         pli:=pointer(processlist.Items.Objects[i]);
         if pli^.processIcon>0 then
-          DestroyIcon(pli^.processIcon);
+        begin
+          if pli^.processID<>GetCurrentProcessId then
+            DestroyIcon(pli^.processIcon);
+
+          pli^.processIcon:=0;
+        end;
         freemem(pli);
       end;
 
