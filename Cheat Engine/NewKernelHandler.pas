@@ -569,7 +569,7 @@ procedure UseDBKQueryMemoryRegion;
 procedure UseDBKReadWriteMemory;
 procedure UseDBKOpenProcess;
 
-procedure DBKFileAsMemory(filename:string); overload;
+procedure DBKFileAsMemory(fn:string); overload;
 procedure DBKFileAsMemory; overload;
 function VirtualQueryExPhysical(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; stdcall;
 procedure DBKPhysicalMemory;
@@ -1214,11 +1214,12 @@ begin
 {$endif}
 end;
 
-procedure DBKFileAsMemory(filename:string); overload;
+procedure DBKFileAsMemory(fn:string); overload;
 begin
 {$ifdef windows}
-  filehandle:=CreateFile(pchar(filename),GENERIC_READ	or GENERIC_WRITE,FILE_SHARE_READ or FILE_SHARE_WRITE,nil,OPEN_EXISTING,FILE_FLAG_RANDOM_ACCESS,0);
-  if filehandle=0 then raise exception.create(Format(rsCouldnTBeOpened, [filename]));
+  filehandler.filename:=filename;
+  filehandler.filedata:=tmemorystream.create;
+  filehandler.filedata.LoadFromFile(fn);
   DBKFileAsMemory;
 {$endif}
 end;
@@ -1285,7 +1286,11 @@ begin
 
   UsePhysical:=true;
   Usephysicaldbvm:=false;
-  if usefileasmemory then closehandle(filehandle);
+  if usefileasmemory then
+  begin
+    if filedata<>nil then
+      freeandnil(filedata);
+  end;
   usefileasmemory:=false;
   ReadProcessMemory:=@ReadPhysicalMemory;
   WriteProcessMemoryActual:=@WritePhysicalMemory;
@@ -1315,7 +1320,9 @@ begin
   usephysical:=false;
   Usephysicaldbvm:=false;
 
-  if usefileasmemory then closehandle(filehandle);
+  if filedata<>nil then
+    freeandnil(filedata);
+
   usefileasmemory:=false;
 {$endif}
 end;

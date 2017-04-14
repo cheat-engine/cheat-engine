@@ -241,6 +241,7 @@ type
     FromAddress: TEdit;
     andlabel: TLabel;
     MenuItem12: TMenuItem;
+    miSaveFile: TMenuItem;
     miAsyncScript: TMenuItem;
     miFlFindWhatAccesses: TMenuItem;
     MenuItem13: TMenuItem;
@@ -492,6 +493,7 @@ type
     procedure miBindDeactivationClick(Sender: TObject);
     procedure miDisassembleClick(Sender: TObject);
     procedure miFlFindWhatWritesClick(Sender: TObject);
+    procedure miSaveFileClick(Sender: TObject);
     procedure miScanDirtyOnlyClick(Sender: TObject);
     procedure miCompressionClick(Sender: TObject);
     procedure miGeneratePointermapClick(Sender: TObject);
@@ -933,7 +935,7 @@ uses mainunit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup, HotKeys,
   frmD3DHookSnapshotConfigUnit, frmSaveSnapshotsUnit, frmsnapshothandlerUnit,
   frmNetworkDataCompressionUnit, ProcessHandlerUnit, ProcessList, pointeraddresslist,
   PointerscanresultReader, Parsers, Globals, GnuAssembler, xinput, DPIHelper,
-  multilineinputqueryunit, winsapi, LuaClass;
+  multilineinputqueryunit, winsapi, LuaClass, Filehandler;
 
 resourcestring
   rsInvalidStartAddress = 'Invalid start address: %s';
@@ -8531,6 +8533,15 @@ begin
     DebuggerThread.FindWhatWrites(address, memscan.Getbinarysize div 8);
   end;
 
+end;
+
+procedure TMainForm.miSaveFileClick(Sender: TObject);
+begin
+  if Processwindow = nil then
+    ProcessWindow := TProcessWindow.Create(application);
+
+  if ProcessWindow.opendialog2.Execute then
+    Filehandler.CommitChanges(ProcessWindow.opendialog2.filename);
 end;
 
 procedure TMainForm.miChangeValueClick(Sender: TObject);

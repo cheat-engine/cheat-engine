@@ -2028,6 +2028,8 @@ var
 
   lastwithcaption: hwnd;
   lastcaption: string;
+
+  test: hwnd;
 begin
   i:=0;
   while (winhandle<>0) and (i<10000) do
@@ -2041,14 +2043,19 @@ begin
     inc(i);
   end;
 
-  //result:=last;
-  result:=lastwithcaption;
+  result:=last; //withcaption;
 end;
 
 function SendMessageTimeout(hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM; fuFlags, uTimeout: UINT; var lpdwResult: ptruint): LRESULT;external 'user32' name 'SendMessageTimeoutA';
 
 
 procedure GetWindowList2(ProcessList: TStrings; showInvisible: boolean=true);
+type
+  TBaseHandleMapEntry=record
+    entrynr: integer;
+    basenr: integer;
+  end;
+
 var previouswinhandle, winhandle: Hwnd;
     winprocess: Dword;
     temp: Pchar;
@@ -2061,22 +2068,29 @@ var previouswinhandle, winhandle: Hwnd;
     tempptruint: ptruint;
 
     basehandle: hwnd;
+    basehandlelist: TMap;
+
+    basehandlemapentry: TBaseHandleMapEntry;
+
+
 
     pidlist: TMap;
-    b: byte;
+    arrayid: integer;
     path,s: string;
     hi: HIcon;
 
   pl: array of record
     pid: dword;
-    listentry: record
+    windowbases: array of record
       pi:PProcessListInfo;
-      s: pchar;
+      s: string;
     end;
   end;
   plpos: integer;
   SNAPHandle: THandle;
   lppe: NewKernelHandler.TProcessEntry32;
+
+  found :boolean;
 begin
   //first create a processlist so I get the proper order
   setlength(pl,128);
@@ -2088,18 +2102,15 @@ begin
   if Process32First(snaphandle, lppe) then
   repeat
     pl[plpos].pid:=lppe.th32ProcessID;
-    pl[plpos].listentry.s:=nil;
-    pl[plpos].listentry.pi:=nil;
     inc(plpos);
     if plpos>=length(pl) then setlength(pl,length(pl)*2);
   until process32next(snaphandle, lppe)=false;
 
 
 
-
-
-  pidlist:=TMap.Create(ituPtrSize,1);
-  b:=1;
+  basehandlelist:=TMap.create(ituPtrSize, sizeof(TBaseHandleMapEntry));
+  pidlist:=TMap.Create(ituPtrSize,sizeof(integer));
+  arrayid:=0;
 
   getmem(temp,101);
   try
@@ -2122,85 +2133,108 @@ begin
     i:=0;
     while (winhandle<>0) and (i<10000) do
     begin
-      if showInvisible or IsWindowVisible(winhandle) then
+      if IsWindowVisible(winhandle) then
       begin
         GetWindowThreadProcessId(winhandle,addr(winprocess));
 
-        if not pidlist.HasId(winprocess) then
+        arrayid:=-1;
+        if pidlist.GetData(winprocess, arrayid)=false then
         begin
+          for j:=0 to plpos-1 do
+            if pl[j].pid=winprocess then
+            begin
+              arrayid:=j;
+              pidlist.Add(winprocess, arrayid);
+            end;
+        end;
 
+        if arrayid<>-1 then
+        begin
           basehandle:=getBaseParentFromWindowHandle(winhandle);
-
 
           temp[0]:=#0;
           getwindowtext(basehandle,temp,100);
           temp[100]:=#0;
           wintitle:=WinCPToUTF8(temp);
 
+
           if ((not ProcessesCurrentUserOnly) or (GetUserNameFromPID(winprocess)=username)) and (length(wintitle)>0) then
           begin
-            pidlist.Add(winprocess,b);
-
-            getmem(ProcessListInfo,sizeof(TProcessListInfo));
-            ProcessListInfo.processID:=winprocess;
-            ProcessListInfo.processIcon:=0;
-
-            path:=getProcessPathFromProcessID(winprocess);
-
-            ProcessListInfo.issystemprocess:=(ProcessListInfo.processID=4) or (pos(lowercase(windowsdir),path)>0) or (pos('system32',path)>0);
-
-
-            if formsettings.cbProcessIcons.checked then
+            if basehandlelist.GetData(basehandle,basehandlemapentry)=false then
             begin
-              tempptruint:=0;
-              if SendMessageTimeout(basehandle,WM_GETICON,ICON_SMALL,0,SMTO_ABORTIFHUNG, 100, tempptruint )<>0 then
+              //add it
+              getmem(ProcessListInfo,sizeof(TProcessListInfo));
+              ProcessListInfo.processID:=winprocess;
+              ProcessListInfo.processIcon:=0;
+
+              path:=getProcessPathFromProcessID(winprocess);
+
+              ProcessListInfo.issystemprocess:=(ProcessListInfo.processID=4) or (pos(lowercase(windowsdir),path)>0) or (pos('system32',path)>0);
+
+              if formsettings.cbProcessIcons.checked then
               begin
-                ProcessListInfo.processIcon:=tempptruint;
-                if ProcessListInfo.processIcon=0 then
+                tempptruint:=0;
+                if SendMessageTimeout(basehandle,WM_GETICON,ICON_SMALL,0,SMTO_ABORTIFHUNG, 100, tempptruint )<>0 then
                 begin
-                  if SendMessageTimeout(basehandle,WM_GETICON,ICON_SMALL2,0,SMTO_ABORTIFHUNG, 100, tempptruint	)<>0 then
-                    ProcessListInfo.processIcon:=tempptruint;
-
-                  if ProcessListInfo.processIcon=0 then
-                    if SendMessageTimeout(basehandle,WM_GETICON,ICON_BIG,0,SMTO_ABORTIFHUNG, 100, tempptruint	)<>0 then
-                      ProcessListInfo.processIcon:=tempptruint;
-
+                  ProcessListInfo.processIcon:=tempptruint;
                   if ProcessListInfo.processIcon=0 then
                   begin
-                    //try the process
-                    HI:=ExtractIcon(hinstance,pchar(path),0);
-                    if HI=0 then
+                    if SendMessageTimeout(basehandle,WM_GETICON,ICON_SMALL2,0,SMTO_ABORTIFHUNG, 100, tempptruint	)<>0 then
+                      ProcessListInfo.processIcon:=tempptruint;
+
+                    if ProcessListInfo.processIcon=0 then
+                      if SendMessageTimeout(basehandle,WM_GETICON,ICON_BIG,0,SMTO_ABORTIFHUNG, 100, tempptruint	)<>0 then
+                        ProcessListInfo.processIcon:=tempptruint;
+
+                    if ProcessListInfo.processIcon=0 then
                     begin
-                      i:=getlasterror;
-
-                      //alternative method:
-
-                      if (winprocess>0) and (uppercase(copy(ExtractFileName(path), 1,3))<>'AVG') then //february 2014: AVG freezes processes that do createtoolhelp32snapshot on it's processes for several seconds. AVG has multiple processes...
+                      //try the process
+                      HI:=ExtractIcon(hinstance,pchar(path),0);
+                      if HI=0 then
                       begin
-                        s:=GetFirstModuleName(winprocess);
-                        HI:=ExtractIcon(hinstance,pchar(s),0);
+                        j:=getlasterror;
+
+                        //alternative method:
+
+                        if (winprocess>0) and (uppercase(copy(ExtractFileName(path), 1,3))<>'AVG') then //february 2014: AVG freezes processes that do createtoolhelp32snapshot on it's processes for several seconds. AVG has multiple processes...
+                        begin
+                          s:=GetFirstModuleName(winprocess);
+                          HI:=ExtractIcon(hinstance,pchar(s),0);
+                        end;
                       end;
+
+                      ProcessListInfo.processIcon:=HI;
                     end;
-
-                    ProcessListInfo.processIcon:=HI;
                   end;
+                end else
+                begin
+                  inc(i,100); //at worst case scenario this causes the list to wait 10 seconds
                 end;
-              end else
-              begin
-                inc(i,100); //at worst case scenario this causes the list to wait 10 seconds
-              end;
-            end;
-
-
-            //insert this in the list at the right position
-            for i:=0 to plpos-1 do
-              if pl[i].pid=winprocess then
-              begin
-                pl[i].listentry.pi:=ProcessListInfo;
-                pl[i].listentry.s:=strnew(pchar(wintitle));
-                break;
               end;
 
+              //before adding check if there is already one with Exactly the same title (e.g: origin)
+              found:=false;
+              for j:=0 to length(pl[arrayid].windowbases)-1 do
+                if pl[arrayid].windowbases[j].s=wintitle then
+                begin
+                  found:=true;
+                  break;
+                end;
+
+              if not found then
+              begin
+                //add it to the list
+                j:=length(pl[arrayid].windowbases);
+                setlength(pl[arrayid].windowbases, j+1);
+
+                pl[arrayid].windowbases[j].pi:=ProcessListInfo;
+                pl[arrayid].windowbases[j].s:=wintitle;
+
+                basehandlemapentry.entrynr:=arrayid;
+                basehandlemapentry.basenr:=j;
+                basehandlelist.Add(basehandle, basehandlemapentry);
+              end;
+            end; //else already in the list
 
           end;
         end;
@@ -2216,14 +2250,8 @@ begin
 
     for i:=0 to plpos-1 do
     begin
-      if pl[i].listentry.s<>nil then
-      begin
-        x.AddObject(IntTohex(pl[i].pid,8)+'-'+WinCPToUTF8(pl[i].listentry.s),TObject(pl[i].listentry.pi));
-
-        StrDispose(pl[i].listentry.s);
-      end;
-
-
+      for j:=0 to length(pl[i].windowbases)-1 do
+        x.AddObject(IntTohex(pl[i].pid,8)+'-'+pl[i].windowbases[j].s,TObject(pl[i].windowbases[j].pi));
     end;
 
     processlist.Assign(x);
@@ -2233,6 +2261,11 @@ begin
 
     freemem(pidlist);
     pidlist:=nil;
+
+    freemem(basehandlelist);
+    basehandlelist:=nil;
+
+    setlength(pl,0);
   end;
 end;
 

@@ -8083,6 +8083,15 @@ begin
   lua_pushboolean(L, dbk_enabledrm(preferedAltitude, GetPEProcess(ProtectedProcess)));
 end;
 
+
+function lua_saveOpenedFile(L: Plua_State): integer; cdecl;
+begin
+  if lua_gettop(L)>=1 then
+    filehandler.commitchanges(Lua_ToString(L,1))
+  else
+    Filehandler.commitChanges;
+end;
+
 function lua_openFileAsProcess(L: Plua_State): integer; cdecl;
 var
   filename: string;
@@ -8115,7 +8124,7 @@ begin
       exit;
     end;
 
-    ProcessHandler.ProcessHandle:=filehandle;
+    ProcessHandler.ProcessHandle:=-1;
 
     MainForm.ProcessLabel.caption:=extractfilename(filename);
     ProcessHandler.processid:=$FFFFFFFF;
@@ -8740,6 +8749,8 @@ begin
     lua_register(L, 'enableDRM', lua_enableDRM);
 
     lua_register(L, 'openFileAsProcess', lua_openFileAsProcess);
+    lua_register(L, 'saveOpenedFile', lua_saveOpenedFile);
+
 
     lua_register(L, 'getPEB', lua_getPEB);
 

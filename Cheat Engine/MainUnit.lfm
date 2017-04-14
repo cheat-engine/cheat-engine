@@ -3,7 +3,7 @@ object MainForm: TMainForm
   Left = 433
   Height = 699
   Hint = ' '
-  Top = 139
+  Top = 91
   Width = 701
   HelpContext = 3
   HorzScrollBar.Visible = False
@@ -2230,7 +2230,14 @@ object MainForm: TMainForm
       end
       object miOpenFile: TMenuItem
         Caption = 'Open File'
+        ShortCut = 24655
         OnClick = miOpenFileClick
+      end
+      object miSaveFile: TMenuItem
+        Caption = 'Save File'
+        ShortCut = 24659
+        Visible = False
+        OnClick = miSaveFileClick
       end
       object N7: TMenuItem
         Caption = '-'

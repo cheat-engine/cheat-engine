@@ -271,6 +271,7 @@ getProcessIDFromProcessName(name) : returns a processid
 openProcess(processid) : causes cheat engine to open the given processid
 openProcess(processname): causes cheat engine to find and open the given process
 openFileAsProcess(filename,is64bit): causes cheat engine to open the file with memory access as if it's a process
+saveOpenedFile(filename OPTIONAL): Saves the changes of the opened file, set filename if you want a different file
 setPointerSize(size): Sets the size cheat engine will deal with pointers in bytes. (Some 64-bit processes can only use 32-bit addresses)
 setAssemblerMode(int): 0=32-bit, 1=64-bit
 pause() : pauses the current opened process

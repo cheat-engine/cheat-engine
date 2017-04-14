@@ -480,8 +480,9 @@ begin
   begin
     DBKFileAsMemory(opendialog2.filename);
     processselected:=true;
-    ProcessHandler.ProcessHandle:=filehandle;
+    ProcessHandler.ProcessHandle:=-1;
     MainForm.ProcessLabel.caption:=extractfilename(opendialog2.FileName);
+    MainForm.miSaveFile.visible:=true;
     ProcessHandler.processid:=$FFFFFFFF;
 
     modalresult:=mrok;
@@ -689,6 +690,7 @@ procedure TProcessWindow.TabControl1Change(Sender: TObject);
 begin
   refreshList;
 end;
+
 
 initialization
   {$i ProcessWindowUnit.lrs}
