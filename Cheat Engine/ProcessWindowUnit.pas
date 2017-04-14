@@ -591,13 +591,26 @@ end;
 
 procedure TProcessWindow.FormShow(Sender: TObject);
 begin
-  processlist.canvas.Refresh;
+  errortrace:=100;
+  try
+    errortrace:=101;
+    processlist.canvas.Refresh;
 
-  ProcessList.ItemHeight:=max(processlist.canvas.TextHeight('QqJjWwSs')+3, canvas.TextHeight('QqJjWwSs')+3);
-  currentchar:=1;
-  refreshlist;
+    errortrace:=102;
+    ProcessList.ItemHeight:=max(processlist.canvas.TextHeight('QqJjWwSs')+3, canvas.TextHeight('QqJjWwSs')+3);
+    errortrace:=103;
+    currentchar:=1;
+    errortrace:=104;
+    refreshlist;
+    errortrace:=105;
 
-  autosize:=false;
+    autosize:=false;
+    errortrace:=106;
+  except
+    on e:exception do
+      raise exception.create('FormShow exception ('+e.message+') at section '+inttostr(errortrace));
+
+  end;
 end;
 
 procedure TProcessWindow.ProcessListKeyPress(Sender: TObject; var Key: char);
