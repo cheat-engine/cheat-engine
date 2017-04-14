@@ -105,7 +105,7 @@ implementation
 
 uses MainUnit, formsettingsunit, advancedoptionsunit,frmProcessWatcherUnit,
   memorybrowserformunit, networkConfig, ProcessHandlerUnit, processlist, globals,
-  frmProcessListSettingsUnit, registry, fontSaveLoadRegistry;
+  registry, fontSaveLoadRegistry;
 
 resourcestring
   rsIsnTAValidProcessID = '%s isn''t a valid processID';
