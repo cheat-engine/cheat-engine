@@ -2342,7 +2342,7 @@ begin
           end;
 
 
-          x.AddObject(IntTohex(winprocess,8)+'-'+WinCPToUTF8(wintitle),TObject(ProcessListInfo));
+          x.AddObject(IntTohex(winprocess,8)+'-'+wintitle,TObject(ProcessListInfo));
         end;
       end;
 
