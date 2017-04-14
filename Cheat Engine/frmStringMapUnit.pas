@@ -383,7 +383,9 @@ var n:  TAvgLvlTreeNode;
 begin
   isfillinglist:=false;
 
+  listview1.BeginUpdate;
   listview1.Clear;
+  listview1.EndUpdate;
 
   if scanner<>nil then
   begin
