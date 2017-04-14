@@ -52,6 +52,7 @@ type
     ProcessList: TListBox;
     miShowInvisibleItems: TMenuItem;
     TabControl1: TTabControl;
+    Timer1: TTimer;
     procedure btnNetworkClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure CancelButtonClick(Sender: TObject);
@@ -80,9 +81,11 @@ type
     procedure ProcessListKeyPress(Sender: TObject; var Key: char);
     procedure miShowInvisibleItemsClick(Sender: TObject);
     procedure TabControl1Change(Sender: TObject);
+    procedure Timer1Timer(Sender: TObject);
   private
     { Private declarations }
     currentchar: integer;
+    wantedheight: integer;
 
     ffilter: string;
     processlistlong: tprocesslistlong;
@@ -274,7 +277,9 @@ begin
   begin
     //apply settings
     processlist.font.assign(FontDialog1.Font);
-    processlist.Canvas.Refresh;
+    //processlist.Canvas.Refresh;
+
+    Timer1Timer(timer1);
 
     processlist.Repaint;
 
@@ -572,13 +577,14 @@ procedure TProcessWindow.ProcessListDrawItem(Control: TWinControl;
   Index: Integer; Rect: TRect; State: TOwnerDrawState);
 var i: integer;
 begin
-  i:=ProcessList.canvas.TextHeight('QqJjWwSs')+3;
-  if processlist.itemheight<i then ProcessList.ItemHeight:=i;
+  wantedheight:=ProcessList.canvas.TextHeight('QqJjWwSs')+3;
+  {i:=ProcessList.canvas.TextHeight('QqJjWwSs')+3;
+  if processlist.itemheight<i then ProcessList.ItemHeight:=i;   }
 
   processlist.Canvas.FillRect(rect);
-
+  {
   i:=ProcessList.canvas.TextHeight('QqJjWwSs')+3;
-  if processlist.itemheight<i then ProcessList.ItemHeight:=i;
+  if processlist.itemheight<i then ProcessList.ItemHeight:=i;}
 
 
 
@@ -738,6 +744,21 @@ end;
 procedure TProcessWindow.TabControl1Change(Sender: TObject);
 begin
   refreshList;
+end;
+
+procedure TProcessWindow.Timer1Timer(Sender: TObject);
+begin
+  try
+    if processlist.itemheight<>wantedheight then
+    begin
+      ProcessList.ItemHeight:=wantedheight;
+      processlist.canvas.Refresh;
+      processlist.Repaint;
+    end;
+  except
+    timer1.enabled:=false;
+    showmessage('timer issue');
+  end;
 end;
 
 

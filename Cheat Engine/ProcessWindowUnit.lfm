@@ -243,4 +243,10 @@ object ProcessWindow: TProcessWindow
     left = 192
     top = 107
   end
+  object Timer1: TTimer
+    Interval = 100
+    OnTimer = Timer1Timer
+    left = 86
+    top = 205
+  end
 end
