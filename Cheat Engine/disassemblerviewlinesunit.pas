@@ -72,7 +72,7 @@ type
     function getTop: integer;
     property description:string read fdescription;
     property disassembled:string read fdisassembled;
-    procedure renderLine(var address: ptrUint; linestart: integer; selected: boolean=false; focused: boolean=false; spacebetweenlines:integer=0);
+    procedure renderLine(var address: ptrUint; linestart: integer; selected: boolean=false; focused: boolean=false; spaceAboveLines:integer=0; spaceBelowLines:integer=0);
     procedure drawJumplineTo(yposition: integer; offset: integer; showendtriangle: boolean=true);
     procedure handledisassemblerplugins(addressStringPointer: pointer; bytestringpointer: pointer; opcodestringpointer: pointer; specialstringpointer: pointer; textcolor: PColor);
     constructor create(owner: TObject; bitmap: TBitmap; headersections: THeaderSections; colors: PDisassemblerViewColors);
@@ -227,7 +227,7 @@ begin
   end;
 end;
 
-procedure TDisassemblerLine.renderLine(var address: ptrUint; linestart: integer; selected: boolean=false; focused: boolean=false; spacebetweenlines:integer=0);
+procedure TDisassemblerLine.renderLine(var address: ptrUint; linestart: integer; selected: boolean=false; focused: boolean=false; spaceAboveLines:integer=0; spaceBelowLines:integer=0);
 var
     baseofsymbol: qword;
     symbolname: string;
@@ -373,7 +373,7 @@ begin
   for i:=0 to customheaderstrings.count-1 do
     inc(fheight, fCanvas.TextHeight(customheaderstrings[i]));
 
-  inc(fHeight, spacebetweenlines);
+  inc(fHeight, spaceAboveLines+spaceBelowLines);
 
   if ExtraLineRenderAbove<>nil then
   begin
@@ -545,7 +545,7 @@ begin
   //height may not change after this
   fcanvas.FillRect(rect(0,top,fbitmap.width,top+height));
 
-  inc(linestart, spacebetweenlines div 2);
+  inc(linestart, spaceAboveLines);
 
   if ExtraLineRenderAbove<>nil then
   begin

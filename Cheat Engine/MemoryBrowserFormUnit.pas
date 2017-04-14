@@ -1702,7 +1702,8 @@ begin
     lblCall.font.color:=disassemblerview.jlCallColor;
     lblUnconditionalJump.font.color:=disassemblerview.jlUnconditionalJumpColor;
     lblConditionalJump.font.color:=disassemblerview.jlconditionalJumpColor;
-    spaceBetweenLines:=disassemblerview.spaceBetweenLines;
+    spaceAboveLines:=disassemblerview.spaceAboveLines;
+    spaceBelowLines:=disassemblerview.spaceBelowLines;
     hexSpaceBetweenLines:=hexview.spaceBetweenLines;
     cbShowStatusBar.checked:=hexview.statusbar.Visible;
 
@@ -1714,7 +1715,8 @@ begin
       disassemblerview.jlCallColor:=lblCall.font.color;
       disassemblerview.jlUnconditionalJumpColor:=lblUnconditionalJump.font.color;
       disassemblerview.jlconditionalJumpColor:=lblConditionalJump.font.color;
-      disassemblerview.spaceBetweenLines:=spaceBetweenLines;
+      disassemblerview.spaceAboveLines:=spaceAboveLines;
+      disassemblerview.spaceBelowLines:=spaceBelowLines;
 
       disassemblerview.jlThickness:=jlThickness;
       disassemblerview.jlSpacing:=jlSpacing;
@@ -1739,7 +1741,8 @@ begin
       reg.WriteInteger('jlUnconditionalJumpColor', integer(disassemblerview.jlUnconditionalJumpColor));
       reg.WriteInteger('jlConditionalJumpColor', integer(disassemblerview.jlconditionalJumpColor));
 
-      reg.writeInteger('spaceBetweenLines', disassemblerview.spaceBetweenLines);
+      reg.writeInteger('spaceAboveLines', disassemblerview.SpaceAboveLines);
+      reg.writeInteger('spaceBelowLines', disassemblerview.SpaceBelowLines);
       reg.writeInteger('jlThickness', disassemblerview.jlThickness);
       reg.writeInteger('jlSpacing', disassemblerview.jlSpacing);
     end;
@@ -1895,8 +1898,11 @@ begin
       if reg.ValueExists('jlConditionalJumpColor') then
         disassemblerview.jlConditionalJumpColor:=tcolor(reg.ReadInteger('jlConditionalJumpColor'));
 
-      if reg.ValueExists('spaceBetweenLines') then
-        disassemblerview.spaceBetweenLines:=reg.ReadInteger('spaceBetweenLines');
+      if reg.ValueExists('spaceAboveLines') then
+        disassemblerview.spaceAboveLines:=reg.ReadInteger('spaceAboveLines');
+
+      if reg.ValueExists('spaceBelowLines') then
+        disassemblerview.spaceBelowLines:=reg.ReadInteger('spaceBelowLines');
 
       if reg.ValueExists('jlThickness') then
         disassemblerview.jlThickness:=reg.ReadInteger('jlThickness');

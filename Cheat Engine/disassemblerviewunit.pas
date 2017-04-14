@@ -73,7 +73,8 @@ type TDisassemblerview=class(TPanel)
     fOnSelectionChange: TDisassemblerSelectionChangeEvent;
     fOnExtraLineRender: TDisassemblerExtraLineRender;
 
-    fspaceBetweenLines: integer;
+    fspaceAboveLines: integer;
+    fspaceBelowLines: integer;
     fjlThickness: integer;
     fjlSpacing: integer;
 
@@ -148,7 +149,8 @@ type TDisassemblerview=class(TPanel)
     constructor create(AOwner: TComponent); override;
     destructor destroy; override;
   published
-    property SpaceBetweenLines: integer read fspaceBetweenLines write fspaceBetweenLines;
+    property SpaceAboveLines: integer read fspaceAboveLines write fspaceAboveLines;
+    property SpaceBelowLines: integer read fspaceBelowLines write fspaceBelowLines;
     property jlThickness: integer read fjlThickness write fjlThickness;
     property jlSpacing: integer read fjlSpacing write fjlSpacing;
     property ShowJumplines: boolean read fShowJumplines write setJumpLines;
@@ -724,7 +726,7 @@ begin
       currentline:=disassemblerlines[i];
 
 
-      currentline.renderLine(currentAddress,currenttop, inrangeX(currentAddress,selStart,selStop), currentAddress=fSelectedAddress, fspaceBetweenLines);
+      currentline.renderLine(currentAddress,currenttop, inrangeX(currentAddress,selStart,selStop), currentAddress=fSelectedAddress, fspaceAboveLines, fSpaceBelowLines);
 
       inc(currenttop, currentline.getHeight);
       inc(i);

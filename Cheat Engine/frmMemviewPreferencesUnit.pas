@@ -21,7 +21,8 @@ type
     cbColorGroup: TComboBox;
     cbShowStatusBar: TCheckBox;
     ColorDialog1: TColorDialog;
-    edtSpaceBetweenLines: TEdit;
+    edtSpaceAboveLines: TEdit;
+    edtSpaceBelowLines: TEdit;
     edtHexSpaceBetweenLines: TEdit;
     edtJLThickness: TEdit;
     edtJLSpacing: TEdit;
@@ -31,11 +32,13 @@ type
     GroupBox2: TGroupBox;
     GroupBox3: TGroupBox;
     GroupBox4: TGroupBox;
-    Label1: TLabel;
+    GroupBox5: TGroupBox;
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
     Label5: TLabel;
+    Label6: TLabel;
+    Label7: TLabel;
     lblConditionalJump: TLabel;
     lblUnconditionalJump: TLabel;
     lblCall: TLabel;
@@ -48,6 +51,8 @@ type
     Panel1: TPanel;
     Panel2: TPanel;
     Panel3: TPanel;
+    Panel4: TPanel;
+    Panel5: TPanel;
     pmColors: TPopupMenu;
     procedure btnFontClick(Sender: TObject);
     procedure btnHexFontClick(Sender: TObject);
@@ -56,6 +61,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure GroupBox1Click(Sender: TObject);
+    procedure GroupBox5Click(Sender: TObject);
     procedure lblCallClick(Sender: TObject);
     procedure lblConditionalJumpClick(Sender: TObject);
     procedure lblHexClick(Sender: TObject);
@@ -67,12 +73,14 @@ type
   private
     { private declarations }
     oldstate: TDisassemblerViewColorsState;
-    fspaceBetweenLines: integer;
+    fspaceAboveLines: integer;
+    fspaceBelowLines: integer;
     fhexspaceBetweenLines: integer;
     fjlThickness: integer;
     fjlSpacing: integer;
     procedure setHexSpaceBetweenLines(s: integer);
-    procedure setSpaceBetweenLines(s: integer);
+    procedure setSpaceAboveLines(s: integer);
+    procedure setSpaceBelowLines(s: integer);
     procedure setjlThickness(t: integer);
     procedure setjlSpacing(s: integer);
     procedure applyfont;
@@ -80,7 +88,8 @@ type
     { public declarations }
     colors: TDisassemblerViewColors;
     property hexSpaceBetweenLines: integer read fhexspaceBetweenLines write setHexSpaceBetweenLines;
-    property spaceBetweenLines: integer read fspaceBetweenLines write setSpaceBetweenLines;
+    property spaceAboveLines: integer read fspaceAboveLines write setSpaceAboveLines;
+    property spaceBelowLines: integer read fspaceBelowLines write setSpaceBelowLines;
     property jlThickness: integer read fjlThickness write setjlThickness;
     property jlSpacing: integer read fjlSpacing write setjlSpacing;
   end; 
@@ -119,10 +128,16 @@ begin
   fhexspaceBetweenLines:=s;
 end;
 
-procedure TfrmMemviewPreferences.setSpaceBetweenLines(s: integer);
+procedure TfrmMemviewPreferences.setSpaceAboveLines(s: integer);
 begin
-  edtSpaceBetweenLines.text:=inttostr(s);
-  fspaceBetweenLines:=s;
+  edtSpaceAboveLines.text:=inttostr(s);
+  fspaceAboveLines:=s;
+end;
+
+procedure TfrmMemviewPreferences.setSpaceBelowLines(s: integer);
+begin
+  edtSpaceBelowLines.text:=inttostr(s);
+  fspaceBelowLines:=s;
 end;
 
 procedure TfrmMemviewPreferences.setjlThickness(t: integer);
@@ -209,6 +224,11 @@ begin
   colordialog1.Title:=rsBackgroundColor;
   if colordialog1.execute then
     groupbox1.color:=colordialog1.Color;
+end;
+
+procedure TfrmMemviewPreferences.GroupBox5Click(Sender: TObject);
+begin
+
 end;
 
 procedure TfrmMemviewPreferences.lblCallClick(Sender: TObject);
@@ -337,7 +357,8 @@ end;
 procedure TfrmMemviewPreferences.Button2Click(Sender: TObject);
 begin
   fhexspaceBetweenLines:=strtoint(edtHexSpaceBetweenLines.Text);
-  fspaceBetweenLines:=strtoint(edtSpaceBetweenLines.Text);
+  fspaceAboveLines:=strtoint(edtSpaceAboveLines.Text);
+  fspaceBelowLines:=strtoint(edtSpaceBelowLines.Text);
   fjlThickness:=strtoint(edtJLThickness.Text);
   fjlSpacing:=strtoint(edtJLSpacing.Text);
   fhexSpaceBetweenLines:=strtoint(edtHexSpaceBetweenLines.text);
