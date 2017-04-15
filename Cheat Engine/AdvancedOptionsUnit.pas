@@ -557,7 +557,7 @@ var i,j,index: integer;
 begin
   multidelete:=codelist2.SelCount>1;
   if multidelete then
-    if messagedlg(rsAreYouSureYouWishToDeleteTheseEntries, mtConfirmation, [mbyes, mbno], 0) = mrno then exit;
+    if messagedlg(rsAreYouSureYouWishToDeleteTheseEntries, mtConfirmation, [mbyes, mbno], 0) <> mryes then exit;
 
 
   codelist2.Items.BeginUpdate;
@@ -568,7 +568,7 @@ begin
       if (index=-1) or (codelist2.Items.Count=0) then exit;
 
       if not multidelete then
-        if messagedlg(rsDelete+' '+codelist2.Items[index].SubItems[0]+' ?', mtConfirmation, [mbyes, mbno], 0) = mrno then exit;
+        if messagedlg(rsDelete+' '+codelist2.Items[index].SubItems[0]+' ?', mtConfirmation, [mbyes, mbno], 0) <> mryes then exit;
 
 
       setlength(code[index].before,0);
