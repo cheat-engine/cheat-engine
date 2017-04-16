@@ -388,7 +388,11 @@ begin
     ProcessIDString:=copy(ProcessList.Items[Processlist.ItemIndex], 1, pos('-',ProcessList.Items[Processlist.ItemIndex])-1);
 
     PWOP(ProcessIDString);
-    MainForm.ProcessLabel.caption:=ProcessList.Items[Processlist.ItemIndex];
+
+    if tabcontrol1.TabIndex=0 then
+      MainForm.ProcessLabel.caption:=ProcessIDString+'-'+extractfilename(getProcessPathFromProcessID(processid))
+    else
+      MainForm.ProcessLabel.caption:=ProcessList.Items[Processlist.ItemIndex];
     Modalresult:=MROK;
     //ProcessWindow.close;
   end;
