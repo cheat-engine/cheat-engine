@@ -5,9 +5,10 @@ unit ProcessWindowUnit;
 interface
 
 uses
-  jwawindows, windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ExtCtrls, CEFuncProc,CEDebugger, ComCtrls, ImgList,
-  filehandler, Menus, LResources,{tlhelp32,}vmxfunctions, NewKernelHandler, debugHelper{, KIcon}, commonTypeDefs;
+  jwawindows, windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls,
+  Forms, Dialogs, StdCtrls, ExtCtrls, CEFuncProc,CEDebugger, ComCtrls, ImgList,
+  filehandler, Menus, LResources,{tlhelp32,}vmxfunctions, NewKernelHandler,
+  debugHelper{, KIcon}, commonTypeDefs, math;
 
 type tprocesslistlong = class(tthread)
 private
@@ -241,7 +242,14 @@ begin
   if LoadFormPosition(self,x) then
   begin
     autosize:=false;
-    tabcontrol1.TabIndex:=x[0]
+    if length(x)>0 then
+      tabcontrol1.TabIndex:=x[0];
+
+    if length(x)>1 then
+      miOwnProcessesOnly.checked:=x[1]<>0;
+
+    if length(x)>2 then
+      miSkipSystemProcesses.checked:=x[2]<>0;
   end
   else
     refreshlist;
@@ -260,7 +268,7 @@ end;
 
 procedure TProcessWindow.FormDestroy(Sender: TObject);
 begin
-  SaveFormPosition(self,[tabcontrol1.TabIndex]);
+  SaveFormPosition(self,[tabcontrol1.TabIndex, ifthen(miOwnProcessesOnly.checked,1,0), ifthen(miSkipSystemProcesses.checked,1,0)]);
 end;
 
 procedure TProcessWindow.MenuItem5Click(Sender: TObject);
