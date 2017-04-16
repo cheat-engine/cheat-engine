@@ -2,6 +2,8 @@
 find higher resolution icons
 
 
+file open: let the user resize the file by writing to bytes beyoond the filesize. (Show a dialog to allow it)
+
 linux: make a 32-bit linux build with .so injection support
 memscan: Don't combine the scanresults into a single file. Leave them split up (skip: for 6.7 or 7.0)
 ceshare: continue with it
