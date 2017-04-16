@@ -2,9 +2,6 @@
 find higher resolution icons
 
 
-string map: Free the current list when shown takes a long time (I think it updates on each delete)
-
-
 linux: make a 32-bit linux build with .so injection support
 memscan: Don't combine the scanresults into a single file. Leave them split up (skip: for 6.7 or 7.0)
 ceshare: continue with it

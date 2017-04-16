@@ -2172,21 +2172,12 @@ begin
               ProcessListInfo.processID:=winprocess;
               ProcessListInfo.processIcon:=0;
 
-              path:=getProcessPathFromProcessID(winprocess);
+              path:=lowercase(getProcessPathFromProcessID(winprocess));
 
               ProcessListInfo.issystemprocess:=(ProcessListInfo.processID=4) or (pos(lowercase(windowsdir),path)>0) or (pos('system32',path)>0);
 
               if formsettings.cbProcessIcons.checked then
               begin
-
-                if pos('Cheat Engine',temp)>0 then
-                begin
-                  asm
-                  nop
-                  end;
-                end;
-
-
                 tempptruint:=0;
                 if SendMessageTimeout(basehandle,WM_GETICON,ICON_BIG,0,SMTO_ABORTIFHUNG, 100, tempptruint )<>0 then
                 begin
