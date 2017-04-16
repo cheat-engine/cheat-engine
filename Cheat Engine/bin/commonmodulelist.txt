@@ -19,8 +19,17 @@ vorbis.dll
 vorbisenc.dll
 vorbisfile.dll
 binkw32.dll
+bink2w64.dll
 iconv.dll
 gameoverlayrenderer.dll  #steam
+steam_api.dll
+steam_api64.dll
+steamclient.dll
+steamclient64.dll
+tier0_s.dll
+vstdlib_s.dll
+steam.dll
+steam2.dll
 mss32.dll
 dbghelp.dll
 umbra.dll
@@ -32,23 +41,27 @@ allochook.dll
 allochook-x86_64.dll
 allochook-i386.dll
 vehdebug-i386.dll
-vehdebug-x86_64.dll 
+vehdebug-x86_64.dll
 speedhack-i386.dll
 speedhack-x86_64.dll
 luaclient-i386.dll
 luaclient-x86_64.dll
 d3dhook.dll
-d3d9hook.dll
-d3d10hook.dll
-d3d11hook.dll
+d3dhook64.dll
 ced3d9hook.dll
+ced3d9hook64.dll
 ced3d10hook.dll
+ced3d10hook64.dll
 ced3d11hook.dll
+ced3d11hook64.dll
 luaclient-i386.dll
 luaclient-x86_64.dll
+monodatacollector32.dll
+monodatacollector64.dll
 
 
 #directx modules: (for games that load their directx file locally)
+dxgi.dll
 d3dx9_24.dll
 d3dx9_25.dll
 d3dx9_26.dll
@@ -71,6 +84,7 @@ d3dx9_42.dll
 d3dx9_43.dll
 d3dx9_44.dll
 d3dx9_45.dll
+d3dx10.dll
 d3dx10_33.dll
 d3dx10_34.dll
 d3dx10_35.dll
@@ -84,3 +98,18 @@ d3dx10_42.dll
 d3dx10_43.dll
 d3dx10_44.dll
 d3dx10_45.dll
+d3dx11_42.dll
+d3dx11_43.dll
+d3dx11_44.dll
+d3dx11_45.dll
+d3d8.dll
+d3d8thk.dll
+d3d9.dll
+d3d10.dll
+d3d10core.dll
+d3d10level9.dll
+d3d10warp.dll
+d3d10_1.dll
+d3d10_1core.dll
+d3d11.dll
+d3d12.dll
