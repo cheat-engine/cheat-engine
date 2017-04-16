@@ -17,6 +17,9 @@ type
     pipe: THandle;
     fconnected: boolean;
     cs: TCriticalsection;
+    foverlapped: boolean;
+    ftimeout: integer;
+    overlappedevent: thandle;
   public
     procedure lock;
     procedure unlock;
@@ -69,6 +72,8 @@ end;
 
 constructor TPipeConnection.create;
 begin
+  ftimeout :=5000;
+  overlappedevent:=CreateEvent(nil,false,false,nil);
   cs:=TCriticalSection.Create;
 end;
 
@@ -185,20 +190,118 @@ begin
 end;
 
 function TPipeConnection.WriteBytes(bytes: pointer; size: integer): boolean;
-var bw: dword;
+var
+  bw: dword;
+  o: OVERLAPPED;
+  starttime: qword;
+  i: integer;
 begin
+  if not fconnected then exit(false);
 
   if (bytes<>nil) and (size>0) then
-    fconnected:=fconnected and writefile(pipe, bytes^, size, bw, nil);
+  begin
+    if foverlapped then
+    begin
+      zeromemory(@o, sizeof(o));
+      o.hEvent:=overlappedevent;
+      if writefile(pipe, bytes^, size, bw,@o)=false then
+      begin
+        if GetLastError=ERROR_IO_PENDING then
+        begin
+          fconnected:=fconnected or (WaitForSingleObject(o.hEvent, ftimeout)=WAIT_OBJECT_0);
+
+          starttime:=GetTickCount64;
+
+          while GetOverlappedResult(pipe, o, bw,false)=false do   //todo: check for GetOverlappedResultEx and use that
+          begin
+            i:=getlasterror;
+            if ((i=ERROR_IO_PENDING) or (i=ERROR_IO_INCOMPLETE)) and (gettickcount64<starttime+ftimeout) then
+              sleep(0)
+            else
+            begin
+              fconnected:=false;
+              CancelIoEx(pipe, @o);
+              closehandle(pipe);
+              pipe:=0;
+              exit(false);
+            end;
+          end;
+
+          exit(true);
+        end
+        else
+        begin
+          fconnected:=false;
+          CancelIoEx(pipe, @o);
+          closehandle(pipe);
+          pipe:=0;
+          exit(false);
+        end;
+      end;
+
+    end
+    else
+      fconnected:=fconnected and writefile(pipe, bytes^, size, bw, nil);
+  end;
 
   result:=fconnected;
 end;
 
 function TPipeConnection.ReadBytes(bytes: pointer; size: integer): boolean;
-var br: dword;
+var
+  br: dword;
+  o: OVERLAPPED;
+  i: integer;
+  starttime: qword;
 begin
+  if not fconnected then exit(false);
+
   if (bytes<>nil) and (size>0) then
-    fconnected:=fconnected and Readfile(pipe, bytes^, size, br, nil);
+  begin
+    if foverlapped then
+    begin
+      zeromemory(@o, sizeof(o));
+      o.hEvent:=overlappedevent;
+      ResetEvent(o.hEvent);
+      if Readfile(pipe, bytes^, size, br,@o)=false then
+      begin
+        if GetLastError=ERROR_IO_PENDING then
+        begin
+          fconnected:=fconnected or (WaitForSingleObject(o.hEvent, ftimeout)=WAIT_OBJECT_0);
+
+          starttime:=GetTickCount64;
+
+          while GetOverlappedResult(pipe, o, br,false)=false do   //todo: check for GetOverlappedResultEx and use that
+          begin
+            i:=getlasterror;
+            if ((i=ERROR_IO_PENDING) or (i=ERROR_IO_INCOMPLETE)) and (gettickcount64<starttime+ftimeout) then
+              sleep(0)
+            else
+            begin
+              fconnected:=false;
+              CancelIoEx(pipe, @o);
+              closehandle(pipe);
+              pipe:=0;
+              exit(false);
+            end;
+          end;
+
+          exit(true);
+        end
+        else
+        begin
+          fconnected:=false;
+          CancelIoEx(pipe, @o);
+          closehandle(pipe);
+          pipe:=0;
+          exit(false);
+        end;
+      end;
+    end
+    else
+      fconnected:=fconnected and Readfile(pipe, bytes^, size, br, nil);
+  end;
+
 
   result:=fconnected;
 end;
