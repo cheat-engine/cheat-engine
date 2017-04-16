@@ -615,7 +615,12 @@ begin
     refreshlist;
     errortrace:=105;
 
-    autosize:=false;
+    if autosize then
+    begin
+      autosize:=false;
+      if height<350 then
+        height:=350; //initial show
+    end;
     errortrace:=106;
   except
     on e:exception do
