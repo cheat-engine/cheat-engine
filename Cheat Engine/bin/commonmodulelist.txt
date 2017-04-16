@@ -26,6 +26,10 @@ steam_api.dll
 steam_api64.dll
 steamclient.dll
 steamclient64.dll
+tier0_s.dll
+vstdlib_s.dll
+steam.dll
+steam2.dll
 mss32.dll
 dbghelp.dll
 umbra.dll
