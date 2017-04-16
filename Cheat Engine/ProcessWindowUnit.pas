@@ -655,28 +655,22 @@ var
     found: boolean;
 
 begin
-  errortrace:=0;
-
+  processlist.Items.BeginUpdate;
   try
     oldselectionindex:=processlist.ItemIndex;
-    errortrace:=1;
 
     if oldselectionindex<>-1 then
       oldselection:=processlist.Items[oldselectionIndex];
 
-    errortrace:=2;
-
     case tabcontrol1.TabIndex of
       0:
       begin
-        errortrace:=3;
         getwindowlist2(processlist.Items);
         miSkipSystemProcesses.enabled:=true;
       end;
 
       1:
       begin
-        errortrace:=4;
         getprocesslist(processlist.items);
 
         miSkipSystemProcesses.enabled:=true;
@@ -684,40 +678,30 @@ begin
 
       2:
       begin
-        errortrace:=5;
         GetWindowList(processlist.Items, miShowInvisibleItems.Checked);
         miSkipSystemProcesses.enabled:=false;
         processlist.ItemIndex:=processlist.Items.Count-1;
       end;
     end;
 
-    errortrace:=6;
     filterlist;
-    errortrace:=7;
 
     if oldselectionindex=-1 then
     begin
-      errortrace:=8;
       processlist.ItemIndex:=processlist.Items.Count-1; //go to the end
-      errortrace:=9;
     end
     else
     begin
-      errortrace:=10;
       i:=processlist.Items.IndexOf(oldselection);
       if i>=0 then
       begin
-        errortrace:=11;
         processlist.ItemIndex:=i;
-        errortrace:=12;
       end
       else
       begin
         //strip out the processid part and search for a entry with the appropriate processname (e.g restarted game)
-        errortrace:=13;
         oldselection:=copy(oldselection,pos('-',oldselection)+1,length(oldselection));
 
-        errortrace:=14;
         found:=false;
         for i:=0 to processlist.Items.Count-1 do
           if pos(oldselection, processlist.items[i])>0 then
@@ -728,25 +712,19 @@ begin
             break;
           end;
 
-        errortrace:=15;
-
         if not found then
           processlist.ItemIndex:=processlist.Items.Count-1;
-
-        errortrace:=16;
       end;
     end;
 
 
-    errortrace:=17;
     if formsettings.cbKernelReadWriteProcessMemory.checked or (dbvm_version>=$ce000004) then //driver is active
     begin
-      errortrace:=18;
       processlist.Items.Insert(0, '00000000-['+rsPhysicalMemory+']');
     end;
 
-  except
-    on e: exception do exception.create('Exception ('+e.message+') at part '+inttostr(errortrace));
+  finally
+    processlist.items.EndUpdate;
   end;
 end;
 
