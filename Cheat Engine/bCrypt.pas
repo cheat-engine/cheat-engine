@@ -52,7 +52,7 @@ const
   BCRYPT_IS_KEYED_HASH        = 'IsKeyedHash';
 
 
-procedure initialize_bCrypt;
+function initialize_bCrypt: boolean;
 
 var BCryptOpenAlgorithmProvider: function(out phAlgoritm: BCRYPT_ALG_HANDLE; pszAlgID: PWCHAR; pszImplementation: PWCHAR; dwFlags: DWORD): NTSTATUS; stdcall;
 var BCryptCloseAlgorithmProvider: function(hAlgoritm: BCRYPT_ALG_HANDLE; dwFlags: ULONG): NTSTATUS; stdcall;
@@ -85,7 +85,7 @@ implementation
 
 var bcryptlib: HModule=0;
 
-procedure initialize_bCrypt;
+function initialize_bCrypt: boolean;
 begin
   if bcryptlib=0 then
   begin
@@ -110,9 +110,10 @@ begin
       pointer(BCryptDestroyHash):=GetProcAddress(bcryptlib,'BCryptDestroyHash');
       pointer(BCryptEncrypt):=GetProcAddress(bcryptlib,'BCryptEncrypt');
       pointer(BCryptDecrypt):=GetProcAddress(bcryptlib,'BCryptDecrypt');
-
     end;
   end;
+
+  result:=(bcryptlib<>0) and assigned(BCryptOpenAlgorithmProvider) and assigned(BCryptVerifySignature) and assigned(BCryptSignHash) and assigned(BCryptImportKeyPair);
 
 end;
 
