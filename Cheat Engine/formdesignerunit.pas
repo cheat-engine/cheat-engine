@@ -11,7 +11,7 @@ uses
   JvDesignImp, JvDesignUtils, typinfo, PropEdits, ObjectInspector, LResources,
   maps, ExtDlgs, PopupNotifier, IDEDialogs, ceguicomponents, LMessages, luacaller,
   luahandler, cefuncproc, ListViewPropEdit, TreeViewPropEdit, AnchorEditor,
-  LCLType, GraphicPropEdit, GraphPropEdits, registry, math;
+  LCLType, GraphicPropEdit, GraphPropEdits, registry, math, LCLVersion;
 
 
 
@@ -160,7 +160,11 @@ type
     procedure onRenameMethod(const CurName, NewName: String);
     procedure onShowMethod(const Name: String);
     function onCreateMethod(const Name: ShortString; ATypeInfo: PTypeInfo; APersistent: TPersistent; const APropertyPath: string): TMethod;
+    {$if lcl_fullversion >= 1060400}
+    function ogm(const Method: TMethod; CheckOwner: TObject; OrigLookupRoot: TPersistent): String;
+    {$else}
     function ogm(const Method: TMethod; CheckOwner: TObject): String;
+    {$endif}
     procedure OnGetMethods(TypeData: PTypeData; Proc: TGetStrProc);
     procedure OnGetCompatibleMethods(InstProp: PInstProp; const Proc: TGetStrProc);
 
@@ -850,7 +854,27 @@ begin
   end;
 
 end;
+{
+function TFormDesigner.ogm(const Method: TMethod; CheckOwner: TObject; OrigLookupRoot: TPersistent): String;
+begin
 
+end;
+}
+
+{$if lcl_fullversion >= 1060400}
+function TFormDesigner.ogm(const Method: TMethod; CheckOwner: TObject; OrigLookupRoot: TPersistent): String;
+begin
+  if method.code=nil then
+    result:=''
+  else
+  begin
+    if tobject(method.data) is TLuaCaller then
+      result:=TLuaCaller(method.Data).luaroutine
+    else
+      result:=rsInvalidObject;
+  end;
+end;
+{$else}
 function TFormDesigner.ogm(const Method: TMethod; CheckOwner: TObject): String;
 begin
   if method.code=nil then
@@ -863,6 +887,7 @@ begin
       result:=rsInvalidObject;
   end;
 end;
+{$endif}
 
 procedure TFormDesigner.UpdateMethodListIfNeeded;
 var s: string;
