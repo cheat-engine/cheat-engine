@@ -1,11 +1,6 @@
 
 find higher resolution icons
 
-
-all type doesn't use simple values
-
-switch to latest lazarus build (and apply the 'custom' patches that are needed)
-
 linux: make a 32-bit linux build with .so injection support
 memscan: Don't combine the scanresults into a single file. Leave them split up (skip: for 6.7 or 7.0)
 ceshare: continue with it

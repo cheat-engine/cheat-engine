@@ -86,6 +86,7 @@ type
     function testWideString(buf: PWideChar; ts: pwidechar): boolean;
 
   public
+    floatscanWithoutExponents: boolean;
     constructor create(parameters: string; scanner: TScanner);
     function compareblock(newvalue,oldvalue: pointer): boolean; //Check if the values are at their specific offsets
     function compareblock_outoforder(newvalue,oldvalue: pointer): boolean; //Scan the blocks for the values
@@ -1040,11 +1041,14 @@ begin
 
   while i<blocksize-3 do
   begin
-    if (psingle(current)^>minf) and (psingle(current)^<maxf) then
+    if ((psingle(current)^>minf) and (psingle(current)^<maxf)) then
     begin
-      startoffset:=i+1;
-      result:=true;
-      exit;
+      if not (floatscanWithoutExponents and (pdword(current)^>0) and (abs(127-(pdword(current)^ shr 23) and $ff)>10)) then
+      begin
+        startoffset:=i+1;
+        result:=true;
+        exit;
+      end;
     end;
 
     inc(current,align);
@@ -1071,9 +1075,12 @@ begin
   begin
     if (pdouble(current)^>minf) and (pdouble(current)^<maxf) then
     begin
-      startoffset:=i+1;
-      result:=true;
-      exit;
+      if not (floatscanWithoutExponents and (pqword(current)^>0) and (abs(integer(1023-(pqword(current)^ shr 52) and $7ff))>10)) then
+      begin
+        startoffset:=i+1;
+        result:=true;
+        exit;
+      end;
     end;
 
     inc(current,align);
@@ -1136,9 +1143,12 @@ begin
     f:=ct.ConvertDataToFloat(current, fscanner.currentAddress);
     if (f>minf) and (f<maxf) then
     begin
-      startoffset:=i+1;
-      result:=true;
-      exit;
+      if not (floatscanWithoutExponents and (pdword(@f)^>0) and (abs(127-(pdword(@f)^ shr 23) and $ff)>10)) then
+      begin
+        startoffset:=i+1;
+        result:=true;
+        exit;
+      end;
     end;
 
     inc(current,align);
@@ -2837,7 +2847,6 @@ begin
   entry.address:=address;
 
 
-
   for i:=0 to groupdata.groupdatalength-1 do
     entry.offsets[i]:=groupdata.groupdata[i].offset;
 
@@ -2864,12 +2873,18 @@ begin
         //filter out NAN and INF
         if isnan(psingle(oldvalue)^) or IsInfinite(psingle(oldvalue)^) then
           continue; //skip, don't save
+
+        if floatscanWithoutExponents and (pdword(oldvalue)^>0) and (abs(127-(pdword(oldvalue)^ shr 23) and $ff)>10) then
+          continue;
       end;
 
       if (i=vtdouble) then
       begin
         if isnan(pdouble(oldvalue)^) or IsInfinite(pdouble(oldvalue)^) then
           continue; //skip, don't save
+
+        if floatscanWithoutExponents and (pqword(oldvalue)^>0) and (abs(integer(1023-(pqword(oldvalue)^ shr 52) and $7ff))>10) then
+          continue;
       end;
 
       //using the bitaddressarray since it holds a address and a value big enough to hold all types
@@ -3804,6 +3819,7 @@ begin
   if variableType=vtGrouped then
   begin
     groupdata:=TGroupData.create(scanvalue1, self);
+    groupdata.floatscanWithoutExponents:=floatscanWithoutExponents;
   end
   else
   if scanOption in [soCustom, soExactValue,soValueBetween,soBiggerThan,soSmallerThan, soDecreasedValueBy, soIncreasedValueBy] then
