@@ -245,7 +245,6 @@ begin
   canvas:=luaclass_getClassObject(L);
 
   fillstyle:=fsSurface;
-  fillcolor:=canvas.Brush.Color;
 
   if lua_gettop(L)>=2 then
   begin
@@ -253,7 +252,9 @@ begin
     y:=lua_tointeger(L, 2);
 
     if lua_gettop(L)>=3 then
-      fillcolor:=lua_tointeger(L,3);
+      fillcolor:=lua_tointeger(L,3)
+    else
+      fillcolor:=canvas.Pixels[x,y];
 
     if lua_gettop(L)>=4 then
       fillstyle:=TFillStyle(lua_tointeger(L,4));
