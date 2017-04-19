@@ -247,7 +247,7 @@ begin
 
 
     s:=BCryptVerifySignature(tablepublickey,nil,hashbuffer,hashlength,tablesignature, tablesignaturesize,0);
-    if not succeeded(s) then raise exception.create('This table has been modified. To load this table, remove the signature part with an editor (And check the file for suspicous things while you''re at it)');
+    if not succeeded(s) then raise exception.create('This table has been modified. To load this table, remove the signature part with an editor (And check the file for suspicious things while you''re at it)');
 
 
     result:=true;

@@ -586,7 +586,7 @@ object formSettings: TformSettings
               Top = 0
               Width = 209
               BorderSpacing.Right = 4
-              Caption = 'When a lua script has a table, execute it:'
+              Caption = 'When a table has a lua script, execute it:'
               ParentColor = False
             end
             object miLuaExecAsk: TRadioButton
