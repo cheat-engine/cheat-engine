@@ -38,7 +38,7 @@ object MainForm: TMainForm
   object Panel1: TPanel
     Tag = 777
     Left = 0
-    Height = 210
+    Height = 199
     Top = 448
     Width = 701
     Align = alClient
@@ -51,30 +51,21 @@ object MainForm: TMainForm
   end
   object Panel4: TPanel
     Left = 0
-    Height = 21
-    Top = 658
+    Height = 32
+    Top = 647
     Width = 701
     Align = alBottom
     AutoSize = True
-    ClientHeight = 21
+    ClientHeight = 32
     ClientWidth = 701
     TabOrder = 1
-    object Label7: TLabel
-      Left = 229
-      Height = 15
-      Top = 5
-      Width = 262
-      Alignment = taCenter
-      Anchors = [akBottom]
-      Caption = 'Ctrl+Alt+Page Down brings Cheat Engine to front'
-      ParentColor = False
-    end
     object advancedbutton: TSpeedButton
       Left = 1
-      Height = 19
+      Height = 30
       Hint = 'Codelist and pause'
       Top = 1
       Width = 102
+      Align = alLeft
       AutoSize = True
       Caption = 'Advanced Options'
       Flat = True
@@ -84,7 +75,7 @@ object MainForm: TMainForm
     end
     object CommentButton: TSpeedButton
       Left = 634
-      Height = 19
+      Height = 30
       Top = 1
       Width = 66
       Align = alRight
@@ -93,6 +84,18 @@ object MainForm: TMainForm
       Flat = True
       OnClick = CommentButtonClick
       ParentShowHint = False
+    end
+    object lblSigned: TLabel
+      AnchorSideLeft.Control = Panel4
+      AnchorSideLeft.Side = asrCenter
+      Left = 273
+      Height = 30
+      Top = 1
+      Width = 155
+      Alignment = taCenter
+      Caption = 'This table has been signed by'#13#10'Someone'
+      ParentColor = False
+      Visible = False
     end
   end
   object Panel5: TPanel
@@ -2112,14 +2115,14 @@ object MainForm: TMainForm
   object OpenDialog1: TOpenDialog
     DefaultExt = '.CT'
     Filter = 'All supported cheat tables|*.CT;*.CETRAINER|Cheat Engine Trainer (*.CETRAINER)|*.CETRAINER|All files (*.*)|*.*|Cheat Engine Tables (*.CT)|*.CT'
-    Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
+    Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing, ofAutoPreview]
     left = 48
     top = 104
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.CT'
     Filter = 'Cheat Engine Tables (*.CT)|*.CT|Cheat Engine Trainer (*.CETRAINER)|*.CETRAINER|Cheat Engine Trainer Standalone (*.EXE)|*.EXE'
-    Options = [ofReadOnly, ofOverwritePrompt, ofHideReadOnly, ofPathMustExist, ofEnableSizing]
+    Options = [ofReadOnly, ofOverwritePrompt, ofHideReadOnly, ofPathMustExist, ofEnableSizing, ofAutoPreview]
     left = 16
     top = 104
   end
@@ -2364,6 +2367,10 @@ object MainForm: TMainForm
           92FFD1A06CF5D09E6DF6CC965FDAC479427EB2673C09FFFFFF00
         }
         OnClick = actOpenExecute
+      end
+      object miSignTable: TMenuItem
+        Caption = 'Sign table'
+        OnClick = miSignTableClick
       end
       object MenuItem3: TMenuItem
         Caption = '-'

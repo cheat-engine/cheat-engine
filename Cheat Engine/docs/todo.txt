@@ -6,6 +6,8 @@ file open: let the user resize the file by writing to bytes beyoond the filesize
 hexview status: sellength is wrong by 1
 hexview status: too small on default size (the bottom part of g is missing)
 
+all type doesn't use simple values
+
 
 linux: make a 32-bit linux build with .so injection support
 memscan: Don't combine the scanresults into a single file. Leave them split up (skip: for 6.7 or 7.0)

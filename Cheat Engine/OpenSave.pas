@@ -183,7 +183,8 @@ resourcestring
 implementation
 
 uses MainUnit, mainunit2, symbolhandler, LuaHandler, formsettingsunit,
-     frmExeTrainerGeneratorUnit, trainergenerator, ProcessHandlerUnit, parsers;
+     frmExeTrainerGeneratorUnit, trainergenerator, ProcessHandlerUnit, parsers,
+     feces, askToRunLuaScript;
 
 
 
@@ -311,6 +312,11 @@ var
     tempstruct: TDissectedStruct;
     svstring: string;
     sv: integer;
+
+    signed: boolean=false;
+    signedstring: string='';
+
+    ask: TfrmLuaScriptQuestion;
 begin
   LUA_DoScript('tableIsLoading=true');
   try
@@ -356,12 +362,11 @@ begin
     //first load the form. If the lua functions are not loaded it's no biggy, the events just don't do anything then
     //and just assume that the loading of the lua script initializes the objects accordingly
 
-
-
-
     CheatTable:=doc.FindNode('CheatTable');
     if CheatTable<>nil then
     begin
+      signed:=isProperlySigned(TDOMElement(cheattable), signedstring);
+
       try
         tempnode:=CheatTable.Attributes.GetNamedItem('CheatEngineTableVersion');
       except
@@ -661,62 +666,33 @@ begin
 
           if Reg.OpenKey('\Software\Cheat Engine',false) then   //fill it from the registry (in case it's loaded before the settings are loaded)
           begin
-            if reg.ValueExists('Ask if table has lua script') then
-              formSettings.cbAskIfTableHasLuascript.checked:=reg.ReadBool('Ask if table has lua script')
+            if reg.ValueExists('LuaScriptAction') then
+              i:=reg.ReadInteger('LuaScriptAction')
             else
-              formSettings.cbAskIfTableHasLuascript.checked:=true;
+              i:=1;
 
-            if reg.ValueExists('Always run script') then
-              formsettings.cbAlwaysRunScript.Checked:=reg.ReadBool('Always run script')
-            else
-              formsettings.cbAlwaysRunScript.Checked:=false;
-
-          end
-          else
-            formSettings.cbAskIfTableHasLuascript.checked:=true; //no registry settings yet.
-
-          if formSettings.cbAskIfTableHasLuascript.checked then
-          begin
-
-            r:=MessageDlg(rsThisTableContainsALuaScriptDoYouWantToRunIt, mtConfirmation, [mbyes, mbno, mbyestoall, mbNoToAll], 0);
-
-            if r in [mrYesToAll, mrNoToAll] then
-            begin
-              case r of
-
-                mrYesToAll:
-                begin
-                  r:=mryes;
-                  formsettings.cbAskIfTableHasLuascript.Checked:=false;
-                  formsettings.cbAlwaysRunScript.checked:=true;
-                end;
-
-                mrNoToAll:
-                begin
-                  r:=mrNo;
-                  formsettings.cbAskIfTableHasLuascript.Checked:=false;
-                  formsettings.cbAlwaysRunScript.checked:=false;
-                end;
-              end;
-
-
-              if Reg.OpenKey('\Software\Cheat Engine',true) then
+            case i of
+              0: r:=mryes;
+              1,2:
               begin
-                reg.WriteBool('Ask if table has lua script',formsettings.cbAskIfTableHasLuascript.Checked);
-                reg.WriteBool('Always run script',formsettings.cbAlwaysRunScript.Checked);
+                if (i=1) and signed then r:=mryes else
+                begin
+                  ask:=TfrmLuaScriptQuestion.Create(application);
+                  ask.script.Lines.Text:=mainform.frmLuaTableScript.assemblescreen.Text;
+                  ask.LuaScriptAction:=i;
+                  r:=ask.showmodal;
+
+                  reg.WriteInteger('LuaScriptAction', ask.LuaScriptAction);
+
+
+                  ask.free;
+                end;
               end;
 
+              3: r:=mrno;
             end;
-
-
-          end
-          else
-          begin
-            if formSettings.cbAlwaysRunScript.checked then
-              r:=mrYes
-            else
-              r:=mrNo;
           end;
+
 
         finally
           reg.free;
@@ -740,6 +716,16 @@ begin
 
 
     end;
+
+    if signed then
+    begin
+      mainform.lblSigned.Caption:=signedstring;
+      mainform.lblSigned.Visible:=true;
+    end
+    else
+      mainform.lblSigned.Visible:=false;
+
+
 
   finally
     LUA_DoScript('tableIsLoading=false');
@@ -1136,6 +1122,9 @@ begin
     dcomments:=CheatTable.AppendChild(doc.CreateElement('DisassemblerComments'));
     dassemblercomments.saveToXMLNode(dcomments);
   end;
+
+  if cansigntables and formsettings.cbAlwaysSignTable.checked then
+    signTable(cheattable);
 
   WriteXMLFile(doc, filename);
 

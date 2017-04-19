@@ -149,11 +149,20 @@ begin
 
           mainform.Process1.visible:=cbShowProcesslist.checked;
 
-          if reg.ValueExists('Ask if table has lua script') then
-            cbAskIfTableHasLuascript.Checked:=reg.ReadBool('Ask if table has lua script');
 
-          if reg.ValueExists('Always run script') then
-            cbAlwaysRunScript.Checked:=reg.ReadBool('Always run script');
+          if reg.ValueExists('LuaScriptAction') then
+          begin
+            i:=reg.ReadInteger('LuaScriptAction');
+            case i of
+              0: miLuaExecAlways.checked:=true;
+              1: miLuaExecSignedOnly.checked:=true;
+              2: miLuaExecAsk.checked:=true;
+              3: miLuaExecNever.checked:=true;
+            end;
+          end
+          else
+            miLuaExecSignedOnly.checked:=true;
+
 
           if reg.ValueExists('AllByte') then cgAllTypes.checked[0]:=reg.readBool('AllByte');
           if reg.ValueExists('AllWord') then cgAllTypes.checked[1]:=reg.readBool('AllWord');
@@ -282,7 +291,7 @@ begin
 
 
           if reg.ValueExists('Show Cheat Engine Hotkey') then
-            reg.ReadBinaryData('Show Cheat Engine Hotkey',temphotkeylist[0][0],10) else  mainform.label7.Caption:='';
+            reg.ReadBinaryData('Show Cheat Engine Hotkey',temphotkeylist[0][0],10);
 
           if reg.ValueExists('Pause process Hotkey') then
             reg.ReadBinaryData('Pause process Hotkey',temphotkeylist[1][0],10);
@@ -713,6 +722,10 @@ begin
           ProcessWatcherOpensHandles:=false;
           useapctoinjectdll:=false;
           {$endif}
+
+          if reg.ValueExists('Always Sign Table') then
+            cbAlwaysSignTable.Checked:=reg.readBool('Always Sign Table');
+
         end;
 
 

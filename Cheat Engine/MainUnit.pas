@@ -240,7 +240,9 @@ type
     CreateGroup: TMenuItem;
     FromAddress: TEdit;
     andlabel: TLabel;
+    lblSigned: TLabel;
     MenuItem12: TMenuItem;
+    miSignTable: TMenuItem;
     miSaveFile: TMenuItem;
     miAsyncScript: TMenuItem;
     miFlFindWhatAccesses: TMenuItem;
@@ -377,7 +379,6 @@ type
     N5: TMenuItem;
     Panel4: TPanel;
     advancedbutton: TSpeedButton;
-    Label7: TLabel;
     CommentButton: TSpeedButton;
     Panel5: TPanel;
     ProcessLabel: TLabel;
@@ -488,6 +489,7 @@ type
     procedure Label3Click(Sender: TObject);
     procedure Label6Click(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
+    procedure miSignTableClick(Sender: TObject);
     procedure miAsyncScriptClick(Sender: TObject);
     procedure miFlFindWhatAccessesClick(Sender: TObject);
     procedure miBindDeactivationClick(Sender: TObject);
@@ -935,7 +937,7 @@ uses mainunit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup, HotKeys,
   frmD3DHookSnapshotConfigUnit, frmSaveSnapshotsUnit, frmsnapshothandlerUnit,
   frmNetworkDataCompressionUnit, ProcessHandlerUnit, ProcessList, pointeraddresslist,
   PointerscanresultReader, Parsers, Globals, GnuAssembler, xinput, DPIHelper,
-  multilineinputqueryunit, winsapi, LuaClass, Filehandler;
+  multilineinputqueryunit, winsapi, LuaClass, Filehandler, feces;
 
 resourcestring
   rsInvalidStartAddress = 'Invalid start address: %s';
@@ -3088,6 +3090,12 @@ begin
   shellexecute(0, 'open', pchar(cheatenginedir+'Tutorial-x86_64.exe'), nil, nil, sw_show);
 end;
 
+procedure TMainForm.miSignTableClick(Sender: TObject);
+begin
+  if Opendialog1.Execute then
+    signTablefile(opendialog1.filename);
+end;
+
 
 var t: TRemoteMemoryManager;
 
@@ -4921,6 +4929,9 @@ begin
   i:=FromAddress.Font.Size;
   FromAddress.Font.Size:=font.size;
   if i=0 then beep;  }
+
+  miSignTable.visible:=canSignTables;
+
 
   vartype.Items.Clear;
   vartype.items.add(rs_vtBinary);
@@ -7029,8 +7040,6 @@ begin
     reg.Free;
   end;
 
-  if hotkey = '' then
-    label7.Caption := '';
   //  fronthotkey:=hotkey;
 end;
 

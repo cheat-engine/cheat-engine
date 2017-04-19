@@ -8,12 +8,14 @@ interface
 uses
   Classes, SysUtils, bcrypt, DOM, xmlutils, XmlRead, XMLWrite, dialogs, windows;
 
+function canSignTables: boolean;
 procedure signTable(cheattable: TDOMElement);
-function isProperlySigned(cheattable: TDOMElement): boolean;
+procedure signTableFile(f: string);
+function isProperlySigned(cheattable: TDOMElement; out specialstring: string): boolean;
 
 implementation
 
-uses cefuncproc, CustomBase85;
+uses cefuncproc, CustomBase85, registry;
 
 
 var
@@ -32,9 +34,14 @@ var
 threadvar pathtosigfile: pchar;
 
 //useless protection but hey, why not
+
+type TCanSign=(csUnknown, csYes, csNo);
+
 var
   EncodePointer:function(p: pointer):pointer; stdcall;
   DecodePointer:function(p: pointer):pointer; stdcall;
+
+  _cansignstate: TCanSign=csUnknown;
 
 var rv: dword=0;
 function EncodePointerNI(p: pointer):pointer; stdcall; //not implemented (unpatched XP)
@@ -74,7 +81,7 @@ begin
   end;
 end;
 
-function isProperlySigned(cheattable: TDOMElement): boolean;
+function isProperlySigned(cheattable: TDOMElement; out specialstring: string): boolean;
 var
   signature: TDOMNode;
   publicKey: TDOMNode;
@@ -154,6 +161,7 @@ begin
     publicdata.Seek(0, soFromBeginning);
 
     customstring:=publicdata.ReadAnsiString;
+    specialstring:=customstring;
     keysize:=publicdata.ReadDWord;
 
 
@@ -282,7 +290,36 @@ begin
 
 
   //check the signatureless version of the cheat table with this public key
+end;
 
+
+function canSignTables: boolean;
+var reg: tregistry;
+begin
+  if _cansignstate=csUnknown then
+  begin
+    result:=FileExists(GetCEdir+'cansign.txt');
+
+
+    if result then
+      _cansignstate:=csYes
+    else
+      _cansignstate:=csNo;
+    exit;
+  end;
+
+  result:=_cansignstate=csYes;
+end;
+
+procedure signTableFile(f: string);
+var
+  d: TXMLDocument;
+  e: TDOMElement;
+begin
+  ReadXMLFile(d, f);
+  e:=TDOMElement(d.FindNode('CheatTable'));
+  signtable(e);
+  WriteXMLFile(d,f);
 end;
 
 procedure signTable(cheattable: TDOMElement);

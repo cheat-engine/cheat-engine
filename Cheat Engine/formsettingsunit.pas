@@ -30,8 +30,6 @@ type
     btnSetFont: TButton;
     btnSelectLanguage: TButton;
     cbAlwaysAutoAttach: TCheckBox;
-    cbAlwaysRunScript: TCheckBox;
-    cbAskIfTableHasLuascript: TCheckBox;
     cbCanStepKernelcode: TCheckBox;
     cbCenterOnPopup: TCheckBox;
     cbDontOpenHandle: TCheckBox;
@@ -68,6 +66,7 @@ type
     cbDPIAware: TCheckBox;
     cbShowLanguageMenuItem: TCheckBox;
     cbProcessWatcherOpensHandles: TCheckBox;
+    cbAlwaysSignTable: TCheckBox;
     combothreadpriority: TComboBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
@@ -83,6 +82,7 @@ type
     GroupBox1: TGroupBox;
     GroupBox2: TGroupBox;
     GroupBox4: TGroupBox;
+    GroupBox5: TGroupBox;
     Label1: TLabel;
     Label10: TLabel;
     Label11: TLabel;
@@ -90,6 +90,7 @@ type
     Label13: TLabel;
     Label14: TLabel;
     Label15: TLabel;
+    Label16: TLabel;
     lblCurrentLanguage: TLabel;
     Label18: TLabel;
     Label19: TLabel;
@@ -113,6 +114,10 @@ type
     pcDebugConfig: TPageControl;
     pnlConfig: TPanel;
     miLanguages: TPopupMenu;
+    miLuaExecAlways: TRadioButton;
+    miLuaExecSignedOnly: TRadioButton;
+    miLuaExecAsk: TRadioButton;
+    miLuaExecNever: TRadioButton;
     rbDebugAsBreakpoint: TRadioButton;
     rbgDebuggerInterface: TRadioGroup;
     rbInt3AsBreakpoint: TRadioButton;
@@ -128,6 +133,7 @@ type
     spbDown: TSpeedButton;
     spbUp: TSpeedButton;
     Languages: TTabSheet;
+    tsSigning: TTabSheet;
     tsKernelDebugConfig: TTabSheet;
     tsVEHDebugConfig: TTabSheet;
     tsWindowsDebuggerConfig: TTabSheet;
@@ -298,7 +304,7 @@ uses
   aboutunit, MainUnit, MainUnit2, frmExcludeHideUnit, ModuleSafetyUnit,
   frmProcessWatcherUnit, CustomTypeHandler, processlist, commonTypeDefs,
   frmEditHistoryUnit, Globals, fontSaveLoadRegistry, CETranslator,
-  MemoryBrowserFormUnit, DBK32functions;
+  MemoryBrowserFormUnit, DBK32functions, feces;
 
 
 type TLanguageEntry=class
@@ -350,6 +356,7 @@ resourcestring
   rsLanguages = 'Languages';
   rsDebuggerOptions = 'Debugger Options';
   rsExtra = 'Extra';
+  rsSigning = 'Signing';
   rsNoName = 'No Name';
   rsPopupHideCheatEngine = 'Popup/Hide cheat engine';
   rsPauseTheSelectedProcess = 'Pause the selected process';
@@ -527,11 +534,13 @@ begin
       reg.WriteString('AutoAttach',EditAutoAttach.text);
       reg.writebool('Always AutoAttach', cbAlwaysAutoAttach.checked);
 
-      reg.WriteBool('Ask if table has lua script',cbAskIfTableHasLuascript.Checked);
-      reg.WriteBool('Always run script',cbAlwaysRunScript.Checked);
+      i:=1;
+      if miLuaExecAlways.checked then i:=0 else
+      if miLuaExecSignedOnly.checked then i:=1 else
+      if miLuaExecAsk.checked then i:=2 else
+      if miLuaExecNever.checked then i:=3;
 
-
-
+      reg.WriteInteger('LuaScriptAction', i);
 
 
       {$ifndef net}
@@ -772,6 +781,8 @@ begin
       {$else}
       useapctoinjectdll:=false;
       {$endif}
+
+      reg.WriteBool('Always Sign Table', cbAlwaysSignTable.Checked);
     end;
 
 
@@ -977,7 +988,7 @@ end;
 
 procedure TformSettings.cbAskIfTableHasLuascriptChange(Sender: TObject);
 begin
-  cbAlwaysRunScript.enabled:=not cbAskIfTableHasLuascript.checked;
+
 end;
 
 procedure TformSettings.cbDontusetempdirChange(Sender: TObject);
@@ -1399,8 +1410,10 @@ begin
   tvMenuSelection.Items[6].Data:=Languages;
   tvMenuSelection.Items[7].Data:=self.Assembler;
   tvMenuSelection.Items[8].Data:=Extra;
+  tvMenuSelection.Items[9].Data:=tsSigning;
 
   tvMenuSelection.Items[6].Visible:=false;
+  tvMenuSelection.Items[9].Visible:=cansigntables;
 
   pcSetting.ShowTabs:=false;
 
@@ -1466,6 +1479,7 @@ begin
   tvMenuSelection.Items[6].Text:=rsLanguages;
   tvMenuSelection.Items[7].Text:=rsDebuggerOptions;
   tvMenuSelection.Items[8].Text:=rsExtra;
+  tvMenuSelection.Items[9].Text:=rsSigning;
 
 
 
