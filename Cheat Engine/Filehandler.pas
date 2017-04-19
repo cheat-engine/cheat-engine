@@ -23,6 +23,8 @@ var filename: string;
 
 implementation
 
+uses dialogs, controls;
+
 procedure CommitChanges(fn: string='');
 begin
   if filedata<>nil then
@@ -137,13 +139,26 @@ begin
 
   filesize:=filedata.Size;
 
-  if ptrUint(lpbaseaddress)>filesize then exit;
 
   s:=nsize;
 
-  if ptrUint(lpbaseaddress)+s>=filesize then
+  if ptrUint(lpbaseaddress)+s>filesize then
   begin
-    dec(s, ((ptrUint(lpbaseaddress)+s)-filesize));
+    if MainThreadID=GetCurrentThreadId then
+    begin
+      if MessageDlg('Change the file size to '+inttostr(ptrUint(lpbaseaddress)+s)+' bytes?',mtConfirmation,[mbyes,mbno],0)=mryes then
+      begin
+        i:=(ptrUint(lpbaseaddress)+s)-filesize;
+
+        filedata.SetSize(ptrUint(lpbaseaddress)+s);
+        ZeroMemory(pointer(ptruint(filedata.Memory)+filesize), i);
+        filesize:=filedata.size;
+      end
+      else
+        dec(s, ((ptrUint(lpbaseaddress)+s)-filesize));
+    end
+    else
+      dec(s, ((ptrUint(lpbaseaddress)+s)-filesize));
   end;
 
   if s<=0 then exit;

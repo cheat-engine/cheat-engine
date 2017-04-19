@@ -411,7 +411,22 @@ begin
   if not isediting then exit;
 
   b:=getByte(selected,unreadable);
-  if unreadable then exit; //unreadable
+  if unreadable then
+  begin
+    if UseFileAsMemory then
+    begin
+      x:=0;
+      writeprocessmemory(processhandle, pointer(selected),@x,1,bw);
+
+      LoadMemoryRegion;
+
+      b:=getByte(selected,unreadable);
+
+      if unreadable then exit;
+    end
+    else
+      exit; //unreadable
+  end;
 
   key:=wkey[1];
 
@@ -857,7 +872,8 @@ begin
       begin
         if isEditing then
         begin
-          if ReadProcessMemory(processhandle, pointer(selected),@b,1,x) then
+          b:=0;
+          if (ReadProcessMemory(processhandle, pointer(selected),@b,1,x)) or (UseFileAsMemory)  then
           begin
             if key=VK_SUBTRACT then
               dec(b)
@@ -1840,7 +1856,6 @@ var
   v_word: smallint absolute v_qword;
   v_int: integer absolute v_qword;
   v_float: single absolute v_qword;
-  selstart,selstop: ptruint;
 begin
   if bytesperline<=0 then exit;
   if Parent=nil then exit;
@@ -2080,20 +2095,17 @@ begin
   offscreenbitmap.Canvas.LineTo(charstart+bytesperline*charsize,textheight*2);
 
 
-  selstart:=minx(selected,selected2);
-  selstop:=maxx(selected,selected2);
-
-  v_qword:=getQWordValue(selstart, unreadable);
+  v_qword:=getQWordValue(SelectionStart, unreadable);
   if not unreadable then
-    s:=format('%.8x: (byte: %d word: %d integer: %d int64: %d float:%f double: %f)',[selstart, integer(v_byte), integer(v_word), v_int, v_qword,v_float, v_double])
+    s:=format(': byte: %d word: %d integer: %d int64: %d float:%f double: %f',[SelectionStart, integer(v_byte), integer(v_word), v_int, v_qword,v_float, v_double])
   else
     s:='';
 
 
   if selected<>selected2 then
-    statusbar.SimpleText:=format('Selected %.8x to %.8x (%d bytes) %s',[selstart, selstop, selstop-selstart, s])
+    statusbar.SimpleText:=format('%.8x - %.8x (%d bytes) %s',[SelectionStart, SelectionStop, SelectionStop-SelectionStart+1, s])
   else
-    statusbar.SimpleText:=s;
+    statusbar.SimpleText:=format('%.8x %s',[SelectionStart, s])
 
 end;
 
