@@ -2097,7 +2097,7 @@ begin
 
   v_qword:=getQWordValue(SelectionStart, unreadable);
   if not unreadable then
-    s:=format(': byte: %d word: %d integer: %d int64: %d float:%f double: %f',[SelectionStart, integer(v_byte), integer(v_word), v_int, v_qword,v_float, v_double])
+    s:=format(': byte: %d word: %d integer: %d int64: %d float:%f double: %f',[integer(v_byte), integer(v_word), v_int, v_qword,v_float, v_double])
   else
     s:='';
 
