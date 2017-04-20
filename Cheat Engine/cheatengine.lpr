@@ -231,7 +231,7 @@ var
   ff: TFormFucker;
   r: TRegistry;
 begin
-  Application.Title:='Cheat Engine 6.6';
+  Application.Title:='Cheat Engine 6.7';
   Application.Initialize;
 
   overridefont:=nil;

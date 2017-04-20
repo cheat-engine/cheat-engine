@@ -1,9 +1,9 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 433
+  Left = 396
   Height = 699
   Hint = ' '
-  Top = 91
+  Top = 131
   Width = 701
   HelpContext = 3
   HorzScrollBar.Visible = False
@@ -21,7 +21,7 @@ object MainForm: TMainForm
   OnDropFiles = FormDropFiles
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Splitter1: TSplitter
     Cursor = crVSplit
     Left = 0

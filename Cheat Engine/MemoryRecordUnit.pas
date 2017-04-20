@@ -171,6 +171,12 @@ type
     fDropDownDescriptionOnly: boolean;
     fDisplayAsDropDownListItem: boolean;
 
+    fDropDownLinked: boolean;
+    fDropDownLinkedMemrec: string;
+    linkedDropDownMemrec: TMemoryRecord;
+    OldlinkedDropDownMemrecOnDestroy: TNotifyEvent;
+
+
     fDontSave: boolean;
 
     fAsync: boolean;
@@ -220,10 +226,20 @@ type
     function getDropDownValue(index: integer): string;
     function getDropDownDescription(index: integer): string;
 
+    function getDropDownReadOnly: boolean;
+    function getDropDownDescriptionOnly: boolean;
+    function getDisplayAsDropDownListItem: boolean;
+
+
+
     function GetCollapsed: boolean;
     procedure SetCollapsed(state: boolean);
 
     procedure processingDone; //called by the processingThread when finished
+
+    procedure OnLinkedMemrecDestroy(Sender: TObject);
+
+    function getlinkedDropDownMemrec: TMemoryRecord;
   public
 
 
@@ -336,10 +352,13 @@ type
     property ShowAsHex: boolean read fShowAsHex write setShowAsHex;
     property ShowAsSigned: boolean read getShowAsSigned write setShowAsSigned;
     property Options: TMemrecOptions read fOptions write setOptions;
+
+    property DropDownLinked: boolean read fDropDownLinked write fDropDownLinked;
+    property DropDownLinkedMemrec: string read fDropDownLinkedMemrec write fDropDownLinkedMemrec;
     property DropDownList: TStringlist read fDropDownList;
-    property DropDownReadOnly: boolean read fDropDownReadOnly write fDropDownReadOnly;
-    property DropDownDescriptionOnly: boolean read fDropDownDescriptionOnly write fDropDownDescriptionOnly;
-    property DisplayAsDropDownListItem: boolean read fDisplayAsDropDownListItem write fDisplayAsDropDownListItem;
+    property DropDownReadOnly: boolean read getDropDownReadOnly write fDropDownReadOnly;
+    property DropDownDescriptionOnly: boolean read getDropDownDescriptionOnly write fDropDownDescriptionOnly;
+    property DisplayAsDropDownListItem: boolean read getDisplayAsDropDownListItem write fDisplayAsDropDownListItem;
     property DropDownCount: integer read getDropDownCount;
     property DropDownValue[index:integer]: string read getDropDownValue;
     property DropDownDescription[index:integer]: string read getDropDownDescription;
@@ -717,19 +736,49 @@ end;
 
 
 function TMemoryRecord.getDropDownCount: integer;
+var mr: tmemoryrecord;
 begin
+  if DropDownLinked then
+  begin
+    mr:=getlinkedDropDownMemrec;
+    if mr<>nil then
+      exit(mr.getDropDownCount)
+    else
+      exit(0);
+  end;
+
   result:=fDropDownList.count;
 end;
 
 function TMemoryRecord.getDropDownValue(index: integer): string;
+var mr: tmemoryrecord;
 begin
+  if DropDownLinked then
+  begin
+    mr:=getlinkedDropDownMemrec;
+    if mr<>nil then
+      exit(mr.getDropDownValue(index))
+    else
+      exit('');
+  end;
+
   result:='';
   if index<DropDownCount then
     result:=copy(fDropDownList[index], 1, pos(':', fDropDownList[index])-1);
 end;
 
 function TMemoryRecord.getDropDownDescription(index: integer): string;
+var mr: tmemoryrecord;
 begin
+  if DropDownLinked then
+  begin
+    mr:=getlinkedDropDownMemrec;
+    if mr<>nil then
+      exit(mr.getDropDownDescription(index))
+    else
+      exit('');
+  end;
+
   result:='';
   if index<DropDownCount then
     result:=copy(fDropDownList[index], pos(':', fDropDownList[index])+1, length(fDropDownList[index]));
@@ -737,13 +786,69 @@ end;
 
 function TMemoryRecord.getCurrentDropDownIndex: integer;
 var i: integer;
+    mr: tmemoryrecord;
 begin
+  if DropDownLinked then
+  begin
+    mr:=getlinkedDropDownMemrec;
+    if mr<>nil then
+      exit(mr.getCurrentDropDownIndex)
+    else
+      exit(-1);
+  end;
+
+
   result:=-1;
   for i:=0 to DropDownCount-1 do
   begin
     if lowercase(Value)=lowercase(DropDownValue[i]) then
       result:=i;
   end;
+end;
+
+function TMemoryRecord.getDropDownReadOnly: boolean;
+var mr: TMemoryRecord;
+begin
+  if DropDownLinked then
+  begin
+    mr:=getlinkedDropDownMemrec;
+    if mr<>nil then
+      exit(mr.getDropDownReadOnly)
+    else
+      exit(false);
+  end
+  else
+    result:=fDropDownReadOnly;
+end;
+
+function TMemoryRecord.getDropDownDescriptionOnly: boolean;
+var mr: TMemoryRecord;
+begin
+  if DropDownLinked then
+  begin
+    mr:=getlinkedDropDownMemrec;
+    if mr<>nil then
+      exit(mr.getDropDownDescriptionOnly)
+    else
+      exit(false);
+  end
+  else
+    result:=fDropDownDescriptionOnly;
+end;
+
+function TMemoryRecord.getDisplayAsDropDownListItem: boolean;
+var mr: TMemoryRecord;
+begin
+  if DropDownLinked then
+  begin
+    mr:=getlinkedDropDownMemrec;
+    if mr<>nil then
+      exit(mr.getDisplayAsDropDownListItem)
+    else
+      exit(false);
+  end
+  else
+    result:=fDisplayAsDropDownListItem;
 
 end;
 
@@ -828,6 +933,12 @@ begin
     processingThread.Terminate;
     processingThread.WaitFor;
     freeandnil(processingThread);
+  end;
+
+  if linkedDropDownMemrec<>nil then
+  begin
+    linkedDropDownMemrec.OnDestroy:=OldlinkedDropDownMemrecOnDestroy;
+    linkedDropDownMemrec:=nil;
   end;
 
   if assigned(fOnDestroy) then
@@ -1018,6 +1129,13 @@ begin
     end;
   end;
 
+
+  tempnode:=CheatEntry.FindNode('DropDownListLink');
+  if tempnode<>nil then
+  begin
+    fDropDownLinked:=true;
+    fDropDownLinkedMemrec:=tempnode.TextContent;
+  end;
 
   tempnode:=CheatEntry.FindNode('DropDownList');
   if tempnode<>nil then
@@ -1448,10 +1566,14 @@ begin
       a.TextContent:='1';
       opt.Attributes.SetNamedItem(a);
     end;
-
-
   end;
 
+  if DropDownLinked then
+  begin
+    ddl:=cheatEntry.AppendChild(doc.CreateElement('DropDownListLink'));
+    ddl.TextContent:=DropDownLinkedMemrec;
+  end
+  else
   if DropDownList.Count>0 then
   begin
     ddl:=cheatEntry.AppendChild(doc.CreateElement('DropDownList'));
@@ -2941,6 +3063,29 @@ begin
 
   self.RealAddress:=result;
 end;
+
+procedure TMemoryRecord.OnLinkedMemrecDestroy(Sender: TObject);
+begin
+  linkedDropDownMemrec:=nil;
+  if assigned(OldlinkedDropDownMemrecOnDestroy) then
+    OldlinkedDropDownMemrecOnDestroy(sender);
+end;
+
+function TMemoryRecord.getlinkedDropDownMemrec: TMemoryRecord;
+begin
+  if linkedDropDownMemrec=nil then
+  begin
+    linkedDropDownMemrec:=TAddresslist(fOwner).getRecordWithDescription(fDropDownLinkedMemrec);
+    if linkedDropDownMemrec<>nil then
+    begin
+      OldlinkedDropDownMemrecOnDestroy:=linkedDropDownMemrec.OnDestroy;
+      linkedDropDownMemrec.OnDestroy:=OnLinkedMemrecDestroy;
+    end;
+  end;
+
+  result:=linkedDropDownMemrec;
+end;
+
 
 
 
