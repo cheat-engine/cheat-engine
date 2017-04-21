@@ -1,69 +1,70 @@
-Cheat Engine 6.6
+Cheat Engine 6.7
 
 Fixes:
-Fixed saving of hotkey sounds
-Fixed the CF flag in the disassembler stepping mode
-Fixed Kernelmode VirtualQueryEx for Windows 10 build 14393
-Fixed DBVM for Windows 10 build 14393
-Fixed the shortest assembler instruction picking for some instructions
-Fixed a few bugs in the break and trace routine when you'd stop it while the thread still had a single step set
-Fixed several ansi to UTF8 incompatbilities that poped up between 6.5 and 6.5.1
-Fixed the stackview not properly setting the color, and giving an error when trying to change a color
-Fixed the exe generator not adding both .sys files or the .sig files when using kernel functions
-Fixed some places of the disassembler where it helps guessing if something is a float or not
-When using the code finder, it won't show the previous instruction anymore if it's on a REP MOVS* instruction
-Fixed an issue when editing memoryrecords with strings, where wordwrap would add newline characters
-Fixed D3D alpha channel for textures and fontmaps
-Fixed the helpfile not being searchable
-The installer will now mark the CE destination folder as accessible by APPS. (fixes speedhack for some APPS)
-Fixed the form designed crashing is resized 'wrong'
+Fixed some DPI issues at some spots
+Fixed the "Not" scan for ALL
+"simple values" now also applies to the All type
+Fixed not adding the 0-terminator to strings when the option was set to add it
+Fixed ultimap hotkeys
+Fixed ultimap2 filtering
+Changing pointers in the change address dialog won't set/override global memrec and address anymore (local now)
+Fixed show as signed not working for custom types
+Fixed several issues with the structure spider
+Fixed 64-bit registers in the tracer getting truncated on doubleclick, and fix r8 to r15
+Fixed copy/paste in the scanvalue
+Fixed kernelmode QueryMemoryRegions for windows build 1707
+Fixed some disassembler errors
+Fixed lua command fullAccess
+Fixed text to speech if launched from a different thread
+Fixed clicking on checkboxes when the dpi is different
+Fixed the found code dialog count size
+Fixed mono freezing Cheat Engine when it crashes/freezes
 
 
 Additions and changes:
-Ultimap 2 for Intel CPU's of generation 6 and later (no DBVM needed for those)
-Language select if you have multiple language files for CE
-Memoryrecord pointer offsets can use calculations, symbols and lua code now
-While stepping in the debugger you can now easily change the EIP/RIP register by pressing ctrl+f4
-changed the way CE is brought to front when a hotkey is pressed
-Made the GUI more adaptive to different fontsizes and DPI
-Several font and minor GUI changes
-Added DPIAware and a font override to the settings window. (DPI aware is on by default, but can be turned of if experiencing issues)
-Added option to enable pause by default
-Disassembling mega jumps/calls now show the code in one line
-The standalone auto assembler window will now give an option to go to the first allocated memory address
-Changed the point where the settings are loaded in CE's startup sequence
-The formdesigner now allows copy and paste of multiple objects, and uses text
-Added scrollbox and radiogroup to the formdesigner
-Added Middle, MD5 and MD5 as allowable hotkeys
-Added controller keys as hotkeys
-Single stepping now shows an indication if an condition jump will be taken
-Added a watchlist to the debugger
-Added the 'align' assembler pseudo command (allocates memory so the next line is aligned on a block of the required size)
-Added the 'Not' option for scans, which causes all addresses that match the given entry as invalid
-Changed the Unicode text to UTF-16. Text scans are now UTF8/UTF16 (no codepage)
-Hexview can now show and edit values in 3 different textencodings. (Ascii, UTF-8 and UTF-16)
-Rescan pointerscans on pointerscans that where done on a range can now change the offset
+Changed the processlist and added an Applications view similar to the taskmanager
+Small change to the tutorial first step wording
+Structure Dissect: Added RLE compression (by mgr.inz.player) and other things to improve filesize
+Structure Dissect: If setting a name, it will also be shown in the header
+The symbolhandler can now deal with complex pointer notations
+Added support for single-ToPA systems for ultimap2
+Added some more spots where the history will be remebered in memoryview
+Memoryrecords with auto assembler scripts can now execute their code asynchronous (rightclick and set "Execute asynchronous")
+Kernelmode memory reading/writing is safer now
+Added an option to filter out readable paths in the pointerscan rescan
+Added "codePage" support
+Added font/display options to several places in CE
+Added a search/replace to the script editors
+You can now delete addresses and reset the count from "Find what addresses this code accesses"
+Added a statusbar to the hexview in memoryview
+Pointerscan for value scans now add the results to the overflow queue
+Opening a file and changing bytes do not change them to the file anymore (you need to explicitly save now)
+Added an option to the processlist to filter out system processes
+Added a system to let users sign their tables so you know you can trust their tables.
+Memory record dropdown lists can now reference those of others. (memoryrecorddescription)
+
 
 
 lua:
-speak(): Text to speech
-hookWndProc: a function that lets you hook the windows message handler of a window
-registerEXETrainerFeature: Lets you add extra files to the exe trainer file packer
-getFileVersion(): A function to get version information from a file
-mouse_event() : Lets you send mouse events to windows. (move, click, etc...)
-loadFontFromStream() : Lets you load a font from a memory stream. (Useful for trainers that use a custom font)
-added several thread synchronization objects
-control class: added bringToFront and sendToBack
-
-lua changes:
-dbk_writesIgnoreWriteProtection() now also disables virtualprotectex calls from CE
-loadTable() can now also load from a Stream object. 
-the addresslist has some Color properties published for better customization
-
-the LUA server has had some new commands added so hooked code can do more efficient calls. (LUAClient dll has been updated to use them in a basic way)
-
-
-
+Custom Types can now be referenced from Lua
+Auto assembler lua sections now have access to "memrec" which is the memory record they get executed from. Can be nil
+stringToMD5String now support strings with a 0 byte in them
+autoAssemble() now also returns a disableInfo object as 2nd parameter. You can use this to disable a script
+added Action and Value properties to MemoryRecordHotkey objects
+added screenToClient and clientToScreen for Control objects
+added readSmallInteger and writeSmallInteger
+added enableDRM()
+added openFileAsProcess/saveOpenedFile
+added saveCurrentStateAsDesign for CEForm objects
+added disableWithoutExecute and disableAllWithoutExecute
+added OnCustomDraw* events to the listview
+added being/endUpdate for the Strings class
+added SQL support
+added color overrides to the disassembler text
+added OnPaint to the CustomControl class
+added autoAssembleCheck to syntax check an AA script
+fixed the addresslist returning nil for PopupMenu (while popupMenu did work)
+added an timeout option for pipes
 
 
 How to use:

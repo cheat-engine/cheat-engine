@@ -4206,11 +4206,16 @@ begin
 end;
 
 function dbk_initialize(L: Plua_State): integer; cdecl;
-var x: bool;
+var
+  state,x: BOOL;
 begin
   LoadDBK32;
-  lua_pushboolean(L, isDriverLoaded(@x));
-  result:=1;
+  state:=isDriverLoaded(@x);
+  lua_pushboolean(L, state);
+  if state then
+    lua_pushinteger(L, hdevice);
+
+  result:=2;
 end;
 
 function dbk_useKernelmodeOpenProcess(L: Plua_State): integer; cdecl;
