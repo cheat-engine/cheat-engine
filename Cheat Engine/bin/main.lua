@@ -3,4 +3,4 @@
 
 require("defines")
 
---for documentation read celuadoc.txt
+--for documentation read celua.txt
