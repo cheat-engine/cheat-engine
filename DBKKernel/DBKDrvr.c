@@ -152,7 +152,6 @@ VOID TestThread(__in PVOID StartContext)
 	
 }
 
-#pragma optimize( "", off )  
 NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject,
                      IN PUNICODE_STRING RegistryPath)
 /*++
@@ -564,7 +563,6 @@ Return Value:
     return STATUS_SUCCESS;
 }
 
-#pragma optimize( "", on )  
 
 
 NTSTATUS DispatchCreate(IN PDEVICE_OBJECT DeviceObject,
@@ -581,14 +579,18 @@ NTSTATUS DispatchCreate(IN PDEVICE_OBJECT DeviceObject,
 
 
 	if (SeSinglePrivilegeCheck(sedebugprivUID, UserMode))
-	{
-#ifdef TOBESIGNED
-		NTSTATUS s=SecurityCheck();	
-		Irp->IoStatus.Status = s; 		
-	//	DbgPrint("Returning %x (and %x)\n", Irp->IoStatus.Status, s);
-#else
+	{		
 		Irp->IoStatus.Status = STATUS_SUCCESS;
+#ifdef AMD64
+#ifdef TOBESIGNED
+		{
+			NTSTATUS s=SecurityCheck();	
+			Irp->IoStatus.Status = s; 		
+		}
+	//	DbgPrint("Returning %x (and %x)\n", Irp->IoStatus.Status, s);
 #endif
+#endif
+
 
 	}
 	else
@@ -718,10 +720,12 @@ void UnloadDriver(PDRIVER_OBJECT DriverObject)
 
 	RtlZeroMemory(&ProcesslistR, sizeof(ProcesslistR));
 
+#if (NTDDI_VERSION >= NTDDI_VISTA)
 	if (DRMHandle)
 	{
 		DbgPrint("Unregistering DRM handle");
 		ObUnRegisterCallbacks(DRMHandle);
 		DRMHandle = NULL;
 	}
+#endif
 }

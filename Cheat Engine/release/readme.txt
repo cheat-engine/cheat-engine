@@ -12,7 +12,7 @@ Fixed show as signed not working for custom types
 Fixed several issues with the structure spider
 Fixed 64-bit registers in the tracer getting truncated on doubleclick, and fix r8 to r15
 Fixed copy/paste in the scanvalue
-Fixed kernelmode QueryMemoryRegions for windows build 1707
+Fixed kernelmode QueryMemoryRegions for windows build 1607
 Fixed some disassembler errors
 Fixed lua command fullAccess
 Fixed text to speech if launched from a different thread

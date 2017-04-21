@@ -450,6 +450,7 @@ UINT_PTR SignExtend(UINT_PTR a)
 UINT_PTR KnownPageTableBase = 0;
 UINT_PTR getPageTableBase()
 {
+#if (NTDDI_VERSION >= NTDDI_VISTA)
 	if (KnownPageTableBase==0)
 	{
 		RTL_OSVERSIONINFOW v;
@@ -540,6 +541,10 @@ UINT_PTR getPageTableBase()
 	}	
 
 	return KnownPageTableBase;
+#else
+	return PAGETABLEBASE;
+#endif
+
 }
 
 typedef void PRESENTPAGECALLBACK(UINT_PTR StartAddress, UINT_PTR EndAddress, struct PTEStruct *pageEntry);

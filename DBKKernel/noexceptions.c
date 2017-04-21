@@ -13,6 +13,22 @@ extern void __cdecl NoException14(void); //declared in debuggera.asm
 extern int __cdecl ExceptionlessCopy_Internal(PVOID destination, PVOID source, int size);
 #endif
 
+#if (NTDDI_VERSION < NTDDI_VISTA)
+int KeQueryActiveProcessorCount(PVOID x)
+{
+	int cpucount=0;
+	KAFFINITY cpus = KeQueryActiveProcessors();
+	while (cpus)
+	{
+		if (cpus % 2)
+			cpucount++;
+
+		cpus = cpus / 2;
+	}
+
+	return cpucount;
+}
+#endif
 
 
 BOOL NoExceptions_Enter()
@@ -28,7 +44,7 @@ BOOL NoExceptions_Enter()
 		if (cpustate == NULL)
 		{
 			//initialize the list
-			MaxCPUCount = KeQueryActiveProcessorCount(NULL);
+			MaxCPUCount = (int)KeQueryActiveProcessorCount(NULL);
 			cpustate = ExAllocatePoolWithTag(NonPagedPool, MaxCPUCount*sizeof(CPUSTATE), 'cece');
 
 			if (cpustate)

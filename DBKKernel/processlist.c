@@ -5,6 +5,8 @@
 #include "threads.h"
 #include "memscan.h"
 
+#include "ultimap2.h"
+
 PRTL_GENERIC_TABLE InternalProcessList = NULL;
 
 PEPROCESS WatcherProcess = NULL;
@@ -125,11 +127,19 @@ VOID CreateThreadNotifyRoutine(IN HANDLE  ProcessId,IN HANDLE  ThreadId,IN BOOLE
 	}
 }
 
-VOID CreateProcessNotifyRoutine( IN HANDLE  ParentId, IN HANDLE  ProcessId, IN BOOLEAN  Create)
-{	
+VOID CreateProcessNotifyRoutine(IN HANDLE  ParentId, IN HANDLE  ProcessId, IN BOOLEAN  Create)
+{
 	PEPROCESS CurrentProcess = NULL;
 	HANDLE ProcessHandle = 0;
-
+	/*
+	if (PsSuspendProcess)
+	{
+		DbgPrint("Suspending process %d", PsGetCurrentThreadId());
+		PsSuspendProcess(PsGetCurrentProcess());
+		DbgPrint("After PsGetCurrentProcess()");
+	}
+*/
+	
 	
 	if (KeGetCurrentIrql()==PASSIVE_LEVEL)
 	{
@@ -161,7 +171,7 @@ VOID CreateProcessNotifyRoutine( IN HANDLE  ParentId, IN HANDLE  ProcessId, IN B
 						ObReferenceObject(CurrentProcess);
 
 						
-						KeStackAttachProcess(WatcherProcess, &oldstate);						
+						KeStackAttachProcess((PKPROCESS)WatcherProcess, &oldstate);						
 						__try
 						{
 							__try
@@ -373,13 +383,11 @@ HANDLE GetHandleForProcessID(IN HANDLE ProcessID)
 		if (r)
 		{
 			DbgPrint("Found a handle for PID %d (%x)", (int)ProcessID, (int)r->ProcessHandle);
-			return (int)r->ProcessHandle; // r->ProcessHandle;
-		}
-		
-			
-	}
-	else
-		return 0;
+			return r->ProcessHandle; // r->ProcessHandle;
+		}	
+	}	
+
+	return 0;
 }
 
 VOID CleanProcessList()
@@ -395,7 +403,7 @@ VOID CleanProcessList()
 
 			if ((WatcherProcess) && (WatcherProcess != PsGetCurrentProcess()))
 			{				
-				KeStackAttachProcess(WatcherProcess, &oldstate);
+				KeStackAttachProcess((PKPROCESS)WatcherProcess, &oldstate);
 				ChangedContext = TRUE;
 			}
 
