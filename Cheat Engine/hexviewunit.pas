@@ -233,6 +233,7 @@ resourcestring
   rsPhysicalAddress = 'Physical Address';
   rsModule = 'Module';
   rsAddress = 'address';
+  rsBytes = 'bytes';
 
 function THexview.gethasSelection: boolean;
 begin
@@ -2103,7 +2104,7 @@ begin
 
 
   if selected<>selected2 then
-    statusbar.SimpleText:=format('%.8x - %.8x (%d bytes) %s',[SelectionStart, SelectionStop, SelectionStop-SelectionStart+1, s])
+    statusbar.SimpleText:=format('%.8x - %.8x (%d '+rsBytes+') %s',[SelectionStart, SelectionStop, SelectionStop-SelectionStart+1, s])
   else
     statusbar.SimpleText:=format('%.8x %s',[SelectionStart, s])
 
