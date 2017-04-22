@@ -2046,7 +2046,7 @@ begin
   result:=last; //withcaption;
 end;
 
-function SendMessageTimeout(hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM; fuFlags, uTimeout: UINT; var lpdwResult: ptruint): LRESULT;external 'user32' name 'SendMessageTimeoutA';
+function SendMessageTimeout(hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM; fuFlags, uTimeout: UINT; var lpdwResult: ptruint): LRESULT; stdcall; external 'user32' name 'SendMessageTimeoutA';
 
 
 procedure GetWindowList2(ProcessList: TStrings; showInvisible: boolean=true);
@@ -2179,6 +2179,8 @@ begin
               if formsettings.cbProcessIcons.checked then
               begin
                 tempptruint:=0;
+
+
                 if SendMessageTimeout(basehandle,WM_GETICON,ICON_BIG,0,SMTO_ABORTIFHUNG, 100, tempptruint )<>0 then
                 begin
                   ProcessListInfo.processIcon:=tempptruint;
