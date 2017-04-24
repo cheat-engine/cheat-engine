@@ -372,19 +372,31 @@ void CPipeServer::EnumClassesInImage()
 	for (i = 0; i < tdefcount; i++)
 	{
 		void *c = mono_class_get(image, MONO_TOKEN_TYPE_DEF | i + 1);
-		char *name = mono_class_get_name(c);
+		if (c != NULL)
+		{
+			char *name = mono_class_get_name(c);
 
-		WriteQword((UINT_PTR)c);
+			WriteQword((UINT_PTR)c);
 
-		WriteWord(strlen(name));
-		Write(name, strlen(name));
+			if (c)
+			{
+				WriteWord(strlen(name));
+				Write(name, strlen(name));
+			}
+			else
+				WriteWord(0);
 
-		name = mono_class_get_namespace(c);
-		WriteWord(strlen(name));
-		Write(name, strlen(name));
-
-
-
+			name = mono_class_get_namespace(c);
+			if (name)
+			{
+				WriteWord(strlen(name));
+				Write(name, strlen(name));
+			}
+			else
+				WriteWord(0);			
+		}
+		else
+			WriteQword(0);
 	}
 }
 

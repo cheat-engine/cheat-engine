@@ -451,23 +451,28 @@ function mono_image_enumClasses(image)
   local classcount=monopipe.readDword()
 
   local classes={}
-  local i;
+  local i,j
+  j=1
   for i=1, classcount do
-    classes[i]={}
-    classes[i].class=monopipe.readQword()
+    local c=monopipe.readQword()
 
-    local classnamelength=monopipe.readWord()
-    if classnamelength>0 then
-      classes[i].classname=monopipe.readString(classnamelength)
-    else
-      classes[i].classname=''
-    end
+    if (c~=0) then
+      classes[j]={}
+      classes[j].class=c 
+      local classnamelength=monopipe.readWord()
+      if classnamelength>0 then
+        classes[i].classname=monopipe.readString(classnamelength)
+      else
+        classes[i].classname=''
+      end
 
-    local namespacelength=monopipe.readWord()
-    if namespacelength>0 then
-      classes[i].namespace=monopipe.readString(namespacelength)
-    else
-      classes[i].namespace=''
+      local namespacelength=monopipe.readWord()
+      if namespacelength>0 then
+        classes[i].namespace=monopipe.readString(namespacelength)
+      else
+        classes[i].namespace=''
+      end
+      j=j+1
     end
     
   end
