@@ -205,6 +205,7 @@ void CPipeServer::InitMono()
 			mono_jit_info_get_method = (MONO_JIT_INFO_GET_METHOD)GetProcAddress(hMono, "mono_jit_info_get_method");
 			mono_jit_info_get_code_start = (MONO_JIT_INFO_GET_CODE_START)GetProcAddress(hMono, "mono_jit_info_get_code_start");
 			mono_jit_info_get_code_size = (MONO_JIT_INFO_GET_CODE_SIZE)GetProcAddress(hMono, "mono_jit_info_get_code_size");
+			mono_jit_exec = (MONO_JIT_EXEC)GetProcAddress(hMono, "mono_jit_exec");
 
 			mono_method_header_get_code = (MONO_METHOD_HEADER_GET_CODE)GetProcAddress(hMono, "mono_method_header_get_code");
 			mono_disasm_code = (MONO_DISASM_CODE)GetProcAddress(hMono, "mono_disasm_code");
@@ -220,10 +221,14 @@ void CPipeServer::InitMono()
 			mono_array_new = (MONO_ARRAY_NEW)GetProcAddress(hMono, "mono_array_new");
 			mono_value_box = (MONO_VALUE_BOX)GetProcAddress(hMono, "mono_value_box");
 			mono_object_unbox = (MONO_OBJECT_UNBOX)GetProcAddress(hMono, "mono_object_unbox");
+			mono_object_new = (MONO_OBJECT_NEW)GetProcAddress(hMono, "mono_object_new");
+			
 			mono_class_get_type = (MONO_CLASS_GET_TYPE)GetProcAddress(hMono, "mono_class_get_type");
 
 			mono_method_desc_search_in_image = (MONO_METHOD_DESC_SEARCH_IN_IMAGE)GetProcAddress(hMono, "mono_method_desc_search_in_image");
 			mono_runtime_invoke = (MONO_RUNTIME_INVOKE)GetProcAddress(hMono, "mono_runtime_invoke");
+			mono_runtime_object_init = (MONO_RUNTIME_OBJECT_INIT)GetProcAddress(hMono, "mono_runtime_object_init");
+
 
 			mono_assembly_name_new = (MONO_ASSEMBLY_NAME_NEW)GetProcAddress(hMono, "mono_assembly_name_new");
 			mono_assembly_loaded = (MONO_ASSEMBLY_LOADED)GetProcAddress(hMono, "mono_assembly_loaded");
@@ -250,7 +255,31 @@ void CPipeServer::InitMono()
 	}
 }
 
+void CPipeServer::Object_New()
+{
+	void *domain = (void *)mono_get_root_domain();
+	void *klass = (void *)ReadQword();
+	void *object=mono_object_new(domain, klass);
+	WriteQword((UINT64)object);
+}
 
+void CPipeServer::Object_Init()
+{
+	void *object = (void *)ReadQword();
+	try
+	{
+		mono_runtime_object_init(object);
+		WriteByte(1);
+	}
+	catch (char *e)
+	{
+		WriteByte(0);
+		OutputDebugStringA("Error initializing object:\n");
+		OutputDebugStringA(e);
+	}
+	
+
+}
 
 void CPipeServer::Object_GetClass()
 {
@@ -956,6 +985,9 @@ void CPipeServer::LoadAssemblyFromFile(void)
 	
 	void *assembly = mono_assembly_open(imageName, &status);
 	WriteQword((UINT_PTR)assembly);
+
+	if (mono_jit_exec)
+		mono_jit_exec(domain, assembly, 0, NULL);	
 }
 
 void CPipeServer::GetFullTypeName(void)
@@ -1012,6 +1044,14 @@ void CPipeServer::Start(void)
 
 				case MONOCMD_OBJECT_GETCLASS:
 					Object_GetClass();
+					break;
+
+				case MONOCMD_OBJECT_NEW:
+					Object_New();
+					break;
+
+				case MONOCMD_OBJECT_INIT:
+					Object_Init();
 					break;
 
 				case MONOCMD_ENUMDOMAINS:

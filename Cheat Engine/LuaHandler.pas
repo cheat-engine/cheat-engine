@@ -943,7 +943,7 @@ var i: integer;
 
   stack: integer;
 begin
-  if GetCurrentThreadId<>MainThreadID then raise exception.create(rsLUA_DoScriptWasNotCalledRomTheMainThread);
+  //if GetCurrentThreadId<>MainThreadID then raise exception.create(rsLUA_DoScriptWasNotCalledRomTheMainThread);
 
   stack:=lua_gettop(luavm);
   try

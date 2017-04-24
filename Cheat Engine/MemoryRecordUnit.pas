@@ -450,6 +450,8 @@ begin
     end;
   except
     //running the script failed, state unchanged
+    on e:exception do
+      OutputDebugString(e.message);
   end;
 
   Queue(owner.processingDone);
