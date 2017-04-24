@@ -271,6 +271,13 @@ unpause(): resumes the current opened process
 
 getCPUCount(): Returns the number of CPU's
 
+getScreenHeight(): Returns the screen height
+getScreenWidth(): Returns the screen  width
+
+getWorkAreaHeight(): Returns the work area height
+getWorkAreaWidth(): Returns the work area width
+
+
 getPixel(x,y) : returns the rgb value of the pixel at the specific screen coordinate
 getMousePos: returns the x,y coordinates of the mouse
 setMousePos(x,y): sets the mouse position
@@ -349,11 +356,17 @@ Regarding eventhandlers. You can initialize them using both a string of a functi
 If initialized using a function itself it won't be able to get saved in the table
 
 
-allocateMemory(size): Allocates some memory into the target process
+allocateMemory(size, BaseAddress OPTIONAL, Protection OPTIONAL): Allocates some memory into the target process
+deAlloc(address, size OPTIONAL): Frees allocated memory
 
 allocateSharedMemory(name, size):
   Creates a shared memory object of the given size if it doesn't exist yet. If size is not given and there is no shared region with this name then the default size of 4096 is used
   It then maps this shared memory block into the currently targeted process. It returns the address of mapped region in the target process
+
+
+createSection(size) : Creates a 'section' in memory
+mapViewOfSection(section, preferedBaseAddress OPTIONAL): Maps the section to memory
+unMapViewOfSection(baseaddress): Unmaps a section from memory
 
 
 getForegroundProcess() : Returns the processID of the process that is currently on top

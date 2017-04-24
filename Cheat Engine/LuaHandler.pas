@@ -2125,6 +2125,112 @@ begin
   result:=readbytesEx(getcurrentprocess, L);
 end;
 
+
+function lua_createSection(L: PLua_State): integer; cdecl;
+var
+  n: NTSTATUS;
+  s: THandle;
+  size: LARGE_INTEGER;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    size.QuadPart:=lua_tointeger(L,1);
+    s:=0;
+    n:=ZwCreateSection(@s,SECTION_ALL_ACCESS,nil, @size, PAGE_EXECUTE_READWRITE,SEC_COMMIT,0);
+
+   // STATUS_MAPPED_FILE_SIZE_ZERO
+    if Succeeded(n) then
+    begin
+      lua_pushinteger(L,s);
+      result:=1;
+    end
+    else
+    begin
+      lua_pushnil(L);
+      lua_pushinteger(L,n);
+      result:=2;
+    end;
+  end;
+end;
+
+function lua_MapViewOfSection(L: PLua_State): integer; cdecl;
+var
+  sh: thandle;
+  base: pointer;
+  basep: pointer;
+  offset: LARGE_INTEGER;
+  n: NTSTATUS;
+  si: SECTION_INHERIT;
+  viewsize: LARGE_INTEGER;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    sh:=lua_tointeger(L,1);
+
+    if lua_Gettop(L)>=2 then
+    begin
+      if lua_isstring(L, 2) then
+        base:=pointer(symhandler.getAddressFromNameL(lua_tostring(L,2)))
+      else
+        base:=pointer(lua_tointeger(L,2));
+    end
+    else
+      base:=nil;
+
+
+    basep:=@base;
+
+
+
+    offset.QuadPart:=0;
+    viewsize.QuadPart:=0;
+
+
+    n:=ZwMapViewOfSection(sh,processhandle, @base,0,0,nil,@viewsize,2,0,PAGE_EXECUTE_READWRITE);
+    if succeeded(n) then
+    begin
+      lua_pushinteger(L,ptruint(base));
+      result:=1;
+    end
+    else
+    begin
+      lua_pushnil(L);
+      lua_pushinteger(L, n);
+      result:=2;
+    end;
+  end;
+
+
+
+
+end;
+
+function lua_unMapViewOfSection(L: PLua_State): integer; cdecl;
+var parameters: integer;
+    address: ptruint;
+begin
+  result:=1;
+  parameters:=lua_gettop(L);
+  if parameters=0 then begin lua_pushboolean(L, false); exit; end;
+
+  if lua_isstring(L, 1) then
+  begin
+    if processhandle=GetCurrentProcess then
+      address:=selfsymhandler.getAddressFromNameL(lua_tostring(L,1))
+    else
+      address:=symhandler.getAddressFromNameL(lua_tostring(L,1));
+  end
+  else
+    address:=lua_tointeger(L,1);
+
+  lua_pop(L, parameters);
+  lua_pushinteger(L, ZwUnmapViewOfSection(processhandle, pointer(address)));
+end;
+
+
+
 function deAllocEx(processhandle: THandle; L: PLua_State): integer; cdecl;
 var parameters: integer;
     address: ptruint;
@@ -2133,19 +2239,18 @@ begin
   parameters:=lua_gettop(L);
   if parameters=0 then begin lua_pushboolean(L, false); exit; end;
 
-  if lua_isstring(L, -parameters) then
+  if lua_isstring(L, 1) then
   begin
     if processhandle=GetCurrentProcess then
-      address:=selfsymhandler.getAddressFromNameL(lua_tostring(L,-parameters))
+      address:=selfsymhandler.getAddressFromNameL(lua_tostring(L,1))
     else
-      address:=symhandler.getAddressFromNameL(lua_tostring(L,-parameters));
+      address:=symhandler.getAddressFromNameL(lua_tostring(L,1));
   end
   else
-    address:=lua_tointeger(L,-parameters);
+    address:=lua_tointeger(L,1);
 
   lua_pop(L, parameters);
   lua_pushboolean(L, virtualfreeex(processhandle,pointer(address),0,MEM_RELEASE));
-
 end;
 
 function deAlloc_lua(L: PLua_State): integer; cdecl;
@@ -8192,12 +8297,25 @@ function lua_allocateMemory(l: Plua_State): integer; cdecl;
 var
   size: integer;
   a: pointer;
+  base: pointer;
+  prot: dword;
 begin
   result:=0;
   if lua_gettop(L)>=1 then
   begin
     size:=lua_tointeger(L,1);
-    a:=VirtualAllocEx(processhandle,nil,size,MEM_COMMIT or MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+    if lua_gettop(L)>=2 then
+      base:=pointer(lua_tointeger(L,2))
+    else
+      base:=nil;
+
+    if lua_gettop(L)>=3 then
+      prot:=lua_tointeger(L,3)
+    else
+      prot:=PAGE_EXECUTE_READWRITE;
+
+
+    a:=VirtualAllocEx(processhandle,base,size,MEM_COMMIT or MEM_RESERVE, PAGE_EXECUTE_READWRITE);
     if a=nil then
       lua_pushnil(L)
     else
@@ -8251,6 +8369,32 @@ begin
     lua_pushstring(L,'No parameter given');
   end;
 end;
+
+function lua_getScreenHeight(l: Plua_State): integer; cdecl;
+begin
+  lua_pushinteger(L, screen.Height);
+  result:=1;
+end;
+
+function lua_getScreenWidth(l: Plua_State): integer; cdecl;
+begin
+  lua_pushinteger(L, screen.Width);
+  result:=1;
+end;
+
+function lua_getWorkAreaHeight(l: Plua_State): integer; cdecl;
+begin
+  lua_pushinteger(L, screen.WorkAreaHeight);
+  result:=1;
+end;
+
+function lua_getWorkAreaWidth(l: Plua_State): integer; cdecl;
+begin
+  lua_pushinteger(L, screen.WorkAreaWidth);
+  result:=1;
+end;
+
+
 
 procedure InitializeLua;
 var
@@ -8764,6 +8908,18 @@ begin
     lua_register(L, 'allocateMemory', lua_allocateMemory);
 
     lua_register(L, 'try', lua_try);
+
+    lua_register(L, 'createSection',lua_createSection);
+    lua_register(L, 'mapViewOfSection',lua_MapViewOfSection);
+    lua_register(L, 'unMapViewOfSection', lua_unMapViewOfSection);
+
+
+    lua_register(L, 'getScreenHeight', lua_getScreenHeight);
+    lua_register(L, 'getScreenWidth', lua_getScreenWidth);
+
+    lua_register(L, 'getWorkAreaHeight', lua_getWorkAreaHeight);
+    lua_register(L, 'getWorkAreaWidth', lua_getWorkAreaWidth);
+
 
     initializeLuaCustomControl;
 
