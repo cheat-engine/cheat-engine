@@ -32,6 +32,11 @@ MONOCMD_INVOKEMETHOD=30
 MONOCMD_LOADASSEMBLY=31
 MONOCMD_GETFULLTYPENAME=32
 
+MONOCMD_OBJECT_NEW=33
+MONOCMD_OBJECT_INIT=34
+
+
+
 MONO_TYPE_END        = 0x00       -- End of List
 MONO_TYPE_VOID       = 0x01
 MONO_TYPE_BOOLEAN    = 0x02
@@ -449,6 +454,7 @@ function mono_image_enumClasses(image)
   monopipe.writeByte(MONOCMD_ENUMCLASSESINIMAGE)
   monopipe.writeQword(image)
   local classcount=monopipe.readDword()
+  if classcount==nil then return nil end
 
   local classes={}
   local i,j
@@ -456,21 +462,23 @@ function mono_image_enumClasses(image)
   for i=1, classcount do
     local c=monopipe.readQword()
 
+    if (c==nil) then break end
+
     if (c~=0) then
       classes[j]={}
       classes[j].class=c 
       local classnamelength=monopipe.readWord()
       if classnamelength>0 then
-        classes[i].classname=monopipe.readString(classnamelength)
+        classes[j].classname=monopipe.readString(classnamelength)
       else
-        classes[i].classname=''
+        classes[j].classname=''
       end
 
       local namespacelength=monopipe.readWord()
       if namespacelength>0 then
-        classes[i].namespace=monopipe.readString(namespacelength)
+        classes[j].namespace=monopipe.readString(namespacelength)
       else
-        classes[i].namespace=''
+        classes[j].namespace=''
       end
       j=j+1
     end
@@ -1120,6 +1128,28 @@ function mono_loadAssemblyFromFile(fname)
   monopipe.writeWord(#fname)
   monopipe.writeString(fname)
   local result = monopipe.readQword()
+  monopipe.unlock()
+  return result;  
+end
+
+function mono_object_new(klass)
+  if debug_canBreak() then return nil end
+
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_OBJECT_NEW)
+  monopipe.writeQword(klass)
+  local result = monopipe.readQword()
+  monopipe.unlock()
+  return result;  
+end
+
+function mono_object_init(object)
+  if debug_canBreak() then return nil end
+
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_OBJECT_INIT)
+  monopipe.writeQword(object)
+  local result = monopipe.readByte()==1
   monopipe.unlock()
   return result;  
 end
