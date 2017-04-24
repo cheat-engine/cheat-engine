@@ -12,7 +12,7 @@ uses
 type
   TPipeConnection=class
   private
-
+    fOnTimeout: TNotifyEvent;
   protected
     pipe: THandle;
     fconnected: boolean;
@@ -50,6 +50,7 @@ type
     destructor destroy; override;
   published
     property connected: boolean read fConnected;
+    property OnTimeout: TNotifyEvent read fOnTimeout write fOnTimeout;
 
   end;
 
@@ -223,7 +224,11 @@ begin
               CancelIoEx(pipe, @o);
               closehandle(pipe);
               pipe:=0;
+              if assigned(fOnTimeout) then
+                fOnTimeout(self);
               exit(false);
+
+
             end;
           end;
 
@@ -282,6 +287,9 @@ begin
               CancelIoEx(pipe, @o);
               closehandle(pipe);
               pipe:=0;
+              if assigned(fOnTimeout) then
+                fOnTimeout(self);
+
               exit(false);
             end;
           end;

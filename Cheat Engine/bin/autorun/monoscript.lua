@@ -177,6 +177,12 @@ function LaunchMonoDataCollector()
     return 0 --failure
   end
 
+  monopipe.OnTimeout=function(self)
+    monopipe=nil
+    mono_AttachedProcess=0
+    monoBase=0     
+  end
+
   --in case you implement the profiling tools use a secondary pipe to receive profiler events
  -- while (monoeventpipe==nil) do
  --   monoeventpipe=connectToPipe('cemonodc_pid'..getOpenedProcessID()..'_events')
