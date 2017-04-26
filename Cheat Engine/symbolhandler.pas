@@ -2370,6 +2370,7 @@ begin
 
 
       {$IFNDEF UNIX}
+      (*
       //check if lua thingy
       i:=lua_gettop(luavm); //make sure the stack ends here when done
 
@@ -2416,7 +2417,7 @@ begin
 
 
         lua_settop(luavm, i);
-      end;
+      end;    *)
       {$ENDIF}
 
 
@@ -2460,7 +2461,6 @@ begin
 
   symbolloadervalid.beginread;
   try
-
     for i:=0 to length(tokens)-1 do
     begin
       if not (tokens[i][1] in ['[',']','+','-','*']) then
@@ -2643,11 +2643,59 @@ begin
                   continue;
                 end;
 
-
-
-
               end;
             end;
+
+            //check if it's lua (old style)
+            if tokens[i][1]='$' then
+            begin
+              //try lua
+              j:=lua_gettop(luavm); //make sure the stack ends here when done
+              try
+                s:=copy(tokens[i], 2, length(tokens[i]));
+                lua_getglobal(LuaVM,pchar(s));
+                if lua_isnil(luavm,-1) then //not found as a single global var
+                begin
+                  lua_settop(luavm,j);
+                  //try lua function call method
+
+                  if lua_dostring(Luavm,pchar('return '+s))<>0 then
+                  begin
+                    lua_settop(luavm, j);
+                    lua_pushnil(Luavm);
+                  end;
+                end;
+
+                //convert the result to a hexstring
+                k:=lua_type(LuaVM, j+1);
+
+                if lua_isuserdata(LuaVM, j+1) then
+                begin
+                  tokens[i]:=inttohex(ptruint(lua_toceuserdata(Luavm, j+1)),8);
+                  continue;
+                end
+                else
+                if (j<>LUA_TSTRING) and (lua_isnumber(LuaVM, j+1)) then
+                begin
+                  tokens[i]:=inttohex(lua_tointeger(LuaVM, j+1),8);
+                  continue;
+                end
+                else
+                if lua_isstring(LuaVM, j+1) then
+                begin
+                  s:=lua_tostring(LuaVM, j+1);
+                  if pos('$',s)=0 then //prevent inf lua loops
+                  begin
+                    tokens[i]:=inttohex(getAddressFromName(s),8);
+                    continue;
+                  end;
+                end;
+              finally
+                lua_settop(luavm,j);
+              end;
+
+            end;
+
 
             //not a register or symbol
             result:=callbackCheck(tokens[i], slNotSymbol);

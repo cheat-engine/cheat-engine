@@ -88,6 +88,7 @@ object MainForm: TMainForm
     object lblSigned: TLabel
       AnchorSideLeft.Control = Panel4
       AnchorSideLeft.Side = asrCenter
+      AnchorSideTop.Control = Panel4
       Left = 273
       Height = 30
       Top = 1

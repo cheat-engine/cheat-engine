@@ -859,6 +859,8 @@ type
     cbsaferPhysicalMemory: TCheckbox;
     mustClose: boolean;
 
+    imgSignature: TImage;
+
 
     procedure updated3dgui;
     procedure RefreshCustomTypes;
