@@ -502,8 +502,13 @@ begin
 
     //parse it/call the lua function
     if luaref=-1 then
-      foffset:=symhandler.getAddressFromName(text, false, finvalid)
-    else
+    begin
+      foffset:=symhandler.getAddressFromName(text, false, finvalid);
+      if finvalid then
+        setoffsetText(text);
+    end;
+
+    if luaref<>-1 then
     begin
       {$ifndef JNI}
       memrecluaobjectref:=fowner.getLuaRef;
@@ -515,17 +520,32 @@ begin
         lua_pushinteger(luavm, currentBase);
 
         if lua_pcall(Luavm, 2, 1,0)=0 then
+        begin
           if lua_isnumber(Luavm, -1) then
           begin
             foffset:=lua_tointeger(Luavm, -1);
             finvalid:=false;
+          end
+          else
+          begin
+            funparsed:=true;
+            cleanupluaref;
           end;
+        end
+        else
+        begin
+          funparsed:=true;
+          cleanupluaref;
+        end;
 
         lua_pop(luavm, 1);
 
       finally
         lua_settop(luavm, stack);
       end;
+
+      if funparsed then
+        setoffsetText(text);   //will be fixed next run
 
       {$endif}
     end;
@@ -600,18 +620,6 @@ begin
 {$else}
     funparsed:=true;
 {$endif}
-    {if not funparsed then
-    begin
-      //call it to be sure it's ok and not returning nil
-      forceUpdate;
-      getOffsetNoBase;
-      if finvalid then
-      begin
-        funparsed:=true;
-        cleanupluaref;
-      end;
-    end;  }
-
   end else funparsed:=false;
 
 end;
