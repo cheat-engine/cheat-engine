@@ -29,6 +29,8 @@ function IntToHexSigned(v: INT64; digits: integer): string;
 
 implementation
 
+uses symbolhandler;
+
 resourcestring
    rsInvalidInteger = 'Invalid integer';
 
@@ -250,6 +252,7 @@ var ishex: string;
     q: qword;
     f: single;
     d: double;
+    err: boolean;
 begin
   if s='' then exit('');
 
@@ -258,6 +261,17 @@ begin
   ishex:='$';
   for i:=start to length(s) do
     case s[i] of
+      '[':
+      begin
+        err:=false;
+        result:='$'+inttohex(symhandler.GetAddressFromPointer(s,err),8);
+        if err then
+          exit('')
+        else
+          exit;
+      end;
+
+
       '''' , '"' :
       begin
         //char
@@ -269,9 +283,16 @@ begin
             begin
               bytes:=copy(s,i+1,j-(i+1));
 
-              result:='$';
-              for k:=length(bytes) downto 1 do
-                result:=result+inttohex(byte(bytes[k]),2);
+              //implement a bug of 6.6 that allowed a pointer to be written as a string
+
+              err:=false;
+              result:='$'+inttohex(symhandler.GetAddressFromPointer(bytes,err),8);
+              if err then
+              begin
+                result:='$';
+                for k:=length(bytes) downto 1 do
+                  result:=result+inttohex(byte(bytes[k]),2);
+              end;
 
               //result := '$'+inttohex(byte(s[i+1]),2);
               exit; //this is it, no further process required, or appreciated...
