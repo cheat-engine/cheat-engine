@@ -2369,7 +2369,6 @@ begin
       if i=0 then exit; //it's a hexadecimal string starting with a $
 
 
-
       {$IFNDEF UNIX}
       //check if lua thingy
       i:=lua_gettop(luavm); //make sure the stack ends here when done
@@ -2379,29 +2378,38 @@ begin
 
       if i<>lua_gettop(luavm) then
       begin
-        j:=lua_type(LuaVM, -1);
-        if j=0 then beep;
-
-
-
-
-        if lua_isuserdata(LuaVM, -1) then
+        if lua_isnil(LuaVM,-1) then
         begin
-          result:=ptruint(lua_toceuserdata(Luavm, -1));
+          //try a lua function call
+
           lua_settop(luavm, i);
+
+          if lua_dostring(Luavm,pchar('return '+s))<>0 then
+          begin
+            lua_settop(luavm, i);
+            lua_pushnil(Luavm);
+          end;
+        end;
+
+        j:=lua_type(LuaVM, i+1);
+
+        if lua_isuserdata(LuaVM, i+1) then
+        begin
+          result:=ptruint(lua_toceuserdata(Luavm, i+1));
+          lua_settop(luavm, i+1);
           exit;
         end
         else
-        if (j<>LUA_TSTRING) and (lua_isnumber(LuaVM, -1)) then
+        if (j<>LUA_TSTRING) and (lua_isnumber(LuaVM, i+1)) then
         begin
-          result:=lua_tointeger(LuaVM, -1);
-          lua_settop(luavm, i);
+          result:=lua_tointeger(LuaVM, i+1);
+          lua_settop(luavm, i+1);
           exit;
         end
         else
-        if lua_isstring(LuaVM, -1) then
+        if lua_isstring(LuaVM, i+1) then
         begin
-          p:=lua_tostring(LuaVM, -1);
+          p:=lua_tostring(LuaVM, i+1);
           if (p<>nil) then name:=p;
         end;
 
