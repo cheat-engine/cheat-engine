@@ -317,9 +317,13 @@ var
     signedstring: string='';
 
     ask: TfrmLuaScriptQuestion;
+    image: tpicture;
+    imagepos: integer;
 begin
   LUA_DoScript('tableIsLoading=true');
   try
+    signed:=false;
+    image:=nil;
     Forms:=nil;
     Entries:=nil;
     Codes:=nil;
@@ -365,7 +369,8 @@ begin
     CheatTable:=doc.FindNode('CheatTable');
     if CheatTable<>nil then
     begin
-      signed:=isProperlySigned(TDOMElement(cheattable), signedstring);
+
+      signed:=isProperlySigned(TDOMElement(cheattable), signedstring, imagepos, image);
 
       try
         tempnode:=CheatTable.Attributes.GetNamedItem('CheatEngineTableVersion');
@@ -717,18 +722,122 @@ begin
 
     end;
 
+    //default view
+    mainform.lblSigned.Anchors:=[];
+    mainform.lblSigned.AnchorSideTop.control:=mainform.Panel4;
+    mainform.lblSigned.AnchorSideTop.side:=asrCenter;
+    mainform.lblSigned.AnchorSideLeft.control:=mainform.Panel4;
+    mainform.lblSigned.AnchorSideLeft.Side:=asrCenter;
+    mainform.lblSigned.Anchors:=[akTop,akLeft];
+
     if signed then
     begin
       mainform.lblSigned.Caption:=signedstring;
       mainform.lblSigned.Visible:=true;
+
+      if image<>nil then
+      begin
+        if MainForm.imgSignature=nil then
+          MainForm.imgSignature:=TImage.create(mainform);
+
+        MainForm.imgSignature.Name:='imgSignature';
+        MainForm.imgSignature.AutoSize:=true;
+        MainForm.imgSignature.Anchors:=[];
+
+        MainForm.imgSignature.Parent:=MainForm.panel4;
+
+        case imagepos of
+          1:
+          begin
+            //behind it (centered)
+            MainForm.imgSignature.AnchorSideTop.Control:=mainform.panel4;
+            MainForm.imgSignature.AnchorSideTop.Side:=asrCenter;
+            MainForm.imgSignature.AnchorSideLeft.Control:=mainform.panel4;
+            MainForm.imgSignature.AnchorSideLeft.Side:=asrCenter;
+            MainForm.imgSignature.Anchors:=[akTop, akLeft];
+          end;
+
+          2:
+          begin
+            //above it
+            MainForm.imgSignature.AnchorSideTop.Control:=mainform.panel4;
+            MainForm.imgSignature.AnchorSideTop.Side:=asrTop;
+            MainForm.imgSignature.AnchorSideLeft.Control:=mainform.panel4;
+            MainForm.imgSignature.AnchorSideLeft.Side:=asrCenter;
+            MainForm.imgSignature.Anchors:=[akTop, akLeft];
+
+            mainform.lblSigned.Anchors:=[];
+            mainform.lblSigned.AnchorSideTop.control:=MainForm.imgSignature;
+            mainform.lblSigned.AnchorSideTop.side:=asrBottom;
+            mainform.lblSigned.Anchors:=[akTop,akLeft];
+          end;
+
+          3:
+          begin
+            //below it
+
+            mainform.lblSigned.Anchors:=[];
+            mainform.lblSigned.AnchorSideTop.control:=MainForm.panel4;
+            mainform.lblSigned.AnchorSideTop.side:=asrTop;
+            mainform.lblSigned.Anchors:=[akTop,akLeft];
+
+            MainForm.imgSignature.AnchorSideTop.Control:=mainform.lblSigned;
+            MainForm.imgSignature.AnchorSideTop.Side:=asrBottom;
+            MainForm.imgSignature.AnchorSideLeft.Control:=mainform.lblSigned;
+            MainForm.imgSignature.AnchorSideLeft.Side:=asrCenter;
+            MainForm.imgSignature.Anchors:=[akTop, akLeft];
+          end;
+
+          4:
+          begin
+            //left of the label
+            MainForm.imgSignature.AnchorSideTop.Control:=mainform.panel4;
+            MainForm.imgSignature.AnchorSideTop.Side:=asrCenter;
+            MainForm.imgSignature.AnchorSideRight.Control:=mainform.lblSigned;
+            MainForm.imgSignature.AnchorSideRight.Side:=asrLeft;
+            MainForm.imgSignature.Anchors:=[akTop, akRight];
+          end;
+
+          5:
+          begin
+            //right of the label
+            MainForm.imgSignature.AnchorSideTop.Control:=mainform.panel4;
+            MainForm.imgSignature.AnchorSideTop.Side:=asrCenter;
+            MainForm.imgSignature.AnchorSideLeft.Control:=mainform.lblSigned;
+            MainForm.imgSignature.AnchorSideLeft.Side:=asrRight;
+            MainForm.imgSignature.Anchors:=[akTop, akLeft];
+          end;
+
+        end;
+
+
+        MainForm.imgSignature.Picture.Assign(image);
+
+        freeandnil(image);
+
+        mainform.lblSigned.BringToFront;
+
+      end
+      else
+      begin
+        if MainForm.imgSignature<>nil then
+          freeandnil(MainForm.imgSignature);
+      end;
     end
     else
+    begin
       mainform.lblSigned.Visible:=false;
+      if mainform.imgSignature<>nil then
+        freeandnil(mainform.imgSignature);
+    end;
 
 
 
   finally
     LUA_DoScript('tableIsLoading=false');
+
+    if image<>nil then
+      freeandnil(image);
   end;
 
 end;

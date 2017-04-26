@@ -6,12 +6,12 @@ unit feces;
 interface
 
 uses
-  Classes, SysUtils, bcrypt, DOM, xmlutils, XmlRead, XMLWrite, dialogs, windows;
+  Classes, SysUtils, bcrypt, DOM, xmlutils, XmlRead, XMLWrite, dialogs, windows, graphics;
 
 function canSignTables: boolean;
 procedure signTable(cheattable: TDOMElement);
 procedure signTableFile(f: string);
-function isProperlySigned(cheattable: TDOMElement; out specialstring: string): boolean;
+function isProperlySigned(cheattable: TDOMElement; out specialstring: string; out imagepos: integer; out image: tpicture): boolean;
 
 implementation
 
@@ -47,6 +47,8 @@ resourcestring
   rsFailedToLoadCheatEnginePublicKey = 'Failed to load cheat engine public key';
   rsNoSignedHash = 'This table''s signature does not contain a SignedHash '
     +'element';
+  rsNoPublicKey =
+    'This table''s signature does not contain a PublicKey element';
 
 
 var
@@ -112,7 +114,7 @@ begin
   end;
 end;
 
-function isProperlySigned(cheattable: TDOMElement; out specialstring: string): boolean;
+function isProperlySigned(cheattable: TDOMElement; out specialstring: string; out imagepos: integer; out image: TPicture): boolean;
 var
   signature: TDOMNode;
   publicKey: TDOMNode;
@@ -152,6 +154,11 @@ var
 
   tablesignature: pointer=nil;
   tablesignaturesize: integer;
+
+  sigversion: word;
+
+  imagebuf: pointer;
+  imagestream: TMemorystream;
 begin
   if not initialize_bCrypt then
     exit(false);
@@ -175,7 +182,7 @@ begin
     //get the public key from the signature
     publicKey:=signature.FindNode('PublicKey');
     if publickey=nil then
-      raise exception.create('This table''s signature does not contain a PublicKey element');
+      raise exception.create(rsNoPublicKey);
 
 
     publickeysize:=strtoint(TDOMElement(publickey).Attributes.GetNamedItem('Size').TextContent);
@@ -193,7 +200,8 @@ begin
 
     customstring:=publicdata.ReadAnsiString;
     specialstring:=customstring;
-    keysize:=publicdata.ReadDWord;
+    keysize:=publicdata.ReadWord;
+    sigversion:=publicdata.ReadWord;
 
 
     s:=BCryptOpenAlgorithmProvider(hAlgoritm, 'ECDSA_P521', nil, 0);
@@ -213,11 +221,39 @@ begin
       rsFailedToLoadTheTablePublicKey);
 
 
-
-
-
     publicdata.Position:=publicdata.Position+keysize;
+
+    imagepos:=-1;
+    image:=nil;
+
+    if sigversion>=1 then
+    begin
+      imagepos:=publicdata.ReadByte;
+      if imagepos<>0 then
+      begin
+        x:=publicdata.readdword; //image size
+
+        imagestream:=tmemorystream.create;
+        getmem(imagebuf, x);
+        try
+          publicdata.ReadBuffer(imagebuf^, x);
+          imagestream.writebuffer(imagebuf^,x);
+          imagestream.position:=0;
+
+          image:=TPicture.Create;
+          image.LoadFromStream(imagestream);
+
+        finally
+          imagestream.free;
+          freemem(imagebuf);
+        end;
+      end;
+    end;
+
+
+
     publickeysize:=publicdata.position; //reuse this
+
 
     signaturesize:=publicdata.ReadDWord;
     sig:=pointer(ptruint(publicdata.memory)+publicdata.position);
@@ -390,6 +426,7 @@ var
   xx: TDOMNode;
 
   tempstr: pchar=nil;
+  sigversion: word;
 begin
   if not initialize_bCrypt then
     raise exception.create(rsBcryptCouldNotBeUsed);
@@ -420,10 +457,20 @@ begin
 
     x:=m.ReadDWord; //customstring length
     m.position:=m.position+x; //string
-    x:=m.ReadDWord; //public key size (140)
+    x:=m.ReadWord; //public key size (140)
+    sigversion:=m.ReadWord; //version
     m.position:=m.position+x; //public key
+    if sigversion>=1 then
+    begin
+      x:=m.ReadByte;
+      if x<>0 then
+      begin
+        x:=m.readdword; //image size
+        m.position:=m.position+x //skip the image
+      end;
+    end;
     x:=m.ReadDWord; //signature size
-    m.position:=m.position+x; //signature describing the custom string and public key
+    m.position:=m.position+x; //signature describing the custom string+image and public key
 
     publicsectionsize:=m.position;
 
