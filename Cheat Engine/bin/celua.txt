@@ -152,7 +152,7 @@ autoAssemble(text, disableInfo OPTIONAL)
 
 autoAssembleCheck(text, enable, targetself) : Checks the script for syntax errors. Returns true on succes, false with an error message on failure
 
-registerExeTrainerFeature(FeatureName:String, function():table): adds a new feature to the exe trainer generator window, and calls your function when the user builds an .exe trainer.  The function should return a table with table entries: PathToFile and RelativePath.
+registerEXETrainerFeature(FeatureName:String, function():table): adds a new feature to the exe trainer generator window, and calls your function when the user builds an .exe trainer.  The function should return a table with table entries: PathToFile and RelativePath.
   example output:
     [1]: 
       PathToFile=c:\cefolder\autorun\mycode.lua
@@ -162,6 +162,7 @@ registerExeTrainerFeature(FeatureName:String, function():table): adds a new feat
       PathToFile=c:\cefolder\autorun\dlls\mycode.lua
       RelativePath="autorun\mylib.dll"
                   
+unregisterEXETrainerFeature(id)
 
 
 registerAutoAssemblerCommand(command, function(parameters, syntaxcheckonly)): Registers an auto assembler command to call the specified function. The command will be replaced by the string this function returns when executed. The function can be called twice. Once for syntax check and symbol lookup(1), and the second time for actual execution by the assembler(2) if it has not been removed in phase1.

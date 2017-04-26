@@ -2610,9 +2610,34 @@ function mono_initialize()
     registerAutoAssemblerCommand("USEMONO", monoAA_USEMONO)
     registerAutoAssemblerCommand("FINDMONOMETHOD", monoAA_FINDMONOMETHOD)
     registerAutoAssemblerCommand("GETMONOSTRUCT", monoAA_GETMONOSTRUCT)
+
+    registerEXETrainerFeature('Mono', function()
+      local r={}
+      r[1]={}
+      r[1].PathToFile=getCheatEngineDir()..[[autorun\monoscript.lua]]
+      r[1].RelativePath=[[autorun\]];
+
+      r[2]={}
+      r[2].PathToFile=getCheatEngineDir()..[[autorun\forms\MonoDataCollector.frm]]
+      r[2].RelativePath=[[autorun\forms\]];
+
+      r[3]={}
+      r[3].PathToFile=getCheatEngineDir()..[[autorun\dlls\MonoDataCollector32.dll]]
+      r[3].RelativePath=[[autorun\dlls\]];
+
+      r[4]={}
+      r[4].PathToFile=getCheatEngineDir()..[[autorun\dlls\MonoDataCollector64.dll]]
+      r[4].RelativePath=[[autorun\dlls\]];
+
+      return r
+    end)
+
+
   end
 end
 
 
 mono_initialize()
+
+
 
