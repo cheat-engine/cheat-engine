@@ -2,7 +2,12 @@ luasymbols=registerSymbolLookupCallback(function(str)
   local c='return '..str
   local lc=loadstring(c)
   if lc then
-    return lc()
+    local isvalid,result=pcall(lc)
+    if isvalid then
+      return result
+    else
+      return nil
+    end
   end
 end, slNotSymbol) 
 
