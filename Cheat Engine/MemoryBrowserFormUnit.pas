@@ -4227,8 +4227,28 @@ var temp: string='';
     x: ptrUint;
     stackaddress: PtrUInt;
     i: integer=0;
+    a: ptruint;
+    d: TDisassembler;
 
+    params: string;
+    accessedreglist: tstringlist=nil;
 begin
+  if processhandler.SystemArchitecture=archX86 then
+  begin
+    a:=lastdebugcontext.{$ifdef cpu64}Rip{$else}Eip{$endif};
+    d:=TDisassembler.create;
+
+    d.disassemble(a, temp);
+    params:=d.LastDisassembleData.parameters;
+    accessedreglist:=tstringlist.create;
+    accessedreglist.Sorted:=true;
+    accessedreglist.Duplicates:=dupIgnore;
+    getRegisterListFromParams(params, accessedreglist);  //todo: get more data when disassembling
+
+    d.free;
+    d:=nil;
+  end;
+
 
   if processhandler.is64Bit or (processhandler.SystemArchitecture=archArm) then
   begin
@@ -4353,6 +4373,32 @@ begin
   if r14label<>nil then r14label.visible:=processhandler.is64Bit or (processhandler.SystemArchitecture=archArm);
   if r15label<>nil then r15label.visible:=processhandler.is64Bit;
 
+  if (accessedreglist<>nil) then
+  begin
+    if accessedreglist.IndexOf('RAX')>=0 then eaxlabel.color:=clAqua else eaxlabel.color:=clNone;
+    if accessedreglist.IndexOf('RBX')>=0 then ebxlabel.color:=clAqua else ebxlabel.color:=clNone;
+    if accessedreglist.IndexOf('RCX')>=0 then ecxlabel.color:=clAqua else ecxlabel.color:=clNone;
+    if accessedreglist.IndexOf('RDX')>=0 then edxlabel.color:=clAqua else edxlabel.color:=clNone;
+    if accessedreglist.IndexOf('RSI')>=0 then esilabel.color:=clAqua else esilabel.color:=clNone;
+    if accessedreglist.IndexOf('RDI')>=0 then edilabel.color:=clAqua else edilabel.color:=clNone;
+    if accessedreglist.IndexOf('RBP')>=0 then ebplabel.color:=clAqua else ebplabel.color:=clNone;
+    if accessedreglist.IndexOf('RSP')>=0 then esplabel.color:=clAqua else esplabel.color:=clNone;
+
+    if processhandler.is64Bit then
+    begin
+      if accessedreglist.IndexOf('R8')>=0 then r8label.color:=clAqua else r8label.color:=clNone;
+      if accessedreglist.IndexOf('R9')>=0 then r9label.color:=clAqua else r9label.color:=clNone;
+      if accessedreglist.IndexOf('R10')>=0 then r10label.color:=clAqua else r10label.color:=clNone;
+      if accessedreglist.IndexOf('R11')>=0 then r11label.color:=clAqua else r11label.color:=clNone;
+      if accessedreglist.IndexOf('R12')>=0 then r12label.color:=clAqua else r12label.color:=clNone;
+      if accessedreglist.IndexOf('R13')>=0 then r13label.color:=clAqua else r13label.color:=clNone;
+      if accessedreglist.IndexOf('R14')>=0 then r14label.color:=clAqua else r14label.color:=clNone;
+      if accessedreglist.IndexOf('R15')>=0 then r15label.color:=clAqua else r15label.color:=clNone;
+    end;
+  end;
+
+
+
   scrollbox1.OnResize(scrollbox1);
 
   run1.Enabled:=true;
@@ -4389,11 +4435,13 @@ begin
     temp:=regstart+'AX '+IntToHex(lastdebugcontext.{$ifdef CPU64}rax{$else}eax{$endif},charcount)
   else
     temp:=' R0 '+IntToHex(lastdebugcontextarm.R0,charcount);
+
   if temp<>eaxlabel.Caption then
   begin
     eaxlabel.Font.Color:=clred;
     eaxlabel.Caption:=temp;
   end else eaxlabel.Font.Color:=clWindowText;
+
 
 
   if processhandler.SystemArchitecture=archX86 then
@@ -4748,6 +4796,9 @@ begin
 
   if (frmWatchlist<>nil) and (frmWatchlist.Visible) then
     frmWatchlist.UpdateContext(@lastdebugcontext);
+
+  if accessedreglist<>nil then
+    freeandnil(accessedreglist);
 end;
 
 initialization

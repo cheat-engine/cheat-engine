@@ -27,12 +27,145 @@ function HexStrToInt64(const S: string): Int64;
 
 function IntToHexSigned(v: INT64; digits: integer): string;
 
+procedure getRegisterListFromParams(params: string; registerlist: Tstrings);
+
+
 implementation
 
-uses symbolhandler;
+uses symbolhandler, assemblerunit;
 
 resourcestring
    rsInvalidInteger = 'Invalid integer';
+
+procedure getRegisterListFromParams(params: string; registerlist: Tstrings);
+{
+//returns RAX, RBX, even for EAX,EBX regs
+}
+var
+  tokens: TTokens;
+  tokens2: TTokens;
+  i,j: integer;
+  isrnumber: boolean;
+  seplist: TSysCharSet;
+begin
+  //check for each known base register and add it to the registerlist
+  params:=uppercase(params);
+
+  seplist:=[' ',',','[',']','+','-'];
+  setlength(tokens, WordCount(params,seplist));
+  for i:=0 to length(tokens)-1 do
+    tokens[i]:=ExtractWord(i+1,params,seplist);
+
+  //if assembler_tokenizer(params, tokens) then
+  begin
+    for i:=0 to length(tokens)-1 do
+    begin
+      if length(tokens[i])>=2 then
+      case tokens[i][1] of
+        'E','R':
+        begin
+          if length(tokens[i])>=3 then
+          begin
+            isrnumber:=true;
+            case tokens[i][2] of
+              '1':
+              case tokens[i][3] of
+                '0': registerlist.add('R10');
+                '1': registerlist.add('R11');
+                '2': registerlist.add('R12');
+                '3': registerlist.add('R13');
+                '4': registerlist.add('R14');
+                '5': registerlist.add('R15');
+                else
+                  isrnumber:=false;
+              end;
+              else
+                isrnumber:=false;
+            end;
+
+            if isrnumber then continue;
+          end;
+
+          case length(tokens[i]) of
+            2:
+            begin
+              case tokens[i][2] of
+                '8': registerlist.add('R8');
+                '9': registerlist.add('R9');
+              end;
+            end;
+            3:
+            begin
+              case tokens[i][3] of
+                'X':
+                case tokens[i][2] of
+                  'A': registerlist.add('RAX');
+                  'B': registerlist.add('RBX');
+                  'C': registerlist.add('RCX');
+                  'D': registerlist.add('RDX');
+                end;
+
+                'I':
+                case tokens[i][2] of
+                  'D': registerlist.add('RDI');
+                  'S': registerlist.add('RSI');
+                end;
+
+                'P':
+                case tokens[i][2] of
+                  'B': registerlist.add('RBP');
+                  'S': registerlist.add('RSP');
+                  'I': registerlist.add('RIP');
+                end;
+              end;
+            end;
+          end;
+        end;
+
+        'A':
+        begin
+          case tokens[i][2] of
+            'X','H','L': registerlist.add('RAX');
+          end;
+        end;
+
+        'B':
+        begin
+          case tokens[i][2] of
+            'X','H','L': registerlist.add('RBX');
+            'P': registerlist.add('RBP');
+          end;
+        end;
+
+        'C':
+        begin
+          case tokens[i][2] of
+            'X','H','L': registerlist.add('RCX');
+          end;
+        end;
+
+        'D':
+        begin
+          case tokens[i][2] of
+            'X','H','L': registerlist.add('RDX');
+            'I': registerlist.add('RDI');
+          end;
+        end;
+
+        'S':
+        begin
+          case tokens[i][2] of
+            'I': registerlist.add('RSI');
+            'P': registerlist.add('RSP');
+          end;
+        end;
+
+      end;
+
+
+    end;
+  end;
+end;
 
 function GetBitCount(value: qword): integer;
 begin

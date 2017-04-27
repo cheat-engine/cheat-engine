@@ -45,6 +45,9 @@ type
     riprelative: integer; //0 or contains the offset where the rip relative part of the code is
 
     Disassembler: TDisassemblerClass;
+
+    //todo: add an isreader/iswriter
+    //and what registers/flags it could potentially access/modify
   end;
 
   PLastDisassembleData=^TLastDisassembleData;
