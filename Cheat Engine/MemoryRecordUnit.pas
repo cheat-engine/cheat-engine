@@ -95,6 +95,9 @@ type
     fOnlyUpdateAfterInterval: boolean;
     fOnlyUpdateWithReinterpret: boolean;
     fUpdateInterval: dword;
+
+    lastOffsetBase: ptruint;
+
     LastUpdateInterval: qword;
     forced: boolean; //set to true if you wish to let getOffset ignore the no-update rules
 
@@ -482,6 +485,7 @@ var
   memrecluaobjectref: integer;
   stack: integer;
 begin
+  lastOffsetBase:=currentbase;
   if special then
   begin
     if (not forced) then
@@ -501,13 +505,6 @@ begin
     foffset:=0;
 
     //parse it/call the lua function
-    if luaref=-1 then
-    begin
-      foffset:=symhandler.getAddressFromName(text, false, finvalid);
-      if finvalid then
-        setoffsetText(text);
-    end;
-
     if luaref<>-1 then
     begin
       {$ifndef JNI}
@@ -549,6 +546,14 @@ begin
 
       {$endif}
     end;
+
+    if luaref=-1 then
+    begin
+      foffset:=symhandler.getAddressFromName(text, false, finvalid);
+      if finvalid then
+        setoffsetText(text);
+    end;
+
 
     if not finvalid then
       hasValue:=true;
@@ -596,32 +601,42 @@ begin
 
 
   special:=true;
-  //parse it as a symbolhandler text, if that fails, try lua
 
-  foffset:=symhandler.getAddressFromName(s, false, e);
-  if e then
+  //parse it as lua (because that can be called by ref, which is faster, and gets the memrec and address variables), if that fails, try the symbolhandler
+  s2:='local memrec, address=... ; return '+s;
+  stack:=lua_Gettop(luavm);
+  try
+    if luaL_loadstring(luavm, pchar(s2))=0 then
+      if lua_isfunction(luavm,-1) then //store a reference to this function
+      begin
+        lua_pushvalue(LuaVM,-1);
+        lua_rawgeti(Luavm, LUA_REGISTRYINDEX, fowner.getLuaRef);
+        lua_pushinteger(luavm, lastOffsetBase);
+        if lua_pcall(Luavm, 2,1,0)=0 then
+        begin
+          if lua_isnumber(luavm,-1) then
+          begin
+            lua_pop(luavm,1);
+
+            if lua_isfunction(luavm,-1) then
+              luaref:=luaL_ref(luavm, LUA_REGISTRYINDEX)
+            else
+              raise exception.create('Invalid lua state');
+          end;
+        end;
+
+      end;
+
+  finally
+    lua_settop(luavm, stack);
+  end;
+  funparsed:=luaref=-1;
+
+  if funparsed then
   begin
-    //try lua
-    s2:='local memrec, address=... ; return '+s;
-
-{$ifndef JNI}
-    stack:=lua_Gettop(luavm);
-    try
-      if luaL_loadstring(luavm, pchar(s2))=0 then
-        if lua_isfunction(luavm,-1) then //store a reference to this function
-          luaref:=luaL_ref(luavm, LUA_REGISTRYINDEX);
-
-    finally
-      lua_settop(luavm, stack);
-    end;
-
-
-    funparsed:=luaref=-1;
-{$else}
-    funparsed:=true;
-{$endif}
-  end else funparsed:=false;
-
+    foffset:=symhandler.getAddressFromName(s, false, e);
+    funparsed:=not e;
+  end;
 end;
 
 constructor TMemrecOffset.create(owner: TMemoryRecord);
