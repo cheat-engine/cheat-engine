@@ -221,7 +221,7 @@ begin
             else
             begin
               fconnected:=false;
-              CancelIoEx(pipe, @o);
+              CancelIo(pipe);
               closehandle(pipe);
               pipe:=0;
               if assigned(fOnTimeout) then
@@ -237,7 +237,7 @@ begin
         else
         begin
           fconnected:=false;
-          CancelIoEx(pipe, @o);
+          CancelIo(pipe);
           closehandle(pipe);
           pipe:=0;
           exit(false);
@@ -284,7 +284,7 @@ begin
             else
             begin
               fconnected:=false;
-              CancelIoEx(pipe, @o);
+              CancelIo(pipe);
               closehandle(pipe);
               pipe:=0;
               if assigned(fOnTimeout) then
@@ -299,7 +299,7 @@ begin
         else
         begin
           fconnected:=false;
-          CancelIoEx(pipe, @o);
+          CancelIo(pipe);
           closehandle(pipe);
           pipe:=0;
           exit(false);
