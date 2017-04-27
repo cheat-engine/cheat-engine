@@ -261,7 +261,7 @@ begin
   ishex:='$';
   for i:=start to length(s) do
     case s[i] of
-      '[':
+      {'[':
       begin
         err:=false;
         result:='$'+inttohex(symhandler.GetAddressFromPointer(s,err),8);
@@ -269,7 +269,7 @@ begin
           exit('')
         else
           exit;
-      end;
+      end;  }
 
 
       '''' , '"' :
