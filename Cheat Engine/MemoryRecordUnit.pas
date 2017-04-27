@@ -635,7 +635,7 @@ begin
   if funparsed then
   begin
     foffset:=symhandler.getAddressFromName(s, false, e);
-    funparsed:=not e;
+    funparsed:=e;
   end;
 end;
 
