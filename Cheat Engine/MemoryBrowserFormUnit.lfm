@@ -14,7 +14,7 @@ object MemoryBrowser: TMemoryBrowser
   OnResize = FormResize
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Splitter1: TSplitter
     Cursor = crVSplit
     Left = 0

@@ -12,9 +12,8 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
   OnDestroy = FormDestroy
   OnShow = FormShow
   PopupMenu = pmCopy
-  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Panel1: TPanel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
