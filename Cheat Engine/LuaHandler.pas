@@ -8394,6 +8394,18 @@ begin
   result:=1;
 end;
 
+var screencanvas: TCanvas=nil;
+function lua_getScreenCanvas(L: PLua_state): integer; cdecl;
+begin
+  if screencanvas=nil then
+  begin
+    screencanvas:=tcanvas.Create;
+    screencanvas.Handle:=GetDC(0);
+  end;
+
+  luaclass_newClass(L, screencanvas);
+  result:=1;
+end;
 
 
 procedure InitializeLua;
@@ -8920,6 +8932,8 @@ begin
     lua_register(L, 'getWorkAreaHeight', lua_getWorkAreaHeight);
     lua_register(L, 'getWorkAreaWidth', lua_getWorkAreaWidth);
 
+
+    lua_register(L, 'getScreenCanvas', lua_getScreenCanvas);
 
     initializeLuaCustomControl;
 
