@@ -210,74 +210,50 @@ resourcestring
   rsOSThereIsANewerVersionifCheatEngineOutEtc = 'There is a newer version of Cheat Engine out. It''s recommended to use that version instead';
   rsOSThisCheatTableIsCorrupt = 'This cheat table is corrupt';
 
- {
-procedure LoadStructFromXMLNode(var struct: TbaseStructure; Structure: TDOMNode);
-var tempnode: TDOMNode;
-    elements: TDOMNode;
-    element: TDOMNode;
-    i: integer;
-    currentOffset: dword;
-    findoffset: boolean;
-begin
 
-  currentoffset:=0;
-
-  if structure.NodeName='Structure' then
-  begin
-    tempnode:=structure.FindNode('Name');
-    if tempnode<>nil then
-      struct.name:=tempnode.TextContent;
-
-    elements:=structure.FindNode('Elements');
-    setlength(struct.structelement, elements.ChildNodes.Count);
-
-
-
-    for i:=0 to length(struct.structelement)-1 do
-    begin
-      element:=elements.ChildNodes[i];
-      findoffset:=true;
-      tempnode:=element.FindNode('Offset');
-      if tempnode<>nil then
-      begin
-        try
-          struct.structelement[i].offset:=strtoint(tempnode.textcontent);
-          findoffset:=false; //the offset was fetched properly, no need to calculate it
-        except
-
-        end;
-      end;
-
-      if findoffset then //it couldn't be read out
-        struct.structelement[i].offset:=currentoffset;  //calculated offset
-
-      tempnode:=element.FindNode('Description');
-      if tempnode<>nil then
-        struct.structelement[i].description:=tempnode.TextContent;
-
-      tempnode:=element.FindNode('PointerTo');
-      struct.structelement[i].pointerto:=(tempnode<>nil) and (tempnode.TextContent='1');
-
-      tempnode:=element.FindNode('PointerToSize');
-      if tempnode<>nil then
-        struct.structelement[i].pointertosize:=strtoint(tempnode.TextContent);
-
-      tempnode:=element.FindNode('Structurenr');
-      if tempnode<>nil then
-        struct.structelement[i].structurenr:=strtoint(tempnode.TextContent);
-
-      tempnode:=element.FindNode('Bytesize');
-      if tempnode<>nil then
-        struct.structelement[i].Bytesize:=strtoint(tempnode.TextContent);
-
-
-      currentoffset:=struct.structelement[i].offset+struct.structelement[i].Bytesize;
-    end;
+type
+  THintWindowX=class(THintWindow)
+  private
+    i:TImage;
+  protected
+    procedure DoCreate; override;
+    procedure DoDestroy; override;
   end;
 
-  sortStructure(struct);
+  THintWindowXClass = class of THintWindowX;
+
+  TImageHint=class
+  public
+    procedure signatureShowHint(Sender: TObject; HintInfo: PHintInfo);
+  end;
+
+var sigimage: TPicture;
+
+procedure THintWindowX.DoDestroy;
+begin
+  if i<>nil then
+    freeandnil(i);
 end;
-        }
+
+procedure THintWindowX.DoCreate;
+begin
+  inherited docreate;
+  i:=TImage.Create(self);
+  i.Picture.Assign(sigimage);
+  i.AutoSize:=true;
+  i.top:=0;
+  i.left:=0;
+  i.parent:=self;
+
+  autosize:=true;
+end;
+
+procedure TImageHint.signatureShowHint(Sender: TObject; HintInfo: PHintInfo);
+begin
+  hintinfo.HintWindowClass:=THintWindowX;
+end;
+
+var imagehint: TImageHint;
 
 procedure LoadXML(doc: TXMLDocument; merge: boolean; isTrainer: boolean=false);
 var
@@ -806,6 +782,41 @@ begin
             MainForm.imgSignature.AnchorSideLeft.Control:=mainform.lblSigned;
             MainForm.imgSignature.AnchorSideLeft.Side:=asrRight;
             MainForm.imgSignature.Anchors:=[akTop, akLeft];
+          end;
+
+          6:
+          begin
+            //no text, image only (hint shows text)
+            MainForm.imgSignature.AnchorSideTop.Control:=mainform.panel4;
+            MainForm.imgSignature.AnchorSideTop.Side:=asrTop;
+            MainForm.imgSignature.AnchorSideLeft.Control:=mainform.panel4;
+            MainForm.imgSignature.AnchorSideLeft.Side:=asrCenter;
+            MainForm.imgSignature.Anchors:=[akTop, akLeft];
+
+            MainForm.imgSignature.Hint:=signedstring;
+            MainForm.imgSignature.ShowHint:=true;
+
+            mainform.lblSigned.Visible:=false;
+          end;
+
+          7:
+          begin
+            //no image, text only (mouseenter pops up image, mouseleave hides it)
+            MainForm.imgSignature.visible:=false;
+
+            if imagehint=nil then
+              imagehint:=TImageHint.create;
+
+            if sigimage=nil then
+              sigimage:=tpicture.Create;
+
+            sigimage.Assign(image);
+
+
+            mainform.lblSigned.OnShowHint:=imagehint.signatureShowHint;
+            mainform.lblSigned.ShowHint:=true;
+
+
           end;
 
         end;
