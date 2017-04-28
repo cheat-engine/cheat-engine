@@ -476,7 +476,7 @@ end;
 
 function TMemrecOffset.getOffsetNoBase: integer;
 begin
-  result:=getOffset(0);
+  result:=getOffset(lastOffsetBase);
 end;
 
 function TMemrecOffset.getOffset(currentBase: ptruint): integer;
