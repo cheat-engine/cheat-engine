@@ -251,6 +251,7 @@ end;
 procedure TImageHint.signatureShowHint(Sender: TObject; HintInfo: PHintInfo);
 begin
   hintinfo.HintWindowClass:=THintWindowX;
+  hintinfo.HintColor:=clWhite;
 end;
 
 var imagehint: TImageHint;
