@@ -479,7 +479,7 @@ procedure TDisassemblerview.DoAutoSize;
 begin
   DisableAutoSizing;
   disassembleDescription.ClientHeight:=disassembleDescription.Canvas.TextHeight('GgXxYj')+4;
-  header.Height:=header.Canvas.TextHeight('GgXxyJjlL')+4;
+  header.Height:=Canvas.TextHeight('GgXxyJjlL')+4;
 
   disassembleDescription.Font.Height:=GetFontData(font.Handle).Height;
 

@@ -249,9 +249,17 @@ begin
 end;
 
 procedure TImageHint.signatureShowHint(Sender: TObject; HintInfo: PHintInfo);
+var p: tpoint;
 begin
   hintinfo.HintWindowClass:=THintWindowX;
   hintinfo.HintColor:=clWhite;
+  p.x:=MainForm.lblSigned.Left+MainForm.lblSigned.width div 2;
+  p.y:=0;
+  p:=MainForm.panel4.ClientToScreen(p);
+
+  p.y:=p.y-sigimage.height;
+  p.x:=p.x-sigimage.Width div 2;
+  hintinfo.HintPos:=p;
 end;
 
 var imagehint: TImageHint;

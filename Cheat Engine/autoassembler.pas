@@ -2935,7 +2935,7 @@ begin
             begin
               try
                 symhandler.DeleteUserdefinedSymbol(addsymbollist[i]); //delete old one so you can add the new one
-                symhandler.AddUserdefinedSymbol(inttohex(labels[j].address,8),addsymbollist[i]);
+                symhandler.AddUserdefinedSymbol(inttohex(labels[j].address,8),addsymbollist[i], true);
                 ok1:=true;
               except
                 //don't crash when it's already defined or address=0
@@ -2949,7 +2949,7 @@ begin
             begin
               try
                 symhandler.DeleteUserdefinedSymbol(addsymbollist[i]); //delete old one so you can add the new one
-                symhandler.AddUserdefinedSymbol(defines[j].whatever, addsymbollist[i]);
+                symhandler.AddUserdefinedSymbol(defines[j].whatever, addsymbollist[i], true);
                 ok1:=true;
               except
               end;
