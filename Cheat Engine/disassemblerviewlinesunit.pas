@@ -30,6 +30,7 @@ type
     fheight: integer; //height of the line
     fDefaultHeight: integer; //the normal height without anything extra
     fInstructionCenter: integer; //y position of the center of the disassembled line (so no header)
+
     isselected: boolean;
 
     faddress: ptrUint;
@@ -79,6 +80,7 @@ type
     destructor destroy; override;
 
   published
+
     property height: integer read fheight;
     property top: integer read fTop;
     property defaultHeight: integer read fDefaultHeight;
@@ -709,7 +711,7 @@ begin
   end;
 
 
-  if focused then
+  if focused and (tdisassemblerview(fowner).hidefocusrect=false) then
       fcanvas.DrawFocusRect(rect(0,top,fbitmap.width,top+height));
 
   if selected then //restore

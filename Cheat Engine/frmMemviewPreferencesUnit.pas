@@ -61,6 +61,8 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure GroupBox1Click(Sender: TObject);
+    procedure GroupBox1MouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
     procedure GroupBox5Click(Sender: TObject);
     procedure lblCallClick(Sender: TObject);
     procedure lblConditionalJumpClick(Sender: TObject);
@@ -224,6 +226,12 @@ begin
   colordialog1.Title:=rsBackgroundColor;
   if colordialog1.execute then
     groupbox1.color:=colordialog1.Color;
+end;
+
+procedure TfrmMemviewPreferences.GroupBox1MouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  groupbox1.OnClick(sender);
 end;
 
 procedure TfrmMemviewPreferences.GroupBox5Click(Sender: TObject);

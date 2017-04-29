@@ -2020,6 +2020,9 @@ properties
   SelectedAddress2: integer - The secondary selected address in the disassemblerview
   TopAddress: Integer - The first address to show
   ShowJumplines: boolean - Determines if the jumplines should be shown
+  HideFocusRect: boolean - If set to true the focus rectangle won't be shown
+  SpaceAboveLines: integer
+  SpaceBelowLines: integer
   OnSelectionChange: function(sender, address, address2) - Function to call when the selection has changed
   OnExtraLineRender: function(sender, Address, AboveInstruction, Selected): RasterImage OPTIONAL, x OPTIONAL, y OPTIONAL
     Function to call when you wish to provide the disassembler view with an extra image containing data you wish to show.
@@ -2028,6 +2031,8 @@ properties
 
     Sender is a DisassemblerviewLine object
     If no coordinates are given the image will be centered above/below the instruction
+
+  Osb: Bitmap : Background picture of the disasemblerview
 
 
 methods

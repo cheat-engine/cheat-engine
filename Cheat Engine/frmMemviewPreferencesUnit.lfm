@@ -2,17 +2,18 @@ object frmMemviewPreferences: TfrmMemviewPreferences
   Left = 512
   Height = 508
   Top = 167
-  Width = 735
+  Width = 391
   AutoSize = True
+  BorderStyle = bsSingle
   Caption = 'Disassembler Preferences'
   ClientHeight = 508
-  ClientWidth = 735
+  ClientWidth = 391
   OnCreate = FormCreate
   OnShow = FormShow
   PopupMenu = pmColors
   PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Button2: TButton
     AnchorSideTop.Control = GroupBox2
     AnchorSideTop.Side = asrBottom
@@ -116,7 +117,6 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       Height = 104
       Top = 55
       Width = 175
-      Anchors = [akTop, akLeft, akRight]
       AutoSize = True
       BorderSpacing.Top = 2
       Caption = 'Normal'
@@ -126,8 +126,10 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       ChildSizing.ControlsPerLine = 1
       ClientHeight = 84
       ClientWidth = 171
+      Constraints.MinWidth = 175
       TabOrder = 4
       OnClick = GroupBox1Click
+      OnMouseDown = GroupBox1MouseDown
       object lblNormal: TLabel
         Cursor = crHandPoint
         Left = 0

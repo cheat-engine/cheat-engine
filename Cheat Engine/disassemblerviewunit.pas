@@ -78,6 +78,8 @@ type TDisassemblerview=class(TPanel)
     fjlThickness: integer;
     fjlSpacing: integer;
 
+    fhidefocusrect: boolean;
+
     scrolltimer: ttimer;
     procedure updateScrollbox;
     procedure scrollboxResize(Sender: TObject);
@@ -149,6 +151,7 @@ type TDisassemblerview=class(TPanel)
     constructor create(AOwner: TComponent); override;
     destructor destroy; override;
   published
+    property HideFocusRect: boolean read fhidefocusrect write fhidefocusrect;
     property SpaceAboveLines: integer read fspaceAboveLines write fspaceAboveLines;
     property SpaceBelowLines: integer read fspaceBelowLines write fspaceBelowLines;
     property jlThickness: integer read fjlThickness write fjlThickness;
