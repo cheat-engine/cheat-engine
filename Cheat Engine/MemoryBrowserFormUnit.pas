@@ -4221,6 +4221,7 @@ end;
 
 procedure TMemoryBrowser.UpdateDebugContext(threadhandle: THandle; threadid: dword; changeselection: boolean=true);
 var temp: string='';
+    temp2: string;
     Regstart: string='';
     charcount: integer=8;
     bs: dword;
@@ -4228,6 +4229,7 @@ var temp: string='';
     stackaddress: PtrUInt;
     i: integer=0;
     a: ptruint;
+    a64: int64;
     d: TDisassembler;
 
     params: string;
@@ -4520,8 +4522,18 @@ begin
     temp:='PC '+IntToHex(lastdebugcontextarm.PC, charcount);
   if temp<>eIPlabel.Caption then
   begin
+    temp2:=ExtractWord(2,eIPlabel.Caption,[' ']);
+    if TryStrToInt64('$'+temp2,a64) then
+    begin
+      if a64<>0 then
+        backlist.Push(pointer(a64));
+    end;
+
     eIPlabel.Font.Color:=clred;
     eIPlabel.Caption:=temp;
+
+
+
   end else eIPlabel.Font.Color:=clWindowText;
 
   {$ifdef CPU64}
