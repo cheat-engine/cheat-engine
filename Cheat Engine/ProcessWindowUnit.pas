@@ -103,6 +103,7 @@ type
 
 var
   ProcessWindow: TProcessWindow;
+  commonProcessesList: tstringlist;
 
 implementation
 
@@ -181,13 +182,46 @@ begin
   if processcount>0 then synchronize(drawprocesses);
 end;
 
+procedure loadCommonProcessesList;
+var
+  s: string;
+  i,j: integer;
+begin
+  s:=cheatenginedir+'commonProcessesList.txt';
+  if FileExists(s) then //if the list exists
+  begin
+    if commonProcessesList=nil then commonProcessesList:=tstringlist.create;
+    try
+      commonProcessesList.LoadFromFile(s);
+      for i:=commonProcessesList.Count-1 downto 0 do
+      begin
+        j:=pos('#', commonProcessesList[i]);
+        if j>0 then commonProcessesList[i]:=copy(commonProcessesList[i], 1, j-1);
+        commonProcessesList[i]:=uppercase(trim(commonProcessesList[i]));
+        if commonProcessesList[i]='' then commonProcessesList.Delete(i);
+      end;
+    except
+    end;
+  end;
+end;
+
+function isInCommonProcessesList(processname: string): boolean;
+var
+  i:integer;
+begin
+  if commonProcessesList=nil then exit(false);
+  for i:=0 to commonProcessesList.Count-1 do
+    if commonProcessesList[i]=uppercase(copy(processname,10)) then exit(true);
+  result:=false;
+end;
+
 procedure TProcessWindow.filterlist;
 var
     i:integer;
     pli: PProcessListInfo;
     s: string;
 begin
-  if (filter='') and (miSkipSystemProcesses.checked=false) then exit;
+  if (filter='') and (miSkipSystemProcesses.checked=false) and (commonProcessesList=nil) then exit;
 
   ffilter:=uppercase(ffilter);
 
@@ -196,7 +230,8 @@ begin
   begin
     pli:=PProcessListInfo(processlist.items.Objects[i]);
 
-    if ((ffilter<>'') and (pos(ffilter,uppercase(processlist.Items[i]))=0)) or ((pli<>nil) and miSkipSystemProcesses.checked and pli^.issystemprocess) then
+    if ((ffilter<>'') and (pos(ffilter,uppercase(processlist.Items[i]))=0)) or ((pli<>nil) and miSkipSystemProcesses.checked and pli^.issystemprocess) or
+       isInCommonProcessesList(processlist.Items[i]) then
     begin
       if pli<>nil then
       begin
@@ -614,6 +649,7 @@ end;
 
 procedure TProcessWindow.FormShow(Sender: TObject);
 begin
+  loadCommonProcessesList;
   errortrace:=100;
   try
     errortrace:=101;
