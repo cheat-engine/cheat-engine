@@ -19,7 +19,7 @@ uses
   generichotkey, luafile, xmplayer_server, ExtraTrainerComponents, customtimer,
   menus, XMLRead, XMLWrite, DOM,ShellApi, Clipbrd, typinfo, PEInfoFunctions,
   LCLProc, strutils, registry, md5, commonTypeDefs, LResources, Translations,
-  variants, LazUTF8, zstream;
+  variants, LazUTF8, zstream, MemoryQuery;
 
 
 const MAXTABLERECURSIONLOOKUP=2;
@@ -8317,10 +8317,14 @@ begin
 
     a:=VirtualAllocEx(processhandle,base,size,MEM_COMMIT or MEM_RESERVE, PAGE_EXECUTE_READWRITE);
     if a=nil then
-      lua_pushnil(L)
-    else
-      lua_pushnumber(L, ptruint(a));
+    begin
+      //try to fix a mistake
+      base:=FindFreeBlockForRegion(ptruint(base),size);
+      a:=VirtualAllocEx(processhandle,base,size,MEM_COMMIT or MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+      if a=nil then exit(0);
+    end;
 
+    lua_pushnumber(L, ptruint(a));
     result:=1;
   end;
 end;
