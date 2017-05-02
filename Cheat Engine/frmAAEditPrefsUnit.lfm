@@ -14,7 +14,7 @@ object frmAAEditPrefs: TfrmAAEditPrefs
   OnShow = FormShow
   PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Panel2: TPanel
     AnchorSideLeft.Control = Owner
     AnchorSideLeft.Side = asrCenter
@@ -210,7 +210,7 @@ object frmAAEditPrefs: TfrmAAEditPrefs
   object FontDialog1: TFontDialog
     MinFontSize = 0
     MaxFontSize = 0
-    Options = [fdEffects, fdFixedPitchOnly]
+    Options = [fdEffects, fdFixedPitchOnly, fdNoSizeSel, fdNoStyleSel]
     left = 112
     top = 24
   end

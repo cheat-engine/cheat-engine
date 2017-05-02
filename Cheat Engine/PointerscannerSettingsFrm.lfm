@@ -11,9 +11,8 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object cbValueType: TComboBox
     AnchorSideLeft.Control = cbAddress
     AnchorSideLeft.Side = asrBottom

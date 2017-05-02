@@ -12,7 +12,7 @@ object frmStructures2: TfrmStructures2
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object tvStructureView: TTreeView
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = HeaderControl1
@@ -33,7 +33,7 @@ object frmStructures2: TfrmStructures2
     HideSelection = False
     Indent = 19
     MultiSelect = True
-    MultiSelectStyle = [msControlSelect, msShiftSelect, msVisibleOnly, msSiblingOnly]
+    MultiSelectStyle = [msShiftSelect, msVisibleOnly, msSiblingOnly]
     ParentFont = False
     PopupMenu = pmStructureView
     ReadOnly = True

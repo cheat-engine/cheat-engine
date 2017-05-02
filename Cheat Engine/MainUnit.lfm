@@ -1,9 +1,9 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 396
+  Left = 626
   Height = 699
   Hint = ' '
-  Top = 131
+  Top = 303
   Width = 701
   HelpContext = 3
   HorzScrollBar.Visible = False
@@ -2378,7 +2378,7 @@ object MainForm: TMainForm
       end
       object miSaveScanresults: TMenuItem
         Caption = 'Save current scanresults'
-        ShortCut = 49235
+        ShortCut = 41043
         OnClick = miSaveScanresultsClick
       end
       object MenuItem6: TMenuItem
