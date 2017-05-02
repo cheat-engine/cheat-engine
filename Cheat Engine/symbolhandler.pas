@@ -3342,19 +3342,15 @@ begin
     try
       commonModuleList.LoadFromFile(s);
 
-      i:=0;
-      while i<commonModuleList.Count do
+      for i:=commonModuleList.Count-1 downto 0 do
       begin
         j:=pos('#', commonModuleList[i]);
         if j>0 then
-          commonModuleList[i]:=trim(copy(commonModuleList[i], 1, j-1));
+          commonModuleList[i]:=copy(commonModuleList[i], 1, j-1);
 
-        commonModuleList[i]:=lowercase(commonModuleList[i]);
+        commonModuleList[i]:=lowercase(trim(commonModuleList[i]));
 
-        if commonModuleList[i]='' then
-          commonModuleList.Delete(i)
-        else
-          inc(i);
+        if commonModuleList[i]='' then commonModuleList.Delete(i);
       end;
     except
       //don't care if file can't be loaded anyhow
