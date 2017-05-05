@@ -2624,6 +2624,13 @@ begin
 
     if key<>0 then
     begin
+      if key>=VK_PAD_A then
+      begin
+        lua_pushboolean(L, HotkeyHandler.IsKeyPressed(key));
+        exit(1);
+      end;
+
+
       w:=GetAsyncKeyState(key);
       r:=(w and 1)=1;
 

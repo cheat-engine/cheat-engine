@@ -52,6 +52,8 @@ procedure SuspendHotkeyHandler;
 procedure ResumeHotkeyHandler;
 procedure hotkeyTargetWindowHandleChanged(oldhandle, newhandle: thandle);
 
+function IsKeyPressed(key: integer):boolean;
+
 
 var hotkeythread: THotkeythread;
     CSKeys: TCriticalSection;
