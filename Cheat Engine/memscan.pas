@@ -2975,7 +2975,9 @@ end;
 //==================Tscanfilewriter=================//
 
 procedure Tscanfilewriter.execute;
-var part: integer;
+var
+  part: integer;
+  wr: twaitresult;
 begin
   part:=0;
   if writeError then exit;
@@ -2984,12 +2986,12 @@ begin
 
     
     repeat
-      dataavailable.WaitFor(infinite);
+      repeat
+        wr:=dataavailable.WaitFor(1000);
+        if terminated or writeError or (wr in [wrAbandoned, wrError]) then exit;
+      until wr=wrSignaled;
+
       try
-
-        if terminated then exit;
-
-
         scancontroller.resultsaveCS.Enter;
         try
           part:=1;
@@ -3032,8 +3034,14 @@ procedure Tscanfilewriter.writeresults(addressbuffer,memorybuffer: pointer; addr
 check if the thread is currently saving
 If yes, wait, if not, start the thread, give it the buffer, and continue
 }
+var wr: TWaitResult;
 begin
-  datawritten.WaitFor(infinite); //only gets set when the thread is done writing
+
+  repeat
+    wr:=datawritten.WaitFor(1000); //only gets set when the thread is done writing
+    if terminated or writeError or (wr in [wrAbandoned, wrError]) then exit;
+  until wr=wrSignaled;
+
   //got past the wait, so it's done writing, so it has no need for the current variables
   self.addressbuffer:=addressbuffer;
   self.memorybuffer:=memorybuffer;
@@ -3046,9 +3054,17 @@ begin
 end;
 
 procedure Tscanfilewriter.flush;
+var wr: TWaitResult;
 begin
   if writeerror then exit;
-  datawritten.WaitFor(infinite);
+
+  repeat
+    wr:=datawritten.WaitFor(1000);
+    if terminated or writeError or (wr in [wrAbandoned, wrError]) then exit;
+
+    if writeError then exit;
+  until wr=wrSignaled;
+
   datawritten.SetEvent;
 end;
 

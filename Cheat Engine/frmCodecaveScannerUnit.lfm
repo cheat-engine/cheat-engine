@@ -12,7 +12,7 @@ object frmCodecaveScanner: TfrmCodecaveScanner
   OnShow = FormShow
   PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object lbCodecaveList: TListBox
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
@@ -131,7 +131,7 @@ object frmCodecaveScanner: TfrmCodecaveScanner
       Constraints.MinWidth = 120
       Font.CharSet = ANSI_CHARSET
       Font.Name = 'Courier New'
-      MaxLength = 8
+      MaxLength = 16
       ParentFont = False
       TabOrder = 1
       Text = '00400000'
@@ -153,7 +153,7 @@ object frmCodecaveScanner: TfrmCodecaveScanner
       Constraints.MinWidth = 120
       Font.CharSet = ANSI_CHARSET
       Font.Name = 'Courier New'
-      MaxLength = 8
+      MaxLength = 16
       ParentFont = False
       TabOrder = 2
       Text = '7FFFFFFF'
