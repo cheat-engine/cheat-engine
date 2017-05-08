@@ -776,7 +776,7 @@ type
     procedure AddresslistDropByListview(Sender: TObject; node: TTreenode;
       attachmode: TNodeAttachMode);
 
-    procedure SaveCurrentState(scanstate: PScanState);
+    procedure SaveCurrentState(scanstate: PScanState; skipuservalues: boolean=false);
     procedure SetupInitialScanTabState(scanstate: PScanState; IsFirstEntry: boolean);
     procedure ScanTabListTabChange(Sender: TObject; oldselection: integer);
 
@@ -2705,7 +2705,7 @@ begin
     //apply this for all tabs
     if scantablist <> nil then
       for i := 0 to scantablist.Count - 1 do
-        SaveCurrentState(PScanState(scantablist.TabData[i]));
+        SaveCurrentState(PScanState(scantablist.TabData[i]), true);
 
   end;
 
@@ -2805,7 +2805,7 @@ begin
 
   if scantablist <> nil then
     for i := 0 to scantablist.Count - 1 do
-      SaveCurrentState(PScanState(scantablist.TabData[i]));
+      SaveCurrentState(PScanState(scantablist.TabData[i]),true);
 
 
   outputdebugstring('openProcessEpilogue exit');
@@ -4139,7 +4139,7 @@ end;
 
 
 
-procedure TMainForm.SaveCurrentState(scanstate: PScanState);
+procedure TMainForm.SaveCurrentState(scanstate: PScanState; skipuservalues: boolean=false);
 begin
   //save the current state
   scanstate.alignsizechangedbyuser := alignsizechangedbyuser;
@@ -4153,23 +4153,32 @@ begin
   scanstate.lblcompareToSavedScan.left := lblcompareToSavedScan.left;
 
 
-  scanstate.FromAddress.Text := fromaddress.Text;
-  scanstate.ToAddress.Text := toaddress.Text;
+  if not skipuservalues then
+  begin
+    scanstate.FromAddress.Text := fromaddress.Text;
+    scanstate.ToAddress.Text := toaddress.Text;
+  end;
 
 
   scanstate.cbfastscan.Checked := cbFastScan.Checked;
-  scanstate.edtAlignment.Text := edtAlignment.Text;
+
+  if not skipuservalues then
+    scanstate.edtAlignment.Text := edtAlignment.Text;
+
   scanstate.edtAlignment.enabled:=edtAlignment.enabled;
 
   scanstate.rbFsmAligned.checked:=rbFsmAligned.checked;
 
-  scanstate.scanvalue.Text := scanvalue.Text;
+  if not skipuservalues then
+    scanstate.scanvalue.Text := scanvalue.Text;
+
   scanstate.scanvalue.Visible := scanvalue.Visible;
 
   if scanvalue2 <> nil then
   begin
     scanstate.scanvalue2.exists := True;
-    scanstate.scanvalue2.Text := scanvalue2.Text;
+    if not skipuservalues then
+      scanstate.scanvalue2.Text := scanvalue2.Text;
   end
   else
     scanstate.scanvalue2.exists := False;
