@@ -140,16 +140,16 @@ begin
               begin
                 str:=str+inttohex(pba[j],2);
                 if j<15 then
-                  str:=str+' - ';
+                  str:=str+' _ ';
               end;
 
               memo1.Lines.Add(str);
 
             end;
 
-            1:  memo1.Lines.Add(inttohex(pwa[0],4)+' - '+inttohex(pwa[1],4)+' - '+inttohex(pwa[2],4)+' - '+inttohex(pwa[3],4)+' - '+inttohex(pwa[4],4)+' - '+inttohex(pwa[5],4)+' - '+inttohex(pwa[6],4)+' - '+inttohex(pwa[7],4)); //2byte
-            2:  memo1.Lines.Add(inttohex(pda[0],8)+' - '+inttohex(pda[1],8)+' - '+inttohex(pda[2],8)+' - '+inttohex(pda[3],8)); //4byte
-            3:  memo1.Lines.Add(inttohex(context.FltSave.FloatRegisters[i].Low,16)+' - '+inttohex(context.FltSave.FloatRegisters[i].High,16)); //8 byte
+            1:  memo1.Lines.Add(inttohex(pwa[0],4)+' _ '+inttohex(pwa[1],4)+' _ '+inttohex(pwa[2],4)+' _ '+inttohex(pwa[3],4)+' _ '+inttohex(pwa[4],4)+' _ '+inttohex(pwa[5],4)+' _ '+inttohex(pwa[6],4)+' _ '+inttohex(pwa[7],4)); //2byte
+            2:  memo1.Lines.Add(inttohex(pda[0],8)+' _ '+inttohex(pda[1],8)+' _ '+inttohex(pda[2],8)+' _ '+inttohex(pda[3],8)); //4byte
+            3:  memo1.Lines.Add(inttohex(context.FltSave.FloatRegisters[i].Low,16)+' _ '+inttohex(context.FltSave.FloatRegisters[i].High,16)); //8 byte
             4:  memo1.Lines.Add(format('%f - %f - %f - %f', [psa[0], psa[1], psa[2], psa[3]])); //single
             5:  memo1.Lines.Add(format('%f - %f', [pssa[0], pssa[1]]));  //double
             6:
@@ -169,15 +169,15 @@ begin
               begin
                 str:=str+inttohex(pba[j],2);
                 if j<9 then
-                  str:=str+' - ';
+                  str:=str+' _ ';
               end;
 
               memo1.Lines.Add(str);
 
             end;
 
-            1:  memo1.Lines.Add(inttohex(pwa[0],4)+' - '+inttohex(pwa[1],4)+' - '+inttohex(pwa[2],4)+' - '+inttohex(pwa[3],4)+' - '+inttohex(pwa[4],4)); //2byte
-            2:  memo1.Lines.Add(inttohex(pda[0],8)+' - '+inttohex(pda[1],8)); //4byte
+            1:  memo1.Lines.Add(inttohex(pwa[0],4)+' _ '+inttohex(pwa[1],4)+' _ '+inttohex(pwa[2],4)+' _ '+inttohex(pwa[3],4)+' _ '+inttohex(pwa[4],4)); //2byte
+            2:  memo1.Lines.Add(inttohex(pda[0],8)+' _ '+inttohex(pda[1],8)); //4byte
             3:  memo1.Lines.Add(inttohex(pqa[0],16)); //8 byte
             4:  memo1.Lines.Add(format('%f - %f', [psa[0], psa[1]])); //single
             5:  memo1.Lines.Add(format('%f', [pssa[0]]));  //double
@@ -219,7 +219,7 @@ begin
               begin
                 str:=str+inttohex(pba[j],2);
                 if j<15 then
-                  str:=str+' - ';
+                  str:=str+' _ ';
               end;
 
               memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
@@ -232,7 +232,7 @@ begin
               begin
                 str:=str+inttohex(pwa[j],4);
                 if j<7 then
-                  str:=str+' - ';
+                  str:=str+' _ ';
               end;
 
               memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
@@ -245,7 +245,7 @@ begin
               begin
                 str:=str+inttohex(pda[j],8);
                 if j<3 then
-                  str:=str+' - ';
+                  str:=str+' _ ';
               end;
 
               memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
@@ -258,7 +258,7 @@ begin
               begin
                 str:=str+inttohex(pqa[j],16);
                 if j<1 then
-                  str:=str+' - ';
+                  str:=str+' _ ';
               end;
 
               memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
@@ -271,7 +271,7 @@ begin
               begin
                 str:=str+format('%f',[psa[j]]);
                 if j<3 then
-                  str:=str+' - ';
+                  str:=str+' _ ';
               end;
 
               memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
@@ -284,7 +284,7 @@ begin
               begin
                 str:=str+format('%f',[pssa[j]]);
                 if j<1 then
-                  str:=str+' - ';
+                  str:=str+' _ ';
               end;
 
               memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
@@ -306,7 +306,7 @@ begin
               begin
                 str:=str+inttohex(context.ext.XMMRegisters.LegacyXMM[i].Bytes[j],2);
                 if j<15 then
-                  str:=str+' - ';
+                  str:=str+' _ ';
               end;
 
               memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
@@ -319,7 +319,7 @@ begin
               begin
                 str:=str+inttohex(context.ext.XMMRegisters.LegacyXMM[i].words[j],4);
                 if j<7 then
-                  str:=str+' - ';
+                  str:=str+' _ ';
               end;
 
               memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
@@ -332,7 +332,7 @@ begin
               begin
                 str:=str+inttohex(context.ext.XMMRegisters.LegacyXMM[i].dwords[j],8);
                 if j<3 then
-                  str:=str+' - ';
+                  str:=str+' _ ';
               end;
 
               memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
@@ -345,7 +345,7 @@ begin
               begin
                 str:=str+inttohex(context.ext.XMMRegisters.LegacyXMM[i].qwords[j],16);
                 if j<1 then
-                  str:=str+' - ';
+                  str:=str+' _ ';
               end;
 
               memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
@@ -358,7 +358,7 @@ begin
               begin
                 str:=str+format('%f',[context.ext.XMMRegisters.LegacyXMM[i].singles[j]]);
                 if j<3 then
-                  str:=str+' - ';
+                  str:=str+' _ ';
               end;
 
               memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
@@ -371,7 +371,7 @@ begin
               begin
                 str:=str+format('%f',[context.ext.XMMRegisters.LegacyXMM[i].doubles[j]]);
                 if j<1 then
-                  str:=str+' - ';
+                  str:=str+' _ ';
               end;
 
               memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
