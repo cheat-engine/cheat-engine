@@ -4,10 +4,15 @@
 
 PUBLIC _NoException14
 _NoException14 PROC
-		add sp,4 ;undo errorcode
+		add esp,4 ;undo errorcode
+		;xor ecx,ecx
+		;iretd
+
+		push eax
 		mov eax, ExceptionlessCopy_Exception
-		mov dword ptr [esp],eax
-		iret
+		mov dword ptr [esp+4],eax
+		pop eax
+		iretd
 _NoException14 ENDP
 
 
@@ -39,7 +44,7 @@ _ExceptionlessCopy_Internal PROC
 		pop edi
 		pop ecx		
 		pop ebp
-		ret
+		ret ;cdecl 
 
 _ExceptionlessCopy_Internal ENDP
 

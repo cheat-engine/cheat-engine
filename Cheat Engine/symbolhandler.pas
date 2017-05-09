@@ -2675,7 +2675,7 @@ begin
                   continue;
                 end
                 else
-                if (j<>LUA_TSTRING) and (lua_isnumber(LuaVM, j+1)) then
+                if (k<>LUA_TSTRING) and (lua_isnumber(LuaVM, j+1)) then
                 begin
                   tokens[i]:=inttohex(lua_tointeger(LuaVM, j+1),8);
                   continue;

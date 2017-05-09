@@ -159,18 +159,30 @@ int NoExceptions_CopyMemory(PVOID Destination, PVOID Source, int size)
 {
 	BOOL EnteredNoExceptions = FALSE;
 	EFLAGS e = getEflags();
+
 	int r = 0;
-	if (KeGetCurrentIrql() != HIGH_LEVEL)
+	
+	//DbgPrint("NoExceptions_CopyMemory. KeGetCurrentIrql()=%d HIGH_LEVEL=%d ", KeGetCurrentIrql(), HIGH_LEVEL);
+	
+	
+	
+	if (KeGetCurrentIrql() <= DISPATCH_LEVEL)
 	{
+		//DbgPrint("calling NoExceptions_Enter");
 		EnteredNoExceptions = NoExceptions_Enter();
 		if (EnteredNoExceptions == FALSE)
 			return 0;
 	}
+	
+	r = ExceptionlessCopy_Internal(Destination, Source, size);
 
-	r=ExceptionlessCopy_Internal(Destination, Source, size);
-
+	
+	
 	if (EnteredNoExceptions)
+	{
+		//DbgPrint("calling NoExceptions_Leave");
 		NoExceptions_Leave();
+	}
 
 
 	return r;
@@ -178,6 +190,7 @@ int NoExceptions_CopyMemory(PVOID Destination, PVOID Source, int size)
 
 void NoExceptions_Leave()
 {
+	
 	int cpunr = KeGetCurrentProcessorNumber();
 
 	//restore the IDT
