@@ -105,6 +105,7 @@ type topcode=record
   norexw: boolean;
   invalidin64bit: boolean;
   invalidin32bit: boolean;
+  canDoAddressSwitch: boolean; //does it support the 0x67 address switch (e.g lea)
  // RexPrefixOffset: byte; //if specified specifies which byte should be used for the rexw (e.g f3 before rex )
 end;
 
@@ -711,8 +712,8 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'LDS';opcode1:eo_reg;paramtype1:par_r16;paramtype2:par_m16;bytes:2;bt1:$66;bt2:$c5),
   (mnemonic:'LDS';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_m32;bytes:1;bt1:$c5),
 
-  (mnemonic:'LEA';opcode1:eo_reg;paramtype1:par_r16;paramtype2:par_m16;bytes:2;bt1:$66;bt2:$8d),
-  (mnemonic:'LEA';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_m32;bytes:1;bt1:$8d),
+  (mnemonic:'LEA';opcode1:eo_reg;paramtype1:par_r16;paramtype2:par_m16;bytes:2;bt1:$66;bt2:$8d;canDoAddressSwitch:true),
+  (mnemonic:'LEA';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_m32;bytes:1;bt1:$8d;canDoAddressSwitch:true),
   (mnemonic:'LEAVE';bytes:1;bt1:$c9),
 
   (mnemonic:'LES';opcode1:eo_reg;paramtype1:par_r16;paramtype2:par_rm16;bytes:2;bt1:$66;bt2:$c4),
@@ -1605,7 +1606,7 @@ type TSingleLineAssembler=class
     RexPrefixLocation: integer; //index into the bytes array
     relativeAddressLocation: integer; //index into the bytes array containing the start of th relative 4 byte address
     actualdisplacement: qword;
-
+    needsAddressSwitchPrefix: boolean;
 
     function getRex_W: boolean;
     procedure setRex_W(state: boolean);
@@ -2674,7 +2675,21 @@ begin
     if pos('R13',reg)>0 then setsibindex(sib,13) else
     if pos('R14',reg)>0 then setsibindex(sib,14) else
     if pos('R15',reg)>0 then setsibindex(sib,15) else
-      raise exception.Create(rsWTFIsA+reg)
+    begin
+      //in case addressswitch is needed
+      if pos('EAX',reg)>0 then setsibindex(sib,0) else
+      if pos('ECX',reg)>0 then setsibindex(sib,1) else
+      if pos('EDX',reg)>0 then setsibindex(sib,2) else
+      if pos('EBX',reg)>0 then setsibindex(sib,3) else
+      if pos('ESP',reg)>0 then setsibindex(sib,4) else
+      if pos('EBP',reg)>0 then setsibindex(sib,5) else
+      if pos('ESI',reg)>0 then setsibindex(sib,6) else
+      if pos('EDI',reg)>0 then setsibindex(sib,7) else
+        raise exception.Create(rsWTFIsA+reg);
+
+      //still here, so I guess so
+      needsAddressSwitchPrefix:=true;
+    end;
 
   end;
 end;
@@ -3303,8 +3318,12 @@ var tokens: ttokens;
 
     b: byte;
     br: PTRUINT;
+    canDoAddressSwitch: boolean;
 
 begin
+  needsAddressSwitchPrefix:=false;
+
+
   setlength(bytes,0);
   is64bit:=processhandler.is64Bit;
 
@@ -3767,6 +3786,8 @@ begin
         paramtype2:=gettokentype(parameter2,parameter3);
     end;
 
+
+    canDoAddressSwitch:=opcodes[j].canDoAddressSwitch;
 
 
     case opcodes[j].paramtype1 of
@@ -5799,9 +5820,6 @@ begin
       //insert rex prefix if needed
       if processhandler.is64bit then
       begin
-
-
-
         if opcodes[j].norexw then
           REX_W:=false;
 
@@ -5840,7 +5858,25 @@ begin
 
         end;
 
+
+
+
       end;
+    end;
+
+    if needsAddressSwitchPrefix then //add it
+    begin
+      if canDoAddressSwitch then
+      begin
+        //put 0x67 in front
+        setlength(bytes,length(bytes)+1);
+        for i:=length(bytes)-1 downto 1 do
+          bytes[i]:=bytes[i-1];
+
+        bytes[0]:=$67;
+      end
+      else
+        raise exception.create('Invalid address');
     end;
   end;
 end;

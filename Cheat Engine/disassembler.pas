@@ -67,11 +67,11 @@ type
 
     ArmDisassembler: TArmDisassembler;
 
-    function SIB(memory:TMemory; sibbyte: integer; var last: dword): string;
+    function SIB(memory:TMemory; sibbyte: integer; var last: dword; addresssize: integer=0): string;
     function MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword): string; overload;
-    function MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword;opperandsize:integer): string; overload;
+    function MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword;opperandsize:integer; addresssize: integer=0): string; overload;
 
-    function MODRM2(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword;opperandsize:integer=0): string;
+    function MODRM2(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword;opperandsize:integer=0;addresssize: integer=0): string;
 
     function getReg(bt: byte): byte;
     function getmod(bt: byte): byte;
@@ -590,7 +590,7 @@ begin
 end;
 
 
-function TDisassembler.MODRM2(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword;opperandsize:integer=0): string;
+function TDisassembler.MODRM2(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword;opperandsize:integer=0; addresssize:integer=0): string;
 var dwordptr: ^dword;
     regprefix: char;
     i: integer;
@@ -631,7 +631,7 @@ begin
             4:
             begin
               //has an sib
-              result:=getsegmentoverride(prefix)+'['+sib(memory,modrmbyte+1,last)+'],';
+              result:=getsegmentoverride(prefix)+'['+sib(memory,modrmbyte+1,last, addresssize)+'],';
             end;
 
             5:
@@ -706,7 +706,7 @@ begin
 
               4:
               begin
-                result:=getsegmentoverride(prefix)+'['+sib(memory,modrmbyte+1,last)+'],';
+                result:=getsegmentoverride(prefix)+'['+sib(memory,modrmbyte+1,last, addressSize)+'],';
                 dec(last);
 
                 {
@@ -815,7 +815,7 @@ begin
 
               4:
               begin
-                result:=getsegmentoverride(prefix)+'['+sib(memory,modrmbyte+1,last)+'],';
+                result:=getsegmentoverride(prefix)+'['+sib(memory,modrmbyte+1,last, addresssize)+'],';
                 dec(last,4);
               end;
 
@@ -1040,9 +1040,9 @@ begin
   result:=modrm2(memory,prefix,modrmbyte,inst,last);
 end;
 
-function TDisassembler.MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword;opperandsize:integer): string;
+function TDisassembler.MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword;opperandsize:integer; addressSize: integer=0): string;
 begin
-  result:=modrm2(memory,prefix,modrmbyte,inst,last, opperandsize);
+  result:=modrm2(memory,prefix,modrmbyte,inst,last, opperandsize, addressSize);
   if (length(result)>0) and (result[1]='[') then
   begin
     LastDisassembleData.datasize:=processhandler.pointersize;
@@ -1086,7 +1086,7 @@ begin
   end;
 end;
 
-function TDisassembler.SIB(memory:TMemory; sibbyte: integer; var last: dword): string;
+function TDisassembler.SIB(memory:TMemory; sibbyte: integer; var last: dword; addresssize: integer=0): string;
 var
   dwordptr: ^dword;
   byteptr: ^byte absolute dwordptr;
@@ -1174,7 +1174,7 @@ begin
 
 
 
-  if is64bit then
+  if is64bit and (addresssize<>32) then
   begin
     if indexstring<>'' then indexstring[1]:='r'; //quick replace
 
@@ -7851,8 +7851,19 @@ begin
               description:='load effective address';
               lastdisassembledata.opcode:='lea';
               if $66 in prefix2 then
-                lastdisassembledata.parameters:=r16(memory[1])+','+modrm(memory,prefix2,1,1,last) else
-                lastdisassembledata.parameters:=r32(memory[1])+','+modrm(memory,prefix2,1,0,last);
+              begin
+                if processhandler.is64Bit and ($67 in prefix2) then
+                  lastdisassembledata.parameters:=r16(memory[1])+','+modrm(memory,prefix2,1,1,last,0,32)
+                else
+                  lastdisassembledata.parameters:=r16(memory[1])+','+modrm(memory,prefix2,1,1,last,0);
+              end
+              else
+              begin
+                if processhandler.is64Bit and ($67 in prefix2) then
+                  lastdisassembledata.parameters:=r32(memory[1])+','+modrm(memory,prefix2,1,0,last,0,32)
+                else
+                  lastdisassembledata.parameters:=r32(memory[1])+','+modrm(memory,prefix2,1,0,last,0)
+              end;
 
               inc(offset,last-1);
             end;
