@@ -3578,6 +3578,43 @@ begin
   end;
 end;
 
+function getAddressSafe(L: PLua_state): integer; cdecl;
+var parameters: integer;
+  s: string;
+
+  local: boolean;
+
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters>=1 then
+  begin
+    s:=Lua_ToString(L, 1);
+
+    if parameters>=2 then
+      local:=lua_toboolean(L, 2)
+    else
+      local:=false;
+
+
+    lua_pop(L, lua_gettop(l));
+
+    try
+      if not local then
+        lua_pushinteger(L,symhandler.getAddressFromName(s))
+      else
+        lua_pushinteger(L,selfsymhandler.getAddressFromName(s));
+
+      result:=1;
+    except
+      exit(0);
+    end;
+
+
+  end;
+end;
+
+
 function getAddress(L: PLua_state): integer; cdecl;
 var parameters: integer;
   s: string;
@@ -8545,6 +8582,7 @@ begin
     lua_register(L, 'getOpenedProcessID', getOpenedProcessID);
     lua_register(L, 'getAddress', getAddress);
     lua_register(L, 'getModuleSize', getModuleSize);
+    lua_register(L, 'getAddressSafe', getAddressSafe);
 
     lua_register(L, 'reinitializeSymbolhandler', reinitializeSymbolhandler);
     lua_register(L, 'reinitializeDotNetSymbolhandler', reinitializeDotNetSymbolhandler);
