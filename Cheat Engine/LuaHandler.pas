@@ -3644,8 +3644,12 @@ begin
     except
       on e:exception do
       begin
+        {$ifdef cpu64}
         lua_pushstring(L,e.Message);
         lua_error(L);
+        {$else}
+        raise;
+        {$endif}
       end;
     end;
 
