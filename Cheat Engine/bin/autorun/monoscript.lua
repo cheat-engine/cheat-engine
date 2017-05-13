@@ -779,6 +779,31 @@ function mono_image_findClass(image, namespace, classname)
   return result
 end
 
+function mono_image_findClassSlow(image, namespace, classname)
+  if debug_canBreak() then return nil end
+
+--find a class in a specific image
+  local result=0
+
+  monopipe.lock()
+
+  local c=mono_image_enumClasses(image)
+  if c then
+    local i
+    for i=1, #c do
+      --check that classname is in c[i].classname
+      if c[i].classname==classname then
+        result=c[i].class
+        break;
+      end
+    end
+
+  end
+  monopipe.unlock()
+
+  return result
+end
+
 function mono_findClass(namespace, classname)
   if debug_canBreak() then return nil end
 
@@ -797,6 +822,15 @@ function mono_findClass(namespace, classname)
   end
 
   --still here:
+
+  for i=1, #ass do
+    result=mono_image_findClassSlow(mono_getImageFromAssembly(ass[i]), namespace, classname)
+    if (result~=0) then
+      return result;
+    end
+  end  
+
+
   return 0
 end
 
