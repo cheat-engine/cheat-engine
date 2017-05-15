@@ -61,6 +61,7 @@ type
     MenuItem25: TMenuItem;
     MenuItem26: TMenuItem;
     MenuItem27: TMenuItem;
+    miAddRef: TMenuItem;
     miTextEncodingUTF8: TMenuItem;
     miSetAddress: TMenuItem;
     miGNUAssembler: TMenuItem;
@@ -281,9 +282,11 @@ type
     procedure MenuItem25Click(Sender: TObject);
     procedure MenuItem26Click(Sender: TObject);
     procedure MenuItem27Click(Sender: TObject);
+    procedure miAddRefClick(Sender: TObject);
     procedure miSetAddressClick(Sender: TObject);
     procedure miGNUAssemblerClick(Sender: TObject);
     procedure miBinutilsSelectClick(Sender: TObject);
+    procedure pmStacktracePopup(Sender: TObject);
     procedure SetBookmarkClick(Sender: TObject);
     procedure miTextEncodingClick(Sender: TObject);
     procedure miReferencedFunctionsClick(Sender: TObject);
@@ -505,6 +508,8 @@ type
     end;
 
     currentBinutils: Tbinutils;
+
+    StackReference: ptruint;
 
     procedure SetStacktraceSize(size: integer);
     procedure setShowDebugPanels(state: boolean);
@@ -1147,6 +1152,8 @@ begin
   frmWatchlist.show;
 end;
 
+
+
 procedure TMemoryBrowser.miSetAddressClick(Sender: TObject);
 begin
   if (debuggerthread<>nil) and (debuggerthread.isWaitingToContinue) then
@@ -1183,6 +1190,56 @@ begin
       defaultBinutils:=TBinUtils(binutilslist[id]);
       miDisassemblerType.Enabled:=false;
     end;
+  end;
+end;
+
+procedure TMemoryBrowser.pmStacktracePopup(Sender: TObject);
+var
+  i: integer;
+  x: ptruint;
+  s: string;
+  haserror: boolean=true;
+begin
+  if lvStacktraceData.Selected<>nil then
+  begin
+    s:=lvStacktraceData.Selected.Caption;
+    i:=pos('(', s);
+    if i>0 then
+      s:=copy(s,1,i-1);
+
+    x:=symhandler.getAddressFromName(s,false,haserror);
+
+    if not haserror then
+      miAddRef.caption:=format('(ref+*) Ref will be %x',[x]);
+  end;
+end;
+
+procedure TMemoryBrowser.miAddRefClick(Sender: TObject);
+var
+  i: integer;
+  s: string;
+  haserror: boolean=true;
+  x: ptruint;
+begin
+  if lvStacktraceData.Selected<>nil then
+  begin
+    s:=lvStacktraceData.Selected.Caption;
+    i:=pos('(', s);
+    if i>0 then
+      s:=copy(s,1,i-1);
+
+    x:=symhandler.getAddressFromName(s,false,haserror);
+
+    if not haserror then
+    begin
+      StackReference:=x;
+      reloadStacktrace;
+    end;
+  end
+  else
+  begin
+    miAddESP.Checked:=true;
+    reloadStacktrace;
   end;
 end;
 
@@ -3804,6 +3861,9 @@ var s: pptrUintarray;
     address, bytes, details: string;
     li: tlistitem;
     c: TListcolumn;
+
+    refname: string;
+    refaddress: ptruint;
 begin
 
   lvStacktraceData.Items.BeginUpdate;
@@ -3878,7 +3938,32 @@ begin
           readprocessmemory(processhandle, pointer(lastdebugcontext.{$ifdef cpu64}rsp{$else}esp{$endif}),s, FStacktraceSize,x);
           strace.Clear;
 
-          ce_stacktrace(lastdebugcontext.{$ifdef cpu64}rsp{$else}esp{$endif}, lastdebugcontext.{$ifdef cpu64}rbp{$else}ebp{$endif}, lastdebugcontext.{$ifdef cpu64}rip{$else}eip{$endif}, pbytearray(s),x, strace,false,Nonsystemmodulesonly1.checked or modulesonly1.Checked,Nonsystemmodulesonly1.checked,0,miAddEBP.checked);
+          if miAddESP.checked then
+          begin
+            refname:='rsp';
+            refaddress:=lastdebugcontext.{$ifdef cpu64}rsp{$else}esp{$endif};
+            if not processhandler.is64Bit then
+              refname[1]:='e';
+          end
+          else
+          if miAddEBP.checked then
+          begin
+            refname:='ebp';
+            if not processhandler.is64Bit then
+              refname[1]:='e';
+
+            refaddress:=lastdebugcontext.{$ifdef cpu64}rbp{$else}ebp{$endif};
+          end
+          else
+          if miAddRef.checked then
+          begin
+            refname:=' ';
+            refaddress:=StackReference;
+          end;
+
+
+
+          ce_stacktrace(lastdebugcontext.{$ifdef cpu64}rsp{$else}esp{$endif}, lastdebugcontext.{$ifdef cpu64}rbp{$else}ebp{$endif}, lastdebugcontext.{$ifdef cpu64}rip{$else}eip{$endif}, pbytearray(s),x, strace,false,Nonsystemmodulesonly1.checked or modulesonly1.Checked,Nonsystemmodulesonly1.checked,0,refaddress,refname);
 
           lvstacktracedata.Items.Count:=strace.Count;
         finally
@@ -3892,8 +3977,8 @@ begin
 
     end;
   finally
-    lvStacktraceData.Items.EndUpdate;
     lvStacktraceData.Refresh;
+    lvStacktraceData.Items.EndUpdate;
   end;
 
 end;
@@ -4048,6 +4133,8 @@ var
 
   offset: ptrint;
   offsetstring: string;
+
+  refname: string;
 begin
 
   if stacktrace2.checked then
@@ -4092,12 +4179,23 @@ begin
         offsetstring:='('+pref+'sp+'+inttohex(item.Index*processhandler.pointersize,1)+')'
       else
       begin
-        offset:=a-lastdebugcontext.{$ifdef cpu64}rbp{$else}Ebp{$endif};
+
+
+        if miAddRef.checked then
+        begin
+          offset:=a-StackReference;
+          refname:=' ';
+        end
+        else
+        begin
+          offset:=a-lastdebugcontext.{$ifdef cpu64}rbp{$else}Ebp{$endif};
+          refname:=pref+'bp';
+        end;
 
         if offset<0 then
-          offsetstring:='('+pref+'bp-'+inttohex(-offset,1)+')'
+          offsetstring:='('+refname+'-'+inttohex(-offset,1)+')'
         else
-          offsetstring:='('+pref+'bp+'+inttohex(offset,1)+')';
+          offsetstring:='('+refname+inttohex(offset,1)+')';
       end;
 
 
@@ -4148,6 +4246,7 @@ var
 
   currentleft: integer;
   s: string;
+  ksh: TShiftState;
 begin
   if lvStacktraceData.Selected=nil then exit;
 
@@ -4196,10 +4295,29 @@ begin
     x:=symhandler.getAddressFromName(s,false,haserror);
     if not haserror then
     begin
-      if isExecutableAddress(x) then
+      ksh:=GetKeyShiftState;
+      if ssShift in ksh then
+      begin
+        backlist.Push(pointer(disassemblerview.SelectedAddress));
         disassemblerview.SelectedAddress:=x
+      end
       else
+      if ssCtrl in ksh then
+      begin
+        hexview.AddToBackList(pointer(memoryaddress));
         memoryaddress:=x;
+      end
+      else
+      if isExecutableAddress(x) then
+      begin
+        backlist.Push(pointer(disassemblerview.SelectedAddress));
+        disassemblerview.SelectedAddress:=x
+      end
+      else
+      begin
+        hexview.AddToBackList(pointer(memoryaddress));
+        memoryaddress:=x;
+      end;
     end;
 
   end;

@@ -178,6 +178,8 @@ type
     function isLocked: boolean;
     function isShowingDifference: boolean;
 
+    procedure AddToBackList(address: pointer);
+
 
     constructor create(AOwner: TComponent); override;
     destructor destroy; override;
@@ -2236,6 +2238,11 @@ end;
 procedure THexView.OnLostFocus(sender: TObject);
 begin
   self.SetFocus;
+end;
+
+procedure THexView.AddToBackList(address: pointer);
+begin
+  backlist.Push(address);
 end;
 
 procedure THexView.mbPaint(sender: TObject);

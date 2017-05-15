@@ -561,8 +561,10 @@ object MemoryBrowser: TMemoryBrowser
             Caption = 'Value'
             Width = 42
           end>
+        DragKind = dkDock
         HideSelection = False
         OwnerData = True
+        PopupMenu = pmStacktrace
         ReadOnly = True
         RowSelect = True
         TabOrder = 0
@@ -1511,6 +1513,7 @@ object MemoryBrowser: TMemoryBrowser
     top = 104
   end
   object pmStacktrace: TPopupMenu
+    OnPopup = pmStacktracePopup
     left = 536
     top = 360
     object All1: TMenuItem
@@ -1561,6 +1564,14 @@ object MemoryBrowser: TMemoryBrowser
       GroupIndex = 2
       RadioItem = True
       OnClick = miAddESPClick
+    end
+    object miAddRef: TMenuItem
+      AutoCheck = True
+      Caption = '(ref+*) Ref will be %x'
+      GroupIndex = 2
+      RadioItem = True
+      ShortCut = 32
+      OnClick = miAddRefClick
     end
   end
   object pmRegisters: TPopupMenu

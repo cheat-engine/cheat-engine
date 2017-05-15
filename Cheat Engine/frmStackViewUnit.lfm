@@ -13,7 +13,7 @@ object frmStackView: TfrmStackView
   OnDestroy = FormDestroy
   OnShow = FormShow
   PopupMode = pmAuto
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object lvStack: TListView
     Left = 0
     Height = 211
@@ -47,6 +47,7 @@ object frmStackView: TfrmStackView
     OnDblClick = lvStackDblClick
   end
   object PopupMenu1: TPopupMenu
+    OnPopup = PopupMenu1Popup
     left = 108
     top = 84
     object miAddESP: TMenuItem
@@ -63,6 +64,13 @@ object frmStackView: TfrmStackView
       GroupIndex = 1
       RadioItem = True
       OnClick = miAddESPClick
+    end
+    object miAddRef: TMenuItem
+      Caption = '(ref+*) Ref will be %x'
+      GroupIndex = 1
+      RadioItem = True
+      ShortCut = 32
+      OnClick = miAddRefClick
     end
     object MenuItem1: TMenuItem
       Caption = '-'

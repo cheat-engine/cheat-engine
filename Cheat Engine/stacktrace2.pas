@@ -8,7 +8,7 @@ uses LCLIntf, sysutils, classes, symbolhandler, CEFuncProc, NewKernelHandler,
   byteinterpreter, commonTypeDefs;
 
 procedure seperatestacktraceline(s: string; var address: string; var bytes: string; var details: string);
-procedure ce_stacktrace(esp: ptrUint; ebp: ptrUint; eip: ptrUint; stack: Pbytearray; sizeinbytes: integer; trace: tstrings; force4byteblocks: boolean=true; showmodulesonly: boolean=false; nosystemmodules:boolean=false; maxdepth:integer=0; ShowEBPinsteadOfESP: boolean=false);
+procedure ce_stacktrace(esp: ptrUint; ebp: ptrUint; eip: ptrUint; stack: Pbytearray; sizeinbytes: integer; trace: tstrings; force4byteblocks: boolean=true; showmodulesonly: boolean=false; nosystemmodules:boolean=false; maxdepth:integer=0; referenceaddress: ptruint=0; referencename:string='');
 
 implementation
 
@@ -27,7 +27,7 @@ begin
   details:=copy(s,j+3,length(s)); //leftover
 end;
 
-procedure ce_stacktrace(esp: ptrUint; ebp: ptrUint; eip: ptrUint; stack: Pbytearray; sizeinbytes: integer; trace: tstrings; force4byteblocks: boolean=true; showmodulesonly: boolean=false; nosystemmodules:boolean=false; maxdepth:integer=0; ShowEBPinsteadOfESP: boolean=false);
+procedure ce_stacktrace(esp: ptrUint; ebp: ptrUint; eip: ptrUint; stack: Pbytearray; sizeinbytes: integer; trace: tstrings; force4byteblocks: boolean=true; showmodulesonly: boolean=false; nosystemmodules:boolean=false; maxdepth:integer=0; referenceaddress: ptruint=0; referencename:string='');
 {
 ce_stacktrace will walk the provided stack trying to figure out functionnames ,passed strings and optional other data
 esp must be aligned on a 4 byte boundary the first entry alignment but other entries will try to be forced to 4 byte alignment unless otherwise needed (double, string,...)
@@ -83,15 +83,15 @@ begin
   begin
     oldi:=i;
 
-    if not ShowEBPinsteadOfESP then
+    if referenceaddress=0 then
       offsetstring:='('+pref+'sp+'+inttohex(esp-originalesp,1)+')'
     else
     begin
-      offset:=esp-ebp;
+      offset:=esp-referenceaddress;
       if offset<0 then
-        offsetstring:='('+pref+'bp-'+inttohex(-offset,1)+')'
+        offsetstring:='('+referencename+'-'+inttohex(-offset,1)+')'
       else
-        offsetstring:='('+pref+'bp+'+inttohex(offset,1)+')';
+        offsetstring:='('+referencename+'+'+inttohex(offset,1)+')';
     end;
 
     address:=inttohex(esp,8)+' '+offsetstring;
