@@ -544,6 +544,7 @@ object MemoryBrowser: TMemoryBrowser
       object lvStacktraceData: TListView
         Left = 2
         Height = 247
+        Hint = 'Shows the current stack.'#13#10'Tip: When doubleclicking the value and it represents an address, then you can hold shift to make it show in the disassembler, and ctrl to make it show in the memory view. Else Cheat Engine will guess it for you based on if it''s executable memory or not'
         Top = 2
         Width = 206
         Align = alClient
@@ -564,9 +565,11 @@ object MemoryBrowser: TMemoryBrowser
         DragKind = dkDock
         HideSelection = False
         OwnerData = True
+        ParentShowHint = False
         PopupMenu = pmStacktrace
         ReadOnly = True
         RowSelect = True
+        ShowHint = True
         TabOrder = 0
         ViewStyle = vsReport
         OnData = lvStacktraceDataData

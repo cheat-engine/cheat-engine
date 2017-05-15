@@ -25,6 +25,8 @@ TMEMORYBROWSER.ZFLABEL.CAPTION=ZF 0
 TMEMORYBROWSER.AFLABEL.CAPTION=AF 0
 TMEMORYBROWSER.PFLABEL.CAPTION=PF 0
 TMEMORYBROWSER.CFLABEL.CAPTION=CF 0
+TMEMORYBROWSER.LVSTACKTRACEDATA.HINT=Shows the current stack.
+Tip: When doubleclicking the value and it represents an address, then you can hold shift to make it show in the disassembler, and ctrl to make it show in the memory view. Else Cheat Engine will guess it for you based on if it's executable memory or not
 TMEMORYBROWSER.LVSTACKTRACEDATA.COLUMNS[0].CAPTION=Address
 TMEMORYBROWSER.LVSTACKTRACEDATA.COLUMNS[1].CAPTION=DWORD
 TMEMORYBROWSER.LVSTACKTRACEDATA.COLUMNS[2].CAPTION=Value
