@@ -279,6 +279,8 @@ type
     function getFocused: boolean;
     function getGlobalIndex: integer;
     procedure setNewParent(group: TStructGroup);
+
+    function getName: string;
   public
     currentNodeAddress: string;    //temporary storage for rendering
     currentNodeValue: string;
@@ -315,6 +317,7 @@ type
     property CompareValue: string read fcompareValue write fcompareValue;
     property GlobalIndex: integer read getGlobalIndex;
     property AddressText: string read getAddressText write setAddressText;
+    property Name: string read getName;
   end;
 
   TfrmStructures2 = class(TForm)
@@ -2338,6 +2341,14 @@ begin
   clearSavedState;
   edtAddress.Text:=address;
   edtAddressChange(nil);
+end;
+
+function TStructColumn.getName: string;
+begin
+  if lblname<>nil then
+    result:=lblName.Caption
+  else
+    result:='';
 end;
 
 function TStructColumn.LockAddress(shownaddress: ptruint; memoryblock: pointer; size: integer): boolean;
@@ -4598,7 +4609,15 @@ var i,j: integer;
 begin
   f.clear;
 
-  for i:=0 to tvStructureView.Items.Count-1 do
+  s:='Offset-Description';
+  s:=padright(s,25);
+  for j:=0 to columncount-1 do
+    s:=s+PadRight(columns[j].Name,30);
+
+  f.add(s);
+
+
+  for i:=1 to tvStructureView.Items.Count-1 do
   begin
     node:=tvStructureView.Items[i];
     se:=getStructElementFromNode(node);

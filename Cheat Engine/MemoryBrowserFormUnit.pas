@@ -61,6 +61,8 @@ type
     MenuItem25: TMenuItem;
     MenuItem26: TMenuItem;
     MenuItem27: TMenuItem;
+    miHVBack: TMenuItem;
+    miHVFollow: TMenuItem;
     miAddRef: TMenuItem;
     miTextEncodingUTF8: TMenuItem;
     miSetAddress: TMenuItem;
@@ -283,6 +285,8 @@ type
     procedure MenuItem26Click(Sender: TObject);
     procedure MenuItem27Click(Sender: TObject);
     procedure miAddRefClick(Sender: TObject);
+    procedure miHVBackClick(Sender: TObject);
+    procedure miHVFollowClick(Sender: TObject);
     procedure miSetAddressClick(Sender: TObject);
     procedure miGNUAssemblerClick(Sender: TObject);
     procedure miBinutilsSelectClick(Sender: TObject);
@@ -1040,6 +1044,8 @@ begin
     MenuItem7.visible:=not hasbp;
     MenuItem8.visible:=not hasbp;
     miDeleteBP.visible:=hasbp;
+
+    miHVFollow.Visible:=hexview.CanFollow;
   end
   else
   begin
@@ -1050,6 +1056,8 @@ begin
     MenuItem8.visible:=false;
     miDeleteBP.visible:=false;
   end;
+
+  miHVBack.visible:=hexview.hasBackList;
 end;
 
 
@@ -1241,6 +1249,16 @@ begin
     miAddESP.Checked:=true;
     reloadStacktrace;
   end;
+end;
+
+procedure TMemoryBrowser.miHVBackClick(Sender: TObject);
+begin
+  hexview.back;
+end;
+
+procedure TMemoryBrowser.miHVFollowClick(Sender: TObject);
+begin
+  hexview.follow;
 end;
 
 procedure TMemoryBrowser.SetBookmarkClick(Sender: TObject);
@@ -2086,6 +2104,7 @@ begin
     hexview.history.Push(pointer(old));
 
   hexview.SetFocus;
+
 end;
 
 procedure TMemoryBrowser.FormResize(Sender: TObject);
@@ -2256,6 +2275,7 @@ begin
 
     vk_space:
     begin
+      key:=0;
       if shift=[] then
         follow1.Click
       else
@@ -2268,6 +2288,7 @@ begin
 
     VK_BACK:
     begin
+      key:=0;
       back1.click; //backspace and shift+space
     end;
 

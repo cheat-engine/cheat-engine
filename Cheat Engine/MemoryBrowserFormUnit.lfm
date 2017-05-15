@@ -589,6 +589,16 @@ object MemoryBrowser: TMemoryBrowser
       Caption = 'Goto address'
       OnClick = Goto1Click
     end
+    object miHVBack: TMenuItem
+      Caption = 'Back'
+      ShortCut = 8
+      OnClick = miHVBackClick
+    end
+    object miHVFollow: TMenuItem
+      Caption = 'Follow'
+      ShortCut = 32
+      OnClick = miHVFollowClick
+    end
     object Search1: TMenuItem
       Caption = 'Search memory...'
       ShortCut = 16454
@@ -845,10 +855,12 @@ object MemoryBrowser: TMemoryBrowser
     end
     object Back1: TMenuItem
       Caption = 'Back'
+      ShortCut = 8
       OnClick = Back1Click
     end
     object Follow1: TMenuItem
       Caption = 'Follow'
+      ShortCut = 32
       Visible = False
       OnClick = Follow1Click
     end

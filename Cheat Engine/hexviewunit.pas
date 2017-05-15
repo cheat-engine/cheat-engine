@@ -177,6 +177,10 @@ type
     procedure Unlock;
     function isLocked: boolean;
     function isShowingDifference: boolean;
+    function hasBackList: boolean;
+    procedure Back;
+    function CanFollow: boolean;
+    procedure Follow;
 
     procedure AddToBackList(address: pointer);
 
@@ -721,39 +725,16 @@ begin
           end;
         end
         else
-        if (backlist.Count>0) then //not editing and something in the backlist
-          address:=qword(backlist.Pop);
+        begin
+          key:=0;
+          back;
+        end;
       end;
 
       VK_SPACE:
       begin
-        //check if the currently selected bytes are the size of a pointer
-        if hasSelection then
-        begin
-          start:=minx(selected,selected2);
-          stop:=maxx(selected,selected2);
-          if (stop-start)+DisplayTypeByteSize[fdisplaytype]=processhandler.pointersize then
-          begin
-            //go to this selected address
-            gotoaddress:=0;
-            if ReadProcessMemory(processhandle, pointer(start), @gotoaddress, processhandler.pointersize,x) then
-            begin
-              //save the current address in the history
-              backlist.push(pointer(address));
-
-              //and go to this new address
-              address:=gotoaddress;
-              fhasSelection:=false;
-              isEditing:=false;
-            end;
-
-            //gotoaddress
-
-          //  address:=;
-          end;
-        end;
-
-        //processhandler.pointersize
+        key:=0;
+        follow;
       end;
 
       VK_ESCAPE:
@@ -2243,6 +2224,52 @@ end;
 procedure THexView.AddToBackList(address: pointer);
 begin
   backlist.Push(address);
+end;
+
+function THexView.hasBackList: boolean;
+begin
+  result:=backlist.Count>0;
+end;
+
+procedure THexView.Back;
+begin
+  if (backlist.Count>0) then //not editing and something in the backlist
+    address:=qword(backlist.Pop);
+end;
+
+function THexView.CanFollow: boolean;
+var start,stop: ptruint;
+begin
+  result:=false;
+  if hasSelection then
+  begin
+    GetSelectionRange(start, stop);
+    result:=(stop-start)+DisplayTypeByteSize[fdisplaytype]=processhandler.pointersize;
+  end;
+end;
+
+procedure THexView.Follow;
+var
+  gotoaddress: ptruint;
+  x: ptruint;
+begin
+  if canfollow then
+  begin
+    //go to this selected address
+    gotoaddress:=0;
+
+    if ReadProcessMemory(processhandle, pointer(getSelectionStart), @gotoaddress, processhandler.pointersize,x) then
+    begin
+      //save the current address in the history
+      backlist.push(pointer(address));
+
+      //and go to this new address
+      address:=gotoaddress;
+      fhasSelection:=false;
+      isEditing:=false;
+    end;
+  end;
+
 end;
 
 procedure THexView.mbPaint(sender: TObject);

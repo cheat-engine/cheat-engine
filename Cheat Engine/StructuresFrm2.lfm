@@ -120,7 +120,7 @@ object frmStructures2: TfrmStructures2
       end
       object MenuItem3: TMenuItem
         Caption = 'Save values'
-        ShortCut = 16467
+        ShortCut = 49235
         OnClick = MenuItem3Click
       end
       object N7: TMenuItem
