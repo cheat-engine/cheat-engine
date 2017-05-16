@@ -644,9 +644,9 @@ begin
   result:=0;
 
   //find what part is selected
-  if y>textheight*2 then
+  if y>2+textheight*2 then
   begin
-    row:=(y-textheight*2) div (textheight+fspaceBetweenLines);
+    row:=(y-(2+textheight*2)) div (textheight+fspaceBetweenLines);
 
     if InRange(x,bytestart,bytestart+bytesperline*byteSizeWithoutChar-charsize) then
     begin
@@ -957,19 +957,23 @@ begin
 end;
 
 procedure THexView.CopySelectionToClipboard;
-var fromAddress, toAddress: ptrUint;
-s: string;
-b: Byte;
-unreadable: boolean;
+var
+  fromAddress, toAddress: ptrUint;
+  s: string;
+  b: Byte;
+  unreadable: boolean;
+  ss: TShiftState;
+
+  bytes, chars: string;
+  i: integer;
 begin
+
+  ss:=GetKeyShiftState;
   s:='';
 
   if isEditing or fhasSelection then
   begin
-    fromAddress:=MinX(selected,selected2);
-    toAddress:=MaxX(selected,selected2);
-
-
+    GetSelectionRange(fromaddress, toAddress);
 
     if selectiontype=hrChar then
     begin
@@ -1024,6 +1028,7 @@ begin
         if fromaddress<=toAddress then
           s:=s+' ';
       end;
+
     end;
 
     Clipboard.AsText:=s;
@@ -1979,12 +1984,12 @@ begin
     if UseRelativeBase then
     begin
       if currentaddress>=RelativeBase then
-        offscreenbitmap.Canvas.TextOut(0, 2*textheight+(i*(textheight+fspaceBetweenLines)),'+'+inttohex(currentaddress-RelativeBase,8))
+        offscreenbitmap.Canvas.TextOut(0, 2+2*textheight+(i*(textheight+fspaceBetweenLines)),'+'+inttohex(currentaddress-RelativeBase,8))
       else
-        offscreenbitmap.Canvas.TextOut(0, 2*textheight+(i*(textheight+fspaceBetweenLines)),'-'+inttohex(RelativeBase-currentaddress,8));
+        offscreenbitmap.Canvas.TextOut(0, 2+2*textheight+(i*(textheight+fspaceBetweenLines)),'-'+inttohex(RelativeBase-currentaddress,8));
     end
     else
-      offscreenbitmap.Canvas.TextOut(0, 2*textheight+(i*(textheight+fspaceBetweenLines)),inttohex(currentaddress,8));
+      offscreenbitmap.Canvas.TextOut(0, 2+2*textheight+(i*(textheight+fspaceBetweenLines)),inttohex(currentaddress,8));
 
     bytepos:=0;
     for j:=0 to bytesperline-1 do
@@ -2079,7 +2084,7 @@ begin
       end;
 
       if displaythis then
-        offscreenbitmap.canvas.TextOut(bytestart+bytepos*charsize, 2*textheight+(i*(textheight+fspaceBetweenLines)) , changelist.values[itemnr]);
+        offscreenbitmap.canvas.TextOut(bytestart+bytepos*charsize, 2+2*textheight+(i*(textheight+fspaceBetweenLines)) , changelist.values[itemnr]);
 
 
       //if isEditing and ((currentAddress=selected) or ((editingtype=hrByte) and ((CharEncoding=ceUtf16) and (currentaddress=selected+1)))) then
@@ -2100,7 +2105,7 @@ begin
       if currentAddress=nextCharAddress then //(fCharEncoding in [ceAscii, ceUtf8]) or (j mod 2=0) then
       begin
         char:=getChar(currentAddress, lastcharsize);
-        offscreenbitmap.canvas.TextOut(charstart+j*charsize, 2*textheight+(i*(textheight+fspaceBetweenLines)), char); //char
+        offscreenbitmap.canvas.TextOut(charstart+j*charsize, 2+2*textheight+(i*(textheight+fspaceBetweenLines)), char); //char
 
         inc(nextCharAddress, lastcharsize);
       end;
@@ -2115,9 +2120,9 @@ begin
         offscreenbitmap.canvas.Pen.Width:=2;
         offscreenbitmap.canvas.Pen.Color:=clRed;
         if editingtype=hrByte then //draw the carret for the byte
-          offscreenbitmap.Canvas.Line(1+bytestart+bytepos*charsize+editingCursorPos*charsize,2*textheight+(i*(textheight+fspaceBetweenLines))+1,1+bytestart+bytepos*charsize+editingCursorPos*charsize,2*textheight+(i*(textheight+fspaceBetweenLines))+textheight-2)
+          offscreenbitmap.Canvas.Line(1+bytestart+bytepos*charsize+editingCursorPos*charsize,2+2*textheight+(i*(textheight+fspaceBetweenLines))+1,1+bytestart+bytepos*charsize+editingCursorPos*charsize,2+2*textheight+(i*(textheight+fspaceBetweenLines))+textheight-2)
         else //draw the carret for the char
-          offscreenbitmap.Canvas.Line(1+charstart+j*charsize,2*textheight+(i*(textheight+fspaceBetweenLines))+1,1+charstart+j*charsize,2*textheight+(i*(textheight+fspaceBetweenLines))+textheight-2);
+          offscreenbitmap.Canvas.Line(1+charstart+j*charsize,2+2*textheight+(i*(textheight+fspaceBetweenLines))+1,1+charstart+j*charsize,2+2*textheight+(i*(textheight+fspaceBetweenLines))+textheight-2);
 
         offscreenbitmap.canvas.Pen.Width:=1;
 
@@ -2137,10 +2142,10 @@ begin
   for i:=0 to seperatorindex-1 do
   begin
     offscreenbitmap.Canvas.Pen.Color:=clYellow;
-    offscreenbitmap.Canvas.PenPos:=point(bytestart+(seperators[i]+1)*byteSizeWithoutChar-(charsize shr 1),textheight);
+    offscreenbitmap.Canvas.PenPos:=point(bytestart+(seperators[i]+1)*byteSizeWithoutChar-(charsize shr 1),(textheight+fspaceBetweenLines));
     offscreenbitmap.Canvas.LineTo(bytestart+(seperators[i]+1)*byteSizeWithoutChar-(charsize shr 1),mbcanvas.height);
 
-    offscreenbitmap.Canvas.PenPos:=point(charstart+(seperators[i]+1)*charsize,textheight);
+    offscreenbitmap.Canvas.PenPos:=point(charstart+(seperators[i]+1)*charsize,(textheight+fspaceBetweenLines));
     offscreenbitmap.Canvas.LineTo(charstart+(seperators[i]+1)*charsize,mbcanvas.height);
   end;
 
@@ -2235,7 +2240,7 @@ begin
   charstart:=bytestart+bytesperline*byteSizeWithoutChar;
 
 
-  totallines:=1+(mbCanvas.clientHeight-(textheight*2)) div (textheight+fspaceBetweenLines);  //-(textheight*2) for the header
+  totallines:=1+(mbCanvas.clientHeight-(2+textheight*2)) div (textheight+fspaceBetweenLines);  //-(textheight*2) for the header
   if totallines<=0 then
     totallines:=1;
 
