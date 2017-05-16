@@ -777,6 +777,12 @@ object MemoryBrowser: TMemoryBrowser
       Caption = 'Lock current rowsize'
       OnClick = miLockRowsizeClick
     end
+    object miShowRelative: TMenuItem
+      AutoCheck = True
+      Caption = 'Show relative addresses'
+      ShortCut = 16397
+      OnClick = miShowRelativeClick
+    end
     object MenuItem16: TMenuItem
       Caption = '-'
       Visible = False

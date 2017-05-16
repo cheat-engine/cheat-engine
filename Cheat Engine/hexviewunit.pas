@@ -97,6 +97,10 @@ type
     fHexFont: Tfont;
     fspaceBetweenLines: integer;
 
+    fuseRelativeBase: boolean;
+    fRelativeBase: ptruint;
+
+    usedRelativeBase: boolean;
 
 
     procedure setHexFont(f: TFont);
@@ -209,6 +213,8 @@ type
     property HexFont: TFont read fHexFont write setHexFont;
     property LockedRowSize: integer read fLockedRowSize write fLockedRowSize;
     property spaceBetweenLines: integer read fspaceBetweenLines write fspaceBetweenLines;
+    property UseRelativeBase: boolean read fUseRelativeBase write fUseRelativeBase;
+    property RelativeBase: ptruint read fRelativeBase write fRelativeBase;
   end;
 
 implementation
@@ -889,6 +895,20 @@ begin
         VK_8: DisplayType:=dtQwordDec;
         VK_9: DisplayType:=dtSingle;
         VK_0: DisplayType:=dtDouble;
+
+        VK_RETURN:
+        begin
+          if useRelativeBase and (relativeBase=TopAddress) then
+            useRelativeBase:=false
+          else
+          begin
+            useRelativeBase:=true;
+            relativeBase:=TopAddress;
+          end;
+          key:=0;
+
+          update;
+        end;
       end;
     end;
 
@@ -1262,6 +1282,8 @@ procedure THexView.lineDown(sender: TObject);
 begin
   address:=address+bytesPerLine*floor(power(abs(verticalscrollbar.Position-50),1.01));
 end;
+
+
 
 procedure THexview.updateScroller(speed: integer);
 begin
@@ -1840,7 +1862,11 @@ var
   v_word: smallint absolute v_qword;
   v_int: integer absolute v_qword;
   v_float: single absolute v_qword;
+
+  displayOffset: ptruint;
+
 begin
+  displayOffset:=0;
   if bytesperline<=0 then exit;
   if Parent=nil then exit;
 
@@ -1864,7 +1890,11 @@ begin
   currentaddress:=fAddress;
   nextCharAddress:=currentaddress;
 
-  offscreenbitmap.Canvas.TextOut(0,0,memoryInfo);
+  if not useRelativeBase then
+    offscreenbitmap.Canvas.TextOut(0,0,memoryInfo)
+  else
+    offscreenbitmap.Canvas.TextOut(0,0,' '+inttohex(RelativeBase,8)+' : '+memoryInfo);
+
   offscreenbitmap.Canvas.TextOut(0, textheight, rsAddress);
 
   bheader:='';
@@ -1876,14 +1906,45 @@ begin
 
   //create header
   initialoffset:=currentaddress and $f;
+
+
+  if not UseRelativeBase then
+  begin
+    if usedRelativeBase then
+    begin
+      if fAddress<ptrUint($100000000) then
+        addresswidth:=addresswidthdefault
+      else
+        addresswidth:=offscreenbitmap.Canvas.TextWidth(inttohex(fAddress,8));
+
+      usedRelativeBase:=false; //only need to do this once (saves a small amount of cpu, actually neglible, but still...)
+    end;
+  end
+  else
+  begin
+    if not usedRelativeBase then
+    begin
+      addresswidth:=offscreenbitmap.Canvas.TextWidth('+'+inttohex(fAddress,8));
+      usedRelativeBase:=true;
+    end;
+
+    //displayOffset:=faddress-(fAddress+RelativeBase);
+    displayOffset:=RelativeBase;
+  end;
+
+  bytestart:=addresswidth+8;
+
+  charstart:=bytestart+bytesperline*byteSizeWithoutChar;
+
+
   for i:=0 to bytesperline-1 do
   begin
     case displayType of
-      dtByte: bheader:=bHeader+inttohex(((currentaddress+i) and $ff),2)+' ';
-      dtByteDec: bheader:=bHeader+inttohex(((currentaddress+i) and $ff),2)+'  ';
-      dtWord, dtWordDec: if (i mod 2)=0 then bheader:=bHeader+inttohex(((currentaddress+i) and $ff),2)+' ' else bheader:=bHeader+'   ';
-      dtDWord, dtDwordDec, dtSingle: if (i mod 4)=0 then bheader:=bHeader+inttohex(((currentaddress+i) and $ff),2)+' ' else bheader:=bHeader+'   ';
-      dtQword, dtQwordDec, dtDouble: if (i mod 8)=0 then bheader:=bHeader+inttohex(((currentaddress+i) and $ff),2)+' ' else bheader:=bHeader+'   ';
+      dtByte: bheader:=bHeader+inttohex(((currentaddress+i-displayOffset) and $ff),2)+' ';
+      dtByteDec: bheader:=bHeader+inttohex(((currentaddress+i-displayOffset) and $ff),2)+'  ';
+      dtWord, dtWordDec: if (i mod 2)=0 then bheader:=bHeader+inttohex(((currentaddress+i-displayOffset) and $ff),2)+' ' else bheader:=bHeader+'   ';
+      dtDWord, dtDwordDec, dtSingle: if (i mod 4)=0 then bheader:=bHeader+inttohex(((currentaddress+i-displayOffset) and $ff),2)+' ' else bheader:=bHeader+'   ';
+      dtQword, dtQwordDec, dtDouble: if (i mod 8)=0 then bheader:=bHeader+inttohex(((currentaddress+i-displayOffset) and $ff),2)+' ' else bheader:=bHeader+'   ';
     end;
 
     cheader:=cheader+inttohex((initialoffset+i) and $f,1);
@@ -1914,7 +1975,16 @@ begin
 
   for i:=0 to totallines-1 do
   begin
-    offscreenbitmap.Canvas.TextOut(0, 2*textheight+(i*(textheight+fspaceBetweenLines)),inttohex(currentaddress,8));
+
+    if UseRelativeBase then
+    begin
+      if currentaddress>=RelativeBase then
+        offscreenbitmap.Canvas.TextOut(0, 2*textheight+(i*(textheight+fspaceBetweenLines)),'+'+inttohex(currentaddress-RelativeBase,8))
+      else
+        offscreenbitmap.Canvas.TextOut(0, 2*textheight+(i*(textheight+fspaceBetweenLines)),'-'+inttohex(RelativeBase-currentaddress,8));
+    end
+    else
+      offscreenbitmap.Canvas.TextOut(0, 2*textheight+(i*(textheight+fspaceBetweenLines)),inttohex(currentaddress,8));
 
     bytepos:=0;
     for j:=0 to bytesperline-1 do
@@ -2086,10 +2156,13 @@ begin
     s:='';
 
 
-  if selected<>selected2 then
-    statusbar.SimpleText:=format('%.8x - %.8x (%d '+rsBytes+') %s',[SelectionStart, SelectionStop, SelectionStop-SelectionStart+1, s])
-  else
-    statusbar.SimpleText:=format('%.8x %s',[SelectionStart, s])
+  if selectionstart=0 then statusbar.SimpleText:='' else
+  begin
+    if selected<>selected2 then
+      statusbar.SimpleText:=format('%.8x - %.8x (%d '+rsBytes+') %s',[SelectionStart, SelectionStop, SelectionStop-SelectionStart+1, s])
+    else
+      statusbar.SimpleText:=format('%.8x %s',[SelectionStart, s])
+  end;
 
 end;
 
@@ -2127,14 +2200,22 @@ procedure THexView.hexviewResize(sender: TObject);
 var oldsizex,oldsizey: integer;
     seperatorcount: integer;
 begin
-  {$ifdef cpu64}
-  if fAddress<ptrUint($100000000) then
-    addresswidth:=addresswidthdefault
+  if UseRelativeBase then
+  begin
+    addresswidth:=offscreenbitmap.Canvas.TextWidth('+'+inttohex(fAddress,8));
+  end
   else
-    addresswidth:=offscreenbitmap.Canvas.TextWidth(inttohex(fAddress,8));
-  {$else}
-  addresswidth:=addresswidthdefault;
-  {$endif}
+  begin
+    {$ifdef cpu64}
+
+    if fAddress<ptrUint($100000000) then
+      addresswidth:=addresswidthdefault
+    else
+      addresswidth:=offscreenbitmap.Canvas.TextWidth(inttohex(fAddress,8));
+    {$else}
+    addresswidth:=addresswidthdefault;
+    {$endif}
+  end;
 
   oldsizex:=bytesperline;
   oldsizey:=totallines;

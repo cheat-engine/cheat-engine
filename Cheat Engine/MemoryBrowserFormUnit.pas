@@ -61,6 +61,7 @@ type
     MenuItem25: TMenuItem;
     MenuItem26: TMenuItem;
     MenuItem27: TMenuItem;
+    miShowRelative: TMenuItem;
     miHVBack: TMenuItem;
     miHVFollow: TMenuItem;
     miAddRef: TMenuItem;
@@ -290,6 +291,7 @@ type
     procedure miSetAddressClick(Sender: TObject);
     procedure miGNUAssemblerClick(Sender: TObject);
     procedure miBinutilsSelectClick(Sender: TObject);
+    procedure miShowRelativeClick(Sender: TObject);
     procedure pmStacktracePopup(Sender: TObject);
     procedure SetBookmarkClick(Sender: TObject);
     procedure miTextEncodingClick(Sender: TObject);
@@ -1058,6 +1060,7 @@ begin
   end;
 
   miHVBack.visible:=hexview.hasBackList;
+  miShowRelative.checked:=hexview.UseRelativeBase;
 end;
 
 
@@ -1199,6 +1202,27 @@ begin
       miDisassemblerType.Enabled:=false;
     end;
   end;
+end;
+
+procedure TMemoryBrowser.miShowRelativeClick(Sender: TObject);
+begin
+  if miShowRelative.checked then
+  begin
+    if hexview.HasSelection then
+    begin
+      hexview.RelativeBase:=hexview.SelectionStart;
+      hexview.UseRelativeBase:=true;
+    end
+    else
+    begin
+      hexview.RelativeBase:=hexview.TopAddress;
+      hexview.UseRelativeBase:=true;
+    end;
+  end
+  else
+    hexview.UseRelativeBase:=false;
+
+  hexview.update;
 end;
 
 procedure TMemoryBrowser.pmStacktracePopup(Sender: TObject);
