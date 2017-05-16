@@ -61,6 +61,8 @@ type
     MenuItem25: TMenuItem;
     MenuItem26: TMenuItem;
     MenuItem27: TMenuItem;
+    MenuItem28: TMenuItem;
+    miSVCopy: TMenuItem;
     miShowRelative: TMenuItem;
     miHVBack: TMenuItem;
     miHVFollow: TMenuItem;
@@ -272,6 +274,7 @@ type
     stacktrace2: TMenuItem;
     Executetillreturn1: TMenuItem;
     zflabel: TLabel;
+    procedure FormActivate(Sender: TObject);
     procedure GotoBookmarkClick(Sender: TObject);
     procedure memorypopupPopup(Sender: TObject);
     procedure MenuItem10Click(Sender: TObject);
@@ -292,6 +295,7 @@ type
     procedure miGNUAssemblerClick(Sender: TObject);
     procedure miBinutilsSelectClick(Sender: TObject);
     procedure miShowRelativeClick(Sender: TObject);
+    procedure miSVCopyClick(Sender: TObject);
     procedure pmStacktracePopup(Sender: TObject);
     procedure SetBookmarkClick(Sender: TObject);
     procedure miTextEncodingClick(Sender: TObject);
@@ -1225,6 +1229,37 @@ begin
   hexview.update;
 end;
 
+procedure TMemoryBrowser.miSVCopyClick(Sender: TObject);
+var
+  i,j: integer;
+  s: tstringlist;
+  str: string;
+begin
+  s:=tstringlist.create;
+  try
+
+    for i:=0 to lvStacktraceData.Items.Count-1 do
+    begin
+      if lvStacktraceData.Items[i].Selected then
+      begin
+        str:=PadRight(lvStacktraceData.items[i].caption,20);
+
+        for j:=0 to lvStacktraceData.items[i].SubItems.Count-1 do
+          str:=str+' - '+PadRight(lvStacktraceData.items[i].SubItems[j],20);
+
+        s.add(str);
+      end;
+
+    end;
+
+    clipboard.AsText:=s.Text;
+
+  finally
+    s.free;
+  end;
+
+end;
+
 procedure TMemoryBrowser.pmStacktracePopup(Sender: TObject);
 var
   i: integer;
@@ -1329,6 +1364,11 @@ begin
     newaddress:=bookmarks[id].lastAddress;
 
   disassemblerview.SelectedAddress:=newaddress;
+end;
+
+procedure TMemoryBrowser.FormActivate(Sender: TObject);
+begin
+  disassemblerview.LastFormActiveEvent:=getTickCount64;
 end;
 
 procedure TMemoryBrowser.miTextEncodingClick(Sender: TObject);

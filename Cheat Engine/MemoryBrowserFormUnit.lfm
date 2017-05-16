@@ -8,6 +8,7 @@ object MemoryBrowser: TMemoryBrowser
   ClientHeight = 558
   ClientWidth = 716
   Menu = MainMenu1
+  OnActivate = FormActivate
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -564,6 +565,7 @@ object MemoryBrowser: TMemoryBrowser
           end>
         DragKind = dkDock
         HideSelection = False
+        MultiSelect = True
         OwnerData = True
         ParentShowHint = False
         PopupMenu = pmStacktrace
@@ -1551,6 +1553,14 @@ object MemoryBrowser: TMemoryBrowser
       Caption = 'Non system modules only'
       GroupIndex = 1
       OnClick = Nonsystemmodulesonly1Click
+    end
+    object MenuItem28: TMenuItem
+      Caption = '-'
+    end
+    object miSVCopy: TMenuItem
+      Caption = 'Copy'
+      ShortCut = 16451
+      OnClick = miSVCopyClick
     end
     object N17: TMenuItem
       Caption = '-'

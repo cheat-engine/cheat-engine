@@ -22,6 +22,7 @@ type
     MenuItem3: TMenuItem;
     MenuItem4: TMenuItem;
     MenuItem5: TMenuItem;
+    MenuItem6: TMenuItem;
     miAddRef: TMenuItem;
     miSetColor: TMenuItem;
     miFindNext: TMenuItem;
@@ -99,10 +100,11 @@ begin
     begin
       if lvstack.items[i].Selected then
       begin
-        if part=0 then
-          s.add(lvstack.items[i].caption)
-        else
-          s.add(lvstack.items[i].SubItems[part-1]);
+        case part of
+          0: s.add(lvstack.items[i].caption);
+          1,2: s.add(lvstack.items[i].SubItems[part-1]);
+          3: s.add(PadRight(lvstack.items[i].caption,20)+' - '+PadRight(lvstack.items[i].SubItems[0],20) + ' - '+lvstack.items[i].SubItems[1]);
+        end;
       end;
     end;
 
@@ -197,6 +199,8 @@ begin
   end;
 
 end;
+
+
 
 procedure TfrmStackView.miAddRefClick(Sender: TObject);
 begin

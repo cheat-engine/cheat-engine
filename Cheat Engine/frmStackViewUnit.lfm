@@ -77,16 +77,25 @@ object frmStackView: TfrmStackView
     end
     object miCopyAddress: TMenuItem
       Caption = 'Copy Address'
+      ShortCut = 24643
       OnClick = miCopyAddressClick
     end
     object miCopyValue: TMenuItem
       Tag = 1
       Caption = 'Copy Value'
+      ShortCut = 16451
       OnClick = miCopyAddressClick
     end
     object miCopySecondary: TMenuItem
       Tag = 2
       Caption = 'Copy Secondary'
+      ShortCut = 57411
+      OnClick = miCopyAddressClick
+    end
+    object MenuItem6: TMenuItem
+      Tag = 3
+      Caption = 'Copy Line'
+      ShortCut = 49219
       OnClick = miCopyAddressClick
     end
     object MenuItem4: TMenuItem

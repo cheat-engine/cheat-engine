@@ -129,6 +129,8 @@ type TDisassemblerview=class(TPanel)
     jlConditionalJumpColor: TColor;
     jlUnConditionalJumpColor: TColor;
 
+    LastFormActiveEvent: qword;
+
 
     procedure reinitialize; //deletes the assemblerlines
 
@@ -491,9 +493,18 @@ begin
 end;
 
 procedure TDisassemblerview.DisCanvasMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+var timepassed: qword;
 begin
-  if ssLeft in shift then
-    DisCanvas.OnMouseDown(self,mbleft,shift,x,y);
+  timepassed:=gettickcount64-LastFormActiveEvent;
+  if timepassed>=50 then
+  begin
+    if ssLeft in shift then
+      DisCanvas.OnMouseDown(self,mbleft,shift,x,y);
+  end
+  else
+  begin
+    //outputdebugstring('skipped due to '+inttostr(timepassed)+' milliseconds');
+  end;
 end;
 
 procedure TDisassemblerview.DisCanvasMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
