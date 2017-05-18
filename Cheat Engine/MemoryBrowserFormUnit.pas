@@ -4332,25 +4332,31 @@ var
   currentleft: integer;
   s: string;
   ksh: TShiftState;
+
+  pointed: TListItem;
+  mp: tpoint;
 begin
-  if lvStacktraceData.Selected=nil then exit;
+  mp:=mouse.CursorPos;
+  mp:=lvStacktraceData.ScreenToControl(mp);
+
+  pointed:=lvStacktraceData.GetItemAt(mp.x,mp.y);
+
+  if pointed=nil then
+    pointed:=lvStacktraceData.Selected;
+
+  if pointed=nil then exit;
 
   if stacktrace2.checked then
   begin
     //go to the selected address
-    x:=symhandler.getAddressFromName(lvStacktraceData.Selected.Caption,false,haserror);
+    x:=symhandler.getAddressFromName(pointed.Caption,false,haserror);
     if not haserror then
       disassemblerview.SelectedAddress:=x;
   end
   else
   begin
     //depending on what column is selected go to the disassembler/hexview part
-    cursorpos:=mouse.CursorPos;
-    GetWindowRect(lvStacktraceData.Handle, tvrect);
-
-    //get the relative position
-    cursorpos.X:=cursorpos.X-tvrect.Left;
-    cursorpos.Y:=cursorpos.Y-tvrect.Top;
+    cursorpos:=mp;
 
     column:=0;
 
@@ -4368,14 +4374,14 @@ begin
 
     if column=0 then
     begin
-      s:=lvStacktraceData.Selected.Caption;
+      s:=pointed.Caption;
       i:=pos('(', s);
       if i>0 then
         s:=copy(s,1,i-1);
 
     end
     else
-      s:=lvStacktraceData.Selected.SubItems[column-1];
+      s:=pointed.SubItems[column-1];
 
     x:=symhandler.getAddressFromName(s,false,haserror);
     if not haserror then
