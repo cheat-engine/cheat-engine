@@ -4926,7 +4926,7 @@ begin
         end;
       end;
 
-      par_rm8: if (isrm8(paramtype1)) then
+      par_rm8: if (isrm8(paramtype1) or ismemorylocationdefault(parameter1) ) then
       begin
         //r/m8,
         if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then

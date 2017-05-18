@@ -4437,7 +4437,7 @@ begin
                 $90 : begin
                         description:='set byte if overflow';
                         lastdisassembledata.opcode:='seto';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last);
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last,8);
 
                         inc(offset,last-1);
                       end;
@@ -4445,7 +4445,7 @@ begin
                 $91 : begin
                         description:='set byte if not overfloww';
                         lastdisassembledata.opcode:='setno';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last);
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last,8);
 
                         inc(offset,last-1);
                       end;
@@ -4453,7 +4453,7 @@ begin
                 $92 : begin
                         description:='set byte if below/carry';
                         lastdisassembledata.opcode:='setb';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last);
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last,8);
 
                         inc(offset,last-1);
                       end;
@@ -4461,7 +4461,7 @@ begin
                 $93 : begin
                         description:='set byte if above or equal';
                         lastdisassembledata.opcode:='setae';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last);
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last,8);
 
                         inc(offset,last-1);
                       end;
@@ -4469,7 +4469,7 @@ begin
                 $94 : begin
                         description:='set byte if equal';
                         lastdisassembledata.opcode:='sete';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last);
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last,8);
 
                         inc(offset,last-1);
                       end;
@@ -4477,7 +4477,7 @@ begin
                 $95 : begin
                         description:='set byte if not equal';
                         lastdisassembledata.opcode:='setne';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last);
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last,8);
 
                         inc(offset,last-1);
                       end;
@@ -4485,7 +4485,7 @@ begin
                 $96 : begin
                         description:='set byte if below or equal';
                         lastdisassembledata.opcode:='setbe';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last);
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last,8);
 
                         inc(offset,last-1);
                       end;
@@ -4493,7 +4493,7 @@ begin
                 $97 : begin
                         description:='set byte if above';
                         lastdisassembledata.opcode:='seta';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last);
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last,8);
 
                         inc(offset,last-1);
                       end;
@@ -4501,7 +4501,7 @@ begin
                 $98 : begin
                         description:='set byte if sign';
                         lastdisassembledata.opcode:='sets';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last);
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last,8);
 
                         inc(offset,last-1);
                       end;
@@ -4509,7 +4509,7 @@ begin
                 $99 : begin
                         description:='set byte if not sign';
                         lastdisassembledata.opcode:='setns';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last);
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last,8);
 
                         inc(offset,last-1);
                       end;
@@ -4517,7 +4517,7 @@ begin
                 $9a : begin
                         description:='set byte if parity';
                         lastdisassembledata.opcode:='setp';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last);
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last,8);
 
                         inc(offset,last-1);
                       end;
@@ -4525,7 +4525,7 @@ begin
                 $9b : begin
                         description:='set byte if not parity';
                         lastdisassembledata.opcode:='setnp';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last);
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last,8);
 
                         inc(offset,last-1);
                       end;
@@ -4533,7 +4533,7 @@ begin
                 $9c : begin
                         description:='set byte if less';
                         lastdisassembledata.opcode:='setl';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last);
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last,8);
 
                         inc(offset,last-1);
                       end;
@@ -4541,7 +4541,7 @@ begin
                 $9d : begin
                         description:='set byte if greater or equal';
                         lastdisassembledata.opcode:='setge';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last);
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last,8);
                         inc(offset,last-1);
 
                       end;
@@ -4549,7 +4549,7 @@ begin
                 $9e : begin
                         description:='set byte if less or equal';
                         lastdisassembledata.opcode:='setle';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last);
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last,8);
                         inc(offset,last-1);
 
                       end;
@@ -4557,7 +4557,7 @@ begin
                 $9f : begin
                         description:='set byte if greater';
                         lastdisassembledata.opcode:='setg';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last);
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last,8);
                         inc(offset,last-1);
 
 
