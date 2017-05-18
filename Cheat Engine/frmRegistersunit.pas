@@ -7,7 +7,7 @@ interface
 uses
   win32proc, jwawindows, windows, LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, Buttons, ExtCtrls, StdCtrls, frmFloatingPointPanelUnit, NewKernelHandler,
-  cefuncproc, LResources,Clipbrd, frmStackViewunit;
+  cefuncproc, LResources,Clipbrd, Menus, frmStackViewunit;
 
 type
 
@@ -23,15 +23,19 @@ type
     EIPlabel: TLabel;
     ESIlabel: TLabel;
     ESPlabel: TLabel;
+    MenuItem1: TMenuItem;
+    MenuItem2: TMenuItem;
     Panel1: TPanel;
     Label14: TLabel;
     Panel3: TPanel;
     Panel4: TPanel;
+    PopupMenu1: TPopupMenu;
     sbShowFloats: TSpeedButton;
     sbShowStack: TSpeedButton;
     Shape1: TShape;
     Panel2: TPanel;
     procedure FormShow(Sender: TObject);
+    procedure MenuItem1Click(Sender: TObject);
     procedure RegisterMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure sbShowFloatsClick(Sender: TObject);
@@ -306,6 +310,44 @@ begin
   end;
 
 
+end;
+
+procedure TRegisters.MenuItem1Click(Sender: TObject);
+var
+  i: integer;
+  s: tstringlist;
+  pref: string;
+begin
+  s:=TStringList.create;
+
+  if processhandler.is64bit then
+    pref:='R' else pref:='E';
+
+  s.add(pref+'AX='+inttohex(context.{$ifdef cpu64}Rax{$else}Eax{$endif},8));
+  s.add(pref+'BX='+inttohex(context.{$ifdef cpu64}Rbx{$else}Ebx{$endif},8));
+  s.add(pref+'CX='+inttohex(context.{$ifdef cpu64}Rcx{$else}Ecx{$endif},8));
+  s.add(pref+'DX='+inttohex(context.{$ifdef cpu64}Rdx{$else}Edx{$endif},8));
+  s.add(pref+'SI='+inttohex(context.{$ifdef cpu64}Rsi{$else}Esi{$endif},8));
+  s.add(pref+'DI='+inttohex(context.{$ifdef cpu64}Rdi{$else}Edi{$endif},8));
+  s.add(pref+'BP='+inttohex(context.{$ifdef cpu64}Rbp{$else}Ebp{$endif},8));
+  s.add(pref+'SP='+inttohex(context.{$ifdef cpu64}Rsp{$else}Esp{$endif},8));
+  {$ifdef cpu64}
+  if processhandler.is64Bit then
+  begin
+    s.add('R8 ='+inttohex(context.R8,8));
+    s.add('R9 ='+inttohex(context.R9,8));
+    s.add('R10='+inttohex(context.R10,8));
+    s.add('R11='+inttohex(context.R11,8));
+    s.add('R12='+inttohex(context.R12,8));
+    s.add('R13='+inttohex(context.R13,8));
+    s.add('R14='+inttohex(context.R14,8));
+    s.add('R15='+inttohex(context.R15,8));
+  end;
+  {$endif}
+  s.add(pref+'IP'+inttohex(context.{$ifdef cpu64}rip{$else}Eip{$endif},8));
+
+  clipboard.astext:=s.text;
+  s.free;
 end;
 
 procedure TRegisters.FormClose(Sender: TObject; var Action: TCloseAction);

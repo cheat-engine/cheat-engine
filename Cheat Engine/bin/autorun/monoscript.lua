@@ -178,6 +178,7 @@ function LaunchMonoDataCollector()
   end
 
   monopipe.OnTimeout=function(self)
+    monopipe.destroy()
     monopipe=nil
     mono_AttachedProcess=0
     monoBase=0     

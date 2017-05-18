@@ -12,7 +12,7 @@ object Registers: TRegisters
   OnShow = FormShow
   PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Panel1: TPanel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
@@ -27,6 +27,7 @@ object Registers: TRegisters
     BevelOuter = bvNone
     ClientHeight = 250
     ClientWidth = 189
+    PopupMenu = PopupMenu1
     TabOrder = 0
     object Label14: TLabel
       AnchorSideLeft.Control = Panel1
@@ -245,6 +246,17 @@ object Registers: TRegisters
         ShowHint = True
         ParentShowHint = False
       end
+    end
+  end
+  object PopupMenu1: TPopupMenu
+    left = 117
+    object MenuItem1: TMenuItem
+      Caption = 'Copy registers to clipboard'
+      OnClick = MenuItem1Click
+    end
+    object MenuItem2: TMenuItem
+      Caption = 'Copy full context block to clipboard'
+      Visible = False
     end
   end
 end
