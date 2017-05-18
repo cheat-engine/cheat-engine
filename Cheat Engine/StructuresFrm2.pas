@@ -4612,7 +4612,12 @@ begin
   s:='Offset-Description';
   s:=padright(s,25);
   for j:=0 to columncount-1 do
-    s:=s+PadRight(columns[j].Name,30);
+  begin
+    if miShowAddresses.checked then
+      s:=s+PadRight(columns[j].Name,30)
+    else
+      s:=s+PadRight(columns[j].Name,20);
+  end;
 
   f.add(s);
 
