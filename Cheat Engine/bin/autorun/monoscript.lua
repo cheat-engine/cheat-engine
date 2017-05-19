@@ -925,6 +925,7 @@ end
 
 function mono_method_getHeader(method)
   if debug_canBreak() then return nil end
+  if method==nil then return nil end
 
   monopipe.lock()
   monopipe.writeByte(MONOCMD_GETMETHODHEADER)
@@ -939,6 +940,8 @@ end
 function mono_method_getSignature(method)
 --Gets the method 'signature', the corresponding parameter names, and the returntype
   if debug_canBreak() then return nil end
+  
+  if method==nil then return nil end
 
   local result=''
   local parameternames={}
@@ -1204,6 +1207,11 @@ end
 function monoform_killform(sender)
   return caFree
 end
+
+function monoform_miShowMethodParametersClick(sender)  
+  monoSettings.Value["ShowMethodParameters"]=sender.checked  
+end
+
 
 function monoform_miShowILDisassemblyClick(sender)
   if (monoForm.TV.Selected~=nil) then
@@ -1554,6 +1562,40 @@ function monoform_EnumFields(node, static)
   end
 end
 
+function getParameterFromMethod(method)
+  if method==nil then return ' ERR:method==nil' end
+  
+  local types,paramnames,returntype=mono_method_getSignature(method)
+  
+  if types==nil then return ' ERR:types==nil' end
+
+  local typenames={}
+  local tn
+  for tn in string.gmatch(types, '([^,]+)') do
+    table.insert(typenames, tn)
+  end
+
+  if #typenames==#paramnames then
+    local r='('
+    local i
+    local c=#paramnames
+
+    for i=1,c do
+      r=r..paramnames[i]..': '..typenames[i]
+      if i<c then
+        r=r..'; '
+      end
+    end
+
+    r=r..'):'..returntype
+    return r
+
+  else
+    return '? - ('..types..'):'..returntype
+  end
+end
+
+
 function monoform_EnumMethods(node)
   --print("monoform_EnumMethods")
   local i
@@ -1562,7 +1604,13 @@ function monoform_EnumMethods(node)
 
   local methods=mono_class_enumMethods(class)
   for i=1, #methods do
-    local n=node.add(string.format("%x : %s", methods[i].method, methods[i].name))
+    local parameters=''
+    if monoForm.miShowMethodParameters.Checked then
+      parameters=getParameterFromMethod(methods[i].method)
+      if parameters==nil then parameters='' end
+    end
+    
+    local n=node.add(string.format("%x : %s %s", methods[i].method, methods[i].name, parameters))
     n.Data=methods[i].method
   end
 end
@@ -1698,6 +1746,9 @@ function mono_dissect()
 
   if (monoForm==nil) then
     monoForm=createFormFromFile(getCheatEngineDir()..[[\autorun\forms\MonoDataCollector.frm]])
+    if monoSettings.Value["ShowMethodParameters"]~=nil then
+      monoForm.miShowMethodParameters.Checked=monoSettings.Value["ShowMethodParameters"]=='1'
+    end
   end
 
   monoForm.show()
