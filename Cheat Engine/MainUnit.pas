@@ -241,6 +241,7 @@ type
     FromAddress: TEdit;
     andlabel: TLabel;
     lblSigned: TLabel;
+    MainMenu2: TMainMenu;
     MenuItem12: TMenuItem;
     miSignTable: TMenuItem;
     miSaveFile: TMenuItem;
@@ -2389,6 +2390,9 @@ begin
 
     if rbBit.Visible then
       cbHexadecimal.Visible := False;
+
+    pnlScanValueOptions.visible:=(cbHexadecimal.Visible or rbDec.visible or rbBit.Visible);
+
 
     //save the last scantype (if it wasn't the option to change between first/last)
     if (scantype.ItemIndex <> -1) and (scantype.ItemIndex < scantype.Items.Count) then
@@ -5730,7 +5734,9 @@ begin
   finally
     scantype.OnSelect := old2;
     scantype.OnChange := old;
+
   end;
+
 end;
 
 procedure TMainForm.Value1Click(Sender: TObject);
@@ -6217,6 +6223,8 @@ begin
   cbHexadecimal.Visible := hexvis;
   rbdec.Visible := decbitvis;
   rbbit.Visible := decbitvis;
+
+  pnlScanValueOptions.visible:=(cbHexadecimal.Visible or rbDec.visible or rbBit.Visible);
 
 
 

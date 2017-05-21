@@ -62,14 +62,15 @@ function wincontrol_getControlAtPos(L: PLua_State): integer; cdecl;
 var
   wincontrol: TWinControl;
   x,y: integer;
+  paramstart, paramcount: integer;
 begin
-  wincontrol:=luaclass_getClassObject(L);
+  wincontrol:=luaclass_getClassObject(L, @paramstart, @paramcount);
   result:=0;
 
-  if lua_gettop(L)>=3 then
+  if paramcount>=2 then
   begin
-    x:=lua_tointeger(L,-2);
-    y:=lua_tointeger(L,-1);
+    x:=lua_tointeger(L,paramstart);
+    y:=lua_tointeger(L,paramstart+1);
 
     luaclass_newClass(L, wincontrol.ControlAtPos(point(x,y),[capfOnlyClientAreas, capfAllowWinControls, capfRecursive]));
     result:=1;
