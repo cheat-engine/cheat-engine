@@ -1,9 +1,9 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 626
+  Left = 636
   Height = 699
   Hint = ' '
-  Top = 303
+  Top = 220
   Width = 701
   HelpContext = 3
   HorzScrollBar.Visible = False
@@ -139,9 +139,9 @@ object MainForm: TMainForm
       ShowHint = True
     end
     object lblcompareToSavedScan: TLabel
-      AnchorSideLeft.Control = ProgressBar1
+      AnchorSideLeft.Control = ProgressBar
       AnchorSideLeft.Side = asrCenter
-      AnchorSideTop.Control = ProgressBar1
+      AnchorSideTop.Control = ProgressBar
       AnchorSideTop.Side = asrBottom
       Left = 293
       Height = 15
@@ -271,7 +271,7 @@ object MainForm: TMainForm
     end
     object Label6: TLabel
       AnchorSideLeft.Control = Panel5
-      AnchorSideTop.Control = ProgressBar1
+      AnchorSideTop.Control = ProgressBar
       AnchorSideTop.Side = asrBottom
       Left = 0
       Height = 15
@@ -739,7 +739,7 @@ object MainForm: TMainForm
       Style = csDropDownList
       TabOrder = 7
     end
-    object ProgressBar1: TProgressBar
+    object ProgressBar: TProgressBar
       AnchorSideLeft.Control = SaveButton
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = ProcessLabel
@@ -2653,5 +2653,9 @@ object MainForm: TMainForm
       Caption = 'Preset: Scan writable memory'
       OnClick = miPresetWritableClick
     end
+  end
+  object MainMenu2: TMainMenu
+    left = 312
+    top = 260
   end
 end

@@ -38,6 +38,8 @@
 #define MONOCMD_GETFULLTYPENAME 32
 #define MONOCMD_OBJECT_NEW 33
 #define MONOCMD_OBJECT_INIT 34
+#define MONOCMD_GETVTABLEFROMCLASS 35
+
 
 
 typedef void (__cdecl *MonoDomainFunc) (void *domain, void *user_data);
@@ -66,6 +68,7 @@ typedef int (__cdecl *MONO_METADATA_DECODE_ROW_COL)(void *tableinfo, int idx, un
 typedef char* (__cdecl *MONO_METADATA_STRING_HEAP)(void *image, UINT32 index);
 
 typedef void* (__cdecl *MONO_CLASS_FROM_NAME_CASE)(void *image, char *name_space, char *name);
+typedef void* (__cdecl *MONO_CLASS_FROM_NAME)(void *image, char *name_space, char *name);
 typedef char* (__cdecl *MONO_CLASS_GET_NAME)(void *klass);
 typedef char* (__cdecl *MONO_CLASS_GET_NAMESPACE)(void *klass);
 typedef void* (__cdecl *MONO_CLASS_GET)(void *image, UINT32 tokenindex);
@@ -192,6 +195,7 @@ private:
 	MONO_METADATA_STRING_HEAP mono_metadata_string_heap;
 	MONO_CLASS_GET mono_class_get;
 	MONO_CLASS_FROM_NAME_CASE mono_class_from_name_case;
+	MONO_CLASS_FROM_NAME mono_class_from_name;
 
 	MONO_CLASS_NUM_FIELDS mono_class_num_fields;
 	MONO_CLASS_GET_FIELDS mono_class_get_fields;
@@ -287,6 +291,7 @@ private:
 	void DisassembleMethod();
 	void GetMethodSignature();
 	void GetParentClass();
+	void GetVTableFromClass();
 	void GetStaticFieldAddressFromClass();
 	void GetTypeClass();
 	void GetArrayElementClass();

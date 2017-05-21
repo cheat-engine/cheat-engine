@@ -161,6 +161,7 @@ void CPipeServer::InitMono()
 
 			mono_class_get = (MONO_CLASS_GET)GetProcAddress(hMono, "mono_class_get");
 			mono_class_from_name_case = (MONO_CLASS_FROM_NAME_CASE)GetProcAddress(hMono, "mono_class_from_name_case");
+			mono_class_from_name = (MONO_CLASS_FROM_NAME_CASE)GetProcAddress(hMono, "mono_class_from_name");
 			mono_class_get_name = (MONO_CLASS_GET_NAME)GetProcAddress(hMono, "mono_class_get_name");
 			mono_class_get_namespace = (MONO_CLASS_GET_NAMESPACE)GetProcAddress(hMono, "mono_class_get_namespace");
 			mono_class_get_methods = (MONO_CLASS_GET_METHODS)GetProcAddress(hMono, "mono_class_get_methods");
@@ -700,6 +701,19 @@ void CPipeServer::GetParentClass(void)
 	WriteQword(parent);
 }
 
+void CPipeServer::GetVTableFromClass(void)
+{
+	void *domain = (void *)ReadQword();
+	if (domain == NULL)
+		domain = (void *)mono_get_root_domain();
+
+	void *klass = (void *)ReadQword();
+	void *vtable = (domain && klass) ? mono_class_vtable(domain, klass) : NULL;
+	
+	WriteQword((UINT_PTR)vtable);
+
+}
+
 void CPipeServer::GetStaticFieldAddressFromClass(void)
 {
 	void *domain = (void *)ReadQword();
@@ -1147,6 +1161,10 @@ void CPipeServer::Start(void)
 
 				case MONOCMD_GETPARENTCLASS:
 					GetParentClass();
+					break;
+
+				case MONOCMD_GETVTABLEFROMCLASS:
+					GetVTableFromClass();
 					break;
 
 				case MONOCMD_GETSTATICFIELDADDRESSFROMCLASS:

@@ -34,6 +34,7 @@ MONOCMD_GETFULLTYPENAME=32
 
 MONOCMD_OBJECT_NEW=33
 MONOCMD_OBJECT_INIT=34
+MONOCMD_GETVTABLEFROMCLASS=35
 
 
 
@@ -223,6 +224,8 @@ end
 
 function mono_structureDissectOverrideCallback(structure, baseaddress)
 --  print("oc")
+  if monopipe==nil then return nil end
+  
   local realaddress, classaddress=mono_object_findRealStartOfObject(baseaddress)
   if (realaddress==baseaddress) then
     local smap = {}
@@ -237,6 +240,8 @@ end
 function mono_structureNameLookupCallback(address)
   local currentaddress, classaddress, classname
 
+  if monopipe==nil then return nil end
+  
   local always=monoSettings.Value["AlwaysUseForDissect"]
   local r
   if (always==nil) or (always=="") then
@@ -497,13 +502,13 @@ function mono_image_enumClasses(image)
   return classes;
 end
 
-function mono_class_getName(clasS)
+function mono_class_getName(class)
   if debug_canBreak() then return nil end
 
   local result=''
   monopipe.lock()
   monopipe.writeByte(MONOCMD_GETCLASSNAME)
-  monopipe.writeQword(clasS)
+  monopipe.writeQword(class)
 
   local namelength=monopipe.readWord();
   result=monopipe.readString(namelength);
@@ -590,6 +595,80 @@ function mono_class_getArrayElementClass(klass)
   monopipe.unlock()
   return result;
 end
+
+function mono_class_getVTable(domain, klass)
+  if debug_canBreak() then return nil end
+  local result=0
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_GETVTABLEFROMCLASS)
+  monopipe.writeQword(domain)
+  monopipe.writeQword(klass)
+  
+  result=monopipe.readQword()
+  
+  monopipe.unlock()
+  return result  
+end
+
+function mono_class_findInstancesOfClass(domain, klass)
+  --find all instances of this class
+  local vtable=mono_class_getVTable(domain, klass)
+  if (vtable) and (vtable~=0) then
+    --do a memory scan for this vtable, align on ending with 8/0 (fastscan 8) (64-bit can probably do fastscan 10)    
+    local ms=createMemScan(MainForm.Progressbar)  
+    ms.OnScanDone=function(m)
+      local fl=createFoundList(m)
+      MainForm.Progressbar.Position=0
+
+      fl.initialize()
+
+      local r=createForm(false)
+      r.caption='Instances of '..mono_class_getName(klass)
+
+      local lb=createListBox(r)
+      local w=createLabel(r)
+      w.Caption='Warning: These are just guesses. Validate them yourself'
+      w.Align=alTop
+      lb.align=alClient
+      lb.OnDblClick=function(sender)
+        if sender.itemIndex>=0 then
+          getMemoryViewForm().HexadecimalView.Address='0x'..sender.Items[sender.itemIndex]
+          getMemoryViewForm().show()
+        end
+      end
+
+      r.OnClose=function(f)
+        return caFree
+      end
+
+      r.OnDestroy=function(f)
+        lb.OnDblClick=nil
+      end
+
+      local i
+      for i=0, fl.Count-1 do
+        lb.Items.Add(fl[i])
+      end
+
+      r.position=poScreenCenter
+      r.borderStyle=bsSizeable
+      r.show()
+
+      fl.destroy()
+      m.destroy()
+    end
+    
+    local scantype=vtDword
+    if targetIs64Bit() then
+      scantype=vtQword
+    end
+    
+    ms.firstScan(soExactValue,scantype,rtRounded,string.format('%x',vtable),'', 0,0x7ffffffffffffffff, '', fsmAligned, "8",true, true,false,false)
+  end
+  
+end
+
+
 
 
 function mono_class_getStaticFieldAddress(domain, class)
@@ -1291,6 +1370,28 @@ function monoform_miAddStructureRecursiveClick(sender)
   end
 end
 
+function monoform_miFindInstancesOfClass(sender)
+  local node=monoForm.TV.Selected
+  if (node~=nil) then    
+    if (node.Data~=nil) and (node.Level==2) then     
+      mono_class_findInstancesOfClass(nil, node.data) 
+    end
+  end
+end
+
+--[[
+function monoform_miCreateObject(sender)
+  if (monoForm.TV.Selected~=nil) then
+    local node=monoForm.TV.Selected
+    if (node~=nil) and (node.Data~=nil) and (node.Level==2) then
+      --create this class object and call the .ctor if it has one
+      --todo: implement this 
+      
+    end
+  end
+end
+--]]
+
 
 -- Add the script for locating static data pointer for a class and adding records
 function monoform_AddStaticClass(domain, image, class)
@@ -1472,6 +1573,8 @@ function monoform_context_onpopup(sender)
       or ((node.Level>=4) and (node.Parent.Text=='static fields')))
   monoForm.miFieldsMenu.Enabled = fieldsEnabled
   monoForm.miAddStaticFieldAddress.Enabled = fieldsEnabled
+  
+  monoForm.miFindInstancesOfClass.Enabled=structuresEnabled
 end
 
 function monoform_EnumImages(node)
@@ -1804,28 +1907,39 @@ function mono_OpenProcessMT(t)
     if (miMonoTopMenuItem==nil) then
       local mfm=getMainForm().Menu
       
-	  if (mfm) then
-	    local mi
+	    if (mfm) then
+        local mi
         miMonoTopMenuItem=createMenuItem(mfm)
-		miMonoTopMenuItem.Caption="Mono"
-		mfm.Items.insert(mfm.Items.Count-1, miMonoTopMenuItem) --add it before help
+        miMonoTopMenuItem.Caption="Mono"
+        mfm.Items.insert(mfm.Items.Count-1, miMonoTopMenuItem) --add it before help
 
-		mi=createMenuItem(miMonoTopMenuItem)
-		mi.Caption="Activate mono features"
-		mi.OnClick=miMonoActivateClick
-		miMonoTopMenuItem.Add(mi)
+        mi=createMenuItem(miMonoTopMenuItem)
+        mi.Caption="Activate mono features"
+        mi.OnClick=miMonoActivateClick        
+        mi.Name='miMonoActivate'
+        miMonoTopMenuItem.Add(mi)
 
-		mi=createMenuItem(miMonoTopMenuItem)
-		mi.Caption="Dissect mono"
-		mi.Shortcut="Ctrl+Alt+M"
-		mi.OnClick=miMonoDissectClick
-		miMonoTopMenuItem.Add(mi)
-	  end
+        mi=createMenuItem(miMonoTopMenuItem)
+        mi.Caption="Dissect mono"
+        mi.Shortcut="Ctrl+Alt+M"
+        mi.OnClick=miMonoDissectClick
+        mi.Name='miMonoDissect'
+        miMonoTopMenuItem.Add(mi)
+        
+        
+        miMonoTopMenuItem.OnClick=function(s)
+          miMonoTopMenuItem.miMonoActivate.Checked=monopipe~=nil          
+        end
+        
+        
+      end
     end
-
   else
     --destroy the menu item if needed
     if miMonoTopMenuItem~=nil then
+      miMonoTopMenuItem.miMonoDissect.destroy() --clean up the onclick handler
+      miMonoTopMenuItem.miMonoActivate.destroy()  --clean up the onclick handler
+      
       miMonoTopMenuItem.destroy() --also destroys the subitems as they are owned by this menuitem
       miMonoTopMenuItem=nil
     end

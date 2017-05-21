@@ -112,6 +112,8 @@ begin
   luaclass_addPropertyToTable(L, metatable, userdata, 'Count', foundlist_getCount, nil);
   luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Address', foundlist_getAddress, nil);
   luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Value', foundlist_getValue, nil);
+
+  luaclass_setDefaultArrayProperty(L, metatable, userdata, foundlist_getAddress,nil);
 end;
 
 procedure InitializeFoundlist;

@@ -397,7 +397,7 @@ type
     btnNextScan: TButton;
     ScanType: TComboBox;
     VarType: TComboBox;
-    ProgressBar1: TProgressBar;
+    ProgressBar: TProgressBar;
     UndoScan: TButton;
     scanvalue: TEdit;
     foundlistpopup: TPopupMenu;
@@ -920,6 +920,7 @@ type
 
     property SelectedVariableType: TVariableType read getSelectedVariableType;
     property isProtected: boolean read fIsProtected write setIsProtected;
+    property Progressbar1: TProgressBar read Progressbar write ProgressBar;
   end;
 
 var
@@ -4266,7 +4267,7 @@ begin
   end
   else
   begin
-    scanstate.memscan := tmemscan.Create(progressbar1);
+    scanstate.memscan := tmemscan.Create(ProgressBar);
     scanstate.memscan.GuiScanner:=true;
     scanstate.memscan.OnGuiUpdate:=MemscanGuiUpdate;
     scanstate.foundlist := TFoundList.Create(foundlist3, scanstate.memscan);    //build again
@@ -4486,8 +4487,8 @@ begin
     scantablist.Name:='ScantabList';
 
     scantabtopcontrol:=panel7;
-    if scantabtopcontrol.top+scantabtopcontrol.Height<ProgressBar1.Top+ProgressBar1.Height then
-      scantabtopcontrol:=ProgressBar1;
+    if scantabtopcontrol.top+scantabtopcontrol.Height<ProgressBar.Top+ProgressBar.Height then
+      scantabtopcontrol:=ProgressBar;
 
     scantablist.AnchorSideTop.Control:=scantabtopcontrol;
     scantablist.AnchorSideTop.Side:=asrBottom;
@@ -5267,7 +5268,7 @@ begin
   btnAddAddressManually.Left := clientwidth - btnAddAddressManually.Width;
   commentbutton.left := clientwidth - commentbutton.Width;
   logopanel.left := clientwidth - logopanel.Width;
-  progressbar1.Width := progressbar1.Width - differentwidth;
+  ProgressBar.Width := ProgressBar.Width - differentwidth;
   undoscan.left := undoscan.left - differentwidth;
 
   //create object for the auto attach list
@@ -7241,7 +7242,7 @@ begin
   autosize:=false;
 
 
-  memscan := tmemscan.Create(progressbar1);
+  memscan := tmemscan.Create(ProgressBar);
   memscan.GuiScanner:=true;
   memscan.OnGuiUpdate:=MemscanGuiUpdate;
   foundlist := tfoundlist.Create(foundlist3, memscan);
@@ -7290,10 +7291,10 @@ begin
   AdjustSpeedButtonSize(SpeedButton3);
 
 
-  if panel7.Height>progressbar1.Top+progressbar1.Height then
+  if panel7.Height>ProgressBar.Top+ProgressBar.Height then
     label6.AnchorSideTop.Control:=panel7
   else
-    label6.AnchorSideTop.Control:=progressbar1;
+    label6.AnchorSideTop.Control:=ProgressBar;
 
 
   panel5resize(panel5);
@@ -7417,7 +7418,7 @@ begin
 
   lblcompareToSavedScan.left:=btnNewScan.left-(lblcompareToSavedScan.Width div 2)+((btnNextScan.left+btnNextScan.Width-btnNewScan.left) div 2);
 
-  progressbar1.height:=scaley(progressbar1.height, 96);
+  ProgressBar.height:=scaley(ProgressBar.height, 96);
 
   i:=((logopanel.Top+logopanel.height)-scanvalue.top)+2;
   if i>0 then
@@ -7652,7 +7653,7 @@ begin
     if memscan <> nil then
       memscan.Free;
 
-    memscan := tmemscan.Create(progressbar1);
+    memscan := tmemscan.Create(ProgressBar);
     memscan.GuiScanner:=true;
     memscan.OnGuiUpdate:=memscanGuiUpdate;
     memscan.setScanDoneCallback(mainform.handle, wm_scandone);
@@ -8796,9 +8797,9 @@ begin
     if ScanTabList <> nil then
       ScanTabList.Enabled := False;
 
-    progressbar1.min := 0;
-    progressbar1.max := 1000;
-    progressbar1.position := 0;
+    ProgressBar.min := 0;
+    ProgressBar.max := 1000;
+    ProgressBar.position := 0;
 
     if scanvalue2 <> nil then
       svalue2 := scanvalue2.Text
@@ -8885,7 +8886,7 @@ begin
   button2.Tag := 2;
   button2.Caption := rsScan;
   button4.tag := 0;
-  progressbar1.Position := 0;
+  ProgressBar.Position := 0;
 
 
   SetProgressState(tbpsNone);
@@ -8955,7 +8956,7 @@ begin
   beep;
   //let the blind user know the scan has finished (See, I'm thinking about the visually impeared users...)
 
-  progressbar1.Position := 0;
+  ProgressBar.Position := 0;
   UpdateFoundlisttimer.Enabled := True;
 
   Scantype.ItemIndex := lastscantype;
@@ -9038,9 +9039,9 @@ begin
     advancedoptions.Pausebutton.Click;
   end;
 
-  progressbar1.min := 0;
-  progressbar1.max := 1000;
-  progressbar1.position := 0;
+  ProgressBar.min := 0;
+  ProgressBar.max := 1000;
+  ProgressBar.position := 0;
 
 
   if scanvalue2 <> nil then

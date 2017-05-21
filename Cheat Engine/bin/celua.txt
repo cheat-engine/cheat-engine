@@ -311,7 +311,7 @@ userDataToInteger(UserDataVar):  Converts a given userdata variable to an intege
 
 synchronize(function(...), ...): Calls the given function from the main thread. Returns the return value of the given function
 queue(function(...),...): calls the given function from the main thread. Does not wait for the result
-checkSynchronize(): Calls this from an infinite loop in the main thread when using threading and synchronize calls. This will execute any queued synchronize calls
+checkSynchronize(): Call this from an infinite loop in the main thread when using threading and synchronize calls. This will execute any queued synchronize calls
 
 writeToClipboard(text):  Writes the given text to the clipboard
 readFromClipboard():  Reads the text from the clipboard
@@ -739,6 +739,8 @@ methods
   setLayeredAttributes(Key, Alpha, Flags) : Sets the layered state for the control if possible (Only Forms are supported in in windows 7 and earlier)
       flags can be a combination of LWA_ALPHA and/or LWA_COLORKEY
       See msdn SetLayeredWindowAttributes for more information
+
+
 
 
 MenuItem class(Inheritance: Component->Object)
@@ -1783,6 +1785,11 @@ properties
   HotkeyCount: integer - Number of hotkeys attached to this memory record
   Hotkey[] : Array to index the hotkeys
 
+  Async: Boolean - Set to true if activating this entry will be asynchronious. (only for AA/Lua scripts)
+  AsyncProcessing: Boolean - True when async is true and it's being processed
+  AsyncProcessingTime: qword - The time that it has been processing in milliseconds
+
+
   OnActivate: function(memoryrecord,before,currentstate):boolean - The function to call when the memoryrecord will change (or changed) Active to true. If before is true, not returning true will cause the activation to stop.
   OnDeactivate: function(memoryrecord,before,currentstate):boolean - The function to call when the memoryrecord will change (or changed) Active to false. If before is true, not returning true will cause the deactivation to stop.
   OnDestroy: function() - Called when the memoryrecord is destroyed.
@@ -1871,7 +1878,7 @@ methods
   getSelectedRecord() : Gets the main selected memoryrecord
   setSelectedRecord(memrec) : Sets the currently selected memoryrecord. This will unselect all other entries
 
-  disableAllWithoutExecute(): Disables all memory records without executinbg their [Disable] section
+  disableAllWithoutExecute(): Disables all memory records without executing their [Disable] section
 
 
 
@@ -1980,15 +1987,16 @@ methods
   getProgress(): returns a table with fields: TotalAddressesToScan, CurrentlyScanned, ResultsFound
 
 
-FoundList
+FoundList Class
 The foundlist is an object that opens the current memscan's result file and provides an interface for reading out the addresses
 
 createFoundList(memscan)
 
 properties
-  Count: integer;
-  Address[index]
-  Value[index]
+  Count: integer - Number of results found
+  Address[index] : string - Returns the address as a string at the given index
+  Value[index]: string - Returns the value as a string at the given index
+  [index]: string - Same as Address
 
 methods
   initialize() : Call this when a memscan has finished scanning. This will open the results for reading

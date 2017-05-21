@@ -54,13 +54,22 @@ function addresslist_getMemoryRecord(L: PLua_State): integer; cdecl;
 var
   addresslist: TAddresslist;
   index: integer;
+  s: string;
 begin
   result:=0;
   addresslist:=luaclass_getClassObject(L);
   if lua_gettop(L)>=1 then
   begin
-    index:=lua_tointeger(L,-1);
-    luaclass_newClass(L, addresslist.MemRecItems[index]);
+    if lua_isnumber(L,-1) then
+    begin
+      index:=lua_tointeger(L,-1);
+      luaclass_newClass(L, addresslist.MemRecItems[index]);
+    end
+    else
+    begin
+      s:=Lua_ToString(L,-1);
+      luaclass_newClass(L, addresslist.getRecordWithDescription(s));
+    end;
     result:=1;
   end;
 end;
