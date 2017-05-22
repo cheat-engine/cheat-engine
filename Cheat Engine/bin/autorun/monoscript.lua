@@ -610,6 +610,38 @@ function mono_class_getVTable(domain, klass)
   return result  
 end
 
+
+--todo for the instance scanner: Get the fields and check that pointers are either nil or point to a valid address
+function mono_class_findInstancesOfClassListOnly(domain, klass)
+  local vtable=mono_class_getVTable(domain, klass)
+  if (vtable) and (vtable~=0) then
+    local ms=createMemScan()  
+    local scantype=vtDword
+    if targetIs64Bit() then
+      scantype=vtQword
+    end
+    
+    ms.firstScan(soExactValue,scantype,rtRounded,string.format('%x',vtable),'', 0,0x7ffffffffffffffff, '', fsmAligned, "8",true, true,false,false)
+
+    ms.waitTillDone()  
+    
+    local fl=createFoundList(ms)
+    fl.initialize()
+    
+    local result={}
+    local i
+    for i=0,fl.Count-1 do
+      result[i+1]=tonumber('0x'..fl[i])
+    end
+    
+    fl.destroy()    
+    ms.destroy()    
+    
+    return result
+  end
+end
+
+
 function mono_class_findInstancesOfClass(domain, klass)
   --find all instances of this class
   local vtable=mono_class_getVTable(domain, klass)
