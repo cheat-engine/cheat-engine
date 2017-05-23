@@ -40,6 +40,7 @@ object frmStructures2: TfrmStructures2
     RowSelect = True
     ShowRoot = False
     TabOrder = 0
+    ToolTips = False
     OnAdvancedCustomDrawItem = tvStructureViewAdvancedCustomDrawItem
     OnCollapsed = tvStructureViewCollapsed
     OnCollapsing = tvStructureViewCollapsing
@@ -47,7 +48,7 @@ object frmStructures2: TfrmStructures2
     OnExpanded = tvStructureViewExpanded
     OnExpanding = tvStructureViewExpanding
     OnMouseDown = tvStructureViewMouseDown
-    Options = [tvoAllowMultiselect, tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoToolTips]
+    Options = [tvoAllowMultiselect, tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowButtons, tvoShowLines]
   end
   object HeaderControl1: THeaderControl
     AnchorSideTop.Control = pnlGroups
