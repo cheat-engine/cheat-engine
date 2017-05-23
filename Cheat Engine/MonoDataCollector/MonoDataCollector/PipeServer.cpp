@@ -669,7 +669,7 @@ void CPipeServer::GetMethodParameters()
 				WriteByte(0);
 		}
 
-		//param types
+		if (paramcount)		
 		{
 			gpointer iter = NULL;
 			MonoType *paramtype=mono_signature_get_params((MonoMethodSignature*)methodsignature, &iter);

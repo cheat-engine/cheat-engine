@@ -933,7 +933,9 @@ function mono_findClass(namespace, classname)
 
 --searches all images for a specific class
   local ass=mono_enumAssemblies()
-  local result=0
+  local result
+  
+  if ass==nil then return nil end
 
   for i=1, #ass do
 
@@ -955,13 +957,14 @@ function mono_findClass(namespace, classname)
   end  
 
 
-  return 0
+  return nil
 end
 
 function mono_class_findMethod(class, methodname)
   if debug_canBreak() then return nil end
 
-  if methodname==nil then return 0 end
+  if methodname==nil then return nil end
+  if monopipe==nil then return nil end
 
   monopipe.lock()
   monopipe.writeByte(MONOCMD_FINDMETHOD)
@@ -983,7 +986,7 @@ function mono_findMethod(namespace, classname, methodname)
 
   local class=mono_findClass(namespace, classname)
   local result=0
-  if class~=0 then
+  if class and (class~=0) then
     result=mono_class_findMethod(class, methodname)
   end
 
@@ -1063,6 +1066,7 @@ end
 function mono_method_get_parameters(method)
 --like mono_method_getSignature but returns it in a more raw format (no need to string parse)
   if debug_canBreak() then return nil end
+  if monopipe==nil then return nil end
   
   if method==nil then return nil end
   local result={}
@@ -1080,6 +1084,9 @@ function mono_method_get_parameters(method)
   --names
   for i=1, paramcount do  
     local namelength=monopipe.readByte()
+    
+    if namelength==nil then return nil end
+    
     result.parameters[i]={}
     
     if namelength>0 then
@@ -1106,6 +1113,7 @@ function mono_method_getSignature(method)
   if debug_canBreak() then return nil end
   
   if method==nil then return nil end
+  if monopipe==nil then return nil end
 
   local result=''
   local parameternames={}
@@ -1311,9 +1319,11 @@ function mono_invoke_method_dialog(domain, method)
   --parameter fields will be of the proper type
 
   --the instance field may be a dropdown dialog which gets populated by mono_class_findInstancesOfClass* or a <new instance> button where the user can choose which constructor etc...
+  if method==nil then return nil,'Method==nil' end
+  
   local types, paramnames, returntype=mono_method_getSignature(method)
 
-  if types==nil then return ' ERR:types==nil' end
+  if types==nil then return nil,'types==nil' end
 
   local mifinfo={}
 
@@ -1464,6 +1474,7 @@ function mono_invoke_method_dialog(domain, method)
 
   mifinfo.btnOk.OnClick=function(b)
     local instance=getAddressSafe(mifinfo.cbInstance.Text)
+    
     if instance==nil then
       instance=tonumber(mifinfo.cbInstance.Text)
     end
@@ -1478,6 +1489,7 @@ function mono_invoke_method_dialog(domain, method)
     --use monoTypeToVartypeLookup to convert it to the type mono_method_invole likes it
     local args={}
     for i=1, #params.parameters do
+      args[i]={}
       args[i].type=monoTypeToVartypeLookup[params.parameters[i].type]
       if args[i].type==vtString then
         args[i].value=mifinfo.parameters[i].edtVarText.Text
@@ -1490,8 +1502,16 @@ function mono_invoke_method_dialog(domain, method)
         return
       end
     end
-
-    mono_invoke_method(domain, method, instance, args)
+    
+    _G.args=args
+    _G.instance=instance
+    _G.method=method
+    _G.bla=123
+    
+    local r=mono_invoke_method(domain, method, instance, args)
+    if r then
+      print(r)
+    end
 
   end
 
@@ -1613,6 +1633,15 @@ function monoform_miShowILDisassemblyClick(sender)
 
 end
 
+function monoform_miInvokeMethodClick(sender)
+  local node=monoForm.TV.Selected
+
+  if (node~=nil) and (node.Level==4) and (node.Parent.Text=='methods') then
+    mono_invoke_method_dialog(nil, node.data)
+  end
+
+  
+end
 
 function monoform_miRejitClick(sender)
   if (monoForm.TV.Selected~=nil) then
@@ -1680,6 +1709,9 @@ function monoform_miFindInstancesOfClass(sender)
     end
   end
 end
+
+
+
 
 --[[
 function monoform_miCreateObject(sender)
@@ -1865,6 +1897,7 @@ function monoform_context_onpopup(sender)
 
   local methodsEnabled = (node~=nil) and (node.Level==4) and (node.Parent.Text=='methods')
   monoForm.miRejit.Enabled = methodsEnabled
+  monoForm.miInvokeMethod.Enabled = methodsEnabled
   monoForm.miGetILCode.Enabled = methodsEnabled
   monoForm.miShowILDisassembly.Enabled = methodsEnabled
   local structuresEnabled = (node~=nil) and (node.Data~=nil) and (node.Level==2)
@@ -2783,7 +2816,7 @@ function monoAA_GETMONOSTRUCT(parameters, syntaxcheckonly)
   namespace=namespace:match "^%s*(.-)%s*$"
 
   local class=mono_findClass(namespace, classname)
-  if (class==0) then
+  if (class==nil) or (class==0) then
     return nil,"The class "..namespace..":"..classname.." could not be found"
   end
 
