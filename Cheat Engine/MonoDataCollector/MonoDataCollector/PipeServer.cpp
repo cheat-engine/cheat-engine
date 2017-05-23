@@ -195,6 +195,7 @@ void CPipeServer::InitMono()
 
 
 			mono_signature_get_desc = (MONO_SIGNATURE_GET_DESC)GetProcAddress(hMono, "mono_signature_get_desc");
+			mono_signature_get_params = (MONO_SIGNATURE_GET_PARAMS)GetProcAddress(hMono, "mono_signature_get_params");
 			mono_signature_get_param_count = (MONO_SIGNATURE_GET_PARAM_COUNT)GetProcAddress(hMono, "mono_signature_get_param_count");
 			mono_signature_get_return_type = (MONO_SIGNATURE_GET_RETURN_TYPE)GetProcAddress(hMono, "mono_signature_get_return_type");
 
@@ -643,6 +644,58 @@ void CPipeServer::DisassembleMethod()
 	WriteWord(strlen(disassembly));
 	Write(disassembly, strlen(disassembly));
 	g_free(disassembly);
+}
+
+void CPipeServer::GetMethodParameters()
+{
+	void *method = (void *)ReadQword();
+	void *methodsignature = mono_method_signature(method);
+	int i;
+
+	if (methodsignature)
+	{
+		int paramcount=mono_signature_get_param_count(methodsignature);
+		char **names = (char **)calloc(sizeof(char *), paramcount);
+		mono_method_get_param_names(method, (const char **)names);
+		WriteByte(paramcount);
+		for (i = 0; i < paramcount; i++)
+		{
+			if (names[i])
+			{
+				WriteByte(strlen(names[i]));
+				Write(names[i], strlen(names[i]));
+			}
+			else
+				WriteByte(0);
+		}
+
+		//param types
+		{
+			gpointer iter = NULL;
+			MonoType *paramtype=mono_signature_get_params((MonoMethodSignature*)methodsignature, &iter);
+
+			if (paramtype)
+				WriteDword(mono_type_get_type(paramtype));
+			else
+				WriteDword(0);
+		}
+
+		{
+			MonoType *returntype = mono_signature_get_return_type(methodsignature);
+			if (returntype)
+				WriteDword(mono_type_get_type(returntype));
+			else
+				WriteDword(0);
+		}
+
+		
+
+
+
+		
+	}
+	else
+		WriteByte(0);
 }
 
 void CPipeServer::GetMethodSignature()
@@ -1153,6 +1206,10 @@ void CPipeServer::Start(void)
 
 				case MONOCMD_DISASSEMBLE:
 					DisassembleMethod();
+					break;
+
+				case MONOCMD_GETMETHODPARAMETERS:
+					GetMethodParameters();
 					break;
 
 				case MONOCMD_GETMETHODSIGNATURE:

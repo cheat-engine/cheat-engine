@@ -328,7 +328,7 @@ published
  // property OnDragOver;
  // property OnDrawItem;
 //  property OnEndDrag;
-//  property OnDropDown;
+  property OnDropDown;
   property OnEditingDone;
   property OnEnter;
   property OnExit;

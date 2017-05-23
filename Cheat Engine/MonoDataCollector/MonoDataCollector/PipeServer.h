@@ -39,8 +39,11 @@
 #define MONOCMD_OBJECT_NEW 33
 #define MONOCMD_OBJECT_INIT 34
 #define MONOCMD_GETVTABLEFROMCLASS 35
+#define MONOCMD_GETMETHODPARAMETERS 36
 
-
+typedef struct MonoType;
+typedef struct MonoMethodSignature;
+typedef void * gpointer;
 
 typedef void (__cdecl *MonoDomainFunc) (void *domain, void *user_data);
 typedef void (__cdecl *GFunc)          (void *data, void *user_data);
@@ -120,8 +123,9 @@ typedef void* (__cdecl *MONO_METHOD_HEADER_GET_CODE)(void *methodheader, UINT32 
 typedef char* (__cdecl *MONO_DISASM_CODE)(void *dishelper, void *method, void *ip, void *end);
 
 typedef char* (__cdecl *MONO_SIGNATURE_GET_DESC)(void *signature, int include_namespace);
+typedef MonoType* (__cdecl *MONO_SIGNATURE_GET_PARAMS)(MonoMethodSignature *sig, gpointer *iter);
 typedef int (__cdecl *MONO_SIGNATURE_GET_PARAM_COUNT)(void *signature);
-typedef void* (__cdecl *MONO_SIGNATURE_GET_RETURN_TYPE)(void *signature);
+typedef MonoType* (__cdecl *MONO_SIGNATURE_GET_RETURN_TYPE)(void *signature);
 
 
 typedef void* (__cdecl *MONO_IMAGE_RVA_MAP)(void *image, UINT32 addr);
@@ -224,6 +228,7 @@ private:
 	MONO_METHOD_GET_PARAM_NAMES mono_method_get_param_names;
 
 	MONO_SIGNATURE_GET_DESC mono_signature_get_desc;
+	MONO_SIGNATURE_GET_PARAMS mono_signature_get_params;
 	MONO_SIGNATURE_GET_PARAM_COUNT mono_signature_get_param_count;
 	MONO_SIGNATURE_GET_RETURN_TYPE mono_signature_get_return_type;
 
@@ -290,6 +295,7 @@ private:
 	void FreeMethod();
 	void DisassembleMethod();
 	void GetMethodSignature();
+	void GetMethodParameters();
 	void GetParentClass();
 	void GetVTableFromClass();
 	void GetStaticFieldAddressFromClass();

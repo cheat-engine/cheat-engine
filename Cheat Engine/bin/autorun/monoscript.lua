@@ -35,6 +35,7 @@ MONOCMD_GETFULLTYPENAME=32
 MONOCMD_OBJECT_NEW=33
 MONOCMD_OBJECT_INIT=34
 MONOCMD_GETVTABLEFROMCLASS=35
+MONOCMD_GETMETHODPARAMETERS=36
 
 
 
@@ -420,19 +421,20 @@ end
 function mono_enumAssemblies()
   local result=nil
   if debug_canBreak() then return nil end
-
-  monopipe.lock()
-  monopipe.writeByte(MONOCMD_ENUMASSEMBLIES)
-  local count=monopipe.readDword()
-  if count~=nil then
-    result={}
-    local i
-    for i=1, count do
-      result[i]=monopipe.readQword()
+  if monopipe then
+    monopipe.lock()
+    monopipe.writeByte(MONOCMD_ENUMASSEMBLIES)
+    local count=monopipe.readDword()
+    if count~=nil then
+      result={}
+      local i
+      for i=1, count do
+        result[i]=monopipe.readQword()
+      end
     end
-  end
 
-  monopipe.unlock()
+    monopipe.unlock()
+  end
   return result
 end
 
@@ -642,52 +644,62 @@ function mono_class_findInstancesOfClassListOnly(domain, klass)
 end
 
 
-function mono_class_findInstancesOfClass(domain, klass)
+function mono_class_findInstancesOfClass(domain, klass, OnScanDone, ProgressBar)
   --find all instances of this class
   local vtable=mono_class_getVTable(domain, klass)
   if (vtable) and (vtable~=0) then
     --do a memory scan for this vtable, align on ending with 8/0 (fastscan 8) (64-bit can probably do fastscan 10)    
-    local ms=createMemScan(MainForm.Progressbar)  
-    ms.OnScanDone=function(m)
-      local fl=createFoundList(m)
-      MainForm.Progressbar.Position=0
+    
+    local ms
+    
+    
+    
+    if OnScanDone~=nil then
+      ms=createMemScan(ProgressBar)      
+      ms.OnScanDone=OnScanDone
+    else
+      ms=createMemScan(MainForm.Progressbar)  
+      ms.OnScanDone=function(m)
+        local fl=createFoundList(m)
+        MainForm.Progressbar.Position=0
 
-      fl.initialize()
+        fl.initialize()
 
-      local r=createForm(false)
-      r.caption='Instances of '..mono_class_getName(klass)
+        local r=createForm(false)
+        r.caption='Instances of '..mono_class_getName(klass)
 
-      local lb=createListBox(r)
-      local w=createLabel(r)
-      w.Caption='Warning: These are just guesses. Validate them yourself'
-      w.Align=alTop
-      lb.align=alClient
-      lb.OnDblClick=function(sender)
-        if sender.itemIndex>=0 then
-          getMemoryViewForm().HexadecimalView.Address='0x'..sender.Items[sender.itemIndex]
-          getMemoryViewForm().show()
+        local lb=createListBox(r)
+        local w=createLabel(r)
+        w.Caption='Warning: These are just guesses. Validate them yourself'
+        w.Align=alTop
+        lb.align=alClient
+        lb.OnDblClick=function(sender)
+          if sender.itemIndex>=0 then
+            getMemoryViewForm().HexadecimalView.Address='0x'..sender.Items[sender.itemIndex]
+            getMemoryViewForm().show()
+          end
         end
+
+        r.OnClose=function(f)
+          return caFree
+        end
+
+        r.OnDestroy=function(f)
+          lb.OnDblClick=nil
+        end
+
+        local i
+        for i=0, fl.Count-1 do
+          lb.Items.Add(fl[i])
+        end
+
+        r.position=poScreenCenter
+        r.borderStyle=bsSizeable
+        r.show()
+
+        fl.destroy()
+        m.destroy()
       end
-
-      r.OnClose=function(f)
-        return caFree
-      end
-
-      r.OnDestroy=function(f)
-        lb.OnDblClick=nil
-      end
-
-      local i
-      for i=0, fl.Count-1 do
-        lb.Items.Add(fl[i])
-      end
-
-      r.position=poScreenCenter
-      r.borderStyle=bsSizeable
-      r.show()
-
-      fl.destroy()
-      m.destroy()
     end
     
     local scantype=vtDword
@@ -1048,6 +1060,47 @@ function mono_method_getHeader(method)
   return result;
 end
 
+function mono_method_get_parameters(method)
+--like mono_method_getSignature but returns it in a more raw format (no need to string parse)
+  if debug_canBreak() then return nil end
+  
+  if method==nil then return nil end
+  local result={}
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_GETMETHODPARAMETERS)
+  monopipe.writeQword(method)  
+  
+  local paramcount=monopipe.readByte()
+  if paramcount==nil then return nil end
+  
+  local i
+  
+  result.parameters={}
+  
+  --names
+  for i=1, paramcount do  
+    local namelength=monopipe.readByte()
+    result.parameters[i]={}
+    
+    if namelength>0 then
+      result.parameters[i].name=monopipe.readString(namelength)
+    else
+      result.parameters[i].name='param '..i
+    end
+  end
+  
+  --types
+  for i=1, paramcount do  
+    result.parameters[i].type=monopipe.readDword(); 
+  end
+  
+  --result  
+  result.returntype=monopipe.readDword()  
+  
+  monopipe.unlock()
+  return result  
+end
+
 function mono_method_getSignature(method)
 --Gets the method 'signature', the corresponding parameter names, and the returntype
   if debug_canBreak() then return nil end
@@ -1250,6 +1303,223 @@ function mono_writeVarType(vartype)
   else
     monopipe.writeByte(MONO_TYPE_VOID)
   end
+end
+
+
+function mono_invoke_method_dialog(domain, method)
+  --spawn a dialog where the user can fill in fields like: instance and parameter values
+  --parameter fields will be of the proper type
+
+  --the instance field may be a dropdown dialog which gets populated by mono_class_findInstancesOfClass* or a <new instance> button where the user can choose which constructor etc...
+  local types, paramnames, returntype=mono_method_getSignature(method)
+
+  if types==nil then return ' ERR:types==nil' end
+
+  local mifinfo={}
+
+  local typenames={}
+  local tn
+  for tn in string.gmatch(types, '([^,]+)') do
+    table.insert(typenames, tn)
+  end
+
+  if #typenames~=#paramnames then return nil end
+
+  mifinfo.mif=createForm(false)
+  mifinfo.mif.position='poScreenCenter'
+  mifinfo.mif.borderStyle='bsSizeable'
+
+  local c=mono_method_getClass(method)
+  local classname=''
+  if c and (c~=0) then
+    classname=mono_class_getName(c)..'.'
+  end
+
+
+
+  mifinfo.mif.Caption='Invoke '..classname..mono_method_getName(method)
+  mifinfo.lblInstanceAddress=createLabel(mifinfo.mif)
+  mifinfo.lblInstanceAddress.Caption='Instance address'
+
+  mifinfo.cbInstance=createComboBox(mifinfo.mif)
+  
+  --start a scan to fill the combobox with results
+  mifinfo.cbInstance.Items.add('<Please wait...>')
+  mono_class_findInstancesOfClass(nil,c,function(m)      
+      --print("Scan done")
+
+      if mifinfo.cbInstance then  --not destroyed yet
+        mifinfo.cbInstance.Items.clear()
+      
+        local fl=createFoundList(m) 
+        fl.initialize()
+        local i
+        for i=0, fl.Count-1 do
+          mifinfo.cbInstance.Items.Add(fl[i])
+        end
+        
+        fl.destroy()
+      end      
+      
+      m.destroy()
+    end
+  )
+  
+  
+  
+  --[[ alternatively, fill it on DropDown
+  mifinfo.cbInstance.OnDropDown=function(cb)
+    --fill the combobox with instances
+  end
+  ]]
+  
+  mifinfo.gbParams=createGroupBox(mifinfo.mif)
+  mifinfo.gbParams.Caption='Parameters'
+
+
+  mifinfo.gbParams.ChildSizing.ControlsPerLine=2
+  mifinfo.gbParams.ChildSizing.Layout='cclLeftToRightThenTopToBottom'
+  mifinfo.gbParams.ChildSizing.HorizontalSpacing=8
+  mifinfo.gbParams.AutoSize=true
+
+  mifinfo.pnlButtons=createPanel(mifinfo.mif)
+  mifinfo.pnlButtons.ChildSizing.ControlsPerLine=2
+  mifinfo.pnlButtons.ChildSizing.Layout='cclLeftToRightThenTopToBottom'
+
+  mifinfo.pnlButtons.BevelOuter='bvNone'
+  mifinfo.pnlButtons.BorderSpacing.Top=5
+  mifinfo.pnlButtons.BorderSpacing.Bottom=5
+  mifinfo.pnlButtons.ChildSizing.HorizontalSpacing=8
+
+
+  mifinfo.btnOk=createButton(mifinfo.mif)
+  mifinfo.btnCancel=createButton(mifinfo.mif)
+
+  mifinfo.btnOk.Parent=mifinfo.pnlButtons
+  mifinfo.btnCancel.Parent=mifinfo.pnlButtons
+
+  mifinfo.pnlButtons.AutoSize=true
+
+  mifinfo.btnOk.caption='OK'
+  mifinfo.btnCancel.caption='Cancel'
+  mifinfo.btnCancel.Cancel=true
+
+
+  mifinfo.pnlButtons.AnchorSideBottom.Control=mifinfo.mif
+  mifinfo.pnlButtons.AnchorSideBottom.Side=asrBottom
+  mifinfo.pnlButtons.AnchorSideLeft.Control=mifinfo.mif
+  mifinfo.pnlButtons.AnchorSideLeft.Side=asrCenter
+  mifinfo.pnlButtons.Anchors='[akLeft, akBottom]'
+ -- mifinfo.pnlButtons.Color=clRed
+
+
+
+  mifinfo.lblInstanceAddress.AnchorSideTop.Control=mifinfo.mif
+  mifinfo.lblInstanceAddress.AnchorSideTop.Side=asrTop
+  mifinfo.lblInstanceAddress.AnchorSideTop.Left=mifinfo.mif
+  mifinfo.lblInstanceAddress.AnchorSideTop.Side=asrLeft
+
+  mifinfo.cbInstance.AnchorSideTop.Control=mifinfo.lblInstanceAddress
+  mifinfo.cbInstance.AnchorSideTop.Side=asrBottom
+  mifinfo.cbInstance.AnchorSideLeft.Control=mifinfo.mif
+  mifinfo.cbInstance.AnchorSideLeft.Side=asrLeft
+  mifinfo.cbInstance.AnchorSideRight.Control=mifinfo.mif
+  mifinfo.cbInstance.AnchorSideRight.Side=asrRight
+  mifinfo.cbInstance.Anchors='[akLeft, akRight, akTop]'
+
+
+
+
+
+  mifinfo.gbParams.AnchorSideTop.Control=mifinfo.cbInstance
+  mifinfo.gbParams.AnchorSideTop.Side=asrBottom
+  mifinfo.gbParams.AnchorSideLeft.Control=mifinfo.mif
+  mifinfo.gbParams.AnchorSideLeft.Side=asrLeft
+  mifinfo.gbParams.AnchorSideRight.Control=mifinfo.mif
+  mifinfo.gbParams.AnchorSideRight.Side=asrRight
+  mifinfo.gbParams.AnchorSideBottom.Control=mifinfo.pnlButtons
+  mifinfo.gbParams.AnchorSideBottom.Side=asrTop
+
+  mifinfo.gbParams.Anchors='[akLeft, akRight, akTop, akBottom]'
+
+  mifinfo.mif.AutoSize=true
+
+  mifinfo.parameters={}
+  local i
+  for i=1, #typenames do
+    local lblVarName=createLabel(mifinfo.mif)
+    local edtVarText=createEdit(mifinfo.mif)
+
+    lblVarName.Parent=mifinfo.gbParams
+    edtVarText.Parent=mifinfo.gbParams
+
+    lblVarName.Caption=paramnames[i]..': '..typenames[i]
+
+    mifinfo.parameters[i]={}
+    mifinfo.parameters[i].lblVarName=lblVarName
+    mifinfo.parameters[i].edtVarText=edtVarText
+
+    lblVarName.BorderSpacing.CellAlignVertical='ccaCenter'
+  end
+
+  mifinfo.btnOk.OnClick=function(b)
+    local instance=getAddressSafe(mifinfo.cbInstance.Text)
+    if instance==nil then
+      instance=tonumber(mifinfo.cbInstance.Text)
+    end
+
+    if instance==nil then
+      messageDialog(mifinfo.cbInstance.Text..' is not a valid address', mtError, mbOK)
+      return
+    end
+
+    local params=mono_method_get_parameters(method)
+
+    --use monoTypeToVartypeLookup to convert it to the type mono_method_invole likes it
+    local args={}
+    for i=1, #params.parameters do
+      args[i].type=monoTypeToVartypeLookup[params.parameters[i].type]
+      if args[i].type==vtString then
+        args[i].value=mifinfo.parameters[i].edtVarText.Text
+      else
+        args[i].value=tonumber(mifinfo.parameters[i].edtVarText.Text)
+      end
+
+      if args[i].value==nil then
+        messageDialog('parameter '..i..': "'..mifinfo.parameters[i].edtVarText.Text..'" is not a valid value', mtError, mbOK)
+        return
+      end
+    end
+
+    mono_invoke_method(domain, method, instance, args)
+
+  end
+
+  mifinfo.btnCancel.OnClick=function(b) mifinfo.mif.close() end
+
+
+
+  mifinfo.mif.onClose=function(f)
+    return caFree
+  end
+
+  mifinfo.mif.onDestroy=function(f)
+    --destroy all objects
+    mifinfo.btnOk.destroy()
+    mifinfo.btnOk=nil
+    
+    mifinfo.btnCancel.destroy()
+    mifinfo.btnCancel=nil
+
+    mifinfo.cbInstance.destroy()
+    mifinfo.cbInstance=nil
+    
+    mifinfo.gbParams.destroy()
+    mifinfo.gbParams=nil
+
+    mifinfo=nil
+  end
+  mifinfo.mif.show()
 end
 
 
