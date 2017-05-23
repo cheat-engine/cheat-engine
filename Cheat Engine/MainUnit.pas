@@ -1150,6 +1150,8 @@ resourcestring
   rsCustomTypeName = 'Custom Type Name';
   rsLanguage = 'Language';
   rsChooseLanguage = 'Which language do you wish to use?';
+  rsInvalidScanFolder = '%s is not accessible like it should.  Please '
+    +'configure a proper location in the settings';
 
 var
   ncol: TColor;
@@ -7486,6 +7488,9 @@ begin
     if i>addresslist.headers.Sections[3].Width then addresslist.headers.Sections[3].Width:=i;
 
 
+    //initial state: focus on the addresslist
+    panel5.height:=gbScanOptions.top+gbScanOptions.Height;
+
   end;
 
   panel5.OnResize(panel5);
@@ -7497,6 +7502,8 @@ begin
   scantype.AnchorSideTop.Control:=nil;
   scantype.Anchors:=[akRight, akTop];
 
+  if not memscan.canWriteResults then
+    MessageDlg(Format(rsInvalidScanFolder, [memscan.GetScanFolder]), mtError, [mbOk], 0);
 
  // ImageList2.GetBitmap(0);
 end;

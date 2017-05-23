@@ -644,6 +644,8 @@ type
     procedure saveresults(resultname: string);
     function getsavedresults(r: tstrings): integer;
 
+    function canWriteResults: boolean;
+
 
     property nextscanCount: integer read fnextscanCount;
   published
@@ -6683,6 +6685,60 @@ begin
   end
   else
     result:=false;
+end;
+
+function TMemscan.canWriteResults: boolean;
+var
+  f: tfilestream=nil;
+  s: string;
+begin
+  try
+    try
+      f:=TFileStream.Create(ScanresultFolder+'ADDRESSES.TMP.FILETEST',fmCreate);
+      f.WriteAnsiString('This file can be written');
+      freeandnil(f);
+
+      f:=TFileStream.Create(ScanresultFolder+'ADDRESSES.TMP.FILETEST',fmOpenRead or fmShareDenyNone);
+      s:=f.ReadAnsiString;
+      if s<>'This file can be written' then raise exception.create('Invalid data read');
+      freeandnil(f);
+
+      f:=TFileStream.Create(ScanresultFolder+'ADDRESSES.TMP.FILETEST',fmOpenWrite or fmShareDenyNone);
+      f.WriteAnsiString('Overwrite works properly');
+      freeandnil(f);
+
+      f:=TFileStream.Create(ScanresultFolder+'ADDRESSES.TMP.FILETEST',fmOpenRead or fmShareDenyNone);
+      s:=f.ReadAnsiString;
+      if s<>'Overwrite works properly' then raise exception.create('Invalid data read2');
+      freeandnil(f);
+
+
+
+
+
+      DeleteFile(ScanresultFolder+'ADDRESSES.TMP.FILETEST');
+
+      f:=TFileStream.Create(ScanresultFolder+'ADDRESSES.TMP.FILETEST',fmCreate);
+      f.WriteAnsiString('This file can be recreated');
+      freeandnil(f);
+
+      f:=TFileStream.Create(ScanresultFolder+'ADDRESSES.TMP.FILETEST',fmOpenRead or fmShareDenyNone);
+      s:=f.ReadAnsiString;
+      if s<>'This file can be recreated' then raise exception.create('Invalid data read 3');
+      freeandnil(f);
+
+
+      result:=true;
+    finally
+      if f<>nil then
+        f.free;
+
+      DeleteFile(ScanresultFolder+'ADDRESSES.TMP.FILETEST');
+    end;
+
+  except
+    result:=false;
+  end;
 end;
 
 function TMemscan.GetScanFolder: string;
