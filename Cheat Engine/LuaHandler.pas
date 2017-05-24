@@ -2945,7 +2945,6 @@ begin
 
     tthread.Queue(nil, lc.synchronize);
 
-    lc.free;
 
     result:=1;
   end;
@@ -2986,8 +2985,6 @@ begin
       lc.synchronizeparam:=0;
 
     tthread.Synchronize(nil, lc.synchronize);
-
-    lc.free;
 
     result:=1;
   end;
@@ -8463,7 +8460,10 @@ var
   shi: PSYSTEM_HANDLE_INFORMATION;
   rl: ulong;
   r: ntstatus;
-  i: integer;
+  i,j: integer;
+
+  filter: integer;
+  peprocess: ptruint;
 begin
   i:=sizeof(SYSTEM_HANDLE_TABLE_ENTRY_INFO)+128*sizeof(SYSTEM_HANDLE_TABLE_ENTRY_INFO);
   getmem(shi,i);
@@ -8483,39 +8483,74 @@ begin
   if r=STATUS_INFO_LENGTH_MISMATCH then exit(0);
   if r<>0 then exit(0);
 
+  if lua_gettop(L)>=1 then
+  begin
+    filter:=lua_tointeger(L,1);
+    //0=everything
+    //1=all handles from the opened process
+    //2=all handles to the opened process
+    //3=all handles to cheat engine
+
+    case filter of
+      2:
+      begin
+        LoadDBK32;
+        peprocess:=GetPEProcess(processid);
+      end;
+
+      3:
+      begin
+        LoadDBK32;
+        peprocess:=GetPEProcess(GetCurrentProcessId);
+        filter:=2;
+      end;
+    end;
+  end
+  else
+    filter:=0;
+
+  lua_pop(l, lua_gettop(L));
 
 
   lua_createtable(L, shi.HandleCount,0);
+  j:=0;
   for i:=0 to shi.HandleCount-1 do
   begin
-    lua_pushinteger(L,i+1);
-    lua_createtable(L,0,6);
+    if (filter=0) or
+       ((filter=1) and (shi.list[i].ProcessId=processid)) or
+       ((filter=2) and (ptruint(shi.list[i].obj)=peprocess)) then
+    begin
+      inc(j);
+      lua_pushinteger(L,j);
+      lua_createtable(L,0,6);
 
-    lua_pushstring(L, 'ProcessID');
-    lua_pushinteger(L, shi.list[i].ProcessId );
-    lua_settable(L,-3);
+      lua_pushstring(L, 'ProcessID');
+      lua_pushinteger(L, shi.list[i].ProcessId );
+      lua_settable(L,-3);
 
-    lua_pushstring(L, 'ObjectTypeIndex');
-    lua_pushinteger(L, shi.list[i].ObjectTypeIndex );
-    lua_settable(L,-3);
+      lua_pushstring(L, 'ObjectTypeIndex');
+      lua_pushinteger(L, shi.list[i].ObjectTypeIndex );
+      lua_settable(L,-3);
 
-    lua_pushstring(L, 'HandleAttributes');
-    lua_pushinteger(L, shi.list[i].HandleAttributes );
-    lua_settable(L,-3);
+      lua_pushstring(L, 'HandleAttributes');
+      lua_pushinteger(L, shi.list[i].HandleAttributes );
+      lua_settable(L,-3);
 
-    lua_pushstring(L, 'HandleValue');
-    lua_pushinteger(L, shi.list[i].HandleValue );
-    lua_settable(L,-3);
+      lua_pushstring(L, 'HandleValue');
+      lua_pushinteger(L, shi.list[i].HandleValue );
+      lua_settable(L,-3);
 
-    lua_pushstring(L, 'Object');
-    lua_pushinteger(L, ptruint(shi.list[i].obj));
-    lua_settable(L,-3);
+      lua_pushstring(L, 'Object');
+      lua_pushinteger(L, ptruint(shi.list[i].obj));
+      lua_settable(L,-3);
 
-    lua_pushstring(L, 'GrantedAccess');
-    lua_pushinteger(L, shi.list[i].GrantedAccess );
-    lua_settable(L,-3);
+      lua_pushstring(L, 'GrantedAccess');
+      lua_pushinteger(L, shi.list[i].GrantedAccess );
+      lua_settable(L,-3);
 
-    lua_settable(L,1);
+      lua_settable(L,1);
+
+    end;
   end;
 
   result:=1;

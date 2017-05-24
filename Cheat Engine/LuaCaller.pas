@@ -340,6 +340,8 @@ begin
   end;
 
   lua_pcall(syncvm, paramcount,1,0);
+
+  free;
 end;
 
 procedure TLuaCaller.SelectionChangeEvent(Sender: TObject; User: boolean);
