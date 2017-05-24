@@ -251,6 +251,9 @@ getWindowlist(Strings): Fills a Strings inherited object with the top-window lis
 getWindowlist(): Returns a table with the windowlist (pid - window caption )
 
 getThreadlist(List): fills a List object with the threadlist of the currently opened process. Format: %x
+getHandleList(): returns a table with all the handles in the system.  Each handle entry has fields: ProcessID, ObjectTypeIndex, HandleAttributes, HandleValue, Object and GrantedAccess.  Note: Object will be invalid if you use the 32-bit CE on a 64-bit windows
+
+closeRemoteHandle(handle): Closes the handle of a process.
 
 
 function onOpenProcess(processid):

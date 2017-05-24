@@ -47,6 +47,21 @@ type TntResumeProcess=function(ProcessID:Dword):DWORD; stdcall;
 
 
 type
+    SYSTEM_HANDLE_TABLE_ENTRY_INFO=record
+      ProcessId: DWORD; //USHORT
+      ObjectTypeIndex: UCHAR;
+      HandleAttributes: UCHAR;
+      HandleValue: USHORT;
+      obj: pointer;
+      GrantedAccess: ACCESS_MASK;
+    end;
+
+    SYSTEM_HANDLE_INFORMATION=record
+      HandleCount: DWORD;
+      list: array [0..0] of SYSTEM_HANDLE_TABLE_ENTRY_INFO;
+    end;
+    PSYSTEM_HANDLE_INFORMATION=^SYSTEM_HANDLE_INFORMATION;
+
   TProcessBasicInformation = record
     ExitStatus : Longint;
     PebBaseAddress : Pointer;
@@ -120,6 +135,10 @@ type
     TThreadInfoClass = THREADINFOCLASS;
 
 
+
+const SystemHandleInformation=16;
+
+type TNtQuerySystemInformation=function(infoClass : dword; systemInformation : Pointer; SystemInformationLength : ULONG; returnLength : PULONG) : DWORD; stdcall;
 type TNtQueryInformationProcess=function(Handle : THandle; infoClass : TProcessInfoClass; processInformation : Pointer; processInformationLength : ULONG; returnLength : PULONG) : DWORD; stdcall;
 type TNtQueryInformationThread=function(Handle : THandle; infoClass : TThreadinfoClass; ThreadInformation: pointer; processInformationLength : ULONG; returnLength : PULONG) : DWORD; stdcall;
 
@@ -133,6 +152,7 @@ var //DebuggerThread: TDebugger;
     ntSuspendProcess: TntSuspendProcess;
     ntResumeProcess: tntResumeProcess;
 
+    NtQuerySystemInformation: TNtQuerySystemInformation;
     NtQueryInformationProcess: TNtQueryInformationProcess;
     NtQueryInformationThread: TNtQueryInformationThread;
     DbgBreakPointLocation:ptrUint;
@@ -267,6 +287,9 @@ initialization
 
     NtQueryInformationThread:=nil;
     NtQueryInformationThread:=GetProcAddress(ntdlllib,'NtQueryInformationThread');
+
+    NtQuerySystemInformation:=nil;
+    NtQuerySystemInformation:=GetProcAddress(ntdlllib,'NtQuerySystemInformation');
 
     ntsuspendprocess:=nil;
     ntsuspendprocess:=GetProcAddress(ntdlllib,'NtSuspendProcess');

@@ -3657,7 +3657,6 @@ begin
   end
   else
   lua_pop(L, lua_gettop(l));
-
 end;
 
 function getNameFromAddress(L: PLua_state): integer; cdecl;
@@ -8459,6 +8458,79 @@ begin
   result:=1;
 end;
 
+function lua_getHandleList(L: PLua_state): integer; cdecl;
+var
+  shi: PSYSTEM_HANDLE_INFORMATION;
+  rl: ulong;
+  r: ntstatus;
+  i: integer;
+begin
+  i:=sizeof(SYSTEM_HANDLE_TABLE_ENTRY_INFO)+128*sizeof(SYSTEM_HANDLE_TABLE_ENTRY_INFO);
+  getmem(shi,i);
+
+  repeat
+    zeromemory(shi,i);
+    r:=NtQuerySystemInformation(SystemHandleInformation, shi,i,@rl);
+    if r=STATUS_INFO_LENGTH_MISMATCH then
+    begin
+      freemem(shi);
+      i:=i*2-2;
+      getmem(shi,i);
+    end;
+
+  until (r<>STATUS_INFO_LENGTH_MISMATCH) or (i>256*1024*1024);
+
+  if r=STATUS_INFO_LENGTH_MISMATCH then exit(0);
+  if r<>0 then exit(0);
+
+
+
+  lua_createtable(L, shi.HandleCount,0);
+  for i:=0 to shi.HandleCount-1 do
+  begin
+    lua_pushinteger(L,i+1);
+    lua_createtable(L,0,6);
+
+    lua_pushstring(L, 'ProcessID');
+    lua_pushinteger(L, shi.list[i].ProcessId );
+    lua_settable(L,-3);
+
+    lua_pushstring(L, 'ObjectTypeIndex');
+    lua_pushinteger(L, shi.list[i].ObjectTypeIndex );
+    lua_settable(L,-3);
+
+    lua_pushstring(L, 'HandleAttributes');
+    lua_pushinteger(L, shi.list[i].HandleAttributes );
+    lua_settable(L,-3);
+
+    lua_pushstring(L, 'HandleValue');
+    lua_pushinteger(L, shi.list[i].HandleValue );
+    lua_settable(L,-3);
+
+    lua_pushstring(L, 'Object');
+    lua_pushinteger(L, ptruint(shi.list[i].obj));
+    lua_settable(L,-3);
+
+    lua_pushstring(L, 'GrantedAccess');
+    lua_pushinteger(L, shi.list[i].GrantedAccess );
+    lua_settable(L,-3);
+
+    lua_settable(L,1);
+  end;
+
+  result:=1;
+end;
+
+function lua_closeRemoteHandle(L: PLua_state): integer; cdecl;
+var handle, newhandle: THandle;
+begin
+  if lua_gettop(L)>=1 then
+  begin
+    handle:=lua_tointeger(L,1);
+    DuplicateHandle(processhandle, handle, nil,nil, 0, false, DUPLICATE_CLOSE_SOURCE);
+  end;
+end
+
 
 procedure InitializeLua;
 var
@@ -8987,6 +9059,8 @@ begin
 
 
     lua_register(L, 'getScreenCanvas', lua_getScreenCanvas);
+    lua_register(L, 'getHandleList', lua_getHandleList);
+    lua_register(L, 'closeRemoteHandle', lua_closeRemoteHandle);
 
     initializeLuaCustomControl;
 
