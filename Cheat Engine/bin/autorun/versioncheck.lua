@@ -47,7 +47,7 @@ function CheckVersion(automatic)
           
           if fv then          
             if latestVersionCompleteBuildNumber>fv then
-              print('bigger')
+              --print('bigger')
               newerVersion=true
             else
               print('smaller or equal')
@@ -59,19 +59,19 @@ function CheckVersion(automatic)
             end              
           end         
           
-          queue(function()
-            if newerVersion then
-              if messageDialog(string.format(translate('Cheat Engine %s is available at www.cheatengine.org. Go there now?'),latestVersionString), mtConfirmation, mbYes, mbNo)==mrYes then
-                shellExecute('http://cheatengine.org/')
-              end
-            else
-              if not automatic then
-                showMessage(string.format(translate('You are up to date. The latest version is %s'),latestVersionString))
-              end
+          
+          if newerVersion then
+            if messageDialog(string.format(translate('Cheat Engine %s is available at www.cheatengine.org. Go there now?'),latestVersionString), mtConfirmation, mbYes, mbNo)==mrYes then
+              shellExecute('http://cheatengine.org/')
             end
-            
-            versionCheckThread=nil
-          end)
+          else
+            if not automatic then
+              showMessage(string.format(translate('You are up to date. The latest version is %s'),latestVersionString))
+            end
+          end
+          
+          versionCheckThread=nil
+       
 
         else
           queue(function()
