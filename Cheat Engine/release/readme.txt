@@ -41,7 +41,7 @@ Pointerscan for value scans now add the results to the overflow queue
 Opening a file and changing bytes do not change them to the file anymore (you need to explicitly save now)
 Added an option to the processlist to filter out system processes
 Added a system to let users sign their tables so you know you can trust their tables.
-Memory record dropdown lists can now reference those of others. (memoryrecorddescription)
+Memory record dropdown lists can now reference those of others. USe as entry text: (memoryrecorddescription)
 
 
 
@@ -65,6 +65,8 @@ added OnPaint to the CustomControl class
 added autoAssembleCheck to syntax check an AA script
 fixed the addresslist returning nil for PopupMenu (while popupMenu did work)
 added an timeout option for pipes
+added some graphical options
+added some low level system functions
 
 
 How to use:

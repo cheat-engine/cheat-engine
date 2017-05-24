@@ -4660,6 +4660,15 @@ begin
   result:=1;
 end;
 
+function lua_getCheatEngineProcessID(L: PLua_State): integer; cdecl;
+begin
+  lua_pop(L, lua_gettop(l));
+  lua_pushinteger(L, GetCurrentProcessId);
+  result:=1;
+end;
+
+
+
 function getInstructionSize(L: PLua_State): integer; cdecl;
 var parameters: integer;
   address, address2: ptruint;
@@ -7675,6 +7684,7 @@ begin
   lua_speakEx(true,L);
 end;
 
+
 function lua_getFileVersion(L: Plua_State): integer; cdecl;
 var
   filepath: string;
@@ -7719,6 +7729,13 @@ begin
     end;
   end;
 end;
+
+function lua_getCheatEngineFileVersion(L: Plua_State): integer; cdecl;
+begin
+  lua_pushstring(L,application.ExeName);
+  exit(lua_getFileVersion(L));
+end;
+
 
 function lua_hookWndProc(L: Plua_State): integer; cdecl;
 var
@@ -8866,6 +8883,7 @@ begin
     lua_register(L, 'allocateSharedMemory', allocateSharedMemory);
     lua_register(L, 'deallocateSharedMemory', deallocateSharedMemory);
     lua_register(L, 'getCheatEngineDir', getCheatEngineDir);
+    lua_register(L, 'getCheatEngineProcessID', lua_getCheatEngineProcessID);
 
     lua_register(L, 'disassemble', disassemble_lua);
     lua_register(L, 'splitDisassembledString', splitDisassembledString);
@@ -9051,6 +9069,8 @@ begin
     lua_register(L, 'speakEnglish', lua_speakEnglish);
 
     lua_register(L, 'getFileVersion', lua_getFileVersion);
+    lua_register(L, 'getCheatEngineFileVersion', lua_getCheatEngineFileVersion);
+
 
     lua_register(L, 'hookWndProc', lua_hookWndProc);
     lua_register(L, 'unhookWndProc', lua_unhookWndProc);

@@ -6,6 +6,7 @@ MainForm: The main ce gui
 AddressList: The address list of the main ce gui
 
 getCEVersion(): Returns a floating point value specifying the version of cheat engine
+getCheatEngineFileVersion(): Returns the full version data of the cheat engine version. A raw integer, and a table containing major, minor, release and build
 
 
 activateProtection(): Prevents basic memory scanners from opening the cheat engine process
@@ -251,7 +252,7 @@ getWindowlist(Strings): Fills a Strings inherited object with the top-window lis
 getWindowlist(): Returns a table with the windowlist (pid - window caption )
 
 getThreadlist(List): fills a List object with the threadlist of the currently opened process. Format: %x
-getHandleList(): returns a table with all the handles in the system.  Each handle entry has fields: ProcessID, ObjectTypeIndex, HandleAttributes, HandleValue, Object and GrantedAccess.  Note: Object will be invalid if you use the 32-bit CE on a 64-bit windows
+getHandleList(filter OPTIONAL): returns a table with all the handles in the system(Filter 0=everything, 1=target process handles only, 2 handles to target process, 3 handles to ce process).  Each handle entry has fields: ProcessID, ObjectTypeIndex, HandleAttributes, HandleValue, Object and GrantedAccess.  Note: Object will be invalid if you use the 32-bit CE on a 64-bit windows
 
 closeRemoteHandle(handle): Closes the handle of a process.
 
@@ -396,6 +397,7 @@ targetIs64Bit(): Returns true if the target process is 64-bit, false if 32-bit
 
 
 getCheatEngineDir(): Returns the folder Cheat Engine is located at
+getCheatEngineProcessID(): Returns the processid of cheat engine
 
 disassemble(address): Disassembles the given address and returns a string in the format of "address - bytes - opcode : extra"
 splitDisassembledString(disassembledstring): Returns 4 strings. The address, bytes, opcode and extra field
@@ -2062,12 +2064,12 @@ methods
 
 
 Thread Class: (Inheritance: Object)
-createNativeThread(function(Thread,...), ...) :
+createThread(function(Thread,...), ...) :
   Executes the given function in another thread using the systems thread mechanism
   The function returns the Thread class object
   function declaration: function (Thread, ...)
 
-createNativeThreadSuspended(function(Thread,...), ...) :
+createThreadSuspended(function(Thread,...), ...) :
   Same as createNativeThread but it won't run until resume is called on it
 
 
@@ -2693,7 +2695,7 @@ methods
 
 Internet class (Object)
 global functions
-  getInternet(string) - Returns an internet class object
+  getInternet(string) - Returns an internet class object.  The string provided will be the name of the client provided
 
 properties
   Header : string - the additional header to be sent with the next getURL request
