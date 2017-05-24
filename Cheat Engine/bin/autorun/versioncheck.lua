@@ -22,7 +22,7 @@ function CheckVersion(automatic)
           sl.Text=r          
           
           if sl.Count<3 then
-            queue(function()
+            t.synchronize(function()
               print(translate('Unable to check version (Invalid content, not enough lines)'))
               versionCheckThread=nil
             end)
@@ -36,7 +36,7 @@ function CheckVersion(automatic)
           sl.destroy()
           
           if (latestVersionCompleteBuildNumber==nil) or (latestVersionNumber==nil) then
-            queue(function()
+            t.synchronize(function()
               print(translate('Unable to check version (Invalid content)'))
               versionCheckThread=nil
             end) 
@@ -50,31 +50,35 @@ function CheckVersion(automatic)
               --print('bigger')
               newerVersion=true
             else
-              print('smaller or equal')
+              --print('smaller or equal')
             end
           else
             --failed getting the file version (filesystem issues...)
             if latestVersionNumber>getCEVersion() then
               newerVersion=true
             end              
-          end         
+          end   
+        
           
-          
-          if newerVersion then
-            if messageDialog(string.format(translate('Cheat Engine %s is available at www.cheatengine.org. Go there now?'),latestVersionString), mtConfirmation, mbYes, mbNo)==mrYes then
-              shellExecute('http://cheatengine.org/')
+          t.synchronize(function()
+            if newerVersion then
+              if messageDialog(string.format(translate('Cheat Engine %s is available at www.cheatengine.org. Go there now?'),latestVersionString), mtConfirmation, mbYes, mbNo)==mrYes then
+                shellExecute('http://cheatengine.org/')
+              end
+            else
+              if not automatic then
+                showMessage(string.format(translate('You are up to date. The latest version is %s'),latestVersionString))
+              end
             end
-          else
-            if not automatic then
-              showMessage(string.format(translate('You are up to date. The latest version is %s'),latestVersionString))
-            end
-          end
+            
+            versionCheckThread=nil
+          end)
           
-          versionCheckThread=nil
+          
        
 
         else
-          queue(function()
+          t.synchronize(function()
             print(translate("Unable to check version (Can't connect)"))
             versionCheckThread=nil
           end)
