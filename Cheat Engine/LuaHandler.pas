@@ -8527,9 +8527,9 @@ begin
   if lua_gettop(L)>=1 then
   begin
     handle:=lua_tointeger(L,1);
-    DuplicateHandle(processhandle, handle, nil,nil, 0, false, DUPLICATE_CLOSE_SOURCE);
+    DuplicateHandle(processhandle, handle, 0,nil, 0, false, DUPLICATE_CLOSE_SOURCE);
   end;
-end
+end;
 
 
 procedure InitializeLua;
