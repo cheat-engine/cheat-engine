@@ -136,6 +136,30 @@ begin
   end;
 end;
 
+function strings_getLineBreak(L: PLua_State): integer; cdecl;
+var
+  strings: TStrings;
+begin
+  strings:=luaclass_getClassObject(L);
+  lua_pushstring(L, strings.LineBreak);
+  result:=1;
+end;
+
+function strings_setLineBreak(L: PLua_State): integer; cdecl;
+var
+  strings: TStrings;
+  LineBreak: string;
+begin
+  result:=0;
+  strings:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+  begin
+    LineBreak:=Lua_ToString(L, -1);
+    strings.LineBreak:=LineBreak;
+  end;
+end;
+
+
 function strings_indexOf(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
@@ -240,6 +264,8 @@ begin
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'Count', strings_getCount, nil);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Text', strings_getText, strings_setText);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'LineBreak', strings_getLineBreak, strings_setLineBreak);
+
   luaclass_addArrayPropertyToTable(L, metatable, userdata, 'String', strings_getString, strings_setString);
   luaclass_setDefaultArrayProperty(L, metatable, userdata, strings_getString, strings_setString); //so strings[12] will call strings.getString(12)
 end;
