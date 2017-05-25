@@ -441,9 +441,9 @@ type
     MainMenu1: TMainMenu;
     File1: TMenuItem;
     Process1: TMenuItem;
-    Help1: TMenuItem;
+    miHelp: TMenuItem;
     Edit3: TMenuItem;
-    About1: TMenuItem;
+    miAbout: TMenuItem;
     OpenProcess1: TMenuItem;
     Save1: TMenuItem;
     Load1: TMenuItem;
@@ -657,7 +657,7 @@ type
     procedure btnSetSpeedhack2Click(Sender: TObject);
     procedure cbSpeedhackChange(Sender: TObject);
     procedure Process1Click(Sender: TObject);
-    procedure About1Click(Sender: TObject);
+    procedure miAboutClick(Sender: TObject);
     procedure CreateProcess1Click(Sender: TObject);
     procedure Helpindex1Click(Sender: TObject);
     procedure New1Click(Sender: TObject);
@@ -921,6 +921,8 @@ type
     property SelectedVariableType: TVariableType read getSelectedVariableType;
     property isProtected: boolean read fIsProtected write setIsProtected;
     property Progressbar1: TProgressBar read Progressbar write ProgressBar;
+    property About1: TMenuItem read miAbout write miAbout;
+    property Help1: TMenuItem read miHelp write miHelp;
   end;
 
 var
@@ -7676,7 +7678,7 @@ procedure TMainForm.LogoMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: integer);
 begin
   if button = mbright then
-    about1.click;
+    miAbout.click;
 end;
 
 procedure TMainForm.btnShowRegionsClick(Sender: TObject);
@@ -9384,7 +9386,7 @@ end;
 
 
 {^^^^^^^^Processlist menuitem^^^^^^^^}
-procedure TMainForm.About1Click(Sender: TObject);
+procedure TMainForm.miAboutClick(Sender: TObject);
 begin
   About := TAbout.Create(self);
   About.showmodal;

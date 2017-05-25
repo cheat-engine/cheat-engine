@@ -401,513 +401,518 @@ var processhandle2: Thandle;
     cpu: string;
     WriteLogSize: integer;
 begin
+  try
+    {$ifdef cpu64}
+    cpu:='64';
+    {$else}
+    cpu:='32';
+    {$endif}
 
-  {$ifdef cpu64}
-  cpu:='64';
-  {$else}
-  cpu:='32';
+  {$ifndef net}
+
+    if cbProcessWatcher.checked and (frmprocesswatcher=nil) then
+    begin
+      loaddbk32;
+      frmprocesswatcher:=tfrmprocesswatcher.Create(mainform); //start the process watcher
+    end;
+
+
   {$endif}
 
-{$ifndef net}
+    if not ((cbMemPrivate.checked) or (cbMemImage.Checked) or (cbMemMapped.Checked)) then
+      if messagedlg(rsYouHavenTSelectedAnyMemoryTypeThisWillResultInChea, mtWarning, [mbyes, mbno], 0)<>mryes then exit;
 
-  if cbProcessWatcher.checked and (frmprocesswatcher=nil) then
-  begin
-    loaddbk32;
-    frmprocesswatcher:=tfrmprocesswatcher.Create(mainform); //start the process watcher
-  end;
+    WriteLogSize:=strtoint(edtWriteLogSize.text);
 
-
-{$endif}
-
-  if not ((cbMemPrivate.checked) or (cbMemImage.Checked) or (cbMemMapped.Checked)) then
-    if messagedlg(rsYouHavenTSelectedAnyMemoryTypeThisWillResultInChea, mtWarning, [mbyes, mbno], 0)<>mryes then exit;
-
-  WriteLogSize:=strtoint(edtWriteLogSize.text);
-
-  val(edtStacksize.text, stacksize, error);
-  if (error<>0) or (stacksize<=0) then raise exception.Create(Format(rsIsNotAValidInterval, [edtStacksize.text]));
+    val(edtStacksize.text, stacksize, error);
+    if (error<>0) or (stacksize<=0) then raise exception.Create(Format(rsIsNotAValidInterval, [edtStacksize.text]));
 
 
 
-  val(editUpdatefoundInterval.Text,foundinterval,error);
-  if (error<>0) or (foundinterval<=0) then raise exception.Create(Format(rsIsNotAValidInterval, [editUpdatefoundInterval.Text]));
+    val(editUpdatefoundInterval.Text,foundinterval,error);
+    if (error<>0) or (foundinterval<=0) then raise exception.Create(Format(rsIsNotAValidInterval, [editUpdatefoundInterval.Text]));
 
-  val(editupdateinterval.text,updateinterval,error);
-  if (error<>0) or (updateinterval<=0) then raise exception.Create(Format(rsIsNotAValidInterval, [editupdateinterval.text]));
+    val(editupdateinterval.text,updateinterval,error);
+    if (error<>0) or (updateinterval<=0) then raise exception.Create(Format(rsIsNotAValidInterval, [editupdateinterval.text]));
 
-  val(editfreezeinterval.text,freezeinterval,error);
-  if (error<>0) or (updateinterval<=0) then raise exception.Create(Format(rsIsNotAValidInterval, [editfreezeinterval.text]));
-
-
-  try bufsize:=StrToInt(editbufsize.text); except bufsize:=1024; end;
-
-  if bufsize=0 then raise exception.create(rsTheScanbufferSizeHasToBeGreaterThan0);
-
-  buffersize:=bufsize*1024;
-
-  mainform.UndoScan.visible:={$ifdef net}false{$else}cbshowundo.checked{$endif};
+    val(editfreezeinterval.text,freezeinterval,error);
+    if (error<>0) or (updateinterval<=0) then raise exception.Create(Format(rsIsNotAValidInterval, [editfreezeinterval.text]));
 
 
+    try bufsize:=StrToInt(editbufsize.text); except bufsize:=1024; end;
 
-  //save to the registry
-  reg:=Tregistry.Create;
-  try
-    Reg.RootKey := HKEY_CURRENT_USER;
-    if Reg.OpenKey('\Software\Cheat Engine',true) then
-    begin
-      //write the settings
-      reg.WriteInteger('Saved Stacksize', stacksize);
+    if bufsize=0 then raise exception.create(rsTheScanbufferSizeHasToBeGreaterThan0);
 
-      reg.writebool('Show processlist in mainmenu', cbShowProcesslist.checked);
-      mainform.Process1.Visible:=cbShowProcesslist.checked;
+    buffersize:=bufsize*1024;
 
-
-      reg.WriteBool('Undo',cbshowundo.checked);
-      reg.WriteInteger('ScanThreadpriority',combothreadpriority.itemindex);
-      case combothreadpriority.itemindex of
-        0: scanpriority:=tpIdle;
-        1: scanpriority:=tpLowest;
-        2: scanpriority:=tpLower;
-        3: scanpriority:=tpLower;
-        4: scanpriority:=tpNormal;
-        5: scanpriority:=tpHigher;
-        6: scanpriority:=tpHighest;
-        7: scanpriority:=tpTimeCritical;
-      end;
+    mainform.UndoScan.visible:={$ifdef net}false{$else}cbshowundo.checked{$endif};
 
 
 
-
-
-
-      reg.WriteBool('Show all windows on taskbar',cbShowallWindows.checked);
-      if cbShowallWindows.checked then
-        Application.TaskBarBehavior:=tbMultiButton
-      else
-        Application.TaskBarBehavior:=tbSingleButton;
-
-      ScanAllTypes:=[];
-      if cgAllTypes.checked[0] then ScanAllTypes:=ScanAllTypes+[vtByte];
-      if cgAllTypes.checked[1] then ScanAllTypes:=ScanAllTypes+[vtWord];
-      if cgAllTypes.checked[2] then ScanAllTypes:=ScanAllTypes+[vtDword];
-      if cgAllTypes.checked[3] then ScanAllTypes:=ScanAllTypes+[vtQword];
-      if cgAllTypes.checked[4] then ScanAllTypes:=ScanAllTypes+[vtSingle];
-      if cgAllTypes.checked[5] then ScanAllTypes:=ScanAllTypes+[vtDouble];
-      if cgAllTypes.checked[6] then ScanAllTypes:=ScanAllTypes+[vtCustom];
-
-      reg.writebool('AllByte',cgAllTypes.checked[0]);
-      reg.writebool('AllWord',cgAllTypes.checked[1]);
-      reg.writebool('AllDWord',cgAllTypes.checked[2]);
-      reg.writebool('AllQWord',cgAllTypes.checked[3]);
-      reg.writebool('AllFloat',cgAllTypes.checked[4]);
-      reg.writebool('AllDouble',cgAllTypes.checked[5]);
-      reg.writebool('AllCustom',cgAllTypes.checked[6]);
-
-
-      reg.writebool('Can Step Kernelcode',cbCanStepKernelcode.checked);
-
-      reg.WriteInteger('Buffersize',bufsize);
-      reg.WriteBool('Center on popup',cbCenterOnPopup.checked);
-      reg.WriteInteger('Update interval',updateinterval);
-      reg.WriteInteger('Freeze interval',freezeinterval);
-      reg.writebool('Show values as signed',cbShowAsSigned.checked);
-
-
-      reg.WriteBool('Replace incomplete opcodes with NOPS',replacewithnops.checked);
-      reg.WriteBool('Ask for replace with NOPS',askforreplacewithnops.checked);
-      reg.WriteBool('Use Anti-debugdetection',checkbox1.checked);
-      reg.WriteBool('Override existing bp''s',cbOverrideExistingBPs.checked);
-      BPOverride:=cbOverrideExistingBPs.checked;
-
-
-      reg.WriteBool('Handle unhandled breakpoints',cbhandlebreakpoints.Checked);
-      reg.WriteBool('Fastscan on by default',cbFastscan.checked);
-
-      reg.WriteBool('Hardware breakpoints', rbDebugAsBreakpoint.checked);
-      reg.WriteBool('Software breakpoints', rbInt3AsBreakpoint.checked);
-      reg.Writebool('Exception breakpoints', rbPageExceptions.checked);
-
-      reg.WriteBool('Update Foundaddress list',cbUpdatefoundList.checked);
-      reg.WriteInteger('Update Foundaddress list Interval',foundinterval);
-
-      reg.WriteBool('Simple copy/paste',cbsimplecopypaste.checked);
-      reg.WriteString('AutoAttach',EditAutoAttach.text);
-      reg.writebool('Always AutoAttach', cbAlwaysAutoAttach.checked);
-
-      i:=1;
-      if miLuaExecAlways.checked then i:=0 else
-      if miLuaExecSignedOnly.checked then i:=1 else
-      if miLuaExecAsk.checked then i:=2 else
-      if miLuaExecNever.checked then i:=3;
-
-      reg.WriteInteger('LuaScriptAction', i);
-
-
-      {$ifndef net}
-      mainform.UpdateFoundlisttimer.Interval:=foundinterval;
-      {$endif}
-
-      reg.WriteBool('Save window positions',cbSaveWindowPos.checked);
-      reg.WriteBool('Show main menu',cbShowMainMenu.Checked);
-      reg.WriteBool('Get process icons',cbProcessIcons.Checked);
-      GetProcessIcons:=cbProcessIcons.Checked;
-
-      reg.WriteBool('Only show processes with icon',cbProcessIconsOnly.Checked);
-      ProcessesWithIconsOnly:=cbProcessIconsOnly.Checked;
-
-      reg.WriteBool('Pointer appending', cbOldPointerAddMethod.checked);
-
-      reg.writebool('skip PAGE_NOCACHE',cbSkip_PAGE_NOCACHE.Checked);
-      reg.writebool('Pause when scanning on by default',cbPauseWhenScanningOnByDefault.Checked);
-
-
-      reg.WriteBool('Hide all windows',cbHideAllWindows.checked);
-      reg.WriteBool('Really hide all windows',temphideall);
-
-
-      //save donthidelist
-      {$ifndef net}
-      setlength(donthidelist,length(tempdonthidelist));
-      for i:=0 to length(tempdonthidelist)-1 do
+    //save to the registry
+    reg:=Tregistry.Create;
+    try
+      Reg.RootKey := HKEY_CURRENT_USER;
+      if Reg.OpenKey('\Software\Cheat Engine',true) then
       begin
-        donthidelist[i]:=tempdonthidelist[i];
-        reg.writestring('Do not hide '+IntToStr(i),tempdonthidelist[i]);
-      end;
+        //write the settings
+        reg.WriteInteger('Saved Stacksize', stacksize);
 
-      //end
-      reg.writestring('Do not hide '+IntToStr(length(tempdonthidelist)),'');
-      reg.WriteBool('MEM_PRIVATE',cbMemPrivate.checked);
-      reg.WriteBool('MEM_IMAGE',cbMemImage.Checked);
-      reg.WriteBool('MEM_MAPPED',cbMemMapped.Checked);
-      onlyfront:=not temphideall;
+        reg.writebool('Show processlist in mainmenu', cbShowProcesslist.checked);
+        mainform.Process1.Visible:=cbShowProcesslist.checked;
 
 
-
-
-      //check the module list
-
-      if frmModuleSafety<>nil then //modified
-      begin
-        if modulelist<>nil then
-          freemem(modulelist);
-
-        modulelist:=tempmodulelist;
-        modulelistsize:=tempmodulelistsize;
-        tempmodulelist:=nil;
-        denylist:=tempdenylist;
-        denylistglobal:=tempdenylistglobal;
-
-        reg.WriteBinaryData('Module List',ModuleList^,modulelistsize);
-        reg.writeInteger('modulelistsize',modulelistsize);
-        reg.WriteBool('Global Denylist',DenyListGlobal);
-        reg.WriteBool('ModuleList as Denylist',DenyList);
-      end;
-
-
-      try
-        reg.WriteInteger('hotkey poll interval',strtoint(frameHotkeyConfig.edtKeypollInterval.text));
-        hotkeyPollInterval:=strtoint(frameHotkeyConfig.edtKeypollInterval.text);
-      except
-        raise exception.Create(Format(rsTheValueForTheKeypollIntervalIsInvalid, [frameHotkeyConfig.edtKeypollInterval.text]));
-      end;
-
-      try
-        reg.WriteInteger('Time between hotkeypress',strtoint(frameHotkeyConfig.edtHotkeyDelay.text));
-        hotkeyIdletime:=strtoint(frameHotkeyConfig.edtHotkeyDelay.text);
-      except
-        raise exception.Create(Format(rsTheValueForTheWaitBetweenHotkeyPressesIsInvalid, [frameHotkeyConfig.edtHotkeyDelay.text]));
-      end;
-
-
-
-
-
-        //save the hotkeylist
-        reg.WriteBinaryData('Show Cheat Engine Hotkey',frameHotkeyConfig.newhotkeys[0][0],10);
-        reg.WriteBinaryData('Pause process Hotkey',frameHotkeyConfig.newhotkeys[1][0],10);
-        reg.WriteBinaryData('Toggle speedhack Hotkey',frameHotkeyConfig.newhotkeys[2][0],10);
-
-
-        reg.WriteFloat('Speedhack 1 speed',frameHotkeyConfig.newspeedhackspeed1.speed);
-        reg.WriteBool('Speedhack 1 disablewhenreleased',frameHotkeyConfig.newspeedhackspeed1.disablewhenreleased);
-        reg.WriteFloat('Speedhack 2 speed',frameHotkeyConfig.newspeedhackspeed2.speed);
-        reg.WriteBool('Speedhack 2 disablewhenreleased',frameHotkeyConfig.newspeedhackspeed2.disablewhenreleased);
-        reg.WriteFloat('Speedhack 3 speed',frameHotkeyConfig.newspeedhackspeed3.speed);
-        reg.WriteBool('Speedhack 3 disablewhenreleased',frameHotkeyConfig.newspeedhackspeed3.disablewhenreleased);
-        reg.WriteFloat('Speedhack 4 speed',frameHotkeyConfig.newspeedhackspeed4.speed);
-        reg.WriteBool('Speedhack 4 disablewhenreleased',frameHotkeyConfig.newspeedhackspeed4.disablewhenreleased);
-        reg.WriteFloat('Speedhack 5 speed',frameHotkeyConfig.newspeedhackspeed5.speed);
-        reg.WriteBool('Speedhack 5 disablewhenreleased',frameHotkeyConfig.newspeedhackspeed5.disablewhenreleased);
-
-        mainunit2.speedhackspeed1:=frameHotkeyConfig.newspeedhackspeed1;
-        mainunit2.speedhackspeed2:=frameHotkeyConfig.newspeedhackspeed2;
-        mainunit2.speedhackspeed3:=frameHotkeyConfig.newspeedhackspeed3;
-        mainunit2.speedhackspeed4:=frameHotkeyConfig.newspeedhackspeed4;
-        mainunit2.speedhackspeed5:=frameHotkeyConfig.newspeedhackspeed5;
-
-        reg.WriteBinaryData('Set Speedhack speed 1 Hotkey',frameHotkeyConfig.newhotkeys[3][0],10);
-        reg.WriteBinaryData('Set Speedhack speed 2 Hotkey',frameHotkeyConfig.newhotkeys[4][0],10);
-        reg.WriteBinaryData('Set Speedhack speed 3 Hotkey',frameHotkeyConfig.newhotkeys[5][0],10);
-        reg.WriteBinaryData('Set Speedhack speed 4 Hotkey',frameHotkeyConfig.newhotkeys[6][0],10);
-        reg.WriteBinaryData('Set Speedhack speed 5 Hotkey',frameHotkeyConfig.newhotkeys[7][0],10);
-
-        reg.WriteBinaryData('Increase Speedhack speed',frameHotkeyConfig.newhotkeys[8][0],10);
-        reg.WriteFloat('Increase Speedhack delta',frameHotkeyConfig.speedupdelta);
-
-        reg.WriteBinaryData('Decrease Speedhack speed',frameHotkeyConfig.newhotkeys[9][0],10);
-        reg.WriteFloat('Decrease Speedhack delta',frameHotkeyConfig.slowdowndelta);
-
-        mainunit2.speedupdelta:=frameHotkeyConfig.speedupdelta;
-        mainunit2.slowdowndelta:=frameHotkeyConfig.slowdowndelta;
-
-        reg.WriteBinaryData('Binary Hotkey',frameHotkeyConfig.newhotkeys[10][0],10);
-        reg.WriteBinaryData('Byte Hotkey',frameHotkeyConfig.newhotkeys[11][0],10);
-        reg.WriteBinaryData('2 Bytes Hotkey',frameHotkeyConfig.newhotkeys[12][0],10);
-        reg.WriteBinaryData('4 Bytes Hotkey',frameHotkeyConfig.newhotkeys[13][0],10);
-        reg.WriteBinaryData('8 Bytes Hotkey',frameHotkeyConfig.newhotkeys[14][0],10);
-        reg.WriteBinaryData('Float Hotkey',frameHotkeyConfig.newhotkeys[15][0],10);
-        reg.WriteBinaryData('Double Hotkey',frameHotkeyConfig.newhotkeys[16][0],10);
-        reg.WriteBinaryData('Text Hotkey',frameHotkeyConfig.newhotkeys[17][0],10);
-        reg.WriteBinaryData('Array of Byte Hotkey',frameHotkeyConfig.newhotkeys[18][0],10);
-        reg.WriteBinaryData('New Scan Hotkey',frameHotkeyConfig.newhotkeys[19][0],10);
-        reg.WriteBinaryData('New Scan-Exact Value',frameHotkeyConfig.newhotkeys[20][0],10);
-        reg.WriteBinaryData('Unknown Initial Value Hotkey',frameHotkeyConfig.newhotkeys[21][0],10);
-        reg.WriteBinaryData('Next Scan-Exact Value',frameHotkeyConfig.newhotkeys[22][0],10);
-        reg.WriteBinaryData('Increased Value Hotkey',frameHotkeyConfig.newhotkeys[23][0],10);
-        reg.WriteBinaryData('Decreased Value Hotkey',frameHotkeyConfig.newhotkeys[24][0],10);
-        reg.WriteBinaryData('Changed Value Hotkey',frameHotkeyConfig.newhotkeys[25][0],10);
-        reg.WriteBinaryData('Unchanged Value Hotkey',frameHotkeyConfig.newhotkeys[26][0],10);
-        reg.WriteBinaryData('Same as first scan Hotkey',frameHotkeyConfig.newhotkeys[27][0],10);
-
-        reg.WriteBinaryData('Undo Last scan Hotkey',frameHotkeyConfig.newhotkeys[28][0],10);
-        reg.WriteBinaryData('Cancel scan Hotkey',frameHotkeyConfig.newhotkeys[29][0],10);
-        reg.WriteBinaryData('Debug->Run Hotkey',frameHotkeyConfig.newhotkeys[30][0],10);
-
-
-        //apply these hotkey changes
-        for i:=0 to 30 do
-        begin
-          found:=false;
-
-          for j:=0 to length(hotkeythread.hotkeylist)-1 do
-          begin
-            if (hotkeythread.hotkeylist[j].id=i) and (hotkeythread.hotkeylist[j].handler2) then
-            begin
-              //found it
-              hotkeythread.hotkeylist[j].keys:=frameHotkeyConfig.newhotkeys[i];
-              found:=true;
-              break;
-            end;
-          end;
-
-          if not found then //add it
-          begin
-            j:=length(hotkeythread.hotkeylist);
-            setlength(hotkeythread.hotkeylist,j+1);
-            hotkeythread.hotkeylist[j].keys:=frameHotkeyConfig.newhotkeys[i];
-            hotkeythread.hotkeylist[j].windowtonotify:=mainform.Handle;
-            hotkeythread.hotkeylist[j].id:=i;
-            hotkeythread.hotkeylist[j].handler2:=true;
-          end;
-
-          checkkeycombo(frameHotkeyConfig.newhotkeys[i]);
+        reg.WriteBool('Undo',cbshowundo.checked);
+        reg.WriteInteger('ScanThreadpriority',combothreadpriority.itemindex);
+        case combothreadpriority.itemindex of
+          0: scanpriority:=tpIdle;
+          1: scanpriority:=tpLowest;
+          2: scanpriority:=tpLower;
+          3: scanpriority:=tpLower;
+          4: scanpriority:=tpNormal;
+          5: scanpriority:=tpHigher;
+          6: scanpriority:=tpHighest;
+          7: scanpriority:=tpTimeCritical;
         end;
 
 
 
 
 
-      {$endif}
-      dontusetempdir:=cbDontusetempdir.checked;
-      tempdiralternative:=trim(edtTempScanFolder.text);
 
-      tempdiralternative:=IncludeTrailingPathDelimiter(tempdiralternative);
+        reg.WriteBool('Show all windows on taskbar',cbShowallWindows.checked);
+        if cbShowallWindows.checked then
+          Application.TaskBarBehavior:=tbMultiButton
+        else
+          Application.TaskBarBehavior:=tbSingleButton;
 
+        ScanAllTypes:=[];
+        if cgAllTypes.checked[0] then ScanAllTypes:=ScanAllTypes+[vtByte];
+        if cgAllTypes.checked[1] then ScanAllTypes:=ScanAllTypes+[vtWord];
+        if cgAllTypes.checked[2] then ScanAllTypes:=ScanAllTypes+[vtDword];
+        if cgAllTypes.checked[3] then ScanAllTypes:=ScanAllTypes+[vtQword];
+        if cgAllTypes.checked[4] then ScanAllTypes:=ScanAllTypes+[vtSingle];
+        if cgAllTypes.checked[5] then ScanAllTypes:=ScanAllTypes+[vtDouble];
+        if cgAllTypes.checked[6] then ScanAllTypes:=ScanAllTypes+[vtCustom];
 
-      reg.WriteBool('Don''t use tempdir',dontusetempdir);
-      reg.WriteString('Scanfolder',tempdiralternative);
-
-
-      reg.WriteBool('Use dbk32 QueryMemoryRegionEx',cbKernelQueryMemoryRegion.checked);
-      reg.WriteBool('Use dbk32 ReadWriteProcessMemory',cbKernelReadWriteProcessMemory.checked);
-      reg.WriteBool('Use dbk32 OpenProcess',cbKernelOpenProcess.checked);
-
-      reg.WriteBool('Use Processwatcher',cbProcessWatcher.checked);
-      reg.WriteBool('Use VEH Debugger',cbUseVEHDebugger.checked);
-      reg.WriteBool('VEH Real context on thread creation event', cbVEHRealContextOnThreadCreation.checked);
-      VEHRealContextOnThreadCreation:=cbVEHRealContextOnThreadCreation.checked;
-
-
-      reg.WriteBool('Use Windows Debugger',cbUseWindowsDebugger.checked);
-      reg.WriteBool('Use Kernel Debugger',cbKdebug.checked);
-      reg.WriteBool('Use Global Debug Routines',cbGlobalDebug.checked);
-
-      waitafterguiupdate:=cbWaitAfterGuiUpdate.checked;
-      reg.WriteBool('Wait After Gui Update', waitafterguiupdate);
+        reg.writebool('AllByte',cgAllTypes.checked[0]);
+        reg.writebool('AllWord',cgAllTypes.checked[1]);
+        reg.writebool('AllDWord',cgAllTypes.checked[2]);
+        reg.writebool('AllQWord',cgAllTypes.checked[3]);
+        reg.writebool('AllFloat',cgAllTypes.checked[4]);
+        reg.writebool('AllDouble',cgAllTypes.checked[5]);
+        reg.writebool('AllCustom',cgAllTypes.checked[6]);
 
 
-      unrandomizersettings.defaultreturn:=strtoint(edtdefault.Text);
-      unrandomizersettings.incremental:=cbincremental.Checked;
-      reg.WriteInteger('Unrandomizer: default value',unrandomizersettings.defaultreturn);
-      reg.WriteBool('Unrandomizer: incremental',unrandomizersettings.incremental);
+        reg.writebool('Can Step Kernelcode',cbCanStepKernelcode.checked);
 
-      reg.writebool('Show tools menu', cbShowTools.checked);
-      mainform.ools1.Visible:=cbShowTools.checked;
-
-      reg.writebool('WriteLogging', cbWriteLoggingOn.checked);
-      reg.WriteInteger('WriteLoggingSize', WriteLogSize);
-
-      logWrites:=cbWriteLoggingOn.checked;
-      setMaxWriteLogSize(writelogsize);
-
-      reg.WriteBool('Show Language MenuItem', cbShowLanguageMenuItem.checked);
-      MainForm.miLanguages.visible:=cbShowLanguageMenuItem.checked and (lbLanguages.Count>1);
+        reg.WriteInteger('Buffersize',bufsize);
+        reg.WriteBool('Center on popup',cbCenterOnPopup.checked);
+        reg.WriteInteger('Update interval',updateinterval);
+        reg.WriteInteger('Freeze interval',freezeinterval);
+        reg.writebool('Show values as signed',cbShowAsSigned.checked);
 
 
-      reg.WriteBool('DPI Aware', cbDPIAware.Checked);
-      reg.writebool('Override Default Font', cbOverrideDefaultFont.Checked);
-
-      {$ifdef privatebuild}
-      reg.WriteBool('DoNotOpenProcessHandles', cbDontOpenHandle.Checked);
-      DoNotOpenProcessHandles:=cbDontOpenHandle.Checked;
-
-      reg.WriteBool('ProcessWatcherOpensHandles', cbProcessWatcherOpensHandles.Checked);
-      ProcessWatcherOpensHandles:=cbProcessWatcherOpensHandles.Checked;
-
-      reg.WriteBool('ProcessWatcherOpensHandles', cbProcessWatcherOpensHandles.Checked);
-
-      reg.WriteBool('useapctoinjectdll', cbInjectDLLWithAPC.Checked);
-      useapctoinjectdll:=cbInjectDLLWithAPC.checked;
-      {$else}
-      useapctoinjectdll:=false;
-      {$endif}
-
-      reg.WriteBool('Always Sign Table', cbAlwaysSignTable.Checked);
-    end;
+        reg.WriteBool('Replace incomplete opcodes with NOPS',replacewithnops.checked);
+        reg.WriteBool('Ask for replace with NOPS',askforreplacewithnops.checked);
+        reg.WriteBool('Use Anti-debugdetection',checkbox1.checked);
+        reg.WriteBool('Override existing bp''s',cbOverrideExistingBPs.checked);
+        BPOverride:=cbOverrideExistingBPs.checked;
 
 
-    if cbOverrideDefaultFont.checked then
-    begin
-      if reg.OpenKey('\Software\Cheat Engine\Font', true) then
-        SaveFontToRegistry(fontdialog1.Font, reg);
-    end;
+        reg.WriteBool('Handle unhandled breakpoints',cbhandlebreakpoints.Checked);
+        reg.WriteBool('Fastscan on by default',cbFastscan.checked);
+
+        reg.WriteBool('Hardware breakpoints', rbDebugAsBreakpoint.checked);
+        reg.WriteBool('Software breakpoints', rbInt3AsBreakpoint.checked);
+        reg.Writebool('Exception breakpoints', rbPageExceptions.checked);
+
+        reg.WriteBool('Update Foundaddress list',cbUpdatefoundList.checked);
+        reg.WriteInteger('Update Foundaddress list Interval',foundinterval);
+
+        reg.WriteBool('Simple copy/paste',cbsimplecopypaste.checked);
+        reg.WriteString('AutoAttach',EditAutoAttach.text);
+        reg.writebool('Always AutoAttach', cbAlwaysAutoAttach.checked);
+
+        i:=1;
+        if miLuaExecAlways.checked then i:=0 else
+        if miLuaExecSignedOnly.checked then i:=1 else
+        if miLuaExecAsk.checked then i:=2 else
+        if miLuaExecNever.checked then i:=3;
+
+        reg.WriteInteger('LuaScriptAction', i);
+
+
+        {$ifndef net}
+        mainform.UpdateFoundlisttimer.Interval:=foundinterval;
+        {$endif}
+
+        reg.WriteBool('Save window positions',cbSaveWindowPos.checked);
+        reg.WriteBool('Show main menu',cbShowMainMenu.Checked);
+        reg.WriteBool('Get process icons',cbProcessIcons.Checked);
+        GetProcessIcons:=cbProcessIcons.Checked;
+
+        reg.WriteBool('Only show processes with icon',cbProcessIconsOnly.Checked);
+        ProcessesWithIconsOnly:=cbProcessIconsOnly.Checked;
+
+        reg.WriteBool('Pointer appending', cbOldPointerAddMethod.checked);
+
+        reg.writebool('skip PAGE_NOCACHE',cbSkip_PAGE_NOCACHE.Checked);
+        reg.writebool('Pause when scanning on by default',cbPauseWhenScanningOnByDefault.Checked);
+
+
+        reg.WriteBool('Hide all windows',cbHideAllWindows.checked);
+        reg.WriteBool('Really hide all windows',temphideall);
+
+
+        //save donthidelist
+        {$ifndef net}
+        setlength(donthidelist,length(tempdonthidelist));
+        for i:=0 to length(tempdonthidelist)-1 do
+        begin
+          donthidelist[i]:=tempdonthidelist[i];
+          reg.writestring('Do not hide '+IntToStr(i),tempdonthidelist[i]);
+        end;
+
+        //end
+        reg.writestring('Do not hide '+IntToStr(length(tempdonthidelist)),'');
+        reg.WriteBool('MEM_PRIVATE',cbMemPrivate.checked);
+        reg.WriteBool('MEM_IMAGE',cbMemImage.Checked);
+        reg.WriteBool('MEM_MAPPED',cbMemMapped.Checked);
+        onlyfront:=not temphideall;
 
 
 
-{$ifndef net}
-    //save the tools hotkeys
-    reg.DeleteKey('\Software\Cheat Engine\Tools');
-    if Reg.OpenKey('\Software\Cheat Engine\Tools',true) then
-    begin
-      for i:=0 to lvTools.Items.Count-1 do
-      begin
-        reg.WriteString(format('%.8x A',[i]),lvTools.Items[i].caption);
-        reg.WriteString(format('%.8x B',[i]),lvTools.Items[i].subitems[0]);
-        reg.WriteInteger(format('%.8x C',[i]),ptrUint(lvTools.Items[i].data));
+
+        //check the module list
+
+        if frmModuleSafety<>nil then //modified
+        begin
+          if modulelist<>nil then
+            freemem(modulelist);
+
+          modulelist:=tempmodulelist;
+          modulelistsize:=tempmodulelistsize;
+          tempmodulelist:=nil;
+          denylist:=tempdenylist;
+          denylistglobal:=tempdenylistglobal;
+
+          reg.WriteBinaryData('Module List',ModuleList^,modulelistsize);
+          reg.writeInteger('modulelistsize',modulelistsize);
+          reg.WriteBool('Global Denylist',DenyListGlobal);
+          reg.WriteBool('ModuleList as Denylist',DenyList);
+        end;
+
+
+        try
+          reg.WriteInteger('hotkey poll interval',strtoint(frameHotkeyConfig.edtKeypollInterval.text));
+          hotkeyPollInterval:=strtoint(frameHotkeyConfig.edtKeypollInterval.text);
+        except
+          raise exception.Create(Format(rsTheValueForTheKeypollIntervalIsInvalid, [frameHotkeyConfig.edtKeypollInterval.text]));
+        end;
+
+        try
+          reg.WriteInteger('Time between hotkeypress',strtoint(frameHotkeyConfig.edtHotkeyDelay.text));
+          hotkeyIdletime:=strtoint(frameHotkeyConfig.edtHotkeyDelay.text);
+        except
+          raise exception.Create(Format(rsTheValueForTheWaitBetweenHotkeyPressesIsInvalid, [frameHotkeyConfig.edtHotkeyDelay.text]));
+        end;
+
+
+
+
+
+          //save the hotkeylist
+          reg.WriteBinaryData('Show Cheat Engine Hotkey',frameHotkeyConfig.newhotkeys[0][0],10);
+          reg.WriteBinaryData('Pause process Hotkey',frameHotkeyConfig.newhotkeys[1][0],10);
+          reg.WriteBinaryData('Toggle speedhack Hotkey',frameHotkeyConfig.newhotkeys[2][0],10);
+
+
+          reg.WriteFloat('Speedhack 1 speed',frameHotkeyConfig.newspeedhackspeed1.speed);
+          reg.WriteBool('Speedhack 1 disablewhenreleased',frameHotkeyConfig.newspeedhackspeed1.disablewhenreleased);
+          reg.WriteFloat('Speedhack 2 speed',frameHotkeyConfig.newspeedhackspeed2.speed);
+          reg.WriteBool('Speedhack 2 disablewhenreleased',frameHotkeyConfig.newspeedhackspeed2.disablewhenreleased);
+          reg.WriteFloat('Speedhack 3 speed',frameHotkeyConfig.newspeedhackspeed3.speed);
+          reg.WriteBool('Speedhack 3 disablewhenreleased',frameHotkeyConfig.newspeedhackspeed3.disablewhenreleased);
+          reg.WriteFloat('Speedhack 4 speed',frameHotkeyConfig.newspeedhackspeed4.speed);
+          reg.WriteBool('Speedhack 4 disablewhenreleased',frameHotkeyConfig.newspeedhackspeed4.disablewhenreleased);
+          reg.WriteFloat('Speedhack 5 speed',frameHotkeyConfig.newspeedhackspeed5.speed);
+          reg.WriteBool('Speedhack 5 disablewhenreleased',frameHotkeyConfig.newspeedhackspeed5.disablewhenreleased);
+
+          mainunit2.speedhackspeed1:=frameHotkeyConfig.newspeedhackspeed1;
+          mainunit2.speedhackspeed2:=frameHotkeyConfig.newspeedhackspeed2;
+          mainunit2.speedhackspeed3:=frameHotkeyConfig.newspeedhackspeed3;
+          mainunit2.speedhackspeed4:=frameHotkeyConfig.newspeedhackspeed4;
+          mainunit2.speedhackspeed5:=frameHotkeyConfig.newspeedhackspeed5;
+
+          reg.WriteBinaryData('Set Speedhack speed 1 Hotkey',frameHotkeyConfig.newhotkeys[3][0],10);
+          reg.WriteBinaryData('Set Speedhack speed 2 Hotkey',frameHotkeyConfig.newhotkeys[4][0],10);
+          reg.WriteBinaryData('Set Speedhack speed 3 Hotkey',frameHotkeyConfig.newhotkeys[5][0],10);
+          reg.WriteBinaryData('Set Speedhack speed 4 Hotkey',frameHotkeyConfig.newhotkeys[6][0],10);
+          reg.WriteBinaryData('Set Speedhack speed 5 Hotkey',frameHotkeyConfig.newhotkeys[7][0],10);
+
+          reg.WriteBinaryData('Increase Speedhack speed',frameHotkeyConfig.newhotkeys[8][0],10);
+          reg.WriteFloat('Increase Speedhack delta',frameHotkeyConfig.speedupdelta);
+
+          reg.WriteBinaryData('Decrease Speedhack speed',frameHotkeyConfig.newhotkeys[9][0],10);
+          reg.WriteFloat('Decrease Speedhack delta',frameHotkeyConfig.slowdowndelta);
+
+          mainunit2.speedupdelta:=frameHotkeyConfig.speedupdelta;
+          mainunit2.slowdowndelta:=frameHotkeyConfig.slowdowndelta;
+
+          reg.WriteBinaryData('Binary Hotkey',frameHotkeyConfig.newhotkeys[10][0],10);
+          reg.WriteBinaryData('Byte Hotkey',frameHotkeyConfig.newhotkeys[11][0],10);
+          reg.WriteBinaryData('2 Bytes Hotkey',frameHotkeyConfig.newhotkeys[12][0],10);
+          reg.WriteBinaryData('4 Bytes Hotkey',frameHotkeyConfig.newhotkeys[13][0],10);
+          reg.WriteBinaryData('8 Bytes Hotkey',frameHotkeyConfig.newhotkeys[14][0],10);
+          reg.WriteBinaryData('Float Hotkey',frameHotkeyConfig.newhotkeys[15][0],10);
+          reg.WriteBinaryData('Double Hotkey',frameHotkeyConfig.newhotkeys[16][0],10);
+          reg.WriteBinaryData('Text Hotkey',frameHotkeyConfig.newhotkeys[17][0],10);
+          reg.WriteBinaryData('Array of Byte Hotkey',frameHotkeyConfig.newhotkeys[18][0],10);
+          reg.WriteBinaryData('New Scan Hotkey',frameHotkeyConfig.newhotkeys[19][0],10);
+          reg.WriteBinaryData('New Scan-Exact Value',frameHotkeyConfig.newhotkeys[20][0],10);
+          reg.WriteBinaryData('Unknown Initial Value Hotkey',frameHotkeyConfig.newhotkeys[21][0],10);
+          reg.WriteBinaryData('Next Scan-Exact Value',frameHotkeyConfig.newhotkeys[22][0],10);
+          reg.WriteBinaryData('Increased Value Hotkey',frameHotkeyConfig.newhotkeys[23][0],10);
+          reg.WriteBinaryData('Decreased Value Hotkey',frameHotkeyConfig.newhotkeys[24][0],10);
+          reg.WriteBinaryData('Changed Value Hotkey',frameHotkeyConfig.newhotkeys[25][0],10);
+          reg.WriteBinaryData('Unchanged Value Hotkey',frameHotkeyConfig.newhotkeys[26][0],10);
+          reg.WriteBinaryData('Same as first scan Hotkey',frameHotkeyConfig.newhotkeys[27][0],10);
+
+          reg.WriteBinaryData('Undo Last scan Hotkey',frameHotkeyConfig.newhotkeys[28][0],10);
+          reg.WriteBinaryData('Cancel scan Hotkey',frameHotkeyConfig.newhotkeys[29][0],10);
+          reg.WriteBinaryData('Debug->Run Hotkey',frameHotkeyConfig.newhotkeys[30][0],10);
+
+
+          //apply these hotkey changes
+          for i:=0 to 30 do
+          begin
+            found:=false;
+
+            for j:=0 to length(hotkeythread.hotkeylist)-1 do
+            begin
+              if (hotkeythread.hotkeylist[j].id=i) and (hotkeythread.hotkeylist[j].handler2) then
+              begin
+                //found it
+                hotkeythread.hotkeylist[j].keys:=frameHotkeyConfig.newhotkeys[i];
+                found:=true;
+                break;
+              end;
+            end;
+
+            if not found then //add it
+            begin
+              j:=length(hotkeythread.hotkeylist);
+              setlength(hotkeythread.hotkeylist,j+1);
+              hotkeythread.hotkeylist[j].keys:=frameHotkeyConfig.newhotkeys[i];
+              hotkeythread.hotkeylist[j].windowtonotify:=mainform.Handle;
+              hotkeythread.hotkeylist[j].id:=i;
+              hotkeythread.hotkeylist[j].handler2:=true;
+            end;
+
+            checkkeycombo(frameHotkeyConfig.newhotkeys[i]);
+          end;
+
+
+
+
+
+        {$endif}
+        dontusetempdir:=cbDontusetempdir.checked;
+        tempdiralternative:=trim(edtTempScanFolder.text);
+
+        tempdiralternative:=IncludeTrailingPathDelimiter(tempdiralternative);
+
+
+        reg.WriteBool('Don''t use tempdir',dontusetempdir);
+        reg.WriteString('Scanfolder',tempdiralternative);
+
+
+        reg.WriteBool('Use dbk32 QueryMemoryRegionEx',cbKernelQueryMemoryRegion.checked);
+        reg.WriteBool('Use dbk32 ReadWriteProcessMemory',cbKernelReadWriteProcessMemory.checked);
+        reg.WriteBool('Use dbk32 OpenProcess',cbKernelOpenProcess.checked);
+
+        reg.WriteBool('Use Processwatcher',cbProcessWatcher.checked);
+        reg.WriteBool('Use VEH Debugger',cbUseVEHDebugger.checked);
+        reg.WriteBool('VEH Real context on thread creation event', cbVEHRealContextOnThreadCreation.checked);
+        VEHRealContextOnThreadCreation:=cbVEHRealContextOnThreadCreation.checked;
+
+
+        reg.WriteBool('Use Windows Debugger',cbUseWindowsDebugger.checked);
+        reg.WriteBool('Use Kernel Debugger',cbKdebug.checked);
+        reg.WriteBool('Use Global Debug Routines',cbGlobalDebug.checked);
+
+        waitafterguiupdate:=cbWaitAfterGuiUpdate.checked;
+        reg.WriteBool('Wait After Gui Update', waitafterguiupdate);
+
+
+        unrandomizersettings.defaultreturn:=strtoint(edtdefault.Text);
+        unrandomizersettings.incremental:=cbincremental.Checked;
+        reg.WriteInteger('Unrandomizer: default value',unrandomizersettings.defaultreturn);
+        reg.WriteBool('Unrandomizer: incremental',unrandomizersettings.incremental);
+
+        reg.writebool('Show tools menu', cbShowTools.checked);
+        mainform.ools1.Visible:=cbShowTools.checked;
+
+        reg.writebool('WriteLogging', cbWriteLoggingOn.checked);
+        reg.WriteInteger('WriteLoggingSize', WriteLogSize);
+
+        logWrites:=cbWriteLoggingOn.checked;
+        setMaxWriteLogSize(writelogsize);
+
+        reg.WriteBool('Show Language MenuItem', cbShowLanguageMenuItem.checked);
+        MainForm.miLanguages.visible:=cbShowLanguageMenuItem.checked and (lbLanguages.Count>1);
+
+
+        reg.WriteBool('DPI Aware', cbDPIAware.Checked);
+        reg.writebool('Override Default Font', cbOverrideDefaultFont.Checked);
+
+        {$ifdef privatebuild}
+        reg.WriteBool('DoNotOpenProcessHandles', cbDontOpenHandle.Checked);
+        DoNotOpenProcessHandles:=cbDontOpenHandle.Checked;
+
+        reg.WriteBool('ProcessWatcherOpensHandles', cbProcessWatcherOpensHandles.Checked);
+        ProcessWatcherOpensHandles:=cbProcessWatcherOpensHandles.Checked;
+
+        reg.WriteBool('ProcessWatcherOpensHandles', cbProcessWatcherOpensHandles.Checked);
+
+        reg.WriteBool('useapctoinjectdll', cbInjectDLLWithAPC.Checked);
+        useapctoinjectdll:=cbInjectDLLWithAPC.checked;
+        {$else}
+        useapctoinjectdll:=false;
+        {$endif}
+
+        reg.WriteBool('Always Sign Table', cbAlwaysSignTable.Checked);
       end;
-    end;
-    UpdateToolsMenu;
 
-    for i:=0 to deletedmodules.Count-1 do
-    begin
-      j:=pluginhandler.GetPluginID(deletedmodules[i]);
-      if j<>-1 then
-        pluginhandler.DisablePlugin(j);
-    end;
 
-    //save the plugins
-    reg.DeleteKey('\Software\Cheat Engine\Plugins'+cpu);
-    if Reg.OpenKey('\Software\Cheat Engine\Plugins'+cpu,true) then
-    begin
+      if cbOverrideDefaultFont.checked then
+      begin
+        if reg.OpenKey('\Software\Cheat Engine\Font', true) then
+          SaveFontToRegistry(fontdialog1.Font, reg);
+      end;
+
+
+
+  {$ifndef net}
+      //save the tools hotkeys
+      reg.DeleteKey('\Software\Cheat Engine\Tools');
+      if Reg.OpenKey('\Software\Cheat Engine\Tools',true) then
+      begin
+        for i:=0 to lvTools.Items.Count-1 do
+        begin
+          reg.WriteString(format('%.8x A',[i]),lvTools.Items[i].caption);
+          reg.WriteString(format('%.8x B',[i]),lvTools.Items[i].subitems[0]);
+          reg.WriteInteger(format('%.8x C',[i]),ptrUint(lvTools.Items[i].data));
+        end;
+      end;
+      UpdateToolsMenu;
+
+      for i:=0 to deletedmodules.Count-1 do
+      begin
+        j:=pluginhandler.GetPluginID(deletedmodules[i]);
+        if j<>-1 then
+          pluginhandler.DisablePlugin(j);
+      end;
+
+      //save the plugins
+      reg.DeleteKey('\Software\Cheat Engine\Plugins'+cpu);
+      if Reg.OpenKey('\Software\Cheat Engine\Plugins'+cpu,true) then
+      begin
+        for i:=0 to clbplugins.Count-1 do
+        begin
+          dllpath:=Tpathspecifier(clbplugins.Items.Objects[i]);
+
+          reg.WriteString(format('%.8x A',[i]),dllpath.path);
+          reg.WriteBool(format('%.8x B',[i]),clbplugins.Checked[i]);
+        end;
+      end;
+
+
+
       for i:=0 to clbplugins.Count-1 do
       begin
         dllpath:=Tpathspecifier(clbplugins.Items.Objects[i]);
-
-        reg.WriteString(format('%.8x A',[i]),dllpath.path);
-        reg.WriteBool(format('%.8x B',[i]),clbplugins.Checked[i]);
-      end;
-    end;
-
-
-
-    for i:=0 to clbplugins.Count-1 do
-    begin
-      dllpath:=Tpathspecifier(clbplugins.Items.Objects[i]);
-      if dllpath<>nil then
-      begin
-
-        j:=pluginhandler.GetPluginID(dllpath.path);
-
-        if j=-1 then //not loaded yet
-          j:=pluginhandler.LoadPlugin(dllpath.path);
-
-        if clbplugins.Checked[i] then
+        if dllpath<>nil then
         begin
-          //at least load it if it is loadable
 
-          pluginhandler.EnablePlugin(j);
-        end
-        else
-          pluginhandler.DisablePlugin(j);
+          j:=pluginhandler.GetPluginID(dllpath.path);
+
+          if j=-1 then //not loaded yet
+            j:=pluginhandler.LoadPlugin(dllpath.path);
+
+          if clbplugins.Checked[i] then
+          begin
+            //at least load it if it is loadable
+
+            pluginhandler.EnablePlugin(j);
+          end
+          else
+            pluginhandler.DisablePlugin(j);
+        end;
       end;
+  {$endif}
+
+
+
+    finally
+      reg.CloseKey;
+      reg.free;
     end;
-{$endif}
 
 
 
-  finally
-    reg.CloseKey;
-    reg.free;
+    SetAssociations;
+
+
+    {$ifndef net}
+    mainform.FreezeTimer.Interval:=freezeinterval;
+    mainform.UpdateTimer.Interval:=updateinterval;
+    {$else}
+    mainform.FreezeTimer.Interval:=freezeinterval;
+    mainform.UpdateTimer.Interval:=networkupdateinterval;
+    {$endif}
+
+    savedStackSize:=stacksize;
+
+    Skip_PAGE_NOCACHE:=cbSkip_PAGE_NOCACHE.Checked;
+
+    {$ifndef net}
+    Scan_MEM_PRIVATE:=cbMemPrivate.checked;
+    Scan_MEM_IMAGE:=cbMemImage.Checked;
+    Scan_MEM_MAPPED:=cbMemMapped.Checked;
+    {$endif}
+
+
+    if rbDebugAsBreakpoint.checked then
+      preferedBreakpointMethod:=bpmDebugRegister
+    else
+    if rbInt3AsBreakpoint.checked then
+      preferedBreakpointMethod:=bpmInt3
+    else
+    if rbPageExceptions.checked then
+      preferedBreakpointMethod:=bpmException;
+
+    laststatePopupHide:=tempstatepopuphide;
+    lastpopupmodifier:=temppopupmodifier;
+    laststatePause:=tempstatepause;
+    lastPausemodifier:=temppausemodifier;
+    laststateSpeedhack:=tempstatespeedhack;
+    lastSpeedhackmodifier:=tempspeedhackmodifier;
+
+    mainform.autoattachlist.DelimitedText:=formsettings.EditAutoAttach.Text;
+
+    if cbShowMainMenu.Checked then
+      mainform.Menu:=mainform.MainMenu1
+    else
+      mainform.Menu:=nil;
+
+    modalresult:=mrok;
+
+  except
+    on e: exception do
+      MessageDlg(e.message, mtError,[mbOK],0);
   end;
-
-
-
-  SetAssociations;
-
-
-  {$ifndef net}
-  mainform.FreezeTimer.Interval:=freezeinterval;
-  mainform.UpdateTimer.Interval:=updateinterval;
-  {$else}
-  mainform.FreezeTimer.Interval:=freezeinterval;
-  mainform.UpdateTimer.Interval:=networkupdateinterval;
-  {$endif}
-
-  savedStackSize:=stacksize;
-
-  Skip_PAGE_NOCACHE:=cbSkip_PAGE_NOCACHE.Checked;
-
-  {$ifndef net}
-  Scan_MEM_PRIVATE:=cbMemPrivate.checked;
-  Scan_MEM_IMAGE:=cbMemImage.Checked;
-  Scan_MEM_MAPPED:=cbMemMapped.Checked;
-  {$endif}
-
-
-  if rbDebugAsBreakpoint.checked then
-    preferedBreakpointMethod:=bpmDebugRegister
-  else
-  if rbInt3AsBreakpoint.checked then
-    preferedBreakpointMethod:=bpmInt3
-  else
-  if rbPageExceptions.checked then
-    preferedBreakpointMethod:=bpmException;
-
-  laststatePopupHide:=tempstatepopuphide;
-  lastpopupmodifier:=temppopupmodifier;
-  laststatePause:=tempstatepause;
-  lastPausemodifier:=temppausemodifier;
-  laststateSpeedhack:=tempstatespeedhack;
-  lastSpeedhackmodifier:=tempspeedhackmodifier;
-
-  mainform.autoattachlist.DelimitedText:=formsettings.EditAutoAttach.Text;
-
-  if cbShowMainMenu.Checked then
-    mainform.Menu:=mainform.MainMenu1
-  else
-    mainform.Menu:=nil;
-
-  modalresult:=mrok;
 
 end;
 

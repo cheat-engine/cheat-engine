@@ -109,16 +109,17 @@ var
   s: TLuaSettings;
   index: string;
   newvalue: string;
+  paramstart, paramcount: integer;
 begin
   result:=0;
-  s:=luaclass_getClassObject(L);
-  if lua_gettop(L)>=2 then
+  s:=luaclass_getClassObject(L, @paramstart, @paramcount);
+  if paramcount>=2 then
   begin
-    index:=lua_tostring(L,1);
-    if lua_isboolean(L, 2) then
-      newvalue:=BoolToStr(lua_toboolean(L,2), '1','0')
+    index:=lua_tostring(L,paramstart);
+    if lua_isboolean(L, paramstart+1) then
+      newvalue:=BoolToStr(lua_toboolean(L,paramstart+1), '1','0')
     else
-      newvalue:=lua_tostring(l,2);
+      newvalue:=lua_tostring(l,paramstart+1);
 
     s.value[index]:=newvalue;
   end;

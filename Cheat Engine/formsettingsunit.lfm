@@ -14,7 +14,7 @@ object formSettings: TformSettings
   OnShow = FormShow
   PopupMode = pmAuto
   Position = poMainFormCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object pnlConfig: TPanel
     Left = 0
     Height = 502
@@ -2038,7 +2038,7 @@ object formSettings: TformSettings
               item
                 AutoSize = True
                 Caption = 'Shortcut'
-                Width = 250
+                Width = 60
               end>
             HideSelection = False
             ReadOnly = True

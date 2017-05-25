@@ -10,7 +10,7 @@ object MainForm: TMainForm
   VertScrollBar.Visible = False
   AllowDropFiles = True
   AutoSize = True
-  Caption = 'Cheat Engine 6.6'
+  Caption = 'Cheat Engine 6.7'
   ClientHeight = 679
   ClientWidth = 701
   Menu = MainMenu1
@@ -285,12 +285,12 @@ object MainForm: TMainForm
       AnchorSideLeft.Side = asrCenter
       AnchorSideBottom.Control = Panel5
       AnchorSideBottom.Side = asrBottom
-      Left = 344
+      Left = 339
       Height = 22
       Hint = 'Delete all addresses from the list'
       Top = 419
       Width = 23
-      Anchors = [akBottom]
+      Anchors = [akLeft, akBottom]
       Glyph.Data = {
         76010000424D7601000000000000760000002800000020000000100000000100
         04000000000000010000130B0000130B00001000000000000000000000000000
@@ -2536,7 +2536,7 @@ object MainForm: TMainForm
     object miLanguages: TMenuItem
       Caption = 'Languages'
     end
-    object Help1: TMenuItem
+    object miHelp: TMenuItem
       Caption = '&Help'
       object Helpindex1: TMenuItem
         Caption = 'Cheat Engine Help'
@@ -2559,9 +2559,9 @@ object MainForm: TMainForm
       object N8: TMenuItem
         Caption = '-'
       end
-      object About1: TMenuItem
+      object miAbout: TMenuItem
         Caption = 'About'
-        OnClick = About1Click
+        OnClick = miAboutClick
       end
     end
   end
