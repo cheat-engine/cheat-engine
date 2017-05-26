@@ -106,6 +106,7 @@ type topcode=record
   invalidin64bit: boolean;
   invalidin32bit: boolean;
   canDoAddressSwitch: boolean; //does it support the 0x67 address switch (e.g lea)
+  defaulttype: boolean;
  // RexPrefixOffset: byte; //if specified specifies which byte should be used for the rexw (e.g f3 before rex )
 end;
 
@@ -1352,38 +1353,38 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'SCASW';bytes:2;bt1:$66;bt2:$af),
 
 
-  (mnemonic:'SETA';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$97),
-  (mnemonic:'SETAE';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$93),
-  (mnemonic:'SETB';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$92),
-  (mnemonic:'SETBE';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$96),
-  (mnemonic:'SETC';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$92),
-  (mnemonic:'SETE';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$94),
-  (mnemonic:'SETG';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$9f),
-  (mnemonic:'SETGE';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$9d),
-  (mnemonic:'SETL';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$9c),
-  (mnemonic:'SETLE';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$9e),
-  (mnemonic:'SETNA';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$96),
+  (mnemonic:'SETA';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$97;defaulttype:true),
+  (mnemonic:'SETAE';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$93;defaulttype:true),
+  (mnemonic:'SETB';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$92;defaulttype:true),
+  (mnemonic:'SETBE';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$96;defaulttype:true),
+  (mnemonic:'SETC';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$92;defaulttype:true),
+  (mnemonic:'SETE';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$94;defaulttype:true),
+  (mnemonic:'SETG';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$9f;defaulttype:true),
+  (mnemonic:'SETGE';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$9d;defaulttype:true),
+  (mnemonic:'SETL';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$9c;defaulttype:true),
+  (mnemonic:'SETLE';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$9e;defaulttype:true),
+  (mnemonic:'SETNA';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$96;defaulttype:true),
 
-  (mnemonic:'SETNAE';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$92),
-  (mnemonic:'SETNB';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$93),
-  (mnemonic:'SETNBE';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$97),
-  (mnemonic:'SETNC';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$93),
-  (mnemonic:'SETNE';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$95),
-  (mnemonic:'SETNG';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$9e),
-  (mnemonic:'SETNGE';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$9c),
-  (mnemonic:'SETNL';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$9d),
-  (mnemonic:'SETNLE';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$9f),
-  (mnemonic:'SETNO';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$91),
-  (mnemonic:'SETNP';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$9b),
+  (mnemonic:'SETNAE';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$92;defaulttype:true),
+  (mnemonic:'SETNB';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$93;defaulttype:true),
+  (mnemonic:'SETNBE';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$97;defaulttype:true),
+  (mnemonic:'SETNC';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$93;defaulttype:true),
+  (mnemonic:'SETNE';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$95;defaulttype:true),
+  (mnemonic:'SETNG';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$9e;defaulttype:true),
+  (mnemonic:'SETNGE';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$9c;defaulttype:true),
+  (mnemonic:'SETNL';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$9d;defaulttype:true),
+  (mnemonic:'SETNLE';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$9f;defaulttype:true),
+  (mnemonic:'SETNO';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$91;defaulttype:true),
+  (mnemonic:'SETNP';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$9b;defaulttype:true),
 
-  (mnemonic:'SETNS';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$99),
-  (mnemonic:'SETNZ';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$95),
-  (mnemonic:'SETO';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$90),
-  (mnemonic:'SETP';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$9a),
-  (mnemonic:'SETPE';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$9a),
-  (mnemonic:'SETPO';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$9b),
-  (mnemonic:'SETS';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$98),
-  (mnemonic:'SETZ';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$94),
+  (mnemonic:'SETNS';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$99;defaulttype:true),
+  (mnemonic:'SETNZ';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$95;defaulttype:true),
+  (mnemonic:'SETO';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$90;defaulttype:true),
+  (mnemonic:'SETP';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$9a;defaulttype:true),
+  (mnemonic:'SETPE';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$9a;defaulttype:true),
+  (mnemonic:'SETPO';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$9b;defaulttype:true),
+  (mnemonic:'SETS';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$98;defaulttype:true),
+  (mnemonic:'SETZ';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$94;defaulttype:true),
 
   (mnemonic:'SFENCE';bytes:3;bt1:$0f;bt2:$ae;bt3:$f8),
 
@@ -4926,7 +4927,7 @@ begin
         end;
       end;
 
-      par_rm8: if (isrm8(paramtype1) or ismemorylocationdefault(parameter1) ) then
+      par_rm8: if (isrm8(paramtype1) or (ismemorylocationdefault(parameter1) and opcodes[j].defaulttype) ) then
       begin
         //r/m8,
         if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
