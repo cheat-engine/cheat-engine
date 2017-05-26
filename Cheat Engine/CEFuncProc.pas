@@ -2795,7 +2795,7 @@ end;
 function LoadFormPosition(form: TCustomform):boolean; overload;
 var extra: array of integer;
 begin
-  LoadFormPosition(form, extra);
+  result:=LoadFormPosition(form, extra);
 end;
 
 function GetRelativeFilePath(filename: string):string;

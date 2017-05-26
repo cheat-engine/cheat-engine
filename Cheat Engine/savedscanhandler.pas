@@ -450,6 +450,7 @@ begin
 
                 InitializeScanHandler;
                 result:=getpointertoaddress(address, valuetype, ct, false);
+                exit;
               end
               else
                 raise exception.create(e.message);

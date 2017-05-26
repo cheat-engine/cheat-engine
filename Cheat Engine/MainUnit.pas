@@ -1154,6 +1154,7 @@ resourcestring
   rsChooseLanguage = 'Which language do you wish to use?';
   rsInvalidScanFolder = '%s is not accessible like it should.  Please '
     +'configure a proper location in the settings';
+  rsProcessing = '<Processing>';
 
 var
   ncol: TColor;
@@ -8382,6 +8383,16 @@ begin
   try
     valuetype:=foundlist.vartype;
     address := foundlist.GetAddress(item.Index, extra, Value);
+
+    if (address=0) then
+    begin
+      item.Caption := rsProcessing;
+      item.subitems.add(rsProcessing);
+      item.subitems.add(rsProcessing);
+      exit;
+    end;
+
+
     AddressString:=IntToHex(address,8);
 
     hexadecimal:=foundlist.isHexadecimal;
