@@ -2521,6 +2521,8 @@ begin
               end;
 
               //not handled, but since it's a register, quit now
+              hasError:=true;
+              exit(0);
             end
             else
             {$ENDIF}

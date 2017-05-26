@@ -2306,7 +2306,7 @@ begin
       val('$'+tokens[i],j,err);
       if (err<>0) and (getreg(tokens[i],false)=-1) then    //not a hexadecimal value and not a register
       begin
-        temp:=inttohex(symhandler.getaddressfromname(tokens[i], false, haserror),8);
+        temp:=inttohex(symhandler.getaddressfromname(tokens[i], false, haserror,nil),8);
         if not haserror then
           tokens[i]:=temp //can be rewritten as a hexadecimal
         else
