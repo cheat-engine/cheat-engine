@@ -521,8 +521,8 @@ type
     errorstring: string;
 
     //messages
-    notifywindow: thandle;
-    notifymessage: integer;
+    //notifywindow: thandle;
+    //notifymessage: integer;
 
     //OnlyOne vars
     OnlyOne: boolean;
@@ -555,8 +555,8 @@ type
     memRegionPos: integer;
 
     progressbar: TCustomProgressBar;
-    notifywindow: thandle;
-    notifymessage: integer;
+    //notifywindow: thandle;
+   // notifymessage: integer;
 
     currentVariableType: TVariableType;
     currentCustomType: TCustomType;
@@ -607,8 +607,10 @@ type
     function DeleteFolder(dir: string) : boolean;
   protected
     fOnScanDone: TNotifyEvent;
+    fOnInitialScanDone: TNotifyEvent;
     fOnGuiUpdate: TMemScanGuiUpdateRoutine;
     procedure ScanDone; virtual; //called by the scancontroller
+    procedure InitialScanDone; virtual;
   public
 
 
@@ -620,6 +622,7 @@ type
     attachedFoundlist: TObject;
     procedure parseProtectionflags(protectionflags: string);
     function GetProgress(var totaladdressestoscan:qword; var currentlyscanned: qword; var resultsfound: qword):integer;
+    function hasError: boolean;
     function GetErrorString: string;
     function GetFoundCount: uint64;
     function Getbinarysize: int64; //returns the number of bits of the current type
@@ -633,7 +636,7 @@ type
     function waittilldone(timeout: dword=INFINITE): boolean;
     function waittillreallydone(timeout: dword=INFINITE): boolean;
 
-    procedure setScanDoneCallback(notifywindow: thandle; notifymessage: integer);
+//    procedure setScanDoneCallback(notifywindow: thandle; notifymessage: integer);
 
     function canUndo: boolean;
     procedure undoLastScan;
@@ -662,6 +665,7 @@ type
     property LastScanType: TScanType read FLastScanType;
     property ScanresultFolder: string read fScanResultFolder; //read only, it's configured during creation
     property OnScanDone: TNotifyEvent read fOnScanDone write fOnScanDone;
+    property OnInitialScanDone: TNotifyEvent read fOnInitialScanDone write fOnInitialScanDone;
     property OnGuiUpdate: TMemscanGuiUpdateRoutine read fOnGuiUpdate write fOnGuiUpdate;
   end;
 
@@ -6322,18 +6326,18 @@ begin
     if haserror then err:=1;
 
     isdone:=true;
-{$ifdef windows}
-    if notifywindow<>0 then
-      postMessage(notifywindow,notifymessage,err,0);
-{$else}
+
     //todo: notify the caller the scan is done
     OutputDebugString('It actually finished');
-{$endif}
-
 
     isdoneevent.setevent;
 
     haserror2:=false;
+
+    if assigned(OwningMemScan.OnInitialScanDone) then
+      Queue(OwningMemScan.InitialScanDone);
+
+
 
     //todo: instead of appending the results, link to the result files instead
     if scanOption<>soUnknownValue then
@@ -6534,10 +6538,9 @@ begin
         {$ENDIF}
 
         scanController.isDoneEvent.SetEvent;
-        {$IFNDEF UNIX}
-        if notifywindow<>0 then
-          PostMessage(notifywindow, notifymessage,0,0);
-        {$ENDIF}
+        if assigned(fOnScanDone) then
+          fOnScanDone(self);
+
       end;
 
 
@@ -6550,16 +6553,18 @@ begin
   //and now the caller has to wait
 end;
 
+function TMemscan.hasError;
+begin
+  result:=false;
+  if scancontroller<>nil then
+    result:=scancontroller.haserror;
+end;
 
 function TMemscan.GetErrorString: string;
 begin
   result:='';
   if scancontroller<>nil then
-  begin
-    scancontroller.WaitFor;
     result:=scancontroller.errorstring;
-  end;
-
 end;
 
 function TMemscan.canUndo: boolean;
@@ -6656,6 +6661,14 @@ begin
   result:=true;
   if scancontroller<>nil then
     result:=scancontroller.isreallydoneEvent.WaitFor(timeout)<>wrTimeout;
+end;
+
+
+procedure TMemscan.InitialScanDone;
+//called by the scancontroller when the scan has finished
+begin
+  if assigned(fOnInitialScanDone) then
+    fOnInitialScanDone(self);
 end;
 
 procedure TMemscan.ScanDone;
@@ -6937,8 +6950,6 @@ begin
   scancontroller.floatscanWithoutExponents:=floatscanWithoutExponents;
   scancontroller.inverseScan:=inverseScan;
   scancontroller.percentage:=percentage;
-  scancontroller.notifywindow:=notifywindow;
-  scancontroller.notifymessage:=notifymessage;
 
   fLastscantype:=stNextScan;
   fLastScanValue:=scanvalue1;
@@ -7031,8 +7042,6 @@ begin
   scancontroller.floatscanWithoutExponents:=floatscanWithoutExponents;
   scancontroller.inverseScan:=InverseScan;
   scancontroller.percentage:=false; //first scan does not have a percentage scan
-  scancontroller.notifywindow:=notifywindow;
-  scancontroller.notifymessage:=notifymessage;
 
   scanController.OnlyOne:=onlyone;
 
@@ -7044,11 +7053,11 @@ begin
 
 end;
 
-procedure TMemscan.setScanDoneCallback(notifywindow: thandle; notifymessage: integer);
+{procedure TMemscan.setScanDoneCallback(notifywindow: thandle; notifymessage: integer);
 begin
-  self.notifywindow:=notifywindow;
-  self.notifymessage:=notifymessage;
-end;
+  //self.notifywindow:=notifywindow;
+  //self.notifymessage:=notifymessage;
+end;  }
 
 procedure TMemScan.parseProtectionflags(protectionflags: string);
 var i: integer;

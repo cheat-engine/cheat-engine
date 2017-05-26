@@ -42,7 +42,7 @@ Opening a file and changing bytes do not change them to the file anymore (you ne
 Added an option to the processlist to filter out system processes
 Added a system to let users sign their tables so you know you can trust their tables.
 Memory record dropdown lists can now reference those of others. USe as entry text: (memoryrecorddescription)
-
+Added an option to notify users of new versions of Cheat Engine
 
 
 lua:

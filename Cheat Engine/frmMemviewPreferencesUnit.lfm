@@ -1,7 +1,7 @@
 object frmMemviewPreferences: TfrmMemviewPreferences
-  Left = 512
+  Left = 242
   Height = 508
-  Top = 167
+  Top = 360
   Width = 391
   AutoSize = True
   BorderStyle = bsSingle
@@ -521,8 +521,8 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       'ColorS=F0FBFF'
       'ColorT=A4A0A0'
     )
-    left = 320
-    top = 136
+    left = 328
+    top = 128
   end
   object FontDialog1: TFontDialog
     Font.CharSet = ANSI_CHARSET
@@ -533,12 +533,12 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     MinFontSize = 0
     MaxFontSize = 0
     PreviewText = 'mov'
-    left = 288
-    top = 192
+    left = 336
+    top = 136
   end
   object pmColors: TPopupMenu
-    left = 240
-    top = 168
+    left = 200
+    top = 360
     object miRestoreToDefaults: TMenuItem
       Caption = 'Restore to defaults'
       OnClick = miRestoreToDefaultsClick
@@ -554,7 +554,7 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     MaxFontSize = 0
     Options = [fdEffects, fdFixedPitchOnly]
     PreviewText = '10 aa cd 30 90 90 90'
-    left = 272
-    top = 48
+    left = 304
+    top = 32
   end
 end

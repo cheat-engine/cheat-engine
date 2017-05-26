@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="9"/>
+    <Version Value="10"/>
     <PathDelim Value="\"/>
     <General>
       <MainUnit Value="0"/>
@@ -20,7 +20,7 @@
       <CharSet Value=""/>
       <StringTable ProductVersion=""/>
     </VersionInfo>
-    <BuildModes Count="4" Active="release 64-Bit">
+    <BuildModes Count="4" Active="release 32-Bit">
       <Item1 Name="debug" Default="True"/>
       <Item2 Name="release">
         <CompilerOptions>
@@ -180,11 +180,11 @@
       <Unit0>
         <Filename Value="tutorial.lpr"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="2"/>
-        <CursorPos X="33" Y="17"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="1"/>
+        <CursorPos Y="27"/>
         <UsageCount Value="61"/>
+        <Loaded Value="True"/>
       </Unit0>
       <Unit1>
         <Filename Value="Unit1.pas"/>
@@ -204,7 +204,7 @@
         <ComponentName Value="Form2"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="1"/>
+        <EditorIndex Value="2"/>
         <TopLine Value="130"/>
         <CursorPos Y="137"/>
         <UsageCount Value="61"/>
@@ -217,7 +217,7 @@
         <ComponentName Value="Form3"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="2"/>
+        <EditorIndex Value="3"/>
         <TopLine Value="75"/>
         <CursorPos Y="86"/>
         <UsageCount Value="61"/>
@@ -230,8 +230,7 @@
         <ComponentName Value="Form4"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="4"/>
         <CursorPos X="22" Y="9"/>
         <UsageCount Value="61"/>
         <Loaded Value="True"/>
@@ -243,7 +242,7 @@
         <ComponentName Value="Form5"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="6"/>
         <TopLine Value="96"/>
         <CursorPos Y="103"/>
         <UsageCount Value="61"/>
@@ -256,7 +255,7 @@
         <ComponentName Value="Form6"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="7"/>
         <TopLine Value="103"/>
         <CursorPos X="3" Y="117"/>
         <UsageCount Value="61"/>
@@ -269,7 +268,7 @@
         <ComponentName Value="Form7"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="8"/>
         <TopLine Value="179"/>
         <CursorPos Y="194"/>
         <UsageCount Value="61"/>
@@ -282,7 +281,7 @@
         <ComponentName Value="Form8"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="8"/>
+        <EditorIndex Value="9"/>
         <TopLine Value="104"/>
         <CursorPos X="19" Y="112"/>
         <UsageCount Value="61"/>
@@ -295,7 +294,7 @@
         <ComponentName Value="Form9"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="9"/>
+        <EditorIndex Value="10"/>
         <TopLine Value="182"/>
         <CursorPos X="19" Y="191"/>
         <UsageCount Value="61"/>
@@ -308,7 +307,7 @@
         <ComponentName Value="Form10"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="10"/>
+        <EditorIndex Value="11"/>
         <TopLine Value="255"/>
         <CursorPos X="19" Y="270"/>
         <UsageCount Value="61"/>
@@ -463,14 +462,14 @@
       <Unit30>
         <Filename Value="C:\lazarus\lcl\graphics.pp"/>
         <UnitName Value="Graphics"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="5"/>
         <TopLine Value="569"/>
         <CursorPos X="14" Y="581"/>
         <UsageCount Value="10"/>
         <Loaded Value="True"/>
       </Unit30>
     </Units>
-    <JumpHistory Count="28" HistoryIndex="27">
+    <JumpHistory Count="29" HistoryIndex="28">
       <Position1>
         <Filename Value="Unit10.pas"/>
         <Caret Line="104" Column="30" TopLine="94"/>
@@ -583,6 +582,10 @@
         <Filename Value="Unit4.pas"/>
         <Caret Line="57" Column="33" TopLine="40"/>
       </Position28>
+      <Position29>
+        <Filename Value="tutorial.lpr"/>
+        <Caret Line="17" Column="33"/>
+      </Position29>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

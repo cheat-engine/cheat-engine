@@ -49,6 +49,7 @@ var reg: tregistry;
 
     deletecustomtypes: boolean;
     needsToSaveStuff: boolean;
+    deleteversioncheck: boolean;
     s: string;
 
     ki: TRegKeyInfo;
@@ -57,12 +58,14 @@ begin
 
   needsToSaveStuff:=false;
   deletecustomtypes:=true;
+  deleteversioncheck:=true;
 
 
   for i:=1 to ParamCount do
   begin
     if lowercase(ParamStr(i))='-silent' then silent:=true;
     if lowercase(ParamStr(i))='-dontdeletecustomtypes' then deletecustomtypes:=false;
+    if lowercase(ParamStr(i))='-dontdeleteversioncheck' then deleteversioncheck:=false;
   end;
 
   try
@@ -78,6 +81,10 @@ begin
       for i:=0 to names.count-1 do
       begin
         s:=names[i];
+
+        if (s='VersionCheck') and (deleteversioncheck=false) then continue;
+
+
         if (s='CustomTypes') then
         begin
           if reg.OpenKey(s,false) then

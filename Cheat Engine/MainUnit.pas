@@ -37,7 +37,7 @@ const
   wm_freedebugger = WM_USER + 1;
 
 const
-  wm_scandone = WM_USER + 2;
+  //wm_scandone = WM_USER + 2;
   wm_pluginsync = WM_USER + 3;
 
   wm_showerror = WM_USER + 4;
@@ -738,7 +738,7 @@ type
     procedure checkpaste;
     procedure hotkey(var Message: TMessage); message WM_HOTKEY;
     procedure Hotkey2(var Message: TMessage); message wm_hotkey2;
-    procedure ScanDone(var message: TMessage); message WM_SCANDONE;
+    procedure ScanDone(sender: TObject); //(var message: TMessage); message WM_SCANDONE;
     procedure PluginSync(var m: TMessage); message wm_pluginsync;
     procedure ShowError(var message: TMessage); message wm_showerror;
     procedure Edit;
@@ -2005,6 +2005,12 @@ begin
     Hint := rsThisButtonWillTryToCancelTheCurrentScanClickTwiceT;
     ParentShowHint := False;
     ShowHint := True;
+
+
+    cancelbutton.Anchors:=[];
+    cancelbutton.AnchorSideLeft.Control:=btnNewScan;
+    cancelbutton.AnchorSideLeft.Side:=asrLeft;
+    cancelbutton.Anchors:=[akLeft, akTop];
 
     parent := panel5;
   end;
@@ -4275,7 +4281,8 @@ begin
     scanstate.memscan.GuiScanner:=true;
     scanstate.memscan.OnGuiUpdate:=MemscanGuiUpdate;
     scanstate.foundlist := TFoundList.Create(foundlist3, scanstate.memscan);    //build again
-    scanstate.memscan.setScanDoneCallback(mainform.handle, wm_scandone);
+    scanstate.memscan.OnInitialScanDone:=scandone;
+//    scanstate.memscan.setScanDoneCallback(mainform.handle, wm_scandone);
   end;
 
   savecurrentstate(scanstate);
@@ -5350,7 +5357,7 @@ end;
 
 procedure TMainForm.ChangedHandle(Sender: TObject);
 begin
-  memscan.setScanDoneCallback(mainform.handle, wm_scandone);
+ // memscan.setScanDoneCallback(mainform.handle, wm_scandone);
 
   //reset the hotkeys
   hotkeyTargetWindowHandleChanged(oldhandle, mainform.handle);
@@ -7252,7 +7259,7 @@ begin
   foundlist := tfoundlist.Create(foundlist3, memscan);
 
   //don't put this in oncreate, just don't
-  memscan.setScanDoneCallback(mainform.handle, wm_scandone);
+  memscan.OnInitialScanDone:=scandone;
 
   logo.Width:=settingsbutton.width;
 
@@ -7665,7 +7672,7 @@ begin
     memscan := tmemscan.Create(ProgressBar);
     memscan.GuiScanner:=true;
     memscan.OnGuiUpdate:=memscanGuiUpdate;
-    memscan.setScanDoneCallback(mainform.handle, wm_scandone);
+    memscan.OnInitialScanDone:=scandone;
   end;
 end;
 
@@ -8876,7 +8883,7 @@ begin
   end;
 end;
 
-procedure TMainForm.ScanDone(var message: TMessage);
+procedure TMainForm.ScanDone(sender: TObject);
 var
   i: integer;
   canceled: boolean;
@@ -8901,18 +8908,15 @@ begin
   SetProgressState(tbpsNone);
 
 
+  error:=tmemscan(sender).hasError;
 
-
-  if message.wparam > 0 then
+  if tmemscan(sender).hasError then
   begin
+    error:=true;
     messagedlg(Format(rsScanError, [memscan.GetErrorString]), mtError, [mbOK], 0);
-    error := True;
   end
   else
-    error := False;
-
-  {  else}
-  //  showmessage('SCAN SUCCES. time='+inttostr(after-before));
+    error:=false;
 
 
   enablegui(memscan.LastScanType = stNextScan);

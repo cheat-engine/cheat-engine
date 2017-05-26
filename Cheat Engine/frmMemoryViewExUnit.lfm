@@ -8,9 +8,8 @@ object frmMemoryViewEx: TfrmMemoryViewEx
   ClientWidth = 836
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Panel1: TPanel
     Left = 0
     Height = 355

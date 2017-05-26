@@ -1,8 +1,12 @@
+--version check update script for cheat engine
+--Don't like it? Just delete this file. Easy as that
+
+--For the translators:
 if getTranslationFolder()~='' then
   loadPOFile(getTranslationFolder()..'VersionCheck.po')
 end
 
-local vsettings=getSettings("VersionCheck")
+vsettings=getSettings("VersionCheck")
 
 local VersionCheckThread
 
@@ -13,7 +17,7 @@ function CheckVersion(automatic)
         local i=getInternet('CEVersionCheck')
         local r=i.getURL('http://cheatengine.org/latestversion.txt')
         
-        if r then
+        if r then        
           local sl=createStringlist()
           local newerVersion=false
           local latestVersionCompleteBuildNumber
@@ -23,10 +27,13 @@ function CheckVersion(automatic)
           
           if sl.Count<3 then
             t.synchronize(function()
-              print(translate('Unable to check version (Invalid content, not enough lines)'))
+              if automatic then
+                messageDialog(translate('Unable to check version (Invalid content, not enough lines)'), mtError,mbOK)
+              end
               versionCheckThread=nil
             end)
-            sl.destroy()            
+            sl.destroy()  
+            i.destroy()            
             return
           end
           
@@ -37,9 +44,12 @@ function CheckVersion(automatic)
           
           if (latestVersionCompleteBuildNumber==nil) or (latestVersionNumber==nil) then
             t.synchronize(function()
-              print(translate('Unable to check version (Invalid content)'))
+              if automatic then
+                messageDialog(translate('Unable to check version (Invalid content)'), mtError, mbOK)
+              end
               versionCheckThread=nil
             end) 
+            i.destroy()
             return
           end             
           
@@ -47,10 +57,7 @@ function CheckVersion(automatic)
           
           if fv then          
             if latestVersionCompleteBuildNumber>fv then
-              --print('bigger')
               newerVersion=true
-            else
-              --print('smaller or equal')
             end
           else
             --failed getting the file version (filesystem issues...)
@@ -73,16 +80,16 @@ function CheckVersion(automatic)
             
             versionCheckThread=nil
           end)
-          
-          
-       
-
         else
           t.synchronize(function()
-            print(translate("Unable to check version (Can't connect)"))
+            if not automatic then
+              messageDialog(translate("Unable to check version (Can't connect)"), mtError, mbOK)
+            end
             versionCheckThread=nil
           end)
         end
+        
+        i.destroy()
     end)
   end
   
@@ -91,7 +98,7 @@ end
 
 
 if vsettings then
-  if vsettings['CheckOnLaunch']=='1' then
+  if vsettings.Value['CheckOnLaunch']=='1' then
     CheckVersion(true)
   end
 end
@@ -104,4 +111,40 @@ mi.OnClick=function(mi) CheckVersion(false) end
 
 MainForm.miHelp.insert(MainForm.miAbout.MenuIndex,mi)
 
+--add setting to the main ce config screen
+local sf=getSettingsForm()
+--I want it in front of the show undo button
+--that means, take on the top and left anchor of the undo button, and change the anchor of the undo button to my item
+
+local cbCheckForUpdatesOnLaunch=createCheckBox(sf)
+cbCheckForUpdatesOnLaunch.checked=vsettings.Value['CheckOnLaunch']=='1'
+cbCheckForUpdatesOnLaunch.Caption=translate('Check for updates when Cheat Engine starts')
+
+cbCheckForUpdatesOnLaunch.Parent=sf.cbShowUndo.Parent --put it inside the same control as the undo button (the scrollbox)
+
+cbCheckForUpdatesOnLaunch.AnchorSideTop=sf.cbShowUndo.AnchorSideTop
+cbCheckForUpdatesOnLaunch.AnchorSideLeft=sf.cbShowUndo.AnchorSideLeft
+
+sf.cbShowUndo.AnchorSideTop.Control=cbCheckForUpdatesOnLaunch
+sf.cbShowUndo.AnchorSideTop.Side=asrBottom --put the top of the undo button to the bottom of the new checkbox (so below it)
+
+sf.cbShowUndo.AnchorSideLeft.Control=cbCheckForUpdatesOnLaunch
+sf.cbShowUndo.AnchorSideLeft.Side=asrLeft --put the left of the undo button to the left side of the new checkbox (so same start)
+
+
+
+
+--now capture when the action is applied. I could hijack the button, but exceptions can sometimes cause issues. (though this button should not give exceptions in 6.7+ anymore)
+local oldSettingsFormClose=sf.OnClose
+
+sf.OnClose=function(f)
+  if sf.ModalResult==mrOK then --the user clicked OK and all checks passed
+    vsettings.Value['CheckOnLaunch']=cbCheckForUpdatesOnLaunch.Checked
+  end
+  
+  --call the original OnClose of the settings form
+  if oldSettingsFormClose then
+    return oldSettingsFormClose(f);
+  end
+end
 

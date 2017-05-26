@@ -14,7 +14,7 @@ object About: TAbout
   OnShow = FormShow
   PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object GroupBox1: TGroupBox
     Left = 0
     Height = 274
@@ -22,7 +22,7 @@ object About: TAbout
     Width = 352
     Align = alClient
     AutoSize = True
-    Caption = 'Cheat Engine 6.6'
+    Caption = 'Cheat Engine 6.7'
     ClientHeight = 254
     ClientWidth = 348
     TabOrder = 0
