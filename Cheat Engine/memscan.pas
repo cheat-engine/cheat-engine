@@ -6338,7 +6338,6 @@ begin
       Queue(OwningMemScan.InitialScanDone);
 
 
-
     //todo: instead of appending the results, link to the result files instead
     if scanOption<>soUnknownValue then
     begin

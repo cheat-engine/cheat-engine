@@ -4281,8 +4281,8 @@ begin
     scanstate.memscan.GuiScanner:=true;
     scanstate.memscan.OnGuiUpdate:=MemscanGuiUpdate;
     scanstate.foundlist := TFoundList.Create(foundlist3, scanstate.memscan);    //build again
-    scanstate.memscan.OnInitialScanDone:=scandone;
-//    scanstate.memscan.setScanDoneCallback(mainform.handle, wm_scandone);
+    scanstate.memscan.OnInitialScanDone:=memscan.OnInitialScanDone;
+    scanstate.memscan.OnScanDone:=memscan.OnScanDone;
   end;
 
   savecurrentstate(scanstate);
@@ -7256,10 +7256,10 @@ begin
   memscan := tmemscan.Create(ProgressBar);
   memscan.GuiScanner:=true;
   memscan.OnGuiUpdate:=MemscanGuiUpdate;
+  memscan.OnInitialScanDone:=scandone;
+
   foundlist := tfoundlist.Create(foundlist3, memscan);
 
-  //don't put this in oncreate, just don't
-  memscan.OnInitialScanDone:=scandone;
 
   logo.Width:=settingsbutton.width;
 
@@ -7631,6 +7631,7 @@ end;
 procedure TMainForm.SettingsClick(Sender: TObject);
 var
   oldmodulelist: pointer;
+  oldScanDone, oldInitialScanDone: TNotifyEvent;
 begin
 
   suspendhotkeyhandler;
@@ -7667,12 +7668,22 @@ begin
   begin
     //memscan can be reset
     if memscan <> nil then
+    begin
+      oldScanDone:=memscan.OnScanDone;
+      oldInitialScanDone:=memscan.OnInitialScanDone;
       memscan.Free;
+    end
+    else
+    begin
+      oldScanDone:=nil;
+      oldInitialScanDone:=scanDone;
+    end;
 
     memscan := tmemscan.Create(ProgressBar);
     memscan.GuiScanner:=true;
     memscan.OnGuiUpdate:=memscanGuiUpdate;
-    memscan.OnInitialScanDone:=scandone;
+    memscan.OnScanDone:=oldScanDone;
+    memscan.OnInitialScanDone:=oldInitialScanDone;
   end;
 end;
 
