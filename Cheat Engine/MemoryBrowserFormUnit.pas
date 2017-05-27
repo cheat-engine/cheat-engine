@@ -2162,7 +2162,11 @@ begin
 
   newaddress:=inputboxtop(rsGotoAddress, rsFillInTheAddressYouWantToGoTo, IntTohex(old, 8), true, canceled, memorybrowserHistory);
 
-  hexview.address:=getaddress(newaddress);
+  try
+    hexview.address:=getaddress(newaddress);
+  except
+    hexview.address:=symhandler.getAddressFromName(newaddress);
+  end;
 
   if old<>hexview.address then
     hexview.history.Push(pointer(old));
