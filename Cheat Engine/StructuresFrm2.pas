@@ -2156,11 +2156,19 @@ end;
 
 procedure TStructColumn.setNewParent(group: TStructGroup);
 var i: integer;
+   oldparent: TStructGroup;
 begin
+  oldparent:=parent;
+  i:=parent.fcolumns.IndexOf(self);
+
   parent.fcolumns.Remove(self);
+
+  if i<parent.fcolumns.Count then
+    TStructColumn(parent.fcolumns[i]).setAnchorsForPos(i);
 
   if parent.fcolumns.Count=0 then //group has 0 entries , destroy the group
     parent.Free;
+
 
 
   parent:=group;
@@ -2172,6 +2180,8 @@ begin
     lblName.parent:=group.box;
 
   setAnchorsForPos(i);
+
+
 
   group.setPositions; //update the gui
 end;
@@ -2914,8 +2924,19 @@ end;
 
 destructor TStructGroup.destroy;
 var i: integer;
+  g: tgroupbox;
 begin
   //delete all the columns first
+  i:=parent.fgroups.IndexOf(self);
+  if i<parent.fgroups.count-1 then
+  begin
+    //has stuff right of it
+    g:=TStructGroup(parent.fgroups[i+1]).GroupBox;
+
+    g.AnchorSideTop:=groupbox.AnchorSideTop;
+    g.AnchorSideLeft:=groupbox.AnchorSideLeft;
+    g.BorderSpacing.Left:=groupbox.BorderSpacing.Left;
+  end;
 
   parent.fgroups.Remove(self);
 

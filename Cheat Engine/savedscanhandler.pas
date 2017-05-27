@@ -116,6 +116,7 @@ type TSavedScanHandler = class
     procedure loadCurrentRegionMemory;
     procedure InitializeScanHandler;
   public
+    lastFail: integer;
     AllowRandomAccess: boolean; //set this if you wish to allow random access through the list. (EXTREMELY INEFFICIENT IF IT HAPPENS, addresslist purposes only)
     AllowNotFound: boolean; //set this if you wish to return nil instead of an exception if the address can't be found in the list
     function getpointertoaddress(address:ptruint;valuetype:TVariableType; ct: TCustomType; recallifneeded: boolean=true): pointer;
@@ -300,8 +301,13 @@ var i,j: integer;
     pivot: integer;
 begin
   result:=nil;
+  lastFail:=0;
 
-  if Deinitialized then exit;
+  if Deinitialized then
+  begin
+    lastFail:=1;
+    exit;
+  end;
 
   if AllowRandomAccess then //no optimization if random access is used
   begin
@@ -338,7 +344,10 @@ begin
         if AllowNotFound = false then
           raise exception.create(Format(rsFailureInFindingInThePreviousScanResults, [inttohex(address, 8)]))
         else
+        begin
+          lastFail:=2;
           exit;
+        end;
       end;
 
       loadCurrentRegionMemory;
@@ -426,10 +435,14 @@ begin
         if AllowRandomAccess then
         begin
           //random access allowed. Start all over
-          if recallifneeded=false then exit; //already recalled once and it seems to have failed
+          if recallifneeded=false then
+          begin
+            lastFail:=3;
+            exit; //already recalled once and it seems to have failed
+          end;
 
           InitializeScanHandler;
-          result:=getpointertoaddress(address, valuetype, ct, false);
+          exit(getpointertoaddress(address, valuetype, ct, false));
         end
         else
           raise exception.create(rsInvalidOrderOfCallingGetpointertoaddress);
@@ -446,11 +459,14 @@ begin
             begin
               if AllowRandomAccess then
               begin
-                if recallifneeded=false then exit; //already recalled once and it seems to have failed
+                if recallifneeded=false then
+                begin
+                  lastfail:=4;
+                  exit; //already recalled once and it seems to have failed
+                end;
 
                 InitializeScanHandler;
-                result:=getpointertoaddress(address, valuetype, ct, false);
-                exit;
+                exit(getpointertoaddress(address, valuetype, ct, false));
               end
               else
                 raise exception.create(e.message);
@@ -520,10 +536,14 @@ begin
         if AllowRandomAccess then
         begin
           //random access allowed. Start all over
-          if recallifneeded=false then exit; //already recalled once and it seems to have failed
+          if recallifneeded=false then
+          begin
+            lastFail:=5;
+            exit; //already recalled once and it seems to have failed
+          end;
 
           InitializeScanHandler;
-          result:=getpointertoaddress(address, valuetype, ct, false);
+          exit(getpointertoaddress(address, valuetype, ct, false));
         end
         else
           raise exception.create(rsInvalidOrderOfCallingGetpointertoaddress);
@@ -539,10 +559,14 @@ begin
           begin
             if AllowRandomAccess then
             begin
-              if recallifneeded=false then exit; //already recalled once and it seems to have failed
+              if recallifneeded=false then
+              begin
+                lastFail:=6;
+                exit; //already recalled once and it seems to have failed
+              end;
 
               InitializeScanHandler;
-              result:=getpointertoaddress(address, valuetype, ct, false);
+              exit(getpointertoaddress(address, valuetype, ct, false));
             end
             else
               raise exception.create(e.message);

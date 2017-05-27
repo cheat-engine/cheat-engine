@@ -1139,6 +1139,7 @@ resourcestring
   rsFailureSettingTheCreateGlobalPrivilege = 'Failure setting the CreateGlobal privilege.';
   rsCurrentProcess = 'Current process';
   rsNone = '<none>';
+  rsFileInUse = '<File in use>';
   rsCEError = 'CE Error:';
   rsPart = ' part ';
   rsChangeValue = 'Change value';
@@ -8488,7 +8489,12 @@ begin
       begin
         p:=PreviousResults.getpointertoaddress(address, ssvt, ct);
         if p=nil then
-          previousvalue:=rsNone
+        begin
+          if PreviousResults.lastFail=1 then
+            previousvalue:=rsFileInUse
+          else
+            previousvalue:=rsNone+' : '+inttostr(PreviousResults.lastFail)
+        end
         else
           previousvalue:=readAndParsePointer(address, p, valuetype, ct, hexadecimal, foundlist.isSigned);
       end;
