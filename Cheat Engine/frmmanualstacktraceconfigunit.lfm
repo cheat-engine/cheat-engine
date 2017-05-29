@@ -2,16 +2,16 @@ object frmManualStacktraceConfig: TfrmManualStacktraceConfig
   Left = 652
   Height = 236
   Top = 270
-  Width = 354
+  Width = 349
   AutoSize = True
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Manual stacktrace config'
   ClientHeight = 236
-  ClientWidth = 354
+  ClientWidth = 349
   PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object edtEIP: TEdit
     AnchorSideLeft.Control = lblEIP
     AnchorSideTop.Control = lblEIP
@@ -110,9 +110,11 @@ object frmManualStacktraceConfig: TfrmManualStacktraceConfig
     ParentColor = False
   end
   object edtShadowNew: TEdit
+    AnchorSideLeft.Control = Label2
+    AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = Label1
     AnchorSideTop.Side = asrBottom
-    Left = 144
+    Left = 143
     Height = 23
     Top = 156
     Width = 104
@@ -131,19 +133,22 @@ object frmManualStacktraceConfig: TfrmManualStacktraceConfig
     ParentColor = False
   end
   object edtShadowSize: TEdit
+    AnchorSideLeft.Control = edtShadowNew
+    AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = Label1
     AnchorSideTop.Side = asrBottom
-    Left = 256
+    Left = 257
     Height = 23
     Top = 156
     Width = 80
+    BorderSpacing.Left = 10
     TabOrder = 6
     Text = '4096'
   end
   object Label3: TLabel
     AnchorSideLeft.Control = edtShadowSize
     AnchorSideTop.Control = Label1
-    Left = 256
+    Left = 257
     Height = 15
     Top = 141
     Width = 20
@@ -153,7 +158,7 @@ object frmManualStacktraceConfig: TfrmManualStacktraceConfig
   object Label4: TLabel
     AnchorSideLeft.Control = edtShadowNew
     AnchorSideTop.Control = Label1
-    Left = 144
+    Left = 143
     Height = 15
     Top = 141
     Width = 53
@@ -165,7 +170,7 @@ object frmManualStacktraceConfig: TfrmManualStacktraceConfig
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = edtShadowOrig
     AnchorSideTop.Side = asrBottom
-    Left = 99
+    Left = 96
     Height = 25
     Top = 184
     Width = 157

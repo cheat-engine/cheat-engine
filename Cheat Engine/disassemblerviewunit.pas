@@ -964,6 +964,9 @@ begin
 
           dl:=TDisassemblerLine(disassemblerlines[0]);
           inc(fTopSubline, dl.height);
+          if fTopSubline<0 then
+            fTopSubline:=0;
+
         end;
       end;
     end;

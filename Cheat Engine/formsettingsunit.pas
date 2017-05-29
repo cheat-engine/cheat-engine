@@ -198,6 +198,7 @@ type
     procedure cbKernelQueryMemoryRegionChange(Sender: TObject);
     procedure cbOverrideDefaultFontChange(Sender: TObject);
     procedure cbProcessWatcherChange(Sender: TObject);
+    procedure cbWriteLoggingOnChange(Sender: TObject);
     procedure CheckBox1Change(Sender: TObject);
     procedure EditBufSizeKeyPress(Sender: TObject; var Key: Char);
     procedure Default1Click(Sender: TObject);
@@ -1043,6 +1044,12 @@ end;
 procedure TformSettings.cbProcessWatcherChange(Sender: TObject);
 begin
   cbProcessWatcherOpensHandles.enabled:=cbProcessWatcher.Checked;
+end;
+
+procedure TformSettings.cbWriteLoggingOnChange(Sender: TObject);
+begin
+  label8.enabled:=cbWriteLoggingOn.checked;
+  edtWriteLogSize.enabled:=cbWriteLoggingOn.checked;
 end;
 
 procedure TformSettings.CheckBox1Change(Sender: TObject);

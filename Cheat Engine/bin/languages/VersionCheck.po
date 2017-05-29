@@ -23,3 +23,25 @@ msgstr ""
 #: VC-WTF
 msgid "Unable to check version (Can't connect)"
 msgstr ""
+
+#: VC-UPDATETO
+msgid "Update to %s"
+msgstr ""
+
+#: VC-UPDATETO
+msgid "In how many days should I notify you again?"
+msgstr ""
+
+#: VC-SETTINGS-TEXT
+msgid "Check for updates when Cheat Engine starts"
+msgstr ""
+
+
+#: VC-INTERVAL
+msgid "Interval(days):"
+msgstr ""
+
+
+
+
+

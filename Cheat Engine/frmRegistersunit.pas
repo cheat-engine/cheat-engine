@@ -327,12 +327,12 @@ begin
   if processhandler.is64bit then
   begin
     pref:='R';
-    digits:=8;
+    digits:=16;
   end
   else
   begin
     pref:='E';
-    digits:=16;
+    digits:=8;
   end;
 
   s.add(pref+'AX='+inttohex(context.{$ifdef cpu64}Rax{$else}Eax{$endif},digits));
