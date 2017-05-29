@@ -78,8 +78,19 @@ function loadMemoryScan_thread(t)
 	  mf.cbExecutable.setState(cbGrayed)
 	  mf.cbCopyOnWrite.setState(cbGrayed)
 
-	  mf.FromAddress.Lines.Text=string.format("%x", getAddress("kernel32.dll"))
-	  mf.ToAddress.Lines.Text=string.format("%x", getAddress("kernel32.dll")+1)
+    if mf.FromAddress.Lines==nil then
+      mf.FromAddress.Text=string.format("%x", getAddress("kernel32.dll"))    
+    else
+	    mf.FromAddress.Lines.Text=string.format("%x", getAddress("kernel32.dll"))
+    end
+    
+    if mf.ToAddress.Lines==nil then
+      mf.ToAddress.Text=string.format("%x", getAddress("kernel32.dll")+1)        
+    else
+      mf.ToAddress.Lines.Text=string.format("%x", getAddress("kernel32.dll")+1)    
+    end
+    
+	  
 
 	  --first scan
 	  if mf.btnNewScan==nil then --ce 6.4 uses this name, 6.3 still uses the not so normal name
