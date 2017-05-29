@@ -137,7 +137,6 @@ local sf=getSettingsForm()
 local pnlVersionCheckConfig=createPanel(sf)
 pnlVersionCheckConfig.Caption=''
 pnlVersionCheckConfig.BevelOuter=bvNone
-pnlVersionCheckConfig.Color=0xffff00
 pnlVersionCheckConfig.Parent=sf.cbShowUndo.Parent --put it inside the same control as the undo button (the scrollbox)
 
 local cbCheckForUpdatesOnLaunch=createCheckBox(sf)
@@ -169,7 +168,7 @@ lblInterval.AnchorSideLeft.Side=asrRight
 
 
 if vsettings then
-  edtInterval.Text=vsettings.Value['CheckInterval'] or '1'
+  edtInterval.Text=tonumber(vsettings.Value['CheckInterval']) or '1'
 else
   edtInterval.Text='1'
 end
