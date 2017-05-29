@@ -21,7 +21,7 @@ var
   bm: TBitmap;
   ng: integer;
 begin
-  if (fontmultiplication<>1.0) or (screen.PixelsPerInch<>designtimedpi) then
+  if (fontmultiplication<>1.0) //or (screen.PixelsPerInch<>designtimedpi) then
   begin
     sb.Transparent:=false;
     sb.Glyph.Transparent:=false;
@@ -30,12 +30,12 @@ begin
     bm:=TBitmap.Create;
     bm.Assign(sb.Glyph);
 
-    if (screen.PixelsPerInch<>designtimedpi) then
+   { if (screen.PixelsPerInch<>designtimedpi) then
     begin
       bm.width:=scalex(sb.Glyph.Width, designtimedpi);
       bm.height:=scaley(sb.Glyph.Height, designtimedpi);
     end
-    else
+    else  }
     begin
       bm.width:=trunc(bm.width*fontmultiplication);
       bm.height:=trunc(bm.height*fontmultiplication);
