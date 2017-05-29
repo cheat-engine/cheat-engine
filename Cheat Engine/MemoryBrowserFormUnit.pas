@@ -1805,6 +1805,7 @@ var
   reg: tregistry;
   fd: TFontData;
 begin
+
   with TfrmMemviewPreferences.create(self) do
   begin
     fd:=Graphics.GetFontData(disassemblerview.font.handle);
@@ -2141,6 +2142,7 @@ begin
 
   scrollbox1.OnVScroll:=Scrollboxscroll;
 
+  disassemblerview.reinitialize;
 
 end;
 
