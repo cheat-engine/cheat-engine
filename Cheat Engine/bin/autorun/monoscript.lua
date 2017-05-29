@@ -141,7 +141,7 @@ end
 
 
 function LaunchMonoDataCollector()
-  if debug_canBreak() then return 0 end
+  --if debug_canBreak() then return 0 end
 
   if (monopipe~=nil) then
     if (mono_AttachedProcess==getOpenedProcessID()) then
@@ -278,7 +278,7 @@ end
 
 
 function mono_symbolLookupCallback(symbol)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
   local parts={}
   local x
@@ -320,9 +320,9 @@ end
 
 
 function mono_addressLookupCallback(address)
-  if (inMainThread()==false) or (debug_canBreak()) then --the debugger thread might call this
-    return nil
-  end
+  --if (inMainThread()==false) or (debug_canBreak()) then --the debugger thread might call this
+  --  return nil
+  --end
 
 
 
@@ -361,7 +361,7 @@ function mono_addressLookupCallback(address)
 end
 
 function mono_object_getClass(address)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
   monopipe.lock()
   monopipe.writeByte(MONOCMD_OBJECT_GETCLASS)
@@ -385,7 +385,7 @@ function mono_object_getClass(address)
 end
 
 function mono_enumDomains()
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
   if monopipe==nil then return nil end
 
@@ -407,7 +407,7 @@ function mono_enumDomains()
 end
 
 function mono_setCurrentDomain(domain)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
   monopipe.lock()
   monopipe.writeByte(MONOCMD_SETCURRENTDOMAIN)
@@ -420,7 +420,7 @@ end
 
 function mono_enumAssemblies()
   local result=nil
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
   if monopipe then
     monopipe.lock()
     monopipe.writeByte(MONOCMD_ENUMASSEMBLIES)
@@ -439,7 +439,7 @@ function mono_enumAssemblies()
 end
 
 function mono_getImageFromAssembly(assembly)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
   monopipe.lock()
   monopipe.writeByte(MONOCMD_GETIMAGEFROMASSEMBLY)
@@ -449,7 +449,7 @@ function mono_getImageFromAssembly(assembly)
 end
 
 function mono_image_get_name(image)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
   monopipe.lock()
   monopipe.writeByte(MONOCMD_GETIMAGENAME)
@@ -462,7 +462,7 @@ function mono_image_get_name(image)
 end
 
 function mono_image_enumClasses(image)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
   monopipe.lock()
   monopipe.writeByte(MONOCMD_ENUMCLASSESINIMAGE)
@@ -505,7 +505,7 @@ function mono_image_enumClasses(image)
 end
 
 function mono_class_getName(class)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
   local result=''
   monopipe.lock()
@@ -521,7 +521,7 @@ end
 
 
 function mono_class_getNamespace(clasS)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
   local result=''
   monopipe.lock()
@@ -537,7 +537,7 @@ end
 
 
 function mono_class_getFullName(typeptr, isclass, nameformat)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
   if isclass==nil then isclass=1 end
   if nameformat==nil then nameformat=MONO_TYPE_NAME_FORMAT_REFLECTION end
 
@@ -557,7 +557,7 @@ end
 
 
 function mono_class_getParent(class)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
   local result=0
   monopipe.lock()
@@ -571,7 +571,7 @@ function mono_class_getParent(class)
 end
 
 function mono_type_getClass(monotype)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
   local result=0
   monopipe.lock()
@@ -585,7 +585,7 @@ function mono_type_getClass(monotype)
 end
 
 function mono_class_getArrayElementClass(klass)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
   local result=0
   monopipe.lock()
@@ -599,7 +599,7 @@ function mono_class_getArrayElementClass(klass)
 end
 
 function mono_class_getVTable(domain, klass)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
   local result=0
   monopipe.lock()
   monopipe.writeByte(MONOCMD_GETVTABLEFROMCLASS)
@@ -716,7 +716,7 @@ end
 
 
 function mono_class_getStaticFieldAddress(domain, class)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
   local result=0
   monopipe.lock()
@@ -731,7 +731,7 @@ function mono_class_getStaticFieldAddress(domain, class)
 end
 
 function mono_class_enumFields(class)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
   local classfield;
   local index=1;
@@ -775,7 +775,7 @@ function mono_class_enumFields(class)
 end
 
 function mono_class_enumMethods(class)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
   local method
   local index=1
@@ -805,7 +805,7 @@ function mono_class_enumMethods(class)
 end
 
 function mono_getJitInfo(address)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
   local d=mono_enumDomains()
   if (d~=nil) then
@@ -839,7 +839,7 @@ end
 
 
 function mono_object_findRealStartOfObject(address, maxsize)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
   if maxsize==nil then
     maxsize=4096
@@ -881,7 +881,7 @@ end
 --end
 
 function mono_image_findClass(image, namespace, classname)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
 --find a class in a specific image
   monopipe.lock()
@@ -904,7 +904,7 @@ function mono_image_findClass(image, namespace, classname)
 end
 
 function mono_image_findClassSlow(image, namespace, classname)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
 --find a class in a specific image
   local result=0
@@ -929,7 +929,7 @@ function mono_image_findClassSlow(image, namespace, classname)
 end
 
 function mono_findClass(namespace, classname)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
 --searches all images for a specific class
   local ass=mono_enumAssemblies()
@@ -961,7 +961,7 @@ function mono_findClass(namespace, classname)
 end
 
 function mono_class_findMethod(class, methodname)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
   if methodname==nil then return nil end
   if monopipe==nil then return nil end
@@ -982,7 +982,7 @@ function mono_class_findMethod(class, methodname)
 end
 
 function mono_findMethod(namespace, classname, methodname)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
   local class=mono_findClass(namespace, classname)
   local result=0
@@ -995,7 +995,7 @@ end
 
 
 function mono_class_findMethodByDesc(image, methoddesc)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
   if image==nil then return 0 end
   if methoddesc==nil then return 0 end
@@ -1015,7 +1015,7 @@ function mono_class_findMethodByDesc(image, methoddesc)
 end
 
 function mono_findMethodByDesc(assemblyname, methoddesc)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
   local assemblies = mono_enumAssemblies()
   for i=1, #assemblies do
       local image = mono_getImageFromAssembly(assemblies[i])
@@ -1035,7 +1035,7 @@ end
 --end
 
 function mono_method_getName(method)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
   local result=''
   monopipe.lock()
@@ -1050,7 +1050,7 @@ function mono_method_getName(method)
 end
 
 function mono_method_getHeader(method)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
   if method==nil then return nil end
 
   monopipe.lock()
@@ -1065,7 +1065,7 @@ end
 
 function mono_method_get_parameters(method)
 --like mono_method_getSignature but returns it in a more raw format (no need to string parse)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
   if monopipe==nil then return nil end
   
   if method==nil then return nil end
@@ -1110,7 +1110,7 @@ end
 
 function mono_method_getSignature(method)
 --Gets the method 'signature', the corresponding parameter names, and the returntype
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
   
   if method==nil then return nil end
   if monopipe==nil then return nil end
@@ -1147,7 +1147,7 @@ function mono_method_getSignature(method)
 end
 
 function mono_method_disassemble(method)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
   local result=''
   monopipe.lock()
@@ -1162,7 +1162,7 @@ function mono_method_disassemble(method)
 end
 
 function mono_method_getClass(method)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
   monopipe.lock()
   monopipe.writeByte(MONOCMD_GETMETHODCLASS)
@@ -1176,7 +1176,7 @@ end
 
 
 function mono_compile_method(method) --Jit a method if it wasn't jitted yet
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
   monopipe.lock()
 
@@ -1189,7 +1189,7 @@ end
 
 --note: does not work while the profiler is active (Current implementation doesn't use the profiler, so we're good to go)
 function mono_free_method(method) --unjit the method. Only works on dynamic methods. (most are not)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
   monopipe.lock()
 
@@ -1199,7 +1199,7 @@ function mono_free_method(method) --unjit the method. Only works on dynamic meth
 end
 
 function mono_methodheader_getILCode(methodheader)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
   monopipe.lock()
   monopipe.writeByte(MONOCMD_GETMETHODHEADER_CODE)
@@ -1219,7 +1219,7 @@ end
 
 
 function mono_image_rva_map(image, offset)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
   monopipe.lock()
   monopipe.writeByte(MONOCMD_LOOKUPRVA)
@@ -1544,7 +1544,7 @@ end
 
 
 function mono_invoke_method(domain, method, object, args)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
   monopipe.lock()
   monopipe.writeByte(MONOCMD_INVOKEMETHOD)
@@ -1566,7 +1566,7 @@ function mono_invoke_method(domain, method, object, args)
 end
 
 function mono_loadAssemblyFromFile(fname)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
   monopipe.lock()
   monopipe.writeByte(MONOCMD_LOADASSEMBLY)
@@ -1578,7 +1578,7 @@ function mono_loadAssemblyFromFile(fname)
 end
 
 function mono_object_new(klass)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
   monopipe.lock()
   monopipe.writeByte(MONOCMD_OBJECT_NEW)
@@ -1589,7 +1589,7 @@ function mono_object_new(klass)
 end
 
 function mono_object_init(object)
-  if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end
 
   monopipe.lock()
   monopipe.writeByte(MONOCMD_OBJECT_INIT)
