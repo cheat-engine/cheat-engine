@@ -120,9 +120,9 @@ begin
   if internet<>nil then
   begin
     if header='' then
-      url:=InternetOpenUrl(internet, pchar(urlstring),nil,0,INTERNET_FLAG_PRAGMA_NOCACHE, 0)
+      url:=InternetOpenUrl(internet, pchar(urlstring),nil,0,INTERNET_FLAG_PRAGMA_NOCACHE or INTERNET_FLAG_RESYNCHRONIZE or INTERNET_FLAG_DONT_CACHE, 0)
     else
-      url:=InternetOpenUrl(internet, pchar(urlstring), @fheader[1], length(fheader), INTERNET_FLAG_PRAGMA_NOCACHE,0);
+      url:=InternetOpenUrl(internet, pchar(urlstring), @fheader[1], length(fheader), INTERNET_FLAG_PRAGMA_NOCACHE or INTERNET_FLAG_RESYNCHRONIZE or INTERNET_FLAG_DONT_CACHE,0);
 
     if url=nil then exit;
 

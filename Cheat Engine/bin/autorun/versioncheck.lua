@@ -71,6 +71,18 @@ function CheckVersion(automatic)
             if newerVersion then
               if messageDialog(string.format(translate('Cheat Engine %s is available at www.cheatengine.org. Go there now?'),latestVersionString), mtConfirmation, mbYes, mbNo)==mrYes then
                 shellExecute('http://cheatengine.org/')
+              else
+                if automatic then --the user clicked away, so probably not interested
+                  local NewInterval=(tonumber(vsettings.Value['CheckInterval']) or 1)*2 --just show a default of two times the current skip time
+                  local r=inputQuery(string.format(translate('Update to %s'),latestVersionString),translate('In how many days should I notify you again?'), NewInterval)
+                  NewInterval=tonumber(r)
+                  if NewInterval then
+                    vsettings.Value['CheckInterval']=NewInterval
+                  else
+                    --the user clicked cancel, so seems to be in a hurry. Let's ask in 2*days again
+                    vsettings.Value['CheckInterval']=(tonumber(vsettings.Value['CheckInterval']) or 1)*2
+                  end
+                end
               end
             else
               if not automatic then
@@ -80,6 +92,8 @@ function CheckVersion(automatic)
             
             versionCheckThread=nil
           end)
+          
+          vsettings.Value['LastCheck']=os.time() --last succesful check          
         else
           t.synchronize(function()
             if not automatic then
@@ -99,7 +113,11 @@ end
 
 if vsettings then
   if vsettings.Value['CheckOnLaunch']=='1' then
-    CheckVersion(true)
+    local LastCheck=tonumber(vsettings.Value['LastCheck']) or 0 --get the time of the last succesful check
+    local CheckInterval=tonumber(vsettings.Value['CheckInterval']) or 1
+    if (LastCheck+CheckInterval*60*60*24)<os.time() then
+      CheckVersion(true)
+    end
   end
 end
 
@@ -116,19 +134,63 @@ local sf=getSettingsForm()
 --I want it in front of the show undo button
 --that means, take on the top and left anchor of the undo button, and change the anchor of the undo button to my item
 
+local pnlVersionCheckConfig=createPanel(sf)
+pnlVersionCheckConfig.Caption=''
+pnlVersionCheckConfig.BevelOuter=bvNone
+pnlVersionCheckConfig.Color=0xffff00
+pnlVersionCheckConfig.Parent=sf.cbShowUndo.Parent --put it inside the same control as the undo button (the scrollbox)
+
 local cbCheckForUpdatesOnLaunch=createCheckBox(sf)
-cbCheckForUpdatesOnLaunch.checked=vsettings.Value['CheckOnLaunch']=='1'
-cbCheckForUpdatesOnLaunch.Caption=translate('Check for updates when Cheat Engine starts')
+local lblInterval=createLabel(sf)
+local edtInterval=createEdit(sf)
 
-cbCheckForUpdatesOnLaunch.Parent=sf.cbShowUndo.Parent --put it inside the same control as the undo button (the scrollbox)
+cbCheckForUpdatesOnLaunch.Checked=vsettings.Value['CheckOnLaunch']=='1'
+cbCheckForUpdatesOnLaunch.Caption=translate('Check for updates when Cheat Engine starts')..'.'
+cbCheckForUpdatesOnLaunch.Parent=pnlVersionCheckConfig
+cbCheckForUpdatesOnLaunch.AnchorSideTop.Control=edtDays
+cbCheckForUpdatesOnLaunch.AnchorSideTop.Side=asrCenter 
 
-cbCheckForUpdatesOnLaunch.AnchorSideTop=sf.cbShowUndo.AnchorSideTop
-cbCheckForUpdatesOnLaunch.AnchorSideLeft=sf.cbShowUndo.AnchorSideLeft
+cbCheckForUpdatesOnLaunch.AnchorSideLeft.Control=pnlVersionCheckConfig
+cbCheckForUpdatesOnLaunch.AnchorSideLeft.Side=asrLeft
+cbCheckForUpdatesOnLaunch.OnChange=function()
+  lblInterval.Enabled=cbCheckForUpdatesOnLaunch.Checked
+  edtInterval.Enabled=cbCheckForUpdatesOnLaunch.Checked
+end
 
-sf.cbShowUndo.AnchorSideTop.Control=cbCheckForUpdatesOnLaunch
+cbCheckForUpdatesOnLaunch.OnChange(cbCheckForUpdatesOnLaunch)
+
+lblInterval.Caption=translate('Interval(days):')
+lblInterval.Parent=pnlVersionCheckConfig
+lblInterval.AnchorSideTop.Control=cbCheckForUpdatesOnLaunch
+lblInterval.AnchorSideTop.Side=asrCenter 
+
+lblInterval.AnchorSideLeft.Control=cbCheckForUpdatesOnLaunch
+lblInterval.AnchorSideLeft.Side=asrRight
+
+
+if vsettings then
+  edtInterval.Text=vsettings.Value['CheckInterval'] or '1'
+else
+  edtInterval.Text='1'
+end
+
+edtInterval.ClientWidth=sf.Canvas.getTextWidth(' XX ');
+edtInterval.Parent=pnlVersionCheckConfig
+edtInterval.AnchorSideTop.Control=pnlVersionCheckConfig
+edtInterval.AnchorSideTop.Side=asrTop 
+edtInterval.AnchorSideLeft.Control=lblInterval
+edtInterval.AnchorSideLeft.Side=asrRight
+
+
+pnlVersionCheckConfig.AnchorSideTop=sf.cbShowUndo.AnchorSideTop
+pnlVersionCheckConfig.AnchorSideLeft=sf.cbShowUndo.AnchorSideLeft
+
+pnlVersionCheckConfig.AutoSize=true
+
+sf.cbShowUndo.AnchorSideTop.Control=pnlVersionCheckConfig
 sf.cbShowUndo.AnchorSideTop.Side=asrBottom --put the top of the undo button to the bottom of the new checkbox (so below it)
 
-sf.cbShowUndo.AnchorSideLeft.Control=cbCheckForUpdatesOnLaunch
+sf.cbShowUndo.AnchorSideLeft.Control=pnlVersionCheckConfig
 sf.cbShowUndo.AnchorSideLeft.Side=asrLeft --put the left of the undo button to the left side of the new checkbox (so same start)
 
 

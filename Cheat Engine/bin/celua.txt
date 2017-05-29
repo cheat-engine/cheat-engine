@@ -254,7 +254,7 @@ getWindowlist(): Returns a table with the windowlist (pid - window caption )
 getThreadlist(List): fills a List object with the threadlist of the currently opened process. Format: %x
 getHandleList(filter OPTIONAL): returns a table with all the handles in the system(Filter 0=everything, 1=target process handles only, 2 handles to target process, 3 handles to ce process).  Each handle entry has fields: ProcessID, ObjectTypeIndex, HandleAttributes, HandleValue, Object and GrantedAccess.  Note: Object will be invalid if you use the 32-bit CE on a 64-bit windows
 
-closeRemoteHandle(handle): Closes the handle of a process.
+closeRemoteHandle(handle, processid OPTIONAL): Closes the handle of a process.
 
 
 function onOpenProcess(processid):

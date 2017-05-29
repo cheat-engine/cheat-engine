@@ -8574,12 +8574,25 @@ begin
 end;
 
 function lua_closeRemoteHandle(L: PLua_state): integer; cdecl;
-var handle, newhandle: THandle;
+var
+  handle, newhandle: THandle;
+  ph: thandle;
 begin
   if lua_gettop(L)>=1 then
   begin
     handle:=lua_tointeger(L,1);
-    DuplicateHandle(processhandle, handle, 0,nil, 0, false, DUPLICATE_CLOSE_SOURCE);
+
+    if lua_gettop(L)>=2 then
+    begin
+      ph:=newkernelhandler.openProcess(PROCESS_DUP_HANDLE,false,lua_tointeger(L,2));
+    end
+    else
+      ph:=processhandle;
+
+    DuplicateHandle(ph, handle, 0,nil, 0, false, DUPLICATE_CLOSE_SOURCE);
+
+    if (ph<>0) and (lua_gettop(L)>=2) then
+      closehandle(ph);
   end;
 end;
 
