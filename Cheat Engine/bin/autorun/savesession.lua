@@ -17,12 +17,12 @@ function loadMemoryScan_thread(t)
 	  mf=getMainForm()
 
 	  if getOpenedProcessID()==0 then
-		messageDialog("Open a process first", mtError, mbOk)
+		messageDialog("Open a process first", mtError, mbOK)
 		return
 	  end
 
 
-	   dialog=createOpenDialog()
+	  dialog=createOpenDialog()
 	  dialog.DefaultExt=".CS"
 	  dialog.Filter="Cheat Engine Scan files (*.CS)|*.CS"
 	  dialog.FilterIndex=1
@@ -87,10 +87,19 @@ function loadMemoryScan_thread(t)
   end)
 
 
+  if (savedscancount==nil) then
+    return
+  end
+  
+
 
   ms.waitTillDone() --this would freeze in the main thread in 6.3
 
 
+  
+  
+  
+  
   t.synchronize(function(t)
 
 	  --tell the memscan that there are saved scans
