@@ -5,7 +5,7 @@ unit LuaCombobox;
 interface
 
 uses
-  Classes, SysUtils, lua, lualib, lauxlib, controls, StdCtrls, ExtCtrls, LuaWinControl;
+  windows, Classes, SysUtils, lua, lualib, lauxlib, controls, StdCtrls, ExtCtrls, LuaWinControl;
 
 procedure initializeLuaCombobox;
 
@@ -98,6 +98,25 @@ begin
   result:=1;
 end;
 
+function combobox_getExtraWidth(L: PLua_State): integer; cdecl;
+var
+  combobox: TCustomcombobox;
+  cbi: TComboboxInfo;
+  extrasize: integer;
+begin
+  combobox:=luaclass_getClassObject(L);
+
+  zeromemory(@cbi,sizeof(cbi));
+  cbi.cbSize:=sizeof(cbi);
+  if GetComboBoxInfo(combobox.handle, @cbi) then
+    extrasize:=cbi.rcButton.Right-cbi.rcButton.Left+cbi.rcItem.Left
+  else
+    extrasize:=16;
+
+  lua_pushinteger(L, extrasize);
+  result:=1;
+end;
+
 procedure comboBox_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
   wincontrol_addMetaData(L, metatable, userdata);
@@ -108,6 +127,8 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getItemIndex', combobox_getItemIndex);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setItemIndex', combobox_setItemIndex);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getCanvas', combobox_getCanvas);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getExtraWidth', combobox_getExtraWidth);
+
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'Items', combobox_getItems, combobox_setItems);
   luaclass_addPropertyToTable(L, metatable, userdata, 'ItemIndex', combobox_getItemIndex, combobox_setItemIndex);

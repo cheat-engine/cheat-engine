@@ -1134,6 +1134,7 @@ methods
   getItemIndex()
   setItemIndex(integer)
   getCanvas()
+  getExtraWidth() : Returns the number of pixels not part of the text of the combobox (think about borders, thumb button, etc...)
 
 
 
