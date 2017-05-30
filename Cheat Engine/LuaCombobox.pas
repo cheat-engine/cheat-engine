@@ -111,6 +111,7 @@ begin
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'Items', combobox_getItems, combobox_setItems);
   luaclass_addPropertyToTable(L, metatable, userdata, 'ItemIndex', combobox_getItemIndex, combobox_setItemIndex);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Canvas', combobox_getCanvas, nil);
 end;
 
 procedure initializeLuaCombobox;
