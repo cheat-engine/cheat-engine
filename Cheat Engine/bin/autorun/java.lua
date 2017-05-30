@@ -1,3 +1,7 @@
+if getTranslationFolder()~='' then
+  loadPOFile(getTranslationFolder()..'Java.po')
+end
+
 --todo: split up into multiple units and use the java table for the methods as well
 
 
@@ -450,7 +454,7 @@ function javaInjectAgent()
       ]]
     end
   if autoAssemble(script)==false then
-    error('Auto assembler failed:'..script)
+    error(translate('Auto assembler failed:')..script)
   end
 
 
@@ -652,18 +656,18 @@ function JavaEventListener(thread)
 
     --print("done")
   elseif command==JAVACODECMD_TERMINATED then
-    print("Java:eventserver terminated")
+    print(translate("Java:eventserver terminated"))
     break
   elseif command==nil then
-    print("Java:Disconnected")
+    print(translate("Java:Disconnected"))
     break
     else
-    print("Java:Unexpected event received")  --synchronize isn't necesary for print as that function is designed to synchronize internally
+    print(translate("Java:Unexpected event received"))  --synchronize isn't necesary for print as that function is designed to synchronize internally
       break --unknown command
   end
   end
 
-  print("Java:Event handler terminating")
+  print(translate("Java:Event handler terminating"))
   JavaEventPipe.destroy();
 end
 
@@ -989,7 +993,7 @@ end
 
 function java_parseSignature(sig)
   if sig==nil then
-    error('Invalid java signature')
+    error(translate('Invalid java signature'))
   end
 
   --parse the given signature
@@ -1102,11 +1106,11 @@ function java_invokeMethod(object, methodid, ...)
 
   local returntype=Java_TypeSigToIDConversion[string.sub(parsedsignature.returntype,1,1)]
   if returntype>=10 then
-    error('Array return types are not supported');
+    error(translate('Array return types are not supported'));
   end
 
   if argumentcount~=#parsedsignature.parameters then
-    error('Parameter count does not match')
+    error(translate('Parameter count does not match'))
   end
 
 
@@ -1355,7 +1359,7 @@ function java_search_refine(scantype, scanvalue)
   local result=nil
 
   if scantype==nil then
-    error("Scantype was not set")
+    error(translate("Scantype was not set"))
   end
 
   javapipe.lock()
@@ -1466,15 +1470,15 @@ function java_createEntryListView(owner)
   lv.RowSelect=true
 
   local c=lv.Columns.add()
-  c.caption='Class'
+  c.caption=translate('Class')
   c.width=150
 
   c=lv.Columns.add()
-  c.caption='Method'
+  c.caption=translate('Method')
   c.width=150
 
   c=lv.Columns.add()
-  c.caption='Position'
+  c.caption=translate('Position')
   c.autosize=true
 
   return lv
@@ -1492,7 +1496,7 @@ function java_foundCodeDialogLVDblClick(sender)
       --show a form with the stack info
       local ref=createRef(entry)
       entry.form=createForm()
-      entry.form.Caption=string.format("More info %s.%s(%d)", entry.classname, entry.methodname, entry.location)
+      entry.form.Caption=string.format(translate("More info %s.%s(%d)"), entry.classname, entry.methodname, entry.location)
       entry.form.Tag=ref
       entry.form.Width=400
       entry.form.Height=150
@@ -1559,7 +1563,7 @@ function java_findWhatWrites(object, fieldid)
   fcd.form.height=300
   fcd.form.Position=poScreenCenter
   fcd.form.BorderStyle=bsSizeable
-  fcd.form.caption='The following methods accessed the given variable'
+  fcd.form.caption=translate('The following methods accessed the given variable')
   fcd.form.OnClose=java_foundCodeDialogClose
   fcd.form.Tag=id
 
@@ -1567,7 +1571,7 @@ function java_findWhatWrites(object, fieldid)
   fcd.lv.Align=alClient
   fcd.lv.OnDblClick=java_foundCodeDialogLVDblClick
   fcd.lv.Tag=id
-  fcd.lv.Name='results';
+  fcd.lv.Name=translate('results');
 
 
   fcd.entries={}
@@ -1579,7 +1583,7 @@ function java_findWhatWrites(object, fieldid)
 
   java.findwhatwriteslist[id]=fcd
   else
-    error('java_find_what_writes only works when the jvmti agent is launched at start')
+    error(translate('java_find_what_writes only works when the jvmti agent is launched at start'))
   end
 
   return id
@@ -1644,7 +1648,7 @@ function java_getClassSignature(jClass)
 
   length=javapipe.readWord()
   if (length>0) then
-    result=result..'  Generic='..javapipe.readString(length);
+    result=result..translate('  Generic=')..javapipe.readString(length);
   end
 
   javapipe.unlock()
@@ -1689,13 +1693,13 @@ function javaForm_treeviewExpanding(sender, node)
       local i
 
       if superclass~=0 then
-        node.add('superclass='..java_getClassSignature(superclass))
+        node.add(translate('superclass=')..java_getClassSignature(superclass))
         java_dereferenceLocalObject(superclass)
       end
 
 
 
-      node.add('---Implemented interfaces---');
+      node.add(translate('---Implemented interfaces---'));
       for i=1, #interfaces do
         local name
         if interfaces[i]>0 then
@@ -1707,12 +1711,12 @@ function javaForm_treeviewExpanding(sender, node)
         node.add(string.format("%x : %s", interfaces[i], name))
       end
 
-      node.add('---Fields---');
+      node.add(translate('---Fields---'));
       for i=1, #fields do
         node.add(string.format("%x: %s: %s (%s)", fields[i].jfieldid, fields[i].name, fields[i].signature,fields[i].generic))
       end
 
-      node.add('---Methods---');
+      node.add(translate('---Methods---'));
 
       for i=1, #methods do
         local n=node.add(string.format("%x: %s%s           %s", methods[i].jmethodid, methods[i].name, methods[i].signature, methods[i].generic))
@@ -1729,13 +1733,13 @@ end
 
 function javaForm_searchClass(sender)
   javaForm.findAll=false --classes only
-  javaForm.findDialog.Title="Search for class..."
+  javaForm.findDialog.Title=translate("Search for class...")
   javaForm.findDialog.execute()
 end
 
 function javaForm_searchAll(sender)
   javaForm.findAll=true --everything
-  javaForm.findDialog.Title="Search for..."
+  javaForm.findDialog.Title=translate("Search for...")
   javaForm.findDialog.execute()
 end
 
@@ -1824,7 +1828,7 @@ function varscan_firstScan(sender)
     varscan_showResults(count)
 
 
-    sender.Caption="New Scan"
+    sender.Caption=translate("New Scan")
     sender.Tag=1
 
     java.varscan.NextScan.Enabled=#java.varscan.currentresults>0
@@ -1834,7 +1838,7 @@ function varscan_firstScan(sender)
     java_search_finish()
     java.varscan.NextScan.Enabled=false
 
-    sender.Caption="First Scan"
+    sender.Caption=translate("First Scan")
     sender.Tag=0
   end
 end
@@ -1873,7 +1877,7 @@ function miJavaVariableScanClick(sender)
     varscan.form.Width=400
     varscan.form.Height=400
     varscan.form.Position=poScreenCenter
-    varscan.form.Caption="Java Variable Scanner"
+    varscan.form.Caption=translate("Java Variable Scanner")
     varscan.form.BorderStyle=bsSizeable
 
 
@@ -1884,13 +1888,13 @@ function miJavaVariableScanClick(sender)
 
 
     varscan.ValueText=createLabel(varscan.controls)
-    varscan.ValueText.Caption="Value"
+    varscan.ValueText.Caption=translate("Value")
 
     varscan.FirstScan=createButton(varscan.controls)
-    varscan.FirstScan.Caption="First Scan"
+    varscan.FirstScan.Caption=translate("First Scan")
 
     varscan.NextScan=createButton(varscan.controls)
-    varscan.NextScan.Caption="Next Scan"
+    varscan.NextScan.Caption=translate("Next Scan")
 
     local width=6+math.max(varscan.form.Canvas.getTextWidth(varscan.FirstScan.Caption), varscan.form.Canvas.getTextWidth(varscan.NextScan.Caption)) --guess which one will be bigger... (just in case someone translates this)
 
@@ -1939,7 +1943,7 @@ function miJavaVariableScanClick(sender)
 
 
     varscan.Count=createLabel(varscan.ResultPanel)
-    varscan.Count.Caption="Found:"
+    varscan.Count.Caption=translate("Found:")
     varscan.Count.Align=alTop
 
     varscan.Results=createListBox(varscan.ResultPanel)
@@ -1950,7 +1954,7 @@ function miJavaVariableScanClick(sender)
 
     local mi
     mi=createMenuItem(varscan.Results.PopupMenu)
-    mi.Caption="Find what accesses this value"
+    mi.Caption=translate("Find what accesses this value")
     mi.OnClick=miFindWhatAccessClick;
     varscan.Results.PopupMenu.Items.add(mi)
 
@@ -2016,20 +2020,20 @@ function miJavaDissectClick(sender)
     javaForm.menu=createMainMenu(javaForm.form)
 
     local searchmenu=createMenuItem(javaForm.menu)
-    searchmenu.caption="Search"
+    searchmenu.caption=translate("Search")
 
     javaForm.menu.items.add(searchmenu)
 
 
     local searchClass=createMenuItem(javaForm.menu)
-    searchClass.caption="Find Class"
+    searchClass.caption=translate("Find Class")
     searchClass.Shortcut="Ctrl+F"
     searchClass.OnClick=javaForm_searchClass
     searchmenu.add(searchClass)
 
 
     local searchAll=createMenuItem(javaForm.menu)
-    searchAll.caption="Find..."
+    searchAll.caption=translate("Find...")
     searchAll.Shortcut="Ctrl+Alt+F"
     searchAll.OnClick=javaForm_searchAll
     searchmenu.add(searchAll)
@@ -2042,7 +2046,7 @@ function miJavaDissectClick(sender)
 
     javaForm.popupMenu=createPopupMenu(javaForm.treeview)
     javaForm.miEditMethod=createMenuItem(javaForm.popupMenu)
-    javaForm.miEditMethod.Caption="Edit method"
+    javaForm.miEditMethod.Caption=translate("Edit method")
     javaForm.miEditMethod.OnClick=miEditMethodClick
 
     javaForm.popupMenu.Items.Add(javaForm.miEditMethod)
@@ -2297,7 +2301,7 @@ function java_OpenProcessAfterwards()
 
 
       mi=createMenuItem(miJavaTopMenuItem)
-      mi.Caption="Activate java features"
+      mi.Caption=translate("Activate java features")
       mi.OnClick=miJavaActivateClick
     mi.Enabled=usesjava
     mi.Name="miActivate"
@@ -2305,7 +2309,7 @@ function java_OpenProcessAfterwards()
       miJavaTopMenuItem.Add(mi)
 
       mi=createMenuItem(miJavaTopMenuItem)
-      mi.Caption="Dissect java classes"
+      mi.Caption=translate("Dissect java classes")
       mi.Shortcut="Ctrl+Alt+J"
       mi.OnClick=miJavaDissectClick
     mi.Enabled=usesjava
@@ -2313,7 +2317,7 @@ function java_OpenProcessAfterwards()
       miJavaTopMenuItem.Add(mi)
 
       mi=createMenuItem(miJavaTopMenuItem)
-      mi.Caption="Java variable scan"
+      mi.Caption=translate("Java variable scan")
       mi.Shortcut="Ctrl+Alt+S"
       mi.OnClick=miJavaVariableScanClick
     mi.Enabled=usesjava
@@ -2325,7 +2329,7 @@ function java_OpenProcessAfterwards()
     miJavaTopMenuItem.Add(mi)
 
     mi=createMenuItem(miJavaTopMenuItem)
-      mi.Caption="Debug child processes"
+      mi.Caption=translate("Debug child processes")
       mi.OnClick=miJavaSetEnvironmentClick
     mi.Enabled=getOpenedProcessID()~=0
     mi.Name="miDebugChildren"
@@ -2355,7 +2359,7 @@ function javaAA_USEJAVA(parameters, syntaxcheckonly)
 
 
   if (syntaxcheckonly==false) and (javaInjectAgent()==0) then
-  return nil,"The java handler failed to initialize"
+  return nil,translate("The java handler failed to initialize")
   end
 
   return "" --return an empty string (removes it from the internal aa assemble list)
@@ -2436,7 +2440,7 @@ function java_initialize()
     java.settings={}
 
     local cbAlwaysShowMenu=createCheckBox(java.settingsTab)
-    cbAlwaysShowMenu.Caption="Show java menu item even if the target process hasn't loaded jvm.dll (Used for the local setEnvironment option)"
+    cbAlwaysShowMenu.Caption=translate("Show java menu item even if the target process hasn't loaded jvm.dll (Used for the local setEnvironment option)")
     cbAlwaysShowMenu.AnchorSideLeft.Control=java.settingsTab
     cbAlwaysShowMenu.AnchorSideLeft.Side="asrLeft"
 
