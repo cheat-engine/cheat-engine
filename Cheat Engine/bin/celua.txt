@@ -277,6 +277,9 @@ unpause(): resumes the current opened process
 
 getCPUCount(): Returns the number of CPU's
 
+getSystemMetrics(index): Retrieves the specified system metric or system configuration setting
+(https://msdn.microsoft.com/en-us/library/windows/desktop/ms724385.aspx)
+
 getScreenHeight(): Returns the screen height
 getScreenWidth(): Returns the screen  width
 

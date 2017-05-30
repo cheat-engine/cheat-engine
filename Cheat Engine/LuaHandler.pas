@@ -8435,6 +8435,20 @@ begin
   end;
 end;
 
+function lua_getSystemMetrics(l: Plua_State): integer; cdecl;
+var parameters, nIndex: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    nIndex:=lua_tointeger(L,-1);
+    lua_pop(L, parameters);
+    lua_pushinteger(L, GetSystemMetrics(nIndex));
+    result:=1;
+  end else lua_pop(L, parameters);
+end;
+
 function lua_getScreenHeight(l: Plua_State): integer; cdecl;
 begin
   lua_pushinteger(L, screen.Height);
@@ -9120,6 +9134,7 @@ begin
     lua_register(L, 'mapViewOfSection',lua_MapViewOfSection);
     lua_register(L, 'unMapViewOfSection', lua_unMapViewOfSection);
 
+    lua_register(L, 'getSystemMetrics', lua_getSystemMetrics);
 
     lua_register(L, 'getScreenHeight', lua_getScreenHeight);
     lua_register(L, 'getScreenWidth', lua_getScreenWidth);
