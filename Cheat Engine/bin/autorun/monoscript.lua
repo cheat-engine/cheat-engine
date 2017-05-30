@@ -1,7 +1,3 @@
-if getTranslationFolder()~='' then
-  loadPOFile(getTranslationFolder()..'luascripts.po')
-end
-
 MONOCMD_INITMONO=0
 MONOCMD_OBJECT_GETCLASS=1
 MONOCMD_ENUMDOMAINS=2
@@ -169,7 +165,7 @@ function LaunchMonoDataCollector()
   end
 
   if injectDLL(getCheatEngineDir()..[[\autorun\dlls\]]..dllname)==false then
-    print(translate("Failure injecting the MonoDatacollector dll"))
+    print("Failure injecting the MonoDatacollector dll")
     return 0
   end
 
@@ -250,7 +246,7 @@ function mono_structureNameLookupCallback(address)
   local always=monoSettings.Value["AlwaysUseForDissect"]
   local r
   if (always==nil) or (always=="") then
-    r=messageDialog(translate("Do you wish to let the mono extention figure out the name and start address? If it's not a proper object this may crash the target."), mtConfirmation, mbYes, mbNo, mbYesToAll, mbNoToAll)    
+    r=messageDialog("Do you wish to let the mono extention figure out the name and start address? If it's not a proper object this may crash the target.", mtConfirmation, mbYes, mbNo, mbYesToAll, mbNoToAll)    
   else
     if (always=="1") then
       r=mrYes
@@ -670,11 +666,11 @@ function mono_class_findInstancesOfClass(domain, klass, OnScanDone, ProgressBar)
         fl.initialize()
 
         local r=createForm(false)
-        r.caption=translate('Instances of ')..mono_class_getName(klass)
+        r.caption='Instances of '..mono_class_getName(klass)
 
         local lb=createListBox(r)
         local w=createLabel(r)
-        w.Caption=translate('Warning: These are just guesses. Validate them yourself')
+        w.Caption='Warning: These are just guesses. Validate them yourself'
         w.Align=alTop
         lb.align=alClient
         lb.OnDblClick=function(sender)
@@ -850,7 +846,7 @@ function mono_object_findRealStartOfObject(address, maxsize)
   end
 
   if address==nil then
-    error(translate("address==nil"))
+    error("address==nil")
   end
 
   local currentaddress=bAnd(address, 0xfffffffffffffffc)
@@ -1351,14 +1347,14 @@ function mono_invoke_method_dialog(domain, method)
 
 
 
-  mifinfo.mif.Caption=translate('Invoke ')..classname..mono_method_getName(method)
+  mifinfo.mif.Caption='Invoke '..classname..mono_method_getName(method)
   mifinfo.lblInstanceAddress=createLabel(mifinfo.mif)
-  mifinfo.lblInstanceAddress.Caption=translate('Instance address')
+  mifinfo.lblInstanceAddress.Caption='Instance address'
 
   mifinfo.cbInstance=createComboBox(mifinfo.mif)
   
   --start a scan to fill the combobox with results
-  mifinfo.cbInstance.Items.add(translate('<Please wait...>'))
+  mifinfo.cbInstance.Items.add('<Please wait...>')
   mono_class_findInstancesOfClass(nil,c,function(m)      
       --print("Scan done")
 
@@ -1388,7 +1384,7 @@ function mono_invoke_method_dialog(domain, method)
   ]]
   
   mifinfo.gbParams=createGroupBox(mifinfo.mif)
-  mifinfo.gbParams.Caption=translate('Parameters')
+  mifinfo.gbParams.Caption='Parameters'
 
 
   mifinfo.gbParams.ChildSizing.ControlsPerLine=2
@@ -1414,8 +1410,8 @@ function mono_invoke_method_dialog(domain, method)
 
   mifinfo.pnlButtons.AutoSize=true
 
-  mifinfo.btnOk.caption=translate('OK')
-  mifinfo.btnCancel.caption=translate('Cancel')
+  mifinfo.btnOk.caption='OK'
+  mifinfo.btnCancel.caption='Cancel'
   mifinfo.btnCancel.Cancel=true
 
 
@@ -1484,7 +1480,7 @@ function mono_invoke_method_dialog(domain, method)
     end
 
     if instance==nil then
-      messageDialog(mifinfo.cbInstance.Text..translate(' is not a valid address'), mtError, mbOK)
+      messageDialog(mifinfo.cbInstance.Text..' is not a valid address', mtError, mbOK)
       return
     end
 
@@ -1502,7 +1498,7 @@ function mono_invoke_method_dialog(domain, method)
       end
 
       if args[i].value==nil then
-        messageDialog(translate('parameter ')..i..': "'..mifinfo.parameters[i].edtVarText.Text..translate('" is not a valid value'), mtError, mbOK)
+        messageDialog('parameter '..i..': "'..mifinfo.parameters[i].edtVarText.Text..'" is not a valid value', mtError, mbOK)
         return
       end
     end
@@ -1665,7 +1661,7 @@ function monoform_miGetILCodeClick(sender)
     if (node~=nil) and (node.Level==4) and (node.Parent.Text=='methods') then
       local r,s=mono_getILCodeFromMethod(node.Data)
       if r~=nil then
-        print(string.format(translate("ILCode from %x to %x"), r,r+s))
+        print(string.format("ILCode from %x to %x", r,r+s))
       end
     end
   end
@@ -1745,7 +1741,7 @@ function monoform_AddStaticClass(domain, image, class)
   local prefix, rootmr, mr
   prefix = ''
   rootmr=addresslist_createMemoryRecord(addrs)
-  rootmr.Description = translate("Resolve ")..classname
+  rootmr.Description = "Resolve "..classname
   rootmr.Type = vtAutoAssembler
 
   local symclassname = classname:gsub("([^A-Za-z0-9%.,_$`<>%[%]])", "")
@@ -1778,7 +1774,7 @@ function monoform_AddStaticClass(domain, image, class)
       local fieldName = fields[i].name:gsub("([^A-Za-z0-9%.,_$`<>%[%]])", "")
       local offset = fields[i].offset
       if fieldName==nil or fieldName:len()==0 then
-        fieldName = string.format(translate("Offset %x"), offset)
+        fieldName = string.format("Offset %x", offset)
       end
       mr=addresslist_createMemoryRecord(addrs)
       mr.Description=prefix..fieldName
@@ -1818,7 +1814,7 @@ function monoform_AddStaticClassField(domain, image, class, fieldclass, field)
       local fieldname = fields[i].name
       local offset = fields[i].offset
       if fieldname==nil or fieldname:len()==0 then
-        fieldname = string.format(translate("Offset %x"), offset)
+        fieldname = string.format("Offset %x", offset)
       end
       
       local addrs = getAddressList()
@@ -1828,7 +1824,7 @@ function monoform_AddStaticClassField(domain, image, class, fieldclass, field)
 
       local rootmr, mr
       rootmr=addresslist_createMemoryRecord(addrs)
-      rootmr.Description = translate("Resolve ")..classname.."."..fieldname
+      rootmr.Description = "Resolve "..classname.."."..fieldname
       rootmr.Type = vtAutoAssembler
 
       local symclassname = classname:gsub("[^A-Za-z0-9._]", "")
@@ -1998,7 +1994,7 @@ function monoform_EnumFields(node, static)
   local fields=mono_class_enumFields(class)
   for i=1, #fields do
     if fields[i].isStatic == static and not fields[i].isConst then
-      local n=node.add(string.format(translate("%x : %s (type: %s)"), fields[i].offset, fields[i].name,  fields[i].typename))
+      local n=node.add(string.format("%x : %s (type: %s)", fields[i].offset, fields[i].name,  fields[i].typename))
       n.Data=fields[i].field
     end
   end
@@ -2162,7 +2158,7 @@ end
 
 
 function monoform_miExpandAllClick(sender)
-  if messageDialog(translate("Are you sure you wish to expand the whole tree? This can take a while and Cheat Engine may look like it has crashed (It has not)"), mtConfirmation, mbYes, mbNo)==mrYes then
+  if messageDialog("Are you sure you wish to expand the whole tree? This can take a while and Cheat Engine may look like it has crashed (It has not)", mtConfirmation, mbYes, mbNo)==mrYes then
     monoForm.TV.beginUpdate()
     monoForm.autoExpanding=true --special feature where a base object can contain extra lua variables
     monoForm.TV.fullExpand()
@@ -2212,7 +2208,7 @@ end
 
 function miMonoActivateClick(sender)
   if LaunchMonoDataCollector()==0 then
-    showMessage(translate("Failure to launch"))
+    showMessage("Failure to launch")
   end
 end
 
@@ -2249,17 +2245,17 @@ function mono_OpenProcessMT(t)
 	    if (mfm) then
         local mi
         miMonoTopMenuItem=createMenuItem(mfm)
-        miMonoTopMenuItem.Caption=translate("Mono")
+        miMonoTopMenuItem.Caption="Mono"
         mfm.Items.insert(mfm.Items.Count-1, miMonoTopMenuItem) --add it before help
 
         mi=createMenuItem(miMonoTopMenuItem)
-        mi.Caption=translate("Activate mono features")
+        mi.Caption="Activate mono features"
         mi.OnClick=miMonoActivateClick        
         mi.Name='miMonoActivate'
         miMonoTopMenuItem.Add(mi)
 
         mi=createMenuItem(miMonoTopMenuItem)
-        mi.Caption=translate("Dissect mono")
+        mi.Caption="Dissect mono"
         mi.Shortcut="Ctrl+Alt+M"
         mi.OnClick=miMonoDissectClick
         mi.Name='miMonoDissect'
@@ -2358,7 +2354,7 @@ function monoAA_USEMONO(parameters, syntaxcheckonly)
   --you'd then call it using usemono(00400500) for example
 
   if (syntaxcheckonly==false) and (LaunchMonoDataCollector()==0) then
-    return nil,translate("The mono handler failed to initialize")
+    return nil,"The mono handler failed to initialize"
   end
 
   return "" --return an empty string (removes it from the internal aa assemble list)
@@ -2393,13 +2389,13 @@ function monoAA_FINDMONOMETHOD(parameters, syntaxcheckonly)
         classname=string.sub(fullmethodnamestring, c+1, e-1)
         methodname=string.sub(fullmethodnamestring, e+1, #fullmethodnamestring)
       else
-        return nil,translate("Invalid parameters (Methodname could not be determined)")
+        return nil,"Invalid parameters (Methodname could not be determined)"
       end
     else
-      return nil,translate("Invalid parameters (Classname could not be determined)")
+      return nil,"Invalid parameters (Classname could not be determined)"
     end
   else
-    return nil,translate("Invalid parameters (name could not be determined)")
+    return nil,"Invalid parameters (name could not be determined)"
   end
 
 
@@ -2416,18 +2412,18 @@ function monoAA_FINDMONOMETHOD(parameters, syntaxcheckonly)
   end
 
   if (monopipe==nil) or (monopipe.Connected==false) then
-    return nil,translate("The mono handler failed to initialize")
+    return nil,"The mono handler failed to initialize"
   end
 
 
   local method=mono_findMethod(namespace, classname, methodname)
   if (method==0) then
-    return nil,fullmethodnamestring..translate(" could not be found")
+    return nil,fullmethodnamestring.." could not be found"
   end
 
   methodaddress=mono_compile_method(method)
   if (methodaddress==0) then
-    return nil,fullmethodnamestring..translate(" could not be jitted")
+    return nil,fullmethodnamestring.." could not be jitted"
   end
 
 
@@ -2443,7 +2439,7 @@ function monoform_getStructMap()
   local structmap={}
   local n=getStructureCount()
   if n==nil then
-    showMessage(translate("Sorry this feature does not work yet.  getStructureCount needs patching first."))
+    showMessage("Sorry this feature does not work yet.  getStructureCount needs patching first.")
     return nil
   end
   local fillChildStruct = function (struct, structmap) 
@@ -2479,7 +2475,7 @@ function mono_purgeDuplicateGlobalStructures()
   local name
   local s
   for name, s in pairs(slist) do
-    print(translate("Removing ")..name)
+    print("Removing "..name)
     structure_removeFromGlobalStructureList(s)
   end
 end
@@ -2559,15 +2555,15 @@ function mono_reloadGlobalStructures(imagename)
     end
   end
   for fqclass, caddr in pairs(classmap) do
-    print(translate("Reloading Structure ")..fqclass)
+    print("Reloading Structure "..fqclass)
     monoform_exportStruct(caddr, fqclass, true, false, smap, false, true)
   end
   for fqclass, caddr in pairs(arraymap) do
-    print(translate("Reloading Structure ")..fqclass)
+    print("Reloading Structure "..fqclass)
     monoform_exportArrayStruct(nil, caddr, fqclass, true, false, smap, false, true)
   end
   for fqclass, caddr in pairs(staticmap) do
-    print(translate("Reloading Structure ")..fqclass)
+    print("Reloading Structure "..fqclass)
     monoform_exportStruct(caddr, fqclass, true, true, smap, false, true)
   end
 end
@@ -2821,12 +2817,12 @@ function monoAA_GETMONOSTRUCT(parameters, syntaxcheckonly)
 
   local class=mono_findClass(namespace, classname)
   if (class==nil) or (class==0) then
-    return nil,translate("The class ")..namespace..":"..classname..translate(" could not be found")
+    return nil,"The class "..namespace..":"..classname.." could not be found"
   end
 
   local fields=mono_class_enumFields(class)
   if (fields==nil) or (#fields==0) then
-    return nil,namespace..":"..classname..translate(" has no fields")
+    return nil,namespace..":"..classname.." has no fields"
   end
 
 

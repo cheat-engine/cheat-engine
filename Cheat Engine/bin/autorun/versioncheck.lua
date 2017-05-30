@@ -3,7 +3,7 @@
 
 --For the translators:
 if getTranslationFolder()~='' then
-  loadPOFile(getTranslationFolder()..'luascripts.po')
+  loadPOFile(getTranslationFolder()..'VersionCheck.po')
 end
 
 vsettings=getSettings("VersionCheck")

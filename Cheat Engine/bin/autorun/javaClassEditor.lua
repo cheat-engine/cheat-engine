@@ -1,7 +1,3 @@
-if getTranslationFolder()~='' then
-  loadPOFile(getTranslationFolder()..'luascripts.po')
-end
-
 --Java class editor
 
 
@@ -472,7 +468,7 @@ function singleLineBytecodeAssembler(address, instruction, labels, updatelabels)
 
   if data~=nil then
     if type(data.bytecount)=='function' then
-      error(data.operation..translate(' is currently not implemented'))
+      error(data.operation..' is currently not implemented')
     end
 
     result={}
@@ -489,7 +485,7 @@ function singleLineBytecodeAssembler(address, instruction, labels, updatelabels)
     if wide then
       parameters=data.wideparameters
       if parameters==nil then
-        error(translate('wide can not be used with ')..data.operation)
+        error('wide can not be used with '..data.operation)
       end
       table.insert(result, 0xc4)
     else
@@ -500,7 +496,7 @@ function singleLineBytecodeAssembler(address, instruction, labels, updatelabels)
 
     if parameters~=nil then
       if #userparameters~=#parameters then
-        error(translate('Invalid amount of parameters provided for ')..data.operation)
+        error('Invalid amount of parameters provided for '..data.operation)
       end
 
 
@@ -522,7 +518,7 @@ function singleLineBytecodeAssembler(address, instruction, labels, updatelabels)
           end
 
           if tonumber(result.parameters[i])==nil then
-            error(translate("The label ")..userparameters[i]..translate("is not yet defined"))
+            error("The label "..userparameters[i].."is not yet defined")
           end
 
           if (updatelabels~=nil) and (updatelabels==true) then
@@ -558,7 +554,7 @@ function singleLineBytecodeAssembler(address, instruction, labels, updatelabels)
         elseif parameters[i].paramtype=='u4' then
           bytes=dwordToByteTable(tonumber(userparameters[i]) % 65536)
         else
-          error(translate('This instruction is currently not implemented'))
+          error('This instruction is currently not implemented')
         end
 
         for j=1, #bytes do
@@ -570,7 +566,7 @@ function singleLineBytecodeAssembler(address, instruction, labels, updatelabels)
 
     result.bytesize=#result.bytes
   else
-    error(translate('unknown instruction:')..operation);
+    error('unknown instruction:'..operation);
   end
 
   return result
@@ -614,7 +610,7 @@ function javaclass_applyAssembleCommand(class, method, byteindex, instruction, i
     end
 
     if oldcode==nil then
-      error(translate('You can only replace instructions on an instruction boundary'))
+      error('You can only replace instructions on an instruction boundary')
     end
 
     offset=newcode.bytesize-oldcode.bytesize
@@ -651,7 +647,7 @@ end
 
 function javaclass_updateOffsets(class, method, startindex, offset)
 
-  print(translate("si=")..startindex..translate(" offset=")..offset)
+  print("si="..startindex.." offset="..offset)
   local i,j
 
   local codeattribute=javaclass_method_findCodeAttribute(method)
@@ -894,7 +890,7 @@ function javaclasseditor_editMethod_insertLine(sender)
   local byteindex=code[linenr+1].byteindex
 
 
-  local line=inputQuery(translate('Insert line'), translate('Input the java assembly code you wish to insert at line ')..linenr..'(byteindex '..byteindex..')','')
+  local line=inputQuery('Insert line', 'Input the java assembly code you wish to insert at line '..linenr..'(byteindex '..byteindex..')','')
   if line~=nil then
     --showMessage('Assembling '..line)
     --assemble
@@ -924,7 +920,7 @@ function javaclasseditor_editMethod_editLine(sender)
   local originalcode=code[linenr+1].operation..' '..code[linenr+1].parameter
 
 
-  local line=inputQuery(translate('Edit line'), translate('Input the java assembly code you wish to insert at line ')..linenr..'(byteindex '..byteindex..')',originalcode)
+  local line=inputQuery('Edit line', 'Input the java assembly code you wish to insert at line '..linenr..'(byteindex '..byteindex..')',originalcode)
   if line~=nil then
     javaclass_applyAssembleCommand(classMethod.class, classMethod.method, byteindex, line, false)
 
@@ -948,14 +944,14 @@ function javaclasseditor_editMethod_defineLabel(sender)
   end
 
   local byteindex=code[linenr+1].byteindex
-  local labelname=inputQuery(translate('Define new label'), translate('Give a labelname for line ')..linenr..'(byteindex '..byteindex..')','')
+  local labelname=inputQuery('Define new label', 'Give a labelname for line '..linenr..'(byteindex '..byteindex..')','')
 
   if (labelname~=nil) and (labelname~='') then
     local i
     --check if it already exists
     for i=1,#labels do
       if labels[i].labelname==labelname then
-        error(translate('There is already a label with this name'))
+        error('There is already a label with this name')
       end
     end
 
@@ -1017,9 +1013,9 @@ ca=codeattribute
   java_write_u2(s, codeattribute.attributes_count)
   java_writeAttributes(s, codeattribute.attributes, codeattribute.attributes_count)
 
-  print(string.format(translate("old bsize=%d new bsize=%d"), codeattribute.code_length, bytesize))
+  print(string.format("old bsize=%d new bsize=%d", codeattribute.code_length, bytesize))
 
-  print(string.format(translate("old size=%d new size=%d"), #codeattribute.info, #s.data))
+  print(string.format("old size=%d new size=%d", #codeattribute.info, #s.data))
 
 
   codeattribute.info=s.data
@@ -1059,15 +1055,15 @@ function javaclasseditor_editMethod(class, method, callbackfunction, callbackpar
     method.editor.form.width=640
     method.editor.form.height=480
 
-    method.editor.form.caption=translate("Method: ")..class.constant_pool[class.constant_pool[class.this_class].name_index].utf8.."."..class.constant_pool[method.name_index].utf8
+    method.editor.form.caption="Method: "..class.constant_pool[class.constant_pool[class.this_class].name_index].utf8.."."..class.constant_pool[method.name_index].utf8
     method.editor.form.Position=poScreenCenter
 
 
     method.editor.lblMaxStack=createLabel(method.editor.form)
     method.editor.lblMaxLocals=createLabel(method.editor.form)
 
-    method.editor.lblMaxStack.caption=translate("Max Stack")
-    method.editor.lblMaxLocals.caption=translate("Max Locals")
+    method.editor.lblMaxStack.caption="Max Stack"
+    method.editor.lblMaxLocals.caption="Max Locals"
 
     method.editor.edtMaxStack=createEdit(method.editor.form)
     method.editor.edtMaxLocals=createEdit(method.editor.form)
@@ -1105,7 +1101,7 @@ function javaclasseditor_editMethod(class, method, callbackfunction, callbackpar
 
     method.editor.btnApplyChanges=createButton(method.editor.form)
     method.editor.btnApplyChanges.AutoSize=true
-    method.editor.btnApplyChanges.Caption=translate("Save changes")
+    method.editor.btnApplyChanges.Caption="Save changes"
     method.editor.btnApplyChanges.OnClick=btnApplyChangesClick
     method.editor.btnApplyChanges.Tag=classMethodRef
 
@@ -1129,11 +1125,11 @@ function javaclasseditor_editMethod(class, method, callbackfunction, callbackpar
     local lcInstruction=columns.add()
 
 
-    lcIndex.Caption=translate("Index")
-    lcByteIndex.Caption=translate("ByteIndex")
-    lcLabel.Caption=translate("Label")
-    lcException.Caption=translate("Exception")
-    lcInstruction.Caption=translate("Instruction")
+    lcIndex.Caption="Index"
+    lcByteIndex.Caption="ByteIndex"
+    lcLabel.Caption="Label"
+    lcException.Caption="Exception"
+    lcInstruction.Caption="Instruction"
 
     lcByteIndex.width=100
 
@@ -1163,19 +1159,19 @@ function javaclasseditor_editMethod(class, method, callbackfunction, callbackpar
     method.editor.pmEdit.Tag=classMethodRef
 
     local miInsertLine=createMenuItem(method.editor.pmEdit)
-    miInsertLine.caption=translate("Insert line")
+    miInsertLine.caption="Insert line"
     miInsertLine.onClick=javaclasseditor_editMethod_insertLine
     miInsertLine.Shortcut="Ctrl+I"
     miInsertLine.Tag=classMethodRef
 
     local miEditLine=createMenuItem(method.editor.pmEdit)
-    miEditLine.caption=translate("Edit line")
+    miEditLine.caption="Edit line"
     miEditLine.onClick=javaclasseditor_editMethod_editLine
     miEditLine.Shortcut="Ctrl+E"
     miEditLine.Tag=classMethodRef
 
     local miDefineLine=createMenuItem(method.editor.pmEdit)
-    miDefineLine.caption=translate("Define label")
+    miDefineLine.caption="Define label"
     miDefineLine.onClick=javaclasseditor_editMethod_defineLabel
     miDefineLine.Shortcut="Ctrl+L"
     miDefineLine.Tag=classMethodRef
