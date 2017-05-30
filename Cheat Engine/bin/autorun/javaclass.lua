@@ -1,3 +1,7 @@
+if getTranslationFolder()~='' then
+  loadPOFile(getTranslationFolder()..'Java.po')
+end
+
 require([[autorun\javaClassEditor]])
 
 --parser for .class files and java bytecode
@@ -217,7 +221,7 @@ function java_parseConstantPool(s, count)
   if java_parseConstantPoolTag[tag]~=nil then
     result[i]=java_parseConstantPoolTag[tag](s)
   else
-    error("Invalid constant pool tag encountered: "..s.index.." (tag="..tag..") (i="..i..")")
+    error(translate("Invalid constant pool tag encountered: ")..s.index..translate(" (tag=")..tag..") (i="..i..")")
   end
 
   end
@@ -377,7 +381,7 @@ function java_parseClass(data)
   result.magic=java_read_u4(s)
 
   if (result.magic~=0xcafebabe) then
-    error("Not a valid classfile")
+    error(translate("Not a valid classfile"))
   end
 
   result.minor_version=java_read_u2(s)
