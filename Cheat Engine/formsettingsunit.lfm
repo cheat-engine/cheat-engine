@@ -466,6 +466,7 @@ object formSettings: TformSettings
             Top = 339
             Width = 184
             Caption = 'Enable write logging by default'
+            OnChange = cbWriteLoggingOnChange
             ParentShowHint = False
             ShowHint = True
             TabOrder = 18
@@ -617,31 +618,31 @@ object formSettings: TformSettings
       object tsHotkeys: TTabSheet
         Caption = 'Hotkeys'
         ClientHeight = 472
-        ClientWidth = 655
+        ClientWidth = 792
         ImageIndex = 7
         inline frameHotkeyConfig: TframeHotkeyConfig
           Height = 472
-          Width = 655
+          Width = 792
           Align = alClient
           ClientHeight = 472
-          ClientWidth = 655
+          ClientWidth = 792
           DesignLeft = 737
           DesignTop = 306
           inherited Panel1: TPanel
             Height = 422
-            Width = 429
+            Width = 566
             ClientHeight = 422
-            ClientWidth = 429
+            ClientWidth = 566
             inherited Label1: TLabel
-              Width = 429
+              Width = 566
             end
             inherited ListBox1: TListBox
               Height = 407
-              Width = 429
+              Width = 566
             end
           end
           inherited Panel2: TPanel
-            Left = 429
+            Left = 566
             Height = 422
             Width = 226
             ClientHeight = 422
@@ -650,22 +651,13 @@ object formSettings: TformSettings
               Width = 222
             end
             inherited Button3: TButton
-              Left = 164
-              Height = 21
-              Width = 60
+              Left = 171
             end
             inherited Panel3: TPanel
-              Left = 169
-              Top = 66
-              Width = 57
-              ClientWidth = 57
-              inherited edtSHSpeed: TEdit
-                Width = 57
-              end
+              Left = 126
             end
             inherited Panel4: TPanel
               Left = 6
-              Top = 106
               Width = 220
               ClientWidth = 220
               inherited Edit4: TEdit
@@ -674,8 +666,8 @@ object formSettings: TformSettings
             end
           end
           inherited Panel5: TPanel
-            Width = 655
-            ClientWidth = 655
+            Width = 792
+            ClientWidth = 792
             inherited Label4: TLabel
               Left = 121
             end
@@ -694,7 +686,7 @@ object formSettings: TformSettings
       object Unrandomizer: TTabSheet
         Caption = 'Unrandomizer'
         ClientHeight = 472
-        ClientWidth = 655
+        ClientWidth = 792
         ImageIndex = 8
         object Label5: TLabel
           AnchorSideLeft.Control = Unrandomizer

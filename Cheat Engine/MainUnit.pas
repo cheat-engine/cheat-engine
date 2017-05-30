@@ -1139,6 +1139,7 @@ resourcestring
   rsFailureSettingTheCreateGlobalPrivilege = 'Failure setting the CreateGlobal privilege.';
   rsCurrentProcess = 'Current process';
   rsNone = '<none>';
+  rsBusy = '<busy>';
   rsFileInUse = '<File in use>';
   rsCEError = 'CE Error:';
   rsPart = ' part ';
@@ -8493,7 +8494,7 @@ begin
           if PreviousResults.lastFail=1 then
             previousvalue:=rsFileInUse
           else
-            previousvalue:=rsNone+' : '+inttostr(PreviousResults.lastFail)
+            previousvalue:=rsBusy+' : '+inttostr(PreviousResults.lastFail)
         end
         else
           previousvalue:=readAndParsePointer(address, p, valuetype, ct, hexadecimal, foundlist.isSigned);

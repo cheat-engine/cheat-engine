@@ -686,6 +686,7 @@ begin
       raise exception.Create(rsNoFirstScanDataFilesFound);
     end;
 
+    deinitialized:=false;
 
   except
     on e: exception do
