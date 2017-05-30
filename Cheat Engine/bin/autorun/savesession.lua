@@ -1,5 +1,5 @@
 if getTranslationFolder()~='' then
-  loadPOFile(getTranslationFolder()..'SaveSessions.po')
+  loadPOFile(getTranslationFolder()..'luascripts.po')
 end
 
 
