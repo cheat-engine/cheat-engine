@@ -47,7 +47,11 @@ msgid "parameter "
 msgstr ""
 
 #: monoscript-INAVA
-msgid " is not a valid value"
+msgid " is not a valid address"
+msgstr ""
+
+#: monoscript-INAVV
+msgid "is not a valid value"
 msgstr ""
 
 #: monoscript-IFT
