@@ -47,7 +47,7 @@ msgid "parameter "
 msgstr ""
 
 #: monoscript-INAVA
-msgid "\" is not a valid value"
+msgid " is not a valid value"
 msgstr ""
 
 #: monoscript-IFT
@@ -63,7 +63,7 @@ msgid "Resolve "
 msgstr ""
 
 #: monoscript-XSTS
-msgid "\"%x : %s (type: %s)\""
+msgid "%x : %s (type: %s)"
 msgstr ""
 
 #: monoscript-AYSYWTE
