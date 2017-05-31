@@ -450,7 +450,7 @@ begin
 
   if fisJump then
   begin
-    cefuncproc.isjumporcall(faddress, fJumpsTo);
+    fisjump:=cefuncproc.isjumporcall(faddress, fJumpsTo);
 
 
     if visibleDisassembler.LastDisassembleData.iscall then
