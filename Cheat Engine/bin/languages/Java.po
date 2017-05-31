@@ -75,7 +75,7 @@ msgid "---Implemented interfaces---"
 msgstr ""
 
 #: java-Fields
-msgid "-Fields---'"
+msgid "---Fields---"
 msgstr ""
 
 #: java-Methods
