@@ -806,6 +806,11 @@ object frmLuaEngine: TfrmLuaEngine
         ShortCut = 16467
         OnClick = MenuItem3Click
       end
+      object miSaveCurrentScriptAs: TMenuItem
+        Caption = 'Save current script as...'
+        ShortCut = 49235
+        OnClick = miSaveCurrentScriptAsClick
+      end
       object MenuItem4: TMenuItem
         Caption = '-'
       end

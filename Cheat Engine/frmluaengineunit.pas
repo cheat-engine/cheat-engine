@@ -21,6 +21,7 @@ type
     GroupBox1: TGroupBox;
     MenuItem12: TMenuItem;
     MenuItem13: TMenuItem;
+    miSaveCurrentScriptAs: TMenuItem;
     miShowScriptInOutput: TMenuItem;
     miResizeOutput: TMenuItem;
     miSetBreakpoint: TMenuItem;
@@ -76,6 +77,7 @@ type
     procedure MenuItem8Click(Sender: TObject);
     procedure MenuItem9Click(Sender: TObject);
     procedure miResizeOutputClick(Sender: TObject);
+    procedure miSaveCurrentScriptAsClick(Sender: TObject);
     procedure miSetBreakpointClick(Sender: TObject);
     procedure mScriptChange(Sender: TObject);
     procedure mScriptGutterClick(Sender: TObject; X, Y, Line: integer;
@@ -1040,7 +1042,9 @@ end;
 
 procedure TfrmLuaEngine.MenuItem3Click(Sender: TObject);
 begin
-  if savedialog1.execute then
+  if savedialog1.FileName='' then
+    miSaveCurrentScriptAs.Click
+  else
     mscript.lines.SaveToFile(savedialog1.filename);
 end;
 
@@ -1092,6 +1096,12 @@ begin
     //splitter1.ResizeControl:=panel1;
     splitter1.Align:=alBottom;
   end;
+end;
+
+procedure TfrmLuaEngine.miSaveCurrentScriptAsClick(Sender: TObject);
+begin
+  if savedialog1.Execute then
+    mscript.lines.SaveToFile(savedialog1.filename);
 end;
 
 procedure TfrmLuaEngine.miSetBreakpointClick(Sender: TObject);
