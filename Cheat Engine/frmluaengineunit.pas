@@ -21,6 +21,7 @@ type
     GroupBox1: TGroupBox;
     MenuItem12: TMenuItem;
     MenuItem13: TMenuItem;
+    miShowScriptInOutput: TMenuItem;
     miResizeOutput: TMenuItem;
     miSetBreakpoint: TMenuItem;
     miRun: TMenuItem;
@@ -799,7 +800,8 @@ begin
 
   oldprintoutput:=lua_oldprintoutput;
   try
-    mOutput.lines.add(mscript.text);
+    if miShowScriptInOutput.checked then
+      mOutput.lines.add(mscript.text);
 
 
     lua_setPrintOutput(mOutput.lines);
@@ -988,6 +990,9 @@ begin
     begin
       miResizeOutput.checked:=x[1]=1;
       miResizeOutput.OnClick(miResizeOutput);
+
+      if length(x)>2 then
+       miShowScriptInOutput.checked:=x[2]=1;
     end;
   end;
 end;
@@ -995,7 +1000,7 @@ end;
 procedure TfrmLuaEngine.FormDestroy(Sender: TObject);
 begin
 
-  SaveFormPosition(self, [panel1.height, integer(ifthen(miResizeOutput.checked, 1,0))]);
+  SaveFormPosition(self, [panel1.height, integer(ifthen(miResizeOutput.checked, 1,0)), integer(ifthen(miShowScriptInOutput.checked, 1,0))]);
 end;
 
 procedure TfrmLuaEngine.FormShow(Sender: TObject);

@@ -12,7 +12,7 @@ object frmLuaEngine: TfrmLuaEngine
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object GroupBox1: TGroupBox
     Left = 0
     Height = 177
@@ -826,6 +826,11 @@ object frmLuaEngine: TfrmLuaEngine
         Caption = 'Resize output on resize'
         Checked = True
         OnClick = miResizeOutputClick
+      end
+      object miShowScriptInOutput: TMenuItem
+        AutoCheck = True
+        Caption = 'Show script in output'
+        Checked = True
       end
     end
   end
