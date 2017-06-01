@@ -1502,7 +1502,7 @@ function mono_invoke_method_dialog(domain, method)
       end
 
       if args[i].value==nil then
-        messageDialog(translate('parameter ')..i..': "'..mifinfo.parameters[i].edtVarText.Text..translate('" is not a valid value'), mtError, mbOK)
+        messageDialog(translate('parameter ')..i..': "'..mifinfo.parameters[i].edtVarText.Text..'" '..translate('is not a valid value'), mtError, mbOK)
         return
       end
     end
