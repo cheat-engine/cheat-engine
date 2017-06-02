@@ -121,6 +121,7 @@ resourcestring
   rsLEUndefinedError = 'Undefined error';
   rsLEOnlyOneScriptCanBeDebuggedAtATimeEtc = 'Only one script can be debugged at a time. Continue executing this script without the debugger?';
   rsLEUserClickedStop = 'User clicked stop';
+  rsLuaEngine = 'Lua Engine';
 
 var
   LuaDebugForm: TfrmLuaEngine;
@@ -1101,7 +1102,10 @@ end;
 procedure TfrmLuaEngine.miSaveCurrentScriptAsClick(Sender: TObject);
 begin
   if savedialog1.Execute then
+  begin
     mscript.lines.SaveToFile(savedialog1.filename);
+    frmLuaEngine.Caption:=rsLuaEngine+' '+ExtractFileNameOnly(savedialog1.filename);
+  end;
 end;
 
 procedure TfrmLuaEngine.miSetBreakpointClick(Sender: TObject);

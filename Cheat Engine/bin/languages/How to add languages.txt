@@ -21,6 +21,10 @@ Certain strings are not present in the cheatengine.po file, but are present in l
 The lclstrconsts.po file belongs to the LCL that the Cheat Engine GUI is build upon
 
 
+Custom name for your translation:
+place a name.txt file in your translation folder and name it anything you like instead of the language code
+
+
 ----
 example for dutch
 create the languages\nl_NL folder and move the .po files to there
