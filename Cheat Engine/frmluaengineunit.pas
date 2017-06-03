@@ -941,7 +941,7 @@ begin
   {if mscript.SelAvail then     todo: Try to get this to work in all cases
     so:=so+[ssoSelectedOnly];  }
 
-  mscript.SearchReplace(dlgReplace.FindText,'',so);
+  mscript.SearchReplace(TFindDialog(sender).FindText,'',so);
 end;
 
 procedure TfrmLuaEngine.dlgReplaceReplace(Sender: TObject);
