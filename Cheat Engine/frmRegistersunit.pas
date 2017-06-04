@@ -347,14 +347,14 @@ begin
   {$ifdef cpu64}
   if processhandler.is64Bit then
   begin
-    s.add('R8 ='+inttohex(context.R8,8));
-    s.add('R9 ='+inttohex(context.R9,8));
-    s.add('R10='+inttohex(context.R10,8));
-    s.add('R11='+inttohex(context.R11,8));
-    s.add('R12='+inttohex(context.R12,8));
-    s.add('R13='+inttohex(context.R13,8));
-    s.add('R14='+inttohex(context.R14,8));
-    s.add('R15='+inttohex(context.R15,8));
+    s.add('R8 ='+inttohex(context.R8,16));
+    s.add('R9 ='+inttohex(context.R9,16));
+    s.add('R10='+inttohex(context.R10,16));
+    s.add('R11='+inttohex(context.R11,16));
+    s.add('R12='+inttohex(context.R12,16));
+    s.add('R13='+inttohex(context.R13,16));
+    s.add('R14='+inttohex(context.R14,16));
+    s.add('R15='+inttohex(context.R15,16));
   end;
   {$endif}
 
