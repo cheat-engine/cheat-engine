@@ -1765,10 +1765,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 
 		case IOCTL_CE_EXECUTE_CODE:
-			{
-			
-
-#ifndef TOBESIGNED		
+			{		
 				typedef NTSTATUS (*PARAMETERLESSFUNCTION)(UINT64 parameters);
 				PARAMETERLESSFUNCTION functiontocall;
 
@@ -1792,7 +1789,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 					DbgPrint("Exception occured\n");
 					ntStatus=STATUS_UNSUCCESSFUL;
 				}
-#endif
+
 				break;
 			}
 
