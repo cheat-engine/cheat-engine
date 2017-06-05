@@ -9,7 +9,7 @@ object frmBreakpointCondition: TfrmBreakpointCondition
   OnCreate = FormCreate
   PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Button1: TButton
     AnchorSideTop.Control = PageControl1
     AnchorSideBottom.Control = Owner
@@ -97,7 +97,7 @@ object frmBreakpointCondition: TfrmBreakpointCondition
         Width = 460
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Right = 4
-        Caption = 'Example: EAX == 0x1234  (case sensitive and hexadecimal starts with 0x )'
+        Caption = 'Example: EAX == 0x1234  (case sensitive and hexadecimal starts with 0x ) (Lua)'
         ParentColor = False
         WordWrap = True
       end

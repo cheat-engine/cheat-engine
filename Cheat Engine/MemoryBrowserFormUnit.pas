@@ -2902,6 +2902,7 @@ begin
         23: regname:='ZF';
         24: regname:='SF';
         25: regname:='DF';
+        26: regname:='OF';
 
         6408..6415: regname:='R'+inttostr(i-6400);
       end;
