@@ -727,7 +727,7 @@ begin
             cbAlwaysSignTable.Checked:=reg.readBool('Always Sign Table');
 
           if reg.ValueExists('Always Ask For Password') then
-            cbAlwaysSignTable.Checked:=reg.readBool('Always Ask For Password');
+            cbAlwaysAskForPassword.Checked:=reg.readBool('Always Ask For Password');
 
         end;
 
