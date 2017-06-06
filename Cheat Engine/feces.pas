@@ -652,7 +652,7 @@ begin
 
       if pwhash<>nil then
       begin
-        if formsettings.cbAlwaysAskForPassword.checked then
+        if not formsettings.cbAlwaysAskForPassword.checked then
         begin
           passwordhash:=encodepointer(pwhash); //so it's not needed to ask again
           passwordhashlength:=pwhashlength;
