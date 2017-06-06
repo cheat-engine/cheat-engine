@@ -6,7 +6,8 @@ unit feces;
 interface
 
 uses
-  Classes, SysUtils, bcrypt, DOM, xmlutils, XmlRead, XMLWrite, dialogs, windows, graphics;
+  Classes, SysUtils, bcrypt, DOM, xmlutils, XmlRead, XMLWrite, dialogs, windows,
+  graphics, math;
 
 function canSignTables: boolean;
 procedure signTable(cheattable: TDOMElement);
@@ -395,7 +396,7 @@ begin
   WriteXMLFile(d,f);
 end;
 
-procedure getPasswordHash(password: string; var hashbuffer: pointer; var hashlength: integer);
+procedure generateHash(password: pointer; passwordsize: integer; var hash: pointer; var hashsize: integer);
 var
   s: ntstatus;
   hashAlgoritm: BCRYPT_ALG_HANDLE;
@@ -405,12 +406,11 @@ var
 
   size: ulong;
   i,j: integer;
+  secondaryvalue: byte;
 begin
-  if password='' then
-  begin
-    hashbuffer:=nil;
-    exit;
-  end;
+  hash:=nil;
+  hashsize:=0;
+  if passwordsize=0 then exit;
 
   s:=BCryptOpenAlgorithmProvider(hashAlgoritm, 'SHA512', nil, 0);
   if succeeded(s) then
@@ -425,14 +425,15 @@ begin
       s:=BCryptCreateHash(hashAlgoritm, hHash, bHashObject, objectlength, nil, 0, 0);
       if succeeded(s) then
       begin
-        s:=BCryptHashData(hHash, @password[1], length(password), 0);
+        s:=BCryptHashData(hHash, password, passwordsize, 0);
         if succeeded(s) then
         begin
-          s:=BCryptGetProperty(hashAlgoritm, BCRYPT_HASH_LENGTH, @hashlength, sizeof(DWORD), size, 0);
+          s:=BCryptGetProperty(hashAlgoritm, BCRYPT_HASH_LENGTH, @hashsize, sizeof(DWORD), size, 0);
           if succeeded(s) then
           begin
-            getmem(hashbuffer, hashlength);
-            s:=BCryptFinishHash(hHash, hashbuffer, hashlength, 0);
+            getmem(hash, hashsize);
+            s:=BCryptFinishHash(hHash, hash, hashsize, 0);
+
           end;
         end;
         BCryptDestroyHash(hashAlgoritm);
@@ -440,21 +441,76 @@ begin
       freemem(bHashObject);
       BCryptCloseAlgorithmProvider(hashAlgoritm,0);
     end;
-
   end;
 end;
 
-procedure hashDecode(buffer: pbyte; buffersize: integer; hash: pbyte; hashsize: integer);
-var i,j: integer;
+procedure getPasswordHash(password: string; out pwhash: pointer; out pwhashlength: integer; wantedsize: integer);
+var
+  hash: array of byte;
+
+  initialHash: pbyte;
+  initialhashsize: integer;
+
+  partialhash: pbyte;
+  partialhashsize: integer;
+
+  hashpos: integer;
+  copysize: integer;
+  i,j: integer;
 begin
-  j:=0;
-  for i:=0 to buffersize-1 do
+  pwhash:=nil;
+  if password='' then exit;
+
+  setlength(hash,wantedsize);
+
+
+  //generate hashes until it's the size of the buffer
+  hashpos:=0;
+
+  generateHash(@password[1],length(password),initialhash,initialhashsize);
+
+  j:=1;
+  for i:=0 to initialhashsize-1 do
   begin
-    buffer[i]:=buffer[i] xor hash[j];
+    initialhash[i]:=initialhash[i] xor ord(password[j]);
     inc(j);
-    if j>=hashsize then j:=0;
+    if j>length(password) then j:=1;
   end;
+
+  generateHash(initialhash,initialhashsize,partialhash,partialhashsize);
+  freemem(initialhash);
+
+  copysize:=ifthen(partialhashsize>wantedsize, wantedsize, partialhashsize);
+  copymemory(@hash[0],partialhash, copysize);
+  freemem(partialhash);
+
+  inc(hashpos, copysize);
+
+  while hashpos<wantedsize do
+  begin
+    generateHash(@hash[hashpos-copysize],copysize,partialhash, partialhashsize);
+
+    copysize:=ifthen(partialhashsize+hashpos>wantedsize, wantedsize-hashpos, partialhashsize);
+    copymemory(@hash[hashpos],partialhash, copysize);
+    freemem(partialhash);
+    inc(hashpos,copysize);
+  end;
+
+  getmem(pwhash, wantedsize);
+  copymemory(pwhash, @hash[0],wantedsize);
+
+  setlength(hash,0);
 end;
+
+
+procedure passwordDecode(buffer: pbyte; buffersize: integer; pwhash: pbyte);
+var
+  i: integer;
+begin
+  for i:=0 to buffersize-1 do
+    buffer[i]:=buffer[i] xor pwhash[i];
+end;
+
 
 procedure signTable(cheattable: TDOMElement);
 var
@@ -546,7 +602,7 @@ begin
         end;
 
         if InputQuery('CE Signature', 'Enter your password', true, password)=false then exit;
-          getPasswordHash(password, pwhash, pwhashlength);
+          getPasswordHash(password, pwhash, pwhashlength, m.size-m.position);
       end
       else
       begin
@@ -556,7 +612,7 @@ begin
       passwordhash:=nil; //in case it's wrong/changed
 
       if pwhash<>nil then
-        HashDecode(pointer(ptruint(m.memory)+m.position), m.size-m.position, pwhash, pwhashlength);
+        passwordDecode(pointer(ptruint(m.memory)+m.position), m.size-m.position, pwhash);
     end;
 
     try
