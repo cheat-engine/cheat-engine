@@ -406,7 +406,11 @@ var
   size: ulong;
   i,j: integer;
 begin
-  if password='' then exit;
+  if password='' then
+  begin
+    hashbuffer:=nil;
+    exit;
+  end;
 
   s:=BCryptOpenAlgorithmProvider(hashAlgoritm, 'SHA512', nil, 0);
   if succeeded(s) then
@@ -551,8 +555,8 @@ begin
       end;
       passwordhash:=nil; //in case it's wrong/changed
 
-
-      HashDecode(pointer(ptruint(m.memory)+m.position), m.size-m.position, pwhash, pwhashlength);
+      if pwhash<>nil then
+        HashDecode(pointer(ptruint(m.memory)+m.position), m.size-m.position, pwhash, pwhashlength);
     end;
 
     try
