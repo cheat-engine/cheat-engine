@@ -67,6 +67,7 @@ type
     cbShowLanguageMenuItem: TCheckBox;
     cbProcessWatcherOpensHandles: TCheckBox;
     cbAlwaysSignTable: TCheckBox;
+    cbAlwaysAskForPassword: TCheckBox;
     combothreadpriority: TComboBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
@@ -784,6 +785,7 @@ begin
         {$endif}
 
         reg.WriteBool('Always Sign Table', cbAlwaysSignTable.Checked);
+        reg.WriteBool('Always Ask For Password', cbAlwaysAskForPassword.Checked);
       end;
 
 

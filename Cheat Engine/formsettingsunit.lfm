@@ -63,9 +63,9 @@ object formSettings: TformSettings
       Height = 500
       Top = 1
       Width = 800
-      ActivePage = GeneralSettings
+      ActivePage = tsSigning
       Align = alClient
-      TabIndex = 0
+      TabIndex = 10
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -2071,6 +2071,17 @@ object formSettings: TformSettings
           BorderSpacing.Top = 2
           Caption = 'Always sign Cheat Tables when saving'
           TabOrder = 0
+        end
+        object cbAlwaysAskForPassword: TCheckBox
+          AnchorSideLeft.Control = cbAlwaysSignTable
+          AnchorSideTop.Control = cbAlwaysSignTable
+          AnchorSideTop.Side = asrBottom
+          Left = 2
+          Height = 19
+          Top = 21
+          Width = 222
+          Caption = 'Always ask for password when signing'
+          TabOrder = 1
         end
       end
     end
