@@ -1254,6 +1254,9 @@ begin
     btnCancel.AnchorSideTop.Control:=cbpointer;
   end;
 
+  autosize:=false;
+  autosize:=true;
+
 end;
 
 procedure TformAddressChange.DisablePointerExternal(var m: TMessage);
