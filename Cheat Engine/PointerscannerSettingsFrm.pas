@@ -284,6 +284,8 @@ var
   list: tstringlist;
 begin
   list:=tstringlist(combobox.tag);
+  if list=nil then exit;
+
   combobox.Items.Clear;
 
   maxwidth:=combobox.clientwidth-combobox.Left;
@@ -1243,6 +1245,8 @@ begin
 
   UpdateAddressList(cbAddress);
   cbAddress.ItemHeight:=cbValueType.ItemHeight;
+
+
 end;
 
 procedure TfrmPointerScannerSettings.FormCreate(Sender: TObject);

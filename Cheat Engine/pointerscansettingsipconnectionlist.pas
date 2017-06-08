@@ -16,7 +16,7 @@ resourcestring
   rsPSSICLStable = 'Stable';
 
 type
-  TIpinfo=class(TPanel)
+  TIpinfo=class(tobject)
   private
     edtHost: TEdit;
     edtPort: Tedit;
@@ -32,11 +32,10 @@ type
     procedure setPort(p: string);
     procedure setPassword(p: string);
     procedure setStableState(s: boolean);
-  protected
-    procedure Resize; override;
   public
     procedure clean;
-    constructor create(TheOwner: TComponent); override;
+    constructor create(TheOwner: TComponent);
+    destructor destroy; override;
 
     property host: string read getHost write setHost;
     property port: string read getPort write setPort;
@@ -58,14 +57,13 @@ type
 
     fOnWantedToDeleteLastItem: TNotifyEvent;
 
-    procedure IpInfoResize(sender: TObject);
+    pnlHPPS: tpanel;
+
     procedure addIpInfo(sender: tobject);
     procedure removeIpInfo(sender: tobject);
     procedure updatePositions;
     function getCount: integer;
     function getItem(index: integer): TIpInfo;
-  protected
-    procedure Resize; override;
   public
     procedure clear;
     procedure add;
@@ -119,14 +117,6 @@ begin
   result:=cbStable.Checked;
 end;
 
-procedure TIpinfo.Resize;
-begin
-  inherited Resize;
-
-  if edtHost<>nil then
-    edtHost.Width:=clientwidth div 2;
-end;
-
 procedure TIpinfo.clean;
 begin
   edtHost.text:='';
@@ -137,60 +127,43 @@ end;
 
 constructor TIpinfo.create(TheOwner: TComponent);
 begin
-  inherited create(TheOwner);
-
-  visible:=false;
+  inherited create;
 
   if TheOwner is TWinControl then
   begin
-    parent:=twincontrol(TheOwner);
-    //width:=twincontrol(TheOwner).ClientWidth;
-
-    bevelouter:=bvNone;
-    edtHost:=Tedit.create(self);
-    edtHost.parent:=self;
-
-    edtPort:=Tedit.create(self);
-    edtPort.parent:=self;
+    edtHost:=Tedit.create(theowner);
+    edtPort:=Tedit.create(theowner);
     edtPort.text:='52737';
-    edtPort.ClientWidth:=self.Canvas.GetTextWidth(edtport.text)+8;
-
-    edtPassword:=Tedit.create(self);
-    edtPassword.parent:=self;
-
-    cbStable:=TCheckBox.create(self);
-    cbStable.parent:=self;
+    edtPassword:=Tedit.create(theowner);
+    cbStable:=TCheckBox.create(theowner);
     cbStable.caption:='';
     cbStable.autoSize:=true;
-
-    cbStable.AnchorSideRight.Control:=self;
-    cbStable.AnchorSideRight.Side:=asrRight;
-    cbStable.anchors:=[akTop, akRight];
-   /// cbStable.BorderSpacing.Right:=4;//self.canvas.GetTextWidth('Stable') div 2;
-
-    edtPassword.AnchorSideRight.control:=cbStable;
-    edtPassword.AnchorSideRight.Side:=asrLeft;
-    edtPassword.AnchorSideLeft.control:=edtPort;
-    edtPassword.AnchorSideLeft.Side:=asrRight;
-    edtPassword.BorderSpacing.Right:=4; //self.canvas.GetTextWidth('Stable') div 2;
-    edtPassword.BorderSpacing.Left:=4;
-    edtPassword.anchors:=[akTop, akLeft, akRight];
 
     edtPassword.PasswordChar:='*';
     edtPassword.MaxLength:=255;
 
+    edtHost.Parent:=twincontrol(theowner);
+    edtPort.Parent:=twincontrol(theowner);
+    edtPassword.Parent:=twincontrol(theowner);
+    cbStable.Parent:=twincontrol(theowner);
 
-    edtPort.AnchorSideLeft.control:=edtHost;
-    edtPort.AnchorSideLeft.side:=asrRight;
-    edtPort.BorderSpacing.Left:=4;
-    edtPort.anchors:=[akLeft, akTop];
-
-    autosize:=true;
   end;
-
-  visible:=true;
-
 end;
+
+destructor TIpinfo.destroy;
+var p: TWinControl;
+begin
+  p:=cbStable.Parent;
+  p.BeginUpdateBounds;
+
+  cbStable.free;
+  edtPassword.free;
+  edtPort.free;
+  edtHost.free;
+
+  p.EndUpdateBounds;
+end;
+
 
 {}
 
@@ -207,26 +180,12 @@ begin
     result:=nil;
 end;
 
-procedure TIpList.IpInfoResize(sender: TObject);
-begin
-  if count>0 then
-  begin
-    lblhost.left:=0;
-    lblport.left:=item[0].edtPort.left;
-    lblPassword.left:=item[0].edtPassword.left;
-    lblStable.left:=clientwidth-lblStable.width-4;
-  end;
-end;
+
 
 procedure TIpList.addIpInfo(sender: tobject);
 var newipinfo: TIpInfo;
 begin
-  newipinfo:=TIpInfo.Create(self);
-  newipinfo.parent:=self;
-  newipinfo.width:=clientwidth;
-  newipinfo.Anchors:=[akTop, akLeft, akRight];
-
-  newipinfo.OnResize:=@IpInfoResize;
+  newipinfo:=TIpInfo.Create(pnlHPPS);
   ipinfo.Add(newipinfo);
   updatePositions;
 end;
@@ -249,28 +208,15 @@ begin
 
 end;
 
-procedure TIpList.Resize;
-begin
-  if resizingmyself=false then
-  begin
-    resizingmyself:=true;
-    try
-      if (lblHost<>nil) then
-        updatePositions;
-    finally
-      resizingmyself:=false;
-    end;
-  end;
-
-  inherited Resize;
-end;
-
 procedure TIpList.updatePositions;
 var
   currentipinfo: TIpInfo;
   i: integer;
   currenttop: integer;
+
 begin
+
+
   resizingmyself:=true;
   try
     currentipinfo:=nil;
@@ -279,17 +225,18 @@ begin
     for i:=0 to ipinfo.count-1 do
     begin
       currentipinfo:=TIpinfo(ipinfo[i]);
-      currentipinfo.top:=currenttop;
-      inc(currenttop, currentipinfo.height+1);
+
+      currentipinfo.edtHost.Constraints.MinWidth:=canvas.TextWidth(' XXX.XXX.XXX.XXX ');
+      currentipinfo.edtHost.Constraints.MaxWidth:=canvas.TextWidth(' XXX.XXX.XXX.XXX ');
+
+      currentipinfo.edtPort.Constraints.MinWidth:=canvas.TextWidth('XXXXX');
+      currentipinfo.edtPort.Constraints.MaxWidth:=canvas.TextWidth(' XXXXX ');
+
+      currentipinfo.edtPassword.Constraints.MinWidth:=canvas.TextWidth('XXXXXXXXX');
+      currentipinfo.edtPassword.Constraints.MaxWidth:=canvas.TextWidth(' XXXXXXXXX ');
     end;
 
-    btnAdd.Top:=currentTop;
-    btnRemove.top:=btnAdd.top;
-
-    btnAdd.Left:=(clientwidth div 2)-(btnAdd.width-4);
-    btnRemove.Left:=(clientwidth div 2)+4;
-
-    height:=btnAdd.top+btnAdd.height+4;
+//    height:=btnAdd.top+btnAdd.height+4;
 
   finally
     resizingmyself:=false;
@@ -334,9 +281,24 @@ begin
   bevelouter:=bvNone;
   visible:=false;
 
+
   if theowner is TWinControl then
   begin
     parent:=TWinControl(TheOwner);
+
+    pnlHPPS:=tpanel.Create(self);
+    pnlHPPS.BevelOuter:=bvNone;
+    pnlHPPS.parent:=self;
+    pnlHPPS.ChildSizing.ControlsPerLine:=4;
+    pnlHPPS.ChildSizing.EnlargeHorizontal:=crsHomogenousChildResize;
+    pnlHPPS.ChildSizing.HorizontalSpacing:=3;
+    pnlHPPS.ChildSizing.VerticalSpacing:=1;
+    pnlHPPS.ChildSizing.Layout:=cclLeftToRightThenTopToBottom;
+    pnlHPPS.autosize:=true;
+
+    //pnlHPPS.color:=$ff0000;
+
+
     //width:=twincontrol(TheOwner).ClientWidth;
 
     btnAdd:=tbutton.create(self);
@@ -361,19 +323,46 @@ begin
 
     lblHost:=tlabel.create(self);
     lblHost.caption:=rsPSSICLHost;
-    lblHost.parent:=self;
+    lblHost.parent:=pnlhpps;
 
     lblPort:=tlabel.create(self);
     lblPort.caption:=rsPSSICLPort;
-    lblPort.parent:=self;
+    lblPort.parent:=pnlhpps;
 
     lblPassword:=tlabel.Create(self);
     lblPassword.caption:=rsPSSICLPassword;
-    lblPassword.parent:=self;
+    lblPassword.parent:=pnlhpps;
 
     lblStable:=tlabel.create(self);
     lblStable.caption:=rsPSSICLStable;
-    lblStable.parent:=self;
+    lblStable.parent:=pnlhpps;
+
+    pnlHPPS.AnchorSideTop.control:=self;
+    pnlHPPS.AnchorSideTop.Side:=asrTop;
+    pnlHPPS.AnchorSideLeft.control:=self;
+    pnlHPPS.AnchorSideLeft.Side:=asrLeft;
+
+
+
+    btnAdd.AnchorSideTop.control:=pnlHPPS;
+    btnAdd.AnchorSideTop.Side:=asrbottom;
+    btnAdd.AnchorSideLeft.control:=self;
+    btnAdd.AnchorSideLeft.Side:=asrleft;
+    btnAdd.BorderSpacing.Top:=3;
+
+
+    btnRemove.AnchorSideTop.control:=btnAdd;
+    btnRemove.AnchorSideTop.Side:=asrTop;
+    btnRemove.AnchorSideLeft.control:=btnAdd;
+    btnRemove.AnchorSideLeft.Side:=asrRight;
+    btnRemove.BorderSpacing.Left:=4;
+
+
+
+
+    autosize:=true;
+
+    //color:=$00ff00;
 
     addIpInfo(self);
   end;
