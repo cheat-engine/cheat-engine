@@ -396,3 +396,8 @@ cdsDefault=5
 cdsHot=6
 cdsMarked=7
 cdsIndeterminate=8
+
+drBounds=0
+drIcon=1
+drLabel=2
+drSelectBounds=3

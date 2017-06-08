@@ -5,7 +5,7 @@ unit LuaListItem;
 interface
 
 uses
-  Classes, SysUtils, ComCtrls, lua, lualib, lauxlib;
+  Classes, SysUtils, ComCtrls, lua, lualib, lauxlib, typinfo;
 
 procedure initializeLuaListItem;
 
@@ -120,6 +120,44 @@ begin
   result:=1;
 end;
 
+function listitem_displayRect(L: PLua_State): integer; cdecl;
+var
+  listitem: Tlistitem;
+  r:trect;
+begin
+  result:=0;
+  listitem:=luaclass_getClassObject(L);
+  if lua_gettop(L)=1 then
+  begin
+    if lua_isnumber(L,1) then
+      r:=listitem.displayrect(TDisplayCode(lua_tointeger(L,1)))
+    else
+      r:=listitem.displayrect(TDisplayCode(GetEnumValue(typeinfo(TDisplayCode),Lua_ToString(L,1))));
+
+    lua_pushrect(L,r);
+    result:=1;
+  end;
+end;
+
+function listitem_displayRectSubItem(L: PLua_State): integer; cdecl;
+var
+  listitem: Tlistitem;
+  r:trect;
+begin
+  result:=0;
+  listitem:=luaclass_getClassObject(L);
+  if lua_gettop(L)=2 then
+  begin
+    if lua_isnumber(L,1) then
+      r:=listitem.DisplayRectSubItem(lua_tointeger(L,1), TDisplayCode(lua_tointeger(L,2)))
+    else
+      r:=listitem.displayrectSubItem(lua_tointeger(L,1), TDisplayCode(GetEnumValue(typeinfo(TDisplayCode),Lua_ToString(L,2))));
+
+    lua_pushrect(L,r);
+    result:=1;
+  end;
+end;
+
 function listitem_makeVisible(L: PLua_State): integer; cdecl;
 var
   listitem: Tlistitem;
@@ -145,6 +183,8 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getSubItems', listitem_getSubItems);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'makeVisible', listitem_makeVisible);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'delete', listitem_delete);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'displayRect', listitem_displayRect);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'displayRectSubItem', listitem_displayRectSubItem);
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'Caption', listitem_getCaption, listitem_setCaption);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Checked', listitem_getChecked, listitem_setChecked);

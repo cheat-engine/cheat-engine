@@ -1272,6 +1272,8 @@ methods
   getCount()
   getItem(integer) : Return the listitem object at the given index
   add(): Returns a new ListItem object
+  displayRect(code): returns the displayed rectangle of the listitem. code can be: drBounds(0), drIcon(1), drLabel(2), drSelectBounds(3)
+  displayRectSubItem(code): returns the displayed rectangle of the listitem. code can be: drBounds(0), drIcon(1), drLabel(2), drSelectBounds(3)
 
 
 
