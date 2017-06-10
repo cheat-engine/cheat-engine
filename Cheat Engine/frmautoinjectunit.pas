@@ -1749,10 +1749,12 @@ begin
         assemblescreen.Gutter.Visible:=reg.ReadBool('Show Gutter');
 
       if reg.valueexists('smart tabs') then
-        if reg.ReadBool('smart tabs') then assemblescreen.Options:=assemblescreen.options+[eoSmartTabs];
+        if reg.ReadBool('smart tabs') then assemblescreen.Options:=assemblescreen.options+[eoSmartTabs]
+                                      else assemblescreen.Options:=assemblescreen.options-[eoSmartTabs];
 
       if reg.valueexists('tabs to spaces') then
-        if reg.ReadBool('tabs to spaces') then assemblescreen.Options:=assemblescreen.options+[eoTabsToSpaces];
+        if reg.ReadBool('tabs to spaces') then assemblescreen.Options:=assemblescreen.options+[eoTabsToSpaces]
+                                          else assemblescreen.Options:=assemblescreen.options-[eoTabsToSpaces];
 
       if reg.valueexists('tab width') then
         assemblescreen.tabwidth:=reg.ReadInteger('tab width');
@@ -2056,6 +2058,7 @@ begin
 
             reg.WriteBool('smart tabs', eoSmartTabs in assemblescreen.Options);
             reg.WriteBool('tabs to spaces', eoTabsToSpaces in assemblescreen.Options);
+            reg.WriteInteger('tab width', assemblescreen.TabWidth);
           end;
 
         finally
