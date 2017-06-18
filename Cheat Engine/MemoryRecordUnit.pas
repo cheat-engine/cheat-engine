@@ -2594,14 +2594,14 @@ begin
 
   c:=DropDowncount;
 
-  if fDisplayAsDropDownListItem and (c>0) then
+  if getDisplayAsDropDownListItem and (c>0) then
   begin
     //convert the value to a dropdown list item value
     for i:=0 to c-1 do
     begin
       if uppercase(utf8toansi(DropDownValue[i]))=uppercase(result) then
       begin
-        if fDropDownDescriptionOnly then
+        if getDropDownDescriptionOnly then
           result:=utf8toansi(DropDownDescription[i])
         else
           result:=result+' : '+utf8toansi(DropDownDescription[i]);

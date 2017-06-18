@@ -128,6 +128,7 @@ begin
     end;
   end;
 
+  linkedToMemrec:=false;
   if cbDisallowUserInput.enabled=false then cbDisallowUserInput.enabled:=true;
   if cbOnlyShowDescription.enabled=false then cbOnlyShowDescription.enabled:=true;
   if cbDisplayAsDropdownItem.enabled=false then cbDisplayAsDropdownItem.enabled:=true;
@@ -146,11 +147,12 @@ begin
 
   if linkedtomemrec then
   begin
-    memrec.DropDownLinked:=linkedToMemrec;
+    memrec.DropDownLinked:=true;
     memrec.DropDownLinkedMemrec:=linkedMemrec;
   end
   else
   begin
+    memrec.DropDownLinked:=false;
     memrec.DropDownList.Assign(synEditDropdownItems.Lines);
     memrec.DropDownReadOnly:=cbDisallowUserInput.checked;
     memrec.DropDownDescriptionOnly:=cbOnlyShowDescription.checked;
@@ -199,6 +201,13 @@ begin
   cbDisplayAsDropdownItem.checked:=memrec.DisplayAsDropDownListItem;
 
   caption:=rsDDDropdownOtionsFor+memrec.description;
+
+  if memrec.DropDownLinked then
+  begin
+    synEditDropdownItems.Text:='('+memrec.DropDownLinkedMemrec+')';
+    synEditDropdownItemsChange(synEditDropdownItems);
+  end;
+
 end;
 
 procedure TFrmMemoryRecordDropdownSettings.Undo1Click(Sender: TObject);
