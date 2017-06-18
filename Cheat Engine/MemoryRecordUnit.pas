@@ -817,7 +817,15 @@ begin
   begin
     mr:=getlinkedDropDownMemrec;
     if mr<>nil then
-      exit(mr.getCurrentDropDownIndex)
+      begin
+        result:=-1;
+        for i:=0 to mr.DropDownCount-1 do
+        begin
+          if lowercase(Value)=lowercase(mr.DropDownValue[i]) then
+            result:=i;
+        end;
+        exit;
+      end
     else
       exit(-1);
   end;
