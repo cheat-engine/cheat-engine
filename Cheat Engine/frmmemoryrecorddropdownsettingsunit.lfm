@@ -14,7 +14,7 @@ object FrmMemoryRecordDropdownSettings: TFrmMemoryRecordDropdownSettings
   PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'
-  object memoDropdownItems: TMemo
+  object Panel0: TPanel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Label2
     AnchorSideTop.Side = asrBottom
@@ -26,11 +26,9 @@ object FrmMemoryRecordDropdownSettings: TFrmMemoryRecordDropdownSettings
     Top = 30
     Width = 386
     Anchors = [akTop, akLeft, akRight, akBottom]
-    OnChange = memoDropdownItemsChange
-    OnKeyDown = memoDropdownItemsKeyDown
-    ScrollBars = ssBoth
+    AutoSize = True
+    BevelOuter = bvNone
     TabOrder = 0
-    WordWrap = False
   end
   object Label1: TLabel
     AnchorSideLeft.Control = Owner
@@ -55,7 +53,7 @@ object FrmMemoryRecordDropdownSettings: TFrmMemoryRecordDropdownSettings
     BevelOuter = bvNone
     ClientHeight = 33
     ClientWidth = 386
-    TabOrder = 3
+    TabOrder = 4
     object Panel2: TPanel
       AnchorSideLeft.Control = Panel1
       AnchorSideLeft.Side = asrCenter
@@ -107,7 +105,7 @@ object FrmMemoryRecordDropdownSettings: TFrmMemoryRecordDropdownSettings
   end
   object cbDisallowUserInput: TCheckBox
     AnchorSideLeft.Control = Owner
-    AnchorSideTop.Control = memoDropdownItems
+    AnchorSideTop.Control = Panel0
     AnchorSideTop.Side = asrBottom
     AnchorSideBottom.Control = cbOnlyShowDescription
     Left = 0
@@ -153,6 +151,26 @@ object FrmMemoryRecordDropdownSettings: TFrmMemoryRecordDropdownSettings
     Width = 299
     Anchors = [akLeft, akBottom]
     Caption = 'Make the record display values like the dropdown list'
-    TabOrder = 4
+    TabOrder = 3
+  end
+  object PopupMenu1: TPopupMenu
+    left = 8
+    top = 32
+    object Cut1: TMenuItem
+      Caption = 'Cut'
+      OnClick = Cut1Click
+    end
+    object Copy1: TMenuItem
+      Caption = 'Copy'
+      OnClick = Copy1Click
+    end
+    object Paste1: TMenuItem
+      Caption = 'Paste'
+      OnClick = Paste1Click
+    end
+    object Undo1: TMenuItem
+      Caption = 'Undo'
+      OnClick = Undo1Click
+    end
   end
 end
