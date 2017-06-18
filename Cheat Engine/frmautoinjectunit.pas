@@ -8,7 +8,7 @@ uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ExtCtrls, Menus, CEFuncProc, StrUtils, types, ComCtrls, LResources,
   NewKernelHandler, SynEdit, SynHighlighterCpp, SynHighlighterAA, LuaSyntax, disassembler,
-  MainUnit2, Assemblerunit, autoassembler, symbolhandler, SynEditSearch,
+  MainUnit2, Assemblerunit, autoassembler, symbolhandler, SynEditSearch, SynPluginMultiCaret,
   MemoryRecordUnit, tablist, customtypehandler, registry, SynGutterBase, SynEditMarks,
   luahandler, memscan, foundlisthelper, ProcessHandlerUnit, commonTypeDefs;
 
@@ -171,6 +171,7 @@ type
     CPPHighlighter: TSynCppSyn;
     LuaHighlighter: TSynLuaSyn;
 
+    assemblescreenCaret: TSynPluginMultiCaret;
     assembleSearch: TSynEditSearch;
 
     oldtabindex: integer;
@@ -1703,11 +1704,15 @@ begin
 
   assemblescreen:=TSynEdit.Create(self);
   assemblescreen.Highlighter:=AAHighlighter;
-  assemblescreen.Options:=SYNEDIT_DEFAULT_OPTIONS - [eoScrollPastEol]+[eoTabIndent];
+  assemblescreen.Options:=SYNEDIT_DEFAULT_OPTIONS - [eoScrollPastEol]+[eoTabIndent]+[eoKeepCaretX];
   assemblescreen.Font.Quality:=fqDefault;
   assemblescreen.WantTabs:=true;
   assemblescreen.TabWidth:=4;
 
+  assemblescreenCaret:=TSynPluginMultiCaret.Create(assemblescreen);
+  assemblescreenCaret.EnableWithColumnSelection:=true;
+  assemblescreenCaret.DefaultMode:=mcmMoveAllCarets;
+  assemblescreenCaret.DefaultColumnSelectMode:=mcmCancelOnCaretMove;
 
   assemblescreen.Gutter.MarksPart.Visible:=false;
   assemblescreen.Gutter.Visible:=true;
