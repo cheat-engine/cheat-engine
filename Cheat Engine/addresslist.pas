@@ -1150,7 +1150,7 @@ begin
 
 
 
-  if (memrec.VarType<>vtAutoAssembler) and (selcount<=1) and (memrec.DropDownList.count=0) then
+  if (memrec.VarType<>vtAutoAssembler) and (selcount<=1) and (memrec.DropDownCount=0) then
   begin
 
 

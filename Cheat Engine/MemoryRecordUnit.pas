@@ -817,7 +817,15 @@ begin
   begin
     mr:=getlinkedDropDownMemrec;
     if mr<>nil then
-      exit(mr.getCurrentDropDownIndex)
+      begin
+        result:=-1;
+        for i:=0 to mr.DropDownCount-1 do
+        begin
+          if lowercase(Value)=lowercase(mr.DropDownValue[i]) then
+            result:=i;
+        end;
+        exit;
+      end
     else
       exit(-1);
   end;
@@ -2594,14 +2602,14 @@ begin
 
   c:=DropDowncount;
 
-  if fDisplayAsDropDownListItem and (c>0) then
+  if getDisplayAsDropDownListItem and (c>0) then
   begin
     //convert the value to a dropdown list item value
     for i:=0 to c-1 do
     begin
       if uppercase(utf8toansi(DropDownValue[i]))=uppercase(result) then
       begin
-        if fDropDownDescriptionOnly then
+        if getDropDownDescriptionOnly then
           result:=utf8toansi(DropDownDescription[i])
         else
           result:=result+' : '+utf8toansi(DropDownDescription[i]);

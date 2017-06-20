@@ -6,7 +6,7 @@ interface
 
 uses
   LCLType, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, MemoryRecordUnit, CEFuncProc;
+  ExtCtrls, MemoryRecordUnit, CEFuncProc, SynEdit, Menus;
 
 resourcestring
 rsDDDropdownOtionsFor = 'Dropdown options for ';
@@ -23,20 +23,30 @@ type
     cbDisplayAsDropdownItem: TCheckBox;
     Label1: TLabel;
     Label2: TLabel;
-    memoDropdownItems: TMemo;
+    Cut1: TMenuItem;
+    Copy1: TMenuItem;
+    Paste1: TMenuItem;
+    Undo1: TMenuItem;
+    Panel0: TPanel;
     Panel1: TPanel;
     Panel2: TPanel;
+    PopupMenu1: TPopupMenu;
     procedure btnOkClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure memoDropdownItemsChange(Sender: TObject);
-    procedure memoDropdownItemsKeyDown(Sender: TObject; var Key: Word;
+    procedure synEditDropdownItemsChange(Sender: TObject);
+    procedure synEditDropdownItemsKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    procedure Undo1Click(Sender: TObject);
+    procedure Cut1Click(Sender: TObject);
+    procedure Copy1Click(Sender: TObject);
+    procedure Paste1Click(Sender: TObject);
   private
     { private declarations }
     memrec: TMemoryrecord;
+    synEditDropdownItems: TSynEdit;
     linkedToMemrec: boolean;
     linkedMemrec: string;
 
@@ -51,7 +61,7 @@ implementation
 
 { TFrmMemoryRecordDropdownSettings }
 
-uses MainUnit;
+uses MainUnit,SynPluginMultiCaret;
 
 procedure TFrmMemoryRecordDropdownSettings.FormClose(Sender: TObject;
   var CloseAction: TCloseAction);
@@ -78,21 +88,22 @@ begin
     autosize:=false;
 
     wanted:=canvas.TextHeight('AjCgyi')*8;
-    if memoDropdownItems.Height<wanted then
-      height:=height+wanted-memoDropdownItems.Height;
+    if synEditDropdownItems.Height<wanted then
+      height:=height+wanted-synEditDropdownItems.Height;
   end;
+  synEditDropdownItems.SetFocus;
 end;
 
-procedure TFrmMemoryRecordDropdownSettings.memoDropdownItemsChange(
+procedure TFrmMemoryRecordDropdownSettings.synEditDropdownItemsChange(
   Sender: TObject);
 var
   s: string;
   options: boolean;
   mr: TMemoryRecord;
 begin
-  if (memoDropdownItems.lines.Count=1) then
+  if (synEditDropdownItems.lines.Count=1) then
   begin
-    s:=trim(memoDropdownItems.lines[0]);
+    s:=trim(synEditDropdownItems.lines[0]);
     if length(s)>2 then
     begin
       if (s[1]='(') and (s[length(s)]=')') then
@@ -117,12 +128,13 @@ begin
     end;
   end;
 
+  linkedToMemrec:=false;
   if cbDisallowUserInput.enabled=false then cbDisallowUserInput.enabled:=true;
   if cbOnlyShowDescription.enabled=false then cbOnlyShowDescription.enabled:=true;
   if cbDisplayAsDropdownItem.enabled=false then cbDisplayAsDropdownItem.enabled:=true;
 end;
 
-procedure TFrmMemoryRecordDropdownSettings.memoDropdownItemsKeyDown(
+procedure TFrmMemoryRecordDropdownSettings.synEditDropdownItemsKeyDown(
   Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
   if key=vk_escape then
@@ -135,12 +147,13 @@ begin
 
   if linkedtomemrec then
   begin
-    memrec.DropDownLinked:=linkedToMemrec;
+    memrec.DropDownLinked:=true;
     memrec.DropDownLinkedMemrec:=linkedMemrec;
   end
   else
   begin
-    memrec.DropDownList.Assign(memoDropdownItems.Lines);
+    memrec.DropDownLinked:=false;
+    memrec.DropDownList.Assign(synEditDropdownItems.Lines);
     memrec.DropDownReadOnly:=cbDisallowUserInput.checked;
     memrec.DropDownDescriptionOnly:=cbOnlyShowDescription.checked;
     memrec.DisplayAsDropDownListItem:=cbDisplayAsDropdownItem.checked;
@@ -151,18 +164,70 @@ begin
 end;
 
 constructor TFrmMemoryRecordDropdownSettings.create(memrec: TMemoryrecord);
+var multicaret: TSynPluginMultiCaret;
 begin
   inherited create(Application);
 
   self.memrec:=memrec;
+
+  synEditDropdownItems:=TSynEdit.Create(Self);
+  with synEditDropdownItems do begin
+    Name:='synEditDropdownItems';
+    Text:='';
+    Parent:=Panel0;
+    Align:=alClient;
+    WantTabs:=false;
+    Options:=[eoKeepCaretX,eoTrimTrailingSpaces];
+    OnKeyDown:=synEditDropdownItemsKeyDown;
+    OnChange:=synEditDropdownItemsChange;
+    PopupMenu:=PopupMenu1;
+    Gutter.LineNumberPart.Visible:=true;
+    Gutter.ChangesPart.Visible:=true;
+    Gutter.CodeFoldPart.Visible:=false;
+    Gutter.MarksPart.Visible:=false;
+    Gutter.SeparatorPart.Visible:=false;
+  end;
+
+  multicaret:=TSynPluginMultiCaret.Create(synEditDropdownItems);
+  multicaret.EnableWithColumnSelection:=true;
+  multicaret.DefaultMode:=mcmMoveAllCarets;
+  multicaret.DefaultColumnSelectMode:=mcmCancelOnCaretMove;
+
   if memrec.DropDownList<>nil then
-    memoDropdownItems.Lines.AddStrings(memrec.DropDownList);
+    synEditDropdownItems.Lines.AddStrings(memrec.DropDownList);
 
   cbDisallowUserInput.checked:=memrec.DropDownReadOnly;
   cbOnlyShowDescription.checked:=memrec.DropDownDescriptionOnly;
   cbDisplayAsDropdownItem.checked:=memrec.DisplayAsDropDownListItem;
 
   caption:=rsDDDropdownOtionsFor+memrec.description;
+
+  if memrec.DropDownLinked then
+  begin
+    synEditDropdownItems.Text:='('+memrec.DropDownLinkedMemrec+')';
+    synEditDropdownItemsChange(synEditDropdownItems);
+  end;
+
+end;
+
+procedure TFrmMemoryRecordDropdownSettings.Undo1Click(Sender: TObject);
+begin
+  synEditDropdownItems.Undo;
+end;
+
+procedure TFrmMemoryRecordDropdownSettings.Cut1Click(Sender: TObject);
+begin
+  synEditDropdownItems.CutToClipboard;
+end;
+
+procedure TFrmMemoryRecordDropdownSettings.Copy1Click(Sender: TObject);
+begin
+  synEditDropdownItems.CopyToClipboard;
+end;
+
+procedure TFrmMemoryRecordDropdownSettings.Paste1Click(Sender: TObject);
+begin
+  synEditDropdownItems.PasteFromClipboard;
 end;
 
 end.
