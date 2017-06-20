@@ -8,7 +8,7 @@ uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ExtCtrls, Menus, CEFuncProc, StrUtils, types, ComCtrls, LResources,
   NewKernelHandler, SynEdit, SynHighlighterCpp, SynHighlighterAA, LuaSyntax, disassembler,
-  MainUnit2, Assemblerunit, autoassembler, symbolhandler, SynEditSearch,
+  MainUnit2, Assemblerunit, autoassembler, symbolhandler, SynEditSearch, SynPluginMultiCaret,
   MemoryRecordUnit, tablist, customtypehandler, registry, SynGutterBase, SynEditMarks,
   luahandler, memscan, foundlisthelper, ProcessHandlerUnit, commonTypeDefs;
 
@@ -171,6 +171,7 @@ type
     CPPHighlighter: TSynCppSyn;
     LuaHighlighter: TSynLuaSyn;
 
+    assemblescreenCaret: TSynPluginMultiCaret;
     assembleSearch: TSynEditSearch;
 
     oldtabindex: integer;
@@ -1703,11 +1704,15 @@ begin
 
   assemblescreen:=TSynEdit.Create(self);
   assemblescreen.Highlighter:=AAHighlighter;
-  assemblescreen.Options:=SYNEDIT_DEFAULT_OPTIONS - [eoScrollPastEol]+[eoTabIndent];
+  assemblescreen.Options:=SYNEDIT_DEFAULT_OPTIONS - [eoScrollPastEol]+[eoTabIndent]+[eoKeepCaretX];
   assemblescreen.Font.Quality:=fqDefault;
   assemblescreen.WantTabs:=true;
   assemblescreen.TabWidth:=4;
 
+  assemblescreenCaret:=TSynPluginMultiCaret.Create(assemblescreen);
+  assemblescreenCaret.EnableWithColumnSelection:=true;
+  assemblescreenCaret.DefaultMode:=mcmMoveAllCarets;
+  assemblescreenCaret.DefaultColumnSelectMode:=mcmCancelOnCaretMove;
 
   assemblescreen.Gutter.MarksPart.Visible:=false;
   assemblescreen.Gutter.Visible:=true;
@@ -1749,10 +1754,12 @@ begin
         assemblescreen.Gutter.Visible:=reg.ReadBool('Show Gutter');
 
       if reg.valueexists('smart tabs') then
-        if reg.ReadBool('smart tabs') then assemblescreen.Options:=assemblescreen.options+[eoSmartTabs];
+        if reg.ReadBool('smart tabs') then assemblescreen.Options:=assemblescreen.options+[eoSmartTabs]
+                                      else assemblescreen.Options:=assemblescreen.options-[eoSmartTabs];
 
       if reg.valueexists('tabs to spaces') then
-        if reg.ReadBool('tabs to spaces') then assemblescreen.Options:=assemblescreen.options+[eoTabsToSpaces];
+        if reg.ReadBool('tabs to spaces') then assemblescreen.Options:=assemblescreen.options+[eoTabsToSpaces]
+                                          else assemblescreen.Options:=assemblescreen.options-[eoTabsToSpaces];
 
       if reg.valueexists('tab width') then
         assemblescreen.tabwidth:=reg.ReadInteger('tab width');
@@ -2056,6 +2063,7 @@ begin
 
             reg.WriteBool('smart tabs', eoSmartTabs in assemblescreen.Options);
             reg.WriteBool('tabs to spaces', eoTabsToSpaces in assemblescreen.Options);
+            reg.WriteInteger('tab width', assemblescreen.TabWidth);
           end;
 
         finally

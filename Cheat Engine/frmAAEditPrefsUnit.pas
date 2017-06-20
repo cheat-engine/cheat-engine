@@ -45,6 +45,7 @@ type
       showlinenumbers: boolean;
       showgutter: boolean;
       options: TSynEditorOptions;
+      tabwidth: integer;
     end;
 
   public
@@ -68,12 +69,14 @@ begin
   oldsettings.showlinenumbers:=fSynEdit.Gutter.LineNumberPart.Visible;
   oldsettings.showgutter:=fSynEdit.Gutter.Visible;
   oldsettings.options:=fSynEdit.options;
+  oldsettings.tabwidth:=fSynEdit.TabWidth;
 
   //setup GUI
   cbShowLineNumbers.Checked:=fSynEdit.Gutter.linenumberpart.visible;
   cbShowGutter.Checked:=fSynEdit.Gutter.Visible;
   cbSmartTab.Checked:=eoSmartTabs in fSynEdit.Options;
   cbTabsToSpace.Checked:=eoTabsToSpaces in fSynEdit.Options;
+  edtTabWidth.Text:=inttostr(fSynEdit.TabWidth);
   btnFont.Caption:=fontdialog1.Font.Name+' '+inttostr(fontdialog1.Font.Size);
 
 
@@ -86,6 +89,7 @@ begin
     fsynedit.Gutter.linenumberpart.visible:=oldsettings.showlinenumbers;
     fsynedit.Gutter.visible:=oldsettings.showgutter;
     fsynedit.Options:=oldsettings.options;
+    fSynEdit.TabWidth:=oldsettings.tabwidth;
   end;
   //else leave it and let the caller save to registry, ini, or whatever
 end;
