@@ -597,6 +597,12 @@ begin
     funparsed:=false;
     exit;
   except
+    foffset:=symhandler.getAddressFromNameShallow(s, false, e);
+    if not e then
+    begin
+      funparsed:=false;
+      exit;
+    end;
   end;
 
 

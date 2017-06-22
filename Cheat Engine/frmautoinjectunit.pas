@@ -212,6 +212,7 @@ type
     procedure addTemplate(id: integer);
     procedure removeTemplate(id: integer);
     property CustomTypeScript: boolean read fCustomTypeScript write setCustomTypeScript;
+  published
     property ScriptMode: TScriptMode read fScriptMode write setScriptMode;
   end;
 

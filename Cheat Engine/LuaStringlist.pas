@@ -101,6 +101,7 @@ end;
 procedure initializeLuaStringlist;
 begin
   lua_register(LuaVM, 'createStringlist', createStringlist);
+  lua_register(LuaVM, 'createStringList', createStringList);
   lua_register(LuaVM, 'stringlist_getDuplicates', stringlist_getDuplicates);
   lua_register(LuaVM, 'stringlist_setDuplicates', stringlist_setDuplicates);
   lua_register(LuaVM, 'stringlist_getSorted', stringlist_getSorted);

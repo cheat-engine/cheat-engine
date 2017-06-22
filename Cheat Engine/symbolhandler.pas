@@ -224,7 +224,10 @@ type
     function getAddressFromName(name: string):ptrUint; overload;
     function getAddressFromName(name: string; waitforsymbols: boolean):ptrUint; overload;
     function getAddressFromName(name: string; waitforsymbols: boolean; out haserror: boolean):ptrUint; overload;
-    function getAddressFromName(name: string; waitforsymbols: boolean; out haserror: boolean; context: PContext):ptrUint; overload;
+    function getAddressFromName(name: string; waitforsymbols: boolean; out haserror: boolean; context: PContext; shallow: boolean=false):ptrUint; overload;
+
+    function getAddressFromNameShallow(name: string; waitforsymbols: boolean; out haserror: boolean):ptrUint;
+
 
     function getSymbolInfo(name: string; var syminfo: TCESymbolInfo): boolean;
 
@@ -2307,7 +2310,14 @@ begin
   if haserror then result:=0;
 end;
 
-function TSymhandler.getAddressFromName(name: string; waitforsymbols: boolean; out haserror: boolean; context: PContext):ptrUint;
+function TSymhandler.getAddressFromNameShallow(name: string; waitforsymbols: boolean; out haserror: boolean):ptrUint;
+begin
+  result:=getAddressFromName(name, waitforsymbols, haserror, nil,true);
+end;
+
+function TSymhandler.getAddressFromName(name: string; waitforsymbols: boolean; out haserror: boolean; context: PContext; shallow: boolean=false):ptrUint;
+//shallow will still lookup symbols when explicitly asked for like $luasymbol, but won't dig deeper or use callbacks
+
   function callbackCheck(s: string; cbType: TSymbolLookupCallbackPoint): ptruint;
   var slcindex: integer;
   begin
@@ -2356,9 +2366,11 @@ begin
   haserror:=false;
   offset:=0;
 
-  result:=callbackCheck(name, slStart);
-  if result<>0 then exit;
-
+  if not shallow then
+  begin
+    result:=callbackCheck(name, slStart);
+    if result<>0 then exit;
+  end;
 
   //check if it's a lua symbol notation ('$')
   if length(name)>=2 then
@@ -2367,62 +2379,6 @@ begin
     begin
       val(name,result,i);
       if i=0 then exit; //it's a hexadecimal string starting with a $
-
-
-      {$IFNDEF UNIX}
-      (*
-      //check if lua thingy
-      i:=lua_gettop(luavm); //make sure the stack ends here when done
-
-      s:=copy(name, 2, length(name));
-      lua_getglobal(LuaVM,pchar(s));
-
-      if i<>lua_gettop(luavm) then
-      begin
-        if lua_isnil(LuaVM,-1) then
-        begin
-          //try a lua function call
-
-          lua_settop(luavm, i);
-
-          if lua_dostring(Luavm,pchar('return '+s))<>0 then
-          begin
-            lua_settop(luavm, i);
-            lua_pushnil(Luavm);
-          end;
-        end;
-
-        j:=lua_type(LuaVM, i+1);
-
-        if lua_isuserdata(LuaVM, i+1) then
-        begin
-          result:=ptruint(lua_toceuserdata(Luavm, i+1));
-          lua_settop(luavm, i+1);
-          exit;
-        end
-        else
-        if (j<>LUA_TSTRING) and (lua_isnumber(LuaVM, i+1)) then
-        begin
-          result:=lua_tointeger(LuaVM, i+1);
-          lua_settop(luavm, i+1);
-          exit;
-        end
-        else
-        if lua_isstring(LuaVM, i+1) then
-        begin
-          p:=lua_tostring(LuaVM, i+1);
-          if (p<>nil) then name:=p;
-        end;
-
-
-
-        lua_settop(luavm, i);
-      end;    *)
-      {$ENDIF}
-
-
-
-
     end;
   end;
 
@@ -2437,9 +2393,11 @@ begin
 
 
   //not a hexadecimal string
-  result:=callbackCheck(name, slNotInt);
-  if result<>0 then exit;
-
+  if not shallow then
+  begin
+    result:=callbackCheck(name, slNotInt);
+    if result<>0 then exit;
+  end;
 
   tokenize(name, tokens);
 
@@ -2469,9 +2427,6 @@ begin
         if j>0 then
         begin
           //not a hexadecimal value
-
-
-
           if getmodulebyname(tokens[i],mi) then
           begin
             tokens[i]:=inttohex(mi.baseaddress,8);
@@ -2480,15 +2435,22 @@ begin
           else
           begin
             //not a modulename
-            result:=callbackCheck(tokens[i], slNotModule);
-            if result>0 then
+            if not shallow then
             begin
-              tokens[i]:=inttohex(result,8);
-              continue;
+              result:=callbackCheck(tokens[i], slNotModule);
+              if result>0 then
+              begin
+                tokens[i]:=inttohex(result,8);
+                continue;
+              end;
             end;
 
             {$IFDEF windows}
-            regnr:=getreg(uppercase(tokens[i]),false);
+            if not shallow then
+              regnr:=getreg(uppercase(tokens[i]),false)
+            else
+              regnr:=-1;
+
 
             if regnr<>-1 then
             begin
@@ -2536,11 +2498,14 @@ begin
               end;
 
               //not a userdefined symbol
-              result:=callbackCheck(tokens[i], slNotUserdefinedSymbol);
-              if result>0 then
+              if not shallow then
               begin
-                tokens[i]:=inttohex(result,8);
-                continue;
+                result:=callbackCheck(tokens[i], slNotUserdefinedSymbol);
+                if result>0 then
+                begin
+                  tokens[i]:=inttohex(result,8);
+                  continue;
+                end;
               end;
 
               {$ifdef windows}
@@ -2700,11 +2665,14 @@ begin
 
 
             //not a register or symbol
-            result:=callbackCheck(tokens[i], slNotSymbol);
-            if result>0 then
+            if not shallow then
             begin
-              tokens[i]:=inttohex(result,8);
-              continue;
+              result:=callbackCheck(tokens[i], slNotSymbol);
+              if result>0 then
+              begin
+                tokens[i]:=inttohex(result,8);
+                continue;
+              end;
             end;
 
 
@@ -2717,11 +2685,14 @@ begin
             else
             begin
               //failure
-              result:=callbackCheck(tokens[i], slFailure);
-              if result>0 then
+              if not shallow then
               begin
-                tokens[i]:=inttohex(result,8);
-                continue;
+                result:=callbackCheck(tokens[i], slFailure);
+                if result>0 then
+                begin
+                  tokens[i]:=inttohex(result,8);
+                  continue;
+                end;
               end;
 
               haserror:=true;
