@@ -214,12 +214,13 @@ function VirtualQueryExFile(hProcess: THandle; lpAddress: Pointer; var lpBuffer:
 var ignore: dword;
     filesize: ptrUint;
 begin
-  filesize:=getfilesize(hprocess,@ignore);
+  filesize:=filedata.Size; // getfilesize(hprocess,@ignore);
   lpBuffer.BaseAddress:=pointer((ptrUint(lpAddress) div $1000)*$1000);
   lpbuffer.AllocationBase:=lpbuffer.BaseAddress;
   lpbuffer.AllocationProtect:=PAGE_EXECUTE_READWRITE;
   lpbuffer.RegionSize:=filesize-ptrUint(lpBuffer.BaseAddress);
-  lpbuffer.RegionSize:=lpbuffer.RegionSize+($1000-lpbuffer.RegionSize mod $1000);
+  if (lpbuffer.RegionSize mod 4096)>0 then
+    lpbuffer.RegionSize:=lpbuffer.RegionSize+($1000-lpbuffer.RegionSize mod $1000);
 
 
   lpbuffer.State:=mem_commit;
