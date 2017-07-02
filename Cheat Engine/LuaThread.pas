@@ -494,6 +494,7 @@ begin
   lua_register(LuaVM, 'createCriticalSection', luaCreateCriticalSection);
   lua_register(LuaVM, 'createEvent', luaCreateEvent);
   lua_register(LuaVM, 'createSemaphore', luaCreateSemaphore);
+  lua_register(LuaVM, 'createMultiReadExclusiveWriteSynchronizer', luaCreateMultiReadExclusiveWriteSynchronizer );
   lua_register(LuaVM, 'createMultiReadExclusiveWriteSynchronizer ', luaCreateMultiReadExclusiveWriteSynchronizer );
 end;
 
