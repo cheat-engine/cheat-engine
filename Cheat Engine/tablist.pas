@@ -132,7 +132,7 @@ end;
 procedure TTablist.MouseDown(Button: TMouseButton; Shift:TShiftState; X,Y:Integer);
 var i: integer;
 begin
-  if hasArrows and (x>width-arrowwidth*2+2) then
+  if hasArrows and (x>width-(arrowwidth*2+2)) then
   begin
     //clicked on an arrow
     if x>width-arrowwidth+1 then
