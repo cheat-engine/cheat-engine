@@ -175,7 +175,6 @@ begin
 
   invalidate;
   repaint;
-  controlWithArrows.Repaint
 end;
 
 function TTablist.AddTab(t: string): integer;
@@ -185,7 +184,6 @@ begin
   result:=ftabs.count-1;
   invalidate;
   repaint;
-  controlWithArrows.Repaint
 end;
 
 function TTabList.GetTabWidth(i: integer): integer;
@@ -278,6 +276,8 @@ begin
     else
       controlWithArrows.leftArrowActive:=false;
 
+    controlWithArrows.Repaint
+
   end
   else
     controlWithArrows.Visible:=false;
@@ -293,7 +293,6 @@ begin
     inc(offset);
 
   Repaint;
-  controlWithArrows.Repaint
 end;
 
 procedure TTablist.goRight();
@@ -302,7 +301,6 @@ begin
     dec(offset);
 
   Repaint;
-  controlWithArrows.Repaint
 end;
 
 constructor TTablist.Create(AOwner: TComponent);
