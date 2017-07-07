@@ -129,6 +129,11 @@ resourcestring
   rsProcessListLong = 'Process List(long)';
   rsProcessList = 'Process List';
 
+  rsApplications='Applications';
+  rsProcesses='Processes';
+  rsWindows='Windows';
+
+
 var errortrace: integer;
 
 procedure TProcessListLong.drawprocesses;
@@ -273,6 +278,10 @@ var
   x: array of integer;
   reg: tregistry;
 begin
+  TabControl1.Tabs[0]:=rsApplications;
+  TabControl1.Tabs[1]:=rsProcesses;
+  TabControl1.Tabs[2]:=rsWindows;
+
   setlength(x,0);
   if LoadFormPosition(self,x) then
   begin
@@ -298,6 +307,10 @@ begin
   finally
     reg.free;
   end;
+
+
+
+
 
 end;
 
