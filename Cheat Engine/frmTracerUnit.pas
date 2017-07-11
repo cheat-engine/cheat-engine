@@ -770,7 +770,7 @@ begin
         c:=@TTraceDebugInfo(lvTracer.Items[i].data).c;
         if c<>nil then
         begin
-          if CheckIfConditionIsMetContext(c, searchstring) then
+          if CheckIfConditionIsMetContext(0, c, searchstring) then
           begin
             lvTracer.Items[i].Selected:=true;
             lvTracer.MakeSelectionVisible;
@@ -797,7 +797,7 @@ begin
         c:=@TTraceDebugInfo(lvTracer.Items[i].data).c;
         if c<>nil then
         begin
-          if CheckIfConditionIsMetContext(c, searchstring) then
+          if CheckIfConditionIsMetContext(0, c, searchstring) then
           begin
             lvTracer.Items[i].Selected:=true;
             lvTracer.MakeSelectionVisible;

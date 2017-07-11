@@ -1089,7 +1089,8 @@ begin
       if context<>nil then
       begin
         PushFunction;
-        result:=LUA_onBreakpoint(context, true);
+
+        result:=LUA_onBreakpoint(0,context, true);
       end;
     end;
   finally

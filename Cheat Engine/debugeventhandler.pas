@@ -204,10 +204,12 @@ begin
 
   TDebuggerthread(debuggerthread).execlocation:=411;
 
+
+
   if (currentbp<>nil) and (assigned(currentbp.OnBreakpoint)) then
     WaitingToContinue:=currentbp.OnBreakpoint(currentbp, context)
   else
-    WaitingToContinue:=not lua_onBreakpoint(context);
+    WaitingToContinue:=not lua_onBreakpoint(Self.ThreadId, context);
 
   TDebuggerthread(debuggerthread).execlocation:=412;
 
@@ -815,8 +817,7 @@ begin
         if bp.conditonalbreakpoint.easymode then script:='return ('+script+')';
       end;
 
-
-      result:=CheckIfConditionIsMetContext(context, script);
+      result:=CheckIfConditionIsMetContext(self.ThreadId, context, script);
     end;
   end;
 end;

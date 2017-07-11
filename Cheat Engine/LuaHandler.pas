@@ -44,14 +44,14 @@ procedure luaL_unref(L: Plua_State; t, ref: Integer); cdecl;
 
 
 procedure Lua_RegisterObject(name: string; o: TObject);
-function CheckIfConditionIsMetContext(context: PContext; script: string): boolean;
+function CheckIfConditionIsMetContext(threadid: dword; context: PContext; script: string): boolean;
 procedure LUA_DoScript(s: string);
 function LUA_functioncall(routinetocall: string; parameters: array of const): integer;
 procedure LUA_memrec_callback(memrec: pointer; routine: string);
-procedure LUA_SetCurrentContextState(context: PContext; extraregs: boolean=false);
+procedure LUA_SetCurrentContextState(tid: dword; context: PContext; extraregs: boolean=false);
 procedure LUa_GetNewContextState(context: PContext; extraregs: boolean=false);
 
-function LUA_onBreakpoint(context: PContext; functionAlreadyPushed: boolean=false): boolean;
+function LUA_onBreakpoint(threadid: dword; context: PContext; functionAlreadyPushed: boolean=false): boolean;
 procedure LUA_onNotify(functionid: integer; sender: tobject);
 function Lua_ToString(L: Plua_State; i: Integer): string;
 function lua_ToCEUserData(L: PLua_state; i: integer): pointer;
@@ -613,12 +613,12 @@ begin
   lua_settop(LuaVM, s);
 end;
 
-function LUA_onBreakpoint(context: PContext; functionAlreadyPushed: boolean=false): boolean;
+function LUA_onBreakpoint(threadid: dword; context: PContext; functionAlreadyPushed: boolean=false): boolean;
 var p: integer;
 begin
   result:=false;
   try
-    LUA_SetCurrentContextState(context);
+    LUA_SetCurrentContextState(threadid, context);
 
 
     if not functionAlreadyPushed then
@@ -652,9 +652,12 @@ begin
   end;
 end;
 
-procedure LUA_SetCurrentContextState(context: PContext; extraregs: boolean=false);
+procedure LUA_SetCurrentContextState(tid: dword; context: PContext; extraregs: boolean=false);
 var i: integer;
 begin
+  lua_pushinteger(luavm, tid);
+  lua_setglobal(luavm, 'THREADID');
+
   {$ifdef cpu64}
   lua_pushinteger(luavm, context.{$ifdef cpu64}Rax{$else}eax{$endif});
   lua_setglobal(luavm, 'RAX');
@@ -1147,7 +1150,7 @@ begin
   end;
 end; }
 
-function CheckIfConditionIsMetContext(context: PContext; script: string): boolean;
+function CheckIfConditionIsMetContext(threadid: dword; context: PContext; script: string): boolean;
 {
 precondition: script returns a value (so already has the 'return ' part appended for single line scripts)
 }
@@ -1155,7 +1158,7 @@ var i: integer;
 begin
   result:=false;
   try
-    LUA_SetCurrentContextState(context);
+    LUA_SetCurrentContextState(threadid, context);
 
     if lua_dostring(luavm, pchar(script))=0 then
     begin
@@ -6877,7 +6880,7 @@ begin
 
   if (debuggerthread<>nil) and (debuggerthread.isWaitingToContinue) and (debuggerthread.CurrentThread<>nil) then
   begin
-    LUA_SetCurrentContextState(debuggerthread.CurrentThread.context, extraregs);
+    LUA_SetCurrentContextState(debuggerthread.CurrentThread.ThreadId, debuggerthread.CurrentThread.context, extraregs);
     lua_pushboolean(L, true);
   end
   else
