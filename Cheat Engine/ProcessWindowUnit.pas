@@ -290,7 +290,10 @@ begin
       tabcontrol1.TabIndex:=x[0];
 
     if length(x)>1 then
-      miOwnProcessesOnly.checked:=x[1]<>0;
+      begin
+        miOwnProcessesOnly.checked:=x[1]<>0;
+        ProcessesCurrentUserOnly:=x[1]<>0;
+      end;
 
     if length(x)>2 then
       miSkipSystemProcesses.checked:=x[2]<>0;
@@ -581,6 +584,7 @@ end;
 procedure TProcessWindow.Filter1Click(Sender: TObject);
 var fltr: string;
 begin
+  fltr:=filter;
   if inputquery(rsFilter, rsWhatAreYouLookingFor, fltr) then
     filter:=fltr;
 end;
@@ -697,11 +701,6 @@ begin
   else
   if key in [chr(32)..chr(128)] then
     filter:=filter+key;
-
-  if filter<>'' then
-    caption:=rsProcessList+' : *'+filter+'*'
-  else
-    caption:=rsProcessList;
 end;
 
 procedure TProcessWindow.RefreshList;
@@ -774,6 +773,10 @@ begin
       end;
     end;
 
+    if filter<>'' then
+      caption:=rsProcessList+' : *'+filter+'*'
+    else
+      caption:=rsProcessList;
 
     if formsettings.cbKernelReadWriteProcessMemory.checked or (dbvm_version>=$ce000004) then //driver is active
     begin
