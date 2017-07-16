@@ -1,5 +1,5 @@
 luasymbols=registerSymbolLookupCallback(function(str)
-  local c='return '..str
+  local c='return [['..str..']]'
   local lc=loadstring(c)
   if lc then
     local isvalid,result=pcall(lc)
