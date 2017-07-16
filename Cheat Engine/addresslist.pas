@@ -1745,6 +1745,11 @@ var
 begin
   updated:=false;
 
+  start:=0;
+  stop:=treeview.Items.Count;
+
+
+  {
   if treeview.TopItem<>nil then
     start:=treeview.TopItem.Index
   else
@@ -1753,7 +1758,7 @@ begin
   if treeview.BottomItem<>nil then
     stop:=treeview.BottomItem.Index
   else
-    stop:=count-1;
+    stop:=count-1; }
 
   for i:=start to stop do
   begin

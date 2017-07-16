@@ -163,6 +163,9 @@ registerEXETrainerFeature(FeatureName:String, function():table): adds a new feat
     [2]: 
       PathToFile=c:\cefolder\autorun\dlls\mycode.lua
       RelativePath="autorun\mylib.dll"
+
+Note: This runs AFTER the table has been packaged already
+
                   
 unregisterEXETrainerFeature(id)
 
@@ -420,7 +423,7 @@ speakEnglish(text, waittilldone OPTIONAL) - will try the English voice by wrappi
 
 getUserRegistryEnvironmentVariable(name): string - Returns the environment variable stored in the user registry environment
 setUserRegistryEnvironmentVariable(name, string) - Sets the environment variable stored in the user registry environment
-broadcastEnvironmentUpdate() : Call this when you've changed the environment variables in the registry. This will cause at least the shell to update so you don't have to reboot. (It's always recommended to reboot though)
+is when you've changed the environment variables in the registry. This will cause at least the shell to update so you don't have to reboot. (It's always recommended to reboot though)
 
 stringToMD5String(string): Returns an md5 hash string from the provided string
 
