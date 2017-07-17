@@ -845,7 +845,6 @@ end;
 function GetCR3(hProcess:THANDLE;var CR3:system.QWORD):BOOL; stdcall;
 var cc:dword;
     x,y:dword;
-    i: integer;
     _cr3: uint64;
     l: THandleListEntry;
 begin
@@ -1021,8 +1020,6 @@ var cc: dword;
     input: TInputStruct;
     physicaladdress: int64 absolute input;
     x: dword;
-    i: integer;
-
     l: THandleListEntry;
 begin
   result:=false;
@@ -1369,8 +1366,7 @@ end;
 
 
 function IsValidHandle(hProcess:THandle):BOOL; stdcall;
-var i: integer;
-    l: THandleListEntry;
+var l: THandleListEntry;
 begin
   //outputdebugstring('IsValidHandle');
   result:=true; //not in the list is ok
@@ -1401,16 +1397,12 @@ var //ao: array [0..600] of byte; //give it some space
     input: TInputstruct;
     cc:dword;
 
-    i: integer;
     ok: boolean;
     br: dword;
 
     mempointer: qword;
     bufpointer: ptrUint;
     toread: dword;
-
-    l: THandleListEntry;
-    validhandle: boolean;
 begin
   result:=false;
   numberofbytesread:=0;
@@ -1498,7 +1490,6 @@ var ao: array [0..511] of byte;
     input: TInputstruct absolute ao[0];
     cc:dword;
 
-    i: integer;
     ok: boolean;
     br: dword;
 
@@ -1741,21 +1732,15 @@ end;
 
 
 function {OpenProcess}OP(dwDesiredAccess:DWORD;bInheritHandle:BOOL;dwProcessId:DWORD):THANDLE; stdcall;
-var valid:boolean;
-    output: record
+var output: record
       Processhandle: uint64;
       Special: byte;
     end;
 
-    i:integer;
     cc,x: dword;
-    pbi: _OBJECT_BASIC_INFORMATION;
-    z: NTSTATUS;
-
     l: thandlelistEntry;
 begin
   result:=0;
-  valid:=true;
   if dwProcessId=0 then
     exit;
 
@@ -1811,7 +1796,6 @@ begin
 
   if result=0 then //you can still access memory using the low level stuff, just not normal stuff
   begin
-    valid:=false;
     //openprocess isn't working
 
     result:=InterLockedIncrement(NextPseudoHandle);
@@ -1891,7 +1875,6 @@ end;
 
 function MarkAllPagesAsNonAccessed(hProcess: THandle):boolean;
 var
-  i: integer;
   input: record
     ProcessID: QWORD;
   end;
@@ -1924,9 +1907,8 @@ end;
 
 function EnumAccessedPages(hProcess: THandle):integer;
 var
-  i: integer;
   input: record
-    ProcessID: QWORD;
+  ProcessID: QWORD;
   end;
   br,cc: dword;
   sizeneeded: integer;
@@ -2050,8 +2032,6 @@ var
   	protection : DWORD ;
   end;
 
-
-  i: integer;
   br,cc: dword;
   l: THandleListEntry;
   validhandle: boolean;
@@ -2098,8 +2078,7 @@ begin
 end;
 
 Function {VirtualAllocEx}VAE(hProcess: THandle; lpAddress: Pointer; dwSize, flAllocationType: DWORD; flProtect: DWORD): Pointer; stdcall;
-var i: integer;
-    br,cc: dword;
+var br,cc: dword;
     x: record
       processid: uint64;
       baseaddress: uint64;
