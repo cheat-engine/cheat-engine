@@ -2269,7 +2269,7 @@ begin
   if state=fActive then exit; //no need to execute this is it's the same state
   if processingThread<>nil then exit; //don't change the state while processing
 
-  outputdebugstring('setting active state with description:'+description+' to '+BoolToStr(state,true));
+ // outputdebugstring('setting active state with description:'+description+' to '+BoolToStr(state,true));
 
 { deprecated
 
@@ -2349,7 +2349,7 @@ begin
         try
 
           SetValue(f);
-          OutputDebugString('SetValue returned');
+         // OutputDebugString('SetValue returned');
 
         except
 

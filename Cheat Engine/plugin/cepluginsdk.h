@@ -357,7 +357,7 @@ typedef struct _ExportedFunctions
   //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
   //advanced for delphi 7 enterprise dll programmers only
-  PVOID mainform; //pointer to the Tmainform object. (main window) Compatible with TFORM of D7 Enterprise
+  PVOID mainform; //pointer to the Tmainform object.
   PVOID memorybrowser; //pointer to the TMemoryBrowser object (memory view windows), same as mainform
 
   //Plugin Version 2+

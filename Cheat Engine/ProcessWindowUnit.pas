@@ -687,6 +687,8 @@ begin
         height:=350; //initial show
     end;
     errortrace:=106;
+
+    processlist.SetFocus;
   except
     on e:exception do
       raise exception.create('FormShow exception ('+e.message+') at section '+inttostr(errortrace));
