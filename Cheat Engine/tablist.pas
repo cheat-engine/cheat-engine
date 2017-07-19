@@ -10,6 +10,20 @@ uses
 type
   TTabChangeEvent=procedure(sender: TObject; oldselection: integer) of object;
 
+  TTablist=class;
+
+  TControlWithArrows=class(TCustomControl)
+  private
+    tablist: TTablist;
+  protected
+    procedure MouseDown(Button: TMouseButton; Shift:TShiftState; X,Y:Integer); override;
+  public
+    leftArrowActive: boolean;
+    rightArrowActive: boolean;
+    arrowWidth: integer;
+    procedure Paint; override;
+  end;
+
   TTablist=class(TCustomControl)
   private
     fTabs: tstringlist;
@@ -20,8 +34,7 @@ type
     ftabData: array of pointer;
 
     offset: integer; //defines how many tabs must be shifted to the left
-    hasarrows: boolean;
-    arrowwidth: integer;
+    controlWithArrows: TControlWithArrows;
 
     function getTabWidth(i: integer): integer;
     function getTabXPos(i: integer): integer;
@@ -38,6 +51,8 @@ type
     function AddTab(t: string):integer;
     function GetTabIndexAt(x,y: integer): integer;
     procedure RemoveTab(i: integer);
+    procedure goLeft();
+    procedure goRight();
     procedure Paint; override;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -132,34 +147,9 @@ end;
 procedure TTablist.MouseDown(Button: TMouseButton; Shift:TShiftState; X,Y:Integer);
 var i: integer;
 begin
-  if hasArrows and (x>width-(arrowwidth*2+2)) then
-  begin
-    //clicked on an arrow
-    if x>width-arrowwidth+1 then
-    begin
-      //click right
-      //check if you can go left
-      i:=ftabs.count-1;
-
-      if getTabXPos(i-offset)+getTabWidth(i)>width then
-        inc(offset);
-    end
-    else
-    begin
-      //click left
-      if offset>0 then
-        dec(offset);
-    end;
-
-    Repaint;
-
-  end
-  else
-  begin
-    i:=GetTabIndexAt(x,y);
-    if i<>-1 then
-      selectedTab:=i;
-  end;
+  i:=GetTabIndexAt(x,y);
+  if i<>-1 then
+    selectedTab:=i;
 
   inherited MouseDown(button,shift,x,y);
 end;
@@ -252,42 +242,65 @@ begin
   canvas.Line(0,height-1,width,height-1);
 
   canvas.Pen.Color:=color;
-  Canvas.Line(selectedx,height-1,selectedx+getTabWidth(fselectedTab),height-1);
+  if fselectedTab>=offset then Canvas.Line(selectedx,height-1,selectedx+getTabWidth(fselectedTab),height-1);
 
 
   if (offset>0) or (lastx>width) then //if there are more tabs than visible
   begin
-    hasarrows:=true;
+
+    if controlWithArrows.Parent<>self.Parent then // ensure parent is the same
+    begin                                         // (in case user decides to move tablist control)
+      controlWithArrows.Parent:=self.Parent;
+      controlWithArrows.arrowWidth:=(height div 6) * 5;
+      controlWithArrows.Width:=controlWithArrows.arrowWidth*2+2;
+      controlWithArrows.Height:=height;
+
+      if self.Top<height then // check if there is room for it
+      begin
+        controlWithArrows.AnchorSideBottom.Side:=asrBottom;
+        controlWithArrows.BorderSpacing.Right:=0;
+      end;
+
+      controlWithArrows.Invalidate;
+    end;
+
+    controlWithArrows.Visible:=true;
 
     if lastx>width then
-    begin
-      canvas.Pen.Color:=clred;
-      canvas.Brush.color:=clblue;
-    end
+      controlWithArrows.rightArrowActive:=true
     else
-    begin
-      Canvas.pen.color:=clInactiveBorder;
-      Canvas.brush.color:=clInactiveCaption;
-    end;
-
-    arrowwidth:=(height div 2) + (height div 3);
-
-    canvas.Polygon([point(width-arrowwidth, 2), point(width-arrowwidth, height-2), point(width-1, (height div 2))]);
+      controlWithArrows.rightArrowActive:=false;
 
     if (offset>0) then //can you scroll to the left
-    begin
-      canvas.Pen.Color:=clred;
-      canvas.Brush.color:=clblue;
-    end
+      controlWithArrows.leftArrowActive:=true
     else
-    begin
-      Canvas.pen.color:=clInactiveBorder;
-      Canvas.brush.color:=clInactiveCaption;
-    end;
-    canvas.Polygon([point(width-(arrowwidth+2), 2), point(width-(arrowwidth+2), height-2), point(width-(arrowwidth*2+2), (height div 2))]);
+      controlWithArrows.leftArrowActive:=false;
+
+    controlWithArrows.Repaint
+
   end
   else
-    hasarrows:=false;
+    controlWithArrows.Visible:=false;
+end;
+
+procedure TTablist.goLeft();
+var i: integer;
+begin
+  //check if you can go left
+  i:=ftabs.count-1;
+
+  if getTabXPos(i-offset)+getTabWidth(i)>width then
+    inc(offset);
+
+  Repaint;
+end;
+
+procedure TTablist.goRight();
+begin
+  if offset>0 then
+    dec(offset);
+
+  Repaint;
 end;
 
 constructor TTablist.Create(AOwner: TComponent);
@@ -296,6 +309,16 @@ begin
   fselectedTab:=0;
   fTabs:=TStringlist.create;
   fMinTabWidth:=80;
+
+  controlWithArrows:=TControlWithArrows.Create(self);
+  controlWithArrows.Visible:=false;
+  controlWithArrows.tablist:=self;
+  controlWithArrows.Anchors:=[akBottom,akRight];
+  controlWithArrows.AnchorSideBottom.Control:=Self;
+  controlWithArrows.AnchorSideBottom.Side:=asrTop;
+  controlWithArrows.AnchorSideRight.Control:=Self;
+  controlWithArrows.AnchorSideRight.Side:=asrRight;
+  controlWithArrows.BorderSpacing.Right:=50;
 end;
 
 destructor TTablist.Destroy;
@@ -304,6 +327,49 @@ begin
     ftabs.free;
 
   inherited Destroy;
+end;
+
+procedure TControlWithArrows.Paint;
+begin
+  inherited Paint;
+
+  if rightArrowActive then
+  begin
+    canvas.Pen.Color:=clred;
+    canvas.Brush.color:=clblue;
+  end
+  else
+  begin
+    Canvas.pen.color:=clInactiveBorder;
+    Canvas.brush.color:=clInactiveCaption;
+  end;
+  canvas.Polygon([point(Width-arrowWidth, 2), point(Width-arrowWidth, Height-2), point(Width-1, (Height div 2))]);
+
+  if leftArrowActive then
+  begin
+    canvas.Pen.Color:=clred;
+    canvas.Brush.color:=clblue;
+  end
+  else
+  begin
+    Canvas.pen.color:=clInactiveBorder;
+    Canvas.brush.color:=clInactiveCaption;
+  end;
+  canvas.Polygon([point(Width-(arrowWidth+2), 2), point(Width-(arrowWidth+2), Height-2), point(Width-(arrowWidth*2+2), (Height div 2))]);
+
+  canvas.Pen.Color:=$808080;
+  canvas.Line(0,height-1,0,1);
+  canvas.LineTo(width-1,1);
+  canvas.LineTo(width-1,height-1);
+end;
+
+procedure TControlWithArrows.MouseDown(Button: TMouseButton; Shift:TShiftState; X,Y:Integer);
+begin
+  //clicked on an arrow
+  if x>Width-arrowWidth-1 then
+    tablist.goLeft()
+  else
+    tablist.goRight();
 end;
 
 end.
