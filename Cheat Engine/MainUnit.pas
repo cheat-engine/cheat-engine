@@ -1248,10 +1248,7 @@ begin
     FreeAndNil(changescript1);
 
     frmLuaTableScript.assemblescreen.ClearAll;
-
-    frmLuaTableScript.Free;
-    frmLuaTableScript:=TfrmAutoInject(tcustomform(mainform));
-
+    frmLuaTableScript.assemblescreen.Text:='wut?';
   end;
 end;
 
