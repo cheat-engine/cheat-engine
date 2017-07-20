@@ -1025,7 +1025,8 @@ function mono_findMethodByDesc(assemblyname, methoddesc)
     local image = mono_getImageFromAssembly(assemblies[i])
     local imagename = mono_image_get_name(image)
     if imagename == assemblyname then
-      return mono_class_findMethodByDesc(image, methoddesc)      
+      return mono_class_findMethodByDesc(image, methoddesc)  
+    end      
   end
   return nil
 end
