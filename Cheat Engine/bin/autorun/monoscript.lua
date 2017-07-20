@@ -1022,11 +1022,9 @@ function mono_findMethodByDesc(assemblyname, methoddesc)
   --if debug_canBreak() then return nil end
   local assemblies = mono_enumAssemblies()
   for i=1, #assemblies do
-      local image = mono_getImageFromAssembly(assemblies[i])
-      local imagename = mono_image_get_name(image)
-      if imagename == 'UnityEngine' then
-        return mono_class_findMethodByDesc(image, methoddesc)
-      end
+    local image = mono_getImageFromAssembly(assemblies[i])
+    local imagename = mono_image_get_name(image)
+    return mono_class_findMethodByDesc(image, methoddesc)      
   end
   return nil
 end
@@ -2833,7 +2831,7 @@ function monoAA_GETMONOSTRUCT(parameters, syntaxcheckonly)
   local offsets={}
   local i
   for i=1, #fields do
-    if fields[i].offset~=0 then
+    if (fields[i].offset~=0) and (not fields[i].isStatic) then
       offsets[fields[i].offset]=fields[i].name
     end
   end
