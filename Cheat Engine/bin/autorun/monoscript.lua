@@ -1024,7 +1024,8 @@ function mono_findMethodByDesc(assemblyname, methoddesc)
   for i=1, #assemblies do
     local image = mono_getImageFromAssembly(assemblies[i])
     local imagename = mono_image_get_name(image)
-    return mono_class_findMethodByDesc(image, methoddesc)      
+    if imagename == assemblyname then
+      return mono_class_findMethodByDesc(image, methoddesc)      
   end
   return nil
 end
@@ -2791,7 +2792,7 @@ function monoAA_GETMONOSTRUCT(parameters, syntaxcheckonly)
 
   else
     --this is a name,namespace:classname notation
-    print("Format 2")
+    --print("Format 2")
 
     name=string.sub(parameters, 1, c-1)
     parameters=string.sub(parameters, c+1, #parameters)
