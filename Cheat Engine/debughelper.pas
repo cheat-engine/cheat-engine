@@ -1741,16 +1741,27 @@ begin
   frmchangedaddresses.address:=address;
   tempaddress:=address;
   s:=disassemble(tempaddress); //tempaddress gets changed by this, so don't use the real one
-  i:=pos('[',s)+1;
-  if i<>0 then
-    s:=copy(s,i,pos(']',s)-i)
+
+  if uppercase(defaultDisassembler.LastDisassembleData.opcode)='RET' then
+  begin
+    if processhandler.is64Bit then
+      s:='[RSP]'
+    else
+      s:='[ESP]';
+  end
   else
   begin
-    //no [   ] part
-    if processhandler.is64Bit then
-      s:='RDI'
+    i:=pos('[',s)+1;
+    if i<>0 then
+      s:=copy(s,i,pos(']',s)-i)
     else
-      s:='EDI';
+    begin
+      //no [   ] part
+      if processhandler.is64Bit then
+        s:='RDI'
+      else
+        s:='EDI';
+    end;
   end;
 
 
