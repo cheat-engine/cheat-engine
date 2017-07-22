@@ -209,6 +209,7 @@ resourcestring
     +'nothing. Are you sure?';
   rsOSThereIsANewerVersionifCheatEngineOutEtc = 'There is a newer version of Cheat Engine out. It''s recommended to use that version instead';
   rsOSThisCheatTableIsCorrupt = 'This cheat table is corrupt';
+  rsInvalidLuaForTrainer = 'The lua script in this trainer has some issues and will therefore not load';
 
 
 type
@@ -699,7 +700,16 @@ begin
         except
           on e: exception do
           begin
-            raise Exception.create(Format(rsErrorExecutingThisTableSLuaScript, [e.message]));
+              //raise Exception.create(Format(rsErrorExecutingThisTableSLuaScript, [e.message]))
+
+            if isTrainer then
+            begin
+              MessageDlg(rsInvalidLuaForTrainer,mtError,[mbok],0);
+              ExitProcess(123);
+            end
+            else
+              MessageDlg(Format(rsErrorExecutingThisTableSLuaScript, [e.message]), mtError, [mbok],0);
+
           end;
         end;
       end;
