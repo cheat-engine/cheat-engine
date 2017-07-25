@@ -1,7 +1,7 @@
 object frmMemoryViewEx: TfrmMemoryViewEx
-  Left = 497
+  Left = 510
   Height = 482
-  Top = 230
+  Top = 264
   Width = 836
   Caption = 'Graphical Memory View '
   ClientHeight = 482
@@ -92,16 +92,18 @@ object frmMemoryViewEx: TfrmMemoryViewEx
       Width = 136
       BorderSpacing.Right = 5
       ItemHeight = 15
-      ItemIndex = 2
+      ItemIndex = 3
       Items.Strings = (
         'Dithered (1 Byte/pixel)'
-        'RGA (3 Bytes/Pixel)'
-        'RGBA (4 Bytes/Pixel)'
+        'RGB'
+        'BGR'
+        'RGBA'
+        'BGRA'
       )
       OnChange = cbColorChange
       Style = csDropDownList
       TabOrder = 2
-      Text = 'RGBA (4 Bytes/Pixel)'
+      Text = 'RGBA'
     end
     object Label3: TLabel
       AnchorSideLeft.Control = tbPitch
@@ -114,6 +116,53 @@ object frmMemoryViewEx: TfrmMemoryViewEx
       BorderSpacing.Top = 10
       Caption = 'Color'
       ParentColor = False
+    end
+    object Label1: TLabel
+      AnchorSideLeft.Control = Label3
+      AnchorSideTop.Control = cbColor
+      AnchorSideTop.Side = asrBottom
+      Left = 5
+      Height = 15
+      Top = 111
+      Width = 26
+      Caption = 'Type'
+      ParentColor = False
+    end
+    object cbType: TComboBox
+      AnchorSideLeft.Control = Label1
+      AnchorSideTop.Control = Label1
+      AnchorSideTop.Side = asrBottom
+      Left = 5
+      Height = 23
+      Top = 126
+      Width = 136
+      BorderSpacing.Right = 5
+      ItemHeight = 15
+      ItemIndex = 0
+      Items.Strings = (
+        'Byte'
+        'Unsigned Short'
+        'Short'
+        'Unsigned Int'
+        'Int'
+        'Float'
+        '3-3-2'
+        '2-3-3 R'
+        '5-6-5'
+        '5-6-5 R'
+        '4-4-4-4'
+        '4-4-4-4 R'
+        '5-5-5-1'
+        '1-5-5-5 R'
+        '8-8-8-8'
+        '8-8-8-8 R'
+        '10-10-10-2'
+        '2-10-10-10 R'
+      )
+      OnChange = cbTypeChange
+      Style = csDropDownList
+      TabOrder = 3
+      Text = 'Byte'
     end
   end
   object Panel3: TPanel

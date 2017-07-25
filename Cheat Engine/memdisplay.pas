@@ -34,7 +34,7 @@ interface
 
 uses
   windows, Classes, SysUtils, ExtCtrls, Controls, LMessages, Graphics, GL, glu,
-  math, dialogs;
+  math, dialogs, GLext;
 
 
 type TCurrentOverlay=record
@@ -68,6 +68,7 @@ type
     fXpos, fYpos: integer;
     fwantedPixelsPerLine: integer; //when the format changes, use this as lead for the new pitch
     fPitch: integer;
+    fType: integer;
     fPixelFormat: integer;
     fPixelByteSize: integer; //the number of bytes one pixel exists of (I do not support monochrome...)
 
@@ -100,12 +101,15 @@ type
     procedure LimitCoordinates;
     procedure RecenterDrag;
     procedure setMaxCharCount(v: integer);
+    procedure reconfigPixelByteSize;
   public
     totaldiff: qword;
     ticks: integer;
     lastdiff: qword;
     function MoveTo(xpos, ypos: integer): boolean;
     procedure setFormat(format: integer);
+    procedure setType(t: integer);
+
     procedure setPitch(pitch: integer);
     procedure setPixelsPerLine(ppl: integer);
     procedure setPointer(address: ptruint); overload;
@@ -186,21 +190,47 @@ begin
 
 end;
 
-procedure TMemDisplay.setFormat(format: integer);
+procedure TMemDisplay.reconfigPixelByteSize;
 var oldaddress: integer;
 begin
   oldaddress:=getTopLeftAddress;
-  fPixelFormat:=format;
+  fPixelByteSize:=4;
 
+  case ftype of
+    GL_UNSIGNED_BYTE, GL_BYTE:
+    begin
+      case fpixelformat of
+        GL_COLOR_INDEX: fPixelByteSize:=1;
+        GL_BGR,GL_RGB: fPixelByteSize:=3;
+        GL_RGBA, GL_BGRA: fPixelByteSize:=4;
+      end;
+    end;
 
-  case fpixelformat of
-    GL_RGB: fPixelByteSize:=3;
-    GL_RGBA: fPixelByteSize:=4;
-    GL_LUMINANCE_ALPHA: fPixelByteSize:=3;
-    else
-      fPixelByteSize:=1;
+    GL_UNSIGNED_SHORT, GL_SHORT:
+    begin
+      case fpixelformat of
+        GL_COLOR_INDEX: fPixelByteSize:=1*2;
+        GL_BGR,GL_RGB: fPixelByteSize:=3*2;
+        GL_RGBA, GL_BGRA: fPixelByteSize:=4*2;
+      end;
+    end;
+
+    GL_UNSIGNED_INT, GL_INT, GL_FLOAT:
+    begin
+      case fpixelformat of
+        GL_COLOR_INDEX: fPixelByteSize:=1*4;
+        GL_BGR,GL_RGB: fPixelByteSize:=3*4;
+        GL_RGBA, GL_BGRA: fPixelByteSize:=4*4;
+      end;
+    end;
+
+    GL_UNSIGNED_BYTE_3_3_2,GL_UNSIGNED_BYTE_2_3_3_REV: fPixelByteSize:=1;
+    GL_UNSIGNED_SHORT_5_6_5,GL_UNSIGNED_SHORT_5_6_5_REV,
+    GL_UNSIGNED_SHORT_4_4_4_4,GL_UNSIGNED_SHORT_4_4_4_4_REV,
+    GL_UNSIGNED_SHORT_5_5_5_1,GL_UNSIGNED_SHORT_1_5_5_5_REV: fPixelByteSize:=2;
+    GL_UNSIGNED_INT_8_8_8_8,GL_UNSIGNED_INT_8_8_8_8_REV,
+    GL_UNSIGNED_INT_10_10_10_2,GL_UNSIGNED_INT_2_10_10_10_REV: fPixelByteSize:=4;
   end;
-
 
   setPixelsPerLine(fwantedPixelsPerLine);
 
@@ -209,6 +239,20 @@ begin
   setPointer(oldaddress);
   LimitCoordinates;
   render;
+end;
+
+procedure TMemDisplay.setType(t: integer);
+begin
+  fType:=t;
+
+  reconfigPixelByteSize()
+end;
+
+procedure TMemDisplay.setFormat(format: integer);
+begin
+
+  fPixelFormat:=format;
+  reconfigPixelByteSize;
 end;
 
 procedure TMemDisplay.setPixelsPerLine(ppl: integer);
@@ -794,7 +838,7 @@ begin
 
 
 
-    glDrawPixels(fPitch div fPixelByteSize, maxheight, fpixelformat,GL_UNSIGNED_BYTE, p);
+    glDrawPixels(fPitch div fPixelByteSize, maxheight, fpixelformat,fType, p);
 
 
     //draw overlays (if visible)
@@ -900,6 +944,7 @@ begin
 
   //some default inits
   fZoom:=32;
+  ftype:=GL_UNSIGNED_BYTE;
   setFormat(GL_RGBA);
   setPitch(128);
 

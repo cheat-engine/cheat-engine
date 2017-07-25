@@ -8,7 +8,7 @@ uses
   windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
   ExtCtrls, StdCtrls, ComCtrls, Menus, memdisplay, newkernelhandler, cefuncproc,
   syncobjs, math, savedscanhandler, foundlisthelper, CustomTypeHandler,
-  symbolhandler, inputboxtopunit, commonTypeDefs;
+  symbolhandler, inputboxtopunit, commonTypeDefs, GL, GLext;
 
 
 type TMVCompareMethod=(cmOr, cmXor, cmAnd);
@@ -52,9 +52,11 @@ type
     cbAddresslist: TComboBox;
     cbAddresslistOnly: TCheckBox;
     cbColor: TComboBox;
+    cbType: TComboBox;
     cbCompare: TCheckBox;
     cbSavedList: TComboBox;
     edtPitch: TEdit;
+    Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
     lblAddress: TLabel;
@@ -75,6 +77,7 @@ type
     procedure cbCompareChange(Sender: TObject);
     procedure cbSavedListChange(Sender: TObject);
     procedure cbColorChange(Sender: TObject);
+    procedure cbTypeChange(Sender: TObject);
 
     procedure edtPitchChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -450,13 +453,68 @@ end;
 procedure TfrmMemoryViewEx.cbColorChange(Sender: TObject);
 var i: integer;
 begin
+  {
+  Dithered (1 Byte/pixel)
+  RGB (3 Bytes/Pixel)
+  BGR (3 Bytes/Pixel)
+  RGBA (4 Bytes/Pixel)
+  BGRA (4 Bytes/Pixel)
+  }
+
   case cbcolor.itemindex of
-    0: md.setFormat($1900);
-    1: md.setFormat($1907);
-    2: md.setFormat($1908);
+    0: md.setFormat(GL_COLOR_INDEX);
+    1: md.setFormat(GL_RGB);
+    2: md.setFormat(GL_BGR);
+    3: md.setFormat(GL_RGBA);
+    4: md.setFormat(GL_BGRA);
   end;
+end;
+
+procedure TfrmMemoryViewEx.cbTypeChange(Sender: TObject);
+begin
 
 
+  {
+  Byte
+  Unsigned Short
+  Short
+  Unsigned Int
+  Int
+  Float
+  3-3-2
+  2-3-3 R
+  5-6-5
+  5-6-5 R
+  4-4-4-4
+  4-4-4-4 R
+  5-5-5-1
+  1-5-5-5 R
+  8-8-8-8
+  8-8-8-8 R
+  10-10-10-2
+  2-10-10-10 R
+  }
+
+  case cbtype.ItemIndex of
+    0: md.setType(GL_UNSIGNED_BYTE);
+    1: md.setType(GL_UNSIGNED_SHORT);
+    2: md.setType(GL_SHORT);
+    3: md.setType(GL_UNSIGNED_INT);
+    4: md.setType(GL_INT);
+    5: md.setType(GL_FLOAT);
+    6: md.setType(GL_UNSIGNED_BYTE_3_3_2);
+    7: md.setType(GL_UNSIGNED_BYTE_2_3_3_REV);
+    8: md.setType(GL_UNSIGNED_SHORT_5_6_5);
+    9: md.setType(GL_UNSIGNED_SHORT_5_6_5_REV);
+    10: md.setType(GL_UNSIGNED_SHORT_4_4_4_4);
+    11: md.setType(GL_UNSIGNED_SHORT_4_4_4_4_REV);
+    12: md.setType(GL_UNSIGNED_SHORT_5_5_5_1);
+    13: md.setType(GL_UNSIGNED_SHORT_1_5_5_5_REV);
+    14: md.setType(GL_UNSIGNED_INT_8_8_8_8);
+    15: md.setType(GL_UNSIGNED_INT_8_8_8_8_REV);
+    16: md.setType(GL_UNSIGNED_INT_10_10_10_2);
+    17: md.setType(GL_UNSIGNED_INT_2_10_10_10_REV);
+  end;
 end;
 
 procedure TfrmMemoryViewEx.FormDestroy(Sender: TObject);
