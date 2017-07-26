@@ -7,7 +7,8 @@ The TPointerscanresultReader will read the results from the pointerfile and pres
 }
 interface
 
-uses windows, LCLIntf, sysutils, classes, CEFuncProc, NewKernelHandler, symbolhandler, math, dialogs;
+uses windows, LCLIntf, sysutils, classes, CEFuncProc, NewKernelHandler,
+  symbolhandler, math, dialogs, LazUTF8;
 
 resourcestring
   rsPSRCorruptedPointerscanFile = 'Corrupted pointerscan file';
@@ -127,14 +128,14 @@ type
     property BaseScanRange: qword read foriginalBaseScanRange;
 end;
 
-procedure findAllResultFilesForThisPtr(filename: string; rs: TStrings);
+procedure findAllResultFilesForThisPtr(filename: string; rs: TStrings; lookupmode: integer=0);
 
 implementation
 
 uses ProcessHandlerUnit, PointerscanStructures, Maps, AvgLvlTree;
 
 
-procedure findAllResultFilesForThisPtr(filename: string; rs: TStrings);
+procedure findAllResultFilesForThisPtr(filename: string; rs: TStrings; lookupmode: integer=0);
 var
   fr: TRawbyteSearchRec;
   i,j: integer;
@@ -162,6 +163,9 @@ begin
 
   filemap:=TMap.Create(its8, sizeof(pointer));
 
+  if lookupmode=1 then
+    filename:=UTF8ToWinCP(filename);
+
   path:=ExtractFilePath(filename);
 
   if FindFirst(filename+'.results.*', 0, fr)=0 then
@@ -181,7 +185,16 @@ begin
     until FindNext(fr)<>0;
 
     FindClose(fr);
+  end
+  else
+  begin
+    if lookupmode<1 then
+    begin
+      findAllResultFilesForThisPtr(filename, rs, lookupmode+1);
+      exit;
+    end;
   end;
+
 
   it:=TMapIterator.Create(filemap);
   it.First;
@@ -645,8 +658,11 @@ begin
 
   //get the filenames
   fnames:=tstringlist.create;
-
   findAllResultFilesForThisPtr(filename, fnames);
+
+
+
+
   setlength(filenames, fnames.count);
   for i:=0 to fnames.count-1 do
     filenames[i]:=fnames[i];
@@ -715,6 +731,10 @@ begin
 
 
   fCanResume:=fileexists(filename+'.resume.config') and fileexists(filename+'.resume.scandata') and fileexists(filename+'.resume.queue');
+
+  if length(filenames)=0 then
+    MessageDlg('There was an error loading the results. Check that the path is readable', mtError, [mbok],0);
+
 end;
 
 procedure TPointerscanresultReader.ReleaseFiles;
