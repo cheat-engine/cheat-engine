@@ -1,8 +1,9 @@
 mono:
   add a "find class by name" option
-  instance window should have a "scan again" popup
-  instance window should have a copy to clipboard
-  instance window should have a dissect structure option
+  instance window: add "scan again" popup
+  instance window: add a copy to clipboard
+  instance window: add a dissect structure option (or make it a treeview)
+  instance window: add an "invoke method" function. (which shows a list of methods to pick and then launches the invoke method dialog with the class pre-filled in)
 
 
 find higher resolution icons
