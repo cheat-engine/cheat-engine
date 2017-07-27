@@ -1,6 +1,14 @@
+mono:
+  add a "find class by name" option
+  instance window should have a "scan again" popup
+  instance window should have a copy to clipboard
+  instance window should have a dissect structure option
+
 
 find higher resolution icons
 
 linux: make a 32-bit linux build with .so injection support
 memscan: Don't combine the scanresults into a single file. Leave them split up (skip: for 6.7 or 7.0)
 ceshare: continue with it
+
+pseudocode: continue with it
