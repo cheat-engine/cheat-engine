@@ -2101,6 +2101,50 @@ function mono_TVCollapsing(sender, node)
   return allow
 end
 
+function monoform_miFindNextClick(sender)
+  --repeat the last scan
+  monoForm.FindDialog.OnFind(sender)
+end
+
+
+function monoform_FindDialogFindClass(sender)
+  local texttofind=string.lower(monoForm.FindDialog.FindText)
+  local tv=monoForm.TV
+  local i=0
+  local startindex=0
+  local expandnodes=string.find(monoForm.FindDialog.Options, 'frEntireScope')
+  
+  if tv.Selected~=nil then
+    startindex=tv.Selected.AbsoluteIndex+1
+  end
+  
+  i=startindex
+  
+  tv.beginUpdate()
+  while i<tv.Items.Count do
+    local node=tv.Items[i]
+    if (node.Level==2) then
+      local text=string.lower(node.Text)
+      if text:find(texttofind) then
+        tv.Selected=node  
+        monoForm.miFindNext.Enabled=true
+        break;
+      end
+    end
+
+    if expandnodes and (node.Level<2) then
+      node.Expand(false)
+    end
+    
+    i=i+1    
+  end
+  
+  tv.endUpdate()
+
+  
+  
+end
+
 function monoform_FindDialogFind(sender)
   local texttofind=string.lower(monoForm.FindDialog.FindText)
   local tv=monoForm.TV
@@ -2125,14 +2169,13 @@ function monoform_FindDialogFind(sender)
       if string.find(text, texttofind)~=nil then
           --found it
         tv.Selected=node
+        monoForm.miFindNext.Enabled=true
         break
       end
-
-
-
+      
       if node.HasChildren then
-          node.Expand(false)
-        end
+        node.Expand(false)
+      end
 
       i=i+1
     end
@@ -2147,6 +2190,7 @@ function monoform_FindDialogFind(sender)
       if string.find(text, texttofind)~=nil then
           --found it
         tv.Selected=node
+        monoForm.miFindNext.Enabled=true
         return
       end
     end
@@ -2156,7 +2200,14 @@ function monoform_FindDialogFind(sender)
 
 end
 
+function monoform_miFindClassClick(sender)
+  monoForm.FindDialog.OnFind=monoform_FindDialogFindClass
+  monoForm.FindDialog.execute()
+end
+
+
 function monoform_miFindClick(sender)
+  monoForm.FindDialog.OnFind=monoform_FindDialogFind
   monoForm.FindDialog.execute()
 end
 
@@ -2190,6 +2241,8 @@ function mono_dissect()
     monoForm=createFormFromFile(getCheatEngineDir()..[[\autorun\forms\MonoDataCollector.frm]])
     if monoSettings.Value["ShowMethodParameters"]~=nil then
       monoForm.miShowMethodParameters.Checked=monoSettings.Value["ShowMethodParameters"]=='1'
+    else
+      monoForm.miShowMethodParameters.Checked=true
     end
   end
 

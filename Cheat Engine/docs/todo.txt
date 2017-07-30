@@ -1,10 +1,10 @@
 mono:
-  add a "find class by name" option
   instance window: add "scan again" popup
   instance window: add a copy to clipboard
   instance window: add a dissect structure option (or make it a treeview)
   instance window: add an "invoke method" function. (which shows a list of methods to pick and then launches the invoke method dialog with the class pre-filled in)
 
+structure dissect: use pdb data if available
 
 find higher resolution icons
 
