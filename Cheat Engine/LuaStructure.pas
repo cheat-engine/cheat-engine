@@ -528,7 +528,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getValue', structureElement_getValue);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setValue', structureElement_setValue);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getValueFromBase', structureElement_getValueFromBase);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setValueFromBase', structureElement_getValueFromBase);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setValueFromBase', structureElement_setValueFromBase);
 
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getVartype', structureElement_getVartype);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setVartype', structureElement_setVartype);
