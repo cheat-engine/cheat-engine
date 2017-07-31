@@ -338,6 +338,63 @@ begin
   se.offset:=offset;
 end;
 
+function structureElement_getValue(L: PLua_State): integer; cdecl;
+var
+  se: TStructelement;
+  address: ptruint;
+begin
+  se:=luaclass_getClassObject(L);
+
+  address:=lua_toaddress(L,1);
+
+  lua_pushstring(L, se.getValue(address));
+  result:=1;
+end;
+
+function structureElement_setValue(L: PLua_State): integer; cdecl;
+var
+  se: TStructelement;
+  address: ptruint;
+  value: string;
+begin
+  se:=luaclass_getClassObject(L);
+
+  address:=lua_toaddress(L,1);
+  value:=Lua_ToString(L,2);
+
+  se.setValue(address,value);
+  result:=1;
+end;
+
+function structureElement_getValueFromBase(L: PLua_State): integer; cdecl;
+var
+  se: TStructelement;
+  baseaddress: ptruint;
+begin
+  se:=luaclass_getClassObject(L);
+
+  baseaddress:=lua_toaddress(L,1);
+
+  lua_pushstring(L, se.getValueFromBase(baseaddress));
+  result:=1;
+end;
+
+function structureElement_setValueFromBase(L: PLua_State): integer; cdecl;
+var
+  se: TStructelement;
+  baseaddress: ptruint;
+  value: string;
+begin
+  se:=luaclass_getClassObject(L);
+
+  baseaddress:=lua_toaddress(L,1);
+  value:=Lua_ToString(L,2);
+
+  se.setValueFromBase(baseaddress,value);
+  result:=1;
+end;
+
+
 function structureElement_getName(L: PLua_State): integer; cdecl;
 var
   se: TStructelement;
@@ -467,6 +524,11 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getName', structureElement_getName);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setName', structureElement_setName);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Name', structureElement_getName, structureElement_setName);
+
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getValue', structureElement_getValue);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setValue', structureElement_setValue);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getValueFromBase', structureElement_getValue);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setValueFromBase', structureElement_setValue);
 
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getVartype', structureElement_getVartype);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setVartype', structureElement_setVartype);

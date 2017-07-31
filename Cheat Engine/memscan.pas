@@ -444,6 +444,8 @@ type
     AddressFound: PtrUInt;
     scannernr: integer;
 
+    lastpart: integer;
+
     procedure execute; override;
     constructor create(suspended: boolean; scandir: string);
     destructor destroy; override;
@@ -3303,6 +3305,7 @@ begin
     stepsize:=1;
 
 
+  lastpart:=303;
 
   if compareToSavedScan then //stupid, but ok...    (actually useful for lowmem scans)
   begin
@@ -3320,6 +3323,7 @@ begin
 
     if valuetype=vtall then
     begin
+      lastpart:=304;
       while ptruint(p)<=lastmem do
       begin
 
@@ -3356,9 +3360,12 @@ begin
 
         inc(p, stepsize);
       end;
+
+      lastpart:=305;
     end
     else
     begin
+      lastpart:=306;
       while ptruint(p)<=lastmem do
       begin
         currentaddress:=base+ptrUint(p)-ptrUint(buffer);
@@ -3367,12 +3374,15 @@ begin
 
         inc(p, stepsize);
       end;
+      lastpart:=307;
     end;
   end
   else
   begin
+    lastpart:=308;
     if variableType=vtall then
     begin
+      lastpart:=309;
       while ptruint(p)<=lastmem do
       begin
         if _fastscan then
@@ -3410,6 +3420,8 @@ begin
     else
     if variableType=vtCustom then
     begin
+      lastpart:=310;
+
       while ptruint(p)<=lastmem do
       begin
         currentaddress:=base+ptruint(p)-ptruint(buffer);
@@ -3422,6 +3434,7 @@ begin
     end
     else
     begin
+      lastpart:=311;
       while ptruint(p)<=lastmem do
       begin
         if checkroutine(p,oldp) xor inv then //found one
@@ -3432,6 +3445,8 @@ begin
       end;
     end;
   end;
+
+  lastpart:=312;
 end;
 
 procedure TScanner.nextnextscanmemAll(addresslist: pointer; oldmemory: pointer; chunksize: integer);
@@ -4578,6 +4593,7 @@ var oldAddressfile: TFileStream;
     groupelementsize: integer;
 
 begin
+  lastpart:=200;
   if startentry>stopentry then //don't bother
     exit;
 
@@ -4689,10 +4705,10 @@ begin
       inc(i,chunksize);
     end;
 
-
+    lastpart:=297;
     flushroutine; //save all results temporarily stored in memory
-
   finally
+    lastpart:=298;
     if oldAddressFile<>nil then oldAddressFile.free;
     if oldMemoryFile<>nil then oldMemoryFile.free;
     if oldmemory<>nil then virtualfree(oldmemory,0,MEM_RELEASE);
@@ -4702,6 +4718,7 @@ begin
       freemem(oldaddressesGroup);
       oldaddressesGroup:=nil;
     end;
+    lastpart:=299;
   end;
 end;
 
@@ -4718,12 +4735,16 @@ var
   actualread: ptrUint;
   phandle: thandle;
 begin
+  lastpart:=300;
   phandle:=processhandle;
   startregion:=_startregion; //using a variable so stack can be used, with possibility of register
   stopregion:=_stopregion;
 
   //allocate a buffer for reading the new memory buffer
   memorybuffer:=virtualAlloc(nil,maxregionsize+(variablesize-1),MEM_COMMIT	or MEM_TOP_DOWN	, PAGE_READWRITE);
+  if memorybuffer=nil then raise exception.create('Failure allocating memory ('+inttostr(maxregionsize+(variablesize-1))+' bytes)');
+
+  lastpart:=301;
   try
     //configure some variables and function pointers
     configurescanroutine;
@@ -4770,8 +4791,11 @@ begin
           ReadProcessMemory(phandle,pointer(currentbase),memorybuffer,size,actualread);
 
 
+        lastpart:=302;
 
         firstnextscanmem(currentbase,memorybuffer,oldbuffer,actualread);
+
+        lastpart:=398;
 
         inc(scanned,size); //for the progressbar
         dec(toread,size);
@@ -4783,7 +4807,10 @@ begin
     end;
     flushroutine;
   finally
-    virtualfree(memorybuffer,0,MEM_RELEASE);
+    if memorybuffer<>nil then
+      virtualfree(memorybuffer,0,MEM_RELEASE);
+
+    lastpart:=399;
   end;
 end;
 
@@ -4800,6 +4827,7 @@ var i: integer;
     stopregion: integer;
     phandle: thandle;
 begin
+  lastpart:=100;
   phandle:=processhandle;
 
   //first find out where in the previousmemory of this thread starts
@@ -4938,11 +4966,14 @@ begin
   {$endif}
   *)
 
+  lastpart:=0;
   SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
 
 
   try
     scanwriter:=TScanfilewriter.create(self,self.OwningScanController,addressfile,memoryfile);
+    lastpart:=1;
+
     if scantype=stFirstScan then firstscan;
     if scantype=stNextScan then
     begin
@@ -4961,7 +4992,7 @@ begin
     on e: exception do
     begin
       haserror:=true;
-      errorstring:=rsThread+inttostr(scannernr)+':'+e.message;
+      errorstring:=rsThread+inttostr(scannernr)+':'+e.message+' ('+inttostr(lastpart)+')';
 
       log('Scanner exception:'+errorstring);
 

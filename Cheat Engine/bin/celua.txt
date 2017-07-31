@@ -2161,10 +2161,15 @@ methods
 
 
 StructureFrm class:
-createStructureForm(address)
+createStructureForm(address, groupname OPTIONAL, structurename OPTIONAL)
+enumStructureForms() : returns a table of StructureFrm objects (can be useful for finding a structure window with the wanted structure)
+
+
 properties:
+MainStruct: structure - The currently selected structure
 Column[index]: structColumn - Fetches a structColumn object from the structure form
 Group[index]: structGroup - Fetches a structGroup object from the structure form
+
 
 methods:
 structChange() : Forces a refresh
@@ -2241,6 +2246,10 @@ Methods:
   setName(name): Sets the name of this element (tip: Leave blank if you only want to set the name of the variable)
   getVartype(): Returns the variable type of this element (check Variable types in defines.lua)
   setVartype(vartype)
+  getValue(address) : Gets the memory from the specified address and interprets it according to the element type
+  setValue(address,value): Sets the memory at the specified address to the interpreted value according to the element type
+  getValueFromBase(baseaddress): same as getValue but uses the offset to calculate the final address
+  setValueFromBase(baseaddress,value): same as setValue but uses the offset to calculate the final address
   getChildStruct()
   setChildStruct(structure)
   getChildStructStart()

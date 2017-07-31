@@ -24,6 +24,21 @@ resourcestring
   rsGroup1 = 'Group 1';
   rsGroupD = 'Group %d';
 
+function enumStructureForms(L: PLua_State): integer; cdecl;
+var i: integer;
+begin
+  lua_newtable(L);
+
+  for i:=0 to frmStructures2.Count-1 do
+  begin
+    lua_pushinteger(L,i+1);
+    luaclass_newClass(L, frmStructures2[i]);
+    lua_settable(L,-3);
+  end;
+
+  result:=1;
+end;
+
 function createStructureForm(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
@@ -76,12 +91,20 @@ begin
         end;
       end;
     end;
-    group.setPositions;
-    form.show;
 
-    luaclass_newClass(L, form);
-    result:=1;
+  end
+  else
+  begin
+    group:=TStructGroup.create(form,'');
+    column:=form.addColumn;
+    column.AddressText:='';
+    column.SetProperEditboxPosition;
   end;
+  group.setPositions;
+  form.show;
+
+  luaclass_newClass(L, form);
+  result:=1;
 end;
 
 function structureForm_addColumn(L: PLua_State): integer; cdecl;
@@ -240,6 +263,9 @@ end;
 procedure initializeLuaStructureFrm;
 begin
   lua_register(LuaVM, 'createStructureForm', createStructureForm);
+  lua_register(LuaVM, 'enumStructureForms', enumStructureForms);
+
+
 end;
 
 initialization
