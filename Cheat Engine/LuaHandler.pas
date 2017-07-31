@@ -103,7 +103,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   DebuggerInterface, WindowsDebugger, VEHDebugger, KernelDebuggerInterface,
   DebuggerInterfaceAPIWrapper, Globals, math, speedhack2, CETranslator, binutils,
   xinput, winsapi, frmExeTrainerGeneratorUnit, CustomBase85, FileUtil, networkConfig,
-  LuaCustomType, Filehandler, LuaSQL;
+  LuaCustomType, Filehandler, LuaSQL, frmSelectionlistunit;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -8446,6 +8446,30 @@ begin
   end;
 end;
 
+function lua_showSelectionList(L: PLua_state): integer; cdecl;
+var
+  title,
+  caption: string;
+  list: Tstringlist;
+  output: string;
+  r: integer;
+begin
+  if lua_gettop(L)>=3 then
+  begin
+    title:=Lua_ToString(L,1);
+    caption:=Lua_ToString(L,2);
+    list:=lua_ToCEUserData(L,2);
+
+    r:=ShowSelectionList(application,title, caption,list, output);
+
+    lua_pushinteger(L,r);
+    lua_pushstring(L, output);
+
+    result:=2;
+  end
+  else result:=0;
+
+end;
 
 procedure InitializeLua;
 var
@@ -8980,6 +9004,11 @@ begin
     lua_register(L, 'getScreenCanvas', lua_getScreenCanvas);
     lua_register(L, 'getHandleList', lua_getHandleList);
     lua_register(L, 'closeRemoteHandle', lua_closeRemoteHandle);
+
+    lua_register(L, 'showSelectionList', lua_showSelectionList);
+
+
+
 
     initializeLuaCustomControl;
 

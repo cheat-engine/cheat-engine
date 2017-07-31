@@ -690,6 +690,7 @@ function mono_class_findInstancesOfClass(domain, klass, OnScanDone, ProgressBar)
 
         local tv=createTreeView(r)
         tv.ReadOnly=true
+        tv.MultiSelect=true
         
         
         local w=createLabel(r)
@@ -697,20 +698,114 @@ function mono_class_findInstancesOfClass(domain, klass, OnScanDone, ProgressBar)
         w.Align=alTop
         tv.align=alClient
         tv.OnDblClick=function(sender)
-        --[[
-          if sender.itemIndex>=0 then
-            getMemoryViewForm().HexadecimalView.Address='0x'..sender.Items[sender.itemIndex]
-            getMemoryViewForm().show()
-          end
-          ]]
+          local n=sender.Selected
+          
+          if n then
+            local entrynr=n.Index;
+            local offset=struct.Element[entrynr].Offset
+            
+            while n.level>0 do --get the parent~
+              n=n.parent
+            end            
+            getMemoryViewForm().HexadecimalView.Address=tonumber('0x'..n.text)+offset
+            getMemoryViewForm().Show()
+          end         
         end
         
         local pm=createPopupMenu(r)
+        local miCopyToClipboard=createMenuItem(pm)
+        miCopyToClipboard.Caption='Copy selection to clipboard'
+        miCopyToClipboard.Shortcut='Ctrl+C'
+        miCopyToClipboard.OnClick=function(m)
+          local i
+          local sl=createStringlist()
+          for i=0,tv.Items.Count-1 do
+            if tv.Items[i].Selected then 
+              sl.add(tv.Items[i].Text)
+            end
+          end  
+
+          if (sl.Count>0) then
+            writeToClipboard(sl.Text) 
+          end
+          
+          sl.destroy();          
+        end     
+        pm.Items.add(miCopyToClipboard)
+        
+        
+        local miRescan=createMenuItem(pm)
+        miRescan.Caption='Rescan'
+        miRescan.Shortcut='Ctrl+R'
+        miRescan.OnClick=function(m)
+          --don't do this too often...
+          --print("Rescan")          
+          mono_class_findInstancesOfClass(domain, klass, OnScanDone, ProgressBar)
+          r.close()
+        end
+        
+        pm.Items.add(miRescan)
+        
+      
+        
+        local miDissectStruct=createMenuItem(pm)
+        miDissectStruct.Caption='Dissect struct'
+        miDissectStruct.Shortcut='Ctrl+D'
+        miDissectStruct.OnClick=function(m)
+          --
+          local n=sender.Selected
+          
+          if n then
+            while n.level>0 do --get the parent
+              n=n.parent
+            end
+            
+            local address=tonumber('0x'..n.text)
+            
+            local s=monoform_exportStruct(address, nil,false, true, smap, true, false)
+            monoform_miDissectShowStruct(s, address)             
+          end          
+        end        
+        pm.Items.add(miDissectStruct)
+        
+        
+        local miInvokeMethod=createMenuItem(pm)
+        miInvokeMethod.Caption='Invoke method of class'
+        miInvokeMethod.Shortcut='Ctrl+I'
+        miInvokeMethod.OnClick=function(m)        
+          --show the methodlist
+          local n=sender.Selected
+          
+          if n then
+            while n.level>0 do --get the parent
+              n=n.parent
+            end
+            
+            local address=tonumber('0x'..n.text)            
+          
+            local list=createStringlist()
+            local m=mono_class_enumMethods(klass, true)
+            local i
+            for i=1,#m do
+              list.add(m[i].name)
+            end
+            
+            i=showSelectionList('Invoke Method of Instance','Select a method to execute',list)
+            list.destroy()
+            
+            if i==-1 then return end
+            
+            mono_invoke_method_dialog(nil, m[i+1].method, address)       
+          end
+        end
+          
+        pm.Items.add(miInvokeMethod)
+        
         
         tv.PopupMenu=pm
         
 
-        r.OnClose=function(f)          
+        r.OnClose=function(f)             
           return caFree
         end
 
@@ -719,13 +814,45 @@ function mono_class_findInstancesOfClass(domain, klass, OnScanDone, ProgressBar)
             struct.destroy()
             struct=nil
           end
-          tv.OnDblClick=nil          
+          tv.OnDblClick=nil    
+          
+          if miCopyToClipboard then
+            miCopyToClipboard.OnClick=nil
+          end
+          
+          if miRescan then
+            miRescan.OnClick=nil
+          end
+          
+          if miDissectStruct then
+            miDissectStruct.OnClick=nil
+          end
+          
         end
 
         local i
         for i=0, fl.Count-1 do
-          local tn=tv.Items.Add(fl[i])          
-          tn.hasChildren=true
+          --check if the address is valid
+          local address=tonumber('0x'..fl[i])
+          local j
+          local valid=true
+          for j=1,#pointeroffsets do 
+            local v=readPointer(address+pointeroffsets[j])
+            
+            if (v==nil) then
+              valid=false
+            else
+              if (v~=0) then  --0 is valid (nil)
+                v=readBytes(v,1)
+                valid=v~=nil;
+              end
+            end
+          end
+        
+          if valid then
+            local tn=tv.Items.Add(fl[i])          
+            tn.hasChildren=true
+          end
         end
         
         tv.OnExpanding=function(sender, node)                 
@@ -1403,7 +1530,7 @@ function mono_writeVarType(vartype)
 end
 
 
-function mono_invoke_method_dialog(domain, method)
+function mono_invoke_method_dialog(domain, method, address)
   --spawn a dialog where the user can fill in fields like: instance and parameter values
   --parameter fields will be of the proper type
 
@@ -1443,27 +1570,30 @@ function mono_invoke_method_dialog(domain, method)
   mifinfo.cbInstance=createComboBox(mifinfo.mif)
   
   --start a scan to fill the combobox with results
-  mifinfo.cbInstance.Items.add(translate('<Please wait...>'))
-  mono_class_findInstancesOfClass(nil,c,function(m)      
-      --print("Scan done")
+  if (address==nil) then
+    mifinfo.cbInstance.Items.add(translate('<Please wait...>'))
+    mono_class_findInstancesOfClass(nil,c,function(m)      
+        --print("Scan done")
 
-      if mifinfo.cbInstance then  --not destroyed yet
-        mifinfo.cbInstance.Items.clear()
-      
-        local fl=createFoundList(m) 
-        fl.initialize()
-        local i
-        for i=0, fl.Count-1 do
-          mifinfo.cbInstance.Items.Add(fl[i])
-        end
+        if mifinfo.cbInstance then  --not destroyed yet
+          mifinfo.cbInstance.Items.clear()
         
-        fl.destroy()
-      end      
-      
-      m.destroy()
-    end
-  )
-  
+          local fl=createFoundList(m) 
+          fl.initialize()
+          local i
+          for i=0, fl.Count-1 do
+            mifinfo.cbInstance.Items.Add(fl[i])
+          end
+          
+          fl.destroy()
+        end      
+        
+        m.destroy()
+      end
+    )
+  else
+    mifinfo.cbInstance.Text=string.format('%x',address)
+  end
   
   
   --[[ alternatively, fill it on DropDown
@@ -1756,7 +1886,7 @@ function monoform_miGetILCodeClick(sender)
   end
 end
 
-function monoform_miDissectShowStruct(s)
+function monoform_miDissectShowStruct(s, address)
   if s then
     --show it
     print("showing "..s.Name)
@@ -1765,14 +1895,32 @@ function monoform_miDissectShowStruct(s)
     local i
     for i=1,#f do
       if (f[i].MainStruct==s) then
+        if address then
+          --add it to the window
+          local j
+          local found=false
+          for j=0, f.ColumnCount-1 do
+            if f.Column[j].Address==address then
+              found=true
+              break;
+            end
+          end
+          
+          if not found then
+            local c=f.addColumn()
+            c.Address=address
+          end
+        end
         f[i].show()
         return
       end
     end
     
     --still here
-    print('new one')
-    f=createStructureForm(0,'Group 1',s.Name)        
+    --print('new one')
+    
+    if address==nil then address=0 end
+    f=createStructureForm(address,'Group 1',s.Name)        
     f.show()    
   end
 end
@@ -2764,7 +2912,7 @@ function monoform_getfqclassname(caddr, static)
 end
 
 function monoform_exportStruct(caddr, typename, recursive, static, structmap, makeglobal, reload)
-  print('monoform_exportStruct')
+  --print('monoform_exportStruct')
   local fqclass = monoform_getfqclassname(caddr, static)
   if typename==nil then
     typename = fqclass

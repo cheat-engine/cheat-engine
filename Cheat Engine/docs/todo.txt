@@ -1,12 +1,3 @@
-mono:
-  instance window: add "scan again" popup
-  instance window: add a copy to clipboard
-  instance window: add a dissect structure option (or make it a treeview)
-  instance window: add an "invoke method" function. (which shows a list of methods to pick and then launches the invoke method dialog with the class pre-filled in)
-  instance window: use the pointerlist to verify the instance is valid
-
-
-
 structure dissect: 
   use pdb data if available
   delete all structures sometimes AV's

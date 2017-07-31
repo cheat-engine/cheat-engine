@@ -246,6 +246,8 @@ generateFullInjectionScript(script: Tstrings, address: string): Adds a Full Inje
 
 showMessage(text) : shows a messagebox with the given text
 inputQuery(caption, prompt, initialstring): Shows a dialog where the user can input a string. This function returns the given string, or nil on cancel  CE6.4+
+showSelectionList(title, caption, stringlist): integer,string - Shows a menu with the given list. It returns the linenumbver (starting at 0) and the selected string
+
 messageDialog(text, type, buttons...) : pops up a messagebox with a specific icon/sound with the specified buttons (mbok, mbyes, ....)
 sleep(milliseconds): pauses for the number of specified milliseconds (1000= 1 sec...)
 
@@ -2167,8 +2169,14 @@ enumStructureForms() : returns a table of StructureFrm objects (can be useful fo
 
 properties:
 MainStruct: structure - The currently selected structure
+
+ColumnCount: integer - the number of columns (columns=address)
 Column[index]: structColumn - Fetches a structColumn object from the structure form
+
+GroupCount: integer - The number of groups
 Group[index]: structGroup - Fetches a structGroup object from the structure form
+
+
 
 
 methods:
