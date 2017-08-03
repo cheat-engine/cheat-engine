@@ -268,6 +268,8 @@ function onOpenProcess(processid):
   Note 2: This function is called before attachment is fully done. You can call reinitializeSymbolhandler() to force the open to complete, but it will slow down process opens. Alternatively, you could launch a timer which will run when the opening has finished
 
 
+MainForm.OnProcessOpened: function(processid, processhandle, caption) - Define this if you want to be notified when a new process has been opened. Called only once from the main thread. It is recommended to use this instead of onOpenProcess
+
 getOpenedProcessID() : Returns the currently opened process. If none is open, returns 0
 getProcessIDFromProcessName(name) : returns a processid
 openProcess(processid) : causes cheat engine to open the given processid

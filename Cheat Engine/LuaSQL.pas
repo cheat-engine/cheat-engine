@@ -61,7 +61,7 @@ if hassomething then
     q.StatementType='stUpdate'
     q.SQL.Text=string.format([[update something set rating=rating+1 where id=%d]], id)
     q.ExecSQL()
-
+                                   09
   else
     print("Not yet in the list")
     c.ExecuteDirect(string.format([[insert into something(processname,rating) values('%s',1)]],pn))

@@ -73,6 +73,7 @@ type
       procedure AutoAssemblerPrologueEvent(code: TStrings; syntaxcheckonly: boolean);
       procedure AutoAssemblerTemplateCallback(script: TStrings; sender: TObject);
       procedure ScreenFormEvent(Sender: TObject; Form: TCustomForm);
+      procedure ProcessOpenedEvent(processid: THandle; processhandle: DWORD; caption: string);
 
       function BreakpointEvent(bp: pointer; context: pointer):boolean;
       function MemRecChangeEvent(al: TObject; memrec: TMemoryRecord): boolean;
@@ -1290,6 +1291,25 @@ begin
   end;
 end;
 
+
+procedure TLuaCaller.ProcessOpenedEvent(processid: THandle; processhandle: DWORD; caption: string);
+var oldstack: integer;
+begin
+  oldstack:=lua_gettop(Luavm);
+
+  try
+    pushFunction;
+    lua_pushinteger(luavm, processid);
+    lua_pushinteger(luavm, processhandle);
+    lua_pushstring(luavm, caption);
+
+    lua_pcall(LuaVM, 3, 0, 0);
+  finally
+    lua_settop(Luavm, oldstack);
+  end;
+end;
+
+
 //----------------------------Lua implementation-----------------------------
 function LuaCaller_NotifyEvent(L: PLua_state): integer; cdecl;
 var
@@ -2205,6 +2225,32 @@ begin
   end;
 end;
 
+function LuaCaller_ProcessOpenedEvent(L: PLua_state): integer; cdecl;
+var
+  parameters: integer;
+  m: TMethod;
+  processid: dword;
+  handle: thandle;
+  caption: string;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=3 then
+  begin
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    processid:=lua_tointeger(L, 1);
+    handle:=lua_tointeger(L, 2);
+    caption:=Lua_ToString(L, 3);
+    lua_pop(L, lua_gettop(L));
+
+    TProcessOpenedEvent(m)(processid, handle, caption);
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
+
 procedure registerLuaCall(typename: string; getmethodprop: lua_CFunction; setmethodprop: pointer; luafunctionheader: string);
 var t: TLuaCallData;
 begin
@@ -2263,5 +2309,7 @@ initialization
   registerLuaCall('TMemRecChangeEvent', LuaCaller_MemRecChangeEvent, pointer(TLuaCaller.MemRecChangeEvent),'function %s(al, memrec)'#13#10#13#10'  return false'#13#10'end'#13#10);
   registerLuaCall('TGetDisplayValueEvent', LuaCaller_GetDisplayValueEvent, pointer(TLuaCaller.GetDisplayValueEvent),'function %s(memrec, value)'#13#10#13#10'  return false,value'#13#10'end'#13#10);
   registerLuaCall('TMemScanGuiUpdateRoutine', LuaCaller_MemScanGuiUpdateRoutine, pointer(TLuaCaller.MemScanGuiUpdateRoutine),'function %s(Sender, TotalAddressesToScan, CurrentlyScanned, ResultsFound)'#13#10#13#10'end'#13#10);
+  registerLuaCall('TProcessOpenedEvent', LuaCaller_ProcessOpenedEvent, pointer(TLuaCaller.ProcessOpenedEvent),'function %s(processid, handle, caption)'#13#10#13#10'end'#13#10);
+
 end.
 

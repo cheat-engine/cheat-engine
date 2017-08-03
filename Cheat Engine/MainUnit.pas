@@ -44,6 +44,9 @@ const
 
 //scantabs
 type
+  TProcessOpenedEvent=procedure(processid: THandle; processhandle: DWORD; caption: string) of object;
+
+
   TScanState = record
     alignsizechangedbyuser: boolean;
     compareToSavedScan: boolean;
@@ -719,6 +722,7 @@ type
     scantypechangedbyhotkey: boolean;
 
     fIsProtected: boolean;
+    fOnProcessOpened: TProcessOpenedEvent;
 
     overlayid: integer;   //debug
     lastAddedAddress: string;
@@ -923,6 +927,7 @@ type
     property Progressbar1: TProgressBar read Progressbar write ProgressBar;
     property About1: TMenuItem read miAbout write miAbout;
     property Help1: TMenuItem read miHelp write miHelp;
+    property OnProcessOpened: TProcessOpenedEvent read fOnProcessOpened write fOnProcessOpened;
   end;
 
 var
@@ -2618,6 +2623,7 @@ var
   DoNotOpenAssociatedTable: boolean;
   //set to true if the table had AA scripts enabled or the code list had nopped instruction
 begin
+
   DoNotOpenAssociatedTable:=false;
 
   outputdebugstring('openProcessEpilogue called');
@@ -2824,6 +2830,11 @@ begin
 
 
   outputdebugstring('openProcessEpilogue exit');
+
+
+  if assigned(fOnProcessOpened) then
+    fOnProcessOpened(processid, processhandle, processlabel.Caption);
+
 end;
 
 procedure TMainForm.ShowProcessListButtonClick(Sender: TObject);

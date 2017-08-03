@@ -2117,7 +2117,6 @@ var i: integer;
 begin
   beginUpdate; //never endupdate
 
-
   DoDeleteStructNotification;
 
   if structelementlist<>nil then

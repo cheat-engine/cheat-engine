@@ -8,7 +8,8 @@ interface
 
 uses jwawindows, windows, classes,LCLIntf,imagehlp,{psapi,}sysutils, cefuncproc,
   newkernelhandler,syncobjs, SymbolListHandler, fgl, typinfo, cvconst, PEInfoFunctions,
-  DotNetPipe, DotNetTypes, commonTypeDefs, math, LazUTF8, contnrs;
+  DotNetPipe, DotNetTypes, commonTypeDefs, math, LazUTF8, contnrs, LazFileUtils,
+  db, sqldb, sqlite3dyn, sqlite3conn;
 {$endif}
 
 {$ifdef unix}
@@ -77,6 +78,11 @@ type
     owner: Tsymhandler;
     thisprocesshandle: thandle;
     thisprocessid: dword;
+    currentSymbolDataBase: TSQLite3Connection;
+    currentSymbolDataBaseTransaction: TSQLTransaction;
+    currentSymbolDataBaseQueryObject: TSQLQuery;
+    currentSymbolDataBasePath: string;
+    currentmoduleid: integer;
     currentModuleName: string;
     currentModuleIsNotStandard: boolean;
 
@@ -87,6 +93,7 @@ type
     fprogress: integer;
     modulecount: integer;
     enumeratedModules: integer;
+    procedure EnumerateStructures;
     procedure EnumerateExtendedDebugSymbols;
 
     procedure LoadDriverSymbols;
@@ -781,6 +788,8 @@ begin
   self:=TSymbolloaderthread(UserContext);
 
 
+  if self.terminated then exit;
+
 
 
   isparam:=(pSymInfo.Flags and SYMFLAG_PARAMETER)>0;
@@ -816,6 +825,7 @@ begin
     if (not self.symbollist.ExtraSymbolDataList[i].filledin) and (self.symbollist.ExtraSymbolDataList[i].symboladdress<>0) then
     begin
       //get the data
+      if terminated then exit;
 
       self.extraSymbolData:=self.symbollist.ExtraSymbolDataList[i];
 
@@ -830,6 +840,8 @@ begin
   end;
   {$ENDIF}
 end;
+
+
 
 function ES(pSymInfo:PSYMBOL_INFO; SymbolSize:ULONG; UserContext:pointer):BOOL;stdcall;
 var
@@ -881,10 +893,308 @@ begin
 end;
 
 function ET(pSymInfo:PSYMBOL_INFO; SymbolSize:ULONG; UserContext:pointer):BOOL;stdcall;
+var s: string;
+  self: TSymbolloaderthread;
+  size: qword;
+  childrencount: integer;
+  fcp: PTiFindChildrenParams;
+  i: integer;
+  name: pwchar;
+
+  l: tstringlist;
+
+
+  q: TSQLQuery;
+
+  typetype: dword;
+  typename: string;
+  typeid: integer;
+  basetype: integer;
+
+  typesymtag: TSymTagEnum;
+
+  element: record
+    name: string;
+    basetype: DWORD;
+    typeid: dword;
+    offset: dword;
+    bitpos: dword;
+  end;
+
 begin
   //todo: Add to structure dissect
+  self:=TSymbolloaderthread(UserContext);
+  if self.terminated then exit(false);
+
+  q:=self.currentSymbolDataBaseQueryObject;
+
+  typename:=pchar(@pSymInfo.Name);
+  typeid:=pSymInfo.TypeIndex;
+
+  if SymGetTypeInfo(self.thisprocesshandle, pSymInfo.ModBase, typeid, TI_GET_SYMTAG, @typesymtag) then
+  begin
+
+    case typesymtag of
+      symtagenum: exit(true);//todo: save the enum values. could be useful for something
+      symtagudt,SymTagBaseClass,SymTagFriend: ; //this is what we ar elooking for
+      else
+        exit(true);
+    end;
+
+    //save this all to a database file
+    childrencount:=0;
+    SymGetTypeInfo(self.thisprocesshandle, pSymInfo.ModBase, pSymInfo.TypeIndex, TI_GET_CHILDRENCOUNT, @childrencount);
+    if childrencount>0 then
+    begin
+      size:=0;
+      SymGetTypeInfo(self.thisprocesshandle, pSymInfo.ModBase, pSymInfo.TypeIndex, TI_GET_LENGTH, @size);
+      if size>0 then
+      begin
+        //children and size. it's a structure
+
+        q.sql.text:='select * from structures where moduleid=:moduleid and typeid=:typeid';
+        q.ParamByName('moduleid').AsInteger:=self.currentmoduleid;
+        q.ParamByName('typeid').AsInteger:=typeid;
+        q.Active:=true;
+        i:=q.RecordCount;
+        q.Active:=false;
+
+        if i>0 then exit(true); //it's possible the same object comes by more than once
+
+
+        q.SQL.Text:='insert into structures(moduleid, typeid, tablename, length) values(:moduleid, :typeid, :tablename, :length)';
+        q.ParamByName('moduleid').AsInteger:=self.currentmoduleid;
+        q.ParamByName('typeid').AsInteger:=typeid;
+        q.ParamByName('tablename').AsString:=typename;
+        q.ParamByName('length').AsInteger:=size;
+        q.Prepare;
+        q.ExecSQL;
+
+        try
+          getmem(fcp, sizeof(TI_FINDCHILDREN_PARAMS)+childrencount*4);
+          zeromemory(fcp, sizeof(TI_FINDCHILDREN_PARAMS)+childrencount*4);
+          fcp.Count:=childrencount;
+          SymGetTypeInfo(self.thisprocesshandle, pSymInfo.ModBase, pSymInfo.TypeIndex, TI_FINDCHILDREN, fcp);
+
+          for i:=0 to fcp.count-1 do
+          begin
+            name:=nil;
+            SymGetTypeInfo(self.thisprocesshandle, pSymInfo.ModBase, fcp.ChildId[i], TI_GET_SYMNAME, @name);
+
+            if (name<>nil) then
+            begin
+              element.name:=name;
+              LocalFree(PTRUINT(name));
+
+              SymGetTypeInfo(self.thisprocesshandle, pSymInfo.ModBase, fcp.ChildId[i], TI_GET_BASETYPE, @element.basetype);
+              SymGetTypeInfo(self.thisprocesshandle, pSymInfo.ModBase, fcp.ChildId[i], TI_GET_OFFSET, @element.offset);
+              SymGetTypeInfo(self.thisprocesshandle, pSymInfo.ModBase, fcp.ChildId[i], TI_GET_BITPOSITION, @element.bitpos);
+
+              element.typeid:=0;
+              SymGetTypeInfo(self.thisprocesshandle, pSymInfo.ModBase, fcp.ChildId[i], TI_GET_TYPEID, @element.typeid);
+
+
+              q.SQL.Text:='insert into elements(moduleid, typeid, elementnr, elementname, offset, basetype, type) values(:moduleid, :typeid, :elementnr, :elementname, :offset, :basetype, :type)';
+              q.ParamByName('moduleid').AsInteger:=self.currentmoduleid;
+              q.ParamByName('typeid').AsInteger:=typeid;
+              q.ParamByName('elementnr').AsInteger:=i;
+              q.ParamByName('elementname').AsString:=element.name;
+              q.ParamByName('offset').AsInteger:=element.offset;
+              q.ParamByName('basetype').AsInteger:=element.basetype;
+              q.ParamByName('type').AsInteger:=element.typeid;
+              q.Prepare;
+              q.ExecSQL;
+            end;
+          end;
+
+
+        finally
+          freemem(fcp);
+        end;
+
+      end;
+    end;
+
+  end;
+
   result:=true;
 end;
+
+procedure TSymbolloaderthread.EnumerateStructures;
+var
+  list: array of record
+    modulebase: uintptr;
+    modulepath: string;
+    modulename: string;
+  end;
+  i: integer;
+
+  usedtempdir: string;
+  symbolpath: string;
+  r: boolean;
+  l: tstringlist;
+
+  q: TSQLQuery=nil;
+
+  t: TSQLTransaction=nil;
+
+  ts: dword;
+
+  err: integer;
+
+begin
+  if istrainer then exit;  //waste of time
+
+
+  try
+  //structures are not accessed constantly, so instead of storing them in memory, store them in a file instead
+  symhandler.modulelistMREW.BeginRead;
+  setlength(list,symhandler.modulelistpos);
+  for i:=0 to symhandler.modulelistpos-1 do
+  begin
+    list[i].modulebase:=symhandler.modulelist[i].baseaddress;
+    list[i].modulepath:=symhandler.modulelist[i].modulepath;
+    list[i].modulename:=symhandler.modulelist[i].modulename;
+  end;
+  symhandler.modulelistMREW.EndRead;
+
+
+  if (length(trim(tempdiralternative))>2) and dontusetempdir then
+    usedtempdir:=trim(tempdiralternative)
+  else
+    usedtempdir:=GetTempDir;
+
+  symbolpath:=usedtempdir+'Cheat Engine Symbols'+pathdelim;
+  ForceDirectory(symbolpath);
+
+  InitialiseSQLite;
+  if sqlite3_threadsafe()=0 then exit;
+  sqlite3_config(SQLITE_CONFIG_SERIALIZED);
+
+
+  currentSymbolDataBase:=TSQLite3Connection.Create(nil);
+  currentSymbolDataBase.DatabaseName:=symbolpath+'structures.sqlite';
+
+  t:=TSQLTransaction.Create(nil);
+  t.DataBase:=currentSymbolDataBase;
+
+  q:=TSQLQuery.Create(nil);
+  q.DataBase:=currentSymbolDataBase;
+  q.Transaction:=t;
+
+
+  try
+    currentSymbolDataBase.Connected:=true;
+    l:=nil;
+    try
+      t.StartTransaction;
+
+      l:=tstringlist.create;
+
+      currentSymbolDataBase.GetTableNames(l);
+      if (l.IndexOf('modules')=-1) then
+      begin
+        //create the modules table
+        q.SQL.Text:='create table modules(moduleid INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, modulename varchar(255) NOT NULL, timestamp int NOT NULL, UNIQUE (modulename, timestamp))';
+        q.ExecSQL;
+      end;
+
+      if (l.IndexOf('structures')=-1) then
+      begin
+        //create the structures table
+        q.SQL.Text:='create table structures(moduleid INTEGER NOT NULL, typeid INTEGER NOT NULL, tablename varchar(255) NOT NULL, length INTEGER NOT NULL, PRIMARY KEY (moduleid, typeid))';
+        q.ExecSQL;
+
+        q.SQL.Text:='create index namelookup on structures(moduleid, tablename)';
+        q.ExecSQL;
+      end;
+
+      if (l.IndexOf('elements')=-1) then
+      begin
+        //create the structures table
+        q.SQL.Text:='create table elements(moduleid INTEGER NOT NULL, typeid INTEGER NOT NULL, elementnr INTEGER NOT NULL, elementname varchar(255) NOT NULL, offset INTEGER, basetype INTEGER, type INTEGER, PRIMARY KEY (moduleid, typeid, elementnr))';
+        q.ExecSQL;
+      end;
+
+      t.Action:=caCommit;
+      t.EndTransaction;
+    finally
+      if l<>nil then
+        freeandnil(l);
+    end;
+
+
+
+    currentSymbolDataBaseTransaction:=t;
+    currentSymbolDataBaseQueryObject:=q;
+
+    for i:=0 to length(list)-1 do
+    begin
+      t.action:=caRollback;
+      t.StartTransaction;
+
+      //check if this module is in
+      ts:=FileAgeUTF8(list[i].modulepath);
+
+      q.SQL.Text:='select moduleid from modules where modulename=:modulename and timestamp=:ts';
+
+      q.ParamByName('modulename').AsString:=list[i].modulename;
+      q.ParamByName('ts').AsInteger:=ts;
+      q.Prepare;
+
+      q.Active:=true;
+      if q.RecordCount=0 then
+      begin
+        //add it to the list (if nothing, the tollback will undo this add)
+        q.Active:=false;
+        q.SQL.Clear;
+        q.SQL.text:='INSERT INTO modules (modulename, timestamp) VALUES (:modulename, :ts)';
+        q.Prepare;
+        q.ParamByName('modulename').AsString:=list[i].modulename;
+        q.ParamByName('ts').AsInteger:=ts;
+        q.ExecSQL;
+
+        currentmoduleid:=currentSymbolDataBase.GetInsertID;
+
+
+        r:=SymEnumTypes(self.thisprocesshandle, list[i].modulebase, @ET, self)
+      end
+      else
+        r:=false; //already in the list
+
+      q.Active:=false;
+
+
+      if r then
+        t.Action:=caCommit
+      else
+        t.Action:=caRollback;
+
+      t.EndTransaction;
+
+      if terminated then exit;
+    end;
+
+  finally
+    if q<>nil then
+      freeandnil(q);
+
+    if t<>nil then
+      freeandnil(t);
+
+    if currentSymbolDataBase<>nil then
+      freeandnil(currentSymbolDataBase);
+  end;
+
+  except
+    on e: exception do
+    begin
+      outputdebugstring(pchar('TSymbolloaderthread.EnumerateStructures:'+e.message));
+    end;
+  end;
+end;
+
+
 
 function EM(ModuleName:PSTR; BaseOfDll:dword64; UserContext:pointer):bool;stdcall;
 var self: TSymbolloaderthread;
@@ -900,7 +1210,9 @@ begin
   else
     self.currentModuleIsNotStandard:=false; //whatever...
 
- // result:=SymEnumTypes(self.thisprocesshandle, baseofdll, @ET, self);
+ //
+
+
 
   result:=(self.terminated=false) and (SymEnumSymbols(self.thisprocesshandle, baseofdll, nil, @ES, self));
 
@@ -1095,6 +1407,10 @@ begin
           //enumerate the extended debug symbols
 
           EnumerateExtendedDebugSymbols;
+
+
+          EnumerateStructures;
+
 
           Symcleanup(thisprocesshandle);
 
