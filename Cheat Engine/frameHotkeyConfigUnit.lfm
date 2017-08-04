@@ -170,6 +170,7 @@ object frameHotkeyConfig: TframeHotkeyConfig
         Width = 56
         Anchors = [akTop, akLeft, akRight]
         OnChange = edtSHSpeedChange
+        OnExit = edtSHSpeedExit
         TabOrder = 0
         Text = '2'
       end
