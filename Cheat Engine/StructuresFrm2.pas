@@ -10,7 +10,7 @@ uses
   StdCtrls, ComCtrls, Menus, lmessages, scrolltreeview, byteinterpreter, symbolhandler, cefuncproc,
   newkernelhandler, frmSelectionlistunit, frmStructuresConfigUnit, registry, Valuechange, DOM,
   XMLRead, XMLWrite, Clipbrd, CustomTypeHandler, strutils, dotnetpipe, DotNetTypes, commonTypeDefs,
-  contnrs;
+  contnrs, cvconst;
 
 
 const structureversion=2;
@@ -4772,7 +4772,11 @@ var structlist, elementlist: Tstringlist;
   i: integer;
 
   s: TDBStructInfo;
+  e: TDBElementInfo;
   selected: string;
+
+  struct: TDissectedStruct;
+  vtype:TVariableType;
 begin
   //get the list of structures
   structlist:=tstringlist.create;
@@ -4787,8 +4791,92 @@ begin
 
     symhandler.getStructureElements(s.moduleid, s.typeid, elementlist);
 
-    showmessage('not yet implemented. come back later')
+    if elementlist.count>0 then
+    begin
+      struct:=TDissectedStruct.create(selected);
 
+
+      //convert the elements to structure types
+      for i:=0 to elementlist.count-1 do
+      begin
+        e:=TDBElementInfo(elementlist.Objects[i]);
+
+        if e.tag=SymTagPointerType then
+        begin
+          struct.addElement(elementlist[i],e.offset, vtPointer);
+        end
+        else
+        begin
+          case TBasicType(e.basetype) of
+            btChar: vtype:=vtString;
+            btWChar: vtype:=vtUnicodeString;
+            btInt: vtype:=vtDword;
+            btUInt: vtype:=vtDword;
+            btFloat: vtype:=vtSingle;
+            btBCD: vtype:=vtByte;
+            btBool: vtype:=vtByte;
+            btLong: vtype:=vtQword;
+            btULong: vtype:=vtQword;
+            btCurrency: vtype:=vtDword;
+            btDate: vtype:=vtDword;
+            btVariant: vtype:=vtDword;
+            btComplex: vtype:=vtDword;
+            btBit: vtype:=vtDword;
+            btBSTR:vtype:=vtString;
+            btHresult: vtype:=vtDword;
+            else
+            begin
+              vtype:=vtDword;
+            end;
+
+          end;
+
+          struct.addElement(elementlist[i],e.offset, vtype);
+        end;
+
+      {
+          SymTagNull=0,
+          SymTagExe,
+          SymTagCompiland,
+          SymTagCompilandDetails,
+          SymTagCompilandEnv,
+          SymTagFunction,
+          SymTagBlock,
+          SymTagData,
+          SymTagAnnotation,
+          SymTagLabel,
+          SymTagPublicSymbol,
+          SymTagUDT,
+          SymTagEnum,
+          SymTagFunctionType,
+          SymTagPointerType,
+          SymTagArrayType,
+          SymTagBaseType,
+          SymTagTypedef,
+          SymTagBaseClass,
+          SymTagFriend,
+          SymTagFunctionArgType,
+          SymTagFuncDebugStart,
+          SymTagFuncDebugEnd,
+          SymTagUsingNamespace,
+          SymTagVTableShape,
+          SymTagVTable,
+          SymTagCustom,
+          SymTagThunk,
+          SymTagCustomType,
+          SymTagManagedType,
+          SymTagDimension
+         }
+
+
+
+
+      end;
+
+      struct.addToGlobalStructList;
+      mainStruct:=struct;
+    end;
+    //showmessage('not yet implemented. come back later');
 
   finally
     for i:=0 to structlist.count-1 do

@@ -56,6 +56,7 @@ type
     offset: dword;
     basetype: integer;
     typeid: integer;
+    tag: TSymTagEnum;
   end;
 
 
@@ -940,6 +941,7 @@ var s: string;
     typeid: dword;
     offset: dword;
     bitpos: dword;
+    tag: TSymTagEnum;
   end;
 
 begin
@@ -1007,6 +1009,9 @@ begin
               element.name:=name;
               LocalFree(PTRUINT(name));
 
+              element.tag:=SymTagNull;
+              SymGetTypeInfo(self.thisprocesshandle, pSymInfo.ModBase, fcp.ChildId[i], TI_GET_SYMTAG, @element.tag);
+
               SymGetTypeInfo(self.thisprocesshandle, pSymInfo.ModBase, fcp.ChildId[i], TI_GET_BASETYPE, @element.basetype);
               SymGetTypeInfo(self.thisprocesshandle, pSymInfo.ModBase, fcp.ChildId[i], TI_GET_OFFSET, @element.offset);
               SymGetTypeInfo(self.thisprocesshandle, pSymInfo.ModBase, fcp.ChildId[i], TI_GET_BITPOSITION, @element.bitpos);
@@ -1015,7 +1020,8 @@ begin
               SymGetTypeInfo(self.thisprocesshandle, pSymInfo.ModBase, fcp.ChildId[i], TI_GET_TYPEID, @element.typeid);
 
 
-              q.SQL.Text:='insert into elements(moduleid, typeid, elementnr, elementname, offset, basetype, type) values(:moduleid, :typeid, :elementnr, :elementname, :offset, :basetype, :type)';
+
+              q.SQL.Text:='insert into elements(moduleid, typeid, elementnr, elementname, offset, basetype, type, tag) values(:moduleid, :typeid, :elementnr, :elementname, :offset, :basetype, :type, :tag)';
               q.ParamByName('moduleid').AsInteger:=self.currentmoduleid;
               q.ParamByName('typeid').AsInteger:=typeid;
               q.ParamByName('elementnr').AsInteger:=i;
@@ -1023,6 +1029,7 @@ begin
               q.ParamByName('offset').AsInteger:=element.offset;
               q.ParamByName('basetype').AsInteger:=element.basetype;
               q.ParamByName('type').AsInteger:=element.typeid;
+              q.ParamByName('tag').AsInteger:=dword(element.tag);
               q.Prepare;
               q.ExecSQL;
             end;
@@ -1136,7 +1143,7 @@ begin
       if (l.IndexOf('elements')=-1) then
       begin
         //create the structures table
-        q.SQL.Text:='create table elements(moduleid INTEGER NOT NULL, typeid INTEGER NOT NULL, elementnr INTEGER NOT NULL, elementname varchar(255) NOT NULL, offset INTEGER, basetype INTEGER, type INTEGER, PRIMARY KEY (moduleid, typeid, elementnr))';
+        q.SQL.Text:='create table elements(moduleid INTEGER NOT NULL, typeid INTEGER NOT NULL, elementnr INTEGER NOT NULL, elementname varchar(255) NOT NULL, offset INTEGER, basetype INTEGER, type INTEGER, tag INTEGER, PRIMARY KEY (moduleid, typeid, elementnr))';
         q.ExecSQL;
       end;
 
@@ -2272,7 +2279,7 @@ begin
   try
 
 //    elements(moduleid, typeid, elementnr, elementname, offset, basetype, type)
-    q.sql.text:='select elementname, offset, basetype, type from elements where moduleid=:moduleid and typeid=:typeid';
+    q.sql.text:='select elementname, offset, basetype, type, tag from elements where moduleid=:moduleid and typeid=:typeid';
     q.ParamByName('moduleid').AsInteger:=moduleid;
     q.ParamByName('typeid').AsInteger:=typeid;
     q.Prepare;
@@ -2284,6 +2291,7 @@ begin
       elementinfo.offset:=q.FieldByName('offset').AsInteger;
       elementinfo.basetype:=q.FieldByName('basetype').AsInteger;
       elementinfo.typeid:=q.FieldByName('type').AsInteger;
+      elementinfo.tag:=TSymTagEnum(q.FieldByName('tag').AsInteger);
       list.addobject(q.FieldByName('elementname').AsString, elementinfo);
 
       q.next;
