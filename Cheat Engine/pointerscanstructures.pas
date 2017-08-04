@@ -5,14 +5,14 @@ unit PointerscanStructures;
 interface
 
 uses
-  windows, Classes, SysUtils, winsock, CELazySocket;
+  windows, Classes, SysUtils, winsock, CELazySocket, commonTypeDefs;
 
 const
   MAXQUEUESIZE=64;
   pointerscanfileversion=2;
 
 type
-  TDynDwordArray=array of dword;
+
 
 
   TPathQueueElement=record

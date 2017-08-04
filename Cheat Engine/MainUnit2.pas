@@ -630,11 +630,15 @@ begin
           if reg.ValueExists('Don''t use tempdir') then
             cbDontUseTempDir.checked:=reg.ReadBool('Don''t use tempdir');
 
+          edtTempScanFolder.text:='';
           if reg.ValueExists('Scanfolder') then
             edtTempScanFolder.text:=reg.ReadString('Scanfolder');
 
           dontusetempdir:=cbDontusetempdir.checked;
           tempdiralternative:=edtTempScanFolder.text;
+
+          if tempdiralternative='' then
+            dontusetempdir:=false;
 
 
           if reg.ValueExists('Use Processwatcher') then

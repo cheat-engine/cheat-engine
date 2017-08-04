@@ -1,7 +1,7 @@
 object ProcessWindow: TProcessWindow
-  Left = 320
+  Left = 404
   Height = 443
-  Top = 379
+  Top = 378
   Width = 293
   HelpContext = 4
   AutoSize = True
@@ -16,7 +16,7 @@ object ProcessWindow: TProcessWindow
   OnShow = FormShow
   PopupMode = pmAuto
   Position = poMainFormCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Panel1: TPanel
     Left = 0
     Height = 112
@@ -28,7 +28,7 @@ object ProcessWindow: TProcessWindow
     BevelOuter = bvNone
     ClientHeight = 112
     ClientWidth = 293
-    TabOrder = 0
+    TabOrder = 1
     object Panel5: TPanel
       AnchorSideLeft.Control = Panel1
       AnchorSideLeft.Side = asrCenter
@@ -145,7 +145,7 @@ object ProcessWindow: TProcessWindow
       'Windows'
     )
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabOrder = 1
+    TabOrder = 0
     object ProcessList: TListBox
       Left = 2
       Height = 286
@@ -158,7 +158,7 @@ object ProcessWindow: TProcessWindow
       OnKeyPress = ProcessListKeyPress
       PopupMenu = PopupMenu1
       Style = lbOwnerDrawFixed
-      TabOrder = 1
+      TabOrder = 0
     end
   end
   object OpenDialog1: TOpenDialog

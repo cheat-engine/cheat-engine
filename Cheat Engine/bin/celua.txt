@@ -245,8 +245,8 @@ generateFullInjectionScript(script: Tstrings, address: string): Adds a Full Inje
 
 
 showMessage(text) : shows a messagebox with the given text
-inputQuery(caption, prompt, initialstring): Shows a dialog where the user can input a string. This function returns the given string, or nil on cancel  CE6.4+
-showSelectionList(title, caption, stringlist): integer,string - Shows a menu with the given list. It returns the linenumbver (starting at 0) and the selected string
+inputQuery(caption, prompt, initialstring): Shows a dialog where the user can input a string. This function returns the given string, or nil on cancel
+showSelectionList(title, caption, stringlist, allowCustomInput OPTIONAL): integer,string - Shows a menu with the given list. It returns the linenumber (starting at 0) and the selected string.  Linenumber is -1 if the user was allowed to enter custom input
 
 messageDialog(text, type, buttons...) : pops up a messagebox with a specific icon/sound with the specified buttons (mbok, mbyes, ....)
 sleep(milliseconds): pauses for the number of specified milliseconds (1000= 1 sec...)

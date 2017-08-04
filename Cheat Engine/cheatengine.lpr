@@ -227,7 +227,7 @@ end;
 
 var
   i: integer;
-  istrainer: boolean;
+
   ff: TFormFucker;
   r: TRegistry;
 begin

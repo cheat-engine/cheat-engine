@@ -246,6 +246,7 @@ type
     lblSigned: TLabel;
     MainMenu2: TMainMenu;
     MenuItem12: TMenuItem;
+    miChangeValueBack: TMenuItem;
     miSignTable: TMenuItem;
     miSaveFile: TMenuItem;
     miAsyncScript: TMenuItem;
@@ -493,6 +494,7 @@ type
     procedure Label3Click(Sender: TObject);
     procedure Label6Click(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
+    procedure miChangeValueBackClick(Sender: TObject);
     procedure miSignTableClick(Sender: TObject);
     procedure miAsyncScriptClick(Sender: TObject);
     procedure miFlFindWhatAccessesClick(Sender: TObject);
@@ -3117,6 +3119,8 @@ procedure TMainForm.MenuItem12Click(Sender: TObject);
 begin
   shellexecute(0, 'open', pchar(cheatenginedir+'Tutorial-x86_64.exe'), nil, nil, sw_show);
 end;
+
+
 
 procedure TMainForm.miSignTableClick(Sender: TObject);
 begin
@@ -6571,6 +6575,7 @@ begin
     Removeselectedaddresses1.enabled := not (GetVarType in [vtBinary, vtByteArray, vtAll]);
 
   miChangeValue.enabled:=Browsethismemoryarrea1.enabled;
+  miChangeValueBack.enabled:=Browsethismemoryarrea1.enabled;
   miAddAddress.enabled:=Browsethismemoryarrea1.enabled;
 
   //updatwe the display override
@@ -8624,6 +8629,56 @@ begin
 
   if ProcessWindow.opendialog2.Execute then
     Filehandler.CommitChanges(ProcessWindow.opendialog2.filename);
+end;
+
+procedure TMainForm.miChangeValueBackClick(Sender: TObject);
+var
+  currentlySelectedSavedResultname: string;
+  s: tstringlist;
+  i: integer;
+  a: ptruint;
+  p: pointer;
+
+  bytesize: integer;
+  x: ptruint;
+
+  savedscan: TSavedScanHandler;
+begin
+  //show a list of possible options. Previous, last scan, savedscan
+  if memscan=nil then exit;
+
+  bytesize:=memscan.Getbinarysize div 8;
+  if bytesize=0 then exit;
+
+  s:=tstringlist.create();
+
+  memscan.getsavedresults(s);
+  s.insert(0,'Last Scan');
+
+  i:=ShowSelectionList(self,'Previous value liss','Select the saved results you wish to use',s,currentlySelectedSavedResultname);
+  s.free;
+  if i=-1 then exit;
+  if i=0 then currentlySelectedSavedResultname:='TMP';
+
+  savedscan:=TSavedScanHandler.create(memscan.getScanFolder, currentlySelectedSavedResultname);
+  savedscan.AllowNotFound:=true;
+  savedscan.AllowRandomAccess:=true;
+
+  try
+    for i:=0 to foundlist3.items.Count-1 do
+    begin
+      if foundlist3.Items[i].Selected then
+      begin
+        a:=foundlist.GetAddress(i);
+        p:=savedscan.getpointertoaddress(a, memscan.VarType,memscan.CustomType);
+
+        if p<>nil then
+          WriteProcessMemory(processhandle, pointer(a),p,bytesize,x);
+      end;
+    end;
+  finally
+    savedscan.free;
+  end;
 end;
 
 procedure TMainForm.miChangeValueClick(Sender: TObject);

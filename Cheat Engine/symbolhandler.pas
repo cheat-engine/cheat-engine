@@ -9,7 +9,7 @@ interface
 uses jwawindows, windows, classes,LCLIntf,imagehlp,{psapi,}sysutils, cefuncproc,
   newkernelhandler,syncobjs, SymbolListHandler, fgl, typinfo, cvconst, PEInfoFunctions,
   DotNetPipe, DotNetTypes, commonTypeDefs, math, LazUTF8, contnrs, LazFileUtils,
-  db, sqldb, sqlite3dyn, sqlite3conn;
+  db, sqldb, sqlite3dyn, sqlite3conn, registry;
 {$endif}
 
 {$ifdef unix}
@@ -45,6 +45,19 @@ end;
 
 type symexception=class(Exception);
 
+type
+  TDBStructInfo=class(TObject)
+    moduleid: integer;
+    typeid: integer;
+    length: integer;
+  end;
+
+  TDBElementInfo=class (TObject)
+    offset: dword;
+    basetype: integer;
+    typeid: integer;
+  end;
+
 
 type TUserdefinedsymbol=record
   symbolname: string;
@@ -64,6 +77,8 @@ type TModuleInfo=record
   basesize: dword;
   is64bitmodule: boolean;
   symbolsLoaded: boolean; //true if the api symbols have been handled
+  hasStructInfo: boolean;
+  databaseModuleID: dword;
 end;
 
 type TUserdefinedSymbolCallback=procedure;
@@ -78,10 +93,10 @@ type
     owner: Tsymhandler;
     thisprocesshandle: thandle;
     thisprocessid: dword;
+    SymbolDataBasePath: string;
     currentSymbolDataBase: TSQLite3Connection;
     currentSymbolDataBaseTransaction: TSQLTransaction;
     currentSymbolDataBaseQueryObject: TSQLQuery;
-    currentSymbolDataBasePath: string;
     currentmoduleid: integer;
     currentModuleName: string;
     currentModuleIsNotStandard: boolean;
@@ -171,6 +186,9 @@ type
     dotnetModuleSymbolList: array of TDotNetModuleSymbols;
     dotnetModuleSymbolListMREW: TMultiReadExclusiveWriteSynchronizer; //MREW for adding/removing modules to the list
 
+    symbolDataBase: TSQLite3Connection;
+
+    function OpenDatabaseIfNeeded:boolean;
 
     function getusedprocesshandle :thandle;
     function getusedprocessid:dword;
@@ -237,6 +255,9 @@ type
 
 
     function getSymbolInfo(name: string; var syminfo: TCESymbolInfo): boolean;
+    procedure getStructureList(list: TStringList);
+    procedure getStructureElements(moduleid: integer; typeid: integer; list: TStringList);
+    function hasDefinedStructures:boolean;
 
     function GetLayoutFromAddress(address: ptruint; var addressdata: TAddressData): boolean;
     function getsearchpath:string;
@@ -270,8 +291,6 @@ type
     procedure NotifyFinishedLoadingSymbols; //go through the list of functions to call when the symbollist has finished loading
     constructor create;
     destructor destroy; override;
-
-
 end;
 
 var symhandler: TSymhandler=nil;
@@ -376,6 +395,8 @@ var
 
   SymbolLookupCallbacks: array [slStart..slFailure] of array of TSymbolLookupCallback;
   AddressLookupCallbacks: array of TAddressLookupCallback;
+
+  databasepath: string;
 
 function registerSymbolLookupCallback(callback: TSymbolLookupCallback;  cbp: TSymbolLookupCallbackPoint): integer;
 var i: integer;
@@ -1027,7 +1048,7 @@ var
     modulepath: string;
     modulename: string;
   end;
-  i: integer;
+  i,j: integer;
 
   usedtempdir: string;
   symbolpath: string;
@@ -1042,6 +1063,7 @@ var
 
   err: integer;
 
+  hasStructInfo: boolean;
 begin
   if istrainer then exit;  //waste of time
 
@@ -1071,9 +1093,11 @@ begin
   if sqlite3_threadsafe()=0 then exit;
   sqlite3_config(SQLITE_CONFIG_SERIALIZED);
 
+  SymbolDataBasePath:=symbolpath+'structures.sqlite';
+
 
   currentSymbolDataBase:=TSQLite3Connection.Create(nil);
-  currentSymbolDataBase.DatabaseName:=symbolpath+'structures.sqlite';
+  currentSymbolDataBase.DatabaseName:=SymbolDataBasePath;
 
   t:=TSQLTransaction.Create(nil);
   t.DataBase:=currentSymbolDataBase;
@@ -1130,6 +1154,8 @@ begin
 
     for i:=0 to length(list)-1 do
     begin
+      hasStructInfo:=false;
+
       t.action:=caRollback;
       t.StartTransaction;
 
@@ -1157,10 +1183,17 @@ begin
         currentmoduleid:=currentSymbolDataBase.GetInsertID;
 
 
-        r:=SymEnumTypes(self.thisprocesshandle, list[i].modulebase, @ET, self)
+        r:=SymEnumTypes(self.thisprocesshandle, list[i].modulebase, @ET, self);
+
+        if r=true then
+          hasStructInfo:=true;
       end
       else
+      begin
         r:=false; //already in the list
+        hasStructInfo:=true;
+        currentmoduleid:=q.FieldByName('moduleid').AsInteger;
+      end;
 
       q.Active:=false;
 
@@ -1173,6 +1206,21 @@ begin
       t.EndTransaction;
 
       if terminated then exit;
+
+      if hasStructInfo then
+      begin
+        symhandler.modulelistMREW.BeginRead;
+        for j:=0 to symhandler.modulelistpos-1 do
+        begin
+          if symhandler.modulelist[j].baseaddress=list[i].modulebase then
+          begin
+            symhandler.modulelist[j].hasStructInfo:=true;
+            symhandler.modulelist[j].databaseModuleID:=currentmoduleid;
+            break;
+          end;
+        end;
+        symhandler.modulelistMREW.EndRead;
+      end;
     end;
 
   finally
@@ -2188,6 +2236,129 @@ begin
   finally
     modulelistMREW.endread;
   end;
+end;
+
+function TSymHandler.OpenDatabaseIfNeeded: boolean;
+begin
+  result:=true;
+  try
+    if symbolDataBase=nil then
+    begin
+      symbolDataBase:=TSQLite3Connection.Create(nil);
+      symbolDataBase.DatabaseName:=databasepath;
+      symbolDataBase.Transaction:=TSQLTransaction.Create(symbolDataBase); //not really needed as the symhandler uses it for reads only
+      symbolDataBase.Connected:=true;
+    end;
+  except
+    on e: exception do
+    begin
+      outputdebugstring('OpenDatabaseIfNeeded:'+e.message);
+      result:=false;
+
+      if symbolDataBase<>nil then
+        freeandnil(symbolDataBase);
+    end;
+
+  end;
+end;
+
+procedure TSymHandler.getStructureElements(moduleid: integer; typeid: integer; list: TStringList);
+var
+  q: TSQLQuery;
+  elementinfo: TDBElementInfo;
+begin
+  q:=TSQLQuery.Create(nil);
+  q.DataBase:=symbolDataBase;
+  try
+
+//    elements(moduleid, typeid, elementnr, elementname, offset, basetype, type)
+    q.sql.text:='select elementname, offset, basetype, type from elements where moduleid=:moduleid and typeid=:typeid';
+    q.ParamByName('moduleid').AsInteger:=moduleid;
+    q.ParamByName('typeid').AsInteger:=typeid;
+    q.Prepare;
+    q.Active:=true;
+    q.first;
+    while not q.EOF do
+    begin
+      elementinfo:=TDBElementInfo.create;
+      elementinfo.offset:=q.FieldByName('offset').AsInteger;
+      elementinfo.basetype:=q.FieldByName('basetype').AsInteger;
+      elementinfo.typeid:=q.FieldByName('type').AsInteger;
+      list.addobject(q.FieldByName('elementname').AsString, elementinfo);
+
+      q.next;
+    end;
+
+    q.active:=false;
+
+  finally
+    q.free;
+  end;
+end;
+
+procedure TSymHandler.getStructureList(list: tstringlist);
+var
+  q: TSQLQuery;
+  moduleidstring: string;
+
+  structinfo: TDBStructInfo;
+  i: integer;
+begin
+  moduleidstring:='';
+  modulelistMREW.beginread;
+  try
+    for i:=0 to modulelistpos-1 do
+      if modulelist[i].hasStructInfo then
+      begin
+        if moduleidstring='' then
+          moduleidstring:=inttostr(modulelist[i].databaseModuleID)
+        else
+          moduleidstring:=moduleidstring+','+inttostr(modulelist[i].databaseModuleID);
+      end;
+  finally
+    modulelistMREW.endread;
+  end;
+
+  if OpenDataBaseIfNeeded=false then exit;
+
+  q:=TSQLQuery.Create(nil);
+  try
+    //        q.SQL.Text:='create table structures(moduleid INTEGER NOT NULL, typeid INTEGER NOT NULL, tablename varchar(255) NOT NULL, length INTEGER NOT NULL, PRIMARY KEY (moduleid, typeid))';
+
+    q.sql.text:='select * from structures where moduleid in ('+moduleidstring+')';
+    q.DataBase:=symbolDataBase;
+    q.Active:=true;
+
+    q.First;
+    while not q.EOF do
+    begin
+      structinfo:=TDBStructInfo.Create;
+      structinfo.moduleid:=q.FieldByName('moduleid').AsInteger;
+      structinfo.typeid:=q.FieldByName('typeid').AsInteger;
+      structinfo.length:=q.FieldByName('length').AsInteger;
+      list.AddObject(q.FieldByName('tablename').AsString, structinfo);
+      q.next;
+    end;
+
+    q.Active:=false;
+  finally
+    q.free;
+  end;
+end;
+
+function TSymHandler.hasDefinedStructures:boolean;
+var i: integer;
+begin
+  modulelistMREW.beginread;
+  try
+    for i:=0 to modulelistpos-1 do
+      if modulelist[i].hasStructInfo then
+        exit(true);
+  finally
+    modulelistMREW.endread;
+  end;
+
+  exit(false);
 end;
 
 function TSymhandler.getSymbolInfo(name: string; var syminfo: TCESymbolInfo): boolean;
@@ -3741,6 +3912,9 @@ begin
   setlength(modulelist,0);
 
 
+  if symbolDataBase<>nil then
+    freeandnil(symbolDataBase);
+
 end;
 
 
@@ -3809,6 +3983,69 @@ begin
 {$endif}
 end;
 
+procedure initDatabasePath;  //just sets up the variable. Path creation will happen when needed (so trainers don't make it)
+var
+  reg: Tregistry;
+  dontusetempdir: boolean=false;
+  alt: string='';
+
+  usedtempdir: string;
+begin
+  databasepath:='';
+  reg:=Tregistry.Create; //do this as the settings may not have been loaded yet
+  try
+    Reg.RootKey := HKEY_CURRENT_USER;
+    if Reg.OpenKey('\Software\Cheat Engine',false) then
+    begin
+      if reg.ValueExists('Don''t use tempdir') then
+        dontusetempdir:=reg.ReadBool('Don''t use tempdir');
+
+      if reg.ValueExists('Scanfolder') then
+        alt:=trim(reg.ReadString('Scanfolder'));
+
+      if length(alt)<=2 then dontusetempdir:=false;
+    end;
+  finally
+    reg.free;
+  end;
+
+  if dontusetempdir then
+    usedtempdir:=alt;
+
+  if (length(trim(tempdiralternative))>2) and dontusetempdir then
+    usedtempdir:=alt
+  else
+    usedtempdir:=trim(GetTempDir);
+
+  if trim(usedtempdir)='' then
+    usedtempdir:=GetCEdir;
+
+  if DirectoryExistsUTF8(usedtempdir)=false then
+  begin
+    usedtempdir:=WinCPToUTF8(usedtempdir); //perhaps it was in CP
+
+    if DirectoryExistsUTF8(usedtempdir)=false then
+    begin //not UTF8 or CP, get the CE folder
+      usedtempdir:=GetCEdir;
+      if DirectoryExistsUTF8(usedtempdir)=false then //perhaps the ce folder was in CP ???
+      begin
+        usedtempdir:=WinCPToUTF8(usedtempdir);
+        if DirectoryExistsUTF8(usedtempdir)=false then
+          exit; //fuck it , this user doesn't even DESERVE structures now...
+      end;
+    end;
+  end;
+
+  if usedtempdir='' then exit;
+
+  if usedtempdir[length(usedtempdir)]<>PathDelim then
+    usedtempdir:=usedtempdir+PathDelim;
+
+  databasepath:=usedtempdir+'Cheat Engine Symbols'+pathdelim+'structures.sqlite';
+end;
+
+initialization
+  initDatabasePath;
 
 finalization
   if selfsymhandler<>nil then

@@ -327,6 +327,7 @@ type
     MenuItem5: TMenuItem;
     MenuItem6: TMenuItem;
     MenuItem7: TMenuItem;
+    miDefineNewStructureFromDebugData: TMenuItem;
     miBack: TMenuItem;
     N5: TMenuItem;
     miExpandAll: TMenuItem;
@@ -400,6 +401,7 @@ type
     procedure MenuItem5Click(Sender: TObject);
     procedure MenuItem6Click(Sender: TObject);
     procedure miBackClick(Sender: TObject);
+    procedure miDefineNewStructureFromDebugDataClick(Sender: TObject);
     procedure miExpandAllClick(Sender: TObject);
     procedure miExpandAllDefinedClick(Sender: TObject);
     procedure miClearClick(Sender: TObject);
@@ -446,6 +448,7 @@ type
     procedure pnlGroupsResize(Sender: TObject);
     procedure Renamestructure1Click(Sender: TObject);
     procedure Save1Click(Sender: TObject);
+    procedure Structures1Click(Sender: TObject);
     procedure tmFixGuiTimer(Sender: TObject);
     procedure tvStructureViewAdvancedCustomDrawItem(Sender: TCustomTreeView;
       Node: TTreeNode; State: TCustomDrawState; Stage: TCustomDrawStage;
@@ -4257,6 +4260,15 @@ begin
   end;
 end;
 
+procedure TfrmStructures2.Structures1Click(Sender: TObject);
+begin
+  //check if miDefineNewStructureFromDebugData should be visible
+  miDefineNewStructureFromDebugData.visible:=symhandler.hasDefinedStructures;
+  miDefineNewStructureFromDebugData.enabled:=miDefineNewStructureFromDebugData.visible;
+
+
+end;
+
 procedure TfrmStructures2.tmFixGuiTimer(Sender: TObject);
 begin
   tmFixgui.enabled:=false;
@@ -4753,6 +4765,44 @@ var c: TStructColumn;
 begin
   c:=getFocusedColumn;
   if c<>nil then c.popAddress;
+end;
+
+procedure TfrmStructures2.miDefineNewStructureFromDebugDataClick(Sender: TObject);
+var structlist, elementlist: Tstringlist;
+  i: integer;
+
+  s: TDBStructInfo;
+  selected: string;
+begin
+  //get the list of structures
+  structlist:=tstringlist.create;
+  elementlist:=tstringlist.create;
+  try
+    symhandler.getStructureList(structlist);
+
+    i:=ShowSelectionList(self,'Structure list','Select a structure to load',structlist,selected);
+    if i=-1 then exit;
+
+    s:=TDBStructInfo(structlist.objects[i]);
+
+    symhandler.getStructureElements(s.moduleid, s.typeid, elementlist);
+
+    showmessage('not yet implemented. come back later')
+
+
+  finally
+    for i:=0 to structlist.count-1 do
+      if structlist.Objects[i]<>nil then
+         structlist.Objects[i].Free;
+
+    structlist.free;
+
+    if elementlist<>nil then
+      for i:=0 to elementlist.count-1 do
+        if elementlist.Objects[i]<>nil then
+           elementlist.Objects[i].Free;
+
+  end;
 end;
 
 

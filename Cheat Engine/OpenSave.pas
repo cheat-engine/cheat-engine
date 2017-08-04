@@ -1278,6 +1278,10 @@ begin
     begin
       if protect and (Uppercase(utf8tosys(extractfileext(filename)))<>'.CETRAINER') then raise exception.create(rsYouCanOnlyProtectAFileIfItHasAnCETRAINERExtension);
 
+      if protect and (MainForm.LuaForms.Count=0) and (mainform.frmLuaTableScript.assemblescreen.Text='') then
+        if MessageDlg(rsAskIfStupid, mtWarning, [mbyes, mbno], 0)<>mryes
+          then exit;
+
 
       SaveXML(utf8tosys(filename));
       if protect then

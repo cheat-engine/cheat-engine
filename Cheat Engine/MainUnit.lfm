@@ -2001,6 +2001,11 @@ object MainForm: TMainForm
       ShortCut = 16453
       OnClick = miChangeValueClick
     end
+    object miChangeValueBack: TMenuItem
+      Caption = 'Change value of selected addresses back to previous/saved value'
+      ShortCut = 49221
+      OnClick = miChangeValueBackClick
+    end
     object Browsethismemoryarrea1: TMenuItem
       Caption = 'Browse this memory region'
       ShortCut = 16450

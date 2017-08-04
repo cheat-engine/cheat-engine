@@ -211,7 +211,6 @@ var DECOMPRESSOR: TMemorystream;
   relpath: string;
 
 begin
-
   tiny:=cbTiny.Checked;
 
   CETRAINER:=ExtractFilePath(filename)+'CET_TRAINER.CETRAINER';

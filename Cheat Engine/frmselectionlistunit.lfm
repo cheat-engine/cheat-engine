@@ -9,7 +9,7 @@ object frmSelectionList: TfrmSelectionList
   ClientWidth = 313
   PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Label1: TLabel
     Left = 0
     Height = 15
@@ -41,7 +41,7 @@ object frmSelectionList: TfrmSelectionList
     ClientHeight = 33
     ClientWidth = 313
     TabOrder = 1
-    object Button1: TButton
+    object btnOK: TButton
       Left = 124
       Height = 25
       Top = 4
@@ -62,6 +62,7 @@ object frmSelectionList: TfrmSelectionList
     Top = 15
     Width = 313
     Align = alTop
+    OnChange = Edit1Change
     OnKeyPress = Edit1KeyPress
     TabOrder = 2
     Visible = False

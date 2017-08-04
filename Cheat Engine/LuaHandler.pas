@@ -8452,15 +8452,21 @@ var
   caption: string;
   list: Tstringlist;
   output: string;
+  custominput: boolean;
   r: integer;
 begin
   if lua_gettop(L)>=3 then
   begin
     title:=Lua_ToString(L,1);
     caption:=Lua_ToString(L,2);
-    list:=lua_ToCEUserData(L,2);
+    list:=lua_ToCEUserData(L,3);
 
-    r:=ShowSelectionList(application,title, caption,list, output);
+    if lua_gettop(L)>=4 then
+      custominput:=lua_toboolean(L,4)
+    else
+      custominput:=false;
+
+    r:=ShowSelectionList(application,title, caption,list, output, custominput);
 
     lua_pushinteger(L,r);
     lua_pushstring(L, output);

@@ -56,7 +56,10 @@ end;
 type TBitAddressArray=array [0..0] of TBitAddress;
 type PBitAddressArray=^TBitAddressArray;
 
-type ToffsetList=array of integer;
+type
+  ToffsetList=array of integer;
+  TDynDwordArray=array of dword;
+
 
 type TProcessListInfo=record
   processID: dword;
