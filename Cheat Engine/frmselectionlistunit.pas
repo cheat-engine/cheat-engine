@@ -22,6 +22,7 @@ type
     Label1: TLabel;
     procedure Edit1Change(Sender: TObject);
     procedure Edit1KeyPress(Sender: TObject; var Key: char);
+    procedure FormShow(Sender: TObject);
     procedure ListBox1DblClick(Sender: TObject);
     procedure ListBox1SelectionChange(Sender: TObject; User: boolean);
   private
@@ -144,6 +145,12 @@ begin
   listbox1.OnSelectionChange:=nil;
   listbox1.ItemIndex:=-1;
   listbox1.OnSelectionChange:=ListBox1SelectionChange;
+end;
+
+procedure TfrmSelectionList.FormShow(Sender: TObject);
+begin
+  if fsearchbox then
+    edit1.SetFocus;
 end;
 
 procedure TfrmSelectionList.Edit1Change(Sender: TObject);

@@ -954,6 +954,13 @@ begin
   typename:=pchar(@pSymInfo.Name);
   typeid:=pSymInfo.TypeIndex;
 
+  if typename='lua_State' then
+  begin
+  asm
+  nop
+  end;
+  end;
+
   if SymGetTypeInfo(self.thisprocesshandle, pSymInfo.ModBase, typeid, TI_GET_SYMTAG, @typesymtag) then
   begin
 
@@ -1009,15 +1016,16 @@ begin
               element.name:=name;
               LocalFree(PTRUINT(name));
 
-              element.tag:=SymTagNull;
-              SymGetTypeInfo(self.thisprocesshandle, pSymInfo.ModBase, fcp.ChildId[i], TI_GET_SYMTAG, @element.tag);
-
               SymGetTypeInfo(self.thisprocesshandle, pSymInfo.ModBase, fcp.ChildId[i], TI_GET_BASETYPE, @element.basetype);
               SymGetTypeInfo(self.thisprocesshandle, pSymInfo.ModBase, fcp.ChildId[i], TI_GET_OFFSET, @element.offset);
               SymGetTypeInfo(self.thisprocesshandle, pSymInfo.ModBase, fcp.ChildId[i], TI_GET_BITPOSITION, @element.bitpos);
 
               element.typeid:=0;
               SymGetTypeInfo(self.thisprocesshandle, pSymInfo.ModBase, fcp.ChildId[i], TI_GET_TYPEID, @element.typeid);
+
+              element.tag:=SymTagNull;
+              SymGetTypeInfo(self.thisprocesshandle, pSymInfo.ModBase, element.typeid, TI_GET_SYMTAG, @element.tag);
+
 
 
 
