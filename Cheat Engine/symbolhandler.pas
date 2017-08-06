@@ -50,6 +50,7 @@ type
     moduleid: integer;
     typeid: integer;
     length: integer;
+    callbackid: integer;
   end;
 
   TDBElementInfo=class (TObject)
@@ -57,6 +58,7 @@ type
     basetype: integer;
     typeid: integer;
     tag: TSymTagEnum;
+    vartype: TVariableType;
   end;
 
 
@@ -257,7 +259,7 @@ type
 
     function getSymbolInfo(name: string; var syminfo: TCESymbolInfo): boolean;
     procedure getStructureList(list: TStringList);
-    procedure getStructureElements(moduleid: integer; typeid: integer; list: TStringList);
+    procedure getStructureElements(callbackid: integer; moduleid: integer; typeid: integer; list: TStringList);
     function hasDefinedStructures:boolean;
 
     function GetLayoutFromAddress(address: ptruint; var addressdata: TAddressData): boolean;
@@ -308,6 +310,8 @@ type TSymbolLookupCallbackPoint=(
 
 type TSymbolLookupCallback=function(s: string): PtrUInt of object;
 type TAddressLookupCallback=function(address: ptruint): string of object;
+type TStructureListCallback=function(callback: integer; list: tstringlist):boolean of object;
+type TElementListCallback=function(moduleid: integer; typeid: integer; list: TStringlist): boolean of object;
 
 
 
@@ -316,6 +320,9 @@ procedure unregisterSymbolLookupCallback(id: integer);
 
 function registerAddressLookupCallback(callback: TAddressLookupCallback): integer;
 procedure unregisterAddressLookupCallback(id: integer);
+
+function registerStructureAndElementListCallback(scallback: TStructureListCallback; ecallback: TElementListCallback): integer;
+procedure unregisterStructureAndElementListCallback(id: integer);
 
 
 {$ifdef windows}
@@ -397,6 +404,11 @@ var
   SymbolLookupCallbacks: array [slStart..slFailure] of array of TSymbolLookupCallback;
   AddressLookupCallbacks: array of TAddressLookupCallback;
 
+  StructureElementListCallbacks: array of record
+    StructureListCallback: TStructureListCallback;
+    ElementListCallback: TElementListCallback;
+  end;
+
   databasepath: string;
 
 function registerSymbolLookupCallback(callback: TSymbolLookupCallback;  cbp: TSymbolLookupCallbackPoint): integer;
@@ -459,6 +471,38 @@ begin
     CleanupLuaCall(TMethod(AddressLookupCallbacks[id]));
     {$endif}
     AddressLookupCallbacks[id]:=nil;
+  end;
+end;
+
+function registerStructureAndElementListCallback(scallback: TStructureListCallback; ecallback: TElementListCallback): integer;
+var i: integer;
+begin
+  //first check if there is an unassigned entry to use
+  for i:=0 to length(StructureElementListCallbacks)-1 do
+    if (not assigned(StructureElementListCallbacks[i].ElementListCallback)) and (not assigned(StructureElementListCallbacks[i].ElementListCallback)) then
+    begin
+      result:=i;
+      StructureElementListCallbacks[i].StructureListCallback:=scallback;
+      StructureElementListCallbacks[i].ElementListCallback:=ecallback;
+      exit;
+    end;
+
+  result:=length(StructureElementListCallbacks);
+  setlength(StructureElementListCallbacks, result+1);
+  StructureElementListCallbacks[result].StructureListCallback:=scallback;
+  StructureElementListCallbacks[result].ElementListCallback:=ecallback;
+end;
+
+procedure unregisterStructureAndElementListCallback(id: integer);
+begin
+  if id<length(StructureElementListCallbacks) then
+  begin
+    {$ifdef windows}
+    CleanupLuaCall(TMethod(StructureElementListCallbacks[id].StructureListCallback));
+    CleanupLuaCall(TMethod(StructureElementListCallbacks[id].ElementListCallback));
+    {$endif}
+    StructureElementListCallbacks[id].StructureListCallback:=nil;
+    StructureElementListCallbacks[id].ElementListCallback:=nil;
   end;
 end;
 
@@ -953,13 +997,6 @@ begin
 
   typename:=pchar(@pSymInfo.Name);
   typeid:=pSymInfo.TypeIndex;
-
-  if typename='lua_State' then
-  begin
-  asm
-  nop
-  end;
-  end;
 
   if SymGetTypeInfo(self.thisprocesshandle, pSymInfo.ModBase, typeid, TI_GET_SYMTAG, @typesymtag) then
   begin
@@ -2277,38 +2314,75 @@ begin
   end;
 end;
 
-procedure TSymHandler.getStructureElements(moduleid: integer; typeid: integer; list: TStringList);
+procedure TSymHandler.getStructureElements(callbackid: integer; moduleid: integer; typeid: integer; list: TStringList);
 var
   q: TSQLQuery;
   elementinfo: TDBElementInfo;
 begin
-  q:=TSQLQuery.Create(nil);
-  q.DataBase:=symbolDataBase;
-  try
+  if callbackid=-1 then
+  begin
+    q:=TSQLQuery.Create(nil);
+    q.DataBase:=symbolDataBase;
+    try
 
-//    elements(moduleid, typeid, elementnr, elementname, offset, basetype, type)
-    q.sql.text:='select elementname, offset, basetype, type, tag from elements where moduleid=:moduleid and typeid=:typeid';
-    q.ParamByName('moduleid').AsInteger:=moduleid;
-    q.ParamByName('typeid').AsInteger:=typeid;
-    q.Prepare;
-    q.Active:=true;
-    q.first;
-    while not q.EOF do
-    begin
-      elementinfo:=TDBElementInfo.create;
-      elementinfo.offset:=q.FieldByName('offset').AsInteger;
-      elementinfo.basetype:=q.FieldByName('basetype').AsInteger;
-      elementinfo.typeid:=q.FieldByName('type').AsInteger;
-      elementinfo.tag:=TSymTagEnum(q.FieldByName('tag').AsInteger);
-      list.addobject(q.FieldByName('elementname').AsString, elementinfo);
+  //    elements(moduleid, typeid, elementnr, elementname, offset, basetype, type)
+      q.sql.text:='select elementname, offset, basetype, type, tag from elements where moduleid=:moduleid and typeid=:typeid';
+      q.ParamByName('moduleid').AsInteger:=moduleid;
+      q.ParamByName('typeid').AsInteger:=typeid;
+      q.Prepare;
+      q.Active:=true;
+      q.first;
+      while not q.EOF do
+      begin
+        elementinfo:=TDBElementInfo.create;
+        elementinfo.offset:=q.FieldByName('offset').AsInteger;
+        elementinfo.basetype:=q.FieldByName('basetype').AsInteger;
+        elementinfo.typeid:=q.FieldByName('type').AsInteger;
+        elementinfo.tag:=TSymTagEnum(q.FieldByName('tag').AsInteger);
 
-      q.next;
+        if elementinfo.tag=SymTagPointerType then
+          elementinfo.vartype:=vtPointer
+        else
+        begin
+          case TBasicType(elementinfo.basetype) of
+            btChar: elementinfo.vartype:=vtString;
+            btWChar: elementinfo.vartype:=vtUnicodeString;
+            btInt: elementinfo.vartype:=vtDword;
+            btUInt: elementinfo.vartype:=vtDword;
+            btFloat: elementinfo.vartype:=vtSingle;
+            btBCD: elementinfo.vartype:=vtByte;
+            btBool: elementinfo.vartype:=vtByte;
+            btLong: elementinfo.vartype:=vtQword;
+            btULong: elementinfo.vartype:=vtQword;
+            btCurrency: elementinfo.vartype:=vtDword;
+            btDate: elementinfo.vartype:=vtDword;
+            btVariant: elementinfo.vartype:=vtDword;
+            btComplex: elementinfo.vartype:=vtDword;
+            btBit: elementinfo.vartype:=vtDword;
+            btBSTR:elementinfo.vartype:=vtString;
+            btHresult: elementinfo.vartype:=vtDword;
+            else
+            begin
+              elementinfo.vartype:=vtDword;
+            end;
+
+          end;
+        end;
+        list.addobject(q.FieldByName('elementname').AsString, elementinfo);
+
+        q.next;
+      end;
+
+      q.active:=false;
+
+    finally
+      q.free;
     end;
 
-    q.active:=false;
-
-  finally
-    q.free;
+  end
+  else
+  begin
+    StructureElementListCallbacks[callbackid].ElementListCallback(moduleid, typeid, list);
   end;
 end;
 
@@ -2320,6 +2394,10 @@ var
   structinfo: TDBStructInfo;
   i: integer;
 begin
+  if istrainer then exit;
+  for i:=0 to length(StructureElementListCallbacks)-1 do
+    StructureElementListCallbacks[i].StructureListCallback(i,list);
+
   moduleidstring:='';
   modulelistMREW.beginread;
   try
@@ -2335,6 +2413,7 @@ begin
     modulelistMREW.endread;
   end;
 
+  if moduleidstring='' then exit;
   if OpenDataBaseIfNeeded=false then exit;
 
   q:=TSQLQuery.Create(nil);
@@ -2352,6 +2431,7 @@ begin
       structinfo.moduleid:=q.FieldByName('moduleid').AsInteger;
       structinfo.typeid:=q.FieldByName('typeid').AsInteger;
       structinfo.length:=q.FieldByName('length').AsInteger;
+      structinfo.callbackid:=-1;
       list.AddObject(q.FieldByName('tablename').AsString, structinfo);
       q.next;
     end;
@@ -2365,6 +2445,9 @@ end;
 function TSymHandler.hasDefinedStructures:boolean;
 var i: integer;
 begin
+  if istrainer then exit;
+  if length(StructureElementListCallbacks)>0 then exit(true);
+
   modulelistMREW.beginread;
   try
     for i:=0 to modulelistpos-1 do

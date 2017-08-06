@@ -206,6 +206,24 @@ registerAddressLookupCallback(function(integer):string): ID
 unregisterAddressLookupCallback(ID): Removes the callback
 
 
+registerStructureAndElementListCallback(function StructureListCallback(), function elementlistcallback(id1,id2) ) : Registers a function to be called when a structure needs to be dissected 
+  function StructureListCallback() will be a function that returns an array of list of structures in table format
+  the entries are build up as:
+    name: string - name of the structure
+    id1: integer - id you can use for whatever(e.g moduleid). It will be passed on to elementlistcallback when this structure is picked
+    id2: integer - id you can use for whatever(e.g structureid inside the module). It will be passed on to elementlistcallback when this structure is picked
+
+  
+  function elementlistcallback(id1,id2) will be a function that returns an array of structure elements in table format
+  the entries are build up as:
+    name: string
+    offset: integer
+    vartype: variabletype (look up vtByte, vtWord, etc..)
+
+  tip: If you return an empty table the structure will not be created. You can use this to create the structure layout yourself and register that instead
+
+
+
 registerStructureDissectOverride(function(structure, baseaddress): table):
   same as onAutoGuess, but is called by the structure dissect window when the user chooses to let cheat engine guess the structure for him.
   Use the structure object to fill it in
@@ -1796,6 +1814,9 @@ properties
   Collapsed: boolean - Set to true to collapse this record or false to expand it. Use expand/collapse methods for recursive operations. 
   IsGroupHeader: boolean - Set to true if the record was created as a Group Header with no address or value info. (ReadOnly)
   IsReadable: boolean - Set to false if record contains an unreadable address. NOTE: This property will not be set until the value property is accessed at least once. (ReadOnly)
+
+  Options: String set - a string enclosed by square brackets filled with the options seperated by a comma. Valid options are: moHideChildren, moActivateChildrenAsWell, moDeactivateChildrenAsWell, moRecursiveSetValue, moAllowManualCollapseAndExpand, moManualExpandCollapse
+
 
   Count: Number of children
   Child[index] : Array to access the child records

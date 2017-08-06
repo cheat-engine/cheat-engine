@@ -69,6 +69,10 @@ type
       function AddressLookupCallback(address: ptruint): string;
       function SymbolLookupCallback(s: string): ptruint;
       function StructureNameLookup(var address: ptruint; var name: string): boolean;
+
+      function StructureListCallback(callbackid: integer; list: tstringlist):boolean;
+      function ElementListCallback(moduleid: integer; typeid: integer; list: TStringlist): boolean;
+
       procedure AssemblerEvent(address:qword; instruction: string; var bytes: TAssemblerBytes);
       procedure AutoAssemblerPrologueEvent(code: TStrings; syntaxcheckonly: boolean);
       procedure AutoAssemblerTemplateCallback(script: TStrings; sender: TObject);
@@ -131,7 +135,7 @@ implementation
 
 uses
   luahandler, LuaByteTable, MainUnit, disassemblerviewunit,
-  hexviewunit, d3dhookUnit, luaclass, debuggertypedefinitions, memscan;
+  hexviewunit, d3dhookUnit, luaclass, debuggertypedefinitions, memscan, symbolhandler;
 
 resourcestring
   rsThisTypeOfMethod = 'This type of method:';
@@ -1222,6 +1226,135 @@ begin
 
       if not lua_isnil(luavm, -1) then
         address:=lua_tointeger(luavm, -1);
+    end;
+  finally
+    lua_settop(Luavm, oldstack);
+  end;
+end;
+
+function TLuaCaller.StructureListCallback(callbackid: integer; list: tstringlist):boolean;
+var
+  oldstack: integer;
+  len: integer;
+  i: integer;
+  l: Plua_State;
+
+  name: string;
+  id1: integer;
+  id2: integer;
+
+  si: TDBStructInfo;
+begin
+  result:=false;
+  l:=luavm;
+  oldstack:=lua_gettop(l);
+
+  try
+    PushFunction;
+    if lua_pcall(l, 0,1,0)=0 then
+    begin
+      if not lua_istable(l,-1) then exit(false);
+
+      len:=lua_objlen(l,-1);
+      for i:=1 to len do
+      begin
+        lua_pushinteger(L,i);
+        lua_gettable(L,-2);
+
+        if lua_istable(L,-1) then
+        begin
+          lua_pushstring(L,'name');
+          lua_gettable(L,-2);
+          name:=Lua_ToString(L,-1);
+          lua_pop(L,1);
+
+          lua_pushstring(L,'id1');
+          lua_gettable(L,-2);
+          id1:=lua_tointeger(L,-1);
+          lua_pop(L,1);
+
+          lua_pushstring(L,'id2');
+          lua_gettable(L,-2);
+          id2:=lua_tointeger(L,-1);
+          lua_pop(L,1);
+
+          si:=TDBStructInfo.Create;
+          si.moduleid:=id1;
+          si.typeid:=id2;
+          si.callbackid:=callbackid;
+          list.AddObject(name,si);
+
+        end else exit(false);
+
+        lua_pop(L,1); //pop the table
+      end;
+
+      result:=true;
+    end;
+  finally
+    lua_settop(Luavm, oldstack);
+  end;
+end;
+
+function TLuaCaller.ElementListCallback(moduleid: integer; typeid: integer; list: TStringlist): boolean;
+var
+  oldstack: integer;
+  len: integer;
+  i: integer;
+  l: Plua_State;
+
+  name: string;
+  offset: integer;
+  vartype: integer;
+
+  ei: TDBElementInfo;
+begin
+  result:=false;
+  l:=luavm;
+  oldstack:=lua_gettop(l);
+
+  try
+    PushFunction;
+    lua_pushinteger(L,moduleid);
+    lua_pushinteger(L,typeid);
+    if lua_pcall(l, 2,1,0)=0 then
+    begin
+      if not lua_istable(l,-1) then exit(false);
+
+      len:=lua_objlen(l,-1);
+      for i:=1 to len do
+      begin
+        lua_pushinteger(L,i);
+        lua_gettable(L,-2);
+
+        if lua_istable(L,-1) then
+        begin
+          lua_pushstring(L,'name');
+          lua_gettable(L,-2);
+          name:=Lua_ToString(L,-1);
+          lua_pop(L,1);
+
+          lua_pushstring(L,'offset');
+          lua_gettable(L,-2);
+          offset:=lua_tointeger(L,-1);
+          lua_pop(L,1);
+
+          lua_pushstring(L,'vartype');
+          lua_gettable(L,-2);
+          vartype:=lua_tointeger(L,-1);
+          lua_pop(L,1);
+
+          ei:=TDBElementInfo.Create;
+          ei.offset:=offset;
+          ei.vartype:=TVariableType(vartype);
+          list.AddObject(name,ei);
+
+        end else exit(false);
+
+        lua_pop(L,1); //pop the table
+      end;
+
+      result:=true;
     end;
   finally
     lua_settop(Luavm, oldstack);

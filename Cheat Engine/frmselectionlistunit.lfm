@@ -7,6 +7,7 @@ object frmSelectionList: TfrmSelectionList
   Caption = 'title'
   ClientHeight = 232
   ClientWidth = 313
+  OnShow = FormShow
   PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'

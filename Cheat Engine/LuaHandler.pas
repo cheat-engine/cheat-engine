@@ -5884,6 +5884,48 @@ begin
     unregisterAddressLookupCallback(lua_tointeger(L, 1));
 end;
 
+//----
+function lua_registerStructureAndElementListCallback(L: PLua_State): integer; cdecl;
+var
+  f: integer;
+  routine: string;
+  lc: tluacaller;
+begin
+  result:=0;
+
+  if lua_gettop(L)=1 then
+  begin
+    if lua_isfunction(L, 1) then
+    begin
+      lua_pushvalue(L, 1);
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+    end
+    else
+    if lua_isstring(L,1) then
+    begin
+      routine:=lua_tostring(L,1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+    end
+    else exit;
+
+    lua_pushinteger(L, registerStructureAndElementListCallback(lc.StructureListCallback, lc.ElementListCallback));
+    result:=1;
+  end;
+
+end;
+
+function lua_unregisterStructureAndElementListCallback(L: PLua_State): integer; cdecl;
+begin
+  result:=0;
+  if lua_gettop(L)>0 then
+    unregisterStructureAndElementListCallback(lua_tointeger(L, 1));
+end;
+//----
+
 function lua_registerGlobalDisassembleOverride(L: PLua_State): integer; cdecl;
 var
   f: integer;
