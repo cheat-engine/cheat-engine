@@ -119,6 +119,8 @@ resourcestring
   rsDECOMPRESSOR = ' DECOMPRESSOR:';
   rsInvalidIcon = '(Invalid icon)';
   rsInvalidIconType = '(Invalid icon type)';
+  rsTrainerFileMissing = 'Copying %s.dat to %s failed. Please make sure the '
+    +'file still exists';
   
 procedure TfrmExeTrainerGenerator.FormActivate(Sender: TObject);
 begin
@@ -479,8 +481,13 @@ begin
         end;
       end else raise exception.create(
         rsFailureOpeningTheTrainerForResourceUpdates);
-    end;
-    showmessage(rsTheTrainerHasBeenSuccessfullyGenerated);
+
+      showmessage(rsTheTrainerHasBeenSuccessfullyGenerated);
+    end
+    else
+      showMessage(Format(rsTrainerFileMissing, [cheatenginedir+basefile, filename]));
+
+
   finally
     if _archive<>nil then
       freeandnil(_archive);
