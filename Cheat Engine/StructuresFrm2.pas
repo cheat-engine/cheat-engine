@@ -1510,7 +1510,7 @@ var
   buf: pbytearray;
 
   currentOffset: integer;
-  x: ptruint;
+  x,o: ptruint;
   i,j: integer;
   bs: integer;
   vt: TVariableType;
@@ -1536,6 +1536,28 @@ begin
 
     x:=0;
     readprocessmemory(processhandle,pointer(baseaddress),@buf[0],bytesize,x);
+    if x=0 then
+    begin
+      dec(bytesize, baseaddress mod 4096);
+      readprocessmemory(processhandle,pointer(baseaddress),@buf[0],bytesize,x);
+
+      if x=0 then
+      begin
+        o:=0;
+        while o<bytesize do
+        begin
+          i:=4096-((baseaddress+o) and $fff) ;
+
+          i:=min(i,bytesize-o);
+
+          readprocessmemory(processhandle,pointer(baseaddress+o),@buf[o],i,x);
+          inc(o,x);
+          if x=0 then break;
+        end;
+
+        x:=o;
+      end;
+    end;
 
     if x>0 then
     begin
