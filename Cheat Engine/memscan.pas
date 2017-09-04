@@ -4149,9 +4149,14 @@ begin
       svalue2:=dvalue2;
 
 
-      floataccuracy:=pos(FloatSettings.DecimalSeparator,scanvalue1);
-      if floataccuracy>0 then
-        floataccuracy:=length(scanvalue1)-floataccuracy;
+      if (pos('E',uppercase(scanvalue1))=0) then
+      begin
+        floataccuracy:=pos(FloatSettings.DecimalSeparator,scanvalue1);
+        if floataccuracy>0 then
+          floataccuracy:=length(scanvalue1)-floataccuracy;
+      end
+      else
+        floataccuracy:=0;
 
       if not percentage then
       begin

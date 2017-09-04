@@ -3,7 +3,7 @@ structure dissect:
   delete all structures sometimes AV's
 
 add enumStructureWindows list, and let lua change the selected struct
-
+trainergen: get rid of tcheat and just use labels
 
 
 find higher resolution icons
