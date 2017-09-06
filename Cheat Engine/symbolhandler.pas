@@ -411,6 +411,8 @@ var
 
   databasepath: string;
 
+  symbolloaderthreadcs: TCriticalSection;
+
 function registerSymbolLookupCallback(callback: TSymbolLookupCallback;  cbp: TSymbolLookupCallbackPoint): integer;
 var i: integer;
 begin
@@ -1467,57 +1469,59 @@ begin
 
         end;
 
-        SymbolsLoaded:=SymInitialize(thisprocesshandle, sp, true);
+        symbolloaderthreadcs.Enter;
+        try
+          SymbolsLoaded:=SymInitialize(thisprocesshandle, sp, true);
 
-        if symbolsloaded=false then
-          SymbolsLoaded:=SymInitialize(thisprocesshandle, sp, false);
+          if symbolsloaded=false then
+            SymbolsLoaded:=SymInitialize(thisprocesshandle, sp, false);
 
-        if symbolsloaded then
-        begin
-          symsetoptions(symgetoptions or SYMOPT_CASE_INSENSITIVE);
-          symsetsearchpath(processhandle,pchar(searchpath));
-
-          if kernelsymbols then LoadDriverSymbols;
-
-          LoadDLLSymbols;
-
-          //enumerate the basic data from the symbols
-          enumeratedModules:=0;
-          SymEnumerateModules64(thisprocesshandle, @EM, self );
-
-          apisymbolsloaded:=true;
-
-
-
-          if owner.dotNetDataCollector.Attached then
+          if symbolsloaded then
           begin
-            fprogress:=50;
+            symsetoptions(symgetoptions or SYMOPT_CASE_INSENSITIVE);
+            symsetsearchpath(processhandle,pchar(searchpath));
 
-            //Enumerate the other .net module methods
-            for i:=1 to length(dotNetmodules)-1 do
+            if kernelsymbols then LoadDriverSymbols;
+
+            LoadDLLSymbols;
+
+            //enumerate the basic data from the symbols
+            enumeratedModules:=0;
+            SymEnumerateModules64(thisprocesshandle, @EM, self );
+
+            apisymbolsloaded:=true;
+
+
+
+            if owner.dotNetDataCollector.Attached then
             begin
-              if not terminated then
+              fprogress:=50;
+
+              //Enumerate the other .net module methods
+              for i:=1 to length(dotNetmodules)-1 do
               begin
-                owner.EnumDotNetModule(dotNetmodules[i], owner.dotnetModuleSymbolList[i].symbollist);
-                owner.dotNetDataCollector.ReleaseObject(dotNetmodules[i].hModule);
+                if not terminated then
+                begin
+                  owner.EnumDotNetModule(dotNetmodules[i], owner.dotnetModuleSymbolList[i].symbollist);
+                  owner.dotNetDataCollector.ReleaseObject(dotNetmodules[i].hModule);
+                end;
               end;
             end;
-          end;
 
-          //enumerate the extended debug symbols
+            //enumerate the extended debug symbols
 
-          EnumerateExtendedDebugSymbols;
-
-
-          EnumerateStructures;
-
-
-          Symcleanup(thisprocesshandle);
-
-        end
-        else
-        {$ENDIF}
-          error:=true;
+            EnumerateExtendedDebugSymbols;
+            EnumerateStructures;
+            Symcleanup(thisprocesshandle);
+          end
+          else
+            error:=true;
+        finally
+          symbolloaderthreadcs.Leave;
+        end;
+        {$else}
+        error:=true;
+        {$endif}
       end
       else
       begin
@@ -4049,6 +4053,8 @@ end;
 procedure symhandlerInitialize;
 var psa,dbghlp: THandle;
 begin
+  symbolloaderthreadcs:=TCriticalSection.Create;
+
   symhandler:=tsymhandler.create;
   {$ifdef windows}
   if selfsymhandler=nil then
@@ -4152,6 +4158,9 @@ finalization
 
   if symhandler<>nil then
     freeandnil(symhandler);
+
+  if symbolloaderthreadcs<>nil then
+    freeandnil(symbolloaderthreadcs);
   
 end.
 
