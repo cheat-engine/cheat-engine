@@ -3335,7 +3335,11 @@ begin
               a:=getAddressFromName(s,waitforsymbols, haserror, context);
               if haserror then exit;
 
-              haserror:=not readprocessmemory(processhandle, pointer(a),@a,processhandler.pointersize,br);
+              if not targetself then
+                haserror:=not readprocessmemory(GetCurrentProcess, pointer(a),@a,processhandler.pointersize,br)
+              else
+                haserror:=not readprocessmemory(processhandle, pointer(a),@a,{$ifdef cpu32}4{$else}8{$endif},br);
+
 
               if haserror then exit;
 
