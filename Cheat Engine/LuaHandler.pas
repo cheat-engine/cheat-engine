@@ -59,7 +59,7 @@ function lua_tovariant(L: PLua_state; i: integer): variant;
 procedure lua_pushvariant(L: PLua_state; v: variant);
 procedure lua_pushrect(L: PLua_state; r: TRect);
 function lua_toRect(L: PLua_State; index: integer): TRect;
-function lua_toaddress(L: PLua_state; i: integer): ptruint;
+function lua_toaddress(L: PLua_state; i: integer; self: boolean=false): ptruint;
 procedure InitializeLuaScripts;
 procedure InitializeLua;
 
@@ -373,11 +373,11 @@ begin
 end;
 
 
-function lua_toaddress(L: PLua_state; i: integer): ptruint; inline;
+function lua_toaddress(L: PLua_state; i: integer; self: boolean=false): ptruint; inline;
 begin
   if lua_type(L,i)=LUA_TSTRING then
   begin
-    if processhandle=GetCurrentProcess then
+    if self then
       result:=selfsymhandler.getAddressFromNameL(lua_tostring(L,1))
     else
       result:=symhandler.getAddressFromNameL(lua_tostring(L,1))
@@ -1321,7 +1321,7 @@ begin
     begin
       //ShowMessage(inttostr(lua_type(L, 1)));
 
-      address:=lua_toaddress(L,1);
+      address:=lua_toaddress(L,1, processhandle=GetCurrentProcess);
 
       if parameters>=2 then
         signed:=lua_toboolean(L,2)
@@ -1374,7 +1374,7 @@ begin
     begin
       //ShowMessage(inttostr(lua_type(L, 1)));
 
-      address:=lua_toaddress(L,1);
+      address:=lua_toaddress(L,1, processhandle=GetCurrentProcess);
 
 
       if parameters>=2 then
@@ -1427,7 +1427,7 @@ begin
     begin
       //ShowMessage(inttostr(lua_type(L, -1)));
 
-      address:=lua_toaddress(L,-1);
+      address:=lua_toaddress(L,-1,processhandle=GetCurrentProcess);
 
 
       lua_pop(L, parameters);
@@ -1486,7 +1486,7 @@ begin
     parameters:=lua_gettop(L);
     if parameters=1 then
     begin
-      address:=lua_toaddress(L,-1);
+      address:=lua_toaddress(L,-1,processhandle=GetCurrentProcess);
 
       lua_pop(L, parameters);
 
@@ -1527,7 +1527,7 @@ begin
     parameters:=lua_gettop(L);
     if parameters=1 then
     begin
-      address:=lua_toaddress(L,-1);
+      address:=lua_toaddress(L,-1,processhandle=GetCurrentProcess);
 
       lua_pop(L, parameters);
 
@@ -1573,7 +1573,7 @@ begin
     parameters:=lua_gettop(L);
     if parameters>=1 then
     begin
-      address:=lua_toaddress(L,1);
+      address:=lua_toaddress(L,1,processhandle=GetCurrentProcess);
 
       if parameters>=2 then
         maxsize:=lua_tointeger(L,2)
@@ -1643,7 +1643,7 @@ begin
     parameters:=lua_gettop(L);
     if parameters=2 then
     begin
-      address:=lua_toaddress(L,-2);
+      address:=lua_toaddress(L,-2,processhandle=GetCurrentProcess);
 
       v:=lua_tointeger(L, -1);
 
@@ -1680,7 +1680,7 @@ begin
     parameters:=lua_gettop(L);
     if parameters=2 then
     begin
-      address:=lua_toaddress(L,-2);
+      address:=lua_toaddress(L,-2,processhandle=GetCurrentProcess);
 
       v:=lua_tointeger(L, -1);
 
@@ -1717,7 +1717,7 @@ begin
     parameters:=lua_gettop(L);
     if parameters=2 then
     begin
-      address:=lua_toaddress(L,-2);
+      address:=lua_toaddress(L,-2,processhandle=GetCurrentProcess);
 
       v:=lua_tointeger(L, -1);
 
@@ -1771,7 +1771,7 @@ begin
     parameters:=lua_gettop(L);
     if parameters=2 then
     begin
-      address:=lua_toaddress(L,-2);
+      address:=lua_toaddress(L,-2,processhandle=GetCurrentProcess);
 
       v:=lua_tonumber(L, -1);
 
@@ -1811,7 +1811,7 @@ begin
     parameters:=lua_gettop(L);
     if parameters=2 then
     begin
-      address:=lua_toaddress(L,-2);
+      address:=lua_toaddress(L,-2,processhandle=GetCurrentProcess);
 
       v:=lua_tonumber(L, -1);
 
@@ -1852,7 +1852,7 @@ begin
     parameters:=lua_gettop(L);
     if parameters>=2 then
     begin
-      address:=lua_toaddress(L,1);
+      address:=lua_toaddress(L,1,processhandle=GetCurrentProcess);
 
       v:=lua.lua_tostring(L, 2);
 
@@ -1969,7 +1969,7 @@ begin
 
 
 
-  address:=lua_toaddress(L,1);
+  address:=lua_toaddress(L,1,processhandle=GetCurrentProcess);
 
   bytecount:=0;
   if lua_istable(L, 2) then
@@ -8261,7 +8261,7 @@ begin
       if a=nil then exit(0);
     end;
 
-    lua_pushnumber(L, ptruint(a));
+    lua_pushinteger(L, ptruint(a));
     result:=1;
   end;
 end;
