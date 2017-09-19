@@ -110,6 +110,78 @@ begin
   end;
 end;
 
+function stream_readByte(L: PLua_State): integer; cdecl;
+var
+  stream: Tstream;
+begin
+  stream:=luaclass_getClassObject(L);
+  lua_pushinteger(L,stream.ReadByte);
+  result:=1;
+end;
+
+function stream_writeByte(L: PLua_State): integer; cdecl;
+var
+  stream: Tstream;
+begin
+  stream:=luaclass_getClassObject(L);
+  stream.WriteByte(lua_tointeger(L,1));
+  result:=0;
+end;
+
+function stream_readWord(L: PLua_State): integer; cdecl;
+var
+  stream: Tstream;
+begin
+  stream:=luaclass_getClassObject(L);
+  lua_pushinteger(L,stream.ReadWord);
+  result:=1;
+end;
+
+function stream_writeWord(L: PLua_State): integer; cdecl;
+var
+  stream: Tstream;
+begin
+  stream:=luaclass_getClassObject(L);
+  stream.WriteWord(lua_tointeger(L,1));
+  result:=0;
+end;
+
+function stream_readDword(L: PLua_State): integer; cdecl;
+var
+  stream: Tstream;
+begin
+  stream:=luaclass_getClassObject(L);
+  lua_pushinteger(L,stream.ReadDword);
+  result:=1;
+end;
+
+function stream_writeDword(L: PLua_State): integer; cdecl;
+var
+  stream: Tstream;
+begin
+  stream:=luaclass_getClassObject(L);
+  stream.WriteDword(lua_tointeger(L,1));
+  result:=0;
+end;
+
+function stream_readQword(L: PLua_State): integer; cdecl;
+var
+  stream: Tstream;
+begin
+  stream:=luaclass_getClassObject(L);
+  lua_pushinteger(L,stream.ReadQword);
+  result:=1;
+end;
+
+function stream_writeQword(L: PLua_State): integer; cdecl;
+var
+  stream: Tstream;
+begin
+  stream:=luaclass_getClassObject(L);
+  stream.WriteQword(lua_tointeger(L,1));
+  result:=0;
+end;
+
 function stream_write(L: PLua_State): integer; cdecl;
 var
   stream: Tstream;
@@ -155,6 +227,14 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'copyFrom', stream_copyFrom);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'read', stream_read);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'write', stream_write);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'readByte', stream_readByte);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'writeByte', stream_writeByte);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'readWord', stream_readWord);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'writeWord', stream_writeWord);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'readDword', stream_readDword);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'writeDword', stream_writeDword);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'readQword', stream_readQword);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'writeQword', stream_writeQword);
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'Size', stream_getSize, stream_setSize);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Position', stream_getPosition, stream_setPosition);

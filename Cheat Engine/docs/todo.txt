@@ -2,6 +2,11 @@ structure dissect:
   use pdb data if available
   delete all structures sometimes AV's
 
+
+for .net games let stucture dissect see those structures aS WELL
+AND LUA
+
+
 add enumStructureWindows list, and let lua change the selected struct
 trainergen: get rid of tcheat and just use labels
 

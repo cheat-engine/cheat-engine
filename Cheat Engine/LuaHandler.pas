@@ -2147,7 +2147,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=0 then begin lua_pushboolean(L, false); exit; end;
 
-  address:=lua_toaddress(L,1);
+  address:=lua_toaddress(L,1, processhandle=GetCurrentProcess);
 
   lua_pop(L, parameters);
   lua_pushboolean(L, virtualfreeex(processhandle,pointer(address),0,MEM_RELEASE));
@@ -6833,7 +6833,7 @@ begin
       if lua_isnumber(L,2) then
         parameter:=lua_tointeger(L, 2)
       else
-        parameter:=selfsymhandler.getAddressFromName(Lua_ToString(L,2));
+        parameter:=symhandler.getAddressFromName(Lua_ToString(L,2));
     end
     else
       parameter:=0;
@@ -6946,7 +6946,7 @@ begin
   result:=0;
   if lua_gettop(L)>=1 then
   begin
-    address:=lua_toaddress(L,1);
+    address:=lua_toaddress(L,1,true);
 
 
     if lua_gettop(L)>=2 then
