@@ -6640,7 +6640,8 @@ begin
     scannersCS.leave;
   end;
 
-
+  isdoneEvent.Free;
+  isReallyDoneEvent.Free;
 
   scannersCS.free;
   resultsaveCS.free;
