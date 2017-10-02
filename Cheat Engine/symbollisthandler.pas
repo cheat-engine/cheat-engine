@@ -470,9 +470,9 @@ var x: TAvgLvlTreeNode;
 begin
   cs.Beginwrite;
   try
-    if AddressToString<>nil then
+    if StringToAddress<>nil then
     begin
-      x:=AddressToString.FindLowest;
+      x:=StringToAddress.FindLowest;
       while x<>nil do
       begin
         d:=PCESymbolInfo(x.Data);
@@ -487,14 +487,14 @@ begin
           strDispose(d^.module);
 
         freemem(d);
-        x:=AddressToString.FindSuccessor(x);
+        x:=StringToAddress.FindSuccessor(x);
       end;
 
-      AddressToString.Clear;
+      StringToAddress.Clear;
     end;
 
-    if StringToAddress<>nil then
-      StringToAddress.Clear;
+    if AddressToString<>nil then
+      AddressToString.Clear;
 
   finally
     cs.endwrite;

@@ -790,5 +790,9 @@ initialization
   registerBinUtil(armconfig)
   }
 
+finalization
+  if binutilslist <> nil then
+    binutilslist.Free;  
+
 end.
 
