@@ -1753,11 +1753,7 @@ begin
     element[i].WriteToXMLNode(elementnodes);
 
     if RLECount<>0 then
-    begin
       TDOMElement(elementnodes.LastChild).SetAttribute('RLECount',IntToStr(RLECount+1));
-      if element[i].VarType=vtPointer then
-        TDOMElement(elementnodes.LastChild).SetAttribute('PointerSize',IntToStr(element[i].Bytesize));
-    end;
   end;
 end;
 
@@ -2072,14 +2068,10 @@ begin
             structelementlist.Add(TStructelement.createFromXMLElement(self,elementnode))
           else
           begin
-            if elementnode.Attributes.GetNamedItem('PointerSize')<>nil then
-              Bytesize:=strtoint(elementnode.GetAttribute('PointerSize'));
-
             for j:=1 to strtoint(elementnode.GetAttribute('RLECount')) do
             begin
               se:=TStructelement.createFromXMLElement(self,TDOMELement(elementnode));
-              if se.VarType=vtPointer then se.Offset:=se.Offset+   Bytesize*(j-1)
-              else                         se.Offset:=se.Offset+se.Bytesize*(j-1);
+              se.Offset:=se.Offset+se.fbytesize*(j-1);
               structelementlist.Add(se);
             end;
           end;
