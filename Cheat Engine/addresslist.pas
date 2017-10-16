@@ -1204,7 +1204,7 @@ begin
     while n<>nil do
     begin
       if moManualExpandCollapse in  TMemoryRecord(n.data).Options then
-        inc(textrect.left,treeview.indent div 2);
+        inc(textrect.left,expandsignsize+1);
       n:=n.parent;
     end;
 
@@ -1277,7 +1277,7 @@ begin
     begin
       if moManualExpandCollapse in  TMemoryRecord(n.data).Options then
       begin
-        inc(textrect.left,treeview.indent div 2);
+        inc(textrect.left,expandsignsize+1);
       end;
 
       n:=n.parent;
@@ -1296,7 +1296,7 @@ begin
 
         treeview.OnCollapsing:=TreeviewOnCollapse;
       end;
-      inc(textrect.left,treeview.indent div 2);
+      inc(textrect.left,expandsignsize+1);
     end;
 
     checkboxstart:=textrect.left+1;
