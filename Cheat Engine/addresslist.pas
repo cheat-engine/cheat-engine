@@ -2276,7 +2276,7 @@ begin
   symhandler.AddFinishedLoadingSymbolsNotification(SymbolsLoaded);
 
 
-  checkboxActiveSelectedColor:=clBlack;
+  checkboxActiveSelectedColor:=clRed;
   CheckboxActiveColor:=clRed;
   CheckboxSelectedColor:=clWindowtext;
   CheckboxColor:=clWindowtext;
