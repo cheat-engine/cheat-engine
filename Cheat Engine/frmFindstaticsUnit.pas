@@ -60,6 +60,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure Button1Click(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure ListView1ColumnClick(Sender: TObject; Column: TListColumn);
     procedure FormShow(Sender: TObject);
     procedure ListView1Compare(Sender: TObject; Item1, Item2: TListItem;
@@ -376,6 +377,13 @@ begin
     staticscanner.start;
   end;
 
+end;
+
+procedure TfrmFindStatics.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if(key=VK_ESCAPE)then
+    self.close;
 end;
 
 procedure TfrmFindStatics.ListView1ColumnClick(Sender: TObject;

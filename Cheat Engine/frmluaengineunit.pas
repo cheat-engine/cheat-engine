@@ -65,6 +65,7 @@ type
     procedure dlgReplaceReplace(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormShow(Sender: TObject);
     procedure MenuItem10Click(Sender: TObject);
     procedure MenuItem11Click(Sender: TObject);
@@ -984,6 +985,7 @@ var x: array of integer;
 begin
   synhighlighter:=TSynLuaSyn.Create(self);
   mscript.Highlighter:=synhighlighter;
+  mScript.Font.Color:=clWindowText;
 
   setlength(x,1);
   if LoadFormPosition(self, x) then
@@ -1004,6 +1006,13 @@ procedure TfrmLuaEngine.FormDestroy(Sender: TObject);
 begin
 
   SaveFormPosition(self, [panel1.height, integer(ifthen(miResizeOutput.checked, 1,0)), integer(ifthen(miShowScriptInOutput.checked, 1,0))]);
+end;
+
+procedure TfrmLuaEngine.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if(key=VK_ESCAPE)then
+    self.close;
 end;
 
 procedure TfrmLuaEngine.FormShow(Sender: TObject);

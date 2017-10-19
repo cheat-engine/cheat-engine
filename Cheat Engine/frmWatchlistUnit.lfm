@@ -7,12 +7,14 @@ object frmWatchlist: TfrmWatchlist
   Caption = 'Watch list'
   ClientHeight = 169
   ClientWidth = 441
+  KeyPreview = True
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnKeyDown = FormKeyDown
   OnShow = FormShow
   PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object lvWatchlist: TListView
     Left = 0
     Height = 169
@@ -28,7 +30,7 @@ object frmWatchlist: TfrmWatchlist
       item
         AutoSize = True
         Caption = 'Value'
-        Width = 323
+        Width = 40
       end>
     ColumnClick = False
     HideSelection = False

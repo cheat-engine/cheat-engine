@@ -6,16 +6,18 @@ object frmThreadlistEx: TfrmThreadlistEx
   Caption = 'ThreadInfo'
   ClientHeight = 220
   ClientWidth = 272
+  KeyPreview = True
   OnClose = FormClose
+  OnKeyDown = FormKeyDown
   PopupMode = pmAuto
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object TreeView1: TTreeView
     Left = 0
-    Height = 187
+    Height = 189
     Top = 0
     Width = 272
     Align = alClient
-    DefaultItemHeight = 18
+    DefaultItemHeight = 16
     Indent = 19
     ReadOnly = True
     TabOrder = 0
@@ -23,13 +25,13 @@ object frmThreadlistEx: TfrmThreadlistEx
   end
   object Panel1: TPanel
     Left = 0
-    Height = 33
-    Top = 187
+    Height = 31
+    Top = 189
     Width = 272
     Align = alBottom
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 33
+    ClientHeight = 31
     ClientWidth = 272
     TabOrder = 1
     object Button1: TButton
@@ -37,7 +39,7 @@ object frmThreadlistEx: TfrmThreadlistEx
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Control = Panel1
       Left = 99
-      Height = 25
+      Height = 23
       Top = 4
       Width = 75
       AutoSize = True

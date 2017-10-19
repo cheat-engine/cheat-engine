@@ -42,6 +42,7 @@ type
     lblMaxOffset: TLabel;
     procedure btnStartClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure Timer1Timer(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormShow(Sender: TObject);
@@ -151,6 +152,13 @@ end;
 procedure TfrmDissectCode.FormCreate(Sender: TObject);
 begin
   btnstart.caption:=rsStart;
+end;
+
+procedure TfrmDissectCode.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if(key=VK_ESCAPE)then
+    self.close;
 end;
 
 procedure TfrmDissectCode.Timer1Timer(Sender: TObject);

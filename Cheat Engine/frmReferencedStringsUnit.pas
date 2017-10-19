@@ -33,6 +33,7 @@ type
     Find1: TMenuItem;
     FindNext1: TMenuItem;
     FindDialog1: TFindDialog;
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormShow(Sender: TObject);
     procedure lvStringlistColumnClick(Sender: TObject; Column: TListColumn);
     procedure lvStringlistData(Sender: TObject; Item: TListItem);
@@ -215,6 +216,13 @@ begin
 
   if dissectcode<>nil then
     LoadStringlist;
+end;
+
+procedure TfrmReferencedStrings.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if(key=$1B)then
+    self.close;
 end;
 
 function AddressSort(List: TStringList; Index1, Index2: Integer): Integer;

@@ -7,15 +7,17 @@ object frmEnumerateDLLs: TfrmEnumerateDLLs
   Caption = 'Enumerate DLL''s'
   ClientHeight = 303
   ClientWidth = 369
+  KeyPreview = True
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'
   object Label2: TLabel
     Left = 0
-    Height = 15
+    Height = 13
     Top = 0
     Width = 369
     Align = alTop
@@ -25,8 +27,8 @@ object frmEnumerateDLLs: TfrmEnumerateDLLs
   end
   object TreeView1: TTreeView
     Left = 0
-    Height = 247
-    Top = 15
+    Height = 251
+    Top = 13
     Width = 369
     Align = alClient
     Font.CharSet = ANSI_CHARSET
@@ -44,13 +46,13 @@ object frmEnumerateDLLs: TfrmEnumerateDLLs
   end
   object Panel1: TPanel
     Left = 0
-    Height = 41
-    Top = 262
+    Height = 39
+    Top = 264
     Width = 369
     Align = alBottom
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 41
+    ClientHeight = 39
     ClientWidth = 369
     TabOrder = 1
     object Button1: TButton
@@ -58,7 +60,7 @@ object frmEnumerateDLLs: TfrmEnumerateDLLs
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Control = Panel1
       Left = 139
-      Height = 25
+      Height = 23
       Top = 8
       Width = 90
       AutoSize = True
@@ -75,7 +77,7 @@ object frmEnumerateDLLs: TfrmEnumerateDLLs
       AnchorSideBottom.Side = asrBottom
       Left = 0
       Height = 20
-      Top = 21
+      Top = 19
       Width = 92
       Anchors = [akLeft, akBottom]
       Caption = 'Cancel Enum'

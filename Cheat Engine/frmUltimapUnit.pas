@@ -121,6 +121,7 @@ type
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormShow(Sender: TObject);
     procedure Label7Click(Sender: TObject);
     procedure ListView1Data(Sender: TObject; Item: TListItem);
@@ -922,6 +923,13 @@ begin
   end;
 
   saveformposition(self,x);
+end;
+
+procedure TfrmUltimap.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if(key=VK_ESCAPE)then
+    self.close;
 end;
 
 procedure TfrmUltimap.FormShow(Sender: TObject);

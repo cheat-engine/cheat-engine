@@ -165,6 +165,7 @@ type
     procedure cbHookAllocsChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormShow(Sender: TObject);
     procedure GroupBox1Click(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
@@ -700,6 +701,13 @@ begin
     closehandle(CEHasHandledItEvent);
 
   //cleanup memory allocs
+end;
+
+procedure TfrmMemoryAllocHandler.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if(key=VK_ESCAPE)then
+    self.close;
 end;
 
 procedure TfrmMemoryAllocHandler.FormShow(Sender: TObject);

@@ -4,36 +4,38 @@ object frmPointerScanner: TfrmPointerScanner
   Top = 173
   Width = 749
   Caption = 'Pointer scan'
-  ClientHeight = 440
+  ClientHeight = 441
   ClientWidth = 749
+  KeyPreview = True
   Menu = MainMenu1
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnKeyDown = FormKeyDown
   OnResize = FormResize
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Panel1: TPanel
     Left = 0
-    Height = 27
+    Height = 25
     Top = 0
     Width = 749
     Align = alTop
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 27
+    ClientHeight = 25
     ClientWidth = 749
     TabOrder = 0
     object cbType: TComboBox
       AnchorSideTop.Control = Panel1
       Left = 0
-      Height = 23
+      Height = 21
       Top = 2
       Width = 145
       BorderSpacing.Top = 2
       BorderSpacing.Bottom = 2
-      ItemHeight = 15
+      ItemHeight = 13
       Items.Strings = (
         '4 Byte'
         'Float'
@@ -46,10 +48,10 @@ object frmPointerScanner: TfrmPointerScanner
     end
     object cbTestCrappyConnection: TCheckBox
       AnchorSideLeft.Control = Panel1
-      Left = 320
-      Height = 19
+      Left = 328
+      Height = 17
       Top = 2
-      Width = 146
+      Width = 131
       Anchors = [akTop]
       Caption = 'Simulate no connection'
       OnChange = cbTestCrappyConnectionChange
@@ -58,9 +60,9 @@ object frmPointerScanner: TfrmPointerScanner
     end
     object cbNonResponsive: TCheckBox
       Left = 480
-      Height = 19
+      Height = 17
       Top = 2
-      Width = 165
+      Width = 150
       Caption = 'Non responsive connection'
       OnChange = cbNonResponsiveChange
       TabOrder = 2
@@ -80,7 +82,7 @@ object frmPointerScanner: TfrmPointerScanner
   object pnlProgress: TPanel
     Left = 0
     Height = 25
-    Top = 415
+    Top = 416
     Width = 749
     Align = alBottom
     AutoSize = True
@@ -135,22 +137,22 @@ object frmPointerScanner: TfrmPointerScanner
   end
   object pnlData: TPanel
     Left = 0
-    Height = 388
-    Top = 27
+    Height = 391
+    Top = 25
     Width = 749
     Align = alClient
     BevelOuter = bvNone
     Caption = 'pnlData'
-    ClientHeight = 388
+    ClientHeight = 391
     ClientWidth = 749
     TabOrder = 4
     object tvInfo: TTreeView
       Left = 0
-      Height = 359
+      Height = 364
       Top = 0
-      Width = 590
+      Width = 605
       Align = alClient
-      DefaultItemHeight = 18
+      DefaultItemHeight = 16
       Indent = 19
       PopupMenu = miInfoPopup
       ReadOnly = True
@@ -161,18 +163,18 @@ object frmPointerScanner: TfrmPointerScanner
     end
     object pnlStop: TPanel
       Left = 0
-      Height = 29
-      Top = 359
+      Height = 27
+      Top = 364
       Width = 749
       Align = alBottom
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 29
+      ClientHeight = 27
       ClientWidth = 749
       TabOrder = 1
       object btnStopScan: TButton
         Left = 0
-        Height = 25
+        Height = 23
         Hint = 'This will stop the current scan and show you the results it has found'
         Top = 2
         Width = 90
@@ -188,15 +190,15 @@ object frmPointerScanner: TfrmPointerScanner
       end
     end
     object pnlControl: TPanel
-      Left = 590
-      Height = 359
+      Left = 605
+      Height = 364
       Top = 0
-      Width = 159
+      Width = 144
       Align = alRight
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 359
-      ClientWidth = 159
+      ClientHeight = 364
+      ClientWidth = 144
       TabOrder = 2
       object cbPriority: TComboBox
         AnchorSideLeft.Control = lblThreadPriority
@@ -205,12 +207,12 @@ object frmPointerScanner: TfrmPointerScanner
         AnchorSideRight.Control = pnlControl
         AnchorSideRight.Side = asrBottom
         Left = 2
-        Height = 23
-        Top = 206
-        Width = 155
+        Height = 21
+        Top = 196
+        Width = 140
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Right = 2
-        ItemHeight = 15
+        ItemHeight = 13
         ItemIndex = 3
         Items.Strings = (
           'Idle'
@@ -229,14 +231,14 @@ object frmPointerScanner: TfrmPointerScanner
       object gbNetwork: TGroupBox
         AnchorSideRight.Side = asrBottom
         Left = 0
-        Height = 191
+        Height = 183
         Top = 0
-        Width = 159
+        Width = 144
         Align = alTop
         AutoSize = True
         Caption = 'Network'
-        ClientHeight = 171
-        ClientWidth = 155
+        ClientHeight = 165
+        ClientWidth = 140
         TabOrder = 1
         object edtIP: TEdit
           AnchorSideLeft.Control = lblIP
@@ -245,9 +247,9 @@ object frmPointerScanner: TfrmPointerScanner
           AnchorSideRight.Control = gbNetwork
           AnchorSideRight.Side = asrBottom
           Left = 2
-          Height = 23
-          Top = 17
-          Width = 151
+          Height = 21
+          Top = 15
+          Width = 136
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Right = 2
           TabOrder = 0
@@ -256,7 +258,7 @@ object frmPointerScanner: TfrmPointerScanner
           AnchorSideLeft.Control = gbNetwork
           AnchorSideTop.Control = gbNetwork
           Left = 2
-          Height = 15
+          Height = 13
           Top = 2
           Width = 10
           BorderSpacing.Left = 2
@@ -269,9 +271,9 @@ object frmPointerScanner: TfrmPointerScanner
           AnchorSideTop.Control = edtIP
           AnchorSideTop.Side = asrBottom
           Left = 2
-          Height = 15
-          Top = 40
-          Width = 22
+          Height = 13
+          Top = 36
+          Width = 19
           Caption = 'Port'
           ParentColor = False
         end
@@ -280,8 +282,8 @@ object frmPointerScanner: TfrmPointerScanner
           AnchorSideTop.Control = lblPort
           AnchorSideTop.Side = asrBottom
           Left = 2
-          Height = 23
-          Top = 55
+          Height = 21
+          Top = 49
           Width = 80
           NumbersOnly = True
           TabOrder = 1
@@ -292,9 +294,9 @@ object frmPointerScanner: TfrmPointerScanner
           AnchorSideRight.Control = gbNetwork
           AnchorSideRight.Side = asrBottom
           Left = 2
-          Height = 23
+          Height = 21
           Top = 100
-          Width = 151
+          Width = 136
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Right = 2
           TabOrder = 2
@@ -304,9 +306,9 @@ object frmPointerScanner: TfrmPointerScanner
           AnchorSideTop.Control = edtPort
           AnchorSideTop.Side = asrBottom
           Left = 2
-          Height = 15
-          Top = 78
-          Width = 50
+          Height = 13
+          Top = 70
+          Width = 46
           Caption = 'Password'
           ParentColor = False
         end
@@ -315,10 +317,10 @@ object frmPointerScanner: TfrmPointerScanner
           AnchorSideTop.Control = edtPassword
           AnchorSideTop.Side = asrBottom
           Left = 2
-          Height = 19
+          Height = 17
           Hint = 'Trust that this server will not disappear during the scan and that the children it trusts itself won''t do so either'
-          Top = 123
-          Width = 91
+          Top = 121
+          Width = 81
           Caption = 'Trust stability'
           ParentShowHint = False
           ShowHint = True
@@ -329,9 +331,9 @@ object frmPointerScanner: TfrmPointerScanner
           AnchorSideTop.Control = cbTrusted
           AnchorSideTop.Side = asrBottom
           Left = 6
-          Height = 25
-          Top = 144
-          Width = 143
+          Height = 23
+          Top = 140
+          Width = 128
           AutoSize = True
           BorderSpacing.Left = 6
           BorderSpacing.Top = 2
@@ -347,9 +349,9 @@ object frmPointerScanner: TfrmPointerScanner
         AnchorSideTop.Control = gbNetwork
         AnchorSideTop.Side = asrBottom
         Left = 2
-        Height = 15
-        Top = 191
-        Width = 123
+        Height = 13
+        Top = 183
+        Width = 109
         BorderSpacing.Left = 2
         Caption = 'Scanner thread priority:'
         ParentColor = False
@@ -361,9 +363,9 @@ object frmPointerScanner: TfrmPointerScanner
         AnchorSideRight.Control = btnDecreaseThreadCount
         AnchorSideRight.Side = asrBottom
         Left = 2
-        Height = 25
-        Top = 272
-        Width = 142
+        Height = 23
+        Top = 258
+        Width = 132
         AutoSize = True
         BorderSpacing.Top = 2
         Caption = 'Increase worker count'
@@ -377,9 +379,9 @@ object frmPointerScanner: TfrmPointerScanner
         AnchorSideRight.Control = cbPriority
         AnchorSideRight.Side = asrBottom
         Left = 2
-        Height = 25
-        Top = 245
-        Width = 146
+        Height = 23
+        Top = 233
+        Width = 137
         AutoSize = True
         BorderSpacing.Top = 16
         BorderSpacing.Right = 2

@@ -20,6 +20,7 @@ type
     Refresh1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure ListView1DblClick(Sender: TObject);
     procedure miManualStackwalkClick(Sender: TObject);
     procedure Refresh1Click(Sender: TObject);
@@ -182,6 +183,13 @@ begin
     frmstacktrace:=nil;
 
   action:=cafree;
+end;
+
+procedure TfrmStacktrace.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if(key=VK_ESCAPE)then
+    self.close;
 end;
 
 procedure TfrmStacktrace.ListView1DblClick(Sender: TObject);

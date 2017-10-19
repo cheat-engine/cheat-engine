@@ -4,12 +4,14 @@ object frmStructures2: TfrmStructures2
   Top = 337
   Width = 542
   Caption = 'Structure dissect'
-  ClientHeight = 361
+  ClientHeight = 362
   ClientWidth = 542
+  KeyPreview = True
   Menu = MainMenu1
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'
@@ -22,7 +24,7 @@ object frmStructures2: TfrmStructures2
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
     Left = 0
-    Height = 290
+    Height = 291
     Top = 71
     Width = 542
     Anchors = [akTop, akLeft, akRight, akBottom]

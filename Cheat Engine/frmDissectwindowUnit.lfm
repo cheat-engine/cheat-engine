@@ -7,18 +7,20 @@ object frmdissectWindow: TfrmdissectWindow
   Caption = 'Dissect Windows'
   ClientHeight = 296
   ClientWidth = 314
+  KeyPreview = True
   OnClose = FormClose
   OnCreate = FormCreate
+  OnKeyDown = FormKeyDown
   PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object TreeView1: TTreeView
     Left = 0
-    Height = 222
+    Height = 226
     Top = 0
     Width = 314
     Align = alClient
-    DefaultItemHeight = 18
+    DefaultItemHeight = 16
     HideSelection = False
     Indent = 19
     ReadOnly = True
@@ -37,22 +39,22 @@ object frmdissectWindow: TfrmdissectWindow
   end
   object Panel1: TPanel
     Left = 0
-    Height = 74
-    Top = 222
+    Height = 70
+    Top = 226
     Width = 314
     Align = alBottom
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 74
+    ClientHeight = 70
     ClientWidth = 314
     TabOrder = 2
     object Button2: TButton
       AnchorSideLeft.Control = Panel1
       AnchorSideTop.Control = Panel1
       Left = 8
-      Height = 25
+      Height = 23
       Top = 8
-      Width = 99
+      Width = 91
       AutoSize = True
       BorderSpacing.Left = 8
       BorderSpacing.Top = 8
@@ -64,10 +66,10 @@ object frmdissectWindow: TfrmdissectWindow
       AnchorSideLeft.Control = Button2
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Panel1
-      Left = 115
-      Height = 25
+      Left = 107
+      Height = 23
       Top = 8
-      Width = 100
+      Width = 91
       AutoSize = True
       BorderSpacing.Left = 8
       BorderSpacing.Top = 8
@@ -80,8 +82,8 @@ object frmdissectWindow: TfrmdissectWindow
       AnchorSideTop.Control = Button3
       AnchorSideTop.Side = asrBottom
       Left = 122
-      Height = 25
-      Top = 41
+      Height = 23
+      Top = 39
       Width = 75
       Anchors = [akTop]
       AutoSize = True
@@ -109,10 +111,10 @@ object frmdissectWindow: TfrmdissectWindow
       AnchorSideTop.Control = Panel1
       AnchorSideRight.Control = Panel1
       AnchorSideRight.Side = asrBottom
-      Left = 223
-      Height = 25
+      Left = 206
+      Height = 23
       Top = 8
-      Width = 89
+      Width = 83
       AutoSize = True
       BorderSpacing.Left = 8
       BorderSpacing.Top = 8

@@ -395,6 +395,7 @@ type
     tvStructureView: TTreeView;
     procedure Addextraaddress1Click(Sender: TObject);
     procedure FindDialog1Find(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure HeaderControl1SectionResize(HeaderControl: TCustomHeaderControl;
       Section: THeaderSection);
     procedure MenuItem3Click(Sender: TObject);
@@ -4591,6 +4592,13 @@ begin
     tvStructureView.Items.SelectOnlyThis(n);
     n.MakeVisible;
   end;
+end;
+
+procedure TfrmStructures2.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if(key=VK_ESCAPE)then
+    self.close;
 end;
 
 

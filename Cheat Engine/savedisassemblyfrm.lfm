@@ -8,19 +8,21 @@ object frmSavedisassembly: TfrmSavedisassembly
   Caption = 'Save disassembled output'
   ClientHeight = 124
   ClientWidth = 191
+  KeyPreview = True
   OnDestroy = FormDestroy
+  OnKeyDown = FormKeyDown
   OnShow = FormShow
   PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Button1: TButton
     AnchorSideLeft.Control = Owner
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = Panel2
     AnchorSideTop.Side = asrBottom
     Left = 58
-    Height = 25
-    Top = 77
+    Height = 23
+    Top = 71
     Width = 75
     AutoSize = True
     BorderSpacing.Top = 3
@@ -39,7 +41,7 @@ object frmSavedisassembly: TfrmSavedisassembly
     AnchorSideRight.Side = asrBottom
     Left = 0
     Height = 21
-    Top = 109
+    Top = 101
     Width = 191
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Top = 7
@@ -51,7 +53,7 @@ object frmSavedisassembly: TfrmSavedisassembly
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     Left = 5
-    Height = 19
+    Height = 17
     Top = 3
     Width = 181
     Anchors = [akTop, akLeft, akRight]
@@ -63,12 +65,12 @@ object frmSavedisassembly: TfrmSavedisassembly
     ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 3
-    ClientHeight = 19
+    ClientHeight = 17
     ClientWidth = 181
     TabOrder = 2
     object cbAddress: TCheckBox
       Left = 0
-      Height = 19
+      Height = 17
       Top = 0
       Width = 66
       Caption = 'Address'
@@ -78,19 +80,19 @@ object frmSavedisassembly: TfrmSavedisassembly
     end
     object cbBytes: TCheckBox
       Left = 66
-      Height = 19
+      Height = 17
       Top = 0
-      Width = 52
+      Width = 53
       Caption = 'bytes'
       Checked = True
       State = cbChecked
       TabOrder = 1
     end
     object cbOpcode: TCheckBox
-      Left = 118
-      Height = 19
+      Left = 119
+      Height = 17
       Top = 0
-      Width = 63
+      Width = 62
       Caption = 'opcode'
       Checked = True
       State = cbChecked
@@ -102,16 +104,16 @@ object frmSavedisassembly: TfrmSavedisassembly
     AnchorSideTop.Control = Panel1
     AnchorSideTop.Side = asrBottom
     Left = 3
-    Height = 49
-    Top = 25
-    Width = 177
+    Height = 45
+    Top = 23
+    Width = 172
     AutoSize = True
     BorderSpacing.Left = 3
     BorderSpacing.Top = 3
     BorderSpacing.Right = 3
     BevelOuter = bvNone
-    ClientHeight = 49
-    ClientWidth = 177
+    ClientHeight = 45
+    ClientWidth = 172
     TabOrder = 3
     object Label1: TLabel
       AnchorSideLeft.Control = Edit1
@@ -119,9 +121,9 @@ object frmSavedisassembly: TfrmSavedisassembly
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = Edit1
       Left = 0
-      Height = 15
+      Height = 13
       Top = 4
-      Width = 28
+      Width = 23
       Anchors = [akTop, akRight]
       Caption = 'From'
       ParentColor = False
@@ -130,10 +132,10 @@ object frmSavedisassembly: TfrmSavedisassembly
       AnchorSideTop.Control = Edit2
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = Edit2
-      Left = 14
-      Height = 15
-      Top = 30
-      Width = 14
+      Left = 10
+      Height = 13
+      Top = 28
+      Width = 13
       Anchors = [akTop, akRight]
       Caption = 'To'
       ParentColor = False
@@ -144,9 +146,9 @@ object frmSavedisassembly: TfrmSavedisassembly
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = Edit1
       AnchorSideRight.Side = asrBottom
-      Left = 28
-      Height = 23
-      Top = 26
+      Left = 23
+      Height = 21
+      Top = 24
       Width = 149
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Top = 3
@@ -156,8 +158,8 @@ object frmSavedisassembly: TfrmSavedisassembly
       AnchorSideTop.Control = Panel2
       AnchorSideRight.Control = Panel2
       AnchorSideRight.Side = asrBottom
-      Left = 28
-      Height = 23
+      Left = 23
+      Height = 21
       Top = 0
       Width = 149
       Anchors = [akTop, akRight]

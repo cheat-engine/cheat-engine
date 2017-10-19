@@ -27,6 +27,7 @@ type
     Timer1: TTimer;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure ListBox1DblClick(Sender: TObject);
     procedure ListView1DblClick(Sender: TObject);
     procedure MenuItem2Click(Sender: TObject);
@@ -51,7 +52,7 @@ var
 implementation
 
 
-uses formsettingsunit, MemoryBrowserFormUnit, DebugHelper, frmBreakpointConditionunit;
+uses formsettingsunit, MemoryBrowserFormUnit, DebugHelper, frmBreakpointConditionunit,windows;
 
 resourcestring
   rsBPAreYouSureYouWishToChangeThisToAPegewideBP = 'Are you sure you wish to change this to a pagewide breakpoint?';
@@ -97,6 +98,13 @@ procedure TfrmBreakpointlist.FormCreate(Sender: TObject);
 begin
   updatebplist;
   miShowShadowClick(miShowShadow);
+end;
+
+procedure TfrmBreakpointlist.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if(key=VK_ESCAPE)then
+    self.close;
 end;
 
 procedure TfrmBreakpointlist.ListBox1DblClick(Sender: TObject);

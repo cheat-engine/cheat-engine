@@ -27,6 +27,7 @@ type
     ComboBox2: TComboBox;
     Memo1: TMemo;
     procedure FormDestroy(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormShow(Sender: TObject);
     procedure ComboBox1Select(Sender: TObject);
     procedure Label4Click(Sender: TObject);
@@ -407,6 +408,13 @@ end;
 procedure TfrmFloatingPointPanel.FormDestroy(Sender: TObject);
 begin
   SaveFormPosition(self);
+end;
+
+procedure TfrmFloatingPointPanel.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if(key=VK_ESCAPE)then
+    self.close;
 end;
 
 procedure TfrmFloatingPointPanel.ComboBox1Select(Sender: TObject);

@@ -7,13 +7,15 @@ object frmUltimap: TfrmUltimap
   Caption = 'Ultimap'
   ClientHeight = 516
   ClientWidth = 847
+  KeyPreview = True
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnKeyDown = FormKeyDown
   OnShow = FormShow
   PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Panel1: TPanel
     Left = 0
     Height = 516
@@ -26,26 +28,26 @@ object frmUltimap: TfrmUltimap
     TabOrder = 0
     object Label4: TLabel
       Left = 322
-      Height = 15
+      Height = 13
       Top = 352
-      Width = 34
+      Width = 32
       Caption = 'Label4'
       ParentColor = False
     end
     object Panel2: TPanel
       Left = 0
-      Height = 289
-      Top = 227
+      Height = 305
+      Top = 211
       Width = 847
       Align = alClient
       BevelOuter = bvNone
       Caption = 'Panel2'
-      ClientHeight = 289
+      ClientHeight = 305
       ClientWidth = 847
       TabOrder = 0
       object ListView1: TListView
         Left = 0
-        Height = 230
+        Height = 252
         Top = 0
         Width = 847
         Align = alClient
@@ -74,23 +76,23 @@ object frmUltimap: TfrmUltimap
       end
       object Panel3: TPanel
         Left = 0
-        Height = 59
-        Top = 230
+        Height = 53
+        Top = 252
         Width = 847
         Align = alBottom
         AutoSize = True
         BevelOuter = bvNone
-        ClientHeight = 59
+        ClientHeight = 53
         ClientWidth = 847
         TabOrder = 1
         object Button5: TButton
           AnchorSideLeft.Control = Panel3
           AnchorSideLeft.Side = asrCenter
           AnchorSideTop.Control = Panel3
-          Left = 346
-          Height = 25
+          Left = 354
+          Height = 23
           Top = 2
-          Width = 155
+          Width = 139
           AutoSize = True
           BorderSpacing.Top = 2
           BorderSpacing.Bottom = 2
@@ -104,8 +106,8 @@ object frmUltimap: TfrmUltimap
           AnchorSideRight.Control = Panel3
           AnchorSideRight.Side = asrBottom
           Left = 0
-          Height = 30
-          Top = 29
+          Height = 26
+          Top = 27
           Width = 847
           Anchors = [akTop, akLeft, akRight]
           Caption = 'General tip: "Pause/Resume", "Code did not get executed" and "Code has been executed" can be rightclicked and assigned a hotkey for use inside games so you don''t have to alt tab out'
@@ -116,13 +118,13 @@ object frmUltimap: TfrmUltimap
     end
     object Panel5: TPanel
       Left = 0
-      Height = 227
+      Height = 211
       Top = 0
       Width = 847
       Align = alTop
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 227
+      ClientHeight = 211
       ClientWidth = 847
       TabOrder = 1
       object Panel4: TPanel
@@ -131,22 +133,22 @@ object frmUltimap: TfrmUltimap
         AnchorSideBottom.Control = Panel5
         AnchorSideBottom.Side = asrBottom
         Left = 0
-        Height = 227
+        Height = 211
         Top = 0
-        Width = 274
+        Width = 270
         Anchors = [akTop, akLeft, akBottom]
         AutoSize = True
         BevelOuter = bvNone
-        ClientHeight = 227
-        ClientWidth = 274
+        ClientHeight = 211
+        ClientWidth = 270
         TabOrder = 0
         object btnStart: TButton
           AnchorSideLeft.Control = cbPreemptiveFlush
           AnchorSideTop.Control = cbPreemptiveFlush
           AnchorSideTop.Side = asrBottom
           Left = 8
-          Height = 25
-          Top = 119
+          Height = 23
+          Top = 109
           Width = 75
           AutoSize = True
           BorderSpacing.Top = 8
@@ -160,9 +162,9 @@ object frmUltimap: TfrmUltimap
           AnchorSideLeft.Side = asrBottom
           AnchorSideTop.Control = cbParseData
           AnchorSideTop.Side = asrBottom
-          Left = 90
-          Height = 23
-          Top = 69
+          Left = 83
+          Height = 21
+          Top = 63
           Width = 80
           BorderSpacing.Left = 2
           TabOrder = 1
@@ -173,9 +175,9 @@ object frmUltimap: TfrmUltimap
           AnchorSideTop.Control = edtFilename
           AnchorSideTop.Side = asrCenter
           Left = 8
-          Height = 19
-          Top = 29
-          Width = 115
+          Height = 17
+          Top = 27
+          Width = 102
           Caption = 'Log directly to file'
           TabOrder = 2
         end
@@ -186,10 +188,10 @@ object frmUltimap: TfrmUltimap
           AnchorSideTop.Side = asrBottom
           AnchorSideRight.Control = btnStop
           AnchorSideRight.Side = asrBottom
-          Left = 125
-          Height = 23
-          Top = 27
-          Width = 145
+          Left = 112
+          Height = 21
+          Top = 25
+          Width = 154
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Left = 2
           BorderSpacing.Top = 2
@@ -201,9 +203,9 @@ object frmUltimap: TfrmUltimap
           AnchorSideTop.Control = edtWorkerCount
           AnchorSideTop.Side = asrCenter
           Left = 8
-          Height = 15
-          Top = 73
-          Width = 80
+          Height = 13
+          Top = 67
+          Width = 73
           Caption = 'Worker threads'
           ParentColor = False
         end
@@ -212,9 +214,9 @@ object frmUltimap: TfrmUltimap
           AnchorSideTop.Control = cbLogToFile
           AnchorSideTop.Side = asrBottom
           Left = 8
-          Height = 19
-          Top = 50
-          Width = 74
+          Height = 17
+          Top = 46
+          Width = 71
           BorderSpacing.Top = 2
           Caption = 'Parse data'
           Checked = True
@@ -225,8 +227,8 @@ object frmUltimap: TfrmUltimap
           AnchorSideLeft.Control = Label2
           AnchorSideLeft.Side = asrBottom
           AnchorSideTop.Control = Panel4
-          Left = 96
-          Height = 23
+          Left = 89
+          Height = 21
           Top = 2
           Width = 95
           BorderSpacing.Left = 2
@@ -239,9 +241,9 @@ object frmUltimap: TfrmUltimap
           AnchorSideTop.Control = edtBufSize
           AnchorSideTop.Side = asrCenter
           Left = 8
-          Height = 15
+          Height = 13
           Top = 6
-          Width = 86
+          Width = 79
           BorderSpacing.Left = 8
           BorderSpacing.Top = 3
           Caption = 'Event buffer size'
@@ -251,9 +253,9 @@ object frmUltimap: TfrmUltimap
           AnchorSideLeft.Control = btnPause
           AnchorSideLeft.Side = asrBottom
           AnchorSideTop.Control = btnStart
-          Left = 195
-          Height = 25
-          Top = 119
+          Left = 191
+          Height = 23
+          Top = 109
           Width = 75
           AutoSize = True
           BorderSpacing.Left = 4
@@ -269,8 +271,8 @@ object frmUltimap: TfrmUltimap
           AnchorSideTop.Control = Label5
           AnchorSideTop.Side = asrBottom
           Left = 8
-          Height = 15
-          Top = 167
+          Height = 13
+          Top = 153
           Width = 6
           Caption = '0'
           ParentColor = False
@@ -281,9 +283,9 @@ object frmUltimap: TfrmUltimap
           AnchorSideLeft.Side = asrBottom
           AnchorSideTop.Control = btnStart
           Left = 87
-          Height = 25
-          Top = 119
-          Width = 104
+          Height = 23
+          Top = 109
+          Width = 100
           AutoSize = True
           BorderSpacing.Left = 4
           Caption = 'Pause/Resume'
@@ -298,9 +300,9 @@ object frmUltimap: TfrmUltimap
           AnchorSideTop.Control = btnStart
           AnchorSideTop.Side = asrBottom
           Left = 8
-          Height = 15
-          Top = 152
-          Width = 75
+          Height = 13
+          Top = 140
+          Width = 69
           BorderSpacing.Top = 8
           Caption = 'Banch targets:'
           ParentColor = False
@@ -310,10 +312,10 @@ object frmUltimap: TfrmUltimap
           AnchorSideTop.Control = edtWorkerCount
           AnchorSideTop.Side = asrBottom
           Left = 8
-          Height = 19
+          Height = 17
           Hint = 'When enabled Cheat Engine will flush the data for each cpu instead of only when the buffer is full'
-          Top = 92
-          Width = 126
+          Top = 84
+          Width = 112
           Caption = 'Preemptive flushing'
           Checked = True
           OnChange = cbPreemptiveFlushChange
@@ -329,15 +331,15 @@ object frmUltimap: TfrmUltimap
         AnchorSideTop.Control = Panel5
         AnchorSideRight.Control = Panel5
         AnchorSideRight.Side = asrBottom
-        Left = 459
-        Height = 227
+        Left = 500
+        Height = 211
         Top = 0
-        Width = 388
+        Width = 347
         Anchors = [akTop, akRight]
         AutoSize = True
         BevelOuter = bvNone
-        ClientHeight = 227
-        ClientWidth = 388
+        ClientHeight = 211
+        ClientWidth = 347
         TabOrder = 1
         object btnExecuted: TButton
           AnchorSideLeft.Control = Panel6
@@ -345,9 +347,9 @@ object frmUltimap: TfrmUltimap
           AnchorSideTop.Side = asrBottom
           AnchorSideRight.Control = cbFilterFuturePaths
           Left = 0
-          Height = 25
-          Top = 48
-          Width = 254
+          Height = 23
+          Top = 44
+          Width = 226
           Anchors = [akTop, akLeft, akRight]
           AutoSize = True
           BorderSpacing.Top = 8
@@ -363,9 +365,9 @@ object frmUltimap: TfrmUltimap
           AnchorSideTop.Side = asrBottom
           AnchorSideRight.Control = cbFilterFuturePaths
           Left = 0
-          Height = 25
-          Top = 15
-          Width = 254
+          Height = 23
+          Top = 13
+          Width = 226
           Anchors = [akTop, akLeft, akRight]
           AutoSize = True
           Caption = 'Code did not get executed'
@@ -377,8 +379,8 @@ object frmUltimap: TfrmUltimap
           AnchorSideTop.Control = Panel6
           AnchorSideRight.Control = Panel6
           AnchorSideRight.Side = asrBottom
-          Left = 334
-          Height = 25
+          Left = 293
+          Height = 23
           Hint = 'If you lost track of what happened, use this. It will set execution count back to 0 of all the branches it has found'
           Top = 0
           Width = 54
@@ -397,9 +399,9 @@ object frmUltimap: TfrmUltimap
           AnchorSideTop.Side = asrBottom
           AnchorSideRight.Control = cbFilterFuturePaths
           Left = 0
-          Height = 25
-          Top = 81
-          Width = 254
+          Height = 23
+          Top = 75
+          Width = 226
           Anchors = [akTop, akLeft, akRight]
           AutoSize = True
           BorderSpacing.Top = 8
@@ -414,9 +416,9 @@ object frmUltimap: TfrmUltimap
           AnchorSideTop.Side = asrBottom
           AnchorSideRight.Control = cbFilterFuturePaths
           Left = 0
-          Height = 25
-          Top = 147
-          Width = 254
+          Height = 23
+          Top = 137
+          Width = 226
           Anchors = [akTop, akLeft, akRight]
           AutoSize = True
           BorderSpacing.Top = 8
@@ -429,9 +431,9 @@ object frmUltimap: TfrmUltimap
           AnchorSideLeft.Side = asrBottom
           AnchorSideTop.Control = btnFilterCallCount
           AnchorSideTop.Side = asrCenter
-          Left = 254
-          Height = 23
-          Top = 148
+          Left = 226
+          Height = 21
+          Top = 138
           Width = 40
           OnKeyDown = Edit1KeyDown
           TabOrder = 5
@@ -441,9 +443,9 @@ object frmUltimap: TfrmUltimap
           AnchorSideLeft.Control = Panel6
           AnchorSideTop.Control = Panel6
           Left = 0
-          Height = 15
+          Height = 13
           Top = 0
-          Width = 88
+          Width = 78
           Caption = 'Last filter results:'
           ParentColor = False
         end
@@ -453,9 +455,9 @@ object frmUltimap: TfrmUltimap
           AnchorSideTop.Side = asrBottom
           AnchorSideRight.Control = cbFilterFuturePaths
           Left = 0
-          Height = 25
-          Top = 180
-          Width = 254
+          Height = 23
+          Top = 168
+          Width = 226
           Anchors = [akTop, akLeft, akRight]
           AutoSize = True
           BorderSpacing.Top = 8
@@ -470,10 +472,10 @@ object frmUltimap: TfrmUltimap
           AnchorSideTop.Side = asrCenter
           AnchorSideRight.Control = Panel6
           AnchorSideRight.Side = asrBottom
-          Left = 294
-          Height = 25
-          Top = 147
-          Width = 90
+          Left = 266
+          Height = 23
+          Top = 137
+          Width = 85
           AutoSize = True
           Caption = 'Reset Count'
           OnClick = btnResetCountClick
@@ -486,9 +488,9 @@ object frmUltimap: TfrmUltimap
           AnchorSideTop.Side = asrBottom
           AnchorSideRight.Control = cbFilterFuturePaths
           Left = 0
-          Height = 25
-          Top = 114
-          Width = 254
+          Height = 23
+          Top = 106
+          Width = 226
           Anchors = [akTop, akLeft, akRight]
           AutoSize = True
           BorderSpacing.Top = 8
@@ -501,10 +503,10 @@ object frmUltimap: TfrmUltimap
           AnchorSideTop.Control = btnFilterModule
           AnchorSideTop.Side = asrBottom
           Left = 0
-          Height = 19
+          Height = 17
           Hint = 'When this checkbox is ticked all newly added code entry points will be marked as entries that do not match the filters'
-          Top = 208
-          Width = 213
+          Top = 194
+          Width = 193
           BorderSpacing.Top = 3
           Caption = 'Mark all new branches as filtered out'
           OnChange = cbfilterOutNewEntriesChange
@@ -517,11 +519,11 @@ object frmUltimap: TfrmUltimap
           AnchorSideTop.Side = asrCenter
           AnchorSideRight.Control = Panel6
           AnchorSideRight.Side = asrBottom
-          Left = 256
-          Height = 19
+          Left = 228
+          Height = 17
           Hint = 'When checked (default) will mark all subsequent paths after this as filtered out'
-          Top = 51
-          Width = 132
+          Top = 47
+          Width = 119
           Anchors = [akTop, akRight]
           BorderSpacing.Left = 2
           Caption = 'Filter future branches'

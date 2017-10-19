@@ -10,12 +10,16 @@ uses
   ExtCtrls, LResources;
 
 type
+
+  { TfrmThreadlistEx }
+
   TfrmThreadlistEx = class(TForm)
     TreeView1: TTreeView;
     Panel1: TPanel;
     Button1: TButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button1Click(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     { Private declarations }
   public
@@ -100,6 +104,13 @@ end;
 procedure TfrmThreadlistEx.Button1Click(Sender: TObject);
 begin
   close;
+end;
+
+procedure TfrmThreadlistEx.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if(key=VK_ESCAPE)then
+    self.close;
 end;
 
 initialization

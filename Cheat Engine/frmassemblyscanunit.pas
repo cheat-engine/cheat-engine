@@ -25,6 +25,7 @@ type
     Splitter1: TSplitter;
     procedure btnOkClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormShow(Sender: TObject);
   private
     { private declarations }
@@ -42,7 +43,7 @@ implementation
 
 { TfrmAssemblyScan }
 
-uses symbolhandler;
+uses symbolhandler,windows;
 
 procedure TfrmAssemblyScan.btnOkClick(Sender: TObject);
 begin
@@ -54,6 +55,13 @@ end;
 procedure TfrmAssemblyScan.FormCreate(Sender: TObject);
 begin
 
+end;
+
+procedure TfrmAssemblyScan.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if(key=VK_ESCAPE)then
+    self.close;
 end;
 
 procedure TfrmAssemblyScan.FormShow(Sender: TObject);

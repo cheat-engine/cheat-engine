@@ -27,6 +27,7 @@ type
     threadTreeview: TTreeView;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormShow(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
     procedure miBreakClick(Sender: TObject);
@@ -77,6 +78,13 @@ end;
 procedure TfrmThreadlist.FormCreate(Sender: TObject);
 begin
   fillthreadlist;
+end;
+
+procedure TfrmThreadlist.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if(key=VK_ESCAPE)then
+    self.close;
 end;
 
 procedure TfrmThreadlist.FormShow(Sender: TObject);

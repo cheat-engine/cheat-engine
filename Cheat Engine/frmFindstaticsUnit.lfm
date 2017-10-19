@@ -7,12 +7,14 @@ object frmFindStatics: TfrmFindStatics
   Caption = 'Find static addresses'
   ClientHeight = 320
   ClientWidth = 372
+  KeyPreview = True
   OnClose = FormClose
   OnCreate = FormCreate
+  OnKeyDown = FormKeyDown
   OnShow = FormShow
   PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object ProgressBar1: TProgressBar
     Left = 0
     Height = 17
@@ -22,24 +24,24 @@ object frmFindStatics: TfrmFindStatics
     TabOrder = 0
   end
   object Panel1: TPanel
-    Left = 273
-    Height = 284
+    Left = 279
+    Height = 286
     Top = 0
-    Width = 99
+    Width = 93
     Align = alRight
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 284
-    ClientWidth = 99
+    ClientHeight = 286
+    ClientWidth = 93
     TabOrder = 1
     object Label1: TLabel
       AnchorSideLeft.Control = Button1
       AnchorSideTop.Control = Button1
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 15
-      Top = 41
-      Width = 28
+      Height = 13
+      Top = 39
+      Width = 23
       BorderSpacing.Top = 8
       Caption = 'From'
       ParentColor = False
@@ -49,9 +51,9 @@ object frmFindStatics: TfrmFindStatics
       AnchorSideTop.Control = Edit1
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 15
-      Top = 81
-      Width = 17
+      Height = 13
+      Top = 75
+      Width = 16
       BorderSpacing.Top = 2
       Caption = 'To:'
       ParentColor = False
@@ -61,9 +63,9 @@ object frmFindStatics: TfrmFindStatics
       AnchorSideTop.Control = Edit2
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 15
-      Top = 151
-      Width = 80
+      Height = 13
+      Top = 141
+      Width = 73
       BorderSpacing.Top = 32
       Caption = 'Filter addresses'
       ParentColor = False
@@ -73,9 +75,9 @@ object frmFindStatics: TfrmFindStatics
       AnchorSideTop.Control = Label4
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 15
-      Top = 166
-      Width = 28
+      Height = 13
+      Top = 154
+      Width = 23
       Caption = 'From'
       ParentColor = False
     end
@@ -84,9 +86,9 @@ object frmFindStatics: TfrmFindStatics
       AnchorSideTop.Control = Edit3
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 15
-      Top = 206
-      Width = 17
+      Height = 13
+      Top = 190
+      Width = 16
       BorderSpacing.Top = 2
       Caption = 'To:'
       ParentColor = False
@@ -97,9 +99,9 @@ object frmFindStatics: TfrmFindStatics
       AnchorSideRight.Control = Panel1
       AnchorSideRight.Side = asrBottom
       Left = 8
-      Height = 25
+      Height = 23
       Top = 8
-      Width = 83
+      Width = 77
       Anchors = [akTop, akLeft, akRight]
       AutoSize = True
       BorderSpacing.Left = 8
@@ -116,9 +118,9 @@ object frmFindStatics: TfrmFindStatics
       AnchorSideRight.Control = Panel1
       AnchorSideRight.Side = asrBottom
       Left = 8
-      Height = 23
-      Top = 56
-      Width = 83
+      Height = 21
+      Top = 52
+      Width = 77
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Right = 8
       CharCase = ecUppercase
@@ -133,9 +135,9 @@ object frmFindStatics: TfrmFindStatics
       AnchorSideRight.Control = Edit1
       AnchorSideRight.Side = asrBottom
       Left = 8
-      Height = 23
-      Top = 96
-      Width = 83
+      Height = 21
+      Top = 88
+      Width = 77
       Anchors = [akTop, akLeft, akRight]
       CharCase = ecUppercase
       MaxLength = 8
@@ -149,9 +151,9 @@ object frmFindStatics: TfrmFindStatics
       AnchorSideRight.Control = Edit1
       AnchorSideRight.Side = asrBottom
       Left = 8
-      Height = 23
-      Top = 181
-      Width = 83
+      Height = 21
+      Top = 167
+      Width = 77
       Anchors = [akTop, akLeft, akRight]
       CharCase = ecUppercase
       MaxLength = 8
@@ -165,9 +167,9 @@ object frmFindStatics: TfrmFindStatics
       AnchorSideRight.Control = Edit1
       AnchorSideRight.Side = asrBottom
       Left = 8
-      Height = 23
-      Top = 221
-      Width = 83
+      Height = 21
+      Top = 203
+      Width = 77
       Anchors = [akTop, akLeft, akRight]
       CharCase = ecUppercase
       MaxLength = 8
@@ -177,13 +179,13 @@ object frmFindStatics: TfrmFindStatics
   end
   object Panel2: TPanel
     Left = 0
-    Height = 19
-    Top = 284
+    Height = 17
+    Top = 286
     Width = 372
     Align = alBottom
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 19
+    ClientHeight = 17
     ClientWidth = 372
     TabOrder = 2
     object CheckBox1: TCheckBox
@@ -191,7 +193,7 @@ object frmFindStatics: TfrmFindStatics
       AnchorSideRight.Control = Panel2
       AnchorSideRight.Side = asrBottom
       Left = 0
-      Height = 19
+      Height = 17
       Top = 0
       Width = 372
       Anchors = [akTop, akLeft, akRight]
@@ -203,19 +205,19 @@ object frmFindStatics: TfrmFindStatics
   end
   object Panel3: TPanel
     Left = 0
-    Height = 284
+    Height = 286
     Top = 0
-    Width = 273
+    Width = 279
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 284
-    ClientWidth = 273
+    ClientHeight = 286
+    ClientWidth = 279
     TabOrder = 3
     object ListView1: TListView
       Left = 0
-      Height = 284
+      Height = 286
       Top = 0
-      Width = 273
+      Width = 279
       Align = alClient
       Columns = <      
         item

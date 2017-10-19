@@ -6,13 +6,15 @@ object frmEditHistory: TfrmEditHistory
   Caption = 'Write log'
   ClientHeight = 326
   ClientWidth = 320
+  KeyPreview = True
+  OnKeyDown = FormKeyDown
   OnShow = FormShow
   PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object lvWriteLog: TListView
     Left = 0
-    Height = 238
+    Height = 246
     Top = 0
     Width = 320
     Align = alClient
@@ -40,13 +42,13 @@ object frmEditHistory: TfrmEditHistory
   end
   object Panel1: TPanel
     Left = 0
-    Height = 88
-    Top = 238
+    Height = 80
+    Top = 246
     Width = 320
     Align = alBottom
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 88
+    ClientHeight = 80
     ClientWidth = 320
     TabOrder = 1
     object Button1: TButton
@@ -57,8 +59,8 @@ object frmEditHistory: TfrmEditHistory
       AnchorSideBottom.Control = Panel1
       AnchorSideBottom.Side = asrBottom
       Left = 123
-      Height = 25
-      Top = 60
+      Height = 23
+      Top = 54
       Width = 75
       AutoSize = True
       BorderSpacing.Top = 3
@@ -70,7 +72,7 @@ object frmEditHistory: TfrmEditHistory
     end
     object cbLogWrites: TCheckBox
       Left = 0
-      Height = 19
+      Height = 17
       Top = 0
       Width = 320
       Align = alTop
@@ -80,8 +82,8 @@ object frmEditHistory: TfrmEditHistory
     end
     object edtMaxWriteLogSize: TEdit
       Left = 0
-      Height = 23
-      Top = 34
+      Height = 21
+      Top = 30
       Width = 320
       Align = alTop
       OnChange = edtMaxWriteLogSizeChange
@@ -90,8 +92,8 @@ object frmEditHistory: TfrmEditHistory
     end
     object Label1: TLabel
       Left = 0
-      Height = 15
-      Top = 19
+      Height = 13
+      Top = 17
       Width = 320
       Align = alTop
       Caption = 'Max log size (nr of entries)'

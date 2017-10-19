@@ -25,6 +25,7 @@ type
     procedure Button1Click(Sender: TObject);
     procedure cbLogWritesChange(Sender: TObject);
     procedure edtMaxWriteLogSizeChange(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormShow(Sender: TObject);
     procedure lvWriteLogDblClick(Sender: TObject);
     procedure miUndoClick(Sender: TObject);
@@ -264,6 +265,13 @@ begin
     setMaxWriteLogSize(StrToInt(edtMaxWriteLogSize.text));
   except
   end;
+end;
+
+procedure TfrmEditHistory.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if(key=VK_ESCAPE)then
+    self.close;
 end;
 
 procedure TfrmEditHistory.FormShow(Sender: TObject);

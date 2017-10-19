@@ -5,19 +5,21 @@ object frmAutoInject: TfrmAutoInject
   Width = 431
   HelpContext = 1089
   Caption = 'Auto assemble'
-  ClientHeight = 311
+  ClientHeight = 312
   ClientWidth = 431
+  KeyPreview = True
   Menu = MainMenu1
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'
   object Panel1: TPanel
     Left = 0
     Height = 35
-    Top = 276
+    Top = 277
     Width = 431
     Align = alBottom
     AutoSize = True
@@ -45,7 +47,7 @@ object frmAutoInject: TfrmAutoInject
   end
   object Panel2: TPanel
     Left = 0
-    Height = 276
+    Height = 277
     Top = 0
     Width = 431
     Align = alClient

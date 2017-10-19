@@ -4,16 +4,18 @@ object frmReferencedStrings: TfrmReferencedStrings
   Top = 379
   Width = 616
   Caption = 'Referenced Strings'
-  ClientHeight = 288
+  ClientHeight = 289
   ClientWidth = 616
+  KeyPreview = True
   Menu = MainMenu1
   OnClose = FormClose
+  OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'
   object Splitter1: TSplitter
     Left = 490
-    Height = 288
+    Height = 289
     Top = 0
     Width = 5
     Align = alRight
@@ -21,7 +23,7 @@ object frmReferencedStrings: TfrmReferencedStrings
   end
   object lvStringlist: TListView
     Left = 0
-    Height = 288
+    Height = 289
     Top = 0
     Width = 490
     Align = alClient
@@ -37,7 +39,7 @@ object frmReferencedStrings: TfrmReferencedStrings
       item
         AutoSize = True
         Caption = 'String'
-        Width = 46
+        Width = 40
       end>
     HideSelection = False
     OwnerData = True
@@ -52,7 +54,7 @@ object frmReferencedStrings: TfrmReferencedStrings
   end
   object lbReflist: TListBox
     Left = 495
-    Height = 288
+    Height = 289
     Top = 0
     Width = 121
     Align = alRight

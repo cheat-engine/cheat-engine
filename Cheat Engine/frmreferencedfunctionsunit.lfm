@@ -6,6 +6,8 @@ object frmReferencedFunctions: TfrmReferencedFunctions
   Caption = 'Referenced functions'
   ClientHeight = 353
   ClientWidth = 677
+  KeyPreview = True
+  OnKeyDown = FormKeyDown
   OnShow = FormShow
   LCLVersion = '1.6.4.0'
   object lvCallList: TListView

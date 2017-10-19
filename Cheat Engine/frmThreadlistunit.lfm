@@ -7,19 +7,21 @@ object frmThreadlist: TfrmThreadlist
   Caption = 'Threadlist'
   ClientHeight = 187
   ClientWidth = 313
+  KeyPreview = True
   OnClose = FormClose
   OnCreate = FormCreate
+  OnKeyDown = FormKeyDown
   OnShow = FormShow
   PopupMode = pmAuto
   Position = poOwnerFormCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object threadTreeview: TTreeView
     Left = 0
-    Height = 172
+    Height = 174
     Top = 0
     Width = 313
     Align = alClient
-    DefaultItemHeight = 18
+    DefaultItemHeight = 16
     MultiSelect = True
     MultiSelectStyle = [msControlSelect, msVisibleOnly, msSiblingOnly]
     PopupMenu = PopupMenu1
@@ -32,8 +34,8 @@ object frmThreadlist: TfrmThreadlist
   end
   object lblIsWOW64: TLabel
     Left = 0
-    Height = 15
-    Top = 172
+    Height = 13
+    Top = 174
     Width = 313
     Align = alBottom
     Caption = 'Hold ctrl when expanding to see the 32-bit context of a thread'

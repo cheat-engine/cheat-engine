@@ -124,6 +124,7 @@ type
     View1: TMenuItem;
     AAPref1: TMenuItem;
     procedure Button1Click(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure Load1Click(Sender: TObject);
     procedure menuAOBInjectionClick(Sender: TObject);
     procedure menuFullInjectionClick(Sender: TObject);
@@ -519,6 +520,13 @@ begin
   end;
   registeredsymbols.free;
 {$endif}
+end;
+
+procedure TfrmAutoInject.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if(key=VK_ESCAPE)then
+    self.close;
 end;
 
 procedure TfrmAutoInject.Load1Click(Sender: TObject);

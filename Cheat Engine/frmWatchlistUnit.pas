@@ -29,6 +29,7 @@ type
     pmWatchlist: TPopupMenu;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormShow(Sender: TObject);
     procedure lvWatchlistDblClick(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
@@ -265,6 +266,13 @@ end;
 procedure TfrmWatchlist.FormDestroy(Sender: TObject);
 begin
   SaveFormPosition(self);
+end;
+
+procedure TfrmWatchlist.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if(key=$1B)then
+    self.close;
 end;
 
 procedure TfrmWatchlist.FormShow(Sender: TObject);

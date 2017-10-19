@@ -43,6 +43,7 @@ type
     procedure Button1Click(Sender: TObject);
     procedure actCancelExecute(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormShow(Sender: TObject);
   private
     { Private declarations }
@@ -57,7 +58,7 @@ type
 
 implementation
 
-uses MemoryBrowserFormUnit, disassemblerComments;
+uses MemoryBrowserFormUnit, disassemblerComments, windows;
 
 resourcestring
   rsCopyDisassembledOutput = 'Copy disassembled output';
@@ -288,6 +289,13 @@ begin
     SaveDisassemblyThread.WaitFor;
     freeandnil(SaveDisassemblyThread);
   end;
+end;
+
+procedure TfrmSavedisassembly.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if(key=VK_ESCAPE)then
+    self.close;
 end;
 
 procedure TfrmSavedisassembly.FormShow(Sender: TObject);

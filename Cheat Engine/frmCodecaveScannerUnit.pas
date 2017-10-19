@@ -46,6 +46,7 @@ type
     procedure btnStartClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormShow(Sender: TObject);
     procedure lbCodecaveListDblClick(Sender: TObject);
     procedure Copytoclipboard1Click(Sender: TObject);
@@ -263,6 +264,13 @@ procedure TfrmCodecaveScanner.FormCloseQuery(Sender: TObject;
 begin
   if codecavescanner<>nil then
     canclose:=messagedlg(rsClosingThisWindowWillAlsoStopTheScannerAreYouSure, mtconfirmation, [mbyes, mbno], 0)=mryes;
+end;
+
+procedure TfrmCodecaveScanner.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if(key=VK_ESCAPE)then
+    self.close;
 end;
 
 procedure TfrmCodecaveScanner.FormShow(Sender: TObject);

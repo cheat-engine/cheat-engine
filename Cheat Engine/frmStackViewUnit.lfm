@@ -7,10 +7,12 @@ object frmStackView: TfrmStackView
   Caption = 'Stack View'
   ClientHeight = 211
   ClientWidth = 374
+  KeyPreview = True
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnKeyDown = FormKeyDown
   OnShow = FormShow
   PopupMode = pmAuto
   LCLVersion = '1.6.4.0'

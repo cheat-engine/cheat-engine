@@ -37,6 +37,7 @@ type
     procedure Button4Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
     procedure Button6Click(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     { Private declarations }
     timerhook: thandle;
@@ -359,6 +360,13 @@ begin
   except
 
   end;
+end;
+
+procedure TfrmdissectWindow.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if(key=VK_ESCAPE)then
+    self.close;
 end;
 
 

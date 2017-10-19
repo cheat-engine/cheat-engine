@@ -5,27 +5,29 @@ object frmLuaEngine: TfrmLuaEngine
   Width = 570
   HelpContext = 19
   Caption = 'Lua Engine'
-  ClientHeight = 312
+  ClientHeight = 313
   ClientWidth = 570
+  KeyPreview = True
   Menu = MainMenu1
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'
   object GroupBox1: TGroupBox
     Left = 0
-    Height = 177
+    Height = 178
     Top = 0
     Width = 570
     Align = alClient
     Caption = 'Output'
-    ClientHeight = 157
+    ClientHeight = 160
     ClientWidth = 566
     TabOrder = 1
     object mOutput: TMemo
       Left = 0
-      Height = 157
+      Height = 160
       Top = 0
       Width = 566
       Align = alClient
@@ -37,7 +39,7 @@ object frmLuaEngine: TfrmLuaEngine
   object Panel1: TPanel
     Left = 0
     Height = 130
-    Top = 182
+    Top = 183
     Width = 570
     Align = alBottom
     BevelOuter = bvNone
@@ -142,6 +144,7 @@ object frmLuaEngine: TfrmLuaEngine
         Top = 0
         Width = 489
         Align = alClient
+        Color = clDefault
         Font.Height = -13
         Font.Name = 'Courier New'
         Font.Pitch = fpFixed
@@ -781,7 +784,7 @@ object frmLuaEngine: TfrmLuaEngine
     Cursor = crVSplit
     Left = 0
     Height = 5
-    Top = 177
+    Top = 178
     Width = 570
     Align = alBottom
     ResizeAnchor = akBottom

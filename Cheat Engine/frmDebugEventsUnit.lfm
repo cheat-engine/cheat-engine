@@ -9,10 +9,10 @@ object frmDebugEvents: TfrmDebugEvents
   OnClose = FormClose
   PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object lbDebugEvents: TListBox
     Left = 0
-    Height = 270
+    Height = 272
     Top = 0
     Width = 641
     Align = alClient
@@ -23,13 +23,13 @@ object frmDebugEvents: TfrmDebugEvents
   end
   object Panel1: TPanel
     Left = 0
-    Height = 31
-    Top = 270
+    Height = 29
+    Top = 272
     Width = 641
     Align = alBottom
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 31
+    ClientHeight = 29
     ClientWidth = 641
     TabOrder = 1
     object Button1: TButton
@@ -37,7 +37,7 @@ object frmDebugEvents: TfrmDebugEvents
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Control = Panel1
       Left = 283
-      Height = 25
+      Height = 23
       Top = 3
       Width = 75
       AutoSize = True

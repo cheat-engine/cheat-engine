@@ -95,6 +95,7 @@ type
     Splitter1: TSplitter;
     zflabel: TLabel;
     procedure btnStopSearchClick(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure lvTracerMouseMove(Sender: TObject; Shift: TShiftState; X,
       Y: Integer);
     procedure MenuItem5Click(Sender: TObject);
@@ -608,6 +609,13 @@ end;
 procedure TfrmTracer.btnStopSearchClick(Sender: TObject);
 begin
   stopsearch:=true;
+end;
+
+procedure TfrmTracer.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if(key=VK_ESCAPE)then
+    self.close;
 end;
 
 procedure TfrmTracer.lvTracerMouseMove(Sender: TObject; Shift: TShiftState; X,

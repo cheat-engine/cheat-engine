@@ -7,8 +7,10 @@ object frmDissectCode: TfrmDissectCode
   Caption = 'Dissect Code'
   ClientHeight = 350
   ClientWidth = 327
+  KeyPreview = True
   OnClose = FormClose
   OnCreate = FormCreate
+  OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'
@@ -26,18 +28,18 @@ object frmDissectCode: TfrmDissectCode
     Left = 0
     Height = 329
     Top = 0
-    Width = 193
+    Width = 206
     Align = alClient
     AutoSize = True
     BevelOuter = bvNone
     ClientHeight = 329
-    ClientWidth = 193
+    ClientWidth = 206
     TabOrder = 0
     object lbModuleList: TListBox
       Left = 0
-      Height = 280
-      Top = 49
-      Width = 193
+      Height = 286
+      Top = 43
+      Width = 206
       Align = alClient
       ItemHeight = 0
       MultiSelect = True
@@ -45,22 +47,22 @@ object frmDissectCode: TfrmDissectCode
     end
     object Panel2: TPanel
       Left = 0
-      Height = 49
+      Height = 43
       Top = 0
-      Width = 193
+      Width = 206
       Align = alTop
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 49
-      ClientWidth = 193
+      ClientHeight = 43
+      ClientWidth = 206
       TabOrder = 1
       object Label2: TLabel
         AnchorSideLeft.Control = Panel2
         AnchorSideTop.Control = Panel2
         Left = 0
-        Height = 15
+        Height = 13
         Top = 0
-        Width = 161
+        Width = 144
         Caption = 'Select the module(s) to dissect'
         ParentColor = False
       end
@@ -69,9 +71,9 @@ object frmDissectCode: TfrmDissectCode
         AnchorSideTop.Control = Label2
         AnchorSideTop.Side = asrBottom
         Left = 0
-        Height = 15
-        Top = 15
-        Width = 151
+        Height = 13
+        Top = 13
+        Width = 134
         Caption = 'Hold CTRL to select multiple'
         ParentColor = False
       end
@@ -80,9 +82,9 @@ object frmDissectCode: TfrmDissectCode
         AnchorSideTop.Control = Label3
         AnchorSideTop.Side = asrBottom
         Left = 0
-        Height = 19
-        Top = 30
-        Width = 148
+        Height = 17
+        Top = 26
+        Width = 132
         Caption = 'Include system modules'
         OnChange = cbIncludesystemModulesClick
         TabOrder = 0
@@ -90,24 +92,24 @@ object frmDissectCode: TfrmDissectCode
     end
   end
   object Panel3: TPanel
-    Left = 193
+    Left = 206
     Height = 329
     Top = 0
-    Width = 134
+    Width = 121
     Align = alRight
     AutoSize = True
     BevelOuter = bvNone
     ClientHeight = 329
-    ClientWidth = 134
+    ClientWidth = 121
     TabOrder = 2
     object Label6: TLabel
       AnchorSideLeft.Control = Panel3
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Control = Panel3
       Left = 16
-      Height = 15
+      Height = 13
       Top = 8
-      Width = 102
+      Width = 88
       BorderSpacing.Top = 8
       Caption = 'Estimated time left:'
       ParentColor = False
@@ -117,9 +119,9 @@ object frmDissectCode: TfrmDissectCode
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Control = Label6
       AnchorSideTop.Side = asrBottom
-      Left = 46
-      Height = 15
-      Top = 23
+      Left = 39
+      Height = 13
+      Top = 21
       Width = 42
       Alignment = taCenter
       Caption = '00:00:00'
@@ -130,9 +132,9 @@ object frmDissectCode: TfrmDissectCode
       AnchorSideTop.Control = Label7
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 15
-      Top = 46
-      Width = 126
+      Height = 13
+      Top = 42
+      Width = 113
       BorderSpacing.Left = 8
       BorderSpacing.Top = 8
       Caption = 'String references found:'
@@ -143,8 +145,8 @@ object frmDissectCode: TfrmDissectCode
       AnchorSideTop.Control = Label4
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 15
-      Top = 61
+      Height = 13
+      Top = 55
       Width = 6
       Caption = '0'
       ParentColor = False
@@ -154,9 +156,9 @@ object frmDissectCode: TfrmDissectCode
       AnchorSideTop.Control = lblStringRef
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 15
-      Top = 84
-      Width = 102
+      Height = 13
+      Top = 76
+      Width = 88
       BorderSpacing.Top = 8
       Caption = 'Conditional Jumps:'
       ParentColor = False
@@ -166,8 +168,8 @@ object frmDissectCode: TfrmDissectCode
       AnchorSideTop.Control = Label5
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 15
-      Top = 99
+      Height = 13
+      Top = 89
       Width = 6
       Caption = '0'
       ParentColor = False
@@ -177,9 +179,9 @@ object frmDissectCode: TfrmDissectCode
       AnchorSideTop.Control = lblConditionalJumps
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 15
-      Top = 122
-      Width = 115
+      Height = 13
+      Top = 110
+      Width = 101
       BorderSpacing.Top = 8
       Caption = 'Unconditional Jumps:'
       ParentColor = False
@@ -189,8 +191,8 @@ object frmDissectCode: TfrmDissectCode
       AnchorSideTop.Control = Label9
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 15
-      Top = 137
+      Height = 13
+      Top = 123
       Width = 6
       Caption = '0'
       ParentColor = False
@@ -200,9 +202,9 @@ object frmDissectCode: TfrmDissectCode
       AnchorSideTop.Control = lblUnConditionalJumps
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 15
-      Top = 160
-      Width = 28
+      Height = 13
+      Top = 144
+      Width = 25
       BorderSpacing.Top = 8
       Caption = 'Calls:'
       ParentColor = False
@@ -212,8 +214,8 @@ object frmDissectCode: TfrmDissectCode
       AnchorSideTop.Control = Label11
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 15
-      Top = 175
+      Height = 13
+      Top = 157
       Width = 6
       Caption = '0'
       ParentColor = False
@@ -223,9 +225,9 @@ object frmDissectCode: TfrmDissectCode
       AnchorSideTop.Control = lblCalls
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 15
-      Top = 198
-      Width = 90
+      Height = 13
+      Top = 178
+      Width = 76
       BorderSpacing.Top = 8
       Caption = 'Maximum offset:'
       ParentColor = False
@@ -236,8 +238,8 @@ object frmDissectCode: TfrmDissectCode
       AnchorSideTop.Control = Label1
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 15
-      Top = 213
+      Height = 13
+      Top = 191
       Width = 6
       Caption = '0'
       ParentColor = False
@@ -248,9 +250,9 @@ object frmDissectCode: TfrmDissectCode
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Control = lblMaxOffset
       AnchorSideTop.Side = asrBottom
-      Left = 17
-      Height = 25
-      Top = 233
+      Left = 10
+      Height = 23
+      Top = 209
       Width = 100
       AutoSize = True
       BorderSpacing.Top = 5

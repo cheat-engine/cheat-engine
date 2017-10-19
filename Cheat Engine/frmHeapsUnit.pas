@@ -24,6 +24,9 @@ type TFillHeapList=class(tthread)
 end;
 
 type
+
+  { TfrmHeaps }
+
   TfrmHeaps = class(TForm)
     Panel1: TPanel;
     Button1: TButton;
@@ -31,6 +34,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure Button1Click(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure ListView1DblClick(Sender: TObject);
   private
     { Private declarations }
@@ -45,7 +49,7 @@ var
 implementation
 
 
-uses MemoryBrowserFormUnit;
+uses MemoryBrowserFormUnit,windows;
 
 procedure TFillHeapList.updatelist;
 var i:integer;
@@ -156,6 +160,13 @@ end;
 procedure TfrmHeaps.Button1Click(Sender: TObject);
 begin
   close;
+end;
+
+procedure TfrmHeaps.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if(key=VK_ESCAPE)then
+    self.close;
 end;
 
 procedure TfrmHeaps.ListView1DblClick(Sender: TObject);

@@ -9,11 +9,13 @@ object frmAssemblyScan: TfrmAssemblyScan
   ClientWidth = 444
   Constraints.MinHeight = 120
   Constraints.MinWidth = 430
+  KeyPreview = True
   OnCreate = FormCreate
+  OnKeyDown = FormKeyDown
   OnShow = FormShow
   PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Panel1: TPanel
     Left = 0
     Height = 185
@@ -25,7 +27,7 @@ object frmAssemblyScan: TfrmAssemblyScan
     TabOrder = 0
     object lblInputAssemblyCode: TLabel
       Left = 1
-      Height = 15
+      Height = 13
       Top = 1
       Width = 355
       Align = alTop
@@ -34,8 +36,8 @@ object frmAssemblyScan: TfrmAssemblyScan
     end
     object mAssemblerSearch: TMemo
       Left = 1
-      Height = 168
-      Top = 16
+      Height = 170
+      Top = 14
       Width = 355
       Align = alClient
       TabOrder = 0
@@ -59,7 +61,7 @@ object frmAssemblyScan: TfrmAssemblyScan
       AnchorSideTop.Side = asrBottom
       Left = 4
       Height = 25
-      Top = 82
+      Top = 74
       Width = 75
       BorderSpacing.Top = 5
       Caption = 'Scan'
@@ -68,8 +70,8 @@ object frmAssemblyScan: TfrmAssemblyScan
     end
     object edtFrom: TEdit
       Left = 1
-      Height = 23
-      Top = 16
+      Height = 21
+      Top = 14
       Width = 80
       Align = alTop
       TabOrder = 1
@@ -77,7 +79,7 @@ object frmAssemblyScan: TfrmAssemblyScan
     end
     object lblFrom: TLabel
       Left = 1
-      Height = 15
+      Height = 13
       Top = 1
       Width = 80
       Align = alTop
@@ -86,8 +88,8 @@ object frmAssemblyScan: TfrmAssemblyScan
     end
     object lblTo: TLabel
       Left = 1
-      Height = 15
-      Top = 39
+      Height = 13
+      Top = 35
       Width = 80
       Align = alTop
       Caption = 'To'
@@ -95,8 +97,8 @@ object frmAssemblyScan: TfrmAssemblyScan
     end
     object edtTo: TEdit
       Left = 1
-      Height = 23
-      Top = 54
+      Height = 21
+      Top = 48
       Width = 80
       Align = alTop
       TabOrder = 2

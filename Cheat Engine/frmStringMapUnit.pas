@@ -70,6 +70,7 @@ type
     procedure FindDialog1Find(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormDestroy(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormResize(Sender: TObject);
     procedure ListView1DblClick(Sender: TObject);
     procedure miFindClick(Sender: TObject);
@@ -582,6 +583,13 @@ end;
 procedure TfrmStringMap.FormDestroy(Sender: TObject);
 begin
   cleanup;
+end;
+
+procedure TfrmStringMap.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if(key=VK_ESCAPE)then
+    self.close;
 end;
 
 procedure TfrmStringMap.FormResize(Sender: TObject);

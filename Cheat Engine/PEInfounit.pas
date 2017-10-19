@@ -44,6 +44,7 @@ type
     Button1: TButton;
     RadioButton1: TRadioButton;
     RadioButton2: TRadioButton;
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure LoadButtonClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -925,6 +926,13 @@ begin
     //and parse it
     ParseFile(false);
   end;
+end;
+
+procedure TfrmPEInfo.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if(key=VK_ESCAPE)then
+    self.close;
 end;
 
 procedure TfrmPEInfo.FormDestroy(Sender: TObject);

@@ -18,6 +18,7 @@ type
     MenuItem1: TMenuItem;
     PopupMenu1: TPopupMenu;
     Splitter1: TSplitter;
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormShow(Sender: TObject);
     procedure lbReflistDblClick(Sender: TObject);
     procedure lvCallListColumnClick(Sender: TObject; Column: TListColumn);
@@ -41,7 +42,7 @@ implementation
 
 {$R *.lfm}
 
-uses DissectCodeThread, MemoryBrowserFormUnit;
+uses DissectCodeThread, MemoryBrowserFormUnit, windows;
 
 
 procedure TfrmReferencedFunctions.FormShow(Sender: TObject);
@@ -53,6 +54,13 @@ begin
 
   if dissectcode<>nil then
     LoadFunctionlist;
+end;
+
+procedure TfrmReferencedFunctions.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if(key=VK_ESCAPE)then
+    self.close;
 end;
 
 procedure TfrmReferencedFunctions.lbReflistDblClick(Sender: TObject);

@@ -7,21 +7,23 @@ object frmStringMap: TfrmStringMap
   Caption = 'String map'
   ClientHeight = 400
   ClientWidth = 521
+  KeyPreview = True
   OnClose = FormClose
   OnDestroy = FormDestroy
+  OnKeyDown = FormKeyDown
   OnResize = FormResize
   PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Panel1: TPanel
-    Left = 350
+    Left = 367
     Height = 400
     Top = 0
-    Width = 171
+    Width = 154
     Align = alRight
     AutoSize = True
     ClientHeight = 400
-    ClientWidth = 171
+    ClientWidth = 154
     TabOrder = 0
     OnResize = Panel1Resize
     object ProgressBar1: TProgressBar
@@ -32,7 +34,7 @@ object frmStringMap: TfrmStringMap
       Left = 6
       Height = 20
       Top = 5
-      Width = 159
+      Width = 142
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Top = 4
       TabOrder = 0
@@ -42,9 +44,9 @@ object frmStringMap: TfrmStringMap
       AnchorSideTop.Control = Panel2
       AnchorSideTop.Side = asrBottom
       Left = 6
-      Height = 15
-      Top = 83
-      Width = 74
+      Height = 13
+      Top = 79
+      Width = 66
       Caption = 'Stringcount: 0'
       ParentColor = False
     end
@@ -53,9 +55,9 @@ object frmStringMap: TfrmStringMap
       AnchorSideBottom.Control = Panel1
       AnchorSideBottom.Side = asrBottom
       Left = 1
-      Height = 25
-      Top = 372
-      Width = 89
+      Height = 23
+      Top = 374
+      Width = 80
       Anchors = [akLeft, akBottom]
       AutoSize = True
       BorderSpacing.Bottom = 2
@@ -70,9 +72,9 @@ object frmStringMap: TfrmStringMap
       AnchorSideRight.Control = Panel2
       AnchorSideRight.Side = asrBottom
       Left = 6
-      Height = 23
-      Top = 174
-      Width = 159
+      Height = 21
+      Top = 160
+      Width = 142
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Bottom = 48
       Enabled = False
@@ -83,9 +85,9 @@ object frmStringMap: TfrmStringMap
       AnchorSideTop.Control = cbSaveToDisk
       AnchorSideTop.Side = asrBottom
       Left = 6
-      Height = 19
-      Top = 117
-      Width = 164
+      Height = 17
+      Top = 109
+      Width = 147
       Caption = 'Strings must match reg exp'
       OnChange = cbRegExpChange
       TabOrder = 3
@@ -95,9 +97,9 @@ object frmStringMap: TfrmStringMap
       AnchorSideTop.Control = cbRegExp
       AnchorSideTop.Side = asrBottom
       Left = 6
-      Height = 19
-      Top = 136
-      Width = 93
+      Height = 17
+      Top = 126
+      Width = 88
       Caption = 'Case sensitive'
       Enabled = False
       TabOrder = 4
@@ -107,9 +109,9 @@ object frmStringMap: TfrmStringMap
       AnchorSideTop.Control = cbCaseSensitive
       AnchorSideTop.Side = asrBottom
       Left = 6
-      Height = 19
-      Top = 155
-      Width = 89
+      Height = 17
+      Top = 143
+      Width = 81
       Caption = 'Must be start'
       Enabled = False
       TabOrder = 5
@@ -119,9 +121,9 @@ object frmStringMap: TfrmStringMap
       AnchorSideTop.Control = lblStringCount
       AnchorSideTop.Side = asrBottom
       Left = 6
-      Height = 19
-      Top = 98
-      Width = 82
+      Height = 17
+      Top = 92
+      Width = 79
       Caption = 'Save to disk'
       TabOrder = 6
     end
@@ -132,17 +134,17 @@ object frmStringMap: TfrmStringMap
       AnchorSideRight.Control = Panel1
       AnchorSideRight.Side = asrBottom
       Left = 6
-      Height = 54
+      Height = 50
       Top = 29
-      Width = 159
+      Width = 142
       Anchors = [akTop, akLeft, akRight]
       AutoSize = True
       BorderSpacing.Left = 5
       BorderSpacing.Top = 4
       BorderSpacing.Right = 5
       BevelOuter = bvNone
-      ClientHeight = 54
-      ClientWidth = 159
+      ClientHeight = 50
+      ClientWidth = 142
       TabOrder = 7
       object btnFree: TButton
         AnchorSideLeft.Control = Panel2
@@ -151,9 +153,9 @@ object frmStringMap: TfrmStringMap
         AnchorSideRight.Control = Panel2
         AnchorSideRight.Side = asrBottom
         Left = 0
-        Height = 25
-        Top = 29
-        Width = 159
+        Height = 23
+        Top = 27
+        Width = 142
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
         BorderSpacing.Top = 4
@@ -168,9 +170,9 @@ object frmStringMap: TfrmStringMap
         AnchorSideRight.Control = Panel2
         AnchorSideRight.Side = asrBottom
         Left = 0
-        Height = 25
+        Height = 23
         Top = 0
-        Width = 159
+        Width = 142
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
         Caption = 'Generate string map'
@@ -183,7 +185,7 @@ object frmStringMap: TfrmStringMap
     Left = 0
     Height = 400
     Top = 0
-    Width = 350
+    Width = 367
     Align = alClient
     Columns = <    
       item

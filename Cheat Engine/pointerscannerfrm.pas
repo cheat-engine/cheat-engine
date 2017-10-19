@@ -221,6 +221,7 @@ type
     procedure cbNonResponsiveChange(Sender: TObject);
 
     procedure FormDestroy(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormResize(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure lvResultsColumnClick(Sender: TObject; Column: TListColumn);
@@ -1940,6 +1941,13 @@ begin
   setlength(x,1);
   x[0]:=cbtype.itemindex;
   SaveFormPosition(self, x);
+end;
+
+procedure Tfrmpointerscanner.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if(key=VK_ESCAPE)then
+    self.close;
 end;
 
 procedure Tfrmpointerscanner.btnStopRescanLoopClick(Sender: TObject);

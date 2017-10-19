@@ -7,27 +7,29 @@ object frmHeaps: TfrmHeaps
   Caption = 'Current Heaplist'
   ClientHeight = 316
   ClientWidth = 253
+  KeyPreview = True
   OnClose = FormClose
   OnCreate = FormCreate
+  OnKeyDown = FormKeyDown
   PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Panel1: TPanel
     Left = 0
-    Height = 33
-    Top = 283
+    Height = 31
+    Top = 285
     Width = 253
     Align = alBottom
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 33
+    ClientHeight = 31
     ClientWidth = 253
     TabOrder = 0
     object Button1: TButton
-      Left = 98
-      Height = 25
+      Left = 99
+      Height = 23
       Top = 4
-      Width = 55
+      Width = 52
       Anchors = [akTop]
       AutoSize = True
       BorderSpacing.Top = 4
@@ -40,7 +42,7 @@ object frmHeaps: TfrmHeaps
   end
   object ListView1: TListView
     Left = 0
-    Height = 283
+    Height = 285
     Top = 0
     Width = 253
     Align = alClient
@@ -52,7 +54,7 @@ object frmHeaps: TfrmHeaps
       item
         AutoSize = True
         Caption = 'Size'
-        Width = 129
+        Width = 33
       end>
     ReadOnly = True
     RowSelect = True

@@ -289,6 +289,7 @@ type
     procedure edtExtraChange(Sender: TObject);
     procedure FindDialog1Find(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormShow(Sender: TObject);
     procedure ListView1CustomDrawItem(Sender: TCustomListView; Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
 
@@ -2313,6 +2314,13 @@ end;
 procedure TfrmStringPointerScan.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
   cleanup;
+end;
+
+procedure TfrmStringPointerScan.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if(key=VK_ESCAPE)then
+    self.close;
 end;
 
 procedure TfrmStringPointerScan.FormShow(Sender: TObject);

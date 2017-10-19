@@ -45,6 +45,7 @@ type
     procedure Edit1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure Edit2KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormCreate(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormShow(Sender: TObject);
     procedure ListView1Data(Sender: TObject; Item: TListItem);
     procedure MenuItem2Click(Sender: TObject);
@@ -76,7 +77,7 @@ implementation
 
 {$R *.lfm}
 
-uses ProcessHandlerUnit, CEFuncProc;
+uses ProcessHandlerUnit, CEFuncProc, windows;
 
 { TfrmAccessedMemory }
 
@@ -101,6 +102,13 @@ end;
 procedure TfrmAccessedMemory.FormCreate(Sender: TObject);
 begin
 
+end;
+
+procedure TfrmAccessedMemory.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if(key=VK_ESCAPE)then
+    self.close;
 end;
 
 procedure TfrmAccessedMemory.FormShow(Sender: TObject);

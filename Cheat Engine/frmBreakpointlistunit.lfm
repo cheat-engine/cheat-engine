@@ -1,16 +1,18 @@
 object frmBreakpointlist: TfrmBreakpointlist
-  Left = 797
+  Left = 636
   Height = 283
-  Top = 260
+  Top = 224
   Width = 670
   Caption = 'Breakpoint list'
   ClientHeight = 283
   ClientWidth = 670
+  KeyPreview = True
   OnClose = FormClose
   OnCreate = FormCreate
+  OnKeyDown = FormKeyDown
   PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object ListView1: TListView
     Left = 0
     Height = 283
