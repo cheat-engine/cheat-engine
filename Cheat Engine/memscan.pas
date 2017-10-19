@@ -2499,6 +2499,22 @@ end;
 //   ^^^^CustomFloat^^^^
 
 //dword:
+{todo:
+function TScanner.DWordExactFormula(newvalue,oldvalue: pointer): boolean;
+begin
+  result:=doforumula(pdword(newvalue)^, pdword(oldvalue)^);
+end;
+
+or
+
+function TScanner.Custom(newvalue,oldvalue: pointer): boolean;
+begin
+  result:=doforumula(pdword(newvalue)^, pdword(oldvalue)^);
+end;
+}
+
+
+
 function TScanner.DWordExact(newvalue,oldvalue: pointer): boolean;
 begin
   result:=pdword(newvalue)^=dword(value);

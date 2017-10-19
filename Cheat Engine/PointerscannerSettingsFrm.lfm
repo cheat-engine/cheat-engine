@@ -789,9 +789,11 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         Top = 4
         Width = 181
         Caption = 'Max different offsets per node:'
+        Checked = True
         OnChange = cbMaxOffsetsPerNodeChange
         ParentShowHint = False
         ShowHint = True
+        State = cbChecked
         TabOrder = 2
       end
       object edtMaxOffsetsPerNode: TEdit
@@ -805,7 +807,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         BorderSpacing.Top = 2
         Enabled = False
         TabOrder = 3
-        Text = '2'
+        Text = '3'
       end
       object Panel12: TPanel
         AnchorSideLeft.Control = Panel10

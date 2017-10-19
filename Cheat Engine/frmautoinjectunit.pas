@@ -245,7 +245,7 @@ resourcestring
   rsCEGAFilter = 'Cheat Engine GNU Assembly (*.CEGA)|*.CEGA|All Files ( *.* )|*.*';
   rsAutoAssembler = 'Auto assembler';
   rsCodeNeedsEnableAndDisable = 'The code needs an [ENABLE] and a [DISABLE] section if you want to use this script as a table entry';
-  rsNotAllCodeIsInjectable = 'Not all code is injectable.'#13#10'%s'#13#10'Are you sure you wan''t to edit it to this?';
+  rsNotAllCodeIsInjectable = 'Not all code is injectable.'#13#10'%s'#13#10'Are you sure you want to edit it to this?';
   rsCodeInjectTemplate = 'Code inject template';
   rsOnWhatAddressDoYouWantTheJump = 'On what address do you want the jump?';
   rsFailedToAddToTableNotAllCodeIsInjectable = 'Failed to add to table. Not all code is injectable';

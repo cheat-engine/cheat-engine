@@ -115,7 +115,7 @@ With this feature enabled the pointerscan will only check the first few pointers
 pro: Extremely fast, and the results have the lowest pointer paths possible.
 con: You'll miss a lot of pointers that might be valid too 
 TFRMPOINTERSCANNERSETTINGS.CBMAXOFFSETSPERNODE.CAPTION=Max different offsets per node:
-TFRMPOINTERSCANNERSETTINGS.EDTMAXOFFSETSPERNODE.TEXT=2
+TFRMPOINTERSCANNERSETTINGS.EDTMAXOFFSETSPERNODE.TEXT=3
 TFRMPOINTERSCANNERSETTINGS.LABEL2.CAPTION=To
 TFRMPOINTERSCANNERSETTINGS.LABEL4.CAPTION=From
 TFRMPOINTERSCANNERSETTINGS.CBALLOWRUNTIMEWORKERS.HINT=Opens a port that other systems running the pointerscanner can connect to and help out with the scan

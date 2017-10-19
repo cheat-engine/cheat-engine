@@ -1109,6 +1109,13 @@ begin
     begin
       reg.WriteBool('Advanced', cbShowAdvancedOptions.checked);
       reg.WriteBool('warnedAboutDisablingInstantRescan', warnedAboutDisablingInstantRescan);
+
+      if TryStrToInt(edtMaxOffsetsPerNode.text,i) then
+      begin
+        reg.WriteBool('MaxOffsetsPerNode Checked', cbMaxOffsetsPerNode.checked);
+        reg.WriteString('MaxOffsetsPerNode Value', i);
+      end;
+
     end;
 
     if Reg.OpenKey('\Software\Cheat Engine\PSNNodeList', false) then
@@ -1293,6 +1300,16 @@ begin
 
     if reg.ValueExists('warnedAboutDisablingInstantRescan') then
       warnedAboutDisablingInstantRescan:=reg.ReadBool('warnedAboutDisablingInstantRescan');
+
+    if reg.ValueExists('MaxOffsetsPerNode Checked') then
+      cbMaxOffsetsPerNode.checked:=reg.ReadBool('cbMaxOffsetsPerNode.checked');
+
+    if reg.ValueExists('MaxOffsetsPerNode Value') then
+      edtMaxOffsetsPerNode.Text:=inttostr(reg.ReadInteger('MaxOffsetsPerNode Value'));
+
+    reg.WriteBool('MaxOffsetsPerNode Checked', cbMaxOffsetsPerNode.checked);
+    reg.WriteString('MaxOffsetsPerNode Value', edtMaxOffsetsPerNode.text);
+
   end;
 
   if Reg.OpenKey('\Software\Cheat Engine\PSNNodeList', false) then
