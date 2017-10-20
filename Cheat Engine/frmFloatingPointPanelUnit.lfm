@@ -89,7 +89,6 @@ object frmFloatingPointPanel: TfrmFloatingPointPanel
         Width = 345
         Align = alClient
         Font.CharSet = ANSI_CHARSET
-        Font.Color = clBlack
         Font.Height = -13
         Font.Name = 'Courier New'
         ParentFont = False
