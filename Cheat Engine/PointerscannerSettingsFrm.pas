@@ -1113,7 +1113,7 @@ begin
       if TryStrToInt(edtMaxOffsetsPerNode.text,i) then
       begin
         reg.WriteBool('MaxOffsetsPerNode Checked', cbMaxOffsetsPerNode.checked);
-        reg.WriteString('MaxOffsetsPerNode Value', i);
+        reg.WriteInteger('MaxOffsetsPerNode Value', i);
       end;
 
     end;
@@ -1306,9 +1306,6 @@ begin
 
     if reg.ValueExists('MaxOffsetsPerNode Value') then
       edtMaxOffsetsPerNode.Text:=inttostr(reg.ReadInteger('MaxOffsetsPerNode Value'));
-
-    reg.WriteBool('MaxOffsetsPerNode Checked', cbMaxOffsetsPerNode.checked);
-    reg.WriteString('MaxOffsetsPerNode Value', edtMaxOffsetsPerNode.text);
 
   end;
 

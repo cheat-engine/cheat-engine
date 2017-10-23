@@ -4,6 +4,7 @@ creating a new tab with a groupscan setup looks bad
 structure dissect: 
   use pdb data if available
   delete all structures sometimes AV's
+  adding names in front messes up the header names
 
 
 for .net games let stucture dissect see those structures aS WELL
@@ -12,6 +13,8 @@ AND LUA
 
 add enumStructureWindows list, and let lua change the selected struct
 trainergen: get rid of tcheat and just use labels
+
+graphical memory view: change format makes it black sometimes(loses position ?)
 
 
 find higher resolution icons
