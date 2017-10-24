@@ -35,6 +35,7 @@ type
     procedure RemoveMouseEventHandler(mouseEvent: TMEvent);
     procedure render;
     function PixelPosToGamePos(x,y: integer): TPointf;
+    function GamePosToPixelPos(x,y: single): TPoint;
   protected
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure KeyUp(var Key: Word; Shift: TShiftState); override;
@@ -79,6 +80,12 @@ begin
     if keyEventHandlers[i](self, 1, key, shift) then break;
 end;
 
+
+function TGamePanel.GamePosToPixelPos(x,y: single): TPoint;
+begin
+  result.x:=trunc((1+x)*(width/2));
+  result.y:=trunc((1+y)*(height/2));
+end;
 
 function TGamePanel.PixelPosToGamePos(x,y: integer): TPointf;
 begin

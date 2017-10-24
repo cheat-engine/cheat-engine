@@ -10,7 +10,7 @@ uses
   Classes, SysUtils, controls, renderobject, gamepanel;
 
 type
-  TGuiObject=class(TRenderObject)
+  TGUIObject=class(TRenderObject)
   private
     fOwner: TGamePanel;
   protected
@@ -24,17 +24,17 @@ type
 
 implementation
 
-function TGuiObject.getWidth:single;
+function TGUIObject.getWidth:single;
 begin
   result:=2;
 end;
 
-function TGuiObject.getHeight:single;
+function TGUIObject.getHeight:single;
 begin
   result:=2;
 end;
 
-function TGuiObject.mhandler(sender: TObject; meventtype: integer; Button: TMouseButton; Shift: TShiftState; mX, mY: Integer): boolean;
+function TGUIObject.mhandler(sender: TObject; meventtype: integer; Button: TMouseButton; Shift: TShiftState; mX, mY: Integer): boolean;
 begin
   //default behavior: Check the loaded image. Check the alpha channel value. if >50% transparant then do not handle it
 
@@ -44,7 +44,7 @@ begin
   result:=false;
 end;
 
-constructor TGuiObject.create(owner: TGamePanel; zpos: integer);
+constructor TGUIObject.create(owner: TGamePanel; zpos: integer);
 begin
   if owner<>nil then
     owner.AddMouseEventHandler(@mhandler, zpos);

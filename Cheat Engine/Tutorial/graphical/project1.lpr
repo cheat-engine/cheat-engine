@@ -9,7 +9,7 @@ uses
   Interfaces, // this includes the LCL widgetset
   Forms, sysutils, fpvectorialpkg, Unit1, gamepanel, renderobject, player, gameobject,
   animationobject, guiobject, scoreboard, guitextobject, target, bullet,
-  guidialog, globals
+  guidialog, globals, staticguiobject
   { you can add units after this };
 
 {$R *.res}

@@ -4,7 +4,7 @@ unit Unit1;
 
 interface
 
-//tutorial step1: player and target, 1 single bullet at a time.
+//tutorial step1: player and target
 //the player has an ammo capacity of  5 bullets, and the target heals itself each time the player reloads
 //each bullet does 10 damage, and the target has 100 health...
 
@@ -12,7 +12,8 @@ interface
 
 uses
   windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
-  GamePanel, renderobject,glext, GL,glu, player,scoreboard, target, bullet, guitextobject;
+  GamePanel, renderobject,glext, GL,glu, player,scoreboard, target, bullet, guitextobject,
+  staticguiobject;
 
 type
 
@@ -34,6 +35,7 @@ type
     lasttick: qword;
 
     reloading: qword;
+    reloadingtargetstarthp: integer;
     shotsfired: integer;
 
     lastshot: qword;
@@ -41,6 +43,9 @@ type
     rotatedirection: single;
 
     status: TGUITextObject;
+
+    info: TGUITextObject;
+    infobutton: TStaticGUIObject;
 
     procedure renderGame(sender: TObject);
     procedure gametick(sender: TObject);
@@ -83,15 +88,17 @@ begin
     //check if done reloading
     if currenttime>(reloading+2000) then
     begin
-      status.text:=format('Ammo till reload:'#13#10'%d',[5]);
+      status.text:='Ammo till reload:'#13#10'5';
       reloading:=0;
+
+      target.health:=100;
+    end
+    else
+    begin
+      if target<>nil then
+        target.health:=reloadingtargetstarthp+trunc((currenttime-reloading)/2000*(100-reloadingtargetstarthp));
     end;
   end;
-
-
-
-
-
 
   if player<>nil then
   begin
@@ -133,6 +140,14 @@ begin
     if bullets[i]<>nil then
       bullets[i].render;
 
+  if info<>nil then
+    info.render
+  else
+  begin
+    if infobutton<>nil then
+      infobutton.render;
+  end;
+
   status.render;
 end;
 
@@ -171,8 +186,8 @@ begin
           begin
 
             reloading:=ct;
-            if target<>nil then target.health:=100;
-            //create a reloading progressbar
+
+            if target<>nil then reloadingtargetstarthp:=target.health; //heal in 2 seconds
 
             status.text:='<RELOADING>';
             shotsfired:=0;
@@ -241,7 +256,21 @@ begin
   status.bcolor:=clgreen;
 
   status.text:='Ammo till reload:'#13#10'5';
+ {
 
+  info:=TGUITextObject.create;
+  info.x:=0;
+  info.y:=0;
+  info.color:=clBlack;
+  info.bcolor:=clWhite;
+  info.text:='Step 1:'#13#10'Every 5 shots you have to reload, and the target will heal'#1310'Try to find a way to destroy the target';
+
+  }
+
+  infobutton:=TStaticGUIObject.create(p,'infobutton.png',0.1,0.1);
+  infobutton.rotationpoint.y:=1;  //so the bottom will be the y pos
+  infobutton.x:=-1;
+  infobutton.y:=1;
 
 
   lasttick:=GetTickCount64;
