@@ -60,6 +60,7 @@ begin
 
       ppos:=TGamePanel(sender).GamePosToPixelPos(-1+(gamepos.x-objectx), -1+(gamepos.y-objecty));
 
+      pp:=img.RawImage.Data;
 
       if (pp[img.width*ppos.x+ppos.y] shr 24)>127 then
         result:=true;
