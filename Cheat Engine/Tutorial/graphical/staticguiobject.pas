@@ -15,7 +15,7 @@ type
     fheight, fwidth: single;
     ftexture: integer;
     img: TPortableNetworkGraphic;
-
+    fOnClick: TNotifyEvent;
   protected
     function getTexture: integer; override;
     function getWidth:single; override;
@@ -24,6 +24,8 @@ type
   public
     constructor create(owner: TGamePanel; image: string; h,w: single);
     destructor destroy; override;
+
+    property OnClick: TNotifyEvent read fOnClick write fOnClick;
   end;
 
 
@@ -58,12 +60,16 @@ begin
       iw:=img.width;
       ih:=img.height;
 
-      ppos:=TGamePanel(sender).GamePosToPixelPos(-1+(gamepos.x-objectx), -1+(gamepos.y-objecty));
+      ppos:=TGamePanel(sender).GamePosToPixelPos(-1+(gamepos.x-objectx)*2, -1+(gamepos.y-objecty)*2);
 
-      pp:=img.RawImage.Data;
+      pp:=pdword(img.RawImage.Data);
 
-      if (pp[img.width*ppos.x+ppos.y] shr 24)>127 then
+      if (pp[iw*ppos.y+ppos.x] shr 24)>127 then
+      begin
         result:=true;
+        if assigned(fOnClick) then
+          fOnClick(self);
+      end;
     end;
   end;
 end;
