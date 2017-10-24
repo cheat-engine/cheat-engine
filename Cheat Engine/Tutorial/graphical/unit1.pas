@@ -25,6 +25,7 @@ type
     procedure FormShow(Sender: TObject);
   private
     { private declarations }
+    p: TGamePanel;
     player: TPlayer;
 
     target: Ttarget;
@@ -47,6 +48,9 @@ type
     info: TGUITextObject;
     infobutton: TStaticGUIObject;
 
+    function infoPopup(sender: tobject): boolean;
+    function HideInfo(sender: tobject): boolean;
+
     procedure renderGame(sender: TObject);
     procedure gametick(sender: TObject);
     function KeyHandler(TGamePanel: TObject; keventtype: integer; Key: Word; Shift: TShiftState):boolean;
@@ -67,6 +71,34 @@ implementation
 procedure TForm1.FormCreate(Sender: TObject);
 begin
 
+end;
+
+function TForm1.HideInfo(sender: tobject): boolean;
+begin
+  freeandnil(info);
+  result:=true;
+end;
+
+function TForm1.infoPopup(sender: tobject): boolean;
+begin
+  if info<>nil then exit(false);
+
+  info:=TGUITextObject.create(p);
+  info.firstTextBecomesMinWidth:=true;
+  info.width:=0.8;
+  info.height:=0.8;
+  info.x:=0;
+  info.y:=0;
+  info.rotationpoint.x:=0;
+  info.rotationpoint.y:=0;
+  info.color:=clBlack;
+  info.bcolor:=clWhite;
+  info.backgroundAlpha:=190;
+  info.font.Size:=9;
+  info.text:='Step 1:'#13#10'Every 5 shots you have to reload, after which the target will heal'#13#10'Try to find a way to destroy the target';
+
+  info.OnClick:=@HideInfo;
+  result:=true;
 end;
 
 procedure TForm1.gametick(sender:TObject);
@@ -217,7 +249,6 @@ begin
 end;
 
 procedure TForm1.FormShow(Sender: TObject);
-var p: TGamePanel;
 begin
   p:=TGamePanel.Create(Self);
   p.OnGameRender:=@renderGame;
@@ -256,21 +287,13 @@ begin
   status.bcolor:=clgreen;
 
   status.text:='Ammo till reload:'#13#10'5';
- {
-
-  info:=TGUITextObject.create;
-  info.x:=0;
-  info.y:=0;
-  info.color:=clBlack;
-  info.bcolor:=clWhite;
-  info.text:='Step 1:'#13#10'Every 5 shots you have to reload, and the target will heal'#1310'Try to find a way to destroy the target';
-
-  }
 
   infobutton:=TStaticGUIObject.create(p,'infobutton.png',0.1,0.1);
   infobutton.rotationpoint.y:=1;  //so the bottom will be the y pos
   infobutton.x:=-1;
   infobutton.y:=1;
+
+  infobutton.OnClick:=@infopopup;
 
 
   lasttick:=GetTickCount64;

@@ -26,6 +26,7 @@ type
     fwidth, fheight: single;
     fLineSpacing: integer;
     fbackgroundAlpha: byte;
+    fKeepAspectRatio: boolean;
     procedure setFont(f: tfont);
   protected
     function getTexture: integer; override;
@@ -47,6 +48,7 @@ type
     property color: tcolor read fforegroundcolor write fforegroundcolor;
     property bcolor: tcolor read fbackgroundcolor write fbackgroundcolor;
     property backgroundAlpha: byte read fbackgroundAlpha write fbackgroundAlpha default 0;
+    property keepAspectRatio: boolean read fKeepAspectRatio write fkeepAspectRatio;
   end;
 
 implementation
@@ -90,6 +92,8 @@ var
   sl: tstringlist;
 
   ba: dword;
+
+  ar: single;
 begin
   if ftext<>text then
   begin
@@ -121,16 +125,36 @@ begin
       minheight:=th;
 
 
+    if fKeepAspectRatio then
+    begin
+      tw:=max(minWidth,tw);
+      th:=max(minHeight,th);
 
-    img.width:=max(minWidth,tw);
-    img.Height:=max(minHeight,th);
+      //increase tw and th to the aspect ratio given
+      ar:=height/width;
+      i:=trunc(tw*ar);
+      th:=max(i,th);
+
+      ar:=width/height;
+      i:=trunc(th*ar);
+      tw:=max(i,tw);
+
+      img.width:=max(minWidth,tw);
+      img.Height:=max(minHeight,th);
+
+    end
+    else
+    begin
+      img.width:=max(minWidth,tw);
+      img.Height:=max(minHeight,th);
+    end;
     img.canvas.font.Color:=fforegroundcolor;
     img.canvas.Brush.Color:=fbackgroundcolor; //will be made transparant
     img.Canvas.FillRect(0,0,img.width, img.height);
 
     backgroundcolorbgr:=ColorToRGB(fbackgroundcolor);
 
-    backgroundcolorbgr:=((backgroundcolorbgr shl 16) and $ff)+((backgroundcolorbgr shr 16) and $ff0000)+(backgroundcolorbgr and $ff00);
+    backgroundcolorbgr:=((backgroundcolorbgr shr 16) and $ff)+((backgroundcolorbgr shl 16) and $ff0000)+(backgroundcolorbgr and $ff00);
 
    // backgroundcolorbgr:=Swap(backgroundcolorbgr);
 
@@ -210,6 +234,8 @@ begin
 
   ffont:=TFont.Create;
   ffont.Quality:=fqNonAntialiased;
+
+  fkeepAspectRatio:=true;
 
   backgroundAlpha:=0;
 end;

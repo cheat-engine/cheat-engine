@@ -7,22 +7,33 @@ unit guiobject;
 interface
 
 uses
-  Classes, SysUtils, controls, renderobject, gamepanel;
+  Classes, SysUtils, controls, renderobject, gamepanel, types;
 
 type
+  TNotifyEventF=function(sender: TObject): boolean of object;
   TGUIObject=class(TRenderObject)
   private
     fOwner: TGamePanel;
+
   protected
+    fOnClick: TNotifyEventF;
     function getWidth:single; override;
     function getHeight:single; override;
-
+    function getTopLeftCorner: tpointf;
     function mhandler(sender: TObject; meventtype: integer; Button: TMouseButton; Shift: TShiftState; mX, mY: Integer): boolean; virtual;
   public
     constructor create(owner: TGamePanel=nil; zpos: integer=-1);
+    property OnClick: TNotifyEventF read fOnClick write fOnClick;
   end;
 
 implementation
+
+function TGUIObject.getTopLeftCorner: TPointF;
+begin
+  //only functions when no rotation is applied
+  result.x:=x-(width/2)*(rotationpoint.x+1);
+  result.y:=y-(height/2)*(rotationpoint.y+1);
+end;
 
 function TGUIObject.getWidth:single;
 begin
@@ -35,11 +46,19 @@ begin
 end;
 
 function TGUIObject.mhandler(sender: TObject; meventtype: integer; Button: TMouseButton; Shift: TShiftState; mX, mY: Integer): boolean;
+var gamepos, objectpos: tpointf;
 begin
-  //default behavior: Check the loaded image. Check the alpha channel value. if >50% transparant then do not handle it
+  if meventtype=0 then
+  begin
+    gamepos:=TGamePanel(sender).PixelPosToGamePos(mx,my);
+    objectpos:=getTopLeftCorner;
 
-  //get the x,y coordinate of the render object
-
+    if (gamepos.x>=objectpos.x) and (gamepos.x<objectpos.x+width) and (gamepos.y>=objectpos.y) and (gamepos.y<objectpos.y+height) then
+    begin
+      if assigned(fOnClick) then
+        exit(fOnClick(self));
+    end;
+  end;
 
   result:=false;
 end;

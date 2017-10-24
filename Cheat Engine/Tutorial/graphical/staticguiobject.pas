@@ -15,7 +15,6 @@ type
     fheight, fwidth: single;
     ftexture: integer;
     img: TPortableNetworkGraphic;
-    fOnClick: TNotifyEvent;
   protected
     function getTexture: integer; override;
     function getWidth:single; override;
@@ -24,8 +23,6 @@ type
   public
     constructor create(owner: TGamePanel; image: string; h,w: single);
     destructor destroy; override;
-
-    property OnClick: TNotifyEvent read fOnClick write fOnClick;
   end;
 
 
@@ -34,6 +31,7 @@ implementation
 function TStaticGUIObject.mhandler(sender: TObject; meventtype: integer; Button: TMouseButton; Shift: TShiftState; mX, mY: Integer): boolean;
 var gamepos: TPointF;
 
+  objectpos: TPointF;
   objectx: single;
   objecty: single;
   pp: pdword;
@@ -42,14 +40,19 @@ var gamepos: TPointF;
   iw,ih: integer;
 begin
   //convert the x and y coords to screen coords
+  result:=false;
 
   if meventtype=0 then
   begin
+    //I could use the default gui mhandler, but this lets me be more picky about the transparent spots
+    objectPos:=getTopLeftCorner;
+
     gamepos:=TGamePanel(sender).PixelPosToGamePos(mx,my);
 
     //convert x,y pos to actual x,y pos based on rotationpoint (currenty no rotation support for gui objects)
-    objectx:=x-(width/2)*(rotationpoint.x+1);
-    objecty:=y-(height/2)*(rotationpoint.y+1);
+    objectpos:=getTopLeftCorner;
+    objectx:=objectpos.x; //x-(width/2)*(rotationpoint.x+1);
+    objecty:=objectpos.y; //y-(height/2)*(rotationpoint.y+1);
 
     if (gamepos.x>=objectx) and (gamepos.x<objectx+width) and (gamepos.y>=objecty) and (gamepos.y<objecty+height) then
     begin
@@ -66,9 +69,8 @@ begin
 
       if (pp[iw*ppos.y+ppos.x] shr 24)>127 then
       begin
-        result:=true;
         if assigned(fOnClick) then
-          fOnClick(self);
+          exit(fOnClick(self));
       end;
     end;
   end;
