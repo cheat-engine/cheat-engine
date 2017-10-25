@@ -148,6 +148,9 @@ begin
         if target.health<=0 then
         begin
           freeandnil(target);
+          //win
+          showmessage('you win.  Todo: show something better than this and go to the next step');
+          ExitProcess(1);
         end;
 
         freeandnil(bullets[i]);
