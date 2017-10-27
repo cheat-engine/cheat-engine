@@ -117,6 +117,9 @@ begin
 
   if reloading<>0 then
   begin
+    if target<>nil then
+      target.health:=reloadingtargetstarthp+trunc((currenttime-reloading)/2000*(100-reloadingtargetstarthp));
+
     //check if done reloading
     if currenttime>(reloading+2000) then
     begin
@@ -124,11 +127,7 @@ begin
       reloading:=0;
 
       target.health:=100;
-    end
-    else
-    begin
-      if target<>nil then
-        target.health:=reloadingtargetstarthp+trunc((currenttime-reloading)/2000*(100-reloadingtargetstarthp));
+      target.shielded:=false;
     end;
   end;
 
@@ -144,7 +143,9 @@ begin
 
       if (target<>nil) and bullets[i].checkCollision(target) then //perhaps use a vector based on old x,y and new x,y
       begin
-        target.health:=target.health-10;
+        if reloading=0 then
+          target.health:=target.health-24;
+
         if target.health<=0 then
         begin
           freeandnil(target);
@@ -222,7 +223,11 @@ begin
 
             reloading:=ct;
 
-            if target<>nil then reloadingtargetstarthp:=target.health; //heal in 2 seconds
+            if target<>nil then
+            begin
+              reloadingtargetstarthp:=target.health;
+              target.shielded:=true;
+            end;
 
             status.text:='<RELOADING>';
             shotsfired:=0;

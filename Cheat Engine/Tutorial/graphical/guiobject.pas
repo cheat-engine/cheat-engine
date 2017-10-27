@@ -23,6 +23,7 @@ type
     function mhandler(sender: TObject; meventtype: integer; Button: TMouseButton; Shift: TShiftState; mX, mY: Integer): boolean; virtual;
   public
     constructor create(owner: TGamePanel=nil; zpos: integer=-1);
+    destructor destroy; override;
     property OnClick: TNotifyEventF read fOnClick write fOnClick;
   end;
 
@@ -65,10 +66,17 @@ end;
 
 constructor TGUIObject.create(owner: TGamePanel; zpos: integer);
 begin
+  fowner:=owner;
   if owner<>nil then
     owner.AddMouseEventHandler(@mhandler, zpos);
 
   inherited create;
+end;
+
+destructor TGUIObject.destroy;
+begin
+  fowner.RemoveMouseEventHandler(@mhandler);
+  inherited destroy;
 end;
 
 end.

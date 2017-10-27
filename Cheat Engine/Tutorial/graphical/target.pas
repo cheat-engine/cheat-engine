@@ -13,9 +13,14 @@ type
   TTarget=class(TGameObject)  //tutorial step 1. Targets have their own health (so not a TGameObjectWithHealth)
   private
     instances: integer; static;
-    ftexture: integer; static;
+    ftextures: record
+      normal: integer;
+      shielded: integer;
+    end; static;
     fwidth: single; static;
     fheight: single; static;
+
+    fShielded: boolean;
 
     healthbar: THealthbar;
     fhealth: integer;
@@ -27,6 +32,7 @@ type
     function getTexture: integer; override;
   public
     property health: integer read fhealth write setHealth;
+    property shielded: boolean read fShielded write fShielded;
     constructor create;
     destructor destroy; override;
   end;
@@ -52,7 +58,10 @@ end;
 
 function TTarget.getTexture: integer;
 begin
-  result:=ftexture;
+  if fshielded then
+    result:=ftextures.shielded
+  else
+    result:=ftextures.normal;
 
 
 end;
@@ -64,16 +73,13 @@ begin
   inherited create;
   if instances=0 then
   begin
-    glGenTextures(1, @ftexture);
+    glGenTextures(2, @ftextures);
 
     img:=tpicture.Create;
     img.LoadFromFile(assetsfolder+'target.png');
 
-
-    glBindTexture(GL_TEXTURE_2D, ftexture);
+    glBindTexture(GL_TEXTURE_2D, ftextures.normal);
     glActiveTexture(GL_TEXTURE0);
-
-    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 2, 2, 0, GL_RGB, GL_FLOAT, @pixels[0]);
 
     pp:=img.BITMAP.RawImage.Data;
 
@@ -83,6 +89,21 @@ begin
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    img.LoadFromFile(assetsfolder+'shieldedtarget.png');
+
+    glBindTexture(GL_TEXTURE_2D, ftextures.shielded);
+    glActiveTexture(GL_TEXTURE0);
+
+    pp:=img.BITMAP.RawImage.Data;
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.Width, img.height, 0, GL_BGRA,  GL_UNSIGNED_BYTE, pp);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
 
     img.free;
 
@@ -105,7 +126,7 @@ destructor TTarget.destroy;
 begin
   dec(instances);
   if instances=0 then //destroy the texture
-    glDeleteTextures(1,@ftexture);
+    glDeleteTextures(2,@ftextures);
 
 
   if healthbar<>nil then
