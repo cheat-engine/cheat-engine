@@ -4441,9 +4441,17 @@ begin
 
 
     if VarType.itemindex=10 then
-      createGroupConfigButton
+    begin
+      createGroupConfigButton;
+      scantype.Visible:=false;
+      lblscantype.Visible:=false;
+    end
     else
+    begin
       destroyGroupConfigButton;
+      scantype.Visible:=true;
+      lblscantype.Visible:=true;
+    end;
 
     UpdateScanType;
 
