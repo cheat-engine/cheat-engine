@@ -2506,7 +2506,11 @@ begin
               begin
                 //try allocating until a memory region has been found (e.g due to quick allocating by the game)
                 allocs[j].address:=ptrUint(virtualallocex(processhandle,FindFreeBlockForRegion(prefered,x),x, MEM_RESERVE or MEM_COMMIT,page_execute_readwrite));
-                if allocs[j].address=0 then OutputDebugString(rsFailureToAllocateMemory+' 1');
+                if allocs[j].address=0 then
+                begin
+                  OutputDebugString(rsFailureToAllocateMemory+' 1');
+                  inc(prefered,65536);
+                end;
 
                 dec(k);
               end;
@@ -2553,7 +2557,7 @@ begin
           allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,page_execute_readwrite));
           if allocs[j].address=0 then
           begin
-            OutputDebugString(rsFailureToAllocateMemory+' 3');
+            OutputDebugString(rsFailureToAllocateMemory+' 3 (prefered='+inttohex(prefered,8)+')');
             inc(prefered, 65536);
           end;
           dec(k);
