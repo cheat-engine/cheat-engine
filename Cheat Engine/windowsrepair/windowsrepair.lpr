@@ -68,6 +68,6 @@ begin
   finally
     reg.free;
   end;
-  messagebox(0,'try running Cheat Engine now', 'fix execution',0);
+  messagebox(0,'Your windows install should be repaired. Try running Cheat Engine now', 'Windows Repair (CE)',0);
 end.
 
