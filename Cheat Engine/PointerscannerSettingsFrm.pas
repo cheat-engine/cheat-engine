@@ -1302,7 +1302,7 @@ begin
       warnedAboutDisablingInstantRescan:=reg.ReadBool('warnedAboutDisablingInstantRescan');
 
     if reg.ValueExists('MaxOffsetsPerNode Checked') then
-      cbMaxOffsetsPerNode.checked:=reg.ReadBool('cbMaxOffsetsPerNode.checked');
+      cbMaxOffsetsPerNode.checked:=reg.ReadBool('MaxOffsetsPerNode Checked');
 
     if reg.ValueExists('MaxOffsetsPerNode Value') then
       edtMaxOffsetsPerNode.Text:=inttostr(reg.ReadInteger('MaxOffsetsPerNode Value'));
