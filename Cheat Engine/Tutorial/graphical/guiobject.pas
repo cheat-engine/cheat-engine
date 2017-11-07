@@ -75,7 +75,9 @@ end;
 
 destructor TGUIObject.destroy;
 begin
-  fowner.RemoveMouseEventHandler(@mhandler);
+  if fowner<>nil then
+    fowner.RemoveMouseEventHandler(@mhandler);
+
   inherited destroy;
 end;
 

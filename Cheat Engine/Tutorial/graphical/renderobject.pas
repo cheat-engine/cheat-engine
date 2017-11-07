@@ -29,6 +29,7 @@ type
 
     procedure render; virtual;
     procedure addChild(child: TRenderObject);
+    procedure removeChild(child: TRenderObject);
 
     property width: single read getWidth write setWidth;
     property height: single read getHeight write setHeight;
@@ -52,6 +53,19 @@ procedure TRenderObject.addChild(child: TRenderObject);
 begin
   setlength(children, length(children)+1);
   children[length(children)-1]:=child;
+end;
+
+procedure TRenderObject.removeChild(child: TRenderObject);
+var i,j: integer;
+begin
+  for i:=0 to length(children)-1 do
+    if children[i]=child then
+    begin
+      for j:=i to length(children)-2 do
+        children[j]:=children[j+1];
+
+      setlength(children, length(children)-1);
+    end;
 end;
 
 procedure TRenderObject.renderRelative;

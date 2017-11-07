@@ -36,7 +36,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="15">
+    <Units Count="21">
       <Unit0>
         <Filename Value="project1.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -101,6 +101,33 @@
         <Filename Value="globals.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit14>
+      <Unit15>
+        <Filename Value="staticguiobject.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit15>
+      <Unit16>
+        <Filename Value="gametutorial1.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="GameTutorial1"/>
+      </Unit16>
+      <Unit17>
+        <Filename Value="gamebase.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="GameBase"/>
+      </Unit17>
+      <Unit18>
+        <Filename Value="gametutorial2.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="GameTutorial2"/>
+      </Unit18>
+      <Unit19>
+        <Filename Value="playerwithhealth.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit19>
+      <Unit20>
+        <Filename Value="gameobjectwithhealth.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit20>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

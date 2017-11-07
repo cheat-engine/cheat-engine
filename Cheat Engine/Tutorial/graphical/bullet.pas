@@ -12,20 +12,31 @@ type
   private
     instances2: integer; static;
     ftexture2: integer; static;
+    fowner: TGameObject;
   protected
     function getWidth:single; override;
     function getHeight:single; override;
     function getTexture: integer; override;
   public
     speed: single; //distance / ms
+    damage: integer;
+    function checkCollision(other: TGameObject): boolean; override;
 
     procedure travel(time: single);
-    constructor create;
+    constructor create(owner: TGameObject);
     destructor destroy; override;
   end;
 
 
 implementation
+
+function TBullet.checkCollision(other: TGameObject): boolean;
+begin
+  if other=fowner then
+    result:=false
+  else
+    result:=inherited checkCollision(other);
+end;
 
 procedure TBullet.travel(time:single);
 var
@@ -56,11 +67,13 @@ begin
   result:=ftexture2;
 end;
 
-constructor TBullet.create;
+constructor TBullet.create(owner: TGameObject);
 var img: tpicture;
   pp: pointer;
 begin
   inherited create;
+
+  fowner:=owner;
 
   speed:=0.001;
   if instances2=0 then

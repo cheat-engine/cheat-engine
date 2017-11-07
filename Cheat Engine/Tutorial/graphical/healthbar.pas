@@ -127,7 +127,7 @@ end;
 
 procedure THealthBar.render;
 begin
-  raise exception.create('Do not call render on THealthBar objects');
+  renderRelative; // raise exception.create('Do not call render on THealthBar objects');
 end;
 
 constructor THealthBar.create;

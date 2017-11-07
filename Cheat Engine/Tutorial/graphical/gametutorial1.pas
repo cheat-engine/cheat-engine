@@ -1,5 +1,12 @@
 unit GameTutorial1;
 
+
+//tutorial step1: player and target
+//the player has an ammo capacity of  5 bullets, and the target heals itself each time the player reloads
+
+//the task: destroy the target.  (e.g add more bullets, make the bullets do more damage, change to code to instant kill, jump to the success code, ...)
+
+
 {$mode objfpc}{$H+}
 
 interface
@@ -62,7 +69,7 @@ begin
         if bullets[i]=nil then
         begin
           //create a bullet
-          bullets[i]:=tbullet.create;
+          bullets[i]:=tbullet.create(player);
           bullets[i].x:=player.x;
           bullets[i].y:=player.y;
           bullets[i].rotation:=player.rotation;
@@ -171,8 +178,9 @@ begin
         begin
           freeandnil(target);
           //win
-          showmessage('you win.  Todo: show something better than this and go to the next step');
-          ExitProcess(1);
+
+          showmessage('well done');
+          gamewon();
         end;
 
         freeandnil(bullets[i]);
@@ -247,13 +255,6 @@ begin
   target.x:=0;
   target.y:=-0.8;
   target.health:=100;
-
-  //create a gui
-  {
-  scoreboard:=TScoreBoard.create(p);
-  scoreboard.x:=-1;
-  scoreboard.y:=-1;
-  }
 
   status:=TGUITextObject.create;
   status.firstTextBecomesMinWidth:=true;

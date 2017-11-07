@@ -4,16 +4,10 @@ unit Unit1;
 
 interface
 
-//tutorial step1: player and target
-//the player has an ammo capacity of  5 bullets, and the target heals itself each time the player reloads
-//each bullet does 10 damage, and the target has 100 health...
-
-//the task: destroy the target.  (e.g add more bullets, make the bullets do more damage, change to code to instant kill, jump to the success code, ...)
-
 uses
   windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
   GamePanel, renderobject,glext, GL,glu, player,scoreboard, target, bullet, guitextobject,
-  staticguiobject, gamebase, gametutorial1;
+  staticguiobject, gamebase, gametutorial1, gametutorial2;
 
 type
 
@@ -27,11 +21,9 @@ type
     p: TGamePanel;
     currentGame: TGameBase;
 
-
-
-   // scoreboard: Tscoreboard;
-
     lasttick: qword;
+
+    procedure startgame2(sender: TObject);
 
     procedure renderGame(sender: TObject);
     procedure gametick(sender: TObject);
@@ -66,8 +58,6 @@ procedure TForm1.renderGame(sender: TObject);
 begin
   if currentgame<>nil then
     currentgame.render;
-
-
 end;
 
 function TForm1.KeyHandler(GamePanel: TObject; keventtype: integer; Key: Word; Shift: TShiftState):boolean;
@@ -78,6 +68,16 @@ begin
     result:=false;
 end;
 
+procedure TForm1.startgame2(sender: TObject);
+begin
+  if currentgame<>nil then
+    freeandnil(currentGame);
+
+  caption:='Step 2';
+  currentgame:=TGame2.create(p);
+  //currentgame.OnWin:=@finishtutorial;
+end;
+
 procedure TForm1.FormShow(Sender: TObject);
 begin
   p:=TGamePanel.Create(Self);
@@ -86,8 +86,10 @@ begin
   p.Align:=alClient;
   p.parent:=self;
 
-  currentGame:=TGame1.create(p);
+ // currentGame:=TGame1.create(p);
+ // currentGame.OnWin:=@startGame2;
 
+ currentGame:=TGame2.create(p);
 
   p.AddKeyEventHandler(@keyhandler);
   lasttick:=GetTickCount64;
