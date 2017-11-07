@@ -27,6 +27,7 @@ UINT64 PhysicalMemoryRangesListSize=0;
 #if (NTDDI_VERSION >= NTDDI_VISTA)
 PVOID DRMHandle = NULL;
 PEPROCESS DRMProcess = NULL;
+PEPROCESS DRMProcess2 = NULL;
 #endif
 
 PSERVICE_DESCRIPTOR_TABLE KeServiceDescriptorTableShadow=NULL;
@@ -180,7 +181,7 @@ OB_PREOP_CALLBACK_STATUS ThreadPreCallback(PVOID RegistrationContext, POB_PRE_OP
 	if (OperationInformation->ObjectType == *PsThreadType)
 	{
 
-		if (PsGetProcessId(DRMProcess) == PsGetThreadProcessId(OperationInformation->Object))
+		if ((PsGetProcessId(DRMProcess) == PsGetThreadProcessId(OperationInformation->Object)) || (PsGetProcessId(DRMProcess2) == PsGetThreadProcessId(OperationInformation->Object)))
 		{
 			//probably block it
 
@@ -228,7 +229,7 @@ OB_PREOP_CALLBACK_STATUS ProcessPreCallback(PVOID RegistrationContext, POB_PRE_O
 
 	if (OperationInformation->ObjectType == *PsProcessType)
 	{
-		if (OperationInformation->Object == DRMProcess)
+		if ((OperationInformation->Object == DRMProcess) || (OperationInformation->Object == DRMProcess2))
 		{
 			//probably block it
 
@@ -2242,23 +2243,44 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				break;
 			}
 
+
 		case IOCTL_CE_ENABLE_DRM:
 			{
 #if (NTDDI_VERSION >= NTDDI_VISTA)				
 				struct
 				{
 					QWORD PreferedAltitude;
-					QWORD ProtectedProcess;					
+					QWORD ProtectedProcess;									
 				} *inp = Irp->AssociatedIrp.SystemBuffer;
+
+	
 				
 				DbgPrint("inp->PreferedAltitude=%p", inp->PreferedAltitude);
 				DbgPrint("inp->PreferedAltitude=%p", inp->ProtectedProcess);
-				if (inp->ProtectedProcess)				
-					DRMProcess = inp->ProtectedProcess;
-				else
-					DRMProcess = PsGetCurrentProcess();
 
+				
+				if (DRMProcess)
+				{
+					//check if this process has been terminated
+					LARGE_INTEGER timeout;
+
+					timeout.QuadPart = -500000;
+					ntStatus=KeWaitForSingleObject(DRMProcess, UserRequest, UserMode, FALSE, &timeout);
+
+					if (ntStatus != STATUS_SUCCESS)
+						break;					
+				}
+
+				DRMProcess = PsGetCurrentProcess();
+
+				if (inp->ProtectedProcess)
+				{
+					if (DRMProcess != (PEPROCESS)((UINT_PTR)inp->ProtectedProcess))						
+						DRMProcess2 = (PEPROCESS)((UINT_PTR)inp->ProtectedProcess);
+				}
+					
 				DbgPrint("DRMProcess=%p", DRMProcess);
+				DbgPrint("DRMProcess2=%p", DRMProcess2);
 
 				if (DRMHandle == NULL)
 				{
@@ -2267,7 +2289,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 					OB_CALLBACK_REGISTRATION r;
 					LARGE_INTEGER tc;
 					OB_OPERATION_REGISTRATION obr[2];
-					int RandomVal = inp->PreferedAltitude;
+					int RandomVal = (int)(inp->PreferedAltitude);
 					int trycount = 0;
 
 					if (RandomVal == 0)
