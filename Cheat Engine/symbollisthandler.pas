@@ -61,6 +61,10 @@ type
     parameters: TExtraSymbolDataEntryList;
     locals: TExtraSymbolDataEntryList;
 
+    forwarder: boolean;
+    forwardsTo: ptruint;
+    forwardsToString: string;
+
     constructor create;
     destructor destroy; override;
   end;

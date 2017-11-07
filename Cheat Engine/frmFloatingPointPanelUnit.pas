@@ -13,7 +13,7 @@ uses
   Dialogs, StdCtrls, ExtCtrls, cefuncproc, ComCtrls, LResources, NewKernelHandler, commonTypeDefs;
 
 resourcestring
-  rsFPPExtended = 'Extended';
+  rsFPPExtended = 'Extended (default)';
 
 type
 
@@ -122,10 +122,13 @@ begin
     case combobox3.ItemIndex of
       0: //fpu
       begin
-
-
         if combobox2.Items.Count=6 then
-          combobox2.Items.Add(rsFPPExtended);
+        begin
+          combobox2.Items.Add(rsFPPExtended);    //make it the default selection
+          combobox2.OnSelect:=nil;
+          combobox2.itemindex:=6;
+          combobox2.OnSelect:=ComboBox1Select;
+        end;
 
         for i:=0 to 7 do
         begin
@@ -194,7 +197,11 @@ begin
         if combobox2.Items.Count>6 then
         begin
           if combobox2.ItemIndex=6 then
+          begin
+            combobox2.OnSelect:=nil;
             combobox2.ItemIndex:=5;
+            combobox2.OnSelect:=combobox1select;
+          end;
 
           combobox2.Items.Delete(6);
         end;

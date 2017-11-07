@@ -890,7 +890,7 @@ begin
   {$IFNDEF UNIX}
   for i:=0 to self.symbollist.ExtraSymbolDataList.Count-1 do
   begin
-    if (not self.symbollist.ExtraSymbolDataList[i].filledin) and (self.symbollist.ExtraSymbolDataList[i].symboladdress<>0) then
+    if (not self.symbollist.ExtraSymbolDataList[i].forwarder) and (not self.symbollist.ExtraSymbolDataList[i].filledin) and (self.symbollist.ExtraSymbolDataList[i].symboladdress<>0) then
     begin
       //get the data
       if terminated then exit;
@@ -946,6 +946,22 @@ begin
     extraSymbolData:=nil;
 
   //don't add if it's a forwarder, but register a userdefined symbol
+
+
+  if (SYMFLAG_FORWARDER and pSymInfo.Flags)<>0 then
+  begin
+    extraSymbolData:=TExtraSymbolData.create;
+    self.symbollist.AddExtraSymbolData(extraSymbolData);
+    extraSymbolData.symboladdress:=pSymInfo.Address;
+    extraSymbolData.forwarder:=true;
+  end;
+
+  {if (uppercase(self.currentModuleName)='KERNEL32') and (s='HeapAlloc') then
+  begin
+    asm
+    int3
+    end;
+  end; }
 
   //if (pSymInfo.Flags and SYMFLAG_FORWARDER=0) then     //Problem: getJIT is marked as Forwarder, but it's not
   begin
@@ -2578,15 +2594,20 @@ begin
       if si.extra<>nil then
       begin
         //add the parameters if there are any
-        params:='';
-        for i:=0 to si.extra.parameters.Count-1 do
+        if si.extra.forwarder then
+          symbolname:=symbolname+' --> '+si.extra.forwardsToString
+        else
         begin
-          if i>0 then
-            params:=params+', '+ si.extra.parameters[i].vtype+' '+si.extra.parameters[i].name
-          else
-            params:=params+si.extra.parameters[i].vtype+' '+si.extra.parameters[i].name;
+          params:='';
+          for i:=0 to si.extra.parameters.Count-1 do
+          begin
+            if i>0 then
+              params:=params+', '+ si.extra.parameters[i].vtype+' '+si.extra.parameters[i].name
+            else
+              params:=params+si.extra.parameters[i].vtype+' '+si.extra.parameters[i].name;
+          end;
+          symbolname:=symbolname+'('+params+')';
         end;
-        symbolname:=symbolname+'('+params+')';
       end;
 
       list.AddObject(symbolname, pointer(si.address));
@@ -2714,7 +2735,7 @@ begin
     result:=si.extra;
   symbolloadervalid.Endread;
 
-  if (result<>nil) and (not result.filledin) then //Not yet loaded
+  if (result<>nil) and ((not result.filledin) and (not result.forwarder)) then //Not yet loaded /not a forwarder
     result:=nil;
 end;
 
@@ -3196,7 +3217,29 @@ begin
 
                 if si<>nil then
                 begin
-                  tokens[i]:=inttohex(si.address,8);
+                  if (si.extra<>nil) and (si.extra.forwarder) then
+                  begin
+                    if (si.extra.forwardsTo=0) then
+                    begin
+                      //parse the string at this address
+                      getmem(p,128);
+
+                      if not targetself then
+                        haserror:=not readprocessmemory(processhandle, pointer(si.address),p,127,br)
+                      else
+                        haserror:=not readprocessmemory(GetCurrentProcess, pointer(si.address),p,127,br);
+
+                      p[br]:=#0;
+
+                      si.extra.forwardsTo:=getAddressFromName(p, waitforsymbols, hasError, context, shallow);
+                      si.extra.forwardsToString:=p;
+                      freemem(p);
+                    end;
+
+                    tokens[i]:=inttohex(si.extra.forwardsto,8);
+                  end
+                  else
+                    tokens[i]:=inttohex(si.address,8);
                   continue;
                 end;
 
