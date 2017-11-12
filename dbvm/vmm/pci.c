@@ -79,7 +79,7 @@ void pciConfigEnumPci(void)
 
 
           //known: 9710-9865 =  serial port
-          if (VendorID==0x9710)
+          if ((VendorID==0x9710) || (VendorID==0x1415))  //1415 as well
           {
             int l;
             DWORD BAR[6];
@@ -91,7 +91,7 @@ void pciConfigEnumPci(void)
             BAR[5]=pciConfigReadDWord(i,j,k,0x24);
 
 
-            //displayline("Found one at %d , %d - Vendor ID: %x   Device ID:%x Header:%2\n",i,j,VendorID, DeviceID,Header);
+            displayline("Found one at %d , %d - Vendor ID: %x   Device ID:%x Header:%2\n",i,j,VendorID, DeviceID,Header);
             for (l=0; l<6; l++)
             {
               if (BAR[l]!=0)

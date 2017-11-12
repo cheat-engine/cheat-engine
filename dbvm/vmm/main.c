@@ -752,7 +752,7 @@ void vmm_entry(void)
   memorycloak=0;
   Password1=0x76543210; //later to be filled in by user, sector on disk, or at compile time
   Password2=0xfedcba98;
-  dbvmversion=9; //version 1 was the 32-bit only version, 2 added 32-bit, 3 had a revised int1 redirect option, 4 has major bugfixes, 5=more fixes and some basic device recog, 6=Even more compatibility fixes, rm emu, and new vmcalls, 7=driver loading , 8=amd support, 9 memory usage decrease and some fixes for newer systems
+  dbvmversion=10; //version 1 was the 32-bit only version, 2 added 32-bit, 3 had a revised int1 redirect option, 4 has major bugfixes, 5=more fixes and some basic device recog, 6=Even more compatibility fixes, rm emu, and new vmcalls, 7=driver loading , 8=amd support, 9 memory usage decrease and some fixes for newer systems, 10=xsaves (win10)
   int1redirection=1; //redirect to int vector 1 , ooh, what a weird redirection....
   int3redirection=3;
   int14redirection=14;
@@ -974,7 +974,7 @@ void vmm_entry(void)
     }
     else
     {
-      foundcpus=initAPcpus();
+      //foundcpus=initAPcpus();
 
 
       sendstringf("foundcpus=%d cpucount=%d. Waiting till cpucount==foundcpus, or timeout\n",foundcpus, cpucount);
@@ -1729,7 +1729,7 @@ void menu2(void)
             setDR0(&isAP);
             setDR6(0xffff0ff0);
             setDR7(getDR7() | (3<<18) | (3<<16) | (1<<0));
-            displayline("Goint to write to that breakpoint\n"); //NO RF
+            displayline("Going to write to that breakpoint\n"); //NO RF
 
            // bochsbp();
             isAP++;
@@ -1759,6 +1759,7 @@ void menu2(void)
 
           case '8':
           {
+            //pci enum test
             pciConfigEnumPci();
             break;
           }
