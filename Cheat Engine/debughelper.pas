@@ -210,6 +210,7 @@ var
   processinfo: windows.PROCESS_INFORMATION;
   dwCreationFlags: dword;
   error: integer;
+  hFile: HANDLE;
 
   code,data: ptrUint;
   s: tstringlist;
@@ -225,8 +226,6 @@ begin
       currentprocesid := 0;
       DebugSetProcessKillOnExit(False); //do not kill the attached processes on exit
 
-
-
       if createprocess then
       begin
         dwCreationFlags:=DEBUG_PROCESS or DEBUG_ONLY_THIS_PROCESS;
@@ -235,9 +234,6 @@ begin
         zeromemory(@processinfo,sizeof(processinfo));
 
         GetStartupInfo(@startupinfo);
-
-
-
 
         if windows.CreateProcess(
           pchar(filename),
@@ -258,7 +254,6 @@ begin
           exit;
         end;
 
-
         processhandler.processid:=processinfo.dwProcessId;
         Open_Process;
         symhandler.reinitialize(true);
@@ -278,51 +273,56 @@ begin
 
       debugging := True;
 
+      hFile := 0;
 
-      while (not terminated) and debugging do
-      begin
-
-        execlocation:=1;
-
-
-        if WaitForDebugEvent(debugEvent, 100) then
-        begin
-          ContinueStatus:=DBG_CONTINUE;
-          execlocation:=2;
-
-          if (pluginhandler<>nil) and (pluginhandler.handledebuggerplugins(@debugEvent)=1) then continue;
-
-          debugging := eventhandler.HandleDebugEvent(debugEvent, ContinueStatus);
-
-          if debugging then
+      try
+          while (not terminated) and debugging do
           begin
-            execlocation:=4;
-            if ContinueStatus=DBG_EXCEPTION_NOT_HANDLED then //this can happen when the game itself is constantly raising exceptions
-              cleanupDeletedBreakpoints(true, true); //only decrease the delete count if it's timed out (4 seconds in total)
+            execlocation:=1;
 
-            ContinueDebugEvent(debugEvent.dwProcessId, debugevent.dwThreadId, ContinueStatus);
-          end;
+            if WaitForDebugEvent(debugEvent, 100) then
+            begin
+              if(debugEvent.dwDebugEventCode = CREATE_PROCESS_DEBUG_EVENT)then
+                hFile:=debugEvent.CreateProcessInfo.hFile;
 
-          if waitafterguiupdate and guiupdate then
-          begin
-            guiupdate:=false;
-            sleep(1);
+              ContinueStatus:=DBG_CONTINUE;
+              execlocation:=2;
+
+              if (pluginhandler<>nil) and (pluginhandler.handledebuggerplugins(@debugEvent)=1) then continue;
+
+              debugging := eventhandler.HandleDebugEvent(debugEvent, ContinueStatus);
+
+              if debugging then
+              begin
+                execlocation:=4;
+                if ContinueStatus=DBG_EXCEPTION_NOT_HANDLED then //this can happen when the game itself is constantly raising exceptions
+                  cleanupDeletedBreakpoints(true, true); //only decrease the delete count if it's timed out (4 seconds in total)
+
+                ContinueDebugEvent(debugEvent.dwProcessId, debugevent.dwThreadId, ContinueStatus);
+              end;
+
+              if waitafterguiupdate and guiupdate then
+              begin
+                guiupdate:=false;
+                sleep(1);
+              end;
+            end
+            else
+            begin
+              {
+              no event has happened, for 100 miliseconds
+              Do some maintenance in here
+              }
+              //remove the breakpoints that have been unset and are marked for deletion
+              execlocation:=5;
+              cleanupDeletedBreakpoints;
+            end;
+
           end;
-        end
-        else
-        begin
-          {
-          no event has happened, for 100 miliseconds
-          Do some maintenance in here
-          }
-          //remove the breakpoints that have been unset and are marked for deletion
-          execlocation:=5;
-          cleanupDeletedBreakpoints;
+        finally
+          if(hFile <> 0)then
+            closeHandle(hFile);
         end;
-
-
-      end;
-
     except
       on e: exception do
         messagebox(0, pchar(utf8toansi(rsDebuggerCrash)+':'+e.message+rsLastLocation+inttostr(execlocation)+')'), '', 0);
