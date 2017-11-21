@@ -880,7 +880,7 @@ begin
   begin
     if (sender is TLabel) then
     begin
-      s:=tlabel(sender).Caption;
+      s:=trim(tlabel(sender).Caption);
       i:=pos(' ',s);
       if i>0 then //should always be true
       begin
