@@ -482,7 +482,6 @@ type
     procedure actOpenDissectStructureExecute(Sender: TObject);
     procedure actOpenLuaEngineExecute(Sender: TObject);
     procedure Address1Click(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
     procedure cbCodePageChange(Sender: TObject);
     procedure cbUnicodeChange(Sender: TObject);
     procedure EnableLCLClick(Sender: TObject);
@@ -490,21 +489,15 @@ type
     procedure cbUnrandomizerChange(Sender: TObject);
     procedure Description1Click(Sender: TObject);
     procedure edtAlignmentKeyPress(Sender: TObject; var Key: char);
-    procedure FormActivate(Sender: TObject);
-    procedure FormDeactivate(Sender: TObject);
     procedure FormDropFiles(Sender: TObject; const FileNames: array of string);
-    procedure Foundlist3AdvancedCustomDrawSubItem(Sender: TCustomListView;
-      Item: TListItem; SubItem: Integer; State: TCustomDrawState;
-      Stage: TCustomDrawStage; var DefaultDraw: Boolean);
+    procedure Foundlist3CustomDrawItem(Sender: TCustomListView;
+      Item: TListItem; State: TCustomDrawState; var DefaultDraw: boolean);
     procedure Foundlist3CustomDrawSubItem(Sender: TCustomListView;
       Item: TListItem; SubItem: Integer; State: TCustomDrawState;
       var DefaultDraw: Boolean);
-    procedure Foundlist3Resize(Sender: TObject);
     procedure CreateGroupClick(Sender: TObject);
     procedure Foundlist3SelectItem(Sender: TObject; Item: TListItem;
       Selected: boolean);
-    procedure Label3Click(Sender: TObject);
-    procedure Label6Click(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
     procedure miChangeValueBackClick(Sender: TObject);
     procedure miSignTableClick(Sender: TObject);
@@ -524,7 +517,6 @@ type
     procedure miOpenFileClick(Sender: TObject);
     procedure miScanPagedOnlyClick(Sender: TObject);
     procedure miSetDropdownOptionsClick(Sender: TObject);
-    procedure miSetupSnapshotKeysClick(Sender: TObject);
     procedure miShowAsSignedClick(Sender: TObject);
     procedure miShowCustomTypeDebugClick(Sender: TObject);
     procedure miShowPreviousValueClick(Sender: TObject);
@@ -571,13 +563,9 @@ type
     procedure Panel5Resize(Sender: TObject);
     procedure pmTablistPopup(Sender: TObject);
     procedure pmValueTypePopup(Sender: TObject);
-    procedure pnlScanOptionsClick(Sender: TObject);
-    procedure pnlScanOptionsResize(Sender: TObject);
     procedure rbAllMemoryChange(Sender: TObject);
     procedure rbFsmAlignedChange(Sender: TObject);
     procedure Save1Click(Sender: TObject);
-    procedure ScanTypeSelect(Sender: TObject);
-    procedure scanvalueChange(Sender: TObject);
     procedure ShowProcessListButtonClick(Sender: TObject);
     procedure btnNewScanClick(Sender: TObject);
     procedure btnNextScanClick(Sender: TObject);
@@ -586,8 +574,6 @@ type
     procedure AddressKeyPress(Sender: TObject; var Key: char);
     procedure FoundListDblClick(Sender: TObject);
     procedure Browsethismemoryarrea1Click(Sender: TObject);
-    procedure testClick(Sender: TObject);
-    procedure TrackBar1Change(Sender: TObject);
     procedure UpdateTimerTimer(Sender: TObject);
     procedure FreezeTimerTimer(Sender: TObject);
     procedure Browsethismemoryregion1Click(Sender: TObject);
@@ -600,14 +586,12 @@ type
     procedure VarTypeChange(Sender: TObject);
     procedure LogoClick(Sender: TObject);
     procedure VarTypeDropDown(Sender: TObject);
-    procedure WindowsClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure SpeedButton2Click(Sender: TObject);
     procedure SpeedButton3Click(Sender: TObject);
     procedure Selectallitems1Click(Sender: TObject);
     procedure Freezealladdresses2Click(Sender: TObject);
     procedure PopupMenu2Popup(Sender: TObject);
-    procedure Unfreezealladdresses1Click(Sender: TObject);
     procedure foundlistpopupPopup(Sender: TObject);
     procedure Removeselectedaddresses1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -637,14 +621,11 @@ type
     procedure cbCaseSensitiveClick(Sender: TObject);
     procedure LogoMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: integer);
-    procedure btnShowRegionsClick(Sender: TObject);
     procedure Findoutwhataccessesthisaddress1Click(Sender: TObject);
     procedure OpenProcesslist1Click(Sender: TObject);
     procedure CloseCheatEngine1Click(Sender: TObject);
     procedure Showashexadecimal1Click(Sender: TObject);
     procedure OpenMemorybrowser1Click(Sender: TObject);
-    procedure cbFastScanClick(Sender: TObject);
-    procedure rbAllMemoryClick(Sender: TObject);
     procedure cbPauseWhileScanningClick(Sender: TObject);
     procedure ProcessLabelDblClick(Sender: TObject);
     procedure ProcessLabelMouseDown(Sender: TObject; Button: TMouseButton;
@@ -652,8 +633,6 @@ type
     procedure cbUnrandomizerClick(Sender: TObject);
     procedure cbUnrandomizerMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: integer);
-    procedure Foundlist3CustomDrawItem(Sender: TCustomListView;
-      Item: TListItem; State: TCustomDrawState; var DefaultDraw: boolean);
     procedure actOpenExecute(Sender: TObject);
     procedure actSaveExecute(Sender: TObject);
     procedure actAutoAssembleExecute(Sender: TObject);
@@ -678,9 +657,7 @@ type
     procedure CreateProcess1Click(Sender: TObject);
     procedure Helpindex1Click(Sender: TObject);
     procedure New1Click(Sender: TObject);
-    procedure actLuaScriptExecute(Sender: TObject);
     procedure File1Click(Sender: TObject);
-    procedure Label61Click(Sender: TObject);
     procedure actOpenProcesslistExecute(Sender: TObject);
     procedure Type1Click(Sender: TObject);
   private
@@ -2092,7 +2069,6 @@ begin
   if not scanstarted then
   begin
     setGbScanOptionsEnabled(True);
-    cbFastScanClick(cbfastscan);
   end;
 
   scanvalue.Enabled := True;
@@ -2903,21 +2879,6 @@ begin
     savetable(savedialog1.FileName);
 end;
 
-procedure TMainForm.ScanTypeSelect(Sender: TObject);
-begin
-
-end;
-
-procedure TMainForm.scanvalueChange(Sender: TObject);
-begin
-
-end;
-
-procedure TMainForm.Foundlist3Resize(Sender: TObject);
-begin
-
-end;
-
 procedure TMainForm.Description1Click(Sender: TObject);
 begin
   addresslist.doDescriptionChange;
@@ -2927,16 +2888,6 @@ procedure TMainForm.edtAlignmentKeyPress(Sender: TObject; var Key: char);
 begin
   if rbFsmAligned.Checked then
     alignsizechangedbyuser := True;
-end;
-
-procedure TMainForm.FormActivate(Sender: TObject);
-begin
-
-end;
-
-procedure TMainForm.FormDeactivate(Sender: TObject);
-begin
-
 end;
 
 procedure TMainForm.FormDropFiles(Sender: TObject; const FileNames: array of string);
@@ -2951,22 +2902,28 @@ begin
   end;
 end;
 
-procedure TMainForm.Foundlist3AdvancedCustomDrawSubItem(
-  Sender: TCustomListView; Item: TListItem; SubItem: Integer;
-  State: TCustomDrawState; Stage: TCustomDrawStage; var DefaultDraw: Boolean);
+procedure TMainForm.Foundlist3CustomDrawItem(Sender: TCustomListView;
+  Item: TListItem; State: TCustomDrawState; var DefaultDraw: boolean);
+var
+  s: string;
 begin
-
+  if foundlist <> nil then
+  begin
+    if foundlist.inmodule(item.index) then
+      foundlist3.Canvas.Font.Color := clgreen
+    else
+      foundlist3.Canvas.Font.Color := GetSysColor(COLOR_WINDOWTEXT);
+  end;
 end;
 
 procedure TMainForm.Foundlist3CustomDrawSubItem(Sender: TCustomListView;
   Item: TListItem; SubItem: Integer; State: TCustomDrawState;
   var DefaultDraw: Boolean);
-
 var r: trect;
   ts: TTextStyle;
+  drawn:boolean;
 begin
-  //check if the current value is different from the previous value. (just do a bytecompare)
-
+  drawn:=false;
   if miShowPreviousValue.checked and (PreviousResults<>nil) then
   begin
     if (item.subItems[1]<>'<none>') and (item.subitems[0]<>item.subitems[1]) then
@@ -2974,22 +2931,18 @@ begin
       sender.Canvas.Font.color:=clred;
       sender.canvas.font.Style:=sender.canvas.font.Style+[fsBold];
       sender.canvas.Refresh;
+      drawn:=true;
     end;
   end;
-
-
-  defaultdraw:=true;
+  if(not drawn)then
+  begin
+    sender.Canvas.Font.color:=GetSysColor(COLOR_WINDOWTEXT);
+  end;
 end;
 
 procedure TMainForm.Address1Click(Sender: TObject);
 begin
   addresslist.doAddressChange;
-end;
-
-procedure TMainForm.Button1Click(Sender: TObject);
-begin
-
-
 end;
 
 procedure TMainForm.cbCodePageChange(Sender: TObject);
@@ -3114,16 +3067,6 @@ end;
 
 procedure TMainForm.Foundlist3SelectItem(Sender: TObject; Item: TListItem;
   Selected: boolean);
-begin
-
-end;
-
-procedure TMainForm.Label3Click(Sender: TObject);
-begin
-
-end;
-
-procedure TMainForm.Label6Click(Sender: TObject);
 begin
 
 end;
@@ -3311,11 +3254,6 @@ begin
   else
     frmSnapshotHandler.show;
 end;
-
-procedure TMainForm.miSetupSnapshotKeysClick(Sender: TObject);
-begin
-end;
-
 
 procedure TMainForm.miLockMouseInGameClick(Sender: TObject);
 begin
@@ -4401,9 +4339,6 @@ begin
       rbfsmLastDigts.checked:=true;
 
 
-
-    cbFastScanClick(cbfastscan);    //update the alignment textbox
-
     pnlfloat.Visible := newstate.floatpanel.Visible;
     rt1.Checked := newstate.floatpanel.rounded;
     rt2.Checked := newstate.floatpanel.roundedextreme;
@@ -4803,18 +4738,6 @@ begin
 
 end;
 
-procedure TMainForm.pnlScanOptionsClick(Sender: TObject);
-begin
-
-end;
-
-procedure TMainForm.pnlScanOptionsResize(Sender: TObject);
-var i: integer;
-begin
-
-end;
-
-
 procedure TMainForm.miShowCustomTypeDebugClick(Sender: TObject);
 var ct: TCustomType;
 begin
@@ -4839,8 +4762,6 @@ begin
   end;
   //foundlist3.AutoWidthLastColumn:=false;
   //foundlist3.AutoWidthLastColumn:=true;
-
-  Foundlist3Resize(Foundlist3);
 
   reg:=TRegistry.create;
   try
@@ -4913,8 +4834,6 @@ begin
 
   //enable the memory scan groupbox
   setGbScanOptionsEnabled(True);
-
-  cbFastScanClick(cbfastscan);
 
 
   VartypeChange(vartype);
@@ -5443,16 +5362,6 @@ begin
     MemoryBrowser.memoryaddress := foundlist.GetAddress(foundlist3.ItemIndex, b, s);
     memorybrowser.Show;
   end;
-end;
-
-procedure TMainForm.testClick(Sender: TObject);
-begin
-  dbk_enabledrm;
-end;
-
-procedure TMainForm.TrackBar1Change(Sender: TObject);
-begin
-
 end;
 
 procedure TMainForm.UpdateTimerTimer(Sender: TObject);
@@ -6328,16 +6237,6 @@ begin
   vartype.DropDownCount := vartype.items.Count;
 end;
 
-procedure TMainForm.WindowsClick(Sender: TObject);
-begin
-
-end;
-
-procedure TMainForm.rbAllMemoryClick(Sender: TObject);
-begin
-
-end;
-
 procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
 begin
   CanClose := mustclose or CheckIfSaved;
@@ -6546,11 +6445,6 @@ begin
 
   miSetDropdownOptions.visible:=addresslist.selcount > 0;
 
-
-end;
-
-procedure TMainForm.Unfreezealladdresses1Click(Sender: TObject);
-begin
 
 end;
 
@@ -7738,12 +7632,6 @@ begin
     miAbout.click;
 end;
 
-procedure TMainForm.btnShowRegionsClick(Sender: TObject);
-begin
-
-end;
-
-
 
 procedure TMainForm.OpenProcesslist1Click(Sender: TObject);
 begin
@@ -7773,12 +7661,6 @@ end;
 procedure TMainForm.OpenMemorybrowser1Click(Sender: TObject);
 begin
   btnMemoryView.click;
-end;
-
-
-procedure TMainForm.cbFastScanClick(Sender: TObject);
-begin
-
 end;
 
 procedure TMainForm.cbSaferPhysicalMemoryChange(sender: tobject);
@@ -7884,27 +7766,6 @@ begin
   begin
     //show unrandimized addresses
     unrandomize.showaddresses;
-  end;
-end;
-
-procedure TMainForm.Foundlist3CustomDrawItem(Sender: TCustomListView;
-  Item: TListItem; State: TCustomDrawState; var DefaultDraw: boolean);
-var
-  s: string;
-begin
-
-  defaultdraw := True;
-  // s:=item.Caption;
-  //  item.SubItems[0]:='';
-  //  s:=item.SubItems[0];
-
-
-  if foundlist <> nil then
-  begin
-    if foundlist.inmodule(item.index) then
-      foundlist3.Canvas.Font.Color := clgreen
-    else
-      foundlist3.Canvas.Font.Color := Graphics.clDefault;
   end;
 end;
 
@@ -9584,20 +9445,10 @@ begin
   addresslist.Clear;
 end;
 
-procedure TMainForm.actLuaScriptExecute(Sender: TObject);
-begin
-
-end;
-
 procedure TMainForm.File1Click(Sender: TObject);
 begin
 
   miSaveScanresults.Enabled := memscan.nextscanCount > 0;
-end;
-
-procedure TMainForm.Label61Click(Sender: TObject);
-begin
-
 end;
 
 procedure TMainForm.actOpenProcesslistExecute(Sender: TObject);
