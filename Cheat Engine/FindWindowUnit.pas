@@ -59,8 +59,7 @@ uses MemoryBrowserFormUnit, ProcessHandlerUnit, Parsers, windows;
 resourcestring
   rsNothingFound = 'Nothing found';
   rsTheSpecifiedRangeIsInvalid = 'The specified range is invalid';
-
-
+  rsArrayBytesInvalid = 'The array of hex bytes decoded to zero length';
 
 procedure TFindWindow.btnOKClick(Sender: TObject);
 var start,stop,temp: ptruint;
@@ -106,21 +105,26 @@ begin
   memscan.scanExecutable:=scanDontCare;
   memscan.scanWritable:=scanDontCare;
 
-  if(valtype=vtByteArray)then
-  begin
-    searchstr:='';
-    tmp:=UpperCase(scantext);
-    for i:=Low(tmp) to High(tmp) do
-    begin
-        a:=tmp[i];
-        if(((a>='0') and (a<='9')) or ((a>='A') and (a<='F')))then
-            searchstr:=searchstr+a;
-    end;
-  end
-  else
-    searchstr:=scantext;
-
   try
+    if(valtype=vtByteArray)then
+    begin
+      searchstr:='';
+      tmp:=UpperCase(scantext);
+      for i:=Low(tmp) to High(tmp) do
+      begin
+          a:=tmp[i];
+          if(((a>='0') and (a<='9')) or ((a>='A') and (a<='F')))then
+              searchstr:=searchstr+a;
+      end;
+      if(Length(searchstr)=0)then
+      begin
+        MessageDlg(rsArrayBytesInvalid, mtError, [mbok], 0);
+        exit;
+      end;
+    end
+    else
+      searchstr:=scantext;
+
     statusbar.SimpleText:='Searching...';
     statusbar.Repaint;
     memscan.firstscan(soExactValue, valtype, rtRounded, searchstr, '', start, stop, true, false, cbunicode.checked, false, fsmNotAligned);
