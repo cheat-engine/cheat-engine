@@ -15,8 +15,8 @@ type
   { TFindWindow }
 
   TFindWindow = class(TForm)
-      scanvalue: TMemo;
-    ProgressBar: TProgressBar;
+    scanvalue_line: TEdit;
+    scanvalue: TMemo;
     Panel1: TPanel;
     labelType: TLabel;
     Label2: TLabel;
@@ -27,20 +27,23 @@ type
     rbText: TRadioButton;
     rbArByte: TRadioButton;
     cbUnicode: TCheckBox;
-    gripper: TScrollBar;
+    statusbar: TStatusBar;
     Timer1: TTimer;
     btnOK: TButton;
     btnCancel: TButton;
-    procedure btnCancelClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure rbArByteChange(Sender: TObject);
+    procedure rbTextChange(Sender: TObject);
     procedure scanvalueKeyDown(Sender: TObject; var Key: Word;
         Shift: TShiftState);
+    procedure scanvalue_lineKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
     procedure Timer1Timer(Sender: TObject);
   private
     { Private declarations }
     memscan: TMemScan;
+    procedure rbChange;
   public
     { Public declarations }
     firstscan: boolean;
@@ -64,7 +67,7 @@ var start,stop,temp: ptruint;
     valtype: TVariableType;
     i: integer;
     x: ptruint;
-    scantext,tmp:string;
+    searchstr,scantext,tmp:string;
     a:char;
 begin
 
@@ -87,9 +90,15 @@ begin
   end;
 
   if(rbText.checked)then
-    valtype:=vtString
+  begin
+    valtype:=vtString;
+    scantext:=scanvalue_line.Text;
+  end
   else
+  begin
     valtype:=vtByteArray;
+    scantext:=scanvalue.Text;
+  end;
 
   memscan:=TMemscan.create(nil);
   memscan.onlyone:=true;
@@ -99,19 +108,22 @@ begin
 
   if(valtype=vtByteArray)then
   begin
-    scantext:='';
-    tmp:=UpperCase(scanvalue.text);
+    searchstr:='';
+    tmp:=UpperCase(scantext);
     for i:=Low(tmp) to High(tmp) do
     begin
         a:=tmp[i];
         if(((a>='0') and (a<='9')) or ((a>='A') and (a<='F')))then
-            scantext:=scantext+a;
+            searchstr:=searchstr+a;
     end;
   end
   else
-    scantext:=scanvalue.text;
+    searchstr:=scantext;
+
   try
-    memscan.firstscan(soExactValue, valtype, rtRounded, scantext, '', start, stop, true, false, cbunicode.checked, false, fsmNotAligned);
+    statusbar.SimpleText:='Searching...';
+    statusbar.Repaint;
+    memscan.firstscan(soExactValue, valtype, rtRounded, searchstr, '', start, stop, true, false, cbunicode.checked, false, fsmNotAligned);
     memscan.waittilldone;
 
     if memscan.GetOnlyOneResult(x) then
@@ -127,22 +139,10 @@ begin
       MessageDlg(rsNothingFound, mtError, [mbok], 0);
     end;
   finally
+    statusbar.SimpleText:='';
     if memscan<>nil then
       freeandnil(memscan);
   end;
-
-end;
-
-procedure TFindWindow.FormCreate(Sender: TObject);
-var style:DWORD;
-begin
-  style:=GetWindowLong(gripper.Handle,GWL_STYLE);
-  style:=style or SBS_SIZEGRIP;
-  SetWindowLong(gripper.Handle,GWL_STYLE,style);
-end;
-
-procedure TFindWindow.btnCancelClick(Sender: TObject);
-begin
 
 end;
 
@@ -150,11 +150,8 @@ procedure TFindWindow.FormShow(Sender: TObject);
 const EM_GETMARGINS=$d4;
 var m: DWord;
 begin
-  progressbar.Position:=0;
-  
   if firstscan then
   begin
-
     if WindowsVersion>=wvVista then
       m:=sendmessage(editstart.Handle, EM_GETMARGINS, 0,0)
     else
@@ -169,24 +166,21 @@ begin
     begin
       editstart.clientwidth:=canvas.TextWidth('DDDDDDDD')+(m shr 16)+(m and $ffff);
     end;
-
-
-
-
-
-
     labelType.visible:=true;
     labelarray.visible:=true;
     rbtext.visible:=true;
     rbArByte.visible:=true;
-    scanvalue.Visible:=true;
+    rbChange;
     btnOK.visible:=true;
     btnCancel.visible:=true;
     EditStop.visible:=true;
     editStart.visible:=true;
     label2.Visible:=true;
     label3.Visible:=true;
-    Scanvalue.SetFocus;
+    if(rbText.Checked)then
+        scanvalue_line.SetFocus
+    else
+        scanvalue.SetFocus;
   end
   else
   begin
@@ -195,6 +189,7 @@ begin
     rbtext.visible:=false;
     rbArByte.visible:=false;
     scanvalue.Visible:=false;
+    scanvalue_line.Visible:=false;
     btnOK.visible:=false;
     btnCancel.visible:=false;
     EditStop.visible:=false;
@@ -214,6 +209,30 @@ begin
   btncancel.width:=max(btnok.width, btncancel.width);
 end;
 
+procedure TFindWindow.rbChange;
+begin
+  if(rbText.Checked)then
+  begin
+       scanvalue_line.Visible:=true;
+       scanvalue.Visible:=false;
+  end
+  else
+  begin
+      scanvalue_line.Visible:=false;
+      scanvalue.Visible:=true;
+  end;
+end;
+
+procedure TFindWindow.rbArByteChange(Sender: TObject);
+begin
+     rbChange;
+end;
+
+procedure TFindWindow.rbTextChange(Sender: TObject);
+begin
+     rbChange;
+end;
+
 procedure TFindWindow.scanvalueKeyDown(Sender: TObject; var Key: Word;
     Shift: TShiftState);
 begin
@@ -225,7 +244,30 @@ begin
     else if(VK_ESCAPE=key)then
     begin
       self.Close;
+    end
+    else if(VK_HOME=key)then
+    begin
+      if(ssCtrl in Shift)then
+        editStart.Text:='0';
+    end
+    else if(VK_RETURN=key)then
+    begin
+      if(Shift = [])then
+      begin
+        key:=0;
+        btnOKClick(nil);
+      end;
     end;
+end;
+
+procedure TFindWindow.scanvalue_lineKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if(key=VK_HOME)then
+  begin
+    if(ssCtrl in Shift)then
+        editStart.Text:='0';
+  end;
 end;
 
 procedure TFindWindow.Timer1Timer(Sender: TObject);

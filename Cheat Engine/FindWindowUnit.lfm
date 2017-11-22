@@ -7,28 +7,10 @@ object FindWindow: TFindWindow
   Caption = 'Find'
   ClientHeight = 167
   ClientWidth = 294
-  OnCreate = FormCreate
   OnShow = FormShow
   PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'
-  object ProgressBar: TProgressBar
-    AnchorSideLeft.Control = Owner
-    AnchorSideTop.Control = Panel1
-    AnchorSideTop.Side = asrBottom
-    AnchorSideRight.Control = Owner
-    AnchorSideRight.Side = asrBottom
-    Left = 5
-    Height = 20
-    Top = 112
-    Width = 284
-    Anchors = [akLeft, akRight, akBottom]
-    BorderSpacing.Left = 5
-    BorderSpacing.Top = 5
-    BorderSpacing.Right = 5
-    Step = 1
-    TabOrder = 2
-  end
   object Panel1: TPanel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
@@ -61,7 +43,7 @@ object FindWindow: TFindWindow
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = editStart
       AnchorSideTop.Side = asrCenter
-      Left = 160
+      Left = 149
       Height = 13
       Top = 17
       Width = 23
@@ -73,7 +55,7 @@ object FindWindow: TFindWindow
       AnchorSideTop.Control = EditStop
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = EditStop
-      Left = 170
+      Left = 159
       Height = 13
       Top = 40
       Width = 13
@@ -86,7 +68,7 @@ object FindWindow: TFindWindow
       AnchorSideLeft.Control = editStart
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Control = Panel1
-      Left = 208
+      Left = 197
       Height = 13
       Top = 0
       Width = 62
@@ -98,7 +80,7 @@ object FindWindow: TFindWindow
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = labelArray
       AnchorSideTop.Side = asrBottom
-      Left = 185
+      Left = 174
       Height = 21
       Top = 13
       Width = 109
@@ -114,7 +96,7 @@ object FindWindow: TFindWindow
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = editStart
       AnchorSideRight.Side = asrBottom
-      Left = 185
+      Left = 174
       Height = 21
       Top = 36
       Width = 109
@@ -131,10 +113,11 @@ object FindWindow: TFindWindow
       Left = 3
       Height = 17
       Top = 15
-      Width = 45
+      Width = 41
       BorderSpacing.Left = 3
-      Caption = 'Text'
+      Caption = '&Text'
       Checked = True
+      OnChange = rbTextChange
       TabOrder = 2
       TabStop = True
     end
@@ -145,10 +128,11 @@ object FindWindow: TFindWindow
       Left = 3
       Height = 17
       Top = 34
-      Width = 100
+      Width = 85
       BorderSpacing.Left = 3
       BorderSpacing.Top = 2
-      Caption = '(Array of) byte'
+      Caption = '(&Array of) byte'
+      OnChange = rbArByteChange
       TabOrder = 4
     end
     object cbUnicode: TCheckBox
@@ -156,19 +140,19 @@ object FindWindow: TFindWindow
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = editStart
       AnchorSideTop.Side = asrCenter
-      Left = 58
+      Left = 54
       Height = 17
       Top = 15
-      Width = 67
+      Width = 60
       BorderSpacing.Left = 10
-      Caption = 'Unicode'
+      Caption = '&Unicode'
       TabOrder = 3
     end
   end
   object btnOK: TButton
-    Left = 40
+    Left = 24
     Height = 25
-    Top = 136
+    Top = 120
     Width = 46
     Anchors = [akLeft, akBottom]
     BorderSpacing.Around = 2
@@ -179,9 +163,9 @@ object FindWindow: TFindWindow
   end
   object btnCancel: TButton
     AnchorSideLeft.Side = asrBottom
-    Left = 160
+    Left = 208
     Height = 25
-    Top = 136
+    Top = 120
     Width = 62
     Anchors = [akLeft, akBottom]
     BorderSpacing.Left = 5
@@ -189,7 +173,6 @@ object FindWindow: TFindWindow
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
-    OnClick = btnCancelClick
     TabOrder = 4
   end
   object scanvalue: TMemo
@@ -202,15 +185,22 @@ object FindWindow: TFindWindow
     ScrollBars = ssVertical
     TabOrder = 1
   end
-  object gripper: TScrollBar
-    Left = 277
-    Height = 17
-    Top = 150
-    Width = 17
-    Anchors = [akRight, akBottom]
-    PageSize = 0
-    TabOrder = 5
-    TabStop = False
+  object statusbar: TStatusBar
+    Left = 0
+    Height = 20
+    Top = 147
+    Width = 294
+    Panels = <>
+  end
+  object scanvalue_line: TEdit
+    Left = 5
+    Height = 21
+    Top = 66
+    Width = 280
+    Anchors = [akTop, akLeft, akRight]
+    OnKeyDown = scanvalue_lineKeyDown
+    TabOrder = 2
+    Text = 'scanvalue_line'
   end
   object Timer1: TTimer
     Enabled = False
