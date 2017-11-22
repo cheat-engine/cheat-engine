@@ -426,7 +426,6 @@ type
     procedure Findoutwhataddressesthisinstructionaccesses1Click(
       Sender: TObject);
     procedure sbShowFloatsClick(Sender: TObject);
-    procedure ScriptConsole1Click(Sender: TObject);
     procedure DisplayTypeClick(Sender: TObject);
     procedure Showjumplines1Click(Sender: TObject);
     procedure Onlyshowjumplineswithinrange1Click(Sender: TObject);
@@ -3846,25 +3845,72 @@ begin
   end;
 end;
 
+function ClampWindowScreen(var r:Rect):boolean;
+var hmon:HMONITOR;
+    mi:MONITORINFO;
+    sr:rect;
+    w,h:integer;
+begin
+    result:=false;
+    hmon:=MonitorFromRect(@r,MONITOR_DEFAULTTONEAREST);
+    if(hmon=0)then
+        exit;
+    mi.cbSize:=sizeof(mi);
+    if(not GetMonitorInfo(hmon,@mi))then
+        exit;
+    sr:=mi.rcMonitor;
+    w:=r.right-r.left;
+    h:=r.bottom-r.top;
+    if(r.left < sr.left)then
+    begin
+        r.left:=sr.left;
+        r.right:=r.left+w;
+        result:=true;
+    end;
+    if(r.right >  sr.right)then
+    begin
+        r.right:=sr.right;
+        r.left:=r.right-w;
+        result:=true;
+    end;
+    if(r.top < sr.top)then
+    begin
+      r.top:=sr.top;
+      r.bottom:=r.top+h;
+      result:=true;
+    end;
+    if(r.bottom > sr.bottom)then
+    begin
+      r.bottom:=sr.bottom;
+      r.top:=r.bottom-h;
+      result:=true;
+    end;
+end;
+
 procedure TMemoryBrowser.sbShowFloatsClick(Sender: TObject);
   var x: tpoint;
 z: trect;
+win:rect;
 begin
-
   if frmFloatingPointPanel=nil then
     frmFloatingPointPanel:=TfrmFloatingPointPanel.create(self);
 
   frmFloatingPointPanel.Left:=self.left+self.Width;
   frmFloatingPointPanel.Top:=self.top+(self.ClientOrigin.y-self.top)-(frmFloatingPointPanel.ClientOrigin.y-frmFloatingPointPanel.top);
   frmFloatingPointPanel.ClientHeight:=scrollbox1.Height;
+  win.left:=frmFloatingPointPanel.Left;
+  win.top:=frmFloatingPointPanel.Top;
+  win.right:=frmFloatingPointPanel.Width + win.left;
+  win.bottom:=frmFloatingPointPanel.Height + win.top;
+  if(ClampWindowScreen(win))then
+  begin
+    frmFloatingPointPanel.Left:=win.left;
+    frmFloatingPointPanel.Top:=win.top;
+  end;
+
 
   frmFloatingPointPanel.SetContextPointer(@lastdebugcontext);
   frmFloatingPointPanel.show;//pop to foreground
-end;
-
-procedure TMemoryBrowser.ScriptConsole1Click(Sender: TObject);
-begin
-
 end;
 
 procedure TMemoryBrowser.DisplayTypeClick(Sender: TObject);
