@@ -3,16 +3,15 @@ object FindWindow: TFindWindow
   Height = 167
   Top = 389
   Width = 294
-  AutoSize = True
   BorderIcons = [biSystemMenu]
-  BorderStyle = bsDialog
   Caption = 'Find'
   ClientHeight = 167
   ClientWidth = 294
+  OnCreate = FormCreate
   OnShow = FormShow
   PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object ProgressBar: TProgressBar
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Panel1
@@ -21,14 +20,14 @@ object FindWindow: TFindWindow
     AnchorSideRight.Side = asrBottom
     Left = 5
     Height = 20
-    Top = 106
+    Top = 112
     Width = 284
-    Anchors = [akTop, akLeft, akRight]
+    Anchors = [akLeft, akRight, akBottom]
     BorderSpacing.Left = 5
     BorderSpacing.Top = 5
     BorderSpacing.Right = 5
     Step = 1
-    TabOrder = 0
+    TabOrder = 2
   end
   object Panel1: TPanel
     AnchorSideLeft.Control = Owner
@@ -36,22 +35,22 @@ object FindWindow: TFindWindow
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     Left = 0
-    Height = 101
+    Height = 110
     Top = 0
     Width = 294
-    Anchors = [akTop, akLeft, akRight]
+    Anchors = [akTop, akLeft, akRight, akBottom]
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 101
+    ClientHeight = 110
     ClientWidth = 294
-    TabOrder = 1
+    TabOrder = 0
     object labelType: TLabel
       AnchorSideLeft.Control = Panel1
       AnchorSideTop.Control = Panel1
       Left = 3
-      Height = 15
+      Height = 13
       Top = 3
-      Width = 29
+      Width = 27
       BorderSpacing.Left = 3
       BorderSpacing.Top = 3
       Caption = 'Type:'
@@ -62,10 +61,10 @@ object FindWindow: TFindWindow
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = editStart
       AnchorSideTop.Side = asrCenter
-      Left = 154
-      Height = 15
-      Top = 19
-      Width = 28
+      Left = 160
+      Height = 13
+      Top = 17
+      Width = 23
       BorderSpacing.Left = 35
       Caption = 'From'
       ParentColor = False
@@ -74,10 +73,10 @@ object FindWindow: TFindWindow
       AnchorSideTop.Control = EditStop
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = EditStop
-      Left = 168
-      Height = 15
-      Top = 44
-      Width = 14
+      Left = 170
+      Height = 13
+      Top = 40
+      Width = 13
       Anchors = [akTop, akRight]
       BorderSpacing.Right = 2
       Caption = 'To'
@@ -87,10 +86,10 @@ object FindWindow: TFindWindow
       AnchorSideLeft.Control = editStart
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Control = Panel1
-      Left = 204
-      Height = 15
+      Left = 208
+      Height = 13
       Top = 0
-      Width = 69
+      Width = 62
       Caption = 'Array to scan'
       ParentColor = False
     end
@@ -99,14 +98,14 @@ object FindWindow: TFindWindow
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = labelArray
       AnchorSideTop.Side = asrBottom
-      Left = 184
-      Height = 23
-      Top = 15
+      Left = 185
+      Height = 21
+      Top = 13
       Width = 109
       BorderSpacing.Left = 2
       BorderSpacing.Right = 2
       MaxLength = 16
-      TabOrder = 1
+      TabOrder = 0
       Text = '00400000'
     end
     object EditStop: TEdit
@@ -115,14 +114,14 @@ object FindWindow: TFindWindow
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = editStart
       AnchorSideRight.Side = asrBottom
-      Left = 184
-      Height = 23
-      Top = 40
+      Left = 185
+      Height = 21
+      Top = 36
       Width = 109
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Top = 2
       MaxLength = 16
-      TabOrder = 2
+      TabOrder = 1
       Text = '7FFFFFFF'
     end
     object rbText: TRadioButton
@@ -130,13 +129,13 @@ object FindWindow: TFindWindow
       AnchorSideTop.Control = editStart
       AnchorSideTop.Side = asrCenter
       Left = 3
-      Height = 19
-      Top = 17
-      Width = 42
+      Height = 17
+      Top = 15
+      Width = 45
       BorderSpacing.Left = 3
       Caption = 'Text'
       Checked = True
-      TabOrder = 3
+      TabOrder = 2
       TabStop = True
     end
     object rbArByte: TRadioButton
@@ -144,85 +143,74 @@ object FindWindow: TFindWindow
       AnchorSideTop.Control = rbText
       AnchorSideTop.Side = asrBottom
       Left = 3
-      Height = 19
-      Top = 38
-      Width = 96
+      Height = 17
+      Top = 34
+      Width = 100
       BorderSpacing.Left = 3
       BorderSpacing.Top = 2
       Caption = '(Array of) byte'
-      TabOrder = 5
+      TabOrder = 4
     end
     object cbUnicode: TCheckBox
       AnchorSideLeft.Control = rbText
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = editStart
       AnchorSideTop.Side = asrCenter
-      Left = 55
-      Height = 19
-      Top = 17
-      Width = 64
+      Left = 58
+      Height = 17
+      Top = 15
+      Width = 67
       BorderSpacing.Left = 10
       Caption = 'Unicode'
-      TabOrder = 4
-    end
-    object Scanvalue: TEdit
-      AnchorSideLeft.Control = Panel1
-      AnchorSideTop.Control = EditStop
-      AnchorSideTop.Side = asrBottom
-      AnchorSideRight.Control = Panel1
-      AnchorSideRight.Side = asrBottom
-      Left = 5
-      Height = 23
-      Top = 78
-      Width = 284
-      Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Left = 5
-      BorderSpacing.Top = 15
-      BorderSpacing.Right = 5
-      TabOrder = 0
+      TabOrder = 3
     end
   end
-  object Panel2: TPanel
-    AnchorSideLeft.Control = Owner
-    AnchorSideLeft.Side = asrCenter
-    AnchorSideTop.Control = ProgressBar
-    AnchorSideTop.Side = asrBottom
-    Left = 88
-    Height = 29
-    Top = 131
-    Width = 119
-    AutoSize = True
-    BorderSpacing.Top = 5
-    BevelOuter = bvNone
-    ClientHeight = 29
-    ClientWidth = 119
-    TabOrder = 2
-    object btnOK: TButton
-      Left = 2
-      Height = 25
-      Top = 2
-      Width = 46
-      BorderSpacing.Around = 2
-      Caption = 'OK'
-      Default = True
-      OnClick = btnOKClick
-      TabOrder = 0
-    end
-    object btnCancel: TButton
-      AnchorSideLeft.Control = btnOK
-      AnchorSideLeft.Side = asrBottom
-      Left = 55
-      Height = 25
-      Top = 2
-      Width = 62
-      BorderSpacing.Left = 5
-      BorderSpacing.Around = 2
-      Cancel = True
-      Caption = 'Cancel'
-      ModalResult = 2
-      OnClick = btnCancelClick
-      TabOrder = 1
-    end
+  object btnOK: TButton
+    Left = 40
+    Height = 25
+    Top = 136
+    Width = 46
+    Anchors = [akLeft, akBottom]
+    BorderSpacing.Around = 2
+    Caption = 'OK'
+    Default = True
+    OnClick = btnOKClick
+    TabOrder = 3
+  end
+  object btnCancel: TButton
+    AnchorSideLeft.Side = asrBottom
+    Left = 160
+    Height = 25
+    Top = 136
+    Width = 62
+    Anchors = [akLeft, akBottom]
+    BorderSpacing.Left = 5
+    BorderSpacing.Around = 2
+    Cancel = True
+    Caption = 'Cancel'
+    ModalResult = 2
+    OnClick = btnCancelClick
+    TabOrder = 4
+  end
+  object scanvalue: TMemo
+    Left = 5
+    Height = 42
+    Top = 66
+    Width = 283
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    OnKeyDown = scanvalueKeyDown
+    ScrollBars = ssVertical
+    TabOrder = 1
+  end
+  object gripper: TScrollBar
+    Left = 277
+    Height = 17
+    Top = 150
+    Width = 17
+    Anchors = [akRight, akBottom]
+    PageSize = 0
+    TabOrder = 5
+    TabStop = False
   end
   object Timer1: TTimer
     Enabled = False

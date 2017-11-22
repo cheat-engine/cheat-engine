@@ -15,6 +15,7 @@ type
   { TFindWindow }
 
   TFindWindow = class(TForm)
+      scanvalue: TMemo;
     ProgressBar: TProgressBar;
     Panel1: TPanel;
     labelType: TLabel;
@@ -26,14 +27,16 @@ type
     rbText: TRadioButton;
     rbArByte: TRadioButton;
     cbUnicode: TCheckBox;
+    gripper: TScrollBar;
     Timer1: TTimer;
-    Panel2: TPanel;
     btnOK: TButton;
     btnCancel: TButton;
-    Scanvalue: TEdit;
     procedure btnCancelClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure scanvalueKeyDown(Sender: TObject; var Key: Word;
+        Shift: TShiftState);
     procedure Timer1Timer(Sender: TObject);
   private
     { Private declarations }
@@ -48,7 +51,7 @@ var
 
 implementation
 
-uses MemoryBrowserFormUnit, ProcessHandlerUnit, Parsers;
+uses MemoryBrowserFormUnit, ProcessHandlerUnit, Parsers, windows;
 
 resourcestring
   rsNothingFound = 'Nothing found';
@@ -58,10 +61,11 @@ resourcestring
 
 procedure TFindWindow.btnOKClick(Sender: TObject);
 var start,stop,temp: ptruint;
-    //cb: TCheckbox;
     valtype: TVariableType;
     i: integer;
     x: ptruint;
+    scantext,tmp:string;
+    a:char;
 begin
 
 
@@ -82,10 +86,10 @@ begin
     stop:=temp;
   end;
 
-
-  if rbText.checked then valtype:=vtString else valtype:=vtByteArray;
-
-
+  if(rbText.checked)then
+    valtype:=vtString
+  else
+    valtype:=vtByteArray;
 
   memscan:=TMemscan.create(nil);
   memscan.onlyone:=true;
@@ -93,9 +97,21 @@ begin
   memscan.scanExecutable:=scanDontCare;
   memscan.scanWritable:=scanDontCare;
 
-
+  if(valtype=vtByteArray)then
+  begin
+    scantext:='';
+    tmp:=UpperCase(scanvalue.text);
+    for i:=Low(tmp) to High(tmp) do
+    begin
+        a:=tmp[i];
+        if(((a>='0') and (a<='9')) or ((a>='A') and (a<='F')))then
+            scantext:=scantext+a;
+    end;
+  end
+  else
+    scantext:=scanvalue.text;
   try
-    memscan.firstscan(soExactValue, valtype, rtRounded, scanvalue.text, '', start, stop, true, false, cbunicode.checked, false, fsmNotAligned);
+    memscan.firstscan(soExactValue, valtype, rtRounded, scantext, '', start, stop, true, false, cbunicode.checked, false, fsmNotAligned);
     memscan.waittilldone;
 
     if memscan.GetOnlyOneResult(x) then
@@ -115,6 +131,14 @@ begin
       freeandnil(memscan);
   end;
 
+end;
+
+procedure TFindWindow.FormCreate(Sender: TObject);
+var style:DWORD;
+begin
+  style:=GetWindowLong(gripper.Handle,GWL_STYLE);
+  style:=style or SBS_SIZEGRIP;
+  SetWindowLong(gripper.Handle,GWL_STYLE,style);
 end;
 
 procedure TFindWindow.btnCancelClick(Sender: TObject);
@@ -188,6 +212,20 @@ begin
 
   btnok.width:=max(btnok.width, btncancel.width);
   btncancel.width:=max(btnok.width, btncancel.width);
+end;
+
+procedure TFindWindow.scanvalueKeyDown(Sender: TObject; var Key: Word;
+    Shift: TShiftState);
+begin
+    if(key=Ord('A'))then
+    begin
+      if(ssCtrl in Shift)then
+        scanvalue.SelectAll;
+    end
+    else if(VK_ESCAPE=key)then
+    begin
+      self.Close;
+    end;
 end;
 
 procedure TFindWindow.Timer1Timer(Sender: TObject);
