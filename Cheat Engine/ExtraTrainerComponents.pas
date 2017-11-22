@@ -119,7 +119,7 @@ type TCheatList = class (twincontrol)
     fshowhotkeys: boolean;
     fBeepOnActivate: boolean;
     Function GetItem(i:integer):tcheat;
-    procedure SetAutosize(x:boolean);
+    procedure SetAutosize(x:boolean); override;
     procedure sethotkeyleft(i:integer);
     procedure setDescriptionleft(i: integer);
     procedure setEditLeft(i: integer);

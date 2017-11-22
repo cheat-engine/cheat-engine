@@ -164,6 +164,7 @@ end;
 
 function sqlite3connection_createDB(L: Plua_State): integer; cdecl;
 begin
+  result:=0;
   try
     TSQLite3Connection(luaclass_getClassObject(L)).CreateDB;
   except
@@ -177,6 +178,7 @@ end;
 
 function sqlite3connection_dropDB(L: Plua_State): integer; cdecl;
 begin
+  result:=0;
   try
     TSQLite3Connection(luaclass_getClassObject(L)).DropDB;
   except

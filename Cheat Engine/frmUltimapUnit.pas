@@ -979,6 +979,7 @@ begin
   p:=PopupMenu1.PopupPoint;
   for i:=0 to listview1.Items.count-1 do
   begin
+    a:=0;
     if listview1.Items[i].Selected then
     begin
       if p.x>listview1.Column[0].Width then

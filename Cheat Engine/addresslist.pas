@@ -78,8 +78,8 @@ type
     procedure sectiontrack(HeaderControl: TCustomHeaderControl; Section: THeaderSection; Width: Integer; State: TSectionTrackState);
     procedure sectionClick(HeaderControl: TCustomHeaderControl; Section: THeaderSection);
     procedure FocusChange(sender: TObject);
-    procedure DragOver(Sender, Source: TObject; X,Y: Integer; State: TDragState; var Accept: Boolean);
-    procedure DragDrop(Sender, Source: TObject; X,Y: Integer);
+    procedure DragOver(Sender, Source: TObject; X,Y: Integer; State: TDragState; var Accept: Boolean); overload;
+    procedure DragDrop(Sender, Source: TObject; X,Y: Integer); overload;
     procedure DragEnd(Sender, Target: TObject; X,Y: Integer);
     procedure TreeviewOnCollapse(Sender: TObject; Node: TTreeNode; var AllowCollapse: Boolean);
     procedure TreeviewOnExpand(Sender: TObject; Node: TTreeNode; var AllowExpansion: Boolean);
@@ -100,7 +100,7 @@ type
     function GetSelcount: integer;
     function GetMemRecItemByIndex(i: integer): TMemoryRecord;
     procedure setPopupMenu(menu: TPopupMenu);
-    function getPopupMenu: TPopupMenu;
+    function getPopupMenu: TPopupMenu; override;
     function getSelectedRecord: TMemoryRecord;
     procedure setSelectedRecord(memrec: TMemoryrecord);
 

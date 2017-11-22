@@ -134,6 +134,7 @@ var
   i: integer;
   entry: PConnectentry;
 begin
+  result:=0;
   if port=0 then exit; //do not allow port 0
 
   getmem(entry, sizeof(TConnectEntry));

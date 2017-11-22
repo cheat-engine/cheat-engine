@@ -743,6 +743,7 @@ begin
 
 
   {$ifdef cpu32}
+  hasSetInt1Back:=false;
   if not (CurrentDebuggerInterface is TKernelDebugInterface) then
   begin
     if setint1back then

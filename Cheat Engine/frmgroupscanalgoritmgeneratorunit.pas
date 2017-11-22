@@ -61,7 +61,7 @@ type
     function getParameterPart(skipPicked: boolean=true): string;
     function bytesize: integer;
     procedure setPosition;
-    constructor Create(frm: TfrmGroupScanAlgoritmGenerator);
+    constructor Create(frm: TfrmGroupScanAlgoritmGenerator); overload;
     destructor destroy; override;
   end;
 

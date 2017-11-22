@@ -32,7 +32,7 @@ type
     property filename: string read ffilename write setFileName;
     property OnDelete: TNotifyEvent read fOnDelete write fOnDelete;
     property OnSetFileName: TNotifyEvent read fOnSetFileName write fOnSetFileName;
-    constructor create(imagelist: TImageList; AOwner: TComponent);
+    constructor create(imagelist: TImageList; AOwner: TComponent); overload;
     destructor destroy; override;
   end;
 
@@ -57,7 +57,7 @@ type
   private
     procedure AdjustPos(sender: tobject);
   public
-    constructor create(imagelist: TImageList; AOwner: TComponent; w: integer);
+    constructor create(imagelist: TImageList; AOwner: TComponent; w: integer); overload;
     destructor destroy; override;
 
     property OnEmptyList: TNotifyEvent read fOnEmptyList write fOnEmptyList;
@@ -692,7 +692,7 @@ begin
       exit;
     end;
   end;
-
+  comparecount:=0;
   if cbCompareToOtherPointermaps.checked then
   begin
     //check if the addresses are valid

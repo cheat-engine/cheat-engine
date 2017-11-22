@@ -33,7 +33,7 @@ Known Issues:
 // $Id: JvDesignSurface.pas 12931 2010-11-28 13:36:50Z ahuser $
 
 unit JvDesignSurface;
-
+{$WARNINGS OFF}
 {$mode objfpc}{$H+}
 {$DEFINE NO_DESIGNHOOK}
 interface
@@ -352,6 +352,7 @@ function TJvDesignCustomMessenger.IsDesignMessage(ASender: TControl;
   end;
 
 begin
+  result:=false;
   if not Assigned(FOnDesignMessage) then
     Result := False
   else
@@ -957,6 +958,7 @@ var
     i: integer;
 
 begin
+  p:=nil;
   s:=TStringStream.Create(clipboard.AsText);
   ms:=TMemoryStream.Create;
 
@@ -1409,6 +1411,6 @@ initialization
 finalization
   UnregisterUnitVersion(HInstance);
 {$ENDIF UNITVERSIONING}
-
+{$WARNINGS ON}
 end.
 

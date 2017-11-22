@@ -28,7 +28,7 @@ type
     function getValue: string;
   public
     { public declarations }
-    constructor create(memrec: TMemoryrecord);
+    constructor create(memrec: TMemoryrecord); overload;
     property value: string read getValue;
   end;
 

@@ -1036,6 +1036,7 @@ begin
 
         while address<prangelist[i].endaddress do
         begin
+          valid:=false;
           pfn:=address shr 12;
           scannablepages.Add(pfn, valid);
           inc(address, 4096);

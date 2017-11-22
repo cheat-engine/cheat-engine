@@ -1226,7 +1226,7 @@ begin
   else
     hexview.UseRelativeBase:=false;
 
-  hexview.update;
+  hexview.UpdateView;
 end;
 
 procedure TMemoryBrowser.miSVCopyClick(Sender: TObject);
@@ -1609,7 +1609,7 @@ begin
     begin
       hexview.GetSelectionRange(a,a2);
       DebuggerThread.SetOnAccessBreakpoint(a, 1+(a2-a));
-      hexview.Update;
+      hexview.UpdateView;
     end;
   except
     on e: exception do
@@ -1627,7 +1627,7 @@ begin
     begin
       hexview.GetSelectionRange(a,a2);
       DebuggerThread.SetOnWriteBreakpoint(a, 1+(a2-a));
-      hexview.Update;
+      hexview.UpdateView;
     end;
   except
     on e: exception do
@@ -1734,7 +1734,7 @@ begin
     finally
       debuggerthread.unlockbplist;
     end;
-    hexview.update;
+    hexview.UpdateView;
   end;
 end;
 
@@ -1770,7 +1770,7 @@ begin
     hexview.GetSelectionRange(a,a2);
 
     DebuggerThread.FindWhatAccesses(a,1+(a2-a));
-    hexview.Update;
+    hexview.UpdateView;
   end;
 end;
 
@@ -1783,7 +1783,7 @@ begin
     hexview.GetSelectionRange(a,a2);
 
     DebuggerThread.FindWhatWrites(a,1+(a2-a));
-    hexview.Update;
+    hexview.UpdateView;
   end;
 
 end;
@@ -2195,7 +2195,7 @@ var
 begin
   if Visible then
   begin
-    if hexview<>nil then hexview.update;
+    if hexview<>nil then hexview.UpdateView;
     if disassemblerview<>nil then disassemblerview.Update;
 
     //refresh the modulelist
@@ -2261,7 +2261,7 @@ begin
     original:=0;
 
     RewriteCode(processhandle,disassemblerview.SelectedAddress,@nops[0],codelength);
-    hexview.update;
+    hexview.UpdateView;
     disassemblerview.Update;;
   end;
 end;
@@ -2712,7 +2712,7 @@ begin
 
         bytelength:=length(bytes);
         RewriteCode(processhandle,disassemblerview.SelectedAddress,@bytes[0],bytelength);
-        hexview.update;
+        hexview.UpdateView;
         disassemblerview.Update;
       end else raise exception.create(Format(rsIDonTUnderstandWhatYouMeanWith, [assemblercode]));
     except

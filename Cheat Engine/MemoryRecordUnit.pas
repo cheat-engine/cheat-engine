@@ -1640,6 +1640,7 @@ begin
     end;
   end;
 
+  laststate:=nil;
   if Value<>'??' then
   begin
     laststate:=cheatEntry.AppendChild(doc.CreateElement('LastState'));

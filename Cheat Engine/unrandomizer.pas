@@ -149,7 +149,7 @@ begin
 
   setlength(buffer,length(genericreplace));
 
-
+  j:=0;
   a:=symhandler.getAddressFromName('msvcrt120.rand',true, e);
   if not e then
   begin

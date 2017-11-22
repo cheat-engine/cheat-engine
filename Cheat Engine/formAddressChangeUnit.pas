@@ -105,7 +105,7 @@ type
     procedure setupPositionsAndSizes;
 
 
-    constructor create(owner: TformAddressChange);
+    constructor create(owner: TformAddressChange); overload;
     destructor destroy; override;
 
   end;

@@ -218,6 +218,7 @@ var
 
   bu: TBinUtils;
 begin
+  result:=true;
   if (binutilslist.count=0) then
     raise exception.create(rsConfigureAValidBinutilsSetupFirst);
 

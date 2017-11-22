@@ -844,10 +844,10 @@ begin
         self.starttime:=GetTickCount64;
 
 
+        sent:=0;
         UpdateChildProgress(sent, totalsize);
         //update the child progress
 
-        sent:=0;
 
         for i:=0 to length(f)-1 do
         begin
@@ -1675,7 +1675,7 @@ begin
 
   listsize:=sizeof(dword)*(maxlevel+1);
   valuelistsize:=sizeof(qword)*(maxlevel+1);
-
+  offsetcountperlist:=0;
 
   pathqueueCS.enter;
   try
@@ -1895,6 +1895,7 @@ begin
 
 
   alldone:=false;
+  addedToQueue:=false;
 
 
   try

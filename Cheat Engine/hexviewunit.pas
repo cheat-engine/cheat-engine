@@ -156,6 +156,7 @@ type
 
     procedure lineUp(sender: tobject);
     procedure lineDown(sender: TObject);
+    procedure hexupdate;
 
   protected
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
@@ -169,7 +170,7 @@ type
     procedure GetSelectionRange(var start: ptruint; var stop: ptruint);
     procedure PasteFromClipboard;
 
-    procedure update; //hidden on purpose
+    procedure UpdateView;
     procedure changeSelected;
     procedure AddSelectedAddressToCheatTable;
     function getAddressFromCurrentMousePosition(var region: THexRegion): ptrUint;
@@ -291,7 +292,7 @@ begin
 
     fShowDiffHv:=nil;
   end;
-  update;
+  hexupdate;
 end;
 
 procedure THexView.ShowDifference(hv: THexview);
@@ -306,8 +307,8 @@ begin
   fShowDiffHv:=hv;
   hv.fShowDiffHv:=self;
 
-  update;
-  hv.update;
+  hexupdate;
+  hv.hexupdate;
 end;
 
 
@@ -319,7 +320,7 @@ begin
       ));
 
   fbytesPerSeperator:=b;
-  update;
+  hexupdate;
 end;
 
 procedure THexView.LockRowsize(size: integer=0);
@@ -334,7 +335,7 @@ procedure THexView.UnlockRowsize;
 begin
   flockedRowSize:=0;
   hexviewResize(self);
-  update;
+  hexupdate;
 end;
 
 function THexView.CalculateGradientColor(Percentage: single; MaxColor, MinColor: TColor): TColor;
@@ -358,7 +359,7 @@ procedure THexView.setCharEncoding(newce: TCharEncoding);
 begin
   fCharEncoding:=newce;
   changelist.Clear;
-  update;
+  hexupdate;
 end;
 
 procedure THexView.setDisplayType(newdt: TDisplaytype);
@@ -401,7 +402,7 @@ begin
     fShowDiffHv.update;
   end;
 
-  update;
+  hexupdate;
   hexviewResize(self);
 end;
 
@@ -595,7 +596,7 @@ begin
   end;
 
 
-  update;
+  hexupdate;
 end;
 
 procedure THexView.RefocusIfNeeded;
@@ -621,7 +622,7 @@ begin
       else
         address:=Address-beforeOffset-column;
 
-      update;
+      hexupdate;
     end;
   end;
 end;
@@ -746,7 +747,7 @@ begin
       VK_ESCAPE:
       begin
         isEditing:=false;
-        update;
+        hexupdate;
       end;
 
       vk_up:
@@ -757,7 +758,7 @@ begin
           address:=address-bytesPerLine;
 
 
-        update;
+        hexupdate;
       end;
 
       vk_down:
@@ -767,7 +768,7 @@ begin
         else
           address:=address+bytesperline;
 
-        update;
+        hexupdate;
       end;
 
       vk_left:
@@ -800,7 +801,7 @@ begin
         else
           address:=address-1;
 
-        update;
+        hexupdate;
       end;
 
       vk_right:
@@ -835,7 +836,7 @@ begin
         end
         else
           address:=address+1;
-        update;
+        hexupdate;
       end;
 
       vk_prior:
@@ -845,7 +846,7 @@ begin
         else
           address:=address-bytesPerLine*(totallines-1);
 
-        update;
+        hexupdate;
       end;
 
       vk_next:
@@ -855,7 +856,7 @@ begin
         else
           address:=address+bytesPerLine*(totallines-1);
 
-        update;
+        hexupdate;
       end;
 
       VK_ADD,VK_SUBTRACT:
@@ -871,7 +872,7 @@ begin
               inc(b);
 
             WriteProcessMemory(processhandle, pointer(selected),@b,1,x);
-            update;
+            hexupdate;
           end;
         end;
       end;
@@ -907,7 +908,7 @@ begin
           end;
           key:=0;
 
-          update;
+          hexupdate;
         end;
       end;
     end;
@@ -1112,7 +1113,7 @@ begin
       end;
 
     end;
-    update;
+    hexupdate;
 
   end;
 
@@ -1141,7 +1142,7 @@ begin
       end;
       ShowModal;
     end;
-    update;
+    hexupdate;
   end;
 end;
 
@@ -1195,7 +1196,7 @@ begin
       end;
     end;
   end;
-  update;
+  hexupdate;
 end;
 
 procedure THexView.mbCanvasMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
@@ -1213,7 +1214,7 @@ begin
       selectionType:=hr;
     end;
 
-    update;
+    hexupdate;
   end;
 end;
 
@@ -1275,7 +1276,7 @@ begin
     end else isEditing:=false;
   end;
 
-  update;
+  hexupdate;
 end;
 
 procedure THexView.lineUp(sender: tobject);
@@ -1366,7 +1367,7 @@ begin
 
 
 
-  update;
+  hexupdate;
   scrollpos:=50;
 end;
 
@@ -1394,7 +1395,7 @@ begin
       address:=address+(bytesPerLine*i);
   end;
 
-  update;
+  hexupdate;
 end;
 
 procedure THexView.UpdateMemoryInfo;
@@ -1917,9 +1918,11 @@ begin
   begin
     if usedRelativeBase then
     begin
+      {$IFDEF CPU64}
       if fAddress<ptrUint($100000000) then
         addresswidth:=addresswidthdefault
       else
+      {$ENDIF}
         addresswidth:=offscreenbitmap.Canvas.TextWidth(inttohex(fAddress,8));
 
       usedRelativeBase:=false; //only need to do this once (saves a small amount of cpu, actually neglible, but still...)
@@ -1967,7 +1970,7 @@ begin
 
 
   itemnr:=0;
-
+  selectedcharsize:=1;
   if isEditing then
   begin
     case CharEncoding of
@@ -2198,7 +2201,7 @@ begin
     //and now for myself
   end;
 
-  update;
+  hexupdate;
 end;
 
 procedure THexView.hexviewResize(sender: TObject);
@@ -2246,17 +2249,20 @@ begin
 
 
   if (oldsizex<>bytesperline) or (oldsizey<>totallines) then
-    update;
+    hexupdate;
 end;
 
-procedure THexView.update;
+procedure THexView.UpdateView;
+begin
+  hexupdate;
+end;
+
+procedure THexView.hexupdate;
 var oldAddressWidth: integer;
 {$ifdef cpu64}
 defaultrange: ptrUint;
 {$endif}
 begin
-  //inherited update;
-
   if offscreenbitmap<>nil then
   begin
     if offscreenbitmap.Width<mbcanvas.width then
@@ -2381,7 +2387,7 @@ begin
   byteSizeWithoutChar:=offscreenbitmap.Canvas.TextWidth('XX ');
 
   hexviewResize(self);
-  update;
+  hexupdate;
 end;
 
 destructor THexview.destroy;
@@ -2499,7 +2505,7 @@ begin
   byteSize:=offscreenbitmap.Canvas.TextWidth('XX X'); //byte space and the character it represents
   byteSizeWithoutChar:=offscreenbitmap.Canvas.TextWidth('XX ');
 
-  update;
+  hexupdate;
 end;
 
 end.

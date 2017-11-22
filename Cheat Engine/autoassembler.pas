@@ -542,6 +542,7 @@ begin
   //remove comments
   instring:=false;
   incomment:=false;
+  bracecomment:=false;
   for i:=0 to code.count-1 do
   begin
     currentline:=code[i];

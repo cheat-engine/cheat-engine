@@ -1,7 +1,7 @@
 unit JvDesignImp;
 
 {$mode objfpc}{$H+}
-
+{$WARNINGS OFF}
 interface
 
 uses
@@ -1575,6 +1575,8 @@ finalization
   {$IFDEF UNITVERSIONING}
   UnregisterUnitVersion(HInstance);
   {$ENDIF UNITVERSIONING}
+
+{$WARNINGS ON}
 
 end.
 

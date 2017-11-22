@@ -52,7 +52,7 @@ type
 
   public
     { public declarations }
-    constructor create(memrec: TMemoryrecord);
+    constructor create(memrec: TMemoryrecord); overload;
   end;
 
 implementation

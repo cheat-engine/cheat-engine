@@ -7475,6 +7475,7 @@ end;
 
 function lua_unloadLoadedFont(L: PLua_state): integer; cdecl;
 begin
+  result:=0;
   if lua_isnumber(L, 1) then
     RemoveFontMemResourceEx(lua_tointeger(L,1));
 end;
@@ -7488,7 +7489,7 @@ var
 
   h: THandle;
 begin
-
+  result:=0;
   if lua_isuserdata(L, 1) then
   begin
     s:=lua_toceuserdata(L, 1);
@@ -7499,12 +7500,7 @@ begin
       lua_pushinteger(L, h);
       result:=1;
     end;
-
   end;
-
-
-
-
 end;
 
 function lua_speakex(engLang: boolean; L: Plua_State): integer; cdecl;
@@ -7552,12 +7548,12 @@ end;
 
 function lua_speak(L: Plua_State): integer; cdecl;
 begin
-  lua_speakEx(false,L);
+  result:=lua_speakEx(false,L);
 end;
 
 function lua_speakEnglish(L: Plua_State): integer; cdecl;
 begin
-  lua_speakEx(true,L);
+  result:=lua_speakEx(true,L);
 end;
 
 
@@ -7790,6 +7786,7 @@ end;
 function lua_unregisterEXETrainerFeature(L: Plua_State): integer; cdecl;
 var i: integer;
 begin
+  result:=0;
   if (lua_gettop(L)=1) and lua_isnumber(L, 1) then
   begin
     i:=lua_tointeger(L,1);
@@ -8133,6 +8130,7 @@ end;
 
 function lua_saveOpenedFile(L: Plua_State): integer; cdecl;
 begin
+  result:=0;
   if lua_gettop(L)>=1 then
     filehandler.commitchanges(Lua_ToString(L,1))
   else
@@ -8390,6 +8388,7 @@ begin
   if r=STATUS_INFO_LENGTH_MISMATCH then exit(0);
   if r<>0 then exit(0);
 
+  peprocess:=0;
   if lua_gettop(L)>=1 then
   begin
     filter:=lua_tointeger(L,1);

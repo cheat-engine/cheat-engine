@@ -620,7 +620,7 @@ type TCEForm=class(TCustomForm)
     procedure RestoreToDesignState;
     procedure SaveCurrentStateasDesign;
     function getVisible:boolean;
-    procedure setVisible(state: boolean);
+    procedure setVisibleCEF(state: boolean);
     destructor destroy; override;
 
     property  active: boolean read getActive write setActive;
@@ -704,7 +704,7 @@ type TCEForm=class(TCustomForm)
     property ShowInTaskBar;
   //  property UseDockManager;
  //   property LCLVersion: string read FLCLVersion write FLCLVersion stored LCLVersionIsStored;
-    property Visible read getVisible write setVisible;
+    property Visible read getVisible write setVisibleCEF;
     property WindowState;
 
     property DoNotSaveInTable: boolean read fDoNotSaveInTable write fDoNotSaveInTable default False;
@@ -1445,7 +1445,7 @@ begin
 
 end;
 
-procedure TCEForm.setVisible(state: boolean);
+procedure TCEForm.setVisibleCEF(state: boolean);
 begin
   fVisible:=state;
   if active=false then

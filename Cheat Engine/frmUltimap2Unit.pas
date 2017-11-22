@@ -326,6 +326,7 @@ var self: TUltimap2Worker;
 
   s: integer;
 begin
+  result:=0;
   self:=TUltimap2Worker(context);
   //watch for page boundaries
 
@@ -413,7 +414,7 @@ var
 begin
   //read the memory and add it if necesary
   result:=nil;
-
+  endaddress:=0;
   ownerForm.regiontreeMREW.Beginwrite;
 
   try
@@ -1451,8 +1452,9 @@ var
   cpuid14_0: TCPUIDResult;
   cpuid14_1: TCPUIDResult;
 begin
-  if state=rsProcessing then exit;
-
+  if state=rsProcessing then
+    exit;
+  bsize:=0;
     //if ssCtrl in GetKeyShiftState then
     //  debugmode:=true;
 

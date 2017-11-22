@@ -82,6 +82,7 @@ var
 
   vt: TvariableType;
 begin
+  vt:=TVariableType(0);
   for i:=0 to lvWatchlist.Items.Count-1 do
   begin
     //evaluate the expression

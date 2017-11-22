@@ -43,6 +43,7 @@ implementation
 
 function TfrmLuaScriptQuestion.getLuaScriptAction: integer;
 begin
+  result:=0;
   if rbAlways.checked then result:=0 else
   if rbSignedOnly.checked then result:=1 else
   if rbAlwaysAsk.checked then result:=2 else

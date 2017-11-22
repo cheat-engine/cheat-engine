@@ -169,8 +169,9 @@ begin
       begin
         if processhandler.is64Bit then
         begin
+          {$IFDEF CPU64}
           if (address>=QWORD($8000000000000000)) then exit;
-
+          {$ENDIF}
         end
         else
           if (address>=$80000000) then exit;

@@ -208,7 +208,7 @@ begin
   inherited Paint;
 
   lastx:=0;
-
+  selectedx:=0;
   //create a total of 'fTabs.count' tabs
   for j:=offset to fTabs.count-1 do
   begin

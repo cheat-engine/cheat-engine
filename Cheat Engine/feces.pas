@@ -92,6 +92,7 @@ end;
 
 function DecodePointerNI(p: pointer):pointer; stdcall;
 begin
+  result:=nil;
   if rv=0 then exit;
 
   result:=pointer(ptruint(p) xor rv);
