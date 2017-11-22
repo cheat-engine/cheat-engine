@@ -200,7 +200,6 @@ object FindWindow: TFindWindow
     Anchors = [akTop, akLeft, akRight]
     OnKeyDown = scanvalue_lineKeyDown
     TabOrder = 2
-    Text = 'scanvalue_line'
   end
   object Timer1: TTimer
     Enabled = False
