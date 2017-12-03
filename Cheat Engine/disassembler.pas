@@ -8756,7 +8756,11 @@ begin
                     else
                     begin
                       lastdisassembledata.opcode:='mov';
-                      lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last);
+
+                      if Rex_W then
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,64)
+                      else
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last);
 
                       dwordptr:=@memory[last];
                       lastdisassembledata.parametervaluetype:=dvtvalue;
