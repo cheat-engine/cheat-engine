@@ -168,7 +168,6 @@ VOID CreateProcessNotifyRoutine(IN HANDLE  ParentId, IN HANDLE  ProcessId, IN BO
 						*/
 						
 						KAPC_STATE oldstate;
-						ObReferenceObject(CurrentProcess);
 
 						
 						KeStackAttachProcess((PKPROCESS)WatcherProcess, &oldstate);						
