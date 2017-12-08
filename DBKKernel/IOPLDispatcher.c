@@ -385,7 +385,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 		case IOCTL_CE_OPENPROCESS:
 			{					
-				PEPROCESS selectedprocess;
+				PEPROCESS selectedprocess = NULL;
 				ULONG processid=*(PULONG)Irp->AssociatedIrp.SystemBuffer;
 				HANDLE ProcessHandle = GetHandleForProcessID((HANDLE)processid);
 				struct out
@@ -428,6 +428,11 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				{
 					//DbgPrint("ProcessHandle=%x", (int)ProcessHandle);
 					POutput->Special = 1;					
+				}
+
+				if (selectedprocess)
+				{
+					ObDereferenceObject(selectedprocess);
 				}
 				
 				POutput->h=(UINT64)ProcessHandle;

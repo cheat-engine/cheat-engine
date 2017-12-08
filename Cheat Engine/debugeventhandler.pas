@@ -1425,6 +1425,10 @@ begin
        (CurrentDebuggerInterface is TNetworkDebuggerInterface) then //the kerneldebuginterface and networkdebuginterface do not give a breakpoint as init so use create as attachevent
       onAttachEvent.SetEvent;
 
+    if (CurrentDebuggerInterface is TWindowsDebuggerInterface) and (debugEvent.CreateProcessInfo.hFile<>0) then
+      closeHandle(debugEvent.CreateProcessInfo.hFile); //we don't need this
+
+
     secondcreateprocessdebugevent:=true;
   end;
   Result := true;

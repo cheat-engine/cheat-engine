@@ -880,7 +880,7 @@ begin
   begin
     if (sender is TLabel) then
     begin
-      s:=tlabel(sender).Caption;
+      s:=trim(tlabel(sender).Caption);
       i:=pos(' ',s);
       if i>0 then //should always be true
       begin
@@ -2156,13 +2156,13 @@ var newaddress: string;
     canceled: boolean;
     old: ptruint;
 begin
-  panel4.setfocus;
-//  old:=memoryaddress;
-
   old:=hexview.SelectionStart;
   if old=0 then old:=memoryaddress;
 
   newaddress:=inputboxtop(rsGotoAddress, rsFillInTheAddressYouWantToGoTo, IntTohex(old, 8), true, canceled, memorybrowserHistory);
+
+  if(canceled)then
+    exit;
 
   try
     hexview.address:=getaddress(newaddress);
@@ -2174,7 +2174,6 @@ begin
     hexview.history.Push(pointer(old));
 
   hexview.SetFocus;
-
 end;
 
 procedure TMemoryBrowser.FormResize(Sender: TObject);
@@ -2425,6 +2424,9 @@ var newaddress: string;
     oldAddress: ptrUint;
 begin
   newaddress:=InputBoxTop(rsGotoAddress, rsFillInTheAddressYouWantToGoTo, IntTohex(disassemblerview.SelectedAddress, 8), true, canceled, memorybrowserHistory);
+
+  if(canceled)then
+    exit;
 
   oldAddress:=disassemblerview.SelectedAddress;
   try
