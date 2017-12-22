@@ -7990,7 +7990,7 @@ var
   replace_find: string;
   replace_with: string;
   changeoffsetstring: string;
-  changeoffset, x: dword;
+  changeoffset, x: int64;
   i, j: integer;
   hasselected: boolean;
 begin
@@ -8012,7 +8012,7 @@ begin
     changeoffsetstring := stringreplace(changeoffsetstring, '$-', '-', [rfReplaceAll]);
 
     try
-      changeoffset := StrToInt(changeoffsetstring);
+      changeoffset := StrToInt64(changeoffsetstring);
     except
       changeoffset := 0;
     end;
