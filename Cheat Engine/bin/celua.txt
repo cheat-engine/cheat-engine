@@ -1811,7 +1811,7 @@ properties
     If the type is vtByteArray then the following properties are available
       Aob.Size : Number of bytes
 
-  CustomTypeName: String - If the type is vtCustomType this will contain the name of the CustomType
+  CustomTypeName: String - If the type is vtCustom this will contain the name of the CustomType
   Script: String - If the type is vtAutoAssembler this will contain the auto assembler script
   Value: string - The value in stringform.
   Selected: boolean - Set to true if selected (ReadOnly)
