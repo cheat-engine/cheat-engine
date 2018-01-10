@@ -2179,12 +2179,12 @@ begin
   script:=tstringlist.create;
   try
     script.text:=Lua_ToString(L,1);
-    if lua_gettop(L)=2 then
+    if lua_gettop(L)>=2 then
       enable:=lua_toboolean(L,2)
     else
       enable:=true;
 
-    if lua_gettop(L)=3 then
+    if lua_gettop(L)>=3 then
       targetself:=lua_toboolean(L,3)
     else
       targetself:=false;

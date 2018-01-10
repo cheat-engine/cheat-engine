@@ -283,6 +283,7 @@ type
     function getName: string;
 
     procedure setAnchorsForPos(i: integer);
+
   public
     currentNodeAddress: string;    //temporary storage for rendering
     currentNodeValue: string;
@@ -298,7 +299,8 @@ type
 
     procedure clearSavedState;
     function saveState: boolean;
-    function getSavedState: pointer;
+    function getSavedState: ptruint;
+    procedure setSavedState(p: ptruint);
     function getSavedStateSize: integer;
     function LockAddress(shownaddress: ptruint; memoryblock: pointer; size: integer): boolean; //call this when you wish to set a specific lock state based on locally saved data
 
@@ -320,6 +322,9 @@ type
     property GlobalIndex: integer read getGlobalIndex;
     property AddressText: string read getAddressText write setAddressText;
     property Name: string read getName;
+    property SavedState: ptruint read getSavedState write setSavedState; //hack to expose a raw pointer as property
+    property SavedStateSize: integer read fsavedstatesize write fsavedstatesize;
+
   end;
 
   TfrmStructures2 = class(TForm)
@@ -2440,9 +2445,9 @@ begin
   end;
 end;
 
-function TStructColumn.getSavedState: pointer;
+function TStructColumn.getSavedState: ptruint;
 begin
-  result:=fsavedstate;
+  result:=ptruint(fsavedstate);
 end;
 
 function TStructColumn.getSavedStateSize: integer;
@@ -2577,6 +2582,11 @@ end;
 procedure TStructColumn.SetProperEditboxPosition;
 begin
 
+end;
+
+procedure TStructColumn.setSavedState(p: ptruint);
+begin
+  fsavedstate:=pointer(p);
 end;
 
 procedure TStructColumn.setAnchorsForPos(i: integer);
@@ -3871,7 +3881,7 @@ begin
           if not inputquery(rsStructureDefine, rsPleaseGiveAStartingSizeOfTheStructYouCanChangeThis, Sstructsize) then exit;
           structsize:=strtoint(sstructsize);
 
-          if TStructColumn(columns[0]).getSavedState=nil then
+          if TStructColumn(columns[0]).getSavedState=0 then
             mainStruct.autoGuessStruct(TStructColumn(columns[0]).getAddress, 0, structsize )
           else
             mainStruct.autoGuessStruct(ptruint(TStructColumn(columns[0]).getSavedState), 0, min(structsize, TStructColumn(columns[0]).getSavedStateSize)); //fill base don the saved state
@@ -5752,6 +5762,7 @@ begin
     miChangeElementClick(miChangeElement)
   else
     EditValueOfSelectedNodes(c);
+
 end;
 
 procedure TfrmStructures2.miFindRelationsClick(Sender: TObject);
