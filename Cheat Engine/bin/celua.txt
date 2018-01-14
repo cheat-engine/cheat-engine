@@ -1793,12 +1793,14 @@ properties
   Index: Integer - The index ID for this record. 0 is top. (ReadOnly)
   Description: string- The description of the memory record
   Address: string - Get/set the interpretable address string. Useful for simple address settings.
+  AddressString: string - Get the address string shown in CE.
   OffsetCount: integer - The number of offsets. Set to 0 for a normal address
   Offset[] : integer - Array to access each offset
   OffsetText[] : string - Array to access each offset using the interpretable text style
 
   CurrentAddress: integer - The address the memoryrecord points to
-  Type: ValueType - The variable type of this record. See vtByte to vtCustom
+  VarType: ValueType (string) - The variable type of this record. See vtByte to vtCustom
+  Type: ValueType (number) - The variable type of this record. See vtByte to vtCustom
     If the type is vtString then the following properties are available:
      String.Size: Number of characters in the string
      String.Unicode: boolean
@@ -1826,11 +1828,23 @@ properties
   IsReadable: boolean - Set to false if record contains an unreadable address. NOTE: This property will not be set until the value property is accessed at least once. (ReadOnly)
 
   Options: String set - a string enclosed by square brackets filled with the options seperated by a comma. Valid options are: moHideChildren, moActivateChildrenAsWell, moDeactivateChildrenAsWell, moRecursiveSetValue, moAllowManualCollapseAndExpand, moManualExpandCollapse
+  
+  DropDownLinked: boolean - if dropdown list refers to list of another memory record eg. (memrec name)
+  DropDownLinkedMemrec: string - Description of linked memrec or emptystring if not linked
+  DropDownList : StringList - self explanatory (returns new list each time)
+  DropDownReadOnly: boolean - true if 'Disallow manual user input' is set
+  DropDownDescriptionOnly: boolean - self explanatory
+  DisplayAsDropDownListItem: boolean - self explanatory
+  DropDownCount: integer - equivalent to .DropDownList.Count
+  DropDownValue[index] : Array to access values in DropDownList (read-only)
+  DropDownValue[index] : Array to access Descriptions in DropDownList (read-only)
+
 
 
   Count: Number of children
   Child[index] : Array to access the child records
   [index] = Child[index]
+  Parent: MemoryRecord - self explanatory
 
   HotkeyCount: integer - Number of hotkeys attached to this memory record
   Hotkey[] : Array to index the hotkeys
