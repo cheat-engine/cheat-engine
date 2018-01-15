@@ -1793,7 +1793,7 @@ properties
   Index: Integer - The index ID for this record. 0 is top. (ReadOnly)
   Description: string- The description of the memory record
   Address: string - Get/set the interpretable address string. Useful for simple address settings.
-  AddressString: string - Get the address string shown in CE.
+  AddressString: string - Get the address string shown in CE (ReadOnly)
   OffsetCount: integer - The number of offsets. Set to 0 for a normal address
   Offset[] : integer - Array to access each offset
   OffsetText[] : string - Array to access each offset using the interpretable text style
@@ -1837,7 +1837,7 @@ properties
   DisplayAsDropDownListItem: boolean - self explanatory
   DropDownCount: integer - equivalent to .DropDownList.Count
   DropDownValue[index] : Array to access values in DropDownList (read-only)
-  DropDownValue[index] : Array to access Descriptions in DropDownList (read-only)
+  DropDownDescription[index] : Array to access Descriptions in DropDownList (read-only)
 
 
 
