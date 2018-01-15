@@ -1831,13 +1831,13 @@ properties
   
   DropDownLinked: boolean - if dropdown list refers to list of another memory record eg. (memrec name)
   DropDownLinkedMemrec: string - Description of linked memrec or emptystring if not linked
-  DropDownList : StringList - self explanatory (returns new list each time)
+  DropDownList : StringList - list of "value:description" lines, lists are still separate objects when linked, read-write
   DropDownReadOnly: boolean - true if 'Disallow manual user input' is set
   DropDownDescriptionOnly: boolean - self explanatory
   DisplayAsDropDownListItem: boolean - self explanatory
   DropDownCount: integer - equivalent to .DropDownList.Count
-  DropDownValue[index] : Array to access values in DropDownList (read-only)
-  DropDownDescription[index] : Array to access Descriptions in DropDownList (read-only)
+  DropDownValue[index] : Array to access values in DropDownList (ReadOnly)
+  DropDownDescription[index] : Array to access Descriptions in DropDownList (ReadOnly)
 
 
 
