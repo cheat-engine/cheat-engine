@@ -33,6 +33,8 @@ type
     Find1: TMenuItem;
     FindNext1: TMenuItem;
     FindDialog1: TFindDialog;
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure lvStringlistColumnClick(Sender: TObject; Column: TListColumn);
     procedure lvStringlistData(Sender: TObject; Item: TListItem);
@@ -215,6 +217,24 @@ begin
 
   if dissectcode<>nil then
     LoadStringlist;
+end;
+
+procedure TfrmReferencedStrings.FormCreate(Sender: TObject);
+var x: array of integer;
+begin
+  setlength(x, 0);
+  if loadformposition(self,x) then
+  begin
+    lbReflist.Width:=x[0];
+    lvStringlist.Column[0].Width:=x[1];
+    lvStringlist.Column[1].Width:=x[2];
+    lvStringlist.Column[2].Width:=x[3];
+  end;
+end;
+
+procedure TfrmReferencedStrings.FormDestroy(Sender: TObject);
+begin
+  saveformposition(self,[lbReflist.Width,lvStringlist.Column[0].Width,lvStringlist.Column[1].Width,lvStringlist.Column[2].Width]);
 end;
 
 function AddressSort(List: TStringList; Index1, Index2: Integer): Integer;
