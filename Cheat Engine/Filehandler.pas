@@ -20,6 +20,7 @@ var filename: string;
     filedata: TMemorystream;
     //filehandle: thandle;
     bigendianfileaccess: boolean=false;
+    blockfilehandlerpopup: boolean=false;
 
 implementation
 
@@ -144,7 +145,7 @@ begin
 
   if ptrUint(lpbaseaddress)+s>filesize then
   begin
-    if MainThreadID=GetCurrentThreadId then
+    if (MainThreadID=GetCurrentThreadId) and (not blockfilehandlerpopup) then
     begin
       if MessageDlg('Change the file size to '+inttostr(ptrUint(lpbaseaddress)+s)+' bytes?',mtConfirmation,[mbyes,mbno],0)=mryes then
       begin

@@ -198,7 +198,7 @@ type
 implementation
 
 uses dialogs, formAddressChangeUnit, TypePopup, PasteTableentryFRM, mainunit,
-  ProcessHandlerUnit, frmEditHistoryUnit, globals;
+  ProcessHandlerUnit, frmEditHistoryUnit, globals, filehandler;
 
 resourcestring
   rsDoYouWantToDeleteTheSelectedAddress = 'Do you want to delete the selected address?';
@@ -434,13 +434,16 @@ var
   oldlogWrites: boolean;
 begin
   oldlogWrites:=logwrites;
+
   //oldlogWrites:=false;
+  blockfilehandlerpopup:=true;
 
   try
     for i:=0 to count-1 do
       memrecitems[i].ApplyFreeze;
   finally
     logWrites:=oldlogWrites;
+    blockfilehandlerpopup:=false;
   end;
 end;
 
