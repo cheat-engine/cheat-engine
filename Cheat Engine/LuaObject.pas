@@ -40,7 +40,6 @@ begin
   metatable:=lua_gettop(L);
 
   try
-    //check if it has onDestroy, if so, call it
     //now cleanup the callers
 
     if (c is TCustomForm) and assigned(TCustomForm(c).OnDestroy) then
@@ -50,6 +49,7 @@ begin
       except
         //don't care
       end;
+      TCustomForm(c):=nil;
     end;
 
     count:=GetPropList(c, proplist);
@@ -58,6 +58,13 @@ begin
       if proplist[i]^.PropType.Kind=tkMethod then
       begin
         m:=GetMethodProp(c, proplist[i]);
+
+        if (proplist[i]^.Name='OnDestroy') then
+        begin
+          if (m.Code<>nil) and (m.data<>nil) then
+            TNotifyEvent(m)(c);
+        end;
+
         CleanupLuaCall(m);
         m.Code:=nil;
         m.data:=nil;
