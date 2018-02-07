@@ -3571,8 +3571,12 @@ begin
 
       i:=i*strtoint(tokens[1]);
       setlength(bytes, i);
-      for j:=0 to i-1 do
-        bytes[j]:=0; //init the bytes to 0 (actually it should be uninitialized, but really... (Use structs for that)
+
+      if ReadProcessMemory(processhandle,pointer(address), @bytes[0], i, br)=false then
+      begin
+        for j:=0 to i-1 do
+          bytes[j]:=0; //init the bytes to 0 (actually it should be uninitialized, but really... (Use structs for that)}
+      end;
 
       result:=true;
       exit;
