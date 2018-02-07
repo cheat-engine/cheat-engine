@@ -7,7 +7,7 @@ interface
 uses
   jwawindows, windows, Classes, SysUtils, Controls, menus, lua, lualib, lauxlib, LuaHandler,
   LuaCaller, pluginexports, forms, dialogs, ceguicomponents, XMLWrite, XMLRead,
-  Graphics, DOM, cefuncproc, newkernelhandler;
+  Graphics, DOM, cefuncproc, newkernelhandler, typinfo;
 
 procedure initializeLuaForm;
 
@@ -320,6 +320,18 @@ begin
   form.SaveCurrentStateasDesign;
 end;
 
+function customform_getFormState(L: PLua_State): integer; cdecl;
+var
+  form: TCustomForm;
+  ti: PTypeInfo;
+begin
+  form:=luaclass_getClassObject(L);
+  ti:=typeinfo(TFormState);
+
+  lua_pushstring(L, SetToString(ti, integer(form.FormState),true));
+  result:=1;
+end;
+
 function customform_getModalResult(L: PLua_State): integer; cdecl;
 var
   form: TCustomForm;
@@ -367,6 +379,7 @@ begin
   luaclass_addPropertyToTable(L, metatable, userdata, 'OnClose', customform_getOnClose, customform_setOnClose);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Menu', customform_getMenu, customform_setMenu);
   luaclass_addPropertyToTable(L, metatable, userdata, 'ModalResult', customform_getModalResult, customform_setModalResult);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'FormState', customform_getFormState, nil);
 end;
 
 procedure ceform_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
