@@ -3479,6 +3479,12 @@ begin
   parameters:=lua_gettop(L);
   if parameters>=1 then
   begin
+    if lua_type(L,1)=LUA_TNUMBER then
+    begin
+      lua_pushinteger(L,lua_tointeger(L,1));
+      exit(1);
+    end;
+
     s:=Lua_ToString(L, 1);
 
     if parameters>=2 then
