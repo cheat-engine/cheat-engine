@@ -3657,6 +3657,25 @@ begin
 
 end;
 
+function reinitializeSelfSymbolhandler(L: PLua_state): integer; cdecl;
+var waittilldone: boolean;
+begin
+  if lua_gettop(L)>=1 then
+    waittilldone:=lua_toboolean(L,1)
+  else
+    waittilldone:=true;
+
+  lua_pop(L, lua_gettop(L));
+  result:=0;
+
+
+  selfsymhandler.reinitialize(true);
+
+  if waitTillDone then
+    selfsymhandler.waitforsymbolsloaded;
+
+end;
+
 function enumModules(L:PLua_state): integer; cdecl;
 var
   i: integer;
@@ -8660,6 +8679,7 @@ begin
 
     lua_register(L, 'reinitializeSymbolhandler', reinitializeSymbolhandler);
     lua_register(L, 'reinitializeDotNetSymbolhandler', reinitializeDotNetSymbolhandler);
+    lua_register(L, 'reinitializeSelfSymbolhandler', reinitializeSelfSymbolhandler);
     lua_register(L, 'enumModules', enumModules);
 
 
