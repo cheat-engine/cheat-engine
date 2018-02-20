@@ -235,6 +235,9 @@ extern UINT64 getR13(void);
 extern UINT64 getR14(void);
 extern UINT64 getR15(void);
 
+extern UINT64 getAccessRights(UINT64 segment);
+extern UINT64 getSegmentLimit(UINT64 segment);
+
 
 int getCpuCount(void);
 
@@ -264,6 +267,7 @@ void enableInterrupts(void);
 void csEnter(PcriticalSection CS);
 void csLeave(PcriticalSection CS);
 
+void forOneCpu(CCHAR cpunr, PKDEFERRED_ROUTINE dpcfunction, PVOID DeferredContext, PVOID  SystemArgument1, PVOID  SystemArgument2);
 void forEachCpu(PKDEFERRED_ROUTINE dpcfunction,  PVOID DeferredContext, PVOID  SystemArgument1, PVOID  SystemArgument2);
 void forEachCpuAsync(PKDEFERRED_ROUTINE dpcfunction, PVOID DeferredContext, PVOID  SystemArgument1, PVOID  SystemArgument2);
 void forEachCpuPassive(PF f, UINT_PTR param);

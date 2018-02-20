@@ -90,6 +90,18 @@ calls a specific function for each cpu that runs in passive mode
 #endif
 }
 
+void forOneCpu(CCHAR cpunr, PKDEFERRED_ROUTINE dpcfunction, PVOID DeferredContext, PVOID  SystemArgument1, PVOID  SystemArgument2)
+{
+	PKDPC dpc;
+	dpc = ExAllocatePool(NonPagedPool, sizeof(KDPC));
+	KeInitializeDpc(dpc, dpcfunction, DeferredContext);
+	KeSetTargetProcessorDpc(dpc, cpunr);
+	KeInsertQueueDpc(dpc, SystemArgument1, SystemArgument2);
+	KeFlushQueuedDpcs();
+
+	ExFreePool(dpc);
+}
+
 void forEachCpu(PKDEFERRED_ROUTINE dpcfunction,  PVOID DeferredContext, PVOID  SystemArgument1, PVOID  SystemArgument2)
 /*
 calls a specified dpcfunction for each cpu on the system
@@ -203,23 +215,15 @@ calls a specified dpcfunction for each cpu on the system
 //own critical section implementation for use when the os is pretty much useless (dbvm tech)
 void spinlock(volatile int *lockvar)
 {
-	DWORD a[4];
-	
-
 	while (1)
 	{
-		while (*(volatile int *)lockvar!=0)		
-		{
-			__nop();
-			__nop();
-			__cpuid(a,0); //serialize cpu's		
-			__nop();
-			__nop();
-		}
+
 		//it was 0, let's see if we can set it to 1
 		//race who can set it to 1:
 		if (_InterlockedExchange((volatile int *)lockvar, 1)==0)
 			return; //lock aquired, else continue loop
+
+		_mm_pause();
 
 	}
 

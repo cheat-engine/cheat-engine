@@ -959,42 +959,12 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				pinp=Irp->AssociatedIrp.SystemBuffer;
 				DbgPrint("IOCTL_CE_LAUNCHDBVM\n");
 
+				initializeDBVM((PCWSTR)pinp->dbvmimgpath);
+
 				if (pinp->cpuid == 0xffffffff)
-				{
-					DbgPrint("cpuid=0xffffffff\n");
-					forEachCpuPassive(vmxoffload_passive, (UINT_PTR)pinp->dbvmimgpath);
-				}
+					forEachCpu(vmxoffload_dpc, NULL, NULL, NULL);
 				else
-				{					
-					KAFFINITY newaffinity=(KAFFINITY)(1 << pinp->cpuid);					
-					//offload just for this cpu
-
-#if (NTDDI_VERSION >= NTDDI_VISTA)					
-					KAFFINITY oldaffinity;
-					oldaffinity = KeSetSystemAffinityThreadEx(newaffinity);
-#else
-					//XP and earlier (this routine is not called often, only when the user asks explicitly
-					{
-						LARGE_INTEGER delay;
-						delay.QuadPart = -50; //short wait just to be sure... (the docs do not say that a switch happens imeadiatly for the no Ex version)
-
-						KeSetSystemAffinityThread(newaffinity);
-						KeDelayExecutionThread(UserMode, FALSE, &delay);
-					}
-#endif
-
-					DbgPrint("cpuid=%d\n", pinp->cpuid);
-		
-					vmxoffload_passive((UINT_PTR)pinp->dbvmimgpath);
-#if (NTDDI_VERSION >= NTDDI_VISTA)
-					KeRevertToUserAffinityThreadEx(oldaffinity);
-#endif
-				}
-				//vmxoffload_passive((UINT_PTR)pinp->dbvmimgpath);
-
-				
-
-				//vmxoffload((PCWSTR)pinp->dbvmimgpath);
+					forOneCpu(pinp->cpuid, vmxoffload_dpc, NULL, NULL, NULL);					
 
 				DbgPrint("Returned from vmxoffload()\n");
 				break;
