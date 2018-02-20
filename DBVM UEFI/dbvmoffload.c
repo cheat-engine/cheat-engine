@@ -19,7 +19,7 @@ typedef void *PVOID;
 extern void enterVMM( void ); //declared in vmxoffloada.asm
 extern void enterVMMPrologue(void);
 extern void enterVMMEpilogue(void);
-
+extern int doSystemTest(void);
 
 #pragma pack(2)
 struct
@@ -73,10 +73,32 @@ typedef struct
   UINT64    tr;
   UINT64    ldt;
 
+  UINT64    cs_AccessRights;
+  UINT64    ss_AccessRights;
+  UINT64    ds_AccessRights;
+  UINT64    es_AccessRights;
+  UINT64    fs_AccessRights;
+  UINT64    gs_AccessRights;
+
+  UINT64    cs_Limit;
+  UINT64    ss_Limit;
+  UINT64    ds_Limit;
+  UINT64    es_Limit;
+  UINT64    fs_Limit;
+  UINT64    gs_Limit;
+
   UINT64    fsbase;
   UINT64    gsbase;
-
+  UINT64    APEntryPage; //Physical address in the lower 1MB memory used for AP bootup
+  UINT64    Uncached;
 } OriginalState, *POriginalState;
+
+typedef struct
+{
+  UINT64 startAddress;
+  UINT64 byteSize;
+} __attribute__((__packed__)) UncachedRegion, *PUncachedRegion;
+
 #pragma pack()
 
 POriginalState originalstate;
@@ -98,14 +120,27 @@ UINT_PTR vmmPA;
 int initializedvmm=0;
 
 
+
+
 void InitializeDBVM(UINT64 vmm, int vmmsize)
 {
   //basic paging setup for the vmm, will get expanded by the vmm itself
+  UINT64 FreePA=((vmm+vmmsize) & 0xfffffffffffff00ULL) +4096;
+  UINT64 mainstack=FreePA;
+  FreePA+=16*4096;
   UINT64 *GDTBase=(UINT64 *)((UINT_PTR)vmm+vmmsize+4096);
-  UINT_PTR  pagedirptrbase=(UINT_PTR)vmm+vmmsize+2*4096;
-  PUINT64   PageMapLevel4=(PUINT64)pagedirptrbase;
-  PUINT64   PageDirPtr=(PUINT64)(pagedirptrbase+4096);
-  PUINT64   PageDir=(PUINT64)(pagedirptrbase+4096+4096);
+  FreePA+=4096;
+  PUINT64  pagedirptrbase=(PUINT64)FreePA;
+  FreePA+=4096;
+  PUINT64  PageDirPtr=(PUINT64)(PageDirPtr+4096);
+  FreePA+=4096;
+  PUINT64  PageDir=(PUINT64)(PageDirPtr+4096);
+  FreePA+=4096;
+  PUINT64  PageMapLevel4=(PUINT64)PageDir; //must be the last alloc
+  FreePA+=4096;
+
+  ZeroMem((void*)mainstack, FreePA-mainstack); //initialize all the allocated memory
+
 
   Print(L"pagedirptrbase=%lx\n",pagedirptrbase);
   pagedirptrbasePA=(UINT_PTR)pagedirptrbase;
@@ -124,14 +159,14 @@ void InitializeDBVM(UINT64 vmm, int vmmsize)
   ((PPDPTE_PAE)(&PageDirPtr[0]))->RW=1;
   Print(L"PageDirPtr[0]=%lx\n",PageDirPtr[0]);
 
-  PageDir[0]=0;
+  PageDir[0]=0; //physical address 0x00000000 to 0x00200000
   ((PPDE2MB_PAE)(&PageDir[0]))->P=1;
   ((PPDE2MB_PAE)(&PageDir[0]))->US=1;
   ((PPDE2MB_PAE)(&PageDir[0]))->RW=1;
   ((PPDE2MB_PAE)(&PageDir[0]))->PS=1; //2MB
   Print(L"PageDir[0]=%lx\n",PageDir[0]);
 
-  PageDir[1]=0x00200000;
+  PageDir[1]=0x00200000; //physical address 0x00200000 to 0x00400000
   ((PPDE2MB_PAE)(&PageDir[1]))->P=1;
   ((PPDE2MB_PAE)(&PageDir[1]))->US=1;
   ((PPDE2MB_PAE)(&PageDir[1]))->RW=1;
@@ -139,7 +174,6 @@ void InitializeDBVM(UINT64 vmm, int vmmsize)
   Print(L"PageDir[1]=%lx\n",PageDir[1]);
 
   {
-
     //create a pagetable for the first 2MB of vmm
     PUINT64 PageTable=AllocatePersistentMemory(4096);
     int i;
@@ -157,6 +191,12 @@ void InitializeDBVM(UINT64 vmm, int vmmsize)
       PageTable[i]=(UINT_PTR)vmm+(4096*i);
       ((PPTE_PAE)(&PageTable[i]))->P=1;
       ((PPTE_PAE)(&PageTable[i]))->RW=1;
+    }
+
+    if (mainstack<vmm+0x00200000)
+    {
+      int index=(mainstack-vmm) >> 12;
+      ((PPTE_PAE)(&PageTable[index]))->P=0; //mark the first page of the stack as unreadable
     }
   }
 
@@ -182,6 +222,7 @@ void InitializeDBVM(UINT64 vmm, int vmmsize)
    }
 
 
+
   //setup GDT
   GDTBase[0 ]=0;            //0 :
   GDTBase[1 ]=0x00cf92000000ffffULL;  //8 : 32-bit data
@@ -193,7 +234,8 @@ void InitializeDBVM(UINT64 vmm, int vmmsize)
   GDTBase[7 ]=0;            //56: 32-bit task
   GDTBase[8 ]=0;            //64: 64-bit task
   GDTBase[9 ]=0;            //72:  ^   ^   ^
-  GDTBase[10]=0x00a09e0000000000ULL;  //80: 64-bit code
+  //GDTBase[10]=0x00a09e0000000000ULL;  //80: 64-bit code
+  GDTBase[10]=0x00af9b000000ffffULL;  //80: 64-bit code
   GDTBase[11]=0;            //88:  ^   ^   ^
   GDTBase[12]=0;            //96: 64-bit tss descriptor (2)
   GDTBase[13]=0;            //104: ^   ^   ^
@@ -225,7 +267,7 @@ void InitializeDBVM(UINT64 vmm, int vmmsize)
       return;
     }
 
-    ZeroMem(address,4096);
+    ZeroMem((void *)address,4096);
 
     enterVMM2=(unsigned char *)address;
 
@@ -265,156 +307,145 @@ void InitializeDBVM(UINT64 vmm, int vmmsize)
   {
     EFI_PHYSICAL_ADDRESS address=0x003fffff;
     EFI_STATUS s;
-    s=AllocatePages(AllocateMaxAddress,EfiRuntimeServicesCode, 16*8,&address);
+
+    UINT64 *vmimg=(UINT64 *)vmm;
+    vmimg[2]=originalstatePA;
+    vmimg[3]=vmmPA;
+    vmimg[4]=0x00400000+(PageMapLevel4-vmm); //address of the PML4 Virtual address. 4096 bytes after that will be free for use
+    vmimg[5]=0x00400000+(mainstack-vmm)+(16*4096)-0x40;
+
+    address=0;
+    s=AllocatePages(AllocateAnyPages,EfiRuntimeServicesData, 16384,&address); //64MB of memory
     if (s!=EFI_SUCCESS)
     {
-      Print(L"Failure allocating low memory region for stack");
-      return;
+      Print(L"Allocated 64MB of extra ram at %lx\n", address);
+      vmimg[6]=address;
+      vmimg[7]=16384;
+    }
+    else
+    {
+      vmimg[6]=0;
+      vmimg[7]=0;
     }
 
-    ZeroMem((void *)address,16*4096*8);
 
-    InitStackPA=address+(16*4096*8)-16;
 
-    unsigned char *vmimg=(unsigned char *)vmm;
-    *(UINT64 *)(&vmimg[0x10])=originalstatePA;
-    *(UINT64 *)(&vmimg[0x18])=vmmPA;
-    *(UINT64 *)(&vmimg[0x20])=0x00400000+vmmsize+2*4096;
-    *(UINT64 *)(&vmimg[0x28])=InitStackPA;
+
+    address=0xfffff;
+    s=AllocatePages(AllocateMaxAddress,EfiRuntimeServicesCode, 1,&address);
+    if (s!=EFI_SUCCESS)
+    {
+      Print(L"Failure allocating under 1MB region for AP launch");
+      return;
+    }
+    originalstate->APEntryPage=address;
+
+    //get the uncached memory regions
+
+    UINTN descriptorbuffersize=sizeof(EFI_MEMORY_DESCRIPTOR)*64;
+    EFI_MEMORY_DESCRIPTOR *descriptors=AllocatePool(descriptorbuffersize);
+    UINTN MapKey;
+    UINTN DescriptorSize;
+    UINTN DescriptorVersion;
+    int loop=1;
+
+    while (uefi_call_wrapper(st->BootServices->GetMemoryMap, 5, &descriptorbuffersize, descriptors, &MapKey, &DescriptorSize, &DescriptorVersion)==EFI_BUFFER_TOO_SMALL)
+    {
+      //reallocate
+      FreePool(descriptors);
+      descriptorbuffersize=descriptorbuffersize+DescriptorSize*loop*4;
+      descriptors=AllocatePool(descriptorbuffersize);
+      if (descriptors)
+      {
+        loop++;
+
+        if (loop>100)
+        {
+          Print(L"Giving up allocating memory for MemoryMap\n");
+        }
+      }
+      else
+        Print(L"Failure allocating memory for MemoryMap\n");
+    }
+
+    Print(L"descriptorbuffersize=%d bytes\n", descriptorbuffersize);
+    Print(L"DescriptorVersion=%d\n", DescriptorVersion);
+
+   // asm volatile (".byte 0xf1");
+    /*
+
+    PUncachedRegion uncachedmap=AllocatePersistentMemory(4096);
+    int uncachedmapSize=0;
+    ZeroMem(uncachedmap,4096);
+
+    originalstate->Uncached=(UINT64)uncachedmap;
+
+    {
+      int i=0;//,j=0;
+      unsigned char *buffer=(unsigned char *)descriptors;
+      while (i<descriptorbuffersize)
+      {
+        EFI_MEMORY_DESCRIPTOR *desc=(EFI_MEMORY_DESCRIPTOR *)&buffer[i];
+
+        if (((desc->Attribute & 0xf)!=0xf) && (desc->NumberOfPages))
+        {
+          Print(L"%d: PS=%lx->%lx VS=%lx Type=%d Attribute=%lx\n", (int)uncachedmapSize, (UINT64)desc->PhysicalStart, (UINT64)desc->PhysicalStart+desc->NumberOfPages*4096, (UINT64)desc->VirtualStart, (int)desc->Type, (UINT64)desc->Attribute);
+
+          //find insert point
+          int inserted=0;
+          int j;
+          for (j=0; j<uncachedmapSize; j++)
+          {
+            if (uncachedmap[j].startAddress>desc->PhysicalStart)
+            {
+              //insert in front of this
+              int k;
+
+              //first shift all the items after this one spot
+              //find the end of the list
+              for (k=uncachedmapSize; k>j; k--)
+                uncachedmap[k]=uncachedmap[k-1];
+
+              uncachedmap[j].startAddress=desc->PhysicalStart;
+              uncachedmap[j].byteSize=desc->NumberOfPages*4096;
+              inserted=1;
+              uncachedmapSize++;
+              break;
+            }
+          }
+
+          if (inserted==0)
+          {
+            uncachedmap[uncachedmapSize].startAddress=desc->PhysicalStart;
+            uncachedmap[uncachedmapSize].byteSize=desc->NumberOfPages*4096;
+
+            uncachedmapSize++;
+          }
+        }
+
+        i+=DescriptorSize;
+      }
+
+      Print(L" ----- \n");
+      for (i=0; uncachedmap[i].byteSize; i++)
+      {
+        Print(L"%d: PS=%lx->%lx\n", (int)i, (UINT64)uncachedmap[i].startAddress, (UINT64)uncachedmap[i].startAddress+uncachedmap[i].byteSize);
+      }
+    }
+    FreePool(descriptors);
+*/
+
+
+
   }
+  //WCHAR something[200];
+  //Input(L"Type something : ", something, 200);
+  //Print(L"\n");
+
   initializedvmm=TRUE;
 
 
 }
-
-
-/*            //now create a paging setup where enterVMM2 is identity mapped AND mapped at the current virtual address, needed to be able to go down to nonpaged mode
-            //easiest way, make every page point to enterVMM2
-
-            //allocate 4 pages
-            DbgPrint("Allocating memory for the temp pagedir\n");
-            minPA.QuadPart=0;
-            maxPA.QuadPart=0xffffffffffff0000ULL;
-
-            TemporaryPagingSetup=ExAllocatePool(NonPagedPool, 4*4096);
-
-            if (TemporaryPagingSetup==NULL)
-            {
-              DbgPrint("TemporaryPagingSetup==NULL!!!\n");
-              return;
-            }
-
-            RtlZeroMemory(TemporaryPagingSetup,4096*4);
-            DbgPrint("TemporaryPagingSetup is located at %p (%I64x)\n", TemporaryPagingSetup, MmGetPhysicalAddress(TemporaryPagingSetup).QuadPart);
-
-
-            TemporaryPagingSetupPA=(UINT_PTR)MmGetPhysicalAddress(TemporaryPagingSetup).QuadPart;
-
-#ifdef AMD64
-            DbgPrint("Setting up temporary paging setup for x64\n");
-            {
-              PUINT64 PML4Table=(PUINT64)TemporaryPagingSetup;
-              PUINT64 PageDirPtr=(PUINT64)((UINT_PTR)TemporaryPagingSetup+4096);
-              PUINT64 PageDir=(PUINT64)((UINT_PTR)TemporaryPagingSetup+2*4096);
-              PUINT64 PageTable=(PUINT64)((UINT_PTR)TemporaryPagingSetup+3*4096);
-
-              DbgPrint("PAE paging\n");
-              for (i=0; i<512; i++)
-              {
-                PML4Table[i]=MmGetPhysicalAddress(PageDirPtr).QuadPart;
-                ((PPDPTE_PAE)(&PML4Table[i]))->P=1;
-
-                PageDirPtr[i]=MmGetPhysicalAddress(PageDir).QuadPart;
-                ((PPDPTE_PAE)(&PageDirPtr[i]))->P=1;
-
-                PageDir[i]=MmGetPhysicalAddress(PageTable).QuadPart;
-                ((PPDE_PAE)(&PageDir[i]))->P=1;
-                ((PPDE_PAE)(&PageDir[i]))->PS=0; //4KB
-
-                PageTable[i]=MmGetPhysicalAddress(enterVMM2).QuadPart;
-                ((PPTE_PAE)(&PageTable[i]))->P=1;
-              }
-            }
-
-#else
-            DbgPrint("Setting up temporary paging setup\n");
-            if (PTESize==8) //PAE paging
-            {
-              PUINT64 PageDirPtr=(PUINT64)TemporaryPagingSetup;
-              PUINT64 PageDir=(PUINT64)((UINT_PTR)TemporaryPagingSetup+4096);
-              PUINT64 PageTable=(PUINT64)((UINT_PTR)TemporaryPagingSetup+2*4096);
-
-              DbgPrint("PAE paging\n");
-              for (i=0; i<512; i++)
-              {
-                PageDirPtr[i]=MmGetPhysicalAddress(PageDir).QuadPart;
-                ((PPDPTE_PAE)(&PageDirPtr[i]))->P=1;
-                //((PPDPTE_PAE)(&PageDirPtr[i]))->RW=1;
-
-
-                PageDir[i]=MmGetPhysicalAddress(PageTable).QuadPart;
-                ((PPDE_PAE)(&PageDir[i]))->P=1;
-                //((PPDE_PAE)(&PageDir[i]))->RW=1;
-                ((PPDE_PAE)(&PageDir[i]))->PS=0; //4KB
-
-                PageTable[i]=MmGetPhysicalAddress(enterVMM2).QuadPart;
-                ((PPTE_PAE)(&PageTable[i]))->P=1;
-                //((PPTE_PAE)(&PageTable[i]))->RW=1;
-
-              }
-
-            }
-            else
-            {
-              //normal(old) 4 byte page entries
-              PDWORD PageDir=(PDWORD)TemporaryPagingSetup;
-              PDWORD PageTable=(PDWORD)((DWORD)TemporaryPagingSetup+4096);
-              DbgPrint("Normal paging\n");
-              for (i=0; i<1024; i++)
-              {
-                PageDir[i]=MmGetPhysicalAddress(PageTable).LowPart;
-                ((PPDE)(&PageDir[i]))->P=1;
-                ((PPDE)(&PageDir[i]))->RW=1;
-                ((PPDE)(&PageDir[i]))->PS=0; //4KB
-
-                PageTable[i]=MmGetPhysicalAddress(enterVMM2).LowPart;
-                ((PPTE)(&PageTable[i]))->P=1;
-                ((PPTE)(&PageTable[i]))->RW=1;
-              }
-
-            }
-#endif
-
-            DbgPrint("Temp paging has been setup\n");
-
-
-
-            enterVMM2PA=(UINT_PTR)MmGetPhysicalAddress(enterVMM2).QuadPart;
-
-            minPA.QuadPart=0;
-            maxPA.QuadPart=0xfffffffffffff000;
-            boundary.QuadPart=0;
-            if (sizeof(OriginalState)<4096)
-              originalstate=MmAllocateContiguousMemory(4096, maxPA);
-            else
-              originalstate=MmAllocateContiguousMemory(sizeof(OriginalState), maxPA);
-
-            RtlZeroMemory(originalstate, sizeof(OriginalState));
-
-            originalstatePA=(UINT_PTR)MmGetPhysicalAddress(originalstate).QuadPart;
-            DbgPrint("enterVMM2PA=%llx\n",enterVMM2PA);
-            DbgPrint("originalstatePA=%llx\n",originalstatePA);
-            DbgPrint("originalstatePA=%llx\n",originalstatePA);
-
-
-            //setup init vars
-            *(UINT64 *)(&vmm[0x10])=originalstatePA;
-            *(UINT64 *)(&vmm[0x18])=vmmPA;
-            *(UINT64 *)(&vmm[0x20])=0x00400000+vmmsize+2*4096;
-
-            initializedvmm=TRUE;
-
- */
 
 void LaunchDBVM()
 {
@@ -430,7 +461,7 @@ void LaunchDBVM()
    }
 
    Print(L"Storing original state\n");
-   originalstate->cpucount=64;  //todo, use acpi tables to fill this in (or better yet, let it allocate the cpu structures at runtime)
+   originalstate->cpucount=0;  //indicate that dbvm needs to initialize the secondary CPU's
    Print(L"originalstate->cpucount=%d",originalstate->cpucount);
 
    originalstate->originalEFER=readMSR(0xc0000080); //amd prefers this over an LME
@@ -451,17 +482,30 @@ void LaunchDBVM()
    Print(L"originalstate->cr4=%lx\n",originalstate->cr4);
 
    originalstate->ss=getSS();
-   Print(L"originalstate->ss=%lx\n",originalstate->ss);
+   originalstate->ss_AccessRights=getAccessRights(originalstate->ss);
+   originalstate->ss_Limit=getSegmentLimit(originalstate->ss);
+   Print(L"originalstate->ss=%lx (%x:%x)\n",originalstate->ss, originalstate->ss_AccessRights, originalstate->ss_Limit);
+
    originalstate->cs=getCS();
-   Print(L"originalstate->cs=%lx\n",originalstate->cs);
+   originalstate->cs_AccessRights=getAccessRights(originalstate->cs);
+   originalstate->cs_Limit=getSegmentLimit(originalstate->cs);
+   Print(L"originalstate->cs=%lx (%x:%x)\n",originalstate->cs, originalstate->cs_AccessRights, originalstate->cs_Limit);
    originalstate->ds=getDS();
-   Print(L"originalstate->ds=%lx\n",originalstate->ds);
+   originalstate->ds_AccessRights=getAccessRights(originalstate->ds);
+   originalstate->ds_Limit=getSegmentLimit(originalstate->ds);
+   Print(L"originalstate->ds=%lx (%x:%x)\n",originalstate->ds, originalstate->ds_AccessRights, originalstate->ds_Limit);
    originalstate->es=getES();
-   Print(L"originalstate->es=%lx\n",originalstate->es);
+   originalstate->es_AccessRights=getAccessRights(originalstate->es);
+   originalstate->es_Limit=getSegmentLimit(originalstate->es);
+   Print(L"originalstate->es=%lx (%x:%x)\n",originalstate->es, originalstate->es_AccessRights, originalstate->es_Limit);
    originalstate->fs=getFS();
-   Print(L"originalstate->fs=%lx\n",originalstate->fs);
+   originalstate->fs_AccessRights=getAccessRights(originalstate->fs);
+   originalstate->fs_Limit=getSegmentLimit(originalstate->fs);
+   Print(L"originalstate->fs=%lx (%x:%x)\n",originalstate->fs, originalstate->fs_AccessRights, originalstate->fs_Limit);
    originalstate->gs=getGS();
-   Print(L"originalstate->gs=%lx\n",originalstate->gs);
+   originalstate->gs_AccessRights=getAccessRights(originalstate->gs);
+   originalstate->gs_Limit=getSegmentLimit(originalstate->gs);
+   Print(L"originalstate->gs=%lx (%x:%x)\n",originalstate->gs, originalstate->gs_AccessRights, originalstate->gs_Limit);
    originalstate->ldt=getLDT();
    Print(L"originalstate->ldt=%lx\n",originalstate->ldt);
    originalstate->tr=getTR();
@@ -552,18 +596,55 @@ void LaunchDBVM()
     //call to entervmmprologue, pushes the return value on the stack
 
 
-    Input(L"Type something : ", something, 200);
+   // Input(L"Type something : ", something, 200);
 
     enterVMMPrologue();
 
     enableInterrupts();
 
 
-    Print(L"Returned from enterVMMPrologue\n");
+    Print(L"\nReturned from enterVMMPrologue\n");
+
+    Print(L"Testing:\n");
+
+    {
+
+      struct
+      {
+        unsigned int structsize;
+        unsigned int level2pass;
+        unsigned int command;
+      } __attribute__((__packed__)) vmcallinfo;
+
+      ZeroMem(&vmcallinfo, sizeof(vmcallinfo));
+
+      Print(L"&vmcallinfo=%lx\n", &vmcallinfo);
+
+      vmcallinfo.structsize=sizeof(vmcallinfo);
+      vmcallinfo.level2pass=0xfedcba98;
+      vmcallinfo.command=0; //VMCALL_GETVERSION
+
+      UINT64 dbvmversion=dovmcall(&vmcallinfo, 0x76543210);
+      int r;
+
+      disableInterrupts();
+      r=doSystemTest(); //check if the system behaves like it should
+      enableInterrupts();
+
+      if (r)
+      {
+        Print(L"Failed to pass test %d\n", r);
+      }
+
+
+
+      Print(L"still alive\ndbvmversion=%x\n", dbvmversion);
+    }
 
     //DbgPrint("cpunr=%d\n",cpunr());
 
 
+    Input(L"Type something : ", something, 200);
     Print(L"Returning\n");
 
 }

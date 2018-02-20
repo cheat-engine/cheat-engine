@@ -8,6 +8,8 @@
 #ifndef HELPERS_H_
 #define HELPERS_H_
 
+extern EFI_SYSTEM_TABLE *st;
+
 #pragma pack(2) //alignment of 2 bytes
 typedef struct tagGDT
 {
@@ -128,7 +130,12 @@ extern UINT64 getR13(void);
 extern UINT64 getR14(void);
 extern UINT64 getR15(void);
 
+extern UINT64 getAccessRights(UINT64 segment);
+extern UINT64 getSegmentLimit(UINT64 segment);
+
 extern void disableInterrupts(void);
 extern void enableInterrupts(void);
+
+extern UINT64 dovmcall(void *vmcallinfo, unsigned int level1pass);
 
 #endif /* HELPERS_H_ */

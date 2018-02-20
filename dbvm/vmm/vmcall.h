@@ -45,6 +45,7 @@
 #define VMCALL_ULTIMAP_DEBUGINFO 36
 
 #define VMCALL_PSODTEST 37
+#define VMCALL_GETMEM 38 //dbvm11
 
 
 
@@ -52,7 +53,9 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters);
 
 void returnFromCR3Callback(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, unsigned long long newcr3);
 QWORD readMSRSafe(pcpuinfo currentcpuinfo, DWORD msr);
+void writeMSRSafe(pcpuinfo currentcpuinfo, DWORD msr, QWORD value);
 
 int raiseInvalidOpcodeException(pcpuinfo currentcpuinfo); //
+int raisePagefault(pcpuinfo currentcpuinfo, UINT64 address);
 
 #endif /*VMCALL_H_*/

@@ -26,6 +26,7 @@
 #include "test.h"
 #include "vmcall.h"
 #include "vmpaging.h"
+#include "vmxsetup.h"
 //#include "psod.h" //for pink screen of death support
 
 /*
@@ -66,11 +67,11 @@ unsigned long long APIC_SVR=0xfee000f0;
 
 unsigned int BOOT_ID=0xffffffff;
 
-
-criticalSection CScpu;
-
-
 extern unsigned int isAP;
+volatile int AP_Terminate; //set to 1 to terminate the AP cpu's
+volatile int AP_Launch; //set to 1 to launch the AP cpu's
+
+int needtospawnApplicationProcessors=1;
 
 
 #define SETINT(INTNR) intvector[INTNR].wLowOffset=(WORD)(UINT64)inthandler##INTNR; \
@@ -85,6 +86,16 @@ int autostart=1;
 
 //int isrunning=0;
 
+pcpuinfo firstcpuinfo, lastaddedcpuinfo; //just for debugging, nothing important
+
+
+#ifdef DEBUGINTHANDLER
+criticalSection cinthandlerMenuCS;
+#endif
+
+int IntHandlerDebug=0;
+
+char bootdisk;
 
 int cinthandler(unsigned long long *stack, int intnr)
 {
@@ -94,6 +105,10 @@ int cinthandler(unsigned long long *stack, int intnr)
   int i;
   DWORD thisAPICID;
   int cpunr=0;
+
+
+  pcpuinfo cpuinfo=getcpuinfo();
+  cpunr=cpuinfo->cpunr;
 
   UINT64 originalDR7=getDR7();
 
@@ -110,23 +125,24 @@ int cinthandler(unsigned long long *stack, int intnr)
   sendstringfCS.lockcount=0;
   sendstringfCS.locked=0;
 
-  if (cpuinfo[cpunr].OnInterrupt.RIP==0)
+  if (cpuinfo->OnInterrupt.RIP==0)
   {
 	  //unexpected exception
-	  enableserial();
-	  nosendchar[thisAPICID]=0; //override a block if there was one, this is important:
+
+
+
+    if (intnr==2)
+    {
+      cpuinfo->NMIOccured=1;
+      while (1);
+    }
+
+    enableserial();
+    nosendchar[thisAPICID]=0; //override a block if there was one, this is important:
   }
 
 
  // sendstringf("interrupt fired : %d (%x)\n\r", intnr,intnr);
-
-  //lookup the cpucore
-  for (i=0; (unsigned)i<cpucount; i++)
-    if (cpuinfo[i].apicid==thisAPICID)
-    {
-      cpunr=i;
-      break;
-    }
 
   sendstringf("cpunr=%d\n\r",cpunr);
   sendstringf("intnr=%d\n\r",intnr);
@@ -184,28 +200,32 @@ int cinthandler(unsigned long long *stack, int intnr)
 
   sendstringf("Checking if it was an expected interrupt\n\r");
 
-  if (cpuinfo[cpunr].OnInterrupt.RIP)
+  if (cpuinfo->OnInterrupt.RIP)
   {
-    sendstringf("Yes, OnInterrupt is set to %x\n\r",cpuinfo[cpunr].OnInterrupt);
-    stack[16+errorcode]=(QWORD)cpuinfo[cpunr].OnInterrupt.RIP;
-    stack[19+errorcode]=(QWORD)cpuinfo[cpunr].OnInterrupt.RSP;
+    QWORD oldrip=stack[16+errorcode];
+    sendstringf("Yes, OnInterrupt is set to %x\n\r",cpuinfo->OnInterrupt);
+
+    stack[16+errorcode]=(QWORD)(cpuinfo->OnInterrupt.RIP);
+    stack[19+errorcode]=(QWORD)(cpuinfo->OnInterrupt.RSP);
 
     rflags->IF=0; //disable the IF flag in the eflags register stored on the stack (when called during checks if an int was pending)
 
 
-    cpuinfo[cpunr].LastInterrupt=(unsigned char)intnr;
+    cpuinfo->LastInterrupt=(unsigned char)intnr;
     if (errorcode)
     {
-      cpuinfo[cpunr].LastInterruptHasErrorcode=1;
-      cpuinfo[cpunr].LastInterruptErrorcode=(WORD)stack[16];
+      cpuinfo->LastInterruptHasErrorcode=1;
+      cpuinfo->LastInterruptErrorcode=(WORD)stack[16];
     }
-    cpuinfo[cpunr].LastInterruptHasErrorcode=0;
+    cpuinfo->LastInterruptHasErrorcode=0;
 
-    cpuinfo[cpunr].OnInterrupt.RIP=0; //clear exception handler
-    cpuinfo[cpunr].OnInterrupt.RSP=0;
+    cpuinfo->OnInterrupt.RIP=0; //clear exception handler
+    cpuinfo->OnInterrupt.RSP=0;
 
-    sendstring("changed eip, and returning now\n\r");
+    sendstringf("changed rip(was %6 is now %6)\n\r", oldrip, stack[16+errorcode]);
+    sendstringf("rflags upon return is %x\n\r", stack[16+2+errorcode]);
 
+    sendstring("returning now\n");
 
     return errorcode;
   }
@@ -300,7 +320,13 @@ int cinthandler(unsigned long long *stack, int intnr)
 
 
 #ifdef DEBUGINTHANDLER
-  char key;
+
+  csEnter(&cinthandlerMenuCS);
+ // inthandleroverride=1;
+  IntHandlerDebug=1;
+
+
+  unsigned char key;
   while (1)
   {
     sendstring("----------------------------\n\r");
@@ -311,11 +337,18 @@ int cinthandler(unsigned long long *stack, int intnr)
     sendstring("3: Get vmstate\n\r");
     sendstring("p: Previous vmstates\n\r");
 
+
+
     key=waitforchar();
+    if (key==0xff) //serial port borked
+      key='1';
+
     switch (key)
     {
       case '1':
         sendstring("Exiting from interrupt\n\r");
+        IntHandlerDebug=0;
+        csLeave(&cinthandlerMenuCS);
         return errorcode;
 
       case '2':
@@ -323,7 +356,7 @@ int cinthandler(unsigned long long *stack, int intnr)
         break;
 
       case '3':
-        sendvmstate(&cpuinfo[cpunr], NULL);
+        sendvmstate(cpuinfo, NULL);
         break;
 
       case 'p':
@@ -332,24 +365,32 @@ int cinthandler(unsigned long long *stack, int intnr)
     }
   }
 
-#endif
 
+
+#else
 	return errorcode;
+#endif
+}
+
+void startNextCPU(void)
+{
+  //setup a stack for the first AP cpu
+  nextstack=(QWORD)malloc2(4096*16);
+  markPageAsNotReadable((void *)nextstack);  //when the thread tries to allocate more than it can it'll cause a pagefault instead of fucking with other memory
+
+  nextstack=(QWORD)nextstack+(4096*16)-16;
+
+  sendstringf("startNextCPU. nextstack=%6\n", nextstack);
+
+  asm volatile ("": : :"memory");
+  initcs=0; //let the next cpu pass
+  asm volatile ("": : :"memory");
 }
 
 
 void CheckCRCValues(void)
 {
   unsigned int newcrc;
-  sendstringf("Original IDT crc = %x\n\r",originalIDTcrc);
-
-  newcrc=generateCRC(NULL,0x400);
-  sendstringf("Current  IDT crc = %x\n\r",newcrc);
-
-  if (originalIDTcrc!=newcrc)
-  {
-    sendstring("!!!!!!!!!!MISMATCH!!!!!!!!!!\n\r");
-  }
 
   sendstringf("Original VMM crc = %x\n\r",originalVMMcrc);
   newcrc=generateCRC((void *)vmxloop,0x2a000);
@@ -649,10 +690,13 @@ void setints(void)
 void vmm_entry2_hlt(pcpuinfo currentcpuinfo)
 {
   UINT64 a,b,c,d;
-  sendstringf("CPU %d : Terminating...\n\r",currentcpuinfo->cpunr);
+  if (currentcpuinfo)
+    sendstringf("CPU %d : Terminating...\n\r",currentcpuinfo->cpunr);
+
   while (1)
   {
-    currentcpuinfo->active=0;
+    if (currentcpuinfo)
+      currentcpuinfo->active=0;
     a=1;
     _cpuid(&a,&b,&c,&d);  //always serialize after writing to a structure read by a different cpu
     __asm("hlt\n\r");
@@ -660,18 +704,32 @@ void vmm_entry2_hlt(pcpuinfo currentcpuinfo)
 }
 
 
+void setupFSBase(void *fsbase)
+{
+  writeMSR(IA32_FS_BASE_MSR, (UINT64)fsbase);
+}
+
 void vmm_entry2(void)
 //Entry for application processors
+//Memory manager has been initialized and GDT/IDT copies have been made
 {
   static int initializedCPUCount=1; //assume the first (main) cpu managed to start up
 
   unsigned int cpunr;
+  if (AP_Terminate==1)
+  {
+    startNextCPU();
+    vmm_entry2_hlt(NULL);
+  }
 
+
+  //setup the GDT and IDT
+  setGDT((UINT64)GDT_BASE, GDT_SIZE);
+  setIDT((UINT64)intvector, 16*256);
+
+  //cLIDT(&intvector);
 
   //sendstringf("Welcome to a extra cpu (cpunr=%d)\n",cpucount);
-
-  csEnter(&CScpu);
-
   cpunr=initializedCPUCount;
   sendstringf("Setting up cpunr=%d\n",cpunr);
 
@@ -681,56 +739,55 @@ void vmm_entry2(void)
   if (!loadedOS)
     cpucount++; //cpucount is known, don't increase it
 
-  cpuinfo[cpunr].active=1;
-  cpuinfo[cpunr].cpunr=cpunr;
-  cpuinfo[cpunr].apicid=getAPICID();
+  pcpuinfo cpuinfo=malloc2(sizeof(tcpuinfo)<4096?4096:sizeof(tcpuinfo)<4096);
 
-  cpuinfo[cpunr].TSbase=0;
-  cpuinfo[cpunr].TSlimit=0xffff;
-  cpuinfo[cpunr].TSsegment=0;
-  cpuinfo[cpunr].TSaccessRights=0x8b;
-  cpuinfo[cpunr].virtualTLB_guest_PDPTR_lookup=malloc(4096);
-  cpuinfo[cpunr].virtualTLB_guest_PD_lookup=malloc(8*4096); //4 should be enough, but this gives me 8GB (can be changed in the future)
+  zeromemory(cpuinfo, sizeof(tcpuinfo));
+  cpuinfo->active=1;
+  cpuinfo->cpunr=cpunr;
+  cpuinfo->apicid=getAPICID();
 
-  displayline("New CPU CORE. CPUNR=%d APICID=%d (cpuinfo struct at : %p rsp=%x)\n",cpuinfo[cpunr].cpunr, cpuinfo[cpunr].apicid, &cpuinfo[cpunr], getRSP());
+  cpuinfo->TSbase=0;
+  cpuinfo->TSlimit=0xffff;
+  cpuinfo->TSsegment=0;
+  cpuinfo->TSaccessRights=0x8b;
+  cpuinfo->self=cpuinfo;
 
-  sendstringf("configured a cpuinfo structure (%d (%8) )\n\r",cpuinfo[cpunr].cpunr, (unsigned long long)&cpuinfo[cpunr] );
+  lastaddedcpuinfo->next=cpuinfo;
+  lastaddedcpuinfo=cpuinfo;
+
+  displayline("%d: New CPU CORE. CPUNR=%d APICID=%d (cpuinfo struct at : %p rsp=%x)\n",cpunr, cpuinfo->cpunr, cpuinfo->apicid, cpuinfo, getRSP());
 
 
-  csLeave(&CScpu);
+  setupFSBase((void *)cpuinfo);
 
-  if (!loadedOS)
+  sendstringf("%d: launching next CPU\n", cpunr);
+  startNextCPU(); //put at start for async
+
+  sendstringf("%d: Waiting till AP_Launch is not 0\n", cpunr);
+
+  while (AP_Launch==0)
   {
-    while (cpuinfo[cpunr].command==0)
-    {
-      resync();
-      if (cpuinfo[cpunr].hastoterminate==1)
-        vmm_entry2_hlt(&cpuinfo[cpunr]);
-    }
+    resync();
+    if (AP_Terminate==1)
+      vmm_entry2_hlt(cpuinfo);
+  }
 
-
-    if (cpuinfo[cpunr].hastoterminate==1)
-      vmm_entry2_hlt(&cpuinfo[cpunr]);
+  if (AP_Terminate==1)
+  {
+    startNextCPU();
+    vmm_entry2_hlt(cpuinfo);
   }
 
 
-  csEnter(&CScpu);
-  if (!loadedOS)
-    sendstringf("%d : Starting VMX (AP cpu so entering wait for sipi vmx mode)\n\r",cpunr);
+  startvmx(cpuinfo);
+
+   // while (1); //debug
+
   displayline("CPU CORE %d: entering VMX mode\n",cpunr);
-  csLeave(&CScpu);
-
-  setints();
-
-  startvmx(&(cpuinfo[cpunr]));
-
-
-
-
 
   sendstringf("Application cpu returned from startvmx\n\r");
 
-  vmm_entry2_hlt(&cpuinfo[cpunr]);
+  vmm_entry2_hlt(cpuinfo);
   while (1);
 }
 
@@ -740,26 +797,8 @@ void vmm_entry2(void)
 
 void vmm_entry(void)
 {
-  int i,k;
-  UINT64 a,b,c,d;
-
-
-
-  //stack has been properly setup, so lets allow other cpu's to launch as well
-  if (!loadedOS)
-    *(volatile DWORD *)0x7c00=0; //unlock
-
-  memorycloak=0;
-  Password1=0x76543210; //later to be filled in by user, sector on disk, or at compile time
-  Password2=0xfedcba98;
-  dbvmversion=10; //version 1 was the 32-bit only version, 2 added 32-bit, 3 had a revised int1 redirect option, 4 has major bugfixes, 5=more fixes and some basic device recog, 6=Even more compatibility fixes, rm emu, and new vmcalls, 7=driver loading , 8=amd support, 9 memory usage decrease and some fixes for newer systems, 10=xsaves (win10)
-  int1redirection=1; //redirect to int vector 1 , ooh, what a weird redirection....
-  int3redirection=3;
-  int14redirection=14;
-
-  sendstringf("APICID=%8\n\rrsp=%6\n\rnextstack=%6\n\r",getAPICID(), getRSP(), (UINT64)nextstack);
-
-
+  //make sure WP is on
+  setCR0(getCR0() | CR0_WP);
 
   if (isAP)
   {
@@ -767,9 +806,62 @@ void vmm_entry(void)
     sendstringf("vmm_entry2 has PHAILED!!!!");
     while (1);
   }
-
   isAP=1; //all other entries will be an AP
+
+
+
+  int i,k;
+  UINT64 a,b,c,d;
+  pcpuinfo cpuinfo;
+
+
+  //stack has been properly setup, so lets allow other cpu's to launch as well
+  InitCommon();
+  Password1=0x76543210; //later to be filled in by user, sector on disk, or at compile time
+  Password2=0xfedcba98;
+
+  /*version 1 was the 32-bit only version,
+   * 2 added 64-bit,
+   * 3 had a revised int1 redirect option,
+   * 4 has major bugfixes,
+   * 5=more fixes and some basic device recog,
+   * 6=Even more compatibility fixes,
+   * rm emu, and new vmcalls,
+   * 7=driver loading ,
+   * 8=amd support,
+   * 9 memory usage decrease and some fixes for newer systems,
+   * 10=xsaves (win10)
+   * 11=new memory manager , dynamic cpu initialization, UEFI boot support, EPT, unrestricted support, and other new features
+   *
+   */
+  dbvmversion=11;
+  int1redirection=1; //redirect to int vector 1 , ooh, what a weird redirection....
+  int3redirection=3;
+  int14redirection=14;
+
+  //get max physical address
+  QWORD rax=0x80000008;
+  QWORD rbx=0;
+  QWORD rcx=0;
+  QWORD rdx=0;
+  _cpuid(&rax, &rbx, &rcx, &rdx);
+  MAXPHYADDR=rax & 0xff;
+
+  MAXPHYADDRMASK=0xFFFFFFFFFFFFFFFFULL;
+  MAXPHYADDRMASK=MAXPHYADDRMASK >> MAXPHYADDR; //if MAXPHYADDR==36 then MAXPHYADDRMASK=0x000000000fffffff
+  MAXPHYADDRMASK=~(MAXPHYADDRMASK << MAXPHYADDR); //<< 36 = 0xfffffff000000000 .  after inverse : 0x0000000fffffffff
+  MAXPHYADDRMASKPB=MAXPHYADDRMASK & 0xfffffffffffff000ULL; //0x0000000ffffff000
+
+  sendstringf("MAXPHYADDR=%d", MAXPHYADDR);
+  sendstringf("MAXPHYADDRMASK=%6", MAXPHYADDRMASK);
+  sendstringf("MAXPHYADDRMASKPB=%6", MAXPHYADDRMASK);
+
+
+
+
+
   //enableserial();
+
 
 
 
@@ -782,8 +874,8 @@ void vmm_entry(void)
   displayline("BOOT CPU CORE initializing\n");
 
   displayline("CR3=%6\n", getCR3());
-  displayline("pagedirptrvirtual=%6\n",(UINT64)pagedirptrvirtual);
-  displayline("&pagedirptrvirtual=%6\n",(UINT64)&pagedirptrvirtual);
+  displayline("pagedirlvl4=%6\n",(UINT64)pagedirlvl4);
+  displayline("&pagedirlvl4=%6\n",(UINT64)&pagedirlvl4);
   displayline("vmmstart=%6 (this is virtual address 00400000)\n",(UINT64)vmmstart);
 
   //displayline("press any key to continue\n");
@@ -792,68 +884,51 @@ void vmm_entry(void)
   //initialize
 
   sendstring("Welcome to Dark Byte\'s Virtual Machine Manager\n\r");
-
-  //since the setup sets pagedirptrvirtual as the cr3 virtual address, adjust it
-  pagedirlvl4=pagedirptrvirtual;
   sendstringf("pagedirlvl4=%6\n\r",(unsigned long long)pagedirlvl4);
 
-  pagedirptrvirtual=(PPDPTE_PAE)((unsigned long long)pagedirlvl4+0x1000);
+  sendstring("Initializing MM\n\r");
+  InitializeMM((QWORD)pagedirlvl4+4096);
+  sendstring("Initialized MM\n\r");
+  /*
+   * POST INIT
+   */
 
 
-  pagedirvirtual=(PPDE2MB_PAE)((unsigned long long)pagedirptrvirtual+0x1000);  //000000000 to 03fffffff
-  pagedirvirtual2=(PPDE2MB_PAE)((unsigned long long)pagedirptrvirtual+0x2000); //040000000 to 07fffffff
-  pagedirvirtual3=(PPDE2MB_PAE)((unsigned long long)pagedirptrvirtual+0x3000); //080000000 to 0bfffffff
-  pagedirvirtual4=(PPDE2MB_PAE)((unsigned long long)pagedirptrvirtual+0x4000); //0c0000000 to 0ffffffff
-  pagedirvirtual5=(PPDE2MB_PAE)((unsigned long long)pagedirptrvirtual+0x5000); //100000000 to 13fffffff
-
-
-  sendstringf("pagedirptrvirtual=%6 (%6)\n",(UINT64)pagedirptrvirtual, VirtualToPhysical((UINT64)pagedirptrvirtual));
-  sendstringf("pagedirvirtual=%6 (%6)\n",(UINT64)pagedirvirtual, VirtualToPhysical((UINT64)pagedirvirtual));
-  sendstringf("pagedirvirtual2=%6 (%6)\n",(UINT64)pagedirvirtual2, VirtualToPhysical((UINT64)pagedirvirtual2));
-  sendstringf("pagedirvirtual3=%6 (%6)\n",(UINT64)pagedirvirtual3, VirtualToPhysical((UINT64)pagedirvirtual3));
-  sendstringf("pagedirvirtual4=%6 (%6)\n",(UINT64)pagedirvirtual4, VirtualToPhysical((UINT64)pagedirvirtual4));
-  sendstringf("pagedirvirtual5=%6 (%6)\n",(UINT64)pagedirvirtual5, VirtualToPhysical((UINT64)pagedirvirtual5));
-
-
-
-  zeromemory(pagedirvirtual2,4096);
-  zeromemory(pagedirvirtual3,4096);
-  zeromemory(pagedirvirtual4,4096);
-  zeromemory(pagedirvirtual5,4096);
-  sendstring("Zeroed directory ptr tables 2, 3 and 4\n\r");
-
-
-  *(UINT64 *)(&pagedirptrvirtual[1])=VirtualToPhysical((UINT64)pagedirvirtual2);
-  *(UINT64 *)(&pagedirptrvirtual[2])=VirtualToPhysical((UINT64)pagedirvirtual3);
-  *(UINT64 *)(&pagedirptrvirtual[3])=VirtualToPhysical((UINT64)pagedirvirtual4);
-  *(UINT64 *)(&pagedirptrvirtual[4])=VirtualToPhysical((UINT64)pagedirvirtual5);
+  cpucount=1;
+  cpuinfo=malloc2(sizeof(tcpuinfo)<4096?4096:sizeof(tcpuinfo));
+  sendstringf("allocated cpuinfo at %6\n\r", cpuinfo);
+  zeromemory(cpuinfo,sizeof(tcpuinfo));
+  cpuinfo->active=1;
+  cpuinfo->cpunr=0;
+  cpuinfo->apicid=getAPICID();
+  cpuinfo->isboot=1;
+  cpuinfo->self=cpuinfo;
 
 
 
-  for (i=1;i<5; i++)
-  {
-    pagedirptrvirtual[i].P=1;
-    pagedirptrvirtual[i].RW=1;
-    pagedirptrvirtual[i].US=1;
-
-//    pagedirptrvirtual[i].PFN=pagedirptrvirtual[i-1].PFN+1;
-  }
-
-  sendstring("resetting paging:\n");
-  setCR3(getCR3());
-  sendstring("Still alive\n");
-
-  {
-    UINT64 blaaa;
-    for (blaaa=0; blaaa<0x00800000; blaaa+=4096)
-      _invlpg(blaaa);
-  }
+  setupFSBase((void*)cpuinfo);
 
 
 
 
+  //debug info
+  firstcpuinfo=cpuinfo;
+  lastaddedcpuinfo=cpuinfo;
 
-  IA32_APIC_BASE=(unsigned long long)readMSR(0x1b);
+  sendstringf("initialized cpuinfo at %6\n\r", cpuinfo);
+
+
+  //IA32_APIC_BASE=(unsigned long long)readMSR(0x1b);
+
+  IA32_APIC_BASE=(QWORD)mapPhysicalMemory((unsigned long long)readMSR(0x1b) & 0xfffffffffffff000ULL, 4096);
+  sendstringf("IA32_APIC_BASE=%6\n\r",IA32_APIC_BASE);
+
+  APIC_ID=IA32_APIC_BASE+APIC_ID_OFFSET;
+  APIC_SVR=IA32_APIC_BASE+APIC_SVR_OFFSET;
+
+  SetPageToWriteThrough((void*)IA32_APIC_BASE);
+
+
 
 
   displayline("IA32_APIC_BASE=%6\n\r",IA32_APIC_BASE);
@@ -861,42 +936,6 @@ void vmm_entry(void)
   sendstringf("\tLocal APIC base=%6\n\r",IA32_APIC_BASE & 0xfffff000);
   sendstringf("\tAPIC global enable/disable=%d\n\r",(IA32_APIC_BASE >> 11) & 1);
   sendstringf("\tBSP=%d\n\r",(IA32_APIC_BASE >> 8) & 1);
-
-  IA32_APIC_BASE=IA32_APIC_BASE & 0xfffffffffffff000ULL;
-  APIC_ID=IA32_APIC_BASE+APIC_ID_OFFSET;
-  APIC_SVR=IA32_APIC_BASE+APIC_SVR_OFFSET;
-
-
-  //identity map the apic memory region
-
-  sendstringf("PML4 ptr = %d \n\r", IA32_APIC_BASE >> 39);
-  sendstringf("Directory ptr = %d \n\r",IA32_APIC_BASE >> 30);
-  sendstringf("Directory = %d \n\r",(IA32_APIC_BASE >> 21) & 0x1ff);
-  sendstringf("Offset = %d \n\r",(IA32_APIC_BASE & 0x1FFFFF ));
-
-  {
-   // PPDPTE_PAE acpiPageDirectoryPointerEntry=&pagedirptrvirtual[IA32_APIC_BASE >> 30];
-    PPDE2MB_PAE apicPageDirTable=(PPDE2MB_PAE)((UINT64)(pagedirvirtual)+(0x1000*(IA32_APIC_BASE >> 30)));
-
-    PPDE2MB_PAE apicPageDirEntry;
-
-    sendstringf("apicPageDirTable=%6\n\r", (UINT64)apicPageDirTable);
-
-    apicPageDirEntry=&apicPageDirTable[(IA32_APIC_BASE >> 21) & 0x1ff];
-    sendstringf("apicPageDirEntry=%6\n\r", (UINT64)apicPageDirEntry);
-
-    *(volatile UINT64 *)apicPageDirEntry=0; //IA32_APIC_BASE;
-    apicPageDirEntry->P=1;
-    apicPageDirEntry->RW=1;
-    apicPageDirEntry->US=0;
-    apicPageDirEntry->PS=1;
-    apicPageDirEntry->PCD=1;
-    apicPageDirEntry->PFN=IA32_APIC_BASE >> 13;
-    sendstringf("*apicPageDirEntry=%6 \n\r",*(volatile UINT64 *)apicPageDirEntry);
-
-    _invlpg(IA32_APIC_BASE);
-  }
-
 
   a=1;
   _cpuid(&a,&b,&c,&d);
@@ -916,84 +955,85 @@ void vmm_entry(void)
 
   if (1) //((d & (1<<28))>0) //this doesn't work in vmware, so find a different method
   {
+    QWORD entrypage=0x30000;
     unsigned long long initialcount;
     unsigned int foundcpus;
     sendstring("Multi processor supported\n\r");
     sendstring("Launching application cpu's\n");
 
 
-    if (!loadedOS)
-    {
-      sendstringf("Getting apic_BootID");
-
-      BOOT_ID=apic_getBootID();
-      sendstringf("BOOT_ID=%8\n\r",BOOT_ID);
-      sendstringf("APIC_SVR=%8\n\r",APIC_SVR);
-
-    }
-
-
-    cpucount=1;
-    cpuinfo[0].active=1;
-    cpuinfo[0].cpunr=0;
-    cpuinfo[0].apicid=getAPICID();
-    cpuinfo[0].isboot=1;
-
     //displaystring("Multi processor supported\n");
     displayline("Launching other cpu cores if present\n");
     sendstring("Starting other cpu's\n\r");
 
 
-    //displayline("Before wait cpucount=%d\n",cpucount);
-
-    //uncomment me for full release
-
-
+    APStartsInSIPI=1;
 
     if (loadedOS)
     {
-      sendstringf("mapping loadedOS (%6) at virtual address 0x00800000...", loadedOS);
+      sendstringf("mapping loadedOS (%6)...\n", loadedOS);
 
-
-
-
-      POriginalState original=(POriginalState)MapPhysicalMemory(loadedOS,0x00800000);
+      POriginalState original=(POriginalState)mapPhysicalMemory(loadedOS, sizeof(OriginalState));
       sendstringf("Success. It has been mapped at virtual address %6\n",original);
 
-      sendstring("getting foundcpus from loadedOS\n");
-      foundcpus=original->cpucount;
-      cpucount=foundcpus*2; //temporary test for mem menagement
+      entrypage=original->APEntryPage;
 
-      sendstringf("cpucount=%x\n",cpucount);
-
-      if (cpucount==0)
+      if (original->cpucount)
       {
-        sendstring("---ERROR: CPUCOUNT=0! Check if loadedOS is valid---\n");
-        foundcpus=1;
-      }
-    }
-    else
-    {
-      //foundcpus=initAPcpus();
+        needtospawnApplicationProcessors=0;
+        foundcpus=original->cpucount;
+        APStartsInSIPI=0; //AP should start according to the original state
 
+
+      }
+      unmapPhysicalMemory(original, sizeof(OriginalState));
+    }
+
+    if (needtospawnApplicationProcessors) //e.g UEFI boot
+    {
+#ifndef NOMP
+
+      BOOT_ID=apic_getBootID();
+
+      //setup some info so that the AP cpu can find  this
+      APBootVar_CR3=getCR3();
+
+      void *GDTbase=(void *)getGDTbase();
+      int GDTsize=getGDTsize();
+      APBootVar_Size=GDTsize;
+
+      if (GDTsize>192)
+      {
+        sendstringf("Update the AP boot GDT section to be bigger than 192 bytes");
+      }
+      memcpy(APBootVar_GDT, GDTbase, GDTsize);
+
+      APBootVar_GDT[2 ]=0x00cf9b000000ffffULL;  //24: 32-bit code
+      APBootVar_GDT[2 ]|=(entrypage >> 8) << 24;
+      //with 0x5e000 or it with 0x05e0
+
+      sendstringf("vmmentrycount before launch=%d\n", vmmentrycount);
+      foundcpus=initAPcpus(entrypage);
 
       sendstringf("foundcpus=%d cpucount=%d. Waiting till cpucount==foundcpus, or timeout\n",foundcpus, cpucount);
 
+      QWORD timeout=2000000000ULL;
 
       for (i=0; i<3; i++)
       {
         initialcount=_rdtsc();
-        while ((_rdtsc()-initialcount) < 2000000000ULL)
+        while ((_rdtsc()-initialcount) < timeout)
         {
-
           //sendstringf("cpucount=%d foundcpus=%d\n\r", cpucount, foundcpus);
 
-          if (cpucount>=foundcpus)
+          if (vmmentrycount>=foundcpus)
             break;
 
           _pause();
         }
         displayline(".");
+        if (vmmentrycount>=foundcpus)
+          break;
       }
 
       if (i>=3)
@@ -1002,67 +1042,80 @@ void vmm_entry(void)
         displayline("\n");
 
     }
+    else
+      AP_Launch=1; //no need to let the others wait. the launcher will decide when to load
 
-    displayline("Wait done. Cpu's found : %d (expected %d)\n",cpucount, foundcpus);
+    displayline("Wait done. Cpu's found : %d (expected %d)\n",vmmentrycount, foundcpus);
+    sendstringf("vmmentrycount after launch=%d\n", vmmentrycount);
 
+    //the other CPU's should now be waiting in the spinlock at the start of dbvm
+#endif
   }
 
-
-
-
-  sendstring("Initializing MM\n\r");
-
-
-  InitializeMM((UINT64)pagedirptrvirtual+9*4096);
-
-
-
-  displayline("MM initialized\n");
-
   //copy GDT and IDT to VMM memory
-  GDT_IDT_BASE=malloc(4096);
-  if (GDT_IDT_BASE==NULL)
+  GDT_BASE=malloc(4096);
+  GDT_SIZE=getGDTsize();
+
+  if (GDT_BASE==NULL)
   {
     sendstring("Memory allocation failed\n");
     while (1) ;
   }
 
-  sendstringf("Allocated GDT_IDT_BASE  %x\n", GDT_IDT_BASE);
+  sendstringf("Allocated GDT_BASE %6\n", GDT_BASE);
 
   {
     void *GDTbase=(void *)getGDTbase();
-    void *IDTbase=(void *)getIDTbase();
     int GDTsize=getGDTsize();
-    int IDTsize=getIDTsize();
-    void *target;
 
+    sendstringf("getGDTbase=%p, getGDTsize=%d\n",GDTbase,GDTsize );
 
-    sendstringf("part1:getGDTbase=%p, getGDTsize=%d\n",GDTbase,GDTsize );
-
-    copymem(GDT_IDT_BASE,GDTbase,GDTsize);
-
-
-
-
-    sendstringf("part2:getIDTbase=%p, getIDTsize=%d\n",IDTbase,IDTsize);
-    target=(void *)(UINT64)GDT_IDT_BASE+0x800;
-    sendstringf("target=%p\n",target);
-
-    if (!loadedOS) //don't need the copy of the IDT on a loaded OS (saved somewhere else anyhow)
-    {
-      copymem(target,IDTbase, IDTsize);
-    }
-    sendstring("part2=done\n");
+    copymem(GDT_BASE,GDTbase,GDTsize);
   }
-  sendstringf("Allocated and copied GDT and IDT to %x\n\r",(UINT64)GDT_IDT_BASE);
+  sendstringf("Allocated and copied GDT to %x\n\r",(UINT64)GDT_BASE);
+  setGDT((UINT64)GDT_BASE, 4096);
 
-  //*(BYTE *)0xdead=40;
-  setGDT((UINT64)GDT_IDT_BASE, getGDTsize());
-  setIDT((UINT64)GDT_IDT_BASE+0x800, getIDTsize());
+  //now replace the old IDT with a new one
+  intvector=malloc(sizeof(INT_VECTOR)*256);
+  zeromemory(intvector,sizeof(INT_VECTOR)*256);
+  sendstringf("Allocated intvector at %6\n\r",(unsigned long long)intvector);
+
+  setints();
+  sendstring("after setints()\n");
+
+  i=0;
+  setDR0((QWORD)((volatile void *)&&BPTest));
+  setDR6(0xffff0ff0);
+  setDR7(getDR7() | (1<<0));
+  displayline("Going to execute test breakpoint\n");
+
+  cpuinfo->OnInterrupt.RSP=getRSP();
+  cpuinfo->OnInterrupt.RIP=(QWORD)((volatile void *)&&AfterBPTest);
+  asm volatile ("": : :"memory");
+BPTest:
+  i=1;
+  sendstring("<<---------------WRONG!!! BPTest got executed...(ok if a jtag debugger is present)\n");
+  asm volatile ("": : :"memory");
+AfterBPTest:
+  if (i==0)
+    sendstring("BPTest successfull\n");
+  else
+    sendstring(":(\n");
+
+  cpuinfo->OnInterrupt.RSP=0;
+  cpuinfo->OnInterrupt.RIP=0;
+
+
+
+  sendstringf("Letting the first AP cpu go through\n");
+  startNextCPU();
+
+
 
   fakeARD=malloc(4096);
+  fakeARD[0].Type=255;
   sendstringf("Allocated fakeARD at %6\n",(unsigned long long)fakeARD);
-  sendstringf("That is physical address %6\n", VirtualToPhysical((UINT64)fakeARD));
+  sendstringf("That is physical address %6\n", VirtualToPhysical(fakeARD));
 
 
   if (!loadedOS)
@@ -1071,18 +1124,17 @@ void vmm_entry(void)
     copymem((void *)fakeARD,(void *)0x80000,4096); //that should be enough
   }
 
+  //ARD Setup
+  //The ARD is used for old boot mechanisms. This way DBVM can tell the guest which physical pages are 'reserved' by the system and should not be used/overwritten
+  //In loadedOS mode DBVM makes use of built-in memory allocation systems so not needed
+
   sendstring("Calling initARDcount()\n");
   initARDcount();
   sendstring("Calling sendARD()\n");
   sendARD();
 
-  intvector=malloc(sizeof(INT_VECTOR)*256);
-  zeromemory(intvector,sizeof(INT_VECTOR)*256);
-  sendstringf("Allocated intvector at %8\n\r",(unsigned long long)intvector);
+  sendstring("after sendARD()\n");
 
-  setints();
-
-  sendstring("after setints()\n");
 
 
   // alloc VirtualMachineTSS_V8086
@@ -1099,7 +1151,7 @@ void vmm_entry(void)
   for (i=0; i<4096; i++)
     ffpage[i]=0xce;
 
-  sendstringf("Physical address of ffpage=%6\n\r",(UINT64)VirtualToPhysical((UINT64)ffpage));
+  sendstringf("Physical address of ffpage=%6\n\r",(UINT64)VirtualToPhysical(ffpage));
 
 
   //create a pagetable with only 0xff (2MB 0xff)
@@ -1107,39 +1159,39 @@ void vmm_entry(void)
   zeromemory(ffpagetable,4096);
   for (i=0; i<4096/8; i++)
   {
+    *(QWORD*)(&ffpagetable[i])=VirtualToPhysical(ffpage);
     ffpagetable[i].P=1;
     ffpagetable[i].RW=0;
-    ffpagetable[i].PFN=(UINT64)VirtualToPhysical((UINT64)ffpage) >> 12;
   }
 
-  sendstringf("Physical address of ffpagetable=%6\n\r",(UINT64)VirtualToPhysical((UINT64)ffpagetable));
+  sendstringf("Physical address of ffpagetable=%6\n\r",(UINT64)VirtualToPhysical((void *)ffpagetable));
 
-  //create a pagedir wjere all entries point to the ffpagetable
+  //create a pagedir where all entries point to the ffpagetable
   ffpagedir=malloc(4096);
   zeromemory(ffpagedir,4096);
   for (i=0; i<4096/8; i++)
   {
+    *(QWORD*)(&ffpagedir[i])=VirtualToPhysical((void *)ffpagetable);
     ffpagedir[i].P=1;
     ffpagedir[i].RW=0;
     ffpagedir[i].PS=0;
-    ffpagedir[i].PFN=(ULONG)VirtualToPhysical((UINT64)ffpagetable) >> 12;
   }
 
-  sendstringf("Physical address of ffpagedir=%6\n\r",(UINT64)VirtualToPhysical((UINT64)ffpagedir));
+  sendstringf("Physical address of ffpagedir=%6\n\r",(UINT64)VirtualToPhysical((void *)ffpagedir));
 
   __asm("mov %cr3,%rax\n  mov %rax,%cr3\n");
 
-  displayline("rsp=%6\n\r",getRSP());
   displayline("emulated virtual memory has been configured\n");
-	displayline("rsp=%6\n\r",getRSP());
-
 
   displayline("Paging:\n");
-  displayline("0x00000000 is at %6\n", (UINT64)VirtualToPhysical((UINT64)0));
-  displayline("0x00200000 is at %6\n", (UINT64)VirtualToPhysical((UINT64)0x00200000));
-  displayline("0x00400000 is at %6\n", (UINT64)VirtualToPhysical((UINT64)0x00400000));
-  displayline("0x00600000 is at %6\n", (UINT64)VirtualToPhysical((UINT64)0x00600000));
+  displayline("0x00000000 is at %6\n", (UINT64)VirtualToPhysical((void *)0));
+  displayline("0x00200000 is at %6\n", (UINT64)VirtualToPhysical((void *)0x00200000));
+  displayline("0x00400000 is at %6\n", (UINT64)VirtualToPhysical((void *)0x00400000));
+  displayline("0x00600000 is at %6\n", (UINT64)VirtualToPhysical((void *)0x00600000));
 
+
+
+  //setup nonpagedEmulationPagedir
 
 
   displayline("Calling hascpuid()\n");
@@ -1231,43 +1283,23 @@ void vmm_entry(void)
     displayline("Your system does not support CPUID\n");
   }
 
-
-
-
-
-
-
-	//_invlpg((UINT64)IA32_APIC_BASE);
-
-	//search for _MP_ (0x5f504d5f) header in memory
-
-
-
-
-
-
-  cpuinfo[0].TSbase=0;
-  cpuinfo[0].TSlimit=0xffff;
-  cpuinfo[0].TSsegment=0;
-  cpuinfo[0].TSaccessRights=0x8b;
-
-  cpuinfo[0].virtualTLB_guest_PDPTR_lookup=malloc(4096);
-  cpuinfo[0].virtualTLB_guest_PD_lookup=malloc(8*4096); //4 should be enough, but this gives me 8GB (can be changed in the future)
-
-
+  cpuinfo->TSbase=0;
+  cpuinfo->TSlimit=0xffff;
+  cpuinfo->TSsegment=0;
+  cpuinfo->TSaccessRights=0x8b;
 
   sendstringf("Setting up idttable and jumptable\n\r");
 
   jumptable=malloc(4096);
   idttable32=malloc(4096);
 
-  sendstringf("jumptable allocated at %x (%6)\n\r",(UINT64)jumptable, VirtualToPhysical((UINT64)jumptable));
-  sendstringf("idttable32 allocated at %x (%6)\n\r",(UINT64)idttable32, VirtualToPhysical((UINT64)idttable32));
+  sendstringf("jumptable allocated at %x (%6)\n\r",(UINT64)jumptable, VirtualToPhysical(jumptable));
+  sendstringf("idttable32 allocated at %x (%6)\n\r",(UINT64)idttable32, VirtualToPhysical(idttable32));
 
   //fill jumptable and IDT
   PINT_VECTOR32 idt32=(PINT_VECTOR32)idttable32;
-  UINT64 pa=VirtualToPhysical((UINT64)jumptable);
-  UINT64 inthandler32address=(UINT64)VirtualToPhysical((UINT64)&inthandler_32);
+  UINT64 pa=VirtualToPhysical(jumptable);
+  UINT64 inthandler32address=(UINT64)VirtualToPhysical(&inthandler_32);
 
   unsigned char *jumptablepc;
   jumptablepc=(unsigned char *)jumptable;
@@ -1296,7 +1328,7 @@ void vmm_entry(void)
 
 
   currentgdt[8].Limit0_15=length;
-  currentgdt[8].Base0_23=(DWORD)VirtualToPhysical((UINT64)VirtualMachineTSS_V8086);
+  currentgdt[8].Base0_23=(QWORD)VirtualMachineTSS_V8086;
   currentgdt[8].Type=0x9;
   currentgdt[8].System=0;
   currentgdt[8].DPL=3;
@@ -1306,141 +1338,42 @@ void vmm_entry(void)
   currentgdt[8].Reserved=0;
   currentgdt[8].B_D=0;
   currentgdt[8].G=0;
-  currentgdt[8].Base24_31=(DWORD)VirtualToPhysical((UINT64)VirtualMachineTSS_V8086) >> 24;
+  currentgdt[8].Base24_31=(QWORD)VirtualMachineTSS_V8086 >> 24;
+  *(QWORD*)&currentgdt[9]=((QWORD)VirtualMachineTSS_V8086) >> 32;
 
   //setup GDT for realmode jump
   currentgdt[4].Base0_23=0x20000;
 
 
-  if (!loadedOS)
+  //if (!loadedOS)
   {
     sendstringf("Setting up 64-bit TS and TSS\n\r");
 
-    TSS *temp=malloc(4096);
+    TSS64 *temp=malloc(4096);
+
+    sendstringf("temp allocated at %x\n", temp);
     ownTSS=temp;
     zeromemory(temp,4096);
     currentgdt=(PGDT_ENTRY)(getGDTbase()+96);
 
+    currentgdt[0].Limit0_15=4096;
+    currentgdt[0].Base0_23=(UINT64)temp;
+    currentgdt[0].Type=0x9;
+    currentgdt[0].System=0;
+    currentgdt[0].DPL=0;
+    currentgdt[0].P=1;
+    currentgdt[0].Limit16_19=4096 >> 16;
+    currentgdt[0].AVL=1;
+    currentgdt[0].Reserved=0;
+    currentgdt[0].B_D=0;
+    currentgdt[0].G=0;
+    currentgdt[0].Base24_31=((UINT64)temp) >> 24;
+    *(QWORD*)&currentgdt[1]=((UINT64)temp) >> 32;
 
-    currentgdt->Limit0_15=sizeof(TSS);
-    currentgdt->Base0_23=(UINT64)temp;
-    currentgdt->Type=0x9;
-    currentgdt->System=0;
-    currentgdt->DPL=3;
-    currentgdt->P=1;
-    currentgdt->Limit16_19=sizeof(TSS) >> 16;
-    currentgdt->AVL=1;
-    currentgdt->Reserved=0;
-    currentgdt->B_D=0;
-    currentgdt->G=0;
-    currentgdt->Base24_31=((UINT64)temp) >> 24;
     loadTaskRegister(96);
-
-    {
-      //debugging a nasty bug that is probably the cause of the 75% chance crash
-      unsigned char testgdt[0x80]={0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, \
-          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, \
-          0x00, 0x00, 0x00, 0x00, 0x00, 0x9b, 0x20, 0x00, \
-          0xff, 0xff, 0x00, 0x00, 0x00, 0x93, 0xcf, 0x00, \
-          0xff, 0xff, 0x00, 0x00, 0x00, 0xfb, 0xcf, 0x00, \
-          0xff, 0xff, 0x00, 0x00, 0x00, 0xf3, 0xcf, 0x00, \
-          0x00, 0x00, 0x00, 0x00, 0x00, 0xfb, 0x20, 0x00, \
-          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, \
-  /*TSS*/ 0x67, 0x00, 0x80, 0x20, 0x3f, 0x8b, 0x00, 0xe8, \
-          0x01, 0xf8, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, \
-          0x00, 0x3c, 0x00, 0xe0, 0xfd, 0xf3, 0x40, 0xff, \
-          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, \
-          0xff, 0xff, 0x00, 0x00, 0x00, 0x9b, 0xcf, 0x00, \
-          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, \
-          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, \
-          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
-      PGDT_ENTRY tgdt=&testgdt[0x40];
-
-/*
-     TSS=
-     0x67, 0x00, 0x80, 0x20, 0x3f, 0x8b, 0x00, 0xe8
-     0x01, 0xf8, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00
-
-     00000000
-     fffff801
-     e8008b3f
-     20800067
-
-     base:
-     15:00=2080
-     23:16=3f
-     31:24=e8
-     63:32=fffff801
-
-     fffff801e83f2080   good
-
-     fffff800e83f2080   bad
- */
-
-      QWORD testbase;
-
-      sendstringf("tgdt->Base0_23=%x\n", tgdt->Base0_23);  //3f2080
-      sendstringf("tgdt->Base24_31=%x\n", tgdt->Base24_31); //e8
-      sendstringf("*(ULONG *)(&tgdt[1])=%x\n", *(ULONG *)(&tgdt[1])); //fffff801
-
-
-      testbase=tgdt->Base24_31 << 24;
-
-      sendstringf("Shift test:%x\n", testbase);
-
-
-      testbase=getSegmentBaseEx(testgdt, 0, 0x40, 1);
-
-
-
-      sendstringf("testbase is %6\n", testbase);
-      if (testbase!=0xfffff801e83f2080ULL)
-        sendstringf("FAIL!\n");
-
-    }
-
-    {
-      //another debugtest where an emulated interrupt did not see it was a CPL change
-      unsigned char testgdt[0x80]={ \
-          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, \
-          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, \
-          0x00, 0x00, 0x00, 0x00, 0x00, 0x9b, 0x20, 0x00, \
-          0xff, 0xff, 0x00, 0x00, 0x00, 0x93, 0xcf, 0x00, \
-          0xff, 0xff, 0x00, 0x00, 0x00, 0xfb, 0xcf, 0x00, \
-          0xff, 0xff, 0x00, 0x00, 0x00, 0xf3, 0xcf, 0x00, \
-          0x00, 0x00, 0x00, 0x00, 0x00, 0xfb, 0x20, 0x00, \
-          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, \
-  /*TSS*/ 0x67, 0x00, 0xc0, 0x1d, 0xae, 0x8b, 0x00, 0x02, \
-          0x80, 0xf8, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, \
-          0x00, 0xfc, 0x00, 0xe0, 0xa1, 0xf3, 0x40, 0xff, \
-          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, \
-          0xff, 0xff, 0x00, 0x00, 0x00, 0x9b, 0xcf, 0x00, \
-          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, \
-          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, \
-          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
-      PGDT_ENTRY tgdt=&testgdt[0];
-      Segment_Attribs old_ssattribs, new_csattribs;
-      old_ssattribs.SegmentAttrib=getSegmentAttrib(tgdt, 0, 0x2b);
-      new_csattribs.SegmentAttrib=getSegmentAttrib(tgdt, 0, 0x10);
-      sendstring("DPL test:\n");
-
-
-      sendstringf("old_ssattribs.SegmentAttrib=%x\n", old_ssattribs.SegmentAttrib);
-      sendstringf("old_csattribs.SegmentAttrib=%x\n", new_csattribs.SegmentAttrib);
-      sendstringf("ss dpl=%d\n", old_ssattribs.DPL);
-      sendstringf("cs dpl=%d\n", new_csattribs.DPL);
-
-
-    }
-
-
-
   }
 
   displayline("Generating debug information\n\r");
-  originalIDTcrc=generateCRC(NULL, 0x400);
   originalVMMcrc=generateCRC((void*)vmxloop,0x2a000);
 
 
@@ -1456,16 +1389,27 @@ void vmm_entry(void)
 #endif
 
 
+  {
+    //mark the region between 0 to 0x00400000 as readonly, if you need to write, map it
+    PPDPTE_PAE pml4entry;
+    PPDPTE_PAE pagedirpointerentry;
+    PPDE_PAE pagedirentry;
+    PPTE_PAE pagetableentry;
 
+    VirtualAddressToPageEntries(0, &pml4entry, &pagedirpointerentry, &pagedirentry, &pagetableentry);
+    pagedirentry[0].RW=0;
+    pagedirentry[1].RW=0;
+  }
+
+  if (needtospawnApplicationProcessors)
+    textmemory=(QWORD)mapPhysicalMemory(0xb8000, 4096); //at least enough for 80*25*2
 
   menu2();
-
-
   return;
 }
 
-#pragma GCC push_options
-#pragma GCC optimize ("O0")
+//#pragma GCC push_options
+//#pragma GCC optimize ("O0")
 int testexception(void)
 {
 
@@ -1478,7 +1422,7 @@ int testexception(void)
   __asm("nop");
   __asm("nop");
 
-  result=readMSRSafe(&cpuinfo[0], 553);
+  result=readMSRSafe(getcpuinfo(), 553);
 
   //nothing happened
   //result=0;
@@ -1490,17 +1434,17 @@ int testexception(void)
 
 void vmcalltest(void)
 {
-  pcpuinfo currentcpuinfo=&cpuinfo[0];
+  pcpuinfo currentcpuinfo=getcpuinfo();
   int dbvmversion;
   dbvmversion=0;
 
   currentcpuinfo->LastInterrupt=0;
-  currentcpuinfo->OnInterrupt.RIP=(volatile void *)&&InterruptFired; //set interrupt location
+  currentcpuinfo->OnInterrupt.RIP=(QWORD)(volatile void *)&&InterruptFired; //set interrupt location
   currentcpuinfo->OnInterrupt.RSP=getRSP();
-
-
+  asm volatile ("": : :"memory");
 
   dbvmversion=vmcalltest_asm();
+  asm volatile ("": : :"memory");
 
 
 InterruptFired:
@@ -1518,33 +1462,72 @@ InterruptFired:
 }
 
 
-#pragma GCC pop_options
+//#pragma GCC pop_options
 
 
 
-void reboot(void)
+void reboot(int skipAPTerminationWait)
 {
-  int i;
-  for (i=1; i<cpucount; i++) //disable all AP cpu's first (in vmm mode this will put the AP cpu's into wait-for-sipi mode)
   {
-    cpuinfo[i].hastoterminate=1;
-    while (cpuinfo[i].active) ;
+    //remapping pagetable entry 0 to 0x00400000 so it's writabe (was marked unwritable after entry)
+    PPDPTE_PAE pml4entry;
+    PPDPTE_PAE pagedirpointerentry;
+    PPDE_PAE pagedirentry;
+    PPTE_PAE pagetableentry;
+
+    VirtualAddressToPageEntries(0, &pml4entry, &pagedirpointerentry, &pagedirentry, &pagetableentry);
+    pagedirentry[0].RW=1;
+    pagedirentry[1].RW=1;
+    asm volatile ("": : :"memory");
   }
 
-  ULONG gdtaddress=getGDTbase();  //0x40002 contains the address of the GDT table
+  //Disable the AP cpu's as on a normal reboot, the memory they are looping in will first be zeroed out (it picks the same memory block)
+  AP_Terminate=1; //tells the AP cpu's to stop
+
+  if (skipAPTerminationWait==0) //can be skipped if ran by vmlaunch (the other cpu's will stay active as they are in wait-for-sipi mode)
+  {
+    startNextCPU(); //just make sure there is none waiting
+
+    int stillactive=1;
+    while (stillactive)
+    {
+      pcpuinfo c=firstcpuinfo->next;
+      stillactive=0;
+      while (c)
+      {
+        if ((c->vmxsetup==0) && (c->active)) //not configured to be a VMX, and still active
+          stillactive=1;
+
+        c=c->next;
+      }
+    }
+  }
+
+  UINT64 gdtaddress=getGDTbase();  //0x40002 contains the address of the GDT table
 
   sendstring("Copying gdt to low memory\n\r");
-  copymem((void *)0x50000,(void *)(UINT64)gdtaddress,0x50); //copy gdt to 0x50000
+  copymem((void *)0x50000,(void *)(UINT64)gdtaddress,getGDTsize()); //copy gdt to 0x50000
 
   sendstring("copying movetoreal to 0x2000\n\r");
   copymem((void *)0x20000,(void *)(UINT64)&movetoreal,(UINT64)&vmxstartup_end-(UINT64)&movetoreal);
 
 
   sendstring("Calling quickboot\n\r");
+
+  *(unsigned char *)0x7c0e=bootdisk;
+
   quickboot();
   sendstring("WTF?\n\r");
 }
 
+
+#ifdef DEBUG
+#define SHOWFIRSTMENU 1
+int showfirstmenu=1;
+#else
+#define SHOWFIRSTMENU 0
+int showfirstmenu=0;
+#endif
 
 void menu2(void)
 {
@@ -1555,27 +1538,13 @@ void menu2(void)
   else
     vmcall_instr=vmcall_intel;
 
-  if (!loadedOS)
-  {
 
 
-    if (*(BYTE *)0x7c10==1) //if override by setup then
-    {
-      *(BYTE *)0x7c0e=*(BYTE *)0x7c0f; //set to bootdrive2
-    }
-    else
-    {
-      //find out myself
-      if (*(BYTE *)0x7c0e==0)
-        *(BYTE *)0x7c0e=0x80;
-      else
-      if (*(BYTE *)0x7c0e==0x80)
-        *(BYTE *)0x7c0e=0x81;
-    }
-  } else sendstringf("loadedOS=%6\n",loadedOS);
+  sendstringf("loadedOS=%6\n",loadedOS);
 
 
   //*(BYTE *)0x7c0e=0x80;
+  bootdisk=0x80;
   while (1)
   {
     clearScreen();
@@ -1597,42 +1566,36 @@ void menu2(void)
     displayline("These are your options:\n");
     displayline("0: Start virtualization\n");
     displayline("1: Keyboard test\n");
-    displayline("2: Set disk to startup from (currently %2)\n",*(BYTE *)0x7c0e);
+    displayline("2: Set disk to startup from (currently %2)\n",bootdisk);
     displayline("3: Disassembler test\n");
     displayline("4: Interrupt test\n");
     displayline("5: Breakpoint test\n");
     displayline("6: Set Redirects with dbvm (only if dbvm is already loaded)\n");
-    displayline("7: Pagefault test\n");
+    displayline("7: cr3 fuck test\n");
     displayline("8: PCI enum test (finds db's serial port)\n");
     displayline("9: test input\n");
     displayline("a: test branch profiling\n");
     displayline("b: boot without vm (test state vm would set)\n");
     displayline("c: boot without vm and lock FEATURE CONTROL\n");
-    displayline("v: vm(m)call test (test state vm would set)\n");
-
+    displayline("v: control register test\n");
+    displayline("e: efer test\n");
+    displayline("o: out of memory test\n");
 
     key=0;
     while (!key)
     {
-#if (!defined(DEBUG)) || (defined(DISPLAYDEBUG))
-      if (!loadedOS)
+      if ((!loadedOS) || (showfirstmenu))
       {
-        if (*(BYTE *)0x7c11==1) //autorun
-          key='3';
+        if (loadedOS)
+          key=waitforchar();
         else
           key=kbd_getchar();
       }
       else
         key='0';
-#else
-      //in debugmode
-      if (!loadedOS)
-      {
-    	  //loaded OS is null, get user inputer
-    	  key=kbd_getchar();
-      } else key='0'; //loadedOS, so start imeadiatly
-#endif
 
+
+      while (IntHandlerDebug) ;
 
       if (key)
       {
@@ -1658,8 +1621,8 @@ void menu2(void)
             readstringc(temps,2,16);
             temps[15]=0;
 
-            *(BYTE *)0x7c0e=atoi(temps,16,NULL);
-            displayline("\nNew drive=%2 \n",*(BYTE *)0x7c0e);
+            bootdisk=atoi2(temps,16,NULL);
+            displayline("\nNew drive=%2 \n",bootdisk);
             break;
 
           case '3': //disassemblerr
@@ -1699,42 +1662,76 @@ void menu2(void)
           case '5':
           {
             UINT64 rflags;
+            pcpuinfo i=getcpuinfo();
 
             displayline("Doing an int3 bp\n");
+
+            i->OnInterrupt.RSP=getRSP();
+            i->OnInterrupt.RIP=(QWORD)((volatile void *)&&afterint3bptest);
+            asm volatile ("": : :"memory");
             int3bptest();
+
+            sendstringf("Failure to int3 break\n");
+            asm volatile ("": : :"memory");
+afterint3bptest:
 
 
             displayline("Setting the GD flag");
+
+            i->OnInterrupt.RSP=getRSP();
+            i->OnInterrupt.RIP=(QWORD)((volatile void *)&&afterGDtest);
+            asm volatile ("": : :"memory");
             setDR6(0xfffffff0);
             setDR7(getDR7() | (1<<13));
+            asm volatile ("": : :"memory");
             setDR6(0xffff0ff0);
+
+            sendstringf("Failure to break on GD");
+
+            asm volatile ("": : :"memory");
+afterGDtest:
+
             //RF
 
 
-            displayline("Setting the single step flag\n\r");
+            displayline("Setting an execute breakpoint\n\r");
+            setDR0((QWORD)getCR0);
+            setDR6(0xffff0ff0);
+            setDR7(getDR7() | (1<<0));
+            displayline("Going to execute it\n");
+
+            i->OnInterrupt.RSP=getRSP();
+            i->OnInterrupt.RIP=(QWORD)((volatile void *)&&afterEXBPtest);
+            asm volatile ("": : :"memory");
+            getCR0();
+
+            sendstringf("Failure to break on execute\n");
+            asm volatile ("": : :"memory");
+afterEXBPtest:
+
+            displayline("Setting a RW breakpoint\n\r");
+            setDR0((QWORD)&isAP);
+            setDR6(0xffff0ff0);
+            setDR7(getDR7() | (3<<18) | (3<<16) | (1<<0));
+            displayline("Going to write to that breakpoint\n");
+
+            i->OnInterrupt.RSP=getRSP();
+            i->OnInterrupt.RIP=(QWORD)((volatile void *)&&afterWRBPtest);
+            asm volatile ("": : :"memory");
+
+            isAP++;
+            asm volatile ("": : :"memory");
+            sendstringf("Failure to break on write. %d\n", isAP);
+afterWRBPtest:
+            asm volatile ("": : :"memory");
+            displayline("done writing\n");
+
+
+            displayline("Setting the single step flag (this will give exceptions)\n\r");
             rflags=getRFLAGS(); //NO RF
             setRFLAGS(rflags | (1<<8));
 
             setRFLAGS(rflags & (~(1<<8))); //unset
-
-            displayline("Setting an execute breakpoint\n\r");
-            setDR0(getCR0);
-            setDR6(0xffff0ff0);
-            setDR7(getDR7() | (1<<0));
-            displayline("Going to execute it\n");  //NO RF
-
-            getCR0();
-
-            displayline("Setting a RW breakpoint\n\r");
-            setDR0(&isAP);
-            setDR6(0xffff0ff0);
-            setDR7(getDR7() | (3<<18) | (3<<16) | (1<<0));
-            displayline("Going to write to that breakpoint\n"); //NO RF
-
-           // bochsbp();
-            isAP++;
-            //*(DWORD *)4=0x12345678;
-            displayline("done writing\n");
 
             break;
           }
@@ -1750,9 +1747,23 @@ void menu2(void)
 
           case '7':
           {
-            //PSOD("FUUUUUUU");
-            int v=*(int *)0xcececece;
-            sendstringf("Value = %x\n", v);
+            QWORD cr3=getCR3();
+            displayline("CR3 was %6\n", cr3);
+
+            cr3=cr3&0xfffffffffffff000ULL;
+            setCR3(cr3);
+            setCR4(getCR4() | CR4_PCIDE);
+
+            cr3=cr3 | 2;
+            setCR3(cr3);
+
+            cr3=getCR3();
+            displayline("CR3 is %6\n", cr3);
+
+            cr3=cr3 | 0x8000000000000000ULL;
+            setCR3(cr3);
+            cr3=getCR3();
+            displayline("CR3 is %6\n", cr3);
 
             break;
           }
@@ -1768,18 +1779,17 @@ void menu2(void)
           {
             {
               char temps[17];
-              int bits;
               UINT64 address;
               int size;
-              int err1,err2,err3;
+              int err2,err3;
 
               sendstring("\nAddress:");
               readstring(temps,16,16);
-              address=atoi(temps,16,&err2);
+              address=atoi2(temps,16,&err2);
 
               sendstring("\nNumber of bytes:");
               readstring(temps,16,16);
-              size=atoi(temps,10,&err3);
+              size=atoi2(temps,10,&err3);
 
               {
                 _DecodedInst disassembled[22];
@@ -1818,7 +1828,7 @@ void menu2(void)
 
           case 'b':
           {
-            reboot();
+            reboot(0);
             displayline("WTF?\n");
             break;
           }
@@ -1858,15 +1868,98 @@ void menu2(void)
 
             displayline("Press a key to boot");
             key=kbd_getchar();
-            reboot();
+            reboot(0);
             displayline("WTF?\n");
             break;
           }
 
+          case 'e':
+          {
+            QWORD old=readMSR(EFER_MSR);
+            QWORD new;
+
+            sendstringf("old=%6\n", old);
+
+            new=old ^ (1<<11);
+            new=new & (~(1<<10));
+            sendstringf("new1=%6\n", new);
+            writeMSR(EFER_MSR, new);
+
+            new=readMSR(EFER_MSR);
+            sendstringf("new2=%6\n", new);
+            break;
+          }
+
+          case 'o':
+          {
+            void *mem;
+            int count;
+
+            while (1)
+            {
+              mem=malloc2(4096);
+              count++;
+              if (count%10==0)
+              {
+                sendstringf("count=%d\n", count);
+              }
+
+            }
+
+
+            break;
+          }
 
           case 'v':
           {
-            vmcalltest();
+            QWORD cr0=getCR0();
+            sendstringf("CR0=%x\n", cr0);
+
+            sendstring("Flipping WP\n");
+
+            cr0=cr0 ^ CR0_WP;
+            setCR0(cr0);
+            cr0=getCR0();
+            sendstringf("CR0=%x\n", cr0);
+
+            sendstring("Flipping NE\n");
+            cr0=cr0 ^ CR0_NE;
+            setCR0(cr0);
+            cr0=getCR0();
+            sendstringf("CR0=%x\n", cr0);
+
+            sendstring("Flipping NE again \n");
+            cr0=cr0 ^ CR0_NE;
+            setCR0(cr0);
+            cr0=getCR0();
+            sendstringf("CR0=%x\n", cr0);
+
+            QWORD cr4=getCR4();
+            sendstringf("CR4=%x\n", cr4);
+
+            sendstring("Flipping CR4_OSXSAVE\n");
+
+            cr4=cr4 ^ CR4_OSXSAVE;
+            setCR4(cr4);
+            cr4=getCR4();
+            sendstringf("CR4=%x\n", cr4);
+
+            sendstring("Flipping CR4_VMXE\n");
+
+            cr4=cr4 ^ CR4_VMXE;
+            setCR4(cr4);
+            cr4=getCR4();
+            sendstringf("CR4=%x\n", cr4);
+
+            sendstring("Flipping CR4_VMXE again\n");
+
+            cr4=cr4 ^ CR4_VMXE;
+            setCR4(cr4);
+            cr4=getCR4();
+            sendstringf("CR4=%x\n", cr4);
+
+
+
             break;
           }
 
@@ -1880,7 +1973,11 @@ void menu2(void)
         if (key)
         {
           displayline("Press any key to return to the menu\n");
-          while (kbd_getchar()==0) ;
+          if (loadedOS)
+            key=waitforchar();
+          else
+            key=kbd_getchar();
+
         }
       }
     }
@@ -1905,7 +2002,13 @@ void menu(void)
   while (1)
   {
     char command;
+    QWORD mem;
+    QWORD pages;
+    mem=getTotalFreeMemory(&pages);
     sendstring("\n\r\n\rWelcome to Dark Byte\'s virtual machine monitor\n\r");
+
+
+    sendstringf("Memory free: %d Bytes (Pages: %d) ", (int)mem, (int)pages);
     sendstring("\n\r^^^^^^^^^^^^^^^^^^^^^^^Menu 1^^^^^^^^^^^^^^^^^^\n\r");
     sendstring("Press 0 to run the VM\n\r");
     sendstring("Press 1 to display the fake memory map\n\r");
@@ -1964,11 +2067,9 @@ void menu(void)
 
       case  '0' : //run virtual machine
       {
-        UINT64 a,b,c,d;
-
         displayline("Starting the virtual machine\n");
 
-        if (!loadedOS)
+        if ((!loadedOS) || (needtospawnApplicationProcessors))
         {
 
           if (cpucount>0) //!isAMD for now during tests
@@ -1976,53 +2077,37 @@ void menu(void)
             displayline("Sending other CPU cores into VMX wait mode\n");
             sendstring("BootCPU: Sending all AP's the command to start the VMX code\n\r");
 
-
-
-            for (i=1; (unsigned)i<cpucount; i++)
+            AP_Launch=1;
+            int allsetup=0;
+            pcpuinfo c;
+            while (allsetup==0)
             {
-              UINT64 rsp;
-              displayline("BOOT CORE:Starting Application core %d to go into VMX and waiting for it to actually enter\n",i);
-              cpuinfo[i].command=1;
-
-              rsp=0;
-
-              _cpuid(&a,&b,&c,&d); //serializes instructions
-
-
-              while (cpuinfo[i].vmxsetup==0)
+              c=firstcpuinfo->next;
+              allsetup=1;
+              while (c)
               {
-                if (rsp==0)
-                  rsp=getRSP();
-
-                _pause();
-                _cpuid(&a,&b,&c,&d);
-
-                if (getRSP()!=rsp)
+                if (c->vmxsetup==0)
                 {
-                  displayline("BootCPU: STACK CORRUPTION DETECTED DURING WAIT\n");
-                  while (1);
+                  allsetup=0;
+                  resync();
+                  break;
                 }
+
+                c=c->next;
               }
-
-
-
             }
-
             //wait till the other cpu's are started
             sendstring("BOOT CORE: Other cpu's finished setting up, now start the boot cpu\n\r");
-            displayline("BOOT CORE: Wait done, other cores are ready to be handled by boot core vm\n");
           }
-
-
-          for (i=1; i<32; i++) //tell slow startup cores to run as soon as possible
-            cpuinfo[i].command=1;
 
 
           displayline("Calling startvmx for main core\n");
         }
 
+        //while (1) _pause(); //debug so I only see AP cpu's
 
-        startvmx(&(cpuinfo[0]));
+
+        startvmx(getcpuinfo());
         sendstring("BootCPU: Back from startvmx\n\r");
         break;
       }
@@ -2042,15 +2127,15 @@ void menu(void)
           readstring(temps,16,16);
           sendstring("\n\r");
           sendstringf("temps=%s \n\r",temps);
-          StartAddress=atoi(temps,16,NULL);
+          StartAddress=atoi2(temps,16,NULL);
 
 
           sendstring("Number of bytes:");
           readstring(temps,8,8);
           sendstring("\n\r");
-          nrofbytes=atoi(temps,10,NULL);
+          nrofbytes=atoi2(temps,10,NULL);
 
-          sendstringf("Going to show the memory region %6 to %6 (physical=%6)\n\r",StartAddress,StartAddress+nrofbytes,VirtualToPhysical((UINT64)StartAddress));
+          sendstringf("Going to show the memory region %6 to %6 (physical=%6)\n\r",StartAddress,StartAddress+nrofbytes,VirtualToPhysical((void *)StartAddress));
 
           for (i=0; (unsigned int)i<nrofbytes; i+=16)
           {
@@ -2094,11 +2179,8 @@ void menu(void)
 
       case  '4' : //display vm memory (virtual)
 				{
-				  allocateVirtualTLB();
-				  sendstringf("AvailableVirtualAddress=%6\n", cpuinfo[0].AvailableVirtualAddress);
+				  sendstringf("obsolete\n");
 
-          displayVMmemory(&cpuinfo[0]);
-          sendstringf("AvailableVirtualAddress=%6\n", cpuinfo[0].AvailableVirtualAddress);
 				}
         break;
 
@@ -2148,23 +2230,18 @@ void menu(void)
         {
           int error;
           UINT64 pf;
-          pcpuinfo currentcpuinfo=&cpuinfo[0];
-          currentcpuinfo->AvailableVirtualAddress=(UINT64)(currentcpuinfo->cpunr+16) << 28;
 
-          sendstringf("currentcpuinfo->AvailableVirtualAddress=%6\n", currentcpuinfo->AvailableVirtualAddress);
-
-          allocateVirtualTLB();
-
-
-          void *address=mapVMmemory(&cpuinfo[0], 0xc0000ULL, 16, currentcpuinfo->AvailableVirtualAddress, &error, &pf);
-
+          void *address=mapVMmemory(getcpuinfo(), 0xc0000ULL, 16, &error, &pf);
           sendstringf("address=%6\n", address);
-          sendstringf("currentcpuinfo->AvailableVirtualAddress=%6\n", currentcpuinfo->AvailableVirtualAddress);
 
           if (error==0)
+          {
             sendstringf("*address=%2\n", *(char *)address);
+            unmapPhysicalMemory(address,16);
+          }
           else
             sendstringf("error=%d  (pf=%6)\n", error, pf);
+
 
 
 
@@ -2179,175 +2256,12 @@ void menu(void)
 
 			case  '8':
 				{
-          unsigned char *wr;
-          unsigned char *temppage1=malloc(4096);
-          unsigned char *temppage2=malloc(4096);
-          unsigned char *temppage3=malloc(4096);
-          unsigned char *temppage4=malloc(4096);
-          PPTE_PAE temppagetable=malloc(4096);
-          zeromemory(temppagetable,4096);
-          zeromemory(temppage1,4096);
-          zeromemory(temppage2,4096);
-          zeromemory(temppage3,4096);
-          zeromemory(temppage4,4096);
-
-          strcpy((char *)temppage1,"1: Unmodified\n\r");
-          strcpy((char *)temppage2,"2: Unmodified\n\r");
-          strcpy((char *)temppage3,"3: Unmodified\n\r");
-          strcpy((char *)temppage4,"4: Unmodified\n\r");
-
-          sendstringf("pagedirvirtual=%8 (%8)\n\r",(UINT64)pagedirvirtual,(UINT64)VirtualToPhysical((UINT64)pagedirvirtual));
-          sendstringf("temppagetable=%8 (%8)\n\r",(UINT64)temppagetable,(UINT64)VirtualToPhysical((UINT64)temppagetable));
-
-
-          sendstringf("address of temppage1=%6\n\r",(UINT64)temppage1);
-          sendstringf("address of temppage2=%6\n\r",(UINT64)temppage2);
-          sendstringf("address of temppage3=%6\n\r",(UINT64)temppage3);
-          sendstringf("address of temppage4=%6\n\r",(UINT64)temppage4);
-
-          //0: supervisor, rw pagetableentry
-          temppagetable[0].P=1;
-          temppagetable[0].RW=1;
-          temppagetable[0].US=0;
-          temppagetable[0].PFN=(ULONG)VirtualToPhysical((UINT64)temppage1) >> 12;
-
-          //1: usermode, rw pagetableentry
-          temppagetable[1].P=1;
-          temppagetable[1].RW=1;
-          temppagetable[1].US=1;
-          temppagetable[1].PFN=(ULONG)VirtualToPhysical((UINT64)temppage2) >> 12;
-
-          //2: supervisor, ro pagetableentry
-          temppagetable[2].P=1;
-          temppagetable[2].RW=0;
-          temppagetable[2].US=1;
-          temppagetable[2].PFN=(ULONG)VirtualToPhysical((UINT64)temppage3) >> 12;
-
-          //3: usermode ro pagetableentry
-          temppagetable[3].P=1;
-          temppagetable[3].RW=0;
-          temppagetable[3].US=0;
-          temppagetable[3].PFN=(ULONG)VirtualToPhysical((UINT64)temppage4) >> 12;
-
-
-          pagedirvirtual[0].P=1;
-          pagedirvirtual[0].US=1;
-          pagedirvirtual[0].RW=1;
-          pagedirvirtual[0].PS=0;
-          ((PPDE_PAE)(pagedirvirtual))[0].PFN=(UINT64)VirtualToPhysical((UINT64)temppagetable) >> 12;
-
-          _invlpg(0);
-          _invlpg(0x1000);
-          _invlpg(0x2000);
-          _invlpg(0x3000);
-
-          sendstring("Unedited:\n\r");
-          sendstringf("0=%s\n\r",(char *)0);
-          sendstringf("1=%s\n\r",(char *)0x1000);
-          sendstringf("2=%s\n\r",(char *)0x2000);
-          sendstringf("3=%s\n\r",(char *)0x3000);
-
-          sendstring("\n\rEdited:\n\r");
-
-
-
-          wr=(unsigned char *)0;
-          wr[0]='L';
-          wr[1]='O';
-          wr[2]='S';
-          wr[3]='E';
-          wr[4]='R';
-          sendstringf("0=%s\n\r",(char *)0);
-
-
-          wr=(unsigned char *)0x1000;
-          wr[0]='I';
-          wr[1]='D';
-          wr[2]='I';
-          wr[3]='O';
-          wr[4]='T';
-          sendstringf("1=%s\n\r",(char *)0x1000);
-
-
-          wr=(unsigned char *)0x2000;
-          wr[0]='H';
-          wr[1]='O';
-          wr[2]='M';
-          wr[3]='O';
-          sendstringf("2=%s\n\r",(char *)0x2000);
-
-          wr=(unsigned char *)0x3000;
-          wr[0]='R';
-          wr[1]='E';
-          wr[2]='T';
-          wr[3]='A';
-          wr[3]='R';
-          wr[3]='D';
-
-          sendstringf("3=%s\n\r",(char *)0x3000);
-
-          //set WP bit
-          sendstring("Writing back to original\n\r");
-          strcpy((char *)temppage1,"1: Unmodified\n\r");
-          strcpy((char *)temppage2,"2: Unmodified\n\r");
-          strcpy((char *)temppage3,"3: Unmodified\n\r");
-          strcpy((char *)temppage4,"4: Unmodified\n\r");
-
-          sendstringf("Setting wp bit\n\r");
-          setCR0(getCR0() | 1<<16);
-
-          sendstring("Invalidating pages\n\r");
-
-          _invlpg(0);
-          _invlpg(0x1000);
-          _invlpg(0x2000);
-          _invlpg(0x3000);
-
-          sendstring("modifying mem\n\r");
-
-
-          wr=(unsigned char *)0;
-          wr[0]='L';
-          wr[1]='O';
-          wr[2]='S';
-          wr[3]='E';
-          wr[4]='R';
-          sendstringf("0=%s\n\r",(char *)0);
-
-
-          wr=(unsigned char *)0x1000;
-          wr[0]='I';
-          wr[1]='D';
-          wr[2]='I';
-          wr[3]='O';
-          wr[4]='T';
-          sendstringf("1=%s\n\r",(char *)0x1000);
-
-
-          wr=(unsigned char *)0x2000;
-          wr[0]='H';
-          wr[1]='O';
-          wr[2]='M';
-          wr[3]='O';
-          sendstringf("2=%s\n\r",(char *)0x2000);
-
-          wr=(unsigned char *)0x3000;
-          wr[0]='R';
-          wr[1]='E';
-          wr[2]='T';
-          wr[3]='A';
-          wr[3]='R';
-          wr[3]='D';
-
-          sendstringf("3=%s\n\r",(char *)0x3000);
-
-
           break;
         }
 
         case	'9':
         {
-          reboot();
+          reboot(0);
 
 				}
 
@@ -2509,7 +2423,7 @@ void startvmx(pcpuinfo currentcpuinfo)
 
     		  zeromemory(currentcpuinfo->vmcb, 4096);
 
-    		  currentcpuinfo->vmcb_PA=(UINT64)VirtualToPhysical((UINT64)currentcpuinfo->vmcb);
+    		  currentcpuinfo->vmcb_PA=(UINT64)VirtualToPhysical((void *)currentcpuinfo->vmcb);
 
           sendstring("Setting SVME bit in EFER\n");
           efer=readMSR(EFER_MSR);
@@ -2529,7 +2443,7 @@ void startvmx(pcpuinfo currentcpuinfo)
 
           currentcpuinfo->vmcb_host=malloc(4096);
         //  bochsbp();
-          writeMSR(0xc0010117, (UINT64)VirtualToPhysical((UINT64)currentcpuinfo->vmcb_host));
+          writeMSR(0xc0010117, (UINT64)VirtualToPhysical(currentcpuinfo->vmcb_host));
 
 
 
@@ -2633,7 +2547,7 @@ void startvmx(pcpuinfo currentcpuinfo)
         if (currentcpuinfo->vmxon_region==NULL)
           currentcpuinfo->vmxon_region=malloc(4096);
 
-        sendstringf("Allocated vmxon_region at %6 (%6)\n\r",(UINT64)currentcpuinfo->vmxon_region,(UINT64)VirtualToPhysical((UINT64)currentcpuinfo->vmxon_region));
+        sendstringf("Allocated vmxon_region at %6 (%6)\n\r",(UINT64)currentcpuinfo->vmxon_region,(UINT64)VirtualToPhysical(currentcpuinfo->vmxon_region));
 
         if (currentcpuinfo->vmxon_region==NULL)
         {
@@ -2647,7 +2561,7 @@ void startvmx(pcpuinfo currentcpuinfo)
         if (currentcpuinfo->vmcs_region==NULL)
           currentcpuinfo->vmcs_region=malloc(4096);
 
-        sendstringf("Allocated vmcs_region at %6 (%6)\n\r",currentcpuinfo->vmcs_region,VirtualToPhysical((UINT64)currentcpuinfo->vmcs_region));
+        sendstringf("Allocated vmcs_region at %6 (%6)\n\r",currentcpuinfo->vmcs_region,VirtualToPhysical(currentcpuinfo->vmcs_region));
 
         if (currentcpuinfo->vmcs_region==NULL)
         {
@@ -2656,8 +2570,11 @@ void startvmx(pcpuinfo currentcpuinfo)
         }
 
 
+
         zeromemory(currentcpuinfo->vmcs_region,4096);
         *(ULONG *)currentcpuinfo->vmcs_region=IA32_VMX_BASIC.rev_id;
+
+        currentcpuinfo->vmcs_regionPA=VirtualToPhysical(currentcpuinfo->vmcs_region);
 
         displayline("revision id=%d\n\r",IA32_VMX_BASIC.rev_id);
 
@@ -2669,23 +2586,26 @@ void startvmx(pcpuinfo currentcpuinfo)
         displayline("CR0=%6  (Should be %6)\n\r",(UINT64)getCR0(),((UINT64)getCR0() | (UINT64)IA32_VMX_CR0_FIXED0) & (UINT64)IA32_VMX_CR0_FIXED1);
         displayline("CR4=%6  (Should be %6)\n\r",(UINT64)getCR4(),((UINT64)getCR4() | (UINT64)IA32_VMX_CR4_FIXED0) & (UINT64)IA32_VMX_CR4_FIXED1);
 
+        setCR0(((UINT64)getCR0() | (UINT64)IA32_VMX_CR0_FIXED0) & (UINT64)IA32_VMX_CR0_FIXED1);
+        setCR4(((UINT64)getCR4() | (UINT64)IA32_VMX_CR4_FIXED0) & (UINT64)IA32_VMX_CR4_FIXED1);
 
-        displayline("vmxon_region=%6\n\r",VirtualToPhysical((UINT64)currentcpuinfo->vmxon_region));
+
+        displayline("vmxon_region=%6\n\r",VirtualToPhysical(currentcpuinfo->vmxon_region));
 
         displayline("%d:Checks successfull. Going to call vmxon\n",currentcpuinfo->cpunr);
 
-  		if (vmxon(VirtualToPhysical((UINT64)currentcpuinfo->vmxon_region))==0)
-  		{
-  		  sendstring("vmxon success\n\r");
+  		  if (vmxon(VirtualToPhysical(currentcpuinfo->vmxon_region))==0)
+  	  	{
+  		    sendstring("vmxon success\n\r");
           displayline("%d: vmxon success\n",currentcpuinfo->cpunr);
 
           displayline("%d: calling vmclear\n",currentcpuinfo->cpunr);
 
-          if (vmclear(VirtualToPhysical((UINT64)currentcpuinfo->vmcs_region))==0)
+          if (vmclear(VirtualToPhysical(currentcpuinfo->vmcs_region))==0)
           {
             displayline("%d: calling vmptrld\n",currentcpuinfo->cpunr);
 
-            if (vmptrld(VirtualToPhysical((UINT64)currentcpuinfo->vmcs_region))==0)
+            if (vmptrld(VirtualToPhysical(currentcpuinfo->vmcs_region))==0)
             {
 
               displayline("%d: vmptrld successful. Calling setupVMX\n", currentcpuinfo->cpunr);
@@ -2702,7 +2622,9 @@ void startvmx(pcpuinfo currentcpuinfo)
               if (!isAP)
                 clearScreen();
 
-
+              //vmptrld(VirtualToPhysical(currentcpuinfo->vmcs_region));
+             // vmptrld(VirtualToPhysical(currentcpuinfo->vmcs_region));
+              //vmptrld(VirtualToPhysical(currentcpuinfo->vmcs_region));
 
               launchVMX(currentcpuinfo);
 

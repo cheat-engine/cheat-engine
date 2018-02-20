@@ -1,6 +1,6 @@
 LD = ld
 CC = gcc
-CFLAGS = -DSUPPORT_64BIT_OFFSET -DDARKBYTESFUCKEDUPCROSSCOMPILER -fno-builtin-strlen -fno-builtin-strcat -fno-builtin-strcpy -fno-builtin-malloc -fno-builtin-snprintf -fno-builtin-memcpy -fno-builtin-memset -fno-stack-protector
+CFLAGS = -O0 -DSUPPORT_64BIT_OFFSET -DDARKBYTESFUCKEDUPCROSSCOMPILER -fno-builtin-strlen -fno-builtin-strcat -fno-builtin-strcpy -fno-builtin-malloc -fno-builtin-snprintf -fno-builtin-memcpy -fno-builtin-memset -fno-stack-protector -g
 LDFLAGS = 
 
 all:

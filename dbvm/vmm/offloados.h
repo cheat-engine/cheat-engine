@@ -51,8 +51,31 @@ typedef struct
   UINT64    tr;
   UINT64    ldt;
 
+  UINT64    cs_AccessRights;
+  UINT64    ss_AccessRights;
+  UINT64    ds_AccessRights;
+  UINT64    es_AccessRights;
+  UINT64    fs_AccessRights;
+  UINT64    gs_AccessRights;
+
+  UINT64    cs_Limit;
+  UINT64    ss_Limit;
+  UINT64    ds_Limit;
+  UINT64    es_Limit;
+  UINT64    fs_Limit;
+  UINT64    gs_Limit;
+
   UINT64    fsbase;
   UINT64    gsbase;
+  UINT64    APEntryPage; //page below 1MB (for AP cpu bootcode)
+  UINT64    Uncached; //physical address holding a map detailing which regions are uncached (for EPT) (sorted)
 } __attribute__((__packed__)) OriginalState, *POriginalState;
+
+
+typedef struct
+{
+  UINT64 startAddress;
+  UINT64 byteSize;
+} __attribute__((__packed__)) UncachedRegion, *PUncachedRegion;
 
 #endif /* OFFLOADOS_H_ */

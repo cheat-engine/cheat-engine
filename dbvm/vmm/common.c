@@ -8,13 +8,61 @@ multiple sources. (e.g vmm and vmloader)
 #include "keyboard.h"
 #include "main.h"
 
+#include <ieee754.h>
+
+//#include <string.h>
+
+QWORD textmemory=0x0b8000;
+
 criticalSection sendstringfCS;
 criticalSection sendstringCS;
+
+
+
+extern int popcnt_support(QWORD val);
+int popcnt_nosupport(QWORD val)
+{
+  int i;
+  int result=0;
+  for (i=0; i<64; i++)
+  {
+    if (val&1)
+      result++;
+
+    val=val >> 1;
+
+    if (val==0)
+      return result;
+  }
+
+  return result;
+}
+
+POPCNT_IMPLEMENTATION popcnt=popcnt_nosupport;
+
+
+
+inline void jtagbp(void)
+{
+  asm volatile (".byte 0xf1");
+}
 
 inline void bochsbp(void)
 {
   asm volatile ("xchg %bx,%bx");
+  //db 0xf1
 }
+
+inline int min(int x,int y)
+{
+  return (x<y)?x:y;
+}
+
+inline int max(int x,int y)
+{
+  return (x>y)?x:y;
+}
+
 
 
 /* Input a byte from a port */
@@ -42,6 +90,299 @@ inline void outportd(unsigned int port,unsigned long value)
    asm volatile ("outl %%eax,%%dx": :"d" (port), "a" (value));
 }
 
+size_t strspn(const char *str, const char *chars)
+{
+  int i, j;
+
+  for (i = 0; str[i]; i++) {
+    for (j = 0; chars[j]; j++) {
+      if (chars)
+        break;
+    }
+    if (!chars[j])
+      break;
+  }
+  return (i);
+}
+
+int isalpha(int c)
+{
+  return (((c>='A') && (c<='Z')) || ((c>='a') && (c>='z')));
+}
+
+int isdigit(int c)
+{
+  return ((c>='0') && (c<='9'));
+}
+
+int toupper(int c)
+{
+  //unset bit 5
+  return (c & (~(1<<5)));
+}
+
+int tolower(int c)
+{
+  //set bit 5
+  return (c | (1<< 5));
+}
+
+
+double floor(double x)
+{
+  return (int) x - (x < (int) x);
+}
+
+double ceil(double x)
+{
+  return (int) x + (x > (int) x);
+}
+
+
+int isalnum(int c)
+{
+  return (isalpha(c) || isdigit(c));
+}
+
+int memcmp(const void *s1, const void *s2, size_t n)
+{
+  unsigned int i;
+  unsigned char *m1=(unsigned char *)s1;
+  unsigned char *m2=(unsigned char *)s2;
+
+  for (i=0; i<n; i++)
+  {
+    if (m1[i]>m2[i])
+      return 1;
+
+    if (m1[i]<m2[i])
+      return -1;
+  }
+
+  return 0;
+
+}
+
+int strcmp(const char *s1, const char *s2)
+{
+  int i=0;
+  while (s1[i] || s2[i])
+  {
+    if (s1[i]>s2[i])
+      return 1;
+
+    if (s1[i]<s2[i])
+      return -1;
+
+    i++;
+  }
+
+  return 0;
+}
+
+int strncmp(const char *s1, const char *s2, size_t n)
+{
+  unsigned int i=0;
+  while ((i<n) && (s1[i] || s2[i]))
+  {
+    if (s1[i]>s2[i])
+      return 1;
+
+    if (s1[i]<s2[i])
+      return -1;
+
+    i++;
+  }
+
+  return 0;
+}
+
+char *strstr(const char *haystack, const char *needle)
+{
+  int i;
+  int needlelength=strlen(needle);
+  for (i=0; haystack[i]; i++)
+  {
+    char *currentstring=(char *)&haystack[i];
+    if (strncmp(currentstring,needle,needlelength)==0)
+      return currentstring;
+  }
+
+  return NULL;
+}
+
+int strcoll(const char *s1, const char *s2)
+{
+  return strcmp(s1,s2);
+}
+
+char *strchr(const char *s, int c)
+{
+  int i;
+  for (i=0; s[i]; i++)
+    if (s[i]==c)
+      return (char*)&s[i];
+
+  return NULL;
+}
+
+char *strpbrk(const char *s, const char *accept)
+{
+  int i, j;
+
+  int al=strlen(accept);
+
+  for (i = 0; s[i] != '\0';i++)
+  {
+    for (j=0; j<al; j++)
+      if (s[i]== accept[j])
+      {
+        return (char *)&s[i];
+      }
+  }
+
+  return NULL;
+}
+
+#define ISSPACE(c) (c==' ')
+
+double atof(char* num)
+ {
+     if (!num || !*num)
+         return 0;
+     double integerPart = 0;
+     double fractionPart = 0;
+     int divisorForFraction = 1;
+     int sign = 1;
+     int inFraction = 0;
+     /*Take care of +/- sign*/
+     if (*num == '-')
+     {
+         ++num;
+         sign = -1;
+     }
+     else if (*num == '+')
+     {
+         ++num;
+     }
+     while (*num != '\0')
+     {
+         if (*num >= '0' && *num <= '9')
+         {
+             if (inFraction)
+             {
+                 /*See how are we converting a character to integer*/
+                 fractionPart = fractionPart*10 + (*num - '0');
+                 divisorForFraction *= 10;
+             }
+             else
+             {
+                 integerPart = integerPart*10 + (*num - '0');
+             }
+         }
+         else if (*num == '.')
+         {
+             if (inFraction)
+                 return sign * (integerPart + fractionPart/divisorForFraction);
+             else
+                 inFraction = 1;
+         }
+         else
+         {
+             return sign * (integerPart + fractionPart/divisorForFraction);
+         }
+         ++num;
+     }
+     return sign * (integerPart + fractionPart/divisorForFraction);
+ }
+
+double strtod(const char *str, char **ptr)
+{
+  char *p;
+
+    p = (char *)str;
+
+    if (ptr==NULL)
+      return atof((char *)str);
+
+    while (ISSPACE (*p))
+      ++p;
+
+    if (*p == '+' || *p == '-')
+      ++p;
+
+    /* INF or INFINITY.  */
+    if ((p[0] == 'i' || p[0] == 'I')
+        && (p[1] == 'n' || p[1] == 'N')
+        && (p[2] == 'f' || p[2] == 'F'))
+      {
+        if ((p[3] == 'i' || p[3] == 'I')
+      && (p[4] == 'n' || p[4] == 'N')
+      && (p[5] == 'i' || p[5] == 'I')
+      && (p[6] == 't' || p[6] == 'T')
+      && (p[7] == 'y' || p[7] == 'Y'))
+    {
+      *ptr = p + 8;
+      return atof ((char *)str);
+    }
+        else
+    {
+      *ptr = p + 3;
+      return atof ((char *)str);
+    }
+      }
+
+    /* NAN or NAN(foo).  */
+    if ((p[0] == 'n' || p[0] == 'N')
+        && (p[1] == 'a' || p[1] == 'A')
+        && (p[2] == 'n' || p[2] == 'N'))
+      {
+        p += 3;
+        if (*p == '(')
+    {
+      ++p;
+      while (*p != '\0' && *p != ')')
+        ++p;
+      if (*p == ')')
+        ++p;
+    }
+        *ptr = p;
+        return atof ((char *)str);
+      }
+
+    /* digits, with 0 or 1 periods in it.  */
+    if (isdigit(*p) || *p == '.')
+      {
+        int got_dot = 0;
+        while (isdigit (*p) || (!got_dot && *p == '.'))
+    {
+      if (*p == '.')
+        got_dot = 1;
+      ++p;
+    }
+
+        /* Exponent.  */
+        if (*p == 'e' || *p == 'E')
+    {
+      int i;
+      i = 1;
+      if (p[i] == '+' || p[i] == '-')
+        ++i;
+      if (isdigit (p[i]))
+        {
+          while (isdigit (p[i]))
+      ++i;
+          *ptr = p + i;
+          return atof ((char *)str);
+        }
+    }
+        *ptr = p;
+        return atof ((char *)str);
+      }
+    /* Didn't find any digits.  Doesn't look like a number.  */
+    *ptr = (char *)str;
+    return 0.0;
+}
 
 int vbuildstring(char *str, int size, char *string, __builtin_va_list arglist)
 {
@@ -61,7 +402,7 @@ int vbuildstring(char *str, int size, char *string, __builtin_va_list arglist)
   strpos=0;
 
   // work on the copy of string, not the original
-  for (i=0; i<strlen(string); i++)
+  for (i=0; (unsigned int)i<strlen(string); i++)
     workstring[i]=string[i];
 
   zeromemory(varlist,64);
@@ -92,9 +433,9 @@ int vbuildstring(char *str, int size, char *string, __builtin_va_list arglist)
         varlist[vlc]=3;
       }
       else
-      if (workstring[i+1]=='p') //8 char hex (%8)
+      if (workstring[i+1]=='p') //6 char hex (%p)
       {
-        varlist[vlc]=3;
+        varlist[vlc]=4;
       }
       else
       if (workstring[i+1]=='6') //16 char hex (%8)
@@ -310,7 +651,7 @@ int vbuildstring(char *str, int size, char *string, __builtin_va_list arglist)
   return strpos;
 }
 
-void sendstring(char *s)
+void sendstring(char *s UNUSED)
 {
 #ifdef DEBUG
   int i;
@@ -328,7 +669,8 @@ void sendstring(char *s)
 #endif
 }
 
-void sendstringf(char *string, ...)
+
+void sendstringf(char *string UNUSED, ...)
 {
 #ifdef DEBUG
   __builtin_va_list arglist;
@@ -362,6 +704,21 @@ void sendstringf(char *string, ...)
 #endif
 }
 
+int sprintf(char *str, const char *format, ...)
+{
+  __builtin_va_list arglist;
+  int sl;
+
+  __builtin_va_start(arglist,format);
+  sl=vbuildstring(str,4096,(char *)format,arglist);
+  __builtin_va_end(arglist);
+
+  return sl;
+}
+
+
+
+
 unsigned int getAPICID(void)
 {
   UINT64 a,b,c,d;
@@ -389,6 +746,8 @@ void csEnter(PcriticalSection CS)
 
   spinlock(&(CS->locked)); //sets CS->locked to 1
 
+  asm volatile ("": : :"memory");
+
   //here so the lock is aquired and locked is 1
   CS->lockcount=1;
   CS->apicid=apicid;
@@ -407,7 +766,10 @@ void csLeave(PcriticalSection CS)
     {
       //unlock
       CS->apicid=-1; //set to a invalid apicid
+      asm volatile ("": : :"memory");
       CS->locked=0;
+      asm volatile ("": : :"memory");
+
     }
   }
 }
@@ -422,9 +784,9 @@ void zeromemory(volatile void *address, unsigned int size)
 }
 
 
-volatile void* copymem(volatile void *dest, volatile const void *src, int size)
+volatile void* copymem(volatile void *dest, volatile const void *src, size_t size)
 {
-  int i;
+  unsigned int i;
   volatile unsigned char *d=dest,*s=(volatile unsigned char *)src;
 
   for (i=0; i<size; i++)
@@ -433,50 +795,50 @@ volatile void* copymem(volatile void *dest, volatile const void *src, int size)
   return dest;
 }
 
-void* memcpy(volatile void *dest, volatile const void *src, int size)
+void *memcpy(void *dest, const void *src, size_t n)
 {
-  return copymem(dest,src,size);
+  return (void *)copymem(dest,src,n);
 }
 
-void* memset(volatile void *dest, int c, int size)
+void *memset(void *s, int c, size_t n)
 {
-  int i;
-  volatile unsigned char *d=dest;
-  for (i=0; i<size; i++)
-    d[i]=c;
+  unsigned int i;
+  volatile unsigned char *dest=s;
+  for (i=0; i<n; i++)
+    dest[i]=c;
 
-  return dest;
+  return (void *)dest;
 }
 
-int strlen(volatile const char *string)
+size_t strlen(const char *s)
 {
   int length=0;
 
-  for (length=0; string[length]; length++) ;
+  for (length=0; s[length]; length++) ;
   return length;
 }
 
-char *strcat(volatile char *dest, volatile const char *src)
+char *strcat(char *dest, const char *src)
 {
-  int i,j=strlen(dest);
+  int i,j=strlen((char *)dest);
   for (i=0; src[i] ; i++,j++)
     dest[j]=src[i];
 
   dest[j]=0;
 
-  return dest;
+  return (char *)dest;
 }
 
-char *strcpy(volatile char *dest, volatile const char *src)
+char *strcpy(char *dest, const char *src)
 {
-  int i=strlen(src);
+  int i=strlen((char *)src);
   int j;
   for (j=0; j<i; j++)
     dest[j]=src[j];
 
   dest[i]=0;
 
-  return dest;
+  return (char *)dest;
 }
 
 
@@ -487,7 +849,7 @@ void appendzero(char *string, int wantedsize,int maxstringsize)
   int zerostoadd=wantedsize-strlen(string);
 	char newstring[wantedsize+1];
 
-  if ((zerostoadd+strlen(string))>=maxstringsize)
+  if ((zerostoadd+(int)strlen(string))>=maxstringsize)
     return; //not enough memory
 
 
@@ -518,7 +880,7 @@ unsigned long long power(unsigned int x,unsigned int y)
 	return result;
 }
 
-unsigned long long atoi(char* input, int base, int *err)
+unsigned long long atoi2(char* input, int base, int *err)
 {
 	int i,j=0,start=0;
   unsigned char c;
@@ -649,7 +1011,7 @@ int itoa(unsigned int value,int base, char *output,int maxsize)
 }
 
 
-void sendchar(char c)
+void sendchar(char c UNUSED)
 {
 #if (defined SERIALPORT) && (SERIALPORT != 0)
 	unsigned char x;
@@ -670,8 +1032,12 @@ void sendchar(char c)
 
   x=inportb(SERIALPORT+5);
 
-  while ((x & 0x20) != 0x20)
+  //while ((x & 0x20) != 0x20)
+  while ((x & 0x40) != 0x40)
+  {
+    _pause();
 	  x=inportb(SERIALPORT+5);
+  }
 
 	outportb(SERIALPORT,c);
 
@@ -697,6 +1063,11 @@ char getchar(void)
 /* returns 0 when no char is pressed
 	 use readstring to wait for keypresses */
 
+  while ((inportb(SERIALPORT+5) & 0x60) != 0x60)
+  {
+    _pause();
+  }
+
 
 	if (inportb(SERIALPORT+5) & 0x1)
   {
@@ -705,6 +1076,7 @@ char getchar(void)
 	else
 #endif
 		return 0;
+
 }
 
 char inputa=0,inputb=0;
@@ -799,7 +1171,7 @@ void updateCursor(void)
 
 void printchar(char c, int x, int y, char foreground, char background)
 {
-  PTEXTVIDEO tv=(PTEXTVIDEO)0x0b8000;
+  PTEXTVIDEO tv=(PTEXTVIDEO)textmemory;
 #ifndef DISPLAYDEBUG
   if (!loadedOS)
 #endif
@@ -812,7 +1184,7 @@ void printchar(char c, int x, int y, char foreground, char background)
 
 void getdisplaychar(int x, int y, PTEXTVIDEO charinfo)
 {
-  PTEXTVIDEO tv=(PTEXTVIDEO)0x0b8000;
+  PTEXTVIDEO tv=(PTEXTVIDEO)textmemory;
 #ifndef DISPLAYDEBUG
   if (!loadedOS)
 #endif
@@ -831,7 +1203,7 @@ void printstring(char *s, int x, int y, char foreground, char background)
 
 void movelinesup(void)
 {
-  PTEXTVIDEO tv=(PTEXTVIDEO)0x0b8000;
+  PTEXTVIDEO tv=(PTEXTVIDEO)textmemory;
   TEXTVIDEO thischar;
 #ifndef DISPLAYDEBUG
   if (!loadedOS)
@@ -1022,4 +1394,20 @@ void showstatec(ULONG *stack)
 
   sendstringf("s[0]=%8 s[1]=%8\n\r",stack[0],stack[1]);
   return;
+}
+
+int Initialized=0;
+void InitCommon()
+//call once
+{
+  if (Initialized) return;
+
+  QWORD rax=1;
+  QWORD rbx=0;
+  QWORD rcx=0;
+  QWORD rdx=0;
+  _cpuid(&rax, &rbx, &rcx, &rdx);
+
+  if (rcx & (1 << 23))
+    popcnt=popcnt_support;
 }

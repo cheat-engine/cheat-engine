@@ -8,20 +8,21 @@
 #include "vmcall.h"
 #include "msrnames.h"
 #include "ultimap.h"
+#include "vmxsetup.h"
 
 
-#pragma GCC push_options
-#pragma GCC optimize ("O0")
+//#pragma GCC push_options
+//#pragma GCC optimize ("O0")
 QWORD readMSRSafe(pcpuinfo currentcpuinfo, DWORD msr)
 {
   volatile QWORD result=0;
 
   currentcpuinfo->LastInterrupt=0;
-  currentcpuinfo->OnInterrupt.RIP=(volatile void *)&&InterruptFired; //set interrupt location
+  currentcpuinfo->OnInterrupt.RIP=(QWORD)((volatile void *)&&InterruptFired); //set interrupt location
   currentcpuinfo->OnInterrupt.RSP=getRSP();
+  asm volatile ("": : :"memory");
   result=readMSR(msr);
-
-
+  asm volatile ("": : :"memory");
 
 InterruptFired:
   currentcpuinfo->OnInterrupt.RIP=0;
@@ -29,7 +30,20 @@ InterruptFired:
   return result;
 }
 
-#pragma GCC pop_options
+void writeMSRSafe(pcpuinfo currentcpuinfo, DWORD msr, QWORD value)
+{
+  currentcpuinfo->LastInterrupt=0;
+  currentcpuinfo->OnInterrupt.RIP=(QWORD)((volatile void *)&&InterruptFired); //set interrupt location
+  currentcpuinfo->OnInterrupt.RSP=getRSP();
+  asm volatile ("": : :"memory");
+  writeMSR(msr, value);
+  asm volatile ("": : :"memory");
+
+InterruptFired:
+  currentcpuinfo->OnInterrupt.RIP=0;
+}
+
+//#pragma GCC pop_options
 
 
 int raisePagefault(pcpuinfo currentcpuinfo, UINT64 address)
@@ -96,6 +110,8 @@ int raisePagefault(pcpuinfo currentcpuinfo, UINT64 address)
 
   return 0;
 }
+
+
 
 int raiseInvalidOpcodeException(pcpuinfo currentcpuinfo)
 {
@@ -183,27 +199,26 @@ int raisePrivilege(pcpuinfo currentcpuinfo)
 int change_selectors(pcpuinfo currentcpuinfo, ULONG cs, ULONG ss, ULONG ds, ULONG es, ULONG fs, ULONG gs)
 {
   PGDT_ENTRY gdt=NULL,ldt=NULL;
-  UINT64 gdtbase=vmread(0x6816);
-  ULONG ldtselector=vmread(0x80c);
+  UINT64 gdtbase=vmread(vm_guest_gdtr_base);
+  DWORD gdtlimit=vmread(vm_guest_gdt_limit);
+  ULONG ldtselector=vmread(vm_guest_ldtr);
   int notpaged=0;
 
   sendstringf("Inside change_selectors\n\r");
 
-  gdt=(PGDT_ENTRY)(UINT64)MapPhysicalMemory(
-        getPhysicalAddressVM(currentcpuinfo, gdtbase, &notpaged)
-        ,currentcpuinfo->AvailableVirtualAddress
-      );
+  gdt=(PGDT_ENTRY)(UINT64)mapPhysicalMemory(getPhysicalAddressVM(currentcpuinfo, gdtbase, &notpaged) ,gdtlimit);
 
+  WORD ldtlimit;
   if (ldtselector)
   {
     UINT64 ldtbase;
-    WORD ldtlimit;
+
 
     sendstring("ldt is valid, so getting the information\n\r");
 
     ldtbase=(gdt[(ldtselector >> 3)].Base24_31 << 24) + gdt[(ldtselector >> 3)].Base0_23;
     ldtlimit=(gdt[(ldtselector >> 3)].Limit16_19 << 16) + gdt[(ldtselector >> 3)].Limit0_15;
-    ldt=(PGDT_ENTRY)(UINT64)MapPhysicalMemory(getPhysicalAddressVM(currentcpuinfo, ldtbase, &notpaged), currentcpuinfo->AvailableVirtualAddress+0x00200000);
+    ldt=(PGDT_ENTRY)(UINT64)mapPhysicalMemory(getPhysicalAddressVM(currentcpuinfo, ldtbase, &notpaged), ldtlimit);
   }
 
 
@@ -249,6 +264,11 @@ int change_selectors(pcpuinfo currentcpuinfo, ULONG cs, ULONG ss, ULONG ds, ULON
   vmwrite(0x481c,getSegmentAccessRights(gdt,ldt,fs));
   vmwrite(0x481e,getSegmentAccessRights(gdt,ldt,gs));
 
+  if (gdt)
+    unmapPhysicalMemory(gdt, gdtlimit);
+
+  if (ldt)
+    unmapPhysicalMemory(ldt, ldtlimit);
 
   return 0;
 }
@@ -350,121 +370,10 @@ void returnFromCR3Callback(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, un
 //  sendvmstate(currentcpuinfo,vmregisters);
 }
 
-
-
-int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
-/*
- * vmcall:
- * eax=pointer to information structure
- * edx=level1pass (if false, not even a pagefault is raised)
- *
- * vmcall_instruction:
- * ULONG structsize
- * ULONG level2pass;
- * ULONG command
- * ... Extra data depending on command, see doc, "vmcall commands"
- *
- */
+int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, ULONG *vmcall_instruction)
 {
-
-  int i;
   int error;
-  UINT64 pagefaultaddress;
-  ULONG *vmcall_instruction;
-
-#ifdef DEBUG
-  //enableserial();
-#endif
-
-  nosendchar[getAPICID()]=0;
-
-
-  sendstringf("Handling vm(m)call on cpunr:%d \n\r", currentcpuinfo->cpunr);
-
-  if (isAMD)
-    vmregisters->rax=currentcpuinfo->vmcb->RAX; //fill it in, it may get used here
-
-
-  //check password, if false, raise unknown opcode exception
-  if ((ULONG)vmregisters->rdx != Password1)
-  {
-    int x;
-    sendstringf("Invalid Password1. Given=%8 should be %8\n\r",(ULONG)vmregisters->rdx, Password1);
-    x = raiseInvalidOpcodeException(currentcpuinfo);
-    sendstringf("return = %d\n\r",x);
-    return x;
-  }
-
-  sendstringf("Password1 is valid\n\r");
-
-
-  //check if there is already a tlb, if not, allocate it. (it's needed for temp mem)
-  if (currentcpuinfo->virtualTLB == NULL)
-    allocateVirtualTLB();
-
-  sendstringf("currentcpuinfo->AvailableVirtualAddress=%6\n", currentcpuinfo->AvailableVirtualAddress);
-
-  sendstringf("vmregisters->rax=%8\n\r", vmregisters->rax);
-
-  //still here, so password1 is valid
-  //map the memory of the information structure
-
-
-  vmcall_instruction=(ULONG *)mapVMmemory(currentcpuinfo, vmregisters->rax, 12, currentcpuinfo->AvailableVirtualAddress, &error, &pagefaultaddress);
-
-  if (error)
-  {
-    sendstringf("1: Error. error=%d pagefaultaddress=%8\n\r",error,pagefaultaddress);
-
-    if (error==2) //caused by pagefault, raise pagefault
-      return raisePagefault(currentcpuinfo, pagefaultaddress);
-
-    return raiseInvalidOpcodeException(currentcpuinfo);
-  }
-
-  sendstringf("Mapped vmcall instruction structure (vmcall_instruction=%x)\n\r",(UINT64)vmcall_instruction);
-  sendstringf("vmcall_instruction[0]=%x\n\r",vmcall_instruction[0]);
-  sendstringf("vmcall_instruction[1]=%x\n\r",vmcall_instruction[1]);
-  sendstringf("vmcall_instruction[2]=%x\n\r",vmcall_instruction[2]);
-
-
-
-  if ((vmcall_instruction[0]<12) || (vmcall_instruction[1]!=Password2))
-  {
-    sendstringf("Invalid password2 or structuresize. Given=%8 should be %8\n\r",vmcall_instruction[1], Password2);
-    return raiseInvalidOpcodeException(currentcpuinfo);
-  }
-
-
-
-  //still here, so password valid and data structure paged in memory
-  if (vmcall_instruction[0]>12) //remap to take the extra parameters into account
-  {
-//    sendstringf("Remapping to support size: %8\n\r",vmcall_instruction[0]);
-    vmcall_instruction=(ULONG *)mapVMmemory(currentcpuinfo, vmregisters->rax, vmcall_instruction[0], currentcpuinfo->AvailableVirtualAddress, &error, &pagefaultaddress);
-  }
-
-#ifdef DEBUG
-  int totaldwords = vmcall_instruction[0] / 4;
-  for (i=3; i<totaldwords; i++)
-  {
-    sendstringf("vmcall_instruction[%d]=%x\n\r",i, vmcall_instruction[i]);
-  }
-#endif
-
-
-  if (error)
-  {
-    sendstringf("2: Error. error=%d pagefaultaddress=%8\n\r",error,pagefaultaddress);
-
-    if (error==2) //caused by pagefault, raise pagefault
-      return raisePagefault(currentcpuinfo, pagefaultaddress);
-
-    return raiseInvalidOpcodeException(currentcpuinfo);
-  }
-
-
-  sendstringf("Handling vmcall command %d\n\r",vmcall_instruction[2]);
+  QWORD pagefaultaddress;
 
   switch (vmcall_instruction[2])
   {
@@ -485,22 +394,7 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       break;
 
     case 2: //toggle memory cloak
-      if(isAMD)
-      {
-        vmregisters->rax = 0xcedead;
-      }
-      else
-      {
-        if (memorycloak)
-        {
-          //disable it, safely, take care of multiple cpu's
-
-          break; //todo: Add disable memorycloak
-        }
-
-        memorycloak = !memorycloak;
-        vmregisters->rax = memorycloak; //note that memorycloak will be activated after a CR3 change (taskswitch)
-      }
+      vmregisters->rax = 0xcedead; //not implemented
       break;
 
     case VMCALL_READ_PHYSICAL_MEMORY: //read physical memory
@@ -515,29 +409,34 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       //map physical memory
       sendstringf("Reading physical address %6 and writing it to %6\n\r",PhysicalAddressToReadFrom, VirtualAddressToWriteTo);
       sendstringf("noPageFault=%d\n\r",noPageFault);
-      Source=(unsigned char *)MapPhysicalMemory(PhysicalAddressToReadFrom, currentcpuinfo->AvailableVirtualAddress);
+      Source=(unsigned char *)mapPhysicalMemory(PhysicalAddressToReadFrom, size);
 
       //map vm memory
-      Destination=(unsigned char *)mapVMmemory(currentcpuinfo, VirtualAddressToWriteTo, size, currentcpuinfo->AvailableVirtualAddress+0x00400000, &error, &pagefaultaddress);
+      Destination=(unsigned char *)mapVMmemory(currentcpuinfo, VirtualAddressToWriteTo, size, &error, &pagefaultaddress);
       if (error)
       {
-    	  sendstringf("An error occurred while mapping %6 and size %d\n\r",VirtualAddressToWriteTo, size);
+        sendstringf("An error occurred while mapping %6 and size %d\n\r",VirtualAddressToWriteTo, size);
 
         if (error==2)
         {
           if (noPageFault)
             size=pagefaultaddress-VirtualAddressToWriteTo;
           else
+          {
+            unmapPhysicalMemory(Source, size);
             return raisePagefault(currentcpuinfo, pagefaultaddress); //raise pagefault
+          }
         }
         else
           size=0;
-
       }
 
       //copy memory from physical to vm
       copymem(Destination, Source, size);
       vmregisters->rax = size;
+
+      unmapVMmemory(Destination, size);
+      unmapPhysicalMemory(Source, size);
 
       break;
     }
@@ -552,10 +451,10 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       unsigned char *Source;
 
       //map physical memory
-      Destination=(unsigned char *)MapPhysicalMemory(PhysicalAddressToWriteTo, currentcpuinfo->AvailableVirtualAddress);
+      Destination=(unsigned char *)mapPhysicalMemory(PhysicalAddressToWriteTo, size);
 
       //map vm memory
-      Source=(unsigned char *)mapVMmemory(currentcpuinfo, VirtualAddressToReadFrom, size, currentcpuinfo->AvailableVirtualAddress+0x00400000, &error, &pagefaultaddress);
+      Source=(unsigned char *)mapVMmemory(currentcpuinfo, VirtualAddressToReadFrom, size, &error, &pagefaultaddress);
       if (error)
       {
         if (error==2)
@@ -563,7 +462,10 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
           if (noPageFault)
             size=pagefaultaddress-VirtualAddressToReadFrom;
           else
+          {
+            unmapPhysicalMemory(Destination, size);
             return raisePagefault(currentcpuinfo, pagefaultaddress); //raise pagefault
+          }
         }
         else
           size=0;
@@ -573,6 +475,8 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       copymem(Destination, Source, size);
       vmregisters->rax = size;
 
+      unmapPhysicalMemory(Destination, size);
+      unmapVMmemory(Source, size);
       break;
     }
 
@@ -602,6 +506,7 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case 6: //get real sysenter msr (not the guest's state, but what the user wants it to be, to get the guest's one use rdmsr)
     {
+      //obsolete, for 32-bit OS only. todo: 64-bit ones
       ULONG *sysenter_CS;
       ULONG *sysenter_ESP;
       ULONG *sysenter_EIP;
@@ -614,24 +519,38 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
 
       if (currentcpuinfo->hidden_sysenter_modification==0)
+      {
         return raiseInvalidOpcodeException(currentcpuinfo);
+      }
 
-      sysenter_CS=(ULONG *)mapVMmemory(currentcpuinfo, vmcall_instruction[3], 4, currentcpuinfo->AvailableVirtualAddress+0x00400000, &error, &pagefaultaddress);
+      sysenter_CS=(ULONG *)mapVMmemory(currentcpuinfo, vmcall_instruction[3], 4, &error, &pagefaultaddress);
       if (error==2)
         return raisePagefault(currentcpuinfo, pagefaultaddress); //raise pagefault
 
-      sysenter_EIP=(ULONG *)mapVMmemory(currentcpuinfo, vmcall_instruction[4], 4, currentcpuinfo->AvailableVirtualAddress+0x00600000, &error, &pagefaultaddress);
+      sysenter_EIP=(ULONG *)mapVMmemory(currentcpuinfo, vmcall_instruction[4], 4, &error, &pagefaultaddress);
       if (error==2)
+      {
+        unmapVMmemory(sysenter_CS,4);
         return raisePagefault(currentcpuinfo, pagefaultaddress); //raise pagefault
+      }
 
-      sysenter_ESP=(ULONG *)mapVMmemory(currentcpuinfo, vmcall_instruction[5], 4, currentcpuinfo->AvailableVirtualAddress+0x00800000, &error, &pagefaultaddress);
+      sysenter_ESP=(ULONG *)mapVMmemory(currentcpuinfo, vmcall_instruction[5], 4, &error, &pagefaultaddress);
       if (error==2)
+      {
+        unmapVMmemory(sysenter_CS,4);
+        unmapVMmemory(sysenter_EIP,4);
         return raisePagefault(currentcpuinfo, pagefaultaddress); //raise pagefault
+      }
 
       //still here, so all memory is paged in.
       *sysenter_CS=currentcpuinfo->actual_sysenter_CS;
       *sysenter_ESP=currentcpuinfo->actual_sysenter_ESP;
       *sysenter_EIP=currentcpuinfo->actual_sysenter_EIP;
+
+      unmapVMmemory(sysenter_CS,4);
+      unmapVMmemory(sysenter_EIP,4);
+      unmapVMmemory(sysenter_ESP,4);
+
 
       vmregisters->rax = 0;
       break;
@@ -1039,7 +958,7 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
 
 #ifdef ULTIMAPDEBUG
-      PULTIMAPDEBUGINFO Output=&vmcall_instruction[3];
+      PULTIMAPDEBUGINFO Output=(PULTIMAPDEBUGINFO)&vmcall_instruction[3];
 
       ultimap_debugoutput(currentcpuinfo, Output);
 #endif
@@ -1116,8 +1035,18 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
         vmregisters->rax = 0xcedead;
         break;
       }
-    	//PSOD("VMCALL_ULTIMAP_PSODTEST");
-    	break;
+      //PSOD("VMCALL_ULTIMAP_PSODTEST");
+      break;
+    }
+
+    case VMCALL_GETMEM:
+    {
+      QWORD fullpages;
+      QWORD freemem;
+      fullpages=getTotalFreeMemory(&fullpages);
+      vmregisters->rax=freemem;
+      vmregisters->rdx=fullpages;
+      break;
     }
 
 
@@ -1142,6 +1071,146 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   }
 
   return 0;
+}
+
+int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
+/*
+ * vmcall:
+ * eax=pointer to information structure
+ * edx=level1pass (if false, not even a pagefault is raised)
+ *
+ * vmcall_instruction:
+ * ULONG structsize
+ * ULONG level2pass;
+ * ULONG command
+ * ... Extra data depending on command, see doc, "vmcall commands"
+ *
+ */
+{
+
+  int error;
+  UINT64 pagefaultaddress;
+  ULONG *vmcall_instruction;
+
+#ifdef DEBUG
+  //enableserial();
+#endif
+
+
+  nosendchar[getAPICID()]=1;
+  if (realmode_inthook_calladdressPA) //realmode hook present
+  {
+    //get the physical address of RIP
+    sendstring("Realmode hook VMCALL present. Checking of RIP physical matches\n");
+    int notpaged;
+    QWORD RIP_PA=getPhysicalAddressVM(currentcpuinfo, vmread(vm_guest_cs_base)+vmread(vm_guest_rip), &notpaged);
+    if (RIP_PA==realmode_inthook_calladdressPA)
+    {
+      sendstringf("Match confirmed\n");
+      int r=handleRealModeInt0x15(currentcpuinfo, vmregisters, vmread(vm_exit_instructionlength));
+
+      sendstringf("handleRealModeInt0x15 returned %d (should be 0)\n",r);
+      if (r)
+      {
+        while (1);
+      }
+      return 0;
+    }
+  }
+
+  nosendchar[getAPICID()]=0;
+  sendstringf("Handling vm(m)call on cpunr:%d \n\r", currentcpuinfo->cpunr);
+
+  if (isAMD)
+    vmregisters->rax=currentcpuinfo->vmcb->RAX; //fill it in, it may get used here
+
+
+  //check password, if false, raise unknown opcode exception
+  if ((ULONG)vmregisters->rdx != Password1)
+  {
+    int x;
+    sendstringf("Invalid Password1. Given=%8 should be %8\n\r",(ULONG)vmregisters->rdx, Password1);
+    x = raiseInvalidOpcodeException(currentcpuinfo);
+    sendstringf("return = %d\n\r",x);
+    return x;
+  }
+
+  sendstringf("Password1 is valid\n\r");
+
+
+  sendstringf("vmregisters->rax=%8\n\r", vmregisters->rax);
+
+  //still here, so password1 is valid
+  //map the memory of the information structure
+
+
+  vmcall_instruction=(ULONG *)mapVMmemory(currentcpuinfo, vmregisters->rax, 12, &error, &pagefaultaddress);
+
+  if (error)
+  {
+    sendstringf("1: Error. error=%d pagefaultaddress=%8\n\r",error,pagefaultaddress);
+
+    unmapVMmemory(vmcall_instruction,12);
+
+    if (error==2) //caused by pagefault, raise pagefault
+      return raisePagefault(currentcpuinfo, pagefaultaddress);
+
+    return raiseInvalidOpcodeException(currentcpuinfo);
+  }
+
+  sendstringf("Mapped vmcall instruction structure (vmcall_instruction=%x)\n\r",(UINT64)vmcall_instruction);
+  sendstringf("vmcall_instruction[0]=%x\n\r",vmcall_instruction[0]);
+  sendstringf("vmcall_instruction[1]=%x\n\r",vmcall_instruction[1]);
+  sendstringf("vmcall_instruction[2]=%x\n\r",vmcall_instruction[2]);
+
+
+
+  if ((vmcall_instruction[0]<12) || (vmcall_instruction[1]!=Password2))
+  {
+    sendstringf("Invalid password2 or structuresize. Given=%8 should be %8\n\r",vmcall_instruction[1], Password2);
+    unmapVMmemory(vmcall_instruction,12);
+    return raiseInvalidOpcodeException(currentcpuinfo);
+  }
+
+
+  int vmcall_instruction_size=vmcall_instruction[0];
+
+  //still here, so password valid and data structure paged in memory
+  if (vmcall_instruction[0]>12) //remap to take the extra parameters into account
+  {
+//    sendstringf("Remapping to support size: %8\n\r",vmcall_instruction[0]);
+    unmapVMmemory(vmcall_instruction, vmcall_instruction_size);
+    vmcall_instruction=(ULONG *)mapVMmemory(currentcpuinfo, vmregisters->rax, vmcall_instruction[0], &error, &pagefaultaddress);
+  }
+
+#ifdef DEBUG
+  int totaldwords = vmcall_instruction[0] / 4;
+  int i;
+  for (i=3; i<totaldwords; i++)
+  {
+    sendstringf("vmcall_instruction[%d]=%x\n\r",i, vmcall_instruction[i]);
+  }
+#endif
+
+
+  if (error)
+  {
+    sendstringf("2: Error. error=%d pagefaultaddress=%8\n\r",error,pagefaultaddress);
+
+    unmapVMmemory(vmcall_instruction, vmcall_instruction_size);
+
+    if (error==2) //caused by pagefault, raise pagefault
+      return raisePagefault(currentcpuinfo, pagefaultaddress);
+
+    return raiseInvalidOpcodeException(currentcpuinfo);
+  }
+
+
+  sendstringf("Handling vmcall command %d\n\r",vmcall_instruction[2]);
+
+  int r=_handleVMCallInstruction(currentcpuinfo, vmregisters, vmcall_instruction);
+  unmapVMmemory(vmcall_instruction, vmcall_instruction_size);
+  return r;
 }
 
 //serialize these calls in case one makes an internal change that affects global (e.g alloc)

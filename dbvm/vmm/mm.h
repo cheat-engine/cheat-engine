@@ -1,22 +1,63 @@
 #ifndef MM_H_
 #define MM_H_
 
+
+#include <stddef.h>
+
 #include "vmmhelper.h"
 #include "common.h"
 
+typedef struct
+{
+  //UINT64 PA; //Physical address
+  //Virtual address is known by the index in the array
+  UINT64 BitMask;
+} PageAllocationInfo, *PPageAllocationInfo;
+
+extern QWORD FirstFreeAddress;
+extern QWORD extramemory;
+extern QWORD extramemorysize;
+
+extern unsigned char MAXPHYADDR;
+extern QWORD MAXPHYADDRMASK;
+extern QWORD MAXPHYADDRMASKPB;
 
 
-void InitializeMM(UINT64 BaseVirtualAddress);
-UINT64 MapPhysicalMemory(UINT64 address, UINT64 VirtualAddress);
-UINT64 MapPhysicalMemoryEx(UINT64 address, UINT64 VirtualAddress, int writable);
+void InitializeMM(UINT64 FirstFreeVirtualAddress);
+QWORD getTotalFreeMemory(QWORD *FullPages);
 
+void configureMapping(pcpuinfo cpuinfo);
 
-void *malloc(unsigned int size);
+void* getMappedMemoryBase();
+
+PPTE_PAE mapAddressAtPML4(QWORD address);
+void unmapAddressAtPML4(PPTE_PAE base);
+
+int mmFindMapPositionForSize(pcpuinfo cpuinfo, int size);
+
+void unmapPhysicalMemory(void *virtualaddress, int size);
+void* mapPhysicalMemory(QWORD PhysicalAddress, int size);
+
+void VirtualAddressToIndexes(QWORD address, int *pml4index, int *pagedirptrindex, int *pagedirindex, int *pagetableindex);
+
+void *malloc(size_t size);
+void *malloc2(unsigned int size);
 void free(void* pointer);
+void free2(void* pointer, unsigned int size);
+void *realloc(void *old, size_t size);
+void *realloc2(void *oldaddress, unsigned int oldsize, unsigned int newsize);
+
 unsigned int maxAllocatableMemory(void);
 void printMMregions();
-UINT64 VirtualToPhysical(UINT64 address);
-void SetPageToWriteThrough(UINT64 address);
+UINT64 VirtualToPhysical(void *address);
+void SetPageToWriteThrough(void *address);
+PPDE_PAE getPageTableEntryForAddress(void *address);
+
+void markPageAsNotReadable(void *address);
+void markPageAsReadOnly(void *address);
+void markPageAsWritable(void *address);
+
+void VirtualAddressToPageEntries(QWORD address, PPDPTE_PAE *pml4entry, PPDPTE_PAE *pagedirpointerentry, PPDE_PAE *pagedirentry, PPTE_PAE *pagetableentry);
 
 
 #endif //MM_H_

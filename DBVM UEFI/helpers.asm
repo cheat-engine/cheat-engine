@@ -218,6 +218,25 @@ getR15:
   mov rax,r15
   ret
 
+GLOBAL getAccessRights
+getAccessRights:
+  xor rax,rax
+  lar rax,rdi
+  jnz getAccessRights_invalid
+  shr rax,8
+  and rax,0f0ffh
+  ret
+  getAccessRights_invalid:
+  mov rax,010000h
+  ret
+
+
+GLOBAL getSegmentLimit
+getSegmentLimit:
+  xor rax,rax
+  lsl rax,rdi
+  ret
+
 
 GLOBAL disableInterrupts
 disableInterrupts:
@@ -229,5 +248,14 @@ enableInterrupts:
   sti
   ret
 
+
+GLOBAL dovmcall
+dovmcall:
+  push rdx
+  mov rax,rdi
+  mov rdx,rsi
+  vmcall
+  pop rdx
+  ret
 
 

@@ -5,18 +5,15 @@
 #include "vmreadwrite.h"
 #include "vmxcontrolstructures.h"
 
+
+extern int vmxstartup;
+extern int vmxstartup_end;
+
 extern volatile unsigned char *MSRBitmap;
 
-unsigned long long vmmstart;
-unsigned long long nextstack;
-PPDPTE_PAE pagedirlvl4;
-PPDPTE_PAE pagedirptrvirtual;
-PPDE2MB_PAE pagedirvirtual; //wrong name, should be pagedir
-PPDE2MB_PAE pagedirvirtual2;
-PPDE2MB_PAE pagedirvirtual3;
-PPDE2MB_PAE pagedirvirtual4;
-PPDE2MB_PAE pagedirvirtual5;
-
+extern unsigned long long vmmstart;
+extern volatile unsigned long long nextstack;
+extern PPDPTE_PAE pagedirlvl4;
 
 int debugmode,breakpointset;
 int globals_have_been_configured;
@@ -106,6 +103,40 @@ VMState vmstates[4];
 int vmstates_pos;
 
 #endif
+
+typedef struct _vmxhoststate //structure for easy management of hoststates
+{
+  WORD ES; //0xc00
+  WORD CS; //0xc02
+  WORD SS; //0xc04
+  WORD DS; //0xc06
+  WORD FS; //0xc08
+  WORD GS; //0xc0a
+  WORD TR; //0xc0c
+
+  QWORD IA32_PAT; //0x2C00
+  QWORD IA32_EFER; //0x2C02
+  QWORD IA32_PERF_GLOBAL_CTRL;//0x2c04
+
+  DWORD IA32_SYSENTER_CS; //0x4c00
+
+  QWORD CR0; //0x6c00
+  QWORD CR3; //0x6c02
+  QWORD CR4; //0x6c04
+
+  QWORD FS_BASE; //0x6c06
+  QWORD GS_BASE; //0x6c08
+  QWORD TR_BASE; //0x6c0a
+  QWORD GDTR_BASE; //0x6c0c ( limit will be 0xffff)
+  QWORD IDTR_BASE; //0x6c0e
+
+  QWORD IA32_SYSENTER_ESP; //0x6c10
+  QWORD IA32_SYSENTER_EIP; //0x6c12
+
+  QWORD RSP; //0x6c14
+  QWORD RIP; //0x6c16
+} vmxhoststate, *pvmxhoststate;
+
 
 typedef volatile struct _vmcb
 {
@@ -337,19 +368,25 @@ typedef volatile struct _vmcb
 
 } __attribute__((__packed__)) vmcb, *pvmcb;
 
-typedef volatile struct _cpuinfo
+
+
+typedef volatile struct tcpuinfo
 {
+  volatile struct tcpuinfo *self; //pointer to itself (must be offset 0)
+  volatile struct tcpuinfo *next; //must be offset 0x8
+  DWORD guest_error; //must be offset 0x10
+  DWORD cpunr; //must be offset 0x14
   DWORD active;
-  DWORD cpunr;
   DWORD apicid;
-  DWORD hastoterminate;
+
   DWORD hasIF;
   UINT64 guestCR0;
-  UINT64 guestCR3;
+  UINT64 guestCR3; //realmode emu
   char  isboot;
   char  command;
   char  vmxsetup;
   char  invalidcs;
+
 
   int   int1happened; //set if it has just redirected a interrupt, cleared by vmcall query command
   int   int3happened; //'  '  '
@@ -384,21 +421,14 @@ typedef volatile struct _cpuinfo
 
   void* vmxon_region;
   void* vmcs_region;
+  UINT64 vmcs_regionPA;
 
-  UINT64 virtualTLB_PA;
-  void  *virtualTLB;
-  void  *virtualTLB_FreeSpot;
-  DWORD virtualTLB_Max; //max size of the virtual TLB, when hit, flush...
-  UINT64 *virtualTLB_Lookup; //used to lookup the original physical address of a entry
-  int   virtualTLB_whiped;
-
-  unsigned char *virtualTLB_guest_PDPTR_lookup;  //memory to keep the original guest's pagedirptr addresses in. (so changes can be detected)
-  unsigned char *virtualTLB_guest_PD_lookup; //memory to keep the original guests's pagedir(s) addresses in. (so changes can be detected)
-
-  UINT64 AvailableVirtualAddress;  //used for mapping physical memory, last 4 bits define the cpunr
+  PPTE_PAE mappagetables;
 
   UINT64 Previous_Interuptability_State; //used for the block/unblock interrupts vmcall
   int    Previous_CLI;
+
+
 
   struct {
     UINT64 IDTBase;
@@ -512,11 +542,24 @@ typedef volatile struct _cpuinfo
   unsigned char LastInterruptHasErrorcode;
   WORD LastInterruptErrorcode;
 
+  int NMIOccured; //set to not 0 if an NMI triggered while inside the VMX event handler (this means that before vmresume, raise the NMI interrupt)
+
+  struct //extra data about guest state VMX features (every cpu gets their own)
+  {
+    int insideVMXRootMode;
+    QWORD guest_vmxonaddress;
+    QWORD guest_activeVMCS; //the VMCS the guest thinks it is. (usually the same with some modification)
+    //saved hoststate (used by handleByGuest)
+
+    int currenterrorcode; //if not 0, return this errorcode on vmread
+    vmxhoststate originalhoststate;
+    int runningvmx; //1 if the previous call was a vmlaunch/vmresume and no vmexit happened yet
+
+  } vmxdata;
+
+  QWORD EPTPML4;
+
 } tcpuinfo, *pcpuinfo; //allocated when the number of cpu's is known
-tcpuinfo cpuinfo[32];
-
-
-
 
 typedef struct
 {
@@ -596,6 +639,10 @@ typedef struct _regCR4
 #define CR4_PCIDE       (1<<17)
 #define CR4_OSXSAVE     (1<<18)
 
+#define CR0_PE          (1<<0)
+#define CR0_NE          (1<<5)
+#define CR0_WP          (1<<16)
+#define CR0_PG          (1<<31)
 
 
 typedef struct _regDR6
@@ -679,7 +726,7 @@ void CheckGuest(void);
 void displayVMmemory(pcpuinfo currentcpuinfo);
 void displayPhysicalMemory();
 void setupTSS8086(void);
-void setupVMX(pcpuinfo currentcpuinfo);
+
 void launchVMX(pcpuinfo currentcpuinfo);
 int vmexit(tcpuinfo *cpu, UINT64 *registers);
 int vmexit_amd(pcpuinfo currentcpuinfo, UINT64 *registers);
@@ -697,5 +744,12 @@ int isDebugFault(QWORD dr6, QWORD dr7);
 int ISREALMODE(pcpuinfo currentcpuinfo);
 int IS64BITPAGING(pcpuinfo currentcpuinfo);
 int IS64BITCODE(pcpuinfo currentcpuinfo);
+int ISPAGING(pcpuinfo currentcpuinfo);
+
+extern volatile DWORD vmmentrycount;
+extern volatile DWORD initcs;
+
+int APStartsInSIPI;
+extern pcpuinfo getcpuinfo();
 
 #endif /*VMMHELPER_H_*/

@@ -1,11 +1,12 @@
 ASM = yasm
 LD = ld
 CC = gcc
-AFLAGS = -f elf64 -DSERIALPORT=${SERIALPORT}
-CFLAGS = -O0 -W -Wall -DSERIALPORT=${SERIALPORT} -DSUPPORT_64BIT_OFFSET -DDARKBYTESFUCKEDUPCROSSCOMPILER -fno-builtin-strlen -fno-builtin-strcat -fno-builtin-strcpy -fno-builtin-malloc -fno-builtin-memcpy -fno-builtin-snprintf -fno-builtin-memset -fno-stack-protector -g
-LDFLAGS = -T vmm.lnk -Map vmm.map
+AFLAGS = -gDWARF2 -f elf64 -DSERIALPORT=${SERIALPORT} #-DJTAG
+CFLAGS = -O0 -W -Wall -DSERIALPORT=${SERIALPORT} -DSUPPORT_64BIT_OFFSET -DDARKBYTESFUCKEDUPCROSSCOMPILER -fno-builtin-floor -fno-builtin-ceil -fno-builtin-strspn -fno-builtin-memcpy -fno-builtin-strcpy -fno-builtin-strlen -fno-builtin-strcat -fno-builtin-malloc -fno-builtin-snprintf -fno-builtin-memset -fno-stack-protector  -g
+LDFLAGS = -static -T vmm.lnk -Map vmm.map 
 LDFLAGS2 = -Map vmm.map
 C2FLAGS = -Wconversion
+#
 
 all:
 	@${ASM} ${AFLAGS} vmma.asm -o vmma.o 
@@ -33,11 +34,13 @@ all:
 	@${CC} ${CFLAGS} ultimap.c -c -o ultimap.o
 	@${CC} ${CFLAGS} test.c -c -o test.o
 	@${CC} ${CFLAGS} vmeventhandler_amd.c -c -o vmeventhandler_amd.o
+	@${CC} ${CFLAGS} vmxemu.c -c -o vmxemu.o
+	@${CC} ${CFLAGS} vmxsetup.c -c -o vmxsetup.o
+	@${CC} ${CFLAGS} epthandler.c -c -o epthandler.o	
 
 	@make -C distorm64 all
 	
-	@${LD} ${LDFLAGS} vmma.o main.o neward.o common.o commona.o apica.o vmmhelper.o multicore.o mm.o vmpaging.o vmevent_invalidstate.o vmeventhandler.o realmodeemu.o pmodeemu.o vmcall.o keyboard.o osspecific.o offloados.o ultimap.o pci.o apic.o test.o testa.o vmeventhandler_amd.o ./distorm64/wstring.o ./distorm64/x86defs.o ./distorm64/textdefs.o ./distorm64/insts.o ./distorm64/prefix.o ./distorm64/instructions.o ./distorm64/decoder.o ./distorm64/operands.o ./distorm64/distorm.o -o ../vmm.elf -Map ../vmm.map
-#	@${LD} ${LDFLAGS2} vmma.o main.o neward.o common.o commona.o apica.o vmmhelper.o multicore.o mm.o vmpaging.o vmevent_invalidstate.o vmeventhandler.o realmodeemu.o pmodeemu.o vmcall.o keyboard.o osspecific.o offloados.o ultimap.o pci.o apic.o test.o testa.o vmeventhandler_amd.o ./distorm64/wstring.o ./distorm64/x86defs.o ./distorm64/textdefs.o ./distorm64/insts.o ./distorm64/prefix.o ./distorm64/instructions.o ./distorm64/decoder.o ./distorm64/operands.o ./distorm64/distorm.o -o ../vmm.elf -Map ../vmm.map
+	@${LD} ${LDFLAGS} vmma.o main.o neward.o common.o commona.o apica.o vmmhelper.o multicore.o mm.o vmpaging.o vmevent_invalidstate.o vmeventhandler.o realmodeemu.o pmodeemu.o vmcall.o keyboard.o osspecific.o offloados.o ultimap.o pci.o apic.o test.o testa.o vmeventhandler_amd.o vmxemu.o vmxsetup.o epthandler.o ./distorm64/wstring.o ./distorm64/x86defs.o ./distorm64/textdefs.o ./distorm64/insts.o ./distorm64/prefix.o ./distorm64/instructions.o ./distorm64/decoder.o ./distorm64/operands.o ./distorm64/distorm.o -o ../vmm.elf -Map ../vmm.map
 	@objcopy -O binary ../vmm.elf ../vmm.bin
 	@echo "vmm done"
 	

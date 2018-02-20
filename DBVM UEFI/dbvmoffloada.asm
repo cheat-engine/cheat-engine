@@ -68,6 +68,31 @@ EXTERN originalstate
 EXTERN vmmPA
 EXTERN InitStackPA
 
+GLOBAL doSystemTest
+doSystemTest:
+  mov rax,0x402
+  mov dr7,rax
+  mov rax,dr7
+  cmp rax,0x402
+  je pass1
+
+  ;fail test1
+  mov rax,1
+  ret
+
+pass1:
+  cpuid
+  mov rax,dr7
+  cmp rax,0x402
+  je pass2
+
+  ;fail test 2
+  mov rax,2
+  ret
+
+pass2:
+  xor rax,rax
+  ret
 
 GLOBAL enterVMM
 enterVMM:

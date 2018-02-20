@@ -16,7 +16,6 @@
 
 int emulateProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 {
-  QWORD address;
   int result=0; //not emulated yet
 
   if (currentcpuinfo==NULL)
@@ -25,7 +24,7 @@ int emulateProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   if (vmregisters==NULL)
     return 0;
 
-  address=(vmread(vm_guest_cs_base))+vmread(vm_guest_rip);
+  //address=(vmread(vm_guest_cs_base))+vmread(vm_guest_rip);
 
   //to emulate:
   //20262: xchg bx,bx

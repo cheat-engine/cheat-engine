@@ -10,6 +10,7 @@
 
 volatile unsigned int cpucount;
 
+
 typedef struct _MPFPS
 {
         DWORD signature; // 0x5f504d5f : '_MP_'
@@ -74,7 +75,7 @@ typedef struct _RSDT
         char Creator_ID[4];
         DWORD Creator_revision;
         DWORD Entries[];
-} __attribute__((__packed__)) *PRSDT;
+} __attribute__((__packed__)) RSDT, *PRSDT;
 
 typedef struct _APICDT
 {
@@ -90,17 +91,19 @@ typedef struct _APICDT
         DWORD LocalAPIC;
         DWORD flags;
         BYTE APICStructure[];
-} __attribute__((__packed__)) *PAPICDT;
+} __attribute__((__packed__)) APICDT, *PAPICDT;
 
 int checkcrc(UINT64 PhysicalAddress, int size)
 {
   //everything counted up must be 0 as 1 byte
-  unsigned char *x=(unsigned char *)MapPhysicalMemory(PhysicalAddress, 0x08000000);
+  unsigned char *x=(unsigned char *)mapPhysicalMemory(PhysicalAddress, size);
   unsigned char total=0;
   int i;
 
   for (i=0; i<size; i++)
     total=total+x[i];
+
+  unmapPhysicalMemory(x, size);
 
   return (total==0);
 
@@ -154,12 +157,14 @@ void *find_MP_inrange(BYTE *address,int size)
 	return NULL;
 }
 
-unsigned int initAPcpus(void)
+unsigned int initAPcpus(DWORD entrypage)
 {
 	int found=0;
 	int hasHT;
 
 	int isAMD;
+
+	copymem((void *)(QWORD)entrypage, APbootcode, (QWORD)APbootcodeEnd-(QWORD)APbootcode);
 
 	{
 	  UINT64 a,b,c,d;
@@ -202,104 +207,142 @@ unsigned int initAPcpus(void)
 
 	if (rsd_ptr)
 	{
-	  PRSDT rsdt;
+	  PRSDT rsdt=NULL;
+
 	  displayline("RSDP is located at %x\n",rsd_ptr->rsdtaddress);
 
-	  rsdt=(PRSDT)MapPhysicalMemory(rsd_ptr->rsdtaddress,0x08000000);
-	  if (checkcrc(rsd_ptr->rsdtaddress, rsdt->length))
+	  rsdt=(PRSDT)mapPhysicalMemory(rsd_ptr->rsdtaddress,sizeof(RSDT));
+
+	  if (rsdt->signature==0x54445352)
 	  {
-	    if (rsdt->signature==0x54445352)
-	    {
-	      int i;
-	      int entrycount=(rsdt->length-36)/4;
-	      displayline("Entrycount=%d\n",entrycount);
 
-	      for (i=0; i<entrycount; i++)
-	      {
-	        PAPICDT apicdt;
-	        displayline("Entry %d: %x\n",i,rsdt->Entries[i]);
+	    DWORD rsdtlength;
 
-	        apicdt=(PAPICDT)MapPhysicalMemory(rsdt->Entries[i],0x0a000000);
-	        if (apicdt->signature==0x43495041)
-	        {
-	          int j=0;
-	          int APICStructure_size=apicdt->length-44;
-	          displayline("This one holds APIC info\n");
+	    //remap with the actual length
+	    rsdtlength=rsdt->length;
+	    unmapPhysicalMemory(rsdt,sizeof(RSDT));
 
-	          while (j<APICStructure_size)
-	          {
-	            //parse the structures
-	            switch (apicdt->APICStructure[j])
-	            {
-	              case 0:
-	              {
-	                //Processor Local APIC structure (only one i'm interested in)
-	                displayline("Processor Local APIC structure\n");
-	                found++;
+	    rsdt=(PRSDT)mapPhysicalMemory(rsd_ptr->rsdtaddress,rsdtlength);
 
-	                if (found==2) //multi or threaded, launch them
-	                    initcpus(apicdt->LocalAPIC);
+      if (checkcrc(rsd_ptr->rsdtaddress, rsdt->length))
+      {
 
+        {
+          int i;
+          int entrycount=(rsdt->length-36)/4;
+          displayline("Entrycount=%d\n",entrycount);
 
-	                break;
-	              }
+          for (i=0; i<entrycount; i++)
+          {
+            PAPICDT apicdt=NULL;
+            displayline("Entry %d: %x\n",i,rsdt->Entries[i]);
 
-	              case 1:
-	              {
-	                //IO APIC structure
-	                displayline("IO APIC structure\n");
+            apicdt=(PAPICDT)mapPhysicalMemory(rsdt->Entries[i],sizeof(APICDT));
 
-	                break;
-	              }
+            if (apicdt->signature==0x43495041)
+            {
+              int j=0;
+              int APICStructure_size=apicdt->length-44;
+              displayline("This one holds APIC info\n");
 
-	              case 2:
-	              {
-	                displayline("Interrupt Source Override\n");
+              //remap
+              DWORD apicdtlength=apicdt->length;
+              unmapPhysicalMemory(apicdt, sizeof(APICDT));
+              apicdt=(PAPICDT)mapPhysicalMemory(rsdt->Entries[i],apicdtlength);
 
-	                break;
-	              }
+              while (j<APICStructure_size)
+              {
+                //parse the structures
+                switch (apicdt->APICStructure[j])
+                {
+                  case 0:
+                  {
+                    //Processor Local APIC structure (only one i'm interested in)
+                    displayline("Processor Local APIC structure\n");
+                    found++;
 
-	              case 3:
-	              {
-	                displayline("Non-maskable Interrupt Source\n");
+                    if (found==2) //multi or threaded, launch them
+                    {
+                      void *LAPIC=mapPhysicalMemory(apicdt->LocalAPIC, 4096);
+                      SetPageToWriteThrough(LAPIC);
+                      initcpus((QWORD)LAPIC, entrypage);
 
-	                break;
-	              }
-
-	              case 4:
-	              {
-	                displayline("Local APIC NMI Structure\n");
-	                break;
-	              }
-
-	              default:
-	              {
-	                displayline("Unknown Structure\n");
-	                break;
-	              }
-
-	            }
-
-	            j+=apicdt->APICStructure[j+1]; //Length
-
-	          }
+                      unmapPhysicalMemory(LAPIC, 4096);
+                    }
 
 
-	        }
+                    break;
+                  }
+
+                  case 1:
+                  {
+                    //IO APIC structure
+                    displayline("IO APIC structure\n");
+
+                    break;
+                  }
+
+                  case 2:
+                  {
+                    displayline("Interrupt Source Override\n");
+
+                    break;
+                  }
+
+                  case 3:
+                  {
+                    displayline("Non-maskable Interrupt Source\n");
+
+                    break;
+                  }
+
+                  case 4:
+                  {
+                    displayline("Local APIC NMI Structure\n");
+                    break;
+                  }
+
+                  default:
+                  {
+                    displayline("Unknown Structure\n");
+                    break;
+                  }
+
+                }
+
+                j+=apicdt->APICStructure[j+1]; //Length
+
+              }
 
 
+              if (apicdt)
+              {
+                unmapPhysicalMemory(apicdt, apicdtlength);
+                apicdt=NULL;
+              }
+            }
+            if (apicdt)
+            {
+              unmapPhysicalMemory(apicdt, sizeof(APICDT));
+              apicdt=NULL;
+            }
+          }
+        }
+      }
+      else
+        displayline("rsdt is invalid\n");
 
-	      }
-
-
-	    }
-	    else displayline("Unexpected signature for rsdt (%x)\n",rsdt->signature);
-
+      if (rsdt)
+      {
+        unmapPhysicalMemory(rsdt,rsdtlength);
+        rsdt=NULL;
+      }
+    }
+	  if (rsdt)
+	  {
+	    unmapPhysicalMemory(rsdt,sizeof(RSDT));
+	    rsdt=NULL;
 	  }
-	  else
-	    displayline("rsdt is invalid\n");
-
-
 	}
 	else
 	  displayline("No RSD_PTR found\n");
@@ -445,8 +488,28 @@ unsigned int initAPcpus(void)
 		  i++;
 		}
 	  displayline("before initcpus. found=%d\n\r", found);
+
 	  if (found>1)
-	    initcpus(mpc->AddressofLocalAPIC);
+	  {
+      void *LAPIC=mapPhysicalMemory(mpc->AddressofLocalAPIC, 4096);
+
+      SetPageToWriteThrough(LAPIC);
+      asm volatile ("": : :"memory");
+      initcpus((QWORD)LAPIC, entrypage);
+
+      asm volatile ("": : :"memory");
+
+	    unmapPhysicalMemory(LAPIC, 4096);
+/*
+      int i;
+	    while (1)
+	    {
+	      i++;
+	      if (i%29==0)
+	        sendstringf("i=%d\n",i);
+
+	    }*/
+	  }
 
 
 

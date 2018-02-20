@@ -7,6 +7,24 @@ BITS 64
 ;4=rcx
 
 extern loadedOS
+extern textmemory
+;
+;getcpunr
+;
+global getcpunr
+getcpunr:
+mov eax, dword [fs:0x14]
+ret
+
+
+;
+;getcpuinfo
+;e
+global getcpuinfo
+getcpuinfo:
+mov rax, qword [fs:0]
+ret
+
 ;
 ;
 ;
@@ -14,7 +32,7 @@ global clearScreen
 clearScreen:
 cmp qword [loadedOS],0
 jne clearScreenExit
-mov rdi,0xb8000
+mov rdi,[textmemory]
 mov rax,0x0f200f200f200f20
 mov rcx,2*80*25 / 8
 rep stosq
@@ -72,6 +90,18 @@ ret
 ;---------------------------;
 global spinlock
 spinlock:
+lock bts dword [rdi],0 ;put the value of bit nr 0 into CF, and then set it to 1
+jc spinlock_wait
+ret
+
+spinlock_wait:
+pause
+cmp dword [rdi],0
+je spinlock
+jmp spinlock_wait
+
+;old implementation
+spinlock_old:
 
 ;rdi contains the address of the lock
 
@@ -104,7 +134,7 @@ global enableserial
 enableserial:
 %ifdef SERIALPORT
 %if SERIALPORT != 0
-pushaq
+push rdx
 pushfq
 mov dx,SERIALPORT+1 ;3f9h
 mov al,0h
@@ -126,8 +156,21 @@ mov dx,SERIALPORT+3 ;3fbh
 mov al,3h
 out dx,al ;8 bits, no parity, one stop
 popfq
-popaq
+pop rdx
 %endif
 %endif
 ret
+
+
+
+global debugbreak
+debugbreak:
+db 0xcc
+ret
+
+global popcnt_support
+popcnt_support:
+popcnt rax,rdi
+ret
+
 

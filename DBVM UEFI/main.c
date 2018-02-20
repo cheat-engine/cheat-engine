@@ -138,7 +138,7 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
   Print(L"efi_main at %lx\n",(UINT64)efi_main);
 
   //s=SystemTable->BootServices->AllocatePages(AllocateAnyPages, EfiLoaderData, 4, &pa);
-  s=AllocatePages(AllocateAnyPages,EfiRuntimeServicesCode,16384,&dbvmimage); //64MB
+  s=AllocatePages(AllocateAnyPages,EfiRuntimeServicesCode,1024,&dbvmimage); //4MB
 
   if (s!=EFI_SUCCESS)
   {
@@ -148,7 +148,7 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 
   Print(L"dbvm image space allocated at s=%x\n",s);
 
-  ZeroMem(dbvmimage, 16384*4096);
+  ZeroMem((void *)dbvmimage, 1024*4096);
 
 
 /*
@@ -206,7 +206,7 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
     }
     Print(L"startsector=%d\n",startsector);
 
-    size=16384*4096;
+    size=1024*4096;
 
     s=ReadSimpleReadFile(srh,startsector*512,&size,(void *)dbvmimage);
     Print(L"ReadSimpleReadFile: s=%d size=%d\n",s,size);
@@ -240,40 +240,7 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 
 
   #define DB_SETUP_GUID { 0xEC87D643, 0xEBA4, 0x4BB5, {0xa1, 0xe5, 0x3f, 0x3e, 0x36, 0xb2, 0x0d, 0xa9} }
-//EC87D643-EBA4-4BB5-A1E5-3F3E36B20DA9
- // EFI_GUID dbsetupguid=DB_SETUP_GUID;
- // UINTN Size=0;
-  //UINT8 *Setup;
- // UINT32 attrib=0;
 
-  //s=GetVariable(L"Setup",&dbsetupguid, NULL, &Size, NULL);
-  //Print(L"GetVariable1 s=%x  -  (Size=%d)\n",s, Size);
-
-
-  //Setup=AllocatePool(Size+64);
- // Setup[905]=123;
-
-  //s=GetVariable(L"Setup",&dbsetupguid, &attrib, &Size, Setup);
-  //Print(L"GetVariable2 s=%x  -  (Size=%d attrib=%x)\n",s, Size, attrib);
-
-  //Print(L"Debug interface (0x5da)=%x\n",(int)Setup[0x5da]);
-  //Print(L"Direct Connect Interface (0x5dc)=%x\n",(int)Setup[0x5dc]);
-  //Print(L"Debug Interface Lock   (0x5db)=%x\n",(int)Setup[0x5dc]);
-
-  //Print(L"DCI Enable (0x905)=%x\n",(int)Setup[0x905]);
-
-
-  //FreePool(Setup);
-
- // Size=0;
-  //s=GetVariable(L"SetupCpuFeatures",&dbsetupguid, NULL, &Size, NULL);
- // Print(L"GetVariable2 s=%x\n (Size=%d)\n",s, Size);
-
-  //Size=0x27;
-  //Setup=AllocatePool(Size);
-  //SetMem(Setup,Size,1);
-  //s=SetVariable(L"SetupCpuFeatures",&dbsetupguid, attrib, Size, Setup);
-  //Print(L"SetVariable s=%x\n (Size=%d attrib=%x)\n",s, Size, attrib);
 
   Print(L"Reading msr 0x10:\n");
   s=readMSR(0x10);
@@ -300,11 +267,17 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
     Print(L"Image base: 0x%lx\n", loaded_image->ImageBase);
   }
 
+  //get the memory map
+
+ // asm volatile (".byte 0xf1");
+
+
+
 
   Input(L"Type something : ", something, 200);
   Print(L"\n");
 
-  if (StrnCmp(something,L"1",2)==0)
+  if (StrnCmp(something,L"Q",2)!=0)
   {
     Print(L"launching DBVM\n");
     LaunchDBVM();

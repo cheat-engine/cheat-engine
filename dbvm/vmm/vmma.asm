@@ -14,7 +14,7 @@ extern clearScreen
 
 GLOBAL amain
 GLOBAL vmmstart
-GLOBAL pagedirptrvirtual
+GLOBAL pagedirlvl4
 GLOBAL isAP
 GLOBAL loadedOS
 GLOBAL bootdisk
@@ -22,6 +22,8 @@ GLOBAL nakedcall
 GLOBAL nextstack
 GLOBAL _vmread
 GLOBAL _vmwrite
+GLOBAL _vmread2
+GLOBAL _vmwrite2
 
 GLOBAL _vmclear
 GLOBAL _vmptrld
@@ -37,6 +39,11 @@ GLOBAL getIDTsize
 GLOBAL setGDT
 GLOBAL setIDT
 
+GLOBAL vmmentrycount
+GLOBAL initcs
+
+GLOBAL extramemory
+GLOBAL extramemorysize
 
 %define VMCALL db 0x0f, 0x01, 0xc1 ;vmcall
 
@@ -53,39 +60,73 @@ times 16-($-$$) db 0x90 ;pad with nop's till a nice 16-byte alignment
 
 loadedOS:           dq 0 ;physical address of the loadedOS section
 vmmstart:           dq 0 ;physical address of virtual address 00400000 (obsoletish...)
-pagedirptrvirtual:  dq 0 ;virtual address of the pagedirptr (00400000+VMMSIZE+8192)
+pagedirlvl4:        dq 0 ;virtual address of the pml4 page (the memory after this page is free)
+nextstack:          dq 0 ;start of stack for the next cpu
+extramemory:        dq 0 ;physical address of a contiguous block of physical memory available to DBVM
+extramemorysize:    dq 0 ;number of pages in extramemory
+;uefibooted:         dq 0 ;if set it means this has to launch the AP cpu's as well
 
+initcs: dd 0 ;critical section to block entering cpus.  Each CPU sets up the stack for the next CPU (so there will always be one too many)
+vmmentrycount: dd 0  ;The number of times 0x00400000 has been executed (in short, the number of CPU's launched)
 
 afterinitvariables:
 
+lock add dword [vmmentrycount],1
 
+initcs_trylock:
+lock bts dword [initcs],0 ;put the value of bit nr 0 into CF, and then set it to 1
+jnc launchcpu  ;if it was 0, launch the cpu
+
+;it's locked, wait
+initcs_waitloop:
+pause
+cmp dword [initcs],0
+je  initcs_trylock ;it is 0, try to lock
+jmp initcs_waitloop
+
+
+launchcpu:
+
+;db 0xf1 ;debug test
 mov rax,[nextstack] ;setup the stack
 mov rsp,rax
 
-and rsp,0xfffffffffffffff0
+and rsp,-0x10; //,0xfffffffffffffff0 ;should not be needed as it 'should' be aligned to begin with
 
-
-;sub rax,0x40000 ;256kb for the next cpu
-sub rax,0x10000
-mov [nextstack],rax
-
-
-;wait2:
-;mov edx,SERIALPORT+5 ;3fdh
-;in al,dx
-;and al,0x20
-;cmp al,0x20
-;jne wait2
-
-
-;mov edx,SERIALPORT ;0x3f8
-;mov al,'y'
-;out dx,al
 
 mov rax,cr4
 or rax,0x200 ;enable fxsave
 mov cr4,rax
 
+cmp qword [loadedOS],0
+jne afterbootvarcollection
+
+cmp byte [isAP],0
+jne afterbootvarcollection
+
+
+
+;save the 64-bit regs (mainly for the upper bits)
+
+mov [0x7100],rax
+mov [0x7108],rbx
+mov [0x7110],rcx
+mov [0x7118],rdx
+mov [0x7120],rsi
+mov [0x7128],rdi
+mov [0x7130],rbp
+mov [0x7138],r8
+mov [0x7140],r9
+mov [0x7148],r10
+mov [0x7150],r11
+mov [0x7158],r12
+mov [0x7160],r13
+mov [0x7168],r14
+mov [0x7170],r15
+
+
+
+afterbootvarcollection:
 call vmm_entry
 
 vmm_entry_exit:
@@ -98,7 +139,6 @@ dq 0
 align 16,db 0
 isAP:              	dd 0
 bootdisk:           dd 0
-nextstack:		  	dq 0x00000000007FFFF8 ;start of stack for the next cpu
 
 
 
@@ -364,7 +404,7 @@ mov rax,0x6c16
 mov rdx,vmxloop_vmexit
 vmwrite rax,rdx  ;host_eip
 
-cmp DWORD [loadedOS],0
+cmp rsi,0
 je notloadedOS
 
 osoffload:
@@ -394,7 +434,7 @@ mov rbx,rax
 mov rcx,rax
 mov rdx,rax
 mov rdi,rax
-mov rsi,rax
+mov rsi,1 ;for the skipAPTerminationWait parameter for reboot
 mov rbp,rax
 mov r8, rax
 mov r9, rax
@@ -408,6 +448,11 @@ mov r15,rax
 aftersetup:
 vmlaunch
 ;just continued through, restore state
+
+%ifdef JTAG
+db 0xf1 ;jtag breakpoint
+%endif
+
 nop
 nop ;just making sure as for some reason kvm's gdb continues here, instead of the previous instruction
 nop
@@ -452,6 +497,13 @@ align 16
 vmxloop_vmexit:
 cli
 ;ok, this should be executed
+
+cmp dword [fs:0x14],0
+je isbootcpu
+
+
+
+isbootcpu:
 
 ;save registers
 
@@ -504,7 +556,7 @@ notfucker:
 
 ;xchg bx,bx ;boxhs bp
 
-and rsp,0xfffffffffffffff0;
+and rsp,-0x10 ;0xfffffffffffffff0;
 sub rsp,512
 fxsave [rsp]
 
@@ -520,9 +572,16 @@ fxrstor [rsp]
 
 mov rsp,rbp
 
+cmp ax,0xce00
+je vmxloop_guestlaunch
 
-cmp eax,1  ;returnvalue of 1 = quit vmx
+cmp ax,0xce01
+je vmxloop_guestresume
+
+cmp al,1  ;returnvalue of 1 = quit vmx
 jae vmxloop_exitvm
+
+
 ;returned 0, so
 
 
@@ -548,8 +607,86 @@ vmresume
 
 ;never executed unless on error
 ;restore state of vmm
+
+
+%ifdef JTAG
+db 0xf1 ;jtag breakpoint
+%endif
+
+pop r15
+pop r14
+pop r13
+pop r12
+pop r11
+pop r10
+pop r9
+pop r8
+pop rbp
+pop rsi
+pop rdi
+pop rdx
+pop rcx
+pop rbx
+pop rax ;skip rax, rax contains the result
+popfq ;restore flags (esp)
 mov rax,3
-jmp vmxloop_exit
+ret
+
+vmxloop_guestlaunch:
+;restore vmx registers (esp-36)
+pop r15
+pop r14
+pop r13
+pop r12
+pop r11
+pop r10
+pop r9
+pop r8
+pop rbp
+pop rsi
+pop rdi
+pop rdx
+pop rcx
+pop rbx
+pop rax
+
+vmlaunch
+
+%ifdef JTAG
+db 0xf1 ;jtag breakpoint
+%endif
+
+;never executed unless on error
+;restore state of vmm
+mov dword [fs:0x10],0xce00 ;exitreason 0xce00
+jmp vmxloop_vmexit
+
+vmxloop_guestresume:
+;restore vmx registers (esp-36)
+pop r15
+pop r14
+pop r13
+pop r12
+pop r11
+pop r10
+pop r9
+pop r8
+pop rbp
+pop rsi
+pop rdi
+pop rdx
+pop rcx
+pop rbx
+pop rax
+
+vmresume
+%ifdef JTAG
+db 0xf1 ;jtag breakpoint
+%endif
+
+;never executed unless on error
+mov dword [fs:0x10],0xce00 ;exitreason 0xce00
+jmp vmxloop_vmexit
 
 vmxloop_exitvm:  ;(esp-68)
 ;user quit or couldn't be handled
@@ -576,6 +713,7 @@ pop rbx
 add rsp,8 ;;skip rax, rax contains the result
 popfq ;restore flags (esp)
 ret
+
 
 db 0xcc
 db 0xcc
@@ -728,21 +866,62 @@ db 0xcc
 ;---------------------------;
 ;UINT64 _vmread(ULONG index);
 ;---------------------------;
+align 16,db 0xcc
 _vmread:
 vmread rax,rdi
 ret
+
+;---------------------------------------;
+;int _vmread2(ULONG index, QWORD *value);
+;---------------------------------------;
+_vmread2:
+vmread rax,rdi
+jc _vmread2_err1
+jz _vmread2_err2
+mov qword [rsi],rax
+xor rax,rax
+ret
+
+_vmread2_err1:
+mov eax,1
+ret
+
+_vmread2_err2:
+mov eax,2
+ret
+
 db 0xcc
 db 0xcc
 db 0xcc
+
 ;---------------------------------------;
 ;void _vmwrite(ULONG index,UINT64 value);
 ;---------------------------------------;
+align 16,db 0xcc
 _vmwrite:
 vmwrite rdi,rsi
+jc _vmwrite_err1
+jz _vmwrite_err2
+xor eax,eax
 ret
+
+_vmwrite_err1:
+mov eax,1
+ret
+
+_vmwrite_err2:
+mov eax,2
+ret
+
 db 0xcc
 db 0xcc
 db 0xcc
+
+;---------------------------------------;
+;int _vmwrite2(ULONG index, QWORD value);
+;---------------------------------------;
+_vmwrite2:
+jmp _vmwrite
 
 ;---------------------------------------;
 ;int vmclear(unsigned long long address);
@@ -752,6 +931,7 @@ push rdi
 vmclear [rsp]
 pop rdi
 jc vmclear_err
+jz vmclear_err2
 xor rax,rax
 ret
 db 0xcc
@@ -761,9 +941,22 @@ db 0xcc
 vmclear_err:
 mov rax,1
 ret
+
+vmclear_err2:
+mov rax,2
+ret
 db 0xcc
 db 0xcc
 db 0xcc
+
+
+;---------------------------;
+;int vmptrst(QWORD *address);
+;---------------------------;
+_vmptrst:
+vmptrst [rdi]
+ret
+
 
 ;-------------------------------------;
 ;int vmptrld(PHYSICAL_ADDRESS address);
@@ -773,6 +966,8 @@ push rdi
 vmptrld [rsp]
 pop rdi
 jc vmptrld_err
+jz vmptrld_err2
+
 xor rax,rax
 ret
 db 0xcc
@@ -781,6 +976,10 @@ db 0xcc
 
 vmptrld_err:
 mov rax,1
+ret
+
+vmptrld_err2:
+mov rax,2
 ret
 db 0xcc
 db 0xcc
@@ -1215,6 +1414,13 @@ db 0xcc
 db 0xcc
 db 0xcc
 
+global _invpcid
+;--------------------------;
+;_invlpg(int type, 128data);
+;--------------------------;
+db 0x66,0x0f,0x38,0x82,0x3e ;invpcid rdi,[rsi]
+ret
+
 
 global _invlpg
 ;-----------------------;
@@ -1227,6 +1433,15 @@ db 0xcc
 db 0xcc
 db 0xcc
 
+global _wbinvd
+_wbinvd:
+wbinvd
+ret
+
+global _invd
+_invd:
+invd
+ret
 
 global _rdtsc
 ;-------------------------------;
@@ -1266,6 +1481,9 @@ inthandler%1:
 ;xchg bx,bx
 
 cli ;is probably already done, but just to be sure
+
+;db 0xf1 ; jtag break
+
 push %1
 jmp inthandlerx
 db 0xcc
@@ -1295,7 +1513,7 @@ mov rsi,[rsp+120] ;param2 (intnr)
 mov rdi,rsp ;param1 (stack)
 
 mov rbp,rsp
-and rsp,0xfffffffffffffff0
+and rsp,-0x10; 0xfffffffffffffff0
 sub rsp,32
 
 call cinthandler
@@ -1955,14 +2173,14 @@ cmp byte [ds:si],0
 je psod_lock ;reached end
 
 cmp byte [ds:si],10
-je newline
+je _newline
 
 cmp byte [ds:si],13
-je newline
+je _newline
 
 jmp nonewline
 
-newline:
+_newline:
 xor dx,dx
 add di,80*2
 mov ax,di
@@ -2010,6 +2228,7 @@ nop
 jmp infloop
 
 
+
 ;--------------------;
 ;void quickboot(void);
 ;--------------------;
@@ -2017,6 +2236,37 @@ global quickboot
 quickboot:
 ;quickboot is called by the virtual machine as initial boot startup
 call clearScreen
+
+xor rax,rax
+mov dr7,rax
+mov dr6,rax
+mov dr0,rax
+mov dr1,rax
+mov dr2,rax
+mov dr3,rax
+
+xor edx,edx
+mov ecx,0xc0000100 ;IA32_FS_BASE_MSR
+wrmsr
+
+
+;set the upper bits
+mov rax,[0x7100]
+mov rbx,[0x7108]
+mov rcx,[0x7110]
+mov rdx,[0x7118]
+mov rsi,[0x7120]
+mov rdi,[0x7128]
+mov rbp,[0x7130]
+mov r8, [0x7138]
+mov r9, [0x7140]
+mov r10,[0x7148]
+mov r11,[0x7150]
+mov r12,[0x7158]
+mov r13,[0x7160]
+mov r14,[0x7168]
+mov r15,[0x7170]
+
 
 
 ;nop
@@ -2030,24 +2280,17 @@ call clearScreen
 ;nop
 
 ;disable cpuid bit
+push rax
 pushfq
 pop rax
 and rax,0xFFDFF32A
 or rax,0x80
 push rax
 popfq
+pop rax
 
-;clean some unused 64-bit registers
-xor r8,r8
-xor r9,r9
-xor r10,r10
-xor r11,r11
-xor r12,r12
-xor r13,r13
-xor r14,r14
-xor r15,r15
 
-mov word [0x40000],0x3f
+mov word [0x40000],0x80
 mov dword [0x40002],0x50000
 lgdt [0x40000]
 
@@ -2063,7 +2306,11 @@ bits 32
 movetoreal: ;this gets moved to 0x00020000
 nop
 nop
+mov eax,cr0
+mov ebx,cr4
 nop
+mov cr4,ebx
+mov cr0,eax
 
 
 mov ax,8
@@ -2104,20 +2351,7 @@ global real16
 real16:
 bits 16
 nop
-nop
-nop
-nop
-nop
-nop
-nop
-nop
-nop
-nop
-nop
-nop
-nop
-nop
-nop
+
 ;setup datasegment, just for the fun of it
 mov ax,40
 mov ds,ax
@@ -2138,12 +2372,23 @@ mov ax,0x8000
 mov ss,ax
 mov sp,0xfffe
 
+mov bx,ds
+mov cx,cs
+
+mov eax,cr3
+mov cr3,eax
+
+mov ax,ds
+mov dx,cs
+
+
 rmstart:
 call rmbegin
 rmbegin:
 pop bp
 
 
+pushf
 push 0x2000
 push vmxstartup-movetoreal
 iret
@@ -2155,29 +2400,17 @@ dw 0x2000
 
 ;still 16 bits here
 ;---------------------;
-;void vmxstartup(void);  (should be at 0x20000 when executed)
+;void vmxstartup(void);
 ;---------------------;
 global vmxstartup
 global vmxstartup_end
 vmxstartup:
 nop
 
-mov ax,0xb800
-mov ds,ax
-mov byte [0],'w';
-mov byte [1],4;
-mov byte [2],'e';
-mov byte [3],4;
-mov byte [4],'e';
-mov byte [5],4;
-mov byte [6],'e';
-mov byte [7],4;
-
-
 mov ax,0x8000
 mov ds,ax
 mov es,ax
-mov word [0],0x400   ;  256*4
+mov word [0],0x3ff   ;  256*4
 mov dword [2],0
 lidt [0x0]
 
@@ -2191,7 +2424,7 @@ nop
 mov ecx,0xc0000080 ;test to see how it handles an efer write
 xor eax,eax
 xor edx,edx
-;wrmsr
+wrmsr
 
 nop
 ;xchg bx,bx
@@ -2220,7 +2453,6 @@ mov bx,0x2345
 mov ebx,CR0
 
 vm_basicinit:
-cli  ;not be needed, but it's a way to break the vm
 ;xchg bx,bx
 
 xor ax,ax
@@ -2236,12 +2468,43 @@ mov eax,[0x7dfa] ;restore cr0 with the stored value of cr0
 mov cr0,eax
 ;jmp 0:0x7c00
 
-vm_readagain:
+mov ax,0x2000
+mov ds,ax
+mov si,(str_alive-movetoreal)
+call sendstring16
+xor ax,ax
+mov ds,ax
+
+nop
+;db 0xf1
 nop
 nop
 cld
-
 sti
+nop
+
+;loopafterint:
+nop
+;cpuid
+nop
+;jmp loopafterint
+
+mov ax,3
+int 0x10
+
+push ds
+mov ax,0x2000
+mov ds,ax
+mov si,(str_alive-movetoreal)
+call printstring
+
+mov si,(str_settingup-movetoreal)
+call printstring
+
+mov si,(str_launching-movetoreal)
+call printstring
+
+pop ds
 
 mov byte [0x7c00],1
 
@@ -2258,18 +2521,35 @@ nop
 mov ax,0x3000
 mov es,ax
 
-mov ax,0
+mov ax,0 ;reset disk
 mov dl,[0x7c0e]
 clc
 int 0x13
-jc notok
+nop
+nop
+jnc pass1
+
+mov cl,1
+call printerror
+
+jmp notok
+
+pass1:
 nop
 nop
 mov ax,0
 mov dl,[0x7c0e]
 clc
 int 0x13
-jc notok
+jnc pass2
+
+mov cl,2
+call printerror
+
+
+jmp notok
+
+pass2:
 nop
 nop
 nop
@@ -2281,8 +2561,14 @@ mov dl,[0x7c0e] ;dl contains hd
 mov dh,0
 clc
 int 0x13
-jc notok
+jnc pass3
 
+mov cl,3
+call printerror
+
+jmp notok
+
+pass3:
 mov ax,0x0201
 mov bx,0x8000
 mov ch,0
@@ -2291,13 +2577,25 @@ mov dh,0
 mov dl,[0x7c0e]
 clc
 int 0x13
-jc notok
+jnc pass4
 
+mov cl,4
+call printerror
+
+jmp notok
+
+pass4:
 mov ax,0
 clc
 int 0x13
-jc notok
+jnc pass5
 
+mov cl,5
+call printerror
+
+jmp notok
+
+pass5:
 mov ax,0x0201
 mov bx,0x8000
 mov ch,0
@@ -2306,9 +2604,14 @@ mov dh,0
 mov dl,[0x7c0e]
 clc
 int 0x13
-jc notok
+jnc pass6
 
+mov cl,6
+call printerror
 
+jmp notok
+
+pass6:
 readagain2: ;final read
 
 xor ax,ax
@@ -2316,7 +2619,7 @@ mov es,ax
 
 sti
 mov ax,0x0201
-mov bx,0x7c00
+mov bx,0x7c00 ;;final actual read
 mov ch,0
 mov cl,0x1
 mov dh,0
@@ -2325,38 +2628,31 @@ push dx
 clc
 int 0x13
 pop dx
-jc notok
+jnc pass7
+
+mov cl,7
+call printerror
+
+jmp notok
 nop
 nop
 
+pass7:
 jmp readok
 
 notok:
 sti
-mov ax,0xb800
-mov ds,ax
-mov byte [0],'r';
-mov byte [1],4;
-mov byte [2],'a';
-mov byte [3],4;
-mov byte [4],'a';
-mov byte [5],4;
-mov byte [6],'h';
-mov byte [7],4;
 
-xor ax,ax
-mov ds,ax
-cmp byte [0x48d],0
-jne notok2
+mov si,(str_givingup-movetoreal)
+call printstring
+
+notok_loop:
 nop
 nop
+cpuid
 nop
 nop
-nop
-nop
-nop
-nop
-jmp notok
+jmp notok_loop
 
 
 notok2:
@@ -2397,6 +2693,11 @@ jmp hmm
 
 
 bt_test:
+nop
+nop
+cpuid
+nop
+nop
 jmp bt_test
 
 readok:
@@ -2424,9 +2725,6 @@ mov sp,0xfffe
 mov ax,[0x7022]
 mov ss,ax
 
-mov ax,[0x7024]
-mov ds,ax
-
 mov ax,[0x7026]
 mov es,ax
 
@@ -2437,7 +2735,7 @@ mov ax,[0x702a]
 mov gs,ax
 
 mov eax,[0x700c] ;edx
-mov al,dl
+mov al,dl ;save dl
 mov edx,eax
 
 mov eax,[0x7000]
@@ -2448,12 +2746,16 @@ mov edi,[0x7014]
 mov ebp,[0x7018]
 mov esp,[0x701c]
 
-mov eax,[0x7000]
-
 lgdt [0x7030] ;restore gdt
 
 push word [0x702c] ;restore eflags
 popf
+
+push ax
+mov ax,[0x7024]
+mov ds,ax
+pop ax
+
 
 beforeboot:
 nop
@@ -2474,10 +2776,309 @@ cpuid
 nop
 jmp bochswaitforsipiloop
 
+sendstring16:
+;ds:si=pointer to string
+mov cl,[si]
+call send16
+
+inc si
+cmp byte [si],0
+jne sendstring16
+ret
+
+
+send16:
+
+;param cl=byte to send
+push ax
+push dx
+
+waitforready:
+%ifdef SERIALPORT
+%if SERIALPORT != 0
+mov dx,SERIALPORT+5 ;3fdh
+in al,dx
+and al,0x20
+cmp al,0x20
+jne waitforready
+
+mov dx,SERIALPORT ;0x3f8
+mov al,cl
+out dx,al
+%endif
+%endif
+
+pop dx
+pop ax
+ret
+
+printstring:
+;ds:si points to string
+push ax
+push cx
+
+printstring_loop:
+mov cl,[si]
+call printchar
+
+inc si
+cmp byte [si],0
+jne printstring_loop
+
+pop cx
+pop ax
+ret
+
+printchar:
+cmp cl,13
+jne notnewline
+
+call newline
+ret
+
+
+notnewline:
+push es
+push ax
+push bx
+;get the display buffer offset
+
+mov ax,0xb800
+mov es,ax
+
+mov al,80 ;line
+mul byte [display_y-movetoreal]  ;multiply 80 with the value in display_y
+
+xor bx,bx
+mov bl,byte [display_x-movetoreal]
+add ax,bx
+shl ax,1
+
+push di
+mov di,ax
+mov [es:di],cl
+mov byte [es:di+1],7
+pop di
+
+inc byte [display_x-movetoreal]
+cmp byte [display_x-movetoreal],80
+jb printchar_exit
+
+call newline
+
+printchar_exit:
+call updatecursorpos
+pop bx
+pop ax
+pop es
+ret
+
+newline:
+mov byte [display_x-movetoreal],0
+inc byte [display_y-movetoreal]
+
+cmp byte [display_y-movetoreal],25
+jb newline_exit
+
+mov ax,0x601 ;scroll 1 line
+mov bh,7
+mov cx,0
+mov dl,79
+mov dh,24
+int 0x10
+
+dec byte [display_y-movetoreal]
+
+newline_exit:
+call updatecursorpos
+
+ret
+
+updatecursorpos:
+push ax
+push bx
+push dx
+mov ax,0x200
+mov bh,0
+mov dl,[display_x-movetoreal]
+mov dh,[display_y-movetoreal]
+int 0x10
+
+pop dx
+pop bx
+pop ax
+ret
+
+printerror:
+;cl contains the error number (0..9)
+push si
+mov si,(str_fail-movetoreal)
+call printstring
+
+push cx
+add cx,48
+call printchar
+pop cx
+
+mov si,(str_newline-movetoreal)
+call printstring
+pop si
+ret
+
+;cursor:
+display_x:
+db 0
+
+display_y:
+db 0
+
+str_alive:
+db "I am alive!",13,0
+
+str_settingup:
+db "Setting things up",13,0
+
+str_launching:
+db "Launching OS",13,0
+
+str_failedtoload1:
+db "Failed to read from the given boot disk",13,0
+
+str_fail:
+db "Failure at point ",0
+
+str_newline:
+db 13,0
+
+
+str_givingup:
+db "Failure to launch. Time to reboot",13,0
+
 global vmxstartup_end
 vmxstartup_end:
 
+
+global realmode_inthooks
+realmode_inthooks:
+
+;;---------------------------realmode int hooks---------------------------;;
+;For launchtime running in unrestricted mode
+;alternatively, I could edit the EPT
+
+global realmode_inthook_new12
+realmode_inthook_new12:
+nop
+;db 0xf1
+nop
+push bp
+call getip
+getip:
+pop bp
+
+
+
+mov ax,[cs:bp+realmode_inthook_conventional_memsize-getip]
+pop bp
+
+;clear CF flag if it's set
+push bp
+mov bp,sp
+;bp+0=old bp
+;bp+2=rip
+;bp+4=cs
+;bp+6=rflags
+and word [bp+6],0xFFFE
+pop bp
+iret
+
+jmp realmode_inthook_jmp_to_original12
+
+global realmode_inthook_new15
+realmode_inthook_new15:
+nop
+pushf
+nop
+;db 0xf1
+nop
+nop
+cmp ah,0x88
+je realmode_inthook_new15_88
+
+cmp ax,0xe801
+je calldbvm
+
+cmp ax,0xe820
+je calldbvm
+
+popf
+;not a dbvm hooked situation
+jmp realmode_inthook_jmp_to_original15
+calldbvm:
+popf
+
+global realmode_inthook_calladdress
+realmode_inthook_calladdress:
+vmcall
+;still here so it got handled
+jc realmode_inthook_return_cf1
+
+;cf=0
+;clear CF flag if it's set
+push bp
+mov bp,sp
+and word [bp+6],0xFFFE
+pop bp
+iret
+
+realmode_inthook_return_cf1:
+;cf=1
+push bp
+mov bp,sp
+or word [bp+6],0x1
+pop bp
+iret
+
+realmode_inthook_new15_88:
+mov ax,0xfc00  ;64MB
+
+;clear CF flag if it's set
+push bp
+mov bp,sp
+and word [bp+6],0xFFFE
+pop bp
+
+iret
+
+
+
+global realmode_inthook_original12
+realmode_inthook_jmp_to_original12:
+db 0xea
+realmode_inthook_original12:
+dd 0
+
+global realmode_inthook_original15
+realmode_inthook_jmp_to_original15:
+db 0xea
+realmode_inthook_original15:
+dd 0
+
+global realmode_inthook_conventional_memsize
+realmode_inthook_conventional_memsize:
+dw 0
+
+global realmode_inthooks_end
+realmode_inthooks_end:
+
+
 dd 0x00ce1337
+db 0x90
+db 0x90
+db 0x90
 
-
+db 0xea
+db 0xce
+db 0xce
+db 0xaa
+db 0xbb
 

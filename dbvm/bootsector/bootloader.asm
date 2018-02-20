@@ -34,32 +34,17 @@ currenthead:    dw 0
 
 
 
-;main:
-;jmp short after ;0-1
-;nop ;2
-;
-;name: db "CETC2.1" ;3-9
-;db 0
-;
-;BytesPerSector: dw 0; 512
-;SectorsPerCluster: db 0 ;8
-;
-;ReservedSectors: dw 0;  0x20 , 0x00
-;FatCopies: db 0; 0x02
-;RootDirEntries: dw 0x00
-;NumSectors: dw 0x00
-;MediaType: db 0; 0xf8
-;SectorsPerFAT: dw 0x0000
-;SectorsPerTrack: dw 62
-;NumberOfHeads: dw 65 ;, 0x00 , 0x00 , 0x00 , 0x00
-
 
 loader:
-;push 0
-;push 0x7c00
-;db 0x66,0x66,0xc3
+;cflush
+wbinvd
 
-mov [0x7000],eax
+mov [cs:0x7000],eax
+mov ax,ds
+mov [cs:0x7024],ax
+xor ax,ax
+mov ds,ax
+
 mov [0x7004],ebx
 mov [0x7008],ecx
 mov [0x700c],edx
@@ -70,8 +55,6 @@ mov [0x701c],esp
 
 mov ax,ss
 mov [0x7022],ax
-mov ax,ds
-mov [0x7024],ax
 mov ax,es
 mov [0x7026],ax
 mov ax,fs
@@ -138,16 +121,16 @@ int 13h
 pop es ;older version of bochs bug bypass (too lazy to recompile)
 
 
-
 inc dh
 mov [NumberOfHeads],dh
 mov ax,cx
 and ax,3fh
 inc ax
 mov [SectorsPerTrack],ax
-shr cx,6
-inc cx
-mov [NumberOfCylinders],cx
+mov al,ch
+shr ch,6
+mov ah,ch
+mov [NumberOfCylinders],ah ;not used, but store it anyhow just for the fun of it
 
 
 mov cx,(size/512)+1  ; number of sectors to read
@@ -160,27 +143,29 @@ push cx
 
 
 reader:
-mov dword [es:bx],"FUCK"
-
 mov ax,0x0201 ;read 1 sector
 mov cx,[currenttracksector]  ;track/sector
 mov dh,[currenthead]
 mov dl,[bootdrive] ; set dl to the bootdrive
 
+clc
 int 13h
-jc reader
+sti ;some bioses may disable this on return
+jnc reader_ok
 
-cmp dword [es:bx],"FUCK"
-je reader
+reader_err:
+mov ah,0
+mov dl,[bootdrive]
+int 13h
+jmp reader
 
-
+reader_ok:
 
 ;successfull read, adjust parameters for next sector
 add bx,512 ;place to store at
 cmp bx,0
 jne checksector
 ;overflow, vmloader has become bigger than 64KB, we need a new segment (0x40000?)
-
 
 mov bx,es
 add bx,0x1000 ;to the next free segment, 0x3000->0x4000->0x5000
@@ -321,10 +306,10 @@ je zeroUsabeMemory_error
 
 jmp zeroUsabeMemory_start
 zeroUsabeMemory_error:
-mov ax,600
+mov ax,600 ;just guess...
 
 zeroUsabeMemory_start:
-sub ax,64 ;take out 64KB as a safeguard
+sub ax,64 ;take out 64KB as the wipe starts at 0x10000
 xchg bx,ax
 xor eax,eax
 mov si,0x1000
