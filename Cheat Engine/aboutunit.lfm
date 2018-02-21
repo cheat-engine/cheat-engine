@@ -2,14 +2,14 @@ object About: TAbout
   Left = 922
   Height = 365
   Top = 326
-  Width = 713
+  Width = 712
   HelpContext = 2
   AutoSize = True
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'About Cheat Engine'
   ClientHeight = 365
-  ClientWidth = 713
+  ClientWidth = 712
   OnClose = FormClose
   OnShow = FormShow
   PopupMode = pmAuto
@@ -19,12 +19,12 @@ object About: TAbout
     Left = 0
     Height = 365
     Top = 0
-    Width = 713
+    Width = 712
     Align = alClient
     AutoSize = True
     Caption = 'Cheat Engine 6.7'
     ClientHeight = 345
-    ClientWidth = 709
+    ClientWidth = 708
     TabOrder = 0
     object Label2: TLabel
       AnchorSideTop.Control = Label10
@@ -391,12 +391,14 @@ object About: TAbout
       AnchorSideLeft.Control = GroupBox1
       AnchorSideTop.Control = Label5
       AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Button1
       AnchorSideBottom.Control = GroupBox1
       AnchorSideBottom.Side = asrBottom
       Left = 5
       Height = 15
       Top = 232
-      Width = 229
+      Width = 660
+      Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Left = 5
       BorderSpacing.Top = 5
       Caption = 'your system may or may not support dbvm'
@@ -412,7 +414,7 @@ object About: TAbout
       AnchorSideRight.Side = asrBottom
       AnchorSideBottom.Control = GroupBox1
       AnchorSideBottom.Side = asrBottom
-      Left = 666
+      Left = 665
       Height = 25
       Top = 319
       Width = 42
@@ -428,7 +430,7 @@ object About: TAbout
       AnchorSideTop.Control = GroupBox1
       AnchorSideRight.Control = GroupBox1
       AnchorSideRight.Side = asrBottom
-      Left = 629
+      Left = 628
       Height = 41
       Top = 0
       Width = 80

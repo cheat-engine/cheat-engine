@@ -38,6 +38,7 @@ const
 
   VMCALL_ULTIMAP_DEBUGINFO = 36;
   VMCALL_TESTPSOD = 37;
+  VMCALL_GETMEM = 38;
 
 type
   TOriginalState=packed record
@@ -87,6 +88,8 @@ function dbvm_ultimap_debuginfo(debuginfo: PULTIMAPDEBUGINFO): DWORD;
 
 procedure dbvm_switchToKernelMode(cs: word; rip: pointer; parameters: pointer);
 
+function dbvm_getMemory(var pages: QWORD): QWORD;
+
 
 procedure dbvm_enterkernelmode(originalstate: POriginalState);
 procedure dbvm_returntousermode(originalstate: POriginalState);
@@ -126,6 +129,7 @@ rsBigError = 'Error';
 rsSmallError = 'error';
 
 var vmcall :function(vmcallinfo:pointer; level1pass: dword): PtrUInt; stdcall;
+var vmcall2 :function(vmcallinfo:pointer; level1pass: dword; secondaryOut: PQWORD): PtrUInt; stdcall;
 
 function vmcallUnSupported(vmcallinfo:pointer; level1pass: dword): PtrUInt; stdcall;
 begin
@@ -180,6 +184,72 @@ begin
   end;
 
   result:=r;
+end;
+
+function vmcallSupported2_amd(vmcallinfo:pointer; level1pass: dword; output2: pptruint): PtrUInt; stdcall;
+var
+{$ifdef cpu64}
+  originalrdx: ptruint;
+{$endif}
+  r,r2: ptruint;
+begin
+  asm
+{$ifdef cpu64}
+    mov originalrdx,rdx
+    mov rax,vmcallinfo
+    mov edx,level1pass
+    vmmcall
+
+    mov r2,rdx
+
+    mov rdx,originalrdx
+    mov r,rax
+{$else}
+    mov eax,vmcallinfo
+    mov edx,level1pass
+    vmmcall     //should raise an UD if the cpu does not support it  (or the password is wrong)
+    mov r,eax
+    mov r2,edx
+{$endif}
+  end;
+
+  result:=r;
+  if output2<>nil then
+    output2^:=r2;
+end;
+
+
+function vmcallSupported2_intel(vmcallinfo:pointer; level1pass: dword; output2: pptruint): PtrUInt; stdcall;
+var
+{$ifdef cpu64}
+  originalrdx: ptruint;
+{$endif}
+  r: ptruint;
+  r2: ptruint;
+begin
+  asm
+{$ifdef cpu64}
+    mov originalrdx,rdx
+    mov rax,vmcallinfo
+    mov edx,level1pass
+    vmcall
+
+    mov r2,rdx
+
+    mov rdx,originalrdx
+    mov r,rax
+{$else}
+    mov eax,vmcallinfo
+    mov edx,level1pass
+    vmcall     //should raise an UD if the cpu does not support it  (or the password is wrong)
+    mov r,eax
+    mov r2,edx
+{$endif}
+  end;
+
+  result:=r;
+  if output2<>nil then
+    output2^:=r2;
 end;
 
 function vmcallSupported_intel(vmcallinfo:pointer; level1pass: dword): PtrUInt; stdcall;
@@ -499,6 +569,19 @@ begin
   vmcallinfo.msr:=msr;
   vmcallinfo.msrvalue:=value;
   vmcall(@vmcallinfo,vmx_password1);
+end;
+
+function dbvm_getMemory(var pages: QWORD): QWORD;
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_GETMEM;
+  result:=vmcall2(@vmcallinfo,vmx_password1, @pages);
 end;
 
 function dbvm_getRealCR0: QWORD;
@@ -1109,9 +1192,15 @@ initialization
   if isDBVMCapable then
   begin
     if isamd then
-      vmcall:=vmcallSupported_amd
+    begin
+      vmcall:=vmcallSupported_amd;
+      vmcall2:=vmcallSupported2_amd
+    end
     else
+    begin
       vmcall:=vmcallSupported_intel;
+      vmcall2:=vmcallSupported2_intel;
+    end;
 
   end;
   {$endif}

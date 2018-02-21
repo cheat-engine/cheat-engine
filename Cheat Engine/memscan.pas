@@ -14,7 +14,7 @@ interface
 uses windows, FileUtil, LCLIntf,sysutils, classes,ComCtrls,dialogs, NewKernelHandler,math,
      SyncObjs, windows7taskbar,SaveFirstScan, savedscanhandler, autoassembler,
      symbolhandler, CEFuncProc,shellapi, customtypehandler,lua,lualib,lauxlib,
-     LuaHandler, fileaccess, groupscancommandparser, commonTypeDefs, LazUTF8, forms;
+     LuaHandler, fileaccess, groupscancommandparser, commonTypeDefs, LazUTF8, forms, LazFileUtils;
 {$define customtypeimplemented}
 {$endif}
 

@@ -889,6 +889,7 @@ properties
 
   OnClose: function(sender) - The function to call when the form gets closed
   OnDropFiles: function(sender, {filenames}) - Called when files are dragged on top of the form. Filenames is an arraytable with the files
+  FormState: FormState string ReadOnly - The current state of the form. Possible values: fsCreating, fsVisible, fsShowing, fsModal, fsCreatedMDIChild, fsBorderStyleChanged, fsFormStyleChanged, fsFirstShow, fsDisableAutoSize 
 
 
 methods

@@ -19,7 +19,7 @@ uses
   generichotkey, luafile, xmplayer_server, ExtraTrainerComponents, customtimer,
   menus, XMLRead, XMLWrite, DOM,ShellApi, Clipbrd, typinfo, PEInfoFunctions,
   LCLProc, strutils, registry, md5, commonTypeDefs, LResources, Translations,
-  variants, LazUTF8, zstream, MemoryQuery;
+  variants, LazUTF8, zstream, MemoryQuery, LCLVersion;
 
 
 const MAXTABLERECURSIONLOOKUP=2;
@@ -6242,7 +6242,11 @@ begin
 end;
 
 function broadcastEnvironmentUpdate(L: PLua_State): integer; cdecl;
-var rv: dword;
+{$if lcl_fullversion<=1060400}
+var rv: DWORD; //bug in laz 1.6.4 (not the end of the world, as rv is on a 8 byte boundary in the stack and not used)
+{$else}
+var rv: DWORD_PTR;
+{$endif}
 begin
   result:=0;
 

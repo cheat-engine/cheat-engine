@@ -1056,6 +1056,7 @@ var x: array of integer;
   miChangeCheckboxSetting: TMenuItem;
   reg: Tregistry;
   i: integer;
+  dpmi: tmenuitem;
 begin
   GlobalDesignHook.LookupRoot:=f;
 
@@ -1107,7 +1108,9 @@ begin
 
     oid.OnSelectPersistentsInOI:=ObjectInspectorSelectionChange;
 
-    oid.DeletePopupmenuItem.OnClick:=oidOnDelete;
+    dpmi:=tmenuitem(oid.FindComponent('DeletePopupmenuItem'));
+    if dpmi<>nil then
+      dpmi.OnClick:=oidOnDelete;
     oid.ComponentTree.OnKeyDown:=oidComponentTreeKeyDown;
 
     oid.Selection.Add(f);
