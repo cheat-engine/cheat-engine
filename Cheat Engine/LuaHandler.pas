@@ -6242,7 +6242,7 @@ begin
 end;
 
 function broadcastEnvironmentUpdate(L: PLua_State): integer; cdecl;
-var rv: dword;
+var rv: DWORD_PTR;
 begin
   result:=0;
 

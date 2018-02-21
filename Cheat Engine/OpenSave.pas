@@ -12,7 +12,7 @@ uses windows, forms, LCLIntf,registry, SysUtils,AdvancedOptionsUnit,CommentsUnit
      {MemoryTrainerDesignUnit,}StdCtrls,{ExtraTrainerComponents,}Graphics,Controls,
      tableconverter, ExtCtrls,Dialogs,NewKernelHandler, hotkeyhandler, structuresfrm,
      StructuresFrm2, comctrls,dom, xmlread,xmlwrite, FileUtil, ceguicomponents,
-     zstream, luafile, disassemblerComments, commonTypeDefs;
+     zstream, luafile, disassemblerComments, commonTypeDefs, lazutf8;
 
 
 var CurrentTableVersion: dword=26;

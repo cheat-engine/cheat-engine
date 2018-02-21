@@ -9,7 +9,7 @@ uses
   Dialogs, StdCtrls, Menus, ExtCtrls, SynMemo, SynCompletion, SynEdit, lua,
   lauxlib, lualib, LuaSyntax, luahandler, cefuncproc, sqldb, strutils,
   InterfaceBase, ComCtrls, SynGutterBase, SynEditMarks, PopupNotifier, ActnList,
-  SynEditHighlighter, AvgLvlTree, math;
+  SynEditHighlighter, AvgLvlTree, math, LazFileUtils;
 
 type
 
