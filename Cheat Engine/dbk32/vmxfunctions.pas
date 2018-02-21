@@ -92,7 +92,7 @@ function dbvm_ultimap_debuginfo(debuginfo: PULTIMAPDEBUGINFO): DWORD;
 procedure dbvm_switchToKernelMode(cs: word; rip: pointer; parameters: pointer);
 
 function dbvm_getMemory(var pages: QWORD): QWORD;
-function dbvm_jtagbp(msr: dword; value: qword): boolean;
+function dbvm_jtagbp: boolean;
 
 
 procedure dbvm_enterkernelmode(originalstate: POriginalState);
@@ -588,7 +588,7 @@ begin
   result:=vmcall2(@vmcallinfo,vmx_password1, @pages);
 end;
 
-function dbvm_jtagbp(msr: dword; value: qword): boolean;
+function dbvm_jtagbp: boolean;
 var vmcallinfo: packed record
   structsize: dword;
   level2pass: dword;
