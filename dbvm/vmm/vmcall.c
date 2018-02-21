@@ -100,9 +100,11 @@ int raisePagefault(pcpuinfo currentcpuinfo, UINT64 address)
     newintinfo.haserrorcode=1;
     newintinfo.valid=1;
 
-    vmwrite(0x4016, newintinfo.interruption_information); //entry info field
-    vmwrite(0x4018, errorcode.errorcode); //entry errorcode
-    vmwrite(0x401a, vmread(0x440c)); //entry instruction length
+    vmwrite(vm_entry_interruptioninfo, newintinfo.interruption_information); //entry info field
+    vmwrite(vm_entry_exceptionerrorcode, errorcode.errorcode); //entry errorcode
+    vmwrite(vm_entry_instructionlength, vmread(0x440c)); //entry instruction length
+
+
 
     //set CR2 to address
     setCR2(address);
@@ -1043,7 +1045,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
     {
       QWORD fullpages;
       QWORD freemem;
-      fullpages=getTotalFreeMemory(&fullpages);
+      freemem=getTotalFreeMemory(&fullpages);
       vmregisters->rax=freemem;
       vmregisters->rdx=fullpages;
       break;
