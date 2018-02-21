@@ -540,6 +540,7 @@ QWORD getTotalFreeMemory(QWORD *FullPages)
   QWORD pages=0;
   QWORD total=0;
   int i;
+  csEnter(&AllocCS);
   for (i=0; i<PhysicalPageListSize; i++)
   {
     if (AllocationInfoList[i].BitMask==0)
@@ -550,6 +551,8 @@ QWORD getTotalFreeMemory(QWORD *FullPages)
     else
       total+=(64-popcnt(AllocationInfoList[i].BitMask))*64;
   }
+
+  csLeave(&AllocCS);
 
   if (FullPages)
     *FullPages=pages;
