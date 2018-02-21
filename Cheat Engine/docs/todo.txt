@@ -1,4 +1,4 @@
-generate pointermap may show that it will genertae billions os useless results
+generate pointermap may show that it will genertae billions of useless results (it shouldn't)
 after the pointermap generation is done and being written to disk, the progressbar shows a small percentage. Change it to some text saying saving
 creating a new tab with a groupscan setup looks bad
 
@@ -11,6 +11,8 @@ structure dissect:
 for .net games let stucture dissect see those structures aS WELL
 AND LUA
 
+triggering hotkeys (no matter what they do) while in settings breaks CE completely
+add AVX support
 
 mono dissect: order methods by alphabet
 
@@ -22,6 +24,8 @@ trainergen: get rid of tcheat and just use labels
 graphical memory view: 
   change format makes it black sometimes(loses position ?)
   sometimes the x position is not 0, but can't be changed back
+
+memview debugging: add a toolbar for single step/step over so you can debug by clicking icons
 
 
 find higher resolution icons

@@ -2648,7 +2648,7 @@ var
 
   temp: widestring;
 
-  proc, sys: DWORD_PTR;
+  proc, sys, thread: DWORD_PTR;
 
   cpuid: integer;
   fc: dword;
@@ -2669,6 +2669,7 @@ begin
 
       GetProcessAffinityMask(GetCurrentProcess, proc, sys);
       SetProcessAffinityMask(GetCurrentProcess, 1 shl cpuid);
+      SetThreadAffinityMask(GetCurrentThread, 1 shl cpuid);
       sleep(10);
     end
     else
@@ -2704,7 +2705,10 @@ begin
     configure_vmx(vmx_password1, vmx_password2);
 
     if parameters<>nil then
+    begin
       SetProcessAffinityMask(GetCurrentProcess, proc);
+      SetThreadAffinityMask(GetCurrentThread, proc);
+    end;
 
   end else result:=false;
 end;

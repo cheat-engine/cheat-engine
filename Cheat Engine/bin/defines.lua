@@ -265,6 +265,9 @@ VK_LMENU = 164
 VK_RSHIFT = 161
 VK_RCONTROL = 163
 VK_RMENU = 165    
+VK_OEM1=0xBA
+VK_OEM2=0xBF
+VK_OEM3=0xc0
 
 
 --shellExecute show defines:
