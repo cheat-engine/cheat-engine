@@ -4430,9 +4430,11 @@ begin
   result:=1;
 end;
 
-
-
-
+function lua_dbvm_jtagbp(L: PLua_state): integer; cdecl;
+begin
+  lua_pushboolean(L, dbvm_jtagbp);
+  result:=1;
+end;
 
 function dbk_readMSR(L: PLua_State): integer; cdecl;
 var
@@ -8841,6 +8843,7 @@ begin
     lua_register(L, 'dbvm_getCR0', dbvm_getCR0);
     lua_register(L, 'dbvm_getCR3', dbvm_getCR3);
     lua_register(L, 'dbvm_getCR4', dbvm_getCR4);
+    lua_register(L, 'dbvm_jtagbp', lua_dbvm_jtagbp);
 
 
 

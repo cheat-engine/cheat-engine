@@ -38,7 +38,10 @@ const
 
   VMCALL_ULTIMAP_DEBUGINFO = 36;
   VMCALL_TESTPSOD = 37;
+
+  //dbvm 11
   VMCALL_GETMEM = 38;
+  VMCALL_JTAGBP = 39;
 
 type
   TOriginalState=packed record
@@ -89,6 +92,7 @@ function dbvm_ultimap_debuginfo(debuginfo: PULTIMAPDEBUGINFO): DWORD;
 procedure dbvm_switchToKernelMode(cs: word; rip: pointer; parameters: pointer);
 
 function dbvm_getMemory(var pages: QWORD): QWORD;
+function dbvm_jtagbp(msr: dword; value: qword): boolean;
 
 
 procedure dbvm_enterkernelmode(originalstate: POriginalState);
@@ -582,6 +586,19 @@ begin
   vmcallinfo.level2pass:=vmx_password2;
   vmcallinfo.command:=VMCALL_GETMEM;
   result:=vmcall2(@vmcallinfo,vmx_password1, @pages);
+end;
+
+function dbvm_jtagbp(msr: dword; value: qword): boolean;
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_JTAGBP;
+  result:=vmcall(@vmcallinfo,vmx_password1)<>0;
 end;
 
 function dbvm_getRealCR0: QWORD;

@@ -70,7 +70,7 @@ uses tlgUnit,MainUnit2, MainUnit, dbvmLoadManual;
 resourcestring
   rsYourSystemDOESNOTSupportDBVM = 'Your system DOES NOT support DBVM';
   rsThisMeansThatYouWillNeedANewCpuIntelToBeAbleToUseT = 'This means that you will need a new cpu (intel) to be able to use the advanced dbvm options';
-  rsYourSystemIsRunningDBVMVersion = 'Your system is running DBVM version %s (%.0n bytes free)';
+  rsYourSystemIsRunningDBVMVersion = 'Your system is running DBVM version %s (%.0n bytes free (%d pages))';
   rsThisMeansThatYourSystemIsRunningDbvm = 'This means that your system is running dbvm. This means ce will make use of some advanced tools that are otherwise unavailable';
   rsYourSystemSupportsDBVM = 'Your system supports DBVM';
   rsThisMeansThatYouReCurrentlyNotRunningDbvm = 'This means that you''re currently not running dbvm, but that your system is capable of running it';
@@ -220,7 +220,7 @@ begin
     memfree:=dbvm_getMemory(pages);
     dmemfree:=memfree;
 
-    lbldbvm.caption:=Format(rsYourSystemIsRunningDBVMVersion, [inttostr(dbvm_version and $00ffffff), dmemfree]);
+    lbldbvm.caption:=Format(rsYourSystemIsRunningDBVMVersion, [inttostr(dbvm_version and $00ffffff), dmemfree, pages]);
     lbldbvm.Hint:=rsThisMeansThatYourSystemIsRunningDbvm;
     lbldbvm.ShowHint:=true;
     lbldbvm.Cursor:=crDefault;
