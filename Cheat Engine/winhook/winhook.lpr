@@ -6,13 +6,20 @@ Just a silly experiment using the lua interpreter on CE's side for hooking windo
 {$mode objfpc}{$H+}
 
 uses
-  Classes, com, proc
+  windows, Classes, com, proc
   { you can add units after this };
 
 {$R *.res}
 
+var
+  s: TServer;
+  tid: dword;
+  cnt: integer;
+
+  ct: TThread;
 begin
-  TServer.Create(false);
+  CreateThread(nil,0,@execute2, nil,0,tid); //this works in 32-bit
+  //TServer.Create(false); //this doesn't
   CEConnection:=TCEConnection.Create();
 end.
 
