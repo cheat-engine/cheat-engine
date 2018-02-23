@@ -48,8 +48,6 @@ var
   pa: qword;
   pipe: THandle;
 begin
-  while true do ;
-
   while not terminated  do
   begin
     pipe:=CreateNamedPipe(pchar('\\.\pipe\CEWINHOOKC'+inttostr(GetProcessID)), PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE or PIPE_READMODE_BYTE or PIPE_WAIT, 255, 16, 8192, 0, nil);
