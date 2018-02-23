@@ -128,20 +128,7 @@ var
   s: string;
 begin
   if l=nil then
-  begin
-    i:=lua_gettop(Luavm);
-    try
-      L:=lua_newthread(LuaVM);
-
-      s:='CELUATHREAD_'+IntToHex(ptruint(L),8);
-      lua_setglobal(LuaVM, pchar(s));
-
-      lua_sethook(L, nil, 0, 0);
-
-    finally
-      lua_settop(Luavm,i);
-    end;
-  end;
+    l:=luavm; //this creates the new lua state
 end;
 
 procedure TLuaServerHandler.ExecuteScriptAsync;
@@ -149,7 +136,6 @@ var
   i,top: integer;
   s: string;
 begin
-
   createLuaStateIfNeeded;
 
   top:=lua_gettop(L);
@@ -169,7 +155,7 @@ begin
 
   end;
 
-  lua_settop(Luavm, top);
+  lua_settop(L, top);
 end;
 
 procedure TLuaServerHandler.ExecuteLuaFunction_Internal;
