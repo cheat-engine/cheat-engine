@@ -535,7 +535,7 @@ typedef volatile struct tcpuinfo
       QWORD RIP;  //if set go to this address on return from any interrupt
       QWORD RBP;
       QWORD RSP;
-  } OnInterrupt; //obsolete with onexception
+  } OnInterrupt; //obsolete , switch over to OnException
 
   jmp_buf OnException;
 

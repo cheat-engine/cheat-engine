@@ -125,12 +125,9 @@ int cinthandler(unsigned long long *stack, int intnr)
   sendstringfCS.lockcount=0;
   sendstringfCS.locked=0;
 
-  if (cpuinfo->OnInterrupt.RIP==0)
+  if ((cpuinfo->OnInterrupt.RIP==0) && (cpuinfo->OnException[0].RIP==0))
   {
 	  //unexpected exception
-
-
-
     if (intnr==2)
     {
       cpuinfo->NMIOccured=1;
@@ -1690,7 +1687,7 @@ void menu2(void)
             }
             except
             {
-              displayline("caught level 1 int3\n");
+              displayline("caught level 1 int3 :%d\n", lastexception);
             }
             tryend
 
@@ -1702,7 +1699,7 @@ void menu2(void)
             }
             except
             {
-              displayline("caught level 1 int 3 2\n");
+              displayline("caught level 1 int 3 2:%d\n", lastexception);
             }
             tryend
 
@@ -1719,7 +1716,7 @@ void menu2(void)
               }
               except
               {
-                displayline("caught level 2 int3\n");
+                displayline("caught level 2 int3:%d\n", lastexception);
               }
               tryend
 
@@ -1728,24 +1725,9 @@ void menu2(void)
             }
             except
             {
-              displayline("caught level 1 int3\n");
+              displayline("caught level 1 int3:%d\n", lastexception);
             }
             tryend
-
-
-
-            /*
-            i->OnInterrupt.RSP=getRSP();
-            i->OnInterrupt.RBP=getRBP();
-            i->OnInterrupt.RIP=(QWORD)((volatile void *)&&afterint3bptest);
-            asm volatile ("": : :"memory");
-            int3bptest();
-
-            sendstringf("Failure to int3 break\n");
-            asm volatile ("": : :"memory");
-afterint3bptest:
-*/
-
 
             displayline("Setting the GD flag");
 

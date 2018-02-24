@@ -1060,17 +1060,16 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
 
     case VMCALL_JTAGBREAK:
     {
-      currentcpuinfo->OnInterrupt.RSP=getRSP();
-      currentcpuinfo->OnInterrupt.RBP=getRBP();
-      currentcpuinfo->OnInterrupt.RIP=(QWORD)((volatile void *)&&Afterjtagbp);
-      vmregisters->rax=0;
-      asm volatile ("": : :"memory");
-      jtagbp();
-      asm volatile ("": : :"memory");
-      vmregisters->rax=1; //if this gets executed jtag intercepted the breakpoint
-      asm volatile ("": : :"memory");
-Afterjtagbp:
-      currentcpuinfo->OnInterrupt.RIP=0;
+      try
+      {
+        jtagbp();
+        vmregisters->rax=1; //if this gets executed jtag intercepted the breakpoint
+      }
+      except
+      {
+        vmregisters->rax=0; //if this gets executed jtag intercepted the breakpoint
+      }
+      tryend
       break;
     }
 
@@ -1078,8 +1077,6 @@ Afterjtagbp:
     default:
       vmregisters->rax = 0xcedead;
       break;
-
-
   }
 
   if (isAMD)
@@ -1202,8 +1199,9 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   if (vmcall_instruction[0]>12) //remap to take the extra parameters into account
   {
 //    sendstringf("Remapping to support size: %8\n\r",vmcall_instruction[0]);
+    int neededsize=vmcall_instruction[0];
     unmapVMmemory(vmcall_instruction, vmcall_instruction_size);
-    vmcall_instruction=(ULONG *)mapVMmemory(currentcpuinfo, vmregisters->rax, vmcall_instruction[0], &error, &pagefaultaddress);
+    vmcall_instruction=(ULONG *)mapVMmemory(currentcpuinfo, vmregisters->rax, neededsize, &error, &pagefaultaddress);
   }
 
 #ifdef DEBUG
@@ -1242,7 +1240,29 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 {
   int result;
   csEnter(&vmcallCS);
-  result=_handleVMCall(currentcpuinfo, vmregisters);
+
+  try
+  {
+    result=_handleVMCall(currentcpuinfo, vmregisters);
+  }
+  except
+  {
+    sendstringf("Exception %x happened during handling of VMCALL\n", lastexception);
+
+    try
+    {
+      jtagbp();
+    }
+    except
+    {
+    }
+    tryend
+
+    raiseInvalidOpcodeException(currentcpuinfo);
+    result=0;
+  }
+  tryend
+
 
   csLeave(&vmcallCS);
 
