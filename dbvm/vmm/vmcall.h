@@ -33,7 +33,6 @@
 
 
 //dbvm v7
-//not yet implemented (lost since last hd crash)
 #define VMCALL_SWITCH_TO_KERNELMODE 30
 #define VMCALL_DISABLE_DATAPAGEFAULTS 31
 #define VMCALL_ENABLE_DATAPAGEFAULTS 32
@@ -45,7 +44,10 @@
 #define VMCALL_ULTIMAP_DEBUGINFO 36
 
 #define VMCALL_PSODTEST 37
-#define VMCALL_GETMEM 38 //dbvm11
+
+//dbvm11
+#define VMCALL_GETMEM 38
+#define VMCALL_JTAGBREAK 39
 
 
 

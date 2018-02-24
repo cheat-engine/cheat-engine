@@ -20,6 +20,7 @@ QWORD readMSRSafe(pcpuinfo currentcpuinfo, DWORD msr)
   currentcpuinfo->LastInterrupt=0;
   currentcpuinfo->OnInterrupt.RIP=(QWORD)((volatile void *)&&InterruptFired); //set interrupt location
   currentcpuinfo->OnInterrupt.RSP=getRSP();
+  currentcpuinfo->OnInterrupt.RBP=getRBP();
   asm volatile ("": : :"memory");
   result=readMSR(msr);
   asm volatile ("": : :"memory");
@@ -35,6 +36,7 @@ void writeMSRSafe(pcpuinfo currentcpuinfo, DWORD msr, QWORD value)
   currentcpuinfo->LastInterrupt=0;
   currentcpuinfo->OnInterrupt.RIP=(QWORD)((volatile void *)&&InterruptFired); //set interrupt location
   currentcpuinfo->OnInterrupt.RSP=getRSP();
+  currentcpuinfo->OnInterrupt.RBP=getRSP();
   asm volatile ("": : :"memory");
   writeMSR(msr, value);
   asm volatile ("": : :"memory");
@@ -372,10 +374,14 @@ void returnFromCR3Callback(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, un
 //  sendvmstate(currentcpuinfo,vmregisters);
 }
 
+
+
 int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, ULONG *vmcall_instruction)
 {
   int error;
   QWORD pagefaultaddress;
+
+
 
   switch (vmcall_instruction[2])
   {
@@ -1052,6 +1058,21 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
     }
 
 
+    case VMCALL_JTAGBREAK:
+    {
+      currentcpuinfo->OnInterrupt.RSP=getRSP();
+      currentcpuinfo->OnInterrupt.RBP=getRBP();
+      currentcpuinfo->OnInterrupt.RIP=(QWORD)((volatile void *)&&Afterjtagbp);
+      vmregisters->rax=0;
+      asm volatile ("": : :"memory");
+      jtagbp();
+      asm volatile ("": : :"memory");
+      vmregisters->rax=1; //if this gets executed jtag intercepted the breakpoint
+      asm volatile ("": : :"memory");
+Afterjtagbp:
+      currentcpuinfo->OnInterrupt.RIP=0;
+      break;
+    }
 
 
     default:

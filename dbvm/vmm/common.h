@@ -27,6 +27,27 @@
 
 #define UNUSED __attribute__((unused))
 
+typedef struct{
+  QWORD RIP;
+  QWORD RBP;
+  QWORD RBX;
+  QWORD R12;
+  QWORD R13;
+  QWORD R14;
+  QWORD R15;
+  QWORD RFLAGS;
+  QWORD RSP;
+} _jmp_buf;
+
+typedef _jmp_buf volatile jmp_buf[1]; //array holding one item, RSP
+
+extern void longjmp(jmp_buf env, int val);
+extern int setjmp(jmp_buf env);
+
+#define try { jmp_buf previousexception; previousexception[0]=getcpuinfo()->OnException[0]; if (setjmp(getcpuinfo()->OnException)==0) {
+#define except } else {
+#define tryend } getcpuinfo()->OnException[0]=previousexception[0]; }
+
 typedef volatile struct _criticalSection
 {
   volatile int locked;
@@ -83,6 +104,7 @@ extern void debugbreak(void);
 
 extern void _cpuid(UINT64 *rax, UINT64 *rbx, UINT64 *rcx, UINT64 *rdx);
 extern ULONG getRSP(void);
+extern ULONG getRBP(void);
 
 int itoa(unsigned int value,int base, char *output,int maxsize);
 //int atoi(const char *nptr);

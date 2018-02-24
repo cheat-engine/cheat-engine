@@ -200,11 +200,23 @@ int cinthandler(unsigned long long *stack, int intnr)
 
   sendstringf("Checking if it was an expected interrupt\n\r");
 
+  if (cpuinfo->OnException[0].RIP)
+  {
+    nosendchar[thisAPICID]=0;
+
+    sendstringf("OnException is set. Passing it to longjmp\n");  //no need to set rflags back, the original state contains that info
+    longjmp(cpuinfo->OnException, 0x100 | intnr);
+
+    sendstringf("longjmp just went through...\n");
+    while (1);
+  }
+
   if (cpuinfo->OnInterrupt.RIP)
   {
     QWORD oldrip=stack[16+errorcode];
     sendstringf("Yes, OnInterrupt is set to %x\n\r",cpuinfo->OnInterrupt);
 
+    stack[8+errorcode]=(QWORD)(cpuinfo->OnInterrupt.RBP);
     stack[16+errorcode]=(QWORD)(cpuinfo->OnInterrupt.RIP);
     stack[19+errorcode]=(QWORD)(cpuinfo->OnInterrupt.RSP);
 
@@ -220,6 +232,7 @@ int cinthandler(unsigned long long *stack, int intnr)
     cpuinfo->LastInterruptHasErrorcode=0;
 
     cpuinfo->OnInterrupt.RIP=0; //clear exception handler
+    cpuinfo->OnInterrupt.RBP=0;
     cpuinfo->OnInterrupt.RSP=0;
 
     sendstringf("changed rip(was %6 is now %6)\n\r", oldrip, stack[16+errorcode]);
@@ -835,7 +848,7 @@ void vmm_entry(void)
    *
    */
   dbvmversion=11;
-  int1redirection=1; //redirect to int vector 1 , ooh, what a weird redirection....
+  int1redirection=1; //redirect to int vector 1
   int3redirection=3;
   int14redirection=14;
 
@@ -1090,6 +1103,7 @@ void vmm_entry(void)
   displayline("Going to execute test breakpoint\n");
 
   cpuinfo->OnInterrupt.RSP=getRSP();
+  cpuinfo->OnInterrupt.RBP=getRBP();
   cpuinfo->OnInterrupt.RIP=(QWORD)((volatile void *)&&AfterBPTest);
   asm volatile ("": : :"memory");
 BPTest:
@@ -1103,6 +1117,7 @@ AfterBPTest:
     sendstring(":(\n");
 
   cpuinfo->OnInterrupt.RSP=0;
+  cpuinfo->OnInterrupt.RBP=0;
   cpuinfo->OnInterrupt.RIP=0;
 
 
@@ -1440,6 +1455,7 @@ void vmcalltest(void)
 
   currentcpuinfo->LastInterrupt=0;
   currentcpuinfo->OnInterrupt.RIP=(QWORD)(volatile void *)&&InterruptFired; //set interrupt location
+  currentcpuinfo->OnInterrupt.RBP=getRBP();
   currentcpuinfo->OnInterrupt.RSP=getRSP();
   asm volatile ("": : :"memory");
 
@@ -1664,9 +1680,63 @@ void menu2(void)
             UINT64 rflags;
             pcpuinfo i=getcpuinfo();
 
-            displayline("Doing an int3 bp\n");
 
+
+            try
+            {
+              displayline("Doing an int3 bp\n");
+              int3bptest();
+              displayline("Failure to int3 break\n");
+            }
+            except
+            {
+              displayline("caught level 1 int3\n");
+            }
+            tryend
+
+            try
+            {
+              displayline("Doing an int3 bp 2\n");
+              int3bptest();
+              displayline("Failure to int3 break 2\n");
+            }
+            except
+            {
+              displayline("caught level 1 int 3 2\n");
+            }
+            tryend
+
+
+            displayline("testing multilevel try/except\n");
+            try
+            {
+              displayline("inside try. Entering 2nd try\n");
+              try
+              {
+                displayline("inside 2nd try. calling int3bptest\n");
+                int3bptest();
+                displayline("int3bptest in level 2 failed to get caught\n");
+              }
+              except
+              {
+                displayline("caught level 2 int3\n");
+              }
+              tryend
+
+              int3bptest();
+              displayline("Failure to int3 break\n");
+            }
+            except
+            {
+              displayline("caught level 1 int3\n");
+            }
+            tryend
+
+
+
+            /*
             i->OnInterrupt.RSP=getRSP();
+            i->OnInterrupt.RBP=getRBP();
             i->OnInterrupt.RIP=(QWORD)((volatile void *)&&afterint3bptest);
             asm volatile ("": : :"memory");
             int3bptest();
@@ -1674,11 +1744,13 @@ void menu2(void)
             sendstringf("Failure to int3 break\n");
             asm volatile ("": : :"memory");
 afterint3bptest:
+*/
 
 
             displayline("Setting the GD flag");
 
             i->OnInterrupt.RSP=getRSP();
+            i->OnInterrupt.RBP=getRBP();
             i->OnInterrupt.RIP=(QWORD)((volatile void *)&&afterGDtest);
             asm volatile ("": : :"memory");
             setDR6(0xfffffff0);
@@ -1701,6 +1773,7 @@ afterGDtest:
             displayline("Going to execute it\n");
 
             i->OnInterrupt.RSP=getRSP();
+            i->OnInterrupt.RBP=getRBP();
             i->OnInterrupt.RIP=(QWORD)((volatile void *)&&afterEXBPtest);
             asm volatile ("": : :"memory");
             getCR0();
@@ -1716,6 +1789,7 @@ afterEXBPtest:
             displayline("Going to write to that breakpoint\n");
 
             i->OnInterrupt.RSP=getRSP();
+            i->OnInterrupt.RBP=getRBP();
             i->OnInterrupt.RIP=(QWORD)((volatile void *)&&afterWRBPtest);
             asm volatile ("": : :"memory");
 

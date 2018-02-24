@@ -48,6 +48,14 @@ mov rax,rsp
 add rax,8 ;for the push of the call
 ret
 
+;------------------;
+;ULONG getRBP(void);
+;------------------;
+global getRBP
+getRBP:
+mov rax,rbp
+ret
+
 ;--------------------------------------------------------------;
 ;void cpuid(UINT64 *rax, UINT64 *rbx, UINT64 *rcx, UINT64 *rdx);
 ;--------------------------------------------------------------;
@@ -173,4 +181,57 @@ popcnt_support:
 popcnt rax,rdi
 ret
 
+;int setjmp(jmp_buf env);
+global setjmp
+setjmp:
+;save RBX, RBP, and R12–R15, the rest can be changed by function calls
+mov rax,[rsp]
+mov [rdi+0x00],rax ;RIP return
+mov [rdi+0x08],rbp
+mov [rdi+0x10],rbx
+mov [rdi+0x18],r12
+mov [rdi+0x20],r13
+mov [rdi+0x28],r14
+mov [rdi+0x30],r15
+pushfq
+pop rax
+mov [rdi+0x38],rax
+mov [rdi+0x40],rsp
+xor rax,rax ;set return 0
+setjmpreturn:
 
+mov rsi,[rdi+0x00]
+mov [rsp],rsi
+
+mov rbp,[rdi+0x08]
+mov rbx,[rdi+0x10]
+mov r12,[rdi+0x18]
+mov r13,[rdi+0x20]
+mov r14,[rdi+0x28]
+mov r15,[rdi+0x30]
+push qword [rdi+0x38]
+popfq
+
+ret
+
+;void longjmp(jmp_buf env, int val);
+global longjmp
+longjmp:
+;iretq works:
+;tempRIP ← Pop();
+;tempCS ← Pop();
+;tempEFLAGS ← Pop();
+;tempRSP ← Pop();
+;tempSS ← Pop();
+
+sub rsp,5*8
+
+mov rax,setjmpreturn
+mov [rsp+0x00],rax ;rip=setjmpreturn
+mov qword [rsp+0x08],0x50 ;cs
+mov qword [rsp+0x10],2 ;eflags
+mov rax,[rdi+0x40]
+mov [rsp+0x18],rax ;rsp
+mov qword [rsp+0x20],8 ;ss
+mov rax,rsi ;set the new return
+iretq ;using iret so nmi's can go again as well

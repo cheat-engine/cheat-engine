@@ -2494,6 +2494,7 @@ int emulateHLT(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   {
 	  currentcpuinfo->OnInterrupt.RIP=(QWORD)(volatile void *)(&&InterruptFired); //set interrupt location
 	  currentcpuinfo->OnInterrupt.RSP=getRSP();
+	  currentcpuinfo->OnInterrupt.RBP=getRBP();
 	  asm volatile ("": : :"memory");
 
 	  __asm("sti"); //enable interrupts
@@ -2507,6 +2508,10 @@ int emulateHLT(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 	  asm volatile ("": : :"memory");
 
 InterruptFired:
+    currentcpuinfo->OnInterrupt.RIP=0; //set interrupt location
+    currentcpuinfo->OnInterrupt.RSP=0;
+    currentcpuinfo->OnInterrupt.RBP=0;
+
 	  if (result==2)
 	  {
 		  sendstringf("emulateHLT caught interrupt %d", currentcpuinfo->LastInterrupt);
