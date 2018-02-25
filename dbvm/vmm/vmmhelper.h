@@ -538,6 +538,7 @@ typedef volatile struct tcpuinfo
   } OnInterrupt; //obsolete , switch over to OnException
 
   jmp_buf OnException;
+  QWORD LastExceptionRIP;
 
 
   unsigned char LastInterrupt;

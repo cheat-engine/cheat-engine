@@ -414,16 +414,47 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
       unsigned char *Destination;
       unsigned char *Source;
 
+      if (size==0)
+        break;
+
+      nosendchar[getAPICID()]=0;
+
       //map physical memory
       sendstringf("Reading physical address %6 and writing it to %6\n\r",PhysicalAddressToReadFrom, VirtualAddressToWriteTo);
       sendstringf("noPageFault=%d\n\r",noPageFault);
       Source=(unsigned char *)mapPhysicalMemory(PhysicalAddressToReadFrom, size);
 
+      sendstringf("Source=%6\n\r",Source);
+
+
       //map vm memory
+      {
+        int error1,error2;
+        QWORD VABase=VirtualAddressToWriteTo & 0xfffffffffffff000ULL;
+        QWORD PAVABase=getPhysicalAddressVM(currentcpuinfo,VABase,&error1);
+        QWORD PAVABase2=getPhysicalAddressVM(currentcpuinfo,VABase+0x1000,&error2);
+
+        sendstringf("going to map the target virtual memory\n");
+        sendstringf("VABase=%6\n",VABase);
+        sendstringf("PAVABase=%6 (error1=%d)\n", PAVABase, error1);
+        sendstringf("PAVABase2=%6 (error2=%d)\n", PAVABase2, error2);
+      }
       Destination=(unsigned char *)mapVMmemory(currentcpuinfo, VirtualAddressToWriteTo, size, &error, &pagefaultaddress);
+
+      sendstringf("Destination=%6\n\r",Destination);
+      sendstringf("error=%d\n\r",error);
+      sendstringf("pagefaultaddress=%6\n\r",pagefaultaddress);
+
+      sendstringf("PA Destination[0]=%6\n", VirtualToPhysical(&Destination[0]));
+      sendstringf("PA Destination[0x1000]=%6\n", VirtualToPhysical(&Destination[0x1000]));
+
+      sendstringf("PA Source[0]=%6\n", VirtualToPhysical(&Source[0]));
+      sendstringf("PA Source[0x1000]=%6\n", VirtualToPhysical(&Source[0x1000]));
+
+
       if (error)
       {
-        sendstringf("An error occurred while mapping %6 and size %d\n\r",VirtualAddressToWriteTo, size);
+        sendstringf("An error occurred while mapping %6 and size %d (error %d)\n\r",VirtualAddressToWriteTo, size, error);
 
         if (error==2)
         {
@@ -432,6 +463,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
           else
           {
             unmapPhysicalMemory(Source, size);
+
             return raisePagefault(currentcpuinfo, pagefaultaddress); //raise pagefault
           }
         }
@@ -445,6 +477,8 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
 
       unmapVMmemory(Destination, size);
       unmapPhysicalMemory(Source, size);
+
+      sendstringf("Returning\n\r");
 
       break;
     }
@@ -1158,7 +1192,7 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   sendstringf("Password1 is valid\n\r");
 
 
-  sendstringf("vmregisters->rax=%8\n\r", vmregisters->rax);
+  sendstringf("vmregisters->rax=%6\n\r", vmregisters->rax);
 
   //still here, so password1 is valid
   //map the memory of the information structure
@@ -1168,7 +1202,7 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
   if (error)
   {
-    sendstringf("1: Error. error=%d pagefaultaddress=%8\n\r",error,pagefaultaddress);
+    sendstringf("1: Error. error=%d pagefaultaddress=%6\n\r",error,pagefaultaddress);
 
     unmapVMmemory(vmcall_instruction,12);
 
@@ -1178,10 +1212,10 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     return raiseInvalidOpcodeException(currentcpuinfo);
   }
 
-  sendstringf("Mapped vmcall instruction structure (vmcall_instruction=%x)\n\r",(UINT64)vmcall_instruction);
-  sendstringf("vmcall_instruction[0]=%x\n\r",vmcall_instruction[0]);
-  sendstringf("vmcall_instruction[1]=%x\n\r",vmcall_instruction[1]);
-  sendstringf("vmcall_instruction[2]=%x\n\r",vmcall_instruction[2]);
+  sendstringf("Mapped vmcall instruction structure (vmcall_instruction=%6)\n\r",(UINT64)vmcall_instruction);
+  sendstringf("vmcall_instruction[0]=%8\n\r",vmcall_instruction[0]);
+  sendstringf("vmcall_instruction[1]=%8\n\r",vmcall_instruction[1]);
+  sendstringf("vmcall_instruction[2]=%8\n\r",vmcall_instruction[2]);
 
 
 
@@ -1247,6 +1281,7 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   }
   except
   {
+    nosendchar[getAPICID()]=0;
     sendstringf("Exception %x happened during handling of VMCALL\n", lastexception);
 
     try

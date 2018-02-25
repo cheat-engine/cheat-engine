@@ -35,10 +35,23 @@ void * mapVMmemory(pcpuinfo currentcpuinfo, UINT64 address, int size, int *error
     allocateVirtualTLB();
     */
 
+  if (size==0)
+      return NULL;
+
   unsigned int offset=address & 0xfff;
 
   if (currentcpuinfo==NULL)
     currentcpuinfo=getcpuinfo();
+
+
+
+  //take: 0x000000001017dfd0
+  //size: 0x40
+
+  //offset=fd0
+  //totalsize=0x40+fd0=0x1010
+  //pagecount=0x1010/0x1000=1
+  //totalsize % 4096=0x10, so pagecount++= 2
 
   int totalsize=size+offset;
   int pagecount=(totalsize / 4096);
@@ -58,6 +71,9 @@ void * mapVMmemory(pcpuinfo currentcpuinfo, UINT64 address, int size, int *error
   {
     if (error)
       *error=1;
+
+    if (pagefaultaddress)
+      *pagefaultaddress=0;
     return 0;
   }
 
@@ -67,14 +83,19 @@ void * mapVMmemory(pcpuinfo currentcpuinfo, UINT64 address, int size, int *error
   void *VirtualAddress=(void *)(getMappedMemoryBase()+pos*4096+offset);
 
   address=address & 0xfffffffffffff000ULL;
-
+  QWORD CurrentVirtualAddress=(QWORD)VirtualAddress & 0xfffffffffffff000ULL;
 
   for (i=0; i<pagecount; i++)
   {
-    QWORD PhysicalAddress=getPhysicalAddressVM(currentcpuinfo,address+i*4096, &notpaged);
+    sendstringf("mapVMmemory:\n  Mapping Guest virtual address %6\n", address);
+    QWORD PhysicalAddress=getPhysicalAddressVM(currentcpuinfo,address, &notpaged);
+
+
     if (notpaged)
     {
       //error while mapping. unmap the previous pages
+      sendstringf("  Which is currently not paged in\n");
+
       unmapVMmemory(VirtualAddress, i*4096-offset);
       if (pagefaultaddress)
         *pagefaultaddress=address+i*4096;
@@ -84,21 +105,30 @@ void * mapVMmemory(pcpuinfo currentcpuinfo, UINT64 address, int size, int *error
 
       return 0;
     }
+    sendstringf("  Which is located at physical address %6\n", PhysicalAddress);
+    sendstringf("  To Host virtual address %6\n", CurrentVirtualAddress);
 
-    *(QWORD*)(&currentcpuinfo->mappagetables[pos+i])=PhysicalAddress;
+
+    *(QWORD*)(&currentcpuinfo->mappagetables[pos])=PhysicalAddress;
     currentcpuinfo->mappagetables[pos].P=1;
     currentcpuinfo->mappagetables[pos].RW=1;
     currentcpuinfo->mappagetables[pos].US=1;
 
     asm volatile ("": : :"memory");
-    _invlpg((QWORD)VirtualAddress-offset+i*4096);
+    _invlpg(CurrentVirtualAddress);
     asm volatile ("": : :"memory");
 
     pos++;
+    address+=4096;
+    CurrentVirtualAddress+=4096;
   }
 
   if (error)
     *error=0;
+
+  if (pagefaultaddress)
+    *pagefaultaddress=0;
+
   return VirtualAddress;
 }
 

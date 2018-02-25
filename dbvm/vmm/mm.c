@@ -191,6 +191,9 @@ void *getMappedMemoryBase()
 int mmFindMapPositionForSize(pcpuinfo cpuinfo, int size)
 {
 
+  if (size==0)
+      return NULL;
+
   int pagecount=size / 4096;
   int i,pos;
   if (size % 4096)
@@ -292,19 +295,18 @@ void* mapPhysicalMemory(QWORD PhysicalAddress, int size)
 {
   //find a free virtual address in the range assigned to this cpu
   int i,pos;
-  unsigned int offset=PhysicalAddress % 4096;
-  int pagecount=(size+offset) / 4096;
+  unsigned int offset=PhysicalAddress & 0xfff;
+  int totalsize=size+offset;
+  int pagecount=totalsize / 4096;
+  if (totalsize % 0xfff)
+      pagecount++;
 
   pcpuinfo c=getcpuinfo();
 
   QWORD VirtualAddressBase=MAPPEDMEMORY+c->cpunr*0x400000;
 
-
-  if ((size+offset) % 4096)
-    pagecount++;
-
   //find non-present pages
-  pos=mmFindMapPositionForSize(c, size+offset);
+  pos=mmFindMapPositionForSize(c, totalsize);
 
   if (pos==-1)
   {
@@ -314,26 +316,21 @@ void* mapPhysicalMemory(QWORD PhysicalAddress, int size)
   }
 
 
-  PhysicalAddress = PhysicalAddress & 0xfffffffffffff000ULL;
-
   //0 everything from bit MAXPHYADDR to 63
-  PhysicalAddress=PhysicalAddress & MAXPHYADDRMASK;
+  PhysicalAddress=PhysicalAddress & MAXPHYADDRMASKPB;
 
 
   //map at pos
-  i=pos;
-  while (pagecount)
+  for (i=0; i<pagecount; i++)
   {
-    *(QWORD*)&c->mappagetables[i]=PhysicalAddress;
-    c->mappagetables[i].P=1;
-    c->mappagetables[i].RW=1;
-    c->mappagetables[i].US=1;
+    *(QWORD*)&c->mappagetables[pos+i]=PhysicalAddress;
+    c->mappagetables[pos+i].P=1;
+    c->mappagetables[pos+i].RW=1;
+    c->mappagetables[pos+i].US=1;
 
-    pagecount--;
-    i++;
     PhysicalAddress+=4096;
     asm volatile ("": : :"memory");
-    _invlpg(VirtualAddressBase+i*4096);
+    _invlpg(VirtualAddressBase+(pos+i)*4096);
     asm volatile ("": : :"memory");
   }
 

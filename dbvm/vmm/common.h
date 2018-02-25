@@ -45,7 +45,7 @@ extern void longjmp(jmp_buf env, int val);
 extern int setjmp(jmp_buf env);
 
 #define try { int lastexception; jmp_buf previousexception; previousexception[0]=getcpuinfo()->OnException[0]; if ((lastexception=setjmp(getcpuinfo()->OnException))==0) {
-#define except } else {
+#define except } else { QWORD UNUSED ExceptionRIP=getcpuinfo()->LastExceptionRIP;
 #define tryend } getcpuinfo()->OnException[0]=previousexception[0]; }
 
 typedef volatile struct _criticalSection
