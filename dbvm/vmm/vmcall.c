@@ -492,6 +492,9 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
       unsigned char *Destination;
       unsigned char *Source;
 
+      if (size==0)
+        break;
+
       //map physical memory
       Destination=(unsigned char *)mapPhysicalMemory(PhysicalAddressToWriteTo, size);
 
