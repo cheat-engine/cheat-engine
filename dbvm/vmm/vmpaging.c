@@ -98,7 +98,7 @@ void * mapVMmemory(pcpuinfo currentcpuinfo, UINT64 address, int size, int *error
 
       unmapVMmemory(VirtualAddress, i*4096-offset);
       if (pagefaultaddress)
-        *pagefaultaddress=address+i*4096;
+        *pagefaultaddress=address;
 
       if (error)
         *error=2;
