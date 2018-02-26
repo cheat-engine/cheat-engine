@@ -97,7 +97,7 @@ int IntHandlerDebug=0;
 
 char bootdisk;
 
-int cinthandler(unsigned long long *stack, int intnr)
+int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own sourcefile
 {
   PRFLAGS rflags;
   int errorcode=0;
@@ -192,6 +192,10 @@ int cinthandler(unsigned long long *stack, int intnr)
   {
     //sendstringf("Interrupt has no errorcode\n\r");
   }
+
+  sendstringf("rip=%x\n\r",stack[16+errorcode]);
+  sendstringf("rflags=%x\n\r",stack[16+2+errorcode]);
+
 
   rflags=(PRFLAGS)&stack[16+2+errorcode];
 
@@ -1949,12 +1953,17 @@ afterWRBPtest:
 
           case 'o':
           {
-            void *mem;
             int count;
+            void *mem;
 
             while (1)
             {
               mem=malloc2(4096);
+              if (mem==NULL)
+              {
+                sendstringf("alloc fail\n");
+                while (1);
+              }
               count++;
               if (count%10==0)
               {

@@ -2499,13 +2499,6 @@ int setVM_CR4(pcpuinfo currentcpuinfo, UINT64 newcr4)
 
 }
 
-void unsetRF() //debug test
-{
-  RFLAGS rflags;
-  rflags.value=vmread(vm_guest_rflags);
-  rflags.RF=0;
-  //vmwrite(vm_guest_rflags, rflags.value);
-}
 
 int handleCRaccess(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 {
@@ -2568,10 +2561,7 @@ int handleCRaccess(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
           result=setVM_CR0(currentcpuinfo, newcr0);
 
           if (result==0)
-          {
             vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));   //adjust eip to go after this instruction (we handled/emulated it)
-            unsetRF();
-          }
 
           sendstringf("new eip=%x\n\r",vmread(vm_guest_rip));
           return 0;
@@ -2585,7 +2575,6 @@ int handleCRaccess(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 					setRegister(currentcpuinfo, vmregisters,general_purpose_register,vmread(0x6004));
 
           vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));   //adjust eip to go after this instruction (we handled/emulated it)
-          unsetRF();
           return 0;
         }
 
@@ -2640,7 +2629,6 @@ int handleCRaccess(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
           if (result==0)
           {
             vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength)); //adjust eip to go after this instruction (we handled/emulated it)
-            unsetRF();
           }
 
 					return 0;
@@ -2655,7 +2643,6 @@ int handleCRaccess(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
             setRegister(currentcpuinfo, vmregisters,general_purpose_register,currentcpuinfo->guestCR3);
           vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));   //adjust eip to go after this instruction (we handled/emulated it)
 
-          unsetRF();
           return 0;
         }
 
@@ -2762,7 +2749,7 @@ int isContributoryInterrupt(int interrupt)
   return 0;
 }
 
-int handleRealModeInt0x15(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, int instructionsize)
+int handleRealModeInt0x15(pcpuinfo currentcpuinfo UNUSED, VMRegisters *vmregisters, int instructionsize)
 {
   sendstring("Int 15h software interrupt\n\r");
 

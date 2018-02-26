@@ -374,6 +374,155 @@ void returnFromCR3Callback(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, un
 //  sendvmstate(currentcpuinfo,vmregisters);
 }
 
+int vmcall_writePhysicalMemory(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PVMCALL_WRITEPHYSICALMEMORY wpmcommand)
+{
+  //map physical memory (keep in mind that each CPU in dbvm only has access to 4MB of virtual memory for mapping
+
+  int error;
+  QWORD pagefaultaddress;
+  unsigned char *Destination;
+  unsigned char *Source;
+
+  sendstringf("Reading %d bytes from virtual address %6 and writing it to %6\n\r",wpmcommand->bytesToWrite, wpmcommand->sourceVA, wpmcommand->destinationPA);
+  sendstringf("noPageFault=%d\n\r",wpmcommand->nopagefault);
+
+  int currentblocksize=wpmcommand->bytesToWrite;
+  if (currentblocksize>1048576)
+    currentblocksize=1048576;
+
+  Source=(unsigned char *)mapVMmemoryEx(currentcpuinfo, wpmcommand->sourceVA, currentblocksize, &error, &pagefaultaddress,1);
+
+  sendstringf("Source=%6\n\r",Source);
+  sendstringf("error=%d\n\r",error);
+  sendstringf("pagefaultaddress=%6\n\r",pagefaultaddress);
+
+
+  if (error)
+  {
+    sendstringf("An error occurred while mapping %6 and size %d (error %d)\n\r",wpmcommand->sourceVA, currentblocksize, error);
+
+    if (error==2)
+    {
+      currentblocksize=pagefaultaddress-wpmcommand->sourceVA;
+      sendstringf("new blocksize = %d\n", currentblocksize);
+    }
+    else
+      currentblocksize=0;
+  }
+
+  if (currentblocksize) //there is some memory. Copy it
+  {
+          //map the source
+    Destination=(unsigned char *)mapPhysicalMemory(wpmcommand->destinationPA, currentblocksize);
+    sendstringf("Destination=%6\n\r",Destination);
+
+    //copy memory from vm to physical
+    copymem(Destination, Source, currentblocksize);
+
+    unmapVMmemory(Source, currentblocksize);
+    unmapPhysicalMemory(Destination, currentblocksize);
+
+    wpmcommand->bytesToWrite-=currentblocksize;
+    wpmcommand->sourceVA+=currentblocksize;
+    wpmcommand->destinationPA+=currentblocksize;
+  }
+
+  sendstringf("Returning (error=%d. wpmcommand->bytesToWrite=%d)\n\r",error, wpmcommand->bytesToWrite);
+
+  if ((error==2) && (wpmcommand->nopagefault==0))
+  {
+    sendstringf("Raising pagefault to get the next page\n");
+    return raisePagefault(currentcpuinfo, pagefaultaddress);
+  }
+
+  //still here
+  if ((wpmcommand->bytesToWrite==0) || (error)) //all bytes read or there was an unhandled error
+  {
+    //done
+    sendstringf("Done. Going to the next instruction\n");
+    vmregisters->rax=wpmcommand->bytesToWrite; //0 on success, else the number of bytes not written
+    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+  } //else go again with the new rpmcommand data
+  return 0;
+}
+
+int vmcall_readPhysicalMemory(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PVMCALL_READPHYSICALMEMORY rpmcommand)
+{
+  //map physical memory (keep in mind that each CPU in dbvm only has access to 4MB of virtual memory for mapping
+
+  int error;
+  QWORD pagefaultaddress;
+  unsigned char *Destination;
+  unsigned char *Source;
+
+  sendstringf("Reading %d bytes from physical address %6 and writing it to %6\n\r",rpmcommand->bytesToRead, rpmcommand->sourcePA, rpmcommand->destinationVA);
+  sendstringf("noPageFault=%d\n\r",rpmcommand->nopagefault);
+
+  int currentblocksize=rpmcommand->bytesToRead;
+  if (currentblocksize>1048576)
+    currentblocksize=1048576;
+
+  Destination=(unsigned char *)mapVMmemoryEx(currentcpuinfo, rpmcommand->destinationVA, currentblocksize, &error, &pagefaultaddress,1);
+
+  sendstringf("Destination=%6\n\r",Destination);
+  sendstringf("error=%d\n\r",error);
+  sendstringf("pagefaultaddress=%6\n\r",pagefaultaddress);
+
+
+  if (error)
+  {
+    sendstringf("An error occurred while mapping %6 and size %d (error %d)\n\r",rpmcommand->destinationVA, currentblocksize, error);
+
+    if (error==2)
+    {
+      currentblocksize=pagefaultaddress-rpmcommand->destinationVA;
+      sendstringf("new blocksize = %d\n", currentblocksize);
+    }
+    else
+      currentblocksize=0;
+  }
+
+  if (currentblocksize) //there is some memory. Copy it
+  {
+    sendstringf("PA Destination[0]=%6\n", VirtualToPhysical(&Destination[0]));
+    sendstringf("PA Destination[0x1000]=%6\n", VirtualToPhysical(&Destination[0x1000]));
+
+
+    //map the source
+    Source=(unsigned char *)mapPhysicalMemory(rpmcommand->sourcePA, currentblocksize);
+    sendstringf("Source=%6\n\r",Source);
+    sendstringf("PA Source[0]=%6\n", VirtualToPhysical(&Source[0]));
+    sendstringf("PA Source[0x1000]=%6\n", VirtualToPhysical(&Source[0x1000]));
+
+    //copy memory from physical to vm
+    copymem(Destination, Source, currentblocksize);
+
+    unmapVMmemory(Destination, currentblocksize);
+    unmapPhysicalMemory(Source, currentblocksize);
+
+    rpmcommand->bytesToRead-=currentblocksize;
+    rpmcommand->destinationVA+=currentblocksize;
+    rpmcommand->sourcePA+=currentblocksize;
+  }
+
+  sendstringf("Returning (error=%d. rpmcommand->bytesToRead=%d)\n\r",error, rpmcommand->bytesToRead);
+
+  if ((error==2) && (rpmcommand->nopagefault==0))
+  {
+    sendstringf("Raising pagefault to get the next page\n");
+    return raisePagefault(currentcpuinfo, pagefaultaddress);
+  }
+
+  //still here
+  if ((rpmcommand->bytesToRead==0) || (error))
+  {
+    //handled it
+    sendstringf("Done. Going to the next instruction. rpmcommand->bytesToRead=%d\n",rpmcommand->bytesToRead);
+    vmregisters->rax=rpmcommand->bytesToRead;
+    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+  } //else go again with the new rpmcommand data
+  return 0;
+}
 
 
 int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, ULONG *vmcall_instruction)
@@ -407,122 +556,15 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
 
     case VMCALL_READ_PHYSICAL_MEMORY: //read physical memory
     {
-      UINT64 PhysicalAddressToReadFrom=*(UINT64 *)&vmcall_instruction[3];
-      unsigned int size=vmcall_instruction[5];
-      UINT64 VirtualAddressToWriteTo=*(UINT64 *)&vmcall_instruction[6];
-      unsigned int noPageFault = vmcall_instruction[8];
-      unsigned char *Destination;
-      unsigned char *Source;
+     // nosendchar[getAPICID()]=0;
 
-      if (size==0)
-        break;
-
-      nosendchar[getAPICID()]=0;
-
-      //map physical memory
-      sendstringf("Reading physical address %6 and writing it to %6\n\r",PhysicalAddressToReadFrom, VirtualAddressToWriteTo);
-      sendstringf("noPageFault=%d\n\r",noPageFault);
-      Source=(unsigned char *)mapPhysicalMemory(PhysicalAddressToReadFrom, size);
-
-      sendstringf("Source=%6\n\r",Source);
-
-
-      //map vm memory
-      {
-        int error1,error2;
-        QWORD VABase=VirtualAddressToWriteTo & 0xfffffffffffff000ULL;
-        QWORD PAVABase=getPhysicalAddressVM(currentcpuinfo,VABase,&error1);
-        QWORD PAVABase2=getPhysicalAddressVM(currentcpuinfo,VABase+0x1000,&error2);
-
-        sendstringf("going to map the target virtual memory\n");
-        sendstringf("VABase=%6\n",VABase);
-        sendstringf("PAVABase=%6 (error1=%d)\n", PAVABase, error1);
-        sendstringf("PAVABase2=%6 (error2=%d)\n", PAVABase2, error2);
-      }
-      Destination=(unsigned char *)mapVMmemory(currentcpuinfo, VirtualAddressToWriteTo, size, &error, &pagefaultaddress);
-
-      sendstringf("Destination=%6\n\r",Destination);
-      sendstringf("error=%d\n\r",error);
-      sendstringf("pagefaultaddress=%6\n\r",pagefaultaddress);
-
-      sendstringf("PA Destination[0]=%6\n", VirtualToPhysical(&Destination[0]));
-      sendstringf("PA Destination[0x1000]=%6\n", VirtualToPhysical(&Destination[0x1000]));
-
-      sendstringf("PA Source[0]=%6\n", VirtualToPhysical(&Source[0]));
-      sendstringf("PA Source[0x1000]=%6\n", VirtualToPhysical(&Source[0x1000]));
-
-
-      if (error)
-      {
-        sendstringf("An error occurred while mapping %6 and size %d (error %d)\n\r",VirtualAddressToWriteTo, size, error);
-
-        if (error==2)
-        {
-          if (noPageFault)
-            size=pagefaultaddress-VirtualAddressToWriteTo;
-          else
-          {
-            unmapPhysicalMemory(Source, size);
-
-            return raisePagefault(currentcpuinfo, pagefaultaddress); //raise pagefault
-          }
-        }
-        else
-          size=0;
-      }
-
-      //copy memory from physical to vm
-      copymem(Destination, Source, size);
-      vmregisters->rax = size;
-
-      unmapVMmemory(Destination, size);
-      unmapPhysicalMemory(Source, size);
-
-      sendstringf("Returning\n\r");
-
-      break;
+      return vmcall_readPhysicalMemory(currentcpuinfo, vmregisters, (PVMCALL_READPHYSICALMEMORY)vmcall_instruction);
     }
 
     case VMCALL_WRITE_PHYSICAL_MEMORY: //write physical memory
     {
-      UINT64 PhysicalAddressToWriteTo=*(UINT64 *)&vmcall_instruction[3];
-      unsigned int size=vmcall_instruction[5];
-      UINT64 VirtualAddressToReadFrom=*(UINT64 *)&vmcall_instruction[6];
-      unsigned int noPageFault = vmcall_instruction[8];
-      unsigned char *Destination;
-      unsigned char *Source;
-
-      if (size==0)
-        break;
-
-      //map physical memory
-      Destination=(unsigned char *)mapPhysicalMemory(PhysicalAddressToWriteTo, size);
-
-      //map vm memory
-      Source=(unsigned char *)mapVMmemory(currentcpuinfo, VirtualAddressToReadFrom, size, &error, &pagefaultaddress);
-      if (error)
-      {
-        if (error==2)
-        {
-          if (noPageFault)
-            size=pagefaultaddress-VirtualAddressToReadFrom;
-          else
-          {
-            unmapPhysicalMemory(Destination, size);
-            return raisePagefault(currentcpuinfo, pagefaultaddress); //raise pagefault
-          }
-        }
-        else
-          size=0;
-      }
-
-      //copy memory from physical to vm
-      copymem(Destination, Source, size);
-      vmregisters->rax = size;
-
-      unmapPhysicalMemory(Destination, size);
-      unmapVMmemory(Source, size);
-      break;
+      nosendchar[getAPICID()]=0;
+      return vmcall_writePhysicalMemory(currentcpuinfo, vmregisters, (PVMCALL_WRITEPHYSICALMEMORY)vmcall_instruction);
     }
 
     case 5: //Set fake sysentermsr state
@@ -1207,8 +1249,6 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   {
     sendstringf("1: Error. error=%d pagefaultaddress=%6\n\r",error,pagefaultaddress);
 
-    unmapVMmemory(vmcall_instruction,12);
-
     if (error==2) //caused by pagefault, raise pagefault
       return raisePagefault(currentcpuinfo, pagefaultaddress);
 
@@ -1293,8 +1333,11 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     }
     except
     {
+      sendstringf("no jtag available\n");
+      while (1);
     }
     tryend
+
 
     raiseInvalidOpcodeException(currentcpuinfo);
     result=0;

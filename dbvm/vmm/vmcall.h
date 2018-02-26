@@ -49,6 +49,30 @@
 #define VMCALL_GETMEM 38
 #define VMCALL_JTAGBREAK 39
 
+typedef struct
+{
+  DWORD size;
+  DWORD password2;
+  DWORD command;
+} __attribute__((__packed__))  VMCALL_BASIC, *PVMCALL_BASIC;
+
+typedef struct
+{
+  VMCALL_BASIC vmcall;
+  QWORD sourcePA; //physical address to read
+  DWORD bytesToRead; //number of bytes to read
+  QWORD destinationVA; //virtual address to write to
+  DWORD nopagefault; //if not 0 stop at the first pagefault
+} __attribute__((__packed__)) VMCALL_READPHYSICALMEMORY, *PVMCALL_READPHYSICALMEMORY;
+
+typedef struct
+{
+  VMCALL_BASIC vmcall;
+  QWORD destinationPA; //physical address to read
+  DWORD bytesToWrite; //number of bytes to read
+  QWORD sourceVA; //virtual address to write to
+  DWORD nopagefault; //if not 0 stop at the first pagefault
+} __attribute__((__packed__)) VMCALL_WRITEPHYSICALMEMORY, *PVMCALL_WRITEPHYSICALMEMORY;
 
 
 int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters);

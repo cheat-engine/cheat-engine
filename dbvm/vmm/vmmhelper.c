@@ -1014,8 +1014,8 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
 
       case vm_exit_ept_violation:
       {
-        int cs=vmread(vm_guest_cs);
-        unsigned long long rip=vmread(vm_guest_rip);
+        //int cs=vmread(vm_guest_cs);
+        //unsigned long long rip=vmread(vm_guest_rip);
 
         skip=3;
         break;
@@ -1065,8 +1065,8 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
 
       case vm_exit_cr_access:
       {
-        int cs=vmread(vm_guest_cs);
-        unsigned long long rip=vmread(vm_guest_rip);
+        //int cs=vmread(vm_guest_cs);
+        //unsigned long long rip=vmread(vm_guest_rip);
 
         //if ((vmread(vm_exit_qualification) & 0xf)==3)
         {
@@ -1080,8 +1080,8 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
 
       case vm_exit_sipi:
       {
-        int cs=vmread(vm_guest_cs);
-        unsigned long long rip=vmread(vm_guest_rip);
+        //int cs=vmread(vm_guest_cs);
+        //unsigned long long rip=vmread(vm_guest_rip);
 
         break;
       }
@@ -1127,8 +1127,8 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
 
       case vm_exit_invalid_guest_state:
       {
-        int cs=vmread(vm_guest_cs);
-        unsigned long long rip=vmread(vm_guest_rip);
+        //int cs=vmread(vm_guest_cs);
+        //unsigned long long rip=vmread(vm_guest_rip);
 
 
         break;

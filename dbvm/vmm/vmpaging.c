@@ -18,7 +18,12 @@ void unmapVMmemory(void *address, int size)
     unmapPhysicalMemory(address, size);
 }
 
-void * mapVMmemory(pcpuinfo currentcpuinfo, UINT64 address, int size, int *error, UINT64 *pagefaultaddress )
+void * mapVMmemory(pcpuinfo currentcpuinfo, UINT64 address, int size, int *error, UINT64 *pagefaultaddress)
+{
+  return mapVMmemoryEx(currentcpuinfo, address, size, error, pagefaultaddress,0);
+}
+
+void * mapVMmemoryEx(pcpuinfo currentcpuinfo, UINT64 address, int size, int *error, UINT64 *pagefaultaddress, int donotunmaponfail )
 {
   /* Will map the virtual machine's virtual memory  to the vmm's virtual address  *
    * error=0: no error
@@ -93,17 +98,22 @@ void * mapVMmemory(pcpuinfo currentcpuinfo, UINT64 address, int size, int *error
 
     if (notpaged)
     {
-      //error while mapping. unmap the previous pages
+      //error while mapping
       sendstringf("  Which is currently not paged in\n");
 
-      unmapVMmemory(VirtualAddress, i*4096-offset);
+      if (donotunmaponfail==0)
+        unmapVMmemory(VirtualAddress, i*4096-offset);
+
       if (pagefaultaddress)
         *pagefaultaddress=address;
 
       if (error)
         *error=2;
 
-      return 0;
+      if (donotunmaponfail==0)
+        return 0;
+      else
+        return VirtualAddress;
     }
     sendstringf("  Which is located at physical address %6\n", PhysicalAddress);
     sendstringf("  To Host virtual address %6\n", CurrentVirtualAddress);

@@ -83,5 +83,5 @@ clean:
 	@-rm -rf release
 	@-rm -f vmcd.iso
 	@-rm -f dbvm.rar
-	@-rm -f vmm.elf
+	@-rm -f *.elf
 	

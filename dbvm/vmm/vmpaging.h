@@ -14,6 +14,7 @@ QWORD nonpagedEmulationPagedir32BitPA;
 
 
 void *mapVMmemory(pcpuinfo currentcpuinfo, UINT64 address, int size, int *error, UINT64 *pagefaultaddress);
+void *mapVMmemoryEx(pcpuinfo currentcpuinfo, UINT64 address, int size, int *error, UINT64 *pagefaultaddress, int donotunmaponfail );
 void unmapVMmemory(void *address, int size);
 UINT64 getPhysicalAddressVM(pcpuinfo currentcpuinfo, UINT64 address, int *notpaged);
 void optimizeVTLB(pcpuinfo currentcpuinfo, int usermode, int WPbit);

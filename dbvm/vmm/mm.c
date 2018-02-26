@@ -192,7 +192,7 @@ int mmFindMapPositionForSize(pcpuinfo cpuinfo, int size)
 {
 
   if (size==0)
-      return NULL;
+    return -1;
 
   int pagecount=size / 4096;
   int i,pos;
@@ -277,6 +277,10 @@ int mmFindMapPositionForSize(pcpuinfo cpuinfo, int size)
           break;
 
         needed--;
+        j++;
+
+        if (j>=1024)
+          break; //not enough space left
       }
 
       if (needed==0)
