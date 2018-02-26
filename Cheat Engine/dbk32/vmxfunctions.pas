@@ -436,7 +436,7 @@ begin
   vmcallinfo.nopagefault:=0; //I like pagefaults
   
   try
-    result:=vmcall(@vmcallinfo,vmx_password1);
+    result:=size-vmcall(@vmcallinfo,vmx_password1);
   except
     result:=0;
   end;
@@ -463,10 +463,10 @@ begin
   vmcallinfo.nopagefault:=0; //I like pagefaults
   
   try
-    result:=vmcall(@vmcallinfo,vmx_password1);
+    result:=size-vmcall(@vmcallinfo,vmx_password1);  //it returns the number of bytes left
   except
     result:=0; //read 0 bytes
-    messagebox(0,pchar(rsBigError),pchar(rsSmallError),mb_ok);
+   // messagebox(0,pchar(rsBigError),pchar(rsSmallError),mb_ok);
   end;
 end;
 

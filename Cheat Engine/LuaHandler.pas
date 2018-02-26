@@ -4436,6 +4436,51 @@ begin
   result:=1;
 end;
 
+function lua_dbvm_writephysicalmemory(L: PLua_state): integer; cdecl;
+var
+  PhysicalAddress: qword;
+  buffer:pointer;
+  size:integer;
+  i: integer;
+begin
+  if lua_gettop(L)<2 then raise exception.create('not all parameters given');
+  PhysicalAddress:=lua_tointeger(L,1);
+  if lua_istable(L,2)=false then raise exception.create('2nd parameter needs to be a bytetable');
+  size:=lua_objlen(L, 2);
+  getmem(buffer,size);
+  readBytesFromTable(L,2,buffer,size);
+
+  i:=dbvm_write_physical_memory(PhysicalAddress, buffer, size);
+  if size=i then
+    lua_pushboolean(L,true)
+  else
+    lua_pushboolean(L,false);
+  exit(1);
+
+end;
+
+function lua_dbvm_readphysicalmemory(L: PLua_state): integer; cdecl;
+var
+  PhysicalAddress: qword;
+  buffer:pointer;
+  size:integer;
+  i: integer;
+begin
+  if lua_gettop(L)<2 then raise exception.create('not all parameters given');
+  PhysicalAddress:=lua_tointeger(L,1);
+  size:=lua_tointeger(L,2);
+  getmem(buffer,size);
+
+  i:=dbvm_read_physical_memory(PhysicalAddress, buffer, size);
+  if size=i then
+  begin
+    CreateByteTableFromPointer(L, buffer,size);
+    exit(1);
+  end
+  else
+    raise exception.create('not all memory read');
+end;
+
 function dbk_readMSR(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
@@ -8844,6 +8889,7 @@ begin
     lua_register(L, 'dbvm_getCR3', dbvm_getCR3);
     lua_register(L, 'dbvm_getCR4', dbvm_getCR4);
     lua_register(L, 'dbvm_jtagbp', lua_dbvm_jtagbp);
+    lua_register(L ,'dbvm_readPhysicalMemory', lua_dbvm_readphysicalmemory);
 
 
 
