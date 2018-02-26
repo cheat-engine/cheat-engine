@@ -8890,8 +8890,7 @@ begin
     lua_register(L, 'dbvm_getCR4', dbvm_getCR4);
     lua_register(L, 'dbvm_jtagbp', lua_dbvm_jtagbp);
     lua_register(L ,'dbvm_readPhysicalMemory', lua_dbvm_readphysicalmemory);
-
-
+    lua_register(L ,'dbvm_writePhysicalMemory', lua_dbvm_writephysicalmemory);
 
     lua_register(L, 'dbk_getPhysicalAddress', dbk_getPhysicalAddress);
     lua_register(L, 'dbk_writesIgnoreWriteProtection', dbk_writesIgnoreWriteProtection);
