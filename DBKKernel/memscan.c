@@ -362,6 +362,27 @@ BOOLEAN ReadProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Size
 	return NT_SUCCESS(ntStatus);
 }
 
+UINT64 maxPhysAddress = 0;
+UINT64 getMaxPhysAddress(void)
+{
+	if (maxPhysAddress==0)			
+	{
+		int physicalbits;
+		DWORD r[4];
+		__cpuid(r, 0x80000008);
+
+		//get max physical address
+		physicalbits = r[0] & 0xff;
+
+		maxPhysAddress = 0xFFFFFFFFFFFFFFFFULL;
+		maxPhysAddress = maxPhysAddress >> physicalbits; //if physicalbits==36 then maxPhysAddress=0x000000000fffffff
+		maxPhysAddress = ~(maxPhysAddress << physicalbits); //<< 36 = 0xfffffff000000000 .  after inverse : 0x0000000fffffffff		
+	}
+	else
+		return maxPhysAddress;
+}
+
+
 NTSTATUS ReadPhysicalMemory(char *startaddress, UINT_PTR bytestoread, void *output)
 {
 	HANDLE			physmem;
@@ -373,6 +394,12 @@ NTSTATUS ReadPhysicalMemory(char *startaddress, UINT_PTR bytestoread, void *outp
 	PMDL			outputMDL;
 
 	DbgPrint("ReadPhysicalMemory(%p, %d, %p)", startaddress, bytestoread, output);
+
+	if (((UINT64)startaddress > getMaxPhysAddress()) || ((UINT64)startaddress + bytestoread > getMaxPhysAddress()))
+	{
+		DbgPrint("Invalid physical address\n");
+		return ntStatus;
+	}
 	
 	outputMDL = IoAllocateMdl(output, bytestoread, FALSE, FALSE, NULL);
 	__try
@@ -421,11 +448,39 @@ NTSTATUS ReadPhysicalMemory(char *startaddress, UINT_PTR bytestoread, void *outp
 				0,
 				PAGE_READWRITE);
 
-			if ((ntStatus == STATUS_SUCCESS) && (memoryview))
+			if ((ntStatus == STATUS_SUCCESS) && (memoryview!=NULL))
 			{
-				offset=(UINT_PTR)(startaddress)-(UINT_PTR)viewBase.QuadPart;
-				RtlCopyMemory(output,&memoryview[offset],toread);
-				ZwUnmapViewOfSection( NtCurrentProcess(), memoryview);
+				PMDL mvMDL;
+				if (toread > length)
+					toread = length;
+
+				if (toread)
+				{
+
+					mvMDL = IoAllocateMdl(memoryview, toread, FALSE, FALSE, NULL);
+					__try
+					{
+						MmProbeAndLockPages(mvMDL, KernelMode, IoReadAccess);
+
+						offset = (UINT_PTR)(startaddress)-(UINT_PTR)viewBase.QuadPart;
+
+						if (offset + toread > length)
+						{
+							DbgPrint("Too small map");
+						}
+						else
+						{
+							RtlCopyMemory(output, &memoryview[offset], toread);
+						}
+
+						ZwUnmapViewOfSection(NtCurrentProcess(), memoryview);
+					}
+					__except (1)
+					{
+						DbgPrint("Failure mapping physical memory");
+					}
+					IoFreeMdl(mvMDL);
+				}
 			}
 			else
 			{
