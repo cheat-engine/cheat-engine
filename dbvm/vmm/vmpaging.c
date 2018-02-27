@@ -41,7 +41,11 @@ void * mapVMmemoryEx(pcpuinfo currentcpuinfo, UINT64 address, int size, int *err
     */
 
   if (size==0)
-      return NULL;
+  {
+    *error=3;
+    *pagefaultaddress=0;
+    return NULL;
+  }
 
   unsigned int offset=address & 0xfff;
 

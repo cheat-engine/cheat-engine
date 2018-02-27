@@ -450,7 +450,7 @@ int vmcall_readPhysicalMemory(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
 {
   //map physical memory (keep in mind that each CPU in dbvm only has access to 4MB of virtual memory for mapping
 
-  int error;
+  int error=0;
   QWORD pagefaultaddress;
   unsigned char *Destination;
   unsigned char *Source;
@@ -461,6 +461,7 @@ int vmcall_readPhysicalMemory(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
   int currentblocksize=rpmcommand->bytesToRead;
   if (currentblocksize>1048576)
     currentblocksize=1048576;
+
 
   Destination=(unsigned char *)mapVMmemoryEx(currentcpuinfo, rpmcommand->destinationVA, currentblocksize, &error, &pagefaultaddress,1);
 
@@ -1152,6 +1153,25 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
       break;
     }
 
+    case VMCALL_GETNMICOUNT:
+    {
+      vmregisters->rax=NMIcount;
+    }
+
+    case VMCALL_FINDWHATWRITESPAGE:
+    {
+      //if (hasEPTsupport)
+      {
+        //(re)map this address as read/execute only
+
+      }
+     // else
+      {
+        vmregisters->rax = 0xcedead;
+      }
+      break;
+    }
+
 
     default:
       vmregisters->rax = 0xcedead;
@@ -1196,7 +1216,7 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 #endif
 
 
-  nosendchar[getAPICID()]=1;
+
   if (realmode_inthook_calladdressPA) //realmode hook present
   {
     //get the physical address of RIP
@@ -1217,7 +1237,7 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     }
   }
 
-  nosendchar[getAPICID()]=0;
+
   sendstringf("Handling vm(m)call on cpunr:%d \n\r", currentcpuinfo->cpunr);
 
   if (isAMD)

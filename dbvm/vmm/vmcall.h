@@ -48,6 +48,9 @@
 //dbvm11
 #define VMCALL_GETMEM 38
 #define VMCALL_JTAGBREAK 39
+#define VMCALL_GETNMICOUNT 40
+#define VMCALL_FINDWHATWRITESPAGE 41
+
 
 typedef struct
 {

@@ -791,7 +791,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
 
   if (currentcpuinfo->NMIOccured)
   {
-    while (wait) ;
+    //while (wait) ;
 
     currentcpuinfo->NMIOccured=0;
     return raiseNMI();

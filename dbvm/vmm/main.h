@@ -140,6 +140,7 @@ int AMD_hasNRIPS;
 
 
 extern int IntHandlerDebug;
+volatile int NMIcount;
 
 #define vmclear _vmclear
 #define vmptrld _vmptrld

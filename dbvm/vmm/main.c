@@ -97,6 +97,8 @@ int IntHandlerDebug=0;
 
 char bootdisk;
 
+
+
 int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own sourcefile
 {
   PRFLAGS rflags;
@@ -131,7 +133,8 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
     if (intnr==2)
     {
       cpuinfo->NMIOccured=1;
-      while (1);
+      NMIcount++;
+      //while (1);
     }
 
     enableserial();
