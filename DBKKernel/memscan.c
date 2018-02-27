@@ -456,11 +456,8 @@ NTSTATUS ReadPhysicalMemory(char *startaddress, UINT_PTR bytestoread, void *outp
 
 				if (toread)
 				{
-
-					mvMDL = IoAllocateMdl(memoryview, toread, FALSE, FALSE, NULL);
 					__try
 					{
-						MmProbeAndLockPages(mvMDL, KernelMode, IoReadAccess);
 
 						offset = (UINT_PTR)(startaddress)-(UINT_PTR)viewBase.QuadPart;
 
@@ -478,8 +475,7 @@ NTSTATUS ReadPhysicalMemory(char *startaddress, UINT_PTR bytestoread, void *outp
 					__except (1)
 					{
 						DbgPrint("Failure mapping physical memory");
-					}
-					IoFreeMdl(mvMDL);
+					}					
 				}
 			}
 			else
