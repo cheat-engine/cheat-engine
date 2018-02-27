@@ -370,8 +370,20 @@ NTSTATUS ReadPhysicalMemory(char *startaddress, UINT_PTR bytestoread, void *outp
 	WCHAR			physmemName[] = L"\\device\\physicalmemory";
 	UCHAR*			memoryview;
 	NTSTATUS		ntStatus = STATUS_UNSUCCESSFUL;
+	PMDL			outputMDL;
 
 	DbgPrint("ReadPhysicalMemory(%p, %d, %p)", startaddress, bytestoread, output);
+	
+	outputMDL = IoAllocateMdl(output, bytestoread, FALSE, FALSE, NULL);
+	__try
+	{
+		MmProbeAndLockPages(outputMDL, KernelMode, IoWriteAccess);
+	}
+	__except (1)
+	{
+		IoFreeMdl(outputMDL);
+		return STATUS_UNSUCCESSFUL;
+	}
 
 	__try
 	{
@@ -382,8 +394,6 @@ NTSTATUS ReadPhysicalMemory(char *startaddress, UINT_PTR bytestoread, void *outp
 		if (ntStatus==STATUS_SUCCESS)
 		{
 			//hey look, it didn't kill it
-
-
 			UINT_PTR length;
 			PHYSICAL_ADDRESS	viewBase;
 			UINT_PTR offset;
@@ -411,27 +421,27 @@ NTSTATUS ReadPhysicalMemory(char *startaddress, UINT_PTR bytestoread, void *outp
 				0,
 				PAGE_READWRITE);
 
-			if (ntStatus==STATUS_SUCCESS)
+			if ((ntStatus == STATUS_SUCCESS) && (memoryview))
 			{
 				offset=(UINT_PTR)(startaddress)-(UINT_PTR)viewBase.QuadPart;
 				RtlCopyMemory(output,&memoryview[offset],toread);
-
 				ZwUnmapViewOfSection( NtCurrentProcess(), memoryview);
 			}
 			else
 			{
-				DbgPrint("ReadPhysicalMemory:ntStatus=%x", ntStatus); 
+				DbgPrint("ReadPhysicalMemory error:ntStatus=%x", ntStatus); 
 			}
 
 			ZwClose(physmem);
 		};
-
 	}
 	__except(1)
 	{
 		DbgPrint("Error while reading physical memory\n");
 	}
 
+	MmUnlockPages(outputMDL);
+	IoFreeMdl(outputMDL);
 	return ntStatus;
 }
 

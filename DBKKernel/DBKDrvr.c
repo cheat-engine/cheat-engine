@@ -494,15 +494,6 @@ Return Value:
 			cpu_model=cpu_model + (cpu_ext_modelID << 4);
 			cpu_familyID=cpu_familyID + (cpu_ext_familyID << 4);
 
-			if ((r[2]<<9) & 1)
-			{
-				DbgPrint("Intel cpu. IA32_FEATURE_CONTROL MSR=%x", readMSR(0x3a));		
-			}
-			else
-			{
-				DbgPrint("Intel cpu without IA32_FEATURE_CONTROL MSR");		
-			}
-
 			vmx_init_dovmcall(1);
 			setup_APIC_BASE(); //for ultimap
 
