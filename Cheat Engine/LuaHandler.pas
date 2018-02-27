@@ -103,7 +103,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   DebuggerInterface, WindowsDebugger, VEHDebugger, KernelDebuggerInterface,
   DebuggerInterfaceAPIWrapper, Globals, math, speedhack2, CETranslator, binutils,
   xinput, winsapi, frmExeTrainerGeneratorUnit, CustomBase85, FileUtil, networkConfig,
-  LuaCustomType, Filehandler, LuaSQL, frmSelectionlistunit;
+  LuaCustomType, Filehandler, LuaSQL, frmSelectionlistunit, cpuidUnit;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -8600,6 +8600,30 @@ begin
 
 end;
 
+function lua_cpuid(L: PLua_state): integer; cdecl;
+var a,c: dword;
+var r: TCPUIDResult;
+i: integer;
+begin
+  if lua_gettop(L)=0 then exit(0);
+  if lua_gettop(L)>=1 then
+    a:=lua_tointeger(L,1);
+
+  if lua_gettop(L)>=2 then
+    c:=lua_tointeger(L,2)
+  else
+    c:=0;
+
+  r:=CPUID(a,c);
+  lua_newtable(L);
+  i:=lua_gettop(L);
+  lua_setbasictableentry(L, i, 'EAX', r.eax);
+  lua_setbasictableentry(L, i, 'EBX', r.ebx);
+  lua_setbasictableentry(L, i, 'ECX', r.ecx);
+  lua_setbasictableentry(L, i, 'EDX', r.edx);
+  result:=1;
+end;
+
 procedure InitializeLua;
 var
   s: tstringlist;
@@ -9137,6 +9161,7 @@ begin
     lua_register(L, 'closeRemoteHandle', lua_closeRemoteHandle);
 
     lua_register(L, 'showSelectionList', lua_showSelectionList);
+    lua_register(L, 'cpuid', lua_cpuid);
 
 
 
