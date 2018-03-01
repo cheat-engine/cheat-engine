@@ -266,6 +266,61 @@ object frmStructures2: TfrmStructures2
       ShortCut = 13
       OnClick = miChangeValueClick
     end
+    object miChangeType: TMenuItem
+      Caption = 'Change Type'
+      object miChangeTypeByte: TMenuItem
+        Caption = 'Byte'
+        OnClick = OnChangeTypeMenuItemClick
+      end
+      object miChangeType2Byte: TMenuItem
+        Caption = '2 Byte'
+        OnClick = OnChangeTypeMenuItemClick
+      end
+      object miChangeType4Byte: TMenuItem
+        Caption = '4 Byte'
+        OnClick = OnChangeTypeMenuItemClick
+      end
+      object miChangeTypeByteHex: TMenuItem
+        Caption = 'Byte (Hex)'
+        OnClick = OnChangeTypeMenuItemClick
+      end
+      object miChangeType2ByteHex: TMenuItem
+        Caption = '2 Byte (Hex)'
+        OnClick = OnChangeTypeMenuItemClick
+      end
+      object miChangeType4ByteHex: TMenuItem
+        Caption = '4 Byte (Hex)'
+        OnClick = OnChangeTypeMenuItemClick
+      end
+      object miChangeType8ByteHex: TMenuItem
+        Caption = '8 Byte (Hex)'
+        OnClick = OnChangeTypeMenuItemClick
+      end
+      object miChangeTypeFloat: TMenuItem
+        Caption = 'Float'
+        OnClick = OnChangeTypeMenuItemClick
+      end
+      object miChangeTypeDouble: TMenuItem
+        Caption = 'Double'
+        OnClick = OnChangeTypeMenuItemClick
+      end
+      object miChangeTypeString: TMenuItem
+        Caption = 'String'
+        OnClick = OnChangeTypeMenuItemClick
+      end
+      object miChangeTypeUnicode: TMenuItem
+        Caption = 'Unicode'
+        OnClick = OnChangeTypeMenuItemClick
+      end
+      object miChangeTypeArrayOfByte: TMenuItem
+        Caption = 'Array Of Byte'
+        OnClick = OnChangeTypeMenuItemClick
+      end
+      object miChangeTypePointer: TMenuItem
+        Caption = 'Pointer'
+        OnClick = OnChangeTypeMenuItemClick
+      end
+    end
     object miChangeElement: TMenuItem
       Caption = 'Change element'
       Default = True
