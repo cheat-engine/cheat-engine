@@ -32,9 +32,9 @@ void psod(void)
     asm volatile ("": : :"memory");
   }
 
-  int x=call32bit((DWORD)PSOD32BitHandler);
+  int x=call32bit((DWORD)(QWORD)PSOD32BitHandler);
 
-  sendstringf("call32bit((DWORD)PSOD32BitHandler) returned with %d\n", call32bit);
+  sendstringf("call32bit((DWORD)PSOD32BitHandler) returned with %d\n", x);
 
 }
 

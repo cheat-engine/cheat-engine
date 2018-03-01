@@ -11,8 +11,8 @@
 int PSOD32BitHandler()
 {
   int PMInfoBlock=0;
-  volatile unsigned char *biossource=0xc0000;
-  volatile unsigned char *bioscopy=0x80000;
+  volatile unsigned char *biossource=(volatile unsigned char *)0xc0000;
+  volatile unsigned char *bioscopy=(volatile unsigned char *)0x80000;
   int i;
   for (i=0; i<65536; i++)
   {

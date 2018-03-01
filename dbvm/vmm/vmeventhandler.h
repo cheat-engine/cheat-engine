@@ -66,4 +66,6 @@ int raiseNMI(void);
 
 int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, unsigned int cs, UINT64 rip, int haserrorcode, UINT64 errorcode, int isFault);
 
+WORD convertSegmentAccessRightsToSegmentAttrib(ULONG accessrights);
+
 #endif

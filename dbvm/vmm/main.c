@@ -926,11 +926,14 @@ void vmm_entry(void)
   setupFSBase((void*)cpuinfo);
 
 
-
-
   //debug info
   firstcpuinfo=cpuinfo;
   lastaddedcpuinfo=cpuinfo;
+
+#if DISPLAYDEBUG==1
+  initialize_displaydebuglogs();
+#endif
+
 
   sendstringf("initialized cpuinfo at %6\n\r", cpuinfo);
 
@@ -1621,7 +1624,6 @@ void menu2(void)
       }
       else
         key='0';
-
 
       while (IntHandlerDebug) ;
 

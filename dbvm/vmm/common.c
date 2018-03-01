@@ -7,6 +7,7 @@ multiple sources. (e.g vmm and vmloader)
 #include "common.h"
 #include "keyboard.h"
 #include "main.h"
+#include "mm.h"
 
 #include <ieee754.h>
 
@@ -19,6 +20,7 @@ criticalSection sendstringCS;
 
 #if DISPLAYDEBUG==1
 int linessincelastkey=0;
+PStackList displaydebuglog_back, displaydebuglog_forward;
 #endif
 
 int screenheight=25;
@@ -1212,6 +1214,17 @@ void getdisplaychar(int x, int y, PTEXTVIDEO charinfo)
   }
 }
 
+void getdisplayline(int y, TEXTVIDEOLINE lineinfo)
+{
+  PTEXTVIDEO tv=(PTEXTVIDEO)textmemory;
+#if (DISPLAYDEBUG==0)
+  if (!loadedOS)
+#endif
+  {
+    copymem(lineinfo, &tv[y*80], sizeof(TEXTVIDEOLINE));
+  }
+}
+
 
 void printstring(char *s, int x, int y, char foreground, char background)
 {
@@ -1220,10 +1233,85 @@ void printstring(char *s, int x, int y, char foreground, char background)
     printchar(s[i],x%80,y+(x/80),foreground,background);
 }
 
-void movelinesup(void)
+
+void push(PStackList stackobject, void *data, int size)
+{
+  PStackListEntry previous=stackobject->last;
+  PStackListEntry new=(PStackListEntry)malloc(sizeof(StackListEntry));
+  new->data=malloc(size);
+  new->previous=previous;
+  copymem(new->data, data, size);
+
+  stackobject->last=new;
+}
+
+int pop(PStackList stackobject, void *data, int size)
+{
+  PStackListEntry old=stackobject->last;
+
+  if (old)
+  {
+    stackobject->last=old->previous;
+    copymem(data, old->data, size);
+    free(old->data);
+    free(old);
+    return 1;
+  }
+  else
+    return 0; //empty list
+}
+
+volatile int zl=0;
+void movelinesdown(void)
+/*
+ * Moves the lines down (if there is a log to get the previous line from)
+ */
 {
   PTEXTVIDEO tv=(PTEXTVIDEO)textmemory;
   TEXTVIDEO thischar;
+  int x,y;
+
+
+ // while (zl==0);
+
+#if DISPLAYDEBUG==1
+  //save the bottom line to the displaydebuglog_forward buffer
+  if (displaydebuglog_forward) //possible it's NULL
+    push(displaydebuglog_forward, &tv[24*80], sizeof(TEXTVIDEOLINE));
+#endif
+
+  for (y=24; y>=0; y--)
+  {
+    for (x=0; x<80; x++)
+    {
+      //move this char to the one at top
+      getdisplaychar(x,y,&thischar);
+      tv[(y+1)*80+x]=thischar;
+    }
+  }
+
+#if DISPLAYDEBUG==1
+  //get the top line from the displaydebuglog_back
+  if (displaydebuglog_back) //possible it's NULL
+    pop(displaydebuglog_back, tv, sizeof(TEXTVIDEOLINE));
+#endif
+}
+
+void movelinesup(void)
+/*
+ * Moves the lines up
+ */
+{
+  PTEXTVIDEO tv=(PTEXTVIDEO)textmemory;
+  TEXTVIDEO thischar;
+
+
+#if DISPLAYDEBUG==1
+  //save the top line to the displaydebug buffer
+  if (displaydebuglog_back) //possible it's NULL
+    push(displaydebuglog_back, tv, sizeof(TEXTVIDEOLINE));
+#endif
+
 #if (DISPLAYDEBUG==0)
   if (!loadedOS)
 #endif
@@ -1247,6 +1335,12 @@ void movelinesup(void)
       tv[y*80+x]=thischar;
   }
 
+#if DISPLAYDEBUG==1
+  //load the bottom line with the displaydebuglog_forward
+  if (displaydebuglog_forward)
+    pop(displaydebuglog_forward,&tv[24*80], sizeof(TEXTVIDEOLINE));
+#endif
+
 }
 
 void nextline(void)
@@ -1254,9 +1348,7 @@ void nextline(void)
  * move the 'cursor' down one line
  */
 {
-#if DISPLAYDEBUG==1
-  //todo: save the current line to the displaydebug buffer
-#endif
+
 
   currentdisplayrow=0; //all the way to the left
 
@@ -1269,25 +1361,48 @@ void nextline(void)
     currentdisplayline++;
 #if DISPLAYDEBUG==1
   linessincelastkey++;
-  if (linessincelastkey==screenheight-1)
+  if (linessincelastkey>=screenheight-1)
   {
     unsigned char c;
     int done=0;
-    displayline("Press any key to continue");
+    displayline("Press space to continue");
     while (done==0)
     {
       c=kbd_getchar();
 
+      //displayline("(c=%x)", c);
+
       switch (c)
       {
-        case 0x49: //page up
+        case 3: //page up
+          if (displaydebuglog_back->last)
+            movelinesdown();
           //not yet implemented
           break;
 
-        default:
+        case 4: //page down
+          if (displaydebuglog_forward->last)
+            movelinesup();
+          break;
+
+        case 1: //home
+          while (displaydebuglog_back->last)
+            movelinesdown();
+
+          break;
+
+        case 2: //end (or default)
+        case ' ':
+        {
+          while (displaydebuglog_forward->last) //scroll to the end before continue
+            movelinesup();
+
           done=1;
+        }
+
       }
     }
+
     currentdisplayrow=0;
     displayline("                         ");
     currentdisplayrow=0;
@@ -1445,6 +1560,16 @@ void showstatec(ULONG *stack)
   sendstringf("s[0]=%8 s[1]=%8\n\r",stack[0],stack[1]);
   return;
 }
+
+#if DISPLAYDEBUG
+void initialize_displaydebuglogs()
+{
+  displaydebuglog_back=malloc(sizeof(StackList));
+  displaydebuglog_back->last=NULL;
+  displaydebuglog_forward=malloc(sizeof(StackList));;
+  displaydebuglog_forward->last=NULL;
+}
+#endif
 
 
 

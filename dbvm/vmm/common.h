@@ -59,6 +59,19 @@ typedef volatile struct _criticalSection
   int lockcount;
 } criticalSection, *PcriticalSection;
 
+typedef struct _stacklistentry{
+  struct _stacklistentry *previous;
+  void *data;
+} StackListEntry, *PStackListEntry;
+
+typedef struct _stacklist {
+  PStackListEntry last;
+} StackList, *PStackList;
+
+void push(PStackList stackobject, void *data, int size);
+int pop(PStackList stackobject, void *data, int size);
+
+
 typedef union
 {
   UINT64 value;
@@ -200,6 +213,8 @@ typedef struct textvideo {
   char backgroundcolor : 4;
 } TEXTVIDEO, *PTEXTVIDEO;
 
+typedef TEXTVIDEO TEXTVIDEOLINE[80];
+
 unsigned char nosendchar[256];
 
 int currentdisplayline;
@@ -272,7 +287,7 @@ typedef volatile struct _PDE2MB
 typedef volatile struct _PTE_PAE
 {
         unsigned P         :  1; // present (1 = present)
-        unsigned RW        :  1; // read/write
+        unsigned RW        :  1; // read/writedisplaydebugbackwardslog
         unsigned US        :  1; // user/supervisor
         unsigned PWT       :  1; // page-level write-through
         unsigned PCD       :  1; // page-level cache disabled
@@ -516,6 +531,10 @@ extern POPCNT_IMPLEMENTATION popcnt;
 
 extern int getcpunr();
 extern int call32bit(DWORD address);
+
+#if DISPLAYDEBUG
+void initialize_displaydebuglogs();
+#endif
 
 void InitCommon();
 

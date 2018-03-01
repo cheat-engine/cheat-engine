@@ -348,7 +348,7 @@ void initMemTypeRanges()
 
   if (loadedOS==0)
   {
-    addToMemoryRanges(VirtualToPhysical(0x00400000), 0x00400000, MTC_WP);
+    addToMemoryRanges(VirtualToPhysical((void *)0x00400000), 0x00400000, MTC_WP);
   }
 
   csLeave(&memoryrangesCS);
