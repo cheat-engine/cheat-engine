@@ -17,7 +17,11 @@ QWORD textmemory=0x0b8000;
 criticalSection sendstringfCS;
 criticalSection sendstringCS;
 
+#if DISPLAYDEBUG==1
+int linessincelastkey=0;
+#endif
 
+int screenheight=25;
 
 extern int popcnt_support(QWORD val);
 int popcnt_nosupport(QWORD val)
@@ -653,6 +657,9 @@ int vbuildstring(char *str, int size, char *string, __builtin_va_list arglist)
 
 void sendstring(char *s UNUSED)
 {
+#if DISPLAYDEBUG==1
+  displayline(s);
+#endif
 #ifdef DEBUG
   int i;
 
@@ -686,7 +693,7 @@ void sendstringf(char *string UNUSED, ...)
   sl=vbuildstring(temps,200,string,arglist);
   __builtin_va_end(arglist);
 
-#ifdef DISPLAYDEBUG
+#if DISPLAYDEBUG==1
   displayline(temps); //instead of sending the output to the serial port, output to the display
 #else
   csEnter(&sendstringfCS);
@@ -1059,6 +1066,10 @@ void sendchar(char c UNUSED)
 
 char getchar(void)
 {
+
+#if DISPLAYDEBUG==1
+  return kbd_getchar();
+#endif
 #if (defined SERIALPORT) && (SERIALPORT != 0)
 /* returns 0 when no char is pressed
 	 use readstring to wait for keypresses */
@@ -1082,6 +1093,10 @@ char getchar(void)
 char inputa=0,inputb=0;
 char waitforchar(void)
 {
+#if DISPLAYDEBUG==1
+  return kbd_getchar();
+#endif
+
   char c=0;
 #if (defined SERIALPORT) && (SERIALPORT != 0)
 	while (c==0)
@@ -1150,9 +1165,13 @@ int readstring(char *s, int minlength, int maxlength)
 	return i;
 }
 
+#if (DISPLAYDEBUG==0)
+  int askingforkey=0;
+#endif
+
 void setCursorPos(unsigned char x, unsigned char y)
 {
-#ifndef DISPLAYDEBUG
+#if (DISPLAYDEBUG==0)
   if (!loadedOS)
 #endif
   {
@@ -1172,7 +1191,7 @@ void updateCursor(void)
 void printchar(char c, int x, int y, char foreground, char background)
 {
   PTEXTVIDEO tv=(PTEXTVIDEO)textmemory;
-#ifndef DISPLAYDEBUG
+#if (DISPLAYDEBUG==0)
   if (!loadedOS)
 #endif
   {
@@ -1185,7 +1204,7 @@ void printchar(char c, int x, int y, char foreground, char background)
 void getdisplaychar(int x, int y, PTEXTVIDEO charinfo)
 {
   PTEXTVIDEO tv=(PTEXTVIDEO)textmemory;
-#ifndef DISPLAYDEBUG
+#if (DISPLAYDEBUG==0)
   if (!loadedOS)
 #endif
   {
@@ -1205,7 +1224,7 @@ void movelinesup(void)
 {
   PTEXTVIDEO tv=(PTEXTVIDEO)textmemory;
   TEXTVIDEO thischar;
-#ifndef DISPLAYDEBUG
+#if (DISPLAYDEBUG==0)
   if (!loadedOS)
 #endif
   {
@@ -1235,6 +1254,10 @@ void nextline(void)
  * move the 'cursor' down one line
  */
 {
+#if DISPLAYDEBUG==1
+  //todo: save the current line to the displaydebug buffer
+#endif
+
   currentdisplayrow=0; //all the way to the left
 
   if (currentdisplayline>=24)
@@ -1244,6 +1267,33 @@ void nextline(void)
   }
   else
     currentdisplayline++;
+#if DISPLAYDEBUG==1
+  linessincelastkey++;
+  if (linessincelastkey==screenheight-1)
+  {
+    unsigned char c;
+    int done=0;
+    displayline("Press any key to continue");
+    while (done==0)
+    {
+      c=kbd_getchar();
+
+      switch (c)
+      {
+        case 0x49: //page up
+          //not yet implemented
+          break;
+
+        default:
+          done=1;
+      }
+    }
+    currentdisplayrow=0;
+    displayline("                         ");
+    currentdisplayrow=0;
+    linessincelastkey=0;
+  }
+#endif
 }
 
 void displayline(char *s, ...)
@@ -1263,7 +1313,7 @@ void displayline(char *s, ...)
   {
 
 #ifdef DEBUG
-#ifndef DISPLAYDEBUG
+#if (DISPLAYDEBUG==0)
   sendstringf(temps);
 #endif
 #endif
@@ -1395,6 +1445,8 @@ void showstatec(ULONG *stack)
   sendstringf("s[0]=%8 s[1]=%8\n\r",stack[0],stack[1]);
   return;
 }
+
+
 
 int Initialized=0;
 void InitCommon()

@@ -5,11 +5,14 @@
 #SERIALPORT=0xd010 #16 core test system
 #SERIALPORT=0x2f8 #vmware test
 SERIALPORT=0 #release/no serialport build
+
+#DISPLAYDEBUG if DISPLAYDEBUG==1 it means that all serial output will be sent to the screen instead (useful for cases where dbvm won't load AT ALL, not so much when it does)
+DISPLAYDEBUG=0
 #SERIALPORT=0xf010 #32 core test system
  
 
 all:
-	make -C vmm	all SERIALPORT=${SERIALPORT}
+	make -C vmm	all SERIALPORT=${SERIALPORT} DISPLAYDEBUG=${DISPLAYDEBUG}
 	make -C common all SERIALPORT=${SERIALPORT}
 	make -C parsevmmmap all SERIALPORT=${SERIALPORT}
 	parsevmmmap/parsevmmmap	
@@ -23,8 +26,11 @@ install: all
 	imagemaker/imagemaker
 	chmod 777 vmdisk.img
 	chmod 777 vmdisk144.img
-	sync	
-
+	sync
+	
+displaydebug: DISPLAYDEBUG=1
+displaydebug: clean install
+	
 usb: install
 	@if [ -b /dev/sdc ] ;\
 	then \
@@ -55,6 +61,8 @@ cdimage: install
 	cp vmdisk144.img iso/boot
 	cd iso
 	mkisofs -r -b boot/vmdisk144.img -c boot/boot.catalog -o vmcd.iso iso/
+	
+
 	
 
 release: clean install cdimage

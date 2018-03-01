@@ -632,7 +632,12 @@ void sendvmstate(pcpuinfo currentcpuinfo UNUSED, VMRegisters *registers UNUSED)
 //int autocont=8;
 int twister=0;
 //int guestwantstoknow=0;
+
+#if DISPLAYDEBUG==1
+int verbosity=10;
+#else
 int verbosity=1;
+#endif
 int rotations=0;
 int cpu2=0; //debug to stop cpu1 when cpu2 is spawned
 

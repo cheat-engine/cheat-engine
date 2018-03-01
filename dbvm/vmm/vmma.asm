@@ -2292,6 +2292,7 @@ pop rax
 
 mov word [0x40000],0x80
 mov dword [0x40002],0x50000
+mov dword [0x40006],0
 lgdt [0x40000]
 
 jmp far [movetorealstart]
@@ -2312,7 +2313,6 @@ nop
 mov cr4,ebx
 mov cr0,eax
 
-
 mov ax,8
 mov ds,ax
 mov es,ax
@@ -2322,6 +2322,8 @@ mov ss,ax
 mov esp,0x5000
 mov eax,0
 cpuid
+
+
 
 ;disable paging
 mov eax,cr0
@@ -2417,7 +2419,6 @@ lidt [0x0]
 mov word [0],0   ;  0
 mov dword [2],0
 lgdt [0x0]
-
 
 ;xchg bx,bx
 nop

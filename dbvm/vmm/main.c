@@ -27,6 +27,7 @@
 #include "vmcall.h"
 #include "vmpaging.h"
 #include "vmxsetup.h"
+#include "vmcall.h"
 //#include "psod.h" //for pink screen of death support
 
 /*
@@ -71,7 +72,11 @@ extern unsigned int isAP;
 volatile int AP_Terminate; //set to 1 to terminate the AP cpu's
 volatile int AP_Launch; //set to 1 to launch the AP cpu's
 
+#if (DISPLAYDEBUG==0)
 int needtospawnApplicationProcessors=1;
+#else
+int needtospawnApplicationProcessors=0; //the display is cluttered as it is
+#endif
 
 
 #define SETINT(INTNR) intvector[INTNR].wLowOffset=(WORD)(UINT64)inthandler##INTNR; \
@@ -126,20 +131,6 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
   sendstringCS.locked=0;
   sendstringfCS.lockcount=0;
   sendstringfCS.locked=0;
-
-  if ((cpuinfo->OnInterrupt.RIP==0) && (cpuinfo->OnException[0].RIP==0))
-  {
-	  //unexpected exception
-    if (intnr==2)
-    {
-      cpuinfo->NMIOccured=1;
-      NMIcount++;
-      //while (1);
-    }
-
-    enableserial();
-    nosendchar[thisAPICID]=0; //override a block if there was one, this is important:
-  }
 
 
  // sendstringf("interrupt fired : %d (%x)\n\r", intnr,intnr);
@@ -201,6 +192,14 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
 
 
   rflags=(PRFLAGS)&stack[16+2+errorcode];
+
+
+  if ((intnr==2) && (rflags->IF==0))
+  {
+    cpuinfo->NMIOccured=1;
+    NMIcount++;
+    return errorcode;
+  }
 
   sendstringf("Checking if it was an expected interrupt\n\r");
 
@@ -1408,7 +1407,6 @@ AfterBPTest:
   displayline("Skipping menu system and autostarting VM\n");
 #endif
 
-
   {
     //mark the region between 0 to 0x00400000 as readonly, if you need to write, map it
     PPDPTE_PAE pml4entry;
@@ -1421,8 +1419,12 @@ AfterBPTest:
     pagedirentry[1].RW=0;
   }
 
+#if DISPLAYDEBUG==0
   if (needtospawnApplicationProcessors)
+#endif
     textmemory=(QWORD)mapPhysicalMemory(0xb8000, 4096); //at least enough for 80*25*2
+
+
 
   menu2();
   return;
@@ -1527,7 +1529,7 @@ void reboot(int skipAPTerminationWait)
   UINT64 gdtaddress=getGDTbase();  //0x40002 contains the address of the GDT table
 
   sendstring("Copying gdt to low memory\n\r");
-  copymem((void *)0x50000,(void *)(UINT64)gdtaddress,getGDTsize()); //copy gdt to 0x50000
+  copymem((void *)0x50000,(void *)(UINT64)gdtaddress,128); //copy gdt to 0x50000
 
   sendstring("copying movetoreal to 0x2000\n\r");
   copymem((void *)0x20000,(void *)(UINT64)&movetoreal,(UINT64)&vmxstartup_end-(UINT64)&movetoreal);
@@ -1535,7 +1537,12 @@ void reboot(int skipAPTerminationWait)
 
   sendstring("Calling quickboot\n\r");
 
-  *(unsigned char *)0x7c0e=bootdisk;
+  if (skipAPTerminationWait==0xcedead) //PSOD
+    *(unsigned char *)0x7c0e=0xff;
+  else
+    *(unsigned char *)0x7c0e=bootdisk;
+
+
 
   quickboot();
   sendstring("WTF?\n\r");
@@ -1597,7 +1604,7 @@ void menu2(void)
     displayline("9: test input\n");
     displayline("a: test branch profiling\n");
     displayline("b: boot without vm (test state vm would set)\n");
-    displayline("c: boot without vm and lock FEATURE CONTROL\n");
+    displayline("c: PSOD test\n");
     displayline("v: control register test\n");
     displayline("e: efer test\n");
     displayline("o: out of memory test\n");
@@ -1899,40 +1906,7 @@ afterWRBPtest:
 
           case 'c':
           {
-            QWORD IA32_FEATURE_CONTROL;
-            IA32_FEATURE_CONTROL=readMSR(IA32_FEATURE_CONTROL_MSR);
-            displayline("IA32_FEATURE_CONTROL was %6\n\r",IA32_FEATURE_CONTROL);
-
-            if (IA32_FEATURE_CONTROL & FEATURE_CONTROL_LOCK)
-            {
-              displayline("IA32_FEATURE_CONTROL is locked (value=%6). (Disabled in bios?)\n\r",IA32_FEATURE_CONTROL);
-              if (!(IA32_FEATURE_CONTROL & FEATURE_CONTROL_VMXON ))
-              {
-                displayline("Bit 2 (VMX) is also disabled. VMX is not possible\n");
-                return;
-              }
-              else
-                displayline("VMXON was already enabled in the feature control MSR\n");
-            }
-            else
-            {
-              displayline("Not locked yet\n");
-
-              IA32_FEATURE_CONTROL=IA32_FEATURE_CONTROL | FEATURE_CONTROL_VMXON | FEATURE_CONTROL_LOCK;
-
-              displayline("setting IA32_FEATURE_CONTROL to %6\n\r",IA32_FEATURE_CONTROL);
-
-              writeMSR(IA32_FEATURE_CONTROL_MSR,IA32_FEATURE_CONTROL);
-              IA32_FEATURE_CONTROL=readMSR(IA32_FEATURE_CONTROL_MSR);
-              displayline("IA32_FEATURE_CONTROL is now %6\n\r",IA32_FEATURE_CONTROL);
-            }
-
-
-
-
-            displayline("Press a key to boot");
-            key=kbd_getchar();
-            reboot(0);
+            psod();
             displayline("WTF?\n");
             break;
           }
@@ -2700,10 +2674,6 @@ void startvmx(pcpuinfo currentcpuinfo)
               displayline("Exit from launchVMX, if you see this, something horrible has happened\n");
               sendstring("Exit from launchVMX\n\r");
 
-#ifdef DISPLAYDEBUG
-              while (1);
-#endif
-
             }
             else
             {
@@ -2769,9 +2739,4 @@ void startvmx(pcpuinfo currentcpuinfo)
 
   if (currentcpuinfo->cpunr==0)
     displayline("bye...\n");
-
-#ifdef DISPLAYDEBUG
-  while (1);
-#endif
-
 }

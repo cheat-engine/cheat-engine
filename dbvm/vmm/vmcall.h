@@ -87,4 +87,6 @@ void writeMSRSafe(pcpuinfo currentcpuinfo, DWORD msr, QWORD value);
 int raiseInvalidOpcodeException(pcpuinfo currentcpuinfo); //
 int raisePagefault(pcpuinfo currentcpuinfo, UINT64 address);
 
+void psod(void); //freezes DBVM
+
 #endif /*VMCALL_H_*/

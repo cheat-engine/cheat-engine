@@ -844,11 +844,9 @@ void setupVMX(pcpuinfo currentcpuinfo)
     displayline("IA32_VMX_EXIT_CTLS=%6\n\r",IA32_VMX_EXIT_CTLS);
     displayline("IA32_VMX_ENTRY_CTLS=%6\n\r",IA32_VMX_ENTRY_CTLS);
     displayline("IA32_VMX_MISC=%6\n\r",IA32_VMX_MISC.IA32_VMX_MISC);
-
-
   }
 
-  //compatibility mode with newer cpus that have 0 settings for features that I expect are 1
+  //compatibility mode with newer cpus that have 0 settings for features that I expect are 1 (for cpu's that didn't have the TRUE feature)
   if ((IA32_VMX_PINBASED_CTLS >> 32) & (1<<1))
     IA32_VMX_PINBASED_CTLS|=(1<<1);
 
@@ -858,29 +856,31 @@ void setupVMX(pcpuinfo currentcpuinfo)
   if ((IA32_VMX_PINBASED_CTLS >> 32) & (1<<4))
     IA32_VMX_PINBASED_CTLS|=(1<<4);
 
-  if ((IA32_VMX_PROCBASED_CTLS >> 32) & (1<<1))
+
+  //proc based : 1, 4-6, 8, 13-16, 26
+  if ((IA32_VMX_PROCBASED_CTLS >> 32) & (1<<1)) //1: CAN be on->MUST be one
     IA32_VMX_PROCBASED_CTLS|=(1<<1);
   else
   {
     sendstring("Fail1\n");
   }
 
-  if (((IA32_VMX_PROCBASED_CTLS >> 32) & (7<<4)) ==(7<<4))
+  if (((IA32_VMX_PROCBASED_CTLS >> 32) & (7<<4)) ==(7<<4)) //4-6: CAN be on->MUST be one
       IA32_VMX_PROCBASED_CTLS|=(7<<4);
   else
   {
       sendstring("Fail2\n");
   }
 
-  if ((IA32_VMX_PROCBASED_CTLS >> 32) & (1<<8))
+  if ((IA32_VMX_PROCBASED_CTLS >> 32) & (1<<8)) //8
     IA32_VMX_PROCBASED_CTLS|=(1<<8);
   else
   {
     sendstring("Fail3\n");
   }
 
-  if (((IA32_VMX_PROCBASED_CTLS >> 32) & (15<<13)) ==(15<<13))
-      IA32_VMX_PROCBASED_CTLS|=(15<<13);
+  if (((IA32_VMX_PROCBASED_CTLS >> 32) & (0xf<<13)) ==(0xf<<13)) //13,14,15,16
+      IA32_VMX_PROCBASED_CTLS|=(0xf<<13);
   else
   {
     sendstring("Fail4\n");
@@ -893,37 +893,13 @@ void setupVMX(pcpuinfo currentcpuinfo)
     sendstring("Fail5\n");
   }
 
-  if ((IA32_VMX_PROCBASED_CTLS >> 32) & (1<<15))
-      IA32_VMX_PROCBASED_CTLS|=(1<<15);
-  else
-  {
-    sendstring("CR3 load exiting fail\n");
-  }
-
-  if ((IA32_VMX_PROCBASED_CTLS >> 32) & (1<<16))
-    IA32_VMX_PROCBASED_CTLS|=(1<<16);
-  else
-  {
-    sendstring("CR3 store exiting fail\n");
-  }
-
-
-
-
- // IA32_VMX_PROCBASED_CTLS=IA32_VMX_PROCBASED_CTLS | (1<<1) | (7<<4) | (1<<8) | (15<<13) | (1<<26);
-
-  //do a check for a secondary entry
-
-
-
-
-
 
   sendstringf("%d: Initializing vmcs region for launch\n\r",currentcpuinfo->cpunr);
 
 
   //32-bit control fields
   vmwrite(vm_execution_controls_pin,(ULONG)IA32_VMX_PINBASED_CTLS); //pin-based VM-execution controls
+
 
   sendstringf("Set vm_execution_controls_pin to %8 (became %8)\n", (ULONG)IA32_VMX_PINBASED_CTLS, (DWORD)vmread(vm_execution_controls_pin));
 
@@ -1391,6 +1367,9 @@ void setupVMX(pcpuinfo currentcpuinfo)
       currentcpuinfo->guestCR3=getCR3();
       currentcpuinfo->guestCR0=getCR0();
       currentcpuinfo->hasIF=0;
+
+
+
 
       DWORD new_vm_execution_controls_cpu=vmread(vm_execution_controls_cpu) | (DWORD)IA32_VMX_PROCBASED_CTLS;
 

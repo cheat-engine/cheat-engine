@@ -10,7 +10,11 @@
   #define DEBUGINTHANDLER //comment for release
 #endif
 
-//#define DISPLAYDEBUG //send serialport debug output to the displaym, and overrides the loadedos var block
+#if (DISPLAYDEBUG==1)
+  #define DEBUG
+  #define DEBUGINTHANDLER
+#endif
+
 #define ULTIMAPDEBUG //for debugging ultimap (I seem to have misplaced my serial port...)
 
 
@@ -511,6 +515,7 @@ typedef int (*POPCNT_IMPLEMENTATION)(QWORD val);
 extern POPCNT_IMPLEMENTATION popcnt;
 
 extern int getcpunr();
+extern int call32bit(DWORD address);
 
 void InitCommon();
 

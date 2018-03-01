@@ -81,6 +81,7 @@ unsigned char kbd_getkey(void)
 
 char kbd_convertscancodetochar(unsigned char scancode, int scancodeset )
 {
+  displayline(" -%x- ", scancode);
 	if (scancodeset==1)
 	{
 		switch (scancode)
@@ -138,6 +139,12 @@ char kbd_convertscancodetochar(unsigned char scancode, int scancodeset )
 			case 0x35: return '/';
 			case 0x39: return ' ';
 			
+
+			case 0x47: return 0x20; //home
+			case 0x49: return 0x21; //page up
+			case 0x4f: return 0x35; //end
+			case 0x51: return 0x36; //page down
+
 			default:  return 0;
 		}
 	} else return 0;

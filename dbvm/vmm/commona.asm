@@ -29,6 +29,10 @@ ret
 ;
 ;
 global clearScreen
+%if DISPLAYDEBUG == 1
+extern linessincelastkey;
+%endif
+
 clearScreen:
 cmp qword [loadedOS],0
 jne clearScreenExit
@@ -36,6 +40,10 @@ mov rdi,[textmemory]
 mov rax,0x0f200f200f200f20
 mov rcx,2*80*25 / 8
 rep stosq
+
+%if DISPLAYDEBUG == 1
+mov byte [linessincelastkey],0
+%endif
 clearScreenExit:
 ret
 
@@ -213,6 +221,27 @@ push qword [rdi+0x38]
 popfq
 
 ret
+
+global call32bit
+call32bit:
+;switch to a 32-bit code segment, call the given function, and return back to 64-bit
+mov eax,edi
+jmp far [call32bit_32bitcodeaddress]
+
+call32bit_32bitcodeaddress:
+dd call32bit_32bitcode
+dw 24
+
+BITS 32
+call32bit_32bitcode:
+call eax
+jmp 80:call32bit_64bitcode
+
+BITS 64
+call32bit_64bitcode:
+ret
+
+
 
 ;void longjmp(jmp_buf env, int val);
 global longjmp

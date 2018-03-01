@@ -9,10 +9,35 @@
 #include "msrnames.h"
 #include "ultimap.h"
 #include "vmxsetup.h"
+#include "multicore.h"
+#include "apic.h"
 
+#include "psod32.h"
 
 //#pragma GCC push_options
 //#pragma GCC optimize ("O0")
+
+void psod(void)
+{
+  {
+    //remapping pagetable entry 0 to 0x00400000 so it's writabe (was marked unwritable after entry)
+    PPDPTE_PAE pml4entry;
+    PPDPTE_PAE pagedirpointerentry;
+    PPDE_PAE pagedirentry;
+    PPTE_PAE pagetableentry;
+
+    VirtualAddressToPageEntries(0, &pml4entry, &pagedirpointerentry, &pagedirentry, &pagetableentry);
+    pagedirentry[0].RW=1;
+    pagedirentry[1].RW=1;
+    asm volatile ("": : :"memory");
+  }
+
+  int x=call32bit((DWORD)PSOD32BitHandler);
+
+  sendstringf("call32bit((DWORD)PSOD32BitHandler) returned with %d\n", call32bit);
+
+}
+
 QWORD readMSRSafe(pcpuinfo currentcpuinfo, DWORD msr)
 {
   volatile QWORD result=0;
@@ -1118,12 +1143,8 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
 
     case VMCALL_PSODTEST:
     {
-      if (isAMD)
-      {
-        vmregisters->rax = 0xcedead;
-        break;
-      }
-      //PSOD("VMCALL_ULTIMAP_PSODTEST");
+      psod();
+            //PSOD("VMCALL_ULTIMAP_PSODTEST");
       break;
     }
 
@@ -1156,6 +1177,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
     case VMCALL_GETNMICOUNT:
     {
       vmregisters->rax=NMIcount;
+      break;
     }
 
     case VMCALL_FINDWHATWRITESPAGE:
