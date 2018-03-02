@@ -332,6 +332,20 @@ type
     MenuItem5: TMenuItem;
     MenuItem6: TMenuItem;
     MenuItem7: TMenuItem;
+    miChangeTypeArrayOfByte: TMenuItem;
+    miChangeTypePointer: TMenuItem;
+    miChangeTypeUnicode: TMenuItem;
+    miChangeTypeString: TMenuItem;
+    miChangeTypeDouble: TMenuItem;
+    miChangeTypeFloat: TMenuItem;
+    miChangeType8ByteHex: TMenuItem;
+    miChangeType4ByteHex: TMenuItem;
+    miChangeType2ByteHex: TMenuItem;
+    miChangeTypeByteHex: TMenuItem;
+    miChangeType4Byte: TMenuItem;
+    miChangeType2Byte: TMenuItem;
+    miChangeTypeByte: TMenuItem;
+    miChangeType: TMenuItem;
     miDefineNewStructureFromDebugData: TMenuItem;
     miBack: TMenuItem;
     N5: TMenuItem;
@@ -398,6 +412,7 @@ type
     tmFixGui: TTimer;
     updatetimer: TTimer;
     tvStructureView: TTreeView;
+    procedure OnChangeTypeMenuItemClick(Sender: TObject);
     procedure Addextraaddress1Click(Sender: TObject);
     procedure FindDialog1Find(Sender: TObject);
     procedure HeaderControl1SectionResize(HeaderControl: TCustomHeaderControl;
@@ -4304,6 +4319,8 @@ var childstruct: TDissectedStruct;
   ownerstruct: TDissectedStruct;
   structelement: TStructelement;
   c: TStructColumn;
+  address: ptruint;
+  hasError: boolean;
 begin
   ownerstruct:=getStructFromNode(tvStructureView.selected);
   childstruct:=getChildStructFromNode(tvStructureView.selected);
@@ -4327,7 +4344,6 @@ begin
   miBrowseAddress.Visible:=tvStructureView.Selected<>nil;
   miBrowsePointer.visible:=(structelement<>nil) and (structelement.isPointer);
 
-
   miChangeValue.Visible:=structelement<>nil;
   miUpdateOffsets.visible:=structelement<>nil;
   miAddToAddresslist.Visible:=structelement<>nil;
@@ -4346,6 +4362,96 @@ begin
   c:=getFocusedColumn;
   n5.Visible:=(c<>nil) and c.canPopAddress;
   miBack.visible:=n5.Visible;
+
+  // change type menu and display types
+  miChangeType.visible:=structElement<>nil;
+  if (miChangeType.visible) then
+  begin
+    hasError := true; // default to not show
+    if (tvStructureView.Selected<>nil) and (c<>nil)then address := getAddressFromNode(tvStructureView.Selected, c, hasError);
+
+    if hasError then
+    begin
+      // just display types if we don't have a valid address
+      miChangeTypeByte.Caption:='Byte';
+      miChangeType2Byte.Caption:='2 Byte';
+      miChangeType4Byte.Caption:='4 Byte';
+      miChangeTypeByteHex.Caption:='Byte (Hex)';
+      miChangeType2ByteHex.Caption:='2 Byte (Hex)';
+      miChangeType4ByteHex.Caption:='4 Byte (Hex)';
+      miChangeType8ByteHex.Caption:='8 Byte (Hex)';
+      miChangeTypeFloat.Caption:='Float';
+      miChangeTypeDouble.Caption:='Double';
+      miChangeTypeString.Caption:='String';
+      miChangeTypeUnicode.Caption:='Unicode';
+      miChangeTypeArrayOfByte.Caption:='Array of Byte';
+      miChangeTypePointer.Caption:='Pointer';
+    end else begin
+      // booleans are hex override, signed
+      miChangeTypeByte.Caption:=Format('Byte: %s', [readAndParseAddress(address, vtByte, nil, false, true, 1)]);
+      miChangeType2Byte.Caption:=Format('2 Byte: %s', [readAndParseAddress(address, vtWord, nil, false, true, 2)]);
+      miChangeType4Byte.Caption:=Format('4 Byte: %s', [readAndParseAddress(address, vtDword, nil, false, true, 4)]);
+      miChangeTypeByteHex.Caption:=Format('Byte (Hex): %s', [readAndParseAddress(address, vtByte, nil, true, false, 1)]);
+      miChangeType2ByteHex.Caption:=Format('2 Byte (Hex): %s', [readAndParseAddress(address, vtWord, nil, true, false, 2)]);
+      miChangeType4ByteHex.Caption:=Format('4 Byte (Hex): %s', [readAndParseAddress(address, vtDword, nil, true, false, 4)]);
+      miChangeType8ByteHex.Caption:=Format('8 Byte (Hex): %s', [readAndParseAddress(address, vtQWord, nil, true, false, 8)]);
+      miChangeTypeFloat.Caption:=Format('Float: %s', [readAndParseAddress(address, vtSingle, nil, false, true, 4)]);
+      miChangeTypeDouble.Caption:=Format('Double: %s', [readAndParseAddress(address, vtDouble, nil, false, true, 8)]);
+      miChangeTypeString.Caption:=Format('String: %s', [readAndParseAddress(address, vtString, nil, false, false, 32)]);
+      miChangeTypeUnicode.Caption:=Format('Unicode: %s', [readAndParseAddress(address, vtUnicodeString, nil, false, true, 32)]);
+      miChangeTypeArrayOfByte.Caption:=Format('Array of Byte: %s', [readAndParseAddress(address, vtByteArray, nil, true, false, 16)]);
+      if processhandler.pointersize = 4 then
+        miChangeTypePointer.Caption:=Format('Pointer: P->%s', [readAndParseAddress(address, vtDWord, nil, true, false, 4)])
+      else
+        miChangeTypePointer.Caption:=Format('Pointer: P->%s', [readAndParseAddress(address, vtQWord, nil, true, false, 8)]);
+    end;
+  end;
+end;
+
+procedure TfrmSTructures2.OnChangeTypeMenuItemClick(Sender: TObject);
+var
+  vt: TVariableType;
+  size: integer;
+  element: TStructElement;
+  displayMethod: TDisplayMethod;
+begin
+  element := getStructElementFromNode(tvStructureView.Selected);
+  if (element = nil) then exit;
+
+  if (Sender = miChangeTypeByte) or (Sender = miChangeTypeByteHex) then vt := vtByte
+  else if (Sender = miChangeType2Byte) or (Sender = miChangeType2ByteHex) then vt := vtWord
+  else if (Sender = miChangeType4Byte) or (Sender = miChangeType4ByteHex) then vt := vtDWord
+  else if (Sender = miChangeType8ByteHex) then vt := vtQWord
+  else if (Sender = miChangeTypeFloat) then vt := vtSingle
+  else if (Sender = miChangeTypeDouble) then vt := vtDouble
+  else if (Sender = miChangeTypeString) then vt := vtString
+  else if (Sender = miChangeTypeUnicode) then vt := vtUnicodeString
+  else if (Sender = miChangeTypeArrayOfByte) then vt := vtByteArray
+  else if (Sender = miChangeTypePointer) then vt := vtPointer;
+
+  case vt of
+    vtByte: size := 1;
+    vtWord: size := 2;
+    vtDword: size := 4;
+    vtQword: size := 8;
+    vtSingle: size := 4;
+    vtDouble: size := 8;
+    vtPointer: size := processhandler.pointersize;
+    vtByteArray: size := 16;
+    vtString: size := 32;
+    vtUnicodeString: size := 32;
+  end;
+
+  displayMethod := dtHexadecimal;
+
+  // only decimal and float types are signed, and are not hex
+  if (Sender = miChangeTypeByte) or (Sender = miChangeType2Byte) or
+     (Sender = miChangeType4Byte) or (Sender = miChangeTypeFloat) or
+     (Sender = miChangeTypeDouble) then displayMethod := dtSignedInteger;
+
+  element.setVartype(vt);
+  element.setDisplayMethod(displayMethod);
+  element.setBytesize(size);
 end;
 
 procedure TfrmStructures2.miNewWindowClick(Sender: TObject);
