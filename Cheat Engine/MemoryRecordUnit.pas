@@ -177,7 +177,7 @@ type
     fDropDownLinked: boolean;
     fDropDownLinkedMemrec: string;
     linkedDropDownMemrec: TMemoryRecord;
-    OldlinkedDropDownMemrecOnDestroy: TNotifyEvent;
+    memrecsLinkedToMe: array of TMemoryRecord; // a list of all memrecs linked to this memrec
 
 
     fDontSave: boolean;
@@ -233,16 +233,13 @@ type
     function getDropDownDescriptionOnly: boolean;
     function getDisplayAsDropDownListItem: boolean;
 
+    procedure setDropDownLinkedMemrec(s: string);
 
 
     function GetCollapsed: boolean;
     procedure SetCollapsed(state: boolean);
 
     procedure processingDone; //called by the processingThread when finished
-
-    procedure OnLinkedMemrecDestroy(Sender: TObject);
-
-    function getlinkedDropDownMemrec: TMemoryRecord;
   public
 
 
@@ -321,6 +318,9 @@ type
     function isProcessing: boolean;
     function getProcessingTime: qword;
 
+    function getlinkedDropDownMemrec: TMemoryRecord;
+    function getlinkedDropDownMemrec_LoopDetected: boolean;
+
     constructor Create(AOwner: TObject);
     destructor destroy; override;
 
@@ -357,7 +357,7 @@ type
     property Options: TMemrecOptions read fOptions write setOptions;
 
     property DropDownLinked: boolean read fDropDownLinked write fDropDownLinked;
-    property DropDownLinkedMemrec: string read fDropDownLinkedMemrec write fDropDownLinkedMemrec;
+    property DropDownLinkedMemrec: string read fDropDownLinkedMemrec write setDropDownLinkedMemrec;
     property DropDownList: TStringlist read fDropDownList;
     property DropDownReadOnly: boolean read getDropDownReadOnly write fDropDownReadOnly;
     property DropDownDescriptionOnly: boolean read getDropDownDescriptionOnly write fDropDownDescriptionOnly;
@@ -765,6 +765,18 @@ begin
   {$endif}
 end;
 
+procedure TMemoryRecord.setDropDownLinkedMemrec(s: string);
+var i: integer;
+begin
+  // changing DropDownLinkedMemrec to other memrec
+  // remove old link(s) (if any)
+  if linkedDropDownMemrec<>nil then
+    for i:=0 to length(linkedDropDownMemrec.memrecsLinkedToMe)-1 do
+      if linkedDropDownMemrec.memrecsLinkedToMe[i]=self then
+        linkedDropDownMemrec.memrecsLinkedToMe[i]:=nil;
+  fDropDownLinkedMemrec:=s;
+  linkedDropDownMemrec:=nil;
+end;
 
 function TMemoryRecord.getDropDownCount: integer;
 var mr: tmemoryrecord;
@@ -974,11 +986,18 @@ begin
     freeandnil(processingThread);
   end;
 
+  {----------------DropDownList linking----------------}
+  // remove the link(s) (if any)
+
   if linkedDropDownMemrec<>nil then
-  begin
-    linkedDropDownMemrec.OnDestroy:=OldlinkedDropDownMemrecOnDestroy;
-    linkedDropDownMemrec:=nil;
-  end;
+    for i:=0 to length(linkedDropDownMemrec.memrecsLinkedToMe)-1 do
+      if linkedDropDownMemrec.memrecsLinkedToMe[i]=self then
+        linkedDropDownMemrec.memrecsLinkedToMe[i]:=nil;
+
+  for i:=0 to length(memrecsLinkedToMe)-1 do
+    if memrecsLinkedToMe[i]<>nil then
+      memrecsLinkedToMe[i].linkedDropDownMemrec:=nil;
+  {-------------^^^DropDownList linking^^^-------------}
 
   if assigned(fOnDestroy) then
     fOnDestroy(self);
@@ -3103,30 +3122,45 @@ begin
   self.RealAddress:=result;
 end;
 
-procedure TMemoryRecord.OnLinkedMemrecDestroy(Sender: TObject);
-begin
-  linkedDropDownMemrec:=nil;
-  if assigned(OldlinkedDropDownMemrecOnDestroy) then
-    OldlinkedDropDownMemrecOnDestroy(sender);
-end;
-
 function TMemoryRecord.getlinkedDropDownMemrec: TMemoryRecord;
+var leng: integer;
 begin
   if linkedDropDownMemrec=nil then
   begin
     linkedDropDownMemrec:=TAddresslist(fOwner).getRecordWithDescription(fDropDownLinkedMemrec);
-    if linkedDropDownMemrec<>nil then
+    if (linkedDropDownMemrec<>nil) and
+       (linkedDropDownMemrec.getlinkedDropDownMemrec_LoopDetected=false) then
     begin
-      OldlinkedDropDownMemrecOnDestroy:=linkedDropDownMemrec.OnDestroy;
-      linkedDropDownMemrec.OnDestroy:=OnLinkedMemrecDestroy;
-    end;
+
+      leng:=length(linkedDropDownMemrec.memrecsLinkedToMe);
+      setlength(linkedDropDownMemrec.memrecsLinkedToMe, leng+1);
+      linkedDropDownMemrec.memrecsLinkedToMe[leng]:=self;
+
+    end
+    else
+      linkedDropDownMemrec:=nil;
   end;
 
   result:=linkedDropDownMemrec;
 end;
 
+function TMemoryRecord.getlinkedDropDownMemrec_LoopDetected: boolean;
+var mr_slow,mr_fast: TMemoryRecord;
+begin
+  result:=false;
 
+  mr_slow:=linkedDropDownMemrec;
+  mr_fast:=linkedDropDownMemrec;
 
+  // Floyd’s Cycle-Finding Algorithm
+  while (mr_slow<>nil) and (mr_fast<>nil) and (mr_fast.getlinkedDropDownMemrec<>nil) do
+  begin
+    mr_slow:=mr_slow.getlinkedDropDownMemrec;
+    mr_fast:=mr_fast.getlinkedDropDownMemrec;
+    mr_fast:=mr_fast.getlinkedDropDownMemrec;
+    if mr_slow=mr_fast then exit(true);
+  end;
+end;
 
 function MemRecHotkeyActionToText(action: TMemrecHotkeyAction): string;
 begin
