@@ -23,6 +23,7 @@ type
     cbAutoCreate: TCheckBox;
     cbAutoDestroyLocal: TCheckBox;
     cbAutoFillGaps: TCheckBox;
+    cbPositionAddressesOverColumns: TCheckBox;
     cbDefaultHex: TCheckBox;
     cbDoNotSaveLocal: TCheckBox;
     cbAutoGuessCustomTypes: TCheckBox;
@@ -312,6 +313,7 @@ begin
 
       reg.writeBool('Autoguess Custom Types', cbAutoGuessCustomTypes.checked);
       reg.WriteInteger('Max Auto-Expand Level',maxautoexpandlevel);
+      reg.writeBool('Position Addresses Over Columns', self.cbPositionAddressesOverColumns.checked);
 
       if customfont then
       begin
@@ -401,6 +403,7 @@ begin
       if reg.ValueExists('DefaultHex') then cbDefaultHex.Checked:=reg.ReadBool('DefaultHex');
       if reg.ValueExists('Autoguess Custom Types') then cbAutoGuessCustomTypes.checked:=reg.ReadBool('Autoguess Custom Types');
       if reg.ValueExists('Max Auto-Expand Level') then maxautoexpandlevel:=reg.ReadInteger('Max Auto-Expand Level');
+      if reg.ValueExists('Position Addresses Over Columns') then cbPositionAddressesOverColumns.checked:=reg.ReadBool('Position Addresses Over Columns');
 
 
       if Reg.OpenKey('\Software\Cheat Engine\DissectData\Font',false) then

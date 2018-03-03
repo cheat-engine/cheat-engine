@@ -2282,7 +2282,7 @@ begin
   for i:=0 to parent.parent.columnCount-1 do
     if parent.parent.columns[i]=self then
     begin
-      result:=-1;
+      result:=i;
       exit;
     end;
 end;
@@ -2819,6 +2819,8 @@ begin
 
   if backlist<>nil then
     freeandnil(backlist);
+
+  self.parent.parent.FixPositions;
 end;
 
 { Tstructgroup }
@@ -3102,6 +3104,7 @@ begin
   tvStructureView.ReAlign;
 
   HeaderControl.Left:=-tvStructureView.scrolledleft;
+  self.FixPositions;
 end;
 
 procedure TfrmStructures2.HeaderControl1SectionTrack(
@@ -5479,6 +5482,9 @@ begin
     RefreshVisibleNodes;
 
     tvStructureView.Font.Assign(frmStructuresConfig.groupbox1.Font);
+
+    // position addresses
+    self.FixPositions;
   end;
 end;
 
@@ -5897,53 +5903,82 @@ end;
 
 procedure TfrmStructures2.FixPositions;
 var
-  maxh: integer;
-  i,j, h: integer;
+  group : TStructGroup;
+  col : TStructColumn;
+  section : THeaderSection;
+  gi, ci, globalIndex: Integer;
+  scrunch: Integer; // how much to scrunch a whole group's ClientWidth
+  each, extra: Integer; // how much to scrunch each column, and how many extra columns need another
+  colWidth: Integer;
+  marginSize, defaultSize: Integer;
 begin
-  {
-  maxh:=0;
-
-  //first get the height needed
-  for i:=0 to groupcount-1 do
+  if (frmStructuresConfig<>nil) and frmStructuresConfig.cbPositionAddressesOverColumns.checked then
   begin
-    for j:=0 to group[i].columnCount-1 do
-    begin
-      h:=group[i].columns[j].edtAddress.height;
-      if group[i].columns[j].lblName.caption<>'' then
-        inc(h, group[i].columns[j].lblName.height);
+    // here we try and position address edit boxes over the column of data they are for...
+    // plan is to have group box contained within the columns it is for, and
+    // each column's edit box contained withing the column it is for.  This
+    // means that the first and last columns in a group will be shorter due
+    // to the group box border.
 
-      maxh:=max(maxh, h);
+    for gi := 0 to self.groupcount - 1 do
+    begin
+      group := self.group[gi];
+      group.box.BorderSpacing.Right := 1;
+
+      if gi = 0 then
+        group.box.BorderSpacing.Left := self.HeaderControl1.Sections[0].Right - 2
+      else
+        group.box.BorderSpacing.Left := 1;
+
+      for ci := 0 to group.columncount - 1 do
+      begin
+        col := group.columns[ci];
+        col.edtAddress.Constraints.MinWidth := 20;
+        col.edtAddress.BorderSpacing.Left := 1;
+        col.edtAddress.BorderSpacing.Right := 1;
+
+        globalIndex := col.GlobalIndex;
+        if (globalIndex < 0) then globalIndex := 0;
+        section := self.HeaderControl1.Sections[globalIndex + 1];
+        colWidth := section.Right - section.Left - 5; // for editbox border, padding
+        if ci = 0 then colWidth := colWidth - 3; // for groupbox left border
+        if ci = group.columnCount - 1 then colWidth := colWidth - 3; // for groupbox right border
+
+        col.edtAddress.ClientWidth := colWidth;
+        col.focusedShape.Width := col.edtAddress.width + 2 * (col.focusedshape.Pen.Width)
+      end;
+    end;
+  end else begin
+    // get "ClientWidth" based on font size and windows margin settings
+    if (WindowsVersion>=wvVista) and (self.columnCount > 0) then
+    begin
+      marginSize := sendmessage(self.columns[0].edtAddress.Handle, EM_GETMARGINS, 0,0);
+      marginSize := (marginSize shr 16)+(marginSize and $ffff);
+    end
+    else
+      marginSize := 8;
+
+    defaultSize := self.Canvas.TextWidth('DDDDDDDDFFFF');
+    defaultSize += marginSize;
+
+    for gi := 0 to self.groupcount - 1 do
+    begin
+      group := self.group[gi];
+      group.box.BorderSpacing.Left := 4;
+    end;
+
+    for ci := 0 to self.columnCount do
+    begin
+      col := self.columns[ci];
+      if (col <> nil) then begin // might happen when adding a column
+        col.edtAddress.ClientWidth := defaultSize;
+        col.edtAddress.Constraints.MinWidth := col.edtAddress.Width;
+        col.edtAddress.BorderSpacing.Left := 4;
+        col.edtAddress.BorderSpacing.Right := 4;
+        col.focusedShape.Width := col.edtAddress.width + 2 * (col.focusedshape.Pen.Width)
+      end;
     end;
   end;
-
-  inc(maxh, 3);
-
-  for i:=0 to groupcount-1 do
-    group[i].GroupBox.ClientHeight:=maxh;
-
-
-
-  for i:=0 to groupcount-1 do
-  begin
-    //update the editboxes inside each group
-    for j:=0 to group[i].columnCount-1 do
-      group[i].columns[j].SetProperEditboxPosition;
-
-    //and then update the groupbox to fit in he grouppanel and right size
-    //set the left position
-    if i=0 then
-      group[i].box.Left:=3
-    else
-      group[i].box.Left:=group[i-1].box.Left+group[i-1].box.Width+10;
-
-    //set the width
-    if group[i].columnCount>0 then
-      group[i].box.width:=group[i].columns[group[i].columnCount-1].EditLeft+group[i].columns[group[i].columnCount-1].EditWidth+10
-    else
-      group[i].box.width:=20;
-  end;
-
-  pnlGroups.ClientHeight:=group[0].GroupBox.top+group[0].GroupBox.Height+2;  }
 end;
 
 initialization
