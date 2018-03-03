@@ -997,6 +997,9 @@ begin
   for i:=0 to length(memrecsLinkedToMe)-1 do
     if memrecsLinkedToMe[i]<>nil then
       memrecsLinkedToMe[i].linkedDropDownMemrec:=nil;
+
+  setlength(memrecsLinkedToMe,0);
+
   {-------------^^^DropDownList linking^^^-------------}
 
   if assigned(fOnDestroy) then
