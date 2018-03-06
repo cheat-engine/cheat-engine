@@ -445,12 +445,12 @@ typedef struct
   unsigned Limit0_15          : 16;
   unsigned Base0_23           : 24;
   unsigned Type               : 4;
-  unsigned System             : 1;
+  unsigned NotSystem          : 1;
   unsigned DPL                : 2;
   unsigned P                  : 1;
   unsigned Limit16_19         : 4;
   unsigned AVL                : 1;
-  unsigned Reserved           : 1;
+  unsigned L                  : 1; //long mode
   unsigned B_D                : 1;
   unsigned G                  : 1;
   unsigned Base24_31          : 8;
@@ -460,7 +460,7 @@ typedef struct tagINT_VECTOR
 {
   WORD  wLowOffset;
   WORD  wSelector;
-  BYTE  bUnused;
+  BYTE  bUnused; //3 bits of bUnused describe the IST
   BYTE  bAccess;
   WORD  wHighOffset;
   DWORD Offset32_63;
@@ -535,6 +535,14 @@ extern int call32bit(DWORD address);
 #if DISPLAYDEBUG
 void initialize_displaydebuglogs();
 #endif
+
+DWORD getGDTENTRYBase(PGDT_ENTRY entry);
+void setGDTENTRYBase(PGDT_ENTRY entry, DWORD base);
+
+GDT_ENTRY Build16BitDataSegmentDescriptor(DWORD baseaddress, DWORD size);
+GDT_ENTRY Build16BitCodeSegmentDescriptor(DWORD baseaddress, DWORD size);
+GDT_ENTRY Build32BitDataSegmentDescriptor(DWORD baseaddress, DWORD size);
+GDT_ENTRY Build32BitCodeSegmentDescriptor(DWORD baseaddress, DWORD size);
 
 void InitCommon();
 

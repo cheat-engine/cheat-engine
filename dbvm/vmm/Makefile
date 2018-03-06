@@ -13,6 +13,7 @@ all:
 	@${ASM} ${AFLAGS} apica.asm -o apica.o
 	@${ASM} ${AFLAGS} commona.asm -o commona.o
 	@${ASM} ${AFLAGS} testa.asm -o testa.o
+	@${ASM} ${AFLAGS} vbe3.asm -o vbe3a.o
 	@${CC} ${CFLAGS} main.c -c -o main.o
 	@${CC} ${CFLAGS} neward.c -c -o neward.o
 	@${CC} ${CFLAGS} vmmhelper.c -c -o vmmhelper.o
@@ -39,10 +40,11 @@ all:
 	@${CC} ${CFLAGS} epthandler.c -c -o epthandler.o	
 	@${CC} ${CFLAGS} -m32 psod32.c -c -o psod32.o.32
 	objcopy "--input-target=elf32-i386" "--output-target=elf64-x86-64" psod32.o.32 psod32.o
+	@${CC} ${CFLAGS} vbe3.c -c -o vbe3.o	
 
 	@make -C distorm64 all
 	
-	@${LD} ${LDFLAGS} vmma.o main.o neward.o common.o commona.o apica.o vmmhelper.o multicore.o mm.o vmpaging.o vmevent_invalidstate.o vmeventhandler.o realmodeemu.o pmodeemu.o vmcall.o keyboard.o osspecific.o offloados.o ultimap.o pci.o apic.o test.o testa.o vmeventhandler_amd.o vmxemu.o vmxsetup.o epthandler.o psod32.o ./distorm64/wstring.o ./distorm64/x86defs.o ./distorm64/textdefs.o ./distorm64/insts.o ./distorm64/prefix.o ./distorm64/instructions.o ./distorm64/decoder.o ./distorm64/operands.o ./distorm64/distorm.o -o ../vmm.elf -Map ../vmm.map
+	@${LD} ${LDFLAGS} vmma.o main.o neward.o common.o commona.o apica.o vmmhelper.o multicore.o mm.o vmpaging.o vmevent_invalidstate.o vmeventhandler.o realmodeemu.o pmodeemu.o vmcall.o keyboard.o osspecific.o offloados.o ultimap.o pci.o apic.o test.o testa.o vmeventhandler_amd.o vmxemu.o vmxsetup.o epthandler.o vbe3.o vbe3a.o psod32.o ./distorm64/wstring.o ./distorm64/x86defs.o ./distorm64/textdefs.o ./distorm64/insts.o ./distorm64/prefix.o ./distorm64/instructions.o ./distorm64/decoder.o ./distorm64/operands.o ./distorm64/distorm.o -o ../vmm.elf -Map ../vmm.map
 	@objcopy -O binary ../vmm.elf ../vmm.bin
 	@echo "vmm done"
 	

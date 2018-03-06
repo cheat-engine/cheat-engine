@@ -74,7 +74,40 @@ UINT64 TotalAvailable;
 
 void free2(void *address, unsigned int size);
 
+void* mapMemory(void *destination, void *source, int size)
+/*
+ * This function will setup paging at destination matching the source
+ */
+{
+  //get the physical addresses of the source
+  int i;
+  int offset=(QWORD)source & 0xfff;
+  int totalsize=size+offset;
 
+  void *result=(void *)((QWORD)destination+offset);
+
+  int pagecount=totalsize / 4096;
+  if (size % 4096)
+    pagecount++;
+
+  //just being lazy atm, this can be optimized a lot
+  for (i=0; i<pagecount; i++)
+  {
+    //VirtualToPhysical()
+    //getOrAllocatePageTableEntryForAddress()
+    PPDE_PAE destinationpte=getPageTableEntryForAddressEx(destination,1);
+    PPDE_PAE sourcepte=getPageTableEntryForAddress(source);
+
+    *destinationpte=*sourcepte;
+
+    source+=4096;
+    destination+=4096;
+
+    _invlpg((QWORD)destination);
+  }
+
+  return result;
+}
 
 int getFreePML4Index(void)
 {
@@ -1031,14 +1064,7 @@ void InitializeMM(UINT64 FirstFreeVirtualAddress)
   //use VMCALL_ADD_PHYSICAL_MEMORY for more
 }
 
-
-
-
-PPDE_PAE getPageTableEntryForAddress(void *address)
-/*
- * Gets the pagetable or pagedir entry describing this virtual address
- * you MUST unmap this when done using it
- */
+PPDE_PAE getPageTableEntryForAddressEx(void *address, int allocateIfNotPresent)
 {
   PPDPTE_PAE pml4, pdptr;
   PPDE_PAE pagedir;
@@ -1046,25 +1072,65 @@ PPDE_PAE getPageTableEntryForAddress(void *address)
   VirtualAddressToPageEntries((QWORD)address, &pml4, &pdptr, &pagedir, &pagetable);
 
   if (pml4->P==0)
-    return NULL;
+  {
+    if (allocateIfNotPresent)
+    {
+      void *temp=malloc2(4096);
+      zeromemory(temp,4096);
+      *(QWORD *)pml4=VirtualToPhysical(temp);
+      pml4->RW=1;
+      pml4->P=1;
+      asm volatile ("": : :"memory");
+      _invlpg((QWORD)pdptr);
+    }
+    else
+      return NULL;
+  }
 
   if (pdptr->P==0)
-    return NULL;
+  {
+    if (allocateIfNotPresent)
+    {
+      void *temp=malloc2(4096);
+      zeromemory(temp,4096);
+      *(QWORD *)pdptr=VirtualToPhysical(temp);
+      pdptr->RW=1;
+      pdptr->P=1;
+      asm volatile ("": : :"memory");
+      _invlpg((QWORD)pagedir);
+    }
+    else
+      return NULL;
+  }
 
   if (pagedir->P==0)
-    return NULL;
+  {
+    if (allocateIfNotPresent)
+    {
+      void *temp=malloc2(4096);
+      zeromemory(temp,4096);
+      *(QWORD *)pagedir=VirtualToPhysical(temp);
+      pagedir->RW=1;
+      pagedir->P=1;
+      asm volatile ("": : :"memory");
+      _invlpg((QWORD)pagetable);
+    }
+    else
+      return NULL;
+  }
 
   if (pagedir->PS==1)
-  {
     return pagedir;
-  }
   else
-  {
-    if (pagetable->P==0)
-      return NULL;
-    else
-      return (PPDE_PAE)pagetable;
-  }
+    return (PPDE_PAE)pagetable;
+}
+
+PPDE_PAE getPageTableEntryForAddress(void *address)
+/*
+ * Gets the pagetable or pagedir entry describing this virtual address
+ */
+{
+  return getPageTableEntryForAddressEx(address,0);
 }
 
 

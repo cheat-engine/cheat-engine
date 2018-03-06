@@ -113,9 +113,18 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
   DWORD thisAPICID;
   int cpunr=0;
 
-
   pcpuinfo cpuinfo=getcpuinfo();
   cpunr=cpuinfo->cpunr;
+
+  //debug, remove:
+  //if PIC_StillEnabled
+  //outportb(0x20,0x20);
+  //outportb(0xa0,0x20);
+
+
+  //apic_eoi();
+  //^^^
+
 
   UINT64 originalDR7=getDR7();
 
@@ -139,6 +148,8 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
   sendstringf("intnr=%d\n\r",intnr);
   sendstringf("rsp=%x\n\r",getRSP());
   sendstringf("cr2=%6\n\r",getCR2());
+  errorcode=0;
+
 
   if ((stack[17]==80) && (stack[18]==80))
   {
@@ -198,7 +209,7 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
   {
     cpuinfo->NMIOccured=1;
     NMIcount++;
-    return errorcode;
+    return 0;
   }
 
   sendstringf("Checking if it was an expected interrupt\n\r");
@@ -436,12 +447,17 @@ void setints(void)
   }
 
 
+  zeromemory(intvector, 256*sizeof(INT_VECTOR));
   for (i=0; i<256; i++)
   {
     intvector[i].wSelector=80;
     intvector[i].bUnused=0;
     intvector[i].bAccess=0x8e; //10001110
   }
+
+  intvector[8].bUnused=1; //double fault
+  intvector[11].bUnused=1; //segment fault
+  intvector[12].bUnused=1; //stack fault
 
   SETINT(0);
   SETINT(1);
@@ -1074,7 +1090,7 @@ void vmm_entry(void)
 
   //copy GDT and IDT to VMM memory
   GDT_BASE=malloc(4096);
-  GDT_SIZE=getGDTsize();
+  GDT_SIZE=4096; //getGDTsize();
 
   if (GDT_BASE==NULL)
   {
@@ -1352,12 +1368,12 @@ AfterBPTest:
   currentgdt[8].Limit0_15=length;
   currentgdt[8].Base0_23=(QWORD)VirtualMachineTSS_V8086;
   currentgdt[8].Type=0x9;
-  currentgdt[8].System=0;
+  currentgdt[8].NotSystem=0;
   currentgdt[8].DPL=3;
   currentgdt[8].P=1;
   currentgdt[8].Limit16_19=length >> 16;
   currentgdt[8].AVL=1;
-  currentgdt[8].Reserved=0;
+  currentgdt[8].L=0;
   currentgdt[8].B_D=0;
   currentgdt[8].G=0;
   currentgdt[8].Base24_31=(QWORD)VirtualMachineTSS_V8086 >> 24;
@@ -1381,16 +1397,18 @@ AfterBPTest:
     currentgdt[0].Limit0_15=4096;
     currentgdt[0].Base0_23=(UINT64)temp;
     currentgdt[0].Type=0x9;
-    currentgdt[0].System=0;
+    currentgdt[0].NotSystem=0;
     currentgdt[0].DPL=0;
     currentgdt[0].P=1;
     currentgdt[0].Limit16_19=4096 >> 16;
     currentgdt[0].AVL=1;
-    currentgdt[0].Reserved=0;
+    currentgdt[0].L=0;
     currentgdt[0].B_D=0;
     currentgdt[0].G=0;
     currentgdt[0].Base24_31=((UINT64)temp) >> 24;
     *(QWORD*)&currentgdt[1]=((UINT64)temp) >> 32;
+
+    temp->IST1=(QWORD)malloc(8192)+8192-0x10; //panic stack
 
     loadTaskRegister(96);
   }
@@ -1685,7 +1703,7 @@ void menu2(void)
 
           case '4':
           {
-            testexception();
+            __asm("sti"); //enable interrupts
             break;
           }
 

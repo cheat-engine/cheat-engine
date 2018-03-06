@@ -812,7 +812,7 @@ db 0xcc
 db 0xcc
 
 ;----------------------;
-;ULONG getGDTbase(void);
+;QWORD getGDTbase(void);
 ;----------------------;
 getGDTbase:
 push rbp
@@ -828,7 +828,7 @@ db 0xcc
 db 0xcc
 
 ;----------------------;
-;ULONG getIDTbase(void);
+;QWORD getIDTbase(void);
 ;----------------------;
 getIDTbase:
 push rbp
@@ -1312,6 +1312,19 @@ db 0xcc
 db 0xcc
 db 0xcc
 
+global setCR8
+;--------------------;
+;setCR8(QWORD newcr8);
+;--------------------;
+setCR8:
+mov cr8,rdi
+ret
+
+global getCR8
+getCR8:
+mov rax,cr8
+ret
+
 
 global getDR0
 ;------------------;
@@ -1479,7 +1492,6 @@ db 0xcc
 global inthandler%1
 inthandler%1:
 ;xchg bx,bx
-
 cli ;is probably already done, but just to be sure
 
 ;db 0xf1 ; jtag break

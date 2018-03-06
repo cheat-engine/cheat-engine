@@ -1571,6 +1571,79 @@ void initialize_displaydebuglogs()
 }
 #endif
 
+void setGDTENTRYBase(PGDT_ENTRY entry, DWORD base)
+{
+  entry->Base0_23=base;
+  entry->Base24_31=base >> 24;
+}
+
+DWORD getGDTENTRYBase(PGDT_ENTRY entry)
+{
+  return ((DWORD)entry->Base24_31 << 24) | ((DWORD)entry->Base0_23);
+}
+
+void setGDTENTRYLimit(PGDT_ENTRY entry, DWORD limit)
+{
+  if (limit>=0x100000) //give as pagecount
+  {
+    entry->G=1;
+
+    limit=limit / 4096;
+  }
+  else
+    entry->G=0;
+
+  entry->Limit0_15=limit;
+  entry->Limit16_19=limit >> 16;
+}
+
+GDT_ENTRY Build16BitDataSegmentDescriptor(DWORD baseaddress, DWORD size)
+{
+  GDT_ENTRY result;
+  setGDTENTRYBase(&result, baseaddress);
+  setGDTENTRYLimit(&result, size-1);
+
+  result.Type=2; //data segment, no expand down, writable
+  result.NotSystem=1;
+  result.DPL=0;
+  result.P=1;
+  result.AVL=0;
+  result.L=0;
+  result.B_D=0; //16-bit
+
+  return result;
+}
+
+GDT_ENTRY Build16BitCodeSegmentDescriptor(DWORD baseaddress, DWORD size)
+{
+  GDT_ENTRY result=Build16BitDataSegmentDescriptor(baseaddress, size);
+  result.Type=0xa; //code segment, readable
+  return result;
+}
+
+GDT_ENTRY Build32BitDataSegmentDescriptor(DWORD baseaddress, DWORD size)
+{
+  GDT_ENTRY result;
+  setGDTENTRYBase(&result, baseaddress);
+  setGDTENTRYLimit(&result, size-1);
+
+  result.Type=2; //data segment, no expand down, writable
+  result.NotSystem=1;
+  result.DPL=0;
+  result.P=1;
+  result.AVL=0;
+  result.L=0;
+  result.B_D=1; //32-bit
+
+  return result;
+}
+
+GDT_ENTRY Build32BitCodeSegmentDescriptor(DWORD baseaddress, DWORD size)
+{
+  GDT_ENTRY result=Build32BitDataSegmentDescriptor(baseaddress, size);
+  result.Type=0xa; //code segment, readable
+  return result;
+}
 
 
 int Initialized=0;

@@ -562,6 +562,8 @@ typedef volatile struct tcpuinfo
 
   QWORD EPTPML4;
 
+
+
 } tcpuinfo, *pcpuinfo; //allocated when the number of cpu's is known
 
 typedef struct

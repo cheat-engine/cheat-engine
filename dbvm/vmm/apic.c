@@ -22,5 +22,5 @@ DWORD WriteAPICRegister(DWORD reg, DWORD value)
 
 void apic_eoi(void)
 {
-  *(QWORD *)(IA32_APIC_BASE+0xb0)=0;
+  *(volatile DWORD *)(IA32_APIC_BASE+0xb0)=0;
 }
