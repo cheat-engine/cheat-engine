@@ -133,7 +133,7 @@ rsBigError = 'Error';
 rsSmallError = 'error';
 
 var vmcall :function(vmcallinfo:pointer; level1pass: dword): PtrUInt; stdcall;
-var vmcall2 :function(vmcallinfo:pointer; level1pass: dword; secondaryOut: PQWORD): PtrUInt; stdcall;
+var vmcall2 :function(vmcallinfo:pointer; level1pass: dword; secondaryOut: pptruint): PtrUInt; stdcall;
 
 function vmcallUnSupported(vmcallinfo:pointer; level1pass: dword): PtrUInt; stdcall;
 begin
