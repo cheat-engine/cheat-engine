@@ -13,7 +13,7 @@ all:
 	@${ASM} ${AFLAGS} apica.asm -o apica.o
 	@${ASM} ${AFLAGS} commona.asm -o commona.o
 	@${ASM} ${AFLAGS} testa.asm -o testa.o
-	@${ASM} ${AFLAGS} vbe3.asm -o vbe3a.o
+	@${ASM} ${AFLAGS} -w vbe3.asm -o vbe3a.o
 	@${CC} ${CFLAGS} main.c -c -o main.o
 	@${CC} ${CFLAGS} neward.c -c -o neward.o
 	@${CC} ${CFLAGS} vmmhelper.c -c -o vmmhelper.o

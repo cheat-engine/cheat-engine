@@ -327,6 +327,39 @@ int mmFindMapPositionForSize(pcpuinfo cpuinfo, int size)
   return pos;
 }
 
+volatile int FreezeOnMapAllocFail=1;
+
+void* mapPhysicalMemoryAddresses(QWORD *addresses, int count)
+/*
+ * Maps the given physical addresses in the order given
+ * addresses is an array of 4KB aligned physical memory addresses
+ */
+{
+  int i;
+  pcpuinfo c=getcpuinfo();
+  QWORD VirtualAddressBase=MAPPEDMEMORY+c->cpunr*0x400000;
+  int pos=mmFindMapPositionForSize(c, count*4096);
+  if (pos==-1)
+  {
+    sendstring("mapPhysicalMemoryAddresses: Out of virtual memory to map region.  Check the size and make sure you unmap as well\n");
+    while (FreezeOnMapAllocFail);
+    return NULL;
+  }
+
+  for (i=0; i<count; i++)
+  {
+    *(QWORD*)&c->mappagetables[pos+i]=addresses[i] & MAXPHYADDRMASKPB;
+    c->mappagetables[pos+i].P=1;
+    c->mappagetables[pos+i].RW=1;
+    c->mappagetables[pos+i].US=1;
+
+    asm volatile ("": : :"memory");
+    _invlpg(VirtualAddressBase+(pos+i)*4096);
+    asm volatile ("": : :"memory");
+  }
+
+  return (void *)(VirtualAddressBase+pos*4096);
+}
 
 void* mapPhysicalMemory(QWORD PhysicalAddress, int size)
 {
@@ -347,8 +380,8 @@ void* mapPhysicalMemory(QWORD PhysicalAddress, int size)
 
   if (pos==-1)
   {
-    sendstring("Out of virtual memory to map region.  Check the size and make sure you unmap as well\n");
-    while(1);
+    sendstring("mapPhysicalMemory: Out of virtual memory to map region.  Check the size and make sure you unmap as well\n");
+    while (FreezeOnMapAllocFail);
     return NULL;
   }
 

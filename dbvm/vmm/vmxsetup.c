@@ -382,6 +382,144 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
 
 }
 
+
+int vmx_enableProcBasedFeature(DWORD PBF)
+{
+  if (((IA32_VMX_PROCBASED_CTLS >> 32) & PBF) == PBF) //can it be set
+  {
+    vmwrite(vm_execution_controls_cpu, vmread(vm_execution_controls_cpu) | PBF);
+    return 1;
+  }
+  else
+    return 0;
+}
+
+int vmx_disableProcBasedFeature(DWORD PBF)
+{
+  QWORD PBCTLS=IA32_VMX_PROCBASED_CTLS;
+
+  if (IA32_VMX_BASIC.default1canbe0)
+    PBCTLS=readMSR(IA32_VMX_TRUE_PROCBASED_CTLS_MSR);
+
+
+  if (PBCTLS & PBF) //can it be set to 0
+    return 0; //nope
+  else
+  {
+    vmwrite(vm_execution_controls_cpu, vmread(vm_execution_controls_cpu) & (~PBF));
+    return 1;
+  }
+}
+
+int vmx_enablePinBasedFeature(DWORD PINBF)
+{
+  if (((IA32_VMX_PINBASED_CTLS >> 32) & PINBF) == PINBF) //can it be set
+  {
+    vmwrite(vm_execution_controls_pin, vmread(vm_execution_controls_pin) | PINBF);
+    return 1;
+  }
+  else
+    return 0;
+}
+
+int vmx_disablePinBasedFeature(DWORD PINBF)
+{
+  QWORD PINBCTLS=IA32_VMX_PINBASED_CTLS;
+
+  if (IA32_VMX_BASIC.default1canbe0)
+    PINBCTLS=readMSR(IA32_VMX_TRUE_PINBASED_CTLS_MSR);
+
+
+  if (PINBCTLS & PINBF) //can it be set to 0
+    return 0; //nope
+  else
+  {
+    vmwrite(vm_execution_controls_pin, vmread(vm_execution_controls_pin) & (~PINBF));
+    return 1;
+  }
+}
+
+int vmx_enableNMIWindowExiting(void)
+{
+  if (vmx_enableProcBasedFeature(PBEF_NMI_WINDOW_EXITING))
+  {
+    //PBEF_NMI_WINDOW_EXITING can be set
+    //"If the “virtual NMIs” VM-execution control is 0, the “NMI-window exiting” VM-execution control must be 0."
+    //so virtual NMIs must be 1 as well
+    if (vmx_enablePinBasedFeature(PINBEF_VIRTUAL_NMIS))
+    {
+      //"If the “NMI exiting” VM-execution control is 0, the “virtual NMIs” VM-execution control must be 0"
+      //so also enable NMI exiting
+      if (vmx_enablePinBasedFeature(PINBEF_NMI_EXITING))
+        return 1;
+
+      vmx_disablePinBasedFeature(PINBEF_VIRTUAL_NMIS);
+    }
+
+    vmx_disableProcBasedFeature(PBEF_NMI_WINDOW_EXITING);
+  }
+
+  return 0;
+}
+
+int vmx_disableNMIWindowExiting(void)
+{
+  int a,b,c;
+  a=vmx_disableProcBasedFeature(PBEF_NMI_WINDOW_EXITING);
+  b=vmx_disablePinBasedFeature(PINBEF_VIRTUAL_NMIS);
+  c=vmx_disablePinBasedFeature(PINBEF_NMI_EXITING);
+
+  return (a+b+c==3);
+}
+
+int vmx_enableSingleStepMode(void)
+{
+  pcpuinfo c=getcpuinfo();
+  sendstring("Enabling single step mode\n");
+
+ /* if ((vmread(vm_entry_interruptioninfo) >> 31)==0)
+    vmwrite(vm_guest_interruptability_state,2); //execute at least one instruction
+  else
+    sendstringf("Not setting the interruptability state\n");*/
+
+  if (vmx_enableProcBasedFeature(PBEF_MONITOR_TRAP_FLAG))
+  {
+    sendstring("Using the monitor trap flag\n");
+    c->singleStepping.Method=1;
+    return 1;
+  }
+  else
+  {
+    c->singleStepping.Method=2;
+    if (vmx_enableProcBasedFeature(PBEF_INTERRUPT_WINDOW_EXITING))
+    {
+      if ((vmread(vm_entry_interruptioninfo) >> 31)==0)
+        vmwrite(vm_guest_interruptability_state,2); //execute at least one instruction
+
+      sendstring("Using the interrupt window\n");
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+int vmx_disableSingleStepMode(void)
+{
+  int r=0;
+  pcpuinfo c=getcpuinfo();
+
+  sendstring("Disabling single step mode\n");
+
+  if (c->singleStepping.Method==1)
+    r=vmx_disableProcBasedFeature(PBEF_MONITOR_TRAP_FLAG);
+
+  if (c->singleStepping.Method==2)
+    r=vmx_disableProcBasedFeature(PBEF_INTERRUPT_WINDOW_EXITING);
+
+  return r;
+}
+
 //stealthedit:
 //mark page as execute, but not as read/write
 //on read/write undo change, set TF, run, wait till int1/first vm exit(what about ints? Enable external int exiting), unset TF, redo change, run
@@ -389,7 +527,6 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
 //on systems with no exec only
 //alt1: mark as read/write but not exec. on ept exit change RIP to adjusted copy
 //alt2: mark as no access. on ept exit set TF
-
 int setupEPT(pcpuinfo currentcpuinfo)
 {
   //check for Secondary Processor-Based VM-Execution Controls

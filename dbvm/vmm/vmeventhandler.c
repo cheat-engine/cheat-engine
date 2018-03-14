@@ -3438,7 +3438,7 @@ InterruptFired:
 #pragma GCC pop_options
 
 
-int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
+int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *fxsave)
 {
   int result;
   int exit_reason=currentcpuinfo->guest_error?currentcpuinfo->guest_error:vmread(vm_exit_reason) & 0x7fffffff;
@@ -3529,15 +3529,29 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
 		case 7: //interrupt window
 		{
-			sendstring("Interrupt window event... I did NOT ask for this\n\r");
-			sendstringf("vm_execution_controls_cpu=%6\n", vmread(vm_execution_controls_cpu));
+		  if ((currentcpuinfo->singleStepping.Reason==1) && (currentcpuinfo->singleStepping.Method==2))
+		  {
+		    sendstring("Interrupt window event... And I am in single stepping mode\n");
+		    return ept_handleWatchEventAfterStep(currentcpuinfo, currentcpuinfo->singleStepping.EPTWatch.ID);
+		  }
+		  else
+		  {
+		    sendstring("Interrupt window event... I did NOT ask for this\n\r");
+		    sendstringf("vm_execution_controls_cpu=%6\n", vmread(vm_execution_controls_cpu));
+		  }
 			return 0; //ignore for now
 		}
 
 		case 8: //NMI window
 		{
 		  sendstring("NMI Window");
-		  return 1;
+		  if (currentcpuinfo->NMIOccured)
+		    raiseNMI();
+
+
+		  vmx_disableNMIWindowExiting(); //vmwrite(vm_guest_interruptability_state,2); for some single stepping fun
+
+		  return 0;
 		}
 
     case 9:
@@ -3705,8 +3719,13 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
 		case 37:
 		{
+      if ((currentcpuinfo->singleStepping.Reason==1) && (currentcpuinfo->singleStepping.Method==1))
+      {
+        sendstring("Monitor Trap Flag. And I am in single stepping mode\n");
+        return ept_handleWatchEventAfterStep(currentcpuinfo, currentcpuinfo->singleStepping.EPTWatch.ID);
+      }
 		  sendstring("Monitor trap flag\n\r");
-		  return 1;
+		  return 0;
 		}
 
 		case 39: //MONITOR
@@ -3759,7 +3778,7 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
 		case 48:
 		  sendstring("EPT violation\n\r");
-		  return handleEPTViolation(currentcpuinfo, vmregisters);
+		  return handleEPTViolation(currentcpuinfo, vmregisters, (PFXSAVE64)fxsave);
 
 		case 49:
 		{

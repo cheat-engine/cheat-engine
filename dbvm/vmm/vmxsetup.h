@@ -51,6 +51,15 @@ int has_EPT_2MBSupport;
 
 int hasUnrestrictedSupport;
 
+int vmx_enableProcBasedFeature(DWORD PBF);
+int vmx_disableProcBasedFeature(DWORD PBF);
+
+int vmx_enableNMIWindowExiting(void);
+int vmx_disableNMIWindowExiting(void);
+
+int vmx_enableSingleStepMode(void);
+int vmx_disableSingleStepMode(void);
+
 
 void setupVMX(pcpuinfo currentcpuinfo);
 

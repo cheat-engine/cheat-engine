@@ -209,6 +209,15 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
   {
     cpuinfo->NMIOccured=1;
     NMIcount++;
+
+    //set up NMI window exiting
+
+    if (vmx_enableNMIWindowExiting()==0)
+    {
+      sendstringf("NMI handling: failed to set PBEF_NMI_WINDOW_EXITING.  Raising NMI like a retard\n");
+      cpuinfo->NMIOccured=2;
+    }
+
     return 0;
   }
 

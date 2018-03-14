@@ -4,6 +4,7 @@
 #include "common.h"
 #include "vmreadwrite.h"
 #include "vmxcontrolstructures.h"
+#include "eptstructs.h"
 
 
 extern int vmxstartup;
@@ -561,7 +562,22 @@ typedef volatile struct tcpuinfo
   } vmxdata;
 
   QWORD EPTPML4;
+  PEPTWatchEntry eptwatchlist;
+  int eptwatchlistLength;
 
+  struct //single stepping data
+  {
+    int Reason;
+    int Method;
+
+    //Reason 1: EPT watch event
+    struct //EPT watch event
+    {
+      int ID;
+    } EPTWatch;
+
+    //Reason 2: Memory cloak (read/write , or even execute on systems without execute only mode)
+  } singleStepping;
 
 
 } tcpuinfo, *pcpuinfo; //allocated when the number of cpu's is known
@@ -733,8 +749,8 @@ void displayPhysicalMemory();
 void setupTSS8086(void);
 
 void launchVMX(pcpuinfo currentcpuinfo);
-int vmexit(tcpuinfo *cpu, UINT64 *registers);
-int vmexit_amd(pcpuinfo currentcpuinfo, UINT64 *registers);
+int vmexit(tcpuinfo *cpu, UINT64 *registers, void *fxsave);
+int vmexit_amd(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave);
 
 void sendvmstate(pcpuinfo currentcpuinfo, VMRegisters *registers);
 char *getVMInstructionErrorString(void);

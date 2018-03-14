@@ -317,6 +317,7 @@ vmsave
 ;on return RAX and RSP are unchanged, but ALL other registers are changed and MUST be saved first
 ;xchg bx,bx
 
+db 0x48
 fxsave [rsp+fxsavespace]
 mov [rsp+saved_r15],r15
 mov [rsp+saved_r14],r14
@@ -336,6 +337,7 @@ mov [rsp+saved_rax],rax
 
 mov rdi,[rsp+currentcpuinfo]
 lea rsi,[rsp+saved_r15] ;vmregisters
+lea rdx,[rsp+fxsavespace] ;fxsave
 
 call vmexit_amd
 
@@ -344,6 +346,7 @@ cmp eax,1
 je vmrun_exit
 
 ;restore
+db 0x48
 fxrstor [rsp+fxsavespace]
 mov r15,[rsp+saved_r15]
 mov r14,[rsp+saved_r14]
@@ -558,7 +561,9 @@ notfucker:
 
 and rsp,-0x10 ;0xfffffffffffffff0;
 sub rsp,512
+db 0x48
 fxsave [rsp]
+mov rdx,rsp ;param 3, pointer to fxsave
 
 sub rsp,32
 
@@ -567,6 +572,7 @@ sub rsp,32
 call vmexit
 
 add rsp,32
+db 0x48
 fxrstor [rsp]
 
 

@@ -18,12 +18,12 @@
 
 //pin-based vm-execution controls
 #define EXTERNAL_INTERRUPT_EXITING    (1<<0)
-#define NMI_EXITING                   (1<<3)
-#define VIRTUAL_NMIS                  (1<<5)
+#define PINBEF_NMI_EXITING            (1<<3)
+#define PINBEF_VIRTUAL_NMIS           (1<<5)
 #define ACTIVATE_VMX_PREEMPTION_TIMER (1<<6)
 
-//processor based vm-execution controls
-#define INTERRUPT_WINDOW_EXITING  (1<<2)
+//processor based vm-execution flags
+#define PBEF_INTERRUPT_WINDOW_EXITING  (1<<2)
 #define USE_TSC_OFFSETTING        (1<<3)
 #define HLT_EXITING               (1<<7)
 #define INVLPG_EXITING            (1<<9)
@@ -33,13 +33,16 @@
 #define CR8LOAD_EXITING           (1<<19)
 #define CR8STORE_EXITING          (1<<20)
 #define USE_TPR_SHADOW            (1<<21)
+#define PBEF_NMI_WINDOW_EXITING   (1<<22)
 #define MOV_DR_EXITING            (1<<23)
 #define UNCONDITIONAL_IO_EXITING  (1<<24)
 #define USE_IO_BITMAPS            (1<<25)
+#define PBEF_MONITOR_TRAP_FLAG    (1<<27)
 #define USE_MSR_BITMAPS           (1<<28)
 #define MONITOR_EXITING           (1<<29)
 #define PAUSE_EXITING             (1<<30)
 #define SECONDARY_EXECUTION_CONTROLS (1<<31)
+
 
 //secondary processor based vm-execution flags
 #define SPBEF_ENABLE_EPT            (1<<1)
@@ -252,88 +255,7 @@ typedef struct _IA32_VMX_VPID_EPT_CAP
   };
 } __attribute__((__packed__)) TIA32_VMX_VPID_EPT_CAP, *PIA32_VMX_VPID_EPT_CAP;
 
-//the EPT fields are pretty much the same as normal paging fields, Read==Present, RW=write etc... BUT the A and D bits access fields used for other things that WILL cause bad effects.
-//so do NOT map them as page tables for easy editing
 
-typedef struct _EPT_PML4E
-{
-  unsigned RA        :  1; // Read Access
-  unsigned WA        :  1; // Write Access
-  unsigned XA        :  1; // Execute access (supervisor mode in mode-based execute control for EPT)
-  unsigned reserved  :  5; //
-  unsigned Accessed  :  1; // Accessed. (if EPTP[6]==1)
-  unsigned ignored   :  1; //
-  unsigned XA_UM     :  1; // Execute access (usermode in mode-based execute control fopr EPT)
-  unsigned ignored2  :  1; //
-  unsigned long long PFN       : 36; //physical address of EPT pagedirptr
-  unsigned reserved2 :  4;  //must be 0
-  unsigned reserved3 : 12;
-
-} __attribute__((__packed__)) EPT_PML4E, *PEPT_PML4E;
-
-typedef struct _EPT_PDPTE
-{
-  unsigned RA        :  1; // 0: Read Access
-  unsigned WA        :  1; // 1: Write Access
-  unsigned XA        :  1; // 2: Execute access (supervisor mode in mode-based execute control for EPT)
-  unsigned MEMTYPE   :  3; // 3-5: BIG=1: EPT memory type (28.2.6)
-  unsigned PAT_IGNORE:  1; // 6: BIG=1: Ignore PAT type
-  unsigned BIG       :  1; // 7: 1 if it points to a 1 GB physical memory block, 0 if it points to a pagedir
-  unsigned Accessed  :  1; // Accessed. (if EPTP[6]==1)
-  unsigned Dirty     :  1; //
-  unsigned XA_UM     :  1; // Execute access (usermode in mode-based execute control fopr EPT)
-  unsigned ignored2  :  1; //
-  unsigned long long PFN       : 36; //physical address of EPT pagedir (if big==0) else available physical memory (bit 12-29 must be 0 if big==1)
-  unsigned reserved2 :  4;  //must be 0
-  unsigned ignored3  : 11;
-  unsigned VESupress :  1; //disable #VE exception if EPT-violation #VE is 1 (if big==0)
-} __attribute__((__packed__)) EPT_PDPTE, *PEPT_PDPTE;
-
-typedef struct _EPT_PDE
-{
-  unsigned RA        :  1; // 0: Read Access
-  unsigned WA        :  1; // 1: Write Access
-  unsigned XA        :  1; // 2: Execute access (supervisor mode in mode-based execute control for EPT)
-  unsigned MEMTYPE   :  3; // 3-5: BIG=1: EPT memory type (28.2.6)
-  unsigned PAT_IGNORE:  1; // 6: BIG=1: Ignore PAT type
-  unsigned BIG       :  1; // 7: 1 if it points to a 1 GB physical memory block, 0 if it points to a pagedir
-  unsigned Accessed  :  1; // 8: Accessed. (if EPTP[6]==1)
-  unsigned Dirty     :  1; // 9:
-  unsigned XA_UM     :  1; // 10: Execute access (usermode in mode-based execute control fopr EPT)
-  unsigned ignored2  :  1; // 11:
-  unsigned long long PFN       : 36; //physical address of EPT pagetable (if big==0) else available physical memory (bit 12-20 must be 0 if big==1)
-  unsigned reserved2 :  4; //must be 0
-  unsigned ignored3  : 11;
-  unsigned VESupress :  1; //BIG=1: disable #VE exception if EPT-violation #VE is 1
-} __attribute__((__packed__)) EPT_PDE, *PEPT_PDE;
-
-typedef struct _EPT_PTE
-{
-  unsigned RA        :  1; // 0: Read Access
-  unsigned WA        :  1; // 1: Write Access
-  unsigned XA        :  1; // 2: Execute access (supervisor mode in mode-based execute control for EPT)
-  unsigned MEMTYPE   :  3; // 3-5: EPT memory type (28.2.6)
-  unsigned PAT_IGNORE:  1; // 6: Ignore PAT type
-  unsigned ignored   :  1; // 7:
-  unsigned Accessed  :  1; // 8: Accessed. (if EPTP[6]==1)
-  unsigned Dirty     :  1; // 9:
-  unsigned XA_UM     :  1; // 10: Execute access (usermode in mode-based execute control fopr EPT)
-  unsigned ignored2  :  1; // 11:
-  unsigned long long PFN       : 36; //physical address of EPT pagetable (if big==0) else available physical memory (bit 12-20 must be 0 if big==1)
-  unsigned reserved2 :  4; //must be 0
-  unsigned ignored3  : 11;
-  unsigned VESupress :  1; //disable #VE exception if EPT-violation #VE is 1
-} __attribute__((__packed__)) EPT_PTE, *PEPT_PTE;
-
-typedef struct _EPTP
-{
-  unsigned MEMTYPE        :  3; // paging structure type
-  unsigned PAGEWALKLENGTH :  3; // ept page walk lenght-1
-  unsigned ACCESSFLAGS    :  1; // Support Accessed/Dirty flags
-  unsigned reserved       :  5; //
-  unsigned long long PFN            : 36; //physical address of PML4 table
-  unsigned reserved2      : 16; //must be 0
-} __attribute__((__packed__)) EPTP, *PEPTP;
 
 
 #endif /* VMXCONTROLSTRUCTURES_H_ */

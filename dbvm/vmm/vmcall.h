@@ -1,7 +1,8 @@
 #ifndef VMCALL_H_
 #define VMCALL_H_
 
-#include "main.h"
+#include "vmmhelper.h"
+#include "vmcallstructs.h"
 
 #define VMCALL_GETVERSION 0
 #define VMCALL_CHANGEPASSWORD 1
@@ -49,33 +50,18 @@
 #define VMCALL_GETMEM 38
 #define VMCALL_JTAGBREAK 39
 #define VMCALL_GETNMICOUNT 40
-#define VMCALL_FINDWHATWRITESPAGE 41
+
+#define VMCALL_WATCH_WRITES 41
+#define VMCALL_WATCH_READS 42
+#define VMCALL_WATCH_RETRIEVELOG 43
+#define VMCALL_WATCH_DELETE 44
+
+#define VMCALL_PAGECLOAK 45
+#define VMCALL_CHANGEREGONBP 46
 
 
-typedef struct
-{
-  DWORD size;
-  DWORD password2;
-  DWORD command;
-} __attribute__((__packed__))  VMCALL_BASIC, *PVMCALL_BASIC;
+extern int hasEPTsupport;
 
-typedef struct
-{
-  VMCALL_BASIC vmcall;
-  QWORD sourcePA; //physical address to read
-  DWORD bytesToRead; //number of bytes to read
-  QWORD destinationVA; //virtual address to write to
-  DWORD nopagefault; //if not 0 stop at the first pagefault
-} __attribute__((__packed__)) VMCALL_READPHYSICALMEMORY, *PVMCALL_READPHYSICALMEMORY;
-
-typedef struct
-{
-  VMCALL_BASIC vmcall;
-  QWORD destinationPA; //physical address to read
-  DWORD bytesToWrite; //number of bytes to read
-  QWORD sourceVA; //virtual address to write to
-  DWORD nopagefault; //if not 0 stop at the first pagefault
-} __attribute__((__packed__)) VMCALL_WRITEPHYSICALMEMORY, *PVMCALL_WRITEPHYSICALMEMORY;
 
 
 int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters);

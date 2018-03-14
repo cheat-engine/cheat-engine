@@ -39,6 +39,7 @@ int mmFindMapPositionForSize(pcpuinfo cpuinfo, int size);
 
 void unmapPhysicalMemory(void *virtualaddress, int size);
 void* mapPhysicalMemory(QWORD PhysicalAddress, int size);
+void* mapPhysicalMemoryAddresses(QWORD *addresses, int count);
 
 void VirtualAddressToIndexes(QWORD address, int *pml4index, int *pagedirptrindex, int *pagedirindex, int *pagetableindex);
 

@@ -21,6 +21,7 @@
 
 #include "vmeventhandler_amd.h"
 #include "vmxsetup.h"
+#include "epthandler.h"
 
 #ifndef DEBUG
 #define sendstringf(s,x...)
@@ -116,6 +117,7 @@ char * getVMExitReassonString(void)
 	  case 5: return "SMI interrupt";
 	  case 6: return "Other SMI";
 	  case 7: return "Interrupt window";
+	  case 8: return "NMI window";
 	  case 9: return "Task switch";
 	  case 10: return "CPUID";
 	  case 14: return "INVLPG";
@@ -132,7 +134,7 @@ char * getVMExitReassonString(void)
 	  case 31: return "RDMSR";
 	  case 32: return "WRMSR";
 	  case 33: return "Invalid guest state";
-
+	  case 37: return "Monitor trap flag";
 	  case vm_exit_ept_violation: return "EPT Violation";
 	  case vm_exit_ept_misconfiguration: return "EPT Misconfiguration";
 	  case 52: return "Preemption timer";
@@ -646,7 +648,7 @@ criticalSection vmexitlock;
 
 
 
-int vmexit_amd(pcpuinfo currentcpuinfo, UINT64 *registers)
+int vmexit_amd(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave UNUSED)
 {
  // displayline("vmexit_amd called. currentcpuinfo=%p\n", currentcpuinfo);
  // displayline("cpunr=%d\n", currentcpuinfo->cpunr);
@@ -677,9 +679,9 @@ int vmexit_amd(pcpuinfo currentcpuinfo, UINT64 *registers)
 
 QWORD lastbeat=0;
 
-int vmexit2(pcpuinfo currentcpuinfo, UINT64 *registers);
+int vmexit2(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave);
 
-int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
+int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 {
   int result;
 
@@ -700,7 +702,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
   StoreVirtualMachineState(currentcpuinfo, (VMRegisters*)registers); //store the event and all other information
 
 
-  result=vmexit2(currentcpuinfo, registers);
+  result=vmexit2(currentcpuinfo, registers, fxsave);
 
 
   vmstates[used_vmstates_pos].exit_cs=vmread(vm_guest_cs);
@@ -728,9 +730,9 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
   return result;
 }
 
-int vmexit2(pcpuinfo currentcpuinfo, UINT64 *registers)
+int vmexit2(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 #else
-int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
+int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 #endif
 {
 
@@ -746,7 +748,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
   if (currentcpuinfo->vmxdata.runningvmx)
   {
     nosendchar[getAPICID()]=1;
-    return handleVMEvent(currentcpuinfo, (VMRegisters*)registers);
+    return handleVMEvent(currentcpuinfo, (VMRegisters*)registers, fxsave);
   }
 
   if (hasUnrestrictedSupport) //do this till I have added support for all efer read spots
@@ -762,7 +764,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
 
 
  // nosendchar[getAPICID()]=1;
-  //return handleVMEvent(currentcpuinfo, (VMRegisters*)registers);
+  //return handleVMEvent(currentcpuinfo, (VMRegisters*)registers, fxsave);
 
 
   int skip=0;
@@ -771,13 +773,13 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
   //check if it's a (dos)timer event
   if ((vmread(vm_exit_reason)==0) && (vmread(vm_exit_interruptioninfo)==0x80000b0d) && (vmread(vm_idtvector_information)==0x80000008))
   {
-    return handleVMEvent(currentcpuinfo, (VMRegisters*)registers);
+    return handleVMEvent(currentcpuinfo, (VMRegisters*)registers, fxsave);
   }
 
   //check if it's a pre-emptiontimer event
   if (vmread(vm_exit_reason)==vm_exit_vmx_preemptiontimer_reachedzero)
   {
-    return handleVMEvent(currentcpuinfo, (VMRegisters*)registers);
+    return handleVMEvent(currentcpuinfo, (VMRegisters*)registers, fxsave);
   }
 */
 
@@ -792,12 +794,11 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
 //  displayline("%d: %d:%x (%x,%x)                              \n",currentcpuinfo->cpunr,vmeventcount,vmread(vm_exit_reason),vmread(vm_guest_cs),vmread(vm_guest_rip));
 
   nosendchar[getAPICID()]=1;
-  result=handleVMEvent(currentcpuinfo, (VMRegisters*)registers);
+  result=handleVMEvent(currentcpuinfo, (VMRegisters*)registers, fxsave);
 
-  if (currentcpuinfo->NMIOccured)
+
+  if (currentcpuinfo->NMIOccured==2) //nmi occured but no NMI window support
   {
-    //while (wait) ;
-
     currentcpuinfo->NMIOccured=0;
     return raiseNMI();
   }
@@ -1022,7 +1023,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
         //int cs=vmread(vm_guest_cs);
         //unsigned long long rip=vmread(vm_guest_rip);
 
-        skip=3;
+        skip=1; //3=ultra verbose
         break;
       }
 
@@ -1155,10 +1156,13 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
     {
       nosendchar[getAPICID()]=1;
 
-      result=handleVMEvent(currentcpuinfo, (VMRegisters*)registers);
+      result=handleVMEvent(currentcpuinfo, (VMRegisters*)registers, fxsave);
 
-      if (currentcpuinfo->NMIOccured)
+      if (currentcpuinfo->NMIOccured==2) //nmi occured but no NMI window support
+      {
+        currentcpuinfo->NMIOccured=0;
         return raiseNMI();
+      }
 
       if (currentcpuinfo->cpunr)
       {
@@ -1299,9 +1303,12 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
     switch (command)
     {
       case  '1' :
-        result=handleVMEvent(currentcpuinfo, (VMRegisters*)registers);
-        if (currentcpuinfo->NMIOccured)
+        result=handleVMEvent(currentcpuinfo, (VMRegisters*)registers, fxsave);
+        if (currentcpuinfo->NMIOccured==2) //nmi occured but no NMI window support
+        {
+          currentcpuinfo->NMIOccured=0;
           return raiseNMI();
+        }
 
         if (currentcpuinfo->cpunr)
         {
@@ -1584,21 +1591,24 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
       case  'i' :
       {
         //test interrupt
-        currentcpuinfo->OnInterrupt.RIP=(QWORD)(volatile void *)(&&InterruptFired); //set interrupt location
-        currentcpuinfo->OnInterrupt.RSP=getRSP();
+        //vmx_enableNMIWindowExiting();
+        //vmx_enableSingleStepMode();
 
-        __asm("sti"); //enable interrupts
-        __asm("nop"); //this nop is ignored
-        __asm("nop"); //this nop captures the interrupt
-        __asm("cli"); //disable interrupts
-        //nothing happened
-        currentcpuinfo->OnInterrupt.RIP=0;
+        //setup a memory watch for physical address 0x7000
+        sendstringf("Setting write watch at 0x7000 to 0x7fff\n");
+        int ID=getFreeWatchID(currentcpuinfo);
+        currentcpuinfo->eptwatchlist[ID].PhysicalAddress=0x7000;
+        currentcpuinfo->eptwatchlist[ID].Size=4096;
+        currentcpuinfo->eptwatchlist[ID].Type=0; //write
+        currentcpuinfo->eptwatchlist[ID].Log=malloc(65536);
+        zeromemory(currentcpuinfo->eptwatchlist[ID].Log, 65536);
 
+        currentcpuinfo->eptwatchlist[ID].Log->ID=ID;
+        currentcpuinfo->eptwatchlist[ID].Log->entryType=0;
+        currentcpuinfo->eptwatchlist[ID].Log->numberOfEntries=0;
+        currentcpuinfo->eptwatchlist[ID].Log->maxNumberOfEntries=(65536-sizeof(PageEventListDescriptor)) / sizeof(PageEventBasic);
 
-        sendstring("No interrupt\n");
-
-  InterruptFired:
-        sendstring("After interrupt (if there was one)\n");
+        ept_activateWatch(currentcpuinfo, ID);
         break;
       }
 

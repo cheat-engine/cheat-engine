@@ -47,7 +47,7 @@ typedef struct
 } __attribute__((__packed__)) IOExit_Qualification;
 
 
-int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters);
+int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *fxsave);
 
 
 ULONG getSegmentLimit(PGDT_ENTRY gdt, PGDT_ENTRY ldt, ULONG selector);
