@@ -442,7 +442,7 @@ begin
 
     tid:=strtoint('$'+s.Text);
 
-
+    if (tid=GetCurrentThreadId) then exit; //don't accidentally freeze the ce main thread
 
 
     th:=OpenThread(THREAD_SUSPEND_RESUME or THREAD_GET_CONTEXT or THREAD_SET_CONTEXT or THREAD_QUERY_INFORMATION, false, tid);
@@ -649,12 +649,16 @@ var
   i: integer;
   x: boolean;
 
+  tempp: ptruint;
+
   {$ifdef cpu64}
   use32bitcontext: boolean;
   c32: TContext32;
   {$endif}
 
   cenet: TCEconnection;
+
+  tbi: THREAD_BASIC_INFORMATION;
 begin
   if node.level=0 then
   begin
@@ -883,12 +887,18 @@ begin
           threadTreeview.items.AddChild(node,'cs='+inttohex(c.SegCs,8));
 
 
-          if GetThreadSelectorEntry(th, c.segFs, ldtentry) then
-            threadTreeview.items.AddChild(node,'fsbase='+inttohex(ldtentry.BaseLow+ldtentry.HighWord.Bytes.BaseMid shl 16+ldtentry.HighWord.Bytes.BaseHi shl 24,8));
+          i:=NtQueryInformationThread(th, ThreadBasicInformation, @tbi, sizeof(tbi), @x);
+          if i=0 then
+            threadTreeview.items.AddChild(node,'TEB='+inttohex(qword(tbi.TebBaseAddress),8));
 
-          if GetThreadSelectorEntry(th, c.SegGs, ldtentry) then
-            threadTreeview.items.AddChild(node,'gsbase='+inttohex(ldtentry.BaseLow+ldtentry.HighWord.Bytes.BaseMid shl 16+ldtentry.HighWord.Bytes.BaseHi shl 24,8));
+          if processhandler.is64Bit=false then
+          begin
+            if GetThreadSelectorEntry(th, c.segFs, ldtentry) then
+              threadTreeview.items.AddChild(node,'fsbase='+inttohex(ldtentry.BaseLow+ldtentry.HighWord.Bytes.BaseMid shl 16+ldtentry.HighWord.Bytes.BaseHi shl 24,8));
 
+            if GetThreadSelectorEntry(th, c.SegGs, ldtentry) then
+              threadTreeview.items.AddChild(node,'gsbase='+inttohex(ldtentry.BaseLow+ldtentry.HighWord.Bytes.BaseMid shl 16+ldtentry.HighWord.Bytes.BaseHi shl 24,8));
+          end;
 
         end
         else threadTreeview.items.AddChild(node, rsCouldnTObtainContext);
