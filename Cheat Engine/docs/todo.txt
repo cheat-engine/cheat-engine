@@ -16,6 +16,10 @@ add AVX support
 
 mono dissect: order methods by alphabet
 
+mono invoke: add option for async execution (so it doesn't crash in the pipe)
+
+memview paste: paste for specific displaytype
+memview->rightclick while debugging: Change eip to position, run till position in the context menu as well
 
 
 add enumStructureWindows list, and let lua change the selected struct
@@ -27,11 +31,16 @@ graphical memory view:
 
 memview debugging: add a toolbar for single step/step over so you can debug by clicking icons
 
+dbvm_speedhack
+
+lua getWindowlist does not return the same list as the windowlist
+
 
 find higher resolution icons
 
 linux: make a 32-bit linux build with .so injection support
 memscan: Don't combine the scanresults into a single file. Leave them split up (skip: for 6.7 or 7.0)
-ceshare: continue with it
 
+ceshare: continue with it
 pseudocode: continue with it
+mac version: work on it

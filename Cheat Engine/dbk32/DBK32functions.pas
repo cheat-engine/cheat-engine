@@ -141,6 +141,10 @@ const IOCTL_CE_GET_PEB                = (IOCTL_UNKNOWN_BASE shl 16) or ($085d sh
 const IOCTL_CE_QUERYINFORMATIONPROCESS= (IOCTL_UNKNOWN_BASE shl 16) or ($085e shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
 
+const IOCTL_CE_LOCK_MEMORY            = (IOCTL_UNKNOWN_BASE shl 16) or ($0860 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_UNLOCK_MEMORY          = (IOCTL_UNKNOWN_BASE shl 16) or ($0861 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+
+
 type TDeviceIoControl=function(hDevice: THandle; dwIoControlCode: DWORD; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesReturned: DWORD; lpOverlapped: POverlapped): BOOL; stdcall;
 
 
@@ -335,6 +339,9 @@ function KernelAlloc64(size: dword):uint64; stdcall;
 procedure KernelFree(address: uint64); stdcall;
 function MapMemory(address: ptruint; size: dword; frompid: dword=0; topid: dword=0):TMapMemoryResult;
 procedure UnmapMemory(r: TMapMemoryResult);
+
+function LockMemory(processid: DWORD; address: ptruint; size: integer): QWORD;
+procedure UnlockMemory(MDLAddress: QWORD);
 
 function GetKProcAddress(s: pwidechar):pointer; stdcall;
 function GetKProcAddress64(s: pwidechar):uint64; stdcall;
@@ -2343,8 +2350,44 @@ begin
     cc:=IOCTL_CE_UNMAP_MEMORY;
     deviceiocontrol(hdevice,cc,@input,sizeof(input),nil,0,cc,nil);
   end;
+end;
 
+function LockMemory(processid: DWORD; address: ptruint; size: integer): QWORD;
+var cc: dword;
+    input: packed record
+      ProcessID: uint64;
+      address: uint64;
+      size: uint64;
+    end;
+    output: record
+      mdl: uint64;
+    end;
+begin
+  result:=0;
+  input.processid:=processid;
+  input.address:=address;
+  input.size:=size;
 
+  if (hdevice<>INVALID_HANDLE_VALUE) then
+  begin
+    cc:=IOCTL_CE_LOCK_MEMORY;
+    if deviceiocontrol(hdevice,cc,@input,sizeof(input),@output,sizeof(output),cc,nil) then
+      result:=output.mdl;
+  end;
+end;
+
+procedure UnlockMemory(MDLAddress: QWORD);
+var cc: dword;
+    input: record
+      mdl: uint64;
+    end;
+begin
+  input.mdl:=MDLAddress;
+  if (hdevice<>INVALID_HANDLE_VALUE) then
+  begin
+    cc:=IOCTL_CE_UNLOCK_MEMORY;
+    deviceiocontrol(hdevice,cc,@input,sizeof(input),nil,0,cc,nil);
+  end;
 end;
 
 function GetKProcAddress(s: pwidechar):pointer; stdcall;

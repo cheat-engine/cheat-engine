@@ -44,6 +44,29 @@ const
   VMCALL_JTAGBP = 39;
   VMCALL_GETNMICOUNT = 40;
 
+  VMCALL_WATCH_WRITES = 41;
+  VMCALL_WATCH_READS = 42;
+  VMCALL_WATCH_RETRIEVELOG = 43;
+  VMCALL_WATCH_DELETE = 44;
+
+  VMCALL_CLOAK_ACTIVATE = 45;
+  VMCALL_CLOAK_DEACTIVATE = 46;
+  VMCALL_CLOAK_READORIGINAL = 47;
+  VMCALL_CLOAK_WRITEORIGINAL = 48;
+
+  VMCALL_CLOAK_CHANGEREGONBP = 49;
+  VMCALL_CLOAK_REMOVECHANGEREGONBP = 50;
+
+
+  //---
+  //watch options:
+  EPTO_MULTIPLERIP =1 shl 0; //log the same RIP multiple times (if different registers)
+  EPTO_LOG_ALL     =1 shl 1; //log every access in the page
+  EPTO_SAVE_XSAVE  =1 shl 2; //logs contain the xsave state
+  EPTO_SAVE_STACK  =1 shl 3; //logs contain a 4kb stack snapshot
+
+
+
 type
   TOriginalState=packed record
     oldflags: dword;
@@ -66,7 +89,157 @@ type
   end;
   PULTIMAPDEBUGINFO=^TULTIMAPDEBUGINFO;
 
+  TPageEventBasic=record
+    VirtualAddress: QWORD;
+    PhysicalAddress: QWORD;
+    CR3: QWORD;
+    FSBASE: QWORD;
+    GSBASE: QWORD;
+    RAX: QWORD;
+    RBX: QWORD;
+    RCX: QWORD;
+    RDX: QWORD;
+    RSI: QWORD;
+    RDI: QWORD;
+    R8: QWORD;
+    R9: QWORD;
+    R10: QWORD;
+    R11: QWORD;
+    R12: QWORD;
+    R13: QWORD;
+    R14: QWORD;
+    R15: QWORD;
+    RBP: QWORD;
+    RSP: QWORD;
+    RIP: QWORD;
+    CS: WORD;
+    DS: WORD;
+    ES: WORD;
+    SS: WORD;
+    FS: WORD;
+    GS: WORD;
+    Count: DWORD;
+  end;
 
+  TPageEventBasicArray=array [0..0] of TPageEventBasic;
+  PPageEventBasic=^TPageEventBasic;
+
+  TFXSAVE64=packed record
+    FCW: WORD;
+    FSW: WORD;
+    FTW: BYTE;
+    Reserved: BYTE;
+    FOP: WORD;
+    FPU_IP: UINT64;
+    FPU_DP: UINT64;
+    MXCSR: DWORD;
+    MXCSR_MASK: DWORD;
+    FP_MM0: QWORD;
+    FP_MM0_H: QWORD;
+    FP_MM1: QWORD;
+    FP_MM1_H: QWORD;
+    FP_MM2: QWORD;
+    FP_MM2_H: QWORD;
+    FP_MM3: QWORD;
+    FP_MM3_H: QWORD;
+    FP_MM4: QWORD;
+    FP_MM4_H: QWORD;
+    FP_MM5: QWORD;
+    FP_MM5_H: QWORD;
+    FP_MM6: QWORD;
+    FP_MM6_H: QWORD;
+    FP_MM7: QWORD;
+    FP_MM7_H: QWORD;
+    XMM0: QWORD;
+    XMM0_H: QWORD;
+    XMM1: QWORD;
+    XMM1_H: QWORD;
+    XMM2: QWORD;
+    XMM2_H: QWORD;
+    XMM3: QWORD;
+    XMM3_H: QWORD;
+    XMM4: QWORD;
+    XMM4_H: QWORD;
+    XMM5: QWORD;
+    XMM5_H: QWORD;
+    XMM6: QWORD;
+    XMM6_H: QWORD;
+    XMM7: QWORD;
+    XMM7_H: QWORD;
+    XMM8: QWORD;
+    XMM8_H: QWORD;
+    XMM9: QWORD;
+    XMM9_H: QWORD;
+    XMM10: QWORD;
+    XMM10_H: QWORD;
+    XMM11: QWORD;
+    XMM11_H: QWORD;
+    XMM12: QWORD;
+    XMM12_H: QWORD;
+    XMM13: QWORD;
+    XMM13_H: QWORD;
+    XMM14: QWORD;
+    XMM14_H: QWORD;
+    XMM15: QWORD;
+    XMM15_H: QWORD;
+    res1: QWORD;
+    res1_H: QWORD;
+    res2: QWORD;
+    res2_H: QWORD;
+    res3: QWORD;
+    res3_H: QWORD;
+    res4: QWORD;
+    res4_H: QWORD;
+    res5: QWORD;
+    res5_H: QWORD;
+    res6: QWORD;
+    res6_H: QWORD;
+  end;
+
+  PFXSAVE64=^TFXSAVE64;
+
+  TPageEventExtended=record
+    basic: TPageEventBasic;
+    fpudata: TFXSAVE64;
+  end;
+  TPageEventExtendedArray=array [0..0] of TPageEventExtended;
+  PPageEventExtended=^TPageEventExtended;
+
+  TPageEventBasicWithStack=record
+    basic: TPageEventBasic;
+    stack: array [0..4095] of byte;
+  end;
+  TPageEventBasicWithStackArray=array [0..0] of TPageEventBasicWithStack;
+  PPageEventBasicWithStack=^TPageEventBasicWithStack;
+
+  TPageEventExtendedWithStack=record
+    basic: TPageEventBasic;
+    fpudata: TFXSAVE64;
+    stack: array [0..4095] of byte;
+  end;
+  TPageEventExtendedWithStackArray=array [0..0] of TPageEventExtendedWithStack;
+  PPageEventExtendedWithStack=^TPageEventExtendedWithStack;
+
+  PPageEventBasicArray=^TPageEventBasicArray;
+  PPageEventExtendedArray=^TPageEventExtendedArray;
+  PPageEventBasicWithStackArray=^TPageEventBasicWithStackArray;
+  PPageEventExtendedWithStackArray=^TPageEventExtendedWithStackArray;
+
+  TPageEventListDescriptor=record
+    ID: DWORD;
+    maxSize: DWORD ;
+    numberOfEntries: DWORD ;
+    entryType: DWORD ;
+    //followed by results
+
+    //case integer of
+//      0: (basic:     array [0..0] of TPageEventBasic);
+//      1: (extended:  TPageEventBasic);//TPageEventExtendedArray);
+//      2: (basics:    TPageEventBasicStackArray);
+//      3: (extendeds: TPageEventExtendedStackArray);
+  end;
+
+  type PPageEventListDescriptor=^TPageEventListDescriptor;
 
 
 function dbvm_version: dword; stdcall;
@@ -112,6 +285,9 @@ function dbvm_testSwitchToKernelmode: integer; //returns 123 on success
 function dbvm_getProcAddress(functionname: string): pointer;
 
 procedure dbvm_testPSOD;
+
+function dbvm_watch_writes(PhysicalAddress: QWORD; size: integer; Options: DWORD; MaxEntryCount: Integer): integer;
+function dbvm_watch_retreivelog(ID: integer; results: PPageEventListDescriptor; var resultsize: integer): integer;
 
 procedure configure_vmx(userpassword1,userpassword2: dword);
 procedure configure_vmx_kernel;
@@ -693,6 +869,59 @@ begin
 end;
 
 
+function dbvm_watch_writes(PhysicalAddress: QWORD; size: integer; Options: DWORD; MaxEntryCount: Integer): integer;
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+  PhysicalAddress: QWORD;
+  Size: integer;
+  Options: DWORD;
+  MaxEntryCount: integer;
+  UsePMI: integer;
+  ID: integer; //return value
+end;
+begin
+  result:=-1;
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_WATCH_WRITES;
+
+  vmcallinfo.PhysicalAddress:=PhysicalAddress;
+  vmcallinfo.Size:=size;
+  vmcallinfo.Options:=Options;
+  vmcallinfo.MaxEntryCount:=MaxEntryCount;
+  vmcallinfo.UsePMI:=0;
+  vmcallinfo.ID:=-1;
+
+  if vmcall(@vmcallinfo,vmx_password1)=0 then
+    result:=vmcallinfo.ID;
+end;
+
+function dbvm_watch_retreivelog(ID: integer; results: PPageEventListDescriptor; var resultsize: integer): integer;
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+  ID: DWORD;
+  results: QWORD;
+  resultssize: DWORD;
+  copied: DWORD;
+end;
+begin
+  result:=1;
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_WATCH_WRITES;
+  vmcallinfo.ID:=ID;
+  vmcallinfo.results:=QWORD(results);
+  vmcallinfo.resultssize:=resultsize;
+  vmcallinfo.copied:=0;
+
+  result:=vmcall(@vmcallinfo,vmx_password1);  //returns 2 on a too small size
+
+  resultsize:=vmcallinfo.resultssize;
+end;
 
 var kernelfunctions: Tstringlist;
 
