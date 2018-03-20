@@ -4481,6 +4481,19 @@ begin
     raise exception.create('not all memory read');
 end;
 
+function lua_dbvm_psod(L: PLua_state): integer; cdecl;
+begin
+  dbvm_psod;
+  result:=1;
+  lua_pushstring(L,'WTF');
+end;
+
+function lua_dbvm_getNMIcount(L: PLua_state): integer; cdecl;
+begin
+  lua_pushinteger(L, dbvm_getNMIcount);
+  result:=1;
+end;
+
 function dbk_readMSR(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
@@ -8915,6 +8928,8 @@ begin
     lua_register(L, 'dbvm_jtagbp', lua_dbvm_jtagbp);
     lua_register(L ,'dbvm_readPhysicalMemory', lua_dbvm_readphysicalmemory);
     lua_register(L ,'dbvm_writePhysicalMemory', lua_dbvm_writephysicalmemory);
+    lua_register(L ,'dbvm_psod', lua_dbvm_psod);
+    lua_register(L ,'dbvm_getNMIcount', lua_dbvm_getNMIcount);
 
     lua_register(L, 'dbk_getPhysicalAddress', dbk_getPhysicalAddress);
     lua_register(L, 'dbk_writesIgnoreWriteProtection', dbk_writesIgnoreWriteProtection);

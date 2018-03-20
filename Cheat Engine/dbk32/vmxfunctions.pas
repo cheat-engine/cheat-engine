@@ -42,6 +42,7 @@ const
   //dbvm 11
   VMCALL_GETMEM = 38;
   VMCALL_JTAGBP = 39;
+  VMCALL_GETNMICOUNT = 40;
 
 type
   TOriginalState=packed record
@@ -93,7 +94,8 @@ procedure dbvm_switchToKernelMode(cs: word; rip: pointer; parameters: pointer);
 
 function dbvm_getMemory(var pages: QWORD): QWORD;
 function dbvm_jtagbp: boolean;
-
+function dbvm_getNMIcount: QWORD;
+procedure dbvm_psod;
 
 procedure dbvm_enterkernelmode(originalstate: POriginalState);
 procedure dbvm_returntousermode(originalstate: POriginalState);
@@ -599,6 +601,33 @@ begin
   vmcallinfo.level2pass:=vmx_password2;
   vmcallinfo.command:=VMCALL_JTAGBP;
   result:=vmcall(@vmcallinfo,vmx_password1)<>0;
+end;
+
+procedure dbvm_psod;
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_TESTPSOD;
+  vmcall(@vmcallinfo,vmx_password1);
+end;
+
+
+function dbvm_getNMIcount: QWORD;
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_GETNMICOUNT;
+  result:=vmcall(@vmcallinfo,vmx_password1);
 end;
 
 function dbvm_getRealCR0: QWORD;
