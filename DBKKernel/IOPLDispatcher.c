@@ -1535,13 +1535,90 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				mdl = (PMDL)inp->FromMDL;
 
 				MmUnmapLockedPages((PMDL)inp->Address, mdl);
-
+				MmUnlockPages(mdl);
 				IoFreeMdl(mdl);
 
 				ntStatus = STATUS_SUCCESS; //no BSOD means success ;)
 
 				break;
 			}
+
+		case IOCTL_CE_LOCK_MEMORY:
+			{
+				struct
+				{
+					UINT64 ProcessID;
+					UINT64 address;
+					UINT64 size;
+				} *inp;
+				
+				struct
+				{					
+					UINT64 mdl;
+				} *outp;
+				KAPC_STATE apc_state;
+				PEPROCESS selectedprocess;
+
+				DbgPrint("IOCTL_CE_LOCK_MEMORY");
+				inp = Irp->AssociatedIrp.SystemBuffer;
+				outp = Irp->AssociatedIrp.SystemBuffer;
+				 
+				
+
+				if (PsLookupProcessByProcessId((PVOID)(UINT64)(inp->ProcessID), &selectedprocess) == STATUS_SUCCESS)
+				{
+					PMDL mdl;
+					KeStackAttachProcess(selectedprocess, &apc_state);
+
+					__try
+					{
+						mdl = IoAllocateMdl((PVOID)inp->address, inp->size, FALSE, FALSE, NULL);
+						if (mdl)
+						{
+							__try
+							{
+								MmProbeAndLockPages(mdl, UserMode, IoReadAccess);
+
+								DbgPrint("MmProbeAndLockPages succeeded");
+							}
+							__except (1)
+							{
+								DbgPrint("MmProbeAndLockPages failed");
+								IoFreeMdl(mdl);
+								ntStatus = STATUS_UNSUCCESSFUL;
+								break;
+							}
+
+						}
+					}
+					__finally
+					{
+						KeUnstackDetachProcess(&apc_state);
+					}
+
+					outp->mdl = mdl;
+
+
+					DbgPrint("Locked the page\n");
+					ntStatus = STATUS_SUCCESS;
+				}
+				
+				break;
+			}
+
+		case IOCTL_CE_UNLOCK_MEMORY:
+		{
+			struct
+			{
+				UINT64 mdl;
+			} *inp;
+			DbgPrint("IOCTL_CE_UNLOCK_MEMORY");
+			inp = Irp->AssociatedIrp.SystemBuffer;
+
+			MmUnlockPages(inp->mdl);
+			IoFreeMdl(inp);
+			break;
+		}
 
 		case IOCTL_CE_GETPROCADDRESS:
 			{

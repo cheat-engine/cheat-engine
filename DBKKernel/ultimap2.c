@@ -879,7 +879,7 @@ void ultimap2_setup_dpc(struct _KDPC *Dpc, PVOID DeferredContext, PVOID SystemAr
 				if (Ultimap2Ranges[i].IsStopAddress)
 					ctl.Value |= (UINT64)2ULL << bit; //TraceStop This stops all tracing on this cpu. Doesn't get reactivated
 				else
-					ctl.Value |= (UINT64)1ULL << bit; //FilterEn
+					ctl.Value |= (UINT64)1ULL << bit; //FilterEn //not supported in the latest windows build
 
 				DbgPrint("Value after=%p", (PVOID)ctl.Value);
 			}
@@ -1420,9 +1420,8 @@ void DisableUltimap2(void)
 	DbgPrint("HalSetSystemInformation to disable returned %x\n", r);
 	//HalSetSystemInformation(HalProfileSourceInterruptHandler, sizeof(PVOID*), 0);
 
-	UltimapActive = FALSE;
-
 	
+	UltimapActive = FALSE;
 	
 	if (SuspendThreadHandle)
 	{
