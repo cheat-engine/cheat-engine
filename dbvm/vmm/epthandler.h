@@ -26,9 +26,19 @@ void initMemTypeRanges();
 int handleEPTViolation(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PFXSAVE64 fxsave);
 int handleEPTMisconfig(pcpuinfo currentcpuinfo, VMRegisters *vmregisters);
 int ept_handleWatchEventAfterStep(pcpuinfo currentcpuinfo, int ID);
+int ept_handleCloakEventAfterStep(pcpuinfo currentcpuinfo, int ID);
+int ept_handleSoftwareBreakpointAfterStep(pcpuinfo currentcpuinfo,  int ID);
 
 int ept_activateWatch(pcpuinfo currentcpuinfo, int ID);
 int ept_disableWatch(pcpuinfo currentcpuinfo, int ID);
 int getFreeWatchID(pcpuinfo currentcpuinfo);
+
+int ept_cloak_activate(QWORD physicalAddress);
+int ept_cloak_deactivate(QWORD physicalAddress);
+int ept_cloak_readOriginal(pcpuinfo currentcpuinfo, VMRegisters *registers, QWORD physicalAddress, QWORD destination);
+int ept_cloak_writeOriginal(pcpuinfo currentcpuinfo, VMRegisters *registers, QWORD physicalAddress, QWORD source);
+int ept_cloak_changeregonbp(QWORD physicalAddress, PCHANGEREGONBPINFO changereginfo);
+int ept_cloak_removechangeregonbp(QWORD physicalAddress);
+int ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo);
 
 #endif /* VMM_EPTHANDLER_H_ */

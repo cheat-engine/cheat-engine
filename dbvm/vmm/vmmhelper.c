@@ -1597,16 +1597,16 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
         //setup a memory watch for physical address 0x7000
         sendstringf("Setting write watch at 0x7000 to 0x7fff\n");
         int ID=getFreeWatchID(currentcpuinfo);
-        currentcpuinfo->eptwatchlist[ID].PhysicalAddress=0x7000;
-        currentcpuinfo->eptwatchlist[ID].Size=4096;
-        currentcpuinfo->eptwatchlist[ID].Type=0; //write
-        currentcpuinfo->eptwatchlist[ID].Log=malloc(65536);
-        zeromemory(currentcpuinfo->eptwatchlist[ID].Log, 65536);
+        currentcpuinfo->eptWatchlist[ID].PhysicalAddress=0x7000;
+        currentcpuinfo->eptWatchlist[ID].Size=4096;
+        currentcpuinfo->eptWatchlist[ID].Type=0; //write
+        currentcpuinfo->eptWatchlist[ID].Log=malloc(65536);
+        zeromemory(currentcpuinfo->eptWatchlist[ID].Log, 65536);
 
-        currentcpuinfo->eptwatchlist[ID].Log->ID=ID;
-        currentcpuinfo->eptwatchlist[ID].Log->entryType=0;
-        currentcpuinfo->eptwatchlist[ID].Log->numberOfEntries=0;
-        currentcpuinfo->eptwatchlist[ID].Log->maxNumberOfEntries=(65536-sizeof(PageEventListDescriptor)) / sizeof(PageEventBasic);
+        currentcpuinfo->eptWatchlist[ID].Log->ID=ID;
+        currentcpuinfo->eptWatchlist[ID].Log->entryType=0;
+        currentcpuinfo->eptWatchlist[ID].Log->numberOfEntries=0;
+        currentcpuinfo->eptWatchlist[ID].Log->maxNumberOfEntries=(65536-sizeof(PageEventListDescriptor)) / sizeof(PageEventBasic);
 
         ept_activateWatch(currentcpuinfo, ID);
         break;

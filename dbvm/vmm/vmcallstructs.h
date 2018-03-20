@@ -47,7 +47,7 @@ typedef struct
                //  Bit 2: 0=Do not save FPU/XMM data, 1=Also save FPU/XMM data
                //  Bit 3: 0=Do not save a stack snapshot, 1=Save stack snapshot
   int MaxEntryCount; //DBVM will allocate this buffer
-  int UsePMI; //trigger a PMI interrupt when full (so you don't lose info)
+  int UsePMI; //trigger a PMI interrupt when full (so you don't lose info.  NYI)
   int ID; //ID describing this watcher for this CPU (keep track of this on a per cpu basis if you do more than 1 and don't specify all cpu's)
 } __attribute__((__packed__)) VMCALL_WATCH_PARAM, *PVMCALL_WATCH_PARAM;
 
@@ -67,12 +67,90 @@ typedef struct
   DWORD copied; //the number of bytes copied so far (This is a repeating instruction)
 } __attribute__((__packed__)) VMCALL_WATCH_RETRIEVELOG_PARAM, *PVMCALL_WATCH_RETRIEVELOG_PARAM;
 
-/*
- *    DWORD ID;
-    UINT64 results;
-    int resultsize;
-    int copied; //the number of bytes copied so far (This is a repeating instruction)
- */
+typedef struct
+{
+  VMCALL_BASIC vmcall;
+  QWORD physicalAddress;
+} __attribute__((__packed__)) VMCALL_CLOAK_ACTIVATE_PARAM, *PVMCALL_CLOAK_ACTIVATE_PARAM,
+                              VMCALL_CLOAK_DEACTIVATE_PARAM, *PVMCALL_CLOAK_DEACTIVATE_PARAM;
+
+typedef struct
+{
+  VMCALL_BASIC vmcall;
+  QWORD physicalAddress;
+  QWORD destination;
+} __attribute__((__packed__)) VMCALL_CLOAK_READ_PARAM, *PVMCALL_CLOAK_READ_PARAM;
+
+typedef struct
+{
+  VMCALL_BASIC vmcall;
+  QWORD physicalAddress;
+  QWORD source;
+} __attribute__((__packed__)) VMCALL_CLOAK_WRITE_PARAM, *PVMCALL_CLOAK_WRITE_PARAM;
+
+typedef struct
+{
+  struct
+  {
+    unsigned changeRAX : 1;
+    unsigned changeRBX : 1;
+    unsigned changeRCX : 1;
+    unsigned changeRDX : 1;
+    unsigned changeRSI : 1;
+    unsigned changeRDI : 1;
+    unsigned changeRBP : 1;
+    unsigned changeRSP : 1;
+    unsigned changeRIP : 1;
+    unsigned changeR8  : 1;
+    unsigned changeR9  : 1;
+    unsigned changeR10 : 1;
+    unsigned changeR11 : 1;
+    unsigned changeR12 : 1;
+    unsigned changeR13 : 1;
+    unsigned changeR14 : 1;
+    unsigned changeR15 : 1;
+    //flags reg:
+    unsigned changeCF : 1;
+    unsigned changePF : 1;
+    unsigned changeAF : 1;
+    unsigned changeZF : 1;
+    unsigned changeSF : 1;
+    unsigned changeOF : 1;
+    unsigned newCF : 1;
+    unsigned newPF : 1;
+    unsigned newAF : 1;
+    unsigned newZF : 1;
+    unsigned newSF : 1;
+    unsigned newOF : 1;
+    unsigned reserved : 3;
+  } Flags;
+
+  QWORD newRAX;
+  QWORD newRBX;
+  QWORD newRCX;
+  QWORD newRDX;
+  QWORD newRSI;
+  QWORD newRDI;
+  QWORD newRBP;
+  QWORD newRSP;
+  QWORD newRIP;
+  QWORD newR8;
+  QWORD newR9;
+  QWORD newR10;
+  QWORD newR11;
+  QWORD newR12;
+  QWORD newR13;
+  QWORD newR14;
+  QWORD newR15;
+} __attribute__((__packed__)) CHANGEREGONBPINFO, *PCHANGEREGONBPINFO;
+
+typedef struct
+{
+  VMCALL_BASIC vmcall;
+  QWORD physicalAddress;
+  CHANGEREGONBPINFO changereginfo;
+} __attribute__((__packed__)) VMCALL_CLOAK_CHANGEREG_PARAM, *PVMCALL_CLOAK_CHANGEREG_PARAM;
+
 
 
 #endif /* VMM_VMCALLSTRUCTS_H_ */

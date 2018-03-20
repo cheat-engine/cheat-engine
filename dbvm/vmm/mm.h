@@ -33,6 +33,7 @@ void* getMappedMemoryBase();
 PPTE_PAE mapAddressAtPML4(QWORD address);
 void unmapAddressAtPML4(PPTE_PAE base);
 
+void mapPhysicalAddressToVirtualAddress(QWORD PhysicalAddress, QWORD VirtualAddress);
 void* mapMemory(void *destination, void *source, int size);  //maps a virtual memory region with the specified virtual memory region
 
 int mmFindMapPositionForSize(pcpuinfo cpuinfo, int size);
@@ -40,6 +41,9 @@ int mmFindMapPositionForSize(pcpuinfo cpuinfo, int size);
 void unmapPhysicalMemory(void *virtualaddress, int size);
 void* mapPhysicalMemory(QWORD PhysicalAddress, int size);
 void* mapPhysicalMemoryAddresses(QWORD *addresses, int count);
+
+void* mapPhysicalMemoryGlobal(QWORD PhysicalAddress, int size);
+void unmapPhysicalMemoryGlobal(void *virtualaddress, int size);
 
 void VirtualAddressToIndexes(QWORD address, int *pml4index, int *pagedirptrindex, int *pagedirindex, int *pagetableindex);
 

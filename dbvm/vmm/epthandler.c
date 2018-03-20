@@ -12,29 +12,524 @@
 #include "msrnames.h"
 #include "common.h"
 #include "vmpaging.h"
+#include "vmcall.h"
 
 QWORD EPTMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int forcesmallpage);
+
+criticalSection CloakedPagesCS; //1
+CloakedPageInfo *CloakedPages;
+int CloakedPagesSize;
+int CloakedPagesPos;
+
+
+criticalSection ChangeRegBPListCS; //2
+ChangeRegBPEntry *ChangeRegBPList;
+int ChangeRegBPListSize;
+int ChangeRegBPListPos;
+
+int ept_handleCloakEvent(pcpuinfo currentcpuinfo, QWORD Address)
+/*
+ * Checks if the physical address is cloaked, if so handle it and return 1, else return 0
+ */
+{
+  int i,result=0;
+  QWORD BaseAddress=Address & MAXPHYADDRMASKPB;
+  csEnter(&CloakedPagesCS);
+  for (i=0; i<CloakedPagesPos; i++)
+  {
+    if (currentcpuinfo->eptCloakListLength<=i)
+      break;
+
+    csEnter(&currentcpuinfo->EPTPML4CS);
+
+    if (CloakedPages[i].PhysicalAddressExecutable==BaseAddress)
+    {
+      //it's a cloaked page
+      EPT_VIOLATION_INFO evi;
+      evi.ExitQualification=vmread(vm_exit_qualification);
+
+      if (evi.X) //looks like this cpu does not support execute only
+      {
+        *(QWORD *)(currentcpuinfo->eptCloakList[i])=CloakedPages[i].PhysicalAddressExecutable;
+        currentcpuinfo->eptCloakList[i]->WA=1;
+        currentcpuinfo->eptCloakList[i]->RA=1;
+        currentcpuinfo->eptCloakList[i]->XA=1;
+
+        vmx_enableSingleStepMode();
+        vmx_addSingleSteppingReason(currentcpuinfo, 2,i);
+        currentcpuinfo->eptCloak_LastOperationWasWrite=evi.W;
+
+        result=1;
+
+        break;
+      }
+      else
+      {
+        *(QWORD *)(currentcpuinfo->eptCloakList[i])=CloakedPages[i].PhysicalAddressData; //todo: Let the user specify a bitmask so writes go through to the executable page as well
+        currentcpuinfo->eptCloakList[i]->WA=1;
+        currentcpuinfo->eptCloakList[i]->RA=1;
+        currentcpuinfo->eptCloakList[i]->XA=1;
+
+        vmx_enableSingleStepMode();
+        vmx_addSingleSteppingReason(currentcpuinfo, 2,i);
+        currentcpuinfo->eptCloak_LastOperationWasWrite=evi.W;
+
+
+        result=1;
+
+        break;
+
+      }
+
+      csLeave(&currentcpuinfo->EPTPML4CS);
+
+
+    }
+
+  }
+  csLeave(&CloakedPagesCS);
+
+
+  return result;
+}
+
+int ept_handleCloakEventAfterStep(pcpuinfo currentcpuinfo,  int ID)
+{
+  sendstringf("ept_handleCloakEventAfterStep\n");
+  //back to execute only
+  csEnter(&CloakedPagesCS);
+
+  if (currentcpuinfo->eptCloak_LastOperationWasWrite)
+  {
+    //apply the write as well (TODO: let the user specify what memory should be skipped when writing)
+    if ((*(QWORD *)(currentcpuinfo->eptCloakList[ID]) & MAXPHYADDRMASKPB) == CloakedPages[ID].PhysicalAddressExecutable)
+    {
+      //this was a write and execute at the same time
+    }
+    else
+    {
+
+    }
+  }
+
+
+  csEnter(&currentcpuinfo->EPTPML4CS);
+  *(QWORD *)(currentcpuinfo->eptCloakList[ID])=CloakedPages[ID].PhysicalAddressExecutable; //back to the executable state
+  currentcpuinfo->eptCloakList[ID]->WA=0;
+  currentcpuinfo->eptCloakList[ID]->RA=0;
+  currentcpuinfo->eptCloakList[ID]->XA=1;
+  csLeave(&currentcpuinfo->EPTPML4CS);
+
+
+  csLeave(&CloakedPagesCS);
+
+  vmx_disableSingleStepMode();
+
+  return 0;
+}
+
+
+int ept_cloak_activate(QWORD physicalAddress)
+{
+  int i;
+  int ID=-1;
+
+  sendstringf("ept_cloak_activate(%6)\n", physicalAddress);
+
+  physicalAddress=physicalAddress & MAXPHYADDRMASKPB;
+  csEnter(&CloakedPagesCS);
+
+  //check if this physical address is already cloaked and find a free position while doing so
+  for (i=0; i<CloakedPagesPos; i++)
+  {
+    if (CloakedPages[i].PhysicalAddressExecutable==physicalAddress)
+    {
+      csLeave(&CloakedPagesCS);
+      return 1; //already cloaked
+    }
+
+    if ((ID==-1) && (CloakedPages[i].PhysicalAddressExecutable==0) && (CloakedPages[i].PhysicalAddressData==0))
+      ID=i;
+  }
+
+  if (ID==-1) //new one
+  {
+    if (CloakedPagesPos==CloakedPagesSize) //need to reallocate the list
+    {
+      CloakedPagesSize=(CloakedPagesSize+2)*2;
+      CloakedPages=realloc(CloakedPages, sizeof(CloakedPageInfo)*CloakedPagesSize);
+
+      if (CloakedPages==NULL)
+      {
+        nosendchar[getAPICID()]=0;
+        sendstringf("CloakedPages realloc failed\n");
+        csLeave(&CloakedPagesCS);
+        return 0xcedead00;
+      }
+    }
+
+    ID=CloakedPagesPos;
+    CloakedPagesPos++;
+  }
+
+  CloakedPages[ID].Executable=mapPhysicalMemoryGlobal(physicalAddress, 4096);
+  CloakedPages[ID].Data=malloc(4096);
+
+
+  if (CloakedPages[ID].Data==NULL)
+  {
+    if (CloakedPages[ID].Executable)
+      unmapPhysicalMemoryGlobal(CloakedPages[ID].Executable, 4096);
+
+    sendstringf("CloakedPages alloc data copy failed\n");
+    csLeave(&CloakedPagesCS);
+    return 0xcedead01;
+  }
+  copymem(CloakedPages[ID].Data, CloakedPages[ID].Executable, 4096);
+  CloakedPages[ID].PhysicalAddressExecutable=physicalAddress;
+  CloakedPages[ID].PhysicalAddressData=VirtualToPhysical(CloakedPages[ID].Data);
+
+  //map in the physical address descriptor for all CPU's as execute only
+  pcpuinfo currentcpuinfo=firstcpuinfo;
+  while (currentcpuinfo)
+  {
+    csEnter(&currentcpuinfo->EPTPML4CS);
+
+    //make sure that the eptCloakList is at least as big as CloakedPagesSize
+    if (currentcpuinfo->eptCloakListLength<CloakedPagesSize)
+      currentcpuinfo->eptCloakList=realloc(currentcpuinfo->eptCloakList, CloakedPagesSize);
+
+    QWORD PA=EPTMapPhysicalMemory(currentcpuinfo, physicalAddress, 1);
+    currentcpuinfo->eptCloakList[ID]=mapPhysicalMemory(PA, sizeof(EPT_PTE));
+
+    //make it nonreadable
+    currentcpuinfo->eptCloakList[ID]->RA=0;
+    currentcpuinfo->eptCloakList[ID]->WA=0;
+
+    csLeave(&currentcpuinfo->EPTPML4CS);
+
+    currentcpuinfo=currentcpuinfo->next;
+  }
+
+
+
+
+  csLeave(&CloakedPagesCS);
+  return 0;
+}
+
+int ept_cloak_deactivate(QWORD physicalAddress)
+{
+  int i;
+  int found=0;
+  physicalAddress=physicalAddress & MAXPHYADDRMASKPB;
+  csEnter(&CloakedPagesCS);
+
+  for (i=0; i<CloakedPagesPos; i++)
+  {
+    if (CloakedPages[i].PhysicalAddressExecutable==physicalAddress)
+    {
+      //found it
+      found=1;
+      CloakedPages[i].PhysicalAddressExecutable=0;
+      CloakedPages[i].PhysicalAddressData=0;
+      free(CloakedPages[i].Data);
+      CloakedPages[i].Data=NULL;
+      unmapPhysicalMemoryGlobal(CloakedPages[i].Executable, 4096);
+      CloakedPages[i].Executable=NULL;
+    }
+  }
+  csLeave(&CloakedPagesCS);
+
+  //if there where cloak event events pending, then next time they violate, the normal handler will make it RWX on the address it should
+  return (found==1);
+}
+
+int ept_cloak_readOriginal(pcpuinfo currentcpuinfo,  VMRegisters *registers, QWORD physicalAddress, QWORD destination)
+{
+  int error;
+  int i,ID=-1;
+  physicalAddress=physicalAddress & MAXPHYADDRMASKPB;
+
+  QWORD pagefault;
+
+  void *dest=mapVMmemory(currentcpuinfo, destination, 4096,&error, &pagefault);
+
+  if (error==2)
+    return raisePagefault(currentcpuinfo, pagefault);
+
+  csEnter(&CloakedPagesCS);
+  for (i=0; i<CloakedPagesPos; i++)
+    if (CloakedPages[i].PhysicalAddressExecutable==physicalAddress)
+    {
+      ID=i;
+      break;
+    }
+
+  if (ID!=-1)
+  {
+    void *src=mapPhysicalMemory(CloakedPages[i].PhysicalAddressExecutable, 4096);
+    copymem(dest,src,4096);
+    registers->rax=0;
+
+    unmapPhysicalMemory(src,4096);
+  }
+  else
+    registers->rax=1;
+
+  csLeave(&CloakedPagesCS);
+
+  unmapVMmemory(dest,4096);
+
+
+  vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+  return 0;
+}
+
+int ept_cloak_writeOriginal(pcpuinfo currentcpuinfo,  VMRegisters *registers, QWORD physicalAddress, QWORD source)
+{
+  int error;
+  int i,ID=-1;
+  physicalAddress=physicalAddress & MAXPHYADDRMASKPB;
+
+  QWORD pagefault;
+
+  void *src=mapVMmemory(currentcpuinfo, source, 4096,&error, &pagefault);
+
+  if (error==2)
+    return raisePagefault(currentcpuinfo, pagefault);
+
+  csEnter(&CloakedPagesCS);
+  for (i=0; i<CloakedPagesPos; i++)
+    if (CloakedPages[i].PhysicalAddressExecutable==physicalAddress)
+    {
+      ID=i;
+      break;
+    }
+
+  if (ID!=-1)
+  {
+    void *dest=mapPhysicalMemory(CloakedPages[i].PhysicalAddressExecutable, 4096);
+    copymem(dest,src,4096);
+    registers->rax=0;
+
+    unmapPhysicalMemory(dest,4096);
+  }
+  else
+    registers->rax=1;
+
+  csLeave(&CloakedPagesCS);
+
+  unmapVMmemory(src,4096);
+
+
+  vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+  return 0;
+}
+
+int ept_cloak_changeregonbp(QWORD physicalAddress, PCHANGEREGONBPINFO changereginfo)
+{
+  int i;
+  int result=1;
+  QWORD physicalBase=physicalAddress & MAXPHYADDRMASKPB;
+  ept_cloak_activate(physicalBase); //just making sure
+
+  csEnter(&CloakedPagesCS);
+  for (i=0; i<CloakedPagesPos; i++)
+  {
+    if (CloakedPages[i].PhysicalAddressExecutable==physicalBase)
+    {
+      //found it.  Create an int3 bp at that spot
+      int ID=-1;
+      int offset=physicalAddress & 0xfff;
+      unsigned char *executable=CloakedPages[i].Executable;
+
+      //
+      csEnter(&ChangeRegBPListCS);
+      int j;
+      for (j=0; j<ChangeRegBPListPos; j++)
+      {
+        if (ChangeRegBPList[j].Active==0)
+        {
+          ID=j;
+          break;
+        }
+      }
+      if (ID==-1)
+      {
+        ID=ChangeRegBPListPos;
+        ChangeRegBPListPos++;
+        if (ChangeRegBPListPos>=ChangeRegBPListSize) //realloc the list
+        {
+          ChangeRegBPListSize=(ChangeRegBPListSize+2)*2;
+          ChangeRegBPList=realloc(ChangeRegBPList, sizeof(ChangeRegBPEntry)*ChangeRegBPListSize);
+        }
+      }
+
+
+      ChangeRegBPList[ID].PhysicalAddress=physicalAddress;
+      ChangeRegBPList[ID].originalbyte=executable[offset];
+      ChangeRegBPList[ID].changereginfo=*changereginfo;
+      ChangeRegBPList[ID].CloakedRangeIndex=i;
+      ChangeRegBPList[ID].Active=1;
+
+      executable[offset]=0xcc; //int3 bp's will happen now (even on other CPU's)
+
+      csLeave(&ChangeRegBPListCS);
+      result=0;
+    }
+  }
+
+  csLeave(&CloakedPagesCS);
+
+  return result;
+}
+
+int ept_cloak_removechangeregonbp(QWORD physicalAddress)
+{
+  int i;
+  int result=1;
+  csEnter(&CloakedPagesCS);
+  csEnter(&ChangeRegBPListCS);
+  for (i=0; i<ChangeRegBPListPos; i++)
+  {
+    if ((ChangeRegBPList[i].Active) && (ChangeRegBPList[i].PhysicalAddress==physicalAddress))
+    {
+      unsigned char *executable=(unsigned char *)CloakedPages[ChangeRegBPList[i].CloakedRangeIndex].Executable;
+      executable[physicalAddress & 0xfff]=ChangeRegBPList[i].originalbyte;
+      ChangeRegBPList[i].Active=0;
+      result=0;
+    }
+  }
+
+  csLeave(&ChangeRegBPListCS);
+  csLeave(&CloakedPagesCS);
+
+  return result;
+}
+
+int ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo)
+{
+  //check if it is a cloaked instruction
+  int i;
+  int result=1;
+
+
+  //convert RIP into a physical address
+
+  int notpaged;
+  QWORD PA=getPhysicalAddressVM(currentcpuinfo, vmread(vm_guest_rip), &notpaged);
+
+  if (notpaged==0) //should be since it's a software interrupt...
+  {
+    csEnter(&CloakedPagesCS);
+    csEnter(&ChangeRegBPListCS);
+    for (i=0; i<ChangeRegBPListPos; i++)
+    {
+      if (ChangeRegBPList[i].PhysicalAddress==PA)
+      {
+        if (ChangeRegBPList[i].Active)
+        {
+          //it's a match
+          //Todo: Only change if the processID matches  (todo: Add a getProcessID option provided by the OS based caller)
+          //For now, make sure that the physical page is not shared, or that the register change is compatible with different processes (e.g kernelmode only, or a Flag change)
+
+          if ((ChangeRegBPList[i].changereginfo.Flags.changeRIP==0) || (ChangeRegBPList[i].changereginfo.newRIP==vmread(vm_guest_rip)))
+          {
+            //RIP does not change
+
+            //restore the original byte
+            int offset=ChangeRegBPList[i].PhysicalAddress & 0xfff;
+
+            unsigned char *executable=(unsigned char *)CloakedPages[ChangeRegBPList[i].CloakedRangeIndex].Executable;
+            executable[offset]=ChangeRegBPList[i].originalbyte;
+
+            //setup single step mode
+            vmx_enableSingleStepMode();
+            vmx_addSingleSteppingReason(currentcpuinfo, 3,i); //change reg on bp, restore int3 bp
+
+            vmwrite(vm_guest_rip, vmread(vm_guest_rip)-1);
+            result=0;
+            break;
+          }
+        }
+        else
+        {
+          //probably a stale breakpoint event that was waiting for the spinlock (what are the changes that there was a 0xcc at the exact same spot a previous bp was set)
+          //try again
+          //todo: keep a try again counter
+          vmwrite(vm_guest_rip, vmread(vm_guest_rip)-1);
+          result=0;
+        }
+      }
+    }
+
+    csLeave(&ChangeRegBPListCS);
+    csLeave(&CloakedPagesCS);
+  }
+
+  return result;
+}
+
+
+int ept_handleSoftwareBreakpointAfterStep(pcpuinfo currentcpuinfo UNUSED,  int ID)
+{
+  int result=1;
+  csEnter(&CloakedPagesCS);
+  csEnter(&ChangeRegBPListCS);
+  if (ChangeRegBPList[ID].Active)
+  {
+    int i;
+    QWORD PA=ChangeRegBPList[ID].PhysicalAddress;
+    QWORD PABase=PA & MAXPHYADDRMASKPB;
+
+    //find this PA in the cloaked pages list
+    for (i=0; i<CloakedPagesPos; i++)
+    {
+      if (CloakedPages[i].PhysicalAddressExecutable==PABase)
+      {
+        int offset=PA-PABase;
+        unsigned char *executable=(unsigned char*)CloakedPages[i].Executable;
+        executable[offset]=0xcc; //set the breakpoint back
+        result=0;
+        break;
+      }
+    }
+
+
+  }
+
+  csLeave(&ChangeRegBPListCS);
+  csLeave(&CloakedPagesCS);
+
+  return result;
+}
+
+
+/*
+ * WATCH
+ */
 
 int getFreeWatchID(pcpuinfo currentcpuinfo)
 //scan through the watches for an unused spot, if not found, reallocate the list
 {
   int i,j;
-  for (i=0; i<currentcpuinfo->eptwatchlistLength; i++)
+  for (i=0; i<currentcpuinfo->eptWatchlistLength; i++)
   {
-    if (currentcpuinfo->eptwatchlist[i].Active==0)
+    if (currentcpuinfo->eptWatchlist[i].Active==0)
       return i;
   }
 
   //still here, realloc
 
-  i=currentcpuinfo->eptwatchlistLength;
+  i=currentcpuinfo->eptWatchlistLength;
 
-  currentcpuinfo->eptwatchlistLength=(currentcpuinfo->eptwatchlistLength+2)*2;
-  currentcpuinfo->eptwatchlist=realloc(currentcpuinfo->eptwatchlist, currentcpuinfo->eptwatchlistLength*sizeof(EPTWatchEntry));
+  currentcpuinfo->eptWatchlistLength=(currentcpuinfo->eptWatchlistLength+2)*2;
+  currentcpuinfo->eptWatchlist=realloc(currentcpuinfo->eptWatchlist, currentcpuinfo->eptWatchlistLength*sizeof(EPTWatchEntry));
 
 
-  for (j=i; j<currentcpuinfo->eptwatchlistLength; j++)
-    currentcpuinfo->eptwatchlist[j].Active=0;
+  for (j=i; j<currentcpuinfo->eptWatchlistLength; j++)
+    currentcpuinfo->eptWatchlist[j].Active=0;
 
   return i;
 }
@@ -97,10 +592,10 @@ void fillPageEventBasic(PageEventBasic *peb, VMRegisters *registers)
 
 inline int ept_doesAddressMatchWatchListEntryPerfectly(pcpuinfo currentcpuinfo, QWORD address, int ID)
 {
-  return ((currentcpuinfo->eptwatchlist[ID].Active) &&
+  return ((currentcpuinfo->eptWatchlist[ID].Active) &&
           (
-             (address>=currentcpuinfo->eptwatchlist[ID].PhysicalAddress) &&
-             (address<currentcpuinfo->eptwatchlist[ID].PhysicalAddress+currentcpuinfo->eptwatchlist[ID].Size)
+             (address>=currentcpuinfo->eptWatchlist[ID].PhysicalAddress) &&
+             (address<currentcpuinfo->eptWatchlist[ID].PhysicalAddress+currentcpuinfo->eptWatchlist[ID].Size)
            )
           );
 }
@@ -110,7 +605,7 @@ inline int ept_doesAddressMatchWatchListEntry(pcpuinfo currentcpuinfo, QWORD add
  * pre: address is already page aligned
  */
 {
-  return ((currentcpuinfo->eptwatchlist[ID].Active) && ((currentcpuinfo->eptwatchlist[ID].PhysicalAddress & 0xfffffffffffff000ULL) == address));
+  return ((currentcpuinfo->eptWatchlist[ID].Active) && ((currentcpuinfo->eptWatchlist[ID].PhysicalAddress & 0xfffffffffffff000ULL) == address));
 }
 
 int ept_inWatchRegionPage(pcpuinfo currentcpuinfo, QWORD address)
@@ -121,7 +616,7 @@ int ept_inWatchRegionPage(pcpuinfo currentcpuinfo, QWORD address)
 {
   int i;
   address=address & 0xfffffffffffff000ULL;
-  for (i=0; i<currentcpuinfo->eptwatchlistLength; i++)
+  for (i=0; i<currentcpuinfo->eptWatchlistLength; i++)
     if (ept_doesAddressMatchWatchListEntry(currentcpuinfo, address, i))
       return i;
 
@@ -140,16 +635,17 @@ int ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSAV
   EPT_VIOLATION_INFO evi;
   evi.ExitQualification=vmread(vm_exit_qualification);
 
-  sendstringf("Handling watch ID %d\n", ID);
+  nosendchar[getAPICID()]=0;
+  sendstringf("Handling something that resembles watch ID %d\n", ID);
 
 
   //figure out which access it is really (in case of multiple on the same page)
 
-  for (i=ID; i<currentcpuinfo->eptwatchlistLength; i++)
+  for (i=ID; i<currentcpuinfo->eptWatchlistLength; i++)
   {
     if (ept_doesAddressMatchWatchListEntry(currentcpuinfo, PhysicalAddressBase, i))
     {
-      if (currentcpuinfo->eptwatchlist[ID].Type==0)
+      if (currentcpuinfo->eptWatchlist[ID].Type==0)
       {
         //must be a write operation error
         if ((evi.W) && (evi.WasWritable==0)) //write operation and writable was 0
@@ -173,35 +669,48 @@ int ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSAV
     }
   }
 
+  sendstringf("Handling watch ID %d\n", ID);
+
   //ID is now set to the most logical watch(usually there is no conflicts, and even if there is, no biggie. But still)
 
   //run once
-  currentcpuinfo->eptwatchlist[ID].EPTEntry->XA=1;
-  currentcpuinfo->eptwatchlist[ID].EPTEntry->RA=1;
-  currentcpuinfo->eptwatchlist[ID].EPTEntry->WA=1;
+  currentcpuinfo->eptWatchlist[ID].EPTEntry->XA=1;
+  currentcpuinfo->eptWatchlist[ID].EPTEntry->RA=1;
+  currentcpuinfo->eptWatchlist[ID].EPTEntry->WA=1;
+
+  sendstringf("Page is accessible. Doing single step\n");
 
   vmx_enableSingleStepMode();
-  currentcpuinfo->singleStepping.Reason=1; //EPT watch event
-  currentcpuinfo->singleStepping.EPTWatch.ID=ID;
+  vmx_addSingleSteppingReason(currentcpuinfo, 1, ID);
+
 
   //save this state?
   if ((evi.R==0) && (evi.X==1))
+  {
+    sendstringf("This was an execute operation and no read. No need to log\n", ID);
     return 0; //execute operation (this cpu doesn't support execute only)
+  }
 
-  if (currentcpuinfo->eptwatchlist[ID].CopyInProgress) //a copy operation is in progress
+  if (currentcpuinfo->eptWatchlist[ID].CopyInProgress) //a copy operation is in progress
+  {
+    sendstringf("This watchlist is currently being copied, not logging this\n");
     return 0;
+  }
 
-  if (((currentcpuinfo->eptwatchlist[ID].Options & EPTO_LOG_ALL)==0) &&
+  if (((currentcpuinfo->eptWatchlist[ID].Options & EPTO_LOG_ALL)==0) &&
      (
-      (PhysicalAddress<currentcpuinfo->eptwatchlist[ID].PhysicalAddress) ||
-      (PhysicalAddress>=currentcpuinfo->eptwatchlist[ID].PhysicalAddress+currentcpuinfo->eptwatchlist[ID].Size)
+      (PhysicalAddress<currentcpuinfo->eptWatchlist[ID].PhysicalAddress) ||
+      (PhysicalAddress>=currentcpuinfo->eptWatchlist[ID].PhysicalAddress+currentcpuinfo->eptWatchlist[ID].Size)
       ))
+  {
+    sendstringf("Not logging all and the physical address is not in the exact range\n");
     return 0; //no need to log it
+  }
 
 
   //scan if this RIP is already in the list
 
-  switch (currentcpuinfo->eptwatchlist[ID].Log->entryType)
+  switch (currentcpuinfo->eptWatchlist[ID].Log->entryType)
   {
     case 0: logentrysize=sizeof(PageEventBasic); break;
     case 1: logentrysize=sizeof(PageEventExtended); break;
@@ -209,19 +718,25 @@ int ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSAV
     case 3: logentrysize=sizeof(PageEventExtendedWithStack); break;
   }
 
-  for (i=0; (DWORD)i<currentcpuinfo->eptwatchlist[ID].Log->numberOfEntries; i++)
+  sendstringf("Want to log this. Type=%d EntrySize=%d\n", currentcpuinfo->eptWatchlist[ID].Log->entryType, logentrysize);
+
+  for (i=0; (DWORD)i<currentcpuinfo->eptWatchlist[ID].Log->numberOfEntries; i++)
   {
-    PageEventBasic *peb=(PageEventBasic *)((QWORD)(&currentcpuinfo->eptwatchlist[ID].Log->pe.basic[0])+i*logentrysize);
+    PageEventBasic *peb=(PageEventBasic *)((QWORD)(&currentcpuinfo->eptWatchlist[ID].Log->pe.basic[0])+i*logentrysize);
     //every type starts with a PageEventBasic
 
     if (peb->RIP==RIP)
     {
+      sendstringf("This RIP is already logged");
       //it's already in the list
-      if ((currentcpuinfo->eptwatchlist[ID].Options & EPTO_MULTIPLERIP)==0)
+      if ((currentcpuinfo->eptWatchlist[ID].Options & EPTO_MULTIPLERIP)==0)
       {
+        sendstringf(" and EPTO_MULTIPLERIP is 0.  Not logging (just increase count)\n");
         peb->Count++;
         return 0; //no extra RIP's
       }
+      else
+        sendstringf(" but EPTO_MULTIPLERIP is 1, so checking register states\n");
 
       //still here, so multiple RIP's are ok. check if it matches the other registers
       if (
@@ -243,6 +758,7 @@ int ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSAV
           (peb->R15==registers->r15)
         )
       {
+        sendstringf("  The registers match the state so skipping the log. (Just increase count)\n");
         peb->Count++;
         return 0; //already in the list
       }
@@ -252,47 +768,52 @@ int ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSAV
   }
 
   //still here, so not in the list
-  if (currentcpuinfo->eptwatchlist[ID].Log->numberOfEntries>=currentcpuinfo->eptwatchlist[ID].Log->maxNumberOfEntries)
+  sendstringf("Checks out ok. Not yet in the list\n");
+
+  if (currentcpuinfo->eptWatchlist[ID].Log->numberOfEntries>=currentcpuinfo->eptWatchlist[ID].Log->maxNumberOfEntries)
+  {
+    sendstringf("List is full. Discarding event\n");
     return 0; //can't add more
+  }
 
   //still here, so not in the list, and still room
   //add it
 
-  i=currentcpuinfo->eptwatchlist[ID].Log->numberOfEntries;
-  switch (currentcpuinfo->eptwatchlist[ID].Log->entryType)
+  i=currentcpuinfo->eptWatchlist[ID].Log->numberOfEntries;
+  switch (currentcpuinfo->eptWatchlist[ID].Log->entryType)
   {
     case PE_BASIC:
     {
-      fillPageEventBasic(&currentcpuinfo->eptwatchlist[ID].Log->pe.basic[i], registers);
+      fillPageEventBasic(&currentcpuinfo->eptWatchlist[ID].Log->pe.basic[i], registers);
       break;
     }
 
     case PE_EXTENDED:
     {
-      fillPageEventBasic(&currentcpuinfo->eptwatchlist[ID].Log->pe.extended[i].basic, registers);
-      currentcpuinfo->eptwatchlist[ID].Log->pe.extended[i].fpudata=*fxsave;
+      fillPageEventBasic(&currentcpuinfo->eptWatchlist[ID].Log->pe.extended[i].basic, registers);
+      currentcpuinfo->eptWatchlist[ID].Log->pe.extended[i].fpudata=*fxsave;
       break;
     }
 
     case PE_BASICSTACK:
     {
-      fillPageEventBasic(&currentcpuinfo->eptwatchlist[ID].Log->pe.basics[i].basic, registers);
-      saveStack(currentcpuinfo, currentcpuinfo->eptwatchlist[ID].Log->pe.basics[i].stack);
+      fillPageEventBasic(&currentcpuinfo->eptWatchlist[ID].Log->pe.basics[i].basic, registers);
+      saveStack(currentcpuinfo, currentcpuinfo->eptWatchlist[ID].Log->pe.basics[i].stack);
       break;
     }
 
     case PE_EXTENDEDSTACK:
     {
-      fillPageEventBasic(&currentcpuinfo->eptwatchlist[ID].Log->pe.extendeds[i].basic, registers);
-      currentcpuinfo->eptwatchlist[ID].Log->pe.extended[i].fpudata=*fxsave;
-      saveStack(currentcpuinfo, currentcpuinfo->eptwatchlist[ID].Log->pe.extendeds[i].stack);
+      fillPageEventBasic(&currentcpuinfo->eptWatchlist[ID].Log->pe.extendeds[i].basic, registers);
+      currentcpuinfo->eptWatchlist[ID].Log->pe.extended[i].fpudata=*fxsave;
+      saveStack(currentcpuinfo, currentcpuinfo->eptWatchlist[ID].Log->pe.extendeds[i].stack);
       break;
     }
-
-
   }
 
-  currentcpuinfo->eptwatchlist[ID].Log->numberOfEntries++;
+  currentcpuinfo->eptWatchlist[ID].Log->numberOfEntries++;
+
+  sendstringf("Added it to the list. numberOfEntries for ID %d is now %d\n", ID, currentcpuinfo->eptWatchlist[ID].Log->numberOfEntries);
 
   return 0;
 
@@ -300,17 +821,19 @@ int ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSAV
 
 int ept_handleWatchEventAfterStep(pcpuinfo currentcpuinfo,  int ID)
 {
-  sendstringf("ept_handleWatchEventAfterStep\n");
-  if (currentcpuinfo->eptwatchlist[ID].Type==0)
-    currentcpuinfo->eptwatchlist[ID].EPTEntry->WA=0;
+  sendstringf("ept_handleWatchEventAfterStep %d\n", ID);
+  if (currentcpuinfo->eptWatchlist[ID].Type==0)
+  {
+    sendstringf("Write type. So making it unwritable\n");
+    currentcpuinfo->eptWatchlist[ID].EPTEntry->WA=0;
+  }
   else
   {
-    currentcpuinfo->eptwatchlist[ID].EPTEntry->RA=0;
-    currentcpuinfo->eptwatchlist[ID].EPTEntry->WA=0;
+    sendstringf("read type. So making it unreadable\n");
+    currentcpuinfo->eptWatchlist[ID].EPTEntry->RA=0;
+    currentcpuinfo->eptWatchlist[ID].EPTEntry->WA=0;
   }
   vmx_disableSingleStepMode();
-  currentcpuinfo->singleStepping.Reason=0;
-  currentcpuinfo->singleStepping.EPTWatch.ID=-1;
 
   return 0;
 }
@@ -320,23 +843,23 @@ int ept_activateWatch(pcpuinfo currentcpuinfo, int ID)
 {
   //(re)map this physical memory and the page descriptors
   sendstringf("ept_activateWatch(%d)\n", ID);
-  QWORD PA_EPTE=EPTMapPhysicalMemory(currentcpuinfo, currentcpuinfo->eptwatchlist[ID].PhysicalAddress, 1);
+  QWORD PA_EPTE=EPTMapPhysicalMemory(currentcpuinfo, currentcpuinfo->eptWatchlist[ID].PhysicalAddress, 1);
 
   sendstringf("PA_EPTE=%6\n", PA_EPTE);
-  currentcpuinfo->eptwatchlist[ID].EPTEntry=(PEPT_PTE)mapPhysicalMemory(PA_EPTE, sizeof(EPT_PTE));
+  currentcpuinfo->eptWatchlist[ID].EPTEntry=(PEPT_PTE)mapPhysicalMemory(PA_EPTE, sizeof(EPT_PTE));
 
   //test if needed:  SetPageToWriteThrough(currentcpuinfo->eptwatchlist[ID].EPTEntry);
 
   //check out 28.3.3.4  (might not be needed due to vmexit, but do check anyhow)
 
-  if (currentcpuinfo->eptwatchlist[ID].Type==0)
+  if (currentcpuinfo->eptWatchlist[ID].Type==0)
   {
-    currentcpuinfo->eptwatchlist[ID].EPTEntry->WA=0;
-    sendstringf("Make the entry for %6 non writable\n",currentcpuinfo->eptwatchlist[ID].PhysicalAddress);
+    currentcpuinfo->eptWatchlist[ID].EPTEntry->WA=0;
+    sendstringf("Make the entry for %6 non writable\n",currentcpuinfo->eptWatchlist[ID].PhysicalAddress);
   }
   //EPTINV
 
-  currentcpuinfo->eptwatchlist[ID].Active=1;
+  currentcpuinfo->eptWatchlist[ID].Active=1;
   return 0;
 }
 
@@ -344,14 +867,14 @@ int ept_disableWatch(pcpuinfo currentcpuinfo, int ID)
 {
   int i;
   int hasAnotherOne=0;
-  QWORD PhysicalBase=currentcpuinfo->eptwatchlist[ID].PhysicalAddress & 0xfffffffffffff000ULL;
+  QWORD PhysicalBase=currentcpuinfo->eptWatchlist[ID].PhysicalAddress & 0xfffffffffffff000ULL;
 
-  for (i=0; i<currentcpuinfo->eptwatchlistLength; i++)
+  for (i=0; i<currentcpuinfo->eptWatchlistLength; i++)
   {
     if (ept_doesAddressMatchWatchListEntry(currentcpuinfo, PhysicalBase, i))
     {
       //matches
-      if (currentcpuinfo->eptwatchlist[i].Type==currentcpuinfo->eptwatchlist[ID].Type) //don't undo
+      if (currentcpuinfo->eptWatchlist[i].Type==currentcpuinfo->eptWatchlist[ID].Type) //don't undo
         hasAnotherOne=1;
     }
   }
@@ -359,19 +882,19 @@ int ept_disableWatch(pcpuinfo currentcpuinfo, int ID)
   if (hasAnotherOne==0)
   {
     //undo
-    if (currentcpuinfo->eptwatchlist[ID].Type==0)
-      currentcpuinfo->eptwatchlist[ID].EPTEntry->WA=1;
+    if (currentcpuinfo->eptWatchlist[ID].Type==0)
+      currentcpuinfo->eptWatchlist[ID].EPTEntry->WA=1;
     else
     {
-      currentcpuinfo->eptwatchlist[ID].EPTEntry->RA=1;
-      currentcpuinfo->eptwatchlist[ID].EPTEntry->WA=1;
+      currentcpuinfo->eptWatchlist[ID].EPTEntry->RA=1;
+      currentcpuinfo->eptWatchlist[ID].EPTEntry->WA=1;
     }
 
   }
 
-  unmapPhysicalMemory(currentcpuinfo->eptwatchlist[ID].EPTEntry,sizeof(EPT_PTE));
-  currentcpuinfo->eptwatchlist[ID].EPTEntry=NULL;
-  currentcpuinfo->eptwatchlist[ID].Active=0;
+  unmapPhysicalMemory(currentcpuinfo->eptWatchlist[ID].EPTEntry,sizeof(EPT_PTE));
+  currentcpuinfo->eptWatchlist[ID].EPTEntry=NULL;
+  currentcpuinfo->eptWatchlist[ID].Active=0;
   return 0;
 }
 
@@ -732,6 +1255,8 @@ QWORD EPTMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int f
   PEPT_PDE pagedir=NULL;
   PEPT_PTE pagetable=NULL;
 
+  csEnter(&currentcpuinfo->EPTPML4CS);
+
   pml4=mapPhysicalMemory(currentcpuinfo->EPTPML4, 4096);
   if (pml4[pml4index].RA==0)
   {
@@ -779,6 +1304,8 @@ QWORD EPTMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int f
         pagedirptr[pagedirptrindex].BIG=1;
         pagedirptr[pagedirptrindex].MEMTYPE=memtype;
         unmapPhysicalMemory(pagedirptr, 4096);
+
+        csLeave(&currentcpuinfo->EPTPML4CS);
         return PA;
       }
     }
@@ -824,6 +1351,8 @@ QWORD EPTMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int f
         pagedir[pagedirindex].BIG=1;
         pagedir[pagedirindex].MEMTYPE=memtype;
         unmapPhysicalMemory(pagedir, 4096);
+
+        csLeave(&currentcpuinfo->EPTPML4CS);
         return PA;
       }
     }
@@ -874,6 +1403,7 @@ QWORD EPTMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int f
 
   unmapPhysicalMemory(pagetable,4096);
 
+  csLeave(&currentcpuinfo->EPTPML4CS);
   return PA;
 }
 
@@ -915,6 +1445,8 @@ int handleEPTViolation(pcpuinfo currentcpuinfo, VMRegisters *vmregisters UNUSED,
   }
 
   //check for cloak
+  if (ept_handleCloakEvent(currentcpuinfo, GuestAddress))
+    return 0;
 
   //still here, so not a watch or cloak
   sendstringf("Mapping %6\n", GuestAddress);

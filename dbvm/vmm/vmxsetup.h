@@ -60,6 +60,8 @@ int vmx_disableNMIWindowExiting(void);
 int vmx_enableSingleStepMode(void);
 int vmx_disableSingleStepMode(void);
 
+int vmx_addSingleSteppingReason(pcpuinfo currentcpuinfo, int reason, int ID);
+
 
 void setupVMX(pcpuinfo currentcpuinfo);
 

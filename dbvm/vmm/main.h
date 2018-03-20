@@ -144,6 +144,8 @@ int AMD_hasNRIPS;
 extern int IntHandlerDebug;
 volatile int NMIcount;
 
+extern pcpuinfo firstcpuinfo;
+
 #define vmclear _vmclear
 #define vmptrld _vmptrld
 #define vmxon _vmxon

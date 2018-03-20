@@ -369,7 +369,16 @@ typedef volatile struct _vmcb
 
 } __attribute__((__packed__)) vmcb, *pvmcb;
 
+typedef struct _singlestepreason
+{
+  int Reason;
+      //1=EPT watch event single step (Restore page back to non write/ non  read)
+      //2=EPT cloak event (Put the old executable page back and mark as non read/write)
+      //3=change reg on bp event (restored the int3 bp (0xcc))
 
+
+  int ID; //index of the array used for this reason (watchlist, cloaklist, changeregonbplist)
+} SingleStepReason, *PSingleStepReason;
 
 typedef volatile struct tcpuinfo
 {
@@ -562,21 +571,21 @@ typedef volatile struct tcpuinfo
   } vmxdata;
 
   QWORD EPTPML4;
-  PEPTWatchEntry eptwatchlist;
-  int eptwatchlistLength;
+  criticalSection EPTPML4CS; //since other cpu's can map in pages for other cpu's as well, use a CS
+  PEPT_PTE *eptCloakList; //pointer to the EPT entry of the index related to CloakedPages
+  int eptCloakListLength;
+  int eptCloak_LastOperationWasWrite;
+
+  PEPTWatchEntry eptWatchlist;
+  int eptWatchlistLength;
 
   struct //single stepping data
   {
-    int Reason;
     int Method;
 
-    //Reason 1: EPT watch event
-    struct //EPT watch event
-    {
-      int ID;
-    } EPTWatch;
-
-    //Reason 2: Memory cloak (read/write , or even execute on systems without execute only mode)
+    SingleStepReason *Reasons;
+    int ReasonsPos;
+    int ReasonsLength;
   } singleStepping;
 
 

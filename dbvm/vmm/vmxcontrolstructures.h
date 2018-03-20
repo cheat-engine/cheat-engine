@@ -138,6 +138,12 @@ typedef union
   } binary;
 }__attribute__((__packed__)) PendingDebugExceptions, *PPendingDebugExceptions;
 
+//interrupt type:
+#define itExternal          0
+#define itNMI               2
+#define itHardwareException 3
+#define itSoftwareException 6
+
 typedef struct _vmexit_interruption_information
 {
   union {

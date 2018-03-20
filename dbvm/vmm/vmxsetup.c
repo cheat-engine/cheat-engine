@@ -472,6 +472,27 @@ int vmx_disableNMIWindowExiting(void)
   return (a+b+c==3);
 }
 
+int vmx_addSingleSteppingReason(pcpuinfo currentcpuinfo, int reason, int ID)
+{
+  if (currentcpuinfo->singleStepping.ReasonsPos>=currentcpuinfo->singleStepping.ReasonsLength) //realloc
+  {
+    currentcpuinfo->singleStepping.ReasonsLength=(currentcpuinfo->singleStepping.ReasonsLength+2)*2;
+    currentcpuinfo->singleStepping.Reasons=realloc(currentcpuinfo->singleStepping.Reasons, currentcpuinfo->singleStepping.ReasonsLength * sizeof(SingleStepReason));
+  }
+
+  //always add to the end
+  if (currentcpuinfo->singleStepping.ReasonsPos>=1)
+  {
+    sendstringf("Multiple single stepping reasons\n");
+  }
+
+  currentcpuinfo->singleStepping.Reasons[currentcpuinfo->singleStepping.ReasonsPos].Reason=reason;
+  currentcpuinfo->singleStepping.Reasons[currentcpuinfo->singleStepping.ReasonsPos].ID=ID;
+  currentcpuinfo->singleStepping.ReasonsPos++;
+
+  return currentcpuinfo->singleStepping.ReasonsPos-1;
+}
+
 int vmx_enableSingleStepMode(void)
 {
   pcpuinfo c=getcpuinfo();
@@ -493,8 +514,9 @@ int vmx_enableSingleStepMode(void)
     c->singleStepping.Method=2;
     if (vmx_enableProcBasedFeature(PBEF_INTERRUPT_WINDOW_EXITING))
     {
-      if ((vmread(vm_entry_interruptioninfo) >> 31)==0)
+      if ((vmread(vm_entry_interruptioninfo) >> 31)==0) //if no interrupt pending
         vmwrite(vm_guest_interruptability_state,2); //execute at least one instruction
+      //else go to that interrupt that is pending and then stop
 
       sendstring("Using the interrupt window\n");
       return 1;

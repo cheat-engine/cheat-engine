@@ -3352,6 +3352,22 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
   return 0;
 }
 
+int handleSoftwareBreakpoint(pcpuinfo currentcpuinfo)
+{
+  //handle software breakpoints
+  sendstringf("Software breakpoint\n");
+  if (hasEPTsupport)
+  {
+    if (ept_handleSoftwareBreakpoint(currentcpuinfo)==0)
+      return 0;
+  }
+
+  //perhaps future breakpoint handlers here
+
+  //still here
+  return 1; //unhandled
+}
+
 int handleInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters) //nightmare function. Needs rewrite
 {
  // int origsc;
@@ -3360,12 +3376,19 @@ int handleInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters) //nightma
   //UINT64 fakeCR4=vmread(0x6006);
 
   //ULONG interrorcode,idtvectorerrorcode;
-  //VMExit_interruption_information intinfo;
+  VMExit_interruption_information intinfo;
   //VMExit_idt_vector_information idtvectorinfo;
   //VMEntry_interruption_information entry_intinfo;
   //int doublefault=0;
 
- // intinfo.interruption_information=vmread(vm_exit_interruptioninfo);
+  intinfo.interruption_information=vmread(vm_exit_interruptioninfo);
+
+  if ((intinfo.interruptvector==3) && (intinfo.type==itSoftwareException))
+  {
+    if (handleSoftwareBreakpoint(currentcpuinfo)==0) //returns non 0 if not handled
+      return 0;
+  }
+
  // interrorcode=vmread(vm_exit_interruptionerror);
   //idtvectorinfo.idtvector_info=vmread(vm_idtvector_information);
   //idtvectorerrorcode=vmread(0x440a);
@@ -3375,8 +3398,6 @@ int handleInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters) //nightma
     return handleInterruptRealMode(currentcpuinfo, vmregisters);     //nope, so we're in real mode emulation
   else
     return handleInterruptProtectedMode(currentcpuinfo, vmregisters);
-
-  return 1;
 }
 
 
@@ -3435,6 +3456,23 @@ InterruptFired:
 }
 
 
+int handleSingleStep(pcpuinfo currentcpuinfo)
+{
+  //handle the reasons one by one
+  int i;
+  for (i=currentcpuinfo->singleStepping.ReasonsPos-1; i>=0; i--)
+  {
+    switch (currentcpuinfo->singleStepping.Reasons[i].Reason)
+    {
+      case 1: return ept_handleWatchEventAfterStep(currentcpuinfo, currentcpuinfo->singleStepping.Reasons[i].ID);
+      case 2: return ept_handleCloakEventAfterStep(currentcpuinfo, currentcpuinfo->singleStepping.Reasons[i].ID);
+      case 3: return ept_handleSoftwareBreakpointAfterStep(currentcpuinfo, currentcpuinfo->singleStepping.Reasons[i].ID);
+    }
+  }
+
+  return 0;
+}
+
 #pragma GCC pop_options
 
 
@@ -3468,7 +3506,7 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
       sendstring("received external interrupt\n\r");
       if (vmread(0x4826)==1)
       {
-        sendstring("In HLT mode so become active and disable externel event watching\n\r");
+        sendstring("In HLT mode so become active and disable external event watching\n\r");
         vmwrite(vm_execution_controls_pin,vmread(0x4000) & 0xFFFFFFFE); //disable external event watching
 
 
@@ -3529,10 +3567,11 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 
 		case 7: //interrupt window
 		{
-		  if ((currentcpuinfo->singleStepping.Reason==1) && (currentcpuinfo->singleStepping.Method==2))
+		  if ((currentcpuinfo->singleStepping.ReasonsPos) && (currentcpuinfo->singleStepping.Method==2))
 		  {
-		    sendstring("Interrupt window event... And I am in single stepping mode\n");
-		    return ept_handleWatchEventAfterStep(currentcpuinfo, currentcpuinfo->singleStepping.EPTWatch.ID);
+        sendstring("Interrupt window event... And I am in single stepping mode\n");
+
+        return handleSingleStep(currentcpuinfo);
 		  }
 		  else
 		  {
@@ -3719,12 +3758,10 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 
 		case 37:
 		{
-      if ((currentcpuinfo->singleStepping.Reason==1) && (currentcpuinfo->singleStepping.Method==1))
-      {
-        sendstring("Monitor Trap Flag. And I am in single stepping mode\n");
-        return ept_handleWatchEventAfterStep(currentcpuinfo, currentcpuinfo->singleStepping.EPTWatch.ID);
-      }
-		  sendstring("Monitor trap flag\n\r");
+      if ((currentcpuinfo->singleStepping.ReasonsPos) && (currentcpuinfo->singleStepping.Method==1))
+        return handleSingleStep(currentcpuinfo);
+
+      sendstring("Monitor trap flag\n\r");
 		  return 0;
 		}
 

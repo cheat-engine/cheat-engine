@@ -9,6 +9,7 @@
 #define VMM_EPTSTRUCTS_H_
 
 #include "common.h"
+#include "vmcallstructs.h"
 
 //the EPT fields are pretty much the same as normal paging fields, Read==Present, RW=write etc... BUT the A and D bits access fields used for other things that WILL cause bad effects.
 //so do NOT map them as page tables for easy editing
@@ -125,40 +126,70 @@ typedef struct _fxsave64
   BYTE FTW;
   BYTE Reserved;
   WORD FOP;
-  QWORD FPU_IP;
-  QWORD FPU_DP;
+  UINT64 FPU_IP;
+  UINT64 FPU_DP;
   DWORD MXCSR;
   DWORD MXCSR_MASK;
   QWORD FP_MM0;
+  QWORD FP_MM0_H;
   QWORD FP_MM1;
+  QWORD FP_MM1_H;
   QWORD FP_MM2;
+  QWORD FP_MM2_H;
   QWORD FP_MM3;
+  QWORD FP_MM3_H;
   QWORD FP_MM4;
+  QWORD FP_MM4_H;
   QWORD FP_MM5;
+  QWORD FP_MM5_H;
   QWORD FP_MM6;
+  QWORD FP_MM6_H;
   QWORD FP_MM7;
+  QWORD FP_MM7_H;
   QWORD XMM0;
+  QWORD XMM0_H;
   QWORD XMM1;
+  QWORD XMM1_H;
   QWORD XMM2;
+  QWORD XMM2_H;
   QWORD XMM3;
+  QWORD XMM3_H;
   QWORD XMM4;
+  QWORD XMM4_H;
   QWORD XMM5;
+  QWORD XMM5_H;
   QWORD XMM6;
+  QWORD XMM6_H;
   QWORD XMM7;
+  QWORD XMM7_H;
   QWORD XMM8;
+  QWORD XMM8_H;
   QWORD XMM9;
+  QWORD XMM9_H;
   QWORD XMM10;
+  QWORD XMM10_H;
   QWORD XMM11;
+  QWORD XMM11_H;
   QWORD XMM12;
+  QWORD XMM12_H;
   QWORD XMM13;
+  QWORD XMM13_H;
   QWORD XMM14;
+  QWORD XMM14_H;
   QWORD XMM15;
+  QWORD XMM15_H;
   QWORD res1;
+  QWORD res1_H;
   QWORD res2;
+  QWORD res2_H;
   QWORD res3;
+  QWORD res3_H;
   QWORD res4;
+  QWORD res4_H;
   QWORD res5;
+  QWORD res5_H;
   QWORD res6;
+  QWORD res6_H;
 } FXSAVE64, *PFXSAVE64;
 
 
@@ -252,7 +283,22 @@ typedef struct
   PPageEventListDescriptor Log;
 } EPTWatchEntry, *PEPTWatchEntry;
 
+typedef struct
+{
+  QWORD PhysicalAddressExecutable; //the PA of the original page and used for execute
+  QWORD PhysicalAddressData; //the PA of the page shown when read/write operations happen
+  void *Data;
+  void *Executable;
+} CloakedPageInfo, *PCloakedPageInfo;
 
+typedef struct
+{
+  int Active;
+  int CloakedRangeIndex;
+  QWORD PhysicalAddress;
+  unsigned char originalbyte;
+  CHANGEREGONBPINFO changereginfo;
+} ChangeRegBPEntry, *PChangeRegBPEntry;
 
 
 #endif /* VMM_EPTSTRUCTS_H_ */

@@ -524,10 +524,6 @@ void returnFromCR3Callback(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, un
 //  sendstringf("New cr3=%x\n\r",newcr3);
 //  sendstringf("currentcpuinfo->guestCR3=%x\n\r",currentcpuinfo->guestCR3);
   currentcpuinfo->cr3_callback.called_callback = 0;
-
-
-//  sendstringf("after:\n\r");
-//  sendvmstate(currentcpuinfo,vmregisters);
 }
 
 int vmcall_writePhysicalMemory(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PVMCALL_WRITEPHYSICALMEMORY wpmcommand)
@@ -681,17 +677,19 @@ int vmcall_readPhysicalMemory(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
   return 0;
 }
 
+
+
 int vmcall_watch_retrievelog(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,  PVMCALL_WATCH_RETRIEVELOG_PARAM params)
 {
   int ID=params->ID;
-  if (ID>=currentcpuinfo->eptwatchlistLength) //out of range
+  if (ID>=currentcpuinfo->eptWatchlistLength) //out of range
   {
     vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
     vmregisters->rax=1; //invalid param
     return 0;
   }
 
-  if (currentcpuinfo->eptwatchlist[ID].Active==0) //not active
+  if (currentcpuinfo->eptWatchlist[ID].Active==0) //not active
   {
     vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
     vmregisters->rax=1; //invalid param
@@ -701,7 +699,7 @@ int vmcall_watch_retrievelog(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
 
   int entrysize=0;
 
-  switch (currentcpuinfo->eptwatchlist[ID].Log->entryType)
+  switch (currentcpuinfo->eptWatchlist[ID].Log->entryType)
   {
     case 0: entrysize=sizeof(PageEventBasic); break;
     case 1: entrysize=sizeof(PageEventExtended); break;
@@ -709,7 +707,7 @@ int vmcall_watch_retrievelog(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
     case 3: entrysize=sizeof(PageEventExtendedWithStack); break;
   }
 
-  DWORD sizeneeded=sizeof(PageEventListDescriptor)+currentcpuinfo->eptwatchlist[ID].Log->numberOfEntries*entrysize;
+  DWORD sizeneeded=sizeof(PageEventListDescriptor)+currentcpuinfo->eptWatchlist[ID].Log->numberOfEntries*entrysize;
   if (params->resultsize < sizeneeded)
   {
     params->resultsize=sizeneeded;
@@ -718,9 +716,16 @@ int vmcall_watch_retrievelog(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
     return 0;
   }
 
+  if (params->results==0)
+  {
+    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+    vmregisters->rax=1; //invalid param
+    return 0;
+  }
+
   int sizeleft=sizeneeded-params->copied; //decrease bytes left by bytes already copied
 
-  currentcpuinfo->eptwatchlist[ID].CopyInProgress=1;
+  currentcpuinfo->eptWatchlist[ID].CopyInProgress=1;
 
   int error;
   QWORD pagefaultaddress;
@@ -729,7 +734,7 @@ int vmcall_watch_retrievelog(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
   if (blocksize>16*4096)
     blocksize=16*4096;
 
-  unsigned char *source=(unsigned char *)currentcpuinfo->eptwatchlist[ID].Log;
+  unsigned char *source=(unsigned char *)currentcpuinfo->eptWatchlist[ID].Log;
   unsigned char *destination=mapVMmemoryEx(currentcpuinfo, destinationaddress, blocksize, &error, &pagefaultaddress,1);
 
 
@@ -762,8 +767,8 @@ int vmcall_watch_retrievelog(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
   if (params->copied==sizeneeded)
   {
     //once all data has been copied
-    currentcpuinfo->eptwatchlist[ID].Log->numberOfEntries=0;
-    currentcpuinfo->eptwatchlist[ID].CopyInProgress=0;
+    currentcpuinfo->eptWatchlist[ID].Log->numberOfEntries=0;
+    currentcpuinfo->eptWatchlist[ID].CopyInProgress=0;
     vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
   }
 
@@ -775,12 +780,12 @@ int vmcall_watch_delete(pcpuinfo currentcpuinfo, PVMCALL_WATCH_DISABLE_PARAM par
 {
   int r=1;
   int ID=params->ID;
-  if (currentcpuinfo->eptwatchlist[ID].Active)
+  if (currentcpuinfo->eptWatchlist[ID].Active)
   {
     ept_disableWatch(currentcpuinfo, ID);
-    free(currentcpuinfo->eptwatchlist[ID].Log);
+    free(currentcpuinfo->eptWatchlist[ID].Log);
 
-    zeromemory(&currentcpuinfo->eptwatchlist[ID], sizeof(EPTWatchEntry));
+    zeromemory(&currentcpuinfo->eptWatchlist[ID], sizeof(EPTWatchEntry));
 
     r=0;
   }
@@ -805,20 +810,20 @@ int vmcall_watch_setup(pcpuinfo currentcpuinfo, PVMCALL_WATCH_PARAM params, int 
 
   if (params->MaxEntryCount) //at least one entry
   {
-    currentcpuinfo->eptwatchlist[ID].PhysicalAddress=params->PhysicalAddress;
-    currentcpuinfo->eptwatchlist[ID].Size=params->Size;
+    currentcpuinfo->eptWatchlist[ID].PhysicalAddress=params->PhysicalAddress;
+    currentcpuinfo->eptWatchlist[ID].Size=params->Size;
 
-    if (((currentcpuinfo->eptwatchlist[ID].PhysicalAddress+currentcpuinfo->eptwatchlist[ID].Size) & 0xfffffffffffff000ULL) > currentcpuinfo->eptwatchlist[ID].PhysicalAddress)
-      currentcpuinfo->eptwatchlist[ID].Size=0x1000-(currentcpuinfo->eptwatchlist[ID].PhysicalAddress & 0xfff);
+    if (((currentcpuinfo->eptWatchlist[ID].PhysicalAddress+currentcpuinfo->eptWatchlist[ID].Size) & 0xfffffffffffff000ULL) > currentcpuinfo->eptWatchlist[ID].PhysicalAddress)
+      currentcpuinfo->eptWatchlist[ID].Size=0x1000-(currentcpuinfo->eptWatchlist[ID].PhysicalAddress & 0xfff);
 
-    currentcpuinfo->eptwatchlist[ID].Type=Type; //write
-    currentcpuinfo->eptwatchlist[ID].Log=malloc(sizeof(PageEventListDescriptor)+structsize*params->MaxEntryCount);
-    zeromemory(currentcpuinfo->eptwatchlist[ID].Log, sizeof(PageEventListDescriptor)+structsize*params->MaxEntryCount);
+    currentcpuinfo->eptWatchlist[ID].Type=Type; //write
+    currentcpuinfo->eptWatchlist[ID].Log=malloc(sizeof(PageEventListDescriptor)+structsize*params->MaxEntryCount);
+    zeromemory(currentcpuinfo->eptWatchlist[ID].Log, sizeof(PageEventListDescriptor)+structsize*params->MaxEntryCount);
 
-    currentcpuinfo->eptwatchlist[ID].Log->ID=ID;
-    currentcpuinfo->eptwatchlist[ID].Log->entryType=structtype;
-    currentcpuinfo->eptwatchlist[ID].Log->numberOfEntries=0;
-    currentcpuinfo->eptwatchlist[ID].Log->maxNumberOfEntries=params->MaxEntryCount;
+    currentcpuinfo->eptWatchlist[ID].Log->ID=ID;
+    currentcpuinfo->eptWatchlist[ID].Log->entryType=structtype;
+    currentcpuinfo->eptWatchlist[ID].Log->numberOfEntries=0;
+    currentcpuinfo->eptWatchlist[ID].Log->maxNumberOfEntries=params->MaxEntryCount;
 
     ept_activateWatch(currentcpuinfo, ID);
 
@@ -829,7 +834,6 @@ int vmcall_watch_setup(pcpuinfo currentcpuinfo, PVMCALL_WATCH_PARAM params, int 
   vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
   return 0;
 }
-
 
 int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, ULONG *vmcall_instruction)
 {
@@ -1497,6 +1501,65 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
     case VMCALL_WATCH_RETRIEVELOG:
     {
       return vmcall_watch_retrievelog(currentcpuinfo, vmregisters, (PVMCALL_WATCH_RETRIEVELOG_PARAM)vmcall_instruction);
+    }
+
+    case VMCALL_CLOAK_ACTIVATE:
+    {
+      if (hasEPTsupport)
+        vmregisters->rax=ept_cloak_activate(((PVMCALL_CLOAK_ACTIVATE_PARAM)vmcall_instruction)->physicalAddress);
+      else
+        vmregisters->rax=0xcedead;
+
+      break;
+    }
+
+    case VMCALL_CLOAK_DEACTIVATE:
+    {
+      if (hasEPTsupport)
+        vmregisters->rax=ept_cloak_deactivate(((PVMCALL_CLOAK_DEACTIVATE_PARAM)vmcall_instruction)->physicalAddress);
+      else
+        vmregisters->rax=0xcedead;
+
+      break;
+    }
+
+    case VMCALL_CLOAK_READORIGINAL:
+    {
+      if (hasEPTsupport)
+        return ept_cloak_readOriginal(currentcpuinfo, vmregisters, ((PVMCALL_CLOAK_READ_PARAM)vmcall_instruction)->physicalAddress, ((PVMCALL_CLOAK_READ_PARAM)vmcall_instruction)->destination);
+      else
+        vmregisters->rax=0xcedead;
+
+      break;
+    }
+
+    case VMCALL_CLOAK_WRITEORIGINAL:
+    {
+      if (hasEPTsupport)
+        return ept_cloak_writeOriginal(currentcpuinfo, vmregisters, ((PVMCALL_CLOAK_WRITE_PARAM)vmcall_instruction)->physicalAddress, ((PVMCALL_CLOAK_WRITE_PARAM)vmcall_instruction)->source);
+      else
+        vmregisters->rax=0xcedead;
+
+      break;
+    }
+
+    case VMCALL_CLOAK_CHANGEREGONBP:
+    {
+      if (hasEPTsupport)
+        vmregisters->rax=ept_cloak_changeregonbp(((PVMCALL_CLOAK_CHANGEREG_PARAM)vmcall_instruction)->physicalAddress, &((PVMCALL_CLOAK_CHANGEREG_PARAM)vmcall_instruction)->changereginfo);
+      else
+        vmregisters->rax=0xcedead;
+
+      break;
+    }
+
+    case VMCALL_CLOAK_REMOVECHANGEREGONBP:
+    {
+      if (hasEPTsupport)
+        vmregisters->rax=ept_cloak_removechangeregonbp(((PVMCALL_CLOAK_CHANGEREG_PARAM)vmcall_instruction)->physicalAddress);
+      else
+        vmregisters->rax=0xcedead;
+      break;
     }
 
 
