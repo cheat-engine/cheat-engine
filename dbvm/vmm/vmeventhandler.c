@@ -3459,19 +3459,34 @@ InterruptFired:
 int handleSingleStep(pcpuinfo currentcpuinfo)
 {
   //handle the reasons one by one
-  int i;
-  for (i=currentcpuinfo->singleStepping.ReasonsPos-1; i>=0; i--)
+  sendstringf("handleSingleStep.  currentcpuinfo->singleStepping.ReasonsPos=%d\n", currentcpuinfo->singleStepping.ReasonsPos);
+
+  while (currentcpuinfo->singleStepping.ReasonsPos)
   {
+    int i=currentcpuinfo->singleStepping.ReasonsPos-1;
+    int r;
+    sendstringf("  ID %d Reason %d\n",i, currentcpuinfo->singleStepping.Reasons[i].Reason);
+
     switch (currentcpuinfo->singleStepping.Reasons[i].Reason)
     {
-      case 1: return ept_handleWatchEventAfterStep(currentcpuinfo, currentcpuinfo->singleStepping.Reasons[i].ID);
-      case 2: return ept_handleCloakEventAfterStep(currentcpuinfo, currentcpuinfo->singleStepping.Reasons[i].ID);
-      case 3: return ept_handleSoftwareBreakpointAfterStep(currentcpuinfo, currentcpuinfo->singleStepping.Reasons[i].ID);
+      case 1: r=ept_handleWatchEventAfterStep(currentcpuinfo, currentcpuinfo->singleStepping.Reasons[i].ID); break;
+      case 2: r=ept_handleCloakEventAfterStep(currentcpuinfo, currentcpuinfo->singleStepping.Reasons[i].ID); break;
+      case 3: r=ept_handleSoftwareBreakpointAfterStep(currentcpuinfo, currentcpuinfo->singleStepping.Reasons[i].ID); break;
     }
+
+    if (r)
+    {
+      while (1);
+    }
+
+    currentcpuinfo->singleStepping.ReasonsPos--;
   }
+
+  sendstringf("return from handleSingleStep.  currentcpuinfo->singleStepping.ReasonsPos=%d\n", currentcpuinfo->singleStepping.ReasonsPos);
 
   return 0;
 }
+
 
 #pragma GCC pop_options
 
@@ -3756,12 +3771,15 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 			return 1;
 		}
 
-		case 37:
+
+		case vm_exit_monitor_trap_flag:
 		{
+
       if ((currentcpuinfo->singleStepping.ReasonsPos) && (currentcpuinfo->singleStepping.Method==1))
         return handleSingleStep(currentcpuinfo);
 
-      sendstring("Monitor trap flag\n\r");
+      sendstring("(Un)expected monitor trap flag\n\r");
+
 		  return 0;
 		}
 

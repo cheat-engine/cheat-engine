@@ -1027,6 +1027,12 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
         break;
       }
 
+      case vm_exit_monitor_trap_flag:
+      {
+        //skip=1;
+        break;
+      }
+
       case vm_exit_interrupt: //interrupt
       {
         switch (vmread(vm_exit_interruptioninfo))
@@ -1318,8 +1324,8 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
         //setResumeFlag();
         sendstringf("Returned from handleVMEvent. result=%d (CR0=%x)\n\r",result,vmread(vm_guest_cr0));
 
-        if (currentcpuinfo->cpunr==1)
-          sendvmstate(currentcpuinfo, (VMRegisters*)registers);
+        //if (currentcpuinfo->cpunr==1)
+        //  sendvmstate(currentcpuinfo, (VMRegisters*)registers);
 
 
         if ((result!=0) && ((result >> 8)!=0xce))

@@ -86,6 +86,7 @@
 #define vm_exit_io_access  30
 #define vm_exit_rdmsr      31
 #define vm_exit_wrmsr      32
+#define vm_exit_monitor_trap_flag 37
 #define vm_exit_ept_violation 48
 #define vm_exit_ept_misconfiguration 49
 #define vm_exit_vmx_preemptiontimer_reachedzero  52

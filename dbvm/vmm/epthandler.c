@@ -117,7 +117,10 @@ int ept_handleCloakEventAfterStep(pcpuinfo currentcpuinfo,  int ID)
   *(QWORD *)(currentcpuinfo->eptCloakList[ID])=CloakedPages[ID].PhysicalAddressExecutable; //back to the executable state
   currentcpuinfo->eptCloakList[ID]->WA=0;
   currentcpuinfo->eptCloakList[ID]->RA=0;
-  currentcpuinfo->eptCloakList[ID]->XA=1;
+  if (has_EPT_ExecuteOnlySupport)
+    currentcpuinfo->eptCloakList[ID]->XA=1;
+  else
+    currentcpuinfo->eptCloakList[ID]->XA=0;
   csLeave(&currentcpuinfo->EPTPML4CS);
 
 
@@ -205,6 +208,11 @@ int ept_cloak_activate(QWORD physicalAddress)
     //make it nonreadable
     currentcpuinfo->eptCloakList[ID]->RA=0;
     currentcpuinfo->eptCloakList[ID]->WA=0;
+
+    if (has_EPT_ExecuteOnlySupport)
+      currentcpuinfo->eptCloakList[ID]->XA=1;
+    else
+      currentcpuinfo->eptCloakList[ID]->XA=0; //going to be slow
 
     csLeave(&currentcpuinfo->EPTPML4CS);
 
@@ -635,7 +643,7 @@ int ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSAV
   EPT_VIOLATION_INFO evi;
   evi.ExitQualification=vmread(vm_exit_qualification);
 
-  nosendchar[getAPICID()]=0;
+  //nosendchar[getAPICID()]=0;
   sendstringf("Handling something that resembles watch ID %d\n", ID);
 
 
@@ -674,6 +682,11 @@ int ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSAV
   //ID is now set to the most logical watch(usually there is no conflicts, and even if there is, no biggie. But still)
 
   //run once
+  if ((currentcpuinfo->eptWatchlist[ID].EPTEntry->XA) && (currentcpuinfo->eptWatchlist[ID].EPTEntry->RA) && (currentcpuinfo->eptWatchlist[ID].EPTEntry->WA))
+  {
+    sendstringf("This entry was already marked with full access (check caches)\n");
+  }
+
   currentcpuinfo->eptWatchlist[ID].EPTEntry->XA=1;
   currentcpuinfo->eptWatchlist[ID].EPTEntry->RA=1;
   currentcpuinfo->eptWatchlist[ID].EPTEntry->WA=1;
@@ -822,6 +835,8 @@ int ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSAV
 int ept_handleWatchEventAfterStep(pcpuinfo currentcpuinfo,  int ID)
 {
   sendstringf("ept_handleWatchEventAfterStep %d\n", ID);
+  vmx_disableSingleStepMode();
+
   if (currentcpuinfo->eptWatchlist[ID].Type==0)
   {
     sendstringf("Write type. So making it unwritable\n");
@@ -832,8 +847,12 @@ int ept_handleWatchEventAfterStep(pcpuinfo currentcpuinfo,  int ID)
     sendstringf("read type. So making it unreadable\n");
     currentcpuinfo->eptWatchlist[ID].EPTEntry->RA=0;
     currentcpuinfo->eptWatchlist[ID].EPTEntry->WA=0;
+    if (has_EPT_ExecuteOnlySupport)
+      currentcpuinfo->eptCloakList[ID]->XA=1;
+    else
+      currentcpuinfo->eptCloakList[ID]->XA=0;
   }
-  vmx_disableSingleStepMode();
+
 
   return 0;
 }
@@ -856,6 +875,18 @@ int ept_activateWatch(pcpuinfo currentcpuinfo, int ID)
   {
     currentcpuinfo->eptWatchlist[ID].EPTEntry->WA=0;
     sendstringf("Make the entry for %6 non writable\n",currentcpuinfo->eptWatchlist[ID].PhysicalAddress);
+  }
+  else
+  if (currentcpuinfo->eptWatchlist[ID].Type==1)
+  {
+    currentcpuinfo->eptWatchlist[ID].EPTEntry->WA=0;
+    currentcpuinfo->eptWatchlist[ID].EPTEntry->RA=0;
+    if (has_EPT_ExecuteOnlySupport)
+      currentcpuinfo->eptCloakList[ID]->XA=1;
+    else
+      currentcpuinfo->eptCloakList[ID]->XA=0;
+
+    sendstringf("Make the entry for %6 non readable/writable\n",currentcpuinfo->eptWatchlist[ID].PhysicalAddress);
   }
   //EPTINV
 
@@ -1250,6 +1281,7 @@ QWORD EPTMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int f
   QWORD PA;
   VirtualAddressToIndexes(physicalAddress, &pml4index, &pagedirptrindex, &pagedirindex, &pagetableindex);
 
+
   PEPT_PML4E pml4=NULL;
   PEPT_PDPTE pagedirptr=NULL;
   PEPT_PDE pagedir=NULL;
@@ -1281,8 +1313,8 @@ QWORD EPTMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int f
     pml4=NULL;
   }
 
-  if (forcesmallpage && pagedirptr[pagedirptrindex].RA)
-    pagedirptr[pagedirptrindex].BIG=0;
+  if (forcesmallpage && pagedirptr[pagedirptrindex].RA && (pagedirptr[pagedirptrindex].BIG)) //it's a big page, so the physical address points to the actual memory. Clear everything
+    *(QWORD *)&pagedirptr[pagedirptrindex]=0;
 
   if (pagedirptr[pagedirptrindex].RA==0)
   {
@@ -1330,8 +1362,9 @@ QWORD EPTMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int f
     pagedirptr=NULL;
   }
 
-  if (forcesmallpage && pagedir[pagedirindex].RA)
-    pagedir[pagedirindex].BIG=0;
+  if (forcesmallpage && pagedir[pagedirindex].RA && (pagedir[pagedirindex].BIG)) //it's a big page, so the physical address points to the actual memory. Clear everything
+    *(QWORD *)&pagedir[pagedirindex]=0;
+
 
   if (pagedir[pagedirindex].RA==0)
   {
@@ -1404,13 +1437,13 @@ QWORD EPTMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int f
   unmapPhysicalMemory(pagetable,4096);
 
   csLeave(&currentcpuinfo->EPTPML4CS);
+
   return PA;
 }
 
 int handleEPTViolation(pcpuinfo currentcpuinfo, VMRegisters *vmregisters UNUSED, PFXSAVE64 fxsave UNUSED)
 {
   //EPT_VIOLATION_INFO vi;
-
   sendstring("handleEPTViolation\n");
 
 
@@ -1439,7 +1472,6 @@ int handleEPTViolation(pcpuinfo currentcpuinfo, VMRegisters *vmregisters UNUSED,
   int watchid=ept_inWatchRegionPage(currentcpuinfo, GuestAddress);
   if (watchid!=-1) //at least one page is being watched. (So it means it's already mapped, which means this violation is caused by me no matter which one)
   {
-    //nosendchar[getAPICID()]=0;
     sendstringf("Handling watch page (PA=%6 VA=%6)\n", GuestAddress, vmread(vm_guest_linear_address));
     return ept_handleWatchEvent(currentcpuinfo, vmregisters, fxsave, watchid);
   }

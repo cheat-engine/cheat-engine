@@ -790,7 +790,6 @@ int vmcall_watch_delete(pcpuinfo currentcpuinfo, PVMCALL_WATCH_DISABLE_PARAM par
     r=0;
   }
 
-  vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
   return r;
 }
 

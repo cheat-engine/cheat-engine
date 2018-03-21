@@ -605,6 +605,7 @@ int setupEPT(pcpuinfo currentcpuinfo)
       eptinfo.IA32_VMX_VPID_EPT_CAP=readMSR(IA32_VMX_EPT_VPID_CAP_MSR);
       has_EPT_1GBsupport=eptinfo.EPT_1GBSupport;
       has_EPT_2MBSupport=eptinfo.EPT_2MBSupport;
+      has_EPT_ExecuteOnlySupport=eptinfo.EPT_executeOnlySupport;
       //eptinfo
 
       QWORD rax=1,rbx=0,rcx=0,rdx=0;

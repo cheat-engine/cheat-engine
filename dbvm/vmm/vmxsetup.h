@@ -48,6 +48,7 @@ MTRRDEF MTRRDefType;
 
 int has_EPT_1GBsupport;
 int has_EPT_2MBSupport;
+int has_EPT_ExecuteOnlySupport;
 
 int hasUnrestrictedSupport;
 

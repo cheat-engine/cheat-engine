@@ -80,6 +80,42 @@ UINT64 TotalAvailable;
 
 void free2(void *address, unsigned int size);
 
+/*
+ * There was a time where the memory manager would free blocks it shouldn't. this is a test for that scenario)
+void wtftest(void)
+{
+  pcpuinfo c=getcpuinfo();
+  int i;
+
+  for (i=0; i<c->eptWatchlistLength; i++)
+  {
+    if (c->eptWatchlist[i].Active)
+    {
+      EPT_PTE x;
+
+      try
+      {
+        PEPTWatchEntry pe=c->eptWatchlist;
+        EPTWatchEntry e=pe[i];
+        _invlpg((QWORD)e.EPTEntry);
+        x=*(e.EPTEntry);
+
+        if (x.Accessed)
+          sendstringf("Valid and accesses\n");
+      }
+      except
+      {
+        nosendchar[getAPICID()]=0;
+        sendstringf("EPTEntry for a watch got invalidated\n");
+        while (1);
+      }
+      tryend
+
+    }
+  }
+}
+*/
+
 void* mapMemory(void *destination, void *source, int size)
 /*
  * This function will setup paging at destination matching the source
@@ -93,7 +129,7 @@ void* mapMemory(void *destination, void *source, int size)
   void *result=(void *)((QWORD)destination+offset);
 
   int pagecount=totalsize / 4096;
-  if (size % 4096)
+  if (size & 0xfff)
     pagecount++;
 
   //just being lazy atm, this can be optimized a lot
@@ -308,7 +344,7 @@ int mmFindMapPositionForSize(pcpuinfo cpuinfo, int size)
   {
     if (pagetable[i].P==0)
     {
-      int j=i;
+      int j=i+1;
       int needed=pagecount-1;
       while (needed)
       {
@@ -353,7 +389,7 @@ void mapPhysicalAddressToVirtualAddress(QWORD PhysicalAddress, QWORD VirtualAddr
 QWORD mmFindGlobalMapAddressForSize(int size)
 {
   int pagecount=size / 4096;
-  if (size % 0xfff)
+  if (size & 0xfff)
     pagecount++;
 
   PPTE_PAE pages;
@@ -403,7 +439,7 @@ void* mapPhysicalMemoryGlobal(QWORD PhysicalAddress, int size) //heavy operation
   unsigned int offset=PhysicalAddress & 0xfff;
   int totalsize=size+offset;
   int pagecount=totalsize / 4096;
-  if (totalsize % 0xfff)
+  if (totalsize & 0xfff)
       pagecount++;
 
   PPTE_PAE pages;
@@ -472,7 +508,7 @@ void* mapPhysicalMemory(QWORD PhysicalAddress, int size)
   unsigned int offset=PhysicalAddress & 0xfff;
   int totalsize=size+offset;
   int pagecount=totalsize / 4096;
-  if (totalsize % 0xfff)
+  if (totalsize & 0xfff)
       pagecount++;
 
   pcpuinfo c=getcpuinfo();
@@ -516,13 +552,15 @@ void* mapPhysicalMemory(QWORD PhysicalAddress, int size)
 
 void unmapPhysicalMemoryGlobal(void *virtualaddress, int size)
 {
+
+
   if (((QWORD)virtualaddress>GLOBALMAPPEDMEMORY) && ((QWORD)virtualaddress<MAPPEDMEMORY))
   {
     QWORD base=(QWORD)virtualaddress & 0xfffffffffffff000ULL;;
     unsigned int offset=(QWORD)virtualaddress & 0xfff;
     int totalsize=size+offset;
     int pagecount=totalsize / 4096;
-    if (totalsize % 0xfff)
+    if (totalsize & 0xfff)
         pagecount++;
 
     csEnter(&GlobalMapCS);
@@ -545,6 +583,8 @@ void unmapPhysicalMemoryGlobal(void *virtualaddress, int size)
     sendstringf("invalid global address (%6) given to unmapPhysicalMemoryGlobal\n",virtualaddress);
     while (1);
   }
+
+
 }
 
 void unmapPhysicalMemory(void *virtualaddress, int size)
@@ -554,7 +594,7 @@ void unmapPhysicalMemory(void *virtualaddress, int size)
   unsigned int offset=(QWORD)virtualaddress & 0xfff;
   int totalsize=size+offset;
   int pagecount=totalsize / 4096;
-  if (totalsize % 0xfff)
+  if (totalsize & 0xfff)
       pagecount++;
 
 
