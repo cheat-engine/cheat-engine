@@ -800,6 +800,10 @@ int vmcall_watch_setup(pcpuinfo currentcpuinfo, PVMCALL_WATCH_PARAM params, int 
   int structtype=(params->Options >> 2) & 3;
   int structsize;
 
+  sendstringf("vmcall_watch_setup. Assigned ID %d.  structtype=%d\n", ID, structtype);
+  sendstringf("sizeof(VMCALL_WATCH_PARAM)=%d\n", sizeof(VMCALL_WATCH_PARAM));
+  sendstringf("params->MaxEntryCount at offset %d\n", (QWORD)(&params->MaxEntryCount)-(QWORD)params);
+
   switch (structtype)
   {
     case 0: structsize=sizeof(PageEventBasic); break;
@@ -807,6 +811,9 @@ int vmcall_watch_setup(pcpuinfo currentcpuinfo, PVMCALL_WATCH_PARAM params, int 
     case 2: structsize=sizeof(PageEventBasicWithStack); break;
     case 3: structsize=sizeof(PageEventExtendedWithStack); break;
   }
+
+  sendstringf("MaxEntryCount=%d\n", params->MaxEntryCount);
+
 
   if (params->MaxEntryCount) //at least one entry
   {
@@ -825,11 +832,15 @@ int vmcall_watch_setup(pcpuinfo currentcpuinfo, PVMCALL_WATCH_PARAM params, int 
     currentcpuinfo->eptWatchlist[ID].Log->numberOfEntries=0;
     currentcpuinfo->eptWatchlist[ID].Log->maxNumberOfEntries=params->MaxEntryCount;
 
+    sendstringf("Configured ept watch. Activating ID %d\n", ID);
     ept_activateWatch(currentcpuinfo, ID);
 
     //everything ok, return success:
     params->ID=ID;
   }
+  else
+    sendstringf("params->MaxEntryCount=%d  (0)\n",params->MaxEntryCount);
+
 
   vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
   return 0;
@@ -839,6 +850,8 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
 {
   int error;
   QWORD pagefaultaddress;
+
+  sendstringf("_handleVMCallInstruction (%d)\n", vmcall_instruction[2]);
 
 
 
@@ -1466,6 +1479,9 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
 
     case VMCALL_WATCH_WRITES:
     {
+      nosendchar[getAPICID()]=0;
+
+      sendstringf("VMCALL_WATCH_WRITES\n");
       if (hasEPTsupport)
       {
         vmcall_watch_setup(currentcpuinfo, (PVMCALL_WATCH_PARAM)vmcall_instruction,0); //write
@@ -1473,6 +1489,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
       }
       else
       {
+        sendstringf("hasEPTsupport==0\n");
         vmregisters->rax = 0xcedead;
       }
       break;
@@ -1480,6 +1497,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
 
     case VMCALL_WATCH_READS:
     {
+      sendstringf("VMCALL_WATCH_READS\n");
       if (hasEPTsupport)
       {
         vmcall_watch_setup(currentcpuinfo, (PVMCALL_WATCH_PARAM)vmcall_instruction,1); //read
@@ -1494,12 +1512,14 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
 
     case VMCALL_WATCH_DELETE:
     {
+      sendstringf("VMCALL_WATCH_DELETE\n");
       vmregisters->rax=vmcall_watch_delete(currentcpuinfo, (PVMCALL_WATCH_DISABLE_PARAM)vmcall_instruction);
       break;
     }
 
     case VMCALL_WATCH_RETRIEVELOG:
     {
+      sendstringf("VMCALL_WATCH_RETRIEVELOG\n");
       return vmcall_watch_retrievelog(currentcpuinfo, vmregisters, (PVMCALL_WATCH_RETRIEVELOG_PARAM)vmcall_instruction);
     }
 

@@ -1161,10 +1161,10 @@ void setupVMX(pcpuinfo currentcpuinfo)
   vmwrite(0x600e,(UINT64)0); //cr3-target value 3
 
   //if useEPT  (the user might want to save that memory)
-  int eptconfigured=setupEPT(currentcpuinfo); //needed for unrestricted guest and could be useful for other things (like protecting the memory of DBVM)
+  hasEPTsupport=setupEPT(currentcpuinfo); //needed for unrestricted guest and could be useful for other things (like protecting the memory of DBVM)
 
 
-  if (eptconfigured)
+  if (hasEPTsupport)
   {
     //try setting unrestricted guest
     if ( ((IA32_VMX_SECONDARY_PROCBASED_CTLS>>32) & SPBEF_ENABLE_UNRESTRICTED ) &&
