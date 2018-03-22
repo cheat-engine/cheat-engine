@@ -287,7 +287,9 @@ function dbvm_getProcAddress(functionname: string): pointer;
 procedure dbvm_testPSOD;
 
 function dbvm_watch_writes(PhysicalAddress: QWORD; size: integer; Options: DWORD; MaxEntryCount: Integer): integer;
-function dbvm_watch_retreivelog(ID: integer; results: PPageEventListDescriptor; var resultsize: integer): integer;
+function dbvm_watch_reads(PhysicalAddress: QWORD; size: integer; Options: DWORD; MaxEntryCount: Integer): integer;
+function dbvm_watch_retrievelog(ID: integer; results: PPageEventListDescriptor; var resultsize: integer): integer;
+function dbvm_watch_delete(ID: integer): boolean;
 
 procedure configure_vmx(userpassword1,userpassword2: dword);
 procedure configure_vmx_kernel;
@@ -871,18 +873,20 @@ end;
 
 function dbvm_watch_writes(PhysicalAddress: QWORD; size: integer; Options: DWORD; MaxEntryCount: Integer): integer;
 var vmcallinfo: packed record
-  structsize: dword;
-  level2pass: dword;
-  command: dword;
-  PhysicalAddress: QWORD;
-  Size: integer;
-  Options: DWORD;
-  MaxEntryCount: integer;
-  UsePMI: integer;
-  ID: integer; //return value
-end;
+      structsize: dword;   //0
+      level2pass: dword;   //4
+      command: dword;      //8
+      PhysicalAddress: QWORD; //12
+      Size: integer;          //20
+      Options: DWORD;         //24
+      MaxEntryCount: integer; //28
+      UsePMI: integer;
+      ID: integer; //return value
+    end;
+    r: integer;
 begin
   result:=-1;
+  outputdebugstring('dbvm_watch_writes');
   vmcallinfo.structsize:=sizeof(vmcallinfo);
   vmcallinfo.level2pass:=vmx_password2;
   vmcallinfo.command:=VMCALL_WATCH_WRITES;
@@ -894,11 +898,58 @@ begin
   vmcallinfo.UsePMI:=0;
   vmcallinfo.ID:=-1;
 
-  if vmcall(@vmcallinfo,vmx_password1)=0 then
+  OutputDebugString('MaxEntryCount at offset '+inttostr(QWORD(@vmcallinfo.MaxEntryCount)-QWORD(@vmcallinfo)));
+
+  OutputDebugString('vmcallinfo.MaxEntryCount='+inttostr(vmcallinfo.MaxEntryCount));
+  r:=vmcall(@vmcallinfo,vmx_password1);
+  OutputDebugString('r='+inttostr(r));
+
+  if r=0 then
     result:=vmcallinfo.ID;
+
+  OutputDebugString('returning '+inttostr(result));
 end;
 
-function dbvm_watch_retreivelog(ID: integer; results: PPageEventListDescriptor; var resultsize: integer): integer;
+function dbvm_watch_reads(PhysicalAddress: QWORD; size: integer; Options: DWORD; MaxEntryCount: Integer): integer;
+var vmcallinfo: packed record
+      structsize: dword;   //0
+      level2pass: dword;   //4
+      command: dword;      //8
+      PhysicalAddress: QWORD; //12
+      Size: integer;          //20
+      Options: DWORD;         //24
+      MaxEntryCount: integer; //28
+      UsePMI: integer;
+      ID: integer; //return value
+    end;
+    r: integer;
+begin
+  result:=-1;
+  outputdebugstring('dbvm_watch_writes');
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_WATCH_WRITES;
+
+  vmcallinfo.PhysicalAddress:=PhysicalAddress;
+  vmcallinfo.Size:=size;
+  vmcallinfo.Options:=Options;
+  vmcallinfo.MaxEntryCount:=MaxEntryCount;
+  vmcallinfo.UsePMI:=0;
+  vmcallinfo.ID:=-1;
+
+  OutputDebugString('MaxEntryCount at offset '+inttostr(QWORD(@vmcallinfo.MaxEntryCount)-QWORD(@vmcallinfo)));
+
+  OutputDebugString('vmcallinfo.MaxEntryCount='+inttostr(vmcallinfo.MaxEntryCount));
+  r:=vmcall(@vmcallinfo,vmx_password1);
+  OutputDebugString('r='+inttostr(r));
+
+  if r=0 then
+    result:=vmcallinfo.ID;
+
+  OutputDebugString('returning '+inttostr(result));
+end;
+
+function dbvm_watch_retrievelog(ID: integer; results: PPageEventListDescriptor; var resultsize: integer): integer;
 var vmcallinfo: packed record
   structsize: dword;
   level2pass: dword;
@@ -912,7 +963,7 @@ begin
   result:=1;
   vmcallinfo.structsize:=sizeof(vmcallinfo);
   vmcallinfo.level2pass:=vmx_password2;
-  vmcallinfo.command:=VMCALL_WATCH_WRITES;
+  vmcallinfo.command:=VMCALL_WATCH_RETRIEVELOG;
   vmcallinfo.ID:=ID;
   vmcallinfo.results:=QWORD(results);
   vmcallinfo.resultssize:=resultsize;
@@ -921,6 +972,21 @@ begin
   result:=vmcall(@vmcallinfo,vmx_password1);  //returns 2 on a too small size
 
   resultsize:=vmcallinfo.resultssize;
+end;
+
+function dbvm_watch_delete(ID: integer): boolean;
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+  ID: DWORD;
+end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_WATCH_DELETE;
+  vmcallinfo.ID:=ID;
+  result:=vmcall(@vmcallinfo,vmx_password1)=0;  //returns 0 on success
 end;
 
 var kernelfunctions: Tstringlist;

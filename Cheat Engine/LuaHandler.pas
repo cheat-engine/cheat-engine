@@ -4531,7 +4531,44 @@ begin
   result:=1;
 end;
 
-function lua_dbvm_watch_retreivelog(L: PLua_state): integer; cdecl;
+function lua_dbvm_watch_reads(L: PLua_state): integer; cdecl;
+var
+  physicalAddress: qword;
+  size: integer;
+  options: DWORD;
+  MaxEntryCount: integer;
+
+  top: integer;
+begin
+  top:=lua_gettop(L);
+  if top>=1 then
+    physicalAddress:=lua_tointeger(L,1)
+  else
+  begin
+    lua_pushstring(L, 'dbvm_watch_reads needs a physical address');
+    lua_error(L);
+  end;
+
+  if top>=2 then
+    size:=lua_tointeger(L,2)
+  else
+    size:=4;
+
+  if top>=3 then
+    options:=lua_tointeger(L,3)
+  else
+    options:=0;
+
+  if top>=4 then
+    MaxEntryCount:=lua_tointeger(L,4)
+  else
+    MaxEntryCount:=16;
+
+  lua_pushinteger(L, dbvm_watch_reads(physicalAddress, Size, Options, MaxEntryCount));
+  result:=1;
+end;
+
+function lua_dbvm_watch_retrievelog(L: PLua_state): integer; cdecl;
   procedure lua_push_watch_basic_fields(pbasic: PPageEventBasic; index: integer);
   begin
     lua_pushstring(L,'VirtualAddress');
@@ -4816,7 +4853,7 @@ begin
 
   buf:=nil;
   size:=0;
-  while dbvm_watch_retreivelog(ID, nil,size)=2 do
+  while dbvm_watch_retrievelog(ID, nil,size)=2 do
   begin
     //must be 2
     if (buf<>nil) then
@@ -4874,6 +4911,16 @@ begin
   end;
 
   result:=1;
+end;
+
+function lua_dbvm_watch_disable(L: PLua_State): integer; cdecl;
+var
+  id: integer;
+begin
+  if lua_gettop(L)=0 then exit(0);
+
+  id:=lua_tointeger(L,1);
+  dbvm_watch_delete(id);
 end;
 
 function dbk_readMSR(L: PLua_State): integer; cdecl;
@@ -9343,7 +9390,9 @@ begin
     lua_register(L ,'dbvm_psod', lua_dbvm_psod);
     lua_register(L ,'dbvm_getNMIcount', lua_dbvm_getNMIcount);
     lua_register(L, 'dbvm_watch_writes', lua_dbvm_watch_writes);
-    lua_register(L, 'dbvm_watch_retreivelog', lua_dbvm_watch_retreivelog);
+    lua_register(L, 'dbvm_watch_reads', lua_dbvm_watch_reads);
+    lua_register(L, 'dbvm_watch_retrievelog', lua_dbvm_watch_retrievelog);
+    lua_register(L, 'dbvm_watch_disable', lua_dbvm_watch_disable);
 
 
     lua_register(L, 'dbk_getPhysicalAddress', dbk_getPhysicalAddress);
