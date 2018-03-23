@@ -23,15 +23,18 @@
 
 void initMemTypeRanges();
 
-int handleEPTViolation(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PFXSAVE64 fxsave);
-int handleEPTMisconfig(pcpuinfo currentcpuinfo, VMRegisters *vmregisters);
+VMSTATUS handleEPTViolation(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PFXSAVE64 fxsave);
+VMSTATUS handleEPTMisconfig(pcpuinfo currentcpuinfo, VMRegisters *vmregisters);
 int ept_handleWatchEventAfterStep(pcpuinfo currentcpuinfo, int ID);
 int ept_handleCloakEventAfterStep(pcpuinfo currentcpuinfo, int ID);
 int ept_handleSoftwareBreakpointAfterStep(pcpuinfo currentcpuinfo,  int ID);
 
-int ept_activateWatch(pcpuinfo currentcpuinfo, int ID);
-int ept_disableWatch(pcpuinfo currentcpuinfo, int ID);
-int getFreeWatchID(pcpuinfo currentcpuinfo);
+int ept_watch_activate(QWORD PhysicalAddress, int Size, int Type, DWORD Options, int MaxEntryCount, int *outID);
+int ept_watch_deactivate(int ID);
+VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *offset, QWORD *errorcode);
+//int ept_activateWatch(pcpuinfo currentcpuinfo, int ID);
+
+
 
 int ept_cloak_activate(QWORD physicalAddress);
 int ept_cloak_deactivate(QWORD physicalAddress);

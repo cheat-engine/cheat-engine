@@ -255,6 +255,7 @@ typedef struct _pageeventlistdescriptor
   DWORD ID;
   DWORD maxNumberOfEntries;
   DWORD numberOfEntries;
+  DWORD missedEntries; //numb er of entries missed because the list was full
   DWORD entryType; //0=PageEventBasic, 1=PageEventExtended, 2=PageEventBasicWithStack, 3=PageEventExtendedWithStack
   union
   {
@@ -266,15 +267,17 @@ typedef struct _pageeventlistdescriptor
 
 } PageEventListDescriptor, *PPageEventListDescriptor;
 
-#define EPTO_MULTIPLERIP (1<<0) //log the same RIP multiple times (if different registers)
-#define EPTO_LOG_ALL     (1<<1) //log every access in the page
-#define EPTO_SAVE_XSAVE  (1<<2) //logs contain the xsave state
-#define EPTO_SAVE_STACK  (1<<3) //logs contain a 4kb stack snapshot
+#define EPTO_MULTIPLERIP    (1<<0) //log the same RIP multiple times (if different registers)
+#define EPTO_LOG_ALL        (1<<1) //log every access in the page
+#define EPTO_SAVE_XSAVE     (1<<2) //logs contain the xsave state
+#define EPTO_SAVE_STACK     (1<<3) //logs contain a 4kb stack snapshot
+#define EPTO_PMI_WHENFULL   (1<<4) //triggers a PMI when full
+#define EPTO_GROW_WHENFULL  (1<<5) //grows the buffer when full
+
 
 typedef struct
 {
   QWORD PhysicalAddress;
-  PEPT_PTE EPTEntry; //used for quickly editing the EPT entry
   int Size;
   int Type; //0=write, 1=access
   DWORD Options;

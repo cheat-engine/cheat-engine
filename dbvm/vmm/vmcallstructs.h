@@ -46,8 +46,8 @@ typedef struct
                //  Bit 1: 0=Only log given Physical Address. 1=Log everything in the page(s) that is/are affected
                //  Bit 2: 0=Do not save FPU/XMM data, 1=Also save FPU/XMM data
                //  Bit 3: 0=Do not save a stack snapshot, 1=Save stack snapshot
+               //  Bit 4: 0=This CPU only.  1=All CPU's
   int MaxEntryCount; //DBVM will allocate this buffer
-  int UsePMI; //trigger a PMI interrupt when full (so you don't lose info.  NYI)
   int ID; //ID describing this watcher for this CPU (keep track of this on a per cpu basis if you do more than 1 and don't specify all cpu's)
 } __attribute__((__packed__)) VMCALL_WATCH_PARAM, *PVMCALL_WATCH_PARAM;
 

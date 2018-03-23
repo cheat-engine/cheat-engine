@@ -16,24 +16,32 @@
 
 QWORD EPTMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int forcesmallpage);
 
+criticalSection eptWatchListCS;
+PEPTWatchEntry eptWatchList;
+int eptWatchListSize;
+int eptWatchListPos;
+
 criticalSection CloakedPagesCS; //1
 CloakedPageInfo *CloakedPages;
 int CloakedPagesSize;
 int CloakedPagesPos;
-
 
 criticalSection ChangeRegBPListCS; //2
 ChangeRegBPEntry *ChangeRegBPList;
 int ChangeRegBPListSize;
 int ChangeRegBPListPos;
 
-int ept_handleCloakEvent(pcpuinfo currentcpuinfo, QWORD Address)
+BOOL ept_handleCloakEvent(pcpuinfo currentcpuinfo, QWORD Address)
 /*
  * Checks if the physical address is cloaked, if so handle it and return 1, else return 0
  */
 {
   int i,result=0;
   QWORD BaseAddress=Address & MAXPHYADDRMASKPB;
+
+  if (CloakedPagesPos==0)
+    return FALSE;
+
   csEnter(&CloakedPagesCS);
   for (i=0; i<CloakedPagesPos; i++)
   {
@@ -203,16 +211,20 @@ int ept_cloak_activate(QWORD physicalAddress)
       currentcpuinfo->eptCloakList=realloc(currentcpuinfo->eptCloakList, CloakedPagesSize);
 
     QWORD PA=EPTMapPhysicalMemory(currentcpuinfo, physicalAddress, 1);
-    currentcpuinfo->eptCloakList[ID]=mapPhysicalMemory(PA, sizeof(EPT_PTE));
+    currentcpuinfo->eptCloakList[ID]=mapPhysicalMemoryGlobal(PA, sizeof(EPT_PTE));
 
     //make it nonreadable
-    currentcpuinfo->eptCloakList[ID]->RA=0;
-    currentcpuinfo->eptCloakList[ID]->WA=0;
-
+    EPT_PTE temp=*(currentcpuinfo->eptCloakList[ID]);
     if (has_EPT_ExecuteOnlySupport)
-      currentcpuinfo->eptCloakList[ID]->XA=1;
+      temp.XA=1;
     else
-      currentcpuinfo->eptCloakList[ID]->XA=0; //going to be slow
+      temp.XA=0; //going to be slow
+
+    temp.RA=0;
+    temp.WA=0;
+
+
+    *(currentcpuinfo->eptCloakList[ID])=temp;
 
     csLeave(&currentcpuinfo->EPTPML4CS);
 
@@ -238,6 +250,22 @@ int ept_cloak_deactivate(QWORD physicalAddress)
     if (CloakedPages[i].PhysicalAddressExecutable==physicalAddress)
     {
       //found it
+      pcpuinfo currentcpuinfo=firstcpuinfo;
+      while (currentcpuinfo)
+      {
+        //mark as full access
+        EPT_PTE temp=*(currentcpuinfo->eptCloakList[i]);
+        temp.RA=1;
+        temp.WA=1;
+        temp.XA=1;
+        *(currentcpuinfo->eptCloakList[i])=temp;
+
+        unmapPhysicalMemoryGlobal(currentcpuinfo->eptCloakList[i], sizeof(EPT_PTE));
+        currentcpuinfo->eptCloakList[i]=NULL;
+
+        currentcpuinfo=currentcpuinfo->next;
+      }
+
       found=1;
       CloakedPages[i].PhysicalAddressExecutable=0;
       CloakedPages[i].PhysicalAddressData=0;
@@ -245,8 +273,11 @@ int ept_cloak_deactivate(QWORD physicalAddress)
       CloakedPages[i].Data=NULL;
       unmapPhysicalMemoryGlobal(CloakedPages[i].Executable, 4096);
       CloakedPages[i].Executable=NULL;
+
+
     }
   }
+
   csLeave(&CloakedPagesCS);
 
   //if there where cloak event events pending, then next time they violate, the normal handler will make it RWX on the address it should
@@ -518,26 +549,42 @@ int ept_handleSoftwareBreakpointAfterStep(pcpuinfo currentcpuinfo UNUSED,  int I
  * WATCH
  */
 
-int getFreeWatchID(pcpuinfo currentcpuinfo)
-//scan through the watches for an unused spot, if not found, reallocate the list
+
+int getFreeWatchID()
+/*
+ * scan through the watches for an unused spot, if not found, reallocate the list
+ * pre: The watchlistCS has been locked
+ */
 {
   int i,j;
-  for (i=0; i<currentcpuinfo->eptWatchlistLength; i++)
+  sendstringf("getFreeWatchID\n");
+  for (i=0; i<eptWatchListPos; i++)
   {
-    if (currentcpuinfo->eptWatchlist[i].Active==0)
+    if (eptWatchList[i].Active==0)
+    {
+      sendstringf("Found a non active entry at index %d\n", i);
       return i;
+    }
   }
 
+  //still here
+  if (eptWatchListPos<eptWatchListSize)
+  {
+    sendstringf("eptWatchListPos(%d)<eptWatchListSize(%d)\n", eptWatchListPos, eptWatchListSize);
+    return eptWatchListPos++;
+  }
+
+  sendstringf("Reallocating the list\n");
+
   //still here, realloc
+  i=eptWatchListSize;
+  eptWatchListSize=(eptWatchListSize+2)*2;
+  eptWatchList=realloc(eptWatchList, eptWatchListSize*sizeof(EPTWatchEntry));
 
-  i=currentcpuinfo->eptWatchlistLength;
+  for (j=i; j<eptWatchListSize; j++)
+    eptWatchList[j].Active=0;
 
-  currentcpuinfo->eptWatchlistLength=(currentcpuinfo->eptWatchlistLength+2)*2;
-  currentcpuinfo->eptWatchlist=realloc(currentcpuinfo->eptWatchlist, currentcpuinfo->eptWatchlistLength*sizeof(EPTWatchEntry));
-
-
-  for (j=i; j<currentcpuinfo->eptWatchlistLength; j++)
-    currentcpuinfo->eptWatchlist[j].Active=0;
+  eptWatchListPos++;
 
   return i;
 }
@@ -598,25 +645,25 @@ void fillPageEventBasic(PageEventBasic *peb, VMRegisters *registers)
 }
 
 
-inline int ept_doesAddressMatchWatchListEntryPerfectly(pcpuinfo currentcpuinfo, QWORD address, int ID)
+inline int ept_isWatchIDPerfectMatch(QWORD address, int ID)
 {
-  return ((currentcpuinfo->eptWatchlist[ID].Active) &&
+  return ((eptWatchList[ID].Active) &&
           (
-             (address>=currentcpuinfo->eptWatchlist[ID].PhysicalAddress) &&
-             (address<currentcpuinfo->eptWatchlist[ID].PhysicalAddress+currentcpuinfo->eptWatchlist[ID].Size)
+             (address>=eptWatchList[ID].PhysicalAddress) &&
+             (address<eptWatchList[ID].PhysicalAddress+eptWatchList[ID].Size)
            )
           );
 }
 
-inline int ept_doesAddressMatchWatchListEntry(pcpuinfo currentcpuinfo, QWORD address, int ID)
+inline int ept_isWatchIDMatch(QWORD address, int ID)
 /*
  * pre: address is already page aligned
  */
 {
-  return ((currentcpuinfo->eptWatchlist[ID].Active) && ((currentcpuinfo->eptWatchlist[ID].PhysicalAddress & 0xfffffffffffff000ULL) == address));
+  return ((eptWatchList[ID].Active) && ((eptWatchList[ID].PhysicalAddress & 0xfffffffffffff000ULL) == address));
 }
 
-int ept_inWatchRegionPage(pcpuinfo currentcpuinfo, QWORD address)
+int ept_getWatchID(QWORD address)
 /*
  * returns -1 if not in a page being watched
  * Note that there can be multiple active on the same page
@@ -624,21 +671,34 @@ int ept_inWatchRegionPage(pcpuinfo currentcpuinfo, QWORD address)
 {
   int i;
   address=address & 0xfffffffffffff000ULL;
-  for (i=0; i<currentcpuinfo->eptWatchlistLength; i++)
-    if (ept_doesAddressMatchWatchListEntry(currentcpuinfo, address, i))
+  for (i=0; i<eptWatchListPos; i++)
+    if (ept_isWatchIDMatch(address, i))
       return i;
 
   return -1;
 }
 
-int ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSAVE64 fxsave, int ID)
+BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSAVE64 fxsave, QWORD PhysicalAddress)
 {
+  int ID;
   int logentrysize;
   int i;
 
+  if (eptWatchListPos==0)
+    return FALSE;
+
+  csEnter(&eptWatchListCS);
+  ID=ept_getWatchID(PhysicalAddress);
+
+  if (ID==-1)
+  {
+    csLeave(&eptWatchListCS);
+    return FALSE;
+  }
+
+
   QWORD RIP=vmread(vm_guest_rip);
   QWORD RSP=vmread(vm_guest_rsp);
-  QWORD PhysicalAddress=vmread(vm_guest_physical_address);
   QWORD PhysicalAddressBase=PhysicalAddress & 0xfffffffffffff000ULL;
   EPT_VIOLATION_INFO evi;
   evi.ExitQualification=vmread(vm_exit_qualification);
@@ -649,18 +709,18 @@ int ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSAV
 
   //figure out which access it is really (in case of multiple on the same page)
 
-  for (i=ID; i<currentcpuinfo->eptWatchlistLength; i++)
+  for (i=ID; i<eptWatchListPos; i++)
   {
-    if (ept_doesAddressMatchWatchListEntry(currentcpuinfo, PhysicalAddressBase, i))
+    if (ept_isWatchIDMatch(PhysicalAddressBase, i))
     {
-      if (currentcpuinfo->eptWatchlist[ID].Type==0)
+      if (eptWatchList[ID].Type==0)
       {
         //must be a write operation error
         if ((evi.W) && (evi.WasWritable==0)) //write operation and writable was 0
         {
           ID=i;
 
-          if (ept_doesAddressMatchWatchListEntryPerfectly(currentcpuinfo, PhysicalAddress, i))
+          if (ept_isWatchIDPerfectMatch(PhysicalAddress, i))
             break;
         }
       }
@@ -670,7 +730,7 @@ int ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSAV
         if (((evi.W) && (evi.WasWritable==0)) || ((evi.R) && (evi.WasReadable==0)))  //write operation and writable was 0 or read and readable was 0
         {
           ID=i;
-          if (ept_doesAddressMatchWatchListEntryPerfectly(currentcpuinfo, PhysicalAddress, i))
+          if (ept_isWatchIDPerfectMatch(PhysicalAddress, i))
             break;
         }
       }
@@ -679,17 +739,19 @@ int ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSAV
 
   sendstringf("Handling watch ID %d\n", ID);
 
+  //todo: release the eptWatchListCS and obtain only the log
+
   //ID is now set to the most logical watch(usually there is no conflicts, and even if there is, no biggie. But still)
 
-  //run once
-  if ((currentcpuinfo->eptWatchlist[ID].EPTEntry->XA) && (currentcpuinfo->eptWatchlist[ID].EPTEntry->RA) && (currentcpuinfo->eptWatchlist[ID].EPTEntry->WA))
+  if ((currentcpuinfo->eptWatchList[ID]->XA) && (currentcpuinfo->eptWatchList[ID]->RA) && (currentcpuinfo->eptWatchList[ID]->WA))
   {
     sendstringf("This entry was already marked with full access (check caches)\n");
   }
 
-  currentcpuinfo->eptWatchlist[ID].EPTEntry->XA=1;
-  currentcpuinfo->eptWatchlist[ID].EPTEntry->RA=1;
-  currentcpuinfo->eptWatchlist[ID].EPTEntry->WA=1;
+  //run once
+  currentcpuinfo->eptWatchList[ID]->XA=1;
+  currentcpuinfo->eptWatchList[ID]->RA=1;
+  currentcpuinfo->eptWatchList[ID]->WA=1;
 
   sendstringf("Page is accessible. Doing single step\n");
 
@@ -701,29 +763,32 @@ int ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSAV
   if ((evi.R==0) && (evi.X==1))
   {
     sendstringf("This was an execute operation and no read. No need to log\n", ID);
-    return 0; //execute operation (this cpu doesn't support execute only)
+    csLeave(&eptWatchListCS);
+    return TRUE; //execute operation (this cpu doesn't support execute only)
   }
 
-  if (currentcpuinfo->eptWatchlist[ID].CopyInProgress) //a copy operation is in progress
+  if (eptWatchList[ID].CopyInProgress) //a copy operation is in progress
   {
     sendstringf("This watchlist is currently being copied, not logging this\n");
-    return 0;
+    csLeave(&eptWatchListCS);
+    return TRUE;
   }
 
-  if (((currentcpuinfo->eptWatchlist[ID].Options & EPTO_LOG_ALL)==0) &&
+  if (((eptWatchList[ID].Options & EPTO_LOG_ALL)==0) &&
      (
-      (PhysicalAddress<currentcpuinfo->eptWatchlist[ID].PhysicalAddress) ||
-      (PhysicalAddress>=currentcpuinfo->eptWatchlist[ID].PhysicalAddress+currentcpuinfo->eptWatchlist[ID].Size)
+      (PhysicalAddress<eptWatchList[ID].PhysicalAddress) ||
+      (PhysicalAddress>=eptWatchList[ID].PhysicalAddress+eptWatchList[ID].Size)
       ))
   {
     sendstringf("Not logging all and the physical address is not in the exact range\n");
-    return 0; //no need to log it
+    csLeave(&eptWatchListCS);
+    return TRUE; //no need to log it
   }
 
 
   //scan if this RIP is already in the list
 
-  switch (currentcpuinfo->eptWatchlist[ID].Log->entryType)
+  switch (eptWatchList[ID].Log->entryType)
   {
     case 0: logentrysize=sizeof(PageEventBasic); break;
     case 1: logentrysize=sizeof(PageEventExtended); break;
@@ -731,22 +796,23 @@ int ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSAV
     case 3: logentrysize=sizeof(PageEventExtendedWithStack); break;
   }
 
-  sendstringf("Want to log this. Type=%d EntrySize=%d\n", currentcpuinfo->eptWatchlist[ID].Log->entryType, logentrysize);
+  sendstringf("Want to log this. Type=%d EntrySize=%d\n", eptWatchList[ID].Log->entryType, logentrysize);
 
-  for (i=0; (DWORD)i<currentcpuinfo->eptWatchlist[ID].Log->numberOfEntries; i++)
+  for (i=0; (DWORD)i<eptWatchList[ID].Log->numberOfEntries; i++)
   {
-    PageEventBasic *peb=(PageEventBasic *)((QWORD)(&currentcpuinfo->eptWatchlist[ID].Log->pe.basic[0])+i*logentrysize);
+    PageEventBasic *peb=(PageEventBasic *)((QWORD)(&eptWatchList[ID].Log->pe.basic[0])+i*logentrysize);
     //every type starts with a PageEventBasic
 
     if (peb->RIP==RIP)
     {
       sendstringf("This RIP is already logged");
       //it's already in the list
-      if ((currentcpuinfo->eptWatchlist[ID].Options & EPTO_MULTIPLERIP)==0)
+      if ((eptWatchList[ID].Options & EPTO_MULTIPLERIP)==0)
       {
         sendstringf(" and EPTO_MULTIPLERIP is 0.  Not logging (just increase count)\n");
         peb->Count++;
-        return 0; //no extra RIP's
+        csLeave(&eptWatchListCS);
+        return TRUE; //no extra RIP's
       }
       else
         sendstringf(" but EPTO_MULTIPLERIP is 1, so checking register states\n");
@@ -773,7 +839,8 @@ int ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSAV
       {
         sendstringf("  The registers match the state so skipping the log. (Just increase count)\n");
         peb->Count++;
-        return 0; //already in the list
+        csLeave(&eptWatchListCS);
+        return TRUE; //already in the list
       }
 
     }
@@ -783,52 +850,82 @@ int ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSAV
   //still here, so not in the list
   sendstringf("Checks out ok. Not yet in the list\n");
 
-  if (currentcpuinfo->eptWatchlist[ID].Log->numberOfEntries>=currentcpuinfo->eptWatchlist[ID].Log->maxNumberOfEntries)
+  if (eptWatchList[ID].Log->numberOfEntries>=eptWatchList[ID].Log->maxNumberOfEntries)
   {
-    sendstringf("List is full. Discarding event\n");
-    return 0; //can't add more
+    sendstringf("List is full");
+    if ((eptWatchList[ID].Options & EPTO_GROW_WHENFULL)==0)
+    {
+      sendstringf(". Discarding event\n");
+      eptWatchList[ID].Log->missedEntries++;
+      csLeave(&eptWatchListCS);
+      return TRUE; //can't add more
+    }
+
+    //reallocate the buffer
+    int newmax=eptWatchList[ID].Log->numberOfEntries*2;
+    PPageEventListDescriptor temp=realloc(eptWatchList[ID].Log, sizeof(PageEventListDescriptor)+logentrysize*newmax);
+    if (temp!=NULL)
+    {
+      sendstringf(" so growing it\n");
+      eptWatchList[ID].Log=temp;
+      eptWatchList[ID].Log->numberOfEntries=newmax;
+    }
+    else
+    {
+      sendstringf(" and out of memory\n");
+
+      eptWatchList[ID].Options=eptWatchList[ID].Options & (~EPTO_GROW_WHENFULL); //stop trying
+      eptWatchList[ID].Log->missedEntries++;
+      csLeave(&eptWatchListCS);
+      return TRUE; //can't add more
+    }
+
   }
 
   //still here, so not in the list, and still room
   //add it
 
-  i=currentcpuinfo->eptWatchlist[ID].Log->numberOfEntries;
-  switch (currentcpuinfo->eptWatchlist[ID].Log->entryType)
+
+
+  i=eptWatchList[ID].Log->numberOfEntries;
+  switch (eptWatchList[ID].Log->entryType)
   {
     case PE_BASIC:
     {
-      fillPageEventBasic(&currentcpuinfo->eptWatchlist[ID].Log->pe.basic[i], registers);
+      fillPageEventBasic(&eptWatchList[ID].Log->pe.basic[i], registers);
       break;
     }
 
     case PE_EXTENDED:
     {
-      fillPageEventBasic(&currentcpuinfo->eptWatchlist[ID].Log->pe.extended[i].basic, registers);
-      currentcpuinfo->eptWatchlist[ID].Log->pe.extended[i].fpudata=*fxsave;
+      fillPageEventBasic(&eptWatchList[ID].Log->pe.extended[i].basic, registers);
+      eptWatchList[ID].Log->pe.extended[i].fpudata=*fxsave;
       break;
     }
 
     case PE_BASICSTACK:
     {
-      fillPageEventBasic(&currentcpuinfo->eptWatchlist[ID].Log->pe.basics[i].basic, registers);
-      saveStack(currentcpuinfo, currentcpuinfo->eptWatchlist[ID].Log->pe.basics[i].stack);
+      fillPageEventBasic(&eptWatchList[ID].Log->pe.basics[i].basic, registers);
+      saveStack(currentcpuinfo, eptWatchList[ID].Log->pe.basics[i].stack);
       break;
     }
 
     case PE_EXTENDEDSTACK:
     {
-      fillPageEventBasic(&currentcpuinfo->eptWatchlist[ID].Log->pe.extendeds[i].basic, registers);
-      currentcpuinfo->eptWatchlist[ID].Log->pe.extended[i].fpudata=*fxsave;
-      saveStack(currentcpuinfo, currentcpuinfo->eptWatchlist[ID].Log->pe.extendeds[i].stack);
+      fillPageEventBasic(&eptWatchList[ID].Log->pe.extendeds[i].basic, registers);
+      eptWatchList[ID].Log->pe.extended[i].fpudata=*fxsave;
+      saveStack(currentcpuinfo, eptWatchList[ID].Log->pe.extendeds[i].stack);
       break;
     }
   }
 
-  currentcpuinfo->eptWatchlist[ID].Log->numberOfEntries++;
+  eptWatchList[ID].Log->numberOfEntries++;
 
-  sendstringf("Added it to the list. numberOfEntries for ID %d is now %d\n", ID, currentcpuinfo->eptWatchlist[ID].Log->numberOfEntries);
 
-  return 0;
+  sendstringf("Added it to the list. numberOfEntries for ID %d is now %d\n", ID, eptWatchList[ID].Log->numberOfEntries);
+
+
+  return TRUE;
 
 }
 
@@ -837,95 +934,314 @@ int ept_handleWatchEventAfterStep(pcpuinfo currentcpuinfo,  int ID)
   sendstringf("ept_handleWatchEventAfterStep %d\n", ID);
   vmx_disableSingleStepMode();
 
-  if (currentcpuinfo->eptWatchlist[ID].Type==0)
+  if (eptWatchList[ID].Type==0)
   {
     sendstringf("Write type. So making it unwritable\n");
-    currentcpuinfo->eptWatchlist[ID].EPTEntry->WA=0;
+    currentcpuinfo->eptWatchList[ID]->WA=0;
   }
   else
   {
     sendstringf("read type. So making it unreadable\n");
-    currentcpuinfo->eptWatchlist[ID].EPTEntry->RA=0;
-    currentcpuinfo->eptWatchlist[ID].EPTEntry->WA=0;
+    currentcpuinfo->eptWatchList[ID]->RA=0;
+    currentcpuinfo->eptWatchList[ID]->WA=0;
     if (has_EPT_ExecuteOnlySupport)
-      currentcpuinfo->eptCloakList[ID]->XA=1;
+      currentcpuinfo->eptWatchList[ID]->XA=1;
     else
-      currentcpuinfo->eptCloakList[ID]->XA=0;
+      currentcpuinfo->eptWatchList[ID]->XA=0;
   }
 
 
   return 0;
 }
 
-
-int ept_activateWatch(pcpuinfo currentcpuinfo, int ID)
+VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *offset, QWORD *errorcode)
 {
-  //(re)map this physical memory and the page descriptors
-  sendstringf("ept_activateWatch(%d)\n", ID);
-  QWORD PA_EPTE=EPTMapPhysicalMemory(currentcpuinfo, currentcpuinfo->eptWatchlist[ID].PhysicalAddress, 1);
+  *errorcode=0;
+  sendstringf("ept_watch_retrievelog(ID=%d)\n", ID);
 
-  sendstringf("PA_EPTE=%6\n", PA_EPTE);
-  currentcpuinfo->eptWatchlist[ID].EPTEntry=(PEPT_PTE)mapPhysicalMemory(PA_EPTE, sizeof(EPT_PTE));
+
+
+  if (ID>=eptWatchListPos) //out of range
+  {
+    sendstringf("Invalid ID\n");
+    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+    *errorcode=1; //invalid ID
+    return VM_OK;
+  }
+
+  csEnter(&eptWatchListCS);
+
+  if (eptWatchList[ID].Active==0) //not active
+  {
+    sendstringf("Inactive ID\n");
+    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+    *errorcode=3; //inactive ID
+
+    csLeave(&eptWatchListCS);
+    return VM_OK;
+  }
+
+
+  int entrysize=0;
+
+  switch (eptWatchList[ID].Log->entryType)
+  {
+    case 0: entrysize=sizeof(PageEventBasic); break;
+    case 1: entrysize=sizeof(PageEventExtended); break;
+    case 2: entrysize=sizeof(PageEventBasicWithStack); break;
+    case 3: entrysize=sizeof(PageEventExtendedWithStack); break;
+  }
+
+  sendstringf("entrytype=%d (size = %d)\n", eptWatchList[ID].Log->entryType, entrysize);
+
+  DWORD sizeneeded=sizeof(PageEventListDescriptor)+eptWatchList[ID].Log->numberOfEntries*entrysize;
+  sendstringf("sizeneeded=%d\n", sizeneeded);
+  sendstringf("resultsize=%d\n", *resultSize);
+
+  if (*resultSize < sizeneeded)
+  {
+    sendstringf("Too small\n");
+    *resultSize=sizeneeded;
+    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+    *errorcode=2; //invalid size
+    csLeave(&eptWatchListCS);
+    return VM_OK;
+  }
+
+  if (results==0)
+  {
+    sendstringf("results==0\n");
+    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+    *errorcode=4; //results==0
+    csLeave(&eptWatchListCS);
+    return VM_OK;
+  }
+
+  int sizeleft=sizeneeded-*offset; //decrease bytes left by bytes already copied
+
+  sendstringf("params->copied=%d", sizeneeded-*offset);
+
+  eptWatchList[ID].CopyInProgress=1;
+
+  int error;
+  QWORD pagefaultaddress;
+  QWORD destinationaddress=results+*offset;
+  int blocksize=sizeleft;
+  if (blocksize>16*4096)
+    blocksize=16*4096;
+
+  unsigned char *source=(unsigned char *)eptWatchList[ID].Log;
+  unsigned char *destination=mapVMmemoryEx(NULL, destinationaddress, blocksize, &error, &pagefaultaddress,1);
+
+  if (error)
+  {
+    if (error==2)
+    {
+      blocksize=pagefaultaddress-destinationaddress;
+    }
+    else
+    {
+      vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+      *errorcode=0x1000+error; //map error
+      csLeave(&eptWatchListCS);
+      return 0;
+    }
+  }
+
+  if (blocksize)
+  {
+    copymem(destination, source, blocksize);
+    unmapVMmemory(destination, blocksize);
+
+    *offset=*offset+blocksize;
+  }
+
+  if (error==2)
+  {
+    csLeave(&eptWatchListCS);
+    return raisePagefault(getcpuinfo(), pagefaultaddress);
+  }
+
+
+  if (*offset>=sizeneeded) //> would be weird....
+  {
+    //once all data has been copied
+    eptWatchList[ID].Log->numberOfEntries=0;
+    eptWatchList[ID].CopyInProgress=0;
+    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+  }
+
+  return VM_OK;
+}
+
+
+int ept_watch_activate(QWORD PhysicalAddress, int Size, int Type, DWORD Options, int MaxEntryCount, int *outID)
+{
+  int result=0;
+  sendstringf("ept_watch_activate(%6, %d, %d, %x, %d, %6)\n", PhysicalAddress, Size, Options, MaxEntryCount, outID);
+
+  if (MaxEntryCount)
+    return 1;
+
+  csEnter(&eptWatchListCS);
+
+  int ID=getFreeWatchID();
+  int structtype=(Options >> 2) & 3;
+  int structsize;
+
+  sendstringf("getFreeWatchID() returned %d .  eptWatchListPos=%d\n", ID, eptWatchListPos);
+  switch (structtype)
+  {
+    case 0: structsize=sizeof(PageEventBasic); break;
+    case 1: structsize=sizeof(PageEventExtended); break;
+    case 2: structsize=sizeof(PageEventBasicWithStack); break;
+    case 3: structsize=sizeof(PageEventExtendedWithStack); break;
+  }
+
+  //make sure it doesn't pass a page boundary
+  //todo: recursively spawn more watches if needed
+
+  if (((PhysicalAddress+Size) & 0xfffffffffffff000ULL) > (PhysicalAddress & 0xfffffffffffff000ULL))
+       eptWatchList[ID].Size=0x1000-(PhysicalAddress & 0xfff);
+
+  eptWatchList[ID].PhysicalAddress=PhysicalAddress;
+  eptWatchList[ID].Size=Size;
+  eptWatchList[ID].Type=Type;
+  eptWatchList[ID].Log=malloc(sizeof(PageEventListDescriptor)+structsize*MaxEntryCount);
+  zeromemory(eptWatchList[ID].Log, sizeof(PageEventListDescriptor)+structsize*MaxEntryCount);
+
+  eptWatchList[ID].Log->ID=ID;
+  eptWatchList[ID].Log->entryType=structtype;
+  eptWatchList[ID].Log->numberOfEntries=0;
+  eptWatchList[ID].Log->maxNumberOfEntries=MaxEntryCount;
+
+  eptWatchList[ID].Options=Options;
+  sendstringf("Configured ept watch. Activating ID %d\n", ID);
+
+  eptWatchList[ID].Active=1;
+
+  //for each CPU mark this page as non writable/readable
+  pcpuinfo c=firstcpuinfo;
+  while (c)
+  {
+    csEnter(&c->EPTPML4CS);
+
+    QWORD PA_EPTE=EPTMapPhysicalMemory(c, PhysicalAddress, 1);
+
+    if (c->eptWatchListLength<eptWatchListSize) //realloc
+      c->eptWatchList=realloc(c->eptWatchList, eptWatchListSize*sizeof(EPT_PTE));
+
+    c->eptWatchList[ID]=mapPhysicalMemoryGlobal(PA_EPTE, sizeof(EPT_PTE)); //can use global as it's not a quick map/unmap procedure
+
+    EPT_PTE temp=*c->eptWatchList[ID]; //using temp in case the cpu doesn't support a XA of 1 with an RA of 0
+
+    if (Type==0)
+      temp.WA=0;
+    else
+    if (Type==1)
+    {
+      if (has_EPT_ExecuteOnlySupport)
+        temp.XA=1;
+      else
+        temp.XA=0;
+      temp.WA=0;
+      temp.RA=0;
+    }
+    *(c->eptWatchList[ID])=temp;
+
+    csLeave(&c->EPTPML4CS);
+
+    c=c->next;
+  }
 
   //test if needed:  SetPageToWriteThrough(currentcpuinfo->eptwatchlist[ID].EPTEntry);
-
   //check out 28.3.3.4  (might not be needed due to vmexit, but do check anyhow)
-
-  if (currentcpuinfo->eptWatchlist[ID].Type==0)
-  {
-    currentcpuinfo->eptWatchlist[ID].EPTEntry->WA=0;
-    sendstringf("Make the entry for %6 non writable\n",currentcpuinfo->eptWatchlist[ID].PhysicalAddress);
-  }
-  else
-  if (currentcpuinfo->eptWatchlist[ID].Type==1)
-  {
-    currentcpuinfo->eptWatchlist[ID].EPTEntry->WA=0;
-    currentcpuinfo->eptWatchlist[ID].EPTEntry->RA=0;
-    if (has_EPT_ExecuteOnlySupport)
-      currentcpuinfo->eptCloakList[ID]->XA=1;
-    else
-      currentcpuinfo->eptCloakList[ID]->XA=0;
-
-    sendstringf("Make the entry for %6 non readable/writable\n",currentcpuinfo->eptWatchlist[ID].PhysicalAddress);
-  }
   //EPTINV
 
-  currentcpuinfo->eptWatchlist[ID].Active=1;
-  return 0;
+
+
+  //everything ok, return success:
+
+  sendstringf("Passing ID to the called\n");
+  *outID=ID;
+
+
+  csLeave(&eptWatchListCS);
+
+  return result;
 }
 
-int ept_disableWatch(pcpuinfo currentcpuinfo, int ID)
+int ept_watch_deactivate(int ID)
+/*
+ * disable a watch
+ * It's possible that a watch event is triggered between now and the end of this function.
+ * That will result in a ept_violation event, which causes it to not see that there is a watch event for this
+ * As a result, that DBVM threat will try to map the physical address , and if it's already mapped, set it to full access
+ * In short: it's gonna be ok
+ */
 {
   int i;
   int hasAnotherOne=0;
-  QWORD PhysicalBase=currentcpuinfo->eptWatchlist[ID].PhysicalAddress & 0xfffffffffffff000ULL;
+  sendstringf("ept_disableWatch(%d)", ID);
 
-  for (i=0; i<currentcpuinfo->eptWatchlistLength; i++)
+  csEnter(&eptWatchListCS);
+
+  QWORD PhysicalBase=eptWatchList[ID].PhysicalAddress & 0xfffffffffffff000ULL;
+
+  for (i=0; i<eptWatchListPos; i++)
   {
-    if (ept_doesAddressMatchWatchListEntry(currentcpuinfo, PhysicalBase, i))
+    if ((i!=ID) && ept_isWatchIDMatch(PhysicalBase, i))
     {
       //matches
-      if (currentcpuinfo->eptWatchlist[i].Type==currentcpuinfo->eptWatchlist[ID].Type) //don't undo
+      if (eptWatchList[i].Type==eptWatchList[ID].Type) //don't undo
         hasAnotherOne=1;
     }
   }
 
   if (hasAnotherOne==0)
   {
-    //undo
-    if (currentcpuinfo->eptWatchlist[ID].Type==0)
-      currentcpuinfo->eptWatchlist[ID].EPTEntry->WA=1;
-    else
-    {
-      currentcpuinfo->eptWatchlist[ID].EPTEntry->RA=1;
-      currentcpuinfo->eptWatchlist[ID].EPTEntry->WA=1;
-    }
+    pcpuinfo c=firstcpuinfo;
 
+    while (c)
+    {
+      //undo
+
+      csEnter(&c->EPTPML4CS);
+
+      EPT_PTE temp=*(c->eptWatchList[ID]);
+      if (eptWatchList[ID].Type==0)
+      {
+        sendstringf("This was a write entry. Making it writable\n");
+        temp.WA=1;
+      }
+      else
+      {
+        sendstringf("This was an access entry. Making it readable and writable");
+        temp.RA=1;
+        temp.WA=1;
+        if (has_EPT_ExecuteOnlySupport==0)
+        {
+          sendstringf("And executable as this cpu does not support execute only pages\n");
+          temp.XA=1;
+        }
+      }
+
+      *(c->eptWatchList[ID])=temp;
+
+      csLeave(&c->EPTPML4CS);
+
+      unmapPhysicalMemoryGlobal(c->eptWatchList[ID], sizeof(EPT_PTE));
+      c->eptWatchList[ID]=NULL;
+      c=c->next;
+    }
+  }
+  else
+  {
+    sendstringf("hasAnotherOne is set\n");
   }
 
-  unmapPhysicalMemory(currentcpuinfo->eptWatchlist[ID].EPTEntry,sizeof(EPT_PTE));
-  currentcpuinfo->eptWatchlist[ID].EPTEntry=NULL;
-  currentcpuinfo->eptWatchlist[ID].Active=0;
+  eptWatchList[ID].Active=0;
+  csLeave(&eptWatchListCS);
   return 0;
 }
 
@@ -1432,6 +1748,11 @@ QWORD EPTMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int f
   {
     //else already mapped
     sendstringf("This physical address (%6) was already mapped\n", physicalAddress);
+
+    //change it to full access
+    pagetable[pagetableindex].RA=1;
+    pagetable[pagetableindex].WA=1;
+    pagetable[pagetableindex].XA=1;
   }
 
   unmapPhysicalMemory(pagetable,4096);
@@ -1441,7 +1762,7 @@ QWORD EPTMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int f
   return PA;
 }
 
-int handleEPTViolation(pcpuinfo currentcpuinfo, VMRegisters *vmregisters UNUSED, PFXSAVE64 fxsave UNUSED)
+VMSTATUS handleEPTViolation(pcpuinfo currentcpuinfo, VMRegisters *vmregisters UNUSED, PFXSAVE64 fxsave UNUSED)
 {
   //EPT_VIOLATION_INFO vi;
   sendstring("handleEPTViolation\n");
@@ -1469,12 +1790,10 @@ int handleEPTViolation(pcpuinfo currentcpuinfo, VMRegisters *vmregisters UNUSED,
 
   QWORD GuestAddress=vmread(vm_guest_physical_address);
 
-  int watchid=ept_inWatchRegionPage(currentcpuinfo, GuestAddress);
-  if (watchid!=-1) //at least one page is being watched. (So it means it's already mapped, which means this violation is caused by me no matter which one)
-  {
-    sendstringf("Handling watch page (PA=%6 VA=%6)\n", GuestAddress, vmread(vm_guest_linear_address));
-    return ept_handleWatchEvent(currentcpuinfo, vmregisters, fxsave, watchid);
-  }
+  if (ept_handleWatchEvent(currentcpuinfo, vmregisters, fxsave, GuestAddress))
+    return 0;
+
+
 
   //check for cloak
   if (ept_handleCloakEvent(currentcpuinfo, GuestAddress))
@@ -1489,9 +1808,28 @@ int handleEPTViolation(pcpuinfo currentcpuinfo, VMRegisters *vmregisters UNUSED,
 
 }
 
-int handleEPTMisconfig(pcpuinfo currentcpuinfo UNUSED, VMRegisters *vmregisters UNUSED)
+VMSTATUS handleEPTMisconfig(pcpuinfo currentcpuinfo UNUSED, VMRegisters *vmregisters UNUSED)
 {
   sendstring("handleEPTMisconfig\n");
-  return 1;
+  //could have been a timing misconfig, try again
+
+  VMExit_idt_vector_information idtvectorinfo;
+  idtvectorinfo.idtvector_info=vmread(vm_idtvector_information);
+  if (idtvectorinfo.valid)
+  {
+    //handle this EPT event and reinject the interrupt
+    VMEntry_interruption_information newintinfo;
+    newintinfo.interruption_information=0;
+
+    newintinfo.interruptvector=idtvectorinfo.interruptvector;
+    newintinfo.type=idtvectorinfo.type;
+    newintinfo.haserrorcode=idtvectorinfo.haserrorcode;
+    newintinfo.valid=idtvectorinfo.valid; //should be 1...
+    vmwrite(vm_entry_exceptionerrorcode, vmread(vm_idtvector_error)); //entry errorcode
+    vmwrite(0x4016, newintinfo.interruption_information); //entry info field
+    vmwrite(0x401a, vmread(vm_exit_instructionlength)); //entry instruction length
+  }
+
+  return 0;
 }
 

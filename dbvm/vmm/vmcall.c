@@ -679,170 +679,25 @@ int vmcall_readPhysicalMemory(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
 
 
 
-int vmcall_watch_retrievelog(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,  PVMCALL_WATCH_RETRIEVELOG_PARAM params)
+VMSTATUS vmcall_watch_retrievelog(VMRegisters *vmregisters,  PVMCALL_WATCH_RETRIEVELOG_PARAM params)
 {
-  int ID=params->ID;
-  if (ID>=currentcpuinfo->eptWatchlistLength) //out of range
-  {
-    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
-    vmregisters->rax=1; //invalid param
-    return 0;
-  }
+  return ept_watch_retrievelog(params->ID, params->results, &params->resultsize, &params->copied, &vmregisters->rax);
 
-  if (currentcpuinfo->eptWatchlist[ID].Active==0) //not active
-  {
-    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
-    vmregisters->rax=1; //invalid param
-    return 0;
-  }
-
-
-  int entrysize=0;
-
-  switch (currentcpuinfo->eptWatchlist[ID].Log->entryType)
-  {
-    case 0: entrysize=sizeof(PageEventBasic); break;
-    case 1: entrysize=sizeof(PageEventExtended); break;
-    case 2: entrysize=sizeof(PageEventBasicWithStack); break;
-    case 3: entrysize=sizeof(PageEventExtendedWithStack); break;
-  }
-
-  DWORD sizeneeded=sizeof(PageEventListDescriptor)+currentcpuinfo->eptWatchlist[ID].Log->numberOfEntries*entrysize;
-  if (params->resultsize < sizeneeded)
-  {
-    params->resultsize=sizeneeded;
-    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
-    vmregisters->rax=2; //invalid size
-    return 0;
-  }
-
-  if (params->results==0)
-  {
-    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
-    vmregisters->rax=1; //invalid param
-    return 0;
-  }
-
-  int sizeleft=sizeneeded-params->copied; //decrease bytes left by bytes already copied
-
-  currentcpuinfo->eptWatchlist[ID].CopyInProgress=1;
-
-  int error;
-  QWORD pagefaultaddress;
-  QWORD destinationaddress=params->results+params->copied;
-  int blocksize=sizeleft;
-  if (blocksize>16*4096)
-    blocksize=16*4096;
-
-  unsigned char *source=(unsigned char *)currentcpuinfo->eptWatchlist[ID].Log;
-  unsigned char *destination=mapVMmemoryEx(currentcpuinfo, destinationaddress, blocksize, &error, &pagefaultaddress,1);
-
-
-  if (error)
-  {
-    if (error==2)
-    {
-      blocksize=pagefaultaddress-destinationaddress;
-    }
-    else
-    {
-      vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
-      vmregisters->rax=0x1000+error; //map error
-      return 0;
-    }
-  }
-
-  if (blocksize)
-  {
-    copymem(destination, source, blocksize);
-    unmapVMmemory(destination, blocksize);
-
-    params->copied+=blocksize;
-  }
-
-  if (error==2)
-    return raisePagefault(currentcpuinfo, pagefaultaddress);
-
-
-  if (params->copied==sizeneeded)
-  {
-    //once all data has been copied
-    currentcpuinfo->eptWatchlist[ID].Log->numberOfEntries=0;
-    currentcpuinfo->eptWatchlist[ID].CopyInProgress=0;
-    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
-  }
-
-  return 0;
 
 }
 
-int vmcall_watch_delete(pcpuinfo currentcpuinfo, PVMCALL_WATCH_DISABLE_PARAM params)
+int vmcall_watch_delete(PVMCALL_WATCH_DISABLE_PARAM params)
 {
   int r=1;
   int ID=params->ID;
-  if (currentcpuinfo->eptWatchlist[ID].Active)
-  {
-    ept_disableWatch(currentcpuinfo, ID);
-    free(currentcpuinfo->eptWatchlist[ID].Log);
 
-    zeromemory(&currentcpuinfo->eptWatchlist[ID], sizeof(EPTWatchEntry));
-
-    r=0;
-  }
-
+  r=ept_watch_deactivate(ID);
   return r;
 }
 
-int vmcall_watch_setup(pcpuinfo currentcpuinfo, PVMCALL_WATCH_PARAM params, int Type)
+int vmcall_watch_activate(PVMCALL_WATCH_PARAM params, int Type)
 {
-  int ID=getFreeWatchID(currentcpuinfo);
-  int structtype=(params->Options >> 2) & 3;
-  int structsize;
-
-  sendstringf("vmcall_watch_setup. Assigned ID %d.  structtype=%d\n", ID, structtype);
-  sendstringf("sizeof(VMCALL_WATCH_PARAM)=%d\n", sizeof(VMCALL_WATCH_PARAM));
-  sendstringf("params->MaxEntryCount at offset %d\n", (QWORD)(&params->MaxEntryCount)-(QWORD)params);
-
-  switch (structtype)
-  {
-    case 0: structsize=sizeof(PageEventBasic); break;
-    case 1: structsize=sizeof(PageEventExtended); break;
-    case 2: structsize=sizeof(PageEventBasicWithStack); break;
-    case 3: structsize=sizeof(PageEventExtendedWithStack); break;
-  }
-
-  sendstringf("MaxEntryCount=%d\n", params->MaxEntryCount);
-
-
-  if (params->MaxEntryCount) //at least one entry
-  {
-    currentcpuinfo->eptWatchlist[ID].PhysicalAddress=params->PhysicalAddress;
-    currentcpuinfo->eptWatchlist[ID].Size=params->Size;
-
-    if (((currentcpuinfo->eptWatchlist[ID].PhysicalAddress+currentcpuinfo->eptWatchlist[ID].Size) & 0xfffffffffffff000ULL) > currentcpuinfo->eptWatchlist[ID].PhysicalAddress)
-      currentcpuinfo->eptWatchlist[ID].Size=0x1000-(currentcpuinfo->eptWatchlist[ID].PhysicalAddress & 0xfff);
-
-    currentcpuinfo->eptWatchlist[ID].Type=Type; //write
-    currentcpuinfo->eptWatchlist[ID].Log=malloc(sizeof(PageEventListDescriptor)+structsize*params->MaxEntryCount);
-    zeromemory(currentcpuinfo->eptWatchlist[ID].Log, sizeof(PageEventListDescriptor)+structsize*params->MaxEntryCount);
-
-    currentcpuinfo->eptWatchlist[ID].Log->ID=ID;
-    currentcpuinfo->eptWatchlist[ID].Log->entryType=structtype;
-    currentcpuinfo->eptWatchlist[ID].Log->numberOfEntries=0;
-    currentcpuinfo->eptWatchlist[ID].Log->maxNumberOfEntries=params->MaxEntryCount;
-
-    sendstringf("Configured ept watch. Activating ID %d\n", ID);
-    ept_activateWatch(currentcpuinfo, ID);
-
-    //everything ok, return success:
-    params->ID=ID;
-  }
-  else
-    sendstringf("params->MaxEntryCount=%d  (0)\n",params->MaxEntryCount);
-
-
-  vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
-  return 0;
+  return ept_watch_activate(params->PhysicalAddress, params->Size, Type, params->Options, params->MaxEntryCount, &params->ID);
 }
 
 int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, ULONG *vmcall_instruction)
@@ -1483,8 +1338,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
       sendstringf("VMCALL_WATCH_WRITES\n");
       if (hasEPTsupport)
       {
-        vmcall_watch_setup(currentcpuinfo, (PVMCALL_WATCH_PARAM)vmcall_instruction,0); //write
-        vmregisters->rax=0;
+        vmregisters->rax=vmcall_watch_activate((PVMCALL_WATCH_PARAM)vmcall_instruction,0); //write
       }
       else
       {
@@ -1499,8 +1353,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
       sendstringf("VMCALL_WATCH_READS\n");
       if (hasEPTsupport)
       {
-        vmcall_watch_setup(currentcpuinfo, (PVMCALL_WATCH_PARAM)vmcall_instruction,1); //read
-        vmregisters->rax=0;
+        vmregisters->rax=vmcall_watch_activate((PVMCALL_WATCH_PARAM)vmcall_instruction,1); //read
       }
       else
       {
@@ -1512,14 +1365,14 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
     case VMCALL_WATCH_DELETE:
     {
       sendstringf("VMCALL_WATCH_DELETE\n");
-      vmregisters->rax=vmcall_watch_delete(currentcpuinfo, (PVMCALL_WATCH_DISABLE_PARAM)vmcall_instruction);
+      vmregisters->rax=vmcall_watch_delete((PVMCALL_WATCH_DISABLE_PARAM)vmcall_instruction);
       break;
     }
 
     case VMCALL_WATCH_RETRIEVELOG:
     {
       sendstringf("VMCALL_WATCH_RETRIEVELOG\n");
-      return vmcall_watch_retrievelog(currentcpuinfo, vmregisters, (PVMCALL_WATCH_RETRIEVELOG_PARAM)vmcall_instruction);
+      return vmcall_watch_retrievelog(vmregisters, (PVMCALL_WATCH_RETRIEVELOG_PARAM)vmcall_instruction);
     }
 
     case VMCALL_CLOAK_ACTIVATE:

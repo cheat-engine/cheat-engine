@@ -29,6 +29,16 @@
 #define NULL (void*)0
 #endif
 
+typedef int VMSTATUS;
+#define VM_OK 0
+#define VM_ERROR 1
+
+
+typedef int BOOL;
+
+#define TRUE 1
+#define FALSE 0
+
 #define UNUSED __attribute__((unused))
 
 typedef struct{

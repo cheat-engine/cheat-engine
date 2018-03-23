@@ -1601,20 +1601,14 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
         //vmx_enableSingleStepMode();
 
         //setup a memory watch for physical address 0x7000
+        int ID;
+        int r;
         sendstringf("Setting write watch at 0x7000 to 0x7fff\n");
-        int ID=getFreeWatchID(currentcpuinfo);
-        currentcpuinfo->eptWatchlist[ID].PhysicalAddress=0x7000;
-        currentcpuinfo->eptWatchlist[ID].Size=4096;
-        currentcpuinfo->eptWatchlist[ID].Type=0; //write
-        currentcpuinfo->eptWatchlist[ID].Log=malloc(65536);
-        zeromemory(currentcpuinfo->eptWatchlist[ID].Log, 65536);
 
-        currentcpuinfo->eptWatchlist[ID].Log->ID=ID;
-        currentcpuinfo->eptWatchlist[ID].Log->entryType=0;
-        currentcpuinfo->eptWatchlist[ID].Log->numberOfEntries=0;
-        currentcpuinfo->eptWatchlist[ID].Log->maxNumberOfEntries=(65536-sizeof(PageEventListDescriptor)) / sizeof(PageEventBasic);
 
-        ept_activateWatch(currentcpuinfo, ID);
+        r=ept_watch_activate(0x7000, 4096, 0,0,64, &ID);
+
+        sendstringf("ept_watch_activate returned %d and ID %d\n", r,ID);
         break;
       }
 

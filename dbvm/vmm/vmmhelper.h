@@ -571,13 +571,14 @@ typedef volatile struct tcpuinfo
   } vmxdata;
 
   QWORD EPTPML4;
-  criticalSection EPTPML4CS; //since other cpu's can map in pages for other cpu's as well, use a CS
+  criticalSection EPTPML4CS; // since other cpu's can map in pages for other cpu's as well, use a CS
   PEPT_PTE *eptCloakList; //pointer to the EPT entry of the index related to CloakedPages
   int eptCloakListLength;
   int eptCloak_LastOperationWasWrite;
 
-  PEPTWatchEntry eptWatchlist;
-  int eptWatchlistLength;
+  PEPT_PTE *eptWatchList; //pointer to the EPT entry of the index related to the WatchList
+  int eptWatchListLength;
+
 
   struct //single stepping data
   {
