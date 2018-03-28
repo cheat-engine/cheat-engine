@@ -392,7 +392,7 @@ AOBScan(aobstring): see above but here you just input one string
 
 Regarding eventhandlers. You can initialize them using both a string of a functionname or the function itself.
 If initialized using a function itself it won't be able to get saved in the table
-
+d
 
 allocateMemory(size, BaseAddress OPTIONAL, Protection OPTIONAL): Allocates some memory into the target process
 deAlloc(address, size OPTIONAL): Frees allocated memory
@@ -2354,6 +2354,11 @@ dbk_getCR3(): Returns Control Register 3 of the currently opened process
 dbk_getCR4(): Returns Control Register 4
 dbk_getPhysicalAddress(address): Returns the physical address of the given address
 dbk_writesIgnoreWriteProtection(state): Set to true if you do not wish to initiate copy-on-write behaviour
+
+getPhysicalAddressCR3(CR3, address): Looks up the physical address for the given virtual address in the given pagetable base. Returns nil if not paged
+readProcessMemoryCR3(CR3, address, size): Reads the virtual memory of the given process's CR3 value. Returns a bytetable on success, nil if fail to read (paged out)
+writeProcessMemoryCR3(CR3, address, bytetable): Reads the virtual memory of the given process's CR3 value
+ 
 
 dbvm_getCR4(): Returns the real Control Register 4 state
 

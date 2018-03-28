@@ -597,6 +597,11 @@ function Is64BitProcess(processhandle: THandle): boolean;
 function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL; stdcall;
 
 
+function VirtualToPhysicalCR3(cr3: QWORD; VirtualAddress: QWORD; var PhysicalAddress: QWORD): boolean;
+function ReadProcessMemoryCR3(cr3: QWORD; lpBaseAddress, lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: PTRUINT): BOOL; stdcall;
+function WriteProcessMemoryCR3(cr3: QWORD; lpBaseAddress, lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL; stdcall;
+
+
 
 
 var
@@ -613,6 +618,7 @@ var
   SetThreadContext      :TSetThreadContext;
   Wow64GetThreadContext      :TWow64GetThreadContext;
   Wow64SetThreadContext      :TWow64SetThreadContext;
+
 
   {$ifdef cpu64}
   GetThreadSelectorEntry: TGetThreadSelectorEntry;
@@ -764,6 +770,11 @@ var
     ModuleListSize: integer;
     ModuleList: pointer;
 
+    MAXPHYADDR: byte; //number of bits a physical address can be made up of
+    MAXPHYADDRMASK: QWORD=QWORD($fffffffff); //mask to AND with a physical address to strip invalid bits
+    MAXPHYADDRMASKPB: QWORD=QWORD($ffffff000); //same as MAXPHYADDRMASK but also aligns it to a page boundary
+
+
 
 
 implementation
@@ -775,7 +786,7 @@ uses
      dbvmPhysicalMemoryHandler, //'' for physical mem
      {$endif}
      filehandler,  //so I can let readprocessmemory point to ReadProcessMemoryFile in filehandler
-     autoassembler, frmEditHistoryUnit, frmautoinjectunit;
+     autoassembler, frmEditHistoryUnit, frmautoinjectunit, cpuidUnit;
 {$endif}
 
 
@@ -794,6 +805,132 @@ resourcestring
 
 
 {$ifndef JNI}
+function VirtualToPhysicalCR3(cr3: QWORD; VirtualAddress: QWORD; var PhysicalAddress: QWORD): boolean;
+var
+  pml4index: integer;
+  pagedirptrindex: integer;
+  pagedirindex: integer;
+  pagetableindex: integer;
+  offset: integer;
+
+  pml4entry: QWORD;
+  pagedirptrentry: QWORD;
+  pagedirentry: qword;
+  pagetableentry: qword;
+
+  x: PTRUINT;
+begin
+  result:=false;
+  pml4index:=(VirtualAddress shr 39) and $1ff;
+  pagedirptrindex:=(VirtualAddress shr 30) and $1ff;
+  pagedirindex:=(VirtualAddress shr 21) and $1ff;
+  pagetableindex:=(VirtualAddress shr 12) and $1ff;
+  offset:=VirtualAddress and $fff;
+
+  if ReadPhysicalMemory(0,pointer(cr3+pml4index*8),@pml4entry,8,x) then
+  begin
+    if (pml4entry and 1)=1 then
+    begin
+      pml4entry:=pml4entry and MAXPHYADDRMASKPB;
+      if ReadPhysicalMemory(0,pointer(pml4entry+pagedirptrindex*8),@pagedirptrentry,8,x) then
+      begin
+        if (pagedirptrentry and 1)=1 then
+        begin
+          pagedirptrentry:=pagedirptrentry and MAXPHYADDRMASKPB;
+          if ReadPhysicalMemory(0,pointer(pagedirptrentry+pagedirindex*8),@pagedirentry,8,x) then
+          begin
+            if (pagedirentry and 1)=1 then
+            begin
+              if (pagedirentry and (1 shl 7))>0 then  //PS==1
+              begin
+                PhysicalAddress:=(pagedirentry and MAXPHYADDRMASKPB)+Offset;
+                exit(true);
+              end
+              else
+              begin
+                //has pagetable
+                pagedirentry:=pagedirentry and MAXPHYADDRMASKPB;
+                if ReadPhysicalMemory(0,pointer(pagedirentry+pagetableindex*8),@pagetableentry,8,x) then
+                begin
+                  if (pagetableentry and 1)=1 then
+                  begin
+                    PhysicalAddress:=(pagetableentry and MAXPHYADDRMASKPB)+Offset;
+                    exit(true);
+                  end;
+                end;
+              end;
+            end;
+          end;
+        end;
+      end;
+    end;
+  end;
+end;
+
+function ReadProcessMemoryCR3(cr3: QWORD; lpBaseAddress, lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: PTRUINT): BOOL; stdcall;
+var
+  currentAddress: qword;
+  PA: qword;
+  i: integer;
+  x: PtrUInt;
+
+  blocksize: integer;
+begin
+  result:=false;
+  if nsize=0 then exit(false);
+
+  lpNumberOfBytesRead:=0;
+  currentAddress:=qword(lpBaseAddress);
+
+  //aligned memory from here on
+  while nsize>0 do
+  begin
+    blocksize:=min(nsize, $1000-(currentAddress and $fff));
+
+    if not VirtualToPhysicalCR3(cr3, currentaddress, PA) then exit;
+    if not ReadPhysicalMemory(0, pointer(PA), lpBuffer, blocksize,x) then exit;
+
+    lpNumberOfBytesRead:=lpNumberOfBytesRead+x;
+    inc(currentAddress, x);
+    lpBuffer:=pointer(qword(lpbuffer)+x);
+    dec(nsize,x);
+  end;
+
+  result:=true;
+end;
+
+function WriteProcessMemoryCR3(cr3: QWORD; lpBaseAddress, lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL; stdcall;
+var
+  currentAddress: qword;
+  PA: qword;
+  i: integer;
+  x: PtrUInt;
+
+  blocksize: integer;
+begin
+  result:=false;
+  if nsize=0 then exit(false);
+
+  lpNumberOfBytesWritten:=0;
+  currentAddress:=qword(lpBaseAddress);
+
+  //aligned memory from here on
+  while nsize>0 do
+  begin
+    blocksize:=min(nsize, $1000-(currentAddress and $fff));
+
+    if not VirtualToPhysicalCR3(cr3, currentaddress, PA) then exit;
+    if not WritePhysicalMemory(0, pointer(PA), lpBuffer, blocksize,x) then exit;
+
+    lpNumberOfBytesWritten:=lpNumberOfBytesWritten+x;
+    inc(currentAddress, x);
+    lpBuffer:=pointer(qword(lpbuffer)+x);
+    dec(nsize,x);
+  end;
+
+  result:=true;
+end;
+
 function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL; stdcall;
 var
   wle: PWriteLogEntry;
@@ -1511,6 +1648,17 @@ begin
 {$endif}
 end;
 
+procedure initMaxPhysMask;
+var cpuidr: TCPUIDResult;
+begin
+  cpuidr:=CPUID($80000008,0);
+  MAXPHYADDR:=cpuidr.eax and $ff;
+  MAXPHYADDRMASK:=qword($ffffffffffffffff);
+  MAXPHYADDRMASK:=MAXPHYADDRMASK shr MAXPHYADDR;
+  MAXPHYADDRMASK:=not (MAXPHYADDRMASK shl MAXPHYADDR);
+  MAXPHYADDRMASKPB:=MAXPHYADDRMASK and qword($fffffffffffff000);
+end;
+
 procedure getLBROffset;
 var x: TDebuggerState;
 begin
@@ -1659,9 +1807,8 @@ initialization
   GetRegionInfo:=GetRegionInfo_Stub;
   {$endif}
 
-
-
   getLBROffset;
+  initMaxPhysMask;
 {$else}
 
 

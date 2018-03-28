@@ -258,6 +258,8 @@ type
     lblSigned: TLabel;
     MainMenu2: TMainMenu;
     MenuItem12: TMenuItem;
+    miDBVMFindWhatWritesOrAccesses: TMenuItem;
+    sep2: TMenuItem;
     miChangeValueBack: TMenuItem;
     miSignTable: TMenuItem;
     miSaveFile: TMenuItem;
@@ -500,6 +502,7 @@ type
       Selected: boolean);
     procedure MenuItem12Click(Sender: TObject);
     procedure miChangeValueBackClick(Sender: TObject);
+    procedure miDBVMFindWhatWritesOrAccessesClick(Sender: TObject);
     procedure miSignTableClick(Sender: TObject);
     procedure miAsyncScriptClick(Sender: TObject);
     procedure miFlFindWhatAccessesClick(Sender: TObject);
@@ -940,7 +943,7 @@ uses mainunit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup, HotKeys,
   frmD3DHookSnapshotConfigUnit, frmSaveSnapshotsUnit, frmsnapshothandlerUnit,
   frmNetworkDataCompressionUnit, ProcessHandlerUnit, ProcessList, pointeraddresslist,
   PointerscanresultReader, Parsers, Globals, GnuAssembler, xinput, DPIHelper,
-  multilineinputqueryunit, winsapi, LuaClass, Filehandler, feces;
+  multilineinputqueryunit, winsapi, LuaClass, Filehandler, feces, frmDBVMWatchConfigUnit;
 
 resourcestring
   rsInvalidStartAddress = 'Invalid start address: %s';
@@ -6450,6 +6453,9 @@ begin
   miSetDropdownOptions.visible:=addresslist.selcount > 0;
 
 
+  sep2.Visible:=Findoutwhataccessesthisaddress1.Visible and isDBVMCapable and isIntel;
+  miDBVMFindWhatWritesOrAccesses.visible:=Findoutwhataccessesthisaddress1.Visible and isDBVMCapable and isIntel;
+
 end;
 
 procedure TMainForm.foundlistpopupPopup(Sender: TObject);
@@ -6786,6 +6792,85 @@ end;
 procedure TMainForm.Paste1Click(Sender: TObject);
 begin
   Paste(formsettings.cbsimplecopypaste.Checked);
+end;
+
+procedure TMainForm.miDBVMFindWhatWritesOrAccessesClick(Sender: TObject);
+var
+  address: ptrUint;
+  res: word;
+  id: integer;
+
+  fcd: TFoundCodeDialog;
+  unlockaddress: qword;
+begin
+
+
+  if addresslist.selectedRecord <> nil then
+  begin
+    if not loaddbvmifneeded then exit;
+
+    address := addresslist.selectedRecord.GetRealAddress;
+
+    if addresslist.selectedRecord.IsPointer then
+    begin
+      with TformPointerOrPointee.Create(self) do
+      begin
+        button1.Caption := rsFindOutWhatAccessesThisPointer;
+        button2.Caption := rsFindWhatAccessesTheAddressPointedAtByThisPointer;
+
+        res := showmodal;
+        if res = mrNo then //find what writes to the address pointer at by this pointer
+          address := addresslist.selectedRecord.GetRealAddress
+        else
+        if res = mrYes then
+          address := symhandler.getAddressFromName(
+            addresslist.selectedRecord.interpretableaddress)
+        else
+          exit;
+      end;
+    end;
+
+    //spawn a DBVM watch config screen where the user can select options like lock memory
+    frmDBVMWatchConfig:=TfrmDBVMWatchConfig.create(self);
+    frmDBVMWatchConfig.address:=address;
+    if frmDBVMWatchConfig.showmodal=mrok then
+    begin
+      if frmDBVMWatchConfig.LockPage then
+        unlockaddress:=LockMemory(processid, address and QWORD($fffffffffffff000),4096)
+      else
+        unlockaddress:=0;
+
+
+      if frmDBVMWatchConfig.watchtype=0 then
+        id:=dbvm_watch_writes(frmDBVMWatchConfig.PhysicalAddress, addresslist.selectedRecord.bytesize, frmDBVMWatchConfig.Options, frmDBVMWatchConfig.MaxEntries)
+      else
+        id:=dbvm_watch_reads(frmDBVMWatchConfig.PhysicalAddress, addresslist.selectedRecord.bytesize, frmDBVMWatchConfig.Options, frmDBVMWatchConfig.MaxEntries);
+
+      if (id<>-1) then
+      begin
+        //spawn a foundcodedialog
+        fcd:=TFoundCodeDialog.Create(self);
+        fcd.multipleRip:=frmDBVMWatchConfig.cbMultipleRIP.Checked;
+        fcd.dbvmwatchid:=id;
+        fcd.dbvmwatch_unlock:=unlockaddress;
+        if frmDBVMWatchConfig.watchtype=0 then
+          fcd.caption:=Format(rsTheFollowingOpcodesAccessed, [inttohex(address, 8)])
+        else
+          fcd.caption:=Format(rsTheFollowingOpcodesWriteTo, [inttohex(address, 8)]);
+
+
+        fcd.show;
+      end
+      else
+        MessageDlg('dbvm_watch failed', mtError, [mbok],0);
+
+    end;
+    freeandnil(frmDBVMWatchConfig);
+
+
+  end;
+
+
 end;
 
 procedure TMainForm.Findoutwhataccessesthisaddress1Click(Sender: TObject);
@@ -8568,6 +8653,8 @@ begin
     savedscan.free;
   end;
 end;
+
+
 
 procedure TMainForm.miChangeValueClick(Sender: TObject);
 var

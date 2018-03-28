@@ -14,7 +14,12 @@ type
   { TFormFoundCodeListExtra }
 
   TFormFoundCodeListExtra = class(TForm)
+    lblGSBase: TLabel;
+    lblCR3: TLabel;
     Label18: TLabel;
+    lblPhysicalAddress: TLabel;
+    lblVirtualAddress: TLabel;
+    lblFSBase: TLabel;
     lblRAX: TLabel;
     lblRBP: TLabel;
     lblRBX: TLabel;
@@ -24,6 +29,7 @@ type
     lblRIP: TLabel;
     lblRSI: TLabel;
     lblRSP: TLabel;
+    pnlEPTWatch: TPanel;
     pnlRegisters: TPanel;
     Panel8: TPanel;
     pmCopy: TPopupMenu;

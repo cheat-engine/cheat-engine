@@ -2186,11 +2186,11 @@ begin
                   ProcessListInfo.processIcon:=tempptruint;
                   if ProcessListInfo.processIcon=0 then
                   begin
-                    if SendMessageTimeout(basehandle,WM_GETICON,ICON_SMALL2,0,SMTO_ABORTIFHUNG, 100, tempptruint	)<>0 then
+                    if SendMessageTimeout(basehandle,WM_GETICON,ICON_SMALL2,0,SMTO_ABORTIFHUNG, 50, tempptruint	)<>0 then
                       ProcessListInfo.processIcon:=tempptruint;
 
                     if ProcessListInfo.processIcon=0 then
-                      if SendMessageTimeout(basehandle,WM_GETICON,ICON_SMALL,0,SMTO_ABORTIFHUNG, 100, tempptruint	)<>0 then
+                      if SendMessageTimeout(basehandle,WM_GETICON,ICON_SMALL,0,SMTO_ABORTIFHUNG, 25, tempptruint	)<>0 then
                         ProcessListInfo.processIcon:=tempptruint;
 
                     if ProcessListInfo.processIcon=0 then
@@ -2339,11 +2339,11 @@ begin
               ProcessListInfo.processIcon:=tempptruint;
               if ProcessListInfo.processIcon=0 then
               begin
-                if SendMessageTimeout(winhandle,WM_GETICON,ICON_SMALL2,0,SMTO_ABORTIFHUNG, 100, tempptruint	)<>0 then
+                if SendMessageTimeout(winhandle,WM_GETICON,ICON_SMALL2,0,SMTO_ABORTIFHUNG, 50, tempptruint	)<>0 then
                   ProcessListInfo.processIcon:=tempptruint;
 
                 if ProcessListInfo.processIcon=0 then
-                  if SendMessageTimeout(winhandle,WM_GETICON,ICON_BIG,0,SMTO_ABORTIFHUNG, 100, tempptruint	)<>0 then
+                  if SendMessageTimeout(winhandle,WM_GETICON,ICON_BIG,0,SMTO_ABORTIFHUNG, 25, tempptruint	)<>0 then
                     ProcessListInfo.processIcon:=tempptruint;
               end;
             end else

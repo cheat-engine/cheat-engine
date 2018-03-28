@@ -49,7 +49,6 @@ type
 
   TDisassembleEvent=function(sender: TObject; address: ptruint; var ldd: TLastDisassembleData; var output: string; var description: string): boolean of object;
 
-
   TDisassembler=class
   private
     inttohexs: TIntToHexS;
@@ -109,6 +108,9 @@ type
 
     procedure setSyntaxHighlighting(state: boolean);
 
+  protected
+    function readMemory(address: ptruint; destination: pointer; size: integer): integer; virtual;
+
   public
     isdefault: boolean;
     showsymbols: boolean;
@@ -138,7 +140,18 @@ type
     property syntaxhighlighting: boolean read fsyntaxhighlighting write setSyntaxHighlighting;
     property OnDisassembleOverride: TDisassembleEvent read fOnDisassembleOverride write fOnDisassembleOverride;
     property OnPostDisassemble: TDisassembleEvent read fOnPostDisassemble write fOnPostDisassemble;
-end;
+  end;
+
+
+  TCR3Disassembler=class(TDisassembler)
+  private
+    fcr3: QWORD;
+  protected
+    function readMemory(address: ptruint; destination: pointer; size: integer): integer; override;
+  published
+    property CR3: QWORD read fCR3 write fCR3;
+
+  end;
 
 
 
@@ -168,7 +181,7 @@ function disassemble(var offset: ptrUint): string; overload;
 function disassemble(var offset: ptrUint; var description: string): string; overload;
 
 function GetBitOf(Bt: qword; bit: integer): byte;
-function previousopcode(address: ptrUint):ptrUint;
+function previousopcode(address: ptrUint; d: Tdisassembler=nil):ptrUint;
 function has4ByteHexString(d: string; var hexstring: string): boolean;
 function hasAddress(d: string; var address: ptrUint; context: PContext=nil):boolean;
 
@@ -1321,6 +1334,20 @@ begin
   result:=defaultDisassembler.disassemble(offset,description);
 end;
 
+function TCR3Disassembler.readMemory(address: ptruint; destination: pointer; size: integer): integer;
+var actualread: ptruint;
+begin
+  ReadProcessMemoryCR3(fcr3,pointer(address), destination, size, actualread);
+  result:=actualread;
+end;
+
+function TDisassembler.readMemory(address: ptruint; destination: pointer; size: integer): integer;
+var actualread: ptruint;
+begin
+  actualread:=0;
+  readprocessmemory(processhandle,pointer(address),destination,size,actualread);
+  result:=actualread;
+end;
 
 function TDisassembler.disassemble(var offset: ptrUint; var description: string): string;
 var memory: TMemory;
@@ -1488,9 +1515,8 @@ begin
 
   startoffset:=offset;
   initialoffset:=offset;
-  actualread:=0;
-  readprocessmemory(processhandle,pointer(offset),@memory,24,actualread);
 
+  actualRead:=readMemory(offset, @memory, 24);
 
   if actualread>0 then
   begin
@@ -11194,7 +11220,7 @@ begin
 end;
 
 
-function previousOpcodeHelp(address: ptruint; distance:integer; var result2: ptruint): ptruint;
+function previousOpcodeHelp(d: Tdisassembler; address: ptruint; distance:integer; var result2: ptruint): ptruint;
 var x,y: ptruint;
     s: string;
 begin
@@ -11202,14 +11228,14 @@ begin
   while x<address do
   begin
     y:=x;
-    disassemble(x,s);
+    d.disassemble(x,s);
   end;
   result:=x;
   result2:=y;
 end;
 
 
-function previousopcode(address: ptrUint):ptrUint;
+function previousopcode(address: ptrUint; d: Tdisassembler=nil):ptrUint;
 var x,y: ptrUint;
     s: string;
     found: boolean;
@@ -11217,21 +11243,24 @@ var x,y: ptrUint;
 
     best: integer;
 begin
-  x:=previousOpcodeHelp(address,80, result);
+  if d=nil then
+    d:=defaultDisassembler;
+
+  x:=previousOpcodeHelp(d, address,80, result);
   if x<>address then
   begin
     //no match found 80 bytes from the start
     //try 40
-    x:=previousOpcodeHelp(address,40, result);
+    x:=previousOpcodeHelp(d, address,40, result);
 
     if x<>address then
     begin
       //nothing with 40, try 20
-      x:=previousOpcodeHelp(address,20,result);
+      x:=previousOpcodeHelp(d, address,20,result);
       if x<>address then
       begin
         //no 20, try 10
-        x:=previousOpcodeHelp(address,10,result);
+        x:=previousOpcodeHelp(d, address,10,result);
         if x<>address then
         begin
           //and if all else fails try to find the closest one
@@ -11239,7 +11268,7 @@ begin
           for i:=1 to 20 do
           begin
             x:=address-i;
-            disassemble(x,s);
+            d.disassemble(x,s);
             if x=address then
             begin
               result:=address-i;

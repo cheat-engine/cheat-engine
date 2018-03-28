@@ -92,7 +92,7 @@ uses
   frmEditHistoryUnit, LuaInternet, xinput, frmUltimap2Unit, cpuidunit, libipt,
   DPIHelper, Graphics, fontSaveLoadRegistry, registry, frmWatchlistUnit,
   frmWatchListAddEntryUnit, frmBusyUnit, FindDialogFix, LuaCustomType, LuaSQL,
-  bCrypt, feces, askToRunLuaScript;
+  bCrypt, feces, askToRunLuaScript, frmDBVMWatchConfigUnit;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in

@@ -7,7 +7,8 @@ interface
 uses
   windows, LCLIntf, LResources, Messages, SysUtils, Variants, Classes, Graphics,
   Controls, Forms, Dialogs, StdCtrls, disassembler, ExtCtrls, Menus,
-  NewKernelHandler, clipbrd, ComCtrls, fgl, formChangedAddresses, LastDisassembleData;
+  NewKernelHandler, clipbrd, ComCtrls, fgl, formChangedAddresses, LastDisassembleData,
+  vmxfunctions;
 
 type
   Tcoderecord = class
@@ -23,6 +24,9 @@ type
       savedsize: ptruint;
       stack: pbyte;
     end;
+
+    dbvmcontextbasic:    PPageEventBasic;
+
     hitcount: integer;
     diffcount: integer;
     LastDisassembleData: TLastDisassembleData;
@@ -35,6 +39,20 @@ end;
 type
 
   { TFoundCodeDialog }
+  TFoundCodeDialog=class;
+
+  TDBVMWatchPollThread=class(TThread)
+  private
+    results: PPageEventListDescriptor;
+    resultsize: integer;
+
+    cr3disassembler: Tcr3Disassembler;
+    procedure addEntriesToList;
+  public
+    id: integer;
+    fcd: TfoundCodeDialog;
+    procedure execute; override;
+  end;
 
 
   TFoundCodeDialog = class(TForm)
@@ -89,18 +107,25 @@ type
   private
     { Private declarations }
     setcountwidth: boolean;
+    fdbvmwatchid: integer;
+    dbvmwatchpollthread: TDBVMWatchPollThread;
+    procedure stopdbvmwatch;
     procedure addInfo(Coderecord: TCoderecord);
     procedure moreinfo;
     function getSelection: string;
+    procedure setdbvmwatchid(id: integer);
   public
     { Public declarations }
 
     addresswatched: ptruint;
     useexceptions: boolean;
     usesdebugregs: boolean;
+    multiplerip: boolean;
+
+    dbvmwatch_unlock: qword;
     procedure AddRecord;
     procedure setChangedAddressCount(address :ptruint);
-
+    property dbvmwatchid: integer read fdbvmwatchid write setdbvmwatchid;
   end;
 
 
@@ -115,7 +140,48 @@ implementation
 
 uses CEFuncProc, CEDebugger,debughelper, debugeventhandler, MemoryBrowserFormUnit,
      MainUnit,kerneldebugger, AdvancedOptionsUnit ,formFoundcodeListExtraUnit,
-     MainUnit2, ProcessHandlerUnit, Globals, Parsers;
+     MainUnit2, ProcessHandlerUnit, Globals, Parsers, DBK32functions;
+
+
+
+procedure TDBVMWatchPollThread.execute;
+var
+  i: integer;
+begin
+  cr3disassembler:=TCR3Disassembler.create;
+  getmem(results,4096);
+  resultsize:=4096;
+
+  while not terminated do
+  begin
+    i:=dbvm_watch_retrievelog(id, @results, resultsize);
+    if i=0 then
+    begin
+      //process data
+      if results^.numberOfEntries>1 then
+      begin
+        synchronize(addEntriesToList);
+        sleep(10);
+      end
+      else
+        sleep(50);
+    end
+    else
+    if i=2 then
+    begin
+      //not enough memory. Allocate twice the needed amount
+      freemem(results);
+
+      resultsize:=resultsize*2;
+      getmem(results, resultsize);
+
+      continue; //try again, no sleep
+    end else exit;
+  end;
+
+  freemem(results);
+  freeandnil(cr3disassembler);
+end;
 
 destructor TCodeRecord.Destroy;
 begin
@@ -126,6 +192,168 @@ begin
   end;
 
   inherited destroy;
+end;
+
+procedure TDBVMWatchPollThread.addEntriesToList;
+var
+  coderecord: TCodeRecord;
+  i,j: integer;
+  opcode,desc: string;
+  li: TListItem;
+  ldi: TLastDisassembleData;
+
+  basicinfo: TPageEventBasic;
+
+  basic: PPageEventBasicArray;
+  extended: PPageEventExtendedArray absolute basic;
+  basics: PPageEventBasicWithStackArray absolute basic;
+  extendeds: PPageEventExtendedWithStackArray absolute basic;
+
+  address, address2: qword;
+
+  skip: boolean;
+begin
+  basic:=PPageEventBasicArray(ptruint(results)+sizeof(TPageEventListDescriptor));
+
+  for i:=0 to results.numberOfEntries-1 do
+  begin
+    case results.entryType of
+      0: basicinfo:=basic^[i];
+      1: basicinfo:=extended^[i].basic;
+      2: basicinfo:=basics^[i].basic;
+      3: basicinfo:=extendeds^[i].basic;
+    end;
+    address:=basicinfo.RIP;
+
+    //check if this address is inside the list
+    skip:=false;
+    for j:=0 to fcd.foundcodelist.Items.Count-1 do
+    begin
+      if TCodeRecord(fcd.foundcodelist.Items[j].data).address=address then
+      begin
+        //it's already in the list
+        if fcd.multiplerip=false then
+        begin
+          inc(TCodeRecord(fcd.foundcodelist.Items[j].data).hitcount, basicinfo.Count);
+          skip:=true;
+          break;
+        end
+        else
+        begin
+          //check the other registers
+          if (basicinfo.RAX=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.RAX) and
+             (basicinfo.RBX=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.RBX) and
+             (basicinfo.RCX=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.RCX) and
+             (basicinfo.RDX=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.RDX) and
+             (basicinfo.RSP=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.RSP) and
+             (basicinfo.RBP=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.RBP) and
+             (basicinfo.RSI=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.RSI) and
+             (basicinfo.RDI=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.RDI) and
+             (basicinfo.R8=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.R8) and
+             (basicinfo.R9=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.R9) and
+             (basicinfo.R10=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.R10) and
+             (basicinfo.R11=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.R11) and
+             (basicinfo.R12=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.R12) and
+             (basicinfo.R13=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.R13) and
+             (basicinfo.R14=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.R14) and
+             (basicinfo.R15=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.R15) THEN
+          begin
+            inc(TCodeRecord(fcd.foundcodelist.Items[j].data).hitcount, basicinfo.Count);
+            skip:=true;
+            break;
+          end;
+        end;
+      end;
+    end;
+
+    if skip then continue;
+
+
+    coderecord:=TCoderecord.create;
+    getmem(coderecord.dbvmcontextbasic, sizeof(TPageEventBasicArray));
+    coderecord.dbvmcontextbasic^:=basicinfo;
+
+    case results.entryType of
+      1: //extended
+      begin
+        copymemory(@coderecord.context.FltSave, @extended^[i].fpudata, sizeof(coderecord.context.FltSave));
+      end;
+
+      2: //basic with stack
+      begin
+        coderecord.stack.savedsize:=4096;
+        getmem(coderecord.stack.stack, 4096);
+
+        copymemory(coderecord.stack.stack, @basics^[i].stack[0], 4096);
+      end;
+
+      3: //extended with stack
+      begin
+        copymemory(@coderecord.context.FltSave, @extended^[i].fpudata, sizeof(coderecord.context.FltSave));
+        coderecord.stack.savedsize:=4096;
+        getmem(coderecord.stack.stack, 4096);
+
+        copymemory(coderecord.stack.stack, @basics^[i].stack[0], 4096);
+      end;
+
+      else
+      begin
+        //error
+        freemem(coderecord.dbvmcontextbasic);
+        freeandnil(coderecord);
+        exit;
+      end;
+    end;
+
+    address:=coderecord.dbvmcontextbasic^.RIP;
+    address2:=address;
+    cr3disassembler.cr3:=coderecord.dbvmcontextbasic.CR3;
+    opcode:=cr3disassembler.disassemble(address2,desc);
+    ldi:=cr3disassembler.LastDisassembleData;
+
+
+
+
+    coderecord.address:=address;
+    coderecord.size:=address2-address;
+    coderecord.opcode:=opcode;
+    coderecord.description:=desc;
+    coderecord.LastDisassembleData:=ldi;
+    coderecord.hitcount:=coderecord.dbvmcontextbasic^.Count;
+
+    //make compatible with older code:
+    zeromemory(@coderecord.context, sizeof(coderecord.context));
+    coderecord.context.Rax:=coderecord.dbvmcontextbasic^.RAX;
+    coderecord.context.Rbx:=coderecord.dbvmcontextbasic^.RBX;
+    coderecord.context.Rcx:=coderecord.dbvmcontextbasic^.RCX;
+    coderecord.context.Rdx:=coderecord.dbvmcontextbasic^.RDX;
+    coderecord.context.Rsi:=coderecord.dbvmcontextbasic^.RSI;
+    coderecord.context.Rdi:=coderecord.dbvmcontextbasic^.RDI;
+    coderecord.context.Rbp:=coderecord.dbvmcontextbasic^.RBP;
+    coderecord.context.Rsp:=coderecord.dbvmcontextbasic^.Rsp;
+    coderecord.context.Rip:=coderecord.dbvmcontextbasic^.Rip;
+    coderecord.context.R8:=coderecord.dbvmcontextbasic^.R8;
+    coderecord.context.R9:=coderecord.dbvmcontextbasic^.R9;
+    coderecord.context.R10:=coderecord.dbvmcontextbasic^.R10;
+    coderecord.context.R11:=coderecord.dbvmcontextbasic^.R11;
+    coderecord.context.R12:=coderecord.dbvmcontextbasic^.R12;
+    coderecord.context.R13:=coderecord.dbvmcontextbasic^.R13;
+    coderecord.context.R14:=coderecord.dbvmcontextbasic^.R14;
+    coderecord.context.R15:=coderecord.dbvmcontextbasic^.R15;
+    coderecord.context.EFlags:=coderecord.dbvmcontextbasic^.FLAGS;
+    coderecord.context.SegCs:=coderecord.dbvmcontextbasic^.CS;
+    coderecord.context.SegSs:=coderecord.dbvmcontextbasic^.SS;
+    coderecord.context.SegDs:=coderecord.dbvmcontextbasic^.DS;
+    coderecord.context.SegEs:=coderecord.dbvmcontextbasic^.ES;
+    coderecord.context.SegFs:=coderecord.dbvmcontextbasic^.FS;
+    coderecord.context.SegGs:=coderecord.dbvmcontextbasic^.GS;
+
+
+    li:=fcd.FoundCodeList.Items.Add;
+    li.caption:='1';
+    li.SubItems.add(opcode);
+    li.data:=coderecord;
+  end;
 end;
 
 procedure TCodeRecord.savestack;
@@ -144,6 +372,7 @@ begin
     ReadProcessMemory(processhandle, pointer(base), stack.stack, stack.savedsize, stack.savedsize);
   end;
 end;
+
 
 procedure TFoundCodedialog.AddRecord;
 {
@@ -233,6 +462,46 @@ begin
 
     if miFindWhatAccesses.Checked then //add it
       coderecord.formChangedAddresses:=debuggerthread.FindWhatCodeAccesses(address, self);  //ffffffuuuuuuuuuu. Rebuild again
+  end;
+end;
+
+procedure TFoundCodeDialog.stopdbvmwatch;
+begin
+  if dbvmwatchpollthread<>nil then
+  begin
+    dbvmwatchpollthread.Terminate;
+    dbvmwatchpollthread.WaitFor;
+    freeandnil(dbvmwatchpollthread);
+  end;
+
+  if dbvmwatchid<>-1 then
+  begin
+    dbvm_watch_delete(dbvmwatchid);
+    dbvmwatchid:=-1;
+  end;
+
+  if dbvmwatch_unlock<>0 then
+  begin
+    UnlockMemory(dbvmwatch_unlock);
+    dbvmwatch_unlock:=0;
+  end;
+end;
+
+procedure TFoundCodedialog.setdbvmwatchid(id: integer);
+begin
+  fdbvmwatchid:=id;
+
+  if id<>-1 then
+  begin
+    if dbvmwatchpollthread<>nil then
+      freeandnil(dbvmwatchpollthread);
+
+    dbvmwatchpollthread:=TDBVMWatchPollThread.Create(true);
+    dbvmwatchpollthread.id:=id;
+    dbvmwatchpollthread.fcd:=self;
+    dbvmwatchpollthread.Start;
+
+    useexceptions:=true;
   end;
 end;
 
@@ -381,6 +650,8 @@ var
     cw: trect; //changed address window rect
 
     offset: integer;
+
+  d: TDisassembler;
 begin
   itemindex:=foundcodelist.ItemIndex;
   if itemindex<>-1 then
@@ -407,15 +678,25 @@ begin
       coderecord.formChangedAddresses.show;
     end;
 
+
     address:=coderecord.address;
-    address:=previousopcode(address);
-    address:=previousopcode(address);
+    if coderecord.dbvmcontextbasic<>nil then
+    begin
+      d:=TCR3Disassembler.Create;
+      TCR3Disassembler(d).CR3:=coderecord.dbvmcontextbasic^.CR3;
+    end
+    else
+      d:=TDisassembler.Create;
+
+
+    address:=previousopcode(address, d);
+    address:=previousopcode(address, d);
 
     disassembled[1].a:=address;
-    disassembled[1].s:=disassemble(address,temp);
+    disassembled[1].s:=d.disassemble(address,temp);
 
     disassembled[2].a:=address;
-    disassembled[2].s:=disassemble(address,temp);
+    disassembled[2].s:=d.disassemble(address,temp);
 
     if address<>coderecord.address then
     begin
@@ -437,6 +718,7 @@ begin
       disassembled[5].s:=disassemble(address,temp);
     end;
 
+    freeandnil(d);
 
 
 
@@ -670,6 +952,19 @@ begin
   //          height:=height+(lblR15.top+lblR15.height)-(lblRDI.top+lblRDI.height);
         end;
         {$endif}
+
+
+        if coderecord.dbvmcontextbasic<>nil then
+        begin
+          pnlEPTWatch.visible:=true;
+          lblPhysicalAddress.caption:=format('Physical Address=%.8x',[coderecord.dbvmcontextbasic^.PhysicalAddress]);
+          lblVirtualAddress.caption:=format('Virtual Address=%.8x',[coderecord.dbvmcontextbasic^.VirtualAddress]);
+          lblFSBase.caption:=format('FS Base=%.8x',[coderecord.dbvmcontextbasic^.FSBASE]);
+          lblGSBase.caption:=format('GS Base=%.8x',[coderecord.dbvmcontextbasic^.GSBASE]);
+          lblCR3.caption:=format('CR3=%.8x',[coderecord.dbvmcontextbasic^.CR3]);
+        end
+        else
+          pnlEPTWatch.visible:=false;
       end;
       label6.Caption:=coderecord.description;
     end;
@@ -807,6 +1102,8 @@ begin
     foundcodelist.Columns[0].Width:=x[0];
     setcountwidth:=true;
   end;
+
+  fdbvmwatchid:=-1;
 end;
 
 procedure TFoundCodeDialog.FormDeactivate(Sender: TObject);
@@ -832,6 +1129,8 @@ begin
     cr.free;
   end;
 
+
+  stopDBVMWatch();
 
   saveformposition(self,[FoundCodeList.Columns[0].Width]);
 end;
@@ -866,6 +1165,8 @@ begin
       debuggerthread.CodeFinderStop(self);
 
     btnOK.caption:=strClose;
+
+    stopdbvmwatch;
   end
   else close;
 

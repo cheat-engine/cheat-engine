@@ -4368,7 +4368,87 @@ begin
     lua_pushboolean(L, KernelWritesIgnoreWriteProtection(state));
     result:=1;
   end;
+end;
 
+function lua_getPhysicalAddressCR3(L: PLua_State): integer; cdecl;
+var
+  CR3: QWORD;
+  VirtualAddress: QWORD;
+  PhysicalAddress: QWORD;
+begin
+  result:=0;
+  if lua_gettop(L)>=2 then
+  begin
+    CR3:=lua_tointeger(L,1);
+    VirtualAddress:=lua_tointeger(L,2);
+    if VirtualToPhysicalCR3(CR3, VirtualAddress, PhysicalAddress) then
+    begin
+      lua_pushinteger(L, PhysicalAddress);
+      result:=1;
+    end;
+  end;
+end;
+
+function lua_readProcessMemoryCR3(L: PLua_State): integer; cdecl;
+var
+  CR3: QWORD;
+  Address: QWORD;
+  Size: integer;
+  x: ptruint;
+  buf: pointer;
+
+begin
+  result:=0;
+  if lua_gettop(L)>=3 then
+  begin
+    CR3:=lua_tointeger(L,1);
+    Address:=lua_tointeger(L,2);
+    Size:=lua_tointeger(L,3);
+
+    getmem(buf, size);
+    x:=0;
+    ReadProcessMemoryCR3(cr3, pointer(address), buf, size, x);
+    if x>0 then
+    begin
+      CreateByteTableFromPointer(L, buf, x);
+      result:=1;
+      freemem(buf);
+    end;
+  end;
+end;
+
+function lua_writeProcessMemoryCR3(L: PLua_State): integer; cdecl;
+var
+  CR3: QWORD;
+  Address: QWORD;
+  size: integer;
+  buf: pointer;
+  x: ptruint;
+begin
+  if lua_gettop(L)>=3 then
+  begin
+    CR3:=lua_tointeger(L,1);
+    Address:=lua_tointeger(L,2);
+    if lua_istable(L,3) then
+    begin
+      size:=lua_objlen(L, 3);
+      getmem(buf,size);
+      readBytesFromTable(L, 3, buf, size);
+
+      x:=0;
+      WriteProcessMemoryCR3(cr3, pointer(Address), buf, size, x);
+      freemem(buf);
+
+      if (x>0) then
+      begin
+        lua_pushboolean(L,true);
+        exit(1);
+      end;
+    end;
+  end;
+
+  lua_pushboolean(L, false);
+  result:=1;
 end;
 
 function dbk_getPhysicalAddress(L: PLua_State): integer; cdecl;
@@ -4589,6 +4669,10 @@ function lua_dbvm_watch_retrievelog(L: PLua_state): integer; cdecl;
 
     lua_pushstring(L,'GSBASE');
     lua_pushinteger(L,pbasic^.GSBASE);
+    lua_settable(L,index);
+
+    lua_pushstring(L,'FLAGS');
+    lua_pushinteger(L,pbasic^.FLAGS);
     lua_settable(L,index);
 
     lua_pushstring(L,'RAX');
@@ -4845,17 +4929,24 @@ var
   basics: PPageEventBasicWithStackArray absolute basic;
   extendeds: PPageEventExtendedWithStackArray absolute basic;
 begin
+
+  OutputDebugString('lua_dbvm_watch_retrievelog');
   result:=0;
   if lua_gettop(L)=0 then exit;
   ID:=lua_tointeger(L,1);
+
+  OutputDebugString('id='+inttostr(id));
 
   lua_pop(L,lua_gettop(L));
 
   buf:=nil;
   size:=0;
-  while dbvm_watch_retrievelog(ID, nil,size)=2 do
+  i:=dbvm_watch_retrievelog(ID, buf,size);
+  while i=2 do
   begin
     //must be 2
+    OutputDebugString('reallocating buffer for watchlog');
+
     if (buf<>nil) then
     begin
       freemem(buf);
@@ -4865,9 +4956,38 @@ begin
     size:=size*2;
     getmem(buf, size);
     if (buf=nil) then exit;
+
+    FillMemory(buf, size,$ce);
+    i:=dbvm_watch_retrievelog(ID, buf,size);
   end;
 
+  if i<>0 then
+  begin
+    case i of
+      1: lua_pushstring(L,'invalid id');
+      3: lua_pushstring(L,'inactive id');
+      4: lua_pushstring(L,'invalid address for buffer');
+      else lua_pushstring(L,'unknown error '+inttostr(i));
+    end;
+
+    lua_error(L);
+  end;
+
+  outputdebugstring('Buf allocated at '+inttohex(QWORD(buf),8));
+
   basic:=PPageEventBasicArray(qword(buf)+sizeof(TPageEventListDescriptor));
+
+  outputdebugstring('sizeof(TPageEventBasic)='+inttostr(sizeof(TPageEventBasic)));
+  outputdebugstring('sizeof(TPageEventExtended)='+inttostr(sizeof(TPageEventExtended)));
+  outputdebugstring('sizeof(TPageEventBasicWithStack)='+inttostr(sizeof(TPageEventBasicWithStack)));
+  outputdebugstring('sizeof(TPageEventExtendedWithStack)='+inttostr(sizeof(TPageEventExtendedWithStack)));
+
+
+  outputdebugstring('sizeof(TPageEventListDescriptor)='+inttostr(sizeof(TPageEventListDescriptor)));
+  outputdebugstring('  buf^.ID='+inttostr(buf^.ID));
+  outputdebugstring('  buf^.maxSize='+inttostr(buf^.maxSize));
+  outputdebugstring('  buf^.numberOfEntries='+inttostr(buf^.numberOfEntries));
+  outputdebugstring('  buf^.entryType='+inttostr(buf^.entryType));
 
   lua_createtable(L, buf^.numberOfEntries, 0); //index 1
 
@@ -9398,7 +9518,9 @@ begin
     lua_register(L, 'dbk_getPhysicalAddress', dbk_getPhysicalAddress);
     lua_register(L, 'dbk_writesIgnoreWriteProtection', dbk_writesIgnoreWriteProtection);
 
-
+    lua_register(L, 'getPhysicalAddressCR3', lua_getPhysicalAddressCR3);
+    lua_register(L, 'readProcessMemoryCR3', lua_readProcessMemoryCR3);
+    lua_register(L, 'writeProcessMemoryCR3', lua_writeProcessMemoryCR3);
 
 
     lua_register(L, 'allocateSharedMemory', allocateSharedMemory);

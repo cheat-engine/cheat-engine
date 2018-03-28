@@ -215,6 +215,12 @@ begin
   result:=1;
 end;
 
+function createCR3Disassembler(L: PLua_State): integer; cdecl;
+begin
+  luaclass_newClass(L, TCR3Disassembler.Create);
+  result:=1;
+end;
+
 
 function getDefaultDisassembler(L: PLua_State): integer; cdecl;
 begin
@@ -242,6 +248,8 @@ end;
 procedure initializeLuaDisassembler;
 begin
   lua_register(LuaVM, 'createDisassembler', createDisassembler);
+  lua_register(LuaVM, 'createCR3Disassembler', createCR3Disassembler);
+
   lua_register(LuaVM, 'getDefaultDisassembler', getDefaultDisassembler);
   lua_register(LuaVM, 'getVisibleDisassembler', getVisibleDisassembler);
 end;

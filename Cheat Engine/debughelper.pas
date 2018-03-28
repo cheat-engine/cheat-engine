@@ -150,6 +150,9 @@ var
   preferedBreakpointMethod: TBreakpointMethod;
   BPOverride: boolean=true;
 
+resourcestring
+  rsTheFollowingOpcodesAccessed = 'The following opcodes accessed %s';
+  rsTheFollowingOpcodesWriteTo = 'The following opcodes write to %s';
 
 
 implementation
@@ -174,8 +177,7 @@ resourcestring
     +'debug register is used';
   rsAll4DebugRegistersAreCurrentlyUsedUpFreeOneAndTryA = 'All debug '
     +'registers are currently used up. Free one and try again';
-  rsTheFollowingOpcodesAccessed = 'The following opcodes accessed %s';
-  rsTheFollowingOpcodesWriteTo = 'The following opcodes write to %s';
+
   rsAllDebugRegistersAreUsedUpDoYouWantToUseASoftwareBP = 'All debug '
     +'registers are used up. Do you want to use a software breakpoint?';
   rsAllDebugRegistersAreUsedUp = 'All debug registers are used up';
