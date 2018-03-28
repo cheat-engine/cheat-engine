@@ -466,7 +466,7 @@ void* mapPhysicalMemoryGlobal(QWORD PhysicalAddress, int size) //heavy operation
   _wbinvd();
   csLeave(&GlobalMapCS);
 
-  return (void*)VirtualAddress;
+  return (void*)VirtualAddress+offset;
 }
 
 void* mapPhysicalMemoryAddresses(QWORD *addresses, int count)
@@ -554,7 +554,7 @@ void unmapPhysicalMemoryGlobal(void *virtualaddress, int size)
 {
 
 
-  if (((QWORD)virtualaddress>GLOBALMAPPEDMEMORY) && ((QWORD)virtualaddress<MAPPEDMEMORY))
+  if (((QWORD)virtualaddress>=GLOBALMAPPEDMEMORY) && ((QWORD)virtualaddress+size<MAPPEDMEMORY))
   {
     QWORD base=(QWORD)virtualaddress & 0xfffffffffffff000ULL;;
     unsigned int offset=(QWORD)virtualaddress & 0xfff;

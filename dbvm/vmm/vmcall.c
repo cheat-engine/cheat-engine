@@ -212,6 +212,9 @@ int raisePagefault(pcpuinfo currentcpuinfo, UINT64 address)
   PFerrorcode errorcode;
   errorcode.errorcode=0;
 
+  if (currentcpuinfo==NULL)
+    currentcpuinfo=getcpuinfo();
+
   //get DPL of SS (or CS?), if 3, set US to 1, if anything else, 0
   if (isAMD)
   {
@@ -1339,6 +1342,8 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
       if (hasEPTsupport)
       {
         vmregisters->rax=vmcall_watch_activate((PVMCALL_WATCH_PARAM)vmcall_instruction,0); //write
+        sendstringf("vmcall_watch_activate returned %d and ID %d\n", vmregisters->rax, ((PVMCALL_WATCH_PARAM)vmcall_instruction)->ID);
+
       }
       else
       {
@@ -1433,6 +1438,14 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
         vmregisters->rax=0xcedead;
       break;
     }
+
+    case VMCALL_EPT_RESET:
+    {
+      ept_reset();
+      vmregisters->rax=0;
+      break;
+    }
+
 
 
 

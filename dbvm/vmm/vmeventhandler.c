@@ -3352,13 +3352,13 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
   return 0;
 }
 
-int handleSoftwareBreakpoint(pcpuinfo currentcpuinfo)
+int handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 {
   //handle software breakpoints
   sendstringf("Software breakpoint\n");
   if (hasEPTsupport)
   {
-    if (ept_handleSoftwareBreakpoint(currentcpuinfo)==0)
+    if (ept_handleSoftwareBreakpoint(currentcpuinfo, vmregisters)==0)
       return 0;
   }
 
@@ -3378,14 +3378,14 @@ int handleInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters) //nightma
   //ULONG interrorcode,idtvectorerrorcode;
   VMExit_interruption_information intinfo;
   //VMExit_idt_vector_information idtvectorinfo;
-  //VMEntry_interruption_information entry_intinfo;
+  //VMEntry_interruption_information enstry_intinfo;
   //int doublefault=0;
 
   intinfo.interruption_information=vmread(vm_exit_interruptioninfo);
 
   if ((intinfo.interruptvector==3) && (intinfo.type==itSoftwareException))
   {
-    if (handleSoftwareBreakpoint(currentcpuinfo)==0) //returns non 0 if not handled
+    if (handleSoftwareBreakpoint(currentcpuinfo, vmregisters)==0) //returns non 0 if not handled
       return 0;
   }
 

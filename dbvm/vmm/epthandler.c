@@ -31,6 +31,35 @@ ChangeRegBPEntry *ChangeRegBPList;
 int ChangeRegBPListSize;
 int ChangeRegBPListPos;
 
+void ept_reset()
+/*
+ * Removes all watches/breakpoints
+ */
+{
+  int i;
+  csEnter(&eptWatchListCS);
+  for (i=0; i<eptWatchListPos; i++)
+    if (eptWatchList[i].Active)
+      ept_watch_deactivate(i);
+
+  csLeave(&eptWatchListCS);
+
+  csEnter(&ChangeRegBPListCS);
+  for (i=0; i<ChangeRegBPListPos; i++)
+    if (ChangeRegBPList[i].Active)
+      ept_cloak_removechangeregonbp(ChangeRegBPList[i].PhysicalAddress);
+
+  csLeave(&ChangeRegBPListCS);
+
+  csEnter(&CloakedPagesCS);
+  for (i=0; i<CloakedPagesPos; i++)
+    if (CloakedPages[i].Executable!=NULL)
+      ept_cloak_deactivate(CloakedPages[i].PhysicalAddressExecutable);
+
+  csLeave(&CloakedPagesCS);
+
+}
+
 BOOL ept_handleCloakEvent(pcpuinfo currentcpuinfo, QWORD Address)
 /*
  * Checks if the physical address is cloaked, if so handle it and return 1, else return 0
@@ -250,6 +279,9 @@ int ept_cloak_deactivate(QWORD physicalAddress)
     if (CloakedPages[i].PhysicalAddressExecutable==physicalAddress)
     {
       //found it
+      //restore to the original unedited state
+      copymem(CloakedPages[i].Executable, CloakedPages[i].Data, 4096);
+
       pcpuinfo currentcpuinfo=firstcpuinfo;
       while (currentcpuinfo)
       {
@@ -373,6 +405,58 @@ int ept_cloak_changeregonbp(QWORD physicalAddress, PCHANGEREGONBPINFO changeregi
   QWORD physicalBase=physicalAddress & MAXPHYADDRMASKPB;
   ept_cloak_activate(physicalBase); //just making sure
 
+  sendstringf("ept_cloak_changeregonbp:\n");
+  sendstringf("  changeRAX:%d\n", changereginfo->Flags.changeRAX);
+  sendstringf("  changeRBX:%d\n", changereginfo->Flags.changeRBX);
+  sendstringf("  changeRCX:%d\n", changereginfo->Flags.changeRCX);
+  sendstringf("  changeRDX:%d\n", changereginfo->Flags.changeRDX);
+  sendstringf("  changeRSI:%d\n", changereginfo->Flags.changeRSI);
+  sendstringf("  changeRDI:%d\n", changereginfo->Flags.changeRDI);
+  sendstringf("  changeRBP:%d\n", changereginfo->Flags.changeRBP);
+  sendstringf("  changeRSP:%d\n", changereginfo->Flags.changeRSP);
+  sendstringf("  changeRIP:%d\n", changereginfo->Flags.changeRIP);
+  sendstringf("  changeR8:%d\n", changereginfo->Flags.changeR8);
+  sendstringf("  changeR9:%d\n", changereginfo->Flags.changeR9);
+  sendstringf("  changeR10:%d\n", changereginfo->Flags.changeR10);
+  sendstringf("  changeR11:%d\n", changereginfo->Flags.changeR11);
+  sendstringf("  changeR12:%d\n", changereginfo->Flags.changeR12);
+  sendstringf("  changeR13:%d\n", changereginfo->Flags.changeR13);
+  sendstringf("  changeR14:%d\n", changereginfo->Flags.changeR14);
+  sendstringf("  changeR15:%d\n", changereginfo->Flags.changeR15);
+  sendstringf("  changeCF:%d\n", changereginfo->Flags.changeCF);
+  sendstringf("  changePF:%d\n", changereginfo->Flags.changePF);
+  sendstringf("  changeAF:%d\n", changereginfo->Flags.changeAF);
+  sendstringf("  changeZF:%d\n", changereginfo->Flags.changeZF);
+  sendstringf("  changeSF:%d\n", changereginfo->Flags.changeSF);
+  sendstringf("  changeOF:%d\n", changereginfo->Flags.changeOF);
+  sendstringf("  newCF:%d\n", changereginfo->Flags.newCF);
+  sendstringf("  newPF:%d\n", changereginfo->Flags.newPF);
+  sendstringf("  newAF:%d\n", changereginfo->Flags.newAF);
+  sendstringf("  newZF:%d\n", changereginfo->Flags.newZF);
+  sendstringf("  newSF:%d\n", changereginfo->Flags.newSF);
+  sendstringf("  newOF:%d\n", changereginfo->Flags.newOF);
+
+  sendstringf("  newRAX:%d\n", changereginfo->newRAX);
+  sendstringf("  newRBX:%d\n", changereginfo->newRBX);
+  sendstringf("  newRCX:%d\n", changereginfo->newRCX);
+  sendstringf("  newRDX:%d\n", changereginfo->newRDX);
+  sendstringf("  newRSI:%d\n", changereginfo->newRSI);
+  sendstringf("  newRDI:%d\n", changereginfo->newRDI);
+  sendstringf("  newRBP:%d\n", changereginfo->newRBP);
+  sendstringf("  newRSP:%d\n", changereginfo->newRSP);
+  sendstringf("  newRIP:%d\n", changereginfo->newRIP);
+  sendstringf("  newR8:%d\n", changereginfo->newR8);
+  sendstringf("  newR9:%d\n", changereginfo->newR9);
+  sendstringf("  newR10:%d\n", changereginfo->newR10);
+  sendstringf("  newR11:%d\n", changereginfo->newR11);
+  sendstringf("  newR12:%d\n", changereginfo->newR12);
+  sendstringf("  newR13:%d\n", changereginfo->newR13);
+  sendstringf("  newR14:%d\n", changereginfo->newR14);
+  sendstringf("  newR15:%d\n", changereginfo->newR15);
+
+
+
+
   csEnter(&CloakedPagesCS);
   for (i=0; i<CloakedPagesPos; i++)
   {
@@ -447,7 +531,7 @@ int ept_cloak_removechangeregonbp(QWORD physicalAddress)
   return result;
 }
 
-int ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo)
+int ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 {
   //check if it is a cloaked instruction
   int i;
@@ -469,13 +553,46 @@ int ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo)
       {
         if (ChangeRegBPList[i].Active)
         {
+          QWORD oldRIP=vmread(vm_guest_rip);
           //it's a match
           //Todo: Only change if the processID matches  (todo: Add a getProcessID option provided by the OS based caller)
           //For now, make sure that the physical page is not shared, or that the register change is compatible with different processes (e.g kernelmode only, or a Flag change)
 
-          if ((ChangeRegBPList[i].changereginfo.Flags.changeRIP==0) || (ChangeRegBPList[i].changereginfo.newRIP==vmread(vm_guest_rip)))
+          //change regs
+
+          if (ChangeRegBPList[i].changereginfo.Flags.changeRAX) vmregisters->rax=ChangeRegBPList[i].changereginfo.newRAX;
+          if (ChangeRegBPList[i].changereginfo.Flags.changeRBX) vmregisters->rbx=ChangeRegBPList[i].changereginfo.newRBX;
+          if (ChangeRegBPList[i].changereginfo.Flags.changeRCX) vmregisters->rcx=ChangeRegBPList[i].changereginfo.newRCX;
+          if (ChangeRegBPList[i].changereginfo.Flags.changeRDX) vmregisters->rdx=ChangeRegBPList[i].changereginfo.newRDX;
+          if (ChangeRegBPList[i].changereginfo.Flags.changeRSI) vmregisters->rsi=ChangeRegBPList[i].changereginfo.newRSI;
+          if (ChangeRegBPList[i].changereginfo.Flags.changeRDI) vmregisters->rdi=ChangeRegBPList[i].changereginfo.newRDI;
+          if (ChangeRegBPList[i].changereginfo.Flags.changeRBP) vmregisters->rbp=ChangeRegBPList[i].changereginfo.newRBP;
+          if (ChangeRegBPList[i].changereginfo.Flags.changeRSP) vmwrite(vm_guest_rsp, ChangeRegBPList[i].changereginfo.newRSP);
+          if (ChangeRegBPList[i].changereginfo.Flags.changeRIP) vmwrite(vm_guest_rip, ChangeRegBPList[i].changereginfo.newRIP);
+          if (ChangeRegBPList[i].changereginfo.Flags.changeR8)  vmregisters->r8=ChangeRegBPList[i].changereginfo.newR8;
+          if (ChangeRegBPList[i].changereginfo.Flags.changeR9)  vmregisters->r9=ChangeRegBPList[i].changereginfo.newR9;
+          if (ChangeRegBPList[i].changereginfo.Flags.changeR10) vmregisters->r10=ChangeRegBPList[i].changereginfo.newR10;
+          if (ChangeRegBPList[i].changereginfo.Flags.changeR11) vmregisters->r11=ChangeRegBPList[i].changereginfo.newR11;
+          if (ChangeRegBPList[i].changereginfo.Flags.changeR12) vmregisters->r12=ChangeRegBPList[i].changereginfo.newR12;
+          if (ChangeRegBPList[i].changereginfo.Flags.changeR13) vmregisters->r13=ChangeRegBPList[i].changereginfo.newR13;
+          if (ChangeRegBPList[i].changereginfo.Flags.changeR14) vmregisters->r14=ChangeRegBPList[i].changereginfo.newR14;
+          if (ChangeRegBPList[i].changereginfo.Flags.changeR15) vmregisters->r15=ChangeRegBPList[i].changereginfo.newR15;
+
+          RFLAGS flags;
+          flags.value=vmread(vm_guest_rflags);
+          if (ChangeRegBPList[i].changereginfo.Flags.changeCF) flags.CF=ChangeRegBPList[i].changereginfo.Flags.newCF;
+          if (ChangeRegBPList[i].changereginfo.Flags.changePF) flags.PF=ChangeRegBPList[i].changereginfo.Flags.newPF;
+          if (ChangeRegBPList[i].changereginfo.Flags.changeAF) flags.AF=ChangeRegBPList[i].changereginfo.Flags.newAF;
+          if (ChangeRegBPList[i].changereginfo.Flags.changeZF) flags.ZF=ChangeRegBPList[i].changereginfo.Flags.newZF;
+          if (ChangeRegBPList[i].changereginfo.Flags.changeSF) flags.SF=ChangeRegBPList[i].changereginfo.Flags.newSF;
+          if (ChangeRegBPList[i].changereginfo.Flags.changeOF) flags.OF=ChangeRegBPList[i].changereginfo.Flags.newOF;
+          vmwrite(vm_guest_rflags, flags.value);
+
+
+          //continue:
+          if ((ChangeRegBPList[i].changereginfo.Flags.changeRIP==0) || (ChangeRegBPList[i].changereginfo.newRIP==oldRIP))
           {
-            //RIP does not change
+            //RIP did not change
 
             //restore the original byte
             int offset=ChangeRegBPList[i].PhysicalAddress & 0xfff;
@@ -486,6 +603,9 @@ int ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo)
             //setup single step mode
             vmx_enableSingleStepMode();
             vmx_addSingleSteppingReason(currentcpuinfo, 3,i); //change reg on bp, restore int3 bp
+            /* on systems with no exec only support, this means there will be 2 single step reasons.
+             * One for the breakpoint restore, and one to set the read disable back
+             */
 
             vmwrite(vm_guest_rip, vmread(vm_guest_rip)-1);
             result=0;
@@ -557,7 +677,7 @@ int getFreeWatchID()
  */
 {
   int i,j;
-  sendstringf("getFreeWatchID\n");
+  sendstringf("+getFreeWatchID\n");
   for (i=0; i<eptWatchListPos; i++)
   {
     if (eptWatchList[i].Active==0)
@@ -618,6 +738,7 @@ void fillPageEventBasic(PageEventBasic *peb, VMRegisters *registers)
   peb->CR3=vmread(vm_guest_cr3);
   peb->FSBASE=vmread(vm_guest_fs_base);
   peb->GSBASE=vmread(vm_guest_gs_base);
+  peb->FLAGS=vmread(vm_guest_rflags);
   peb->RAX=registers->rax;
   peb->RBX=registers->rbx;
   peb->RCX=registers->rcx;
@@ -670,6 +791,7 @@ int ept_getWatchID(QWORD address)
  */
 {
   int i;
+  sendstringf("ept_getWatchID(%6)\n", address);
   address=address & 0xfffffffffffff000ULL;
   for (i=0; i<eptWatchListPos; i++)
     if (ept_isWatchIDMatch(address, i))
@@ -688,7 +810,12 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
     return FALSE;
 
   csEnter(&eptWatchListCS);
+
+  sendstring("EPT event and there is a watchlist entry\n");
+
   ID=ept_getWatchID(PhysicalAddress);
+
+  sendstringf("ept_getWatchID returned %d\n", ID);
 
   if (ID==-1)
   {
@@ -924,6 +1051,7 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
 
   sendstringf("Added it to the list. numberOfEntries for ID %d is now %d\n", ID, eptWatchList[ID].Log->numberOfEntries);
 
+  csLeave(&eptWatchListCS);
 
   return TRUE;
 
@@ -1044,7 +1172,7 @@ VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *
       vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
       *errorcode=0x1000+error; //map error
       csLeave(&eptWatchListCS);
-      return 0;
+      return VM_OK;
     }
   }
 
@@ -1071,6 +1199,7 @@ VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *
     vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
   }
 
+  csLeave(&eptWatchListCS);
   return VM_OK;
 }
 
@@ -1078,10 +1207,15 @@ VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *
 int ept_watch_activate(QWORD PhysicalAddress, int Size, int Type, DWORD Options, int MaxEntryCount, int *outID)
 {
   int result=0;
-  sendstringf("ept_watch_activate(%6, %d, %d, %x, %d, %6)\n", PhysicalAddress, Size, Options, MaxEntryCount, outID);
+  sendstringf("+ ept_watch_activate(%6, %d, %d, %x, %d, %6)\n", PhysicalAddress, Size, Options, MaxEntryCount, outID);
 
   if (MaxEntryCount==0)
+  {
+    sendstringf("MaxEntryCount=0\n");
     return 1;
+  }
+  else
+    sendstringf("MaxEntryCount=%d\n", MaxEntryCount);
 
   csEnter(&eptWatchListCS);
 
@@ -1124,6 +1258,7 @@ int ept_watch_activate(QWORD PhysicalAddress, int Size, int Type, DWORD Options,
   pcpuinfo c=firstcpuinfo;
   while (c)
   {
+    sendstringf("Setting watch for CPU %d\n", c->cpunr);
     csEnter(&c->EPTPML4CS);
 
     QWORD PA_EPTE=EPTMapPhysicalMemory(c, PhysicalAddress, 1);
@@ -1162,7 +1297,7 @@ int ept_watch_activate(QWORD PhysicalAddress, int Size, int Type, DWORD Options,
 
   //everything ok, return success:
 
-  sendstringf("Passing ID to the called\n");
+  sendstringf("Passing ID(%d) to the caller\n", ID);
   *outID=ID;
 
 
@@ -1182,9 +1317,23 @@ int ept_watch_deactivate(int ID)
 {
   int i;
   int hasAnotherOne=0;
-  sendstringf("ept_disableWatch(%d)", ID);
+  sendstringf("ept_watch_deactivate(%d)", ID);
 
   csEnter(&eptWatchListCS);
+
+  if (ID>=eptWatchListPos)
+  {
+    sendstringf("  Invalid entry\n");
+    csLeave(&eptWatchListCS);
+    return 1;
+  }
+
+  if (eptWatchList[ID].Active==0)
+  {
+    sendstringf("  Inactive entry\n");
+    csLeave(&eptWatchListCS);
+    return 2;
+  }
 
   QWORD PhysicalBase=eptWatchList[ID].PhysicalAddress & 0xfffffffffffff000ULL;
 
@@ -1211,17 +1360,17 @@ int ept_watch_deactivate(int ID)
       EPT_PTE temp=*(c->eptWatchList[ID]);
       if (eptWatchList[ID].Type==0)
       {
-        sendstringf("This was a write entry. Making it writable\n");
+        sendstringf("  This was a write entry. Making it writable\n");
         temp.WA=1;
       }
       else
       {
-        sendstringf("This was an access entry. Making it readable and writable");
+        sendstringf("  This was an access entry. Making it readable and writable");
         temp.RA=1;
         temp.WA=1;
         if (has_EPT_ExecuteOnlySupport==0)
         {
-          sendstringf("And executable as this cpu does not support execute only pages\n");
+          sendstringf(" and executable as this cpu does not support execute only pages\n");
           temp.XA=1;
         }
       }
@@ -1237,7 +1386,7 @@ int ept_watch_deactivate(int ID)
   }
   else
   {
-    sendstringf("hasAnotherOne is set\n");
+    sendstringf("  hasAnotherOne is set\n");
   }
 
   eptWatchList[ID].Active=0;

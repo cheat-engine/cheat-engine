@@ -20,6 +20,13 @@
 #define MTC_WP  5
 #define MTC_WB  6
 
+#define EPTO_MULTIPLERIP    (1<<0) //log the same RIP multiple times (if different registers)
+#define EPTO_LOG_ALL        (1<<1) //log every access in the page
+#define EPTO_SAVE_XSAVE     (1<<2) //logs contain the xsave state
+#define EPTO_SAVE_STACK     (1<<3) //logs contain a 4kb stack snapshot
+#define EPTO_PMI_WHENFULL   (1<<4) //triggers a PMI when full
+#define EPTO_GROW_WHENFULL  (1<<5) //grows the buffer when full
+
 
 void initMemTypeRanges();
 
@@ -42,6 +49,8 @@ int ept_cloak_readOriginal(pcpuinfo currentcpuinfo, VMRegisters *registers, QWOR
 int ept_cloak_writeOriginal(pcpuinfo currentcpuinfo, VMRegisters *registers, QWORD physicalAddress, QWORD source);
 int ept_cloak_changeregonbp(QWORD physicalAddress, PCHANGEREGONBPINFO changereginfo);
 int ept_cloak_removechangeregonbp(QWORD physicalAddress);
-int ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo);
+int ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregisters);
+
+void ept_reset();
 
 #endif /* VMM_EPTHANDLER_H_ */

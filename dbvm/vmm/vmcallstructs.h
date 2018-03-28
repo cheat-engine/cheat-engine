@@ -151,6 +151,15 @@ typedef struct
   CHANGEREGONBPINFO changereginfo;
 } __attribute__((__packed__)) VMCALL_CLOAK_CHANGEREG_PARAM, *PVMCALL_CLOAK_CHANGEREG_PARAM;
 
+typedef struct
+{
+  VMCALL_BASIC vmcall;
+  QWORD physicalAddress;
+  QWORD list;
+  int listsize;
+} __attribute__((__packed__)) VMCALL_WATCH_GETLIST_PARAM, *PVMCALL_WATCH_GETLIST_PARAM;
+
+
 
 
 #endif /* VMM_VMCALLSTRUCTS_H_ */
