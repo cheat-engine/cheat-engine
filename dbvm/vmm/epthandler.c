@@ -1084,7 +1084,7 @@ int ept_handleWatchEventAfterStep(pcpuinfo currentcpuinfo,  int ID)
 
 VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *offset, QWORD *errorcode)
 {
-  *errorcode=0;
+
   sendstringf("ept_watch_retrievelog(ID=%d)\n", ID);
 
 
@@ -1126,7 +1126,7 @@ VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *
   sendstringf("sizeneeded=%d\n", sizeneeded);
   sendstringf("resultsize=%d\n", *resultSize);
 
-  if (*resultSize < sizeneeded)
+  if ((*resultSize) < sizeneeded)
   {
     sendstringf("Too small\n");
     *resultSize=sizeneeded;
@@ -1135,6 +1135,8 @@ VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *
     csLeave(&eptWatchListCS);
     return VM_OK;
   }
+
+
 
   if (results==0)
   {
@@ -1145,30 +1147,37 @@ VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *
     return VM_OK;
   }
 
-  int sizeleft=sizeneeded-*offset; //decrease bytes left by bytes already copied
+  int sizeleft=sizeneeded-(*offset); //decrease bytes left by bytes already copied
 
-  sendstringf("params->copied=%d", sizeneeded-*offset);
-
+  sendstringf("*offset=%d\n", *offset);
+  sendstringf("sizeleft=%d\n", sizeleft);
   eptWatchList[ID].CopyInProgress=1;
 
   int error;
   QWORD pagefaultaddress;
-  QWORD destinationaddress=results+*offset;
+  QWORD destinationaddress=results+(*offset);
   int blocksize=sizeleft;
   if (blocksize>16*4096)
     blocksize=16*4096;
 
-  unsigned char *source=(unsigned char *)eptWatchList[ID].Log;
+  sendstringf("destinationaddress=%6\n", destinationaddress);
+
+  unsigned char *source=(unsigned char *)(((QWORD)eptWatchList[ID].Log)+(*offset));
   unsigned char *destination=mapVMmemoryEx(NULL, destinationaddress, blocksize, &error, &pagefaultaddress,1);
+
 
   if (error)
   {
+    sendstringf("Error during map (%d)\n", error);
     if (error==2)
     {
+      sendstringf("Pagefault at address %x\n", pagefaultaddress);
       blocksize=pagefaultaddress-destinationaddress;
+      sendstringf("blocksize=%d\n", blocksize);
     }
     else
     {
+      sendstringf("Not a pagefault\n");
       vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
       *errorcode=0x1000+error; //map error
       csLeave(&eptWatchListCS);
@@ -1176,27 +1185,43 @@ VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *
     }
   }
 
+  *errorcode=0;
+
   if (blocksize)
   {
+    sendstringf("Copying to destination\n");
     copymem(destination, source, blocksize);
     unmapVMmemory(destination, blocksize);
 
-    *offset=*offset+blocksize;
+    *offset=(*offset)+blocksize;
   }
 
   if (error==2)
   {
+    sendstringf("Raising the pagefault\n");
     csLeave(&eptWatchListCS);
     return raisePagefault(getcpuinfo(), pagefaultaddress);
   }
 
+  sendstringf("new *offset=%d", *offset);
+  sendstringf("sizeneeded=%d", sizeneeded);
 
-  if (*offset>=sizeneeded) //> would be weird....
+  if ((*offset)>=sizeneeded)
   {
     //once all data has been copied
+    sendstringf("All data has been copied\n");
     eptWatchList[ID].Log->numberOfEntries=0;
     eptWatchList[ID].CopyInProgress=0;
+
+    *resultSize=*offset;
+
+    sendstringf("Going to the next instruction\n");
     vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+  }
+  else
+  {
+    sendstringf("not everything copied yet. Rerun\n");
+
   }
 
   csLeave(&eptWatchListCS);

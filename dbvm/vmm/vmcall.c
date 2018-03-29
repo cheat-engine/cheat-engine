@@ -684,6 +684,8 @@ int vmcall_readPhysicalMemory(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
 
 VMSTATUS vmcall_watch_retrievelog(VMRegisters *vmregisters,  PVMCALL_WATCH_RETRIEVELOG_PARAM params)
 {
+  int o=(QWORD)(&params->copied)-(QWORD)params;
+  sendstringf("params->copied is at offset %d\n", o);
   return ept_watch_retrievelog(params->ID, params->results, &params->resultsize, &params->copied, &vmregisters->rax);
 
 
