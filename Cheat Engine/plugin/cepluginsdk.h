@@ -85,8 +85,8 @@ typedef struct _PLUGINTYPE5_INIT
 typedef struct _PLUGINTYPE6_INIT
 {
   char* name; //0 terminated string describing the name for the user's menu item
-  CEP_PLUGINTYPE6ONPOPUP callbackroutineOnPopup; 
   CEP_PLUGINTYPE6 callbackroutine; 
+  CEP_PLUGINTYPE6ONPOPUP callbackroutineOnPopup; 
   char* shortcut; //0 terminated string containing the shortcut in textform. CE will try it's best to parse it to a valid shortcut
 } PLUGINTYPE6_INIT, DISASSEMBLERCONTEXT_INIT, *PPLUGINTYPE6_INIT, *PDISASSEMBLERCONTEXT_INIT;
 
