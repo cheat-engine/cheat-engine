@@ -146,10 +146,11 @@ type
   TCR3Disassembler=class(TDisassembler)
   private
     fcr3: QWORD;
+    procedure setCR3(c: QWORD);
   protected
     function readMemory(address: ptruint; destination: pointer; size: integer): integer; override;
   published
-    property CR3: QWORD read fCR3 write fCR3;
+    property CR3: QWORD read fCR3 write setCR3;
 
   end;
 
@@ -1332,6 +1333,11 @@ end;
 function disassemble(var offset: ptrUint; var description: string): string; overload;
 begin
   result:=defaultDisassembler.disassemble(offset,description);
+end;
+
+procedure TCR3Disassembler.setCR3(c: QWORD);
+begin
+  fcr3:=c and MAXPHYADDRMASKPB;
 end;
 
 function TCR3Disassembler.readMemory(address: ptruint; destination: pointer; size: integer): integer;
@@ -11236,12 +11242,12 @@ end;
 
 
 function previousopcode(address: ptrUint; d: Tdisassembler=nil):ptrUint;
-var x,y: ptrUint;
-    s: string;
-    found: boolean;
-    i: ptrUint;
+var
+  x,y: ptrUint;
+  s: string;
+  found: boolean;
+  i: ptrUint;
 
-    best: integer;
 begin
   if d=nil then
     d:=defaultDisassembler;
@@ -11281,6 +11287,8 @@ begin
     end;
   end;
 end;
+
+
 
 
 function has4ByteHexString(d: string; var hexstring: string): boolean;

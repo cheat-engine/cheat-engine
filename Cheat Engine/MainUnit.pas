@@ -6452,7 +6452,6 @@ begin
 
   miSetDropdownOptions.visible:=addresslist.selcount > 0;
 
-
   sep2.Visible:=Findoutwhataccessesthisaddress1.Visible and isDBVMCapable and isIntel;
   miDBVMFindWhatWritesOrAccesses.visible:=Findoutwhataccessesthisaddress1.Visible and isDBVMCapable and isIntel;
 
@@ -6831,7 +6830,9 @@ begin
     end;
 
     //spawn a DBVM watch config screen where the user can select options like lock memory
-    frmDBVMWatchConfig:=TfrmDBVMWatchConfig.create(self);
+    if frmDBVMWatchConfig=nil then
+      frmDBVMWatchConfig:=TfrmDBVMWatchConfig.create(self);
+
     frmDBVMWatchConfig.address:=address;
     if frmDBVMWatchConfig.showmodal=mrok then
     begin

@@ -147,36 +147,58 @@ uses CEFuncProc, CEDebugger,debughelper, debugeventhandler, MemoryBrowserFormUni
 procedure TDBVMWatchPollThread.execute;
 var
   i: integer;
+  size: integer;
 begin
   cr3disassembler:=TCR3Disassembler.create;
   getmem(results,4096);
   resultsize:=4096;
+  zeromemory(results,resultsize);
 
-  while not terminated do
-  begin
-    i:=dbvm_watch_retrievelog(id, @results, resultsize);
-    if i=0 then
+  try
+    while not terminated do
     begin
-      //process data
-      if results^.numberOfEntries>1 then
+      size:=resultsize;
+      i:=dbvm_watch_retrievelog(id, results, size);
+      if i=0 then
       begin
-        synchronize(addEntriesToList);
-        sleep(10);
+        OutputDebugString('TDBVMWatchPollThread returned 0');
+        OutputDebugString('results^.numberOfEntries='+inttostr(results^.numberOfEntries));
+        OutputDebugString('results^.maxSize='+inttostr(results^.maxSize));
+
+        //process data
+        if results^.numberOfEntries>0 then
+        begin
+          OutputDebugString('calling addEntriesToList');
+          synchronize(addEntriesToList);
+          sleep(10);
+        end
+        else
+          sleep(50);
       end
       else
-        sleep(50);
-    end
-    else
-    if i=2 then
-    begin
-      //not enough memory. Allocate twice the needed amount
-      freemem(results);
+      if i=2 then
+      begin
+        //not enough memory. Allocate twice the needed amount
+        outputdebugstring(inttostr(resultsize)+' is too small for the buffer. It needs to be at least '+inttostr(size));
+        freemem(results);
+        results:=nil;
 
-      resultsize:=resultsize*2;
-      getmem(results, resultsize);
+        resultsize:=size*2;
+        getmem(results, resultsize);
+        zeromemory(results,resultsize);
 
-      continue; //try again, no sleep
-    end else exit;
+        continue; //try again, no sleep
+      end else
+      begin
+        outputdebugstring('dbvm_watch_retrievelog returned '+inttostr(i)+' which is not supported');
+        exit;
+      end;
+    end;
+
+
+  except
+    on e: exception do
+      outputdebugstring('TDBVMWatchPollThread crash:'+e.Message);
   end;
 
   freemem(results);
@@ -212,147 +234,193 @@ var
   address, address2: qword;
 
   skip: boolean;
+
+  debug,debug2: pointer;
 begin
-  basic:=PPageEventBasicArray(ptruint(results)+sizeof(TPageEventListDescriptor));
+  outputdebugstring('addEntriesToList');
 
-  for i:=0 to results.numberOfEntries-1 do
-  begin
-    case results.entryType of
-      0: basicinfo:=basic^[i];
-      1: basicinfo:=extended^[i].basic;
-      2: basicinfo:=basics^[i].basic;
-      3: basicinfo:=extendeds^[i].basic;
-    end;
-    address:=basicinfo.RIP;
+  try
+    basic:=PPageEventBasicArray(ptruint(results)+sizeof(TPageEventListDescriptor));
 
-    //check if this address is inside the list
-    skip:=false;
-    for j:=0 to fcd.foundcodelist.Items.Count-1 do
+    for i:=0 to results^.numberOfEntries-1 do
     begin
-      if TCodeRecord(fcd.foundcodelist.Items[j].data).address=address then
+      outputdebugstring('testing entry '+inttostr(i));
+      case results^.entryType of
+        0: basicinfo:=basic^[i];
+        1: basicinfo:=extended^[i].basic;
+        2: basicinfo:=basics^[i].basic;
+        3: basicinfo:=extendeds^[i].basic;
+      end;
+      address:=basicinfo.RIP;
+
+      //check if this address is inside the list
+      skip:=false;
+      for j:=0 to fcd.foundcodelist.Items.Count-1 do
       begin
-        //it's already in the list
-        if fcd.multiplerip=false then
+        if TCodeRecord(fcd.foundcodelist.Items[j].data).address=address then
         begin
-          inc(TCodeRecord(fcd.foundcodelist.Items[j].data).hitcount, basicinfo.Count);
-          skip:=true;
-          break;
-        end
-        else
-        begin
-          //check the other registers
-          if (basicinfo.RAX=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.RAX) and
-             (basicinfo.RBX=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.RBX) and
-             (basicinfo.RCX=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.RCX) and
-             (basicinfo.RDX=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.RDX) and
-             (basicinfo.RSP=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.RSP) and
-             (basicinfo.RBP=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.RBP) and
-             (basicinfo.RSI=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.RSI) and
-             (basicinfo.RDI=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.RDI) and
-             (basicinfo.R8=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.R8) and
-             (basicinfo.R9=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.R9) and
-             (basicinfo.R10=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.R10) and
-             (basicinfo.R11=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.R11) and
-             (basicinfo.R12=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.R12) and
-             (basicinfo.R13=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.R13) and
-             (basicinfo.R14=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.R14) and
-             (basicinfo.R15=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.R15) THEN
+          //it's already in the list
+          if fcd.multiplerip=false then
           begin
             inc(TCodeRecord(fcd.foundcodelist.Items[j].data).hitcount, basicinfo.Count);
             skip:=true;
             break;
+          end
+          else
+          begin
+            //check the other registers
+            if (basicinfo.RAX=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.RAX) and
+               (basicinfo.RBX=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.RBX) and
+               (basicinfo.RCX=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.RCX) and
+               (basicinfo.RDX=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.RDX) and
+               (basicinfo.RSP=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.RSP) and
+               (basicinfo.RBP=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.RBP) and
+               (basicinfo.RSI=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.RSI) and
+               (basicinfo.RDI=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.RDI) and
+               (basicinfo.R8=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.R8) and
+               (basicinfo.R9=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.R9) and
+               (basicinfo.R10=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.R10) and
+               (basicinfo.R11=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.R11) and
+               (basicinfo.R12=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.R12) and
+               (basicinfo.R13=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.R13) and
+               (basicinfo.R14=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.R14) and
+               (basicinfo.R15=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.R15) THEN
+            begin
+              inc(TCodeRecord(fcd.foundcodelist.Items[j].data).hitcount, basicinfo.Count);
+              skip:=true;
+              break;
+            end;
           end;
         end;
       end;
-    end;
 
-    if skip then continue;
-
-
-    coderecord:=TCoderecord.create;
-    getmem(coderecord.dbvmcontextbasic, sizeof(TPageEventBasicArray));
-    coderecord.dbvmcontextbasic^:=basicinfo;
-
-    case results.entryType of
-      1: //extended
+      if skip then
       begin
-        copymemory(@coderecord.context.FltSave, @extended^[i].fpudata, sizeof(coderecord.context.FltSave));
-      end;
-
-      2: //basic with stack
-      begin
-        coderecord.stack.savedsize:=4096;
-        getmem(coderecord.stack.stack, 4096);
-
-        copymemory(coderecord.stack.stack, @basics^[i].stack[0], 4096);
-      end;
-
-      3: //extended with stack
-      begin
-        copymemory(@coderecord.context.FltSave, @extended^[i].fpudata, sizeof(coderecord.context.FltSave));
-        coderecord.stack.savedsize:=4096;
-        getmem(coderecord.stack.stack, 4096);
-
-        copymemory(coderecord.stack.stack, @basics^[i].stack[0], 4096);
-      end;
-
+        OutputDebugString('Skipping entry. it''s in the list');
+        continue;
+      end
       else
-      begin
-        //error
-        freemem(coderecord.dbvmcontextbasic);
-        freeandnil(coderecord);
-        exit;
+        OutputDebugString('Not in the list yet. Adding it');
+
+      coderecord:=TCoderecord.create;
+      getmem(coderecord.dbvmcontextbasic, sizeof(TPageEventBasicArray));
+      zeromemory(@coderecord.context, sizeof(coderecord.context));
+
+      coderecord.dbvmcontextbasic^:=basicinfo;
+
+      outputdebugstring('created coderecord and  dbvmcontextbasic');
+
+      case results^.entryType of
+
+        0: ; //already done
+
+        1: //extended
+        begin
+          OutputDebugString('Saving fpu data');
+
+          outputdebugstring('FPUDATA is at offset '+inttostr(qword(@extended^[i].fpudata)-QWORD(@extended^[i])));
+          outputdebugstring('sizeof(coderecord.context.FltSave)='+inttostr(sizeof(coderecord.context.FltSave)));
+          copymemory(@coderecord.context.FltSave, @extended^[i].fpudata, sizeof(coderecord.context.FltSave));
+
+          getmem(debug, sizeof(coderecord.context.FltSave));
+          copymemory(debug, @coderecord.context.FltSave, sizeof(coderecord.context.FltSave));
+
+          getmem(debug2, 512);
+          copymemory(debug2, @extended^[i].fpudata, 512);
+
+          outputdebugstring('debug='+inttohex(ptruint(debug),8));
+          outputdebugstring('debug2='+inttohex(ptruint(debug2),8));
+
+          outputdebugstring('@coderecord.context.FltSave='+inttohex(qword(@coderecord.context.FltSave),8));
+
+        end;
+
+        2: //basic with stack
+        begin
+          coderecord.stack.savedsize:=4096;
+          getmem(coderecord.stack.stack, 4096);
+
+          copymemory(coderecord.stack.stack, @basics^[i].stack[0], 4096);
+        end;
+
+        3: //extended with stack
+        begin
+          copymemory(@coderecord.context.FltSave, @extended^[i].fpudata, sizeof(coderecord.context.FltSave));
+          coderecord.stack.savedsize:=4096;
+          getmem(coderecord.stack.stack, 4096);
+
+          copymemory(coderecord.stack.stack, @basics^[i].stack[0], 4096);
+        end;
+
+        else
+        begin
+          //error
+          outputdebugstring('unexpected type');
+          freemem(coderecord.dbvmcontextbasic);
+          freeandnil(coderecord);
+          exit;
+        end;
       end;
+
+      address:=coderecord.dbvmcontextbasic^.RIP;
+      address2:=address;
+
+      cr3disassembler.cr3:=coderecord.dbvmcontextbasic^.CR3;
+      outputdebugstring(format('disassembling %.8x with CR3 %.8x: ',[address, cr3disassembler.cr3]));
+
+      opcode:=cr3disassembler.disassemble(address2,desc);
+      ldi:=cr3disassembler.LastDisassembleData;
+
+      outputdebugstring('opcode='+opcode);
+
+
+      coderecord.address:=address;
+      coderecord.size:=address2-address;
+      coderecord.opcode:=opcode;
+      coderecord.description:=desc;
+      coderecord.LastDisassembleData:=ldi;
+      coderecord.hitcount:=coderecord.dbvmcontextbasic^.Count;
+
+      //make compatible with older code:
+      OutputDebugString('setting up compatibility context');
+
+      coderecord.context.Rax:=coderecord.dbvmcontextbasic^.RAX;
+      coderecord.context.Rbx:=coderecord.dbvmcontextbasic^.RBX;
+      coderecord.context.Rcx:=coderecord.dbvmcontextbasic^.RCX;
+      coderecord.context.Rdx:=coderecord.dbvmcontextbasic^.RDX;
+      coderecord.context.Rsi:=coderecord.dbvmcontextbasic^.RSI;
+      coderecord.context.Rdi:=coderecord.dbvmcontextbasic^.RDI;
+      coderecord.context.Rbp:=coderecord.dbvmcontextbasic^.RBP;
+      coderecord.context.Rsp:=coderecord.dbvmcontextbasic^.Rsp;
+      coderecord.context.Rip:=coderecord.dbvmcontextbasic^.Rip;
+      coderecord.context.R8:=coderecord.dbvmcontextbasic^.R8;
+      coderecord.context.R9:=coderecord.dbvmcontextbasic^.R9;
+      coderecord.context.R10:=coderecord.dbvmcontextbasic^.R10;
+      coderecord.context.R11:=coderecord.dbvmcontextbasic^.R11;
+      coderecord.context.R12:=coderecord.dbvmcontextbasic^.R12;
+      coderecord.context.R13:=coderecord.dbvmcontextbasic^.R13;
+      coderecord.context.R14:=coderecord.dbvmcontextbasic^.R14;
+      coderecord.context.R15:=coderecord.dbvmcontextbasic^.R15;
+      coderecord.context.EFlags:=coderecord.dbvmcontextbasic^.FLAGS;
+      coderecord.context.SegCs:=coderecord.dbvmcontextbasic^.CS;
+      coderecord.context.SegSs:=coderecord.dbvmcontextbasic^.SS;
+      coderecord.context.SegDs:=coderecord.dbvmcontextbasic^.DS;
+      coderecord.context.SegEs:=coderecord.dbvmcontextbasic^.ES;
+      coderecord.context.SegFs:=coderecord.dbvmcontextbasic^.FS;
+      coderecord.context.SegGs:=coderecord.dbvmcontextbasic^.GS;
+
+      OutputDebugString('adding to the foundlist');
+      li:=fcd.FoundCodeList.Items.Add;
+      li.caption:='1';
+      li.SubItems.add(opcode);
+      li.data:=coderecord;
+
+      OutputDebugString('done with no errors');
     end;
 
-    address:=coderecord.dbvmcontextbasic^.RIP;
-    address2:=address;
-    cr3disassembler.cr3:=coderecord.dbvmcontextbasic.CR3;
-    opcode:=cr3disassembler.disassemble(address2,desc);
-    ldi:=cr3disassembler.LastDisassembleData;
-
-
-
-
-    coderecord.address:=address;
-    coderecord.size:=address2-address;
-    coderecord.opcode:=opcode;
-    coderecord.description:=desc;
-    coderecord.LastDisassembleData:=ldi;
-    coderecord.hitcount:=coderecord.dbvmcontextbasic^.Count;
-
-    //make compatible with older code:
-    zeromemory(@coderecord.context, sizeof(coderecord.context));
-    coderecord.context.Rax:=coderecord.dbvmcontextbasic^.RAX;
-    coderecord.context.Rbx:=coderecord.dbvmcontextbasic^.RBX;
-    coderecord.context.Rcx:=coderecord.dbvmcontextbasic^.RCX;
-    coderecord.context.Rdx:=coderecord.dbvmcontextbasic^.RDX;
-    coderecord.context.Rsi:=coderecord.dbvmcontextbasic^.RSI;
-    coderecord.context.Rdi:=coderecord.dbvmcontextbasic^.RDI;
-    coderecord.context.Rbp:=coderecord.dbvmcontextbasic^.RBP;
-    coderecord.context.Rsp:=coderecord.dbvmcontextbasic^.Rsp;
-    coderecord.context.Rip:=coderecord.dbvmcontextbasic^.Rip;
-    coderecord.context.R8:=coderecord.dbvmcontextbasic^.R8;
-    coderecord.context.R9:=coderecord.dbvmcontextbasic^.R9;
-    coderecord.context.R10:=coderecord.dbvmcontextbasic^.R10;
-    coderecord.context.R11:=coderecord.dbvmcontextbasic^.R11;
-    coderecord.context.R12:=coderecord.dbvmcontextbasic^.R12;
-    coderecord.context.R13:=coderecord.dbvmcontextbasic^.R13;
-    coderecord.context.R14:=coderecord.dbvmcontextbasic^.R14;
-    coderecord.context.R15:=coderecord.dbvmcontextbasic^.R15;
-    coderecord.context.EFlags:=coderecord.dbvmcontextbasic^.FLAGS;
-    coderecord.context.SegCs:=coderecord.dbvmcontextbasic^.CS;
-    coderecord.context.SegSs:=coderecord.dbvmcontextbasic^.SS;
-    coderecord.context.SegDs:=coderecord.dbvmcontextbasic^.DS;
-    coderecord.context.SegEs:=coderecord.dbvmcontextbasic^.ES;
-    coderecord.context.SegFs:=coderecord.dbvmcontextbasic^.FS;
-    coderecord.context.SegGs:=coderecord.dbvmcontextbasic^.GS;
-
-
-    li:=fcd.FoundCodeList.Items.Add;
-    li.caption:='1';
-    li.SubItems.add(opcode);
-    li.data:=coderecord;
+  except
+    on e: exception do
+      outputdebugstring('TDBVMWatchPollThread.addEntriesToList error: '+e.message);
   end;
 end;
 
@@ -709,13 +777,13 @@ begin
     else
     begin
       disassembled[3].a:=address;
-      disassembled[3].s:=disassemble(address,temp);
+      disassembled[3].s:=d.disassemble(address,temp);
 
       disassembled[4].a:=address;
-      disassembled[4].s:=disassemble(address,temp);
+      disassembled[4].s:=d.disassemble(address,temp);
 
       disassembled[5].a:=address;
-      disassembled[5].s:=disassemble(address,temp);
+      disassembled[5].s:=d.disassemble(address,temp);
     end;
 
     freeandnil(d);
@@ -1072,6 +1140,13 @@ begin
 
 
     //copy the context and the stack to the more info window. the foundcode unit might get destroyed
+    outputdebugstring('setting formfoundcodelistextra.context which is at '+inttohex(qword(@formfoundcodelistextra.context),8));
+    outputdebugstring('it''s fltsave spot is at '+inttohex(qword(@formfoundcodelistextra.context.FltSave),8));
+
+
+    outputdebugstring('coderecord.context is at '+inttohex(qword(@coderecord.context),8));
+    outputdebugstring('coderecord.context.fltsave is at '+inttohex(qword(@coderecord.context.fltsave),8));
+
     formfoundcodelistextra.context:=coderecord.context;
     if coderecord.stack.stack<>nil then
     begin

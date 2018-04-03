@@ -4,10 +4,13 @@ object frmDBVMWatchConfig: TfrmDBVMWatchConfig
   Top = 284
   Width = 311
   AutoSize = True
+  BorderStyle = bsSingle
   BorderWidth = 5
   Caption = 'DBVM Watch Config'
   ClientHeight = 242
   ClientWidth = 311
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'
   object GroupBox1: TGroupBox

@@ -30,6 +30,8 @@ type
     rbWriteAccess: TRadioButton;
     rbReadAccess: TRadioButton;
     procedure btnOKClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
     { private declarations }
     fAddress: qword;
@@ -60,7 +62,7 @@ implementation
 
 {$R *.lfm}
 
-uses math,NewKernelHandler, ProcessHandlerUnit, vmxfunctions;
+uses math,NewKernelHandler, ProcessHandlerUnit, vmxfunctions, registry;
 
 function TfrmDBVMWatchConfig.getMaxEntries: integer;
 begin
@@ -124,6 +126,55 @@ begin
     edtMaxEntries.SelectAll;
   end;
 
+end;
+
+procedure TfrmDBVMWatchConfig.FormCreate(Sender: TObject);
+var
+  reg: Tregistry;
+begin
+  //load default options
+  reg:=TRegistry.create;
+  try
+    Reg.RootKey := HKEY_CURRENT_USER;
+
+    if Reg.OpenKey('\Software\Cheat Engine\DBVMWatch', false) then
+    begin
+      if reg.ValueExists('Lock Page') then cbLockPage.checked:=reg.ReadBool('Lock Page');
+      if reg.ValueExists('Log FPU') then cbSaveFPU.checked:=reg.ReadBool('Log FPU');
+      if reg.ValueExists('Log Stack') then cbSaveStack.checked:=reg.ReadBool('Log Stack');
+      if reg.ValueExists('Multiple matching RIP') then cbMultipleRIP.checked:=reg.ReadBool('Multiple matching RIP');
+      if reg.ValueExists('Max number of entries') then edtMaxEntries.text:=inttostr(reg.ReadInteger('Max number of entries'));
+    end;
+
+
+  finally
+    reg.free;
+  end;
+end;
+
+procedure TfrmDBVMWatchConfig.FormDestroy(Sender: TObject);
+var
+  reg: tregistry;
+  max: integer;
+begin
+  //save default options
+  reg:=TRegistry.create;
+  try
+    Reg.RootKey := HKEY_CURRENT_USER;
+
+    if Reg.OpenKey('\Software\Cheat Engine\DBVMWatch', true) then
+    begin
+      reg.writeBool('Lock Page', cbLockPage.checked);
+      reg.writeBool('Log FPU', cbSaveFPU.checked);
+      reg.writeBool('Log Stack', cbSaveStack.checked);
+      reg.writeBool('Multiple matching RIP', cbMultipleRIP.checked);
+
+      if TryStrToInt(edtMaxEntries.text, max) then
+         reg.WriteInteger('Max number of entries', max);
+    end;
+  finally
+    reg.free;
+  end;
 end;
 
 procedure TfrmDBVMWatchConfig.setAddress(a: qword);

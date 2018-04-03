@@ -876,6 +876,9 @@ var
 
   blocksize: integer;
 begin
+
+  cr3:=cr3 and MAXPHYADDRMASKPB;
+
   result:=false;
   if nsize=0 then exit(false);
 
@@ -908,6 +911,8 @@ var
 
   blocksize: integer;
 begin
+  cr3:=cr3 and MAXPHYADDRMASKPB;
+
   result:=false;
   if nsize=0 then exit(false);
 
@@ -1218,7 +1223,7 @@ begin
         result:=true; //SVM is possible
     end;
 
-  end;
+  end else result:=true; //it's already running DBVM, of course it's supported
 
 end;
 

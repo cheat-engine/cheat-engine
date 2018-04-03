@@ -5043,6 +5043,286 @@ begin
   dbvm_watch_delete(id);
 end;
 
+function lua_dbvm_cloak_activate(L: PLua_State): integer; cdecl;
+var PA: QWORD;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    pa:=lua_tointeger(L,1);
+    lua_pushinteger(L, dbvm_cloak_activate(PA));
+    result:=1;
+  end;
+end;
+
+function lua_dbvm_cloak_deactivate(L: PLua_State): integer; cdecl;
+var PA: QWORD;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    pa:=lua_tointeger(L,1);
+    lua_pushinteger(L, dbvm_cloak_deactivate(PA));
+    result:=1;
+  end;
+end;
+
+function lua_dbvm_cloak_readOriginal(L: PLua_State): integer; cdecl;
+var
+  PA: QWORD;
+  buf: pointer;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    pa:=lua_tointeger(L,1);
+    getmem(buf,4096);
+    dbvm_cloak_readoriginal(PA, buf);
+
+    CreateByteTableFromPointer(L, buf, 4096);
+    freemem(buf);
+    result:=1;
+  end;
+end;
+
+function lua_dbvm_cloak_writeOriginal(L: PLua_State): integer; cdecl;
+var
+  PA: QWORD;
+  buf: pointer;
+  r: integer;
+begin
+  result:=0;
+  if lua_gettop(L)>=2 then
+  begin
+    pa:=lua_tointeger(L,1);
+    if lua_istable(L,2) then
+    begin
+      getmem(buf,4096);
+      readBytesFromTable(L, 2,buf,4096);
+      r:=dbvm_cloak_writeoriginal(PA, buf);
+      lua_pushinteger(L, r);
+
+      freemem(buf);
+      result:=1;
+    end;
+  end;
+end;
+
+function lua_dbvm_changeregonbp(L: PLua_State): integer; cdecl;
+var
+  pa: qword;
+  changeregonbpinfo: TChangeRegOnBPInfo;
+  r: boolean;
+begin
+  result:=0;
+  if lua_gettop(L)>=2 then
+  begin
+    pa:=lua_tointeger(L,1);
+    if lua_istable(L,2) then
+    begin
+      lua_pushstring(L,'newCF');
+      lua_gettable(L,2);
+
+      if not lua_isnil(L,-1) then
+        changeregonbpinfo.Flags.newCF:=lua_tointeger(L,-1);
+      changeregonbpinfo.Flags.changeCF:=ifthen(lua_isnil(L,-1), 0, 1);
+      lua_pop(L,1);
+
+
+      lua_pushstring(L,'newPF');
+      lua_gettable(L,2);
+
+      if not lua_isnil(L,-1) then
+        changeregonbpinfo.Flags.newPF:=lua_tointeger(L,-1);
+      changeregonbpinfo.Flags.changePF:=ifthen(lua_isnil(L,-1), 0, 1);
+      lua_pop(L,1);
+
+      lua_pushstring(L,'newAF');
+      lua_gettable(L,2);
+
+      if not lua_isnil(L,-1) then
+        changeregonbpinfo.Flags.newAF:=lua_tointeger(L,-1);
+      changeregonbpinfo.Flags.changeAF:=ifthen(lua_isnil(L,-1), 0, 1);
+      lua_pop(L,1);
+
+      lua_pushstring(L,'newZF');
+      lua_gettable(L,2);
+
+      if not lua_isnil(L,-1) then
+        changeregonbpinfo.Flags.newZF:=lua_tointeger(L,-1);
+      changeregonbpinfo.Flags.changeZF:=ifthen(lua_isnil(L,-1), 0, 1);
+      lua_pop(L,1);
+
+      lua_pushstring(L,'newSF');
+      lua_gettable(L,2);
+
+      if not lua_isnil(L,-1) then
+        changeregonbpinfo.Flags.newSF:=lua_tointeger(L,-1);
+      changeregonbpinfo.Flags.changeSF:=ifthen(lua_isnil(L,-1), 0, 1);
+      lua_pop(L,1);
+
+      lua_pushstring(L,'newOF');
+      lua_gettable(L,2);
+
+      if not lua_isnil(L,-1) then
+        changeregonbpinfo.Flags.newOF:=lua_tointeger(L,-1);
+      changeregonbpinfo.Flags.changeOF:=ifthen(lua_isnil(L,-1), 0, 1);
+      lua_pop(L,1);
+
+      lua_pushstring(L,'newRAX');
+      lua_gettable(L,2);
+
+      if not lua_isnil(L,-1) then
+        changeregonbpinfo.newRAX:=lua_tointeger(L,-1);
+      changeregonbpinfo.flags.changeRAX:=ifthen(lua_isnil(L,-1), 0, 1);
+      lua_pop(L,1);
+
+      lua_pushstring(L,'newRBX');
+      lua_gettable(L,2);
+
+      if not lua_isnil(L,-1) then
+        changeregonbpinfo.newRBX:=lua_tointeger(L,-1);
+      changeregonbpinfo.Flags.changeRBX:=ifthen(lua_isnil(L,-1), 0, 1);
+      lua_pop(L,1);
+
+      lua_pushstring(L,'newRCX');
+      lua_gettable(L,2);
+
+      if not lua_isnil(L,-1) then
+        changeregonbpinfo.newRCX:=lua_tointeger(L,-1);
+      changeregonbpinfo.Flags.changeRCX:=ifthen(lua_isnil(L,-1), 0, 1);
+      lua_pop(L,1);
+
+      lua_pushstring(L,'newRDX');
+      lua_gettable(L,2);
+
+      if not lua_isnil(L,-1) then
+        changeregonbpinfo.newRDX:=lua_tointeger(L,-1);
+      changeregonbpinfo.Flags.changeRDX:=ifthen(lua_isnil(L,-1), 0, 1);
+      lua_pop(L,1);
+
+      lua_pushstring(L,'newRSI');
+      lua_gettable(L,2);
+
+      if not lua_isnil(L,-1) then
+        changeregonbpinfo.newRSI:=lua_tointeger(L,-1);
+      changeregonbpinfo.Flags.changeRSI:=ifthen(lua_isnil(L,-1), 0, 1);
+      lua_pop(L,1);
+
+      lua_pushstring(L,'newRDI');
+      lua_gettable(L,2);
+
+      if not lua_isnil(L,-1) then
+        changeregonbpinfo.newRDI:=lua_tointeger(L,-1);
+      changeregonbpinfo.Flags.changeRDI:=ifthen(lua_isnil(L,-1), 0, 1);
+      lua_pop(L,1);
+
+      lua_pushstring(L,'newRBP');
+      lua_gettable(L,2);
+
+      if not lua_isnil(L,-1) then
+        changeregonbpinfo.newRBP:=lua_tointeger(L,-1);
+      changeregonbpinfo.Flags.changeRBP:=ifthen(lua_isnil(L,-1), 0, 1);
+      lua_pop(L,1);
+
+      lua_pushstring(L,'newRSP');
+      lua_gettable(L,2);
+
+      if not lua_isnil(L,-1) then
+        changeregonbpinfo.newRSP:=lua_tointeger(L,-1);
+      changeregonbpinfo.Flags.changeRSP:=ifthen(lua_isnil(L,-1), 0, 1);
+      lua_pop(L,1);
+
+      lua_pushstring(L,'newRIP');
+      lua_gettable(L,2);
+
+      if not lua_isnil(L,-1) then
+        changeregonbpinfo.newRIP:=lua_tointeger(L,-1);
+      changeregonbpinfo.Flags.changeRIP:=ifthen(lua_isnil(L,-1), 0, 1);
+      lua_pop(L,1);
+
+      lua_pushstring(L,'newR8');
+      lua_gettable(L,2);
+
+      if not lua_isnil(L,-1) then
+        changeregonbpinfo.newR8:=lua_tointeger(L,-1);
+      changeregonbpinfo.Flags.changeR8:=ifthen(lua_isnil(L,-1), 0, 1);
+      lua_pop(L,1);
+
+      lua_pushstring(L,'newR9');
+      lua_gettable(L,2);
+
+      if not lua_isnil(L,-1) then
+        changeregonbpinfo.newR9:=lua_tointeger(L,-1);
+      changeregonbpinfo.Flags.changeR9:=ifthen(lua_isnil(L,-1), 0, 1);
+      lua_pop(L,1);
+
+      lua_pushstring(L,'newR10');
+      lua_gettable(L,2);
+
+      if not lua_isnil(L,-1) then
+        changeregonbpinfo.newR10:=lua_tointeger(L,-1);
+      changeregonbpinfo.Flags.changeR10:=ifthen(lua_isnil(L,-1), 0, 1);
+      lua_pop(L,1);
+
+      lua_pushstring(L,'newR11');
+      lua_gettable(L,2);
+
+      if not lua_isnil(L,-1) then
+        changeregonbpinfo.newR11:=lua_tointeger(L,-1);
+      changeregonbpinfo.Flags.changeR11:=ifthen(lua_isnil(L,-1), 0, 1);
+      lua_pop(L,1);
+
+      lua_pushstring(L,'newR12');
+      lua_gettable(L,2);
+
+      if not lua_isnil(L,-1) then
+        changeregonbpinfo.newR12:=lua_tointeger(L,-1);
+      changeregonbpinfo.Flags.changeR12:=ifthen(lua_isnil(L,-1), 0, 1);
+      lua_pop(L,1);
+
+      lua_pushstring(L,'newR13');
+      lua_gettable(L,2);
+
+      if not lua_isnil(L,-1) then
+        changeregonbpinfo.newR13:=lua_tointeger(L,-1);
+      changeregonbpinfo.Flags.changeR13:=ifthen(lua_isnil(L,-1), 0, 1);
+      lua_pop(L,1);
+
+      lua_pushstring(L,'newR14');
+      lua_gettable(L,2);
+
+      if not lua_isnil(L,-1) then
+        changeregonbpinfo.newR14:=lua_tointeger(L,-1);
+      changeregonbpinfo.Flags.changeR14:=ifthen(lua_isnil(L,-1), 0, 1);
+      lua_pop(L,1);
+
+      lua_pushstring(L,'newR15');
+      lua_gettable(L,2);
+
+      if not lua_isnil(L,-1) then
+        changeregonbpinfo.newR15:=lua_tointeger(L,-1);
+      changeregonbpinfo.Flags.changeR15:=ifthen(lua_isnil(L,-1), 0, 1);
+      lua_pop(L,1);
+
+
+      r:=dbvm_cloak_changeregonbp(PA, changeregonbpinfo)=0;
+      lua_pushboolean(l,r);
+      result:=1;
+    end;
+
+  end;
+
+
+end;
+
+function lua_dbvm_ept_reset(L: PLua_State): integer; cdecl;
+begin
+  dbvm_ept_reset;
+  result:=0;
+end;
+
+
 function dbk_readMSR(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
@@ -9514,6 +9794,14 @@ begin
     lua_register(L, 'dbvm_watch_retrievelog', lua_dbvm_watch_retrievelog);
     lua_register(L, 'dbvm_watch_disable', lua_dbvm_watch_disable);
 
+    lua_register(L, 'dbvm_cloak_activate', lua_dbvm_cloak_activate);
+    lua_register(L, 'dbvm_cloak_deactivate', lua_dbvm_cloak_deactivate);
+    lua_register(L, 'dbvm_cloak_readOriginal', lua_dbvm_cloak_readOriginal);
+    lua_register(L, 'dbvm_cloak_writeOriginal', lua_dbvm_cloak_writeOriginal);
+    lua_register(L, 'dbvm_changeregonbp', lua_dbvm_changeregonbp);
+
+    lua_register(L, 'dbvm_ept_reset', lua_dbvm_ept_reset);
+
 
     lua_register(L, 'dbk_getPhysicalAddress', dbk_getPhysicalAddress);
     lua_register(L, 'dbk_writesIgnoreWriteProtection', dbk_writesIgnoreWriteProtection);
@@ -9766,8 +10054,6 @@ begin
 
     lua_register(L, 'showSelectionList', lua_showSelectionList);
     lua_register(L, 'cpuid', lua_cpuid);
-
-
 
 
     initializeLuaCustomControl;

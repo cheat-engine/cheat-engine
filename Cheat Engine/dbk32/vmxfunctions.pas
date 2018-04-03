@@ -360,6 +360,7 @@ function dbvm_cloak_writeoriginal(PhysicalBase: QWORD; source: pointer): integer
 
 function dbvm_cloak_changeregonbp(PhysicalAddress: QWORD; var changeregonbpinfo: TChangeRegOnBPInfo): integer;
 
+procedure dbvm_ept_reset;
 
 procedure configure_vmx(userpassword1,userpassword2: dword);
 procedure configure_vmx_kernel;
@@ -1044,6 +1045,7 @@ begin
   vmcallinfo.copied:=0;
 
   result:=vmcall(@vmcallinfo,vmx_password1);  //returns 2 on a too small size
+  resultsize:=vmcallinfo.resultssize;
 
   OutputDebugString('dbvm_watch_retrievelog vmcall returned '+inttostr(result)+'  (resultsize='+inttostr(resultsize)+')');
 
@@ -1106,7 +1108,7 @@ end;
 begin
   vmcallinfo.structsize:=sizeof(vmcallinfo);
   vmcallinfo.level2pass:=vmx_password2;
-  vmcallinfo.command:=VMCALL_CLOAK_ACTIVATE;
+  vmcallinfo.command:=VMCALL_CLOAK_READORIGINAL;
   vmcallinfo.PhysicalBase:=PhysicalBase;
   vmcallinfo.destination:=qword(destination);
   result:=vmcall(@vmcallinfo,vmx_password1);
@@ -1123,7 +1125,7 @@ end;
 begin
   vmcallinfo.structsize:=sizeof(vmcallinfo);
   vmcallinfo.level2pass:=vmx_password2;
-  vmcallinfo.command:=VMCALL_CLOAK_ACTIVATE;
+  vmcallinfo.command:=VMCALL_CLOAK_WRITEORIGINAL;
   vmcallinfo.PhysicalBase:=PhysicalBase;
   vmcallinfo.source:=qword(source);
   result:=vmcall(@vmcallinfo,vmx_password1);
@@ -1140,12 +1142,25 @@ end;
 begin
   vmcallinfo.structsize:=sizeof(vmcallinfo);
   vmcallinfo.level2pass:=vmx_password2;
-  vmcallinfo.command:=VMCALL_CLOAK_ACTIVATE;
+  vmcallinfo.command:=VMCALL_CLOAK_CHANGEREGONBP;
   vmcallinfo.PhysicalAddress:=PhysicalAddress;
   vmcallinfo.changeregonbpinfo:=changeregonbpinfo;
   result:=vmcall(@vmcallinfo,vmx_password1);
 end;
 
+
+procedure dbvm_ept_reset;
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_EPT_RESET;
+  vmcall(@vmcallinfo,vmx_password1);
+end;
 
 var kernelfunctions: Tstringlist;
 
