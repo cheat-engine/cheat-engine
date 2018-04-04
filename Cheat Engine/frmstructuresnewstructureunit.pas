@@ -6,26 +6,25 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  Registry, LCLType;
+  Registry, LCLType, ExtCtrls;
 
 type
 
   { TfrmStructuresNewStructure }
 
   TfrmStructuresNewStructure = class(TForm)
-    btnOk: TButton;
     btnCancel: TButton;
+    btnOk: TButton;
     cbUseAutoTypes: TCheckBox;
     cbGuessFieldTypes: TCheckBox;
     edtGuessSize: TEdit;
     edtStructName: TEdit;
     labelStructureSize: TLabel;
     labelStructureName: TLabel;
+    Panel1: TPanel;
     procedure btnOkClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure FormKeyPress(Sender: TObject; var Key: char);
     procedure FormShow(Sender: TObject);
-    function CenterModal(Parent: TForm = nil): Integer;
 
     function getStructName: string;
     procedure setStructName(v: string);
@@ -43,8 +42,7 @@ type
     property guessSize: integer read getGuessSize write setGuessSize;
   end;
 
-var
-  frmStructuresNewStructure: TfrmStructuresNewStructure;
+
 
 implementation
 
@@ -98,21 +96,21 @@ end;
 procedure TfrmStructuresNewStructure.btnOkClick(Sender: TObject);
 var
   reg: TRegistry;
-  begin
-    reg := tregistry.create;
-    try
-      Reg.RootKey := HKEY_CURRENT_USER;
-      if Reg.OpenKey('\Software\Cheat Engine\DissectData',true) then
-      begin
-        reg.WriteBool('Use Auto Types', useAutoTypes);
-        reg.WriteBool('Guess Field Types', guessFieldTypes);
-        reg.WriteInteger('Guess Size', guessSize);
-      end;
-    finally
-      reg.free;
+begin
+  reg := tregistry.create;
+  try
+    Reg.RootKey := HKEY_CURRENT_USER;
+    if Reg.OpenKey('\Software\Cheat Engine\DissectData',true) then
+    begin
+      reg.WriteBool('Use Auto Types', useAutoTypes);
+      reg.WriteBool('Guess Field Types', guessFieldTypes);
+      reg.WriteInteger('Guess Size', guessSize);
     end;
+  finally
+    reg.free;
+  end;
 
-    modalresult := mrok;
+  modalresult := mrok;
 end;
 
 procedure TfrmStructuresNewStructure.FormCreate(Sender: TObject);
@@ -140,11 +138,6 @@ begin
   end;
 end;
 
-procedure TfrmStructuresNewStructure.FormKeyPress(Sender: TObject; var Key: char);
-begin
-  if Key = Char(VK_ESCAPE) then self.btnCancel.Click;
-  if Key = Char(VK_RETURN) then self.btnOk.Click;
-end;
 
 procedure TfrmStructuresNewStructure.FormShow(Sender: TObject);
 begin
@@ -152,15 +145,6 @@ begin
   self.ActiveControl := self.edtStructName;
 end;
 
-function TfrmStructuresNewStructure.CenterModal(Parent: TForm = nil): Integer;
-begin
-  if Parent <> nil then
-  begin
-    self.Left := (Parent.Left + (Parent.Width Div 2)) - (self.Width Div 2);
-    self.Top := (Parent.Top + (Parent.Height Div 2)) - (self.Height Div 2);
-  end;
-  result := self.ShowModal;
-end;
 
 end.
 

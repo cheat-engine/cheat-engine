@@ -501,6 +501,8 @@ type
     fAllMatchColorSameHighlighted: TColor; //The color to use when all groups have matching elements AND the same value
     fAllMatchColorDiffHighlighted: TColor; //The color to use when all groups have matching alements but different values between groups
 
+    frmStructuresNewStructure: TfrmStructuresNewStructure;
+
     procedure UpdateCurrentStructOptions;
     procedure setupColors;
 
@@ -3027,6 +3029,9 @@ begin
   descriptionsize:=HeaderControl1.Sections[0].Width;
 
   SaveFormPosition(self, [showaddress,autoguess, descriptionsize]);
+
+  if frmStructuresNewStructure<>nil then
+    freeandnil(frmStructuresNewStructure);
 end;
 
 procedure TfrmStructures2.FormCreate(Sender: TObject);
@@ -3034,8 +3039,7 @@ var x: array of integer;
 begin
   //set default colors
 
-  if frmStructuresNewStructure=nil then
-    frmStructuresNewStructure:=TfrmStructuresNewStructure.Create(application);
+
 
   if frmStructuresConfig=nil then
     frmStructuresConfig:=TfrmStructuresConfig.Create(application);
@@ -3903,8 +3907,11 @@ begin
 
 
     // show form to allow name to be entered and options selected
+    if frmStructuresNewStructure=nil then
+      frmStructuresNewStructure:=TfrmStructuresNewStructure.Create(self);
+
     frmStructuresNewStructure.setStructName(structName);
-    if frmStructuresNewStructure.CenterModal(self) <> mrOk then exit;
+    if frmStructuresNewStructure.ShowModal <> mrOk then exit;
     structName := frmStructuresNewStructure.structName;
     guessFieldTypes := frmStructuresNewStructure.guessFieldTypes;
     useAutoTypes := frmStructuresNewStructure.useAutoTypes;

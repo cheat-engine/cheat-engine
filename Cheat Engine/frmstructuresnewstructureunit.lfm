@@ -1,15 +1,18 @@
 object frmStructuresNewStructure: TfrmStructuresNewStructure
-  Left = 542
-  Height = 136
-  Top = 475
-  Width = 404
+  Left = 1059
+  Height = 141
+  Top = 276
+  Width = 365
+  AutoSize = True
+  BorderStyle = bsSingle
+  BorderWidth = 5
   Caption = 'New Structure'
-  ClientHeight = 136
-  ClientWidth = 404
+  ClientHeight = 141
+  ClientWidth = 365
   KeyPreview = True
   OnCreate = FormCreate
-  OnKeyPress = FormKeyPress
   OnShow = FormShow
+  Position = poOwnerFormCenter
   LCLVersion = '1.6.4.0'
   object labelStructureName: TLabel
     AnchorSideLeft.Control = Owner
@@ -18,8 +21,6 @@ object frmStructuresNewStructure: TfrmStructuresNewStructure
     Height = 15
     Top = 5
     Width = 83
-    BorderSpacing.Left = 5
-    BorderSpacing.Top = 5
     Caption = 'Structure Name'
     ParentColor = False
   end
@@ -32,12 +33,10 @@ object frmStructuresNewStructure: TfrmStructuresNewStructure
     Left = 5
     Height = 23
     Top = 25
-    Width = 394
-    Anchors = [akTop, akLeft, akRight]
+    Width = 355
     BorderSpacing.Top = 5
-    BorderSpacing.Right = 5
+    Constraints.MinWidth = 350
     TabOrder = 0
-    Text = 'edtStructName'
   end
   object cbUseAutoTypes: TCheckBox
     AnchorSideLeft.Control = cbGuessFieldTypes
@@ -49,7 +48,7 @@ object frmStructuresNewStructure: TfrmStructuresNewStructure
     Width = 163
     BorderSpacing.Top = 10
     Caption = 'Use Auto Types If Available'
-    TabOrder = 1
+    TabOrder = 3
     TabStop = False
     Visible = False
   end
@@ -63,7 +62,7 @@ object frmStructuresNewStructure: TfrmStructuresNewStructure
     Width = 113
     BorderSpacing.Top = 10
     Caption = 'Guess Field Types'
-    TabOrder = 2
+    TabOrder = 1
   end
   object labelStructureSize: TLabel
     AnchorSideLeft.Control = cbGuessFieldTypes
@@ -88,40 +87,59 @@ object frmStructuresNewStructure: TfrmStructuresNewStructure
     Top = 56
     Width = 63
     BorderSpacing.Left = 10
-    TabOrder = 3
-    Text = 'edtGuessSize'
+    TabOrder = 2
+    Text = '4096'
   end
-  object btnOk: TButton
+  object Panel1: TPanel
     AnchorSideLeft.Control = Owner
-    AnchorSideTop.Control = btnCancel
-    AnchorSideTop.Side = asrCenter
-    AnchorSideRight.Control = btnCancel
-    Left = 200
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = cbUseAutoTypes
+    AnchorSideTop.Side = asrBottom
+    Left = 105
     Height = 25
-    Top = 96
-    Width = 76
-    Anchors = [akTop, akRight]
-    BorderSpacing.Right = 20
-    Caption = 'Ok'
-    Constraints.MaxWidth = 150
-    ModalResult = 1
-    OnClick = btnOkClick
+    Top = 111
+    Width = 154
+    AutoSize = True
+    BorderSpacing.Top = 5
+    BevelOuter = bvNone
+    ClientHeight = 25
+    ClientWidth = 154
     TabOrder = 4
-  end
-  object btnCancel: TButton
-    AnchorSideRight.Control = Owner
-    AnchorSideRight.Side = asrBottom
-    AnchorSideBottom.Control = Owner
-    AnchorSideBottom.Side = asrBottom
-    Left = 296
-    Height = 25
-    Top = 96
-    Width = 88
-    Anchors = [akLeft, akRight, akBottom]
-    BorderSpacing.Right = 20
-    BorderSpacing.Bottom = 15
-    Caption = 'Cancel'
-    ModalResult = 2
-    TabOrder = 5
+    object btnOk: TButton
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = Panel1
+      AnchorSideRight.Control = btnCancel
+      Left = 0
+      Height = 25
+      Top = 0
+      Width = 75
+      AutoSize = True
+      Caption = 'OK'
+      Constraints.MinHeight = 25
+      Constraints.MinWidth = 75
+      Default = True
+      ModalResult = 1
+      OnClick = btnOkClick
+      TabOrder = 0
+    end
+    object btnCancel: TButton
+      AnchorSideLeft.Control = btnOk
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Panel1
+      AnchorSideRight.Side = asrBottom
+      AnchorSideBottom.Side = asrBottom
+      Left = 79
+      Height = 25
+      Top = 0
+      Width = 75
+      AutoSize = True
+      BorderSpacing.Left = 4
+      Cancel = True
+      Caption = 'Cancel'
+      Constraints.MinHeight = 25
+      Constraints.MinWidth = 75
+      ModalResult = 2
+      TabOrder = 1
+    end
   end
 end
