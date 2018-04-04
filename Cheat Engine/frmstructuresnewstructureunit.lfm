@@ -1,0 +1,127 @@
+object frmStructuresNewStructure: TfrmStructuresNewStructure
+  Left = 542
+  Height = 136
+  Top = 475
+  Width = 404
+  Caption = 'New Structure'
+  ClientHeight = 136
+  ClientWidth = 404
+  KeyPreview = True
+  OnCreate = FormCreate
+  OnKeyPress = FormKeyPress
+  OnShow = FormShow
+  LCLVersion = '1.6.4.0'
+  object labelStructureName: TLabel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    Left = 5
+    Height = 15
+    Top = 5
+    Width = 83
+    BorderSpacing.Left = 5
+    BorderSpacing.Top = 5
+    Caption = 'Structure Name'
+    ParentColor = False
+  end
+  object edtStructName: TEdit
+    AnchorSideLeft.Control = labelStructureName
+    AnchorSideTop.Control = labelStructureName
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 5
+    Height = 23
+    Top = 25
+    Width = 394
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 5
+    BorderSpacing.Right = 5
+    TabOrder = 0
+    Text = 'edtStructName'
+  end
+  object cbUseAutoTypes: TCheckBox
+    AnchorSideLeft.Control = cbGuessFieldTypes
+    AnchorSideTop.Control = cbGuessFieldTypes
+    AnchorSideTop.Side = asrBottom
+    Left = 5
+    Height = 19
+    Top = 87
+    Width = 163
+    BorderSpacing.Top = 10
+    Caption = 'Use Auto Types If Available'
+    TabOrder = 1
+    TabStop = False
+    Visible = False
+  end
+  object cbGuessFieldTypes: TCheckBox
+    AnchorSideLeft.Control = edtStructName
+    AnchorSideTop.Control = edtStructName
+    AnchorSideTop.Side = asrBottom
+    Left = 5
+    Height = 19
+    Top = 58
+    Width = 113
+    BorderSpacing.Top = 10
+    Caption = 'Guess Field Types'
+    TabOrder = 2
+  end
+  object labelStructureSize: TLabel
+    AnchorSideLeft.Control = cbGuessFieldTypes
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = cbGuessFieldTypes
+    AnchorSideTop.Side = asrCenter
+    Left = 128
+    Height = 15
+    Top = 60
+    Width = 23
+    BorderSpacing.Left = 10
+    Caption = 'Size:'
+    ParentColor = False
+  end
+  object edtGuessSize: TEdit
+    AnchorSideLeft.Control = labelStructureSize
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = labelStructureSize
+    AnchorSideTop.Side = asrCenter
+    Left = 161
+    Height = 23
+    Top = 56
+    Width = 63
+    BorderSpacing.Left = 10
+    TabOrder = 3
+    Text = 'edtGuessSize'
+  end
+  object btnOk: TButton
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = btnCancel
+    AnchorSideTop.Side = asrCenter
+    AnchorSideRight.Control = btnCancel
+    Left = 200
+    Height = 25
+    Top = 96
+    Width = 76
+    Anchors = [akTop, akRight]
+    BorderSpacing.Right = 20
+    Caption = 'Ok'
+    Constraints.MaxWidth = 150
+    ModalResult = 1
+    OnClick = btnOkClick
+    TabOrder = 4
+  end
+  object btnCancel: TButton
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 296
+    Height = 25
+    Top = 96
+    Width = 88
+    Anchors = [akLeft, akRight, akBottom]
+    BorderSpacing.Right = 20
+    BorderSpacing.Bottom = 15
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 5
+  end
+end

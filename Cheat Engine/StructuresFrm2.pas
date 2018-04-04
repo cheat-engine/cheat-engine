@@ -10,7 +10,7 @@ uses
   StdCtrls, ComCtrls, Menus, lmessages, scrolltreeview, byteinterpreter, symbolhandler, cefuncproc,
   newkernelhandler, frmSelectionlistunit, frmStructuresConfigUnit, registry, Valuechange, DOM,
   XMLRead, XMLWrite, Clipbrd, CustomTypeHandler, strutils, dotnetpipe, DotNetTypes, commonTypeDefs,
-  contnrs, cvconst;
+  contnrs, cvconst, frmStructuresNewStructureUnit;
 
 
 const structureversion=2;
@@ -535,6 +535,7 @@ type
     initialaddress: PtrUInt;
     lastresizecheck: dword;
 
+    function DefineNewStructureDialog(recommendedSize: integer=4096): TDissectedStruct;
     function DefineNewStructure(recommendedSize: integer=4096): TDissectedStruct;
     procedure addLockedAddress(shownaddress: ptruint; memoryblock: pointer; size: integer); //call this to add a locked address, and copy the memoryblock to the target process)
     procedure RefreshVisibleNodes;
@@ -3033,6 +3034,9 @@ var x: array of integer;
 begin
   //set default colors
 
+  if frmStructuresNewStructure=nil then
+    frmStructuresNewStructure:=TfrmStructuresNewStructure.Create(application);
+
   if frmStructuresConfig=nil then
     frmStructuresConfig:=TfrmStructuresConfig.Create(application);
 
@@ -3809,6 +3813,162 @@ begin
 
 end;
 
+
+function TfrmStructures2.DefineNewStructureDialog(recommendedSize: integer=4096): TDissectedStruct;
+var
+  addressdata: TAddressData;
+  hasAddressData: boolean;
+  i: integer;
+
+  UsedOverride: boolean;
+  a: ptruint;
+
+  structName: String;
+  guessFieldTypes, useAutoTypes: Boolean;
+  guessSize: Integer;
+  found: Boolean;
+  pos: Integer;
+begin
+  result:=nil;
+  if columnCount > 0 then
+  begin
+    // try to determine structure name using extensions
+    hasAddressData:=symhandler.GetLayoutFromAddress(TStructColumn(columns[0]).getAddress, addressdata);
+
+    if hasAddressData then
+      structName:=addressdata.classname
+    else
+    begin
+      // try to determine structure name if there are LUA callbacks
+      structName:=rsUnnamedStructure;
+
+      for i:=0 to length(StructureNameLookups)-1 do
+      begin
+        if assigned(StructureNameLookups[i]) then
+        begin
+          a:=TStructColumn(columns[0]).getAddress;
+          if StructureNameLookups[i](a, structname) then
+          begin
+            TStructColumn(columns[0]).setAddress(a);
+            break;
+          end;
+        end;
+      end;
+    end;
+
+    // check for existing structure with the same name
+    repeat
+    begin
+      found := false;
+      for i:=0 to DissectedStructs.Count-1 do
+      begin
+        if TDissectedStruct(dissectedstructs[i]).name=structName then
+        begin
+          found := true;
+          break;
+        end;
+      end;
+
+      // if we found it, find numbers at the end and increment, then try again
+      if found then
+      begin
+        pos := Length(structName);
+        repeat
+          if not (structName[pos] in ['0'..'9']) then break;
+          pos := pos - 1;
+        until pos < 1;
+
+        if (pos < 1) or (pos = Length(structName)) then
+        begin
+          // if pos < 1 or pos = length, then all digits or no digits so we will add " 2"
+          // i.e. "Player" becomes "Player 2", "23456" becomes "23456 2"
+          structName := Concat(structName, ' 2');
+        end else begin
+          // it ends in digits, so we take that number and add 1 to it
+          structName := Concat(Copy(structName, 1, pos), IntToStr(StrToInt(Copy(structName, pos + 1, Length(structName) - pos)) + 1));
+        end;
+      end;
+    end until not found;
+
+    // if the name is the same as an existing structure, then make sure
+    // the user wants to create a duplicate
+    if structName<>rsUnnamedStructure then
+    begin
+      for i:=0 to DissectedStructs.Count-1 do
+        if TDissectedStruct(dissectedstructs[i]).name=structname then
+        begin
+          if messagedlg(format(rsStructAlreadyExists,[structname]), mtWarning, [mbyes, mbno], 0)<>mryes then exit else break;
+        end;
+    end;
+
+
+    // show form to allow name to be entered and options selected
+    frmStructuresNewStructure.setStructName(structName);
+    if frmStructuresNewStructure.CenterModal(self) <> mrOk then exit;
+    structName := frmStructuresNewStructure.structName;
+    guessFieldTypes := frmStructuresNewStructure.guessFieldTypes;
+    useAutoTypes := frmStructuresNewStructure.useAutoTypes;
+    guessSize := frmStructuresNewStructure.getGuessSize;
+
+    // if the name is the same as an existing structure, then make sure
+    // the user wants to create a duplicate
+    if structName<>rsUnnamedStructure then
+    begin
+      for i:=0 to DissectedStructs.Count-1 do
+        if TDissectedStruct(dissectedstructs[i]).name=structname then
+        begin
+          if messagedlg(format(rsStructAlreadyExists,[structname]), mtWarning, [mbyes, mbno], 0)<>mryes then exit else break;
+        end;
+    end;
+
+    mainStruct:=nil;
+    tvStructureView.items.clear;
+    mainStruct:=TDissectedStruct.create(structName);
+
+    if guessFieldTypes then
+    begin
+      if hasAddressData then // Add "and useAutoTypes" if changing dialog to show it
+      begin
+        // use DotNetDataCollector to fill in addresses
+        TStructColumn(columns[0]).setAddress(addressdata.startaddress);
+        mainStruct.FillFromDotNetAddressData(addressdata);
+      end
+      else
+      begin
+        // use LUA callbacks to try and define structure elements
+        UsedOverride:=false;
+
+        // wrap in if to only try if useAutoTypes is specified in the future possibly
+        for i:=0 to length(StructureDissectOverrides)-1 do
+        begin
+          if assigned(StructureDissectOverrides[i]) then
+          begin
+            a:=TStructColumn(columns[0]).getAddress;
+            UsedOverride:=StructureDissectOverrides[i](mainStruct, a);
+            if UsedOverride then break;
+          end;
+        end;
+
+        // we didn't find using the an extension (DotNet, Mono, Java), and
+        // none of the LUA callbacks handled it, so guess the elements
+        if not UsedOverride then
+        begin
+          if TStructColumn(columns[0]).getSavedState=0 then
+            mainStruct.autoGuessStruct(TStructColumn(columns[0]).getAddress, 0, guessSize)
+          else
+            mainStruct.autoGuessStruct(ptruint(TStructColumn(columns[0]).getSavedState), 0, min(guessSize, TStructColumn(columns[0]).getSavedStateSize)); //fill base don the saved state
+        end;
+      end;
+    end;
+
+    mainStruct.addToGlobalStructList;
+    UpdateCurrentStructOptions;
+
+    result:=mainStruct;
+  end;
+end;
+
+// deprecated, menu now calls DefineNewStructureDialog()
 function TfrmStructures2.DefineNewStructure(recommendedSize: integer=4096): TDissectedStruct;
 var
   structName: string;
@@ -3918,7 +4078,7 @@ end;
 
 procedure TfrmStructures2.Definenewstructure1Click(Sender: TObject);
 begin
-  DefineNewStructure(4096);
+  DefineNewStructureDialog(4096);
 end;
 
 
