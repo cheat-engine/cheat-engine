@@ -751,6 +751,8 @@ void setupFSBase(void *fsbase)
   writeMSR(IA32_FS_BASE_MSR, (UINT64)fsbase);
 }
 
+volatile int inflooponerror=1;
+
 void vmm_entry2(void)
 //Entry for application processors
 //Memory manager has been initialized and GDT/IDT copies have been made
@@ -758,11 +760,27 @@ void vmm_entry2(void)
   static int initializedCPUCount=1; //assume the first (main) cpu managed to start up
 
   unsigned int cpunr;
-  if (AP_Terminate==1)
+  if (AP_Terminate)
   {
+    sendstringf("AP_Terminate!=0\n");
     startNextCPU();
     vmm_entry2_hlt(NULL);
   }
+
+  if ((needtospawnApplicationProcessors>1) || (needtospawnApplicationProcessors<0))
+  {
+    sendstringf("memory corruption\n");
+
+    while (inflooponerror) ;
+  }
+
+
+  //debug code on my 8 core cpu:
+  //if (initializedCPUCount>=8)
+  //{
+  //  sendstringf("More cpu's than expected\n");
+  //  while (inflooponerror);
+  //}
 
 
   //setup the GDT and IDT
@@ -1014,6 +1032,13 @@ void vmm_entry(void)
 
     APStartsInSIPI=1;
 
+    if ((needtospawnApplicationProcessors>1) || (needtospawnApplicationProcessors<0))
+    {
+      sendstringf("memory corruption\n");
+      volatile int debug=1;
+      while (debug) ;
+    }
+
     if (loadedOS)
     {
       sendstringf("mapping loadedOS (%6)...\n", loadedOS);
@@ -1023,19 +1048,25 @@ void vmm_entry(void)
 
       entrypage=original->APEntryPage;
 
+      sendstringf("original->cpucount=%d\n", original->cpucount);
+      if (original->cpucount>1000)
+      {
+        sendstringf("More than 1000 cpu\'s are currently not supported\n");
+        while (1);
+      }
+
       if (original->cpucount)
       {
         needtospawnApplicationProcessors=0;
         foundcpus=original->cpucount;
         APStartsInSIPI=0; //AP should start according to the original state
-
-
       }
       unmapPhysicalMemory(original, sizeof(OriginalState));
     }
 
     if (needtospawnApplicationProcessors) //e.g UEFI boot
     {
+      sendstringf("needtospawnApplicationProcessors!=0\n");
 #ifndef NOMP
 
       BOOT_ID=apic_getBootID();
@@ -1486,32 +1517,19 @@ int testexception(void)
 
 void vmcalltest(void)
 {
-  pcpuinfo currentcpuinfo=getcpuinfo();
   int dbvmversion;
   dbvmversion=0;
 
-  currentcpuinfo->LastInterrupt=0;
-  currentcpuinfo->OnInterrupt.RIP=(QWORD)(volatile void *)&&InterruptFired; //set interrupt location
-  currentcpuinfo->OnInterrupt.RBP=getRBP();
-  currentcpuinfo->OnInterrupt.RSP=getRSP();
-  asm volatile ("": : :"memory");
-
-  dbvmversion=vmcalltest_asm();
-  asm volatile ("": : :"memory");
-
-
-InterruptFired:
-  currentcpuinfo->OnInterrupt.RIP=0;
-
-
-  if (dbvmversion==0)
-    displayline("DBVM is not loaded (Exception %d)\n", currentcpuinfo->LastInterrupt);
-  else
-    displayline("DBVM version = %x\n", dbvmversion);
-
-
-
-
+  try
+  {
+    dbvmversion=vmcalltest_asm();
+    sendstringf("dbvm is loaded. Version %x\n", dbvmversion);
+  }
+  except
+  {
+    sendstringf("dbvm is not loaded\n");
+  }
+  tryend
 }
 
 
@@ -2338,6 +2356,13 @@ void menu(void)
 				}
 
 				break;
+
+        case 'v':
+        {
+          sendstring("Trying vmcall\n");
+          vmcalltest();
+          break;
+        }
 
        /*
       case  'i':

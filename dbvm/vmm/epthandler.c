@@ -85,6 +85,8 @@ BOOL ept_handleCloakEvent(pcpuinfo currentcpuinfo, QWORD Address)
       EPT_VIOLATION_INFO evi;
       evi.ExitQualification=vmread(vm_exit_qualification);
 
+      sendstringf("ept_handleCloakEvent on the target\n");
+
       if (evi.X) //looks like this cpu does not support execute only
       {
         *(QWORD *)(currentcpuinfo->eptCloakList[i])=CloakedPages[i].PhysicalAddressExecutable;
@@ -95,9 +97,6 @@ BOOL ept_handleCloakEvent(pcpuinfo currentcpuinfo, QWORD Address)
         vmx_enableSingleStepMode();
         vmx_addSingleSteppingReason(currentcpuinfo, 2,i);
         currentcpuinfo->eptCloak_LastOperationWasWrite=evi.W;
-
-        result=1;
-
         break;
       }
       else
@@ -111,12 +110,11 @@ BOOL ept_handleCloakEvent(pcpuinfo currentcpuinfo, QWORD Address)
         vmx_addSingleSteppingReason(currentcpuinfo, 2,i);
         currentcpuinfo->eptCloak_LastOperationWasWrite=evi.W;
 
-
-        result=1;
-
         break;
 
       }
+
+      result=TRUE;
 
       csLeave(&currentcpuinfo->EPTPML4CS);
 
@@ -237,7 +235,10 @@ int ept_cloak_activate(QWORD physicalAddress)
 
     //make sure that the eptCloakList is at least as big as CloakedPagesSize
     if (currentcpuinfo->eptCloakListLength<CloakedPagesSize)
-      currentcpuinfo->eptCloakList=realloc(currentcpuinfo->eptCloakList, CloakedPagesSize);
+    {
+      currentcpuinfo->eptCloakList=realloc(currentcpuinfo->eptCloakList, CloakedPagesSize*sizeof(EPT_PTE));
+      currentcpuinfo->eptCloakListLength=CloakedPagesSize;
+    }
 
     QWORD PA=EPTMapPhysicalMemory(currentcpuinfo, physicalAddress, 1);
     currentcpuinfo->eptCloakList[ID]=mapPhysicalMemoryGlobal(PA, sizeof(EPT_PTE));
@@ -1040,7 +1041,7 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
     case PE_EXTENDEDSTACK:
     {
       fillPageEventBasic(&eptWatchList[ID].Log->pe.extendeds[i].basic, registers);
-      eptWatchList[ID].Log->pe.extended[i].fpudata=*fxsave;
+      eptWatchList[ID].Log->pe.extendeds[i].fpudata=*fxsave;
       saveStack(currentcpuinfo, eptWatchList[ID].Log->pe.extendeds[i].stack);
       break;
     }
@@ -1085,7 +1086,7 @@ int ept_handleWatchEventAfterStep(pcpuinfo currentcpuinfo,  int ID)
 VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *offset, QWORD *errorcode)
 {
 
-  sendstringf("ept_watch_retrievelog(ID=%d)\n", ID);
+  //sendstringf("ept_watch_retrievelog(ID=%d)\n", ID);
 
 
 
@@ -1110,21 +1111,39 @@ VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *
   }
 
 
-  int entrysize=0;
+ // int entrysize=0;
+  DWORD sizeneeded=sizeof(PageEventListDescriptor);
+  int maxid=eptWatchList[ID].Log->numberOfEntries;
 
   switch (eptWatchList[ID].Log->entryType)
   {
-    case 0: entrysize=sizeof(PageEventBasic); break;
-    case 1: entrysize=sizeof(PageEventExtended); break;
-    case 2: entrysize=sizeof(PageEventBasicWithStack); break;
-    case 3: entrysize=sizeof(PageEventExtendedWithStack); break;
+    case 0:
+     //entrysize=sizeof(PageEventBasic);
+      sizeneeded+=(QWORD)(&eptWatchList[ID].Log->pe.basic[maxid])-(QWORD)(&eptWatchList[ID].Log->pe.basic[0]);
+      break;
+
+    case 1:
+     // entrysize=sizeof(PageEventExtended);
+      sizeneeded+=(QWORD)(&eptWatchList[ID].Log->pe.extended[maxid])-(QWORD)(&eptWatchList[ID].Log->pe.extended[0]);
+
+      //int offset=(QWORD)(&eptWatchList[ID].Log->pe.extended[0].fpudata)-(QWORD)(&eptWatchList[ID].Log->pe.extended[0]);
+      //sendstringf("fpudata is at offset %d\n", offset);
+      break;
+
+    case 2:
+     // entrysize=sizeof(PageEventBasicWithStack);
+      sizeneeded+=(QWORD)(&eptWatchList[ID].Log->pe.basics[maxid])-(QWORD)(&eptWatchList[ID].Log->pe.basics[0]);
+      break;
+
+    case 3:
+     // entrysize=sizeof(PageEventExtendedWithStack);
+      sizeneeded+=(QWORD)(&eptWatchList[ID].Log->pe.extendeds[maxid])-(QWORD)(&eptWatchList[ID].Log->pe.extendeds[0]);
+      break;
   }
 
-  sendstringf("entrytype=%d (size = %d)\n", eptWatchList[ID].Log->entryType, entrysize);
-
-  DWORD sizeneeded=sizeof(PageEventListDescriptor)+eptWatchList[ID].Log->numberOfEntries*entrysize;
-  sendstringf("sizeneeded=%d\n", sizeneeded);
-  sendstringf("resultsize=%d\n", *resultSize);
+  //sendstringf("entrytype=%d (size = %d)\n", eptWatchList[ID].Log->entryType, entrysize);
+  //sendstringf("sizeneeded=%d\n", sizeneeded);
+  //sendstringf("resultsize=%d\n", *resultSize);
 
   if ((*resultSize) < sizeneeded)
   {
@@ -1149,8 +1168,8 @@ VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *
 
   int sizeleft=sizeneeded-(*offset); //decrease bytes left by bytes already copied
 
-  sendstringf("*offset=%d\n", *offset);
-  sendstringf("sizeleft=%d\n", sizeleft);
+ // sendstringf("*offset=%d\n", *offset);
+  //sendstringf("sizeleft=%d\n", sizeleft);
   eptWatchList[ID].CopyInProgress=1;
 
   int error;
@@ -1160,7 +1179,7 @@ VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *
   if (blocksize>16*4096)
     blocksize=16*4096;
 
-  sendstringf("destinationaddress=%6\n", destinationaddress);
+  //sendstringf("destinationaddress=%6\n", destinationaddress);
 
   unsigned char *source=(unsigned char *)(((QWORD)eptWatchList[ID].Log)+(*offset));
   unsigned char *destination=mapVMmemoryEx(NULL, destinationaddress, blocksize, &error, &pagefaultaddress,1);
@@ -1189,7 +1208,7 @@ VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *
 
   if (blocksize)
   {
-    sendstringf("Copying to destination\n");
+    //sendstringf("Copying to destination\n");
     copymem(destination, source, blocksize);
     unmapVMmemory(destination, blocksize);
 
@@ -1203,24 +1222,24 @@ VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *
     return raisePagefault(getcpuinfo(), pagefaultaddress);
   }
 
-  sendstringf("new *offset=%d", *offset);
-  sendstringf("sizeneeded=%d", sizeneeded);
+ //sendstringf("new *offset=%d", *offset);
+  //sendstringf("sizeneeded=%d", sizeneeded);
 
   if ((*offset)>=sizeneeded)
   {
     //once all data has been copied
-    sendstringf("All data has been copied\n");
+   // sendstringf("All data has been copied\n");
     eptWatchList[ID].Log->numberOfEntries=0;
     eptWatchList[ID].CopyInProgress=0;
 
     *resultSize=*offset;
 
-    sendstringf("Going to the next instruction\n");
+   // sendstringf("Going to the next instruction\n");
     vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
   }
   else
   {
-    sendstringf("not everything copied yet. Rerun\n");
+    //sendstringf("not everything copied yet. Rerun\n");
 
   }
 

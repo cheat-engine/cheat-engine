@@ -96,14 +96,14 @@ void * mapVMmemoryEx(pcpuinfo currentcpuinfo, UINT64 address, int size, int *err
 
   for (i=0; i<pagecount; i++)
   {
-    sendstringf("mapVMmemory:\n  Mapping Guest virtual address %6\n", address);
+    //sendstringf("mapVMmemory:\n  Mapping Guest virtual address %6\n", address);
     QWORD PhysicalAddress=getPhysicalAddressVM(currentcpuinfo,address, &notpaged);
 
 
     if (notpaged)
     {
       //error while mapping
-      sendstringf("  Which is currently not paged in\n");
+      //sendstringf("  Which is currently not paged in\n");
 
       if (donotunmaponfail==0)
         unmapVMmemory(VirtualAddress, i*4096-offset);
@@ -119,8 +119,8 @@ void * mapVMmemoryEx(pcpuinfo currentcpuinfo, UINT64 address, int size, int *err
       else
         return VirtualAddress;
     }
-    sendstringf("  Which is located at physical address %6\n", PhysicalAddress);
-    sendstringf("  To Host virtual address %6\n", CurrentVirtualAddress);
+    //sendstringf("  Which is located at physical address %6\n", PhysicalAddress);
+    //sendstringf("  To Host virtual address %6\n", CurrentVirtualAddress);
 
 
     *(QWORD*)(&currentcpuinfo->mappagetables[pos])=PhysicalAddress;

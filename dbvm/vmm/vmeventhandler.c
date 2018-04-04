@@ -3683,12 +3683,12 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
     {
 
       nosendchar[getAPICID()]=0;
-      sendstring("vmcall\n");
+      //sendstring("vmcall\n");
 
       result = handleVMCall(currentcpuinfo, vmregisters);
 
 
-      sendstringf("Returned from handleVMCall, result=%d\n\r",result);
+      //sendstringf("Returned from handleVMCall, result=%d\n\r",result);
       return result;
     }
 

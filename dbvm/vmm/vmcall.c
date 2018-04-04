@@ -610,8 +610,8 @@ int vmcall_readPhysicalMemory(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
   unsigned char *Destination;
   unsigned char *Source;
 
-  sendstringf("Reading %d bytes from physical address %6 and writing it to %6\n\r",rpmcommand->bytesToRead, rpmcommand->sourcePA, rpmcommand->destinationVA);
-  sendstringf("noPageFault=%d\n\r",rpmcommand->nopagefault);
+  //sendstringf("Reading %d bytes from physical address %6 and writing it to %6\n\r",rpmcommand->bytesToRead, rpmcommand->sourcePA, rpmcommand->destinationVA);
+  //sendstringf("noPageFault=%d\n\r",rpmcommand->nopagefault);
 
   int currentblocksize=rpmcommand->bytesToRead;
   if (currentblocksize>1048576)
@@ -620,9 +620,9 @@ int vmcall_readPhysicalMemory(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
 
   Destination=(unsigned char *)mapVMmemoryEx(currentcpuinfo, rpmcommand->destinationVA, currentblocksize, &error, &pagefaultaddress,1);
 
-  sendstringf("Destination=%6\n\r",Destination);
-  sendstringf("error=%d\n\r",error);
-  sendstringf("pagefaultaddress=%6\n\r",pagefaultaddress);
+  //sendstringf("Destination=%6\n\r",Destination);
+  //sendstringf("error=%d\n\r",error);
+  //sendstringf("pagefaultaddress=%6\n\r",pagefaultaddress);
 
 
   if (error)
@@ -640,15 +640,15 @@ int vmcall_readPhysicalMemory(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
 
   if (currentblocksize) //there is some memory. Copy it
   {
-    sendstringf("PA Destination[0]=%6\n", VirtualToPhysical(&Destination[0]));
-    sendstringf("PA Destination[0x1000]=%6\n", VirtualToPhysical(&Destination[0x1000]));
+    //sendstringf("PA Destination[0]=%6\n", VirtualToPhysical(&Destination[0]));
+    //sendstringf("PA Destination[0x1000]=%6\n", VirtualToPhysical(&Destination[0x1000]));
 
 
     //map the source
     Source=(unsigned char *)mapPhysicalMemory(rpmcommand->sourcePA, currentblocksize);
-    sendstringf("Source=%6\n\r",Source);
-    sendstringf("PA Source[0]=%6\n", VirtualToPhysical(&Source[0]));
-    sendstringf("PA Source[0x1000]=%6\n", VirtualToPhysical(&Source[0x1000]));
+    //sendstringf("Source=%6\n\r",Source);
+    //sendstringf("PA Source[0]=%6\n", VirtualToPhysical(&Source[0]));
+    //sendstringf("PA Source[0x1000]=%6\n", VirtualToPhysical(&Source[0x1000]));
 
     //copy memory from physical to vm
     copymem(Destination, Source, currentblocksize);
@@ -661,7 +661,7 @@ int vmcall_readPhysicalMemory(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
     rpmcommand->sourcePA+=currentblocksize;
   }
 
-  sendstringf("Returning (error=%d. rpmcommand->bytesToRead=%d)\n\r",error, rpmcommand->bytesToRead);
+  //sendstringf("Returning (error=%d. rpmcommand->bytesToRead=%d)\n\r",error, rpmcommand->bytesToRead);
 
   if ((error==2) && (rpmcommand->nopagefault==0))
   {
@@ -673,7 +673,7 @@ int vmcall_readPhysicalMemory(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
   if ((rpmcommand->bytesToRead==0) || (error))
   {
     //handled it
-    sendstringf("Done. Going to the next instruction. rpmcommand->bytesToRead=%d\n",rpmcommand->bytesToRead);
+    //sendstringf("Done. Going to the next instruction. rpmcommand->bytesToRead=%d\n",rpmcommand->bytesToRead);
     vmregisters->rax=rpmcommand->bytesToRead;
     vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
   } //else go again with the new rpmcommand data
@@ -684,8 +684,8 @@ int vmcall_readPhysicalMemory(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
 
 VMSTATUS vmcall_watch_retrievelog(VMRegisters *vmregisters,  PVMCALL_WATCH_RETRIEVELOG_PARAM params)
 {
-  int o=(QWORD)(&params->copied)-(QWORD)params;
-  sendstringf("params->copied is at offset %d\n", o);
+  //int o=(QWORD)(&params->copied)-(QWORD)params;
+  //sendstringf("params->copied is at offset %d\n", o);
   return ept_watch_retrievelog(params->ID, params->results, &params->resultsize, &params->copied, &vmregisters->rax);
 
 
@@ -710,7 +710,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
   int error;
   QWORD pagefaultaddress;
 
-  sendstringf("_handleVMCallInstruction (%d)\n", vmcall_instruction[2]);
+  //sendstringf("_handleVMCallInstruction (%d)\n", vmcall_instruction[2]);
 
 
 
@@ -1378,7 +1378,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
 
     case VMCALL_WATCH_RETRIEVELOG:
     {
-      sendstringf("VMCALL_WATCH_RETRIEVELOG\n");
+      //sendstringf("VMCALL_WATCH_RETRIEVELOG\n");
       return vmcall_watch_retrievelog(vmregisters, (PVMCALL_WATCH_RETRIEVELOG_PARAM)vmcall_instruction);
     }
 
@@ -1516,7 +1516,7 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   }
 
 
-  sendstringf("Handling vm(m)call on cpunr:%d \n\r", currentcpuinfo->cpunr);
+ // sendstringf("Handling vm(m)call on cpunr:%d \n\r", currentcpuinfo->cpunr);
 
   if (isAMD)
     vmregisters->rax=currentcpuinfo->vmcb->RAX; //fill it in, it may get used here
@@ -1532,10 +1532,10 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     return x;
   }
 
-  sendstringf("Password1 is valid\n\r");
+  //sendstringf("Password1 is valid\n\r");
 
 
-  sendstringf("vmregisters->rax=%6\n\r", vmregisters->rax);
+ // sendstringf("vmregisters->rax=%6\n\r", vmregisters->rax);
 
   //still here, so password1 is valid
   //map the memory of the information structure
@@ -1553,10 +1553,10 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     return raiseInvalidOpcodeException(currentcpuinfo);
   }
 
-  sendstringf("Mapped vmcall instruction structure (vmcall_instruction=%6)\n\r",(UINT64)vmcall_instruction);
-  sendstringf("vmcall_instruction[0]=%8\n\r",vmcall_instruction[0]);
-  sendstringf("vmcall_instruction[1]=%8\n\r",vmcall_instruction[1]);
-  sendstringf("vmcall_instruction[2]=%8\n\r",vmcall_instruction[2]);
+  //sendstringf("Mapped vmcall instruction structure (vmcall_instruction=%6)\n\r",(UINT64)vmcall_instruction);
+ //sendstringf("vmcall_instruction[0]=%8\n\r",vmcall_instruction[0]);
+  //sendstringf("vmcall_instruction[1]=%8\n\r",vmcall_instruction[1]);
+  //sendstringf("vmcall_instruction[2]=%8\n\r",vmcall_instruction[2]);
 
 
 
@@ -1580,12 +1580,12 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   }
 
 #ifdef DEBUG
-  int totaldwords = vmcall_instruction[0] / 4;
-  int i;
-  for (i=3; i<totaldwords; i++)
-  {
-    sendstringf("vmcall_instruction[%d]=%x\n\r",i, vmcall_instruction[i]);
-  }
+  //int totaldwords = vmcall_instruction[0] / 4;
+  //int i;
+  //for (i=3; i<totaldwords; i++)
+  //{
+  //  sendstringf("vmcall_instruction[%d]=%x\n\r",i, vmcall_instruction[i]);
+  //}
 #endif
 
 
@@ -1602,7 +1602,7 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   }
 
 
-  sendstringf("Handling vmcall command %d\n\r",vmcall_instruction[2]);
+  //sendstringf("Handling vmcall command %d\n\r",vmcall_instruction[2]);
 
   int r=_handleVMCallInstruction(currentcpuinfo, vmregisters, vmcall_instruction);
   unmapVMmemory(vmcall_instruction, vmcall_instruction_size);

@@ -1318,11 +1318,11 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 
         if (currentcpuinfo->cpunr)
         {
-          sendstring("cpunr!=0");
+          //sendstring("cpunr!=0");
         }
 
         //setResumeFlag();
-        sendstringf("Returned from handleVMEvent. result=%d (CR0=%x)\n\r",result,vmread(vm_guest_cr0));
+        //sendstringf("Returned from handleVMEvent. result=%d (CR0=%x)\n\r",result,vmread(vm_guest_cr0));
 
         //if (currentcpuinfo->cpunr==1)
         //  sendvmstate(currentcpuinfo, (VMRegisters*)registers);
