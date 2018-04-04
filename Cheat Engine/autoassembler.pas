@@ -2593,8 +2593,6 @@ begin
     //-----------------------2nd pass------------------------
     //assemblerlines only contains label specifiers and assembler instructions
 
-
-
     setlength(assembled,0);
     for i:=0 to length(assemblerlines)-1 do
     begin
@@ -2850,13 +2848,34 @@ begin
     if connection<>nil then
       connection.beginWriteProcessMemory; //group all writes
 
+    //combine assembly lines
+    j:=0;
+    for i:=1 to length(assembled)-1 do
+    begin
+      if assembled[i].address=assembled[j].address+length(assembled[j].bytes) then //matches the previous entry
+      begin
+        //group
+        k:=length(assembled[j].bytes);
+        setlength(assembled[j].bytes, k+length(assembled[i].bytes));
+        copymemory(@assembled[j].bytes[k], @assembled[i].bytes[0], length(assembled[i].bytes));
+
+        //mark it as empty
+        setlength(assembled[i].bytes,0);
+        assembled[i].address:=0;
+      end
+      else
+      begin
+        j:=i; //new block
+      end;
+    end;
+
     for i:=0 to length(assembled)-1 do
     begin
       if length(assembled[i].bytes)=0 then continue;
 
       testptr:=assembled[i].address;
       ok1:=virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),PAGE_EXECUTE_READWRITE,op);
-      ok1:=WriteProcessMemory(processhandle,pointeR(testptr),@assembled[i].bytes[0],length(assembled[i].bytes),x);
+      ok1:=WriteProcessMemory(processhandle,pointer(testptr),@assembled[i].bytes[0],length(assembled[i].bytes),x);
       virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),op,op2);
 
       if not ok1 then ok2:=false;
