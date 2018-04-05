@@ -88,38 +88,26 @@ BOOL ept_handleCloakEvent(pcpuinfo currentcpuinfo, QWORD Address)
       sendstringf("ept_handleCloakEvent on the target\n");
 
       if (evi.X) //looks like this cpu does not support execute only
-      {
         *(QWORD *)(currentcpuinfo->eptCloakList[i])=CloakedPages[i].PhysicalAddressExecutable;
-        currentcpuinfo->eptCloakList[i]->WA=1;
-        currentcpuinfo->eptCloakList[i]->RA=1;
-        currentcpuinfo->eptCloakList[i]->XA=1;
-
-        vmx_enableSingleStepMode();
-        vmx_addSingleSteppingReason(currentcpuinfo, 2,i);
-        currentcpuinfo->eptCloak_LastOperationWasWrite=evi.W;
-        break;
-      }
       else
-      {
-        *(QWORD *)(currentcpuinfo->eptCloakList[i])=CloakedPages[i].PhysicalAddressData; //todo: Let the user specify a bitmask so writes go through to the executable page as well
-        currentcpuinfo->eptCloakList[i]->WA=1;
-        currentcpuinfo->eptCloakList[i]->RA=1;
-        currentcpuinfo->eptCloakList[i]->XA=1;
+        *(QWORD *)(currentcpuinfo->eptCloakList[i])=CloakedPages[i].PhysicalAddressData;
 
-        vmx_enableSingleStepMode();
-        vmx_addSingleSteppingReason(currentcpuinfo, 2,i);
-        currentcpuinfo->eptCloak_LastOperationWasWrite=evi.W;
+      currentcpuinfo->eptCloakList[i]->WA=1;
+      currentcpuinfo->eptCloakList[i]->RA=1;
+      currentcpuinfo->eptCloakList[i]->XA=1;
 
-        break;
+      vmx_enableSingleStepMode();
+      vmx_addSingleSteppingReason(currentcpuinfo, 2,i);
 
-      }
+      currentcpuinfo->eptCloak_LastOperationWasWrite=evi.W;
+      currentcpuinfo->eptCloak_LastWriteOffset=Address & 0xfff;
 
       result=TRUE;
 
-      csLeave(&currentcpuinfo->EPTPML4CS);
-
 
     }
+
+    csLeave(&currentcpuinfo->EPTPML4CS);
 
   }
   csLeave(&CloakedPagesCS);
@@ -136,13 +124,22 @@ int ept_handleCloakEventAfterStep(pcpuinfo currentcpuinfo,  int ID)
 
   if (currentcpuinfo->eptCloak_LastOperationWasWrite)
   {
-    //apply the write as well (TODO: let the user specify what memory should be skipped when writing)
+    //apply the write as well
     if ((*(QWORD *)(currentcpuinfo->eptCloakList[ID]) & MAXPHYADDRMASKPB) == CloakedPages[ID].PhysicalAddressExecutable)
     {
       //this was a write and execute at the same time
     }
     else
     {
+      //apply the changes to the executable as well
+    //  int start=currentcpuinfo->eptCloak_LastWriteOffset;
+    //  QWORD *source=&CloakedPages[ID].Data[start];
+    //  QWORD *destination=&CloakedPages[ID].Executable[start];
+
+      //todo:copy a few bytes
+      //todo: get a bitmask of changes by the user and protect them from being reverted
+
+
 
     }
   }
@@ -1983,6 +1980,7 @@ VMSTATUS handleEPTViolation(pcpuinfo currentcpuinfo, VMRegisters *vmregisters UN
 
   QWORD GuestAddress=vmread(vm_guest_physical_address);
 
+
   if (ept_handleWatchEvent(currentcpuinfo, vmregisters, fxsave, GuestAddress))
     return 0;
 
@@ -1995,7 +1993,6 @@ VMSTATUS handleEPTViolation(pcpuinfo currentcpuinfo, VMRegisters *vmregisters UN
   //still here, so not a watch or cloak
   sendstringf("Mapping %6\n", GuestAddress);
   EPTMapPhysicalMemory(currentcpuinfo, GuestAddress, 0);
-
 
   return 0;
 

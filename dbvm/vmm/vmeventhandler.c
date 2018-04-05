@@ -28,6 +28,10 @@ vmeventhandler.c: This will handle the events
 #define sendstring(s)
 #endif
 
+criticalSection CR3ValueLogCS;
+QWORD *CR3ValueLog; //if not NULL, record
+int CR3ValuePos;
+
 int raiseNMI(void)
 {
   VMEntry_interruption_information newintinfo;
@@ -2328,7 +2332,32 @@ instruction does not modify bit 63 of CR3, which is reserved and always 0.
     //has set bits beyond acceptable range, GPF
     sendstringf("Tried to set %6.  (Bits violating MAXPHYADDRMASK=%6)\n", newcr3, newcr3 & ~MAXPHYADDRMASK);
     raiseGeneralProtectionFault(3);
-    return 1;
+    return 0;
+  }
+
+  if (CR3ValueLog)
+  {
+    csEnter(&CR3ValueLogCS);
+    if ((CR3ValueLog) && (CR3ValuePos<512)) //512*8=4096
+    {
+      int i;
+      int found=0;
+      for (i=0; i<CR3ValuePos; i++)
+      {
+        if (CR3ValueLog[i]==newcr3)
+        {
+          found=1;
+          break;
+        }
+
+      }
+      if (found==0)
+      {
+        CR3ValueLog[CR3ValuePos]=newcr3;
+        CR3ValuePos++;
+      }
+    }
+    csLeave(&CR3ValueLogCS);
   }
 
   currentcpuinfo->guestCR3=newcr3;

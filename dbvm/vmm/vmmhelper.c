@@ -1601,14 +1601,14 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
         //vmx_enableSingleStepMode();
 
         //setup a memory watch for physical address 0x7000
-        int ID;
-        int r;
-        sendstringf("Setting write watch at 0x7000 to 0x7fff\n");
+        //int ID;
+        //int r;
+        //sendstringf("Setting write watch at 0x7000 to 0x7fff\n");
 
 
-        r=ept_watch_activate(0x7000, 4096, 0,0,64, &ID);
+        //r=ept_watch_activate(0x7000, 4096, 0,0,64, &ID);
 
-        sendstringf("ept_watch_activate returned %d and ID %d\n", r,ID);
+        //sendstringf("ept_watch_activate returned %d and ID %d\n", r,ID);
         break;
       }
 

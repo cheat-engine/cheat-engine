@@ -1448,7 +1448,69 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
       break;
     }
 
+    case VMCALL_LOG_CR3VALUES_START:
+    {
 
+      if (CR3ValueLog)
+      {
+        vmregisters->rax=0;
+        break;
+      }
+
+      csEnter(&CR3ValueLogCS);
+      CR3ValuePos=0;
+      CR3ValueLog=malloc(4096);
+      zeromemory(CR3ValueLog,4096);
+      csLeave(&CR3ValueLogCS);
+
+      vmregisters->rax=1;
+      break;
+    }
+
+    case VMCALL_LOG_CR3VALUES_STOP:
+    {
+      PVMCALL_LOGCR3_STOP_PARAM param=(PVMCALL_LOGCR3_STOP_PARAM)vmcall_instruction;
+
+      if (CR3ValueLog==NULL)
+      {
+        vmregisters->rax=0;
+        break;
+      }
+
+      csEnter(&CR3ValueLogCS);
+
+      //copy to the destination
+      if (CR3ValuePos)
+      {
+        int error;
+        QWORD pagefaultaddress;
+        void *destination=mapVMmemory(currentcpuinfo, param->destination, 4096, &error, &pagefaultaddress);
+
+        if (error)
+        {
+          csLeave(&CR3ValueLogCS);
+          if (error==2)
+          {
+            return raisePagefault(currentcpuinfo, pagefaultaddress);
+          }
+          else
+          {
+            vmregisters->rax=0;
+            break;
+          }
+        }
+        copymem(destination, CR3ValueLog, 4096);
+        unmapVMmemory(destination, 4096);
+      }
+
+      CR3ValuePos=0;
+      free(CR3ValueLog);
+      CR3ValueLog=NULL;
+      csLeave(&CR3ValueLogCS);
+
+      vmregisters->rax=1;
+      break;
+    }
 
 
     default:

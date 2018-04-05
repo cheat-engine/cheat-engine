@@ -575,6 +575,7 @@ typedef volatile struct tcpuinfo
   PEPT_PTE *eptCloakList; //pointer to the EPT entry of the index related to CloakedPages
   int eptCloakListLength;
   int eptCloak_LastOperationWasWrite;
+  QWORD eptCloak_LastWriteOffset;
 
   PEPT_PTE *eptWatchList; //pointer to the EPT entry of the index related to the WatchList
   int eptWatchListLength;

@@ -159,7 +159,11 @@ typedef struct
   int listsize;
 } __attribute__((__packed__)) VMCALL_WATCH_GETLIST_PARAM, *PVMCALL_WATCH_GETLIST_PARAM;
 
-
+typedef struct
+{
+  VMCALL_BASIC vmcall;
+  QWORD destination;
+} __attribute__((__packed__)) VMCALL_LOGCR3_STOP_PARAM, *PVMCALL_LOGCR3_STOP_PARAM;
 
 
 #endif /* VMM_VMCALLSTRUCTS_H_ */

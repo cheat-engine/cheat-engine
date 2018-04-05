@@ -767,19 +767,23 @@ void csLeave(PcriticalSection CS)
   int apicid=getAPICID()+1; //+1 so it never returns 0
 
 
-
   if ((CS->locked) && (CS->apicid==apicid))
   {
     CS->lockcount--;
     if (CS->lockcount==0)
     {
       //unlock
-      CS->apicid=-1; //set to a invalid apicid
+      CS->apicid=-1; //set to an invalid apicid
       asm volatile ("": : :"memory");
       CS->locked=0;
       asm volatile ("": : :"memory");
 
     }
+  }
+  else
+  {
+    sendstringf("csLeave called for a non-locked or non-owned critical section\n");
+    while (1);
   }
 }
 
