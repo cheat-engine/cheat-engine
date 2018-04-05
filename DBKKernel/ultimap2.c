@@ -857,7 +857,17 @@ void ultimap2_setup_dpc(struct _KDPC *Dpc, PVOID DeferredContext, PVOID SystemAr
 		i = 2;
 
 
-		__writemsr(IA32_RTIT_CR3_MATCH, CurrentCR3);
+		__try
+		{
+			__writemsr(IA32_RTIT_CR3_MATCH, CurrentCR3);
+		}
+		__except (1)
+		{
+			CurrentCR3 = CurrentCR3 & 0xfffffffffffff000ULL;
+			DbgPrint("Failed to set the actual CR3. Using a sanitized CR3: %llx\n", CurrentCR3);
+		}
+
+		i = 3;
 
 		//ranges
 		if (Ultimap2Ranges && Ultimap2RangeCount)
@@ -884,13 +894,13 @@ void ultimap2_setup_dpc(struct _KDPC *Dpc, PVOID DeferredContext, PVOID SystemAr
 				DbgPrint("Value after=%p", (PVOID)ctl.Value);
 			}
 		}
-		i = 3;
+		i = 4;
 
 		__writemsr(IA32_RTIT_STATUS, 0);
-		i = 4;
+		i = 5;
 		//if (KeGetCurrentProcessorNumber() == 0)
 		__writemsr(IA32_RTIT_CTL, ctl.Value);
-		i = 5;
+		i = 6;
 
 	
 			
@@ -1308,21 +1318,39 @@ void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, P
 
 
 	//get the EProcess and CR3 for this PID
+
 	if (PsLookupProcessByProcessId((PVOID)PID, &CurrentTarget) == STATUS_SUCCESS)
 	{
-		KAPC_STATE apc_state;
-		RtlZeroMemory(&apc_state, sizeof(apc_state));
-		__try
+		//todo add specific windows version checks and hardcode offsets/ or use scans
+		if (getCR3() & 0xfff)
 		{
-			KeStackAttachProcess((PVOID)CurrentTarget, &apc_state);			
-			CurrentCR3 = getCR3();
-			KeUnstackDetachProcess(&apc_state);
+			DbgPrint("Split kernel/usermode pages\n");
+			//uses supervisor/usermode pagemaps			
+			CurrentCR3 = *(UINT64 *)((UINT_PTR)CurrentTarget + 0x278);
+			if ((CurrentCR3 & 0xfffffffffffff000ULL)==0)
+			{
+				DbgPrint("No usermode CR3\n");
+				CurrentCR3 = *(UINT64 *)((UINT_PTR)CurrentTarget + 0x28);
+			}
+
+			DbgPrint("CurrentCR3=%llx\n", CurrentCR3);
 		}
-		__except (1)
+		else
 		{
-			DbgPrint("Failure getting CR3 for this process");
-			return;
-		}		
+			KAPC_STATE apc_state;
+			RtlZeroMemory(&apc_state, sizeof(apc_state));
+			__try
+			{
+				KeStackAttachProcess((PVOID)CurrentTarget, &apc_state);
+				CurrentCR3 = getCR3();
+				KeUnstackDetachProcess(&apc_state);
+			}
+			__except (1)
+			{
+				DbgPrint("Failure getting CR3 for this process");
+				return;
+			}
+		}
 	}
 	else
 	{
