@@ -651,7 +651,8 @@ uses Valuechange,
   Parsers,
   GnuAssembler,
   frmEditHistoryUnit,
-  frmWatchlistUnit;
+  frmWatchlistUnit,
+  vmxfunctions;
 
 
 resourcestring
@@ -1830,8 +1831,19 @@ begin
     fontdialog2.font.CharSet:=fd.CharSet;
     fontdialog2.font.Quality:=fd.Quality;
     fontdialog2.font.Orientation:=fd.Orientation;
-
     btnHexFont.Caption:=fontdialog2.Font.Name+' '+inttostr(fontdialog2.Font.Size);
+
+
+    fd:=Graphics.GetFontData(scrollbox1.Font.Reference.Handle);
+    fontdialog3.font.Name:=fd.Name;
+    fontdialog3.font.height:=fd.height;
+    fontdialog3.font.Pitch:=fd.Pitch;
+    fontdialog3.font.Style:=fd.Style;
+    fontdialog3.font.CharSet:=fd.CharSet;
+    fontdialog3.font.Quality:=fd.Quality;
+    fontdialog3.font.Orientation:=fd.Orientation;
+    btnRegisterViewFont.Caption:=fontdialog3.Font.Name+' '+inttostr(fontdialog3.Font.Size);
+
 
     //set the current colors
     colors:=disassemblerview.colors;
@@ -1867,6 +1879,8 @@ begin
       hexview.spaceBetweenLines:=hexSpaceBetweenLines;
       hexview.statusbar.Visible:=cbShowStatusBar.checked;
       hexview.OnResize(hexview);
+
+      scrollbox1.Font:=fontdialog3.Font;
     end;
     free;
   end;
@@ -1901,6 +1915,8 @@ begin
     if reg.OpenKey('\Software\Cheat Engine\Hexview\Font',true) then
       SaveFontToRegistry(hexview.hexfont, reg);
 
+    if reg.OpenKey('\Software\Cheat Engine\RegisterView\Font',true) then
+      SaveFontToRegistry(scrollbox1.Font, reg);
 
   finally
     reg.free;
@@ -2069,6 +2085,12 @@ begin
     begin
       LoadFontFromRegistry(f, reg);
       hexview.hexfont:=f;
+    end;
+
+    if reg.OpenKey('\Software\Cheat Engine\RegisterView\Font',false) then
+    begin
+      LoadFontFromRegistry(f, reg);
+      scrollbox1.Font:=f;
     end;
 
 
@@ -2615,6 +2637,8 @@ var assemblercode,desc: string;
     localdisassembler: TDisassembler;
     bytelength: dword;
 
+    p: dword;
+
     gnascript: tstringlist;
 begin
 
@@ -2711,7 +2735,11 @@ begin
         original:=0;
 
         bytelength:=length(bytes);
-        RewriteCode(processhandle,disassemblerview.SelectedAddress,@bytes[0],bytelength);
+
+        VirtualProtectEx(processhandle,  pointer(disassemblerview.SelectedAddress),bytelength,PAGE_EXECUTE_READWRITE,p);
+        WriteProcessMemoryWithCloakSupport(processhandle,pointer(disassemblerview.SelectedAddress),@bytes[0],bytelength,a);
+        VirtualProtectEx(processhandle,pointer(disassemblerview.SelectedAddress),bytelength,p,p);
+
         hexview.update;
         disassemblerview.Update;
       end else raise exception.create(Format(rsIDonTUnderstandWhatYouMeanWith, [assemblercode]));

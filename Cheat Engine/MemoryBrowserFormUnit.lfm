@@ -1081,7 +1081,7 @@ object MemoryBrowser: TMemoryBrowser
     top = 32
   end
   object MainMenu1: TMainMenu
-    left = 120
+    left = 128
     top = 8
     object File1: TMenuItem
       Caption = 'File'

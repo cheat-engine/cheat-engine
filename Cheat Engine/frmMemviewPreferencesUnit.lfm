@@ -420,13 +420,12 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     AnchorSideBottom.Control = GroupBox2
     AnchorSideBottom.Side = asrBottom
     Left = 187
-    Height = 365
+    Height = 145
     Top = 0
     Width = 195
-    Anchors = [akTop, akLeft, akBottom]
     AutoSize = True
     Caption = 'Hexview'
-    ClientHeight = 345
+    ClientHeight = 125
     ClientWidth = 191
     TabOrder = 1
     object lblHexExample: TLabel
@@ -497,6 +496,49 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       TabOrder = 2
     end
   end
+  object GroupBox6: TGroupBox
+    AnchorSideLeft.Control = GroupBox2
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = GroupBox3
+    AnchorSideTop.Side = asrBottom
+    Left = 187
+    Height = 76
+    Top = 145
+    Width = 195
+    AutoSize = True
+    Caption = 'Register panel'
+    ClientHeight = 56
+    ClientWidth = 191
+    TabOrder = 4
+    object btnRegisterViewFont: TButton
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 25
+      Top = 0
+      Width = 175
+      AutoSize = True
+      BorderSpacing.Left = 8
+      BorderSpacing.Right = 8
+      BorderSpacing.Bottom = 8
+      Caption = 'Change registerview font'
+      Constraints.MinWidth = 175
+      OnClick = btnRegisterViewFontClick
+      TabOrder = 0
+    end
+    object lblRegisterExample: TLabel
+      AnchorSideTop.Control = btnRegisterViewFont
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 15
+      Top = 33
+      Width = 44
+      BorderSpacing.Top = 8
+      BorderSpacing.Bottom = 8
+      Caption = 'Example'
+      ParentColor = False
+    end
+  end
   object ColorDialog1: TColorDialog
     Color = clBlack
     CustomColors.Strings = (
@@ -521,8 +563,8 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       'ColorS=F0FBFF'
       'ColorT=A4A0A0'
     )
-    left = 328
-    top = 128
+    left = 216
+    top = 312
   end
   object FontDialog1: TFontDialog
     Font.CharSet = ANSI_CHARSET
@@ -533,8 +575,8 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     MinFontSize = 0
     MaxFontSize = 0
     PreviewText = 'mov'
-    left = 336
-    top = 136
+    left = 224
+    top = 248
   end
   object pmColors: TPopupMenu
     left = 200
@@ -554,7 +596,13 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     MaxFontSize = 0
     Options = [fdEffects, fdFixedPitchOnly]
     PreviewText = '10 aa cd 30 90 90 90'
-    left = 304
-    top = 32
+    left = 296
+    top = 248
+  end
+  object FontDialog3: TFontDialog
+    MinFontSize = 0
+    MaxFontSize = 0
+    left = 296
+    top = 312
   end
 end

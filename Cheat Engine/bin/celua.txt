@@ -2370,11 +2370,11 @@ dbvm_watch_retrievelog(ID) : Returns an array of watch event data. (Context of t
 dbvm_watch_disable(ID) : Disables the watch operation
 
 
-dbvm_cloak_activate(physicalbase): 
+dbvm_cloak_activate(physicalbase, virtualbase OPTIONAL): 
   Hides an executable memory range (4096 bytes) from the system
   Note: It is recommended to cause a copy-on-write on the target first, else this will affect all processes that have this memory block loaded
 dbvm_cloak_deactivate(physicalbase): Disables the cloak and restores the executable memory to what the system thinks it is
-dbvm_cloak_readOriginal(physicalbase): Reads the memory that will get executed.  On success returns a 4096 byte long bytetable
+dbvm_cloak_readOriginal(physicalbase): Reads the memory that will get executed.  On success returns a 4096 byte long bytetable (remember, lua indexes start at 1, so offset 0 is index 1)
 dbvm_cloak_writeOriginal(physicalbase, bytetable[4096]): Writes the memory that will get executed. 
 
 dbvm_changeregonbp(address, changereginfo): boolean
@@ -2404,12 +2404,16 @@ dbvm_changeregonbp(address, changereginfo): boolean
       newR14: integer
       newR15: integer
 
+dbvm_log_cr3_start() : Tells DBVM to record (up to 512) unique CR3 values it encounters
+dbvm_log_cr3_stop() : Stops the logging and returns the results as a table
+
 
 dbk_getCR0(): Returns Control Register 0
 dbk_getCR3(): Returns Control Register 3 of the currently opened process
 dbk_getCR4(): Returns Control Register 4
 dbk_getPhysicalAddress(address): Returns the physical address of the given address
 dbk_writesIgnoreWriteProtection(state): Set to true if you do not wish to initiate copy-on-write behaviour
+
 
 getPhysicalAddressCR3(CR3, address): Looks up the physical address for the given virtual address in the given pagetable base. Returns nil if not paged
 readProcessMemoryCR3(CR3, address, size): Reads the virtual memory of the given process's CR3 value. Returns a bytetable on success, nil if fail to read (paged out)
@@ -2506,7 +2510,7 @@ properties
 methods
   beginUpdate() : Use this function when you intent to update multiple sprites,textcontainers or textures. Otherwise artifacts may occur (sprite 1 might be drawn at the new location while sprite 2 might still be at the old location when a frame is rendered)
   endUpdate() : When done updating, call this function to apply the changes
-  enableConsole(virtualkey): Adds a (lua)console to the specific game. The given key will bring it up (0xc0=tilde)
+  enableConsole(virtualkey): Adds a (lua)console to the specific game. The given key will bring it up (0xc0=tilde(`~))
   createTexture(filename) : Returns a d3dhook_texture object
   createTexture(picture, transparentColor OPTIONAL): Returns a d3dhook_texture object
     if the picture is not a transparent image the transparentcolor parameter can be used to make one of it's colors transparent

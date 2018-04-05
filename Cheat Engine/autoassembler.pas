@@ -49,7 +49,7 @@ uses strutils, memscan, disassembler, networkInterface, networkInterfaceApi,
 {$ifdef windows}
 uses simpleaobscanner, StrUtils, LuaHandler, memscan, disassembler, networkInterface,
      networkInterfaceApi, LuaCaller, SynHighlighterAA, Parsers, Globals, memoryQuery,
-     MemoryBrowserFormUnit, MemoryRecordUnit;
+     MemoryBrowserFormUnit, MemoryRecordUnit, vmxfunctions;
 {$endif}
 
 
@@ -229,6 +229,61 @@ begin
   aa_RemoveExtraCommand(pchar(command));
 {$endif jni}
 end;
+
+
+function writeMemory(address: pointer; source: pointer; size: integer; var byteswritten: ptruint): boolean;
+var
+  VA, PA: QWORD;
+  i: integer;
+  bw:ptruint;
+  buf: pchar;
+begin
+  if hasCloakedRegionInRange(qword(address),size, VA, PA) then
+  begin
+    result:=true;
+    byteswritten:=0;
+    if size=0 then exit(true);
+
+    if VA>qword(address) then
+    begin
+      i:=min(size, va-qword(address));
+      bw:=0;
+      result:=writeMemory(address, source, i, bw);
+      inc(byteswritten,bw);
+      if result=false then exit;
+
+      address:=pointer(qword(address)+bw);
+      source:=pointer(qword(source)+bw);
+      size:=size-bw;
+    end;
+
+    if size<=0 then exit;
+
+    //still here, address is page aligned here
+    i:=min(size, 4096);
+    getmem(buf,4096);
+    dbvm_cloak_readoriginal(PA, buf);
+    copymemory(pointer(ptruint(buf)+i), source, i);
+    dbvm_cloak_writeoriginal(PA,buf);
+    freemem(buf);
+
+    inc(byteswritten,i);
+    address:=pointer(qword(address)+i);
+    source:=pointer(qword(source)+i);
+    size:=size-i;
+
+    if size<=0 then exit;
+
+    bw:=0;
+    result:=writeMemory(address, source, size, bw);
+    inc(byteswritten,bw);
+  end
+  else
+    result:=WriteProcessMemory(processhandle, address, source, size, byteswritten);
+end;
+
+
+//----------------------------
 
 procedure tokenize(input: string; tokens: tstringlist);
 var i: integer;
@@ -2875,7 +2930,7 @@ begin
 
       testptr:=assembled[i].address;
       ok1:=virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),PAGE_EXECUTE_READWRITE,op);
-      ok1:=WriteProcessMemory(processhandle,pointer(testptr),@assembled[i].bytes[0],length(assembled[i].bytes),x);
+      ok1:=WriteMemory(pointer(testptr),@assembled[i].bytes[0],length(assembled[i].bytes),x);
       virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),op,op2);
 
       if not ok1 then ok2:=false;

@@ -11,7 +11,8 @@ uses unixporthelper, sysutils, byteinterpreter, symbolhandler, NewKernelHandler,
 
 {$ifdef windows}
 uses windows, imagehlp,sysutils,LCLIntf,byteinterpreter, symbolhandler,CEFuncProc,
-  NewKernelHandler, ProcessHandlerUnit, LastDisassembleData, disassemblerarm, commonTypeDefs;
+  NewKernelHandler, ProcessHandlerUnit, LastDisassembleData, disassemblerarm,
+  commonTypeDefs, maps;
 {$endif}
 
 //translation: There is no fucking way I change the descriptions to resource strings
@@ -107,10 +108,8 @@ type
     function inttohexs_withsymbols(value:ptrUint;chars: integer; signed: boolean=false; signedsize: integer=0):string;
 
     procedure setSyntaxHighlighting(state: boolean);
-
   protected
     function readMemory(address: ptruint; destination: pointer; size: integer): integer; virtual;
-
   public
     isdefault: boolean;
     showsymbols: boolean;
@@ -204,7 +203,8 @@ uses Assemblerunit, StrUtils, Parsers, memoryQuery;
 {$endif}
 
 {$ifdef windows}
-uses Assemblerunit,CEDebugger, debughelper, StrUtils, debuggertypedefinitions, Parsers, memoryQuery, binutils, luacaller;
+uses Assemblerunit,CEDebugger, debughelper, StrUtils, debuggertypedefinitions,
+  Parsers, memoryQuery, binutils, luacaller, vmxfunctions;
 {$endif}
 
 
@@ -1347,12 +1347,36 @@ begin
   result:=actualread;
 end;
 
+
 function TDisassembler.readMemory(address: ptruint; destination: pointer; size: integer): integer;
-var actualread: ptruint;
+//reads the bytes at the given address and returns the number of bytes read
+//in regards to the cloaked memory support, this is ONLY for the disassembler, to show the fuckery that's going on
+var
+  actualread: ptruint;
+
+  i,p1,p2,p3: integer;
 begin
   actualread:=0;
-  readprocessmemory(processhandle,pointer(address),destination,size,actualread);
-  result:=actualread;
+
+  ReadProcessMemoryWithCloakSupport(processhandle,pointer(address),destination,size,actualread);
+  if (actualread=0) and ((address+size and qword($fffffffffffff000))>(address and qword($fffffffffffff000))) then //did not read a single byte and overlaps a pageboundary
+  begin
+    p1:=0;
+    repeat
+      i:=min(size, 4096-(address and $fff));
+      actualread:=0;
+      ReadProcessMemoryWithCloakSupport(processhandle,pointer(address),destination,i,actualread);
+
+      inc(p1,actualread);
+      address:=address+actualread;
+      size:=size-actualread;
+      destination:=pointer(ptruint(destination)+actualread);
+    until (actualread=0) or (size=0);
+
+    exit(p1);
+  end
+  else
+    result:=actualread;
 end;
 
 function TDisassembler.disassemble(var offset: ptrUint; var description: string): string;
@@ -1380,9 +1404,10 @@ var memory: TMemory;
     tempaddress: ptrUint;
     prefixsize: integer;
     mi: TModuleInfo;
+    VA,PA: QWORD;
 begin
-
   LastDisassembleData.isfloat:=false;
+  LastDisassembleData.iscloaked:=false;
   {$ifndef unix}
   if defaultBinutils<>nil then
   begin
@@ -11172,9 +11197,10 @@ begin
   begin
     LastDisassembleData.opcode:='??';
     inc(offset);
-
-
   end;
+
+  LastDisassembleData.iscloaked:=hasCloakedRegionInRange(LastDisassembleData.address, length(LastDisassembleData.Bytes), VA, PA);
+
 
   if not dataonly then
   begin
@@ -11202,11 +11228,21 @@ begin
 end;
 
 function TDisassembler.getLastBytestring: string;
-var i,j: integer;
+var
+  i,j: integer;
+  cloaked:boolean;
+  VA,PA: qword;
 begin
   result:='';
   for i:=0 to length(LastDisassembleData.Bytes)-1 do
   begin
+    if syntaxhighlighting and LastDisassembleData.iscloaked then
+    begin
+      //check if this byte is cloaked (due to pageboundaries)
+      cloaked:=hasCloakedRegionInRange(LastDisassembleData.address+i, 1, VA, PA);
+      if (cloaked) then result:=result+'{C00FF00}'; //green
+    end;
+
     result:=result+inttohex(LastDisassembleData.Bytes[i],2);
 
     if i<LastDisassembleData.prefixsize then
@@ -11215,6 +11251,12 @@ begin
       for j:=0 to LastDisassembleData.SeperatorCount-1 do
         if (LastDisassembleData.Seperators[j]=i+1) then  //followed by a seperator
           result:=result+' ';
+
+    if syntaxhighlighting and LastDisassembleData.iscloaked and cloaked then
+    begin
+      result:=result+'{N}'; //back to default
+      cloaked:=false;
+    end;
   end;
 end;
 

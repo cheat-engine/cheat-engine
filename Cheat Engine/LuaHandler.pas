@@ -5044,13 +5044,18 @@ begin
 end;
 
 function lua_dbvm_cloak_activate(L: PLua_State): integer; cdecl;
-var PA: QWORD;
+var PA, VA: QWORD;
 begin
   result:=0;
   if lua_gettop(L)>=1 then
   begin
     pa:=lua_tointeger(L,1);
-    lua_pushinteger(L, dbvm_cloak_activate(PA));
+    if lua_gettop(L)>=2 then
+      VA:=lua_tointeger(L,2)
+    else
+      VA:=0;
+
+    lua_pushinteger(L, dbvm_cloak_activate(PA, VA));
     result:=1;
   end;
 end;
@@ -5062,7 +5067,7 @@ begin
   if lua_gettop(L)>=1 then
   begin
     pa:=lua_tointeger(L,1);
-    lua_pushinteger(L, dbvm_cloak_deactivate(PA));
+    lua_pushboolean(L, dbvm_cloak_deactivate(PA));
     result:=1;
   end;
 end;
@@ -5320,6 +5325,38 @@ function lua_dbvm_ept_reset(L: PLua_State): integer; cdecl;
 begin
   dbvm_ept_reset;
   result:=0;
+end;
+
+function lua_dbvm_log_cr3_start(L: PLua_State): integer; cdecl;
+begin
+  lua_pushboolean(L, dbvm_log_cr3values_start);
+  result:=1;
+end;
+
+function lua_dbvm_log_cr3_stop(L: PLua_State): integer; cdecl;
+var
+  r: boolean;
+  log: array [0..511] of QWORD;
+  i,j: integer;
+begin
+  result:=0;
+  r:=dbvm_log_cr3values_stop(@log[0]);
+  if r then
+  begin
+    lua_newtable(L);
+    j:=1;
+    for i:=0 to 511 do
+    begin
+      if log[i]<>0 then
+      begin
+        lua_pushinteger(L, j);
+        lua_pushinteger(L,log[i]);
+        lua_settable(L, -3);
+        inc(j);
+      end;
+    end;
+    result:=1;
+  end;
 end;
 
 
@@ -7131,7 +7168,7 @@ begin
 end;
 
 function broadcastEnvironmentUpdate(L: PLua_State): integer; cdecl;
-{$if lcl_fullversion<=1060400}
+{$if FPC_FULLVERSION<=30000}
 var rv: DWORD; //bug in laz 1.6.4 (not the end of the world, as rv is on a 8 byte boundary in the stack and not used)
 {$else}
 var rv: DWORD_PTR;
@@ -9801,6 +9838,8 @@ begin
     lua_register(L, 'dbvm_changeregonbp', lua_dbvm_changeregonbp);
 
     lua_register(L, 'dbvm_ept_reset', lua_dbvm_ept_reset);
+    lua_register(L, 'dbvm_log_cr3_start', lua_dbvm_log_cr3_start);
+    lua_register(L, 'dbvm_log_cr3_stop', lua_dbvm_log_cr3_stop);
 
 
     lua_register(L, 'dbk_getPhysicalAddress', dbk_getPhysicalAddress);

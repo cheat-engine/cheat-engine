@@ -31,6 +31,7 @@ type
 
     datasize: integer;
     isfloat: boolean; //True if the data it reads/writes is a float (only when sure)
+    iscloaked: boolean;
 
     hasSib: boolean;
     sibIndex: integer;

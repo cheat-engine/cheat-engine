@@ -58,7 +58,9 @@ const
   VMCALL_CLOAK_REMOVECHANGEREGONBP = 50;
 
   VMCALL_EPT_RESET = 51;   //removes all watches cloaks, and changereg bp's
-  //VMCAL
+
+  VMCALL_LOG_CR3VALUES_START = 52;
+  VMCALL_LOG_CR3VALUES_STOP = 53;
 
 
   //---
@@ -353,8 +355,8 @@ function dbvm_watch_reads(PhysicalAddress: QWORD; size: integer; Options: DWORD;
 function dbvm_watch_retrievelog(ID: integer; results: PPageEventListDescriptor; var resultsize: integer): integer;
 function dbvm_watch_delete(ID: integer): boolean;
 
-function dbvm_cloak_activate(PhysicalBase: QWORD): integer;
-function dbvm_cloak_deactivate(PhysicalBase: QWORD): integer;
+function dbvm_cloak_activate(PhysicalBase: QWORD; virtualAddress: Qword=0): integer;
+function dbvm_cloak_deactivate(PhysicalBase: QWORD): boolean;
 function dbvm_cloak_readoriginal(PhysicalBase: QWORD; destination: pointer): integer;
 function dbvm_cloak_writeoriginal(PhysicalBase: QWORD; source: pointer): integer;
 
@@ -362,8 +364,15 @@ function dbvm_cloak_changeregonbp(PhysicalAddress: QWORD; var changeregonbpinfo:
 
 procedure dbvm_ept_reset;
 
+function dbvm_log_cr3values_start: boolean;
+function dbvm_log_cr3values_stop(log: pointer): boolean;
+
 procedure configure_vmx(userpassword1,userpassword2: dword);
 procedure configure_vmx_kernel;
+
+function ReadProcessMemoryWithCloakSupport(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: PTRUINT): BOOL; stdcall;
+function WriteProcessMemoryWithCloakSupport(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL; stdcall;
+function hasCloakedRegionInRange(virtualAddress: qword; size: integer; out VA:qword; out PA: qword): boolean;
 
 
 var
@@ -374,11 +383,14 @@ var
 
   vmx_loaded: boolean;
 
+
+
   //dbvmversion: integer=0;
 
 implementation
 
-uses DBK32functions, cefuncproc, PEInfoFunctions, NewKernelHandler, Globals;
+uses DBK32functions, cefuncproc, PEInfoFunctions, NewKernelHandler, syncobjs,
+  ProcessHandlerUnit, Globals, AvgLvlTree, maps;
 
 resourcestring
 rsInvalidInstruction = 'Invalid instruction';
@@ -387,6 +399,197 @@ rsSmallError = 'error';
 
 var vmcall :function(vmcallinfo:pointer; level1pass: dword): PtrUInt; stdcall;
 var vmcall2 :function(vmcallinfo:pointer; level1pass: dword; secondaryOut: pptruint): PtrUInt; stdcall;
+
+
+  cloakedregionsCS: TCriticalSection;
+
+  cloakedregions: array of record //using an array instead of map as there will likely be less than 1000 entries
+        VirtualAddress: qword;
+        PhysicalAddress: qword;
+      end;
+
+  cloakedregioncache: tmap;
+
+type
+  TCloakedMemInfo=record
+    memory: array [0..4095] of byte;
+    time: qword;
+  end;
+  PCloakedMemInfo=^TCloakedMemInfo;
+
+function getCloakedMemory(PhysicalAddress: qword; VirtualAddress: ptruint; destination: pointer; size: integer): integer;
+//read the dbvm cloaked memory (assuming it is cloaked) and returns the number of bytes read. (can be less than size)
+var
+  d: PCloakedMemInfo;
+  offset: integer;
+begin
+  //use a cache (2 sec old) if possible
+  if cloakedregioncache=nil then
+  begin
+    cloakedregionsCS.enter;
+    if cloakedregioncache=nil then
+      cloakedregioncache:=TMap.Create(itu8,sizeof(PCloakedMemInfo));
+
+    cloakedregionsCS.Leave;
+  end;
+
+  offset:=VirtualAddress and $fff;
+  size:=min(size,4096-offset);
+
+  if cloakedregioncache.GetData(PhysicalAddress, d)=false then
+  begin
+    //create
+    cloakedregionsCS.enter;
+    if cloakedregioncache.GetData(PhysicalAddress, d)=false then
+    begin
+      getmem(d,sizeof(TCloakedMemInfo));
+      cloakedregioncache.Add(PhysicalAddress, d);
+      d^.time:=0;
+    end;
+    cloakedregionsCS.Leave;
+  end;
+
+  if GetTickCount64>d^.time+2000 then
+  begin
+    //update
+    dbvm_cloak_readoriginal(PhysicalAddress,@d^.memory[0]);
+    d^.time:=GetTickCount64;
+  end;
+
+  copymemory(destination, @d^.memory[offset],size);
+  exit(size);
+end;
+
+function hasCloakedRegionInRange(virtualAddress: qword; size: integer; out VA:qword; out PA: qword): boolean;
+var i: integer;
+begin
+  result:=false;
+  if cloakedregionsCS=nil then exit;
+
+  cloakedregionsCS.enter;
+  try
+    for i:=0 to length(cloakedregions)-1 do
+    begin
+      if (cloakedregions[i].VirtualAddress<(virtualAddress+size)) and
+         (virtualAddress<(cloakedregions[i].VirtualAddress+4096)) then
+      begin
+        //inside the region
+        result:=true;
+        VA:=cloakedregions[i].VirtualAddress;
+        PA:=cloakedregions[i].PhysicalAddress;
+        exit;
+      end;
+    end;
+  finally
+    cloakedregionsCS.leave;
+  end;
+end;
+
+function ReadProcessMemoryWithCloakSupport(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: PTRUINT): BOOL; stdcall;
+var
+  VA,PA: qword;
+  x: ptruint;
+  i: integer;
+begin
+  if hasCloakedRegionInRange(qword(lpBaseAddress),nsize, VA, PA) then
+  begin
+    result:=true;
+    if VA>qword(lpBaseAddress) then
+    begin
+      //the first bytes are not cloaked
+      i:=VA-qword(lpBaseAddress);
+      i:=min(nsize,i);
+      x:=0;
+      result:=ReadProcessMemory(processhandle,lpBaseAddress, lpBuffer, i, x);
+
+      lpNumberOfBytesRead:=x;
+
+      if (x<>i) or (result=false) then
+        exit(result);
+
+      lpBaseAddress:=pointer(ptruint(lpBaseAddress)+i);
+      nSize:=nsize-i;
+      lpBuffer:=pointer(ptruint(lpBuffer)+i);
+    end;
+
+    if nsize>0 then
+    begin
+      //get the executable memory
+      x:=getCloakedMemory(PA, ptruint(lpBaseAddress), lpBuffer, min(4096,nsize));  //cached
+      inc(lpNumberOfBytesRead, x);
+
+      lpBaseAddress:=pointer(ptruint(lpBaseAddress)+x);
+      nSize:=nsize-x;
+      lpBuffer:=pointer(ptruint(lpBuffer)+x);
+
+      if (nsize>0) then
+      begin
+        //get the memory after (use ReadProcessMemoryWithCloakSupport)
+        x:=0;
+        result:=ReadProcessMemoryWithCloakSupport(processhandle,lpBaseAddress, lpBuffer, nsize, x);
+        inc(lpNumberOfBytesRead,x);
+      end;
+    end;
+  end
+  else
+    result:=ReadProcessMemory(processhandle, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesRead);
+end;
+
+function WriteProcessMemoryWithCloakSupport(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL; stdcall;
+var
+  VA,PA: qword;
+  x: ptruint;
+  buf: pointer;
+  i: integer;
+begin
+  if hasCloakedRegionInRange(qword(lpBaseAddress),nsize, VA, PA) then
+  begin
+    result:=true;
+    if VA>qword(lpBaseAddress) then
+    begin
+      //the first bytes are not cloaked
+      i:=VA-qword(lpBaseAddress);
+      i:=min(nsize,i);
+      x:=0;
+      result:=WriteProcessMemory(processhandle,lpBaseAddress, lpBuffer, i, x);
+      lpNumberOfBytesWritten:=x;
+
+      if (x<>i) or (result=false) then
+        exit(result);
+
+      lpBaseAddress:=pointer(ptruint(lpBaseAddress)+i);
+      nSize:=nsize-i;
+      lpBuffer:=pointer(ptruint(lpBuffer)+i);
+    end;
+
+    if nsize>0 then
+    begin
+      //write the executable memory  (lpBaseAddress should be on a pageboundary here)
+      getmem(buf,4096);
+      dbvm_cloak_readoriginal(PA, buf);
+      i:=min(4096,nsize);
+      copymemory(buf, lpBuffer, i);
+      dbvm_cloak_writeoriginal(PA, buf);
+
+      inc(lpNumberOfBytesWritten, i);
+      lpBaseAddress:=pointer(ptruint(lpBaseAddress)+i);
+      nSize:=nsize-i;
+      lpBuffer:=pointer(ptruint(lpBuffer)+i);
+
+      if (nsize>0) then
+      begin
+        x:=0;
+        result:=WriteProcessMemoryWithCloakSupport(processhandle,lpBaseAddress, lpBuffer, nsize, x);
+        inc(lpNumberOfBytesWritten,x);
+      end;
+    end;
+  end
+  else
+    result:=WriteProcessMemory(processhandle, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten);
+end;
+
+
+
 
 function vmcallUnSupported(vmcallinfo:pointer; level1pass: dword): PtrUInt; stdcall;
 begin
@@ -1067,34 +1270,93 @@ begin
   result:=vmcall(@vmcallinfo,vmx_password1)=0;  //returns 0 on success
 end;
 
-function dbvm_cloak_activate(PhysicalBase: QWORD): integer;
-var vmcallinfo: packed record
-  structsize: dword;
-  level2pass: dword;
-  command: dword;
-  PhysicalBase: QWORD;
-end;
+function dbvm_cloak_activate(PhysicalBase: QWORD; virtualAddress: QWORD=0): integer;
+var
+  vmcallinfo: packed record
+    structsize: dword;
+    level2pass: dword;
+    command: dword;
+    PhysicalBase: QWORD;
+  end;
+  i: integer;
 begin
+  PhysicalBase:=PhysicalBase and MAXPHYADDRMASKPB;
+  virtualAddress:=virtualAddress and qword($fffffffffffff000);
+
   vmcallinfo.structsize:=sizeof(vmcallinfo);
   vmcallinfo.level2pass:=vmx_password2;
   vmcallinfo.command:=VMCALL_CLOAK_ACTIVATE;
   vmcallinfo.PhysicalBase:=PhysicalBase;
   result:=vmcall(@vmcallinfo,vmx_password1);
+
+  outputdebugstring('dbvm_cloak_activate: result='+inttostr(result));
+
+  if ((result=0) or (result=1)) and (virtualAddress<>0) then
+  begin
+    if cloakedregionscs=nil then
+      cloakedregionscs:=TCriticalSection.Create;
+
+    cloakedregionscs.enter;
+
+    outputdebugstring('It has a virtual address assigned');
+
+    try
+      if (result=1) then
+      begin
+        //already cloaked. First check if it's already in
+        for i:=0 to length(cloakedregions)-1 do
+          if cloakedregions[i].PhysicalAddress=PhysicalBase then exit;   //already in the list
+      end;
+      i:=length(cloakedregions);
+      setlength(cloakedregions,i+1);
+      cloakedregions[i].PhysicalAddress:=PhysicalBase;
+      cloakedregions[i].virtualAddress:=virtualAddress;
+
+      outputdebugstring('added it to entry '+inttostr(i));
+    finally
+      cloakedregionscs.leave;
+    end;
+
+  end;
 end;
 
-function dbvm_cloak_deactivate(PhysicalBase: QWORD): integer;
+function dbvm_cloak_deactivate(PhysicalBase: QWORD): boolean;
 var vmcallinfo: packed record
   structsize: dword;
   level2pass: dword;
   command: dword;
   PhysicalBase: QWORD;
 end;
+i,j: integer;
 begin
+  PhysicalBase:=PhysicalBase and MAXPHYADDRMASKPB;
   vmcallinfo.structsize:=sizeof(vmcallinfo);
   vmcallinfo.level2pass:=vmx_password2;
   vmcallinfo.command:=VMCALL_CLOAK_DEACTIVATE;
   vmcallinfo.PhysicalBase:=PhysicalBase;
-  result:=vmcall(@vmcallinfo,vmx_password1);
+  result:=vmcall(@vmcallinfo,vmx_password1)<>0;
+
+  if result and (cloakedregionscs<>nil) then
+  begin
+    OutputDebugString('dbvm_cloak_deactivate with a registered virtual address in the list');
+    cloakedregionscs.enter;
+    try
+      for i:=0 to length(cloakedregions)-1 do
+      begin
+        if cloakedregions[i].PhysicalAddress=PhysicalBase then
+        begin
+          OutputDebugString(format('Found entry for virtual address %.8x and physical address %.8x',[cloakedregions[i].VirtualAddress, cloakedregions[i].PhysicalAddress]));
+          for j:=i to length(cloakedregions)-2 do
+            cloakedregions[i]:=cloakedregions[i+1];
+
+          setlength(cloakedregions, length(cloakedregions)-1);
+          exit;
+        end;
+      end;
+    finally
+      cloakedregionscs.leave;
+    end;
+  end;
 end;
 
 function dbvm_cloak_readoriginal(PhysicalBase: QWORD; destination: pointer): integer;
@@ -1160,6 +1422,41 @@ begin
   vmcallinfo.level2pass:=vmx_password2;
   vmcallinfo.command:=VMCALL_EPT_RESET;
   vmcall(@vmcallinfo,vmx_password1);
+
+  if cloakedregionsCS<>nil then
+  begin
+    cloakedregionsCS.enter;
+    setlength(cloakedregions,0);
+    cloakedregionsCS.leave;
+  end;
+end;
+
+function dbvm_log_cr3values_start: boolean;
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_LOG_CR3VALUES_START;
+  result:=vmcall(@vmcallinfo,vmx_password1)<>0;
+end;
+
+function dbvm_log_cr3values_stop(log: pointer): boolean;
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+  destination: QWORD;
+end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_LOG_CR3VALUES_STOP;
+  vmcallinfo.destination:=ptruint(log);
+  result:=vmcall(@vmcallinfo,vmx_password1)<>0;
 end;
 
 var kernelfunctions: Tstringlist;
