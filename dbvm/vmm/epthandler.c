@@ -158,8 +158,6 @@ int ept_handleCloakEventAfterStep(pcpuinfo currentcpuinfo,  int ID)
 
   csLeave(&CloakedPagesCS);
 
-  vmx_disableSingleStepMode();
-
   return 0;
 }
 
@@ -602,6 +600,9 @@ BOOL ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregist
             //setup single step mode
             vmx_enableSingleStepMode();
             vmx_addSingleSteppingReason(currentcpuinfo, 3,i); //change reg on bp, restore int3 bp
+
+            vmwrite(vm_guest_interruptability_state,2); //no interrupts for one instruction (no other interrupts are pending, it was an int3 that caused this)
+
             /* on systems with no exec only support, this means there will be 2 single step reasons.
              * One for the breakpoint restore, and one to set the read disable back
              */
@@ -1057,7 +1058,7 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
 int ept_handleWatchEventAfterStep(pcpuinfo currentcpuinfo,  int ID)
 {
   sendstringf("ept_handleWatchEventAfterStep %d\n", ID);
-  vmx_disableSingleStepMode();
+
 
   if (eptWatchList[ID].Type==0)
   {

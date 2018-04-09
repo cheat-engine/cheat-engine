@@ -3509,6 +3509,8 @@ int handleSingleStep(pcpuinfo currentcpuinfo)
     currentcpuinfo->singleStepping.ReasonsPos--;
   }
 
+  vmx_disableSingleStepMode();
+
   sendstringf("return from handleSingleStep.  currentcpuinfo->singleStepping.ReasonsPos=%d\n", currentcpuinfo->singleStepping.ReasonsPos);
 
   return 0;
@@ -3619,6 +3621,10 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 		  {
 		    sendstring("Interrupt window event... I did NOT ask for this\n\r");
 		    sendstringf("vm_execution_controls_cpu=%6\n", vmread(vm_execution_controls_cpu));
+
+#ifndef DEBUG
+		     while (1);
+#endif
 		  }
 			return 0; //ignore for now
 		}
@@ -3806,6 +3812,9 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
         return handleSingleStep(currentcpuinfo);
 
       sendstring("(Un)expected monitor trap flag\n\r");
+#ifndef DEBUG
+      while (1);
+#endif
 
 		  return 0;
 		}
