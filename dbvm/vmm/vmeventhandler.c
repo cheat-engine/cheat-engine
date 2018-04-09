@@ -2349,7 +2349,6 @@ instruction does not modify bit 63 of CR3, which is reserved and always 0.
           found=1;
           break;
         }
-
       }
       if (found==0)
       {
@@ -3127,7 +3126,7 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
         nosendchar[getAPICID()]=0;
         sendstring("int 3\n");
 
-        vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength)); //adjust this automatically
+        vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength)); //adjust this automatically (probably 1)
 
         int r=emulateExceptionInterrupt(currentcpuinfo, vmregisters,
             int3redirection_idtbypass_cs, int3redirection_idtbypass_rip,
@@ -3147,7 +3146,6 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
         vmwrite(vm_guest_rip, vmread(vm_guest_rip)+vmread(vm_exit_instructionlength)); //set eip to the next instruction
         return 0;
       }
-
 
       setCR2(vmread(vm_exit_qualification));
 
@@ -3381,23 +3379,23 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
   return 0;
 }
 
-int handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
+BOOL handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 {
   //handle software breakpoints
   sendstringf("Software breakpoint\n");
   if (hasEPTsupport)
   {
-    if (ept_handleSoftwareBreakpoint(currentcpuinfo, vmregisters)==0)
-      return 0;
+    if (ept_handleSoftwareBreakpoint(currentcpuinfo, vmregisters))
+      return TRUE;
   }
 
   //perhaps future breakpoint handlers here
 
   //still here
-  return 1; //unhandled
+  return FALSE; //unhandled
 }
 
-int handleInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters) //nightmare function. Needs rewrite
+VMSTATUS handleInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters) //nightmare function. Needs rewrite
 {
  // int origsc;
 
@@ -3414,8 +3412,8 @@ int handleInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters) //nightma
 
   if ((intinfo.interruptvector==3) && (intinfo.type==itSoftwareException))
   {
-    if (handleSoftwareBreakpoint(currentcpuinfo, vmregisters)==0) //returns non 0 if not handled
-      return 0;
+    if (handleSoftwareBreakpoint(currentcpuinfo, vmregisters))
+      return VM_OK;
   }
 
  // interrorcode=vmread(vm_exit_interruptionerror);

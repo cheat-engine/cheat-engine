@@ -49,7 +49,7 @@ int ept_cloak_readOriginal(pcpuinfo currentcpuinfo, VMRegisters *registers, QWOR
 int ept_cloak_writeOriginal(pcpuinfo currentcpuinfo, VMRegisters *registers, QWORD physicalAddress, QWORD source);
 int ept_cloak_changeregonbp(QWORD physicalAddress, PCHANGEREGONBPINFO changereginfo);
 int ept_cloak_removechangeregonbp(QWORD physicalAddress);
-int ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregisters);
+BOOL ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregisters);
 
 void ept_reset();
 

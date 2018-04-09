@@ -155,6 +155,13 @@ typedef struct
 {
   VMCALL_BASIC vmcall;
   QWORD physicalAddress;
+} __attribute__((__packed__)) VMCALL_CLOAK_REMOVECHANGEREG_PARAM, *PVMCALL_CLOAK_REMOVECHANGEREG_PARAM;
+
+
+typedef struct
+{
+  VMCALL_BASIC vmcall;
+  QWORD physicalAddress;
   QWORD list;
   int listsize;
 } __attribute__((__packed__)) VMCALL_WATCH_GETLIST_PARAM, *PVMCALL_WATCH_GETLIST_PARAM;

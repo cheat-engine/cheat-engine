@@ -327,8 +327,9 @@ int handleInvalidEntryState(pcpuinfo currentcpuinfo,VMRegisters *vmregisters)
       prflags->RF=1;
       vmwrite(vm_guest_rflags,rflags);
     }
-
     //make sure
+
+
 
     return (handled==0);
 

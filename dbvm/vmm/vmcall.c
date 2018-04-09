@@ -1435,7 +1435,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
     case VMCALL_CLOAK_REMOVECHANGEREGONBP:
     {
       if (hasEPTsupport)
-        vmregisters->rax=ept_cloak_removechangeregonbp(((PVMCALL_CLOAK_CHANGEREG_PARAM)vmcall_instruction)->physicalAddress);
+        vmregisters->rax=ept_cloak_removechangeregonbp(((PVMCALL_CLOAK_REMOVECHANGEREG_PARAM)vmcall_instruction)->physicalAddress);
       else
         vmregisters->rax=0xcedead;
       break;

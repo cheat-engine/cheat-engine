@@ -805,8 +805,13 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 
   if ((result!=0) && ((result >> 8) != 0xce)  )//on release, if an unexpected event happens, just fail the instruction and hope the OS won't make a too big mess out of it
   {
-    while (wait) ;
-    return raiseInvalidOpcodeException(currentcpuinfo);
+    while (wait) ; //remove for release
+
+
+    if ((vmread(vm_exit_reason) & 0x7fffffff)==vm_exit_invalid_guest_state) //invalid state
+      return raiseGeneralProtectionFault(0); //perhaps this can fix it, else fuck
+    else
+      return raiseInvalidOpcodeException(currentcpuinfo);
   }
   else
     return result;

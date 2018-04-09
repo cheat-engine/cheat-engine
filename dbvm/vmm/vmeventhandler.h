@@ -63,6 +63,7 @@ int setVM_CR4(pcpuinfo currentcpuinfo, UINT64 newcr4);
 
 int handleRealModeInt0x15(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, int instructionsize);
 int raiseNMI(void);
+int raiseGeneralProtectionFault(UINT64 errorcode);
 
 int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, unsigned int cs, UINT64 rip, int haserrorcode, UINT64 errorcode, int isFault);
 

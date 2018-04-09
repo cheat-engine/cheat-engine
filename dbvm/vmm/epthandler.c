@@ -529,14 +529,15 @@ int ept_cloak_removechangeregonbp(QWORD physicalAddress)
   return result;
 }
 
-int ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
+BOOL ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 {
   //check if it is a cloaked instruction
   int i;
-  int result=1;
+  int result=FALSE;
 
 
-  //convert RIP into a physical address
+  //convert RIP into a physical address  (note that RIP has not been decreased by 1 yet)
+
 
   int notpaged;
   QWORD PA=getPhysicalAddressVM(currentcpuinfo, vmread(vm_guest_rip), &notpaged);
@@ -605,18 +606,16 @@ int ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
              * One for the breakpoint restore, and one to set the read disable back
              */
 
-            vmwrite(vm_guest_rip, vmread(vm_guest_rip)-1);
-            result=0;
-            break;
           }
+          result=TRUE;
+          break;
         }
         else
         {
           //probably a stale breakpoint event that was waiting for the spinlock (what are the changes that there was a 0xcc at the exact same spot a previous bp was set)
           //try again
           //todo: keep a try again counter
-          vmwrite(vm_guest_rip, vmread(vm_guest_rip)-1);
-          result=0;
+          result=TRUE;
         }
       }
     }
