@@ -5,6 +5,7 @@
 #include "vmreadwrite.h"
 #include "vmxcontrolstructures.h"
 #include "eptstructs.h"
+#include "exports.h"
 
 
 extern int vmxstartup;
@@ -783,5 +784,15 @@ extern volatile DWORD initcs;
 
 int APStartsInSIPI;
 extern pcpuinfo getcpuinfo();
+
+
+typedef BOOL DBVM_PLUGIN_EXIT_PRE(PDBVMExports exports, pcpuinfo currentcpuinfo, void *registers, void *fxsave);
+typedef void DBVM_PLUGIN_EXIT_POST(PDBVMExports exports, pcpuinfo currentcpuinfo, void *registers, void *fxsave, int *DBVMResult);
+
+extern DBVM_PLUGIN_EXIT_PRE *dbvm_plugin_exit_pre;
+extern DBVM_PLUGIN_EXIT_POST *dbvm_plugin_exit_post;
+
+
+
 
 #endif /*VMMHELPER_H_*/

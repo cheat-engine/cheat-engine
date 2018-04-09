@@ -45,6 +45,9 @@ GLOBAL initcs
 GLOBAL extramemory
 GLOBAL extramemorysize
 
+GLOBAL dbvmversion
+GLOBAL exportlist
+
 %define VMCALL db 0x0f, 0x01, 0xc1 ;vmcall
 
 ;everything here is in virtual memory, paging has already been setup properly
@@ -64,6 +67,8 @@ pagedirlvl4:        dq 0 ;virtual address of the pml4 page (the memory after thi
 nextstack:          dq 0 ;start of stack for the next cpu
 extramemory:        dq 0 ;physical address of a contiguous block of physical memory available to DBVM
 extramemorysize:    dq 0 ;number of pages in extramemory
+dbvmversion:        dq 11
+exportlist:         dq 0
 ;uefibooted:         dq 0 ;if set it means this has to launch the AP cpu's as well
 
 initcs: dd 0 ;critical section to block entering cpus.  Each CPU sets up the stack for the next CPU (so there will always be one too many)

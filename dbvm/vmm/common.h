@@ -554,6 +554,8 @@ GDT_ENTRY Build16BitCodeSegmentDescriptor(DWORD baseaddress, DWORD size);
 GDT_ENTRY Build32BitDataSegmentDescriptor(DWORD baseaddress, DWORD size);
 GDT_ENTRY Build32BitCodeSegmentDescriptor(DWORD baseaddress, DWORD size);
 
+int getCPUCount();
+
 void InitCommon();
 
 #endif

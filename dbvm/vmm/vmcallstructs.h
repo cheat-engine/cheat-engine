@@ -173,4 +173,15 @@ typedef struct
 } __attribute__((__packed__)) VMCALL_LOGCR3_STOP_PARAM, *PVMCALL_LOGCR3_STOP_PARAM;
 
 
+typedef struct
+{
+  VMCALL_BASIC vmcall;
+  int type; //0=pre, 1=post
+  int pagelistcount;
+  QWORD addressofphysicalpagelist;
+
+} __attribute__((__packed__)) VMCALL_REGISTER_PLUGIN_PARAM, *PVMCALL_REGISTER_PLUGIN_PARAM;
+
+
+
 #endif /* VMM_VMCALLSTRUCTS_H_ */

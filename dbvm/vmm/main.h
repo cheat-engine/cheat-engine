@@ -128,9 +128,9 @@ int IDT_SIZE;
 void menu(void);
 
 //filled in by vmm.map parser
-ULONG      Password1;
-ULONG      Password2;
-ULONG      dbvmversion;
+ULONG        Password1;
+ULONG        Password2;
+extern QWORD dbvmversion;
 
 //crc checksums
 unsigned int originalVMMcrc;

@@ -22,6 +22,7 @@
 #include "vmeventhandler_amd.h"
 #include "vmxsetup.h"
 #include "epthandler.h"
+#include "exports.h"
 
 #ifndef DEBUG
 #define sendstringf(s,x...)
@@ -29,6 +30,11 @@
 #endif
 
 //cpu specific stuff, put inside structure and give each cpu one
+
+
+DBVM_PLUGIN_EXIT_PRE *dbvm_plugin_exit_pre;
+DBVM_PLUGIN_EXIT_POST *dbvm_plugin_exit_post;
+
 
 int ISPAGING(pcpuinfo currentcpuinfo)
 {
@@ -664,7 +670,18 @@ int vmexit_amd(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave UNUSED)
   sendstringf("vmexit_amd for cpu %d\n", currentcpuinfo->cpunr);
 
 #endif
+
+  if (dbvm_plugin_exit_pre)
+  {
+    BOOL r=dbvm_plugin_exit_pre(exportlist, currentcpuinfo, registers, fxsave);
+    if (r)
+      return 0;
+  }
+
   result=handleVMEvent_amd(currentcpuinfo, (VMRegisters*)registers);
+
+  if (dbvm_plugin_exit_post)
+    dbvm_plugin_exit_post(exportlist, currentcpuinfo, registers, fxsave, &result);
 
 #ifdef DEBUG
   csLeave(&vmexitlock);
@@ -735,6 +752,12 @@ int vmexit2(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 #endif
 {
+  if (dbvm_plugin_exit_pre)
+  {
+    BOOL r=dbvm_plugin_exit_pre(exportlist, currentcpuinfo, registers, fxsave);
+    if (r)
+      return 0;
+  }
 
 
   if (currentcpuinfo==NULL)
@@ -748,7 +771,12 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
   if (currentcpuinfo->vmxdata.runningvmx)
   {
     nosendchar[getAPICID()]=1;
-    return handleVMEvent(currentcpuinfo, (VMRegisters*)registers, fxsave);
+    int r=handleVMEvent(currentcpuinfo, (VMRegisters*)registers, fxsave);
+
+    if (dbvm_plugin_exit_post)
+      dbvm_plugin_exit_post(exportlist, currentcpuinfo, registers, fxsave, &r);
+
+    return r;
   }
 
   if (hasUnrestrictedSupport) //do this till I have added support for all efer read spots
@@ -795,6 +823,9 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 
   nosendchar[getAPICID()]=1;
   result=handleVMEvent(currentcpuinfo, (VMRegisters*)registers, fxsave);
+
+  if (dbvm_plugin_exit_post)
+    dbvm_plugin_exit_post(exportlist, currentcpuinfo, registers, fxsave, &result);
 
 
   if (currentcpuinfo->NMIOccured==2) //nmi occured but no NMI window support
@@ -1315,6 +1346,12 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
     {
       case  '1' :
         result=handleVMEvent(currentcpuinfo, (VMRegisters*)registers, fxsave);
+
+        if (dbvm_plugin_exit_post)
+          dbvm_plugin_exit_post(exportlist, currentcpuinfo, registers, fxsave, &result);
+
+
+
         if (currentcpuinfo->NMIOccured==2) //nmi occured but no NMI window support
         {
           currentcpuinfo->NMIOccured=0;

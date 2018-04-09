@@ -1649,6 +1649,10 @@ GDT_ENTRY Build32BitCodeSegmentDescriptor(DWORD baseaddress, DWORD size)
   return result;
 }
 
+int getCPUCount()
+{
+  return vmmentrycount;
+}
 
 int Initialized=0;
 void InitCommon()

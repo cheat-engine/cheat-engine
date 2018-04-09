@@ -28,6 +28,8 @@
 #include "vmpaging.h"
 #include "vmxsetup.h"
 #include "vmcall.h"
+#include "exports.h"
+
 //#include "psod.h" //for pink screen of death support
 
 /*
@@ -757,7 +759,7 @@ void vmm_entry2(void)
 //Entry for application processors
 //Memory manager has been initialized and GDT/IDT copies have been made
 {
-  static int initializedCPUCount=1; //assume the first (main) cpu managed to start up
+  int initializedCPUCount=1; //assume the first (main) cpu managed to start up
 
   unsigned int cpunr;
   if (AP_Terminate)
@@ -877,6 +879,7 @@ void vmm_entry(void)
 
   //stack has been properly setup, so lets allow other cpu's to launch as well
   InitCommon();
+
   Password1=0x76543210; //later to be filled in by user, sector on disk, or at compile time
   Password2=0xfedcba98;
 
@@ -1485,6 +1488,8 @@ AfterBPTest:
 #endif
     textmemory=(QWORD)mapPhysicalMemory(0xb8000, 4096); //at least enough for 80*25*2
 
+
+  InitExports();
 
 
   menu2();

@@ -1495,7 +1495,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
           }
           else
           {
-            vmregisters->rax=0;
+            vmregisters->rax=0x100+error;
             break;
           }
         }
@@ -1509,6 +1509,38 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
       csLeave(&CR3ValueLogCS);
 
       vmregisters->rax=1;
+      break;
+    }
+
+    case VMCALL_REGISTERPLUGIN:
+    {
+      int error;
+      QWORD pagefaultaddress;
+      PVMCALL_REGISTER_PLUGIN_PARAM p=(PVMCALL_REGISTER_PLUGIN_PARAM)vmcall_instruction;
+      QWORD *pagelist=mapVMmemory(currentcpuinfo, p->addressofphysicalpagelist, 8*p->pagelistcount, &error, &pagefaultaddress);
+
+      if (error)
+      {
+        if (error==2)
+          return raisePagefault(currentcpuinfo, pagefaultaddress);
+        else
+        {
+          vmregisters->rax=0x100+error;
+          break;
+        }
+      }
+
+      void *pluginmem=mapPhysicalMemoryAddresses(pagelist, p->addressofphysicalpagelist);
+
+      unmapVMmemory(pagelist, 8*p->pagelistcount);
+
+      if (p->type==0)
+        dbvm_plugin_exit_pre=(DBVM_PLUGIN_EXIT_PRE *)pluginmem;
+      else
+        dbvm_plugin_exit_post=(DBVM_PLUGIN_EXIT_POST *)pluginmem;
+
+
+      vmregisters->rax=(QWORD)pluginmem;
       break;
     }
 
