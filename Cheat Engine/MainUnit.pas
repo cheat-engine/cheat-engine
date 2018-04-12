@@ -943,7 +943,8 @@ uses mainunit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup, HotKeys,
   frmD3DHookSnapshotConfigUnit, frmSaveSnapshotsUnit, frmsnapshothandlerUnit,
   frmNetworkDataCompressionUnit, ProcessHandlerUnit, ProcessList, pointeraddresslist,
   PointerscanresultReader, Parsers, Globals, GnuAssembler, xinput, DPIHelper,
-  multilineinputqueryunit, winsapi, LuaClass, Filehandler, feces, frmDBVMWatchConfigUnit;
+  multilineinputqueryunit, winsapi, LuaClass, Filehandler, feces,
+  frmDBVMWatchConfigUnit;
 
 resourcestring
   rsInvalidStartAddress = 'Invalid start address: %s';

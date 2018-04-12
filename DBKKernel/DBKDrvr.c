@@ -1,7 +1,7 @@
-#pragma warning( disable: 4103)
+#pragma warning( disable: 4100 4101 4103)
 
 #include "DBKFunc.h"
-#include <ntddk.h>
+#include <ntifs.h>
 #include <windef.h>
 #include "DBKDrvr.h"
 
@@ -221,18 +221,9 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject,
 	DbgPrint("Signed version");
 #endif
 
-
-	//lame antiviruses and more lamer users that keep crying rootkit virus....
 	temp.Buffer = (PWCH)wbuf;
 	temp.Length = 0;
 	temp.MaximumLength = 100;
-
-	RtlAppendUnicodeToString(&temp, L"Ke"); //KeServiceDescriptorTable 
-	RtlAppendUnicodeToString(&temp, L"Service");
-	RtlAppendUnicodeToString(&temp, L"Descriptor");
-	RtlAppendUnicodeToString(&temp, L"Table");
-
-	KeServiceDescriptorTable = MmGetSystemRoutineAddress(&temp);
 
 	DbgPrint("Loading driver\n");
 	if (RegistryPath)
@@ -399,7 +390,6 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject,
 	//threadlist init
 	ThreadEventCount = 0;
 
-	BufferSize = 0;
 	processlist = NULL;
 
 #ifndef AMD64
@@ -525,8 +515,11 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject,
 
 		DbgPrint("Testing forEachCpu(...)\n");
 		forEachCpu(TestDPC, NULL, NULL, NULL);
+
+		DbgPrint("Testing forEachCpuAsync(...)\n");
 		forEachCpuAsync(TestDPC, NULL, NULL, NULL);
 
+		DbgPrint("Testing forEachCpuPassive(...)\n");
 		forEachCpuPassive(TestPassive, 0);
 
 		DbgPrint("LVT_Performance_Monitor=%x\n", (UINT_PTR)&y.LVT_Performance_Monitor - (UINT_PTR)&y);
@@ -550,10 +543,10 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject,
 
 
 	RtlInitUnicodeString(&temp, L"PsSuspendProcess");
-	PsSuspendProcess = MmGetSystemRoutineAddress(&temp);
+	PsSuspendProcess = (PSSUSPENDPROCESS)MmGetSystemRoutineAddress(&temp);
 
 	RtlInitUnicodeString(&temp, L"PsResumeProcess");
-	PsResumeProcess = MmGetSystemRoutineAddress(&temp);
+	PsResumeProcess = (PSSUSPENDPROCESS)MmGetSystemRoutineAddress(&temp);
 
 
 	/*
@@ -682,37 +675,22 @@ void UnloadDriver(PDRIVER_OBJECT DriverObject)
 
 	ultimap_disable();
 	DisableUltimap2();
+	UnregisterUltimapPMI();
 
 	clean_APIC_BASE();
 
 	NoExceptions_Cleanup();
 	
-
-	if (KeServiceDescriptorTableShadow && registered) //I can't unload without a shadotw table (system service registered)
-	{
-		//1 since my routine finds the address of the 2nd element
-		KeServiceDescriptorTableShadow[1].ArgumentTable=NULL;
-		KeServiceDescriptorTableShadow[1].CounterTable=NULL;
-		KeServiceDescriptorTableShadow[1].ServiceTable=NULL;
-		KeServiceDescriptorTableShadow[1].TableSize=0;
-
-		KeServiceDescriptorTable[2].ArgumentTable=NULL;
-		KeServiceDescriptorTable[2].CounterTable=NULL;
-		KeServiceDescriptorTable[2].ServiceTable=NULL;
-		KeServiceDescriptorTable[2].TableSize=0;
-	}
-		
-
 	if ((CreateProcessNotifyRoutineEnabled) || (ImageNotifyRoutineLoaded)) 
 	{
 		PVOID x;
 		UNICODE_STRING temp;
 
 		RtlInitUnicodeString(&temp, L"PsRemoveCreateThreadNotifyRoutine");
-		PsRemoveCreateThreadNotifyRoutine2=MmGetSystemRoutineAddress(&temp);
+		PsRemoveCreateThreadNotifyRoutine2 = (PSRCTNR)MmGetSystemRoutineAddress(&temp);
 
 		RtlInitUnicodeString(&temp, L"PsRemoveCreateThreadNotifyRoutine");
-		PsRemoveLoadImageNotifyRoutine2=MmGetSystemRoutineAddress(&temp);
+		PsRemoveLoadImageNotifyRoutine2 = (PSRLINR)MmGetSystemRoutineAddress(&temp);
 		
 		RtlInitUnicodeString(&temp, L"ObOpenObjectByName");
 		x=MmGetSystemRoutineAddress(&temp);

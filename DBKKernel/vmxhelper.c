@@ -1,5 +1,6 @@
-#pragma warning( disable: 4103)
-#include "ntddk.h"
+#pragma warning( disable: 4100 4103 4213)
+#include <ntifs.h>
+#include <ntddk.h>
 #include <windef.h>
 #include "vmxhelper.h"
 
@@ -13,7 +14,7 @@ _declspec( naked ) UINT_PTR dovmcall_intel(void *vmcallinfo, unsigned int level1
 	__asm
 	{
 		push edx
-		mov eax,[esp+8]  //not +4 because of that push, retard
+		mov eax,[esp+8]  //+8 because of push
 		mov edx,[esp+12]
 		__emit 0x0f
 		__emit 0x01
@@ -28,7 +29,7 @@ _declspec( naked ) UINT_PTR dovmcall_amd(void *vmcallinfo, unsigned int level1pa
 	__asm
 	{
 		push edx
-		mov eax,[esp+8]  //not +4 because of that push, retard
+		mov eax,[esp+8]  
 		mov edx,[esp+12]
 		__emit 0x0f
 		__emit 0x01
@@ -260,7 +261,7 @@ unsigned int vmx_exit_cr3_callback(unsigned int newcr3)
 }
 
 
-unsigned int vmx_watch_pagewrites(UINT64 PhysicalAddress, int Size, int Options, int MaxEntryCount, int usePMI)
+unsigned int vmx_watch_pagewrites(UINT64 PhysicalAddress, int Size, int Options, int MaxEntryCount)
 {
 #pragma pack(1)
 	struct
@@ -275,6 +276,7 @@ unsigned int vmx_watch_pagewrites(UINT64 PhysicalAddress, int Size, int Options,
 					 //  Bit 1: 0=Only log given Physical Address. 1=Log everything in the page(s) that is/are affected
 		             //  Bit 2: 0=Do not save FPU/XMM data, 1=Also save FPU/XMM data
 					 //  Bit 3: 0=Do not save a stack snapshot, 1=Save stack snapshot
+		             //  Bit 4: 0=No PMI when full, 1=PMI when full
 		int MaxEntryCount; //how much memory should DBVM allocate for the buffer 		
 		int UsePMI; //trigger a PMI interrupt when full (so you don't lose info)
 		int ID; //ID describing this watcher for this CPU (keep track of this on a per cpu basis if you do more than 1)
@@ -292,14 +294,13 @@ unsigned int vmx_watch_pagewrites(UINT64 PhysicalAddress, int Size, int Options,
 	vmcallinfo.Size = Size;
 	vmcallinfo.Options = Options;
 	vmcallinfo.MaxEntryCount = MaxEntryCount;
-	vmcallinfo.UsePMI = usePMI;
 	vmcallinfo.ID = 0xffffffff;
 
 	dovmcall(&vmcallinfo, vmx_password1);
 	return vmcallinfo.ID;
 }
 
-unsigned int vmx_watch_pageaccess(UINT64 PhysicalAddress, int Size, int Options, int MaxEntryCount, int usePMI)
+unsigned int vmx_watch_pageaccess(UINT64 PhysicalAddress, int Size, int Options, int MaxEntryCount)
 {
 #pragma pack(1)
 	struct
@@ -314,8 +315,9 @@ unsigned int vmx_watch_pageaccess(UINT64 PhysicalAddress, int Size, int Options,
 		//  Bit 1: 0=Only log given Physical Address. 1=Log everything in the page(s) that is/are affected
 		//  Bit 2: 0=Do not save FPU/XMM data, 1=Also save FPU/XMM data
 		//  Bit 3: 0=Do not save a stack snapshot, 1=Save stack snapshot
+		//  Bit 4: 0=No PMI when full, 1=PMI when full
 		int MaxEntryCount; //how much memory should DBVM allocate for the buffer 		
-		int UsePMI; //trigger a PMI interrupt when full (so you don't lose info)
+		
 		int ID; //ID describing this watcher for this CPU (keep track of this on a per cpu basis if you do more than 1)
 	} vmcallinfo;
 #pragma pack()
@@ -331,7 +333,6 @@ unsigned int vmx_watch_pageaccess(UINT64 PhysicalAddress, int Size, int Options,
 	vmcallinfo.Size = Size;
 	vmcallinfo.Options = Options;
 	vmcallinfo.MaxEntryCount = MaxEntryCount;
-	vmcallinfo.UsePMI = usePMI;
 	vmcallinfo.ID = 0xffffffff;
 
 	dovmcall(&vmcallinfo, vmx_password1);

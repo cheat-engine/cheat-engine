@@ -63,9 +63,9 @@ object formSettings: TformSettings
       Height = 500
       Top = 1
       Width = 800
-      ActivePage = tsSigning
+      ActivePage = Assembler
       Align = alClient
-      TabIndex = 10
+      TabIndex = 6
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -1227,21 +1227,21 @@ object formSettings: TformSettings
       end
       object Assembler: TTabSheet
         Caption = 'Debugger Options'
-        ClientHeight = 455
-        ClientWidth = 655
+        ClientHeight = 472
+        ClientWidth = 792
         ImageIndex = 5
         object ScrollBox3: TScrollBox
           Left = 0
-          Height = 455
+          Height = 472
           Top = 0
-          Width = 655
+          Width = 792
           HorzScrollBar.Page = 647
           HorzScrollBar.Tracking = True
           VertScrollBar.Page = 448
           VertScrollBar.Tracking = True
           Align = alClient
-          ClientHeight = 451
-          ClientWidth = 651
+          ClientHeight = 468
+          ClientWidth = 788
           TabOrder = 0
           object replacewithnops: TCheckBox
             AnchorSideLeft.Control = Label4
@@ -1593,13 +1593,13 @@ object formSettings: TformSettings
       object Extra: TTabSheet
         Caption = 'Extra'
         ClientHeight = 472
-        ClientWidth = 655
+        ClientWidth = 792
         ImageIndex = 6
         object TauntOldOsUser: TLabel
           Left = 0
           Height = 15
           Top = 457
-          Width = 655
+          Width = 792
           Align = alBottom
           Alignment = taCenter
           Caption = 'I really recommend upgrading to Windows 2000 or later mister Flintstone'
@@ -1610,14 +1610,14 @@ object formSettings: TformSettings
           Left = 5
           Height = 77
           Top = 0
-          Width = 645
+          Width = 782
           Align = alTop
           AutoSize = True
           BorderSpacing.Left = 5
           BorderSpacing.Right = 5
           Caption = 'Use the following CE Kernel routines instead of the original windows version'
           ClientHeight = 57
-          ClientWidth = 641
+          ClientWidth = 778
           TabOrder = 0
           object cbKernelQueryMemoryRegion: TCheckBox
             AnchorSideLeft.Control = GroupBox3

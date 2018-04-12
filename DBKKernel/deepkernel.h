@@ -1,4 +1,4 @@
-#include "ntifs.h"
+#include <ntifs.h>
 #include <windef.h>
 
 

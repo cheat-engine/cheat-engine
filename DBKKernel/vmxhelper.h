@@ -1,6 +1,8 @@
 #ifndef VMXHELPER_H
 #define VMXHELPER_H
 
+#pragma warning( disable: 4200)
+
 #define VMCALL_GETVERSION 0
 #define VMCALL_CHANGEPASSWORD 1
 #define VMCALL_READ_PHYSICAL_MEMORY 3
@@ -122,6 +124,7 @@ typedef struct _pageevent_basic
 	QWORD CR3; //in case of kernel or other process
 	QWORD FSBASE;
 	QWORD GSBASE;
+	QWORD FLAGS;
 	QWORD RAX;
 	QWORD RBX;
 	QWORD RCX;
@@ -245,6 +248,7 @@ typedef struct _pageeventlistdescriptor
 	DWORD ID;
 	DWORD maxSize;
 	DWORD numberOfEntries;
+	DWORD missedEntries;
 	DWORD entryType; //0=PageEventBasic, 1=PageEventExtended, 2=PageEventBasicWithStack, 3=PageEventExtendedWithStack
 	union
 	{

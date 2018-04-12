@@ -1,9 +1,9 @@
 /*
-sigcheck is responsible for checkinf if the controlling process is Cheat Engine or another program signed by Dark Byte and not someone elses/modified one
-This is only in case of a signed version of the driver
+sigcheck is responsible for checking if the controlling process is Cheat Engine or another program signed by Dark Byte and not someone elses/modified one
+This is only in case of a signed release build
 */
 
-#include "ntifs.h"
+#include <ntifs.h>
 #include <windef.h>
 #include <bcrypt.h>
 #include <Ntstrsafe.h>
@@ -234,6 +234,7 @@ NTSTATUS CheckSignatureOfFile(PUNICODE_STRING originalpath)
 	return s;
 }
 
+NTSYSAPI NTSTATUS NTAPI ZwQueryInformationProcess(IN HANDLE ProcessHandle,IN PROCESSINFOCLASS ProcessInformationClass,OUT PVOID ProcessInformation,	IN ULONG ProcessInformationLength,	OUT PULONG ReturnLength OPTIONAL);
 
 NTSTATUS SecurityCheck(void)
 /*

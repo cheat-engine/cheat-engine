@@ -127,7 +127,8 @@ Note: GUI components mainly show in UTF8, some other functions use Ansi, try to 
 enumModules(processid OPTIONAL):
   Returns a table containing information about each module in the current process, or the specified processid
   Each entry is a table with fields
-    Name : String containing the modulename    Address: Integer representing the address the module is loaded
+    Name : String containing the modulename    
+    Address: Integer representing the address the module is loaded
     Is64Bit: Boolean set to true if it's a 64-bit module
     PathToFile: String to the location this module is loaded
 
@@ -2391,7 +2392,7 @@ dbvm_cloak_deactivate(physicalbase): Disables the cloak and restores the executa
 dbvm_cloak_readOriginal(physicalbase): Reads the memory that will get executed.  On success returns a 4096 byte long bytetable (remember, lua indexes start at 1, so offset 0 is index 1)
 dbvm_cloak_writeOriginal(physicalbase, bytetable[4096]): Writes the memory that will get executed. 
 
-dbvm_changeregonbp(address, changereginfo): boolean
+dbvm_changeregonbp(address, changereginfo, virtualaddress OPTIONAL): boolean
   cloaks the given page and sets a software breakpoint at the given position. When a breakpoint hits the registers will be changed according to the changereginfo table
     changereginfo table:  (set the field to nil, or don't define it, if you don't want to change it)
       newCF: integer/boolean (false=0, true=1) 

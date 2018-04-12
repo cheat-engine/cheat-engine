@@ -1410,6 +1410,7 @@ end;
 
 procedure TformSettings.FormCreate(Sender: TObject);
 var i: integer;
+  osVerInfo: TOSVersionInfo;
 begin
   cgAllTypes.Checked[2]:=true;
   cgAllTypes.Checked[4]:=true;
@@ -1527,10 +1528,19 @@ begin
     cbKdebug.Caption:=cbKdebug.Caption+' '+rsRequiresDBVM;
     if not cbKdebug.Enabled then
       cbKdebug.checked:=false;
-
-
   end;
 
+  if WindowsVersion>=wv10 then
+  begin
+    osVerInfo.dwOSVersionInfoSize := SizeOf(TOSVersionInfo);
+    if GetVersionEx(osVerInfo) then
+    begin
+      if osVerInfo.dwBuildNumber>=16299 then
+        cbKDebug.enabled:=false;
+
+    end;
+
+  end;
 
   //make the tabs invisible
 
@@ -1810,6 +1820,8 @@ procedure TformSettings.OpenButtonClick(Sender: TObject);
 begin
   if opendialog2.Execute then
     edtApplicationTool.Text:=opendialog2.FileName;
+
+
 end;
 
 initialization

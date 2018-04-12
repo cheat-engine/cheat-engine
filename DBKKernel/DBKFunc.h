@@ -1,8 +1,9 @@
 #ifndef DBKFUNC_H
 #define DBKFUNC_H
 
-#include "ntifs.h"
-//#include <ntifs.h>
+#pragma warning( disable: 4214 )
+
+#include <ntifs.h>
 #include <ntstrsafe.h>
 
 #include <windef.h>
@@ -18,11 +19,136 @@ typedef F *PF;
 
 typedef struct _criticalSection
 {
-  int locked;
+  LONG locked;
   int cpunr; //unique id for a cpu
   int lockcount;
   int oldIFstate;
 } criticalSection, *PcriticalSection;
+
+
+//ntosp.h
+
+typedef
+_Function_class_(KNORMAL_ROUTINE)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_min_(PASSIVE_LEVEL)
+_IRQL_requires_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+KNORMAL_ROUTINE(
+	_In_opt_ PVOID NormalContext,
+	_In_opt_ PVOID SystemArgument1,
+	_In_opt_ PVOID SystemArgument2
+);
+typedef KNORMAL_ROUTINE *PKNORMAL_ROUTINE;
+
+typedef
+_Function_class_(KKERNEL_ROUTINE)
+_IRQL_requires_max_(APC_LEVEL)
+_IRQL_requires_min_(APC_LEVEL)
+_IRQL_requires_(APC_LEVEL)
+_IRQL_requires_same_
+VOID
+KKERNEL_ROUTINE(
+	_In_ struct _KAPC *Apc,
+	_Inout_ PKNORMAL_ROUTINE *NormalRoutine,
+	_Inout_ PVOID *NormalContext,
+	_Inout_ PVOID *SystemArgument1,
+	_Inout_ PVOID *SystemArgument2
+);
+typedef KKERNEL_ROUTINE *PKKERNEL_ROUTINE;
+
+
+typedef
+_Function_class_(KRUNDOWN_ROUTINE)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_min_(PASSIVE_LEVEL)
+_IRQL_requires_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+KRUNDOWN_ROUTINE(
+	_In_ struct _KAPC *Apc
+);
+typedef KRUNDOWN_ROUTINE *PKRUNDOWN_ROUTINE;
+
+
+typedef
+_IRQL_requires_same_
+_Function_class_(KENUM_ROUTINE)
+VOID
+KENUM_ROUTINE(
+	_In_reads_(_Inexpressible_(Length)) PVOID Data,
+	_In_ ULONG Length,
+	_In_ PVOID Context
+);
+
+typedef KENUM_ROUTINE *PKENUM_ROUTINE;
+
+typedef enum _KAPC_ENVIRONMENT {
+	OriginalApcEnvironment,
+	AttachedApcEnvironment,
+	CurrentApcEnvironment,
+	InsertApcEnvironment
+} KAPC_ENVIRONMENT;
+
+
+
+NTKERNELAPI
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_min_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+VOID
+KeEnumerateQueueApc(
+	_Inout_ PKTHREAD Thread,
+	_In_ PKENUM_ROUTINE CallbackRoutine,
+	_In_ PVOID Context,
+	_In_opt_ KPROCESSOR_MODE *ApcMode
+);
+
+
+NTKERNELAPI
+_IRQL_requires_same_
+_When_(Environment != OriginalApcEnvironment, __drv_reportError("Caution: "
+	"Using an APC environment other than the original environment can lead to "
+	"a system bugcheck if the target thread is attached to a process with APCs "
+	"disabled. APC environments should be used with care."))
+	VOID
+	KeInitializeApc(
+		_Out_ PRKAPC Apc,
+		_In_ PRKTHREAD Thread,
+		_In_ KAPC_ENVIRONMENT Environment,
+		_In_ PKKERNEL_ROUTINE KernelRoutine,
+		_In_opt_ PKRUNDOWN_ROUTINE RundownRoutine,
+		_In_opt_ PKNORMAL_ROUTINE NormalRoutine,
+		_In_opt_ KPROCESSOR_MODE ProcessorMode,
+		_In_opt_ PVOID NormalContext
+	);
+
+NTKERNELAPI
+_Must_inspect_result_
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_min_(PASSIVE_LEVEL)
+_IRQL_requires_same_
+BOOLEAN
+KeInsertQueueApc(
+	_Inout_ PRKAPC Apc,
+	_In_opt_ PVOID SystemArgument1,
+	_In_opt_ PVOID SystemArgument2,
+	_In_ KPRIORITY Increment
+);
+
+
+
+NTSYSAPI
+NTSTATUS
+NTAPI
+ZwOpenThread(
+	OUT PHANDLE             ThreadHandle,
+	IN ACCESS_MASK          DesiredAccess,
+	IN POBJECT_ATTRIBUTES   ObjectAttributes,
+	IN PCLIENT_ID           ClientId
+);
+
 
 
 struct PTEStruct
@@ -165,7 +291,7 @@ typedef struct tagGDT
 } GDT, *PGDT;
 #pragma pack()
 
-UCHAR BufferSize;
+//UCHAR BufferSize;
 
 void GetIDT(PIDT pIdt);
 

@@ -4,8 +4,8 @@ copies dbvm into physical memory
 jumps into dbvm's os entry point
 
 */
-#pragma warning( disable: 4103)
-#include "ntifs.h"
+#pragma warning( disable: 4100 4103 4152 4456)
+#include <ntifs.h>
 #include <windef.h>
 
 #include "dbkfunc.h"
@@ -334,7 +334,7 @@ Runs at passive mode
 					PageTable2 = (PPTE_PAE)FreeVA;  FreeVA += 4096;
 					PageMapLevel4 = (PPDPTE_PAE)FreeVA;  FreeVA += 4096; //has to be the last alloc
 
-					DBVMPML4PA = MmGetPhysicalAddress(PageMapLevel4).QuadPart;
+					DBVMPML4PA = (UINT_PTR)MmGetPhysicalAddress(PageMapLevel4).QuadPart;
 
 
 					//blame MS for making this hard to read
@@ -361,8 +361,6 @@ Runs at passive mode
 
 
 					{
-						int i;
-
 						*(PUINT64)(&PageDir[2]) = MmGetPhysicalAddress(PageTable1).QuadPart;
 						PageDir[2].P = 1;
 						PageDir[2].RW = 1;
@@ -383,7 +381,7 @@ Runs at passive mode
 					}
 
 
-					i = (mainstack - (UINT64)vmm) >> 12;
+					i = (int)((UINT64)((mainstack - (UINT64)vmm)) >> 12);
 					PageTable1[i].P = 0; //mark the first page of the stack as unreadable
 
 
@@ -586,6 +584,9 @@ Runs at passive mode
 				}
 			}
 			ZwClose(dbvmimghandle);
+
+
+			DbgPrint("Opened and processed: %S\n", filename.Buffer);
 		}
 		else
 		{
@@ -607,7 +608,6 @@ void vmxoffload(void)
 	//save entry state for easy exit in ReturnFromvmxoffload
 	EFLAGS eflags;
 
-	int i;
 	PHYSICAL_ADDRESS minPA, maxPA,boundary;
 	GDT gdt;
 	IDT idt;
@@ -636,14 +636,8 @@ void vmxoffload(void)
 	DbgPrint("initializedvmm=%d\n", initializedvmm); 
 	if (initializedvmm)
 	{
-		KIRQL oldirql;
-		
 		DbgPrint("cpunr=%d\n",cpunr());
-		//KeRaiseIrql(HIGH_LEVEL,&oldirql);
-
 		
-			
-
 		DbgPrint("Storing original state\n");
 		originalstate->cpucount=getCpuCount();
 		DbgPrint("originalstate->cpucount=%d",originalstate->cpucount);
@@ -693,7 +687,7 @@ void vmxoffload(void)
 
 		originalstate->ss=getSS();
 		originalstate->ss_AccessRights = getAccessRights(originalstate->ss);
-		originalstate->ss_Limit = getSegmentLimit(getSegmentLimit);
+		originalstate->ss_Limit = getSegmentLimit(originalstate->ss);
 
 		//DbgPrint("originalstate->ss=%I64x",originalstate->ss);
 		originalstate->cs=getCS();
@@ -850,8 +844,9 @@ void vmxoffload(void)
 			
 
 			lea ebx,NewGDTDescriptor
-			mov ecx,pagedirptrbasePA
+			mov ecx,DBVMPML4PA;
 			mov edx,TemporaryPagingSetupPA //for the mov cr3,ecx
+			
 			mov esi,enterVMM2PA
 			mov edi,originalstatePA
 			

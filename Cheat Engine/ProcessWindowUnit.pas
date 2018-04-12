@@ -591,9 +591,9 @@ end;
 
 procedure TProcessWindow.btnProcessWatchClick(Sender: TObject);
 begin
-
   if frmprocesswatcher=nil then
     frmprocesswatcher:=tfrmprocesswatcher.Create(mainform);
+
   frmprocesswatcher.show;
   modalresult:=mrcancel;
 end;

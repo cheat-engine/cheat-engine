@@ -5115,9 +5115,10 @@ end;
 
 function lua_dbvm_changeregonbp(L: PLua_State): integer; cdecl;
 var
-  pa: qword;
+  pa,va: qword;
   changeregonbpinfo: TChangeRegOnBPInfo;
   r: boolean;
+
 begin
   result:=0;
   if lua_gettop(L)>=2 then
@@ -5310,15 +5311,30 @@ begin
       changeregonbpinfo.Flags.changeR15:=ifthen(lua_isnil(L,-1), 0, 1);
       lua_pop(L,1);
 
+      if lua_gettop(L)>=3 then
+        VA:=lua_tointeger(L,3)
+      else
+        VA:=0;
 
-      r:=dbvm_cloak_changeregonbp(PA, changeregonbpinfo)=0;
+
+      r:=dbvm_cloak_changeregonbp(PA, changeregonbpinfo, VA)=0;
       lua_pushboolean(l,r);
       result:=1;
     end;
 
   end;
+end;
 
-
+function lua_dbvm_removechangeregonbp(L: PLua_State): integer; cdecl;
+var PA: qword;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    PA:=lua_tointeger(L,1);
+    lua_pushinteger(L, dbvm_cloak_removechangeregonbp(PA));
+    result:=1;
+  end;
 end;
 
 function lua_dbvm_ept_reset(L: PLua_State): integer; cdecl;
@@ -9836,6 +9852,7 @@ begin
     lua_register(L, 'dbvm_cloak_readOriginal', lua_dbvm_cloak_readOriginal);
     lua_register(L, 'dbvm_cloak_writeOriginal', lua_dbvm_cloak_writeOriginal);
     lua_register(L, 'dbvm_changeregonbp', lua_dbvm_changeregonbp);
+    lua_register(L, 'dbvm_removechangeregonbp', lua_dbvm_removechangeregonbp);
 
     lua_register(L, 'dbvm_ept_reset', lua_dbvm_ept_reset);
     lua_register(L, 'dbvm_log_cr3_start', lua_dbvm_log_cr3_start);

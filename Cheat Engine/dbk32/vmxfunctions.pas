@@ -251,7 +251,7 @@ type
   type PPageEventListDescriptor=^TPageEventListDescriptor;
 
 
-  type TChangeRegOnBPInfo=record
+  type TChangeRegOnBPInfo=packed record
     Flags: bitpacked record
       changeRAX: 0..1;        //0
       changeRBX: 0..1;        //1
@@ -360,7 +360,9 @@ function dbvm_cloak_deactivate(PhysicalBase: QWORD): boolean;
 function dbvm_cloak_readoriginal(PhysicalBase: QWORD; destination: pointer): integer;
 function dbvm_cloak_writeoriginal(PhysicalBase: QWORD; source: pointer): integer;
 
-function dbvm_cloak_changeregonbp(PhysicalAddress: QWORD; var changeregonbpinfo: TChangeRegOnBPInfo): integer;
+function dbvm_cloak_changeregonbp(PhysicalAddress: QWORD; var changeregonbpinfo: TChangeRegOnBPInfo; VirtualAddress: qword=0): integer;
+function dbvm_cloak_removechangeregonbp(PhysicalAddress: QWORD): integer;
+
 
 procedure dbvm_ept_reset;
 
@@ -374,7 +376,6 @@ function ReadProcessMemoryWithCloakSupport(hProcess: THandle; lpBaseAddress, lpB
 function WriteProcessMemoryWithCloakSupport(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL; stdcall;
 function hasCloakedRegionInRange(virtualAddress: qword; size: integer; out VA:qword; out PA: qword): boolean;
 
-
 var
   vmx_password1: dword;
   vmx_password2: dword;
@@ -382,8 +383,6 @@ var
   vmx_enabled: boolean;
 
   vmx_loaded: boolean;
-
-
 
   //dbvmversion: integer=0;
 
@@ -1393,14 +1392,18 @@ begin
   result:=vmcall(@vmcallinfo,vmx_password1);
 end;
 
-function dbvm_cloak_changeregonbp(PhysicalAddress: QWORD; var changeregonbpinfo: TChangeRegOnBPInfo): integer;
-var vmcallinfo: packed record
-  structsize: dword;
-  level2pass: dword;
-  command: dword;
-  PhysicalAddress: QWORD;
-  changeregonbpinfo: TChangeRegOnBPInfo;
-end;
+function dbvm_cloak_changeregonbp(PhysicalAddress: QWORD; var changeregonbpinfo: TChangeRegOnBPInfo; VirtualAddress: qword=0): integer;
+var
+  vmcallinfo: packed record
+    structsize: dword;
+    level2pass: dword;
+    command: dword;
+    PhysicalAddress: QWORD;
+    changeregonbpinfo: TChangeRegOnBPInfo;
+  end;
+
+  PhysicalBase: qword;
+  i: integer;
 begin
   vmcallinfo.structsize:=sizeof(vmcallinfo);
   vmcallinfo.level2pass:=vmx_password2;
@@ -1408,8 +1411,40 @@ begin
   vmcallinfo.PhysicalAddress:=PhysicalAddress;
   vmcallinfo.changeregonbpinfo:=changeregonbpinfo;
   result:=vmcall(@vmcallinfo,vmx_password1);
+
+  if (result=0) and (virtualAddress<>0) then
+  try
+    PhysicalBase:=PhysicalAddress and MAXPHYADDRMASKPB;
+
+    for i:=0 to length(cloakedregions)-1 do
+      if cloakedregions[i].PhysicalAddress=PhysicalBase then exit;   //already in the list
+
+    i:=length(cloakedregions);
+    setlength(cloakedregions,i+1);
+    cloakedregions[i].PhysicalAddress:=PhysicalBase;
+    cloakedregions[i].virtualAddress:=virtualAddress and qword($fffffffffffff000);
+
+    outputdebugstring('added it to entry '+inttostr(i));
+  finally
+    cloakedregionscs.leave;
+  end;
+
 end;
 
+function dbvm_cloak_removechangeregonbp(PhysicalAddress: QWORD): integer;
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+  PhysicalAddress: QWORD;
+end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_CLOAK_REMOVECHANGEREGONBP;
+  vmcallinfo.PhysicalAddress:=PhysicalAddress;
+  result:=vmcall(@vmcallinfo,vmx_password1);
+end;
 
 procedure dbvm_ept_reset;
 var vmcallinfo: packed record

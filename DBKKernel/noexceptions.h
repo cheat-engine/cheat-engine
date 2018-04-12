@@ -4,7 +4,7 @@
 /*
 Will be responsible for temporarily switching out the IDT of the curent CPU with one that doesn't call windows functions on errors
 */
-#include <ntddk.h>
+#include <ntifs.h>
 #include <wdm.h>
 #include <windef.h>
 

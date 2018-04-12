@@ -157,6 +157,7 @@ type
     cbParseToTextfile: TCheckBox;
     cbAutoProcess: TCheckBox;
     cbPauseTargetWhileProcessing: TCheckBox;
+    cbNoInterrupts: TCheckBox;
     deTargetFolder: TDirectoryEdit;
     deTextOut: TDirectoryEdit;
     edtFlushInterval: TEdit;
@@ -865,6 +866,8 @@ begin
     end else sleep(1);
   end;
 
+  done:=true;
+
   pt_image_free(callbackImage);
 
   if ts<>nil then
@@ -1320,10 +1323,15 @@ var i:integer;
 begin
   OutputDebugString('TfrmUltimap2.FlushResults');
   ultimap2_resetTraceSize;
+
+  OutputDebugString('1');
   ultimap2_flush;
+
+  OutputDebugString('2');
 
   if rbLogToFolder.checked and (state=rsRecording) then
   begin
+    OutputDebugString('3');
     if cbPauseTargetWhileProcessing.checked then
     begin
       advancedoptions.Pausebutton.down := True;
@@ -1339,6 +1347,8 @@ begin
       workers[i].processFile.SetEvent;
     end;
 
+    OutputDebugString('4');
+
 
     btnShowResults.enabled:=false;
     btnRecordPause.enabled:=false;
@@ -1347,15 +1357,28 @@ begin
 
     PostProcessingFilter:=f;
     state:=rsProcessing;
+
+
     if f<>foNone then
+    begin
+      OutputDebugString('5');
       FilterGUI(false);
+      OutputDebugString('6');
+    end;
+    OutputDebugString('7');
   end
   else
   begin
 
+    OutputDebugString('8');
     //flush only returns after all data has been handled, or the data has already been handled by the file workers
     if f<>foNone then
+    begin
+      OutputDebugString('9');
       Filter(f);
+      OutputDebugString('10');
+    end;
+    OutputDebugString('11');
   end;
 end;
 
@@ -1633,9 +1656,9 @@ begin
       if not debugmode then
       begin
         if rbLogToFolder.Checked then
-          ultimap2(processid, bsize, deTargetFolder.Directory, ranges)
+          ultimap2(processid, bsize, deTargetFolder.Directory, ranges, cbNoInterrupts.checked)
         else
-          ultimap2(processid, bsize, '', ranges);
+          ultimap2(processid, bsize, '', ranges, cbNoInterrupts.checked);
       end;
 
       FilterGUI(true);
@@ -2329,13 +2352,17 @@ var
   i: integer;
   totalprocessed, totalsize: qword;
 begin
+  OutputDebugString('Activator timer');
   done:=true;
   totalprocessed:=0;
   totalsize:=0;
   for i:=0 to length(workers)-1 do
   begin
     if not workers[i].done then
+    begin
       done:=false;
+      OutputDebugString('worker '+inttostr(i)+' is not done yet');
+    end;
 
     if workers[i].totalsize<>0 then
     begin

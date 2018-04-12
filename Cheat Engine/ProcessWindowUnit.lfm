@@ -1,7 +1,7 @@
 object ProcessWindow: TProcessWindow
-  Left = 404
+  Left = 358
   Height = 443
-  Top = 378
+  Top = 402
   Width = 293
   HelpContext = 4
   AutoSize = True
@@ -226,6 +226,13 @@ object ProcessWindow: TProcessWindow
       object miOpenFile: TMenuItem
         Caption = 'Open File'
         OnClick = btnOpenFileClick
+      end
+      object MenuItem2: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem3: TMenuItem
+        Caption = 'Process watcher'
+        OnClick = btnProcessWatchClick
       end
     end
     object MenuItem4: TMenuItem

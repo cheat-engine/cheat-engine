@@ -51,7 +51,8 @@ var
 implementation
 
 
-uses formsettingsunit, MemoryBrowserFormUnit, DebugHelper, frmBreakpointConditionunit;
+uses formsettingsunit, MemoryBrowserFormUnit, DebugHelper, frmBreakpointConditionunit,
+  vmxfunctions;
 
 resourcestring
   rsBPAreYouSureYouWishToChangeThisToAPegewideBP = 'Are you sure you wish to change this to a pagewide breakpoint?';

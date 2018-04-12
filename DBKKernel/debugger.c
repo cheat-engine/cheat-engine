@@ -4,8 +4,8 @@ This unit will handle all debugging related code, from hooking, to handling inte
 
 todo: this whole thing can be moved to a few simple lines in dbvm...
 */
-#pragma warning( disable: 4103)
-#include "ntifs.h"
+#pragma warning( disable: 4100 4103 4189)
+#include <ntifs.h>
 #include <windef.h>
 
 #include "DBKFunc.h"
@@ -73,6 +73,8 @@ void debugger_dr7_setValue(DebugReg7 value);
 DebugReg6 debugger_dr6_getValue(void);
 
 JUMPBACK Int1JumpBackLocation;
+
+
 
 
 void debugger_dr7_setGD(int state)
@@ -834,7 +836,7 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 
 			if (instruction[instructionPointer+1]==0x21)
 			{
-				UINT_PTR drvalue;
+				UINT_PTR drvalue=0;
 				//DbgPrint("read opperation\n");
 				//21=read
 				switch (debugregister)
@@ -868,6 +870,10 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 						drvalue=DebuggerState.FakedDebugRegisterState[cpunr()].DR7;						
 						break;
 
+					default:
+						DbgPrint("Invalid debugregister\n");
+						drvalue = 0;
+						break;
 				}
 
 				switch (generalpurposeregister)
@@ -950,7 +956,7 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 			if (instruction[instructionPointer+1]==0x23)
 			{
 				//23=write
-				UINT_PTR gpvalue;
+				UINT_PTR gpvalue=0;
 				//DbgPrint("Write operation\n");
 				switch (generalpurposeregister)
 				{
@@ -1018,6 +1024,10 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 
 					case 15:
 						gpvalue=stackpointer[si_r15];
+						break;
+
+					default:
+						DbgPrint("Invalid register value\n");
 						break;
 #endif
 				}
@@ -1279,7 +1289,6 @@ int interrupt1_centry(UINT_PTR *stackpointer) //code segment 8 has a 32-bit stac
 	UINT_PTR before;//,after;
 	UINT_PTR currentdebugregs[6]; //used for determining if the current bp is caused by the debugger ot not
 	int handled=0; //if 0 at return, the interupt will be passed down to the operating system
-	int i;
 
 	//DbgPrint("interrupt1_centry cpunr=%d esp=%x\n",cpunr(), getRSP());
 
@@ -1290,23 +1299,6 @@ int interrupt1_centry(UINT_PTR *stackpointer) //code segment 8 has a 32-bit stac
 
 	before=getRSP();
 
-/*	for (i=-12; i<7; i++)
-	{	
-		DbgPrint("stackpointer %d=%x\n",i, stackpointer[i]);
-	}*/
-
-	
-#ifdef AMD64
-	//DbgPrint("gs:180=%x\n", __readgsdword(0x180));
-	
-
-	//DbgPrint("current csr=%x\n", _mm_getcsr());
-
-
-
-#endif
-
-	
 	//Fetch current debug registers
 	currentdebugregs[0]=debugger_dr0_getValue();
 	currentdebugregs[1]=debugger_dr1_getValue();
@@ -1318,23 +1310,15 @@ int interrupt1_centry(UINT_PTR *stackpointer) //code segment 8 has a 32-bit stac
 
 	handled=interrupt1_handler(stackpointer, currentdebugregs);
 
-
-	
-
-	//DbgPrint("handled=%d\n",handled);
-
-	//DbgPrint("After interrupt1_handler dr6=%x\n",currentdebugregs[4]);
-	
-
 	//epilogue:
 	//At the end when returning:
 	
 	
 
 	//
-	///--------------------------------------------------------------------------\
-	//|--------------EPILOGUE (AFTER HAVING HANDLED THE BREAKPOINT)--------------|
-	//\--------------------------------------------------------------------------/
+	//--------------------------------------------------------------------------
+	//--------------EPILOGUE (AFTER HAVING HANDLED THE BREAKPOINT)--------------
+	//--------------------------------------------------------------------------
 	//
 	
 	
@@ -1360,18 +1344,6 @@ int interrupt1_centry(UINT_PTR *stackpointer) //code segment 8 has a 32-bit stac
 		Int1JumpBackLocation.eip+=((UINT64)idt.vector[1].TopOffset << 32);		
 #endif
 	}
-
-
-
-
-
-	
-	//DbgPrint("interrupt1_centry returning %d\n",handled);
-
-	//rf should be set by the usermode debugger part. reason: gd bit, there handled = 1 but rf must not be 1 because eip is changed
-	//if (handled) //set the resume flag so it executes at least one instruction
-		//((PEFLAGS)&DebuggerState.LastStackPointer[si_eflags])->RF=1;
-	
 	
 
 	if (DebuggerState.globalDebug) //DR's are only accesses when there are DR's(no idea how it handles breakpoints in a different process...), so set them in each thread even those that don't belong original: && (PsGetCurrentProcessId()==(HANDLE)DebuggerState.debuggedProcessID))

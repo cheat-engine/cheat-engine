@@ -10,7 +10,7 @@ object frmTracerConfig: TfrmTracerConfig
   ClientWidth = 249
   PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object edtMaxTrace: TEdit
     AnchorSideLeft.Control = Label1
     AnchorSideTop.Control = Label1

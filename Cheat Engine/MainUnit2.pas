@@ -11,10 +11,10 @@ uses windows, dialogs,forms,classes,LCLIntf, LCLProc, sysutils,registry,ComCtrls
      memscan,plugin, hotkeyhandler,frmProcessWatcherunit, newkernelhandler,
      debuggertypedefinitions, commonTypeDefs;
 
-const ceversion=6.7;
+const ceversion=6.8;
 
 resourcestring
-  cename = 'Cheat Engine 6.7';
+  cename = 'Cheat Engine 6.8 pre-alpha 0.0.0.3';
   rsPleaseWait = 'Please Wait!';
 
 procedure UpdateToolsMenu;
@@ -679,7 +679,7 @@ begin
           if cbKernelOpenProcess.Checked then UseDBKOpenProcess else DontUseDBKOpenProcess;
 
           if cbProcessWatcher.Checked then
-            if (frmProcessWatcher=nil) then //propably yes
+            if (frmProcessWatcher=nil) then //probably yes
               frmProcessWatcher:=tfrmprocesswatcher.Create(mainform); //start the process watcher
 
 

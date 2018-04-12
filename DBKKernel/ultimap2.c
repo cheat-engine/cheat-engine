@@ -1,12 +1,22 @@
+#pragma warning( disable: 4100 4706)
+
+#include <ntifs.h>
 #include <ntddk.h>
+#include <minwindef.h>
 #include <wdm.h>
 #include <windef.h>
 
 #include "Ntstrsafe.h"
 #include "DBKFunc.h"
-#include "ultimap.h"
-#include "ultimap2.h"
 
+#ifdef ULTIMAP2STANDALONE
+
+#include "ultimap2\apic.h"
+#else
+#include "ultimap.h"
+#endif
+
+#include "ultimap2.h"
 
 
 
@@ -148,7 +158,7 @@ NTSTATUS ultimap2_continue(int cpunr)
 
 		if (pi->MappedAddress)
 		{
-			MmUnmapLockedPages((PVOID)pi->MappedAddress, pi->ToPABuffer2MDL); //unmap this memory
+			MmUnmapLockedPages((PVOID)(UINT_PTR)pi->MappedAddress, pi->ToPABuffer2MDL); //unmap this memory
 			pi->MappedAddress = 0;
 			r = STATUS_SUCCESS;
 		}
@@ -285,13 +295,13 @@ void createUltimap2OutputFile(int cpunr)
 
 void WriteThreadForSpecificCPU(PVOID StartContext)
 {
-	int cpunr = (int)StartContext;
+	int cpunr = (int)(UINT_PTR)StartContext;
 	PProcessorInfo pi = PInfo[cpunr];
 	
 
 
 	IO_STATUS_BLOCK iosb;
-	NTSTATUS r;
+	NTSTATUS r = STATUS_UNSUCCESSFUL;
 	
 
 	//DbgPrint("WriteThreadForSpecificCPU %d alive", (int)StartContext);
@@ -366,7 +376,7 @@ void WriteThreadForSpecificCPU(PVOID StartContext)
 						
 						//wake up a worker thread
 						pi->Buffer2FlushSize = Size;
-						DbgPrint("%d: WorkerThread(%p, %d)=%x\n", (int)StartContext, pi->ToPABuffer2, (ULONG)Size, r);
+						DbgPrint("%d: WorkerThread(%p, %d)=%x\n", (int)(UINT_PTR)StartContext, pi->ToPABuffer2, (ULONG)Size, r);
 						KeSetEvent(&pi->DataReady, 0, TRUE); //a ce thread waiting in ultimap2_waitForData should now wake and process the data
 						//and wait for it to finish
 						r=KeWaitForSingleObject(&pi->DataProcessed, Executive, KernelMode, FALSE, NULL);	
@@ -379,7 +389,7 @@ void WriteThreadForSpecificCPU(PVOID StartContext)
 
 			}
 			else
-				DbgPrint("Unexpected physical address while writing results for cpu %d  (%p)", (int)StartContext, pi->CurrentSaveOutputBase);
+				DbgPrint("Unexpected physical address while writing results for cpu %d  (%p)", (int)(UINT_PTR)StartContext, pi->CurrentSaveOutputBase);
 			
 
 			KeSetEvent(&pi->Buffer2ReadyForSwap, 0, FALSE);
@@ -772,7 +782,7 @@ void PMI(__in struct _KINTERRUPT *Interrupt, __in PVOID ServiceContext)
 
 }
 
-void *pperfmon_hook2 = PMI;
+void *pperfmon_hook2 = (void *)PMI;
 
 
 void ultimap2_disable_dpc(struct _KDPC *Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -811,7 +821,7 @@ void ultimap2_setup_dpc(struct _KDPC *Dpc, PVOID DeferredContext, PVOID SystemAr
 {
 	RTIT_CTL ctl;
 	RTIT_STATUS s;
-	int i;
+	int i=-1;
 
 
 
@@ -879,19 +889,19 @@ void ultimap2_setup_dpc(struct _KDPC *Dpc, PVOID DeferredContext, PVOID SystemAr
 				ULONG msr_stop = IA32_RTIT_ADDR0_B + (2 * i);
 				UINT64 bit = 32 + (i * 4);
 
-				DbgPrint("Range %d: (%p -> %p)", i, (PVOID)(Ultimap2Ranges[i].StartAddress), (PVOID)(Ultimap2Ranges[i].EndAddress));
+				DbgPrint("Range %d: (%p -> %p)", i, (PVOID)(UINT_PTR)(Ultimap2Ranges[i].StartAddress), (PVOID)(UINT_PTR)(Ultimap2Ranges[i].EndAddress));
 				DbgPrint("Writing range %d to msr %x and %x", i, msr_start, msr_stop);
 				__writemsr(msr_start, Ultimap2Ranges[i].StartAddress);
 				__writemsr(msr_stop, Ultimap2Ranges[i].EndAddress);
 
 				DbgPrint("bit=%d", bit);
-				DbgPrint("Value before=%x", ctl.Value);
+				DbgPrint("Value before=%llx", ctl.Value);
 				if (Ultimap2Ranges[i].IsStopAddress)
 					ctl.Value |= (UINT64)2ULL << bit; //TraceStop This stops all tracing on this cpu. Doesn't get reactivated
 				else
 					ctl.Value |= (UINT64)1ULL << bit; //FilterEn //not supported in the latest windows build
 
-				DbgPrint("Value after=%p", (PVOID)ctl.Value);
+				DbgPrint("Value after=%llx", ctl.Value);
 			}
 		}
 		i = 4;
@@ -920,16 +930,16 @@ void ultimap2_setup_dpc(struct _KDPC *Dpc, PVOID DeferredContext, PVOID SystemAr
 	
 }
 
-int getToPAHeaderCount(ULONG BufferSize)
+int getToPAHeaderCount(ULONG _BufferSize)
 {
-	return 1 + (BufferSize / 4096) / 511;
+	return 1 + (_BufferSize / 4096) / 511;
 }
 
-int getToPAHeaderSize(ULONG BufferSize)
+int getToPAHeaderSize(ULONG _BufferSize)
 {
 	//511 entries per ToPA header (4096*511=2093056 bytes per ToPA header)
 	//BufferSize / 2093056 = Number of ToPA headers needed
-	return getToPAHeaderCount(BufferSize) * 4096;
+	return getToPAHeaderCount(_BufferSize) * 4096;
 }
 
 RTL_GENERIC_COMPARE_RESULTS NTAPI ToPACompare(__in struct _RTL_GENERIC_TABLE *Table, __in PToPA_LOOKUP FirstStruct, __in PToPA_LOOKUP SecondStruct)
@@ -957,7 +967,7 @@ VOID NTAPI ToPADealloc(__in struct _RTL_GENERIC_TABLE *Table, __in __drv_freesMe
 	ExFreePoolWithTag(Buffer, 0);
 }
 
-void* setupToPA(PToPA_ENTRY *Header, PVOID *OutputBuffer, PMDL *BufferMDL, PRTL_GENERIC_TABLE *gt, ULONG BufferSize)
+void* setupToPA(PToPA_ENTRY *Header, PVOID *OutputBuffer, PMDL *BufferMDL, PRTL_GENERIC_TABLE *gt, ULONG _BufferSize, int NoPMI)
 {
 	ToPA_LOOKUP tl;
 	PToPA_ENTRY r;
@@ -965,6 +975,7 @@ void* setupToPA(PToPA_ENTRY *Header, PVOID *OutputBuffer, PMDL *BufferMDL, PRTL_
 	ULONG ToPAIndex = 0;
 	int PABlockSize = 0;
 	int BlockSize;
+
 
 	PRTL_GENERIC_TABLE x;
 	int i;
@@ -975,7 +986,7 @@ void* setupToPA(PToPA_ENTRY *Header, PVOID *OutputBuffer, PMDL *BufferMDL, PRTL_
 		PHYSICAL_ADDRESS la,ha, boundary;
 		ULONG newsize;
 
-		BlockSize = BufferSize; //yup, only 1 single entry	
+		BlockSize = _BufferSize; //yup, only 1 single entry	
 		
 
 		//get the closest possible
@@ -1077,7 +1088,7 @@ void* setupToPA(PToPA_ENTRY *Header, PVOID *OutputBuffer, PMDL *BufferMDL, PRTL_
 		//adjust the buffersize so it is dividable by the blocksize
 		newsize = BlockSize;
 			
-		DbgPrint("BufferSize=%x\n", BufferSize);
+		DbgPrint("BufferSize=%x\n", _BufferSize);
 		DbgPrint("BlockSize=%x (PABlockSize=%d)\n", BlockSize, PABlockSize);
 		DbgPrint("newsize=%x\n", newsize);
 
@@ -1091,7 +1102,7 @@ void* setupToPA(PToPA_ENTRY *Header, PVOID *OutputBuffer, PMDL *BufferMDL, PRTL_
 
 		DbgPrint("Allocated OutputBuffer at %p", MmGetPhysicalAddress(*OutputBuffer).QuadPart);
 
-		BufferSize = newsize;
+		_BufferSize = newsize;
 
 		if (*OutputBuffer == NULL)
 		{
@@ -1114,14 +1125,14 @@ void* setupToPA(PToPA_ENTRY *Header, PVOID *OutputBuffer, PMDL *BufferMDL, PRTL_
 		//Not a single ToPA system
 		BlockSize = 4096;
 
-		*OutputBuffer = ExAllocatePoolWithTag(NonPagedPool, BufferSize, 0);
+		*OutputBuffer = ExAllocatePoolWithTag(NonPagedPool, _BufferSize, 0);
 		if (*OutputBuffer == NULL)
 		{
 			DbgPrint("setupToPA: Failure allocating output buffer");
 			return NULL;
 		}
 
-		r = ExAllocatePoolWithTag(NonPagedPool, getToPAHeaderSize(BufferSize), 0);
+		r = ExAllocatePoolWithTag(NonPagedPool, getToPAHeaderSize(_BufferSize), 0);
 		if (r == NULL)
 		{
 			ExFreePoolWithTag(*OutputBuffer, 0);
@@ -1161,16 +1172,19 @@ void* setupToPA(PToPA_ENTRY *Header, PVOID *OutputBuffer, PMDL *BufferMDL, PRTL_
 	RtlInsertElementGenericTable(x, &tl, sizeof(tl), NULL);
 
 	Output = (UINT_PTR)*OutputBuffer;
-	Stop = Output+BufferSize;
+	Stop = Output+_BufferSize;
 	
-	*BufferMDL = IoAllocateMdl(*OutputBuffer, BufferSize, FALSE, FALSE, NULL);
+	*BufferMDL = IoAllocateMdl(*OutputBuffer, _BufferSize, FALSE, FALSE, NULL);
 	MmBuildMdlForNonPagedPool(*BufferMDL);
 
 	if (singleToPASystem)
 	{
 		r[0].Value = (UINT64)MmGetPhysicalAddress((PVOID)Output).QuadPart;
 		r[0].Bits.Size = PABlockSize;
-		r[0].Bits.INT = 1;
+		if (NoPMI)
+			r[0].Bits.INT = 0;
+		else
+		  r[0].Bits.INT = 1;
 		r[0].Bits.STOP = 1;
 		
 		r[1].Value = MmGetPhysicalAddress(&r[0]).QuadPart;
@@ -1207,7 +1221,7 @@ void* setupToPA(PToPA_ENTRY *Header, PVOID *OutputBuffer, PMDL *BufferMDL, PRTL_
 		r[ToPAIndex].Bits.STOP = 1;
 		i = (ToPAIndex * 90) / 100; //90%
 
-		if ((i == ToPAIndex) && (i > 0)) //don't interrupt on the very last entry (if possible)
+		if ((i == (int)ToPAIndex) && (i > 0)) //don't interrupt on the very last entry (if possible)
 			i--;
 
 		if ((i > 0) && ((i + 1) % 512 == 0))
@@ -1216,7 +1230,11 @@ void* setupToPA(PToPA_ENTRY *Header, PVOID *OutputBuffer, PMDL *BufferMDL, PRTL_
 
 		DbgPrint("Interrupt at index %d", i);
 
-		r[i].Bits.INT = 1; //Interrupt after filling this entry 
+		if (NoPMI)
+			r[i].Bits.INT = 0;
+		else
+			r[i].Bits.INT = 1; //Interrupt after filling this entry 
+
 
 		//and every 2nd page after this.  (in case of a rare situation where resume is called right after suspend)
 
@@ -1224,7 +1242,7 @@ void* setupToPA(PToPA_ENTRY *Header, PVOID *OutputBuffer, PMDL *BufferMDL, PRTL_
 		{
 			while (i < (int)(ToPAIndex - 1))
 			{
-				if ((i + 1) % 512) //anything but 0
+				if (((i + 1) % 512) && (NoPMI==0))  //anything but 0
 					r[i].Bits.INT = 1;
 
 				i += 2;
@@ -1263,13 +1281,13 @@ NTSTATUS ultimap2_resume()
 
 
 void *clear = NULL;
-void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, PURANGE Ranges)
+BOOL RegisteredProfilerInterruptHandler;
+void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, PURANGE Ranges, int NoPMI)
 {
 	//for each cpu setup tracing
 	//add the PMI interupt
 	int i;
-	UNICODE_STRING s;
-	NTSTATUS r;
+	NTSTATUS r= STATUS_UNSUCCESSFUL;
 	int cpuid_r[4];
 
 	__cpuidex(cpuid_r, 0x14, 0);
@@ -1388,8 +1406,8 @@ void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, P
 		KeInitializeEvent(&PInfo[i]->InitiateSave, SynchronizationEvent, FALSE);
 		KeInitializeEvent(&PInfo[i]->Buffer2ReadyForSwap, NotificationEvent, TRUE);
 
-		setupToPA(&PInfo[i]->ToPAHeader, &PInfo[i]->ToPABuffer, &PInfo[i]->ToPABufferMDL, &PInfo[i]->ToPALookupTable, BufferSize);
-		setupToPA(&PInfo[i]->ToPAHeader2, &PInfo[i]->ToPABuffer2, &PInfo[i]->ToPABuffer2MDL, &PInfo[i]->ToPALookupTable2, BufferSize);
+		setupToPA(&PInfo[i]->ToPAHeader, &PInfo[i]->ToPABuffer, &PInfo[i]->ToPABufferMDL, &PInfo[i]->ToPALookupTable, BufferSize, NoPMI);
+		setupToPA(&PInfo[i]->ToPAHeader2, &PInfo[i]->ToPABuffer2, &PInfo[i]->ToPABuffer2MDL, &PInfo[i]->ToPALookupTable2, BufferSize, NoPMI);
 
 		DbgPrint("cpu %d:", i);
 		DbgPrint("ToPAHeader=%p ToPABuffer=%p Size=%x", PInfo[i]->ToPAHeader, PInfo[i]->ToPABuffer, BufferSize);
@@ -1416,10 +1434,14 @@ void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, P
 	for (i = 0; i < Ultimap2CpuCount; i++)
 		PsCreateSystemThread(&PInfo[i]->WriterThreadHandle, 0, NULL, 0, NULL, WriteThreadForSpecificCPU, (PVOID)i); 
 
-	r=HalSetSystemInformation(HalProfileSourceInterruptHandler, sizeof(PVOID*), &pperfmon_hook2); //hook the perfmon interrupt
+	if ((NoPMI == FALSE) && (RegisteredProfilerInterruptHandler == FALSE))
+	{
+		r = HalSetSystemInformation(HalProfileSourceInterruptHandler, sizeof(PVOID*), &pperfmon_hook2); //hook the perfmon interrupt
+		if (r == STATUS_SUCCESS)
+			RegisteredProfilerInterruptHandler = TRUE;
 
-
-	DbgPrint("HalSetSystemInformation returned %x\n", r);	
+		DbgPrint("HalSetSystemInformation returned %x\n", r);
+	}
 
 	if (r != STATUS_SUCCESS)
 	{
@@ -1431,10 +1453,20 @@ void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, P
 	
 }
 
+void UnregisterUltimapPMI()
+{
+	NTSTATUS r;
+	if (RegisteredProfilerInterruptHandler)
+	{
+		r = HalSetSystemInformation(HalProfileSourceInterruptHandler, sizeof(PVOID*), &clear); //unhook the perfmon interrupt
+		DbgPrint("HalSetSystemInformation to disable returned %x\n", r);
+		HalSetSystemInformation(HalProfileSourceInterruptHandler, sizeof(PVOID*), 0);
+	}
+}
+
 void DisableUltimap2(void)
 {
 	int i;
-	NTSTATUS r;
 
 	DbgPrint("-------------------->DisableUltimap2<------------------");
 
@@ -1444,9 +1476,6 @@ void DisableUltimap2(void)
 	DbgPrint("-------------------->DisableUltimap2:Stage 1<------------------");
 	
 	forEachCpuAsync(ultimap2_disable_dpc, NULL, NULL, NULL);
-	r=HalSetSystemInformation(HalProfileSourceInterruptHandler, sizeof(PVOID*), &clear); //unhook the perfmon interrupt
-	DbgPrint("HalSetSystemInformation to disable returned %x\n", r);
-	//HalSetSystemInformation(HalProfileSourceInterruptHandler, sizeof(PVOID*), 0);
 
 	
 	UltimapActive = FALSE;

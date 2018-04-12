@@ -111,7 +111,7 @@ begin
 end;
 
 var f,driverdat: textfile;
-    s: string;
+    s,s2: string;
     i: integer;
 
 
@@ -295,6 +295,67 @@ begin
 
         ControlService(hService, SERVICE_CONTROL_STOP, serviceStatus);
         ok:=DeleteService(hService);
+
+        CloseServiceHandle(hservice);
+      end;
+
+
+      try
+        s:='ULTIMAP2';
+        getmem(apppath,250);
+        GetModuleFileName(0,apppath,250);
+
+        if iswow64 then
+          dataloc:=extractfilepath(apppath)+'driver64.dat'
+        else
+          dataloc:=extractfilepath(apppath)+'driver.dat';
+
+        if FileExists(dataloc) then
+        begin
+          try
+            assignfile(driverdat,dataloc);
+            reset(driverdat);
+            readln(driverdat,s2);  //dbk servicename
+            readln(driverdat,s2);  //processeventname
+            readln(driverdat,s2);  //threadeventname
+            readln(driverdat,s2);  //sysfile
+            readln(driverdat,s2);  //vmx_p1_txt
+            readln(driverdat,s2);  //vmx_p2_txt
+            readln(driverdat,s);  //ultimapservicename
+            closefile(driverdat);
+          except
+          end;
+        end;
+      finally
+        freemem(apppath);
+      end;
+
+      hService := OpenService(hSCManager, pchar(s), SERVICE_ALL_ACCESS);
+      if hservice<>0 then
+      begin
+        outputdebugstring(pchar('Opened service '+s));
+        hDevice := CreateFile(pchar('\\.\'+s),
+                      GENERIC_READ or GENERIC_WRITE,
+                      FILE_SHARE_READ or FILE_SHARE_WRITE,
+                      nil,
+                      OPEN_EXISTING,
+                      FILE_FLAG_OVERLAPPED,
+                      0);
+
+        if hdevice<>INVALID_HANDLE_VALUE then
+        begin
+          FileClose(hdevice);
+        end;
+
+        if ControlService(hService, SERVICE_CONTROL_STOP, serviceStatus)=false then
+          outputdebugstring('Failed to stop')
+        else
+          outputdebugstring('Stopped the service');
+
+        if DeleteService(hService)=false then
+          OutputDebugString('Failed to delete')
+        else
+          outputdebugstring('Delete the service');
 
         CloseServiceHandle(hservice);
       end;

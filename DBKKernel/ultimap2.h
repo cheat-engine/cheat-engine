@@ -1,6 +1,8 @@
 #ifndef ULTIMAP2_H
 #define ULTIMAP2_H
 
+#include <ntifs.h>
+
 //MSR's
 #define IA32_PERF_GLOBAL_STATUS		0x38e  
 #define IA32_PERF_GLOBAL_OVF_CTRL	0x390
@@ -28,6 +30,7 @@ typedef struct
 	UINT64 IsStopAddress;
 } URANGE, *PURANGE;
 
+#pragma pack(push)
 #pragma pack(1)
 typedef union {
 		struct{
@@ -101,7 +104,9 @@ typedef struct
 	UINT64 CpuID;	
 } ULTIMAP2DATAEVENT, *PULTIMAP2DATAEVENT;
 
-void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, PURANGE Ranges);
+#pragma pack(pop)
+
+void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, PURANGE Ranges, int NoPMI);
 void DisableUltimap2(void);
 
 NTSTATUS ultimap2_waitForData(ULONG timeout, PULTIMAP2DATAEVENT data);
@@ -114,6 +119,8 @@ void ultimap2_LockFile(int cpunr);
 void ultimap2_ReleaseFile(int cpunr);
 UINT64 ultimap2_GetTraceFileSize();
 void ultimap2_ResetTraceFileSize();
+
+void UnregisterUltimapPMI();
 
 typedef NTSTATUS(*PSSUSPENDPROCESS)(PEPROCESS p);
 

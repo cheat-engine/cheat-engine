@@ -6,6 +6,7 @@
 
 typedef UINT64 QWORD;
 
+#pragma pack(push)
 #pragma pack(1)
 /*
 typedef struct
@@ -75,7 +76,7 @@ typedef struct
 
 NTSTATUS ultimap_continue(PULTIMAPDATAEVENT data);
 NTSTATUS ultimap_waitForData(ULONG timeout, PULTIMAPDATAEVENT data);
-NTSTATUS ultimap(UINT64 cr3, UINT64 dbgctl_msr, int DS_AREA_SIZE, BOOL savetofile, WCHAR *filename, int handlerCount);
+NTSTATUS ultimap(UINT64 cr3, UINT64 dbgctl_msr, int _DS_AREA_SIZE, BOOL savetofile, WCHAR *filename, int handlerCount);
 void ultimap_pause();
 void ultimap_resume();
 
@@ -135,5 +136,7 @@ typedef volatile struct {
 } APIC, *PAPIC;
 
 extern volatile PAPIC APIC_BASE;
+
+#pragma pack(pop)
 
 #endif

@@ -967,6 +967,7 @@ extern "C" {
 
 #include <ntddk.h>
 #include <ntverp.h>
+#include <wdm.h>
 
 typedef struct _SERVICE_DESCRIPTOR_TABLE    *PSERVICE_DESCRIPTOR_TABLE;
 typedef struct _SE_EXPORTS                  *PSE_EXPORTS;

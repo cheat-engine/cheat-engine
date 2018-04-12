@@ -1,8 +1,10 @@
 #pragma warning( disable: 4103)
 
-#include "ntddk.h"
+#include <ntifs.h>
+#include <ntddk.h>
 #include "DBKFunc.h"
-/*x
+
+/*
 #include "vmxhelper.h"
 #include "interruptHook.h"
 */
@@ -129,6 +131,8 @@ calls a specified dpcfunction for each cpu on the system
 
 	dpc=ExAllocatePool(NonPagedPool, sizeof(KDPC)*cpucount);
 
+	
+
 	cpus=KeQueryActiveProcessors();
 	cpunr=0;
 	dpcnr=0;
@@ -138,7 +142,7 @@ calls a specified dpcfunction for each cpu on the system
 		{
 			//bit is set
 			
-			//DbgPrint("Calling dpc routine for cpunr %d\n", cpunr);
+			//DbgPrint("Calling dpc routine for cpunr %d (dpc=%p)\n", cpunr, &dpc[dpcnr]);
 
 			KeInitializeDpc(&dpc[dpcnr], dpcfunction, DeferredContext);
 			KeSetTargetProcessorDpc (&dpc[dpcnr], cpunr);
@@ -213,14 +217,14 @@ calls a specified dpcfunction for each cpu on the system
 
 
 //own critical section implementation for use when the os is pretty much useless (dbvm tech)
-void spinlock(volatile int *lockvar)
+void spinlock(volatile LONG *lockvar)
 {
 	while (1)
 	{
 
 		//it was 0, let's see if we can set it to 1
 		//race who can set it to 1:
-		if (_InterlockedExchange((volatile int *)lockvar, 1)==0)
+		if (_InterlockedExchange((volatile LONG *)lockvar, 1)==0)
 			return; //lock aquired, else continue loop
 
 		_mm_pause();
@@ -232,9 +236,6 @@ void spinlock(volatile int *lockvar)
 void csEnter(PcriticalSection CS)
 { 
 	EFLAGS oldstate=getEflags();
-	
-	int apicid=cpunr()+1; //+1 so it never returns 0
-	
 	
 	if ((CS->locked) && (CS->cpunr==cpunr())) 
 	{
@@ -255,8 +256,6 @@ void csEnter(PcriticalSection CS)
 
 void csLeave(PcriticalSection CS)
 {
-	int apicid=cpunr()+1; //+1 so it never returns 0
-  
 	if ((CS->locked) && (CS->cpunr==cpunr()))
 	{
 	    CS->lockcount--;
@@ -358,7 +357,7 @@ UINT64 getCR2(void)
 
 void setCR3(UINT64 newCR3)
 {
-	__writecr3(newCR3);
+	__writecr3((UINT_PTR)newCR3);
 }
 
 UINT64 getCR3(void)

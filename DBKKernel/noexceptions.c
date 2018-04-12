@@ -158,13 +158,7 @@ BOOL NoExceptions_Enter()
 int NoExceptions_CopyMemory(PVOID Destination, PVOID Source, int size)
 {
 	BOOL EnteredNoExceptions = FALSE;
-	EFLAGS e = getEflags();
-
-	int r = 0;
-	
-	//DbgPrint("NoExceptions_CopyMemory. KeGetCurrentIrql()=%d HIGH_LEVEL=%d ", KeGetCurrentIrql(), HIGH_LEVEL);
-	
-	
+	int r;
 	
 	if (KeGetCurrentIrql() <= DISPATCH_LEVEL)
 	{

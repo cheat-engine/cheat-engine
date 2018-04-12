@@ -14,16 +14,16 @@ object frmUltimap2: TfrmUltimap2
   OnShow = FormShow
   PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Panel5: TPanel
     Left = 0
-    Height = 444
+    Height = 463
     Top = 0
     Width = 739
     Align = alTop
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 444
+    ClientHeight = 463
     ClientWidth = 739
     TabOrder = 0
     OnClick = Panel5Click
@@ -32,7 +32,7 @@ object frmUltimap2: TfrmUltimap2
       AnchorSideBottom.Side = asrBottom
       Left = 0
       Height = 15
-      Top = 429
+      Top = 448
       Width = 6
       Anchors = [akLeft, akBottom]
       Caption = '0'
@@ -250,13 +250,13 @@ object frmUltimap2: TfrmUltimap2
       AnchorSideTop.Control = Panel5
       AnchorSideRight.Control = Panel4
       Left = 0
-      Height = 444
+      Height = 463
       Top = 0
       Width = 323
       Anchors = [akTop, akLeft, akRight]
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 444
+      ClientHeight = 463
       ClientWidth = 323
       Constraints.MinWidth = 100
       TabOrder = 1
@@ -266,7 +266,7 @@ object frmUltimap2: TfrmUltimap2
         AnchorSideTop.Side = asrBottom
         Left = 5
         Height = 15
-        Top = 429
+        Top = 448
         Width = 145
         Caption = 'Instruction Pointer List Size:'
         ParentColor = False
@@ -280,7 +280,7 @@ object frmUltimap2: TfrmUltimap2
         AnchorSideRight.Side = asrBottom
         Left = 115
         Height = 64
-        Top = 363
+        Top = 382
         Width = 64
         BorderSpacing.Top = 2
         BorderSpacing.Bottom = 2
@@ -311,7 +311,7 @@ object frmUltimap2: TfrmUltimap2
         AnchorSideRight.Control = Panel1
         Left = 5
         Height = 25
-        Top = 383
+        Top = 402
         Width = 105
         AutoSize = True
         BorderSpacing.Left = 5
@@ -327,13 +327,13 @@ object frmUltimap2: TfrmUltimap2
         AnchorSideRight.Control = Panel6
         AnchorSideRight.Side = asrBottom
         Left = 5
-        Height = 129
+        Height = 148
         Top = 232
-        Width = 183
+        Width = 204
         AutoSize = True
         Caption = 'Ranges: (Empty for all) (Max 0) '
-        ClientHeight = 109
-        ClientWidth = 179
+        ClientHeight = 128
+        ClientWidth = 200
         TabOrder = 2
         object lbRange: TListBox
           AnchorSideLeft.Control = gbRange
@@ -344,7 +344,7 @@ object frmUltimap2: TfrmUltimap2
           Left = 0
           Height = 80
           Top = 0
-          Width = 179
+          Width = 200
           Anchors = [akTop, akLeft, akRight, akBottom]
           BorderSpacing.Bottom = 2
           ItemHeight = 0
@@ -354,8 +354,7 @@ object frmUltimap2: TfrmUltimap2
           TabOrder = 0
         end
         object btnAddRange: TButton
-          AnchorSideBottom.Control = gbRange
-          AnchorSideBottom.Side = asrBottom
+          AnchorSideBottom.Control = cbNoInterrupts
           Left = 0
           Height = 25
           Top = 82
@@ -366,6 +365,21 @@ object frmUltimap2: TfrmUltimap2
           Caption = 'Add range'
           OnClick = btnAddRangeClick
           TabOrder = 1
+        end
+        object cbNoInterrupts: TCheckBox
+          AnchorSideLeft.Control = gbRange
+          AnchorSideBottom.Control = gbRange
+          AnchorSideBottom.Side = asrBottom
+          Left = 0
+          Height = 19
+          Hint = 'In Windows 10, when a PMI triggers, it will BSOD with "PROFILER_CONFIGURATION_ILLEGAL" if you use ranges and don''t have a kernelmode debugger attached'#13#10#13#10'Tip: Use a huge buffer and autoprocess/flush the tracefiles'
+          Top = 109
+          Width = 200
+          Anchors = [akLeft, akBottom]
+          Caption = 'Do not trigger interrupts when full'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 2
         end
       end
       object rbRuntimeParsing: TRadioButton
@@ -620,19 +634,19 @@ object frmUltimap2: TfrmUltimap2
   end
   object Panel2: TPanel
     Left = 0
-    Height = 129
-    Top = 444
+    Height = 110
+    Top = 463
     Width = 739
     Align = alClient
     AutoSize = True
     BevelOuter = bvNone
     Caption = 'Panel2'
-    ClientHeight = 129
+    ClientHeight = 110
     ClientWidth = 739
     TabOrder = 1
     object ListView1: TListView
       Left = 0
-      Height = 84
+      Height = 65
       Top = 0
       Width = 739
       Align = alClient
@@ -663,7 +677,7 @@ object frmUltimap2: TfrmUltimap2
     object Panel3: TPanel
       Left = 0
       Height = 45
-      Top = 84
+      Top = 65
       Width = 739
       Align = alBottom
       AutoSize = True

@@ -1,4 +1,4 @@
-#pragma warning( disable: 4103)
+#pragma warning( disable: 4100 4103 4213)
 
 #include "ntifs.h"
 #include <windef.h>
@@ -70,10 +70,6 @@ BOOLEAN IsAddressSafe(UINT_PTR StartAddress)
 			physical=MmGetPhysicalAddress((PVOID)StartAddress);
 			return (physical.QuadPart!=0);
 		}
-
-	    
-
-		return TRUE; //for now untill I ave figure out the win 4 paging scheme
 #else
 	/*	MDL x;
 
@@ -168,8 +164,6 @@ BOOLEAN WriteProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Siz
 	//selectedprocess now holds a valid peprocess value
 	__try
 	{
-		UINT_PTR temp=(UINT_PTR)Address;
-						
 		RtlZeroMemory(&apc_state,sizeof(apc_state));					
 
     	KeAttachProcess((PEPROCESS)selectedprocess);				
@@ -215,7 +209,7 @@ BOOLEAN WriteProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Siz
 				else
 				{
 					i = NoExceptions_CopyMemory(target, source, Size);
-					if (i != Size)
+					if (i != (int)Size)
 						ntStatus = STATUS_UNSUCCESSFUL;
 					else
 						ntStatus = STATUS_SUCCESS;
@@ -282,8 +276,6 @@ BOOLEAN ReadProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Size
 	//selectedprocess now holds a valid peprocess value
 	__try
 	{
-		UINT_PTR temp=(UINT_PTR)Address;
-
     	KeAttachProcess((PEPROCESS)selectedprocess);
 
 
@@ -318,7 +310,7 @@ BOOLEAN ReadProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Size
 				else
 				{
 					i=NoExceptions_CopyMemory(target, source, Size);
-					if (i != Size)
+					if (i != (int)Size)
 						ntStatus = STATUS_UNSUCCESSFUL;
 					else
 						ntStatus = STATUS_SUCCESS;
@@ -378,8 +370,8 @@ UINT64 getMaxPhysAddress(void)
 		maxPhysAddress = maxPhysAddress >> physicalbits; //if physicalbits==36 then maxPhysAddress=0x000000000fffffff
 		maxPhysAddress = ~(maxPhysAddress << physicalbits); //<< 36 = 0xfffffff000000000 .  after inverse : 0x0000000fffffffff		
 	}
-	else
-		return maxPhysAddress;
+	
+	return maxPhysAddress;
 }
 
 
@@ -401,7 +393,7 @@ NTSTATUS ReadPhysicalMemory(char *startaddress, UINT_PTR bytestoread, void *outp
 		return ntStatus;
 	}
 	
-	outputMDL = IoAllocateMdl(output, bytestoread, FALSE, FALSE, NULL);
+	outputMDL = IoAllocateMdl(output, (ULONG)bytestoread, FALSE, FALSE, NULL);
 	__try
 	{
 		MmProbeAndLockPages(outputMDL, KernelMode, IoWriteAccess);
@@ -421,7 +413,7 @@ NTSTATUS ReadPhysicalMemory(char *startaddress, UINT_PTR bytestoread, void *outp
 		if (ntStatus==STATUS_SUCCESS)
 		{
 			//hey look, it didn't kill it
-			UINT_PTR length;
+			SIZE_T length;
 			PHYSICAL_ADDRESS	viewBase;
 			UINT_PTR offset;
 			UINT_PTR toread;
@@ -450,7 +442,6 @@ NTSTATUS ReadPhysicalMemory(char *startaddress, UINT_PTR bytestoread, void *outp
 
 			if ((ntStatus == STATUS_SUCCESS) && (memoryview!=NULL))
 			{
-				PMDL mvMDL;
 				if (toread > length)
 					toread = length;
 
@@ -527,74 +518,13 @@ UINT_PTR getPageTableBase()
 			PHYSICAL_ADDRESS a;
 			PVOID r;
 			a.QuadPart = getCR3() & 0xFFFFFFFFFFFFF000ULL;
-			r = MmGetVirtualForPhysical(a);
+			r = MmGetVirtualForPhysical(a); //if this stops working, look for CR3 in the pml4 table
 
 			KnownPageTableBase = ((UINT_PTR)r) & 0xFFFFFF8000000000ULL;
 
-			MAX_PTE_POS = KnownPageTableBase + 0x7FFFFFFFF8ULL;
-			MAX_PDE_POS = KnownPageTableBase + 0x7B7FFFFFF8ULL;
+			MAX_PTE_POS = (UINT_PTR)((QWORD)KnownPageTableBase + 0x7FFFFFFFF8ULL);
+			MAX_PDE_POS = (UINT_PTR)((QWORD)KnownPageTableBase + 0x7B7FFFFFF8ULL);
 		
-			/*
-			//0x00400000 should be readable by ce's design.			
-			struct PTEStruct64 PML4Table[512];
-			PHYSICAL_ADDRESS r400000;
-
-			r400000=MmGetPhysicalAddress((PVOID)0x00400000);
-			if (r400000.QuadPart == 0)
-			{
-				DbgPrint("CE is not loaded at 0x00400000");
-				return 0;
-			}
-
-			
-			DbgPrint("Searching for pagetable base");
-			DbgPrint("PTEStruct64 = %d bytes", sizeof(PML4Table));
-
-			if (ReadPhysicalMemory((char *)(getCR3() & 0xFFFFFFFFFFFFF000ULL), sizeof(PML4Table), &PML4Table)==STATUS_SUCCESS)
-			{
-				int i;
-				for (i = 511; i >0; i++)
-				{
-					//Each entry describes a range of 0x0000008000000000
-					//0   =0000000000000000->0000007fffffffff
-					//1   =0000008000000000->000000ffffffffff
-					//255 =00007F8000000000->ffff800000000000  (sign extend)
-					//511 =FFFFFF8000000000->FFFFFFFFFFFFFFFF  (sign extend)
-					UINT_PTR address = SignExtend(i * 0x0000008000000000ULL);
-					
-					if (MmIsAddressValid((PVOID)address))
-					{
-						
-
-
-						PMDL mdl = IoAllocateMdl((PVOID)address, 4096, FALSE, FALSE, NULL);
-						DbgPrint("%p is valid", (PVOID)address);
-
-						if (mdl)
-						{
-							__try
-							{
-								MmProbeAndLockPages(mdl, KernelMode, IoReadAccess);
-
-								//do stuff, profit
-
-								//Ok, on hold, as MmGetVirtualForPhysical gives me exactly what I want
-
-								MmUnlockPages(mdl);
-							}
-							__except (1)
-							{
-								DbgPrint("%d was wrong", i);
-							}
-							IoFreeMdl(mdl);
-						}
-					}
-				}
-
-			}
-			else
-				DbgPrint("Failure reading the PML4 table");
-				*/
 
 		}
 		else
@@ -638,10 +568,10 @@ BOOL walkPagingLayout(PEPROCESS PEProcess, UINT_PTR MaxAddress, PRESENTPAGECALLB
 				lastAddress = currentAddress;
 
 				
-				(UINT_PTR)PPTE = ((currentAddress & 0xFFFFFFFFFFFFULL) >> 12) *PTESize + pagebase;
-				(UINT_PTR)PPDE = ((((UINT_PTR)PPTE) & 0xFFFFFFFFFFFFULL) >> 12) *PTESize + pagebase;
-				(UINT_PTR)PPDPE = ((((UINT_PTR)PPDE) & 0xFFFFFFFFFFFFULL) >> 12) *PTESize + pagebase;
-				(UINT_PTR)PPML4E = ((((UINT_PTR)PPDPE) & 0xFFFFFFFFFFFFULL) >> 12) *PTESize + pagebase;
+				(UINT_PTR)PPTE = (UINT_PTR)(((currentAddress & 0xFFFFFFFFFFFFULL) >> 12) *PTESize + pagebase);
+				(UINT_PTR)PPDE = (UINT_PTR)((((UINT_PTR)PPTE) & 0xFFFFFFFFFFFFULL) >> 12) *PTESize + pagebase;
+				(UINT_PTR)PPDPE = (UINT_PTR)((((UINT_PTR)PPDE) & 0xFFFFFFFFFFFFULL) >> 12) *PTESize + pagebase;
+				(UINT_PTR)PPML4E = (UINT_PTR)((((UINT_PTR)PPDPE) & 0xFFFFFFFFFFFFULL) >> 12) *PTESize + pagebase;
 				if (PTESize == 8)
 					(UINT_PTR)PPDPE = ((((UINT_PTR)PPDE) & 0xFFFFFFFFFFFFULL) >> 12) *PTESize + pagebase;
 				else
@@ -847,9 +777,10 @@ BOOLEAN GetMemoryRegionData(DWORD PID,PEPROCESS PEProcess, PVOID mempointer,ULON
 	UINT_PTR StartAddress;
 	KAPC_STATE apc_state;
 	NTSTATUS ntStatus=STATUS_SUCCESS;
-	struct PTEStruct *PPTE,*PPDE, *PPDPE, * PPML4E;
+	struct PTEStruct *PPTE=NULL,*PPDE=NULL, *PPDPE=NULL, *PPML4E=NULL;
 	PEPROCESS selectedprocess=PEProcess;
 	BOOL ShowResult=0;
+
 
 	if (pagebase == 0)
 	{
