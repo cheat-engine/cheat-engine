@@ -1,5 +1,3 @@
-creating a new tab with a groupscan setup looks bad
-
 structure dissect: 
   use pdb data if available
   delete all structures sometimes AV's

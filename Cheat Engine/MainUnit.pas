@@ -4524,6 +4524,7 @@ begin
     scantablist.Brush.Color := clBtnFace;
 
 
+
     foundlist3.Height := btnMemoryView.top - foundlist3.top - foundlistheightdiff;
 
     scantype.Top:=scantype.top+scantablist.Height+4;
@@ -5982,14 +5983,17 @@ begin
     groupconfigbutton.width:=scantype.width;
     groupconfigbutton.height:=scantype.height;
 
-    groupconfigbutton.AnchorSideTop:=scantype.AnchorSideTop;
+    groupconfigbutton.AnchorSideTop.Side:=asrBottom;
+    groupconfigbutton.AnchorSideTop.Control:=scanvalue;
+    groupconfigbutton.BorderSpacing.Top:=scantype.top-(scanvalue.Top+scanvalue.Height);
+
     groupconfigbutton.AnchorSideLeft.Control:=VarType;
     groupconfigbutton.AnchorSideLeft.Side:=asrLeft;
     groupconfigbutton.AnchorSideRight.Control:=VarType;
     groupconfigbutton.AnchorSideRight.Side:=asrRight;
 
 
-    groupconfigbutton.Anchors:=scantype.anchors;
+    groupconfigbutton.Anchors:=[akTop, akLeft, akRight];// scantype.anchors;
 
 
     vartype.AnchorSideTop.Control:=groupconfigbutton;
