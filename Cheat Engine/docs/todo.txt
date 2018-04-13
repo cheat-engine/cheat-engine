@@ -1,5 +1,4 @@
 structure dissect: 
-  use pdb data if available
   delete all structures sometimes AV's
   adding names in front messes up the header names
 
