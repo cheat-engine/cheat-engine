@@ -5110,6 +5110,7 @@ begin
 
       struct.addToGlobalStructList;
       mainStruct:=struct;
+      onFullStructChange(struct);
     end;
     //showmessage('not yet implemented. come back later');
 
