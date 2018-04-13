@@ -1077,6 +1077,7 @@ begin
       staticscanner.maxlevel:=frmpointerscannersettings.maxlevel-1;
 
 
+      staticscanner.progressbarLabel:=lblProgressbar1;
       staticscanner.progressbar:=progressbar1;
       staticscanner.threadcount:=frmpointerscannersettings.threadcount;
       staticscanner.scannerpriority:=frmpointerscannersettings.scannerpriority;

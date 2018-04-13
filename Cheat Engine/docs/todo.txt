@@ -1,5 +1,3 @@
-generate pointermap may show that it will genertae billions of useless results (it shouldn't)
-after the pointermap generation is done and being written to disk, the progressbar shows a small percentage. Change it to some text saying saving
 creating a new tab with a groupscan setup looks bad
 
 structure dissect: 

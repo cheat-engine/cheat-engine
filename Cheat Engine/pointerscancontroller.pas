@@ -136,6 +136,9 @@ type
 
     wasidle: boolean; //state of isIdle since last call to waitForAndHandleNetworkEvent
 
+    newProgressbarLabel: string;
+    procedure UpdateProgressbarLabel; //synced
+
     procedure InitializeCompressedPtrVariables;
     procedure InitializeEmptyPathQueue; //initializes the arrays inside the pathqueue
 
@@ -271,6 +274,7 @@ type
     startaddress: ptrUint;
     stopaddress: ptrUint;
     progressbar: TProgressbar;
+    progressbarLabel: TLabel;
     sz: integer;
     maxlevel: integer;
     unalligned: boolean;
@@ -498,6 +502,7 @@ resourcestring
   rsInvalidData = 'invalid data:';
   rsNoUpdateFromTheClientForOver120Sec = 'No update from the client for over 120 seconds';
   rsAllPathsReceived = 'All paths received';
+  rsSavingPointermap = 'Saving pointermap';
 
 //------------------------POINTERLISTLOADER-------------
 procedure TPointerlistloader.execute;
@@ -4372,6 +4377,12 @@ begin
   devnull.free;
 end;
 
+
+procedure TPointerscanController.UpdateProgressbarLabel;
+begin
+  progressbarLabel.caption:=newProgressbarLabel;
+end;
+
 procedure TPointerscanController.execute;
 var
     i,j: integer;
@@ -4485,7 +4496,7 @@ begin
 
 
         progressbar.position:=100;
-        //sleep(10000);
+
 
 
 
@@ -4527,6 +4538,10 @@ begin
       else
         LoadedPointermapFilename:=filename+'.scandata';
 
+
+      progressbar.Position:=99;
+      newProgressbarLabel:=rsSavingPointermap;
+      synchronize(UpdateProgressbarLabel);
 
       f:=tfilestream.create(LoadedPointermapFilename, fmCreate);
       cs:=Tcompressionstream.create(clfastest, f);

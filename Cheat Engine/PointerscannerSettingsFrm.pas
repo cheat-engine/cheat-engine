@@ -713,7 +713,7 @@ begin
       end;
     end;
 
-    if comparecount=0 then
+    if (rbGeneratePointermap.checked=false) and (comparecount=0) then
     begin
       //bug the user one time about this
       if (not warnedAboutDisablingInstantRescan) and (MessageDlg(rsNoCompareFiles, mtConfirmation, [mbyes, mbno], 0)<>mryes) then
@@ -724,7 +724,7 @@ begin
   end
   else
   begin
-    if (cbMustStartWithBase.Checked=false) then
+    if (rbGeneratePointermap.checked=false) and (cbMustStartWithBase.Checked=false) then
     begin
       if  (not warnedAboutDisablingInstantRescan) and (MessageDlg(rsNoCompareFiles, mtConfirmation, [mbyes, mbno], 0)<>mryes) then
         exit;
