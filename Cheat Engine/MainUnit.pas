@@ -258,6 +258,8 @@ type
     lblSigned: TLabel;
     MainMenu2: TMainMenu;
     MenuItem12: TMenuItem;
+    miDotNET: TMenuItem;
+    miGetDotNetObjectList: TMenuItem;
     miDBVMFindWhatWritesOrAccesses: TMenuItem;
     sep2: TMenuItem;
     miChangeValueBack: TMenuItem;
@@ -501,6 +503,7 @@ type
     procedure Foundlist3SelectItem(Sender: TObject; Item: TListItem;
       Selected: boolean);
     procedure MenuItem12Click(Sender: TObject);
+    procedure miGetDotNetObjectListClick(Sender: TObject);
     procedure miChangeValueBackClick(Sender: TObject);
     procedure miDBVMFindWhatWritesOrAccessesClick(Sender: TObject);
     procedure miSignTableClick(Sender: TObject);
@@ -944,7 +947,7 @@ uses mainunit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup, HotKeys,
   frmNetworkDataCompressionUnit, ProcessHandlerUnit, ProcessList, pointeraddresslist,
   PointerscanresultReader, Parsers, Globals, GnuAssembler, xinput, DPIHelper,
   multilineinputqueryunit, winsapi, LuaClass, Filehandler, feces,
-  frmDBVMWatchConfigUnit;
+  frmDBVMWatchConfigUnit, frmDotNetObjectListUnit;
 
 resourcestring
   rsInvalidStartAddress = 'Invalid start address: %s';
@@ -2826,10 +2829,11 @@ begin
 
   outputdebugstring('openProcessEpilogue exit');
 
+ // miDotNET.visible:=symhandler.hasDotNetAccess; //too slow to use. You're free to uncomment it but don't bitch about having to wait 2 and a half hour
+
 
   if assigned(fOnProcessOpened) then
     fOnProcessOpened(processid, processhandle, processlabel.Caption);
-
 end;
 
 procedure TMainForm.ShowProcessListButtonClick(Sender: TObject);
@@ -3078,6 +3082,15 @@ end;
 procedure TMainForm.MenuItem12Click(Sender: TObject);
 begin
   shellexecute(0, 'open', pchar(cheatenginedir+'Tutorial-x86_64.exe'), nil, nil, sw_show);
+end;
+
+procedure TMainForm.miGetDotNetObjectListClick(Sender: TObject);
+begin
+  if frmDotNetObjectList=nil then
+    frmDotNetObjectList:=TfrmDotNetObjectList.create(self);
+
+  frmDotNetObjectList.show;
+  frmDotNetObjectList.loadlist;
 end;
 
 

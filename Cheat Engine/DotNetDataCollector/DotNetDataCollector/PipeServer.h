@@ -13,6 +13,8 @@
 #define CMD_GETTYPEDEFMETHODS 6
 #define CMD_GETADDRESSDATA 7
 
+#define CMD_GETALLOBJECTS 8
+
 
 
 
@@ -33,6 +35,9 @@ private:
 
 	std::map<ICorDebugModule* , IMetaDataImport*> moduleMetaData;
 
+	
+
+
 	IMetaDataImport *getMetaData(ICorDebugModule *module);
 
 	BOOL OpenOrAttachToProcess(void);
@@ -43,6 +48,7 @@ private:
 	void getAddressData(UINT64 Address);
 	int getAllFields(COR_TYPEID cortypeid, COR_TYPE_LAYOUT layout, std::vector<COR_FIELD> *fieldlist);
 	void releaseObjectHandle(UINT64 hObject);
+	void enumAllObjects(void);
 public:
 	CPipeServer(TCHAR *name);
 	~CPipeServer(void);

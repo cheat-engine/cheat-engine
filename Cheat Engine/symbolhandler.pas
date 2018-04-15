@@ -256,6 +256,8 @@ type
 
     function getAddressFromNameShallow(name: string; waitforsymbols: boolean; out haserror: boolean):ptrUint;
 
+    function getDotNetObjectList: TDOTNETObjectList;
+    procedure freeDotNetObjectList(list: TDOTNETObjectList);
 
     function getSymbolInfo(name: string; var syminfo: TCESymbolInfo): boolean;
     procedure getStructureList(list: TStringList);
@@ -1729,6 +1731,16 @@ end;
 function TSymhandler.getDotNetAccess: boolean;
 begin
   result:=dotNetDataCollector.Attached;
+end;
+
+function TSymhandler.getDotNetObjectList: TDOTNETObjectList;
+begin
+  result:=dotNetDataCollector.EnumAllObjects;
+end;
+
+procedure TSymhandler.freeDotNetObjectList(list: TDOTNETObjectList);
+begin
+  dotNetDataCollector.freeNETObjectList(list);
 end;
 
 function TSymhandler.getisloaded:boolean;
