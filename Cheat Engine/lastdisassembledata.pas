@@ -20,6 +20,7 @@ type
     opcode: string; //and sadly undone because I want to allow the user to change the string... pchar; //replaced string with pchar so it now only contains a pointer. Faster. string; //the result without bytes
     parameters: string;
     description: string;
+    commentsoverride: string;
     Bytes: array of byte;
     SeperatorCount: integer;
     Seperators: Array [0..5] of integer; //an index in the byte array describing the seperators (prefix/instruction/modrm/sib/extra)

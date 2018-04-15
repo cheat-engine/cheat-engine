@@ -1408,6 +1408,7 @@ var memory: TMemory;
 begin
   LastDisassembleData.isfloat:=false;
   LastDisassembleData.iscloaked:=false;
+  LastDisassembleData.commentsoverride:='';
   {$ifndef unix}
   if defaultBinutils<>nil then
   begin
@@ -11509,6 +11510,9 @@ var
   a: boolean;
   s: string;
 begin
+  if LastDisassembleData.commentsoverride<>'' then
+    exit(LastDisassembleData.commentsoverride);
+
   result:='';
 
   if LastDisassembleData.isjump then

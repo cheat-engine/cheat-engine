@@ -70,6 +70,11 @@ begin
   ldd.description:=Lua_ToString(L, -1);
   lua_pop(L, 1);
 
+  lua_pushstring(L,'commentsoverride');
+  lua_gettable(L, t);
+  ldd.commentsoverride:=Lua_ToString(L, -1);
+  lua_pop(L, 1);
+
   lua_pushstring(L,'bytes');
   lua_gettable(L, t);
   bytestable:=lua_gettop(L);
@@ -148,6 +153,10 @@ begin
 
   lua_pushstring(L,'description');
   lua_pushstring(L, ldd.description);
+  lua_settable(L, t);
+
+  lua_pushstring(L,'commentsoverride');
+  lua_pushstring(L, ldd.commentsoverride);
   lua_settable(L, t);
 
   lua_pushstring(L, 'bytes');

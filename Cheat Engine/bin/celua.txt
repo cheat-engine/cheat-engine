@@ -2629,6 +2629,7 @@ Methods
       opcode: string - The opcode without parameters
       parameters: string - The parameters
       description: string - The description of this opcode
+      commentsoverride: string - If set, this will be the comments/LastParamatersToString result
       bytes: table - A table containing the bytes this instruction consists of (1.. )
 
       modrmValueType: DisAssemblerValueType  - Defines the type of the modrmValue field (dvtNone=0, dvtAddress=1, dvtValue=2)

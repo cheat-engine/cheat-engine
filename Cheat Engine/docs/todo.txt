@@ -1,6 +1,5 @@
 structure dissect: 
-  delete all structures sometimes AV's
-  adding names in front messes up the header names
+  delete all structures sometimes AV's (no idea how to reproduce)
 
 
 for .net games let stucture dissect see those structures aS WELL
