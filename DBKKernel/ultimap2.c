@@ -19,8 +19,6 @@
 #include "ultimap2.h"
 
 
-
-
 PSSUSPENDPROCESS PsSuspendProcess;
 PSSUSPENDPROCESS PsResumeProcess;
 KDPC RTID_DPC;
@@ -114,6 +112,7 @@ HANDLE SuspendThreadHandle;
 volatile int suspendCount;
 BOOL ultimapEnabled = FALSE;
 BOOL singleToPASystem = FALSE;
+BOOL NoPMIMode = FALSE;
 
 
 void suspendThread(PVOID StartContext)
@@ -626,8 +625,14 @@ void bufferWriterThread(PVOID StartContext)
 	
 	while (UltimapActive)
 	{
-		Timeout.QuadPart = -10000LL;  //- 10000LL=1 millisecond //-100000000LL = 10 seconds   -1000000LL= 0.1 second
+		if (NoPMIMode)
+			Timeout.QuadPart = -1000LL;  //- 10000LL=1 millisecond //-100000000LL = 10 seconds   -1000000LL= 0.1 second
+		else
+			Timeout.QuadPart = -10000LL;  //- 10000LL=1 millisecond //-100000000LL = 10 seconds   -1000000LL= 0.1 second
+
+		//DbgPrint("%d : Wait for FlushData", cpunr());
 		wr = KeWaitForSingleObject(&FlushData, Executive, KernelMode, FALSE, &Timeout);
+		//DbgPrint("%d : After wait for FlushData", cpunr());
 		//wr = KeWaitForSingleObject(&FlushData, Executive, KernelMode, FALSE, NULL);
 
 		//DbgPrint("bufferWriterThread: Alive (wr==%x)", wr);
@@ -680,10 +685,10 @@ void bufferWriterThread(PVOID StartContext)
 				}
 			}
 
-			
-
 			//wait till the previous buffers are done writing
+			//DbgPrint("%d : before flush", cpunr());
 			WaitForWriteToFinishAndSwapWriteBuffers(FALSE);
+			//DbgPrint("%d: after flush", cpunr());
 
 			if (isSuspended)
 			{
@@ -1290,6 +1295,8 @@ void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, P
 	NTSTATUS r= STATUS_UNSUCCESSFUL;
 	int cpuid_r[4];
 
+	DbgPrint("SetupUltimap2\n");
+
 	__cpuidex(cpuid_r, 0x14, 0);
 
 	//if ((cpuid_r[2] & 2) == 0)
@@ -1297,6 +1304,8 @@ void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, P
 		DbgPrint("Single ToPA System");
 		singleToPASystem = TRUE;
 	}
+
+	NoPMIMode = NoPMI;
 
 
 
@@ -1441,13 +1450,12 @@ void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, P
 			RegisteredProfilerInterruptHandler = TRUE;
 
 		DbgPrint("HalSetSystemInformation returned %x\n", r);
+
+		if (r != STATUS_SUCCESS)
+			DbgPrint("Failure hooking the permon interrupt.  Ultimap2 will not be able to use interrupts until you reboot (This can happen when the perfmon interrupt is hooked more than once. It has no restore/undo hook)\n");
 	}
 
-	if (r != STATUS_SUCCESS)
-	{
-		DbgPrint("Failure hooking the permon interrupt\n");
-		return;
-	}
+
 
 	forEachCpu(ultimap2_setup_dpc, NULL, NULL, NULL);
 	
