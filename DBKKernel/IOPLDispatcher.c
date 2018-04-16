@@ -1856,16 +1856,17 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				} *inp=Irp->AssociatedIrp.SystemBuffer;
 
 				DbgPrint("IOCTL_CE_WRITEMSR:\n");
-				DbgPrint("msr=%x\n", inp->msr);
-				DbgPrint("value=%x\n", inp->value);
+				DbgPrint("msr=%llx\n", inp->msr);
+				DbgPrint("value=%llx\n", inp->value);
 
 				__try
 				{
-					__writemsr(inp->msr, inp->value );							
+					__writemsr(inp->msr, inp->value );					
 					ntStatus=STATUS_SUCCESS;
 				}
 				__except(1)
 				{
+					DbgPrint("Error while writing value\n");
 					ntStatus=STATUS_UNSUCCESSFUL;
 				}
 				break;

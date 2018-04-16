@@ -130,8 +130,10 @@ void suspendThread(PVOID StartContext)
 			KeWaitForSingleObject(&SuspendMutex, Executive, KernelMode, FALSE, NULL);
 			if (!isSuspended)
 			{
-				PsSuspendProcess(CurrentTarget);
-				isSuspended = TRUE;
+				if (PsSuspendProcess(CurrentTarget) == 0)
+					isSuspended = TRUE;
+				else
+					DbgPrint("Failed to suspend target\n");
 			}
 			KeReleaseMutex(&SuspendMutex, FALSE);
 		}
@@ -484,7 +486,7 @@ Only called when buffer2 is ready for flushing
 		PVOID temp;
 
 		if ((Status >> 5) & 1) //Stopped
-			DbgPrint("Not all data recorded");
+			DbgPrint("%d Not all data recorded\n", KeGetCurrentProcessorNumber());
 
 
 		if ((Status >> 4) & 1)
@@ -577,13 +579,6 @@ Only called when buffer2 is ready for flushing
 		__writemsr(IA32_RTIT_OUTPUT_BASE, pi->CurrentOutputBase);
 		__writemsr(IA32_RTIT_OUTPUT_MASK_PTRS, 0);
 
-
-		if ((Status >> 5) & 1) //Stopped
-		{
-			Status = Status ^ (1 << 5); //toggle it off
-			__writemsr(IA32_RTIT_STATUS, Status);
-		}
-
 		__writemsr(IA32_RTIT_CTL, CTL);
 	}
 }
@@ -597,12 +592,9 @@ void WaitForWriteToFinishAndSwapWriteBuffers(BOOL interruptedOnly)
 		PProcessorInfo pi = PInfo[i];
 		if ((pi->ToPABuffer2) && ((pi->Interrupted) || (!interruptedOnly)))
 		{
-
 			KeWaitForSingleObject(&pi->Buffer2ReadyForSwap, Executive, KernelMode, FALSE, NULL);
 
 			if (!UltimapActive) return;
-
-
 
 			KeInsertQueueDpc(&pi->OwnDPC, NULL, NULL);
 		}
@@ -642,20 +634,25 @@ void bufferWriterThread(PVOID StartContext)
 			return;
 		}
 
+		//if (wr != STATUS_SUCCESS) continue; //DEBUG code so PMI's get triggered
+
+
 		if ((wr == STATUS_SUCCESS) || (wr == STATUS_TIMEOUT))
 		{
 			if ((wr == STATUS_SUCCESS) && (!isSuspended))
 			{
 				//woken up by a dpc				
-				DbgPrint("Suspending target process");
+				DbgPrint("FlushData event set and not suspended. Suspending target process\n");
 				KeWaitForSingleObject(&SuspendMutex, Executive, KernelMode, FALSE, NULL);
 				if (!isSuspended)
 				{
 					DbgPrint("Still going to suspend target process");
-					PsSuspendProcess(CurrentTarget);
-					isSuspended = TRUE;
+					if (PsSuspendProcess(CurrentTarget)==0)
+						isSuspended = TRUE;
 				}
 				KeReleaseMutex(&SuspendMutex, FALSE);
+
+				DbgPrint("After the target has been suspended (isSuspended=%d)\n", isSuspended);
 			}			
 
 			if (wr == STATUS_SUCCESS) //the filled cpu's must take preference
@@ -667,6 +664,7 @@ void bufferWriterThread(PVOID StartContext)
 
 
 				//first flush the CPU's that complained their buffers are full
+				DbgPrint("Flushing full CPU\'s");
 				while (found)
 				{
 					WaitForWriteToFinishAndSwapWriteBuffers(TRUE);
@@ -678,6 +676,7 @@ void bufferWriterThread(PVOID StartContext)
 					{
 						if (PInfo[i]->Interrupted)
 						{
+							DbgPrint("PInfo[%d]->Interrupted\n", PInfo[i]->Interrupted);
 							found = TRUE;
 							break;
 						}
@@ -686,9 +685,9 @@ void bufferWriterThread(PVOID StartContext)
 			}
 
 			//wait till the previous buffers are done writing
-			//DbgPrint("%d : before flush", cpunr());
+			DbgPrint("%d: Normal flush", cpunr());
 			WaitForWriteToFinishAndSwapWriteBuffers(FALSE);
-			//DbgPrint("%d: after flush", cpunr());
+			//DbgPrint("%d : after flush", cpunr());
 
 			if (isSuspended)
 			{
@@ -765,14 +764,31 @@ void PMI(__in struct _KINTERRUPT *Interrupt, __in PVOID ServiceContext)
 	{
 		if ((__readmsr(IA32_PERF_GLOBAL_STATUS) >> 55) & 1)
 		{
-			//DbgPrint("caused by me");	
+			UINT64 Status = __readmsr(IA32_RTIT_STATUS);
+
+			DbgPrint("PMI: caused by me");	
 			__writemsr(IA32_PERF_GLOBAL_OVF_CTRL, (UINT64)1 << 55); //clear ToPA full status
+
+			if ((__readmsr(IA32_PERF_GLOBAL_STATUS) >> 55) & 1)
+			{
+				DbgPrint("PMI: Failed to clear the status\n");
+			}
+
+			DbgPrint("PMI: IA32_RTIT_OUTPUT_MASK_PTRS=%p\n", __readmsr(IA32_RTIT_OUTPUT_MASK_PTRS));
+			DbgPrint("PMI: IA32_RTIT_STATUS=%p\n", Status);
+			
+			if ((Status >> 5) & 1) //Stopped
+				DbgPrint("PMI %d: Not all data recorded (AT THE PMI!)\n", KeGetCurrentProcessorNumber());
+
+
+			DbgPrint("PMI: IA32_RTIT_OUTPUT_MASK_PTRS %p\n", __readmsr(IA32_RTIT_OUTPUT_MASK_PTRS));
 
 			PInfo[KeGetCurrentProcessorNumber()]->Interrupted = TRUE;
 
 			KeInsertQueueDpc(&RTID_DPC, NULL, NULL);
 
 			//clear apic state
+
 			apic_clearPerfmon();
 		}
 		else
@@ -1299,7 +1315,7 @@ void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, P
 
 	__cpuidex(cpuid_r, 0x14, 0);
 
-	//if ((cpuid_r[2] & 2) == 0)
+	if ((cpuid_r[2] & 2) == 0)
 	{
 		DbgPrint("Single ToPA System");
 		singleToPASystem = TRUE;
@@ -1445,6 +1461,10 @@ void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, P
 
 	if ((NoPMI == FALSE) && (RegisteredProfilerInterruptHandler == FALSE))
 	{
+		DbgPrint("Registering PMI handler\n");
+
+		pperfmon_hook2 = (void *)PMI;
+
 		r = HalSetSystemInformation(HalProfileSourceInterruptHandler, sizeof(PVOID*), &pperfmon_hook2); //hook the perfmon interrupt
 		if (r == STATUS_SUCCESS)
 			RegisteredProfilerInterruptHandler = TRUE;
@@ -1464,12 +1484,30 @@ void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, P
 void UnregisterUltimapPMI()
 {
 	NTSTATUS r;
+	DbgPrint("UnregisterUltimapPMI()\n");
 	if (RegisteredProfilerInterruptHandler)
-	{
+	{		
+	
+		pperfmon_hook2 = NULL;
+		r = HalSetSystemInformation(HalProfileSourceInterruptHandler, sizeof(PVOID*), &pperfmon_hook2); 
+		DbgPrint("1: HalSetSystemInformation to disable returned %x\n", r);
+
+		if (r == STATUS_SUCCESS)
+			return;
+
 		r = HalSetSystemInformation(HalProfileSourceInterruptHandler, sizeof(PVOID*), &clear); //unhook the perfmon interrupt
-		DbgPrint("HalSetSystemInformation to disable returned %x\n", r);
-		HalSetSystemInformation(HalProfileSourceInterruptHandler, sizeof(PVOID*), 0);
+		DbgPrint("2: HalSetSystemInformation to disable returned %x\n", r);
+
+		if (r == STATUS_SUCCESS)
+			return;
+
+
+		r = HalSetSystemInformation(HalProfileSourceInterruptHandler, sizeof(PVOID*), 0);
+		DbgPrint("3: HalSetSystemInformation to disable returned %x\n", r);
+		
 	}
+	else
+		DbgPrint("UnregisterUltimapPMI() not needed\n");
 }
 
 void DisableUltimap2(void)
