@@ -1,0 +1,30 @@
+object frmDotNetObjectList: TfrmDotNetObjectList
+  Left = 353
+  Height = 240
+  Top = 120
+  Width = 320
+  Caption = '.Net Object List'
+  ClientHeight = 240
+  ClientWidth = 320
+  Position = poMainFormCenter
+  LCLVersion = '1.6.4.0'
+  object ListView1: TListView
+    Left = 0
+    Height = 240
+    Top = 0
+    Width = 320
+    Align = alClient
+    AutoWidthLastColumn = True
+    Columns = <    
+      item
+        Caption = 'Address'
+        Width = 100
+      end    
+      item
+        Caption = 'Classname'
+        Width = 216
+      end>
+    TabOrder = 0
+    ViewStyle = vsReport
+  end
+end
