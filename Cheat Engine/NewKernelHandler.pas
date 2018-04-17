@@ -580,8 +580,8 @@ procedure LoadDBK32; stdcall;
 procedure OutputDebugString(msg: string);
 
 
-procedure NeedsDBVM;
-function loaddbvmifneeded: BOOL; stdcall;
+procedure NeedsDBVM(Reason: string='');
+function loaddbvmifneeded(reason:string=''): BOOL; stdcall;
 function isRunningDBVM: boolean;
 function isDBVMCapable: boolean;
 
@@ -1034,12 +1034,16 @@ begin
 {$endif}
 end;
 
-procedure NeedsDBVM;
+procedure NeedsDBVM(reason: string='');
+var r: string;
 begin
 {$ifndef JNI}
   if (not isRunningDBVM) then
   begin
-    if isDBVMCapable and (MessageDlg(rsToUseThisFunctionYouWillNeedToRunDBVM, mtWarning, [mbyes, mbno], 0)=mryes) then
+    r:=reason;
+    if r='' then
+      r:=rsToUseThisFunctionYouWillNeedToRunDBVM;
+    if isDBVMCapable and (MessageDlg(r, mtWarning, [mbyes, mbno], 0)=mryes) then
     begin
       LaunchDBVM(-1);
       if not isRunningDBVM then raise exception.Create(rsDidNotLoadDBVM);
@@ -1052,10 +1056,14 @@ begin
 
 end;
 
-function loaddbvmifneeded: BOOL;  stdcall;
-var signed: BOOL;
+function loaddbvmifneeded(reason: string=''): BOOL;  stdcall;
+var
+  signed: BOOL;
+  r: string;
 begin
   result:=false;
+  r:=reason;
+  if r='' then r:=rsToUseThisFunctionYouWillNeedToRunDBVM;
 
 {$ifndef JNI}
   loaddbk32;
@@ -1069,7 +1077,7 @@ begin
         signed:=false;
         if isDriverLoaded(@signed) then
         begin
-          if MessageDlg(rsToUseThisFunctionYouWillNeedToRunDBVM, mtWarning, [mbyes, mbno], 0)=mryes then
+          if MessageDlg(r, mtWarning, [mbyes, mbno], 0)=mryes then
           begin
             LaunchDBVM(-1);
             if not isRunningDBVM then raise exception.Create(rsDidNotLoadDBVM);

@@ -62,6 +62,11 @@ const
   VMCALL_LOG_CR3VALUES_START = 52;
   VMCALL_LOG_CR3VALUES_STOP = 53;
 
+  VMCALL_REGISTERPLUGIN = 54;
+  VMCALL_RAISEPMI = 55;
+  VMCALL_ULTIMAP2_HIDERANGEUSAGE = 56;
+
+
 
   //---
   //watch options:
@@ -363,11 +368,14 @@ function dbvm_cloak_writeoriginal(PhysicalBase: QWORD; source: pointer): integer
 function dbvm_cloak_changeregonbp(PhysicalAddress: QWORD; var changeregonbpinfo: TChangeRegOnBPInfo; VirtualAddress: qword=0): integer;
 function dbvm_cloak_removechangeregonbp(PhysicalAddress: QWORD): integer;
 
-
 procedure dbvm_ept_reset;
 
 function dbvm_log_cr3values_start: boolean;
 function dbvm_log_cr3values_stop(log: pointer): boolean;
+
+function dbvm_registerPlugin(pluginaddress: pointer; pluginsize: integer; plugintype: integer): integer;
+procedure dbvm_raisePMI;
+procedure dbvm_ultimap2_hideRangeUsage;
 
 procedure configure_vmx(userpassword1,userpassword2: dword);
 procedure configure_vmx_kernel;
@@ -764,7 +772,7 @@ begin
 
     if (result shr 24)<>$ce then
     begin
-      OutputDebugString('Invalid vmx');
+      //OutputDebugString('Invalid vmx');
       result:=0;
     end
     else
@@ -1492,6 +1500,69 @@ begin
   vmcallinfo.command:=VMCALL_LOG_CR3VALUES_STOP;
   vmcallinfo.destination:=ptruint(log);
   result:=vmcall(@vmcallinfo,vmx_password1)<>0;
+end;
+
+function dbvm_registerPlugin(pluginaddress: pointer; pluginsize: integer; plugintype: integer): integer;
+{
+registers a plugin with DBVM.  (The contents of pluginaddress to size are copied
+into DBVM, so make sure there is enough RAM available inside DBVM, and that you
+are inside DBVM)
+
+plugintype: 0=vmexit_pre: Called before DBVM handles the current vmexit
+            1=vmexit_post: After DBVM has handled the current vmexit
+
+look at the DBVM source for more info
+typedef BOOL DBVM_PLUGIN_EXIT_PRE(PDBVMExports exports, pcpuinfo currentcpuinfo, void *registers, void *fxsave);
+typedef void DBVM_PLUGIN_EXIT_POST(PDBVMExports exports, pcpuinfo currentcpuinfo, void *registers, void *fxsave, int *DBVMResult);
+
+Linux 64-Bit ABI calling convention
+}
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+  plugintype: integer;
+  virtualAddress: QWORD;
+  byteSize: integer;
+  reserved: QWORD; //must be 0
+  reserved2: integer;
+end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_REGISTERPLUGIN;
+  vmcallinfo.plugintype:=plugintype;
+  vmcallinfo.virtualAddress:=qword(pluginaddress);
+  vmcallinfo.byteSize:=pluginsize;
+  vmcallinfo.reserved:=0;
+  vmcallinfo.reserved2:=0;
+  result:=vmcall(@vmcallinfo,vmx_password1);
+end;
+
+procedure dbvm_raisePMI;
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_RAISEPMI;
+  vmcall(@vmcallinfo,vmx_password1);
+end;
+
+procedure dbvm_ultimap2_hideRangeUsage; //hides thge range usage. You can call it as often as you like
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_ULTIMAP2_HIDERANGEUSAGE;
+  vmcall(@vmcallinfo,vmx_password1);
 end;
 
 var kernelfunctions: Tstringlist;

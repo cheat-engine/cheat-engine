@@ -143,6 +143,7 @@ var
 
   fontmultiplication: single=1.0; //for some gui stuff
   istrainer: boolean=false;
+  isExeTrainer: boolean=false;
 
 
 implementation

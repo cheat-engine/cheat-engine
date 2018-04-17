@@ -287,7 +287,8 @@ implementation
 
 {$R *.lfm}
 
-uses symbolhandler, frmSelectionlistunit, cpuidUnit, MemoryBrowserFormUnit, AdvancedOptionsUnit;
+uses symbolhandler, frmSelectionlistunit, cpuidUnit, MemoryBrowserFormUnit,
+  AdvancedOptionsUnit, vmxfunctions;
 
 resourcestring
 rsRecording2 = 'Recording';
@@ -315,6 +316,11 @@ rsPutBetweenToMarsAsAnAutoStopRange = '(Put between *''s to mark as an auto stop
 rsTheRangeYouHaveProvidedIsAnExitRangeBeAware = 'The range you have provided is an ''Exit'' range. Be aware that this doesn''t mean it will always stop at that range, or that the result is what you expect. A context switch to another thread between the start and stop can add a lot of other data';
 rsIsAnInvalidRange = ' is an invalid range';
 rsInstructionPointerListSize = 'Instruction Pointer List Size:';
+rsRangesNeedDBVMInWindows10 = 'To use ranges with Ultimap2 in windows 10, you '
+  +'must hide the fact that you use ranges from it. To be able to do that '
+  +'DBVM needs to be running. There is a chance running DBVM can crash your '
+  +'system and make you lose your data(So don''t forget to save first). Do you'
+  +' want to run DBVM?';
 
 //worker
 
@@ -1478,6 +1484,7 @@ begin
 
     //if ssCtrl in GetKeyShiftState then
     //  debugmode:=true;
+  try
 
     if ((ultimap2Initialized=0) or (processid<>ultimap2Initialized)) then
     begin
@@ -1625,7 +1632,7 @@ begin
       end
       else
       begin
-        getexecutablememoryregionsfromregion(0, qword($ffffffffffffffff), regions);
+        getexecutablememoryregionsfromregion(0, qword($7fffffffffffffff), regions); //only 7fffffffffffffff as this only records usermode (can be changed)
         for i:=0 to length(regions)-1 do
         begin
           getmem(p, sizeof(TRegionInfo));
@@ -1655,6 +1662,21 @@ begin
 
       if not debugmode then
       begin
+
+        if (length(ranges)>0) and (WindowsVersion>=wv10) and (cbNoInterrupts.checked=false) then
+        begin
+          {$ifndef NOVMX}
+          NeedsDBVM(rsRangesNeedDBVMInWindows10);
+          dbvm_ultimap2_hideRangeUsage;
+          {$else}
+          if messagedlg('It is recommended to build in release mode or with NOVMX disabled so that DBVM can be launched at this point. '+
+                     'Not doing so will almost surely BSOD you as soon as a performance monitor interrupt triggers(buffer full).'+#13#10+
+                     'Alternatively, you could find hal!KdDebuggerNotPresent (NOT nt!KdDebuggerNotPresent which is what hal!KdDebuggerNotPresent points at) and NULL it'#13#10+
+                     'Continue?', mtWarning, [mbyes,mbno],0)<>mryes then exit;
+          {$endif}
+        end;
+
+
         if rbLogToFolder.Checked then
           ultimap2(processid, bsize, deTargetFolder.Directory, ranges, cbNoInterrupts.checked)
         else
@@ -1688,6 +1710,11 @@ begin
       end;
     end;
 
+
+  except
+    on e: exception do
+      messagedlg(e.message,mtError,[mbOK],0);
+  end;
 end;
 
 procedure TfrmUltimap2.tProcessorTimer(Sender: TObject);

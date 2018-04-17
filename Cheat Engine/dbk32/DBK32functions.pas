@@ -5,7 +5,7 @@ unit DBK32functions;
 interface
 
 uses jwawindows, windows, sysutils, classes, types, registry, multicpuexecution,
-  forms,dialogs, controls, maps;
+  forms,dialogs, controls, maps, globals;
 
 //xp sp2
 //ThreadsProcess=220
@@ -3202,7 +3202,9 @@ begin
             end
             else
               OutputDebugString('started ultimap2');
-            closeservicehandle(hservice);
+
+            closeservicehandle(hUltimapService);
+            hUltimapService:=0;
           end;
 
           hultimapDevice := CreateFile(pchar('\\.\'+ultimapservicename),
@@ -3294,6 +3296,7 @@ begin
           end;
 
           closeservicehandle(hservice);
+          hservice:=0;
         end else
         begin
           messagebox(0,PChar(rsTheServiceCouldntGetOpened),PChar(rsDbk32Error),MB_ICONERROR or mb_ok);

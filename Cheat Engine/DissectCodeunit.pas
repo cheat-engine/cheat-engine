@@ -228,6 +228,7 @@ procedure TfrmDissectCode.FormClose(Sender: TObject;
   var Action: TCloseAction);
 var i: integer;
 begin
+  autosize:=false;
   cleanModuleList;
 
 end;

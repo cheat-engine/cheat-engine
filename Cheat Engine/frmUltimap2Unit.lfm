@@ -372,7 +372,7 @@ object frmUltimap2: TfrmUltimap2
           AnchorSideBottom.Side = asrBottom
           Left = 0
           Height = 19
-          Hint = 'In Windows 10, when a PMI triggers, it will BSOD with "PROFILER_CONFIGURATION_ILLEGAL" if you use ranges and don''t have a kernelmode debugger attached'#13#10#13#10'Tip: Use a huge buffer and autoprocess/flush the tracefiles'
+          Hint = 'In Windows 10, when a PMI triggers, it will BSOD with "PROFILER_CONFIGURATION_ILLEGAL" if you use ranges and don''t have a kernelmode debugger attached'#13#10#13#10'Tip: Use a huge buffer and autoprocess/flush the tracefiles'#13#10'Tip2: If DBVM is running it will hide the fact that regions are used from windows, and this you can just use interrupts like before'
           Top = 109
           Width = 200
           Anchors = [akLeft, akBottom]

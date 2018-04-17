@@ -5376,6 +5376,38 @@ begin
 end;
 
 
+function lua_dbvm_registerPlugin(L: PLua_State): integer; cdecl;
+var
+  pluginAddress: ptruint;
+  pluginSize: integer;
+  plugintype: integer;
+  r: integer;
+begin
+  if lua_gettop(L)>=3 then
+  begin
+    pluginAddress:=lua_tointeger(L,1);
+    pluginSize:=lua_tointeger(L,2);
+    plugintype:=lua_tointeger(L,2);
+    r:=dbvm_registerPlugin(pointer(pluginAddress), pluginSize, pluginType);
+    lua_pushinteger(L,r);
+    result:=1;
+  end
+  else
+    result:=0;
+end;
+
+function lua_dbvm_raisePMI(L: PLua_State): integer; cdecl;
+begin
+  result:=0;
+  dbvm_raisePMI;
+end;
+
+function lua_dbvm_ultimap2_hideRangeUsage(L: PLua_State): integer; cdecl;
+begin
+  result:=0;
+  dbvm_ultimap2_hideRangeUsage;
+end;
+
 function dbk_readMSR(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
@@ -5401,8 +5433,8 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    msr:=lua_tointeger(L,-2);
-    msrvalue:=lua_tointeger(L,-1);
+    msr:=lua_tointeger(L,1);
+    msrvalue:=lua_tointeger(L,2);
     writemsr(msr, msrvalue);
   end;
 
@@ -9857,7 +9889,9 @@ begin
     lua_register(L, 'dbvm_ept_reset', lua_dbvm_ept_reset);
     lua_register(L, 'dbvm_log_cr3_start', lua_dbvm_log_cr3_start);
     lua_register(L, 'dbvm_log_cr3_stop', lua_dbvm_log_cr3_stop);
-
+    lua_register(L, 'dbvm_registerPlugin', lua_dbvm_registerPlugin);
+    lua_register(L, 'dbvm_raisePMI', lua_dbvm_raisePMI); //mostly just for debugging
+    lua_register(L, 'dbvm_ultimap2_hideRangeUsage', lua_dbvm_ultimap2_hideRangeUsage); //same
 
     lua_register(L, 'dbk_getPhysicalAddress', dbk_getPhysicalAddress);
     lua_register(L, 'dbk_writesIgnoreWriteProtection', dbk_writesIgnoreWriteProtection);

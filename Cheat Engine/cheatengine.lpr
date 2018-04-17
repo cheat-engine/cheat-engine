@@ -93,7 +93,7 @@ uses
   DPIHelper, Graphics, fontSaveLoadRegistry, registry, frmWatchlistUnit,
   frmWatchListAddEntryUnit, frmBusyUnit, FindDialogFix, LuaCustomType, LuaSQL,
   bCrypt, feces, askToRunLuaScript, frmDBVMWatchConfigUnit,
-  frmStructuresNewStructureUnit;
+  frmStructuresNewStructureUnit, frmDotNetObjectListUnit;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in
@@ -226,16 +226,23 @@ begin
 
 end;
 
+
 var
   i: integer;
 
   ff: TFormFucker;
   r: TRegistry;
+
+  path: string;
 begin
   Application.Title:='Cheat Engine 6.7';
   Application.Initialize;
 
   overridefont:=nil;
+
+  getcedir;
+  doTranslation;
+
 
   //first check if this is a trainer.
   istrainer:=false;
@@ -244,6 +251,10 @@ begin
     if pos('.CETRAINER', uppercase(ParamStr(i)))>0 then
     begin
       istrainer:=true; //a trainer could give some extra parameters like dpiaware , but that is fine
+
+      if pos('CET_TRAINER.CETRAINER', uppercase(ParamStr(i)))>0 then
+        isExeTrainer:=true;
+
       break;
     end;
   end;
@@ -290,9 +301,7 @@ begin
     end;
   end;
 
-  getcedir;
 
-  doTranslation;
 
   symhandlerInitialize;
 
