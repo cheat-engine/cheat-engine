@@ -837,6 +837,49 @@ void setup8086WaitForSIPI(pcpuinfo currentcpuinfo)
   vmwrite(vm_guest_rflags,guestrflags.value ); //rflag
 }
 
+void vmx_setMSRReadExit(DWORD msrValue)
+{
+  if (msrValue<0xc0000000)
+    MSRBitmap[msrValue/8]|=1 << (msrValue % 8);
+  else
+  {
+    msrValue=msrValue-0xc0000000;
+    MSRBitmap[1024+msrValue/8]|=1 << (msrValue % 8);
+  }
+}
+
+void vmx_RemoveMSReadExit(DWORD msrValue)
+{
+  if (msrValue<0xc0000000)
+    MSRBitmap[msrValue/8]&=~(1 << (msrValue % 8));
+  else
+  {
+    msrValue=msrValue-0xc0000000;
+    MSRBitmap[1024+msrValue/8]&=~(1 << (msrValue % 8));
+  }
+}
+
+void vmx_setMSRWriteExit(DWORD msrValue)
+{
+  if (msrValue<0xc0000000)
+    MSRBitmap[2048+msrValue/8]|=1 << (msrValue % 8);
+  else
+  {
+    msrValue=msrValue-0xc0000000;
+    MSRBitmap[3072+msrValue/8]|=1 << (msrValue % 8);
+  }
+}
+
+void vmx_removeMSRWriteExit(DWORD msrValue)
+{
+  if (msrValue<0xc0000000)
+    MSRBitmap[2048+msrValue/8]&=~(1 << (msrValue % 8));
+  else
+  {
+    msrValue=msrValue-0xc0000000;
+    MSRBitmap[3072+msrValue/8]&=~(1 << (msrValue % 8));
+  }
+}
 
 void setupVMX(pcpuinfo currentcpuinfo)
 {
@@ -869,46 +912,34 @@ void setupVMX(pcpuinfo currentcpuinfo)
 
     //MSRBitmap layout:
     //0000-1023: Read bitmap for low MSRs
-    //1024-2047: Write bitmap for low MSRs
-    //2048-3071: Read bitmap for high MSRs
+    //1024-2047: read bitmap for high  MSRs
+    //2048-3071: write bitmap for low MSRs
     //3072-4095: Write bitmap for high MSRs
-
-
-   // MSRBitmap[0x17a/8]|=1 << (0x17a % 8);
-
 
     //set it to break on msr's handling sysenter
     //read for sysenter
-    MSRBitmap[0x174/8]|=1 << (0x174 % 8);
-    MSRBitmap[0x175/8]|=1 << (0x175 % 8);
-    MSRBitmap[0x176/8]|=1 << (0x176 % 8);
+
+    vmx_setMSRReadExit(0x174);
+    vmx_setMSRReadExit(0x175);
+    vmx_setMSRReadExit(0x176);
+
+    vmx_setMSRWriteExit(0x174);
+    vmx_setMSRWriteExit(0x175);
+    vmx_setMSRWriteExit(0x176);
 
 
-    //write for sysenter
-    MSRBitmap[2048+0x174/8]|=1 << (0x174 % 8);
-    MSRBitmap[2048+0x175/8]|=1 << (0x175 % 8);
-    MSRBitmap[2048+0x176/8]|=1 << (0x176 % 8);
-
-
-    //read for 0xc0000080  (EFER)
-    MSRBitmap[1024+0x80/8]=1 << (0x80 % 8);
-
-    //write for 0xc0000080
-    MSRBitmap[3072+0x80/8]=1 << (0x80 % 8);
-
+    vmx_setMSRReadExit(0xc0000080);
+    vmx_setMSRWriteExit(0xc0000080);
 
     //break on IA32_FEATURE_CONTROL_MSR read and write
-    //read
-    MSRBitmap[IA32_FEATURE_CONTROL_MSR/8]|=1 << (IA32_FEATURE_CONTROL_MSR % 8);
-
-    //write
-    MSRBitmap[IA32_FEATURE_CONTROL_MSR/8]|=1 << (IA32_FEATURE_CONTROL_MSR % 8);
+    vmx_setMSRReadExit(IA32_FEATURE_CONTROL_MSR);
+    vmx_setMSRWriteExit(IA32_FEATURE_CONTROL_MSR);
 
 
 
 
 
-    /*
+    /* todo perhaps
     //break on writes to mttr msr's
     for (i=0x200; i<0x20f; i++)
        MSRBitmap[1024+i/8]=1 << (i % 8);
@@ -924,6 +955,8 @@ void setupVMX(pcpuinfo currentcpuinfo)
     MSRBitmap[1024+0x2ff/8]=1 << (0x2ff % 8);
     */
   }
+
+  SetPageToWriteThrough((void *)MSRBitmap); //for future updates
 
 
   if (IOBitmap==NULL)

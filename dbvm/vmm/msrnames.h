@@ -77,9 +77,12 @@
 #define IA32_VMX_TRUE_PINBASED_CTLS_MSR 0x48d
 #define IA32_VMX_TRUE_PROCBASED_CTLS_MSR 0x48e
 
+#define IA32_RTIT_CTL_MSR         0x570
 #define IA32_DS_AREA              0x600
 
 #define IA32_X2APIC_LVT_PMI_MSR   0x834
+
+
 
 #define EFER_MSR				          0xc0000080
 #define IA32_FS_BASE_MSR          0xc0000100

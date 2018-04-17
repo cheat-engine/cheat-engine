@@ -1734,6 +1734,15 @@ int handleRDMSR(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       break;
     }
 
+    case IA32_RTIT_CTL_MSR:
+    {
+      sendstringf("Exit for IA32_RTIT_CTL_MSR\n");
+      result=readMSRSafe(currentcpuinfo,IA32_RTIT_CTL_MSR);
+
+      result=result & 0x00000000ffffffffULL; //for now just keep it simple and keep it at 0, later when windows does a check if it can set the bit, return a shadow value accordingly
+      break;
+    }
+
     default:
       nosendchar[getAPICID()]=0;
       sendstring("MSR read event for msr that wasn\'t supposed to cause an exit!!!\n\r");

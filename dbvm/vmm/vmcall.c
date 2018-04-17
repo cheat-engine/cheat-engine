@@ -1592,6 +1592,13 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
       return raisePMI();
     }
 
+    case VMCALL_ULTIMAP2_HIDERANGEUSAGE:
+    {
+      vmx_setMSRReadExit(IA32_RTIT_CTL_MSR);
+      vmregisters->rax = 0;
+      break;
+    }
+
 
     default:
       vmregisters->rax = 0xcedead;
