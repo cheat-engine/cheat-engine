@@ -169,36 +169,33 @@ void psod(void)
   setCR8(oldcr8);
 }
 
-QWORD readMSRSafe(pcpuinfo currentcpuinfo, DWORD msr)
+QWORD readMSRSafe(DWORD msr)
 {
-  volatile QWORD result=0;
+  QWORD r;
+  try
+  {
+    r=readMSR(msr);
+  }
+  except
+  {
+    r=0;
+  }
+  tryend
 
-  currentcpuinfo->LastInterrupt=0;
-  currentcpuinfo->OnInterrupt.RIP=(QWORD)((volatile void *)&&InterruptFired); //set interrupt location
-  currentcpuinfo->OnInterrupt.RSP=getRSP();
-  currentcpuinfo->OnInterrupt.RBP=getRBP();
-  asm volatile ("": : :"memory");
-  result=readMSR(msr);
-  asm volatile ("": : :"memory");
-
-InterruptFired:
-  currentcpuinfo->OnInterrupt.RIP=0;
-
-  return result;
+  return r;
 }
 
-void writeMSRSafe(pcpuinfo currentcpuinfo, DWORD msr, QWORD value)
+void writeMSRSafe(DWORD msr, QWORD value)
 {
-  currentcpuinfo->LastInterrupt=0;
-  currentcpuinfo->OnInterrupt.RIP=(QWORD)((volatile void *)&&InterruptFired); //set interrupt location
-  currentcpuinfo->OnInterrupt.RSP=getRSP();
-  currentcpuinfo->OnInterrupt.RBP=getRSP();
-  asm volatile ("": : :"memory");
-  writeMSR(msr, value);
-  asm volatile ("": : :"memory");
+  try
+  {
+    writeMSR(msr, value);
+  }
+  except
+  {
 
-InterruptFired:
-  currentcpuinfo->OnInterrupt.RIP=0;
+  }
+  tryend
 }
 
 //#pragma GCC pop_options
@@ -1137,9 +1134,10 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
     case VMCALL_READMSR:
     {
       DWORD msr=vmcall_instruction[3];
+      QWORD value=readMSRSafe(msr);
 
-      *(UINT64 *)&vmcall_instruction[4]=readMSRSafe(currentcpuinfo, msr);
-      vmregisters->rax = *(UINT64 *)&vmcall_instruction[4];
+      *(UINT64 *)&vmcall_instruction[4]=value; //obsolete
+      vmregisters->rax = value;
       break;
     }
 
@@ -1148,7 +1146,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
       DWORD msr=vmcall_instruction[3];
       QWORD msrvalue=*(UINT64 *)&vmcall_instruction[4];
 
-      writeMSR(msr, msrvalue);
+      writeMSRSafe(msr, msrvalue);
       break;
     }
 

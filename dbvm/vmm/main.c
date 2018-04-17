@@ -1510,7 +1510,7 @@ int testexception(void)
   __asm("nop");
   __asm("nop");
 
-  result=readMSRSafe(getcpuinfo(), 553);
+  result=readMSRSafe(553);
 
   //nothing happened
   //result=0;

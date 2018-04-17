@@ -1409,7 +1409,7 @@ int opcode_RDMSR0F32(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 {
   DWORD MSR=vmregisters->rcx;
   sendstringf("Reading msr %x\n", MSR);
-  QWORD value=readMSRSafe(currentcpuinfo, MSR);
+  QWORD value=readMSRSafe(MSR);
 
   if (currentcpuinfo->LastInterrupt)
   {
@@ -1428,7 +1428,7 @@ int opcode_WRMSR0F30(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   DWORD MSR=vmregisters->rcx;
   QWORD value=(vmregisters->rdx << 32) | vmregisters->rax;
   sendstringf("Writing msr %x\n", MSR);
-  writeMSRSafe(currentcpuinfo, MSR, value);
+  writeMSRSafe(MSR, value);
 
   if (currentcpuinfo->LastInterrupt)
   {

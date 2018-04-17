@@ -1659,11 +1659,14 @@ int handleWRMSR(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
 }
 
+int RDMSRcounter=0;
+
 int handleRDMSR(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 {
 
 
   sendstring("emulating RDMSR\n\r");
+  RDMSRcounter++;
 
 
   unsigned long long result;
@@ -1674,15 +1677,15 @@ int handleRDMSR(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   switch (msr)
   {
 
-	case IA32_FEATURE_CONTROL_MSR:
-		result=readMSRSafe(currentcpuinfo, IA32_FEATURE_CONTROL_MSR);
-		result=result | FEATURE_CONTROL_LOCK; //set the LOCK bit (so the system thinks it can't be changed anymore)
+	  case IA32_FEATURE_CONTROL_MSR:
+	    result=readMSRSafe(IA32_FEATURE_CONTROL_MSR);
+	    result=result | FEATURE_CONTROL_LOCK; //set the LOCK bit (so the system thinks it can't be changed anymore)
 
-		result=result & ~(FEATURE_CONTROL_VMXON_SMX); //unset the VMX capability in SMX mode
+	    result=result & ~(FEATURE_CONTROL_VMXON_SMX); //unset the VMX capability in SMX mode
 
-		if (emulatevmx==0)
-		  result=result & ~(FEATURE_CONTROL_VMXON); //unset the VMX capability
-	  break;
+	    if (emulatevmx==0)
+	      result=result & ~(FEATURE_CONTROL_VMXON); //unset the VMX capability
+	    break;
 
     case 0x174: //sysenter_CS
       result=currentcpuinfo->sysenter_CS;
@@ -1737,7 +1740,7 @@ int handleRDMSR(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     case IA32_RTIT_CTL_MSR:
     {
       sendstringf("Exit for IA32_RTIT_CTL_MSR\n");
-      result=readMSRSafe(currentcpuinfo,IA32_RTIT_CTL_MSR);
+      result=readMSRSafe(IA32_RTIT_CTL_MSR);
 
       result=result & 0x00000000ffffffffULL; //for now just keep it simple and keep it at 0, later when windows does a check if it can set the bit, return a shadow value accordingly
       break;

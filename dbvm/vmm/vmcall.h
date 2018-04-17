@@ -84,8 +84,8 @@ extern int hasEPTsupport;
 int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters);
 
 void returnFromCR3Callback(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, unsigned long long newcr3);
-QWORD readMSRSafe(pcpuinfo currentcpuinfo, DWORD msr);
-void writeMSRSafe(pcpuinfo currentcpuinfo, DWORD msr, QWORD value);
+QWORD readMSRSafe(DWORD msr);
+void writeMSRSafe(DWORD msr, QWORD value);
 
 int raiseInvalidOpcodeException(pcpuinfo currentcpuinfo); //
 int raisePagefault(pcpuinfo currentcpuinfo, UINT64 address);
