@@ -4516,6 +4516,38 @@ begin
   result:=1;
 end;
 
+function lua_dbvm_readMSR(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  msr: dword;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    msr:=lua_tointeger(L,1);
+    lua_pushinteger(L, dbvm_readMSR(msr));
+    result:=1;
+  end else lua_pop(L, parameters);
+end;
+
+function lua_dbvm_writeMSR(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  msr: dword;
+  msrvalue: qword;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    msr:=lua_tointeger(L,1);
+    msrvalue:=lua_tointeger(L,2);
+    dbvm_writeMSR(msr, msrvalue);
+  end;
+
+  lua_pop(L, parameters);
+end;
+
 function lua_dbvm_writephysicalmemory(L: PLua_state): integer; cdecl;
 var
   PhysicalAddress: qword;
@@ -9863,12 +9895,16 @@ begin
     lua_register(L, 'dbk_executeKernelMemory', dbk_executeKernelMemory);
     lua_register(L, 'dbk_readMSR', dbk_readMSR);
     lua_register(L, 'dbk_writeMSR', dbk_writeMSR);
+
+
     lua_register(L, 'dbk_getCR0', dbk_getCR0);
     lua_register(L, 'dbk_getCR3', dbk_getCR3);
     lua_register(L, 'dbk_getCR4', dbk_getCR4);
     lua_register(L, 'dbvm_getCR0', dbvm_getCR0);
     lua_register(L, 'dbvm_getCR3', dbvm_getCR3);
     lua_register(L, 'dbvm_getCR4', dbvm_getCR4);
+    lua_register(L, 'dbvm_readMSR', lua_dbvm_readMSR);
+    lua_register(L, 'dbvm_writeMSR', lua_dbvm_writeMSR);
     lua_register(L, 'dbvm_jtagbp', lua_dbvm_jtagbp);
     lua_register(L ,'dbvm_readPhysicalMemory', lua_dbvm_readphysicalmemory);
     lua_register(L ,'dbvm_writePhysicalMemory', lua_dbvm_writephysicalmemory);
@@ -10224,9 +10260,7 @@ begin
       //timer onInterval has been renamed to timer onTimer
       s.add('timer_onInterval = timer_onTimer');
 
-      //dbvm, most dbvm functions are just dbk functions that fallback to dbvm on failure
-      s.add('dbvm_readMSR = dbk_readMSR');
-      s.add('dbvm_writeMSR = dbk_writeMSR');
+
 
       k32:=loadlibrary('kernel32.dll');
       s.add('windows_OpenProcess=0x'+inttohex(ptruint(getProcAddress(k32, 'OpenProcess')),8));

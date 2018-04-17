@@ -2353,14 +2353,14 @@ dbk_getPEProcess(processid) : Returns the pointer of the EProcess structure of t
 dbk_getPEThread(threadid) : Gets the pointer to the EThread  structure
 
 dbk_readMSR(msr): Reads the msr
-dbk_writeMSR(msr, msrvalue): Writes the msr
+dbk_writeMSR(msr, msrvalue): Writes the msr 
 dbk_executeKernelMemory(address, parameter) :
   Executes a routine from kernelmode (e.g a routine written there with auto assembler)
   parameter can be a value or an address. It's up to your code how it's handled
 
 
 dbvm_initialize(offloados OPTIONAL) : Initializes the dbvm functions (dbk_initialize also calls this) offloados is a boolean that when set will offload the system onto dbvm if it's not yet running (and only IF the dbk driver is loaded)
-dbvm_readMSR(msr): See dbk_readMSR
+dbvm_readMSR(msr): See dbk_readMSR but then using dbvm
 dbvm_writeMSR(msr, value): See dbk_writeMSR
 dbvm_getCR4(): Returns the real Control Register 4 state
 

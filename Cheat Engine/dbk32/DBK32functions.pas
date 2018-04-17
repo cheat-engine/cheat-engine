@@ -2650,15 +2650,6 @@ var
 begin
   result:=QWORD($ffffffffffffffff);
 
-  if dbvm_version>=6 then
-  begin
-    try
-      result:=dbvm_readMSR(msr); //will raise a GPF if it doesn't exist
-      exit;
-    except
-    end;
-  end;
-
   if (hdevice<>INVALID_HANDLE_VALUE) then
   begin
     cc:=IOCTL_CE_READMSR;
@@ -2669,7 +2660,18 @@ begin
       raise exception.create(rsInvalidMsrAddress+inttohex(msr,1));
   end
   else
-    raise exception.create(rsMsrsAreUnavailable);
+  begin
+      if dbvm_version>=$ce000006 then
+      begin
+        try
+          result:=dbvm_readMSR(msr); //will raise a GPF if it doesn't exist
+          exit;
+        except
+        end;
+      end
+      else
+        raise exception.create(rsMsrsAreUnavailable);
+  end;
 end;
 
 procedure writeMSR(msr: dword; value: qword);
