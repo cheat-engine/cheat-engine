@@ -177,8 +177,12 @@ typedef struct
 {
   VMCALL_BASIC vmcall;
   int type; //0=pre, 1=post
-  int pagelistcount;
-  QWORD addressofphysicalpagelist;
+
+
+  QWORD virtualAddress;
+  unsigned int bytesize;
+  QWORD internalAddress; //caller must set this to 0
+  unsigned int bytescopied;
 
 } __attribute__((__packed__)) VMCALL_REGISTER_PLUGIN_PARAM, *PVMCALL_REGISTER_PLUGIN_PARAM;
 

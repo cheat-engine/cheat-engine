@@ -62,6 +62,7 @@ int setVM_CR3(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, UINT64 newcr3);
 int setVM_CR4(pcpuinfo currentcpuinfo, UINT64 newcr4);
 
 int handleRealModeInt0x15(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, int instructionsize);
+int raisePMI();
 int raiseNMI(void);
 int raiseGeneralProtectionFault(UINT64 errorcode);
 

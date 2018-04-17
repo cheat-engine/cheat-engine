@@ -13,7 +13,7 @@
 typedef struct
 {
   int version;
-  void *getcpucount;
+  void *getCPUCount;
   void *getcpunr;
   void *sendstringf;
   void *zeromemory;
@@ -26,6 +26,7 @@ typedef struct
   void *mapVMMemory;
   void *mapPhysicalMemory;
   void *unmapMemory;
+  void *VirtualToPhysical;
 
 
 } DBVMExports, *PDBVMExports;

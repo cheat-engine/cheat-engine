@@ -754,13 +754,12 @@ void setupFSBase(void *fsbase)
 }
 
 volatile int inflooponerror=1;
+volatile int initializedCPUCount; //assume the first (main) cpu managed to start up
 
 void vmm_entry2(void)
 //Entry for application processors
 //Memory manager has been initialized and GDT/IDT copies have been made
 {
-  int initializedCPUCount=1; //assume the first (main) cpu managed to start up
-
   unsigned int cpunr;
   if (AP_Terminate)
   {
@@ -871,6 +870,7 @@ void vmm_entry(void)
   isAP=1; //all other entries will be an AP
 
 
+  initializedCPUCount=1; //I managed to run this at least...
 
   int i,k;
   UINT64 a,b,c,d;

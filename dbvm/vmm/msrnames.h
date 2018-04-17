@@ -8,6 +8,7 @@
 #ifndef MSRNAMES_H_
 #define MSRNAMES_H_
 
+#define IA32_APICBASE_MSR         0x1b
 #define IA32_FEATURE_CONTROL_MSR  0x3a
 #define IA32_MTRRCAP_MSR          0xfe
 #define IA32_SYSENTER_CS_MSR      0x174
@@ -56,6 +57,8 @@
 
 #define IA32_MTRR_DEF_TYPE_MSR    0x2ff
 
+
+
 #define IA32_VMX_BASIC_MSR          0x480
 #define IA32_VMX_PINBASED_CTLS_MSR  0x481
 #define IA32_VMX_PROCBASED_CTLS_MSR 0x482
@@ -75,6 +78,8 @@
 #define IA32_VMX_TRUE_PROCBASED_CTLS_MSR 0x48e
 
 #define IA32_DS_AREA              0x600
+
+#define IA32_X2APIC_LVT_PMI_MSR   0x834
 
 #define EFER_MSR				          0xc0000080
 #define IA32_FS_BASE_MSR          0xc0000100

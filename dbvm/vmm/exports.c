@@ -17,7 +17,7 @@ void InitExports()
   exportlist=malloc(sizeof(DBVMExports));
   exportlist->version=DBVM_EXPORTLISTVERSION;
 
-  exportlist->getcpucount=getCPUCount;
+  exportlist->getCPUCount=getCPUCount;
   exportlist->getcpunr=getcpunr;
   exportlist->sendstringf=sendstringf;
   exportlist->zeromemory=zeromemory;
@@ -30,4 +30,5 @@ void InitExports()
   exportlist->mapVMMemory=mapVMmemory;
   exportlist->mapPhysicalMemory=mapPhysicalMemory;
   exportlist->unmapMemory=unmapPhysicalMemory;
+  exportlist->VirtualToPhysical=VirtualToPhysical;
 }

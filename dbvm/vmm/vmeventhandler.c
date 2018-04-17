@@ -49,6 +49,42 @@ int raiseNMI(void)
   return 0;
 }
 
+int raisePMI()
+{
+  //get the pmi interrupt number from the APIC
+  int interruptvector;
+  DWORD LVT_Perfmon_Counter_Register;
+  VMEntry_interruption_information newintinfo;
+
+  if (readMSR(IA32_APICBASE_MSR) & (1<<10))  //x2apic
+  {
+    LVT_Perfmon_Counter_Register=readMSR(IA32_X2APIC_LVT_PMI_MSR);
+
+    writeMSR(IA32_X2APIC_LVT_PMI_MSR, LVT_Perfmon_Counter_Register | (1<<16)); //set bit 16 (the mask bit)
+  }
+  else
+  {
+    LVT_Perfmon_Counter_Register=*(volatile DWORD *)(IA32_APIC_BASE+0x340);
+
+    *(volatile DWORD *)(IA32_APIC_BASE+0x340)=LVT_Perfmon_Counter_Register | (1 << 16);
+  }
+
+  interruptvector=LVT_Perfmon_Counter_Register & 0xff;
+
+  sendstringf("Raising PMI (Vector %d)\n",interruptvector);
+
+  newintinfo.interruption_information=0;
+  newintinfo.interruptvector=interruptvector;
+  newintinfo.type=itExternal; //external
+  newintinfo.haserrorcode=0;
+  newintinfo.valid=1;
+
+  vmwrite(vm_entry_interruptioninfo, newintinfo.interruption_information); //entry info field
+  vmwrite(vm_entry_exceptionerrorcode, 0); //entry errorcode
+  vmwrite(vm_entry_instructionlength, vmread(vm_exit_instructionlength)); //entry instruction length
+  return 0;
+}
+
 int raiseGeneralProtectionFault(UINT64 errorcode)
 {
   VMEntry_interruption_information newintinfo;

@@ -1517,12 +1517,31 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
       int error;
       QWORD pagefaultaddress;
       PVMCALL_REGISTER_PLUGIN_PARAM p=(PVMCALL_REGISTER_PLUGIN_PARAM)vmcall_instruction;
-      QWORD *pagelist=mapVMmemory(currentcpuinfo, p->addressofphysicalpagelist, 8*p->pagelistcount, &error, &pagefaultaddress);
+
+      if (p->internalAddress==0)
+      {
+        QWORD FullPages;
+        getTotalFreeMemory(&FullPages);
+
+        if (p->bytesize>(FullPages*4096))
+        {
+          vmregisters->rax=1; //not enough memory
+          break;
+        }
+
+        p->internalAddress=(QWORD)malloc(p->bytesize);
+        p->bytescopied=0;
+      }
+      QWORD startaddressSource=p->internalAddress+p->bytescopied;
+      int blocksize=p->bytesize-p->bytescopied;
+
+      void *source=mapVMmemoryEx(currentcpuinfo, startaddressSource, blocksize, &error, &pagefaultaddress, 1);
+      void *destination=(void *)(p->internalAddress+p->bytescopied);
 
       if (error)
       {
         if (error==2)
-          return raisePagefault(currentcpuinfo, pagefaultaddress);
+          blocksize=pagefaultaddress-startaddressSource;
         else
         {
           vmregisters->rax=0x100+error;
@@ -1530,18 +1549,47 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
         }
       }
 
-      void *pluginmem=mapPhysicalMemoryAddresses(pagelist, p->addressofphysicalpagelist);
+      if (blocksize)
+      {
+        //copy what you can
+        copymem(destination, source, blocksize);
+        p->bytescopied+=blocksize;
 
-      unmapVMmemory(pagelist, 8*p->pagelistcount);
+        unmapVMmemory(source, blocksize);
+        source=NULL;
 
-      if (p->type==0)
-        dbvm_plugin_exit_pre=(DBVM_PLUGIN_EXIT_PRE *)pluginmem;
+        if (p->bytescopied==p->bytesize)
+        {
+          //copy done
+          if (p->type==0)
+            dbvm_plugin_exit_pre=(DBVM_PLUGIN_EXIT_PRE *)p->internalAddress;
+          else
+            dbvm_plugin_exit_post=(DBVM_PLUGIN_EXIT_POST *)p->internalAddress;
+
+          vmregisters->rax=0; //success
+          break;
+        }
+      }
+
+      //still here, so not everything copied
+      if ((error) && (error==2)) //just making sure, but should be the case yes
+      {
+        return raisePagefault(currentcpuinfo, pagefaultaddress);
+      }
       else
-        dbvm_plugin_exit_post=(DBVM_PLUGIN_EXIT_POST *)pluginmem;
+      {
+        sendstringf("Copy failed without pagefault\n");
+        vmregisters->rax=2;
+        break;
+      }
 
+      return 0; //handled it myself (don't change RIP)
+    }
 
-      vmregisters->rax=(QWORD)pluginmem;
-      break;
+    case VMCALL_RAISEPMI:
+    {
+      vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength)); //go after this instruction
+      return raisePMI();
     }
 
 
