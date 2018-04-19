@@ -2,8 +2,6 @@ structure dissect:
   delete all structures sometimes AV's (no idea how to reproduce)
 
 
-kernelmode memoryscan says nothing found, unless you pinpoint the memory region
-
 for .net games let stucture dissect see those structures aS WELL
 AND LUA
 

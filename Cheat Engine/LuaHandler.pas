@@ -6925,11 +6925,11 @@ function lua_registerStructureAndElementListCallback(L: PLua_State): integer; cd
 var
   f: integer;
   routine: string;
-  lc: tluacaller;
+  lc,lc2: tluacaller;
 begin
   result:=0;
 
-  if lua_gettop(L)=1 then
+  if lua_gettop(L)>=2 then
   begin
     if lua_isfunction(L, 1) then
     begin
@@ -6948,7 +6948,24 @@ begin
     end
     else exit;
 
-    lua_pushinteger(L, registerStructureAndElementListCallback(lc.StructureListCallback, lc.ElementListCallback));
+    if lua_isfunction(L, 2) then
+    begin
+      lua_pushvalue(L, 2);
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc2:=TLuaCaller.create;
+      lc2.luaroutineIndex:=f;
+    end
+    else
+    if lua_isstring(L,2) then
+    begin
+      routine:=lua_tostring(L,2);
+      lc2:=TLuaCaller.create;
+      lc2.luaroutine:=routine;
+    end
+    else exit;
+
+    lua_pushinteger(L, registerStructureAndElementListCallback(lc.StructureListCallback, lc2.ElementListCallback));
     result:=1;
   end;
 
@@ -10049,6 +10066,11 @@ begin
 
     lua_register(L, 'registerAutoAssemblerPrologue', lua_registerAutoAssemblerPrologue);
     lua_register(L, 'unregisterAutoAssemblerPrologue', lua_unregisterAutoAssemblerPrologue);
+
+    lua_register(L, 'registerStructureAndElementListCallback', lua_registerStructureAndElementListCallback);
+    lua_register(L, 'unregisterStructureAndElementListCallback', lua_unregisterStructureAndElementListCallback);
+
+
 
 
     lua_register(L, 'shortCutToText', lua_shortCutToText);

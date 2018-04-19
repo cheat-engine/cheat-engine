@@ -226,6 +226,7 @@ registerStructureAndElementListCallback(function StructureListCallback(), functi
 
   tip: If you return an empty table the structure will not be created. You can use this to create the structure layout yourself and register that instead
 
+unregisterStructureAndElementListCallback(ID)
 
 
 registerStructureDissectOverride(function(structure, baseaddress): table):

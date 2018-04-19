@@ -3666,7 +3666,7 @@ procedure TMainForm.miResetRangeClick(Sender: TObject);
 begin
   {$ifdef cpu64}
   FromAddress.Text := '0000000000000000';
-  ToAddress.Text := '7fffffffffffffff';
+  ToAddress.Text := '00007fffffffffff';
   {$else}
   FromAddress.Text := '00000000';
   if Is64bitOS then
@@ -8177,7 +8177,7 @@ begin
   frmpointerscannersettings := tfrmpointerscannersettings.Create(self);
 
   if processhandler.is64Bit then
-    frmpointerscannersettings.edtReverseStop.text:='7FFFFFFFFFFFFFFF'
+    frmpointerscannersettings.edtReverseStop.text:='00007FFFFFFFFFFF'
   else
   begin
     if Is64bitOS then
