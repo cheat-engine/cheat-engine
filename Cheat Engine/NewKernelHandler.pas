@@ -1457,6 +1457,9 @@ end;
 procedure DBKProcessMemory;
 begin
 {$ifdef windows}
+  usephysical:=false;
+  Usephysicaldbvm:=false;
+
   if dbkreadwrite then
     UseDBKReadWriteMemory
   else
@@ -1467,8 +1470,7 @@ begin
   else
     dontusedbkquerymemoryregion;
 
-  usephysical:=false;
-  Usephysicaldbvm:=false;
+
 
   if filedata<>nil then
     freeandnil(filedata);
