@@ -168,6 +168,10 @@ struct PTEStruct
 	unsigned PFN       : 20; // page-frame number
 };
 
+//typedef struct PTEStruct *PPDPTE;
+//typedef struct PTEStruct *PPDE;
+//typedef struct PTEStruct *PPTE;
+
 struct PTEStruct64
 {
 	unsigned long long P : 1; // present (1 = present)
@@ -184,6 +188,11 @@ struct PTEStruct64
 	unsigned long long A3 : 1; // available 3
 	unsigned long long PFN : 52; // page-frame number
 };
+
+//typedef struct PTEStruct64 *PPDPTE_PAE;
+//typedef struct PTEStruct64 *PPDE_PAE;
+//typedef struct PTEStruct64 *PPTE_PAE;
+
 
 typedef struct tagDebugregs
 {

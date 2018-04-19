@@ -75,6 +75,8 @@ NTSTATUS markAllPagesAsNeverAccessed(PEPROCESS PEProcess);
 int enumAllAccessedPages(PEPROCESS PEProcess);
 int getAccessedPageList(PPRANGE List, int ListSizeInBytes);
 
+UINT_PTR getPageTableBase();
+
 UINT_PTR getPEThread(UINT_PTR threadid);
 
 ADDRESSENTRY *AddressList;

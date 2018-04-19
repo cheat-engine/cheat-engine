@@ -181,15 +181,16 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <TargetName>DBK64</TargetName>
-    <OutDir>..\Cheat Engine\bin\</OutDir>
-    <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
+    <OutDir>..\Cheat Engine\tempbin\</OutDir>
+    <Inf2CatUseLocalTime>false</Inf2CatUseLocalTime>
+    <Inf2CatVerbose>true</Inf2CatVerbose>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <TimeStampServer>http://timestamp.globalsign.com/scripts/timstamp.dll</TimeStampServer>
     <OutDir>..\Cheat Engine\bin\</OutDir>
     <TargetName>DBK64</TargetName>
-    <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
+    <Inf2CatUseLocalTime>false</Inf2CatUseLocalTime>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release without sig|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
@@ -197,6 +198,8 @@
     <OutDir>..\Cheat Engine\bin\</OutDir>
     <TargetName>DBK64</TargetName>
     <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
+    <EnableInf2cat>false</EnableInf2cat>
+    <Inf2CatNoCatalog>true</Inf2CatNoCatalog>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
@@ -224,19 +227,40 @@
       <AdditionalDependencies>$(DDK_LIB_PATH)Ntstrsafe.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/INTEGRITYCHECK %(AdditionalOptions)</AdditionalOptions>
     </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+      <Message>
+      </Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <PreprocessorDefinitions>TOBESIGNED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <Optimization>Disabled</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>$(DDK_LIB_PATH)ksecdd.lib;$(DDK_LIB_PATH)Ntstrsafe.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/INTEGRITYCHECK %(AdditionalOptions)</AdditionalOptions>
     </Link>
+    <PostBuildEvent>
+      <Command>cd $(MSBuildProjectDirectory)\$(Inf2CatSource)
+copy ..\dbk64.pdb .
+makecab /f "$(ProjectDir)\dbk64.ddf"
+"c:\Program Files (x86)\Windows Kits\8.1\bin\x64\signtool.exe" sign /v /ac "..\..\release\sig\GlobalSign Root CA.crt" /n "Cheat Engine" /t http://timestamp.globalsign.com/scripts/timstamp.dll disk1\dbk64.cab</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Generate and sign CAB</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release without sig|x64'">
     <ClCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Optimization>Disabled</Optimization>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>$(DDK_LIB_PATH)Ntstrsafe.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -380,6 +404,9 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release without sig|Win32'">false</ExcludedFromBuild>
     </MASM>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="dbk64.ddf" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

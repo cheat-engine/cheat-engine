@@ -167,4 +167,9 @@
       <Filter>Driver Files</Filter>
     </Inf>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="dbk64.ddf">
+      <Filter>Driver Files</Filter>
+    </None>
+  </ItemGroup>
 </Project>

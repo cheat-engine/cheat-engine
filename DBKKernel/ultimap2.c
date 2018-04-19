@@ -637,6 +637,7 @@ void bufferWriterThread(PVOID StartContext)
 		//if (wr != STATUS_SUCCESS) continue; //DEBUG code so PMI's get triggered
 
 
+
 		if ((wr == STATUS_SUCCESS) || (wr == STATUS_TIMEOUT))
 		{
 			if ((wr == STATUS_SUCCESS) && (!isSuspended))
@@ -685,7 +686,7 @@ void bufferWriterThread(PVOID StartContext)
 			}
 
 			//wait till the previous buffers are done writing
-			DbgPrint("%d: Normal flush", cpunr());
+			//DbgPrint("%d: Normal flush", cpunr());
 			WaitForWriteToFinishAndSwapWriteBuffers(FALSE);
 			//DbgPrint("%d : after flush", cpunr());
 
@@ -1461,6 +1462,7 @@ void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, P
 
 	if ((NoPMI == FALSE) && (RegisteredProfilerInterruptHandler == FALSE))
 	{
+
 		DbgPrint("Registering PMI handler\n");
 
 		pperfmon_hook2 = (void *)PMI;
