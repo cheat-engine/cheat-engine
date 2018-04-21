@@ -1,13 +1,13 @@
 object formSettings: TformSettings
   Left = 665
-  Height = 539
+  Height = 587
   Top = 188
-  Width = 950
+  Width = 1166
   AutoSize = True
   BorderIcons = [biSystemMenu]
   Caption = 'Cheat Engine settings'
-  ClientHeight = 539
-  ClientWidth = 950
+  ClientHeight = 587
+  ClientWidth = 1166
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -17,17 +17,17 @@ object formSettings: TformSettings
   LCLVersion = '1.6.4.0'
   object pnlConfig: TPanel
     Left = 0
-    Height = 502
+    Height = 550
     Top = 0
-    Width = 950
+    Width = 1166
     Align = alClient
     AutoSize = True
-    ClientHeight = 502
-    ClientWidth = 950
+    ClientHeight = 550
+    ClientWidth = 1166
     TabOrder = 0
     object tvMenuSelection: TTreeView
       Left = 1
-      Height = 500
+      Height = 548
       Top = 1
       Width = 148
       Align = alLeft
@@ -43,7 +43,7 @@ object formSettings: TformSettings
       OnCollapsing = tvMenuSelectionCollapsing
       Options = [tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoRightClickSelect, tvoShowButtons, tvoShowLines, tvoToolTips]
       Items.Data = {
-        F9FFFFFF020009000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF010000000000
+        F9FFFFFF02000A000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF010000000000
         0000011000000047656E6572616C2053657474696E6773FFFFFFFFFFFFFFFFFF
         FFFFFFFFFFFFFF00000000000000000005000000546F6F6C73FFFFFFFFFFFFFF
         FFFFFFFFFFFFFFFFFF00000000000000000007000000486F746B657973FFFFFF
@@ -54,36 +54,37 @@ object formSettings: TformSettings
         FFFFFFFF000000000000000000090000004C616E677561676573FFFFFFFFFFFF
         FFFFFFFFFFFFFFFFFFFF00000000000000000010000000446562756767657220
         4F7074696F6E73FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000
+        030000004C7561FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000
         050000004578747261FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000000000
         0000070000005369676E696E67
       }
     end
     object pcSetting: TPageControl
       Left = 149
-      Height = 500
+      Height = 548
       Top = 1
-      Width = 800
-      ActivePage = Assembler
+      Width = 1016
+      ActivePage = tsLua
       Align = alClient
-      TabIndex = 6
+      TabIndex = 7
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
         Caption = 'General Settings'
-        ClientHeight = 472
-        ClientWidth = 792
+        ClientHeight = 520
+        ClientWidth = 1008
         object ScrollBox1: TScrollBox
           Left = 0
-          Height = 472
+          Height = 520
           Top = 0
-          Width = 792
+          Width = 1008
           HorzScrollBar.Page = 494
           HorzScrollBar.Tracking = True
-          VertScrollBar.Page = 468
+          VertScrollBar.Page = 516
           VertScrollBar.Tracking = True
           Align = alClient
-          ClientHeight = 468
-          ClientWidth = 771
+          ClientHeight = 516
+          ClientWidth = 987
           TabOrder = 0
           OnClick = ScrollBox1Click
           object Label11: TLabel
@@ -246,12 +247,12 @@ object formSettings: TformSettings
             Left = 0
             Height = 60
             Top = 377
-            Width = 771
+            Width = 987
             Anchors = [akTop, akLeft, akRight]
             AutoSize = True
             Caption = 'Address list specific'
             ClientHeight = 40
-            ClientWidth = 767
+            ClientWidth = 983
             TabOrder = 4
             object cbShowAsSigned: TCheckBox
               AnchorSideLeft.Control = GroupBox1
@@ -617,35 +618,35 @@ object formSettings: TformSettings
       end
       object tsHotkeys: TTabSheet
         Caption = 'Hotkeys'
-        ClientHeight = 472
+        ClientHeight = 520
         ClientWidth = 792
         ImageIndex = 7
         inline frameHotkeyConfig: TframeHotkeyConfig
-          Height = 472
+          Height = 520
           Width = 792
           Align = alClient
-          ClientHeight = 472
+          ClientHeight = 520
           ClientWidth = 792
           DesignLeft = 737
           DesignTop = 306
           inherited Panel1: TPanel
-            Height = 422
+            Height = 470
             Width = 566
-            ClientHeight = 422
+            ClientHeight = 470
             ClientWidth = 566
             inherited Label1: TLabel
               Width = 566
             end
             inherited ListBox1: TListBox
-              Height = 407
+              Height = 455
               Width = 566
             end
           end
           inherited Panel2: TPanel
             Left = 566
-            Height = 422
+            Height = 470
             Width = 226
-            ClientHeight = 422
+            ClientHeight = 470
             ClientWidth = 226
             inherited Edit1: TEdit
               Width = 222
@@ -685,8 +686,8 @@ object formSettings: TformSettings
       end
       object Unrandomizer: TTabSheet
         Caption = 'Unrandomizer'
-        ClientHeight = 472
-        ClientWidth = 792
+        ClientHeight = 520
+        ClientWidth = 720
         ImageIndex = 8
         object Label5: TLabel
           AnchorSideLeft.Control = Unrandomizer
@@ -727,21 +728,21 @@ object formSettings: TformSettings
       end
       object ScanSettings: TTabSheet
         Caption = 'Scan Settings'
-        ClientHeight = 472
-        ClientWidth = 655
+        ClientHeight = 520
+        ClientWidth = 1008
         ImageIndex = 1
         object ScrollBox2: TScrollBox
           Left = 0
-          Height = 472
+          Height = 520
           Top = 0
-          Width = 655
+          Width = 1008
           HorzScrollBar.Page = 599
           HorzScrollBar.Tracking = True
           VertScrollBar.Page = 356
           VertScrollBar.Tracking = True
           Align = alClient
-          ClientHeight = 468
-          ClientWidth = 651
+          ClientHeight = 516
+          ClientWidth = 1004
           TabOrder = 0
           object Label3: TLabel
             AnchorSideTop.Control = cbMemMapped
@@ -1227,21 +1228,21 @@ object formSettings: TformSettings
       end
       object Assembler: TTabSheet
         Caption = 'Debugger Options'
-        ClientHeight = 472
-        ClientWidth = 792
+        ClientHeight = 520
+        ClientWidth = 720
         ImageIndex = 5
         object ScrollBox3: TScrollBox
           Left = 0
-          Height = 472
+          Height = 520
           Top = 0
-          Width = 792
+          Width = 720
           HorzScrollBar.Page = 647
           HorzScrollBar.Tracking = True
           VertScrollBar.Page = 448
           VertScrollBar.Tracking = True
           Align = alClient
-          ClientHeight = 468
-          ClientWidth = 788
+          ClientHeight = 516
+          ClientWidth = 716
           TabOrder = 0
           object replacewithnops: TCheckBox
             AnchorSideLeft.Control = Label4
@@ -1590,15 +1591,111 @@ object formSettings: TformSettings
           end
         end
       end
+      object tsLua: TTabSheet
+        Caption = 'Lua'
+        ClientHeight = 520
+        ClientWidth = 1008
+        object cbLuaPassiveGarbageCollection: TCheckBox
+          AnchorSideLeft.Control = tsLua
+          AnchorSideTop.Control = tsLua
+          Left = 3
+          Height = 19
+          Hint = 'Constantly runs a few steps of the garbage collector sequence. (Will take a while till all garbage is cleaned if there is a lot)'
+          Top = 3
+          Width = 159
+          BorderSpacing.Left = 3
+          BorderSpacing.Top = 3
+          Caption = 'Passive garbage collection'
+          Checked = True
+          State = cbChecked
+          TabOrder = 0
+        end
+        object cbLuaGarbageCollectAll: TCheckBox
+          AnchorSideLeft.Control = cbLuaPassiveGarbageCollection
+          AnchorSideTop.Control = cbLuaPassiveGarbageCollection
+          AnchorSideTop.Side = asrBottom
+          Left = 3
+          Height = 19
+          Top = 25
+          Width = 217
+          BorderSpacing.Top = 3
+          Caption = 'Collect all garbage every few seconds'
+          Checked = True
+          State = cbChecked
+          TabOrder = 1
+        end
+        object edtLuaCollectTimer: TEdit
+          AnchorSideLeft.Control = cbLuaGarbageCollectAll
+          AnchorSideTop.Control = cbLuaGarbageCollectAll
+          AnchorSideTop.Side = asrBottom
+          Left = 19
+          Height = 23
+          Top = 44
+          Width = 62
+          BorderSpacing.Left = 16
+          TabOrder = 2
+          Text = '60'
+        end
+        object Label17: TLabel
+          AnchorSideLeft.Control = edtLuaCollectTimer
+          AnchorSideLeft.Side = asrBottom
+          AnchorSideTop.Control = edtLuaCollectTimer
+          AnchorSideTop.Side = asrCenter
+          Left = 84
+          Height = 15
+          Top = 48
+          Width = 44
+          BorderSpacing.Left = 3
+          Caption = 'Seconds'
+          ParentColor = False
+        end
+        object cbLuaOnlyCollectWhenLarger: TCheckBox
+          AnchorSideLeft.Control = edtLuaCollectTimer
+          AnchorSideTop.Control = edtLuaCollectTimer
+          AnchorSideTop.Side = asrBottom
+          Left = 19
+          Height = 19
+          Top = 70
+          Width = 197
+          BorderSpacing.Top = 3
+          Caption = 'Only when the size is bigger than:'
+          TabOrder = 3
+        end
+        object edtLuaMinCollectSize: TEdit
+          AnchorSideLeft.Control = cbLuaOnlyCollectWhenLarger
+          AnchorSideLeft.Side = asrBottom
+          AnchorSideTop.Control = cbLuaOnlyCollectWhenLarger
+          AnchorSideTop.Side = asrCenter
+          Left = 216
+          Height = 23
+          Top = 68
+          Width = 57
+          TabOrder = 4
+          Text = '200'
+        end
+        object Label20: TLabel
+          AnchorSideLeft.Control = edtLuaMinCollectSize
+          AnchorSideLeft.Side = asrBottom
+          AnchorSideTop.Control = edtLuaMinCollectSize
+          AnchorSideTop.Side = asrCenter
+          Left = 276
+          Height = 15
+          Top = 72
+          Width = 53
+          BorderSpacing.Left = 3
+          Caption = 'Megabyte'
+          ParentColor = False
+        end
+      end
       object Extra: TTabSheet
         Caption = 'Extra'
-        ClientHeight = 472
+        ClientHeight = 520
         ClientWidth = 792
         ImageIndex = 6
         object TauntOldOsUser: TLabel
           Left = 0
           Height = 15
-          Top = 457
+          Top = 505
           Width = 792
           Align = alBottom
           Alignment = taCenter
@@ -1725,7 +1822,7 @@ object formSettings: TformSettings
       end
       object tsTools: TTabSheet
         Caption = 'tsTools'
-        ClientHeight = 472
+        ClientHeight = 520
         ClientWidth = 792
         ImageIndex = 9
         object Panel2: TPanel
@@ -1753,13 +1850,13 @@ object formSettings: TformSettings
         end
         object Panel3: TPanel
           Left = 562
-          Height = 453
+          Height = 501
           Top = 19
           Width = 230
           Align = alRight
           AutoSize = True
           BevelOuter = bvNone
-          ClientHeight = 453
+          ClientHeight = 501
           ClientWidth = 230
           Constraints.MinWidth = 230
           TabOrder = 1
@@ -1908,7 +2005,7 @@ object formSettings: TformSettings
             AnchorSideBottom.Control = spbDown
             Left = 0
             Height = 28
-            Top = 368
+            Top = 416
             Width = 21
             Anchors = [akLeft, akBottom]
             BorderSpacing.Bottom = 2
@@ -1935,7 +2032,7 @@ object formSettings: TformSettings
             AnchorSideBottom.Side = asrBottom
             Left = 0
             Height = 27
-            Top = 398
+            Top = 446
             Width = 21
             Anchors = [akLeft, akBottom]
             Enabled = False
@@ -1959,18 +2056,18 @@ object formSettings: TformSettings
         end
         object Panel5: TPanel
           Left = 0
-          Height = 453
+          Height = 501
           Top = 19
           Width = 562
           Align = alClient
           BevelOuter = bvNone
-          ClientHeight = 453
+          ClientHeight = 501
           ClientWidth = 562
           TabOrder = 2
           object Panel4: TPanel
             Left = 0
             Height = 33
-            Top = 420
+            Top = 468
             Width = 562
             Align = alBottom
             AutoSize = True
@@ -2014,7 +2111,7 @@ object formSettings: TformSettings
           end
           object lvTools: TListView
             Left = 0
-            Height = 420
+            Height = 468
             Top = 0
             Width = 562
             Align = alClient
@@ -2058,7 +2155,7 @@ object formSettings: TformSettings
       end
       object tsSigning: TTabSheet
         Caption = 'tsSigning'
-        ClientHeight = 472
+        ClientHeight = 520
         ClientWidth = 792
         object cbAlwaysSignTable: TCheckBox
           AnchorSideLeft.Control = tsSigning
@@ -2089,13 +2186,13 @@ object formSettings: TformSettings
   object Panel6: TPanel
     Left = 0
     Height = 37
-    Top = 502
-    Width = 950
+    Top = 550
+    Width = 1166
     Align = alBottom
     AutoSize = True
     BevelOuter = bvNone
     ClientHeight = 37
-    ClientWidth = 950
+    ClientWidth = 1166
     TabOrder = 1
     OnResize = Panel6Resize
     object AboutLabel: TLabel
@@ -2104,7 +2201,7 @@ object formSettings: TformSettings
       AnchorSideBottom.Control = Panel6
       AnchorSideBottom.Side = asrBottom
       Cursor = crHandPoint
-      Left = 900
+      Left = 1116
       Height = 15
       Top = 22
       Width = 50
@@ -2120,7 +2217,7 @@ object formSettings: TformSettings
       AnchorSideLeft.Control = Panel6
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Control = Panel6
-      Left = 396
+      Left = 504
       Height = 25
       Top = 6
       Width = 158

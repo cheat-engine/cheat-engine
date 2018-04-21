@@ -145,6 +145,8 @@ var
   istrainer: boolean=false;
   isExeTrainer: boolean=false;
 
+  luagc_MinSize: dword;
+
 
 implementation
 

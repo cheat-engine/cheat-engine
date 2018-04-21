@@ -306,6 +306,11 @@ unpause(): resumes the current opened process
 
 
 getCPUCount(): Returns the number of CPU's
+cpuid(EAX,ECX): returns a table with CPUID info (EAX, EBX, ECX, EDX)
+
+gc_setPassive(state: boolean): enables/disables the passive garbage collector
+gc_setActive(state: boolean, interval: integer, minsize: integer): enables/disables the active garbage collector and lets you configure the interval and minimim size
+
 
 getSystemMetrics(index): Retrieves the specified system metric or system configuration setting
 (https://msdn.microsoft.com/en-us/library/windows/desktop/ms724385.aspx)
@@ -3156,4 +3161,13 @@ properties
 
 
 methods
+  -
 
+HotkeyHandlerThread(Inheritence: Thread)
+getHotkeyHandlerThread() : Returns the hotkey handler thread used internally by CE
+
+properties
+  state: 0=Active , 1=Memory records only, 2=disabled
+
+methods
+  -

@@ -733,6 +733,33 @@ begin
           if reg.ValueExists('Always Ask For Password') then
             cbAlwaysAskForPassword.Checked:=reg.readBool('Always Ask For Password');
 
+
+          if reg.ValueExists('collectgarbage passive') then
+            cbLuaPassiveGarbageCollection.checked:=reg.ReadBool('collectgarbage passive');
+
+          if reg.ValueExists('collectgarbage active') then
+            cbLuaGarbageCollectAll.checked:=reg.ReadBool('collectgarbage active');
+
+          if reg.ValueExists('collectgarbage timer') then
+            edtLuaCollectTimer.text:=inttostr(reg.ReadInteger('collectgarbage timer'));
+
+          if reg.ValueExists('collectgarbage only when bigger') then
+            cbLuaOnlyCollectWhenLarger.checked:=reg.ReadBool('collectgarbage only when bigger');
+
+          if reg.ValueExists('collectgarbage minsize') then
+            edtLuaMinCollectSize.text:=inttostr(reg.ReadInteger('collectgarbage minsize'));
+
+          if cbLuaGarbageCollectAll.checked then
+          begin
+            mainform.tLuaGCActive.interval:=strtoint(edtLuaCollectTimer.text)*1000;
+
+            if cbLuaOnlyCollectWhenLarger.checked then
+              luagc_MinSize:=strtoint(edtLuaMinCollectSize.text)
+            else
+              luagc_MinSize:=0;
+          end;
+          mainform.tLuaGCActive.enabled:=cbLuaGarbageCollectAll.checked;
+          mainform.tLuaGCPassive.enabled:=cbLuaPassiveGarbageCollection.checked;
         end;
 
 

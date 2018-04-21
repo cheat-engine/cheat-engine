@@ -1,9 +1,9 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 381
+  Left = 1143
   Height = 598
   Hint = ' '
-  Top = 54
+  Top = 122
   Width = 622
   HelpContext = 3
   HorzScrollBar.Visible = False
@@ -2517,6 +2517,14 @@ object MainForm: TMainForm
     object ools1: TMenuItem
       Caption = '&Tools'
     end
+    object miDotNET: TMenuItem
+      Caption = '.Net'
+      Visible = False
+      object miGetDotNetObjectList: TMenuItem
+        Caption = 'Get object list'
+        OnClick = miGetDotNetObjectListClick
+      end
+    end
     object miNetwork: TMenuItem
       Caption = 'Network'
       Visible = False
@@ -2665,5 +2673,16 @@ object MainForm: TMainForm
   object MainMenu2: TMainMenu
     left = 312
     top = 260
+  end
+  object tLuaGCPassive: TTimer
+    Interval = 100
+    OnTimer = tLuaGCPassiveTimer
+    left = 40
+    top = 312
+  end
+  object tLuaGCActive: TTimer
+    OnTimer = tLuaGCActiveTimer
+    left = 40
+    top = 360
   end
 end

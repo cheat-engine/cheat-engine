@@ -22,17 +22,24 @@ type thotkeyitem=record
   delayBetweenActivate: integer; //If not 0 this is a userdefined delay for a hotkey, so you have have fast responding and slow responding hotkeys at the same time
 end;
 
-type PHotkeyItem=^THotkeyItem;
+type
+  PHotkeyItem=^THotkeyItem;
 
-type Thotkeythread=class(tthread)
+  THotkeyThreadState=(htsActive=0, htsMemrecOnly=1, htsDisabled=2);
+
+
+  Thotkeythread=class(tthread)
   private
     memrechk: pointer;
+    fstate: THotkeyThreadState;
     procedure memrechotkey;
   public
     suspended: boolean;
     hotkeylist: array of thotkeyitem;
     procedure execute; override;
     constructor create(suspended: boolean);
+  published
+    property state: THotkeyThreadState read fState write fState;
 end;
 
 
@@ -443,6 +450,8 @@ var i: integer;
     maxActiveKeyCount: integer;
 
     tempHotkey: PActiveHotkeyData;
+
+    handeit: boolean;
 begin
   activeHotkeyList:=Tlist.create;
   while not terminated do
@@ -455,12 +464,10 @@ begin
         maxActiveKeyCount:=0;
         for i:=0 to length(hotkeylist)-1 do
         begin
-
-
           if
-            ((hotkeylist[i].memrechotkey<>nil) and (checkkeycombo(TMemoryrecordHotkey(hotkeylist[i].memrechotkey).keys))) or
-            ((hotkeylist[i].genericHotkey<>nil) and (checkkeycombo(TGenericHotkey(hotkeylist[i].generichotkey).keys))) or
-            (((hotkeylist[i].memrechotkey=nil) and (hotkeylist[i].generichotkey=nil)) and checkkeycombo(hotkeylist[i].keys))
+            ((state in [htsActive,htsMemrecOnly]) and (hotkeylist[i].memrechotkey<>nil) and (checkkeycombo(TMemoryrecordHotkey(hotkeylist[i].memrechotkey).keys))) or
+            ((state = htsActive) and (hotkeylist[i].genericHotkey<>nil) and (checkkeycombo(TGenericHotkey(hotkeylist[i].generichotkey).keys))) or
+            ((state = htsActive) and ((hotkeylist[i].memrechotkey=nil) and (hotkeylist[i].generichotkey=nil)) and checkkeycombo(hotkeylist[i].keys))
 
           then
           begin

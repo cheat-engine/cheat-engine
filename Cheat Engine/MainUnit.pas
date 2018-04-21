@@ -272,6 +272,8 @@ type
     miLanguages: TMenuItem;
     ScanText2: TLabel;
     scanvalue2: TEdit;
+    tLuaGCPassive: TTimer;
+    tLuaGCActive: TTimer;
     ToAddress: TEdit;
     editSH2: TEdit;
     edtAlignment: TEdit;
@@ -580,6 +582,8 @@ type
     procedure AddressKeyPress(Sender: TObject; var Key: char);
     procedure FoundListDblClick(Sender: TObject);
     procedure Browsethismemoryarrea1Click(Sender: TObject);
+    procedure tLuaGCActiveTimer(Sender: TObject);
+    procedure tLuaGCPassiveTimer(Sender: TObject);
     procedure UpdateTimerTimer(Sender: TObject);
     procedure FreezeTimerTimer(Sender: TObject);
     procedure Browsethismemoryregion1Click(Sender: TObject);
@@ -5386,6 +5390,19 @@ begin
   end;
 end;
 
+procedure TMainForm.tLuaGCActiveTimer(Sender: TObject);
+begin
+  if (lua_gc(LuaVM,LUA_GCCOUNT,0)<luagc_MinSize) then exit;
+
+  lua_gc(LuaVM, LUA_GCCOLLECT,0);
+  lua_gc(LuaVM, LUA_GCCOLLECT,0);
+end;
+
+procedure TMainForm.tLuaGCPassiveTimer(Sender: TObject);
+begin
+  lua_gc(LuaVM,LUA_GCSTEP,100);
+end;
+
 procedure TMainForm.UpdateTimerTimer(Sender: TObject);
 begin
   if addresslist <> nil then
@@ -5397,9 +5414,8 @@ begin
 end;
 
 procedure TMainForm.FreezeTimerTimer(Sender: TObject);
+var i: integer;
 begin
-
-
   try
     if addresslist <> nil then
       addresslist.ApplyFreeze;
@@ -5408,7 +5424,6 @@ begin
     begin
       OutputDebugString('FreezeTimerTimer:'+e.Message);
     end;
-
   end;
 end;
 
@@ -7024,6 +7039,7 @@ end;
 procedure TMainForm.SetHotkey1Click(Sender: TObject);
 begin
   {  HotKeyForm.recnr:=lastselected;}
+  if addresslist.selectedRecord=nil then exit;
   if addresslist.selectedRecord.isBeingEdited then
     exit;
 

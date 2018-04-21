@@ -68,9 +68,14 @@ type
     cbProcessWatcherOpensHandles: TCheckBox;
     cbAlwaysSignTable: TCheckBox;
     cbAlwaysAskForPassword: TCheckBox;
+    cbLuaPassiveGarbageCollection: TCheckBox;
+    cbLuaGarbageCollectAll: TCheckBox;
+    cbLuaOnlyCollectWhenLarger: TCheckBox;
     combothreadpriority: TComboBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
+    edtLuaCollectTimer: TEdit;
+    edtLuaMinCollectSize: TEdit;
     EditAutoAttach: TEdit;
     EditBufsize: TEdit;
     EditFreezeInterval: TEdit;
@@ -92,6 +97,8 @@ type
     Label14: TLabel;
     Label15: TLabel;
     Label16: TLabel;
+    Label17: TLabel;
+    Label20: TLabel;
     lblCurrentLanguage: TLabel;
     Label18: TLabel;
     Label19: TLabel;
@@ -134,6 +141,7 @@ type
     spbDown: TSpeedButton;
     spbUp: TSpeedButton;
     Languages: TTabSheet;
+    tsLua: TTabSheet;
     tsSigning: TTabSheet;
     tsKernelDebugConfig: TTabSheet;
     tsVEHDebugConfig: TTabSheet;
@@ -357,6 +365,7 @@ resourcestring
   rsPlugins = 'Plugins';
   rsLanguages = 'Languages';
   rsDebuggerOptions = 'Debugger Options';
+  rsLuaOptions = 'Lua';
   rsExtra = 'Extra';
   rsSigning = 'Signing';
   rsNoName = 'No Name';
@@ -396,6 +405,8 @@ var processhandle2: Thandle;
     found:boolean;
 
     networkupdateinterval,updateinterval,freezeinterval,FoundInterval: integer;
+    collectgarbagetimer, collectgarbageminimumsize: integer;
+
     stacksize: integer;
 
     dllpath: Tpathspecifier;
@@ -429,6 +440,12 @@ begin
     val(edtStacksize.text, stacksize, error);
     if (error<>0) or (stacksize<=0) then raise exception.Create(Format(rsIsNotAValidInterval, [edtStacksize.text]));
 
+    val(edtLuaCollectTimer.text, collectgarbagetimer, error);
+    if (error<>0) or (stacksize<=0) then raise exception.Create(Format(rsIsNotAValidInterval, [edtLuaCollectTimer.text]));
+
+    val(edtLuaMinCollectSize.text, collectgarbageminimumsize, error);
+    if (error<>0) or (stacksize<=0) then raise exception.Create(Format(rsIsNotAValidInterval, [edtLuaMinCollectSize.text]));
+
 
 
     val(editUpdatefoundInterval.Text,foundinterval,error);
@@ -440,10 +457,12 @@ begin
     val(editfreezeinterval.text,freezeinterval,error);
     if (error<>0) or (updateinterval<=0) then raise exception.Create(Format(rsIsNotAValidInterval, [editfreezeinterval.text]));
 
-
     try bufsize:=StrToInt(editbufsize.text); except bufsize:=1024; end;
 
     if bufsize=0 then raise exception.create(rsTheScanbufferSizeHasToBeGreaterThan0);
+
+
+
 
     buffersize:=bufsize*1024;
 
@@ -795,9 +814,28 @@ begin
           SaveFontToRegistry(fontdialog1.Font, reg);
       end;
 
+      reg.WriteBool('collectgarbage passive', cbLuaPassiveGarbageCollection.checked);
+      reg.WriteBool('collectgarbage active', cbLuaGarbageCollectAll.checked);
+      reg.WriteInteger('collectgarbage timer', collectgarbagetimer);
+      reg.WriteBool('collectgarbage only when bigger', cbLuaOnlyCollectWhenLarger.checked);
+      reg.WriteInteger('collectgarbage minsize', collectgarbageminimumsize);
+
+
+      if cbLuaGarbageCollectAll.checked then
+      begin
+        mainform.tLuaGCActive.interval:=collectgarbagetimer*1000;
+
+        if cbLuaOnlyCollectWhenLarger.checked then
+          luagc_MinSize:=collectgarbageminimumsize
+        else
+          luagc_MinSize:=0;
+      end;
+      mainform.tLuaGCActive.enabled:=cbLuaGarbageCollectAll.checked;
+      mainform.tLuaGCPassive.enabled:=cbLuaPassiveGarbageCollection.checked;
 
 
   {$ifndef net}
+
       //save the tools hotkeys
       reg.DeleteKey('\Software\Cheat Engine\Tools');
       if Reg.OpenKey('\Software\Cheat Engine\Tools',true) then
@@ -1172,6 +1210,12 @@ begin
   i:=max(edtStacksize.ClientWidth, canvas.TextWidth('4096')+(m shr 16)+(m and $ffff));
   edtStacksize.clientwidth:=i;
 
+  i:=max(edtLuaCollectTimer.ClientWidth, canvas.TextWidth('64 ')+(m shr 16)+(m and $ffff));
+  edtLuaCollectTimer.clientWidth:=i;
+
+  i:=max(edtLuaCollectTimer.ClientWidth, canvas.TextWidth('256 ')+(m shr 16)+(m and $ffff));
+  edtLuaMinCollectSize.clientWidth:=i;
+
   autosize:=false;
 
   if FontDialog1.Font.Height=0 then
@@ -1424,11 +1468,12 @@ begin
   tvMenuSelection.Items[5].Data:=Plugins;
   tvMenuSelection.Items[6].Data:=Languages;
   tvMenuSelection.Items[7].Data:=self.Assembler;
-  tvMenuSelection.Items[8].Data:=Extra;
-  tvMenuSelection.Items[9].Data:=tsSigning;
+  tvMenuSelection.Items[8].Data:=tsLua;
+  tvMenuSelection.Items[9].Data:=Extra;
+  tvMenuSelection.Items[10].Data:=tsSigning;
 
   tvMenuSelection.Items[6].Visible:=false;
-  tvMenuSelection.Items[9].Visible:=cansigntables;
+  tvMenuSelection.Items[10].Visible:=cansigntables;
 
   pcSetting.ShowTabs:=false;
 
@@ -1493,8 +1538,9 @@ begin
   tvMenuSelection.Items[5].Text:=rsPlugins;
   tvMenuSelection.Items[6].Text:=rsLanguages;
   tvMenuSelection.Items[7].Text:=rsDebuggerOptions;
-  tvMenuSelection.Items[8].Text:=rsExtra;
-  tvMenuSelection.Items[9].Text:=rsSigning;
+  tvMenuSelection.Items[8].Text:=rsLuaOptions;
+  tvMenuSelection.Items[9].Text:=rsExtra;
+  tvMenuSelection.Items[10].Text:=rsSigning;
 
 
 

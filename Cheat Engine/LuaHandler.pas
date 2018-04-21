@@ -9630,6 +9630,32 @@ begin
   result:=1;
 end;
 
+function lua_gc_setPassive(L: PLua_state): integer; cdecl;
+begin
+  if lua_gettop(L)>=1 then
+    mainform.tLuaGCPassive.enabled:=lua_toboolean(L,1);
+
+  exit(0);
+end;
+
+function lua_gc_setActive(L: PLua_state): integer; cdecl;
+begin
+  if lua_gettop(L)>=1 then
+    mainform.tLuaGCActive.enabled:=lua_toboolean(L,1);
+
+  if lua_gettop(L)>=2 then
+    mainform.tLuaGCActive.interval:=lua_tointeger(L,2);
+
+  if lua_gettop(L)>=3 then
+    luagc_MinSize:=lua_tointeger(L,3);
+end;
+
+function lua_getHotkeyHandlerThread(L: PLua_state): integer; cdecl;
+begin
+  luaclass_newClass(L, hotkeythread);
+  result:=1;
+end;
+
 procedure InitializeLua;
 var
   s: tstringlist;
@@ -10202,6 +10228,11 @@ begin
 
     lua_register(L, 'showSelectionList', lua_showSelectionList);
     lua_register(L, 'cpuid', lua_cpuid);
+    lua_register(L, 'gc_setPassive', lua_gc_setPassive);
+    lua_register(L, 'gc_setActivate', lua_gc_setPassive);
+
+    lua_register(L, 'getHotkeyHandlerThread', lua_getHotkeyHandlerThread);
+
 
 
     initializeLuaCustomControl;
