@@ -25,7 +25,7 @@ end;
 type
   PHotkeyItem=^THotkeyItem;
 
-  THotkeyThreadState=(htsActive=0, htsMemrecOnly=1, htsDisabled=2);
+  THotkeyThreadState=(htsActive=0, htsMemrecOnly=1, htsNoMemrec=2, htsDisabled=3);
 
 
   Thotkeythread=class(tthread)
@@ -466,8 +466,8 @@ begin
         begin
           if
             ((state in [htsActive,htsMemrecOnly]) and (hotkeylist[i].memrechotkey<>nil) and (checkkeycombo(TMemoryrecordHotkey(hotkeylist[i].memrechotkey).keys))) or
-            ((state = htsActive) and (hotkeylist[i].genericHotkey<>nil) and (checkkeycombo(TGenericHotkey(hotkeylist[i].generichotkey).keys))) or
-            ((state = htsActive) and ((hotkeylist[i].memrechotkey=nil) and (hotkeylist[i].generichotkey=nil)) and checkkeycombo(hotkeylist[i].keys))
+            ((state in [htsActive,htsNoMemrec]) and (hotkeylist[i].genericHotkey<>nil) and (checkkeycombo(TGenericHotkey(hotkeylist[i].generichotkey).keys))) or
+            ((state in [htsActive,htsNoMemrec]) and ((hotkeylist[i].memrechotkey=nil) and (hotkeylist[i].generichotkey=nil)) and checkkeycombo(hotkeylist[i].keys))
 
           then
           begin
