@@ -3167,7 +3167,7 @@ HotkeyHandlerThread(Inheritence: Thread)
 getHotkeyHandlerThread() : Returns the hotkey handler thread used internally by CE
 
 properties
-  state: 0=Active , 1=Memory records only, 2=disabled
+  state: 0 ('htsActive')=Active , 1('htsMemrecOnly')=Memory records only, 2('htsDisabled')=disabled
 
 methods
   -
