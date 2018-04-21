@@ -2,6 +2,8 @@ if getTranslationFolder()~='' then
   loadPOFile(getTranslationFolder()..'monoscript.po')
 end
 
+local StructureElementCallbackID=nil
+
 MONOCMD_INITMONO=0
 MONOCMD_OBJECT_GETCLASS=1
 MONOCMD_ENUMDOMAINS=2
@@ -143,6 +145,57 @@ function monoTypeToVarType(monoType)
   return result
 end
 
+function mono_StructureListCallback()
+  local r={}
+  local ri=1;
+  if monopipe then
+    --return a list of all classes
+    --print("Getting classlist")
+    mono_enumImages(
+      function(image)
+        --enum classes
+        --print("Getting classes for ".. mono_image_get_name(image))
+        local classlist=mono_image_enumClasses(image)
+        if classlist then
+          local i
+          for i=1,#classlist do            
+            r[ri]={}
+            r[ri].name=classlist[i].classname
+            r[ri].id1=classlist[i].class
+            ri=ri+1
+          end
+        end
+      end
+    )
+  
+    
+  end
+  
+  return r
+end
+
+function mono_ElementListCallback(class) --2nd param ignored
+  local r={}
+  --print("Getting class fields for "..class..",",extra)
+  if monopipe~=nil then
+    --enumerate the fields in the class and return it
+    local fields=mono_class_enumFields(class, true) 
+    if fields then    
+      for i=1, #fields do
+        if fields[i].isStatic==false then
+          r[i]={}
+          r[i].name=fields[i].name
+          r[i].offset=fields[i].offset
+          r[i].vartype=monoTypeToVarType(fields[i].monotype)                    
+        end
+      end
+    end
+    
+  end
+  
+  return r
+end
+
 
 function LaunchMonoDataCollector()
   --if debug_canBreak() then return 0 end
@@ -187,7 +240,12 @@ function LaunchMonoDataCollector()
     monopipe.destroy()
     monopipe=nil
     mono_AttachedProcess=0
-    monoBase=0     
+    monoBase=0
+
+    if StructureElementCallbackID then 
+      unregisterStructureAndElementListCallback(StructureElementCallbackID)
+      StructureElementCallbackID=nil
+    end
   end
 
   --in case you implement the profiling tools use a secondary pipe to receive profiler events
@@ -223,6 +281,8 @@ function LaunchMonoDataCollector()
   if (monoSettings==nil) then
     monoSettings=getSettings("MonoExtension")  
   end
+  
+  StructureElementCallbackID=registerStructureAndElementListCallback(mono_StructureListCallback, mono_ElementListCallback)
 
   return monoBase
 end
@@ -388,6 +448,19 @@ function mono_object_getClass(address)
   end
 end
 
+
+function mono_enumImages(onImage)
+  local assemblies=mono_enumAssemblies()
+  if assemblies then
+    for i=1,#assemblies do
+      local image=mono_getImageFromAssembly(assemblies[i])
+      if image and (image~=0) then
+        onImage(image)      
+      end
+    end
+  end
+end
+
 function mono_enumDomains()
   --if debug_canBreak() then return nil end
 
@@ -472,7 +545,7 @@ function mono_image_enumClasses(image)
   monopipe.writeByte(MONOCMD_ENUMCLASSESINIMAGE)
   monopipe.writeQword(image)
   local classcount=monopipe.readDword()
-  if classcount==nil then return nil end
+  if (classcount==nil) or (classcount==0) then return nil end
 
   local classes={}
   local i,j
@@ -2187,21 +2260,21 @@ function monoform_context_onpopup(sender)
   monoForm.miFindInstancesOfClass.Enabled=structuresEnabled
 end
 
+
+
 function monoform_EnumImages(node)
   --print("monoform_EnumImages")
   local i
-  local domain=node.Data
-  --mono_setCurrentDomain(domain)
+
   local assemblies=mono_enumAssemblies()
-
-  for i=1, #assemblies do
-    local image=mono_getImageFromAssembly(assemblies[i])
-    local imagename=mono_image_get_name(image)
-    local n=node.add(string.format("%x : %s", image, imagename))
-    n.HasChildren=true;
-    n.Data=image
-
-  end
+  mono_enumImages(
+    function(image)
+      local imagename=mono_image_get_name(image)
+      local n=node.add(string.format("%x : %s", image, imagename))      
+      n.HasChildren=true
+      n.Data=image
+    end
+  )
 end
 
 function monoform_AddClass(node, klass, namespace, classname, fqname)

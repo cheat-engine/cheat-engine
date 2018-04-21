@@ -138,6 +138,7 @@ vtSingle=4
 vtDouble=5
 vtString=6
 vtUnicodeString=7 --Only used by autoguess
+vtWideString=7
 vtByteArray=8
 vtBinary=9
 vtAutoAssembler=11
