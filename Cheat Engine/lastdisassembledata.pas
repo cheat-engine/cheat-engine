@@ -17,7 +17,7 @@ type
     address: PtrUint;
     prefix: string;
     prefixsize: integer;
-    opcode: string; //and sadly undone because I want to allow the user to change the string... pchar; //replaced string with pchar so it now only contains a pointer. Faster. string; //the result without bytes
+    opcode: string;
     parameters: string;
     description: string;
     commentsoverride: string;

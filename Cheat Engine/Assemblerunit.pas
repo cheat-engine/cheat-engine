@@ -11,19 +11,19 @@ uses  sysutils, ProcessHandlerUnit;
 {$endif}
 
 {$ifdef windows}
-uses dialogs,LCLIntf,sysutils,imagehlp, ProcessHandlerUnit;
+uses dialogs,LCLIntf,sysutils,imagehlp, ProcessHandlerUnit,vextypedef;
 {$endif}
 
-const opcodecount=1105; //I wish there was a easier way than to handcount
+const opcodecount=1112+35; //I wish there was a easier way than to handcount
 
 
 
 type TTokenType=(
   ttInvalidtoken, ttRegister8Bit, ttRegister16Bit, ttRegister32Bit, ttRegister64Bit, ttRegister8BitWithPrefix, //ttRegister64Bit and ttRegister8BitWithPrefix is just internal to set the rexflags
-  ttRegisterMM, ttRegisterXMM, ttRegisterST, ttRegisterSreg,
+  ttRegisterMM, ttRegisterXMM, ttRegisterYMM, ttRegisterST, ttRegisterSreg,
   ttRegisterCR, ttRegisterDR, ttMemoryLocation, ttMemoryLocation8,
   ttMemoryLocation16, ttMemoryLocation32, ttMemoryLocation64,
-  ttMemoryLocation80, ttMemoryLocation128, ttValue);
+  ttMemoryLocation80, ttMemoryLocation128, ttMemoryLocation256, ttValue);
 
 
 //opcode part (bytes)
@@ -60,6 +60,7 @@ type tparam=(par_noparam,
              par_r64, //just for a few occasions
              par_mm,
              par_xmm,
+             par_ymm,
              par_st,
              par_st0,
              par_sreg,
@@ -85,6 +86,7 @@ type tparam=(par_noparam,
              par_xmm_m32,
              par_xmm_m64,
              par_xmm_m128,
+             par_ymm_m256,
 
             //values
              par_imm8,
@@ -95,10 +97,14 @@ type tparam=(par_noparam,
              par_rel16,
              par_rel32);
 
+type
+  TVEXOpcodeExtention=(oe_none=0, oe_66=1, oe_F3=2,oe_F2=3);
+  TVEXLeadingopcode=(lo_none=0, lo_0F=1, lo_0F_38=2, lo_0F_3A=3);
+
 type topcode=record
   mnemonic: string;
   opcode1,opcode2: textraopcode;
-  paramtype1,paramtype2,paramtype3: tparam;
+  paramtype1,paramtype2,paramtype3,paramtype4: tparam;
   bytes:byte;
   bt1,bt2,bt3,bt4: byte;
   signed: boolean;
@@ -107,6 +113,11 @@ type topcode=record
   invalidin32bit: boolean;
   canDoAddressSwitch: boolean; //does it support the 0x67 address switch (e.g lea)
   defaulttype: boolean;
+  hasvex: boolean;
+  vexL: byte;
+  vexOpcodeExtension: TVEXOpcodeExtention; //e.g oe_F3;
+  vexLeadingOpcode: TVEXLeadingopcode; //lo_0f),
+  vexExtraParam: integer;
  // RexPrefixOffset: byte; //if specified specifies which byte should be used for the rexw (e.g f3 before rex )
 end;
 
@@ -132,6 +143,8 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'ADC';opcode1:eo_reg;paramtype1:par_r8;paramtype2:par_rm8;bytes:1;bt1:$12),
   (mnemonic:'ADC';opcode1:eo_reg;paramtype1:par_r16;paramtype2:par_rm16;bytes:2;bt1:$66;bt2:$13),
   (mnemonic:'ADC';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_rm32;bytes:1;bt1:$13),
+  (mnemonic:'ADCX';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_rm32;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$f6),
+  (mnemonic:'ADOX';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_rm32;bytes:4;bt1:$f3;bt2:$0f;bt3:$38;bt4:$f6),
 
   (mnemonic:'ADD';opcode1:eo_ib;paramtype1:par_AL;paramtype2:par_imm8;bytes:1;bt1:$04),
   (mnemonic:'ADD';opcode1:eo_iw;paramtype1:par_AX;paramtype2:par_imm16;bytes:2;bt1:$66;bt2:$05),
@@ -153,6 +166,15 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'ADDSD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m64;bytes:3;bt1:$f2;bt2:$0f;bt3:$58),
   (mnemonic:'ADDSS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m32;bytes:3;bt1:$f3;bt2:$0f;bt3:$58),
 
+  (mnemonic:'ADDSUBPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$d0),
+  (mnemonic:'AESDEC';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$de),
+  (mnemonic:'AESDECLAST';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$df),
+  (mnemonic:'AESENC';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$dc),
+  (mnemonic:'AESENCLAST';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$dd),
+  (mnemonic:'AESIMC';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$db),
+  (mnemonic:'AESKEYGENASSIST';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;paramtype3:par_imm8;bytes:4;bt1:$66;bt2:$0f;bt3:$3a;bt4:$df),
+
+
   (mnemonic:'AND';opcode1:eo_ib;paramtype1:par_AL;paramtype2:par_imm8;bytes:1;bt1:$24),
   (mnemonic:'AND';opcode1:eo_iw;paramtype1:par_AX;paramtype2:par_imm16;bytes:2;bt1:$66;bt2:$25),
   (mnemonic:'AND';opcode1:eo_id;paramtype1:par_EAX;paramtype2:par_imm32;bytes:1;bt1:$25),
@@ -168,6 +190,11 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'AND';opcode1:eo_reg;paramtype1:par_r16;paramtype2:par_rm16;bytes:2;bt1:$66;bt2:$23),
   (mnemonic:'AND';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_rm32;bytes:1;bt1:$23),
 
+  (mnemonic:'ANDN';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_r32;paramtype3:par_m32;bytes:1;bt1:$f2;hasvex:true; vexL:0; vexOpcodeExtension: oe_none; vexLeadingOpcode: lo_0f_38; vexExtraParam:2),
+
+  //(mnemonic:'VAEKEYGENASSIST';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_imm8; bytes:1;bt1:$df;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;   vexLeadingOpcode: lo_0f_3a; vexExtraParam:0),
+
+
   (mnemonic:'ANDNPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$ff),
   (mnemonic:'ANDNPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:2;bt1:$0f;bt2:$55),
 
@@ -175,6 +202,9 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'ANDPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:2;bt1:$0f;bt2:$54),
 
   (mnemonic:'ARPL';opcode1:eo_reg;paramtype1:par_rm16;paramtype2:par_r16;bytes:1;bt1:$63), //eo_reg means I just need to find the reg and address
+
+  (mnemonic:'BEXTR';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_rm32;paramtype3:par_r32;bytes:1;bt1:$f7;hasvex:true; vexL:0; vexOpcodeExtension: oe_none; vexLeadingOpcode: lo_0f_38; vexExtraParam:3),
+  (mnemonic:'BLENDPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;paramtype3:par_imm8;bytes:4;bt1:$66;bt2:$0f;bt3:$3a;bt4:$0d),
   (mnemonic:'BOUND';opcode1:eo_reg;paramtype1:par_r16;paramtype2:par_rm16;bytes:2;bt1:$66;bt2:$62),
   (mnemonic:'BOUND';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_rm32;bytes:1;bt1:$62),
   (mnemonic:'BSF';opcode1:eo_reg;paramtype1:par_r16;paramtype2:par_rm16;bytes:3;bt1:$66;bt2:$0f;bt3:$bc),
@@ -1062,6 +1092,10 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'POPAD';bytes:1;bt1:$61),
   (mnemonic:'POPALL';bytes:1;bt1:$61),
 
+  (mnemonic:'POPCNT';paramtype1:par_rm16;paramtype2:par_rm16; bytes:4;bt1:$66; bt2:$f3; bt3:$0f;bt4:$b8),
+  (mnemonic:'POPCNT';paramtype1:par_rm32;paramtype2:par_rm32; bytes:3;bt1:$f3; bt2:$0f; bt3:$b8),
+
+
   (mnemonic:'POPF';bytes:2;bt1:$66;bt2:$9d),
   (mnemonic:'POPFD';bytes:1;bt1:$9d; invalidin64bit: true),
   (mnemonic:'POPFQ';bytes:1;bt1:$9d; invalidin32bit: true),
@@ -1507,14 +1541,47 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'UNPCKLPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$14),
   (mnemonic:'UNPCKLPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:2;bt1:$0f;bt2:$14),
 
+  (mnemonic:'VADDPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128;bytes:1;bt1:$58;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;   vexLeadingOpcode: lo_0f; vexExtraParam:2),
+  (mnemonic:'VADDPD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256;bytes:1;bt1:$58;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;   vexLeadingOpcode: lo_0f; vexExtraParam:2),
+  (mnemonic:'VADDPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128;bytes:1;bt1:$58;hasvex:true; vexL:0; vexOpcodeExtension: oe_none; vexLeadingOpcode: lo_0f; vexExtraParam:2),
+  (mnemonic:'VADDPS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256;bytes:1;bt1:$58;hasvex:true; vexL:1; vexOpcodeExtension: oe_none; vexLeadingOpcode: lo_0f; vexExtraParam:2),
+  (mnemonic:'VADDSD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m64; bytes:1;bt1:$58;hasvex:true; vexL:0; vexOpcodeExtension: oe_F2;   vexLeadingOpcode: lo_0f; vexExtraParam:2),
+  (mnemonic:'VADDSS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m32; bytes:1;bt1:$58;hasvex:true; vexL:0; vexOpcodeExtension: oe_F3;   vexLeadingOpcode: lo_0f; vexExtraParam:2),
+  (mnemonic:'VADDSUBPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$d0;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;   vexLeadingOpcode: lo_0f; vexExtraParam:2),
+  (mnemonic:'VADDSUBPD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$d0;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;   vexLeadingOpcode: lo_0f; vexExtraParam:2),
+  (mnemonic:'VADDSUBPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$d0;hasvex:true; vexL:0; vexOpcodeExtension: oe_F2;   vexLeadingOpcode: lo_0f; vexExtraParam:2),
+  (mnemonic:'VADDSUBPS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$d0;hasvex:true; vexL:1; vexOpcodeExtension: oe_F2;   vexLeadingOpcode: lo_0f; vexExtraParam:2),
+  (mnemonic:'VAESDEC';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$de;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;   vexLeadingOpcode: lo_0f_38; vexExtraParam:2),
+  (mnemonic:'VAESDECLAST';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$df;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;   vexLeadingOpcode: lo_0f_38; vexExtraParam:2),
+  (mnemonic:'VAESENC';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$dc;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;   vexLeadingOpcode: lo_0f_38; vexExtraParam:2),
+  (mnemonic:'VAESENCLAST';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$dd;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;   vexLeadingOpcode: lo_0f_38; vexExtraParam:2),
+  (mnemonic:'VAESIMC';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$db;hasvex:true; vexL:0; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0f_38; vexExtraParam:2),
+  (mnemonic:'VAEKEYGENASSIST';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_imm8; bytes:1;bt1:$df;hasvex:true; vexL:0; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0f_3a; vexExtraParam:0),
+  (mnemonic:'VANDNPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$55;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;  vexLeadingOpcode: lo_0f; vexExtraParam:2),
+  (mnemonic:'VANDNPD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$55;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;  vexLeadingOpcode: lo_0f; vexExtraParam:2),
+  (mnemonic:'VANDNPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$55;hasvex:true; vexL:0; vexOpcodeExtension: oe_none;vexLeadingOpcode: lo_0f; vexExtraParam:2),
+  (mnemonic:'VANDNPS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$55;hasvex:true; vexL:1; vexOpcodeExtension: oe_none;vexLeadingOpcode: lo_0f; vexExtraParam:2),
+  (mnemonic:'VANDPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$54;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;   vexLeadingOpcode: lo_0f; vexExtraParam:2),
+  (mnemonic:'VANDPD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$54;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;   vexLeadingOpcode: lo_0f; vexExtraParam:2),
+  (mnemonic:'VANDPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$54;hasvex:true; vexL:0; vexOpcodeExtension: oe_none; vexLeadingOpcode: lo_0f; vexExtraParam:2),
+  (mnemonic:'VANDPS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$54;hasvex:true; vexL:1; vexOpcodeExtension: oe_none; vexLeadingOpcode: lo_0f; vexExtraParam:2),
+  (mnemonic:'VBLENDPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128;paramtype4:par_imm8; bytes:1;bt1:$0d;hasvex:true; vexL:0; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F_3A; vexExtraParam:2),
+  (mnemonic:'VBLENDPD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256;paramtype4:par_imm8; bytes:1;bt1:$0d;hasvex:true; vexL:1; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F_3A; vexExtraParam:2),
+
   (mnemonic:'VERR';opcode1:eo_reg4;paramtype1:par_rm16;bytes:2;bt1:$0f;bt2:$00),
   (mnemonic:'VERW';opcode1:eo_reg5;paramtype1:par_rm16;bytes:2;bt1:$0f;bt2:$00),
 
   (mnemonic:'VMCALL';bytes:3;bt1:$0f;bt2:$01;bt3:$c1),  
   (mnemonic:'VMCLEAR';opcode1:eo_reg6;paramtype1:par_m64;bytes:3;bt1:$66;bt2:$0f;bt3:$c7),
   (mnemonic:'VMLAUNCH';bytes:3;bt1:$0f;bt2:$01;bt3:$c2),
+  (mnemonic:'VMOVSD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm;bytes:1;bt1:$10;hasvex:true; vexOpcodeExtension: oe_F2; vexLeadingOpcode: lo_0f; vexExtraParam: 2),
+  (mnemonic:'VMOVSD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_m64;bytes:1;bt1:$10;hasvex:true; vexOpcodeExtension: oe_F2; vexLeadingOpcode: lo_0f),
+
   (mnemonic:'VMPTRLD';opcode1:eo_reg6;paramtype1:par_m64;bytes:2;bt1:$0f;bt2:$c7),
   (mnemonic:'VMPTRST';opcode1:eo_reg7;paramtype1:par_m64;bytes:2;bt1:$0f;bt2:$c7),
+
+
+
   (mnemonic:'VMREAD';opcode1:eo_reg;paramtype1:par_rm32;paramtype2:par_r32;bytes:2;bt1:$0f;bt2:$78),
   (mnemonic:'VMRESUME';bytes:3;bt1:$0f;bt2:$01;bt3:$c3),
   (mnemonic:'VMWRITE';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_rm32;bytes:2;bt1:$0f;bt2:$79),  
@@ -1608,6 +1675,9 @@ type TSingleLineAssembler=class
   private
     RexPrefix: Byte;
     RexPrefixLocation: integer; //index into the bytes array
+
+//    VexPrefix: TVex
+
     relativeAddressLocation: integer; //index into the bytes array containing the start of th relative 4 byte address
     actualdisplacement: qword;
     needsAddressSwitchPrefix: boolean;
@@ -1662,7 +1732,7 @@ uses symbolhandler, assemblerArm, Parsers, NewKernelHandler;
 
 {$ifdef windows}
 uses {$ifndef autoassemblerdll}CEFuncProc,{$endif}symbolhandler, lua, luahandler,
-  lualib, assemblerArm, Parsers, NewKernelHandler, LuaCaller;
+  lualib, assemblerArm, Parsers, NewKernelHandler, LuaCaller, math;
 {$endif}
 
 resourcestring
@@ -1916,28 +1986,28 @@ end;
 function TSingleLineAssembler.getreg(reg: string;exceptonerror:boolean): integer; overload;
 begin
   result:=1000;
-  if (reg='RAX') or (reg='EAX') or (reg='AX') or (reg='AL') or (reg='MM0') or (reg='XMM0') or (reg='ST(0)') or (reg='ST') or (reg='ES') or (reg='CR0') or (reg='DR0') then result:=0;
-  if (reg='RCX') or (reg='ECX') or (reg='CX') or (reg='CL') or (reg='MM1') or (reg='XMM1') or (reg='ST(1)') or (reg='CS') or (reg='CR1') or (reg='DR1') then result:=1;
-  if (reg='RDX') or (reg='EDX') or (reg='DX') or (reg='DL') or (reg='MM2') or (reg='XMM2') or (reg='ST(2)') or (reg='SS') or (reg='CR2') or (reg='DR2') then result:=2;
-  if (reg='RBX') or (reg='EBX') or (reg='BX') or (reg='BL') or (reg='MM3') or (reg='XMM3') or (reg='ST(3)') or (reg='DS') or (reg='CR3') or (reg='DR3') then result:=3;
-  if (reg='RSP') or (reg='ESP') or (reg='SP') or (reg='AH') or (reg='MM4') or (reg='XMM4') or (reg='ST(4)') or (reg='FS') or (reg='CR4') or (reg='DR4') then result:=4;
-  if (reg='RBP') or (reg='EBP') or (reg='BP') or (reg='CH') or (reg='MM5') or (reg='XMM5') or (reg='ST(5)') or (reg='GS') or (reg='CR5') or (reg='DR5') then result:=5;
-  if (reg='RSI') or (reg='ESI') or (reg='SI') or (reg='DH') or (reg='MM6') or (reg='XMM6') or (reg='ST(6)') or (reg='HS') or (reg='CR6') or (reg='DR6') then result:=6;
-  if (reg='RDI') or (reg='EDI') or (reg='DI') or (reg='BH') or (reg='MM7') or (reg='XMM7') or (reg='ST(7)') or (reg='IS') or (reg='CR7') or (reg='DR7') then result:=7;
+  if (reg='RAX') or (reg='EAX') or (reg='AX') or (reg='AL') or (reg='MM0') or (reg='XMM0') or (reg='YMM0') or (reg='ST(0)') or (reg='ST') or (reg='ES') or (reg='CR0') or (reg='DR0') then exit(0);
+  if (reg='RCX') or (reg='ECX') or (reg='CX') or (reg='CL') or (reg='MM1') or (reg='XMM1') or (reg='YMM1') or (reg='ST(1)') or (reg='CS') or (reg='CR1') or (reg='DR1') then exit(1);
+  if (reg='RDX') or (reg='EDX') or (reg='DX') or (reg='DL') or (reg='MM2') or (reg='XMM2') or (reg='YMM2') or (reg='ST(2)') or (reg='SS') or (reg='CR2') or (reg='DR2') then exit(2);
+  if (reg='RBX') or (reg='EBX') or (reg='BX') or (reg='BL') or (reg='MM3') or (reg='XMM3') or (reg='YMM3') or (reg='ST(3)') or (reg='DS') or (reg='CR3') or (reg='DR3') then exit(3);
+  if (reg='RSP') or (reg='ESP') or (reg='SP') or (reg='AH') or (reg='MM4') or (reg='XMM4') or (reg='YMM4') or (reg='ST(4)') or (reg='FS') or (reg='CR4') or (reg='DR4') then exit(4);
+  if (reg='RBP') or (reg='EBP') or (reg='BP') or (reg='CH') or (reg='MM5') or (reg='XMM5') or (reg='YMM5') or (reg='ST(5)') or (reg='GS') or (reg='CR5') or (reg='DR5') then exit(5);
+  if (reg='RSI') or (reg='ESI') or (reg='SI') or (reg='DH') or (reg='MM6') or (reg='XMM6') or (reg='YMM6') or (reg='ST(6)') or (reg='HS') or (reg='CR6') or (reg='DR6') then exit(6);
+  if (reg='RDI') or (reg='EDI') or (reg='DI') or (reg='BH') or (reg='MM7') or (reg='XMM7') or (reg='YMM7') or (reg='ST(7)') or (reg='IS') or (reg='CR7') or (reg='DR7') then exit(7);
   if processhandler.is64Bit then
   begin
-    if (reg='SPL') then result:=4 else
-    if (reg='BPL') then result:=5 else
-    if (reg='SIL') then result:=6 else
-    if (reg='DIL') then result:=7 else
-    if (reg='R8') or (reg='R8D') or (reg='R8W') or (reg='R8L') or (reg='MM8') or (reg='XMM8') or (reg='ST(8)') or (reg='JS') or (reg='CR8') or (reg='DR8') then result:=8;
-    if (reg='R9') or (reg='R9D') or (reg='R9W') or (reg='R9L') or (reg='MM9') or (reg='XMM9') or (reg='ST(9)') or (reg='KS') or (reg='CR9') or (reg='DR9') then result:=9;
-    if (reg='R10') or (reg='R10D') or (reg='R10W') or (reg='R10L') or (reg='MM10') or (reg='XMM10') or (reg='ST(10)') or (reg='KS') or (reg='CR10') or (reg='DR10') then result:=10;
-    if (reg='R11') or (reg='R11D') or (reg='R11W') or (reg='R11L') or (reg='MM11') or (reg='XMM11') or (reg='ST(11)') or (reg='LS') or (reg='CR11') or (reg='DR11') then result:=11;
-    if (reg='R12') or (reg='R12D') or (reg='R12W') or (reg='R12L') or (reg='MM12') or (reg='XMM12') or (reg='ST(12)') or (reg='MS') or (reg='CR12') or (reg='DR12') then result:=12;
-    if (reg='R13') or (reg='R13D') or (reg='R13W') or (reg='R13L') or (reg='MM13') or (reg='XMM13') or (reg='ST(13)') or (reg='NS') or (reg='CR13') or (reg='DR13') then result:=13;
-    if (reg='R14') or (reg='R14D') or (reg='R14W') or (reg='R14L') or (reg='MM14') or (reg='XMM14') or (reg='ST(14)') or (reg='OS') or (reg='CR14') or (reg='DR14') then result:=14;
-    if (reg='R15') or (reg='R15D') or (reg='R15W') or (reg='R15L') or (reg='MM15') or (reg='XMM15') or (reg='ST(15)') or (reg='PS') or (reg='CR15') or (reg='DR15') then result:=15;
+    if (reg='SPL') then exit(4);
+    if (reg='BPL') then exit(5);
+    if (reg='SIL') then exit(6);
+    if (reg='DIL') then exit(7);
+    if (reg='R8') or (reg='R8D') or (reg='R8W') or (reg='R8L') or (reg='MM8') or (reg='XMM8') or (reg='YMM8') or (reg='ST(8)') or (reg='JS') or (reg='CR8') or (reg='DR8') then exit(8);
+    if (reg='R9') or (reg='R9D') or (reg='R9W') or (reg='R9L') or (reg='MM9') or (reg='XMM9') or (reg='YMM9') or (reg='ST(9)') or (reg='KS') or (reg='CR9') or (reg='DR9') then exit(9);
+    if (reg='R10') or (reg='R10D') or (reg='R10W') or (reg='R10L') or (reg='MM10') or (reg='XMM10') or (reg='YMM10') or (reg='ST(10)') or (reg='KS') or (reg='CR10') or (reg='DR10') then exit(10);
+    if (reg='R11') or (reg='R11D') or (reg='R11W') or (reg='R11L') or (reg='MM11') or (reg='XMM11') or (reg='YMM11') or (reg='ST(11)') or (reg='LS') or (reg='CR11') or (reg='DR11') then exit(11);
+    if (reg='R12') or (reg='R12D') or (reg='R12W') or (reg='R12L') or (reg='MM12') or (reg='XMM12') or (reg='YMM12') or (reg='ST(12)') or (reg='MS') or (reg='CR12') or (reg='DR12') then exit(12);
+    if (reg='R13') or (reg='R13D') or (reg='R13W') or (reg='R13L') or (reg='MM13') or (reg='XMM13') or (reg='YMM13') or (reg='ST(13)') or (reg='NS') or (reg='CR13') or (reg='DR13') then exit(13);
+    if (reg='R14') or (reg='R14D') or (reg='R14W') or (reg='R14L') or (reg='MM14') or (reg='XMM14') or (reg='YMM14') or (reg='ST(14)') or (reg='OS') or (reg='CR14') or (reg='DR14') then exit(14);
+    if (reg='R15') or (reg='R15D') or (reg='R15W') or (reg='R15L') or (reg='MM15') or (reg='XMM15') or (reg='YMM15') or (reg='ST(15)') or (reg='PS') or (reg='CR15') or (reg='DR15') then exit(15);
   end;
 
   if (result=1000) and exceptonerror then raise exception.Create(rsInvalidRegister);
@@ -1955,161 +2025,212 @@ function TokenToRegisterbit(token:string): TTokenType;
 begin
   result:=ttRegister32bit;
 
-  if token='AL' then result:=ttRegister8bit else
-  if token='CL' then result:=ttRegister8bit else
-  if token='DL' then result:=ttRegister8bit else
-  if token='BL' then result:=ttRegister8bit else
-  if token='AH' then result:=ttRegister8bit else
-  if token='CH' then result:=ttRegister8bit else
-  if token='DH' then result:=ttRegister8bit else
-  if token='BH' then result:=ttRegister8bit else
-
-  if token='AX' then result:=ttRegister16bit else
-  if token='CX' then result:=ttRegister16bit else
-  if token='DX' then result:=ttRegister16bit else
-  if token='BX' then result:=ttRegister16bit else
-  if token='SP' then result:=ttRegister16bit else
-  if token='BP' then result:=ttRegister16bit else
-  if token='SI' then result:=ttRegister16bit else
-  if token='DI' then result:=ttRegister16bit else
-
-  if token='EAX' then result:=ttRegister32bit else
-  if token='ECX' then result:=ttRegister32bit else
-  if token='EDX' then result:=ttRegister32bit else
-  if token='EBX' then result:=ttRegister32bit else
-  if token='ESP' then result:=ttRegister32bit else
-  if token='EBP' then result:=ttRegister32bit else
-  if token='ESI' then result:=ttRegister32bit else
-  if token='EDI' then result:=ttRegister32bit else
-
-  if token='MM0' then result:=ttRegisterMM else
-  if token='MM1' then result:=ttRegisterMM else
-  if token='MM2' then result:=ttRegisterMM else
-  if token='MM3' then result:=ttRegisterMM else
-  if token='MM4' then result:=ttRegisterMM else
-  if token='MM5' then result:=ttRegisterMM else
-  if token='MM6' then result:=ttRegisterMM else
-  if token='MM7' then result:=ttRegisterMM else
-
-  if token='XMM0' then result:=ttRegisterXMM else
-  if token='XMM1' then result:=ttRegisterXMM else
-  if token='XMM2' then result:=ttRegisterXMM else
-  if token='XMM3' then result:=ttRegisterXMM else
-  if token='XMM4' then result:=ttRegisterXMM else
-  if token='XMM5' then result:=ttRegisterXMM else
-  if token='XMM6' then result:=ttRegisterXMM else
-  if token='XMM7' then result:=ttRegisterXMM else
-
-
-  if token='ST' then result:=ttRegisterST else
-  if token='ST(0)' then result:=ttRegisterST else
-  if token='ST(1)' then result:=ttRegisterST else
-  if token='ST(2)' then result:=ttRegisterST else
-  if token='ST(3)' then result:=ttRegisterST else
-  if token='ST(4)' then result:=ttRegisterST else
-  if token='ST(5)' then result:=ttRegisterST else
-  if token='ST(6)' then result:=ttRegisterST else
-  if token='ST(7)' then result:=ttRegisterST else
-
-  if token='ES' then result:=ttRegistersreg else
-  if token='CS' then result:=ttRegistersreg else
-  if token='SS' then result:=ttRegistersreg else
-  if token='DS' then result:=ttRegistersreg else
-  if token='FS' then result:=ttRegistersreg else
-  if token='GS' then result:=ttRegistersreg else
-  if token='HS' then result:=ttRegistersreg else
-  if token='IS' then result:=ttRegistersreg else
-
-  if token='CR0' then result:=ttRegisterCR else
-  if token='CR1' then result:=ttRegisterCR else
-  if token='CR2' then result:=ttRegisterCR else
-  if token='CR3' then result:=ttRegisterCR else
-  if token='CR4' then result:=ttRegisterCR else
-  if token='CR5' then result:=ttRegisterCR else
-  if token='CR6' then result:=ttRegisterCR else
-  if token='CR7' then result:=ttRegisterCR else
-
-
-  if token='DR0' then result:=ttRegisterDR else
-  if token='DR1' then result:=ttRegisterDR else
-  if token='DR2' then result:=ttRegisterDR else
-  if token='DR3' then result:=ttRegisterDR else
-  if token='DR4' then result:=ttRegisterDR else
-  if token='DR5' then result:=ttRegisterDR else
-  if token='DR6' then result:=ttRegisterDR else
-  if token='DR7' then result:=ttRegisterDR else
-
-  if processhandler.is64Bit then
+  if length(token)>=2 then
   begin
-    if token='RAX' then result:=ttRegister64bit else
-    if token='RCX' then result:=ttRegister64bit else
-    if token='RDX' then result:=ttRegister64bit else
-    if token='RBX' then result:=ttRegister64bit else
-    if token='RSP' then result:=ttRegister64bit else
-    if token='RBP' then result:=ttRegister64bit else
-    if token='RSI' then result:=ttRegister64bit else
-    if token='RDI' then result:=ttRegister64bit else
-    if token='R8' then result:=ttRegister64bit else
-    if token='R9' then result:=ttRegister64bit else
-    if token='R10' then result:=ttRegister64bit else
-    if token='R11' then result:=ttRegister64bit else
-    if token='R12' then result:=ttRegister64bit else
-    if token='R13' then result:=ttRegister64bit else
-    if token='R14' then result:=ttRegister64bit else
-    if token='R15' then result:=ttRegister64bit else
+    case token[1] of
+      'X':
+      begin
+        if token='XMM0' then exit(ttRegisterXMM) else
+        if token='XMM1' then exit(ttRegisterXMM) else
+        if token='XMM2' then exit(ttRegisterXMM) else
+        if token='XMM3' then exit(ttRegisterXMM) else
+        if token='XMM4' then exit(ttRegisterXMM) else
+        if token='XMM5' then exit(ttRegisterXMM) else
+        if token='XMM6' then exit(ttRegisterXMM) else
+        if token='XMM7' then exit(ttRegisterXMM) else
+        if processhandler.is64bit then
+        begin
+          if token='XMM8' then exit(ttRegisterXMM) else
+          if token='XMM9' then exit(ttRegisterXMM) else
+          if token='XMM10' then exit(ttRegisterXMM) else
+          if token='XMM11' then exit(ttRegisterXMM) else
+          if token='XMM12' then exit(ttRegisterXMM) else
+          if token='XMM13' then exit(ttRegisterXMM) else
+          if token='XMM14' then exit(ttRegisterXMM) else
+          if token='XMM15' then exit(ttRegisterXMM);
+        end;
 
-    if token='SPL' then result:=ttRegister8BitWithPrefix else
-    if token='BPL' then result:=ttRegister8BitWithPrefix else
-    if token='SIL' then result:=ttRegister8BitWithPrefix else
-    if token='DIL' then result:=ttRegister8BitWithPrefix else
+        exit(ttInvalidtoken); //no other registers start with X
+      end;
+
+      'Y':
+      begin
+        if token='YMM0' then exit(ttRegisterYMM) else
+        if token='YMM1' then exit(ttRegisterYMM) else
+        if token='YMM2' then exit(ttRegisterYMM) else
+        if token='YMM3' then exit(ttRegisterYMM) else
+        if token='YMM4' then exit(ttRegisterYMM) else
+        if token='YMM5' then exit(ttRegisterYMM) else
+        if token='YMM6' then exit(ttRegisterYMM) else
+        if token='YMM7' then exit(ttRegisterYMM) else
+        if token='YMM8' then exit(ttRegisterYMM) else
+        if token='YMM9' then exit(ttRegisterYMM) else
+        if token='YMM10' then exit(ttRegisterYMM) else
+        if token='YMM11' then exit(ttRegisterYMM) else
+        if token='YMM12' then exit(ttRegisterYMM) else
+        if token='YMM13' then exit(ttRegisterYMM) else
+        if token='YMM14' then exit(ttRegisterYMM) else
+        if token='YMM15' then exit(ttRegisterYMM);
+
+        exit(ttInvalidtoken);
+      end;
+    end;
+
+    if token='AL' then result:=ttRegister8bit else
+    if token='CL' then result:=ttRegister8bit else
+    if token='DL' then result:=ttRegister8bit else
+    if token='BL' then result:=ttRegister8bit else
+    if token='AH' then result:=ttRegister8bit else
+    if token='CH' then result:=ttRegister8bit else
+    if token='DH' then result:=ttRegister8bit else
+    if token='BH' then result:=ttRegister8bit else
+
+    if token='AX' then result:=ttRegister16bit else
+    if token='CX' then result:=ttRegister16bit else
+    if token='DX' then result:=ttRegister16bit else
+    if token='BX' then result:=ttRegister16bit else
+    if token='SP' then result:=ttRegister16bit else
+    if token='BP' then result:=ttRegister16bit else
+    if token='SI' then result:=ttRegister16bit else
+    if token='DI' then result:=ttRegister16bit else
+
+    if token='EAX' then result:=ttRegister32bit else
+    if token='ECX' then result:=ttRegister32bit else
+    if token='EDX' then result:=ttRegister32bit else
+    if token='EBX' then result:=ttRegister32bit else
+    if token='ESP' then result:=ttRegister32bit else
+    if token='EBP' then result:=ttRegister32bit else
+    if token='ESI' then result:=ttRegister32bit else
+    if token='EDI' then result:=ttRegister32bit else
+
+    if token='MM0' then result:=ttRegisterMM else
+    if token='MM1' then result:=ttRegisterMM else
+    if token='MM2' then result:=ttRegisterMM else
+    if token='MM3' then result:=ttRegisterMM else
+    if token='MM4' then result:=ttRegisterMM else
+    if token='MM5' then result:=ttRegisterMM else
+    if token='MM6' then result:=ttRegisterMM else
+    if token='MM7' then result:=ttRegisterMM else
+
+    if token='XMM0' then result:=ttRegisterXMM else
+    if token='XMM1' then result:=ttRegisterXMM else
+    if token='XMM2' then result:=ttRegisterXMM else
+    if token='XMM3' then result:=ttRegisterXMM else
+    if token='XMM4' then result:=ttRegisterXMM else
+    if token='XMM5' then result:=ttRegisterXMM else
+    if token='XMM6' then result:=ttRegisterXMM else
+    if token='XMM7' then result:=ttRegisterXMM else
 
 
-    if token='R8L' then result:=ttRegister8Bit else
-    if token='R9L' then result:=ttRegister8Bit else
-    if token='R10L' then result:=ttRegister8Bit else
-    if token='R11L' then result:=ttRegister8Bit else
-    if token='R12L' then result:=ttRegister8Bit else
-    if token='R13L' then result:=ttRegister8Bit else
-    if token='R14L' then result:=ttRegister8Bit else
-    if token='R15L' then result:=ttRegister8Bit else
+    if token='ST' then result:=ttRegisterST else
+    if token='ST(0)' then result:=ttRegisterST else
+    if token='ST(1)' then result:=ttRegisterST else
+    if token='ST(2)' then result:=ttRegisterST else
+    if token='ST(3)' then result:=ttRegisterST else
+    if token='ST(4)' then result:=ttRegisterST else
+    if token='ST(5)' then result:=ttRegisterST else
+    if token='ST(6)' then result:=ttRegisterST else
+    if token='ST(7)' then result:=ttRegisterST else
 
-    if token='R8W' then result:=ttRegister16Bit else
-    if token='R9W' then result:=ttRegister16Bit else
-    if token='R10W' then result:=ttRegister16Bit else
-    if token='R11W' then result:=ttRegister16Bit else
-    if token='R12W' then result:=ttRegister16Bit else
-    if token='R13W' then result:=ttRegister16Bit else
-    if token='R14W' then result:=ttRegister16Bit else
-    if token='R15W' then result:=ttRegister16Bit else
+    if token='ES' then result:=ttRegistersreg else
+    if token='CS' then result:=ttRegistersreg else
+    if token='SS' then result:=ttRegistersreg else
+    if token='DS' then result:=ttRegistersreg else
+    if token='FS' then result:=ttRegistersreg else
+    if token='GS' then result:=ttRegistersreg else
+    if token='HS' then result:=ttRegistersreg else
+    if token='IS' then result:=ttRegistersreg else
 
-    if token='R8D' then result:=ttRegister32Bit else
-    if token='R9D' then result:=ttRegister32Bit else
-    if token='R10D' then result:=ttRegister32Bit else
-    if token='R11D' then result:=ttRegister32Bit else
-    if token='R12D' then result:=ttRegister32Bit else
-    if token='R13D' then result:=ttRegister32Bit else
-    if token='R14D' then result:=ttRegister32Bit else
-    if token='R15D' then result:=ttRegister32Bit else
+    if token='CR0' then result:=ttRegisterCR else
+    if token='CR1' then result:=ttRegisterCR else
+    if token='CR2' then result:=ttRegisterCR else
+    if token='CR3' then result:=ttRegisterCR else
+    if token='CR4' then result:=ttRegisterCR else
+    if token='CR5' then result:=ttRegisterCR else
+    if token='CR6' then result:=ttRegisterCR else
+    if token='CR7' then result:=ttRegisterCR else
 
-    if token='XMM8' then result:=ttRegisterXMM else
-    if token='XMM9' then result:=ttRegisterXMM else
-    if token='XMM10' then result:=ttRegisterXMM else
-    if token='XMM11' then result:=ttRegisterXMM else
-    if token='XMM12' then result:=ttRegisterXMM else
-    if token='XMM13' then result:=ttRegisterXMM else
-    if token='XMM14' then result:=ttRegisterXMM else
-    if token='XMM15' then result:=ttRegisterXMM else
 
-    if token='CR8' then result:=ttRegisterCR else
-    if token='CR9' then result:=ttRegisterCR else
-    if token='CR10' then result:=ttRegisterCR else
-    if token='CR11' then result:=ttRegisterCR else
-    if token='CR12' then result:=ttRegisterCR else
-    if token='CR13' then result:=ttRegisterCR else
-    if token='CR14' then result:=ttRegisterCR else
-    if token='CR15' then result:=ttRegisterCR;
+    if token='DR0' then result:=ttRegisterDR else
+    if token='DR1' then result:=ttRegisterDR else
+    if token='DR2' then result:=ttRegisterDR else
+    if token='DR3' then result:=ttRegisterDR else
+    if token='DR4' then result:=ttRegisterDR else
+    if token='DR5' then result:=ttRegisterDR else
+    if token='DR6' then result:=ttRegisterDR else
+    if token='DR7' then result:=ttRegisterDR else
+
+    if processhandler.is64Bit then
+    begin
+      if token='RAX' then result:=ttRegister64bit else
+      if token='RCX' then result:=ttRegister64bit else
+      if token='RDX' then result:=ttRegister64bit else
+      if token='RBX' then result:=ttRegister64bit else
+      if token='RSP' then result:=ttRegister64bit else
+      if token='RBP' then result:=ttRegister64bit else
+      if token='RSI' then result:=ttRegister64bit else
+      if token='RDI' then result:=ttRegister64bit else
+      if token='R8' then result:=ttRegister64bit else
+      if token='R9' then result:=ttRegister64bit else
+      if token='R10' then result:=ttRegister64bit else
+      if token='R11' then result:=ttRegister64bit else
+      if token='R12' then result:=ttRegister64bit else
+      if token='R13' then result:=ttRegister64bit else
+      if token='R14' then result:=ttRegister64bit else
+      if token='R15' then result:=ttRegister64bit else
+
+      if token='SPL' then result:=ttRegister8BitWithPrefix else
+      if token='BPL' then result:=ttRegister8BitWithPrefix else
+      if token='SIL' then result:=ttRegister8BitWithPrefix else
+      if token='DIL' then result:=ttRegister8BitWithPrefix else
+
+
+      if token='R8L' then result:=ttRegister8Bit else
+      if token='R9L' then result:=ttRegister8Bit else
+      if token='R10L' then result:=ttRegister8Bit else
+      if token='R11L' then result:=ttRegister8Bit else
+      if token='R12L' then result:=ttRegister8Bit else
+      if token='R13L' then result:=ttRegister8Bit else
+      if token='R14L' then result:=ttRegister8Bit else
+      if token='R15L' then result:=ttRegister8Bit else
+
+      if token='R8W' then result:=ttRegister16Bit else
+      if token='R9W' then result:=ttRegister16Bit else
+      if token='R10W' then result:=ttRegister16Bit else
+      if token='R11W' then result:=ttRegister16Bit else
+      if token='R12W' then result:=ttRegister16Bit else
+      if token='R13W' then result:=ttRegister16Bit else
+      if token='R14W' then result:=ttRegister16Bit else
+      if token='R15W' then result:=ttRegister16Bit else
+
+      if token='R8D' then result:=ttRegister32Bit else
+      if token='R9D' then result:=ttRegister32Bit else
+      if token='R10D' then result:=ttRegister32Bit else
+      if token='R11D' then result:=ttRegister32Bit else
+      if token='R12D' then result:=ttRegister32Bit else
+      if token='R13D' then result:=ttRegister32Bit else
+      if token='R14D' then result:=ttRegister32Bit else
+      if token='R15D' then result:=ttRegister32Bit else
+
+      if token='XMM8' then result:=ttRegisterXMM else
+      if token='XMM9' then result:=ttRegisterXMM else
+      if token='XMM10' then result:=ttRegisterXMM else
+      if token='XMM11' then result:=ttRegisterXMM else
+      if token='XMM12' then result:=ttRegisterXMM else
+      if token='XMM13' then result:=ttRegisterXMM else
+      if token='XMM14' then result:=ttRegisterXMM else
+      if token='XMM15' then result:=ttRegisterXMM else
+
+      if token='CR8' then result:=ttRegisterCR else
+      if token='CR9' then result:=ttRegisterCR else
+      if token='CR10' then result:=ttRegisterCR else
+      if token='CR11' then result:=ttRegisterCR else
+      if token='CR12' then result:=ttRegisterCR else
+      if token='CR13' then result:=ttRegisterCR else
+      if token='CR14' then result:=ttRegisterCR else
+      if token='CR15' then result:=ttRegisterCR;
+    end;
   end;
-
 end;
 
 function gettokentype(var token:string;token2: string): TTokenType;
@@ -2143,6 +2264,8 @@ begin
 
   if pos('[',token)>0 then
   begin
+    if (pos('YMMWORD ',token)>0) then result:=ttMemorylocation256 else
+    if (pos('XMMWORD ',token)>0) then result:=ttMemorylocation128 else
     if (pos('DQWORD ',token)>0) then result:=ttMemorylocation128 else
     if (pos('TBYTE ',token)>0) then result:=ttMemorylocation80 else
     if (pos('TWORD ',token)>0) then result:=ttMemorylocation80 else
@@ -2214,6 +2337,11 @@ end;
 function isxmm_m128(parametertype:TTokenType):boolean;
 begin
   result:=(parametertype=ttRegisterXMM) or (parametertype=ttMemorylocation128);
+end;
+
+function isymm_m256(parametertype:TTokenType):boolean;
+begin
+  result:=(parametertype=ttRegisterYMM) or (parametertype=ttMemorylocation256);
 end;
 
 function rewrite(var token:string): boolean;
@@ -3156,22 +3284,22 @@ begin
   begin
     //register //modrm c0 to ff
     setmod(modrm[0],3);
-    if (param='RAX') or (param='EAX') or (param='AX') or (param='AL') or (param='MM0') or (param='XMM0') then setrm(modrm[0],0) else
-    if (param='RCX') or (param='ECX') or (param='CX') or (param='CL') or (param='MM1') or (param='XMM1') then setrm(modrm[0],1) else
-    if (param='RDX') or (param='EDX') or (param='DX') or (param='DL') or (param='MM2') or (param='XMM2') then setrm(modrm[0],2) else
-    if (param='RBX') or (param='EBX') or (param='BX') or (param='BL') or (param='MM3') or (param='XMM3') then setrm(modrm[0],3) else
-    if (param='SPL') or (param='RSP') or (param='ESP') or (param='SP') or (param='AH') or (param='MM4') or (param='XMM4') then setrm(modrm[0],4) else
-    if (param='BPL') or (param='RBP') or (param='EBP') or (param='BP') or (param='CH') or (param='MM5') or (param='XMM5') then setrm(modrm[0],5) else
-    if (param='SIL') or (param='RSI') or (param='ESI') or (param='SI') or (param='DH') or (param='MM6') or (param='XMM6') then setrm(modrm[0],6) else
-    if (param='DIL') or (param='RDI') or (param='EDI') or (param='DI') or (param='BH') or (param='MM7') or (param='XMM7') then setrm(modrm[0],7) else
-    if (param='R8') or (param='R8D') or (param='R8W') or (param='R8L') or (param='MM8') or (param='XMM8') then setrm(modrm[0],8) else
-    if (param='R9') or (param='R9D') or (param='R9W') or (param='R9L') or (param='MM9') or (param='XMM9') then setrm(modrm[0],9) else
-    if (param='R10') or (param='R10D') or (param='R10W') or (param='R10L') or (param='MM10') or (param='XMM10') then setrm(modrm[0],10) else
-    if (param='R11') or (param='R11D') or (param='R11W') or (param='R11L') or (param='MM11') or (param='XMM11') then setrm(modrm[0],11) else
-    if (param='R12') or (param='R12D') or (param='R12W') or (param='R12L') or (param='MM12') or (param='XMM12') then setrm(modrm[0],12) else
-    if (param='R13') or (param='R13D') or (param='R13W') or (param='R13L') or (param='MM13') or (param='XMM13') then setrm(modrm[0],13) else
-    if (param='R14') or (param='R14D') or (param='R14W') or (param='R14L') or (param='MM14') or (param='XMM14') then setrm(modrm[0],14) else
-    if (param='R15') or (param='R15D') or (param='R15W') or (param='R15L') or (param='MM15') or (param='XMM15') then setrm(modrm[0],15) else
+    if (param='RAX') or (param='EAX') or (param='AX') or (param='AL') or (param='MM0') or (param='XMM0') or (param='YMM0') then setrm(modrm[0],0) else
+    if (param='RCX') or (param='ECX') or (param='CX') or (param='CL') or (param='MM1') or (param='XMM1') or (param='YMM1') then setrm(modrm[0],1) else
+    if (param='RDX') or (param='EDX') or (param='DX') or (param='DL') or (param='MM2') or (param='XMM2') or (param='YMM2') then setrm(modrm[0],2) else
+    if (param='RBX') or (param='EBX') or (param='BX') or (param='BL') or (param='MM3') or (param='XMM3') or (param='YMM3') then setrm(modrm[0],3) else
+    if (param='SPL') or (param='RSP') or (param='ESP') or (param='SP') or (param='AH') or (param='MM4') or (param='XMM4') or (param='YMM4') then setrm(modrm[0],4) else
+    if (param='BPL') or (param='RBP') or (param='EBP') or (param='BP') or (param='CH') or (param='MM5') or (param='XMM5') or (param='YMM5') then setrm(modrm[0],5) else
+    if (param='SIL') or (param='RSI') or (param='ESI') or (param='SI') or (param='DH') or (param='MM6') or (param='XMM6') or (param='YMM6') then setrm(modrm[0],6) else
+    if (param='DIL') or (param='RDI') or (param='EDI') or (param='DI') or (param='BH') or (param='MM7') or (param='XMM7') or (param='YMM7') then setrm(modrm[0],7) else
+    if (param='R8') or (param='R8D') or (param='R8W') or (param='R8L') or (param='MM8') or (param='XMM8') or (param='YMM8') then setrm(modrm[0],8) else
+    if (param='R9') or (param='R9D') or (param='R9W') or (param='R9L') or (param='MM9') or (param='XMM9') or (param='YMM9') then setrm(modrm[0],9) else
+    if (param='R10') or (param='R10D') or (param='R10W') or (param='R10L') or (param='MM10') or (param='XMM10') or (param='YMM10') then setrm(modrm[0],10) else
+    if (param='R11') or (param='R11D') or (param='R11W') or (param='R11L') or (param='MM11') or (param='XMM11') or (param='YMM11') then setrm(modrm[0],11) else
+    if (param='R12') or (param='R12D') or (param='R12W') or (param='R12L') or (param='MM12') or (param='XMM12') or (param='YMM12') then setrm(modrm[0],12) else
+    if (param='R13') or (param='R13D') or (param='R13W') or (param='R13L') or (param='MM13') or (param='XMM13') or (param='YMM13') then setrm(modrm[0],13) else
+    if (param='R14') or (param='R14D') or (param='R14W') or (param='R14L') or (param='MM14') or (param='XMM14') or (param='YMM14') then setrm(modrm[0],14) else
+    if (param='R15') or (param='R15D') or (param='R15W') or (param='R15L') or (param='MM15') or (param='XMM15') or (param='YMM15') then setrm(modrm[0],15) else
     raise exception.Create(rsIDontUnderstandWhatYouMeanWith+param);
   end else setmodrm(modrm,address, length(bytes));
 
@@ -3307,8 +3435,8 @@ var tokens: ttokens;
     v,v2: qword;
     mnemonic,nroftokens: integer;
     oldParamtype1, oldParamtype2: TTokenType;
-    paramtype1,paramtype2,paramtype3: TTokenType;
-    parameter1,parameter2,parameter3: string;
+    paramtype1,paramtype2,paramtype3,paramtype4: TTokenType;
+    parameter1,parameter2,parameter3,parameter4: string;
     vtype,v2type: integer;
     signedvtype,signedv2type: integer;
 
@@ -3324,7 +3452,10 @@ var tokens: ttokens;
     br: PTRUINT;
     canDoAddressSwitch: boolean;
 
+    bigvex: boolean;
+    VEXvvvv: integer;
 begin
+  VEXvvvv:=$f;
   needsAddressSwitchPrefix:=false;
 
 
@@ -3491,6 +3622,7 @@ begin
   if (nroftokens-1)>=mnemonic+1 then parameter1:=tokens[mnemonic+1] else parameter1:='';
   if (nroftokens-1)>=mnemonic+2 then parameter2:=tokens[mnemonic+2] else parameter2:='';
   if (nroftokens-1)>=mnemonic+3 then parameter3:=tokens[mnemonic+3] else parameter3:='';
+  if (nroftokens-1)>=mnemonic+4 then parameter4:=tokens[mnemonic+4] else parameter4:='';
 
   overrideShort:=Pos('SHORT ',parameter1)>0;
   overrideLong:=(Pos('LONG ',parameter1)>0);
@@ -3512,6 +3644,7 @@ begin
   paramtype1:=gettokentype(parameter1,parameter2);
   paramtype2:=gettokentype(parameter2,parameter1);
   paramtype3:=gettokentype(parameter3,'');
+  paramtype4:=gettokentype(parameter4,'');
 
   if processhandler.is64Bit then
   begin
@@ -3537,7 +3670,12 @@ begin
     begin
       REX_W:=true;
       paramtype2:=ttRegister32bit;
-      if paramtype1=ttMemoryLocation64 then paramtype1:=ttMemoryLocation32;
+    end;
+
+    if (paramtype3=ttRegister64bit) then
+    begin
+      REX_W:=true;
+      paramtype3:=ttRegister32bit;
     end;
 
     if paramtype1=ttMemoryLocation64 then
@@ -4609,7 +4747,19 @@ begin
           end;
         end;
 
+        if (opcodes[j].paramtype2=par_r32) and (paramtype2=ttRegister32Bit) then
+        begin
+          //r32,r32,
 
+          if opcodes[j].hasvex and (opcodes[j].vexExtraParam=2) and (opcodes[j].paramtype3=par_rm32) and (isrm32(paramtype3)) then
+          begin
+            //r32,r32,rm32
+            addopcode(bytes,j);
+            VEXvvvv:=(not getreg(parameter2)) and $f;
+            result:=createmodrm(bytes,getreg(parameter1),parameter3);
+            exit;
+          end;
+        end;
 
 
         //eax
@@ -4810,6 +4960,18 @@ begin
               addopcode(bytes,j);
               result:=createmodrm(bytes,getreg(parameter1),parameter2);
               add(bytes,[v]);
+              exit;
+            end;
+          end;
+
+          if opcodes[j].paramtype3=par_r32 then
+          begin
+            //r32,rm32,r32
+            if opcodes[j].vexExtraParam=3 then
+            begin
+              addopcode(bytes,j);
+              VEXvvvv:=(not getreg(parameter2)) and $f;
+              result:=createmodrm(bytes,getreg(parameter1),parameter2);
               exit;
             end;
           end;
@@ -5395,6 +5557,28 @@ begin
         end;
       end;
 
+      par_ymm: if paramtype1=ttRegisterYMM then
+      begin
+        //ymm,
+        if (opcodes[j].paramtype2=par_ymm) and (paramtype2=ttRegisterymm) then
+        begin
+          //ymm,ymm,
+          if (opcodes[j].paramtype3=par_ymm_m256) and (isymm_m256(paramtype3) or ((paramtype3=ttMemorylocation32) and (parameter3[1]='['))) then
+          begin
+            //ymm,ymm,ymm/m256
+            if opcodes[j].vexExtraParam=2 then
+            begin
+              addopcode(bytes,j);
+              VEXvvvv:=(not getreg(parameter2)) and $f;
+              result:=createmodrm(bytes,getreg(parameter1),parameter3);
+              exit;
+            end;
+
+          end;
+        end;
+
+      end;
+
       par_xmm: if (paramtype1=ttRegisterxmm) then
       begin
         if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
@@ -5410,7 +5594,7 @@ begin
 
         if (opcodes[j].paramtype2=par_mm) and (paramtype2=ttRegistermm) then
         begin
-          //xmm,xmm
+          //mm,mm
           addopcode(bytes,j);
           result:=createmodrm(bytes,getreg(parameter1),parameter2);
           exit;
@@ -5419,10 +5603,84 @@ begin
 
         if (opcodes[j].paramtype2=par_xmm) and (paramtype2=ttRegisterxmm) then
         begin
-          //xmm,xmm
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter1),parameter2);
-          exit;
+          //xmm,xmm,
+          if opcodes[j].paramtype3=par_noparam then
+          begin
+            //xmm,xmm
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            exit;
+          end;
+
+          if opcodes[j].paramtype3=par_imm8 then
+          begin
+            //xmm,xmm,imm8
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            Add(bytes, [v]);
+          end;
+
+
+          if opcodes[j].hasvex and (opcodes[j].vexExtraParam<>0) and (opcodes[j].paramtype3=par_xmm) and (paramtype3=ttRegisterXMM) then
+          begin
+            //xmm,xmm,xmm
+            if opcodes[j].vexExtraParam=2 then
+            begin
+              addopcode(bytes,j);
+              VEXvvvv:=(not getreg(parameter2)) and $f;
+              result:=createmodrm(bytes,getreg(parameter1),parameter3);
+              exit;
+            end;
+          end;
+
+          if (opcodes[j].paramtype3=par_xmm_m32) and (isxmm_m32(paramtype3) or ((paramtype3=ttMemorylocation32) and (parameter3[1]='['))) then
+          begin
+            //xmm,xmm,xmm/m32,
+            if opcodes[j].paramtype4=par_noparam then
+            begin
+              if opcodes[j].vexExtraParam=2 then
+              begin
+                addopcode(bytes,j);
+                VEXvvvv:=(not getreg(parameter2)) and $f;
+                result:=createmodrm(bytes,getreg(parameter1),parameter3);
+                exit;
+              end;
+            end;
+
+            if opcodes[j].paramtype4=par_imm8 then
+            begin
+              addopcode(bytes,j);
+              VEXvvvv:=(not getreg(parameter2)) and $f;
+              result:=createmodrm(bytes,getreg(parameter1),parameter3);
+
+              add(bytes,[strtoint(parameter4)]);
+              exit;
+            end;
+          end;
+
+          if opcodes[j].hasvex and (opcodes[j].vexExtraParam<>0) and (opcodes[j].paramtype3=par_xmm_m64) and (isxmm_m64(paramtype3) or ((paramtype3=ttMemorylocation32) and (parameter3[1]='['))) then
+          begin
+            //xmm,xmm,xmm/m64
+            if opcodes[j].vexExtraParam=2 then
+            begin
+              addopcode(bytes,j);
+              VEXvvvv:=(not getreg(parameter2)) and $f;
+              result:=createmodrm(bytes,getreg(parameter1),parameter3);
+              exit;
+            end;
+          end;
+
+          if opcodes[j].hasvex and (opcodes[j].vexExtraParam<>0) and (opcodes[j].paramtype3=par_xmm_m128) and (isxmm_m128(paramtype3) or ((paramtype3=ttMemorylocation32) and (parameter3[1]='['))) then
+          begin
+            //xmm,xmm,xmm/m128
+            if opcodes[j].vexExtraParam=2 then
+            begin
+              addopcode(bytes,j);
+              VEXvvvv:=(not getreg(parameter2)) and $f;
+              result:=createmodrm(bytes,getreg(parameter1),parameter3);
+              exit;
+            end;
+          end;
         end;
 
         if (opcodes[j].paramtype2=par_m64) and ((paramtype2=ttMemorylocation64) or (ismemorylocationdefault(parameter2))) then
@@ -5434,9 +5692,21 @@ begin
 
         if (opcodes[j].paramtype2=par_m128) and ((paramtype2=ttMemoryLocation128) or (ismemorylocationdefault(parameter2))) then
         begin
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter1),parameter2);
-          exit;
+          //xmm,xmm/m128,
+          if opcodes[j].paramtype3=par_noparam then
+          begin
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            exit;
+          end;
+
+          if opcodes[i].paramtype3=par_imm8 then
+          begin
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            add(bytes,[v]);
+            exit;
+          end;
         end;
 
         if (opcodes[j].paramtype2=par_rm32) and (isrm32(paramtype2)) then
@@ -5830,6 +6100,52 @@ begin
       begin
         if opcodes[j].norexw then
           REX_W:=false;
+
+        if opcodes[j].hasvex then
+        begin
+          //setup a vex prefix. Check if a 2 byte or 3 byte prefix is needed
+          //3 byte is needed when mmmmmm(vexLeadingOpcode>1) or rex.X/B or W are used
+
+          //vexOpcodeExtension: oe_F2; vexLeadingOpcode: lo_0f
+
+          bigvex:=(opcodes[j].vexLeadingOpcode>lo_0f) or REX_B or REX_X or REX_W;
+
+          if bigvex=false then
+          begin
+            //2byte vex
+            setlength(bytes,length(bytes)+2);
+            for i:=length(bytes)-1 downto RexPrefixLocation+2 do
+              bytes[i]:=bytes[i-2];
+
+            bytes[RexPrefixLocation]:=$c5; //2 byte VEX
+            PVex2Byte(@bytes[RexPrefixLocation+1])^.pp:=integer(opcodes[j].vexOpcodeExtension);
+            PVex2Byte(@bytes[RexPrefixLocation+1])^.L:=opcodes[j].vexl;
+            PVex2Byte(@bytes[RexPrefixLocation+1])^.vvvv:=VEXvvvv;
+            PVex2Byte(@bytes[RexPrefixLocation+1])^.R:=ifthen(REX_R,0,1);
+            if relativeAddressLocation<>-1 then inc(relativeAddressLocation,2);
+          end
+          else
+          begin
+            //3byte vex
+            setlength(bytes,length(bytes)+3);
+            for i:=length(bytes)-1 downto RexPrefixLocation+3 do
+              bytes[i]:=bytes[i-3];
+
+            bytes[RexPrefixLocation]:=$c4; //3 byte VEX
+            PVex3Byte(@bytes[RexPrefixLocation+1])^.mmmmm:=integer(opcodes[j].vexLeadingOpcode);
+            PVex3Byte(@bytes[RexPrefixLocation+1])^.B:=ifthen(REX_B,0,1);
+            PVex3Byte(@bytes[RexPrefixLocation+1])^.X:=ifthen(REX_X,0,1);
+            PVex3Byte(@bytes[RexPrefixLocation+1])^.R:=ifthen(REX_R,0,1);
+            PVex3Byte(@bytes[RexPrefixLocation+1])^.pp:=integer(opcodes[j].vexOpcodeExtension);
+            PVex3Byte(@bytes[RexPrefixLocation+1])^.L:=opcodes[j].vexl;
+            PVex3Byte(@bytes[RexPrefixLocation+1])^.vvvv:=VEXvvvv;
+            PVex3Byte(@bytes[RexPrefixLocation+1])^.W:=ifthen(REX_W,0,1);
+
+            if relativeAddressLocation<>-1 then inc(relativeAddressLocation,3);
+          end;
+
+          RexPrefix:=0;  //vex and rex can not co-exist
+        end;
 
         if RexPrefix<>0 then
         begin

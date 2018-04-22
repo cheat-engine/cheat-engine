@@ -12,7 +12,7 @@ uses unixporthelper, sysutils, byteinterpreter, symbolhandler, NewKernelHandler,
 {$ifdef windows}
 uses windows, imagehlp,sysutils,LCLIntf,byteinterpreter, symbolhandler,CEFuncProc,
   NewKernelHandler, ProcessHandlerUnit, LastDisassembleData, disassemblerarm,
-  commonTypeDefs, maps;
+  commonTypeDefs, maps, math,vextypedef;
 {$endif}
 
 //translation: There is no fucking way I change the descriptions to resource strings
@@ -21,6 +21,9 @@ uses windows, imagehlp,sysutils,LCLIntf,byteinterpreter, symbolhandler,CEFuncPro
 type Tprefix = set of byte;
 type TMemory = array [0..23] of byte;
 type TIntToHexS=function(address:ptrUInt;chars: integer; signed: boolean=false; signedsize: integer=0):string of object;
+
+type TMRPos=(mLeft,mRight, mNone);
+
 
 
 const BIT_REX_W=8; //1000
@@ -49,17 +52,34 @@ const
 type
 
   TDisassembleEvent=function(sender: TObject; address: ptruint; var ldd: TLastDisassembleData; var output: string; var description: string): boolean of object;
+  TRegisterType=(rt64, rt32, rt16, rt8, rtYMM, rtXMM,rtMM, rtSegment, rtControlRegister, rtDebugRegister);
 
   TDisassembler=class
   private
+    opcodeflags: record
+      pp: integer;
+      L: boolean;
+      vvvv: integer;
+      W: boolean;
+      mmmmm: integer;
+      B: boolean;
+      X: boolean;
+      R: boolean;
+      skipExtraRegOnMemoryAccess: boolean;
+    end;
     inttohexs: TIntToHexS;
     RexPrefix: byte;
     riprelative: boolean;
+    hasvex: boolean;
 
     colorhex: string;
     colorreg: string;
     colorsymbol: string;
     endcolor: string;
+
+    memory: TMemory;
+    prefix: TPrefix;
+    prefix2: TPrefix;
 
     fsyntaxhighlighting: boolean;
     fOnDisassembleOverride: TDisassembleEvent;
@@ -68,10 +88,10 @@ type
     ArmDisassembler: TArmDisassembler;
 
     function SIB(memory:TMemory; sibbyte: integer; var last: dword; addresssize: integer=0): string;
-    function MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword): string; overload;
-    function MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword;opperandsize:integer; addresssize: integer=0): string; overload;
+    function MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword; position: TMRPos=mLeft): string; overload;
+    function MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword;opperandsize:integer; addresssize: integer=0; position:TMRPos=mLeft): string; overload;
 
-    function MODRM2(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword;opperandsize:integer=0;addresssize: integer=0): string;
+    function MODRM2(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword;opperandsize:integer=0;addresssize: integer=0;position: TMRPos=mLeft): string;
 
     function getReg(bt: byte): byte;
     function getmod(bt: byte): byte;
@@ -87,6 +107,8 @@ type
     function Rex_X: boolean; inline;
     function Rex_R: boolean; inline;
     function Rex_W: boolean; inline;
+
+    function regnrtostr(listtype: TRegisterType; nr: integer): string;
 
     function rd(bt:byte):string;
     function rd8(bt:byte): string;
@@ -108,6 +130,7 @@ type
     function inttohexs_withsymbols(value:ptrUint;chars: integer; signed: boolean=false; signedsize: integer=0):string;
 
     procedure setSyntaxHighlighting(state: boolean);
+
   protected
     function readMemory(address: ptruint; destination: pointer; size: integer): integer; virtual;
   public
@@ -238,6 +261,233 @@ begin
 end;
 
 
+function TDisassembler.regnrtostr(listtype: TRegisterType; nr: integer): string;
+begin
+  result:='Error';
+  case listtype of
+    rt8:
+    begin
+      case nr of
+        0: result:='al';
+        1: result:='cl';
+        2: result:='dl';
+        3: result:='bl';
+        4: if rexprefix=0 then result:='ah' else result:='spl';
+        5: if rexprefix=0 then result:='ch' else result:='bpl';
+        6: if rexprefix=0 then result:='dh' else result:='sil';
+        7: if rexprefix=0 then result:='bh' else result:='dil';
+        8: result:='r8l';
+        9: result:='r9l';
+        10: result:='r10l';
+        11: result:='r11l';
+        12: result:='r12l';
+        13: result:='r13l';
+        14: result:='r14l';
+        15: result:='r15l';
+      end;
+    end;
+
+    rt16:
+    begin
+      case nr of
+        0: result:='ax';
+        1: result:='cx';
+        2: result:='dx';
+        3: result:='bx';
+        4: result:='sp';
+        5: result:='bp';
+        6: result:='si';
+        7: result:='di';
+        8: result:='r8w';
+        9: result:='r9w';
+        10: result:='r10w';
+        11: result:='r11w';
+        12: result:='r12w';
+        13: result:='r13w';
+        14: result:='r14w';
+        15: result:='r15w';
+      end;
+    end;
+
+    rt32:
+    begin
+      case nr of
+        0: result:='eax';
+        1: result:='ecx';
+        2: result:='edx';
+        3: result:='ebx';
+        4: result:='esp';
+        5: result:='ebp';
+        6: result:='esi';
+        7: result:='edi';
+        8: result:='r8d';
+        9: result:='r9d';
+        10: result:='r10d';
+        11: result:='r11d';
+        12: result:='r12d';
+        13: result:='r13d';
+        14: result:='r14d';
+        15: result:='r15d';
+      end;
+    end;
+
+    rt64:
+    begin
+      case nr of
+        0: result:='rax';
+        1: result:='rcx';
+        2: result:='rdx';
+        3: result:='rbx';
+        4: result:='rsp';
+        5: result:='rbp';
+        6: result:='rsi';
+        7: result:='rdi';
+        8: result:='r8';
+        9: result:='r9';
+        10: result:='r10';
+        11: result:='r11';
+        12: result:='r12';
+        13: result:='r13';
+        14: result:='r14';
+        15: result:='r15';
+      end;
+    end;
+
+    rtDebugRegister:
+    begin
+      case nr of
+        0: result:='dr0';
+        1: result:='dr1';
+        2: result:='dr2';
+        3: result:='dr3';
+        4: result:='dr4';
+        5: result:='dr5';
+        6: result:='dr6';
+        7: result:='dr7';
+        8: result:='dr8';//Do not exist, but let's implement the encoding
+        9: result:='dr9';
+        10: result:='dr10';
+        11: result:='dr11';
+        12: result:='dr12';
+        13: result:='dr13';
+        14: result:='dr14';
+        15: result:='dr15';
+      end;
+    end;
+
+    rtControlRegister:
+    begin
+      case nr of
+        0: result:='cr0';
+        1: result:='cr1';
+        2: result:='cr2';
+        3: result:='cr3';
+        4: result:='cr4';
+        5: result:='cr5';
+        6: result:='cr6';
+        7: result:='cr7';
+        8: result:='cr8';
+        9: result:='cr9';
+        10: result:='cr10';
+        11: result:='cr11';
+        12: result:='cr12';
+        13: result:='cr13';
+        14: result:='cr14';
+        15: result:='cr15';
+      end;
+    end;
+    rtSegment:
+    begin
+      case nr of
+        0: result:='es';
+        1: result:='cs';
+        2: result:='ss';
+        3: result:='ds';
+        4: result:='fs';
+        5: result:='gs';
+        6: result:='hs';  //as if...
+        7: result:='is';
+        8: result:='js';
+        9: result:='ks';
+        10: result:='ls';
+        11: result:='ms';
+        12: result:='ns';
+        13: result:='os';
+        14: result:='ps';
+        15: result:='qs';
+      end;
+    end;
+
+    rtMM:
+    begin
+      case nr of
+        0: result:='mm0';
+        1: result:='mm1';
+        2: result:='mm2';
+        3: result:='mm3';
+        4: result:='mm4';
+        5: result:='mm5';
+        6: result:='mm6';
+        7: result:='mm7';
+        8: result:='mm8';
+        9: result:='mm9';
+        10: result:='mm10';
+        11: result:='mm11';
+        12: result:='mm12';
+        13: result:='mm13';
+        14: result:='mm14';
+        15: result:='mm15';
+      end;
+    end;
+
+    rtXMM:
+    begin
+      case nr of
+        0: result:='xmm0';
+        1: result:='xmm1';
+        2: result:='xmm2';
+        3: result:='xmm3';
+        4: result:='xmm4';
+        5: result:='xmm5';
+        6: result:='xmm6';
+        7: result:='xmm7';
+        8: result:='xmm8';
+        9: result:='xmm9';
+        10: result:='xmm10';
+        11: result:='xmm11';
+        12: result:='xmm12';
+        13: result:='xmm13';
+        14: result:='xmm14';
+        15: result:='xmm15';
+      end;
+    end;
+
+    rtYMM:
+    begin
+      case nr of
+        0: result:='ymm0';
+        1: result:='ymm1';
+        2: result:='ymm2';
+        3: result:='ymm3';
+        4: result:='ymm4';
+        5: result:='ymm5';
+        6: result:='ymm6';
+        7: result:='ymm7';
+        8: result:='ymm8';
+        9: result:='ymm9';
+        10: result:='ymm10';
+        11: result:='ymm11';
+        12: result:='ymm12';
+        13: result:='ymm13';
+        14: result:='ymm14';
+        15: result:='ymm15';
+      end;
+    end;
+  end;
+end;
+
+
+
 function TDisassembler.rd(bt:byte):string;
 begin
   if rex_B then bt:=bt or 8;
@@ -330,214 +580,78 @@ end;
 
 
 function TDisassembler.r8(bt:byte): string;
+var regnr: integer;
 begin
-
-  case getreg(bt) of
-  0: result:='al';
-  1: result:='cl';
-  2: result:='dl';
-  3: result:='bl';
-
-  4: if rexprefix=0 then result:='ah' else result:='spl';
-  5: if rexprefix=0 then result:='ch' else result:='bpl';
-  6: if rexprefix=0 then result:='dh' else result:='sil';
-  7: if rexprefix=0 then result:='bh' else result:='dil';
-  8: result:='r8l';
-  9: result:='r9l';
-  10: result:='r10l';
-  11: result:='r11l';
-  12: result:='r12l';
-  13: result:='r13l';
-  14: result:='r14l';
-  15: result:='r15l';
-  end;
-  result:=colorreg+result+endcolor;
+  regnr:=getreg(bt);
+  result:=colorreg+regnrtostr(rt8, regnr)+endcolor;
 end;
+
 
 function TDisassembler.r16(bt:byte): string;
+var regnr: integer;
 begin
-  case getreg(bt) of
-  0: result:='ax';
-  1: result:='cx';
-  2: result:='dx';
-  3: result:='bx';
-  4: result:='sp';
-  5: result:='bp';
-  6: result:='si';
-  7: result:='di';
-  8: result:='r8w';
-  9: result:='r9w';
-  10: result:='r10w';
-  11: result:='r11w';
-  12: result:='r12w';
-  13: result:='r13w';
-  14: result:='r14w';
-  15: result:='r15w';
-  end;
-  result:=colorreg+result+endcolor;
+  regnr:=getreg(bt);
+  result:=colorreg+regnrtostr(rt16, regnr)+endcolor;
 end;
 
+
 function TDisassembler.r32(bt:byte): string;
+var regnr: integer;
 begin
-  case getreg(bt) of
-    0: if rex_w then result:='rax' else result:='eax';
-    1: if rex_w then result:='rcx' else result:='ecx';
-    2: if rex_w then result:='rdx' else result:='edx';
-    3: if rex_w then result:='rbx' else result:='ebx';
-    4: if rex_w then result:='rsp' else result:='esp';
-    5: if rex_w then result:='rbp' else result:='ebp';
-    6: if rex_w then result:='rsi' else result:='esi';
-    7: if rex_w then result:='rdi' else result:='edi';
-    8: if rex_w then result:='r8' else result:='r8d';
-    9: if rex_w then result:='r9' else result:='r9d';
-   10: if rex_w then result:='r10' else result:='r10d';
-   11: if rex_w then result:='r11' else result:='r11d';
-   12: if rex_w then result:='r12' else result:='r12d';
-   13: if rex_w then result:='r13' else result:='r13d';
-   14: if rex_w then result:='r14' else result:='r14d';
-   15: if rex_w then result:='r15' else result:='r15d';
-  end;
-  result:=colorreg+result+endcolor;
+  regnr:=getreg(bt);
+  if rex_w then
+    result:=colorreg+regnrtostr(rt64, regnr)+endcolor
+  else
+    result:=colorreg+regnrtostr(rt32, regnr)+endcolor;
 end;
 
 function TDisassembler.r64(bt:byte): string;
+var regnr: integer;
 begin
-  case getreg(bt) of
-    0: result:='rax';
-    1: result:='rcx';
-    2: result:='rdx';
-    3: result:='rbx';
-    4: result:='rsp';
-    5: result:='rbp';
-    6: result:='rsi';
-    7: result:='rdi';
-    8: result:='r8';
-    9: result:='r9';
-   10: result:='r10';
-   11: result:='r11';
-   12: result:='r12';
-   13: result:='r13';
-   14: result:='r14';
-   15: result:='r15';
-  end;
-  result:=colorreg+result+endcolor;
+  regnr:=getreg(bt);
+  result:=colorreg+regnrtostr(rt64, regnr)+endcolor;
 end;
 
+
+
 function TDisassembler.xmm(bt:byte): string;
+var regnr: integer;
 begin
-  case getreg(bt) of
-  0: result:='xmm0';
-  1: result:='xmm1';
-  2: result:='xmm2';
-  3: result:='xmm3';
-  4: result:='xmm4';
-  5: result:='xmm5';
-  6: result:='xmm6';
-  7: result:='xmm7';
-  8: result:='xmm8';
-  9: result:='xmm9';
-  10: result:='xmm10';
-  11: result:='xmm11';
-  12: result:='xmm12';
-  13: result:='xmm13';
-  14: result:='xmm14';
-  15: result:='xmm15';
-  end;
-  result:=colorreg+result+endcolor;
+  regnr:=getreg(bt);
+  if opcodeflags.L then
+    result:=colorreg+regnrtostr(rtYMM, regnr)+endcolor
+  else
+    result:=colorreg+regnrtostr(rtXMM, regnr)+endcolor;
 end;
 
 function TDisassembler.mm(bt:byte): string;
+var regnr: integer;
 begin
-  case getreg(bt) of
-  0: result:='mm0';
-  1: result:='mm1';
-  2: result:='mm2';
-  3: result:='mm3';
-  4: result:='mm4';
-  5: result:='mm5';
-  6: result:='mm6';
-  7: result:='mm7';
-  8: result:='mm8';
-  9: result:='mm9';
-  10: result:='mm10';
-  11: result:='mm11';
-  12: result:='mm12';
-  13: result:='mm13';
-  14: result:='mm14';
-  15: result:='mm15';
-
-  end;
-  result:=colorreg+result+endcolor;
+  regnr:=getreg(bt);
+  result:=colorreg+regnrtostr(rtMM, regnr)+endcolor;
 end;
 
 function TDisassembler.sreg(bt:byte): string;
+var regnr: integer;
 begin
-  case getreg(bt) of
-  0: result:='es';
-  1: result:='cs';
-  2: result:='ss';
-  3: result:='ds';
-  4: result:='fs';
-  5: result:='gs';
-  6: result:='hs';  //as if...
-  7: result:='is';
-  8: result:='js';
-  9: result:='ks';
- 10: result:='ls';
- 11: result:='ms';
- 12: result:='ns';
- 13: result:='os';
- 14: result:='ps';
- 15: result:='qs';
-  end;
-  result:=colorreg+result+endcolor;
+  regnr:=getreg(bt);
+  result:=colorreg+regnrtostr(rtSegment, regnr)+endcolor;
 end;
 
 function TDisassembler.CR(bt:byte):string;
+var regnr: integer;
 begin
-  case getreg(bt) of
-  0: result:='cr0';
-  1: result:='cr1';
-  2: result:='cr2';
-  3: result:='cr3';
-  4: result:='cr4';
-  5: result:='cr5';
-  6: result:='cr6';
-  7: result:='cr7';
-  8: result:='cr8';
-  9: result:='cr9';
-  10: result:='cr10';
-  11: result:='cr11';
-  12: result:='cr12';
-  13: result:='cr13';
-  14: result:='cr14';
-  15: result:='cr15';
-  end;
-  result:=colorreg+result+endcolor;
+  regnr:=getreg(bt);
+  result:=colorreg+regnrtostr(rtControlRegister, regnr)+endcolor;
 end;
 
 function TDisassembler.DR(bt:byte):string;
+var regnr: integer;
 begin
-  case getreg(bt) of
-  0: result:='dr0';
-  1: result:='dr1';
-  2: result:='dr2';
-  3: result:='dr3';
-  4: result:='dr4';
-  5: result:='dr5';
-  6: result:='dr6';
-  7: result:='dr7';
-  8: result:='dr8';//Do not excist, but let's implement the encoding
-  9: result:='dr9';
-  10: result:='dr10';
-  11: result:='dr11';
-  12: result:='dr12';
-  13: result:='dr13';
-  14: result:='dr14';
-  15: result:='dr15';
-  end;
-  result:=colorreg+result+endcolor;
+  regnr:=getreg(bt);
+  result:=colorreg+regnrtostr(rtDebugRegister, regnr)+endcolor;
 end;
+
 
 function GetBitOf(Bt: qword; bit: integer): byte;
 begin
@@ -585,36 +699,79 @@ end;
 
 function TDisassembler.Rex_B: boolean; inline;
 begin
-  result:=(RexPrefix and BIT_REX_B)=BIT_REX_B;
+  exit(opcodeflags.B);
 end;
 
 function TDisassembler.Rex_X: boolean; inline;
 begin
-  result:=(RexPrefix and BIT_REX_X)=BIT_REX_X;
+  exit(opcodeflags.X);
 end;
 
 function TDisassembler.Rex_R: boolean; inline;
 begin
-  result:=(RexPrefix and BIT_REX_R)=BIT_REX_R;
+  exit(opcodeflags.R);
 end;
 
 function TDisassembler.Rex_W: boolean; inline;
 begin
-  result:=(RexPrefix and BIT_REX_W)=BIT_REX_W;
+  exit(opcodeflags.W);
 end;
 
 
-function TDisassembler.MODRM2(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword;opperandsize:integer=0; addresssize:integer=0): string;
+function TDisassembler.MODRM2(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword;opperandsize:integer=0; addresssize:integer=0; position:TMRPos=mLeft): string;
 var dwordptr: ^dword;
     regprefix: char;
     i: integer;
 
+    ep: string;
 
+    prestr: string;
+    poststr: string;
+
+    operandstring: string;
+
+    showextrareg: boolean;
 begin
+  showextrareg:=hasvex;
+
   if is64bit then
     regprefix:='r'
   else
     regprefix:='e';
+
+  case position of
+    mLeft:
+    begin
+      prestr:='';
+      poststr:=',';
+    end;
+
+    mRight:
+    begin
+      prestr:=',';
+      poststr:='';
+    end;
+
+    mNone:
+    begin
+      prestr:='';
+      poststr:=',';
+    end;
+  end;
+
+  case opperandsize of
+    8 : operandstring:='byte ptr ';
+    16: operandstring:='word ptr ';
+    32: operandstring:='dword ptr ';
+    64: operandstring:='qword ptr ';
+    80: operandstring:='tword ptr ';
+    128: operandstring:='dqword ptr ';
+    256: operandstring:='YMMword ptr ';
+    else
+      operandstring:='';
+  end;
+
+
 
   LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=modrmbyte;
   inc(LastDisassembleData.SeperatorCount);
@@ -637,15 +794,17 @@ begin
     case getmod(memory[modrmbyte]) of
       0:
       begin
+        if showextrareg and opcodeflags.skipExtraRegOnMemoryAccess then showextrareg:=false;
+
         case getrm(memory[modrmbyte]) of
-            0:  result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'ax'+endcolor+'],';
-            1:  result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'cx'+endcolor+'],';
-            2:  result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'dx'+endcolor+'],';
-            3:  result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bx'+endcolor+'],';
+            0:  result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'ax'+endcolor+']';
+            1:  result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'cx'+endcolor+']';
+            2:  result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'dx'+endcolor+']';
+            3:  result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bx'+endcolor+']';
             4:
             begin
               //has an sib
-              result:=getsegmentoverride(prefix)+'['+sib(memory,modrmbyte+1,last, addresssize)+'],';
+              result:=getsegmentoverride(prefix)+'['+sib(memory,modrmbyte+1,last, addresssize)+']';
             end;
 
             5:
@@ -654,7 +813,7 @@ begin
               if is64bit then
               begin
                 riprelative:=true;
-                result:=getsegmentoverride(prefix)+'['+inttohexs_withoutsymbols(dwordptr^,8)+'],';
+                result:=getsegmentoverride(prefix)+'['+inttohexs_withoutsymbols(dwordptr^,8)+']';
 
 
                 LastDisassembleData.modrmValueType:=dvtAddress;
@@ -665,27 +824,32 @@ begin
               end
               else
               begin
-                result:=getsegmentoverride(prefix)+'['+inttohexs(dwordptr^,8)+'],';
+                result:=getsegmentoverride(prefix)+'['+inttohexs(dwordptr^,8)+']';
                 LastDisassembleData.modrmValueType:=dvtAddress;
                 LastDisassembleData.modrmValue:=dwordptr^;
               end;
               last:=last+4;
             end;
 
-            6:  result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'si'+endcolor+'],';
-            7:  result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'di'+endcolor+'],';
-            8:  result:=getsegmentoverride(prefix)+'['+colorreg+'r8'+endcolor+'],';
-            9:  result:=getsegmentoverride(prefix)+'['+colorreg+'r9'+endcolor+'],';
-           10:  result:=getsegmentoverride(prefix)+'['+colorreg+'r10'+endcolor+'],';
-           11:  result:=getsegmentoverride(prefix)+'['+colorreg+'r11'+endcolor+'],';
-           12:  result:=getsegmentoverride(prefix)+'['+colorreg+'r12'+endcolor+'],';
-           13:  result:=getsegmentoverride(prefix)+'['+colorreg+'r13'+endcolor+'],';
-           14:  result:=getsegmentoverride(prefix)+'['+colorreg+'r14'+endcolor+'],';
-           15:  result:=getsegmentoverride(prefix)+'['+colorreg+'r15'+endcolor+'],';
+            6:  result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'si'+endcolor+']';
+            7:  result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'di'+endcolor+']';
+            8:  result:=getsegmentoverride(prefix)+'['+colorreg+'r8'+endcolor+']';
+            9:  result:=getsegmentoverride(prefix)+'['+colorreg+'r9'+endcolor+']';
+           10:  result:=getsegmentoverride(prefix)+'['+colorreg+'r10'+endcolor+']';
+           11:  result:=getsegmentoverride(prefix)+'['+colorreg+'r11'+endcolor+']';
+           12:  result:=getsegmentoverride(prefix)+'['+colorreg+'r12'+endcolor+']';
+           13:  result:=getsegmentoverride(prefix)+'['+colorreg+'r13'+endcolor+']';
+           14:  result:=getsegmentoverride(prefix)+'['+colorreg+'r14'+endcolor+']';
+           15:  result:=getsegmentoverride(prefix)+'['+colorreg+'r15'+endcolor+']';
         end;
+
+        LastDisassembleData.datasize:=opperandsize div 8;
+        result:=operandstring+result;
 
       end;
       1:  begin
+            if showextrareg and opcodeflags.skipExtraRegOnMemoryAccess then showextrareg:=false;
+
             if getrm(memory[modrmbyte])<>4 then
             begin
               LastDisassembleData.modrmValueType:=dvtValue;
@@ -696,31 +860,31 @@ begin
               0:
               begin
                 if shortint(memory[modrmbyte+1])>=0 then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'ax'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'ax'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2)+'],';
+                  result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'ax'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+']' else
+                  result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'ax'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2)+']';
               end;
 
               1:
               if shortint(memory[modrmbyte+1])>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'cx'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'cx'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'cx'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+']' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'cx'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2)+']';
 
 
               2:
               if shortint(memory[modrmbyte+1])>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'dx'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'dx'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'dx'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+']' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'dx'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2)+']';
 
 
               3:
               if shortint(memory[modrmbyte+1])>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bx'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bx'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bx'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+']' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bx'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2)+']';
 
 
               4:
               begin
-                result:=getsegmentoverride(prefix)+'['+sib(memory,modrmbyte+1,last, addressSize)+'],';
+                result:=getsegmentoverride(prefix)+'['+sib(memory,modrmbyte+1,last, addressSize)+']';
                 dec(last);
 
                 {
@@ -734,70 +898,74 @@ begin
 
               5:
               if shortint(memory[modrmbyte+1])>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bp'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bp'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bp'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+']' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bp'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+']';
 
 
               6:
               if shortint(memory[modrmbyte+1])>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'si'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'si'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'si'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+']' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'si'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+']';
 
 
               7:
               if shortint(memory[modrmbyte+1])>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'di'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'di'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'di'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+']' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'di'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+']';
 
 
               8:
               if shortint(memory[modrmbyte+1])>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+'r8'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+'r8'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r8'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+']' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r8'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+']';
 
 
               9:
               if shortint(memory[modrmbyte+1])>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+'r9'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+'r9'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r9'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+']' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r9'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+']';
 
              10:
              if shortint(memory[modrmbyte+1])>=0 then
-               result:=getsegmentoverride(prefix)+'['+colorreg+'r10'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-               result:=getsegmentoverride(prefix)+'['+colorreg+'r10'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+'],';
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r10'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+']' else
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r10'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+']';
 
 
              11:
              if shortint(memory[modrmbyte+1])>=0 then
-               result:=getsegmentoverride(prefix)+'['+colorreg+'r11'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-               result:=getsegmentoverride(prefix)+'['+colorreg+'r11'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+'],';
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r11'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+']' else
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r11'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+']';
 
              12:
              if shortint(memory[modrmbyte+1])>=0 then
-               result:=getsegmentoverride(prefix)+'['+colorreg+'r12'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-               result:=getsegmentoverride(prefix)+'['+colorreg+'r12'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+'],';
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r12'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+']' else
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r12'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+']';
 
              13:
              if shortint(memory[modrmbyte+1])>=0 then
-               result:=getsegmentoverride(prefix)+'['+colorreg+'r13'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-               result:=getsegmentoverride(prefix)+'['+colorreg+'r13'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+'],';
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r13'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+']' else
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r13'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+']';
 
              14:
              if shortint(memory[modrmbyte+1])>=0 then
-               result:=getsegmentoverride(prefix)+'['+colorreg+'r14'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-               result:=getsegmentoverride(prefix)+'['+colorreg+'r14'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+'],';
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r14'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+']' else
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r14'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+']';
 
              15:
              if shortint(memory[modrmbyte+1])>=0 then
-               result:=getsegmentoverride(prefix)+'['+colorreg+'r15'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-               result:=getsegmentoverride(prefix)+'['+colorreg+'r15'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+'],';
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r15'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+']' else
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r15'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+']';
 
             end;
 
             inc(last);
+            LastDisassembleData.datasize:=opperandsize div 8;
+            result:=operandstring+result;
           end;
 
       2:  begin
+            if showextrareg and opcodeflags.skipExtraRegOnMemoryAccess then showextrareg:=false;
+
             if getrm(memory[modrmbyte])<>4 then
             begin
               LastDisassembleData.modrmValueType:=dvtValue;
@@ -807,97 +975,99 @@ begin
             case getrm(memory[modrmbyte]) of
               0:
               if integer(dwordptr^)>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'ax'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'ax'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'ax'+endcolor+'+'+inttohexs(dwordptr^,8)+']' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'ax'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+']';
 
               1:
               if integer(dwordptr^)>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'cx'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'cx'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'cx'+endcolor+'+'+inttohexs(dwordptr^,8)+']' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'cx'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+']';
 
               2:
               if integer(dwordptr^)>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'dx'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'dx'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'dx'+endcolor+'+'+inttohexs(dwordptr^,8)+']' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'dx'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+']';
 
 
               3:
               if integer(dwordptr^)>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bx'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bx'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bx'+endcolor+'+'+inttohexs(dwordptr^,8)+']' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bx'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+']';
 
 
               4:
               begin
-                result:=getsegmentoverride(prefix)+'['+sib(memory,modrmbyte+1,last, addresssize)+'],';
+                result:=getsegmentoverride(prefix)+'['+sib(memory,modrmbyte+1,last, addresssize)+']';
                 dec(last,4);
               end;
 
               5:
               if integer(dwordptr^)>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bp'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bp'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bp'+endcolor+'+'+inttohexs(dwordptr^,8)+']' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bp'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+']';
 
 
               6:
               if integer(dwordptr^)>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'si'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'si'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'si'+endcolor+'+'+inttohexs(dwordptr^,8)+']' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'si'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+']';
 
 
               7:
               if integer(dwordptr^)>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'di'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'di'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'di'+endcolor+'+'+inttohexs(dwordptr^,8)+']' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'di'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+']';
 
 
               8:
               if integer(dwordptr^)>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+'r8'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+'r8'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r8'+endcolor+'+'+inttohexs(dwordptr^,8)+']' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r8'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+']';
 
               9:
               if integer(dwordptr^)>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+'r9'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+'r9'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r9'+endcolor+'+'+inttohexs(dwordptr^,8)+']' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r9'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+']';
 
              10:
               if integer(dwordptr^)>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+'r10'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+'r10'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r10'+endcolor+'+'+inttohexs(dwordptr^,8)+']' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r10'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+']';
 
              11:
               if integer(dwordptr^)>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+'r11'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+'r11'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r11'+endcolor+'+'+inttohexs(dwordptr^,8)+']' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r11'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+']';
 
              12:
               if integer(dwordptr^)>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+'r12'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+'r12'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r12'+endcolor+'+'+inttohexs(dwordptr^,8)+']' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r12'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+']';
 
              13:
               if integer(dwordptr^)>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+'r13'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+'r13'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r13'+endcolor+'+'+inttohexs(dwordptr^,8)+']' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r13'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+']';
 
              14:
               if integer(dwordptr^)>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+'r14'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+'r14'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r14'+endcolor+'+'+inttohexs(dwordptr^,8)+']' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r14'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+']';
 
              15:
               if integer(dwordptr^)>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+'r15'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+'r15'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r15'+endcolor+'+'+inttohexs(dwordptr^,8)+']' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r15'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+']';
 
             end;
             inc(last,4);
 
+            LastDisassembleData.datasize:=opperandsize div 8;
+            result:=operandstring+result;
           end;
 
       3:  begin
-
+            LastDisassembleData.datasize:=0;
             case getrm(memory[modrmbyte]) of
               0:  case inst of
                     0: if rex_w or (opperandsize=64) then result:='rax' else result:='eax';
@@ -1028,10 +1198,27 @@ begin
                  end;
             end;
 
-            result:=colorreg+result+endcolor+',';
+
+            result:=colorreg+result+endcolor;
           end;
     end;
+    if showextrareg then
+    begin
+      case inst of
+        0: if rex_w then ep:=regnrtostr(rt64, not opcodeflags.vvvv and $f) else ep:=regnrtostr(rt32, not opcodeflags.vvvv and $f);
+        1: ep:=regnrtostr(rt16, not opcodeflags.vvvv and $f);
+        2: ep:=regnrtostr(rt8, not opcodeflags.vvvv and $f);
+        3: ep:=regnrtostr(rtMM, not opcodeflags.vvvv and $f);
+        4: if opcodeflags.L then ep:=regnrtostr(rtYMM, not opcodeflags.vvvv and $f) else ep:=regnrtostr(rtXMM, not opcodeflags.vvvv and $f);
+      end;
 
+      case position of
+        mLeft: result:=result+','+colorreg+ep+endcolor;
+        mRight: result:=colorreg+ep+endcolor+','+result;
+      end;
+    end;
+
+    result:=prestr+result+poststr;
   end;
 
   if last<>(modrmbyte+1) then //add an extra seperator since some bytes have been added, usually the last one, except when the opcode has a immeadiate value followed, which this seperator will then separate
@@ -1042,7 +1229,7 @@ begin
 end;
 
 
-function tdisassembler.MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword): string;
+function tdisassembler.MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword; position: TMRPos=mLeft): string;
 begin
   case inst of
     0: LastDisassembleData.datasize:=processhandler.pointersize;
@@ -1051,53 +1238,12 @@ begin
     3: LastDisassembleData.datasize:=4;
     4: LastDisassembleData.datasize:=8
   end;
-  result:=modrm2(memory,prefix,modrmbyte,inst,last);
+  result:=modrm2(memory,prefix,modrmbyte,inst,last,0,0,position);
 end;
 
-function TDisassembler.MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword;opperandsize:integer; addressSize: integer=0): string;
+function TDisassembler.MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword;opperandsize:integer; addressSize: integer=0; position: TMRPos=mLeft): string;
 begin
-  result:=modrm2(memory,prefix,modrmbyte,inst,last, opperandsize, addressSize);
-  if (length(result)>0) and (result[1]='[') then
-  begin
-    LastDisassembleData.datasize:=processhandler.pointersize;
-    case opperandsize of
-     8 :
-     begin
-       result:='byte ptr '+result;
-       LastDisassembleData.datasize:=1;
-     end;
-
-     16:
-     begin
-       result:='word ptr '+result;
-       LastDisassembleData.datasize:=2;
-     end;
-
-     32:
-     begin
-       result:='dword ptr '+result;
-       LastDisassembleData.datasize:=4;
-     end;
-
-     64:
-     begin
-       result:='qword ptr '+result;
-       LastDisassembleData.datasize:=8;
-     end;
-
-     80:
-     begin
-       result:='tword ptr '+result;
-       LastDisassembleData.datasize:=10;
-     end;
-
-     128:
-     begin
-       result:='dqword ptr '+result;
-       LastDisassembleData.datasize:=16;
-     end;
-    end;
-  end;
+  result:=modrm2(memory,prefix,modrmbyte,inst,last, opperandsize, addressSize, position);
 end;
 
 function TDisassembler.SIB(memory:TMemory; sibbyte: integer; var last: dword; addresssize: integer=0): string;
@@ -1379,8 +1525,11 @@ begin
     result:=actualread;
 end;
 
+
+
 function TDisassembler.disassemble(var offset: ptrUint; var description: string): string;
-var memory: TMemory;
+
+var
     actualread: PtrUInt;
     startoffset, initialoffset: ptrUint;
     tempresult, tempdescription: string;
@@ -1392,10 +1541,9 @@ var memory: TMemory;
     doubleptr: ^double;
     extenedptr: ^extended;
     int64ptr: ^int64;
-    i,j: integer;
+    i,j,k: integer;
 
-    prefix: TPrefix;
-    prefix2: TPrefix;
+
     isprefix: boolean;
 
     last: dword;
@@ -1405,7 +1553,10 @@ var memory: TMemory;
     prefixsize: integer;
     mi: TModuleInfo;
     VA,PA: QWORD;
+    noVEXPossible: boolean=false;
+    bytestomove: integer;
 begin
+
   LastDisassembleData.isfloat:=false;
   LastDisassembleData.iscloaked:=false;
   LastDisassembleData.commentsoverride:='';
@@ -1587,12 +1738,27 @@ begin
       end else isprefix:=false;
     end;
 
-    if $F0 in prefix2 then tempresult:='lock ';
-    if $F2 in prefix2 then tempresult:=tempresult+'repne ';
-    if $f3 in prefix2 then tempresult:=tempresult+'repe ';
+    if $F0 in prefix2 then
+    begin
+      tempresult:='lock ';
+      noVEXPossible:=true;
+    end;
+
+    if $F2 in prefix2 then
+    begin
+      tempresult:=tempresult+'repne ';
+      noVEXPossible:=true;
+    end;
+
+    if $f3 in prefix2 then
+    begin
+      tempresult:=tempresult+'repe ';
+      noVEXPossible:=true;
+    end;
 
     LastDisassembleData.prefix:=tempresult;
 
+    zeromemory(@opcodeflags, sizeof(opcodeflags));
 
     RexPrefix:=0;
     if is64bit then
@@ -1602,8 +1768,13 @@ begin
         setlength(LastDisassembleData.bytes,length(LastDisassembleData.bytes)+1);
         LastDisassembleData.bytes[length(LastDisassembleData.bytes)-1]:=memory[0];
 
-
         RexPrefix:=memory[0];
+        opcodeflags.B:=(RexPrefix and BIT_REX_B)=BIT_REX_B;
+        opcodeflags.X:=(RexPrefix and BIT_REX_X)=BIT_REX_X;
+        opcodeflags.R:=(RexPrefix and BIT_REX_R)=BIT_REX_R;
+        opcodeflags.W:=(RexPrefix and BIT_REX_W)=BIT_REX_W;
+
+
         if not dataonly then
           result:=result+inttohexs(RexPrefix,2)+' ';
 
@@ -1611,79 +1782,10 @@ begin
         inc(startoffset);
         prefix2:=prefix2+[RexPrefix];
         MoveMemory(@memory[0], @memory[1], 23);
+
+        noVEXPossible:=true;
       end
-         (*
-         //this stuff might deserve it's own units. (or I may just say fuck it and use a library)
-      else
-      if memory[0] in [$c4,$c5] then //vex prefix
-      begin
 
-        if memory[0]=$c4 then
-        begin
-          setlength(LastDisassembleData.bytes,length(LastDisassembleData.bytes)+3);
-          LastDisassembleData.bytes[length(LastDisassembleData.bytes)-3]:=memory[0];
-          LastDisassembleData.bytes[length(LastDisassembleData.bytes)-2]:=memory[1];
-          LastDisassembleData.bytes[length(LastDisassembleData.bytes)-1]:=memory[2];
-
-          inc(offset,3);
-          inc(startoffset,3);
-          prefix2:=prefix2+[$c4, memory[1], memory[2]];
-
-          i:=0;
-          //setup the rex prefix
-
-          //insert some bytes in front of the memoryarray depending on bit 0 to 4 of vex byte 1
-          {
-          00000: Reserved for future use (will #UD)
-          00001: implied 0F leading opcode byte
-          00010: implied 0F 38 leading opcode bytes
-          00011: implied 0F 3A leading opcode bytes
-          00100-11111: Reserved for future use (will #UD)
-          }
-          case memory[1] and $1f of
-            1:
-            begin
-              memory[0]:=$0f;
-              i:=1;
-            end;
-
-            2:
-            begin
-              memory[0]:=$0f;
-              memory[1]:=$38;
-              i:=2;
-            end;
-
-            3:
-            begin
-              memory[0]:=$0f;
-              memory[1]:=$3a;
-              i:=2;
-            end;
-          end;
-
-          MoveMemory(@memory[i], @memory[3], 24-i-3);
-
-        end
-        else
-        begin
-          setlength(LastDisassembleData.bytes,length(LastDisassembleData.bytes)+2);
-          LastDisassembleData.bytes[length(LastDisassembleData.bytes)-2]:=memory[0];
-          LastDisassembleData.bytes[length(LastDisassembleData.bytes)-1]:=memory[1];
-
-          inc(offset,2);
-          inc(startoffset,2);
-          prefix2:=prefix2+[$c5, memory[1]];
-
-          memory[0]:=$0f;
-          i:=1;
-
-          MoveMemory(@memory[1], @memory[2], 24-1-2);
-        end;
-
-        //todo: implement me some day when VEX gets used more
-        //hasrexprefix:=true;
-      end *) ;
     end;
 
     {$ifdef windows}
@@ -1695,6 +1797,91 @@ begin
     prefixsize:=length(LastDisassembleData.bytes);
     LastDisassembleData.prefixsize:=prefixsize;
 
+    if (noVEXPossible=false) and (memory[0] in [$c4,$c5]) then
+    begin
+      hasVEX:=true;
+
+      if memory[0]=$c5 then
+      begin
+        //2 byte VEX
+        opcodeflags.pp:=PVex2Byte(@memory[1])^.pp;
+        opcodeflags.L:=PVex2Byte(@memory[1])^.L=1;
+        opcodeflags.vvvv:=PVex2Byte(@memory[1])^.vvvv;
+        opcodeflags.R:=PVex2Byte(@memory[1])^.R=0;
+        opcodeflags.mmmmm:=1;
+
+        i:=length(LastDisassembleData.bytes);
+
+        setlength(LastDisassembleData.bytes,length(LastDisassembleData.bytes)+2);
+        LastDisassembleData.bytes[i]:=memory[0];
+        LastDisassembleData.bytes[i+1]:=memory[1];
+
+        memory[1]:=$0f;
+        bytestomove:=1;
+
+        MoveMemory(@memory[0], @memory[1], 23);
+        inc(offset,1);
+        inc(startoffset,2);
+      end
+      else
+      begin
+        //3 byte vex
+        opcodeflags.pp:=PVex3Byte(@memory[1])^.pp;
+        opcodeflags.L:=PVex3Byte(@memory[1])^.L=1;
+        opcodeflags.vvvv:=PVex3Byte(@memory[1])^.vvvv;
+        opcodeflags.W:=PVex3Byte(@memory[1])^.W=0;
+        opcodeflags.mmmmm:=PVex3Byte(@memory[1])^.mmmmm;
+        opcodeflags.B:=PVex3Byte(@memory[1])^.B=0;
+        opcodeflags.X:=PVex3Byte(@memory[1])^.X=0;
+        opcodeflags.R:=PVex3Byte(@memory[1])^.R=0;
+
+        setlength(LastDisassembleData.bytes,length(LastDisassembleData.bytes)+3);
+        LastDisassembleData.bytes[i]:=memory[0];
+        LastDisassembleData.bytes[i+1]:=memory[1];
+        LastDisassembleData.bytes[i+2]:=memory[2];
+
+        { mmmmm:
+        00000: Reserved for future use (will #UD)
+        00001: implied 0F leading opcode byte
+        00010: implied 0F 38 leading opcode bytes
+        00011: implied 0F 3A leading opcode bytes
+        00100-11111: Reserved for future use (will #UD)
+        }
+
+        bytestomove:=3; //number of bytes to shift
+        case opcodeflags.mmmmm of
+          1:
+          begin
+            bytestomove:=2;
+            memory[2]:=$0f;
+          end;
+
+          2:
+          begin
+            bytestomove:=1;
+            memory[1]:=$0f;
+            memory[2]:=$38;
+          end;
+
+          3:
+          begin
+            bytestomove:=1;
+            memory[1]:=$0f;
+            memory[2]:=$3a;
+          end; //else invalid
+        end;
+
+        MoveMemory(@memory[0], @memory[bytestomove], 24-bytestomove);
+        inc(offset,3);
+        inc(startoffset,3);
+      end;
+
+      case opcodeflags.pp of
+        1: prefix2:=prefix2+[$66];
+        2: prefix2:=prefix2+[$f3];
+        3: prefix2:=prefix2+[$f2];
+      end;
+    end else hasVEX:=false;
 
 
     case memory[0] of  //opcode
@@ -2131,8 +2318,15 @@ begin
                         if $f2 in prefix2 then
                         begin
                           description:='move scalar double-fp';
-                          lastdisassembledata.opcode:='movsd';
-                          lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          opcodeflags.L:=false; //LIG
+                          opcodeflags.skipExtraRegOnMemoryAccess:=true;
+
+                          if hasvex then
+                            lastdisassembledata.opcode:='vmovsd'
+                          else
+                            lastdisassembledata.opcode:='movsd';
+
+                          lastdisassembledata.parameters:=xmm(memory[2])+modrm(memory,prefix2,2,4,last,mright);
                           inc(offset,last-1);
                         end
                         else
@@ -2140,7 +2334,7 @@ begin
                         begin
                           description:='move scalar single-fp';
                           lastdisassembledata.opcode:='movss';
-                          lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last,mright);
                           lastdisassembledata.datasize:=4;
                           inc(offset,last-1);
                         end
@@ -2149,14 +2343,14 @@ begin
                         begin
                           description:='move unaligned packed double-fp';
                           lastdisassembledata.opcode:='movupd';
-                          lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last,mright);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='move unaligned four packed single-fp';
                           lastdisassembledata.opcode:='movups';
-                          lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last,mright);
                           lastdisassembledata.datasize:=4;
                           inc(offset,last-1);
                         end;
@@ -2650,6 +2844,148 @@ begin
                                    inc(offset,last-1);
                                  end;
                                end;
+
+                          $db: begin
+                                 if $66 in prefix2 then
+                                 begin
+                                   description:='Perform the AES InvMixColumn transformation';
+                                   if hasvex then
+                                     LastDisassembleData.opcode:='vaesimc'
+                                   else
+                                     LastDisassembleData.opcode:='aesimc';
+
+                                   lastdisassembledata.parameters:=xmm(memory[3])+','+modrm(memory,prefix2,3,4,last);
+                                   inc(offset,last-1);
+                                 end;
+                               end;
+
+                          $dc: begin
+                                 if $66 in prefix2 then
+                                 begin
+                                   description:='Perform one round of an AES encryption flow';
+                                   if hasvex then
+                                     LastDisassembleData.opcode:='vaesenc'
+                                   else
+                                     LastDisassembleData.opcode:='aesenc';
+
+                                   lastdisassembledata.parameters:=xmm(memory[3])+','+modrm(memory,prefix2,3,4,last);
+                                   inc(offset,last-1);
+                                 end;
+                               end;
+
+                          $dd: begin
+                                 if $66 in prefix2 then
+                                 begin
+                                   description:='Perform last round of an AES encryption flow';
+                                   if hasvex then
+                                     LastDisassembleData.opcode:='caesenclast'
+                                   else
+                                     LastDisassembleData.opcode:='aesenclast';
+
+                                   lastdisassembledata.parameters:=xmm(memory[3])+','+modrm(memory,prefix2,3,4,last);
+                                   inc(offset,last-1);
+                                 end;
+                               end;
+
+                          $de: begin
+                                 if $66 in prefix2 then
+                                 begin
+                                   description:='Perform one round of an AES decryption flow';
+                                   if hasvex then
+                                     LastDisassembleData.opcode:='vaesdec'
+                                   else
+                                     LastDisassembleData.opcode:='aesdec';
+
+                                   lastdisassembledata.parameters:=xmm(memory[3])+','+modrm(memory,prefix2,3,4,last);
+                                   inc(offset,last-1);
+                                 end;
+                               end;
+
+                          $df: begin
+                                 if $66 in prefix2 then
+                                 begin
+                                   description:='Perform last round of an AES decryption flow';
+                                   if hasvex then
+                                     LastDisassembleData.opcode:='caesdeclast'
+                                   else
+                                     LastDisassembleData.opcode:='aesdeclast';
+
+                                   lastdisassembledata.parameters:=xmm(memory[3])+','+modrm(memory,prefix2,3,4,last);
+                                   inc(offset,last-1);
+                                 end;
+                               end;
+
+                          $f2: begin
+                                 if hasvex then
+                                 begin
+                                   description:='Logical AND NOT';
+                                   LastDisassembleData.opcode:='andn';
+                                   lastdisassembledata.parameters:=r32(memory[3])+','+modrm(memory,prefix2,3,0,last);
+                                   inc(offset,last-1);
+                                 end;
+                               end;
+
+
+                          $f6: begin
+                                 if $66 in prefix2 then
+                                 begin
+                                   description:='ADX: Unsigned Integer Addition of Two Operands with Carry Flag';
+                                   LastDisassembleData.opcode:='adcx';
+                                   lastdisassembledata.parameters:=r32(memory[3])+','+modrm(memory,prefix2,3,0,last);
+                                   inc(offset,last-1);
+                                 end
+                                 else
+                                 if $f3 in prefix2 then
+                                 begin
+                                   description:='ADX: Unsigned Integer Addition of Two Operands with Overflow Flag';
+                                   LastDisassembleData.opcode:='adox';
+                                   lastdisassembledata.parameters:=r32(memory[3])+','+modrm(memory,prefix2,3,0,last);
+                                   inc(offset,last-1);
+                                 end;
+                               end;
+
+                          $f7: begin
+                                 description:='Bit field extract';
+                                 LastDisassembleData.opcode:='BEXTR';
+                                 lastdisassembledata.parameters:=r32(memory[3])+','+modrm(memory,prefix2,3,0,last,mLeft);
+                                 inc(offset,last-1);
+                               end;
+                        end;
+                      end;
+
+                $3a : begin
+                        case memory[2] of
+                          $0d: begin
+                                 if $66 in prefix2 then
+                                 begin
+                                   description:='Blend packed double precision floating-point values';
+                                   if hasvex then
+                                     LastDisassembleData.opcode:='vblendpd'
+                                   else
+                                     LastDisassembleData.opcode:='blendpd';
+
+                                   lastdisassembledata.parameters:=xmm(memory[3])+modrm(memory,prefix2,3,4,last,mRight)+',';
+                                   lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohex(memory[last],2);
+                                   inc(last);
+                                   inc(offset,last-1);
+                                 end;
+                               end;
+
+                          $df: begin
+                                 if $66 in prefix2 then
+                                 begin
+                                   description:='AES round key generation assist';
+                                   if hasvex then
+                                     LastDisassembleData.opcode:='vaeskeygenassist'
+                                   else
+                                     LastDisassembleData.opcode:='aeskeygenassist';
+
+                                   lastdisassembledata.parameters:=xmm(memory[3])+modrm(memory,prefix2,3,4,last,mRight)+',';
+                                   lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohex(memory[last],2);
+                                   inc(last);
+                                   inc(offset,last-1);
+                                 end;
+                               end;
                         end;
                       end;
 
@@ -2920,7 +3256,11 @@ begin
                 $54 : begin
                         if $66 in prefix2 then
                         begin
-                          lastdisassembledata.opcode:='andpd';
+                          if hasvex then
+                            lastdisassembledata.opcode:='vandpd'
+                          else
+                            lastdisassembledata.opcode:='andpd';
+
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
 
                           description:='bit-wise logical and of xmm2/m128 and xmm1';
@@ -2928,7 +3268,10 @@ begin
                         end
                         else
                         begin
-                          lastdisassembledata.opcode:='andps';
+                          if hasvex then
+                            lastdisassembledata.opcode:='vandps'
+                          else
+                            lastdisassembledata.opcode:='andps';
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           lastdisassembledata.datasize:=4;
 
@@ -2941,16 +3284,21 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='bit-wise logical and not of packed double-precision fp values';
-                          lastdisassembledata.opcode:='andnpd';
+                          if hasvex then
+                            lastdisassembledata.opcode:='vandnpd'
+                          else
+                            lastdisassembledata.opcode:='andnpd';
+
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-
-
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='bit-wise logical and not for single-fp';
-                          lastdisassembledata.opcode:='andnps';
+                          if hasvex then
+                            lastdisassembledata.opcode:='vandnps'
+                          else
+                            lastdisassembledata.opcode:='andnps';
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           lastdisassembledata.datasize:=4;
 
@@ -3005,10 +3353,11 @@ begin
                         if $f2 in prefix2 then
                         begin
                           //delete the repne from the tempresult
-
-
-                          lastdisassembledata.opcode:='addsd';
-                          lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          if hasvex then
+                            lastdisassembledata.opcode:='vaddsd'
+                          else
+                            lastdisassembledata.opcode:='addsd';
+                          lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last,64);
 
                           description:='add the lower sp fp number from xmm2/mem to xmm1.';
                           inc(offset,last-1);
@@ -3018,9 +3367,11 @@ begin
                         begin
                           //delete the repe from the tempresult
 
-
-                          lastdisassembledata.opcode:='addss';
-                          lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          if hasvex then
+                            lastdisassembledata.opcode:='vaddss'
+                          else
+                            lastdisassembledata.opcode:='addss';
+                          lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last,32);
                           lastdisassembledata.datasize:=4;
 
                           description:='add the lower sp fp number from xmm2/mem to xmm1.';
@@ -3029,15 +3380,23 @@ begin
                         begin
                           if $66 in prefix2 then
                           begin
-                            lastdisassembledata.opcode:='addpd';
-                            lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                            if hasvex then
+                              lastdisassembledata.opcode:='vaddpd'
+                            else
+                              lastdisassembledata.opcode:='addpd';
+
+                            lastdisassembledata.parameters:=xmm(memory[2])+modrm(memory,prefix2,2,4,last,mright);
 
                             description:='add packed double-precision floating-point values from xmm2/mem to xmm1';
                             inc(offset,last-1);
                           end
                           else
                           begin
-                            lastdisassembledata.opcode:='addps';
+                            if hasvex then
+                              lastdisassembledata.opcode:='vaddps'
+                            else
+                              lastdisassembledata.opcode:='addps';
+
                             lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                             lastdisassembledata.datasize:=4;
 
@@ -4890,6 +5249,19 @@ begin
                         inc(offset,last-1);
                       end;
 
+                $b8 : begin
+                        if $f3 in prefix2 then
+                        begin
+                          description:='Return the Count of Number of Bits Set to 1';
+                          lastdisassembledata.opcode:='popcnt';
+                          if $66 in prefix2 then
+                          lastdisassembledata.parameters:=r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
+                          lastdisassembledata.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,1,last);
+
+                          inc(offset,last-1);
+                        end;
+                      end;
+
 
                 $ba : begin
                         lastdisassembledata.parametervaluetype:=dvtvalue;
@@ -5215,6 +5587,30 @@ begin
                           lastdisassembledata.parameters:=rd(memory[1]-$c8);
 
                         inc(offset);
+                      end;
+
+                $d0 : begin
+                        if $66 in prefix2 then
+                        begin
+                          description:='Packed Double-FP Add/Subtract';
+                          if hasvex then
+                            lastdisassembledata.opcode:='vaddsubpd'
+                          else
+                            lastdisassembledata.opcode:='addsubpd';
+                          lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          inc(offset,last-1);
+                        end
+                        else
+                        if $f2 in prefix2 then
+                        begin
+                          description:='Packed Single-FP Add/Subtract';
+                          if hasvex then
+                            lastdisassembledata.opcode:='vaddsubps'
+                          else
+                            lastdisassembledata.opcode:='addsubps';
+                          lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          inc(offset,last-1);
+                        end;
                       end;
 
                 $d1 : begin
@@ -8755,23 +9151,29 @@ begin
             end;
 
       $c4 : begin
-              description:='load far pointer';
-              lastdisassembledata.opcode:='les';
-              if $66 in prefix2 then
-                lastdisassembledata.parameters:=r16(memory[1])+','+modrm(memory,prefix2,1,1,last) else
-                lastdisassembledata.parameters:=r32(memory[1])+','+modrm(memory,prefix2,1,0,last);
+              if processhandler.is64Bit=false then
+              begin
+                description:='load far pointer';
+                lastdisassembledata.opcode:='les';
+                if $66 in prefix2 then
+                  lastdisassembledata.parameters:=r16(memory[1])+','+modrm(memory,prefix2,1,1,last) else
+                  lastdisassembledata.parameters:=r32(memory[1])+','+modrm(memory,prefix2,1,0,last);
 
-              inc(offset,last-1);
+                inc(offset,last-1);
+              end;
             end;
 
       $c5 : begin
-              description:='load far pointer';
-              lastdisassembledata.opcode:='lds';
-              if $66 in prefix2 then
-                lastdisassembledata.parameters:=r16(memory[1])+','+modrm(memory,prefix2,1,1,last) else
-                lastdisassembledata.parameters:=r32(memory[1])+','+modrm(memory,prefix2,1,0,last);
+              if processhandler.is64Bit=false then
+              begin
+                description:='load far pointer';
+                lastdisassembledata.opcode:='lds';
+                if $66 in prefix2 then
+                  lastdisassembledata.parameters:=r16(memory[1])+','+modrm(memory,prefix2,1,1,last) else
+                  lastdisassembledata.parameters:=r32(memory[1])+','+modrm(memory,prefix2,1,0,last);
 
-              inc(offset,last-1);
+                inc(offset,last-1);
+              end;
             end;
 
       $c6 : begin
@@ -11144,12 +11546,21 @@ begin
 
 
     LastDisassembleData.description:=description;
-    j:=length(LastDisassembleData.Bytes);
-    setlength(LastDisassembleData.Bytes,j+offset-startoffset);
+    k:=length(LastDisassembleData.Bytes);
+    setlength(LastDisassembleData.Bytes,k+offset-startoffset);
 
-    for i:=0 to (offset-startoffset)-1 do
+    j:=0;
+    if hasvex then
     begin
-      LastDisassembleData.Bytes[j+i]:=memory[i];
+      case opcodeflags.mmmmm of
+        1: j:=1; //skip the 0f
+        2,3: j:=2; //skip the 0f XX
+      end;
+    end;
+
+    for i:=j to (offset-startoffset)-1+j do
+    begin
+      LastDisassembleData.Bytes[i-j+k]:=memory[i];
       result:=result+inttohex(memory[i],2)+' ';
     end;
 

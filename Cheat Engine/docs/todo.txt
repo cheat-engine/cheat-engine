@@ -2,7 +2,6 @@ structure dissect:
   delete all structures sometimes AV's (no idea how to reproduce)
 
 
-triggering hotkeys (no matter what they do) while in settings breaks CE completely
 add AVX support
 
 mono dissect: order methods by alphabet

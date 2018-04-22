@@ -188,16 +188,16 @@ begin
   end;
 end;
 
+var presuspendstate: THotkeyThreadState;
 procedure SuspendHotkeyHandler;
 begin
-  if not hotkeythread.suspended then cskeys.Enter;
-  hotkeythread.suspended:=true;
+  presuspendstate:=hotkeythread.state;
+  hotkeythread.state:=htsDisabled;
 end;
 
 procedure ResumeHotkeyHandler;
 begin
-  if hotkeythread.suspended then cskeys.Leave;
-  hotkeythread.suspended:=false;
+  hotkeythread.state:=presuspendstate;
 end;
 
 procedure ClearHotkeylist;

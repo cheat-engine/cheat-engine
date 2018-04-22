@@ -441,10 +441,10 @@ begin
     if (error<>0) or (stacksize<=0) then raise exception.Create(Format(rsIsNotAValidInterval, [edtStacksize.text]));
 
     val(edtLuaCollectTimer.text, collectgarbagetimer, error);
-    if (error<>0) or (stacksize<=0) then raise exception.Create(Format(rsIsNotAValidInterval, [edtLuaCollectTimer.text]));
+    if (error<>0) or (collectgarbagetimer<=0) then raise exception.Create(Format(rsIsNotAValidInterval, [edtLuaCollectTimer.text]));
 
     val(edtLuaMinCollectSize.text, collectgarbageminimumsize, error);
-    if (error<>0) or (stacksize<=0) then raise exception.Create(Format(rsIsNotAValidInterval, [edtLuaMinCollectSize.text]));
+    if (error<>0) or (collectgarbagetimer<=0) then raise exception.Create(Format(rsIsNotAValidInterval, [edtLuaMinCollectSize.text]));
 
 
 
