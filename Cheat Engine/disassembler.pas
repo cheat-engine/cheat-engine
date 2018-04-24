@@ -11400,6 +11400,16 @@ begin
             end;
 
       $df : begin
+              case memory[1] of
+                $c0..$c7:
+                begin
+                  description:='free floating-point register and pop (might not work)';
+                  lastdisassembledata.opcode:='ffreep';
+                  lastdisassembledata.parameters:='st('+inttostr(memory[1]-$c0)+')';
+                  inc(offset);
+                end;
+              end;
+
               case getreg(memory[1]) of
                 0:  begin
                       description:='load integer';
