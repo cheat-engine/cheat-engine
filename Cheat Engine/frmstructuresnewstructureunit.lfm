@@ -62,6 +62,8 @@ object frmStructuresNewStructure: TfrmStructuresNewStructure
     Width = 113
     BorderSpacing.Top = 10
     Caption = 'Guess Field Types'
+    Checked = True
+    State = cbChecked
     TabOrder = 1
   end
   object labelStructureSize: TLabel
