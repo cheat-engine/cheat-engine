@@ -6511,7 +6511,7 @@ begin
             //r32/m32,mm
             addopcode(bytes,j);
             result:=createmodrm(bytes,getreg(parameter2), parameter1);
-
+            exit;
           end;
 
         end;
@@ -6524,6 +6524,7 @@ begin
             //r32/m32,xmm
             addopcode(bytes,j);
             result:=createmodrm(bytes,getreg(parameter2), parameter1);
+            exit;
           end;
 
           if (opcodes[j].paramtype3=par_imm8) and (paramtype3=ttValue) then
@@ -6531,6 +6532,7 @@ begin
             addopcode(bytes,j);
             result:=createmodrm(bytes,getreg(parameter2), parameter1);
             add(bytes,[v]);
+            exit;
           end;
 
         end;

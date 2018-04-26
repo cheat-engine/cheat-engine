@@ -19,7 +19,7 @@ uses windows, imagehlp,sysutils,LCLIntf,byteinterpreter, symbolhandler,CEFuncPro
 //if you're bored, go do this
 
 type Tprefix = set of byte;
-type TMemory = array [0..23] of byte;
+type TMemory = array [0..32] of byte;
 type TIntToHexS=function(address:ptrUInt;chars: integer; signed: boolean=false; signedsize: integer=0):string of object;
 
 type TMRPos=(mLeft,mRight, mNone);
@@ -78,7 +78,7 @@ type
     colorsymbol: string;
     endcolor: string;
 
-    memory: TMemory;
+    _memory: TMemory;
     prefix: TPrefix;
     prefix2: TPrefix;
 
@@ -88,11 +88,11 @@ type
 
     ArmDisassembler: TArmDisassembler;
 
-    function SIB(memory:TMemory; sibbyte: integer; var last: dword; addresssize: integer=0): string;
-    function MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword; position: TMRPos=mLeft): string; overload;
-    function MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword;opperandsize:integer; addresssize: integer=0; position:TMRPos=mLeft): string; overload;
+    function SIB(memory:PByteArray; sibbyte: integer; var last: dword; addresssize: integer=0): string;
+    function MODRM(memory:PByteArray; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword; position: TMRPos=mLeft): string; overload;
+    function MODRM(memory:PByteArray; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword;opperandsize:integer; addresssize: integer=0; position:TMRPos=mLeft): string; overload;
 
-    function MODRM2(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword;opperandsize:integer=0;addresssize: integer=0;position: TMRPos=mLeft): string;
+    function MODRM2(memory:PByteArray; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword;opperandsize:integer=0;addresssize: integer=0;position: TMRPos=mLeft): string;
 
     function getReg(bt: byte): byte;
     function getmod(bt: byte): byte;
@@ -719,7 +719,7 @@ begin
 end;
 
 
-function TDisassembler.MODRM2(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword;opperandsize:integer=0; addresssize:integer=0; position:TMRPos=mLeft): string;
+function TDisassembler.MODRM2(memory:PByteArray; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword;opperandsize:integer=0; addresssize:integer=0; position:TMRPos=mLeft): string;
 var dwordptr: ^dword;
     regprefix: char;
     i: integer;
@@ -1230,7 +1230,7 @@ begin
 end;
 
 
-function tdisassembler.MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword; position: TMRPos=mLeft): string;
+function tdisassembler.MODRM(memory:PByteArray; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword; position: TMRPos=mLeft): string;
 begin
   case inst of
     0: LastDisassembleData.datasize:=processhandler.pointersize;
@@ -1242,12 +1242,12 @@ begin
   result:=modrm2(memory,prefix,modrmbyte,inst,last,0,0,position);
 end;
 
-function TDisassembler.MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword;opperandsize:integer; addressSize: integer=0; position: TMRPos=mLeft): string;
+function TDisassembler.MODRM(memory:PByteArray; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword;opperandsize:integer; addressSize: integer=0; position: TMRPos=mLeft): string;
 begin
   result:=modrm2(memory,prefix,modrmbyte,inst,last, opperandsize, addressSize, position);
 end;
 
-function TDisassembler.SIB(memory:TMemory; sibbyte: integer; var last: dword; addresssize: integer=0): string;
+function TDisassembler.SIB(memory:PByteArray; sibbyte: integer; var last: dword; addresssize: integer=0): string;
 var
   dwordptr: ^dword;
   byteptr: ^byte absolute dwordptr;
@@ -1529,7 +1529,6 @@ end;
 
 
 function TDisassembler.disassemble(var offset: ptrUint; var description: string): string;
-
 var
     actualread: PtrUInt;
     startoffset, initialoffset: ptrUint;
@@ -1556,6 +1555,8 @@ var
     VA,PA: QWORD;
     noVEXPossible: boolean=false;
     bytestomove: integer;
+
+    memory: PBytearray;
 begin
 
   LastDisassembleData.isfloat:=false;
@@ -1700,7 +1701,8 @@ begin
   startoffset:=offset;
   initialoffset:=offset;
 
-  actualRead:=readMemory(offset, @memory, 24);
+  actualRead:=readMemory(offset, @_memory[0], 24);
+  memory:=@_memory[0];
 
   if actualread>0 then
   begin
@@ -1716,7 +1718,7 @@ begin
 
     while isprefix do
     begin
-      inc(offset);
+      inc(offset); //offset will always inc by 1
       if memory[0] in prefix then
       begin
         if length(LastDisassembleData.bytes)>10 then
@@ -1735,7 +1737,16 @@ begin
         isprefix:=true;
         inc(startoffset);
         prefix2:=prefix2+[memory[0]];
-        readprocessmemory(processhandle,pointer(offset),addr(memory),24,actualread);
+
+        memory:=@memory[1];
+        if offset>initialoffset+24 then //too long
+        begin
+          description:='';
+          LastDisassembleData.opcode:='??';
+          offset:=initialoffset+1;
+          exit;
+        end;
+
       end else isprefix:=false;
     end;
 
@@ -1782,9 +1793,17 @@ begin
         inc(offset);
         inc(startoffset);
         prefix2:=prefix2+[RexPrefix];
-        MoveMemory(@memory[0], @memory[1], 23);
 
+        memory:=@memory[1];
         noVEXPossible:=true;
+
+        if offset>initialoffset+24 then
+        begin
+          description:='';
+          LastDisassembleData.opcode:='??';
+          offset:=initialoffset+1;
+          exit;
+        end;
       end
 
     end;
@@ -1805,6 +1824,7 @@ begin
       if memory[0]=$c5 then
       begin
         //2 byte VEX
+        inc(prefixsize,2);
         opcodeflags.pp:=PVex2Byte(@memory[1])^.pp;
         opcodeflags.L:=PVex2Byte(@memory[1])^.L=1;
         opcodeflags.vvvv:=PVex2Byte(@memory[1])^.vvvv;
@@ -1819,14 +1839,14 @@ begin
 
         memory[1]:=$0f;
         bytestomove:=1;
+        memory:=@memory[1];
 
-        MoveMemory(@memory[0], @memory[1], 23);
         inc(offset,1);
-        inc(startoffset,2);
       end
       else
       begin
         //3 byte vex
+        inc(prefixsize,3);
         opcodeflags.pp:=PVex3Byte(@memory[1])^.pp;
         opcodeflags.L:=PVex3Byte(@memory[1])^.L=1;
         opcodeflags.vvvv:=PVex3Byte(@memory[1])^.vvvv;
@@ -1872,9 +1892,8 @@ begin
           end; //else invalid
         end;
 
-        MoveMemory(@memory[0], @memory[bytestomove], 24-bytestomove);
-        inc(offset,3);
-        inc(startoffset,3);
+        memory:=@memory[bytestomove];
+        inc(offset,2);
       end;
 
       case opcodeflags.pp of
@@ -15028,26 +15047,12 @@ begin
 
    // tempresult:=tempresult+LastDisassembleData.opcode+' '+LastDisassembleData.parameters;
 
-
-
     LastDisassembleData.description:=description;
+
+    //copy the remaining bytes
     k:=length(LastDisassembleData.Bytes);
-    setlength(LastDisassembleData.Bytes,k+offset-startoffset);
-
-    j:=0;
-    if hasvex then
-    begin
-      case opcodeflags.mmmmm of
-        1: j:=1; //skip the 0f
-        2,3: j:=2; //skip the 0f XX
-      end;
-    end;
-
-    for i:=j to (offset-startoffset)-1+j do
-    begin
-      LastDisassembleData.Bytes[i-j+k]:=memory[i];
-      result:=result+inttohex(memory[i],2)+' ';
-    end;
+    setlength(LastDisassembleData.Bytes,offset-initialoffset);
+    copymemory(@LastDisassembleData.Bytes[k], @_memory[k], offset-initialoffset-k);
 
     //adjust for the prefix.
     if j<>0 then
