@@ -10,7 +10,6 @@ memview paste: paste for specific displaytype
 memview->rightclick while debugging: Change eip to position, run till position in the context menu as well
 
 
-add enumStructureWindows list, and let lua change the selected struct
 trainergen: get rid of tcheat and just use labels
 
 graphical memory view: 

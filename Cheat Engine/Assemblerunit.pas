@@ -6017,6 +6017,7 @@ begin
                 addopcode(bytes,j);
                 VEXvvvv:=(not getreg(parameter1)) and $f;
                 result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
+                exit;
               end;
             end;
           end;

@@ -2058,6 +2058,26 @@ function monoform_miFindInstancesOfClass(sender)
   end
 end
 
+function monoform_createInstanceOfClass(sender)
+  local node=monoForm.TV.Selected
+  if (node~=nil) then    
+    if (node.Data~=nil) and (node.Level==2) then     
+      local r=mono_object_new(node.data)
+      print(string.format("mono_object_new returned %x",r))
+      if r and (r~=0) then
+        r=mono_object_init(r);
+        if r then
+          print(string.format("mono_object_init returned success"))
+        else
+          print(string.format("mono_object_init returned false"))
+        end
+        
+      end
+      
+    end  
+  end  
+end
+
 
 
 
@@ -2258,6 +2278,7 @@ function monoform_context_onpopup(sender)
   monoForm.miAddStaticFieldAddress.Enabled = fieldsEnabled
   
   monoForm.miFindInstancesOfClass.Enabled=structuresEnabled
+  monoForm.miCreateClassInstance.Enabled=structuresEnabled
 end
 
 
@@ -2580,11 +2601,15 @@ function mono_dissect()
   if (monopipe==nil)  then
     LaunchMonoDataCollector()
   end
-
+  
   if (monoForm==nil) then
     monoForm=createFormFromFile(getCheatEngineDir()..[[\autorun\forms\MonoDataCollector.frm]])
     if monoSettings.Value["ShowMethodParameters"]~=nil then
-      monoForm.miShowMethodParameters.Checked=monoSettings.Value["ShowMethodParameters"]=='1'
+      if monoSettings.Value["ShowMethodParameters"]=='' then
+        monoForm.miShowMethodParameters.Checked=true
+      else
+        monoForm.miShowMethodParameters.Checked=monoSettings.Value["ShowMethodParameters"]=='1'
+      end
     else
       monoForm.miShowMethodParameters.Checked=true
     end
