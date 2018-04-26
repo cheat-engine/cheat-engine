@@ -7635,7 +7635,7 @@ begin
             PVex3Byte(@bytes[RexPrefixLocation+1])^.pp:=integer(opcodes[j].vexOpcodeExtension);
             PVex3Byte(@bytes[RexPrefixLocation+1])^.L:=opcodes[j].vexl;
             PVex3Byte(@bytes[RexPrefixLocation+1])^.vvvv:=VEXvvvv;
-            PVex3Byte(@bytes[RexPrefixLocation+1])^.W:=ifthen(REX_W,0,1);
+            PVex3Byte(@bytes[RexPrefixLocation+1])^.W:=ifthen(REX_W,1,0); //not inverted
 
             if relativeAddressLocation<>-1 then inc(relativeAddressLocation,3);
           end;

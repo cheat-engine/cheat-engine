@@ -1830,7 +1830,7 @@ begin
         opcodeflags.pp:=PVex3Byte(@memory[1])^.pp;
         opcodeflags.L:=PVex3Byte(@memory[1])^.L=1;
         opcodeflags.vvvv:=PVex3Byte(@memory[1])^.vvvv;
-        opcodeflags.W:=PVex3Byte(@memory[1])^.W=0;
+        opcodeflags.W:=PVex3Byte(@memory[1])^.W=1; //this one is NOT inverted
         opcodeflags.mmmmm:=PVex3Byte(@memory[1])^.mmmmm;
         opcodeflags.B:=PVex3Byte(@memory[1])^.B=0;
         opcodeflags.X:=PVex3Byte(@memory[1])^.X=0;
