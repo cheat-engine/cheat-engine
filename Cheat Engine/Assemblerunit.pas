@@ -5676,6 +5676,7 @@ begin
             addopcode(bytes,j);
             result:=createmodrm(bytes,getreg(parameter1),parameter2);
             add(bytes,[v]);
+            exit;
           end;
         end;
 
