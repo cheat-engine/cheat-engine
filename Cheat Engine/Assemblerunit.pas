@@ -14,7 +14,8 @@ uses  sysutils, ProcessHandlerUnit;
 uses dialogs,LCLIntf,sysutils,imagehlp, ProcessHandlerUnit,vextypedef;
 {$endif}
 
-const opcodecount=1112+35+49+130+1; //I wish there was a easier way than to handcount
+const opcodecount=1916;  //I wish there was a easier way than to handcount
+  //1112
 
 
 
@@ -81,9 +82,12 @@ type tparam=(par_noparam,
              par_rm8,
              par_rm16,
              par_rm32,
+             par_r32_m8,
              par_r32_m16,
              par_mm_m32,
              par_mm_m64,
+             par_xmm_m8,
+             par_xmm_m16,
              par_xmm_m32,
              par_xmm_m64,
              par_xmm_m128,
@@ -101,6 +105,7 @@ type tparam=(par_noparam,
 type
   TVEXOpcodeExtention=(oe_none=0, oe_66=1, oe_F3=2,oe_F2=3);
   TVEXLeadingopcode=(lo_none=0, lo_0F=1, lo_0F_38=2, lo_0F_3A=3);
+  TParamEncoding=(enc_notimplemented=0, enc_RM, enc_MR, enc_RVM,enc_RVMI);
 
 type topcode=record
   mnemonic: string;
@@ -109,7 +114,8 @@ type topcode=record
   bytes:byte;
   bt1,bt2,bt3,bt4: byte;
   signed: boolean;
-  norexw: boolean;
+  W0: boolean;
+  W1: boolean;
   invalidin64bit: boolean;
   invalidin32bit: boolean;
   canDoAddressSwitch: boolean; //does it support the 0x67 address switch (e.g lea)
@@ -120,6 +126,8 @@ type topcode=record
   vexLeadingOpcode: TVEXLeadingopcode; //lo_0f),
   vexExtraParam: integer;
  // RexPrefixOffset: byte; //if specified specifies which byte should be used for the rexw (e.g f3 before rex )
+
+  //paramencoding: TParamEncoding;
 end;
 
 
@@ -242,7 +250,7 @@ const opcodes: array [1..opcodecount] of topcode =(
   //no $66 $E8 because it makes the address it jumps to 16 bit
   (mnemonic:'CALL';opcode1:eo_cd;paramtype1:par_rel32;bytes:1;bt1:$e8),
   //also no $66 $ff /2
-  (mnemonic:'CALL';opcode1:eo_reg2;paramtype1:par_rm32;bytes:1;bt1:$ff;norexw:true),
+  (mnemonic:'CALL';opcode1:eo_reg2;paramtype1:par_rm32;bytes:1;bt1:$ff;W0:true),
   (mnemonic:'CBW';opcode1:eo_none;paramtype1:par_noparam;bytes:2;bt1:$66;bt2:$98),
   (mnemonic:'CDQ';bytes:1;bt1:$99),
   (mnemonic:'CDQE';bytes:2;bt1:$48;bt2:$98),
@@ -405,8 +413,8 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'EXTRACTPS';opcode1:eo_reg;paramtype1:par_rm32;paramtype2:par_xmm;paramtype3:par_imm8;bytes:4;bt1:$66;bt2:$0f;bt3:$3a;bt4:$17),
   (mnemonic:'F2XM1';bytes:2;bt1:$d9;bt2:$f0),
   (mnemonic:'FABS';bytes:2;bt1:$d9;bt2:$e1),
-  (mnemonic:'FADD';opcode1:eo_reg0;paramtype1:par_m32;bytes:1;bt1:$d8; norexw:true),
-  (mnemonic:'FADD';opcode1:eo_reg0;paramtype1:par_m64;bytes:1;bt1:$dc; norexw:true),
+  (mnemonic:'FADD';opcode1:eo_reg0;paramtype1:par_m32;bytes:1;bt1:$d8; W0:true),
+  (mnemonic:'FADD';opcode1:eo_reg0;paramtype1:par_m64;bytes:1;bt1:$dc; W0:true),
   (mnemonic:'FADD';opcode1:eo_pi;paramtype1:par_st0;paramtype2:par_st;bytes:2;bt1:$d8;bt2:$c0),
   (mnemonic:'FADD';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$d8;bt2:$c0),
   (mnemonic:'FADD';opcode1:eo_pi;paramtype1:par_st;paramtype2:par_st0;bytes:2;bt1:$dc;bt2:$c0),
@@ -434,13 +442,13 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'FCMOVNU';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$DB;bt2:$d8),
   (mnemonic:'FCMOVU';opcode1:eo_pi;paramtype1:par_st0;paramtype2:par_st;bytes:2;bt1:$DA;bt2:$d8),
   (mnemonic:'FCMOVU';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$DA;bt2:$d8),
-  (mnemonic:'FCOM';opcode1:eo_reg2;paramtype1:par_m32;bytes:1;bt1:$d8; norexw: true),
-  (mnemonic:'FCOM';opcode1:eo_reg2;paramtype1:par_m64;bytes:1;bt1:$dc; norexw: true),
+  (mnemonic:'FCOM';opcode1:eo_reg2;paramtype1:par_m32;bytes:1;bt1:$d8; W0: true),
+  (mnemonic:'FCOM';opcode1:eo_reg2;paramtype1:par_m64;bytes:1;bt1:$dc; W0: true),
   (mnemonic:'FCOM';opcode1:eo_pi;paramtype1:par_st0;paramtype2:par_st;bytes:2;bt1:$d8;bt2:$d0),  
   (mnemonic:'FCOM';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$d8;bt2:$d0),
   (mnemonic:'FCOM';bytes:2;bt1:$d8;bt2:$d1),
-  (mnemonic:'FCOMP';opcode1:eo_reg3;paramtype1:par_m32;bytes:1;bt1:$d8; norexw: true),
-  (mnemonic:'FCOMP';opcode1:eo_reg3;paramtype1:par_m64;bytes:1;bt1:$dc; norexw: true),
+  (mnemonic:'FCOMP';opcode1:eo_reg3;paramtype1:par_m32;bytes:1;bt1:$d8; W0: true),
+  (mnemonic:'FCOMP';opcode1:eo_reg3;paramtype1:par_m64;bytes:1;bt1:$dc; W0: true),
   (mnemonic:'FCOMP';opcode1:eo_pi;paramtype1:par_st0;paramtype2:par_st;bytes:2;bt1:$d8;bt2:$d8),
   (mnemonic:'FCOMP';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$d8;bt2:$d8),
   (mnemonic:'FCOMP';bytes:2;bt1:$d8;bt2:$d9),
@@ -455,16 +463,16 @@ const opcodes: array [1..opcodecount] of topcode =(
 
   (mnemonic:'FDECSTP';bytes:2;bt1:$d9;bt2:$f6),
 
-  (mnemonic:'FDIV';opcode1:eo_reg6;paramtype1:par_m32;bytes:1;bt1:$d8; norexw: true),
-  (mnemonic:'FDIV';opcode1:eo_reg6;paramtype1:par_m64;bytes:1;bt1:$dc; norexw: true),
+  (mnemonic:'FDIV';opcode1:eo_reg6;paramtype1:par_m32;bytes:1;bt1:$d8; W0: true),
+  (mnemonic:'FDIV';opcode1:eo_reg6;paramtype1:par_m64;bytes:1;bt1:$dc; W0: true),
   (mnemonic:'FDIV';opcode1:eo_pi;paramtype1:par_st0;paramtype2:par_st;bytes:2;bt1:$d8;bt2:$f0),
   (mnemonic:'FDIV';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$d8;bt2:$f0),  
   (mnemonic:'FDIV';opcode1:eo_pi;paramtype1:par_st;paramtype2:par_st0;bytes:2;bt1:$dc;bt2:$f8),
   (mnemonic:'FDIVP';opcode1:eo_pi;paramtype1:par_st;paramtype2:par_st0;bytes:2;bt1:$de;bt2:$f8),
   (mnemonic:'FDIVP';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$de;bt2:$f8),  
   (mnemonic:'FDIVP';bytes:2;bt1:$de;bt2:$f9),
-  (mnemonic:'FDIVR';opcode1:eo_reg7;paramtype1:par_m32;bytes:1;bt1:$d8; norexw: true),
-  (mnemonic:'FDIVR';opcode1:eo_reg7;paramtype1:par_m64;bytes:1;bt1:$dc; norexw: true),
+  (mnemonic:'FDIVR';opcode1:eo_reg7;paramtype1:par_m32;bytes:1;bt1:$d8; W0: true),
+  (mnemonic:'FDIVR';opcode1:eo_reg7;paramtype1:par_m64;bytes:1;bt1:$dc; W0: true),
   (mnemonic:'FDIVR';opcode1:eo_pi;paramtype1:par_st0;paramtype2:par_st;bytes:2;bt1:$d8;bt2:$f8),
   (mnemonic:'FDIVR';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$d8;bt2:$f8),  
   (mnemonic:'FDIVR';opcode1:eo_pi;paramtype1:par_st;paramtype2:par_st0;bytes:2;bt1:$dc;bt2:$f0),
@@ -488,36 +496,36 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'FIDIVR';opcode1:eo_reg7;paramtype1:par_m16;bytes:1;bt1:$de),
 
 
-  (mnemonic:'FILD';opcode1:eo_reg0;paramtype1:par_m32;bytes:1;bt1:$db; norexw: true), //screw this, going for a default of m32
-  (mnemonic:'FILD';opcode1:eo_reg0;paramtype1:par_m16;bytes:1;bt1:$df; norexw: true),
-  (mnemonic:'FILD';opcode1:eo_reg5;paramtype1:par_m64;bytes:1;bt1:$df; norexw: true),
+  (mnemonic:'FILD';opcode1:eo_reg0;paramtype1:par_m32;bytes:1;bt1:$db; W0: true), //screw this, going for a default of m32
+  (mnemonic:'FILD';opcode1:eo_reg0;paramtype1:par_m16;bytes:1;bt1:$df; W0: true),
+  (mnemonic:'FILD';opcode1:eo_reg5;paramtype1:par_m64;bytes:1;bt1:$df; W0: true),
 
-  (mnemonic:'FIMUL';opcode1:eo_reg1;paramtype1:par_m32;bytes:1;bt1:$da; norexw: true),
-  (mnemonic:'FIMUL';opcode1:eo_reg1;paramtype1:par_m16;bytes:1;bt1:$de; norexw: true),
+  (mnemonic:'FIMUL';opcode1:eo_reg1;paramtype1:par_m32;bytes:1;bt1:$da; W0: true),
+  (mnemonic:'FIMUL';opcode1:eo_reg1;paramtype1:par_m16;bytes:1;bt1:$de; W0: true),
 
   (mnemonic:'FINCSTP';bytes:2;bt1:$d9;bt2:$f7),
   (mnemonic:'FINIT';bytes:3;bt1:$9b;bt2:$db;bt3:$e3),
 
-  (mnemonic:'FIST';opcode1:eo_reg2;paramtype1:par_m32;bytes:1;bt1:$db; norexw: true),
-  (mnemonic:'FIST';opcode1:eo_reg2;paramtype1:par_m16;bytes:1;bt1:$df; norexw: true),
+  (mnemonic:'FIST';opcode1:eo_reg2;paramtype1:par_m32;bytes:1;bt1:$db; W0: true),
+  (mnemonic:'FIST';opcode1:eo_reg2;paramtype1:par_m16;bytes:1;bt1:$df; W0: true),
 
-  (mnemonic:'FISTP';opcode1:eo_reg3;paramtype1:par_m32;bytes:1;bt1:$db; norexw: true),
-  (mnemonic:'FISTP';opcode1:eo_reg3;paramtype1:par_m16;bytes:1;bt1:$df; norexw: true),
-  (mnemonic:'FISTP';opcode1:eo_reg7;paramtype1:par_m64;bytes:1;bt1:$df; norexw: true),
+  (mnemonic:'FISTP';opcode1:eo_reg3;paramtype1:par_m32;bytes:1;bt1:$db; W0: true),
+  (mnemonic:'FISTP';opcode1:eo_reg3;paramtype1:par_m16;bytes:1;bt1:$df; W0: true),
+  (mnemonic:'FISTP';opcode1:eo_reg7;paramtype1:par_m64;bytes:1;bt1:$df; W0: true),
 
-  (mnemonic:'FISTTP';opcode1:eo_reg1;paramtype1:par_m32;bytes:1;bt1:$db; norexw: true),
-  (mnemonic:'FISTTP';opcode1:eo_reg1;paramtype1:par_m16;bytes:1;bt1:$df; norexw: true),
-  (mnemonic:'FISTTP';opcode1:eo_reg1;paramtype1:par_m64;bytes:1;bt1:$dd; norexw: true),
+  (mnemonic:'FISTTP';opcode1:eo_reg1;paramtype1:par_m32;bytes:1;bt1:$db; W0: true),
+  (mnemonic:'FISTTP';opcode1:eo_reg1;paramtype1:par_m16;bytes:1;bt1:$df; W0: true),
+  (mnemonic:'FISTTP';opcode1:eo_reg1;paramtype1:par_m64;bytes:1;bt1:$dd; W0: true),
 
-  (mnemonic:'FISUB';opcode1:eo_reg4;paramtype1:par_m32;bytes:1;bt1:$da; norexw: true),
-  (mnemonic:'FISUB';opcode1:eo_reg4;paramtype1:par_m16;bytes:1;bt1:$de; norexw: true),
-  (mnemonic:'FISUBR';opcode1:eo_reg5;paramtype1:par_m32;bytes:1;bt1:$da; norexw: true),
-  (mnemonic:'FISUBR';opcode1:eo_reg5;paramtype1:par_m16;bytes:1;bt1:$de; norexw: true),
+  (mnemonic:'FISUB';opcode1:eo_reg4;paramtype1:par_m32;bytes:1;bt1:$da; W0: true),
+  (mnemonic:'FISUB';opcode1:eo_reg4;paramtype1:par_m16;bytes:1;bt1:$de; W0: true),
+  (mnemonic:'FISUBR';opcode1:eo_reg5;paramtype1:par_m32;bytes:1;bt1:$da; W0: true),
+  (mnemonic:'FISUBR';opcode1:eo_reg5;paramtype1:par_m16;bytes:1;bt1:$de; W0: true),
 
-  (mnemonic:'FLD';opcode1:eo_reg0;paramtype1:par_m32;bytes:1;bt1:$d9; norexw: true),
-  (mnemonic:'FLD';opcode1:eo_reg0;paramtype1:par_m64;bytes:1;bt1:$dd; norexw: true),
-  (mnemonic:'FLD';opcode1:eo_reg5;paramtype1:par_m80;bytes:1;bt1:$db; norexw: true),
-  (mnemonic:'FLD';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$d9;bt2:$c0; norexw: true),
+  (mnemonic:'FLD';opcode1:eo_reg0;paramtype1:par_m32;bytes:1;bt1:$d9; W0: true),
+  (mnemonic:'FLD';opcode1:eo_reg0;paramtype1:par_m64;bytes:1;bt1:$dd; W0: true),
+  (mnemonic:'FLD';opcode1:eo_reg5;paramtype1:par_m80;bytes:1;bt1:$db; W0: true),
+  (mnemonic:'FLD';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$d9;bt2:$c0; W0: true),
 
   (mnemonic:'FLD1';bytes:2;bt1:$d9;bt2:$e8),
   (mnemonic:'FLDCW';opcode1:eo_reg5;paramtype1:par_m16;bytes:1;bt1:$d9),
@@ -529,8 +537,8 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'FLDPI';bytes:2;bt1:$d9;bt2:$eb),
   (mnemonic:'FLDZ';bytes:2;bt1:$d9;bt2:$ee),
 
-  (mnemonic:'FMUL';opcode1:eo_reg1;paramtype1:par_m32;bytes:1;bt1:$d8; norexw: true),
-  (mnemonic:'FMUL';opcode1:eo_reg1;paramtype1:par_m64;bytes:1;bt1:$dc; norexw: true),
+  (mnemonic:'FMUL';opcode1:eo_reg1;paramtype1:par_m32;bytes:1;bt1:$d8; W0: true),
+  (mnemonic:'FMUL';opcode1:eo_reg1;paramtype1:par_m64;bytes:1;bt1:$dc; W0: true),
   (mnemonic:'FMUL';opcode1:eo_pi;paramtype1:par_st0;paramtype2:par_st;bytes:2;bt1:$d8;bt2:$C8),
   (mnemonic:'FMUL';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$d8;bt2:$C8),
   (mnemonic:'FMUL';opcode1:eo_pi;paramtype1:par_st;paramtype2:par_st0;bytes:2;bt1:$dc;bt2:$C8),
@@ -566,37 +574,37 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'FSINCOS';bytes:2;bt1:$d9;bt2:$fb),
   (mnemonic:'FSQRT';bytes:2;bt1:$d9;bt2:$fa),
 
-  (mnemonic:'FST';opcode1:eo_reg2;paramtype1:par_m32;bytes:1;bt1:$d9; norexw: true),
-  (mnemonic:'FST';opcode1:eo_reg2;paramtype1:par_m64;bytes:1;bt1:$dd; norexw: true),
-  (mnemonic:'FST';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$dd;bt2:$d0; norexw: true),
+  (mnemonic:'FST';opcode1:eo_reg2;paramtype1:par_m32;bytes:1;bt1:$d9; W0: true),
+  (mnemonic:'FST';opcode1:eo_reg2;paramtype1:par_m64;bytes:1;bt1:$dd; W0: true),
+  (mnemonic:'FST';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$dd;bt2:$d0; W0: true),
   (mnemonic:'FSTCW';opcode1:eo_reg7;paramtype1:par_m16;bytes:2;bt1:$9b;bt2:$d9),
   (mnemonic:'FSTENV';opcode1:eo_reg6;paramtype1:par_m32;bytes:2;bt1:$9b;bt2:$d9),
-  (mnemonic:'FSTP';opcode1:eo_reg3;paramtype1:par_m32;bytes:1;bt1:$d9; norexw: true),
-  (mnemonic:'FSTP';opcode1:eo_reg3;paramtype1:par_m64;bytes:1;bt1:$dd; norexw: true),
-  (mnemonic:'FSTP';opcode1:eo_reg7;paramtype1:par_m80;bytes:1;bt1:$db; norexw: true),
-  (mnemonic:'FSTP';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$dd;bt2:$d8; norexw: true),
+  (mnemonic:'FSTP';opcode1:eo_reg3;paramtype1:par_m32;bytes:1;bt1:$d9; W0: true),
+  (mnemonic:'FSTP';opcode1:eo_reg3;paramtype1:par_m64;bytes:1;bt1:$dd; W0: true),
+  (mnemonic:'FSTP';opcode1:eo_reg7;paramtype1:par_m80;bytes:1;bt1:$db; W0: true),
+  (mnemonic:'FSTP';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$dd;bt2:$d8; W0: true),
 
 
   (mnemonic:'FSTSW';opcode1:eo_reg7;paramtype1:par_m16;bytes:2;bt1:$9b;bt2:$dd),
   (mnemonic:'FSTSW';paramtype1:par_ax;bytes:3;bt1:$9b;bt2:$df;bt3:$e0),
 
 
-  (mnemonic:'FSUB';opcode1:eo_reg4;paramtype1:par_m32;bytes:1;bt1:$d8; norexw: true),
-  (mnemonic:'FSUB';opcode1:eo_reg4;paramtype1:par_m64;bytes:1;bt1:$dc; norexw: true),
-  (mnemonic:'FSUB';opcode1:eo_pi;paramtype1:par_st0;paramtype2:par_st;bytes:2;bt1:$d8;bt2:$e0; norexw: true),
-  (mnemonic:'FSUB';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$dc;bt2:$e8; norexw: true),
-  (mnemonic:'FSUB';opcode1:eo_pi;paramtype1:par_st;paramtype2:par_st0;bytes:2;bt1:$dc;bt2:$e8; norexw: true),
-  (mnemonic:'FSUBP';opcode1:eo_pi;paramtype1:par_st;paramtype2:par_st0;bytes:2;bt1:$de;bt2:$e8; norexw: true),
-  (mnemonic:'FSUBP';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$de;bt2:$e8; norexw: true),
-  (mnemonic:'FSUBP';bytes:2;bt1:$de;bt2:$e9; norexw: true),
-  (mnemonic:'FSUBR';opcode1:eo_reg5;paramtype1:par_m32;bytes:1;bt1:$d8; norexw: true),
-  (mnemonic:'FSUBR';opcode1:eo_reg5;paramtype1:par_m64;bytes:1;bt1:$dc; norexw: true),
-  (mnemonic:'FSUBR';opcode1:eo_pi;paramtype1:par_st0;paramtype2:par_st;bytes:2;bt1:$d8;bt2:$e8; norexw: true),
-  (mnemonic:'FSUBR';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$d8;bt2:$e8; norexw: true),
-  (mnemonic:'FSUBR';opcode1:eo_pi;paramtype1:par_st;paramtype2:par_st0;bytes:2;bt1:$dc;bt2:$e0; norexw: true),
-  (mnemonic:'FSUBRP';opcode1:eo_pi;paramtype1:par_st;paramtype2:par_st0;bytes:2;bt1:$de;bt2:$e0; norexw: true),
-  (mnemonic:'FSUBRP';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$de;bt2:$e0; norexw: true),
-  (mnemonic:'FSUBRP';bytes:2;bt1:$de;bt2:$e1; norexw: true),
+  (mnemonic:'FSUB';opcode1:eo_reg4;paramtype1:par_m32;bytes:1;bt1:$d8; W0: true),
+  (mnemonic:'FSUB';opcode1:eo_reg4;paramtype1:par_m64;bytes:1;bt1:$dc; W0: true),
+  (mnemonic:'FSUB';opcode1:eo_pi;paramtype1:par_st0;paramtype2:par_st;bytes:2;bt1:$d8;bt2:$e0; W0: true),
+  (mnemonic:'FSUB';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$dc;bt2:$e8; W0: true),
+  (mnemonic:'FSUB';opcode1:eo_pi;paramtype1:par_st;paramtype2:par_st0;bytes:2;bt1:$dc;bt2:$e8; W0: true),
+  (mnemonic:'FSUBP';opcode1:eo_pi;paramtype1:par_st;paramtype2:par_st0;bytes:2;bt1:$de;bt2:$e8; W0: true),
+  (mnemonic:'FSUBP';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$de;bt2:$e8; W0: true),
+  (mnemonic:'FSUBP';bytes:2;bt1:$de;bt2:$e9; W0: true),
+  (mnemonic:'FSUBR';opcode1:eo_reg5;paramtype1:par_m32;bytes:1;bt1:$d8; W0: true),
+  (mnemonic:'FSUBR';opcode1:eo_reg5;paramtype1:par_m64;bytes:1;bt1:$dc; W0: true),
+  (mnemonic:'FSUBR';opcode1:eo_pi;paramtype1:par_st0;paramtype2:par_st;bytes:2;bt1:$d8;bt2:$e8; W0: true),
+  (mnemonic:'FSUBR';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$d8;bt2:$e8; W0: true),
+  (mnemonic:'FSUBR';opcode1:eo_pi;paramtype1:par_st;paramtype2:par_st0;bytes:2;bt1:$dc;bt2:$e0; W0: true),
+  (mnemonic:'FSUBRP';opcode1:eo_pi;paramtype1:par_st;paramtype2:par_st0;bytes:2;bt1:$de;bt2:$e0; W0: true),
+  (mnemonic:'FSUBRP';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$de;bt2:$e0; W0: true),
+  (mnemonic:'FSUBRP';bytes:2;bt1:$de;bt2:$e1; W0: true),
   (mnemonic:'FTST';bytes:2;bt1:$d9;bt2:$e4),
 
   (mnemonic:'FUCOM';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$dd;bt2:$e0),
@@ -712,7 +720,7 @@ const opcodes: array [1..opcodecount] of topcode =(
 
   (mnemonic:'JMP';opcode1:eo_cb;paramtype1:par_rel8;bytes:1;bt1:$eb),
   (mnemonic:'JMP';opcode1:eo_cd;paramtype1:par_rel32;bytes:1;bt1:$e9),
-  (mnemonic:'JMP';opcode1:eo_reg4;paramtype1:par_rm32;bytes:1;bt1:$ff;norexw:true),
+  (mnemonic:'JMP';opcode1:eo_reg4;paramtype1:par_rm32;bytes:1;bt1:$ff;W0:true),
 
 
 
@@ -934,7 +942,7 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'MOVSLDUP';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$f3;bt2:$0f;bt3:$12),
 
 
-  (mnemonic:'MOVSQ';bytes:2;bt1:$48;bt2:$a5),
+  (mnemonic:'MOVSQ';bytes:1;bt2:$a5;W1:true),
 
   (mnemonic:'MOVSS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m32;bytes:3;bt1:$f3;bt2:$0f;bt3:$10),
   (mnemonic:'MOVSS';opcode1:eo_reg;paramtype1:par_xmm_m32;paramtype2:par_xmm;bytes:3;bt1:$f3;bt2:$0f;bt3:$11),
@@ -1014,12 +1022,22 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'OUTSD';bytes:1;bt1:$6f),
   (mnemonic:'OUTSW';bytes:2;bt1:$66;bt2:$6f),
 
+  (mnemonic:'PABSB';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:3;bt1:$0f;bt2:$38;bt3:$1c),
+  (mnemonic:'PABSB';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$1c),
+  (mnemonic:'PABSW';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:3;bt1:$0f;bt2:$38;bt3:$1d),
+  (mnemonic:'PABSW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$1d),
+  (mnemonic:'PABSD';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:3;bt1:$0f;bt2:$38;bt3:$1e),
+  (mnemonic:'PABSD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$1e),
+
+
+
   (mnemonic:'PACKSSDW';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$6b),
   (mnemonic:'PACKSSDW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$6b),
 
   (mnemonic:'PACKSSWB';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$63),
   (mnemonic:'PACKSSWB';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$63),
 
+  (mnemonic:'PACKUSDW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$2b),
 
   (mnemonic:'PACKUSWB';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$67),
   (mnemonic:'PACKUSWB';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$67),
@@ -1029,6 +1047,10 @@ const opcodes: array [1..opcodecount] of topcode =(
 
   (mnemonic:'PADDD';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$fe),
   (mnemonic:'PADDD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$fe),
+
+  (mnemonic:'PADDW';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:3;bt1:$0f;bt2:$fd),
+  (mnemonic:'PADDW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$fd),
+
 
   (mnemonic:'PADDQ';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$d4),
   (mnemonic:'PADDQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$d4),
@@ -1048,6 +1070,9 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'PADDW';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$fd),
   (mnemonic:'PADDW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$fd),
 
+  (mnemonic:'PALIGNR';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;paramtype3:par_imm8;bytes:2;bt1:$0f;bt2:$fd),
+  (mnemonic:'PALIGNR';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;paramtype3:par_imm8;bytes:3;bt1:$66;bt2:$0f;bt3:$fd),
+
 
   (mnemonic:'PAND';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$db),
   (mnemonic:'PAND';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$db),
@@ -1063,11 +1088,19 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'PAVGW';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$e3),
   (mnemonic:'PAVGW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$e3),
 
+  (mnemonic:'PBLENDW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;paramtype3:par_imm8;bytes:4;bt1:$66;bt2:$0f;bt3:$3a;bt4:$0e),
+  (mnemonic:'PCMULQDQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;paramtype3:par_imm8;bytes:4;bt1:$66;bt2:$0f;bt3:$3a;bt4:$44),
+  (mnemonic:'PCMPESTRI';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;paramtype3:par_imm8;bytes:4;bt1:$66;bt2:$0f;bt3:$3a;bt4:$61),
+  (mnemonic:'PCMPESTRM';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;paramtype3:par_imm8;bytes:4;bt1:$66;bt2:$0f;bt3:$3a;bt4:$60),
+
+
   (mnemonic:'PCMPEQB';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$74),
   (mnemonic:'PCMPEQB';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$74),
 
   (mnemonic:'PCMPEQD';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$76),
   (mnemonic:'PCMPEQD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$76),
+
+  (mnemonic:'PCMPEQQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$29),
 
   (mnemonic:'PCMPEQW';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$75),
   (mnemonic:'PCMPEQW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$75),
@@ -1081,17 +1114,57 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'PCMPGTW';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$65),
   (mnemonic:'PCMPGTW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$65),
 
+  (mnemonic:'PCMPISTRI';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;paramtype3:par_imm8;bytes:4;bt1:$66;bt2:$0f;bt3:$3a;bt4:$63),
+  (mnemonic:'PCMPISTRM';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;paramtype3:par_imm8;bytes:4;bt1:$66;bt2:$0f;bt3:$3a;bt4:$62),
+
   (mnemonic:'PCPPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:2;bt1:$0f;bt2:$53),
   (mnemonic:'PCPSS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$f3;bt2:$0f;bt3:$53),
 
+  (mnemonic:'PDEP';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_rm32;paramtype3:par_r32;bytes:1;bt1:$f5;hasvex:true; vexL:0; vexOpcodeExtension: oe_f2; vexLeadingOpcode: lo_0f_38; vexExtraParam:3),
+  (mnemonic:'PEXT';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_rm32;paramtype3:par_r32;bytes:1;bt1:$f5;hasvex:true; vexL:0; vexOpcodeExtension: oe_f3; vexLeadingOpcode: lo_0f_38; vexExtraParam:3),
+
+  (mnemonic:'PEXTRB';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_rm8;paramtype2:par_xmm;paramtype3:par_imm8;bytes:4;bt1:$66;bt2:$0f;bt3:$3a;bt4:$14),
+  (mnemonic:'PEXTRD';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_rm32;paramtype2:par_xmm;paramtype3:par_imm8;bytes:4;bt1:$66;bt2:$0f;bt3:$3a;bt4:$16),
+
   (mnemonic:'PEXTRW';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_r32;paramtype2:par_mm;paramtype3:par_imm8;bytes:2;bt1:$0f;bt2:$c5),
   (mnemonic:'PEXTRW';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_r32;paramtype2:par_xmm;paramtype3:par_imm8;bytes:3;bt1:$66;bt2:$0f;bt3:$c5),
+  (mnemonic:'PEXTRW';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_rm32;paramtype2:par_xmm;paramtype3:par_imm8;bytes:4;bt1:$66;bt2:$0f;bt3:$3a;bt4:$15),
+  (mnemonic:'PEXTRQ';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_rm32;paramtype2:par_xmm;paramtype3:par_imm8;bytes:4;bt1:$66;bt2:$0f;bt3:$3a;bt4:$16;w1:true),
 
+  (mnemonic:'PHADDD';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:3;bt1:$0f;bt2:$38;bt3:$01),
+  (mnemonic:'PHADDD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$01),
+  (mnemonic:'PHADDSW';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:3;bt1:$0f;bt2:$38;bt3:$03),
+  (mnemonic:'PHADDSW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$03),
+
+  (mnemonic:'PHADDW';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:3;bt1:$0f;bt2:$38;bt3:$02),
+  (mnemonic:'PHADDW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$02),
+
+  (mnemonic:'PHMINPOSUW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$41),
+
+  (mnemonic:'PHSUBD';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:3;bt1:$0f;bt2:$38;bt3:$06),
+  (mnemonic:'PHSUBD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$06),
+  (mnemonic:'PHSUBSW';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:3;bt1:$0f;bt2:$38;bt3:$07),
+  (mnemonic:'PHSUBSW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$07),
+  (mnemonic:'PHSUBW';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:3;bt1:$0f;bt2:$38;bt3:$05),
+  (mnemonic:'PHSUBW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$05),
+
+
+  (mnemonic:'PINSRB';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_xmm;paramtype2:par_r32_m8;paramtype3:par_imm8;bytes:4;bt1:$66;bt2:$0f;bt3:$3a;bt4:$20),
+  (mnemonic:'PINSRD';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_xmm;paramtype2:par_rm32;paramtype3:par_imm8;bytes:4;bt1:$66;bt2:$0f;bt3:$3a;bt4:$22),
   (mnemonic:'PINSRW';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_mm;paramtype2:par_r32_m16;paramtype3:par_imm8;bytes:2;bt1:$0f;bt2:$c4),
   (mnemonic:'PINSRW';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_xmm;paramtype2:par_r32_m16;paramtype3:par_imm8;bytes:3;bt1:$66;bt2:$0f;bt3:$c4),
+  (mnemonic:'PINSRQ';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_xmm;paramtype2:par_rm32;paramtype3:par_imm8;bytes:4;bt1:$66;bt2:$0f;bt3:$3a;bt4:$22;W1:true),
+
 
   (mnemonic:'PMADDWD';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$f5),
   (mnemonic:'PMADDWD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$f5),
+
+  (mnemonic:'PMADDUBSW';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:3;bt1:$0f;bt2:$38;bt3:$04),
+  (mnemonic:'PMADDUBSW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$04),
+
+  (mnemonic:'PMAXSB';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$3c),
+  (mnemonic:'PMAXSD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$3d),
+
 
   (mnemonic:'PMAXSW';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$ee),
   (mnemonic:'PMAXSW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$ee),
@@ -1099,17 +1172,50 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'PMAXUB';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$de),
   (mnemonic:'PMAXUB';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$de),
 
+  (mnemonic:'PMAXUD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$3f),
+  (mnemonic:'PMAXUW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$3e),
+
+  (mnemonic:'PMINSB';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$38),
+  (mnemonic:'PMINSD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$39),
+
   (mnemonic:'PMINSW';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$ea),
   (mnemonic:'PMINSW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$ea),
 
   (mnemonic:'PMINUB';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$da),
   (mnemonic:'PMINUB';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$da),
 
+  (mnemonic:'PMINUW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$3a),
+  (mnemonic:'PMINUD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$3b),
+
+
   (mnemonic:'PMOVMSKB';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_r32;paramtype2:par_mm;paramtype3:par_imm8;bytes:2;bt1:$0f;bt2:$d7),
   (mnemonic:'PMOVMSKB';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_r32;paramtype2:par_xmm;paramtype3:par_imm8;bytes:3;bt1:$66;bt2:$0f;bt3:$d7),
 
+
+  (mnemonic:'PMOVSXBW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m64;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$20),
+  (mnemonic:'PMOVSXBD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m32;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$21),
+  (mnemonic:'PMOVSXBQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m16;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$22),
+  (mnemonic:'PMOVSXWD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m64;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$23),
+  (mnemonic:'PMOVSXWQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m32;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$24),
+  (mnemonic:'PMOVSXDQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m64;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$25),
+
+  (mnemonic:'PMOVZXBW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m64;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$30),
+  (mnemonic:'PMOVZXBD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m32;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$31),
+  (mnemonic:'PMOVZXBQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m16;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$32),
+  (mnemonic:'PMOVZXWD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m64;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$33),
+  (mnemonic:'PMOVZXWQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m32;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$34),
+  (mnemonic:'PMOVZXDQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m64;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$35),
+
+  (mnemonic:'PMULDQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$28),
+
+
   (mnemonic:'PMULHUW';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$e4),
   (mnemonic:'PMULHUW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$e4),
+
+
+  (mnemonic:'PMULHRSW';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:3;bt1:$0f;bt2:$38;bt3:$0b),
+  (mnemonic:'PMULHRSW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$0b),
+
 
   (mnemonic:'PMULHW';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$e5),
   (mnemonic:'PMULHW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$e5),
@@ -1122,7 +1228,7 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'PMULUDQ';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$f4),
   (mnemonic:'PMULUDQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$f4),
 
-  (mnemonic:'POP';opcode1:eo_prd;paramtype1:par_r32;bytes:1;bt1:$58; norexw: true),
+  (mnemonic:'POP';opcode1:eo_prd;paramtype1:par_r32;bytes:1;bt1:$58; W0: true),
   (mnemonic:'POP';opcode1:eo_prw;paramtype1:par_r16;bytes:2;bt1:$66;bt2:$58),
 
   (mnemonic:'POP';opcode1:eo_reg0;paramtype1:par_rm32;bytes:1;bt1:$8f),
@@ -1160,15 +1266,23 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'PSADBW';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$f6),
   (mnemonic:'PSADBW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$f6),
 
+  (mnemonic:'PSHUFB';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:3;bt1:$0f;bt2:$38;bt3:$00),
+  (mnemonic:'PSHUFB';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$00),
   (mnemonic:'PSHUFD';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_xmm;paramtype2:par_xmm_m128;paramtype3:par_imm8;bytes:3;bt1:$66;bt2:$0f;bt3:$70),
   (mnemonic:'PSHUFHW';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_xmm;paramtype2:par_xmm_m128;paramtype3:par_imm8;bytes:3;bt1:$f3;bt2:$0f;bt3:$70),
   (mnemonic:'PSHUFLW';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_xmm;paramtype2:par_xmm_m128;paramtype3:par_imm8;bytes:3;bt1:$f2;bt2:$0f;bt3:$70),
   (mnemonic:'PSHUFW';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_mm;paramtype2:par_mm_m64;paramtype3:par_imm8;bytes:2;bt1:$0f;bt2:$70),
 
+  (mnemonic:'PSIGNB';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:3;bt1:$0f;bt2:$38;bt3:$08),
+  (mnemonic:'PSIGNB';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$08),
+  (mnemonic:'PSIGNW';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:3;bt1:$0f;bt2:$38;bt3:$09),
+  (mnemonic:'PSIGNW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$09),
+  (mnemonic:'PSIGND';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:3;bt1:$0f;bt2:$38;bt3:$0a),
+  (mnemonic:'PSIGND';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$0a),
+
 
   (mnemonic:'PSLLD';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$f2),
   (mnemonic:'PSLLD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$f2),
-
   (mnemonic:'PSLLD';opcode1:eo_reg6;opcode2:eo_ib;paramtype1:par_mm;paramtype2:par_imm8;bytes:2;bt1:$0f;bt2:$72),
   (mnemonic:'PSLLD';opcode1:eo_reg6;opcode2:eo_ib;paramtype1:par_xmm;paramtype2:par_imm8;bytes:3;bt1:$66;bt2:$0f;bt3:$72),
 
@@ -1176,14 +1290,12 @@ const opcodes: array [1..opcodecount] of topcode =(
 
   (mnemonic:'PSLLQ';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$f3),
   (mnemonic:'PSLLQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$f3),
-
   (mnemonic:'PSLLQ';opcode1:eo_reg6;opcode2:eo_ib;paramtype1:par_mm;paramtype2:par_imm8;bytes:2;bt1:$0f;bt2:$73),
   (mnemonic:'PSLLQ';opcode1:eo_reg6;opcode2:eo_ib;paramtype1:par_xmm;paramtype2:par_imm8;bytes:3;bt1:$66;bt2:$0f;bt3:$73),
 
 
   (mnemonic:'PSLLW';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$f1),
   (mnemonic:'PSLLW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$f1),
-
   (mnemonic:'PSLLW';opcode1:eo_reg6;opcode2:eo_ib;paramtype1:par_mm;paramtype2:par_imm8;bytes:2;bt1:$0f;bt2:$71),
   (mnemonic:'PSLLW';opcode1:eo_reg6;opcode2:eo_ib;paramtype1:par_xmm;paramtype2:par_imm8;bytes:3;bt1:$66;bt2:$0f;bt3:$71),
 
@@ -1193,16 +1305,13 @@ const opcodes: array [1..opcodecount] of topcode =(
 
   (mnemonic:'PSRAD';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$e2),
   (mnemonic:'PSRAD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$e2),
-
   (mnemonic:'PSRAD';opcode1:eo_reg4;opcode2:eo_ib;paramtype1:par_mm;paramtype2:par_imm8;bytes:2;bt1:$0f;bt2:$72),
   (mnemonic:'PSRAD';opcode1:eo_reg4;opcode2:eo_ib;paramtype1:par_xmm;paramtype2:par_imm8;bytes:3;bt1:$66;bt2:$0f;bt3:$72),
 
   (mnemonic:'PSRAW';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$e1),
   (mnemonic:'PSRAW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$e1),
-
   (mnemonic:'PSRAW';opcode1:eo_reg4;opcode2:eo_ib;paramtype1:par_mm;paramtype2:par_imm8;bytes:2;bt1:$0f;bt2:$71),
   (mnemonic:'PSRAW';opcode1:eo_reg4;opcode2:eo_ib;paramtype1:par_xmm;paramtype2:par_imm8;bytes:3;bt1:$66;bt2:$0f;bt3:$71),
-
 
 
   (mnemonic:'PSRLD';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$d2),
@@ -1232,6 +1341,10 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'PSUBD';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$fa),
   (mnemonic:'PSUBD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$fa),
 
+  (mnemonic:'PSUBW';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$f9),
+  (mnemonic:'PSUBW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$f9),
+
+
   (mnemonic:'PSUBQ';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$fb),
   (mnemonic:'PSUBQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$fb),
 
@@ -1258,6 +1371,8 @@ const opcodes: array [1..opcodecount] of topcode =(
 
   (mnemonic:'PSUSW';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$e9),
   (mnemonic:'PSUSW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$e9),
+
+  (mnemonic:'PTEST';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$17),
 
 
   (mnemonic:'PUNPCKHBW';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$68),
@@ -1288,7 +1403,7 @@ const opcodes: array [1..opcodecount] of topcode =(
 //  (mnemonic:'PUSH';opcode1:eo_iw;paramtype1:par_imm16;bytes:2;bt1:$66;bt2:$68),
 
 
-  (mnemonic:'PUSH';opcode1:eo_prd;paramtype1:par_r32;bytes:1;bt1:$50;norexw: true),
+  (mnemonic:'PUSH';opcode1:eo_prd;paramtype1:par_r32;bytes:1;bt1:$50;W0: true),
   (mnemonic:'PUSH';opcode1:eo_prw;paramtype1:par_r16;bytes:2;bt1:$66;bt2:$50),
 
   (mnemonic:'PUSH';opcode1:eo_reg6;paramtype1:par_rm32;bytes:1;bt1:$ff),
@@ -1340,12 +1455,21 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'RCR';opcode1:eo_reg3;paramtype1:par_rm8;paramtype2:par_cl;bytes:1;bt1:$d2),
   (mnemonic:'RCR';opcode1:eo_reg3;opcode2:eo_ib;paramtype1:par_rm8;paramtype2:par_imm8;bytes:1;bt1:$c0),
 
-
+  (mnemonic:'RDFSBASE';opcode1:eo_reg0;paramtype1:par_r32;bytes:3;bt1:$f3;bt2:$0f;bt3:$ae),
+  (mnemonic:'RDGSBASE';opcode1:eo_reg1;paramtype1:par_r32;bytes:3;bt1:$f3;bt2:$0f;bt3:$ae),
 
 
   (mnemonic:'RDMSR';bytes:2;bt1:$0f;bt2:$32),
   (mnemonic:'RDPMC';bytes:2;bt1:$0f;bt2:$33),
+
+  (mnemonic:'RDRAND';opcode1:eo_reg6;paramtype1:par_r16;bytes:3;bt1:$66;bt2:$0f;bt3:$c7),
+  (mnemonic:'RDRAND';opcode1:eo_reg6;paramtype1:par_r32;bytes:2;bt1:$0f;bt2:$c7),
+
+  (mnemonic:'RDSEED';opcode1:eo_reg7;paramtype1:par_r16;bytes:3;bt1:$66;bt2:$0f;bt3:$c7),
+  (mnemonic:'RDSEED';opcode1:eo_reg7;paramtype1:par_r32;bytes:2;bt1:$0f;bt2:$c7),
+
   (mnemonic:'RDTSC';bytes:2;bt1:$0f;bt2:$31),
+  (mnemonic:'RDTSCP';bytes:3;bt1:$0f;bt2:$01;bt3:$f9),
 
   (mnemonic:'RET';bytes:1;bt1:$c3),
   (mnemonic:'RET';bytes:1;bt1:$cb),
@@ -1380,6 +1504,12 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'ROR';opcode1:eo_reg1;paramtype1:par_rm8;paramtype2:par_cl;bytes:1;bt1:$d2),
   (mnemonic:'ROR';opcode1:eo_reg1;opcode2:eo_ib;paramtype1:par_rm8;paramtype2:par_imm8;bytes:1;bt1:$c0),
 
+  (mnemonic:'RORX';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_r32;paramtype2:par_rm32;paramtype3:par_imm8;bytes:1;bt1:$f0;hasvex:true; vexL:0; vexOpcodeExtension: oe_F2;vexLeadingOpcode: lo_0F_3a),
+
+  (mnemonic:'ROUNDPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;paramtype3:par_imm8;bytes:4;bt1:$66;bt2:$0f;bt3:$3a;bt4:$09),
+  (mnemonic:'ROUNDPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;paramtype3:par_imm8;bytes:4;bt1:$66;bt2:$0f;bt3:$3a;bt4:$08),
+  (mnemonic:'ROUNDSD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;paramtype3:par_imm8;bytes:4;bt1:$66;bt2:$0f;bt3:$3a;bt4:$0b),
+  (mnemonic:'ROUNDSS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;paramtype3:par_imm8;bytes:4;bt1:$66;bt2:$0f;bt3:$3a;bt4:$0a),
 
 
   (mnemonic:'RSM';bytes:2;bt1:$0f;bt2:$aa),
@@ -1416,6 +1546,13 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'SAR';opcode1:eo_reg7;paramtype1:par_rm8;paramtype2:par_cl;bytes:1;bt1:$d2),
   (mnemonic:'SAR';opcode1:eo_reg7;opcode2:eo_ib;paramtype1:par_rm8;paramtype2:par_imm8;bytes:1;bt1:$c0),
 
+  (mnemonic:'SARX';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_r32;paramtype2:par_rm32;bytes:1;bt1:$f7;hasvex:true; vexL:0; vexOpcodeExtension: oe_F3;vexLeadingOpcode: lo_0F_38;vexExtraParam:3),
+  (mnemonic:'SHLX';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_r32;paramtype2:par_rm32;bytes:1;bt1:$f7;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38;vexExtraParam:3),
+  (mnemonic:'SHRX';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_r32;paramtype2:par_rm32;bytes:1;bt1:$f7;hasvex:true; vexL:0; vexOpcodeExtension: oe_F2;vexLeadingOpcode: lo_0F_38;vexExtraParam:3),
+
+
+
+
   (mnemonic:'SBB';opcode1:eo_ib;paramtype1:par_AL;paramtype2:par_imm8;bytes:1;bt1:$1c),
   (mnemonic:'SBB';opcode1:eo_iw;paramtype1:par_AX;paramtype2:par_imm16;bytes:2;bt1:$66;bt2:$1d),
   (mnemonic:'SBB';opcode1:eo_id;paramtype1:par_EAX;paramtype2:par_imm32;bytes:1;bt1:$1d),
@@ -1434,6 +1571,7 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'SCASB';bytes:1;bt1:$ae),
   (mnemonic:'SCASD';bytes:1;bt1:$af),
   (mnemonic:'SCASW';bytes:2;bt1:$66;bt2:$af),
+  (mnemonic:'SCASQ';bytes:2;bt1:$af;W1:true),
 
 
   (mnemonic:'SETA';opcode1:eo_reg;paramtype1:par_rm8;bytes:2;bt1:$0f;bt2:$97;defaulttype:true),
@@ -1533,6 +1671,7 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'STOSB';bytes:1;bt1:$aa),
   (mnemonic:'STOSD';bytes:1;bt1:$ab),
   (mnemonic:'STOSW';bytes:2;bt1:$66;bt2:$ab),
+  (mnemonic:'STOSQ';bytes:1;bt1:$ab;W1:true),
 
   (mnemonic:'STR';opcode1:eo_reg1;paramtype1:par_rm16;bytes:2;bt1:$0f;bt2:$00),
 
@@ -1574,6 +1713,9 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'TEST';opcode1:eo_reg;paramtype1:par_rm8;paramtype2:par_r8;bytes:1;bt1:$84),
   (mnemonic:'TEST';opcode1:eo_reg;paramtype1:par_rm16;paramtype2:par_r16;bytes:2;bt1:$66;bt2:$85),
   (mnemonic:'TEST';opcode1:eo_reg;paramtype1:par_rm32;paramtype2:par_r32;bytes:1;bt1:$85),
+
+  (mnemonic:'TZCNT';opcode1:eo_reg;paramtype1:par_r16;paramtype2:par_rm16;bytes:4;bt1:$66;bt2:$F3;bt3:$0f;bt4:$bc),
+  (mnemonic:'TZCNT';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_rm32;bytes:3;bt1:$F3;bt2:$0f;bt3:$bc),
 
 
   (mnemonic:'UCOMISD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m64;bytes:3;bt1:$66;bt2:$0f;bt3:$2e),
@@ -1700,7 +1842,7 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'VLDDQU';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_m128;bytes:1;bt1:$f0;hasvex:true; vexL:0; vexOpcodeExtension: oe_F2; vexLeadingOpcode: lo_0F),
   (mnemonic:'VLDDQU';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_m256;bytes:1;bt1:$f0;hasvex:true; vexL:1; vexOpcodeExtension: oe_F2; vexLeadingOpcode: lo_0F),
 
-  (mnemonic:'VLDMXCSR';opcode1:eo_reg2;paramtype1:par_m32;bytes:1;bt1:$ae;norexw:true; hasvex:true; vexL:0; vexOpcodeExtension: oe_none; vexLeadingOpcode: lo_0F),
+  (mnemonic:'VLDMXCSR';opcode1:eo_reg2;paramtype1:par_m32;bytes:1;bt1:$ae;W0:true; hasvex:true; vexL:0; vexOpcodeExtension: oe_none; vexLeadingOpcode: lo_0F),
   (mnemonic:'VMASKMOVDQU';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;bytes:1;bt1:$f7;hasvex:true; vexL:0; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F),
 
   (mnemonic:'VMAXPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$5f;hasvex:true; vexL:0; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F; vexExtraParam:2),
@@ -1839,17 +1981,617 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'VMXOFF';bytes:3;bt1:$0f;bt2:$01;bt3:$c4),
   (mnemonic:'VMXON';opcode1:eo_reg6;paramtype1:par_m64;bytes:3;bt1:$f3;bt2:$0f;bt3:$c7),
 
+  (mnemonic:'VORPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$56;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;  vexLeadingOpcode: lo_0f; vexExtraParam:2),
+  (mnemonic:'VORPD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$56;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;  vexLeadingOpcode: lo_0f; vexExtraParam:2),
+  (mnemonic:'VORPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$56;hasvex:true; vexL:0; vexOpcodeExtension: oe_none;vexLeadingOpcode: lo_0f; vexExtraParam:2),
+  (mnemonic:'VORPS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$56;hasvex:true; vexL:1; vexOpcodeExtension: oe_none;vexLeadingOpcode: lo_0f; vexExtraParam:2),
+
+  (mnemonic:'VPABSB';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128; bytes:1;bt1:$1c;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPABSB';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm_m256; bytes:1;bt1:$1c;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPABSW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128; bytes:1;bt1:$1d;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPABSW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm_m256; bytes:1;bt1:$1d;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPABSD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128; bytes:1;bt1:$1e;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPABSD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm_m256; bytes:1;bt1:$1e;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+
+  (mnemonic:'VPACKSSWB';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128; bytes:1;bt1:$63;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F),
+  (mnemonic:'VPACKSSWB';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm_m256; bytes:1;bt1:$63;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F),
+  (mnemonic:'VPACKSSDW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128; bytes:1;bt1:$6b;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F),
+  (mnemonic:'VPACKSSDW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm_m256; bytes:1;bt1:$6b;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F),
+
+  (mnemonic:'VPACKUSDW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$2b;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPACKUSDW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$2b;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPACKUSWB';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$67;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPACKUSWB';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$67;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+
+  (mnemonic:'VPADDB';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$fc;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPADDB';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$fc;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPADDD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$fe;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPADDD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$fe;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPADDQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$d4;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPADDQ';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$d4;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPADDW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$fd;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPADDW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$fd;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
 
 
+  (mnemonic:'VPADDSB';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$ec;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPADDSB';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$ec;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPADDSW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$ed;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPADDSW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$ed;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
 
+  (mnemonic:'VPADDUSB';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$dc;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPADDUSB';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$dc;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPADDUSW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$dd;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPADDUSW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$dd;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+
+  (mnemonic:'VPALIGNR';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$0f;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_3A; vexExtraParam:2),
+  (mnemonic:'VPALIGNR';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$0f;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_3A; vexExtraParam:2),
+
+  (mnemonic:'VPAND';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$db;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPAND';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$db;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPANDN';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$df;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPANDN';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$df;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+
+  (mnemonic:'VPAVGB';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$e0;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPAVGB';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$e0;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPAVGW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$e3;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPAVGW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$e3;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+
+  (mnemonic:'VPBLENDVB';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128;paramtype4:par_xmm; bytes:1;bt1:$10;hasvex:true; vexL:0; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPBLENDVB';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256;paramtype4:par_ymm; bytes:1;bt1:$10;hasvex:true; vexL:1; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+
+  (mnemonic:'VPBLENDW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128;paramtype4:par_imm8; bytes:1;bt1:$0e;hasvex:true; vexL:0; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F_3A; vexExtraParam:2),
+  (mnemonic:'VPBLENDW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256;paramtype4:par_imm8; bytes:1;bt1:$0e;hasvex:true; vexL:1; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F_3A; vexExtraParam:2),
+
+  (mnemonic:'VPCLMULQDQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128;paramtype4:par_imm8; bytes:1;bt1:$44;hasvex:true; vexL:0; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F_3A; vexExtraParam:2),
+
+  (mnemonic:'VPCMPEQB';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$74;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPCMPEQB';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$74;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPCMPEQD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$76;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPCMPEQD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$76;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPCMPEQQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$29;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPCMPEQQ';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$29;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPCMPEQW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$75;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPCMPEQW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$75;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+
+  (mnemonic:'VPCMPESTRI';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_imm8; bytes:1;bt1:$61;hasvex:true; vexL:0; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F_3A; vexExtraParam:2),
+  (mnemonic:'VPCMPESTRM';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_imm8; bytes:1;bt1:$60;hasvex:true; vexL:0; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F_3A; vexExtraParam:2),
+
+
+  (mnemonic:'VPCMPGTB';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$64;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPCMPGTB';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$64;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPCMPGTD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$66;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPCMPGTD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$66;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPCMPGTQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$37;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPCMPGTQ';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$37;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPCMPGTW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$65;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPCMPGTW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$65;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+
+  (mnemonic:'VPCMPISTRI';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;paramtype3:par_imm8; bytes:1;bt1:$63;hasvex:true; vexL:0; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F_3A),
+  (mnemonic:'VPCMPISTRM';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;paramtype3:par_imm8; bytes:1;bt1:$62;hasvex:true; vexL:0; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F_3A),
+
+
+  (mnemonic:'VPEXTRB';opcode1:eo_reg;paramtype1:par_rm8;paramtype2:par_xmm;paramtype3:par_imm8; bytes:1;bt1:$14;hasvex:true; vexL:0; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F_3A),
+  (mnemonic:'VPEXTRD';opcode1:eo_reg;paramtype1:par_rm32;paramtype2:par_xmm;paramtype3:par_imm8; bytes:1;bt1:$16;hasvex:true; vexL:0; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F_3A),
+  (mnemonic:'VPEXTRW';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_xmm;paramtype3:par_imm8; bytes:1;bt1:$c5;hasvex:true; vexL:0; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F),
+  (mnemonic:'VPEXTRW';opcode1:eo_reg;paramtype1:par_rm16;paramtype2:par_xmm;paramtype3:par_imm8; bytes:1;bt1:$15;hasvex:true; vexL:0; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F_3A),
+  (mnemonic:'VPEXTRQ';opcode1:eo_reg;paramtype1:par_rm32;paramtype2:par_ymm;paramtype3:par_imm8; bytes:1;bt1:$16;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F_3A),
+
+  (mnemonic:'VPHADDD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$02;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPHADDD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$02;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPHADDSW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$03;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPHADDSW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$03;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPHADDW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$01;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPHADDW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$01;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+
+  (mnemonic:'VPHSUBD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$06;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPHSUBD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$06;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPHSUBSW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$07;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPHSUBSW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$07;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPHSUBW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$05;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPHSUBW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$05;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+
+
+  (mnemonic:'VPHMINPOSUW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:1;bt1:$41;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+
+  (mnemonic:'VPINSRB';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_r32_m8;paramtype4:par_imm8; bytes:1;bt1:$20;hasvex:true; vexL:0; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F_3A),
+  (mnemonic:'VPINSRD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_rm32;paramtype4:par_imm8; bytes:1;bt1:$22; W0:true; hasvex:true; vexL:0; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F_3A),
+  (mnemonic:'VPINSRW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_r32_m16;paramtype4:par_imm8; bytes:1;bt1:$c4; W1:true; hasvex:true; vexL:0; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F),
+  (mnemonic:'VPINSRQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_rm32;paramtype4:par_imm8; bytes:1;bt1:$2; W1:true; hasvex:true; vexL:0; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F_3A),
+
+  (mnemonic:'VPMADDUBSW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$04;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPMADDUBSW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$04;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+
+  (mnemonic:'VPMADDWD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$f5;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPMADDWD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$f5;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+
+  (mnemonic:'VPMAXSB';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$3c;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPMAXSB';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$3c;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPMAXSD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$3d;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPMAXSD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$3d;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPMAXSW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$ee;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPMAXSW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$ee;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPMAXUB';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$de;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPMAXUB';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$de;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPMAXUD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$3f;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPMAXUD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$3f;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPMAXUW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$3e;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPMAXUW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$3e;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+
+  (mnemonic:'VPMINSB';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$38;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPMINSB';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$38;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPMINSD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$39;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPMINSD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$39;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPMINSW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$ea;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPMINSW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$ea;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPMINUB';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$da;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPMINUB';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$da;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPMINUD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$3b;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPMINUD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$3b;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPMINUW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$3a;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPMINUW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$3a;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+
+  (mnemonic:'VPMOVMSKB';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_xmm; bytes:1;bt1:$d7;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F),
+  (mnemonic:'VPMOVMSKB';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_ymm; bytes:1;bt1:$d7;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F),
+
+  (mnemonic:'VPMOVSXBW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m64;bytes:1;bt1:$20;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPMOVSXBW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_xmm_m64;bytes:1;bt1:$20;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPMOVSXBD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m32;bytes:1;bt1:$21;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPMOVSXBD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_xmm_m32;bytes:1;bt1:$21;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPMOVSXBQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m16;bytes:1;bt1:$22;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPMOVSXBQ';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_xmm_m16;bytes:1;bt1:$22;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPMOVSXWD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m64;bytes:1;bt1:$23;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPMOVSXWD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_xmm_m64;bytes:1;bt1:$23;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPMOVSXWQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m32;bytes:1;bt1:$24;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPMOVSXWQ';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_xmm_m32;bytes:1;bt1:$24;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPMOVSXDQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m64;bytes:1;bt1:$25;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPMOVSXDQ';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_xmm_m64;bytes:1;bt1:$25;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+
+  (mnemonic:'VPMOVZXBW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m64;bytes:1;bt1:$30;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPMOVZXBW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_xmm_m64;bytes:1;bt1:$30;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPMOVZXBD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m32;bytes:1;bt1:$31;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPMOVZXBD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_xmm_m32;bytes:1;bt1:$31;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPMOVZXBQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m16;bytes:1;bt1:$32;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPMOVZXBQ';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_xmm_m16;bytes:1;bt1:$32;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPMOVZXWD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m64;bytes:1;bt1:$33;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPMOVZXWD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_xmm_m64;bytes:1;bt1:$33;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPMOVZXWQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m32;bytes:1;bt1:$34;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPMOVZXWQ';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_xmm_m32;bytes:1;bt1:$34;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPMOVZXDQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m64;bytes:1;bt1:$35;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPMOVZXDQ';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_xmm_m64;bytes:1;bt1:$35;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+
+  (mnemonic:'VPMULDQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$28;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPMULDQ';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$28;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+
+  (mnemonic:'VPMULHRSW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$0b;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPMULHRSW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$0b;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPMULHUW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$e4;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPMULHUW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$e4;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPMULHW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$e5;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPMULHW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$e5;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+
+  (mnemonic:'VPMULLD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$40;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPMULLD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$40;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPMULLW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$d5;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPMULLW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$d5;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPMULUDQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$f4;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPMULUDQ';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$f4;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPOR';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$eb;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPOR';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$eb;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+
+  (mnemonic:'VPSADBW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$f6;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPSADBW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$f6;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPSHUFB';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$00;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPSHUFB';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$00;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPSHUFD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;paramtype3:par_imm8; bytes:1;bt1:$70;hasvex:true; vexL:0; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F),
+  (mnemonic:'VPSHUFD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm_m256;paramtype3:par_imm8; bytes:1;bt1:$70;hasvex:true; vexL:1; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F),
+  (mnemonic:'VPSHUFHW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;paramtype3:par_imm8; bytes:1;bt1:$70;hasvex:true; vexL:0; vexOpcodeExtension: oe_f3; vexLeadingOpcode: lo_0F),
+  (mnemonic:'VPSHUFHW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm_m256;paramtype3:par_imm8; bytes:1;bt1:$70;hasvex:true; vexL:1; vexOpcodeExtension: oe_f3; vexLeadingOpcode: lo_0F),
+  (mnemonic:'VPSHUFLW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;paramtype3:par_imm8; bytes:1;bt1:$70;hasvex:true; vexL:0; vexOpcodeExtension: oe_f2; vexLeadingOpcode: lo_0F),
+  (mnemonic:'VPSHUFLW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm_m256;paramtype3:par_imm8; bytes:1;bt1:$70;hasvex:true; vexL:1; vexOpcodeExtension: oe_f2; vexLeadingOpcode: lo_0F),
+
+  (mnemonic:'VPSIGNB';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$08;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPSIGNB';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$08;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPSIGND';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$0a;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPSIGND';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$0a;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPSIGNW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$09;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPSIGNW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$09;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+
+  (mnemonic:'VPSLLDQ';opcode1:eo_reg7;opcode2:eo_ib;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_imm8;bytes:1;bt1:$73;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:1),
+  (mnemonic:'VPSLLDQ';opcode1:eo_reg7;opcode2:eo_ib;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_imm8;bytes:1;bt1:$73;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:1),
+
+  (mnemonic:'VPSLLD';opcode1:eo_reg6;opcode2:eo_ib;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_imm8;bytes:1;bt1:$72;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:1),
+  (mnemonic:'VPSLLD';opcode1:eo_reg6;opcode2:eo_ib;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_imm8;bytes:1;bt1:$72;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:1),
+  (mnemonic:'VPSLLD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$f2;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPSLLD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$f2;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+
+  (mnemonic:'VPSLLW';opcode1:eo_reg6;opcode2:eo_ib;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_imm8;bytes:1;bt1:$71;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:1),
+  (mnemonic:'VPSLLW';opcode1:eo_reg6;opcode2:eo_ib;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_imm8;bytes:1;bt1:$71;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:1),
+  (mnemonic:'VPSLLW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$f1;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPSLLW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$f1;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+
+
+  (mnemonic:'VPSLLQ';opcode1:eo_reg6;opcode2:eo_ib;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_imm8;bytes:1;bt1:$73;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:1),
+  (mnemonic:'VPSLLQ';opcode1:eo_reg6;opcode2:eo_ib;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_imm8;bytes:1;bt1:$73;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:1),
+  (mnemonic:'VPSLLQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$f3;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPSLLQ';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$f3;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+
+  (mnemonic:'VPSRAD';opcode1:eo_reg4;opcode2:eo_ib;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_imm8;bytes:1;bt1:$72;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:1),
+  (mnemonic:'VPSRAD';opcode1:eo_reg4;opcode2:eo_ib;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_imm8;bytes:1;bt1:$72;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:1),
+  (mnemonic:'VPSRAD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$e2;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPSRAD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$e2;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+
+
+  (mnemonic:'VPSRAW';opcode1:eo_reg4;opcode2:eo_ib;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_imm8;bytes:1;bt1:$71;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:1),
+  (mnemonic:'VPSRAW';opcode1:eo_reg4;opcode2:eo_ib;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_imm8;bytes:1;bt1:$71;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:1),
+  (mnemonic:'VPSRAW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$e1;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPSRAW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$e1;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+
+  (mnemonic:'VPSRLDQ';opcode1:eo_reg3;opcode2:eo_ib;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_imm8;bytes:1;bt1:$73;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:1),
+  (mnemonic:'VPSRLDQ';opcode1:eo_reg3;opcode2:eo_ib;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_imm8;bytes:1;bt1:$73;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:1),
+  (mnemonic:'VPSRLD';opcode1:eo_reg2;opcode2:eo_ib;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_imm8;bytes:1;bt1:$72;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:1),
+  (mnemonic:'VPSRLD';opcode1:eo_reg2;opcode2:eo_ib;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_imm8;bytes:1;bt1:$72;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:1),
+  (mnemonic:'VPSRLD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$d2;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPSRLD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$d2;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+
+  (mnemonic:'VPSRLW';opcode1:eo_reg2;opcode2:eo_ib;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_imm8;bytes:1;bt1:$71;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:1),
+  (mnemonic:'VPSRLW';opcode1:eo_reg2;opcode2:eo_ib;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_imm8;bytes:1;bt1:$71;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:1),
+  (mnemonic:'VPSRLW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$d1;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPSRLW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$d1;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+
+
+  (mnemonic:'VPSRLQ';opcode1:eo_reg2;opcode2:eo_ib;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_imm8;bytes:1;bt1:$73;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:1),
+  (mnemonic:'VPSRLQ';opcode1:eo_reg2;opcode2:eo_ib;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_imm8;bytes:1;bt1:$73;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:1),
+  (mnemonic:'VPSRLQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$d3;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPSRLQ';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$d3;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+
+  (mnemonic:'VPSUBB';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$f8;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPSUBB';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$f8;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPSUBD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$fa;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPSUBD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$fa;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPSUBQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$fb;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPSUBQ';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$fb;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPSUBW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$f9;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPSUBW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$f9;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+
+  (mnemonic:'VPSUBSB';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$e8;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPSUBSB';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$e8;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPSUBSW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$e9;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPSUBSW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$e9;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+
+  (mnemonic:'VPSUBUSB';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$d8;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPSUBUSB';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$d8;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPSUBUSW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$d9;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPSUBUSW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$d9;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+
+  (mnemonic:'VPTEST';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128; bytes:1;bt1:$17;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPTEST';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm_m256; bytes:1;bt1:$17;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+
+
+  (mnemonic:'VPUNPCKHBD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$69;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPUNPCKHBD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$69;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPUNPCKHBW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$68;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPUNPCKHBW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$68;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPUNPCKHBQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$6a;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPUNPCKHBQ';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$6a;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+
+  (mnemonic:'VPUNPCKLBW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$60;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPUNPCKLBW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$60;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPUNPCKLBD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$61;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPUNPCKLBD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$61;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPUNPCKLBQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$62;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPUNPCKLBQ';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$62;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+
+  (mnemonic:'VPXOR';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$ef;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VPXOR';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$ef;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+
+  (mnemonic:'VRCPPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128; bytes:1;bt1:$53;hasvex:true; vexL:0; vexOpcodeExtension: oe_none;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VRCPPS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm_m256; bytes:1;bt1:$53;hasvex:true; vexL:1; vexOpcodeExtension: oe_none;vexLeadingOpcode: lo_0F_38),
+
+  (mnemonic:'VRCPSS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128; bytes:1;bt1:$53;hasvex:true; vexL:0; vexOpcodeExtension: oe_F3;vexLeadingOpcode: lo_0F_38),
+
+  (mnemonic:'VROUNDPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;paramtype3:par_imm8;bytes:1;bt1:$09;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_3a),
+  (mnemonic:'VROUNDPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;paramtype3:par_imm8;bytes:1;bt1:$08;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_3a),
+  (mnemonic:'VROUNDSD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128;paramtype4:par_imm8;bytes:1;bt1:$0b;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_3a;vexExtraParam:2),
+  (mnemonic:'VROUNDSS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128;paramtype4:par_imm8;bytes:1;bt1:$0a;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_3a;vexExtraParam:2),
+
+  (mnemonic:'VRSQRTPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;paramtype3:par_imm8;bytes:1;bt1:$52;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F),
+  (mnemonic:'VRSQRTSS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128;paramtype4:par_imm8;bytes:1;bt1:$52;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F;vexExtraParam:2),
+
+  (mnemonic:'VSHUFPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128;paramtype4:par_imm8;bytes:1;bt1:$c6;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F;vexExtraParam:2),
+  (mnemonic:'VSHUFPD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256;paramtype4:par_imm8;bytes:1;bt1:$c6;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F;vexExtraParam:2),
+
+  (mnemonic:'VSHUFPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128;paramtype4:par_imm8;bytes:1;bt1:$c6;hasvex:true; vexL:0; vexOpcodeExtension: oe_none;vexLeadingOpcode: lo_0F;vexExtraParam:2),
+  (mnemonic:'VSHUFPS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256;paramtype4:par_imm8;bytes:1;bt1:$c6;hasvex:true; vexL:1; vexOpcodeExtension: oe_none;vexLeadingOpcode: lo_0F;vexExtraParam:2),
+
+  (mnemonic:'VSQRTPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:1;bt1:$51;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F),
+  (mnemonic:'VSQRTPD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm_m256;bytes:1;bt1:$51;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F),
+  (mnemonic:'VSQRTPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:1;bt1:$51;hasvex:true; vexL:0; vexOpcodeExtension: oe_none;vexLeadingOpcode: lo_0F),
+  (mnemonic:'VSQRTPS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm_m256;bytes:1;bt1:$51;hasvex:true; vexL:1; vexOpcodeExtension: oe_none;vexLeadingOpcode: lo_0F),
+  (mnemonic:'VSQRTSD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$51;hasvex:true; vexL:0; vexOpcodeExtension: oe_f2;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VSQRTSD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$51;hasvex:true; vexL:1; vexOpcodeExtension: oe_f2;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VSQRTSS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$51;hasvex:true; vexL:0; vexOpcodeExtension: oe_f3;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VSQRTSS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$51;hasvex:true; vexL:1; vexOpcodeExtension: oe_f3;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+
+
+  (mnemonic:'VSTMXCSR';opcode1:eo_reg3;paramtype1:par_m32;bytes:1;bt1:$ae;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F),
+
+
+  (mnemonic:'VSUBPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$5c;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VSUBPD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$5c;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VSUBPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$5c;hasvex:true; vexL:0; vexOpcodeExtension: oe_none;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VSUBPS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$5c;hasvex:true; vexL:1; vexOpcodeExtension: oe_none;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VSUBSD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$5c;hasvex:true; vexL:0; vexOpcodeExtension: oe_f2;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VSUBSD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$5c;hasvex:true; vexL:1; vexOpcodeExtension: oe_f2;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VSUBSS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$5c;hasvex:true; vexL:0; vexOpcodeExtension: oe_f3;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VSUBSS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$5c;hasvex:true; vexL:1; vexOpcodeExtension: oe_f3;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+
+  (mnemonic:'VUCOMISD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m64; bytes:1;bt1:$2e;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F),
+  (mnemonic:'VUCOMISS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m32; bytes:1;bt1:$2e;hasvex:true; vexL:0; vexOpcodeExtension: oe_none;vexLeadingOpcode: lo_0F),
+
+  (mnemonic:'VUNPCKHPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$15;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VUNPCKHPD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$15;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VUNPCKHPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$15;hasvex:true; vexL:0; vexOpcodeExtension: oe_none;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VUNPCKHPS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$15;hasvex:true; vexL:1; vexOpcodeExtension: oe_none;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+
+  (mnemonic:'VUNPCKLPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$14;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VUNPCKLPD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$14;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VUNPCKLPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$14;hasvex:true; vexL:0; vexOpcodeExtension: oe_none;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VUNPCKLPS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$14;hasvex:true; vexL:1; vexOpcodeExtension: oe_none;vexLeadingOpcode: lo_0F; vexExtraParam:2),
+
+  (mnemonic:'VBROADCASTSS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m32;bytes:1;bt1:$18;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VBROADCASTSS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_xmm_m32;bytes:1;bt1:$18;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VBROADCASTSD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_xmm_m64;bytes:1;bt1:$19;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VBROADCASTF128';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_m128;bytes:1;bt1:$1a;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+
+  (mnemonic:'VCVTPH2PS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_xmm_m128; bytes:1;bt1:$13;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VCVTPH2PS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m64; bytes:1;bt1:$13;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+
+  (mnemonic:'VCVTPS2PH';opcode1:eo_reg;paramtype1:par_xmm_m128;paramtype2:par_ymm;paramtype3:par_imm8; bytes:1;bt1:$1d;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_3A),
+  (mnemonic:'VCVTPS2PH';opcode1:eo_reg;paramtype1:par_xmm_m64;paramtype2:par_xmm;paramtype3:par_imm8; bytes:1;bt1:$1d;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_3A),
+
+  (mnemonic:'VEXTRACTF128';opcode1:eo_reg;paramtype1:par_xmm_m128;paramtype2:par_ymm;paramtype3:par_imm8; bytes:1;bt1:$19;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_3A),
+  (mnemonic:'VEXTRACTI128';opcode1:eo_reg;paramtype1:par_xmm_m128;paramtype2:par_ymm;paramtype3:par_imm8; bytes:1;bt1:$39;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_3A),
+
+  (mnemonic:'VFMADD132PD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$98;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMADD132PD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$98;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMADD213PD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$A8;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMADD213PD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$A8;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMADD231PD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$B8;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMADD231PD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$B8;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMADD132PS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$98;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMADD132PS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$98;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMADD213PS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$A8;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMADD213PS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$A8;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMADD231PS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$B8;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMADD231PS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$B8;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+
+  (mnemonic:'VFMADD132SD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m64; bytes:1;bt1:$99;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMADD213SD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m64; bytes:1;bt1:$A9;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMADD231SD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m64; bytes:1;bt1:$B9;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMADD132SS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m32; bytes:1;bt1:$99;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMADD213SS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m32; bytes:1;bt1:$A9;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMADD231SS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m32; bytes:1;bt1:$B9;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+
+
+  (mnemonic:'VFMADDSUB132PD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$96;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMADDSUB132PD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$96;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMADDSUB213PD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$A6;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMADDSUB213PD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$A6;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMADDSUB231PD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$B6;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMADDSUB231PD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$B6;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMADDSUB132PS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$96;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMADDSUB132PS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$96;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMADDSUB213PS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$A6;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMADDSUB213PS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$A6;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMADDSUB231PS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$B6;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMADDSUB231PS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$B6;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+
+  (mnemonic:'VFMSUBADD132PD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$97;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMSUBADD132PD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$97;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMSUBADD213PD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$A7;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMSUBADD213PD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$A7;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMSUBADD231PD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$B7;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMSUBADD231PD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$B7;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMSUBADD132PS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$97;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMSUBADD132PS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$97;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMSUBADD213PS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$A7;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMSUBADD213PS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$A7;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMSUBADD231PS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$B7;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMSUBADD231PS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$B7;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+
+  (mnemonic:'VFMSUB132PD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$9A;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMSUB132PD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$9A;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMSUB213PD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$AA;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMSUB213PD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$AA;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMSUB231PD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$BA;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMSUB231PD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$BA;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMSUB132PS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$9A;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMSUB132PS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$9A;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMSUB213PS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$AA;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMSUB213PS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$AA;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMSUB231PS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$BA;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMSUB231PS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$BA;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+
+  (mnemonic:'VFMSUB132SD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m64; bytes:1;bt1:$9B;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMSUB213SD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m64; bytes:1;bt1:$AB;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMSUB231SD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m64; bytes:1;bt1:$BB;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMSUB132SS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m32; bytes:1;bt1:$9B;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMSUB213SS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m32; bytes:1;bt1:$AB;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFMSUB231SS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m32; bytes:1;bt1:$BB;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+
+  (mnemonic:'VFNMADD132PD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$9C;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMADD132PD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$9C;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMADD213PD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$AC;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMADD213PD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$AC;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMADD231PD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$BC;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMADD231PD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$BC;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMADD132PS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$9C;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMADD132PS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$9C;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMADD213PS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$AC;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMADD213PS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$AC;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMADD231PS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$BC;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMADD231PS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$BC;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+
+  (mnemonic:'VFNMADD132SD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m64; bytes:1;bt1:$9D;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMADD213SD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m64; bytes:1;bt1:$AD;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMADD231SD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m64; bytes:1;bt1:$BD;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMADD132SS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m32; bytes:1;bt1:$9D;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMADD213SS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m32; bytes:1;bt1:$AD;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMADD231SS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m32; bytes:1;bt1:$BD;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+
+
+  (mnemonic:'VFNMADDSUB132PD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$96;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMADDSUB132PD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$96;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMADDSUB213PD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$A6;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMADDSUB213PD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$A6;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMADDSUB231PD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$B6;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMADDSUB231PD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$B6;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMADDSUB132PS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$96;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMADDSUB132PS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$96;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMADDSUB213PS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$A6;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMADDSUB213PS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$A6;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMADDSUB231PS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$B6;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMADDSUB231PS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$B6;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+
+  (mnemonic:'VFNMSUBADD132PD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$97;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMSUBADD132PD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$97;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMSUBADD213PD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$A7;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMSUBADD213PD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$A7;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMSUBADD231PD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$B7;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMSUBADD231PD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$B7;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMSUBADD132PS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$97;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMSUBADD132PS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$97;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMSUBADD213PS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$A7;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMSUBADD213PS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$A7;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMSUBADD231PS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$B7;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMSUBADD231PS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$B7;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+
+  (mnemonic:'VFNMSUB132PD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$9E;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMSUB132PD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$9E;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMSUB213PD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$AE;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMSUB213PD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$AE;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMSUB231PD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$BE;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMSUB231PD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$BE;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMSUB132PS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$9E;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMSUB132PS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$9E;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMSUB213PS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$AE;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMSUB213PS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$AE;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMSUB231PS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$BE;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMSUB231PS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$BE;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+
+  (mnemonic:'VFNMSUB132SD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m64; bytes:1;bt1:$9F;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMSUB213SD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m64; bytes:1;bt1:$AF;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMSUB231SD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m64; bytes:1;bt1:$BF;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMSUB132SS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m32; bytes:1;bt1:$9F;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMSUB213SS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m32; bytes:1;bt1:$AF;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VFNMSUB231SS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m32; bytes:1;bt1:$BF;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+
+
+  //todo: add modrm support for vm*
+  //(mnemonic:'VGATHERDPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_vm32x;paramtype3:par_xmm; bytes:1;bt1:$92;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
+  //(mnemonic:'VGATHERQPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_vm64x;paramtype3:par_xmm; bytes:1;bt1:$93;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
+  //(mnemonic:'VGATHERDPD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_vm32x;paramtype3:par_ymm; bytes:1;bt1:$92;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
+  //(mnemonic:'VGATHERQPD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_vm64y;paramtype3:par_ymm; bytes:1;bt1:$93;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
+  //(mnemonic:'VGATHERDPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_vm32x;paramtype3:par_xmm; bytes:1;bt1:$92;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
+  //(mnemonic:'VGATHERQPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_vm64x;paramtype3:par_xmm; bytes:1;bt1:$93;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
+  //(mnemonic:'VGATHERDPS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_vm32x;paramtype3:par_ymm; bytes:1;bt1:$92;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
+  //(mnemonic:'VGATHERQPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_vm64y;paramtype3:par_xmm; bytes:1;bt1:$93;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
+  //(mnemonic:'VPGATHERDD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_vm32x;paramtype3:par_xmm; bytes:1;bt1:$90;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
+  //(mnemonic:'VPGATHERQD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_vm64x;paramtype3:par_xmm; bytes:1;bt1:$91;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
+  //(mnemonic:'VPGATHERDD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_vm32x;paramtype3:par_ymm; bytes:1;bt1:$90;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
+  //(mnemonic:'VPGATHERQD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_vm64y;paramtype3:par_ymm; bytes:1;bt1:$91;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
+  //(mnemonic:'VPGATHERDQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_vm32x;paramtype3:par_xmm; bytes:1;bt1:$90;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
+  //(mnemonic:'VPGATHERQQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_vm64x;paramtype3:par_xmm; bytes:1;bt1:$91;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
+  //(mnemonic:'VPGATHERDQ';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_vm32x;paramtype3:par_ymm; bytes:1;bt1:$90;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
+  //(mnemonic:'VPGATHERQQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_vm64y;paramtype3:par_xmm; bytes:1;bt1:$91;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
+
+  (mnemonic:'VINSERTF128';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_xmm_m128;paramtype4:par_imm8;bytes:1;bt1:$18;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_3a),
+  (mnemonic:'VINSERTI128';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_xmm_m128;paramtype4:par_imm8;bytes:1;bt1:$38;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_3a),
+
+  (mnemonic:'VMASKMOVPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_m128; bytes:1;bt1:$2c;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VMASKMOVPS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_m256; bytes:1;bt1:$2c;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VMASKMOVPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_m128; bytes:1;bt1:$2d;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VMASKMOVPD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_m256; bytes:1;bt1:$2d;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VMASKMOVPS';opcode1:eo_reg;paramtype1:par_m128;paramtype2:par_xmm;paramtype3:par_xmm; bytes:1;bt1:$2e;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VMASKMOVPS';opcode1:eo_reg;paramtype1:par_m256;paramtype2:par_ymm;paramtype3:par_ymm; bytes:1;bt1:$2e;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VMASKMOVPD';opcode1:eo_reg;paramtype1:par_m128;paramtype2:par_xmm;paramtype3:par_xmm; bytes:1;bt1:$2f;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VMASKMOVPD';opcode1:eo_reg;paramtype1:par_m256;paramtype2:par_ymm;paramtype3:par_ymm; bytes:1;bt1:$2f;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+
+  (mnemonic:'VPBLEND';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128;paramtype4:par_imm8; bytes:1;bt1:$02;hasvex:true; vexL:0; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F_3A; vexExtraParam:2),
+  (mnemonic:'VPBLEND';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256;paramtype4:par_imm8; bytes:1;bt1:$02;hasvex:true; vexL:1; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F_3A; vexExtraParam:2),
+
+  (mnemonic:'VPBROADCASTB';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m8;bytes:1;bt1:$78;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPBROADCASTB';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_xmm_m8;bytes:1;bt1:$78;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPBROADCASTW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m16;bytes:1;bt1:$79;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPBROADCASTW';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_xmm_m16;bytes:1;bt1:$79;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPBROADCASTD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m32;bytes:1;bt1:$58;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPBROADCASTD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_xmm_m32;bytes:1;bt1:$58;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPBROADCASTQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m64;bytes:1;bt1:$59;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPBROADCASTQ';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_xmm_m64;bytes:1;bt1:$59;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VPBROADCASTI128';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_m128;bytes:1;bt1:$50;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+
+  (mnemonic:'VPERMD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256;bytes:1;bt1:$36;hasvex:true; vexL:1; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPERMPD';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_ymm;paramtype2:par_ymm_m256;paramtype3:par_imm8;bytes:1;bt1:$01;hasvex:true; vexL:1; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F_3A),
+  (mnemonic:'VPERMPS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256;bytes:1;bt1:$16;hasvex:true; vexL:1; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPERMQ';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_ymm;paramtype2:par_ymm_m256;paramtype3:par_imm8;bytes:1;bt1:$00;hasvex:true; vexL:1; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F_3A),
+  (mnemonic:'VPERM2I128';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256;paramtype4:par_imm8;bytes:1;bt1:$46;hasvex:true; vexL:1; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F_3A; vexExtraParam:2),
+
+  (mnemonic:'VPERMILPD';opcode1:eo_reg;paramtype1:par_m128;paramtype2:par_xmm;paramtype3:par_xmm; bytes:1;bt1:$0d;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPERMILPD';opcode1:eo_reg;paramtype1:par_m256;paramtype2:par_ymm;paramtype3:par_ymm; bytes:1;bt1:$0d;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPERMILPD';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_m128;paramtype2:par_xmm;paramtype3:par_imm8; bytes:1;bt1:$05;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_3a),
+  (mnemonic:'VPERMILPD';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_m256;paramtype2:par_ymm;paramtype3:par_imm8; bytes:1;bt1:$05;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_3a),
+
+  (mnemonic:'VPERMILPS';opcode1:eo_reg;paramtype1:par_m128;paramtype2:par_xmm;paramtype3:par_xmm; bytes:1;bt1:$0c;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPERMILPS';opcode1:eo_reg;paramtype1:par_m256;paramtype2:par_ymm;paramtype3:par_ymm; bytes:1;bt1:$0c;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPERMILPS';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_m128;paramtype2:par_xmm;paramtype3:par_imm8; bytes:1;bt1:$04;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_3a),
+  (mnemonic:'VPERMILPS';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_m256;paramtype2:par_ymm;paramtype3:par_imm8; bytes:1;bt1:$04;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_3a),
+  (mnemonic:'VPERM2F128';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256;paramtype4:par_imm8;bytes:1;bt1:$06;hasvex:true; vexL:1; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F_3A; vexExtraParam:2),
+
+  (mnemonic:'VPMASKMOVD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_m128; bytes:1;bt1:$8c;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPMASKMOVD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_m256; bytes:1;bt1:$8c;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPMASKMOVQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_m128; bytes:1;bt1:$8c;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPMASKMOVQ';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_m256; bytes:1;bt1:$8c;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+
+  (mnemonic:'VPMASKMOVD';opcode1:eo_reg;paramtype1:par_m128;paramtype2:par_xmm;paramtype3:par_xmm; bytes:1;bt1:$8e;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPMASKMOVD';opcode1:eo_reg;paramtype1:par_m256;paramtype2:par_ymm;paramtype3:par_ymm; bytes:1;bt1:$8e;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPMASKMOVQ';opcode1:eo_reg;paramtype1:par_m128;paramtype2:par_xmm;paramtype3:par_xmm; bytes:1;bt1:$8e;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPMASKMOVQ';opcode1:eo_reg;paramtype1:par_m256;paramtype2:par_ymm;paramtype3:par_ymm; bytes:1;bt1:$8e;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+
+  (mnemonic:'VPSLLVD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_m128; bytes:1;bt1:$8c;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPSLLVD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_m256; bytes:1;bt1:$8c;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPSLLVQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_m128; bytes:1;bt1:$8c;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPSLLVQ';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_m256; bytes:1;bt1:$8c;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+
+  (mnemonic:'VPSRAVD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_m128; bytes:1;bt1:$46;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPSRAVD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_m256; bytes:1;bt1:$46;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+
+  (mnemonic:'VPSRLVD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_m128; bytes:1;bt1:$45;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPSRLVD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_m256; bytes:1;bt1:$45;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPSRLVQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_m128; bytes:1;bt1:$45;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+  (mnemonic:'VPSRLVQ';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_m256; bytes:1;bt1:$45;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:2),
+
+  (mnemonic:'VTESTPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128; bytes:1;bt1:$0e;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VTESTPD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm_m256; bytes:1;bt1:$0e;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VTESTPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128; bytes:1;bt1:$0f;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+  (mnemonic:'VTESTPS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm_m256; bytes:1;bt1:$0f;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38),
+
+  (mnemonic:'VZEROALL';bytes:1;bt1:$77;hasvex:true; vexL:1;vexOpcodeExtension: oe_none;vexLeadingOpcode: lo_0F),
+  (mnemonic:'VZEROUPPER';bytes:1;bt1:$77;hasvex:true; vexL:0;vexOpcodeExtension: oe_none;vexLeadingOpcode: lo_0F),
 
   (mnemonic:'WAIT';bytes:1;bt1:$9b),
   (mnemonic:'WBINVD';bytes:2;bt1:$0f;bt2:$09),
+  (mnemonic:'WRFSBASE';opcode1:eo_reg2;paramtype1:par_r32;bytes:3;bt1:$f3;bt2:$0f;bt3:$ae),
+  (mnemonic:'WRGSBASE';opcode1:eo_reg3;paramtype1:par_r32;bytes:3;bt1:$f3;bt2:$0f;bt3:$ae),
   (mnemonic:'WRMSR';bytes:2;bt1:$0f;bt2:$30),
+
+  (mnemonic:'XABORT';opcode1:eo_ib;paramtype1:par_imm8;bytes:2;bt1:$c6;bt2:$f8),
 
   (mnemonic:'XADD';opcode1:eo_reg;paramtype1:par_rm8;paramtype2:par_r8;bytes:2;bt1:$0f;bt2:$c0),
   (mnemonic:'XADD';opcode1:eo_reg;paramtype1:par_rm16;paramtype2:par_r16;bytes:3;bt1:$66;bt2:$0f;bt3:$c1),
   (mnemonic:'XADD';opcode1:eo_reg;paramtype1:par_rm32;paramtype2:par_r32;bytes:2;bt1:$0f;bt2:$c1),
+
+  (mnemonic:'XBEGIN';opcode1:eo_cd;paramtype1:par_rel32;bytes:1;bt1:$e8),
+
 
   (mnemonic:'XCHG';opcode1:eo_prd;paramtype1:par_eax;paramtype2:par_r32;bytes:1;bt1:$90),
   (mnemonic:'XCHG';opcode1:eo_prw;paramtype1:par_ax;paramtype2:par_r16;bytes:2;bt1:$66;bt2:$90),
@@ -1867,6 +2609,8 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'XCHG';opcode1:eo_reg;paramtype1:par_rm32;paramtype2:par_r32;bytes:1;bt1:$87),
   (mnemonic:'XCHG';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_rm32;bytes:1;bt1:$87),
 
+  (mnemonic:'XEND';bytes:3;bt1:$0f;bt2:$01;bt3:$d5),
+  (mnemonic:'XGETBV';bytes:3;bt1:$0f;bt2:$01;bt3:$d0),
   (mnemonic:'XLATB';bytes:1;bt1:$d7),
 
   (mnemonic:'XOR';opcode1:eo_ib;paramtype1:par_AL;paramtype2:par_imm8;bytes:1;bt1:$34),
@@ -1887,11 +2631,32 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'XORPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$57),
   (mnemonic:'XORPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:2;bt1:$0f;bt2:$57;),
 
-  (mnemonic:'XRSTOR';opcode1:eo_reg5;paramtype1:par_m32;bytes:2;bt1:$0f;bt2:$ae; norexw:true),
-  (mnemonic:'XRSTOR64';opcode1:eo_reg5;paramtype1:par_m64;bytes:3;bt1:$48;bt2:$0f;bt3:$ae; norexw:true),
+  (mnemonic:'VXORPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$57;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;   vexLeadingOpcode: lo_0f; vexExtraParam:2),
+  (mnemonic:'VXORPD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$57;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;   vexLeadingOpcode: lo_0f; vexExtraParam:2),
+  (mnemonic:'VXORPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$57;hasvex:true; vexL:0; vexOpcodeExtension: oe_none; vexLeadingOpcode: lo_0f; vexExtraParam:2),
+  (mnemonic:'VXORPS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$57;hasvex:true; vexL:1; vexOpcodeExtension: oe_none; vexLeadingOpcode: lo_0f; vexExtraParam:2),
 
-  (mnemonic:'XSAVE';opcode1:eo_reg4;paramtype1:par_m32;bytes:2;bt1:$0f;bt2:$ae; norexw:true),
-  (mnemonic:'XSAVE64';opcode1:eo_reg4;paramtype1:par_m64;bytes:3;bt1:$48;bt2:$0f;bt3:$ae; norexw:true)
+
+
+  (mnemonic:'XRSTOR';opcode1:eo_reg5;paramtype1:par_m32;bytes:2;bt1:$0f;bt2:$ae; W0:true),
+  (mnemonic:'XRSTOR64';opcode1:eo_reg5;paramtype1:par_m32;bytes:2;bt1:$0f;bt3:$ae; W1:true),
+  (mnemonic:'XRSTORS';opcode1:eo_reg3;paramtype1:par_m32;bytes:2;bt1:$0f;bt2:$c7; W0:true),
+  (mnemonic:'XRSTORS64';opcode1:eo_reg3;paramtype1:par_m32;bytes:2;bt1:$0f;bt3:$c7; W1:true),
+
+  (mnemonic:'XSAVE';opcode1:eo_reg4;paramtype1:par_m32;bytes:2;bt1:$0f;bt2:$ae; W0:true),
+  (mnemonic:'XSAVE64';opcode1:eo_reg4;paramtype1:par_m32;bytes:2;bt1:$0f;bt3:$ae; W1:true),
+
+  (mnemonic:'XSAVEC';opcode1:eo_reg4;paramtype1:par_m32;bytes:2;bt1:$0f;bt2:$c7; W0:true),
+  (mnemonic:'XSAVEC64';opcode1:eo_reg4;paramtype1:par_m32;bytes:2;bt1:$0f;bt3:$c7; W1:true),
+
+  (mnemonic:'XSAVEOPT';opcode1:eo_reg6;paramtype1:par_m32;bytes:2;bt1:$0f;bt2:$ae; W0:true),
+  (mnemonic:'XSAVEOPT64';opcode1:eo_reg6;paramtype1:par_m32;bytes:2;bt1:$0f;bt3:$ae; W1:true),
+
+  (mnemonic:'XSAVES';opcode1:eo_reg5;paramtype1:par_m32;bytes:2;bt1:$0f;bt2:$c7; W0:true),
+  (mnemonic:'XSAVES64';opcode1:eo_reg5;paramtype1:par_m32;bytes:2;bt1:$0f;bt3:$c7; W1:true),
+
+  (mnemonic:'XSETBV';bytes:3;bt1:$0f;bt2:$01;bt3:$d1),
+  (mnemonic:'XTEST';bytes:3;bt1:$0f;bt2:$01;bt3:$d6)
 );
 
 
@@ -2578,6 +3343,16 @@ end;
 function isxmm_m32(parametertype:TTokenType): boolean;
 begin
   result:=(parametertype=ttRegisterXMM) or (parametertype=ttMemorylocation32);
+end;
+
+function isxmm_m16(parametertype:TTokenType; params: string): boolean;
+begin
+  result:=(parametertype=ttRegisterXMM) or (parametertype=ttMemorylocation16) or ((parametertype=ttmemorylocation32) and isMemoryLocationDefault(params));
+end;
+
+function isxmm_m8(parametertype:TTokenType; params: string): boolean;
+begin
+  result:=(parametertype=ttRegisterXMM) or (parametertype=ttMemorylocation8) or ((parametertype=ttmemorylocation32) and isMemoryLocationDefault(params));
 end;
 
 function isxmm_m64(parametertype:TTokenType): boolean;
@@ -4179,7 +4954,7 @@ begin
     oldParamtype1:=paramtype1;
     oldParamtype2:=paramtype2;
 
-    if (opcodes[j].norexw) then
+    if (opcodes[j].W0) then
     begin
       //undo rex_w change
       if paramtype1=ttMemoryLocation32 then
@@ -5453,6 +6228,17 @@ begin
             exit;
           end;
         end;
+
+        if (opcodes[j].paramtype2=par_xmm) and (paramtype2=ttRegisterXMM) then
+        begin
+          // r/m8,xmm
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter2),parameter1);
+            exit;
+          end;
+        end;
       end;
 
       par_rm16: if (isrm16(paramtype1)) then
@@ -5792,7 +6578,7 @@ begin
           //mm,rm32
           if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
           begin
-            //xmm,rm32
+            //mm,rm32
             addopcode(bytes,j);
             result:=createmodrm(bytes,getreg(parameter1),parameter2);
             exit;
@@ -5813,9 +6599,20 @@ begin
         if (opcodes[j].paramtype2=par_mm_m64) and (ismm_m64(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='['))) then
         begin
           //mm,mm/m64
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter1),parameter2);
-          exit;
+          if opcodes[j].paramtype3=par_noparam then
+          begin
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            exit;
+          end;
+
+          if opcodes[j].paramtype3=par_imm8 then
+          begin
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            add(bytes,[v]);
+            exit;
+          end;
         end;
 
         if (opcodes[j].paramtype2=par_xmm_m64) and (isxmm_m64(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='['))) then
@@ -5897,9 +6694,43 @@ begin
       par_ymm: if paramtype1=ttRegisterYMM then
       begin
         //ymm,
-        if (opcodes[j].paramtype2=par_xmm_m128) and (isxmm_m128(paramtype3) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='['))) then
+        if (opcodes[j].paramtype2=par_xmm_m16) and (isxmm_m16(paramtype2,parameter2)) then
         begin
-          //ymm,xmm/m128.   (e.g vcvtdq2pd)
+          //ymm,xmm/m16
+          if opcodes[j].paramtype3=par_noparam then
+          begin
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            exit;
+          end;
+        end;
+
+
+        if (opcodes[j].paramtype2=par_xmm_m32) and (isxmm_m32(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='['))) then
+        begin
+          //ymm,xmm/m32
+          if opcodes[j].paramtype3=par_noparam then
+          begin
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            exit;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_xmm_m64) and (isxmm_m64(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='['))) then
+        begin
+          //ymm,xmm/m64
+          if opcodes[j].paramtype3=par_noparam then
+          begin
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            exit;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_xmm_m128) and (isxmm_m128(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='['))) then
+        begin
+          //ymm,xmm/m128
           if opcodes[j].paramtype3=par_noparam then
           begin
             addopcode(bytes,j);
@@ -5911,6 +6742,42 @@ begin
         if (opcodes[j].paramtype2=par_ymm) and (paramtype2=ttRegisterymm) then
         begin
           //ymm,ymm,
+          if (opcodes[j].paramtype3=par_imm8) and (paramtype3=ttValue) then
+          begin
+            //ymm,ymm,imm8
+            if opcodes[j].vexExtraParam=1 then
+            begin
+              VEXvvvv:=(not getreg(parameter1)) and $f;
+              result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter2);
+              Add(bytes, [v]);
+              exit;
+            end
+            else
+            begin
+              addopcode(bytes,j);
+              result:=createmodrm(bytes,getreg(parameter1),parameter2);
+              Add(bytes, [v]);
+              exit;
+            end;
+          end;
+
+          if (opcodes[j].paramtype3=par_m128) and ((paramtype3=ttMemoryLocation128) or (ismemorylocationdefault(parameter3))) then
+          begin
+            //ymm,ymm,m128,
+            if opcodes[j].paramtype3=par_noparam then
+            begin
+              //ymm,ymm,m128
+              if (opcodes[j].vexExtraParam=2) then
+              begin
+                addopcode(bytes,j);
+                VEXvvvv:=(not getreg(parameter2)) and $f;
+                result:=createmodrm(bytes,getreg(parameter1),parameter3);
+                exit;
+              end;
+            end;
+          end;
+
+
           if (opcodes[j].paramtype3=par_ymm_m256) and (isymm_m256(paramtype3) or ((paramtype3=ttMemorylocation32) and (parameter3[1]='['))) then
           begin
             //ymm,ymm,ymm/m256
@@ -5927,6 +6794,7 @@ begin
 
             if opcodes[j].paramtype4=par_imm8 then
             begin
+              //ymm,ymm,ymm/m256,imm8
               addopcode(bytes,j);
               VEXvvvv:=(not getreg(parameter2)) and $f;
               result:=createmodrm(bytes,getreg(parameter1),parameter3);
@@ -5943,6 +6811,18 @@ begin
               add(bytes,[getreg(parameter4) shl 4]);
               exit;
             end;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_m128) and ((paramtype2=ttMemoryLocation128) or (ismemorylocationdefault(parameter2))) then
+        begin
+          //ymm,m128,
+          if opcodes[j].paramtype3=par_noparam then
+          begin
+            //ymm,m128
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            exit;
           end;
         end;
 
@@ -6000,9 +6880,20 @@ begin
           if opcodes[j].paramtype3=par_imm8 then
           begin
             //xmm,xmm,imm8
-            addopcode(bytes,j);
-            result:=createmodrm(bytes,getreg(parameter1),parameter2);
-            Add(bytes, [v]);
+            if opcodes[j].vexExtraParam=1 then
+            begin
+              VEXvvvv:=(not getreg(parameter1)) and $f;
+              result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter2);
+              Add(bytes, [v]);
+              exit;
+            end
+            else
+            begin
+              addopcode(bytes,j);
+              result:=createmodrm(bytes,getreg(parameter1),parameter2);
+              Add(bytes, [v]);
+              exit;
+            end;
           end;
 
 
@@ -6018,14 +6909,55 @@ begin
             end;
           end;
 
-          if (opcodes[j].paramtype3=par_rm32) and (isrm32(paramtype3) or ((paramtype3=ttMemorylocation32) and (parameter3[1]='['))) then
+          if (opcodes[j].paramtype3=par_r32_m8) and ((paramtype3=ttRegister32Bit) or (paramtype3=ttMemoryLocation8) or (isMemoryLocationDefault(parameter2)) ) then
           begin
-            //xmm,xmm,rm32
-            if opcodes[j].vexExtraParam=2 then
+            //xmm,xmm,r32/m8,
+            if opcodes[j].paramtype4=par_noparam then
             begin
+              if opcodes[j].vexExtraParam=2 then
+              begin
+                addopcode(bytes,j);
+                VEXvvvv:=(not getreg(parameter2)) and $f;
+                result:=createmodrm(bytes,getreg(parameter1),parameter3);
+                exit;
+              end;
+            end;
+
+            if opcodes[j].paramtype4=par_imm8 then
+            begin
+              //xmm,xmm,r32/m8,imm8
               addopcode(bytes,j);
               VEXvvvv:=(not getreg(parameter2)) and $f;
               result:=createmodrm(bytes,getreg(parameter1),parameter3);
+              add(bytes,[strtoint(parameter4)]);
+              exit;
+            end;
+
+          end;
+
+
+          if (opcodes[j].paramtype3=par_rm32) and (isrm32(paramtype3) or ((paramtype3=ttMemorylocation32) and (parameter3[1]='['))) then
+          begin
+            //xmm,xmm,rm32
+            if opcodes[j].paramtype4=par_noparam then
+            begin
+              if opcodes[j].vexExtraParam=2 then
+              begin
+                addopcode(bytes,j);
+                VEXvvvv:=(not getreg(parameter2)) and $f;
+                result:=createmodrm(bytes,getreg(parameter1),parameter3);
+                exit;
+              end;
+            end;
+
+            if opcodes[j].paramtype4=par_imm8 then
+            begin
+              //xmm,xmm,rm32,imm8
+              addopcode(bytes,j);
+              VEXvvvv:=(not getreg(parameter2)) and $f;
+              result:=createmodrm(bytes,getreg(parameter1),parameter3);
+
+              add(bytes,[strtoint(parameter4)]);
               exit;
             end;
           end;
@@ -6059,6 +6991,18 @@ begin
           if (opcodes[j].paramtype3=par_m64) and ((paramtype3=ttMemorylocation64) or (ismemorylocationdefault(parameter3))) then
           begin
             //xmm,xmm,m64,
+            if (opcodes[j].vexExtraParam=2) then
+            begin
+              addopcode(bytes,j);
+              VEXvvvv:=(not getreg(parameter2)) and $f;
+              result:=createmodrm(bytes,getreg(parameter1),parameter3);
+              exit;
+            end;
+          end;
+
+          if (opcodes[j].paramtype3=par_m128) and ((paramtype3=ttMemorylocation128) or (ismemorylocationdefault(parameter3))) then
+          begin
+            //xmm,xmm,m128,
             if (opcodes[j].vexExtraParam=2) then
             begin
               addopcode(bytes,j);
@@ -6123,6 +7067,19 @@ begin
                 exit;
               end;
             end;
+
+            if opcodes[j].paramtype4=par_imm8 then
+            begin
+              //xmm,xmm,xmm/m128,imm8
+              if opcodes[j].vexExtraParam=2 then
+              begin
+                addopcode(bytes,j);
+                VEXvvvv:=(not getreg(parameter2)) and $f;
+                result:=createmodrm(bytes,getreg(parameter1),parameter3);
+                add(bytes,[strtoint(parameter4)]);
+                exit;
+              end;
+            end;
           end;
         end;
 
@@ -6162,6 +7119,19 @@ begin
 
         end;
 
+        if (opcodes[j].paramtype2=par_r32_m8) and ((paramtype2=ttRegister32Bit) or (paramtype2=ttMemoryLocation8) or (isMemoryLocationDefault(parameter2)) ) then
+        begin
+          //xmm,r32/m8,
+          if (opcodes[j].paramtype3=par_imm8) and (paramtype3=ttValue) then
+          begin
+            addopcode(bytes,j);
+            createmodrm(bytes,getreg(parameter1),parameter2);
+            add(bytes,[v]);
+            result:=true;
+            exit;
+          end;
+        end;
+
         if (opcodes[j].paramtype2=par_rm32) and (isrm32(paramtype2)) then
         begin
           //xmm,rm32,
@@ -6180,6 +7150,30 @@ begin
           if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
           begin
             //xmm,mm/m64
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            exit;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_xmm_m8) and isxmm_m8(paramtype2,parameter2) then
+        begin
+          //xmm,xmm/m8,
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            //xmm,xmm/m8
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            exit;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_xmm_m16) and isxmm_m16(paramtype2,parameter2) then
+        begin
+          //xmm,xmm/m16,
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            //xmm,xmm/m16
             addopcode(bytes,j);
             result:=createmodrm(bytes,getreg(parameter1),parameter2);
             exit;
@@ -6231,6 +7225,7 @@ begin
 
         if (opcodes[j].paramtype2=par_xmm_m128) and (isxmm_m128(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='[')))  then
         begin
+          //xmm,xmm/m128,
           if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
           begin
             //xmm,xmm/m128
@@ -6241,6 +7236,7 @@ begin
 
           if (opcodes[j].paramtype3=par_imm8) and (paramtype3=ttValue) then
           begin
+            //xmm,xmm/m128,imm8
             addopcode(bytes,j);
             createmodrm(bytes,getreg(parameter1),parameter2);
             add(bytes,[v]);
@@ -6352,27 +7348,62 @@ begin
 
       par_m128: if ((paramtype1=ttMemorylocation128) or (ismemorylocationdefault(parameter1))) then
       begin
+        //m128,
         if (opcodes[j].paramtype2=par_xmm) and (paramtype2=ttRegisterxmm) then
         begin
+          //m128,xmm
           if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
           begin
             addopcode(bytes,j);
             result:=createmodrm(bytes,getreg(parameter2),parameter1);
             exit;
+          end;
+
+          if (opcodes[j].paramtype3=par_xmm) and (paramtype3=ttRegisterXMM) then
+          begin
+            //m128,xmm,xmm
+            if (opcodes[j].paramtype4=par_noparam) and (parameter4='') then
+            begin
+              if opcodes[j].vexExtraParam=2 then
+              begin
+                addopcode(bytes,j);
+                VEXvvvv:=(not getreg(parameter2)) and $f;
+                result:=createmodrm(bytes,getreg(parameter3),parameter1);
+                exit;
+              end;
+            end;
           end;
         end;
       end;
 
       par_m256: if ((paramtype1=ttMemorylocation256) or (ismemorylocationdefault(parameter1))) then
       begin
+        //m256,
         if (opcodes[j].paramtype2=par_ymm) and (paramtype2=ttRegisterymm) then
         begin
+          //m256,ymm,
           if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
           begin
             addopcode(bytes,j);
             result:=createmodrm(bytes,getreg(parameter2),parameter1);
             exit;
           end;
+
+          if (opcodes[j].paramtype3=par_ymm) and (paramtype3=ttRegisterYMM) then
+          begin
+            //m256,ymm,ymm
+            if (opcodes[j].paramtype4=par_noparam) and (parameter4='') then
+            begin
+              if opcodes[j].vexExtraParam=2 then
+              begin
+                addopcode(bytes,j);
+                VEXvvvv:=(not getreg(parameter2)) and $f;
+                result:=createmodrm(bytes,getreg(parameter3),parameter1);
+                exit;
+              end;
+            end;
+          end;
+
         end;
       end;
 
@@ -6555,8 +7586,11 @@ begin
       //insert rex prefix if needed
       if processhandler.is64bit then
       begin
-        if opcodes[j].norexw then
+        if opcodes[j].W0 then
           REX_W:=false;
+
+        if opcodes[j].W1 then
+          REX_W:=true;
 
         if opcodes[j].hasvex then
         begin
