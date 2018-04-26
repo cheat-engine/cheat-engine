@@ -4491,7 +4491,10 @@ begin
 
   {$ifdef checkassembleralphabet}
   for i:=2 to opcodecount do
-    if opcodes[i].mnemonic<opcodes[i-1].mnemonic then raise exception.Create('FUCK YOU! THE PROGRAMMER WAS STUPID ENOUGH TO MESS THIS PART UP IN PART '+IntToStr(i)+' '+opcodes[i-1].mnemonic+'<'+opcodes[i].mnemonic);
+    if opcodes[i].mnemonic<opcodes[i-1].mnemonic then
+    begin
+      outputdebugstring('FUCK YOU! THE PROGRAMMER WAS STUPID ENOUGH TO MESS THIS PART UP IN PART '+IntToStr(i)+' '+opcodes[i-1].mnemonic+'<'+opcodes[i].mnemonic);
+    end;
   {$endif}
 
   relativeAddressLocation:=-1;
