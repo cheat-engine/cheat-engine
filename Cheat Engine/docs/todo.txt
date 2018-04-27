@@ -2,10 +2,6 @@ structure dissect:
   delete all structures sometimes AV's (no idea how to reproduce)
 
 
-mono dissect: order methods by alphabet
-
-mono invoke: add option for async execution (so it doesn't crash in the pipe)
-
 memview paste: paste for specific displaytype
 memview->rightclick while debugging: Change eip to position, run till position in the context menu as well
 

@@ -9,7 +9,7 @@ uses
   Dialogs, StdCtrls, disassembler, NewKernelHandler, ExtCtrls, Buttons,
   LResources, frmFloatingPointPanelUnit, strutils, cefuncproc, clipbrd, Menus,
   ComCtrls, luahandler, symbolhandler, byteinterpreter, frmStackviewunit,
-  tracerIgnore, commonTypeDefs;
+  tracerIgnore, commonTypeDefs, frmFindDialogUnit;
 
 type TTraceDebugInfo=class
   private
@@ -57,7 +57,6 @@ type
     ESIlabel: TLabel;
     ESlabel: TLabel;
     ESPlabel: TLabel;
-    FindDialog1: TFindDialog;
     FSlabel: TLabel;
     GSlabel: TLabel;
     lblInstruction: TLabel;
@@ -140,6 +139,8 @@ type
 
     stepover: boolean;
     nosystem: boolean;
+
+    finddialog: TfrmFindDialog;
 
     procedure configuredisplay;
     procedure setSavestack(x: boolean);
@@ -739,26 +740,35 @@ var
   check: boolean;
   searchstring: string;
 begin
+  if finddialog=nil then
+  begin
+    finddialog:=TfrmFindDialog.create(Self);
+    finddialog.ShowCaseSensitive:=false;
+  end;
+
   if (sender = miSearchNext) then
     check:=true
   else
   begin
-    finddialog1.FindText:=lastsearchstring;
-    check:=finddialog1.Execute;
+    finddialog.FindText:=lastsearchstring;
+    finddialog.Description:=rsTypeTheLUAConditionYouWantToSearchForExampleEAX0x1;
+    check:=finddialog.Execute;
 //    check:=InputQuery(rsSearch, rsTypeTheLUAConditionYouWantToSearchForExampleEAX0x1, lastsearchstring);
-    lastsearchstring:=finddialog1.FindText;
+    lastsearchstring:=finddialog.FindText;
   end;
 
-  searchstring:='return '+lastsearchstring;
 
   if check then
   begin
+    searchstring:='return '+lastsearchstring;
+
+
     stopsearch:=false;
     progressbar1.Position:=0;
     progressbar1.Max:=lvTracer.items.Count;
     pnlSearch.visible:=true;
 
-    if frDown in finddialog1.Options then
+    if finddialog.direction=fdDown then
     begin
       if lvTracer.Selected=nil then
         i:=0

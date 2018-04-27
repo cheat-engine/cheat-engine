@@ -563,12 +563,4 @@ object frmTracer: TfrmTracer
     left = 72
     top = 248
   end
-  object FindDialog1: TFindDialog
-    Width = 619
-    Height = 136
-    Title = 'Type the (LUA) condition you want to search for (Example: EAX==0x1234)'
-    Options = [frDown, frHideMatchCase, frHideWholeWord, frHideEntireScope, frHidePromptOnReplace]
-    left = 70
-    top = 16
-  end
 end
