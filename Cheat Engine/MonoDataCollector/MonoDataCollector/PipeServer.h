@@ -41,6 +41,7 @@
 #define MONOCMD_GETVTABLEFROMCLASS 35
 #define MONOCMD_GETMETHODPARAMETERS 36
 
+
 typedef struct MonoType;
 typedef struct MonoMethodSignature;
 typedef void * gpointer;
@@ -58,6 +59,7 @@ typedef void* (__cdecl *MONO_OBJECT_GET_CLASS)(void *object);
 typedef void (__cdecl *MONO_DOMAIN_FOREACH)(MonoDomainFunc func, void *user_data);
 
 typedef int (__cdecl *MONO_DOMAIN_SET)(void *domain, BOOL force);
+typedef void* (__cdecl *MONO_DOMAIN_GET)();
 typedef int (__cdecl *MONO_ASSEMBLY_FOREACH)(GFunc func, void *user_data);
 typedef void* (__cdecl *MONO_ASSEMBLY_GET_IMAGE)(void *assembly);
 typedef void* (__cdecl *MONO_ASSEMBLY_OPEN)(void *fname, int *status);
@@ -183,6 +185,7 @@ private:
 
 	MONO_DOMAIN_FOREACH mono_domain_foreach;
 	MONO_DOMAIN_SET mono_domain_set;
+	MONO_DOMAIN_GET mono_domain_get;
 	MONO_ASSEMBLY_FOREACH mono_assembly_foreach;	
 	MONO_ASSEMBLY_GET_IMAGE mono_assembly_get_image;
 	MONO_IMAGE_GET_ASSEMBLY mono_image_get_assembly;

@@ -1848,10 +1848,9 @@ end
 
 
 function mono_invoke_method(domain, method, object, args)
-  --if debug_canBreak() then return nil end
-
   monopipe.lock()
   monopipe.writeByte(MONOCMD_INVOKEMETHOD)
+  
   monopipe.writeQword(domain)
   monopipe.writeQword(method)
   monopipe.writeQword(object)
@@ -1864,8 +1863,15 @@ function mono_invoke_method(domain, method, object, args)
   end
   
   local result=mono_readObject()
-  monopipe.unlock()
-  return result;
+  
+  if monopipe then
+    monopipe.unlock()
+    return result      
+  else
+    --something bad happened
+    LaunchMonoDataCollector()
+    return nil
+  end
   
 end
 

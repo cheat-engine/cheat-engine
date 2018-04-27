@@ -146,6 +146,7 @@ void CPipeServer::InitMono()
 
 			mono_domain_foreach = (MONO_DOMAIN_FOREACH)GetProcAddress(hMono, "mono_domain_foreach");
 			mono_domain_set = (MONO_DOMAIN_SET)GetProcAddress(hMono, "mono_domain_set");
+			mono_domain_get = (MONO_DOMAIN_GET)GetProcAddress(hMono, "mono_domain_get");
 			mono_assembly_foreach = (MONO_ASSEMBLY_FOREACH)GetProcAddress(hMono, "mono_assembly_foreach");
 			mono_assembly_get_image = (MONO_ASSEMBLY_GET_IMAGE)GetProcAddress(hMono, "mono_assembly_get_image");
 			mono_image_get_assembly = (MONO_IMAGE_GET_ASSEMBLY)GetProcAddress(hMono, "mono_image_get_assembly");
@@ -1022,8 +1023,26 @@ void CPipeServer::InvokeMethod(void)
 	// mono_get_root_domain
 	void * result = NULL;
 	void *domain = (void *)ReadQword();
-	if (domain == NULL) 
-		domain = (void *)mono_get_root_domain();
+	void *olddomain = NULL;
+
+	if (mono_domain_get)
+		olddomain = mono_domain_get();
+
+	if (olddomain == NULL)
+	{
+		olddomain=mono_get_root_domain();
+		mono_domain_set(mono_get_root_domain(), true);
+	}
+
+	if (domain == NULL)
+	{
+		domain = olddomain;
+
+		if (domain == NULL)
+			domain = (void *)mono_get_root_domain();
+	}
+
+
 	void *method = (void *)ReadQword();
 	void *pThis = (void *)ReadQword();
 	void *arr = ReadObjectArray(domain);
@@ -1035,8 +1054,21 @@ void CPipeServer::InvokeMethod(void)
 		void **args = GetObjectArrayArgs(arr);
 		if (nargs == paramcount)
 		{
-			mono_thread_attach(domain);
-			result = mono_runtime_invoke(method, pThis, args, NULL /* exception */);
+			if (domain != olddomain)
+				mono_domain_set(domain, FALSE);
+
+			try
+			{
+				result = mono_runtime_invoke(method, pThis, args, NULL /* exception */);				
+			}
+			catch (char *e)
+			{
+				result = NULL;
+			}
+			
+
+			if (domain != olddomain)
+				mono_domain_set(olddomain, FALSE);
 		}
 	}
 	FreeObjectArray(arr);
@@ -1048,7 +1080,7 @@ void CPipeServer::LoadAssemblyFromFile(void)
 	char *imageName = ReadString();
 	int status;
 	void *domain = (void *)mono_get_root_domain();
-	mono_thread_attach(domain);
+	mono_domain_set(domain, FALSE);
 	
 	void *assembly = mono_assembly_open(imageName, &status);
 	WriteQword((UINT_PTR)assembly);
@@ -1251,8 +1283,10 @@ void CPipeServer::Start(void)
 				case MONOCMD_GETFULLTYPENAME:
 					GetFullTypeName();
 					break;
+
 				}
 
+				
 				ExpectingAccessViolations = FALSE;
 			}
 		}
