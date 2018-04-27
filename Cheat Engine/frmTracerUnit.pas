@@ -440,7 +440,7 @@ end;
 
 procedure TfrmTracer.FormCreate(Sender: TObject);
 var tcount: integer;
-    condition: string;
+    startcondition,stopcondition: string;
     x: array of integer;
     testcontext: TContext;
 
@@ -466,7 +466,8 @@ begin
         savestack:= cbSaveStack.checked;
 
         tcount:=strtoint(edtMaxTrace.text);
-        condition:=edtCondition.text;
+        startcondition:=edtStartCondition.text;
+        stopcondition:=edtStopCondition.text;
         stepover:=cbStepOver.checked;
         nosystem:=cbSkipSystemModules.checked;
 
@@ -487,14 +488,14 @@ begin
               memorybrowser.hexview.GetSelectionRange(fromaddress,toaddress);
 
             //set the breakpoint
-            debuggerthread.setBreakAndTraceBreakpoint(self, fromaddress, bpTrigger, 1+(toaddress-fromaddress), tcount, condition, stepover, nosystem);
+            debuggerthread.setBreakAndTraceBreakpoint(self, fromaddress, bpTrigger, 1+(toaddress-fromaddress), tcount, startcondition, stopcondition, stepover, nosystem);
           end
           else
           begin
             if (owner is TMemoryBrowser) then
-              debuggerthread.setBreakAndTraceBreakpoint(self, (owner as TMemoryBrowser).disassemblerview.SelectedAddress, bptExecute, 1, tcount, condition, StepOver, Nosystem)
+              debuggerthread.setBreakAndTraceBreakpoint(self, (owner as TMemoryBrowser).disassemblerview.SelectedAddress, bptExecute, 1, tcount, startcondition, stopcondition, StepOver, Nosystem)
             else
-              debuggerthread.setBreakAndTraceBreakpoint(self, memorybrowser.disassemblerview.SelectedAddress, bptExecute,1, tcount, condition, StepOver, nosystem);
+              debuggerthread.setBreakAndTraceBreakpoint(self, memorybrowser.disassemblerview.SelectedAddress, bptExecute,1, tcount, startcondition, stopcondition, StepOver, nosystem);
           end;
         end;
 

@@ -1545,7 +1545,7 @@ begin
   if debuggerthread<>nil then
   begin
     if ContinueOption=co_stepover then
-      MemoryBrowser.StepOver1Click(memorybrowser.stepover1) //use the memorybrowser step code for this case. Based on the debugstate and not gui state so should work
+      MemoryBrowser.miDebugStepOver.Click //use the memorybrowser step code for this case. Based on the debugstate and not gui state so should work
     else
       debuggerthread.ContinueDebugging(continueoption);
 

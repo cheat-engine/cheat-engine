@@ -68,7 +68,7 @@ type
     miHVFollow: TMenuItem;
     miAddRef: TMenuItem;
     miTextEncodingUTF8: TMenuItem;
-    miSetAddress: TMenuItem;
+    miDebugSetAddress: TMenuItem;
     miGNUAssembler: TMenuItem;
     miBinutilsSelect: TMenuItem;
     miBinUtils: TMenuItem;
@@ -161,10 +161,10 @@ type
     File1: TMenuItem;
     Loadsymbolfile1: TMenuItem;
     Debug1: TMenuItem;
-    Step1: TMenuItem;
-    StepOver1: TMenuItem;
-    Runtill1: TMenuItem;
-    Setbreakpoint1: TMenuItem;
+    miDebugStep: TMenuItem;
+    miDebugStepOver: TMenuItem;
+    miDebugRunTill: TMenuItem;
+    miDebugToggleBreakpoint: TMenuItem;
     View1: TMenuItem;
     Stacktrace1: TMenuItem;
     ScrollBox1: TScrollBox;
@@ -174,11 +174,11 @@ type
     Shape2: TShape;
     Label16: TLabel;
     Shape3: TShape;
-    Run1: TMenuItem;
+    miDebugRun: TMenuItem;
     Threadlist1: TMenuItem;
     Assemble1: TMenuItem;
     N3: TMenuItem;
-    Break1: TMenuItem;
+    miDebugBreak: TMenuItem;
     Extra1: TMenuItem;
     Reservememory1: TMenuItem;
     Savedisassemledoutput1: TMenuItem;
@@ -272,7 +272,7 @@ type
     Referencedstrings1: TMenuItem;
     N18: TMenuItem;
     stacktrace2: TMenuItem;
-    Executetillreturn1: TMenuItem;
+    miDebugExecuteTillReturn: TMenuItem;
     zflabel: TLabel;
     procedure FormActivate(Sender: TObject);
     procedure GotoBookmarkClick(Sender: TObject);
@@ -291,7 +291,7 @@ type
     procedure miAddRefClick(Sender: TObject);
     procedure miHVBackClick(Sender: TObject);
     procedure miHVFollowClick(Sender: TObject);
-    procedure miSetAddressClick(Sender: TObject);
+    procedure miDebugSetAddressClick(Sender: TObject);
     procedure miGNUAssemblerClick(Sender: TObject);
     procedure miBinutilsSelectClick(Sender: TObject);
     procedure miShowRelativeClick(Sender: TObject);
@@ -356,10 +356,10 @@ type
     procedure ScrollBar2Scroll(Sender: TObject; ScrollCode: TScrollCode;
       var ScrollPos: Integer);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure Run1Click(Sender: TObject);
-    procedure Step1Click(Sender: TObject);
-    procedure StepOver1Click(Sender: TObject);
-    procedure Runtill1Click(Sender: TObject);
+    procedure miDebugRunClick(Sender: TObject);
+    procedure miDebugStepClick(Sender: TObject);
+    procedure miDebugStepOverClick(Sender: TObject);
+    procedure miDebugRunTillClick(Sender: TObject);
     procedure Stacktrace1Click(Sender: TObject);
     procedure Threadlist1Click(Sender: TObject);
     procedure Assemble1Click(Sender: TObject);
@@ -368,7 +368,7 @@ type
     procedure HexEditKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure EAXLabelDblClick(Sender: TObject);
-    procedure Break1Click(Sender: TObject);
+    procedure miDebugBreakClick(Sender: TObject);
     procedure Reservememory1Click(Sender: TObject);
     procedure Savememoryregion1Click(Sender: TObject);
     procedure Loadmemolryregion1Click(Sender: TObject);
@@ -439,7 +439,7 @@ type
     procedure Nonsystemmodulesonly1Click(Sender: TObject);
     procedure Referencedstrings1Click(Sender: TObject);
     procedure stacktrace2Click(Sender: TObject);
-    procedure Executetillreturn1Click(Sender: TObject);
+    procedure miDebugExecuteTillReturnClick(Sender: TObject);
     procedure lvStacktraceDataData(Sender: TObject; Item: TListItem);
     procedure lvStacktraceDataDblClick(Sender: TObject);
   private
@@ -579,6 +579,15 @@ type
     procedure miStopDifferenceClick(Sender: TObject);
     procedure Scrollboxscroll(sender: TObject);
     procedure AddToDisassemblerBackList(address: pointer);
+  published
+    //support for old scripts that reference these
+    property Run1: TMenuItem read miDebugRun;
+    property Step1: TMenuItem read miDebugStep;
+    property StepOver1: TMenuItem read miDebugStepOver;
+    property Executetillreturn1: TMenuItem read miDebugExecuteTillReturn;
+    property RunTill1: TMenuItem read miDebugRunTill;
+    property miSetAddress: TMenuItem read miDebugSetAddress;
+    property Setbreakpoint1: TMenuItem read miDebugToggleBreakpoint;
   end;
 
 var
@@ -1170,7 +1179,7 @@ end;
 
 
 
-procedure TMemoryBrowser.miSetAddressClick(Sender: TObject);
+procedure TMemoryBrowser.miDebugSetAddressClick(Sender: TObject);
 begin
   if (debuggerthread<>nil) and (debuggerthread.isWaitingToContinue) then
   begin
@@ -1973,6 +1982,7 @@ var x: array of integer;
   c: tcolor;
 begin
 
+
   MemoryBrowsers.Add(self);
 
   bookmarks[0].setMi:=miSetBookmark0;
@@ -2540,7 +2550,7 @@ begin
   else
   begin
     //do stuff for the main debugger
-    if (debuggerthread<>nil) and (run1.enabled) then run1.click; //run if it was paused
+    if (debuggerthread<>nil) and (miDebugRun.enabled) then miDebugRun.click; //run if it was paused
 
 
     if frmFloatingPointPanel<>nil then
@@ -2551,7 +2561,7 @@ begin
   end;
 end;
 
-procedure TMemoryBrowser.Run1Click(Sender: TObject);
+procedure TMemoryBrowser.miDebugRunClick(Sender: TObject);
 begin
   begin
     if debuggerthread<>nil then
@@ -2565,7 +2575,7 @@ begin
   end;
 end;
 
-procedure TMemoryBrowser.Step1Click(Sender: TObject);
+procedure TMemoryBrowser.miDebugStepClick(Sender: TObject);
 begin
   begin
     if debuggerthread<>nil then
@@ -2577,7 +2587,7 @@ begin
   end;
 end;
 
-procedure TMemoryBrowser.StepOver1Click(Sender: TObject);
+procedure TMemoryBrowser.miDebugStepOverClick(Sender: TObject);
 var x: ptrUint;
     i,j: integer;
     s,s1,s2,temp:string;
@@ -2589,7 +2599,7 @@ begin
   caption:=rsMemoryViewerRunning;
 end;
 
-procedure TMemoryBrowser.Runtill1Click(Sender: TObject);
+procedure TMemoryBrowser.miDebugRunTillClick(Sender: TObject);
 var x: ptrUint;
     i: integer;
     temp:string;
@@ -2980,7 +2990,7 @@ begin
 
 end;
 
-procedure TMemoryBrowser.Break1Click(Sender: TObject);
+procedure TMemoryBrowser.miDebugBreakClick(Sender: TObject);
 //var threadhandle: thandle;
 var
   threadlist: TList;
@@ -3697,7 +3707,7 @@ begin
     //registerview.Visible:=false;
     //splitter2.Visible:=false;
     sbShowFloats.Visible:=false;
-    Setbreakpoint1.visible:=false;
+    miDebugToggleBreakpoint.visible:=false;
 
     caption:=caption+'* ('+inttostr(mbchildcount)+')';
 
@@ -4231,7 +4241,7 @@ begin
   end;
 end;
 
-procedure TMemoryBrowser.Executetillreturn1Click(Sender: TObject);
+procedure TMemoryBrowser.miDebugExecuteTillReturnClick(Sender: TObject);
 var x: ptrUint;
 begin
   begin
@@ -4239,7 +4249,7 @@ begin
     if x>0 then
     begin
       disassemblerview.SelectedAddress:=x;
-      Runtill1.Click;
+      miDebugRunTill.Click;
     end else beep; //not possible
   end;
 end;
@@ -4649,13 +4659,13 @@ begin
 
   scrollbox1.OnResize(scrollbox1);
 
-  run1.Enabled:=true;
-  step1.Enabled:=true;
-  stepover1.Enabled:=true;
-  runtill1.Enabled:=true;
-  miSetAddress.enabled:=true;
+  miDebugRun.Enabled:=true;
+  miDebugStep.Enabled:=true;
+  miDebugStepOver.Enabled:=true;
+  miDebugRunTill.Enabled:=true;
+  miDebugSetAddress.enabled:=true;
   stacktrace1.Enabled:=true;
-  Executetillreturn1.Enabled:=true;
+  miDebugExecuteTillReturn.Enabled:=true;
 
   if threadid<>0 then
     caption:=Format(rsMemoryViewerCurrentlyDebuggingThread, [inttohex(threadid, 1)]);

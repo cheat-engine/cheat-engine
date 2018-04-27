@@ -1306,43 +1306,43 @@ object MemoryBrowser: TMemoryBrowser
     end
     object Debug1: TMenuItem
       Caption = 'Debug'
-      object Run1: TMenuItem
+      object miDebugRun: TMenuItem
         Caption = 'Run'
         Enabled = False
         ShortCut = 120
-        OnClick = Run1Click
+        OnClick = miDebugRunClick
       end
-      object Step1: TMenuItem
+      object miDebugStep: TMenuItem
         Caption = 'Step'
         Enabled = False
         ShortCut = 118
-        OnClick = Step1Click
+        OnClick = miDebugStepClick
       end
-      object StepOver1: TMenuItem
+      object miDebugStepOver: TMenuItem
         Caption = 'Step Over'
         Enabled = False
         ShortCut = 119
-        OnClick = StepOver1Click
+        OnClick = miDebugStepOverClick
       end
-      object Executetillreturn1: TMenuItem
+      object miDebugExecuteTillReturn: TMenuItem
         Caption = 'Execute till return'
         Enabled = False
         ShortCut = 8311
-        OnClick = Executetillreturn1Click
+        OnClick = miDebugExecuteTillReturnClick
       end
-      object Runtill1: TMenuItem
+      object miDebugRunTill: TMenuItem
         Caption = 'Run till...'
         Enabled = False
         ShortCut = 115
-        OnClick = Runtill1Click
+        OnClick = miDebugRunTillClick
       end
-      object miSetAddress: TMenuItem
+      object miDebugSetAddress: TMenuItem
         Caption = 'Set Address'
         Enabled = False
         ShortCut = 16499
-        OnClick = miSetAddressClick
+        OnClick = miDebugSetAddressClick
       end
-      object Setbreakpoint1: TMenuItem
+      object miDebugToggleBreakpoint: TMenuItem
         Caption = 'Toggle breakpoint'
         ShortCut = 116
         OnClick = miTogglebreakpointClick
@@ -1359,9 +1359,9 @@ object MemoryBrowser: TMemoryBrowser
       object N16: TMenuItem
         Caption = '-'
       end
-      object Break1: TMenuItem
+      object miDebugBreak: TMenuItem
         Caption = 'Break'
-        OnClick = Break1Click
+        OnClick = miDebugBreakClick
       end
     end
     object Extra1: TMenuItem
