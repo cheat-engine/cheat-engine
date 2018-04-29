@@ -1,4 +1,4 @@
-# cheat-engine
+# Cheat-engine
 Cheat Engine. A development environment focused on modding games and applications for personal use.
 
 
