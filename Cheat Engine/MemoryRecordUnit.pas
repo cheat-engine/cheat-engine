@@ -2535,13 +2535,13 @@ begin
 
           if showAsHex then
           begin
-            newdecimalvalue:=StrToInt('$'+newvalue);
-            olddecimalvalue:=StrToInt('$'+oldvalue);
+            newdecimalvalue:=StrToQWordEx('$'+newvalue);
+            olddecimalvalue:=StrToQWordEx('$'+oldvalue);
           end
           else
           begin
-            newdecimalvalue:=StrToInt(newvalue);
-            olddecimalvalue:=StrToInt(oldvalue);
+            newdecimalvalue:=StrToQWordEx(newvalue);
+            olddecimalvalue:=StrToQWordEx(oldvalue);
           end;
 
           if (allowIncrease and (newdecimalvalue>olddecimalvalue)) or
