@@ -1303,6 +1303,7 @@ var
   OtherThreadID : DWORD;
   CurrentThreadID : DWORD;
   lockTimeOut: DWORD;
+  pid: dword;
 begin
   if message.LParam <> 0 then
   begin
@@ -1323,6 +1324,11 @@ begin
   else
     case message.WParam of
       0:
+      begin
+        GetWindowThreadProcessId(GetForegroundWindow, pid);
+        ce_openProcess(pid);
+      end;
+      1:
       begin
         //popup/hide CE
         if advancedoptions.Pausebutton.Down then
@@ -1392,7 +1398,7 @@ begin
         formstyle := fsStayOnTop;
       end;
 
-      1: //Pause
+      2: //Pause
       begin
         with advancedoptions do
         begin
@@ -1403,7 +1409,7 @@ begin
         end;
       end;
 
-      2: //speedhack
+      3: //speedhack
       begin
         if cbSpeedhack.Enabled then
         begin
@@ -1413,7 +1419,7 @@ begin
       end;
 
       //3..7=set speedhack speed
-      3:
+      4:
       begin         //todo;active while key down   (launch timer that checks keycombo)
         if cbspeedhack.Enabled then
         begin
@@ -1441,7 +1447,7 @@ begin
         end;
       end;
 
-      4:
+      5:
       begin
         if cbspeedhack.Enabled then
         begin
@@ -1468,7 +1474,7 @@ begin
         end;
       end;
 
-      5:
+      6:
       begin
         if cbspeedhack.Enabled then
         begin
@@ -1495,7 +1501,7 @@ begin
         end;
       end;
 
-      6:
+      7:
       begin
         if cbspeedhack.Enabled then
         begin
@@ -1522,7 +1528,7 @@ begin
         end;
       end;
 
-      7:
+      8:
       begin
         if cbspeedhack.Enabled then
         begin
@@ -1549,7 +1555,7 @@ begin
         end;
       end;
 
-      8:
+      9:
       begin
         //increase speed
         try
@@ -1570,7 +1576,7 @@ begin
       end;
 
 
-      9:
+      10:
       begin
         //decrease speed
         try
@@ -1590,7 +1596,7 @@ begin
         end;
       end;
 
-      10..18: //Change type (if possible)
+      11..19: //Change type (if possible)
       begin
         if vartype.Enabled then
           vartype.ItemIndex := message.WParam - 3
@@ -1600,7 +1606,7 @@ begin
         end;
       end;
 
-      19://new scan
+      20://new scan
       begin
 
         if not btnNewScan.Enabled then
@@ -1615,7 +1621,7 @@ begin
         vartype.OnChange(vartype); //set previous type
       end;
 
-      20: //new scan Exact value
+      21: //new scan Exact value
       begin
 
         if not btnNewScan.Enabled then
@@ -1636,7 +1642,7 @@ begin
         btnNewScan.Click;
       end;
 
-      21: //new scan unknown initial value
+      22: //new scan unknown initial value
       begin
 
         if not btnNewScan.Enabled then
@@ -1656,7 +1662,7 @@ begin
         btnNewScan.Click;
       end;
 
-      22: //next scan Exact value
+      23: //next scan Exact value
       begin
 
         if not btnNewScan.Enabled then
@@ -1674,7 +1680,7 @@ begin
           Errorbeep;
       end;
 
-      23: //next scan IncreasedValue
+      24: //next scan IncreasedValue
       begin
 
         if not btnNewScan.Enabled then
@@ -1692,7 +1698,7 @@ begin
           Errorbeep;
       end;
 
-      24: //next scan DecreasedValue
+      25: //next scan DecreasedValue
       begin
 
         if not btnNewScan.Enabled then
@@ -1710,7 +1716,7 @@ begin
           Errorbeep;
       end;
 
-      25: //next scan ChangedValue
+      26: //next scan ChangedValue
       begin
 
         if not btnNewScan.Enabled then
@@ -1728,7 +1734,7 @@ begin
           Errorbeep;
       end;
 
-      26: //next scan unchangedValue
+      27: //next scan unchangedValue
       begin
 
         if not btnNewScan.Enabled then
@@ -1746,7 +1752,7 @@ begin
           Errorbeep;
       end;
 
-      27: //next scan same as first
+      28: //next scan same as first
       begin
         if not btnNewScan.Enabled then
           exit;
@@ -1763,7 +1769,7 @@ begin
           Errorbeep;
       end;
 
-      28: //undo lastscan
+      29: //undo lastscan
       begin
 
         if not btnNewScan.Enabled then
@@ -1776,13 +1782,13 @@ begin
           Errorbeep;
       end;
 
-      29: //cancel current scan
+      30: //cancel current scan
       begin
         if cancelbutton <> nil then
           cancelbutton.Click;
       end;
 
-      30: //debug->run
+      31: //debug->run
       begin
         MemoryBrowser.Run1.Click;
       end;

@@ -2694,15 +2694,15 @@ var parameters: integer;
 begin
   result:=0;
   parameters:=lua_gettop(L);
-  if parameters=1 then
+  if parameters>=1 then
   begin
-    if lua_isstring(L,-1) then
+    if lua_isstring(L,1) then
     begin
-      pname:=lua.lua_tostring(L,-1);
+      pname:=lua.lua_tostring(L,1);
       pid:=ce_getProcessIDFromProcessName(pname);
     end
     else
-      pid:=lua_tointeger(L,-1);
+      pid:=lua_tointeger(L,1);
 
     lua_pop(L, parameters);
 

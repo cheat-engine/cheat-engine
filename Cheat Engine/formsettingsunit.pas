@@ -369,6 +369,7 @@ resourcestring
   rsExtra = 'Extra';
   rsSigning = 'Signing';
   rsNoName = 'No Name';
+  rsAttachToForegroundProcess = 'Attach to current foreground process';
   rsPopupHideCheatEngine = 'Popup/Hide cheat engine';
   rsPauseTheSelectedProcess = 'Pause the selected process';
   rsToggleTheSpeedhack = 'Toggle the speedhack';
@@ -644,9 +645,10 @@ begin
 
 
           //save the hotkeylist
-          reg.WriteBinaryData('Show Cheat Engine Hotkey',frameHotkeyConfig.newhotkeys[0][0],10);
-          reg.WriteBinaryData('Pause process Hotkey',frameHotkeyConfig.newhotkeys[1][0],10);
-          reg.WriteBinaryData('Toggle speedhack Hotkey',frameHotkeyConfig.newhotkeys[2][0],10);
+          reg.WriteBinaryData('Attach to foregroundprocess Hotkey',frameHotkeyConfig.newhotkeys[1][0],10);
+          reg.WriteBinaryData('Show Cheat Engine Hotkey',frameHotkeyConfig.newhotkeys[1][0],10);
+          reg.WriteBinaryData('Pause process Hotkey',frameHotkeyConfig.newhotkeys[2][0],10);
+          reg.WriteBinaryData('Toggle speedhack Hotkey',frameHotkeyConfig.newhotkeys[3][0],10);
 
 
           reg.WriteFloat('Speedhack 1 speed',frameHotkeyConfig.newspeedhackspeed1.speed);
@@ -666,47 +668,47 @@ begin
           mainunit2.speedhackspeed4:=frameHotkeyConfig.newspeedhackspeed4;
           mainunit2.speedhackspeed5:=frameHotkeyConfig.newspeedhackspeed5;
 
-          reg.WriteBinaryData('Set Speedhack speed 1 Hotkey',frameHotkeyConfig.newhotkeys[3][0],10);
-          reg.WriteBinaryData('Set Speedhack speed 2 Hotkey',frameHotkeyConfig.newhotkeys[4][0],10);
-          reg.WriteBinaryData('Set Speedhack speed 3 Hotkey',frameHotkeyConfig.newhotkeys[5][0],10);
-          reg.WriteBinaryData('Set Speedhack speed 4 Hotkey',frameHotkeyConfig.newhotkeys[6][0],10);
-          reg.WriteBinaryData('Set Speedhack speed 5 Hotkey',frameHotkeyConfig.newhotkeys[7][0],10);
+          reg.WriteBinaryData('Set Speedhack speed 1 Hotkey',frameHotkeyConfig.newhotkeys[4][0],10);
+          reg.WriteBinaryData('Set Speedhack speed 2 Hotkey',frameHotkeyConfig.newhotkeys[5][0],10);
+          reg.WriteBinaryData('Set Speedhack speed 3 Hotkey',frameHotkeyConfig.newhotkeys[6][0],10);
+          reg.WriteBinaryData('Set Speedhack speed 4 Hotkey',frameHotkeyConfig.newhotkeys[7][0],10);
+          reg.WriteBinaryData('Set Speedhack speed 5 Hotkey',frameHotkeyConfig.newhotkeys[8][0],10);
 
-          reg.WriteBinaryData('Increase Speedhack speed',frameHotkeyConfig.newhotkeys[8][0],10);
+          reg.WriteBinaryData('Increase Speedhack speed',frameHotkeyConfig.newhotkeys[9][0],10);
           reg.WriteFloat('Increase Speedhack delta',frameHotkeyConfig.speedupdelta);
 
-          reg.WriteBinaryData('Decrease Speedhack speed',frameHotkeyConfig.newhotkeys[9][0],10);
+          reg.WriteBinaryData('Decrease Speedhack speed',frameHotkeyConfig.newhotkeys[10][0],10);
           reg.WriteFloat('Decrease Speedhack delta',frameHotkeyConfig.slowdowndelta);
 
           mainunit2.speedupdelta:=frameHotkeyConfig.speedupdelta;
           mainunit2.slowdowndelta:=frameHotkeyConfig.slowdowndelta;
 
-          reg.WriteBinaryData('Binary Hotkey',frameHotkeyConfig.newhotkeys[10][0],10);
-          reg.WriteBinaryData('Byte Hotkey',frameHotkeyConfig.newhotkeys[11][0],10);
-          reg.WriteBinaryData('2 Bytes Hotkey',frameHotkeyConfig.newhotkeys[12][0],10);
-          reg.WriteBinaryData('4 Bytes Hotkey',frameHotkeyConfig.newhotkeys[13][0],10);
-          reg.WriteBinaryData('8 Bytes Hotkey',frameHotkeyConfig.newhotkeys[14][0],10);
-          reg.WriteBinaryData('Float Hotkey',frameHotkeyConfig.newhotkeys[15][0],10);
-          reg.WriteBinaryData('Double Hotkey',frameHotkeyConfig.newhotkeys[16][0],10);
-          reg.WriteBinaryData('Text Hotkey',frameHotkeyConfig.newhotkeys[17][0],10);
-          reg.WriteBinaryData('Array of Byte Hotkey',frameHotkeyConfig.newhotkeys[18][0],10);
-          reg.WriteBinaryData('New Scan Hotkey',frameHotkeyConfig.newhotkeys[19][0],10);
-          reg.WriteBinaryData('New Scan-Exact Value',frameHotkeyConfig.newhotkeys[20][0],10);
-          reg.WriteBinaryData('Unknown Initial Value Hotkey',frameHotkeyConfig.newhotkeys[21][0],10);
-          reg.WriteBinaryData('Next Scan-Exact Value',frameHotkeyConfig.newhotkeys[22][0],10);
-          reg.WriteBinaryData('Increased Value Hotkey',frameHotkeyConfig.newhotkeys[23][0],10);
-          reg.WriteBinaryData('Decreased Value Hotkey',frameHotkeyConfig.newhotkeys[24][0],10);
-          reg.WriteBinaryData('Changed Value Hotkey',frameHotkeyConfig.newhotkeys[25][0],10);
-          reg.WriteBinaryData('Unchanged Value Hotkey',frameHotkeyConfig.newhotkeys[26][0],10);
-          reg.WriteBinaryData('Same as first scan Hotkey',frameHotkeyConfig.newhotkeys[27][0],10);
+          reg.WriteBinaryData('Binary Hotkey',frameHotkeyConfig.newhotkeys[11][0],10);
+          reg.WriteBinaryData('Byte Hotkey',frameHotkeyConfig.newhotkeys[12][0],10);
+          reg.WriteBinaryData('2 Bytes Hotkey',frameHotkeyConfig.newhotkeys[13][0],10);
+          reg.WriteBinaryData('4 Bytes Hotkey',frameHotkeyConfig.newhotkeys[14][0],10);
+          reg.WriteBinaryData('8 Bytes Hotkey',frameHotkeyConfig.newhotkeys[15][0],10);
+          reg.WriteBinaryData('Float Hotkey',frameHotkeyConfig.newhotkeys[16][0],10);
+          reg.WriteBinaryData('Double Hotkey',frameHotkeyConfig.newhotkeys[17][0],10);
+          reg.WriteBinaryData('Text Hotkey',frameHotkeyConfig.newhotkeys[18][0],10);
+          reg.WriteBinaryData('Array of Byte Hotkey',frameHotkeyConfig.newhotkeys[19][0],10);
+          reg.WriteBinaryData('New Scan Hotkey',frameHotkeyConfig.newhotkeys[20][0],10);
+          reg.WriteBinaryData('New Scan-Exact Value',frameHotkeyConfig.newhotkeys[21][0],10);
+          reg.WriteBinaryData('Unknown Initial Value Hotkey',frameHotkeyConfig.newhotkeys[22][0],10);
+          reg.WriteBinaryData('Next Scan-Exact Value',frameHotkeyConfig.newhotkeys[23][0],10);
+          reg.WriteBinaryData('Increased Value Hotkey',frameHotkeyConfig.newhotkeys[24][0],10);
+          reg.WriteBinaryData('Decreased Value Hotkey',frameHotkeyConfig.newhotkeys[25][0],10);
+          reg.WriteBinaryData('Changed Value Hotkey',frameHotkeyConfig.newhotkeys[26][0],10);
+          reg.WriteBinaryData('Unchanged Value Hotkey',frameHotkeyConfig.newhotkeys[27][0],10);
+          reg.WriteBinaryData('Same as first scan Hotkey',frameHotkeyConfig.newhotkeys[28][0],10);
 
-          reg.WriteBinaryData('Undo Last scan Hotkey',frameHotkeyConfig.newhotkeys[28][0],10);
-          reg.WriteBinaryData('Cancel scan Hotkey',frameHotkeyConfig.newhotkeys[29][0],10);
-          reg.WriteBinaryData('Debug->Run Hotkey',frameHotkeyConfig.newhotkeys[30][0],10);
+          reg.WriteBinaryData('Undo Last scan Hotkey',frameHotkeyConfig.newhotkeys[29][0],10);
+          reg.WriteBinaryData('Cancel scan Hotkey',frameHotkeyConfig.newhotkeys[30][0],10);
+          reg.WriteBinaryData('Debug->Run Hotkey',frameHotkeyConfig.newhotkeys[31][0],10);
 
 
           //apply these hotkey changes
-          for i:=0 to 30 do
+          for i:=0 to cehotkeycount-1 do
           begin
             found:=false;
 
@@ -1173,7 +1175,7 @@ begin
 
   //fill hotkey list
   for i:=0 to length(hotkeythread.hotkeylist)-1 do
-    if hotkeythread.hotkeylist[i].handler2 and inrange(hotkeythread.hotkeylist[i].id, 0, 30) then
+    if hotkeythread.hotkeylist[i].handler2 and inrange(hotkeythread.hotkeylist[i].id, 0, cehotkeycount-1) then
       framehotkeyconfig.newhotkeys[hotkeythread.hotkeylist[i].id]:=hotkeythread.hotkeylist[i].keys;
 
   framehotkeyconfig.newspeedhackspeed1:=speedhackspeed1;
@@ -1497,6 +1499,7 @@ begin
   with frameHotkeyConfig.ListBox1.items do
   begin
     clear;
+    add(rsAttachToForegroundProcess);
     add(rsPopupHideCheatEngine);
     add(rsPauseTheSelectedProcess);
     add(rsToggleTheSpeedhack);

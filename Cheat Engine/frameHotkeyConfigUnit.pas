@@ -9,6 +9,8 @@ uses
   Dialogs, StdCtrls, ExtCtrls, LResources, Menus, Buttons, CEFuncProc,
   commonTypeDefs;
 
+const cehotkeycount=32;
+
 type
 
   { TframeHotkeyConfig }
@@ -53,7 +55,7 @@ type
     procedure updatespeed;
   public
     { Public declarations }
-    newhotkeys: array [0..30] of tkeycombo;
+    newhotkeys: array [0..cehotkeycount-1] of tkeycombo;
     newspeedhackspeed1: tspeedhackspeed;
     newspeedhackspeed2: tspeedhackspeed;
     newspeedhackspeed3: tspeedhackspeed;
@@ -249,7 +251,7 @@ end;
 procedure TframeHotkeyConfig.MenuItem1Click(Sender: TObject);
 var i: integer;
 begin
-  for i:=0 to 30 do
+  for i:=0 to cehotkeycount-1 do
     newhotkeys[i][0]:=0;
 
   updatehotkey;
