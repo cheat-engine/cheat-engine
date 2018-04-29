@@ -100,7 +100,7 @@ type
     function  isBreakpoint(address: uint_ptr; address2: uint_ptr=0; includeinactive: boolean=false): PBreakpoint;
     function  CodeFinderStop(codefinder: TFoundCodeDialog): boolean;
     function  setChangeRegBreakpoint(regmod: PRegisterModificationBP): PBreakpoint;
-    procedure setBreakAndTraceBreakpoint(frmTracer: TFrmTracer; address: ptrUint; BreakpointTrigger: TBreakpointTrigger; bpsize: integer; count: integer; condition:string=''; stepover: boolean=false; nosystem: boolean=false);
+    procedure setBreakAndTraceBreakpoint(frmTracer: TFrmTracer; address: ptrUint; BreakpointTrigger: TBreakpointTrigger; bpsize: integer; count: integer; startcondition:string=''; stopcondition:string=''; stepover: boolean=false; nosystem: boolean=false);
     function  stopBreakAndTrace(frmTracer: TFrmTracer): boolean;
     function FindWhatCodeAccesses(address: uint_ptr; FoundCodeDialog:TFoundCodeDialog=nil): tfrmChangedAddresses;
     function  FindWhatCodeAccessesStop(frmchangedaddresses: Tfrmchangedaddresses): boolean;
@@ -1640,7 +1640,7 @@ begin
 
 end;
 
-procedure TDebuggerthread.setBreakAndTraceBreakpoint(frmTracer: TFrmTracer; address: ptrUint; BreakpointTrigger: TBreakpointTrigger; bpsize: integer; count: integer; condition:string=''; stepover: boolean=false; nosystem: boolean=false);
+procedure TDebuggerthread.setBreakAndTraceBreakpoint(frmTracer: TFrmTracer; address: ptrUint; BreakpointTrigger: TBreakpointTrigger; bpsize: integer; count: integer; startcondition:string=''; stopcondition:string=''; stepover: boolean=false; nosystem: boolean=false);
 var
   method: TBreakpointMethod;
   useddebugregister: integer;
@@ -1681,11 +1681,26 @@ begin
       end;
     end;
 
+    if startcondition<>'' then
+    begin
+      if assigned(ntSuspendProcess) then
+        ntSuspendProcess(processhandle);
+    end;
+
     bp:=AddBreakpoint(nil, address, bpsize, BreakpointTrigger, method, bo_BreakAndTrace, usedDebugRegister,  nil, 0, nil,frmTracer,count);
+
+    if startcondition<>'' then
+    begin
+      if bp<>nil then
+        setbreakpointcondition(bp, true, startcondition);
+
+      if assigned(ntResumeProcess) then
+        ntResumeProcess(processhandle);
+    end;
 
     if bp<>nil then
     begin
-      bp.traceendcondition:=strnew(pchar(condition));
+      bp.traceendcondition:=strnew(pchar(stopcondition));
       bp.traceStepOver:=stepover;
       bp.traceNosystem:=nosystem;
     end;
@@ -1697,7 +1712,7 @@ begin
       if useddebugregister=-1 then exit;
 
       bpsecondary:=AddBreakpoint(bp, bplist[i].address, bplist[i].size, BreakpointTrigger, method, bo_BreakAndTrace, usedDebugregister,  nil, 0, nil,frmTracer,count);
-      bpsecondary.traceendcondition:=strnew(pchar(condition));
+      bpsecondary.traceendcondition:=strnew(pchar(stopcondition));
       bpsecondary.traceStepOver:=stepover;
       bpsecondary.traceNosystem:=nosystem;
     end;

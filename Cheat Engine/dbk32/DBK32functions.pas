@@ -468,7 +468,9 @@ begin
   result:=true;
   if hdevice=INVALID_HANDLE_VALUE then
   begin
-    SigningIsTheCause^:=failedduetodriversigning;
+    if SigningIsTheCause<>nil then
+      SigningIsTheCause^:=failedduetodriversigning;
+
     result:=false;
   end;
 end;
@@ -2661,16 +2663,15 @@ begin
   end
   else
   begin
-      if dbvm_version>=$ce000006 then
-      begin
-        try
-          result:=dbvm_readMSR(msr); //will raise a GPF if it doesn't exist
-          exit;
-        except
-        end;
-      end
-      else
-        raise exception.create(rsMsrsAreUnavailable);
+    if dbvm_version>=$ce000006 then
+    begin
+      try
+        result:=dbvm_readMSR(msr); //will raise a GPF if it doesn't exist
+      except
+      end;
+    end
+    else
+      raise exception.create(rsMsrsAreUnavailable);
   end;
 end;
 

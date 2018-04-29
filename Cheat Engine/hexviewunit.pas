@@ -12,7 +12,7 @@ uses
 
 type
   TDisplayType = (dtByte, dtByteDec, dtWord, dtWordDec, dtDword, dtDwordDec, dtQword, dtQwordDec, dtSingle, dtDouble);
-  TCharEncoding = (ceAscii, ceUtf8, ceUtf16);
+  TCharEncoding = (ceAscii, ceCodepage, ceUtf8, ceUtf16);
 
 const
   DisplayTypeByteSize: array [dtByte..dtDouble] of integer =(1,1, 2,2, 4, 4, 8,8, 4, 8); //update both if adding something new
@@ -574,6 +574,14 @@ begin
     if CharEncoding=ceAscii then
     begin
       WriteProcessMemory(processhandle, pointer(selected), @wkey[1],1, bw);
+      inc(Selected);
+    end
+    else
+    if CharEncoding=ceCodepage then
+    begin
+      s:=UTF8ToWinCP(wkey);
+
+      WriteProcessMemory(processhandle, pointer(selected), @s[1],length(s), bw);
       inc(Selected);
     end
     else
@@ -1734,8 +1742,11 @@ begin
       result:='.'
     else
       result:=chr(b);
-
-
+  end
+  else
+  if fCharEncoding=ceCodepage then
+  begin
+    result:=chr(b);
   end
   else
   if fCharEncoding=ceutf8 then
@@ -1972,6 +1983,7 @@ begin
   begin
     case CharEncoding of
       ceAscii: selectedcharsize:=1;
+      ceCodePage: selectedcharsize:=1;
       ceUtf8: selectedcharsize:=getUTF8CharByteLength(selected);
       ceUtf16: selectedcharsize:=getUTF16CharByteLength(selected);
     end;

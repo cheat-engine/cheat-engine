@@ -62,6 +62,7 @@ type
     MenuItem26: TMenuItem;
     MenuItem27: TMenuItem;
     MenuItem28: TMenuItem;
+    miTextEncodingCodePage: TMenuItem;
     miSVCopy: TMenuItem;
     miShowRelative: TMenuItem;
     miHVBack: TMenuItem;
@@ -1385,6 +1386,9 @@ procedure TMemoryBrowser.miTextEncodingClick(Sender: TObject);
 begin
   if miTextEncodingAscii.checked then
     hexview.CharEncoding:=ceAscii
+  else
+  if miTextEncodingCodePage.checked then
+    hexview.CharEncoding:=ceCodepage
   else
   if miTextEncodingUTF8.checked then
     hexview.CharEncoding:=ceUtf8

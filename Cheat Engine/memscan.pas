@@ -206,6 +206,8 @@ type
     currentAddress: PtrUInt;
 
     //check routines:
+    function Unknown(newvalue,oldvalue: pointer): boolean;
+
     function ByteExact(newvalue,oldvalue: pointer): boolean;
     function ByteBetween(newvalue,oldvalue: pointer): boolean;
     function SignedByteBetween(newvalue,oldvalue: pointer): boolean;
@@ -295,6 +297,7 @@ type
     function DoubleChanged(newvalue,oldvalue: pointer): boolean;
     function DoubleUnChanged(newvalue,oldvalue: pointer): boolean;
 
+    function AllUnknown(newvalue,oldvalue: pointer):boolean; //check byte,word,dword,qword,single and float
     function AllExact(newvalue,oldvalue: pointer):boolean; //check byte,word,dword,qword,single and float
     function AllBetween(newvalue,oldvalue: pointer): boolean;
     function SignedAllBetween(newvalue,oldvalue: pointer): boolean;
@@ -1357,6 +1360,16 @@ end;
 
 //-----------=====Scanner check routines=====--------------//
 
+function TScanner.AllUnknown(newvalue, oldvalue: pointer): boolean;
+begin
+  typesmatch[vtByte]:=typesmatch[vtByte];
+  typesmatch[vtWord]:=typesmatch[vtWord];
+  typesmatch[vtDword]:=typesmatch[vtDword];
+  typesmatch[vtQword]:=typesmatch[vtQword];
+  typesmatch[vtSingle]:=typesmatch[vtSingle];
+  typesmatch[vtDouble]:=typesmatch[vtDouble];
+end;
+
 function TScanner.AllExact(newvalue,oldvalue: pointer):boolean;
 var i: TVariableType;
   j: integer;
@@ -2128,6 +2141,11 @@ begin
 
   //no need for a result here, for binary that isn't checked (special case)
   result:=true; //let the store result routine deal with it
+end;
+
+function TScanner.Unknown(newvalue,oldvalue: pointer): boolean;
+begin
+  result:=true;
 end;
 
 //byte:
@@ -4329,6 +4347,7 @@ begin
       StoreResultRoutine:=ByteSaveResult;
 
       case scanOption of
+        soForgot:           CheckRoutine:=Unknown;
         soExactValue:       checkRoutine:=byteExact;
         soValueBetween:     if percentage then
                               checkroutine:=byteBetweenPercentage
@@ -4363,6 +4382,7 @@ begin
       StoreResultRoutine:=WordSaveResult;
 
       case scanOption of
+        soForgot:           CheckRoutine:=Unknown;
         soExactValue:       checkRoutine:=wordExact;
         soValueBetween:     if percentage then
                               checkroutine:=wordBetweenPercentage
@@ -4399,6 +4419,7 @@ begin
       StoreResultRoutine:=DWordSaveResult;
 
       case scanOption of
+        soForgot:           CheckRoutine:=Unknown;
         soExactValue:       checkRoutine:=dwordExact;
         soValueBetween:     if percentage then
                               checkroutine:=dwordBetweenPercentage
@@ -4435,6 +4456,7 @@ begin
       StoreResultRoutine:=QWordSaveResult;
 
       case scanOption of
+        soForgot:           CheckRoutine:=Unknown;
         soExactValue:       checkRoutine:=qwordExact;
         soValueBetween:     if percentage then
                               checkroutine:=qwordBetweenPercentage
@@ -4469,6 +4491,7 @@ begin
       StoreResultRoutine:=SingleSaveResult;
 
       case scanOption of
+        soForgot:           CheckRoutine:=Unknown;
         soExactValue:       checkRoutine:=singleExact;
         soValueBetween:     if percentage then
                               checkroutine:=singleBetweenPercentage
@@ -4499,6 +4522,7 @@ begin
       StoreResultRoutine:=doubleSaveResult;
 
       case scanOption of
+        soForgot:           CheckRoutine:=Unknown;
         soExactValue:       checkRoutine:=doubleExact;
         soValueBetween:     if percentage then
                               checkroutine:=DoubleBetweenPercentage
@@ -4591,6 +4615,7 @@ begin
       StoreResultRoutine:=allSaveResult;
       FlushRoutine:=allFlush;
       case scanOption of
+        soForgot:           CheckRoutine:=allUnknown;
         soExactValue:       checkRoutine:=allExact;
         soValueBetween:     if percentage then
                               checkroutine:=allBetweenPercentage
@@ -4635,6 +4660,7 @@ begin
       if customType.scriptUsesFloat then
       begin
         case scanOption of
+          soForgot:           CheckRoutine:=Unknown;
           soExactValue:       checkRoutine:=customFloatExact;
           soValueBetween:     if percentage then
                                 checkroutine:=customFloatBetweenPercentage
@@ -4659,6 +4685,7 @@ begin
       else
       begin
         case scanOption of
+          soForgot:           CheckRoutine:=Unknown;
           soExactValue:       checkRoutine:=customExact;
           soValueBetween:     if percentage then
                                 checkroutine:=customBetweenPercentage

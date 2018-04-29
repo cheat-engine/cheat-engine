@@ -728,6 +728,13 @@ object MemoryBrowser: TMemoryBrowser
         RadioItem = True
         OnClick = miTextEncodingClick
       end
+      object miTextEncodingCodePage: TMenuItem
+        AutoCheck = True
+        Caption = 'Codepage'
+        GroupIndex = 1
+        RadioItem = True
+        OnClick = miTextEncodingClick
+      end
       object miTextEncodingUTF8: TMenuItem
         AutoCheck = True
         Caption = 'UTF-8'

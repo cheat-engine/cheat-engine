@@ -858,23 +858,23 @@ object MainForm: TMainForm
         ParentShowHint = False
       end
     end
-    object Button2: TButton
+    object btnFirst: TButton
       Left = 184
       Height = 25
       Top = 8
       Width = 75
       Caption = 'First Scan2'
-      OnClick = Button2Click
+      OnClick = btnFirstClick
       TabOrder = 11
       Visible = False
     end
-    object Button4: TButton
+    object btnNext: TButton
       Left = 272
       Height = 25
       Top = 8
       Width = 75
       Caption = 'Next scan 2'
-      OnClick = Button4Click
+      OnClick = btnNextClick
       TabOrder = 12
       Visible = False
     end
@@ -2042,6 +2042,15 @@ object MainForm: TMainForm
     end
     object MenuItem13: TMenuItem
       Caption = '-'
+    end
+    object miForgotScan: TMenuItem
+      Caption = 'Reload the previous value list (Forgot value scan)'
+      Visible = False
+      OnClick = miForgotScanClick
+    end
+    object MenuItem14: TMenuItem
+      Caption = '-'
+      Visible = False
     end
     object miFlFindWhatAccesses: TMenuItem
       Caption = 'Find out what accesses this address'

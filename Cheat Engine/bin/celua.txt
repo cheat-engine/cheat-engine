@@ -2392,14 +2392,14 @@ dbvm_watch_disable(ID) : Disables the watch operation
 
 
 dbvm_cloak_activate(physicalbase, virtualbase OPTIONAL): 
-  Hides an executable memory range (4096 bytes) from the system
+  Hides an executable memory range (4096 bytes) from snooping eyes
   Note: It is recommended to cause a copy-on-write on the target first, else this will affect all processes that have this memory block loaded
 dbvm_cloak_deactivate(physicalbase): Disables the cloak and restores the executable memory to what the system thinks it is
 dbvm_cloak_readOriginal(physicalbase): Reads the memory that will get executed.  On success returns a 4096 byte long bytetable (remember, lua indexes start at 1, so offset 0 is index 1)
 dbvm_cloak_writeOriginal(physicalbase, bytetable[4096]): Writes the memory that will get executed. 
 
 dbvm_changeregonbp(address, changereginfo, virtualaddress OPTIONAL): boolean
-  cloaks the given page and sets a software breakpoint at the given position. When a breakpoint hits the registers will be changed according to the changereginfo table
+  sets a breakpoint at the given position. When a breakpoint hits the registers will be changed according to the changereginfo table
     changereginfo table:  (set the field to nil, or don't define it, if you don't want to change it)
       newCF: integer/boolean (false=0, true=1) 
       newPF: integer/boolean (false=0, true=1) 

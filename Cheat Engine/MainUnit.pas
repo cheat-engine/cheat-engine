@@ -170,7 +170,7 @@ type
       Enabled: boolean;
     end;
 
-    button2: record
+    btnFirst: record
       tag: integer;
     end;
 
@@ -258,6 +258,8 @@ type
     lblSigned: TLabel;
     MainMenu2: TMainMenu;
     MenuItem12: TMenuItem;
+    MenuItem14: TMenuItem;
+    miForgotScan: TMenuItem;
     miDotNET: TMenuItem;
     miGetDotNetObjectList: TMenuItem;
     miDBVMFindWhatWritesOrAccesses: TMenuItem;
@@ -456,8 +458,8 @@ type
     UpdateFoundlisttimer: TTimer;
     Browsethismemoryregioninthedisassembler1: TMenuItem;
     AutoAttachTimer: TTimer;
-    Button2: TButton;
-    Button4: TButton;
+    btnFirst: TButton;
+    btnNext: TButton;
     LogoPanel: TPanel;
     Logo: TImage;
     MainMenu1: TMainMenu;
@@ -505,6 +507,7 @@ type
     procedure Foundlist3SelectItem(Sender: TObject; Item: TListItem;
       Selected: boolean);
     procedure MenuItem12Click(Sender: TObject);
+    procedure miForgotScanClick(Sender: TObject);
     procedure miGetDotNetObjectListClick(Sender: TObject);
     procedure miChangeValueBackClick(Sender: TObject);
     procedure miDBVMFindWhatWritesOrAccessesClick(Sender: TObject);
@@ -656,8 +659,8 @@ type
     procedure Foundlist3KeyDown(Sender: TObject; var Key: word; Shift: TShiftState);
     procedure Browsethismemoryregioninthedisassembler1Click(Sender: TObject);
     procedure AutoAttachTimerTimer(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
-    procedure Button4Click(Sender: TObject);
+    procedure btnFirstClick(Sender: TObject);
+    procedure btnNextClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure tbSpeedChange(Sender: TObject);
     procedure btnSetSpeedhack2Click(Sender: TObject);
@@ -3088,6 +3091,30 @@ begin
   shellexecute(0, 'open', pchar(cheatenginedir+'Tutorial-x86_64.exe'), nil, nil, sw_show);
 end;
 
+procedure TMainForm.miForgotScanClick(Sender: TObject);
+begin
+  if PreviousResults<>nil then
+    freeandnil(PreviousResults);
+
+  foundlist.Deinitialize; //unlock file handles
+
+  if cbPauseWhileScanning.Checked then
+  begin
+    advancedoptions.Pausebutton.down := True;
+    advancedoptions.Pausebutton.Click;
+  end;
+
+  ProgressBar.min := 0;
+  ProgressBar.max := 1000;
+  ProgressBar.position := 0;
+
+  lastscantype := scantype.ItemIndex;
+  memscan.nextscan(soForgot, rtRounded,'','', false, false,false,false,false,false,'');
+  DisableGui;
+  SpawnCancelButton;
+end;
+
+
 procedure TMainForm.miGetDotNetObjectListClick(Sender: TObject);
 begin
   if frmDotNetObjectList=nil then
@@ -4236,7 +4263,7 @@ begin
   else
     scanstate.cbpercentage.exists := False;
 
-  scanstate.button2.tag := button2.tag;
+  scanstate.btnFirst.tag := btnFirst.tag;
   scanstate.foundlist3.ItemIndex := foundlist3.ItemIndex;
 
   scanstate.foundlistDisplayOverride:=foundlistDisplayOverride;
@@ -4389,7 +4416,7 @@ begin
     else
       DestroyCbPercentage;
 
-    button2.tag := newstate.button2.tag;
+    btnFirst.tag := newstate.btnFirst.tag;
 
     scantype.OnChange := ScanTypeChange;
     VarType.OnChange := VarTypeChange;
@@ -4880,12 +4907,12 @@ end;
 
 procedure TMainForm.btnNewScanClick(Sender: TObject);
 begin
-  button2.click; //now completely replaced
+  btnFirst.click; //now completely replaced
 end;
 
 procedure TMainForm.btnNextScanClick(Sender: TObject);
 begin
-  button4.click;
+  btnNext.click;
 end;
 
 procedure TMainForm.btnMemoryViewClick(Sender: TObject);
@@ -6352,12 +6379,20 @@ end;
 
 
 procedure TMainForm.PopupMenu2Popup(Sender: TObject);
+const
+  IA32_VMX_BASIC_MSR=$480;
+  IA32_VMX_TRUE_PROCBASED_CTLS_MSR=$48e;
+  IA32_VMX_PROCBASED_CTLS_MSR=$482;
+  IA32_VMX_PROCBASED_CTLS2_MSR=$48b;
 var
   i: integer;
 
   //6.0
   selectionCount: integer;
   selectedrecord: TMemoryRecord;
+  canuseEPT: boolean;
+
+  procbased1flags: DWORD;
 begin
   sethotkey1.Caption := rsSetChangeHotkeys;
 
@@ -6485,9 +6520,36 @@ begin
 
   miSetDropdownOptions.visible:=addresslist.selcount > 0;
 
-  sep2.Visible:=Findoutwhataccessesthisaddress1.Visible and isDBVMCapable and isIntel;
-  miDBVMFindWhatWritesOrAccesses.visible:=Findoutwhataccessesthisaddress1.Visible and isDBVMCapable and isIntel;
 
+  canuseEPT:=false;
+  if isIntel and isDBVMCapable then
+  begin
+    if isDriverLoaded(nil) then
+    begin
+      //check if it can use EPT tables in dbvm:
+      //first get the basic msr to see if TRUE procbasedctrls need to be used or old
+      if (readMSR(IA32_VMX_BASIC_MSR) and (1 shl 55))<>0 then
+        procbased1flags:=readMSR(IA32_VMX_TRUE_PROCBASED_CTLS_MSR) shr 32
+      else
+        procbased1flags:=readMSR(IA32_VMX_PROCBASED_CTLS_MSR) shr 32;
+
+      //check if it has secondary procbased flags
+      if (procbased1flags and (1 shl 31))<>0 then
+      begin
+        //yes, check if EPT can be set to 1
+        if ((readMSR(IA32_VMX_PROCBASED_CTLS2_MSR) shr 32) and (1 shl 1))<>0 then
+        begin
+          canuseEPT:=true;
+        end;
+      end;
+
+
+
+    end;
+  end;
+
+  sep2.Visible:=Findoutwhataccessesthisaddress1.Visible and canuseEPT;
+  miDBVMFindWhatWritesOrAccesses.visible:=Findoutwhataccessesthisaddress1.Visible and canuseEPT;
 end;
 
 procedure TMainForm.foundlistpopupPopup(Sender: TObject);
@@ -6590,6 +6652,10 @@ begin
           mi.Checked:=true;
       end;
     end;
+
+
+    menuitem14.visible:=(memscan.LastScanType=stNextScan) and (memscan.VarType in [vtAll, vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble]);      ;
+    miForgotScan.visible:=(memscan.LastScanType=stNextScan) and (memscan.VarType in [vtAll, vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble]);      ;
   end;
 end;
 
@@ -6848,7 +6914,7 @@ begin
       with TformPointerOrPointee.Create(self) do
       begin
         button1.Caption := rsFindOutWhatAccessesThisPointer;
-        button2.Caption := rsFindWhatAccessesTheAddressPointedAtByThisPointer;
+        btnFirst.Caption := rsFindWhatAccessesTheAddressPointedAtByThisPointer;
 
         res := showmodal;
         if res = mrNo then //find what writes to the address pointer at by this pointer
@@ -6923,7 +6989,7 @@ begin
       with TformPointerOrPointee.Create(self) do
       begin
         button1.Caption := rsFindOutWhatAccessesThisPointer;
-        button2.Caption := rsFindWhatAccessesTheAddressPointedAtByThisPointer;
+        btnFirst.Caption := rsFindWhatAccessesTheAddressPointedAtByThisPointer;
 
         res := showmodal;
         if res = mrNo then //find what writes to the address pointer at by this pointer
@@ -6961,7 +7027,7 @@ begin
       with TformPointerOrPointee.Create(self) do
       begin
         button1.Caption := rsFindOutWhatWritesThisPointer;
-        button2.Caption := rsFindWhatWritesTheAddressPointedAtByThisPointer;
+        btnFirst.Caption := rsFindWhatWritesTheAddressPointedAtByThisPointer;
 
         res := showmodal;
         if res = mrNo then //find what writes to the address pointer at by this pointer
@@ -8910,7 +8976,7 @@ end;
 
 
 
-procedure TMainForm.Button2Click(Sender: TObject);
+procedure TMainForm.btnFirstClick(Sender: TObject);
 var
   svalue2: string;
   percentage: boolean;
@@ -8931,7 +8997,7 @@ begin
     percentage := False;
 
 
-  if button2.tag = 0 then
+  if btnFirst.tag = 0 then
   begin
     if ScanTabList <> nil then
       ScanTabList.Enabled := False;
@@ -8997,10 +9063,10 @@ begin
     SpawnCancelButton;
 
   end
-  else if button2.tag = 2 then
+  else if btnFirst.tag = 2 then
   begin
     //btnNewScan
-    button2.Tag := 0;
+    btnFirst.Tag := 0;
     donewscan;
     memscan.newscan; //cleanup memory and terminate all background threads
   end;
@@ -9022,9 +9088,9 @@ begin
   i := 0;
   canceled := False;
 
-  button2.Tag := 2;
-  button2.Caption := rsScan;
-  button4.tag := 0;
+  btnFirst.Tag := 2;
+  btnFirst.Caption := rsScan;
+  btnNext.tag := 0;
   ProgressBar.Position := 0;
 
 
@@ -9142,7 +9208,8 @@ begin
   TTimer(Sender).Enabled := False;
 end;
 
-procedure TMainForm.Button4Click(Sender: TObject);
+
+procedure TMainForm.btnNextClick(Sender: TObject);
 var
   svalue2: string;
   estimateddiskspaceneeded: qword;
@@ -9157,6 +9224,7 @@ begin
   if estimateddiskspaceneeded>diskspacefree then
     if MessageDlg(rsYouAreLowOnDiskspaceOnTheFolderWhereTheScanresults, mtwarning, [mbyes, mbno], 0)<>mryes then exit;
      }
+
 
 
   if cbpercentage <> nil then
@@ -9639,7 +9707,6 @@ begin
           7: result:=soDecreasedValueBy;
           8: result:=soChanged;
           9: result:=soUnchanged;
-
         end;
       end;
     end;
