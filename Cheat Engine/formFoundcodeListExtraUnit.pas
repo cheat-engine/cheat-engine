@@ -200,6 +200,7 @@ begin
   Constraints.MaxHeight:=panel5.Top+panel5.height+10;
   Constraints.MinHeight:=Constraints.MaxHeight;
 
+  autosize:=false;
 end;
 
 procedure TFormFoundCodeListExtra.Label1DblClick(Sender: TObject);

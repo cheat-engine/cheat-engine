@@ -1,7 +1,7 @@
 object frmFindDialog: TfrmFindDialog
-  Left = 480
+  Left = 1016
   Height = 127
-  Top = 247
+  Top = 149
   Width = 234
   AutoSize = True
   Caption = 'Find'
