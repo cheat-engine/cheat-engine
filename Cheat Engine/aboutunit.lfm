@@ -1,15 +1,15 @@
 object About: TAbout
-  Left = 0
-  Height = 365
-  Top = 83
-  Width = 624
+  Left = 753
+  Height = 310
+  Top = 272
+  Width = 488
   HelpContext = 2
   AutoSize = True
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'About Cheat Engine'
-  ClientHeight = 365
-  ClientWidth = 624
+  ClientHeight = 310
+  ClientWidth = 488
   OnClose = FormClose
   OnShow = FormShow
   PopupMode = pmAuto
@@ -17,14 +17,14 @@ object About: TAbout
   LCLVersion = '1.6.4.0'
   object GroupBox1: TGroupBox
     Left = 0
-    Height = 365
+    Height = 310
     Top = 0
-    Width = 624
+    Width = 488
     Align = alClient
     AutoSize = True
-    Caption = 'Cheat Engine 6.7'
-    ClientHeight = 345
-    ClientWidth = 620
+    Caption = 'Cheat Engine 6.8'
+    ClientHeight = 290
+    ClientWidth = 484
     TabOrder = 0
     object Label2: TLabel
       AnchorSideTop.Control = Label10
@@ -397,7 +397,7 @@ object About: TAbout
       Left = 5
       Height = 15
       Top = 232
-      Width = 572
+      Width = 436
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Left = 5
       BorderSpacing.Top = 5
@@ -414,9 +414,9 @@ object About: TAbout
       AnchorSideRight.Side = asrBottom
       AnchorSideBottom.Control = GroupBox1
       AnchorSideBottom.Side = asrBottom
-      Left = 577
+      Left = 441
       Height = 25
-      Top = 319
+      Top = 264
       Width = 42
       Anchors = [akRight, akBottom]
       AutoSize = True
@@ -430,7 +430,7 @@ object About: TAbout
       AnchorSideTop.Control = GroupBox1
       AnchorSideRight.Control = GroupBox1
       AnchorSideRight.Side = asrBottom
-      Left = 540
+      Left = 404
       Height = 41
       Top = 0
       Width = 80
@@ -652,7 +652,7 @@ object About: TAbout
       AnchorSideLeft.Control = GroupBox1
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Control = GroupBox1
-      Left = 259
+      Left = 191
       Height = 15
       Top = 0
       Width = 102

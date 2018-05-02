@@ -14,7 +14,7 @@ uses windows, dialogs,forms,classes,LCLIntf, LCLProc, sysutils,registry,ComCtrls
 const ceversion=6.8;
 
 resourcestring
-  cename = 'Cheat Engine 6.8 pre-alpha 0.0.0.3';
+  cename = 'Cheat Engine 6.8 Beta 1';
   rsPleaseWait = 'Please Wait!';
 
 procedure UpdateToolsMenu;

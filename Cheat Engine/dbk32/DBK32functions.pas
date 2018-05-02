@@ -437,7 +437,7 @@ resourcestring
   rsTheServiceCouldntGetOpenedUltimap = 'The ultimap service couldn''t get opened and also couldn''t get created.  (No admin rights?)';
   rsTheServiceCouldntGetOpened = 'The service couldn''t get opened and also couldn''t get created.'+' Check if you have the needed rights to create a service, or call your system admin (Who''ll probably beat you up for even trying this). Until this is fixed you won''t be able to make use of the enhancements the driver gives you';
   rsTheDriverCouldntBeOpened = 'The driver couldn''t be opened! It''s not loaded or not responding. Luckely you are running dbvm so it''s not a total waste. Do you wish to force load the driver?';
-  rsTheDriverCouldntBeOpenedTryAgain = 'The driver couldn''t be opened! It''s not loaded or not responding. I recommend to reboot your system and try again (If you''re on 64-bit windows, you might want to use dbvm)';
+  rsTheDriverCouldntBeOpenedTryAgain = 'The driver couldn''t be opened! It''s not loaded or not responding. I recommend to reboot your system and try again';
   rsTheDriverThatIsCurrentlyLoaded = 'The driver that is currently loaded belongs to a different version of Cheat Engine. Please unload this driver or reboot.';
   rsTheDriverFailedToSuccessfullyInitialize = 'The driver failed to successfully initialize. Some functions may not completely work';
   rsAPCRules = 'APC rules';
@@ -2740,6 +2740,7 @@ var
   fc: dword;
 begin
 
+
   if (hdevice<>INVALID_HANDLE_VALUE) then
   begin
     Outputdebugstring('LaunchDBVM');
@@ -2802,6 +2803,8 @@ end;
 
 procedure LaunchDBVM(cpuid: integer); stdcall;
 begin
+  LoadDBK32;
+
   OutputDebugString('LaunchDBVM('+inttostr(cpuid)+') Before check');
 
   if (not vmx_enabled) or (cpuid<>-1) then

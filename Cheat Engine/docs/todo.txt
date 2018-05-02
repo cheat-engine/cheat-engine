@@ -1,3 +1,5 @@
+load plugins from tables
+
 structure dissect: 
   delete all structures sometimes AV's (no idea how to reproduce)
 
@@ -16,10 +18,9 @@ memview debugging: add a toolbar for single step/step over so you can debug by c
 
 dbvm_speedhack
 
-lua getWindowlist does not return the same list as the windowlist
-
-
 find higher resolution icons
+
+graphical tutorial: continue with it
 
 linux: make a 32-bit linux build with .so injection support
 memscan: Don't combine the scanresults into a single file. Leave them split up (skip: for 6.7 or 7.0)
@@ -27,3 +28,6 @@ memscan: Don't combine the scanresults into a single file. Leave them split up (
 ceshare: continue with it
 pseudocode: continue with it
 mac version: work on it
+
+
+make more frequent releases ffs

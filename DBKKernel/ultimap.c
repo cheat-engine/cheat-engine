@@ -411,7 +411,7 @@ VOID ultimap_pause_dpc(IN struct _KDPC *Dpc, IN PVOID DeferredContext, IN PVOID 
 
 void ultimap_pause(void)
 {
-	forEachCpu(ultimap_pause_dpc, NULL, NULL, NULL);
+	forEachCpu(ultimap_pause_dpc, NULL, NULL, NULL, NULL);
 }
 
 VOID ultimap_resume_dpc(IN struct _KDPC *Dpc, IN PVOID DeferredContext, IN PVOID SystemArgumen1, IN PVOID SystemArgument2)
@@ -421,7 +421,7 @@ VOID ultimap_resume_dpc(IN struct _KDPC *Dpc, IN PVOID DeferredContext, IN PVOID
 
 void ultimap_resume(void)
 {
-	forEachCpu(ultimap_resume_dpc, NULL, NULL, NULL);
+	forEachCpu(ultimap_resume_dpc, NULL, NULL, NULL, NULL);
 }
 
 VOID ultimap_disable_dpc(IN struct _KDPC *Dpc, IN PVOID DeferredContext, IN PVOID SystemArgumen1, IN PVOID SystemArgument2)
@@ -451,7 +451,7 @@ void ultimap_disable(void)
 	{
 		int i;
 
-		forEachCpu(ultimap_disable_dpc, NULL, NULL, NULL);
+		forEachCpu(ultimap_disable_dpc, NULL, NULL, NULL, NULL);
 
 		if (SaveToFile && FileHandle) 
 		{		
@@ -709,7 +709,7 @@ NTSTATUS ultimap(UINT64 cr3, UINT64 dbgctl_msr, int _DS_AREA_SIZE, BOOL savetofi
 
 		DbgPrint("HalSetSystemInformation returned %x\n", r);
 
-		forEachCpu(ultimap_setup_dpc, &params, NULL, NULL);
+		forEachCpu(ultimap_setup_dpc, &params, NULL, NULL, NULL);
 		return STATUS_SUCCESS;
 	}
 	else

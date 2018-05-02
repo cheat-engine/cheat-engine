@@ -167,37 +167,43 @@
   <PropertyGroup />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
-    <TargetName>$(TargetName.Replace(' ',''))-32</TargetName>
+    <TargetName>ULTIMAP-32</TargetName>
+    <OutDir>..\Cheat Engine\bin\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <TimeStampServer>http://timestamp.globalsign.com/scripts/timstamp.dll</TimeStampServer>
     <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
-    <TargetName>$(TargetName.Replace(' ',''))-32</TargetName>
+    <TargetName>ULTIMAP-32</TargetName>
+    <OutDir>..\Cheat Engine\bin\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug but signed|Win32'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <TimeStampServer>http://timestamp.globalsign.com/scripts/timstamp.dll</TimeStampServer>
     <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
     <EnableInf2cat>false</EnableInf2cat>
-    <TargetName>$(TargetName.Replace(' ',''))-32</TargetName>
+    <TargetName>ULTIMAP-32</TargetName>
+    <OutDir>..\Cheat Engine\bin\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
-    <TargetName>$(TargetName.Replace(' ',''))-64</TargetName>
+    <TargetName>ULTIMAP-64</TargetName>
+    <OutDir>..\Cheat Engine\bin\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <TimeStampServer>http://timestamp.globalsign.com/scripts/timstamp.dll</TimeStampServer>
     <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
-    <TargetName>$(TargetName.Replace(' ',''))-64</TargetName>
+    <TargetName>ULTIMAP2-64</TargetName>
+    <OutDir>..\..\Cheat Engine\bin\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug but signed|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <TimeStampServer>http://timestamp.globalsign.com/scripts/timstamp.dll</TimeStampServer>
     <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
     <EnableInf2cat>false</EnableInf2cat>
-    <TargetName>$(TargetName.Replace(' ',''))-64</TargetName>
+    <TargetName>ULTIMAP-64</TargetName>
+    <OutDir>..\Cheat Engine\bin\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
@@ -397,10 +403,13 @@
       <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <PostBuildEvent>
-      <Command>copy $(TargetPath) "d:\svn\cheat engine\bin\ultimap2-64.sys"</Command>
+      <Command>cd $(MSBuildProjectDirectory)\$(Inf2CatSource)
+copy ..\ultimap2-64.pdb .
+makecab /f "$(ProjectDir)\ultimap2-64.ddf"
+"c:\Program Files (x86)\Windows Kits\8.1\bin\x64\signtool.exe" sign /v /ac "..\..\release\sig\GlobalSign Root CA.crt" /n "Cheat Engine" /t http://timestamp.globalsign.com/scripts/timstamp.dll disk1\ultimap2-64.cab</Command>
     </PostBuildEvent>
     <PostBuildEvent>
-      <Message>copy to ce bin folder</Message>
+      <Message>create cab and sign it</Message>
     </PostBuildEvent>
     <Inf>
       <SpecifyDriverVerDirectiveVersion>true</SpecifyDriverVerDirectiveVersion>
@@ -430,7 +439,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Inf Include="ultimap2.inf" />
+    <Inf Include="ultimap2-64.inf" />
   </ItemGroup>
   <ItemGroup>
     <FilesToPackage Include="$(TargetPath)" />
@@ -479,6 +488,9 @@
       <EnableMASM51Compatibility Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</EnableMASM51Compatibility>
       <EnableMASM51Compatibility Condition="'$(Configuration)|$(Platform)'=='Debug but signed|x64'">false</EnableMASM51Compatibility>
     </MASM>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ultimap2-64.ddf" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

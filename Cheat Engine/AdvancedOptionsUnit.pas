@@ -154,7 +154,7 @@ resourcestring
   stralreadyinthelist = 'This byte is already part of another opcode already present in the list';
   strPartOfOpcodeInTheList='At least one of these bytes is already in the list';
   strAddressAlreadyInTheList='This address is already in the list';
-  strCECode='Cheat Engine code:';
+  strCECode='Code:';
   strNameCECode='What name do you want to give this code?';
   strChangeOf='Change of ';
   strCode='Code :';

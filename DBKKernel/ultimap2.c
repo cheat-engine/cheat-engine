@@ -1279,7 +1279,7 @@ NTSTATUS ultimap2_pause()
 {
 	if (ultimapEnabled)
 	{
-		forEachCpu(ultimap2_disable_dpc, (PVOID)1, NULL, NULL);
+		forEachCpu(ultimap2_disable_dpc, (PVOID)1, NULL, NULL, NULL);
 		if (UltimapActive)
 		{
 			flushallbuffers = TRUE;
@@ -1295,7 +1295,7 @@ NTSTATUS ultimap2_pause()
 NTSTATUS ultimap2_resume()
 {
 	if ((ultimapEnabled) && (PInfo))
-		forEachCpu(ultimap2_setup_dpc, NULL, NULL, NULL);
+		forEachCpu(ultimap2_setup_dpc, NULL, NULL, NULL, NULL);
 
 	return STATUS_SUCCESS;
 }
@@ -1479,7 +1479,7 @@ void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, P
 
 
 
-	forEachCpu(ultimap2_setup_dpc, NULL, NULL, NULL);
+	forEachCpu(ultimap2_setup_dpc, NULL, NULL, NULL, NULL);
 	
 }
 
@@ -1523,7 +1523,7 @@ void DisableUltimap2(void)
 
 	DbgPrint("-------------------->DisableUltimap2:Stage 1<------------------");
 	
-	forEachCpuAsync(ultimap2_disable_dpc, NULL, NULL, NULL);
+	forEachCpuAsync(ultimap2_disable_dpc, NULL, NULL, NULL, NULL);
 
 	
 	UltimapActive = FALSE;

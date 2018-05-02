@@ -1,72 +1,52 @@
-Cheat Engine 6.7
+Cheat Engine 6.8
 
 Fixes:
-Fixed some DPI issues at some spots
-Fixed the "Not" scan for ALL
-"simple values" now also applies to the All type
-Fixed not adding the 0-terminator to strings when the option was set to add it
-Fixed ultimap hotkeys
-Fixed ultimap2 filtering
-Changing pointers in the change address dialog won't set/override global memrec and address anymore (local now)
-Fixed show as signed not working for custom types
-Fixed several issues with the structure spider
-Fixed 64-bit registers in the tracer getting truncated on doubleclick, and fix r8 to r15
-Fixed copy/paste in the scanvalue
-Fixed kernelmode QueryMemoryRegions for windows build 1607
-Fixed some disassembler errors
-Fixed lua command fullAccess
-Fixed text to speech if launched from a different thread
-Fixed clicking on checkboxes when the dpi is different
-Fixed the found code dialog count size
-Fixed mono freezing Cheat Engine when it crashes/freezes
+Fixed some more high dpi issues
+Fixed issues with the dropdown list in memory records
+Fixed offset symbols
+Fixed registered binutils
+Fixed graphical issues with the tablist
+Fixed issue where memory blocks would get cut of before the page end
+Fixed some memory leaks
+Fixed some graphical issues in the addresslist
+Fixed rightclick on r8 and r9 in memoryview
+Fixed disassembling some instructions
+Fixed DBVM so it works on windows 1709 and later (tested on 1803)
+Fixed several DBVM offload crashes
+Fixed freeze with allow increase/decrease for 8 byte long values
+Fixed several issues where minimizing a window and then close it would hang CE
+
 
 
 Additions and changes:
-Changed the processlist and added an Applications view similar to the taskmanager
-Small change to the tutorial first step wording
-Structure Dissect: Added RLE compression (by mgr.inz.player) and other things to improve filesize
-Structure Dissect: If setting a name, it will also be shown in the header
-The symbolhandler can now deal with complex pointer notations
-Added support for single-ToPA systems for ultimap2
-Added some more spots where the history will be remebered in memoryview
-Memoryrecords with auto assembler scripts can now execute their code asynchronous (rightclick and set "Execute asynchronous")
-Kernelmode memory reading/writing is safer now
-Added an option to filter out readable paths in the pointerscan rescan
-Added "codePage" support
-Added font/display options to several places in CE
-Added a search/replace to the script editors
-You can now delete addresses and reset the count from "Find what addresses this code accesses"
-Added a statusbar to the hexview in memoryview
-Pointerscan for value scans now add the results to the overflow queue
-Opening a file and changing bytes do not change them to the file anymore (you need to explicitly save now)
-Added an option to the processlist to filter out system processes
-Added a system to let users sign their tables so you know you can trust their tables.
-Memory record dropdown lists can now reference those of others. USe as entry text: (memoryrecorddescription)
-Added an option to notify users of new versions of Cheat Engine
+Text editor improvements
+Added hundreds of new cpu instructions
+Mono now has some new features like instancing of objects
+Mono instances window is now a treeview where you can see the fields and values
+"find what addresses this code accesses" can also be used on RET instructions now (useful to find callers)
+The graphical memory view now has a lot more options to set it just the way you need
+Codepage support in hexview
+structure data from PDB files is now stored in a database for lookup later
+dissect structures form can now show a list of known structures (pdb, mono, ...)
+Added a "revert to saved scan" option  (lets you undo changes)
+Added a "forgot scan" option (in case you forgot what you're doing)
+Pointerscan limit nodes is default on in a new ce install (remembers your choice when you disable it)
+Autoattach now happens using a thread instead of a gui blocking timer
+Some colorscheme enhancements
+Added a DBVM based "Find what writes/accesses" feature. (For pro users, enable kernelmode options for it to show)
+Changed the dissect data setup from seperate yes/no/value dialogs to a single window
+Added a bypass option for ultimap2 on windows 1709. When using ranges, do not use interrupts, or use DBVM
+
+
 
 
 lua:
-Custom Types can now be referenced from Lua
-Auto assembler lua sections now have access to "memrec" which is the memory record they get executed from. Can be nil
-stringToMD5String now support strings with a 0 byte in them
-autoAssemble() now also returns a disableInfo object as 2nd parameter. You can use this to disable a script
-added Action and Value properties to MemoryRecordHotkey objects
-added screenToClient and clientToScreen for Control objects
-added readSmallInteger and writeSmallInteger
-added enableDRM()
-added openFileAsProcess/saveOpenedFile
-added saveCurrentStateAsDesign for CEForm objects
-added disableWithoutExecute and disableAllWithoutExecute
-added OnCustomDraw* events to the listview
-added being/endUpdate for the Strings class
-added SQL support
-added color overrides to the disassembler text
-added OnPaint to the CustomControl class
-added autoAssembleCheck to syntax check an AA script
-fixed the addresslist returning nil for PopupMenu (while popupMenu did work)
-added an timeout option for pipes
-added some graphical options
-added some low level system functions
+added automatic garbage collection and settings to configure it
+added new functions, like:
+  reinitializeSelfSymbolhandler
+  cpuid
+  and more
+
 
 
 How to use:

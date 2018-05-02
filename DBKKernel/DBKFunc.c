@@ -92,9 +92,14 @@ calls a specific function for each cpu that runs in passive mode
 #endif
 }
 
-void forOneCpu(CCHAR cpunr, PKDEFERRED_ROUTINE dpcfunction, PVOID DeferredContext, PVOID  SystemArgument1, PVOID  SystemArgument2)
+void forOneCpu(CCHAR cpunr, PKDEFERRED_ROUTINE dpcfunction, PVOID DeferredContext, PVOID  SystemArgument1, PVOID  SystemArgument2, OPTIONAL PPREDPC_CALLBACK preDPCCallback)
 {
 	PKDPC dpc;
+
+	if (preDPCCallback) //if preDPCCallback is set call it which may change the system arguments
+		preDPCCallback(cpunr, dpcfunction, DeferredContext, &SystemArgument1, &SystemArgument2);
+	
+
 	dpc = ExAllocatePool(NonPagedPool, sizeof(KDPC));
 	KeInitializeDpc(dpc, dpcfunction, DeferredContext);
 	KeSetTargetProcessorDpc(dpc, cpunr);
@@ -104,7 +109,7 @@ void forOneCpu(CCHAR cpunr, PKDEFERRED_ROUTINE dpcfunction, PVOID DeferredContex
 	ExFreePool(dpc);
 }
 
-void forEachCpu(PKDEFERRED_ROUTINE dpcfunction,  PVOID DeferredContext, PVOID  SystemArgument1, PVOID  SystemArgument2)
+void forEachCpu(PKDEFERRED_ROUTINE dpcfunction,  PVOID DeferredContext, PVOID  SystemArgument1, PVOID  SystemArgument2, OPTIONAL PPREDPC_CALLBACK preDPCCallback)
 /*
 calls a specified dpcfunction for each cpu on the system
 */
@@ -115,7 +120,7 @@ calls a specified dpcfunction for each cpu on the system
 	PKDPC dpc;
 	int dpcnr;
 
-	
+
 	//KeIpiGenericCall is not present in xp
 	
 	//count cpus first KeQueryActiveProcessorCount is not present in xp)
@@ -131,7 +136,7 @@ calls a specified dpcfunction for each cpu on the system
 
 	dpc=ExAllocatePool(NonPagedPool, sizeof(KDPC)*cpucount);
 
-	
+		
 
 	cpus=KeQueryActiveProcessors();
 	cpunr=0;
@@ -143,6 +148,9 @@ calls a specified dpcfunction for each cpu on the system
 			//bit is set
 			
 			//DbgPrint("Calling dpc routine for cpunr %d (dpc=%p)\n", cpunr, &dpc[dpcnr]);
+
+			if (preDPCCallback)
+				preDPCCallback(cpunr, dpcfunction, DeferredContext, &SystemArgument1, &SystemArgument2);
 
 			KeInitializeDpc(&dpc[dpcnr], dpcfunction, DeferredContext);
 			KeSetTargetProcessorDpc (&dpc[dpcnr], cpunr);
@@ -160,7 +168,7 @@ calls a specified dpcfunction for each cpu on the system
 }
 
 
-void forEachCpuAsync(PKDEFERRED_ROUTINE dpcfunction, PVOID DeferredContext, PVOID  SystemArgument1, PVOID  SystemArgument2)
+void forEachCpuAsync(PKDEFERRED_ROUTINE dpcfunction, PVOID DeferredContext, PVOID  SystemArgument1, PVOID  SystemArgument2, OPTIONAL PPREDPC_CALLBACK preDPCCallback)
 /*
 calls a specified dpcfunction for each cpu on the system
 */
@@ -170,6 +178,7 @@ calls a specified dpcfunction for each cpu on the system
 	ULONG cpucount;
 	PKDPC dpc;
 	int dpcnr;
+
 
 
 	//KeIpiGenericCall is not present in xp
@@ -197,6 +206,8 @@ calls a specified dpcfunction for each cpu on the system
 			//bit is set
 
 			//DbgPrint("Calling dpc routine for cpunr %d\n", cpunr);
+			if (preDPCCallback) //if preDPCCallback is set call it which may change the system arguments
+				preDPCCallback(cpunr, dpcfunction, DeferredContext, &SystemArgument1, &SystemArgument2);
 
 			KeInitializeDpc(&dpc[dpcnr], dpcfunction, DeferredContext);
 			KeSetTargetProcessorDpc(&dpc[dpcnr], cpunr);

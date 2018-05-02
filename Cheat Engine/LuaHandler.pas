@@ -4263,17 +4263,34 @@ begin
   result:=0;
 end;
 
+
 function dbk_initialize(L: Plua_State): integer; cdecl;
 var
   state,x: BOOL;
+  reason: string;
 begin
-  LoadDBK32;
-  state:=isDriverLoaded(@x);
-  lua_pushboolean(L, state);
-  if state then
-    lua_pushinteger(L, hdevice);
+  if isDriverLoaded(nil)=false then
+  begin
+    reason:='A lua script wants to load the driver. Reason:';
+    if lua_gettop(L)>=1 then
+      reason:=Lua_ToString(L,1)
+    else
+      reason:='No reason';
 
-  result:=2;
+    LoadDBK32;
+    state:=isDriverLoaded(@x);
+    lua_pushboolean(L, state);
+    if state then
+      lua_pushinteger(L, hdevice);
+
+    result:=2;
+  end
+  else
+  begin
+    lua_pushboolean(L,true);
+    result:=1;
+  end;
+
 end;
 
 function dbk_useKernelmodeOpenProcess(L: Plua_State): integer; cdecl;
@@ -6058,6 +6075,8 @@ function dbvm_initialize(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   offload: boolean;
+  r: boolean;
+  reason: string;
 begin
   //for now use the default
   if (dbvm_version>0) then
@@ -6080,21 +6099,24 @@ begin
 
   result:=0;
   parameters:=lua_gettop(L);
-  if parameters=1 then
+  if parameters>=1 then
   begin
-    offload:=lua_toboolean(L, -1);
-    lua_pop(L, lua_gettop(L));
+    offload:=lua_toboolean(L, 1);
 
     if offload then
     begin
-      if (dbvm_version=0) then
+      if isRunningDBVM=false then
       begin
+        reason:='A lua script wants to launch the DBVM hypervisor. Reason:';
+
+        if parameters>=2 then
+          reason:=Lua_ToString(L,2)
+        else
+          reason:='No reason given';
+
         //not yet loaded.
         if isDBVMCapable then
-        begin
-          LoadDBK32;
-          launchdbvm(-1);
-        end;
+          r:=loaddbvmifneeded(reason);
       end;
     end;
   end
@@ -6475,7 +6497,7 @@ function getWindowList_lua(L: PLua_state): integer; cdecl;
 var
   parameters: integer;
   s: tstrings;
-  i: integer;
+  i,j: integer;
   pid: integer;
 begin
   result:=0;
@@ -6486,7 +6508,7 @@ begin
     lua_pop(L, lua_gettop(l));
     if (s<>nil) and (s is TStrings) then
     begin
-      GetWindowList(s);
+      GetWindowList2(s);
       sanitizeProcessList(s);
 
     end
@@ -6500,7 +6522,7 @@ begin
   begin
     //table version
     s:=tstringlist.create;
-    GetWindowList(s);
+    GetWindowList2(s);
     sanitizeProcessList(s);
 
 
@@ -6512,8 +6534,26 @@ begin
       if TryStrToInt('0x'+copy(s[i],1,8), pid) then
       begin
         lua_pushinteger(L, pid);
+        lua_gettable(L,1);
+
+        if lua_isnil(L,-1) then
+        begin
+          //not yet in the list
+          lua_pop(L,1);
+          lua_pushinteger(L, pid);
+          lua_newtable(L);
+          lua_settable(L,1);
+
+          lua_pushinteger(L, pid);
+          lua_gettable(L,1);
+        end;
+
+        j:=lua_objlen(L,-1);
+        lua_pushinteger(L, j);
         lua_pushstring(L, copy(s[i], 10, length(s[i])));
-        lua_settable(L, 1);
+        lua_settable(L, -3);
+
+        lua_pop(L,1); //pop the current processid table
       end;
     end;
 

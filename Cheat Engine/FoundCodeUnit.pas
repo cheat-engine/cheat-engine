@@ -231,7 +231,7 @@ var
   basics: PPageEventBasicWithStackArray absolute basic;
   extendeds: PPageEventExtendedWithStackArray absolute basic;
 
-  address, address2: qword;
+  address, address2: ptruint;
 
   skip: boolean;
 
@@ -319,11 +319,11 @@ begin
           OutputDebugString('Saving fpu data');
 
           outputdebugstring('FPUDATA is at offset '+inttostr(qword(@extended^[i].fpudata)-QWORD(@extended^[i])));
-          outputdebugstring('sizeof(coderecord.context.FltSave)='+inttostr(sizeof(coderecord.context.FltSave)));
-          copymemory(@coderecord.context.FltSave, @extended^[i].fpudata, sizeof(coderecord.context.FltSave));
+          //outputdebugstring('sizeof(coderecord.context.FltSave)='+inttostr(sizeof(coderecord.context.FltSave)));
+          copymemory(@coderecord.context.{$ifdef cpu64}FltSave{$else}ext{$endif}, @extended^[i].fpudata, sizeof(coderecord.context.{$ifdef cpu64}FltSave{$else}ext{$endif}));
 
-          getmem(debug, sizeof(coderecord.context.FltSave));
-          copymemory(debug, @coderecord.context.FltSave, sizeof(coderecord.context.FltSave));
+          getmem(debug, sizeof(coderecord.context.{$ifdef cpu64}FltSave{$else}ext{$endif}));
+          copymemory(debug, @coderecord.context.{$ifdef cpu64}FltSave{$else}ext{$endif}, sizeof(coderecord.context.{$ifdef cpu64}FltSave{$else}ext{$endif}));
 
           getmem(debug2, 512);
           copymemory(debug2, @extended^[i].fpudata, 512);
@@ -331,7 +331,7 @@ begin
           outputdebugstring('debug='+inttohex(ptruint(debug),8));
           outputdebugstring('debug2='+inttohex(ptruint(debug2),8));
 
-          outputdebugstring('@coderecord.context.FltSave='+inttohex(qword(@coderecord.context.FltSave),8));
+          outputdebugstring('@coderecord.context.FltSave='+inttohex(qword(@coderecord.context.{$ifdef cpu64}FltSave{$else}ext{$endif}),8));
 
         end;
 
@@ -345,7 +345,7 @@ begin
 
         3: //extended with stack
         begin
-          copymemory(@coderecord.context.FltSave, @extended^[i].fpudata, sizeof(coderecord.context.FltSave));
+          copymemory(@coderecord.context.{$ifdef cpu64}FltSave{$else}ext{$endif}, @extended^[i].fpudata, sizeof(coderecord.context.{$ifdef cpu64}FltSave{$else}ext{$endif}));
           coderecord.stack.savedsize:=4096;
           getmem(coderecord.stack.stack, 4096);
 
@@ -384,15 +384,16 @@ begin
       //make compatible with older code:
       OutputDebugString('setting up compatibility context');
 
-      coderecord.context.Rax:=coderecord.dbvmcontextbasic^.RAX;
-      coderecord.context.Rbx:=coderecord.dbvmcontextbasic^.RBX;
-      coderecord.context.Rcx:=coderecord.dbvmcontextbasic^.RCX;
-      coderecord.context.Rdx:=coderecord.dbvmcontextbasic^.RDX;
-      coderecord.context.Rsi:=coderecord.dbvmcontextbasic^.RSI;
-      coderecord.context.Rdi:=coderecord.dbvmcontextbasic^.RDI;
-      coderecord.context.Rbp:=coderecord.dbvmcontextbasic^.RBP;
-      coderecord.context.Rsp:=coderecord.dbvmcontextbasic^.Rsp;
-      coderecord.context.Rip:=coderecord.dbvmcontextbasic^.Rip;
+      coderecord.context.{$ifdef cpu64}Rax{$else}Eax{$endif}:=coderecord.dbvmcontextbasic^.RAX;
+      coderecord.context.{$ifdef cpu64}Rbx{$else}Ebx{$endif}:=coderecord.dbvmcontextbasic^.RBX;
+      coderecord.context.{$ifdef cpu64}Rcx{$else}Ecx{$endif}:=coderecord.dbvmcontextbasic^.RCX;
+      coderecord.context.{$ifdef cpu64}Rdx{$else}Edx{$endif}:=coderecord.dbvmcontextbasic^.RDX;
+      coderecord.context.{$ifdef cpu64}Rsi{$else}Esi{$endif}:=coderecord.dbvmcontextbasic^.RSI;
+      coderecord.context.{$ifdef cpu64}Rdi{$else}Edi{$endif}:=coderecord.dbvmcontextbasic^.RDI;
+      coderecord.context.{$ifdef cpu64}Rbp{$else}Ebp{$endif}:=coderecord.dbvmcontextbasic^.RBP;
+      coderecord.context.{$ifdef cpu64}Rsp{$else}Esp{$endif}:=coderecord.dbvmcontextbasic^.Rsp;
+      coderecord.context.{$ifdef cpu64}Rip{$else}Eip{$endif}:=coderecord.dbvmcontextbasic^.Rip;
+      {$ifdef cpu64}
       coderecord.context.R8:=coderecord.dbvmcontextbasic^.R8;
       coderecord.context.R9:=coderecord.dbvmcontextbasic^.R9;
       coderecord.context.R10:=coderecord.dbvmcontextbasic^.R10;
@@ -401,6 +402,7 @@ begin
       coderecord.context.R13:=coderecord.dbvmcontextbasic^.R13;
       coderecord.context.R14:=coderecord.dbvmcontextbasic^.R14;
       coderecord.context.R15:=coderecord.dbvmcontextbasic^.R15;
+      {$endif}
       coderecord.context.EFlags:=coderecord.dbvmcontextbasic^.FLAGS;
       coderecord.context.SegCs:=coderecord.dbvmcontextbasic^.CS;
       coderecord.context.SegSs:=coderecord.dbvmcontextbasic^.SS;
@@ -1141,11 +1143,11 @@ begin
 
     //copy the context and the stack to the more info window. the foundcode unit might get destroyed
     outputdebugstring('setting formfoundcodelistextra.context which is at '+inttohex(qword(@formfoundcodelistextra.context),8));
-    outputdebugstring('it''s fltsave spot is at '+inttohex(qword(@formfoundcodelistextra.context.FltSave),8));
+    outputdebugstring('it''s fltsave spot is at '+inttohex(qword(@formfoundcodelistextra.context.{$ifdef cpu64}FltSave{$else}ext{$endif}),8));
 
 
     outputdebugstring('coderecord.context is at '+inttohex(qword(@coderecord.context),8));
-    outputdebugstring('coderecord.context.fltsave is at '+inttohex(qword(@coderecord.context.fltsave),8));
+    outputdebugstring('coderecord.context.fltsave is at '+inttohex(qword(@coderecord.context.{$ifdef cpu64}FltSave{$else}ext{$endif}),8));
 
     formfoundcodelistextra.context:=coderecord.context;
     if coderecord.stack.stack<>nil then

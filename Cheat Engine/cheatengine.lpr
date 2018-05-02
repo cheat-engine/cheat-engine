@@ -236,7 +236,7 @@ var
 
   path: string;
 begin
-  Application.Title:='Cheat Engine 6.7';
+  Application.Title:='Cheat Engine 6.8';
   Application.Initialize;
 
   overridefont:=nil;

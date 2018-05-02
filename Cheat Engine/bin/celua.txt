@@ -277,7 +277,8 @@ sleep(milliseconds): pauses for the number of specified milliseconds (1000= 1 se
 getProcesslist(Strings): Fills a Strings inherited object with the processlist of the system. Format: %x-pidname
 getProcesslist(): Returns a table with the processlist  (pid - name )
 getWindowlist(Strings): Fills a Strings inherited object with the top-window list of the system. Format: %x-windowcaption
-getWindowlist(): Returns a table with the windowlist (pid - window caption )
+getWindowlist(): Returns a table with the windowlist (pid - window caption ).  The table is formatted as : {pid,{id,caption}}
+
 
 getThreadlist(List): fills a List object with the threadlist of the currently opened process. Format: %x
 getHandleList(filter OPTIONAL): returns a table with all the handles in the system(Filter 0=everything, 1=target process handles only, 2 handles to target process, 3 handles to ce process).  Each handle entry has fields: ProcessID, ObjectTypeIndex, HandleAttributes, HandleValue, Object and GrantedAccess.  Note: Object will be invalid if you use the 32-bit CE on a 64-bit windows
@@ -2365,7 +2366,7 @@ dbk_executeKernelMemory(address, parameter) :
   parameter can be a value or an address. It's up to your code how it's handled
 
 
-dbvm_initialize(offloados OPTIONAL) : Initializes the dbvm functions (dbk_initialize also calls this) offloados is a boolean that when set will offload the system onto dbvm if it's not yet running (and only IF the dbk driver is loaded)
+dbvm_initialize(offloados:Boolean OPTIONAL, reason:String OPTIONAL) : Initializes the dbvm functions (dbk_initialize also calls this) offloados is a boolean that when set will offload the system onto dbvm if it's not yet running (and only IF the dbk driver is loaded)
 dbvm_readMSR(msr): See dbk_readMSR but then using dbvm
 dbvm_writeMSR(msr, value): See dbk_writeMSR
 dbvm_getCR4(): Returns the real Control Register 4 state
@@ -2398,7 +2399,7 @@ dbvm_cloak_deactivate(physicalbase): Disables the cloak and restores the executa
 dbvm_cloak_readOriginal(physicalbase): Reads the memory that will get executed.  On success returns a 4096 byte long bytetable (remember, lua indexes start at 1, so offset 0 is index 1)
 dbvm_cloak_writeOriginal(physicalbase, bytetable[4096]): Writes the memory that will get executed. 
 
-dbvm_changeregonbp(address, changereginfo, virtualaddress OPTIONAL): boolean
+dbvm_changeregonbp(physicaladdress, changereginfo, virtualaddress OPTIONAL): boolean
   sets a breakpoint at the given position. When a breakpoint hits the registers will be changed according to the changereginfo table
     changereginfo table:  (set the field to nil, or don't define it, if you don't want to change it)
       newCF: integer/boolean (false=0, true=1) 

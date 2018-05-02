@@ -1,16 +1,16 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 1143
+  Left = 1115
   Height = 598
   Hint = ' '
-  Top = 122
+  Top = 163
   Width = 622
   HelpContext = 3
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AllowDropFiles = True
   AutoSize = True
-  Caption = 'Cheat Engine 6.7'
+  Caption = 'Cheat Engine 6.8'
   ClientHeight = 578
   ClientWidth = 622
   Menu = MainMenu1

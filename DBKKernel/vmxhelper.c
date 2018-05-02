@@ -693,6 +693,61 @@ UINT_PTR vmx_getLastSkippedPageFault()
 	return (UINT_PTR)dovmcall(&vmcallinfo, vmx_password1);
 }
 
+unsigned int vmx_add_memory(UINT64 *list, int count)
+{
+	int r=0;
+	int j=0;
+#pragma pack(1)
+	typedef struct _vmcall_add_memory
+	{
+		unsigned int structsize;
+		unsigned int level2pass;
+		unsigned int command;
+		UINT64 PhysicalPages[0];
+	} AddMemoryInfoCall, *PAddMemoryInfoCall;
+#pragma pack()
+	PAddMemoryInfoCall vmcallinfo=ExAllocatePool(NonPagedPool, sizeof(AddMemoryInfoCall) + count * sizeof(UINT64));
+
+
+	DbgPrint("vmx_add_memory(%p,%d)\n", list, count);
+	DbgPrint("vmx_add_memory(vmx_password1=%x,vmx_password2=%x)\n", vmx_password1, vmx_password2);
+
+	DbgPrint("structsize at offset %d\n", (UINT64)(&vmcallinfo->structsize) - (UINT64)vmcallinfo);
+	DbgPrint("level2pass at offset %d\n", (UINT64)(&vmcallinfo->level2pass) - (UINT64)vmcallinfo);
+	DbgPrint("command at offset %d\n", (UINT64)(&vmcallinfo->command) - (UINT64)vmcallinfo);
+	DbgPrint("PhysicalPages[0] at offset %d\n", (UINT64)(&vmcallinfo->PhysicalPages[0]) - (UINT64)vmcallinfo);
+	DbgPrint("PhysicalPages[1] at offset %d\n", (UINT64)(&vmcallinfo->PhysicalPages[1]) - (UINT64)vmcallinfo);
+
+
+	__try
+	{
+		int i;
+		vmcallinfo->structsize = sizeof(AddMemoryInfoCall) + count * sizeof(UINT64);
+		DbgPrint("vmcallinfo->structsize=%d\n", vmcallinfo->structsize);
+		vmcallinfo->level2pass = vmx_password2;
+		vmcallinfo->command = VMCALL_ADD_MEMORY;
+		j = 1;
+		for (i = 0; i < count; i++)
+		{
+			vmcallinfo->PhysicalPages[i] = list[i];
+		}
+		j = 2;
+
+		r = (unsigned int)dovmcall(vmcallinfo, vmx_password1);
+		j = 3; //never
+	}
+	__except (1)
+	{
+		DbgPrint("vmx_add_memory(%p,%d) gave an exception at part %d with exception code %x\n", list, count, j, GetExceptionCode());		
+		
+		r = 0x100;
+	}
+
+	ExFreePool(vmcallinfo);
+	return r;
+	
+}
+
 void vmx_init_dovmcall(int isIntel)
 {
 	if (isIntel)

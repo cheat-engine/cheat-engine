@@ -321,18 +321,18 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 		IoControlCode=Irp->Flags;
 		
 	//DbgPrint("DispatchIoctl. IoControlCode=%x\n", IoControlCode);
-/*
-	sedebugprivUID.LowPart=SE_DEBUG_PRIVILEGE;
+#ifdef TOBESIGNED
+    sedebugprivUID.LowPart=SE_DEBUG_PRIVILEGE;
 	sedebugprivUID.HighPart=0;
-
 	
 	if (SeSinglePrivilegeCheck(sedebugprivUID, UserMode)==FALSE)
 	{
 		DbgPrint("DispatchIoctl called by a process without SeDebugPrivilege");
 		return STATUS_UNSUCCESSFUL;
 	}
-	*/
+#endif
 	
+
 	
     switch(IoControlCode)
     {
@@ -930,9 +930,9 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				initializeDBVM((PCWSTR)(UINT_PTR)pinp->dbvmimgpath);
 
 				if (pinp->cpuid == 0xffffffff)
-					forEachCpu(vmxoffload_dpc, NULL, NULL, NULL);
+					forEachCpu(vmxoffload_dpc, NULL, NULL, NULL, vmxoffload_override);
 				else
-					forOneCpu((CCHAR)pinp->cpuid, vmxoffload_dpc, NULL, NULL, NULL);					
+					forOneCpu((CCHAR)pinp->cpuid, vmxoffload_dpc, NULL, NULL, NULL, vmxoffload_override);
 
 				DbgPrint("Returned from vmxoffload()\n");
 				break;
@@ -942,7 +942,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 		case IOCTL_CE_HOOKINTS: //hooks the DEBUG interrupts
 			{
 				DbgPrint("IOCTL_CE_HOOKINTS\n");
-				forEachCpu(debugger_initHookForCurrentCPU_DPC, NULL, NULL, NULL);
+				forEachCpu(debugger_initHookForCurrentCPU_DPC, NULL, NULL, NULL, NULL);
 				ntStatus=STATUS_SUCCESS;
 
 				/*

@@ -4,12 +4,20 @@
 void initializeDBVM(PCWSTR dbvmimgpath);
 void vmxoffload(void);
 
+void vmxoffload_override(CCHAR cpunr, PKDEFERRED_ROUTINE Dpc, PVOID DeferredContext, PVOID *SystemArgument1, PVOID *SystemArgument2);
+
 VOID vmxoffload_dpc(
 	__in struct _KDPC *Dpc,
 	__in_opt PVOID DeferredContext,
 	__in_opt PVOID SystemArgument1,
 	__in_opt PVOID SystemArgument2
 	);
+
+typedef struct _DBVMOffloadMemInfo
+{
+	UINT64 *List;
+	int Count;
+} DBVMOffloadMemInfo, *PDBVMOffloadMemInfo;
 
 #pragma pack (1)
 typedef struct _PTE

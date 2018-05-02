@@ -514,10 +514,10 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject,
 		DbgPrint("offset of LBR_Count=%d\n", (UINT_PTR)&x.LBR_Count - (UINT_PTR)&x);
 
 		DbgPrint("Testing forEachCpu(...)\n");
-		forEachCpu(TestDPC, NULL, NULL, NULL);
+		forEachCpu(TestDPC, NULL, NULL, NULL, NULL);
 
 		DbgPrint("Testing forEachCpuAsync(...)\n");
-		forEachCpuAsync(TestDPC, NULL, NULL, NULL);
+		forEachCpuAsync(TestDPC, NULL, NULL, NULL, NULL);
 
 		DbgPrint("Testing forEachCpuPassive(...)\n");
 		forEachCpuPassive(TestPassive, 0);
