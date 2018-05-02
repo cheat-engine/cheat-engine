@@ -186,6 +186,12 @@ typedef struct
 
 } __attribute__((__packed__)) VMCALL_REGISTER_PLUGIN_PARAM, *PVMCALL_REGISTER_PLUGIN_PARAM;
 
+typedef struct
+{
+  VMCALL_BASIC vmcall;
+  QWORD PhysicalPages[0];
+} __attribute__((__packed__)) VMCALL_ADD_MEMORY_PARAM, *PVMCALL_ADD_MEMORY_PARAM;
+
 
 
 #endif /* VMM_VMCALLSTRUCTS_H_ */

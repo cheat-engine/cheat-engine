@@ -3,6 +3,7 @@
 #SERIALPORT=0xbf00 #intel
 #SERIALPORT=0xec00 #amd
 #SERIALPORT=0xd010 #16 core test system
+#SERIALPORT=0xfff0 #32 core test system
 #SERIALPORT=0x2f8 #vmware test
 SERIALPORT=0 #release/no serialport build
 

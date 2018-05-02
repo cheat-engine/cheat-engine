@@ -683,6 +683,8 @@ void *addPhysicalPageToDBVM(QWORD address)
 /*
  * Adds a physical page to the physicalPage List.
  * they will be mapped as virtual addresses at 0x1000000000 and beyond
+ *
+ * pre: the AllocCS must be owned by the current thread
  */
 {
   UINT64 VirtualAddress=BASE_VIRTUAL_ADDRESS+4096*PhysicalPageListSize;
@@ -777,8 +779,19 @@ void addPhysicalPagesToDBVM(QWORD address, int count)
   int i;
   address=address & 0xfffffffffffff000ULL; //sanitize
 
+  csEnter(&AllocCS);
   for (i=0; i<count; i++)
     addPhysicalPageToDBVM(address+i*4096);
+  csLeave(&AllocCS);
+}
+
+void mmAddPhysicalPageListToDBVM(QWORD *pagelist, int count)
+{
+  int i;
+  csEnter(&AllocCS);
+  for (i=0; i<count; i++)
+    addPhysicalPageToDBVM(pagelist[i]);
+  csLeave(&AllocCS);
 }
 
 QWORD getTotalFreeMemory(QWORD *FullPages)

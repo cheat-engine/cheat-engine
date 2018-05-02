@@ -1597,6 +1597,18 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
       break;
     }
 
+    case VMCALL_ADD_MEMORY:
+    {
+      PVMCALL_ADD_MEMORY_PARAM p=(PVMCALL_ADD_MEMORY_PARAM)vmcall_instruction;
+      int pagecount=(p->vmcall.size-sizeof(VMCALL_ADD_MEMORY_PARAM)) / 8;
+
+      nosendchar[getAPICID()]=0;
+      sendstringf("VMCALL_ADD_MEMORY\n");
+      mmAddPhysicalPageListToDBVM(p->PhysicalPages, pagecount);
+      vmregisters->rax = pagecount; //0;
+      break;
+    }
+
 
     default:
       vmregisters->rax = 0xcedead;
@@ -1717,11 +1729,18 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
   int vmcall_instruction_size=vmcall_instruction[0];
 
+  if (vmcall_instruction_size>16*1024)
+  {
+    sendstringf("Invalid vmcall_instruction_size:%d : Exceeds the 16KB max size for vmcall data structures\n");
+    unmapVMmemory(vmcall_instruction,12);
+    return raiseInvalidOpcodeException(currentcpuinfo);
+  }
+
   //still here, so password valid and data structure paged in memory
-  if (vmcall_instruction[0]>12) //remap to take the extra parameters into account
+  if (vmcall_instruction_size>12) //remap to take the extra parameters into account
   {
 //    sendstringf("Remapping to support size: %8\n\r",vmcall_instruction[0]);
-    int neededsize=vmcall_instruction[0];
+    int neededsize=vmcall_instruction_size;
     unmapVMmemory(vmcall_instruction, vmcall_instruction_size);
     vmcall_instruction=(ULONG *)mapVMmemory(currentcpuinfo, vmregisters->rax, neededsize, &error, &pagefaultaddress);
   }
