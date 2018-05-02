@@ -163,12 +163,13 @@ void CPipeServer::InitMono()
 			mono_class_get = (MONO_CLASS_GET)GetProcAddress(hMono, "mono_class_get");
 			mono_class_from_name_case = (MONO_CLASS_FROM_NAME_CASE)GetProcAddress(hMono, "mono_class_from_name_case");
 			mono_class_from_name = (MONO_CLASS_FROM_NAME_CASE)GetProcAddress(hMono, "mono_class_from_name");
-			mono_class_get_name = (MONO_CLASS_GET_NAME)GetProcAddress(hMono, "mono_class_get_name");
+			mono_class_get_name = (MONO_CLASS_GET_NAME)GetProcAddress(hMono, "mono_class_get_name");			
 			mono_class_get_namespace = (MONO_CLASS_GET_NAMESPACE)GetProcAddress(hMono, "mono_class_get_namespace");
 			mono_class_get_methods = (MONO_CLASS_GET_METHODS)GetProcAddress(hMono, "mono_class_get_methods");
 			mono_class_get_method_from_name = (MONO_CLASS_GET_METHOD_FROM_NAME)GetProcAddress(hMono, "mono_class_get_method_from_name");
 			mono_class_get_fields = (MONO_CLASS_GET_FIELDS)GetProcAddress(hMono, "mono_class_get_fields");
 			mono_class_get_parent = (MONO_CLASS_GET_PARENT)GetProcAddress(hMono, "mono_class_get_parent");
+			mono_class_is_generic = (MONO_CLASS_IS_GENERIC)GetProcAddress(hMono, "mono_class_is_generic");
 			mono_class_vtable = (MONO_CLASS_VTABLE)GetProcAddress(hMono, "mono_class_vtable");
 			mono_class_from_mono_type = (MONO_CLASS_FROM_MONO_TYPE)GetProcAddress(hMono, "mono_class_from_mono_type");
 			mono_class_get_element_class = (MONO_CLASS_GET_ELEMENT_CLASS)GetProcAddress(hMono, "mono_class_get_element_class");
@@ -499,9 +500,31 @@ void CPipeServer::EnumMethodsInClass()
 
 void CPipeServer::CompileMethod()
 {
-	void *method = (void *)ReadQword();
-	void *result = mono_compile_method(method);
+
+	void *method = (void *)ReadQword();	
+	void *result = NULL;
+	try
+	{
+		void *klass=mono_method_get_class(method);
+		if (klass)
+		{
+			if (mono_class_is_generic(klass) == 0)
+			{
+				result = mono_compile_method(method);
+			}
+			else
+				OutputDebugString(L"This is a generic class which is currently not implemented. Skipping");
+		}
+
+		
+	}
+	catch (...)
+	{
+		result = NULL;
+	}
+	
 	WriteQword((UINT_PTR)result);
+	
 }
 
 void CPipeServer::GetMethodHeader()
@@ -1061,7 +1084,7 @@ void CPipeServer::InvokeMethod(void)
 			{
 				result = mono_runtime_invoke(method, pThis, args, NULL /* exception */);				
 			}
-			catch (char *e)
+			catch (...)
 			{
 				result = NULL;
 			}
@@ -1116,6 +1139,12 @@ void CPipeServer::GetFullTypeName(void)
 	//ExpectingAccessViolations = FALSE;
 
 		
+}
+
+void CPipeServer::IsGenericClass()
+{
+	void *klass = (void *)ReadQword();
+	WriteByte(mono_class_is_generic(klass));
 }
 
 void CPipeServer::Start(void)

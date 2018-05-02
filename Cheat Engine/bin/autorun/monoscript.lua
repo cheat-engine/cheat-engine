@@ -42,6 +42,7 @@ MONOCMD_OBJECT_NEW=33
 MONOCMD_OBJECT_INIT=34
 MONOCMD_GETVTABLEFROMCLASS=35
 MONOCMD_GETMETHODPARAMETERS=36
+MONOCMD_ISCLASSGENERIC=37
 
 
 
@@ -579,6 +580,18 @@ function mono_image_enumClasses(image)
   monopipe.unlock()
 
   return classes;
+end
+
+function mono_class_isgeneric(class)
+  local result=''
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_ISCLASSGENERIC)
+  monopipe.writeQword(class)
+
+  result=monopipe.readByte()~=0 
+
+  monopipe.unlock()
+  return result;
 end
 
 function mono_class_getName(class)
@@ -1185,6 +1198,8 @@ function mono_image_findClass(image, namespace, classname)
   --if debug_canBreak() then return nil end
 
 --find a class in a specific image
+  if monopipe==nil then return 0 end
+
   monopipe.lock()
 
   monopipe.writeByte(MONOCMD_FINDCLASS)
@@ -1200,7 +1215,7 @@ function mono_image_findClass(image, namespace, classname)
 
   result=monopipe.readQword()
   monopipe.unlock()
-
+  
   return result
 end
 
@@ -1209,6 +1224,12 @@ function mono_image_findClassSlow(image, namespace, classname)
 
 --find a class in a specific image
   local result=0
+  
+  if monopipe==nil then return 0 end
+  
+  
+ 
+    
 
   monopipe.lock()
 
@@ -1233,6 +1254,8 @@ function mono_findClass(namespace, classname)
   --if debug_canBreak() then return nil end
 
 --searches all images for a specific class
+ -- print(string.format("mono_findClass: namespace=%s classname=%s", namespace, classname))
+
   local ass=mono_enumAssemblies()
   local result
   
@@ -1478,6 +1501,8 @@ end
 
 function mono_compile_method(method) --Jit a method if it wasn't jitted yet
   --if debug_canBreak() then return nil end
+
+  --print(string.format("mono_compile_method. Method=%x", method))
 
   monopipe.lock()
 

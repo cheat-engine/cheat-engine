@@ -40,6 +40,7 @@
 #define MONOCMD_OBJECT_INIT 34
 #define MONOCMD_GETVTABLEFROMCLASS 35
 #define MONOCMD_GETMETHODPARAMETERS 36
+#define MONOCMD_ISCLASSGENERIC 37
 
 
 typedef struct MonoType;
@@ -84,6 +85,8 @@ typedef void* (__cdecl *MONO_CLASS_GET_PARENT)(void *klass);
 typedef void* (__cdecl *MONO_CLASS_VTABLE)(void *domain, void *klass);
 typedef void* (__cdecl *MONO_CLASS_FROM_MONO_TYPE)(void *type);
 typedef void* (__cdecl *MONO_CLASS_GET_ELEMENT_CLASS)(void *klass);
+typedef int (__cdecl *MONO_CLASS_IS_GENERIC)(void *klass);
+
 
 
 typedef int (__cdecl *MONO_CLASS_NUM_FIELDS)(void *klass);
@@ -182,6 +185,7 @@ private:
 	MONO_CLASS_GET_PARENT mono_class_get_parent;
 	MONO_CLASS_VTABLE mono_class_vtable;
 	MONO_CLASS_FROM_MONO_TYPE mono_class_from_mono_type;
+	MONO_CLASS_IS_GENERIC mono_class_is_generic;
 
 	MONO_DOMAIN_FOREACH mono_domain_foreach;
 	MONO_DOMAIN_SET mono_domain_set;
@@ -310,6 +314,7 @@ private:
 	void GetFullTypeName();
 	void Object_New();
 	void Object_Init();
+	void IsGenericClass();
 
 public:
 	CPipeServer(void);
