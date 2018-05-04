@@ -64,9 +64,9 @@ object formSettings: TformSettings
       Height = 548
       Top = 1
       Width = 1016
-      ActivePage = tsLua
+      ActivePage = GeneralSettings
       Align = alClient
-      TabIndex = 7
+      TabIndex = 0
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -541,6 +541,7 @@ object formSettings: TformSettings
             Checked = True
             State = cbChecked
             TabOrder = 22
+            Visible = False
           end
           object GroupBox5: TGroupBox
             AnchorSideLeft.Control = cbOldPointerAddMethod

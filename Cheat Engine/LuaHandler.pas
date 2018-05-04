@@ -7305,7 +7305,7 @@ begin
 end;
 
 function broadcastEnvironmentUpdate(L: PLua_State): integer; cdecl;
-{$if FPC_FULLVERSION<=30000}
+{$if FPC_FULLVERSION<=30002}
 var rv: DWORD; //bug in laz 1.6.4 (not the end of the world, as rv is on a 8 byte boundary in the stack and not used)
 {$else}
 var rv: DWORD_PTR;

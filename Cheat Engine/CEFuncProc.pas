@@ -130,7 +130,7 @@ Function GetRelativeFilePath(filename: string):string;
 
 function GetCPUCount: integer;
 function HasHyperthreading: boolean;
-procedure SaveFormPosition(form: TCustomform; extra: array of integer); overload;
+procedure SaveFormPosition(form: TCustomform; const extra: array of integer); overload;
 procedure SaveFormPosition(form: TCustomform); overload;
 function LoadFormPosition(form: TCustomform; var x: TWindowPosArray):boolean; overload;
 function LoadFormPosition(form: TCustomform):boolean; overload;
@@ -2723,7 +2723,7 @@ begin
   end;
 end;
 
-procedure SaveFormPosition(form: Tcustomform; extra: array of integer);
+procedure SaveFormPosition(form: Tcustomform; const extra: array of integer);
 {
 This function will save the position and the optional data in extra to an array element in the registry
 }
@@ -2750,6 +2750,17 @@ begin
           if reg.readbool('Save window positions') = false then
           begin
             freeandnil(reg);
+
+            for i:=0 to length(extra)-1 do
+            begin
+              if extra[i]=$cececece then //the extra array needs to be accessed else fpc will cause stack corruption
+              begin
+                asm
+                  nop
+                end;
+              end;
+            end;
+
             exit;
           end;
       end;

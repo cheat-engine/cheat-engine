@@ -317,12 +317,12 @@ end;
 
 procedure TAdvancedOptions.FormResize(Sender: TObject);
 begin
-  codelist2.Column[1].Width:=max(40,codelist2.clientwidth-codelist2.Column[0].Width); //lazarus doesn't implement autosize properly
+
 end;
 
 procedure TAdvancedOptions.FormShow(Sender: TObject);
 begin
-  Codelist2Resize(codelist2);
+
 end;
 
 resourcestring

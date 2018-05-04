@@ -6775,7 +6775,7 @@ begin
     if @DebugActiveProcessStop <> @DebugActiveProcessStopProstitute then
     begin
       //detach the debugger
-      hide;
+      //hide;
       crashcounter := 0;
       if advancedoptions <> nil then
       begin
@@ -6800,17 +6800,15 @@ begin
   end;
 
   if frmProcessWatcher <> nil then
-  begin
-    frmProcessWatcher.Free;
-    frmProcessWatcher := nil;
-  end;
-
+    freeandnil(frmProcessWatcher);
 
   try
-    tempbitmap.Free;
+    if tempbitmap<>nil then
+      freeandnil(tempbitmap);
+
     shutdown;
 
-    unregisterhotkey(handle, 0);
+   // unregisterhotkey(handle, 0);
   except
 
   end;
@@ -6834,7 +6832,9 @@ begin
     setactivewindow(lastactive);
   end;
 
-  FreeAndNil(autoattachlist);
+  if autoattachlist<>nil then
+    FreeAndNil(autoattachlist);
+
 
   if speedhack <> nil then
     FreeAndNil(speedhack);
