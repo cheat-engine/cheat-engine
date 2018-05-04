@@ -3652,7 +3652,10 @@ end;
 
 
 procedure TMemoryBrowser.FormDestroy(Sender: TObject);
-var h0,h1,h2,h3: integer;
+var
+  h0,h1,h2,h3: integer;
+  params: array of integer;
+
 begin
   MemoryBrowsers.Remove(self);
 
@@ -3672,26 +3675,28 @@ begin
   //membrowser comes after formsettings so is destroyed before formsettings, so valid
   if (not ischild) then
   begin
-    if disassemblerview<>nil then
+    if self.disassemblerview<>nil then
     begin
-      saveformposition(self,[
-                              disassemblerview.getheaderwidth(0),
-                              disassemblerview.getheaderwidth(1),
-                              disassemblerview.getheaderwidth(2),
-                              disassemblerview.getheaderwidth(3),
-                              panel1.height,
-                              registerview.width,
-                              strtoint(BoolToStr(Showsymbols1.checked,'1','0')),
-                              strtoint(BoolToStr(Showmoduleaddresses1.checked,'1','0')),
-                              strtoint(BoolToStr(miLockRowsize.Checked,'1','0')),
-                              hexview.LockedRowSize
-                      ]);
+      setlength(params,10);
+      //don't use [xx,xx,xx] crash
+      params[0]:=self.disassemblerview.getheaderwidth(0);
+      params[1]:=self.disassemblerview.getheaderwidth(1);
+      params[2]:=self.disassemblerview.getheaderwidth(2);
+      params[3]:=self.disassemblerview.getheaderwidth(3);
+      params[4]:=self.panel1.height;
+      params[5]:=self.registerview.width;
+      params[6]:=strtoint(BoolToStr(self.Showsymbols1.checked,'1','0'));
+      params[7]:=strtoint(BoolToStr(self.Showmoduleaddresses1.checked,'1','0'));
+      params[8]:=strtoint(BoolToStr(self.miLockRowsize.Checked,'1','0'));
+      params[9]:=self.hexview.LockedRowSize;
+
+      saveformposition(self,params);
 
 
     end;
   end;
 
-  if disassemblerview<>nil then
+  if self.disassemblerview<>nil then
     freeandnil(self.disassemblerview);
 
   if self.hexview<>nil then

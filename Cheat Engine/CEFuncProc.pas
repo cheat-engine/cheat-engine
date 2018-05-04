@@ -2727,8 +2727,8 @@ procedure SaveFormPosition(form: Tcustomform; extra: array of integer);
 {
 This function will save the position and the optional data in extra to an array element in the registry
 }
-var reg: tregistry;
-    buf: tmemorystream;
+var reg: tregistry=nil;
+    buf: tmemorystream=nil;
     temp: integer;
     i: integer;
     s: string;
@@ -2736,7 +2736,10 @@ begin
   //save window pos (only when it's in a normal state)
   if form.WindowState=wsNormal then
   begin
+
     reg:=tregistry.create;
+
+
     try
       Reg.RootKey := HKEY_CURRENT_USER;
 
@@ -2744,7 +2747,11 @@ begin
       if Reg.OpenKey('\Software\Cheat Engine',false) then
       begin
         if reg.valueexists('Save window positions') then
-          if reg.readbool('Save window positions') = false then exit;
+          if reg.readbool('Save window positions') = false then
+          begin
+            freeandnil(reg);
+            exit;
+          end;
       end;
 
 
@@ -2776,11 +2783,13 @@ begin
 
           reg.WriteBinaryData(s,buf.Memory^,buf.Size);
         finally
-          buf.free;
+          if buf<>nil then
+            freeandnil(buf);
         end;
       end;
     finally
-      reg.free;
+      if reg<>nil then
+        freeandnil(reg);
     end;
 
   end;
