@@ -631,6 +631,9 @@ type
     scanCopyOnWrite: Tscanregionpreference;
 
     attachedFoundlist: TObject;
+
+    function GetLastScanWasRegionScan: boolean;
+
     procedure parseProtectionflags(protectionflags: string);
     function GetProgress(var totaladdressestoscan:qword; var currentlyscanned: qword; var resultsfound: qword):integer;
     function hasError: boolean;
@@ -670,6 +673,7 @@ type
     property VarType: TVariableType read currentVariableType;
     property CustomType: TCustomType read currentCustomType;
     property codePage: boolean read fCodePage write fCodePage;
+    property lastScanWasRegionScan: boolean read getLastScanWasRegionScan;
     property isUnicode: boolean read stringUnicode;
     property isHexadecimal: boolean read fisHexadecimal; //gui
     property LastScanValue: string read fLastScanValue;
@@ -5850,19 +5854,10 @@ begin
 end;
 
 
-procedure TScanController.nextScan;
-var AddressFile: TFilestream;
-    datatype: string[6];
-begin
-  //open the address file and determine if it's a region scan or result scan
-  AddressFile:=TFileStream.Create(OwningMemScan.ScanresultFolder+'ADDRESSES.TMP',fmOpenRead or fmSharedenynone);
-  try
-    Addressfile.ReadBuffer(datatype,sizeof(datatype));
-  finally
-    addressFile.free;
-  end;
 
-  if datatype='REGION' then
+procedure TScanController.nextScan;
+begin
+  if owningmemscan.LastScanWasRegionScan then
     FirstNextScan
   else
     NextNextScan;
@@ -6693,6 +6688,26 @@ end;
 
 
 //----------------memscan--------------//
+
+function TMemscan.GetLastScanWasRegionScan:boolean;
+var AddressFile: TFilestream;
+    datatype: string[6];
+begin
+  //open the address file and determine if it's a region scan or result scan
+  try
+    AddressFile:=TFileStream.Create(ScanresultFolder+'ADDRESSES.TMP',fmOpenRead or fmSharedenynone);
+    try
+      Addressfile.ReadBuffer(datatype,sizeof(datatype));
+    finally
+      addressFile.free;
+    end;
+
+    result:=datatype='REGION';
+  except
+    result:=false;
+  end;
+end;
+
 procedure TMemscan.TerminateScan(forceTermination: boolean);
 var i: integer;
     lastwait: TWaitResult;

@@ -1961,6 +1961,10 @@ getCurrentMemscan() : Returns the current memory scan object. If tabs are used t
 createMemScan(progressbar OPTIONAL) : Returns a new MemScan class object
 
 properties
+  LastScanWasRegionScan: boolean - returns true is the previous scan was an unknown initial value
+  LastScanValue: string
+  LastScanType: ScanType/string - 'stNewScan', 'stFirstScan', 'stNextScan'
+  ScanresultFolder: string - Path where the results are stored  
   OnScanDone: function(memscan) - Set a function to be called when the scan has finished
   OnGuiUpdate: function(memscan, TotalAddressesToScan, CurrentlyScanned, ResultsFound) - Called during the scan so you can update the interface if needed
   FoundList: FoundList - The foundlist currently attached to this memscan object

@@ -5433,7 +5433,7 @@ end;
 
 procedure TMainForm.tLuaGCPassiveTimer(Sender: TObject);
 begin
-  lua_gc(LuaVM,LUA_GCSTEP,100);
+  lua_gc(LuaVM,LUA_GCSTEP,500);
 end;
 
 procedure TMainForm.UpdateTimerTimer(Sender: TObject);
@@ -6663,6 +6663,10 @@ begin
     menuitem14.visible:=(memscan.LastScanType=stNextScan) and (memscan.VarType in [vtAll, vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble]);      ;
     miForgotScan.visible:=(memscan.LastScanType=stNextScan) and (memscan.VarType in [vtAll, vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble]);      ;
   end;
+
+  miFlFindWhatAccesses.enabled:=Browsethismemoryarrea1.enabled;
+  miFlFindWhatWrites.enabled:=Browsethismemoryarrea1.enabled;
+
 end;
 
 procedure TMainForm.Removeselectedaddresses1Click(Sender: TObject);

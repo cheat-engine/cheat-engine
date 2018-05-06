@@ -1334,6 +1334,7 @@ end;
 procedure TMemoryBrowser.SetBookmarkClick(Sender: TObject);
 var
   id: integer;
+  mi: TModuleInfo;
 begin
   if (sender=nil) or (not (sender is TMenuItem)) then exit;
   id:=TMenuItem(Sender).Tag;
