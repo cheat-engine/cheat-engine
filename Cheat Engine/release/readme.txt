@@ -37,6 +37,7 @@ Added a DBVM based "Find what writes/accesses" feature. (For pro users, enable k
 Changed the dissect data setup from seperate yes/no/value dialogs to a single window
 Added a bypass option for ultimap2 on windows 1709. When using ranges, do not use interrupts, or use DBVM
 Added find what writes/access to the foundlist
+autoassembler scriptblocks are now grouped when written to memory
 
 
 

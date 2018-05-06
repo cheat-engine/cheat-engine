@@ -3099,6 +3099,8 @@ end;
 
 procedure TMainForm.miForgotScanClick(Sender: TObject);
 begin
+  if (foundlist.count=0) or (memscan.lastScanWasRegionScan) then exit;
+
   if PreviousResults<>nil then
     freeandnil(PreviousResults);
 
@@ -6660,8 +6662,13 @@ begin
     end;
 
 
-    menuitem14.visible:=(memscan.LastScanType=stNextScan) and (memscan.VarType in [vtAll, vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble]);      ;
-    miForgotScan.visible:=(memscan.LastScanType=stNextScan) and (memscan.VarType in [vtAll, vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble]);      ;
+    menuitem14.visible:=(memscan.lastScanWasRegionScan=false) and (memscan.VarType in [vtAll, vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble]);      ;
+    miForgotScan.visible:=(memscan.lastScanWasRegionScan=false) and (memscan.VarType in [vtAll, vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble]);      ;
+  end
+  else
+  begin
+    menuitem14.visible:=false;
+    miForgotScan.visible:=false;
   end;
 
   miFlFindWhatAccesses.enabled:=Browsethismemoryarrea1.enabled;
