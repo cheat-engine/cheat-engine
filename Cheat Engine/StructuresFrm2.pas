@@ -2823,7 +2823,8 @@ begin
   if backlist<>nil then
     freeandnil(backlist);
 
-  self.parent.parent.FixPositions;
+  if (self.parent<>nil) and (self.parent.parent<>nil) then
+    self.parent.parent.FixPositions;
 end;
 
 { Tstructgroup }
