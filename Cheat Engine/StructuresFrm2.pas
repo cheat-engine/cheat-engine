@@ -4475,8 +4475,7 @@ begin
   //check if miDefineNewStructureFromDebugData should be visible
   miDefineNewStructureFromDebugData.visible:=symhandler.hasDefinedStructures;
   miDefineNewStructureFromDebugData.enabled:=miDefineNewStructureFromDebugData.visible;
-
-
+  miSeperatorStructCommandsAndList.visible:=DissectedStructs.count>0;
 end;
 
 procedure TfrmStructures2.tmFixGuiTimer(Sender: TObject);
