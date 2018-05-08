@@ -1,7 +1,7 @@
 object frmStructures2: TfrmStructures2
-  Left = 449
+  Left = 375
   Height = 381
-  Top = 337
+  Top = 485
   Width = 542
   Caption = 'Structure dissect'
   ClientHeight = 361
@@ -194,7 +194,7 @@ object frmStructures2: TfrmStructures2
         Visible = False
         OnClick = miDefineNewStructureFromDebugDataClick
       end
-      object N1: TMenuItem
+      object miSeperatorStructCommandsAndList: TMenuItem
         Caption = '-'
       end
     end

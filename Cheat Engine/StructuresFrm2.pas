@@ -393,7 +393,7 @@ type
     miChangeColors: TMenuItem;
     miUpdateInterval: TMenuItem;
     miUpdateOffsets: TMenuItem;
-    N1: TMenuItem;
+    miSeperatorStructCommandsAndList: TMenuItem;
     N2: TMenuItem;
     N3: TMenuItem;
     N7: TMenuItem;
@@ -4521,7 +4521,6 @@ begin
 
   miRecalculateAddress.Visible:=(structelement<>nil) and (tvStructureView.selected.Level=1);
 
-  n1.visible:=ownerstruct<>nil;
   n2.visible:=ownerstruct<>nil;
 
   N3.visible:=miRecalculateAddress.visible or miUpdateOffsets.visible;
@@ -5748,9 +5747,11 @@ var
   i: integer;
   s: string;
   mi: TMenuItem;
+  insertpos: integer;
 begin
-  while structures1.count>2 do
-    Structures1.Delete(2);
+  insertpos:=structures1.IndexOf(miSeperatorStructCommandsAndList);
+  while structures1.count>insertpos+1 do
+    Structures1.Delete(insertpos+1);
 
   for i:=0 to DissectedStructs.count-1 do
   begin
