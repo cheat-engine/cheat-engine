@@ -94,7 +94,7 @@ uses
   frmWatchListAddEntryUnit, frmBusyUnit, FindDialogFix, LuaCustomType, LuaSQL,
   bCrypt, feces, askToRunLuaScript, frmDBVMWatchConfigUnit,
   frmStructuresNewStructureUnit, frmDotNetObjectListUnit, vextypedef, 
-frmFindDialogUnit;
+frmFindDialogUnit, frmRearrangeStructureListUnit;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in

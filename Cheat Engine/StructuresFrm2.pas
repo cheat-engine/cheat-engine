@@ -332,6 +332,7 @@ type
     MenuItem5: TMenuItem;
     MenuItem6: TMenuItem;
     MenuItem7: TMenuItem;
+    MenuItem8: TMenuItem;
     miChangeTypeArrayOfByte: TMenuItem;
     miChangeTypePointer: TMenuItem;
     miChangeTypeUnicode: TMenuItem;
@@ -412,6 +413,7 @@ type
     tmFixGui: TTimer;
     updatetimer: TTimer;
     tvStructureView: TTreeView;
+    procedure MenuItem8Click(Sender: TObject);
     procedure OnChangeTypeMenuItemClick(Sender: TObject);
     procedure Addextraaddress1Click(Sender: TObject);
     procedure FindDialog1Find(Sender: TObject);
@@ -555,6 +557,7 @@ type
     procedure getPointerFromNode(node: TTreenode; column:TStructcolumn; var baseaddress: ptruint; var offsetlist: toffsetlist);
     function getAddressFromNode(node: TTreenode; column: TStructColumn; var hasError: boolean): ptruint;
 
+    procedure onStructListChange;
     procedure onAddedToStructList(sender: TDissectedStruct);
     procedure onRemovedFromStructList(sender: TDissectedStruct);
     procedure onFullStructChange(sender: TDissectedStruct);   //called when a structure is changed (sort/add/remove entry)
@@ -595,7 +598,7 @@ implementation
 
 uses MainUnit, mainunit2, frmStructures2ElementInfoUnit, MemoryBrowserFormUnit,
   frmStructureLinkerUnit, frmgroupscanalgoritmgeneratorunit, frmStringPointerScanUnit,
-  ProcessHandlerUnit, Parsers, LuaCaller;
+  ProcessHandlerUnit, Parsers, LuaCaller, frmRearrangeStructureListUnit;
 
 resourcestring
   rsAddressValue = 'Address: Value';
@@ -3672,6 +3675,12 @@ begin
   end;
 end;
 
+procedure TfrmStructures2.onStructListChange;
+begin
+  RefreshStructureList;
+end;
+
+
 procedure TfrmStructures2.onAddedToStructList(sender: TDissectedStruct);
 begin
   RefreshStructureList;
@@ -4621,6 +4630,16 @@ begin
   element.setVartype(vt);
   element.setDisplayMethod(displayMethod);
   element.setBytesize(size);
+end;
+
+procedure TfrmStructures2.MenuItem8Click(Sender: TObject);
+var
+  f: TfrmRearrangeStructureList;
+  i: integer;
+begin
+  f:=tfrmRearrangeStructureList.create(self);
+  f.ShowModal;
+  f.free;
 end;
 
 procedure TfrmStructures2.miNewWindowClick(Sender: TObject);

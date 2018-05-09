@@ -760,7 +760,10 @@ begin
       vk_up:
       begin
         if isEditing then
-          dec(selected,bytesPerLine)
+        begin
+          dec(selected,bytesPerLine);
+          selected2:=selected+1;
+        end
         else
           address:=address-bytesPerLine;
 
@@ -771,7 +774,10 @@ begin
       vk_down:
       begin
         if isEditing then
-          inc(selected,bytesPerLine)
+        begin
+          inc(selected,bytesPerLine);
+          selected2:=selected+1;
+        end
         else
           address:=address+bytesperline;
 
@@ -804,6 +810,8 @@ begin
 
             end;
           end;
+
+          selected2:=selected+1;
         end
         else
           address:=address-1;
@@ -839,7 +847,7 @@ begin
               editingCursorPos:=0;
             end;
           end;
-
+          selected2:=selected+1;
         end
         else
           address:=address+1;
