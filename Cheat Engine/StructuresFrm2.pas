@@ -700,6 +700,13 @@ resourcestring
   rsHexadecimal = 'Hexadecimal';
   rsDefinePointer = 'Define pointer';
   rsUpgradePointer = 'Upgrade child structure to full structure';
+  rsHex = '(Hex)';
+  rsUnicodeString = 'Unicode';
+  rsArrayOfByte = 'Array of Byte';
+  rsPointer = 'Pointer';
+  rsByteWithValue = 'Byte: %s';
+  rs2ByteWithValue2 = '2 Byte: %s';
+
 
 var
   StructureDissectOverrides: array of TStructureDissectOverride;
@@ -4551,37 +4558,38 @@ begin
     if hasError then
     begin
       // just display types if we don't have a valid address
-      miChangeTypeByte.Caption:='Byte';
-      miChangeType2Byte.Caption:='2 Byte';
-      miChangeType4Byte.Caption:='4 Byte';
-      miChangeTypeByteHex.Caption:='Byte (Hex)';
-      miChangeType2ByteHex.Caption:='2 Byte (Hex)';
-      miChangeType4ByteHex.Caption:='4 Byte (Hex)';
-      miChangeType8ByteHex.Caption:='8 Byte (Hex)';
-      miChangeTypeFloat.Caption:='Float';
-      miChangeTypeDouble.Caption:='Double';
-      miChangeTypeString.Caption:='String';
-      miChangeTypeUnicode.Caption:='Unicode';
-      miChangeTypeArrayOfByte.Caption:='Array of Byte';
-      miChangeTypePointer.Caption:='Pointer';
+      //using the dotnet types for translation, it's ok
+      miChangeTypeByte.Caption:=rsDNTByte;
+      miChangeType2Byte.Caption:=rsDNT2Byte;
+      miChangeType4Byte.Caption:=rsDNT4Byte;
+      miChangeTypeByteHex.Caption:=rsDNTByte+' '+rsHex;
+      miChangeType2ByteHex.Caption:=rsDNT2Byte+' '+rsHex;
+      miChangeType4ByteHex.Caption:=rsDNT4Byte+' '+rsHex;
+      miChangeType8ByteHex.Caption:=rsDNT8Byte+' '+rsHex;
+      miChangeTypeFloat.Caption:=rsDNTFloat;
+      miChangeTypeDouble.Caption:=rsDNTDouble;
+      miChangeTypeString.Caption:=rsDNTString;
+      miChangeTypeUnicode.Caption:=rsUnicodeString;
+      miChangeTypeArrayOfByte.Caption:=rsArrayOfByte;
+      miChangeTypePointer.Caption:=rsPointer;
     end else begin
       // booleans are hex override, signed
-      miChangeTypeByte.Caption:=Format('Byte: %s', [readAndParseAddress(address, vtByte, nil, false, true, 1)]);
-      miChangeType2Byte.Caption:=Format('2 Byte: %s', [readAndParseAddress(address, vtWord, nil, false, true, 2)]);
-      miChangeType4Byte.Caption:=Format('4 Byte: %s', [readAndParseAddress(address, vtDword, nil, false, true, 4)]);
-      miChangeTypeByteHex.Caption:=Format('Byte (Hex): %s', [readAndParseAddress(address, vtByte, nil, true, false, 1)]);
-      miChangeType2ByteHex.Caption:=Format('2 Byte (Hex): %s', [readAndParseAddress(address, vtWord, nil, true, false, 2)]);
-      miChangeType4ByteHex.Caption:=Format('4 Byte (Hex): %s', [readAndParseAddress(address, vtDword, nil, true, false, 4)]);
-      miChangeType8ByteHex.Caption:=Format('8 Byte (Hex): %s', [readAndParseAddress(address, vtQWord, nil, true, false, 8)]);
-      miChangeTypeFloat.Caption:=Format('Float: %s', [readAndParseAddress(address, vtSingle, nil, false, true, 4)]);
-      miChangeTypeDouble.Caption:=Format('Double: %s', [readAndParseAddress(address, vtDouble, nil, false, true, 8)]);
-      miChangeTypeString.Caption:=Format('String: %s', [readAndParseAddress(address, vtString, nil, false, false, 32)]);
-      miChangeTypeUnicode.Caption:=Format('Unicode: %s', [readAndParseAddress(address, vtUnicodeString, nil, false, true, 32)]);
-      miChangeTypeArrayOfByte.Caption:=Format('Array of Byte: %s', [readAndParseAddress(address, vtByteArray, nil, true, false, 16)]);
+      miChangeTypeByte.Caption:=Format(rsDNTByte+': %s', [readAndParseAddress(address, vtByte, nil, false, true, 1)]);
+      miChangeType2Byte.Caption:=Format(rsDNT2Byte+': %s', [readAndParseAddress(address, vtWord, nil, false, true, 2)]);
+      miChangeType4Byte.Caption:=Format(rsDNT4Byte+': %s', [readAndParseAddress(address, vtDword, nil, false, true, 4)]);
+      miChangeTypeByteHex.Caption:=Format(rsDNTByte+' '+rsHex+': %s', [readAndParseAddress(address, vtByte, nil, true, false, 1)]);
+      miChangeType2ByteHex.Caption:=Format(rsDNT2Byte+' '+rsHex+': %s', [readAndParseAddress(address, vtWord, nil, true, false, 2)]);
+      miChangeType4ByteHex.Caption:=Format(rsDNT4Byte+' '+rsHex+': %s', [readAndParseAddress(address, vtDword, nil, true, false, 4)]);
+      miChangeType8ByteHex.Caption:=Format(rsDNT8Byte+' '+rsHex+': %s', [readAndParseAddress(address, vtQWord, nil, true, false, 8)]);
+      miChangeTypeFloat.Caption:=Format(rsDNTFloat+': %s', [readAndParseAddress(address, vtSingle, nil, false, true, 4)]);
+      miChangeTypeDouble.Caption:=Format(rsDNTDouble+': %s', [readAndParseAddress(address, vtDouble, nil, false, true, 8)]);
+      miChangeTypeString.Caption:=Format(rsDNTString+': %s', [readAndParseAddress(address, vtString, nil, false, false, 32)]);
+      miChangeTypeUnicode.Caption:=Format(rsUnicodeString+': %s', [readAndParseAddress(address, vtUnicodeString, nil, false, true, 32)]);
+      miChangeTypeArrayOfByte.Caption:=Format(rsArrayOfByte+': %s', [readAndParseAddress(address, vtByteArray, nil, true, false, 16)]);
       if processhandler.pointersize = 4 then
-        miChangeTypePointer.Caption:=Format('Pointer: P->%s', [readAndParseAddress(address, vtDWord, nil, true, false, 4)])
+        miChangeTypePointer.Caption:=Format(rsPointer+': P->%s', [readAndParseAddress(address, vtDWord, nil, true, false, 4)])
       else
-        miChangeTypePointer.Caption:=Format('Pointer: P->%s', [readAndParseAddress(address, vtQWord, nil, true, false, 8)]);
+        miChangeTypePointer.Caption:=Format(rsPointer+': P->%s', [readAndParseAddress(address, vtQWord, nil, true, false, 8)]);
     end;
   end;
 end;
