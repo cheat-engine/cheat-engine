@@ -1904,6 +1904,12 @@ begin
     end else hasVEX:=false;
 
 
+    //compatibility fix for code that still checks for rex.* or sets it as a temporary flag replacement
+    RexPrefix:=ifthen(opcodeflags.B, rexprefix or BIT_REX_B);
+    RexPrefix:=ifthen(opcodeflags.X, rexprefix or BIT_REX_X);
+    RexPrefix:=ifthen(opcodeflags.R, rexprefix or BIT_REX_R);
+    RexPrefix:=ifthen(opcodeflags.W, rexprefix or BIT_REX_W);
+
     case memory[0] of  //opcode
       $00 : begin
               description:='Add';
@@ -10502,7 +10508,8 @@ begin
       $50..$57 :
             begin
               description:='push word or doubleword onto the stack';
-              if is64bit then rexprefix:=rexprefix or bit_rex_w; //so rd will pick the 64-bit version
+
+              if is64bit then opcodeflags.w:=true;
 
               lastdisassembledata.opcode:='push';
               if $66 in prefix2 then
@@ -10513,7 +10520,7 @@ begin
       $58..$5f :
             begin
               description:='pop a value from the stack';
-              if is64bit then rexprefix:=rexprefix or bit_rex_w; //so rd will pick the 64-bit version
+              if is64bit then opcodeflags.w:=true; //so rd will pick the 64-bit version
               lastdisassembledata.opcode:='pop';
               if $66 in prefix2 then
                 lastdisassembledata.parameters:=rd16(memory[0]-$58) else
@@ -10563,7 +10570,7 @@ begin
               if is64bit then
               begin
                 lastdisassembledata.opcode:='movsxd';
-                RexPrefix:=RexPrefix and (not BIT_REX_W);
+                opcodeflags.w:=false;
 
                 lastdisassembledata.parameters:=' '+r64(memory[1])+','+modrm(memory,prefix2,1,0,last,32);
                 inc(offset,last-1);
