@@ -1327,8 +1327,15 @@ void CPipeServer::Start(void)
 
 			if (attached)
 			{
-				mono_thread_detach(mono_selfthread);
-				attached = FALSE;
+				try
+				{
+					mono_thread_detach(mono_selfthread);
+					attached = FALSE;
+				}
+				catch (...)
+				{
+
+				}
 			}
 
 
@@ -1338,8 +1345,17 @@ void CPipeServer::Start(void)
 			OutputDebugStringA("Unexpected pipe error\n");
 			if (attached)
 			{
-				mono_thread_detach(mono_selfthread);
-				attached = FALSE;
+				try
+				{
+					mono_thread_detach(mono_selfthread);
+					attached = FALSE;
+				}
+				catch (...)
+				{
+
+				}
+				
+				
 			}
 		}
 

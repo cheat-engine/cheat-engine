@@ -805,7 +805,6 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         Top = 2
         Width = 40
         BorderSpacing.Top = 2
-        Enabled = False
         TabOrder = 3
         Text = '3'
       end
