@@ -2126,7 +2126,10 @@ var i,j: integer;
     sl: TStringList;
 begin
   if lvResults.Visible then
+  begin
+    lvResults.Update;
     lvResults.repaint;
+  end;
 
   try
     //collect data and then update the treeview
