@@ -2215,6 +2215,8 @@ var
   targetself: boolean;
   CEAllocArray: TCEAllocArray;
 
+  exceptionlist: TCEExceptionListArray;
+
   i: integer;
 
   secondaryResultTable: integer;
@@ -2314,10 +2316,25 @@ begin
               registeredsymbols.Add(Lua_ToString(L,-1));
               lua_pop(L,1);
             end;
-
-
           end;
           lua_pop(L,1);
+
+          lua_pushstring(L,'exceptionlist');
+          lua_gettable(L,disableInfoIndex);
+          if not lua_isnil(L,-1) then
+          begin
+            if lua_istable(L,-1)=false then raise exception.create('Corrupt disableInfo section at the exceptionlist side');
+
+            setlength(exceptionlist, lua_objlen(L,-1));
+
+            for i:=1 to length(exceptionlist) do
+            begin
+              lua_pushinteger(L,i);
+              lua_gettable(L,-2);
+              exceptionlist[i-1]:=lua_tointeger(L,-1);
+              lua_pop(L,1);
+            end;
+          end;
         end
         else raise exception.create('Not a valid disableInfo variable');
 
@@ -2333,7 +2350,7 @@ begin
 
 
     try
-      r:=autoassemble(code, false, enable, false, targetself, CEAllocArray, registeredsymbols);
+      r:=autoassemble(code, false, enable, false, targetself, CEAllocArray, exceptionlist, registeredsymbols, nil);
     except
       on e:exception do
       begin
@@ -2379,6 +2396,19 @@ begin
       begin
         lua_pushinteger(L,i+1);
         lua_pushstring(L, registeredsymbols[i]);
+        lua_settable(L, tableIndex);
+      end;
+
+      lua_settable(L, secondaryResultTable);
+
+      lua_pushstring(L,'exceptionlist');
+      lua_newtable(L);
+      tableIndex:=lua_gettop(L);
+
+      for i:=0 to length(exceptionlist)-1 do
+      begin
+        lua_pushinteger(L,i+1);
+        lua_pushinteger(L, exceptionlist[i]);
         lua_settable(L, tableIndex);
       end;
 
@@ -7899,6 +7929,7 @@ function executeCode(L:PLua_state): integer; cdecl; //executecode(address, param
 var
   s: tstringlist;
   allocs: TCEAllocArray;
+  exceptionlist: TCEExceptionListArray;
   address: ptruint;
   i: integer;
   stubaddress: ptruint;
@@ -7985,7 +8016,7 @@ begin
       s.add('dq '+inttohex(address,8));
     end;
 
-    if autoassemble(s, false, true, false, false, allocs) then
+    if autoassemble(s, false, true, false, false, allocs, exceptionlist) then
     begin
 
       for i:=0 to length(allocs)-1 do

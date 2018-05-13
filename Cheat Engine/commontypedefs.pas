@@ -78,6 +78,8 @@ end;
 type TPtrUintArray=array[0..100] of ptruint;
 type PPtrUintArray=^TPtrUintArray;
 
+type TDynPtrUintArray=array of ptruint;
+
 
 type TDwordArray=array[0..100] of dword;
 type PDwordArray=^TDwordArray;
@@ -114,6 +116,10 @@ type TCEAlloc=record
 end;
 type PCEAlloc=^TCEAlloc;
 type TCEAllocArray=array of TCEAlloc;
+
+type TCEExceptionListArray=TDynPtrUintArray;
+
+
 
 type TKeyCombo=array [0..4] of word;
 

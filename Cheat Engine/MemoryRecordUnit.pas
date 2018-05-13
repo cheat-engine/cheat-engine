@@ -60,6 +60,7 @@ type TMemRecByteData=record
 type TMemRecAutoAssemblerData=record
       script: tstringlist;
       allocs: TCEAllocArray;
+      exceptionlist: TCEExceptionListArray;
       registeredsymbols: TStringlist;
     end;
 
@@ -445,7 +446,7 @@ uses processhandlerunit, Parsers;
 procedure TMemoryRecordProcessingThread.Execute;
 begin
   try
-    if autoassemble(owner.autoassemblerdata.script, false, state, false, false, owner.autoassemblerdata.allocs, owner.autoassemblerdata.registeredsymbols, owner) then
+    if autoassemble(owner.autoassemblerdata.script, false, state, false, false, owner.autoassemblerdata.allocs, owner.autoassemblerdata.exceptionlist, owner.autoassemblerdata.registeredsymbols, owner) then
     begin
       owner.fActive:=state;
       if owner.autoassemblerdata.registeredsymbols.Count>0 then //if it has a registered symbol then reinterpret all addresses
@@ -2344,7 +2345,7 @@ begin
       else
       begin
         try
-          if autoassemble(autoassemblerdata.script, false, state, false, false, autoassemblerdata.allocs, autoassemblerdata.registeredsymbols, self) then
+          if autoassemble(autoassemblerdata.script, false, state, false, false, autoassemblerdata.allocs, autoassemblerdata.exceptionlist, autoassemblerdata.registeredsymbols, self) then
           begin
             fActive:=state;
             if autoassemblerdata.registeredsymbols.Count>0 then //if it has a registered symbol then reinterpret all addresses

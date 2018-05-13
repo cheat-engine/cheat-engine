@@ -35,6 +35,7 @@ constructor TSpeedhack.create;
 var i: integer;
     script: tstringlist;
     AllocArray: TCEAllocArray;
+    exceptionlist: TCEExceptionListArray;
     x: ptrUint;
 //      y: dword;
     a,b: ptrUint;
@@ -176,7 +177,7 @@ begin
       try
         setlength(AllocArray,0);
 
-        autoassemble(script,false,true,false,false,AllocArray);
+        autoassemble(script,false,true,false,false,AllocArray, exceptionlist);
 
         //fill in the address for the init region
         for i:=0 to length(AllocArray)-1 do

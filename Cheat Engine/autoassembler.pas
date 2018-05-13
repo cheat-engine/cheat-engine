@@ -22,7 +22,7 @@ uses jwawindows, windows, Assemblerunit, classes, LCLIntf,symbolhandler,
 function getenableanddisablepos(code:tstrings;var enablepos,disablepos: integer): boolean;
 function autoassemble(code: tstrings;popupmessages: boolean):boolean; overload;
 function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean):boolean; overload;
-function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean;var CEAllocarray: TCEAllocArray; registeredsymbols: tstringlist=nil; memrec: pointer=nil): boolean; overload;
+function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean;var CEAllocarray: TCEAllocArray; var exceptionlist:TCEExceptionListArray; registeredsymbols: tstringlist=nil; memrec: pointer=nil): boolean; overload;
 
 type TAutoAssemblerPrologue=procedure(code: TStrings; syntaxcheckonly: boolean) of object;
 type TAutoAssemblerCallback=function(parameters: string; syntaxcheckonly: boolean): string of object;
@@ -1277,7 +1277,7 @@ end;
 
 var nextaaid: longint;
 
-function autoassemble2(code: tstrings;popupmessages: boolean;syntaxcheckonly:boolean; targetself: boolean ;var ceallocarray:TCEAllocArray; registeredsymbols: tstringlist=nil; memrec: TMemoryRecord=nil):boolean;
+function autoassemble2(code: tstrings;popupmessages: boolean;syntaxcheckonly:boolean; targetself: boolean ;var ceallocarray:TCEAllocArray; var ceexceptionlist: TCEExceptionListArray; registeredsymbols: tstringlist=nil; memrec: TMemoryRecord=nil):boolean;
 {
 registeredsymbols is a stringlist that is initialized by the caller as case insensitive and no duplicates
 }
@@ -3240,9 +3240,17 @@ begin
           ceallocarray[i]:=allocs[i];
       end;
 
+      if (length(ceexceptionlist)>0) and (AutoAssemblerExceptionHandlerHasEntries) then
+      begin
+        for i:=0 to length(ceexceptionlist)-1 do
+          AutoAssemblerExceptionHandlerRemoveExceptionRange(ceexceptionlist[i]);
 
+        AutoAssemblerExceptionHandlerApplyChanges;
+      end;
 
-
+      setlength(ceexceptionlist, length(exceptionlist));
+      for i:=0 to length(ceexceptionlist)-1 do
+        ceexceptionlist[i]:=getAddressFromScript(exceptionlist[i].trylabel);
 
       //check the addsymbollist array and deletesymbollist array
 
@@ -3579,7 +3587,7 @@ begin
   end;
 end;
 
-function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean;var CEAllocarray: TCEAllocArray; registeredsymbols: tstringlist=nil; memrec:pointer=nil): boolean; overload;
+function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean;var CEAllocarray: TCEAllocArray; var exceptionlist:TCEExceptionListArray; registeredsymbols: tstringlist=nil; memrec: pointer=nil): boolean; overload;
 {
 targetself defines if the process that gets injected to is CE itself or the target process
 }
@@ -3644,24 +3652,28 @@ begin
     if targetself then
       Stripcpuspecificcode(tempstrings);
 
-    result:=autoassemble2(tempstrings,popupmessages,syntaxcheckonly,targetself,ceallocarray, registeredsymbols, memrec);
+    result:=autoassemble2(tempstrings,popupmessages,syntaxcheckonly,targetself,ceallocarray, exceptionlist, registeredsymbols, memrec);
   finally
     tempstrings.Free;
   end;
 end;
 
 function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean):boolean; overload;
-var aa: TCEAllocArray;
+var
+  aa: TCEAllocArray;
+  ae: TCEExceptionListArray;
 begin
   setlength(aa,0);
-  result:=autoassemble(code,popupmessages,enable,syntaxcheckonly,targetself,aa,nil);
+  result:=autoassemble(code,popupmessages,enable,syntaxcheckonly,targetself,aa,ae);
 end;
 
 function autoassemble(code: tstrings;popupmessages: boolean):boolean; overload;
-var aa: TCEAllocArray;
+var
+  aa: TCEAllocArray;
+  ae: TCEExceptionListArray;
 begin
   setlength(aa,0);
-  result:=autoassemble(code,popupmessages,true,false,false,aa,nil);
+  result:=autoassemble(code,popupmessages,true,false,false,aa,ae,nil);
 end;
 
 

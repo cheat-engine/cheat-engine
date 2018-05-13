@@ -28,6 +28,7 @@ end;
 function allocateSharedMemoryIntoTargetProcess(name: string; size: integer=4096): pointer;
 var s: tstringlist;
   CEAllocArray: TCEAllocArray;
+  ExceptionList: TCEExceptionListArray;
   i: integer;
   starttime: dword;
   x: ptruint;
@@ -128,7 +129,7 @@ begin
 
   try
     setlength(CEAllocArray,0);
-    if autoassemble(s,false, true, false, false, CEAllocArray) then
+    if autoassemble(s,false, true, false, false, CEAllocArray, exceptionlist) then
     begin
       starttime:=GetTickCount;
       for i:=0 to length(ceallocarray)-1 do

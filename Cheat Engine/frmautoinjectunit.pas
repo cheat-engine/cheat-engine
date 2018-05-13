@@ -447,6 +447,7 @@ var
     a,b: integer;
 
     aa: TCEAllocArray;
+    exceptionlist: TCEExceptionListArray;
 
     //variables for injectintomyself:
     check: boolean;
@@ -481,8 +482,8 @@ begin
 
 
         try
-          check:=autoassemble(assemblescreen.lines,false,true,true,injectintomyself,aa,registeredsymbols,memrec) and
-                 autoassemble(assemblescreen.lines,false,false,true,injectintomyself,aa,registeredsymbols,memrec);
+          check:=autoassemble(assemblescreen.lines,false,true,true,injectintomyself,aa,exceptionlist,registeredsymbols,memrec) and
+                 autoassemble(assemblescreen.lines,false,false,true,injectintomyself,aa,exceptionlist,registeredsymbols,memrec);
 
           if not check then
             errmsg:=format(rsNotAllCodeIsInjectable,['']);
@@ -914,6 +915,7 @@ end;
 procedure TfrmAutoInject.Assigntocurrentcheattable1Click(Sender: TObject);
 var a,b: integer;
     aa:TCEAllocArray;
+    exceptionlist:TCEExceptionListArray;
     registeredsymbols: TStringlist;
 begin
   registeredsymbols:=tstringlist.Create;
@@ -927,8 +929,8 @@ begin
     getenableanddisablepos(assemblescreen.Lines,a,b);
     if (a=-1) and (b=-1) then raise exception.create(rsCodeNeedsEnableAndDisable);
 
-    if autoassemble(assemblescreen.lines,false,true,true,false,aa,registeredsymbols) and
-       autoassemble(assemblescreen.lines,false,false,true,false,aa,registeredsymbols) then
+    if autoassemble(assemblescreen.lines,false,true,true,false,aa,exceptionlist,registeredsymbols) and
+       autoassemble(assemblescreen.lines,false,false,true,false,aa,exceptionlist,registeredsymbols) then
     begin
       //add a entry with type 255
       mainform.AddAutoAssembleScript(assemblescreen.text);

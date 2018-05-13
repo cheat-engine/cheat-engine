@@ -47,6 +47,7 @@ type
 
     {$ifndef unix}
     c: TCEAllocArray;
+    ce: TCEExceptionListArray;
     {$endif}
     currentscript: tstringlist;
     fCustomTypeType: TCustomTypeType; //plugins set this to cttPlugin
@@ -479,7 +480,7 @@ begin
 
     if currentscript<>nil then
     begin
-      autoassemble(currentscript,false, false, false, true, c); //popupmessages is false so it won't complain if there is no disable section
+      autoassemble(currentscript,false, false, false, true, c, ce); //popupmessages is false so it won't complain if there is no disable section
       freeandnil(currentscript);
     end;
   end;
@@ -538,7 +539,7 @@ begin
       try
         s.text:=script;
 
-        if autoassemble(s,false, true, false, true, c) then
+        if autoassemble(s,false, true, false, true, c, ce) then
         begin
           newpreferedalignment:=-1;
           newScriptUsesFloat:=false;

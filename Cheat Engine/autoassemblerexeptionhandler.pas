@@ -21,6 +21,8 @@ procedure AutoAssemblerExceptionHandlerRemoveExceptionRange(startaddress: ptruin
 procedure AutoAssemblerExceptionHandlerAddExceptionRange(tryaddress: ptruint; exceptionAddress: ptruint);
 procedure AutoAssemblerExceptionHandlerApplyChanges;
 
+function AutoAssemblerExceptionHandlerHasEntries: boolean;
+
 implementation
 
 uses autoassembler, symbolhandler, ProcessHandlerUnit, commonTypeDefs;
@@ -52,6 +54,11 @@ var
   listaddress: ptruint;
 
   exceptionlist: TAAExceptionList;
+
+function AutoAssemblerExceptionHandlerHasEntries: boolean;
+begin
+  result:=(pid=processid) and (length(Exceptionlist)>0);
+end;
 
 procedure AutoAssemblerExceptionHandlerAddExceptionRange(tryaddress: ptruint; ExceptionAddress: ptruint);
 var i: integer;
@@ -173,6 +180,7 @@ var
 
   ehallocated: boolean;
   allocs: TCEAllocArray;
+  exceptions: TCEExceptionListArray; //will hopefully be 0 long
   i: integer;
 
 begin
@@ -426,7 +434,7 @@ begin
 
     //Clipboard.AsText:=init.text;
 
-    if autoassemble(init, false, true,false,false,allocs)=false then
+    if autoassemble(init, false, true,false,false,allocs, exceptions)=false then
       raise exception.create('Failure to assemble exception handler');
 
     for i:=0 to length(allocs)-1 do

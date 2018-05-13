@@ -181,6 +181,7 @@ type
 
     hookscript: tstringlist;
     hookallocarray: TCEAllocArray;
+    exceptionlist: TCEExceptionListArray;
 
     maxlevel: integer;
     pointermask: integer;
@@ -980,14 +981,14 @@ begin
     generateAPIHookScript(hookscript,'RtlFreeHeap','CeRtlFreeHeap', 'RtlFreeHeapOrig','3');
     generateAPIHookScript(hookscript,'RtlDestroyHeap','CeRtlDestroyHeap', 'RtlDestroyHeapOrig','4');
 
-    if not autoassemble(hookscript,false,true,false,false,hookallocarray) then raise exception.Create(rsFailureToHook);
+    if not autoassemble(hookscript,false,true,false,false,hookallocarray, exceptionlist) then raise exception.Create(rsFailureToHook);
   end
   else
   begin
     //unload
     if hookscript=nil then exit; //should never happen
 
-    if not autoassemble(hookscript,false,false,false,false,hookallocarray) then raise exception.Create(rsFailureToHook);
+    if not autoassemble(hookscript,false,false,false,false,hookallocarray, exceptionlist) then raise exception.Create(rsFailureToHook);
 
     freeandnil(hookscript);
   end;
