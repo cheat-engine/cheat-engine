@@ -219,7 +219,7 @@ uses
 type
   TtkTokenKind = (tkAsm, tkComment, tkIdentifier, tkKey, tkNull, tkNumber,
     tkSpace, tkString, tkSymbol, tkUnknown, tkFloat, tkHex, tkDirec, tkChar,
-    tkRegister);
+    tkRegister, tkTryExcept);
 
   TRangeState = (rsANil, rsAnsi, rsAnsiAsm, rsAsm, rsBor, rsBorAsm, rsProperty,
     rsExports, rsDirective, rsDirectiveAsm, rsLua, rsUnKnown);
@@ -265,6 +265,7 @@ type
     fIdentifierAttri: TSynHighlighterAttributes;
     fSpaceAttri: TSynHighlighterAttributes;
     fRegisterAttri: TSynHighlighterAttributes;
+    fTryExceptAttri: TSynHighlighterAttributes;
     fAutoAssemblerVersion: TAutoAssemblerVersion;
     fPackageSource: Boolean;
     function KeyHash(ToHash: PChar): Integer;
@@ -386,6 +387,7 @@ type
       write fIdentifierAttri;
     property KeyAttri: TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
     property RegisterAttri: TSynHighlighterAttributes read fRegisterAttri write fRegisterAttri;
+    property TryExceptAttri: TSynHighlighterAttributes read fTryExceptAttri write fTryExceptAttri;
     property NumberAttri: TSynHighlighterAttributes read fNumberAttri
       write fNumberAttri;
     property FloatAttri: TSynHighlighterAttributes read fFloatAttri
@@ -1106,6 +1108,10 @@ begin
   fRegisterAttri.Style:= [fsBold];
   fRegisterAttri.Foreground:=$0080f0;
 
+  fTryExceptAttri := TSynHighlighterAttributes.Create('TryExcept');
+  fTryExceptAttri.Style:= [fsBold, fsUnderline];
+  fTryExceptAttri.Foreground:=$0080f0;
+
   AddAttribute(fKeyAttri);
   fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber);
   fNumberAttri.Foreground:=clGreen;
@@ -1280,6 +1286,33 @@ begin
   begin
     FTokenID:=tkIdentifier;
     inc(run,8);
+    exit;
+  end
+  else
+  if (Run=0) and (l>=6) and (fLine[Run + 1] = '$') and   //{$TRY}
+    (uppercase(fLine[Run + 2]) = 'T') and
+    (uppercase(fLine[Run + 3]) = 'R') and
+    (uppercase(fLine[Run + 4]) = 'Y') and
+    (fLine[Run + 5] = '}')
+  then
+  begin
+    FTokenID:=tkTryExcept;
+    inc(run,6);
+    exit;
+  end
+  else
+  if (Run=0) and (l>=9) and (fLine[Run + 1] = '$') and   //{$EXCEPT}
+    (uppercase(fLine[Run + 2]) = 'E') and
+    (uppercase(fLine[Run + 3]) = 'X') and
+    (uppercase(fLine[Run + 4]) = 'C') and
+    (uppercase(fLine[Run + 5]) = 'E') and
+    (uppercase(fLine[Run + 6]) = 'P') and
+    (uppercase(fLine[Run + 7]) = 'T') and
+    (fLine[Run + 8] = '}')
+  then
+  begin
+    FTokenID:=tkTryExcept;
+    inc(run,9);
     exit;
   end
   else
@@ -1693,6 +1726,7 @@ begin
     tkString: Result := fStringAttri;
     tkChar: Result := fCharAttri;
     tkSymbol: Result := fSymbolAttri;
+    tkTryExcept: result :=fTryExceptAttri;
     tkUnknown: Result := fSymbolAttri;
   else
     Result := fCommentAttri; //nil;

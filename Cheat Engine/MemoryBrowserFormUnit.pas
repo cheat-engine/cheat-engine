@@ -4337,7 +4337,7 @@ begin
         if offset<0 then
           offsetstring:='('+refname+'-'+inttohex(-offset,1)+')'
         else
-          offsetstring:='('+refname+inttohex(offset,1)+')';
+          offsetstring:='('+refname+'+'+inttohex(offset,1)+')';
       end;
 
 

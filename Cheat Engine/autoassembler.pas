@@ -49,7 +49,7 @@ uses strutils, memscan, disassembler, networkInterface, networkInterfaceApi,
 {$ifdef windows}
 uses simpleaobscanner, StrUtils, LuaHandler, memscan, disassembler, networkInterface,
      networkInterfaceApi, LuaCaller, SynHighlighterAA, Parsers, Globals, memoryQuery,
-     MemoryBrowserFormUnit, MemoryRecordUnit, vmxfunctions;
+     MemoryBrowserFormUnit, MemoryRecordUnit, vmxfunctions, autoassemblerexeptionhandler;
 {$endif}
 
 
@@ -99,6 +99,7 @@ resourcestring
   rsErrorInLine = 'Error in line %s (%s) :%s';
   rsWasSupposedToBeAddedToTheSymbollistButItIsnTDeclar = '%s was supposed to be added to the symbollist, but it isn''t declared';
   rsTheAddressInCreatethreadIsNotValid = 'The address in createthread(%s) is not valid';
+  rsTheAddressInCreatethreadAndWaitIsNotValid = 'The address in createthreadandwait(%s) is not valid';
   rsTheAddressInLoadbinaryIsNotValid = 'The address in loadbinary(%s,%s) is not valid';
   rsThisCodeCanBeInjectedAreYouSure = 'This code can be injected. Are you sure?';
   rsFailureToAllocateMemory = 'Failure to allocate memory';
@@ -121,6 +122,7 @@ resourcestring
   rsAAModuleNotFound = 'module not found:';
   rsAALuaErrorInTheScriptAtLine = 'Lua error in the script at line ';
   rsGoTo = 'Go to ';
+  rsMissingExcept = 'The {$TRY} at line %d has no matching {$EXCEPT}';
 
 //type
 //  TregisteredAutoAssemblerCommands =  TFPGList<TRegisteredAutoAssemblerCommand>;
@@ -1090,6 +1092,72 @@ begin
 end;
 
 
+
+procedure parseTryExcept(code: tstrings; var exceptionlist: TAAExceptionInfoList);
+//Find and replace {$TRY} , {$EXCEPT} with labels
+var
+  i,j: integer;
+  trynr: integer;
+  trylist: array of record
+    linenr: integer;
+    trynr: integer;
+    hasexcept: boolean;
+    trylabel, exceptlabel: string;
+  end;
+
+  found: boolean;
+begin
+
+
+  for i:=0 to code.Count-1 do
+  begin
+    if uppercase(code[i])='{$TRY}' then
+    begin
+      inc(trynr);
+
+      j:=length(trylist);
+      setlength(trylist,j+1);
+      trylist[j].trynr:=trynr;
+      trylist[j].hasexcept:=false;
+      trylist[j].linenr:=integer(code.Objects[i]);
+      trylist[j].trylabel:='tryoperation_'+inttostr(trynr);
+      code[i]:=trylist[j].trylabel+':';
+    end;
+
+    if uppercase(code[i])='{$EXCEPT}' then
+    begin
+      //find the last try that doesn't have an except filled in
+      found:=false;
+      for j:=length(trylist)-1 downto 0 do
+      begin
+        if trylist[j].hasexcept=false then
+        begin
+          trylist[j].hasexcept:=true;
+          trylist[j].exceptlabel:='tryoperation'+inttostr(trylist[j].trynr)+'_except';
+          code[i]:=trylist[j].exceptlabel+':';
+          found:=true;
+          break;
+        end;
+      end;
+
+      if not found then
+        raise exception.create(format('Found an {$EXCEPT} at line %d with no matching {$TRY}',[integer(code.Objects[i])]));
+    end;
+  end;
+
+  setlength(exceptionlist, length(trylist));
+
+  for i:=0 to length(trylist)-1 do
+  begin
+    code.Insert(0,'label('+trylist[i].trylabel+')');
+    code.Insert(0,'label('+trylist[i].exceptlabel+')');
+    exceptionlist[i].trylabel:=trylist[i].trylabel;
+    exceptionlist[i].exceptlabel:=trylist[i].exceptlabel;
+
+    if trylist[i].hasexcept=false then raise exception.create(format(rsMissingExcept, [trylist[i].linenr]));
+  end;
+end;
+
 procedure luacode(code: TStrings; syntaxcheckonly: boolean; memrec: TMemoryRecord=nil);
 {
 Find and execute the LUA parts:
@@ -1214,10 +1282,10 @@ function autoassemble2(code: tstrings;popupmessages: boolean;syntaxcheckonly:boo
 registeredsymbols is a stringlist that is initialized by the caller as case insensitive and no duplicates
 }
 
-
 type tassembled=record
   address: ptrUint;
   bytes: TAssemblerbytes;
+  createthreadandwait: integer;
 end;
 
 
@@ -1267,12 +1335,19 @@ var i,j,k,l,e: integer;
     deletesymbollist: array of string;
     createthread: array of string;
 
+    createthreadandwait: array of record
+      name: string;
+      position: integer; //after what position should the call happen (This is so that the exception handlers can be registered before the final hookcode is written)
+    end;
+
 //    aoblist: array of TAOBEntry;
 
     a,b,c,d: integer;
     s1,s2,s3: string;
 
     assemblerlines: array of string;
+
+    exceptionlist: TAAExceptionInfoList;
 
     varsize: integer;
     tokens: tstringlist;
@@ -1310,6 +1385,47 @@ var i,j,k,l,e: integer;
     mi: TModuleInfo;
     aaid: longint;
     strictmode: boolean;
+
+    hastryexcept: boolean;
+    createthreadandwaitid: integer;
+
+    function getAddressFromScript(name: string): ptruint;
+    var
+      found: boolean;
+      j: integer;
+    begin
+      found:=false;
+      try
+        result:=symhandler.getAddressFromName(name);
+        exit;
+      except
+      end;
+
+      name:=uppercase(name);
+
+      for j:=0 to length(labels)-1 do
+        if uppercase(labels[j].labelname)=name then
+          exit(labels[j].address);
+
+      for j:=0 to length(allocs)-1 do
+        if uppercase(allocs[j].varname)=name then
+          exit(allocs[j].address);
+
+      for j:=0 to length(kallocs)-1 do
+         if uppercase(kallocs[j].varname)=name then
+           exit(kallocs[j].address);
+
+      for j:=0 to length(defines)-1 do
+        if uppercase(defines[j].name)=name then
+        begin
+          try
+            testptr:=symhandler.getAddressFromName(defines[j].whatever);
+            exit;
+          except
+          end;
+        end;
+    end;
+
 begin
   setlength(readmems,0);
   setlength(allocs,0);
@@ -1317,6 +1433,7 @@ begin
   setlength(globalallocs,0);
   setlength(sallocs,0);
   setlength(createthread,0);
+  setlength(createthreadandwait,0);
 
   currentaddress:=0;
 
@@ -1381,6 +1498,7 @@ begin
     setlength(deletesymbollist,0);
     setlength(defines,0);
     setlength(loadbinary,0);
+    setlength(exceptionlist,0);
 //    setlength(aoblist,0);
 
     tokens:=tstringlist.Create;
@@ -1394,10 +1512,23 @@ begin
 
     luacode(code, syntaxcheckonly, memrec);
 
+    //still here
+
     strictmode:=false;
     for i:=0 to code.count-1 do
-      if uppercase(TrimRight(code[i]))='{$STRICT}' then
+    begin
+      currentline:=uppercase(TrimRight(code[i]));
+      if currentline='{$STRICT}' then
         strictmode:=true;
+
+      if currentline='{$TRY}' then
+        hastryexcept:=true;
+    end;
+
+
+    if hastryexcept then
+      parseTryExcept(code, exceptionlist);
+
 
     removecomments(code);  //also trims each line
     unlabeledlabels(code);
@@ -1753,24 +1884,50 @@ begin
             else raise exception.Create(rsWrongSyntaxIncludeFilenameCea);
           end;
 
-          if uppercase(copy(currentline,1,13))='CREATETHREAD(' then
+          if uppercase(copy(currentline,1,12))='CREATETHREAD' then
           begin
-            //create a thread
-            a:=pos('(',currentline);
-            b:=pos(')',currentline);
-            if (a>0) and (b>0) then
+            if currentline[13]='(' then //CREATETHREAD(
             begin
-              s1:=trim(copy(currentline,a+1,b-a-1));
+              //create a thread
+              a:=pos('(',currentline);
+              b:=pos(')',currentline);
+              if (a>0) and (b>0) then
+              begin
+                s1:=trim(copy(currentline,a+1,b-a-1));
 
-              setlength(createthread,length(createthread)+1);
-              createthread[length(createthread)-1]:=s1;
+                setlength(createthread,length(createthread)+1);
+                createthread[length(createthread)-1]:=s1;
 
-              setlength(assemblerlines,length(assemblerlines)-1);
-              continue;
-            end else raise exception.Create(rsWrongSyntaxCreateThreadAddress);
+                setlength(assemblerlines,length(assemblerlines)-1);
+                continue;
+              end else raise exception.Create(rsWrongSyntaxCreateThreadAddress);
+            end
+            else
+            begin
+              //could be createthreadandwait
+              if uppercase(copy(currentline,13,8))='ANDWAIT(' then //CREATETHREADANDWAIT(
+              begin
+                a:=pos('(',currentline);
+                b:=pos(')',currentline);
+                if (a>0) and (b>0) then
+                begin
+                  s1:=trim(copy(currentline,a+1,b-a-1));
+
+                  setlength(createthreadandwait,length(createthreadandwait)+1);
+                  createthreadandwait[length(createthreadandwait)-1].name:=s1;
+                  createthreadandwait[length(createthreadandwait)-1].position:=length(assemblerlines)-1;
+
+                  setlength(assemblerlines,length(assemblerlines)-1);
+                  continue;
+                end else raise exception.Create(rsWrongSyntaxCreateThreadAddress);
+              end;
+            end;
           end;
 
+
+
           {$ifndef jni}
+
           if uppercase(copy(currentline,1,12))='LOADLIBRARY(' then
           begin
             //load a library into memory , this one already executes BEFORE the 2nd pass to get addressnames correct
@@ -2176,6 +2333,8 @@ begin
               currentline:=replacetoken(currentline,allocs[j].varname,'00000000');
           end;
 
+
+
           {$ifndef net}
 
           //memory kalloc
@@ -2465,6 +2624,59 @@ begin
 
       end;
 
+    if length(createthreadandwait)>0 then
+      for i:=0 to length(createthreadandwait)-1 do
+      begin
+        ok1:=true;
+
+        try
+          testptr:=symhandler.getAddressFromName(createthreadandwait[i].name);
+        except
+          ok1:=false;
+        end;
+
+        if not ok1 then
+          for j:=0 to length(labels)-1 do
+            if uppercase(labels[j].labelname)=uppercase(createthreadandwait[i].name) then
+            begin
+              ok1:=true;
+              break;
+            end;
+
+        if not ok1 then
+          for j:=0 to length(allocs)-1 do
+            if uppercase(allocs[j].varname)=uppercase(createthreadandwait[i].name) then
+            begin
+              ok1:=true;
+              break;
+            end;
+
+        {$ifndef net}
+        if not ok1 then
+          for j:=0 to length(kallocs)-1 do
+            if uppercase(kallocs[j].varname)=uppercase(createthreadandwait[i].name) then
+            begin
+              ok1:=true;
+              break;
+            end;
+        {$endif}
+
+        if not ok1 then
+          for j:=0 to length(defines)-1 do
+            if uppercase(defines[j].name)=uppercase(createthreadandwait[i].name) then
+            begin
+              try
+                testptr:=symhandler.getAddressFromName(defines[j].whatever);
+                ok1:=true;
+              except
+              end;
+              break;
+            end;
+
+        if not ok1 then raise exception.Create(Format(rsTheAddressInCreatethreadAndWaitIsNotValid, [createthread[i]]));
+
+      end;
+
     if length(loadbinary)>0 then
       for i:=0 to length(loadbinary)-1 do
       begin
@@ -2653,6 +2865,12 @@ begin
     begin
       currentline:=assemblerlines[i];
 
+      createthreadandwaitid:=-1;
+      for j:=0 to length(createthreadandwait)-1 do //there can be multiple at the time of assembly.  All entries up to the higest value will be picked at a blockwrite (and made 0 so next blockwrite won't do them)
+      begin
+        if (i>createthreadandwait[j].position) or (i=length(Assemblerlines)-1) then //if it's the last line, then do all remaining
+          createthreadandwaitid:=j;
+      end;
 
       //plugin
       {$ifndef jni}
@@ -2714,8 +2932,8 @@ begin
               end;
 
 
-
               setlength(assembled,length(assembled)+1);
+              assembled[length(assembled)-1].createthreadandwait:=createthreadandwaitid;
               assembled[length(assembled)-1].address:=currentaddress;
               assemble(currentline,currentaddress,assembled[length(assembled)-1].bytes, apnone, true);
               a:=length(assembled[length(assembled)-1].bytes);
@@ -2801,6 +3019,7 @@ begin
 
       setlength(assembled,length(assembled)+1);
       assembled[length(assembled)-1].address:=currentaddress;
+      assembled[length(assembled)-1].createthreadandwait:=createthreadandwaitid;
 
       if (currentline<>'') and (currentline[1]='<') then //special assembler instruction
       begin
@@ -2898,6 +3117,16 @@ begin
 
     //we're still here so, inject it
 
+    //addresses are known here, so parse the exception list if there is one
+    if length(exceptionlist)>0 then
+    begin
+      InitializeAutoAssemblerExceptionHandler;
+      for i:=length(exceptionlist)-1 downto 0 do //add it in the reverse order so the nested try/excepts come first
+        AutoAssemblerExceptionHandlerAddExceptionRange(getAddressFromScript(exceptionlist[i].trylabel), getAddressFromScript(exceptionlist[i].exceptlabel));
+
+      AutoAssemblerExceptionHandlerApplyChanges;
+    end;
+
 
     connection:=getconnection;
     if connection<>nil then
@@ -2914,9 +3143,13 @@ begin
         setlength(assembled[j].bytes, k+length(assembled[i].bytes));
         copymemory(@assembled[j].bytes[k], @assembled[i].bytes[0], length(assembled[i].bytes));
 
+        assembled[j].createthreadandwait:=max(assembled[j].createthreadandwait, assembled[i].createthreadandwait); //should always pick i
+
+
         //mark it as empty
         setlength(assembled[i].bytes,0);
         assembled[i].address:=0;
+        assembled[i].createthreadandwait:=-1;
       end
       else
       begin
@@ -2934,6 +3167,34 @@ begin
       virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),op,op2);
 
       if not ok1 then ok2:=false;
+
+      if ok2 and (assembled[i].createthreadandwait<>-1) then
+      begin
+        //create threads
+        for j:=0 to assembled[i].createthreadandwait do
+        begin
+          if createthreadandwait[j].position<>-1 then
+          begin
+            //create the thread and wait for it's result
+            testptr:=getAddressFromScript(createthreadandwait[j].name);
+
+            threadhandle:=createremotethread(processhandle,nil,0,pointer(testptr),nil,0,bw);
+            ok2:=threadhandle>0;
+
+            if ok2 then
+            begin
+              try
+                if WaitForSingleObject(threadhandle, 5000)<>WAIT_OBJECT_0 then
+                  raise exception.create('createthreadandwait did not execute properly');
+              finally
+                closehandle(threadhandle);
+              end;
+            end;
+
+            createthreadandwait[j].position:=-1; //mark it as handled
+          end;
+        end;
+      end;
     end;
 
     if connection<>nil then  //group all writes

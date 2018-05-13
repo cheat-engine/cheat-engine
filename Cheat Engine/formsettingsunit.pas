@@ -445,7 +445,7 @@ begin
     if (error<>0) or (collectgarbagetimer<=0) then raise exception.Create(Format(rsIsNotAValidInterval, [edtLuaCollectTimer.text]));
 
     val(edtLuaMinCollectSize.text, collectgarbageminimumsize, error);
-    if (error<>0) or (collectgarbagetimer<=0) then raise exception.Create(Format(rsIsNotAValidInterval, [edtLuaMinCollectSize.text]));
+    if (error<>0) or (collectgarbageminimumsize<=0) then raise exception.Create(Format(rsIsNotAValidInterval, [edtLuaMinCollectSize.text]));
 
 
 
