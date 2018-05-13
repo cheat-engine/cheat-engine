@@ -424,7 +424,7 @@ begin
 
     init.add('createthreadandwait(registereh)');
 
-    Clipboard.AsText:=init.text;
+    //Clipboard.AsText:=init.text;
 
     if autoassemble(init, false, true,false,false,allocs)=false then
       raise exception.create('Failure to assemble exception handler');
