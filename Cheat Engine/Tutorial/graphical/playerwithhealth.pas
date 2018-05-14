@@ -18,8 +18,6 @@ type
     fheight: single; static;
 
     isenemy: boolean; //just to make it easier for people who want to hack this
-
-
   protected
     function getWidth:single; override;
     function getHeight:single; override;

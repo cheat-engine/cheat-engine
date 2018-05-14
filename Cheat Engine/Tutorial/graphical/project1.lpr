@@ -10,7 +10,8 @@ uses
   Forms, sysutils, fpvectorialpkg, Unit1, gamepanel, renderobject, player,
   gameobject, animationobject, guiobject, scoreboard, guitextobject, target,
   bullet, guidialog, globals, staticguiobject, GameTutorial1, GameBase,
-  GameTutorial2, PlayerWithHealth, gameobjectwithhealth
+  GameTutorial2, PlayerWithHealth, gameobjectwithhealth, particle, 
+movingparticle
   { you can add units after this };
 
 {$R *.res}

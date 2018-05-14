@@ -12,7 +12,14 @@ type
   TRenderObject=class(TObject)
   private
     children: array of TRenderObject;
+    fTextureCoords: record
+      x: single;
+      y: single;
+      x2: single;
+      y2: single;
+    end;
   protected
+    fChildrenOnly: boolean;
     procedure renderRelative; virtual;
 
     function getWidth:single; virtual; abstract;
@@ -30,10 +37,13 @@ type
     procedure render; virtual;
     procedure addChild(child: TRenderObject);
     procedure removeChild(child: TRenderObject);
+    procedure setTextureCoords(_x: single; _y: single; _x2: single; _y2: single);
+    constructor create;
 
     property width: single read getWidth write setWidth;
     property height: single read getHeight write setHeight;
     property texture: integer read getTexture;
+    property childrenonly: boolean read fChildrenOnly write fChildrenOnly;
   end;
 
 
@@ -68,6 +78,14 @@ begin
     end;
 end;
 
+procedure TRenderObject.setTextureCoords(_x: single; _y: single; _x2: single; _y2: single);
+begin
+  fTextureCoords.x:=_x;
+  fTextureCoords.y:=_y;
+  fTextureCoords.x2:=_x2;
+  fTextureCoords.y2:=_y2;
+end;
+
 procedure TRenderObject.renderRelative;
 var w, h: single;
 
@@ -100,28 +118,33 @@ begin
     ry:=-1*dh*ry;
 
 
-
-  glBegin(GL_QUADS);              // Each set of 4 vertices form a quad
-
-
-  glTexCoord2f(0,1);
-  glVertex2f(rx+dw*-1, ry+dh*-1);
-
-  glTexCoord2f(1,1);
-  glVertex2f(rx+dw, ry+dh*-1);
-
-  glTexCoord2f(1,0);
-  glVertex2f(rx+dw, ry+dh);
-
-  glTexCoord2f(0,0);
-  glVertex2f(rx+dw*-1, ry+dh);
+  if fChildrenOnly=false then
+  begin
+    glBegin(GL_QUADS);              // Each set of 4 vertices form a quad
 
 
-  glEnd();
+    glTexCoord2f(fTextureCoords.x,fTextureCoords.y2);
+    glVertex2f(rx+dw*-1, ry+dh*-1);
+
+    glTexCoord2f(fTextureCoords.x2,fTextureCoords.y2);
+    glVertex2f(rx+dw, ry+dh*-1);
+
+    glTexCoord2f(fTextureCoords.x2,fTextureCoords.y);
+    glVertex2f(rx+dw, ry+dh);
+
+    glTexCoord2f(fTextureCoords.x,fTextureCoords.y);
+    glVertex2f(rx+dw*-1, ry+dh);
+
+    glEnd();
+  end;
 
   //render children
   for i:=0 to length(children)-1 do
+  begin
+    glPushMatrix();
     children[i].renderRelative;
+    glPopMatrix();
+  end;
 end;
 
 procedure TRenderObject.render;
@@ -132,6 +155,15 @@ begin
   renderRelative();
 
   glPopMatrix();
+end;
+
+constructor TRenderObject.create;
+begin
+  fTextureCoords.x:=0;
+  fTextureCoords.y:=0;
+  fTextureCoords.x2:=1;
+  fTextureCoords.y2:=1;
+
 end;
 
 end.

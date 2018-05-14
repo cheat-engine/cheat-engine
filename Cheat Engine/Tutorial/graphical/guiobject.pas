@@ -11,7 +11,7 @@ uses
 
 type
   TNotifyEventF=function(sender: TObject): boolean of object;
-  TGUIObject=class(TRenderObject)
+  TGUIObject=class(TRenderObject)  //abstract
   private
     fOwner: TGamePanel;
 

@@ -22,6 +22,7 @@ type
 
   public
     constructor create;
+
     procedure render; override;
     property border: single read fborder write fborder;
     property percentage: single read fpercentage write fpercentage;

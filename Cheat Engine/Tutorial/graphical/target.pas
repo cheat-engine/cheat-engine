@@ -7,7 +7,8 @@ unit target;
 interface
 
 uses
-  Classes, SysUtils, gl,glext,glu, gameobject, renderobject, graphics, healthbar, globals;
+  Classes, SysUtils, gl,glext,glu, gameobject, renderobject, graphics, healthbar,
+  globals;
 
 type
   TTarget=class(TGameObject)  //tutorial step 1. Targets have their own health (so not a TGameObjectWithHealth)
@@ -31,6 +32,8 @@ type
     function getHeight:single; override;
     function getTexture: integer; override;
   public
+    procedure explode; override;
+    function isdead: boolean;
     property health: integer read fhealth write setHealth;
     property shielded: boolean read fShielded write fShielded;
     constructor create;
@@ -40,10 +43,26 @@ type
 
 implementation
 
+procedure TTarget.explode;
+begin
+  fhealth:=0;
+  removeChild(healthbar);
+  freeandnil(healthbar);
+  inherited explode;
+end;
+
+function TTarget.isdead:boolean;
+var h: integer;
+begin
+  h:=health;
+  if h<=0 then result:=true else result:=false;
+end;
+
 procedure TTarget.setHealth(h: integer);
 begin
   fhealth:=h;
-  healthbar.percentage:=fhealth/maxhealth*100;
+  if healthbar<>nil then
+    healthbar.percentage:=fhealth/maxhealth*100;
 end;
 
 function TTarget.getWidth:single;

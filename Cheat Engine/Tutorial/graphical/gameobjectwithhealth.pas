@@ -18,6 +18,9 @@ type
   protected
     procedure renderRelative; override;
   public
+    procedure explode; override;
+    function isdead: boolean;
+
     procedure Damage(amount: integer);
     destructor destroy; override;
     property Health: integer read fHealth write fHealth;
@@ -26,6 +29,24 @@ type
   end;
 
 implementation
+
+function TGameObjectWithHealth.isdead: boolean;
+begin
+  result:=health<=0;
+end;
+
+procedure TGameObjectWithHealth.explode;
+begin
+  if fhealth>=0 then
+    fhealth:=0;
+
+  if healthbar<>nil then
+  begin
+    removeChild(healthbar);
+    freeandnil(healthbar);
+  end;
+  inherited;
+end;
 
 procedure TGameObjectWithHealth.renderRelative;
 begin

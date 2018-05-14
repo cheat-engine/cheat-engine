@@ -86,10 +86,10 @@ begin
   p.Align:=alClient;
   p.parent:=self;
 
- // currentGame:=TGame1.create(p);
- // currentGame.OnWin:=@startGame2;
+  currentGame:=TGame1.create(p);
+  currentGame.OnWin:=@startGame2;
 
- currentGame:=TGame2.create(p);
+ //currentGame:=TGame2.create(p);
 
   p.AddKeyEventHandler(@keyhandler);
   lasttick:=GetTickCount64;

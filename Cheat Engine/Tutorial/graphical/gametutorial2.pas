@@ -43,6 +43,7 @@ type
     function pauseclick(sender: tobject): boolean;
     function infoPopup(sender: tobject): boolean;
     function HideInfo(sender: tobject): boolean;
+    procedure spawnPlayer;
     procedure spawnTarget1;
     procedure spawnTarget2;
   public
@@ -77,6 +78,22 @@ var
   bulletpos: integer;
   ct: qword;
 begin
+  if iskeydown(VK_W) and iskeydown(VK_I) and iskeydown(VK_N) then
+  begin
+    target1.explode;
+    target2.explode;
+    exit;
+  end;
+
+  if iskeydown(VK_D) and iskeydown(VK_I) and iskeydown(VK_E) then
+  begin
+    rotatedirection:=0;
+    player.explode;
+    exit;
+  end;
+
+  if player.isdead then exit;
+
   if keventtype=0 then
   begin
     ct:=GetTickCount64;
@@ -204,8 +221,11 @@ begin
   //adjust targets to point to player
   //....
 
-  target1.rotation:=((arctan2(player.y-target1.y, player.x-target1.x))*(180)/pi)+90;
-  target2.rotation:=((arctan2(player.y-target2.y, player.x-target2.x))*(180)/pi)+90;
+  if target1<>nil then
+    target1.rotation:=((arctan2(player.y-target1.y, player.x-target1.x))*(180)/pi)+90;
+
+  if target2<>nil then
+    target2.rotation:=((arctan2(player.y-target2.y, player.x-target2.x))*(180)/pi)+90;
 
 
 
@@ -219,20 +239,9 @@ begin
         player.damage(bullets[i].damage);
 
 
-        if player.health<=0 then
+        if player.isdead then
         begin
-          //game over, restart
-          beep;
-          player.health:=100;
-          if target1=nil then
-            spawnTarget1;
-
-          target1.health:=200;
-
-          if target2=nil then
-            spawnTarget2;
-
-          target2.health:=200;
+          player.explode;
 
           //remove all bullets
           for j:=0 to length(bullets)-1 do
@@ -247,22 +256,22 @@ begin
       end;
 
       //and yes, you can let them shoot eachother
-      if (bullets[i]<>nil) and (target1<>nil) and bullets[i].checkCollision(target1) then //perhaps use a vector based on old x,y and new x,y
+      if (bullets[i]<>nil) and (target1<>nil) and (target1.isdead=false) and bullets[i].checkCollision(target1) then //perhaps use a vector based on old x,y and new x,y
       begin
         target1.damage(bullets[i].damage);
 
-        if target1.health<=0 then
-          freeandnil(target1);
+        if target1.isdead then
+          target1.explode;
 
         freeandnil(bullets[i]);
       end;
 
-      if (bullets[i]<>nil) and (target2<>nil) and bullets[i].checkCollision(target2) then //perhaps use a vector based on old x,y and new x,y
+      if (bullets[i]<>nil) and (target2<>nil) and (target2.isdead=false) and bullets[i].checkCollision(target2) then //perhaps use a vector based on old x,y and new x,y
       begin
         target2.damage(bullets[i].damage);
 
-        if target2.health<=0 then
-          freeandnil(target2);
+        if target2.isdead then
+          target2.explode;
 
         freeandnil(bullets[i]);
       end;
@@ -275,8 +284,39 @@ begin
       end;
     end;
 
+  if (target1<>nil) and target1.isdead and (target1.blownup) then
+    freeandnil(target1);
+
+  if (target2<>nil) and target2.isdead and (target2.blownup) then
+    freeandnil(target2);
+
+
   if (target1=nil) and (target2=nil) then
+  begin
+    showmessage('well done');
     gamewon();
+  end;
+
+  if (player<>nil) and player.isdead and (player.blownup) then
+  begin
+    //recreate the player
+    //game over, restart
+    freeandnil(player);
+    spawnplayer;
+
+    if target1=nil then
+      spawnTarget1;
+
+    target1.health:=200;
+
+    if target2=nil then
+      spawnTarget2;
+
+    target2.health:=200;
+
+    status.text:=format('Player Health: '#13#10'%d',[player.health]);
+  end;
+
 
 end;
 
@@ -336,6 +376,15 @@ begin
   result:=true;
 end;
 
+procedure TGame2.spawnPlayer;
+begin
+  player:=TPlayerWithHealth.create(false);
+  player.x:=0;
+  player.y:=0.8;
+  player.health:=100;
+  player.maxhealth:=100;
+end;
+
 procedure TGame2.spawnTarget1;
 begin
   target1:=TPlayerWithHealth.create(true);
@@ -383,12 +432,8 @@ end;
 constructor TGame2.create(p: TGamePanel);
 begin
   fpanel:=p;
-  player:=TPlayerWithHealth.create(false);
-  player.x:=0;
-  player.y:=0.8;
-  player.health:=100;
-  player.maxhealth:=100;
 
+  spawnPlayer;
   spawnTarget1;
   spawnTarget2;
 
