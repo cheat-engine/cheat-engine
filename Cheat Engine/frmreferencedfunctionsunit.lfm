@@ -9,6 +9,7 @@ object frmReferencedFunctions: TfrmReferencedFunctions
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
+  Position = poScreenCenter
   LCLVersion = '1.6.4.0'
   object lvCallList: TListView
     Left = 0
