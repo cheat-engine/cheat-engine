@@ -6,40 +6,35 @@ object frmMemoryViewEx: TfrmMemoryViewEx
   Caption = 'Graphical Memory View '
   ClientHeight = 482
   ClientWidth = 836
+  KeyPreview = True
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnKeyDown = FormKeyDown
+  OnResize = FormResize
+  OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'
   object Panel1: TPanel
     Left = 0
-    Height = 355
-    Top = 15
+    Height = 380
+    Top = 0
     Width = 690
     Align = alClient
     BevelOuter = bvNone
-    Color = clLime
+    Color = clBlack
     ParentColor = False
     TabOrder = 0
-    OnDblClick = Panel1DblClick
-  end
-  object lblAddress: TLabel
-    Left = 0
-    Height = 15
-    Top = 0
-    Width = 836
-    Align = alTop
-    Caption = 'Address:'
-    ParentColor = False
+    OnClick = Panel1Click
   end
   object Panel2: TPanel
     Left = 690
-    Height = 355
-    Top = 15
+    Height = 380
+    Top = 0
     Width = 146
     Align = alRight
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 355
+    ClientHeight = 380
     ClientWidth = 146
     TabOrder = 1
     object tbPitch: TTrackBar
@@ -48,36 +43,36 @@ object frmMemoryViewEx: TfrmMemoryViewEx
       AnchorSideTop.Side = asrBottom
       Left = 5
       Height = 25
-      Top = 38
+      Top = 34
       Width = 136
       Max = 2048
       Min = 4
       OnChange = tbPitchChange
       Position = 32
-      TabOrder = 0
+      TabOrder = 1
     end
     object edtPitch: TEdit
       AnchorSideLeft.Control = Label2
       AnchorSideTop.Control = Label2
       AnchorSideTop.Side = asrBottom
       Left = 5
-      Height = 23
+      Height = 21
       Hint = 'Number of bytes a row exists out'
-      Top = 15
+      Top = 13
       Width = 80
       OnChange = edtPitchChange
       ParentShowHint = False
       ShowHint = True
-      TabOrder = 1
+      TabOrder = 0
       Text = '32'
     end
     object Label2: TLabel
       AnchorSideLeft.Control = Panel2
       AnchorSideTop.Control = Panel2
       Left = 5
-      Height = 15
+      Height = 13
       Top = 0
-      Width = 71
+      Width = 64
       BorderSpacing.Left = 5
       Caption = 'Pixels per line'
       ParentColor = False
@@ -87,11 +82,11 @@ object frmMemoryViewEx: TfrmMemoryViewEx
       AnchorSideTop.Control = Label3
       AnchorSideTop.Side = asrBottom
       Left = 5
-      Height = 23
-      Top = 88
+      Height = 21
+      Top = 82
       Width = 136
       BorderSpacing.Right = 5
-      ItemHeight = 15
+      ItemHeight = 13
       ItemIndex = 3
       Items.Strings = (
         'Dithered (1 Byte/pixel)'
@@ -110,9 +105,9 @@ object frmMemoryViewEx: TfrmMemoryViewEx
       AnchorSideTop.Control = tbPitch
       AnchorSideTop.Side = asrBottom
       Left = 5
-      Height = 15
-      Top = 73
-      Width = 29
+      Height = 13
+      Top = 69
+      Width = 24
       BorderSpacing.Top = 10
       Caption = 'Color'
       ParentColor = False
@@ -122,9 +117,9 @@ object frmMemoryViewEx: TfrmMemoryViewEx
       AnchorSideTop.Control = cbColor
       AnchorSideTop.Side = asrBottom
       Left = 5
-      Height = 15
-      Top = 111
-      Width = 26
+      Height = 13
+      Top = 103
+      Width = 24
       Caption = 'Type'
       ParentColor = False
     end
@@ -133,11 +128,11 @@ object frmMemoryViewEx: TfrmMemoryViewEx
       AnchorSideTop.Control = Label1
       AnchorSideTop.Side = asrBottom
       Left = 5
-      Height = 23
-      Top = 126
+      Height = 21
+      Top = 116
       Width = 136
       BorderSpacing.Right = 5
-      ItemHeight = 15
+      ItemHeight = 13
       ItemIndex = 0
       Items.Strings = (
         'Byte'
@@ -164,24 +159,57 @@ object frmMemoryViewEx: TfrmMemoryViewEx
       TabOrder = 3
       Text = 'Byte'
     end
+    object sbVERT: TScrollBar
+      Left = 0
+      Height = 233
+      Top = 144
+      Width = 17
+      Anchors = [akTop, akLeft, akBottom]
+      Kind = sbVertical
+      Max = 50000
+      PageSize = 0
+      TabOrder = 4
+      OnChange = sbVERTChange
+      OnKeyDown = sbVERTKeyDown
+    end
+    object btnMEMMAP: TButton
+      Left = 32
+      Height = 25
+      Hint = 'Current memory size of visible screen, press to set scroll size to match this as closely as possible'
+      Top = 232
+      Width = 114
+      Caption = 'Fetch memory map'
+      OnClick = btnMEMMAPClick
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 5
+    end
+    object pbMEM: TPaintBox
+      Left = 16
+      Height = 200
+      Top = 160
+      Width = 16
+      Anchors = [akTop, akLeft, akBottom]
+      OnPaint = pbMEMPaint
+    end
   end
   object Panel3: TPanel
     Left = 0
-    Height = 112
-    Top = 370
+    Height = 102
+    Top = 380
     Width = 836
     Align = alBottom
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 112
+    ClientHeight = 102
     ClientWidth = 836
     TabOrder = 2
     object cbAddresslistOnly: TCheckBox
       AnchorSideTop.Control = Panel3
       Left = 4
-      Height = 19
+      Height = 17
       Top = 5
-      Width = 182
+      Width = 160
       BorderSpacing.Left = 4
       BorderSpacing.Top = 5
       Caption = 'Only show addresslist memory'
@@ -192,11 +220,11 @@ object frmMemoryViewEx: TfrmMemoryViewEx
       AnchorSideTop.Control = cbAddresslistOnly
       AnchorSideTop.Side = asrBottom
       Left = 4
-      Height = 23
-      Top = 24
+      Height = 21
+      Top = 22
       Width = 182
       Enabled = False
-      ItemHeight = 15
+      ItemHeight = 13
       ItemIndex = 0
       Items.Strings = (
         'Current Memory'
@@ -216,11 +244,11 @@ object frmMemoryViewEx: TfrmMemoryViewEx
       AnchorSideTop.Control = cbCompare
       AnchorSideTop.Side = asrBottom
       Left = 4
-      Height = 23
-      Top = 70
+      Height = 21
+      Top = 64
       Width = 128
       Enabled = False
-      ItemHeight = 15
+      ItemHeight = 13
       ItemIndex = 0
       Items.Strings = (
         'Current Memory'
@@ -240,9 +268,9 @@ object frmMemoryViewEx: TfrmMemoryViewEx
       AnchorSideTop.Control = cbAddresslist
       AnchorSideTop.Side = asrBottom
       Left = 4
-      Height = 19
-      Top = 51
-      Width = 110
+      Height = 17
+      Top = 47
+      Width = 99
       BorderSpacing.Top = 4
       Caption = 'Compare against'
       OnChange = cbCompareChange
@@ -253,23 +281,23 @@ object frmMemoryViewEx: TfrmMemoryViewEx
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = cbCompare
       Left = 144
-      Height = 57
-      Top = 51
-      Width = 42
+      Height = 51
+      Top = 47
+      Width = 39
       AutoSize = True
       BorderSpacing.Left = 12
       BorderSpacing.Bottom = 4
       BevelOuter = bvNone
       ChildSizing.Layout = cclLeftToRightThenTopToBottom
       ChildSizing.ControlsPerLine = 1
-      ClientHeight = 57
-      ClientWidth = 42
+      ClientHeight = 51
+      ClientWidth = 39
       TabOrder = 4
       object rbOr: TRadioButton
         Left = 0
-        Height = 19
+        Height = 17
         Top = 0
-        Width = 42
+        Width = 39
         Caption = 'Or'
         Checked = True
         Enabled = False
@@ -279,9 +307,9 @@ object frmMemoryViewEx: TfrmMemoryViewEx
       end
       object rbAnd: TRadioButton
         Left = 0
-        Height = 19
-        Top = 19
-        Width = 42
+        Height = 17
+        Top = 17
+        Width = 39
         Caption = 'And'
         Enabled = False
         OnChange = cbSavedListChange
@@ -289,28 +317,54 @@ object frmMemoryViewEx: TfrmMemoryViewEx
       end
       object rbXor: TRadioButton
         Left = 0
-        Height = 19
-        Top = 38
-        Width = 42
+        Height = 17
+        Top = 34
+        Width = 39
         Caption = 'Xor'
         Enabled = False
         OnChange = cbSavedListChange
         TabOrder = 2
       end
     end
-  end
-  object Timer1: TTimer
-    OnTimer = Timer1Timer
-    left = 608
-    top = 320
-  end
-  object pmMemview: TPopupMenu
-    left = 72
-    top = 48
-    object MenuItem1: TMenuItem
-      Caption = 'Change address'
-      ShortCut = 16455
-      OnClick = MenuItem1Click
+    object lblAddress: TLabel
+      Left = 240
+      Height = 13
+      Top = 16
+      Width = 48
+      Anchors = [akLeft, akBottom]
+      AutoSize = False
+      Caption = 'Address:'
+      ParentColor = False
+    end
+    object edtAddress: TEdit
+      Left = 296
+      Height = 21
+      Top = 16
+      Width = 128
+      Anchors = [akLeft, akBottom]
+      OnKeyDown = edtAddressKeyDown
+      TabOrder = 5
+    end
+    object tbZoom: TTrackBar
+      Left = 240
+      Height = 25
+      Top = 48
+      Width = 196
+      Max = 512
+      OnChange = tbZoomChange
+      Position = 0
+      Anchors = [akLeft, akBottom]
+      TabOrder = 6
+    end
+    object lblZOOM: TLabel
+      Left = 296
+      Height = 13
+      Top = 80
+      Width = 80
+      Anchors = [akLeft, akBottom]
+      AutoSize = False
+      Caption = 'Zoom:'
+      ParentColor = False
     end
   end
 end
