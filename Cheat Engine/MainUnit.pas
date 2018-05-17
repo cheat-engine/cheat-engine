@@ -2798,7 +2798,10 @@ begin
       end;
 
     end;
-
+  end
+  else
+  begin
+    cbSpeedhack.Checked:=false;
   end;
 
   enablegui(btnNextScan.Enabled);

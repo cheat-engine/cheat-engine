@@ -469,16 +469,20 @@ function mono_enumDomains()
 
 
   monopipe.lock()
-  monopipe.writeByte(MONOCMD_ENUMDOMAINS)
+  monopipe.writeByte(MONOCMD_ENUMDOMAINS)  
   local count=monopipe.readDword()
+  if monopipe==nil then return nil end
+  
   local result={}
   local i
   if (count~=nil) then
-    for i=1, count do
+    for i=1, count do      
       result[i]=monopipe.readQword()
+      if monopipe==nil then return nil end
     end
   end
-
+  
+  if monopipe==nil then return nil end
   monopipe.unlock()
 
   return result

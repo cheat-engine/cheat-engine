@@ -15,7 +15,7 @@ Fixed DBVM so it works on windows 1709 and later (tested on 1803)
 Fixed several DBVM offload crashes
 Fixed freeze with allow increase/decrease for 8 byte long values
 Fixed several issues where minimizing a window and then close it would hang CE
-
+Fixed file scanning
 
 
 Additions and changes:
@@ -37,9 +37,9 @@ Added a DBVM based "Find what writes/accesses" feature. (For pro users, enable k
 Changed the dissect data setup from seperate yes/no/value dialogs to a single window
 Added a bypass option for ultimap2 on windows 1709. When using ranges, do not use interrupts, or use DBVM
 Added find what writes/access to the foundlist
-autoassembler scriptblocks are now grouped when written to memory
-added {$try}/{$except} to auto assembler scripts
-
+Autoassembler scriptblocks are now grouped when written to memory
+Added {$try}/{$except} to auto assembler scripts
+Added an extra tutorial/practice target
 
 
 lua:

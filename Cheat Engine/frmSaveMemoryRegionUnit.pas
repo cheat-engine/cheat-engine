@@ -108,10 +108,13 @@ begin
     size:=toaddress-fromaddress+1;
     getmem(buf[i],size);
 
-    if (not readprocessmemory(processhandle,pointer(ptrUint(fromaddress)),buf[i],size,temp)) or (temp<>size) then
+    if (not readprocessmemory(processhandle,pointer(ptrUint(fromaddress)),buf[i],size,temp)) then
     begin
-      setlength(unreadable,length(unreadable)+1);
-      unreadable[length(unreadable)-1]:=i;
+      if (temp<>size) then
+      begin
+        setlength(unreadable,length(unreadable)+1);
+        unreadable[length(unreadable)-1]:=i;
+      end;
     end;
   end;
 

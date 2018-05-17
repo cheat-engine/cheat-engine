@@ -1364,6 +1364,7 @@ var
   err: boolean;
   id: integer;
   newaddress: ptruint;
+  s: string;
 begin
   if (sender=nil) or (not (sender is TComponent)) then exit;
   id:=TComponent(Sender).Tag;
@@ -1371,7 +1372,8 @@ begin
   if (id<0) or (id>9) then exit;
   if bookmarks[id].addressString='' then exit;
 
-  newaddress:=symhandler.getAddressFromName(bookmarks[id].addressString, false, err);
+  s:=bookmarks[id].addressString;
+  newaddress:=symhandler.getAddressFromName(s, false, err);
   if err then
     newaddress:=bookmarks[id].lastAddress;
 
@@ -3089,7 +3091,7 @@ begin
   if frmSaveMemoryRegion=nil then
     frmSaveMemoryRegion:=TFrmSaveMemoryRegion.create(self);
 
-  frmSaveMemoryRegion.showmodal;
+  frmSaveMemoryRegion.show;
 end;
 
 procedure TMemoryBrowser.Loadmemolryregion1Click(Sender: TObject);

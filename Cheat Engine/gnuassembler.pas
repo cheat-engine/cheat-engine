@@ -210,7 +210,7 @@ var
   lnkfile: Tstringlist;
   lnkfilename: string;
 
-  undefinedimports: Tstringlist;
+  defined, undefinedimports: Tstringlist;
   x: ptruint;
   op: dword;
 
@@ -496,7 +496,8 @@ begin
       begin
         //if nm hasn't been disabled call nm and then check which symbols are undefined and add them to the import list (if they aren't in there already)
         undefinedimports:=tstringlist.create;
-        bu.nm(o, undefinedimports);
+        defined:=tstringlist.create;
+        bu.nm(o, defined, undefinedimports);
 
         for i:=0 to undefinedimports.count-1 do
         begin
@@ -516,6 +517,7 @@ begin
           end;
         end;
         undefinedimports.free;
+        defined.free;
 
       end;
 
