@@ -1,7 +1,7 @@
 object Form1: TForm1
-  Left = 413
-  Height = 600
-  Top = 155
+  Left = 451
+  Height = 402
+  Top = 279
   Width = 600
   Caption = 'Step 1'
   OnShow = FormShow

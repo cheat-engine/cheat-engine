@@ -8,7 +8,9 @@ uses
   Classes, SysUtils, renderobject, math, movingparticle;
 
 //abstract class
+
 type
+  TCollisionType=(ctCircles, ctUnrotatedRectangles);
   TGameObject=class(TRenderobject)
   {
   Render object with game mechanics like hitboxes and
@@ -19,9 +21,11 @@ type
     fRange: single;
     fRenderCollision: boolean;
     explosion: array of TMovingParticle;
+
+
     function getRange: single;
   protected
-  //  procedure renderRelative; override;
+    CollisionType: TCollisionType;
   public
     procedure explode; virtual; //splits up the objects into a million objects
     function blownup: boolean; //returns true if it has gone far enough
@@ -31,6 +35,7 @@ type
     property range: single read getRange;
     property renderCollision: boolean read fRenderCollision write fRenderCollision;
 
+    destructor destroy; override;
   end;
 
 implementation
@@ -48,7 +53,10 @@ end; }
 
 function TGameObject.blownup: boolean; //returns true if it has gone far enough
 begin
-  result:=gettickcount64>=explodetime+2000;
+  if fIsExploding then
+    result:=gettickcount64>=explodetime+2000
+  else
+    result:=false;
 end;
 
 procedure TGameObject.explode;
@@ -111,11 +119,35 @@ var
   range_self: single;
   distance: single;
 begin
-  range_other:=other.range;
-  range_self:=range;
-  distance:=sqrt(sqr(abs(other.x-x))+sqr(abs(other.y-y)));
+  if CollisionType=ctCircles then
+  begin
+    range_other:=other.range;
+    range_self:=range;
+    distance:=sqrt(sqr(abs(other.x-x))+sqr(abs(other.y-y)));
 
-  result:=distance<(range_other+range_self);
+    result:=distance<(range_other+range_self);
+  end
+  else
+  if CollisionType=ctUnrotatedRectangles then
+  begin
+    //rectangles
+
+
+  end;
+end;
+
+destructor TGameObject.destroy;
+var i: integer;
+begin
+  for i:=0 to length(explosion)-1 do
+  begin
+    removeChild(explosion[i]);
+    explosion[i].Free;
+  end;
+
+  setlength(explosion,0);
+
+  inherited destroy;
 end;
 
 end.

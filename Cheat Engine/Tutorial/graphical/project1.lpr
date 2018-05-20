@@ -11,7 +11,7 @@ uses
   gameobject, animationobject, guiobject, scoreboard, guitextobject, target,
   bullet, guidialog, globals, staticguiobject, GameTutorial1, GameBase,
   GameTutorial2, PlayerWithHealth, gameobjectwithhealth, particle, 
-movingparticle
+  movingparticle, gametutorial3, gamecube
   { you can add units after this };
 
 {$R *.res}

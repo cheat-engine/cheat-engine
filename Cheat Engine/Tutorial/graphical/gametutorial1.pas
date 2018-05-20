@@ -58,6 +58,7 @@ var
 begin
   if iskeydown(VK_W) and iskeydown(VK_I) and iskeydown(VK_N) then
   begin
+    usedcheats:=true;
     if target<>nil then
       target.explode; //blow up target
 
@@ -156,6 +157,7 @@ end;
 procedure tgame1.gametick(currentTime: qword; diff: integer);
 var i: integer;
 begin
+  if ticking=false then exit;
 
   if reloading<>0 then
   begin
@@ -204,6 +206,8 @@ begin
   if (target<>nil) and target.isdead and (target.blownup) then
   begin
     freeandnil(target);
+
+    ticking:=false;
     showmessage('well done');
     gamewon();
   end;
@@ -293,8 +297,11 @@ begin
   infobutton.y:=1;
 
   infobutton.OnClick:=@infopopup;
-
   infopopup(infobutton);
+
+  ticking:=true; //start
+
+
 
 end;
 

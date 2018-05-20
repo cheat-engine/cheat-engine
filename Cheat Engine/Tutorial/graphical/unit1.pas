@@ -7,7 +7,7 @@ interface
 uses
   windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
   GamePanel, renderobject,glext, GL,glu, player,scoreboard, target, bullet, guitextobject,
-  staticguiobject, gamebase, gametutorial1, gametutorial2;
+  staticguiobject, gamebase, gametutorial1, gametutorial2, gametutorial3;
 
 type
 
@@ -24,6 +24,9 @@ type
     lasttick: qword;
 
     procedure startgame2(sender: TObject);
+    procedure startgame3(sender: TObject);
+    procedure finishedTutorial(sender: TObject);
+
 
     procedure renderGame(sender: TObject);
     procedure gametick(sender: TObject);
@@ -68,6 +71,34 @@ begin
     result:=false;
 end;
 
+procedure TForm1.finishedTutorial(sender: TObject);
+var s,s2: string;
+begin
+  if usedcheats then
+  begin
+    s:='winned';
+    s2:='yay';
+  end
+  else
+  begin
+    s:='beaten';
+    s2:='Well done';
+  end;
+
+  showmessage(format('You have %s all 3 ''games''. %s!',[s,s2]));
+  ExitProcess(0);
+end;
+
+procedure TForm1.startgame3(sender: TObject);
+begin
+  if currentgame<>nil then
+    freeandnil(currentGame);
+
+  caption:='Step 3';
+  currentgame:=TGame3.create(p);
+  currentgame.OnWin:=@finishedTutorial;
+end;
+
 procedure TForm1.startgame2(sender: TObject);
 begin
   if currentgame<>nil then
@@ -75,7 +106,7 @@ begin
 
   caption:='Step 2';
   currentgame:=TGame2.create(p);
-  //currentgame.OnWin:=@finishtutorial;
+  currentgame.OnWin:=@startgame3;
 end;
 
 procedure TForm1.FormShow(Sender: TObject);
@@ -86,8 +117,11 @@ begin
   p.Align:=alClient;
   p.parent:=self;
 
-  currentGame:=TGame1.create(p);
-  currentGame.OnWin:=@startGame2;
+//  startgame3(Self);
+  startgame2(self);
+
+//  currentGame:=TGame1.create(p);
+//  currentGame.OnWin:=@startGame2;
 
  //currentGame:=TGame2.create(p);
 
