@@ -117,8 +117,8 @@ begin
   p.Align:=alClient;
   p.parent:=self;
 
-//  startgame3(Self);
-  startgame2(self);
+  startgame3(Self);
+ // startgame2(self);
 
 //  currentGame:=TGame1.create(p);
 //  currentGame.OnWin:=@startGame2;

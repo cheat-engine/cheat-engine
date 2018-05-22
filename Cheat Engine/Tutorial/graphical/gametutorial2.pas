@@ -308,7 +308,10 @@ begin
         begin
           target1.explode;
           if (target2<>nil) and (target2.isdead=false) then
+          begin
             spawnEnemyText;
+            target2.health:=min(target2.health+20, target2.MaxHealth);  //just increase the level of assholerly a little bit more
+          end;
         end;
 
         freeandnil(bullets[i]);
@@ -323,7 +326,10 @@ begin
         begin
           target2.explode;
           if (target1<>nil) and (target1.isdead=false) then
+          begin
             spawnEnemyText;
+            target1.health:=min(target1.health+20, target1.MaxHealth);
+          end;
         end;
 
         freeandnil(bullets[i]);

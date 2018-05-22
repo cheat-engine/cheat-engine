@@ -28,12 +28,15 @@ type
     CollisionType: TCollisionType;
   public
     procedure explode; virtual; //splits up the objects into a million objects
+    function exploding: boolean;
     function blownup: boolean; //returns true if it has gone far enough
 
     function checkCollision(other: TGameObject):boolean; virtual;
 
     property range: single read getRange;
     property renderCollision: boolean read fRenderCollision write fRenderCollision;
+
+
 
     destructor destroy; override;
   end;
@@ -57,6 +60,11 @@ begin
     result:=gettickcount64>=explodetime+2000
   else
     result:=false;
+end;
+
+function TGameobject.exploding: boolean;
+begin
+  result:=fIsExploding;
 end;
 
 procedure TGameObject.explode;
@@ -119,6 +127,7 @@ var
   range_self: single;
   distance: single;
 begin
+  result:=false;
   if CollisionType=ctCircles then
   begin
     range_other:=other.range;
@@ -132,6 +141,7 @@ begin
   begin
     //rectangles
 
+    Result := (Left < other.Right) and (other.Left < Right) and (Top < other.Bottom) and (other.Top < Bottom);
 
   end;
 end;

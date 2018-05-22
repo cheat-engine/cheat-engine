@@ -27,6 +27,11 @@ type
     function getHeight:single; virtual; abstract;
     procedure setHeight(h: single); virtual;
     function getTexture: integer; virtual; abstract;
+
+    function getLeft: single; virtual;
+    function getRight: single; virtual;
+    function getTop: single; virtual;
+    function getBottom: single; virtual;
   public
     valid: boolean;
     x,y: single;
@@ -42,12 +47,47 @@ type
 
     property width: single read getWidth write setWidth;
     property height: single read getHeight write setHeight;
+    property left: single read getLeft;
+    property right: single read getRight;
+    property top: single read getTop;
+    property bottom: single read getBottom;
+
     property texture: integer read getTexture;
     property childrenonly: boolean read fChildrenOnly write fChildrenOnly;
   end;
 
 
 implementation
+
+function TRenderObject.getLeft: single;
+begin
+  //todo: deal with rotation  (or just let the caller deal with that)
+  result:=x-width*((rotationpoint.x+1)/2);
+end;
+
+function TRenderObject.getRight: single;
+begin
+  //rx=-1 : x+0   |  x+w*0
+  //rx=0 :  x+w/2 |  x+w*0.5
+  //rx=1 :  x+w/1 |  x+w*1
+
+  //(rx+1)/2:
+  //-1 -> (-1+1)/2=0/2=0
+  //0 -> (0+1)/2=1/2=0.5
+  //1 -> (1+1)/2=2/2=1
+  result:=x+width*((rotationpoint.x+1)/2);
+end;
+
+function TRenderObject.getTop: single;
+begin
+  result:=y-height*((rotationpoint.y+1)/2);
+end;
+
+function TRenderObject.getBottom: single;
+begin
+  result:=y+height*((rotationpoint.y+1)/2);
+end;
+
 
 procedure TRenderObject.setWidth(w: single);
 begin
