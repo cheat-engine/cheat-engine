@@ -14,7 +14,7 @@ interface
 uses
   windows, Classes, SysUtils, gamepanel, guitextobject, staticguiobject, gamebase,
   target, bullet,Dialogs, Graphics, playerwithhealth, math, gl, glext, glu,
-  gamecube, platformenemy;
+  gamecube, platformenemy, platformplayer;
 
 type
 
@@ -42,7 +42,7 @@ type
   TGame3=class(TGameBase)
   private
     fpanel: Tgamepanel;
-    pplayer: TGameCube;
+    pplayer: TPlatformPlayer;
     platforms: array of TgameCube;
     enemies: array of TPlatformEnemy; //change from gamecube to gameobject after testing
 
@@ -72,6 +72,7 @@ type
     function infoPopup(sender: tobject): boolean;
     function HideInfo(sender: tobject): boolean;
     procedure spawnPlayer;
+    procedure resetgame;
   public
     greencount: integer;
     procedure gametick(currentTime: qword; diff: integer); override;
@@ -134,6 +135,8 @@ var
   bulletpos: integer;
   ct: qword;
 begin
+  if (pplayer=nil) or (pplayer.blownup) then exit;
+
   if iskeydown(VK_W) and iskeydown(VK_I) and iskeydown(VK_N) then
   begin
     usedcheats:=true;
@@ -152,6 +155,7 @@ begin
 
   if iskeydown(VK_F) and iskeydown(VK_C) and iskeydown(VK_K) then
   begin
+    door.locked:=false;
     fuckplayer:=true;
     fuckplayertime:=gametime;
     exit;
@@ -405,18 +409,12 @@ begin
     end;
   end;
 
-  pplayer.color.g:=1;
-  pplayer.color.r:=0;
   for i:=0 to length(enemies)-1 do
   begin
     if (enemies[i]<>nil) then
     begin
       if (not enemies[i].exploding) and enemies[i].checkCollision(pplayer) then
-      begin
-        pplayer.color.g:=0;
-        pplayer.color.r:=1;
-  //      pplayer.explode;
-      end;
+        pplayer.explode;
 
       if enemies[i].blownup then
         freeandnil(enemies[i]);
@@ -433,7 +431,7 @@ begin
 
 
 
-  if (door.locked=false) and door.isinside(pplayer.x,pplayer.y) then
+  if (pplayer<>nil) and (not pplayer.exploding) and (door.locked=false) and door.isinside(pplayer.x,pplayer.y) then
   begin
     ticking:=false;
     showmessage('well done');
@@ -445,7 +443,7 @@ begin
     //recreate the player
     //game over, restart
     freeandnil(pplayer);
-    spawnplayer;
+    resetgame;
   end;
 end;
 
@@ -514,51 +512,26 @@ end;
 
 procedure TGame3.spawnPlayer;
 begin
-  pplayer:=tgamecube.create; //temporary holder
-  pplayer.width:=0.06;
-  pplayer.height:=0.15;
-  pplayer.color.r:=0;
-  pplayer.color.g:=1;
-  pplayer.color.b:=0.1;
+  if pplayer=nil then
+    pplayer:=tplatformplayer.create; //temporary holder
+
   pplayer.x:=-1+0.1;
   pplayer.y:=1-0.05-0.15/2;
 end;
 
-destructor TGame3.destroy;
-begin
-  if pplayer<>nil then
-    freeandnil(pplayer);
-
-  if infobutton<>nil then
-    freeandnil(infobutton);
-
-  if info<>nil then
-    freeandnil(info);
-
-  inherited destroy;
-end;
-
-constructor TGame3.create(p: TGamePanel);
+procedure TGame3.resetgame;
 var i: integer;
 begin
-  fpanel:=p;
+  spawnplayer;
 
-  infobutton:=TStaticGUIObject.create(p,'infobutton.png',0.1,0.1);
-  infobutton.rotationpoint.y:=1;  //so the bottom will be the y pos
-  infobutton.x:=-1;
-  infobutton.y:=1-0.05;
-  infobutton.OnClick:=@infopopup;
+  if length(platforms)<12 then
+    setlength(platforms,12);
 
-  pausebutton:=TStaticGUIObject.create(p,'pausebutton.png',0.1,0.1);
-  pausebutton.rotationpoint.y:=1;
-  pausebutton.x:=-1+0.1;
-  pausebutton.y:=1-0.05;
-  pausebutton.OnClick:=@pauseclick;
-
-  setlength(platforms,12);
   for i:=0 to length(platforms)-1 do
   begin
-    platforms[i]:=Tgamecube.create;
+    if platforms[i]=nil then
+      platforms[i]:=Tgamecube.create;
+
     platforms[i].color.b:=0;
     platforms[i].color.r:=0.8;
     platforms[i].color.g:=0;
@@ -631,32 +604,78 @@ begin
   platforms[11].x:=-0.8;
   platforms[11].y:=0;
 
-  setlength(enemies,3);
-  enemies[0]:=TPlatformEnemy.create;
+  fuckplayer:=false;
+
+  if length(enemies)<3 then
+    setlength(enemies,3);
+
+  if enemies[0]=nil then
+    enemies[0]:=TPlatformEnemy.create;
+
   enemies[0].x:=-0.5;
   enemies[0].y:=1-enemies[0].height/2-platforms[0].height;
   enemies[0].minx:=-0.6;
   enemies[0].maxx:=0-enemies[0].width/2;
+  enemies[0].rotation:=0;
 
 
-  enemies[1]:=TPlatformEnemy.create;
+  if enemies[1]=nil then
+    enemies[1]:=TPlatformEnemy.create;
+
   enemies[1].x:=0+enemies[0].width/2;
   enemies[1].y:=1-enemies[1].height/2-platforms[2].height;
   enemies[1].minx:=0;
   enemies[1].maxx:=0.9;
+  enemies[1].rotation:=0;
 
-  enemies[2]:=TPlatformEnemy.create;
+  if enemies[2]=nil then
+    enemies[2]:=TPlatformEnemy.create;
+
   enemies[2].x:=0+enemies[0].width/2;
   enemies[2].y:=platforms[8].y-(enemies[2].height/2)-(platforms[8].height/2);
   enemies[2].minx:=platforms[8].x-platforms[8].width/2;
   enemies[2].maxx:=platforms[8].x+platforms[8].width/2;
   enemies[2].speed:=enemies[2].speed/2; //got to keep the illusion the player can potentially win
 
+  greencount:=0;
 
+  door.locked:=true;
+end;
+
+destructor TGame3.destroy;
+begin
+  if pplayer<>nil then
+    freeandnil(pplayer);
+
+  if infobutton<>nil then
+    freeandnil(infobutton);
+
+  if info<>nil then
+    freeandnil(info);
+
+  inherited destroy;
+end;
+
+constructor TGame3.create(p: TGamePanel);
+var i: integer;
+begin
+  fpanel:=p;
+
+  infobutton:=TStaticGUIObject.create(p,'infobutton.png',0.1,0.1);
+  infobutton.rotationpoint.y:=1;  //so the bottom will be the y pos
+  infobutton.x:=-1;
+  infobutton.y:=1-0.05;
+  infobutton.OnClick:=@infopopup;
+
+  pausebutton:=TStaticGUIObject.create(p,'pausebutton.png',0.1,0.1);
+  pausebutton.rotationpoint.y:=1;
+  pausebutton.x:=-1+0.1;
+  pausebutton.y:=1-0.05;
+  pausebutton.OnClick:=@pauseclick;
 
   door:=Tdoor.create;
 
-  spawnplayer;
+  resetgame;
 
   infopopup(infobutton);
   ticking:=true;
