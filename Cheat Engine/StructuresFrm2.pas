@@ -3123,7 +3123,7 @@ begin
   tvStructureView.ReAlign;
 
   HeaderControl.Left:=-tvStructureView.scrolledleft;
-  self.FixPositions;
+//  self.FixPositions;
 end;
 
 procedure TfrmStructures2.HeaderControl1SectionTrack(
@@ -6109,6 +6109,8 @@ var
   colWidth: Integer;
   marginSize, defaultSize: Integer;
 begin
+  //commented out, appearing of scrollbars will mess with this
+  {
   if (frmStructuresConfig<>nil) and frmStructuresConfig.cbPositionAddressesOverColumns.checked then
   begin
     // here we try and position address edit boxes over the column of data they are for...
@@ -6175,7 +6177,7 @@ begin
         col.focusedShape.Width := col.edtAddress.width + 2 * (col.focusedshape.Pen.Width)
       end;
     end;
-  end;
+  end; }
 end;
 
 initialization
