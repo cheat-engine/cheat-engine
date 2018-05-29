@@ -165,6 +165,8 @@ var
   imagebuf: pointer;
   imagestream: TMemorystream;
 begin
+  image:=nil;
+
   if not initialize_bCrypt then
     exit(false);
 

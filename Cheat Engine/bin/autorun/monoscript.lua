@@ -230,7 +230,7 @@ function LaunchMonoDataCollector()
   --wait till attached
   local timeout=getTickCount()+5000;
   while (monopipe==nil) and (getTickCount()<timeout) do
-    monopipe=connectToPipe('cemonodc_pid'..getOpenedProcessID(),5000)
+    monopipe=connectToPipe('cemonodc_pid'..getOpenedProcessID(),3000)
   end
 
   if (monopipe==nil) then

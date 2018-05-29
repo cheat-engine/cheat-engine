@@ -61,7 +61,7 @@ type
     function getParameterPart(skipPicked: boolean=true): string;
     function bytesize: integer;
     procedure setPosition;
-    constructor Create(frm: TfrmGroupScanAlgoritmGenerator);
+    constructor Create(frm: TfrmGroupScanAlgoritmGenerator);  overload;
     destructor destroy; override;
   end;
 
@@ -567,7 +567,11 @@ begin
     for i:=0 to varinfolist.count-1 do
     begin
       vi:=TVariableInfo(varinfolist[i]);
-      if (vi.cbVartype.itemindex in [-1,0]=false) and (vi.cbPicked.checked=false) then allpicked:=false;
+
+      if (not ((vi.cbVartype.itemindex = 0) or (vi.cbVartype.itemindex = -1))) and (vi.cbPicked.checked=false) then
+        allpicked:=false;
+
+//      if (vi.cbVartype.itemindex in [-1,0]=false) and (vi.cbPicked.checked=false) then allpicked:=false;
     end;
 
     for i:=0 to Varinfolist.count-1 do

@@ -596,6 +596,10 @@ begin
 end;
 
 
+function vmcall2UnSupported(vmcallinfo:pointer; level1pass: dword; secondaryOut: pptruint): PtrUInt; stdcall;
+begin
+  result:=0;
+end;
 
 
 function vmcallUnSupported(vmcallinfo:pointer; level1pass: dword): PtrUInt; stdcall;
@@ -2104,6 +2108,7 @@ end;
 
 initialization
   vmcall:=vmcallUnSupported;
+  vmcall2:=vmcall2Unsupported;
 
   {$ifndef NOVMX}
   if isDBVMCapable then

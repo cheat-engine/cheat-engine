@@ -15,7 +15,7 @@ function CheckVersion(automatic)
   if versionCheckThread==nil then
     versionCheckThread=createThread(function(t)
         local i=getInternet('CEVersionCheck')
-        local r=i.getURL('http://cheatengine.org/latestversion.txt')
+        local r=i.getURL('https://cheatengine.org/latestversiontest.txt')
 
         if r then
           local sl=createStringlist()
@@ -40,7 +40,9 @@ function CheckVersion(automatic)
           latestVersionCompleteBuildNumber=tonumber(sl[0])
           latestVersionNumber=tonumber(sl[1])
           latestVersionString=sl[2]
+          
           sl.destroy()
+          sl=nil
 
           if (latestVersionCompleteBuildNumber==nil) or (latestVersionNumber==nil) then
             t.synchronize(function()
@@ -70,7 +72,7 @@ function CheckVersion(automatic)
           t.synchronize(function()
             if newerVersion then
               if messageDialog(string.format(translate('Cheat Engine %s is available at www.cheatengine.org. Go there now?'),latestVersionString), mtConfirmation, mbYes, mbNo)==mrYes then
-                shellExecute('http://cheatengine.org/')
+                shellExecute('https://cheatengine.org/')
               else
                 if automatic then --the user clicked away, so probably not interested
                   local NewInterval=(tonumber(vsettings.Value['CheckInterval']) or 1)*2 --just show a default of two times the current skip time
@@ -172,6 +174,7 @@ edtInterval.Parent=parent
 edtInterval.AnchorSideTop = sf.cbShowUndo.AnchorSideTop
 edtInterval.AnchorSideLeft.Control=lblInterval
 edtInterval.AnchorSideLeft.Side=asrRight
+
 
 sf.cbShowUndo.AnchorSideTop.Control=edtInterval
 sf.cbShowUndo.AnchorSideTop.Side=asrBottom --put the top of the "undo button checkbox" to the bottom of the new edtInterval (so below it)

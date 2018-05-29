@@ -848,11 +848,11 @@ begin
 
         self.starttime:=GetTickCount64;
 
-
+        sent:=0;
         UpdateChildProgress(sent, totalsize);
         //update the child progress
 
-        sent:=0;
+
 
         for i:=0 to length(f)-1 do
         begin
@@ -1681,6 +1681,7 @@ begin
   listsize:=sizeof(dword)*(maxlevel+1);
   valuelistsize:=sizeof(qword)*(maxlevel+1);
 
+  offsetcountperlist:=0;
 
   pathqueueCS.enter;
   try
@@ -1939,6 +1940,7 @@ begin
           begin
             //if found, find a idle thread and tell it to look for this address starting from level 0 (like normal)
 
+            addedToQueue:=false;
 
             if pathqueuelength<MAXQUEUESIZE-1 then
             begin
@@ -1949,11 +1951,9 @@ begin
                 pathqueue[pathqueuelength].startlevel:=0;
                 pathqueue[pathqueuelength].valuetofind:=currentaddress;
                 inc(pathqueuelength);
+                addedToQueue:=true;
 
                 ReleaseSemaphore(pathqueueSemaphore, 1, nil);
-
-
-
 
               end;
 
@@ -3494,7 +3494,7 @@ begin
       begin
         setlength(pathqueue[i].valuelist, maxlevel+2);
         for j:=0 to maxlevel+1 do
-          pathqueue[i].valuelist[j]:=$cececececececece;
+          pathqueue[i].valuelist[j]:=qword($cececececececece);
       end;
     end;
 

@@ -400,7 +400,7 @@ AOBScan(aobstring): see above but here you just input one string
 
 Regarding eventhandlers. You can initialize them using both a string of a functionname or the function itself.
 If initialized using a function itself it won't be able to get saved in the table
-d
+
 
 allocateMemory(size, BaseAddress OPTIONAL, Protection OPTIONAL): Allocates some memory into the target process
 deAlloc(address, size OPTIONAL): Frees allocated memory
@@ -470,7 +470,7 @@ unregisterFormAddNotification(Object)
 
 getSettingsForm(): Returns the main settings form
 getMemoryViewForm() : Returns the main memoryview form class object which can be accessed using the Form_ class methods and the methods of the classes it inherits from. There can be multiple memory views, but this will only find the original/base
-getMainForm() : Returns the main form class object which can be accessed using the Form_ class methods and the methods of the classes it inherits from
+getMainForm() : Returns the main form class object which can be accessed using the Form class methods and the methods of the classes it inherits from
 getLuaEngine() : Returns the lua engine form object (Creates it if needed)
 getApplication() : Returns the application object. (the titlebar)
 getAddressList() : Returns the cheat table addresslist object

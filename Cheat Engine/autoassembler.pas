@@ -597,8 +597,11 @@ var i,j: integer;
     bracecomment: boolean;
 begin
   //remove comments
+
+
   instring:=false;
   incomment:=false;
+  bracecomment:=false;
   for i:=0 to code.count-1 do
   begin
     currentline:=code[i];
@@ -1107,7 +1110,7 @@ var
 
   found: boolean;
 begin
-
+  trynr:=0;
 
   for i:=0 to code.Count-1 do
   begin
@@ -1674,7 +1677,7 @@ begin
                     multilineinjection.Text:=currentline;
 
                     for k:=0 to multilineinjection.Count-1 do
-                      code.InsertObject(i+1+k, multilineinjection[k], pointer(currentlinenr));
+                      code.InsertObject(i+1+k, multilineinjection[k], pointer(ptruint(currentlinenr)));
                   finally
                     multilineinjection.Free;
                   end;
@@ -2431,7 +2434,12 @@ begin
               end;
 
               try
-                j:=symhandler.getAddressFromName(copy(currentline,1,length(currentline)-1));
+                s1:=copy(currentline,1,length(currentline)-1);
+
+                if s1<>'' then
+                  testPtr:=symhandler.getAddressFromName(s1);
+
+
               except
                 currentline:=inttohex(symhandler.getaddressfromname(copy(currentline,1,length(currentline)-1)),8)+':';
                 assemblerlines[length(assemblerlines)-1]:=currentline;

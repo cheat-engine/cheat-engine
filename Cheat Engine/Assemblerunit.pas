@@ -2882,7 +2882,7 @@ begin
   add(bytes,[byte(a shr 24)]);
 end;
 
-procedure AddQword(var bytes: tassemblerbytes; a: int64);
+procedure AddQword(var bytes: tassemblerbytes; a: uint64);
 begin
   add(bytes,[byte(a)]);
   add(bytes,[byte(a shr 8)]);
@@ -2917,7 +2917,7 @@ begin
 
 end;
 
-function ValueToType(value: dword): integer;
+function ValueToType(value: ptruint): integer;
 begin
   result:=32;
   if value<=$ffff then
@@ -2934,16 +2934,16 @@ begin
 
   if result=32 then
   begin
-    if integer(value)<0 then
+    if PtrInt(value)<0 then
     begin
-      if integer(value)>=-128 then result:=8 else
-      if integer(value)>=-32768 then result:=16;
+      if PtrInt(value)>=-128 then result:=8 else
+      if PtrInt(value)>=-32768 then result:=16;
     end;
   end;
 end;
 
 function StringValueToType(value: string): integer;
-var x: dword;
+var x: qword;
     err: integer;
 begin
   //this function converts a sttring to a valuetype depending on how it is written
@@ -4884,8 +4884,8 @@ begin
     vtype:=StringValueToType(parameter4);
   end;
 
-  signedvtype:=SignedValueToType(v);
-  signedv2type:=SignedValueToType(v2);
+  signedvtype:=SignedValueToType(integer(v));
+  signedv2type:=SignedValueToType(integer(v2));
 
 
   result:=false;
@@ -6464,7 +6464,7 @@ begin
             //no there's none
             addopcode(bytes,j);
             createmodrm(bytes,eoToReg(opcodes[j].opcode1),parameter1);
-            adddword(bytes,v);
+            adddword(bytes,dword(v));
             result:=true;
             exit;
           end;
@@ -7454,7 +7454,7 @@ begin
             //user typed in a direct address
 
   //        if (not overrideShort) and ((OverrideLong) or (valueTotype(      v-address-       (opcodes[j].bytes+1) )>8) ) then
-            if (not overrideShort) and ((OverrideLong) or (valueToType(DWord(v-address-Integer(opcodes[j].bytes+1)))>8) ) then
+            if (not overrideShort) and ((OverrideLong) or (valueToType((v-address-Integer(opcodes[j].bytes+1)))>8) ) then
             begin
               //the user tried to find a relative address out of it's reach
               //see if there is a 32 bit version of the opcode
@@ -7465,7 +7465,7 @@ begin
                 begin
                   //yes, there is a 32 bit version
                   addopcode(bytes,k);
-                  adddword(bytes,v-address-(opcodes[k].bytes+4));
+                  adddword(bytes,dword(v-address-(opcodes[k].bytes+4)));
                   result:=true;
                   exit;
                 end;
@@ -7478,7 +7478,10 @@ begin
 
               addopcode(bytes,j);
 
-              add(bytes,[v-address-(opcodes[j].bytes+1)]);
+              b:=ptruint(v-address-ptruint((opcodes[j].bytes+1))) and $ff;
+             // b:=b and $ff;
+
+              add(bytes,[b]);
               result:=true;
               exit;
             end;

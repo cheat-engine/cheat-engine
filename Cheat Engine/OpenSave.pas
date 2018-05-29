@@ -415,7 +415,8 @@ begin
       end;
     end;
 
-    mainform.miResyncFormsWithLua.click;
+    if mainform.miResyncFormsWithLua<>nil then
+      mainform.miResyncFormsWithLua.click;
 
 
     if entries<>nil then
@@ -938,10 +939,10 @@ end;
 
 
 procedure LoadCT(filename: string; merge: boolean);
-var ctfile: TFilestream;
-    x: pchar;
-    doc: TXMLDocument;
-    unprotectedstream: TMemorystream;
+var ctfile: TFilestream=nil;
+    x: pchar=nil;
+    doc: TXMLDocument=nil;
+    unprotectedstream: TMemorystream=nil;
 
     isProtected: boolean;
 begin
@@ -954,7 +955,6 @@ begin
 
   mainform.addresslist.Items.BeginUpdate;
   try
-
     getmem(x,12);
     ctfile.ReadBuffer(x^,11);
     x[11]:=#0;  //write a 0 terminator

@@ -997,7 +997,7 @@ end;
 
 function TBinUtils.compileproject(filelist: tstringlist): boolean;
 begin
-
+  result:=false;
 end;
 
 function TBinUtils.assemble(script: tstringlist; extraparams: string; out filename: string): boolean;

@@ -492,7 +492,7 @@ begin
   target1:=TPlayerWithHealth.create(true);
   target1.x:=0-target1.width-0.005;
   target1.y:=-0.8;
-  target1.health:=1;
+  target1.health:=200;
   target1.maxhealth:=200;
   target1.rotation:=180;
 end;
@@ -502,7 +502,7 @@ begin
   target2:=TPlayerWithHealth.create(true);
   target2.x:=target2.width+0.005;
   target2.y:=-0.8;
-  target2.health:=1;
+  target2.health:=200;
   target2.maxhealth:=200;
   target2.rotation:=180;
 end;

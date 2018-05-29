@@ -2,6 +2,8 @@ unit formAddressChangeUnit;
 
 {$MODE Delphi}
 
+{$warn 3057 off}
+
 interface
 
 uses

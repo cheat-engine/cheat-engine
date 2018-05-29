@@ -30,7 +30,7 @@ var s: tstringlist;
   CEAllocArray: TCEAllocArray;
   ExceptionList: TCEExceptionListArray;
   i: integer;
-  starttime: dword;
+  starttime: qword;
   x: ptruint;
   address: ptruint;
 
@@ -131,13 +131,13 @@ begin
     setlength(CEAllocArray,0);
     if autoassemble(s,false, true, false, false, CEAllocArray, exceptionlist) then
     begin
-      starttime:=GetTickCount;
+      starttime:=GetTickCount64;
       for i:=0 to length(ceallocarray)-1 do
       begin
 
         if ceallocarray[i].varname='address' then
         begin
-          while gettickcount-starttime<10*1000 do
+          while gettickcount64-starttime<10*1000 do
           begin
             //poll if address is still 0
 

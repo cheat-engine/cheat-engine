@@ -264,7 +264,7 @@ var hdevice: thandle=INVALID_HANDLE_VALUE; //handle to my the device driver
     oldNtReadVirtualMemory: function(ProcessHandle : HANDLE; BaseAddress : PVOID; Buffer : PVOID; BufferLength : ULONG; ReturnLength : PSIZE_T): NTSTATUS; stdcall;
     oldNtOpenProcess: function(Handle: PHandle; AccessMask: dword; objectattributes: pointer; clientid: PClient_ID):DWORD; stdcall;
 
-    NextPseudoHandle: integer=$ce000000;
+    NextPseudoHandle: integer=integer(dword($ce000000));
     DoNotOpenProcessHandles: Boolean=false;
     ProcessWatcherOpensHandles: Boolean=true;
 
@@ -1636,7 +1636,7 @@ begin
         else
           result:=STATUS_ACCESS_DENIED;
       except
-        result:=STATUS_ACCESS_VIOLATION;
+        result:=NTSTATUS(STATUS_ACCESS_VIOLATION);
       end;
 
       if result=0 then exit;
@@ -1728,11 +1728,11 @@ begin
 
             OutPutDebugString('Before Copy');
 
-            if (ProcessInformation<>nil) and (result<$80000000) then
+            if (ProcessInformation<>nil) and (DWORD(result)<$80000000) then
             try
               copymemory(ProcessInformation, @(outp^.data[0]),outp.returnlength);
             except
-              result:=STATUS_ACCESS_VIOLATION;
+              result:=NTSTATUS(STATUS_ACCESS_VIOLATION);
             end;
             OutPutDebugString('After Copy');
           end
@@ -1745,7 +1745,7 @@ begin
               result:=oldNtQueryInformationProcess(ProcessHandle, ProcessInformationClass, ProcessInformation, ProcessInformationLength, ReturnLength)
             end
             else
-              result:=STATUS_ACCESS_VIOLATION;
+              result:=NTSTATUS(STATUS_ACCESS_VIOLATION);
           end;
 
         finally

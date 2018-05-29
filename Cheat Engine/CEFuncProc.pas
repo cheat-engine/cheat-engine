@@ -2753,7 +2753,7 @@ begin
 
             for i:=0 to length(extra)-1 do
             begin
-              if extra[i]=$cececece then //the extra array needs to be accessed else fpc will cause stack corruption
+              if extra[i]=$cecece then //the extra array needs to be accessed else fpc will cause stack corruption
               begin
                 asm
                   nop

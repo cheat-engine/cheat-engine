@@ -422,6 +422,7 @@ begin
   result:=nil;
 
   ownerForm.regiontreeMREW.Beginwrite;
+  endaddress:=$fffffffffffffff;
 
   try
     e.address:=ip;

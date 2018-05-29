@@ -4,6 +4,8 @@ unit JvDesignUtils;
 
 {$mode objfpc}{$H+}
 
+{$warn 5033 off}
+
 interface
 uses
   {$IFDEF UNITVERSIONING}

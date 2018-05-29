@@ -2,6 +2,8 @@ unit JvDesignImp;
 
 {$mode objfpc}{$H+}
 
+{$warn 3057 off}
+
 interface
 
 uses
@@ -1358,7 +1360,6 @@ function TJvDesignDesigner.DeleteSelection: boolean;
 var a: TPersistentSelectionList;
   i: integer;
 begin
-
   a:=TPersistentSelectionList.Create;
   GlobalDesignHook.GetSelection(a);
 
@@ -1376,6 +1377,7 @@ begin
   if assigned(FMessenger.OnChange) then
     FMessenger.OnChange(self);
 
+  result:=true;
 end;
 
 procedure TJvDesignDesigner.PaintGrid;
@@ -1396,7 +1398,7 @@ end;
 
 function TJvDesignDesigner.UniqueName(const BaseName: string): string;
 begin
-  //
+  result:='';
 end;
 
 procedure TJvDesignDesigner.ValidateRename(AComponent: TComponent;
@@ -1416,7 +1418,7 @@ end;
 
 constructor TJvDesignDesignerMessenger.Create;
 begin
-  FDesigner := TJvDesignDesigner.Create(Self);
+//  FDesigner :=  TJvDesignDesigner.Create(Self);
 end;
 
 destructor TJvDesignDesignerMessenger.Destroy;

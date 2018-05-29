@@ -165,7 +165,18 @@ begin
     currentBP.FoundcodeDialog.useexceptions:=currentBP.breakpointMethod=bpmException;
 
     TDebuggerthread(debuggerthread).execlocation:=432;
-    currentBP.FoundcodeDialog.AddRecord;
+
+    if currentBP.FoundcodeDialog<>nil then
+    begin
+      try
+        currentBP.FoundcodeDialog.AddRecord;
+      except
+        on e:exception do
+          outputdebugstring('old error 432: currentBP.FoundcodeDialog.AddRecord: '+e.message);
+      end;
+    end
+    else
+      outputdebugstring('old error 432: foundCodeDialog_AddRecord: currentBP.FoundcodeDialog is nil');
 
     TDebuggerthread(debuggerthread).execlocation:=433;
   end

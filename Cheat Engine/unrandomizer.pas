@@ -154,7 +154,7 @@ begin
   if not e then
   begin
     readprocessmemory(processhandle, pointer(a), @buffer[0], length(genericreplace), ar);
-    save(a,@buffer[j],length(genericreplace));
+    save(a,@buffer[0],length(genericreplace));
     l:=length(genericreplace);
     rewritecode(processhandle,a,@genericreplace[0],l);
   end;
@@ -163,7 +163,7 @@ begin
   if not e then
   begin
     readprocessmemory(processhandle, pointer(a), @buffer[0], length(genericreplace), ar);
-    save(a,@buffer[j],length(genericreplace));
+    save(a,@buffer[0],length(genericreplace));
     l:=length(genericreplace);
     rewritecode(processhandle,a,@genericreplace[0],l);
   end;
@@ -172,7 +172,7 @@ begin
   if not e then
   begin
     readprocessmemory(processhandle, pointer(a), @buffer[0], length(genericreplace), ar);
-    save(a,@buffer[j],length(genericreplace));
+    save(a,@buffer[0],length(genericreplace));
     l:=length(genericreplace);
     rewritecode(processhandle,a,@genericreplace[0],l);
   end;

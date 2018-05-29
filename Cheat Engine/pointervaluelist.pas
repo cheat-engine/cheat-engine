@@ -1028,6 +1028,7 @@ begin
       regionfile.free;
 
       //go through the list and add every page to a map
+      valid:=true;
       ScannablePages:=TMap.Create(ituPtrSize,0);
 
       for i:=0 to length(prangelist)-1 do
@@ -1263,8 +1264,8 @@ begin
                   if InModulePointerMap.GetData(dwordpointer^, valid)=false then //not in list yet
                   begin
                     //check that the memory it points to contains a pointer to executable code
-                    if ReadProcessMemory(processhandle, pointer(dwordpointer^), @tempdword, 4, actualread) then
-                      valid:=(allowNonModulePointers and (ReadProcessMemory(processhandle, pointer(tempdword), @tempdword,4, actualread))) or isModulePointer(tempdword)
+                    if ReadProcessMemory(processhandle, pointer(ptruint(dwordpointer^)), @tempdword, 4, actualread) then
+                      valid:=(allowNonModulePointers and (ReadProcessMemory(processhandle, pointer(ptruint(tempdword)), @tempdword,4, actualread))) or isModulePointer(tempdword)
                     else
                       valid:=false;
 
@@ -1371,8 +1372,8 @@ begin
                   if InModulePointerMap.GetData(dwordpointer^, valid)=false then //not in list yet
                   begin
                     //check that the memory it points to contains a pointer to executable code
-                    if ReadProcessMemory(processhandle, pointer(dwordpointer^), @tempdword, 4, actualread) then
-                      valid:=(allowNonModulePointers and (ReadProcessMemory(processhandle, pointer(tempdword), @tempdword, 4, actualread))) or isModulePointer(tempdword)
+                    if ReadProcessMemory(processhandle, pointer(ptruint(dwordpointer^)), @tempdword, 4, actualread) then
+                      valid:=(allowNonModulePointers and (ReadProcessMemory(processhandle, pointer(ptruint(tempdword)), @tempdword, 4, actualread))) or isModulePointer(tempdword)
                     else
                       valid:=false;
 

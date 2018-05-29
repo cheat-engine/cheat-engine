@@ -920,13 +920,13 @@ end;
 
 procedure TJvDesignSurface.PasteComponents;
 var
-  CO: TControl;
-  C: TComponent;
-  P: TWinControl;
-  s: tstringstream;
-  ms: TMemoryStream;
+  CO: TControl=nil;
+  C: TComponent=nil;
+//  P: TWinControl=nil;
+  s: tstringstream=nil;
+  ms: TMemoryStream=nil;
 
-  procedure KeepInParent;
+ { procedure KeepInParent;
   begin
     with P do
     begin
@@ -951,7 +951,7 @@ var
     end;
 
   end;
-
+         }
 
   var l: TObjectList;
     i: integer;

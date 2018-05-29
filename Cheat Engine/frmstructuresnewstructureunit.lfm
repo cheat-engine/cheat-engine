@@ -9,7 +9,6 @@ object frmStructuresNewStructure: TfrmStructuresNewStructure
   Caption = 'New Structure'
   ClientHeight = 141
   ClientWidth = 365
-  KeyPreview = True
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poOwnerFormCenter

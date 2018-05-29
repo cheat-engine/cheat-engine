@@ -259,6 +259,7 @@ type
     MainMenu2: TMainMenu;
     MenuItem12: TMenuItem;
     MenuItem14: TMenuItem;
+    MenuItem15: TMenuItem;
     miForgotScan: TMenuItem;
     miDotNET: TMenuItem;
     miGetDotNetObjectList: TMenuItem;
@@ -507,6 +508,7 @@ type
     procedure Foundlist3SelectItem(Sender: TObject; Item: TListItem;
       Selected: boolean);
     procedure MenuItem12Click(Sender: TObject);
+    procedure MenuItem15Click(Sender: TObject);
     procedure miForgotScanClick(Sender: TObject);
     procedure miGetDotNetObjectListClick(Sender: TObject);
     procedure miChangeValueBackClick(Sender: TObject);
@@ -1345,7 +1347,7 @@ begin
         begin
           AttachThreadInput( CurrentThreadID, OtherThreadID, true );
           SystemParametersInfo(SPI_GETFOREGROUNDLOCKTIMEOUT, 0, @lockTimeOut, 0);
-          SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT, 0, 0, 0);
+          SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT, 0, nil, 0);
           AllowSetForegroundWindow(ASFW_ANY);
         end;
 
@@ -3098,6 +3100,36 @@ end;
 procedure TMainForm.MenuItem12Click(Sender: TObject);
 begin
   shellexecute(0, 'open', pchar(cheatenginedir+'Tutorial-x86_64.exe'), nil, nil, sw_show);
+end;
+
+procedure TMainForm.MenuItem15Click(Sender: TObject);
+var nexttut: string;
+    filename: string;
+begin
+  filename:='gtutorial-'+{$ifdef cpu32}'i386'{$else}'x86_64'{$endif}+'.exe';
+  nexttut:=ExtractFilePath(application.ExeName)+filename;
+
+  if fileexists(nexttut) then
+  begin
+    //launch the graphical tutorial
+    ShellExecute(0, PChar('open'), PChar(nexttut),PChar(''), PChar(extractfilepath(nexttut)), SW_SHOW);
+    exit;
+  end;
+
+
+  nexttut:=ExtractFileDir(application.ExeName);
+
+  if ExtractFileName(nexttut)='bin' then
+  begin
+    nexttut:=ExtractFilePath(nexttut)+'tutorial\graphical\'+filename;
+
+    if fileexists(nexttut) then
+    begin
+      //launch the graphical tutorial
+      ShellExecute(0, PChar('open'), PChar(nexttut),PChar(''), PChar(extractfilepath(nexttut)), SW_SHOW);
+      exit;
+    end;
+  end;
 end;
 
 procedure TMainForm.miForgotScanClick(Sender: TObject);
@@ -8041,13 +8073,16 @@ begin
 
     end;
 
-    LoadTable(Opendialog1.filename, merge);
-    SaveDialog1.filename:=Opendialog1.filename;
+    try
+      LoadTable(Opendialog1.filename, merge);
+      SaveDialog1.filename:=Opendialog1.filename;
 
-    UserDefinedTableName:=Opendialog1.filename;
-
-
-    reinterpretaddresses;
+      UserDefinedTableName:=Opendialog1.filename;
+      reinterpretaddresses;
+    except
+      on e:exception do
+        MessageDlg('This table failed to load: '+e.message,mtError,[mbok],0);
+    end;
   end
   else Opendialog1.FileName:=oldFileName;
 

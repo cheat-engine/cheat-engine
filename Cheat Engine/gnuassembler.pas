@@ -218,6 +218,7 @@ var
 
   bu: TBinUtils;
 begin
+  result:=false;
   if (binutilslist.count=0) then
     raise exception.create(rsConfigureAValidBinutilsSetupFirst);
 
@@ -566,6 +567,7 @@ begin
       deletefile(lnkfilename);
       deletefile(o);
 
+      result:=true;
     finally
       script.free;
     end;

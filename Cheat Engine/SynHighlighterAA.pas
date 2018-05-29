@@ -1752,16 +1752,16 @@ end;
 function TSynAASyn.GetRange: Pointer;
 begin
   if frange=rsLua then
-    result := pointer(PtrInt(fLuaSyntaxHighlighter.GetRange)+$1000)
+    result := pointer(PtruInt(fLuaSyntaxHighlighter.GetRange)+$1000)
   else
-    Result := Pointer(PtrInt(fRange));
+    Result := Pointer(PtruInt(fRange));
 end;
 
 procedure TSynAASyn.SetRange(Value: Pointer);
 begin
-  if ptrint(value) >= $1000 then //lua
+  if ptruint(value) >= $1000 then //lua
   begin
-    fLuaSyntaxHighlighter.SetRange(pointer(ptrint(value)-$1000));
+    fLuaSyntaxHighlighter.SetRange(pointer(ptruint(value)-$1000));
     frange:=rsLua;
   end
   else

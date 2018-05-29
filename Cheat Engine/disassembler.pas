@@ -854,7 +854,7 @@ begin
             if getrm(memory[modrmbyte])<>4 then
             begin
               LastDisassembleData.modrmValueType:=dvtValue;
-              LastDisassembleData.modrmValue:=shortint(memory[modrmbyte+1]);
+              LastDisassembleData.modrmValue:=ptruint(shortint(memory[modrmbyte+1]));
             end;
 
             case getrm(memory[modrmbyte]) of
@@ -862,25 +862,25 @@ begin
               begin
                 if shortint(memory[modrmbyte+1])>=0 then
                   result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'ax'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+']' else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'ax'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2)+']';
+                  result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'ax'+endcolor+inttohexs(ptruint(shortint(memory[modrmbyte+1])),2)+']';
               end;
 
               1:
               if shortint(memory[modrmbyte+1])>=0 then
                 result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'cx'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+']' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'cx'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2)+']';
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'cx'+endcolor+inttohexs(ptruint(shortint(memory[modrmbyte+1])),2)+']';
 
 
               2:
               if shortint(memory[modrmbyte+1])>=0 then
                 result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'dx'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+']' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'dx'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2)+']';
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'dx'+endcolor+inttohexs(ptruint(shortint(memory[modrmbyte+1])),2)+']';
 
 
               3:
               if shortint(memory[modrmbyte+1])>=0 then
                 result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bx'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+']' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bx'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2)+']';
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bx'+endcolor+inttohexs(ptruint(shortint(memory[modrmbyte+1])),2)+']';
 
 
               4:
@@ -900,62 +900,62 @@ begin
               5:
               if shortint(memory[modrmbyte+1])>=0 then
                 result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bp'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+']' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bp'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+']';
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bp'+endcolor+inttohexs(ptruint(shortint(memory[modrmbyte+1])),2, true, 2)+']';
 
 
               6:
               if shortint(memory[modrmbyte+1])>=0 then
                 result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'si'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+']' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'si'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+']';
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'si'+endcolor+inttohexs(ptruint(shortint(memory[modrmbyte+1])),2, true, 2)+']';
 
 
               7:
               if shortint(memory[modrmbyte+1])>=0 then
                 result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'di'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+']' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'di'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+']';
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'di'+endcolor+inttohexs(ptruint(shortint(memory[modrmbyte+1])),2, true, 2)+']';
 
 
               8:
               if shortint(memory[modrmbyte+1])>=0 then
                 result:=getsegmentoverride(prefix)+'['+colorreg+'r8'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+']' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+'r8'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+']';
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r8'+endcolor+inttohexs(ptruint(shortint(memory[modrmbyte+1])),2, true, 2)+']';
 
 
               9:
               if shortint(memory[modrmbyte+1])>=0 then
                 result:=getsegmentoverride(prefix)+'['+colorreg+'r9'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+']' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+'r9'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+']';
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r9'+endcolor+inttohexs(ptruint(shortint(memory[modrmbyte+1])),2, true, 2)+']';
 
              10:
              if shortint(memory[modrmbyte+1])>=0 then
                result:=getsegmentoverride(prefix)+'['+colorreg+'r10'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+']' else
-               result:=getsegmentoverride(prefix)+'['+colorreg+'r10'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+']';
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r10'+endcolor+inttohexs(ptruint(shortint(memory[modrmbyte+1])),2, true, 2)+']';
 
 
              11:
              if shortint(memory[modrmbyte+1])>=0 then
                result:=getsegmentoverride(prefix)+'['+colorreg+'r11'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+']' else
-               result:=getsegmentoverride(prefix)+'['+colorreg+'r11'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+']';
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r11'+endcolor+inttohexs(ptruint(shortint(memory[modrmbyte+1])),2, true, 2)+']';
 
              12:
              if shortint(memory[modrmbyte+1])>=0 then
                result:=getsegmentoverride(prefix)+'['+colorreg+'r12'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+']' else
-               result:=getsegmentoverride(prefix)+'['+colorreg+'r12'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+']';
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r12'+endcolor+inttohexs(ptruint(shortint(memory[modrmbyte+1])),2, true, 2)+']';
 
              13:
              if shortint(memory[modrmbyte+1])>=0 then
                result:=getsegmentoverride(prefix)+'['+colorreg+'r13'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+']' else
-               result:=getsegmentoverride(prefix)+'['+colorreg+'r13'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+']';
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r13'+endcolor+inttohexs(ptruint(shortint(memory[modrmbyte+1])),2, true, 2)+']';
 
              14:
              if shortint(memory[modrmbyte+1])>=0 then
                result:=getsegmentoverride(prefix)+'['+colorreg+'r14'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+']' else
-               result:=getsegmentoverride(prefix)+'['+colorreg+'r14'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+']';
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r14'+endcolor+inttohexs(ptruint(shortint(memory[modrmbyte+1])),2, true, 2)+']';
 
              15:
              if shortint(memory[modrmbyte+1])>=0 then
                result:=getsegmentoverride(prefix)+'['+colorreg+'r15'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+']' else
-               result:=getsegmentoverride(prefix)+'['+colorreg+'r15'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+']';
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r15'+endcolor+inttohexs(ptruint(shortint(memory[modrmbyte+1])),2, true, 2)+']';
 
             end;
 
@@ -970,7 +970,7 @@ begin
             if getrm(memory[modrmbyte])<>4 then
             begin
               LastDisassembleData.modrmValueType:=dvtValue;
-              LastDisassembleData.modrmValue:=pinteger(dwordptr)^;
+              LastDisassembleData.modrmValue:=ptruint(pinteger(dwordptr)^);
             end;
 
             case getrm(memory[modrmbyte]) of
@@ -1390,7 +1390,7 @@ begin
         if base=5 then
         begin
           LastDisassembleData.modrmValueType:=dvtValue;
-          LastDisassembleData.modrmValue:=pinteger(dwordptr)^;
+          LastDisassembleData.modrmValue:=ptruint(pinteger(dwordptr)^);
 
           if pinteger(dwordptr)^<0 then
             displacementstring:='-'+inttohexs(-pinteger(dwordptr)^,8)
@@ -1406,7 +1406,7 @@ begin
         //displacementstring:=colorreg+'EBP'+endcolor;
 
         LastDisassembleData.modrmValueType:=dvtValue;
-        LastDisassembleData.modrmValue:=pshortint(dwordptr)^;
+        LastDisassembleData.modrmValue:=ptruint(pshortint(dwordptr)^);
 
 
         if pshortint(dwordptr)^<0 then
@@ -1421,7 +1421,7 @@ begin
       begin
         //displacementstring:=colorreg+'EBP'+endcolor;
         LastDisassembleData.modrmValueType:=dvtValue;
-        LastDisassembleData.modrmValue:=pinteger(dwordptr)^;
+        LastDisassembleData.modrmValue:=ptruint(pinteger(dwordptr)^);
 
         if pinteger(dwordptr)^<0 then
           displacementstring:='-'+inttohexs(-pinteger(dwordptr)^,8)
@@ -1557,8 +1557,11 @@ var
     bytestomove: integer;
 
     memory: PBytearray;
-begin
 
+    td: dword;
+    breaknow: boolean;
+begin
+  try
   LastDisassembleData.isfloat:=false;
   LastDisassembleData.iscloaked:=false;
   LastDisassembleData.commentsoverride:='';
@@ -1701,7 +1704,7 @@ begin
   startoffset:=offset;
   initialoffset:=offset;
 
-  actualRead:=readMemory(offset, @_memory[0], 24);
+  actualRead:=readMemory(offset, @_memory[0], 32);
   memory:=@_memory[0];
 
   if actualread>0 then
@@ -7507,9 +7510,9 @@ begin
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if is64bit then
-                          lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
+                          lastdisassembledata.parametervalue:=qword(offset+qword(pint(@memory[2])^))
                         else
-                          lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
+                          lastdisassembledata.parametervalue:=dword(offset+qword(pint(@memory[2])^));
 
                         lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=2;
                         inc(lastdisassembledata.seperatorcount);
@@ -7536,9 +7539,9 @@ begin
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if is64bit then
-                          lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
+                          lastdisassembledata.parametervalue:=qword(offset+qword(pint(@memory[2])^))
                         else
-                          lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
+                          lastdisassembledata.parametervalue:=dword(offset+qword(pint(@memory[2])^));
 
                         lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=2;
                         inc(lastdisassembledata.seperatorcount);
@@ -7568,9 +7571,9 @@ begin
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if is64bit then
-                          lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
+                          lastdisassembledata.parametervalue:=qword(offset+qword(pint(@memory[2])^))
                         else
-                          lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
+                          lastdisassembledata.parametervalue:=dword(offset+qword(pint(@memory[2])^));
 
                         lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=2;
                         inc(lastdisassembledata.seperatorcount);
@@ -7598,9 +7601,9 @@ begin
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if is64bit then
-                          lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
+                          lastdisassembledata.parametervalue:=qword(offset+qword(pint(@memory[2])^))
                         else
-                          lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
+                          lastdisassembledata.parametervalue:=dword(offset+qword(pint(@memory[2])^));
 
                         lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=2;
                         inc(lastdisassembledata.seperatorcount);
@@ -7628,9 +7631,9 @@ begin
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if is64bit then
-                          lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
+                          lastdisassembledata.parametervalue:=qword(offset+qword(pint(@memory[2])^))
                         else
-                          lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
+                          lastdisassembledata.parametervalue:=dword(offset+qword(pint(@memory[2])^));
 
                         lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=2;
                         inc(lastdisassembledata.seperatorcount);
@@ -7658,9 +7661,9 @@ begin
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if is64bit then
-                          lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
+                          lastdisassembledata.parametervalue:=qword(offset+qword(pint(@memory[2])^))
                         else
-                          lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
+                          lastdisassembledata.parametervalue:=dword(offset+qword(pint(@memory[2])^));
 
                         lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=2;
                         inc(lastdisassembledata.seperatorcount);
@@ -7689,9 +7692,9 @@ begin
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if is64bit then
-                          lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
+                          lastdisassembledata.parametervalue:=qword(offset+qword(pint(@memory[2])^))
                         else
-                          lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
+                          lastdisassembledata.parametervalue:=dword(offset+qword(pint(@memory[2])^));
 
                         lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=2;
                         inc(lastdisassembledata.seperatorcount);
@@ -7719,9 +7722,9 @@ begin
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if is64bit then
-                          lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
+                          lastdisassembledata.parametervalue:=qword(offset+qword(pint(@memory[2])^))
                         else
-                          lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
+                          lastdisassembledata.parametervalue:=dword(offset+qword(pint(@memory[2])^));
 
                         lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=2;
                         inc(lastdisassembledata.seperatorcount);
@@ -7748,9 +7751,9 @@ begin
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if is64bit then
-                          lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
+                          lastdisassembledata.parametervalue:=qword(offset+qword(pint(@memory[2])^))
                         else
-                          lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
+                          lastdisassembledata.parametervalue:=dword(offset+qword(pint(@memory[2])^));
 
                         lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=2;
                         inc(lastdisassembledata.seperatorcount);
@@ -7777,9 +7780,9 @@ begin
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if is64bit then
-                          lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
+                          lastdisassembledata.parametervalue:=qword(offset+qword(pint(@memory[2])^))
                         else
-                          lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
+                          lastdisassembledata.parametervalue:=dword(offset+qword(pint(@memory[2])^));
 
                         lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=2;
                         inc(lastdisassembledata.seperatorcount);
@@ -7806,9 +7809,9 @@ begin
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if is64bit then
-                          lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
+                          lastdisassembledata.parametervalue:=qword(offset+qword(pint(@memory[2])^))
                         else
-                          lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
+                          lastdisassembledata.parametervalue:=dword(offset+qword(pint(@memory[2])^));
 
                         lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=2;
                         inc(lastdisassembledata.seperatorcount);
@@ -7835,9 +7838,9 @@ begin
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if is64bit then
-                          lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
+                          lastdisassembledata.parametervalue:=qword(offset+qword(pint(@memory[2])^))
                         else
-                          lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
+                          lastdisassembledata.parametervalue:=dword(offset+qword(pint(@memory[2])^));
 
                         lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=2;
                         inc(lastdisassembledata.seperatorcount);
@@ -7864,9 +7867,9 @@ begin
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if is64bit then
-                          lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
+                          lastdisassembledata.parametervalue:=qword(offset+qword(pint(@memory[2])^))
                         else
-                          lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
+                          lastdisassembledata.parametervalue:=dword(offset+qword(pint(@memory[2])^));
 
                         lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=2;
                         inc(lastdisassembledata.seperatorcount);
@@ -7893,9 +7896,9 @@ begin
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if is64bit then
-                          lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
+                          lastdisassembledata.parametervalue:=qword(offset+qword(pint(@memory[2])^))
                         else
-                          lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
+                          lastdisassembledata.parametervalue:=dword(offset+qword(pint(@memory[2])^));
 
                         lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=2;
                         inc(lastdisassembledata.seperatorcount);
@@ -7923,9 +7926,9 @@ begin
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if is64bit then
-                          lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
+                          lastdisassembledata.parametervalue:=qword(offset+qword(pint(@memory[2])^))
                         else
-                          lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
+                          lastdisassembledata.parametervalue:=dword(offset+qword(pint(@memory[2])^));
 
                         lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=2;
                         inc(lastdisassembledata.seperatorcount);
@@ -7953,9 +7956,9 @@ begin
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if is64bit then
-                          lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
+                          lastdisassembledata.parametervalue:=qword(offset+qword(pint(@memory[2])^))
                         else
-                          lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
+                          lastdisassembledata.parametervalue:=dword(offset+qword(pint(@memory[2])^));
 
                         lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=2;
                         inc(lastdisassembledata.seperatorcount);
@@ -10709,9 +10712,9 @@ begin
               lastdisassembledata.parametervaluetype:=dvtAddress;
 
               if is64bit then
-                lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
+                lastdisassembledata.parametervalue:=qword(offset+qword(shortint(memory[1])))
               else
-                lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
+                lastdisassembledata.parametervalue:=dword(offset+qword(shortint(memory[1])));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
 
@@ -10735,9 +10738,9 @@ begin
               lastdisassembledata.parametervaluetype:=dvtAddress;
 
               if is64bit then
-                lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
+                lastdisassembledata.parametervalue:=qword(offset+qword(shortint(memory[1])))
               else
-                lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
+                lastdisassembledata.parametervalue:=dword(offset+qword(shortint(memory[1])));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
 
@@ -10758,9 +10761,9 @@ begin
               lastdisassembledata.parametervaluetype:=dvtAddress;
 
               if is64bit then
-                lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
+                lastdisassembledata.parametervalue:=qword(offset+qword(shortint(memory[1])))
               else
-                lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
+                lastdisassembledata.parametervalue:=dword(offset+qword(shortint(memory[1])));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
 
@@ -10782,9 +10785,9 @@ begin
               lastdisassembledata.parametervaluetype:=dvtAddress;
 
               if is64bit then
-                lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
+                lastdisassembledata.parametervalue:=qword(offset+qword(shortint(memory[1])))
               else
-                lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
+                lastdisassembledata.parametervalue:=dword(offset+qword(shortint(memory[1])));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
 
@@ -10806,9 +10809,9 @@ begin
               lastdisassembledata.parametervaluetype:=dvtAddress;
 
               if is64bit then
-                lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
+                lastdisassembledata.parametervalue:=qword(offset+qword(shortint(memory[1])))
               else
-                lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
+                lastdisassembledata.parametervalue:=dword(offset+qword(shortint(memory[1])));
 
 
 
@@ -10831,9 +10834,9 @@ begin
               lastdisassembledata.parametervaluetype:=dvtAddress;
 
               if is64bit then
-                lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
+                lastdisassembledata.parametervalue:=qword(offset+qword(shortint(memory[1])))
               else
-                lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
+                lastdisassembledata.parametervalue:=dword(offset+qword(shortint(memory[1])));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
 
@@ -10856,9 +10859,9 @@ begin
               lastdisassembledata.parametervaluetype:=dvtAddress;
 
               if is64bit then
-                lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
+                lastdisassembledata.parametervalue:=qword(offset+qword(shortint(memory[1])))
               else
-                lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
+                lastdisassembledata.parametervalue:=dword(offset+qword(shortint(memory[1])));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
 
@@ -10881,9 +10884,9 @@ begin
               lastdisassembledata.parametervaluetype:=dvtAddress;
 
               if is64bit then
-                lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
+                lastdisassembledata.parametervalue:=qword(offset+qword(shortint(memory[1])))
               else
-                lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
+                lastdisassembledata.parametervalue:=dword(offset+qword(shortint(memory[1])));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
 
@@ -10905,9 +10908,9 @@ begin
               lastdisassembledata.parametervaluetype:=dvtAddress;
 
               if is64bit then
-                lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
+                lastdisassembledata.parametervalue:=qword(offset+qword(shortint(memory[1])))
               else
-                lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
+                lastdisassembledata.parametervalue:=dword(offset+qword(shortint(memory[1])));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
 
@@ -10929,9 +10932,9 @@ begin
               lastdisassembledata.parametervaluetype:=dvtAddress;
 
               if is64bit then
-                lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
+                lastdisassembledata.parametervalue:=qword(offset+qword(shortint(memory[1])))
               else
-                lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
+                lastdisassembledata.parametervalue:=dword(offset+qword(shortint(memory[1])));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
 
@@ -10953,9 +10956,9 @@ begin
               lastdisassembledata.parametervaluetype:=dvtAddress;
 
               if is64bit then
-                lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
+                lastdisassembledata.parametervalue:=qword(offset+qword(shortint(memory[1])))
               else
-                lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
+                lastdisassembledata.parametervalue:=dword(offset+qword(shortint(memory[1])));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
 
@@ -10977,9 +10980,9 @@ begin
               lastdisassembledata.parametervaluetype:=dvtAddress;
 
               if is64bit then
-                lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
+                lastdisassembledata.parametervalue:=qword(offset+qword(shortint(memory[1])))
               else
-                lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
+                lastdisassembledata.parametervalue:=dword(offset+qword(shortint(memory[1])));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
 
@@ -11002,9 +11005,9 @@ begin
               lastdisassembledata.parametervaluetype:=dvtAddress;
 
               if is64bit then
-                lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
+                lastdisassembledata.parametervalue:=qword(offset+qword(shortint(memory[1])))
               else
-                lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
+                lastdisassembledata.parametervalue:=dword(offset+qword(shortint(memory[1])));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
 
@@ -11027,9 +11030,9 @@ begin
               lastdisassembledata.parametervaluetype:=dvtAddress;
 
               if is64bit then
-                lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
+                lastdisassembledata.parametervalue:=qword(offset+qword(shortint(memory[1])))
               else
-                lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
+                lastdisassembledata.parametervalue:=dword(offset+qword(shortint(memory[1])));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
 
@@ -11050,9 +11053,9 @@ begin
               inc(lastdisassembledata.seperatorcount);
 
               if is64bit then
-                lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
+                lastdisassembledata.parametervalue:=qword(offset+qword(shortint(memory[1])))
               else
-                lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
+                lastdisassembledata.parametervalue:=dword(offset+qword(shortint(memory[1])));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
               lastdisassembledata.parameterValueType:=dvtAddress;
@@ -11073,9 +11076,9 @@ begin
               inc(lastdisassembledata.seperatorcount);
 
               if is64bit then
-                lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
+                lastdisassembledata.parametervalue:=qword(offset+qword(shortint(memory[1])))
               else
-                lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
+                lastdisassembledata.parametervalue:=dword(offset+qword(shortint(memory[1])));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
               lastdisassembledata.parameterValueType:=dvtAddress;
@@ -14368,9 +14371,9 @@ begin
 
               lastdisassembledata.parametervaluetype:=dvtaddress;
               if is64bit then
-                lastdisassembledata.parametervalue:=qword(offset+pshortint(@memory[1])^)
+                lastdisassembledata.parametervalue:=qword(offset+qword(pshortint(@memory[1])^))
               else
-                lastdisassembledata.parametervalue:=dword(offset+pshortint(@memory[1])^);
+                lastdisassembledata.parametervalue:=dword(offset+qword(pshortint(@memory[1])^));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
 
@@ -14390,9 +14393,9 @@ begin
 
               lastdisassembledata.parametervaluetype:=dvtaddress;
               if is64bit then
-                lastdisassembledata.parametervalue:=qword(offset+pshortint(@memory[1])^)
+                lastdisassembledata.parametervalue:=qword(offset+qword(pshortint(@memory[1])^))
               else
-                lastdisassembledata.parametervalue:=dword(offset+pshortint(@memory[1])^);
+                lastdisassembledata.parametervalue:=dword(offset+qword(pshortint(@memory[1])^));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
 
@@ -14411,9 +14414,9 @@ begin
 
               lastdisassembledata.parametervaluetype:=dvtaddress;
               if is64bit then
-                lastdisassembledata.parametervalue:=qword(offset+pshortint(@memory[1])^)
+                lastdisassembledata.parametervalue:=qword(offset+qword(pshortint(@memory[1])^))
               else
-                lastdisassembledata.parametervalue:=dword(offset+pshortint(@memory[1])^);
+                lastdisassembledata.parametervalue:=dword(offset+qword(pshortint(@memory[1])^));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
 
@@ -14447,9 +14450,9 @@ begin
 
 
               if is64bit then
-                lastdisassembledata.parametervalue:=qword(offset+pshortint(@memory[1])^)
+                lastdisassembledata.parametervalue:=qword(offset+qword(pshortint(@memory[1])^))
               else
-                lastdisassembledata.parametervalue:=dword(offset+pshortint(@memory[1])^);
+                lastdisassembledata.parametervalue:=dword(offset+qword(pshortint(@memory[1])^));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
 
@@ -14530,9 +14533,9 @@ begin
               lastdisassembledata.parametervaluetype:=dvtaddress;
 
               if is64bit then
-                lastdisassembledata.parametervalue:=qword(offset+pinteger(@memory[1])^)
+                lastdisassembledata.parametervalue:=qword(offset+qword(pinteger(@memory[1])^))
               else
-                lastdisassembledata.parametervalue:=dword(offset+pinteger(@memory[1])^);
+                lastdisassembledata.parametervalue:=dword(offset+qword(pinteger(@memory[1])^));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
 
@@ -14551,7 +14554,7 @@ begin
 
                 inc(offset,2);
                 lastdisassembledata.parametervaluetype:=dvtaddress;
-                lastdisassembledata.parametervalue:=dword(offset+psmallint(@memory[1])^);
+                lastdisassembledata.parametervalue:=dword(offset+qword(psmallint(@memory[1])^));
                 lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
               end
               else
@@ -14568,9 +14571,9 @@ begin
                 lastdisassembledata.parametervaluetype:=dvtaddress;
 
                 if is64bit then
-                  lastdisassembledata.parametervalue:=qword(offset+pinteger(@memory[1])^)
+                  lastdisassembledata.parametervalue:=qword(offset+qword(pinteger(@memory[1])^))
                 else
-                  lastdisassembledata.parametervalue:=dword(offset+pinteger(@memory[1])^);
+                  lastdisassembledata.parametervalue:=dword(offset+qword(pinteger(@memory[1])^));
 
                 lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8)
               end;
@@ -14611,9 +14614,9 @@ begin
               inc(offset);
 
               if is64bit then
-                lastdisassembledata.parametervalue:=qword(offset+pshortint(@memory[1])^)
+                lastdisassembledata.parametervalue:=qword(offset+qword(pshortint(@memory[1])^))
               else
-                lastdisassembledata.parametervalue:=dword(offset+pshortint(@memory[1])^);
+                lastdisassembledata.parametervalue:=dword(offset+qword(pshortint(@memory[1])^));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
 
@@ -15059,10 +15062,46 @@ begin
     //copy the remaining bytes
     k:=length(LastDisassembleData.Bytes);
     setlength(LastDisassembleData.Bytes,offset-initialoffset);
-    copymemory(@LastDisassembleData.Bytes[k], @_memory[k], offset-initialoffset-k);
+
+    if (k>=32) or (k<0) then
+    begin
+      asm
+        db $cc;
+      end;
+      MessageBox(0,'disassembler error','debug here',MB_OK);
+    end;
+
+    td:=dword(offset-initialoffset-qword(k));
+    i:=k+td;
+    if (td>=32) or (i>=32) or (i<0) then
+    begin
+      asm
+        db $cc;
+      end;
+      MessageBox(0,'disassembler error','debug here',MB_OK);
+    end;
+
+    if td>0 then
+    begin
+      breaknow:=false;
+      try
+
+        copymemory(@LastDisassembleData.Bytes[k], @_memory[k], td);
+      except
+        breaknow:=true;
+      end;
+
+      if breaknow then
+      begin
+        asm
+        nop
+        end
+      end;
+    end;
+
 
     //adjust for the prefix.
-    if j<>0 then
+    if k<>0 then
     begin
       for i:=0 to LastDisassembleData.SeperatorCount-1 do
         inc(LastDisassembleData.Seperators[i],prefixsize);
@@ -15083,7 +15122,7 @@ begin
     if riprelative then
     begin
       //add the current offset to the code between []
-      LastDisassembleData.modrmValue:=offset+integer(LastDisassembleData.modrmValue); //sign extended increase
+      LastDisassembleData.modrmValue:=offset+ptrint(LastDisassembleData.modrmValue); //sign extended increase
 
       i:=pos('[',LastDisassembleData.parameters);
       j:=PosEx(']',LastDisassembleData.parameters,i);
@@ -15133,6 +15172,11 @@ begin
       if length(LastDisassembleData.Bytes)>0 then
         offset:=initialoffset+length(LastDisassembleData.Bytes);
     end;
+  end;
+
+  except
+    on e:exception do
+      outputdebugstring('disassembler exception:'+e.message);
   end;
 end;
 

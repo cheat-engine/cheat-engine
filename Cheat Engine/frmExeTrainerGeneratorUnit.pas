@@ -508,6 +508,8 @@ begin
   while dir[length(dir)]=pathdelim do //cut of \
     dir:=copy(dir,1,length(dir)-1);
 
+  {$warn 5044 off}
+
   r := FindFirst(dir + pathdelim+'*.*', FaAnyfile, DirInfo);
   while (r = 0) do
   begin
@@ -524,6 +526,8 @@ begin
 
     r := FindNext(DirInfo);
   end;
+
+  {$warn 5044 on}
   FindClose(DirInfo);
 end;
 

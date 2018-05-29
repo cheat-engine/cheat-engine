@@ -130,7 +130,7 @@ begin
     else
     begin
       params64.list:=ptruint(VirtualAllocEx(processhandle, nil,length(templist64)*sizeof(TAAExceptionList64),mem_commit or mem_Reserve, PAGE_READWRITE));
-      writeprocessmemory(processhandle, pointer(params64.list), @templist64[0], length(templist64)*sizeof(TAAExceptionListEntry64), x);
+      writeprocessmemory(processhandle, pointer(ptruint(params64.list)), @templist64[0], length(templist64)*sizeof(TAAExceptionListEntry64), x);
     end;
 
     params:=VirtualAllocEx(processhandle, nil,sizeof(params64),mem_commit or MEM_RESERVE, PAGE_READWRITE);
@@ -150,7 +150,7 @@ begin
     else
     begin
       params32.list:=ptruint(VirtualAllocEx(processhandle, nil,length(templist32)*sizeof(TAAExceptionList32),mem_commit or mem_Reserve, PAGE_READWRITE));
-      writeprocessmemory(processhandle, pointer(params32.list), @templist32[0], length(templist32)*sizeof(TAAExceptionListEntry32), x);
+      writeprocessmemory(processhandle, pointer(ptruint(params32.list)), @templist32[0], length(templist32)*sizeof(TAAExceptionListEntry32), x);
     end;
 
     params:=VirtualAllocEx(processhandle, nil,sizeof(params32),mem_commit or MEM_RESERVE, PAGE_READWRITE);

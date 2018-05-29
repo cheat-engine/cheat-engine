@@ -1,8 +1,8 @@
 object Form1: TForm1
   Left = 250
-  Height = 402
+  Height = 600
   Top = 56
-  Width = 600
+  Width = 800
   Caption = 'Step 1'
   OnShow = FormShow
   Position = poScreenCenter

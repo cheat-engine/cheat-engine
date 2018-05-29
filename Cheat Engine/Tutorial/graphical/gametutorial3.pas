@@ -635,7 +635,7 @@ begin
   enemies[2].y:=platforms[8].y-(enemies[2].height/2)-(platforms[8].height/2);
   enemies[2].minx:=platforms[8].x-platforms[8].width/2;
   enemies[2].maxx:=platforms[8].x+platforms[8].width/2;
-  enemies[2].speed:=enemies[2].speed/2; //got to keep the illusion the player can potentially win
+  enemies[2].speed:=enemies[1].speed/2; //got to keep the illusion the player can potentially win
 
   greencount:=0;
 

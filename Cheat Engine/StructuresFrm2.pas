@@ -1087,7 +1087,10 @@ begin
         ChildStructStart:=address-addressdata.startaddress;
       end
       else
+      begin
         c.free;
+        c:=nil;
+      end;
     end
     else
     begin
@@ -4508,89 +4511,97 @@ var childstruct: TDissectedStruct;
   address: ptruint;
   hasError: boolean;
 begin
-  ownerstruct:=getStructFromNode(tvStructureView.selected);
-  childstruct:=getChildStructFromNode(tvStructureView.selected);
-  structelement:=getStructElementFromNode(tvStructureView.Selected);
 
-  miFullUpgrade.visible:=((childstruct=nil) and (structelement<>nil) and (structelement.isPointer)) or ((childstruct<>nil) and (not childstruct.isInGlobalStructList));
-  if miFullUpgrade.visible then
-  begin
-    if (childstruct=nil) then
-      miFullUpgrade.caption:=rsDefinePointer
-    else
-      miFullUpgrade.caption:=rsUpgradePointer;
+  try
+    ownerstruct:=getStructFromNode(tvStructureView.selected);
+    childstruct:=getChildStructFromNode(tvStructureView.selected);
+    structelement:=getStructElementFromNode(tvStructureView.Selected);
 
-  end;
-
-  miAddElement.visible:=(ownerstruct<>nil) or (childstruct<>nil);
-  miAddChildElement.visible:=(childstruct<>nil);
-  miDeleteElement.visible:=tvStructureView.Selected<>nil;
-  miChangeElement.visible:=structElement<>nil;
-
-  miBrowseAddress.Visible:=tvStructureView.Selected<>nil;
-  miBrowsePointer.visible:=(structelement<>nil) and (structelement.isPointer);
-
-  miChangeValue.Visible:=structelement<>nil;
-  miUpdateOffsets.visible:=structelement<>nil;
-  miAddToAddresslist.Visible:=structelement<>nil;
-
-  miRecalculateAddress.Visible:=(structelement<>nil) and (tvStructureView.selected.Level=1);
-
-  n2.visible:=ownerstruct<>nil;
-
-  N3.visible:=miRecalculateAddress.visible or miUpdateOffsets.visible;
-
-  micopy.Visible:=structelement<>nil;
-  mipaste.Visible:=structelement<>nil;
-  n4.visible:=n3.visible and (miCopy.visible or mipaste.visible);
-
-  c:=getFocusedColumn;
-  n5.Visible:=(c<>nil) and c.canPopAddress;
-  miBack.visible:=n5.Visible;
-
-  // change type menu and display types
-  miChangeType.visible:=structElement<>nil;
-  if (miChangeType.visible) then
-  begin
-    hasError := true; // default to not show
-    if (tvStructureView.Selected<>nil) and (c<>nil)then address := getAddressFromNode(tvStructureView.Selected, c, hasError);
-
-    if hasError then
+    miFullUpgrade.visible:=((childstruct=nil) and (structelement<>nil) and (structelement.isPointer)) or ((childstruct<>nil) and (not childstruct.isInGlobalStructList));
+    if miFullUpgrade.visible then
     begin
-      // just display types if we don't have a valid address
-      //using the dotnet types for translation, it's ok
-      miChangeTypeByte.Caption:=rsDNTByte;
-      miChangeType2Byte.Caption:=rsDNT2Byte;
-      miChangeType4Byte.Caption:=rsDNT4Byte;
-      miChangeTypeByteHex.Caption:=rsDNTByte+' '+rsHex;
-      miChangeType2ByteHex.Caption:=rsDNT2Byte+' '+rsHex;
-      miChangeType4ByteHex.Caption:=rsDNT4Byte+' '+rsHex;
-      miChangeType8ByteHex.Caption:=rsDNT8Byte+' '+rsHex;
-      miChangeTypeFloat.Caption:=rsDNTFloat;
-      miChangeTypeDouble.Caption:=rsDNTDouble;
-      miChangeTypeString.Caption:=rsDNTString;
-      miChangeTypeUnicode.Caption:=rsUnicodeString;
-      miChangeTypeArrayOfByte.Caption:=rsArrayOfByte;
-      miChangeTypePointer.Caption:=rsPointer;
-    end else begin
-      // booleans are hex override, signed
-      miChangeTypeByte.Caption:=Format(rsDNTByte+': %s', [readAndParseAddress(address, vtByte, nil, false, true, 1)]);
-      miChangeType2Byte.Caption:=Format(rsDNT2Byte+': %s', [readAndParseAddress(address, vtWord, nil, false, true, 2)]);
-      miChangeType4Byte.Caption:=Format(rsDNT4Byte+': %s', [readAndParseAddress(address, vtDword, nil, false, true, 4)]);
-      miChangeTypeByteHex.Caption:=Format(rsDNTByte+' '+rsHex+': %s', [readAndParseAddress(address, vtByte, nil, true, false, 1)]);
-      miChangeType2ByteHex.Caption:=Format(rsDNT2Byte+' '+rsHex+': %s', [readAndParseAddress(address, vtWord, nil, true, false, 2)]);
-      miChangeType4ByteHex.Caption:=Format(rsDNT4Byte+' '+rsHex+': %s', [readAndParseAddress(address, vtDword, nil, true, false, 4)]);
-      miChangeType8ByteHex.Caption:=Format(rsDNT8Byte+' '+rsHex+': %s', [readAndParseAddress(address, vtQWord, nil, true, false, 8)]);
-      miChangeTypeFloat.Caption:=Format(rsDNTFloat+': %s', [readAndParseAddress(address, vtSingle, nil, false, true, 4)]);
-      miChangeTypeDouble.Caption:=Format(rsDNTDouble+': %s', [readAndParseAddress(address, vtDouble, nil, false, true, 8)]);
-      miChangeTypeString.Caption:=Format(rsDNTString+': %s', [readAndParseAddress(address, vtString, nil, false, false, 32)]);
-      miChangeTypeUnicode.Caption:=Format(rsUnicodeString+': %s', [readAndParseAddress(address, vtUnicodeString, nil, false, true, 32)]);
-      miChangeTypeArrayOfByte.Caption:=Format(rsArrayOfByte+': %s', [readAndParseAddress(address, vtByteArray, nil, true, false, 16)]);
-      if processhandler.pointersize = 4 then
-        miChangeTypePointer.Caption:=Format(rsPointer+': P->%s', [readAndParseAddress(address, vtDWord, nil, true, false, 4)])
+      if (childstruct=nil) then
+        miFullUpgrade.caption:=rsDefinePointer
       else
-        miChangeTypePointer.Caption:=Format(rsPointer+': P->%s', [readAndParseAddress(address, vtQWord, nil, true, false, 8)]);
+        miFullUpgrade.caption:=rsUpgradePointer;
+
     end;
+
+    miAddElement.visible:=(ownerstruct<>nil) or (childstruct<>nil);
+    miAddChildElement.visible:=(childstruct<>nil);
+    miDeleteElement.visible:=tvStructureView.Selected<>nil;
+    miChangeElement.visible:=structElement<>nil;
+
+    miBrowseAddress.Visible:=tvStructureView.Selected<>nil;
+    miBrowsePointer.visible:=(structelement<>nil) and (structelement.isPointer);
+
+    miChangeValue.Visible:=structelement<>nil;
+    miUpdateOffsets.visible:=structelement<>nil;
+    miAddToAddresslist.Visible:=structelement<>nil;
+
+    miRecalculateAddress.Visible:=(structelement<>nil) and (tvStructureView.selected.Level=1);
+
+    n2.visible:=ownerstruct<>nil;
+
+    N3.visible:=miRecalculateAddress.visible or miUpdateOffsets.visible;
+
+    micopy.Visible:=structelement<>nil;
+    mipaste.Visible:=structelement<>nil;
+    n4.visible:=n3.visible and (miCopy.visible or mipaste.visible);
+
+    c:=getFocusedColumn;
+    n5.Visible:=(c<>nil) and c.canPopAddress;
+    miBack.visible:=n5.Visible;
+
+    // change type menu and display types
+    miChangeType.visible:=structElement<>nil;
+    if (miChangeType.visible) then
+    begin
+      hasError := true; // default to not show
+      if (tvStructureView.Selected<>nil) and (c<>nil)then address := getAddressFromNode(tvStructureView.Selected, c, hasError);
+
+      if hasError then
+      begin
+        // just display types if we don't have a valid address
+        //using the dotnet types for translation, it's ok
+        miChangeTypeByte.Caption:=rsDNTByte;
+        miChangeType2Byte.Caption:=rsDNT2Byte;
+        miChangeType4Byte.Caption:=rsDNT4Byte;
+        miChangeTypeByteHex.Caption:=rsDNTByte+' '+rsHex;
+        miChangeType2ByteHex.Caption:=rsDNT2Byte+' '+rsHex;
+        miChangeType4ByteHex.Caption:=rsDNT4Byte+' '+rsHex;
+        miChangeType8ByteHex.Caption:=rsDNT8Byte+' '+rsHex;
+        miChangeTypeFloat.Caption:=rsDNTFloat;
+        miChangeTypeDouble.Caption:=rsDNTDouble;
+        miChangeTypeString.Caption:=rsDNTString;
+        miChangeTypeUnicode.Caption:=rsUnicodeString;
+        miChangeTypeArrayOfByte.Caption:=rsArrayOfByte;
+        miChangeTypePointer.Caption:=rsPointer;
+      end else begin
+        // booleans are hex override, signed
+        miChangeTypeByte.Caption:=Format(rsDNTByte+': %s', [readAndParseAddress(address, vtByte, nil, false, true, 1)]);
+        miChangeType2Byte.Caption:=Format(rsDNT2Byte+': %s', [readAndParseAddress(address, vtWord, nil, false, true, 2)]);
+        miChangeType4Byte.Caption:=Format(rsDNT4Byte+': %s', [readAndParseAddress(address, vtDword, nil, false, true, 4)]);
+        miChangeTypeByteHex.Caption:=Format(rsDNTByte+' '+rsHex+': %s', [readAndParseAddress(address, vtByte, nil, true, false, 1)]);
+        miChangeType2ByteHex.Caption:=Format(rsDNT2Byte+' '+rsHex+': %s', [readAndParseAddress(address, vtWord, nil, true, false, 2)]);
+        miChangeType4ByteHex.Caption:=Format(rsDNT4Byte+' '+rsHex+': %s', [readAndParseAddress(address, vtDword, nil, true, false, 4)]);
+        miChangeType8ByteHex.Caption:=Format(rsDNT8Byte+' '+rsHex+': %s', [readAndParseAddress(address, vtQWord, nil, true, false, 8)]);
+        miChangeTypeFloat.Caption:=Format(rsDNTFloat+': %s', [readAndParseAddress(address, vtSingle, nil, false, true, 4)]);
+        miChangeTypeDouble.Caption:=Format(rsDNTDouble+': %s', [readAndParseAddress(address, vtDouble, nil, false, true, 8)]);
+        miChangeTypeString.Caption:=Format(rsDNTString+': %s', [readAndParseAddress(address, vtString, nil, false, false, 32)]);
+        miChangeTypeUnicode.Caption:=Format(rsUnicodeString+': %s', [readAndParseAddress(address, vtUnicodeString, nil, false, true, 32)]);
+        miChangeTypeArrayOfByte.Caption:=Format(rsArrayOfByte+': %s', [readAndParseAddress(address, vtByteArray, nil, true, false, 16)]);
+        if processhandler.pointersize = 4 then
+          miChangeTypePointer.Caption:=Format(rsPointer+': P->%s', [readAndParseAddress(address, vtDWord, nil, true, false, 4)])
+        else
+          miChangeTypePointer.Caption:=Format(rsPointer+': P->%s', [readAndParseAddress(address, vtQWord, nil, true, false, 8)]);
+      end;
+    end;
+
+
+  except
+    on e: exception do
+      outputdebugstring('TfrmStructures2.pmStructureViewPopup:'+e.message);
   end;
 end;
 
@@ -4762,7 +4773,12 @@ end;
 procedure TfrmStructures2.updatetimerTimer(Sender: TObject);
 begin
   //refresh the visible nodes
-  RefreshVisibleNodes;
+  try
+    RefreshVisibleNodes;
+  except
+    on e:exception do
+      outputdebugstring('TfrmStructures2.updatetimerTimer:'+e.message);
+  end;
 end;
 
 procedure TfrmStructures2.miRecalculateAddressClick(Sender: TObject);

@@ -96,7 +96,7 @@ begin
 
   caption:='Step 3';
   currentgame:=TGame3.create(p);
-  currentgame.OnWin:=@finishedTutorial;
+  currentgame.OnWin:=@finishedTutorial;    //todo someday: rpg kinda game, followed by an online 'game' (chatgame more likely)
 end;
 
 procedure TForm1.startgame2(sender: TObject);
@@ -117,11 +117,11 @@ begin
   p.Align:=alClient;
   p.parent:=self;
 
-  startgame3(Self);
- // startgame2(self);
+  // startgame3(Self);
+  // startgame2(self);
 
-//  currentGame:=TGame1.create(p);
-//  currentGame.OnWin:=@startGame2;
+  currentGame:=TGame1.create(p);
+  currentGame.OnWin:=@startGame2;
 
  //currentGame:=TGame2.create(p);
 

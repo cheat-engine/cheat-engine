@@ -542,7 +542,7 @@ begin
     exit;
   x:=$FFFFFFFF;
   if(processhandler.is64Bit)then
-    x:=-1;
+    x:=PtrUInt(-1);
   x:=x div y;
   i:=sbVERT.Position;
   x:=x*i;
@@ -969,7 +969,7 @@ begin
       exit;
     x:=$FFFFFFFF;
     if(processhandler.is64Bit)then
-      x:=-1;
+      x:=qword(-1);
     y:=val/x;
     y:=Abs(y*sbVERT.Max);
     cb:=sbVERT.OnChange;

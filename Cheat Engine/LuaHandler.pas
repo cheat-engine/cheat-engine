@@ -1,5 +1,7 @@
 unit LuaHandler;
 
+
+
 {todo: Split up into smaller units. 9255 lines is becomming too big}
 {todo2: dll injecting lua into a target process}
 
@@ -105,6 +107,8 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   xinput, winsapi, frmExeTrainerGeneratorUnit, CustomBase85, FileUtil, networkConfig,
   LuaCustomType, Filehandler, LuaSQL, frmSelectionlistunit, cpuidUnit;
 
+  {$warn 5044 off}
+
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
     +'from the main thread';
@@ -115,6 +119,7 @@ resourcestring
   rsInvalidInt = 'Invalid integer:%s';
   rsError = 'Error:';
   rsConditionalBreakpointError = 'Conditional breakpoint error';
+  rsNonMainthreadLuaError = 'Lua error in a secondary thread';
   rsMainLuaError = 'main.lua error:';
   rsMainLuaError2 = 'main.lua error';
   rsError2 = ' error:';
@@ -193,20 +198,25 @@ end;
 
 //todo: let the user define a default error function
 function lua_pcall(L: Plua_State; nargs, nresults, errf: Integer): Integer; cdecl;
-var oldstack: integer;
+var
   error: string;
 
   usesluaengineform: boolean;
 begin
   try
-    oldstack:=lua_gettop(l);
+    if lua_isfunction(L, (-nargs)-1)=false then
+    begin
+      outputdebugstring(pchar('lua_pcall with invalid parameter'));
+      MessageBoxA(0, pchar('lua_pcall with invalid parameter'), pchar('Lua: Not a function'), MB_OK);
+      exit(LUA_ERRRUN);
+    end;
+
     result:=lua.lua_pcall(L, nargs, nresults, errf);
   except
     on e: exception do
     begin
+      lua_pop(L, lua_gettop(L));
       result:=LUA_ERRRUN;
-      lua_settop(l, oldstack);
-
       lua_pushstring(l, e.Message);
     end;
   end;
@@ -244,7 +254,7 @@ begin
     end
     else
     begin
-      MessageBoxA(0, pchar(Lua_ToString(l, -1)), pchar(rsConditionalBreakpointError), MB_OK);
+      //MessageBoxA(0, pchar(Lua_ToString(l, -1)), pchar(rsNonMainthreadLuaError), MB_OK);
     end;
   end;
 end;
@@ -4574,7 +4584,7 @@ begin
     msr:=lua_tointeger(L,1);
     lua_pushinteger(L, dbvm_readMSR(msr));
     result:=1;
-  end else lua_pop(L, parameters);
+  end;
 end;
 
 function lua_dbvm_writeMSR(L: PLua_State): integer; cdecl;
@@ -6913,6 +6923,7 @@ var
   sltype: TSymbolLookupCallbackPoint;
   routine: string;
   lc: tluacaller;
+  i: integer;
 begin
   result:=0;
 
@@ -6936,7 +6947,9 @@ begin
     end
     else exit;
 
-    lua_pushinteger(L, registerSymbolLookupCallback(lc.SymbolLookupCallback, sltype));
+    i:=registerSymbolLookupCallback(lc.SymbolLookupCallback, sltype);
+
+    lua_pushinteger(L, lua_integer(i));
     result:=1;
   end;
 
@@ -8635,6 +8648,8 @@ function lua_unloadLoadedFont(L: PLua_state): integer; cdecl;
 begin
   if lua_isnumber(L, 1) then
     RemoveFontMemResourceEx(lua_tointeger(L,1));
+
+  result:=0;
 end;
 
 function lua_loadFontFromStream(L: PLua_state): integer; cdecl;
@@ -8653,7 +8668,7 @@ begin
     if s is TMemoryStream then
     begin
       pc:=1;
-      h:=AddFontMemResourceEx(ms.Memory, ms.Size, 0, @pc);
+      h:=AddFontMemResourceEx(ms.Memory, ms.Size, nil, @pc);
       lua_pushinteger(L, h);
       result:=1;
     end;
@@ -8711,11 +8726,13 @@ end;
 function lua_speak(L: Plua_State): integer; cdecl;
 begin
   lua_speakEx(false,L);
+  result:=0;
 end;
 
 function lua_speakEnglish(L: Plua_State): integer; cdecl;
 begin
   lua_speakEx(true,L);
+  result:=0;
 end;
 
 
@@ -8958,6 +8975,8 @@ begin
       exeTrainerFeatures[i].functionid:=0;
     end;
   end;
+
+  result:=0;
 end;
 
 function lwriter(L: Plua_State; const p: Pointer; sz: size_t; ud: Pointer): Integer; cdecl;
@@ -9295,6 +9314,8 @@ begin
     filehandler.commitchanges(Lua_ToString(L,1))
   else
     Filehandler.commitChanges;
+
+  result:=0;
 end;
 
 function lua_openFileAsProcess(L: Plua_State): integer; cdecl;
@@ -9329,7 +9350,7 @@ begin
       exit;
     end;
 
-    ProcessHandler.ProcessHandle:=-1;
+    ProcessHandler.ProcessHandle:=THandle(-1);
 
     MainForm.ProcessLabel.caption:=extractfilename(filename);
     ProcessHandler.processid:=$FFFFFFFF;
@@ -9706,7 +9727,7 @@ begin
   if lua_gettop(L)>=1 then
     mainform.tLuaGCPassive.enabled:=lua_toboolean(L,1);
 
-  exit(0);
+  result:=0;
 end;
 
 function lua_gc_setActive(L: PLua_state): integer; cdecl;
@@ -9719,6 +9740,8 @@ begin
 
   if lua_gettop(L)>=3 then
     luagc_MinSize:=lua_tointeger(L,3);
+
+  result:=0;
 end;
 
 function lua_getHotkeyHandlerThread(L: PLua_state): integer; cdecl;

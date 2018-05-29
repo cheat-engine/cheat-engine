@@ -17,6 +17,7 @@ uses
 {$R *.res}
 
 begin
+  Application.Title:='CE Game tutorials';
   RequireDerivedFormResource:=True;
   Application.Initialize;
 

@@ -2,6 +2,7 @@ unit ceguicomponents;
 
 {Modified components so they don't show unsupported properties}
 
+{$warn 3057 off}
 
 {$mode delphi}
 

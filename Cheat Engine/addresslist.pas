@@ -1,6 +1,10 @@
 unit addresslist;
 
+{$warn 3057 off}
+
 {$mode DELPHI}
+
+
 
 interface
 
@@ -78,9 +82,9 @@ type
     procedure sectiontrack(HeaderControl: TCustomHeaderControl; Section: THeaderSection; Width: Integer; State: TSectionTrackState);
     procedure sectionClick(HeaderControl: TCustomHeaderControl; Section: THeaderSection);
     procedure FocusChange(sender: TObject);
-    procedure DragOver(Sender, Source: TObject; X,Y: Integer; State: TDragState; var Accept: Boolean);
-    procedure DragDrop(Sender, Source: TObject; X,Y: Integer);
-    procedure DragEnd(Sender, Target: TObject; X,Y: Integer);
+    procedure TVDragOver(Sender, Source: TObject; X,Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure TVDragDrop(Sender, Source: TObject; X,Y: Integer);
+    procedure TVDragEnd(Sender, Target: TObject; X,Y: Integer);
     procedure TreeviewOnCollapse(Sender: TObject; Node: TTreeNode; var AllowCollapse: Boolean);
     procedure TreeviewOnExpand(Sender: TObject; Node: TTreeNode; var AllowExpansion: Boolean);
     procedure TreeviewDblClick(Sender: TObject);
@@ -100,7 +104,8 @@ type
     function GetSelcount: integer;
     function GetMemRecItemByIndex(i: integer): TMemoryRecord;
     procedure setPopupMenu(menu: TPopupMenu);
-    function getPopupMenu: TPopupMenu;
+    {$warn 3057 off}
+    function getPopupMenu: TPopupMenu; //on purpose
     function getSelectedRecord: TMemoryRecord;
     procedure setSelectedRecord(memrec: TMemoryrecord);
 
@@ -1550,12 +1555,12 @@ begin
   treeview.refresh;
 end;
 
-procedure TAddresslist.DragEnd(Sender, Target: TObject; X,Y: Integer);
+procedure TAddresslist.TVDragEnd(Sender, Target: TObject; X,Y: Integer);
 begin
   CurrentlyDraggedOverNode:=nil;
 end;
 
-procedure TAddresslist.DragOver(Sender, Source: TObject; X,Y: Integer; State: TDragState; var Accept: Boolean);
+procedure TAddresslist.TVDragOver(Sender, Source: TObject; X,Y: Integer; State: TDragState; var Accept: Boolean);
 var t: integer;
 begin
   CurrentlyDraggedOverNode:=TreeView.GetNodeAt(x,y);
@@ -1578,7 +1583,7 @@ begin
   treeview.refresh;
 end;
 
-procedure TAddresslist.DragDrop(Sender, Source: TObject; X,Y: Integer);
+procedure TAddresslist.TVDragDrop(Sender, Source: TObject; X,Y: Integer);
 var
   node: TTreenode;
   i: integer;
@@ -2206,9 +2211,9 @@ begin
   treeview.OnExit:=Focuschange;
   treeview.OnEnter:=Focuschange;
 
-  treeview.OnDragOver:=DragOver;
-  treeview.OnDragDrop:=DragDrop;
-  treeview.OnEndDrag:=DragEnd;
+  treeview.OnDragOver:=TVDragOver;
+  treeview.OnDragDrop:=TVDragDrop;
+  treeview.OnEndDrag:=TVDragEnd;
  // treeview.OnKeyDown:=treeviewkeydown;
 //  treeview.Indent:=32;
 

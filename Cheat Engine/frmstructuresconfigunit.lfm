@@ -373,6 +373,7 @@ object frmStructuresConfig: TfrmStructuresConfig
           BorderSpacing.Top = 5
           Caption = 'Position Addresses Over Columns'
           TabOrder = 2
+          Visible = False
         end
       end
     end

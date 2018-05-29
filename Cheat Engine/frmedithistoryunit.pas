@@ -195,14 +195,14 @@ var
   mainselectedid: integer;
 begin
   if lvWriteLog.itemindex<>-1 then
-    mainselectedid:=integer(lvWriteLog.items[lvWriteLog.ItemIndex].Data)
+    mainselectedid:=integer(ptruint(lvWriteLog.items[lvWriteLog.ItemIndex].Data))
   else
     mainselectedid:=-1;
 
   selectedids:=[];
   for i:=0 to lvWriteLog.Items.Count-1 do
     if lvWriteLog.Items[i].Selected then
-      selectedids:=selectedids+[integer(lvWriteLog.Items[i].data)];
+      selectedids:=selectedids+[integer(ptruint(lvWriteLog.Items[i].data))];
 
 
 
@@ -228,7 +228,7 @@ begin
 
       e.SubItems.add(s);
 
-      e.Data:=pointer(wle^.id);
+      e.Data:=pointer(ptruint(wle^.id));
     end;
 
   finally

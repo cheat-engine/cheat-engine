@@ -1009,7 +1009,7 @@ end;
 procedure TfrmLuaEngine.FormShow(Sender: TObject);
 var i: integer;
 begin
-  i:=GetFontData(font.handle).Height;
+  i:=GetFontData(font.reference.handle).Height;
   if i<mScript.Font.Height then
     mScript.Font.Height:=i;
 end;

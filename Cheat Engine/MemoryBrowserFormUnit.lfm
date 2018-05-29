@@ -1,12 +1,12 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 812
-  Height = 578
-  Top = 215
-  Width = 716
+  Left = 1152
+  Height = 618
+  Top = 113
+  Width = 622
   HelpContext = 12
   Caption = 'Memory Viewer'
-  ClientHeight = 558
-  ClientWidth = 716
+  ClientHeight = 598
+  ClientWidth = 622
   Menu = MainMenu1
   OnActivate = FormActivate
   OnClose = FormClose
@@ -21,7 +21,7 @@ object MemoryBrowser: TMemoryBrowser
     Left = 0
     Height = 5
     Top = 300
-    Width = 716
+    Width = 622
     Align = alTop
     AutoSnap = False
     Beveled = True
@@ -35,15 +35,15 @@ object MemoryBrowser: TMemoryBrowser
     Left = 0
     Height = 300
     Top = 0
-    Width = 716
+    Width = 622
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 300
-    ClientWidth = 716
+    ClientWidth = 622
     TabOrder = 0
     OnResize = Panel1Resize
     object Splitter2: TSplitter
-      Left = 496
+      Left = 402
       Height = 300
       Top = 0
       Width = 5
@@ -56,14 +56,14 @@ object MemoryBrowser: TMemoryBrowser
       Left = 0
       Height = 300
       Top = 0
-      Width = 496
+      Width = 402
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 0
       OnClick = Panel5Click
     end
     object RegisterView: TPanel
-      Left = 501
+      Left = 407
       Height = 300
       Top = 0
       Width = 215
@@ -500,18 +500,18 @@ object MemoryBrowser: TMemoryBrowser
   end
   object Panel4: TPanel
     Left = 0
-    Height = 253
+    Height = 293
     Top = 305
-    Width = 716
+    Width = 622
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
-    ClientHeight = 253
-    ClientWidth = 716
+    ClientHeight = 293
+    ClientWidth = 622
     TabOrder = 1
     object Splitter3: TSplitter
-      Left = 500
-      Height = 251
+      Left = 406
+      Height = 291
       Top = 1
       Width = 5
       Align = alRight
@@ -522,28 +522,28 @@ object MemoryBrowser: TMemoryBrowser
     end
     object Panel3: TPanel
       Left = 1
-      Height = 251
+      Height = 291
       Top = 1
-      Width = 499
+      Width = 405
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 0
     end
     object pnlStacktrace: TPanel
-      Left = 505
-      Height = 251
+      Left = 411
+      Height = 291
       Top = 1
       Width = 210
       Align = alRight
       BevelInner = bvLowered
-      ClientHeight = 251
+      ClientHeight = 291
       ClientWidth = 210
       PopupMenu = pmStacktrace
       TabOrder = 1
       Visible = False
       object lvStacktraceData: TListView
         Left = 2
-        Height = 247
+        Height = 287
         Hint = 'Shows the current stack.'#13#10'Tip: When doubleclicking the value and it represents an address, then you can hold shift to make it show in the disassembler, and ctrl to make it show in the memory view. Else Cheat Engine will guess it for you based on if it''s executable memory or not'
         Top = 2
         Width = 206

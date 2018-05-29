@@ -31,9 +31,9 @@ var c: TObject;
   proplist: PPropList;
   m: TMethod;
   ma: array of TMethod;
-
-
 begin
+  result:=0;
+
   i:=ifthen(lua_type(L, lua_upvalueindex(1))=LUA_TUSERDATA, lua_upvalueindex(1), 1);
   c:=lua_toceuserdata(L, i);
   lua_getmetatable(L, i);

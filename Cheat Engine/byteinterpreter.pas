@@ -653,7 +653,7 @@ begin
         if InRange(psingle(@buf[0])^, -100000.0, 100000.0) then
         begin
 
-          if pos(DecimalSeparator,x)>0 then
+          if pos(DefaultFormatSettings.DecimalSeparator,x)>0 then
             floathasseperator:=true;
 
           result:=vtSingle;
@@ -740,7 +740,7 @@ begin
             result:=vtCustom;
             CustomType^:=customtypes[i];
 
-            if (pos(DecimalSeparator,x)=0) then
+            if (pos(DefaultFormatSettings.DecimalSeparator,x)=0) then
               break; //found one that has no decimal seperator
 
           end;

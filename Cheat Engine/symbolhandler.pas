@@ -656,6 +656,8 @@ begin
     s:=s+'THUNK ';
   if (symflags and SYMFLAG_TLSREL)>0 then
     s:=s+'TLSREL ';
+
+  result:=s;
   {$ENDIF}
 end;
 
@@ -1161,7 +1163,7 @@ begin
   symbolpath:=usedtempdir+'Cheat Engine Symbols'+pathdelim;
   ForceDirectory(symbolpath);
 
-  InitialiseSQLite;
+  InitializeSQLite;
   if sqlite3_threadsafe()=0 then exit;
   sqlite3_config(SQLITE_CONFIG_SERIALIZED);
 

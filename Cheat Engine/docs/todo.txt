@@ -1,4 +1,5 @@
-load plugins from tables
+globaldisassembleoverride is fucked
+
 
 structure dissect: 
   delete all structures sometimes AV's (no idea how to reproduce)

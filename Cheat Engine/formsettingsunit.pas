@@ -397,6 +397,7 @@ resourcestring
   rsUnchangedValue = 'Unchanged Value';
   rsNewLanguageSet = 'New language set';
   rsRestartCE = 'It is recommended to restart Cheat Engine for this change to take effect';
+  rsFailureToOpenRegistry = 'Failure to open the registry entry';
 procedure TformSettings.btnOKClick(Sender: TObject);
 var processhandle2: Thandle;
     reg: TRegistry;
@@ -807,20 +808,26 @@ begin
 
         reg.WriteBool('Always Sign Table', cbAlwaysSignTable.Checked);
         reg.WriteBool('Always Ask For Password', cbAlwaysAskForPassword.Checked);
-      end;
+
+        reg.WriteBool('collectgarbage passive', cbLuaPassiveGarbageCollection.checked);
+        reg.WriteBool('collectgarbage active', cbLuaGarbageCollectAll.checked);
+        reg.WriteInteger('collectgarbage timer', collectgarbagetimer);
+        reg.WriteBool('collectgarbage only when bigger', cbLuaOnlyCollectWhenLarger.checked);
+        reg.WriteInteger('collectgarbage minsize', collectgarbageminimumsize);
+
+        if cbOverrideDefaultFont.checked then
+        begin
+          if reg.OpenKey('\Software\Cheat Engine\Font', true) then
+            SaveFontToRegistry(fontdialog1.Font, reg);
+        end;
+
+      end
+      else
+        messagedlg(rsFailureToOpenRegistry, mtError, [mbok], 0);
 
 
-      if cbOverrideDefaultFont.checked then
-      begin
-        if reg.OpenKey('\Software\Cheat Engine\Font', true) then
-          SaveFontToRegistry(fontdialog1.Font, reg);
-      end;
 
-      reg.WriteBool('collectgarbage passive', cbLuaPassiveGarbageCollection.checked);
-      reg.WriteBool('collectgarbage active', cbLuaGarbageCollectAll.checked);
-      reg.WriteInteger('collectgarbage timer', collectgarbagetimer);
-      reg.WriteBool('collectgarbage only when bigger', cbLuaOnlyCollectWhenLarger.checked);
-      reg.WriteInteger('collectgarbage minsize', collectgarbageminimumsize);
+
 
 
       if cbLuaGarbageCollectAll.checked then

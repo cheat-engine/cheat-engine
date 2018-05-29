@@ -1,9 +1,7 @@
 inherited Form10: TForm10
   Left = 573
   Top = 340
-  Width = 640
   Caption = 'Step 9'
-  ClientWidth = 640
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   Visible = True
@@ -20,19 +18,17 @@ inherited Form10: TForm10
   inherited SpeedButton1: TSpeedButton
     AnchorSideRight.Control = Owner
     AnchorSideBottom.Control = Owner
-    Left = 614
+    OnClick = SpeedButton1Click
   end
   inherited Memo1: TMemo
     AnchorSideBottom.Control = Panel5
     Height = 160
-    Width = 640
     Lines.Strings = (
       ''
     )
   end
   inherited Button2: TButton
     AnchorSideBottom.Control = Owner
-    Left = 283
     AutoSize = True
     Constraints.MinWidth = 75
     OnClick = Button2Click

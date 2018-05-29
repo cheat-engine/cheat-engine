@@ -3,7 +3,7 @@ Cheat Engine 6.8
 Fixes:
 Fixed some more high dpi issues
 Fixed issues with the dropdown list in memory records
-Fixed offset symbols
+Fixed pointer offset symbols not calculating properly
 Fixed registered binutils
 Fixed graphical issues with the tablist
 Fixed issue where memory blocks would get cut of before the page end
@@ -40,14 +40,24 @@ Added find what writes/access to the foundlist
 Autoassembler scriptblocks are now grouped when written to memory
 Added {$try}/{$except} to auto assembler scripts
 Added an extra tutorial/practice target
+Added cut/copy/paste context menu items to pointer offset fields in add/change address, and added a context menu to the pointer destination
 
 
 lua:
 added automatic garbage collection and settings to configure it
-added new functions, like:
+added new functions:
+  gc_setPassive
+  gc_setActive
   reinitializeSelfSymbolhandler
+  registerStructureAndElementListCallback
+  showSelectionList
+  changed the getWindowlist output
+  MainForm.OnProcessOpened (better use this instead of onOpenProcess)
+  enumStructureForms
   cpuid
-  and more
+  getHotkeyHandlerThread
+  bunch of dbvm_ functions (needs dbvm capable cpu, and intel only atm)
+  and more, including class methods and fields (read celua.txt)
 
 
 

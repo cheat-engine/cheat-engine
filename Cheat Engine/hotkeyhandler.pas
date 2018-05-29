@@ -81,6 +81,7 @@ var
 function IsKeyPressed(key: integer):boolean;
 var
     ks: dword;
+    sks: short;
 begin
   result:=false;
   if key>255 then //not inside the list... (doubt it's valid)
@@ -149,11 +150,11 @@ begin
   //look up in the list
   if keystate[key]=ks_undefined then
   begin
-    ks:=getasynckeystate(key);
-    if ((ks and 1)=1) then
+    sks:=getasynckeystate(longint(key));
+    if ((sks and 1)=1) then
       keystate[key]:=ks_pressed
     else
-    if ((ks shr 15) and 1)=1 then
+    if ((sks shr 15) and 1)=1 then
       keystate[key]:=ks_pressed
     else
       keystate[key]:=ks_notpressed; //not pressed at all

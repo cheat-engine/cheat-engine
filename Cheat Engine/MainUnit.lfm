@@ -1,9 +1,9 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 1115
-  Height = 598
+  Left = 649
+  Height = 676
   Hint = ' '
-  Top = 163
+  Top = 201
   Width = 622
   HelpContext = 3
   HorzScrollBar.Visible = False
@@ -11,7 +11,7 @@ object MainForm: TMainForm
   AllowDropFiles = True
   AutoSize = True
   Caption = 'Cheat Engine 6.8'
-  ClientHeight = 578
+  ClientHeight = 656
   ClientWidth = 622
   Menu = MainMenu1
   OnClose = FormClose
@@ -38,7 +38,7 @@ object MainForm: TMainForm
   object Panel1: TPanel
     Tag = 777
     Left = 0
-    Height = 98
+    Height = 176
     Top = 448
     Width = 622
     Align = alClient
@@ -52,7 +52,7 @@ object MainForm: TMainForm
   object Panel4: TPanel
     Left = 0
     Height = 32
-    Top = 546
+    Top = 624
     Width = 622
     Align = alBottom
     AutoSize = True
@@ -2575,6 +2575,10 @@ object MainForm: TMainForm
       object MenuItem12: TMenuItem
         Caption = 'Cheat Engine Tutorial (64-Bit)'
         OnClick = MenuItem12Click
+      end
+      object MenuItem15: TMenuItem
+        Caption = 'Cheat Engine Tutorial Games'
+        OnClick = MenuItem15Click
       end
       object miEnableLCLDebug: TMenuItem
         Caption = 'Enable LCL Debug'

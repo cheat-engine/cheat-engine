@@ -8,6 +8,8 @@ The old scanning routines will be moved out of cefuncproc and made object orient
 Special care should be taken to add multithreaded scanning routines
 }
 
+
+
 interface
 
 {$ifdef windows}
@@ -1372,6 +1374,7 @@ begin
   typesmatch[vtQword]:=typesmatch[vtQword];
   typesmatch[vtSingle]:=typesmatch[vtSingle];
   typesmatch[vtDouble]:=typesmatch[vtDouble];
+  result:=true;
 end;
 
 function TScanner.AllExact(newvalue,oldvalue: pointer):boolean;
@@ -7450,6 +7453,8 @@ begin
 
   outputdebugstring('Deleting '+dir);
 
+
+  {$warn 5044 off}
 
   r := FindFirst(dir + pathdelim+'*.*', FaAnyfile, DirInfo);
   while (r = 0) and result do
