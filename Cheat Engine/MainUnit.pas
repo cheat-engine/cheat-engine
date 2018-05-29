@@ -4796,7 +4796,12 @@ begin
 
   if miShowPreviousValue.checked then
   begin
-    foundlist3.columns[1].width:=widthleft div 2;
+    if widthleft>0 then
+      w:=widthleft div 2
+    else
+      w:=1;
+
+    foundlist3.columns[1].width:=TWidth(w);
     foundlist3.columns[2].width:=foundlist3.columns[1].width;
   end
   else

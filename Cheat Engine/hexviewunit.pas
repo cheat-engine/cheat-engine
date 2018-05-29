@@ -169,7 +169,7 @@ type
     procedure GetSelectionRange(var start: ptruint; var stop: ptruint);
     procedure PasteFromClipboard;
 
-    procedure update; override; //hidden on purpose
+    procedure update; //hidden on purpose, really, no override here
     procedure changeSelected;
     procedure AddSelectedAddressToCheatTable;
     function getAddressFromCurrentMousePosition(var region: THexRegion): ptrUint;
