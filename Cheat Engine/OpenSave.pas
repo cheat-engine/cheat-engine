@@ -15,7 +15,7 @@ uses windows, forms, LCLIntf,registry, SysUtils,AdvancedOptionsUnit,CommentsUnit
      zstream, luafile, disassemblerComments, commonTypeDefs, lazutf8;
 
 
-var CurrentTableVersion: dword=26;
+var CurrentTableVersion: dword=27;
 procedure protecttrainer(filename: string);
 procedure unprotecttrainer(filename: string; stream: TStream);
 procedure SaveTable(Filename: string; protect: boolean=false);
@@ -981,10 +981,6 @@ begin
         ReadXMLFile(doc, unprotectedstream);
       end;
     end;
-
-
-
-
 
 
     try

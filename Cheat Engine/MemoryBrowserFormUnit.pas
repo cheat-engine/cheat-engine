@@ -1955,7 +1955,8 @@ begin
   if scrollbox1.Font.Height>-13 then
     scrollbox1.Font.Height:=-13;
 
-  hexview.statusbar.Height:=Canvas.TextHeight('BLAy9qrSTt')+3+hexview.statusbar.BorderWidth;
+  if hexview<>nil then
+    hexview.statusbar.Height:=Canvas.TextHeight('BLAy9qrSTt')+3+hexview.statusbar.BorderWidth;
 end;
 
 procedure TMemoryBrowser.disassemblerviewDblClick(Sender: TObject);

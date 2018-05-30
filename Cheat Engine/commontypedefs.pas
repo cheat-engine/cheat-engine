@@ -53,7 +53,7 @@ type TBitAddress = record
   bit: ptruint; //in 64-bit when it was dword it would get aligned to 64-bit anyhow
 end;
 
-type TBitAddressArray=array [0..0] of TBitAddress;
+type TBitAddressArray=array [0..999999] of TBitAddress;
 type PBitAddressArray=^TBitAddressArray;
 
 type

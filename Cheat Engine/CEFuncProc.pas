@@ -2809,6 +2809,7 @@ end;
 procedure SaveFormPosition(form: TCustomform); overload;
 var extra: array of integer;
 begin
+  setlength(extra,0);
   SaveFormPosition(form, extra);
 end;
 

@@ -847,7 +847,7 @@ begin
       //local struct, only save if allowed
       if (parent<>nil) and (parent.doNotSaveLocal=false) then  //save this whole struct
       begin
-        ChildStruct.fRLECompression:=parent.fRLECompression;
+       ChildStruct.fRLECompression:=parent.fRLECompression;
         ChildStruct.WriteToXMLNode(elementnode);
       end;
     end;
@@ -1787,7 +1787,6 @@ begin
   TDOMElement(structnode).SetAttribute('Name',Utf8ToAnsi(name));
 
 
-
   TDOMElement(structnode).SetAttribute('DoNotSaveLocal',BoolToStr(fDoNotSaveLocal,'1','0'));
   TDOMElement(structnode).SetAttribute('AutoCreate',BoolToStr(fAutoCreate,'1','0'));
   TDOMElement(structnode).SetAttribute('AutoCreateStructsize',inttostr(fAutoCreateStructsize));
@@ -1797,6 +1796,7 @@ begin
   TDOMElement(structnode).SetAttribute('RLECompression',BoolToStr(fRLECompression,'1','0'));
 
   elementnodes:=TDOMElement(structnode.AppendChild(TDOMNode(doc.CreateElement('Elements'))));
+
 
   RLECount:=0;
   for i:=0 to count-1 do
@@ -5981,9 +5981,9 @@ begin
     if nodescription then
     begin        //blatantly stolen from DecColor   (why the fuck is there no incColor ?)
       RedGreenBlue(ColorToRGB(sender.Canvas.Font.Color), R, G, B);
-      R := Max(0, Integer(R) + 75);
-      G := Max(0, Integer(G) + 75);
-      B := Max(0, Integer(B) + 75);
+      R := Max(0, min(255, Integer(R) + 75));
+      G := Max(0, min(255, Integer(G) + 75));
+      B := Max(0, min(255, Integer(B) + 75));
       sender.Canvas.Font.Color := RGBToColor(R, G, B);
     end;
 

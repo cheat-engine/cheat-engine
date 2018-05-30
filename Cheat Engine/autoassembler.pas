@@ -1111,6 +1111,7 @@ var
   found: boolean;
 begin
   trynr:=0;
+  setlength(trylist,0);
 
   for i:=0 to code.Count-1 do
   begin

@@ -660,6 +660,8 @@ var
 
   tbi: THREAD_BASIC_INFORMATION;
 begin
+  drinfo:='';
+
   if node.level=0 then
   begin
     //extract thread info

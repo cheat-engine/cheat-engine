@@ -7465,7 +7465,7 @@ begin
                 begin
                   //yes, there is a 32 bit version
                   addopcode(bytes,k);
-                  adddword(bytes,dword(v-address-(opcodes[k].bytes+4)));
+                  adddword(bytes,dword(v-address-ptruint(opcodes[k].bytes+4)));
                   result:=true;
                   exit;
                 end;
@@ -7507,7 +7507,7 @@ begin
             //user typed in a direct address
             addopcode(bytes,j);
 
-            adddword(bytes,v-address-(opcodes[j].bytes+4));
+            adddword(bytes,dword(v-address-ptruint(opcodes[j].bytes+4)));
             result:=true;
             exit;
           end;

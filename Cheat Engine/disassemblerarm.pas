@@ -1801,6 +1801,7 @@ var
   _list: string;
   i: integer;
 begin
+  _list:='';
   opcode:=pdword(@LastDisassembleData.Bytes[0])^;
 
   D:=(opcode shr 22) and 1;

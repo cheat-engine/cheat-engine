@@ -169,6 +169,7 @@ type
     procedure GetSelectionRange(var start: ptruint; var stop: ptruint);
     procedure PasteFromClipboard;
 
+    {$warn 3057 off}
     procedure update; //hidden on purpose, really, no override here
     procedure changeSelected;
     procedure AddSelectedAddressToCheatTable;
@@ -2174,7 +2175,7 @@ begin
   offscreenbitmap.Canvas.LineTo(charstart+bytesperline*charsize,textheight*2);
 
 
-  v_qword:=getQWordValue(SelectionStart, unreadable);
+  v_qword:=int64(getQWordValue(SelectionStart, unreadable));
   if not unreadable then
     s:=format(': byte: %d word: %d integer: %d int64: %d float:%f double: %f',[integer(v_byte), integer(v_word), v_int, v_qword,v_float, v_double])
   else

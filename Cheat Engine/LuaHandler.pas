@@ -200,14 +200,15 @@ end;
 function lua_pcall(L: Plua_State; nargs, nresults, errf: Integer): Integer; cdecl;
 var
   error: string;
-
   usesluaengineform: boolean;
 begin
   try
     if lua_isfunction(L, (-nargs)-1)=false then
     begin
+      lua_pop(L,nargs+1);
+
       outputdebugstring(pchar('lua_pcall with invalid parameter'));
-      MessageBoxA(0, pchar('lua_pcall with invalid parameter'), pchar('Lua: Not a function'), MB_OK);
+      //MessageBoxA(0, pchar('lua_pcall with invalid parameter'), pchar('Lua: Not a function'), MB_OK);
       exit(LUA_ERRRUN);
     end;
 

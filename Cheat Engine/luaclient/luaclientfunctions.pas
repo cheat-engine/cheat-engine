@@ -185,7 +185,6 @@ begin
                 result:=r
               else
                 CELUA_Error;
-
             end;
           end
           else
