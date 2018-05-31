@@ -427,6 +427,7 @@ end
 
 function mono_object_getClass(address)
   --if debug_canBreak() then return nil end
+  if monopipe==nil then return nil end
 
   monopipe.lock()
   monopipe.writeByte(MONOCMD_OBJECT_GETCLASS)
@@ -444,7 +445,10 @@ function mono_object_getClass(address)
 
     return classaddress, classname
   else
-    monopipe.unlock()
+    if monopipe then
+      monopipe.unlock()
+    end
+    
     return nil
   end
 end
@@ -1005,9 +1009,13 @@ end
 function mono_class_enumFields(class, includeParents)
   --if debug_canBreak() then return nil end
 
+
   local classfield;
   local index=1;
   local fields={}
+  
+  if monopipe==nil then return fields end
+    
   
   if includeParents then
     local parent=mono_class_getParent(class)
@@ -1052,7 +1060,9 @@ function mono_class_enumFields(class, includeParents)
 
   until (classfield==nil) or (classfield==0)
 
-  monopipe.unlock()
+  if monopipe then
+    monopipe.unlock()
+  end
 
   return fields
 
@@ -1171,6 +1181,8 @@ function mono_object_findRealStartOfObject(address, maxsize)
 
 
   while (currentaddress>address-maxsize) do
+    if monopipe==nil then return nil end
+    
     local classaddress,classname=mono_object_getClass(currentaddress)
 
     if (classaddress~=nil) and (classname~=nil) then
@@ -2601,12 +2613,14 @@ function monoform_FindDialogFind(sender)
 end
 
 function monoform_miFindClassClick(sender)
+  --print("findclass click");
   monoForm.FindDialog.OnFind=monoform_FindDialogFindClass
   monoForm.FindDialog.execute()
 end
 
 
 function monoform_miFindClick(sender)
+  --print("find click");
   monoForm.FindDialog.OnFind=monoform_FindDialogFind
   monoForm.FindDialog.execute()
 end
@@ -3088,8 +3102,8 @@ mono_StringStruct=nil
   
 function monoform_exportStructInternal(s, caddr, recursive, static, structmap, makeglobal)
  -- print("monoform_exportStructInternal")
-  
-  if caddr==0 or caddr==nil then return nil end
+
+  if (monopipe==nil) or (caddr==0) or (caddr==nil) then return nil end
 
  -- print("b")
   

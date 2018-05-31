@@ -642,6 +642,8 @@ procedure TFormDesigner.ObjectInspectorSelectionChange(sender: tobject);
 var s: TPersistentSelectionList;
   i: integer;
   surface: TJvDesignSurface;
+
+  p: TPersistent;
 begin
   if GlobalDesignHook.LookupRoot<>nil then
   begin
@@ -657,7 +659,12 @@ begin
         s:=oid.Selection;
 
         for i:=0 to s.Count-1 do
-          surface.Selector.AddToSelection(tcontrol(s[i]));
+        begin
+          p:=s[i];
+
+          if p is tcontrol then
+            surface.Selector.AddToSelection(tcontrol(p));
+        end;
 
         surface.onselectionchange:=designerSelectionChange;
 
