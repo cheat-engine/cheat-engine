@@ -15068,7 +15068,7 @@ begin
       asm
         db $cc;
       end;
-      MessageBox(0,'disassembler error','debug here',MB_OK);
+      MessageBox(0,pchar(inttohex(startoffset,8)+'disassembler error 1'),'debug here',MB_OK);
     end;
 
     td:=dword(offset-initialoffset-qword(k));
@@ -15078,7 +15078,7 @@ begin
       asm
         db $cc;
       end;
-      MessageBox(0,'disassembler error','debug here',MB_OK);
+      MessageBox(0,pchar(inttohex(startoffset,8)+'disassembler error 2'),'debug here',MB_OK);
     end;
 
     if td>0 then
@@ -15095,7 +15095,8 @@ begin
       begin
         asm
         nop
-        end
+        end;
+        MessageBox(0,pchar(inttohex(startoffset,8)+'disassembler error 3'),'debug here',MB_OK);
       end;
     end;
 
@@ -15176,7 +15177,10 @@ begin
 
   except
     on e:exception do
-      outputdebugstring('disassembler exception:'+e.message);
+    begin
+      outputdebugstring(inttohex(startoffset,8)+':disassembler exception:'+e.message);
+      MessageBox(0,pchar('disassembler exception at '+inttohex(startoffset,8)+'#13#10+'+e.message+#13#10+#13#10+'Please provide dark byte the bytes that are at this address so he can fix it'),'debug here',MB_OK);
+    end;
   end;
 end;
 
