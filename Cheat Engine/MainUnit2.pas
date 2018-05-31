@@ -14,7 +14,7 @@ uses windows, dialogs,forms,classes,LCLIntf, LCLProc, sysutils,registry,ComCtrls
 const ceversion=6.8;
 
 resourcestring
-  cename = 'Cheat Engine 6.8 Beta 2';
+  cename = 'Cheat Engine 6.8';
   rsPleaseWait = 'Please Wait!';
 
 procedure UpdateToolsMenu;
@@ -24,7 +24,7 @@ procedure initcetitle;
 
 
 
-const beta=''; //empty this for a release
+const beta='Beta 3'; //empty this for a release
 
 var
   CEnorm:string;

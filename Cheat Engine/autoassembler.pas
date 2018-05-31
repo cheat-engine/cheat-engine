@@ -1393,6 +1393,8 @@ var i,j,k,l,e: integer;
     hastryexcept: boolean;
     createthreadandwaitid: integer;
 
+    vpe: boolean;
+
     function getAddressFromScript(name: string): ptruint;
     var
       found: boolean;
@@ -3171,9 +3173,10 @@ begin
       if length(assembled[i].bytes)=0 then continue;
 
       testptr:=assembled[i].address;
-      ok1:=virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),PAGE_EXECUTE_READWRITE,op);
+      vpe:=virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),PAGE_EXECUTE_READWRITE,op);
       ok1:=WriteMemory(pointer(testptr),@assembled[i].bytes[0],length(assembled[i].bytes),x);
-      virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),op,op2);
+      if vpe then
+        virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),op,op2);
 
       if not ok1 then ok2:=false;
 

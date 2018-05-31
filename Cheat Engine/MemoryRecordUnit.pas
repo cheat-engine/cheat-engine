@@ -2825,6 +2825,7 @@ var
   check: boolean;
 
   oldluatop: integer;
+  vpe: boolean;
 begin
   //check if it is a '(description)' notation
 
@@ -2897,9 +2898,8 @@ begin
   getmem(buf,bufsize+2);
 
 
+  vpe:=VirtualProtectEx(processhandle, pointer(realAddress), bufsize, PAGE_EXECUTE_READWRITE, originalprotection);
 
-
-  VirtualProtectEx(processhandle, pointer(realAddress), bufsize, PAGE_EXECUTE_READWRITE, originalprotection);
   try
 
 
@@ -3062,7 +3062,8 @@ begin
 
 
   finally
-    VirtualProtectEx(processhandle, pointer(realAddress), bufsize, originalprotection, originalprotection);
+    if vpe then
+      VirtualProtectEx(processhandle, pointer(realAddress), bufsize, originalprotection, originalprotection);
 
   end;
 

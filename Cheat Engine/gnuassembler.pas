@@ -217,6 +217,7 @@ var
   extraparams_as, extraparams_ld: string;
 
   bu: TBinUtils;
+  vpe: boolean;
 begin
   result:=false;
   if (binutilslist.count=0) then
@@ -555,9 +556,9 @@ begin
         begin
           if sections[i].name=binarysections[j].sectionname then
           begin
-            virtualprotectex(processhandle,  pointer(sections[i].address), length(binarysections[j].data),PAGE_EXECUTE_READWRITE,op);
+            vpe:=virtualprotectex(processhandle,  pointer(sections[i].address), length(binarysections[j].data),PAGE_EXECUTE_READWRITE,op);
             WriteProcessMemory(processhandle, pointer(sections[i].address), @binarysections[j].data[0], length(binarysections[j].data), x);
-            virtualprotectex(processhandle,  pointer(sections[i].address), length(binarysections[j].data),op,op);
+            if vpe then virtualprotectex(processhandle,  pointer(sections[i].address), length(binarysections[j].data),op,op);
           end;
         end;
       end;

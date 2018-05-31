@@ -15179,7 +15179,7 @@ begin
     on e:exception do
     begin
       outputdebugstring(inttohex(startoffset,8)+':disassembler exception:'+e.message);
-      MessageBox(0,pchar('disassembler exception at '+inttohex(startoffset,8)+'#13#10+'+e.message+#13#10+#13#10+'Please provide dark byte the bytes that are at this address so he can fix it'),'debug here',MB_OK);
+      MessageBox(0,pchar('disassembler exception at '+inttohex(startoffset,8)+#13#10+e.message+#13#10+#13#10+'Please provide dark byte the bytes that are at this address so he can fix it'),'debug here',MB_OK);
     end;
   end;
 end;

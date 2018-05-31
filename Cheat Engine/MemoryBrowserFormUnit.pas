@@ -2658,6 +2658,7 @@ var assemblercode,desc: string;
     p: dword;
 
     gnascript: tstringlist;
+    vpe: boolean;
 begin
 
   //make sure it doesnt have a breakpoint
@@ -2754,9 +2755,10 @@ begin
 
         bytelength:=length(bytes);
 
-        VirtualProtectEx(processhandle,  pointer(disassemblerview.SelectedAddress),bytelength,PAGE_EXECUTE_READWRITE,p);
+        vpe:=VirtualProtectEx(processhandle,  pointer(disassemblerview.SelectedAddress),bytelength,PAGE_EXECUTE_READWRITE,p);
         WriteProcessMemoryWithCloakSupport(processhandle,pointer(disassemblerview.SelectedAddress),@bytes[0],bytelength,a);
-        VirtualProtectEx(processhandle,pointer(disassemblerview.SelectedAddress),bytelength,p,p);
+        if vpe then
+          VirtualProtectEx(processhandle,pointer(disassemblerview.SelectedAddress),bytelength,p,p);
 
         hexview.update;
         disassemblerview.Update;
@@ -3357,7 +3359,8 @@ end;
 procedure TMemoryBrowser.Makepagewritable1Click(Sender: TObject);
 var x: dword;
 begin
-  VirtualProtectEx(processhandle,pointer(memoryaddress),4096,PAGE_EXECUTE_READWRITE,x);
+  if VirtualProtectEx(processhandle,pointer(memoryaddress),4096,PAGE_EXECUTE_READWRITE,x)=false then
+    showmessage('Failure. Error:'+inttostr(getlasterror));
 //  if (memoryaddress>80000000) and (DarkByteKernel<>0) then
 //    MakeWritableEx(processhandle,memoryaddress,4096,false);
 

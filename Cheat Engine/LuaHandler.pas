@@ -1973,6 +1973,7 @@ var
   x: PtrUInt;
   oldprotect: dword;
   b: byte;
+  vpe: boolean;
 begin
   parameters:=lua_gettop(L);
   if parameters=0 then exit(0);
@@ -2020,9 +2021,9 @@ begin
   end;
 
   x:=0;
-  VirtualProtectEx(processhandle, pointer(address), bytecount, PAGE_EXECUTE_READWRITE, oldprotect);
+  vpe:=VirtualProtectEx(processhandle, pointer(address), bytecount, PAGE_EXECUTE_READWRITE, oldprotect);
   WriteProcessMemory(processhandle, pointer(address), @bytes[0], bytecount, x);
-  VirtualProtectEx(processhandle, pointer(address), bytecount, oldprotect, oldprotect);
+  if vpe then VirtualProtectEx(processhandle, pointer(address), bytecount, oldprotect, oldprotect);
 
 
   lua_pop(L, parameters);
@@ -6530,7 +6531,12 @@ begin
 
     lua_pop(L, lua_gettop(l));
 
-    virtualprotectex(processhandle,pointer(address),size,PAGE_EXECUTE_READWRITE,op);
+    if virtualprotectex(processhandle,pointer(address),size,PAGE_EXECUTE_READWRITE,op) then
+      lua_pushboolean(L,true)
+    else
+      lua_pushboolean(L,false);
+
+    result:=1;
   end;
 end;
 

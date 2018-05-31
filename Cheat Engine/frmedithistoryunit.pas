@@ -146,6 +146,7 @@ var i: integer;
   oldprot: dword;
 
   oldLogWrites: boolean;
+  vpe: boolean;
 begin
   writelogcs.enter;
   try
@@ -155,13 +156,13 @@ begin
 
       if wle^.id=id then
       begin
-        VirtualProtectEx(processhandle, pointer(wle^.address), wle^.originalsize, PAGE_EXECUTE_READWRITE, oldprot);
+        vpe:=VirtualProtectEx(processhandle, pointer(wle^.address), wle^.originalsize, PAGE_EXECUTE_READWRITE, oldprot);
 
         oldLogWrites:=logWrites;
         logWrites:=false;
         WriteProcessMemory(processhandle, pointer(wle^.address), wle^.originalbytes, wle^.originalsize, x);
         logWrites:=oldLogWrites;
-        VirtualProtectEx(processhandle, pointer(wle^.address), wle^.originalsize, oldprot, oldprot);
+        if vpe then VirtualProtectEx(processhandle, pointer(wle^.address), wle^.originalsize, oldprot, oldprot);
         eraseWriteLogEntry(i);
         break;
       end;

@@ -56,7 +56,6 @@ function OldVarTypeToNewVarType(i: integer):TVariableType;
 function VariableTypeToString(variableType: TVariableType): string;
 function StringToVariableType(s: string): TVariableType;
 
-
 function isjumporcall(address: ptrUint; var addresstojumpto: ptrUint): boolean;
 {
 procedure quicksortmemoryregions(lo,hi: integer);     //obsolete
@@ -2445,12 +2444,14 @@ end;
 function rewritedata(processhandle: thandle; address:ptrUint; buffer: pointer; var size:dword): boolean;
 var original,a: dword;
     s: PtrUInt;
+    v: boolean;
 begin
   //make writable, write, restore, flush
-  VirtualProtectEx(processhandle,  pointer(address),size,PAGE_EXECUTE_READWRITE,original);
+  v:=VirtualProtectEx(processhandle,  pointer(address),size,PAGE_EXECUTE_READWRITE,original);
   result:=writeprocessmemory(processhandle,pointer(address),buffer,size,s);
   size:=s;
-  VirtualProtectEx(processhandle,pointer(address),size,original,a);
+  if v then
+    VirtualProtectEx(processhandle,pointer(address),size,original,a);
 end;
 
 function rewritecode(processhandle: thandle; address:ptrUint; buffer: pointer; var size:dword; force: boolean=false): boolean;

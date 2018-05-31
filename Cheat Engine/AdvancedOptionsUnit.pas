@@ -424,6 +424,7 @@ var i,j: integer;
     temp: array of byte;
     temp2: array of byte;
 
+    vpe: boolean;
 
 begin
   for i:=0 to codelist2.items.Count-1 do
@@ -463,19 +464,21 @@ begin
 
 
     //set to read and write
-    VirtualProtectEx(processhandle,pointer(code[i].Address),length(code[i].actualopcode),PAGE_EXECUTE_READWRITE,original);  //I want to execute this, read it and write it. (so, full access)
+    vpe:=VirtualProtectEx(processhandle,pointer(code[i].Address),length(code[i].actualopcode),PAGE_EXECUTE_READWRITE,original);  //I want to execute this, read it and write it. (so, full access)
 
     //write
     writeprocessmemory(processhandle,pointer(code[i].Address),@code[i].actualopcode[0],length(code[i].actualopcode),written);
     if written<>lengthactualopcode then
     begin
       messagedlg(strCouldntrestorecode,mtWarning,[MBok],0);
-      VirtualProtectEx(processhandle,pointer(code[i].Address),lengthactualopcode,original,x);
+      if vpe then
+        VirtualProtectEx(processhandle,pointer(code[i].Address),lengthactualopcode,original,x);
       exit;
     end;
 
     //set back
-    VirtualProtectEx(processhandle,pointer(code[i].Address),lengthactualopcode,original,x);
+    if vpe then VirtualProtectEx(processhandle,pointer(code[i].Address),lengthactualopcode,original,x);
+
     FlushInstructionCache(processhandle,pointer(code[i].Address),lengthactualopcode);
 
     code[i].changed:=false;
@@ -505,6 +508,7 @@ var codelength: integer;
     a: ptrUint;
     b: ptruint;
     original: dword;
+    vpe: boolean;
 
 begin
   //search dselected in the addresslist
@@ -531,7 +535,7 @@ begin
       nops[i]:=$90;  // $90=nop
 
    // get old security and set new security
-    VirtualProtectEx(processhandle,pointer(a),codelength,PAGE_EXECUTE_READWRITE,original);  //I want to execute this, read it and write it. (so, full access)
+    vpe:=VirtualProtectEx(processhandle,pointer(a),codelength,PAGE_EXECUTE_READWRITE,original);  //I want to execute this, read it and write it. (so, full access)
 
     writeprocessmemory(processhandle,pointer(a),@nops[0],codelength,written);
     if written<>dword(codelength) then
@@ -542,7 +546,8 @@ begin
 
 
     //set old security back
-    VirtualProtectEx(processhandle,pointer(a),codelength,original,original);  //ignore a
+    if vpe then
+      VirtualProtectEx(processhandle,pointer(a),codelength,original,original);  //ignore a
 
     FlushInstructionCache(processhandle,pointer(a),codelength);
 
@@ -725,6 +730,7 @@ var codelength: integer;
     b: PtrUInt;
     original: dword;
     mi: TModuleInfo;
+    vpe: boolean;
 begin
   //search dselected in the addresslist
   for j:=0 to codelist2.Items.Count-1 do
@@ -760,7 +766,7 @@ begin
       nops[i]:=$90;  //  $90=nop
 
    // get old security and set new security
-    VirtualProtectEx(processhandle,pointer(a),codelength,PAGE_EXECUTE_READWRITE,original);  //I want to execute this, read it and write it. (so, full access)
+    vpe:=VirtualProtectEx(processhandle,pointer(a),codelength,PAGE_EXECUTE_READWRITE,original);  //I want to execute this, read it and write it. (so, full access)
 
     writeprocessmemory(processhandle,pointer(a),@nops[0],codelength,written);
     if written<>dword(codelength) then
@@ -771,7 +777,8 @@ begin
 
 
     //set old security back
-    VirtualProtectEx(processhandle,pointer(a),codelength,original,original);  //ignore a
+    if vpe then
+      VirtualProtectEx(processhandle,pointer(a),codelength,original,original);  //ignore a
 
     FlushInstructionCache(processhandle,pointer(a),codelength);
 

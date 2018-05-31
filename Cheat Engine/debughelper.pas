@@ -665,6 +665,7 @@ var
   AllThreadsAreSet: boolean;
 
   tid, bptype: integer;
+  vpe: boolean;
 
 procedure displayDebugInfo(reason: string);
 var debuginfo:tstringlist;
@@ -887,9 +888,10 @@ begin
   begin
     //int3 bp
     breakpoint^.active := True;
-    VirtualProtectEx(processhandle, pointer(breakpoint.address), 1, PAGE_EXECUTE_READWRITE, oldprotect);
+    vpe:=VirtualProtectEx(processhandle, pointer(breakpoint.address), 1, PAGE_EXECUTE_READWRITE, oldprotect);
     WriteProcessMemory(processhandle, pointer(breakpoint.address), @int3byte, 1, bw);
-    VirtualProtectEx(processhandle, pointer(breakpoint.address), 1, oldprotect, oldprotect);
+    if vpe then
+      VirtualProtectEx(processhandle, pointer(breakpoint.address), 1, oldprotect, oldprotect);
   end
   else
   if breakpoint^.breakpointMethod = bpmException then
@@ -935,6 +937,7 @@ var
   ar: TAccessRights;
 
   tid: integer;
+  vpe: boolean;
 begin
 
   if breakpoint^.breakpointMethod = bpmDebugRegister then
@@ -1098,9 +1101,10 @@ begin
   else
   if breakpoint^.breakpointMethod=bpmInt3 then
   begin
-    VirtualProtectEx(processhandle, pointer(breakpoint.address), 1, PAGE_EXECUTE_READWRITE, oldprotect);
+    vpe:=VirtualProtectEx(processhandle, pointer(breakpoint.address), 1, PAGE_EXECUTE_READWRITE, oldprotect);
     WriteProcessMemory(processhandle, pointer(breakpoint.address), @breakpoint.originalbyte, 1, bw);
-    VirtualProtectEx(processhandle, pointer(breakpoint.address), 1, oldprotect, oldprotect);
+    if vpe then
+      VirtualProtectEx(processhandle, pointer(breakpoint.address), 1, oldprotect, oldprotect);
   end
   else
   if breakpoint^.breakpointMethod=bpmException then

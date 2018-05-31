@@ -406,6 +406,7 @@ var oldprotect: dword;
 
   pc: ptruint;
   c: TCEConnection;
+  vpe: boolean;
 
 begin
   TDebuggerthread(debuggerthread).execlocation:=39;
@@ -420,9 +421,10 @@ begin
       if (bp.breakpointMethod=bpmInt3) then
       begin
         //bp is set and it's an int3 breakpoint
-        VirtualProtectEx(Processhandle, pointer(bp.address), 1, PAGE_EXECUTE_READWRITE, oldprotect);
+        vpe:=VirtualProtectEx(Processhandle, pointer(bp.address), 1, PAGE_EXECUTE_READWRITE, oldprotect);
         WriteProcessMemory(processhandle, pointer(bp.address), @bp.originalbyte, 1, bw);
-        VirtualProtectEx(Processhandle, pointer(bp.address), 1, oldprotect, oldprotect);
+        if vpe then
+          VirtualProtectEx(Processhandle, pointer(bp.address), 1, oldprotect, oldprotect);
 
         if (not bp.markedfordeletion) and (not bp.OneTimeOnly) then //if it's not a one time only breakpoint then set it back on next instruction
         begin
@@ -747,6 +749,7 @@ var
   hasSetInt3Back: boolean;
   oldprotect: dword;
   bw: PtrUInt;
+  vpe: boolean;
 begin
   TDebuggerthread(debuggerthread).execlocation:=35;
   OutputDebugString('Handling as a single step event');
@@ -775,9 +778,10 @@ begin
   begin
     if Int3setBackbp.markedfordeletion=false then
     begin
-      VirtualProtectEx(Processhandle, pointer(Int3setbackAddress), 1, PAGE_EXECUTE_READWRITE, oldprotect);
+      vpe:=VirtualProtectEx(Processhandle, pointer(Int3setbackAddress), 1, PAGE_EXECUTE_READWRITE, oldprotect);
       WriteProcessMemory(processhandle, pointer(Int3setbackAddress), @int3byte, 1, bw);
-      VirtualProtectEx(Processhandle, pointer(Int3setbackAddress), 1, oldprotect, oldprotect);
+      if vpe then
+        VirtualProtectEx(Processhandle, pointer(Int3setbackAddress), 1, oldprotect, oldprotect);
     end;
 
     setInt3Back:=false;
@@ -847,6 +851,7 @@ var
   bw: PtrUInt;
 
   connection: TCEConnection;
+  vpe: boolean;
 begin
   TDebuggerthread(debuggerthread).execlocation:=26;
   outputdebugstring(format('DispatchBreakpoint(%x)',[address]));
@@ -902,9 +907,10 @@ begin
     //to handle a debug register being handled before the single step (since xp sucks and doesn't do rf)
     if setInt3Back then //on a failt this will set the state to as it was expected, on a trap this will set the breakpoint back. Both valid
     begin
-      VirtualProtectEx(Processhandle, pointer(Int3setbackAddress), 1, PAGE_EXECUTE_READWRITE, oldprotect);
+      vpe:=VirtualProtectEx(Processhandle, pointer(Int3setbackAddress), 1, PAGE_EXECUTE_READWRITE, oldprotect);
       WriteProcessMemory(processhandle, pointer(Int3setbackAddress), @int3byte, 1, bw);
-      VirtualProtectEx(Processhandle, pointer(Int3setbackAddress), 1, oldprotect, oldprotect);
+      if vpe then
+        VirtualProtectEx(Processhandle, pointer(Int3setbackAddress), 1, oldprotect, oldprotect);
 
       setInt3Back:=false;
     end;
