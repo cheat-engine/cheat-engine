@@ -2920,6 +2920,7 @@ var x: dword;
     labeltext: string;
 
 begin
+  regname:='';
   labeltext:=tlabel(sender).Caption;
 
   if (debuggerthread<>nil) and (debuggerthread.isWaitingToContinue) then
@@ -2955,6 +2956,7 @@ begin
         26: regname:='OF';
 
         6408..6415: regname:='R'+inttostr(i-6400);
+
       end;
 
 

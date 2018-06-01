@@ -509,6 +509,7 @@ begin
    13: result:='r13';
    14: result:='r14';
    15: result:='r15';
+   else result:='';
   end;
 
   if not rex_w then
@@ -532,23 +533,24 @@ function TDisassembler.rd8(bt:byte): string;
 begin
   if rex_B then bt:=bt or 8;
   case bt of
-  0: result:='al';
-  1: result:='cl';
-  2: result:='dl';
-  3: result:='bl';
+    0: result:='al';
+    1: result:='cl';
+    2: result:='dl';
+    3: result:='bl';
 
-  4: if rexprefix=0 then result:='ah' else result:='spl';
-  5: if rexprefix=0 then result:='ch' else result:='bpl';
-  6: if rexprefix=0 then result:='dh' else result:='sil';
-  7: if rexprefix=0 then result:='bh' else result:='dil';
-  8: result:='r8l';
-  9: result:='r9l';
-  10: result:='r10l';
-  11: result:='r11l';
-  12: result:='r12l';
-  13: result:='r13l';
-  14: result:='r14l';
-  15: result:='r15l';
+    4: if rexprefix=0 then result:='ah' else result:='spl';
+    5: if rexprefix=0 then result:='ch' else result:='bpl';
+    6: if rexprefix=0 then result:='dh' else result:='sil';
+    7: if rexprefix=0 then result:='bh' else result:='dil';
+    8: result:='r8l';
+    9: result:='r9l';
+    10: result:='r10l';
+    11: result:='r11l';
+    12: result:='r12l';
+    13: result:='r13l';
+    14: result:='r14l';
+    15: result:='r15l';
+    else result:='';
   end;
 
   result:=colorreg+result+endcolor;
@@ -559,22 +561,24 @@ function TDisassembler.rd16(bt:byte):string;
 begin
   if rex_B then bt:=bt or 8;
   case bt of
-  0: result:='ax';
-  1: result:='cx';
-  2: result:='dx';
-  3: result:='bx';
-  4: result:='sp';
-  5: result:='bp';
-  6: result:='si';
-  7: result:='di';
-  8: result:='r8w';
-  9: result:='r9w';
-  10: result:='r10w';
-  11: result:='r11w';
-  12: result:='r12w';
-  13: result:='r13w';
-  14: result:='r14w';
-  15: result:='r15w';
+    0: result:='ax';
+    1: result:='cx';
+    2: result:='dx';
+    3: result:='bx';
+    4: result:='sp';
+    5: result:='bp';
+    6: result:='si';
+    7: result:='di';
+    8: result:='r8w';
+    9: result:='r9w';
+    10: result:='r10w';
+    11: result:='r11w';
+    12: result:='r12w';
+    13: result:='r13w';
+    14: result:='r14w';
+    15: result:='r15w';
+    else result:='';
+
   end;
   result:=colorreg+result+endcolor;
 end;
@@ -666,6 +670,7 @@ end;
 
 function TDisassembler.getsegmentoverride(prefix: TPrefix): string;
 begin
+  result:='';
   if $2e in prefix then result:='cs:' else
   if $26 in prefix then result:='es:' else
   if $36 in prefix then result:='ss:' else
@@ -724,15 +729,16 @@ var dwordptr: ^dword;
     regprefix: char;
     i: integer;
 
-    ep: string;
+    ep: string='';
 
-    prestr: string;
-    poststr: string;
+    prestr: string='';
+    poststr: string='';
 
-    operandstring: string;
+    operandstring: string='';
 
     showextrareg: boolean;
 begin
+  result:='';
   showextrareg:=hasvex and (opcodeflags.skipExtraReg=false);
 
   if is64bit then
@@ -1331,6 +1337,8 @@ begin
    13: indexstring:='r13';
    14: indexstring:='r14';
    15: indexstring:='r15';
+   else
+     indexstring:='';
   end;
 
 
@@ -15187,7 +15195,7 @@ end;
 function TDisassembler.getLastBytestring: string;
 var
   i,j: integer;
-  cloaked:boolean;
+  cloaked:boolean=false;
   VA,PA: qword;
 begin
   result:='';
@@ -15228,6 +15236,7 @@ end;
 function previousOpcodeHelp(d: Tdisassembler; address: ptruint; distance:integer; var result2: ptruint): ptruint;
 var x,y: ptruint;
     s: string;
+    i: integer;
 begin
   x:=address-distance;
   while x<address do

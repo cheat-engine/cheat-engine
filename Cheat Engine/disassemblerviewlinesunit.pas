@@ -187,11 +187,14 @@ var
   insidecommand: boolean;
 
 begin
+  setlength(charindexes,0);
   if s='' then exit(s);
+  original:=s;
+  insidecommand:=false;
 
   if hasSpecialChars then
   begin
-    original:=s;
+
     setlength(charindexes, length(s)+1); //skipping index 0
     j:=1;
     for i:=1 to length(original) do

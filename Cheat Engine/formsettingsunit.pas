@@ -29,6 +29,8 @@ type
     btnOK: TButton;
     btnSetFont: TButton;
     btnSelectLanguage: TButton;
+    btnMakeKernelDebugPossible: TButton;
+    btnRestoreKernelProtection: TButton;
     cbAlwaysAutoAttach: TCheckBox;
     cbCanStepKernelcode: TCheckBox;
     cbCenterOnPopup: TCheckBox;
@@ -118,6 +120,7 @@ type
     MenuItem1: TMenuItem;
     Panel1: TPanel;
     Panel10: TPanel;
+    Panel11: TPanel;
     Panel9: TPanel;
     pcDebugConfig: TPageControl;
     pnlConfig: TPanel;
@@ -196,8 +199,10 @@ type
     Panel8: TPanel;
     Label22: TLabel;
     clbPlugins: TCheckListBox;
+    procedure btnMakeKernelDebugPossibleClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
+    procedure btnRestoreKernelProtectionClick(Sender: TObject);
     procedure btnSetFontClick(Sender: TObject);
     procedure btnSelectLanguageClick(Sender: TObject);
     procedure cbAskIfTableHasLuascriptChange(Sender: TObject);
@@ -217,6 +222,7 @@ type
     procedure Label3Click(Sender: TObject);
     procedure LoadButtonClick(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
+    procedure Panel11Click(Sender: TObject);
     procedure Panel3Click(Sender: TObject);
     procedure Panel3Resize(Sender: TObject);
     procedure pcSettingChange(Sender: TObject);
@@ -966,9 +972,57 @@ begin
 
 end;
 
+procedure TformSettings.btnMakeKernelDebugPossibleClick(Sender: TObject);
+var reg: TRegistry;
+begin
+  if messagedlg('WARNING! Making kernelmode possible will slightly increase the speed of your system, BUT it will make you vulnerable to Spectre and Meltdown attacks. Are you ok with this?',mtWarning,[mbYes,mbNo],0,mbNo)=mrYes then
+  begin
+    reg:=tregistry.create;
+    try
+      Reg.RootKey := HKEY_LOCAL_MACHINE;
+      if Reg.OpenKey('\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management',false) then
+      begin
+        reg.WriteInteger('FeatureSettingsOverride',3);
+        reg.WriteInteger('FeatureSettingsOverrideMask',3);
+
+        messagedlg('The registry keys (HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management\FeatureSettingsOverride*) have been set accordingly.  Reboot your system to make it take effect', mtInformation, [mbOK],0);
+      end
+      else
+        messagedlg('Failure getting the Memory Management registry key',mtError,[mbok],0);
+
+    finally
+      reg.free;
+    end;
+
+  end;
+end;
+
 procedure TformSettings.btnCancelClick(Sender: TObject);
 begin
 
+end;
+
+procedure TformSettings.btnRestoreKernelProtectionClick(Sender: TObject);
+var reg: TRegistry;
+begin
+  reg:=tregistry.create;
+  try
+    Reg.RootKey := HKEY_LOCAL_MACHINE;
+    if Reg.OpenKey('\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management',false) then
+    begin
+      if reg.ValueExists('FeatureSettingsOverride') then
+        reg.DeleteValue('FeatureSettingsOverride');
+
+      if reg.ValueExists('FeatureSettingsOverrideMask') then
+        reg.DeleteValue('FeatureSettingsOverrideMask');
+
+      messagedlg('Your protection has been restored. Please restart your system to make it take effect',mtInformation,[mbok],0);
+    end
+    else
+      messagedlg('Failure getting the Memory Management registry key',mtError,[mbok],0);
+  finally
+    reg.free;
+  end;
 end;
 
 procedure TformSettings.btnSetFontClick(Sender: TObject);
@@ -1267,6 +1321,11 @@ begin
   ScanForLanguages;
 end;
 
+procedure TformSettings.Panel11Click(Sender: TObject);
+begin
+
+end;
+
 procedure TformSettings.Panel3Click(Sender: TObject);
 begin
 
@@ -1464,6 +1523,12 @@ end;
 procedure TformSettings.FormCreate(Sender: TObject);
 var i: integer;
   osVerInfo: TOSVersionInfo;
+
+  reg: Tregistry;
+  v,m: integer;
+
+  KVAShadowInfo: dword;
+  rl: DWORD;
 begin
   cgAllTypes.Checked[2]:=true;
   cgAllTypes.Checked[4]:=true;
@@ -1586,20 +1651,51 @@ begin
       cbKdebug.checked:=false;
   end;
 
-  if WindowsVersion>=wv10 then
-  begin
-    osVerInfo.dwOSVersionInfoSize := SizeOf(TOSVersionInfo);
-    if GetVersionEx(osVerInfo) then
-    begin
-      if osVerInfo.dwBuildNumber>=16299 then
-        cbKDebug.enabled:=false;
 
+  if NtQuerySystemInformation(196, @KVAShadowInfo,4,@rl)=0 then
+  begin
+    //it knows this classID..
+    if (KVAShadowInfo and 1)=1 then
+    begin
+      cbKDebug.enabled:=false;
+      btnMakeKernelDebugPossible.visible:=true;
+    end;
+  end;
+
+  //check if it should be disabled
+  reg:=tregistry.create;
+  try
+    Reg.RootKey := HKEY_LOCAL_MACHINE;
+    if Reg.OpenKey('\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management',false) then
+    begin
+      if reg.ValueExists('FeatureSettingsOverride') and reg.ValueExists('FeatureSettingsOverrideMask') then
+      begin
+        //good indication KVAShadow is disabled, but let's check the values
+        v:=reg.ReadInteger('FeatureSettingsOverride');
+        m:=reg.ReadInteger('FeatureSettingsOverrideMask');
+
+        if (v=3) and (m=3) then //it's set
+        begin
+          if btnMakeKernelDebugPossible.visible then
+            btnMakeKernelDebugPossible.enabled:=false;
+
+          //show button to remove this registry key
+          btnRestoreKernelProtection.visible:=true;
+        end;
+      end;
     end;
 
+  finally
+    reg.free;
+  end;
+
+  if cbKDebug.enabled=false then
+  begin
+    //still disabled
+    btnMakeKernelDebugPossible.Visible:=true;
   end;
 
   //make the tabs invisible
-
   for i:=0 to pcSetting.PageCount-1 do
     pcSetting.Pages[i].TabVisible:=false;
 

@@ -16,7 +16,7 @@ Fixed several DBVM offload crashes
 Fixed freeze with allow increase/decrease for 8 byte long values
 Fixed several issues where minimizing a window and then close it would hang CE
 Fixed file scanning
-
+Fixed crashes when editing memory in some some emulators
 
 Additions and changes:
 Text editor improvements

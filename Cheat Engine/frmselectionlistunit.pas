@@ -101,6 +101,7 @@ end;
 
 function tfrmSelectionList.getSelection: string;
 begin
+  result:='';
   if fcustomInput then
     result:=edit1.text
   else

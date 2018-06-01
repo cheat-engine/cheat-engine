@@ -621,10 +621,14 @@ begin
   if(not assigned(mem_map))then
     exit;
 
+
   found:=false;
 
   start_address:=md.getAddressFromScreenPosition(0,0);
   end_address:=md.getAddressFromScreenPosition(0,md.Height-1);
+
+  next_address:=start_address;
+
 
   if(is_range_valid(start_address,end_address) or (mem_map.Count=0))then
   begin

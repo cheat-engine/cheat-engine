@@ -1589,6 +1589,9 @@ begin
       protect:=cbProtect.checked;
     end;
 
+    else
+      raise exception.create('Invalid option');
+
   end;
 
 

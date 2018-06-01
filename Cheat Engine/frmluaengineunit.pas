@@ -187,6 +187,7 @@ end;
 function findToken(s: string; var start: integer):string;
 var i: integer;
 begin
+  result:='';
   for i:=start to length(s) do
   begin
 

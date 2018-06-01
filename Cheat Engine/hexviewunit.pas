@@ -1987,9 +1987,11 @@ begin
 
 
   itemnr:=0;
+  selectedcharsize:=1;
 
   if isEditing then
   begin
+
     case CharEncoding of
       ceAscii: selectedcharsize:=1;
       ceCodePage: selectedcharsize:=1;

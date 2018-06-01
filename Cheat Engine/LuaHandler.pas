@@ -4667,7 +4667,7 @@ end;
 
 function lua_dbvm_watch_writes(L: PLua_state): integer; cdecl;
 var
-  physicalAddress: qword;
+  physicalAddress: qword=0;
   size: integer;
   options: DWORD;
   MaxEntryCount: integer;
@@ -4704,7 +4704,7 @@ end;
 
 function lua_dbvm_watch_reads(L: PLua_state): integer; cdecl;
 var
-  physicalAddress: qword;
+  physicalAddress: qword=0;
   size: integer;
   options: DWORD;
   MaxEntryCount: integer;
@@ -5132,6 +5132,8 @@ begin
 
   id:=lua_tointeger(L,1);
   dbvm_watch_delete(id);
+
+  result:=0;
 end;
 
 function lua_dbvm_cloak_activate(L: PLua_State): integer; cdecl;
@@ -6703,7 +6705,7 @@ end;
 
 function lua_loadTable(L: Plua_State): integer; cdecl;
 var
-  filename: string;
+  filename: string='';
   parameters: integer;
   merge: boolean;
   doc: TXMLDocument;
@@ -8668,6 +8670,7 @@ var
 
   h: THandle;
 begin
+  result:=0;
 
   if lua_isuserdata(L, 1) then
   begin
@@ -8679,12 +8682,7 @@ begin
       lua_pushinteger(L, h);
       result:=1;
     end;
-
   end;
-
-
-
-
 end;
 
 function lua_speakex(engLang: boolean; L: Plua_State): integer; cdecl;
@@ -8696,7 +8694,10 @@ begin
   pc:=lua_gettop(L);
 
   if pc>=1 then
-    s:=Lua_ToString(L, 1);
+    s:=Lua_ToString(L, 1)
+  else
+    exit(0);
+
 
   if engLang then
   begin
@@ -9556,7 +9557,7 @@ var
   i,j: integer;
 
   filter: integer;
-  peprocess: ptruint;
+  peprocess: ptruint=0;
 begin
   i:=sizeof(SYSTEM_HANDLE_TABLE_ENTRY_INFO)+128*sizeof(SYSTEM_HANDLE_TABLE_ENTRY_INFO);
   getmem(shi,i);
@@ -9710,9 +9711,11 @@ var a,c: dword;
 var r: TCPUIDResult;
 i: integer;
 begin
-  if lua_gettop(L)=0 then exit(0);
   if lua_gettop(L)>=1 then
-    a:=lua_tointeger(L,1);
+    a:=lua_tointeger(L,1)
+  else
+    exit(0);
+
 
   if lua_gettop(L)>=2 then
     c:=lua_tointeger(L,2)

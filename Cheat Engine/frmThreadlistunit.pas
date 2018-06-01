@@ -614,6 +614,7 @@ procedure TfrmThreadlist.threadTreeviewExpanding(Sender: TObject;
   Node: TTreeNode; var AllowExpansion: Boolean);
 function rw2str(x: byte): string;
 begin
+  result:='';
   case x of
     0: result:=rsTLExecute;
     1: result:=rsTLWrite;
@@ -624,6 +625,7 @@ end;
 
 function len2str(x: byte): string;
 begin
+  result:='';
   case x of
     0: result:=rsTL1Bytes;
     1: result:=rsTL2Bytes;

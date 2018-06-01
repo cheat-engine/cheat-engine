@@ -278,9 +278,11 @@ end;
 function breakpointTriggerToString(bpt: TBreakpointTrigger): string;
 begin
   case bpt of
-    bptExecute: result:=rsOnExecute;
+    bptExecute:  result:=rsOnExecute;
     bptWrite:    result:=rsOnWrite;
     bptAccess:   result:=rsOnReadWrite;
+    else
+       result:='Error';
   end;
 end;
 
@@ -290,6 +292,8 @@ begin
     bpmInt3:           result:=rsSoftwareBreakpoint;
     bpmDebugRegister:  result:=rsHardwareBreakpoint;
     bpmException:      result:=rsExceptionBreakpoint;
+    else
+       result:='Error';
   end;
 end;
 
@@ -301,6 +305,8 @@ begin
     bo_FindCode: result:=rsFindCode;
     bo_FindWhatCodeAccesses: result:=rsFindCodeAccess;
     bo_BreakAndTrace: result:=rsBreakAndTrace;
+    else
+       result:='Error';
   end;
 end;
 

@@ -130,6 +130,7 @@ end;
 var roti: integer;
 function rot: string;
 begin
+  result:='';
   roti:=(roti+1) mod 8;
   case roti of
     0: result:='-';

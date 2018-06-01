@@ -333,6 +333,8 @@ var self: TUltimap2Worker;
 
   s: integer;
 begin
+  result:=0;
+
   self:=TUltimap2Worker(context);
   //watch for page boundaries
 

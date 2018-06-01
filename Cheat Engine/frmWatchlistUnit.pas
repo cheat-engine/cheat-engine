@@ -99,7 +99,6 @@ begin
 
         t:=integer(ptruint(lvWatchlist.items[i].Data));
         case t of
-          0: vt:=FindTypeOfData(a, @buf[0], 512);
           1: vt:=vtByte;
           2: vt:=vtWord;
           3: vt:=vtDword;
@@ -108,6 +107,8 @@ begin
           6: vt:=vtDouble;
           7: vt:=vtString;
           8: vt:=vtUnicodeString;
+          else
+            vt:=FindTypeOfData(a, @buf[0], 512);
         end;
 
         lvWatchlist.Items[i].subitems[0]:='<'+inttohex(a,8)+'>'+DataToString(@buf[0], 512, vt, true);

@@ -568,6 +568,7 @@ end;
 
 function TPointerfileReader.getStringAndAddress(index: qword; var address: ptruint; out p: PPointerRecord; shadow: ptruint; shadowsize: integer): string;
 begin
+  result:='';
   p:=getPointerRec(index);
   if p<>nil then
     result:=getStringFromPointerRecord(p, address, shadow, shadowsize);
@@ -1744,6 +1745,7 @@ var i: integer;
   b: pchar;
   wb: pwidechar absolute b;
 begin
+  result:='';
   a:=address+offsets[0];
   for i:=1 to level do
   begin

@@ -43,7 +43,6 @@ procedure getRegisterListFromParams(params: string; registerlist: Tstrings);
 }
 var
   tokens: TTokens;
-  tokens2: TTokens;
   i,j: integer;
   isrnumber: boolean;
   seplist: TSysCharSet;

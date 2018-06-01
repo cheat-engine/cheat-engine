@@ -1,7 +1,7 @@
 object formSettings: TformSettings
-  Left = 665
+  Left = 525
   Height = 587
-  Top = 188
+  Top = 259
   Width = 1166
   AutoSize = True
   BorderIcons = [biSystemMenu]
@@ -63,9 +63,9 @@ object formSettings: TformSettings
       Height = 548
       Top = 1
       Width = 1016
-      ActivePage = GeneralSettings
+      ActivePage = Assembler
       Align = alClient
-      TabIndex = 0
+      TabIndex = 6
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -1229,20 +1229,20 @@ object formSettings: TformSettings
       object Assembler: TTabSheet
         Caption = 'Debugger Options'
         ClientHeight = 520
-        ClientWidth = 720
+        ClientWidth = 1008
         ImageIndex = 5
         object ScrollBox3: TScrollBox
           Left = 0
           Height = 520
           Top = 0
-          Width = 720
+          Width = 1008
           HorzScrollBar.Page = 647
           HorzScrollBar.Tracking = True
-          VertScrollBar.Page = 448
+          VertScrollBar.Page = 451
           VertScrollBar.Tracking = True
           Align = alClient
           ClientHeight = 516
-          ClientWidth = 716
+          ClientWidth = 1004
           TabOrder = 0
           object replacewithnops: TCheckBox
             AnchorSideLeft.Control = Label4
@@ -1281,7 +1281,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrBottom
             Left = 8
             Height = 159
-            Top = 289
+            Top = 292
             Width = 400
             BorderSpacing.Top = 2
             Caption = 'Debugger interface config'
@@ -1416,9 +1416,9 @@ object formSettings: TformSettings
             AnchorSideTop.Control = edtStacksize
             AnchorSideTop.Side = asrBottom
             Left = 8
-            Height = 77
+            Height = 80
             Top = 210
-            Width = 175
+            Width = 400
             AutoFill = True
             AutoSize = True
             Caption = 'Debugger method'
@@ -1427,16 +1427,17 @@ object formSettings: TformSettings
             ChildSizing.EnlargeVertical = crsHomogenousChildResize
             ChildSizing.ShrinkHorizontal = crsScaleChilds
             ChildSizing.ShrinkVertical = crsScaleChilds
-            ChildSizing.Layout = cclLeftToRightThenTopToBottom
             ChildSizing.ControlsPerLine = 1
-            ClientHeight = 57
-            ClientWidth = 171
+            ClientHeight = 60
+            ClientWidth = 396
             TabOrder = 3
             object cbUseVEHDebugger: TRadioButton
+              AnchorSideLeft.Control = rbgDebuggerInterface
+              AnchorSideTop.Control = rbgDebuggerInterface
               Left = 6
               Height = 19
               Top = 0
-              Width = 159
+              Width = 119
               Caption = 'Use VEH Debugger'
               OnChange = cbDebuggerInterfaceChange
               OnClick = cbDebuggerInterfaceChange
@@ -1444,10 +1445,12 @@ object formSettings: TformSettings
             end
             object cbUseWindowsDebugger: TRadioButton
               Tag = 1
+              AnchorSideTop.Control = cbUseVEHDebugger
+              AnchorSideTop.Side = asrBottom
               Left = 6
               Height = 19
               Top = 19
-              Width = 159
+              Width = 143
               Caption = 'Use windows debugger'
               Checked = True
               OnChange = cbDebuggerInterfaceChange
@@ -1455,8 +1458,49 @@ object formSettings: TformSettings
               TabOrder = 1
               TabStop = True
             end
+            object Panel11: TPanel
+              AnchorSideLeft.Control = cbKDebug
+              AnchorSideLeft.Side = asrBottom
+              AnchorSideTop.Control = cbKDebug
+              AnchorSideTop.Side = asrCenter
+              Left = 165
+              Height = 26
+              Top = 34
+              Width = 225
+              AutoSize = True
+              Caption = 'Panel11'
+              ChildSizing.Layout = cclLeftToRightThenTopToBottom
+              ChildSizing.ControlsPerLine = 2
+              ClientHeight = 26
+              ClientWidth = 225
+              TabOrder = 2
+              OnClick = Panel11Click
+              object btnMakeKernelDebugPossible: TButton
+                Left = 0
+                Height = 25
+                Top = 0
+                Width = 101
+                Caption = 'Make possible'
+                OnClick = btnMakeKernelDebugPossibleClick
+                TabOrder = 0
+                Visible = False
+              end
+              object btnRestoreKernelProtection: TButton
+                Left = 101
+                Height = 25
+                Top = 0
+                Width = 123
+                Caption = 'Restore Protection'
+                OnClick = btnRestoreKernelProtectionClick
+                TabOrder = 1
+                Visible = False
+              end
+            end
             object cbKDebug: TRadioButton
               Tag = 2
+              AnchorSideLeft.Control = cbUseWindowsDebugger
+              AnchorSideTop.Control = cbUseWindowsDebugger
+              AnchorSideTop.Side = asrBottom
               Left = 6
               Height = 19
               Top = 38
@@ -1464,7 +1508,7 @@ object formSettings: TformSettings
               Caption = 'Use kernelmode debugger'
               OnChange = cbDebuggerInterfaceChange
               OnClick = cbDebuggerInterfaceChange
-              TabOrder = 2
+              TabOrder = 3
             end
           end
           object Label4: TLabel
@@ -1690,13 +1734,13 @@ object formSettings: TformSettings
       object Extra: TTabSheet
         Caption = 'Extra'
         ClientHeight = 520
-        ClientWidth = 792
+        ClientWidth = 1008
         ImageIndex = 6
         object TauntOldOsUser: TLabel
           Left = 0
           Height = 15
           Top = 505
-          Width = 792
+          Width = 1008
           Align = alBottom
           Alignment = taCenter
           Caption = 'I really recommend upgrading to Windows 2000 or later mister Flintstone'
@@ -1707,14 +1751,14 @@ object formSettings: TformSettings
           Left = 5
           Height = 77
           Top = 0
-          Width = 782
+          Width = 998
           Align = alTop
           AutoSize = True
           BorderSpacing.Left = 5
           BorderSpacing.Right = 5
           Caption = 'Use the following CE Kernel routines instead of the original windows version'
           ClientHeight = 57
-          ClientWidth = 778
+          ClientWidth = 994
           TabOrder = 0
           object cbKernelQueryMemoryRegion: TCheckBox
             AnchorSideLeft.Control = GroupBox3

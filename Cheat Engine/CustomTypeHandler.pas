@@ -847,7 +847,7 @@ end;
 function registerCustomTypeAutoAssembler(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
-  typename: string;
+  typename: string='';
   bytecount: integer;
   script: string;
   ct: TCustomType;

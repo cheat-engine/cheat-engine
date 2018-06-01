@@ -411,6 +411,7 @@ end;
 
 { TDesignerDeviceContext }
 
+{$warn 5059 off}
 function TDesignerDeviceContext.GetDCOrigin: TPoint;
 begin
 

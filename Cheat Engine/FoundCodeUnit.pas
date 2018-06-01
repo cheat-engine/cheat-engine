@@ -723,6 +723,9 @@ var
 
   d: TDisassembler;
 begin
+  if processhandler.is64bit then
+    firstchar:='R' else firstchar:='E';
+
   itemindex:=foundcodelist.ItemIndex;
   if itemindex<>-1 then
   begin
@@ -935,8 +938,7 @@ begin
       else
       begin
 
-        if processhandler.is64bit then
-          firstchar:='R' else firstchar:='E';
+
 
         lblRAX.caption:=firstchar+'AX='+IntToHex(coderecord.context.{$ifdef cpu64}Rax{$else}Eax{$endif},8);
         lblRBX.caption:=firstchar+'BX='+IntToHex(coderecord.context.{$ifdef cpu64}Rbx{$else}Ebx{$endif},8);

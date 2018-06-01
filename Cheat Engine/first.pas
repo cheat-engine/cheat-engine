@@ -15,10 +15,10 @@ procedure setDPIAware;   //won't work in windows 10 anymore
 type
   PROCESS_DPI_AWARENESS=(PROCESS_DPI_UNAWARE=0, PROCESS_SYSTEM_DPI_AWARE=1, PROCESS_PER_MONITOR_DPI_AWARE=2);
 
-var
+{var
   SetProcessDpiAwareness:function(value: PROCESS_DPI_AWARENESS):HRESULT; stdcall;
   SetProcessDPIAware:function: BOOL; stdcall;
-  l: HModule;
+  l: HModule;}
 begin
  { OutputDebugString('setDPIAware');
   l:=LoadLibrary('Shcore.dll');
@@ -48,11 +48,11 @@ begin
   OutputDebugString('p3'); }
 end;
 
-var
+{var
   i: integer;
   istrainer: boolean;
   r: TRegistry;
-  hassetdpiaware: boolean;
+  hassetdpiaware: boolean; }
 initialization
   //todo, check registry if not a trainer
   {

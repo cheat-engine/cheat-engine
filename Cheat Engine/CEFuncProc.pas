@@ -2414,6 +2414,7 @@ end;
 function GetWinDir:string;
 var x: pchar;
 begin
+  result:='';
   getmem(x,200);
   if GetWindowsDirectory(x,200)>0 then
   begin
@@ -2929,11 +2930,14 @@ begin
     vtPointer: result:=rs_vtPointer;
     vtAutoAssembler: Result:=rs_vtAutoAssembler;
     vtCustom: Result:=rs_vtCustom;
+    else
+     result:='Error';
   end;
 end;
 
 function VariableTypeToString(variableType: TVariableType): string;
 begin
+
   case variabletype of
     vtAll: result:='All';
     vtBinary: result:='Binary';
@@ -2949,6 +2953,8 @@ begin
     vtPointer: result:='Pointer';
     vtAutoAssembler: Result:='Auto Assembler Script';
     vtCustom: Result:='Custom';
+    else
+     result:='Error';
   end;
 end;
 

@@ -854,8 +854,9 @@ var
   esde: TExtraSymbolDataEntry;
 begin
   {$IFNDEF UNIX}
+  result:=false;
   if pSymInfo.NameLen=0 then
-    exit(false);
+    exit;
 
   self:=TSymbolloaderthread(UserContext);
 
@@ -3849,12 +3850,14 @@ function TSymhandler.ParseRange(s: string; var start: QWORD; var stop: QWORD): b
 var
   tokens: ttokens;
   i: integer;
-  t2start: integer;
+  t2start: integer=0;
   s1,s2: string;
-  err: boolean;
+  err: boolean=false;
 begin
   result:=false;
   tokenize(s, tokens);
+
+  if length(tokens)=0 then exit;
 
   //first find the first part
   s1:='';

@@ -1539,29 +1539,29 @@ end;
 procedure TMemoryRecord.getXMLNode(node: TDOMNode; selectedOnly: boolean);
 {$IFNDEF UNIX}
 var
-  doc: TDOMDocument;
-  cheatEntry: TDOMNode;
-  cheatEntries: TDOMNode;
-  offsets: TDOMNode;
+  doc: TDOMDocument=nil;
+  cheatEntry: TDOMNode=nil;
+  cheatEntries: TDOMNode=nil;
+  offsets: TDOMNode=nil;
   hks, hk,hkkc: TDOMNode;
-  opt: TDOMNode;
-  laststate: TDOMNode;
-  soundentry: TDOMNode;
+  opt: TDOMNode=nil;
+  laststate: TDOMNode=nil;
+  soundentry: TDOMNode=nil;
 
-  n: TDOMNode;
+  n: TDOMNode=nil;
 
-  tn: TTreenode;
+  tn: TTreenode=nil;
   i,j: integer;
   a:TDOMAttr;
 
   s: ansistring;
 
-  ddl: TDOMNode;
-  offset: TDOMNode;
+  ddl: TDOMNode=nil;
+  offset: TDOMNode=nil;
 {$ENDIF}
 begin
   {$IFNDEF UNIX}
- if selectedonly then
+  if selectedonly then
   begin
     if (not isselected) then exit; //don't add if not selected and only the selected items should be added
 
@@ -1682,8 +1682,7 @@ begin
   end;
 
 
-
-  if Active then
+  if (laststate<>nil) and Active then
   begin
     a:=doc.CreateAttribute('Activated');
     a.TextContent:='1';
@@ -3169,6 +3168,7 @@ end;
 
 function MemRecHotkeyActionToText(action: TMemrecHotkeyAction): string;
 begin
+  result:='';
   //DO NOT TRANSLATE THIS
   case action of
     mrhToggleActivation: result:='Toggle Activation';

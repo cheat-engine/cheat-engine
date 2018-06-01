@@ -1515,7 +1515,7 @@ var
   maxsymname: integer;
 
   isexe: uint32;
-  shortenedmodulename: string; //the name of the module with nothing after .so
+  shortenedmodulename: string=''; //the name of the module with nothing after .so
   i: integer;
 begin
   result:=true;

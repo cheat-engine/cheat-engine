@@ -386,6 +386,7 @@ var i,j: integer;
     x: dword;
     temp: string;
 begin
+  setlength(oldvalues,0);
 
   if addressfile=nil then exit;
 

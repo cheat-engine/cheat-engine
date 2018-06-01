@@ -45,6 +45,7 @@ var
   check: boolean;
   ModuleEntry: MODULEENTRY32;
 begin
+  result:='';
   SNAPHandle:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE,processid);
   if SNAPHandle<>0 then
   begin

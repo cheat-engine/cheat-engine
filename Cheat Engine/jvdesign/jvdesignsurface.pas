@@ -352,6 +352,8 @@ function TJvDesignCustomMessenger.IsDesignMessage(ASender: TControl;
   end;
 
 begin
+  result:=false;
+
   if not Assigned(FOnDesignMessage) then
     Result := False
   else

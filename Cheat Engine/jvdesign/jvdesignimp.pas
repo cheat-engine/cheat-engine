@@ -346,6 +346,7 @@ begin
       Result := Rect(Width - W, 0, Width, W); // right-top
     3:
       Result := Rect(0, (Height - W) div 2, W, (Height + W) div 2); // left-center
+    else raise exception.create('TJvDesignHandle.HandleRect: Invalid rect');
   end;
 end;
 

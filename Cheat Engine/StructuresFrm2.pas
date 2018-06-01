@@ -787,6 +787,7 @@ end;
 
 function DisplaymethodToString(d:TdisplayMethod): string;
 begin
+  result:='';
   case d of
     dtUnsignedInteger: result:=rsUnsignedInteger;
     dtSignedInteger: result:=rsSignedInteger;
@@ -4624,7 +4625,10 @@ begin
   else if (Sender = miChangeTypeString) then vt := vtString
   else if (Sender = miChangeTypeUnicode) then vt := vtUnicodeString
   else if (Sender = miChangeTypeArrayOfByte) then vt := vtByteArray
-  else if (Sender = miChangeTypePointer) then vt := vtPointer;
+  else if (Sender = miChangeTypePointer) then vt := vtPointer
+  else
+    vt:=vtByte;
+
 
   case vt of
     vtByte: size := 1;
@@ -4637,6 +4641,8 @@ begin
     vtByteArray: size := 16;
     vtString: size := 32;
     vtUnicodeString: size := 32;
+    else
+      size:=1;
   end;
 
   displayMethod := dtHexadecimal;

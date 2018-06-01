@@ -77,7 +77,13 @@ resourcestring
 function TRecordEntries.getEntry(index: integer): TRecordEntry;
 begin
   if index<length(list) then
-    result:=list[index];
+    result:=list[index]
+  else
+  begin
+    result.name:='';
+    result.getf:=nil;
+    result.setf:=nil;
+  end;
 end;
 
 procedure TRecordEntries.setEntry(index: integer; e: TRecordEntry);

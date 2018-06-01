@@ -133,7 +133,7 @@ var
   shiftammount: integer;
   shiftRegister: integer;
 
-  shiftname: string;
+  shiftname: string='';
   _shift: string;
 
 
@@ -400,7 +400,7 @@ var
   shift: integer;
   shifttype: integer;
 
-  _shiftname: string;
+  _shiftname: string='';
   _shiftAmount: string;
   shiftamount: integer;
 
@@ -992,7 +992,7 @@ var opcode: dword;
 
   abcdefgh: byte;
   constant: qword;
-  _dt: string;
+  _dt: string='';
 
   a32: dword;
 begin
@@ -1151,7 +1151,8 @@ var opcode: dword;
 
   op: byte;
 
-  _dt1,_dt2: string;
+  _dt1: string='';
+  _dt2: string='';
 begin
   opcode:=pdword(@LastDisassembleData.Bytes[0])^;
   imm:=0;
@@ -1396,7 +1397,7 @@ procedure ASIMD_2Reg_Scalar(var LastDisassembleData: TLastDisassembleData);
 var opcode: dword;
   q,u,b,a: byte;
   d, size, Vn, Vd, op, F,N,M, Vm: byte;
-  _datatype: string;
+  _datatype: string='';
 begin
   opcode:=pdword(@LastDisassembleData.Bytes[0])^;
 
@@ -1564,7 +1565,8 @@ var opcode: dword;
   u,b,a: byte;
   q,d, size, Vn, Vd, op, F,N,M, Vm: byte;
   sz: byte;
-  _dt, _dt2: string;
+  _dt: string='';
+  _dt2: string='';
 
   _sU, _sf: string;
 begin
