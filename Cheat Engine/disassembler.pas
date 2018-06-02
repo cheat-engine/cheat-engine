@@ -1916,10 +1916,10 @@ begin
 
 
     //compatibility fix for code that still checks for rex.* or sets it as a temporary flag replacement
-    RexPrefix:=ifthen(opcodeflags.B, rexprefix or BIT_REX_B);
-    RexPrefix:=ifthen(opcodeflags.X, rexprefix or BIT_REX_X);
-    RexPrefix:=ifthen(opcodeflags.R, rexprefix or BIT_REX_R);
-    RexPrefix:=ifthen(opcodeflags.W, rexprefix or BIT_REX_W);
+    RexPrefix:=ifthen(opcodeflags.B, rexprefix or BIT_REX_B, rexprefix);
+    RexPrefix:=ifthen(opcodeflags.X, rexprefix or BIT_REX_X, rexprefix);
+    RexPrefix:=ifthen(opcodeflags.R, rexprefix or BIT_REX_R, rexprefix);
+    RexPrefix:=ifthen(opcodeflags.W, rexprefix or BIT_REX_W, rexprefix);
 
     case memory[0] of  //opcode
       $00 : begin
