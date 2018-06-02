@@ -404,6 +404,14 @@ resourcestring
   rsNewLanguageSet = 'New language set';
   rsRestartCE = 'It is recommended to restart Cheat Engine for this change to take effect';
   rsFailureToOpenRegistry = 'Failure to open the registry entry';
+  rsSpectreWarning = 'WARNING! Making kernelmode possible will slightly increase the speed of your system, BUT it will make you vulnerable to Spectre attacks'#13#10'Are you ok with this? (You can later re-enable this protection)';
+  rsSpectreRestore = 'Your protection has been restored. Please restart your '
+    +'system to make it take effect';
+  rsFailMMRegistry = 'Failure getting the Memory Management registry key';
+  rsSpectreRegistryChanged = 'The registry keys has been changed accordingly. '
+    +' Reboot your system to make it take effect';
+
+
 procedure TformSettings.btnOKClick(Sender: TObject);
 var processhandle2: Thandle;
     reg: TRegistry;
@@ -975,7 +983,7 @@ end;
 procedure TformSettings.btnMakeKernelDebugPossibleClick(Sender: TObject);
 var reg: TRegistry;
 begin
-  if messagedlg('WARNING! Making kernelmode possible will slightly increase the speed of your system, BUT it will make you vulnerable to Spectre and Meltdown attacks. Are you ok with this?',mtWarning,[mbYes,mbNo],0,mbNo)=mrYes then
+  if messagedlg(rsSpectreWarning,mtWarning,[mbYes,mbNo],0,mbNo)=mrYes then
   begin
     reg:=tregistry.create;
     try
@@ -985,10 +993,10 @@ begin
         reg.WriteInteger('FeatureSettingsOverride',3);
         reg.WriteInteger('FeatureSettingsOverrideMask',3);
 
-        messagedlg('The registry keys (HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management\FeatureSettingsOverride*) have been set accordingly.  Reboot your system to make it take effect', mtInformation, [mbOK],0);
+        messagedlg(rsSpectreRegistryChanged, mtInformation, [mbOK], 0);
       end
       else
-        messagedlg('Failure getting the Memory Management registry key',mtError,[mbok],0);
+        messagedlg(rsFailMMRegistry, mtError, [mbok], 0);
 
     finally
       reg.free;
@@ -1016,10 +1024,10 @@ begin
       if reg.ValueExists('FeatureSettingsOverrideMask') then
         reg.DeleteValue('FeatureSettingsOverrideMask');
 
-      messagedlg('Your protection has been restored. Please restart your system to make it take effect',mtInformation,[mbok],0);
+      messagedlg(rsSpectreRestore, mtInformation, [mbok], 0);
     end
     else
-      messagedlg('Failure getting the Memory Management registry key',mtError,[mbok],0);
+      messagedlg(rsFailMMRegistry, mtError, [mbok], 0);
   finally
     reg.free;
   end;

@@ -1427,6 +1427,7 @@ object formSettings: TformSettings
             ChildSizing.EnlargeVertical = crsHomogenousChildResize
             ChildSizing.ShrinkHorizontal = crsScaleChilds
             ChildSizing.ShrinkVertical = crsScaleChilds
+            ChildSizing.Layout = cclLeftToRightThenTopToBottom
             ChildSizing.ControlsPerLine = 1
             ClientHeight = 60
             ClientWidth = 396
