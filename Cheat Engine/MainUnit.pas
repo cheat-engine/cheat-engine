@@ -1415,8 +1415,13 @@ begin
       begin
         if cbSpeedhack.Enabled then
         begin
-          beep;
-          cbSpeedhack.Checked := not cbSpeedhack.Checked;
+          try
+            cbSpeedhack.Checked := not cbSpeedhack.Checked;
+            btnSetSpeedhack2.Click;
+            beep;
+          except
+            errorbeep;
+          end;
         end;
       end;
 
@@ -1425,26 +1430,31 @@ begin
       begin         //todo;active while key down   (launch timer that checks keycombo)
         if cbspeedhack.Enabled then
         begin
-          cbspeedhack.Checked := True;
-          if cbspeedhack.Checked then
-          begin
-            editsh2.Text := format('%.3f', [speedhackspeed1.speed]);  //Just rebuild. I wish this would get fixed in fpc someday...
-            btnSetSpeedhack2.Click;
+          try
+            cbspeedhack.Checked := True;
 
-            if speedhackspeed1.disablewhenreleased then
+            if cbspeedhack.Checked then
             begin
-              //spawn a timer
-              if speedhackDisableTimer=nil then
+              editsh2.Text := format('%.3f', [speedhackspeed1.speed]);  //Just rebuild. I wish this would get fixed in fpc someday...
+              btnSetSpeedhack2.Click;
+
+              if speedhackspeed1.disablewhenreleased then
               begin
-                speedhackDisableTimer:=TTimer.create(self);
-                speedhackDisableTimer.OnTimer:=CheckForSpeedhackKey;
+                //spawn a timer
+                if speedhackDisableTimer=nil then
+                begin
+                  speedhackDisableTimer:=TTimer.create(self);
+                  speedhackDisableTimer.OnTimer:=CheckForSpeedhackKey;
+                end;
+
+                speedhackDisableTimer.Interval:=hotkeyPollInterval;
+                speedhackDisableTimer.Tag:=1;
+                speedhackDisableTimer.enabled:=true;
               end;
 
-              speedhackDisableTimer.Interval:=hotkeyPollInterval;
-              speedhackDisableTimer.Tag:=1;
-              speedhackDisableTimer.enabled:=true;
             end;
-
+          except
+            errorbeep;
           end;
         end;
       end;

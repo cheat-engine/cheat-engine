@@ -116,7 +116,7 @@ begin
     end;
   end;
 
-  if (listbox1.ItemIndex>=3) and (listbox1.itemindex<=7) then
+  if (listbox1.ItemIndex>=4) and (listbox1.itemindex<=8) then
   begin
     currentspeed:=listbox1.ItemIndex-2;
     case currentspeed of
@@ -156,9 +156,9 @@ begin
     panel4.Visible:=false;
   end else panel3.Visible:=false;
 
-  if (listbox1.ItemIndex=8) or (listbox1.ItemIndex=9) then
+  if (listbox1.ItemIndex=9) or (listbox1.ItemIndex=10) then
   begin
-    increasespeed:=listbox1.itemindex=8;
+    increasespeed:=listbox1.itemindex=9;
     if increasespeed then
       edit4.Text:=format('%.3f',[speedupdelta])
     else
