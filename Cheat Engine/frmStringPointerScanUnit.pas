@@ -284,6 +284,7 @@ type
     procedure cbHasShadowChange(Sender: TObject);
     procedure cbRegExpChange(Sender: TObject);
     procedure cbPointerInRangeChange(Sender: TObject);
+    procedure cbReuseStringmapChange(Sender: TObject);
     procedure comboTypeChange(Sender: TObject);
     procedure edtBaseChange(Sender: TObject);
     procedure edtExtraChange(Sender: TObject);
@@ -2196,7 +2197,7 @@ end;
 
 procedure TfrmStringPointerScan.cbRegExpChange(Sender: TObject);
 begin
-  cbCaseSensitive.enabled:=cbRegExp.enabled and cbRegExp.checked;
+  cbCaseSensitive.enabled:=rbstringscan.checked and cbRegExp.enabled and cbRegExp.checked;
   cbMustBeStart.enabled:=cbCaseSensitive.enabled;
   edtRegExp.enabled:=cbCaseSensitive.enabled;
   lblString.enabled:=cbCaseSensitive.enabled;
@@ -2207,6 +2208,11 @@ begin
   edtPointerStart.enabled:=cbPointerInRange.checked;
   edtPointerStop.enabled:=cbPointerInRange.checked;
   lbland.enabled:=cbPointerInRange.checked;
+end;
+
+procedure TfrmStringPointerScan.cbReuseStringmapChange(Sender: TObject);
+begin
+
 end;
 
 procedure TfrmStringPointerScan.comboTypeChange(Sender: TObject);
@@ -2407,6 +2413,7 @@ begin
   cbMustBeStart.enabled:=cbCaseSensitive.enabled;
   lblString.enabled:=cbCaseSensitive.enabled;
   edtRegExp.enabled:=cbCaseSensitive.enabled;
+  cbReuseStringmap.enabled:=cbCaseSensitive.enabled;
 
   lblAlign.enabled:=rbDatascan.enabled and rbDatascan.checked;
   edtAlignsize.enabled:=lblAlign.enabled;
