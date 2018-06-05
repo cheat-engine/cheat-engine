@@ -1388,6 +1388,7 @@ begin
 
     for i:=0 to length(memoryblockNLF)-1 do
     begin
+      a:=wi.NotLookingForList[i]+pos;
       if (NotLookingForShadowList[i].shadow<>0) and inrangeq(a, NotLookingForShadowList[i].address, NotLookingForShadowList[i].address+NotLookingForShadowList[i].shadowsize) then
       begin
         //make it a relative address in the shadow copy
@@ -1399,7 +1400,7 @@ begin
         end;
       end
       else
-      if readMemory(wi.NotLookingForList[i]+pos, memoryblockNLF[i], blocksize)=false then
+      if readMemory(a, memoryblockNLF[i], blocksize)=false then
         exit; //unreadable
     end;
 
