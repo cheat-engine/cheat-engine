@@ -572,9 +572,10 @@ begin
   result:='';
   p:=getPointerRec(index);
   if p<>nil then
+  begin
     result:=getStringFromPointerRecord(p, address, shadow, shadowsize);
-
-  address:=getAddressFromPointerRecord(p, address, shadow, shadowsize);
+    address:=getAddressFromPointerRecord(p, address, shadow, shadowsize);
+  end;
 end;
 
 constructor TPointerfileReader.create(filename: string);

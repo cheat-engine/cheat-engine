@@ -93,8 +93,9 @@ uses
   DPIHelper, Graphics, fontSaveLoadRegistry, registry, frmWatchlistUnit,
   frmWatchListAddEntryUnit, frmBusyUnit, FindDialogFix, LuaCustomType, LuaSQL,
   bCrypt, feces, askToRunLuaScript, frmDBVMWatchConfigUnit,
-  frmStructuresNewStructureUnit, frmDotNetObjectListUnit, vextypedef, 
-frmFindDialogUnit, frmRearrangeStructureListUnit, autoassemblerexeptionhandler;
+  frmStructuresNewStructureUnit, frmDotNetObjectListUnit, vextypedef,
+  frmFindDialogUnit, frmRearrangeStructureListUnit,
+  autoassemblerexeptionhandler, frmstructurecompareunit, addressedit;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in

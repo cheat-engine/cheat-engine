@@ -1,7 +1,7 @@
 object frmStructures2: TfrmStructures2
-  Left = 263
+  Left = 401
   Height = 381
-  Top = 706
+  Top = 519
   Width = 542
   Caption = 'Structure dissect'
   ClientHeight = 361
@@ -142,8 +142,9 @@ object frmStructures2: TfrmStructures2
         OnClick = MenuItem5Click
       end
     end
-    object MenuItem1: TMenuItem
+    object miView: TMenuItem
       Caption = 'View'
+      OnClick = miViewClick
       object miChangeColors: TMenuItem
         Caption = 'Settings'
         OnClick = miChangeColorsClick
@@ -182,6 +183,15 @@ object frmStructures2: TfrmStructures2
         Caption = 'Expand all defined and undefined pointers'
         ShortCut = 57432
         OnClick = miExpandAllClick
+      end
+      object miSeperatorCommonalityScanner: TMenuItem
+        Caption = '-'
+        Visible = False
+      end
+      object miCommonalityScan: TMenuItem
+        Caption = 'Scan for commonalities using the structure compare window'
+        Visible = False
+        OnClick = miCommonalityScanClick
       end
     end
     object Structures1: TMenuItem

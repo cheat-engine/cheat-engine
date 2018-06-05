@@ -329,10 +329,12 @@ type
 
   TfrmStructures2 = class(TForm)
     FindDialog1: TFindDialog;
+    miCommonalityScan: TMenuItem;
     MenuItem5: TMenuItem;
     MenuItem6: TMenuItem;
     MenuItem7: TMenuItem;
     MenuItem8: TMenuItem;
+    miSeperatorCommonalityScanner: TMenuItem;
     miChangeTypeArrayOfByte: TMenuItem;
     miChangeTypePointer: TMenuItem;
     miChangeTypeUnicode: TMenuItem;
@@ -385,7 +387,7 @@ type
     MainMenu1: TMainMenu;
     miBrowsePointer: TMenuItem;
     miBrowseAddress: TMenuItem;
-    MenuItem1: TMenuItem;
+    miView: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
     MenuItem4: TMenuItem;
@@ -413,7 +415,9 @@ type
     tmFixGui: TTimer;
     updatetimer: TTimer;
     tvStructureView: TTreeView;
+    procedure miCommonalityScanClick(Sender: TObject);
     procedure MenuItem8Click(Sender: TObject);
+    procedure miViewClick(Sender: TObject);
     procedure OnChangeTypeMenuItemClick(Sender: TObject);
     procedure Addextraaddress1Click(Sender: TObject);
     procedure FindDialog1Find(Sender: TObject);
@@ -598,7 +602,7 @@ implementation
 
 uses MainUnit, mainunit2, frmStructures2ElementInfoUnit, MemoryBrowserFormUnit,
   frmStructureLinkerUnit, frmgroupscanalgoritmgeneratorunit, frmStringPointerScanUnit,
-  ProcessHandlerUnit, Parsers, LuaCaller, frmRearrangeStructureListUnit;
+  ProcessHandlerUnit, Parsers, LuaCaller, frmRearrangeStructureListUnit, frmstructurecompareunit;
 
 resourcestring
   rsAddressValue = 'Address: Value';
@@ -2506,7 +2510,7 @@ begin
     result:=0;
 end;
 
-procedure TStructColumn.edtAddressChange(sender: TObject);
+procedure TStructColumn.edtAddressChange(sender: TObject);  //todo: use an addressedit box instead
 var
   invalidaddress: boolean;
   a: ptruint;
@@ -4665,6 +4669,47 @@ begin
   f:=tfrmRearrangeStructureList.create(self);
   f.ShowModal;
   f.free;
+end;
+
+procedure TfrmStructures2.miViewClick(Sender: TObject);
+begin
+  if (groupcount>=2) and (group[0].columnCount>1) and (group[1].columnCount>1) then
+  begin
+    miSeperatorCommonalityScanner.visible:=true;
+    miCommonalityScan.visible:=true;
+  end;
+end;
+
+procedure TfrmStructures2.miCommonalityScanClick(Sender: TObject);
+var
+  f: tfrmStructureCompare;
+  i,j: integer;
+  shadow: ptruint;
+  shadowsize: integer;
+begin
+  if groupcount>=2 then
+  begin
+    if frmStructureCompare<>nil then
+      f:=TfrmStructureCompare.Create(application)
+    else
+    begin
+      frmStructureCompare:=tfrmStructureCompare.Create(application);
+      f:=frmStructureCompare;
+    end;
+
+    for i:=0 to 1 do
+    begin
+      for j:=0 to group[i].columnCount-1 do
+      begin
+        shadow:=group[i].columns[j].getSavedState;
+        shadowsize:=group[i].columns[j].getSavedStateSize;
+        f.AddAddress(group[i].columns[j].Address,shadow, shadowsize, i);
+      end;
+    end;
+
+    f.show;
+  end;
+
 end;
 
 procedure TfrmStructures2.miNewWindowClick(Sender: TObject);

@@ -73,6 +73,7 @@ published
 
   property Enabled;
   property Font;
+  property GridLines;
   property HideSelection;
   property IconOptions;
 

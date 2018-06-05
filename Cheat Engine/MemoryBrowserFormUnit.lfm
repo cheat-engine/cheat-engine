@@ -1411,6 +1411,10 @@ object MemoryBrowser: TMemoryBrowser
         ShortCut = 16452
         OnClick = miDissectData2Click
       end
+      object MenuItem29: TMenuItem
+        Caption = 'Compare data/structures'
+        OnClick = MenuItem29Click
+      end
       object Disectwindow1: TMenuItem
         Caption = 'Dissect window(s)'
         ShortCut = 49239

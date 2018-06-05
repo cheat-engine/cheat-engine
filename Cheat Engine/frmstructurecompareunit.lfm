@@ -1,0 +1,507 @@
+object frmStructureCompare: TfrmStructureCompare
+  Left = 424
+  Height = 507
+  Top = 355
+  Width = 707
+  AutoSize = True
+  Caption = 'Structure Compare'
+  ClientHeight = 487
+  ClientWidth = 707
+  Menu = MainMenu1
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnShow = FormShow
+  PopupMode = pmAuto
+  Position = poScreenCenter
+  LCLVersion = '1.6.4.0'
+  object Panel2: TPanel
+    Left = 0
+    Height = 487
+    Top = 0
+    Width = 707
+    Align = alClient
+    BevelOuter = bvNone
+    ClientHeight = 487
+    ClientWidth = 707
+    TabOrder = 0
+    object ListView1: TListView
+      Left = 0
+      Height = 334
+      Top = 153
+      Width = 707
+      Align = alClient
+      Columns = <>
+      HideSelection = False
+      OwnerData = True
+      PopupMenu = pmPointerfile
+      ReadOnly = True
+      RowSelect = True
+      TabOrder = 0
+      ViewStyle = vsReport
+      OnCustomDrawSubItem = ListView1CustomDrawSubItem
+      OnData = ListView1Data
+      OnDblClick = ListView1DblClick
+    end
+    object Panel3: TPanel
+      Left = 0
+      Height = 150
+      Top = 0
+      Width = 707
+      Align = alTop
+      AutoSize = True
+      BorderSpacing.Bottom = 3
+      BevelOuter = bvNone
+      ClientHeight = 150
+      ClientWidth = 707
+      Constraints.MinWidth = 500
+      TabOrder = 1
+      object Panel7: TPanel
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = Panel3
+        AnchorSideRight.Control = Panel3
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = Panel3
+        AnchorSideBottom.Side = asrBottom
+        Left = 583
+        Height = 46
+        Top = 104
+        Width = 124
+        Anchors = [akRight, akBottom]
+        AutoSize = True
+        BorderSpacing.Left = 8
+        BevelOuter = bvNone
+        ClientHeight = 46
+        ClientWidth = 124
+        TabOrder = 2
+        object lblvds: TLabel
+          Left = 0
+          Height = 15
+          Top = 8
+          Width = 108
+          BorderSpacing.Top = 8
+          Caption = 'Variable display type'
+          ParentColor = False
+        end
+        object comboType: TComboBox
+          AnchorSideTop.Control = lblvds
+          AnchorSideTop.Side = asrBottom
+          AnchorSideRight.Control = Panel7
+          AnchorSideRight.Side = asrBottom
+          Left = 0
+          Height = 23
+          Top = 23
+          Width = 124
+          Anchors = [akTop, akRight]
+          ItemHeight = 15
+          ItemIndex = 4
+          Items.Strings = (
+            'String'
+            'Widestring'
+            '1 Byte'
+            '2 Bytes'
+            '4 Bytes'
+            '8 Bytes'
+            'Float'
+            'Double'
+            'Pointer (hex)'
+          )
+          OnChange = comboTypeChange
+          Style = csDropDownList
+          TabOrder = 0
+          Text = '4 Bytes'
+        end
+      end
+      object gbLF: TGroupBox
+        AnchorSideLeft.Control = Panel1
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Side = asrBottom
+        Left = 184
+        Height = 150
+        Top = 0
+        Width = 185
+        AutoSize = True
+        Caption = 'Group 1'
+        ClientHeight = 130
+        ClientWidth = 181
+        Constraints.MaxHeight = 150
+        Constraints.MinHeight = 150
+        Constraints.MinWidth = 185
+        TabOrder = 0
+        object sbLF: TScrollBox
+          Left = 0
+          Height = 130
+          Top = 0
+          Width = 181
+          HorzScrollBar.Page = 77
+          VertScrollBar.Page = 27
+          VertScrollBar.Tracking = True
+          Align = alClient
+          ClientHeight = 126
+          ClientWidth = 177
+          TabOrder = 0
+          object btnAddAddressLF: TButton
+            AnchorSideLeft.Control = sbLF
+            AnchorSideTop.Control = pnlLF
+            AnchorSideTop.Side = asrBottom
+            Left = 2
+            Height = 25
+            Top = 2
+            Width = 75
+            BorderSpacing.Left = 2
+            BorderSpacing.Top = 2
+            Caption = 'Add Address'
+            OnClick = btnAddAddressClick
+            TabOrder = 1
+          end
+          object pnlLF: TPanel
+            Left = 0
+            Height = 0
+            Top = 0
+            Width = 177
+            Align = alTop
+            AutoSize = True
+            BevelOuter = bvNone
+            ChildSizing.TopBottomSpacing = 2
+            ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+            ChildSizing.ShrinkHorizontal = crsScaleChilds
+            ChildSizing.Layout = cclLeftToRightThenTopToBottom
+            ChildSizing.ControlsPerLine = 1
+            TabOrder = 0
+          end
+        end
+      end
+      object gbNFL: TGroupBox
+        AnchorSideLeft.Control = gbLF
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Side = asrBottom
+        Left = 372
+        Height = 150
+        Top = 0
+        Width = 185
+        AutoSize = True
+        BorderSpacing.Left = 3
+        Caption = 'Group 2'
+        ClientHeight = 130
+        ClientWidth = 181
+        Constraints.MaxHeight = 150
+        Constraints.MinHeight = 150
+        Constraints.MinWidth = 185
+        TabOrder = 1
+        OnClick = gbNFLClick
+        object sbNLF: TScrollBox
+          Left = 0
+          Height = 130
+          Top = 0
+          Width = 181
+          HorzScrollBar.Page = 77
+          VertScrollBar.Page = 27
+          VertScrollBar.Tracking = True
+          Align = alClient
+          ClientHeight = 126
+          ClientWidth = 177
+          TabOrder = 0
+          object btnAddAddressNLF: TButton
+            Tag = 1
+            AnchorSideLeft.Control = sbNLF
+            AnchorSideTop.Control = pnlNLF
+            AnchorSideTop.Side = asrBottom
+            Left = 2
+            Height = 25
+            Top = 2
+            Width = 75
+            BorderSpacing.Left = 2
+            BorderSpacing.Top = 2
+            Caption = 'Add Address'
+            OnClick = btnAddAddressClick
+            TabOrder = 1
+          end
+          object pnlNLF: TPanel
+            Left = 0
+            Height = 0
+            Top = 0
+            Width = 177
+            Align = alTop
+            AutoSize = True
+            BevelOuter = bvNone
+            ChildSizing.TopBottomSpacing = 2
+            ChildSizing.HorizontalSpacing = 2
+            ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+            ChildSizing.Layout = cclLeftToRightThenTopToBottom
+            ChildSizing.ControlsPerLine = 1
+            TabOrder = 0
+          end
+        end
+      end
+      object Panel1: TPanel
+        Left = 0
+        Height = 150
+        Top = 0
+        Width = 184
+        Align = alLeft
+        AutoSize = True
+        BevelOuter = bvNone
+        ClientHeight = 150
+        ClientWidth = 184
+        TabOrder = 3
+        object edtStructsize: TEdit
+          AnchorSideLeft.Control = lblStructsize
+          AnchorSideTop.Control = lblStructsize
+          AnchorSideTop.Side = asrBottom
+          Left = 87
+          Height = 23
+          Top = 23
+          Width = 80
+          TabOrder = 0
+          Text = '4096'
+        end
+        object lblStructsize: TLabel
+          AnchorSideLeft.Control = Panel5
+          AnchorSideLeft.Side = asrBottom
+          AnchorSideTop.Control = Panel5
+          Left = 87
+          Height = 15
+          Top = 8
+          Width = 50
+          BorderSpacing.Left = 3
+          Caption = 'Structsize'
+          ParentColor = False
+        end
+        object edtAlignsize: TEdit
+          AnchorSideLeft.Control = lblAlign
+          AnchorSideTop.Control = lblAlign
+          AnchorSideTop.Side = asrBottom
+          AnchorSideRight.Control = Panel1
+          AnchorSideRight.Side = asrBottom
+          Left = 4
+          Height = 23
+          Hint = '1,2 or 4'
+          Top = 71
+          Width = 176
+          Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Right = 4
+          Enabled = False
+          TabOrder = 1
+          Text = '4'
+        end
+        object lblAlign: TLabel
+          AnchorSideTop.Side = asrBottom
+          Left = 4
+          Height = 15
+          Top = 56
+          Width = 115
+          BorderSpacing.Left = 4
+          Caption = 'element compare size'
+          Enabled = False
+          ParentColor = False
+        end
+        object Panel5: TPanel
+          AnchorSideLeft.Control = Panel1
+          AnchorSideTop.Control = Panel1
+          Left = 4
+          Height = 38
+          Top = 8
+          Width = 80
+          AutoSize = True
+          BorderSpacing.Left = 4
+          BorderSpacing.Top = 8
+          BevelOuter = bvNone
+          ClientHeight = 38
+          ClientWidth = 80
+          TabOrder = 2
+          object edtMaxLevel: TEdit
+            AnchorSideLeft.Control = Panel5
+            AnchorSideTop.Control = lblMaxLevel
+            AnchorSideTop.Side = asrBottom
+            Left = 0
+            Height = 23
+            Top = 15
+            Width = 80
+            TabOrder = 0
+            Text = '2'
+          end
+          object lblMaxLevel: TLabel
+            AnchorSideLeft.Control = Panel5
+            AnchorSideTop.Control = Panel5
+            Left = 0
+            Height = 15
+            Top = 0
+            Width = 52
+            Caption = 'Max Level'
+            ParentColor = False
+          end
+        end
+        object Panel9: TPanel
+          AnchorSideLeft.Control = Panel1
+          AnchorSideTop.Control = edtAlignsize
+          AnchorSideTop.Side = asrBottom
+          AnchorSideRight.Control = Panel1
+          AnchorSideRight.Side = asrBottom
+          Left = 0
+          Height = 39
+          Top = 94
+          Width = 184
+          Anchors = [akTop, akLeft, akRight]
+          AutoSize = True
+          BevelOuter = bvNone
+          ChildSizing.LeftRightSpacing = 8
+          ChildSizing.HorizontalSpacing = 8
+          ChildSizing.EnlargeHorizontal = crsHomogenousSpaceResize
+          ChildSizing.Layout = cclLeftToRightThenTopToBottom
+          ChildSizing.ControlsPerLine = 2
+          ClientHeight = 39
+          ClientWidth = 184
+          TabOrder = 3
+          object btnNewScan: TButton
+            AnchorSideLeft.Side = asrCenter
+            Left = 8
+            Height = 25
+            Top = 7
+            Width = 80
+            AutoSize = True
+            BorderSpacing.Top = 7
+            BorderSpacing.Bottom = 7
+            Caption = 'New Scan'
+            Constraints.MinWidth = 80
+            OnClick = miNewScanClick
+            TabOrder = 0
+            Visible = False
+          end
+          object btnScan: TButton
+            AnchorSideLeft.Side = asrCenter
+            Left = 96
+            Height = 25
+            Top = 7
+            Width = 80
+            AutoSize = True
+            BorderSpacing.Left = 7
+            BorderSpacing.Top = 7
+            BorderSpacing.Right = 4
+            BorderSpacing.Bottom = 7
+            Caption = 'Scan'
+            Constraints.MinWidth = 80
+            OnClick = btnScanClick
+            TabOrder = 1
+          end
+        end
+        object lblInfo: TLabel
+          Left = 0
+          Height = 15
+          Top = 135
+          Width = 184
+          Align = alBottom
+          Caption = 'Info'
+          ParentColor = False
+        end
+      end
+    end
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.sptr'
+    Filter = 'String pointer (*.sptr)|*.sptr'
+    Options = [ofOverwritePrompt, ofEnableSizing, ofViewDetail]
+    left = 480
+    top = 64
+  end
+  object MainMenu1: TMainMenu
+    left = 197
+    top = 168
+    object MenuItem1: TMenuItem
+      Caption = 'File'
+      object MenuItem7: TMenuItem
+        Caption = 'New Window'
+        OnClick = MenuItem7Click
+      end
+      object MenuItem4: TMenuItem
+        Caption = '-'
+      end
+      object miNewScan: TMenuItem
+        Caption = 'New scan'
+        OnClick = miNewScanClick
+      end
+      object miOpen: TMenuItem
+        Caption = 'Open'
+        OnClick = miOpenClick
+      end
+    end
+    object MenuItem5: TMenuItem
+      Caption = 'Rescan'
+      Visible = False
+      object MenuItem6: TMenuItem
+        Caption = 'Filter pointerlist'
+      end
+    end
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '.sptr'
+    Filter = 'String pointer (*.sptr)|*.sptr'
+    left = 552
+    top = 64
+  end
+  object statusupdater: TTimer
+    Enabled = False
+    Interval = 500
+    OnTimer = statusupdaterTimer
+    left = 464
+    top = 208
+  end
+  object pmPointerfile: TPopupMenu
+    left = 400
+    top = 112
+    object miClearCache: TMenuItem
+      Caption = 'Clear pointer cache'
+      OnClick = miClearCacheClick
+    end
+    object miFind: TMenuItem
+      Caption = 'Find...'
+      ShortCut = 16454
+      OnClick = miFindClick
+    end
+    object miFindNext: TMenuItem
+      Caption = 'Find Next'
+      Enabled = False
+      ShortCut = 114
+      OnClick = FindDialog1Find
+    end
+  end
+  object FindDialog1: TFindDialog
+    Width = 480
+    Height = 136
+    Options = [frDown, frHideWholeWord, frHideUpDown, frDisableUpDown, frHideEntireScope, frHidePromptOnReplace]
+    OnFind = FindDialog1Find
+    left = 268
+    top = 243
+  end
+  object pmAddressPopup: TPopupMenu
+    OnPopup = pmAddressPopupPopup
+    left = 304
+    top = 24
+    object miCut: TMenuItem
+      Caption = 'Cut'
+      ShortCut = 16472
+      OnClick = miCutClick
+    end
+    object miCopy: TMenuItem
+      Caption = 'Copy'
+      ShortCut = 16451
+      OnClick = miCopyClick
+    end
+    object miPaste: TMenuItem
+      Caption = 'Paste'
+      ShortCut = 16470
+      OnClick = miPasteClick
+    end
+    object MenuItem9: TMenuItem
+      Caption = '-'
+    end
+    object miShadow: TMenuItem
+      Caption = 'Lock'
+      ShortCut = 16460
+      OnClick = miShadowClick
+    end
+  end
+  object tRefresher: TTimer
+    OnTimer = tRefresherTimer
+    left = 325
+    top = 190
+  end
+end

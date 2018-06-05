@@ -298,10 +298,6 @@ begin
 
   if i>=fcount then exit;
 
-
-
-
-
   //find which file to use
   for j:=0 to length(files)-1 do
   begin

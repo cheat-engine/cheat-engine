@@ -62,6 +62,7 @@ type
     MenuItem26: TMenuItem;
     MenuItem27: TMenuItem;
     MenuItem28: TMenuItem;
+    MenuItem29: TMenuItem;
     miTextEncodingCodePage: TMenuItem;
     miSVCopy: TMenuItem;
     miShowRelative: TMenuItem;
@@ -289,6 +290,7 @@ type
     procedure MenuItem25Click(Sender: TObject);
     procedure MenuItem26Click(Sender: TObject);
     procedure MenuItem27Click(Sender: TObject);
+    procedure MenuItem29Click(Sender: TObject);
     procedure miAddRefClick(Sender: TObject);
     procedure miHVBackClick(Sender: TObject);
     procedure miHVFollowClick(Sender: TObject);
@@ -662,7 +664,8 @@ uses Valuechange,
   GnuAssembler,
   frmEditHistoryUnit,
   frmWatchlistUnit,
-  vmxfunctions;
+  vmxfunctions,
+  frmstructurecompareunit;
 
 
 resourcestring
@@ -1176,6 +1179,14 @@ begin
 
   frmWatchlist.UpdateContext(@lastdebugcontext);
   frmWatchlist.show;
+end;
+
+procedure TMemoryBrowser.MenuItem29Click(Sender: TObject);
+begin
+  if frmStructureCompare=nil then
+    frmStructureCompare:=tfrmStructureCompare.create(application);
+
+  frmStructureCompare.show;
 end;
 
 
