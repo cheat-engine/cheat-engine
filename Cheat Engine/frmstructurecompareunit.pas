@@ -1991,7 +1991,7 @@ begin
 
   cleanup;
 
-  //OpenPointerfile(SaveDialog1.FileName);
+  OpenPointerfile(SaveDialog1.FileName);
   {
   btnScan.caption:=rsSPSURescan;
   btnScan.tag:=1;

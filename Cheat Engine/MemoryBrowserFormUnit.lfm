@@ -1413,6 +1413,7 @@ object MemoryBrowser: TMemoryBrowser
       end
       object MenuItem29: TMenuItem
         Caption = 'Compare data/structures'
+        ShortCut = 24643
         OnClick = MenuItem29Click
       end
       object Disectwindow1: TMenuItem
