@@ -41,6 +41,7 @@ Autoassembler scriptblocks are now grouped when written to memory
 Added {$try}/{$except} to auto assembler scripts
 Added an extra tutorial/practice target
 Added cut/copy/paste context menu items to pointer offset fields in add/change address, and added a context menu to the pointer destination
+Added an automated structure compare for two groups of addresses to find ways to distinguish between them
 
 
 lua:

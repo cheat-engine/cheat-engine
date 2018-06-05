@@ -4981,13 +4981,37 @@ end;
 
 
 function TMainForm.onhelp(Command: word; Data: PtrInt; var CallHelp: boolean): boolean;
+var
+  wikipath: string;
+  wikiurl: string;
 begin
   callhelp := False;
   Result := True;
 
+  wikipath:='https://wiki.cheatengine.org/index.php';
+  wikiurl:='';
+
   if command = HELP_CONTEXT then
-    HtmlHelpA(Win32WidgetSet.AppHandle, PChar(cheatenginedir + 'cheatengine.chm'),
-      HH_HELP_CONTEXT, Data);
+  begin
+    case data of
+      1:    wikiurl:='?';
+      2:    wikiurl:='?title=Help_File:AboutLong';
+      4:    wikiurl:='?title=Tutorials:AttachToProcess';
+      11:   wikiurl:='?title=Help_File:Table_Extras';
+      12:   wikiurl:='?title=Help_File:Memory_view';
+      19:   wikiurl:='?title=Cheat_Engine:Lua';
+      1089: wikiurl:='?title=Cheat_Engine:Auto_Assembler';
+    end;
+
+
+    if wikiurl='' then //no wikilink given
+      HtmlHelpA(Win32WidgetSet.AppHandle, PChar(cheatenginedir + 'cheatengine.chm'), HH_HELP_CONTEXT, Data)
+    else
+      ShellExecute(0,'open',pchar(wikipath+wikiurl),nil,nil,SW_SHOW);
+
+  end;
+
+
 end;
 
 
@@ -9685,8 +9709,8 @@ end;
 
 procedure TMainForm.Helpindex1Click(Sender: TObject);
 begin
-
-  Application.HelpContext(1);
+  ShellExecute(0,'open','https://wiki.cheatengine.org/index.php',nil,nil,SW_SHOW);
+//  Application.HelpContext(1);
 end;
 
 procedure TMainForm.New1Click(Sender: TObject);

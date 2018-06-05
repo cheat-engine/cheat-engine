@@ -5,7 +5,7 @@ object MainForm: TMainForm
   Hint = ' '
   Top = 132
   Width = 622
-  HelpContext = 3
+  HelpContext = 1
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AllowDropFiles = True
@@ -2565,7 +2565,6 @@ object MainForm: TMainForm
       Caption = '&Help'
       object Helpindex1: TMenuItem
         Caption = 'Cheat Engine Help'
-        ShortCut = 112
         OnClick = Helpindex1Click
       end
       object miTutorial: TMenuItem
