@@ -1895,17 +1895,55 @@ begin
 end;
 
 procedure TfrmStructureCompare.miCopyClick(Sender: TObject);
-var e: TAddressEdit;
+var
+  e: TAddressEdit;
+  i: integer;
 begin
   e:=TAddressEdit(pmAddressPopup.PopupComponent);
+
+  for i:=0 to edtLF.Count-1 do
+    if TAddressEdit(edtLF[i]).Focused then
+    begin
+      e:=edtLF[i];
+      break;
+    end;
+
+  for i:=0 to edtNLF.Count-1 do
+    if TAddressEdit(edtNLF[i]).Focused then
+    begin
+      e:=edtNLF[i];
+      break;
+    end;
+
+  if e=nil then exit;
+
   if e.SelLength>0 then
     e.CopyToClipboard;
 end;
 
 procedure TfrmStructureCompare.miCutClick(Sender: TObject);
-var e: TAddressEdit;
+var
+  e: TAddressEdit;
+  i: integer;
 begin
   e:=TAddressEdit(pmAddressPopup.PopupComponent);
+
+  for i:=0 to edtLF.Count-1 do
+    if TAddressEdit(edtLF[i]).Focused then
+    begin
+      e:=edtLF[i];
+      break;
+    end;
+
+  for i:=0 to edtNLF.Count-1 do
+    if TAddressEdit(edtNLF[i]).Focused then
+    begin
+      e:=edtNLF[i];
+      break;
+    end;
+
+  if e=nil then exit;
+
   if e.SelLength>0 then
   begin
     if e.ReadOnly then
@@ -2038,8 +2076,17 @@ begin
   for i:=0 to edtLF.count-1 do
   begin
     lf[i].address:=TAddressEdit(edtLF[i]).address;
-    lf[i].shadow:=TShadow(TAddressEdit(edtLF[i]).tag).Address;
-    lf[i].shadowsize:=TShadow(TAddressEdit(edtLF[i]).tag).Size;
+    if TAddressEdit(edtLF[i]).tag<>0 then
+    begin
+      lf[i].shadow:=TShadow(TAddressEdit(edtLF[i]).tag).Address;
+      lf[i].shadowsize:=TShadow(TAddressEdit(edtLF[i]).tag).Size;
+    end
+    else
+    begin
+      lf[i].shadow:=0;
+      lf[i].shadowsize:=0;
+    end;
+
     if TAddressEdit(edtLF[i]).invalidAddress then raise exception.create('"Looking For" address '+inttostr(i+1)+' ('+TAddressEdit(edtLF[i]).text+') is not valid');
   end;
 
@@ -2047,8 +2094,16 @@ begin
   for i:=0 to edtNLF.count-1 do
   begin
     nlf[i].address:=TAddressEdit(edtNLF[i]).address;
-    nlf[i].shadow:=TShadow(TAddressEdit(edtNLF[i]).tag).Address;
-    nlf[i].shadowsize:=TShadow(TAddressEdit(edtNLF[i]).tag).Size;
+    if TAddressEdit(edtNLF[i]).tag<>0 then
+    begin
+      nlf[i].shadow:=TShadow(TAddressEdit(edtNLF[i]).tag).Address;
+      nlf[i].shadowsize:=TShadow(TAddressEdit(edtNLF[i]).tag).Size;
+    end
+    else
+    begin
+      nlf[i].shadow:=0;
+      nlf[i].shadowsize:=0;
+    end;
     if TAddressEdit(edtNLF[i]).invalidAddress then raise exception.create('"Not Looking For" address '+inttostr(i+1)+' ('+TAddressEdit(edtLF[i]).text+') is not valid');
   end;
 
@@ -2305,8 +2360,25 @@ end;
 
 procedure TfrmStructureCompare.miPasteClick(Sender: TObject);
 var e: TAddressEdit;
+  i: integer;
 begin
   e:=TAddressEdit(pmAddressPopup.PopupComponent);
+
+  for i:=0 to edtLF.Count-1 do
+    if TAddressEdit(edtLF[i]).Focused then
+    begin
+      e:=edtLF[i];
+      break;
+    end;
+
+  for i:=0 to edtNLF.Count-1 do
+    if TAddressEdit(edtNLF[i]).Focused then
+    begin
+      e:=edtNLF[i];
+      break;
+    end;
+
+  if e=nil then exit; //?
   if e.readonly then exit;
 
   if Clipboard.AsText<>'' then
@@ -2324,6 +2396,8 @@ var
   s: tshadow;
 begin
   e:=TAddressEdit(pmAddressPopup.PopupComponent);
+  if e=nil then exit;
+
   a:=e.address;
   if e.invalidAddress then exit;
 
