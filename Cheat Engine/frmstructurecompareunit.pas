@@ -2525,6 +2525,8 @@ begin
     e:=TAddressEdit(edtNLF[edtNLF.count-1]);
   end;
 
+  e.Text:=inttohex(address,8);
+
   if shadow<>0 then
   begin
     s:=tshadow.create;
