@@ -11171,7 +11171,6 @@ begin
                     end;
 
                 7:  begin
-                      //and
                       lastdisassembledata.opcode:='cmp';
                       lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last,8);
                       lastdisassembledata.parametervaluetype:=dvtvalue;
@@ -15131,7 +15130,7 @@ begin
     if riprelative then
     begin
       //add the current offset to the code between []
-      LastDisassembleData.modrmValue:=offset+ptrint(LastDisassembleData.modrmValue); //sign extended increase
+      LastDisassembleData.modrmValue:=offset+ptrint(integer(LastDisassembleData.modrmValue)); //sign extended increase
 
       i:=pos('[',LastDisassembleData.parameters);
       j:=PosEx(']',LastDisassembleData.parameters,i);
@@ -15528,12 +15527,12 @@ begin
     if (LastDisassembleData.modrmValueType=dvtAddress) or (LastDisassembleData.parameterValueType<>dvtNone) then
     begin
       a:=false;
-      if LastDisassembleData.modrmValueType=dvtAddress then
-        value:=LastDisassembleData.modrmValue
+
+      if LastDisassembleData.parameterValueType<>dvtNone then
+        value:=LastDisassembleData.parameterValue
       else
-      begin
-        value:=LastDisassembleData.parameterValue;
-      end;
+      if LastDisassembleData.modrmValueType<>dvtNone then
+        value:=LastDisassembleData.modrmValue;
 
       if isAddress(value) then
       begin
