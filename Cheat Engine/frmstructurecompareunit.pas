@@ -67,6 +67,7 @@ type
 
     pointermap: TMap;
     ffilename: string;
+    fhexadecimal: boolean;
 
     function getByteFromAddress(address: ptruint; var error: boolean): byte;
     function getWordFromAddress(address: ptruint; var error: boolean): word;
@@ -90,6 +91,7 @@ type
     property levelWidth: integer read pointerfileLevelwidth;
     property count: qword read fcount;
     property filename: string read ffilename;
+    property hexadecimal: boolean read fhexadecimal write fhexadecimal;
   end;
 
   TAddressWithShadow=record
@@ -247,6 +249,7 @@ type
     btnAddAddressNLF: TButton;
     btnNewScan: TButton;
     btnScan: TButton;
+    cbHexadecimal: TCheckBox;
     comboType: TComboBox;
     edtAlignsize: TEdit;
     edtMaxLevel: TEdit;
@@ -296,6 +299,7 @@ type
     tRefresher: TTimer;
     procedure btnAddAddressClick(Sender: TObject);
     procedure btnScanClick(Sender: TObject);
+    procedure cbHexadecimalChange(Sender: TObject);
     procedure comboTypeChange(Sender: TObject);
     procedure FindDialog1Find(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -348,6 +352,7 @@ type
     edtLF: TList;
     edtNLF: TList;
 
+    donotfreeonclose: boolean;
     procedure disableGui;
     procedure enablegui;
     procedure addAddress(address: ptruint; shadow: qword; shadowsize: integer; group: integer);
@@ -561,10 +566,10 @@ begin
     begin
       e:=false;
       case vartype of
-        vtByte: result:=inttostr(getByteFromAddress(address,e));
-        vtWord: result:=inttostr(getWordFromAddress(address,e));
-        vtDword: result:=inttostr(getDwordFromAddress(address,e));
-        vtQword: result:=inttostr(getQwordFromAddress(address,e));
+        vtByte: if fhexadecimal then result:=inttohex(getByteFromAddress(address,e),2) else result:=inttostr(getByteFromAddress(address,e));
+        vtWord: if fhexadecimal then result:=inttohex(getWordFromAddress(address,e),4) else result:=inttostr(getWordFromAddress(address,e));
+        vtDword: if fhexadecimal then result:=inttohex(getDwordFromAddress(address,e),8) else result:=inttostr(getDwordFromAddress(address,e));
+        vtQword: if fhexadecimal then result:=inttohex(getQwordFromAddress(address,e),16) else result:=inttostr(getQwordFromAddress(address,e));
         vtSingle: result:=format('%.3f',[getSingleFromAddress(address,e)]);
         vtDouble: result:=format('%.3f',[getDoubleFromAddress(address,e)]);
         vtPointer: result:=IntToHex(getPointerFromAddress(address,e), processhandler.pointersize*2);
@@ -1778,6 +1783,7 @@ begin
 
   pointerfilereader:=TPointerfileReader.Create(filename);
   comboType.OnChange(comboType);
+  cbHexadecimal.OnChange(cbHexadecimal);
 
   reloadlistviewcolumns;
 
@@ -1990,6 +1996,12 @@ begin
   btncancel.OnClick:=btnCancelClick;
 end;
 
+procedure TfrmStructureCompare.cbHexadecimalChange(Sender: TObject);
+begin
+  if pointerfilereader<>nil then
+    pointerfilereader.hexadecimal:=cbHexadecimal.checked;
+end;
+
 procedure TfrmStructureCompare.reloadlistviewcolumns;
 var
   nr: integer;
@@ -2138,6 +2150,8 @@ end;
 procedure TfrmStructureCompare.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
   cleanup;
+
+  if donotfreeonclose then exit;
 
   if self<>frmStructureCompare then closeaction:=cafree;
 end;

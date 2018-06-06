@@ -11,7 +11,7 @@ object frmChangedAddresses: TfrmChangedAddresses
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object lblInfo: TLabel
     Left = 0
     Height = 15
@@ -101,6 +101,7 @@ object frmChangedAddresses: TfrmChangedAddresses
     ViewStyle = vsReport
     OnColumnClick = ChangedlistColumnClick
     OnCompare = ChangedlistCompare
+    OnCustomDrawItem = ChangedlistCustomDrawItem
     OnDblClick = ChangedlistDblClick
   end
   object Timer1: TTimer
@@ -127,6 +128,33 @@ object frmChangedAddresses: TfrmChangedAddresses
       Caption = 'Open dissect data with selected addresses'
       ShortCut = 16452
       OnClick = miDissectClick
+    end
+    object miCommonalitiesSubgroup: TMenuItem
+      Caption = 'Find commonalities between addresses'
+      object miMarkAsGroup1: TMenuItem
+        Tag = 1
+        Caption = 'Mark selection as group 1'
+        OnClick = miMarkAsGroupClick
+      end
+      object miMarkAsGroup2: TMenuItem
+        Tag = 2
+        Caption = 'Mark selection as group 2 (Nothing means everything else)'
+        OnClick = miMarkAsGroupClick
+      end
+      object MenuItem7: TMenuItem
+        Caption = '-'
+      end
+      object miGroupClear: TMenuItem
+        Caption = 'Clear Selection'
+        OnClick = miGroupClearClick
+      end
+      object MenuItem8: TMenuItem
+        Caption = '-'
+      end
+      object miScanForCommonalities: TMenuItem
+        Caption = 'Scan for commonalities'
+        OnClick = miScanForCommonalitiesClick
+      end
     end
     object micbShowAsHexadecimal: TMenuItem
       AutoCheck = True

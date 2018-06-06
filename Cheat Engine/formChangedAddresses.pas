@@ -21,6 +21,8 @@ type
     end;
     count: integer;
 
+    group: integer;
+
     procedure savestack;
     destructor destroy; override;
   end;
@@ -32,6 +34,13 @@ type
     lblInfo: TLabel;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
+    miCommonalitiesSubgroup: TMenuItem;
+    miMarkAsGroup1: TMenuItem;
+    miMarkAsGroup2: TMenuItem;
+    miScanForCommonalities: TMenuItem;
+    MenuItem7: TMenuItem;
+    MenuItem8: TMenuItem;
+    miGroupClear: TMenuItem;
     miResetCount: TMenuItem;
     miDeleteSelectedEntries: TMenuItem;
     miCopyToAddresslist: TMenuItem;
@@ -48,11 +57,16 @@ type
     procedure ChangedlistColumnClick(Sender: TObject; Column: TListColumn);
     procedure ChangedlistCompare(Sender: TObject; Item1, Item2: TListItem;
       Data: Integer; var Compare: Integer);
+    procedure ChangedlistCustomDrawItem(Sender: TCustomListView;
+      Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
     procedure MenuItem1Click(Sender: TObject);
+    procedure miGroupClearClick(Sender: TObject);
+    procedure miMarkAsGroupClick(Sender: TObject);
     procedure miDeleteSelectedEntriesClick(Sender: TObject);
     procedure micbShowAsHexadecimalClick(Sender: TObject);
     procedure miDissectClick(Sender: TObject);
     procedure miResetCountClick(Sender: TObject);
+    procedure miScanForCommonalitiesClick(Sender: TObject);
     procedure OKButtonClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormShow(Sender: TObject);
@@ -84,13 +98,17 @@ implementation
 
 uses CEDebugger, MainUnit, frmRegistersunit, MemoryBrowserFormUnit, debughelper,
   debugeventhandler, debuggertypedefinitions, FoundCodeUnit, StructuresFrm2,
-  processhandlerunit, Globals, Parsers, frmStackViewUnit, frmSelectionlistunit;
+  processhandlerunit, Globals, Parsers, frmStackViewUnit, frmSelectionlistunit,
+  frmChangedAddressesCommonalityScannerUnit;
 
 resourcestring
   rsStop='Stop';
   rsClose='Close';
   rsNoDescription = 'No Description';
   rsChangedAddressesBy = 'Changed Addresses by %x';
+  rsDesignateSomeAddresses = 'Please designate a group to at least some '
+    +'addresses';
+  rsNoAddressesLeftForGroup = 'There are no addresses left for group %d';
 
 destructor TAddressEntry.destroy;
 begin
@@ -374,6 +392,38 @@ begin
   end;
 end;
 
+procedure TfrmChangedAddresses.ChangedlistCustomDrawItem(
+  Sender: TCustomListView; Item: TListItem; State: TCustomDrawState;
+  var DefaultDraw: Boolean);
+
+var
+  e: TAddressEntry;
+  i: integer;
+begin
+  i:=item.index;
+  if tobject(item.Data) is TAddressEntry then
+  begin
+    e:=TAddressEntry(item.data);
+
+
+    case e.group of
+      1: sender.Canvas.Font.color:=clBlue;
+      2: sender.Canvas.Font.color:=clRed;
+      else
+        sender.Canvas.Font.color:=clDefault;
+    end;
+  end
+  else
+  begin
+    asm
+    nop
+    end;
+  end;
+
+  DefaultDraw:=true;
+end;
+
+
 procedure TfrmChangedAddresses.MenuItem1Click(Sender: TObject);
 var
   list: Tstringlist;
@@ -386,6 +436,34 @@ begin
 
   clipboard.AsText:=list.text;
   list.free;
+end;
+
+procedure TfrmChangedAddresses.miGroupClearClick(Sender: TObject);
+var
+  i: integer;
+  e: TAddressEntry;
+begin
+  for i:=0 to Changedlist.Items.count-1 do
+  begin
+    e:=TAddressEntry(changedlist.items[i].Data);
+    e.group:=0;
+  end;
+end;
+
+procedure TfrmChangedAddresses.miMarkAsGroupClick(Sender: TObject);
+var
+  i: integer;
+  e: TAddressEntry;
+begin
+  for i:=0 to Changedlist.Items.count-1 do
+    if changedlist.items[i].Selected then
+    begin
+      e:=TAddressEntry(changedlist.items[i].Data);
+
+      e.group:=tmenuitem(sender).tag;
+    end;
+
+  changedlist.Refresh;
 end;
 
 procedure TfrmChangedAddresses.miResetCountClick(Sender: TObject);
@@ -402,6 +480,72 @@ begin
   refetchValues;
 end;
 
+procedure TfrmChangedAddresses.miScanForCommonalitiesClick(Sender: TObject);
+var
+  i,j: integer;
+  g0: array of TAddressEntry;
+  g1: array of TAddressEntry;
+  g2: array of TAddressEntry;
+  e: TAddressEntry;
+
+
+
+  f:TfrmChangedAddressesCommonalityScanner;
+begin
+  setlength(g0,0);
+  setlength(g1,0);
+  setlength(g2,0);
+
+  for i:=0 to changedlist.items.Count-1 do
+  begin
+    e:=TAddressEntry(changedlist.items[i].data);
+    case e.group of
+      0:
+      begin
+        setlength(g0,length(g0)+1);
+        g0[length(g0)-1]:=e;
+      end;
+
+      1:
+      begin
+        setlength(g1,length(g1)+1);
+        g1[length(g1)-1]:=e;
+      end;
+
+      2:
+      begin
+        setlength(g2,length(g2)+1);
+        g2[length(g2)-1]:=e;
+      end;
+
+      else raise exception.create('Invalid groups');
+    end;
+  end;
+
+  if (length(g1)=0) and (length(g2)=0) then raise exception.create(rsDesignateSomeAddresses);
+
+  if (length(g1)>0) and (length(g2)=0) then
+  begin
+    if length(g0)=0 then raise exception.create(format(rsNoAddressesLeftForGroup, [1]));
+    g2:=g0;
+  end
+  else
+  if (length(g1)=0) and (length(g2)>0) then
+  begin
+    if length(g0)=0 then raise exception.create(format(rsNoAddressesLeftForGroup, [1]));
+    g2:=g0;
+  end;
+
+  //process g1 and g2
+
+  f:=TfrmChangedAddressesCommonalityScanner.Create(application); //don't destroy when you close this window
+  f.setgroup(1, g1);
+  f.setgroup(2, g2);
+  f.show;
+
+  f.initlist;
+end;
+
 procedure TfrmChangedAddresses.miDeleteSelectedEntriesClick(Sender: TObject);
 var
   i: integer;
@@ -411,7 +555,8 @@ begin
   begin
     if MessageDlg('Delete addresses', 'Are you sure you wish to delete these entries(s)?', mtConfirmation, [mbyes,mbno],0) = mryes then
     begin
-      for i:=changedlist.items.Count-1 downto 0 do
+      i:=0;
+      while i<changedlist.items.Count do
       begin
         if changedlist.items[i].Selected then
         begin
@@ -423,8 +568,11 @@ begin
           if ae<>nil then
             ae.free;
 
+          changedlist.Items[i].data:=nil;
           changedlist.Items[i].Delete;
-        end;
+        end
+        else
+          inc(i);
       end;
     end;
   end;

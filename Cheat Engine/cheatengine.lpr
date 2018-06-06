@@ -95,7 +95,8 @@ uses
   bCrypt, feces, askToRunLuaScript, frmDBVMWatchConfigUnit,
   frmStructuresNewStructureUnit, frmDotNetObjectListUnit, vextypedef,
   frmFindDialogUnit, frmRearrangeStructureListUnit,
-  autoassemblerexeptionhandler, frmstructurecompareunit, addressedit;
+  autoassemblerexeptionhandler, frmstructurecompareunit, addressedit, 
+frmChangedAddressesCommonalityScannerUnit;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in

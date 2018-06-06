@@ -65,35 +65,36 @@ object frmStructureCompare: TfrmStructureCompare
         AnchorSideBottom.Control = Panel3
         AnchorSideBottom.Side = asrBottom
         Left = 565
-        Height = 46
-        Top = 104
+        Height = 57
+        Top = 93
         Width = 124
         Anchors = [akLeft, akBottom]
         AutoSize = True
         BorderSpacing.Left = 8
         BevelOuter = bvNone
-        ClientHeight = 46
+        ClientHeight = 57
         ClientWidth = 124
         TabOrder = 2
         object lblvds: TLabel
+          AnchorSideLeft.Control = Panel7
+          AnchorSideTop.Control = Panel7
           Left = 0
           Height = 15
-          Top = 8
+          Top = 0
           Width = 108
-          BorderSpacing.Top = 8
           Caption = 'Variable display type'
           ParentColor = False
         end
         object comboType: TComboBox
+          AnchorSideLeft.Control = Panel7
           AnchorSideTop.Control = lblvds
           AnchorSideTop.Side = asrBottom
           AnchorSideRight.Control = Panel7
           AnchorSideRight.Side = asrBottom
           Left = 0
           Height = 23
-          Top = 23
+          Top = 15
           Width = 124
-          Anchors = [akTop, akRight]
           ItemHeight = 15
           ItemIndex = 4
           Items.Strings = (
@@ -111,6 +112,18 @@ object frmStructureCompare: TfrmStructureCompare
           Style = csDropDownList
           TabOrder = 0
           Text = '4 Bytes'
+        end
+        object cbHexadecimal: TCheckBox
+          AnchorSideLeft.Control = comboType
+          AnchorSideTop.Control = comboType
+          AnchorSideTop.Side = asrBottom
+          Left = 0
+          Height = 19
+          Top = 38
+          Width = 88
+          Caption = 'Hexadecimal'
+          OnChange = cbHexadecimalChange
+          TabOrder = 1
         end
       end
       object gbLF: TGroupBox
@@ -413,7 +426,7 @@ object frmStructureCompare: TfrmStructureCompare
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.sptr'
-    Filter = 'String pointer (*.sptr)|*.sptr'
+    Filter = 'Structure pointer (*.sptr)|*.sptr'
     Options = [ofOverwritePrompt, ofEnableSizing, ofViewDetail]
     left = 480
     top = 64
@@ -449,7 +462,7 @@ object frmStructureCompare: TfrmStructureCompare
   end
   object OpenDialog1: TOpenDialog
     DefaultExt = '.sptr'
-    Filter = 'String pointer (*.sptr)|*.sptr'
+    Filter = 'Structure pointer (*.sptr)|*.sptr'
     left = 552
     top = 64
   end
