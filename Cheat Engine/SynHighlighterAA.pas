@@ -319,6 +319,7 @@ type
     function Func123: TtkTokenKind; //aobscanregion
     function Func124: TtkTokenKind; //endstruct
     function Func125: TtkTokenKind; //aobscanmodule
+    function Func180: TtkTokenKind; //createthreadandwait
     function Func187: TtkTokenKind; //registersymbol
     function Func222: TtkTokenKind; //unregistersymbol
 
@@ -534,6 +535,7 @@ begin
   fIdentFuncTable[123] := {$IFDEF FPC}@{$ENDIF}Func123;
   fIdentFuncTable[124] := {$IFDEF FPC}@{$ENDIF}Func124;
   fIdentFuncTable[125] := {$IFDEF FPC}@{$ENDIF}Func125;
+  fIdentFuncTable[180] := {$IFDEF FPC}@{$ENDIF}Func180;
   fIdentFuncTable[187] := {$IFDEF FPC}@{$ENDIF}Func187;
   fIdentFuncTable[222] := {$IFDEF FPC}@{$ENDIF}Func222;
 end;
@@ -988,6 +990,12 @@ end;
 function TSynAASyn.Func125: TtkTokenKind; //aobscanmodule
 begin
   if KeyComp('aobscanmodule') then Result := tkKey else
+    Result := tkIdentifier;
+end;
+
+function TSynAASyn.Func180: TtkTokenKind; //createthreadandwait
+begin
+  if KeyComp('createthreadandwait') then Result := tkKey else
     Result := tkIdentifier;
 end;
 

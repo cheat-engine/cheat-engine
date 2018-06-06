@@ -5,13 +5,39 @@ unit DPIHelper;
 interface
 
 uses
-  Classes, SysUtils, Buttons, Graphics, forms;
+  Windows, Classes, SysUtils, Buttons, Graphics, forms, StdCtrls;
 
 procedure AdjustSpeedButtonSize(sb: TSpeedButton);
+procedure AdjustComboboxSize(cb: TComboBox; canvas: TCanvas);
 
 implementation
 
 uses globals;
+
+procedure AdjustComboboxSize(cb: TComboBox; canvas: TCanvas);
+var
+  cbi: TComboboxInfo;
+  i: integer;
+  s: string;
+  maxwidth: integer;
+begin
+  maxwidth:=0;
+  for i:=0 to cb.Items.Count-1 do
+  begin
+    s:=cb.Items[i];
+    maxwidth:=max(maxwidth, Canvas.TextWidth(s));
+  end;
+
+  cbi.cbSize:=sizeof(cbi);
+  if GetComboBoxInfo(cb.Handle, @cbi) then
+  begin
+    i:=maxwidth-(cbi.rcItem.Right-cbi.rcItem.Left)+4;
+
+    cb.width:=cb.width+i;
+  end
+  else
+    cb.width:=maxwidth+16;
+end;
 
 procedure AdjustSpeedButtonSize(sb: TSpeedButton);
 const

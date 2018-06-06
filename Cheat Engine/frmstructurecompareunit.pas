@@ -281,6 +281,7 @@ type
     Panel1: TPanel;
     Panel2: TPanel;
     Panel3: TPanel;
+    Panel4: TPanel;
     Panel5: TPanel;
     Panel9: TPanel;
     pnlNLF: TPanel;
@@ -299,6 +300,7 @@ type
     procedure FindDialog1Find(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure gbNFLClick(Sender: TObject);
     procedure ListView1CustomDrawSubItem(Sender: TCustomListView;
@@ -325,6 +327,7 @@ type
     rescanner: TStructCompareRescan;
     pointerfilereader: TPointerfilereader;
 
+    btncancel: TButton;
 
     function mapCompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
     function pointerCompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
@@ -338,11 +341,13 @@ type
     procedure setGUIStateEnabled(state: boolean);
     procedure reloadlistviewcolumns;
     procedure AddressEditChange(Sender: TObject);
+    procedure btnCancelClick(sender: TObject);
   public
     { public declarations }
 
     edtLF: TList;
     edtNLF: TList;
+
     procedure disableGui;
     procedure enablegui;
     procedure addAddress(address: ptruint; shadow: qword; shadowsize: integer; group: integer);
@@ -360,7 +365,7 @@ implementation
 { TfrmStructureCompare }
 
 uses frmStructPointerRescanUnit, MemoryBrowserFormUnit, ProcessHandlerUnit,
-  Parsers, addressedit, PointerscanresultReader;
+  Parsers, addressedit, PointerscanresultReader, DPIHelper;
 
 
 resourcestring
@@ -1801,7 +1806,14 @@ begin
   cleanup;
   beep;
 
+  btnScan.Visible:=true;
+  btnNewScan.Visible:=true;
+
   OpenPointerfile(SaveDialog1.FileName);
+
+  if btncancel<>nil then
+    freeandnil(btncancel);
+
   EnableGui;
   beep;
 end;
@@ -1815,11 +1827,15 @@ begin
 
   OpenPointerfile(SaveDialog1.FileName);
 
+  btnScan.visible:=true;
   btnScan.caption:=rsSPSURescan;
   btnScan.tag:=1;
 
   btnNewScan.visible:=true;
   btnNewScan.enabled:=true;
+
+  if btncancel<>nil then
+    freeandnil(btncancel);
 
   EnableGui;
   beep;
@@ -1861,6 +1877,17 @@ begin
 
   if pointerfilereader<>nil then
     freeandnil(pointerfilereader);
+end;
+
+procedure TfrmStructureCompare.btnCancelClick(sender: TObject);
+begin
+  if scanner<>nil then
+    scanner.Terminate;
+
+  if rescanner<>nil then
+    rescanner.terminate;
+
+  btncancel.enabled:=false;
 end;
 
 procedure TfrmStructureCompare.btnScanClick(Sender: TObject);
@@ -1952,6 +1979,15 @@ begin
     scanner:=TStructCompareController.create(alignsize, lf,nlf, structsize, maxlevel, savedialog1.filename, self);
     statusupdater.enabled:=true;
   end;
+
+  btnscan.visible:=false;
+  btnNewScan.visible:=false;
+
+  btncancel:=TButton.create(self);
+  btncancel.parent:=panel9;
+  btncancel.caption:=rsStop;
+  btncancel.AutoSize:=true;
+  btncancel.OnClick:=btnCancelClick;
 end;
 
 procedure TfrmStructureCompare.reloadlistviewcolumns;
@@ -2112,6 +2148,12 @@ begin
   edtNLF:=Tlist.create;
 end;
 
+procedure TfrmStructureCompare.FormDestroy(Sender: TObject);
+begin
+  edtLF.free;
+  edtNLF.free;
+end;
+
 procedure TfrmStructureCompare.FormShow(Sender: TObject);
 begin
   //panel1.Constraints.MinHeight:=btnNewScan.Top+btnNewScan.Height+lblInfo.Height+4;
@@ -2120,6 +2162,8 @@ begin
 
   if edtNLF.count=0 then
     btnAddAddressNLF.click;
+
+  AdjustComboboxSize(comboType, canvas);
 end;
 
 procedure TfrmStructureCompare.gbNFLClick(Sender: TObject);
@@ -2342,6 +2386,7 @@ begin
   lblvds.enabled:=state;
   comboType.enabled:=state;
 
+  btnNewScan.enabled:=state;
   btnScan.enabled:=state;
 end;
 
