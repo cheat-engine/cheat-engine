@@ -2000,6 +2000,8 @@ procedure TfrmStructureCompare.cbHexadecimalChange(Sender: TObject);
 begin
   if pointerfilereader<>nil then
     pointerfilereader.hexadecimal:=cbHexadecimal.checked;
+
+  listview1.Refresh;
 end;
 
 procedure TfrmStructureCompare.reloadlistviewcolumns;
