@@ -383,6 +383,7 @@ resourcestring
   rsSPSUFound = 'Found:';
   rsSPSUScanDoneFound = 'Scan done! Found ';
   rsSPSUErrorduringScanNoScanresults = 'Error during scan. No scanresults available';
+  rsInvalidGroup = 'Group %d address %s (%s) is not valid';
 //----------TPointerfileReader---------
 
 
@@ -1904,7 +1905,7 @@ begin
       lf[i].shadowsize:=0;
     end;
 
-    if TAddressEdit(edtLF[i]).invalidAddress then raise exception.create('"Looking For" address '+inttostr(i+1)+' ('+TAddressEdit(edtLF[i]).text+') is not valid');
+    if TAddressEdit(edtLF[i]).invalidAddress then raise exception.create(Format(rsInvalidGroup, [1, inttostr(i+1), TAddressEdit(edtLF[i]).text]));
   end;
 
   setlength(NLF, edtNLF.count);
@@ -1921,7 +1922,7 @@ begin
       nlf[i].shadow:=0;
       nlf[i].shadowsize:=0;
     end;
-    if TAddressEdit(edtNLF[i]).invalidAddress then raise exception.create('"Not Looking For" address '+inttostr(i+1)+' ('+TAddressEdit(edtLF[i]).text+') is not valid');
+    if TAddressEdit(edtNLF[i]).invalidAddress then raise exception.create(Format(rsInvalidGroup, [2, inttostr(i+1), TAddressEdit(edtNLF[i]).text]));
   end;
 
   maxlevel:=strtoint(edtMaxLevel.text);
