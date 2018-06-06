@@ -1181,7 +1181,7 @@ begin
       begin
         //make it a relative address in the shadow copy
         a:=(a-NotLookingForShadowList[i].address)+NotLookingForShadowList[i].shadow;
-        if readMemory(a, memoryblockLF[i], blocksize)=false then
+        if readMemory(a, memoryblockNLF[i], blocksize)=false then
         begin
           inc(pos,alignment);
           continue;
