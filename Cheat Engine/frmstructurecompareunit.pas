@@ -384,6 +384,7 @@ resourcestring
   rsSPSUScanDoneFound = 'Scan done! Found ';
   rsSPSUErrorduringScanNoScanresults = 'Error during scan. No scanresults available';
   rsInvalidGroup = 'Group %d address %s (%s) is not valid';
+  rsTooSmallAlign = 'Alignsize must be greater than 0';
 //----------TPointerfileReader---------
 
 
@@ -1883,7 +1884,7 @@ var baseaddress: ptruint;
   LF: array of TAddressWithShadow;
   NLF: array of TAddressWithShadow;
 begin
-  if savedialog1.execute=false then exit;
+
   if pointerfilereader<>nil then
     oldpointerfile:=pointerfilereader.filename
   else
@@ -1930,6 +1931,11 @@ begin
   alignsize:=strtoint(edtAlignsize.text);
 
   vartype:=vtPointer;
+
+  if alignsize<=0 then raise exception.create(rsTooSmallAlign);
+
+  if savedialog1.execute=false then exit;
+
 
   cleanup;
   disableGui;
