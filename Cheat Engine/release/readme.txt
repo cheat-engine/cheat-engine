@@ -26,7 +26,7 @@ Mono instances window is now a treeview where you can see the fields and values
 "find what addresses this code accesses" can also be used on RET instructions now (useful to find callers)
 The graphical memory view now has a lot more options to set it just the way you need
 Codepage support in hexview
-structure data from PDB files is now stored in a database for lookup later
+structure data from PDB files can now be used, and are stored in a database for lookup later
 dissect structures form can now show a list of known structures (pdb, mono, ...)
 Added a "revert to saved scan" option  (lets you undo changes)
 Added a "forgot scan" option (in case you forgot what you're doing)

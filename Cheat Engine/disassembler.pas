@@ -15528,6 +15528,8 @@ begin
     begin
       a:=false;
 
+      value:=0;
+
       if LastDisassembleData.parameterValueType<>dvtNone then
         value:=LastDisassembleData.parameterValue
       else

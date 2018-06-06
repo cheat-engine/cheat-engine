@@ -109,54 +109,47 @@ type
   end;
 
 
+  TfrmStructureCompare=class;
   TStructCompareRescan=class(tthread)
   private
+    LFList: TAddressWithShadowList;
+    NLFList: TAddressWithShadowList;
+
     outputfile: tfilestream;
-    isstringscan: boolean;
-    mustbestart: boolean;
-    regEx: TRegExprEngine;
-    diffkind: TDiffkind;
     pointerfilereader: TPointerfileReader;
 
-    address, address2: ptruint;
-    shadow, shadow2: ptruint;
-    shadowsize, shadowsize2: integer;
-
-    mustbeinregion: boolean;
-    pointerstart, pointerend: ptruint;
     outputfilename: string;
     oldpointerfilename: string;
 
     results: TMemorystream;
     fcount: qword;
     fCurrentPosition: qword;
+    fMaxPosition: qword;
 
-    vartype: TVariableType;
-    lastwrite: dword;
+    lastwrite: qword;
 
-    ownerFrmStringPointerScan: TCustomForm;
+    ownerFrmStructureCompare: TfrmStructureCompare;
+    comparesize: integer;
 
     procedure addPointer(p: PPointerRecord);
     procedure flushresults;
 
-    function checkByte(p: PPointerRecord): boolean;
-    function checkWord(p: PPointerRecord): boolean;
-    function checkDWord(p: PPointerRecord): boolean;
-    function checkQWord(p: PPointerRecord): boolean;
-    function checkSingle(p: PPointerRecord): boolean;
-    function checkDouble(p: PPointerRecord): boolean;
-    function checkPointer(p: PPointerRecord): boolean;
+
 
   public
+    progressbar: TProgressBar;
+    errorstring:string;
+
     procedure execute; override;
-    constructor create(suspended: boolean; address, address2: ptruint; mustbeinregion: boolean; pointerstart, pointerend: ptruint; isstringscan, caseSensitive, mustbestart: boolean; regExstr: string; diffkind: TDiffkind; vartype: TVariableType; oldpointerfilename: string; outputfilename: string; ownerFrmStringPointerScan: TCustomForm );
+    constructor create(comparesize: integer; const LFL: TAddressWithShadowList; const NLFL: TAddressWithShadowList; oldpointerfilename: string; outputfilename: string; ownerFrmStructureCompare: TfrmStructureCompare );
     destructor destroy; override;
     property count: qword read fcount;
     property currentPosition: qword read fCurrentPosition;
+    property maxPosition: qword read fMaxPosition;
   end;
 
 
-  TfrmStructureCompare=class;
+
   TStructCompareController=class;
 
   TStructCompareScanner=class(TThread)
@@ -330,11 +323,13 @@ type
     rescanner: TStructCompareRescan;
     pointerfilereader: TPointerfilereader;
 
+
     function mapCompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
     function pointerCompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
     procedure cleanup;
     procedure OpenPointerfile(filename: string);
     procedure scanDone;
+    procedure rescanDone;
     procedure scanError;
 
     function getStringFromPointer(address: ptruint; offsets: TDwordArray; level, bytesize: integer; unicode: boolean; var a: ptruint): string;
@@ -694,6 +689,7 @@ begin
 end;
 
 destructor TPointerfileReader.destroy;
+var i: integer;
 begin
   if pointerrecords<>nil then
     freemem(pointerrecords);
@@ -703,6 +699,14 @@ begin
 
   if pointermap<>nil then
     freeandnil(pointermap);
+
+  for i:=0 to length(files)-1 do
+  begin
+    if files[i].f<>nil then
+      freeandnil(files[i].f);
+  end;
+
+  setlength(files,0);
 
   //cleanup the maps
   inherited destroy;
@@ -723,446 +727,218 @@ begin
   inc(fcount);
   results.WriteBuffer(p^, pointerfilereader.entrysize);
 
-  if ((gettickcount-lastwrite)>5*60*1000) or (results.Position>=(15*1024*1024)) then
+  if ((gettickcount64-lastwrite)>5*60*1000) or (results.Position>=(15*1024*1024)) then
     flushResults;
 end;
 
-function TStructCompareRescan.checkByte(p: PPointerRecord): boolean;
-var error: boolean;
-  a: ptruint;
-  v,v2: byte;
-begin
-  result:=false;
-  a:=pointerfilereader.getAddressFromPointerRecord(p, address, shadow, shadowsize);
-  if (a<>0) and ((not mustbeinregion) or (InRangeX(a, pointerstart, pointerend)))  then
-  begin
-    v:=pointerfilereader.getByteFromAddress(a, error);
-    result:=not error;
-
-
-    if result and (address2<>0) then
-    begin
-      a:=pointerfilereader.getAddressFromPointerRecord(p, address2, shadow2, shadowsize2);
-      if a<>0 then
-      begin
-        v2:=pointerfilereader.getByteFromAddress(a, error);
-        result:=not error;
-
-        if result and (diffkind<>dkDontcare) then
-        begin
-          if diffkind=dkMustBeDifferent then
-            result:=v<>v2
-          else
-            result:=v=v2; //must be equal
-        end;
-
-      end
-      else
-        result:=false;
-    end;
-  end;
-end;
-
-function TStructCompareRescan.checkWord(p: PPointerRecord): boolean;
-var error: boolean;
-  a: ptruint;
-  v,v2: word;
-begin
-  result:=false;
-  a:=pointerfilereader.getAddressFromPointerRecord(p, address, shadow, shadowsize);
-  if (a<>0) and ((not mustbeinregion) or (InRangeX(a, pointerstart, pointerend)))  then
-  begin
-    v:=pointerfilereader.getWordFromAddress(a, error);
-    result:=not error;
-
-    if result and (address2<>0) then
-    begin
-      a:=pointerfilereader.getAddressFromPointerRecord(p, address2, shadow2, shadowsize2);
-      if a<>0 then
-      begin
-        v2:=pointerfilereader.getWordFromAddress(a, error);
-        result:=not error;
-
-        if result and (diffkind<>dkDontCare) then
-        begin
-          if diffkind=dkMustBeDifferent then
-            result:=v<>v2
-          else
-            result:=v=v2; //must be equal
-        end;
-
-      end
-      else
-        result:=false;
-    end;
-  end;
-end;
-
-function TStructCompareRescan.checkDWord(p: PPointerRecord): boolean;
-var error: boolean;
-  a: ptruint;
-  v,v2: Dword;
-begin
-  result:=false;
-  a:=pointerfilereader.getAddressFromPointerRecord(p, address, shadow, shadowsize);
-  if (a<>0) and ((not mustbeinregion) or (InRangeX(a, pointerstart, pointerend)))  then
-  begin
-    v:=pointerfilereader.getDwordFromAddress(a, error);
-    result:=not error;
-
-    if result and (address2<>0) then
-    begin
-      a:=pointerfilereader.getAddressFromPointerRecord(p, address2, shadow2, shadowsize2);
-      if a<>0 then
-      begin
-        v2:=pointerfilereader.getDwordFromAddress(a, error);
-        result:=not error;
-
-        if result and (diffkind<>dkDontCare) then
-        begin
-          if diffkind=dkMustBeDifferent then
-            result:=v<>v2
-          else
-            result:=v=v2; //must be equal
-        end;
-
-      end
-      else
-        result:=false;
-    end;
-  end;
-end;
-
-function TStructCompareRescan.checkQWord(p: PPointerRecord): boolean;
-var error: boolean;
-  a: ptruint;
-  v,v2: Qword;
-begin
-  result:=false;
-  a:=pointerfilereader.getAddressFromPointerRecord(p, address, shadow, shadowsize);
-  if (a<>0) and ((not mustbeinregion) or (InRangeX(a, pointerstart, pointerend)))  then
-  begin
-    v:=pointerfilereader.getQwordFromAddress(a, error);
-    result:=not error;
-
-    if result and (address2<>0) then
-    begin
-      a:=pointerfilereader.getAddressFromPointerRecord(p, address2, shadow2, shadowsize2);
-      if a<>0 then
-      begin
-        v2:=pointerfilereader.getQwordFromAddress(a, error);
-        result:=not error;
-
-        if result and (diffkind<>dkDontCare) then
-        begin
-          if diffkind=dkMustBeDifferent then
-            result:=v<>v2
-          else
-            result:=v=v2; //must be equal
-        end;
-
-      end
-      else
-        result:=false;
-    end;
-  end;
-end;
-
-function TStructCompareRescan.checkSingle(p: PPointerRecord): boolean;
-var error: boolean;
-  a: ptruint;
-  v,v2: Single;
-begin
-  result:=false;
-  a:=pointerfilereader.getAddressFromPointerRecord(p, address, shadow, shadowsize);
-  if (a<>0) and ((not mustbeinregion) or (InRangeX(a, pointerstart, pointerend)))  then
-  begin
-    v:=pointerfilereader.getSingleFromAddress(a, error);
-    result:=not error;
-
-    if result and (address2<>0) then
-    begin
-      a:=pointerfilereader.getAddressFromPointerRecord(p, address2, shadow2, shadowsize2);
-      if a<>0 then
-      begin
-        v2:=pointerfilereader.getSingleFromAddress(a, error);
-        result:=not error;
-
-        if result and (diffkind<>dkDontCare) then
-        begin
-          if diffkind=dkMustBeDifferent then
-            result:=v<>v2
-          else
-            result:=v=v2; //must be equal
-        end;
-
-      end
-      else
-        result:=false;
-    end;
-  end;
-end;
-
-function TStructCompareRescan.checkDouble(p: PPointerRecord): boolean;
-var error: boolean;
-  a: ptruint;
-  v,v2: Double;
-begin
-  result:=false;
-  a:=pointerfilereader.getAddressFromPointerRecord(p, address, shadow, shadowsize);
-  if (a<>0) and ((not mustbeinregion) or (InRangeX(a, pointerstart, pointerend)))  then
-  begin
-    v:=pointerfilereader.getDoubleFromAddress(a, error);
-    result:=not error;
-
-    if result and (address2<>0) then
-    begin
-      a:=pointerfilereader.getAddressFromPointerRecord(p, address2, shadow2, shadowsize2);
-      if a<>0 then
-      begin
-        v2:=pointerfilereader.getDoubleFromAddress(a, error);
-        result:=not error;
-
-        if result and (diffkind<>dkDontCare) then
-        begin
-          if diffkind=dkMustBeDifferent then
-            result:=v<>v2
-          else
-            result:=v=v2; //must be equal
-        end;
-
-      end
-      else
-        result:=false;
-    end;
-  end;
-end;
-
-function TStructCompareRescan.checkPointer(p: PPointerRecord): boolean;
-var error: boolean;
-  a: ptruint;
-  v,v2: PtrUint;
-begin
-  result:=false;
-  a:=pointerfilereader.getAddressFromPointerRecord(p, address, shadow, shadowsize);
-  if (a<>0) and ((not mustbeinregion) or (InRangeX(a, pointerstart, pointerend)))  then
-  begin
-    v:=pointerfilereader.getPointerFromAddress(a, error);
-    result:=not error;
-
-    if result and (address2<>0) then
-    begin
-      a:=pointerfilereader.getAddressFromPointerRecord(p, address2, shadow2, shadowsize2);
-      if a<>0 then
-      begin
-        v2:=pointerfilereader.getPointerFromAddress(a, error);
-        result:=not error;
-
-        if result and (diffkind<>dkDontCare) then
-        begin
-          if diffkind=dkMustBeDifferent then
-            result:=v<>v2
-          else
-            result:=v=v2; //must be equal
-        end;
-
-      end
-      else
-        result:=false;
-    end;
-  end;
-end;
-
-
 
 procedure TStructCompareRescan.execute;
-var i,j: integer;
+var index, i,j: integer;
   p: PPointerRecord;
 
-  s,s2: string;
   passed: boolean;
-  index,len: integer;
+
+  g1: array of pointer;
+  g2: array of pointer;
+
+  g1same, g2same: boolean;
+
+  a: ptruint;
+  x: ptruint;
+
+  r: tstringlist=nil;
 begin
+  setlength(g1, length(LFList));
+  setlength(g2, length(NLFList));
+  for i:=0 to length(g1)-1 do
+    getmem(g1[i], comparesize);
+
+  for i:=0 to length(g2)-1 do
+    getmem(g2[i], comparesize);
+
 
   try
-    for i:=0 to pointerfilereader.count-1 do
-    begin
-      p:=pointerfilereader.getPointerRec(i);
+    try
+      for index:=0 to pointerfilereader.count-1 do
+      begin
+        fCurrentPosition:=index;
+        p:=pointerfilereader.getPointerRec(index);
+        if p=nil then continue;
 
-      case vartype of
-        vtByte: passed:=checkByte(p);
-        vtWord: passed:=checkWord(p);
-        vtDword: passed:=checkDword(p);
-        vtQword: passed:=checkQword(p);
-        vtSingle: passed:=checkSingle(p);
-        vtDouble: passed:=checkDouble(p);
-        vtPointer: passed:=checkPointer(p);
+        passed:=true;
 
-
-        vtString:   //todo, move to checkString
+        for j:=0 to length(LFList)-1 do
         begin
-          s:=pointerfilereader.getStringFromPointerRecord(p,address, shadow, shadowsize);
-
-          if (address<>0) and ((not mustbeinregion) or (InRangeX(address, pointerstart, pointerend))) then
+          a:=pointerfilereader.getAddressFromPointerRecord(p,LFList[j].address,LFList[j].shadow, LFList[j].shadowsize);
+          if a=0 then
           begin
+            passed:=false;
+            break;
+          end;
 
-            if s<>'' then
+          if not readprocessmemory(processhandle, pointer(a),g1[j],comparesize, x) then
+          begin
+            passed:=false;
+            break;
+          end;
+        end;
+        if not passed then continue;
+
+        for j:=0 to length(NLFList)-1 do
+        begin
+          a:=pointerfilereader.getAddressFromPointerRecord(p,NLFList[j].address,NLFList[j].shadow, NLFList[j].shadowsize);
+          if a=0 then
+          begin
+            passed:=false;
+            break;
+          end;
+
+          if not readprocessmemory(processhandle, pointer(a),g2[j],comparesize, x) then
+          begin
+            passed:=false;
+            break;
+          end;
+        end;
+        if not passed then continue;
+
+        //still here so readable
+        //compare the groups
+        g1same:=true;
+        g2same:=true;
+        for i:=0 to length(g2)-1 do
+        begin
+          //check if these values are in g1. If so, not valid
+          for j:=0 to length(g1)-1 do
+          begin
+            //first iteration checks if g1 is the same or not
+            if (i=0) and (j>0) and (CompareMem(g1[0], g1[j],comparesize)=false) then
+              g1same:=false;
+
+            if CompareMem(g2[i], g1[j], comparesize) then
             begin
-              if regex<>nil then
-              begin
-                //use the regex engine to test this string
-                index:=0;
-                len:=0;
-                passed:=RegExprPos(regex, pchar(s), index, len);
-
-                if passed and mustbestart then
-                  passed:=index=0;
-              end
-              else
-              begin
-                passed:=true;
-                if isstringscan then
-                begin //check if the first 4 characters are valid
-
-                  for j:=1 to min(length(s), 4) do
-                    if not (s[j] in [#$20..#$7f]) then
-                    begin
-                      passed:=false;
-                      break;
-                    end;
-
-                end;
-              end;
-            end
-            else
               passed:=false;
-
-
-            if passed and (address2<>0) then
-            begin
-              s2:=pointerfilereader.getStringFromPointerRecord(p, address2, shadow2, shadowsize2);
-
-              if (s2<>'') then
-              begin
-                if (diffkind<>dkDontCare) then
-                begin
-                  if diffkind=dkMustBeDifferent then
-                    passed:=s<>s2
-                  else
-                    passed:=s=s2;
-                end;
-              end
-              else
-                passed:=false;
-
-              if (passed) and (regex<>nil) then
-              begin
-                index:=0;
-                len:=0;
-                passed:=RegExprPos(regex, pchar(s2), index, len);
-
-                if passed and mustbestart then
-                  passed:=index=0;
-              end;
+              break;
             end;
 
-          end //else the address is not in the region
+          end;
+          if passed=false then break;
+
+          //also check if g2 is the same during this loop
+          if (i>0) and (CompareMem(g2[0], g2[i],comparesize)=false) then
+            g2same:=false;
         end;
+
+        if passed and ((g1same=false) and (g2same=false)) then
+        begin
+          passed:=false;
+        end;
+
+        if passed then //add it
+          addPointer(p);
+
+        //check for forced exit
+        if terminated then exit;
       end;
 
-      if passed then //add it
-        addPointer(p);
+      flushresults;
 
-      //check for forced exit
-      if terminated then exit;
+      if outputfile<>nil then
+        freeandnil(outputfile);
 
-      fCurrentPosition:=i;
+      if results<>nil then
+        freeandnil(results);
+
+      if pointerfilereader<>nil then
+        freeandnil(pointerfilereader);
+
+
+      //delete all old files
+      r:=tstringlist.create;
+      findAllResultFilesForThisPtr(outputfilename, r);
+
+      for i:=0 to r.count-1 do
+        DeleteFile(r[i]);
+
+      freeandnil(r);
+
+      if deletefile(outputfilename)=false then
+        OutputDebugString('Failure deleting '+outputfilename);
+
+      RenameFile(outputfilename+'.temp', outputfilename);
+      RenameFile(outputfilename+'.results.0.temp', outputfilename+'.results.0');
+
+      Queue(ownerFrmStructureCompare.rescandone);
+    finally
+      if r<>nil then
+        freeandnil(r);
+
+      if outputfile<>nil then
+        freeandnil(outputfile);
+
+      if results<>nil then
+        freeandnil(results);
+
+      if pointerfilereader<>nil then
+        freeandnil(pointerfilereader);
+
+      for i:=0 to length(g1)-1 do
+        freemem(g1[i]);
+
+      for i:=0 to length(g2)-1 do
+        freemem(g2[i]);
     end;
-
-    flushresults;
-
-
-
-  finally
-    if outputfile<>nil then
-      freeandnil(outputfile);
-
-    if results<>nil then
-      freeandnil(results);
-
-    if pointerfilereader<>nil then
-      freeandnil(pointerfilereader);
-
-    if deletefile(outputfilename)=false then
-      OutputDebugString('Failure deleting '+outputfilename);
-
-    RenameFile(outputfilename+'.temp', outputfilename);
-
-    Queue(TfrmStructureCompare(ownerFrmStringPointerScan).scandone);
+  except
+    on e:exception do
+    begin
+      errorstring:=e.message;
+      Queue(ownerFrmStructureCompare.scanerror);
+    end;
   end;
 
 
 end;
 
-constructor TStructCompareRescan.create(suspended: boolean; address, address2: ptruint; mustbeinregion: boolean; pointerstart, pointerend: ptruint; isstringscan, caseSensitive, mustbestart: boolean; regExstr: string; diffkind: TDiffkind; vartype: TVariableType; oldpointerfilename: string; outputfilename: string ; ownerFrmStringPointerScan: TCustomForm);
-var regflags: tregexprflags;
+constructor TStructCompareRescan.create(comparesize: integer; const LFL: TAddressWithShadowList; const NLFL: TAddressWithShadowList; oldpointerfilename: string; outputfilename: string; ownerFrmStructureCompare: TfrmStructureCompare );
+var
+  i: integer;
+  regflags: tregexprflags;
   lw: integer;
+  configfile: tfilestream;
 begin
-  self.vartype:=vartype;
+  progressbar:=tprogressbar.create(ownerFrmStructureCompare);
+  progressbar.align:=alBottom;
+  progressbar.parent:=ownerFrmStructureCompare;
 
-  self.isstringscan:=isstringscan;
-  self.mustbestart:=mustbestart;
-  self.diffkind:=diffkind;
+  self.comparesize:=comparesize;
 
+  setlength(LFList, length(LFL));
+  for i:=0 to length(LFL)-1 do
+    LFList[i]:=LFL[i];
+
+  setlength(NLFList, length(NLFL));
+  for i:=0 to length(NLFL)-1 do
+    NLFList[i]:=NLFL[i];
 
   self.oldpointerfilename:=oldpointerfilename;
   pointerfilereader:=TPointerfileReader.create(oldpointerfilename);
-  pointerfilereader.vartype:=vartype;
+  fmaxPosition:=pointerfilereader.count;
 
-
-  self.address:=address;
-  self.address2:=address2;
-  self.mustbeinregion:=mustbeinregion;
-  self.pointerstart:=pointerstart;
-  self.pointerend:=pointerend;
   self.outputfilename:=outputfilename;
-
-  self.ownerFrmStringPointerScan:=ownerFrmStringPointerScan;
-
-
+  self.ownerFrmStructureCompare:=ownerFrmStructureCompare;
   pointerfilereader.clearPointercache;
 
+  //build the configfile
+  configfile:=TFileStream.Create(outputfilename+'.temp', fmCreate);
+  configfile.WriteByte($ec); //header (not to be confused with pointerscan)
+  configfile.WriteByte(compareversion);
+  configfile.WriteDWord(pointerfilereader.levelWidth);
+  configfile.free;
 
-  if isstringscan then
-  begin
-    if regexstr<>'' then
-    begin
-      if CaseSensitive then
-        regflags:=[]
-      else
-        regflags:=[ref_caseinsensitive];
+  outputfile:=Tfilestream.create(outputfilename+'.results.0.temp', fmcreate);
 
-      self.regex:=GenerateRegExprEngine(pchar(regexstr), regflags);
-    end;
-  end;
-
-
-
-  outputfile:=TFileStream.Create(outputfilename+'.temp', fmCreate or fmShareDenyNone);
-  outputfile.Free;     //so it can be reopened by other processes
-  outputfile:=TFileStream.create(Outputfilename+'.temp', fmOpenWrite or fmShareDenyNone);
-
-
-  lastwrite:=GetTickCount;
-
-  lw:=pointerfilereader.levelWidth;
-  outputfile.WriteBuffer(lw, sizeof(lw));
-
-
+  lastwrite:=GetTickCount64;
   results:=TMemoryStream.Create;
-
   results.size:=16*1024*1024;
-
   inherited create(suspended);
 end;
 
@@ -1177,6 +953,9 @@ begin
 
   if results<>nil then
     freeandnil(results);
+
+  if progressbar<>nil then
+    freeandnil(progressbar);
 
   inherited destroy;
 end;
@@ -1405,6 +1184,7 @@ begin
     end;
 
     //do the check
+
     valid:=true;
     t1same:=true;
     t2same:=true;
@@ -1413,6 +1193,7 @@ begin
       //check if these values are in memoryblockLF. If so, not valid
       for j:=0 to length(memoryblockLF)-1 do
       begin
+        //use the first iteration to see of LF is all the same nor not
         if (i=0) and (j>0) and (CompareMem(memoryblockLF[0], memoryblockLF[j],alignment)=false) then
           t1same:=false;
 
@@ -1425,7 +1206,7 @@ begin
       end;
       if valid=false then break;
 
-      if (j>0) and (CompareMem(memoryblockNLF[0], memoryblockNLF[i],alignment)=false) then
+      if (i>0) and (CompareMem(memoryblockNLF[0], memoryblockNLF[i],alignment)=false) then
         t2same:=false;
     end;
 
@@ -1971,14 +1752,31 @@ begin
 
 
   listview1.items.count:=min(1000000, pointerfilereader.count);
+  lblInfo.caption:=inttostr(pointerfilereader.count);
 end;
 
 procedure TfrmStructureCompare.scanerror;
 begin
+  if rescanner<>nil then
+    messagedlg(rescanner.errorstring,mtError,[mbok],0);
+
   if scanner<>nil then
     messagedlg(scanner.errorstring,mtError,[mbok],0);
 
   cleanup;
+end;
+
+procedure TfrmStructureCompare.rescanDone;
+begin
+  if rescanner<>nil then
+    lblInfo.caption:=rsSPSUFound+inttostr(rescanner.count);
+
+  cleanup;
+  beep;
+
+  OpenPointerfile(SaveDialog1.FileName);
+  EnableGui;
+  beep;
 end;
 
 procedure TfrmStructureCompare.scanDone;
@@ -1986,29 +1784,18 @@ begin
   if scanner<>nil then
     lblInfo.caption:=rsSPSUFound+inttostr(scanner.foundcount);
 
- { if rescanner<>nil then
-    lblInfo.caption:=rsSPSUFound+inttostr(rescanner.count);
- }
-
   cleanup;
 
   OpenPointerfile(SaveDialog1.FileName);
-  {
+
   btnScan.caption:=rsSPSURescan;
   btnScan.tag:=1;
-  btnScan.Left:=panel1.clientwidth-btnScan.width-btnNewScan.left;
 
   btnNewScan.visible:=true;
   btnNewScan.enabled:=true;
 
-  if pointerfilereader<>nil then
-    showmessage(rsSPSUScanDoneFound+inttostr(pointerfilereader.count))
-  else
-    raise exception.create(rsSPSUErrorduringScanNoScanresults);
-
-  //restore the gui  }
-  showmessage('scan done');
   EnableGui;
+  beep;
 end;
 
 function TfrmStructureCompare.mapCompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
@@ -2071,6 +1858,10 @@ var baseaddress: ptruint;
   NLF: array of TAddressWithShadow;
 begin
   if savedialog1.execute=false then exit;
+  if pointerfilereader<>nil then
+    oldpointerfile:=pointerfilereader.filename
+  else
+    oldpointerfile:='';
 
   setlength(LF, edtLF.count);
 
@@ -2113,11 +1904,22 @@ begin
   alignsize:=strtoint(edtAlignsize.text);
 
   vartype:=vtPointer;
+
   cleanup;
   disableGui;
 
-  scanner:=TStructCompareController.create(alignsize, lf,nlf, structsize, maxlevel, savedialog1.filename, self);
-  statusupdater.enabled:=true;
+  if btnscan.tag=1 then
+  begin
+    if oldpointerfile<>'' then
+      rescanner:=TStructCompareRescan.create(alignsize,lf,nlf, oldpointerfile, savedialog1.filename, self)
+    else
+      rescandone;
+  end
+  else
+  begin
+    scanner:=TStructCompareController.create(alignsize, lf,nlf, structsize, maxlevel, savedialog1.filename, self);
+    statusupdater.enabled:=true;
+  end;
 end;
 
 procedure TfrmStructureCompare.reloadlistviewcolumns;
@@ -2341,6 +2143,12 @@ begin
   begin
     OpenPointerfile(opendialog1.filename);
     enablegui;
+
+    btnScan.caption:=rsSPSURescan;
+    btnScan.tag:=1;
+
+    btnNewScan.visible:=true;
+    btnNewScan.enabled:=true;
   end;
 
 
@@ -2480,10 +2288,14 @@ begin
 
       }
   end
- { else
+  else
   if rescanner<>nil then
+  begin
+    if rescanner.progressbar<>nil then
+      rescanner.progressbar.position:=(rescanner.currentPosition*100) div rescanner.maxPosition;
+
     lblinfo.caption:=Format(rsScanningFoun, [inttostr(rescanner.count)])
-    }
+  end;
 
 end;
 
