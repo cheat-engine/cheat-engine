@@ -262,6 +262,7 @@ type
     ListView1: TListView;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
+    miDeleteAddress: TMenuItem;
     miShadow: TMenuItem;
     miCut: TMenuItem;
     miCopy: TMenuItem;
@@ -307,6 +308,7 @@ type
     procedure ListView1DblClick(Sender: TObject);
     procedure miCopyClick(Sender: TObject);
     procedure miCutClick(Sender: TObject);
+    procedure miDeleteAddressClick(Sender: TObject);
     procedure miFindClick(Sender: TObject);
     procedure miNewScanClick(Sender: TObject);
     procedure miOpenClick(Sender: TObject);
@@ -1735,6 +1737,29 @@ begin
   end;
 end;
 
+procedure TfrmStructureCompare.miDeleteAddressClick(Sender: TObject);
+var
+  e: TAddressEdit;
+  i: integer;
+begin
+  e:=TAddressEdit(pmAddressPopup.PopupComponent);
+  i:=edtLF.IndexOf(e);
+  if i<>-1 then
+  begin
+    if edtLF.count=1 then exit;
+    edtLF.delete(i);
+  end;
+
+  i:=edtNLF.IndexOf(e);
+  if i<>-1 then
+  begin
+    if edtNLF.Count=1 then exit;
+    edtNLF.delete(i);
+  end;
+
+  e.free;
+end;
+
 procedure TfrmStructureCompare.miFindClick(Sender: TObject);
 begin
   finddialog1.execute;
@@ -2034,6 +2059,7 @@ begin
 
   end;
 end;
+
 
 procedure TfrmStructureCompare.FindDialog1Find(Sender: TObject);
 var

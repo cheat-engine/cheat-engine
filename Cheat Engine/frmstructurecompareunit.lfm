@@ -1,7 +1,7 @@
 object frmStructureCompare: TfrmStructureCompare
-  Left = 424
+  Left = 557
   Height = 507
-  Top = 355
+  Top = 354
   Width = 707
   AutoSize = True
   Caption = 'Structure Compare'
@@ -497,6 +497,10 @@ object frmStructureCompare: TfrmStructureCompare
       Caption = 'Lock'
       ShortCut = 16460
       OnClick = miShadowClick
+    end
+    object miDeleteAddress: TMenuItem
+      Caption = 'Delete'
+      OnClick = miDeleteAddressClick
     end
   end
   object tRefresher: TTimer
