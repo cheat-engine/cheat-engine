@@ -15,7 +15,7 @@ function CheckVersion(automatic)
   if versionCheckThread==nil then
     versionCheckThread=createThread(function(t)
         local i=getInternet('CEVersionCheck')
-        local r=i.getURL('https://cheatengine.org/latestversiontest.txt')
+        local r=i.getURL('https://cheatengine.org/latestversion.txt')
 
         if r then
           local sl=createStringlist()
