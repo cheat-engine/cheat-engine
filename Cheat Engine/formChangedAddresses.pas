@@ -109,6 +109,9 @@ resourcestring
   rsDesignateSomeAddresses = 'Please designate a group to at least some '
     +'addresses';
   rsNoAddressesLeftForGroup = 'There are no addresses left for group %d';
+  rsInvalidGroups = 'Invalid groups';
+  rsDeleteAddresses = 'Delete addresses';
+  rsAreYouWishToDelete = 'Are you sure you wish to delete these entries(s)?';
 
 destructor TAddressEntry.destroy;
 begin
@@ -520,7 +523,7 @@ begin
         g2[length(g2)-1]:=e;
       end;
 
-      else raise exception.create('Invalid groups');
+      else raise exception.create(rsInvalidGroups);
     end;
 
     if changedlist.items[i].Selected then
@@ -583,7 +586,7 @@ var
 begin
   if changedlist.SelCount>=1 then
   begin
-    if MessageDlg('Delete addresses', 'Are you sure you wish to delete these entries(s)?', mtConfirmation, [mbyes,mbno],0) = mryes then
+    if MessageDlg(rsDeleteAddresses, rsAreYouWishToDelete, mtConfirmation, [mbyes,mbno],0) = mryes then
     begin
       i:=0;
       while i<changedlist.items.Count do
