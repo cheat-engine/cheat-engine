@@ -227,6 +227,7 @@ begin
     begin
       getmem(group[groupnr][i].stack.stack, grouplist[i].stack.savedsize);
       CopyMemory(group[groupnr][i].stack.stack, grouplist[i].stack.stack, grouplist[i].stack.savedsize);
+      group[groupnr][i].stack.savedsize:=grouplist[i].stack.savedsize;
     end;
   end;
 end;
