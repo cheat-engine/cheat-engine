@@ -105,16 +105,16 @@ begin
           addresslist[i][j].shadowsize:=0;
 
           case r.regnr of
-            0: addresslist[i][j].address:=group[i][j].context.Rax;
-            1: addresslist[i][j].address:=group[i][j].context.Rbx;
-            2: addresslist[i][j].address:=group[i][j].context.Rcx;
-            3: addresslist[i][j].address:=group[i][j].context.Rdx;
-            4: addresslist[i][j].address:=group[i][j].context.Rsi;
-            5: addresslist[i][j].address:=group[i][j].context.Rdi;
-            6: addresslist[i][j].address:=group[i][j].context.Rbp;
+            0: addresslist[i][j].address:=group[i][j].context.{$ifdef cpu64}Rax{$else}eax{$endif};
+            1: addresslist[i][j].address:=group[i][j].context.{$ifdef cpu64}Rbx{$else}ebx{$endif};
+            2: addresslist[i][j].address:=group[i][j].context.{$ifdef cpu64}Rcx{$else}ecx{$endif};
+            3: addresslist[i][j].address:=group[i][j].context.{$ifdef cpu64}Rdx{$else}edx{$endif};
+            4: addresslist[i][j].address:=group[i][j].context.{$ifdef cpu64}Rsi{$else}esi{$endif};
+            5: addresslist[i][j].address:=group[i][j].context.{$ifdef cpu64}Rdi{$else}edi{$endif};
+            6: addresslist[i][j].address:=group[i][j].context.{$ifdef cpu64}Rbp{$else}ebp{$endif};
             7: //stack snapshot
                begin
-                 addresslist[i][j].address:=group[i][j].context.rsp;
+                 addresslist[i][j].address:=group[i][j].context.{$ifdef cpu64}rsp{$else}esp{$endif};
                  //create a shadow
 
                  if group[1][j].stack.stack<>nil then
@@ -130,6 +130,7 @@ begin
                    end;
                  end;
                end;
+            {$ifdef cpu64}
             8: addresslist[i][j].address:=group[i][j].context.R8;
             9: addresslist[i][j].address:=group[i][j].context.R9;
             10: addresslist[i][j].address:=group[i][j].context.R10;
@@ -138,6 +139,7 @@ begin
             13: addresslist[i][j].address:=group[i][j].context.R13;
             14: addresslist[i][j].address:=group[i][j].context.R14;
             15: addresslist[i][j].address:=group[i][j].context.R15;
+            {$endif}
           end;
         end;
 
@@ -205,13 +207,13 @@ begin
   begin
     for j:=0 to length(group[2])-1 do
     begin
-      if (group[1][i].context.{$ifdef cpu64}RAX{$else}EAX{$endif}=group[2][i].context.rax) then registers.rax:=true;
-      if (group[1][i].context.{$ifdef cpu64}RBX{$else}EBX{$endif}=group[2][i].context.rbx) then registers.rbx:=true;
-      if (group[1][i].context.{$ifdef cpu64}RCX{$else}Ecx{$endif}=group[2][i].context.rcx) then registers.rcx:=true;
-      if (group[1][i].context.{$ifdef cpu64}RDX{$else}Edx{$endif}=group[2][i].context.rdx) then registers.rdx:=true;
-      if (group[1][i].context.{$ifdef cpu64}RSI{$else}Esi{$endif}=group[2][i].context.rsi) then registers.rsi:=true;
-      if (group[1][i].context.{$ifdef cpu64}RDI{$else}Edi{$endif}=group[2][i].context.rdi) then registers.rdi:=true;
-      if (group[1][i].context.{$ifdef cpu64}RBP{$else}Ebp{$endif}=group[2][i].context.rbp) then registers.rbp:=true;
+      if (group[1][i].context.{$ifdef cpu64}RAX{$else}EAX{$endif}=group[2][i].context.{$ifdef cpu64}RAX{$else}EAX{$endif}) then registers.rax:=true;
+      if (group[1][i].context.{$ifdef cpu64}RBX{$else}EBX{$endif}=group[2][i].context.{$ifdef cpu64}RBX{$else}EBX{$endif}) then registers.rbx:=true;
+      if (group[1][i].context.{$ifdef cpu64}RCX{$else}Ecx{$endif}=group[2][i].context.{$ifdef cpu64}RCX{$else}Ecx{$endif}) then registers.rcx:=true;
+      if (group[1][i].context.{$ifdef cpu64}RDX{$else}Edx{$endif}=group[2][i].context.{$ifdef cpu64}RDX{$else}Edx{$endif}) then registers.rdx:=true;
+      if (group[1][i].context.{$ifdef cpu64}RSI{$else}Esi{$endif}=group[2][i].context.{$ifdef cpu64}RSI{$else}Esi{$endif}) then registers.rsi:=true;
+      if (group[1][i].context.{$ifdef cpu64}RDI{$else}Edi{$endif}=group[2][i].context.{$ifdef cpu64}RDI{$else}Edi{$endif}) then registers.rdi:=true;
+      if (group[1][i].context.{$ifdef cpu64}RBP{$else}Ebp{$endif}=group[2][i].context.{$ifdef cpu64}RBP{$else}Ebp{$endif}) then registers.rbp:=true;
       {$ifdef cpu64}
       if (group[1][i].context.R8=group[2][i].context.r8) then registers.r8:=true;
       if (group[1][i].context.R9=group[2][i].context.r9) then registers.r9:=true;
