@@ -26,8 +26,8 @@ object frmStructureCompare: TfrmStructureCompare
     TabOrder = 0
     object ListView1: TListView
       Left = 0
-      Height = 320
-      Top = 167
+      Height = 321
+      Top = 166
       Width = 707
       Align = alClient
       Columns = <>
@@ -44,14 +44,14 @@ object frmStructureCompare: TfrmStructureCompare
     end
     object Panel3: TPanel
       Left = 0
-      Height = 164
+      Height = 163
       Top = 0
       Width = 707
       Align = alTop
       AutoSize = True
       BorderSpacing.Bottom = 3
       BevelOuter = bvNone
-      ClientHeight = 164
+      ClientHeight = 163
       ClientWidth = 707
       Constraints.MinWidth = 500
       TabOrder = 1
@@ -65,7 +65,7 @@ object frmStructureCompare: TfrmStructureCompare
         AnchorSideBottom.Side = asrBottom
         Left = 565
         Height = 57
-        Top = 107
+        Top = 106
         Width = 124
         Anchors = [akLeft, akBottom]
         AutoSize = True
@@ -250,19 +250,19 @@ object frmStructureCompare: TfrmStructureCompare
       end
       object Panel1: TPanel
         Left = 0
-        Height = 164
+        Height = 163
         Top = 0
         Width = 184
         Align = alLeft
         AutoSize = True
         BevelOuter = bvNone
-        ClientHeight = 164
+        ClientHeight = 163
         ClientWidth = 184
         TabOrder = 3
         object lblInfo: TLabel
           Left = 0
           Height = 15
-          Top = 149
+          Top = 148
           Width = 184
           Align = alBottom
           Caption = 'Info'
@@ -270,12 +270,12 @@ object frmStructureCompare: TfrmStructureCompare
         end
         object Panel4: TPanel
           Left = 0
-          Height = 149
+          Height = 148
           Top = 0
           Width = 184
           Align = alClient
           BevelOuter = bvNone
-          ClientHeight = 149
+          ClientHeight = 148
           ClientWidth = 184
           TabOrder = 0
           object Panel9: TPanel
@@ -286,7 +286,7 @@ object frmStructureCompare: TfrmStructureCompare
             AnchorSideRight.Side = asrBottom
             Left = 0
             Height = 39
-            Top = 107
+            Top = 106
             Width = 184
             Anchors = [akTop, akLeft, akRight]
             AutoSize = True
@@ -338,7 +338,7 @@ object frmStructureCompare: TfrmStructureCompare
             AnchorSideTop.Side = asrBottom
             Left = 87
             Height = 23
-            Top = 23
+            Top = 22
             Width = 80
             TabOrder = 1
             Text = '4096'
@@ -349,7 +349,7 @@ object frmStructureCompare: TfrmStructureCompare
             AnchorSideTop.Control = Panel5
             Left = 87
             Height = 15
-            Top = 8
+            Top = 7
             Width = 50
             BorderSpacing.Left = 3
             Caption = 'Structsize'
@@ -364,7 +364,7 @@ object frmStructureCompare: TfrmStructureCompare
             Left = 4
             Height = 23
             Hint = '1,2 or 4'
-            Top = 65
+            Top = 64
             Width = 80
             Anchors = [akTop, akLeft, akRight]
             TabOrder = 2
@@ -376,7 +376,7 @@ object frmStructureCompare: TfrmStructureCompare
             AnchorSideTop.Side = asrBottom
             Left = 4
             Height = 15
-            Top = 50
+            Top = 49
             Width = 115
             BorderSpacing.Left = 4
             BorderSpacing.Top = 4
@@ -388,11 +388,11 @@ object frmStructureCompare: TfrmStructureCompare
             AnchorSideTop.Control = Panel4
             Left = 4
             Height = 38
-            Top = 8
+            Top = 7
             Width = 80
             AutoSize = True
             BorderSpacing.Left = 4
-            BorderSpacing.Top = 8
+            BorderSpacing.Top = 7
             BevelOuter = bvNone
             ClientHeight = 38
             ClientWidth = 80
@@ -425,9 +425,12 @@ object frmStructureCompare: TfrmStructureCompare
             AnchorSideTop.Side = asrBottom
             Left = 4
             Height = 19
-            Top = 88
+            Hint = 'With this enabled it will only return results when both group 1 has matching values and group 2 has matching values, and group2''s value is not the same as group1'
+            Top = 87
             Width = 163
             Caption = 'Only find matching groups'
+            ParentShowHint = False
+            ShowHint = True
             TabOrder = 4
           end
         end

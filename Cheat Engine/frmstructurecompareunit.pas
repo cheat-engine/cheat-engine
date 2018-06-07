@@ -472,8 +472,10 @@ var
   blocksize: integer;
   i: integer;
 
-  relativeindex: integer;
+  relativeindex: qword;
   found: boolean;
+
+  pos: int64;
 begin
   result:=nil;
 
@@ -487,10 +489,11 @@ begin
       begin
         relativeindex:=index-files[i].startindex;
 
-        blocksize:=files[i].lastindex-files[i].startindex+1;
+        blocksize:=files[i].lastindex-files[i].startindex+1-relativeindex;
         blocksize:=min(blocksize, 4096);
 
-        files[i].f.position:=relativeindex*entrysize;
+        pos:=relativeindex*entrysize;
+        files[i].f.position:=pos;
         if files[i].f.Read(pointerrecords^, entrysize*blocksize)=entrysize*blocksize then
         begin
           bufferindex:=index;
