@@ -114,7 +114,7 @@ begin
   for i:=1 to 2 do
   begin
     setlength(values[i], length(owner.group[i]));
-    for j:=0 to length(values)-1 do
+    for j:=0 to length(values[i])-1 do
     begin
       values[i][j]:=pptruint(ptruint(@owner.group[i][j].context)+contextoffset)^;
       if (j>0) and (values[i][j]<>values[i][0]) then
@@ -217,7 +217,7 @@ begin
           if r.regnr=7 then
           begin
             //create a shadow
-            if group[1][j].stack.stack<>nil then
+            if group[i][j].stack.stack<>nil then
             begin
               a:=VirtualAllocEx(processhandle, nil, group[i][j].stack.savedsize, MEM_COMMIT or MEM_RESERVE, PAGE_READWRITE);
               if a<>nil then
