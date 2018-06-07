@@ -204,7 +204,7 @@ begin
       r.scanner.OnDestroy:=r.scannerdestroy;
 
       r.scanner.SaveDialog1.FileName:='reg'+lvRegisters.Selected.caption+'.sptr';
-      r.scanner.caption:=r.scanner+' : '+ lvRegisters.Selected.caption;
+      r.scanner.caption:=r.scanner.caption+' : '+ lvRegisters.Selected.caption;
 
       for i:=1 to 2 do
       begin
