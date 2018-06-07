@@ -55,8 +55,28 @@ type
 
     values: array [1..2] of array of ptruint;
 
+    oldscannerdestroy: TNotifyEvent;
+
+    procedure scannerdestroy(sender: tobject);
+
     constructor create(o: TfrmChangedAddressesCommonalityScanner; r: integer);
+    destructor destroy; override;
   end;
+
+procedure TRegisterInfo.scannerdestroy(sender: tobject);
+begin
+  if self=nil then exit;
+  scanner:=nil;
+  oldscannerdestroy(sender);
+end;
+
+destructor TRegisterInfo.destroy;
+begin
+  if scanner<>nil then
+    scanner.OnDestroy:=oldscannerdestroy;
+
+  inherited destroy;
+end;
 
 constructor TRegisterInfo.create(o: TfrmChangedAddressesCommonalityScanner; r: integer);
 var
@@ -137,10 +157,15 @@ begin
     lvRegisters.items[i].data:=nil;
   end;
 
+  lvRegisters.Clear;
+
   //free memory
   for i:=1 to 2 do
     for j:=0 to length(group[i])-1 do
-      group[i][j].free;
+    begin
+      if group[i][j]<>nil then
+        group[i][j].free;
+    end;
 end;
 
 procedure TfrmChangedAddressesCommonalityScanner.FormClose(Sender: TObject;
@@ -175,6 +200,8 @@ begin
       //create it
       r.scanner:=TfrmStructureCompare.Create(application);
       r.scanner.donotfreeonclose:=true;
+      r.oldscannerdestroy:=r.scanner.OnDestroy;
+      r.scanner.OnDestroy:=r.scannerdestroy;
 
       for i:=1 to 2 do
       begin
