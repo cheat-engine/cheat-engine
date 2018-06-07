@@ -299,22 +299,22 @@ begin
   begin
     for j:=0 to length(group[2])-1 do
     begin
-      if (group[1][i].context.{$ifdef cpu64}RAX{$else}EAX{$endif}=group[2][i].context.{$ifdef cpu64}RAX{$else}EAX{$endif}) then registers.rax:=true;
-      if (group[1][i].context.{$ifdef cpu64}RBX{$else}EBX{$endif}=group[2][i].context.{$ifdef cpu64}RBX{$else}EBX{$endif}) then registers.rbx:=true;
-      if (group[1][i].context.{$ifdef cpu64}RCX{$else}Ecx{$endif}=group[2][i].context.{$ifdef cpu64}RCX{$else}Ecx{$endif}) then registers.rcx:=true;
-      if (group[1][i].context.{$ifdef cpu64}RDX{$else}Edx{$endif}=group[2][i].context.{$ifdef cpu64}RDX{$else}Edx{$endif}) then registers.rdx:=true;
-      if (group[1][i].context.{$ifdef cpu64}RSI{$else}Esi{$endif}=group[2][i].context.{$ifdef cpu64}RSI{$else}Esi{$endif}) then registers.rsi:=true;
-      if (group[1][i].context.{$ifdef cpu64}RDI{$else}Edi{$endif}=group[2][i].context.{$ifdef cpu64}RDI{$else}Edi{$endif}) then registers.rdi:=true;
-      if (group[1][i].context.{$ifdef cpu64}RBP{$else}Ebp{$endif}=group[2][i].context.{$ifdef cpu64}RBP{$else}Ebp{$endif}) then registers.rbp:=true;
+      if (group[1][i].context.{$ifdef cpu64}RAX{$else}EAX{$endif}=group[2][j].context.{$ifdef cpu64}RAX{$else}EAX{$endif}) then registers.rax:=true;
+      if (group[1][i].context.{$ifdef cpu64}RBX{$else}EBX{$endif}=group[2][j].context.{$ifdef cpu64}RBX{$else}EBX{$endif}) then registers.rbx:=true;
+      if (group[1][i].context.{$ifdef cpu64}RCX{$else}Ecx{$endif}=group[2][j].context.{$ifdef cpu64}RCX{$else}Ecx{$endif}) then registers.rcx:=true;
+      if (group[1][i].context.{$ifdef cpu64}RDX{$else}Edx{$endif}=group[2][j].context.{$ifdef cpu64}RDX{$else}Edx{$endif}) then registers.rdx:=true;
+      if (group[1][i].context.{$ifdef cpu64}RSI{$else}Esi{$endif}=group[2][j].context.{$ifdef cpu64}RSI{$else}Esi{$endif}) then registers.rsi:=true;
+      if (group[1][i].context.{$ifdef cpu64}RDI{$else}Edi{$endif}=group[2][j].context.{$ifdef cpu64}RDI{$else}Edi{$endif}) then registers.rdi:=true;
+      if (group[1][i].context.{$ifdef cpu64}RBP{$else}Ebp{$endif}=group[2][j].context.{$ifdef cpu64}RBP{$else}Ebp{$endif}) then registers.rbp:=true;
       {$ifdef cpu64}
-      if (group[1][i].context.R8=group[2][i].context.r8) then registers.r8:=true;
-      if (group[1][i].context.R9=group[2][i].context.r9) then registers.r9:=true;
-      if (group[1][i].context.R10=group[2][i].context.r10) then registers.r10:=true;
-      if (group[1][i].context.R11=group[2][i].context.r11) then registers.r11:=true;
-      if (group[1][i].context.R12=group[2][i].context.r12) then registers.r12:=true;
-      if (group[1][i].context.R13=group[2][i].context.r13) then registers.r13:=true;
-      if (group[1][i].context.R14=group[2][i].context.r14) then registers.r14:=true;
-      if (group[1][i].context.R15=group[2][i].context.r15) then registers.r15:=true;
+      if (group[1][i].context.R8=group[2][j].context.r8) then registers.r8:=true;
+      if (group[1][i].context.R9=group[2][j].context.r9) then registers.r9:=true;
+      if (group[1][i].context.R10=group[2][j].context.r10) then registers.r10:=true;
+      if (group[1][i].context.R11=group[2][j].context.r11) then registers.r11:=true;
+      if (group[1][i].context.R12=group[2][j].context.r12) then registers.r12:=true;
+      if (group[1][i].context.R13=group[2][j].context.r13) then registers.r13:=true;
+      if (group[1][i].context.R14=group[2][j].context.r14) then registers.r14:=true;
+      if (group[1][i].context.R15=group[2][j].context.r15) then registers.r15:=true;
       {$endif}
     end;
   end;
