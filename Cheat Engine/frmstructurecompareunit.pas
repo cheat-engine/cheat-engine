@@ -395,6 +395,11 @@ resourcestring
   rsSPSUErrorduringScanNoScanresults = 'Error during scan. No scanresults available';
   rsInvalidGroup = 'Group %d address %s (%s) is not valid';
   rsTooSmallAlign = 'Alignsize must be greater than 0';
+  rsSPSInvalidstruct = 'Invalid structure pointerfile';
+  rsSPSNeedNewCE = 'You''ll need a newer CE version to open this file';
+  rsSPSNoError = 'No error';
+  rsSPSUnlock = 'Unlock (';
+  rsSPSLock = 'Lock';
 //----------TPointerfileReader---------
 
 
@@ -635,8 +640,8 @@ begin
 
   try
     configfile:=TFileStream.Create(filename, fmOpenRead);
-    if configfile.ReadByte<>$ec then raise exception.create('Invalid structure pointerfile');
-    if configfile.readbyte>compareversion then raise exception.create('You''ll need a newer CE version to open this file');
+    if configfile.ReadByte<>$ec then raise exception.create(rsSPSInvalidstruct);
+    if configfile.readbyte>compareversion then raise exception.create(rsSPSNeedNewCE);
     pointerfileLevelwidth:=configfile.ReadDWord;
     entrysize:=sizeof(pointerfileLevelwidth)+pointerfileLevelwidth*sizeof(dword);
 
@@ -1379,7 +1384,7 @@ var
   allidle: boolean;
 begin
   try
-    errorstring:='No error';
+    errorstring:=rsSPSNoError;
 
     memorymap:=TPageMap.create;
     memorymapCS:=TCriticalSection.create;;
@@ -2348,9 +2353,9 @@ begin
   miShadow.enabled:=(e.invalidAddress=false) or (e.tag<>0);
 
   if e.tag<>0 then
-    miShadow.Caption:='Unlock ('+inttohex(TShadow(e.tag).address,8)+' - '+inttohex(TShadow(e.tag).address+TShadow(e.tag).size,9)+')'
+    miShadow.Caption:=rsSPSUnlock+inttohex(TShadow(e.tag).address,8)+' - '+inttohex(TShadow(e.tag).address+TShadow(e.tag).size,9)+')'
   else
-    miShadow.caption:='Lock';
+    miShadow.caption:=rsSPSLock;
 end;
 
 procedure TfrmStructureCompare.statusupdaterTimer(Sender: TObject);
