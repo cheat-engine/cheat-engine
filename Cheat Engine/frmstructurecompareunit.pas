@@ -403,7 +403,7 @@ resourcestring
   rsSPSInvalidstruct = 'Invalid structure pointerfile';
   rsSPSNeedNewCE = 'You''ll need a newer CE version to open this file';
   rsSPSNoError = 'No error';
-  rsSPSUnlock = 'Unlock (';
+  rsSPSUnlock = 'Unlock (%.8x-%.8x)';
   rsSPSLock = 'Lock';
 //----------TPointerfileReader---------
 
@@ -2394,7 +2394,7 @@ begin
   miShadow.enabled:=(e.invalidAddress=false) or (e.tag<>0);
 
   if e.tag<>0 then
-    miShadow.Caption:=rsSPSUnlock+inttohex(TShadow(e.tag).address,8)+' - '+inttohex(TShadow(e.tag).address+TShadow(e.tag).size,9)+')'
+    miShadow.Caption:=format(rsSPSUnlock,[TShadow(e.tag).address, TShadow(e.tag).address+TShadow(e.tag).size])
   else
     miShadow.caption:=rsSPSLock;
 end;
