@@ -14,15 +14,17 @@ type
 
   TfrmChangedAddressesCommonalityScanner = class(TForm)
     lvRegisters: TListView;
+    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
+    procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure lvRegistersDblClick(Sender: TObject);
   private
     { private declarations }
 
-
     group: array [1..2] of array of TAddressEntry;
   public
     { public declarations }
+
     procedure setGroup(groupnr: integer; const grouplist: array of TAddressEntry);
     procedure initlist;
   end;
@@ -32,7 +34,7 @@ implementation
 
 {$R *.lfm}
 
-uses ProcessHandlerUnit, frmstructurecompareunit;
+uses cefuncproc, ProcessHandlerUnit, frmstructurecompareunit;
 
 resourcestring
   rsDblClickLaunchComp = 'Doubleclick to launch structure compare';
@@ -41,34 +43,98 @@ resourcestring
 type
   TRegisterInfo=class
   private
+    owner: TfrmChangedAddressesCommonalityScanner;
     regnr: integer;
+    contextoffset: dword;
+    g1same, g2same: boolean;
+    validaddress: boolean;
   public
     running: boolean;
     done: boolean;
     scanner: TfrmStructureCompare;
-    constructor create(r: integer);
+
+    values: array [1..2] of array of ptruint;
+
+    constructor create(o: TfrmChangedAddressesCommonalityScanner; r: integer);
   end;
 
-constructor TRegisterInfo.create(r: integer);
+constructor TRegisterInfo.create(o: TfrmChangedAddressesCommonalityScanner; r: integer);
+var
+  x: TContext;
+  v: ptruint;
+  i,j: integer;
 begin
+  owner:=o;
   regnr:=r;
+
+
+  case regnr of
+    0: contextoffset:=ptruint(@PContext(nil)^.{$ifdef cpu64}Rax{$else}eax{$endif});
+    1: contextoffset:=ptruint(@PContext(nil)^.{$ifdef cpu64}Rbx{$else}ebx{$endif});
+    2: contextoffset:=ptruint(@PContext(nil)^.{$ifdef cpu64}Rcx{$else}ecx{$endif});
+    3: contextoffset:=ptruint(@PContext(nil)^.{$ifdef cpu64}Rdx{$else}edx{$endif});
+    4: contextoffset:=ptruint(@PContext(nil)^.{$ifdef cpu64}Rsi{$else}esi{$endif});
+    5: contextoffset:=ptruint(@PContext(nil)^.{$ifdef cpu64}Rdi{$else}edi{$endif});
+    6: contextoffset:=ptruint(@PContext(nil)^.{$ifdef cpu64}Rbp{$else}ebp{$endif});
+    7: contextoffset:=ptruint(@PContext(nil)^.{$ifdef cpu64}Rsp{$else}esp{$endif});
+    {$ifdef cpu64}
+    8: contextoffset:=ptruint(@PContext(nil)^.r8);
+    9: contextoffset:=ptruint(@PContext(nil)^.r9);
+    10: contextoffset:=ptruint(@PContext(nil)^.r10);
+    11: contextoffset:=ptruint(@PContext(nil)^.r11);
+    12: contextoffset:=ptruint(@PContext(nil)^.r12);
+    13: contextoffset:=ptruint(@PContext(nil)^.r13);
+    14: contextoffset:=ptruint(@PContext(nil)^.r14);
+    15: contextoffset:=ptruint(@PContext(nil)^.r15);
+    {$endif}
+  end;
+
+  g1same:=true;
+  g2same:=true;
+  for i:=1 to 2 do
+  begin
+    setlength(values[i], length(owner.group[i]));
+    for j:=0 to length(values)-1 do
+    begin
+      values[i][j]:=pptruint(ptruint(@owner.group[i][j].context)+contextoffset)^;
+      if (j>0) and (values[i][j]<>values[i][0]) then
+        if i=1 then g1same:=false else g2same:=false;
+    end;
+  end;
+
+  g1same:=g1same and (length(values[1])>1);
+  g2same:=g2same and (length(values[2])>1);
+
+  if g1same and g2same and (values[1][0]=values[2][0]) then //This check shouldn't be necesary as initlist has done this already
+  begin
+    //if both are the same, none are the same
+    g1same:=false;
+    g2same:=false;
+  end;
+
+
 end;
 
 procedure TfrmChangedAddressesCommonalityScanner.FormDestroy(Sender: TObject);
 var i,j: integer;
   r: TRegisterInfo;
 begin
+  saveformposition(self);
+
   //tell all the scanners to stop if they where active
   for i:=0 to lvRegisters.items.count-1 do
   begin
     r:=lvRegisters.items[i].data;
-    if (r.scanner<>nil) then
+    if (r<>nil) and (r.scanner<>nil) then
     begin
       if (r.scanner.Visible) then  //if visible, make it free itself when it's done
         r.scanner.donotfreeonclose:=false
       else
         freeandnil(r.scanner); //else free it now
-    end
+    end;
+
+    freeandnil(r);
+    lvRegisters.items[i].data:=nil;
   end;
 
   //free memory
@@ -77,12 +143,26 @@ begin
       group[i][j].free;
 end;
 
+procedure TfrmChangedAddressesCommonalityScanner.FormClose(Sender: TObject;
+  var CloseAction: TCloseAction);
+begin
+  closeaction:=cafree;
+end;
+
+procedure TfrmChangedAddressesCommonalityScanner.FormCreate(Sender: TObject);
+begin
+  loadformposition(self);
+end;
+
 procedure TfrmChangedAddressesCommonalityScanner.lvRegistersDblClick(Sender: TObject);
 var
   r: TRegisterInfo;
 
   i,j: integer;
-  addresslist: array [1..2] of array of TAddressWithShadow;
+  address: ptruint;
+  shadow: ptruint;
+  shadowsize: integer;
+
   a: pointer;
   x: ptruint;
 begin
@@ -94,59 +174,35 @@ begin
     begin
       //create it
       r.scanner:=TfrmStructureCompare.Create(application);
+      r.scanner.donotfreeonclose:=true;
 
       for i:=1 to 2 do
       begin
-        setlength(addresslist[i], length(group[i]));
-
         for j:=0 to length(group[i])-1 do
         begin
-          addresslist[i][j].shadow:=0;
-          addresslist[i][j].shadowsize:=0;
+          shadow:=0;
+          shadowsize:=0;
+          address:=r.values[i][j];
 
-          case r.regnr of
-            0: addresslist[i][j].address:=group[i][j].context.{$ifdef cpu64}Rax{$else}eax{$endif};
-            1: addresslist[i][j].address:=group[i][j].context.{$ifdef cpu64}Rbx{$else}ebx{$endif};
-            2: addresslist[i][j].address:=group[i][j].context.{$ifdef cpu64}Rcx{$else}ecx{$endif};
-            3: addresslist[i][j].address:=group[i][j].context.{$ifdef cpu64}Rdx{$else}edx{$endif};
-            4: addresslist[i][j].address:=group[i][j].context.{$ifdef cpu64}Rsi{$else}esi{$endif};
-            5: addresslist[i][j].address:=group[i][j].context.{$ifdef cpu64}Rdi{$else}edi{$endif};
-            6: addresslist[i][j].address:=group[i][j].context.{$ifdef cpu64}Rbp{$else}ebp{$endif};
-            7: //stack snapshot
-               begin
-                 addresslist[i][j].address:=group[i][j].context.{$ifdef cpu64}rsp{$else}esp{$endif};
-                 //create a shadow
-
-                 if group[1][j].stack.stack<>nil then
-                 begin
-                   a:=VirtualAllocEx(processhandle, nil, group[i][j].stack.savedsize, MEM_COMMIT or MEM_RESERVE, PAGE_READWRITE);
-                   if a<>nil then
-                   begin
-                     if writeprocessmemory(processhandle, a, group[i][j].stack.stack, group[i][j].stack.savedsize, x) then
-                     begin
-                       addresslist[i][j].shadow:=ptruint(a);
-                       addresslist[i][j].shadowsize:=group[i][j].stack.savedsize;
-                     end;
-                   end;
-                 end;
-               end;
-            {$ifdef cpu64}
-            8: addresslist[i][j].address:=group[i][j].context.R8;
-            9: addresslist[i][j].address:=group[i][j].context.R9;
-            10: addresslist[i][j].address:=group[i][j].context.R10;
-            11: addresslist[i][j].address:=group[i][j].context.R11;
-            12: addresslist[i][j].address:=group[i][j].context.R12;
-            13: addresslist[i][j].address:=group[i][j].context.R13;
-            14: addresslist[i][j].address:=group[i][j].context.R14;
-            15: addresslist[i][j].address:=group[i][j].context.R15;
-            {$endif}
+          if r.regnr=7 then
+          begin
+            //create a shadow
+            if group[1][j].stack.stack<>nil then
+            begin
+              a:=VirtualAllocEx(processhandle, nil, group[i][j].stack.savedsize, MEM_COMMIT or MEM_RESERVE, PAGE_READWRITE);
+              if a<>nil then
+              begin
+                if writeprocessmemory(processhandle, a, group[i][j].stack.stack, group[i][j].stack.savedsize, x) then
+                begin
+                  shadow:=ptruint(a);
+                  shadowsize:=group[i][j].stack.savedsize;
+                end;
+              end;
+            end;
           end;
+          r.scanner.addAddress(address, shadow, shadowsize, i-1);
         end;
-
-        r.scanner.addAddress(addresslist[i][j].address, addresslist[i][j].shadow, addresslist[i][j].shadowsize, i);
       end;
-
-      lvRegisters.Items[i].SubItems[0]:=rsShowResults;
     end;
 
     r.scanner.show;
@@ -197,7 +253,12 @@ var
 
   li: TListItem;
   ri: TRegisterInfo;
-  i,j: integer;
+  i,j,k: integer;
+
+  s: string;
+  allreadable: boolean;
+  b: byte;
+  x: ptruint;
 begin
   //todo for next version
   //check the register values in g1 and g2 for commonalities
@@ -233,54 +294,54 @@ begin
   begin
     li:=lvregisters.Items.Add;
     if processhandler.is64Bit then li.caption:='RAX' else li.caption:='EAX';
-    li.data:=pointer(tregisterinfo.Create(0));
+    li.data:=pointer(tregisterinfo.Create(self, 0));
   end;
 
   if registers.rbx=false then
   begin
     li:=lvregisters.Items.Add;
     if processhandler.is64Bit then li.caption:='RBX' else li.caption:='EBX';
-    li.data:=pointer(tregisterinfo.Create(1));
+    li.data:=pointer(tregisterinfo.Create(self, 1));
   end;
 
   if registers.rcx=false then
   begin
     li:=lvregisters.Items.Add;
     if processhandler.is64Bit then li.caption:='RCX' else li.caption:='ECX';
-    li.data:=pointer(tregisterinfo.Create(2));
+    li.data:=pointer(tregisterinfo.Create(self, 2));
   end;
 
   if registers.rdx=false then
   begin
     li:=lvregisters.Items.Add;
     if processhandler.is64Bit then li.caption:='RDX' else li.caption:='EDX';
-    li.data:=pointer(tregisterinfo.Create(3));
+    li.data:=pointer(tregisterinfo.Create(self, 3));
   end;
 
   if registers.rsi=false then
   begin
     li:=lvregisters.Items.Add;
     if processhandler.is64Bit then li.caption:='RSI' else li.caption:='ESI';
-    li.data:=pointer(tregisterinfo.Create(4));
+    li.data:=pointer(tregisterinfo.Create(self, 4));
   end;
 
   if registers.rdi=false then
   begin
     li:=lvregisters.Items.Add;
     if processhandler.is64Bit then li.caption:='RDI' else li.caption:='EDI';
-    li.data:=pointer(tregisterinfo.Create(5));
+    li.data:=pointer(tregisterinfo.Create(self, 5));
   end;
 
   if registers.rbp=false then
   begin
     li:=lvregisters.Items.Add;
     if processhandler.is64Bit then li.caption:='RBP' else li.caption:='EBP';
-    li.data:=pointer(tregisterinfo.Create(6));
+    li.data:=pointer(tregisterinfo.Create(self, 6));
   end;
 
   li:=lvregisters.Items.Add;
   if processhandler.is64Bit then li.caption:='RSP (Snapshot)' else li.caption:='RSP (Snapshot)';
-  li.data:=pointer(tregisterinfo.Create(7));
+  li.data:=pointer(tregisterinfo.Create(self, 7));
 
   if processhandler.is64bit then
   begin
@@ -288,62 +349,110 @@ begin
     begin
       li:=lvregisters.Items.Add;
       li.caption:='R8';
-      li.data:=pointer(tregisterinfo.Create(8));
+      li.data:=pointer(tregisterinfo.Create(self, 8));
     end;
 
     if registers.r9=false then
     begin
       li:=lvregisters.Items.Add;
       li.caption:='R9';
-      li.data:=pointer(tregisterinfo.Create(9));
+      li.data:=pointer(tregisterinfo.Create(self, 9));
     end;
 
     if registers.r10=false then
     begin
       li:=lvregisters.Items.Add;
       li.caption:='R10';
-      li.data:=pointer(tregisterinfo.Create(10));
+      li.data:=pointer(tregisterinfo.Create(self, 10));
     end;
 
     if registers.r11=false then
     begin
       li:=lvregisters.Items.Add;
       li.caption:='R11';
-      li.data:=pointer(tregisterinfo.Create(11));
+      li.data:=pointer(tregisterinfo.Create(self, 11));
     end;
 
     if registers.r12=false then
     begin
       li:=lvregisters.Items.Add;
       li.caption:='R12';
-      li.data:=pointer(tregisterinfo.Create(12));
+      li.data:=pointer(tregisterinfo.Create(self, 12));
     end;
 
     if registers.r13=false then
     begin
       li:=lvregisters.Items.Add;
       li.caption:='R13';
-      li.data:=pointer(tregisterinfo.Create(13));
+      li.data:=pointer(tregisterinfo.Create(self, 13));
     end;
 
     if registers.r14=false then
     begin
       li:=lvregisters.Items.Add;
       li.caption:='R14';
-      li.data:=pointer(tregisterinfo.Create(14));
+      li.data:=pointer(tregisterinfo.Create(self, 14));
     end;
 
     if registers.r15=false then
     begin
       li:=lvregisters.Items.Add;
       li.caption:='R15';
-      li.data:=pointer(tregisterinfo.Create(15));
+      li.data:=pointer(tregisterinfo.Create(self, 15));
     end;
   end;
 
-  for i:=0 to lvRegisters.items.count-1 do
-    lvRegisters.Items[i].SubItems.add(rsDblClickLaunchComp);
+  i:=0;
+  while i<lvRegisters.items.count do
+  begin
+    ri:=tregisterinfo(lvRegisters.Items[i].data);
+    s:='';
+    if ri.g1same then
+      s:='"Group 1" has common value 0x'+inttohex(ri.values[1][0],1);
 
+    if ri.g2same then
+    begin
+      if s<>'' then
+        s:=s+' and ';
+      s:=s+'"Group 2" has common value 0x'+inttohex(ri.values[2][0],1);
+    end;
+
+    //check if all addresses are readable
+    allreadable:=true;
+    for j:=1 to 2 do
+    begin
+      for k:=0 to length(ri.values[j])-1 do
+        if readprocessmemory(processhandle, pointer(ri.values[j][k]),@b,1,x)=false then
+        begin
+          allreadable:=false;
+          break;
+        end;
+
+      if allreadable=false then break;
+    end;
+
+    if allreadable then
+    begin
+      if s<>'' then
+        s:=s+' or ';
+
+      s:=s+rsDblClickLaunchComp;
+
+      ri.validaddress:=true;
+    end;
+
+    if s<>'' then
+    begin
+      lvRegisters.Items[i].SubItems.add(s);
+      inc(i);
+    end
+    else
+    begin
+      //I can't do anything with this. Not an address, no value commonalities, useless
+      lvRegisters.items[i].Delete;
+      ri.free;
+    end;
+  end;
 end;
 
 end.

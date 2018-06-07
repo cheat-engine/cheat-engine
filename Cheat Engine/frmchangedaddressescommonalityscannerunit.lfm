@@ -6,6 +6,8 @@ object frmChangedAddressesCommonalityScanner: TfrmChangedAddressesCommonalitySca
   Caption = 'Commonality scanner'
   ClientHeight = 204
   ClientWidth = 632
+  OnClose = FormClose
+  OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'
@@ -26,6 +28,7 @@ object frmChangedAddressesCommonalityScanner: TfrmChangedAddressesCommonalitySca
         Width = 528
       end>
     HideSelection = False
+    ReadOnly = True
     RowSelect = True
     TabOrder = 0
     ViewStyle = vsReport

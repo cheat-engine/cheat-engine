@@ -134,11 +134,13 @@ object frmChangedAddresses: TfrmChangedAddresses
       object miMarkAsGroup1: TMenuItem
         Tag = 1
         Caption = 'Mark selection as group 1'
+        ShortCut = 16433
         OnClick = miMarkAsGroupClick
       end
       object miMarkAsGroup2: TMenuItem
         Tag = 2
         Caption = 'Mark selection as group 2 (Nothing means everything else)'
+        ShortCut = 16434
         OnClick = miMarkAsGroupClick
       end
       object MenuItem7: TMenuItem
@@ -146,6 +148,7 @@ object frmChangedAddresses: TfrmChangedAddresses
       end
       object miGroupClear: TMenuItem
         Caption = 'Clear Selection'
+        ShortCut = 49200
         OnClick = miGroupClearClick
       end
       object MenuItem8: TMenuItem
@@ -153,6 +156,7 @@ object frmChangedAddresses: TfrmChangedAddresses
       end
       object miScanForCommonalities: TMenuItem
         Caption = 'Scan for commonalities'
+        ShortCut = 49235
         OnClick = miScanForCommonalitiesClick
       end
     end

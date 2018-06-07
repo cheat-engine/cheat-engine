@@ -12,7 +12,6 @@ object frmStructureCompare: TfrmStructureCompare
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'
   object Panel2: TPanel
@@ -27,8 +26,8 @@ object frmStructureCompare: TfrmStructureCompare
     TabOrder = 0
     object ListView1: TListView
       Left = 0
-      Height = 334
-      Top = 153
+      Height = 320
+      Top = 167
       Width = 707
       Align = alClient
       Columns = <>
@@ -45,14 +44,14 @@ object frmStructureCompare: TfrmStructureCompare
     end
     object Panel3: TPanel
       Left = 0
-      Height = 150
+      Height = 164
       Top = 0
       Width = 707
       Align = alTop
       AutoSize = True
       BorderSpacing.Bottom = 3
       BevelOuter = bvNone
-      ClientHeight = 150
+      ClientHeight = 164
       ClientWidth = 707
       Constraints.MinWidth = 500
       TabOrder = 1
@@ -66,7 +65,7 @@ object frmStructureCompare: TfrmStructureCompare
         AnchorSideBottom.Side = asrBottom
         Left = 565
         Height = 57
-        Top = 93
+        Top = 107
         Width = 124
         Anchors = [akLeft, akBottom]
         AutoSize = True
@@ -251,19 +250,19 @@ object frmStructureCompare: TfrmStructureCompare
       end
       object Panel1: TPanel
         Left = 0
-        Height = 150
+        Height = 164
         Top = 0
         Width = 184
         Align = alLeft
         AutoSize = True
         BevelOuter = bvNone
-        ClientHeight = 150
+        ClientHeight = 164
         ClientWidth = 184
         TabOrder = 3
         object lblInfo: TLabel
           Left = 0
           Height = 15
-          Top = 135
+          Top = 149
           Width = 184
           Align = alBottom
           Caption = 'Info'
@@ -271,23 +270,23 @@ object frmStructureCompare: TfrmStructureCompare
         end
         object Panel4: TPanel
           Left = 0
-          Height = 135
+          Height = 149
           Top = 0
           Width = 184
           Align = alClient
           BevelOuter = bvNone
-          ClientHeight = 135
+          ClientHeight = 149
           ClientWidth = 184
           TabOrder = 0
           object Panel9: TPanel
             AnchorSideLeft.Control = Panel4
-            AnchorSideTop.Control = edtAlignsize
+            AnchorSideTop.Control = cbSameOnly
             AnchorSideTop.Side = asrBottom
             AnchorSideRight.Control = Panel4
             AnchorSideRight.Side = asrBottom
             Left = 0
             Height = 39
-            Top = 88
+            Top = 107
             Width = 184
             Anchors = [akTop, akLeft, akRight]
             AutoSize = True
@@ -419,6 +418,17 @@ object frmStructureCompare: TfrmStructureCompare
               Caption = 'Max Level'
               ParentColor = False
             end
+          end
+          object cbSameOnly: TCheckBox
+            AnchorSideLeft.Control = edtAlignsize
+            AnchorSideTop.Control = edtAlignsize
+            AnchorSideTop.Side = asrBottom
+            Left = 4
+            Height = 19
+            Top = 88
+            Width = 163
+            Caption = 'Only find matching groups'
+            TabOrder = 4
           end
         end
       end

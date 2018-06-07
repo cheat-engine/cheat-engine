@@ -127,8 +127,10 @@ type
     fcount: qword;
     fCurrentPosition: qword;
     fMaxPosition: qword;
+    sameonly: boolean;
 
     lastwrite: qword;
+
 
     ownerFrmStructureCompare: TfrmStructureCompare;
     comparesize: integer;
@@ -143,7 +145,7 @@ type
     errorstring:string;
 
     procedure execute; override;
-    constructor create(comparesize: integer; const LFL: TAddressWithShadowList; const NLFL: TAddressWithShadowList; oldpointerfilename: string; outputfilename: string; ownerFrmStructureCompare: TfrmStructureCompare );
+    constructor create(comparesize: integer; sameonly: boolean; const LFL: TAddressWithShadowList; const NLFL: TAddressWithShadowList; oldpointerfilename: string; outputfilename: string; ownerFrmStructureCompare: TfrmStructureCompare );
     destructor destroy; override;
     property count: qword read fcount;
     property currentPosition: qword read fCurrentPosition;
@@ -181,6 +183,7 @@ type
     results: TMemorystream;
     resultfile: TFileStream;
 
+    sameonly: boolean;
 
 
     procedure flushresults;
@@ -211,6 +214,7 @@ type
     //levelblock: array of Puint64Array;  //I think this is obsolete
 
    // block64: array of Pint64Array;
+    sameonly: boolean;
 
     results: TMemorystream;
     resultfile: tfilestream;
@@ -240,7 +244,7 @@ type
     errorstring: string;
 
     procedure execute; override;
-    constructor create(alignment: integer; const LFL: TAddressWithShadowList; const NLFL: TAddressWithShadowList; structsize: integer; maxlevel: integer; filename: string; owner: TfrmStructureCompare);
+    constructor create(alignment: integer; sameonly: boolean; const LFL: TAddressWithShadowList; const NLFL: TAddressWithShadowList; structsize: integer; maxlevel: integer; filename: string; owner: TfrmStructureCompare);
     destructor destroy; override;
   end;
 
@@ -250,6 +254,7 @@ type
     btnNewScan: TButton;
     btnScan: TButton;
     cbHexadecimal: TCheckBox;
+    cbSameOnly: TCheckBox;
     comboType: TComboBox;
     edtAlignsize: TEdit;
     edtMaxLevel: TEdit;
@@ -826,26 +831,38 @@ begin
           begin
             //first iteration checks if g1 is the same or not
             if (i=0) and (j>0) and (CompareMem(g1[0], g1[j],comparesize)=false) then
+            begin
               g1same:=false;
+              if sameonly then
+              begin
+                passed:=false;
+                break;
+              end;
+            end;
 
             if CompareMem(g2[i], g1[j], comparesize) then
             begin
               passed:=false;
               break;
             end;
-
           end;
           if passed=false then break;
 
           //also check if g2 is the same during this loop
           if (i>0) and (CompareMem(g2[0], g2[i],comparesize)=false) then
+          begin
             g2same:=false;
+            if sameonly then
+            begin
+              passed:=false;
+              break;
+            end;
+          end;
         end;
 
         if passed and ((g1same=false) and (g2same=false)) then
-        begin
           passed:=false;
-        end;
+
 
         if passed then //add it
           addPointer(p);
@@ -912,7 +929,7 @@ begin
 
 end;
 
-constructor TStructCompareRescan.create(comparesize: integer; const LFL: TAddressWithShadowList; const NLFL: TAddressWithShadowList; oldpointerfilename: string; outputfilename: string; ownerFrmStructureCompare: TfrmStructureCompare );
+constructor TStructCompareRescan.create(comparesize: integer; sameonly: boolean; const LFL: TAddressWithShadowList; const NLFL: TAddressWithShadowList; oldpointerfilename: string; outputfilename: string; ownerFrmStructureCompare: TfrmStructureCompare );
 var
   i: integer;
   regflags: tregexprflags;
@@ -939,6 +956,7 @@ begin
 
   self.outputfilename:=outputfilename;
   self.ownerFrmStructureCompare:=ownerFrmStructureCompare;
+  self.sameonly:=sameonly;
   pointerfilereader.clearPointercache;
 
   //build the configfile
@@ -1209,7 +1227,14 @@ begin
       begin
         //use the first iteration to see of LF is all the same nor not
         if (i=0) and (j>0) and (CompareMem(memoryblockLF[0], memoryblockLF[j],alignment)=false) then
+        begin
           t1same:=false;
+          if sameonly then
+          begin
+            valid:=false;
+            break;
+          end;
+        end;
 
         if CompareMem(memoryblockNLF[i], memoryblockLF[j], alignment) then
         begin
@@ -1221,7 +1246,14 @@ begin
       if valid=false then break;
 
       if (i>0) and (CompareMem(memoryblockNLF[0], memoryblockNLF[i],alignment)=false) then
+      begin
         t2same:=false;
+        if sameonly then
+        begin
+          valid:=false;
+          break;
+        end;
+      end;
     end;
 
     if valid then
@@ -1401,6 +1433,7 @@ begin
         workers[i].alignment:=alignment;
         workers[i].is64bittarget:=is64bittarget;
         workers[i].filename:=filename+'.results.'+inttostr(i);
+        workers[i].sameonly:=sameonly;
         workers[i].owner:=self;
         workers[i].Start;
       end;
@@ -1489,7 +1522,7 @@ begin
   end;
 end;
 
-constructor TStructCompareController.create(alignment: integer; const LFL: TAddressWithShadowList; const NLFL: TAddressWithShadowList; structsize: integer; maxlevel: integer; filename: string; owner: TfrmStructureCompare);
+constructor TStructCompareController.create(alignment: integer; sameonly: boolean; const LFL: TAddressWithShadowList; const NLFL: TAddressWithShadowList; structsize: integer; maxlevel: integer; filename: string; owner: TfrmStructureCompare);
 var
   i: integer;
   r: tstringlist;
@@ -1511,6 +1544,7 @@ begin
 
   self.owner:=owner;
   self.filename:=filename;
+  self.sameonly:=sameonly;
 
   r:=tstringlist.create;
   findAllResultFilesForThisPtr(filename, r);
@@ -1976,13 +2010,13 @@ begin
   if btnscan.tag=1 then
   begin
     if oldpointerfile<>'' then
-      rescanner:=TStructCompareRescan.create(alignsize,lf,nlf, oldpointerfile, savedialog1.filename, self)
+      rescanner:=TStructCompareRescan.create(alignsize,cbSameOnly.checked, lf,nlf, oldpointerfile, savedialog1.filename, self)
     else
       rescandone;
   end
   else
   begin
-    scanner:=TStructCompareController.create(alignsize, lf,nlf, structsize, maxlevel, savedialog1.filename, self);
+    scanner:=TStructCompareController.create(alignsize,cbSameOnly.checked, lf,nlf, structsize, maxlevel, savedialog1.filename, self);
     statusupdater.enabled:=true;
   end;
 
@@ -2162,12 +2196,16 @@ procedure TfrmStructureCompare.FormCreate(Sender: TObject);
 begin
   edtLF:=Tlist.create;
   edtNLF:=Tlist.create;
+  autosize:=false;
+  LoadFormPosition(self);
 end;
 
 procedure TfrmStructureCompare.FormDestroy(Sender: TObject);
 begin
   edtLF.free;
   edtNLF.free;
+
+  SaveFormPosition(self);
 end;
 
 procedure TfrmStructureCompare.FormShow(Sender: TObject);

@@ -482,12 +482,13 @@ end;
 
 procedure TfrmChangedAddresses.miScanForCommonalitiesClick(Sender: TObject);
 var
-  i,j: integer;
+  i,j,k: integer;
   g0: array of TAddressEntry;
   g1: array of TAddressEntry;
   g2: array of TAddressEntry;
   e: TAddressEntry;
 
+  gs: array of TAddressEntry;
 
 
   f:TfrmChangedAddressesCommonalityScanner;
@@ -495,6 +496,7 @@ begin
   setlength(g0,0);
   setlength(g1,0);
   setlength(g2,0);
+  setlength(gs,0);
 
   for i:=0 to changedlist.items.Count-1 do
   begin
@@ -520,9 +522,37 @@ begin
 
       else raise exception.create('Invalid groups');
     end;
+
+    if changedlist.items[i].Selected then
+    begin
+      setlength(gs,length(gs)+1);
+      gs[length(gs)-1]:=e;
+    end;
   end;
 
-  if (length(g1)=0) and (length(g2)=0) then raise exception.create(rsDesignateSomeAddresses);
+  if (length(g1)=0) and (length(g2)=0) then
+  begin
+    if length(gs)>1 then //nothing marked, but more than 1 address selected
+    begin
+      g1:=gs;
+      //delete all g0 entries that are in g1(gs)
+      for i:=0 to length(g1)-1 do
+      begin
+        for j:=0 to length(g0)-1 do
+          if g0[j]=g1[i] then
+          begin
+            //found one
+            for k:=j to length(g0)-2 do
+              g0[k]:=g0[k+1];
+
+            setlength(g0,length(g0)-1);
+          end;
+      end;
+
+    end
+    else
+      raise exception.create(rsDesignateSomeAddresses);
+  end;
 
   if (length(g1)>0) and (length(g2)=0) then
   begin
