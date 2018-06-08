@@ -88,31 +88,31 @@ begin
     begin
       newspeedhackspeed1.speed:=StrToFloat(edtSHspeed.Text);
       newspeedhackspeed1.disablewhenreleased:=cbStopOnRelease.checked;
-      newspeedhackspeed1.keycombo:=newhotkeys[currentspeed+2];
+      newspeedhackspeed1.keycombo:=newhotkeys[currentspeed+3];
     end else
     if currentspeed=2 then
     begin
       newspeedhackspeed2.speed:=StrToFloat(edtSHspeed.Text);
       newspeedhackspeed2.disablewhenreleased:=cbStopOnRelease.checked;
-      newspeedhackspeed2.keycombo:=newhotkeys[currentspeed+2];
+      newspeedhackspeed2.keycombo:=newhotkeys[currentspeed+3];
     end else
     if currentspeed=3 then
     begin
       newspeedhackspeed3.speed:=StrToFloat(edtSHspeed.Text);
       newspeedhackspeed3.disablewhenreleased:=cbStopOnRelease.checked;
-      newspeedhackspeed3.keycombo:=newhotkeys[currentspeed+2];
+      newspeedhackspeed3.keycombo:=newhotkeys[currentspeed+3];
     end else
     if currentspeed=4 then
     begin
       newspeedhackspeed4.speed:=StrToFloat(edtSHspeed.Text);
       newspeedhackspeed4.disablewhenreleased:=cbStopOnRelease.checked;
-      newspeedhackspeed4.keycombo:=newhotkeys[currentspeed+2];
+      newspeedhackspeed4.keycombo:=newhotkeys[currentspeed+3];
     end else
     if currentspeed=5 then
     begin
       newspeedhackspeed5.speed:=StrToFloat(edtSHspeed.Text);
       newspeedhackspeed5.disablewhenreleased:=cbStopOnRelease.checked;
-      newspeedhackspeed5.keycombo:=newhotkeys[currentspeed+2];
+      newspeedhackspeed5.keycombo:=newhotkeys[currentspeed+3];
     end;
   end;
 
