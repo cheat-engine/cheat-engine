@@ -260,6 +260,7 @@ type
     MenuItem12: TMenuItem;
     MenuItem14: TMenuItem;
     MenuItem15: TMenuItem;
+    miLuaDocumentation: TMenuItem;
     miForgotScan: TMenuItem;
     miDotNET: TMenuItem;
     miGetDotNetObjectList: TMenuItem;
@@ -509,6 +510,7 @@ type
       Selected: boolean);
     procedure MenuItem12Click(Sender: TObject);
     procedure MenuItem15Click(Sender: TObject);
+    procedure miLuaDocumentationClick(Sender: TObject);
     procedure miForgotScanClick(Sender: TObject);
     procedure miGetDotNetObjectListClick(Sender: TObject);
     procedure miChangeValueBackClick(Sender: TObject);
@@ -3140,6 +3142,11 @@ begin
       exit;
     end;
   end;
+end;
+
+procedure TMainForm.miLuaDocumentationClick(Sender: TObject);
+begin
+  ShellExecute(0,'open',pchar(ExtractFilePath(application.ExeName)+'celua.txt'),nil,nil,SW_SHOW);
 end;
 
 procedure TMainForm.miForgotScanClick(Sender: TObject);

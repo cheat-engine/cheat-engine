@@ -1,9 +1,9 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 1180
-  Height = 676
+  Left = 6
+  Height = 402
   Hint = ' '
-  Top = 132
+  Top = 0
   Width = 622
   HelpContext = 1
   HorzScrollBar.Visible = False
@@ -11,7 +11,7 @@ object MainForm: TMainForm
   AllowDropFiles = True
   AutoSize = True
   Caption = 'Cheat Engine 6.8'
-  ClientHeight = 656
+  ClientHeight = 382
   ClientWidth = 622
   Menu = MainMenu1
   OnClose = FormClose
@@ -26,7 +26,7 @@ object MainForm: TMainForm
     Cursor = crVSplit
     Left = 0
     Height = 7
-    Top = 441
+    Top = 382
     Width = 622
     Align = alTop
     AutoSnap = False
@@ -38,8 +38,8 @@ object MainForm: TMainForm
   object Panel1: TPanel
     Tag = 777
     Left = 0
-    Height = 176
-    Top = 448
+    Height = 0
+    Top = 382
     Width = 622
     Align = alClient
     BevelOuter = bvNone
@@ -52,7 +52,7 @@ object MainForm: TMainForm
   object Panel4: TPanel
     Left = 0
     Height = 32
-    Top = 624
+    Top = 350
     Width = 622
     Align = alBottom
     AutoSize = True
@@ -2566,6 +2566,10 @@ object MainForm: TMainForm
       object Helpindex1: TMenuItem
         Caption = 'Cheat Engine Help'
         OnClick = Helpindex1Click
+      end
+      object miLuaDocumentation: TMenuItem
+        Caption = 'Lua documentation'
+        OnClick = miLuaDocumentationClick
       end
       object miTutorial: TMenuItem
         Caption = 'Cheat Engine Tutorial'

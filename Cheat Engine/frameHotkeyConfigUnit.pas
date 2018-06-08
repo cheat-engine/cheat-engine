@@ -118,7 +118,7 @@ begin
 
   if (listbox1.ItemIndex>=4) and (listbox1.itemindex<=8) then
   begin
-    currentspeed:=listbox1.ItemIndex-2;
+    currentspeed:=listbox1.ItemIndex-3;
     case currentspeed of
       1:
       begin
