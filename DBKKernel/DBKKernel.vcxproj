@@ -272,6 +272,14 @@ makecab /f "$(ProjectDir)\dbk64.ddf"
       <AdditionalOptions>/INTEGRITYCHECK %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Link>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+    </Link>
+    <MASM>
+      <PreserveIdentifierCase>3</PreserveIdentifierCase>
+    </MASM>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <Inf Include="DBK32.inf">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>

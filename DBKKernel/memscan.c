@@ -99,7 +99,7 @@ void VirtualAddressToPageEntries64(QWORD address, PPDPTE_PAE *pml4entry, PPDPTE_
 	PTE = PTE >> 12;
 	PTE = PTE * 8;
 	PTE = PTE + PTB;
-	*pagetableentry = (PPTE_PAE)PTE;
+	*pagetableentry = (PPTE_PAE)(UINT_PTR)PTE;
 
 	//*pagetableentry = (PPTE_PAE)((((QWORD)address & 0x0000ffffffffffffull) >> 12)*8) + 0xfffff80000000000ULL;
 
@@ -108,7 +108,7 @@ void VirtualAddressToPageEntries64(QWORD address, PPDPTE_PAE *pml4entry, PPDPTE_
 	PDE = PDE >> 12;
 	PDE = PDE * 8;
 	PDE = PDE + PTB;
-	*pagedirentry = (PPDE_PAE)PDE;
+	*pagedirentry = (PPDE_PAE)(UINT_PTR)PDE;
 
 
 	//*pagedirentry = (PPDE_PAE)((((QWORD)*pagetableentry & 0x0000ffffffffffffull )>> 12)*8) + 0xfffff80000000000ULL;
@@ -118,7 +118,7 @@ void VirtualAddressToPageEntries64(QWORD address, PPDPTE_PAE *pml4entry, PPDPTE_
 	PDPTR = PDPTR >> 12;
 	PDPTR = PDPTR * 8;
 	PDPTR = PDPTR + PTB;
-	*pagedirpointerentry = (PPDPTE_PAE)PDPTR;
+	*pagedirpointerentry = (PPDPTE_PAE)(UINT_PTR)PDPTR;
 
 	//*pagedirpointerentry = (PPDPTE_PAE)((((QWORD)*pagedirentry & 0x0000ffffffffffffull )>> 12)*8) + 0xfffff80000000000ULL;
 #ifdef AMD64
@@ -973,7 +973,7 @@ UINT_PTR FindFirstDifferentAddress(QWORD address, DWORD *protection)
 			if (pagedirpointerentry->P == 0)
 			{
 				if (*protection != PAGE_NOACCESS)
-					return address;
+					return (UINT_PTR)address;
 
 				pagedirindex = 0;
 				pagetableindex = 0;
@@ -1012,7 +1012,7 @@ UINT_PTR FindFirstDifferentAddress(QWORD address, DWORD *protection)
 			if (pagedirentry->P == 0)
 			{
 				if (*protection != PAGE_NOACCESS)
-					return address;
+					return (UINT_PTR)address;
 
 				pagetableindex = 0;
 				for (ri=1, i = pagedirindex + 1; i < 512; i++, ri++)
@@ -1049,10 +1049,10 @@ UINT_PTR FindFirstDifferentAddress(QWORD address, DWORD *protection)
 			if (pagedirentry->PS)
 			{
 				if (*protection == PAGE_NOACCESS)
-					return address;
+					return (UINT_PTR)address;
 
 				if ((pagedirentry->RW) && (*protection != PAGE_EXECUTE_READWRITE))
-					return address;
+					return (UINT_PTR)address;
 
 				//go to the next one
 				pagedirindex++;
@@ -1076,7 +1076,7 @@ UINT_PTR FindFirstDifferentAddress(QWORD address, DWORD *protection)
 			if (pagetableentry->P == 0)
 			{
 				if (*protection != PAGE_NOACCESS)
-					return address;
+					return (UINT_PTR)address;
 
 				for (ri=1, i = pagetableindex + 1; i < 512; i++, ri++)
 				{
@@ -1116,10 +1116,10 @@ UINT_PTR FindFirstDifferentAddress(QWORD address, DWORD *protection)
 
 			//still here so a present page
 			if (*protection == PAGE_NOACCESS)
-				return address;
+				return (UINT_PTR)address;
 
 			if ((pagetableentry->RW) && (*protection != PAGE_EXECUTE_READWRITE))
-				return address;
+				return (UINT_PTR)address;
 
 			//next entry
 			pagetableindex++;
@@ -1150,8 +1150,8 @@ UINT_PTR FindFirstDifferentAddress(QWORD address, DWORD *protection)
 		PPTE pagetableentry;
 		while (1)
 		{
-			VirtualAddressToPageEntries32(address, &pagedirentry, &pagetableentry);
-			VirtualAddressToIndexes(address, &pml4index, &pagedirpointerindex, &pagedirindex, &pagetableindex);
+			VirtualAddressToPageEntries32((UINT_PTR)address, &pagedirentry, &pagetableentry);
+			VirtualAddressToIndexes((UINT_PTR)address, &pml4index, &pagedirpointerindex, &pagedirindex, &pagetableindex);
 
 			if (*protection == 0)
 			{
@@ -1180,7 +1180,7 @@ UINT_PTR FindFirstDifferentAddress(QWORD address, DWORD *protection)
 			if (pagedirentry->P == 0)
 			{
 				if (*protection != PAGE_NOACCESS)
-					return address;
+					return (UINT_PTR)address;
 
 				pagetableindex = 0;
 				for (ri=1, i = pagedirindex + 1; i < 1024; i++, ri++)
@@ -1190,7 +1190,7 @@ UINT_PTR FindFirstDifferentAddress(QWORD address, DWORD *protection)
 						//found a valid pagedirentry
 						pagedirindex = i;
 						address = IndexesToVirtualAddress(0, 0, pagedirindex, pagetableindex, 0);
-						VirtualAddressToPageEntries32(address, &pagedirentry, &pagetableentry);
+						VirtualAddressToPageEntries32((UINT_PTR)address, &pagedirentry, &pagetableentry);
 						break;
 					}
 				}
@@ -1202,10 +1202,10 @@ UINT_PTR FindFirstDifferentAddress(QWORD address, DWORD *protection)
 			if (pagedirentry->PS)
 			{
 				if (*protection == PAGE_NOACCESS)
-					return address;
+					return (UINT_PTR)address;
 
 				if ((pagedirentry->RW) && (*protection != PAGE_EXECUTE_READWRITE))
-					return address;
+					return (UINT_PTR)address;
 
 				//go to the next one
 				pagedirindex++;
@@ -1219,7 +1219,7 @@ UINT_PTR FindFirstDifferentAddress(QWORD address, DWORD *protection)
 			if (pagetableentry->P == 0)
 			{
 				if (*protection != PAGE_NOACCESS)
-					return address;
+					return (UINT_PTR)address;
 
 				for (ri=1, i = pagetableindex + 1; i < 1024; i++, ri++)
 				{
@@ -1246,10 +1246,10 @@ UINT_PTR FindFirstDifferentAddress(QWORD address, DWORD *protection)
 
 			//still here so a present page
 			if (*protection == PAGE_NOACCESS)
-				return address;
+				return (UINT_PTR)address;
 
 			if ((pagetableentry->RW) && (*protection != PAGE_EXECUTE_READWRITE))
-				return address;
+				return (UINT_PTR)address;
 
 			//next entry
 			pagetableindex++;

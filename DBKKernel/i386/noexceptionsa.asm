@@ -1,9 +1,7 @@
-.686
-.MODEL FLAT
-.CODE
+_TEXT SEGMENT 'CODE'
 
 PUBLIC _NoException14
-_NoException14 PROC
+_NoException14:
 		add esp,4 ;undo errorcode
 		;xor ecx,ecx
 		;iretd
@@ -13,11 +11,10 @@ _NoException14 PROC
 		mov dword ptr [esp+4],eax
 		pop eax
 		iretd
-_NoException14 ENDP
 
 
 PUBLIC _ExceptionlessCopy_Internal
-_ExceptionlessCopy_Internal PROC
+_ExceptionlessCopy_Internal:
 		push ebp
 		mov ebp, esp
 
@@ -46,7 +43,8 @@ _ExceptionlessCopy_Internal PROC
 		pop ebp
 		ret ;cdecl 
 
-_ExceptionlessCopy_Internal ENDP
-
+_TEXT   ENDS
 
         END	
+
+

@@ -5,6 +5,11 @@ jumps into dbvm's os entry point
 
 */
 #pragma warning( disable: 4100 4103 4152 4456)
+
+#ifndef AMD64
+#pragma warning( disable: 4740)
+#endif
+
 #include <ntifs.h>
 #include <windef.h>
 

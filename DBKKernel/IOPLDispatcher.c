@@ -180,9 +180,8 @@ OB_PREOP_CALLBACK_STATUS ThreadPreCallback(PVOID RegistrationContext, POB_PRE_OP
 		return OB_PREOP_SUCCESS;
 
 	if (OperationInformation->ObjectType == *PsThreadType)
-	{
-
-		if ((PsGetProcessId(DRMProcess) == PsGetThreadProcessId(OperationInformation->Object)) || (PsGetProcessId(DRMProcess2) == PsGetThreadProcessId(OperationInformation->Object)))
+	{		
+		if ((PsGetProcessId(DRMProcess) == PsGetThreadProcessId(OperationInformation->Object)) || ((DRMProcess2) && (PsGetProcessId(DRMProcess2) == PsGetThreadProcessId(OperationInformation->Object))))
 		{
 			//probably block it
 
