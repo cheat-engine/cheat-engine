@@ -2784,14 +2784,14 @@ begin
                 $22 : begin
                         description:='move to control register';
                         lastdisassembledata.opcode:='mov';
-                        lastdisassembledata.parameters:=cr(memory[2])+','+modrm(memory,prefix2,2,0,last);
+                        lastdisassembledata.parameters:=cr(memory[2])+modrm(memory,prefix2,2,0,last, mRight);
                         inc(offset,last-1);
                       end;
 
                 $23 : begin
                         description:='move to debug register';
                         lastdisassembledata.opcode:='mov';
-                        lastdisassembledata.parameters:=dr(memory[2])+','+modrm(memory,prefix2,2,0,last);
+                        lastdisassembledata.parameters:=dr(memory[2])+modrm(memory,prefix2,2,0,last, mRight);
                         inc(offset,last-1);
                       end;
 
@@ -2860,7 +2860,7 @@ begin
                           else
                             lastdisassembledata.opcode:='cvtsi2sd';
 
-                          lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,0,last,mRight);
+                          lastdisassembledata.parameters:=xmm(memory[2])+modrm(memory,prefix2,2,0,last,mRight);
 
                           inc(offset,last-1);
                         end
@@ -2874,7 +2874,7 @@ begin
                           else
                             lastdisassembledata.opcode:='cvtsi2ss';
 
-                          lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,0,last);
+                          lastdisassembledata.parameters:=xmm(memory[2])+modrm(memory,prefix2,2,0,last,mRight);
 
                           inc(offset,last-1);
                         end
