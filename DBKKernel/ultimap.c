@@ -501,6 +501,11 @@ Call this for each processor
 	params=DeferredContext;
 
 	DS_AREA_SIZE=params->DS_AREA_SIZE;
+	if (DS_AREA_SIZE == 0)
+	{
+		DbgPrint("DS_AREA_SIZE==0\n");
+		return;
+	}
 	
 
 	DbgPrint("ultimap(%I64x, %I64x, %d)", (UINT64)params->cr3, (UINT64)params->dbgctl_msr, params->DS_AREA_SIZE);
@@ -509,6 +514,13 @@ Call this for each processor
 	if (params->DS_AREA_SIZE)
 	{
 		DS_AREA[cpunr()]=ExAllocatePool(NonPagedPool, params->DS_AREA_SIZE);
+
+		if (DS_AREA[cpunr()] == NULL)
+		{
+			DbgPrint("ExAllocatePool failed\n");
+			return;
+		}
+
 		RtlZeroMemory(DS_AREA[cpunr()],  params->DS_AREA_SIZE);
 
 		DbgPrint("DS_AREA[%d]=%p", cpunr(), DS_AREA[cpunr()]);
@@ -703,7 +715,7 @@ NTSTATUS ultimap(UINT64 cr3, UINT64 dbgctl_msr, int _DS_AREA_SIZE, BOOL savetofi
 
 		params.cr3=cr3;
 		params.dbgctl_msr=dbgctl_msr;
-		params.DS_AREA_SIZE=DS_AREA_SIZE;
+		params.DS_AREA_SIZE=_DS_AREA_SIZE;
 
 		r=HalSetSystemInformation(HalProfileSourceInterruptHandler, sizeof(PVOID*), &pperfmon_hook); //hook the perfmon interrupt
 
