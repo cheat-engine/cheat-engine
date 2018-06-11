@@ -861,7 +861,7 @@ end;
 
 procedure TfrmTracer.FormDestroy(Sender: TObject);
 begin
-  saveformposition(self,[]);
+  saveformposition(self);
 end;
 
 procedure TfrmTracer.configuredisplay;

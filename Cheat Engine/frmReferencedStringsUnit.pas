@@ -233,8 +233,15 @@ begin
 end;
 
 procedure TfrmReferencedStrings.FormDestroy(Sender: TObject);
+var x: array of integer;
 begin
-  saveformposition(self,[lbReflist.Width,lvStringlist.Column[0].Width,lvStringlist.Column[1].Width,lvStringlist.Column[2].Width]);
+  setlength(x,4);
+  x[0]:=lbReflist.Width;
+  x[1]:=lvStringlist.Column[0].Width;
+  x[2]:=lvStringlist.Column[1].Width;
+  x[3]:=lvStringlist.Column[2].Width;
+
+  saveformposition(self,x);
 end;
 
 function AddressSort(List: TStringList; Index1, Index2: Integer): Integer;

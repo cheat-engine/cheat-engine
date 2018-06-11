@@ -2083,7 +2083,7 @@ procedure TfrmAutoInject.FormDestroy(Sender: TObject);
 begin
   //if editscript or editscript2 then
   begin
-    saveformposition(self,[]);
+    saveformposition(self);
 
   end;
 end;

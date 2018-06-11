@@ -10,7 +10,7 @@ getCheatEngineFileVersion(): Returns the full version data of the cheat engine v
 
 
 activateProtection(): Prevents basic memory scanners from opening the cheat engine process
-enableDRM() : Prevents normal memory scanners from reading the Cheat Engine process (kernelmode)
+enableDRM(altitude OPTIONAL, secondaryprocessid OPTIONAL ) : Prevents normal memory scanners from reading the Cheat Engine process (kernelmode)  The secondaryprocessid lets you protect another process. E.g the game itself, so they can't easily see what you change 
 
 fullAccess(address,size): Changes the protection of a block of memory to writable and executable
 

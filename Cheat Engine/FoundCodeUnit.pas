@@ -33,6 +33,7 @@ type
 
     formChangedAddresses: TfrmChangedAddresses;
     procedure savestack;
+    constructor create;
     destructor destroy; override;
 end;
 
@@ -109,6 +110,8 @@ type
     setcountwidth: boolean;
     fdbvmwatchid: integer;
     dbvmwatchpollthread: TDBVMWatchPollThread;
+
+    usedmiFindWhatAccesses: boolean; //debug
     procedure stopdbvmwatch;
     procedure addInfo(Coderecord: TCoderecord);
     procedure moreinfo;
@@ -214,6 +217,11 @@ begin
   end;
 
   inherited destroy;
+end;
+
+constructor TCodeRecord.create;
+begin
+  formChangedAddresses:=nil;
 end;
 
 procedure TDBVMWatchPollThread.addEntriesToList;
@@ -482,7 +490,7 @@ begin
         if copy(d.LastDisassembleData.opcode,1,3)<>'REP' then
           address:=previousopcode(address);
 
-        d.free;
+        freeandnil(d);
       end;
     end;
 
@@ -495,7 +503,8 @@ begin
     ldi:=d.LastDisassembleData;
 
 
-    d.free;
+    freeandnil(d);
+
 
     //check if address is inside the list
     for i:=0 to foundcodelist.Items.Count-1 do
@@ -1193,25 +1202,35 @@ end;
 procedure TFoundCodeDialog.FormDestroy(Sender: TObject);
 var i: integer;
     cr: Tcoderecord;
+    x: array of integer;
+    s: string;
 begin
+  stopDBVMWatch();
+
   for i:=0 to FoundCodeList.Items.count-1 do
   begin
     cr:=Tcoderecord(FoundCodeList.Items[i].data);
 
     if cr.formChangedAddresses<>nil then
     begin
+      if usedmiFindWhatAccesses=false then
+      begin
+        MessageDlg('cr.formChangedAddresses is not nil but the function was never used. Fuck! cr.formChangedAddresses='+inttohex(ptruint(cr.formChangedAddresses),8), mtError,[mbok],0);
+        exit;
+      end;
       cr.formChangedAddresses.Close;
       cr.formChangedAddresses.Free;
       cr.formChangedAddresses:=nil;
     end;
 
+    FoundCodeList.Items[i].data:=nil;
     cr.free;
   end;
 
+  setlength(x,1);
+  x[1]:=FoundCodeList.Columns[0].Width;
 
-  stopDBVMWatch();
-
-  saveformposition(self,[FoundCodeList.Columns[0].Width]);
+  saveformposition(self,x);
 end;
 
 procedure TFoundCodeDialog.FormResize(Sender: TObject);
@@ -1416,6 +1435,8 @@ var i: integer;
   f: TfrmChangedAddresses;
 
 begin
+  usedmiFindWhatAccesses:=true;
+
   if miFindWhatAccesses.checked then
   begin
     if MessageDlg(rsFCThesWillSetASiftwareBreakpointInt3OnEverySingleOpcodeEtc,mtWarning, [mbyes,mbno],0)=mryes then
@@ -1443,7 +1464,6 @@ begin
       coderecord:=TCodeRecord(foundcodelist.items[i].data);
       if coderecord.formChangedAddresses<>nil then
       begin
-
         coderecord.formChangedAddresses.free;
         coderecord.formChangedAddresses:=nil;
       end;

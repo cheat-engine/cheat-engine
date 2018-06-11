@@ -11,7 +11,7 @@ object frmStacktrace: TfrmStacktrace
   OnCreate = FormCreate
   PopupMode = pmAuto
   Position = poOwnerFormCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object ListView1: TListView
     Left = 0
     Height = 274
@@ -38,7 +38,7 @@ object frmStacktrace: TfrmStacktrace
       item
         AutoSize = True
         Caption = 'Parameters'
-        Width = 187
+        Width = 74
       end>
     PopupMenu = PopupMenu1
     ReadOnly = True

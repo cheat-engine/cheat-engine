@@ -1,9 +1,9 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 6
-  Height = 402
+  Left = 302
+  Height = 637
   Hint = ' '
-  Top = 0
+  Top = 129
   Width = 622
   HelpContext = 1
   HorzScrollBar.Visible = False
@@ -11,7 +11,7 @@ object MainForm: TMainForm
   AllowDropFiles = True
   AutoSize = True
   Caption = 'Cheat Engine 6.8'
-  ClientHeight = 382
+  ClientHeight = 617
   ClientWidth = 622
   Menu = MainMenu1
   OnClose = FormClose
@@ -26,7 +26,7 @@ object MainForm: TMainForm
     Cursor = crVSplit
     Left = 0
     Height = 7
-    Top = 382
+    Top = 441
     Width = 622
     Align = alTop
     AutoSnap = False
@@ -38,8 +38,8 @@ object MainForm: TMainForm
   object Panel1: TPanel
     Tag = 777
     Left = 0
-    Height = 0
-    Top = 382
+    Height = 137
+    Top = 448
     Width = 622
     Align = alClient
     BevelOuter = bvNone
@@ -52,7 +52,7 @@ object MainForm: TMainForm
   object Panel4: TPanel
     Left = 0
     Height = 32
-    Top = 350
+    Top = 585
     Width = 622
     Align = alBottom
     AutoSize = True
@@ -2563,6 +2563,7 @@ object MainForm: TMainForm
     end
     object miHelp: TMenuItem
       Caption = '&Help'
+      OnClick = miHelpClick
       object Helpindex1: TMenuItem
         Caption = 'Cheat Engine Help'
         OnClick = Helpindex1Click
@@ -2584,7 +2585,7 @@ object MainForm: TMainForm
         OnClick = MenuItem15Click
       end
       object miEnableLCLDebug: TMenuItem
-        Caption = 'Enable LCL Debug'
+        Caption = 'Generate errorlogs'
         Visible = False
         OnClick = EnableLCLClick
       end

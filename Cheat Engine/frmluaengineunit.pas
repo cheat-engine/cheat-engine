@@ -1002,9 +1002,14 @@ begin
 end;
 
 procedure TfrmLuaEngine.FormDestroy(Sender: TObject);
+var x: array of integer;
 begin
+  setlength(x,3);
+  x[0]:=panel1.height;
+  x[1]:=integer(ifthen(miResizeOutput.checked, 1,0));
+  x[2]:=integer(ifthen(miShowScriptInOutput.checked, 1,0));
 
-  SaveFormPosition(self, [panel1.height, integer(ifthen(miResizeOutput.checked, 1,0)), integer(ifthen(miShowScriptInOutput.checked, 1,0))]);
+  SaveFormPosition(self, x);
 end;
 
 procedure TfrmLuaEngine.FormShow(Sender: TObject);

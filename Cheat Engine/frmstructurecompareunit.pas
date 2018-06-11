@@ -1049,7 +1049,8 @@ begin
       if (not readok) or (x<>4096) then
       begin
         //unreadable memory or buggy rpm hook
-        FreeMemAndNil(data);
+        freemem(data);
+        data:=nil;
         exit(false)
       end;
 

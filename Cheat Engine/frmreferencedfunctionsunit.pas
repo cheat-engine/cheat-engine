@@ -70,8 +70,13 @@ begin
 end;
 
 procedure TfrmReferencedFunctions.FormDestroy(Sender: TObject);
+var x: array of integer;
 begin
-  saveformposition(self,[lvCallList.Width,lvCallList.Column[0].Width,lvCallList.Column[1].Width]);
+  setlength(x,3);
+  x[0]:=lvCallList.Width;
+  x[1]:=lvCallList.Column[0].Width;
+  x[2]:=lvCallList.Column[1].Width;
+  saveformposition(self,x);
 end;
 
 procedure TfrmReferencedFunctions.lbReflistDblClick(Sender: TObject);

@@ -1,34 +1,34 @@
 object frmStructureCompare: TfrmStructureCompare
-  Left = 547
-  Height = 507
-  Top = 378
-  Width = 707
+  Left = 393
+  Height = 400
+  Top = 248
+  Width = 622
   AutoSize = True
   Caption = 'Structure Compare'
-  ClientHeight = 487
-  ClientWidth = 707
+  ClientHeight = 380
+  ClientWidth = 622
   Menu = MainMenu1
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.4.0'
+  LCLVersion = '1.6.0.4'
   object Panel2: TPanel
     Left = 0
-    Height = 487
+    Height = 380
     Top = 0
-    Width = 707
+    Width = 622
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 487
-    ClientWidth = 707
+    ClientHeight = 380
+    ClientWidth = 622
     TabOrder = 0
     object ListView1: TListView
       Left = 0
-      Height = 321
+      Height = 214
       Top = 166
-      Width = 707
+      Width = 622
       Align = alClient
       Columns = <>
       HideSelection = False
@@ -46,13 +46,13 @@ object frmStructureCompare: TfrmStructureCompare
       Left = 0
       Height = 163
       Top = 0
-      Width = 707
+      Width = 622
       Align = alTop
       AutoSize = True
       BorderSpacing.Bottom = 3
       BevelOuter = bvNone
       ClientHeight = 163
-      ClientWidth = 707
+      ClientWidth = 622
       Constraints.MinWidth = 500
       TabOrder = 1
       object Panel7: TPanel

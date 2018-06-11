@@ -3038,6 +3038,7 @@ var showaddress: integer;
   descriptionsize: integer;
   autoguess: integer;
   defaultstructsize: integer;
+  x: array of integer;
 begin
   frmStructures2.Remove(self);
 
@@ -3047,7 +3048,11 @@ begin
 
   descriptionsize:=HeaderControl1.Sections[0].Width;
 
-  SaveFormPosition(self, [showaddress,autoguess, descriptionsize]);
+  setlength(x,3);
+  x[0]:=showaddress;
+  x[1]:=autoguess;
+  x[2]:=descriptionsize;
+  SaveFormPosition(self, x);
 
   if frmStructuresNewStructure<>nil then
     freeandnil(frmStructuresNewStructure);

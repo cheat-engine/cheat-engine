@@ -614,12 +614,12 @@ end;
 
 procedure TFormDesigner.OIDDestroy(sender: Tobject);
 begin
-  saveformposition(TObjectInspectorDlg(sender),[]);
+  saveformposition(TObjectInspectorDlg(sender));
 end;
 
 procedure TFormDesigner.FormDestroy(Sender: TObject);
 begin
-  saveformposition(self,[]);
+  saveformposition(self);
   if methodlist<>nil then
     freeandnil(methodlist);
 end;

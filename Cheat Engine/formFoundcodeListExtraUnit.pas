@@ -182,7 +182,7 @@ begin
   if fpp<>nil then
     fpp.Free;
 
-  saveformposition(self,[]);
+  saveformposition(self);
 end;
 
 procedure TFormFoundCodeListExtra.FormShow(Sender: TObject);

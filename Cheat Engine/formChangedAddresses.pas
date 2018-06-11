@@ -82,12 +82,14 @@ type
     hassetsizes: boolean;
     addresslist: TMap;
     faddress: ptruint;
+    defaultcolor: TColor;
     procedure refetchValues(specificaddress: ptruint=0);
     procedure setAddress(a: ptruint);
   public
     { Public declarations }
     equation: string;
     foundcodedialog: pointer;
+
     procedure AddRecord;
     property address: ptruint read fAddress write setAddress;
   end;
@@ -413,7 +415,7 @@ begin
       1: sender.Canvas.Font.color:=clBlue;
       2: sender.Canvas.Font.color:=clRed;
       else
-        sender.Canvas.Font.color:=clDefault;
+        sender.Canvas.Font.color:=defaultcolor;
     end;
   end
   else
@@ -628,6 +630,9 @@ end;
 
 procedure TfrmChangedAddresses.FormShow(Sender: TObject);
 begin
+//  defaultcolor:=
+  defaultcolor:=Changedlist.GetDefaultColor(dctFont);
+
   OKButton.Caption:=rsStop;
 
   if not hassetsizes then
@@ -771,6 +776,7 @@ procedure TfrmChangedAddresses.FormDestroy(Sender: TObject);
 var
   i: integer;
   ae: TAddressEntry;
+  x: array of integer;
 begin
   for i:=0 to changedlist.Items.Count-1 do
   begin
@@ -781,8 +787,12 @@ begin
   if OKButton.caption=rsStop then
     debuggerthread.FindWhatCodeAccessesStop(self);
 
+  setlength(x,3);
+  x[0]:=changedlist.Column[0].Width;
+  x[1]:=changedlist.Column[1].Width;
+  x[2]:=changedlist.Column[2].Width;
 
-  saveformposition(self,[changedlist.Column[0].Width,changedlist.Column[1].Width,changedlist.Column[2].Width]);
+  saveformposition(self,x);
   if addresslist<>nil then
     addresslist.Free;
 end;

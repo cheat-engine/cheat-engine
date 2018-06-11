@@ -1,7 +1,7 @@
 object About: TAbout
-  Left = 753
+  Left = 408
   Height = 310
-  Top = 272
+  Top = 207
   Width = 488
   HelpContext = 2
   AutoSize = True

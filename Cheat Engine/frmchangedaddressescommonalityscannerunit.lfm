@@ -1,11 +1,11 @@
 object frmChangedAddressesCommonalityScanner: TfrmChangedAddressesCommonalityScanner
-  Left = 556
+  Left = 0
   Height = 204
-  Top = 130
-  Width = 632
+  Top = 135
+  Width = 624
   Caption = 'Commonality scanner'
   ClientHeight = 204
-  ClientWidth = 632
+  ClientWidth = 624
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -15,7 +15,7 @@ object frmChangedAddressesCommonalityScanner: TfrmChangedAddressesCommonalitySca
     Left = 0
     Height = 204
     Top = 0
-    Width = 632
+    Width = 624
     Align = alClient
     AutoWidthLastColumn = True
     Columns = <    
@@ -25,7 +25,7 @@ object frmChangedAddressesCommonalityScanner: TfrmChangedAddressesCommonalitySca
       end    
       item
         Caption = 'Status'
-        Width = 528
+        Width = 520
       end>
     HideSelection = False
     ReadOnly = True

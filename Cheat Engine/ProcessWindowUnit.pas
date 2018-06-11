@@ -318,8 +318,13 @@ begin
 end;
 
 procedure TProcessWindow.FormDestroy(Sender: TObject);
+var x: array of integer;
 begin
-  SaveFormPosition(self,[tabcontrol1.TabIndex, ifthen(miOwnProcessesOnly.checked,1,0), ifthen(miSkipSystemProcesses.checked,1,0)]);
+  setlength(x,3);
+  x[0]:=tabcontrol1.TabIndex;
+  x[1]:=ifthen(miOwnProcessesOnly.checked,1,0);
+  x[2]:=ifthen(miSkipSystemProcesses.checked,1,0);
+  SaveFormPosition(self,x);
 end;
 
 procedure TProcessWindow.MenuItem5Click(Sender: TObject);

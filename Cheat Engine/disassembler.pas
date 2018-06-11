@@ -19,7 +19,7 @@ uses windows, imagehlp,sysutils,LCLIntf,byteinterpreter, symbolhandler,CEFuncPro
 //if you're bored, go do this
 
 type Tprefix = set of byte;
-type TMemory = array [0..32] of byte;
+type TMemory = array [0..64] of byte;
 type TIntToHexS=function(address:ptrUInt;chars: integer; signed: boolean=false; signedsize: integer=0):string of object;
 
 type TMRPos=(mLeft,mRight, mNone);
@@ -1711,6 +1711,9 @@ begin
 
   startoffset:=offset;
   initialoffset:=offset;
+
+  for i:=31 to 63 do
+    _memory[i]:=$ce;
 
   actualRead:=readMemory(offset, @_memory[0], 32);
   memory:=@_memory[0];
@@ -15182,6 +15185,9 @@ begin
     end;
   end;
 
+  for i:=32 to 63 do
+    if _memory[i]<>$ce then
+      raise exception.create('Memory corruption in the disassembler');
   except
     on e:exception do
     begin

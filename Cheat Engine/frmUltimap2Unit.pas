@@ -1751,11 +1751,9 @@ end;
 
 procedure TfrmUltimap2.FormDestroy(Sender: TObject);
 var
-  x: TWindowPosArray;
   reg: tregistry;
 begin
-  setlength(x,0);
-  SaveFormPosition(self, x);
+  SaveFormPosition(self);
 
   reg:=TRegistry.Create;
   try

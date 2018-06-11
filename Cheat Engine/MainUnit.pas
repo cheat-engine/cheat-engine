@@ -510,6 +510,7 @@ type
       Selected: boolean);
     procedure MenuItem12Click(Sender: TObject);
     procedure MenuItem15Click(Sender: TObject);
+    procedure miHelpClick(Sender: TObject);
     procedure miLuaDocumentationClick(Sender: TObject);
     procedure miForgotScanClick(Sender: TObject);
     procedure miGetDotNetObjectListClick(Sender: TObject);
@@ -3142,6 +3143,11 @@ begin
       exit;
     end;
   end;
+end;
+
+procedure TMainForm.miHelpClick(Sender: TObject);
+begin
+  miEnableLCLDebug.visible:=ssCtrl in GetKeyShiftState;
 end;
 
 procedure TMainForm.miLuaDocumentationClick(Sender: TObject);
@@ -9435,6 +9441,7 @@ procedure TMainForm.FormDestroy(Sender: TObject);
 var
   i: integer;
   oldscanstate: PScanState;
+  x: array of integer;
 begin
   if flashprocessbutton<>nil then
   begin
@@ -9443,13 +9450,16 @@ begin
     flashprocessbutton.Free;
   end;
 
-  saveformposition(self, [addresslist.headers.Sections[0].Width,
-    addresslist.headers.Sections[1].Width,
-    addresslist.headers.Sections[2].Width,
-    addresslist.headers.Sections[3].Width,
-    addresslist.headers.Sections[4].Width,
-    panel5.Height,
-    foundlist3.columns[0].Width]);
+  setlength(x,7);
+  x[0]:=addresslist.headers.Sections[0].Width;
+  x[1]:=addresslist.headers.Sections[1].Width;
+  x[2]:=addresslist.headers.Sections[2].Width;
+  x[3]:=addresslist.headers.Sections[3].Width;
+  x[4]:=addresslist.headers.Sections[4].Width;
+  x[5]:=panel5.Height;
+  x[6]:=foundlist3.columns[0].Width;
+
+  saveformposition(self, x);
 
 
   if foundlist <> nil then

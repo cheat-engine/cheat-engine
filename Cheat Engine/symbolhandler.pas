@@ -925,6 +925,8 @@ var
   ExtraSymbolData: TExtraSymbolData;
 begin
 
+  if symbolsize>64*1024 then
+    symbolsize:=64*1024;
 
   result:=true;
   if pSymInfo.NameLen=0 then

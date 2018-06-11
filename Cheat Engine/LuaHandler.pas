@@ -5501,6 +5501,64 @@ begin
   dbvm_ultimap2_hideRangeUsage;
 end;
 
+function lua_dbvm_ultimap_getDebugInfo(L: PLua_State): integer; cdecl;
+var
+  di: TULTIMAPDEBUGINFO;
+  r: integer;
+begin
+  r:=dbvm_ultimap_debuginfo(@di);
+  result:=2;
+  lua_pushinteger(L,r);
+  lua_newtable(L);
+
+
+  lua_pushstring(L,'Active');
+  lua_pushinteger(L,di.Active);
+  lua_settable(L,2);
+
+  lua_pushstring(L,'CR3');
+  lua_pushinteger(L,di.CR3);
+  lua_settable(L,2);
+
+  lua_pushstring(L,'DEBUGCTL');
+  lua_pushinteger(L,di.DEBUGCTL);
+  lua_settable(L,2);
+
+  lua_pushstring(L,'DS_AREA');
+  lua_pushinteger(L,di.DS_AREA);
+  lua_settable(L,2);
+
+  lua_pushstring(L,'OriginalDebugCTL');
+  lua_pushinteger(L,di.OriginalDebugCTL);
+  lua_settable(L,2);
+
+  lua_pushstring(L,'OriginalDS_AREA');
+  lua_pushinteger(L,di.OriginalDS_AREA);
+  lua_settable(L,2);
+
+  lua_pushstring(L,'CR3_switchcount');
+  lua_pushinteger(L,di.CR3_switchcount);
+  lua_settable(L,2);
+
+  lua_pushstring(L,'CR3_switchcount2');
+  lua_pushinteger(L,di.CR3_switchcount2);
+  lua_settable(L,2);
+
+  lua_pushstring(L,'LastOldCR3');
+  lua_pushinteger(L,di.LastOldCR3);
+  lua_settable(L,2);
+
+  lua_pushstring(L,'LastNewCR3');
+  lua_pushinteger(L,di.LastNewCR3);
+  lua_settable(L,2);
+
+  lua_pushstring(L,'cpunr');
+  lua_pushinteger(L,di.cpunr);
+  lua_settable(L,2);
+
+  result:=2;
+end;
+
 function dbk_readMSR(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
@@ -10075,6 +10133,7 @@ begin
     lua_register(L, 'dbvm_registerPlugin', lua_dbvm_registerPlugin);
     lua_register(L, 'dbvm_raisePMI', lua_dbvm_raisePMI); //mostly just for debugging
     lua_register(L, 'dbvm_ultimap2_hideRangeUsage', lua_dbvm_ultimap2_hideRangeUsage); //same
+    lua_register(L, 'dbvm_ultimap_getDebugInfo', lua_dbvm_ultimap_getDebugInfo); //more debugging
 
     lua_register(L, 'dbk_getPhysicalAddress', dbk_getPhysicalAddress);
     lua_register(L, 'dbk_writesIgnoreWriteProtection', dbk_writesIgnoreWriteProtection);

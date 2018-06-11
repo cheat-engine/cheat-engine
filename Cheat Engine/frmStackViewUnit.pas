@@ -334,8 +334,14 @@ begin
 end;
 
 procedure TfrmStackView.FormClose(Sender: TObject; var CloseAction: TCloseAction);
+var x: array of integer;
 begin
-  SaveFormPosition(self, [lvstack.Column[0].Width, lvstack.Column[1].Width, lvstack.Column[2].Width ]);
+  setlength(x,3);
+  x[0]:=lvstack.Column[0].Width;
+  x[1]:=lvstack.Column[1].Width;
+  x[2]:=lvstack.Column[2].Width;
+
+  SaveFormPosition(self, x);
 end;
 
 procedure TfrmStackView.FindDialog1Find(Sender: TObject);

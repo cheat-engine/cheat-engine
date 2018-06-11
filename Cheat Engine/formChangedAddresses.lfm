@@ -1,7 +1,7 @@
 object frmChangedAddresses: TfrmChangedAddresses
-  Left = 607
+  Left = 612
   Height = 285
-  Top = 128
+  Top = 133
   Width = 411
   Caption = 'Changed Addresses'
   ClientHeight = 285

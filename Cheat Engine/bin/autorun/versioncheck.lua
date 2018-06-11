@@ -72,7 +72,7 @@ function CheckVersion(automatic)
           t.synchronize(function()
             if newerVersion then
               if messageDialog(string.format(translate('Cheat Engine %s is available at www.cheatengine.org. Go there now?'),latestVersionString), mtConfirmation, mbYes, mbNo)==mrYes then
-                shellExecute('https://cheatengine.org/')
+                shellExecute('https://cheatengine.org/?versioncheck=1')
               else
                 if automatic then --the user clicked away, so probably not interested
                   local NewInterval=(tonumber(vsettings.Value['CheckInterval']) or 1)*2 --just show a default of two times the current skip time
