@@ -456,8 +456,7 @@ begin
       getmem(x,bufsize+1);
       x[bufsize]:=#0;
       result:=x;
-      freemem(x);
-      x:=nil;
+      freememandnil(x);
     end;
 
     8: //array of bytes
@@ -1931,10 +1930,7 @@ begin
   end;
 
   if puser<>nil then
-  begin
-    FreeMem(pUser);
-    pUser:=nil;
-  end;
+    FreeMemandnil(pUser);
 end;
 
 procedure GetModuleList(ModuleList: TStrings; withSystemModules: boolean);
@@ -2125,8 +2121,7 @@ begin
             DestroyIcon(ProcessListInfo^.processIcon);
         end;
 
-        freemem(ProcessListInfo);
-        ProcessListInfo:=nil;
+        freememandnil(ProcessListInfo);
       end;
     processlist.clear;
 
@@ -2262,15 +2257,9 @@ begin
 
     processlist.Assign(x);
   finally
-    freemem(temp);
-    temp:=nil;
-
-    freemem(pidlist);
-    pidlist:=nil;
-
-    freemem(basehandlelist);
-    basehandlelist:=nil;
-
+    freememandnil(temp);
+    freememandnil(pidlist);
+    freememandnil(basehandlelist);
     setlength(pl,0);
   end;
 end;
@@ -2713,10 +2702,7 @@ begin
       end;
     finally
       if buf<>nil then
-      begin
-        freemem(buf);
-        buf:=nil;
-      end;
+        freememandnil(buf);
 
       reg.free;
     end;
@@ -3181,8 +3167,7 @@ begin
       end;
     end;
   finally
-    freemem(x);
-    x:=nil;
+    freememandnil(x);
   end;
 end;
 
@@ -3406,13 +3391,8 @@ initialization
 
 
 finalization
-
   if tempdir<>nil then
-  begin
-    freemem(tempdir);
-    tempdir:=nil;
-  end;
-
+    freememandnil(tempdir);
 end.
 
 

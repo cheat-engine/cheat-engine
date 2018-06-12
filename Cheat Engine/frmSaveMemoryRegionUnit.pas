@@ -121,7 +121,7 @@ begin
   if length(unreadable)>0 then
   begin
     for i:=0 to length(buf)-1 do
-      freemem(buf[i]);
+      freememandnil(buf[i]);
 
     s:=rsNotAllTheMemoryWasReadableIn;
     for i:=0 to length(unreadable)-1 do
@@ -153,7 +153,7 @@ begin
           f.WriteBuffer(size,4);
         end;
         f.WriteBuffer(buf[i]^,size);
-        freemem(buf[i]);
+        freememandnil(buf[i]);
       end;
 
       modalresult:=mrOK;

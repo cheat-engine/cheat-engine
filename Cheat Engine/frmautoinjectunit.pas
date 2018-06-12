@@ -1110,7 +1110,7 @@ begin
       disablescript.Add(x);
     end;
 
-    freemem(originalcodebuffer);
+    freememandnil(originalcodebuffer);
     originalcodebuffer:=nil;
 
 

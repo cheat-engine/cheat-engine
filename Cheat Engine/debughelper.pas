@@ -406,7 +406,7 @@ begin
               if assigned(bp.OnBreakpoint) then
                 LuaCaller.CleanupLuaCall(TMethod(bp.OnBreakpoint));
 
-              freemem(bp);
+              freememandnil(bp);
 
               deleted:=true;
               updated:=true;

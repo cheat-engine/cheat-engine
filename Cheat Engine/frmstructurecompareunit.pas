@@ -719,10 +719,10 @@ destructor TPointerfileReader.destroy;
 var i: integer;
 begin
   if pointerrecords<>nil then
-    freemem(pointerrecords);
+    FreeMemAndNil(pointerrecords);
 
   if stringbuf<>nil then
-    freemem(stringbuf);
+    FreeMemAndNil(stringbuf);
 
   if pointermap<>nil then
     freeandnil(pointermap);
@@ -921,10 +921,10 @@ begin
         freeandnil(pointerfilereader);
 
       for i:=0 to length(g1)-1 do
-        freemem(g1[i]);
+        FreeMemAndNil(g1[i]);
 
       for i:=0 to length(g2)-1 do
-        freemem(g2[i]);
+        FreeMemAndNil(g2[i]);
     end;
   except
     on e:exception do
@@ -1049,8 +1049,8 @@ begin
       if (not readok) or (x<>4096) then
       begin
         //unreadable memory or buggy rpm hook
-        freemem(data);
-        data:=nil;
+        FreeMemAndNil(data);
+
         exit(false)
       end;
 
@@ -1394,10 +1394,10 @@ destructor TStructCompareScanner.destroy;
 var i: integer;
 begin
   for i:=0 to length(memoryblockLF)-1 do
-    freemem(memoryblockLF[i]);
+    FreeMemAndNil(memoryblockLF[i]);
 
   for i:=0 to length(memoryblockNLF)-1 do
-    freemem(memoryblockNLF[i]);
+    FreeMemAndNil(memoryblockNLF[i]);
 
   if results<>nil then
     freeandnil(results);
@@ -1610,7 +1610,7 @@ begin
       result:=b;
 
   end;
-  freemem(b);
+  FreeMemAndNil(b);
 
 end;
 
@@ -2382,7 +2382,7 @@ begin
     end;
   end;
 
-  freemem(temp);
+  FreeMemAndNil(temp);
 end;
 
 procedure TfrmStructureCompare.pmAddressPopupPopup(Sender: TObject);

@@ -2482,8 +2482,8 @@ begin
     end;
     if pp<>nil then
     begin
-      freemem(pp);
-      pp:=nil;
+      freememandnil(pp);
+
     end;
 
   except

@@ -4781,7 +4781,7 @@ begin
     name[namelength]:=#0;
     msg.publicname:=name;
   finally
-    freemem(name);
+    FreeMemAndNil(name);
   end;
 
   receive(sockethandle, @msg.scannerid, sizeof(msg.scannerid));

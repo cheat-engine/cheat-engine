@@ -167,7 +167,7 @@ begin
     end else showmessage(rsGDTReadError);
 
   finally
-    freemem(x);
+    freememandnil(x);
   end;
 
 end;

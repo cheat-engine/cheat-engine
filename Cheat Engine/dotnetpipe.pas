@@ -150,8 +150,8 @@ begin
     o:=i.DataPtr;
     if o^.classname<>nil then
     begin
-      freemem(o^.classname);
-      o^.classname:=nil;
+      FreeMemAndNil(o^.classname);
+
     end;
 
     i.Next;
@@ -268,7 +268,7 @@ begin
           cname[classnamesize div 2]:=#0;
           addressdata.classname:=cname;
 
-          freemem(cname);
+          FreeMemAndNil(cname);
         end;
 
         read(fieldcount, sizeof(fieldcount));
@@ -284,7 +284,7 @@ begin
           read(fieldname[0], fieldnamesize);
           fieldname[fieldnamesize div 2]:=#0;
           fi.name:=fieldname;
-          freemem(fieldname);
+          FreeMemAndNil(fieldname);
 
           //sort while adding
           inserted:=false;
@@ -358,7 +358,7 @@ begin
         mname[methodnamesize div 2]:=#0;
         methods[i].name:=mname;
       finally
-        freemem(mname);
+        FreeMemAndNil(mname);
       end;
 
       read(methods[i].attributes, sizeof(methods[i].attributes));
@@ -421,7 +421,7 @@ begin
         read(typedefs[i].flags, sizeof(typedefs[i].flags));
         read(typedefs[i].extends, sizeof(typedefs[i].extends));
       finally
-        freemem(typedefname);
+        FreeMemAndNil(typedefname);
       end;
     end;
 
@@ -473,7 +473,7 @@ begin
         name[namelength div 2]:=#0;
         Modules[i].name:=name;
       finally
-        freemem(name);
+        FreeMemAndNil(name);
       end;
 
     end;
@@ -487,10 +487,10 @@ begin
 
   //find modules not in the windir path
 
-  getmem(_windir,255);
+  getmem(_windir,256);
   GetWindowsDirectory(_windir, 255);
   windir:=lowercase(_windir);
-  freemem(_windir);
+  FreeMemAndNil(_windir);
 
 
   for i:=0 to length(modules)-1 do
@@ -564,7 +564,7 @@ begin
 
         domains[i].name:=name;
       finally
-        freemem(name);
+        FreeMemAndNil(name);
       end;
     end;
   finally

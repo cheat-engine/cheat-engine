@@ -215,7 +215,7 @@ end;
 destructor TValueFinder.destroy;
 begin
   if buffer<>nil then
-    freemem(buffer);
+    freememandnil(buffer);
   inherited destroy;
 end;
 

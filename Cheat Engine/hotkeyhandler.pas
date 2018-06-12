@@ -4,7 +4,7 @@ unit HotkeyHandler;
 
 interface
 
-uses windows, LCLIntf,classes,SyncObjs,CEFuncProc,messages,genericHotkey, math,
+uses windows, LCLIntf,classes,sysutils, SyncObjs,CEFuncProc,messages,genericHotkey, math,
   commonTypeDefs;
 
 type thotkeyitem=record
@@ -530,8 +530,8 @@ begin
           end;
 
           //cleanup the memory as well while we're at it
-          freemem(temphotkey);
-          temphotkey:=nil;
+          freememandnil(temphotkey);
+
         end;
         activeHotkeyList.clear;
 

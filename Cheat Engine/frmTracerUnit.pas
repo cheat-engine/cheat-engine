@@ -169,10 +169,10 @@ resourcestring
 destructor TTraceDebugInfo.destroy;
 begin
   if bytes<>nil then
-    freemem(bytes);
+    freememandnil(bytes);
 
   if stack.stack<>nil then
-    freemem(stack.stack);
+    freememandnil(stack.stack);
 
   inherited destroy;
 end;
@@ -225,7 +225,7 @@ begin
   s.readbuffer(x^, temp);
   x[temp]:=#0;
   instruction:=x;
-  freemem(x);
+  freememandnil(x);
 
   s.ReadBuffer(instructionsize, sizeof(instructionsize));
   s.ReadBuffer(referencedAddress, sizeof(referencedAddress));

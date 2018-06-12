@@ -744,7 +744,7 @@ begin
     end;
   end;
 
-  freemem(riff);
+  FreeMemAndNil(riff);
 
   for i:=0 to mainform.InternalLuaFiles.Count-1 do
   begin

@@ -265,13 +265,13 @@ begin
     end;
 
   finally
-    freemem(buf);
+    freememandnil(buf);
   end;
 end;
 
 procedure TfrmPaging.FillNodeLevel2(node: TTreenode);
 var
-  pd: PPageData;
+  pd: PPageData=nil;
   buf: pointer;
   q: Puint64Array absolute buf;
   d: PDwordArray absolute buf;
@@ -377,16 +377,16 @@ begin
       end;
     end;
   finally
-    freemem(buf);
+    freememandnil(buf);
   end;
 
-  if node=nil then
-    freemem(pd);
+  if pd<>nil then
+    freememandnil(pd);
 
 end;
 
 procedure TfrmPaging.FillNodeLevel3(node: TTreenode);
-var pd: PPageData;
+var pd: PPageData=nil;
   buf: pointer;
   q: Puint64Array absolute buf;
   max: integer;
@@ -456,11 +456,11 @@ begin
   end;
 
   finally
-    freemem(buf);
+    freememandnil(buf);
   end;
 
-  if node=nil then
-    freemem(pd);
+  if pd<>nil then
+    freememandnil(pd);
 
 
 end;
@@ -542,7 +542,7 @@ begin
     else
       raise exception.create(rsFailureReadingPhysicalMemory);
   finally
-    freemem(buf);
+    freememandnil(buf);
   end;
 end;
 

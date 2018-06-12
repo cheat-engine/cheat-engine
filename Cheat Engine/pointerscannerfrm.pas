@@ -1849,7 +1849,7 @@ begin
         freeandnil(resultptrfile);
 
       if compressedEntry<>nil then
-        freemem(compressedEntry);
+        freememandnil(compressedEntry);
     end;
 
 
@@ -2820,7 +2820,7 @@ begin
 
       flushresults;
     finally
-      freemem(tempvalue);
+      freememandnil(tempvalue);
 
       if tempfile<>nil then
         freeandnil(tempfile);

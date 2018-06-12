@@ -602,10 +602,10 @@ begin
     freeandnil(pointerfile);
 
   if pointerrecords<>nil then
-    freemem(pointerrecords);
+    FreeMemAndNil(pointerrecords);
 
   if stringbuf<>nil then
-    freemem(stringbuf);
+    FreeMemAndNil(stringbuf);
 
   if pointermap<>nil then
     freeandnil(pointermap);
@@ -1364,7 +1364,7 @@ begin
         map.size:=map.size+oldmap.size;
 
         mappedregions.Remove(oldmap);
-        freemem(oldmap);
+        FreeMemAndNil(oldmap);
       end;
     end;
   end;
@@ -1721,16 +1721,16 @@ begin
 
 
   if fillpointerblock<>nil then
-    freemem(fillpointerblock);
+    FreeMemAndNil(fillpointerblock);
 
   if resultfile<>nil then
     freeandnil(resultfile);
 
   if tempvariablebuffer<>nil then
-    freemem(tempvariablebuffer);
+    FreeMemAndNil(tempvariablebuffer);
 
   if tempvariablebuffer2<>nil then
-    freemem(tempvariablebuffer2);
+    FreeMemAndNil(tempvariablebuffer2);
 
   if valuemap<>nil then
     freeandnil(valuemap);
@@ -1774,7 +1774,7 @@ begin
       result:=b;
 
   end;
-  freemem(b);
+  FreeMemAndNil(b);
 
 end;
 
@@ -1990,7 +1990,7 @@ begin
       begin
         p:=m;
         m:=m.next;
-        freemem(p);
+        FreeMemAndNil(p);
       end;
     end;
     freeandnil(mappedRegions);

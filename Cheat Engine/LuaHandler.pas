@@ -1620,7 +1620,7 @@ begin
 
 
       finally
-        freemem(v);
+        freememandnil(v);
       end;
 
     end;
@@ -4130,7 +4130,7 @@ begin
       if f<>nil then
         FreeAndNil(f);
 
-      freemem(buf);
+      freememandnil(buf);
     end;
 
 
@@ -4471,7 +4471,7 @@ begin
     begin
       CreateByteTableFromPointer(L, buf, x);
       result:=1;
-      freemem(buf);
+      freememandnil(buf);
     end;
   end;
 end;
@@ -4496,7 +4496,7 @@ begin
 
       x:=0;
       WriteProcessMemoryCR3(cr3, pointer(Address), buf, size, x);
-      freemem(buf);
+      freememandnil(buf);
 
       if (x>0) then
       begin
@@ -5040,8 +5040,8 @@ begin
 
     if (buf<>nil) then
     begin
-      freemem(buf);
-      buf:=nil;
+      freememandnil(buf);
+
     end;
 
     size:=size*2;
@@ -5178,7 +5178,7 @@ begin
     dbvm_cloak_readoriginal(PA, buf);
 
     CreateByteTableFromPointer(L, buf, 4096);
-    freemem(buf);
+    FreeMemAndNil(buf);
     result:=1;
   end;
 end;
@@ -5200,7 +5200,7 @@ begin
       r:=dbvm_cloak_writeoriginal(PA, buf);
       lua_pushinteger(L, r);
 
-      freemem(buf);
+      FreeMemAndNil(buf);
       result:=1;
     end;
   end;
@@ -8223,7 +8223,7 @@ begin
           result:=1;
         end;
       end;
-      freemem(buf);
+      FreeMemAndNil(buf);
     end;
 
   end;
@@ -8409,14 +8409,14 @@ begin
   if lua_gettop(L)=1 then
   begin
     h:=lua_tointeger(L, 1);
-    getmem(s,255);
+    getmem(s,256);
     try
       i:=GetWindowText(h, s, 255);
       s[i]:=#0;
       lua_pushstring(L,s);
       result:=1;
     finally
-      freemem(s);
+      FreeMemAndNil(s);
     end;
   end;
 end;
@@ -8432,14 +8432,14 @@ begin
   begin
     h:=lua_tointeger(L, 1);
 
-    getmem(s,255);
+    getmem(s,256);
     try
       i:=GetClassNameA(h, s, 255);
       s[i]:=#0;
       lua_pushstring(L,s);
       result:=1;
     finally
-      freemem(s);
+      FreeMemAndNil(s);
     end;
   end;
 end;
@@ -8842,7 +8842,7 @@ begin
         end;
 
       end;
-      freemem(data);
+      FreeMemAndNil(data);
     end;
   end;
 end;
@@ -9076,7 +9076,7 @@ begin
   BinToBase85(pchar(s.Memory), output, s.size);
 
   lua_pushstring(L, output);
-  freemem(output);
+  FreeMemAndNil(output);
 
   s.free;
 
@@ -9129,10 +9129,10 @@ begin
     lua_load(L, @lreader, decompressed,'cechunk', 'b');
 
 
-    decompressed.free;
-    ds.free;
-    s.free;
-    freemem(output);
+    freeandnil(decompressed);
+    freeandnil(ds);
+    freeandnil(s);
+    FreeMemAndNil(output);
 
     result:=1;
   end;
@@ -9625,7 +9625,7 @@ begin
     r:=NtQuerySystemInformation(SystemHandleInformation, shi,i,@rl);
     if r=STATUS_INFO_LENGTH_MISMATCH then
     begin
-      freemem(shi);
+      FreeMemAndNil(shi);
       i:=i*2-2;
       getmem(shi,i);
     end;

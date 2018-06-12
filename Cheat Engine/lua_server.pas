@@ -245,7 +245,7 @@ begin
 
       lua_getglobal(lvm, pchar(functionname));
 
-      freemem(functionname);
+      FreeMemAndNil(functionname);
     end;
 
     //the function is now pushed on the lua stack
@@ -292,7 +292,7 @@ begin
           tempstring[stringlength]:=#0;
           lua.lua_pushstring(lvm, tempstring);
 
-          freemem(tempstring);
+          FreeMemAndNil(tempstring);
         end;
 
        { 4: //table
@@ -492,7 +492,7 @@ begin
         error;
 
     finally
-      freemem(script);
+      FreeMemAndNil(script);
     end;
   end
   else
@@ -548,7 +548,7 @@ begin
         error;
 
     finally
-      freemem(script);
+      FreeMemAndNil(script);
     end;
   end
   else

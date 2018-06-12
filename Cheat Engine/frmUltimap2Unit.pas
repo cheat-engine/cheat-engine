@@ -407,7 +407,7 @@ begin
     result:=p;
   end
   else
-    freemem(page);
+    FreeMemAndNil(page);
 end;
 
 function TUltimap2Worker.addIPBlockToRegionTree(IP: QWORD): PRegionInfo;
@@ -1223,7 +1223,7 @@ begin
 
     closehandle(filterSemaphore);
     freeandnil(queueCS);
-    freemem(workqueue);
+    FreeMemAndNil(workqueue);
     OutputDebugString('Filter thread cleanup done');
   end;
 
@@ -1263,17 +1263,17 @@ begin
   begin
     if r^.info<>nil then
     begin
-      freemem(r^.info);
-      r^.info:=nil;
+      FreeMemAndNil(r^.info);
+
     end;
 
     if r^.memory<>nil then
     begin
-      freemem(r^.memory);
-      r^.memory:=nil;
+      FreeMemAndNil(r^.memory);
+
     end;
 
-    freemem(r);
+    FreeMemAndNil(r);
   end;
 end;
 
@@ -2182,8 +2182,8 @@ begin
       n:=validList.GetNodeAtIndex(i);
       if (n<>nil) and (n.Data<>nil) then
       begin
-        freemem(n.data);
-        n.data:=nil
+        FreeMemAndNil(n.data);
+
       end;
     end;
     validlist.Clear;

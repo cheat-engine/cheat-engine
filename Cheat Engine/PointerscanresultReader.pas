@@ -202,13 +202,13 @@ begin
   begin
     it.GetData(fn);
     rs.add(fn);
-    freemem(fn);
+    freememandnil(fn);
     it.Next;
   end;
 
   it.free;
   filemap.Clear;
-  filemap.Free;
+  freeandnil(filemap);
 
 end;
 
@@ -722,7 +722,7 @@ begin
  // getmem(cache2, sizeofEntry*maxcachecount);
   InitializeCache(0);
 
-  freemem(temppchar);
+  freememandnil(temppchar);
   configfile.Free;
 
 
@@ -759,10 +759,10 @@ begin
   ReleaseFiles;
 
   if compressedTempBuffer<>nil then
-    freemem(compressedTempBuffer);
+    freememandnil(compressedTempBuffer);
 
   if compressedPointerScanResult<>nil then
-    freemem(compressedPointerScanResult);
+    freememandnil(compressedPointerScanResult);
 
 end;
 

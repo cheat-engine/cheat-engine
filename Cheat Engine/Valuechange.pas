@@ -232,8 +232,8 @@ begin
               ws[slength]:=#0;
               ValueText.text:=ws;
 
-              freemem(ws);
-              ws:=nil;
+              freememandnil(ws);
+
 
             end
             else
@@ -248,8 +248,8 @@ begin
               s[slength]:=#0;
               ValueText.text:=s;
 
-              freemem(s);
-              s:=nil;
+              freememandnil(s);
+
             end;
 
             cbunicode.visible:=true;

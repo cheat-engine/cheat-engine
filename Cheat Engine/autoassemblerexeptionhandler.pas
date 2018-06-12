@@ -198,7 +198,7 @@ begin
       if signature='AAEH' then ehallocated:=true;
     end;
 
-    freemem(signature);
+    FreeMemAndNil(signature);
   end;
 
   if ehallocated=false then

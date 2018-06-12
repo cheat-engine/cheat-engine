@@ -4893,7 +4893,7 @@ begin
 
     if oldaddressesGroup<>nil then
     begin
-      freemem(oldaddressesGroup);
+      freememandnil(oldaddressesGroup);
       oldaddressesGroup:=nil;
     end;
     lastpart:=299;
@@ -5212,15 +5212,10 @@ begin
 
 
 
-  if CurrentFoundBuffer<>nil then freemem(CurrentFoundBuffer);
-  if SecondaryFoundBuffer<>nil then freemem(SecondaryFoundBuffer);
-  if CurrentAddressBuffer<>nil then freemem(CurrentAddressBuffer);
-  if SecondaryAddressBuffer<>nil then freemem(SecondaryAddressBuffer);
-
-  CurrentFoundBuffer:=nil;
-  SecondaryFoundBuffer:=nil;
-  CurrentAddressBuffer:=nil;
-  SecondaryAddressBuffer:=nil;
+  if CurrentFoundBuffer<>nil then freememandnil(CurrentFoundBuffer);
+  if SecondaryFoundBuffer<>nil then freememandnil(SecondaryFoundBuffer);
+  if CurrentAddressBuffer<>nil then freememandnil(CurrentAddressBuffer);
+  if SecondaryAddressBuffer<>nil then freememandnil(SecondaryAddressBuffer);
 
   if savedscanhandler<>nil then freeandnil(savedscanhandler);
 

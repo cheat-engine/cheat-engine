@@ -337,7 +337,7 @@ begin
       end;
     finally
       if buf<>nil then
-        freemem(buf);
+        FreeMemAndNil(buf);
 
       if f<>nil then
         freeandnil(f);
@@ -550,7 +550,7 @@ begin
             end;
 
           finally
-            freemem(buf);
+            FreeMemAndNil(buf);
             isfillinglist:=false;
             btnShowList.caption:=rsBtnShowList;
           end;

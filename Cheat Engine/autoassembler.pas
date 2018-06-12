@@ -267,7 +267,7 @@ begin
     dbvm_cloak_readoriginal(PA, buf);
     copymemory(pointer(ptruint(buf)+i), source, i);
     dbvm_cloak_writeoriginal(PA,buf);
-    freemem(buf);
+    freememandnil(buf);
 
     inc(byteswritten,i);
     address:=pointer(qword(address)+i);
@@ -1740,8 +1740,8 @@ begin
                         end;
                     end else raise exception.Create(Format(rsTheMemoryAtCanNotBeRead, [s1]));
                   finally
-                    freemem(bytebuf);
-                    bytebuf:=nil;
+                    freememandnil(bytebuf);
+
                   end;
 
                 end
@@ -2041,8 +2041,8 @@ begin
                 begin
                   if bytebuf<>nil then
                   begin
-                    freemem(bytebuf);
-                    bytebuf:=nil;
+                    freememandnil(bytebuf);
+
                   end;
 
                   raise exception.create(e.Message);
@@ -3435,8 +3435,8 @@ begin
     for i:=0 to length(readmems)-1 do
       if readmems[i].bytes<>nil then
       begin
-        freemem(readmems[i].bytes);
-        readmems[i].bytes:=nil;
+        freememandnil(readmems[i].bytes);
+
       end;
 
     setlength(readmems,0);

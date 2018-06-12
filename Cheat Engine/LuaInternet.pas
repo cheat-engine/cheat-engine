@@ -95,7 +95,7 @@ begin
                 result:=true; //something was read
               end;
             finally
-              freemem(buf);
+              FreeMemAndNil(buf);
             end;
           end;
         end;
@@ -139,7 +139,7 @@ begin
           result:=true; //something was read
         end;
       finally
-        freemem(buf);
+        FreeMemAndNil(buf);
       end;
     end;
 

@@ -1257,7 +1257,7 @@ begin
 
   finally
     if outputastext<>nil then
-      freemem(outputastext);
+      FreeMemAndNil(outputastext);
   end;
 
   active:=wasactive;
@@ -1323,14 +1323,14 @@ begin
 
     dc.read(realsize,sizeof(realsize));
 
-    freemem(b);
+    FreeMemAndNil(b);
     getmem(b, realsize);
 
     read:=dc.read(b^, realsize);
     saveddesign.WriteBuffer(b^, read);
   finally
     if b<>nil then
-      freemem(b);
+      FreeMemAndNil(b);
   end;
 
 

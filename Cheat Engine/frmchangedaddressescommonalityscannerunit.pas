@@ -117,7 +117,7 @@ begin
     for j:=0 to length(values[i])-1 do
     begin
       values[i][j]:=pptruint(ptruint(@owner.group[i][j].context)+contextoffset)^;
-      if (j>0) and (values[i][j]<>values[i][0]) then
+      if (j>0) and (values[i][j]<>values[i][0]) then //check if in the current group (i) the value of this entry (j) is the same as the first one in this group
         if i=1 then g1same:=false else g2same:=false;
     end;
   end;
@@ -164,7 +164,7 @@ begin
     for j:=0 to length(group[i])-1 do
     begin
       if group[i][j]<>nil then
-        group[i][j].free;
+        freeandnil(group[i][j]);
     end;
 end;
 

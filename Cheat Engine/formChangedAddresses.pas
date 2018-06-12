@@ -118,7 +118,7 @@ resourcestring
 destructor TAddressEntry.destroy;
 begin
   if stack.stack<>nil then
-    freemem(stack.stack);
+    freememandnil(stack.stack);
 
   inherited destroy;
 end;

@@ -91,7 +91,7 @@ begin
           li.SubItems.Add(inttohex(dword(extradata^.allocsize),8));
       end;
 
-      freemem(extradata);
+      freememandnil(extradata);
     end;
   finally
     sl.free;

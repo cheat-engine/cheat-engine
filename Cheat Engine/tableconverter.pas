@@ -86,7 +86,7 @@ begin
      //   raise exception.Create('Not a valid cheat engine 5.6 table. If this table was made by a uce, get ce 5.6 and open/resave it');
 
     finally
-      freemem(x);
+      freememandnil(x);
     end;
 
 
@@ -130,7 +130,7 @@ begin
         t.TextContent:=ansitoutf8(x);
 
        // showmessage(x+' = '+t.textcontent);
-        freemem(x);
+        freememandnil(x);
 
         ctfile.ReadBuffer(tempdword,4);
         Address:=cheatEntry.AppendChild(doc.CreateElement('Address'));
@@ -143,7 +143,7 @@ begin
         ctfile.readbuffer(x^,j);
         x[j]:=#0;
         if x<>'' then Address.TextContent:=Utf8ToAnsi(x);
-        freemem(x);
+        freememandnil(x);
         //if it's not a pointer this will be the address
 
         ctfile.ReadBuffer(tempbyte,1);
@@ -210,7 +210,7 @@ begin
             if (j=pointercount-1) and (x<>'') then
               address.TextContent:=x;
 
-            freemem(x);
+            freememandnil(x);
 
 
           end;
@@ -222,7 +222,7 @@ begin
         ctfile.readbuffer(x^,j);
         x[j]:=#0;
         cheatEntry.AppendChild(doc.CreateElement('AssemblerScript')).TextContent:=x;
-        freemem(x);
+        freememandnil(x);
       end;
 
 
@@ -246,7 +246,7 @@ begin
         ctfile.ReadBuffer(pointer(x)^,nrofbytes);
         x[nrofbytes]:=#0;
         tempmodulename:=x;
-        freemem(x);
+        freememandnil(x);
 
         ctfile.ReadBuffer(tempoffset,4);
 
@@ -271,7 +271,7 @@ begin
         ctfile.ReadBuffer(pointer(x)^,nrofbytes);
         x[nrofbytes]:=#0;
         tempdescription:=x;
-        freemem(x);
+        freememandnil(x);
 
         //now add it to the xml
         CodeRecord.AppendChild(doc.CreateElement('Description')).TextContent:=tempdescription;

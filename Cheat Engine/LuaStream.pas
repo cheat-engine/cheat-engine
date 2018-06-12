@@ -104,7 +104,7 @@ begin
 
       except
       end;
-      freemem(buf);
+      FreeMemAndNil(buf);
 
     end;
   end;
@@ -214,7 +214,7 @@ begin
         stream.Write(buf^, count);
       except
       end;
-      freemem(buf);
+      FreeMemAndNil(buf);
 
     end;
   end;

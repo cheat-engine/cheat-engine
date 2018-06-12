@@ -239,8 +239,8 @@ begin
             end;
           end;
         finally
-          freemem(processname);
-          processname:=nil;
+          freememandnil(processname);
+
         end;
       end;
 
@@ -330,8 +330,8 @@ begin
 
   end;
 
-  freemem(processevents);
-  freemem(threadevents);
+  freememandnil(processevents);
+  freememandnil(threadevents);
 end;
 
 //-------------------------------------------------

@@ -553,13 +553,13 @@ begin
           symLoadModule64(thisprocesshandle,0,pchar(modulename),nil,ptrUint(x[i]),0);
         end;
       finally
-        freemem(modulename);
-        modulename:=nil;
+        freememandnil(modulename);
+
       end;
     end;
   finally
-    freemem(x);
-    x:=nil;
+    freememandnil(x);
+
   end;
 
   {$endif}
@@ -588,13 +588,13 @@ begin
           symLoadModule64(thisprocesshandle,0,pchar(drivername),nil,ptrUint(x[i]),0);
         end;
       finally
-        freemem(drivername);
-        drivername:=nil;
+        freememandnil(drivername);
+
       end;
     end;
   finally
-    freemem(x);
-    x:=nil;
+    freememandnil(x);
+
   end;
   {$ENDIF}
 end;
@@ -1107,7 +1107,7 @@ begin
 
 
         finally
-          freemem(fcp);
+          freememandnil(fcp);
         end;
 
       end;
@@ -1577,8 +1577,8 @@ begin
           inc(enumeratedModules);
           fprogress:=ceil((i/modulecount)*100);
 
-          freemem(modinfo);
-          modinfo:=nil;
+          freememandnil(modinfo);
+
         end;
 
 
@@ -3250,7 +3250,7 @@ begin
 
                       si.extra.forwardsTo:=getAddressFromName(p, waitforsymbols, hasError, context, shallow);
                       si.extra.forwardsToString:=p;
-                      freemem(p);
+                      freememandnil(p);
                     end;
 
                     tokens[i]:=inttohex(si.extra.forwardsto,8);

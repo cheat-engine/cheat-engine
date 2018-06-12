@@ -116,8 +116,8 @@ begin
   entry:=_entry;
   if entry^.bytes<>nil then
   begin
-    freemem(entry^.bytes);
-    entry^.bytes:=nil;
+    FreeMemAndNil(entry^.bytes);
+
   end;
 
   if entry^.instruction<>nil then
@@ -344,7 +344,11 @@ begin
       for i:=0 to p.parameters.count-1 do
         params[i]:=p.Parameters[i];
 
+      {$IF (FPC_FULLVERSION<0304000)}
+      if RunCommand(p.Executable, params, os) then
+      {$else}
       if RunCommand(p.Executable, params, os,[poNoConsole]) then
+      {$endif}
       begin
         output:=TStringStream.create('');
         output.WriteString(os);
@@ -478,7 +482,7 @@ begin
 
   finally
     if buffer<>nil then
-      freemem(buffer);
+      FreeMemAndNil(buffer);
   end;
 
 end;

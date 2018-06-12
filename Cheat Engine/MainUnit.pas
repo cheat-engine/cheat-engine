@@ -1919,8 +1919,7 @@ begin
   if err<>nil then
   begin
     MessageDlg(err, mtError, [mbOK], 0);
-    freemem(err);
-    err:=nil;
+    freememandnil(err);
   end
   else
     MessageDlg(rsUnspecifiedError, mtError, [mbOK], 0);
@@ -2155,8 +2154,7 @@ begin
   begin
     if c = 500 then
     begin
-      togglewindows.Free;
-      togglewindows:=nil;
+      freeandnil(togglewindows);
       raise Exception.Create(strWindowFailedToHide);
     end;
     sleep(10);
@@ -2342,8 +2340,7 @@ begin
           else
             ScanType.Items.Add(strCompareToFirstScan);
 
-          t.Free;
-          t:=nil;
+          freeandnil(t);
 
         end;
 
@@ -3408,12 +3405,12 @@ begin
         lf := TLuaFile.Create(extractfilename(f.files[i]), s);
         LuaFiles.add(lf);
       end;
-      s.Free;
-      s:=nil;
+      freeandnil(s);
     end;
 
   finally
-    f.Free;
+    if f<>nil then
+      freeandnil(f);
   end;
 end;
 
@@ -3465,7 +3462,6 @@ begin
 
     f := TCEForm(LuaForms[TMenuItem(Sender).Tag]);
     f.Free;
-    f:=nil;
 
     LuaForms.Delete(TMenuItem(Sender).Tag);
 
@@ -4576,6 +4572,8 @@ var
 
   scantabtopcontrol: TControl;
 begin
+  showmessage(inttostr(sizeof(tcontext)));
+
   if scantablist = nil then
   begin
     foundlistheightdiff := btnMemoryView.top - (foundlist3.top + foundlist3.Height);
@@ -4678,9 +4676,7 @@ begin
     //now we can delete the tabdata
     freeandnil(oldscanstate.foundlist);
     freeandnil(oldscanstate.memscan);
-    freemem(oldscanstate);
-    oldscanstate:=nil;
-
+    freememandnil(oldscanstate);
   end;
 end;
 
@@ -8535,8 +8531,7 @@ begin
       addresslist.selectedRecord.VarType := t;
 
       //load back and free memory
-      freemem(offsets);
-      offsets:=nil;
+      freememandnil(offsets);
       //using my own var instead the user is lame enough to mess up the pointer
       addresslist.selectedRecord.ReinterpretAddress;
     end;
@@ -9482,8 +9477,7 @@ begin
         oldscanstate := scantablist.TabData[i];
         freeandnil(oldscanstate.foundlist);
         freeandnil(oldscanstate.memscan);
-        freemem(oldscanstate);
-        oldscanstate:=nil;
+        freememandnil(oldscanstate);
       end;
     end;
     FreeAndNil(scantablist);

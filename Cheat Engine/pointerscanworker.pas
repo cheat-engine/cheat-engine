@@ -326,7 +326,7 @@ end;
 destructor TPointerscanWorker.destroy;
 begin
   if compressedEntry<>nil then
-    FreeMem(compressedEntry);
+    FreeMemAndNil(compressedEntry);
 
   inherited destroy;
 end;

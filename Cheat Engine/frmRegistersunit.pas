@@ -224,7 +224,7 @@ begin
   if _stack<>nil then
   begin
     if stack.stack<>nil then //free old stack copy
-      freemem(stack.stack);
+      freememandnil(stack.stack);
 
     getmem(stack.stack, stacksize);
     stack.savedsize:=stacksize;
@@ -379,7 +379,7 @@ begin
   end;
 
   if stack.stack<>nil then
-    freemem(stack.stack);
+    freememandnil(stack.stack);
 
   action:=cafree;
 end;

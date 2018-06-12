@@ -106,7 +106,7 @@ begin
       tvidt.Items.Add(nil,title);
     end;
   finally
-    freemem(x);
+    freememandnil(x);
   end;
 end;
 

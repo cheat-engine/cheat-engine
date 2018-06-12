@@ -490,7 +490,7 @@ begin
         if d^.module<>nil then
           strDispose(d^.module);
 
-        freemem(d);
+        FreeMemAndNil(d);
         x:=StringToAddress.FindSuccessor(x);
       end;
 

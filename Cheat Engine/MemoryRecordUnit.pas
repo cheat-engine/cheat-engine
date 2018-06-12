@@ -2762,7 +2762,7 @@ begin
     end;
   end;
 
-  freemem(buf);
+  freememandnil(buf);
 end;
 
 function TMemoryrecord.canUndo: boolean;
@@ -2979,7 +2979,7 @@ begin
         if extra.stringData.length<length(currentValue) then
         begin
           extra.stringData.length:=length(currentValue);
-          freemem(buf);
+          freememandnil(buf);
           bufsize:=getbytesize+2;
           getmem(buf, bufsize);
         end;
@@ -3036,7 +3036,7 @@ begin
           //the user wants to input more bytes than it should have
           Extra.byteData.bytelength:=length(bts);  //so next time this won't happen again
           bufsize:=length(bts);
-          freemem(buf);
+          freememandnil(buf);
           getmem(buf,bufsize);
           if not ReadProcessMemory(processhandle, pointer(realAddress), buf, bufsize,x) then exit;
         end;
@@ -3066,7 +3066,7 @@ begin
 
   end;
 
-  freemem(buf);
+  freememandnil(buf);
 
   frozenValue:=unparsedvalue;     //we got till the end, so update the frozen value
 

@@ -1151,7 +1151,7 @@ begin
 
       end;
 
-      freemem(buf);
+      freememandnil(buf);
     end;
   end;
 end;
@@ -1749,7 +1749,7 @@ begin
           end;
 
         finally
-          freemem(outp);
+          freememandnil(outp);
         end;
 
         exit;
@@ -2062,7 +2062,7 @@ begin
      // outputdebugstring('IOCTL_CE_GETACCESSEDMEMORYLIST failed');
     end;
 
-    freemem(ranges);
+    freememandnil(ranges);
   end;
 
 
@@ -3130,7 +3130,7 @@ begin
         driverloc:=extractfilepath(apppath)+sysfile;
         ultimapdriverloc:=extractfilepath(apppath)+ultimapsysfile;
       finally
-        freemem(apppath);
+        freememandnil(apppath);
       end;
 
 

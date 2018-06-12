@@ -174,7 +174,8 @@ begin
       end;
     end;
   end;
-  sl.free;
+  freeandnil(sl);
+
 end;
 
 
@@ -787,7 +788,7 @@ begin
   end;
 
   if refferencedbystrings<>nil then
-    refferencedbystrings.free;
+    freeandnil(refferencedbystrings);
 
 
 end;
@@ -969,7 +970,7 @@ end;
 
 destructor TDisassemblerLine.destroy;
 begin
-  specialstrings.free;
+  freeandnil(specialstrings);
   inherited destroy;
 end;
 

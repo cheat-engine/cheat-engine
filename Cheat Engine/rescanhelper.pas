@@ -123,8 +123,8 @@ begin
         if ReadProcessMemory(ProcessHandle, pointer(index shl 12), pi.data, 4096, x)=false then
         begin
           //unexpected failure reading the memory
-          freemem(pi.data);
-          pi.data:=nil;
+          freememandnil(pi.data);
+
         end;
       end;
     end;
@@ -145,7 +145,7 @@ begin
     begin
       //another thread added it, abort
       if pi.data<>nil then
-        freemem(pi.data);
+        freememandnil(pi.data);
 
       result:=r^;
     end;

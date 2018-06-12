@@ -1093,8 +1093,7 @@ begin
       end
       else
       begin
-        c.free;
-        c:=nil;
+        freeandnil(c);
       end;
     end
     else
@@ -1115,7 +1114,7 @@ begin
       if c.count>0 then
         ChildStruct:=c
       else
-        c.free;
+        freeandnil(c);
     end;
 
   end;
@@ -1651,7 +1650,7 @@ begin
   finally
     endUpdate;
     DoFullStructChangeNotification;
-    freemem(buf);
+    FreeMemAndNil(buf);
   end;
 end;
 
@@ -1764,7 +1763,7 @@ begin
       try
         TDissectedStruct(DissectedStructs[i]).OnDeleteStructNotification(self, infiniteLoopProtection);
       finally
-        infiniteLoopProtection.Free;
+        freeandnil(infiniteLoopProtection);
       end;
     end;
   end;
@@ -1927,7 +1926,7 @@ begin
 
     end;
   finally
-    reg.free;
+    freeandnil(reg);
   end;
 end;
 
@@ -2286,8 +2285,8 @@ begin
 
     setNewParent(g);
   end;
-  l.free;
-  grouplist.free;
+  freeandnil(l);
+  freeandnil(grouplist);
 
 
 
@@ -2477,7 +2476,7 @@ begin
     if readprocessmemory(processhandle, pointer(faddress), buf, size, x) then
       result:=LockAddress(faddress, buf, x);
   finally
-    freemem(buf);
+    FreeMemAndNil(buf);
   end;
 end;
 
@@ -2822,10 +2821,10 @@ begin
     freeandnil(edtAddress);
 
   if focusedShape<>nil then
-    focusedShape.free;
+    freeandnil(focusedShape);
 
   if lblname<>nil then
-    lblname.free;
+    freeandnil(lblname);
 
   //parent.setPositions;
 
@@ -2834,7 +2833,7 @@ begin
     //free the parent group unless it's already deleting itself
     //if it was, it already has removed itself from the form's grouplist
     if parent.parent.fgroups.IndexOf(parent)<>-1 then  //damn!
-      parent.Free;
+      freeandnil(parent);
   end;
 
 
@@ -3008,11 +3007,16 @@ begin
   while fcolumns.count>0 do
     TStructColumn(fcolumns[0]).free;
 
+  fcolumns.Clear;
+
   if groupbox<>nil then
     freeandnil(groupbox);
 
   if grouppopup<>nil then
     freeandnil(grouppopup);
+
+  if fcolumns<>nil then
+    freeandnil(fcolumns);
 
   inherited destroy;
 end;
@@ -3516,7 +3520,7 @@ begin
           if not childstruct.isInGlobalStructList then
           begin
             //delete this local struct
-            childstruct.free;
+            freeandnil(childstruct);
 
             {$ifdef DEBUG}
             assert(node.data=nil);
@@ -4288,8 +4292,7 @@ begin
 
   end;
 
-  ei.free;
-
+  freeandnil(ei);
 end;
 
 procedure TfrmStructures2.addFromNode(n: TTreenode; asChild: boolean=false);

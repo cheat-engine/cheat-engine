@@ -122,7 +122,7 @@ begin
     end;
 
   finally
-    freemem(c);
+    freememandnil(c);
   end;
 end;
 

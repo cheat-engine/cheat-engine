@@ -123,7 +123,7 @@ begin
     freeandnil(fpp);
 
   if stack.stack<>nil then
-    freemem(stack.stack);
+    freememandnil(stack.stack);
     
   action:=cafree;
 end;

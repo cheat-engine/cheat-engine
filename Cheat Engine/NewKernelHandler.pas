@@ -67,6 +67,9 @@ const
 const
   CONTEXT_EXTENDED_REGISTERS = 0;
 
+//  CONTEXT_XSTATE          = (CONTEXT_AMD64 or $00100040);
+  CONTEXT_XSTATE          = (CONTEXT_AMD64 or $00000040);
+
 
 type
    XMM_SAVE_AREA32 = record
@@ -1704,8 +1707,7 @@ begin
     mappedfilename[i]:=#0;
     mapsline:=mappedfilename;
 
-    freemem(mappedfilename);
-    mappedfilename:=nil;
+    freememandnil(mappedfilename);
   end;
 end;
 {$endif}

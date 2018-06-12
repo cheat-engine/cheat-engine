@@ -238,6 +238,8 @@ procedure TDebugThreadHandler.fillContext;
 var
   i: integer;
   c: pointer;
+
+  pb: PByteArray;
 begin
 
   if handle<>0 then
@@ -250,12 +252,15 @@ begin
     end
     else
     begin
-      context.ContextFlags := CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS;
+      context^.ContextFlags := CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS;
+
       if not getthreadcontext(handle, context^,  isHandled) then
       begin
         i := getlasterror;
         outputdebugstring(PChar('getthreadcontext error:' + IntToStr(getlasterror)));
       end;
+
+
     end;
 
     debuggercs.leave;
@@ -268,13 +273,12 @@ procedure TDebugThreadHandler.setContext;
 var
   i: integer;
 begin
-  outputdebugstring(pchar(format('setThreadContext(%x, %x, %p). dr0=%x dr1=%x dr2=%x dr3=%x dr7=%x',[threadid, handle,@context, context.dr0, context.dr1, context.dr2, context.dr3, context.dr7])));
+  outputdebugstring(pchar(format('setThreadContext(%x, %x, %p). dr0=%x dr1=%x dr2=%x dr3=%x dr7=%x',[threadid, handle,context, context^.dr0, context^.dr1, context^.dr2, context^.dr3, context^.dr7])));
 
   if handle<>0 then
   begin
     debuggercs.enter;
-    context:=self.context;
-    context.ContextFlags := CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS;
+    context^.ContextFlags := CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS;
 
     //context.dr7:=context.dr7 or $300;
 
@@ -305,7 +309,7 @@ begin
   suspend;
 
   fillContext;
-  context.eflags:=eflags_setTF(context.eflags,1);
+  context^.eflags:=eflags_setTF(context^.eflags,1);
   SingleStepping:=true;
 
   setContext;
@@ -318,12 +322,12 @@ begin
   debuggerCS.enter;
   suspend;
   fillContext;
-  context.dr0:=0;
-  context.dr1:=0;
-  context.dr2:=0;
-  context.dr3:=0;
-  context.dr6:=0;
-  context.dr7:=0;
+  context^.dr0:=0;
+  context^.dr1:=0;
+  context^.dr2:=0;
+  context^.dr3:=0;
+  context^.dr6:=0;
+  context^.dr7:=0;
   SingleStepping:=true;
 
   setContext;
@@ -339,31 +343,31 @@ end;
 procedure TDebugThreadHandler.ModifyRegisters(bp: PBreakpoint);
 begin
   TDebuggerthread(debuggerthread).execlocation:=36;
-  if bp.changereg.change_af then context.EFlags:=eflags_setAF(context.Eflags, booltoint(bp.changereg.new_af));
-  if bp.changereg.change_cf then context.EFlags:=eflags_setCF(context.Eflags, booltoint(bp.changereg.new_cf));
-  if bp.changereg.change_of then context.EFlags:=eflags_setOF(context.Eflags, booltoint(bp.changereg.new_of));
-  if bp.changereg.change_pf then context.EFlags:=eflags_setPF(context.Eflags, booltoint(bp.changereg.new_pf));
-  if bp.changereg.change_sf then context.EFlags:=eflags_setSF(context.Eflags, booltoint(bp.changereg.new_sf));
-  if bp.changereg.change_zf then context.EFlags:=eflags_setZF(context.Eflags, booltoint(bp.changereg.new_zf));
+  if bp.changereg.change_af then context^.EFlags:=eflags_setAF(context^.Eflags, booltoint(bp.changereg.new_af));
+  if bp.changereg.change_cf then context^.EFlags:=eflags_setCF(context^.Eflags, booltoint(bp.changereg.new_cf));
+  if bp.changereg.change_of then context^.EFlags:=eflags_setOF(context^.Eflags, booltoint(bp.changereg.new_of));
+  if bp.changereg.change_pf then context^.EFlags:=eflags_setPF(context^.Eflags, booltoint(bp.changereg.new_pf));
+  if bp.changereg.change_sf then context^.EFlags:=eflags_setSF(context^.Eflags, booltoint(bp.changereg.new_sf));
+  if bp.changereg.change_zf then context^.EFlags:=eflags_setZF(context^.Eflags, booltoint(bp.changereg.new_zf));
 
-  if bp.changereg.change_eax then context.{$ifdef cpu64}rax{$else}eax{$endif}:=bp.changereg.new_eax;
-  if bp.changereg.change_ebx then context.{$ifdef cpu64}rbx{$else}ebx{$endif}:=bp.changereg.new_ebx;
-  if bp.changereg.change_ecx then context.{$ifdef cpu64}rcx{$else}ecx{$endif}:=bp.changereg.new_ecx;
-  if bp.changereg.change_edx then context.{$ifdef cpu64}rdx{$else}edx{$endif}:=bp.changereg.new_edx;
-  if bp.changereg.change_esi then context.{$ifdef cpu64}rsi{$else}esi{$endif}:=bp.changereg.new_esi;
-  if bp.changereg.change_edi then context.{$ifdef cpu64}rdi{$else}edi{$endif}:=bp.changereg.new_edi;
-  if bp.changereg.change_esp then context.{$ifdef cpu64}rsp{$else}esp{$endif}:=bp.changereg.new_esp;
-  if bp.changereg.change_eip then context.{$ifdef cpu64}rip{$else}eip{$endif}:=bp.changereg.new_eip;
+  if bp.changereg.change_eax then context^.{$ifdef cpu64}rax{$else}eax{$endif}:=bp.changereg.new_eax;
+  if bp.changereg.change_ebx then context^.{$ifdef cpu64}rbx{$else}ebx{$endif}:=bp.changereg.new_ebx;
+  if bp.changereg.change_ecx then context^.{$ifdef cpu64}rcx{$else}ecx{$endif}:=bp.changereg.new_ecx;
+  if bp.changereg.change_edx then context^.{$ifdef cpu64}rdx{$else}edx{$endif}:=bp.changereg.new_edx;
+  if bp.changereg.change_esi then context^.{$ifdef cpu64}rsi{$else}esi{$endif}:=bp.changereg.new_esi;
+  if bp.changereg.change_edi then context^.{$ifdef cpu64}rdi{$else}edi{$endif}:=bp.changereg.new_edi;
+  if bp.changereg.change_esp then context^.{$ifdef cpu64}rsp{$else}esp{$endif}:=bp.changereg.new_esp;
+  if bp.changereg.change_eip then context^.{$ifdef cpu64}rip{$else}eip{$endif}:=bp.changereg.new_eip;
 
   {$ifdef cpu64}
-  if bp.changereg.change_r8 then context.r8:=bp.changereg.new_r8;
-  if bp.changereg.change_r9 then context.r9:=bp.changereg.new_r9;
-  if bp.changereg.change_r10 then context.r10:=bp.changereg.new_r10;
-  if bp.changereg.change_r11 then context.r11:=bp.changereg.new_r11;
-  if bp.changereg.change_r12 then context.r12:=bp.changereg.new_r12;
-  if bp.changereg.change_r13 then context.r13:=bp.changereg.new_r13;
-  if bp.changereg.change_r14 then context.r14:=bp.changereg.new_r14;
-  if bp.changereg.change_r15 then context.r15:=bp.changereg.new_r15;
+  if bp.changereg.change_r8 then context^.r8:=bp.changereg.new_r8;
+  if bp.changereg.change_r9 then context^.r9:=bp.changereg.new_r9;
+  if bp.changereg.change_r10 then context^.r10:=bp.changereg.new_r10;
+  if bp.changereg.change_r11 then context^.r11:=bp.changereg.new_r11;
+  if bp.changereg.change_r12 then context^.r12:=bp.changereg.new_r12;
+  if bp.changereg.change_r13 then context^.r13:=bp.changereg.new_r13;
+  if bp.changereg.change_r14 then context^.r14:=bp.changereg.new_r14;
+  if bp.changereg.change_r15 then context^.r15:=bp.changereg.new_r15;
   {$endif}
 end;
 
@@ -411,7 +415,7 @@ var oldprotect: dword;
 begin
   TDebuggerthread(debuggerthread).execlocation:=39;
   debuggercs.enter;
-  context.EFlags:=eflags_setTF(context.EFlags,0);
+  context^.EFlags:=eflags_setTF(context^.EFlags,0);
 
   try
     if (bp<>nil) then
@@ -428,7 +432,7 @@ begin
 
         if (not bp.markedfordeletion) and (not bp.OneTimeOnly) then //if it's not a one time only breakpoint then set it back on next instruction
         begin
-          context.EFlags:=eflags_setTF(context.EFlags,1); //set the trap flag so it'll break on next instruction
+          context^.EFlags:=eflags_setTF(context^.EFlags,1); //set the trap flag so it'll break on next instruction
           setInt3Back:=true;
           Int3setbackAddress:=bp.address;
           Int3setBackbp:=bp;
@@ -501,12 +505,12 @@ begin
 
             if (bp.breakpointTrigger=bptExecute) and (not bp.markedfordeletion) then //if windows xp, and it is a hw bp, and it's an execute hw bp, and it's not marked for deletion, only THEN set the bp back
             begin
-              context.Dr6:=0;  //unset breakpoint relies on this being 0 of ffff0ff0
+              context^.Dr6:=0;  //unset breakpoint relies on this being 0 of ffff0ff0
               setContext; //apply changes made by the user
               TdebuggerThread(debuggerthread).UnsetBreakpoint(bp);
 
               setInt1Back:=true;
-              context.EFlags:=eflags_setTF(context.EFlags,1); //set the trap flag so it'll break on next instruction
+              context^.EFlags:=eflags_setTF(context^.EFlags,1); //set the trap flag so it'll break on next instruction
               Int1SetBackBP:=bp;
             end;
           end;
@@ -520,7 +524,7 @@ begin
       begin
         //not singlestepping and this breakpoint isn't set to break for this thread, so:
 
-        context.EFlags:=eflags_setRF(context.EFlags,1);//don't break on the current instruction
+        context^.EFlags:=eflags_setRF(context^.EFlags,1);//don't break on the current instruction
 
         exit; //and exit
       end;
@@ -537,7 +541,7 @@ begin
         if (bp=nil) or (bp.breakpointMethod=bpmDebugRegister) then
         begin
           //it's a debug register breakpoint or single step, we can continue by just setting the RF flag so it won't break on next execution
-          context.EFlags:=eflags_setRF(context.EFlags,1);
+          context^.EFlags:=eflags_setRF(context^.EFlags,1);
         end
 
       end;
@@ -549,15 +553,15 @@ begin
         //single step
         singlestepping:=true;
         if (bp=nil) or (bp.breakpointMethod=bpmDebugRegister) then
-          context.EFlags:=eflags_setRF(context.EFlags,1);//don't break on the current instruction
+          context^.EFlags:=eflags_setRF(context^.EFlags,1);//don't break on the current instruction
 
         if continueoption=co_stepinto then
-          context.EFlags:=eflags_setTF(context.EFlags,1) //set the trap flag
+          context^.EFlags:=eflags_setTF(context^.EFlags,1) //set the trap flag
         else
         begin
           //check if the current instruction is a call, if not, single step, else set a "run till" breakpoint (that doesn't cancel the stepping)
           d:=TDisassembler.Create;
-          nexteip:=context.{$ifdef cpu64}rip{$else}eip{$endif};
+          nexteip:=context^.{$ifdef cpu64}rip{$else}eip{$endif};
           d.disassemble(nexteip, t);
           if d.LastDisassembleData.iscall then
           begin
@@ -566,7 +570,7 @@ begin
             b.OneTimeOnly:=true;
           end
           else  //if not, single step
-            context.EFlags:=eflags_setTF(context.EFlags,1);
+            context^.EFlags:=eflags_setTF(context^.EFlags,1);
 
 
         end;
@@ -581,8 +585,8 @@ begin
     begin
       if setInt1Back then
       begin
-        eflags_setTF(context.Eflags,1);
-        eflags_setRF(context.Eflags,0);
+        eflags_setTF(context^.Eflags,1);
+        eflags_setRF(context^.Eflags,0);
       end;
     end;
     {$endif}
@@ -592,7 +596,7 @@ begin
       //disable the breakpoint in the current context (in case it got disabled while the breakpoint was being handled)
       if bp.breakpointMethod=bpmDebugRegister then
       begin
-        context.Dr6:=0;  //unset breakpoint relies on this being 0 of ffff0ff0 is handled
+        context^.Dr6:=0;  //unset breakpoint relies on this being 0 of ffff0ff0 is handled
         setContext;
         TdebuggerThread(debuggerthread).UnsetBreakpoint(bp, context, threadid);
       end;
@@ -645,9 +649,9 @@ begin
   TDebuggerthread(debuggerthread).execlocation:=37;
 
   if IgnoredModuleListHandler<>nil then
-    ignored:=IgnoredModuleListHandler.InIgnoredModuleRange(context.{$ifdef cpu64}rip{$else}eip{$endif});
+    ignored:=IgnoredModuleListHandler.InIgnoredModuleRange(context^.{$ifdef cpu64}rip{$else}eip{$endif});
 
-  if (not ignored) and traceNoSystem and symhandler.inSystemModule(context.{$ifdef cpu64}rip{$else}eip{$endif}) then
+  if (not ignored) and traceNoSystem and symhandler.inSystemModule(context^.{$ifdef cpu64}rip{$else}eip{$endif}) then
     ignored:=true;
 
   TDebuggerthread(debuggerthread).execlocation:=371;
@@ -685,7 +689,7 @@ begin
     begin
       TDebuggerthread(debuggerthread).execlocation:=375;
       tracewindow.returnfromignore:=true;
-      ReadProcessMemory(processhandle, pointer(context.{$ifdef cpu64}rsp{$else}esp{$endif}), @r, sizeof(processhandler.pointersize), x);
+      ReadProcessMemory(processhandle, pointer(context^.{$ifdef cpu64}rsp{$else}esp{$endif}), @r, sizeof(processhandler.pointersize), x);
       b:=TDebuggerthread(debuggerthread).SetOnExecuteBreakpoint(r , false, ThreadId);
       b.OneTimeOnly:=true;
       TDebuggerthread(debuggerthread).execlocation:=376;
@@ -1191,7 +1195,7 @@ begin
 
     //freeze all threads except this one and do a single step
 
-    context.EFlags:=eflags_setTF(context.EFlags,1);
+    context^.EFlags:=eflags_setTF(context^.EFlags,1);
     setContext;
 
 
@@ -1221,7 +1225,7 @@ begin
   TDebuggerthread(debuggerthread).execlocation:=16;
   bp:=nil;
 
-  OutputDebugString(inttohex(ThreadId,1)+'('+inttohex(context.{$ifdef cpu64}Rip{$else}Eip{$endif},8)+')'+':HandleExceptionDebugEvent:'+inttohex(debugEvent.Exception.ExceptionRecord.ExceptionCode,8));
+  OutputDebugString(inttohex(ThreadId,1)+'('+inttohex(context^.{$ifdef cpu64}Rip{$else}Eip{$endif},8)+')'+':HandleExceptionDebugEvent:'+inttohex(debugEvent.Exception.ExceptionRecord.ExceptionCode,8));
   exceptionAddress := ptrUint(debugEvent.Exception.ExceptionRecord.ExceptionAddress);
 
 
@@ -1229,7 +1233,7 @@ begin
   case debugEvent.Exception.ExceptionRecord.ExceptionCode of
     EXCEPTION_BREAKPOINT, STATUS_WX86_BREAKPOINT: //SW bp
     begin
-      OutputDebugString('EXCEPTION_BREAKPOINT:'+inttohex(context.{$ifdef cpu64}rip{$else}eip{$endif},8));
+      OutputDebugString('EXCEPTION_BREAKPOINT:'+inttohex(context^.{$ifdef cpu64}rip{$else}eip{$endif},8));
 
 
       //if this is the first breakpoint exception check if it needs to set the entry point bp
@@ -1242,21 +1246,21 @@ begin
       end;
 
       //it's a software breakpoint, adjust eip to go back by 1
-      dec(context.{$ifdef cpu64}rip{$else}eip{$endif});
+      dec(context^.{$ifdef cpu64}rip{$else}eip{$endif});
       setContext;
 
 
-      Result := DispatchBreakpoint(context.{$ifdef cpu64}Rip{$else}eip{$endif}, -1, dwContinueStatus);
+      Result := DispatchBreakpoint(context^.{$ifdef cpu64}Rip{$else}eip{$endif}, -1, dwContinueStatus);
 
       if dwContinueStatus=DBG_CONTINUE then
       begin
         if result=false then
         begin
           //initial breakpoint
-          inc(context.{$ifdef cpu64}rip{$else}eip{$endif});
+          inc(context^.{$ifdef cpu64}rip{$else}eip{$endif});
           result:=true;
         end;
-        context.dr6:=0; //handled
+        context^.dr6:=0; //handled
         setContext;
 
 
@@ -1273,20 +1277,20 @@ begin
 
 
        // context.dr6:=0; //unhandled
-        inc(context.{$ifdef cpu64}rip{$else}eip{$endif}); //undo the -1
+        inc(context^.{$ifdef cpu64}rip{$else}eip{$endif}); //undo the -1
         setContext;
       end;
     end;
 
     EXCEPTION_SINGLE_STEP, STATUS_WX86_SINGLE_STEP:
     begin
-      OutputDebugString('EXCEPTION_SINGLE_STEP. Dr6='+inttohex(context.dr6,8));
+      OutputDebugString('EXCEPTION_SINGLE_STEP. Dr6='+inttohex(context^.dr6,8));
 
       if temporaryDisabledExceptionBreakpoints<>nil then
       begin
         //OutputDebugString('After the single step of an exception caused by my page');
 
-        context.EFlags:=eflags_setTF(context.EFlags,0); //not needed in windows, but let's clear it anyhow
+        context^.EFlags:=eflags_setTF(context^.EFlags,0); //not needed in windows, but let's clear it anyhow
         setContext;
 
         result:=DispatchBreakpoint(breakAddress, -1, dwContinueStatus);
@@ -1332,27 +1336,27 @@ begin
         //Solution: DeleteBreakpoint must NOT call unsetBreakpoint. Only call it from the breakpoint handler and the breakpoint cleanup
 
 
-        if (context.Dr6 and 1) = 1 then
+        if (context^.Dr6 and 1) = 1 then
         begin
-          log('caused by DR0: Context.DR0='+inttohex(context.DR0,8));
-          Result := DispatchBreakpoint(context.dr0, 0, dwContinueStatus)
+          log('caused by DR0: Context.DR0='+inttohex(context^.DR0,8));
+          Result := DispatchBreakpoint(context^.dr0, 0, dwContinueStatus)
         end
         else
-        if ((context.Dr6 shr 1) and 1) = 1 then
+        if ((context^.Dr6 shr 1) and 1) = 1 then
         begin
-          log('caused by DR1: Context.DR1='+inttohex(context.DR1,8));
+          log('caused by DR1: Context.DR1='+inttohex(context^.DR1,8));
           Result := DispatchBreakpoint(context.dr1, 1, dwContinueStatus)
         end
         else
-        if ((context.Dr6 shr 2) and 1) = 1 then
+        if ((context^.Dr6 shr 2) and 1) = 1 then
         begin
-          log('caused by DR2: Context.DR2='+inttohex(context.DR2,8));
+          log('caused by DR2: Context.DR2='+inttohex(context^.DR2,8));
           Result := DispatchBreakpoint(context.dr2, 2, dwContinueStatus)
         end
         else
-        if ((context.Dr6 shr 3) and 1) = 1 then
+        if ((context^.Dr6 shr 3) and 1) = 1 then
         begin
-          log('caused by DR3: Context.DR3='+inttohex(context.DR3,8));
+          log('caused by DR3: Context.DR3='+inttohex(context^.DR3,8));
           Result := DispatchBreakpoint(context.dr3, 3, dwContinueStatus)
         end
         else
@@ -1363,7 +1367,7 @@ begin
 
         if dwContinueStatus=DBG_CONTINUE then
         begin
-          context.dr6:=0; //handled
+          context^.dr6:=0; //handled
           setContext;
         end;
       end;
@@ -1540,22 +1544,22 @@ begin
   begin
     if debugEvent.DebugString.fUnicode>0 then
     begin
-      ws:=getmem(debugEvent.DebugString.nDebugStringLength+2);
+      ws:=getmem(debugEvent.DebugString.nDebugStringLength*2+2);
       try
-        ReadProcessMemory(processhandle, debugEvent.DebugString.lpDebugStringData, ws, debugEvent.DebugString.nDebugStringLength,x);
-        ws[debugEvent.DebugString.nDebugStringLength div 2]:=#0;
+        ReadProcessMemory(processhandle, debugEvent.DebugString.lpDebugStringData, ws, debugEvent.DebugString.nDebugStringLength*2,x);
+        ws[debugEvent.DebugString.nDebugStringLength]:=#0;
         ws[x div 2]:=#0;
 
         DebugEventString:=ws;
 
         TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), AddDebugEventString);
       finally
-        freemem(ws);
+        freememandnil(ws);
       end;
     end
     else
     begin
-      s:=getmem(debugEvent.DebugString.nDebugStringLength+1);
+      s:=getmem(debugEvent.DebugString.nDebugStringLength+2);
       try
         ReadProcessMemory(processhandle, debugEvent.DebugString.lpDebugStringData, s, debugEvent.DebugString.nDebugStringLength,x);
         s[debugEvent.DebugString.nDebugStringLength]:=#0;
@@ -1565,7 +1569,7 @@ begin
 
         TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), AddDebugEventString);
       finally
-        freemem(s);
+        freememandnil(s);
       end;
     end;
 
@@ -1595,15 +1599,64 @@ end;
 
 destructor TDebugThreadHandler.destroy;
 begin
-  freemem(realcontextpointer);
+  freememandnil(realcontextpointer);
   inherited destroy;
 end;
 
+
 constructor TDebugThreadHandler.Create(debuggerthread: TObject; attachEvent: Tevent; continueEvent: TEvent; breakpointlist: TList; threadlist: Tlist; debuggerCS: TGuiSafeCriticalSection);
+{
+
+BOOL WINAPI InitializeContext(
+  _Out_opt_ PVOID    Buffer,
+  _In_      DWORD    ContextFlags,
+  _Out_opt_ PCONTEXT *Context,
+  _Inout_   PWORD    ContextLength
+);
+
+}
+var
+  InitializeContext: function(buffer: pointer; contextflags: DWORD; outputcontext: pointer; var length: word): BOOL; stdcall;
+  k: HModule;
+
+  contextsize: word;
+  e: integer;
+  es: string;
 begin
   //because fpc's structure is not alligned on a 16 byte base I have to allocate more memory and byteshift the structure if needed
-  getmem(realcontextpointer,sizeof(TCONTEXT)+15);
-  context:=pointer((ptrUint(realcontextpointer)+15) and ptrUint($fffffffffffffff0));
+  getmem(realcontextpointer,sizeof(TCONTEXT)+4096);
+  zeromemory(realcontextpointer,sizeof(TCONTEXT)+4096);
+
+
+  k:=GetModuleHandle('kernel32.dll');
+  InitializeContext:=getprocaddress(k, 'InitializeContext');
+  if assigned(initializeContext) then
+  begin
+    contextsize:=sizeof(TCONTEXT)+4096;
+    if InitializeContext(realcontextpointer, CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS {$ifdef cpu64}or CONTEXT_XSTATE{$endif}, @context, contextsize)=false then
+    begin
+      if getlasterror=ERROR_INSUFFICIENT_BUFFER then
+      begin
+        freememandnil(realcontextpointer);
+        getmem(realcontextpointer, contextsize+1024);
+        contextsize:=contextsize+1024;
+        InitializeContext(realcontextpointer, CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS {$ifdef cpu64}or CONTEXT_XSTATE{$endif}, @context, contextsize);
+      end
+      else
+      begin
+        e:=GetLastError;
+        es:=GetLastErrorText(e);
+        OutputDebugString(es);
+      end;
+    end;
+  end;
+
+  if context=nil then
+  begin
+    context:=Align(realcontextpointer, 16);
+    context^.contextflags:=CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS;
+  end;
+
 
   self.debuggerthread := debuggerthread;
   onAttachEvent := attachEvent;
@@ -1721,10 +1774,10 @@ begin
     //if currentthread.needstocleanup then
     currentthread.fillContext;
 
-    if (not TDebuggerthread(debuggerthread).usesGlobalDebug) and (processhandler.SystemArchitecture=archX86) and ((dwContinueStatus=DBG_CONTINUE) or (currentThread.context.Dr6=0) or (word(currentThread.context.dr6)=$0ff0)) then
+    if (not TDebuggerthread(debuggerthread).usesGlobalDebug) and (processhandler.SystemArchitecture=archX86) and ((dwContinueStatus=DBG_CONTINUE) or (currentThread.context^.Dr6=0) or (word(currentThread.context^.dr6)=$0ff0)) then
     begin
       //continued or not an unhandled debug register exception
-      currentthread.context.dr6:=0;
+      currentthread.context^.dr6:=0;
 
       //get the active bp list for this thread  (unsetting the breakpoint in safe mode sets active to false, which would break setting them again otherwise)
       ActiveBPList:=TList.create;
@@ -1744,11 +1797,11 @@ begin
       if BPOverride then
       begin
         //override, the debugregs are mine
-        currentthread.context.dr0:=0;
-        currentthread.context.dr1:=0;
-        currentthread.context.dr2:=0;
-        currentthread.context.dr3:=0;
-        currentthread.context.dr7:=$400;
+        currentthread.context^.dr0:=0;
+        currentthread.context^.dr1:=0;
+        currentthread.context^.dr2:=0;
+        currentthread.context^.dr3:=0;
+        currentthread.context^.dr7:=$400;
 
         currentThread.setContext;
       end
@@ -1814,7 +1867,7 @@ begin
       UNLOAD_DLL_DEBUG_EVENT: eventtext:='UNLOAD_DLL_DEBUG_EVENT';
     end;
 
-    eventtext:=format('pid:%x tid:%x - %s (eip:%x)',[currentdebugEvent.dwProcessId, currentdebugevent.dwThreadId, eventtext, TDebuggerthread(debuggerthread).currentThread.context.{$ifdef cpu64}Rip{$else}eip{$endif}]);
+    eventtext:=format('pid:%x tid:%x - %s (eip:%x)',[currentdebugEvent.dwProcessId, currentdebugevent.dwThreadId, eventtext, TDebuggerthread(debuggerthread).currentThread.context^.{$ifdef cpu64}Rip{$else}eip{$endif}]);
 
     getmem(eventdata, sizeof(TDebugEventData));
     eventdata.context:=TDebuggerthread(debuggerthread).currentThread.context^;

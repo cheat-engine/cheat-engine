@@ -621,7 +621,7 @@ begin
           else
             modulelistsize:=0;
             
-          if modulelist<>nil then freemem(modulelist);
+          if modulelist<>nil then freememandnil(modulelist);
           getmem(modulelist,modulelistsize);
 
           if reg.ValueExists('Module List') then

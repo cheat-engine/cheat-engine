@@ -248,7 +248,7 @@ begin
           pli^.processIcon:=0;
         end;
 
-        freemem(pli);
+        freememandnil(pli);
       end;
 
       processlist.Items.Delete(i);

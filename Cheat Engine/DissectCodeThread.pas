@@ -288,9 +288,9 @@ begin
     if al<>nil then
     begin
       if al.a<>nil then
-        freemem(al.a);
+        freememandnil(al.a);
 
-      freemem(al);
+      freememandnil(al);
     end;
     mi.Next;
   end;

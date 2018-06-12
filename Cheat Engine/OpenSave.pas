@@ -895,8 +895,7 @@ begin
     end else messagedlg(Format(rsTheRegionAtWasPartiallyOrCompletlyUnreadable, [IntToHex(address, 8)]), mterror, [mbok], 0);
   finally
     freeandnil(memfile);
-    freemem(buf);
-    buf:=nil;
+    freememandnil(buf);
   end;
 end;
 
@@ -928,11 +927,9 @@ begin
       RewriteCode(processhandle,temp,mem,size);
     end else raise exception.Create(Format(rsDoesnTContainNeededInformationWhereToPlaceTheMemor, [filename]));
   finally
-    freemem(check);
-    check:=nil;
+    freememandnil(check);
+    freeandnil(memfile);
 
-    memfile.free;
-    memfile:=nil;
   end;
 end;
 
@@ -998,8 +995,8 @@ begin
   finally
     if x<>nil then
     begin
-      freemem(x);
-      x:=nil;
+      freememandnil(x);
+
     end;
 
     if ctfile<>nil then
@@ -1387,8 +1384,8 @@ begin
 
 
     finally
-      freemem(b);
-      b:=nil;
+      freememandnil(b);
+
     end;
   end;
 

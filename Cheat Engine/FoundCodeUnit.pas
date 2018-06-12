@@ -182,8 +182,8 @@ begin
       begin
         //not enough memory. Allocate twice the needed amount
         outputdebugstring(inttostr(resultsize)+' is too small for the buffer. It needs to be at least '+inttostr(size));
-        freemem(results);
-        results:=nil;
+        freememandnil(results);
+
 
         resultsize:=size*2;
         getmem(results, resultsize);
@@ -203,7 +203,7 @@ begin
       outputdebugstring('TDBVMWatchPollThread crash:'+e.Message);
   end;
 
-  freemem(results);
+  freememandnil(results);
   freeandnil(cr3disassembler);
 end;
 
@@ -211,8 +211,8 @@ destructor TCodeRecord.Destroy;
 begin
   if stack.stack<>nil then
   begin
-    freemem(stack.stack);
-    stack.stack:=nil;
+    freememandnil(stack.stack);
+
   end;
 
   inherited destroy;
@@ -363,7 +363,7 @@ begin
         begin
           //error
           outputdebugstring('unexpected type');
-          freemem(coderecord.dbvmcontextbasic);
+          freememandnil(coderecord.dbvmcontextbasic);
           freeandnil(coderecord);
           exit;
         end;
@@ -1218,12 +1218,11 @@ begin
         exit;
       end;
       cr.formChangedAddresses.Close;
-      cr.formChangedAddresses.Free;
-      cr.formChangedAddresses:=nil;
+      freeandnil(cr.formChangedAddresses);
     end;
 
     FoundCodeList.Items[i].data:=nil;
-    cr.free;
+    freeandnil(cr);
   end;
 
   setlength(x,1);
@@ -1457,10 +1456,7 @@ begin
     begin
       coderecord:=TCodeRecord(foundcodelist.items[i].data);
       if coderecord.formChangedAddresses<>nil then
-      begin
-        coderecord.formChangedAddresses.free;
-        coderecord.formChangedAddresses:=nil;
-      end;
+        freeandnil(coderecord.formChangedAddresses);
     end;
 
   end;
@@ -1479,14 +1475,16 @@ end;
 procedure TFoundCodeDialog.miSaveTofileClick(Sender: TObject);
 var
   s: TStringList;
-
 begin
   if savedialog1.execute then
   begin
     s:=tstringlist.create;
     s.text:=getSelection;
-    s.SaveToFile(savedialog1.filename);
-    s.free;
+    try
+      s.SaveToFile(savedialog1.filename);
+    finally
+      freeandnil(s);
+    end;
   end;
 end;
 

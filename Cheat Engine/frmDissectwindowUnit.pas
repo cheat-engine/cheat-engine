@@ -146,8 +146,8 @@ begin
     inc(i);
   end;
 
-  freemem(title);
-  freemem(classname);
+  freememandnil(title);
+  freememandnil(classname);
 
 end;
 
@@ -188,8 +188,8 @@ begin
     end;
   end;
 
-  freemem(classname);
-  freemem(title);
+  freememandnil(classname);
+  freememandnil(title);
 end;
 
 procedure TfrmdissectWindow.Button1Click(Sender: TObject);
@@ -348,13 +348,13 @@ begin
           else
             treeview1.selected.text:=IntToHex(h, 8)+'-'+title+' - ('+classname+') ('+rsInvis+')';
         finally
-          freemem(title);
-          freemem(classname);
+          freememandnil(title);
+          freememandnil(classname);
         end;
       end;
 
     finally
-      freemem(oldname);
+      freememandnil(oldname);
     end;
   except
 

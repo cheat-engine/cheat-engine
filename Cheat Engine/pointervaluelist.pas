@@ -807,7 +807,7 @@ begin
     mbase:=s.ReadQWord;
 
     modulelist.AddObject(mname, tobject(mbase));
-    freemem(mname);
+    freememandnil(mname);
   end;
 end;
 
@@ -1415,7 +1415,7 @@ begin
     finally
       //OutputDebugString('Freeing the buffer');
       if buffer<>nil then
-        freemem(buffer);
+        freememandnil(buffer);
 
       if InModulePointerMap<>nil then
       begin

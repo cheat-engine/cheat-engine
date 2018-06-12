@@ -41,7 +41,6 @@ object MemoryBrowser: TMemoryBrowser
     ClientHeight = 300
     ClientWidth = 622
     TabOrder = 0
-    OnResize = Panel1Resize
     object Splitter2: TSplitter
       Left = 402
       Height = 300
@@ -89,8 +88,6 @@ object MemoryBrowser: TMemoryBrowser
         Font.Name = 'Courier New'
         ParentFont = False
         TabOrder = 0
-        OnClick = ScrollBox1Click
-        OnResize = ScrollBox1Resize
         object Label14: TLabel
           AnchorSideLeft.Control = ScrollBox1
           AnchorSideTop.Control = ScrollBox1
@@ -115,7 +112,6 @@ object MemoryBrowser: TMemoryBrowser
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Top = 1
           Brush.Color = clBlack
-          OnChangeBounds = Shape1ChangeBounds
         end
         object Label15: TLabel
           AnchorSideLeft.Control = Panel2
@@ -165,7 +161,6 @@ object MemoryBrowser: TMemoryBrowser
           Width = 170
           Anchors = [akTop, akLeft, akRight]
           Brush.Color = clBlack
-          OnChangeBounds = Shape3ChangeBounds
         end
         object sbShowFloats: TButton
           AnchorSideTop.Side = asrCenter
@@ -1360,7 +1355,6 @@ object MemoryBrowser: TMemoryBrowser
       object Continueanddetachdebugger1: TMenuItem
         Caption = 'Continue and  detach debugger'
         Visible = False
-        OnClick = Continueanddetachdebugger1Click
       end
       object N16: TMenuItem
         Caption = '-'

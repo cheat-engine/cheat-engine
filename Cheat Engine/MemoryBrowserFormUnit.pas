@@ -331,13 +331,6 @@ type
     procedure RegisterMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure miLockRowsizeClick(Sender: TObject);
-    procedure Panel1Resize(Sender: TObject);
-    procedure ScrollBox1Click(Sender: TObject);
-    procedure ScrollBox1ConstrainedResize(Sender: TObject; var MinWidth,
-      MinHeight, MaxWidth, MaxHeight: TConstraintSize);
-    procedure ScrollBox1Paint(Sender: TObject);
-    procedure Shape1ChangeBounds(Sender: TObject);
-    procedure Shape3ChangeBounds(Sender: TObject);
     procedure Splitter1Moved(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -434,8 +427,6 @@ type
     procedure Showjumplines1Click(Sender: TObject);
     procedure Onlyshowjumplineswithinrange1Click(Sender: TObject);
     procedure Watchmemoryallocations1Click(Sender: TObject);
-    procedure Continueanddetachdebugger1Click(Sender: TObject);
-    procedure ScrollBox1Resize(Sender: TObject);
     procedure Maxstacktracesize1Click(Sender: TObject);
     procedure All1Click(Sender: TObject);
     procedure Modulesonly1Click(Sender: TObject);
@@ -526,8 +517,6 @@ type
 
     procedure SetStacktraceSize(size: integer);
     procedure setShowDebugPanels(state: boolean);
-    procedure UpdateRWAddress(disasm: string);
-    procedure WMGetMinMaxInfo(var Message: TMessage); message WM_GETMINMAXINFO;
     function getShowValues: boolean;
     procedure setShowValues(newstate: boolean);
 
@@ -780,7 +769,7 @@ begin
   FStacktraceSize:=size;
 
   if laststack<>nil then
-    freemem(laststack);
+    freememandnil(laststack);
 
   laststack:=getmem(size);
   readprocessmemory(processhandle, pointer(lastdebugcontext.{$ifdef cpu64}rsp{$else}esp{$endif}), laststack, size, x);
@@ -791,88 +780,10 @@ end;
 //^^^^
 
 
-procedure TMemoryBrowser.WMGetMinMaxInfo(var Message: TMessage);
-var MMInfo: ^MINMAXINFO;
-begin
-  if panel1.visible then
-  begin
-    MMInfo:=pointer(message.LParam);
-    MMInfo.ptMinTrackSize:=point(340,panel1.Height+100);
-  end
-  else
-  begin
-    MMInfo:=pointer(message.LParam);
-    MMInfo.ptMinTrackSize:=point(340,100);
-  end;
-end;
-
-
-procedure TMemoryBrowser.UpdateRWAddress(disasm: string);
-var seperator: integer;
-    fb: integer;
-    nb: integer;
-    address: string;
-    offset:dword;
-begin
-  //temporaryily obsolete
-  
-{  seperator:=pos(',',disasm);
-  if seperator>0 then
-  begin
-    fb:=pos('[',disasm);
-    nb:=pos(']',disasm);
-
-    if nb>fb then
-    begin
-      //if fb<seperator then label1.Font.Color:=clRed //write
-      //                else label1.font.color:=clGreen; //read
-      address:=copy(disasm,fb+1,nb-fb-1);
-
-      try
-        offset:=getaddress(address);
-      except
-
-      end;
-      //label1.Caption:=IntToHex(offset,8);
-    end;
-  end; }
-end;
-
 
 procedure TMemoryBrowser.Splitter1Moved(Sender: TObject);
 begin
   disassemblerview.Update;
-end;
-
-procedure TMemoryBrowser.ScrollBox1Click(Sender: TObject);
-begin
-
-end;
-
-procedure TMemoryBrowser.ScrollBox1ConstrainedResize(Sender: TObject;
-  var MinWidth, MinHeight, MaxWidth, MaxHeight: TConstraintSize);
-begin
-
-end;
-
-procedure TMemoryBrowser.ScrollBox1Paint(Sender: TObject);
-begin
-
-end;
-
-procedure TMemoryBrowser.Shape1ChangeBounds(Sender: TObject);
-begin
-
-end;
-
-procedure TMemoryBrowser.Shape3ChangeBounds(Sender: TObject);
-begin
-
-end;
-
-procedure TMemoryBrowser.Panel1Resize(Sender: TObject);
-begin
-
 end;
 
 procedure TMemoryBrowser.miLockRowsizeClick(Sender: TObject);
@@ -1444,8 +1355,8 @@ begin
         Clipboard.AsText:=copy(result,1,length(result)-1);
       end;
     finally
-      freemem(buf);
-      buf:=nil;
+      freememandnil(buf);
+
     end;
   end;
 end;
@@ -2246,18 +2157,26 @@ var
 begin
   if Visible then
   begin
-    if hexview<>nil then hexview.update;
-    if disassemblerview<>nil then disassemblerview.Update;
+    try
+      if hexview<>nil then hexview.update;
+      if disassemblerview<>nil then disassemblerview.Update;
 
-    //refresh the modulelist
-    if processhandler.isNetwork then
-      rollover:=250
-    else
-      rollover:=50;
+      //refresh the modulelist
+      if processhandler.isNetwork then
+        rollover:=250
+      else
+        rollover:=50;
 
-    lastmodulelistupdate:=(lastmodulelistupdate+1) mod rollover;
-    if lastmodulelistupdate=0 then
-      if symhandler<>nil then symhandler.loadmodulelist;
+      lastmodulelistupdate:=(lastmodulelistupdate+1) mod rollover;
+      if lastmodulelistupdate=0 then
+        if symhandler<>nil then symhandler.loadmodulelist;
+    except
+      on e:exception do
+      begin
+        timer2.enabled:=false;
+        MessageDlg('Error in memview update timer:'+e.message, mtError,[mbok],0);
+      end;
+    end;
   end;
 end;
 
@@ -3805,9 +3724,9 @@ begin
 end;
 
 procedure TMemoryBrowser.GetEntryPointAndDataBase(var code: ptrUint; var data: ptrUint);
-var modulelist: tstringlist;
+var modulelist: tstringlist=nil;
     base: ptrUint;
-    header: pointer;
+    header: pointer=nil;
     headersize: dword;
     br: ptrUint;
 begin
@@ -3836,7 +3755,7 @@ begin
           OutputDebugString('headersize='+inttostr(headersize));
           if headersize>1024*512 then exit;
 
-          freemem(header);
+          freememandnil(header);
           getmem(header,headersize);
           if not readprocessmemory(processhandle,pointer(base),header,headersize,br) then exit;
 
@@ -3850,7 +3769,9 @@ begin
 
       end;
     finally
-      freemem(header);
+      if header<>nil then
+        freememandnil(header);
+
       header:=nil;
     end;
   end;
@@ -4000,20 +3921,6 @@ begin
   frmMemoryAllocHandler.Show;
 end;
 
-procedure TMemoryBrowser.Continueanddetachdebugger1Click(Sender: TObject);
-begin
-
-end;
-
-procedure TMemoryBrowser.ScrollBox1Resize(Sender: TObject);
-begin
-//  sbShowFloats.Top:=max(oflabel.top+oflabel.height+2 , scrollbox1.vertscrollbar.Position+(registerview.ClientHeight div 2)-sbShowFloats.Height div 2);
-  sbShowFloats.Left:=ScrollBox1.clientwidth - sbShowFloats.Width;
-
-  scrollbox1.vertscrollbar.range:=(gslabel.top+gslabel.height+scrollbox1.vertscrollbar.page)-scrollbox1.clientheight;
-  Scrollboxscroll(Scrollbox1);
-end;
-
 procedure TMemoryBrowser.reloadStacktrace;
 var s: pptrUintarray;
     x: ptrUint;
@@ -4128,8 +4035,8 @@ begin
 
           lvstacktracedata.Items.Count:=strace.Count;
         finally
-          freemem(s);
-          s:=nil;
+          freememandnil(s);
+
         end;
       end else
       begin
@@ -4684,10 +4591,6 @@ begin
     end;
   end;
 
-
-
-  scrollbox1.OnResize(scrollbox1);
-
   miDebugRun.Enabled:=true;
   miDebugStep.Enabled:=true;
   miDebugStepOver.Enabled:=true;
@@ -5060,13 +4963,13 @@ begin
 
 
     scrollbox1.Invalidate;
-    ScrollBox1Resize(scrollbox1);
-
-
   end;
 
   if laststack=nil then
-    getmem(laststack,stacktraceSize);
+  begin
+    getmem(laststack,stacktraceSize+64);
+    //FillMemory(pointer(ptruint(laststack)+stacktracesize),4096,$ce);
+  end;
 
   //get a stackview
   i:=0;
@@ -5082,7 +4985,6 @@ begin
     inc(i,bs);
   end;
 
-
   reloadStacktrace;
 
   if frmFloatingPointPanel<>nil then
@@ -5096,6 +4998,15 @@ begin
 
   if accessedreglist<>nil then
     freeandnil(accessedreglist);
+
+  {for i:=0 to 4095 do
+  begin
+    if pbyte(ptruint(laststack)+stacktracesize+i)^<>$ce then
+    begin
+      messagedlg('Memory corruption in the stacktrace',mtError,[mbok],0);
+      exit;
+    end;
+  end; }
 end;
 
 initialization

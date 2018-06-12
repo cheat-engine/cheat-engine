@@ -1,7 +1,7 @@
 object frmChangedAddressesCommonalityScanner: TfrmChangedAddressesCommonalityScanner
-  Left = 0
+  Left = 866
   Height = 204
-  Top = 135
+  Top = 568
   Width = 624
   Caption = 'Commonality scanner'
   ClientHeight = 204

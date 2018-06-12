@@ -920,8 +920,8 @@ begin
       if addresslist[i].MemrecArray<>nil then
       begin
         deletepath(addresslist[i].MemrecArray,level+1, maxlevel);
-        freemem(addresslist[i].MemrecArray);
-        addresslist[i].MemrecArray:=nil;
+        freememandnil(addresslist[i].MemrecArray);
+
       end;
     end;
 

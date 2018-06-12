@@ -295,8 +295,8 @@ begin
     freeandnil(memoryfile);
     freeandnil(outaddress);
     freeandnil(outmemory);
-    freemem(buf);
-    buf:=nil;
+    freememandnil(buf);
+
   end;
 
   //still here, not crashed, so out with the old, in with the new...
@@ -775,7 +775,7 @@ begin
           groupElementSize:=sizeof(ptruint)+sizeof(dword)*length(gcp.elements);
 
           if addresslistg<>nil then
-            freemem(addresslistg);
+            freememandnil(addresslistg);
 
           addresslistg:=getmem(1024*groupElementSize);
 
@@ -902,7 +902,7 @@ begin
     foundlist.free;
 
   if addresslistg<>nil then
-    freemem(addresslistg);
+    freememandnil(addresslistg);
 end;
 
 constructor TFoundlist.create(foundlist: tlistview; memscan: TMemScan; listname: string='');

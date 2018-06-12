@@ -88,12 +88,12 @@ begin
     begin
       wle:=writelog[i];
       if wle.originalbytes<>nil then
-        freemem(wle.originalbytes);
+        FreeMemAndNil(wle.originalbytes);
 
       if wle.newbytes<>nil then
-        freemem(wle.newbytes);
+        FreeMemAndNil(wle.newbytes);
 
-      freemem(wle);
+      FreeMemAndNil(wle);
 
 
       writelog.Delete(i);

@@ -254,10 +254,11 @@ begin
       if i>0 then
       begin
         getmem(p,128);
+        x:=0;
         readprocessmemory(processhandle, pointer(a),p,127,x);
         p[x]:=#0;
         node.text:=node.text+p;
-        freemem(p);
+        freememandnil(p);
       end;
 
     except
