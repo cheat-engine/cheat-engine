@@ -224,8 +224,11 @@ begin
       lua_pushinteger(L, sr.address);
       lua_pushstring(L, temps);
       lua_settable(L, t);
-      sr.free;
+
+      freeandnil(sr);
     end;
+
+    FreeMemAndNil(str);
 
   end
   else
