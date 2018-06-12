@@ -12,7 +12,6 @@ object frmStackView: TfrmStackView
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  PopupMode = pmAuto
   LCLVersion = '1.6.4.0'
   object lvStack: TListView
     Left = 0

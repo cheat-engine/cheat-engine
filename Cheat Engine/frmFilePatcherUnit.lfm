@@ -7,7 +7,6 @@ object frmFilePatcher: TfrmFilePatcher
   Caption = 'File patcher'
   ClientHeight = 230
   ClientWidth = 320
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object rbAuto: TRadioButton

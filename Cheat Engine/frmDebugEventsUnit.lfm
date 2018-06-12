@@ -7,7 +7,6 @@ object frmDebugEvents: TfrmDebugEvents
   ClientHeight = 301
   ClientWidth = 641
   OnClose = FormClose
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object lbDebugEvents: TListBox

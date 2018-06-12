@@ -9,7 +9,6 @@ object formPointerOrPointee: TformPointerOrPointee
   Caption = 'Cheat Engine Pointer'
   ClientHeight = 99
   ClientWidth = 354
-  PopupMode = pmAuto
   Position = poMainFormCenter
   LCLVersion = '1.6.0.4'
   object Label1: TLabel

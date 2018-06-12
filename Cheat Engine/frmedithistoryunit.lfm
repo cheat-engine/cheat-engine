@@ -7,7 +7,6 @@ object frmEditHistory: TfrmEditHistory
   ClientHeight = 326
   ClientWidth = 320
   OnShow = FormShow
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object lvWriteLog: TListView

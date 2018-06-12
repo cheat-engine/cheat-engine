@@ -9,7 +9,6 @@ object frmPointerscanConnectDialog: TfrmPointerscanConnectDialog
   ClientHeight = 170
   ClientWidth = 264
   OnCreate = FormCreate
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object edtHost: TEdit

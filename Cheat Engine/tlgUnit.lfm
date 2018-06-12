@@ -9,7 +9,6 @@ object tlg: Ttlg
   ClientHeight = 348
   ClientWidth = 483
   OnClose = FormClose
-  PopupMode = pmAuto
   Position = poMainFormCenter
   LCLVersion = '1.6.0.4'
   object Image1: TImage

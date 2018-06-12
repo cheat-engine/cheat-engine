@@ -2613,7 +2613,8 @@ begin
   Fname := copy(processlabel.Caption, pos('-', processlabel.Caption) + 1,
     length(processLabel.Caption));
 
-  if FName[length(FName) - 3] = '.' then  //it's a filename
+
+  if (length(fname)>3) and (FName[length(FName) - 3] = '.') then  //it's a filename
     expectedFilename := copy(FName, 1, length(FName) - 4)
   else //it's a normal title;
     expectedFilename := FName;
@@ -2824,7 +2825,7 @@ begin
   Fname := copy(processlabel.Caption, pos('-', processlabel.Caption) +
     1, length(processLabel.Caption));
 
-  if FName[length(FName) - 3] = '.' then  //it's a filename
+  if (length(fname)>3) and (FName[length(FName) - 3] = '.') then  //it's a filename
     expectedFilename := copy(FName, 1, length(FName) - 4) + '.ct'
   else //it's a normal title;
     expectedFilename := FName + '.ct';

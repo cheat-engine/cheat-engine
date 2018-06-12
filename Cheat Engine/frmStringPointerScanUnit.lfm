@@ -10,7 +10,6 @@ object frmStringPointerScan: TfrmStringPointerScan
   Menu = MainMenu1
   OnClose = FormClose
   OnShow = FormShow
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'
   object Panel1: TPanel

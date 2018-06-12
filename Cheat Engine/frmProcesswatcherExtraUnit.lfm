@@ -6,7 +6,6 @@ object frmProcessWatcherExtra: TfrmProcessWatcherExtra
   Caption = 'Processwatcher Extra'
   ClientHeight = 165
   ClientWidth = 245
-  PopupMode = pmAuto
   LCLVersion = '1.6.0.4'
   object data: TMemo
     Left = 0

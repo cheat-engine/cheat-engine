@@ -12,7 +12,6 @@ object frmAAEditPrefs: TfrmAAEditPrefs
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'
   object Panel2: TPanel

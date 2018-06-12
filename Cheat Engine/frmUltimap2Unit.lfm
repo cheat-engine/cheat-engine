@@ -12,7 +12,6 @@ object frmUltimap2: TfrmUltimap2
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'
   object Panel5: TPanel

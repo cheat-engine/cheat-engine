@@ -85,7 +85,6 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure FormResize(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FoundCodeListChange(Sender: TObject; Item: TListItem;
       Change: TItemChange);
@@ -1231,11 +1230,6 @@ begin
   x[1]:=FoundCodeList.Columns[0].Width;
 
   saveformposition(self,x);
-end;
-
-procedure TFoundCodeDialog.FormResize(Sender: TObject);
-begin
-
 end;
 
 procedure TFoundCodeDialog.FormShow(Sender: TObject);

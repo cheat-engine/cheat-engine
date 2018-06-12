@@ -562,7 +562,6 @@ object MemoryBrowser: TMemoryBrowser
             Caption = 'Value'
             Width = 42
           end>
-        DragKind = dkDock
         HideSelection = False
         MultiSelect = True
         OwnerData = True

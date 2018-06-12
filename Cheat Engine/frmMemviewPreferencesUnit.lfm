@@ -1,7 +1,7 @@
 object frmMemviewPreferences: TfrmMemviewPreferences
-  Left = 242
+  Left = 770
   Height = 508
-  Top = 360
+  Top = 279
   Width = 391
   AutoSize = True
   BorderStyle = bsSingle
@@ -11,7 +11,6 @@ object frmMemviewPreferences: TfrmMemviewPreferences
   OnCreate = FormCreate
   OnShow = FormShow
   PopupMenu = pmColors
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'
   object Button2: TButton

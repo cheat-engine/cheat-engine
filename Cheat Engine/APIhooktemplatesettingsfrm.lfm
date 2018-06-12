@@ -11,7 +11,6 @@ object frmAPIhookTemplateSettings: TfrmAPIhookTemplateSettings
   ClientWidth = 334
   OnCreate = FormCreate
   OnShow = FormShow
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object Label1: TLabel

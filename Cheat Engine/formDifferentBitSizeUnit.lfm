@@ -11,9 +11,8 @@ object formDifferentBitSize: TformDifferentBitSize
   ClientWidth = 329
   OnCreate = FormCreate
   OnShow = FormShow
-  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Labelold: TLabel
     AnchorSideTop.Control = Label1
     AnchorSideTop.Side = asrBottom
