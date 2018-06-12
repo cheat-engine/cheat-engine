@@ -3010,14 +3010,14 @@ begin
     end;
   end;
 
+  method:=preferedBreakpointMethod;
+
   if lc=nil then  //address, size OPTIONAL, trigger OPTIONAL, method, functiontocall OPTIONAL
   begin
     if parameters>=3 then
       trigger:=TBreakpointTrigger(lua_tointeger(L,3))
     else
       trigger:=bptExecute;
-
-    method:=preferedBreakpointMethod;
 
     if parameters>=4 then
     begin
