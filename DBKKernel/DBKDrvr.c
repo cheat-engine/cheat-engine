@@ -19,6 +19,8 @@
 #include "ultimap2.h"
 #include "noexceptions.h"
 
+#include "ultimap2\apic.h"
+
 
 #if (AMD64 && TOBESIGNED)
 #include "sigcheck.h"

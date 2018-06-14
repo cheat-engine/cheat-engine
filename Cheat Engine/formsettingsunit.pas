@@ -410,6 +410,7 @@ resourcestring
   rsFailMMRegistry = 'Failure getting the Memory Management registry key';
   rsSpectreRegistryChanged = 'The registry keys has been changed accordingly. '
     +' Reboot your system to make it take effect';
+  rsAllCustomTypes = 'All Custom Types';
 
 
 procedure TformSettings.btnOKClick(Sender: TObject);
@@ -1572,8 +1573,21 @@ begin
     add(rsHighest);
     add(rsTimeCritical);
   end;
-
   combothreadpriority.ItemIndex:=4;
+
+  with cgAllTypes.Items do
+  begin
+    BeginUpdate;
+    clear;
+    add(rsByte);
+    add(rs2Bytes);
+    add(rs4Bytes);
+    add(rs8Bytes);
+    add(rsFloat);
+    add(rsDouble);
+    add(rsAllCustomTypes);
+    EndUpdate;
+  end;
 
 
   with frameHotkeyConfig.ListBox1.items do

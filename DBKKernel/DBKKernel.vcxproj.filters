@@ -70,6 +70,9 @@
     <ClCompile Include="vmxoffload.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ultimap2\apic.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cetc.h">
@@ -130,6 +133,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="vmxoffload.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ultimap2\apic.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

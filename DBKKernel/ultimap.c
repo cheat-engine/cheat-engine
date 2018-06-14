@@ -11,16 +11,19 @@ Requires dbvm for process selection
 #include "DBKFunc.h"
 #include <windef.h>
 
+#include "ultimap2\apic.h"
+
 
 JUMPBACK perfmonJumpBackLocation;
 
 
-
+/*
 #ifdef AMD64
 volatile PAPIC APIC_BASE=0; //(PAPIC)0xfffffffffffe0000;
 #else
 volatile PAPIC APIC_BASE=0; //(PAPIC)0xfffe0000;
 #endif
+*/
 
 BOOL SaveToFile; //If set it will save the results to a file instead of sending a message to the usermode app that is watching the data
 HANDLE FileHandle;
@@ -45,6 +48,7 @@ PVOID *DataReadyPointerList;
 
 int perfmon_interrupt_centry(void);
 
+/* use apic.* now
 #define MSR_IA32_APICBASE               0x0000001b
 
 void setup_APIC_BASE(void)
@@ -68,7 +72,7 @@ void clean_APIC_BASE(void)
 {
 	if (APIC_BASE)
 		MmUnmapIoSpace((PVOID)APIC_BASE, sizeof(APIC));
-}
+}*/
 
 void ultimap_flushBuffers_all(UINT_PTR param)
 {
@@ -204,12 +208,13 @@ Called from usermode to wait for data
 	
 }
 
+/*
 void apic_clearPerfmon()
 {
 	APIC_BASE->LVT_Performance_Monitor.a = APIC_BASE->LVT_Performance_Monitor.a & 0xff;
 	APIC_BASE->EOI.a = 0;
 }
-
+*/
 void ultimap_cleanstate()
 {
 	apic_clearPerfmon();

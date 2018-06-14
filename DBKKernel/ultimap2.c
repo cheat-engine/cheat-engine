@@ -9,13 +9,7 @@
 #include "Ntstrsafe.h"
 #include "DBKFunc.h"
 
-#ifdef ULTIMAP2STANDALONE
-
 #include "ultimap2\apic.h"
-#else
-#include "ultimap.h"
-#endif
-
 #include "ultimap2.h"
 
 

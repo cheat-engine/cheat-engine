@@ -322,6 +322,7 @@ makecab /f "$(ProjectDir)\dbk64.ddf"
     <ClCompile Include="threads.c" />
     <ClCompile Include="ultimap.c" />
     <ClCompile Include="ultimap2.c" />
+    <ClCompile Include="ultimap2\apic.c" />
     <ClCompile Include="vmxhelper.c" />
     <ClCompile Include="vmxoffload.c" />
   </ItemGroup>
@@ -344,6 +345,7 @@ makecab /f "$(ProjectDir)\dbk64.ddf"
     <ClInclude Include="threads.h" />
     <ClInclude Include="ultimap.h" />
     <ClInclude Include="ultimap2.h" />
+    <ClInclude Include="ultimap2\apic.h" />
     <ClInclude Include="vmxhelper.h" />
     <ClInclude Include="vmxoffload.h" />
   </ItemGroup>
