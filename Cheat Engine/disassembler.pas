@@ -1712,7 +1712,7 @@ begin
   startoffset:=offset;
   initialoffset:=offset;
 
-  for i:=31 to 63 do
+  for i:=32 to 63 do //debug code
     _memory[i]:=$ce;
 
   actualRead:=readMemory(offset, @_memory[0], 32);
@@ -1870,7 +1870,8 @@ begin
         opcodeflags.X:=PVex3Byte(@memory[1])^.X=0;
         opcodeflags.R:=PVex3Byte(@memory[1])^.R=0;
 
-        setlength(LastDisassembleData.bytes,length(LastDisassembleData.bytes)+3);
+        i:=length(LastDisassembleData.bytes);
+        setlength(LastDisassembleData.bytes,i+3);
         LastDisassembleData.bytes[i]:=memory[0];
         LastDisassembleData.bytes[i+1]:=memory[1];
         LastDisassembleData.bytes[i+2]:=memory[2];
@@ -2426,6 +2427,7 @@ begin
                           else
                             lastdisassembledata.opcode:='movsd';
 
+                          opcodeflags.skipExtraRegOnMemoryAccess:=true;
                           lastdisassembledata.parameters:=xmm(memory[2])+modrm(memory,prefix2,2,4,last,mright);
                           inc(offset,last-1);
                         end
@@ -2438,6 +2440,7 @@ begin
                           else
                             lastdisassembledata.opcode:='movss';
 
+                          opcodeflags.skipExtraRegOnMemoryAccess:=true;
                           lastdisassembledata.parameters:=xmm(memory[2])+modrm(memory,prefix2,2,4,last,mright);
                           lastdisassembledata.datasize:=4;
                           inc(offset,last-1);
@@ -2451,6 +2454,7 @@ begin
                           else
                             lastdisassembledata.opcode:='movupd';
 
+                          opcodeflags.skipExtraReg:=true;
                           lastdisassembledata.parameters:=xmm(memory[2])+modrm(memory,prefix2,2,4,last,mright);
                           inc(offset,last-1);
                         end
@@ -2462,6 +2466,7 @@ begin
                           else
                             lastdisassembledata.opcode:='movups';
 
+                          opcodeflags.skipExtraReg:=true;
                           lastdisassembledata.parameters:=xmm(memory[2])+modrm(memory,prefix2,2,4,last,mright);
                           lastdisassembledata.datasize:=4;
                           inc(offset,last-1);
@@ -2504,6 +2509,8 @@ begin
                             lastdisassembledata.opcode:='lmovupd'
                           else
                             lastdisassembledata.opcode:='movupd';
+
+                          opcodeflags.skipExtraRegOnMemoryAccess:=true;
                           lastdisassembledata.parameters:=modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
                           inc(offset,last-1);
                         end
@@ -2514,6 +2521,8 @@ begin
                             lastdisassembledata.opcode:='vmovups'
                           else
                             lastdisassembledata.opcode:='movups';
+
+                          opcodeflags.skipExtraRegOnMemoryAccess:=true;
                           lastdisassembledata.parameters:=modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
                           lastdisassembledata.datasize:=4;
                           inc(offset,last-1);

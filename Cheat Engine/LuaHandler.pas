@@ -8121,17 +8121,24 @@ begin
             begin
               lua_pushinteger(L, r);
               result:=1;
-            end;
+            end
+            else
+              outputdebugstring('Failure reading the result address');
           end
           else
           if wr=WAIT_TIMEOUT then
+          begin
             dontfree:=true;
-
-
+            OutputDebugString('Execution timeout');
+          end
+          else
+            OutputDebugString('Wait failure');
 
 
           closehandle(thread);
-        end;
+        end
+        else
+          outputdebugstring('Failure launching thread');
       end;
     end;
 

@@ -316,12 +316,17 @@ procedure TfrmChangedAddresses.ChangedlistCompare(Sender: TObject; Item1,
   Item2: TListItem; Data: Integer; var Compare: Integer);
 var i1, i2: TAddressEntry;
     hex, hex2: qword;
+    s: single absolute hex;
+    s2: single absolute hex2;
+    d: double absolute hex;
+    d2: double absolute hex2;
     x: PtrUInt;
     varsize: integer;
+
 begin
   compare:=0;
-  i1:=item1.data;
-  i2:=item2.data;
+  i1:=TAddressEntry(item1.data);
+  i2:=TAddressEntry(item2.data);
 
   if (i1=nil) or (i2=nil) then exit;
 
@@ -371,21 +376,36 @@ begin
           0: compare:=byte(hex)-byte(hex2);
           1: compare:=word(hex)-word(hex2);
           2: compare:=dword(hex)-dword(hex2);
-          3: if psingle(@hex)^>psingle(@hex2)^ then
-               compare:=1
-             else
-             if psingle(@hex)^=psingle(@hex2)^ then
-               compare:=0
-             else
-               compare:=-1;
+          3:
+          begin
+            try
+              if s>s2 then
+                compare:=1
+              else
+              if s=s2 then
+                compare:=0
+              else
+                compare:=-1;
 
-          4: if pdouble(@hex)^>pdouble(@hex2)^ then
-               compare:=1
-             else
-             if pdouble(@hex)^=pdouble(@hex2)^ then
-               compare:=0
-             else
-               compare:=-1;
+            except
+              compare:=-1;
+            end;
+          end;
+
+          4:
+          begin
+            try
+              if d>d2 then
+                compare:=1
+              else
+              if d=d2 then
+                compare:=0
+              else
+                compare:=-1;
+            except
+              compare:=-1;
+            end;
+          end;
         end;
       end;
     end;
