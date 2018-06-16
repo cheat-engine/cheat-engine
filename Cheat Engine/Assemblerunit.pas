@@ -7100,6 +7100,14 @@ begin
           exit;
         end;
 
+        if (opcodes[j].paramtype2=par_m32) and ((paramtype2=ttMemorylocation32) or (ismemorylocationdefault(parameter2))) then
+        begin
+          //xmm,m32
+          addopcode(bytes,j);
+          result:=createmodrm(bytes,getreg(parameter1),parameter2);
+          exit;
+        end;
+
         if (opcodes[j].paramtype2=par_m64) and ((paramtype2=ttMemorylocation64) or (ismemorylocationdefault(parameter2))) then
         begin
           //xmm,m64
