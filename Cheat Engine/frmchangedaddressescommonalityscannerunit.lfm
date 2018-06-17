@@ -10,7 +10,7 @@ object frmChangedAddressesCommonalityScanner: TfrmChangedAddressesCommonalitySca
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poScreenCenter
-  LCLVersion = '1.6.4.0'
+  LCLVersion = '1.9.0.0'
   object lvRegisters: TListView
     Left = 0
     Height = 204
