@@ -2941,10 +2941,15 @@ var
 begin
   setlength(result, size);
 
-  pos1:=0;
+
+  pos1:=Disassembler.LastDisassembleData.prefixsize;
   for i:=0 to Disassembler.LastDisassembleData.SeperatorCount-1 do
   begin
     pos2:=Disassembler.LastDisassembleData.Seperators[i];
+    if pos2>size then
+      pos2:=size;
+
+
     mask:=(pos2<=size) and (pos2-pos1=4) and (abs(pinteger(@Disassembler.LastDisassembleData.Bytes[pos1])^)>=$10000); //value is bigger than 65535 (positive and negative)
 
     for index := pos1 to pos2-1 do

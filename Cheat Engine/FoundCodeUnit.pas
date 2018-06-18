@@ -1226,7 +1226,7 @@ begin
   end;
 
   setlength(x,1);
-  x[1]:=FoundCodeList.Columns[0].Width;
+  x[0]:=FoundCodeList.Columns[0].Width;
 
   saveformposition(self,x);
 end;

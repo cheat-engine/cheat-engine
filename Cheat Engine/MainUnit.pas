@@ -933,6 +933,7 @@ type
 
     property SelectedVariableType: TVariableType read getSelectedVariableType;
     property isProtected: boolean read fIsProtected write setIsProtected;
+  published
     property Progressbar1: TProgressBar read Progressbar write ProgressBar;
     property About1: TMenuItem read miAbout write miAbout;
     property Help1: TMenuItem read miHelp write miHelp;
@@ -959,7 +960,7 @@ uses mainunit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup, HotKeys,
   frmNetworkDataCompressionUnit, ProcessHandlerUnit, ProcessList, pointeraddresslist,
   PointerscanresultReader, Parsers, Globals, GnuAssembler, xinput, DPIHelper,
   multilineinputqueryunit, winsapi, LuaClass, Filehandler, feces,
-  frmDBVMWatchConfigUnit, frmDotNetObjectListUnit;
+  frmDBVMWatchConfigUnit, frmDotNetObjectListUnit, ceregistry;
 
 resourcestring
   rsInvalidStartAddress = 'Invalid start address: %s';
@@ -2998,13 +2999,17 @@ begin
   llf:=GetDebugLogger;
   if llf<>nil then
   begin
-    deletefile('cedebug.txt');
-    llf.LogName:='cedebug.txt';
-    llf.Init;
+    if miEnableLCLDebug.checked then
+    begin
+      deletefile('cedebug.txt');
 
-    DebugLn('First log message');
+      llf.LogName:='cedebug.txt';
+      llf.Init;
 
-    miEnableLCLDebug.visible:=false;
+      DebugLn('First log message');
+    end
+    else
+      llf.Finish;
   end;
 
 
@@ -3145,7 +3150,7 @@ end;
 
 procedure TMainForm.miHelpClick(Sender: TObject);
 begin
-  miEnableLCLDebug.visible:=ssCtrl in GetKeyShiftState;
+  miEnableLCLDebug.visible:=miEnableLCLDebug.checked or (ssCtrl in GetKeyShiftState);
 end;
 
 procedure TMainForm.miLuaDocumentationClick(Sender: TObject);
@@ -4880,13 +4885,7 @@ begin
   //foundlist3.AutoWidthLastColumn:=false;
   //foundlist3.AutoWidthLastColumn:=true;
 
-  reg:=TRegistry.create;
-  try
-    if reg.OpenKey('\Software\Cheat Engine\', true) then
-      reg.WriteBool('Show previous value column', miShowPreviousValue.checked);
-  finally
-    freeandnil(reg);
-  end;
+  cereg.writeBool('Show previous value column', miShowPreviousValue.checked);
 end;
 
 
@@ -5045,6 +5044,8 @@ var
   rs: TResourceStream;
 
   i: integer;
+
+  dir: string;
 begin
   {$if (lcl_fullversion > 1060400) and (lcl_fullversion <=1080200)}
   Foundlist3.Dragmode:=dmManual; //perhaps this gets fixed in later lcl versions, but for now, it sucks
@@ -5114,28 +5115,16 @@ begin
   freeandnil(rs);
 
 
+  dir:=cereg.readString('Initial tables dir');
+  if dir='' then dir:=tablesdir;
 
+  SaveDialog1.InitialDir:=dir;
+  OpenDialog1.InitialDir:=dir;
 
-  reg := Tregistry.Create;
-  try
-    Reg.RootKey := HKEY_CURRENT_USER;
-    if Reg.OpenKey('\Software\Cheat Engine', False) then
-    begin
-      if reg.ValueExists('Initial tables dir') then
-      begin
-        SaveDialog1.InitialDir := reg.Readstring('Initial tables dir');
-        opendialog1.InitialDir := SaveDialog1.initialdir;
-      end
-      else
-      begin
-        SaveDialog1.InitialDir := tablesdir;
-        opendialog1.InitialDir := tablesdir;
-      end;
-    end;
+  miEnableLCLDebug.Checked:=cereg.readBool('Debug');
+  if miEnableLCLDebug.Checked then
+    EnableLCLClick(miEnableLCLDebug);
 
-  finally
-    freeandnil(reg);
-  end;
 
   application.OnHelp := onhelp;
 
@@ -5453,6 +5442,8 @@ begin
 
   luaclass_newClass(luavm, addresslist);
   lua_setglobal(luavm,'AddressList');
+
+  miEnableLCLDebug.checked:=cereg.readBool('Debug');
 end;
 
 procedure TMainForm.ChangedHandle(Sender: TObject);
@@ -7279,21 +7270,7 @@ begin
     fronttext := rsBringsCheatEngineToFront;
 
 
-
-  try
-    hotkey := '';
-    reg := TRegistry.Create;
-    try
-      Reg.RootKey := HKEY_CURRENT_USER;
-      if Reg.OpenKey('\Software\Cheat Engine', False) then
-        hotkey := reg.ReadString('BringToFrontHotkey');
-    except
-    end;
-  finally
-    reg.Free;
-  end;
-
-  //  fronthotkey:=hotkey;
+  hotkey:=cereg.readString('BringToFrontHotkey');
 end;
 
 
@@ -7350,15 +7327,16 @@ begin
   loadt := False;
   editsh2.Text := format('%.1f', [1.0]);
 
+
   reg := Tregistry.Create;
   try
     Reg.RootKey := HKEY_CURRENT_USER;
 
-    if not Reg.OpenKey('\Software\Cheat Engine', False) then
+    if not Reg.OpenKey('\Software\Cheat Engine', False) then //can't be opened. Clean install
     begin
       if Reg.OpenKey('\Software\Cheat Engine', True) then
       begin
-        //write some default data into the register
+        //write some default data into the registry
         reg.WriteBool('Undo', True);
         reg.writeBool('Advanced', True);
 
@@ -9438,6 +9416,7 @@ var
   i: integer;
   oldscanstate: PScanState;
   x: array of integer;
+  reg: tregistry;
 begin
   if flashprocessbutton<>nil then
   begin
@@ -9456,6 +9435,8 @@ begin
   x[6]:=foundlist3.columns[0].Width;
 
   saveformposition(self, x);
+
+  cereg.writeBool('Debug', miEnableLCLDebug.checked);
 
 
   if foundlist <> nil then
