@@ -1314,7 +1314,7 @@ begin
             newwi.NotLookingForList[i]:=pdword(memoryblockNLF[i])^;
           end;
 
-          if readMemory(newwi.LookingForList[i], @p, 1)=false then
+          if readMemory(newwi.NotLookingForList[i], @p, 1)=false then
           begin
             allreadablepointers:=false;
             break;
