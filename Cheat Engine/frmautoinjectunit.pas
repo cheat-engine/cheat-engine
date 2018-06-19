@@ -124,6 +124,7 @@ type
     View1: TMenuItem;
     AAPref1: TMenuItem;
     procedure Button1Click(Sender: TObject);
+    procedure FormDropFiles(Sender: TObject; const FileNames: array of String);
     procedure Load1Click(Sender: TObject);
     procedure menuAOBInjectionClick(Sender: TObject);
     procedure menuFullInjectionClick(Sender: TObject);
@@ -211,6 +212,7 @@ type
     injectintomyself: boolean;
     procedure addTemplate(id: integer);
     procedure removeTemplate(id: integer);
+    procedure loadfile(filename: string);
     property CustomTypeScript: boolean read fCustomTypeScript write setCustomTypeScript;
   published
     property ScriptMode: TScriptMode read fScriptMode write setScriptMode;
@@ -522,28 +524,38 @@ begin
 {$endif}
 end;
 
+procedure TfrmAutoInject.FormDropFiles(Sender: TObject; const FileNames: array of String);
+var load: boolean;
+begin
+  if length(filenames)=0 then exit;
+
+  if mainform.editedsincelastsave then
+    load:=MessageDlg('Your last changes will be lost if you proceed. Continue?',mtConfirmation,[mbyes,mbno],0,mbNo)=mryes
+  else
+    load:=true;
+
+  if load then
+    loadfile(FileNames[0]);
+end;
+
+procedure TfrmAutoInject.loadFile(filename: string);
+begin
+  assemblescreen.Lines.Clear;
+  assemblescreen.Lines.LoadFromFile(filename);
+  savedialog1.FileName:=filename;
+  assemblescreen.AfterLoadFromFile;
+
+  case ScriptMode of
+    smAutoAssembler: caption:=rsAutoAssembler+':'+extractfilename(opendialog1.FileName);
+    smLua: caption:=rsLUAScript+':'+extractfilename(opendialog1.FileName);
+    smGnuAssembler: caption:=rsGNUAScript+':'+extractfilename(opendialog1.FileName);
+  end;
+end;
+
 procedure TfrmAutoInject.Load1Click(Sender: TObject);
 begin
-{$ifndef standalonetrainerwithassembler}
-
   if opendialog1.Execute then
-  begin
-
-    assemblescreen.Lines.Clear;
-    assemblescreen.Lines.LoadFromFile(opendialog1.filename);
-    savedialog1.FileName:=opendialog1.filename;
-    assemblescreen.AfterLoadFromFile;
-
-    SaveDialog1.FileName:=opendialog1.FileName;
-
-    case ScriptMode of
-      smAutoAssembler: caption:=rsAutoAssembler+':'+extractfilename(opendialog1.FileName);
-      smLua: caption:=rsLUAScript+':'+extractfilename(opendialog1.FileName);
-      smGnuAssembler: caption:=rsGNUAScript+':'+extractfilename(opendialog1.FileName);
-    end;
-
-  end;
-{$endif}
+    loadFile(opendialog1.filename);
 end;
 
 procedure TfrmAutoInject.mifindNextClick(Sender: TObject);
@@ -906,10 +918,7 @@ procedure TfrmAutoInject.assemblescreenChange(Sender: TObject);
 begin
   if self=mainform.frmLuaTableScript then
     mainform.editedsincelastsave:=true;
-
-
 end;
-
 
 
 procedure TfrmAutoInject.Assigntocurrentcheattable1Click(Sender: TObject);
@@ -1733,6 +1742,7 @@ begin
   assemblescreen.Text:='';
 
   assemblescreen.OnChange:=assemblescreenchange;
+
 
   setlength(x,0);
   loadformposition(self,x);

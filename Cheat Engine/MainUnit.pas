@@ -5515,12 +5515,21 @@ end;
 
 procedure TMainForm.UpdateTimerTimer(Sender: TObject);
 begin
-  if addresslist <> nil then
-    addresslist.Refresh;
+  try
+    if addresslist <> nil then
+      addresslist.Refresh;
 
-  Inc(reinterpretcheck);
-  if reinterpretcheck mod 15 = 0 then
-    reinterpretaddresses;
+    Inc(reinterpretcheck);
+    if reinterpretcheck mod 15 = 0 then
+      reinterpretaddresses;
+  except
+    on e: exception do
+    begin
+      UpdateTimer.Enabled:=false;
+
+      MessageDlg('UpdateTimer Error:'+e.Message, mtError, [mbok],0);
+    end;
+  end;
 end;
 
 procedure TMainForm.FreezeTimerTimer(Sender: TObject);
