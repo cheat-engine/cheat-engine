@@ -950,8 +950,9 @@ void *malloc2(unsigned int size)
               bitcount++;
             if (bitcount)
             {
+              int bc;
               bitmask=1;
-              for (x=1; x<bitcount; x++)
+              for (bc=1; bc<bitcount; bc++)
                 bitmask=(bitmask << 1) | 1;
             }
 

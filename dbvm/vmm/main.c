@@ -115,6 +115,12 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
   DWORD thisAPICID;
   int cpunr=0;
 
+  if (readMSRSafe(IA32_FS_BASE_MSR)==0)
+  {
+    sendstringf("Invalid FS base during exception\n");
+    while (1) ;
+  }
+
   pcpuinfo cpuinfo=getcpuinfo();
   cpunr=cpuinfo->cpunr;
 
