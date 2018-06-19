@@ -180,7 +180,7 @@ object frmSaveMemoryRegion: TfrmSaveMemoryRegion
         Cancel = True
         Caption = 'Cancel'
         Constraints.MinWidth = 75
-        ModalResult = 2
+        OnClick = Button2Click
         TabOrder = 1
       end
     end

@@ -229,6 +229,7 @@ object AdvancedOptions: TAdvancedOptions
     end
     object Rename1: TMenuItem
       Caption = 'Rename'
+      ShortCut = 16397
       OnClick = Rename1Click
     end
     object Remove1: TMenuItem
