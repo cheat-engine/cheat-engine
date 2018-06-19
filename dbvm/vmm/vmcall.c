@@ -1530,7 +1530,8 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
         p->internalAddress=(QWORD)malloc(p->bytesize);
         p->bytescopied=0;
       }
-      QWORD startaddressSource=p->internalAddress+p->bytescopied;
+
+      QWORD startaddressSource=p->virtualAddress+p->bytescopied;
       int blocksize=p->bytesize-p->bytescopied;
 
       void *source=mapVMmemoryEx(currentcpuinfo, startaddressSource, blocksize, &error, &pagefaultaddress, 1);

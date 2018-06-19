@@ -9,7 +9,7 @@
 #include "common.h"
 #include "mm.h"
 #include "vmpaging.h"
-
+#include "vmxsetup.h"
 
 
 void InitExports()
@@ -31,4 +31,8 @@ void InitExports()
   exportlist->mapPhysicalMemory=mapPhysicalMemory;
   exportlist->unmapMemory=unmapPhysicalMemory;
   exportlist->VirtualToPhysical=VirtualToPhysical;
+  exportlist->setMSRReadExit=vmx_setMSRReadExit;
+  exportlist->removeMSRReadExit=vmx_removeMSRReadExit;
+  exportlist->setMSRWriteExit=vmx_setMSRWriteExit;
+  exportlist->removeMSRWriteExit=vmx_removeMSRWriteExit;
 }

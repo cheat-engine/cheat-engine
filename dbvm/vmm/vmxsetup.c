@@ -848,7 +848,7 @@ void vmx_setMSRReadExit(DWORD msrValue)
   }
 }
 
-void vmx_RemoveMSReadExit(DWORD msrValue)
+void vmx_removeMSRReadExit(DWORD msrValue)
 {
   if (msrValue<0xc0000000)
     MSRBitmap[msrValue/8]&=~(1 << (msrValue % 8));

@@ -27,6 +27,10 @@ typedef struct
   void *mapPhysicalMemory;
   void *unmapMemory;
   void *VirtualToPhysical;
+  void *setMSRReadExit;
+  void *removeMSRReadExit;
+  void *setMSRWriteExit;
+  void *removeMSRWriteExit;
 
 
 } DBVMExports, *PDBVMExports;
