@@ -389,12 +389,12 @@ begin
   if lua_type(L,i)=LUA_TSTRING then
   begin
     if self then
-      result:=selfsymhandler.getAddressFromNameL(lua_tostring(L,1))
+      result:=selfsymhandler.getAddressFromNameL(lua_tostring(L,i))
     else
-      result:=symhandler.getAddressFromNameL(lua_tostring(L,1))
+      result:=symhandler.getAddressFromNameL(lua_tostring(L,i))
   end
   else
-    result:=lua_tointeger(L,1);
+    result:=lua_tointeger(L,i);
 end;
 
 function LuaValueToDescription(L: PLua_state; i: integer; recursivetablecount: integer=0): string;
