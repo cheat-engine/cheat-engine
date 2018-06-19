@@ -2132,7 +2132,7 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'VMPTRST';opcode1:eo_reg7;paramtype1:par_m64;bytes:2;bt1:$0f;bt2:$c7),
 
 
-  (mnemonic:'VMREAD';opcode1:eo_reg;paramtype1:par_rm32;paramtype2:par_r32;bytes:2;bt1:$0f;bt2:$78),
+  (mnemonic:'VMREAD';opcode1:eo_reg;paramtype1:par_rm32;paramtype2:par_r32;bytes:2;bt1:$0f;bt2:$78;W0:true),
   (mnemonic:'VMRESUME';bytes:3;bt1:$0f;bt2:$01;bt3:$c3),
 
   (mnemonic:'VMULPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$59;hasvex:true; vexL:0; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F; vexExtraParam:2),
@@ -2146,7 +2146,7 @@ const opcodes: array [1..opcodecount] of topcode =(
 
 
 
-  (mnemonic:'VMWRITE';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_rm32;bytes:2;bt1:$0f;bt2:$79),  
+  (mnemonic:'VMWRITE';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_rm32;bytes:2;bt1:$0f;bt2:$79;W0:true),
   (mnemonic:'VMXOFF';bytes:3;bt1:$0f;bt2:$01;bt3:$c4),
   (mnemonic:'VMXON';opcode1:eo_reg6;paramtype1:par_m64;bytes:3;bt1:$f3;bt2:$0f;bt3:$c7),
 

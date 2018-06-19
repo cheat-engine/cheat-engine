@@ -8034,6 +8034,7 @@ begin
 
   if lua_gettop(L)>=1 then
   begin
+    if lua_isnil(L,1) then exit(0);
     address:=lua_toaddress(L,1);
 
     if lua_gettop(L)>=2 then

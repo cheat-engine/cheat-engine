@@ -7352,14 +7352,14 @@ begin
                 $78 : begin
                         description:='reads a specified vmcs field (32 bits)';
                         lastdisassembledata.opcode:='vmread';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last)+r32(memory[2]);
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last)+r32(memory[2]);
                         inc(offset,last-1);
                       end;
 
                 $79 : begin
                         description:='writes a specified vmcs field (32 bits)';
                         lastdisassembledata.opcode:='vmwrite';
-                        lastdisassembledata.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,2,last);
+                        lastdisassembledata.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
 
                         inc(offset,last-1);
                       end;
