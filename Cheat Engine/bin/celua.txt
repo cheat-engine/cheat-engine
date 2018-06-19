@@ -3176,3 +3176,12 @@ properties
 
 methods
   -
+
+RemoteThread(Inheritance: -)
+createRemoteThread(address, parameter)
+
+properties
+  Result : The 32-bit value returned by the thread 
+
+methods
+  waitForThread(timeout OPTIONAL) : Waits for the thread to finish. Timeout is time in milliseconds. If nil, the timeout it infinite. If 0, it returns without wait
