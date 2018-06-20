@@ -435,7 +435,7 @@ implementation
 
 {$ifdef windows}
 uses mainunit, addresslist, formsettingsunit, LuaHandler, lua, lauxlib, lualib,
-  processhandlerunit, Parsers, winsapi,autoassembler;
+  processhandlerunit, Parsers, winsapi,autoassembler, globals;
 {$endif}
 
 {$ifdef unix}
@@ -2897,7 +2897,7 @@ begin
   getmem(buf,bufsize+2);
 
 
-  vpe:=VirtualProtectEx(processhandle, pointer(realAddress), bufsize, PAGE_EXECUTE_READWRITE, originalprotection);
+  vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(realAddress), bufsize, PAGE_EXECUTE_READWRITE, originalprotection);
 
   try
 

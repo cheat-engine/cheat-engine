@@ -2021,7 +2021,7 @@ begin
   end;
 
   x:=0;
-  vpe:=VirtualProtectEx(processhandle, pointer(address), bytecount, PAGE_EXECUTE_READWRITE, oldprotect);
+  vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(address), bytecount, PAGE_EXECUTE_READWRITE, oldprotect);
   WriteProcessMemory(processhandle, pointer(address), @bytes[0], bytecount, x);
   if vpe then VirtualProtectEx(processhandle, pointer(address), bytecount, oldprotect, oldprotect);
 

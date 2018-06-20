@@ -112,6 +112,7 @@ type TCEAlloc=record
   varname: string;
   size: dword;
   prefered: ptrUint;
+  protection: dword;
 
 end;
 type PCEAlloc=^TCEAlloc;

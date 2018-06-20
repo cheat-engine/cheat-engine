@@ -888,7 +888,7 @@ begin
   begin
     //int3 bp
     breakpoint^.active := True;
-    vpe:=VirtualProtectEx(processhandle, pointer(breakpoint.address), 1, PAGE_EXECUTE_READWRITE, oldprotect);
+    vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(breakpoint.address), 1, PAGE_EXECUTE_READWRITE, oldprotect);
     WriteProcessMemory(processhandle, pointer(breakpoint.address), @int3byte, 1, bw);
     if vpe then
       VirtualProtectEx(processhandle, pointer(breakpoint.address), 1, oldprotect, oldprotect);
@@ -1101,7 +1101,7 @@ begin
   else
   if breakpoint^.breakpointMethod=bpmInt3 then
   begin
-    vpe:=VirtualProtectEx(processhandle, pointer(breakpoint.address), 1, PAGE_EXECUTE_READWRITE, oldprotect);
+    vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(breakpoint.address), 1, PAGE_EXECUTE_READWRITE, oldprotect);
     WriteProcessMemory(processhandle, pointer(breakpoint.address), @breakpoint.originalbyte, 1, bw);
     if vpe then
       VirtualProtectEx(processhandle, pointer(breakpoint.address), 1, oldprotect, oldprotect);

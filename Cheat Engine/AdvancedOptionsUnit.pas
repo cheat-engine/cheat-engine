@@ -121,7 +121,8 @@ uses MainUnit, MemoryBrowserFormUnit,
   formsettingsunit,
   MainUnit2,
   processhandlerunit,
-  DBK32functions;
+  DBK32functions,
+  globals;
 
 
 
@@ -464,7 +465,7 @@ begin
 
 
     //set to read and write
-    vpe:=VirtualProtectEx(processhandle,pointer(code[i].Address),length(code[i].actualopcode),PAGE_EXECUTE_READWRITE,original);  //I want to execute this, read it and write it. (so, full access)
+    vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,pointer(code[i].Address),length(code[i].actualopcode),PAGE_EXECUTE_READWRITE,original);  //I want to execute this, read it and write it. (so, full access)
 
     //write
     writeprocessmemory(processhandle,pointer(code[i].Address),@code[i].actualopcode[0],length(code[i].actualopcode),written);
@@ -535,7 +536,7 @@ begin
       nops[i]:=$90;  // $90=nop
 
    // get old security and set new security
-    vpe:=VirtualProtectEx(processhandle,pointer(a),codelength,PAGE_EXECUTE_READWRITE,original);  //I want to execute this, read it and write it. (so, full access)
+    vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,pointer(a),codelength,PAGE_EXECUTE_READWRITE,original);  //I want to execute this, read it and write it. (so, full access)
 
     writeprocessmemory(processhandle,pointer(a),@nops[0],codelength,written);
     if written<>dword(codelength) then
@@ -766,7 +767,7 @@ begin
       nops[i]:=$90;  //  $90=nop
 
    // get old security and set new security
-    vpe:=VirtualProtectEx(processhandle,pointer(a),codelength,PAGE_EXECUTE_READWRITE,original);  //I want to execute this, read it and write it. (so, full access)
+    vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,pointer(a),codelength,PAGE_EXECUTE_READWRITE,original);  //I want to execute this, read it and write it. (so, full access)
 
     writeprocessmemory(processhandle,pointer(a),@nops[0],codelength,written);
     if written<>dword(codelength) then

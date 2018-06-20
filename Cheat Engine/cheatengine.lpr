@@ -96,7 +96,7 @@ uses
   frmStructuresNewStructureUnit, frmDotNetObjectListUnit, vextypedef,
   frmFindDialogUnit, frmRearrangeStructureListUnit,
   autoassemblerexeptionhandler, frmstructurecompareunit, addressedit, 
-frmChangedAddressesCommonalityScannerUnit, ceregistry;
+frmChangedAddressesCommonalityScannerUnit, ceregistry, LuaRemoteThread;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in

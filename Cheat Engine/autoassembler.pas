@@ -1372,6 +1372,7 @@ var i,j,k,l,e: integer;
 
     bytes: tbytes;
     prefered: ptrUint;
+    protection: dword;
 
     oldhandle: thandle;
     oldsymhandler: TSymHandler;
@@ -1866,12 +1867,6 @@ begin
                   raise exception.Create(Format(rsCouldNotBeFound, [s1]));
               end;
 
-
-
-
-
-
-
               include:=tstringlist.Create;
               try
                 include.LoadFromFile(s1);
@@ -2258,7 +2253,13 @@ begin
           end;
 
           //memory alloc
-          if uppercase(copy(currentline,1,6))='ALLOC(' then
+          if (uppercase(copy(currentline,1,5))='ALLOC') and
+             (
+               (uppercase(copy(currentline,1,6))='ALLOC(') or
+               (uppercase(copy(currentline,1,8))='ALLOCNX(') or
+               (uppercase(copy(currentline,1,8))='ALLOCXO(')
+             )
+          then
           begin
             //syntax: alloc(x,size)    x=variable name size=bytes
             //or
@@ -2268,8 +2269,6 @@ begin
             b:=pos(',',currentline);
             c:=PosEx(',',currentline,b+1);
             d:=pos(')',currentline);
-
-
 
             if (a>0) and (b>0) and (d>0) then
             begin
@@ -2319,6 +2318,13 @@ begin
               end
               else
                 allocs[j].prefered:=0;
+
+              allocs[j].protection:=PAGE_EXECUTE_READWRITE;
+              if uppercase(copy(currentline,1,8))='ALLOCNX(' then
+                allocs[j].protection:=PAGE_READWRITE
+              else
+              if uppercase(copy(currentline,1,8))='ALLOCXO(' then
+                allocs[j].protection:=PAGE_EXECUTE_READ;
 
 
               setlength(assemblerlines,length(assemblerlines)-1);   //don't bother with this in the 2nd pass
@@ -2759,31 +2765,31 @@ begin
 
       j:=0; //entry to go from
       prefered:=allocs[0].prefered;
+      protection:=allocs[0].protection;
       x:=allocs[0].size;
 
       for i:=1 to length(allocs)-1 do
       begin
-        //does this entry have a prefered location?
-        if allocs[i].prefered<>0 then
+        //does this entry have a prefered location or a non default protection
+
+        if (allocs[i].prefered<>0) or (allocs[i].protection<>PAGE_EXECUTE_READWRITE) then
         begin
           //if yes, is it the same as the previous entry? (or was the previous one that doesn't care?)
           if prefered=0 then
             prefered:=allocs[i].prefered;
 
-          if (prefered<>allocs[i].prefered) then
+          if (prefered<>allocs[i].prefered) or (protection<>allocs[i].protection) then
           begin
-            //different prefered address
+            //different prefered address or protection
 
             if x>0 then //it has some previous entries with compatible locations
             begin
-
-
               k:=10;
               allocs[j].address:=0;
               while (k>0) and (allocs[j].address=0) do
               begin
                 //try allocating until a memory region has been found (e.g due to quick allocating by the game)
-                allocs[j].address:=ptrUint(virtualallocex(processhandle,FindFreeBlockForRegion(prefered,x),x, MEM_RESERVE or MEM_COMMIT,page_execute_readwrite));
+                allocs[j].address:=ptrUint(virtualallocex(processhandle,FindFreeBlockForRegion(prefered,x),x, MEM_RESERVE or MEM_COMMIT,protection));
                 if allocs[j].address=0 then
                 begin
                   OutputDebugString(rsFailureToAllocateMemory+' 1');
@@ -2794,7 +2800,7 @@ begin
               end;
 
               if allocs[j].address=0 then
-                allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,page_execute_readwrite));
+                allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,protection));
 
               if allocs[j].address=0 then OutputDebugString(rsFailureToAllocateMemory+' 2');
 
@@ -2807,10 +2813,7 @@ begin
             //new prefered address
             j:=i;
             prefered:=allocs[i].prefered;
-
-
-
-
+            protection:=allocs[i].protection;
           end;
 
         end;
@@ -2832,7 +2835,7 @@ begin
           prefered:=ptrUint(FindFreeBlockForRegion(prefered,x));
 
 
-          allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,page_execute_readwrite));
+          allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,protection));
           if allocs[j].address=0 then
           begin
             OutputDebugString(rsFailureToAllocateMemory+' 3 (prefered='+inttohex(prefered,8)+')');
@@ -2842,7 +2845,7 @@ begin
         end;
 
         if allocs[j].address=0 then
-          allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,page_execute_readwrite));
+          allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,protection));
 
         if allocs[j].address=0 then raise exception.create(rsFailureToAllocateMemory+' 4');
 
@@ -3173,7 +3176,8 @@ begin
       if length(assembled[i].bytes)=0 then continue;
 
       testptr:=assembled[i].address;
-      vpe:=virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),PAGE_EXECUTE_READWRITE,op);
+
+      vpe:=(SkipVirtualProtectEx=false) and virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),PAGE_EXECUTE_READWRITE,op);
       ok1:=WriteMemory(pointer(testptr),@assembled[i].bytes[0],length(assembled[i].bytes),x);
       if vpe then
         virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),op,op2);

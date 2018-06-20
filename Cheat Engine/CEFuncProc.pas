@@ -2437,7 +2437,7 @@ var original,a: dword;
     v: boolean;
 begin
   //make writable, write, restore, flush
-  v:=VirtualProtectEx(processhandle,  pointer(address),size,PAGE_EXECUTE_READWRITE,original);
+  v:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,  pointer(address),size,PAGE_EXECUTE_READWRITE,original);
   result:=writeprocessmemory(processhandle,pointer(address),buffer,size,s);
   size:=s;
   if v then
