@@ -8148,6 +8148,9 @@ begin
 
     if (dontfree=false) and (stubaddress<>0) then
       VirtualFreeEx(processhandle, pointer(stubaddress), 0, MEM_RELEASE);
+
+    if (dontfree=false) and (resultaddress<>0) then
+      VirtualFreeEx(processhandle, pointer(resultaddress), 0, MEM_RELEASE);
   end;
 end;
 
