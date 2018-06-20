@@ -2789,7 +2789,13 @@ begin
               while (k>0) and (allocs[j].address=0) do
               begin
                 //try allocating until a memory region has been found (e.g due to quick allocating by the game)
-                allocs[j].address:=ptrUint(virtualallocex(processhandle,FindFreeBlockForRegion(prefered,x),x, MEM_RESERVE or MEM_COMMIT,protection));
+
+                if (prefered=0) and (j>0) then //if not a prefered address but there is a previous alloc, allocate near there
+                  prefered:=allocs[j-1].address;
+
+                prefered:=ptrUint(FindFreeBlockForRegion(prefered,x));
+
+                allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,protection));
                 if allocs[j].address=0 then
                 begin
                   OutputDebugString(rsFailureToAllocateMemory+' 1');
@@ -2800,9 +2806,10 @@ begin
               end;
 
               if allocs[j].address=0 then
+              begin
                 allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,protection));
-
-              if allocs[j].address=0 then OutputDebugString(rsFailureToAllocateMemory+' 2');
+                OutputDebugString(rsFailureToAllocateMemory+' 2');
+              end;
 
               //adjust the addresses of entries that are part of this block
               for k:=j+1 to i-1 do
@@ -2832,6 +2839,10 @@ begin
         while (k>0) and (allocs[j].address=0) do
         begin
           i:=0;
+
+          if (prefered=0) and (j>0) then //if not a prefered address but there is a previous alloc, allocate near there
+            prefered:=allocs[j-1].address;
+
           prefered:=ptrUint(FindFreeBlockForRegion(prefered,x));
 
 
