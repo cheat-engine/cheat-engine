@@ -8057,15 +8057,15 @@ begin
 
   s:=tstringlist.create;
   try
-    s.Add('alloc(stub, 2048)');
+    s.Add('allocXO(stub, 2048)');
 
     if processhandler.is64Bit then
     begin
-      s.add('alloc(result,8)');
-      s.add('alloc(addressToCall, 8)');
+      s.add('allocXO(addressToCall, 8)');
+      s.add('allocNX(result,8)');
     end
     else
-      s.add('alloc(result,4)');
+      s.add('allocNX(result,4)');
 
 
 
