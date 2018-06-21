@@ -566,12 +566,14 @@ begin
           if d.LastDisassembleData.iscall then
           begin
             //set an execute breakpoint for this thread only at the next instruction and run till there
+            setContext;
             b:=TDebuggerthread(debuggerthread).SetOnExecuteBreakpoint(nexteip , false, ThreadId);
             b.OneTimeOnly:=true;
           end
           else  //if not, single step
             context^.EFlags:=eflags_setTF(context^.EFlags,1);
 
+          freeandnil(d);
 
         end;
       end;
