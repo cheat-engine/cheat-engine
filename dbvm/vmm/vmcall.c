@@ -1610,6 +1610,40 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
       break;
     }
 
+    /*
+    case VMCALL_DISABLE_EPT:
+    {
+      vmregisters->rax=hasEPTsupport;
+      if (hasEPTsupport)
+      {
+        QWORD secondarycontrols=vmread(vm_execution_controls_cpu_secondary);
+        secondarycontrols=secondarycontrols & (~(QWORD)SPBEF_ENABLE_EPT);
+        secondarycontrols=secondarycontrols & (~(QWORD)SPBEF_ENABLE_UNRESTRICTED);
+        vmwrite(vm_execution_controls_cpu_secondary, secondarycontrols);
+        vmwrite(vm_eptpointer,0);
+
+        if (hasUnrestrictedSupport)
+        {
+          //also remove this
+          vmwrite(vm_entry_controls, vmread(vm_entry_controls) & (~(QWORD)VMENTRYC_LOAD_IA32_EFER));
+          vmwrite(vm_exit_controls, vmread(vm_exit_controls) & (~(QWORD)VMEXITC_SAVE_IA32_EFER ));
+          vmwrite(vm_exit_controls, vmread(vm_exit_controls) & (~(QWORD)VMEXITC_LOAD_IA32_EFER ));
+
+
+          hasUnrestrictedSupport=0;
+
+          vmx_setMSRReadExit(0x80);
+          vmx_setMSRWriteExit(0x80);
+
+          vmwrite(vm_cr0_guest_host_mask,(UINT64)IA32_VMX_CR0_FIXED0);
+        }
+
+        hasEPTsupport=0;
+      }
+      break;
+    }
+    */
+
 
     default:
       vmregisters->rax = 0xcedead;

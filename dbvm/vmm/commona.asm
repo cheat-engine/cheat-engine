@@ -101,6 +101,10 @@ pop rbx
 pop rax
 ret
 
+mrewlock:
+
+
+
 ;---------------------------;
 ;int spinlock(int *lockvar);
 ;---------------------------;
@@ -116,35 +120,8 @@ cmp dword [rdi],0
 je spinlock
 jmp spinlock_wait
 
-;old implementation
-spinlock_old:
 
-;rdi contains the address of the lock
 
-spinlock_loop:
-;serialize
-push rbx
-push rcx
-push rdx
-xor eax,eax
-cpuid ;serialize
-pop rdx
-pop rcx
-pop rbx
-
-;check lock
-cmp dword [rdi],0
-je spinlock_getlock
-pause
-jmp spinlock_loop
-
-spinlock_getlock:
-mov eax,1
-xchg eax,dword [rdi] ;try to lock
-cmp eax,0 ;test if successful, if eax=0 then that means it was unlocked
-jne spinlock_loop
-
-ret
 
 global enableserial
 enableserial:

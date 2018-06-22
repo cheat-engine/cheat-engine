@@ -742,6 +742,57 @@ unsigned int getAPICID(void)
   return (b >> 24)+1;
 }
 
+void mrewStartRead(Pmultireadexclusivewritesychronizer MREW)
+{
+  while (1)
+  {
+    spinlock(&MREW->lock);
+    if (MREW->writers)
+    {
+      MREW->lock=0;
+      continue;
+    }
+    else
+    {
+      MREW->readers++;
+      MREW->lock=0;
+      break;
+    }
+  }
+}
+
+void mrewEndRead(Pmultireadexclusivewritesychronizer MREW)
+{
+  MREW->readers--;
+}
+
+void mrewStartWrite(Pmultireadexclusivewritesychronizer MREW)
+{
+  while (1)
+  {
+    spinlock(&MREW->lock);
+    if ((MREW->readers) || (MREW->writers))
+    {
+      MREW->lock=0;
+      _pause();
+      continue;
+    }
+    else
+    {
+      MREW->writers++;
+      MREW->lock=0;
+      break;
+    }
+  }
+}
+
+void mrewEndWrite(Pmultireadexclusivewritesychronizer MREW)
+{
+  MREW->writers=0;
+}
+
+
+
 void csEnter(PcriticalSection CS)
 {
   int apicid=getAPICID()+1; //+1 so it never returns 0

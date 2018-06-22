@@ -1485,7 +1485,7 @@ void getMTRRMapInfo(QWORD startaddress, QWORD size, int *fullmap, int *memtype)
   *memtype=MTRRDefType.TYPE;
   *fullmap=1;
 
-  csEnter(&memoryrangesCS);
+  //csEnter(&memoryrangesCS); //currently addToMemoryRanges is only called BEFORE ept exceptions happen. So this cs is not neede
   for (i=0; i<memoryrangesPos; i++)
   {
     QWORD startb,stopb;
@@ -1517,7 +1517,7 @@ void getMTRRMapInfo(QWORD startaddress, QWORD size, int *fullmap, int *memtype)
     if (stopa<startb) //reached a startaddress higher than my stopaddress, which means every other item will be as well
       break;
   }
-  csLeave(&memoryrangesCS);
+  //csLeave(&memoryrangesCS);
 }
 
 void addToMemoryRanges(QWORD address, QWORD size, int type)

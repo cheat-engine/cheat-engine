@@ -69,6 +69,15 @@ typedef volatile struct _criticalSection
   int lockcount;
 } criticalSection, *PcriticalSection;
 
+
+typedef volatile struct _multireadexclusivewritesychronizer
+{
+  volatile int lock;
+  volatile int readers;
+  volatile int writers; //max 1
+
+} multireadexclusivewritesychronizer, *Pmultireadexclusivewritesychronizer;
+
 typedef struct _stacklistentry{
   struct _stacklistentry *previous;
   void *data;
@@ -215,6 +224,7 @@ void csEnter(PcriticalSection CS);
 void csLeave(PcriticalSection CS);
 
 int spinlock(volatile int *CS); //returns 0
+
 void resync(void);
 
 typedef struct textvideo {
