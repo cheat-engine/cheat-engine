@@ -49,6 +49,10 @@ type
     charsize, bytesize, byteSizeWithoutChar: integer;
 
     memoryInfo: string;
+    memoryInfo_allocationbasepos: integer;
+    memoryInfo_allocationbaseend: integer;
+    memoryinfo_baseaddresspos: integer;
+    memoryinfo_baseaddressend: integer;
 
     addresswidth: integer;
     usablewidth: integer;
@@ -1163,8 +1167,46 @@ begin
 end;
 
 procedure THexView.mbCanvasDoubleClick(Sender: TObject);
+var
+  p: tpoint;
+  allocrangestart: integer;
+  allocrangestop: integer;
+
+  baserangestart: integer;
+  baserangestop: integer;
+  mbi: TMEMORYBASICINFORMATION;
 begin
   changeSelected;
+
+  p:=mouse.CursorPos;
+  p:=ScreenToClient(p);
+  //doubleclick doesn't happen often, so can be slow
+  if p.y<mbCanvas.Canvas.GetTextHeight(memoryInfo) then
+  begin
+    allocrangestart:=mbCanvas.Canvas.GetTextWidth(copy(memoryinfo,1,memoryInfo_allocationbasepos));
+    allocrangestop:=mbCanvas.Canvas.GetTextWidth(copy(memoryinfo,1,memoryInfo_allocationbaseend));
+
+    baserangestart:=mbCanvas.Canvas.GetTextWidth(copy(memoryinfo,1,memoryinfo_baseaddresspos));
+    baserangestop:=mbCanvas.Canvas.GetTextWidth(copy(memoryinfo,1,memoryinfo_baseaddressend));
+
+    Virtualqueryex(processhandle,pointer(fAddress),mbi,sizeof(mbi));
+
+    if InRange(p.x,allocrangestart,allocrangestop) then
+    begin
+      history.Push(pointer(faddress));
+      Address:=ptruint(mbi.AllocationBase);
+      exit;
+    end;
+
+    if InRange(p.x,baserangestart,baserangestop) then
+    begin
+      history.Push(pointer(faddress));
+      Address:=ptruint(mbi.BaseAddress);
+      exit;
+    end;
+
+  end;
+
 end;
 
 procedure THexView.mbCanvasMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -1437,9 +1479,19 @@ begin
     if (mbi.Protect and PAGE_GUARD)>0 then memoryInfo:=memoryInfo+rsGuarded+' ';
     if (mbi.Protect and PAGE_NOCACHE)>0 then memoryInfo:=memoryInfo+rsNotCached;
 
+    memoryInfo:=memoryInfo+' ';
 
-    memoryInfo:=memoryInfo+' '+rsBase+'='+IntToHex(ptrUint(mbi.BaseAddress), 8)+' '
-      +rsSize+'='+IntTohex(mbi.RegionSize, 1);
+    memoryInfo_allocationbasepos:=length(memoryinfo);
+    memoryinfo:=memoryinfo+'AllocationBase='+IntToHex(ptrUint(mbi.AllocationBase), 8);
+    memoryInfo_allocationbaseend:=length(memoryinfo);
+
+    memoryinfo:=memoryinfo+' ';
+
+    memoryinfo_baseaddresspos:=length(memoryinfo);
+    memoryinfo:=memoryinfo+rsBase+'='+IntToHex(ptrUint(mbi.BaseAddress), 8);
+    memoryinfo_baseaddressend:=length(memoryinfo);
+
+    memoryinfo:=memoryinfo+' '+rsSize+'='+IntTohex(mbi.RegionSize, 1);
 
     if (formsettings<>nil) and assigned(GetPhysicalAddress) and formsettings.cbKernelOpenProcess.checked and GetPhysicalAddress(processhandle,pointer(fAddress),a64) then
       memoryInfo:=memoryInfo+' '+rsPhysicalAddress+'='+IntToHex(a64, 8);

@@ -140,7 +140,7 @@ implementation
 uses foundcodeunit, DebugHelper, MemoryBrowserFormUnit, frmThreadlistunit,
      WindowsDebugger, VEHDebugger, KernelDebuggerInterface, NetworkDebuggerInterface,
      frmDebugEventsUnit, formdebugstringsunit, symbolhandler,
-     networkInterface, networkInterfaceApi, ProcessHandlerUnit;
+     networkInterface, networkInterfaceApi, ProcessHandlerUnit, globals;
 
 resourcestring
   rsDebugHandleAccessViolationDebugEventNow = 'Debug HandleAccessViolationDebugEvent now';
@@ -425,7 +425,7 @@ begin
       if (bp.breakpointMethod=bpmInt3) then
       begin
         //bp is set and it's an int3 breakpoint
-        vpe:=VirtualProtectEx(Processhandle, pointer(bp.address), 1, PAGE_EXECUTE_READWRITE, oldprotect);
+        vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(Processhandle, pointer(bp.address), 1, PAGE_EXECUTE_READWRITE, oldprotect);
         WriteProcessMemory(processhandle, pointer(bp.address), @bp.originalbyte, 1, bw);
         if vpe then
           VirtualProtectEx(Processhandle, pointer(bp.address), 1, oldprotect, oldprotect);
@@ -566,12 +566,14 @@ begin
           if d.LastDisassembleData.iscall then
           begin
             //set an execute breakpoint for this thread only at the next instruction and run till there
+            setContext;
             b:=TDebuggerthread(debuggerthread).SetOnExecuteBreakpoint(nexteip , false, ThreadId);
             b.OneTimeOnly:=true;
           end
           else  //if not, single step
             context^.EFlags:=eflags_setTF(context^.EFlags,1);
 
+          freeandnil(d);
 
         end;
       end;
@@ -782,7 +784,7 @@ begin
   begin
     if Int3setBackbp.markedfordeletion=false then
     begin
-      vpe:=VirtualProtectEx(Processhandle, pointer(Int3setbackAddress), 1, PAGE_EXECUTE_READWRITE, oldprotect);
+      vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(Processhandle, pointer(Int3setbackAddress), 1, PAGE_EXECUTE_READWRITE, oldprotect);
       WriteProcessMemory(processhandle, pointer(Int3setbackAddress), @int3byte, 1, bw);
       if vpe then
         VirtualProtectEx(Processhandle, pointer(Int3setbackAddress), 1, oldprotect, oldprotect);
@@ -911,7 +913,7 @@ begin
     //to handle a debug register being handled before the single step (since xp sucks and doesn't do rf)
     if setInt3Back then //on a failt this will set the state to as it was expected, on a trap this will set the breakpoint back. Both valid
     begin
-      vpe:=VirtualProtectEx(Processhandle, pointer(Int3setbackAddress), 1, PAGE_EXECUTE_READWRITE, oldprotect);
+      vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(Processhandle, pointer(Int3setbackAddress), 1, PAGE_EXECUTE_READWRITE, oldprotect);
       WriteProcessMemory(processhandle, pointer(Int3setbackAddress), @int3byte, 1, bw);
       if vpe then
         VirtualProtectEx(Processhandle, pointer(Int3setbackAddress), 1, oldprotect, oldprotect);

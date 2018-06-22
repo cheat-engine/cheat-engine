@@ -30,6 +30,7 @@ type
     editFrom: TEdit;
     editTo: TEdit;
     Button3: TButton;
+    procedure Button2Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button1Click(Sender: TObject);
     procedure DontIncludeClick(Sender: TObject);
@@ -75,6 +76,11 @@ procedure TfrmSaveMemoryRegion.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
 
+end;
+
+procedure TfrmSaveMemoryRegion.Button2Click(Sender: TObject);
+begin
+  close;
 end;
 
 procedure TfrmSaveMemoryRegion.Button1Click(Sender: TObject);

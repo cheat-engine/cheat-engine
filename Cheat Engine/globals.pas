@@ -147,6 +147,8 @@ var
 
   luagc_MinSize: dword;
 
+  SkipVirtualProtectEx: boolean;
+
 
 implementation
 

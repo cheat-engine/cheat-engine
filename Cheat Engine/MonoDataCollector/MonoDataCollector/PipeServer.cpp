@@ -90,6 +90,13 @@ void CPipeServer::CreatePipeandWaitForconnect(void)
 	ConnectNamedPipe(pipehandle, NULL);
 }
 
+void __cdecl customfreeimplementation(PVOID address)
+{
+//	free(address);
+	//freaking memleak !!!!!
+}
+
+
 void CPipeServer::InitMono()
 {
 	HMODULE hMono = GetModuleHandle(L"mono.dll");
@@ -138,6 +145,13 @@ void CPipeServer::InitMono()
 
 
 			g_free = (G_FREE)GetProcAddress(hMono, "g_free");
+
+			if (!g_free)
+				g_free = (G_FREE)GetProcAddress(hMono, "mono_unity_g_free");
+
+			if (!g_free)
+				g_free = customfreeimplementation;
+			
 			mono_get_root_domain = (MONO_GET_ROOT_DOMAIN)GetProcAddress(hMono, "mono_get_root_domain");
 			mono_thread_attach = (MONO_THREAD_ATTACH)GetProcAddress(hMono, "mono_thread_attach");
 			mono_thread_detach = (MONO_THREAD_DETACH)GetProcAddress(hMono, "mono_thread_detach");
@@ -728,24 +742,31 @@ void CPipeServer::GetMethodSignature()
 	void *methodsignature = mono_method_signature(method);
 	char *sig = mono_signature_get_desc(methodsignature, TRUE);
 	int paramcount = mono_signature_get_param_count(methodsignature);
-	char **names = (char **)calloc(sizeof(char *), paramcount);
 
 	int i;
 
-	mono_method_get_param_names(method, (const char **)names);
 	WriteByte(paramcount);
-	for (i = 0; i < paramcount; i++)
+
+	if (paramcount)
 	{
-		if (names[i])
+		char **names = (char **)calloc(sizeof(char *), paramcount);
+
+		mono_method_get_param_names(method, (const char **)names);
+
+		for (i = 0; i < paramcount; i++)
 		{
-			WriteByte(strlen(names[i]));
-			Write(names[i], strlen(names[i]));
+			if (names[i])
+			{
+				WriteByte(strlen(names[i]));
+				Write(names[i], strlen(names[i]));
+			}
+			else
+				WriteByte(0);
 		}
-		else
-			WriteByte(0);
+		free(names);
 	}
 
-	free(names);
+	
 
 	WriteWord(strlen(sig));
 	Write(sig, strlen(sig));

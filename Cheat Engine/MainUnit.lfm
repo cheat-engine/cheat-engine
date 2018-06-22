@@ -1,9 +1,9 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 302
+  Left = 722
   Height = 637
   Hint = ' '
-  Top = 129
+  Top = 159
   Width = 622
   HelpContext = 1
   HorzScrollBar.Visible = False
@@ -2585,6 +2585,7 @@ object MainForm: TMainForm
         OnClick = MenuItem15Click
       end
       object miEnableLCLDebug: TMenuItem
+        AutoCheck = True
         Caption = 'Generate errorlogs'
         Visible = False
         OnClick = EnableLCLClick

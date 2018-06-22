@@ -73,6 +73,7 @@ type
     cbLuaPassiveGarbageCollection: TCheckBox;
     cbLuaGarbageCollectAll: TCheckBox;
     cbLuaOnlyCollectWhenLarger: TCheckBox;
+    cbNeverChangeProtection: TCheckBox;
     combothreadpriority: TComboBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
@@ -805,6 +806,9 @@ begin
 
         reg.WriteBool('DPI Aware', cbDPIAware.Checked);
         reg.writebool('Override Default Font', cbOverrideDefaultFont.Checked);
+
+        reg.writebool('Never Change Protection', cbNeverChangeProtection.checked);
+        SkipVirtualProtectEx:=cbNeverChangeProtection.checked;
 
         {$ifdef privatebuild}
         reg.WriteBool('DoNotOpenProcessHandles', cbDontOpenHandle.Checked);

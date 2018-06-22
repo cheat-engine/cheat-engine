@@ -591,70 +591,24 @@ var
   
 implementation
 
-uses Valuechange,
-  MainUnit,
-  debugeventhandler,
-
-  findwindowunit,
-  frmstacktraceunit,
-  frmBreakThreadUnit,
-  FormDebugStringsUnit,
-  frmDissectWindowUnit,
-  frmEnumerateDLLsUnit,
-  frmThreadlistunit,
-  formmemoryregionsunit,
-  frmHeapsUnit,
-  frmFindstaticsUnit,
-  frmModifyRegistersUnit,
-
-  savedisassemblyfrm,
-  frmBreakpointlistunit,
-  AdvancedOptionsUnit,
-  frmautoinjectunit,
-  formsettingsunit,
-  frmSaveMemoryRegionUnit,
-  frmLoadMemoryunit,
-  inputboxtopunit,
-  formAddToCodeList,
-  frmFillMemoryUnit,
-  frmCodecaveScannerUnit,
-  FoundCodeUnit,
-  frmSelectionlistunit,
-  symbolconfigunit,
-  frmFloatingPointPanelUnit,
-  frmTracerUnit,
-  dissectcodeunit,
-  driverlist,
-  formChangedAddresses,
-  peINFOunit,
-  frmGDTunit,
-  frmIDTunit,
-  frmDisassemblyscanunit,
-  ServiceDescriptorTables,
-  frmReferencedStringsUnit,
-  frmReferencedFunctionsUnit,
-  Structuresfrm,
-  Structuresfrm2,
-  pointerscannerfrm,
-  frmDebugEventsUnit,
-  frmPagingUnit,
-  frmluaengineunit,
-  disassemblerviewlinesunit,
-  frmBreakpointConditionunit,
-  frmStringMapUnit,
-  frmStringpointerscanUnit,
-  frmFilePatcherUnit,
-  frmUltimapUnit,
-  frmUltimap2Unit,
-  frmAssemblyScanUnit,
-  MemoryQuery,
-  AccessedMemory,
-  Parsers,
-  GnuAssembler,
-  frmEditHistoryUnit,
-  frmWatchlistUnit,
-  vmxfunctions,
-  frmstructurecompareunit;
+uses Valuechange, MainUnit, debugeventhandler, findwindowunit,
+  frmstacktraceunit, frmBreakThreadUnit, FormDebugStringsUnit,
+  frmDissectWindowUnit, frmEnumerateDLLsUnit, frmThreadlistunit,
+  formmemoryregionsunit, frmHeapsUnit, frmFindstaticsUnit,
+  frmModifyRegistersUnit, savedisassemblyfrm, frmBreakpointlistunit,
+  AdvancedOptionsUnit, frmautoinjectunit, formsettingsunit,
+  frmSaveMemoryRegionUnit, frmLoadMemoryunit, inputboxtopunit,
+  formAddToCodeList, frmFillMemoryUnit, frmCodecaveScannerUnit, FoundCodeUnit,
+  frmSelectionlistunit, symbolconfigunit, frmFloatingPointPanelUnit,
+  frmTracerUnit, dissectcodeunit, driverlist, formChangedAddresses, peINFOunit,
+  frmGDTunit, frmIDTunit, frmDisassemblyscanunit, ServiceDescriptorTables,
+  frmReferencedStringsUnit, frmReferencedFunctionsUnit, Structuresfrm,
+  Structuresfrm2, pointerscannerfrm, frmDebugEventsUnit, frmPagingUnit,
+  frmluaengineunit, disassemblerviewlinesunit, frmBreakpointConditionunit,
+  frmStringMapUnit, frmStringpointerscanUnit, frmFilePatcherUnit,
+  frmUltimapUnit, frmUltimap2Unit, frmAssemblyScanUnit, MemoryQuery,
+  AccessedMemory, Parsers, GnuAssembler, frmEditHistoryUnit, frmWatchlistUnit,
+  vmxfunctions, frmstructurecompareunit, globals;
 
 
 resourcestring
@@ -2685,7 +2639,7 @@ begin
 
         bytelength:=length(bytes);
 
-        vpe:=VirtualProtectEx(processhandle,  pointer(disassemblerview.SelectedAddress),bytelength,PAGE_EXECUTE_READWRITE,p);
+        vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,  pointer(disassemblerview.SelectedAddress),bytelength,PAGE_EXECUTE_READWRITE,p);
         WriteProcessMemoryWithCloakSupport(processhandle,pointer(disassemblerview.SelectedAddress),@bytes[0],bytelength,a);
         if vpe then
           VirtualProtectEx(processhandle,pointer(disassemblerview.SelectedAddress),bytelength,p,p);
@@ -3010,7 +2964,10 @@ begin
     end;
 
     baseaddress:=nil;
+
     baseaddress:=VirtualAllocEx(processhandle,nil,memsize,MEM_COMMIT,PAGE_EXECUTE_READWRITE);
+//    baseaddress:=VirtualAllocEx(processhandle,nil,memsize,MEM_COMMIT,PAGE_READWRITE);
+
     if baseaddress=nil then
       raise exception.Create(rsErrorAllocatingMemory);
 
@@ -3291,7 +3248,10 @@ end;
 procedure TMemoryBrowser.Makepagewritable1Click(Sender: TObject);
 var x: dword;
 begin
+  //todo: change to changhe protection submenu
   if VirtualProtectEx(processhandle,pointer(memoryaddress),4096,PAGE_EXECUTE_READWRITE,x)=false then
+
+//  if VirtualProtectEx(processhandle,pointer(memoryaddress),4096,PAGE_EXECUTE_READWRITE,x)=false then
     showmessage('Failure. Error:'+inttostr(getlasterror));
 //  if (memoryaddress>80000000) and (DarkByteKernel<>0) then
 //    MakeWritableEx(processhandle,memoryaddress,4096,false);

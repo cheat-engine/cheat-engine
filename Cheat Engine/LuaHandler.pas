@@ -105,7 +105,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   DebuggerInterface, WindowsDebugger, VEHDebugger, KernelDebuggerInterface,
   DebuggerInterfaceAPIWrapper, Globals, math, speedhack2, CETranslator, binutils,
   xinput, winsapi, frmExeTrainerGeneratorUnit, CustomBase85, FileUtil, networkConfig,
-  LuaCustomType, Filehandler, LuaSQL, frmSelectionlistunit, cpuidUnit;
+  LuaCustomType, Filehandler, LuaSQL, frmSelectionlistunit, cpuidUnit, LuaRemoteThread;
 
   {$warn 5044 off}
 
@@ -389,12 +389,12 @@ begin
   if lua_type(L,i)=LUA_TSTRING then
   begin
     if self then
-      result:=selfsymhandler.getAddressFromNameL(lua_tostring(L,1))
+      result:=selfsymhandler.getAddressFromNameL(lua_tostring(L,i))
     else
-      result:=symhandler.getAddressFromNameL(lua_tostring(L,1))
+      result:=symhandler.getAddressFromNameL(lua_tostring(L,i))
   end
   else
-    result:=lua_tointeger(L,1);
+    result:=lua_tointeger(L,i);
 end;
 
 function LuaValueToDescription(L: PLua_state; i: integer; recursivetablecount: integer=0): string;
@@ -2021,7 +2021,7 @@ begin
   end;
 
   x:=0;
-  vpe:=VirtualProtectEx(processhandle, pointer(address), bytecount, PAGE_EXECUTE_READWRITE, oldprotect);
+  vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(address), bytecount, PAGE_EXECUTE_READWRITE, oldprotect);
   WriteProcessMemory(processhandle, pointer(address), @bytes[0], bytecount, x);
   if vpe then VirtualProtectEx(processhandle, pointer(address), bytecount, oldprotect, oldprotect);
 
@@ -8034,6 +8034,7 @@ begin
 
   if lua_gettop(L)>=1 then
   begin
+    if lua_isnil(L,1) then exit(0);
     address:=lua_toaddress(L,1);
 
     if lua_gettop(L)>=2 then
@@ -8056,15 +8057,15 @@ begin
 
   s:=tstringlist.create;
   try
-    s.Add('alloc(stub, 2048)');
+    s.Add('allocXO(stub, 2048)');
 
     if processhandler.is64Bit then
     begin
-      s.add('alloc(result,8)');
-      s.add('alloc(addressToCall, 8)');
+      s.add('allocXO(addressToCall, 8)');
+      s.add('allocNX(result,8)');
     end
     else
-      s.add('alloc(result,4)');
+      s.add('allocNX(result,4)');
 
 
 
@@ -8147,6 +8148,9 @@ begin
 
     if (dontfree=false) and (stubaddress<>0) then
       VirtualFreeEx(processhandle, pointer(stubaddress), 0, MEM_RELEASE);
+
+    if (dontfree=false) and (resultaddress<>0) then
+      VirtualFreeEx(processhandle, pointer(resultaddress), 0, MEM_RELEASE);
   end;
 end;
 
@@ -10403,13 +10407,9 @@ begin
 
     lua_register(L, 'getHotkeyHandlerThread', lua_getHotkeyHandlerThread);
 
-
+    initializeLuaRemoteThread;
 
     initializeLuaCustomControl;
-
-
-
-
     initializeLuaPicture;
     initializeLuaPen;
     initializeLuaBrush;

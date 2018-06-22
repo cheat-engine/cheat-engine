@@ -64,7 +64,7 @@ implementation
 
 {$R *.lfm}
 
-uses MemoryBrowserFormUnit, ProcessHandlerUnit;
+uses MemoryBrowserFormUnit, ProcessHandlerUnit, globals;
 
 var
   nextid: integer;
@@ -156,7 +156,7 @@ begin
 
       if wle^.id=id then
       begin
-        vpe:=VirtualProtectEx(processhandle, pointer(wle^.address), wle^.originalsize, PAGE_EXECUTE_READWRITE, oldprot);
+        vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(wle^.address), wle^.originalsize, PAGE_EXECUTE_READWRITE, oldprot);
 
         oldLogWrites:=logWrites;
         logWrites:=false;

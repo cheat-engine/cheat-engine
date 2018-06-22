@@ -11,10 +11,10 @@ uses windows, dialogs,forms,classes,LCLIntf, LCLProc, sysutils,registry,ComCtrls
      memscan,plugin, hotkeyhandler,frmProcessWatcherunit, newkernelhandler,
      debuggertypedefinitions, commonTypeDefs;
 
-const ceversion=6.8;
+const ceversion=6.81;
 
 resourcestring
-  cename = 'Cheat Engine 6.8';
+  cename = 'Cheat Engine 6.8.1';
   rsPleaseWait = 'Please Wait!';
 
 procedure UpdateToolsMenu;
@@ -24,7 +24,7 @@ procedure initcetitle;
 
 
 
-const beta=''; //empty this for a release
+const beta=' B1'; //empty this for a release
 
 var
   CEnorm:string;
@@ -696,6 +696,12 @@ begin
           end;
 
           logWrites:=cbWriteLoggingOn.checked;
+
+          if reg.ValueExists('Never Change Protection') then
+            cbNeverChangeProtection.checked:=reg.ReadBool('Never Change Protection');
+
+          SkipVirtualProtectEx:=cbNeverChangeProtection.checked;
+
 
           if reg.ValueExists('Show Language MenuItem') then
             cbShowLanguageMenuItem.Checked:=reg.ReadBool('Show Language MenuItem');

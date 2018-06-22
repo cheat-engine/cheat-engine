@@ -59,7 +59,8 @@ procedure gnuassemble(originalscript: tstrings);
 
 implementation
 
-uses simpleaobscanner, symbolhandler, binutils, elftypes, elfconsts, MemoryQuery;
+uses simpleaobscanner, symbolhandler, binutils, elftypes, elfconsts, MemoryQuery,
+  globals;
 
 resourcestring
   rsInvalidELFFile = 'Invalid ELF file';
@@ -556,7 +557,7 @@ begin
         begin
           if sections[i].name=binarysections[j].sectionname then
           begin
-            vpe:=virtualprotectex(processhandle,  pointer(sections[i].address), length(binarysections[j].data),PAGE_EXECUTE_READWRITE,op);
+            vpe:=(SkipVirtualProtectEx=false) and virtualprotectex(processhandle,  pointer(sections[i].address), length(binarysections[j].data),PAGE_EXECUTE_READWRITE,op);
             WriteProcessMemory(processhandle, pointer(sections[i].address), @binarysections[j].data[0], length(binarysections[j].data), x);
             if vpe then virtualprotectex(processhandle,  pointer(sections[i].address), length(binarysections[j].data),op,op);
           end;
