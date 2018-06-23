@@ -6383,10 +6383,12 @@ begin
 end;
 
 procedure TMainForm.LogoClick(Sender: TObject);
+var s: string;
 begin
+  s:=format('http://www.cheatengine.org/?referredby=CE%.2f',[ceversion]);
   if messagedlg(rsDoYouWantToGoToTheCheatEngineWebsite, mtConfirmation,
     [mbYes, mbNo], 0) = mrYes then
-    ShellExecute(0, PChar('open'), PChar('http://www.cheatengine.org/?referredby=CE67'),
+    ShellExecute(0, PChar('open'), PChar(s),
       PChar(''), PChar(''), SW_MAXIMIZE);
 
 end;

@@ -66,6 +66,9 @@ const
   VMCALL_RAISEPMI = 55;
   VMCALL_ULTIMAP2_HIDERANGEUSAGE = 56;
 
+  VMCALL_ADD_MEMORY = 57;
+  VMCALL_DISABLE_EPT = 58;
+
 
 
   //---
@@ -369,6 +372,8 @@ function dbvm_cloak_changeregonbp(PhysicalAddress: QWORD; var changeregonbpinfo:
 function dbvm_cloak_removechangeregonbp(PhysicalAddress: QWORD): integer;
 
 procedure dbvm_ept_reset;
+
+
 
 function dbvm_log_cr3values_start: boolean;
 function dbvm_log_cr3values_stop(log: pointer): boolean;
@@ -1457,6 +1462,7 @@ begin
   vmcallinfo.PhysicalAddress:=PhysicalAddress;
   result:=vmcall(@vmcallinfo,vmx_password1);
 end;
+
 
 procedure dbvm_ept_reset;
 var vmcallinfo: packed record

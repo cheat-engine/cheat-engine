@@ -1,11 +1,11 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 1152
-  Height = 618
-  Top = 113
+  Left = 414
+  Height = 544
+  Top = 114
   Width = 622
   HelpContext = 12
   Caption = 'Memory Viewer'
-  ClientHeight = 598
+  ClientHeight = 524
   ClientWidth = 622
   Menu = MainMenu1
   OnActivate = FormActivate
@@ -495,18 +495,18 @@ object MemoryBrowser: TMemoryBrowser
   end
   object Panel4: TPanel
     Left = 0
-    Height = 293
+    Height = 219
     Top = 305
     Width = 622
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
-    ClientHeight = 293
+    ClientHeight = 219
     ClientWidth = 622
     TabOrder = 1
     object Splitter3: TSplitter
       Left = 406
-      Height = 291
+      Height = 217
       Top = 1
       Width = 5
       Align = alRight
@@ -517,7 +517,7 @@ object MemoryBrowser: TMemoryBrowser
     end
     object Panel3: TPanel
       Left = 1
-      Height = 291
+      Height = 217
       Top = 1
       Width = 405
       Align = alClient
@@ -526,19 +526,19 @@ object MemoryBrowser: TMemoryBrowser
     end
     object pnlStacktrace: TPanel
       Left = 411
-      Height = 291
+      Height = 217
       Top = 1
       Width = 210
       Align = alRight
       BevelInner = bvLowered
-      ClientHeight = 291
+      ClientHeight = 217
       ClientWidth = 210
       PopupMenu = pmStacktrace
       TabOrder = 1
       Visible = False
       object lvStacktraceData: TListView
         Left = 2
-        Height = 287
+        Height = 213
         Hint = 'Shows the current stack.'#13#10'Tip: When doubleclicking the value and it represents an address, then you can hold shift to make it show in the disassembler, and ctrl to make it show in the memory view. Else Cheat Engine will guess it for you based on if it''s executable memory or not'
         Top = 2
         Width = 206
@@ -819,8 +819,31 @@ object MemoryBrowser: TMemoryBrowser
       OnClick = Addthisaddresstothelist1Click
     end
     object Makepagewritable1: TMenuItem
-      Caption = 'Make page writable'
+      Caption = 'Change page protection'
       OnClick = Makepagewritable1Click
+      object miChangeProtectionRWE: TMenuItem
+        Caption = 'Read Write Execute'
+        RadioItem = True
+        OnClick = miChangeProtectionClick
+      end
+      object miChangeProtectionRE: TMenuItem
+        Tag = 1
+        Caption = 'Read Execute'
+        RadioItem = True
+        OnClick = miChangeProtectionClick
+      end
+      object miChangeProtectionRW: TMenuItem
+        Tag = 2
+        Caption = 'Read Write'
+        RadioItem = True
+        OnClick = miChangeProtectionClick
+      end
+      object miChangeProtectionR: TMenuItem
+        Tag = 3
+        Caption = 'Read'
+        RadioItem = True
+        OnClick = miChangeProtectionClick
+      end
     end
     object MenuItem4: TMenuItem
       Caption = 'Data Breakpoint'

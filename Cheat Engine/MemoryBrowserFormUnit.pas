@@ -63,6 +63,10 @@ type
     MenuItem27: TMenuItem;
     MenuItem28: TMenuItem;
     MenuItem29: TMenuItem;
+    miChangeProtectionRWE: TMenuItem;
+    miChangeProtectionRE: TMenuItem;
+    miChangeProtectionRW: TMenuItem;
+    miChangeProtectionR: TMenuItem;
     miTextEncodingCodePage: TMenuItem;
     miSVCopy: TMenuItem;
     miShowRelative: TMenuItem;
@@ -278,6 +282,7 @@ type
     zflabel: TLabel;
     procedure FormActivate(Sender: TObject);
     procedure GotoBookmarkClick(Sender: TObject);
+    procedure Makepagewritable1Click(Sender: TObject);
     procedure memorypopupPopup(Sender: TObject);
     procedure MenuItem10Click(Sender: TObject);
     procedure MenuItem11Click(Sender: TObject);
@@ -292,6 +297,7 @@ type
     procedure MenuItem27Click(Sender: TObject);
     procedure MenuItem29Click(Sender: TObject);
     procedure miAddRefClick(Sender: TObject);
+    procedure miChangeProtectionClick(Sender: TObject);
     procedure miHVBackClick(Sender: TObject);
     procedure miHVFollowClick(Sender: TObject);
     procedure miDebugSetAddressClick(Sender: TObject);
@@ -390,7 +396,6 @@ type
     procedure Changestateofregisteratthislocation1Click(Sender: TObject);
     procedure miTogglebreakpointClick(Sender: TObject);
     procedure Breakpointlist1Click(Sender: TObject);
-    procedure Makepagewritable1Click(Sender: TObject);
     procedure Dissectdata1Click(Sender: TObject);
     procedure Showsymbols1Click(Sender: TObject);
     procedure miDissectDataClick(Sender: TObject);
@@ -862,6 +867,8 @@ var
   islocked: boolean;
   a,a2: ptruint;
   hasbp: boolean;
+
+  mbi: TMEMORYBASICINFORMATION;
 begin
   miShowDifference.clear;
   miLock.Clear;
@@ -944,6 +951,21 @@ begin
 
   miHVBack.visible:=hexview.hasBackList;
   miShowRelative.checked:=hexview.UseRelativeBase;
+
+
+
+  miChangeProtectionRWE.checked:=false;
+  miChangeProtectionRE.checked:=false;
+  miChangeProtectionRW.checked:=false;
+  miChangeProtectionR.checked:=false;
+  if VirtualQueryEx(processhandle, pointer(hexview.Address), mbi, sizeof(mbi))=sizeof(mbi) then
+  begin
+    miChangeProtectionRWE.checked:=((mbi.Protect and PAGE_EXECUTE_READWRITE)=PAGE_EXECUTE_READWRITE) or ((mbi.Protect and PAGE_EXECUTE_WRITECOPY)=PAGE_EXECUTE_WRITECOPY);
+    miChangeProtectionRE.checked:=((mbi.Protect and PAGE_EXECUTE)=PAGE_EXECUTE) or ((mbi.Protect and PAGE_EXECUTE_READ)=PAGE_EXECUTE_READ);
+    miChangeProtectionRW.checked:=((mbi.Protect and PAGE_READWRITE)=PAGE_READWRITE) or ((mbi.Protect and PAGE_WRITECOPY)=PAGE_WRITECOPY);
+    miChangeProtectionR.checked:=((mbi.Protect and PAGE_READONLY)=PAGE_READONLY);
+  end;
+
 end;
 
 
@@ -1197,6 +1219,21 @@ begin
   end;
 end;
 
+procedure TMemoryBrowser.miChangeProtectionClick(Sender: TObject);
+var
+  protection: dword;
+  oldprotect: dword;
+begin
+  case (sender as TMenuItem).Tag of
+    0: protection:=PAGE_EXECUTE_READWRITE;
+    1: protection:=PAGE_EXECUTE_READ;
+    2: protection:=PAGE_READWRITE;
+    3: protection:=PAGE_READONLY;
+  end;
+
+  VirtualProtectEx(processhandle, pointer(hexview.Address),1,protection, oldprotect);
+end;
+
 procedure TMemoryBrowser.miHVBackClick(Sender: TObject);
 begin
   hexview.back;
@@ -1254,6 +1291,10 @@ begin
     newaddress:=bookmarks[id].lastAddress;
 
   disassemblerview.SelectedAddress:=newaddress;
+end;
+
+procedure TMemoryBrowser.Makepagewritable1Click(Sender: TObject);
+begin
 end;
 
 procedure TMemoryBrowser.FormActivate(Sender: TObject);
@@ -2965,9 +3006,7 @@ begin
 
     baseaddress:=nil;
 
-    baseaddress:=VirtualAllocEx(processhandle,nil,memsize,MEM_COMMIT,PAGE_EXECUTE_READWRITE);
-//    baseaddress:=VirtualAllocEx(processhandle,nil,memsize,MEM_COMMIT,PAGE_READWRITE);
-
+    baseaddress:=VirtualAllocEx(processhandle,nil,memsize,MEM_COMMIT or MEM_RESERVE,PAGE_EXECUTE_READWRITE);
     if baseaddress=nil then
       raise exception.Create(rsErrorAllocatingMemory);
 
@@ -3245,18 +3284,7 @@ begin
 end;
 
 
-procedure TMemoryBrowser.Makepagewritable1Click(Sender: TObject);
-var x: dword;
-begin
-  //todo: change to changhe protection submenu
-  if VirtualProtectEx(processhandle,pointer(memoryaddress),4096,PAGE_EXECUTE_READWRITE,x)=false then
 
-//  if VirtualProtectEx(processhandle,pointer(memoryaddress),4096,PAGE_EXECUTE_READWRITE,x)=false then
-    showmessage('Failure. Error:'+inttostr(getlasterror));
-//  if (memoryaddress>80000000) and (DarkByteKernel<>0) then
-//    MakeWritableEx(processhandle,memoryaddress,4096,false);
-
-end;
 
 procedure TMemoryBrowser.Dissectdata1Click(Sender: TObject);
 begin

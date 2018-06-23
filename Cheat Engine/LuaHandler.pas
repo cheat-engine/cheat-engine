@@ -5436,6 +5436,8 @@ begin
   result:=0;
 end;
 
+
+
 function lua_dbvm_log_cr3_start(L: PLua_State): integer; cdecl;
 begin
   lua_pushboolean(L, dbvm_log_cr3values_start);
@@ -8068,9 +8070,6 @@ begin
       s.add('allocNX(result,4)');
 
 
-
-
-
     s.add('stub:');
     if processhandler.is64Bit then
     begin
@@ -8087,9 +8086,6 @@ begin
       s.add('mov [result],eax');
       s.add('ret 4');
     end;
-
-
-
 
     if processhandler.is64Bit then
     begin

@@ -1,64 +1,33 @@
-Cheat Engine 6.8
+Cheat Engine 6.8.1
 
 Fixes:
-Fixed some more high dpi issues
-Fixed issues with the dropdown list in memory records
-Fixed pointer offset symbols not calculating properly
-Fixed registered binutils
-Fixed graphical issues with the tablist
-Fixed issue where memory blocks would get cut of before the page end
-Fixed some memory leaks
-Fixed some graphical issues in the addresslist
-Fixed rightclick on r8 and r9 in memoryview
-Fixed disassembling some instructions
-Fixed DBVM so it works on windows 1709 and later (tested on 1803)
-Fixed several DBVM offload crashes
-Fixed freeze with allow increase/decrease for 8 byte long values
-Fixed several issues where minimizing a window and then close it would hang CE
-Fixed file scanning
-Fixed crashes when editing memory in some some emulators
+Fixed several issues with the structure compare
+Fixed the commonality scanner from picking up unrelated registers for comparison
+Fixed speedhack hotkeys
+Fixed ultimap 1
+Fixed a bunch of random access violations
+Fixed Lua dissectCode.getStringReferences now also returns the string
+Fixed Lua breakpoints that specify a specific function
+Fixed Lua toAddress when the 2nd parameter is an address
+Fixed assembling xmm,m32
+Fixed issue when disassembling AVX instructions
+Fixed rightclicking r8-r9 in the registers window
+Fixed the plugin system for DBVM
+Fixed DBVM memory allocations when smaller than 4KB
+
 
 Additions and changes:
-Text editor improvements
-Added hundreds of new cpu instructions
-Mono now has some new features like instancing of objects
-Mono instances window is now a treeview where you can see the fields and values
-"find what addresses this code accesses" can also be used on RET instructions now (useful to find callers)
-The graphical memory view now has a lot more options to set it just the way you need
-Codepage support in hexview
-structure data from PDB files can now be used, and are stored in a database for lookup later
-dissect structures form can now show a list of known structures (pdb, mono, ...)
-Added a "revert to saved scan" option  (lets you undo changes)
-Added a "forgot scan" option (in case you forgot what you're doing)
-Pointerscan limit nodes is default on in a new ce install (remembers your choice when you disable it)
-Autoattach now happens using a thread instead of a gui blocking timer
-Some colorscheme enhancements
-Added a DBVM based "Find what writes/accesses" feature. (For pro users, enable kernelmode options for it to show)
-Changed the dissect data setup from seperate yes/no/value dialogs to a single window
-Added a bypass option for ultimap2 on windows 1709. When using ranges, do not use interrupts, or use DBVM
-Added find what writes/access to the foundlist
-Autoassembler scriptblocks are now grouped when written to memory
-Added {$try}/{$except} to auto assembler scripts
-Added an extra tutorial/practice target
-Added cut/copy/paste context menu items to pointer offset fields in add/change address, and added a context menu to the pointer destination
-Added an automated structure compare for two groups of addresses to find ways to distinguish between them
+Added translation strings for the all type settings
+You can now drop files into the auto assembler
+auto assembler commands allocnx (allocate no execute) and allocxo (allocate execute only)
+The memoryview windows's hexadecimalview now shows the allocationbase as well, and can be doubleclicked to go there
+Added support for mono dll's that do not export g_free
+Improved DBVM speed slightly
 
 
 lua:
-added automatic garbage collection and settings to configure it
-added new functions:
-  gc_setPassive
-  gc_setActive
-  reinitializeSelfSymbolhandler
-  registerStructureAndElementListCallback
-  showSelectionList
-  changed the getWindowlist output
-  MainForm.OnProcessOpened (better use this instead of onOpenProcess)
-  enumStructureForms
-  cpuid
-  getHotkeyHandlerThread
-  bunch of dbvm_ functions (needs dbvm capable cpu, and intel only atm)
-  and more, including class methods and fields (read celua.txt)
+added RemoteThread class object
+
 
 
 

@@ -1,7 +1,7 @@
 object About: TAbout
-  Left = 408
+  Left = 1224
   Height = 310
-  Top = 207
+  Top = 466
   Width = 488
   HelpContext = 2
   AutoSize = True
@@ -21,7 +21,7 @@ object About: TAbout
     Width = 488
     Align = alClient
     AutoSize = True
-    Caption = 'Cheat Engine 6.8'
+    Caption = 'Cheat Engine 6.8.1'
     ClientHeight = 290
     ClientWidth = 484
     TabOrder = 0
