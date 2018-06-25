@@ -1754,10 +1754,10 @@ begin
   updated:=false;
 
   start:=0;
-  stop:=treeview.Items.Count;
+  stop:=treeview.Items.Count-1;
 
+   {
 
-  {
   if treeview.TopItem<>nil then
     start:=treeview.TopItem.Index
   else

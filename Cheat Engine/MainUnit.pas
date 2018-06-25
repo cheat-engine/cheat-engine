@@ -4577,8 +4577,6 @@ var
 
   scantabtopcontrol: TControl;
 begin
-  showmessage(inttostr(sizeof(tcontext)));
-
   if scantablist = nil then
   begin
     foundlistheightdiff := btnMemoryView.top - (foundlist3.top + foundlist3.Height);
