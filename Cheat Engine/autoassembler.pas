@@ -262,10 +262,10 @@ begin
     if size<=0 then exit;
 
     //still here, address is page aligned here
-    i:=min(size, 4096);
+    i:=min(size, 4096-integer(ptruint(address)-VA));
     getmem(buf,4096);
     dbvm_cloak_readoriginal(PA, buf);
-    copymemory(pointer(ptruint(buf)+i), source, i);
+    copymemory(pointer(ptruint(buf)+(ptruint(address)-VA)), source, i);
     dbvm_cloak_writeoriginal(PA,buf);
     freememandnil(buf);
 
@@ -3189,7 +3189,7 @@ begin
       testptr:=assembled[i].address;
 
       vpe:=(SkipVirtualProtectEx=false) and virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),PAGE_EXECUTE_READWRITE,op);
-      ok1:=WriteMemory(pointer(testptr),@assembled[i].bytes[0],length(assembled[i].bytes),x);
+      ok1:=WriteProcessMemoryWithCloakSupport(processhandle, pointer(testptr),@assembled[i].bytes[0],length(assembled[i].bytes),x);
       if vpe then
         virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),op,op2);
 

@@ -4626,6 +4626,8 @@ begin
     lua_pushboolean(L,true)
   else
     lua_pushboolean(L,false);
+
+  freemem(buffer);
   exit(1);
 
 end;
@@ -4646,10 +4648,14 @@ begin
   if size=i then
   begin
     CreateByteTableFromPointer(L, buffer,size);
+    freemem(buffer);
     exit(1);
   end
   else
+  begin
+    freemem(buffer);
     raise exception.create('not all memory read');
+  end;
 end;
 
 function lua_dbvm_psod(L: PLua_state): integer; cdecl;

@@ -557,6 +557,9 @@ begin
   if hasCloakedRegionInRange(qword(lpBaseAddress),nsize, VA, PA) then
   begin
     result:=true;
+    lpNumberOfBytesWritten:=0;
+    if nsize=0 then exit(true);
+
     if VA>qword(lpBaseAddress) then
     begin
       //the first bytes are not cloaked
@@ -580,7 +583,7 @@ begin
       getmem(buf,4096);
       dbvm_cloak_readoriginal(PA, buf);
       i:=min(4096,nsize);
-      copymemory(buf, lpBuffer, i);
+      copymemory(pointer(ptruint(buf)+(ptruint(lpBaseAddress)-VA)), lpBuffer, i);
       dbvm_cloak_writeoriginal(PA, buf);
 
       inc(lpNumberOfBytesWritten, i);
