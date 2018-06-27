@@ -780,7 +780,7 @@ begin
 
       if LoadLibraryptr=nil then raise exception.Create(rsLoadLibraryANotFound);
 
-      injectionlocation:=VirtualAllocEx(processhandle,nil,4096,MEM_COMMIT,PAGE_EXECUTE_READWRITE);
+      injectionlocation:=VirtualAllocEx(processhandle,nil,4096,MEM_RESERVE or MEM_COMMIT,PAGE_EXECUTE_READWRITE);
 
       if injectionlocation=nil then raise exception.Create(rsFailedToAllocateMemory);
 

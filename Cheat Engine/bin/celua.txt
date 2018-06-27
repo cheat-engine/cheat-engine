@@ -2376,7 +2376,7 @@ dbvm_writeMSR(msr, value): See dbk_writeMSR
 dbvm_getCR4(): Returns the real Control Register 4 state
 
 dbvm_readPhysicalMemory(address, size): bytetable
-dbvm_writePhysicalMemory(address, size, bytetable)
+dbvm_writePhysicalMemory(address, bytetable)
 
 dbvm_watch_writes(PhysicalAddress, bytesize OPTIONAL, OPTIONS OPTIONAL,  internalentrycount OPTIONAL) : 
   Starts watching writes to the given address range
@@ -2812,13 +2812,14 @@ Methods
   clear()
   getSymbolFromAddress(address) : Searches the list for the given address. The address does not have to match the exact address. As long as it falls withing the range
   getSymbolFromString(searchkey)
+  addModule(modulename, modulepath, address, size, is64bit)
+  deleteModule(modulename)
+  deleteModule(address)  
   addSymbol(modulename, searchkey, address, symbolsize, skipAddressToSymbolLookup OPTIONAL, extradata OPTIONAL)
     Adds a symbol to the symbollist
     extradata is a table which can be used to fill in a return type and parameters for function calls. It has the following fields:
       returntype: string
       parameters: string
-
-
 
   deleteSymbol(searchkey)
   deleteSymbol(address)
@@ -3185,3 +3186,12 @@ properties
 
 methods
   waitForThread(timeout OPTIONAL) : Waits for the thread to finish. Timeout is time in milliseconds. If nil, the timeout it infinite. If 0, it returns without wait
+
+ModuleLoader(Inheritance: -)
+loadModule(pathtodll, executeEntryPoint OPTIONAL)
+
+properties:
+  loaded: boolean - true if successfuly mapped
+  exports: Table containing all exports
+  entryPoint: integer - address of the entrypoint
+  
