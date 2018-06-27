@@ -9,7 +9,8 @@ This routine will examine a module and then load it into memory, taking care of 
 interface
 
 uses windows, LCLIntf, classes, sysutils, imagehlp, dialogs, PEInfoFunctions,CEFuncProc,
-     NewKernelHandler, symbolhandler, dbk32functions, vmxfunctions, commonTypeDefs;
+     NewKernelHandler, symbolhandler, dbk32functions, vmxfunctions, commonTypeDefs,
+     SymbolListHandler;
 
 resourcestring
   rsMMLNotAValidFile = 'not a valid file';
@@ -23,18 +24,49 @@ type TModuleLoader=class
     filename: string;
     FLoaded: boolean;
     FEntrypoint: ptruint;
+    fSymbolList: TSymbolListHandler;
+
+    destinationBase: uint64;
+    modulesize: integer;
+    is64bit: boolean;
+    isdriver: boolean;
   public
     Exporttable: TStringlist;
-
-
+    procedure createSymbolListHandler;
     constructor create(filename: string);
+  published
     property loaded: boolean read FLoaded;
     property EntryPoint: ptruint read FEntryPoint;
+    property SymbolList: TSymbollistHandler read fSymbolList;
 end;
 
 implementation
 
 uses ProcessHandlerUnit;
+
+procedure TModuleLoader.createSymbolListHandler;
+var
+  i: integer;
+  a: ptruint;
+  module: string;
+  s: string;
+  size: integer;
+begin
+  module:=ExtractFileName(filename);
+  fSymbolList:=TSymbolListHandler.create;
+
+  fSymbolList.AddModule(module,filename,destinationbase,modulesize,is64bit);
+
+  for i:=0 to Exporttable.Count-1 do
+  begin
+    s:=exporttable[i];
+    a:=ptruint(exporttable.Objects[i]);
+    s:=copy(s,pos('-',s)+1,length(s));
+    fSymbolList.AddSymbol(module,s,a,4);
+  end;
+
+  symhandler.AddSymbolList(fSymbolList);
+end;
 
 constructor TModuleLoader.create(filename: string);
 var
@@ -50,12 +82,12 @@ var
   importaddress: ptruint;
   importfunctionname: string;
   importfunctionnamews: widestring;  
-  is64bit, isDriver: boolean;
+
 
   numberofrva: integer;
   maxaddress: ptrUint;
 
-  destinationBase: uint64;
+
 
   basedifference: dword;
   basedifference64: uint64;
@@ -123,6 +155,8 @@ begin
       tempmap.Size:=maxaddress;
       ZeroMemory(tempmap.memory, tempmap.size);
 
+      modulesize:=tempmap.size;
+
       //place the sections at the appropriate locations
       for i:=0 to ImageNTHeader^.FileHeader.NumberOfSections-1 do
       begin
@@ -144,7 +178,7 @@ begin
       begin
         //normal memory location
         isdriver:=false;
-        destinationBase:=ptrUint(VirtualAllocEx(processhandle, nil,maxaddress, MEM_COMMIT, PAGE_EXECUTE_READWRITE));
+        destinationBase:=ptrUint(VirtualAllocEx(processhandle, nil,maxaddress, MEM_COMMIT or MEM_RESERVE, PAGE_EXECUTE_READWRITE));
 
       end;
 

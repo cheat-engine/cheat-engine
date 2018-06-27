@@ -233,57 +233,6 @@ begin
 end;
 
 
-function writeMemory(address: pointer; source: pointer; size: integer; var byteswritten: ptruint): boolean;
-var
-  VA, PA: QWORD;
-  i: integer;
-  bw:ptruint;
-  buf: pchar;
-begin
-  if hasCloakedRegionInRange(qword(address),size, VA, PA) then
-  begin
-    result:=true;
-    byteswritten:=0;
-    if size=0 then exit(true);
-
-    if VA>qword(address) then
-    begin
-      i:=min(size, va-qword(address));
-      bw:=0;
-      result:=writeMemory(address, source, i, bw);
-      inc(byteswritten,bw);
-      if result=false then exit;
-
-      address:=pointer(qword(address)+bw);
-      source:=pointer(qword(source)+bw);
-      size:=size-bw;
-    end;
-
-    if size<=0 then exit;
-
-    //still here, address is page aligned here
-    i:=min(size, 4096-integer(ptruint(address)-VA));
-    getmem(buf,4096);
-    dbvm_cloak_readoriginal(PA, buf);
-    copymemory(pointer(ptruint(buf)+(ptruint(address)-VA)), source, i);
-    dbvm_cloak_writeoriginal(PA,buf);
-    freememandnil(buf);
-
-    inc(byteswritten,i);
-    address:=pointer(qword(address)+i);
-    source:=pointer(qword(source)+i);
-    size:=size-i;
-
-    if size<=0 then exit;
-
-    bw:=0;
-    result:=writeMemory(address, source, size, bw);
-    inc(byteswritten,bw);
-  end
-  else
-    result:=WriteProcessMemory(processhandle, address, source, size, byteswritten);
-end;
-
 
 //----------------------------
 

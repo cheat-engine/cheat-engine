@@ -2635,14 +2635,24 @@ begin
 end;
 
 procedure TSymhandler.getModuleList(list: tstrings);
-var i: integer;
+var
+  i,j: integer;
+  list2: TExtraModuleInfoList;
 begin
   modulelistMREW.BeginRead;
   for i:=0 to modulelistpos-1 do
     list.AddObject(modulelist[i].modulename,tobject(modulelist[i].baseaddress));
-
-
   modulelistMREW.EndRead;
+
+  symbollistsMREW.BeginRead;
+  for i:=0 to length(symbollists)-1 do
+  begin
+    setlength(list2,0);
+    symbollists[i].GetModuleList(list2);
+    for j:=0 to length(list2)-1 do
+      list.AddObject(list2[j].modulename,tobject(list2[j].baseaddress));
+  end;
+  symbollistsMREW.endread;
 end;
 
 function TSymhandler.inSystemModule(address: ptrUint): BOOLEAN;

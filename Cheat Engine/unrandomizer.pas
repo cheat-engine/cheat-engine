@@ -413,7 +413,7 @@ begin
   else
   begin
     //allocate 4 bytes to store the current value
-    counter:=virtualallocex(processhandle,nil,8,MEM_COMMIT	,PAGE_EXECUTE_READWRITE);
+    counter:=virtualallocex(processhandle,nil,8,MEM_COMMIT or MEM_RESERVE, PAGE_EXECUTE_READWRITE);
     writeprocessmemory(processhandle,counter,@defaultreturn,4,aw);
 
 

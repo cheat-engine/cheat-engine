@@ -13,7 +13,7 @@ procedure pushSymbol(L: PLua_state; si: PCESymbolInfo);
 
 implementation
 
-uses LuaHandler, LuaObject, symbolhandler;
+uses LuaHandler, LuaObject, symbolhandler, ProcessHandlerUnit;
 
 function createSymbolList(L: Plua_State): integer; cdecl;
 begin
@@ -100,6 +100,53 @@ begin
   begin
     pushSymbol(L, si);
     result:=1;
+  end;
+end;
+
+function SymbolList_deleteModule(L: Plua_State): integer; cdecl;
+var
+  sl: TSymbolListHandler;
+  s: string;
+begin
+  result:=0;
+  sl:=luaclass_getClassObject(L);
+
+  if lua_gettop(L)>=1 then
+  begin
+    if lua_isnumber(L,1) then
+      sl.DeleteModule(qword(lua_tointeger(L,1)))
+    else
+    begin
+      s:=Lua_ToString(L,1);
+      sl.DeleteModule(s);
+    end;
+  end;
+end;
+
+function SymbolList_addModule(L: Plua_State): integer; cdecl;
+var
+  sl: TSymbolListHandler;
+  modulename: string;
+  modulepath: string;
+  base: ptruint;
+  size: integer;
+  is64bit: boolean;
+begin
+  result:=0;
+  sl:=luaclass_getClassObject(L);
+
+  if lua_gettop(L)>=4 then
+  begin
+    modulename:=Lua_ToString(L,1);
+    modulepath:=Lua_ToString(L,2);
+    base:=lua_tointeger(L,3);
+    size:=lua_tointeger(L,4);
+    if lua_gettop(L)>=5 then
+      is64bit:=lua_toboolean(L,5)
+    else
+      is64bit:=processhandler.is64bit;
+
+    sl.AddModule(modulename, modulepath, base, size, is64bit);
   end;
 end;
 
@@ -226,6 +273,8 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getSymbolFromString', SymbolList_getSymbolFromString);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'addSymbol', SymbolList_addSymbol);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'deleteSymbol', SymbolList_deleteSymbol);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'addModule', SymbolList_addModule);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'deleteModule', SymbolList_deleteModule);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'register', SymbolList_register);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'unregister', SymbolList_unregister);
 end;

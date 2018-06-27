@@ -86,11 +86,23 @@ type
   TExtraSymbolDataList=specialize TFPGList<TExtraSymbolData>;
 
 
+  TExtraModuleInfo=record
+          modulename: string;
+          modulepath: string;
+          baseaddress: ptrUint;
+          modulesize: dword;
+          is64bitmodule: boolean;
+        end;
+
+  TExtraModuleInfoList=array of TExtraModuleInfo;
 
 
   TSymbolListHandler=class
   private
     cs: TMultiReadExclusiveWriteSynchronizer;
+
+    modulelist: array of TExtraModuleInfo;
+
     AddressToString: TAvgLvlTree;
     StringToAddress: TAvgLvlTree;
 
@@ -102,6 +114,10 @@ type
     destructor destroy; override;
     procedure AddExtraSymbolData(d: TExtraSymbolData);
     procedure RemoveExtraSymbolData(d: TExtraSymbolData);
+    procedure AddModule(module:string; path: string; base: ptruint; size: dword; is64bit: boolean);
+    procedure DeleteModule(module: string); overload;
+    procedure DeleteModule(base: qword); overload;
+    procedure GetModuleList(var list: TExtraModuleInfoList);
     function AddSymbol(module: string; searchkey: string; address: qword; size: integer; skipaddresstostringlookup: boolean=false; extraData: TExtraSymbolData=nil): PCESymbolInfo;
     function FindAddress(address: qword): PCESymbolInfo;
     function FindSymbol(s: string): PCESymbolInfo;
@@ -152,6 +168,65 @@ begin
 end;
 
 //-------------
+
+procedure TSymbolListHandler.AddModule(module:string; path: string; base: ptruint; size: dword; is64bit: boolean);
+var i: integer;
+begin
+  cs.Beginwrite;
+  i:=length(modulelist);
+  setlength(modulelist, length(modulelist)+1);
+  modulelist[i].modulename:=module;
+  modulelist[i].modulepath:=path;
+  modulelist[i].baseaddress:=base;
+  modulelist[i].modulesize:=size;
+  modulelist[i].is64bitmodule:=is64bit;
+  cs.Endwrite;
+end;
+
+procedure TSymbolListHandler.DeleteModule(module: string);
+var i,j: integer;
+begin
+  cs.beginwrite;
+  for i:=0 to length(modulelist)-1 do
+  begin
+    if modulelist[i].modulename=module then
+    begin
+      for j:=i to length(modulelist)-2 do
+        modulelist[j]:=modulelist[j+1];
+
+      setlength(modulelist,length(modulelist)-1);
+    end;
+  end;
+  cs.endwrite;
+end;
+
+procedure TSymbolListHandler.DeleteModule(base: qword);
+var i,j: integer;
+begin
+  cs.beginwrite;
+  for i:=0 to length(modulelist)-1 do
+  begin
+    if modulelist[i].baseaddress=base then
+    begin
+      for j:=i to length(modulelist)-2 do
+        modulelist[j]:=modulelist[j+1];
+
+      setlength(modulelist,length(modulelist)-1);
+    end;
+  end;
+  cs.endwrite;
+end;
+
+procedure TSymbolListHandler.GetModuleList(var list: TExtraModuleInfoList);
+var i: integer;
+begin
+  cs.Beginread;
+  setlength(list, length(modulelist));
+  for i:=0 to length(list)-1 do
+    list[i]:=modulelist[i];
+
+  cs.Endread;
+end;
 
 function TSymbolListHandler.FindFirstSymbolFromBase(baseaddress: qword): PCESymbolInfo;
 var search: TCESymbolInfo;
