@@ -4629,6 +4629,7 @@ begin
     lua_pushboolean(L,false);
 
   freemem(buffer);
+
   exit(1);
 
 end;
@@ -8014,6 +8015,371 @@ begin
   end;
 end;
 
+function executeCodeEx(L:PLua_state): integer; cdecl; //executecodeex(callmethod, timeout, address, {param1},{param2},{param3},{...})
+//callmethod:
+//0: stdcall
+//1: cdecl
+//other, not implemented yet
+//
+//timeout:
+//0: don't wait (no return value)
+//nil or -1: infinite
+//else time in milliseconds
+//
+//
+//paramtypes:
+//0: integer/pointer
+//1: float
+//2: double
+//3: asciistring (turns into 0:pointer after writing the string)
+//4: widestring
+var
+  callmethod: integer;
+  address: ptruint;
+  paramcount: integer;
+
+  i: integer;
+
+  s: tstringlist;
+  floatvalues: tstringlist;
+  valuetype: integer;
+
+  stackalloc: integer;
+  floatvalueallocs: integer;
+
+  stackpointer: integer;
+
+  value: qword;
+
+
+  f: single;
+  floatdword: dword absolute f;
+  d: double;
+  doubleqword: qword absolute d;
+  z: PDwordArray;
+
+  stringsize: integer;
+  str: string;
+  wstr: widestring;
+  stringallocs: array of pointer;
+  sai: integer;
+  x: ptruint;
+  y,wr: dword;
+
+  stubaddress, resultaddress: ptruint;
+  allocs: TCEAllocArray;
+  exceptionlist: TCEExceptionListArray;
+
+  r: ptruint;
+  dontfree: boolean;
+  timeout: dword;
+  thread:thandle;
+begin
+  if lua_gettop(L)<3 then
+  begin
+    lua_pushnil(L);
+    lua_pushstring(L,'Not enough parameters. Minimum: callmethod, timeout, address');
+    exit(2);
+  end;
+
+  setlength(stringallocs,0);
+  setlength(allocs,0);
+  setlength(exceptionlist,0);
+
+  callmethod:=lua_tointeger(L,1);
+  if callmethod>=2 then
+  begin
+    lua_pushnil(L);
+    lua_pushstring(L,'Invalid callmethod:'+inttostr(callmethod));
+    exit(2);
+  end;
+
+  if lua_isnil(L,2) then
+    timeout:=INFINITE
+  else
+    timeout:=lua_tointeger(L,2);
+
+  address:=lua_toaddress(L,3);
+  paramcount:=lua_gettop(L)-3;
+
+  s:=tstringlist.create;
+  floatvalues:=tstringlist.create;
+
+  s.Add('allocXO(stub, 4096)');
+  if processhandler.is64Bit then
+  begin
+    floatvalueallocs:=s.add('allocXO(addressToCall, 8)');
+    s.add('allocNX(result,8)');
+  end
+  else
+  begin
+    floatvalueallocs:=s.add('allocXO(addressToCall, 4)');
+    s.add('allocNX(result,4)');
+  end;
+
+  s.add('addressToCall:');
+  if processhandler.is64Bit then
+    s.add('dq '+inttohex(address,8))
+  else
+    s.add('dd '+inttohex(address,8));
+
+
+  s.add('stub:');
+  if processhandler.is64Bit then
+    stackalloc:=s.add('sub rsp,'+inttohex(8+max(4,paramcount)*8,1))
+  else
+    stackalloc:=s.add('sub esp,'+inttohex(paramcount*4,1));  //save this linenr in case doubles are used
+
+  try
+
+    //setup the parameters:
+    stackpointer:=0;
+    for i:=4 to lua_gettop(L) do
+    begin
+      if lua_istable(l,i) then
+      begin
+        lua_pushstring(L,'type');
+        lua_gettable(L,i);
+        if lua_isnil(L,-1) then
+        begin
+          lua_pushnil(L);
+          lua_pushstring(L,'Invalid parametertype '+inttostr(i+2));
+          exit(2);
+        end;
+        valuetype:=lua_tointeger(L,-1);
+        lua_pop(L,1);
+
+        lua_pushstring(L,'value');
+        lua_gettable(L,i);
+        if lua_isnil(L,-1) then
+        begin
+          lua_pushnil(L);
+          lua_pushstring(L,'Invalid parametervalue '+inttostr(i+2));
+          exit(2);
+        end;
+
+        case valuetype of
+          0,3,4:
+          begin
+
+
+            if valuetype in [3..4] then
+            begin
+              sai:=length(stringallocs);
+              setlength(stringallocs, sai+1);
+
+              if valuetype=3 then
+              begin
+                //ascii
+                str:=Lua_ToString(L,-1);
+                stringallocs[sai]:=virtualallocex(processhandle,nil,length(str)+1,MEM_COMMIT or MEM_RESERVE,PAGE_READWRITE);
+                WriteProcessMemory(processhandle, stringallocs[sai],@str[1],length(str)+1,x);
+              end
+              else
+              begin
+                //widestring
+                wstr:=Lua_ToString(L,-1);
+                stringallocs[sai]:=virtualallocex(processhandle,nil,length(str)+2,MEM_COMMIT or MEM_RESERVE,PAGE_READWRITE);
+                WriteProcessMemory(processhandle, stringallocs[sai],@wstr[1],length(str)+2,x);
+              end;
+              value:=ptruint(stringallocs[sai]);
+            end
+            else
+              value:=lua_tointeger(L,-1);
+
+            if processhandler.is64Bit then
+            begin
+              case stackpointer of
+                0: s.add('mov rcx,'+inttohex(value,8));
+                1: s.add('mov rdx,'+inttohex(value,8));
+                2: s.add('mov r8,'+inttohex(value,8));
+                3: s.add('mov r9,'+inttohex(value,8));
+                else
+                begin
+                  s.add('mov rax,'+inttohex(lua_tointeger(L,-1),8));
+                  s.add('mov qword ptr [rsp+'+inttohex(stackpointer,8)+'],rax');
+                end;
+              end;
+            end
+            else
+            begin
+              s.add('mov dword ptr [esp+'+inttohex(stackpointer*4,1)+'],'+inttohex(value,8));
+            end;
+            inc(stackpointer);
+          end;
+
+          1: //float(single)
+          begin
+            f:=lua_tonumber(L,-1);
+            if processhandler.is64Bit then
+            begin
+              floatvalues.Add('floatvalue'+inttostr(stackpointer)+':');
+
+              floatvalues.add('dd '+inttohex(floatdword,8));
+
+              if stackpointer<4 then
+              begin
+                s.add('movss xmm'+inttostr(stackpointer)+',[floatvalue'+inttostr(stackpointer)+']')
+              end
+              else
+              begin
+                s.add('mov eax,[floatvalue'+inttostr(stackpointer)+']');
+                s.add('mov qword ptr [rsp'+inttohex(stackpointer,8)+'],rax');
+              end;
+            end
+            else
+              s.add('mov dword ptr [esp+'+inttohex(stackpointer*4,1)+'],'+inttohex(floatdword,8));
+
+            inc(stackpointer);
+          end;
+
+          2: //double
+          begin
+            d:=lua_tonumber(L,-1);
+            if processhandler.is64Bit then
+            begin
+              floatvalues.Add('floatvalue'+inttostr(stackpointer)+':');
+              floatvalues.add('dq '+inttohex(doubleqword,16));
+
+              if stackpointer<4 then
+                s.add('movsd xmm'+inttostr(stackpointer)+',[floatvalue'+inttostr(stackpointer)+']')
+              else
+              begin
+                s.add('mov rax,[floatvalue'+inttostr(stackpointer)+']');
+                s.add('mov qword ptr [rsp'+inttohex(stackpointer,8)+'],rax');
+              end;
+            end
+            else
+            begin
+              z:=@doubleqword;
+              s.add('mov dword ptr [esp+'+inttohex(stackpointer*4,1)+'],'+inttohex(z[0],8));
+              inc(stackpointer);
+              s.add('mov dword ptr [esp+'+inttohex(stackpointer*4,1)+'],'+inttohex(z[0],8));
+            end;
+            inc(stackpointer);
+          end;
+
+          else
+          begin
+            lua_pushnil(L);
+            lua_pushstring(L,'Invalid parametertype '+inttostr(i+2)+'('+inttostr(valuetype)+')');
+            exit(2);
+          end;
+        end;
+
+        lua_pop(L,1);
+      end
+      else
+      begin
+        lua_pushnil(L);
+        lua_pushstring(L,'Invalid parameter '+inttostr(i+2));
+        exit(2);
+      end;
+    end;
+
+    if processhandler.is64Bit=false then //fix the stackfor the caller
+      s[stackalloc]:='sub esp,'+inttohex(stackpointer*4,1);
+
+    s.add('call [addressToCall]');
+    if processhandler.is64Bit then
+    begin
+      s.add('mov [result],rax');
+      s.add('add rsp,'+inttohex(8+max(4,paramcount)*8,1));
+      s.add('ret');
+    end
+    else
+    begin
+      s.add('mov [result],eax');
+
+      if callmethod=1 then
+        s.add('add esp,'+inttohex(stackpointer*4,1));
+
+      s.add('ret 4');
+    end;
+
+    if floatvalues.count>0 then
+      s.add('align 10,0');
+
+    for i:=0 to floatvalues.count-1 do
+      s.add(floatvalues[i]);
+
+    Clipboard.AsText:=s.text;
+    dontfree:=false;
+
+    if autoassemble(s,false,true,false,false,allocs,exceptionlist) then
+    begin
+      for i:=0 to length(allocs)-1 do
+      begin
+        if allocs[i].varname='stub' then
+          stubaddress:=allocs[i].address;
+
+        if allocs[i].varname='result' then
+          resultaddress:=allocs[i].address;
+      end;
+
+      thread:=CreateRemoteThread(processhandle, nil, 0, pointer(stubaddress), nil, 0, y);
+      if (thread<>0) then
+      begin
+        dontfree:=timeout=0;
+
+        wr:=WaitForSingleObject(thread, timeout);
+        if wr=WAIT_OBJECT_0 then
+        begin
+          if ReadProcessMemory(processhandle, pointer(resultaddress), @r, sizeof(r), x) then
+          begin
+            lua_pushinteger(L, r);
+            exit(1);
+          end
+          else
+          begin
+            lua_pushnil(L);
+            lua_pushstring(L,'Failure reading the result address');
+            exit(2);
+          end;
+        end
+        else
+        if wr=WAIT_TIMEOUT then
+        begin
+          dontfree:=true;
+          lua_pushnil(L);
+          lua_pushstring(L,'Execution timeout');
+          exit(2);
+        end
+        else
+        begin
+          lua_pushnil(L);
+          lua_pushstring(L,'Wait failure');
+          exit(2);
+        end;
+
+
+        closehandle(thread);
+      end
+      else
+      begin
+        lua_pushnil(L);
+        lua_pushstring(L,'Failure launching thread');
+        exit(2);
+      end;
+    end;
+  finally
+    s.free;
+
+    if (dontfree=false) then
+    begin
+      if stubaddress<>0 then VirtualFreeEx(processhandle, pointer(stubaddress), 0, MEM_RELEASE);
+      if resultaddress<>0 then VirtualFreeEx(processhandle, pointer(resultaddress), 0, MEM_RELEASE);
+      for i:=0 to length(stringallocs)-1 do
+        VirtualFreeEx(processhandle, pointer(stringallocs[i]), 0, MEM_RELEASE);
+    end;
+
+
+    //free allocated strings
+
+  end;
+
+end;
+
 function executeCode(L:PLua_state): integer; cdecl; //executecode(address, parameter)
 var
   s: tstringlist;
@@ -8127,22 +8493,36 @@ begin
               result:=1;
             end
             else
-              outputdebugstring('Failure reading the result address');
+            begin
+              lua_pushnil(L);
+              lua_pushstring(L,'Failure reading the result address');
+              exit(2);
+            end;
           end
           else
           if wr=WAIT_TIMEOUT then
           begin
             dontfree:=true;
-            OutputDebugString('Execution timeout');
+            lua_pushnil(L);
+            lua_pushstring(L,'Execution timeout');
+            exit(2);
           end
           else
-            OutputDebugString('Wait failure');
+          begin
+            lua_pushnil(L);
+            lua_pushstring(L,'Wait failure');
+            exit(2);
+          end;
 
 
           closehandle(thread);
         end
         else
-          outputdebugstring('Failure launching thread');
+        begin
+          lua_pushnil(L);
+          lua_pushstring(L,'Failure launching thread');
+          exit(2);
+        end;
       end;
     end;
 
@@ -10313,6 +10693,8 @@ begin
 
 
     lua_register(L, 'executeCode', executeCode);
+    lua_register(L, 'executeCodeEx', executeCodeEx);
+
     lua_register(L, 'executeCodeLocal', executeCodeLocal);
 
     lua_register(L, 'md5file', md5file);

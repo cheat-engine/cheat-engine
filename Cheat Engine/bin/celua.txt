@@ -368,6 +368,26 @@ injectDLL(filename): Injects a dll, and returns true on success
 executeCode(address, parameter OPTIONAL, timeout OPTIONAL) : address - Executes a stdcall function with 1 parameter at the given address in the target process  and wait for it to return. The return value is the result of the function that was called
 executeCodeLocal(addres, parameter OPTIONAL): address -  Executes a stdcall function with 1 parameter at the given address in the target process. The return value is the result of the function that was called
 
+executeCodeEx(callmethod, timeout, address, {type,value},{type,value},...)
+  Calls a function using the given callmethod and parameters
+  callmethod: 0=stdcall, 1=cdecl
+  timeout: Number of milliseconds to wait for a result. nil or -1, infitely. 0 is no wait (will not free the call memory, so beware of it's memory leak)
+  address: Address to execute
+  {type,value} : Table containing the value type, and the value
+    {
+    type: 0=integer (32/64bit) can also be a pointer
+          1=float (32-bit float)
+          2=double (64-bit float)
+          3=ascii string (will get converted to a pointer to that string)
+          4=wide string (will get converted to a pointer to that string)
+     
+    value: anything base type that lua can interpret
+    }
+
+   Returns the E/RAX value returned by the called function (if no timeout or other interruption)
+
+
+
 loadPlugin(dllnameorpath): Loads the given plugin. Returns nil on failure. On success returns a value of 0 or greater
 
 loadFontFromStream(memorystream) : Loads a font from a memory stream and returns an id (handle) to the font for use with unloadLoadedFont
