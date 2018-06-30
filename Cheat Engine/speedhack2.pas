@@ -40,6 +40,7 @@ var i: integer;
 //      y: dword;
     a,b: ptrUint;
     c: TCEConnection;
+    e: boolean;
 
     fname: string;
     err: boolean;
@@ -65,7 +66,11 @@ begin
         fname:='speedhack-i386.dll';
 
       symhandler.waitforsymbolsloaded(true, 'kernel32.dll'); //speed it up (else it'll wait inside the symbol lookup of injectdll)
-      injectdll(CheatEngineDir+fname);
+
+      symhandler.getAddressFromName('speedhackversion_GetTickCount',false,e);
+      if e then
+        injectdll(CheatEngineDir+fname);
+
       symhandler.reinitialize;
       symhandler.waitforsymbolsloaded(true)
     except
@@ -178,6 +183,7 @@ begin
         setlength(AllocArray,0);
 
         autoassemble(script,false,true,false,false,AllocArray, exceptionlist);
+        clipboard.AsText:=script.text;
 
         //fill in the address for the init region
         for i:=0 to length(AllocArray)-1 do
@@ -195,7 +201,6 @@ begin
           raise exception.Create(rsFailureConfiguringSpeedhackPart+' 1: '+e.message);
         end;
       end;
-
 
       //timegettime
       if symhandler.getAddressFromName('timeGetTime',false,err)>0 then //might not be loaded

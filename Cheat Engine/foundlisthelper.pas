@@ -8,7 +8,7 @@ unit foundlisthelper;
 interface
 
 {$ifdef windows}
-uses LCLIntf,sysutils,classes,ComCtrls,StdCtrls,symbolhandler, CEFuncProc,
+uses LCLIntf,sysutils,classes,ComCtrls,StdCtrls,symbolhandler, symbolhandlerstructs, CEFuncProc,
      NewKernelHandler, memscan, CustomTypeHandler, byteinterpreter,
      groupscancommandparser, math, AvgLvlTree, commonTypeDefs, parsers;
 {$endif}

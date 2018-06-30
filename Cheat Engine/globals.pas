@@ -148,6 +148,7 @@ var
   luagc_MinSize: dword;
 
   SkipVirtualProtectEx: boolean;
+  alwaysforceload: boolean;
 
 
 implementation

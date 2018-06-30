@@ -10,7 +10,7 @@ interface
 
 uses windows, LCLIntf, classes, sysutils, imagehlp, dialogs, PEInfoFunctions,CEFuncProc,
      NewKernelHandler, symbolhandler, dbk32functions, vmxfunctions, commonTypeDefs,
-     SymbolListHandler;
+     SymbolListHandler, symbolhandlerstructs;
 
 resourcestring
   rsMMLNotAValidFile = 'not a valid file';
@@ -30,12 +30,15 @@ type TModuleLoader=class
     modulesize: integer;
     is64bit: boolean;
     isdriver: boolean;
+
+    pid: dword;
   public
     Exporttable: TStringlist;
     procedure createSymbolListHandler;
     constructor create(filename: string);
   published
-    property loaded: boolean read FLoaded;
+    property BaseAddress: ptruint read destinationBase;
+    property Loaded: boolean read FLoaded;
     property EntryPoint: ptruint read FEntryPoint;
     property SymbolList: TSymbollistHandler read fSymbolList;
 end;
@@ -57,13 +60,17 @@ begin
 
   fSymbolList.AddModule(module,filename,destinationbase,modulesize,is64bit);
 
+  module:=ChangeFileExt(module,'');
   for i:=0 to Exporttable.Count-1 do
   begin
     s:=exporttable[i];
     a:=ptruint(exporttable.Objects[i]);
-    s:=copy(s,pos('-',s)+1,length(s));
-    fSymbolList.AddSymbol(module,s,a,4);
+    s:=copy(s,pos('-',s)+2,length(s));
+    fSymbolList.AddSymbol(module, Module+'.'+s, a, 4,false, nil);
+    fSymbolList.AddSymbol(module,s,a,4,true);
   end;
+
+  fSymbolList.PID:=pid;
 
   symhandler.AddSymbolList(fSymbolList);
 end;
@@ -96,7 +103,7 @@ var
   haserror: boolean;
 
   processhandle: thandle;
-  pid: dword;
+  mi: TModuleInfo;
 begin
   inherited create;
   self.filename:=filename;
@@ -113,6 +120,10 @@ begin
   filemap:=tmemorystream.Create;
   try
     //showmessage('Loading '+filename);
+
+
+    //todo: add a filesearch if no patch is given
+
     filemap.LoadFromFile(filename);
     
     if PImageDosHeader(filemap.Memory)^.e_magic<>IMAGE_DOS_SIGNATURE then
@@ -245,7 +256,10 @@ begin
               begin
                 importmodulename:=pchar(ptrUint(tempmap.memory)+ImageImportDirectory.name);
                 if not isdriver then
-                  InjectDll(importmodulename);
+                begin
+                  if symhandler.getmodulebyname(importmodulename, mi)=false then
+                    InjectDll(importmodulename);
+                end;
 
                 importmodulename:=ChangeFileExt(importmodulename, '');
 

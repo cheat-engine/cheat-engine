@@ -135,7 +135,8 @@ implementation
 
 uses
   luahandler, LuaByteTable, MainUnit, disassemblerviewunit,
-  hexviewunit, d3dhookUnit, luaclass, debuggertypedefinitions, memscan, symbolhandler;
+  hexviewunit, d3dhookUnit, luaclass, debuggertypedefinitions, memscan,
+  symbolhandler, symbolhandlerstructs;
 
 resourcestring
   rsThisTypeOfMethod = 'This type of method:';

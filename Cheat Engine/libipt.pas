@@ -250,7 +250,7 @@ begin
       pt_qry_indirect_branch:=GetProcAddress(hLibIPT, 'pt_qry_indirect_branch');
       pt_qry_get_offset:=GetProcAddress(hLibIPT, 'pt_qry_get_offset');
       pt_qry_event:=GetProcAddress(hLibIPT, 'pt_qry_event');
-      pt_qry_cond_branch:=GetProcAddress(hLibIPT, 'pt_qry_event');
+      pt_qry_cond_branch:=GetProcAddress(hLibIPT, 'pt_qry_cond_branch');
     end;
   end;
 

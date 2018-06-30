@@ -74,6 +74,7 @@ type
     cbLuaGarbageCollectAll: TCheckBox;
     cbLuaOnlyCollectWhenLarger: TCheckBox;
     cbNeverChangeProtection: TCheckBox;
+    cbAlwaysForceLoad: TCheckBox;
     combothreadpriority: TComboBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
@@ -809,6 +810,9 @@ begin
 
         reg.writebool('Never Change Protection', cbNeverChangeProtection.checked);
         SkipVirtualProtectEx:=cbNeverChangeProtection.checked;
+
+        reg.writebool('Always Force Load', cbAlwaysForceLoad.checked);
+        alwaysforceload:=cbAlwaysForceLoad.checked;
 
         {$ifdef privatebuild}
         reg.WriteBool('DoNotOpenProcessHandles', cbDontOpenHandle.Checked);

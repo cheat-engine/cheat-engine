@@ -11,7 +11,7 @@ uses unixporthelper, Assemblerunit, classes, symbolhandler, sysutils,
 {$endif}
 
 {$ifdef windows}
-uses jwawindows, windows, Assemblerunit, classes, LCLIntf,symbolhandler,
+uses jwawindows, windows, Assemblerunit, classes, LCLIntf,symbolhandler, symbolhandlerstructs,
      sysutils,dialogs,controls, CEFuncProc, NewKernelHandler ,plugin,
      ProcessHandlerUnit, lua, lualib, lauxlib, luaclass, commonTypeDefs;
 {$endif}

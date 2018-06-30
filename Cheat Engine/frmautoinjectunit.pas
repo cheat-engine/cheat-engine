@@ -8,7 +8,7 @@ uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ExtCtrls, Menus, CEFuncProc, StrUtils, types, ComCtrls, LResources,
   NewKernelHandler, SynEdit, SynHighlighterCpp, SynHighlighterAA, LuaSyntax, disassembler,
-  MainUnit2, Assemblerunit, autoassembler, symbolhandler, SynEditSearch, SynPluginMultiCaret,
+  MainUnit2, Assemblerunit, autoassembler, symbolhandler, symbolhandlerstructs, SynEditSearch, SynPluginMultiCaret,
   MemoryRecordUnit, tablist, customtypehandler, registry, SynGutterBase, SynEditMarks,
   luahandler, memscan, foundlisthelper, ProcessHandlerUnit, commonTypeDefs;
 

@@ -6,7 +6,7 @@ interface
 
 uses
   windows, Classes, SysUtils, forms, controls, StdCtrls, ExtCtrls, comctrls, graphics,
-  lmessages, menus,commctrl, symbolhandler, cefuncproc, newkernelhandler, math,
+  lmessages, menus,commctrl, symbolhandler, symbolhandlerstructs, cefuncproc, newkernelhandler, math,
   Clipbrd,dialogs, changelist, DebugHelper, debuggertypedefinitions, maps, contnrs,
   strutils, byteinterpreter, commonTypeDefs, lazutf8, lazutf16, lcltype;
 

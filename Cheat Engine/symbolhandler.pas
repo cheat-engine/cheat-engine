@@ -9,7 +9,7 @@ interface
 uses jwawindows, windows, classes,LCLIntf,imagehlp,{psapi,}sysutils, cefuncproc,
   newkernelhandler,syncobjs, SymbolListHandler, fgl, typinfo, cvconst, PEInfoFunctions,
   DotNetPipe, DotNetTypes, commonTypeDefs, math, LazUTF8, contnrs, LazFileUtils,
-  db, sqldb, sqlite3dyn, sqlite3conn, registry;
+  db, sqldb, sqlite3dyn, sqlite3conn, registry, symbolhandlerstructs;
 {$endif}
 
 {$ifdef unix}
@@ -36,55 +36,10 @@ type TMemoryregions = array of tmemoryregion;
   
 {$endif}
 
-type TUDSEnum=record
-  address: ptrUint;
-  allocsize: dword;
-  addressstring: pchar; //points to the string
-  doNotSave: boolean;
-end;
 
-type symexception=class(Exception);
-
-type
-  TDBStructInfo=class(TObject)
-    moduleid: integer;
-    typeid: integer;
-    length: integer;
-    callbackid: integer;
-  end;
-
-  TDBElementInfo=class (TObject)
-    offset: dword;
-    basetype: integer;
-    typeid: integer;
-    tag: TSymTagEnum;
-    vartype: TVariableType;
-  end;
-
-
-type TUserdefinedsymbol=record
-  symbolname: string;
-  address: ptrUint;
-  addressstring: string;
-
-  allocsize: dword; //if it is a global alloc, allocsize>0
-  processid: dword; //the processid this memory was allocated to (in case of processswitches)
-  doNotSave: boolean; //if true this will cause this entry to not be saved when the user saves the table
-end;
-
-type TModuleInfo=record
-  modulename: string;
-  modulepath: string;
-  isSystemModule: boolean;
-  baseaddress: ptrUint;
-  basesize: dword;
-  is64bitmodule: boolean;
-  symbolsLoaded: boolean; //true if the api symbols have been handled
-  hasStructInfo: boolean;
-  databaseModuleID: dword;
-end;
 
 type TUserdefinedSymbolCallback=procedure;
+
 
 type
   TSymHandler=class;
@@ -1926,10 +1881,28 @@ begin
 end;
 
 procedure TSymhandler.reinitialize(force: boolean=false);
+var i: integer;
 begin
   Log('TSymhandler.reinitialize');
   if loadmodulelist or force then //if loadmodulelist returns true it has detected a change in the previous modulelist (baseaddresschange or new/deleted module)
   begin
+    if force then
+    begin
+      i:=0;
+      symbollistsMREW.Beginwrite;
+      while i<length(symbollists) do
+      begin
+        if (symbollists[i].pid<>0) and (symbollists[i].pid<>processid) then
+        begin
+          RemoveSymbolList(symbollists[i]);
+          continue;
+        end;
+        inc(i);
+      end;
+
+      symbollistsMREW.EndWrite;
+    end;
+
     if fetchSymbols then
     begin
       Log('loadmodulelist or force was true');
@@ -2560,6 +2533,8 @@ var si: PCESymbolInfo;
     symbolname: string;
     i: integer;
     params: string;
+
+    sl: array of TSymbolListHandler;
 begin
   list.clear;
   if getmodulebyaddress(address, mi) then
@@ -2593,7 +2568,7 @@ begin
     symbollistsMREW.Beginread;
     for i:=0 to length(symbollists)-1 do
     begin
-      si:=symbollist.FindFirstSymbolFromBase(mi.baseaddress);
+      si:=symbollists[i].FindFirstSymbolFromBase(mi.baseaddress);
       while (si<>nil) and inrangeq(si.address, mi.baseaddress, mi.baseaddress+mi.basesize) do
       begin
         symbolname:=si.originalstring;
@@ -2707,6 +2682,17 @@ begin
       break;
     end;
   modulelistMREW.endread;
+
+  if not result then
+  begin
+    symbollistsMREW.beginread;
+    for i:=0 to length(symbollists)-1 do
+    begin
+      result:=symbollists[i].getModuleByAddress(address, mi);
+      if result then break;
+    end;
+    symbollistsMREW.endread;
+  end;
 end;
 
 function TSymhandler.getmodulebyname(modulename: string; var mi: TModuleInfo):BOOLEAN;
@@ -2724,7 +2710,6 @@ begin
     moduleNameToFind:=copy(moduleNameToFind, 2, length(moduleNameToFind)-2);
   end;
 
-
   modulelistMREW.beginread;
 
   for i:=0 to modulelistpos-1 do
@@ -2737,7 +2722,19 @@ begin
       break;
     end;
   end;
+
   modulelistMREW.endread;
+  if not result then
+  begin
+    symbollistsMREW.beginread;
+    for i:=0 to length(symbollists)-1 do
+    begin
+      result:=symbollists[i].getModuleByName(moduleNameToFind,mi);
+      if result then break;
+    end;
+    symbollistsMREW.Endread;
+  end;
+
 end;
 
 function TSymHandler.getsearchpath:string;

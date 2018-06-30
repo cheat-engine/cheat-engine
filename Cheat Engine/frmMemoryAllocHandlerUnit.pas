@@ -9,8 +9,8 @@ interface
 
 uses
   windows, LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, symbolhandler, CEFuncProc,NewKernelHandler, autoassembler,
-  ExtCtrls, ComCtrls, stacktrace2, math, Menus, syncobjs, Contnrs, circularbuffer,
+  Dialogs, StdCtrls, symbolhandler, symbolhandlerstructs, CEFuncProc,NewKernelHandler,
+  autoassembler, ExtCtrls, ComCtrls, stacktrace2, math, Menus, syncobjs, Contnrs, circularbuffer,
   LResources, commonTypeDefs;
 
 

@@ -28,7 +28,7 @@ hypermode,
 {$endif}
 {$endif}
  math,syncobjs, shellapi, ProcessHandlerUnit, controls, shlobj, ActiveX, strutils,
-commontypedefs, Win32Int, maps;
+commontypedefs, Win32Int, maps, lua, lualib, lauxlib;
 
 
 const
@@ -340,10 +340,10 @@ implementation
 
 
 
-uses disassembler,CEDebugger,debughelper, symbolhandler,frmProcessWatcherUnit,
-     kerneldebugger, formsettingsunit, MemoryBrowserFormUnit, savedscanhandler,
-     networkInterface, networkInterfaceApi, vartypestrings, processlist, Parsers,
-     Globals, xinput;
+uses disassembler,CEDebugger,debughelper, symbolhandler, symbolhandlerstructs,
+     frmProcessWatcherUnit, kerneldebugger, formsettingsunit, MemoryBrowserFormUnit,
+     savedscanhandler, networkInterface, networkInterfaceApi, vartypestrings,
+     processlist, Parsers, Globals, xinput, luahandler, LuaClass, LuaObject;
 
 
 resourcestring
@@ -713,6 +713,47 @@ begin
 end;
 
 
+procedure ForceLoadModule(dllname: string; functiontocall: string=''; callreason: string='');
+var
+  s: string;
+  functionloc: ptruint;
+  tid: dword;
+  e: boolean;
+begin
+  try
+    lua_getglobal(Luavm, 'loadModule');
+    lua_pushstring(Luavm,dllname);
+    if (lua_pcall(Luavm,1,2,0)<>0) then
+      raise exception.create('didn''t even run');
+
+    if lua_isnil(Luavm,-2) then
+    begin
+      s:=Lua_ToString(Luavm,-1);
+      lua_pop(Luavm,2);
+      raise exception.create(s);
+    end
+    else
+    begin
+      lua_pop(Luavm,2);
+
+      if functiontocall<>'' then
+      begin
+        functionloc:=symhandler.getAddressFromName(functiontocall, false, e);
+        if not e then
+          CreateRemoteThread(processhandle,nil,0,pointer(functionloc),nil,0,tid);;
+      end;
+    end;
+  except
+    on e:exception do
+    begin
+      s:='Force load module failed:'+e.message;
+      if callreason<>'' then
+        raise exception.create(callreason+#13#10+s)
+      else
+        raise exception.create(s);
+    end;
+  end;
+end;
 
 Procedure InjectDll(dllname: string; functiontocall: string='');
 var LoadLibraryPtr: pointer;
@@ -738,158 +779,102 @@ var LoadLibraryPtr: pointer;
     threadhandle: thandle;
 
     c: TCEConnection;
+
+    ml: TModuleLoader;
+
+    errs: string;
+    serr: boolean;
 begin
-
-  c:=getConnection;
-  if (c<>nil) and (c.isNetworkHandle(processhandle)) then //network loadModule
-    c.loadModule(processhandle, dllname)
-  else
+  if alwaysforceload then
   begin
-    //todo: Change this to a full AA script (but make sure not to call injectdll in there :)  )
-    h:=LoadLibrary('Kernel32.dll');
-    if h=0 then raise exception.Create(rsNoKernel32DllLoaded);
+    forceLoadModule(dllname,functiontocall);
+    exit;
+  end;
 
-    LoadLibraryPtr:=nil;
-    GetProcAddressPtr:=nil;
-    injectionlocation:=nil;
+  try
+    c:=getConnection;
+    if (c<>nil) and (c.isNetworkHandle(processhandle)) then //network loadModule
+      c.loadModule(processhandle, dllname)
+    else
+    begin
+      //todo: Change this to a full AA script (but make sure not to call injectdll in there :)  )
+      h:=LoadLibrary('Kernel32.dll');
+      if h=0 then raise exception.Create(rsNoKernel32DllLoaded);
 
-    try
-      try
-        getprocaddressptr:=pointer(symhandler.getAddressFromName('Kernel32!GetProcAddress',true));
-      except
-{$ifdef cpu64}
-        if not processhandler.is64Bit then
-          raise exception.create(rsCEFPDllInjectionFailedSymbolLookupError);
-{$endif}
-        GetProcAddressPtr:=GetProcAddress(h,'GetProcAddress');
-      end;
-
-      if getprocaddressptr=nil then raise exception.Create(rsGetProcAddressNotFound);
+      LoadLibraryPtr:=nil;
+      GetProcAddressPtr:=nil;
+      injectionlocation:=nil;
 
       try
-        LoadLibraryPtr:=pointer(symhandler.getAddressFromName('Kernel32!LoadLibraryA',true));
-      except
-        //failed getting the address of LoadLibraryA, use old method
-        {$ifdef cpu64}
+        try
+          getprocaddressptr:=pointer(symhandler.getAddressFromName('Kernel32!GetProcAddress',true));
+        except
+  {$ifdef cpu64}
           if not processhandler.is64Bit then
             raise exception.create(rsCEFPDllInjectionFailedSymbolLookupError);
-        {$endif}
-        LoadLibraryPtr:=GetProcAddress(h,'LoadLibraryA');
-      end;
+  {$endif}
+          GetProcAddressPtr:=GetProcAddress(h,'GetProcAddress');
+        end;
+
+        if getprocaddressptr=nil then raise exception.Create(rsGetProcAddressNotFound);
+
+        try
+          LoadLibraryPtr:=pointer(symhandler.getAddressFromName('Kernel32!LoadLibraryA',true));
+        except
+          //failed getting the address of LoadLibraryA, use old method
+          {$ifdef cpu64}
+            if not processhandler.is64Bit then
+              raise exception.create(rsCEFPDllInjectionFailedSymbolLookupError);
+          {$endif}
+          LoadLibraryPtr:=GetProcAddress(h,'LoadLibraryA');
+        end;
 
 
-      if LoadLibraryptr=nil then raise exception.Create(rsLoadLibraryANotFound);
+        if LoadLibraryptr=nil then raise exception.Create(rsLoadLibraryANotFound);
 
-      injectionlocation:=VirtualAllocEx(processhandle,nil,4096,MEM_RESERVE or MEM_COMMIT,PAGE_EXECUTE_READWRITE);
+        injectionlocation:=VirtualAllocEx(processhandle,nil,4096,MEM_RESERVE or MEM_COMMIT,PAGE_EXECUTE_READWRITE);
 
-      if injectionlocation=nil then raise exception.Create(rsFailedToAllocateMemory);
+        if injectionlocation=nil then raise exception.Create(rsFailedToAllocateMemory);
 
-      dlllocation:=dllname;
+        dlllocation:=dllname;
 
-      position:=ptrUint(injectionlocation);
-      position2:=0;
-      copymemory(@inject[0],pchar(dllLocation+#0),length(dllLocation)+1);
-      inc(position,length(dllLocation)+1);
-      inc(position2,length(dllLocation)+1);
+        position:=ptrUint(injectionlocation);
+        position2:=0;
+        copymemory(@inject[0],pchar(dllLocation+#0),length(dllLocation)+1);
+        inc(position,length(dllLocation)+1);
+        inc(position2,length(dllLocation)+1);
 
-      functionloc:=position;
-      copymemory(@inject[position2],pchar(functiontocall+#0),length(functiontocall)+1);
-      inc(position,length(functiontocall)+1);
-      inc(position2,length(functiontocall)+1);
-      startaddress:=position;
+        functionloc:=position;
+        copymemory(@inject[position2],pchar(functiontocall+#0),length(functiontocall)+1);
+        inc(position,length(functiontocall)+1);
+        inc(position2,length(functiontocall)+1);
+        startaddress:=position;
 
-      if processhandler.is64bit then
-      begin
-        //at entry stack is unaligned (has an 8 byte return value, so sub rsp,8 to set alignment. After that, just the usual)
-        //loadlibrary(cehook);
-        assemble('SUB RSP,#40',position,outp);
-        copymemory(@inject[position2],outp,length(outp));
-        inc(position,length(outp));
-        inc(position2,length(outp));
-
-        assemble('MOV RCX,'+IntToHex(ptrUint(injectionlocation),8),position,outp);
-        copymemory(@inject[position2],outp,length(outp));
-        inc(position,length(outp));
-        inc(position2,length(outp));
-
-      end
-      else
-      begin
-        //loadlibrary(cehook);
-        assemble('PUSH '+IntToHex(ptrUint(injectionlocation),8),position,outp);
-        copymemory(@inject[position2],outp,length(outp));
-        inc(position,length(outp));
-        inc(position2,length(outp));
-      end;
-
-      assemble('CALL '+IntToHex(ptrUint(LoadLibraryPtr),8),position,outp);
-      copymemory(@inject[position2],outp,length(outp));
-      inc(position,length(outp));
-      inc(position2,length(outp));
-
-      if processhandler.is64bit then
-      begin
-        assemble('ADD RSP,#40',position,outp);
-        copymemory(@inject[position2],outp,length(outp));
-        inc(position,length(outp));
-        inc(position2,length(outp));
-      end;
-
-      //safetycode, test if the dll was actually loaded and skip if not
-      if processhandler.is64bit then
-        assemble('TEST RAX,RAX',position,outp)
-      else
-        assemble('TEST EAX,EAX',position,outp);
-      copymemory(@inject[position2],outp,length(outp));
-      inc(position,length(outp));
-      inc(position2,length(outp));
-
-      assemble('JNE '+inttohex(position+3+5,8),position,outp); //jump over the ret
-      copymemory(@inject[position2],outp,length(outp));
-      inc(position,length(outp));
-      inc(position2,length(outp));
-
-      assemble('MOV EAX,2',position,outp); //exitcode=2
-      copymemory(@inject[position2],outp,length(outp));
-      inc(position,length(outp));
-      inc(position2,length(outp));
-
-      assemble('RET',position,outp);
-      copymemory(@inject[position2],outp,length(outp));
-      inc(position,length(outp));
-      inc(position2,length(outp));
-
-
-      if functiontocall<>'' then
-      begin
-        //getprocaddress
         if processhandler.is64bit then
         begin
+          //at entry stack is unaligned (has an 8 byte return value, so sub rsp,8 to set alignment. After that, just the usual)
           //loadlibrary(cehook);
           assemble('SUB RSP,#40',position,outp);
           copymemory(@inject[position2],outp,length(outp));
           inc(position,length(outp));
           inc(position2,length(outp));
 
-          assemble('MOV RCX,'+IntToHex(ptrUint(functionloc),8),position,outp);
+          assemble('MOV RCX,'+IntToHex(ptrUint(injectionlocation),8),position,outp);
           copymemory(@inject[position2],outp,length(outp));
           inc(position,length(outp));
           inc(position2,length(outp));
+
         end
         else
         begin
-
-          assemble('PUSH '+IntToHex(functionloc,8),position,outp);
-          copymemory(@inject[position2],outp,length(outp));
-          inc(position,length(outp));
-          inc(position2,length(outp));
-
-          assemble('PUSH EAX',position,outp);
+          //loadlibrary(cehook);
+          assemble('PUSH '+IntToHex(ptrUint(injectionlocation),8),position,outp);
           copymemory(@inject[position2],outp,length(outp));
           inc(position,length(outp));
           inc(position2,length(outp));
         end;
-        assemble('CALL '+IntToHex(ptrUint(GetProcAddressPtr),8),position,outp);
+
+        assemble('CALL '+IntToHex(ptrUint(LoadLibraryPtr),8),position,outp);
         copymemory(@inject[position2],outp,length(outp));
         inc(position,length(outp));
         inc(position2,length(outp));
@@ -902,21 +887,21 @@ begin
           inc(position2,length(outp));
         end;
 
+        //safetycode, test if the dll was actually loaded and skip if not
         if processhandler.is64bit then
           assemble('TEST RAX,RAX',position,outp)
         else
           assemble('TEST EAX,EAX',position,outp);
-
         copymemory(@inject[position2],outp,length(outp));
         inc(position,length(outp));
         inc(position2,length(outp));
 
-        assemble('JNE '+inttohex(position+3+5,8),position,outp);
+        assemble('JNE '+inttohex(position+3+5,8),position,outp); //jump over the ret
         copymemory(@inject[position2],outp,length(outp));
         inc(position,length(outp));
         inc(position2,length(outp));
 
-        assemble('MOV EAX,3',position,outp); //exitcode=3
+        assemble('MOV EAX,2',position,outp); //exitcode=2
         copymemory(@inject[position2],outp,length(outp));
         inc(position,length(outp));
         inc(position2,length(outp));
@@ -927,112 +912,183 @@ begin
         inc(position2,length(outp));
 
 
-        if processhandler.is64bit then
+        if functiontocall<>'' then
         begin
-          //setup stack
-          assemble('SUB RSP,#40',position,outp);
-          copymemory(@inject[position2],outp,length(outp));
-          inc(position,length(outp));
-          inc(position2,length(outp));
-        end;
-
-        //call function
-        if processhandler.is64bit then
-          assemble('CALL RAX',position,outp)
-        else
-          assemble('CALL EAX',position,outp);
-
-        if processhandler.is64bit then
-        begin
-          //setup stack
-          assemble('ADD RSP,#40',position,outp);
-          copymemory(@inject[position2],outp,length(outp));
-          inc(position,length(outp));
-          inc(position2,length(outp));
-        end;
-
-        copymemory(@inject[position2],outp,length(outp));
-        inc(position,length(outp));
-        inc(position2,length(outp));
-      end;
-
-
-      assemble('MOV EAX,1',position,outp); //causes the exitcode of the thread be 1
-      copymemory(@inject[position2],outp,length(outp));
-      inc(position,length(outp));
-      inc(position2,length(outp));
-
-      assemble('RET',position,outp);
-      copymemory(@inject[position2],outp,length(outp));
-      inc(position,length(outp));
-      inc(position2,length(outp));
-
-
-
-
-      //call the routine
-
-      if not writeprocessmemory(processhandle, injectionlocation, @inject[0], position2, x) then raise exception.Create(rsFailedToInjectTheDllLoader);
-
-
-      if useapctoinjectdll then
-      begin
-        //suspend , message, resume is needed to prevent a crash when it is in a message loop
-        //ntsuspendprocess(processhandle);
-        x:=getathreadid(processid);
-        PostThreadMessage(x,wm_paint,0,0);
-        CreateRemoteAPC(x,pointer(startaddress));
-        PostThreadMessage(x,wm_paint,0,0);
-       // ntresumeprocess(processhandle);
-
-        sleep(1000);
-      end
-      else
-      begin
-        threadhandle:=createremotethread(processhandle,nil,0,pointer(startaddress),nil,0,tid);
-        if threadhandle=0 then raise exception.Create(rsFailedToExecuteTheDllLoader);
-
-        counter:=10000 div 10;
-        while (waitforsingleobject(threadhandle,10)=WAIT_TIMEOUT) and (counter>0) do
-        begin
-          if GetCurrentThreadID = MainThreadID then
-            CheckSynchronize; //handle sychronize calls while it's waiting
-
-          dec(counter);
-        end;
-
-        try
-
-
-          if (counter=0) then
-            raise exception.Create(rsTheInjectionThreadTookLongerThan10SecondsToExecute);
-
-          if getexitcodethread(threadhandle,res) then
+          //getprocaddress
+          if processhandler.is64bit then
           begin
-            case res of
-              1: ;//success
-              2: raise exception.Create(utf8toansi(rsFailedInjectingTheDLL));
-              3: raise exception.Create(utf8toansi(rsFailedExecutingTheFunctionOfTheDll));
-              else raise exception.Create(utf8toansi(rsUnknownErrorDuringInjection));
-            end;
+            //loadlibrary(cehook);
+            assemble('SUB RSP,#40',position,outp);
+            copymemory(@inject[position2],outp,length(outp));
+            inc(position,length(outp));
+            inc(position2,length(outp));
+
+            assemble('MOV RCX,'+IntToHex(ptrUint(functionloc),8),position,outp);
+            copymemory(@inject[position2],outp,length(outp));
+            inc(position,length(outp));
+            inc(position2,length(outp));
           end
           else
           begin
-            OutputDebugString('failure to get the exitcode of the thread.'+inttostr(GetLastError));
-          end; //else unsure, did it work or not , or is it crashing?
+
+            assemble('PUSH '+IntToHex(functionloc,8),position,outp);
+            copymemory(@inject[position2],outp,length(outp));
+            inc(position,length(outp));
+            inc(position2,length(outp));
+
+            assemble('PUSH EAX',position,outp);
+            copymemory(@inject[position2],outp,length(outp));
+            inc(position,length(outp));
+            inc(position2,length(outp));
+          end;
+          assemble('CALL '+IntToHex(ptrUint(GetProcAddressPtr),8),position,outp);
+          copymemory(@inject[position2],outp,length(outp));
+          inc(position,length(outp));
+          inc(position2,length(outp));
+
+          if processhandler.is64bit then
+          begin
+            assemble('ADD RSP,#40',position,outp);
+            copymemory(@inject[position2],outp,length(outp));
+            inc(position,length(outp));
+            inc(position2,length(outp));
+          end;
+
+          if processhandler.is64bit then
+            assemble('TEST RAX,RAX',position,outp)
+          else
+            assemble('TEST EAX,EAX',position,outp);
+
+          copymemory(@inject[position2],outp,length(outp));
+          inc(position,length(outp));
+          inc(position2,length(outp));
+
+          assemble('JNE '+inttohex(position+3+5,8),position,outp);
+          copymemory(@inject[position2],outp,length(outp));
+          inc(position,length(outp));
+          inc(position2,length(outp));
+
+          assemble('MOV EAX,3',position,outp); //exitcode=3
+          copymemory(@inject[position2],outp,length(outp));
+          inc(position,length(outp));
+          inc(position2,length(outp));
+
+          assemble('RET',position,outp);
+          copymemory(@inject[position2],outp,length(outp));
+          inc(position,length(outp));
+          inc(position2,length(outp));
 
 
-        finally
-          closehandle(threadhandle);
+          if processhandler.is64bit then
+          begin
+            //setup stack
+            assemble('SUB RSP,#40',position,outp);
+            copymemory(@inject[position2],outp,length(outp));
+            inc(position,length(outp));
+            inc(position2,length(outp));
+          end;
+
+          //call function
+          if processhandler.is64bit then
+            assemble('CALL RAX',position,outp)
+          else
+            assemble('CALL EAX',position,outp);
+
+          if processhandler.is64bit then
+          begin
+            //setup stack
+            assemble('ADD RSP,#40',position,outp);
+            copymemory(@inject[position2],outp,length(outp));
+            inc(position,length(outp));
+            inc(position2,length(outp));
+          end;
+
+          copymemory(@inject[position2],outp,length(outp));
+          inc(position,length(outp));
+          inc(position2,length(outp));
         end;
+
+
+        assemble('MOV EAX,1',position,outp); //causes the exitcode of the thread be 1
+        copymemory(@inject[position2],outp,length(outp));
+        inc(position,length(outp));
+        inc(position2,length(outp));
+
+        assemble('RET',position,outp);
+        copymemory(@inject[position2],outp,length(outp));
+        inc(position,length(outp));
+        inc(position2,length(outp));
+
+
+
+
+        //call the routine
+
+        if not writeprocessmemory(processhandle, injectionlocation, @inject[0], position2, x) then raise exception.Create(rsFailedToInjectTheDllLoader);
+
+
+        if useapctoinjectdll then
+        begin
+          //suspend , message, resume is needed to prevent a crash when it is in a message loop
+          //ntsuspendprocess(processhandle);
+          x:=getathreadid(processid);
+          PostThreadMessage(x,wm_paint,0,0);
+          CreateRemoteAPC(x,pointer(startaddress));
+          PostThreadMessage(x,wm_paint,0,0);
+         // ntresumeprocess(processhandle);
+
+          sleep(1000);
+        end
+        else
+        begin
+          threadhandle:=createremotethread(processhandle,nil,0,pointer(startaddress),nil,0,tid);
+          if threadhandle=0 then raise exception.Create(rsFailedToExecuteTheDllLoader);
+
+          counter:=10000 div 10;
+          while (waitforsingleobject(threadhandle,10)=WAIT_TIMEOUT) and (counter>0) do
+          begin
+            if GetCurrentThreadID = MainThreadID then
+              CheckSynchronize; //handle sychronize calls while it's waiting
+
+            dec(counter);
+          end;
+
+          try
+
+
+            if (counter=0) then
+              raise exception.Create(rsTheInjectionThreadTookLongerThan10SecondsToExecute);
+
+            if getexitcodethread(threadhandle,res) then
+            begin
+              case res of
+                1: ;//success
+                2: raise exception.Create(utf8toansi(rsFailedInjectingTheDLL));
+                3: raise exception.Create(utf8toansi(rsFailedExecutingTheFunctionOfTheDll));
+                else raise exception.Create(utf8toansi(rsUnknownErrorDuringInjection));
+              end;
+            end
+            else
+            begin
+              OutputDebugString('failure to get the exitcode of the thread.'+inttostr(GetLastError));
+            end; //else unsure, did it work or not , or is it crashing?
+
+
+          finally
+            closehandle(threadhandle);
+          end;
+        end;
+      finally
+        FreeLibrary(h);
+
+        if injectionlocation<>nil then
+          virtualfreeex(processhandle,injectionlocation,0,MEM_RELEASE);
       end;
-    finally
-      FreeLibrary(h);
 
-      if injectionlocation<>nil then
-        virtualfreeex(processhandle,injectionlocation,0,MEM_RELEASE);
     end;
-
+  except
+    on e:exception do
+      forceLoadModule(dllname, functiontocall, 'dllInject failed: '+e.message);
   end;
 end;
 

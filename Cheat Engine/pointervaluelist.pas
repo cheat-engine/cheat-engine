@@ -13,7 +13,7 @@ result: tree/map was slower than my own non threadsafe implementation. After ini
 interface
 
 uses windows, LCLIntf, dialogs, SysUtils, classes, ComCtrls, CEFuncProc, NewKernelHandler,
-     symbolhandler, math,bigmemallochandler, maps;
+     symbolhandler, symbolhandlerstructs, math,bigmemallochandler, maps;
 
 const scandataversion=1;
 

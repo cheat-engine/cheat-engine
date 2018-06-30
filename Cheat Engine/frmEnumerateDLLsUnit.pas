@@ -7,8 +7,8 @@ interface
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs,CEFuncProc,imagehlp, StdCtrls, ComCtrls, ExtCtrls, ActnList,
-  Menus, LResources,symbolhandler, FindDialogFix, commonTypeDefs, strutils,
-  ProcessHandlerUnit;
+  Menus, LResources,symbolhandler, symbolhandlerstructs, FindDialogFix,
+  commonTypeDefs, strutils, ProcessHandlerUnit;
 
 type tenumthread=class(tthread)
   public
@@ -143,7 +143,6 @@ begin
         begin
           inc(symbolcount);
           symbolname[symbolcount]:=IntToHex(ptruint(sl.objects[j]),8)+' - '+sl[j];
-
 
           if canceled then break;
 

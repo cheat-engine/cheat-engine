@@ -287,7 +287,7 @@ implementation
 
 {$R *.lfm}
 
-uses symbolhandler, frmSelectionlistunit, cpuidUnit, MemoryBrowserFormUnit,
+uses symbolhandler, symbolhandlerstructs, frmSelectionlistunit, cpuidUnit, MemoryBrowserFormUnit,
   AdvancedOptionsUnit, vmxfunctions;
 
 resourcestring

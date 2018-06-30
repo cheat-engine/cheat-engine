@@ -10,8 +10,8 @@ uses unixporthelper, sysutils, byteinterpreter, symbolhandler, NewKernelHandler,
 {$endif}
 
 {$ifdef windows}
-uses windows, imagehlp,sysutils,LCLIntf,byteinterpreter, symbolhandler,CEFuncProc,
-  NewKernelHandler, ProcessHandlerUnit, LastDisassembleData, disassemblerarm,
+uses windows, imagehlp,sysutils,LCLIntf,byteinterpreter, symbolhandler, symbolhandlerstructs,
+  CEFuncProc, NewKernelHandler, ProcessHandlerUnit, LastDisassembleData, disassemblerarm,
   commonTypeDefs, maps, math,vextypedef;
 {$endif}
 

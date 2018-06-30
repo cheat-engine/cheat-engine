@@ -79,11 +79,11 @@ object formSettings: TformSettings
           Width = 643
           HorzScrollBar.Page = 494
           HorzScrollBar.Tracking = True
-          VertScrollBar.Page = 580
+          VertScrollBar.Page = 598
           VertScrollBar.Tracking = True
           Align = alClient
           ClientHeight = 598
-          ClientWidth = 639
+          ClientWidth = 622
           TabOrder = 0
           OnClick = ScrollBox1Click
           object Label11: TLabel
@@ -93,7 +93,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrCenter
             Left = 234
             Height = 15
-            Top = 507
+            Top = 526
             Width = 16
             Caption = 'ms'
             ParentColor = False
@@ -105,7 +105,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrCenter
             Left = 234
             Height = 15
-            Top = 532
+            Top = 551
             Width = 16
             Caption = 'ms'
             ParentColor = False
@@ -116,7 +116,7 @@ object formSettings: TformSettings
             AnchorSideRight.Control = EditUpdateInterval
             Left = 97
             Height = 15
-            Top = 507
+            Top = 526
             Width = 80
             Anchors = [akTop, akRight]
             BorderSpacing.Right = 4
@@ -129,7 +129,7 @@ object formSettings: TformSettings
             AnchorSideRight.Control = EditFreezeInterval
             Left = 102
             Height = 15
-            Top = 532
+            Top = 551
             Width = 75
             Anchors = [akTop, akRight]
             BorderSpacing.Right = 4
@@ -142,7 +142,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrCenter
             Left = 0
             Height = 15
-            Top = 557
+            Top = 576
             Width = 177
             Caption = 'Found address list update interval'
             ParentColor = False
@@ -154,7 +154,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrCenter
             Left = 234
             Height = 15
-            Top = 557
+            Top = 576
             Width = 16
             Caption = 'ms'
             ParentColor = False
@@ -165,7 +165,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrCenter
             Left = 0
             Height = 15
-            Top = 463
+            Top = 482
             Width = 218
             Caption = 'Automatically attach to processes named'
             ParentColor = False
@@ -177,7 +177,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrCenter
             Left = 368
             Height = 15
-            Top = 463
+            Top = 482
             Width = 126
             BorderSpacing.Left = 5
             Caption = '(Seperate entries with ; )'
@@ -215,7 +215,7 @@ object formSettings: TformSettings
             Left = 181
             Height = 23
             Hint = 'The number of milliseconds that Cheat Engine will wait before refreshing the list of addresses'
-            Top = 503
+            Top = 522
             Width = 53
             ParentShowHint = False
             ShowHint = True
@@ -229,7 +229,7 @@ object formSettings: TformSettings
             Left = 181
             Height = 23
             Hint = 'The number of milliseconds that Cheat Engine will wait before resetting the frozen addresses to their original value.'
-            Top = 528
+            Top = 547
             Width = 53
             BorderSpacing.Top = 2
             ParentShowHint = False
@@ -239,19 +239,19 @@ object formSettings: TformSettings
           end
           object GroupBox1: TGroupBox
             AnchorSideLeft.Control = ScrollBox1
-            AnchorSideTop.Control = cbNeverChangeProtection
+            AnchorSideTop.Control = cbAlwaysForceLoad
             AnchorSideTop.Side = asrBottom
             AnchorSideRight.Control = ScrollBox1
             AnchorSideRight.Side = asrBottom
             Left = 0
             Height = 60
-            Top = 396
-            Width = 639
+            Top = 415
+            Width = 622
             Anchors = [akTop, akLeft, akRight]
             AutoSize = True
             Caption = 'Address list specific'
             ClientHeight = 40
-            ClientWidth = 635
+            ClientWidth = 618
             TabOrder = 4
             object cbShowAsSigned: TCheckBox
               AnchorSideLeft.Control = GroupBox1
@@ -301,7 +301,7 @@ object formSettings: TformSettings
             Left = 181
             Height = 23
             Hint = 'The number of milliseconds that Cheat Engine will wait before refreshing the list of found addresses'
-            Top = 553
+            Top = 572
             Width = 53
             BorderSpacing.Left = 4
             BorderSpacing.Top = 2
@@ -351,7 +351,7 @@ object formSettings: TformSettings
             Left = 220
             Height = 23
             Hint = 'Type the name of the process you want to automatically open. Note: Only works when NO process has been opened yet'
-            Top = 459
+            Top = 478
             Width = 143
             BorderSpacing.Left = 2
             BorderSpacing.Top = 3
@@ -365,7 +365,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrBottom
             Left = 0
             Height = 19
-            Top = 484
+            Top = 503
             Width = 361
             BorderSpacing.Top = 2
             Caption = 'Even autoattach when another process has already been selected'
@@ -620,10 +620,27 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrBottom
             Left = 0
             Height = 19
+            Hint = 'When enabled CE will never call "VirtualProtectEx" before it changes memory. This means that read-only memory can not be changed then.  (code is usually read only)'
             Top = 377
             Width = 271
             Caption = 'Never change memory protection when editing'
+            ParentShowHint = False
+            ShowHint = True
             TabOrder = 24
+          end
+          object cbAlwaysForceLoad: TCheckBox
+            AnchorSideLeft.Control = cbNeverChangeProtection
+            AnchorSideTop.Control = cbNeverChangeProtection
+            AnchorSideTop.Side = asrBottom
+            Left = 0
+            Height = 19
+            Hint = 'When enabled CE''s internal injectDLL routine will not use loadlibrary in the target at all and always use manual mapping to load the dll'#13#10'(When disabled CE will still use manual mapping when normal dll injection fails)'
+            Top = 396
+            Width = 162
+            Caption = 'Always force load modules'
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 25
           end
         end
       end

@@ -5,8 +5,9 @@ unit VEHDebugger;
 interface
 
 uses
-  jwaNtStatus, Windows, Classes, SysUtils,symbolhandler,VEHDebugSharedMem,cefuncproc,
-  autoassembler,newkernelhandler,DebuggerInterface, Clipbrd;
+  jwaNtStatus, Windows, Classes, SysUtils,symbolhandler, symbolhandlerstructs,
+  VEHDebugSharedMem,cefuncproc, autoassembler,newkernelhandler,DebuggerInterface,
+  Clipbrd;
 
 type
   TVEHDebugInterface=class(TDebuggerInterface)
@@ -318,13 +319,14 @@ begin
 end;
 
 function TVEHDebugInterface.DebugActiveProcess(dwProcessId: DWORD): WINBOOL;
-var s: tstringlist;
-e: integer;
-prefix: string;
-testptr: ptruint;
-mi: tmoduleinfo;
-
-cfm: THandle;
+var
+  s: tstringlist;
+  e: integer;
+  prefix: string;
+  testptr: ptruint;
+  mi: tmoduleinfo;
+  cfm: THandle;
+  err: boolean;
 begin
   try
     processhandler.processid:=dwProcessID;
@@ -405,9 +407,13 @@ begin
 
     symhandler.waitforsymbolsloaded(true,'kernel32.dll');
 
-    try
-      InjectDll(cheatenginedir+'vehdebug'+prefix+'.dll');
-    except
+    testptr:=symhandler.getAddressFromName('"vehdebug'+prefix+'.InitializeVEH"',false,err);
+    if err or (testptr=0) then
+    begin
+      try
+        InjectDll(cheatenginedir+'vehdebug'+prefix+'.dll');
+      except
+      end;
     end;
     symhandler.reinitialize;
     symhandler.waitforsymbolsloaded(true,'vehdebug'+prefix+'.dll');

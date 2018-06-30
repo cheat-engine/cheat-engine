@@ -8,7 +8,7 @@ This unit could use a big update
 interface
 
 uses
-  jwawindows, windows, symbolhandler,{tlhelp32,}LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
+  jwawindows, windows, symbolhandler,symbolhandlerstructs,{tlhelp32,}LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Buttons,CEDebugger, Menus,CEFuncProc, ExtCtrls,disassembler,
   SyncObjs,registry, ComCtrls, LResources,NewKernelHandler{$ifdef windows},win32proc{$endif};
 

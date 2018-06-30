@@ -85,6 +85,7 @@ implementation
 
 uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   formsettingsunit, MemoryRecordUnit, debuggertypedefinitions, symbolhandler,
+  symbolhandlerstructs,
   frmautoinjectunit, simpleaobscanner, addresslist, memscan, foundlisthelper,
   cesupport, DBK32functions, sharedMemory, disassemblerComments, disassembler,
   LuaCanvas, LuaPen, LuaFont, LuaBrush, LuaPicture, LuaMenu, LuaDebug, LuaThread,
@@ -10827,6 +10828,7 @@ begin
     initializeLuaInternet;
     initializeLuaCustomType;
     initializeLuaSQL;
+    initializeLuaModuleLoader;
 
 
 

@@ -182,9 +182,9 @@ resourcestring
 
 implementation
 
-uses MainUnit, mainunit2, symbolhandler, LuaHandler, formsettingsunit,
-     frmExeTrainerGeneratorUnit, trainergenerator, ProcessHandlerUnit, parsers,
-     feces, askToRunLuaScript;
+uses MainUnit, mainunit2, symbolhandler, symbolhandlerstructs, LuaHandler,
+     formsettingsunit, frmExeTrainerGeneratorUnit, trainergenerator,
+     ProcessHandlerUnit, parsers, feces, askToRunLuaScript;
 
 
 

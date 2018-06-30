@@ -11,7 +11,7 @@ procedure initializeLuaDissectCode;
 
 implementation
 
-uses DissectCodeThread, luahandler, LuaClass, LuaObject, symbolhandler,
+uses DissectCodeThread, luahandler, LuaClass, LuaObject, symbolhandler, symbolhandlerstructs,
   newkernelhandler, ProcessHandlerUnit;
 
 resourcestring

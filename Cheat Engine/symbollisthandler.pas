@@ -10,7 +10,7 @@ interface
 
 {$ifdef windows}
 uses
-  windows, Classes, SysUtils, AvgLvlTree, math, fgl, cvconst, syncobjs;
+  windows, Classes, SysUtils, AvgLvlTree, math, fgl, cvconst, syncobjs, symbolhandlerstructs;
 {$endif}
 
 {$ifdef unix}
@@ -107,6 +107,7 @@ type
     StringToAddress: TAvgLvlTree;
 
     fExtraSymbolDataList: TExtraSymbolDataList;
+    fPID: dword;
     function A2SCheck(Tree: TAvgLvlTree; Data1, Data2: pointer): integer;
     function S2ACheck(Tree: TAvgLvlTree; Data1, Data2: pointer): integer;
   public
@@ -117,6 +118,8 @@ type
     procedure AddModule(module:string; path: string; base: ptruint; size: dword; is64bit: boolean);
     procedure DeleteModule(module: string); overload;
     procedure DeleteModule(base: qword); overload;
+    function GetModuleByAddress(address: ptrUint; var mi: TModuleInfo):BOOLEAN;
+    function getmodulebyname(modulename: string; var mi: TModuleInfo):BOOLEAN;
     procedure GetModuleList(var list: TExtraModuleInfoList);
     function AddSymbol(module: string; searchkey: string; address: qword; size: integer; skipaddresstostringlookup: boolean=false; extraData: TExtraSymbolData=nil): PCESymbolInfo;
     function FindAddress(address: qword): PCESymbolInfo;
@@ -127,6 +130,7 @@ type
     procedure clear;
   published
     property ExtraSymbolDataList: TExtraSymbolDataList read fExtraSymbolDataList;
+    property PID: dword read fPID write fPID;
 
   end;
 
@@ -215,6 +219,58 @@ begin
     end;
   end;
   cs.endwrite;
+end;
+
+function TSymbolListHandler.GetModuleByAddress(address: ptrUint; var mi: TModuleInfo):BOOLEAN;
+var i: integer;
+begin
+  result:=false;
+  cs.Beginread;
+  for i:=0 to length(modulelist)-1 do
+  begin
+    if (address>=modulelist[i].baseaddress) and (address<modulelist[i].baseaddress+modulelist[i].modulesize) then
+    begin
+      mi.modulename:=modulelist[i].modulename;
+      mi.modulepath:=modulelist[i].modulepath;
+      mi.isSystemModule:=false;
+      mi.baseaddress:=modulelist[i].baseaddress;
+      mi.basesize:=modulelist[i].modulesize;
+      mi.is64bitmodule:=modulelist[i].is64bitmodule;
+      mi.symbolsLoaded:=true;
+      mi.hasStructInfo:=false;
+      mi.databaseModuleID:=0;
+      result:=true;
+      break;
+    end;
+  end;
+
+  cs.endread;
+end;
+
+function TSymbolListHandler.getmodulebyname(modulename: string; var mi: TModuleInfo):BOOLEAN;
+//pre:modulename is already sanitized and uppercase
+var i: integer;
+begin
+  result:=false;
+  cs.Beginread;
+  for i:=0 to length(modulelist)-1 do
+  begin
+    if uppercase(modulelist[i].modulename)=modulename then
+    begin
+      mi.modulename:=modulelist[i].modulename;
+      mi.modulepath:=modulelist[i].modulepath;
+      mi.isSystemModule:=false;
+      mi.baseaddress:=modulelist[i].baseaddress;
+      mi.basesize:=modulelist[i].modulesize;
+      mi.is64bitmodule:=modulelist[i].is64bitmodule;
+      mi.symbolsLoaded:=true;
+      mi.hasStructInfo:=false;
+      mi.databaseModuleID:=0;
+      result:=true;
+      break;
+    end;
+  end;
+  cs.Endread;
 end;
 
 procedure TSymbolListHandler.GetModuleList(var list: TExtraModuleInfoList);

@@ -44,6 +44,11 @@ TFORMSETTINGS.MILUAEXECSIGNEDONLY.CAPTION=Only when signed, else ask
 TFORMSETTINGS.LABEL16.CAPTION=When a table has a lua script, execute it:
 TFORMSETTINGS.MILUAEXECASK.CAPTION=Always ask
 TFORMSETTINGS.MILUAEXECNEVER.CAPTION=Never
+TFORMSETTINGS.CBNEVERCHANGEPROTECTION.HINT=When enabled CE will never call "VirtualProtectEx" before it changes memory. This means that read-only memory can not be changed then.  (code is usually read only)
+TFORMSETTINGS.CBNEVERCHANGEPROTECTION.CAPTION=Never change memory protection when editing
+TFORMSETTINGS.CBALWAYSFORCELOAD.HINT=When enabled CE's internal injectDLL routine will not use loadlibrary in the target at all and always use manual mapping to load the dll
+(When disabled CE will still use manual mapping when normal dll injection fails)
+TFORMSETTINGS.CBALWAYSFORCELOAD.CAPTION=Always force load modules
 TFORMSETTINGS.TSHOTKEYS.CAPTION=Hotkeys
 TFORMSETTINGS.UNRANDOMIZER.CAPTION=Unrandomizer
 TFORMSETTINGS.LABEL5.CAPTION=Default return value

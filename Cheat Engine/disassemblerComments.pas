@@ -9,7 +9,8 @@ this unit will contain the interface for the disassembler comments
 interface
 
 uses
-  windows, Classes, SysUtils, AvgLvlTree, math, cefuncproc, symbolhandler, dom;
+  windows, Classes, SysUtils, AvgLvlTree, math, cefuncproc, symbolhandler,
+  symbolhandlerstructs, dom;
 
 type TDisassemblerComments=class
   private

@@ -2861,7 +2861,6 @@ begin
 
  // miDotNET.visible:=symhandler.hasDotNetAccess; //too slow to use. You're free to uncomment it but don't bitch about having to wait 2 and a half hour
 
-
   if assigned(fOnProcessOpened) then
     fOnProcessOpened(processid, processhandle, processlabel.Caption);
 end;
