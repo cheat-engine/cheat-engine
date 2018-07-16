@@ -8763,7 +8763,7 @@ begin
                           lastdisassembledata.parameters:=xmm(memory[2])+modrm(memory,prefix2,2,4,last,mRight);
                           lastdisassembledata.parametervaluetype:=dvtvalue;
                           lastdisassembledata.parametervalue:=memory[last];
-                          lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(lastdisassembledata.parametervalue,2);
+                          lastdisassembledata.parameters:=lastdisassembledata.parameters+','+inttohexs(lastdisassembledata.parametervalue,2);
                           inc(offset,last);
                         end
                         else
@@ -8776,7 +8776,7 @@ begin
                           lastdisassembledata.parameters:=xmm(memory[2])+modrm(memory,prefix2,2,4,last,mRight);
                           lastdisassembledata.parametervaluetype:=dvtvalue;
                           lastdisassembledata.parametervalue:=memory[last];
-                          lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(lastdisassembledata.parametervalue,2);
+                          lastdisassembledata.parameters:=lastdisassembledata.parameters+','+inttohexs(lastdisassembledata.parametervalue,2);
                           lastdisassembledata.datasize:=4;
                           inc(offset,last);
                         end;
