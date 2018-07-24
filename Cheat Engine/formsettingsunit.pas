@@ -1547,9 +1547,7 @@ var i: integer;
   KVAShadowInfo: dword;
   rl: DWORD;
 begin
-  cgAllTypes.Checked[2]:=true;
-  cgAllTypes.Checked[4]:=true;
-  cgAllTypes.Checked[5]:=true;
+
 
   tvMenuSelection.Items[0].Data:=GeneralSettings;
   tvMenuSelection.Items[1].Data:=tsTools;
@@ -1596,6 +1594,10 @@ begin
     add(rsAllCustomTypes);
     EndUpdate;
   end;
+
+  cgAllTypes.Checked[2]:=true;
+  cgAllTypes.Checked[4]:=true;
+  cgAllTypes.Checked[5]:=true;
 
 
   with frameHotkeyConfig.ListBox1.items do
