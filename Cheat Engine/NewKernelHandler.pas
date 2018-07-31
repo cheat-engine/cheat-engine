@@ -572,7 +572,7 @@ procedure UseDBKQueryMemoryRegion;
 procedure UseDBKReadWriteMemory;
 procedure UseDBKOpenProcess;
 
-procedure DBKFileAsMemory(fn:string); overload;
+procedure DBKFileAsMemory(fn:string; baseaddress: ptruint=0); overload;
 procedure DBKFileAsMemory; overload;
 function VirtualQueryExPhysical(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; stdcall;
 procedure DBKPhysicalMemory;
@@ -1367,12 +1367,13 @@ begin
 {$endif}
 end;
 
-procedure DBKFileAsMemory(fn:string); overload;
+procedure DBKFileAsMemory(fn:string; baseaddress: ptruint=0); overload;
 begin
 {$ifdef windows}
   filehandler.filename:=filename;
   filehandler.filedata:=tmemorystream.create;
   filehandler.filedata.LoadFromFile(fn);
+  filehandler.filebaseaddress:=baseaddress;
   DBKFileAsMemory;
 {$endif}
 end;

@@ -107,7 +107,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   DebuggerInterfaceAPIWrapper, Globals, math, speedhack2, CETranslator, binutils,
   xinput, winsapi, frmExeTrainerGeneratorUnit, CustomBase85, FileUtil, networkConfig,
   LuaCustomType, Filehandler, LuaSQL, frmSelectionlistunit, cpuidUnit, LuaRemoteThread,
-  LuaManualModuleLoader;
+  LuaManualModuleLoader, pointervaluelist;
 
   {$warn 5044 off}
 
@@ -9816,7 +9816,7 @@ begin
     MainForm.ProcessLabel.caption:=extractfilename(filename);
     ProcessHandler.processid:=$FFFFFFFF;
 
-    ProcessHandler.is64Bit:=true;
+    ProcessHandler.is64Bit:=is64bit;
 
     mainform.openProcessEpilogue(oldprocessname, oldprocess, oldprocesshandle,true);
 
@@ -10829,6 +10829,7 @@ begin
     initializeLuaCustomType;
     initializeLuaSQL;
     initializeLuaModuleLoader;
+    initializeLuaPointerValueList;
 
 
 

@@ -110,7 +110,7 @@ implementation
 
 uses MainUnit, formsettingsunit, advancedoptionsunit,frmProcessWatcherUnit,
   memorybrowserformunit, networkConfig, ProcessHandlerUnit, processlist, globals,
-  registry, fontSaveLoadRegistry;
+  registry, fontSaveLoadRegistry, frmOpenFileAsProcessDialogUnit;
 
 resourcestring
   rsIsnTAValidProcessID = '%s isn''t a valid processID';
@@ -558,16 +558,26 @@ end;
 procedure TProcessWindow.btnOpenFileClick(Sender: TObject);
 begin
 
+
+
   if opendialog2.execute then
   begin
-    DBKFileAsMemory(opendialog2.filename);
-    processselected:=true;
-    ProcessHandler.ProcessHandle:=QWORD(-1);
-    MainForm.ProcessLabel.caption:=extractfilename(opendialog2.FileName);
-    MainForm.miSaveFile.visible:=true;
-    ProcessHandler.processid:=$FFFFFFFF;
+    if frmOpenFileAsProcessDialog=nil then
+      frmOpenFileAsProcessDialog:=tfrmOpenFileAsProcessDialog.create(self);
 
-    modalresult:=mrok;
+    if frmOpenFileAsProcessDialog.showmodal=mrok then
+    begin
+      DBKFileAsMemory(opendialog2.filename, frmOpenFileAsProcessDialog.startaddress);
+      processselected:=true;
+      ProcessHandler.ProcessHandle:=QWORD(-1);
+      MainForm.ProcessLabel.caption:=extractfilename(opendialog2.FileName);
+      MainForm.miSaveFile.visible:=true;
+      ProcessHandler.processid:=$FFFFFFFF;
+
+      Processhandler.is64Bit:=frmOpenFileAsProcessDialog.rb64.checked;
+
+      modalresult:=mrok;
+    end;
   end;
 
 end;

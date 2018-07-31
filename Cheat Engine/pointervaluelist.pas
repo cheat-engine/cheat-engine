@@ -12,8 +12,10 @@ result: tree/map was slower than my own non threadsafe implementation. After ini
 
 interface
 
-uses windows, LCLIntf, dialogs, SysUtils, classes, ComCtrls, CEFuncProc, NewKernelHandler,
-     symbolhandler, symbolhandlerstructs, math,bigmemallochandler, maps;
+uses windows, LCLIntf, dialogs, SysUtils, classes, ComCtrls, CEFuncProc,
+     NewKernelHandler, symbolhandler, symbolhandlerstructs, math,
+     bigmemallochandler, maps, luahandler, lua, lauxlib, lualib, luaclass,
+     LuaObject, zstream;
 
 const scandataversion=1;
 
@@ -141,6 +143,8 @@ type
     property CanHaveStatic: boolean read specificBaseAsStaticOnly;
   end;
 
+  procedure initializeLuaPointerValueList;
+
 implementation
 
 uses ProcessHandlerUnit, globals, DBK32functions;
@@ -204,6 +208,8 @@ var
   pfn: ptruint;
 
 begin
+  if address=0 then exit;
+
   i:=BinSearchMemRegions(address);
   result:=(i<>-1) and (memoryregion[i].ValidPointerRange);
 
@@ -1435,6 +1441,104 @@ begin
     end;
   end;
 end;
+
+//Lua support/testing
+
+function lua_createReversePointerListHandlerFromFile(L: PLua_State): integer; cdecl;
+var
+  filename: string='';
+  progressbar: tprogressbar=nil;
+  fs: tfilestream=nil;
+  ds: Tdecompressionstream=nil;
+  rplh: TReversePointerListHandler;
+begin
+  if lua_gettop(L)<0 then exit(0);
+  filename:=lua_tostring(L,1);
+
+  try
+    try
+      fs:=tfilestream.Create(filename, fmOpenRead);
+      ds:=Tdecompressionstream.create(fs);
+
+      if lua_gettop(L)>=2 then
+        progressbar:=tprogressbar(lua_touserdata(L,2));
+
+      rplh:=TReversePointerListHandler.createFromStream(ds,progressbar);
+      luaclass_newClass(L,rplh);
+      result:=1;
+    finally
+      if ds<>nil then
+        freeandnil(ds);
+
+      if fs<>nil then
+        freeandnil(fs);
+    end;
+  except
+    on e:exception do
+    begin
+      lua_pushnil(L);
+      lua_pushstring(L,e.message);
+      exit(2);
+    end;
+  end;
+end;
+
+function ReversePointerListHandler_findPointerValue(L: PLua_State): integer; cdecl;
+var
+  startvalue, stopvalue: ptruint;
+  list: TReversePointerListHandler;
+  pl: PPointerList;
+  pli: integer;
+  i: integer;
+begin
+  list:=luaclass_getClassObject(L);
+
+  startvalue:=lua_tointeger(L,1);
+  stopvalue:=lua_tointeger(L,2);
+
+  pl:=list.findPointerValue(startvalue, stopvalue);
+  if pl<>nil then
+  begin
+    lua_newtable(L);
+    pli:=lua_gettop(L);
+
+    for i:=0 to pl^.pos-1 do
+    begin
+      lua_pushinteger(L,i+1);
+      lua_pushinteger(L,pl^.list[i].address);
+      lua_settable(L,pli);
+    end;
+
+    pl:=pl^.previous;
+    if pl<>nil then
+    begin
+      stopvalue:=pl^.pointervalue;
+      lua_pushinteger(L,stopvalue);
+    end
+    else
+      lua_pushnil(L);
+
+    result:=2;
+  end
+  else
+    exit(0);
+end;
+
+procedure ReversePointerListHandler_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+begin
+  object_addMetaData(L, metatable, userdata);
+
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'findPointerValue', ReversePointerListHandler_findPointerValue);
+end;
+
+procedure initializeLuaPointerValueList;
+begin
+  Lua_register(LuaVM, 'createReversePointerListHandlerFromFile', lua_createReversePointerListHandlerFromFile);
+end;
+
+initialization
+
+  luaclass_register(TReversePointerListHandler, ReversePointerListHandler_addMetaData);
 
 end.
 
