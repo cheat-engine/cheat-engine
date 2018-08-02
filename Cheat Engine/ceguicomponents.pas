@@ -698,7 +698,7 @@ type TCEForm=class(TCustomForm)
     property ParentFont;
     property PixelsPerInch;
     property PopupMenu;
- //   property PopupMode;
+    property PopupMode;
   //  property PopupParent;
     property Position;
    // property SessionProperties;

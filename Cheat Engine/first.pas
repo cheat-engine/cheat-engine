@@ -5,11 +5,12 @@ unit first;
 interface
 
 uses
-  Classes, SysUtils;
+  betterDLLSearchPath{, Classes, SysUtils};
 
 implementation
+{
+uses windows, registry, Win32Int;  }
 
-uses windows, registry, Win32Int;
 
 procedure setDPIAware;   //won't work in windows 10 anymore
 type
@@ -93,5 +94,6 @@ initialization
     end;
   end;
        }
+
 end.
 
