@@ -4,6 +4,9 @@
 
  v5.0.0
 */
+#ifndef CEPLUGINSDK_H
+#define CEPLUGINSDK_H
+
 #include <windows.h>
 #include "lua.h"
 #include "lualib.h"
@@ -261,6 +264,9 @@ typedef int (__stdcall *CEP_MESSAGEDIALOG)(char *massage, int messagetype, int b
 typedef BOOL (__stdcall *CEP_SPEEDHACK_SETSPEED)(float speed);
 typedef lua_State *(__fastcall *CEP_GETLUASTATE)();
 
+
+typedef BOOL(__stdcall **CEP_READPROCESSMEMORY)(HANDLE hProcess, LPCVOID lpBaseAddress, LPVOID lpBuffer, SIZE_T nSize, SIZE_T * lpNumberOfBytesRead);
+
 /*
 function ce_messageDialog(message: pchar; messagetype: integer; buttoncombination: integer): integer; stdcall;
 function ce_speedhack_setSpeed(speed: single): BOOL; stdcall;       
@@ -290,7 +296,7 @@ typedef struct _ExportedFunctions
 
   //pointers to the address that contains the pointers to the functions
   //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  PVOID ReadProcessMemory;			//pointer to the pointer of ReadProcessMemory (Change it to hook that api, or use it yourself)
+  CEP_READPROCESSMEMORY ReadProcessMemory;			//pointer to the pointer of ReadProcessMemory (Change it to hook that api, or use it yourself)
   PVOID WriteProcessMemory;			//pointer to the pointer of WriteProcessMemory (Change it to hook that api, or use it yourself)
   PVOID GetThreadContext;			//   ...
   PVOID SetThreadContext;			//   ...
@@ -456,3 +462,6 @@ BOOL __stdcall CEPlugin_GetVersion(PPluginVersion pv , int sizeofpluginversion);
 BOOL __stdcall CEPlugin_InitializePlugin(PExportedFunctions ef , int pluginid);
 BOOL __stdcall CEPlugin_DisablePlugin(void);
 //old versions without CEPlugin_ in front also work but are not recommended due to bugbrained compilers...
+
+
+#endif //CEPLUGINSDK_H
