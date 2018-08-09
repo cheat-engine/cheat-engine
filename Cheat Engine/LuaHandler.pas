@@ -1222,7 +1222,10 @@ begin
 end;
 
 function print2(param: pointer): pointer;
-var usesluaengineform: boolean;
+var
+  usesluaengineform: boolean;
+  l: tstringlist;
+  i: integer;
 begin
   usesluaengineform:=false;
 
@@ -1235,7 +1238,12 @@ begin
     usesluaengineform:=true;
   end;
 
-  printoutput.add(pchar(param));
+  l:=tstringlist.create;
+  l.text:=pchar(param);
+  for i:=0 to l.Count-1 do
+    printoutput.add(l[i]);
+
+  l.free;
 
   if (frmLuaEngine<>nil) and usesluaengineform and (frmLuaEngine.cbShowOnPrint.checked) then
     frmLuaEngine.show;
@@ -3609,16 +3617,21 @@ function getNameFromAddress(L: PLua_state): integer; cdecl;
 var parameters: integer;
   s: string;
   address: ptruint;
+  modulenames: boolean=true;
+  symbols: boolean=true;
 begin
   result:=0;
   parameters:=lua_gettop(L);
-  if parameters=1 then
+  if parameters>=1 then
   begin
     address:=lua_toaddress(L,1);
 
+    if (parameters>=2) and (not lua_isnil(L,2)) then modulenames:=lua_toboolean(L,2);
+    if (parameters>=3) and (not lua_isnil(L,3)) then symbols:=lua_toboolean(L,2);
+
     lua_pop(L, lua_gettop(l));
 
-    lua_pushstring(L,symhandler.getNameFromAddress(address, true, true));
+    lua_pushstring(L,symhandler.getNameFromAddress(address, symbols, modulenames));
     result:=1;
   end
   else lua_pop(L, lua_gettop(l));
