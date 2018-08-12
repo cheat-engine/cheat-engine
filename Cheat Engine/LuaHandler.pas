@@ -3627,7 +3627,7 @@ begin
     address:=lua_toaddress(L,1);
 
     if (parameters>=2) and (not lua_isnil(L,2)) then modulenames:=lua_toboolean(L,2);
-    if (parameters>=3) and (not lua_isnil(L,3)) then symbols:=lua_toboolean(L,2);
+    if (parameters>=3) and (not lua_isnil(L,3)) then symbols:=lua_toboolean(L,3);
 
     lua_pop(L, lua_gettop(l));
 
