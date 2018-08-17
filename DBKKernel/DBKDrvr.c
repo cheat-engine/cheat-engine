@@ -561,23 +561,6 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject,
 		DbgPrint("No debugger\n");
 	}
 	*/
-
-
-	{
-		void *test = ExAllocatePool(NonPagedPool, 8192);
-		void *test2;
-		
-		void *test3;
-		PHYSICAL_ADDRESS pa;
-		pa.QuadPart = 0x00000000ffffffffULL;
-
-		test2 = MmAllocateContiguousMemory(4096, pa);
-
-		DbgPrint("Allocated test at %p\n", test);
-		DbgPrint("Allocated test2 at %p\n", test2);
-	}
-
-
 	
 	
     return STATUS_SUCCESS;
