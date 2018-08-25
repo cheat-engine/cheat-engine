@@ -103,7 +103,7 @@ BOOLEAN CheckImageName(IN PUNICODE_STRING FullImageName, IN char* List,int lists
 {
 #ifndef AMD64
 	/*
-	pre:List has been initialized and all entries are UPPERCASE. Each entry is seperated
+	pre:List has been initialized and all entries are UPPERCASE. Each entry is separated
 	    by a 0-marker so just setting the pointer ro the start and doing a compare will work
 
 	*/

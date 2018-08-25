@@ -66,7 +66,7 @@ typedef struct {
 /* This structure holds all information the disassembler generates per instruction. */
 typedef struct {
 	_WString mnemonic; /* Mnemonic of decoded instruction, prefixed if required by REP, LOCK etc. */
-	_WString operands; /* Operands of the decoded instruction, up to 3 operands, comma-seperated. */
+	_WString operands; /* Operands of the decoded instruction, up to 3 operands, comma-separated. */
 	_WString instructionHex; /* Hex dump - little endian, including prefixes. */
 	unsigned int size; /* Size of decoded instruction. */
 	_OffsetType offset; /* Start offset of the decoded instruction. */

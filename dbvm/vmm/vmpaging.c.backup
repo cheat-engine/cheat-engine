@@ -1101,7 +1101,7 @@ int setupA20maskedPaging(void)
     VirtualMachinePageDirPointer[i].PFN=VirtualToPhysical((ULONG)VirtualMachinePageDir+(i*4096)) >> 12;
   }
 
-  //00000000-001fffff (low memory, map this using seperate pages)  
+  //00000000-001fffff (low memory, map this using separate pages)  
   VirtualMachinePageDir[0].P=1;
   VirtualMachinePageDir[0].A=0;
   VirtualMachinePageDir[0].RW=1;

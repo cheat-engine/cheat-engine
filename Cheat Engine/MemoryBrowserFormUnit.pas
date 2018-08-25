@@ -4281,7 +4281,7 @@ begin
     begin
       if item.index<strace.count then
       begin
-        seperatestacktraceline(strace[item.index], address,bytes,details);
+        separatestacktraceline(strace[item.index], address,bytes,details);
         item.Caption:=address;
         item.SubItems.Add(bytes);
         item.SubItems.Add(details);

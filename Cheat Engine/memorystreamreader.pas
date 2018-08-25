@@ -2,7 +2,7 @@ unit MemoryStreamReader;
 
 {
 Implements the TMemoryStreamReader object.
-It's basically a memorystream that can not write. It's main purpose is to provide a seperate read pointer for a memorystream object
+It's basically a memorystream that can not write. It's main purpose is to provide a separate read pointer for a memorystream object
 
 One requirement is that the memorystream object does not get written to while this object exists
 }

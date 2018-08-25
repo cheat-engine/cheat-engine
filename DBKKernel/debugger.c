@@ -29,7 +29,7 @@ volatile struct
 	struct {
 		BOOL		active;
 		UINT_PTR	address;		//Up to 4 addresses to break on
-		BreakType	breakType;		//What type of breakpoint for each seperate address
+		BreakType	breakType;		//What type of breakpoint for each separate address
 		BreakLength breakLength;	//How many bytes does this breakpoint look at
 	} breakpoint[4];
 

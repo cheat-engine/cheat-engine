@@ -7,14 +7,14 @@ interface
 uses LCLIntf, sysutils, classes, symbolhandler, CEFuncProc, NewKernelHandler,
   byteinterpreter, commonTypeDefs;
 
-procedure seperatestacktraceline(s: string; var address: string; var bytes: string; var details: string);
+procedure separatestacktraceline(s: string; var address: string; var bytes: string; var details: string);
 procedure ce_stacktrace(esp: ptrUint; ebp: ptrUint; eip: ptrUint; stack: Pbytearray; sizeinbytes: integer; trace: tstrings; force4byteblocks: boolean=true; showmodulesonly: boolean=false; nosystemmodules:boolean=false; maxdepth:integer=0; referenceaddress: ptruint=0; referencename:string='');
 
 implementation
 
 uses StrUtils, ProcessHandlerUnit;
 
-procedure seperatestacktraceline(s: string; var address: string; var bytes: string; var details: string);
+procedure separatestacktraceline(s: string; var address: string; var bytes: string; var details: string);
 var i,j: integer;
 begin
   //has 2 ' - ' occurances

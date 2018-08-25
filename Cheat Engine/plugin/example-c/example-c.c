@@ -39,7 +39,7 @@ void __stdcall PointersReassigned(int reserved)
 
 void __stdcall processWatcherEvent(ULONG processid, ULONG peprocess, BOOL Created)
 {
-	//Note: This is in a seperate thread. So don't use thread-unsafe (gui) functions
+	//Note: This is in a separate thread. So don't use thread-unsafe (gui) functions
 	char x[100];
 	if (Created)
 		sprintf_s(x,100,"Processid %x (PEPROCESS: %x) has been created",processid,peprocess);
