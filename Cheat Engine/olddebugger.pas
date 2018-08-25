@@ -1373,7 +1373,7 @@ end;
 
 
 procedure TDebugger.Execute;
-//todo: splitup in seperate sections
+//todo: splitup in separate sections
 var startupinfo: TSTARTUPINFO;
     int3: byte;
     devent: _Debug_EVENT;

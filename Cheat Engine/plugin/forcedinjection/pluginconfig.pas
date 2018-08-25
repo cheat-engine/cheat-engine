@@ -429,7 +429,7 @@ begin
       end
       else
       begin
-        //get the modulename seperately
+        //get the modulename separately
 
         lua_dostring(Luavm, pchar('return getNameFromAddress(0x'+intToHex(BaseOfDll,8)+')'));
         if lua_gettop(luavm)>i then

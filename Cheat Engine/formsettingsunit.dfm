@@ -498,7 +498,7 @@ object formSettings: TformSettings
           Width = 590
           Height = 32
           Caption = 
-            'Running the scan in a seperate thread will give you a cancel but' +
+            'Running the scan in a separate thread will give you a cancel but' +
             'ton, and prevents CE from starvation. (meaning parts of the wind' +
             'ow turn white) but it also makes scanning a little slower'
           Transparent = True
@@ -537,7 +537,7 @@ object formSettings: TformSettings
           Top = 286
           Width = 198
           Height = 20
-          Caption = 'Run scan in seperate thread'
+          Caption = 'Run scan in separate thread'
           Checked = True
           State = cbChecked
           TabOrder = 0

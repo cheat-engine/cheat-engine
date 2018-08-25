@@ -36,7 +36,7 @@ typedef struct {
 } _PrefixInfo;
 
 /*
-* Intel supports 4 types of prefixes, whereas AMD supports 5 types (lock is seperated from rep/nz).
+* Intel supports 4 types of prefixes, whereas AMD supports 5 types (lock is separated from rep/nz).
 * REX is the fifth prefix type, this time I'm based on AMD64.
 */
 #define MAX_PREFIXES (5)

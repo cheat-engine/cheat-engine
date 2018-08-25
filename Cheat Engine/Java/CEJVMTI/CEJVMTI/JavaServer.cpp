@@ -1204,7 +1204,7 @@ void CJavaServer::SetField(void)
 //start
 typedef struct
 {
-	//split seperately so it's faster (no double to int convertions during the scan)
+	//split separately so it's faster (no double to int convertions during the scan)
 	BOOL unknownInitialValue;
 	BOOL booleanScan;
 	jboolean zValue;

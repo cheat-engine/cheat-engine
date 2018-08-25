@@ -46,7 +46,7 @@ type
 
 
 
-  TRescanWorker=class(TThread) //todo: move to seperate unit
+  TRescanWorker=class(TThread) //todo: move to separate unit
   private
     procedure flushresults;
     function isMatchToValue(p: pointer): boolean;
@@ -97,7 +97,7 @@ type
   end;
 
 
-  Trescanpointers=class(tthread) //todo: move to seperate unit
+  Trescanpointers=class(tthread) //todo: move to separate unit
   private
     rescanworkercount: integer;
     rescanworkers: array of TRescanWorker;

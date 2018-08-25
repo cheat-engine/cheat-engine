@@ -124,7 +124,7 @@ begin
 
         p:=pointerscanresults.getPointer(i);
 
-        if column=0 then //modules are limited to 32-bit length, so seperate them by the modulenr
+        if column=0 then //modules are limited to 32-bit length, so separate them by the modulenr
         begin
           if p.modulenr>=0 then
           begin

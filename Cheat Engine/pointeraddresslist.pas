@@ -164,7 +164,7 @@ begin
     s.ReadBuffer(mname^, x);
     mname[x]:=#0;
 
-    modulebases[i]:=s.ReadQWord; //seperate array for quicker lookup
+    modulebases[i]:=s.ReadQWord; //separate array for quicker lookup
     modulelist.AddObject(mname, tobject(modulebases[i]));
     FreeMemAndNil(mname);
   end;

@@ -1857,7 +1857,7 @@ properties
   IsGroupHeader: boolean - Set to true if the record was created as a Group Header with no address or value info. (ReadOnly)
   IsReadable: boolean - Set to false if record contains an unreadable address. NOTE: This property will not be set until the value property is accessed at least once. (ReadOnly)
 
-  Options: String set - a string enclosed by square brackets filled with the options seperated by a comma. Valid options are: moHideChildren, moActivateChildrenAsWell, moDeactivateChildrenAsWell, moRecursiveSetValue, moAllowManualCollapseAndExpand, moManualExpandCollapse
+  Options: String set - a string enclosed by square brackets filled with the options separated by a comma. Valid options are: moHideChildren, moActivateChildrenAsWell, moDeactivateChildrenAsWell, moRecursiveSetValue, moAllowManualCollapseAndExpand, moManualExpandCollapse
   
   DropDownLinked: boolean - if dropdown list refers to list of another memory record eg. (memrec name)
   DropDownLinkedMemrec: string - Description of linked memrec or emptystring if not linked
@@ -2787,7 +2787,7 @@ openLuaServer(Name):
 
     integer CELUA_GetFunctionReferenceFromName(char *functionname): Returns a reference ID you can pass on to CELUA_ExecuteFunctionByReference
     UINT_PTR CELUA_ExecuteFunctionByReference(int refid, int paramcount, PVOID *parameters, BOOL async):
-      This functions executes the function specified by reference id. If async is true, the code will run in a seperate thread instead of the main thread
+      This functions executes the function specified by reference id. If async is true, the code will run in a separate thread instead of the main thread
       paramcount is the number of parameters to pass on to the function
       parameters is a pointer to a list of integers.  32-bit in 32-bit targets, 64-bit in 64-bit targets
 
