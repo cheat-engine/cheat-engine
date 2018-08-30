@@ -9,7 +9,7 @@ uses
   Dialogs, StdCtrls, Menus, ExtCtrls, SynMemo, SynCompletion, SynEdit, lua,
   lauxlib, lualib, LuaSyntax, luahandler, cefuncproc, sqldb, strutils,
   InterfaceBase, ComCtrls, SynGutterBase, SynEditMarks, PopupNotifier, ActnList,
-  SynEditHighlighter, AvgLvlTree, math, LazFileUtils;
+  SynEditHighlighter, AvgLvlTree, math, LazFileUtils, Types, LCLType;
 
 type
 
@@ -21,12 +21,14 @@ type
     GroupBox1: TGroupBox;
     MenuItem12: TMenuItem;
     MenuItem13: TMenuItem;
+    miAutoComplete: TMenuItem;
     miSaveCurrentScriptAs: TMenuItem;
     miShowScriptInOutput: TMenuItem;
     miResizeOutput: TMenuItem;
     miSetBreakpoint: TMenuItem;
     miRun: TMenuItem;
     miSingleStep: TMenuItem;
+    scLuaCompleter: TSynCompletion;
     ToolButton1: TToolButton;
     tbStopDebug: TToolButton;
     tShowHint: TIdleTimer;
@@ -61,6 +63,7 @@ type
     tbSingleStep: TToolButton;
     procedure btnExecuteClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
+    procedure cbShowOnPrintClick(Sender: TObject);
     procedure dlgReplaceFind(Sender: TObject);
     procedure dlgReplaceReplace(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -79,11 +82,13 @@ type
     procedure miResizeOutputClick(Sender: TObject);
     procedure miSaveCurrentScriptAsClick(Sender: TObject);
     procedure miSetBreakpointClick(Sender: TObject);
+    procedure miShowScriptInOutputClick(Sender: TObject);
     procedure mScriptChange(Sender: TObject);
     procedure mScriptGutterClick(Sender: TObject; X, Y, Line: integer;
       mark: TSynEditMark);
     procedure mScriptKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState
       );
+    procedure mScriptKeyPress(Sender: TObject; var Key: char);
     procedure mScriptMouseEnter(Sender: TObject);
     procedure mScriptMouseLeave(Sender: TObject);
     procedure mScriptMouseLink(Sender: TObject; X, Y: Integer;
@@ -92,6 +97,11 @@ type
       Y: Integer);
     procedure mScriptShowHint(Sender: TObject; HintInfo: PHintInfo);
     procedure Panel2Resize(Sender: TObject);
+    procedure scLuaCompleterCodeCompletion(var Value: string;
+      SourceValue: string; var SourceStart, SourceEnd: TPoint;
+      KeyChar: TUTF8Char; Shift: TShiftState);
+    procedure scLuaCompleterExecute(Sender: TObject);
+    procedure scLuaCompleterSearchPosition(var APosition: integer);
     procedure SQLConnector1AfterConnect(Sender: TObject);
     procedure tbRunClick(Sender: TObject);
     procedure tbSingleStepClick(Sender: TObject);
@@ -101,6 +111,7 @@ type
     { private declarations }
     hintwindow:THintWindow;
     continuemethod: integer;
+    AutoCompleteStartLine: string;
   public
     { public declarations }
     synhighlighter: TSynLuaSyn;
@@ -134,6 +145,284 @@ var
 procedure TfrmLuaEngine.Panel2Resize(Sender: TObject);
 begin
   btnexecute.Height:=panel2.clientheight-(2*btnexecute.top);
+end;
+
+procedure TfrmLuaEngine.scLuaCompleterCodeCompletion(var Value: string;
+  SourceValue: string; var SourceStart, SourceEnd: TPoint; KeyChar: TUTF8Char;
+  Shift: TShiftState);
+begin
+
+end;
+
+procedure TfrmLuaEngine.scLuaCompleterExecute(Sender: TObject);
+var
+  s: string;
+  w: tpoint;
+  i,j: integer;
+  start: integer;
+
+  identchars: TSynIdentChars;
+
+  properties: Tstringlist;
+  methods: Tstringlist;
+  L: Plua_State;
+begin
+  scLuaCompleter.ItemList.Clear;
+
+  L:=luavm;
+
+
+  //parse the symbol the cursor is at
+  s:=mscript.LineText;
+  s:=copy(s,1,mscript.CaretX);
+
+  if s[length(s)]<>'.' then exit;
+
+
+  identchars:=mscript.IdentChars;
+  identchars:=identchars+['.'];
+  start:=-1;
+  for i:=length(s)-1 downto 1 do
+  begin
+    if not (s[i] in identchars) then
+    begin
+      start:=i+1;
+      break;
+    end;
+  end;
+
+  if start=-1 then start:=1;
+  s:=copy(s,start,length(s)-start);
+
+  try
+    if luaL_loadstring(Luavm,pchar('return '+s))=0 then
+    begin
+      try
+        if lua.lua_pcall(LuaVM, 0,1,0)=0 then
+        begin
+          //figure out what it returned
+
+          properties:=tstringlist.create;
+          properties.CaseSensitive:=false;
+
+          methods:=tstringlist.create;
+          methods.CaseSensitive:=false;
+
+          case lua_type(luavm, -1) of
+            LUA_TUSERDATA,LUA_TLIGHTUSERDATA:
+            begin
+              if lua_getmetatable(luavm,-1)<>0 then
+              begin
+                i:=lua_gettop(luavm);
+                lua_pushnil(luavm);
+                while lua_next(luavm,i)<>0 do
+                begin
+                  s:=Lua_ToString(Luavm,-2);
+                  if (s<>'') and (s[1]<>'_') then
+                  begin
+                    if lua_type(luavm, -1)=LUA_TFUNCTION then
+                    begin
+                      j:=methods.IndexOf(s);
+                      if j<>-1 then
+                      begin
+                      //prefer the lowercase version
+                      if s[1] in ['a'..'z'] then
+                        methods[j]:=s; //swap
+                      end
+                      else
+                        methods.add(s);
+                    end
+                    else
+                    begin
+                      j:=properties.IndexOf(s);
+                      if j<>-1 then
+                      begin
+                        //prefer the uppercase version
+                        if s[1] in ['A'..'Z'] then
+                          properties[j]:=s; //swap
+                      end
+                      else
+                        properties.add(s);
+
+                    end;
+
+                  end;
+
+                  lua_pop(LuaVM,1);
+                end;
+              end;
+              lua_pop(LuaVM,1);
+            end;
+
+            LUA_TTABLE:
+            begin
+              i:=lua_gettop(L);
+              lua_pushnil(L);
+              while lua_next(L,i)<>0 do
+              begin
+                if lua_type(L,-2)=LUA_TSTRING then
+                begin
+                  s:=Lua_ToString(L,-2);
+                  properties.Add(s);
+                end;
+
+                lua_pop(L,1);
+              end;
+            end;
+
+          end;
+
+          methods.Sort;
+          properties.Sort;
+
+          scLuaCompleter.ItemList.Assign(properties); //first properties
+          scLuaCompleter.ItemList.AddStrings(methods);
+
+
+          methods.free;
+          properties.free;
+
+          lua_pop(Luavm,1);
+        end
+      finally;
+        i:=lua_gettop(Luavm);
+        lua_pop(Luavm,i);
+      end;
+    end;
+  except
+  end;
+end;
+
+procedure TfrmLuaEngine.scLuaCompleterSearchPosition(var APosition: integer);
+var
+  s: string;
+  w: tpoint;
+  i,j: integer;
+  start: integer;
+
+  identchars: TSynIdentChars;
+
+  properties: Tstringlist;
+  methods: Tstringlist;
+begin
+  scLuaCompleter.ItemList.Clear;
+
+
+  //parse the symbol the cursor is at
+  s:=mscript.LineText;
+  s:=copy(s,1,mscript.CaretX);
+
+  if s[length(s)]<>'.' then exit;
+
+
+  identchars:=mscript.IdentChars;
+  identchars:=identchars+['.'];
+  start:=-1;
+  for i:=length(s)-1 downto 1 do
+  begin
+    if not (s[i] in identchars) then
+    begin
+      start:=i+1;
+      break;
+    end;
+  end;
+
+  if start=-1 then start:=1;
+  s:=copy(s,start,length(s)-start);
+
+  try
+    if luaL_loadstring(Luavm,pchar('return '+s))=0 then
+    begin
+      try
+        if lua.lua_pcall(LuaVM, 0,1,0)=0 then
+        begin
+          //figure out what it returned
+
+          properties:=tstringlist.create;
+          properties.CaseSensitive:=false;
+
+          methods:=tstringlist.create;
+          methods.CaseSensitive:=false;
+
+          case lua_type(luavm, -1) of
+            LUA_TUSERDATA,LUA_TLIGHTUSERDATA:
+            begin
+              if lua_getmetatable(luavm,-1)<>0 then
+              begin
+                i:=lua_gettop(luavm);
+                lua_pushnil(luavm);
+                while lua_next(luavm,i)<>0 do
+                begin
+                  s:=Lua_ToString(Luavm,-2);
+                  if (s<>'') and (s[1]<>'_') then
+                  begin
+                    if lua_type(luavm, -1)=LUA_TFUNCTION then
+                    begin
+                      j:=methods.IndexOf(s);
+                      if j<>-1 then
+                      begin
+                      //prefer the lowercase version
+                      if s[1] in ['a'..'z'] then
+                        methods[j]:=s; //swap
+                      end
+                      else
+                        methods.add(s);
+                    end
+                    else
+                    begin
+                      j:=properties.IndexOf(s);
+                      if j<>-1 then
+                      begin
+                        //prefer the uppercase version
+                        if s[1] in ['A'..'Z'] then
+                          properties[j]:=s; //swap
+                      end
+                      else
+                        properties.add(s);
+
+                    end;
+
+                  end;
+
+                  lua_pop(LuaVM,1);
+                end;
+              end;
+              lua_pop(LuaVM,1);
+            end;
+
+            LUA_TTABLE:
+            begin
+              i:=lua_gettop(luavm);
+              lua_pushnil(luavm);
+              while lua_next(luavm,i)<>0 do
+              begin
+                properties.Add(Lua_ToString(Luavm,-2));
+                lua_pop(LuaVM,1);
+              end;
+            end;
+
+          end;
+
+          methods.Sort;
+          properties.Sort;
+
+          scLuaCompleter.ItemList.Assign(properties); //first properties
+          scLuaCompleter.ItemList.AddStrings(methods);
+
+
+          methods.free;
+          properties.free;
+
+          lua_pop(Luavm,1);
+        end
+      finally;
+        i:=lua_gettop(Luavm);
+        lua_pop(Luavm,i);
+      end;
+    end;
+  except
+  end;
+
 end;
 
 procedure TfrmLuaEngine.SQLConnector1AfterConnect(Sender: TObject);
@@ -743,7 +1032,7 @@ end;
 
 procedure TfrmLuaEngine.btnExecuteClick(Sender: TObject);
 var pc: pchar;
-  i,j: integer;
+  i,j,ln: integer;
 
   oldprintoutput: Tstrings;
   c: tobject;
@@ -752,8 +1041,13 @@ var pc: pchar;
 
   oldstack: integer;
   dodebug: boolean;
-begin
 
+  templist: tstringlist;
+  pad: string;
+begin
+  i:=lua_gettop(Luavm);
+  if i>0 then
+    OutputDebugString('luastack is not correct');
 
   dodebug:=false;
 
@@ -832,8 +1126,22 @@ begin
       begin
         for i:=oldstack+1 to j do
         begin
+          templist:=tstringlist.Create;
+          templist.text:=LuaValueToDescription(luavm, i);
 
-          mOutput.lines.add(':'+LuaValueToDescription(luavm, i));
+          for ln:=0 to templist.count-1 do
+          begin
+            if ln=0 then
+              mOutput.lines.add(inttostr(i)+':'+templist[ln])
+            else
+            begin
+              if ln=1 then pad:=padleft('',length(inttostr(i)+':'));
+
+              mOutput.lines.add(pad+templist[ln]);
+            end;
+          end;
+
+          templist.free;
                            {
           pc:=lua_tolstring(luavm, i,nil);
           if pc<>nil then
@@ -917,6 +1225,11 @@ begin
 
 end;
 
+procedure TfrmLuaEngine.cbShowOnPrintClick(Sender: TObject);
+begin
+
+end;
+
 procedure TfrmLuaEngine.dlgReplaceFind(Sender: TObject);
 var so: TSynSearchOptions;
 begin
@@ -996,7 +1309,10 @@ begin
       miResizeOutput.OnClick(miResizeOutput);
 
       if length(x)>2 then
-       miShowScriptInOutput.checked:=x[2]=1;
+        miShowScriptInOutput.checked:=x[2]=1;
+
+      if length(x)>3 then
+        miAutoComplete.checked:=x[3]=1;
     end;
   end;
 end;
@@ -1004,10 +1320,11 @@ end;
 procedure TfrmLuaEngine.FormDestroy(Sender: TObject);
 var x: array of integer;
 begin
-  setlength(x,3);
+  setlength(x,4);
   x[0]:=panel1.height;
   x[1]:=integer(ifthen(miResizeOutput.checked, 1,0));
   x[2]:=integer(ifthen(miShowScriptInOutput.checked, 1,0));
+  x[3]:=integer(ifthen(miAutoComplete.checked, 1,0));
 
   SaveFormPosition(self, x);
 end;
@@ -1119,6 +1436,11 @@ begin
   mScriptGutterClick(mScript, 0,0, mscript.CaretY, nil);
 end;
 
+procedure TfrmLuaEngine.miShowScriptInOutputClick(Sender: TObject);
+begin
+
+end;
+
 procedure TfrmLuaEngine.mScriptChange(Sender: TObject);
 begin
 
@@ -1200,6 +1522,23 @@ begin
 
     end;
   end; }
+end;
+
+procedure TfrmLuaEngine.mScriptKeyPress(Sender: TObject; var Key: char);
+var p,p2: tpoint;
+begin
+  if miAutocomplete.checked then
+  begin
+    if key='.' then
+    begin
+      mscript.InsertTextAtCaret('.');
+      p:=mscript.RowColumnToPixels(point(mscript.CaretX,mscript.CaretY+1));
+      p2:=mscript.ClientToScreen(point(0,0));
+      scLuaCompleter.Execute('.',p2+p);
+
+      key:=#0;
+    end;
+  end;
 end;
 
 procedure TfrmLuaEngine.mScriptMouseEnter(Sender: TObject);
