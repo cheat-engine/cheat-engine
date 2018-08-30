@@ -9,7 +9,7 @@ uses
   Dialogs, StdCtrls, Menus, ExtCtrls, SynMemo, SynCompletion, SynEdit, lua,
   lauxlib, lualib, LuaSyntax, luahandler, cefuncproc, sqldb, strutils,
   InterfaceBase, ComCtrls, SynGutterBase, SynEditMarks, PopupNotifier, ActnList,
-  SynEditHighlighter, AvgLvlTree, math, LazFileUtils, Types, LCLType;
+  SynEditHighlighter, AvgLvlTree, math, LazFileUtils, Types, LCLType, pluginexports;
 
 type
 
@@ -165,7 +165,12 @@ var
 
   properties: Tstringlist;
   methods: Tstringlist;
+
+  temp: TStringlist;
   L: Plua_State;
+
+  o: TObject;
+  c: TComponent absolute o;
 begin
   scLuaCompleter.ItemList.Clear;
 
@@ -195,10 +200,10 @@ begin
   s:=copy(s,start,length(s)-start);
 
   try
-    if luaL_loadstring(Luavm,pchar('return '+s))=0 then
+    if luaL_loadstring(L,pchar('return '+s))=0 then
     begin
       try
-        if lua.lua_pcall(LuaVM, 0,1,0)=0 then
+        if lua.lua_pcall(L, 0,1,0)=0 then
         begin
           //figure out what it returned
 
@@ -208,19 +213,22 @@ begin
           methods:=tstringlist.create;
           methods.CaseSensitive:=false;
 
-          case lua_type(luavm, -1) of
+          case lua_type(L, -1) of
             LUA_TUSERDATA,LUA_TLIGHTUSERDATA:
             begin
-              if lua_getmetatable(luavm,-1)<>0 then
+              o:=lua_ToCEUserData(L, -1);
+
+              if lua_getmetatable(L,-1)<>0 then
               begin
-                i:=lua_gettop(luavm);
-                lua_pushnil(luavm);
-                while lua_next(luavm,i)<>0 do
+                i:=lua_gettop(L);
+                lua_pushnil(L);
+                while lua_next(L,i)<>0 do
                 begin
-                  s:=Lua_ToString(Luavm,-2);
+                  s:=Lua_ToString(L,-2);
+
                   if (s<>'') and (s[1]<>'_') then
                   begin
-                    if lua_type(luavm, -1)=LUA_TFUNCTION then
+                    if lua_type(L, -1)=LUA_TFUNCTION then
                     begin
                       j:=methods.IndexOf(s);
                       if j<>-1 then
@@ -248,10 +256,20 @@ begin
 
                   end;
 
-                  lua_pop(LuaVM,1);
+                  lua_pop(L,1);
                 end;
               end;
-              lua_pop(LuaVM,1);
+
+
+              lua_pop(L,1);
+
+              if o is tcomponent then
+                for i:=0 to c.ComponentCount-1 do
+                  properties.Add(c.Components[i].Name);
+
+              temp:=ce_getPropertylist(o);
+              properties.AddStrings(temp);
+              temp.free;
             end;
 
             LUA_TTABLE:
@@ -282,11 +300,11 @@ begin
           methods.free;
           properties.free;
 
-          lua_pop(Luavm,1);
+          lua_pop(L,1);
         end
       finally;
-        i:=lua_gettop(Luavm);
-        lua_pop(Luavm,i);
+        i:=lua_gettop(L);
+        lua_pop(L,i);
       end;
     end;
   except
@@ -294,7 +312,7 @@ begin
 end;
 
 procedure TfrmLuaEngine.scLuaCompleterSearchPosition(var APosition: integer);
-var
+{var
   s: string;
   w: tpoint;
   i,j: integer;
@@ -303,9 +321,10 @@ var
   identchars: TSynIdentChars;
 
   properties: Tstringlist;
-  methods: Tstringlist;
+  methods: Tstringlist;   }
+
 begin
-  scLuaCompleter.ItemList.Clear;
+{  scLuaCompleter.ItemList.Clear;
 
 
   //parse the symbol the cursor is at
@@ -331,10 +350,10 @@ begin
   s:=copy(s,start,length(s)-start);
 
   try
-    if luaL_loadstring(Luavm,pchar('return '+s))=0 then
+    if luaL_loadstring(L,pchar('return '+s))=0 then
     begin
       try
-        if lua.lua_pcall(LuaVM, 0,1,0)=0 then
+        if lua.lua_pcall(L, 0,1,0)=0 then
         begin
           //figure out what it returned
 
@@ -344,19 +363,19 @@ begin
           methods:=tstringlist.create;
           methods.CaseSensitive:=false;
 
-          case lua_type(luavm, -1) of
+          case lua_type(L, -1) of
             LUA_TUSERDATA,LUA_TLIGHTUSERDATA:
             begin
-              if lua_getmetatable(luavm,-1)<>0 then
+              if lua_getmetatable(L,-1)<>0 then
               begin
-                i:=lua_gettop(luavm);
-                lua_pushnil(luavm);
-                while lua_next(luavm,i)<>0 do
+                i:=lua_gettop(L);
+                lua_pushnil(L);
+                while lua_next(L,i)<>0 do
                 begin
-                  s:=Lua_ToString(Luavm,-2);
+                  s:=Lua_ToString(L,-2);
                   if (s<>'') and (s[1]<>'_') then
                   begin
-                    if lua_type(luavm, -1)=LUA_TFUNCTION then
+                    if lua_type(L, -1)=LUA_TFUNCTION then
                     begin
                       j:=methods.IndexOf(s);
                       if j<>-1 then
@@ -384,20 +403,20 @@ begin
 
                   end;
 
-                  lua_pop(LuaVM,1);
+                  lua_pop(L,1);
                 end;
               end;
-              lua_pop(LuaVM,1);
+              lua_pop(L,1);
             end;
 
             LUA_TTABLE:
             begin
-              i:=lua_gettop(luavm);
-              lua_pushnil(luavm);
-              while lua_next(luavm,i)<>0 do
+              i:=lua_gettop(L);
+              lua_pushnil(L);
+              while lua_next(L,i)<>0 do
               begin
-                properties.Add(Lua_ToString(Luavm,-2));
-                lua_pop(LuaVM,1);
+                properties.Add(Lua_ToString(L,-2));
+                lua_pop(L,1);
               end;
             end;
 
@@ -413,15 +432,15 @@ begin
           methods.free;
           properties.free;
 
-          lua_pop(Luavm,1);
+          lua_pop(L,1);
         end
       finally;
-        i:=lua_gettop(Luavm);
-        lua_pop(Luavm,i);
+        i:=lua_gettop(L);
+        lua_pop(L,i);
       end;
     end;
   except
-  end;
+  end;}
 
 end;
 
