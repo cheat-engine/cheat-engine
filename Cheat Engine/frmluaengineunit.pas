@@ -101,6 +101,7 @@ type
       SourceValue: string; var SourceStart, SourceEnd: TPoint;
       KeyChar: TUTF8Char; Shift: TShiftState);
     procedure scLuaCompleterExecute(Sender: TObject);
+    procedure scLuaCompleterPositionChanged(Sender: TObject);
     procedure scLuaCompleterSearchPosition(var APosition: integer);
     procedure SQLConnector1AfterConnect(Sender: TObject);
     procedure tbRunClick(Sender: TObject);
@@ -265,7 +266,10 @@ begin
 
               if o is tcomponent then
                 for i:=0 to c.ComponentCount-1 do
-                  properties.Add(c.Components[i].Name);
+                begin
+                  if c.Components[i].Name<>'' then
+                    properties.Add(c.Components[i].Name);
+                end;
 
               temp:=ce_getPropertylist(o);
               properties.AddStrings(temp);
@@ -311,136 +315,37 @@ begin
   end;
 end;
 
-procedure TfrmLuaEngine.scLuaCompleterSearchPosition(var APosition: integer);
-{var
-  s: string;
-  w: tpoint;
-  i,j: integer;
-  start: integer;
-
-  identchars: TSynIdentChars;
-
-  properties: Tstringlist;
-  methods: Tstringlist;   }
-
+procedure TfrmLuaEngine.scLuaCompleterPositionChanged(Sender: TObject);
 begin
-{  scLuaCompleter.ItemList.Clear;
+
+end;
+
+procedure TfrmLuaEngine.scLuaCompleterSearchPosition(var APosition: integer);
+var
+  s,s2: string;
+  i: integer;
+  start: integer;
+begin
+  //get the text from the end till the first .
+
+  s:=scLuaCompleter.CurrentString;
+  s:=uppercase(copy(s,2,length(s)));
 
 
-  //parse the symbol the cursor is at
-  s:=mscript.LineText;
-  s:=copy(s,1,mscript.CaretX);
+  //outputdebugstring(pchar(s));
 
-  if s[length(s)]<>'.' then exit;
-
-
-  identchars:=mscript.IdentChars;
-  identchars:=identchars+['.'];
-  start:=-1;
-  for i:=length(s)-1 downto 1 do
+  for i:=0 to scLuaCompleter.ItemList.count-1 do
   begin
-    if not (s[i] in identchars) then
+    s2:=uppercase(scLuaCompleter.ItemList[i]);
+    if pos(s,s2)=1 then
     begin
-      start:=i+1;
-      break;
+      APosition:=i;
+      exit;
     end;
   end;
 
-  if start=-1 then start:=1;
-  s:=copy(s,start,length(s)-start);
-
-  try
-    if luaL_loadstring(L,pchar('return '+s))=0 then
-    begin
-      try
-        if lua.lua_pcall(L, 0,1,0)=0 then
-        begin
-          //figure out what it returned
-
-          properties:=tstringlist.create;
-          properties.CaseSensitive:=false;
-
-          methods:=tstringlist.create;
-          methods.CaseSensitive:=false;
-
-          case lua_type(L, -1) of
-            LUA_TUSERDATA,LUA_TLIGHTUSERDATA:
-            begin
-              if lua_getmetatable(L,-1)<>0 then
-              begin
-                i:=lua_gettop(L);
-                lua_pushnil(L);
-                while lua_next(L,i)<>0 do
-                begin
-                  s:=Lua_ToString(L,-2);
-                  if (s<>'') and (s[1]<>'_') then
-                  begin
-                    if lua_type(L, -1)=LUA_TFUNCTION then
-                    begin
-                      j:=methods.IndexOf(s);
-                      if j<>-1 then
-                      begin
-                      //prefer the lowercase version
-                      if s[1] in ['a'..'z'] then
-                        methods[j]:=s; //swap
-                      end
-                      else
-                        methods.add(s);
-                    end
-                    else
-                    begin
-                      j:=properties.IndexOf(s);
-                      if j<>-1 then
-                      begin
-                        //prefer the uppercase version
-                        if s[1] in ['A'..'Z'] then
-                          properties[j]:=s; //swap
-                      end
-                      else
-                        properties.add(s);
-
-                    end;
-
-                  end;
-
-                  lua_pop(L,1);
-                end;
-              end;
-              lua_pop(L,1);
-            end;
-
-            LUA_TTABLE:
-            begin
-              i:=lua_gettop(L);
-              lua_pushnil(L);
-              while lua_next(L,i)<>0 do
-              begin
-                properties.Add(Lua_ToString(L,-2));
-                lua_pop(L,1);
-              end;
-            end;
-
-          end;
-
-          methods.Sort;
-          properties.Sort;
-
-          scLuaCompleter.ItemList.Assign(properties); //first properties
-          scLuaCompleter.ItemList.AddStrings(methods);
-
-
-          methods.free;
-          properties.free;
-
-          lua_pop(L,1);
-        end
-      finally;
-        i:=lua_gettop(L);
-        lua_pop(L,i);
-      end;
-    end;
-  except
-  end;}
+  APosition:=-1;
+ // APosition:=scLuaCompleter.ItemList.IndexOf(s);
 
 end;
 
