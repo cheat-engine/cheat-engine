@@ -161,7 +161,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setItemIndex', listview_setItemIndex);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getCanvas', listview_getCanvas);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'beginUpdate', listview_beginUpdate);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'endUpdate', listview_beginUpdate);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'endUpdate', listview_endUpdate);
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'Columns', listview_getColumns, nil);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Items', listview_getItems, listview_setItems);
