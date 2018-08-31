@@ -4,10 +4,29 @@
 --States
 --0=ProcessPick
 --1=First scan, select value type
---2=First scan, initial scan options
---3=Next scan
+--2=First/next scan: scan options
+--3=First/next scan: secondary options (like input field), else goto 4
+--4=Do Scan (First or Next scan) and when done, goto 2
 
 if (iknowwhatthiscodedoes==nil) then return nil end
+
+local oldAddTab=MainForm.miAddTab.OnClick
+local oldFoundListFontSize
+
+MainForm.miAddTab.OnClick=function(m)
+  if messageDialog('Tabs are scary, are you sure?',mtWarning, mbYes, mbNo)==mrYes then
+    --babies don't use tabs
+    BabyCE.Visible=false
+    if oldFoundListFontSize then
+      MainForm.FoundList3.Font.Size=oldFoundListFontSize
+    end
+    
+    MainForm.miAddTab.OnClick=oldAddTab
+    oldAddTab(m)
+  end
+end
+
+
 
 BabyCE=createPanel(MainForm.Panel5)
 
@@ -23,7 +42,7 @@ BabyCE.BevelOuter='bvNone'
 BabyCE.Caption=''
 
 BabyCE.Font.Size=15 
-MainForm.FoundList3.Font.Size=15
+
 
 
 BabyCE.Anchors="[akLeft,akRight,akTop,akBottom]"
@@ -36,6 +55,7 @@ BabyCE.UpdateState=function(newstate)
   while BabyCE.ComponentCount>0 do
     BabyCE.Component[0].destroy()
   end
+  
 
   BabyCE.DoState[newstate]()
 end
@@ -50,12 +70,9 @@ BabyCE.DoState[0]=function()
   hint.align="alTop"
   hint.Alignment="taCenter"
  
-  MainForm.FoundList3.Visible=false 
+  MainForm.FoundList3.Visible=false  
   
-  
-  
-  
-  ProcessList=createComponentClass("TListView",BabyCE)
+  local ProcessList=createComponentClass("TListView",BabyCE)
   ProcessList.Parent=BabyCE
   ProcessList.Align="alClient"
   ProcessList.ViewStyle="vsReport"
@@ -71,7 +88,7 @@ BabyCE.DoState[0]=function()
   local list=createStringList()
   getProcessList(list)
 
-  ProcessList.beginUpdate()
+  --ProcessList.beginUpdate()
 
   
   maxwidth=0
@@ -93,21 +110,39 @@ BabyCE.DoState[0]=function()
       end
     end
   end 
-  list.destroy() 
+ -- list.destroy() 
 
   cPid.Width=maxwidth;
   
-  ProcessList.endUpdate()  
+  --ProcessList.endUpdate() --(needs ce 6.8.2+)  
   if ProcessList.Items.Count>0 then
     ProcessList.ItemIndex=0
   end
   
+  MainForm.Width=MainForm.Width-1 --triggers an update
+  MainForm.Width=MainForm.Width+1
+  
   ProcessList.OnDblClick=function(pl)
+    if pl.ItemIndex==-1 then return end
+    
     local li=pl.Items[pl.ItemIndex]
     local pid=tonumber(li.caption)
+    
+    pl.destroy()
+    
     OpenProcess(pid)
     
-    BabyCE.UpdateState(1)
+    local t=createTimer() --for some reason this is needed...
+    t.Interval=1
+    t.OnTimer=function(t)
+      t.destroy()     
+      
+      BabyCE.UpdateState(1) --select scan options
+    end
+    
+    --BabyCE.UpdateState(1)
+    
+    
   end 
 end
 
@@ -123,7 +158,7 @@ BabyCE.DoState[1]=function()
   indexer[10]=9
     
   local typeButtonClick=function(b)
-    print("b.tag="..b.tag.." which means an index of "..indexer[b.tag])
+    --print("b.tag="..b.tag.." which means an index of "..indexer[b.tag])
     
     MainForm.VarType.itemindex=indexer[b.tag]
     MainForm.VarType.OnChange(MainForm.VarType)
@@ -137,6 +172,8 @@ BabyCE.DoState[1]=function()
     
   end
 
+  oldFoundListFontSize=MainForm.FoundList3.Font.Size
+  MainForm.FoundList3.Font.Size=15
   MainForm.FoundList3.Visible=true
   --first scan, select value type
 
@@ -205,9 +242,28 @@ BabyCE.DoState[1]=function()
   btnAOB.Caption='AOB'
   btnAOB.OnClick=typeButtonClick
   btnAOB.Tag=vtByteArray
+  
+  local btnBack=createButton(BabyCE)
+  btnBack.AnchorSideRight.Control=BabyCE
+  btnBack.AnchorSideRight.Side=asrRight
+  btnBack.AnchorSideBottom.Control=BabyCE
+  btnBack.AnchorSideBottom.Side=asrBottom
+  btnBack.Anchors="[akBottom,akRight]"
+  btnBack.Caption="Back"
+  btnBack.AutoSize=true
+  btnBack.OnClick=function(s)
+    local t=createTimer() --for some reason this is needed...
+    t.Interval=1
+    t.OnTimer=function(t)
+      t.destroy()
+      BabyCE.UpdateState(0) --select scan options
+    end       
+  end
+    
 end
 
-BabyCE.DoState[2]=function()  
+BabyCE.DoState[2]=function() 
+  --scan options 
   local hint=createLabel(BabyCE)
   local btnClick=function(b)
     MainForm.ScanType.ItemIndex=b.tag
@@ -223,8 +279,6 @@ BabyCE.DoState[2]=function()
   hint.Caption="Choose your scan options"
   hint.align="alTop"
   hint.Alignment="taCenter" 
-  
-  --first scan, initial scan options
   
   --parse the scan options from the MainForm.ScanType
   buttonPanel=createPanel(BabyCE)
@@ -244,13 +298,202 @@ BabyCE.DoState[2]=function()
     local btn=createButton(buttonPanel)    
     btn.Caption=items[i]
     btn.Tag=i  
-    btn.OnClick=btnClick
+    btn.OnClick=btnClick    
   end  
   
+  --check that all the buttons are visible, else shrink the foundlist
+  local cw=buttonPanel.ClientWidth
+  local maxX=cw;
+  for i=0,buttonPanel.ComponentCount-1 do  
+    local x,w
+    x=buttonPanel.Component[i].Left
+    w=buttonPanel.Component[i].Width  
+
+    if (x+w)>maxX then
+      maxX=x+w
+    end    
+  end
+  
+  if maxX>cw then
+    MainForm.FoundList3.Width=MainForm.FoundList3.Width-(maxX-cw)
+  end
+  
+  buttonPanel.Component[MainForm.ScanType.ItemIndex].setFocus()
+  
+  if MainForm.btnNextScan.Enabled then
+    MainForm.foundlistpopup.OnPopup(MainForm.foundlistpopup)
+    if MainForm.miForgotScan.visible and MainForm.miForgotScan.enabled then
+      local btnForgotScan=createButton(buttonPanel)    
+      btnForgotScan.Caption='Forgot/Reload'
+      btnForgotScan.Hint="Click this if you forgot what the previous scan was"
+      btnForgotScan.ShowHint=true      
+      btnForgotScan.OnClick=function(s)
+        MainForm.miForgotScan.doClick() --the OnScanDone is already configured to go to state 2        
+      end
+    end
+  end
+  
+  
+  local newScan=createButton(BabyCE)
+  newScan.AnchorSideRight.Control=BabyCE
+  newScan.AnchorSideRight.Side=asrRight
+  newScan.AnchorSideBottom.Control=BabyCE
+  newScan.AnchorSideBottom.Side=asrBottom
+  newScan.Anchors="[akBottom,akRight]"
+  newScan.Caption="New scan"
+  newScan.AutoSize=true
+  newScan.OnClick=function(s)
+    if messageDialog("Are you sure? Your current scan results will be erased",mtConfirmation,mbYes,mbNo)==mrYes then
+      MainForm.btnNewScan.doClick()
+      local t=createTimer() --for some reason this is needed...
+      t.Interval=1
+      t.OnTimer=function(t)
+        t.destroy()
+        BabyCE.UpdateState(1) --select scan options
+      end       
+    end
+  end
 end
 
 BabyCE.DoState[3]=function()
-  --next scan
+  --secondary options
+  local edtValue
+  local edtValue2
+  local hasOptions=false
+  local startScan=function()
+    --start the scan
+    if edtValue then
+      MainForm.ScanValue.Text=edtValue.Text
+    end
+    
+    if edtValue2 then
+      MainForm.ScanValue2.Text=edtValue2.Text
+    end
+    
+    local t=createTimer() --for some reason this is needed...
+    t.Interval=1
+    t.OnTimer=function(t)
+      t.destroy()
+      BabyCE.UpdateState(4) --select scan options
+    end       
+  end
+
+  
+  local hint=createLabel(BabyCE)
+  hint.Caption=MainForm.ScanType.Text
+  hint.align="alTop"
+  hint.Alignment="taCenter" 
+  
+  buttonPanel=createPanel(BabyCE)
+  buttonPanel.align="alClient"
+  buttonPanel.BevelOuter="bvNone"
+  buttonPanel.Caption=""
+  buttonPanel.ChildSizing.Layout="cclLeftToRightThenTopToBottom"
+  buttonPanel.ChildSizing.ControlsPerLine=1
+  buttonPanel.ChildSizing.HorizontalSpacing=4
+  buttonPanel.ChildSizing.VerticalSpacing=64
+  buttonPanel.ChildSizing.EnlargeHorizontal="crsScaleChilds"    
+  buttonPanel.BorderWidth=4
+    
+    
+  if MainForm.ScanValue.Visible then
+    hasOptions=true
+    edtValue=createComponentClass("TEdit",buttonPanel) --using a TEdit since it has a nice TextHint property
+    edtValue.parent=buttonPanel
+    edtValue.TextHint="Value to scan"
+    edtValue.Text=MainForm.ScanValue.Text
+    
+    if edtValue.Text~='' then
+      edtValue.selectAll()
+    end
+    
+    edtValue.setFocus()
+  end
+  
+  if MainForm.ScanValue2.Visible then
+    buttonPanel.ChildSizing.ControlsPerLine=3
+    
+    andLabel=createComponentClass("TLabel",buttonPanel)
+    andLabel.caption=MainForm.andlabel.caption
+    andLabel.parent=buttonPanel
+    andLabel.Alignment='taCenter'
+  
+    edtValue2=createComponentClass("TEdit",buttonPanel)
+    edtValue2.parent=buttonPanel
+    edtValue2.TextHint="Value to scan" 
+    edtValue2.Text=MainForm.ScanValue2.Text 
+    
+    MainForm.ScanValue2.sendToBack() --for some reason it pops up over BabyCE
+  end 
+  
+  --start the scan
+  if hasOptions then
+    --create a button to start the scan
+    btnStartScan=createButton(buttonPanel)
+    btnStartScan.Caption="Scan"
+    btnStartScan.OnClick=startScan
+    --not a direct child
+    btnStartScan.AnchorSideTop.Control=edtValue
+    btnStartScan.AnchorSideTop.Side=asrBottom
+    btnStartScan.BorderSpacing.Top=64
+    
+    btnStartScan.AnchorSideLeft.Control=buttonPanel
+    btnStartScan.AnchorSideLeft.Side=asrLeft
+    btnStartScan.AnchorSideRight.Control=buttonPanel
+    btnStartScan.AnchorSideRight.Side=asrRight
+    
+    btnStartScan.Anchors="[akLeft, akTop, akRight]"    
+    btnStartScan.Font.Size=24
+    btnStartScan.Font.Style="[fsBold]"
+    btnStartScan.AutoSize=true
+    
+    btnStartScan.Default=true
+    
+    local btnBack=createButton(BabyCE)
+    btnBack.AnchorSideRight.Control=BabyCE
+    btnBack.AnchorSideRight.Side=asrRight
+    btnBack.AnchorSideBottom.Control=BabyCE
+    btnBack.AnchorSideBottom.Side=asrBottom
+    btnBack.Anchors="[akBottom,akRight]"
+    btnBack.Caption="Back"
+    btnBack.AutoSize=true
+    btnBack.OnClick=function(s)
+      local t=createTimer() --for some reason this is needed...
+      t.Interval=1
+      t.OnTimer=function(t)
+        t.destroy()
+        BabyCE.UpdateState(2) --select scan options
+      end       
+    end
+    
+  else
+    startScan()  
+  end     
+  
+  --If Unknown initial value, start scan and skip to 4  
+end
+
+BabyCE.DoState[4]=function()
+  local hint=createLabel(BabyCE)
+  hint.Caption=MainForm.ScanType.Text.." scan in progress. Please wait"
+  hint.WordWrap=true
+  hint.align="alTop"
+  hint.Alignment="taCenter" 
+  
+  getCurrentMemscan().OnScanDone=function()
+    BabyCE.UpdateState(2) --scan options
+  end
+
+  if MainForm.btnNextScan.Enabled then  
+    MainForm.btnNextScan.doClick()
+  else
+    MainForm.btnNewScan.doClick()
+  end
+  
+  BabyCE.bringToFront()
+  
+  --now wait till the scan is done, and capture errors...
+  
 end
 
 
