@@ -27,7 +27,7 @@ begin
   result:=false;
 end;
 
-procedure Init;
+procedure BetterDLLSearchPathInit;
 var
   k: THandle;
   p: widestring;
@@ -55,7 +55,7 @@ begin
 end;
 
 initialization
-  Init;
+  BetterDLLSearchPathInit;
 
 end.
 

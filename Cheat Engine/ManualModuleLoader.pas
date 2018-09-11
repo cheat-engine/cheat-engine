@@ -26,7 +26,7 @@ type TModuleLoader=class
     FEntrypoint: ptruint;
     fSymbolList: TSymbolListHandler;
 
-    destinationBase: uint64;
+    destinationBase: ptruint;
     modulesize: integer;
     is64bit: boolean;
     isdriver: boolean;
