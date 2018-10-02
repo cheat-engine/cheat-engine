@@ -7053,7 +7053,7 @@ begin
                                   else
                                     LastDisassembleData.opcode:='psraw';
 
-                                  lastdisassembledata.parameters:=modrm(memory,prefix2,2,4,last,mRight);
+                                  lastdisassembledata.parameters:=modrm(memory,prefix2,2,4,last);
                                   lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
 
                                   inc(offset,last-1+1);
@@ -7062,7 +7062,7 @@ begin
                                 begin
                                   description:='packed shift left logical';
                                   LastDisassembleData.opcode:='psraw';
-                                  lastdisassembledata.parameters:=modrm(memory,prefix2,2,3,last,mRight);
+                                  lastdisassembledata.parameters:=modrm(memory,prefix2,2,3,last);
                                   lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
 
                                   inc(offset,last-1+1);
@@ -7078,7 +7078,7 @@ begin
                                   else
                                     LastDisassembleData.opcode:='psllw';
 
-                                  lastdisassembledata.parameters:=modrm(memory,prefix2,2,4,last,mRight);
+                                  lastdisassembledata.parameters:=modrm(memory,prefix2,2,4,last);
                                   lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
 
                                   inc(offset,last-1+1);
@@ -7087,7 +7087,7 @@ begin
                                 begin
                                   description:='packed shift left logical';
                                   LastDisassembleData.opcode:='psllw';
-                                  lastdisassembledata.parameters:=modrm(memory,prefix2,2,3,last,mRight);
+                                  lastdisassembledata.parameters:=modrm(memory,prefix2,2,3,last);
                                   lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
 
                                   inc(offset,last-1+1);
@@ -7111,7 +7111,7 @@ begin
                                     lastdisassembledata.opcode:='vpsrld'
                                   else
                                     lastdisassembledata.opcode:='psrld';
-                                  lastdisassembledata.parameters:= modrm(memory,prefix2,2,4,last,mRight);
+                                  lastdisassembledata.parameters:= modrm(memory,prefix2,2,4,last);
                                   lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
                                   inc(offset,3);
                                 end
@@ -7133,7 +7133,7 @@ begin
                                     lastdisassembledata.opcode:='vpsrad'
                                   else
                                     lastdisassembledata.opcode:='psrad';
-                                  lastdisassembledata.parameters:= modrm(memory,prefix2,2,4,last,mRight);
+                                  lastdisassembledata.parameters:= modrm(memory,prefix2,2,4,last);
                                   lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
 
                                   inc(offset,3);
@@ -7158,7 +7158,7 @@ begin
                                   else
                                     lastdisassembledata.opcode:='pslld';
 
-                                  lastdisassembledata.parameters:=modrm(memory,prefix2,2,4,last,mRight);
+                                  lastdisassembledata.parameters:=modrm(memory,prefix2,2,4,last);
                                   lastdisassembledata.parameters:=lastdisassembledata.parameters+','+inttohexs(memory[last],2);
                                   inc(offset,3);
                                 end
