@@ -8,7 +8,7 @@ uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs,CEFuncProc,imagehlp, StdCtrls, ComCtrls, ExtCtrls, ActnList,
   Menus, LResources,symbolhandler, symbolhandlerstructs, FindDialogFix,
-  commonTypeDefs, strutils, ProcessHandlerUnit;
+  commonTypeDefs, strutils, ProcessHandlerUnit, Clipbrd;
 
 type tenumthread=class(tthread)
   public
@@ -27,7 +27,9 @@ type
   { TfrmEnumerateDLLs }
 
   TfrmEnumerateDLLs = class(TForm)
+    CopySymbolName: TAction;
     Label2: TLabel;
+    CopySymbolName1: TMenuItem;
     TreeView1: TTreeView;
     Panel1: TPanel;
     Button1: TButton;
@@ -37,6 +39,7 @@ type
     Find: TAction;
     pmSymbol: TPopupMenu;
     Find1: TMenuItem;
+    procedure CopySymbolNameExecute(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure FindDialog1Close(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -121,7 +124,7 @@ begin
   Priority:=tpLower;
 
  // symhandler.waitforsymbolsloaded;
-  
+
   if not canceled then
   begin
     sl:=tstringlist.create;
@@ -184,6 +187,12 @@ end;
 procedure TfrmEnumerateDLLs.Button1Click(Sender: TObject);
 begin
   close;
+end;
+
+procedure TfrmEnumerateDLLs.CopySymbolNameExecute(Sender: TObject);
+begin
+  if Treeview1.Selected<>nil then
+    Clipboard.AsText:=TreeView1.Selected.Text;
 end;
 
 procedure TfrmEnumerateDLLs.FindDialog1Close(Sender: TObject);
