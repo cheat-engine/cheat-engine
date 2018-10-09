@@ -722,7 +722,7 @@ begin
   //log('TFoundList.Initialize');
   Deinitialize;
 
-  foundlist.itemindex:=-1;
+  //foundlist.itemindex:=-1;
   foundlist.items.count:=0;
 
 
