@@ -663,7 +663,7 @@ begin
 
 
           //save the hotkeylist
-          reg.WriteBinaryData('Attach to foregroundprocess Hotkey',frameHotkeyConfig.newhotkeys[1][0],10);
+          reg.WriteBinaryData('Attach to foregroundprocess Hotkey',frameHotkeyConfig.newhotkeys[0][0],10);
           reg.WriteBinaryData('Show Cheat Engine Hotkey',frameHotkeyConfig.newhotkeys[1][0],10);
           reg.WriteBinaryData('Pause process Hotkey',frameHotkeyConfig.newhotkeys[2][0],10);
           reg.WriteBinaryData('Toggle speedhack Hotkey',frameHotkeyConfig.newhotkeys[3][0],10);
