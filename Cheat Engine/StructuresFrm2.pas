@@ -5183,7 +5183,13 @@ begin
   structlist:=tstringlist.create;
   elementlist:=tstringlist.create;
   try
-    symhandler.getStructureList(structlist);
+    symhandler.getStructureList(structlist,100);
+
+    if structlist.count>=100 then
+    begin
+      //show a dynamic list instead
+      exit;
+    end;
 
     if structlist.count=0 then exit;
 

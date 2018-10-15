@@ -1,7 +1,7 @@
 object frmPointerScanner: TfrmPointerScanner
-  Left = 334
+  Left = 435
   Height = 460
-  Top = 173
+  Top = 176
   Width = 749
   Caption = 'Pointer scan'
   ClientHeight = 440
@@ -524,6 +524,7 @@ object frmPointerScanner: TfrmPointerScanner
     LoginPrompt = False
     KeepConnection = False
     Transaction = SQLTransaction
+    Options = []
     left = 56
     top = 40
   end
@@ -537,6 +538,7 @@ object frmPointerScanner: TfrmPointerScanner
   object SQLTransaction: TSQLTransaction
     Active = False
     Database = SQLite3
+    Options = []
     left = 128
     top = 40
   end
@@ -544,6 +546,7 @@ object frmPointerScanner: TfrmPointerScanner
     FieldDefs = <>
     Database = SQLite3
     Transaction = SQLTransaction
+    Options = []
     Params = <>
     left = 223
     top = 46

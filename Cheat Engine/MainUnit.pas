@@ -2043,6 +2043,7 @@ begin
     cancelbutton.AnchorSideLeft.Control:=btnNewScan;
     cancelbutton.AnchorSideLeft.Side:=asrLeft;
     cancelbutton.Anchors:=[akLeft, akTop];
+    cancelbutton.name:='CancelButton';
 
     parent := panel5;
   end;

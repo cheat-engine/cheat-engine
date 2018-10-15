@@ -208,7 +208,7 @@ var
   pfn: ptruint;
 
 begin
-  if address=0 then exit;
+  if address=0 then exit(false);
 
   i:=BinSearchMemRegions(address);
   result:=(i<>-1) and (memoryregion[i].ValidPointerRange);

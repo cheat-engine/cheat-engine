@@ -85,6 +85,7 @@ type
 
     symbollist: TSymbolListHandler;
 
+    debugpart: integer;
 
     procedure execute; override;
     constructor create(owner: TSymhandler; targetself, CreateSuspended: boolean);
@@ -215,7 +216,7 @@ type
     procedure freeDotNetObjectList(list: TDOTNETObjectList);
 
     function getSymbolInfo(name: string; var syminfo: TCESymbolInfo): boolean;
-    procedure getStructureList(list: TStringList);
+    procedure getStructureList(list: TStringList; max: integer=-1);
     procedure getStructureElements(callbackid: integer; moduleid: integer; typeid: integer; list: TStringList);
     function hasDefinedStructures:boolean;
 
@@ -267,7 +268,7 @@ type TSymbolLookupCallbackPoint=(
 
 type TSymbolLookupCallback=function(s: string): PtrUInt of object;
 type TAddressLookupCallback=function(address: ptruint): string of object;
-type TStructureListCallback=function(callback: integer; list: tstringlist):boolean of object;
+type TStructureListCallback=function(callback: integer; list: tstringlist; max: integer=-1):boolean of object;
 type TElementListCallback=function(moduleid: integer; typeid: integer; list: TStringlist): boolean of object;
 
 
@@ -802,7 +803,7 @@ end;
 function ES2(pSymInfo:PSYMBOL_INFO; SymbolSize:ULONG; UserContext:pointer):BOOL;stdcall;
 var
   s: string;
-  self: TSymbolloaderthread;
+  slt: TSymbolloaderthread;
 
   isparam: boolean;
 
@@ -813,16 +814,16 @@ begin
   if pSymInfo.NameLen=0 then
     exit;
 
-  self:=TSymbolloaderthread(UserContext);
+  slt:=TSymbolloaderthread(UserContext);
 
 
-  if self.terminated then exit;
+  if slt.terminated then exit;
 
 
 
   isparam:=(pSymInfo.Flags and SYMFLAG_PARAMETER)>0;
 
-  s:=GetTypeName(self.thisprocesshandle, pSymInfo.ModBase, pSymInfo.TypeIndex);
+  s:=GetTypeName(slt.thisprocesshandle, pSymInfo.ModBase, pSymInfo.TypeIndex);
 
 
   //add an extra symboldataentry
@@ -834,34 +835,74 @@ begin
   esde.syminfo:=pSymInfo^; //the name is known, so no need to do any fancy allocating
 
   if isparam then
-    self.extraSymbolData.parameters.Add(esde)
+    slt.extraSymbolData.parameters.Add(esde)
   else
-    self.extraSymbolData.locals.Add(esde);
+    slt.extraSymbolData.locals.Add(esde);
 
-  result:=(self.terminated=false);
+  result:=(slt.terminated=false);
   {$ENDIF}
 end;
+
+var es2address: pointer=@es2;
+
+//var SES:function;
+
+var SES:function(hProcess:THANDLE; BaseOfDll:ULONG64; Mask:LPCSTR; EnumSymbolsCallback:TSYM_ENUMERATESYMBOLS_CALLBACK; UserContext:pointer):BOOL;stdcall; //external External_library name 'SymEnumSymbols';
 
 procedure TSymbolloaderthread.EnumerateExtendedDebugSymbols;
 var
   i: integer;
-  c: IMAGEHLP_STACK_FRAME;
+  max: integer;
+  c: PIMAGEHLP_STACK_FRAME;
+
+  esd: TExtraSymbolData;
+
+  d: hmodule;
+
 begin
   {$IFNDEF UNIX}
-  for i:=0 to self.symbollist.ExtraSymbolDataList.Count-1 do
+
+  if not assigned(ses) then
   begin
-    if (not self.symbollist.ExtraSymbolDataList[i].forwarder) and (not self.symbollist.ExtraSymbolDataList[i].filledin) and (self.symbollist.ExtraSymbolDataList[i].symboladdress<>0) then
+    d:=loadlibrary('dbghelp.dll');
+    ses:=getprocaddress(d,'SymEnumSymbols');
+  end;
+
+  max:=self.symbollist.ExtraSymbolDataList.Count;
+  for i:=0 to max-1 do
+  begin
+    debugpart:=40000+i;
+
+    if i=251 then
+    begin
+      asm
+      nop //ok here
+      end;
+    end;
+
+    if i=252 then
+    begin
+      asm
+      nop  //bad here
+      end;
+    end;
+
+    esd:=TExtraSymbolData(self.symbollist.ExtraSymbolDataList[i]);
+
+    if (not esd.forwarder) and (not esd.filledin) and (esd.symboladdress<>0) then
     begin
       //get the data
       if terminated then exit;
 
-      self.extraSymbolData:=self.symbollist.ExtraSymbolDataList[i];
+      self.extraSymbolData:=esd;
 
-      ZeroMemory(@c, sizeof(c));
+      getmem(c,sizeof(c)*2+1024);
+      ZeroMemory(c, sizeof(c)*2+1024);
+
       c.InstructionOffset:=self.extraSymbolData.symboladdress;
-      SymSetContext(self.thisprocesshandle, @c, nil);
+      SymSetContext(self.thisprocesshandle, IMAGEHLP.PIMAGEHLP_STACK_FRAME(c), nil);
 
-      SymEnumSymbols(self.thisprocesshandle, 0, nil, @ES2, self);
+      SES(self.thisprocesshandle, 0, nil, es2address, self);
 
       self.extraSymbolData.filledin:=true;
     end;
@@ -1098,6 +1139,7 @@ var
   hasStructInfo: boolean;
 begin
   if istrainer then exit;  //waste of time
+  if terminated then exit;
 
 
   try
@@ -1347,6 +1389,7 @@ var sp: pchar;
 
     modinfo: PModInfo;
 begin
+  debugpart:=0;
 
   try
     try
@@ -1447,6 +1490,8 @@ begin
 
         end;
 
+        debugpart:=1;
+
         symbolloaderthreadcs.Enter;
         try
           SymbolsLoaded:=SymInitialize(thisprocesshandle, sp, true);
@@ -1456,6 +1501,7 @@ begin
 
           if symbolsloaded then
           begin
+            debugpart:=2;
             symsetoptions(symgetoptions or SYMOPT_CASE_INSENSITIVE);
             symsetsearchpath(processhandle,pchar(searchpath));
 
@@ -1469,7 +1515,7 @@ begin
 
             apisymbolsloaded:=true;
 
-
+            debugpart:=3;
 
             if owner.dotNetDataCollector.Attached then
             begin
@@ -1487,10 +1533,13 @@ begin
             end;
 
             //enumerate the extended debug symbols
-
+            debugpart:=4;
             EnumerateExtendedDebugSymbols;
+            debugpart:=5;
             EnumerateStructures;
+            debugpart:=6;
             Symcleanup(thisprocesshandle);
+            debugpart:=7;
           end
           else
             error:=true;
@@ -2326,9 +2375,16 @@ end;
 
 procedure TSymHandler.getStructureElements(callbackid: integer; moduleid: integer; typeid: integer; list: TStringList);
 var
-  q: TSQLQuery;
-  elementinfo: TDBElementInfo;
+  q: TSQLQuery=nil;
+  elementinfo: TDBElementInfo=nil;
+  i: longint;
 begin
+  if symbolloaderthread.debugpart=0 then
+  begin
+    beep;
+  end;
+  symbolloaderthread.debugpart:=110;
+
   if callbackid=-1 then
   begin
     q:=TSQLQuery.Create(nil);
@@ -2345,10 +2401,19 @@ begin
       while not q.EOF do
       begin
         elementinfo:=TDBElementInfo.create;
-        elementinfo.offset:=q.FieldByName('offset').AsInteger;
-        elementinfo.basetype:=q.FieldByName('basetype').AsInteger;
-        elementinfo.typeid:=q.FieldByName('type').AsInteger;
-        elementinfo.tag:=TSymTagEnum(q.FieldByName('tag').AsInteger);
+        if elementinfo=nil then
+        begin
+          outputdebugstring('TDBElementInfo.create returned nil');
+          exit;
+        end;
+        i:=q.FieldByName('offset').AsInteger;
+        elementinfo.offset:=i;
+        i:=q.FieldByName('basetype').AsInteger;
+        elementinfo.basetype:=i;
+        i:=q.FieldByName('type').AsInteger;
+        elementinfo.typeid:=i;
+        i:=q.FieldByName('tag').AsInteger;
+        elementinfo.tag:=TSymTagEnum(i);
 
         if elementinfo.tag=SymTagPointerType then
           elementinfo.vartype:=vtPointer
@@ -2386,7 +2451,8 @@ begin
       q.active:=false;
 
     finally
-      q.free;
+      if q<>nil then
+        freeandnil(q);
     end;
 
   end
@@ -2396,7 +2462,7 @@ begin
   end;
 end;
 
-procedure TSymHandler.getStructureList(list: tstringlist);
+procedure TSymHandler.getStructureList(list: tstringlist; max: integer=-1);
 var
   q: TSQLQuery;
   moduleidstring: string;
@@ -2406,7 +2472,10 @@ var
 begin
   if istrainer then exit;
   for i:=0 to length(StructureElementListCallbacks)-1 do
-    StructureElementListCallbacks[i].StructureListCallback(i,list);
+    StructureElementListCallbacks[i].StructureListCallback(i,list, max);
+
+  if (max<>-1) and (list.Count>=max) then exit;
+
 
   moduleidstring:='';
   modulelistMREW.beginread;
@@ -2435,7 +2504,7 @@ begin
     q.Active:=true;
 
     q.First;
-    while not q.EOF do
+    while (not q.EOF) and ((max=-1) or (list.count<max) ) do
     begin
       structinfo:=TDBStructInfo.Create;
       structinfo.moduleid:=q.FieldByName('moduleid').AsInteger;
@@ -2443,6 +2512,7 @@ begin
       structinfo.length:=q.FieldByName('length').AsInteger;
       structinfo.callbackid:=-1;
       list.AddObject(q.FieldByName('tablename').AsString, structinfo);
+
       q.next;
     end;
 

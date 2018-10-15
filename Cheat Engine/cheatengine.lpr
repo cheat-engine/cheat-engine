@@ -95,9 +95,10 @@ uses
   bCrypt, feces, askToRunLuaScript, frmDBVMWatchConfigUnit,
   frmStructuresNewStructureUnit, frmDotNetObjectListUnit, vextypedef,
   frmFindDialogUnit, frmRearrangeStructureListUnit,
-  autoassemblerexeptionhandler, frmstructurecompareunit, addressedit, 
-frmChangedAddressesCommonalityScannerUnit, ceregistry, LuaRemoteThread, 
-LuaManualModuleLoader, symbolhandlerstructs;
+  autoassemblerexeptionhandler, frmstructurecompareunit, addressedit,
+  frmChangedAddressesCommonalityScannerUnit, ceregistry, LuaRemoteThread,
+  LuaManualModuleLoader, symbolhandlerstructs, frmOpenFileAsProcessDialogUnit,
+  BetterDLLSearchPath, DebugStructureList;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in

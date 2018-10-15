@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="9"/>
+    <Version Value="10"/>
     <PathDelim Value="\"/>
     <General>
       <Flags>
@@ -17,8 +17,48 @@
       <CharSet Value=""/>
       <StringTable ProductVersion=""/>
     </VersionInfo>
-    <BuildModes Count="1">
-      <Item1 Name="default" Default="True"/>
+    <BuildModes Count="2" Active="32-bit">
+      <Item1 Name="32-bit" Default="True"/>
+      <Item2 Name="64-bit">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <PathDelim Value="\"/>
+          <Target>
+            <Filename Value="..\bin\speedhack-$(TargetCPU)"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir)"/>
+            <UnitOutputDirectory Value="unitbin"/>
+          </SearchPaths>
+          <Parsing>
+            <Style Value="1"/>
+            <SyntaxOptions>
+              <SyntaxMode Value="Delphi"/>
+            </SyntaxOptions>
+          </Parsing>
+          <CodeGeneration>
+            <TargetCPU Value="x86_64"/>
+            <TargetOS Value="win64"/>
+            <Optimizations>
+              <OptimizationLevel Value="3"/>
+              <VariablesInRegisters Value="True"/>
+            </Optimizations>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <GenerateDebugInfo Value="False"/>
+              <UseLineInfoUnit Value="False"/>
+              <StripSymbols Value="True"/>
+            </Debugging>
+            <Options>
+              <ExecutableType Value="Library"/>
+            </Options>
+          </Linking>
+          <Other>
+            <CustomOptions Value="-dUSECS"/>
+          </Other>
+        </CompilerOptions>
+      </Item2>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
@@ -38,13 +78,14 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="7">
+    <Units Count="8">
       <Unit0>
         <Filename Value="speedhack.lpr"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="2"/>
-        <TopLine Value="16"/>
-        <CursorPos X="40" Y="29"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="6"/>
+        <CursorPos X="2" Y="36"/>
         <UsageCount Value="43"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -53,10 +94,8 @@
       <Unit1>
         <Filename Value="speedhackmain.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="speedhackmain"/>
-        <IsVisibleTab Value="True"/>
-        <TopLine Value="2"/>
-        <CursorPos X="58" Y="16"/>
+        <TopLine Value="188"/>
+        <CursorPos X="16" Y="203"/>
         <UsageCount Value="43"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -89,134 +128,137 @@
       </Unit5>
       <Unit6>
         <Filename Value="C:\development\fpc\rtl\objpas\sysutils\sysutilh.inc"/>
-        <EditorIndex Value="1"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="16"/>
         <CursorPos X="10" Y="28"/>
         <UsageCount Value="10"/>
-        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit6>
+      <Unit7>
+        <Filename Value="C:\FPC\fixes_3_0\rtl\objpas\sysutils\sysutilh.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="12"/>
+        <CursorPos X="10" Y="28"/>
+        <UsageCount Value="10"/>
+      </Unit7>
     </Units>
-    <JumpHistory Count="30" HistoryIndex="29">
+    <JumpHistory Count="29" HistoryIndex="28">
       <Position1>
         <Filename Value="speedhackmain.pas"/>
-        <Caret Line="155" Column="50" TopLine="139"/>
+        <Caret Line="122" Column="11" TopLine="117"/>
       </Position1>
       <Position2>
         <Filename Value="speedhackmain.pas"/>
-        <Caret Line="73" Column="19" TopLine="67"/>
+        <Caret Line="125" Column="140" TopLine="108"/>
       </Position2>
       <Position3>
         <Filename Value="speedhackmain.pas"/>
-        <Caret Line="86" TopLine="72"/>
+        <Caret Line="135" Column="49" TopLine="111"/>
       </Position3>
       <Position4>
         <Filename Value="speedhackmain.pas"/>
-        <Caret Line="99" TopLine="85"/>
+        <Caret Line="69" Column="20" TopLine="55"/>
       </Position4>
       <Position5>
         <Filename Value="speedhackmain.pas"/>
-        <Caret Line="122" Column="11" TopLine="117"/>
+        <Caret Line="33" Column="11" TopLine="16"/>
       </Position5>
       <Position6>
         <Filename Value="speedhackmain.pas"/>
-        <Caret Line="125" Column="140" TopLine="108"/>
+        <Caret Line="146" Column="5" TopLine="125"/>
       </Position6>
       <Position7>
-        <Filename Value="speedhackmain.pas"/>
-        <Caret Line="135" Column="49" TopLine="111"/>
+        <Filename Value="speedhack.lpr"/>
+        <Caret Line="29" Column="12" TopLine="8"/>
       </Position7>
       <Position8>
-        <Filename Value="speedhackmain.pas"/>
-        <Caret Line="69" Column="20" TopLine="55"/>
+        <Filename Value="speedhack.lpr"/>
+        <Caret Line="34" Column="45" TopLine="8"/>
       </Position8>
       <Position9>
         <Filename Value="speedhackmain.pas"/>
-        <Caret Line="33" Column="11" TopLine="16"/>
+        <Caret Line="75" Column="10" TopLine="61"/>
       </Position9>
       <Position10>
         <Filename Value="speedhackmain.pas"/>
-        <Caret Line="146" Column="5" TopLine="125"/>
+        <Caret Line="7" Column="45"/>
       </Position10>
       <Position11>
-        <Filename Value="speedhack.lpr"/>
-        <Caret Line="29" Column="12" TopLine="8"/>
-      </Position11>
-      <Position12>
-        <Filename Value="speedhack.lpr"/>
-        <Caret Line="34" Column="45" TopLine="8"/>
-      </Position12>
-      <Position13>
-        <Filename Value="speedhackmain.pas"/>
-        <Caret Line="75" Column="10" TopLine="61"/>
-      </Position13>
-      <Position14>
-        <Filename Value="speedhackmain.pas"/>
-        <Caret Line="7" Column="45"/>
-      </Position14>
-      <Position15>
         <Filename Value="speedhackmain.pas"/>
         <Caret Line="166" Column="26" TopLine="143"/>
+      </Position11>
+      <Position12>
+        <Filename Value="speedhackmain.pas"/>
+        <Caret Line="172"/>
+      </Position12>
+      <Position13>
+        <Filename Value="speedhack.lpr"/>
+        <Caret Line="42" Column="39" TopLine="11"/>
+      </Position13>
+      <Position14>
+        <Filename Value="speedhack.lpr"/>
+        <Caret Line="43" Column="37" TopLine="18"/>
+      </Position14>
+      <Position15>
+        <Filename Value="speedhack.lpr"/>
+        <Caret Line="44" Column="4" TopLine="18"/>
       </Position15>
       <Position16>
         <Filename Value="speedhackmain.pas"/>
-        <Caret Line="172"/>
+        <Caret Line="157" Column="22" TopLine="137"/>
       </Position16>
       <Position17>
-        <Filename Value="speedhack.lpr"/>
-        <Caret Line="42" Column="39" TopLine="11"/>
+        <Filename Value="speedhackmain.pas"/>
+        <Caret Line="158" Column="56" TopLine="137"/>
       </Position17>
       <Position18>
-        <Filename Value="speedhack.lpr"/>
-        <Caret Line="43" Column="37" TopLine="18"/>
+        <Filename Value="speedhackmain.pas"/>
+        <Caret Line="53" Column="45" TopLine="40"/>
       </Position18>
       <Position19>
-        <Filename Value="speedhack.lpr"/>
-        <Caret Line="44" Column="4" TopLine="18"/>
+        <Filename Value="speedhackmain.pas"/>
+        <Caret Line="58" Column="20" TopLine="40"/>
       </Position19>
       <Position20>
         <Filename Value="speedhackmain.pas"/>
-        <Caret Line="157" Column="22" TopLine="137"/>
+        <Caret Line="127" Column="77" TopLine="112"/>
       </Position20>
       <Position21>
         <Filename Value="speedhackmain.pas"/>
-        <Caret Line="158" Column="56" TopLine="137"/>
+        <Caret Line="152" Column="33" TopLine="131"/>
       </Position21>
       <Position22>
         <Filename Value="speedhackmain.pas"/>
-        <Caret Line="53" Column="45" TopLine="40"/>
+        <Caret Line="163" Column="19" TopLine="145"/>
       </Position22>
       <Position23>
         <Filename Value="speedhackmain.pas"/>
-        <Caret Line="58" Column="20" TopLine="40"/>
+        <Caret Line="64" Column="69" TopLine="55"/>
       </Position23>
       <Position24>
         <Filename Value="speedhackmain.pas"/>
-        <Caret Line="127" Column="77" TopLine="112"/>
+        <Caret Line="125" Column="22" TopLine="108"/>
       </Position24>
       <Position25>
-        <Filename Value="speedhackmain.pas"/>
-        <Caret Line="152" Column="33" TopLine="131"/>
+        <Filename Value="speedhack.lpr"/>
+        <Caret Line="26" Column="27" TopLine="21"/>
       </Position25>
       <Position26>
-        <Filename Value="speedhackmain.pas"/>
-        <Caret Line="163" Column="19" TopLine="145"/>
+        <Filename Value="speedhack.lpr"/>
+        <Caret Line="33" Column="6" TopLine="15"/>
       </Position26>
       <Position27>
-        <Filename Value="speedhackmain.pas"/>
-        <Caret Line="64" Column="69" TopLine="55"/>
+        <Filename Value="speedhack.lpr"/>
+        <Caret Line="32" Column="17" TopLine="15"/>
       </Position27>
       <Position28>
         <Filename Value="speedhackmain.pas"/>
-        <Caret Line="125" Column="22" TopLine="108"/>
+        <Caret Line="74" Column="18" TopLine="70"/>
       </Position28>
       <Position29>
         <Filename Value="speedhackmain.pas"/>
-        <Caret Line="12" Column="21" TopLine="163"/>
+        <Caret Line="207" Column="21" TopLine="188"/>
       </Position29>
-      <Position30>
-        <Filename Value="speedhack.lpr"/>
-        <Caret Line="26" Column="27" TopLine="21"/>
-      </Position30>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
@@ -236,6 +278,8 @@
       </SyntaxOptions>
     </Parsing>
     <CodeGeneration>
+      <TargetCPU Value="i386"/>
+      <TargetOS Value="win32"/>
       <Optimizations>
         <OptimizationLevel Value="3"/>
         <VariablesInRegisters Value="True"/>

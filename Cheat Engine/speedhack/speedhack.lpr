@@ -29,18 +29,9 @@ exports speedhackversion_GetTickCount;
 exports speedhackversion_GetTickCount64;
 exports speedhackversion_QueryPerformanceCounter;
 
+exports initdll;
 
 begin
-  speedmultiplier:=1;
-  confighaschanged:=0; //not changed, speed is 1
-  initialoffset:=gettickcount;
-  initialtime:=initialoffset;
-  QueryPerformanceCounter(initialoffset64);
-  initialtime64:=initialoffset64;
-  loadlibrary('winmm.dll');
+  initdll;
 
-  {$ifdef USECS}
-  QPCLock.cs:=TCriticalsection.create;
-  GTCLock.cs:=TCriticalSection.create;
-  {$endif}
 end.

@@ -19,15 +19,6 @@ function GetModuleFileNameEx(hProcess: HANDLE; hModule: HMODULE; lpFilename: pch
 
 type PHModule=^HModule;
 
-type TModuleEnumCallback=function (ModuleName:PSTR; BaseOfDll:dword64; UserContext:pointer):bool;stdcall;
-function FixedSymEnumerateModules64(hProcess:THANDLE; callback: TModuleEnumCallback; UserContext:pointer):BOOL;stdcall;
-
-type TSymbolEnumCallback=function (SymbolName:PSTR; SymbolAddress:dword64; SymbolSize:ULONG; UserContext:pointer):bool;stdcall;
-
-//function SymEnumerateSymbols64(hProcess:THANDLE; BaseOfDll:dword64; EnumSymbolsCallback:TSYM_ENUMSYMBOLS_CALLBACK64; UserContext:pointer):BOOL;stdcall;external External_library name 'SymEnumerateSymbols64';
-
-
-
 
 type TCreateRemoteThread=function(hProcess: THandle; lpThreadAttributes: Pointer; dwStackSize: DWORD; lpStartAddress: TFNThreadStartRoutine; lpParameter: Pointer;  dwCreationFlags: DWORD; var lpThreadId: DWORD): THandle; stdcall;
 type TVirtualAllocEx=function(hProcess: THandle; lpAddress: Pointer; dwSize, flAllocationType: DWORD; flProtect: DWORD): Pointer; stdcall;
@@ -58,7 +49,7 @@ end;
 function myCreateRemoteThread(hProcess: THandle; lpThreadAttributes: Pointer; dwStackSize: DWORD; lpStartAddress: TFNThreadStartRoutine; lpParameter: Pointer;  dwCreationFlags: DWORD; var lpThreadId: DWORD): THandle; stdcall;
 var base: PtrUInt;
     path: pchar;
-    br: dword;
+    br: ptruint;
     script: tstringlist;
     success: boolean;
 
@@ -239,11 +230,11 @@ begin
 
         r.Add('unregisterSymbol([['+symbolname+']])');
         r.Add('unregisterSymbol([['+mname+'!'+symbolname+']])');
-        r.Add('unregisterSymbol([['+mname+'.'+symbolname+']])');
+        r.Add('unregisterSymbol([['+ChangeFileExt(mname,'')+'.'+symbolname+']])');
 
         r.Add('registerSymbol([['+symbolname+']], '+address+')');
         r.Add('registerSymbol([['+mname+'!'+symbolname+']], '+address+')');
-        r.Add('registerSymbol([['+mname+'.'+symbolname+']], '+address+')');
+        r.Add('registerSymbol([['+ChangeFileExt(mname,'')+'.'+symbolname+']], '+address+')');
       end ;
 
     end;
@@ -311,213 +302,6 @@ begin
   result:=true;
 end;
 
-
-type TSymEnumerateModules64=function(hProcess:THANDLE; EnumModulesCallback:TModuleEnumCallback; UserContext:pointer):BOOL;stdcall;
-
-
-type TSymEnumerateSymbols64=function(hProcess:THANDLE; BaseOfDll:dword64; EnumSymbolsCallback:TSymbolEnumCallback; UserContext:pointer):BOOL;stdcall;
-
-
-
-var
-  OriginalSymEnumerateModules64: TSymEnumerateModules64;
-  POriginalSymEnumerateModules64: pointer absolute OriginalSymEnumerateModules64;   //for some reason @OriginalSymEnumerateModules64 returns the value
-
-  OriginalSymEnumerateSymbols64: TSymEnumerateSymbols64;
-  POriginalSymEnumerateSymbols64: pointer absolute OriginalSymEnumerateSymbols64;   //for some reason @OriginalSymEnumerateModules64 returns the value
-
-
-
-type TSymbolEnumcontext=record
-       OriginalFunction: TSymbolEnumCallback;
-       OriginalUserContext: pointer;
-       modulename: string;
-       hModule: dword64;
-       modulesize: integer;
-       moduledata: pbytearray;
-     end;
-
-  PSymbolEnumcontext=^TSymbolEnumcontext;
-
-
-function MySymbolEnum(SymbolName:PSTR; SymbolAddress:dword64; SymbolSize:ULONG; UserContext:PSymbolEnumcontext):bool;stdcall;
-var p: pchar;
-  i: integer;
-begin
-  if usercontext.moduledata<>nil then
-  begin
-    //check if this symboladdress is a string to another symbol, or actually what I need
-
-    if (Symboladdress-usercontext.hModule)<UserContext.modulesize then
-    begin
-
-      p:=@UserContext.moduledata[Symboladdress-usercontext.hModule];
-
-
-
-      if uppercase(copy(p, 1, 6))='NTDLL.' then
-      begin
-        i:=lua_gettop(luavm);
-        lua_dostring(Luavm, pchar('return getAddress("'+p+'")'));
-        if lua_gettop(luavm)>i then
-          SymbolAddress:=lua_tointeger(luavm, -1);
-
-         lua_settop(luavm, i);
-      end;
-
-    end
-    //else
-    //  ce_exported.showmessage(pchar('Invalid offset. Modulesize='+inttohex(UserContext.modulesize,1)+' Offset='+inttohex(Symboladdress-usercontext.hModule,1)));
-
-  end;
-
-  result:=usercontext.OriginalFunction(SymbolName, SymbolAddress, SymbolSize, UserContext.OriginalUserContext);
-end;
-
-function FixedSymEnumerateSymbols64(hProcess:THANDLE; BaseOfDll:dword64; EnumSymbolsCallback:TSymbolEnumCallback; UserContext:pointer):BOOL;stdcall;
-var c: TSymbolEnumcontext;
-  i: integer;
-  s: string;
-  br,tr: dword;
-  mbi: TMemoryBasicInformation;
-
-  size: integer;
-begin
-  //make a copy of this module here for lookup
-  c.OriginalFunction:=EnumSymbolsCallback;
-  c.OriginalUserContext:=UserContext;
-  c.hModule:=BaseOfDll;
-  c.moduledata:=nil;
-  c.modulesize:=0;
-
-
-  i:=lua_gettop(Luavm);
-  lua_dostring(Luavm, pchar('return getModuleSize(getNameFromAddress(0x'+intToHex(BaseOfDll,8)+'))'));
-  if lua_gettop(luavm)>i then
-  begin
-    c.ModuleSize:=lua_tointeger(luavm, -1);
-    lua_settop(luavm, i);
-
-    if c.modulesize>0 then
-    begin
-      getmem(c.moduledata, c.modulesize);
-      ZeroMemory(c.moduledata, c.modulesize);
-      br:=0;
-
-      ZeroMemory(@mbi, sizeof(mbi));
-
-      size:=0;
-      tr:=0;
-      while VirtualQueryEx(hProcess, pointer(baseofdll+size), mbi, sizeof(mbi))>0 do
-      begin
-        br:=0;
-        ReadProcessMemory(hProcess, pointer(baseofdll+size), @c.moduledata[size], min(mbi.RegionSize, c.modulesize-size), br);
-        inc(tr,br);
-        inc(size, mbi.RegionSize);
-        if size>=c.modulesize then break;
-      end;
-
-
-
-
-      if tr=0 then
-      begin
-        ce_exported.showmessage(pchar('rpm fail. '+inttohex(baseofdll,8)+' : '+inttostr(c.modulesize)));
-        freemem(c.moduledata);
-        c.moduledata:=nil;
-        c.modulesize:=0;
-      end
-      else
-      begin
-        //get the modulename seperately
-
-        lua_dostring(Luavm, pchar('return getNameFromAddress(0x'+intToHex(BaseOfDll,8)+')'));
-        if lua_gettop(luavm)>i then
-        begin
-          c.modulename:=ChangeFileExt(lua_tostring(luavm, -1),'');
-          lua_settop(luavm, i);
-
-
-         // ce_exported.showmessage(pchar(c.modulename));
-
-          if uppercase(c.modulename)='NTDLL' then
-          begin
-            freemem(c.moduledata);
-            c.moduledata:=nil;
-            c.modulesize:=0;
-          end;
-        end;
-      end;
-
-    end;
-  end;
-
-  result:=OriginalSymEnumerateSymbols64(hProcess, BaseOfDll, @MySymbolEnum, @c);
-
-  if c.moduledata<>nil then
-    freemem(c.moduledata);
-end;
-
-type TModuleEnumcontext=record
-       OriginalFunction: TModuleEnumCallback;
-       OriginalUserContext: pointer;
-       hProcess: Thandle;
-       is32bit: BOOL;
-     end;
-
-  PModuleEnumcontext=^TModuleEnumcontext;
-
-
-function MyModuleEnum(ModuleName:PSTR; BaseOfDll:dword64; UserContext:PModuleEnumcontext):bool;stdcall;
-var path: pchar ;
-  s: string;
-begin
-  {$ifdef cpu64}
-  //if the target is 32-bit then get the modulepath of this dll and adjust the name if it's not the wow64
-  if UserContext.is32bit then
-  begin
-   // ce_exported.showmessage(Modulename);
-    if uppercase(modulename)='NTDLL' then
-    begin
-      getmem(path, 200);
-      GetModuleFileNameEx(usercontext.hProcess,BaseOfDll,path,200);
-      s:=uppercase(path);
-      freemem(path);
-
-      if pos('WOW64', s)=0 then
-      begin
-        //it's not the wow64 ntdll
-        result:=UserContext.OriginalFunction('NTDLL64', BaseOfDll, UserContext.OriginalUserContext);
-        exit;
-      end;
-
-    end;
-  end;
-  {$endif}
-
-  result:=UserContext.OriginalFunction(ModuleName, BaseOfDll, UserContext.OriginalUserContext);
-
-end;
-
-function FixedSymEnumerateModules64(hProcess:THANDLE; callback: TModuleEnumCallback; UserContext:pointer):BOOL;stdcall;
-var c: TModuleenumcontext;
-  i: integer;
-begin
-  c.OriginalFunction:=callback;
-  c.OriginalUserContext:=usercontext;
-  c.hprocess:=hProcess;
-
-  c.is32bit:=false;
-
-  {$ifdef cpu64}
-  isWow64Process(ce_exported.OpenedProcessHandle^, c.is32bit);
-  {$endif}
-
-
-
-  result:=OriginalSymEnumerateModules64(hProcess, @MyModuleEnum, @c);
-end;
-
 function CEPlugin_InitializePlugin(ExportedFunctions: PExportedFunctions; pluginid: dword):BOOL; stdcall;
 var script: tstringlist;
   originalpid: dword;
@@ -545,7 +329,7 @@ begin
 
 
   //Tce_generateAPIHookScript=function(address, addresstojumpto, addresstogetnewcalladdress: string; script: pchar; maxscriptsize: integer): BOOL; stdcall;
-
+  {
   originalpid:=ce_exported.OpenedProcessID^;
   ce_exported.openProcessEx(GetCurrentProcessId);
 
@@ -566,19 +350,18 @@ begin
   script.add('autoAssemble(s)');
 
 
-
-
   lua_dostring(luavm,pchar(script.text));
+  }
 
   //ce_exported.showmessage(pchar(script.text));
 
 
-  getmem(s,16*1024);
+ // getmem(s,16*1024);
 
   //ce_exported.ce_generateAPIHookScript('SymEnumerateModules64', , , s, 16*1024);
 
 
-  script.free;
+ // script.free;
 
 
   //ce_exported.openProcessEx(originalpid);

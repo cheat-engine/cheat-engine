@@ -594,6 +594,10 @@ type TCEEdit=class(TCustomEdit)
     property SelStart;
     property SelLength;
     property SelText;
+
+    property TextHint;
+    property TextHintFontColor;
+    property TextHintFontStyle;
   end;
 
 type TCEForm=class(TCustomForm)

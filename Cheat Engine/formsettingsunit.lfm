@@ -63,9 +63,9 @@ object formSettings: TformSettings
       Height = 630
       Top = 1
       Width = 651
-      ActivePage = GeneralSettings
+      ActivePage = ScanSettings
       Align = alClient
-      TabIndex = 0
+      TabIndex = 3
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -646,35 +646,35 @@ object formSettings: TformSettings
       end
       object tsHotkeys: TTabSheet
         Caption = 'Hotkeys'
-        ClientHeight = 601
+        ClientHeight = 602
         ClientWidth = 643
         ImageIndex = 7
         inline frameHotkeyConfig: TframeHotkeyConfig
-          Height = 601
+          Height = 602
           Width = 643
           Align = alClient
-          ClientHeight = 601
+          ClientHeight = 602
           ClientWidth = 643
           DesignLeft = 737
           DesignTop = 306
           inherited Panel1: TPanel
-            Height = 551
+            Height = 552
             Width = 417
-            ClientHeight = 551
+            ClientHeight = 552
             ClientWidth = 417
             inherited Label1: TLabel
               Width = 417
             end
             inherited ListBox1: TListBox
-              Height = 536
+              Height = 537
               Width = 417
             end
           end
           inherited Panel2: TPanel
             Left = 417
-            Height = 551
+            Height = 552
             Width = 226
-            ClientHeight = 551
+            ClientHeight = 552
             ClientWidth = 226
             inherited Edit1: TEdit
               Width = 222
@@ -714,8 +714,8 @@ object formSettings: TformSettings
       end
       object Unrandomizer: TTabSheet
         Caption = 'Unrandomizer'
-        ClientHeight = 520
-        ClientWidth = 720
+        ClientHeight = 602
+        ClientWidth = 643
         ImageIndex = 8
         object Label5: TLabel
           AnchorSideLeft.Control = Unrandomizer
@@ -756,12 +756,12 @@ object formSettings: TformSettings
       end
       object ScanSettings: TTabSheet
         Caption = 'Scan Settings'
-        ClientHeight = 601
+        ClientHeight = 602
         ClientWidth = 643
         ImageIndex = 1
         object ScrollBox2: TScrollBox
           Left = 0
-          Height = 601
+          Height = 602
           Top = 0
           Width = 643
           HorzScrollBar.Page = 599
@@ -769,7 +769,7 @@ object formSettings: TformSettings
           VertScrollBar.Page = 356
           VertScrollBar.Tracking = True
           Align = alClient
-          ClientHeight = 597
+          ClientHeight = 598
           ClientWidth = 639
           TabOrder = 0
           object Label3: TLabel

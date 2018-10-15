@@ -8,6 +8,8 @@ uses windows, classes, sysutils{$ifdef USECS},syncobjs{$endif};
 
 procedure InitializeSpeedhack(speed: single); stdcall;
 
+procedure InitDLL;
+
 type TGetTickCount=function: DWORD; stdcall;
 type TGetTickCount64=function: QWORD; stdcall;
 type TQueryPerformanceCounter=function(var x: int64): BOOL; stdcall;
@@ -195,6 +197,23 @@ begin
 //  outputdebugstring(pchar(format('unlocked: tid=%d, lockQPC=%d (%d), lockGTC=%d (%d)',[GetThreadID, QPCLock.owner, QPCLock.count, GTCLock.owner, GTCLock.count])));
 
  // OutputDebugString('f');
+end;
+
+
+procedure InitDLL;
+begin
+  speedmultiplier:=1;
+  confighaschanged:=0; //not changed, speed is 1
+  initialoffset:=gettickcount;
+  initialtime:=initialoffset;
+  QueryPerformanceCounter(initialoffset64);
+  initialtime64:=initialoffset64;
+  loadlibrary('winmm.dll');
+
+  {$ifdef USECS}
+  QPCLock.cs:=TCriticalsection.create;
+  GTCLock.cs:=TCriticalSection.create;
+  {$endif}
 end;
 
 end.

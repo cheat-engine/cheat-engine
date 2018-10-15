@@ -1,7 +1,8 @@
-
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cudaPointerscan", "cudaPointerscan.vcproj", "{91B66482-63BE-4A8A-80B1-2F4F351A9622}"
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2000
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cudaPointerScan", "cudaPointerscan.vcxproj", "{91B66482-63BE-4A8A-80B1-2F4F351A9622}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -22,5 +23,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D78D5B37-B5D6-457F-868D-DF102B50B254}
 	EndGlobalSection
 EndGlobal

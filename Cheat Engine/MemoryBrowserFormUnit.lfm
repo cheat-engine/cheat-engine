@@ -1,11 +1,11 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 414
-  Height = 544
-  Top = 114
+  Left = 998
+  Height = 402
+  Top = 320
   Width = 622
   HelpContext = 12
   Caption = 'Memory Viewer'
-  ClientHeight = 524
+  ClientHeight = 382
   ClientWidth = 622
   Menu = MainMenu1
   OnActivate = FormActivate
@@ -495,18 +495,18 @@ object MemoryBrowser: TMemoryBrowser
   end
   object Panel4: TPanel
     Left = 0
-    Height = 219
+    Height = 77
     Top = 305
     Width = 622
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
-    ClientHeight = 219
+    ClientHeight = 77
     ClientWidth = 622
     TabOrder = 1
     object Splitter3: TSplitter
       Left = 406
-      Height = 217
+      Height = 75
       Top = 1
       Width = 5
       Align = alRight
@@ -517,7 +517,7 @@ object MemoryBrowser: TMemoryBrowser
     end
     object Panel3: TPanel
       Left = 1
-      Height = 217
+      Height = 75
       Top = 1
       Width = 405
       Align = alClient
@@ -526,19 +526,19 @@ object MemoryBrowser: TMemoryBrowser
     end
     object pnlStacktrace: TPanel
       Left = 411
-      Height = 217
+      Height = 75
       Top = 1
       Width = 210
       Align = alRight
       BevelInner = bvLowered
-      ClientHeight = 217
+      ClientHeight = 75
       ClientWidth = 210
       PopupMenu = pmStacktrace
       TabOrder = 1
       Visible = False
       object lvStacktraceData: TListView
         Left = 2
-        Height = 213
+        Height = 71
         Hint = 'Shows the current stack.'#13#10'Tip: When doubleclicking the value and it represents an address, then you can hold shift to make it show in the disassembler, and ctrl to make it show in the memory view. Else Cheat Engine will guess it for you based on if it''s executable memory or not'
         Top = 2
         Width = 206

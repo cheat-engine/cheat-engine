@@ -1208,8 +1208,9 @@ object frmLuaEngine: TfrmLuaEngine
     OnExecute = scLuaCompleterExecute
     Position = 0
     LinesInWindow = 6
+    OnSearchPosition = scLuaCompleterSearchPosition
     SelectedColor = clHighlight
-    CaseSensitive = False
+    CaseSensitive = True
     Width = 262
     AutoUseSingleIdent = True
     ShortCut = 16416

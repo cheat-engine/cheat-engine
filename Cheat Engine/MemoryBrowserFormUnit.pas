@@ -1224,11 +1224,14 @@ var
   protection: dword;
   oldprotect: dword;
 begin
+
   case (sender as TMenuItem).Tag of
     0: protection:=PAGE_EXECUTE_READWRITE;
     1: protection:=PAGE_EXECUTE_READ;
     2: protection:=PAGE_READWRITE;
     3: protection:=PAGE_READONLY;
+    else
+       protection:=PAGE_EXECUTE_READWRITE; //never
   end;
 
   VirtualProtectEx(processhandle, pointer(hexview.Address),1,protection, oldprotect);

@@ -32,3 +32,6 @@ mac version: work on it
 
 
 make more frequent releases ffs
+
+
+define from debug data: Use a ownerdata list instead (or better, a whole new interface where you can see beforehand the layout)

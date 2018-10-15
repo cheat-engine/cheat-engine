@@ -273,13 +273,16 @@ var _dr7: dword;
     p: thandle;
     d: boolean;
     x,y,z: dword;
-label xxx;
+  label xxx;
+  label something;
 begin
 {$ifdef cpu64}
   asm
-    lea rax,xxx
+    lea rax,something
     mov _dr0,rax
   end;
+
+  _dr0:=_dr0+$100000000;
 {$else}
   asm
     lea eax,xxx
@@ -309,12 +312,12 @@ begin
 
   try
     asm
-    mov eax,1
-    mov ebx,2
-    mov ecx,3
-    mov edx,4
-    mov edi,5
-    mov esi,6 
+    nop
+    nop
+   nop
+    nop
+    nop
+    nop
     {
     mov ebp,7
     mov esp,8      }
@@ -322,6 +325,7 @@ begin
     mov eax,$123
     nop
     nop
+something:
     nop
 
 XXX:
@@ -340,9 +344,9 @@ XXX:
     on e:exception do
     begin
 
-      exc(e);
+      //exc(e);
 
-      //showmessage('breakpoint caused exception. As expected. Message:'+e.message+' '+inttohex(ptruint(ExceptionObject.Addr),8));
+      showmessage('breakpoint caused exception. As expected. Message:'+e.message+' '+inttohex(ptruint(ExceptionObject.Addr),8));
 
     end;
   end;
@@ -350,18 +354,7 @@ end;
 
 procedure TForm1.Button10Click(Sender: TObject);
 begin
-  try
-    asm
-      nop
-      nop
-      nop
-      mov [0],eax
-      nop
-      nop
-      nop
-    end;
-  except
-  end;
+
 end;
 
 procedure TForm1.Button11Click(Sender: TObject);
@@ -384,7 +377,7 @@ end;
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
-  application.OnException:=ecx;
+  {application.OnException:=ecx;
   label1.caption:=format('%p : %d',[@health, health]);
   label2.caption:=format('%p',[@x]);
   button4.click;
@@ -392,7 +385,7 @@ begin
   label9.caption:=format('%p',[@h]);
 
   cht:=tchangehealththread.create(false);
-  originalIntegrityValue:=generateIntegrityValue;
+  originalIntegrityValue:=generateIntegrityValue; }
 end;
 
 
@@ -447,7 +440,7 @@ end;
 
 procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  cht.free;
+  //cht.free;
 end;
 
 procedure TForm1.Button7Click(Sender: TObject);

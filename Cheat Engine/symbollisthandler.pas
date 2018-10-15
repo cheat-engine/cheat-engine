@@ -83,7 +83,7 @@ type
     next: PCESymbolInfo;
   end;
 
-  TExtraSymbolDataList=specialize TFPGList<TExtraSymbolData>;
+  TExtraSymbolDataList=TList;
 
 
   TExtraModuleInfo=record
@@ -682,8 +682,9 @@ begin
     freeandnil(cs);
 
   for i:=0 to ExtraSymbolDataList.count-1 do
-    ExtraSymbolDataList[i].free;
+    TExtraSymbolData(ExtraSymbolDataList[i]).free;
 
+  ExtraSymbolDataList.clear;
   ExtraSymbolDataList.Free;
 
   inherited destroy;

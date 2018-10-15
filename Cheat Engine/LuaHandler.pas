@@ -3395,6 +3395,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
+
 function AOBScan(L: PLua_state): integer; cdecl;
 var
   parameters: integer;
@@ -3414,19 +3415,18 @@ begin
   alignmenttype:=fsmNotAligned;
   alignmentparam:='1';
 
-  if (parameters>=1) and (lua_isstring(L,-parameters)) then
+  if (parameters>=1) and (lua_isstring(L,1)) then
   begin
     //it's a scanstring, optional call
-    scanstring:=Lua_ToString(L, -parameters);
+    scanstring:=Lua_ToString(L, 1);
     if parameters>=2 then
-      protectionflags:=Lua_ToString(L, -parameters+1);
+      protectionflags:=Lua_ToString(L, 2);
 
     if parameters>=3 then
-      alignmenttype:=TFastScanMethod(lua_tointeger(L, -parameters+2));
-
+      alignmenttype:=TFastScanMethod(lua_tointeger(L, 3));
 
     if parameters>=4 then
-      alignmentparam:=Lua_ToString(L, -parameters+3);
+      alignmentparam:=Lua_ToString(L, 4);
 
 
   end

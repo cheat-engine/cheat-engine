@@ -13,6 +13,17 @@ implementation
 
 uses luaclass, luahandler, LuaObject;
 
+function listitems_beginUpdate(L: Plua_State): integer; cdecl;
+begin
+  result:=0;
+  Tlistitems(luaclass_getClassObject(L)).BeginUpdate;
+end;
+
+function listitems_endUpdate(L: Plua_State): integer; cdecl;
+begin
+  result:=0;
+  Tlistitems(luaclass_getClassObject(L)).EndUpdate;
+end;
 
 function listitems_clear(L: Plua_State): integer; cdecl;
 var
@@ -72,6 +83,7 @@ begin
   listitems:=luaclass_getClassObject(L);
   lua_pushvariant(L, listitems.Count);
   result:=1;
+
 end;
 
 function listitems_add(L: PLua_State): integer; cdecl;
@@ -91,6 +103,8 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getItem', listitems_getItem);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setItem', listitems_setItem);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'add', listitems_add);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'beginUpdate', listitems_beginUpdate);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'endUpdate', listitems_endUpdate);
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'Count', listitems_getCount, listitems_setCount);
   luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Item', listitems_getItem);

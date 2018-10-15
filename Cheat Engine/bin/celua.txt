@@ -112,7 +112,6 @@ destroyRef(integer) - Removes the reference
 encodeFunction(function): string - Converts a given function into an encoded string that you can pass on to decodeFunction
 decodeFunction(string): function - Converts an encoded string back into a function.  Note that the string must be made on the same architecture as it is currently running. 32-bit can onyl load 32-bit, 64-bit can only load 64-bit.  So either have two scripts ready, or limit to only one architecture. (Like .EXE trainers)
 
-reloadSettingsFromRegistry(): This will cause cheat engine to reload the settings from the registry and apply them
 
 getTranslationFolder(): Returns the path of the current translation files. Empty if there is no translation going on
 loadPOFile(path): Loads a .PO file used for translation
@@ -2797,6 +2796,8 @@ Settings class
   This class can be used to read out and set settings of cheat engine and of plugins, and store your own data
 
 global functions
+  reloadSettingsFromRegistry(): This will cause cheat engine to reload the settings from the registry and apply them
+
   getSettings(path Optional): Settings - Returns a settings object. If path is nil it will point to the Cheat Engine main settings (Registry) . If name is provided the settings currently accessed will be the one at the subkey provided
   Note: Keep in mind that it returns a new object each call, even if he same name is used multiple times
 

@@ -141,6 +141,7 @@ vtUnicodeString=7 --Only used by autoguess
 vtWideString=7
 vtByteArray=8
 vtBinary=9
+vtAll=10
 vtAutoAssembler=11
 vtPointer=12 --Only used by autoguess and structures
 vtCustom=13

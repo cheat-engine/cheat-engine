@@ -185,8 +185,9 @@ begin
   if s[length(s)]<>'.' then exit;
 
 
-  identchars:=mscript.IdentChars;
-  identchars:=identchars+['.'];
+//  identchars:=mscript.IdentChars;
+//  identchars:=identchars+['.'];
+  identchars:=['.','a'..'z','A'..'Z','0'..'9'];
   start:=-1;
   for i:=length(s)-1 downto 1 do
   begin

@@ -12,7 +12,8 @@ interface
 uses
   Classes, Controls, SysUtils, ceguicomponents, forms, lua, lualib, lauxlib,
   comctrls, StdCtrls, CEFuncProc, typinfo, Graphics, disassembler, LuaDisassembler,
-  LastDisassembleData, Assemblerunit, commonTypeDefs, ExtCtrls, addresslist, MemoryRecordUnit;
+  LastDisassembleData, Assemblerunit, commonTypeDefs, ExtCtrls, addresslist,
+  MemoryRecordUnit, math;
 
 type
   TLuaCaller=class
@@ -70,7 +71,7 @@ type
       function SymbolLookupCallback(s: string): ptruint;
       function StructureNameLookup(var address: ptruint; var name: string): boolean;
 
-      function StructureListCallback(callbackid: integer; list: tstringlist):boolean;
+      function StructureListCallback(callbackid: integer; list: tstringlist; max: integer=-1):boolean;
       function ElementListCallback(moduleid: integer; typeid: integer; list: TStringlist): boolean;
 
       procedure AssemblerEvent(address:qword; instruction: string; var bytes: TAssemblerBytes);
@@ -1233,7 +1234,7 @@ begin
   end;
 end;
 
-function TLuaCaller.StructureListCallback(callbackid: integer; list: tstringlist):boolean;
+function TLuaCaller.StructureListCallback(callbackid: integer; list: tstringlist; max: integer=-1):boolean;
 var
   oldstack: integer;
   len: integer;
@@ -1252,11 +1253,15 @@ begin
 
   try
     PushFunction;
-    if lua_pcall(l, 0,1,0)=0 then
+    lua_pushinteger(L,max);
+    if lua_pcall(l, 1,1,0)=0 then
     begin
       if not lua_istable(l,-1) then exit(false);
 
       len:=lua_objlen(l,-1);
+
+
+
       for i:=1 to len do
       begin
         lua_pushinteger(L,i);
@@ -1285,6 +1290,8 @@ begin
           si.callbackid:=callbackid;
           list.AddObject(name,si);
 
+
+          if (max<>-1) and (list.count>=max) then break;
         end else exit(false);
 
         lua_pop(L,1); //pop the table
