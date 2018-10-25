@@ -6107,8 +6107,15 @@ begin
 
   end;
 
+
   //split up into separate workloads
+
+  if totalProcessMemorySize<threadcount*4096 then
+    threadcount:=1+(totalProcessMemorySize div 4096); //in case of mini scans don't wate too much time creating threads
+
   OutputDebugString(format('Splitting up the workload between %d threads',[threadcount]));
+
+
   Blocksize:=totalProcessMemorySize div threadcount;
   if (Blocksize mod 4096) > 0 then
     Blocksize:=blocksize-(blocksize mod 4096); //lastblock gets the missing bytes
@@ -6134,7 +6141,12 @@ begin
 
       scanners[i]._startregion:=j;
       scanners[i].startaddress:=memRegion[j].BaseAddress+offsetincurrentregion;
-      scanners[i].maxregionsize:=0;
+
+      //scanners[i].maxregionsize:=0; //Original Code, no longer needed
+      currentblocksize:=0;
+      inc(currentblocksize,memregion[j].MemorySize-offsetincurrentregion);
+      scanners[i].maxregionsize:=currentblocksize;
+
 
       if i=(threadcount-1) then
       begin
@@ -6154,11 +6166,7 @@ begin
       else
       begin
         //not the last thread
-        currentblocksize:=0;
-        inc(currentblocksize,memregion[j].MemorySize-offsetincurrentregion);
         inc(j);
-
-        scanners[i].maxregionsize:=currentblocksize;        
 
         while (currentblocksize<blocksize) and (j<memregionpos) do
         begin
