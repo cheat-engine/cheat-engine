@@ -513,7 +513,7 @@ begin
     else
     begin
       //from a file
-      loadedmodule:=virtualalloc(nil,maxaddress, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+      loadedmodule:=virtualalloc(nil,maxaddress, MEM_COMMIT or MEM_RESERVE, PAGE_EXECUTE_READWRITE);
       if loadedmodule=nil then raise exception.create(rsPEFailureAtAllocationMemory);
       ZeroMemory(loadedmodule,maxaddress);
 

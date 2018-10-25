@@ -4798,7 +4798,7 @@ begin
       oldAddressFile.seek(7+sizeof(TBitAddress)*startentry,soFromBeginning); //header+addresssize*startentry
       if self.variableType=vtall then
       begin
-        oldmemory:=virtualAlloc(nil,buffersize*variablesize,MEM_COMMIT	or MEM_TOP_DOWN	, PAGE_READWRITE);
+        oldmemory:=virtualAlloc(nil,buffersize*variablesize,MEM_COMMIT or MEM_RESERVE or MEM_TOP_DOWN	, PAGE_READWRITE);
         if oldmemory=nil then raise exception.Create(Format(rsErrorAllocatingBytesForTheOldResults, [inttostr(buffersize*variablesize), inttostr(buffersize), inttostr(variablesize)]));
       end;
 
@@ -4819,7 +4819,7 @@ begin
     else
     begin
       setlength(oldaddresses,buffersize);
-      oldmemory:=virtualAlloc(nil,buffersize*variablesize,MEM_COMMIT	or MEM_TOP_DOWN	, PAGE_READWRITE);
+      oldmemory:=virtualAlloc(nil,buffersize*variablesize,MEM_COMMIT or MEM_RESERVE or MEM_TOP_DOWN	, PAGE_READWRITE);
       if oldmemory=nil then raise exception.Create(Format(rsErrorAllocatingBytesForTheOldResults, [inttostr(buffersize*variablesize), inttostr(buffersize), inttostr(variablesize)]));
 
       oldAddressFile.seek(7+sizeof(ptruint)*startentry,soFromBeginning);   //header+addresssize*startentry
@@ -4919,7 +4919,7 @@ begin
   stopregion:=_stopregion;
 
   //allocate a buffer for reading the new memory buffer
-  memorybuffer:=virtualAlloc(nil,maxregionsize+(variablesize-1),MEM_COMMIT	or MEM_TOP_DOWN	, PAGE_READWRITE);
+  memorybuffer:=virtualAlloc(nil,maxregionsize+(variablesize-1),MEM_COMMIT or MEM_RESERVE or MEM_TOP_DOWN, PAGE_READWRITE);
   if memorybuffer=nil then raise exception.create('Failure allocating memory ('+inttostr(maxregionsize+(variablesize-1))+' bytes)');
 
   lastpart:=301;
@@ -5017,7 +5017,7 @@ begin
     if scanOption<>soUnknownValue then
     begin
       //not unknown initial
-      memorybuffer:=virtualAlloc(nil,maxregionsize+variablesize+16,MEM_COMMIT	or MEM_TOP_DOWN	, PAGE_READWRITE);
+      memorybuffer:=virtualAlloc(nil,maxregionsize+variablesize+16,MEM_COMMIT or MEM_RESERVE or MEM_TOP_DOWN	, PAGE_READWRITE);
       configurescanroutine;
     end
     else //it is a unknown initial value
@@ -5027,7 +5027,7 @@ begin
       //the memory.tmp file must have been generated with the correct size before calling this
       previousmemoryfile:=Tfilestream.create(scandir+'MEMORY.TMP', fmOpenWrite or fmShareDenyNone);
 
-      memorybuffer:=virtualAlloc(nil,maxregionsize,MEM_COMMIT	or MEM_TOP_DOWN	, PAGE_READWRITE);
+      memorybuffer:=virtualAlloc(nil,maxregionsize,MEM_COMMIT or MEM_RESERVE or MEM_TOP_DOWN	, PAGE_READWRITE);
       {$else}
       //use the previousmemorybuffer instead
       memorybuffer:=pointer(PtrUint(OwningScanController.OwningMemScan.previousMemoryBuffer)+PtrUint(OwningScanController.memregion[startregion].startaddress)+(startaddress-OwningScanController.memregion[startregion].BaseAddress));
@@ -6097,7 +6097,7 @@ begin
     if OwningMemScan.previousMemoryBuffer<>nil then virtualfree(OwningMemScan.previousMemoryBuffer,0,MEM_RELEASE);
 
     OutputDebugString(format('Allocating %dKB for previousMemoryBuffer',[totalProcessMemorySize div 1024]));
-    OwningMemScan.previousMemoryBuffer:=VirtualAlloc(nil,totalProcessMemorySize, MEM_COMMIT or MEM_TOP_DOWN, PAGE_READWRITE); //top down to try to prevent memory fragmentation
+    OwningMemScan.previousMemoryBuffer:=VirtualAlloc(nil,totalProcessMemorySize, MEM_COMMIT or MEM_RESERVE or MEM_TOP_DOWN, PAGE_READWRITE); //top down to try to prevent memory fragmentation
     if OwningMemScan.previousMemoryBuffer=nil then
       raise exception.Create(Format(rsFailureAllocatingMemoryForCopyTriedAllocatingKB, [inttostr(totalProcessMemorySize div 1024)]));
 
