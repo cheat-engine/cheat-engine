@@ -98,7 +98,7 @@ uses
   autoassemblerexeptionhandler, frmstructurecompareunit, addressedit,
   frmChangedAddressesCommonalityScannerUnit, ceregistry, LuaRemoteThread,
   LuaManualModuleLoader, symbolhandlerstructs, frmOpenFileAsProcessDialogUnit,
-  BetterDLLSearchPath, DebugStructureList;
+  BetterDLLSearchPath;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in
