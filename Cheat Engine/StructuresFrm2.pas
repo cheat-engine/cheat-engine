@@ -3030,10 +3030,10 @@ end;
 
 procedure TfrmStructures2.TreeViewHScroll(sender: TObject; scrolledleft, maxscrolledleft: integer);
 begin
-
-
+  //The problem with this solution is that there is a limit the value can be negative
   HeaderControl1.Left:=-scrolledleft;
   HeaderControl1.Width:=tvStructureView.clientwidth  +maxscrolledleft+100;
+
 end;
 
 
