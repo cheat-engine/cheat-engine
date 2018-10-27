@@ -4984,11 +4984,12 @@ begin
 
     end;
     flushroutine;
+
+    lastpart:=399;
   finally
     if memorybuffer<>nil then
       virtualfree(memorybuffer,0,MEM_RELEASE);
 
-    lastpart:=399;
   end;
 end;
 
@@ -5035,7 +5036,7 @@ begin
       variablesize:=1; //ignore
     end;
 
-
+    lastpart:=101;
 
     //now save the region between startaddress and stopaddress and create own memregion list
     setlength(memregions,16);
@@ -5057,6 +5058,8 @@ begin
 
       if (i=stopregion) and ((currentbase+toread)>stopaddress) then
         toread:=stopaddress-currentbase;
+
+      lastpart:=102;
 
       repeat
         //05955958
@@ -5117,6 +5120,8 @@ begin
         
       until terminated or (toread=0);
     end;
+
+    lastpart:=103;
 
     if (scanOption<>soUnknownValue) then flushroutine; //save results
   finally
@@ -7053,6 +7058,7 @@ end;
 
 procedure TMemscan.newscan;
 begin
+  OutputDebugString('TMemscan.newscan');
   {$IFNDEF UNIX}
   if attachedFoundlist<>nil then
     TFoundList(Attachedfoundlist).Deinitialize;
@@ -7389,6 +7395,7 @@ var usedtempdir: string;
     currenttime: longint;
 
 begin
+  OutputDebugString('TMemscan.DeleteScanfolder');
   if fScanResultFolder<>'' then
   begin
     try
@@ -7448,13 +7455,12 @@ var
   DirInfo: TSearchRec;
   r : Integer;
 begin
+  OutputDebugString('TMemScan.DeleteFolder('+dir+')');
   ZeroMemory(@DirInfo,sizeof(TSearchRec));
   result := true;
 
   while dir[length(dir)]=pathdelim do //cut of \
     dir:=copy(dir,1,length(dir)-1);
-
-  outputdebugstring('Deleting '+dir);
 
 
   {$warn 5044 off}
@@ -7477,14 +7483,31 @@ end;
 
 destructor TMemScan.destroy;
 begin
+  if scanController<>nil then
+    freeandnil(scancontroller);
+
   {$IFNDEF LOWMEMORYUSAGE}
-  if SaveFirstScanThread<>nil then SaveFirstScanThread.Free;
+  if SaveFirstScanThread<>nil then
+  begin
+    //OutputDebugString('SaveFirstScanThread exists. Cleaning it up');
+    SaveFirstScanThread.Terminate;
+
+    //if not SaveFirstScanThread.Finished then
+   //   OutputDebugString('The thread was not yet finished. Waiting for it');
+
+    SaveFirstScanThread.WaitFor;
+
+   // OutputDebugString('Done waiting');
+
+    SaveFirstScanThread.Free;
+  end;
+ // else
+  //  OutputDebugString('SaveFirstScanThread is nil');
 
   if previousMemoryBuffer<>nil then virtualfree(previousMemoryBuffer,0,MEM_RELEASE);
   {$endif}
 
-  if scanController<>nil then
-    freeandnil(scancontroller);
+
 
 
   DeleteScanfolder;
