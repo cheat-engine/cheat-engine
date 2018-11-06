@@ -1,0 +1,135 @@
+#: monoscript-FITM
+msgid "Failure injecting the MonoDatacollector dll"
+msgstr ""
+
+#: monoscript-DYWTL
+msgid "Do you wish to let the mono extention figure out the name and start address? If it's not a proper object this may crash the target."
+msgstr ""
+
+#: monoscript-IO
+msgid "Instances of "
+msgstr ""
+
+#: monoscript-WTAJG
+msgid "Warning: These are just guesses. Validate them yourself"
+msgstr ""
+
+#: monoscript-AN
+msgid "address==nil"
+msgstr ""
+
+#: monoscript-Invoke
+msgid "Invoke "
+msgstr "Invoca"
+
+#: monoscript-IA
+msgid "Instance address"
+msgstr ""
+
+#: monoscript-PW
+msgid "<Please wait...>"
+msgstr ""
+
+#: monoscript-Parameters
+msgid "Parameters"
+msgstr "Parametri"
+
+#: monoscript-OK
+msgid "OK"
+msgstr "OK"
+
+#: monoscript-Cancel
+msgid "Cancel"
+msgstr ""
+
+#: monoscript-Parameter
+msgid "parameter "
+msgstr ""
+
+#: monoscript-INAVA
+msgid " is not a valid address"
+msgstr " non è un indirizzo valido"
+
+#: monoscript-INAVV
+msgid "is not a valid value"
+msgstr "non è un valore valido"
+
+#: monoscript-IFT
+msgid "ILCode from %x to %x"
+msgstr ""
+
+#: monoscript-OX
+msgid "Offset %x"
+msgstr ""
+
+#: monoscript-Resolve
+msgid "Resolve "
+msgstr ""
+
+#: monoscript-XSTS
+msgid "%x : %s (type: %s)"
+msgstr ""
+
+#: monoscript-AYSYWTE
+msgid "Are you sure you wish to expand the whole tree? This can take a while and Cheat Engine may look like it has crashed (It has not)"
+msgstr ""
+
+#: monoscript-FTL
+msgid "Failure to launch"
+msgstr ""
+
+#: monoscript-Mono
+msgid "Mono"
+msgstr "Mono"
+
+#: monoscript-AMF
+msgid "Activate mono features"
+msgstr ""
+
+#: monoscript-DM
+msgid "Dissect mono"
+msgstr ""
+
+#: monoscript-TMHFTI
+msgid "The mono handler failed to initialize"
+msgstr ""
+
+#: monoscript-IPMN
+msgid "Invalid parameters (Methodname could not be determined)"
+msgstr ""
+
+#: monoscript-IPCN
+msgid "Invalid parameters (Classname could not be determined)"
+msgstr ""
+
+#: monoscript-IPN
+msgid "Invalid parameters (name could not be determined)"
+msgstr ""
+
+#: monoscript-CNBF
+msgid " could not be found"
+msgstr ""
+
+#: monoscript-CNBJ
+msgid " could not be jitted"
+msgstr ""
+
+#: monoscript-STFDNWY
+msgid "Sorry this feature does not work yet.  getStructureCount needs patching first."
+msgstr ""
+
+#: monoscript-Removing
+msgid "Removing "
+msgstr ""
+
+#: monoscript-RS
+msgid "Reloading Structure "
+msgstr ""
+
+#: monoscript-TC
+msgid "The class "
+msgstr "La classe"
+
+#: monoscript-HNF
+msgid " has no fields"
+msgstr " non contiene campi"
