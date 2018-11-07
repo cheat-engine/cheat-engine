@@ -1,0 +1,283 @@
+#: java-AAF
+msgid "Auto assembler failed:"
+msgstr ""
+
+#: java-JEST
+msgid "Java:eventserver terminated"
+msgstr ""
+
+#: java-JD
+msgid "Java:Disconnected"
+msgstr ""
+
+#: java-JUER
+msgid "Java:Unexpected event received"
+msgstr ""
+
+#: java-JEHT
+msgid "Java:Event handler terminating"
+msgstr ""
+
+#: java-IJS
+msgid "Invalid java signature"
+msgstr ""
+
+#: java-ARTANS
+msgid "Array return types are not supported"
+msgstr ""
+
+#: java-PCDNM
+msgid "Parameter count does not match"
+msgstr ""
+
+#: java-SWNS
+msgid "Scantype was not set"
+msgstr ""
+
+#: java-Class
+msgid "Class"
+msgstr "Classe"
+
+#: java-Method
+msgid "Method"
+msgstr "Metodo"
+
+#: java-Position
+msgid "Position"
+msgstr ""
+
+#: java-MI
+msgid "More info %s.%s(%d)"
+msgstr ""
+
+#: java-TDMATGV
+msgid "The following methods accessed the given variable"
+msgstr ""
+
+#: java-results
+msgid "results"
+msgstr ""
+
+#: java-OWWTJAILAS
+msgid "java_find_what_writes only works when the jvmti agent is launched at start"
+msgstr ""
+
+#: java-Generic
+msgid "  Generic="
+msgstr ""
+
+#: java-SC
+msgid "superclass="
+msgstr ""
+
+#: java-II
+msgid "---Implemented interfaces---"
+msgstr ""
+
+#: java-Fields
+msgid "---Fields---"
+msgstr ""
+
+#: java-Methods
+msgid "---Methods---"
+msgstr ""
+
+#: java-SFC
+msgid "Search for class..."
+msgstr ""
+
+#: java-SF
+msgid "Search for..."
+msgstr ""
+
+#: java-NewS
+msgid "New Scan"
+msgstr ""
+
+#: java-FS
+msgid "First Scan"
+msgstr ""
+
+#: java-JVScanner
+msgid "Java Variable Scanner"
+msgstr ""
+
+#: java-Value
+msgid "Value"
+msgstr ""
+
+#: java-NextS
+msgid "Next Scan"
+msgstr ""
+
+#: java-Found
+msgid "Found:"
+msgstr ""
+
+#: java-FWATV
+msgid "Find what accesses this value"
+msgstr ""
+
+#: java-Search
+msgid "Search"
+msgstr ""
+
+#: java-FC
+msgid "Find Class"
+msgstr ""
+
+#: java-Finddotdotdot
+msgid "Find..."
+msgstr ""
+
+#: java-EM
+msgid "Edit method"
+msgstr ""
+
+#: java-AJF
+msgid "Activate java features"
+msgstr ""
+
+#: java-DJC
+msgid "Dissect java classes"
+msgstr ""
+
+#: java-JVScan
+msgid "Java variable scan"
+msgstr ""
+
+#: java-DCP
+msgid "Debug child processes"
+msgstr ""
+
+#: java-JHDTI
+msgid "The java handler failed to initialize"
+msgstr ""
+
+#: java-SJMIEITTP
+msgid "Show java menu item even if the target process hasn't loaded jvm.dll (Used for the local setEnvironment option)"
+msgstr ""
+
+#: javaclass-ICPTE
+msgid "Invalid constant pool tag encountered: "
+msgstr ""
+
+#: javaclass-Tag
+msgid " (tag="
+msgstr ""
+
+#: javaclass-NAVC
+msgid "Not a valid classfile"
+msgstr ""
+
+#: javaclasseditor-ICNI
+msgid " is currently not implemented"
+msgstr ""
+
+#: javaclasseditor-WCNBUW
+msgid "wide can not be used with "
+msgstr ""
+
+#: javaclasseditor-IAOPPF
+msgid "Invalid amount of parameters provided for "
+msgstr ""
+
+#: javaclasseditor-TL
+msgid "The label "
+msgstr ""
+
+#: javaclasseditor-INYD
+msgid "is not yet defined"
+msgstr ""
+
+#: javaclasseditor-TIICNI
+msgid "This instruction is currently not implemented"
+msgstr ""
+
+#: javaclasseditor-UI
+msgid "unknown instruction:"
+msgstr ""
+
+#: javaclasseditor-YCORI
+msgid "You can only replace instructions on an instruction boundary"
+msgstr ""
+
+#: javaclasseditor-StartIndex
+msgid "si="
+msgstr ""
+
+#: javaclasseditor-Offset
+msgid " offset="
+msgstr ""
+
+#: javaclasseditor-IL
+msgid "Insert line"
+msgstr ""
+
+#: javaclasseditor-ITJAC
+msgid "Input the java assembly code you wish to insert at line "
+msgstr ""
+
+#: javaclasseditor-EL
+msgid "Edit line"
+msgstr "Modifica linea"
+
+#: javaclasseditor-DNL
+msgid "Define new label"
+msgstr ""
+
+#: javaclasseditor-GALFL
+msgid "Give a labelname for line "
+msgstr ""
+
+#: javaclasseditor-TIAALWTN
+msgid "There is already a label with this name"
+msgstr ""
+
+#: javaclasseditor-OBSNBS
+msgid "old bsize=%d new bsize=%d"
+msgstr ""
+
+#: javaclasseditor-OSNS
+msgid "old size=%d new size=%d"
+msgstr ""
+
+#: javaclasseditor-Method
+msgid "Method: "
+msgstr "Metodo: "
+
+#: javaclasseditor-MS
+msgid "Max Stack"
+msgstr ""
+
+#: javaclasseditor-ML
+msgid "Max Locals"
+msgstr ""
+
+#: javaclasseditor-SC
+msgid "Save changes"
+msgstr "Salva modifiche"
+
+#: javaclasseditor-Index
+msgid "Index"
+msgstr "Indice"
+
+#: javaclasseditor-BI
+msgid "ByteIndex"
+msgstr ""
+
+#: javaclasseditor-Label
+msgid "Label"
+msgstr "Etichetta"
+
+#: javaclasseditor-Exception
+msgid "Exception"
+msgstr ""
+
+#: javaclasseditor-Instruction
+msgid "Instruction"
+msgstr ""
+
+#: javaclasseditor-DL
+msgid "Define label"
+msgstr ""
