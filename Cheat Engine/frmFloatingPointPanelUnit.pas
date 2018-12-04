@@ -89,7 +89,59 @@ begin
 end;
 
 procedure TfrmFloatingPointPanel.ValueDoubleClick(sender: TObject);
+var
+  offset: integer;
+  p: pointer;
+  pba: pbytearray absolute p;
+  pb: pbyte absolute p;
+  pw: pword absolute p;
+  pd: pdword absolute p;
+  pq: Puint64 absolute p;
+  ps: PSingle absolute p;
+  pss: Pdouble absolute p;
+
+  v: string;
 begin
+  offset:=tlabel(Sender).tag;
+
+  v:=tlabel(sender).caption;
+  if inputquery('FPU Edit', 'Enter the new value', v) then
+  begin
+    case cbContextSection.itemindex of
+      0:
+      begin
+        //fpu
+        {$ifdef cpu64}
+        p:=@context.FltSave.FloatRegisters[0];
+        {$else}
+        p:=@context.FloatSave.RegisterArea[0];
+        {$endif}
+      end;
+
+      1:
+      begin
+        //xmm
+        {$ifdef cpu64}
+        p:=@context.FltSave.XmmRegisters[0];
+        {$else}
+        p:=@context.ext.XMMRegisters.LegacyXMM[0];
+        {$endif}
+      end;
+    end;
+
+    p:=@pba[offset];
+
+    case cbDisplayType.itemindex of
+      0: pb^:=strtoint('$'+v);
+      1: pw^:=strtoint('$'+v);
+      2: pd^:=strtoint('$'+v);
+      3: pq^:=StrToInt64('$'+v);
+      4: ps^:=StrToFloat(v);
+      5: pss^:=StrToFloat(v);
+    end;
+
+    UpdatedContext;
+  end;
 
 
 end;
@@ -242,7 +294,7 @@ begin
               extendedtodouble(p, d);
               mData.Lines.Add(format('%f', [d])); //extended
 
-              newLabel(format('%f',[d]), (i*{$ifdef cpu64}16{$else}10{$endif}));
+              newLabel(format('%f',[d]), -1); //(i*{$ifdef cpu64}16{$else}10{$endif}));
             end;
           end;
         end;
