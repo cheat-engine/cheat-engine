@@ -1,7 +1,7 @@
 object frmFloatingPointPanel: TfrmFloatingPointPanel
-  Left = 852
+  Left = 703
   Height = 322
-  Top = 191
+  Top = 176
   Width = 353
   BorderStyle = bsSizeToolWin
   Caption = 'FPU'
@@ -36,7 +36,7 @@ object frmFloatingPointPanel: TfrmFloatingPointPanel
         ClientHeight = 55
         ClientWidth = 345
         TabOrder = 0
-        object ComboBox3: TComboBox
+        object cbContextSection: TComboBox
           AnchorSideLeft.Control = Panel1
           AnchorSideTop.Control = Panel1
           Left = 0
@@ -55,8 +55,8 @@ object frmFloatingPointPanel: TfrmFloatingPointPanel
           TabOrder = 0
           Text = 'XMMRegisters'
         end
-        object ComboBox2: TComboBox
-          AnchorSideTop.Control = ComboBox3
+        object cbDisplayType: TComboBox
+          AnchorSideTop.Control = cbContextSection
           AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 23
@@ -80,8 +80,22 @@ object frmFloatingPointPanel: TfrmFloatingPointPanel
           TabOrder = 1
           Text = 'Float'
         end
+        object cbClassicView: TCheckBox
+          AnchorSideLeft.Control = cbContextSection
+          AnchorSideLeft.Side = asrBottom
+          AnchorSideTop.Control = cbContextSection
+          AnchorSideTop.Side = asrCenter
+          Left = 177
+          Height = 19
+          Top = 5
+          Width = 83
+          BorderSpacing.Left = 8
+          Caption = 'Classic view'
+          OnChange = cbClassicViewChange
+          TabOrder = 2
+        end
       end
-      object Memo1: TMemo
+      object mData: TMemo
         Left = 0
         Height = 239
         Top = 55
@@ -95,6 +109,21 @@ object frmFloatingPointPanel: TfrmFloatingPointPanel
         ScrollBars = ssBoth
         TabOrder = 1
         WordWrap = False
+      end
+      object sbData: TScrollBox
+        Left = 0
+        Height = 239
+        Top = 55
+        Width = 345
+        HorzScrollBar.Page = 1
+        HorzScrollBar.Tracking = True
+        VertScrollBar.Page = 1
+        VertScrollBar.Tracking = True
+        Align = alClient
+        ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+        ChildSizing.Layout = cclLeftToRightThenTopToBottom
+        ChildSizing.ControlsPerLine = 4
+        TabOrder = 2
       end
     end
   end

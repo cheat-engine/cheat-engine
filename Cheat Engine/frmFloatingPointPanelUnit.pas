@@ -20,12 +20,15 @@ type
   { TfrmFloatingPointPanel }
 
   TfrmFloatingPointPanel = class(TForm)
+    cbClassicView: TCheckBox;
     PageControl1: TPageControl;
+    sbData: TScrollBox;
     TabSheet2: TTabSheet;
     Panel1: TPanel;
-    ComboBox3: TComboBox;
-    ComboBox2: TComboBox;
-    Memo1: TMemo;
+    cbContextSection: TComboBox;
+    cbDisplayType: TComboBox;
+    mData: TMemo;
+    procedure cbClassicViewChange(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure ComboBox1Select(Sender: TObject);
@@ -36,6 +39,7 @@ type
     { Private declarations }
     context: PContext;
     contextCopy: TContext;
+    procedure ValueDoubleClick(sender: TObject);
   public
     { Public declarations }
     procedure UpdatedContext;
@@ -78,10 +82,16 @@ begin
   self.context:=context;
   self.contextCopy:=context^;
 
-  oldscrollpos:=memo1.VertScrollBar.Position;
+  oldscrollpos:=mData.VertScrollBar.Position;
   UpdatedContext;
-  if memo1.VertScrollBar.Range>memo1.VertScrollBar.Position then
-    memo1.VertScrollBar.Position:=oldscrollpos;
+  if mData.VertScrollBar.Range>mData.VertScrollBar.Position then
+    mData.VertScrollBar.Position:=oldscrollpos;
+end;
+
+procedure TfrmFloatingPointPanel.ValueDoubleClick(sender: TObject);
+begin
+
+
 end;
 
 procedure TfrmFloatingPointPanel.UpdatedContext;
@@ -113,112 +123,174 @@ var i,j: integer;
     max: integer;
 
     oldscrollpos: integer;
+
+    classic: boolean;
+
+    procedure newLabel(text: string; id: integer);
+    begin
+      lbl:=tlabel.create(sbData);
+      lbl.caption:=text;
+      lbl.tag:=id;
+      lbl.parent:=sbData;
+      if id<>-1 then
+        lbl.OnDblClick:=ValueDoubleClick;
+    end;
 begin
   if context=nil then exit;
 
-  memo1.lines.BeginUpdate;
+  mData.lines.BeginUpdate;
+  sbdata.BeginUpdateBounds;
   try
-    memo1.Clear;
-    case combobox3.ItemIndex of
+    mData.Clear;
+
+
+
+    while sbdata.ComponentCount>0 do
+      sbdata.Components[0].Free;
+
+
+
+
+    case cbContextSection.ItemIndex of
       0: //fpu
       begin
-        if combobox2.Items.Count=6 then
+        if cbDisplayType.Items.Count=6 then
         begin
-          combobox2.Items.Add(rsFPPExtended);    //make it the default selection
-          combobox2.OnSelect:=nil;
-          combobox2.itemindex:=6;
-          combobox2.OnSelect:=ComboBox1Select;
+          cbDisplayType.Items.Add(rsFPPExtended);    //make it the default selection
+          cbDisplayType.OnSelect:=nil;
+          cbDisplayType.itemindex:=6;
+          cbDisplayType.OnSelect:=ComboBox1Select;
         end;
+
+        case cbDisplayType.ItemIndex of
+          0: sbData.ChildSizing.ControlsPerLine:=1+16; //byte
+          1: sbData.ChildSizing.ControlsPerLine:=1+8; //word
+          2: sbData.ChildSizing.ControlsPerLine:=1+4; //dword
+          3: sbData.ChildSizing.ControlsPerLine:=1+2; //8 byte
+          4: sbData.ChildSizing.ControlsPerLine:=1+4; //single
+          5: sbData.ChildSizing.ControlsPerLine:=1+2; //double
+          6: sbData.ChildSizing.ControlsPerLine:=1+1; //extended
+        end;
+
+
 
         for i:=0 to 7 do
         begin
+          newlabel('ST('+inttostr(i)+'):',-1);
+
           {$ifdef cpu64}
           p:=@context.FltSave.FloatRegisters[i];
+          {$else}
+          p:=@context.FloatSave.RegisterArea[i*10];
+          {$endif}
 
-          case combobox2.ItemIndex of
+          case cbDisplayType.ItemIndex of
             0: //byte
             begin
               str:='';
-              for j:=0 to 15 do
+
+
+              for j:=0 to {$ifdef cpu64}15{$else}9{$endif} do
               begin
                 str:=str+inttohex(pba[j],2);
                 if j<15 then
                   str:=str+' _ ';
+
+                newLabel(inttohex(pba[j],2), (i*{$ifdef cpu64}16{$else}10{$endif})+j);
               end;
 
-              memo1.Lines.Add(str);
-
+              mData.Lines.Add(str);
             end;
 
-            1:  memo1.Lines.Add(inttohex(pwa[0],4)+' _ '+inttohex(pwa[1],4)+' _ '+inttohex(pwa[2],4)+' _ '+inttohex(pwa[3],4)+' _ '+inttohex(pwa[4],4)+' _ '+inttohex(pwa[5],4)+' _ '+inttohex(pwa[6],4)+' _ '+inttohex(pwa[7],4)); //2byte
-            2:  memo1.Lines.Add(inttohex(pda[0],8)+' _ '+inttohex(pda[1],8)+' _ '+inttohex(pda[2],8)+' _ '+inttohex(pda[3],8)); //4byte
-            3:  memo1.Lines.Add(inttohex(context.FltSave.FloatRegisters[i].Low,16)+' _ '+inttohex(context.FltSave.FloatRegisters[i].High,16)); //8 byte
-            4:  memo1.Lines.Add(format('%f - %f - %f - %f', [psa[0], psa[1], psa[2], psa[3]])); //single
-            5:  memo1.Lines.Add(format('%f - %f', [pssa[0], pssa[1]]));  //double
+            1:
+            begin
+              mData.Lines.Add(inttohex(pwa[0],4)+' _ '+inttohex(pwa[1],4)+' _ '+inttohex(pwa[2],4)+' _ '+inttohex(pwa[3],4)+' _ '+inttohex(pwa[4],4){$ifdef cpu64}+' _ '+inttohex(pwa[5],4)+' _ '+inttohex(pwa[6],4)+' _ '+inttohex(pwa[7],4){$endif}); //2byte
+              for j:=0 to {$ifdef cpu64}7{$else}3{$endif} do
+                newLabel(inttohex(pwa[j],4), (i*{$ifdef cpu64}16{$else}10{$endif})+(j*2));
+            end;
+
+            2:
+            begin
+              mData.Lines.Add(inttohex(pda[0],8)+' _ '+inttohex(pda[1],8){$ifdef cpu64}+' _ '+inttohex(pda[2],8)+' _ '+inttohex(pda[3],8){$endif}); //4byte
+              for j:=0 to {$ifdef cpu64}3{$else}1{$endif} do
+                newLabel(inttohex(pda[j],8), (i*{$ifdef cpu64}16{$else}10{$endif})+(j*4));
+            end;
+
+            3:
+            begin
+              mData.Lines.Add(inttohex(pqa[0],16){$ifdef cpu64}+' _ '+inttohex(pqa[1],16){$endif}); //8 byte
+              for j:=0 to {$ifdef cpu64}1{$else}0{$endif} do
+                newLabel(inttohex(pqa[j],17), (i*{$ifdef cpu64}16{$else}10{$endif})+(j*8));
+            end;
+
+            4:
+            begin
+              mData.Lines.Add(format('%f - %f'{$ifdef cpu64}+' - %f - %f'{$endif}, [psa[0], psa[1]{$ifdef cpu64}, psa[2], psa[3]{$endif}])); //single
+              for j:=0 to {$ifdef cpu64}3{$else}1{$endif} do
+                newLabel(format('%f',[psa[j]]),(i*{$ifdef cpu64}16{$else}10{$endif})+(j*4));
+            end;
+
+            5:
+            begin
+              mData.Lines.Add(format('%f'{$ifdef cpu64}+' - %f'{$endif}, [pssa[0]{$ifdef cpu64}, pssa[1]{$endif}]));  //double
+              for j:=0 to {$ifdef cpu64}1{$else}0{$endif} do
+                newLabel(format('%f',[pssa[j]]), (i*{$ifdef cpu64}16{$else}10{$endif})+(j*8));
+            end;
+
             6:
             begin
               extendedtodouble(p, d);
-              memo1.Lines.Add(format('%f', [d])); //extended
+              mData.Lines.Add(format('%f', [d])); //extended
+
+              newLabel(format('%f',[d]), (i*{$ifdef cpu64}16{$else}10{$endif}));
             end;
           end;
-          {$else}
-          p:=@context.FloatSave.RegisterArea[i*10];
-
-          case combobox2.ItemIndex of
-            0: //byte
-            begin
-              str:='';
-              for j:=0 to 9 do
-              begin
-                str:=str+inttohex(pba[j],2);
-                if j<9 then
-                  str:=str+' _ ';
-              end;
-
-              memo1.Lines.Add(str);
-
-            end;
-
-            1:  memo1.Lines.Add(inttohex(pwa[0],4)+' _ '+inttohex(pwa[1],4)+' _ '+inttohex(pwa[2],4)+' _ '+inttohex(pwa[3],4)+' _ '+inttohex(pwa[4],4)); //2byte
-            2:  memo1.Lines.Add(inttohex(pda[0],8)+' _ '+inttohex(pda[1],8)); //4byte
-            3:  memo1.Lines.Add(inttohex(pqa[0],16)); //8 byte
-            4:  memo1.Lines.Add(format('%f - %f', [psa[0], psa[1]])); //single
-            5:  memo1.Lines.Add(format('%f', [pssa[0]]));  //double
-            6:  memo1.Lines.Add(format('%f', [pea[0]]));  //extended
-          end;
-
-          {$endif}
         end;
       end;
 
       1: //xmm
       begin
 
-        if combobox2.Items.Count>6 then
+        if cbDisplayType.Items.Count>6 then
         begin
-          if combobox2.ItemIndex=6 then
+          if cbDisplayType.ItemIndex=6 then
           begin
-            combobox2.OnSelect:=nil;
-            combobox2.ItemIndex:=5;
-            combobox2.OnSelect:=combobox1select;
+            cbDisplayType.OnSelect:=nil;
+            cbDisplayType.ItemIndex:=5;
+            cbDisplayType.OnSelect:=combobox1select;
           end;
 
-          combobox2.Items.Delete(6);
+          cbDisplayType.Items.Delete(6);
         end;
 
         {$ifdef cpu64}
         if processhandler.is64bit then
           max:=15
         else
+        {$endif}
           max:=7;
+
+        case cbDisplayType.ItemIndex of
+          0: sbData.ChildSizing.ControlsPerLine:=1+16; //byte
+          1: sbData.ChildSizing.ControlsPerLine:=1+8; //word
+          2: sbData.ChildSizing.ControlsPerLine:=1+4; //dword
+          3: sbData.ChildSizing.ControlsPerLine:=1+2; //8 byte
+          4: sbData.ChildSizing.ControlsPerLine:=1+4; //single
+          5: sbData.ChildSizing.ControlsPerLine:=1+2; //double
+          6: sbData.ChildSizing.ControlsPerLine:=1;
+        end;
 
         for i:=0 to max do
         begin
-
+          {$ifdef cpu64}
           p:=@context.FltSave.XmmRegisters[i];
+          {$else}
+          p:=@context.ext.XMMRegisters.LegacyXMM[i];
+          {$endif}
 
+          newLabel('XMM'+inttostr(i)+':', -1);
 
-          case combobox2.ItemIndex of
+          case cbDisplayType.ItemIndex of
             0: //byte
             begin
               str:='';
@@ -227,9 +299,11 @@ begin
                 str:=str+inttohex(pba[j],2);
                 if j<15 then
                   str:=str+' _ ';
+
+                newLabel(inttohex(pba[j],2), i*16+j);
               end;
 
-              memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
+              mData.Lines.Add('xmm'+inttostr(i)+':'+str);
             end;
 
             1: //word
@@ -240,9 +314,13 @@ begin
                 str:=str+inttohex(pwa[j],4);
                 if j<7 then
                   str:=str+' _ ';
+
+                newLabel(inttohex(pwa[j],4), i*16+j*2);
               end;
 
-              memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
+              mData.Lines.Add('xmm'+inttostr(i)+':'+str);
+
+
             end;
 
             2: //dword
@@ -253,9 +331,11 @@ begin
                 str:=str+inttohex(pda[j],8);
                 if j<3 then
                   str:=str+' _ ';
+
+                newLabel(inttohex(pda[j],8), i*16+j*4);
               end;
 
-              memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
+              mData.Lines.Add('xmm'+inttostr(i)+':'+str);
             end;
 
             3:   //8 byte
@@ -266,9 +346,11 @@ begin
                 str:=str+inttohex(pqa[j],16);
                 if j<1 then
                   str:=str+' _ ';
+
+                newLabel(inttohex(pqa[j],16), i*16+j*8);
               end;
 
-              memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
+              mData.Lines.Add('xmm'+inttostr(i)+':'+str);
             end;
 
             4:
@@ -279,9 +361,11 @@ begin
                 str:=str+format('%f',[psa[j]]);
                 if j<3 then
                   str:=str+' _ ';
+
+                newLabel(format('%f',[psa[j]]), i*16+j*4);
               end;
 
-              memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
+              mData.Lines.Add('xmm'+inttostr(i)+':'+str);
             end;
 
             5:
@@ -292,121 +376,36 @@ begin
                 str:=str+format('%f',[pssa[j]]);
                 if j<1 then
                   str:=str+' _ ';
+
+                newLabel(format('%f',[pssa[j]]), i*16+j*8);
               end;
 
-              memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
+              mData.Lines.Add('xmm'+inttostr(i)+':'+str);
             end;
           end;
-
-
         end;
-        {$else}
-        //memo1.lines.add('Not implemented in the 32-bit version yet');
-
-        for i:=0 to 7 do
-        begin
-          case combobox2.ItemIndex of
-            0: //byte
-            begin
-              str:='';
-              for j:=0 to 15 do
-              begin
-                str:=str+inttohex(context.ext.XMMRegisters.LegacyXMM[i].Bytes[j],2);
-                if j<15 then
-                  str:=str+' _ ';
-              end;
-
-              memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
-            end;
-
-            1: //word
-            begin
-              str:='';
-              for j:=0 to 7 do
-              begin
-                str:=str+inttohex(context.ext.XMMRegisters.LegacyXMM[i].words[j],4);
-                if j<7 then
-                  str:=str+' _ ';
-              end;
-
-              memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
-            end;
-
-            2: //dword
-            begin
-              str:='';
-              for j:=0 to 3 do
-              begin
-                str:=str+inttohex(context.ext.XMMRegisters.LegacyXMM[i].dwords[j],8);
-                if j<3 then
-                  str:=str+' _ ';
-              end;
-
-              memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
-            end;
-
-            3:   //8 byte
-            begin
-              str:='';
-              for j:=0 to 1 do
-              begin
-                str:=str+inttohex(context.ext.XMMRegisters.LegacyXMM[i].qwords[j],16);
-                if j<1 then
-                  str:=str+' _ ';
-              end;
-
-              memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
-            end;
-
-            4:
-            begin
-              str:='';
-              for j:=0 to 3 do
-              begin
-                str:=str+format('%f',[context.ext.XMMRegisters.LegacyXMM[i].singles[j]]);
-                if j<3 then
-                  str:=str+' _ ';
-              end;
-
-              memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
-            end;
-
-            5:
-            begin
-              str:='';
-              for j:=0 to 1 do
-              begin
-                str:=str+format('%f',[context.ext.XMMRegisters.LegacyXMM[i].doubles[j]]);
-                if j<1 then
-                  str:=str+' _ ';
-              end;
-
-              memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
-            end;
-          end;
-         end;
-
-
-
-        {$endif}
-
-
       end;
     end;
   finally
-    memo1.lines.endupdate;
+    mData.lines.endupdate;
+    sbdata.EndUpdateBounds;
   end;
 end;
 
 procedure TfrmFloatingPointPanel.FormShow(Sender: TObject);
 begin
-  memo1.Font.Height:=GetFontData(font.Handle).Height;
+  mData.Font.Height:=GetFontData(font.Handle).Height;
   UpdatedContext;
 end;
 
 procedure TfrmFloatingPointPanel.FormDestroy(Sender: TObject);
 begin
   SaveFormPosition(self);
+end;
+
+procedure TfrmFloatingPointPanel.cbClassicViewChange(Sender: TObject);
+begin
+  sbData.Visible:=not cbClassicView.checked;
 end;
 
 procedure TfrmFloatingPointPanel.ComboBox1Select(Sender: TObject);
@@ -426,7 +425,7 @@ end;
 
 procedure TfrmFloatingPointPanel.FormCreate(Sender: TObject);
 begin
-  combobox2.ItemIndex:=4;
+  cbDisplayType.ItemIndex:=4;
   LoadFormPosition(self);
 end;
 
