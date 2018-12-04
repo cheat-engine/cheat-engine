@@ -35,3 +35,6 @@ make more frequent releases ffs
 
 
 define from debug data: Use a ownerdata list instead (or better, a whole new interface where you can see beforehand the layout)
+
+Add ability to change xmm registers in the float panel
+debug_setContext gives an error
