@@ -50,7 +50,7 @@ var frmFloatingPointPanel:TfrmFloatingPointPanel;
 
 implementation
 
-uses MemoryBrowserFormUnit, processhandlerunit;
+uses MemoryBrowserFormUnit, processhandlerunit, debughelper;
 
 {$ifdef cpu64}
 //coded by mgr.inz.player
@@ -69,6 +69,25 @@ procedure extendedtodouble(float80:pointer;var outdouble:double); assembler;
     fldcw newcw
     fld tbyte [float80]
     fstp qword [outdouble]
+    fwait
+    fldcw oldcw
+  end;
+
+procedure doubletoextended(float64:pointer; outextended:pointer); assembler;
+  var
+    oldcw,newcw: word;
+    _rcx: PtrUInt;
+  asm
+    mov _rcx,rcx
+    fnstcw oldcw
+    fwait
+    mov cx,oldcw
+    or  cx,$0c3f
+    mov newcw,cx
+    mov rcx,_rcx
+    fldcw newcw
+    fld qword [float64]
+    fstp tbyte [outextended]
     fwait
     fldcw oldcw
   end;
@@ -101,7 +120,15 @@ var
   pss: Pdouble absolute p;
 
   v: string;
+
+  vd: double;
 begin
+  if self<>frmFloatingPointPanel then exit; //readonly for all other panels
+
+  if (debuggerthread=nil) or (debuggerthread.CurrentThread=nil) then exit;
+
+
+
   offset:=tlabel(Sender).tag;
 
   v:=tlabel(sender).caption;
@@ -112,19 +139,21 @@ begin
       begin
         //fpu
         {$ifdef cpu64}
-        p:=@context.FltSave.FloatRegisters[0];
+        p:=@debuggerthread.CurrentThread.context.FltSave.FloatRegisters[0];
         {$else}
-        p:=@context.FloatSave.RegisterArea[0];
+        p:=@debuggerthread.CurrentThread.context.FloatSave.RegisterArea[0];
         {$endif}
+
+
       end;
 
       1:
       begin
         //xmm
         {$ifdef cpu64}
-        p:=@context.FltSave.XmmRegisters[0];
+        p:=@debuggerthread.CurrentThread.context.FltSave.XmmRegisters[0];
         {$else}
-        p:=@context.ext.XMMRegisters.LegacyXMM[0];
+        p:=@debuggerthread.CurrentThread.context.ext.XMMRegisters.LegacyXMM[0];
         {$endif}
       end;
     end;
@@ -138,8 +167,16 @@ begin
       3: pq^:=StrToInt64('$'+v);
       4: ps^:=StrToFloat(v);
       5: pss^:=StrToFloat(v);
+      6:
+      begin
+        vd:=StrToFloat(v);
+        doubleToExtended(@vd, p);
+      end;
+
     end;
 
+
+    context^:=debuggerthread.CurrentThread.context^;
     UpdatedContext;
   end;
 
@@ -291,10 +328,15 @@ begin
 
             6:
             begin
+              {$ifdef cpu64}
               extendedtodouble(p, d);
+              {$else}
+              d=pea[0];
+              {$endif}
               mData.Lines.Add(format('%f', [d])); //extended
 
-              newLabel(format('%f',[d]), -1); //(i*{$ifdef cpu64}16{$else}10{$endif}));
+              newLabel(format('%f',[d]), (i*{$ifdef cpu64}16{$else}10{$endif})); //(i*{$ifdef cpu64}16{$else}10{$endif}));
+
             end;
           end;
         end;
@@ -446,6 +488,12 @@ end;
 
 procedure TfrmFloatingPointPanel.FormShow(Sender: TObject);
 begin
+  if self<>frmFloatingPointPanel then //only show the new one on the memview version
+  begin
+    cbClassicView.checked:=true;
+    cbClassicView.visible:=false;
+  end;
+
   mData.Font.Height:=GetFontData(font.Handle).Height;
   UpdatedContext;
 end;
