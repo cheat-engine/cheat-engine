@@ -115,6 +115,7 @@ type
     cbCompareToOtherPointermaps: TCheckBox;
     cbShowAdvancedOptions: TCheckBox;
     cbAddress: TComboBox;
+    cbNegativeOffsets: TCheckBox;
     ComboBox1: TComboBox;
     editMaxLevel: TEdit;
     editStructsize: TEdit;
@@ -170,6 +171,7 @@ type
     procedure cbAllowRuntimeWorkersChange(Sender: TObject);
     procedure cbMaxOffsetsPerNodeChange(Sender: TObject);
     procedure cbMustEndWithSpecificOffsetChange(Sender: TObject);
+    procedure cbNegativeOffsetsChange(Sender: TObject);
     procedure cbShowAdvancedOptionsChange(Sender: TObject);
     procedure cbStaticOnlyChange(Sender: TObject);
     procedure cbStaticStacksChange(Sender: TObject);
@@ -973,6 +975,13 @@ begin
 
   updatepositions;
 
+end;
+
+procedure TfrmPointerScannerSettings.cbNegativeOffsetsChange(Sender: TObject);
+begin
+  cbCompressedPointerscanFile.enabled:=not cbNegativeOffsets.checked;
+  if cbNegativeOffsets.checked then
+    cbCompressedPointerscanFile.checked:=false;
 end;
 
 procedure TfrmPointerScannerSettings.cbShowAdvancedOptionsChange(Sender: TObject);

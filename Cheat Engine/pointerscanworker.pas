@@ -38,6 +38,7 @@ type
     pathqueue: PMainPathQueue;
 
     OutOfDiskSpace: ^boolean;
+
     mustEndWithSpecificOffset: boolean;
     mustendwithoffsetlist: array of dword;
 
@@ -97,6 +98,7 @@ type
     pathsEvaluated: qword;
     pointersfound: qword;
 
+    NegativeOffsets: boolean;
     compressedptr: boolean;
     MaxBitCountModuleIndex: dword;
     MaxBitCountModuleOffset: dword;
@@ -628,6 +630,7 @@ begin
   begin
     startvalue:=valuetofind-structsize;
     stopvalue:=valuetofind;
+    if NegativeOffsets then inc(stopvalue, structsize);
 
     if startvalue>stopvalue then startvalue:=0;
 
@@ -674,6 +677,10 @@ begin
 
     if plist<>nil then
     begin
+     { if stopvalue>valuetofind then
+      asm
+      nop
+      end;  }
       tempresults[level]:=valuetofind-stopvalue; //store the offset
 
 

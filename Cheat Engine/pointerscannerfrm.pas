@@ -1031,6 +1031,7 @@ begin
         al.free;
       end;
 
+      staticscanner.negativeOffsets:=frmpointerscannersettings.cbNegativeOffsets.checked;
       staticscanner.compressedptr:=frmpointerscannersettings.cbCompressedPointerscanFile.checked;
 
       staticscanner.noReadOnly:=frmpointerscannersettings.cbNoReadOnly.checked;
@@ -3549,7 +3550,12 @@ begin
       end;
 
       for i:=p.offsetcount-1 downto 0 do
-        item.SubItems.Add(inttohex(p.offsets[i],1));
+      begin
+        if p.offsets[i]<0 then
+          item.SubItems.Add('-'+inttohex(-p.offsets[i],1))
+        else
+          item.SubItems.Add(inttohex(p.offsets[i],1));
+      end;
 
       for i:=p.offsetcount to Pointerscanresults.offsetCount-1 do
         item.SubItems.Add('');
@@ -3617,7 +3623,11 @@ begin
       for i:=li.SubItems.Count-2 downto 0 do
       begin
         if li.SubItems[i]='' then continue;
-        offsets[c]:=strtoint('$'+li.SubItems[i]);
+        if li.SubItems[i][1]='-' then
+          offsets[c]:=-strtoint('$'+copy(li.SubItems[i],2,length(li.SubItems[i])))
+        else
+          offsets[c]:=strtoint('$'+li.SubItems[i]);
+
         inc(c);
       end;
 

@@ -143,13 +143,13 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     AnchorSideTop.Control = cbCompareToOtherPointermaps
     AnchorSideTop.Side = asrBottom
     Left = 8
-    Height = 198
+    Height = 202
     Top = 84
     Width = 672
     AutoSize = True
     BevelOuter = bvNone
     BorderStyle = bsSingle
-    ClientHeight = 194
+    ClientHeight = 198
     ClientWidth = 668
     Color = clWindow
     ParentColor = False
@@ -347,10 +347,10 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
           AnchorSideTop.Control = edtReverseStop
           AnchorSideTop.Side = asrCenter
           AnchorSideRight.Control = edtReverseStop
-          Left = 13
+          Left = 14
           Height = 15
           Top = 27
-          Width = 17
+          Width = 16
           Anchors = [akTop, akRight]
           Caption = 'To:'
           ParentColor = False
@@ -362,13 +362,13 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Panel4
       Left = 306
-      Height = 179
+      Height = 198
       Top = 0
       Width = 362
       AutoSize = True
       BorderSpacing.Left = 7
       BevelOuter = bvNone
-      ClientHeight = 179
+      ClientHeight = 198
       ClientWidth = 362
       TabOrder = 1
       object cbAcceptNonModuleVtable: TCheckBox
@@ -509,12 +509,12 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       end
       object cbCompressedPointerscanFile: TCheckBox
         AnchorSideLeft.Control = Panel6
-        AnchorSideTop.Control = cbLimitScanToRegionFile
+        AnchorSideTop.Control = cbNegativeOffsets
         AnchorSideTop.Side = asrBottom
         Left = 0
         Height = 19
         Hint = 'Compresses the generated .PTR files slightly so they take less space on the disk and less time writing to disk.'#13#10'Most of the time the bottleneck of a pointerscan is disk writing, so it is recommended to use this option.'#13#10#13#10'Compressed .PTR files can not be read out by older Cheat Engine versions'
-        Top = 160
+        Top = 179
         Width = 170
         Caption = 'Compressed pointerscan file'
         Checked = True
@@ -522,6 +522,21 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         ShowHint = True
         State = cbChecked
         TabOrder = 8
+      end
+      object cbNegativeOffsets: TCheckBox
+        AnchorSideLeft.Control = Panel6
+        AnchorSideTop.Control = cbLimitScanToRegionFile
+        AnchorSideTop.Side = asrBottom
+        Left = 0
+        Height = 19
+        Hint = 'Let''s you scan for negative offsets'#13#10'Can not be used in combination with compressed pointerscan files'
+        Top = 160
+        Width = 174
+        Caption = 'Also scan for negative offsets'
+        OnChange = cbNegativeOffsetsChange
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 9
       end
     end
   end
@@ -549,7 +564,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     AnchorSideTop.Side = asrBottom
     Left = 174
     Height = 86
-    Top = 401
+    Top = 405
     Width = 335
     AutoSize = True
     BorderSpacing.Top = 8
@@ -735,7 +750,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     AnchorSideTop.Side = asrBottom
     Left = 8
     Height = 111
-    Top = 282
+    Top = 286
     Width = 597
     AutoSize = True
     BevelOuter = bvNone
@@ -842,10 +857,10 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
           AnchorSideTop.Control = edtBaseTo
           AnchorSideTop.Side = asrCenter
           AnchorSideRight.Control = edtBaseTo
-          Left = 14
+          Left = 15
           Height = 15
           Top = 29
-          Width = 14
+          Width = 13
           Anchors = [akTop, akRight]
           Caption = 'To'
           ParentColor = False

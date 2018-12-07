@@ -22,7 +22,7 @@ type TPointerscanResult=packed record
   modulenr: integer;
   moduleoffset: int64;
   offsetcount: integer;
-  offsets: array [0..1000] of dword;
+  offsets: array [0..1000] of integer;
 end;
 type PPointerscanResult= ^TPointerscanResult;
 

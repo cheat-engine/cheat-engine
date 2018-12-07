@@ -327,6 +327,7 @@ type
 
     generatePointermapOnly: boolean;
 
+    negativeOffsets: boolean;
     compressedptr: boolean;
     MaxBitCountModuleOffset: dword;
     MaxBitCountModuleIndex: dword;
@@ -5169,6 +5170,7 @@ begin
     NewAffinity:=SetThreadAffinityMask(scanner.Handle, NewAffinity);
   end;
 
+  scanner.NegativeOffsets:=negativeOffsets;
   scanner.compressedptr:=compressedptr;
   scanner.MaxBitCountModuleIndex:=MaxBitCountModuleIndex;
   scanner.MaxBitCountModuleOffset:=MaxBitCountModuleOffset;
