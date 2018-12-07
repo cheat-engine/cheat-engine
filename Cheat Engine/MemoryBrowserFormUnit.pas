@@ -2184,7 +2184,7 @@ var codelength: dword;
     bla:string;
     i,j: integer;
     nops: array of byte;
-    a: ptrUint;
+    a,a2: ptrUint;
     original: dword;
 
     mbi : _MEMORY_BASIC_INFORMATION;
@@ -2194,7 +2194,9 @@ begin
 
   for i:=0 to AdvancedOptions.numberofcodes-1 do
   begin
-    if InRangeX(disassemblerview.SelectedAddress, AdvancedOptions.code[i].Address, AdvancedOptions.code[i].Address+length(AdvancedOptions.code[i].actualopcode)-1 ) then
+    a2:=symhandler.getAddressFromName(AdvancedOptions.code[i].symbolname);
+
+    if InRangeX(disassemblerview.SelectedAddress, a2, a2+length(AdvancedOptions.code[i].actualopcode)-1 ) then
     begin
       for j:=0 to AdvancedOptions.Codelist2.Items.count-1 do
         AdvancedOptions.Codelist2.Items[j].Selected:=false;
@@ -3526,7 +3528,7 @@ end;
 procedure TMemoryBrowser.debuggerpopupPopup(Sender: TObject);
 var x: ptrUint;
   i: integer;
-
+  a: ptruint;
   inadvancedoptions: boolean;
 begin
   Breakandtraceinstructions1.Enabled:=processhandle<>0;
@@ -3548,7 +3550,8 @@ begin
 
   for i:=0 to AdvancedOptions.numberofcodes-1 do
   begin
-    if InRangeX(disassemblerview.SelectedAddress, AdvancedOptions.code[i].Address, AdvancedOptions.code[i].Address+length(AdvancedOptions.code[i].actualopcode)-1 ) then
+    a:=symhandler.getAddressFromName(AdvancedOptions.code[i].symbolname);
+    if InRangeX(disassemblerview.SelectedAddress, a, a+length(AdvancedOptions.code[i].actualopcode)-1 ) then
     begin
       inadvancedoptions:=true;
 
