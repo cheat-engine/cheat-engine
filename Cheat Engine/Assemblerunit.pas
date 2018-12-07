@@ -3256,6 +3256,7 @@ function gettokentype(var token:string;token2: string): TTokenType;
 var err: integer;
     temp:string;
     i64: int64;
+    brp: integer;
 begin
   result:=ttInvalidtoken;
   if length(token)=0 then exit;
@@ -3281,17 +3282,18 @@ begin
   //temp:=StringReplace(token,'PTR [', '[',[rfIgnoreCase]);
 
 
-  if pos('[',token)>0 then
+  brp:=pos('[',token);
+  if brp>0 then
   begin
-    if (pos('YMMWORD ',token)>0) then result:=ttMemorylocation256 else
-    if (pos('XMMWORD ',token)>0) then result:=ttMemorylocation128 else
-    if (pos('DQWORD ',token)>0) then result:=ttMemorylocation128 else
-    if (pos('TBYTE ',token)>0) then result:=ttMemorylocation80 else
-    if (pos('TWORD ',token)>0) then result:=ttMemorylocation80 else
-    if (pos('QWORD ',token)>0) then result:=ttMemorylocation64 else
-    if (pos('DWORD ',token)>0) then result:=ttMemorylocation32 else
-    if (pos('WORD ',token)>0) then result:=ttMemorylocation16 else
-    if (pos('BYTE ',token)>0) then result:=ttMemorylocation8 else
+    if (pos('YMMWORD',token) in [1..brp]) then result:=ttMemorylocation256 else
+    if (pos('XMMWORD',token) in [1..brp]) then result:=ttMemorylocation128 else
+    if (pos('DQWORD',token) in [1..brp]) then result:=ttMemorylocation128 else
+    if (pos('TBYTE',token) in [1..brp]) then result:=ttMemorylocation80 else
+    if (pos('TWORD',token) in [1..brp]) then result:=ttMemorylocation80 else
+    if (pos('QWORD',token) in [1..brp]) then result:=ttMemorylocation64 else
+    if (pos('DWORD',token) in [1..brp]) then result:=ttMemorylocation32 else
+    if (pos('WORD',token) in [1..brp]) then result:=ttMemorylocation16 else
+    if (pos('BYTE',token) in [1..brp]) then result:=ttMemorylocation8 else
       result:=ttMemorylocation;
   end;
 
