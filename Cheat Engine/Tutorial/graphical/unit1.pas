@@ -7,7 +7,7 @@ interface
 uses
   windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
   GamePanel, renderobject,glext, GL,glu, player,scoreboard, target, bullet, guitextobject,
-  staticguiobject, gamebase, gametutorial1, gametutorial2, gametutorial3;
+  staticguiobject, gamebase, levelselect, gametutorial1, gametutorial2, gametutorial3;
 
 type
 
@@ -26,6 +26,7 @@ type
     procedure startgame2(sender: TObject);
     procedure startgame3(sender: TObject);
     procedure finishedTutorial(sender: TObject);
+    procedure GameSelect(sender: TObject);
 
 
     procedure renderGame(sender: TObject);
@@ -43,6 +44,8 @@ implementation
 {$R *.lfm}
 
 { TForm1 }
+
+uses registry;
 
 procedure TForm1.gametick(sender:TObject);
 var
@@ -109,7 +112,27 @@ begin
   currentgame.OnWin:=@startgame3;
 end;
 
+procedure TForm1.GameSelect(sender: TObject);
+var gs: TLevelSelect;
+begin
+  gs:=TLevelSelect(currentgame);
+  case gs.level of
+    1:
+    begin
+      if currentgame<>nil then
+        freeandnil(currentGame);
+
+      Caption:='Step 1';
+      currentGame:=TGame1.create(p);
+      currentGame.OnWin:=@startGame2;
+    end;
+    2: startgame2(sender);
+    3: startgame3(sender);
+  end;
+end;
+
 procedure TForm1.FormShow(Sender: TObject);
+var reg: Tregistry;
 begin
   p:=TGamePanel.Create(Self);
   p.OnGameRender:=@renderGame;
@@ -120,10 +143,24 @@ begin
   // startgame3(Self);
   // startgame2(self);
 
-  currentGame:=TGame1.create(p);
-  currentGame.OnWin:=@startGame2;
+  reg:=tregistry.create;
+  if reg.OpenKey('\Software\Cheat Engine\GTutorial', false) then
+  begin
+    //if reg.ValueExists('This does not count as a solution for tutorial 1') then
+    begin
+      //level select screen
+      Caption:='Select Level';
+      currentGame:=TLevelSelect.create(p);
+      currentGame.OnWin:=@GameSelect;
+    end;
+  end;
 
- //currentGame:=TGame2.create(p);
+  //still here, so game1:
+  if currentgame=nil then
+  begin
+    currentGame:=TGame1.create(p);
+    currentGame.OnWin:=@startGame2;
+  end;
 
   p.AddKeyEventHandler(@keyhandler);
   lasttick:=GetTickCount64;

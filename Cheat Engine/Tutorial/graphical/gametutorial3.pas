@@ -84,6 +84,8 @@ type
 
 implementation
 
+uses registry;
+
 function TDoor.isinside(_x,_y: single): boolean;
 begin
   result:=(_x>x - w/2) and
@@ -435,6 +437,13 @@ begin
   begin
     ticking:=false;
     showmessage('well done');
+    with tregistry.create do
+    begin
+      if OpenKey('\Software\Cheat Engine\GTutorial', true) then
+        WriteBool('This does not count as a solution for tutorial 3',True);
+
+      free;
+    end;
     gamewon;
   end;
 

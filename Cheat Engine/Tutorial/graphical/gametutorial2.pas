@@ -62,6 +62,8 @@ type
 
 implementation
 
+uses registry;
+
 function TGame2.getNextBulletPos: integer;
 var i: integer;
 begin
@@ -399,6 +401,15 @@ begin
   begin
     ticking:=false;
     showmessage('well done');
+
+    with tregistry.create do
+    begin
+      if OpenKey('\Software\Cheat Engine\GTutorial', true) then
+        WriteBool('This does not count as a solution for tutorial 2',True);
+
+      free;
+    end;
+
     gamewon();
     exit;
   end;

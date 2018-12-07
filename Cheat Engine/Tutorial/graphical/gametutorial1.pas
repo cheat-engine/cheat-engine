@@ -36,6 +36,8 @@ type
     info: TGUITextObject;
     infobutton: TStaticGUIObject;
 
+
+
     function infoPopup(sender: tobject): boolean;
     function HideInfo(sender: tobject): boolean;
   public
@@ -47,6 +49,8 @@ type
   end;
 
 implementation
+
+uses registry;
 
 function TGame1.KeyHandler(TGamePanel: TObject; keventtype: integer; Key: Word; Shift: TShiftState):boolean;
 var
@@ -155,7 +159,8 @@ begin
 end;
 
 procedure tgame1.gametick(currentTime: qword; diff: integer);
-var i: integer;
+var
+  i: integer;
 begin
   if ticking=false then exit;
 
@@ -209,6 +214,16 @@ begin
 
     ticking:=false;
     showmessage('well done');
+
+    with tregistry.create do
+    begin
+      if OpenKey('\Software\Cheat Engine\GTutorial', true) then
+        WriteBool('This does not count as a solution for tutorial 1',True);
+
+      free;
+    end;
+
+
     gamewon();
   end;
 end;
