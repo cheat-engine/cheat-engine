@@ -905,12 +905,20 @@ begin
       vtSingle:
       begin
         result:=groupdata[i].wildcard or ((psingle(newvalue)^>groupdata[i].minfvalue) and (psingle(newvalue)^<groupdata[i].maxfvalue)); //default extreme rounded
+
+        if result and (floatscanWithoutExponents and (pdword(newvalue)^>0) and (abs(127-(pdword(newvalue)^ shr 23) and $ff)>10)) then
+          result:=false;
+
         inc(newvalue, 4);
       end;
 
       vtDouble:
       begin
         result:=groupdata[i].wildcard or ((pdouble(newvalue)^>groupdata[i].minfvalue) and (pdouble(newvalue)^<groupdata[i].maxfvalue));
+
+        if result and (floatscanWithoutExponents and (pqword(newvalue)^>0) and (abs(integer(1023-(pqword(newvalue)^ shr 52) and $7ff))>10)) then
+          result:=false;
+
         inc(newvalue, 8);
       end;
 
