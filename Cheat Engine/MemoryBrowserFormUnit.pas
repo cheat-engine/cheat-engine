@@ -2589,12 +2589,17 @@ var assemblercode,desc: string;
 
     gnascript: tstringlist;
     vpe: boolean;
+
+    address: ptruint;
 begin
 
   //make sure it doesnt have a breakpoint
+  address:=disassemblerview.SelectedAddress;
+
+
   if debuggerthread<>nil then
   begin
-    if debuggerthread.isBreakpoint(disassemblerview.SelectedAddress)<>nil then
+    if debuggerthread.isBreakpoint(Address)<>nil then
     begin
       beep; //Best sound effect cheat engine has
       exit;
@@ -2602,7 +2607,7 @@ begin
   end;
 
 
-  originalsize:=disassemblerview.SelectedAddress;
+  originalsize:=Address;
 
   localdisassembler:=TDisassembler.Create;
   try
@@ -2612,14 +2617,14 @@ begin
     localdisassembler.free;
   end;
 
-  dec(originalsize,disassemblerview.SelectedAddress);
+  dec(originalsize,Address);
 
 
   if x<>'' then assemblercode:=x;
 
 //  copy
 
-  assemblercode:=InputboxTop(rsCheatEngineSingleLingeAssembler, Format(rsTypeYourAssemblerCodeHereAddress, [inttohex(disassemblerview.SelectedAddress, 8)]), assemblercode, x='', canceled, assemblerHistory);
+  assemblercode:=InputboxTop(rsCheatEngineSingleLingeAssembler, Format(rsTypeYourAssemblerCodeHereAddress, [inttohex(Address, 8)]), assemblercode, x='', canceled, assemblerHistory);
   if not canceled then
   begin
 
@@ -2628,7 +2633,7 @@ begin
       //use the gnuassembler for this
       gnascript:=TStringList.create;
       try
-        gnascript.add('.msection sline 0x'+inttohex(disassemblerview.SelectedAddress,8));
+        gnascript.add('.msection sline 0x'+inttohex(Address,8));
         gnascript.Add(assemblercode);
         gnuassemble(gnascript);
       finally
@@ -2639,7 +2644,7 @@ begin
     end;
 
     try
-      if Assemble(assemblercode,disassemblerview.SelectedAddress,bytes) then
+      if Assemble(assemblercode,Address,bytes) then
       begin
         if originalsize<>length(bytes) then
         begin
@@ -2660,12 +2665,12 @@ begin
                 bytes[length(bytes)-1]:=$90;
               end;
 
-              a:=disassemblerview.SelectedAddress+length(bytes);
+              a:=Address+length(bytes);
 
-              b:=disassemblerview.SelectedAddress;
+              b:=Address;
               while b<a do disassemble(b,desc);
 
-              a:=b-disassemblerview.SelectedAddress;
+              a:=b-Address;
               while length(bytes)<a do
               begin
                 setlength(bytes,length(bytes)+1);
@@ -2685,10 +2690,10 @@ begin
 
         bytelength:=length(bytes);
 
-        vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,  pointer(disassemblerview.SelectedAddress),bytelength,PAGE_EXECUTE_READWRITE,p);
-        WriteProcessMemoryWithCloakSupport(processhandle,pointer(disassemblerview.SelectedAddress),@bytes[0],bytelength,a);
+        vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,  pointer(Address),bytelength,PAGE_EXECUTE_READWRITE,p);
+        WriteProcessMemoryWithCloakSupport(processhandle,pointer(Address),@bytes[0],bytelength,a);
         if vpe then
-          VirtualProtectEx(processhandle,pointer(disassemblerview.SelectedAddress),bytelength,p,p);
+          VirtualProtectEx(processhandle,pointer(Address),bytelength,p,p);
 
         hexview.update;
         disassemblerview.Update;
