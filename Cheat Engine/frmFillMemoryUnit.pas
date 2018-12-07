@@ -58,13 +58,13 @@ var start,stop: ptrUint;
 begin
   //fill the memory
   try
-    start:=strtoint('$'+edit1.Text);
+    start:=strtoint64('$'+edit1.Text);
   except
     raise exception.Create(rsPleaseFillInAValidFromAddress);
   end;
 
   try
-    stop:=strToInt('$'+edit2.Text);
+    stop:=strToInt64('$'+edit2.Text);
   except
     raise exception.Create(rsPleaseFillInAValidToAddress);
   end;
