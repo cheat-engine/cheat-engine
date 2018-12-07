@@ -13,7 +13,7 @@ object frmFillMemory: TfrmFillMemory
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poOwnerFormCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Panel1: TPanel
     AnchorSideLeft.Control = Owner
     AnchorSideLeft.Side = asrCenter
@@ -90,10 +90,10 @@ object frmFillMemory: TfrmFillMemory
     end
     object Label2: TLabel
       AnchorSideRight.Control = Edit2
-      Left = 27
+      Left = 28
       Height = 15
       Top = 32
-      Width = 14
+      Width = 13
       Anchors = [akTop, akRight]
       BorderSpacing.Right = 2
       Caption = 'To'
@@ -122,7 +122,7 @@ object frmFillMemory: TfrmFillMemory
       Width = 105
       Anchors = [akTop, akRight]
       BorderSpacing.Top = 4
-      MaxLength = 8
+      MaxLength = 16
       TabOrder = 0
     end
     object Edit2: TEdit
@@ -136,6 +136,7 @@ object frmFillMemory: TfrmFillMemory
       Width = 105
       Anchors = [akTop, akRight]
       BorderSpacing.Top = 2
+      MaxLength = 16
       TabOrder = 1
     end
     object Edit3: TEdit
