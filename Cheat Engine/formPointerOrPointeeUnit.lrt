@@ -1,4 +1,0 @@
-TFORMPOINTERORPOINTEE.CAPTION=Cheat Engine Pointer
-TFORMPOINTERORPOINTEE.LABEL1.CAPTION=This is a pointer.
-TFORMPOINTERORPOINTEE.BUTTON1.CAPTION=Find what writes to this pointer
-TFORMPOINTERORPOINTEE.BUTTON2.CAPTION=Find what writes to the address pointed at by this pointer

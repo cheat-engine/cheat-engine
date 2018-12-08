@@ -7016,8 +7016,8 @@ begin
     begin
       with TformPointerOrPointee.Create(self) do
       begin
-        button1.Caption := rsFindOutWhatAccessesThisPointer;
-        btnFirst.Caption := rsFindWhatAccessesTheAddressPointedAtByThisPointer;
+        btnFindWhatWritesPointer.Caption := rsFindOutWhatAccessesThisPointer;
+        btnFindWhatWritesPointee.Caption := rsFindWhatAccessesTheAddressPointedAtByThisPointer;
 
         res := showmodal;
         if res = mrNo then //find what writes to the address pointer at by this pointer
@@ -7091,8 +7091,8 @@ begin
     begin
       with TformPointerOrPointee.Create(self) do
       begin
-        button1.Caption := rsFindOutWhatAccessesThisPointer;
-        btnFirst.Caption := rsFindWhatAccessesTheAddressPointedAtByThisPointer;
+        btnFindWhatWritesPointer.Caption := rsFindOutWhatAccessesThisPointer;
+        btnFindWhatWritesPointee.Caption := rsFindWhatAccessesTheAddressPointedAtByThisPointer;
 
         res := showmodal;
         if res = mrNo then //find what writes to the address pointer at by this pointer
@@ -7129,8 +7129,8 @@ begin
     begin
       with TformPointerOrPointee.Create(self) do
       begin
-        button1.Caption := rsFindOutWhatWritesThisPointer;
-        btnFirst.Caption := rsFindWhatWritesTheAddressPointedAtByThisPointer;
+        btnFindWhatWritesPointer.Caption := rsFindOutWhatWritesThisPointer;
+        btnFindWhatWritesPointee.Caption := rsFindWhatWritesTheAddressPointedAtByThisPointer;
 
         res := showmodal;
         if res = mrNo then //find what writes to the address pointer at by this pointer

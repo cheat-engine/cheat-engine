@@ -74,10 +74,10 @@ object MainForm: TMainForm
       ParentShowHint = False
     end
     object CommentButton: TSpeedButton
-      Left = 555
+      Left = 556
       Height = 30
       Top = 1
-      Width = 66
+      Width = 65
       Align = alRight
       AutoSize = True
       Caption = 'Table Extras'
@@ -159,7 +159,7 @@ object MainForm: TMainForm
       Left = 295
       Height = 15
       Top = 79
-      Width = 57
+      Width = 56
       BorderSpacing.Top = 8
       Caption = 'Scan Value'
       Enabled = False
@@ -170,10 +170,10 @@ object MainForm: TMainForm
       AnchorSideTop.Control = ScanType
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = ScanType
-      Left = 239
+      Left = 240
       Height = 15
       Top = 128
-      Width = 54
+      Width = 53
       Anchors = [akTop, akRight]
       BorderSpacing.Right = 2
       Caption = 'Scan Type'
@@ -184,10 +184,10 @@ object MainForm: TMainForm
       AnchorSideTop.Control = VarType
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = VarType
-      Left = 235
+      Left = 237
       Height = 15
       Top = 153
-      Width = 58
+      Width = 56
       Anchors = [akTop, akRight]
       BorderSpacing.Right = 2
       Caption = 'Value Type'
@@ -362,7 +362,7 @@ object MainForm: TMainForm
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = Panel9
       Left = 295
-      Height = 174
+      Height = 182
       Top = 178
       Width = 200
       Anchors = [akTop, akRight]
@@ -371,7 +371,7 @@ object MainForm: TMainForm
       BorderSpacing.Top = 6
       BorderSpacing.Right = 6
       Caption = 'Memory Scan Options'
-      ClientHeight = 154
+      ClientHeight = 162
       ClientWidth = 196
       Color = clBtnFace
       Constraints.MinWidth = 10
@@ -386,7 +386,7 @@ object MainForm: TMainForm
         AnchorSideRight.Side = asrBottom
         Left = 0
         Height = 38
-        Top = 54
+        Top = 62
         Width = 196
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
@@ -454,13 +454,13 @@ object MainForm: TMainForm
       object Panel3: TPanel
         AnchorSideRight.Side = asrBottom
         Left = 0
-        Height = 54
+        Height = 62
         Top = 0
         Width = 196
         Align = alTop
         AutoSize = True
         BevelOuter = bvNone
-        ClientHeight = 54
+        ClientHeight = 62
         ClientWidth = 196
         TabOrder = 0
         object Label2: TLabel
@@ -469,7 +469,7 @@ object MainForm: TMainForm
           AnchorSideTop.Side = asrCenter
           Left = 5
           Height = 15
-          Top = 34
+          Top = 40
           Width = 24
           BorderSpacing.Left = 5
           Caption = 'Stop'
@@ -483,7 +483,7 @@ object MainForm: TMainForm
           AnchorSideTop.Side = asrCenter
           Left = 5
           Height = 15
-          Top = 6
+          Top = 8
           Width = 24
           BorderSpacing.Left = 5
           Caption = 'Start'
@@ -498,8 +498,8 @@ object MainForm: TMainForm
           AnchorSideRight.Control = FromAddress
           AnchorSideRight.Side = asrBottom
           Left = 35
-          Height = 26
-          Top = 28
+          Height = 30
+          Top = 32
           Width = 155
           Alignment = taRightJustify
           Anchors = [akTop, akLeft, akRight]
@@ -519,7 +519,7 @@ object MainForm: TMainForm
           AnchorSideRight.Control = Panel3
           AnchorSideRight.Side = asrBottom
           Left = 35
-          Height = 26
+          Height = 30
           Top = 0
           Width = 155
           Alignment = taRightJustify
@@ -540,7 +540,7 @@ object MainForm: TMainForm
         AnchorSideRight.Side = asrBottom
         Left = 0
         Height = 62
-        Top = 92
+        Top = 100
         Width = 196
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
@@ -1649,7 +1649,7 @@ object MainForm: TMainForm
       Left = 541
       Height = 15
       Top = 79
-      Width = 57
+      Width = 56
       Caption = 'Scan Value'
       Enabled = False
       ParentBidiMode = False

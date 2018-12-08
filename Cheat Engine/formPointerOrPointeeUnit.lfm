@@ -10,7 +10,7 @@ object formPointerOrPointee: TformPointerOrPointee
   ClientHeight = 99
   ClientWidth = 354
   Position = poMainFormCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Label1: TLabel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
@@ -36,7 +36,7 @@ object formPointerOrPointee: TformPointerOrPointee
     ClientHeight = 62
     ClientWidth = 341
     TabOrder = 0
-    object Button1: TButton
+    object btnFindWhatWritesPointer: TButton
       AnchorSideLeft.Control = Panel1
       AnchorSideTop.Control = Panel1
       AnchorSideRight.Control = Panel1
@@ -54,9 +54,9 @@ object formPointerOrPointee: TformPointerOrPointee
       ModalResult = 6
       TabOrder = 0
     end
-    object Button2: TButton
+    object btnFindWhatWritesPointee: TButton
       AnchorSideLeft.Control = Panel1
-      AnchorSideTop.Control = Button1
+      AnchorSideTop.Control = btnFindWhatWritesPointer
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = Panel1
       AnchorSideRight.Side = asrBottom
