@@ -2221,6 +2221,8 @@ procedure TStructColumn.setNewParent(group: TStructGroup);
 var i: integer;
    oldparent: TStructGroup;
 begin
+  if group=parent then exit;
+
   oldparent:=parent;
   i:=parent.fcolumns.IndexOf(self);
 
