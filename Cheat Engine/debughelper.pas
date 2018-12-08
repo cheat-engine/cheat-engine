@@ -504,6 +504,7 @@ function TDebuggerThread.getDebugThreadHanderFromThreadID(tid: dword): TDebugThr
 var
   i: integer;
 begin
+  result:=nil;
   debuggercs.Enter;
   try
     for i := 0 to threadlist.Count - 1 do
