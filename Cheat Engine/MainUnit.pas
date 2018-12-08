@@ -492,6 +492,7 @@ type
     procedure actOpenDissectStructureExecute(Sender: TObject);
     procedure actOpenLuaEngineExecute(Sender: TObject);
     procedure Address1Click(Sender: TObject);
+    procedure cbPercentageOnChange(Sender: TObject);
     procedure cbCodePageChange(Sender: TObject);
     procedure cbUnicodeChange(Sender: TObject);
     procedure EnableLCLClick(Sender: TObject);
@@ -902,7 +903,7 @@ type
     procedure CreateScanValue2;
     procedure DestroyScanValue2;
 
-    procedure cbPercentageOnChange(Sender: TObject);
+
     procedure CreateCbPercentage;
     procedure DestroyCbPercentage;
 
@@ -4970,6 +4971,8 @@ begin
     cbPauseWhileScanning.Checked:=true;
 
   foundlist3.Column[2].Caption:=rsPrevious;
+
+  cbpercentage.checked:=false;
 end;
 
 procedure TMainForm.btnNewScanClick(Sender: TObject);

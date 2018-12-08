@@ -1442,6 +1442,7 @@ object MainForm: TMainForm
           Top = 19
           Width = 60
           Caption = 'Percent'
+          OnChange = cbPercentageOnChange
           TabOrder = 1
         end
         object cbNot: TCheckBox
