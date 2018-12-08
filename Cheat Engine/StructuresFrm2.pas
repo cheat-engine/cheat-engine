@@ -1559,6 +1559,8 @@ var
 
   customtype: TCustomType;
   ctp: PCustomType;
+
+  s: boolean;
 begin
   if frmStructuresConfig.cbAutoGuessCustomTypes.checked then
     ctp:=@customtype
@@ -1575,9 +1577,14 @@ begin
 
 
     x:=0;
-    readprocessmemory(processhandle,pointer(baseaddress),@buf[0],bytesize,x);
-    if x=0 then
+    s:=readprocessmemory(processhandle,pointer(baseaddress),@buf[0],bytesize,x);
+
+    if not s then beep;
+
+    if (x=0) or (x>bytesize) then
     begin
+      if x>bytesize then bytesize:=0;
+
       dec(bytesize, baseaddress mod 4096);
       readprocessmemory(processhandle,pointer(baseaddress),@buf[0],bytesize,x);
 
@@ -1599,7 +1606,7 @@ begin
       end;
     end;
 
-    if x>0 then
+    if (x>0) and (x<=bytesize) then
     begin
       currentOffset:=offset;
 
