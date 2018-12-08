@@ -14,7 +14,8 @@ uses
   NewKernelHandler, valuefinder, PointerscanresultReader, maps, zstream,
   WinSock2, Sockets, registry, PageMap, CELazySocket,
   PointerscanNetworkCommands, resolve, pointeraddresslist, pointerscanworker,
-  PointerscanStructures, PointerscanController, sqlite3conn, sqldb, frmSelectionlistunit, commonTypeDefs;
+  PointerscanStructures, PointerscanController, sqlite3conn, sqldb,
+  frmSelectionlistunit, commonTypeDefs;
 
 
 
@@ -172,6 +173,8 @@ type
     lblThreadPriority: TLabel;
     lblProgressbar1: TLabel;
     MenuItem1: TMenuItem;
+    miSigned: TMenuItem;
+    miHexadecimal: TMenuItem;
     miDisconnect: TMenuItem;
     miForceDisconnect: TMenuItem;
     miExportTosqlite: TMenuItem;
@@ -197,6 +200,7 @@ type
     Method3Fastspeedandaveragememoryusage1: TMenuItem;   //I should probably rename this, it's not really, 'average memory usage' anymore...
     N1: TMenuItem;
     miInfoPopup: TPopupMenu;
+    pmType: TPopupMenu;
     ProgressBar1: TProgressBar;
     Rescanmemory1: TMenuItem;
     SaveDialog1: TSaveDialog;
@@ -219,6 +223,7 @@ type
     procedure cbPriorityChange(Sender: TObject);
     procedure cbTestCrappyConnectionChange(Sender: TObject);
     procedure cbNonResponsiveChange(Sender: TObject);
+    procedure cbTypeDropDown(Sender: TObject);
 
     procedure FormDestroy(Sender: TObject);
     procedure FormResize(Sender: TObject);
@@ -355,7 +360,8 @@ uses PointerscannerSettingsFrm, frmMemoryAllocHandlerUnit, frmSortPointerlistUni
   LuaHandler, lauxlib, lua, frmPointerscanConnectDialogUnit,
   frmpointerrescanconnectdialogunit, frmMergePointerscanResultSettingsUnit,
   ProcessHandlerUnit, frmResumePointerscanUnit, PointerscanConnector,
-  frmSetupPSNNodeUnit, PointerscanNetworkStructures, parsers;
+  frmSetupPSNNodeUnit, PointerscanNetworkStructures, parsers, byteinterpreter,
+  CustomTypeHandler, ceregistry, vartypestrings;
 
 resourcestring
   rsErrorDuringScan = 'Error during scan';
@@ -1937,11 +1943,18 @@ end;
 
 
 procedure Tfrmpointerscanner.FormDestroy(Sender: TObject);
-var x: array of integer;
+var reg: Tregistry;
 begin
-  setlength(x,1);
-  x[0]:=cbtype.itemindex;
-  SaveFormPosition(self, x);
+  SaveFormPosition(self);
+
+  reg:=tregistry.create;
+  if reg.OpenKey('\Software\Cheat Engine\Pointerscan', true) then
+  begin
+    reg.writeInteger('Display Type', cbtype.itemindex);
+    reg.writeBool('Display Signed',miSigned.checked);
+    reg.writeBool('Display Hexadecimal',miHexadecimal.checked);
+  end;
+  reg.free;
 end;
 
 procedure Tfrmpointerscanner.btnStopRescanLoopClick(Sender: TObject);
@@ -2004,6 +2017,21 @@ end;
 procedure Tfrmpointerscanner.cbNonResponsiveChange(Sender: TObject);
 begin
   debug_nonresponsiveconnection:=cbNonResponsive.checked;
+end;
+
+procedure Tfrmpointerscanner.cbTypeDropDown(Sender: TObject);
+var i: integer;
+begin
+  //fill in custom types
+  while cbtype.Items.Count>8 do
+  begin
+    cbtype.Items.Delete(8); //delete the ones in the list
+  end;
+
+  for i:=0 to customtypes.Count-1 do
+    cbtype.Items.AddObject(TcustomType(customtypes[i]).name,customtypes[i]);
+
+  cbtype.DropDownCount:=max(12, cbtype.Items.Count);
 end;
 
 
@@ -3494,6 +3522,21 @@ var
   x: array of integer;
   reg: tregistry;
 begin
+  cbtype.Onchange:=nil;
+  cbtype.Items.clear;
+
+  cbtype.Items.Add(rs_vtByte);
+  cbtype.Items.Add(rs_vtWord);
+  cbtype.Items.Add(rs_vtDword);
+  cbtype.Items.Add(rs_vtQword);
+  cbtype.Items.Add(rs_vtSingle);
+  cbtype.Items.Add(rs_vtDouble);
+  cbtype.Items.Add(rs_vtString);
+  cbtype.Items.Add(rs_vtWidestring);
+
+  cbtype.itemindex:=2;
+
+
   {$ifdef cpu64}
     SQLiteLibraryName:='.\win64\sqlite3.dll';
   {$else}
@@ -3510,12 +3553,25 @@ begin
   lvResults.Visible:=true;
 
   setlength(x,1);
-  if loadformposition(self,x) then
-    cbtype.itemindex:=x[0];
+  loadformposition(self);
+
 
   reg:=TRegistry.Create;
 
+  if reg.OpenKey('\Software\Cheat Engine\Pointerscan', false) then
+  begin
+    if reg.ValueExists('Display Type') then
+      cbtype.itemindex:=reg.ReadInteger('Display Type');
+
+    if reg.ValueExists('Display Signed') then
+      miSigned.checked:=reg.ReadBool('Display Signed');
+
+    if reg.ValueExists('Display Hexadecimal') then
+      miHexadecimal.checked:=reg.readBool('Display Hexadecimal');
+  end;
+
   reg.free;
+  cbtype.onchange:=cbTypeChange;
 end;
 
 procedure Tfrmpointerscanner.lvResultsData(Sender: TObject;
@@ -3525,12 +3581,17 @@ var
   i: integer;
   s: string;
   check: boolean; 
-  doublevalue: double;
+{  doublevalue: double;
+  bytevalue: byte absolute doublevalue;
   dwordvalue: dword absolute doublevalue; //make sure of the same memory
-  floatvalue: single absolute doublevalue;
+  floatvalue: single absolute doublevalue;}
   x: ptruint;
 
   address: ptrUint;
+
+
+  vartype: TVariableType;
+  ct: TCustomType;
 
 begin
   if Pointerscanresults<>nil then
@@ -3563,11 +3624,36 @@ begin
       if address=0 then
         item.SubItems.Add('-') else
       begin
-        s:=inttohex(address,8);
+        vartype:=vtDword;
+        case cbtype.itemindex of
+          0: vartype:=vtByte;
+          1: vartype:=vtWord;
+          2: vartype:=vtDWord;
+          3: vartype:=vtQword;
+          4: vartype:=vtSingle;
+          5: vartype:=vtDouble;
+          6: vartype:=vtString;
+          7: vartype:=vtUnicodeString;
+        end;
+
+        if cbtype.itemindex>=8 then
+        begin
+          vartype:=vtCustom;
+          ct:=TCustomType(cbtype.Items.Objects[cbtype.itemindex]);
+        end;
+
+        s:=inttohex(address,8) + ' = ' + readAndParseAddress(address, vartype, ct,miHexadecimal.checked, miSigned.checked, 128);
+
+       {
+
         if cbType.ItemIndex<>-1 then
         begin
           s:=s+' = ';
-          if cbType.ItemIndex=2 then
+
+          case cbType.ItemIndex of
+
+          end;
+          if cbType.ItemIndex in [3,8] then
             check:=readprocessmemory(processhandle, pointer(address),@doublevalue,8,x) else
             check:=readprocessmemory(processhandle, pointer(address),@doublevalue,4,x);
 
@@ -3579,7 +3665,7 @@ begin
               2: s:=s+floattostr(doublevalue);
             end;
           end else s:=s+'??';
-        end;
+        end;      }
 
         item.SubItems.Add(s);
 
@@ -3610,6 +3696,8 @@ var
   c: integer;
 
   vtype: TVariableType;
+  ct: TcustomType;
+  ctname: string;
 begin
   if lvResults.ItemIndex<>-1 then
   begin
@@ -3631,14 +3719,26 @@ begin
         inc(c);
       end;
 
-
-      case cbType.ItemIndex of
-        1: vtype:=vtSingle;
-        2: vtype:=vtDouble;
-        else vtype:=vtDword;
+      vtype:=vtDword;
+      ctname:='';
+      case cbtype.itemindex of
+        0: vtype:=vtByte;
+        1: vtype:=vtWord;
+        2: vtype:=vtDWord;
+        3: vtype:=vtQword;
+        4: vtype:=vtSingle;
+        5: vtype:=vtDouble;
       end;
 
-      mainform.addresslist.addaddress(rsPointerscanResult, t, offsets, c, vtype);
+      if cbtype.itemindex>=6 then
+      begin
+        vtype:=vtCustom;
+        ct:=TCustomType(cbtype.Items.Objects[cbtype.itemindex]);
+        ctname:=ct.name;
+      end;
+
+
+      mainform.addresslist.addaddress(rsPointerscanResult, t, offsets, c, vtype, ctname);
     except
 
     end;

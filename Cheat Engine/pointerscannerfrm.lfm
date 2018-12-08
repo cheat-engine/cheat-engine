@@ -1,10 +1,10 @@
 object frmPointerScanner: TfrmPointerScanner
-  Left = 435
-  Height = 460
-  Top = 176
+  Left = 645
+  Height = 465
+  Top = 234
   Width = 749
   Caption = 'Pointer scan'
-  ClientHeight = 440
+  ClientHeight = 445
   ClientWidth = 749
   Menu = MainMenu1
   OnClose = FormClose
@@ -34,21 +34,30 @@ object frmPointerScanner: TfrmPointerScanner
       BorderSpacing.Top = 2
       BorderSpacing.Bottom = 2
       ItemHeight = 15
+      ItemIndex = 2
       Items.Strings = (
+        'Byte'
+        '2 Byte'
         '4 Byte'
+        '8 Byte'
         'Float'
         'Double'
+        'String'
+        'Widestring'
       )
       OnChange = cbTypeChange
+      OnDropDown = cbTypeDropDown
+      PopupMenu = pmType
       Style = csDropDownList
       TabOrder = 0
+      Text = '4 Byte'
       Visible = False
     end
     object cbTestCrappyConnection: TCheckBox
       AnchorSideLeft.Control = Panel1
       Left = 320
       Height = 19
-      Top = 2
+      Top = 6
       Width = 146
       Anchors = [akTop]
       Caption = 'Simulate no connection'
@@ -59,7 +68,7 @@ object frmPointerScanner: TfrmPointerScanner
     object cbNonResponsive: TCheckBox
       Left = 480
       Height = 19
-      Top = 2
+      Top = 6
       Width = 165
       Caption = 'Non responsive connection'
       OnChange = cbNonResponsiveChange
@@ -68,9 +77,9 @@ object frmPointerScanner: TfrmPointerScanner
     end
   end
   object btnStopRescanLoop: TButton
-    Left = 160
+    Left = 184
     Height = 25
-    Top = -1
+    Top = 0
     Width = 144
     Caption = 'Stop rescan loop'
     OnClick = btnStopRescanLoopClick
@@ -80,7 +89,7 @@ object frmPointerScanner: TfrmPointerScanner
   object pnlProgress: TPanel
     Left = 0
     Height = 25
-    Top = 415
+    Top = 420
     Width = 749
     Align = alBottom
     AutoSize = True
@@ -135,18 +144,18 @@ object frmPointerScanner: TfrmPointerScanner
   end
   object pnlData: TPanel
     Left = 0
-    Height = 388
+    Height = 393
     Top = 27
     Width = 749
     Align = alClient
     BevelOuter = bvNone
     Caption = 'pnlData'
-    ClientHeight = 388
+    ClientHeight = 393
     ClientWidth = 749
     TabOrder = 4
     object tvInfo: TTreeView
       Left = 0
-      Height = 359
+      Height = 364
       Top = 0
       Width = 590
       Align = alClient
@@ -162,7 +171,7 @@ object frmPointerScanner: TfrmPointerScanner
     object pnlStop: TPanel
       Left = 0
       Height = 29
-      Top = 359
+      Top = 364
       Width = 749
       Align = alBottom
       AutoSize = True
@@ -189,13 +198,13 @@ object frmPointerScanner: TfrmPointerScanner
     end
     object pnlControl: TPanel
       Left = 590
-      Height = 359
+      Height = 364
       Top = 0
       Width = 159
       Align = alRight
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 359
+      ClientHeight = 364
       ClientWidth = 159
       TabOrder = 2
       object cbPriority: TComboBox
@@ -567,6 +576,21 @@ object frmPointerScanner: TfrmPointerScanner
       Caption = 'Unsafe disconnect'
       Enabled = False
       OnClick = miForceDisconnectClick
+    end
+  end
+  object pmType: TPopupMenu
+    left = 33
+    top = 11
+    object miSigned: TMenuItem
+      AutoCheck = True
+      Caption = 'Signed'
+      Checked = True
+      OnClick = cbTypeChange
+    end
+    object miHexadecimal: TMenuItem
+      AutoCheck = True
+      Caption = 'Hexadecimal'
+      OnClick = cbTypeChange
     end
   end
 end
