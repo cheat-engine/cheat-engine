@@ -681,6 +681,8 @@ type
   private
     onetimeonly: boolean; //to protect against make mainform visible (.show)
 
+    scantimestart, scantimefinish: int64;
+
     tabcounter: integer;
     //variable that only goes up, doesn't go down when a tab is deleted
     scantablist: TTablist;
@@ -9072,6 +9074,8 @@ var
   percentage: boolean;
   fastscanmethod: TFastscanmethod;
 begin
+  QueryPerformanceCounter(scantimestart);
+
   if PreviousResults<>nil then
     freeandnil(PreviousResults);
 
@@ -9171,7 +9175,16 @@ var
   previous: string;
 
   c: qword;
+
+  scantime: qword;
 begin
+  QueryPerformanceCounter(scantimefinish);
+  scantime:=scantimefinish-scantimestart;
+
+  if ssCtrl in GetKeyShiftState then
+    showmessage(inttostr(scantime));
+
+
   if ScanTabList <> nil then
     ScanTabList.Enabled := True;
 
