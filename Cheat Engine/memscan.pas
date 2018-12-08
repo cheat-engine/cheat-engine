@@ -3982,9 +3982,9 @@ begin
   end;
   {$ENDIF}
 
-  OutputDebugString('configurescanroutine');
+  //OutputDebugString('configurescanroutine');
 
-  OutputDebugString('Config 1');
+  //OutputDebugString('Config 1');
 
 
   foundbuffersize:=0;
@@ -4316,7 +4316,7 @@ begin
 
 
 
-  OutputDebugString('Config 2');
+  //OutputDebugString('Config 2');
 
   FlushRoutine:=genericFlush; //change if not so
 
@@ -4340,15 +4340,15 @@ begin
     getmem(SecondaryAddressBuffer,maxfound*sizeof(ptruint));
   end;
 
-  OutputDebugString('Config 3');
+  //OutputDebugString('Config 3');
   if compareToSavedScan then //create a first scan handler
   begin
-    OutputDebugString('Compare to saved scan');
+    //OutputDebugString('Compare to saved scan');
     savedscanhandler:=Tsavedscanhandler.create(scandir,savedscanname);
   end;
 
-  OutputDebugString('Config 3.1');
-  OutputDebugString('scanOption='+inttostr(integer(scanOption)));
+  //OutputDebugString('Config 3.1');
+ // OutputDebugString('scanOption='+inttostr(integer(scanOption)));
 
 
   if (scanOption in [soIncreasedValueBy, soDecreasedValueBy]) and (value=0) and (dvalue=0) then
@@ -4428,7 +4428,7 @@ begin
     vtDWord:
     begin
       //dword config
-      OutputDebugString('Config 4');
+      //OutputDebugString('Config 4');
 
       FoundBufferSize:=buffersize*4;
       StoreResultRoutine:=DWordSaveResult;
@@ -4461,7 +4461,7 @@ begin
         soUnChanged:        checkroutine:=dwordUnchanged;
       end;
 
-      OutputDebugString('Config 5');
+      //OutputDebugString('Config 5');
     end;
 
     vtQWord:
@@ -4757,11 +4757,11 @@ begin
 
   end;
 
-  OutputDebugString('Config 6');
+ // OutputDebugString('Config 6');
   getmem(CurrentFoundBuffer,FoundBufferSize);
   getmem(SecondaryFoundBuffer,FoundBufferSize);
 
-  OutputDebugString('configurescanroutine: Normal exit');
+  //OutputDebugString('configurescanroutine: Normal exit');
 end;
 
 procedure TScanner.nextNextscan;
@@ -5202,7 +5202,7 @@ end;
 destructor TScanner.destroy;
 begin
 
-  outputdebugstring('Destroying a scanner');
+  //outputdebugstring('Destroying a scanner');
 
   if groupdata<>nil then
     freeandnil(groupdata);
@@ -5330,7 +5330,7 @@ begin
 
     vtByteArray:
     begin
-      OutputDebugString('aobscan for '+scanvalue1);
+      //OutputDebugString('aobscan for '+scanvalue1);
 
       if scanoption<>soUnknownValue then
         variablesize:=getBytecountArrayOfByteString(scanvalue1)
@@ -5344,7 +5344,7 @@ begin
 
     vtByteArrays:
     begin
-      OutputDebugString('maobscan for '+scanvalue1);
+     // OutputDebugString('maobscan for '+scanvalue1);
       if scanoption<>soUnknownValue then
       begin
         //find the max size of the aob's
@@ -5434,11 +5434,11 @@ begin
   end;
 
 
-  OutputDebugString('fillVariableAndFastScanAlignSize:');
+ // OutputDebugString('fillVariableAndFastScanAlignSize:');
 
-  OutputDebugString(format('variableType=%d',[integer(variableType)]));
-  OutputDebugString(format('variablesize=%d',[variablesize]));
-  OutputDebugString(format('fastscanalignsize=%d',[fastscanalignsize]));
+ // OutputDebugString(format('variableType=%d',[integer(variableType)]));
+ // OutputDebugString(format('variablesize=%d',[variablesize]));
+ // OutputDebugString(format('fastscanalignsize=%d',[fastscanalignsize]));
 end;
 
 
@@ -5900,7 +5900,7 @@ var
 
   vqecacheflag: dword;
 begin
-  OutputDebugString('TScanController.firstScan');
+ // OutputDebugString('TScanController.firstScan');
   if OnlyOne then
     threadcount:=1
   else
@@ -5915,7 +5915,7 @@ begin
   totalProcessMemorySize:=0;
 
 
-  OutputDebugString(format('threadcount=%d',[threadcount]));
+  //OutputDebugString(format('threadcount=%d',[threadcount]));
   {
   ScanController plan:
   spawn idle scanner threads , ammount=maxthreadcount in settings
@@ -5949,17 +5949,17 @@ begin
      startaddress:=startaddress-(startaddress mod 8);
   end;
 
-  OutputDebugString('processhandle='+inttostr(processhandle));
-  OutputDebugString(format('startaddress=%x',[startaddress]));
-  OutputDebugString(format('stopaddress=%x',[stopaddress]));
+ // OutputDebugString('processhandle='+inttostr(processhandle));
+ // OutputDebugString(format('startaddress=%x',[startaddress]));
+ // OutputDebugString(format('stopaddress=%x',[stopaddress]));
 
-  OutputDebugString('Finding out memory size');
+ // OutputDebugString('Finding out memory size');
   currentBaseAddress:=startaddress;
   ZeroMemory(@mbi,sizeof(mbi));
 
-  OutputDebugString('scanWritable='+inttostr(integer(scanWritable)));
-  OutputDebugString('scanExecutable='+inttostr(integer(scanExecutable)));
-  OutputDebugString('scanCopyOnWrite='+inttostr(integer(scanCopyOnWrite)));
+ // OutputDebugString('scanWritable='+inttostr(integer(scanWritable)));
+ // OutputDebugString('scanExecutable='+inttostr(integer(scanExecutable)));
+ // OutputDebugString('scanCopyOnWrite='+inttostr(integer(scanCopyOnWrite)));
 
 
   vqecacheflag:=0;
@@ -6080,11 +6080,11 @@ begin
 
   VirtualQueryEx_EndCache(processhandle);
 
-  OutputDebugString(format('memRegionPos=%d',[memRegionPos]));
-  for i:=0 to memRegionPos-1 do
-    OutputDebugString(format('i: %d B=%x S=%x SA=%p',[i, memRegion[i].BaseAddress, memRegion[i].MemorySize, memRegion[i].startaddress]));
+ // OutputDebugString(format('memRegionPos=%d',[memRegionPos]));
+//  for i:=0 to memRegionPos-1 do
+ //   OutputDebugString(format('i: %d B=%x S=%x SA=%p',[i, memRegion[i].BaseAddress, memRegion[i].MemorySize, memRegion[i].startaddress]));
 
-  OutputDebugString(format('totalProcessMemorySize=%x (%d)',[totalProcessMemorySize, totalProcessMemorySize]));
+ // OutputDebugString(format('totalProcessMemorySize=%x (%d)',[totalProcessMemorySize, totalProcessMemorySize]));
 
 
 
@@ -6096,7 +6096,7 @@ begin
   //if soUnknown, make a buffer where it can store all the 'previous' memory
   if scanOption=soUnknownValue then
   begin
-    OutputDebugString('scanOption=soUnknownValue');
+   // OutputDebugString('scanOption=soUnknownValue');
 
     {$ifdef lowmemoryusage}
     //create a file to store the previous memory in
@@ -6109,12 +6109,12 @@ begin
     //extra check to make sure the previous scan was cleared
     if OwningMemScan.previousMemoryBuffer<>nil then virtualfree(OwningMemScan.previousMemoryBuffer,0,MEM_RELEASE);
 
-    OutputDebugString(format('Allocating %dKB for previousMemoryBuffer',[totalProcessMemorySize div 1024]));
+    //OutputDebugString(format('Allocating %dKB for previousMemoryBuffer',[totalProcessMemorySize div 1024]));
     OwningMemScan.previousMemoryBuffer:=VirtualAlloc(nil,totalProcessMemorySize, MEM_COMMIT or MEM_RESERVE or MEM_TOP_DOWN, PAGE_READWRITE); //top down to try to prevent memory fragmentation
     if OwningMemScan.previousMemoryBuffer=nil then
       raise exception.Create(Format(rsFailureAllocatingMemoryForCopyTriedAllocatingKB, [inttostr(totalProcessMemorySize div 1024)]));
 
-    OutputDebugString(format('Allocated at %p',[OwningMemScan.previousMemoryBuffer]));
+  //  OutputDebugString(format('Allocated at %p',[OwningMemScan.previousMemoryBuffer]));
     {$endif}
 
 
@@ -6126,14 +6126,14 @@ begin
   if totalProcessMemorySize<threadcount*4096 then
     threadcount:=1+(totalProcessMemorySize div 4096); //in case of mini scans don't wate too much time creating threads
 
-  OutputDebugString(format('Splitting up the workload between %d threads',[threadcount]));
+  //OutputDebugString(format('Splitting up the workload between %d threads',[threadcount]));
 
 
   Blocksize:=totalProcessMemorySize div threadcount;
   if (Blocksize mod 4096) > 0 then
     Blocksize:=blocksize-(blocksize mod 4096); //lastblock gets the missing bytes
 
-  OutputDebugString(format('Blocksize = %x',[Blocksize]));
+  //OutputDebugString(format('Blocksize = %x',[Blocksize]));
 
 
 
@@ -6146,7 +6146,7 @@ begin
 
     for i:=0 to threadcount-1 do
     begin
-      OutputDebugString(format('Creating scanner %d',[i]));
+    //  OutputDebugString(format('Creating scanner %d',[i]));
       scanners[i]:=tscanner.Create(true, OwningMemScan.ScanresultFolder);
       scanners[i].scannernr:=i;
       scanners[i].OwningScanController:=self;
@@ -6212,21 +6212,21 @@ begin
 
 
       end;
-      OutputDebugString(format('startregion = %d',[scanners[i]._startregion]));
-      OutputDebugString(format('stopregion = %d',[scanners[i]._stopregion]));
-      OutputDebugString(format('startaddress = %x',[scanners[i].startaddress]));
-      OutputDebugString(format('stopaddress = %x',[scanners[i].stopaddress]));
+    //  OutputDebugString(format('startregion = %d',[scanners[i]._startregion]));
+    //  OutputDebugString(format('stopregion = %d',[scanners[i]._stopregion]));
+    //  OutputDebugString(format('startaddress = %x',[scanners[i].startaddress]));
+    //  OutputDebugString(format('stopaddress = %x',[scanners[i].stopaddress]));
 
-      OutputDebugString(format('j = %d',[j]));
-      OutputDebugString(format('leftfromprevious = %x',[leftfromprevious]));
-      OutputDebugString(format('offsetincurrentregion = %x',[offsetincurrentregion]));
+    //  OutputDebugString(format('j = %d',[j]));
+    //  OutputDebugString(format('leftfromprevious = %x',[leftfromprevious]));
+    //  OutputDebugString(format('offsetincurrentregion = %x',[offsetincurrentregion]));
 
 
 
       if scanners[i].maxregionsize>buffersize then
         scanners[i].maxregionsize:=buffersize;
 
-      OutputDebugString(format('maxregionsize = %x',[scanners[i].maxregionsize]));
+   //   OutputDebug String(format('maxregionsize = %x',[scanners[i].maxregionsize]));
               
 
       //now configure the scanner thread with the same info this thread got, with some extra info
@@ -6397,7 +6397,7 @@ begin
     end;
     
   finally
-    OutputDebugString('Scan ended');
+   // OutputDebugString('Scan ended');
   end;
 
 
@@ -6414,7 +6414,7 @@ var err: dword;
     haserror2: boolean;
     datatype: string[6];
 begin
-  OutputDebugString('TScanController.execute');
+ // OutputDebugString('TScanController.execute');
 
   try
 
@@ -6428,7 +6428,7 @@ begin
       fillVariableAndFastScanAlignSize;
       if scantype=stFirstScan then firstscan;
       if scantype=stNextScan then nextscan;
-      OutputDebugString('No exception on controller');
+     // OutputDebugString('No exception on controller');
     except
       on e: exception do
       begin
@@ -6473,7 +6473,7 @@ begin
     if savescannerresults then //prepare saving. Set the filesize
     begin
       try
-        OutputDebugString('ScanController: creating undo files');
+      //  OutputDebugString('ScanController: creating undo files');
         if scanners[0].Addressfile<>nil then
           freeandnil(scanners[0].Addressfile);
 
@@ -6524,8 +6524,8 @@ begin
 
 
 
-        outputdebugstring(format('ScanController: Have set AddressFile.size to %d',[AddressFile.size]));
-        outputdebugstring(format('ScanController: Have set MemoryFile.size to %d',[memoryFile.size]));
+       // outputdebugstring(format('ScanController: Have set AddressFile.size to %d',[AddressFile.size]));
+       // outputdebugstring(format('ScanController: Have set MemoryFile.size to %d',[memoryFile.size]));
       except
         on e: exception do
         begin
@@ -6544,7 +6544,7 @@ begin
     isdone:=true;
 
     //todo: notify the caller the scan is done
-    OutputDebugString('It actually finished');
+  //  OutputDebugString('It actually finished');
 
     isdoneevent.setevent;
 
@@ -6566,7 +6566,7 @@ begin
           //save the exact results, and copy it to the AddressesFirst.tmp and Memoryfirst.tmp files
           for i:=1 to length(scanners)-1 do
           begin
-            outputdebugstring(format('ScanController: Writing results from scanner %d',[i]));
+        //    outputdebugstring(format('ScanController: Writing results from scanner %d',[i]));
             if (scanners[i].Addressfile<>nil) and (scanners[i].MemoryFile<>nil) then
             begin
               addressfile.CopyFrom(scanners[i].Addressfile,0);
@@ -6590,21 +6590,21 @@ begin
 
 
     //clean up secondary scanner threads, their destructor will close and delete their files
-    outputdebugstring('ScanController: Destroying scanner threads');
+   // outputdebugstring('ScanController: Destroying scanner threads');
 
     scannersCS.enter;
     try
-      outputdebugstring('ScanController: Critical section "scannersCS" aquired');
+     // outputdebugstring('ScanController: Critical section "scannersCS" aquired');
       for i:=0 to length(scanners)-1 do
       begin
-        outputdebugstring(format('ScanController: Freeing scanner %d',[i]));
+       // outputdebugstring(format('ScanController: Freeing scanner %d',[i]));
         freeandnil(scanners[i]);
       end;
 
       setlength(scanners,0);
     finally
       scannersCS.leave;
-      outputdebugstring('ScanController: Critical section "scannersCS" released');
+     // outputdebugstring('ScanController: Critical section "scannersCS" released');
     end;
 
 
@@ -6620,8 +6620,8 @@ begin
 
         if not OnlyOne then
         begin
-          outputdebugstring('ScanController: This was a first scan, so saving the First Scan results');
-          outputdebugstring('to:'+OwningMemScan.ScanresultFolder+'ADDRESSES.First');
+        //  outputdebugstring('ScanController: This was a first scan, so saving the First Scan results');
+         // outputdebugstring('to:'+OwningMemScan.ScanresultFolder+'ADDRESSES.First');
 
           {$IFDEF LOWMEMORYUSAGE}
           copyfile(OwningMemScan.ScanresultFolder+'ADDRESSES.TMP', OwningMemScan.ScanresultFolder+'ADDRESSES.First');
@@ -6629,9 +6629,9 @@ begin
           {$else}
           OwningMemScan.SaveFirstScanThread:=TSaveFirstScanThread.create(OwningMemScan.ScanresultFolder, false,@OwningMemScan.memregion,@OwningMemScan.memregionpos, OwningMemScan.previousMemoryBuffer);
           {$ENDIF}
-        end
-        else
-          OutputDebugString('This was an single result scan only. No need to save the first scan state');
+        end;
+        //else
+        //  OutputDebugString('This was an single result scan only. No need to save the first scan state');
       end;
     except
       on e: exception do
@@ -6655,14 +6655,14 @@ begin
     MessageBox(0, pchar(errorstring),'Scancontroller cleanup error',  MB_ICONERROR or mb_ok);
   {$ENDIF}
 
-  outputdebugstring('end of scancontroller reached');
+  //outputdebugstring('end of scancontroller reached');
   isreallydoneevent.setEvent;   //just set it again if it wasn't set
 
   {$IFNDEF UNIX}
   if assigned(OwningMemScan.OnScanDone) then
   {$endif}
   begin
-    outputdebugstring('Queue OwningMemScan.ScanDone');
+   // outputdebugstring('Queue OwningMemScan.ScanDone');
     Queue(OwningMemScan.ScanDone);
   end;
 end;
@@ -7066,7 +7066,7 @@ end;
 
 procedure TMemscan.newscan;
 begin
-  OutputDebugString('TMemscan.newscan');
+  //OutputDebugString('TMemscan.newscan');
   {$IFNDEF UNIX}
   if attachedFoundlist<>nil then
     TFoundList(Attachedfoundlist).Deinitialize;
@@ -7349,7 +7349,7 @@ var guid: TGUID;
 
     utf8: boolean;
 begin
-  OutputDebugString('CreateScanfolder');
+  //OutputDebugString('CreateScanfolder');
   CreateGUID(guid);
   if (length(trim(tempdiralternative))>2) and dontusetempdir then
     usedtempdir:=trim(tempdiralternative)
@@ -7360,7 +7360,7 @@ begin
 
   fScanResultFolder:=usedtempdir+'Cheat Engine'+pathdelim;
 
-  OutputDebugString('fScanResultFolder='+fScanResultFolder);
+ // OutputDebugString('fScanResultFolder='+fScanResultFolder);
 
 
   if DirectoryExistsUTF8(usedtempdir) then
@@ -7403,11 +7403,11 @@ var usedtempdir: string;
     currenttime: longint;
 
 begin
-  OutputDebugString('TMemscan.DeleteScanfolder');
+ // OutputDebugString('TMemscan.DeleteScanfolder');
   if fScanResultFolder<>'' then
   begin
     try
-      if DeleteFolder(fScanResultFolder) then outputdebugstring('deleted the scanresults') else outputdebugstring('Failure deleting the scanresults');
+      if DeleteFolder(fScanResultFolder)=false then outputdebugstring('Failure deleting the scanresults');
 
 
 
@@ -7463,7 +7463,7 @@ var
   DirInfo: TSearchRec;
   r : Integer;
 begin
-  OutputDebugString('TMemScan.DeleteFolder('+dir+')');
+ // OutputDebugString('TMemScan.DeleteFolder('+dir+')');
   ZeroMemory(@DirInfo,sizeof(TSearchRec));
   result := true;
 

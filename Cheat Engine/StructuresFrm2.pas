@@ -4624,9 +4624,13 @@ var
   size: integer;
   element: TStructElement;
   displayMethod: TDisplayMethod;
+  i: integer;
+  n: TTreenode;
 begin
-  element := getStructElementFromNode(tvStructureView.Selected);
-  if (element = nil) then exit;
+  if tvStructureView.SelectionCount=0 then exit;
+
+ // element := getStructElementFromNode(tvStructureView.Selected);
+ // if (element = nil) then exit;
 
   if (Sender = miChangeTypeByte) or (Sender = miChangeTypeByteHex) then vt := vtByte
   else if (Sender = miChangeType2Byte) or (Sender = miChangeType2ByteHex) then vt := vtWord
@@ -4664,9 +4668,17 @@ begin
      (Sender = miChangeType4Byte) or (Sender = miChangeTypeFloat) or
      (Sender = miChangeTypeDouble) then displayMethod := dtSignedInteger;
 
-  element.setVartype(vt);
-  element.setDisplayMethod(displayMethod);
-  element.setBytesize(size);
+  for i:=0 to tvStructureView.SelectionCount-1 do
+  begin
+    n:=tvStructureView.Selections[i];
+    element := getStructElementFromNode(n);
+    if element<>nil then
+    begin
+      element.setVartype(vt);
+      element.setDisplayMethod(displayMethod);
+      element.setBytesize(size);
+    end;
+  end;
 end;
 
 procedure TfrmStructures2.MenuItem8Click(Sender: TObject);
