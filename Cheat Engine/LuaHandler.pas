@@ -8321,7 +8321,7 @@ begin
     for i:=0 to floatvalues.count-1 do
       s.add(floatvalues[i]);
 
-    Clipboard.AsText:=s.text;
+    //Clipboard.AsText:=s.text;
     dontfree:=false;
 
     if autoassemble(s,false,true,false,false,allocs,exceptionlist) then
