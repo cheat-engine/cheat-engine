@@ -8,7 +8,7 @@ uses
   windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
   ExtCtrls, StdCtrls, ComCtrls, Menus, memdisplay, newkernelhandler, cefuncproc,
   syncobjs, math, savedscanhandler, foundlisthelper, CustomTypeHandler,
-  symbolhandler, inputboxtopunit, commonTypeDefs, GL, GLext, Types;
+  symbolhandler, inputboxtopunit, commonTypeDefs, GL, GLext, Types, DPIHelper;
 
 
 type TMVCompareMethod=(cmOr, cmXor, cmAnd);
@@ -58,9 +58,9 @@ type
     cbAddresslist: TComboBox;
     cbAddresslistOnly: TCheckBox;
     cbColor: TComboBox;
-    cbType: TComboBox;
     cbCompare: TCheckBox;
     cbSavedList: TComboBox;
+    cbType: TComboBox;
     edtAddress: TEdit;
     edtPitch: TEdit;
     Label1: TLabel;
@@ -68,11 +68,13 @@ type
     Label3: TLabel;
     lblZOOM: TLabel;
     lblAddress: TLabel;
+    Panel4: TPanel;
+    Panel5: TPanel;
+    Panel6: TPanel;
     pbMEM: TPaintBox;
     Panel1: TPanel;
     Panel2: TPanel;
     Panel3: TPanel;
-    Panel4: TPanel;
     rbAnd: TRadioButton;
     rbOr: TRadioButton;
     rbXor: TRadioButton;
@@ -428,6 +430,10 @@ end;
 procedure TfrmMemoryViewEx.FormShow(Sender: TObject);
 begin
     MDResize;
+
+    AdjustComboboxSize(cbAddresslist, canvas);
+    AdjustComboboxSize(cbSavedList, canvas);
+
 end;
 
 procedure TfrmMemoryViewEx.FormResize(Sender: TObject);

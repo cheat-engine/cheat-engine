@@ -20,6 +20,8 @@ var
   i: integer;
   s: string;
   maxwidth: integer;
+
+  w: integer;
 begin
   maxwidth:=0;
   for i:=0 to cb.Items.Count-1 do
@@ -33,10 +35,13 @@ begin
   begin
     i:=maxwidth-(cbi.rcItem.Right-cbi.rcItem.Left)+4;
 
-    cb.width:=cb.width+i;
+    w:=cb.width+i;
   end
   else
-    cb.width:=maxwidth+16;
+    w:=maxwidth+16;
+
+  cb.width:=w;
+  cb.Constraints.MinWidth:=w;
 end;
 
 procedure AdjustSpeedButtonSize(sb: TSpeedButton);
