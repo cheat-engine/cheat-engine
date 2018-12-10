@@ -12614,7 +12614,7 @@ begin
             end;
 
       $c2 : begin
-              description:='near return to calling procedure and pop 2 bytes from stack';
+
               wordptr:=@memory[1];
               lastdisassembledata.parametervaluetype:=dvtvalue;
               lastdisassembledata.parametervalue:=wordptr^;
@@ -12625,6 +12625,8 @@ begin
               LastDisassembleData.isret:=true;
               lastdisassembledata.parameters:=inttohexs(wordptr^,4);
               inc(offset,2);
+
+              description:='near return to calling procedure and pop '+inttostr(lastdisassembledata.parametervalue)+' bytes from stack';
 
 
             end;
