@@ -320,7 +320,8 @@ implementation
 {$ifdef windows}
 uses assemblerunit, driverlist, LuaHandler, lualib, lua, lauxlib,
   disassemblerComments, StructuresFrm2, networkInterface, networkInterfaceApi,
-  processhandlerunit, Globals, Parsers, MemoryQuery, LuaCaller;
+  processhandlerunit, Globals, Parsers, MemoryQuery, LuaCaller,
+  UnexpectedExceptionsHelper;
 {$endif}
 
 {$ifdef unix}
@@ -2102,6 +2103,9 @@ begin
         globalalloc:=virtualallocex(processhandle,base,max(65536,size),MEM_COMMIT or MEM_RESERVE , PAGE_EXECUTE_READWRITE);
         globalallocpid:=processid;
         globalallocsizeleft:=max(65536,size);
+
+        if globalalloc<>nil then
+          AddUnexpectedExceptionRegion(ptruint(globalalloc),max(65536,size));
       end;
 
       if globalalloc=nil then
@@ -2134,6 +2138,10 @@ begin
           globalallocpid:=processid;
           globalalloc:=virtualallocex(processhandle,{$ifdef windows}FindFreeBlockForRegion(preferedaddress,max(65536,size)){$else}0{$endif},max(65536,size),MEM_COMMIT or MEM_RESERVE , PAGE_EXECUTE_READWRITE);
           globalallocsizeleft:=max(65536,size);
+
+          if globalalloc<>nil then
+            AddUnexpectedExceptionRegion(ptruint(globalalloc),max(65536,size));
+
         end;
 
         if globalalloc=nil then

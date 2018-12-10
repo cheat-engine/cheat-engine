@@ -120,7 +120,7 @@ type
     function GetMaxBreakpointCountForThisType(breakpointTrigger: TBreakpointTrigger): integer;
     function DoBreakpointTriggersUseSameDebugRegisterKind(bpt1: TBreakpointTrigger; bpt2: TBreakpointTrigger): boolean;
 
-    procedure ContinueDebugging(continueOption: TContinueOption; runtillAddress: ptrUint=0);
+    procedure ContinueDebugging(continueOption: TContinueOption; runtillAddress: ptrUint=0; handled: boolean=false);
 
     procedure SetEntryPointBreakpoint;
 
@@ -2247,7 +2247,7 @@ begin
   end;
 end;
 
-procedure TDebuggerthread.ContinueDebugging(continueOption: TContinueOption; runtillAddress: ptrUint=0);
+procedure TDebuggerthread.ContinueDebugging(continueOption: TContinueOption; runtillAddress: ptrUint=0; handled: boolean=false);
 {
 Sets the way the debugger should continue, and triggers the sleeping thread to wait up and handle this changed event
 }
@@ -2265,7 +2265,7 @@ begin
       fcurrentThread:=nil;
 
       case continueOption of
-        co_run, co_stepinto, co_stepover: ct.continueDebugging(continueOption);
+        co_run, co_stepinto, co_stepover: ct.continueDebugging(continueOption, handled);
         co_runtill:
         begin
           //set a 1 time breakpoint for this thread at the runtilladdress

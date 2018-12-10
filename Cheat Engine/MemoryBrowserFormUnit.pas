@@ -63,6 +63,16 @@ type
     MenuItem27: TMenuItem;
     MenuItem28: TMenuItem;
     MenuItem29: TMenuItem;
+    miExceptionIgnoreList: TMenuItem;
+    N19: TMenuItem;
+    miUnexpectedExceptionBreakNever: TMenuItem;
+    miUnexpectedExceptionBreakAlways: TMenuItem;
+    miUnexpectedExceptionBreakIfInRegion: TMenuItem;
+    miExceptionRegionSeperator: TMenuItem;
+    miExceptionRegionManageList: TMenuItem;
+    miExceptionRegionAutoAddAllocs: TMenuItem;
+    miBreakOnExceptions: TMenuItem;
+    miRunUnhandled: TMenuItem;
     miChangeProtectionRWE: TMenuItem;
     miChangeProtectionRE: TMenuItem;
     miChangeProtectionRW: TMenuItem;
@@ -280,6 +290,7 @@ type
     stacktrace2: TMenuItem;
     miDebugExecuteTillReturn: TMenuItem;
     zflabel: TLabel;
+    procedure Debug1Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure GotoBookmarkClick(Sender: TObject);
     procedure Makepagewritable1Click(Sender: TObject);
@@ -297,14 +308,20 @@ type
     procedure MenuItem27Click(Sender: TObject);
     procedure MenuItem29Click(Sender: TObject);
     procedure miAddRefClick(Sender: TObject);
+    procedure miBreakOnExceptionsClick(Sender: TObject);
     procedure miChangeProtectionClick(Sender: TObject);
+    procedure miExceptionIgnoreListClick(Sender: TObject);
+    procedure miExceptionRegionAutoAddAllocsClick(Sender: TObject);
+    procedure miExceptionRegionManageListClick(Sender: TObject);
     procedure miHVBackClick(Sender: TObject);
     procedure miHVFollowClick(Sender: TObject);
     procedure miDebugSetAddressClick(Sender: TObject);
     procedure miGNUAssemblerClick(Sender: TObject);
     procedure miBinutilsSelectClick(Sender: TObject);
+    procedure miRunUnhandledClick(Sender: TObject);
     procedure miShowRelativeClick(Sender: TObject);
     procedure miSVCopyClick(Sender: TObject);
+    procedure miUnexpectedExceptionBreakOptionClick(Sender: TObject);
     procedure pmStacktracePopup(Sender: TObject);
     procedure SetBookmarkClick(Sender: TObject);
     procedure miTextEncodingClick(Sender: TObject);
@@ -613,7 +630,8 @@ uses Valuechange, MainUnit, debugeventhandler, findwindowunit,
   frmStringMapUnit, frmStringpointerscanUnit, frmFilePatcherUnit,
   frmUltimapUnit, frmUltimap2Unit, frmAssemblyScanUnit, MemoryQuery,
   AccessedMemory, Parsers, GnuAssembler, frmEditHistoryUnit, frmWatchlistUnit,
-  vmxfunctions, frmstructurecompareunit, globals;
+  vmxfunctions, frmstructurecompareunit, globals, UnexpectedExceptionsHelper,
+  frmExceptionRegionListUnit, frmExceptionIgnoreListUnit;
 
 
 resourcestring
@@ -680,6 +698,7 @@ resourcestring
   rsMBBookmark2 = 'Bookmark %d: %s';
   rsMBCreationOfTheRemoteThreadFailed = 'Creation of the remote thread failed';
   rsMBThreadCreated = 'Thread Created';
+  rsBecauseOfUnhandledExeption = 'Because of unhandled exception %s';
 
 //property functions:
 function TMemoryBrowser.getShowValues: boolean;
@@ -1117,6 +1136,15 @@ begin
   end;
 end;
 
+procedure TMemoryBrowser.miRunUnhandledClick(Sender: TObject);
+begin
+  if debuggerthread<>nil then
+    debuggerthread.continueDebugging(co_run, 0, false);
+
+
+  caption:=rsMemoryViewerRunning;
+end;
+
 procedure TMemoryBrowser.miShowRelativeClick(Sender: TObject);
 begin
   if miShowRelative.checked then
@@ -1169,6 +1197,15 @@ begin
 
 end;
 
+procedure TMemoryBrowser.miUnexpectedExceptionBreakOptionClick(Sender: TObject);
+begin
+  case TMenuItem(Sender).tag of
+    0: UnexpectedExceptionAction:=ueaIgnore;
+    1: UnexpectedExceptionAction:=ueaBreak;
+    2: UnexpectedExceptionAction:=ueaBreakIfInRegion;
+  end;
+end;
+
 procedure TMemoryBrowser.pmStacktracePopup(Sender: TObject);
 var
   i: integer;
@@ -1219,6 +1256,27 @@ begin
   end;
 end;
 
+procedure TMemoryBrowser.miBreakOnExceptionsClick(Sender: TObject);
+var n: TNotifyEvent;
+begin
+  miExceptionRegionSeperator.Visible:=UnexpectedExceptionAction=ueaBreakIfInRegion;
+  miExceptionRegionAutoAddAllocs.Visible:=UnexpectedExceptionAction=ueaBreakIfInRegion;
+  miExceptionRegionManageList.Visible:=UnexpectedExceptionAction=ueaBreakIfInRegion;
+  miExceptionIgnoreList.visible:=UnexpectedExceptionAction in [ueaBreak, ueaBreakIfInRegion];
+  miExceptionRegionManageList.visible:=miExceptionIgnoreList.visible;
+
+  n:=miExceptionRegionAutoAddAllocs.OnClick;
+  miExceptionRegionAutoAddAllocs.OnClick:=nil;
+  miExceptionRegionAutoAddAllocs.checked:=allocsAddToUnexpectedExceptionList;
+  miExceptionRegionAutoAddAllocs.OnClick:=n;
+
+  miUnexpectedExceptionBreakNever.checked:=UnexpectedExceptionAction=ueaIgnore;
+  miUnexpectedExceptionBreakAlways.checked:=UnexpectedExceptionAction=ueaBreak;
+  miUnexpectedExceptionBreakIfInRegion.checked:=UnexpectedExceptionAction=ueaBreakIfInRegion;
+
+
+end;
+
 procedure TMemoryBrowser.miChangeProtectionClick(Sender: TObject);
 var
   protection: dword;
@@ -1235,6 +1293,36 @@ begin
   end;
 
   VirtualProtectEx(processhandle, pointer(hexview.Address),1,protection, oldprotect);
+end;
+
+procedure TMemoryBrowser.miExceptionIgnoreListClick(Sender: TObject);
+begin
+  if frmExceptionIgnoreList=nil then
+    frmExceptionIgnoreList:=tfrmExceptionIgnoreList.Create(self);
+
+  frmExceptionIgnoreList.show;
+end;
+
+procedure TMemoryBrowser.miExceptionRegionAutoAddAllocsClick(Sender: TObject);
+var n: TNotifyEvent;
+begin
+  if frmExceptionRegionList<>nil then
+  begin
+    n:=frmExceptionRegionList.cbAutoAddAllocs.OnChange;
+    frmExceptionRegionList.cbAutoAddAllocs.OnChange:=nil;
+    frmExceptionRegionList.cbAutoAddAllocs.Checked:=miExceptionRegionAutoAddAllocs.checked;
+    frmExceptionRegionList.cbAutoAddAllocs.OnChange:=n;
+  end;
+
+  allocsAddToUnexpectedExceptionList:=miExceptionRegionAutoAddAllocs.checked;
+end;
+
+procedure TMemoryBrowser.miExceptionRegionManageListClick(Sender: TObject);
+begin
+  if frmExceptionRegionList=nil then
+    frmExceptionRegionList:=tfrmExceptionRegionList.Create(self);
+
+  frmExceptionRegionList.show;
 end;
 
 procedure TMemoryBrowser.miHVBackClick(Sender: TObject);
@@ -1303,6 +1391,11 @@ end;
 procedure TMemoryBrowser.FormActivate(Sender: TObject);
 begin
   disassemblerview.LastFormActiveEvent:=getTickCount64;
+end;
+
+procedure TMemoryBrowser.Debug1Click(Sender: TObject);
+begin
+
 end;
 
 procedure TMemoryBrowser.miTextEncodingClick(Sender: TObject);
@@ -3020,6 +3113,9 @@ begin
     if baseaddress=nil then
       raise exception.Create(rsErrorAllocatingMemory);
 
+    if allocsAddToUnexpectedExceptionList then
+      AddUnexpectedExceptionRegion(ptruint(baseaddress),memsize);
+
     if (disassemblerview.SelectedAddress<>0) and (memsize>7) and (messagedlg(Format(rsAtLeastBytesHaveBeenAllocatedAtDoYouWantToGoThereN, [IntToStr(memsize), IntToHex(ptrUint(baseaddress), 8), #13
       +#10]), mtConfirmation, [mbyes, mbno], 0)=mryes) then
       disassemblerview.SelectedAddress:=ptrUint(baseaddress);
@@ -3594,6 +3690,8 @@ var
   h0,h1,h2,h3: integer;
   params: array of integer;
 
+  reg: TRegistry;
+
 begin
   MemoryBrowsers.Remove(self);
 
@@ -3629,6 +3727,7 @@ begin
       params[9]:=self.hexview.LockedRowSize;
 
       saveformposition(self,params);
+
 
 
     end;
@@ -4591,6 +4690,8 @@ begin
   end;
 
   miDebugRun.Enabled:=true;
+  miRunUnhandled.Enabled:=debuggerthread.CurrentThread.isUnhandledException;
+  miRunUnhandled.Visible:=miRunUnhandled.Enabled;
   miDebugStep.Enabled:=true;
   miDebugStepOver.Enabled:=true;
   miDebugRunTill.Enabled:=true;
@@ -4600,6 +4701,9 @@ begin
 
   if threadid<>0 then
     caption:=Format(rsMemoryViewerCurrentlyDebuggingThread, [inttohex(threadid, 1)]);
+
+  if debuggerthread.CurrentThread.isUnhandledException then
+    caption:=caption+' '+format(rsBecauseOfUnhandledExeption, [ExceptionCodeToString(debuggerthread.CurrentThread.lastUnhandledExceptionCode)]);
 
   if (frmstacktrace<>nil) then
   begin
@@ -5007,6 +5111,8 @@ begin
     end;
   end; }
 end;
+
+
 
 initialization
   MemoryBrowsers:=TList.Create;

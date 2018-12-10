@@ -117,6 +117,11 @@ TFORMSETTINGS.CBWAITAFTERGUIUPDATE.HINT=Sometimes when using one of the "find ou
 With this option enabled the debugger will give the gui some time to handle the messages before it sends it a new update.
 Downside: The game may become slightly slower when using these functions. (Of course, if it has been hammering the gui, it would already have been frozen)
 TFORMSETTINGS.CBWAITAFTERGUIUPDATE.CAPTION=Wait after gui updates
+TFORMSETTINGS.GBUNEXPECTEDEXCEPTIONHANDLING.CAPTION=When CE starts default behaviour for unexpected breakpoints
+TFORMSETTINGS.MIUNEXPECTEDBREAKPOINTSIGNORE.CAPTION=Ignore
+TFORMSETTINGS.MIUNEXPECTEDBREAKPOINTSBREAK.CAPTION=Break
+TFORMSETTINGS.MIUNEXPECTEDBREAKPOINTSBREAKWHENINSIDEREGION.CAPTION=Break when inside specific regions
+TFORMSETTINGS.CBALLOCSADDTOWATCHEDREGIONS.CAPTION=Automatically add allocated memory by CE as watched regions
 TFORMSETTINGS.TSLUA.CAPTION=Lua
 TFORMSETTINGS.CBLUAPASSIVEGARBAGECOLLECTION.HINT=Constantly runs a few steps of the garbage collector sequence. (Will take a while till all garbage is cleaned if there is a lot)
 TFORMSETTINGS.CBLUAPASSIVEGARBAGECOLLECTION.CAPTION=Passive garbage collection

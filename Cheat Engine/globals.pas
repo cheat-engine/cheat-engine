@@ -9,7 +9,9 @@ This unit will hold some global variables (previously cefuncproc.pas)
 interface
 
 uses
-  Classes, SysUtils, commonTypeDefs;
+  Classes, SysUtils, commonTypeDefs, syncobjs;
+
+//type TUnexpectedExceptionAction=(ueaIgnore, ueaBreak, ueaBreakIfInRegion);
 
 var
 //  AllIncludesCustomType: boolean;
@@ -149,6 +151,10 @@ var
 
   SkipVirtualProtectEx: boolean;
   alwaysforceload: boolean;
+
+  allocsAddToUnexpectedExceptionList: boolean;
+
+
 
 
 implementation

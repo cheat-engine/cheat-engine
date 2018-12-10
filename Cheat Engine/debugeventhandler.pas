@@ -25,6 +25,7 @@ type
     threadlist: TList;
     breakpointList: TList;
     continueOption: TContinueOption;
+    continueHandled: boolean;
 
     setInt3Back: boolean;
     Int3setbackAddress: ptrUint;
@@ -45,6 +46,9 @@ type
     traceStepOver: boolean; //perhaps also trace branches ?
     traceNoSystem: boolean;
     //------------------
+
+    unhandledException: boolean;
+    unhandledExceptionCode: dword;
 
     WaitingToContinue: boolean; //set to true when it's waiting for the user to continue
 
@@ -79,7 +83,7 @@ type
     procedure ModifyRegisters(bp: PBreakpoint);
     procedure TraceWindowAddRecord;
     procedure handleTrace;
-    procedure HandleBreak(bp: PBreakpoint);
+    procedure HandleBreak(bp: PBreakpoint; var dwContinueStatus: dword);
     procedure ContinueFromBreakpoint(bp: PBreakpoint; continueoption: TContinueOption);
     function EnableOriginalBreakpointAfterThisBreakpointForThisThread(bp: Pbreakpoint; OriginalBreakpoint: PBreakpoint): boolean;
 
@@ -110,12 +114,14 @@ type
     procedure setContext;
     procedure breakThread;
     procedure clearDebugRegisters;
-    procedure continueDebugging(continueOption: TContinueOption);
+    procedure continueDebugging(continueOption: TContinueOption; handled: boolean=true);
     constructor Create(debuggerthread: TObject; attachEvent: Tevent; continueEvent: Tevent; breakpointlist: TList; threadlist: Tlist; debuggerCS: TGuiSafeCriticalSection);
     destructor destroy; override;
 
     property isSingleStepping: boolean read singlestepping;
     property isWaitingToContinue: boolean read WaitingToContinue;
+    property isUnhandledException: boolean read unhandledException;
+    property lastUnhandledExceptionCode: dword read unhandledExceptionCode;
   end;
 
   TDebugEventHandler = class
@@ -140,7 +146,7 @@ implementation
 uses foundcodeunit, DebugHelper, MemoryBrowserFormUnit, frmThreadlistunit,
      WindowsDebugger, VEHDebugger, KernelDebuggerInterface, NetworkDebuggerInterface,
      frmDebugEventsUnit, formdebugstringsunit, symbolhandler,
-     networkInterface, networkInterfaceApi, ProcessHandlerUnit, globals;
+     networkInterface, networkInterfaceApi, ProcessHandlerUnit, globals, UnexpectedExceptionsHelper;
 
 resourcestring
   rsDebugHandleAccessViolationDebugEventNow = 'Debug HandleAccessViolationDebugEvent now';
@@ -371,11 +377,12 @@ begin
   {$endif}
 end;
 
-procedure TDebugThreadHandler.continueDebugging(continueOption: TContinueOption);
+procedure TDebugThreadHandler.continueDebugging(continueOption: TContinueOption; handled: boolean=true);
 begin
   if WaitingToContinue then
   begin
     self.continueOption:=continueOption;
+    self.ContinueHandled:=handled;
     onContinueEvent.SetEvent;
   end;
 
@@ -723,7 +730,7 @@ begin
   end;
 end;
 
-procedure TDebugThreadHandler.HandleBreak(bp: PBreakpoint);
+procedure TDebugThreadHandler.HandleBreak(bp: PBreakpoint; var dwContinueStatus: dword);
 begin
   TDebuggerthread(debuggerthread).execlocation:=38;
   WaitingToContinue:=true;
@@ -742,6 +749,11 @@ begin
     onContinueEvent.WaitFor(infinite);
     //Outputdebugstring('returned from gui');
   end;
+
+  if continueHandled then
+    dwContinueStatus:=DBG_CONTINUE
+  else
+    dwContinueStatus:=DBG_EXCEPTION_NOT_HANDLED;
 
   WaitingToContinue:=false;
   continueFromBreakpoint(bp, continueOption);
@@ -802,7 +814,7 @@ begin
   else
   if singlestepping then
   begin
-    handlebreak(nil);
+    handlebreak(nil, dwContinueStatus);
   end
   else
   begin
@@ -977,7 +989,7 @@ begin
 
         debuggercs.leave;
 
-        HandleBreak(bpp); //cause break in memory browser at address
+        HandleBreak(bpp, dwContinueStatus); //cause break in memory browser at address
       end;
 
       bo_BreakAndTrace:
@@ -1079,7 +1091,9 @@ begin
       onAttachEvent.SetEvent;
 
       if TDebuggerthread(debuggerthread).InitialBreakpointTriggered then
-        dwContinueStatus:=DBG_EXCEPTION_NOT_HANDLED
+      begin
+        dwContinueStatus:=DBG_EXCEPTION_NOT_HANDLED;
+      end
       else
       begin
         dwContinueStatus:=DBG_CONTINUE;
@@ -1094,11 +1108,6 @@ begin
     else dwContinueStatus:=DBG_EXCEPTION_NOT_HANDLED; //not an expected breakpoint
   end;
 
-
-  if dwContinueStatus=DBG_EXCEPTION_NOT_HANDLED then
-  asm
-    nop
-  end;
 
   Result := True;
 end;
@@ -1225,6 +1234,7 @@ var
   bp: PBreakpoint;
 begin
   TDebuggerthread(debuggerthread).execlocation:=16;
+  unhandledException:=false;
   bp:=nil;
 
   OutputDebugString(inttohex(ThreadId,1)+'('+inttohex(context^.{$ifdef cpu64}Rip{$else}Eip{$endif},8)+')'+':HandleExceptionDebugEvent:'+inttohex(debugEvent.Exception.ExceptionRecord.ExceptionCode,8));
@@ -1388,10 +1398,16 @@ begin
 
 
   if dwContinueStatus=DBG_EXCEPTION_NOT_HANDLED then
-  asm
-    nop
-  end;
+  begin
+    if (UnexpectedExceptionAction=ueaBreak) or (UnexpectedExceptionAction=ueaBreakIfInRegion) and (IsInUnexpectedExceptionRegion(context^.{$ifdef cpu64}Rip{$else}Eip{$endif})) then
+    begin
+      unhandledException:=true;
+      unhandledExceptionCode:=debugEvent.Exception.ExceptionRecord.ExceptionCode;
+      handleBreak(nil, dwContinueStatus);
+      unhandledException:=false;
+    end;
 
+  end;
 
   result:=true;
 end;
@@ -1515,7 +1531,7 @@ begin
       if LUA_functioncall('debugger_onModuleLoad',[m, ptruint(debugevent.LoadDll.lpBaseOfDll)])=1 then
       begin
         //do a break
-        HandleBreak(nil);
+        HandleBreak(nil, dwContinueStatus);
 
       end;
 
@@ -1860,7 +1876,7 @@ begin
     case currentdebugevent.dwDebugEventCode of
       CREATE_PROCESS_DEBUG_EVENT: eventtext:='CREATE_PROCESS_DEBUG_EVENT';
       CREATE_THREAD_DEBUG_EVENT: eventtext:='CREATE_THREAD_DEBUG_EVENT';
-      EXCEPTION_DEBUG_EVENT: eventtext:='EXCEPTION_DEBUG_EVENT';
+      EXCEPTION_DEBUG_EVENT: eventtext:='EXCEPTION_DEBUG_EVENT('+inttostr(currentdebugevent.Exception.dwFirstChance)+')';
       EXIT_PROCESS_DEBUG_EVENT: eventtext:='EXIT_PROCESS_DEBUG_EVENT';
       EXIT_THREAD_DEBUG_EVENT: eventtext:='EXIT_THREAD_DEBUG_EVENT';
       LOAD_DLL_DEBUG_EVENT: eventtext:='LOAD_DLL_DEBUG_EVENT';

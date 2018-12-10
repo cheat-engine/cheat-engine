@@ -49,7 +49,8 @@ uses strutils, memscan, disassembler, networkInterface, networkInterfaceApi,
 {$ifdef windows}
 uses simpleaobscanner, StrUtils, LuaHandler, memscan, disassembler, networkInterface,
      networkInterfaceApi, LuaCaller, SynHighlighterAA, Parsers, Globals, memoryQuery,
-     MemoryBrowserFormUnit, MemoryRecordUnit, vmxfunctions, autoassemblerexeptionhandler;
+     MemoryBrowserFormUnit, MemoryRecordUnit, vmxfunctions, autoassemblerexeptionhandler,
+     UnexpectedExceptionsHelper;
 {$endif}
 
 
@@ -3204,6 +3205,8 @@ begin
           for i:=0 to length(ceallocarray)-1 do
           begin
             virtualfreeex(processhandle,pointer(dealloc[i]),0,MEM_RELEASE);
+            if (targetself=false) and allocsAddToUnexpectedExceptionList then
+              RemoveUnexpectedExceptionRegion(dealloc[i],0);
 {            if ceallocarray[i].address<baseaddress then
               baseaddress:=ceallocarray[i].address;}
           end;
@@ -3389,6 +3392,12 @@ begin
     end;
 
     result:=ok2;
+
+    if result and allocsAddToUnexpectedExceptionList and (not targetself) then
+    begin
+      for i:=0 to length(allocs)-1 do
+        AddUnexpectedExceptionRegion(allocs[i].address,allocs[i].size);
+    end;
 
   finally
     for i:=0 to length(assembled)-1 do

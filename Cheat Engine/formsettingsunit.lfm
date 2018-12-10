@@ -1,13 +1,13 @@
 object formSettings: TformSettings
   Left = 452
-  Height = 669
+  Height = 672
   Top = 194
-  Width = 801
+  Width = 810
   AutoSize = True
   BorderIcons = [biSystemMenu]
   Caption = 'Cheat Engine settings'
-  ClientHeight = 669
-  ClientWidth = 801
+  ClientHeight = 672
+  ClientWidth = 810
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -16,17 +16,17 @@ object formSettings: TformSettings
   LCLVersion = '1.6.4.0'
   object pnlConfig: TPanel
     Left = 0
-    Height = 632
+    Height = 635
     Top = 0
-    Width = 801
+    Width = 810
     Align = alClient
     AutoSize = True
-    ClientHeight = 632
-    ClientWidth = 801
+    ClientHeight = 635
+    ClientWidth = 810
     TabOrder = 0
     object tvMenuSelection: TTreeView
       Left = 1
-      Height = 630
+      Height = 633
       Top = 1
       Width = 148
       Align = alLeft
@@ -60,30 +60,30 @@ object formSettings: TformSettings
     end
     object pcSetting: TPageControl
       Left = 149
-      Height = 630
+      Height = 633
       Top = 1
-      Width = 651
-      ActivePage = ScanSettings
+      Width = 660
+      ActivePage = Assembler
       Align = alClient
-      TabIndex = 3
+      TabIndex = 6
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
         Caption = 'General Settings'
-        ClientHeight = 602
-        ClientWidth = 643
+        ClientHeight = 605
+        ClientWidth = 652
         object ScrollBox1: TScrollBox
           Left = 0
-          Height = 602
+          Height = 605
           Top = 0
-          Width = 643
+          Width = 652
           HorzScrollBar.Page = 494
           HorzScrollBar.Tracking = True
-          VertScrollBar.Page = 598
+          VertScrollBar.Page = 599
           VertScrollBar.Tracking = True
           Align = alClient
-          ClientHeight = 598
-          ClientWidth = 622
+          ClientHeight = 601
+          ClientWidth = 648
           TabOrder = 0
           OnClick = ScrollBox1Click
           object Label11: TLabel
@@ -246,12 +246,12 @@ object formSettings: TformSettings
             Left = 0
             Height = 60
             Top = 415
-            Width = 622
+            Width = 648
             Anchors = [akTop, akLeft, akRight]
             AutoSize = True
             Caption = 'Address list specific'
             ClientHeight = 40
-            ClientWidth = 618
+            ClientWidth = 644
             TabOrder = 4
             object cbShowAsSigned: TCheckBox
               AnchorSideLeft.Control = GroupBox1
@@ -1256,21 +1256,21 @@ object formSettings: TformSettings
       end
       object Assembler: TTabSheet
         Caption = 'Debugger Options'
-        ClientHeight = 601
-        ClientWidth = 643
+        ClientHeight = 605
+        ClientWidth = 652
         ImageIndex = 5
         object ScrollBox3: TScrollBox
           Left = 0
-          Height = 601
+          Height = 605
           Top = 0
-          Width = 643
-          HorzScrollBar.Page = 639
+          Width = 652
+          HorzScrollBar.Page = 647
           HorzScrollBar.Tracking = True
-          VertScrollBar.Page = 451
+          VertScrollBar.Page = 519
           VertScrollBar.Tracking = True
           Align = alClient
-          ClientHeight = 580
-          ClientWidth = 639
+          ClientHeight = 601
+          ClientWidth = 648
           TabOrder = 0
           object replacewithnops: TCheckBox
             AnchorSideLeft.Control = Label4
@@ -1307,28 +1307,31 @@ object formSettings: TformSettings
             AnchorSideLeft.Control = rbgDebuggerInterface
             AnchorSideTop.Control = rbgDebuggerInterface
             AnchorSideTop.Side = asrBottom
+            AnchorSideRight.Control = rbgDebuggerInterface
+            AnchorSideRight.Side = asrBottom
             Left = 8
-            Height = 159
+            Height = 129
             Top = 292
-            Width = 400
+            Width = 323
+            AutoSize = True
             BorderSpacing.Top = 2
             Caption = 'Debugger interface config'
-            ClientHeight = 139
-            ClientWidth = 396
+            ClientHeight = 109
+            ClientWidth = 319
             TabOrder = 2
             object pcDebugConfig: TPageControl
               Left = 0
-              Height = 139
+              Height = 109
               Top = 0
-              Width = 396
+              Width = 319
               ActivePage = tsVEHDebugConfig
               Align = alClient
               TabIndex = 0
               TabOrder = 0
               object tsVEHDebugConfig: TTabSheet
                 Caption = 'VEH Debugger'
-                ClientHeight = 111
-                ClientWidth = 388
+                ClientHeight = 81
+                ClientWidth = 311
                 object rbVEHHookThreadCreation: TRadioButton
                   AnchorSideLeft.Control = tsVEHDebugConfig
                   AnchorSideTop.Control = rbVEHPollThread
@@ -1661,6 +1664,60 @@ object formSettings: TformSettings
             ParentShowHint = False
             ShowHint = True
             TabOrder = 7
+          end
+          object gbUnexpectedExceptionHandling: TGroupBox
+            AnchorSideLeft.Control = GroupBox2
+            AnchorSideTop.Control = GroupBox2
+            AnchorSideTop.Side = asrBottom
+            AnchorSideRight.Control = GroupBox2
+            AnchorSideRight.Side = asrBottom
+            Left = 8
+            Height = 96
+            Top = 423
+            Width = 357
+            AutoSize = True
+            BorderSpacing.Top = 2
+            Caption = 'When CE starts default behaviour for unexpected breakpoints'
+            ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+            ChildSizing.Layout = cclLeftToRightThenTopToBottom
+            ChildSizing.ControlsPerLine = 1
+            ClientHeight = 76
+            ClientWidth = 353
+            TabOrder = 8
+            object miUnexpectedBreakpointsIgnore: TRadioButton
+              Left = 0
+              Height = 19
+              Top = 0
+              Width = 353
+              Caption = 'Ignore'
+              Checked = True
+              TabOrder = 3
+              TabStop = True
+            end
+            object miUnexpectedBreakpointsBreak: TRadioButton
+              Left = 0
+              Height = 19
+              Top = 19
+              Width = 353
+              Caption = 'Break'
+              TabOrder = 0
+            end
+            object miUnexpectedBreakpointsBreakWhenInsideRegion: TRadioButton
+              Left = 0
+              Height = 19
+              Top = 38
+              Width = 353
+              Caption = 'Break when inside specific regions'
+              TabOrder = 1
+            end
+            object cbAllocsAddToWatchedRegions: TCheckBox
+              Left = 0
+              Height = 19
+              Top = 57
+              Width = 353
+              Caption = 'Automatically add allocated memory by CE as watched regions'
+              TabOrder = 2
+            end
           end
         end
       end
@@ -2259,13 +2316,13 @@ object formSettings: TformSettings
   object Panel6: TPanel
     Left = 0
     Height = 37
-    Top = 632
-    Width = 801
+    Top = 635
+    Width = 810
     Align = alBottom
     AutoSize = True
     BevelOuter = bvNone
     ClientHeight = 37
-    ClientWidth = 801
+    ClientWidth = 810
     TabOrder = 1
     OnResize = Panel6Resize
     object AboutLabel: TLabel
@@ -2274,7 +2331,7 @@ object formSettings: TformSettings
       AnchorSideBottom.Control = Panel6
       AnchorSideBottom.Side = asrBottom
       Cursor = crHandPoint
-      Left = 751
+      Left = 760
       Height = 15
       Top = 22
       Width = 50
@@ -2290,7 +2347,7 @@ object formSettings: TformSettings
       AnchorSideLeft.Control = Panel6
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Control = Panel6
-      Left = 321
+      Left = 326
       Height = 25
       Top = 6
       Width = 158

@@ -75,6 +75,7 @@ type
     cbLuaOnlyCollectWhenLarger: TCheckBox;
     cbNeverChangeProtection: TCheckBox;
     cbAlwaysForceLoad: TCheckBox;
+    cbAllocsAddToWatchedRegions: TCheckBox;
     combothreadpriority: TComboBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
@@ -93,6 +94,7 @@ type
     GroupBox2: TGroupBox;
     GroupBox4: TGroupBox;
     GroupBox5: TGroupBox;
+    gbUnexpectedExceptionHandling: TGroupBox;
     Label1: TLabel;
     Label10: TLabel;
     Label11: TLabel;
@@ -131,6 +133,9 @@ type
     miLuaExecSignedOnly: TRadioButton;
     miLuaExecAsk: TRadioButton;
     miLuaExecNever: TRadioButton;
+    miUnexpectedBreakpointsIgnore: TRadioButton;
+    miUnexpectedBreakpointsBreak: TRadioButton;
+    miUnexpectedBreakpointsBreakWhenInsideRegion: TRadioButton;
     rbDebugAsBreakpoint: TRadioButton;
     rbgDebuggerInterface: TRadioGroup;
     rbInt3AsBreakpoint: TRadioButton;
@@ -322,7 +327,7 @@ uses
   aboutunit, MainUnit, MainUnit2, frmExcludeHideUnit, ModuleSafetyUnit,
   frmProcessWatcherUnit, CustomTypeHandler, processlist, commonTypeDefs,
   frmEditHistoryUnit, Globals, fontSaveLoadRegistry, CETranslator,
-  MemoryBrowserFormUnit, DBK32functions, feces;
+  MemoryBrowserFormUnit, DBK32functions, feces, UnexpectedExceptionsHelper;
 
 
 type TLanguageEntry=class
@@ -432,6 +437,7 @@ var processhandle2: Thandle;
 
     cpu: string;
     WriteLogSize: integer;
+    s: string;
 begin
   try
     {$ifdef cpu64}
@@ -785,6 +791,27 @@ begin
 
         waitafterguiupdate:=cbWaitAfterGuiUpdate.checked;
         reg.WriteBool('Wait After Gui Update', waitafterguiupdate);
+
+
+        if miUnexpectedBreakpointsIgnore.checked then i:=0;
+        if miUnexpectedBreakpointsBreak.checked then i:=1;
+        if miUnexpectedBreakpointsBreakWhenInsideRegion.checked then i:=2;
+
+        if (reg.ValueExists('Unexpected Breakpoint Behaviour')=false) or (reg.ReadInteger('Unexpected Breakpoint Behaviour')<>i) then
+        begin
+          case i of
+            0: UnexpectedExceptionAction:=ueaIgnore;
+            1: UnexpectedExceptionAction:=ueaBreak;
+            2: UnexpectedExceptionAction:=ueaBreakIfInRegion;
+          end;
+        end;
+        reg.WriteInteger('Unexpected Breakpoint Behaviour', i);
+
+        if (reg.ValueExists('Add Allocated Memory As Watched')=false) or (reg.ReadBool('Add Allocated Memory As Watched')<>cbAllocsAddToWatchedRegions.checked) then
+          allocsAddToUnexpectedExceptionList:=cbAllocsAddToWatchedRegions.Checked;
+
+        reg.WriteBool('Add Allocated Memory As Watched', cbAllocsAddToWatchedRegions.checked);
+
 
 
         unrandomizersettings.defaultreturn:=strtoint(edtdefault.Text);

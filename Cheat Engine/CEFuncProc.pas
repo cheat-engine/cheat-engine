@@ -343,7 +343,8 @@ implementation
 uses disassembler,CEDebugger,debughelper, symbolhandler, symbolhandlerstructs,
      frmProcessWatcherUnit, kerneldebugger, formsettingsunit, MemoryBrowserFormUnit,
      savedscanhandler, networkInterface, networkInterfaceApi, vartypestrings,
-     processlist, Parsers, Globals, xinput, luahandler, LuaClass, LuaObject;
+     processlist, Parsers, Globals, xinput, luahandler, LuaClass, LuaObject,
+     UnexpectedExceptionsHelper;
 
 
 resourcestring
@@ -834,6 +835,10 @@ begin
 
         injectionlocation:=VirtualAllocEx(processhandle,nil,4096,MEM_RESERVE or MEM_COMMIT,PAGE_EXECUTE_READWRITE);
 
+        if allocsAddToUnexpectedExceptionList then
+          AddUnexpectedExceptionRegion(ptruint(injectionlocation),4096);
+
+
         if injectionlocation=nil then raise exception.Create(rsFailedToAllocateMemory);
 
         dlllocation:=dllname;
@@ -1054,8 +1059,6 @@ begin
           end;
 
           try
-
-
             if (counter=0) then
               raise exception.Create(rsTheInjectionThreadTookLongerThan10SecondsToExecute);
 
@@ -1082,7 +1085,10 @@ begin
         FreeLibrary(h);
 
         if injectionlocation<>nil then
+        begin
           virtualfreeex(processhandle,injectionlocation,0,MEM_RELEASE);
+          RemoveUnexpectedExceptionRegion(ptruint(injectionlocation),0);
+        end;
       end;
 
     end;

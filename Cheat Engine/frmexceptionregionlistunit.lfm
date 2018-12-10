@@ -1,0 +1,156 @@
+object frmExceptionRegionList: TfrmExceptionRegionList
+  Left = 621
+  Height = 233
+  Top = 143
+  Width = 320
+  Caption = 'Exception region list'
+  ClientHeight = 213
+  ClientWidth = 320
+  Menu = MainMenu1
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '1.6.4.0'
+  object Label1: TLabel
+    Left = 0
+    Height = 30
+    Top = 0
+    Width = 320
+    Align = alTop
+    Caption = 'The following regions will cause a debugger break when an unhandled exception happens inside them'
+    ParentColor = False
+    WordWrap = True
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 164
+    Top = 30
+    Width = 320
+    Align = alClient
+    BevelOuter = bvNone
+    ClientHeight = 164
+    ClientWidth = 320
+    TabOrder = 0
+    object lbRegionList: TListBox
+      Left = 0
+      Height = 164
+      Top = 0
+      Width = 179
+      Align = alClient
+      ItemHeight = 0
+      OnDblClick = lbRegionListDblClick
+      TabOrder = 0
+    end
+    object Panel2: TPanel
+      Left = 179
+      Height = 164
+      Top = 0
+      Width = 141
+      Align = alRight
+      AutoSize = True
+      BevelOuter = bvNone
+      ClientHeight = 164
+      ClientWidth = 141
+      TabOrder = 1
+      object edtStart: TEdit
+        AnchorSideLeft.Control = Label2
+        AnchorSideTop.Control = Label2
+        AnchorSideTop.Side = asrBottom
+        Left = 6
+        Height = 23
+        Top = 19
+        Width = 129
+        BorderSpacing.Right = 6
+        TabOrder = 0
+      end
+      object edtStop: TEdit
+        AnchorSideLeft.Control = Label3
+        AnchorSideTop.Control = Label3
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = edtStart
+        Left = 6
+        Height = 23
+        Top = 57
+        Width = 129
+        TabOrder = 1
+      end
+      object Label2: TLabel
+        AnchorSideLeft.Control = Panel2
+        AnchorSideTop.Control = Panel2
+        Left = 6
+        Height = 15
+        Top = 4
+        Width = 67
+        BorderSpacing.Left = 6
+        BorderSpacing.Top = 4
+        Caption = 'Start address'
+        ParentColor = False
+      end
+      object Label3: TLabel
+        AnchorSideLeft.Control = edtStart
+        AnchorSideTop.Control = edtStart
+        AnchorSideTop.Side = asrBottom
+        Left = 6
+        Height = 15
+        Top = 42
+        Width = 63
+        Caption = 'End address'
+        ParentColor = False
+      end
+      object btnAdd: TButton
+        AnchorSideLeft.Control = edtStop
+        AnchorSideLeft.Side = asrCenter
+        AnchorSideTop.Control = edtStop
+        AnchorSideTop.Side = asrBottom
+        Left = 33
+        Height = 25
+        Top = 85
+        Width = 75
+        BorderSpacing.Top = 5
+        Caption = 'Add'
+        OnClick = btnAddClick
+        TabOrder = 2
+      end
+    end
+  end
+  object cbAutoAddAllocs: TCheckBox
+    Left = 0
+    Height = 19
+    Top = 194
+    Width = 320
+    Align = alBottom
+    Caption = 'Automatically add user allocations'
+    OnChange = cbAutoAddAllocsChange
+    TabOrder = 1
+  end
+  object MainMenu1: TMainMenu
+    left = 200
+    top = 136
+    object miFile: TMenuItem
+      Caption = 'File'
+      object miClear: TMenuItem
+        Caption = 'Clear'
+        OnClick = miClearClick
+      end
+      object miOpen: TMenuItem
+        Caption = 'Open...'
+        OnClick = miOpenClick
+      end
+      object miSave: TMenuItem
+        Caption = 'Save...'
+        OnClick = miSaveClick
+      end
+    end
+  end
+  object OpenDialog1: TOpenDialog
+    Filter = 'Region List|*.region'
+    left = 32
+    top = 48
+  end
+  object SaveDialog1: TSaveDialog
+    Filter = 'Region List|*.region'
+    left = 38
+    top = 120
+  end
+end
