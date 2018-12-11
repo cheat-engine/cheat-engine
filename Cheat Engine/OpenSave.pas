@@ -18,7 +18,7 @@ uses windows, forms, LCLIntf,registry, SysUtils,AdvancedOptionsUnit,CommentsUnit
 var CurrentTableVersion: dword=28;
 procedure protecttrainer(filename: string);
 procedure unprotecttrainer(filename: string; stream: TStream);
-procedure SaveTable(Filename: string; protect: boolean=false);
+procedure SaveTable(Filename: string; protect: boolean=false; dontDeactivateDesignerForms: boolean=false);
 procedure LoadTable(Filename: string;merge: boolean);
 procedure SaveCEM(Filename:string;address:ptrUint; size:dword);
 procedure LoadXML(doc: TXMLDocument; merge: boolean; isTrainer: boolean=false);
@@ -1137,7 +1137,7 @@ begin
 
 end;   }
 
-procedure SaveXML(Filename: string);
+procedure SaveXML(Filename: string; dontDeactivateDesignerForms: boolean=false);
 var doc: TXMLDocument;
     CheatTable: TDOMElement;
     Files, Forms,Entries,Symbols, Structures, Comment,luascript, dcomments: TDOMNode;
@@ -1160,7 +1160,7 @@ begin
     Forms:=CheatTable.AppendChild(doc.CreateElement('Forms'));
     for i:=0 to mainform.LuaForms.count-1 do
       if TCEForm(mainform.LuaForms[i]).DoNotSaveInTable=false then //only save forms that belong to the table
-        TCEForm(mainform.LuaForms[i]).savetoxml(forms);
+        TCEForm(mainform.LuaForms[i]).savetoxml(forms, dontDeactivateDesignerForms);
   end;
 
   if mainform.LuaFiles.count>0 then
@@ -1271,7 +1271,7 @@ begin
 
 end;
 
-procedure SaveTable(Filename: string; protect: boolean=false);
+procedure SaveTable(Filename: string; protect: boolean=false; dontDeactivateDesignerForms: boolean=false);
 begin
   try
     if Uppercase(utf8tosys(extractfileext(filename)))<>'.EXE' then
@@ -1283,7 +1283,7 @@ begin
           then exit;
 
 
-      SaveXML(utf8tosys(filename));
+      SaveXML(utf8tosys(filename), dontDeactivateDesignerForms);
       if protect then
         protecttrainer(utf8tosys(filename));
     end

@@ -6843,6 +6843,7 @@ var
   filename: string;
   parameters: integer;
   protect: boolean;
+  dontDeactivateDesignerForms: boolean;
 begin
   result:=0;
 
@@ -6855,7 +6856,12 @@ begin
     else
       protect:=false;
 
-    savetable(filename, protect);
+    if parameters>=3 then
+      dontDeactivateDesignerForms:=lua_toboolean(L,3)
+    else
+      dontDeactivateDesignerForms:=true;
+
+    savetable(filename, protect, dontDeactivateDesignerForms);
   end;
 
   lua_pop(L, lua_gettop(L));

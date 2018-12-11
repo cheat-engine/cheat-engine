@@ -621,7 +621,7 @@ type TCEForm=class(TCustomForm)
     procedure SaveToFileLFM(filename: string);
     procedure LoadFromFile(filename: string);
     procedure LoadFromFileLFM(filename: string);
-    procedure SaveToXML(Node: TDOMNode);
+    procedure SaveToXML(Node: TDOMNode; dontdeactivate:boolean=false);
     procedure LoadFromXML(Node: TDOMNode);
     procedure RestoreToDesignState;
     procedure SaveCurrentStateasDesign;
@@ -1198,7 +1198,7 @@ begin
  // showmessage(ss.DataString);
 end;
 
-procedure TCEForm.SaveToXML(Node: TDOMNode);
+procedure TCEForm.SaveToXML(Node: TDOMNode; dontdeactivate: boolean=false);
 var doc: TXMLDocument;
   outputastext: pchar;
   g: TGuid;
@@ -1212,9 +1212,16 @@ var doc: TXMLDocument;
   a: TDOMAttr;
   formnode: TDOMNode;
 begin
-
   wasactive:=active;
-  if active then active:=false;
+
+  if dontdeactivate then
+  begin
+    SaveCurrentStateasDesign;
+  end
+  else
+  begin
+    if active then active:=false;
+  end;
 
   if saveddesign=nil then exit; //nothing to save
 
@@ -1264,7 +1271,8 @@ begin
       FreeMemAndNil(outputastext);
   end;
 
-  active:=wasactive;
+  if dontdeactivate=false then
+    active:=wasactive;
 end;
 
 procedure TCEForm.LoadFromXML(Node: TDOMNode);
