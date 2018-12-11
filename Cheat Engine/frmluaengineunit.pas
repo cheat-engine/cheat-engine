@@ -155,14 +155,49 @@ begin
 
 end;
 
+function ParseStringForPath(s: string; var extra: string): string;
+var
+  identchars: TSynIdentChars;
+  identchars2: TSynIdentChars;
+  i: integer;
+  start,stop: integer;
+
+  r: string;
+begin
+  identchars:=['.','a'..'z','A'..'Z','0'..'9','_'];
+
+  extra:='';
+  if s='' then exit('');
+
+  r:='';
+  for i:=length(s) downto 1 do
+    if s[i] in identchars then
+      r:=s[i]+r
+    else
+      break;
+
+  i:=RPos('.',r);
+  if i=0 then
+  begin
+    extra:=r;
+    exit('_G');
+  end;
+
+  extra:=copy(r,i+1,length(r)-i-1);
+  exit(copy(r,1,i-1));
+
+
+end;
+
 procedure TfrmLuaEngine.scLuaCompleterExecute(Sender: TObject);
 var
-  s: string;
+  s,extra: string;
   w: tpoint;
-  i,j: integer;
+  i,j,si: integer;
   start: integer;
 
   identchars: TSynIdentChars;
+  identchars2: TSynIdentChars;
 
   properties: Tstringlist;
   methods: Tstringlist;
@@ -172,6 +207,8 @@ var
 
   o: TObject;
   c: TComponent absolute o;
+
+  f: boolean;
 begin
   scLuaCompleter.ItemList.Clear;
 
@@ -182,24 +219,8 @@ begin
   s:=mscript.LineText;
   s:=copy(s,1,mscript.CaretX);
 
-  if s[length(s)]<>'.' then exit;
 
-
-//  identchars:=mscript.IdentChars;
-//  identchars:=identchars+['.'];
-  identchars:=['.','a'..'z','A'..'Z','0'..'9'];
-  start:=-1;
-  for i:=length(s)-1 downto 1 do
-  begin
-    if not (s[i] in identchars) then
-    begin
-      start:=i+1;
-      break;
-    end;
-  end;
-
-  if start=-1 then start:=1;
-  s:=copy(s,start,length(s)-start);
+  s:=ParseStringForPath(s,extra);
 
   try
     if luaL_loadstring(L,pchar('return '+s))=0 then
@@ -211,6 +232,7 @@ begin
 
           properties:=tstringlist.create;
           properties.CaseSensitive:=false;
+
 
           methods:=tstringlist.create;
           methods.CaseSensitive:=false;
@@ -235,12 +257,12 @@ begin
                       j:=methods.IndexOf(s);
                       if j<>-1 then
                       begin
-                      //prefer the lowercase version
-                      if s[1] in ['a'..'z'] then
-                        methods[j]:=s; //swap
-                      end
-                      else
-                        methods.add(s);
+                        //prefer the lowercase version
+                        if s[1] in ['a'..'z'] then
+                          methods[j]:=s; //swap
+                        end
+                        else
+                          methods.add(s);
                     end
                     else
                     begin
@@ -273,7 +295,9 @@ begin
                 end;
 
               temp:=ce_getPropertylist(o);
-              properties.AddStrings(temp);
+              if temp<>nil then
+                properties.AddStrings(temp);
+
               temp.free;
             end;
 
@@ -281,11 +305,21 @@ begin
             begin
               i:=lua_gettop(L);
               lua_pushnil(L);
+
+              properties.Duplicates:=dupIgnore;
+              properties.Sorted:=true;
+
               while lua_next(L,i)<>0 do
               begin
                 if lua_type(L,-2)=LUA_TSTRING then
                 begin
                   s:=Lua_ToString(L,-2);
+                  if s='math' then
+                  asm
+                  nop
+                  end;
+                  if lua_isfunction(L,-1) then s[1]:=lowercase(s[1]);
+
                   properties.Add(s);
                 end;
 
@@ -313,6 +347,8 @@ begin
       end;
     end;
   except
+    on e:exception do
+      messagedlg(e.message,mtError,[mbok],0);
   end;
 end;
 
@@ -324,21 +360,27 @@ end;
 procedure TfrmLuaEngine.scLuaCompleterSearchPosition(var APosition: integer);
 var
   s,s2: string;
-  i: integer;
+  i,p: integer;
   start: integer;
 begin
   //get the text from the end till the first .
 
   s:=scLuaCompleter.CurrentString;
-  s:=uppercase(copy(s,2,length(s)));
+  if s='' then exit;
 
+  if s[1]='.' then
+    s:=uppercase(copy(s,2,length(s)))
+  else
+    s:=uppercase(s);
 
   //outputdebugstring(pchar(s));
 
   for i:=0 to scLuaCompleter.ItemList.count-1 do
   begin
     s2:=uppercase(scLuaCompleter.ItemList[i]);
-    if pos(s,s2)=1 then
+
+    p:=pos(s,s2);
+    if p=1 then
     begin
       APosition:=i;
       exit;
