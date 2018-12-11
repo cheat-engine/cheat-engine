@@ -2267,12 +2267,7 @@ begin
       TMemoryRecord(treenode[i].data).setActive(true);
   end;
 
-  if (not active) and (moDeactivateChildrenAsWell in options) then
-  begin
-    //apply this state to all the children
-    for i:=0 to treenode.Count-1 do
-      TMemoryRecord(treenode[i].data).setActive(false);
-  end;
+
   {$ENDIF}
 
   //6.5+
@@ -2290,6 +2285,8 @@ end;
 procedure TMemoryRecord.setActive(state: boolean);
 var f: string;
     i: integer;
+
+    p: boolean;
 begin
   if state=fActive then exit; //no need to execute this is it's the same state
   if processingThread<>nil then exit; //don't change the state while processing
@@ -2323,6 +2320,35 @@ begin
   end;
 
   wantedstate:=state;
+
+  if (state=false) and (moDeactivateChildrenAsWell in options) then
+  begin
+    //apply this state to all the children
+    for i:=0 to treenode.Count-1 do
+      TMemoryRecord(treenode[i].data).setActive(false);
+
+    if async then
+      processingTimeStart:=gettickcount64;
+
+    //and wait for them to finish
+    for i:=0 to treenode.count-1 do
+    begin
+      while TMemoryRecord(treenode[i].data).isProcessing do
+      begin
+        if async then
+        begin
+          processingThread:=TMemoryRecordProcessingThread(1); //fake it
+          application.ProcessMessages;
+        end;
+        CheckSynchronize(100);
+
+//        TMemoryRecord(treenode[i].data).treenode.Update;
+        Taddresslist(fOwner).Repaint;
+      end;
+    end;
+
+    processingThread:=nil;
+  end;
 
   if not fisGroupHeader then
   begin
