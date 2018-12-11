@@ -1,7 +1,7 @@
 object frmStructureCompare: TfrmStructureCompare
-  Left = 393
+  Left = 667
   Height = 400
-  Top = 248
+  Top = 244
   Width = 622
   AutoSize = True
   Caption = 'Structure Compare'
@@ -13,7 +13,7 @@ object frmStructureCompare: TfrmStructureCompare
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Panel2: TPanel
     Left = 0
     Height = 380
@@ -80,7 +80,7 @@ object frmStructureCompare: TfrmStructureCompare
           Left = 0
           Height = 15
           Top = 0
-          Width = 108
+          Width = 107
           Caption = 'Variable display type'
           ParentColor = False
         end
@@ -294,7 +294,7 @@ object frmStructureCompare: TfrmStructureCompare
             BevelOuter = bvNone
             ChildSizing.LeftRightSpacing = 8
             ChildSizing.HorizontalSpacing = 8
-            ChildSizing.EnlargeHorizontal = crsHomogenousSpaceResize
+            ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
             ChildSizing.Layout = cclLeftToRightThenTopToBottom
             ChildSizing.ControlsPerLine = 2
             ClientHeight = 39
@@ -503,6 +503,14 @@ object frmStructureCompare: TfrmStructureCompare
       Enabled = False
       ShortCut = 114
       OnClick = FindDialog1Find
+    end
+    object MenuItem2: TMenuItem
+      Caption = '-'
+    end
+    object miMaxAddresses: TMenuItem
+      Caption = 'Max addresses shown : 32'
+      Hint = 'This lets you specify the maximum number of addresses to show per line'
+      OnClick = miMaxAddressesClick
     end
   end
   object FindDialog1: TFindDialog

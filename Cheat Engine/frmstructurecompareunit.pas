@@ -270,6 +270,8 @@ type
     ListView1: TListView;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
+    MenuItem2: TMenuItem;
+    miMaxAddresses: TMenuItem;
     miDeleteAddress: TMenuItem;
     miShadow: TMenuItem;
     miCut: TMenuItem;
@@ -321,6 +323,7 @@ type
     procedure miCutClick(Sender: TObject);
     procedure miDeleteAddressClick(Sender: TObject);
     procedure miFindClick(Sender: TObject);
+    procedure miMaxAddressesClick(Sender: TObject);
     procedure miNewScanClick(Sender: TObject);
     procedure miOpenClick(Sender: TObject);
     procedure MenuItem7Click(Sender: TObject);
@@ -337,6 +340,7 @@ type
     pointerfilereader: TPointerfilereader;
 
     btncancel: TButton;
+    maxaddresses: integer;
 
     function mapCompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
     function pointerCompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
@@ -375,7 +379,7 @@ implementation
 { TfrmStructureCompare }
 
 uses frmStructPointerRescanUnit, MemoryBrowserFormUnit, ProcessHandlerUnit,
-  Parsers, addressedit, PointerscanresultReader, DPIHelper;
+  Parsers, addressedit, PointerscanresultReader, DPIHelper, ceregistry;
 
 
 resourcestring
@@ -405,6 +409,9 @@ resourcestring
   rsSPSNoError = 'No error';
   rsSPSUnlock = 'Unlock (%.8x-%.8x)';
   rsSPSLock = 'Lock';
+  rsStructureCompare = 'Structure Compare';
+  rsMaxAddressesShown = 'Max addresses shown :';
+  rsMaxReached = '...<max reached>...';
 //----------TPointerfileReader---------
 
 
@@ -1625,6 +1632,8 @@ var
 
   p: PPointerRecord;
 
+  count: integer;
+
   procedure HandleAddress(edt: TAddressEdit);
   var
     shadow: ptruint;
@@ -1676,11 +1685,29 @@ begin
         item.SubItems.Add(' ');
 
 
+      count:=0;
+
       for i:=0 to edtLF.count-1 do
+      begin
         HandleAddress(TAddressEdit(edtLF[i]));
+        if count>maxAddresses then
+        begin
+          item.subitems.add(rsMaxReached);
+          exit;
+        end;
+        inc(count);
+      end;
 
       for i:=0 to edtNLF.count-1 do
+      begin
         HandleAddress(TAddressEdit(edtNLF[i]));
+        if count>maxAddresses then
+        begin
+          item.subitems.add(rsMaxReached);
+          exit;
+        end;
+        inc(count);
+      end;
 
 
     end;
@@ -1818,6 +1845,22 @@ end;
 procedure TfrmStructureCompare.miFindClick(Sender: TObject);
 begin
   finddialog1.execute;
+end;
+
+procedure TfrmStructureCompare.miMaxAddressesClick(Sender: TObject);
+var
+  s: string;
+  i: integer;
+begin
+  s:=inttostr(maxaddresses);
+  if InputQuery(rsStructureCompare, rsMaxAddressesShown, s) then
+  begin
+    maxaddresses:=strtoint(s);
+    if maxaddresses<0 then
+      maxaddresses:=0;
+
+    miMaxAddresses.caption:=format(rsMaxAddressesShown+' %d',[maxaddresses]);
+  end;
 end;
 
 procedure TfrmStructureCompare.OpenPointerfile(filename: string);
@@ -2207,6 +2250,8 @@ begin
   edtNLF:=Tlist.create;
   autosize:=false;
   LoadFormPosition(self);
+
+  maxAddresses:=cereg.readInteger('Structure Compare Max Addresses', 32);
 end;
 
 procedure TfrmStructureCompare.FormDestroy(Sender: TObject);
@@ -2215,6 +2260,7 @@ begin
   edtNLF.free;
 
   SaveFormPosition(self);
+  cereg.writeInteger('Structure Compare Max Addresses', maxaddresses);
 end;
 
 procedure TfrmStructureCompare.FormShow(Sender: TObject);
