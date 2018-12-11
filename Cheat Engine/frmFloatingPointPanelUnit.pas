@@ -118,7 +118,7 @@ var
   pq: Puint64 absolute p;
   ps: PSingle absolute p;
   pss: Pdouble absolute p;
-
+  pe: PExtended absolute p;
   v: string;
 
   vd: double;
@@ -169,8 +169,12 @@ begin
       5: pss^:=StrToFloat(v);
       6:
       begin
+        {$ifdef cpu64}
         vd:=StrToFloat(v);
         doubleToExtended(@vd, p);
+        {$else}
+        pe^:=StrToFloat(v);
+        {$endif}
       end;
 
     end;
@@ -331,7 +335,7 @@ begin
               {$ifdef cpu64}
               extendedtodouble(p, d);
               {$else}
-              d=pea[0];
+              d:=pea[0];
               {$endif}
               mData.Lines.Add(format('%f', [d])); //extended
 
