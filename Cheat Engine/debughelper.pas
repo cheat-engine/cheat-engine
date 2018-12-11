@@ -120,7 +120,7 @@ type
     function GetMaxBreakpointCountForThisType(breakpointTrigger: TBreakpointTrigger): integer;
     function DoBreakpointTriggersUseSameDebugRegisterKind(bpt1: TBreakpointTrigger; bpt2: TBreakpointTrigger): boolean;
 
-    procedure ContinueDebugging(continueOption: TContinueOption; runtillAddress: ptrUint=0; handled: boolean=false);
+    procedure ContinueDebugging(continueOption: TContinueOption; runtillAddress: ptrUint=0; handled: boolean=true);
 
     procedure SetEntryPointBreakpoint;
 
@@ -2247,7 +2247,7 @@ begin
   end;
 end;
 
-procedure TDebuggerthread.ContinueDebugging(continueOption: TContinueOption; runtillAddress: ptrUint=0; handled: boolean=false);
+procedure TDebuggerthread.ContinueDebugging(continueOption: TContinueOption; runtillAddress: ptrUint=0; handled: boolean=true);
 {
 Sets the way the debugger should continue, and triggers the sleeping thread to wait up and handle this changed event
 }
