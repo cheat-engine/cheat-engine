@@ -6356,6 +6356,7 @@ begin
 
 
 
+
   cbunicode.Visible := unicodevis;
   cbCodePage.visible:= unicodevis;
 
@@ -6392,6 +6393,14 @@ begin
 
   if ScanType.itemindex=-1 then
     ScanType.itemindex:=0; //just in case something has set it to -1
+
+  if pnlScanValueOptions.visible then
+  begin
+    if foundlist3.width>pnlScanValueOptions.left then
+      foundlist3.width:=foundlist3.width-(foundlist3.width-pnlScanValueOptions.left)-2;
+  end;
+
+
 end;
 
 procedure TMainForm.LogoClick(Sender: TObject);
@@ -7740,6 +7749,7 @@ begin
     MessageDlg(Format(rsInvalidScanFolder, [memscan.GetScanFolder]), mtError, [mbOk], 0);
 
  // ImageList2.GetBitmap(0);
+
 end;
 
 
