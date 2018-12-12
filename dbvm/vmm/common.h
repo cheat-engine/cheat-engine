@@ -127,13 +127,19 @@ typedef union
 //extern UINT64 inportb(UINT64 port);
 //extern void outportb(UINT64 port, UINT64 value);
 
-inline void bochsbp(void);
-inline void jtagbp(void);
-inline unsigned char inportb(unsigned int port);
-inline void outportb(unsigned int port,unsigned char value);
+void bochsbp(void);
+void jtagbp(void);
 
-inline unsigned long inportd(unsigned int port);
-inline void outportd(unsigned int port,unsigned long value);
+/* Input a byte from a port */
+unsigned char inportb(unsigned int port);
+
+void outportb(unsigned int port,unsigned char value);
+
+unsigned long inportd(unsigned int port);
+
+void outportd(unsigned int port,unsigned long value);
+
+int abs(int j);
 
 extern void clearScreen(void);
 extern void debugbreak(void);
@@ -160,8 +166,10 @@ int isalnum(int c);
 int toupper(int c);
 int tolower(int c);
 
-inline int min(int x,int y);
-inline int max(int x,int y);
+
+int min(int x,int y);
+int max(int x,int y);
+
 
 double floor(double x);
 double ceil(double x);

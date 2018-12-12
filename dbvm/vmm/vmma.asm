@@ -74,6 +74,8 @@ exportlist:         dq 0
 initcs: dd 0 ;critical section to block entering cpus.  Each CPU sets up the stack for the next CPU (so there will always be one too many)
 vmmentrycount: dd 0  ;The number of times 0x00400000 has been executed (in short, the number of CPU's launched)
 
+lasttsc: dq 0
+
 afterinitvariables:
 
 lock add dword [vmmentrycount],1
@@ -503,19 +505,29 @@ ret
 
 align 16
 vmxloop_vmexit:
-cli
+;cli
 ;ok, this should be executed
 
-cmp dword [fs:0x14],0
-je isbootcpu
+;cmp dword [fs:0x14],0
+;je isbootcpu
 
 
 
-isbootcpu:
+;isbootcpu:
 
 ;save registers
 
+
 sub rsp,15*8
+
+mov [rsp+14*8],rax
+mov [rsp+11*8],rdx
+
+rdtsc
+
+mov [lasttsc],eax
+mov [lasttsc+4],edx
+
 
 mov [rsp],r15
 mov [rsp+1*8],r14
@@ -528,10 +540,9 @@ mov [rsp+7*8],r8
 mov [rsp+8*8],rbp
 mov [rsp+9*8],rsi
 mov [rsp+10*8],rdi
-mov [rsp+11*8],rdx
 mov [rsp+12*8],rcx
 mov [rsp+13*8],rbx
-mov [rsp+14*8],rax
+
 
 ;set host into a 'valid' state
 mov rbp,rsp

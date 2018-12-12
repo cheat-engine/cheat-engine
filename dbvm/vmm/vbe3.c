@@ -413,7 +413,7 @@ void VBE_SetPenColor(DWORD ARGB)
   currentColor=VBE_ARGBToDispayColor(ARGB);
 }
 
-inline void VBE_SetPixel(int x,int y)
+void VBE_SetPixel(int x,int y)
 {
   int i=currentMode.BytesPerScanLine*y+(x*currentMode.BitsPerPixel/8);
   *(DWORD *)&graphics[i]=currentColor;

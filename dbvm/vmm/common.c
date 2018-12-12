@@ -9,7 +9,7 @@ multiple sources. (e.g vmm and vmloader)
 #include "main.h"
 #include "mm.h"
 
-#include <ieee754.h>
+//#include <ieee754.h>
 
 //#include <string.h>
 
@@ -48,53 +48,52 @@ POPCNT_IMPLEMENTATION popcnt=popcnt_nosupport;
 
 
 
-inline void jtagbp(void)
+void bochsbp(void)
 {
-  asm volatile (".byte 0xf1");
+	asm volatile ("xchg %bx,%bx");
 }
 
-inline void bochsbp(void)
+void jtagbp(void)
 {
-  asm volatile ("xchg %bx,%bx");
-  //db 0xf1
+	asm volatile (".byte 0xf1");
 }
 
-inline int min(int x,int y)
-{
-  return (x<y)?x:y;
-}
-
-inline int max(int x,int y)
-{
-  return (x>y)?x:y;
-}
-
-
-
-/* Input a byte from a port */
-inline unsigned char inportb(unsigned int port)
+unsigned char inportb(unsigned int port)
 {
    unsigned char ret;
    asm volatile ("inb %%dx,%%al":"=a" (ret):"d" (port));
    return ret & 0xff;
 }
 
-inline void outportb(unsigned int port,unsigned char value)
+void outportb(unsigned int port,unsigned char value)
 {
    asm volatile ("outb %%al,%%dx": :"d" (port), "a" (value));
 }
 
-inline unsigned long inportd(unsigned int port)
+unsigned long inportd(unsigned int port)
 {
    unsigned long ret;
    asm volatile ("inl %%dx,%%eax":"=a" (ret):"d" (port));
    return ret;
 }
 
-inline void outportd(unsigned int port,unsigned long value)
+void outportd(unsigned int port,unsigned long value)
 {
    asm volatile ("outl %%eax,%%dx": :"d" (port), "a" (value));
 }
+
+
+int min(int x,int y)
+{
+  return (x<y)?x:y;
+}
+
+int max(int x,int y)
+{
+  return (x>y)?x:y;
+}
+
+
 
 size_t strspn(const char *str, const char *chars)
 {
@@ -928,6 +927,14 @@ void appendzero(char *string, int wantedsize,int maxstringsize)
   strcpy(string,newstring);
 
   string[maxstringsize-1]=0;
+}
+
+int abs(int j)
+{
+	if (j<0)
+		return -j;
+	else
+		return j;
 }
 
 unsigned long long power(unsigned int x,unsigned int y)

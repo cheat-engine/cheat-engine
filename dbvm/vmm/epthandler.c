@@ -394,10 +394,14 @@ int ept_cloak_writeOriginal(pcpuinfo currentcpuinfo,  VMRegisters *registers, QW
   return 0;
 }
 
-int ept_cloak_changeregonbp(QWORD physicalAddress, PCHANGEREGONBPINFO changereginfo)
+VMSTATUS ept_cloak_changeregonbp(QWORD physicalAddress, PCHANGEREGONBPINFO changereginfo)
 {
   int i;
   int result=1;
+
+
+  ept_cloak_removechangeregonbp(physicalAddress);
+
   QWORD physicalBase=physicalAddress & MAXPHYADDRMASKPB;
   ept_cloak_activate(physicalBase); //just making sure
 
@@ -764,7 +768,7 @@ void fillPageEventBasic(PageEventBasic *peb, VMRegisters *registers)
 }
 
 
-inline int ept_isWatchIDPerfectMatch(QWORD address, int ID)
+int ept_isWatchIDPerfectMatch(QWORD address, int ID)
 {
   return ((eptWatchList[ID].Active) &&
           (
@@ -774,7 +778,7 @@ inline int ept_isWatchIDPerfectMatch(QWORD address, int ID)
           );
 }
 
-inline int ept_isWatchIDMatch(QWORD address, int ID)
+int ept_isWatchIDMatch(QWORD address, int ID)
 /*
  * pre: address is already page aligned
  */
@@ -1436,7 +1440,7 @@ int ept_watch_deactivate(int ID)
 }
 
 
-inline int MTC_RPS(int mt1, int mt2)
+int MTC_RPS(int mt1, int mt2)
 {
   //memory type cache rock paper scissors
   if (mt1==mt2)

@@ -125,7 +125,7 @@ int VBE_ResetStart();
 
 //----- Draw operations -----
 void VBE_SetPenColor(DWORD ARGB);
-inline void VBE_SetPixel(int x,int y);
+void VBE_SetPixel(int x,int y);
 void VBE_DrawLine(int x1, int y1, int x2,int y2);
 void VBE_DrawBox(int x1, int y1, int x2, int y2);
 

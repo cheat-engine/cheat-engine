@@ -4,24 +4,24 @@
 
 PARD fakeARD;
 
-inline void setARDAddress(PARD entry, QWORD address)
+void setARDAddress(PARD entry, QWORD address)
 {
   entry->BaseAddrLow=(DWORD)address;
   entry->BaseAddrHigh=address << 32;
 }
 
-inline QWORD getARDAddress(PARD entry)
+QWORD getARDAddress(PARD entry)
 {
   return entry->BaseAddrLow+(((QWORD)(entry->BaseAddrHigh))<<32);
 }
 
-inline void setARDSize(PARD entry, QWORD size)
+void setARDSize(PARD entry, QWORD size)
 {
   entry->LengthLow=(DWORD)size;
   entry->LengthHigh=size << 32;
 }
 
-inline QWORD getARDSize(PARD entry)
+QWORD getARDSize(PARD entry)
 {
   return entry->LengthLow+(((QWORD)entry->LengthHigh)<<32);
 }

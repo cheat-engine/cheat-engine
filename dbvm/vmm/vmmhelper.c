@@ -2398,7 +2398,7 @@ void displayPhysicalMemory(void)
   sendstringf("Going to show the memory region %6 to %6 \n\r",StartAddress,StartAddress+nrofbytes);
 
   unsigned char *memory=(unsigned char *)mapPhysicalMemory(StartAddress, nrofbytes);
-  for (i=0; i<nrofbytes; i+=16);
+  for (i=0; i<nrofbytes; i+=16)
   {
     int j;
     unsigned char bt;

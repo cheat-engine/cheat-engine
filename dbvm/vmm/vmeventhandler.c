@@ -3855,16 +3855,17 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 
 		case vm_exit_monitor_trap_flag:
 		{
+			if ((currentcpuinfo->singleStepping.ReasonsPos) && (currentcpuinfo->singleStepping.Method==1))
+				return handleSingleStep(currentcpuinfo);
 
-      if ((currentcpuinfo->singleStepping.ReasonsPos) && (currentcpuinfo->singleStepping.Method==1))
-        return handleSingleStep(currentcpuinfo);
-
-      sendstring("(Un)expected monitor trap flag\n\r");
+			sendstring("(Un)expected monitor trap flag\n\r");
 #ifndef DEBUG
-      while (1);
+			while (1) ;
+#else
+			return 0;
 #endif
 
-		  return 0;
+
 		}
 
 		case 39: //MONITOR
