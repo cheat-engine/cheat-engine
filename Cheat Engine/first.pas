@@ -5,23 +5,23 @@ unit first;
 interface
 
 uses
-  betterDLLSearchPath{, Classes, SysUtils};
+  betterDLLSearchPath, Classes, SysUtils;
 
 implementation
-{
-uses windows, registry, Win32Int;  }
+
+uses windows, registry, Win32Int;
 
 
 procedure setDPIAware;   //won't work in windows 10 anymore
 type
   PROCESS_DPI_AWARENESS=(PROCESS_DPI_UNAWARE=0, PROCESS_SYSTEM_DPI_AWARE=1, PROCESS_PER_MONITOR_DPI_AWARE=2);
 
-{var
+var
   SetProcessDpiAwareness:function(value: PROCESS_DPI_AWARENESS):HRESULT; stdcall;
   SetProcessDPIAware:function: BOOL; stdcall;
-  l: HModule;}
+  l: HModule;
 begin
- { OutputDebugString('setDPIAware');
+  OutputDebugString('setDPIAware');
   l:=LoadLibrary('Shcore.dll');
   if l<>0 then
   begin
@@ -46,17 +46,17 @@ begin
       SetProcessDPIAware;
   end;
 
-  OutputDebugString('p3'); }
+  OutputDebugString('p3');
 end;
 
-{var
+var
   i: integer;
   istrainer: boolean;
   r: TRegistry;
-  hassetdpiaware: boolean; }
+  hassetdpiaware: boolean;
 initialization
   //todo, check registry if not a trainer
-  {
+
   istrainer:=false;
   hassetdpiaware:=false;
 
@@ -93,7 +93,7 @@ initialization
       end;
     end;
   end;
-       }
+
 
 end.
 

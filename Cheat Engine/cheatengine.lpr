@@ -99,10 +99,10 @@ uses
   frmChangedAddressesCommonalityScannerUnit, ceregistry, LuaRemoteThread,
   LuaManualModuleLoader, symbolhandlerstructs, frmOpenFileAsProcessDialogUnit,
   BetterDLLSearchPath, UnexpectedExceptionsHelper, frmExceptionRegionListUnit,
-  frmExceptionIgnoreListUnit;
+  frmExceptionIgnoreListUnit, frmCallFinderUnit;
 
 {$R cheatengine.res}
-//{$R manifest.res}  //lazarus now has this build in
+{$R manifest.res}  //lazarus now has this build in (but sucks as it explicitly turns of dpi aware)
 //{$R Sounds.rc}
 //{$R images.rc}
 {$R images.res}
