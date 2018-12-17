@@ -9,9 +9,10 @@ object frmThreadlist: TfrmThreadlist
   ClientWidth = 313
   OnClose = FormClose
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poOwnerFormCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object threadTreeview: TTreeView
     Left = 0
     Height = 172

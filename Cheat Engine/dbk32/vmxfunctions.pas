@@ -402,7 +402,8 @@ var
 implementation
 
 uses DBK32functions, cefuncproc, PEInfoFunctions, NewKernelHandler, syncobjs,
-  ProcessHandlerUnit, Globals, AvgLvlTree, maps;
+  ProcessHandlerUnit, Globals, AvgLvlTree, maps, debuggertypedefinitions,
+  DebugHelper;
 
 resourcestring
 rsInvalidInstruction = 'Invalid instruction';

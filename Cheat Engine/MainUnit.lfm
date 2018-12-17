@@ -1,17 +1,17 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 681
-  Height = 626
+  Left = 327
+  Height = 625
   Hint = ' '
-  Top = 316
+  Top = 128
   Width = 622
   HelpContext = 1
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AllowDropFiles = True
   AutoSize = True
-  Caption = 'Cheat Engine 6.8'
-  ClientHeight = 606
+  Caption = 'Cheat Engine 6.8.2'
+  ClientHeight = 605
   ClientWidth = 622
   Menu = MainMenu1
   OnClose = FormClose
@@ -38,7 +38,7 @@ object MainForm: TMainForm
   object Panel1: TPanel
     Tag = 777
     Left = 0
-    Height = 126
+    Height = 125
     Top = 448
     Width = 622
     Align = alClient
@@ -52,7 +52,7 @@ object MainForm: TMainForm
   object Panel4: TPanel
     Left = 0
     Height = 32
-    Top = 574
+    Top = 573
     Width = 622
     Align = alBottom
     AutoSize = True
@@ -362,7 +362,7 @@ object MainForm: TMainForm
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = Panel9
       Left = 295
-      Height = 182
+      Height = 174
       Top = 178
       Width = 200
       Anchors = [akTop, akRight]
@@ -371,7 +371,7 @@ object MainForm: TMainForm
       BorderSpacing.Top = 6
       BorderSpacing.Right = 6
       Caption = 'Memory Scan Options'
-      ClientHeight = 162
+      ClientHeight = 154
       ClientWidth = 196
       Color = clBtnFace
       Constraints.MinWidth = 10
@@ -386,7 +386,7 @@ object MainForm: TMainForm
         AnchorSideRight.Side = asrBottom
         Left = 0
         Height = 38
-        Top = 62
+        Top = 54
         Width = 196
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
@@ -454,13 +454,13 @@ object MainForm: TMainForm
       object Panel3: TPanel
         AnchorSideRight.Side = asrBottom
         Left = 0
-        Height = 62
+        Height = 54
         Top = 0
         Width = 196
         Align = alTop
         AutoSize = True
         BevelOuter = bvNone
-        ClientHeight = 62
+        ClientHeight = 54
         ClientWidth = 196
         TabOrder = 0
         object Label2: TLabel
@@ -469,7 +469,7 @@ object MainForm: TMainForm
           AnchorSideTop.Side = asrCenter
           Left = 5
           Height = 15
-          Top = 40
+          Top = 34
           Width = 24
           BorderSpacing.Left = 5
           Caption = 'Stop'
@@ -483,7 +483,7 @@ object MainForm: TMainForm
           AnchorSideTop.Side = asrCenter
           Left = 5
           Height = 15
-          Top = 8
+          Top = 6
           Width = 24
           BorderSpacing.Left = 5
           Caption = 'Start'
@@ -498,8 +498,8 @@ object MainForm: TMainForm
           AnchorSideRight.Control = FromAddress
           AnchorSideRight.Side = asrBottom
           Left = 35
-          Height = 30
-          Top = 32
+          Height = 26
+          Top = 28
           Width = 155
           Alignment = taRightJustify
           Anchors = [akTop, akLeft, akRight]
@@ -519,7 +519,7 @@ object MainForm: TMainForm
           AnchorSideRight.Control = Panel3
           AnchorSideRight.Side = asrBottom
           Left = 35
-          Height = 30
+          Height = 26
           Top = 0
           Width = 155
           Alignment = taRightJustify
@@ -540,7 +540,7 @@ object MainForm: TMainForm
         AnchorSideRight.Side = asrBottom
         Left = 0
         Height = 62
-        Top = 100
+        Top = 92
         Width = 196
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True

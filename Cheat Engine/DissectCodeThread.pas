@@ -55,7 +55,7 @@ type TDissectReference=class(tobject)
     end;
 end;
 
-
+type TOnCallListEntry=procedure(address: ptruint);
 
 type
   TDissectCodeThread = class(TThread)
@@ -117,6 +117,8 @@ type
 
     procedure getstringlist(s: tstrings);
     procedure getCallList(s: TList);
+
+//    procedure getCallListEx(callback: TOnCallListEntry);
     constructor create(suspended: boolean);
   protected
     procedure Execute; override;

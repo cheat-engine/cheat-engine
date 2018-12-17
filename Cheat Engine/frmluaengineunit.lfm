@@ -1215,7 +1215,6 @@ object frmLuaEngine: TfrmLuaEngine
     AutoUseSingleIdent = True
     ShortCut = 16416
     EndOfTokenChr = '()[].'
-    OnCodeCompletion = scLuaCompleterCodeCompletion
     ExecCommandID = ecSynCompletionExecute
     Editor = mScript
     left = 408

@@ -1,0 +1,93 @@
+object frmBranchMapper: TfrmBranchMapper
+  Left = 794
+  Height = 240
+  Top = 239
+  Width = 320
+  AutoSize = True
+  Caption = 'Branch Mapper'
+  ClientHeight = 240
+  ClientWidth = 320
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnShow = FormShow
+  LCLVersion = '1.6.4.0'
+  object Button1: TButton
+    AnchorSideLeft.Control = Panel1
+    AnchorSideTop.Control = Panel1
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 25
+    Top = 99
+    Width = 107
+    BorderSpacing.Top = 4
+    Caption = 'Start mapping'
+    OnClick = Button1Click
+    TabOrder = 0
+  end
+  object Label2: TLabel
+    AnchorSideLeft.Control = Button1
+    AnchorSideTop.Control = Button1
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 15
+    Top = 144
+    Width = 40
+    BorderSpacing.Top = 20
+    Caption = 'Found: '
+    ParentColor = False
+  end
+  object Panel1: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    Left = 8
+    Height = 95
+    Top = 0
+    Width = 275
+    AutoSize = True
+    BorderSpacing.Left = 8
+    BevelOuter = bvNone
+    Caption = 'Panel1'
+    ClientHeight = 95
+    ClientWidth = 275
+    TabOrder = 1
+    object Label1: TLabel
+      Left = 0
+      Height = 15
+      Top = 0
+      Width = 275
+      Align = alTop
+      Caption = 'Record branch destinations in the following threads:'
+      ParentColor = False
+    end
+    object clbThreads: TCheckListBox
+      Left = 0
+      Height = 80
+      Top = 15
+      Width = 275
+      Align = alClient
+      ItemHeight = 0
+      TabOrder = 0
+    end
+  end
+  object Button2: TButton
+    AnchorSideLeft.Control = Label2
+    AnchorSideTop.Control = Label2
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 25
+    Top = 159
+    Width = 120
+    AutoSize = True
+    BorderSpacing.Bottom = 10
+    Caption = 'Save results to file'
+    Enabled = False
+    OnClick = Button2Click
+    TabOrder = 2
+  end
+  object Timer1: TTimer
+    Interval = 100
+    OnTimer = Timer1Timer
+    left = 160
+    top = 104
+  end
+end

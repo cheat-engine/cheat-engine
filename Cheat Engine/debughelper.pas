@@ -50,7 +50,6 @@ type
     ResumeProcessWhenIdleCounter: dword; //suspend counter to tell the cleanup handler to resume the process
 
 
-
     function getDebugThreadHanderFromThreadID(tid: dword): TDebugThreadHandler;
 
     procedure GetBreakpointList(address: uint_ptr; size: integer; var bplist: TBreakpointSplitArray);
@@ -132,6 +131,9 @@ type
     function isWaitingToContinue: boolean;
 
     function getrealbyte(address: ptrUint): byte;
+
+    procedure startBranchMapper(tidlist: tlist=nil);
+    procedure stopBranchMapper;
 
     property CurrentThread: TDebugThreadHandler read getCurrentThread write setCurrentThread;
     property NeedsToSetEntryPointBreakpoint: boolean read fNeedsToSetEntryPointBreakpoint;
@@ -1543,6 +1545,41 @@ begin
   //it doesn't really matter if it returns false, that would just mean the breakpoint got and it's tracing or has finished tracing
 end;
 
+procedure TDebuggerThread.startBranchMapper(tidlist: TList=nil);
+var
+  i,j: integer;
+  currentthread: TDebugThreadHandler;
+  tl: TList;
+  pid: dword;
+begin
+  debuggercs.enter;
+  try
+    if tidlist<>nil then
+    begin
+      for i := 0 to tidlist.Count - 1 do
+      begin
+        pid:=dword(tidlist.items[i]);
+        currentthread := getDebugThreadHanderFromThreadID(pid);
+        if currentthread<>nil then
+          currentthread.StartBranchMap;
+      end;
+    end
+    else
+    begin
+      for i:=0 to ThreadList.count-1 do
+        TDebugThreadHandler(threadlist[i]).StartBranchMap;
+    end;
+
+
+  finally
+    debuggercs.leave;
+  end;
+end;
+
+procedure TDebuggerThread.stopBranchMapper;
+begin
+
+end;
 
 function TDebuggerThread.CodeFinderStop(codefinder: TFoundCodeDialog): boolean;
 var
@@ -1571,9 +1608,6 @@ begin
   finally
     debuggercs.leave;
   end;
-
-
-
 end;
 
 

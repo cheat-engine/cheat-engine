@@ -38,6 +38,9 @@ type
 
     singlestepping: boolean;
 
+    isBranchMapping: boolean;
+    branchMappingDisabled: qword;
+
     //break and trace:
     isTracing: boolean;
     tracecount: integer;
@@ -83,6 +86,7 @@ type
     procedure ModifyRegisters(bp: PBreakpoint);
     procedure TraceWindowAddRecord;
     procedure handleTrace;
+    procedure mapBranch;
     procedure HandleBreak(bp: PBreakpoint; var dwContinueStatus: dword);
     procedure ContinueFromBreakpoint(bp: PBreakpoint; continueoption: TContinueOption);
     function EnableOriginalBreakpointAfterThisBreakpointForThisThread(bp: Pbreakpoint; OriginalBreakpoint: PBreakpoint): boolean;
@@ -106,7 +110,8 @@ type
 
 
     procedure UpdateMemoryBrowserContext;
-
+    procedure StartBranchMap;
+    procedure StopBranchMap;
     procedure TracerQuit;
     procedure suspend;
     procedure resume;
@@ -115,6 +120,7 @@ type
     procedure breakThread;
     procedure clearDebugRegisters;
     procedure continueDebugging(continueOption: TContinueOption; handled: boolean=true);
+
     constructor Create(debuggerthread: TObject; attachEvent: Tevent; continueEvent: Tevent; breakpointlist: TList; threadlist: Tlist; debuggerCS: TGuiSafeCriticalSection);
     destructor destroy; override;
 
@@ -146,7 +152,8 @@ implementation
 uses foundcodeunit, DebugHelper, MemoryBrowserFormUnit, frmThreadlistunit,
      WindowsDebugger, VEHDebugger, KernelDebuggerInterface, NetworkDebuggerInterface,
      frmDebugEventsUnit, formdebugstringsunit, symbolhandler,
-     networkInterface, networkInterfaceApi, ProcessHandlerUnit, globals, UnexpectedExceptionsHelper;
+     networkInterface, networkInterfaceApi, ProcessHandlerUnit, globals,
+     UnexpectedExceptionsHelper, frmcodefilterunit, frmBranchMapperUnit;
 
 resourcestring
   rsDebugHandleAccessViolationDebugEventNow = 'Debug HandleAccessViolationDebugEvent now';
@@ -615,8 +622,53 @@ begin
   end;
 end;
 
+procedure TDebugThreadHandler.mapBranch;
+var hasid: boolean;
+  b: byte=0;
+begin
+  if isBranchMapping and (frmBranchMapper<>nil) then
+  begin
+    frmBranchMapper.mapmrew.beginread;
+    hasid:=frmBranchMapper.map.hasID(context^.rip);
+    frmBranchMapper.mapmrew.endread;
+
+    if branchMappingDisabled=0 then
+      context^.EFlags:=eflags_setTF(context^.EFlags,1);
 
 
+
+    if hasid then exit;
+
+    frmBranchMapper.mapmrew.beginwrite;
+    if frmBranchMapper.map.hasID(context^.rip)=false then
+      frmBranchMapper.map.Add(context^.rip,b);
+
+    frmBranchMapper.mapmrew.endwrite;
+  end;
+end;
+
+procedure TDebugThreadHandler.StartBranchMap;
+begin
+  suspend;
+  fillContext;
+  context^.Dr7:=context^.Dr7 or $300;
+  context^.EFlags:=context^.EFlags or EFLAGS_TF;
+  setContext;
+  isBranchMapping:=true;
+  branchMappingDisabled:=0;
+  resume;
+end;
+
+procedure TDebugThreadHandler.StopBranchMap;
+begin
+  suspend;
+  fillContext;
+  context^.Dr7:=context^.Dr7 and (not $300);
+  context^.EFlags:=context^.EFlags and (not EFLAGS_TF);
+  setContext;
+  branchMappingDisabled:=getTickCount64;
+  resume;
+end;
 
 procedure TDebugThreadHandler.TracerQuit;
 begin
@@ -807,6 +859,11 @@ begin
     dwContinueStatus:=DBG_CONTINUE;
   end else hasSetInt3Back:=false;
 
+  if isBranchMapping then
+  begin
+    MapBranch;
+  end
+  else
   if isTracing then
   begin
     handleTrace;
@@ -879,37 +936,45 @@ begin
   //if not, DBG_EXCEPTION_NOT_HANDLED
 
 
-
-
   bpp2:=nil;
 
-  debuggercs.enter;
-
-  for i := 0 to breakpointlist.Count - 1 do
+  if (debugreg=-1) and (frmCodeFilter<>nil) and frmCodeFilter.handleBreakpoint(address) then  //callfilter
   begin
-    bpp:=PBreakpoint(breakpointlist.Items[i]);
-
-    if InRangeX(address, bpp.address, bpp.address+bpp.size-1) then
-    begin
-      if (CurrentDebuggerInterface.canReportExactDebugRegisterTrigger) and (debugreg in [0..4]) and (bpp.breakpointMethod=bpmDebugRegister) and (bpp.debugRegister<>debugreg) then
-        continue; //this is not the correct breakpoint. Skip it
-
-
-      found:=true;
-      bpp2:=bpp;
-      active:=bpp^.active;
-
-      if bpp^.OneTimeOnly then //delete it
-        TdebuggerThread(debuggerthread).RemoveBreakpoint(bpp);
-
-      if ((bpp.breakpointMethod=bpmException) and (not bpp.markedfordeletion)) or active then
-        break;
-
-      //else continue looking for one that IS active and not deleted
-    end;
+    dwContinueStatus:=DBG_CONTINUE;
+    exit(true);
   end;
 
-  debuggercs.leave;
+  if not found then
+  begin
+    debuggercs.enter;
+
+    for i := 0 to breakpointlist.Count - 1 do
+    begin
+      bpp:=PBreakpoint(breakpointlist.Items[i]);
+
+      if InRangeX(address, bpp.address, bpp.address+bpp.size-1) then
+      begin
+        if (CurrentDebuggerInterface.canReportExactDebugRegisterTrigger) and (debugreg in [0..4]) and (bpp.breakpointMethod=bpmDebugRegister) and (bpp.debugRegister<>debugreg) then
+          continue; //this is not the correct breakpoint. Skip it
+
+
+        found:=true;
+        bpp2:=bpp;
+        active:=bpp^.active;
+
+        if bpp^.OneTimeOnly then //delete it
+          TdebuggerThread(debuggerthread).RemoveBreakpoint(bpp);
+
+        if ((bpp.breakpointMethod=bpmException) and (not bpp.markedfordeletion)) or active then
+          break;
+
+        //else continue looking for one that IS active and not deleted
+      end;
+    end;
+
+    debuggercs.leave;
+
+  end;
 
   TDebuggerthread(debuggerthread).execlocation:=27;
 

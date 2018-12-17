@@ -2419,7 +2419,7 @@ dbvm_cloak_activate(physicalbase, virtualbase OPTIONAL):
   Hides an executable memory range (4096 bytes) from snooping eyes
   Note: It is recommended to cause a copy-on-write on the target first, else this will affect all processes that have this memory block loaded
 dbvm_cloak_deactivate(physicalbase): Disables the cloak and restores the executable memory to what the system thinks it is
-dbvm_cloak_readOriginal(physicalbase): Reads the memory that will get executed.  On success returns a 4096 byte long bytetable (remember, lua indexes start at 1, so offset 0 is index 1)
+dbvm_cloak_readOriginal(physicalbase): Reads the memory that will get executed.  On success returns a 4096 byte long bytetable starting from the base of the page (remember, lua indexes start at 1, so offset 0 is index 1)
 dbvm_cloak_writeOriginal(physicalbase, bytetable[4096]): Writes the memory that will get executed. 
 
 dbvm_changeregonbp(physicaladdress, changereginfo, virtualaddress OPTIONAL): boolean

@@ -44,7 +44,7 @@ type
     MenuItem11: TMenuItem;
     MenuItem12: TMenuItem;
     MenuItem13: TMenuItem;
-    MenuItem14: TMenuItem;
+    miUltimap: TMenuItem;
     MenuItem15: TMenuItem;
     MenuItem16: TMenuItem;
     MenuItem17: TMenuItem;
@@ -59,10 +59,11 @@ type
     MenuItem23: TMenuItem;
     MenuItem24: TMenuItem;
     MenuItem25: TMenuItem;
-    MenuItem26: TMenuItem;
+    miUltimap2: TMenuItem;
     MenuItem27: TMenuItem;
     MenuItem28: TMenuItem;
     MenuItem29: TMenuItem;
+    miCodeFilter: TMenuItem;
     miExceptionIgnoreList: TMenuItem;
     N19: TMenuItem;
     miUnexpectedExceptionBreakNever: TMenuItem;
@@ -298,13 +299,14 @@ type
     procedure MenuItem10Click(Sender: TObject);
     procedure MenuItem11Click(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
-    procedure MenuItem14Click(Sender: TObject);
+    procedure miCodeFilterClick(Sender: TObject);
+    procedure miUltimapClick(Sender: TObject);
     procedure MenuItem17Click(Sender: TObject);
     procedure MenuItem18Click(Sender: TObject);
     procedure MenuItem20Click(Sender: TObject);
     procedure MenuItem22Click(Sender: TObject);
     procedure MenuItem25Click(Sender: TObject);
-    procedure MenuItem26Click(Sender: TObject);
+    procedure miUltimap2Click(Sender: TObject);
     procedure MenuItem27Click(Sender: TObject);
     procedure MenuItem29Click(Sender: TObject);
     procedure miAddRefClick(Sender: TObject);
@@ -631,7 +633,7 @@ uses Valuechange, MainUnit, debugeventhandler, findwindowunit,
   frmUltimapUnit, frmUltimap2Unit, frmAssemblyScanUnit, MemoryQuery,
   AccessedMemory, Parsers, GnuAssembler, frmEditHistoryUnit, frmWatchlistUnit,
   vmxfunctions, frmstructurecompareunit, globals, UnexpectedExceptionsHelper,
-  frmExceptionRegionListUnit, frmExceptionIgnoreListUnit;
+  frmExceptionRegionListUnit, frmExceptionIgnoreListUnit, frmcodefilterunit;
 
 
 resourcestring
@@ -1015,7 +1017,15 @@ begin
   f.free;
 end;
 
-procedure TMemoryBrowser.MenuItem14Click(Sender: TObject);
+procedure TMemoryBrowser.miCodeFilterClick(Sender: TObject);
+begin
+  if frmcodefilter=nil then
+    frmcodefilter:=tfrmcodefilter.create(application);
+
+  frmcodefilter.show;
+end;
+
+procedure TMemoryBrowser.miUltimapClick(Sender: TObject);
 begin
   if frmUltimap=nil then
     frmUltimap:=TfrmUltimap.create(application);
@@ -1070,7 +1080,7 @@ begin
 
 end;
 
-procedure TMemoryBrowser.MenuItem26Click(Sender: TObject);
+procedure TMemoryBrowser.miUltimap2Click(Sender: TObject);
 begin
   if frmUltimap2=nil then
     frmUltimap2:=TfrmUltimap2.create(application);
@@ -4540,6 +4550,9 @@ begin
     d.free;
     d:=nil;
   end;
+
+  if frmThreadlist<>nil then
+    frmThreadlist.FillThreadlist;
 
 
   if processhandler.is64Bit or (processhandler.SystemArchitecture=archArm) then

@@ -7,7 +7,8 @@ interface
 uses
   jwawindows, windows, LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls, ExtCtrls,DissectCodeThread,CEFuncProc,
-  symbolhandler, LResources, frmReferencedStringsUnit, newkernelhandler, MemFuncs, commonTypeDefs;
+  symbolhandler, LResources, frmReferencedStringsUnit, newkernelhandler, MemFuncs,
+  commonTypeDefs, ProcessHandlerUnit;
 
 
 
@@ -62,7 +63,7 @@ var
 
 implementation
 
-uses frmReferencedFunctionsUnit;
+uses frmReferencedFunctionsUnit, PEInfounit;
 
 resourcestring
   rsStop = 'Stop';
@@ -239,8 +240,37 @@ begin
 end;
 
 procedure TfrmDissectCode.fillModuleList(withSystemModules: boolean);
+var i: integer;
+    md: tmoduledata;
+
+    buf: array [0..4096] of byte;
+    x: ptruint;
+
+    base: ptruint;
+    codebase: ptruint;
+    codesize: integer;
 begin
   cefuncproc.GetModuleList(lbModuleList.Items, withSystemModules);
+
+  //adjust the moduleinfo to code section only
+  for i:=0 to lbModuleList.Count-1 do
+  begin
+    md:=tmoduledata(lbModuleList.Items.Objects[i]);
+    base:=md.moduleaddress;
+
+    if ReadProcessMemory(processhandle, pointer(base), @buf[0],4096,x) then
+    begin
+      codebase:=peinfo_getcodebase(@buf[0],4096);
+      codesize:=peinfo_getcodesize(@buf[0],4096);
+
+      if (codebase>0) and (codesize>0) then
+      begin
+        md.moduleaddress:=base+codebase;
+        md.modulesize:=codesize;
+      end;
+    end;
+  end;
+
 end;
 
 procedure TfrmDissectCode.FormShow(Sender: TObject);
