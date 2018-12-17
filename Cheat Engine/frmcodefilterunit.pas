@@ -23,7 +23,7 @@ type
     btnFilterOutNonExecutedAddresses: TButton;
     btnFilterOutExecutedAddresses: TButton;
     btnShowList: TButton;
-    Button1: TButton;
+    frmLaunchBranchMapper: TButton;
     cbAutoStart: TCheckBox;
     GroupBox1: TGroupBox;
     Label1: TLabel;
@@ -53,7 +53,7 @@ type
     procedure btnShowListClick(Sender: TObject);
     procedure btnStartClick(Sender: TObject);
     procedure btnStopClick(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
+    procedure frmLaunchBranchMapperClick(Sender: TObject);
     procedure Button7Click(Sender: TObject);
     procedure FilterClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -116,7 +116,7 @@ implementation
 
 uses CEFuncProc, DissectCodeunit, DissectCodeThread, frmDisassemblyscanunit,
   frmSelectionlistunit, commonTypeDefs, symbolhandler, MemoryBrowserFormUnit,
-  CEDebugger, frmBranchMapperUnit;
+  CEDebugger, frmBranchMapperUnit, symbolhandlerstructs;
 
 { TfrmCodeFilter }
 
@@ -787,18 +787,66 @@ procedure TfrmCodeFilter.btnLoadAddressesFromFileClick(Sender: TObject);
 var
   l: tstringlist;
   i: integer;
+  ext: string;
+
+  count: integer;
+  x: word;
+  f: tfilestream;
+
+  s: string;
+  ml: Tstringlist;
+  baseaddresses: array of ptruint;
+  modinfo: TModuleInfo;
+  address: ptruint;
 begin
-  OpenDialog.Filter:='Address file (*.txt;*.address)|*.cetrace|All file (*.*)|*.*';
+  OpenDialog.Filter:='Address files (*.txt;*.ceaddress)|*.ceaddress;*.txt|All file (*.*)|*.*';
   OpenDialog.Title:=rsOpenAnAddressFile;
 
   if OpenDialog.Execute then
   begin
-    l:=tstringlist.create;
-    l.LoadFromFile(opendialog.FileName);
-    for i:=0 to l.count-1 do
-      addAddress(symhandler.getAddressFromName(trim(l[i])));
+    ext:=ExtractFileExt(opendialog.filename);
+    if ext='.txt' then
+    begin
+      l:=tstringlist.create;
+      l.LoadFromFile(opendialog.FileName);
+      for i:=0 to l.count-1 do
+        addAddress(symhandler.getAddressFromName(trim(l[i])));
 
-    l.free;
+      l.free;
+    end
+    else
+    if ext='.ceaddress' then
+    begin
+      f:=tfilestream.create(opendialog.filename, fmOpenRead);
+      count:=f.ReadWord;
+
+      ml:=tstringlist.create;
+
+      setlength(baseaddresses, count);
+      for i:=0 to count-1 do
+      begin
+        s:=f.ReadAnsiString;
+        ml.add(s);
+        if symhandler.getmodulebyname(s,modinfo) then
+          baseaddresses[i]:=modinfo.baseaddress
+        else
+          baseaddresses[i]:=0;
+      end;
+
+
+      while f.Position<f.Size do
+      begin
+        x:=f.ReadWord;
+        if x=$ffff then
+          addAddress(f.ReadQWord)
+        else
+        begin
+          address:=f.ReadQWord;
+          if baseaddresses[x]<>0 then
+            addAddress(baseaddresses[x]+address);
+        end;
+      end;
+    end;
 
     lblAddressList.caption:=format(rsAddressList, [callmap.Count]);
   end;
@@ -815,7 +863,7 @@ begin
   disableAllBreakpoints;
 end;
 
-procedure TfrmCodeFilter.Button1Click(Sender: TObject);
+procedure TfrmCodeFilter.frmLaunchBranchMapperClick(Sender: TObject);
 begin
   if frmBranchMapper=nil then
     frmBranchMapper:=TfrmBranchMapper.Create(application);
@@ -905,8 +953,9 @@ var
   list: Tstringlist;
   i: integer;
 begin
-  savedialog.Filter:='Address file (*.txt;*.address)|*.cetrace|All file (*.*)|*.*';
+  savedialog.Filter:='Address text file (*.txt)|*.txt|All file (*.*)|*.*';
   savedialog.Title:=rsSaveAnAddressFile;
+  savedialog.DefaultExt:='.txt';
 
   if savedialog.execute then
   begin

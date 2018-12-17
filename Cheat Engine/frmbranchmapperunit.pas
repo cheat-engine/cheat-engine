@@ -19,6 +19,8 @@ type
     Label1: TLabel;
     Label2: TLabel;
     Panel1: TPanel;
+    Panel2: TPanel;
+    SaveDialog1: TSaveDialog;
     Timer1: TTimer;
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
@@ -41,7 +43,7 @@ implementation
 
 {$R *.lfm}
 
-uses CEFuncProc, CEDebugger, debugeventhandler, DebugHelper;
+uses CEFuncProc, CEDebugger, debugeventhandler, DebugHelper, symbolhandler, symbolhandlerstructs;
 
 { TfrmBranchMapper }
 
@@ -49,6 +51,7 @@ resourcestring
   rsStartMapping = 'Start Mapping';
   rsStop = 'Stop';
   rsFoundNr = 'Found %d';
+  rsSaveResultsToFile = 'Save results to file';
 
 procedure TfrmBranchMapper.Button1Click(Sender: TObject);
 var
@@ -87,8 +90,69 @@ begin
 end;
 
 procedure TfrmBranchMapper.Button2Click(Sender: TObject);
+var
+  f: tfilestream;
+  mi: TMapIterator=nil;
+  address: ptruint;
+  ml: tstringlist=nil;
+  modinfo: TModuleInfo;
+  i: integer;
+  ind: word;
 begin
-  showmessage('Not yet implemented');
+  if savedialog1.execute then
+  begin
+
+    f:=tfilestream.Create(savedialog1.filename, fmCreate);
+
+    try
+      button2.Caption:='Saving. Please wait';
+      button2.Repaint;
+
+      ml:=tstringlist.create;
+
+      symhandler.getModuleList(ml);
+      f.WriteWord(ml.Count);
+      for i:=0 to ml.count-1 do
+        f.WriteAnsiString(ml[i]);
+
+      mapmrew.beginread;
+      try
+        mi:=TMapIterator.create(map);
+        while not mi.eom do
+        begin
+          mi.GetID(address);
+
+          if symhandler.getmodulebyaddress(address, modinfo) then
+          begin
+            ind:=ml.IndexOf(modinfo.modulename);
+            address:=address-modinfo.baseaddress;
+          end
+          else
+            ind:=$ffff;
+
+          f.WriteWord(ind);
+          f.WriteQWord(address);
+
+          mi.next;
+        end;
+
+      finally
+        mapmrew.endread;
+
+        if mi<>nil then
+          freeandnil(mi);
+
+        if ml<>nil then
+          freeandnil(ml);
+      end;
+
+    finally
+      f.free;
+
+      button2.Caption:=rsSaveResultsToFile;
+      button2.Repaint;
+    end;
+  end;
 end;
 
 procedure TfrmBranchMapper.FormCreate(Sender: TObject);

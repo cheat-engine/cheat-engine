@@ -338,7 +338,7 @@ object frmCodeFilter: TfrmCodeFilter
       TabOrder = 0
     end
   end
-  object Button1: TButton
+  object frmLaunchBranchMapper: TButton
     AnchorSideLeft.Control = GroupBox1
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = GroupBox1
@@ -350,7 +350,7 @@ object frmCodeFilter: TfrmCodeFilter
     AutoSize = True
     BorderSpacing.Left = 8
     Caption = 'Launch branch mapper'
-    OnClick = Button1Click
+    OnClick = frmLaunchBranchMapperClick
     ParentShowHint = False
     ShowHint = True
     TabOrder = 4

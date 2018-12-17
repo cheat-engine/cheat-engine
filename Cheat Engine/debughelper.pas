@@ -1577,8 +1577,10 @@ begin
 end;
 
 procedure TDebuggerThread.stopBranchMapper;
+var i: integer;
 begin
-
+  for i:=0 to ThreadList.count-1 do
+    TDebugThreadHandler(threadlist[i]).StopBranchMap;
 end;
 
 function TDebuggerThread.CodeFinderStop(codefinder: TFoundCodeDialog): boolean;
