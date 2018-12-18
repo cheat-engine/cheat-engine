@@ -5,7 +5,7 @@ unit Unit1;
 interface
 
 uses
-  windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
+  jwawindows, windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
   GamePanel, renderobject,glext, GL,glu, player,scoreboard, target, bullet, guitextobject,
   staticguiobject, gamebase, levelselect, gametutorial1, gametutorial2, gametutorial3;
 
@@ -15,6 +15,7 @@ type
 
   { TForm1 }
   TForm1 = class(TForm)
+    procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
     { private declarations }
@@ -22,6 +23,11 @@ type
     currentGame: TGameBase;
 
     lasttick: qword;
+    codebase: ptruint;
+    codesize: ptruint;
+
+
+    integrityCheckThread: TThread;
 
     procedure startgame2(sender: TObject);
     procedure startgame3(sender: TObject);
@@ -45,7 +51,204 @@ implementation
 
 { TForm1 }
 
-uses registry;
+uses registry, md5;
+
+type
+  TIntegrityCheckThread=class(tthread)
+  private
+    codebase: ptruint;
+    codesize: integer;
+    integrityCheckValue: dword;
+    function check1: dword;
+    function check2: dword;
+    function check3: dword;
+    procedure valid;
+    procedure invalid;
+  public
+    lastcheckwasvalid: boolean;
+    procedure execute; override;
+  end;
+
+
+function peinfo_getcodesize(header: pointer; headersize: integer=0): dword;
+var
+    ImageNTHeader: PImageNtHeaders;
+begin
+  result:=0;
+
+  if (headersize=0) or (PImageDosHeader(header)^._lfanew<=headersize-sizeof(TImageNtHeaders)) then
+  begin
+    ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
+    result:=ImageNTHeader^.OptionalHeader.SizeOfCode;
+  end;
+end;
+
+function peinfo_getdatabase(header: pointer; headersize: integer=0): ptrUint;
+var
+    ImageNTHeader: PImageNtHeaders;
+begin
+  result:=0;
+  if (headersize=0) or (PImageDosHeader(header)^._lfanew<=headersize-sizeof(TImageNtHeaders)) then
+  begin
+    ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
+    result:=ImageNTHeader^.OptionalHeader.BaseOfData;
+  end;
+end;
+
+function peinfo_getcodebase(header: pointer; headersize: integer=0): ptrUint;
+var
+    ImageNTHeader: PImageNtHeaders;
+begin
+  result:=0;
+  if (headersize=0) or (PImageDosHeader(header)^._lfanew<=headersize-sizeof(TImageNtHeaders)) then
+  begin
+    ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
+    result:=ImageNTHeader^.OptionalHeader.BaseOfCode;
+  end;
+end;
+
+function peinfo_getEntryPoint(header: pointer; headersize: integer=0): ptrUint;
+var
+    ImageNTHeader: PImageNtHeaders;
+begin
+  result:=0;
+  if (headersize=0) or (PImageDosHeader(header)^._lfanew<=headersize-sizeof(TImageNtHeaders)) then
+  begin
+    ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
+    result:=ImageNTHeader^.OptionalHeader.AddressOfEntryPoint;
+  end;
+
+end;
+
+function peinfo_getheadersize(header: pointer): dword;
+var
+    ImageNTHeader: PImageNtHeaders;
+begin
+  result:=0;
+  if PImageDosHeader(header)^.e_magic<>IMAGE_DOS_SIGNATURE then exit;
+
+  ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
+  if ptrUint(ImageNTHeader)-ptrUint(header)>$1000 then exit;
+  if ImageNTHeader^.Signature<>IMAGE_NT_SIGNATURE then exit;
+
+  result:=ImageNTHeader^.OptionalHeader.SizeOfHeaders;
+end;
+
+function peinfo_getimagesize(header: pointer): dword;
+var
+    ImageNTHeader: PImageNtHeaders;
+begin
+  ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
+  result:=ImageNTHeader^.OptionalHeader.SizeOfImage;
+end;
+
+
+function TIntegrityCheckThread.check1:dword;
+var
+  mem: pword;
+  r: dword;
+  i: integer;
+begin
+  mem:=pword(codebase);
+  r:=$deadbeef;
+  for i:=0 to (codesize div 2)-1 do
+  begin
+    r:=r xor mem[i];
+    inc(r,12);
+  end;
+
+  result:=r;
+end;
+
+function TIntegrityCheckThread.check2:dword;
+var
+  mem: pword;
+  r: dword;
+  i: integer;
+begin
+  mem:=pword(codebase);
+  r:=$feeddead;
+  for i:=0 to (codesize div 2)-1 do
+  begin
+    r:=r + mem[i];
+  end;
+
+  result:=r;
+end;
+
+function TIntegrityCheckThread.check3:dword;
+var
+  mem: pword;
+  r: dword;
+  i: integer;
+begin
+  mem:=pword(codebase);
+  r:=$cececece;
+  for i:=0 to (codesize div 2)-1 do
+  begin
+    r:=r xor mem[i];
+    dec(r,77);
+  end;
+
+  result:=r;
+end;
+
+procedure TIntegrityCheckThread.valid;
+var
+  i: integer;
+  s: string;
+begin
+  s:=form1.caption;
+  i:=Pos(' (Integrity check error)',s);
+  if i>0 then //valid now
+  begin
+    form1.caption:=copy(form1.caption,1,i);
+  end;
+end;
+
+procedure TIntegrityCheckThread.invalid;
+var s: string;
+begin
+  s:=form1.caption;
+  if Pos(' (Integrity check error)',s)=0 then
+    form1.caption:=form1.caption+' (Integrity check error)';
+end;
+
+procedure TIntegrityCheckThread.execute;
+var
+  c1,c2,c3: dword;
+
+  cf: dword;
+
+  m: pointer;
+begin
+  m:=pointer(GetModuleHandle(nil));
+
+  codebase:=ptruint(m)+peinfo_getcodebase(m);
+  codesize:=peinfo_getcodesize(m);
+
+  while not terminated do
+  begin
+    c1:=check1;
+    c2:=check2;
+    c3:=check3;
+
+    cf:=(c1 xor c2)+c3;
+    if cf=0 then inc(cf);
+
+    if integrityCheckValue=0 then
+      integrityCheckValue:=cf
+    else
+    begin
+      lastcheckwasvalid:=cf=integrityCheckValue;
+      if lastcheckwasvalid then
+        synchronize(@Valid)
+      else
+        synchronize(@Invalid)
+    end;
+    sleep(100);
+  end;
+end;
 
 procedure TForm1.gametick(sender:TObject);
 var
@@ -75,20 +278,29 @@ begin
 end;
 
 procedure TForm1.finishedTutorial(sender: TObject);
-var s,s2: string;
+var
+  s,s2: string;
+  mem: pword;
+  r: dword;
+  i: integer;
 begin
   if usedcheats then
   begin
     s:='winned';
-    s2:='yay';
+    s2:='. yay';
   end
   else
   begin
     s:='beaten';
-    s2:='Well done';
+
+    if TIntegrityCheckThread(integrityCheckThread).lastcheckwasvalid then
+      s2:=#13#10', and you have beaten the integrity check!'#13#10#13#10'Really well done!'
+    else
+      s2:='. Well done';
   end;
 
-  showmessage(format('You have %s all 3 ''games''. %s!',[s,s2]));
+
+  showmessage(format('You have %s all 3 ''games'' %s!',[s,s2]));
   ExitProcess(0);
 end;
 
@@ -129,6 +341,13 @@ begin
     2: startgame2(sender);
     3: startgame3(sender);
   end;
+end;
+
+
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+  integrityCheckThread:=TIntegrityCheckThread.create(false);
 end;
 
 procedure TForm1.FormShow(Sender: TObject);

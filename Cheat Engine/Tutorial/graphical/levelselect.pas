@@ -176,7 +176,7 @@ begin
 
       if (target3<>nil) and (target3.isdead=false) and bullets[i].checkCollision(target3) then //perhaps use a vector based on old x,y and new x,y
       begin
-        target3.health:=target1.health-24;
+        target3.health:=target3.health-24;
 
         if target3.health<=0 then
           target3.explode;
