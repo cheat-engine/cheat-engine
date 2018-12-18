@@ -1144,170 +1144,170 @@ begin
 
 
   try
-  //structures are not accessed constantly, so instead of storing them in memory, store them in a file instead
-  symhandler.modulelistMREW.BeginRead;
-  setlength(list,symhandler.modulelistpos);
-  for i:=0 to symhandler.modulelistpos-1 do
-  begin
-    list[i].modulebase:=symhandler.modulelist[i].baseaddress;
-    list[i].modulepath:=symhandler.modulelist[i].modulepath;
-    list[i].modulename:=symhandler.modulelist[i].modulename;
-  end;
-  symhandler.modulelistMREW.EndRead;
-
-
-  if (length(trim(tempdiralternative))>2) and dontusetempdir then
-    usedtempdir:=trim(tempdiralternative)
-  else
-    usedtempdir:=GetTempDir;
-
-  symbolpath:=usedtempdir+'Cheat Engine Symbols'+pathdelim;
-  ForceDirectory(symbolpath);
-
-  InitializeSQLite;
-  if sqlite3_threadsafe()=0 then exit;
-  sqlite3_config(SQLITE_CONFIG_SERIALIZED);
-
-  SymbolDataBasePath:=symbolpath+'structures.sqlite';
-
-
-  currentSymbolDataBase:=TSQLite3Connection.Create(nil);
-  currentSymbolDataBase.DatabaseName:=SymbolDataBasePath;
-
-  t:=TSQLTransaction.Create(nil);
-  t.DataBase:=currentSymbolDataBase;
-
-  q:=TSQLQuery.Create(nil);
-  q.DataBase:=currentSymbolDataBase;
-  q.Transaction:=t;
-
-
-  try
-    currentSymbolDataBase.Connected:=true;
-    l:=nil;
-    try
-      t.StartTransaction;
-
-      l:=tstringlist.create;
-
-      currentSymbolDataBase.GetTableNames(l);
-      if (l.IndexOf('modules')=-1) then
-      begin
-        //create the modules table
-        q.SQL.Text:='create table modules(moduleid INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, modulename varchar(255) NOT NULL, timestamp int NOT NULL, UNIQUE (modulename, timestamp))';
-        q.ExecSQL;
-      end;
-
-      if (l.IndexOf('structures')=-1) then
-      begin
-        //create the structures table
-        q.SQL.Text:='create table structures(moduleid INTEGER NOT NULL, typeid INTEGER NOT NULL, tablename varchar(255) NOT NULL, length INTEGER NOT NULL, PRIMARY KEY (moduleid, typeid))';
-        q.ExecSQL;
-
-        q.SQL.Text:='create index namelookup on structures(moduleid, tablename)';
-        q.ExecSQL;
-      end;
-
-      if (l.IndexOf('elements')=-1) then
-      begin
-        //create the structures table
-        q.SQL.Text:='create table elements(moduleid INTEGER NOT NULL, typeid INTEGER NOT NULL, elementnr INTEGER NOT NULL, elementname varchar(255) NOT NULL, offset INTEGER, basetype INTEGER, type INTEGER, tag INTEGER, PRIMARY KEY (moduleid, typeid, elementnr))';
-        q.ExecSQL;
-      end;
-
-      t.Action:=caCommit;
-      t.EndTransaction;
-    finally
-      if l<>nil then
-        freeandnil(l);
-    end;
-
-
-
-    currentSymbolDataBaseTransaction:=t;
-    currentSymbolDataBaseQueryObject:=q;
-
-    for i:=0 to length(list)-1 do
+    //structures are not accessed constantly, so instead of storing them in memory, store them in a file instead
+    symhandler.modulelistMREW.BeginRead;
+    setlength(list,symhandler.modulelistpos);
+    for i:=0 to symhandler.modulelistpos-1 do
     begin
-      hasStructInfo:=false;
+      list[i].modulebase:=symhandler.modulelist[i].baseaddress;
+      list[i].modulepath:=symhandler.modulelist[i].modulepath;
+      list[i].modulename:=symhandler.modulelist[i].modulename;
+    end;
+    symhandler.modulelistMREW.EndRead;
 
-      t.action:=caRollback;
-      t.StartTransaction;
 
-      //check if this module is in
-      ts:=FileAgeUTF8(list[i].modulepath);
+    if (length(trim(tempdiralternative))>2) and dontusetempdir then
+      usedtempdir:=trim(tempdiralternative)
+    else
+      usedtempdir:=GetTempDir;
 
-      q.SQL.Text:='select moduleid from modules where modulename=:modulename and timestamp=:ts';
+    symbolpath:=usedtempdir+'Cheat Engine Symbols'+pathdelim;
+    ForceDirectory(symbolpath);
 
-      q.ParamByName('modulename').AsString:=list[i].modulename;
-      q.ParamByName('ts').AsInteger:=ts;
-      q.Prepare;
+    InitializeSQLite;
+    if sqlite3_threadsafe()=0 then exit;
+    sqlite3_config(SQLITE_CONFIG_SERIALIZED);
 
-      q.Active:=true;
-      if q.RecordCount=0 then
+    SymbolDataBasePath:=symbolpath+'structures.sqlite';
+
+
+    currentSymbolDataBase:=TSQLite3Connection.Create(nil);
+    currentSymbolDataBase.DatabaseName:=SymbolDataBasePath;
+
+    t:=TSQLTransaction.Create(nil);
+    t.DataBase:=currentSymbolDataBase;
+
+    q:=TSQLQuery.Create(nil);
+    q.DataBase:=currentSymbolDataBase;
+    q.Transaction:=t;
+
+
+    try
+      currentSymbolDataBase.Connected:=true;
+      l:=nil;
+      try
+        t.StartTransaction;
+
+        l:=tstringlist.create;
+
+        currentSymbolDataBase.GetTableNames(l);
+        if (l.IndexOf('modules')=-1) then
+        begin
+          //create the modules table
+          q.SQL.Text:='create table modules(moduleid INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, modulename varchar(255) NOT NULL, timestamp int NOT NULL, UNIQUE (modulename, timestamp))';
+          q.ExecSQL;
+        end;
+
+        if (l.IndexOf('structures')=-1) then
+        begin
+          //create the structures table
+          q.SQL.Text:='create table structures(moduleid INTEGER NOT NULL, typeid INTEGER NOT NULL, tablename varchar(255) NOT NULL, length INTEGER NOT NULL, PRIMARY KEY (moduleid, typeid))';
+          q.ExecSQL;
+
+          q.SQL.Text:='create index namelookup on structures(moduleid, tablename)';
+          q.ExecSQL;
+        end;
+
+        if (l.IndexOf('elements')=-1) then
+        begin
+          //create the structures table
+          q.SQL.Text:='create table elements(moduleid INTEGER NOT NULL, typeid INTEGER NOT NULL, elementnr INTEGER NOT NULL, elementname varchar(255) NOT NULL, offset INTEGER, basetype INTEGER, type INTEGER, tag INTEGER, PRIMARY KEY (moduleid, typeid, elementnr))';
+          q.ExecSQL;
+        end;
+
+        t.Action:=caCommit;
+        t.EndTransaction;
+      finally
+        if l<>nil then
+          freeandnil(l);
+      end;
+
+
+
+      currentSymbolDataBaseTransaction:=t;
+      currentSymbolDataBaseQueryObject:=q;
+
+      for i:=0 to length(list)-1 do
       begin
-        //add it to the list (if nothing, the tollback will undo this add)
-        q.Active:=false;
-        q.SQL.Clear;
-        q.SQL.text:='INSERT INTO modules (modulename, timestamp) VALUES (:modulename, :ts)';
-        q.Prepare;
+        hasStructInfo:=false;
+
+        t.action:=caRollback;
+        t.StartTransaction;
+
+        //check if this module is in
+        ts:=FileAgeUTF8(list[i].modulepath);
+
+        q.SQL.Text:='select moduleid from modules where modulename=:modulename and timestamp=:ts';
+
         q.ParamByName('modulename').AsString:=list[i].modulename;
         q.ParamByName('ts').AsInteger:=ts;
-        q.ExecSQL;
+        q.Prepare;
 
-        currentmoduleid:=currentSymbolDataBase.GetInsertID;
-
-
-        r:=SymEnumTypes(self.thisprocesshandle, list[i].modulebase, @ET, self);
-
-        if r=true then
-          hasStructInfo:=true;
-      end
-      else
-      begin
-        r:=false; //already in the list
-        hasStructInfo:=true;
-        currentmoduleid:=q.FieldByName('moduleid').AsInteger;
-      end;
-
-      q.Active:=false;
-
-
-      if r then
-        t.Action:=caCommit
-      else
-        t.Action:=caRollback;
-
-      t.EndTransaction;
-
-      if terminated then exit;
-
-      if hasStructInfo then
-      begin
-        symhandler.modulelistMREW.BeginRead;
-        for j:=0 to symhandler.modulelistpos-1 do
+        q.Active:=true;
+        if q.RecordCount=0 then
         begin
-          if symhandler.modulelist[j].baseaddress=list[i].modulebase then
-          begin
-            symhandler.modulelist[j].hasStructInfo:=true;
-            symhandler.modulelist[j].databaseModuleID:=currentmoduleid;
-            break;
-          end;
+          //add it to the list (if nothing, the tollback will undo this add)
+          q.Active:=false;
+          q.SQL.Clear;
+          q.SQL.text:='INSERT INTO modules (modulename, timestamp) VALUES (:modulename, :ts)';
+          q.Prepare;
+          q.ParamByName('modulename').AsString:=list[i].modulename;
+          q.ParamByName('ts').AsInteger:=ts;
+          q.ExecSQL;
+
+          currentmoduleid:=currentSymbolDataBase.GetInsertID;
+
+
+          r:=SymEnumTypes(self.thisprocesshandle, list[i].modulebase, @ET, self);
+
+          if r=true then
+            hasStructInfo:=true;
+        end
+        else
+        begin
+          r:=false; //already in the list
+          hasStructInfo:=true;
+          currentmoduleid:=q.FieldByName('moduleid').AsInteger;
         end;
-        symhandler.modulelistMREW.EndRead;
+
+        q.Active:=false;
+
+
+        if r then
+          t.Action:=caCommit
+        else
+          t.Action:=caRollback;
+
+        t.EndTransaction;
+
+        if terminated then exit;
+
+        if hasStructInfo then
+        begin
+          symhandler.modulelistMREW.BeginRead;
+          for j:=0 to symhandler.modulelistpos-1 do
+          begin
+            if symhandler.modulelist[j].baseaddress=list[i].modulebase then
+            begin
+              symhandler.modulelist[j].hasStructInfo:=true;
+              symhandler.modulelist[j].databaseModuleID:=currentmoduleid;
+              break;
+            end;
+          end;
+          symhandler.modulelistMREW.EndRead;
+        end;
       end;
+
+    finally
+      if q<>nil then
+        freeandnil(q);
+
+      if t<>nil then
+        freeandnil(t);
+
+      if currentSymbolDataBase<>nil then
+        freeandnil(currentSymbolDataBase);
     end;
-
-  finally
-    if q<>nil then
-      freeandnil(q);
-
-    if t<>nil then
-      freeandnil(t);
-
-    if currentSymbolDataBase<>nil then
-      freeandnil(currentSymbolDataBase);
-  end;
 
   except
     on e: exception do
@@ -1534,6 +1534,8 @@ begin
             end;
 
             //enumerate the extended debug symbols
+            isloading:=false;
+
             debugpart:=4;
             EnumerateExtendedDebugSymbols;
             debugpart:=5;
