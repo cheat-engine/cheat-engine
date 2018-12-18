@@ -87,14 +87,14 @@ object frmCodeFilter: TfrmCodeFilter
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
     Left = 0
-    Height = 145
-    Top = 211
+    Height = 162
+    Top = 194
     Width = 741
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Top = 4
     BevelOuter = bvNone
     Caption = 'Panel1'
-    ClientHeight = 145
+    ClientHeight = 162
     ClientWidth = 741
     TabOrder = 1
     object lblAddressList: TLabel
@@ -108,7 +108,7 @@ object frmCodeFilter: TfrmCodeFilter
     end
     object lvResults: TListView
       Left = 0
-      Height = 99
+      Height = 116
       Top = 15
       Width = 741
       Align = alClient
@@ -136,7 +136,7 @@ object frmCodeFilter: TfrmCodeFilter
     object Panel4: TPanel
       Left = 0
       Height = 31
-      Top = 114
+      Top = 131
       Width = 741
       Align = alBottom
       AutoSize = True
@@ -164,14 +164,14 @@ object frmCodeFilter: TfrmCodeFilter
     AnchorSideTop.Control = Label1
     AnchorSideTop.Side = asrBottom
     Left = 8
-    Height = 117
+    Height = 100
     Top = 53
     Width = 246
     AutoSize = True
     BorderSpacing.Left = 8
     BorderSpacing.Top = 8
     BevelOuter = bvNone
-    ClientHeight = 117
+    ClientHeight = 100
     ClientWidth = 246
     TabOrder = 2
     object Panel2: TPanel
@@ -179,16 +179,16 @@ object frmCodeFilter: TfrmCodeFilter
       AnchorSideTop.Control = Label3
       AnchorSideTop.Side = asrBottom
       Left = 0
-      Height = 73
+      Height = 52
       Top = 15
-      Width = 177
+      Width = 146
       AutoSize = True
       BevelOuter = bvNone
       ChildSizing.VerticalSpacing = 2
       ChildSizing.Layout = cclLeftToRightThenTopToBottom
       ChildSizing.ControlsPerLine = 1
-      ClientHeight = 73
-      ClientWidth = 177
+      ClientHeight = 52
+      ClientWidth = 146
       TabOrder = 0
       OnClick = Panel2Click
       object btnFilterOutNonExecutedAddresses: TButton
@@ -196,7 +196,7 @@ object frmCodeFilter: TfrmCodeFilter
         Height = 25
         Hint = 'Removes all addresses from the list that have not been executed, and resets the breakpoints on the remaining addresses if the filter is active'
         Top = 0
-        Width = 177
+        Width = 146
         Caption = 'Has been executed'
         OnClick = FilterClick
         ParentShowHint = False
@@ -209,20 +209,12 @@ object frmCodeFilter: TfrmCodeFilter
         Height = 25
         Hint = 'Removes all addresses from the list that have been executed, and resets the breakpoints on the remaining addresses if the filter is active'
         Top = 27
-        Width = 177
+        Width = 146
         Caption = 'Has not been executed'
         OnClick = FilterClick
         ParentShowHint = False
         ShowHint = True
         TabOrder = 1
-      end
-      object cbAutoStart: TCheckBox
-        Left = 0
-        Height = 19
-        Top = 54
-        Width = 177
-        Caption = 'Autostart after filter operation'
-        TabOrder = 2
       end
     end
     object Label3: TLabel
@@ -240,10 +232,10 @@ object frmCodeFilter: TfrmCodeFilter
       AnchorSideTop.Side = asrBottom
       Left = 0
       Height = 25
-      Top = 92
+      Top = 75
       Width = 75
       AutoSize = True
-      BorderSpacing.Top = 4
+      BorderSpacing.Top = 8
       Caption = 'Start'
       Constraints.MinWidth = 75
       OnClick = btnStartClick
@@ -255,7 +247,7 @@ object frmCodeFilter: TfrmCodeFilter
       AnchorSideTop.Control = btnStart
       Left = 79
       Height = 25
-      Top = 92
+      Top = 75
       Width = 75
       AutoSize = True
       BorderSpacing.Left = 4
@@ -284,7 +276,7 @@ object frmCodeFilter: TfrmCodeFilter
       Left = 158
       Height = 25
       Hint = 'Cancels the current operation'
-      Top = 92
+      Top = 75
       Width = 75
       BorderSpacing.Left = 4
       Caption = 'Cancel'
@@ -304,7 +296,7 @@ object frmCodeFilter: TfrmCodeFilter
     AnchorSideRight.Side = asrBottom
     Left = 0
     Height = 37
-    Top = 170
+    Top = 153
     Width = 741
     Anchors = [akTop, akLeft, akRight]
     AutoSize = True

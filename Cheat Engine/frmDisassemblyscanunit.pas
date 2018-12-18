@@ -41,6 +41,7 @@ type
     MenuItem2: TMenuItem;
     Panel1: TPanel;
     PopupMenu1: TPopupMenu;
+    ProgressBar1: TProgressBar;
     Timer1: TTimer;
     procedure ListBox1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState
       );
@@ -198,10 +199,16 @@ begin
   if disassemblerthread<>nil then
   begin
     if disassemblerthread.Finished=false then
-      label1.caption:=inttohex(disassemblerthread.currentaddress,8)
+    begin
+      label1.caption:=inttohex(disassemblerthread.currentaddress,8);
+
+      if Disassemblerthread.stopaddress>disassemblerthread.startaddress then
+        progressbar1.Position:=trunc((disassemblerthread.currentaddress-disassemblerthread.startaddress)/(Disassemblerthread.stopaddress-disassemblerthread.startaddress)*100);
+    end
     else
     begin
       label1.caption:=rsDone;
+      progressbar1.Position:=100;
       if assigned(fOnScanDone) then
         fOnScanDone(self);
     end;

@@ -24,7 +24,6 @@ type
     btnFilterOutExecutedAddresses: TButton;
     btnShowList: TButton;
     frmLaunchBranchMapper: TButton;
-    cbAutoStart: TCheckBox;
     GroupBox1: TGroupBox;
     Label1: TLabel;
     lblStatus: TLabel;
@@ -230,6 +229,8 @@ var
   mi: TMapIterator;
   bpinfo: PBPInfo;
   address: ptruint;
+  cc: byte=$cc;
+  x: ptruint;
 begin
   frmCodeFilter.callMapMREW.Beginwrite;
   try
@@ -237,15 +238,29 @@ begin
     mi.First;
     while (mi.valid and (not (mi.EOM or terminated))) do
     begin
-      mi.GetID(address);
       mi.GetData(bpinfo);
+      address:=bpinfo^.address;
 
       mi.next;
 
       if bpinfo^.hasBeenExecuted<>WantedHasBeenExecutedState then
       begin
         frmCodeFilter.callMap.Delete(address);
+
+        if frmCodeFilter.breakpointsSet and (not bpinfo^.hasBeenExecuted=false) then //restore
+          WriteProcessMemory(processhandle,pointer(address), @bpinfo^.originalByte,1,x);
+
         freemem(bpinfo);
+      end
+      else
+      begin
+        //set the breakpoint back if still active
+        if frmCodeFilter.breakpointsSet and bpinfo^.hasBeenExecuted then
+        begin
+          WriteProcessMemory(processhandle,pointer(address), @cc,1,x);
+          bpinfo^.hasBeenExecuted:=false;
+        end;
+
       end;
     end;
 
@@ -410,12 +425,6 @@ begin
   begin
     btnShowList.Enabled:=true;
     btnShowList.Click;
-  end;
-
-  if (Tworker(worker).workertype=wtFilterOutExecutedAddresses) or (Tworker(worker).workertype=wtFilterOutNonExecutedAddresses) then
-  begin
-    if cbAutoStart.checked then
-      btnStart.click;
   end;
 
   lblAddressList.caption:=format(rsAddressList, [callmap.Count]);
@@ -894,9 +903,6 @@ begin
     1: nextfilter:=fHasNotBeenExecuted;
   end;
 
-  if breakpointsSet then
-    disableAllBreakpoints(true);
-
   dofilter;
 end;
 
@@ -921,7 +927,7 @@ begin
   if item.index<addresslist.Count then
   begin
     bpinfo:=addresslist.Items[item.index];
-    item.caption:=inttohex(bpinfo^.address,8);
+    item.caption:=symhandler.getNameFromAddress(bpinfo^.address);
 
     if bpinfo^.hasBeenExecuted then
       item.SubItems.add(rsYes)

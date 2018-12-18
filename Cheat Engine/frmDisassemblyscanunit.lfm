@@ -1,10 +1,10 @@
 object frmDisassemblyscan: TfrmDisassemblyscan
   Left = 503
-  Height = 170
+  Height = 185
   Top = 372
   Width = 447
   Caption = 'Assemblyscan'
-  ClientHeight = 170
+  ClientHeight = 185
   ClientWidth = 447
   OnClose = FormClose
   OnDestroy = FormDestroy
@@ -14,7 +14,7 @@ object frmDisassemblyscan: TfrmDisassemblyscan
   object Label1: TLabel
     Left = 0
     Height = 15
-    Top = 155
+    Top = 150
     Width = 447
     Align = alBottom
     Alignment = taCenter
@@ -23,7 +23,7 @@ object frmDisassemblyscan: TfrmDisassemblyscan
   end
   object ListBox1: TListBox
     Left = 0
-    Height = 155
+    Height = 150
     Top = 0
     Width = 379
     Align = alClient
@@ -36,12 +36,12 @@ object frmDisassemblyscan: TfrmDisassemblyscan
   end
   object Panel1: TPanel
     Left = 379
-    Height = 155
+    Height = 150
     Top = 0
     Width = 68
     Align = alRight
     AutoSize = True
-    ClientHeight = 155
+    ClientHeight = 150
     ClientWidth = 68
     TabOrder = 1
     OnClick = Panel1Click
@@ -51,7 +51,7 @@ object frmDisassemblyscan: TfrmDisassemblyscan
       AnchorSideBottom.Side = asrBottom
       Left = 3
       Height = 25
-      Top = 127
+      Top = 122
       Width = 62
       Anchors = [akLeft, akBottom]
       AutoSize = True
@@ -63,6 +63,16 @@ object frmDisassemblyscan: TfrmDisassemblyscan
       OnClick = btnCancelClick
       TabOrder = 0
     end
+  end
+  object ProgressBar1: TProgressBar
+    AnchorSideTop.Control = Label1
+    Left = 0
+    Height = 20
+    Top = 165
+    Width = 447
+    Align = alBottom
+    Anchors = [akLeft, akBottom]
+    TabOrder = 2
   end
   object Timer1: TTimer
     OnTimer = Timer1Timer
