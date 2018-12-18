@@ -1927,12 +1927,21 @@ begin
 
     case memory[0] of  //opcode
       $00 : begin
-              description:='Add';
+              if (memory[1]=$55) and (memory[2]=$89) and (memory[3]=$e5) then
+              begin
+                description:='Filler';
+                lastdisassembledata.opcode:='db';
+                LastDisassembleData.parameters:=inttohex(memory[0],2);
+              end
+              else
+              begin
+                description:='Add';
 
-              lastdisassembledata.opcode:='add';
-              lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last)+r8(memory[1]);
+                lastdisassembledata.opcode:='add';
+                lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last)+r8(memory[1]);
 
-              inc(offset,last-1);
+                inc(offset,last-1);
+              end;
             end;
 
       $01 : begin
