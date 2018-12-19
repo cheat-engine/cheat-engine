@@ -113,6 +113,8 @@ type
     hintwindow:THintWindow;
     continuemethod: integer;
     AutoCompleteStartLine: string;
+    procedure ContinueAutoComplete;
+    procedure ContinueAutoComplete2(Sender: TObject);
   public
     { public declarations }
     synhighlighter: TSynLuaSyn;
@@ -148,11 +150,36 @@ begin
   btnexecute.Height:=panel2.clientheight-(2*btnexecute.top);
 end;
 
+procedure TfrmLuaEngine.ContinueAutoComplete;
+var p,p2: tpoint;
+begin
+
+  p:=mscript.RowColumnToPixels(point(mscript.CaretX,mscript.CaretY+1));
+  p2:=mscript.ClientToScreen(point(0,0));
+  scLuaCompleter.Execute('.',p2+p);
+end;
+
+procedure TfrmLuaEngine.ContinueAutoComplete2(sender: TObject);
+begin
+  ContinueAutoComplete;
+  ttimer(sender).enabled:=false;
+  ttimer(sender).free;
+end;
+
 procedure TfrmLuaEngine.scLuaCompleterCodeCompletion(var Value: string;
   SourceValue: string; var SourceStart, SourceEnd: TPoint; KeyChar: TUTF8Char;
   Shift: TShiftState);
+var t: TTimer;
 begin
-
+  if keychar='.' then
+  begin
+    value:=value+'.';
+//    TThread.Queue(nil, ContinueAutoComplete);
+    t:=TTimer.Create(self);
+    t.interval:=1;
+    t.OnTimer:=ContinueAutoComplete2;
+    t.enabled:=true;
+  end;
 end;
 
 function ParseStringForPath(s: string; var extra: string): string;
@@ -366,6 +393,9 @@ begin
   //get the text from the end till the first .
 
   s:=scLuaCompleter.CurrentString;
+
+
+
   if s='' then exit;
 
   if s[1]='.' then
@@ -1464,7 +1494,6 @@ end;
 procedure TfrmLuaEngine.mScriptKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-
   if (ssCtrl in shift) and (key=vk_return) then
   begin
     btnExecute.click;
@@ -1498,6 +1527,7 @@ begin
   begin
     if key='.' then
     begin
+
       mscript.InsertTextAtCaret('.');
       p:=mscript.RowColumnToPixels(point(mscript.CaretX,mscript.CaretY+1));
       p2:=mscript.ClientToScreen(point(0,0));

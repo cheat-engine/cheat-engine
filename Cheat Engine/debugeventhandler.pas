@@ -629,7 +629,7 @@ begin
   if isBranchMapping and (frmBranchMapper<>nil) then
   begin
     frmBranchMapper.mapmrew.beginread;
-    hasid:=frmBranchMapper.map.hasID(context^.rip);
+    hasid:=frmBranchMapper.map.hasID(context^.{$ifdef cpu64}rip{$else}eip{$endif});
     frmBranchMapper.mapmrew.endread;
 
     if branchMappingDisabled=0 then
@@ -640,8 +640,8 @@ begin
     if hasid then exit;
 
     frmBranchMapper.mapmrew.beginwrite;
-    if frmBranchMapper.map.hasID(context^.rip)=false then
-      frmBranchMapper.map.Add(context^.rip,b);
+    if frmBranchMapper.map.hasID(context^.{$ifdef cpu64}rip{$else}eip{$endif})=false then
+      frmBranchMapper.map.Add(context^.{$ifdef cpu64}rip{$else}eip{$endif},b);
 
     frmBranchMapper.mapmrew.endwrite;
   end;
