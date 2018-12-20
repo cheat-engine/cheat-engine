@@ -622,7 +622,7 @@ begin
       for i:=0 to tv.Items.Count-1 do
       begin
         s:=tv.items[i].Text;
-        if (callonly=false) or (pos('CALL ',s)>0) then
+        if (callonly=false) or (pos('call ',s)>0) then
         begin
           sep:=pos('-',s);
           if sep>0 then
