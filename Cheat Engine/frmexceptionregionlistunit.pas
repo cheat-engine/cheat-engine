@@ -128,7 +128,9 @@ begin
 
     result.Address:=a;
     result.size:=size;
-  end;
+  end
+  else
+    raise exception.create('Invalid string passed to getRegionFromString');
 end;
 
 procedure TfrmExceptionRegionList.lbRegionListDblClick(Sender: TObject);

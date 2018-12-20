@@ -123,6 +123,7 @@ var
 
   vd: double;
 begin
+  p:=nil;
   if self<>frmFloatingPointPanel then exit; //readonly for all other panels
 
   if (debuggerthread=nil) or (debuggerthread.CurrentThread=nil) then exit;

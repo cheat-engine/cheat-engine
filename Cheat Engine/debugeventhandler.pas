@@ -827,6 +827,7 @@ begin
 
 
   {$ifdef cpu32}
+  hasSetInt1Back:=false;
   if not (CurrentDebuggerInterface is TKernelDebugInterface) then
   begin
     if setint1back then
@@ -836,9 +837,7 @@ begin
       setInt1Back:=false;
       hasSetInt1Back:=true;
       dwContinueStatus:=DBG_CONTINUE;
-    end
-    else
-      hasSetInt1Back:=false;
+    end;
   end;
 
   {$endif}
@@ -935,8 +934,9 @@ begin
   //check if it's an expected breakpoint
   //if not, DBG_EXCEPTION_NOT_HANDLED
 
-
+  active:=false;
   bpp2:=nil;
+  bpp:=nil;
 
   if (debugreg=-1) and (frmCodeFilter<>nil) and frmCodeFilter.handleBreakpoint(address) then  //callfilter
   begin

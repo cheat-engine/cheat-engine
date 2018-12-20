@@ -67,7 +67,7 @@ var
 begin
   if lbExceptionCodeList.itemindex<>-1 then
   begin
-    s:=lbExceptionCodeList.items[i];
+    s:=lbExceptionCodeList.items[lbExceptionCodeList.itemindex];
     s:=copy(s,1,8);
     c:=strtoint(s);
     RemoveIgnoredExceptionCode(c);

@@ -62,6 +62,7 @@ begin
   if button1.tag=0 then
   begin
     tidlist:=tlist.create;
+    i:=0;
     for i:=0 to clbthreads.count-1 do
     begin
       if clbThreads.checked[i] then
