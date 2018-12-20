@@ -1485,10 +1485,13 @@ begin
   processid := debugevent.dwProcessId;
   threadid  := debugevent.dwThreadId;
 
-  if currentdebuggerinterface is TNetworkDebuggerInterface then
-    handle  := debugevent.CreateThread.hThread
-  else
-    handle  := OpenThread(THREAD_ALL_ACCESS, false, threadid );
+  if handle=0 then
+  begin
+    if currentdebuggerinterface is TNetworkDebuggerInterface then
+      handle  := debugevent.CreateThread.hThread
+    else
+      handle  := OpenThread(THREAD_ALL_ACCESS, false, threadid );
+  end;
 
   Result    := true;
 
@@ -1783,6 +1786,7 @@ begin
     currentThread := TDebugThreadHandler.Create(debuggerthread, fonattachEvent, fOnContinueEvent, breakpointlist, threadlist, debuggerCS);
     currentThread.processid := debugevent.dwProcessId;
     currentThread.threadid := debugevent.dwThreadId;
+    currentThread.CreateThreadDebugEvent(debugevent,dwContinueStatus);
 
     ThreadList.Add(currentThread);
   end
