@@ -36,6 +36,7 @@ Tutorial Game: Added a levelskip option when you've solved a step
 Tutorial Game: Added a secondary test
 Compare memory: Added a limit to the number of address values shown per row (can be changed)
 Address List: When the option to deactivate children is set, the children will get deactivated first
+Memory Scan: Add a lua script in autorun that lets you specify which module to scan
 
 lua:
 ExecuteCodeLocal (Let's you execute code in the target and pass parameters)
