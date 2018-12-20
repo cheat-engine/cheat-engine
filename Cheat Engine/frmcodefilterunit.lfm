@@ -374,6 +374,7 @@ object frmCodeFilter: TfrmCodeFilter
     end
     object miDeleteSelectedItems: TMenuItem
       Caption = 'Delete selected addresses'
+      ShortCut = 46
       OnClick = miDeleteSelectedItemsClick
     end
   end

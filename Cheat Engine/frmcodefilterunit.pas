@@ -71,6 +71,7 @@ type
     callMapMREW: TMultiReadExclusiveWriteSynchronizer;
     callMap: TMap; //these breakpoints do NOT get added to the breakpoint list (not efficient enough)
 
+
     addressList: TList;
     addressListCS: TCriticalSection;
 
@@ -103,7 +104,9 @@ type
 
   public
     { public declarations }
+    function isBreakpoint(address: ptruint; var originalbyte: byte): boolean;
     function handleBreakpoint(address: ptruint): boolean; //called by TDebugThreadHandler's. If true it knows it should just continue from here
+    property hasBreakpointsSet: boolean read breakpointsSet;
   end;
 
 var
@@ -538,6 +541,23 @@ begin
   end;
 end;
 
+
+function TfrmCodeFilter.isBreakpoint(address: ptruint; var originalbyte: byte): boolean;
+var bpinfo: Pbpinfo;
+begin
+  callMapMREW.Beginread;
+
+  if callmap.GetData(address, bpinfo) then
+  begin
+    originalbyte:= bpinfo^.originalByte;
+    result:=bpinfo^.hasBeenExecuted;
+  end
+  else
+    result:=false;
+
+  callMapMREW.Endread;
+end;
+
 function TfrmCodeFilter.handleBreakpoint(address: ptruint): boolean;
 var bpinfo: Pbpinfo;
   x: ptruint;
@@ -647,6 +667,7 @@ begin
       f.free;
 
       lblAddressList.caption:=format(rsAddressList, [callmap.Count]);
+      btnShowList.Click;
     end;
   end;
 end;
@@ -858,6 +879,7 @@ begin
     end;
 
     lblAddressList.caption:=format(rsAddressList, [callmap.Count]);
+    btnShowList.Click;
   end;
 end;
 

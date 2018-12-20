@@ -231,7 +231,7 @@ uses Assemblerunit, StrUtils, Parsers, memoryQuery;
 
 {$ifdef windows}
 uses Assemblerunit,CEDebugger, debughelper, StrUtils, debuggertypedefinitions,
-  Parsers, memoryQuery, binutils, luacaller, vmxfunctions;
+  Parsers, memoryQuery, binutils, luacaller, vmxfunctions, frmcodefilterunit;
 {$endif}
 
 
@@ -1480,6 +1480,9 @@ begin
       b:=bp.originalbyte;
   end;
   debuggerthread.unlockbplist;
+
+  if (frmCodeFilter<>nil) then frmcodefilter.isBreakpoint(address, b);
+
 end;
 {$endif}
 
