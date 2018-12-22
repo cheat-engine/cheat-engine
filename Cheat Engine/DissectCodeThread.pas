@@ -617,14 +617,14 @@ begin
       end;
     end;
 
-    if true then exit;
+    if result then exit;
 
     //check if unicode string
     i:=0;
     result:=true;
     while i<8 do
     begin
-      if not (tempbuf[i] in [32..127]) then
+      if not ((tempbuf[i] in [32..127]) and (tempbuf[i+1]=0)) then
       begin
         result:=false;
         break;
