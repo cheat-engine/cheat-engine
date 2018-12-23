@@ -44,6 +44,7 @@ type TStringReference=class(tobject)
   address: ptrUint;
   s: string;
   references: array of ptrUint;
+  isUnicode: boolean;
 end;
 
 type TDissectReference=class(tobject)
