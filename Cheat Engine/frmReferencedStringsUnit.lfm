@@ -37,6 +37,10 @@ object frmReferencedStrings: TfrmReferencedStrings
         Width = 75
       end    
       item
+        Caption = 'Unicode'
+        Width = 80
+      end    
+      item
         Caption = 'String'
         Width = 46
       end>
