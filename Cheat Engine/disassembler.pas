@@ -15083,7 +15083,7 @@ begin
    // if dataonly then exit;     //no need to handle the other stuff, dataonly means I'm only interested in the addresses, not bytes or extra parameters
 
    if (lastdisassembledata.parameters<>'') and (lastdisassembledata.parameters[length(lastdisassembledata.parameters)]=',') then
-     lastdisassembledata.parameters[length(lastdisassembledata.parameters)]:=#0;
+     setlength(lastdisassembledata.parameters, length(lastdisassembledata.parameters)-1);
 
 
    // tempresult:=tempresult+LastDisassembleData.opcode+' '+LastDisassembleData.parameters;
