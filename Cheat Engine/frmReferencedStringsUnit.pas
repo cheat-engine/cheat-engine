@@ -63,7 +63,7 @@ implementation
 uses DissectCodeunit, DissectCodeThread, MemoryBrowserFormUnit, ProcessHandlerUnit, Parsers;
 
 
-function getStringFromAddress(address: ptrUint): string;
+function getStringFromAddress(address: ptrUint; var isUnicode: boolean): string;
 {Reads the string at the given address}
 var
   c: pchar;
@@ -78,6 +78,7 @@ var
 
 begin
   result:='-';
+  isUnicode:=false;
   getmem(c,512);
   try
     if ReadProcessMemory(processhandle, pointer(address), c, 512, x) then
@@ -115,6 +116,7 @@ begin
           wc[i]:=#0;
           ws:=wc;
           result:=ws;
+          isUnicode:=true;
           exit;
         end;
 
@@ -157,7 +159,7 @@ begin
       begin
         x:=TStringReference(s.Objects[i]);
         if x.s='' then
-          x.s:=getStringFromAddress(x.address);
+          x.s:=getStringFromAddress(x.address,x.isUnicode);
       end;
     finally
       cslist.Leave;
@@ -229,17 +231,19 @@ begin
     lvStringlist.Column[0].Width:=x[1];
     lvStringlist.Column[1].Width:=x[2];
     lvStringlist.Column[2].Width:=x[3];
+    lvStringlist.Column[3].Width:=x[4];
   end;
 end;
 
 procedure TfrmReferencedStrings.FormDestroy(Sender: TObject);
 var x: array of integer;
 begin
-  setlength(x,4);
+  setlength(x,5);
   x[0]:=lbReflist.Width;
   x[1]:=lvStringlist.Column[0].Width;
   x[2]:=lvStringlist.Column[1].Width;
   x[3]:=lvStringlist.Column[2].Width;
+  x[4]:=lvStringlist.Column[3].Width;
 
   saveformposition(self,x);
 end;
@@ -251,7 +255,15 @@ end;
 
 function StringSort(List: TStringList; Index1, Index2: Integer): Integer;
 begin
-  result:=CompareStr(getstringfromaddress(TStringReference(list.Objects[index1]).address) , getstringfromaddress(TStringReference(list.Objects[index2]).address));
+  result:=CompareStr(TStringReference(list.Objects[index1]).s, TStringReference(list.Objects[index2]).s);
+end;
+
+function isUnicodeSort(List: TStringList; Index1, Index2: Integer): Integer;
+var a,b: integer;
+begin
+  a:=ifthen(TStringReference(list.Objects[index1]).isUnicode,1,0);
+  b:=ifthen(TStringReference(list.Objects[index2]).isUnicode,1,0);
+  result:=a-b;
 end;
 
 function RefSort(List: TStringList; Index1, Index2: Integer): Integer;
@@ -265,7 +277,8 @@ begin
   case column.index of
     0: stringlist.CustomSort(AddressSort);
     1: stringlist.CustomSort(RefSort);
-    2: stringlist.CustomSort(StringSort);
+    2: stringlist.CustomSort(isUnicodeSort);
+    3: stringlist.CustomSort(StringSort);
   end;
 
   lvStringlist.Refresh;
@@ -285,11 +298,15 @@ begin
     stringfiller.csList.Enter;
     try
       if x.s='' then
-        x.s:=getstringfromaddress(x.address);
+        x.s:=getstringfromaddress(x.address,x.isUnicode);
     finally
       stringfiller.csList.Leave;
     end;
 
+    if x.isUnicode then
+      item.SubItems.Add('✔')
+    else
+      item.SubItems.Add('❌');
 
     item.SubItems.Add(x.s);
 
@@ -382,7 +399,7 @@ begin
 
   for i:=startindex to lvStringlist.Items.Count-1 do
   begin
-    if pos(lowercase(finddialog1.FindText), lowercase(lvstringlist.Items[i].SubItems[1]))>0 then
+    if pos(lowercase(finddialog1.FindText), lowercase(lvstringlist.Items[i].SubItems[2]))>0 then
     begin
       lvstringlist.Items[i].Selected:=true;
       lvstringlist.ItemIndex:=i;
