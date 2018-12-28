@@ -1809,7 +1809,8 @@ begin
 
       31: //debug->run
       begin
-        MemoryBrowser.Run1.Click;
+        if memorybrowser.miDebugRun.enabled then
+          MemoryBrowser.miDebugRun.Click;
       end;
 
     end;

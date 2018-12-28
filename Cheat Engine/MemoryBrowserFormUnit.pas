@@ -587,7 +587,7 @@ type
     procedure reloadStacktrace;
     function GetReturnaddress: ptrUint;
 
-    procedure UpdateDebugContext(threadhandle: THandle; threadid: dword; changeSelection: boolean=true);
+    procedure UpdateDebugContext(threadhandle: THandle; threadid: dword; changeSelection: boolean=true; _debuggerthread: TDebuggerthread=nil);
     procedure miLockOnClick(Sender: TObject);
     procedure miLockMemviewClick(sender: TObject);
 
@@ -2604,13 +2604,12 @@ end;
 
 procedure TMemoryBrowser.miDebugRunClick(Sender: TObject);
 begin
+  if miDebugRun.Enabled then
   begin
     if debuggerthread<>nil then
       debuggerthread.ContinueDebugging(co_run);
 
-
     caption:=rsMemoryViewerRunning;
-
 
     reloadstacktrace;
   end;
@@ -4519,7 +4518,7 @@ begin
     result:=0;
 end;
 
-procedure TMemoryBrowser.UpdateDebugContext(threadhandle: THandle; threadid: dword; changeselection: boolean=true);
+procedure TMemoryBrowser.UpdateDebugContext(threadhandle: THandle; threadid: dword; changeselection: boolean=true; _debuggerthread: TDebuggerThread=nil);
 var temp: string='';
     temp2: string;
     Regstart: string='';
@@ -4535,6 +4534,8 @@ var temp: string='';
     params: string;
     accessedreglist: tstringlist=nil;
 begin
+  if _debuggerthread<>nil then debuggerthread.execlocation:=41301;
+
   if processhandler.SystemArchitecture=archX86 then
   begin
     a:=lastdebugcontext.{$ifdef cpu64}Rip{$else}Eip{$endif};
@@ -4553,6 +4554,8 @@ begin
 
   if frmThreadlist<>nil then
     frmThreadlist.FillThreadlist;
+
+  if _debuggerthread<>nil then _debuggerthread.execlocation:=41302;
 
 
   if processhandler.is64Bit or (processhandler.SystemArchitecture=archArm) then
@@ -4669,6 +4672,9 @@ begin
 
   end;
 
+  if _debuggerthread<>nil then _debuggerthread.execlocation:=41303;
+
+
   if r8label<>nil then r8label.visible:=processhandler.is64Bit or (processhandler.SystemArchitecture=archArm);
   if r9label<>nil then r9label.visible:=processhandler.is64Bit or (processhandler.SystemArchitecture=archArm);
   if r10label<>nil then r10label.visible:=processhandler.is64Bit or (processhandler.SystemArchitecture=archArm);
@@ -4702,8 +4708,20 @@ begin
     end;
   end;
 
+  if _debuggerthread<>nil then _debuggerthread.execlocation:=41304;
+
   miDebugRun.Enabled:=true;
-  miRunUnhandled.Enabled:=debuggerthread.CurrentThread.isUnhandledException;
+
+  if debuggerthread.CurrentThread=nil then
+  begin
+    showmessage('shit happened');
+
+    beep;
+  end;
+
+  miRunUnhandled.Enabled:=(debuggerthread.CurrentThread<>nil) and debuggerthread.CurrentThread.isUnhandledException;
+
+  if _debuggerthread<>nil then _debuggerthread.execlocation:=41305;
   miRunUnhandled.Visible:=miRunUnhandled.Enabled;
   miDebugStep.Enabled:=true;
   miDebugStepOver.Enabled:=true;
@@ -4712,10 +4730,13 @@ begin
   stacktrace1.Enabled:=true;
   miDebugExecuteTillReturn.Enabled:=true;
 
+
+
+
   if threadid<>0 then
     caption:=Format(rsMemoryViewerCurrentlyDebuggingThread, [inttohex(threadid, 1)]);
 
-  if debuggerthread.CurrentThread.isUnhandledException then
+  if (debuggerthread.CurrentThread<>nil) and debuggerthread.CurrentThread.isUnhandledException then
     caption:=caption+' '+format(rsBecauseOfUnhandledExeption, [ExceptionCodeToString(debuggerthread.CurrentThread.lastUnhandledExceptionCode)]);
 
   if (frmstacktrace<>nil) then
@@ -4734,6 +4755,7 @@ begin
     if processhandler.SystemArchitecture=archArm then
       disassemblerview.SelectedAddress:=lastdebugcontextarm.PC;
   end;
+
 
 
 
@@ -4840,6 +4862,8 @@ begin
 
   end else eIPlabel.Font.Color:=clWindowText;
 
+  if _debuggerthread<>nil then _debuggerthread.execlocation:=41306;
+
   {$ifdef CPU64}
   if processhandler.is64Bit or (processhandler.SystemArchitecture=archArm)  then
   begin
@@ -4924,6 +4948,8 @@ begin
     end;
   end;
   {$endif}
+
+  if _debuggerthread<>nil then _debuggerthread.execlocation:=41307;
 
   if processhandler.SystemArchitecture=archX86 then
   begin
@@ -5054,7 +5080,7 @@ begin
   end;
 
 
-
+  if _debuggerthread<>nil then _debuggerthread.execlocation:=41308;
 
   sbShowFloats.BringToFront;
   //sbShowFloats.visible:=true;
@@ -5081,6 +5107,8 @@ begin
     scrollbox1.Invalidate;
   end;
 
+  if _debuggerthread<>nil then _debuggerthread.execlocation:=41309;
+
   if laststack=nil then
   begin
     getmem(laststack,stacktraceSize+64);
@@ -5101,7 +5129,11 @@ begin
     inc(i,bs);
   end;
 
+  if _debuggerthread<>nil then _debuggerthread.execlocation:=41310;
+
   reloadStacktrace;
+
+  if _debuggerthread<>nil then _debuggerthread.execlocation:=41311;
 
   if frmFloatingPointPanel<>nil then
     frmFloatingPointPanel.SetContextPointer(@lastdebugcontext);
@@ -5109,11 +5141,15 @@ begin
   if not memorybrowser.Visible then
     memorybrowser.show;
 
+  if _debuggerthread<>nil then _debuggerthread.execlocation:=41312;
+
   if (frmWatchlist<>nil) and (frmWatchlist.Visible) then
     frmWatchlist.UpdateContext(@lastdebugcontext);
 
   if accessedreglist<>nil then
     freeandnil(accessedreglist);
+
+  if _debuggerthread<>nil then _debuggerthread.execlocation:=41313;
 
   {for i:=0 to 4095 do
   begin

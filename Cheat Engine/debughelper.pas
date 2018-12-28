@@ -220,6 +220,9 @@ var
   allocs: TCEAllocarray;
 
 begin
+  if IsDebuggerPresent() then
+    self.NameThreadForDebugging('Debugger thread');
+
   if terminated then exit;
 
   execlocation:=0;
@@ -2290,11 +2293,10 @@ Sets the way the debugger should continue, and triggers the sleeping thread to w
 var bp: PBreakpoint;
  ct: TDebugThreadHandler;
 begin
+
   ct:=fcurrentThread;
   if ct<>nil then
   begin
-
-
 
     if ct.isWaitingToContinue then
     begin
