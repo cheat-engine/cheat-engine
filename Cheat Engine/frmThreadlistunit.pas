@@ -456,7 +456,7 @@ begin
         begin
           if TDebugThreadHandler(threadlist[i]).ThreadId=tid then
           begin
-            SuspendThread(TDebugThreadHandler(threadlist[i]).handle);
+            ResumeThread(TDebugThreadHandler(threadlist[i]).handle);
             break;
           end;
         end;
