@@ -223,6 +223,13 @@ end;
 
 procedure TDebugThreadHandler.VisualizeBreak;
 begin
+  WaitingToContinue:=true;
+
+
+  Outputdebugstring('HandleBreak()');
+
+  onContinueEvent.ResetEvent;
+
   TDebuggerthread(debuggerthread).execlocation:=41;
   UpdateMemoryBrowserContext;
 
@@ -241,7 +248,9 @@ begin
   if WaitingToContinue then //no lua script or it returned 0
   begin
     TDebuggerthread(debuggerthread).execlocation:=413;
-    MemoryBrowser.UpdateDebugContext(self.Handle, self.ThreadId);
+
+
+    MemoryBrowser.UpdateDebugContext(self.Handle, self.ThreadId, true, TDebuggerthread(debuggerthread));
   end;
   TDebuggerthread(debuggerthread).execlocation:=414;
 
@@ -785,14 +794,10 @@ end;
 procedure TDebugThreadHandler.HandleBreak(bp: PBreakpoint; var dwContinueStatus: dword);
 begin
   TDebuggerthread(debuggerthread).execlocation:=38;
-  WaitingToContinue:=true;
 
 
-  Outputdebugstring('HandleBreak()');
+  //synchronize(VisualizeBreak);
   //go to sleep and wait for an event that wakes it up. No need to worry about deleted breakpoints, since the cleanup will not be called untill this routine exits
-  onContinueEvent.ResetEvent;
-
-
   TDebuggerthread(debuggerthread).synchronize(TDebuggerthread(debuggerthread), VisualizeBreak);
 
   if WaitingToContinue then
