@@ -519,7 +519,7 @@ begin
 
     if (tid=GetCurrentThreadId) then exit; //don't accidentally freeze the ce main thread
 
-    isCurrentDebuggedThread:=debuggerthread.isWaitingToContinue and (debuggerthread.CurrentThread.ThreadId=tid);
+    isCurrentDebuggedThread:=(debuggerthread<>nil) and debuggerthread.isWaitingToContinue and (debuggerthread.CurrentThread.ThreadId=tid);
 
     if isCurrentDebuggedThread then
       th:=debuggerthread.CurrentThread.handle
