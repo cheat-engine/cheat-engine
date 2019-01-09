@@ -3470,18 +3470,18 @@ begin
 
       if (err<>0) and (getreg(tokens[i],false)=-1) then    //not a hexadecimal value and not a register
       begin
-        j:=pos('*', tokens[i]);
-        if j>0 then //getreg failed, but could be it's the 'other' one
-        begin
-          if (length(tokens[i])>j) and (copy(tokens[i],j+1,1)[1] in ['2','4','8']) then
-            continue; //reg*2 / *3, /*4
-        end;
-
         temp:=inttohex(symhandler.getaddressfromname(tokens[i], false, haserror,nil),8);
         if not haserror then
           tokens[i]:=temp //can be rewritten as a hexadecimal
         else
         begin
+          j:=pos('*', tokens[i]);
+          if j>0 then //getreg failed, but could be it's the 'other' one
+          begin
+            if (length(tokens[i])>j) and (copy(tokens[i],j+1,1)[1] in ['2','4','8']) then
+              continue; //reg*2 / *3, /*4
+          end;
+
           if (i<length(tokens)-1) then
           begin
             //perhaps it can be concatenated with the next one
