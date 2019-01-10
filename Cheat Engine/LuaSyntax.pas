@@ -240,7 +240,7 @@ type
     fLineNumber: Integer;
     fProcTable: array[#0..#255] of TProcTableProc;
     fRange: TRangeState;
-    fSepCnt: Integer;
+    fSepCnt: array of Byte;
     Run: LongInt;
     fStringLen: Integer;
     fToIdent: PChar;
@@ -653,12 +653,12 @@ procedure TSynLuaSyn.LuaCommentOpenProc;
 var sep: Integer;
 begin
   Inc(Run);
-  fSepCnt:=0;
+  fSepCnt[fLineNumber]:=0;
   if (fLine[Run] = '-') and
      (fLine[Run + 1] = '[') then
   begin
     sep:=LongDelimCheck(Run+1);
-    fSepCnt:=sep;
+    fSepCnt[fLineNumber]:=sep;
     if sep>0 then
     begin
       Inc(Run, sep + 1);
@@ -720,11 +720,11 @@ begin
         if (fLine[Run] = ']') then
         begin
           sep:=LongDelimCheck(Run);
-          if (sep>0) and (sep=fSepCnt) then
+          if (sep>0) and (sep=fSepCnt[fLineNumber]) then
           begin
             Inc(Run, sep + 1);
             fRange := rsUnKnown;
-            fSepCnt:=0;
+            fSepCnt[fLineNumber]:=0;
             Break;
           end;
         end;
@@ -740,7 +740,7 @@ var sep: Integer;
 begin
   Inc(Run);
   sep:=LongDelimCheck(Run-1);
-  fSepCnt:=sep;
+  fSepCnt[fLineNumber]:=sep;
   if sep>0 then
   begin
     Inc(Run, sep - 1);
@@ -766,11 +766,11 @@ begin
         if (fLine[Run] = ']') then
         begin
           sep:=LongDelimCheck(Run);
-          if (sep>0) and (sep=fSepCnt) then
+          if (sep>0) and (sep=fSepCnt[fLineNumber]) then
           begin
             Inc(Run, sep + 1);
             fRange := rsUnKnown;
-            fSepCnt:=0;
+            fSepCnt[fLineNumber]:=0;
             Break;
           end;
         end;
@@ -994,6 +994,9 @@ begin
   fLine := PChar(fLineRef);
   Run := 0;
   fLineNumber := LineNumber;
+  if Length(fSepCnt)<(LineNumber+1) then SetLength(fSepCnt, LineNumber + 50);
+  if LineNumber>0 then fSepCnt[fLineNumber]:=fSepCnt[fLineNumber - 1]
+                  else fSepCnt[0]:=0;
   Next;
 end;
 
