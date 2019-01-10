@@ -182,7 +182,6 @@ type
 
 
     fScriptMode: TScriptMode;
-    fluamode: boolean;
     fCustomTypeScript: boolean;
 
     procedure setluamode(state: boolean);
@@ -915,9 +914,21 @@ begin
 end;
 
 procedure TfrmAutoInject.assemblescreenChange(Sender: TObject);
+var s: String;
 begin
   if self=mainform.frmLuaTableScript then
     mainform.editedsincelastsave:=true;
+
+  // deal with current Lua Highlighter weaknesses (multiline strings/comments, see git issue 480)
+  if (ScriptMode=smLua) and (assemblescreen.Highlighter<>nil) then
+  begin
+    s:=assemblescreen.Lines[assemblescreen.CaretY - 1];
+    if s.Contains('[[') or s.Contains(']]') or s.Contains('[=') or s.Contains('=]') then
+    begin  // restart Lua TSynCustomHighlighter
+      assemblescreen.Highlighter:=nil;
+      assemblescreen.Highlighter:=LuaHighlighter;
+    end;
+  end;
 end;
 
 
@@ -1801,9 +1812,9 @@ begin
   Syntaxhighlighting1.checked:=not Syntaxhighlighting1.checked;
   if Syntaxhighlighting1.checked then //enable
   begin
-    if fluamode then
+    if ScriptMode=smLua then
       assemblescreen.Highlighter:=LuaHighlighter
-    else
+    else if ScriptMode=smAutoAssembler then
       assemblescreen.Highlighter:=AAHighlighter
   end
   else //disabl
