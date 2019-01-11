@@ -409,14 +409,14 @@ begin
           if TDebugThreadHandler(threadlist[i]).ThreadId=tid then
           begin
             SuspendThread(TDebugThreadHandler(threadlist[i]).handle);
-            break;
+            exit;
           end;
         end;
       finally
         debuggerthread.unlockThreadlist;
       end;
-    end
-    else
+    end;
+
     begin
       th:=OpenThread(THREAD_SUSPEND_RESUME, false, tid);
 
@@ -457,14 +457,14 @@ begin
           if TDebugThreadHandler(threadlist[i]).ThreadId=tid then
           begin
             ResumeThread(TDebugThreadHandler(threadlist[i]).handle);
-            break;
+            exit;
           end;
         end;
       finally
         debuggerthread.unlockThreadlist;
       end;
-    end
-    else
+    end;
+
     begin
       th:=OpenThread(THREAD_SUSPEND_RESUME, false, tid);
 

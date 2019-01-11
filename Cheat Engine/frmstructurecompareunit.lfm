@@ -1,7 +1,7 @@
 object frmStructureCompare: TfrmStructureCompare
-  Left = 667
+  Left = 806
   Height = 400
-  Top = 244
+  Top = 380
   Width = 622
   AutoSize = True
   Caption = 'Structure Compare'
@@ -24,7 +24,7 @@ object frmStructureCompare: TfrmStructureCompare
     ClientHeight = 380
     ClientWidth = 622
     TabOrder = 0
-    object ListView1: TListView
+    object lvResults: TListView
       Left = 0
       Height = 214
       Top = 166
@@ -38,9 +38,10 @@ object frmStructureCompare: TfrmStructureCompare
       RowSelect = True
       TabOrder = 0
       ViewStyle = vsReport
-      OnCustomDrawSubItem = ListView1CustomDrawSubItem
-      OnData = ListView1Data
-      OnDblClick = ListView1DblClick
+      OnColumnClick = lvResultsColumnClick
+      OnCustomDrawSubItem = lvResultsCustomDrawSubItem
+      OnData = lvResultsData
+      OnDblClick = lvResultsDblClick
     end
     object Panel3: TPanel
       Left = 0
