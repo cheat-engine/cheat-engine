@@ -240,7 +240,6 @@ type
     fLineNumber: Integer;
     fProcTable: array[#0..#255] of TProcTableProc;
     fRange: TRangeState;
-    fSepCnt: array of Byte;
     Run: LongInt;
     fStringLen: Integer;
     fToIdent: PChar;
@@ -300,7 +299,6 @@ type
     procedure String2OpenProc;
     procedure String2Proc;
     procedure NumberProc;
-    function LongDelimCheck(aRun: integer): integer;
   protected
     function GetIdentChars: TSynIdentChars; override;
     function GetSampleSource: string; override;
@@ -640,34 +638,16 @@ begin
   inc(Run);
 end;
 
-function TSynLuaSyn.LongDelimCheck(aRun: integer): integer;
-var sep: integer;
-begin
-  sep:=1;
-  while (fLine[aRun+sep]='=') and (sep<255) do Inc(sep);
-  if fLine[aRun]=fLine[aRun+Sep] then exit(sep);
-  result:=0;
-end;
-
 procedure TSynLuaSyn.LuaCommentOpenProc;
-var sep: Integer;
 begin
   Inc(Run);
-  fSepCnt[fLineNumber]:=0;
   if (fLine[Run] = '-') and
-     (fLine[Run + 1] = '[') then
+     (fLine[Run + 1] = '[') and
+     (fLine[Run + 2] = '[') then
   begin
-    sep:=LongDelimCheck(Run+1);
-    fSepCnt[fLineNumber]:=sep;
-    if sep>0 then
-    begin
-      Inc(Run, sep + 1);
-      LuaMCommentOpenProc;
-      exit;
-    end;
-  end;
-
-  if (fLine[Run] = '-') then
+    LuaMCommentOpenProc;
+  end
+  else if (fLine[Run] = '-') then
   begin
     fRange := rsLuaComment;
     LuaCommentProc;
@@ -707,7 +687,6 @@ begin
 end;
 
 procedure TSynLuaSyn.LuaMCommentProc;
-var sep: Integer;
 begin
   case fLine[Run] of
      #0: NullProc;
@@ -717,16 +696,12 @@ begin
     begin
       fTokenID := tkComment;
       repeat
-        if (fLine[Run] = ']') then
+        if (fLine[Run] = ']') and
+           (fLine[Run + 1] = ']') then
         begin
-          sep:=LongDelimCheck(Run);
-          if (sep>0) and (sep=fSepCnt[fLineNumber]) then
-          begin
-            Inc(Run, sep + 1);
-            fRange := rsUnKnown;
-            fSepCnt[fLineNumber]:=0;
-            Break;
-          end;
+          Inc(Run, 2);
+          fRange := rsUnKnown;
+          Break;
         end;
         if not (fLine[Run] in [#0, #10, #13]) then
           Inc(Run);
@@ -736,14 +711,10 @@ begin
 end;
 
 procedure TSynLuaSyn.LuaMStringOpenProc;
-var sep: Integer;
 begin
   Inc(Run);
-  sep:=LongDelimCheck(Run-1);
-  fSepCnt[fLineNumber]:=sep;
-  if sep>0 then
+  if (fLine[Run] = '[') then
   begin
-    Inc(Run, sep - 1);
     fRange := rsLuaMString;
     LuaMStringProc;
     fTokenID := tkLuaMString;
@@ -753,7 +724,6 @@ begin
 end;
 
 procedure TSynLuaSyn.LuaMStringProc;
-var sep: Integer;
 begin
   case fLine[Run] of
      #0: NullProc;
@@ -763,16 +733,12 @@ begin
     begin
       fTokenID := tkLuaMString;
       repeat
-        if (fLine[Run] = ']') then
+        if (fLine[Run] = ']') and
+           (fLine[Run + 1] = ']') then
         begin
-          sep:=LongDelimCheck(Run);
-          if (sep>0) and (sep=fSepCnt[fLineNumber]) then
-          begin
-            Inc(Run, sep + 1);
-            fRange := rsUnKnown;
-            fSepCnt[fLineNumber]:=0;
-            Break;
-          end;
+          Inc(Run, 2);
+          fRange := rsUnKnown;
+          Break;
         end;
         if not (fLine[Run] in [#0, #10, #13]) then
           Inc(Run);
@@ -994,9 +960,6 @@ begin
   fLine := PChar(fLineRef);
   Run := 0;
   fLineNumber := LineNumber;
-  if Length(fSepCnt)<(LineNumber+1) then SetLength(fSepCnt, LineNumber + 50);
-  if LineNumber>0 then fSepCnt[fLineNumber]:=fSepCnt[fLineNumber - 1]
-                  else fSepCnt[0]:=0;
   Next;
 end;
 
