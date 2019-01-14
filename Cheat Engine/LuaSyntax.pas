@@ -240,7 +240,7 @@ type
     fLineNumber: Integer;
     fProcTable: array[#0..#255] of TProcTableProc;
     fRange: TRangeState;
-    fSepCnt: array of Byte;
+    fRangeExtended: ptrUInt;
     Run: LongInt;
     fStringLen: Integer;
     fToIdent: PChar;
@@ -653,15 +653,14 @@ procedure TSynLuaSyn.LuaCommentOpenProc;
 var sep: Integer;
 begin
   Inc(Run);
-  fSepCnt[fLineNumber]:=0;
   if (fLine[Run] = '-') and
      (fLine[Run + 1] = '[') then
   begin
     sep:=LongDelimCheck(Run+1);
-    fSepCnt[fLineNumber]:=sep;
     if sep>0 then
     begin
       Inc(Run, sep + 1);
+      fRangeExtended := PtrUInt(rsLuaMComment)+10*sep;
       LuaMCommentOpenProc;
       exit;
     end;
@@ -669,7 +668,7 @@ begin
 
   if (fLine[Run] = '-') then
   begin
-    fRange := rsLuaComment;
+    fRangeExtended := PtrUInt(rsLuaComment);
     LuaCommentProc;
     fTokenID := tkComment;
   end
@@ -691,7 +690,7 @@ begin
        (fLine[Run + 7] = '@') then
     begin
       Inc(Run, 8);
-      fRange := rsUnKnown;
+      fRangeExtended := PtrUInt(rsUnKnown);
       Break;
     end;
     if not (fLine[Run] in [#0, #10, #13]) then
@@ -701,7 +700,6 @@ end;
 
 procedure TSynLuaSyn.LuaMCommentOpenProc;
 begin
-  fRange := rsLuaMComment;
   LuaMCommentProc;
   fTokenID := tkComment;
 end;
@@ -720,11 +718,10 @@ begin
         if (fLine[Run] = ']') then
         begin
           sep:=LongDelimCheck(Run);
-          if (sep>0) and (sep=fSepCnt[fLineNumber]) then
+          if (sep>0) and (sep=(fRangeExtended div 10)) then
           begin
             Inc(Run, sep + 1);
-            fRange := rsUnKnown;
-            fSepCnt[fLineNumber]:=0;
+            fRangeExtended := PtrUInt(rsUnKnown);
             Break;
           end;
         end;
@@ -740,11 +737,10 @@ var sep: Integer;
 begin
   Inc(Run);
   sep:=LongDelimCheck(Run-1);
-  fSepCnt[fLineNumber]:=sep;
   if sep>0 then
   begin
     Inc(Run, sep - 1);
-    fRange := rsLuaMString;
+    fRangeExtended := ptrUInt(rsLuaMString)+10*sep;
     LuaMStringProc;
     fTokenID := tkLuaMString;
   end
@@ -766,11 +762,10 @@ begin
         if (fLine[Run] = ']') then
         begin
           sep:=LongDelimCheck(Run);
-          if (sep>0) and (sep=fSepCnt[fLineNumber]) then
+          if (sep>0) and (sep=(fRangeExtended div 10)) then
           begin
             Inc(Run, sep + 1);
-            fRange := rsUnKnown;
-            fSepCnt[fLineNumber]:=0;
+            fRangeExtended := PtrUInt(rsUnKnown);
             Break;
           end;
         end;
@@ -908,7 +903,7 @@ end;
 procedure TSynLuaSyn.String1OpenProc;
 begin
   Inc(Run);
-  fRange := rsString1;
+  fRangeExtended := PtrUInt(rsString1);
   String1Proc;
   fTokenID := tkString;
 end;
@@ -920,7 +915,7 @@ begin
     if (((fLine[Run] = '"') and (fLine[Run - 1] <> '\')) or ((fLine[Run - 1] = '\') and (fLine[Run - 2] = '\') and (fLine[Run] = '"'))) then
     begin
       Inc(Run, 1);
-      fRange := rsUnKnown;
+      fRangeExtended := PtrUInt(rsUnKnown);
       Break;
     end;
     if not (fLine[Run] in [#0, #10, #13]) then
@@ -931,7 +926,7 @@ end;
 procedure TSynLuaSyn.String2OpenProc;
 begin
   Inc(Run);
-  fRange := rsString2;
+  fRangeExtended := PtrUInt(rsString2);
   String2Proc;
   fTokenID := tkString;
 end;
@@ -943,7 +938,7 @@ begin
     if (fLine[Run] = '''') then
     begin
       Inc(Run, 1);
-      fRange := rsUnKnown;
+      fRangeExtended := PtrUInt(rsUnKnown);
       Break;
     end;
     if not (fLine[Run] in [#0, #10, #13]) then
@@ -985,7 +980,7 @@ begin
   InitIdent;
   MakeMethodTables;
   fDefaultFilter := SYNS_FilterLua;
-  fRange := rsUnknown;
+  fRangeExtended := ptrUInt(rsUnknown);
 end;
 
 procedure TSynLuaSyn.SetLine(const NewValue: String; LineNumber: Integer);
@@ -994,9 +989,6 @@ begin
   fLine := PChar(fLineRef);
   Run := 0;
   fLineNumber := LineNumber;
-  if Length(fSepCnt)<(LineNumber+1) then SetLength(fSepCnt, LineNumber + 50);
-  if LineNumber>0 then fSepCnt[fLineNumber]:=fSepCnt[fLineNumber - 1]
-                  else fSepCnt[0]:=0;
   Next;
 end;
 
@@ -1026,12 +1018,12 @@ end;
 procedure TSynLuaSyn.Next;
 begin
   fTokenPos := Run;
-  case fRange of
+  case TRangeState(fRangeExtended mod 10) of
     rsLuaMComment: LuaMCommentProc;
     rsLuaMString: LuaMStringProc;
   else
     begin
-      fRange := rsUnknown;
+      fRangeExtended := PtrUInt(rsUnknown);
       fProcTable[fLine[Run]];
     end;
   end;
@@ -1135,17 +1127,17 @@ end;
 
 procedure TSynLuaSyn.ResetRange;
 begin
-  fRange := rsUnknown;
+  fRangeExtended := PtrUInt(rsUnknown);
 end;
 
 procedure TSynLuaSyn.SetRange(Value: Pointer);
 begin
-  fRange := TRangeState(PtrUInt(Value));
+  fRangeExtended := PtrUInt(Value);
 end;
 
 function TSynLuaSyn.GetRange: Pointer;
 begin
-  Result := Pointer(PtrUInt(fRange));
+  Result := Pointer(fRangeExtended);
 end;
 
 initialization

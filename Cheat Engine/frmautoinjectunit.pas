@@ -914,21 +914,9 @@ begin
 end;
 
 procedure TfrmAutoInject.assemblescreenChange(Sender: TObject);
-var s: String;
 begin
   if self=mainform.frmLuaTableScript then
     mainform.editedsincelastsave:=true;
-
-  // deal with current Lua Highlighter weaknesses (multiline strings/comments, see git issue 480)
-  if (ScriptMode=smLua) and (assemblescreen.Highlighter<>nil) then
-  begin
-    s:=assemblescreen.Lines[assemblescreen.CaretY - 1];
-    if s.Contains('[[') or s.Contains(']]') or s.Contains('[=') or s.Contains('=]') then
-    begin  // restart Lua TSynCustomHighlighter
-      assemblescreen.Highlighter:=nil;
-      assemblescreen.Highlighter:=LuaHighlighter;
-    end;
-  end;
 end;
 
 
