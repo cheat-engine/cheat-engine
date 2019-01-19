@@ -10698,7 +10698,7 @@ begin
                 lastdisassembledata.parameters:=r32(memory[1])+modrm(memory,prefix2,1,0,last,mRight);
 
               lastdisassembledata.parametervalue:=memory[last];
-              lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
+              lastdisassembledata.parameters:=lastdisassembledata.parameters+','+inttohexs(memory[last],2);
               inc(offset,last-1+1);
             end;
 
