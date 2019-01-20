@@ -85,7 +85,6 @@ procedure stringlist_addMetaData(L: PLua_state; metatable: integer; userdata: in
 begin
   strings_addMetaData(L, metatable, userdata);
 
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'createStringlist', createStringlist);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getDuplicates', stringlist_getDuplicates);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setDuplicates', stringlist_setDuplicates);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getSorted', stringlist_getSorted);

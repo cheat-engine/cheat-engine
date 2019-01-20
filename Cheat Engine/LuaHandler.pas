@@ -6764,31 +6764,6 @@ begin
     lua_pop(L, lua_gettop(l));
 end;
 
-function createTreeView(L: Plua_State): integer; cdecl; //undocument, unsupported, unworking
-var
-  Treeview: TCETreeView;
-  parameters: integer;
-  owner: TWincontrol;
-begin
-  result:=0;
-
-  parameters:=lua_gettop(L);
-  if parameters>=1 then
-    owner:=lua_toceuserdata(L, 1)
-  else
-    owner:=nil;
-
-  lua_pop(L, lua_gettop(L));
-
-
-  Treeview:=TCETreeview.Create(owner);
-  if owner<>nil then
-    Treeview.Parent:=owner;
-
-  luaclass_newClass(L, Treeview);
-  result:=1;
-end;
-
 function lua_loadTable(L: Plua_State): integer; cdecl;
 var
   filename: string='';
@@ -10399,7 +10374,6 @@ begin
 
     initializeLuaForm;
     initializeLuaPanel;
-    initializeLuaImage;
 
     initializeLuaEdit;
 
@@ -10637,7 +10611,6 @@ begin
     lua_register(L, 'getThreadlist', getThreadlist_lua);
     lua_register(L, 'getThreadList', getThreadlist_lua);
 
-    Lua_register(L, 'createTreeView', createTreeView);
     Lua_register(L, 'loadTable', lua_loadTable);
     Lua_register(L, 'saveTable', lua_saveTable);
     Lua_register(L, 'detachIfPossible', lua_DetachIfPossible);

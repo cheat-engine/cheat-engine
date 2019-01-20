@@ -690,10 +690,12 @@ begin
   for j:=0 to length(results)-1 do
     results[j]:=tfilestream.create(tempfilename+'.results.'+inttostr(j+1), fmCreate);
 
-  for i:=0 to count-1 do
+  i:=0;
+  while (i <= count-1) do
   begin
     pr:=getPointerRec(i);
     writeRecord(results[pr^.level], pr);
+    inc(i);
   end;
 
   for j:=0 to length(results)-1 do
