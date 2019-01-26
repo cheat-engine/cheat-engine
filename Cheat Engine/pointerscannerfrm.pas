@@ -1302,6 +1302,7 @@ var
   name: string;
   maxlevel: string;
   compressedptr, unalligned, MaxBitCountModuleIndex, MaxBitCountModuleOffset, MaxBitCountLevel, MaxBitCountOffset: string;
+  DidBaseRangeScan, BaseScanRange: string;
 
   tablenames: Tstringlist;
   fieldnames: tstringlist;
@@ -1351,7 +1352,9 @@ begin
 	                      '`MaxBitCountModuleIndex`	INTEGER,'+
 	                      '`MaxBitCountModuleOffset`	INTEGER,'+
 	                      '`MaxBitCountLevel`	INTEGER,'+
-	                      '`MaxBitCountOffset`	INTEGER);');
+	                      '`MaxBitCountOffset`	INTEGER,'+
+	                      '`DidBaseRangeScan`	INTEGER,'+
+	                      '`BaseScanRange`	INTEGER);');
 
         sqlite3.ExecuteDirect('CREATE UNIQUE INDEX "id_idx" ON pointerfiles( "ptrid" );');
       end;
@@ -1395,7 +1398,7 @@ begin
         sqlite3.GetFieldNames('results', fieldnames);
 
         for i:=1 to pointerscanresults.offsetCount do
-          if fieldnames.indexof('offset'+inttostr(i))=0 then
+          if fieldnames.indexof('offset'+inttostr(i))=-1 then
             sqlite3.ExecuteDirect('ALTER TABLE results ADD COLUMN offset'+inttostr(i)+' integer');
 
         fieldnames.free;
@@ -1464,8 +1467,13 @@ begin
         MaxBitCountOffset:='NULL';
       end;
 
+      DidBaseRangeScan:=inttostr(ifthen(Pointerscanresults.DidBaseRangeScan, 1, 0));
+      if Pointerscanresults.DidBaseRangeScan then
+        BaseScanRange:=inttostr(Pointerscanresults.BaseScanRange)
+      else
+        BaseScanRange:='NULL';
 
-      s:='INSERT INTO pointerfiles (name, maxlevel, compressedptr, unalligned, MaxBitCountModuleIndex, MaxBitCountModuleOffset, MaxBitCountLevel, MaxBitCountOffset) values ("'+name+'", '+maxlevel+','+compressedptr+','+unalligned+','+MaxBitCountModuleIndex+','+MaxBitCountModuleOffset+','+MaxBitCountLevel+','+MaxBitCountOffset+')';
+      s:='INSERT INTO pointerfiles (name, maxlevel, compressedptr, unalligned, MaxBitCountModuleIndex, MaxBitCountModuleOffset, MaxBitCountLevel, MaxBitCountOffset, DidBaseRangeScan, BaseScanRange) values ("'+name+'", '+maxlevel+','+compressedptr+','+unalligned+','+MaxBitCountModuleIndex+','+MaxBitCountModuleOffset+','+MaxBitCountLevel+','+MaxBitCountOffset+','+DidBaseRangeScan+','+BaseScanRange+')';
 
       sqlite3.ExecuteDirect(s);
       for i:=0 to Pointerscanresults.EndsWithOffsetListCount-1 do
@@ -1606,6 +1614,7 @@ begin
         exit;
     finally
       f.free;
+      l.free;
     end;
 
     savedialog1.FileName:=name;
@@ -1715,6 +1724,16 @@ begin
         ptrfile.WriteByte(0);
       end;
 
+      l:=tstringlist.create;
+      sqlite3.GetFieldNames('pointerfiles', l);
+      if (l.indexof('DidBaseRangeScan')<>-1) and (SQLQuery.FieldByName('DidBaseRangeScan').AsInteger=1) then
+      begin
+        ptrfile.WriteByte(1);
+        ptrfile.WriteQWord(SQLQuery.FieldByName('BaseScanRange').AsLargeInt);
+      end
+      else
+        ptrfile.WriteByte(0);
+      l.free;
 
     finally
       if ptrfile<>nil then
