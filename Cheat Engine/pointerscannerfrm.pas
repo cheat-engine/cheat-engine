@@ -1579,9 +1579,9 @@ var
 
   oldpb: string;
 begin
-  if (sdSqlite.execute) then
+  if (odSqlite.execute) then
   begin
-    filename:=utf8toansi(sdsqlite.FileName);
+    filename:=utf8toansi(odsqlite.FileName);
 
     SQLite3.DatabaseName:=filename;
     sqlite3.Connected:=true;
