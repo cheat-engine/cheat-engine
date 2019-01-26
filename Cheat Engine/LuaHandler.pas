@@ -8141,9 +8141,15 @@ begin
         lua_gettable(L,i);
         if lua_isnil(L,-1) then
         begin
-          lua_pushnil(L);
-          lua_pushstring(L,'Invalid parametertype '+inttostr(i+2));
-          exit(2);
+          lua_pop(L,1);
+          lua_pushinteger(L,1);
+          lua_gettable(L,i);
+          if lua_isnil(L,-1) then
+          begin
+            lua_pushnil(L);
+            lua_pushstring(L,'Invalid parametertype '+inttostr(i+2));
+            exit(2);
+          end;
         end;
         valuetype:=lua_tointeger(L,-1);
         lua_pop(L,1);
@@ -8152,9 +8158,15 @@ begin
         lua_gettable(L,i);
         if lua_isnil(L,-1) then
         begin
-          lua_pushnil(L);
-          lua_pushstring(L,'Invalid parametervalue '+inttostr(i+2));
-          exit(2);
+          lua_pop(L,1);
+          lua_pushinteger(L,2);
+          lua_gettable(L,i);
+          if lua_isnil(L,-1) then
+          begin
+            lua_pushnil(L);
+            lua_pushstring(L,'Invalid parametervalue '+inttostr(i+2));
+            exit(2);
+          end;
         end;
 
         case valuetype of
