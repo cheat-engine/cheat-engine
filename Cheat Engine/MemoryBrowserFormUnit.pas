@@ -1223,6 +1223,16 @@ var
   s: string;
   haserror: boolean=true;
 begin
+  if processhandler.is64Bit then
+  begin
+    miAddESP.Caption:='(rsp+*)';
+    miAddEBP.Caption:='(rbp+*)';
+  end else
+  begin
+    miAddESP.Caption:='(esp+*)';
+    miAddEBP.Caption:='(ebp+*)';
+  end;
+
   if lvStacktraceData.Selected<>nil then
   begin
     s:=lvStacktraceData.Selected.Caption;

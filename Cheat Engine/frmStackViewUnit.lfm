@@ -65,6 +65,7 @@ object frmStackView: TfrmStackView
       OnClick = miAddESPClick
     end
     object miAddRef: TMenuItem
+      AutoCheck = True
       Caption = '(ref+*) Ref will be %x'
       GroupIndex = 1
       RadioItem = True
