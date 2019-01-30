@@ -1682,70 +1682,78 @@ begin
   listsize:=sizeof(dword)*(maxlevel+1);
   valuelistsize:=sizeof(qword)*(maxlevel+1);
 
-  offsetcountperlist:=0;
+  offsetcountperlist:=maxlevel;
 
+  overflowqueuecs.enter;
   pathqueueCS.enter;
   try
-
-
-    while f.Position<f.Size do
-    begin
-      i:=length(overflowqueue);
-      setlength(overflowqueue, length(overflowqueue)+1);
-      if f.Read(overflowqueue[i].valuetofind, sizeof(overflowqueue[i].valuetofind))>0 then
-      begin
-        f.read(overflowqueue[i].startlevel, sizeof(overflowqueue[i].startlevel));
-
-        if overflowqueue[i].startlevel>offsetcountperlist then
-        begin
-          j:=f.Position;
-          raise exception.create(rsInvalidData+inttostr(f.position));
-        end;
-
-        setlength(overflowqueue[i].tempresults, maxlevel+1);
-        f.read(overflowqueue[i].tempresults[0], listsize);
-
-        //length(pathqueue[i].tempresults)*sizeof(pathqueue[i].tempresults[0]));
-
-        if noloop then
-        begin
-          setlength(overflowqueue[i].valuelist, maxlevel+1);
-          f.read(overflowqueue[i].valuelist[0], valuelistsize);
-        end;
-      end;
-
-    end;
-
-    //sort based on level
-    for i:=0 to length(overflowqueue)-2 do
-    begin
-      for j:=i to length(overflowqueue)-1 do
-      begin
-        if overflowqueue[i].startlevel>overflowqueue[j].startlevel then //swap
-        begin
-          tempentry:=overflowqueue[j];
-          overflowqueue[j]:=overflowqueue[i];
-          overflowqueue[i]:=tempentry;
-        end;
-      end;
-    end;
-
-    addedToQueue:=0;
     try
 
-      for i:=length(overflowqueue)-1 downto 0 do
+      while f.Position<f.Size do
       begin
-        if pathqueuelength<MAXQUEUESIZE then
+        i:=length(overflowqueue);
+        setlength(overflowqueue, length(overflowqueue)+1);
+        if f.Read(overflowqueue[i].valuetofind, sizeof(overflowqueue[i].valuetofind))>0 then
         begin
-          pathqueue[pathqueuelength]:=overflowqueue[i];
-          inc(pathqueuelength);
+          f.read(overflowqueue[i].startlevel, sizeof(overflowqueue[i].startlevel));
 
-          overflowqueue[i].tempresults[0]:=$cece;
-          inc(addedToQueue);
+          if overflowqueue[i].startlevel>offsetcountperlist then
+          begin
+            j:=f.Position;
+            raise exception.create(rsInvalidData+inttostr(f.position));
+          end;
 
-        end else break;
+          setlength(overflowqueue[i].tempresults, maxlevel+1);
+          f.read(overflowqueue[i].tempresults[0], listsize);
+
+          //length(pathqueue[i].tempresults)*sizeof(pathqueue[i].tempresults[0]));
+
+          if noloop then
+          begin
+            setlength(overflowqueue[i].valuelist, maxlevel+1);
+            f.read(overflowqueue[i].valuelist[0], valuelistsize);
+          end;
+        end;
+
       end;
 
+      //sort based on level
+      for i:=0 to length(overflowqueue)-2 do
+      begin
+        for j:=i to length(overflowqueue)-1 do
+        begin
+          if overflowqueue[i].startlevel>overflowqueue[j].startlevel then //swap
+          begin
+            tempentry:=overflowqueue[j];
+            overflowqueue[j]:=overflowqueue[i];
+            overflowqueue[i]:=tempentry;
+          end;
+        end;
+      end;
+
+      addedToQueue:=0;
+      try
+
+        for i:=length(overflowqueue)-1 downto 0 do
+        begin
+          if pathqueuelength<MAXQUEUESIZE then
+          begin
+            pathqueue[pathqueuelength]:=overflowqueue[i];
+            inc(pathqueuelength);
+
+            overflowqueue[i].tempresults[0]:=$cece;
+            inc(addedToQueue);
+
+          end else break;
+        end;
+      except
+        on e: exception do
+        begin
+          OutputDebugString('TPointerscanController.SetupQueueForResume Error:'+e.message);
+          setlength(overflowqueue,0);
+          raise;
+        end;
+      end
     finally
       setlength(overflowqueue, length(overflowqueue)-addedToQueue);
       ReleaseSemaphore(pathqueueSemaphore, addedToQueue, nil);
@@ -1753,6 +1761,7 @@ begin
 
   finally
     pathqueueCS.leave;
+    overflowqueuecs.leave;
     f.free;
   end;
 
