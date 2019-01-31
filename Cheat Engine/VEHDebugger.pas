@@ -10,6 +10,7 @@ uses
   Clipbrd;
 
 type
+
   TVEHDebugInterface=class(TDebuggerInterface)
   private
     guid: TGUID; //to indentify this specific debugger
@@ -24,7 +25,17 @@ type
     active: boolean;
     is64bit: boolean; //stored local so it doesn't have to evaluate the property (saves some time)
     hasPausedProcess: boolean;
+
+    isInjectedEvent: boolean;
+    injectedEvents: TList;
+
+    lastthreadlist: TStringList;
+    lastthreadpoll: qword;
+
+    Heartbeat: TThread;
+
     procedure SynchronizeNoBreakList;
+    procedure DoThreadPoll;
   public
     function WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL; override;
     function ContinueDebugEvent(dwProcessId: DWORD; dwThreadId: DWORD; dwContinueStatus: DWORD): BOOL; override;
@@ -55,6 +66,30 @@ resourcestring
   rsVEHDebugError = 'VEH Debug error';
   rsFailureDuplicatingTheFilemapping = 'Failure duplicating the filemapping';
 
+
+type
+  TInjectedEvent=class
+  public
+    eventtype: (etThreadCreate,etThreadDestroy); //0=create thread, 1=destroythread
+    threadid: integer;
+  end;
+
+  THeartBeat=class(TThread)
+  private
+    owner: TVEHDebugInterface;
+  protected
+    procedure execute; override;
+  end;
+
+procedure THeartBeat.execute;
+begin
+  while not terminated do
+  begin
+    inc(owner.VEHDebugView.heartbeat);
+    sleep(500);
+  end;
+end;
+
 constructor TVEHDebugInterface.create;
 begin
   inherited create;
@@ -62,16 +97,32 @@ begin
   name:='VEH Debugger';
 
   fmaxSharedBreakpointCount:=4;
+
+  InjectedEvents:=Tlist.create;
+  LastThreadList:=TStringList.create;
+
+  lastthreadlist.Sorted:=true;
+  lastthreadlist.Duplicates:=dupIgnore;
 end;
 
 
 destructor TVEHDebugInterface.destroy;
 begin
+  if heartbeat<>nil then
+  begin
+    heartbeat.Terminate;
+    heartbeat.WaitFor;
+    freeandnil(heartbeat);
+  end;
+
   if HasDebugEvent<>0 then
     closehandle(HasDebugEvent);
 
   if HasHandledDebugEvent<>0 then
     closehandle(HasHandledDebugEvent);
+
+  if injectedEvents<>nil then
+    freeandnil(InjectedEvents);
 
   inherited destroy;
 end;
@@ -197,11 +248,40 @@ var i: integer;
 {$ifdef cpu64}
     c32: PContext32 absolute c;
 {$endif}
+    inj: TInjectedEvent;
 begin
+  if injectedEvents.count>0 then
+  begin
+    isInjectedEvent:=true;
+    //fill in lpDebugEvent
 
+    inj:=TInjectedEvent(injectedEvents[0]);
+    lpDebugEvent.dwProcessId:=processid;
+    lpDebugEvent.dwThreadId:=inj.ThreadId;
+    lpDebugEvent.Exception.dwFirstChance:=1;
+    if inj.eventtype=etThreadCreate then
+    begin
+      //create thread
+      lpDebugEvent.dwDebugEventCode:=CREATE_THREAD_DEBUG_EVENT;
+      lpDebugEvent.CreateThread.hThread:=OpenThread(THREAD_ALL_ACCESS,false, inj.ThreadId);
+
+      lpDebugEvent.CreateThread.lpStartAddress:=nil;
+      lpDebugEvent.CreateThread.lpThreadLocalBase:=nil;
+    end
+    else
+    begin
+      //destroy thread
+      lpDebugEvent.dwDebugEventCode:=EXIT_THREAD_DEBUG_EVENT;
+      lpDebugEvent.ExitThread.dwExitCode:=0;
+    end;
+
+    inj.free;
+
+    injectedEvents.Delete(0);
+    exit(true);
+  end;
 
   result:=waitforsingleobject(HasDebugEvent, dwMilliseconds)=WAIT_OBJECT_0;
-
   if result then
   begin
     ZeroMemory(@lpDebugEvent, sizeof(TdebugEvent));
@@ -230,12 +310,18 @@ begin
 
         lpDebugEvent.CreateThread.lpStartAddress:=nil;
         lpDebugEvent.CreateThread.lpThreadLocalBase:=nil;
+        lastthreadlist.Add(inttohex(lpDebugEvent.dwThreadId,1));
+        lastthreadpoll:=GetTickCount64;
       end;
 
       $ce000002: //destroy thread
       begin
         lpDebugEvent.dwDebugEventCode:=EXIT_THREAD_DEBUG_EVENT;
         lpDebugEvent.ExitThread.dwExitCode:=0;
+
+        i:=lastthreadlist.indexof(inttohex(lpDebugEvent.dwThreadId,1));
+        if i<>-1 then
+          lastthreadlist.Delete(i);
       end;
 
 
@@ -307,13 +393,20 @@ begin
     hasPausedProcess:=true;
 
   end;
+
+  if (lastthreadpoll>0) and (gettickcount64>lastthreadpoll+500) then
+    DoThreadPoll; //adds injected events if needed
 end;
 
 function TVEHDebugInterface.ContinueDebugEvent(dwProcessId: DWORD; dwThreadId: DWORD; dwContinueStatus: DWORD): BOOL;
 begin
   hasPausedProcess:=false;
   VEHDebugView.ContinueMethod:=dwContinueStatus;
-  SetEvent(HasHandledDebugEvent);
+
+  if isInjectedEvent then
+    isInjectedEvent:=false
+  else
+    SetEvent(HasHandledDebugEvent);
 
   result:=true;
 end;
@@ -379,6 +472,10 @@ begin
     end;
 
     ZeroMemory(VEHDebugView,sizeof(TVEHDebugSharedMem));
+
+    Heartbeat:=THeartBeat.Create(true);
+    THeartBeat(Heartbeat).owner:=self;
+    HeartBeat.Start;
 
     VEHDebugView.ThreadWatchMethod:=0; //vehthreadwatchmethod;
     if VEHRealContextOnThreadCreation then
@@ -463,8 +560,9 @@ begin
 end;
 
 function TVEHDebugInterface.DebugActiveProcessStop(dwProcessID: DWORD): WINBOOL;
-var prefix: string;
-s: Tstringlist;
+var
+  prefix: string;
+  s: Tstringlist;
 begin
   result:=false;
 
@@ -489,8 +587,13 @@ begin
       end;
     except
     end;
+  end;
 
-
+  if heartbeat<>nil then
+  begin
+    heartbeat.Terminate;
+    heartbeat.WaitFor;
+    freeandnil(heartbeat);
   end;
 end;
 
@@ -515,6 +618,52 @@ begin
   SynchronizeNoBreakList;
 end;
 
+
+procedure TVEHDebugInterface.DoThreadPoll;
+var
+  currentlist: tstringlist;
+  i: integer;
+
+  inj: TInjectedEvent;
+begin
+  currentlist:=tstringlist.create;
+
+  GetThreadList(currentlist);
+  for i:=0 to currentlist.count-1 do
+  begin
+    if lastthreadlist.IndexOf(currentlist[i])=-1 then
+    begin
+      //new thread event
+      inj:=TInjectedEvent.create;
+      inj.eventtype:=etThreadCreate;
+      inj.threadid:=strtoint('$'+currentlist[i]);
+
+      injectedEvents.Add(inj);
+      lastthreadlist.Add(currentlist[i]);
+    end;
+  end;
+
+  i:=0;
+  while i<=lastthreadlist.count-1 do
+  begin
+    if currentlist.IndexOf(lastthreadlist[i])=-1 then
+    begin
+      //destroyed thread event
+      inj:=TInjectedEvent.create;
+      inj.eventtype:=etThreadDestroy;
+      inj.threadid:=strtoint('$'+lastthreadlist[i]);
+
+      injectedEvents.Add(inj);
+      lastthreadlist.Delete(i);
+    end
+    else
+      inc(i);
+  end;
+
+  currentlist.free;
+
+  lastthreadpoll:=GetTickCount64;
+end;
 
 end.
 
