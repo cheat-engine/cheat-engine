@@ -256,6 +256,7 @@ type
     procedure cbTypeChange(Sender: TObject);
   private
     { Private declarations }
+    loadedFormPosition: boolean;
     start:tdatetime;
 
     rescan: trescanpointers;
@@ -2069,6 +2070,14 @@ begin
   i:=max(i, pnlControl.ClientWidth-2);
   btnIncreaseThreadCount.width:=i;
   btnDecreaseThreadCount.width:=i;
+
+  if loadedFormPosition=false then
+  begin
+    width:=MainForm.width;
+    height:=mainform.height;
+
+    loadedFormPosition:=true;
+  end;
 end;
 
 procedure Tfrmpointerscanner.lvResultsColumnClick(Sender: TObject; Column: TListColumn);
@@ -3572,7 +3581,7 @@ begin
   lvResults.Visible:=true;
 
   setlength(x,1);
-  loadformposition(self);
+  loadedFormPosition:=loadformposition(self);
 
 
   reg:=TRegistry.Create;

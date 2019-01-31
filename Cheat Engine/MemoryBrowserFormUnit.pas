@@ -1973,9 +1973,21 @@ begin
 end;
 
 procedure TMemoryBrowser.FormShow(Sender: TObject);
-var x: array of integer;
-
 begin
+  if posloadedfromreg=false then
+  begin
+    autosize:=false;
+    width:=mainform.width;
+    height:=mainform.height;
+
+    disassemblerview.setheaderWidth(0,canvas.TextWidth('XXXXXXXXXXXXXXXX')); //address
+    disassemblerview.setheaderWidth(1,canvas.TextWidth('XX XX XX XX XX XX XX XX')); ///bytes
+    disassemblerview.setheaderWidth(2,canvas.TextWidth('XXXX XXX,[XXXXXXXXXXXXXXXX+XXX*X]'));
+    disassemblerview.setheaderWidth(3,max(32,disassemblerview.width-(disassemblerview.getheaderWidth(0)+disassemblerview.getheaderWidth(1)+disassemblerview.getheaderWidth(2))-32));
+
+    posloadedfromreg:=true;
+  end;
+
   if disassemblerview<>nil then
     disassemblerview.Update;
 
