@@ -216,7 +216,7 @@ object frmPointerScanner: TfrmPointerScanner
         AnchorSideRight.Side = asrBottom
         Left = 2
         Height = 23
-        Top = 206
+        Top = 199
         Width = 155
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Right = 2
@@ -239,13 +239,13 @@ object frmPointerScanner: TfrmPointerScanner
       object gbNetwork: TGroupBox
         AnchorSideRight.Side = asrBottom
         Left = 0
-        Height = 191
+        Height = 184
         Top = 0
         Width = 159
         Align = alTop
         AutoSize = True
         Caption = 'Network'
-        ClientHeight = 171
+        ClientHeight = 164
         ClientWidth = 155
         TabOrder = 1
         object edtIP: TEdit
@@ -299,11 +299,13 @@ object frmPointerScanner: TfrmPointerScanner
         end
         object edtPassword: TEdit
           AnchorSideLeft.Control = lblPassword
+          AnchorSideTop.Control = lblPassword
+          AnchorSideTop.Side = asrBottom
           AnchorSideRight.Control = gbNetwork
           AnchorSideRight.Side = asrBottom
           Left = 2
           Height = 23
-          Top = 100
+          Top = 93
           Width = 151
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Right = 2
@@ -327,7 +329,7 @@ object frmPointerScanner: TfrmPointerScanner
           Left = 2
           Height = 19
           Hint = 'Trust that this server will not disappear during the scan and that the children it trusts itself won''t do so either'
-          Top = 123
+          Top = 116
           Width = 91
           Caption = 'Trust stability'
           ParentShowHint = False
@@ -340,7 +342,7 @@ object frmPointerScanner: TfrmPointerScanner
           AnchorSideTop.Side = asrBottom
           Left = 6
           Height = 25
-          Top = 144
+          Top = 137
           Width = 143
           AutoSize = True
           BorderSpacing.Left = 6
@@ -358,7 +360,7 @@ object frmPointerScanner: TfrmPointerScanner
         AnchorSideTop.Side = asrBottom
         Left = 2
         Height = 15
-        Top = 191
+        Top = 184
         Width = 123
         BorderSpacing.Left = 2
         Caption = 'Scanner thread priority:'
@@ -372,7 +374,7 @@ object frmPointerScanner: TfrmPointerScanner
         AnchorSideRight.Side = asrBottom
         Left = 2
         Height = 25
-        Top = 272
+        Top = 265
         Width = 142
         AutoSize = True
         BorderSpacing.Top = 2
@@ -388,7 +390,7 @@ object frmPointerScanner: TfrmPointerScanner
         AnchorSideRight.Side = asrBottom
         Left = 2
         Height = 25
-        Top = 245
+        Top = 238
         Width = 146
         AutoSize = True
         BorderSpacing.Top = 16

@@ -144,9 +144,10 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     AnchorSideTop.Side = asrBottom
     Left = 8
     Height = 202
-    Top = 84
+    Top = 85
     Width = 672
     AutoSize = True
+    BorderSpacing.Top = 1
     BevelOuter = bvNone
     BorderStyle = bsSingle
     ClientHeight = 198
@@ -564,7 +565,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     AnchorSideTop.Side = asrBottom
     Left = 174
     Height = 86
-    Top = 405
+    Top = 406
     Width = 335
     AutoSize = True
     BorderSpacing.Top = 8
@@ -750,7 +751,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     AnchorSideTop.Side = asrBottom
     Left = 8
     Height = 111
-    Top = 286
+    Top = 287
     Width = 597
     AutoSize = True
     BevelOuter = bvNone

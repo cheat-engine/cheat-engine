@@ -344,6 +344,7 @@ begin
 
   btnDelete:=TSpeedButton.Create(self);
   btnDelete.OnClick:=btnDeleteClick;
+
   cbAddress:=TComboBox.Create(self);
   cbAddress.Enabled:=false;
 
@@ -352,6 +353,8 @@ begin
   btnDelete.AnchorSideRight.Control:=self;
   btnDelete.Anchors:=[aktop, akRight];
   btnDelete.BorderSpacing.Right:=4;
+
+
 
   bm:=tbitmap.Create;
   imagelist.GetBitmap(0, bm);
@@ -406,6 +409,12 @@ begin
   lblFilename.Caption:=rsSelectAFile;
 
   height:=cbAddress.Height+2;
+
+
+
+
+  DPIHelper.AdjustSpeedButtonSize(btnSetFile);
+  DPIHelper.AdjustSpeedButtonSize(btnDelete);
 
 
 end;
@@ -1083,7 +1092,7 @@ begin
 
     panel3.AnchorSideTop.Control:=pdatafilelist;
     panel3.AnchorSideTop.Side:=asrBottom;
-    panel3.BorderSpacing.Top:=50;;
+    panel3.BorderSpacing.Top:=5;;
   end
   else
   begin
@@ -1239,7 +1248,8 @@ begin
   edtReverseStart.clientwidth:=i;
   edtReverseStop.clientwidth:=i;
 
-  i:=max(canvas.TextWidth(editStructsize.text)+4, editStructsize.clientwidth);
+
+  i:=max(canvas.TextWidth('XXXX')+DPIHelper.GetEditBoxMargins(editStructsize), editStructsize.clientwidth);
   editStructsize.clientwidth:=i;
 
   i:=max(btnOk.width, btnCancel.width);
