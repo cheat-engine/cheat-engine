@@ -42,7 +42,6 @@ pointerscan: generating pointermap should also check terminated
 
 pointerscan: when suspending a scan, CE closed itself(crash)
 
-changed addresses by: Besides a list also keep a map of addresses in the list for quicker response
 
 vehdebug: Fix reattach (need to move the threadpoller to CE)
 

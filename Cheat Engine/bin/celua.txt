@@ -3216,3 +3216,11 @@ properties:
   exports: Table containing all exports
   entryPoint: integer - address of the entrypoint
   
+
+WriteLog(Inheritence: -)
+properties
+  status: boolean
+  logsize: integer 
+
+methods
+  getLog(): table - Returns an indexed table with the write logs. each entry has a table with the fields: address, original and new

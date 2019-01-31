@@ -107,7 +107,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   DebuggerInterfaceAPIWrapper, Globals, math, speedhack2, CETranslator, binutils,
   xinput, winsapi, frmExeTrainerGeneratorUnit, CustomBase85, FileUtil, networkConfig,
   LuaCustomType, Filehandler, LuaSQL, frmSelectionlistunit, cpuidUnit, LuaRemoteThread,
-  LuaManualModuleLoader, pointervaluelist;
+  LuaManualModuleLoader, pointervaluelist, frmEditHistoryUnit;
 
   {$warn 5044 off}
 
@@ -10838,6 +10838,7 @@ begin
     initializeLuaSQL;
     initializeLuaModuleLoader;
     initializeLuaPointerValueList;
+    initializeLuaWriteLog;
 
 
 
