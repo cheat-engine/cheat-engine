@@ -119,6 +119,11 @@ object frmChangedAddresses: TfrmChangedAddresses
       ShortCut = 16466
       OnClick = Showregisterstates1Click
     end
+    object MenuItem3: TMenuItem
+      Caption = 'Change value'
+      ShortCut = 13
+      OnClick = MenuItem3Click
+    end
     object Browsethismemoryregion1: TMenuItem
       Caption = 'Browse this memory region'
       ShortCut = 16450

@@ -34,6 +34,7 @@ type
     lblInfo: TLabel;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
+    MenuItem3: TMenuItem;
     miCommonalitiesSubgroup: TMenuItem;
     miMarkAsGroup1: TMenuItem;
     miMarkAsGroup2: TMenuItem;
@@ -60,6 +61,7 @@ type
     procedure ChangedlistCustomDrawItem(Sender: TCustomListView;
       Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
     procedure MenuItem1Click(Sender: TObject);
+    procedure MenuItem3Click(Sender: TObject);
     procedure miGroupClearClick(Sender: TObject);
     procedure miMarkAsGroupClick(Sender: TObject);
     procedure miDeleteSelectedEntriesClick(Sender: TObject);
@@ -461,6 +463,49 @@ begin
 
   clipboard.AsText:=list.text;
   list.free;
+end;
+
+procedure TfrmChangedAddresses.MenuItem3Click(Sender: TObject);
+var
+  i: integer;
+  a: ptruint;
+  value: string;
+
+  vartype: TVariableType;
+  ct: TCustomType;
+begin
+  if changedlist.ItemIndex<>-1 then
+  begin
+    value:=changedlist.Items[changedlist.ItemIndex].SubItems[0];
+    if InputQuery('Value Change','Give the new value',value)=false then exit;
+  end;
+
+  for i:=0 to changedlist.Items.Count-1 do
+  begin
+    if changedlist.items[i].Selected then
+    begin
+      a:=symhandler.getAddressFromName(changedlist.items[i].Caption);
+
+      vartype:=vtDword;
+      ct:=nil;
+
+      ct:=TCustomType(cbDisplayType.Items.Objects[cbDisplayType.ItemIndex]);
+      if ct=nil then
+      begin
+        case cbDisplayType.ItemIndex of
+          0: vartype:=vtByte;
+          1: vartype:=vtWord;
+          3: vartype:=vtSingle;
+          4: vartype:=vtDouble;
+        end;
+      end
+      else
+        vartype:=vtCustom;
+
+      ParseStringAndWriteToAddress(value,a, vartype,false,ct);
+    end;
+  end;
+
 end;
 
 procedure TfrmChangedAddresses.miGroupClearClick(Sender: TObject);

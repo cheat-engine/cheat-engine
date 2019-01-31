@@ -1799,8 +1799,13 @@ begin
 
   frmchangedaddresses:=tfrmChangedAddresses.Create(application) ;
   frmchangedaddresses.address:=address;
+
   tempaddress:=address;
   s:=disassemble(tempaddress); //tempaddress gets changed by this, so don't use the real one
+
+  if defaultDisassembler.LastDisassembleData.isfloat then
+    frmchangedaddresses.cbDisplayType.ItemIndex:=3;
+
 
   if uppercase(defaultDisassembler.LastDisassembleData.opcode)='RET' then
   begin
