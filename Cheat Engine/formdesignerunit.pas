@@ -191,7 +191,7 @@ implementation
 { TFormDesigner }
 
 
-uses mainunit;
+uses mainunit, DPIHelper;
 
 resourcestring
   rsInvalidObject = '{Invalid object}';
@@ -626,7 +626,8 @@ end;
 
 procedure TFormDesigner.FormShow(Sender: TObject);
 begin
-  self.clientheight:=toolbar1.height;
+  dpihelper.AdjustToolbar(Toolbar1);
+  self.clientheight:=max(toolbar1.height, toolbar1.ButtonHeight);
 end;
 
 
