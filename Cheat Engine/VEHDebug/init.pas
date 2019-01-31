@@ -164,8 +164,8 @@ begin
 
   if assigned(AddVectoredExceptionHandler) then
   begin
-    if oldExceptionHandler<>nil then
-      outputdebugstring('Old exception handler should have been deleted. If not, this will crash');
+    //if oldExceptionHandler<>nil then
+   //   outputdebugstring('Old exception handler should have been deleted. If not, this will crash');
 
 
     OutputDebugString('Testing if it handles normal debug events');
@@ -179,7 +179,8 @@ begin
 
     OutputDebugString('Registering exception handler');
     vehdebugactive:=true;
-    oldExceptionHandler:=AddVectoredExceptionHandler(1,@Handler);
+    if oldExceptionHandler=nil then
+      oldExceptionHandler:=AddVectoredExceptionHandler(1,@Handler);
 
     if oldExceptionHandler=nil then
     begin
