@@ -1273,6 +1273,7 @@ var
   t1same: boolean;
   t2same: boolean;
 
+  potentialpointer: boolean;
   allreadablepointers: boolean;
   p: ptruint;
 begin
@@ -1335,6 +1336,7 @@ begin
     valid:=true;
     t1same:=true;
     t2same:=true;
+    potentialpointer:=true;
     for i:=0 to length(memoryblockNLF)-1 do
     begin
       //check if these values are in memoryblockLF. If so, not valid
@@ -1353,7 +1355,9 @@ begin
 
         if CompareMem(memoryblockNLF[i], memoryblockLF[j], alignment) then
         begin
+          //a value in table2 matches table1
           valid:=false;
+          potentialpointer:=false;
           break;
         end;
 
@@ -1381,8 +1385,9 @@ begin
       writeResult(wi.path,wi.currentLevel);
     end;
 
+    if (potentialpointer) then
     begin
-      allreadablepointers:=wi.currentLevel<maxlevel;
+      allreadablepointers:=(wi.currentLevel<maxlevel) and potentialpointer;
 
       if allreadablepointers then
       begin
@@ -1724,7 +1729,11 @@ procedure TfrmStructureCompare.lvResultsColumnClick(Sender: TObject;
   Column: TListColumn);
 begin
   if pointerfilereader<>nil then
+  begin
+    if (pointerfilereader.count>10000000) and (MessageDlg('There are over 10000000 entries in this list. This may take a while. Are you sure?', mtConfirmation,[mbyes,mbno],0)<>mryes) then exit;
+
     pointerfilereader.sort(column.Index);
+  end;
 end;
 
 procedure TfrmStructureCompare.lvResultsData(Sender: TObject; Item: TListItem);
