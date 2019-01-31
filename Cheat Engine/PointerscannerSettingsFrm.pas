@@ -244,7 +244,7 @@ var frmpointerscannersettings: tfrmpointerscannersettings;
 implementation
 
 uses MainUnit, frmMemoryAllocHandlerUnit, MemoryBrowserFormUnit, ProcessHandlerUnit,
-  Globals, parsers;
+  Globals, parsers, DPIHelper;
 
 
 
@@ -1261,7 +1261,9 @@ begin
     MainForm.addresslist.getAddressList(tstrings(cbAddress.tag));
 
   UpdateAddressList(cbAddress);
+  AdjustComboboxSize(cbValueType, self.canvas);
   cbAddress.ItemHeight:=cbValueType.ItemHeight;
+  cbAddress.height:=cbValueType.Height;
 
 
 end;

@@ -1434,7 +1434,7 @@ begin
 
       //3..7=set speedhack speed
       4:
-      begin         //todo;active while key down   (launch timer that checks keycombo)
+      begin
         if cbspeedhack.Enabled then
         begin
           try

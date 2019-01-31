@@ -1803,24 +1803,25 @@ begin
 
       for i:=0 to edtLF.count-1 do
       begin
-        HandleAddress(TAddressEdit(edtLF[i]));
+        inc(count);
         if count>maxAddresses then
         begin
           item.subitems.add(rsMaxReached);
           exit;
         end;
-        inc(count);
+
+        HandleAddress(TAddressEdit(edtLF[i]));
       end;
 
       for i:=0 to edtNLF.count-1 do
       begin
-        HandleAddress(TAddressEdit(edtNLF[i]));
+        inc(count);
         if count>maxAddresses then
         begin
           item.subitems.add(rsMaxReached);
           exit;
         end;
-        inc(count);
+        HandleAddress(TAddressEdit(edtNLF[i]));
       end;
 
 

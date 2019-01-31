@@ -558,9 +558,9 @@ end;
 
 procedure TSymbolloaderthread.finishedLoadingSymbols;
 begin
-  OutputDebugString('finishedLoadingSymbols called');
+  //OutputDebugString('finishedLoadingSymbols called');
   if (not targetself) and (symhandler<>nil) then symhandler.NotifyFinishedLoadingSymbols;
-  OutputDebugString('exit finishedLoadingSymbols()');
+ // OutputDebugString('exit finishedLoadingSymbols()');
 end;
 
 type
@@ -1594,24 +1594,24 @@ begin
     finally
       isloading:=false;
 
-      OutputDebugString('symbolloader thread finished');
+      //OutputDebugString('symbolloader thread finished');
 
       owner.ReinitializeUserdefinedSymbolList;
 
 
       if not terminated then
       begin
-        OutputDebugString('Symbolhandler: sync: Calling finishedloadingsymbols');
+        //OutputDebugString('Symbolhandler: sync: Calling finishedloadingsymbols');
         Queue(finishedloadingsymbols);
         //synchronize(finishedloadingsymbols);
-        OutputDebugString('after finishedloadingsymbols');
+        //OutputDebugString('after finishedloadingsymbols');
       end
       else
         OutputDebugString('Symbolhandler was terminated. Not going to sync');
 
     end;
 
-    OutputDebugString('Symbol loader thread has finished without errors');
+    //OutputDebugString('Symbol loader thread has finished without errors');
   except
     outputdebugstring(rsSymbolloaderthreadHasCrashed);
   end;
@@ -4176,7 +4176,7 @@ end;
 
 constructor TSymhandler.create;
 begin
-  log('TSymhandler.create');
+  //log('TSymhandler.create');
   symbolloadervalid:=TMultiReadExclusiveWriteSynchronizer.create;
   modulelistMREW:=TMultiReadExclusiveWriteSynchronizer.create;
   userdefinedsymbolsCS:=TCriticalSection.create;
@@ -4184,10 +4184,10 @@ begin
 
   dotnetModuleSymbolListMREW:=TMultiReadExclusiveWriteSynchronizer.create;
 
-  log('TSymhandler.create 1');
+ // log('TSymhandler.create 1');
   dotNetDataCollector:=TDotNetPipe.create;
 
-  log('TSymhandler.create 2');
+  //log('TSymhandler.create 2');
   //setlength(internalsymbols,4);
   setlength(userdefinedsymbols,32);
   setlength(modulelist,32);
@@ -4196,10 +4196,10 @@ begin
   showsymbols:=true;
   ExceptionOnLuaLookup:=true;
 
-  log('TSymhandler.create 3');
+ // log('TSymhandler.create 3');
   symbollist:=TSymbolListHandler.create;
 
-  log('TSymhandler.create exit');
+ // log('TSymhandler.create exit');
 end;
 
 

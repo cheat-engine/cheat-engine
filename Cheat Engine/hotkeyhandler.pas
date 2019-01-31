@@ -52,18 +52,19 @@ function GetGenericHotkeyKeyItem(generichotkey: TGenericHotkey): PHotkeyItem;
 
 //function OldUnregisterHotKey(hWnd: HWND; id: Integer): BOOL; stdcall;
 function GetKeyComboLength(keycombo: TKeyCombo): integer;
-function CheckKeyCombo(keycombo: tkeycombo):boolean;
+function CheckKeyCombo(keycombo: tkeycombo; nocache: boolean=false):boolean;
 procedure ConvertOldHotkeyToKeyCombo(fsModifiers, vk: uint; var k: tkeycombo);
 procedure ClearHotkeylist;
 procedure SuspendHotkeyHandler;
 procedure ResumeHotkeyHandler;
 procedure hotkeyTargetWindowHandleChanged(oldhandle, newhandle: thandle);
 
-function IsKeyPressed(key: integer):boolean;
+function IsKeyPressed(key: integer; nocache: boolean=false):boolean;
 
 
 var hotkeythread: THotkeythread;
     CSKeys: TCriticalSection;
+
 
     hotkeyPollInterval: integer=100;
     hotkeyIdletime: integer=100;
@@ -76,9 +77,10 @@ type tkeystate=(ks_undefined=0, ks_pressed=1, ks_notpressed=2);
 
 var
     keystate: array [0..255] of tkeystate;  //0=undefined, 1=pressed, 2-not pressed
+    ksCS: TCriticalSection;
     ControllerState: XINPUT_STATE;
 
-function IsKeyPressed(key: integer):boolean;
+function IsKeyPressed(key: integer; nocache: boolean=false):boolean;
 var
     ks: dword;
     sks: short;
@@ -148,6 +150,8 @@ begin
   end;
 
   //look up in the list
+  sks:=0;
+  ksCS.enter;
   if keystate[key]=ks_undefined then
   begin
     sks:=getasynckeystate(longint(key));
@@ -161,16 +165,41 @@ begin
   end;
 
   result:=keystate[key]=ks_pressed;
+
+  if nocache and (not result) then
+  begin
+    if sks<>0 then
+      result:=(sks and $8001)<>0;
+
+    if result then exit;
+
+    sks:=GetAsyncKeyState(longint(key));
+    result:=(sks and $8001)<>0;
+
+    if result=false then
+    begin
+      sks:=GetKeyState(key);
+      result:=(sks and $8001)<>0;
+      if not result then
+      begin
+        beep;
+      end;
+    end;
+  end;
+
+  ksCS.Leave;
 end;
 
 procedure clearkeystate;
 var i: integer;
 begin
+  ksCS.enter;
   zeromemory(@keystate[0],256*sizeof(tkeystate));
   for i:=0 to 255 do
     getasynckeystate(i); //clears the last call flag
 
   ControllerState.dwPacketNumber:=0;
+  ksCS.leave;
 end;
 
 procedure hotkeyTargetWindowHandleChanged(oldhandle, newhandle: thandle);
@@ -221,7 +250,7 @@ begin
       inc(result);
 end;
 
-function CheckKeyCombo(keycombo: tkeycombo):boolean;
+function CheckKeyCombo(keycombo: tkeycombo; nocache: boolean=false):boolean;
 var i: integer;
 begin
   result:=false;
@@ -234,7 +263,7 @@ begin
     begin
       if (keycombo[i]=0) then exit;
 
-      if not IsKeyPressed(keycombo[i]) then
+      if not IsKeyPressed(keycombo[i], nocache) then
       begin
         //not pressed
         result:=false;
@@ -549,8 +578,12 @@ begin
 end;
 
 initialization
+  ksCS:=TCriticalSection.Create;
   clearkeystate;
+
   CSKeys:=TCriticalSection.Create;
+
+
   hotkeythread:=Thotkeythread.Create(false);
 
 finalization

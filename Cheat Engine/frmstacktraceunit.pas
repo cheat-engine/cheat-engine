@@ -75,8 +75,9 @@ procedure TfrmStacktrace.stacktrace(threadhandle:thandle;context:_context);
 }
 
 var
-    stackframe: TSTACKFRAME_EX;
     cxt:_context;
+    stackframe: TSTACKFRAME_EX;
+
     wow64ctx: CONTEXT32;
     a,b,c,d: dword;
     sa,sb,sc,sd:string;

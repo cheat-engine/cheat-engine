@@ -88,43 +88,44 @@ object frmPointerScanner: TfrmPointerScanner
   end
   object pnlProgress: TPanel
     Left = 0
-    Height = 25
-    Top = 420
+    Height = 24
+    Top = 421
     Width = 749
     Align = alBottom
     AutoSize = True
-    ClientHeight = 25
+    ClientHeight = 24
     ClientWidth = 749
     TabOrder = 3
     Visible = False
     object pnlProgressName: TPanel
       Left = 1
-      Height = 23
+      Height = 22
       Top = 1
       Width = 123
       Align = alLeft
+      AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 23
+      ClientHeight = 22
       ClientWidth = 123
       TabOrder = 0
       object lblProgressbar1: TLabel
         AnchorSideTop.Side = asrCenter
         Left = 0
         Height = 15
-        Top = 3
+        Top = 0
         Width = 123
-        AutoSize = False
         Caption = 'Generating pointermap'
         ParentColor = False
       end
     end
     object pnlProgressBar: TPanel
       Left = 124
-      Height = 23
+      Height = 22
       Top = 1
       Width = 624
       Align = alClient
-      ClientHeight = 23
+      AutoSize = True
+      ClientHeight = 22
       ClientWidth = 624
       TabOrder = 1
       object ProgressBar1: TProgressBar
@@ -133,7 +134,7 @@ object frmPointerScanner: TfrmPointerScanner
         AnchorSideRight.Control = pnlProgressBar
         AnchorSideRight.Side = asrBottom
         Left = 1
-        Height = 21
+        Height = 20
         Top = 1
         Width = 622
         Anchors = [akTop, akLeft, akRight]
@@ -144,18 +145,18 @@ object frmPointerScanner: TfrmPointerScanner
   end
   object pnlData: TPanel
     Left = 0
-    Height = 393
+    Height = 394
     Top = 27
     Width = 749
     Align = alClient
     BevelOuter = bvNone
     Caption = 'pnlData'
-    ClientHeight = 393
+    ClientHeight = 394
     ClientWidth = 749
     TabOrder = 4
     object tvInfo: TTreeView
       Left = 0
-      Height = 364
+      Height = 365
       Top = 0
       Width = 590
       Align = alClient
@@ -171,7 +172,7 @@ object frmPointerScanner: TfrmPointerScanner
     object pnlStop: TPanel
       Left = 0
       Height = 29
-      Top = 364
+      Top = 365
       Width = 749
       Align = alBottom
       AutoSize = True
@@ -198,13 +199,13 @@ object frmPointerScanner: TfrmPointerScanner
     end
     object pnlControl: TPanel
       Left = 590
-      Height = 364
+      Height = 365
       Top = 0
       Width = 159
       Align = alRight
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 364
+      ClientHeight = 365
       ClientWidth = 159
       TabOrder = 2
       object cbPriority: TComboBox

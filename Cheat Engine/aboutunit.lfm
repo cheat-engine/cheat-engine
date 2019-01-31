@@ -1,7 +1,7 @@
 object About: TAbout
-  Left = 1224
+  Left = 918
   Height = 310
-  Top = 466
+  Top = 315
   Width = 488
   HelpContext = 2
   AutoSize = True
@@ -21,7 +21,7 @@ object About: TAbout
     Width = 488
     Align = alClient
     AutoSize = True
-    Caption = 'Cheat Engine 6.8.1'
+    Caption = 'Cheat Engine'
     ClientHeight = 290
     ClientWidth = 484
     TabOrder = 0
@@ -473,7 +473,7 @@ object About: TAbout
       Left = 5
       Height = 57
       Top = 145
-      Width = 350
+      Width = 349
       AutoSize = True
       BorderSpacing.Left = 5
       BorderSpacing.Top = 2
@@ -485,7 +485,7 @@ object About: TAbout
       ChildSizing.Layout = cclLeftToRightThenTopToBottom
       ChildSizing.ControlsPerLine = 5
       ClientHeight = 57
-      ClientWidth = 350
+      ClientWidth = 349
       TabOrder = 2
       object Label21: TLabel
         Left = 2
@@ -515,12 +515,12 @@ object About: TAbout
         Left = 224
         Height = 15
         Top = 2
-        Width = 70
+        Width = 69
         Caption = 'SWAT-Squad'
         ParentColor = False
       end
       object Label25: TLabel
-        Left = 303
+        Left = 302
         Height = 15
         Top = 2
         Width = 45
@@ -555,12 +555,12 @@ object About: TAbout
         Left = 224
         Height = 15
         Top = 21
-        Width = 70
+        Width = 69
         Caption = 'Emperor'
         ParentColor = False
       end
       object Label30: TLabel
-        Left = 303
+        Left = 302
         Height = 15
         Top = 21
         Width = 45
@@ -595,7 +595,7 @@ object About: TAbout
         Left = 224
         Height = 15
         Top = 40
-        Width = 70
+        Width = 69
         Caption = 'Atom0s'
         ParentColor = False
       end

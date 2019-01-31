@@ -1041,7 +1041,7 @@ begin
 
   if loadedmodule<>nil then
   begin
-    virtualfree(loadedmodule,0,MEM_RELEASE	);
+    virtualfree(loadedmodule,0,MEM_RELEASE);
     loadedmodule:=nil;
   end;
 

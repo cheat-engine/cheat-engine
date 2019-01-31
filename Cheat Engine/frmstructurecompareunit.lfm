@@ -1,7 +1,7 @@
 object frmStructureCompare: TfrmStructureCompare
-  Left = 643
+  Left = 732
   Height = 432
-  Top = 370
+  Top = 517
   Width = 695
   AutoSize = True
   Caption = 'Structure Compare'

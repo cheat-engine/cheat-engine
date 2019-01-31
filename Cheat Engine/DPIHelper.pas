@@ -9,10 +9,30 @@ uses
 
 procedure AdjustSpeedButtonSize(sb: TSpeedButton);
 procedure AdjustComboboxSize(cb: TComboBox; canvas: TCanvas);
+procedure AdjustEditBoxSize(editbox: TEdit; mintextwidth: integer);
+function GetEditBoxMargins(editbox: TEdit): integer;
 
 implementation
 
-uses globals;
+uses globals, win32proc;
+
+function GetEditBoxMargins(editbox: TEdit): integer;
+var m: dword;
+begin
+  if WindowsVersion>=wvVista then
+    m:=sendmessage(editbox.Handle, EM_GETMARGINS, 0,0)
+  else
+    m:=10;
+
+  result:=(m shr 16)+(m and $ffff);
+end;
+
+procedure AdjustEditBoxSize(editbox: TEdit; mintextwidth: integer);
+var marginsize: integer;
+begin
+  marginsize:=GetEditBoxMargins(editbox);
+  editbox.clientwidth:=mintextwidth+marginsize;
+end;
 
 procedure AdjustComboboxSize(cb: TComboBox; canvas: TCanvas);
 var

@@ -14,22 +14,23 @@ type
   { TfrmCodeFilter }
 
   TfrmCodeFilter = class(TForm)
+    btnCancel: TButton;
+    btnFilterOutExecutedAddresses: TButton;
+    btnFilterOutNonExecutedAddresses: TButton;
     btnLoadAddressesByDisassembling: TButton;
+    btnLoadAddressesFromFile: TButton;
     btnLoadAddressesFromTrace: TButton;
+    btnShowList: TButton;
     btnStart: TButton;
     btnStop: TButton;
-    btnCancel: TButton;
-    btnLoadAddressesFromFile: TButton;
-    btnFilterOutNonExecutedAddresses: TButton;
-    btnFilterOutExecutedAddresses: TButton;
-    btnShowList: TButton;
+    Button1: TButton;
     frmLaunchBranchMapper: TButton;
     GroupBox1: TGroupBox;
     Label1: TLabel;
-    lblStatus: TLabel;
-    lblAddressList: TLabel;
     Label3: TLabel;
     lblExecuteCount: TLabel;
+    lblStatus: TLabel;
+    lblAddressList: TLabel;
     lvResults: TListView;
     miSaveAddressList: TMenuItem;
     miClearList: TMenuItem;
@@ -38,6 +39,7 @@ type
     OpenDialog: TOpenDialog;
     Panel1: TPanel;
     Panel2: TPanel;
+    Panel3: TPanel;
     pnlStatus: TPanel;
     Panel4: TPanel;
     Panel5: TPanel;

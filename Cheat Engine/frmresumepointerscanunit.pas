@@ -64,29 +64,55 @@ implementation
 
 { TfrmResumePointerscan }
 
+uses DPIHelper;
+
 procedure TfrmResumePointerscan.updateFileList;
 var
   oldindex: integer;
   i: integer;
   li: TListItem;
   fn: string;
+  a: string;
+
+  fnwidth: integer;
+  awidth: integer;
 begin
   oldindex:=listview1.ItemIndex;
   listview1.clear;
+  fnwidth:=0;
+  awidth:=0;
   for i:=0 to instantrescanfiles.count-1 do
   begin
     fn:=extractfilename(instantrescanfiles[i]);
     li:=listview1.Items.add;
     li.caption:=ansitoutf8(fn);
-    li.SubItems.add(IntToHex(ptruint(instantrescanfiles.objects[i]), 8));
+    a:=IntToHex(ptruint(instantrescanfiles.objects[i]),8);
+    li.SubItems.add(a);
 
     if FileExists(instantrescanfiles[i]) then
-      li.subitems.add('x')
+      li.subitems.add('x');
+
+    fnwidth:=max(fnwidth, canvas.TextWidth(' '+fn+' '));
+    awidth:=max(awidth, canvas.TextWidth(' '+a+' '));
   end;
 
 
   if (oldindex<>-1) and (oldindex<listview1.Items.count) then
     listview1.itemindex:=oldindex;
+
+  listview1.Column[0].AutoSize:=true;
+  listview1.Column[0].AutoSize:=false;
+  if listview1.Column[0].Width<fnwidth+10 then
+    listview1.Column[0].Width:=fnwidth+10;
+
+  listview1.Column[1].AutoSize:=true;
+  listview1.Column[1].AutoSize:=false;
+  if listview1.Column[1].Width<awidth+10 then
+    listview1.Column[1].Width:=awidth+10;
+
+  listview1.Column[2].AutoSize:=true;
+  listview1.Column[2].AutoSize:=false;
+
 end;
 
 
@@ -171,6 +197,8 @@ end;
 procedure TfrmResumePointerscan.FormShow(Sender: TObject);
 begin
   updateFileList;
+
+  AdjustComboboxSize(combobox1,self.canvas);
 end;
 
 procedure TfrmResumePointerscan.cbDistributedScanningChange(Sender: TObject);

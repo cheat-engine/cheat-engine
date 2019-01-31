@@ -203,68 +203,6 @@ begin
   end;
 end;
 
-{
-
-begin
-
-
-
-  try
-
-    for i:=0 to Pointerscanresults.count-1 do
-    begin
-      p:=pointerscanresults.getPointer(i);
-
-      if c=0 then
-        v:=pointerscanresults.getModuleBase(p.modulenr)+p.moduleoffset
-      else
-      begin
-        if c>p.offsetcount then
-          v:=p.offsets[0]
-        else
-          v:=p.offsets[p.offsetcount-c];
-      end;
-
-      if files.GetData(v, f)=false then  //create this pointerfile.
-      begin
-        f:=tfilestream.Create(basefilename+'.'+inttohex(v,1), fmcreate);
-        files.Add(v, f);
-      end;
-
-      f.Write(p^, entrysize);
-    end;
-
-  finally
-    s:='';
-    mi:=TMapIterator.Create(files);
-
-    i:=0;
-    if files.count>0 then
-    begin
-      mi.first;
-
-      while not mi.EOM do
-      begin
-        f:=nil;
-        mi.GetData(f);
-        if f<>nil then
-        begin
-          s:=s+f.filename+#13#10;
-          f.free;
-        end;
-
-        mi.Next;
-
-      end;
-    end;
-
-    mi.free;
-    files.free;
-  end;
-
-  showmessage(s);
-end;
-}
 
 procedure TfrmSortPointerlist.Button1Click(Sender: TObject);
 begin

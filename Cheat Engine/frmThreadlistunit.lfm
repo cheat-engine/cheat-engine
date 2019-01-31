@@ -1,7 +1,7 @@
 object frmThreadlist: TfrmThreadlist
-  Left = 657
+  Left = 493
   Height = 187
-  Top = 194
+  Top = 131
   Width = 313
   BorderStyle = bsSizeToolWin
   Caption = 'Threadlist'
@@ -41,6 +41,7 @@ object frmThreadlist: TfrmThreadlist
     Visible = False
   end
   object PopupMenu1: TPopupMenu
+    OnPopup = PopupMenu1Popup
     left = 80
     top = 40
     object miBreak: TMenuItem
@@ -62,6 +63,12 @@ object frmThreadlist: TfrmThreadlist
     object MenuItem1: TMenuItem
       Caption = 'Stackview'
       OnClick = MenuItem1Click
+    end
+    object miCopyValueToClipboard: TMenuItem
+      Caption = 'Copy value to clipboard'
+      ShortCut = 16451
+      Visible = False
+      OnClick = miCopyValueToClipboardClick
     end
   end
 end

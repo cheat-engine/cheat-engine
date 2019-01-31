@@ -65,6 +65,7 @@ type
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
+    MenuItem7: TMenuItem;
     miSave: TMenuItem;
     miLoad: TMenuItem;
     miSaveToDisk: TMenuItem;
@@ -98,6 +99,7 @@ type
       Y: Integer);
     procedure MenuItem5Click(Sender: TObject);
     procedure MenuItem6Click(Sender: TObject);
+    procedure MenuItem7Click(Sender: TObject);
     procedure miLoadClick(Sender: TObject);
     procedure miSaveClick(Sender: TObject);
     procedure miSaveToDiskClick(Sender: TObject);
@@ -637,6 +639,14 @@ begin
   begin
     t.Collapse(true);
     t:=t.GetNextSibling;
+  end;
+end;
+
+procedure TfrmTracer.MenuItem7Click(Sender: TObject);
+begin
+  if opendialog1.Execute then
+  begin
+
   end;
 end;
 

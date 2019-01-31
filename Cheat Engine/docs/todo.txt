@@ -36,18 +36,11 @@ make more frequent releases ffs
 
 define from debug data: Use a ownerdata list instead (or better, a whole new interface where you can see beforehand the layout)
 
-structure compare: sortable offset columns
-structure compare: Locking a column will invalidate miltilevel entries
-structure compare: make the groupboxes resizable
-
 structure compare: Closed a previous structure compare followed by reopening a new one and loading a file, messes up the popupmode and other stuff
  
-threadview registers: Add "copy value to clipboard"
-
 changed addresses: add Change value there
 
 pointerscan: High dpi window starts too small, and the progressbar is too low
-pointerscan: On reopening the pointerscan settings window, the dropbox is too small
 pointerscan: generating pointermap should also check terminated
 
 pointerscan: when suspending a scan, CE closed itself(crash)
@@ -59,3 +52,6 @@ vehdebug: Fix reattach (need to move the threadpoller to CE)
 
 gui: override gui font gives error in lua
 groupscan generator: high dpi start too small
+
+frmTracer: Add a compare to previous trace (highlight changes)
+Code filter: Add a address dissector that scans for vtables (optionally let the user specify the vtable)

@@ -1,7 +1,7 @@
 object frmStackView: TfrmStackView
-  Left = 368
+  Left = 714
   Height = 211
-  Top = 522
+  Top = 479
   Width = 374
   BorderStyle = bsSizeToolWin
   Caption = 'Stack View'

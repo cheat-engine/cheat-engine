@@ -1,7 +1,7 @@
 object frmStacktrace: TfrmStacktrace
-  Left = 228
+  Left = 171
   Height = 274
-  Top = 148
+  Top = 100
   Width = 683
   BorderStyle = bsSizeToolWin
   Caption = 'Stacktrace'
