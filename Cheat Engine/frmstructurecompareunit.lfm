@@ -1,12 +1,12 @@
 object frmStructureCompare: TfrmStructureCompare
-  Left = 806
-  Height = 400
-  Top = 380
-  Width = 622
+  Left = 643
+  Height = 432
+  Top = 370
+  Width = 695
   AutoSize = True
   Caption = 'Structure Compare'
-  ClientHeight = 380
-  ClientWidth = 622
+  ClientHeight = 412
+  ClientWidth = 695
   Menu = MainMenu1
   OnClose = FormClose
   OnCreate = FormCreate
@@ -16,19 +16,19 @@ object frmStructureCompare: TfrmStructureCompare
   LCLVersion = '1.6.4.0'
   object Panel2: TPanel
     Left = 0
-    Height = 380
+    Height = 412
     Top = 0
-    Width = 622
+    Width = 695
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 380
-    ClientWidth = 622
+    ClientHeight = 412
+    ClientWidth = 695
     TabOrder = 0
     object lvResults: TListView
       Left = 0
-      Height = 214
-      Top = 166
-      Width = 622
+      Height = 244
+      Top = 168
+      Width = 695
       Align = alClient
       Columns = <>
       HideSelection = False
@@ -45,28 +45,26 @@ object frmStructureCompare: TfrmStructureCompare
     end
     object Panel3: TPanel
       Left = 0
-      Height = 163
+      Height = 160
       Top = 0
-      Width = 622
+      Width = 695
       Align = alTop
-      AutoSize = True
       BorderSpacing.Bottom = 3
       BevelOuter = bvNone
-      ClientHeight = 163
-      ClientWidth = 622
-      Constraints.MinWidth = 500
+      ClientHeight = 160
+      ClientWidth = 695
       TabOrder = 1
       object Panel7: TPanel
-        AnchorSideLeft.Control = gbNFL
+        AnchorSideLeft.Control = gbNLF
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = Panel3
         AnchorSideRight.Control = Panel3
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = Panel3
         AnchorSideBottom.Side = asrBottom
-        Left = 565
+        Left = 408
         Height = 57
-        Top = 106
+        Top = 103
         Width = 124
         Anchors = [akLeft, akBottom]
         AutoSize = True
@@ -129,30 +127,32 @@ object frmStructureCompare: TfrmStructureCompare
       object gbLF: TGroupBox
         AnchorSideLeft.Control = Panel1
         AnchorSideLeft.Side = asrBottom
-        AnchorSideTop.Side = asrBottom
-        Left = 184
-        Height = 150
+        AnchorSideTop.Control = Panel3
+        AnchorSideBottom.Control = Panel3
+        AnchorSideBottom.Side = asrBottom
+        Left = 185
+        Height = 157
         Top = 0
-        Width = 185
-        AutoSize = True
+        Width = 105
+        Anchors = [akTop, akLeft, akBottom]
+        BorderSpacing.Left = 1
+        BorderSpacing.Bottom = 3
         Caption = 'Group 1'
-        ClientHeight = 130
-        ClientWidth = 181
-        Constraints.MaxHeight = 150
-        Constraints.MinHeight = 150
-        Constraints.MinWidth = 185
+        ClientHeight = 137
+        ClientWidth = 101
         TabOrder = 0
         object sbLF: TScrollBox
           Left = 0
-          Height = 130
+          Height = 137
           Top = 0
-          Width = 181
+          Width = 101
           HorzScrollBar.Page = 95
+          HorzScrollBar.Visible = False
           VertScrollBar.Page = 27
           VertScrollBar.Tracking = True
           Align = alClient
-          ClientHeight = 126
-          ClientWidth = 177
+          ClientHeight = 133
+          ClientWidth = 97
           TabOrder = 0
           object btnAddAddressLF: TButton
             AnchorSideLeft.Control = sbLF
@@ -173,11 +173,12 @@ object frmStructureCompare: TfrmStructureCompare
             Left = 0
             Height = 0
             Top = 0
-            Width = 177
+            Width = 97
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
             ChildSizing.TopBottomSpacing = 2
+            ChildSizing.VerticalSpacing = 2
             ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
             ChildSizing.ShrinkHorizontal = crsScaleChilds
             ChildSizing.Layout = cclLeftToRightThenTopToBottom
@@ -186,35 +187,36 @@ object frmStructureCompare: TfrmStructureCompare
           end
         end
       end
-      object gbNFL: TGroupBox
+      object gbNLF: TGroupBox
         AnchorSideLeft.Control = gbLF
         AnchorSideLeft.Side = asrBottom
-        AnchorSideTop.Side = asrBottom
-        Left = 372
-        Height = 150
+        AnchorSideTop.Control = Panel3
+        AnchorSideBottom.Control = Panel3
+        AnchorSideBottom.Side = asrBottom
+        Left = 293
+        Height = 157
         Top = 0
-        Width = 185
-        AutoSize = True
+        Width = 107
+        Anchors = [akTop, akLeft, akBottom]
         BorderSpacing.Left = 3
+        BorderSpacing.Bottom = 3
         Caption = 'Group 2'
-        ClientHeight = 130
-        ClientWidth = 181
-        Constraints.MaxHeight = 150
-        Constraints.MinHeight = 150
-        Constraints.MinWidth = 185
+        ClientHeight = 137
+        ClientWidth = 103
         TabOrder = 1
-        OnClick = gbNFLClick
+        OnClick = gbNLFClick
         object sbNLF: TScrollBox
           Left = 0
-          Height = 130
+          Height = 137
           Top = 0
-          Width = 181
+          Width = 103
           HorzScrollBar.Page = 95
           VertScrollBar.Page = 27
           VertScrollBar.Tracking = True
+          VertScrollBar.Visible = False
           Align = alClient
-          ClientHeight = 126
-          ClientWidth = 177
+          ClientHeight = 133
+          ClientWidth = 99
           TabOrder = 0
           object btnAddAddressNLF: TButton
             Tag = 1
@@ -236,13 +238,14 @@ object frmStructureCompare: TfrmStructureCompare
             Left = 0
             Height = 0
             Top = 0
-            Width = 177
+            Width = 99
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
             ChildSizing.TopBottomSpacing = 2
-            ChildSizing.HorizontalSpacing = 2
+            ChildSizing.VerticalSpacing = 2
             ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+            ChildSizing.ShrinkHorizontal = crsScaleChilds
             ChildSizing.Layout = cclLeftToRightThenTopToBottom
             ChildSizing.ControlsPerLine = 1
             TabOrder = 0
@@ -251,19 +254,20 @@ object frmStructureCompare: TfrmStructureCompare
       end
       object Panel1: TPanel
         Left = 0
-        Height = 163
+        Height = 160
         Top = 0
         Width = 184
         Align = alLeft
         AutoSize = True
         BevelOuter = bvNone
-        ClientHeight = 163
+        ClientHeight = 160
         ClientWidth = 184
         TabOrder = 3
         object lblInfo: TLabel
+          AnchorSideBottom.Side = asrBottom
           Left = 0
           Height = 15
-          Top = 148
+          Top = 145
           Width = 184
           Align = alBottom
           Caption = 'Info'
@@ -271,12 +275,12 @@ object frmStructureCompare: TfrmStructureCompare
         end
         object Panel4: TPanel
           Left = 0
-          Height = 148
+          Height = 145
           Top = 0
           Width = 184
           Align = alClient
           BevelOuter = bvNone
-          ClientHeight = 148
+          ClientHeight = 145
           ClientWidth = 184
           TabOrder = 0
           object Panel9: TPanel
@@ -436,6 +440,15 @@ object frmStructureCompare: TfrmStructureCompare
           end
         end
       end
+    end
+    object Splitter1: TSplitter
+      Cursor = crVSplit
+      Left = 0
+      Height = 5
+      Top = 163
+      Width = 695
+      Align = alTop
+      ResizeAnchor = akTop
     end
   end
   object SaveDialog1: TSaveDialog

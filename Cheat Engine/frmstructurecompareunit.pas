@@ -266,7 +266,7 @@ type
     edtStructsize: TEdit;
     FindDialog1: TFindDialog;
     gbLF: TGroupBox;
-    gbNFL: TGroupBox;
+    gbNLF: TGroupBox;
     lblAlign: TLabel;
     lblInfo: TLabel;
     lblMaxLevel: TLabel;
@@ -307,6 +307,7 @@ type
     SaveDialog1: TSaveDialog;
     sbLF: TScrollBox;
     sbNLF: TScrollBox;
+    Splitter1: TSplitter;
     statusupdater: TTimer;
     tRefresher: TTimer;
     procedure btnAddAddressClick(Sender: TObject);
@@ -318,7 +319,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure gbNFLClick(Sender: TObject);
+    procedure gbNLFClick(Sender: TObject);
     procedure lvResultsColumnClick(Sender: TObject; Column: TListColumn);
     procedure lvResultsCustomDrawSubItem(Sender: TCustomListView;
       Item: TListItem; SubItem: Integer; State: TCustomDrawState;
@@ -1378,8 +1379,8 @@ begin
       //found a possible identifier to use
       wi.path[wi.currentLevel]:=pos;
       writeResult(wi.path,wi.currentLevel);
-    end
-    else
+    end;
+
     begin
       allreadablepointers:=wi.currentLevel<maxlevel;
 
@@ -2368,8 +2369,10 @@ begin
 end;
 
 procedure TfrmStructureCompare.FormShow(Sender: TObject);
+var w,b,mh: integer;
 begin
   //panel1.Constraints.MinHeight:=btnNewScan.Top+btnNewScan.Height+lblInfo.Height+4;
+
   if edtLF.Count=0 then
     btnAddAddressLF.click;
 
@@ -2377,9 +2380,30 @@ begin
     btnAddAddressNLF.click;
 
   AdjustComboboxSize(comboType, canvas);
+
+ // gbLF.Constraints.MinWidth:=GetEditBoxMargins(tedit(edtLF[0]))+canvas.TextWidth(' XXXXXXXXXXXXXXXX ');
+  w:=GetEditBoxMargins(edtMaxLevel)+canvas.TextWidth(' XXXXXXXXXXXXXXXX ');      ;
+
+
+  b:=tedit(edtLF[0]).ClientToParent(point(0,0),gbLF).x;
+
+
+  gbLF.Constraints.MinWidth:=w+b;
+  gbNLF.Constraints.MinWidth:=w+b;
+
+  gbLF.ClientWidth:=w+b;
+  gbNLF.ClientWidth:=w+b;
+
+  Constraints.MinWidth:=panel7.left+panel7.Width;
+
+  mh:=panel9.top+panel9.height+lblinfo.height;
+  panel3.Constraints.MinHeight:=mh;
 end;
 
-procedure TfrmStructureCompare.gbNFLClick(Sender: TObject);
+
+
+
+procedure TfrmStructureCompare.gbNLFClick(Sender: TObject);
 begin
 
 end;
@@ -2551,6 +2575,8 @@ begin
   else
     miShadow.caption:=rsSPSLock;
 end;
+
+
 
 procedure TfrmStructureCompare.statusupdaterTimer(Sender: TObject);
 var
