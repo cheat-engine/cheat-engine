@@ -10223,6 +10223,61 @@ begin
   result:=1;
 end;
 
+function lua_enumMemoryRegions(L: PLua_state): integer; cdecl;
+var
+  mbi: TMEMORYBASICINFORMATION;
+  address: ptruint;
+  oldaddress: ptruint;
+  i: integer;
+begin
+  address:=0;
+  lua_newtable(L);
+  i:=1;
+  while newkernelhandler.VirtualQueryEx(processhandle, pointer(address),mbi,sizeof(mbi))=sizeof(mbi) do
+  begin
+    lua_pushinteger(L,i);
+    lua_newtable(L);
+
+    lua_pushstring(L,'BaseAddress');
+    lua_pushinteger(L,ptruint(mbi.BaseAddress));
+    lua_settable(L,-3);
+
+    lua_pushstring(L,'AllocationBase');
+    lua_pushinteger(L,ptruint(mbi.AllocationBase));
+    lua_settable(L,-3);
+
+    lua_pushstring(L,'AllocationProtect');
+    lua_pushinteger(L,mbi.AllocationProtect);
+    lua_settable(L,-3);
+
+    lua_pushstring(L,'RegionSize');
+    lua_pushinteger(L,mbi.RegionSize);
+    lua_settable(L,-3);
+
+    lua_pushstring(L,'State');
+    lua_pushinteger(L,mbi.RegionSize);
+    lua_settable(L,-3);
+
+    lua_pushstring(L,'Protect');
+    lua_pushinteger(L,mbi.Protect);
+    lua_settable(L,-3);
+
+    lua_pushstring(L,'Type');
+    lua_pushinteger(L,mbi.Protect);
+    lua_settable(L,-3);
+
+    lua_settable(L,-3);
+
+    oldaddress:=address;
+    address:=address+mbi.RegionSize;
+    if address<oldaddress then break;
+
+    inc(i);
+  end;
+
+  result:=1;
+end;
+
 procedure InitializeLua;
 var
   s: tstringlist;
@@ -10800,6 +10855,7 @@ begin
     lua_register(L, 'gc_setActivate', lua_gc_setPassive);
 
     lua_register(L, 'getHotkeyHandlerThread', lua_getHotkeyHandlerThread);
+    lua_register(L, 'enumMemoryRegions', lua_enumMemoryRegions);
 
     initializeLuaRemoteThread;
 

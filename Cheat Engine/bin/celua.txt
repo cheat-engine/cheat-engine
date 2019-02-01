@@ -99,6 +99,7 @@ bShl(int, int2)   : Binary shift left
 bShr(int, int2)   : Binary shift right
 bNot(int)         : Binary not
 
+enumMemoryRegions() : Returns an indexed table containing the memorylayout. Each entry consists out of: BaseAddress, AllocationBase, AllocationProtect, RegionSize, State, Protect, Type
 
 writeRegionToFile(filename, sourceaddress,size) : Writes the given region to a file. Returns the number of bytes written
 readRegionFromFile(filename, destinationaddress)
