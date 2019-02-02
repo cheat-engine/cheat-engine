@@ -127,7 +127,7 @@ implementation
 
 { TfrmLuaEngine }
 
-uses luaclass, SynEditTypes;
+uses luaclass, SynEditTypes, globals;
 
 resourcestring
   rsError = 'Script Error';
@@ -1292,6 +1292,7 @@ end;
 procedure TfrmLuaEngine.FormCreate(Sender: TObject);
 var x: array of integer;
 begin
+
   synhighlighter:=TSynLuaSyn.Create(self);
   mscript.Highlighter:=synhighlighter;
 
@@ -1328,9 +1329,15 @@ end;
 procedure TfrmLuaEngine.FormShow(Sender: TObject);
 var i: integer;
 begin
+  if overridefont<>nil then
+    mScript.font.size:=overridefont.size
+  else
+    mScript.font.size:=10;
+
   i:=GetFontData(font.reference.handle).Height;
   if i<mScript.Font.Height then
     mScript.Font.Height:=i;
+
 end;
 
 

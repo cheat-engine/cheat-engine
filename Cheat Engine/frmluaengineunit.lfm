@@ -142,7 +142,6 @@ object frmLuaEngine: TfrmLuaEngine
         Top = 0
         Width = 489
         Align = alClient
-        Font.Height = -13
         Font.Name = 'Courier New'
         Font.Pitch = fpFixed
         Font.Quality = fqNonAntialiased
@@ -157,7 +156,7 @@ object frmLuaEngine: TfrmLuaEngine
         OnMouseMove = mScriptMouseMove
         OnMouseLink = mScriptMouseLink
         BookMarkOptions.BookmarkImages = ilSyneditDebug
-        Gutter.Width = 43
+        Gutter.Width = 51
         Gutter.MouseActions = <        
           item
             ClickCount = ccAny
@@ -700,7 +699,7 @@ object frmLuaEngine: TfrmLuaEngine
               end>
           end
           object SynGutterLineNumber1: TSynGutterLineNumber
-            Width = 17
+            Width = 25
             MouseActions = <>
             MarkupInfo.Background = clBtnFace
             MarkupInfo.Foreground = clNone

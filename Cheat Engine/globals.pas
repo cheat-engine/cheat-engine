@@ -9,12 +9,14 @@ This unit will hold some global variables (previously cefuncproc.pas)
 interface
 
 uses
-  Classes, SysUtils, commonTypeDefs, syncobjs;
+  Classes, SysUtils, commonTypeDefs, syncobjs, Graphics;
 
 //type TUnexpectedExceptionAction=(ueaIgnore, ueaBreak, ueaBreakIfInRegion);
 
 var
 //  AllIncludesCustomType: boolean;
+  overridefont: TFont;
+
   ScanAllTypes: TVariableTypes=[vtDword, vtSingle, vtDouble];
 
   buffersize: dword=512*1024;

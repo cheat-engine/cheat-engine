@@ -43,10 +43,11 @@ pointerscan: generating pointermap should also check terminated
 pointerscan: when suspending a scan, CE closed itself(crash)
 
 
-vehdebug: Fix reattach (need to move the threadpoller to CE)
-
 gui: override gui font gives error in lua
 groupscan generator: high dpi start too small
+processlist: high dpi starts too small
+
+lua/assembler: font too small on high dpi
 
 frmTracer: Add a compare to previous trace (highlight changes)
 Code filter: Add a address dissector that scans for vtables (optionally let the user specify the vtable)
