@@ -48,6 +48,7 @@ groupscan generator: high dpi start too small
 processlist: high dpi starts too small
 
 lua/assembler: font too small on high dpi
+lua engine: code completion: ( should insert the (
 
 frmTracer: Add a compare to previous trace (highlight changes)
 Code filter: Add a address dissector that scans for vtables (optionally let the user specify the vtable)

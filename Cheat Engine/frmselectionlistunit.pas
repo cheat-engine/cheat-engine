@@ -53,6 +53,8 @@ function ShowSelectionList(owner: TComponent; title, caption: string; list: TStr
 
 implementation
 
+uses math;
+
 function ShowSelectionList(owner: TComponent; title, caption: string; list: TStrings; var output: string; AllowCustomInput: boolean=false; SelectionToText: TSelectionToTextEvent=nil): integer;
 var sl: TfrmSelectionList;
 begin
@@ -96,6 +98,8 @@ begin
     originallist:=tstringlist.Create;
     originallist.AddStrings(functionlist);
   end;
+
+  clientwidth:=max(clientwidth, canvas.TextWidth('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'));
 end;
 
 

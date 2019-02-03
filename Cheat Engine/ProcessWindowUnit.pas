@@ -702,8 +702,11 @@ begin
     if autosize then
     begin
       autosize:=false;
-      if height<350 then
-        height:=350; //initial show
+      //first run or no saving positions
+      clientwidth:=max(clientwidth, canvas.TextWidth('  XXXXXXXX - XXXXXXXXXXXXXXXXXXXXXX  '));
+      height:=mainform.Height-(mainform.height div 3);
+      position:=poDesigned;
+      position:=poMainFormCenter;
     end;
     errortrace:=106;
 
