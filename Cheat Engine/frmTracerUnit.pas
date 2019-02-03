@@ -1079,6 +1079,10 @@ begin
   btnpanel:=tpanel.create(frmrealign);
   btnpanel.align:=albottom;
   btnpanel.parent:=frmrealign;
+  btnpanel.autosize:=true;
+  btnpanel.BorderSpacing.Top:=4;
+  btnpanel.BorderSpacing.Bottom:=4;
+
 
   select:=tbutton.create(frmrealign);
   select.parent:=btnpanel;
@@ -1698,6 +1702,11 @@ begin
     minwidth:=panel1.Canvas.TextWidth(' XXX XXXXXXXXXXXXXXXX   XX X ');
     if panel1.width<minwidth then
       panel1.width:=minwidth+4;
+
+    minwidth:=lvtracer.canvas.textwidth('XXXXXXXX - XXX XXX XXXXXXXXXXXXX');
+    if lvtracer.width<minwidth then
+      width:=width+(minwidth-lvtracer.width);
+
   end;
 end;
 

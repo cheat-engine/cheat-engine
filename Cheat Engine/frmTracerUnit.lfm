@@ -2,11 +2,11 @@ object frmTracer: TfrmTracer
   Left = 1018
   Height = 470
   Top = 282
-  Width = 492
+  Width = 511
   BorderIcons = [biSystemMenu]
   Caption = 'Tracer'
   ClientHeight = 450
-  ClientWidth = 492
+  ClientWidth = 511
   Menu = MainMenu1
   OnClose = FormClose
   OnCreate = FormCreate
@@ -15,7 +15,7 @@ object frmTracer: TfrmTracer
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'
   object Splitter1: TSplitter
-    Left = 261
+    Left = 280
     Height = 450
     Top = 0
     Width = 4
@@ -23,7 +23,7 @@ object frmTracer: TfrmTracer
     ResizeAnchor = akRight
   end
   object Panel1: TPanel
-    Left = 265
+    Left = 284
     Height = 450
     Top = 0
     Width = 227
@@ -97,9 +97,6 @@ object frmTracer: TfrmTracer
       ChildSizing.ControlsPerLine = 1
       ClientHeight = 192
       ClientWidth = 96
-      Font.Height = -13
-      Font.Name = 'Courier New'
-      ParentFont = False
       ParentShowHint = False
       ShowHint = True
       TabOrder = 1
@@ -426,30 +423,30 @@ object frmTracer: TfrmTracer
     Left = 0
     Height = 450
     Top = 0
-    Width = 261
+    Width = 280
     Align = alClient
     AutoSize = True
     BevelOuter = bvNone
     ClientHeight = 450
-    ClientWidth = 261
+    ClientWidth = 280
     TabOrder = 2
     object pnlSearch: TPanel
       Left = 0
       Height = 48
       Top = 402
-      Width = 261
+      Width = 280
       Align = alBottom
       AutoSize = True
       BevelOuter = bvNone
       ClientHeight = 48
-      ClientWidth = 261
+      ClientWidth = 280
       TabOrder = 0
       Visible = False
       object btnStopSearch: TButton
         AnchorSideLeft.Control = pnlSearch
         AnchorSideLeft.Side = asrCenter
         AnchorSideTop.Control = pnlSearch
-        Left = 86
+        Left = 96
         Height = 25
         Top = 2
         Width = 88
@@ -473,18 +470,18 @@ object frmTracer: TfrmTracer
         Left = 0
         Height = 19
         Top = 29
-        Width = 261
+        Width = 280
         Anchors = [akTop, akLeft, akRight, akBottom]
         AutoSize = True
         BevelOuter = bvNone
         ClientHeight = 19
-        ClientWidth = 261
+        ClientWidth = 280
         TabOrder = 1
         object ProgressBar1: TProgressBar
           Left = 0
           Height = 19
           Top = 0
-          Width = 261
+          Width = 280
           Align = alBottom
           TabOrder = 0
         end
@@ -494,20 +491,19 @@ object frmTracer: TfrmTracer
       Left = 0
       Height = 364
       Top = 0
-      Width = 261
+      Width = 280
       Align = alClient
       BevelOuter = bvNone
       ClientHeight = 364
-      ClientWidth = 261
+      ClientWidth = 280
       TabOrder = 1
       object lvTracer: TTreeView
         Left = 0
         Height = 364
         Top = 0
-        Width = 261
+        Width = 280
         Align = alClient
         DefaultItemHeight = 18
-        ExpandSignType = tvestPlusMinus
         HideSelection = False
         PopupMenu = pmTracer
         ReadOnly = True
@@ -523,7 +519,7 @@ object frmTracer: TfrmTracer
       Left = 0
       Height = 19
       Top = 383
-      Width = 261
+      Width = 280
       Align = alBottom
       Caption = 'Compare FPU/XMM'
       OnChange = cbFPUXMMChange
@@ -533,7 +529,7 @@ object frmTracer: TfrmTracer
       Left = 0
       Height = 19
       Top = 364
-      Width = 261
+      Width = 280
       Align = alBottom
       Caption = 'Ignore stackpointers'
       Checked = True
