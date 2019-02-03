@@ -179,7 +179,15 @@ begin
     t.interval:=1;
     t.OnTimer:=ContinueAutoComplete2;
     t.enabled:=true;
-  end;
+  end
+  else
+  if keychar='(' then
+    value:=value+'('
+  else
+  if keychar='=' then
+    value:=value+'=';
+
+
 end;
 
 function ParseStringForPath(s: string; var extra: string): string;
