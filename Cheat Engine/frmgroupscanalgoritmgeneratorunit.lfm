@@ -1,16 +1,16 @@
 object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
   Left = 555
-  Height = 331
+  Height = 340
   Top = 330
   Width = 357
   Caption = 'Generate groupscan command'
-  ClientHeight = 331
+  ClientHeight = 340
   ClientWidth = 357
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object ScrollBox1: TScrollBox
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = lblWildcardExplanation
@@ -19,7 +19,7 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Panel1
     Left = 14
-    Height = 141
+    Height = 150
     Top = 15
     Width = 329
     HorzScrollBar.Page = 1
@@ -49,7 +49,7 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
   object Panel1: TPanel
     Left = 0
     Height = 161
-    Top = 170
+    Top = 179
     Width = 357
     Align = alBottom
     AutoSize = True

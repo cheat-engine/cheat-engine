@@ -322,6 +322,7 @@ begin
     cbvartype.width:=cbvartype.width+i;
   end;
 
+  edtValue.Constraints.MinWidth:=frm.Canvas.TextWidth('XXXXXXXXXXX');
 
   setPosition;
 end;
@@ -420,9 +421,21 @@ begin
   btnok.width:=i;
   btncancel.width:=i;
 
-  i:=(TVariableInfo(varinfolist[0]).cbVartype.Height+5)-scrollbox1.ClientHeight;
+  i:=(TVariableInfo(varinfolist[0]).cbVartype.Height*3+5)-scrollbox1.ClientHeight;
   if i>0 then
     height:=height+i+15;
+
+  //width:=canvas.
+
+  if Varinfolist.count>0 then //should be true
+  begin
+    i:=TVariableInfo(Varinfolist[0]).cbVartype.width*3;
+    width:=i;
+//    TVariableInfo(Varinfolist[0]).cbPicked.left+TVariableInfo(Varinfolist[0]).cbPicked.width
+  end;
+
+  position:=poDesigned;
+  position:=poScreenCenter;
 
 end;
 
