@@ -419,6 +419,7 @@ resourcestring
   rsStructureCompare = 'Structure Compare';
   rsMaxAddressesShown = 'Max addresses shown :';
   rsMaxReached = '...<max reached>...';
+  rsSameAddress = 'This will result in 0 results as address %s appears multiple times';
 //----------TPointerfileReader---------
 
 
@@ -2114,7 +2115,7 @@ var baseaddress: ptruint;
 
   oldpointerfile: string;
 
-  i: integer;
+  i,j: integer;
   LF: array of TAddressWithShadow;
   NLF: array of TAddressWithShadow;
 begin
@@ -2129,6 +2130,7 @@ begin
   for i:=0 to edtLF.count-1 do
   begin
     lf[i].address:=TAddressEdit(edtLF[i]).address;
+
     if TAddressEdit(edtLF[i]).tag<>0 then
     begin
       lf[i].shadow:=TShadow(TAddressEdit(edtLF[i]).tag).Address;
@@ -2141,12 +2143,16 @@ begin
     end;
 
     if TAddressEdit(edtLF[i]).invalidAddress then raise exception.create(Format(rsInvalidGroup, [1, inttostr(i+1), TAddressEdit(edtLF[i]).text]));
+
+    for j:=0 to i-1 do
+      if (lf[j].address=lf[i].address) and (lf[i].shadow=lf[j].shadow) then raise exception.create(Format(rsSameAddress, [TAddressEdit(edtLF[i])]));
   end;
 
   setlength(NLF, edtNLF.count);
   for i:=0 to edtNLF.count-1 do
   begin
     nlf[i].address:=TAddressEdit(edtNLF[i]).address;
+
     if TAddressEdit(edtNLF[i]).tag<>0 then
     begin
       nlf[i].shadow:=TShadow(TAddressEdit(edtNLF[i]).tag).Address;
@@ -2158,6 +2164,12 @@ begin
       nlf[i].shadowsize:=0;
     end;
     if TAddressEdit(edtNLF[i]).invalidAddress then raise exception.create(Format(rsInvalidGroup, [2, inttostr(i+1), TAddressEdit(edtNLF[i]).text]));
+
+    for j:=0 to i-1 do
+      if (nlf[j].address=nlf[i].address) and (nlf[i].shadow=nlf[j].shadow) then raise exception.create(Format(rsSameAddress, [TAddressEdit(edtLF[i])]));
+
+    for j:=0 to length(lf)-1 do
+      if (lf[j].address=nlf[i].address) and (lf[i].shadow=nlf[j].shadow) then raise exception.create(Format(rsSameAddress, [TAddressEdit(edtLF[i])]));
   end;
 
   maxlevel:=strtoint(edtMaxLevel.text);
