@@ -6,11 +6,10 @@ interface
 
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ExtCtrls, Menus, CEFuncProc, StrUtils, types, ComCtrls, LResources,
-  NewKernelHandler, SynEdit, SynHighlighterCpp, SynHighlighterAA, LuaSyntax, disassembler,
-  MainUnit2, Assemblerunit, autoassembler, symbolhandler, symbolhandlerstructs, SynEditSearch, SynPluginMultiCaret,
-  MemoryRecordUnit, tablist, customtypehandler, registry, SynGutterBase, SynEditMarks,
-  luahandler, memscan, foundlisthelper, ProcessHandlerUnit, commonTypeDefs;
+  StdCtrls, ExtCtrls, Menus, MemoryRecordUnit, commonTypeDefs, customtypehandler,
+  disassembler, symbolhandler, symbolhandlerstructs, SynEdit, SynHighlighterCpp,
+  SynHighlighterAA, LuaSyntax, SynPluginMultiCaret, SynEditSearch, tablist,
+  SynGutterBase, SynEditMarks;
 
 
 type TCallbackRoutine=procedure(memrec: TMemoryRecord; script: string; changed: boolean) of object;
@@ -184,6 +183,8 @@ type
     fScriptMode: TScriptMode;
     fCustomTypeScript: boolean;
 
+    shownonce: boolean;
+
     procedure setluamode(state: boolean);
     procedure setScriptMode(mode: TScriptMode);
 
@@ -234,7 +235,9 @@ implementation
 
 
 uses frmAAEditPrefsUnit,MainUnit,memorybrowserformunit,APIhooktemplatesettingsfrm,
-  Globals, Parsers, MemoryQuery, GnuAssembler, LuaCaller, SynEditTypes;
+  Globals, Parsers, MemoryQuery, GnuAssembler, LuaCaller, SynEditTypes, CEFuncProc,
+  StrUtils, types, ComCtrls, LResources, NewKernelHandler, MainUnit2, Assemblerunit,
+  autoassembler,  registry, luahandler, memscan, foundlisthelper, ProcessHandlerUnit;
 
 resourcestring
   rsExecuteScript = 'Execute script';
@@ -1374,7 +1377,36 @@ begin
 end;
 
 procedure TfrmAutoInject.FormShow(Sender: TObject);
+var
+  reg: Tregistry;
 begin
+  if shownonce=false then
+  begin
+    if overridefont<>nil then
+      assemblescreen.Font.assign(overridefont)
+    else
+      assemblescreen.Font.Size:=10;
+
+    reg:=tregistry.create;
+    try
+      if reg.OpenKey('\Software\Cheat Engine\Auto Assembler\',false) then
+      begin
+        if reg.valueexists('Font.name') then
+          assemblescreen.Font.Name:=reg.readstring('Font.name');
+
+        if reg.valueexists('Font.size') then
+          assemblescreen.Font.size:=reg.ReadInteger('Font.size');
+
+        if reg.valueexists('Font.quality') then
+          assemblescreen.Font.quality:=TFontQuality(reg.ReadInteger('Font.quality'));
+      end;
+    finally
+      reg.free;
+    end;
+
+    shownonce:=true;
+  end;
+
   if editscript then
     button1.Caption:=strOK;
 
@@ -1716,7 +1748,13 @@ begin
   assemblescreen:=TSynEdit.Create(self);
   assemblescreen.Highlighter:=AAHighlighter;
   assemblescreen.Options:=SYNEDIT_DEFAULT_OPTIONS - [eoScrollPastEol]+[eoTabIndent]+[eoKeepCaretX];
-  assemblescreen.Font.Quality:=fqDefault;
+
+ { if overridefont<>nil then
+    assemblescreen.Font.assign(overridefont)
+  else
+    assemblescreen.Font.Size:=10;    }
+
+  //assemblescreen.Font.Quality:=fqDefault;
   assemblescreen.WantTabs:=true;
   assemblescreen.TabWidth:=4;
 
@@ -1750,15 +1788,6 @@ begin
   try
     if reg.OpenKey('\Software\Cheat Engine\Auto Assembler\',false) then
     begin
-      if reg.valueexists('Font.name') then
-        assemblescreen.Font.Name:=reg.readstring('Font.name');
-
-      if reg.valueexists('Font.size') then
-        assemblescreen.Font.size:=reg.ReadInteger('Font.size');
-
-      if reg.valueexists('Font.quality') then
-        assemblescreen.Font.quality:=TFontQuality(reg.ReadInteger('Font.quality'));
-
       if reg.valueexists('Show Line Numbers') then
         assemblescreen.Gutter.linenumberpart.visible:=reg.ReadBool('Show Line Numbers');
 
