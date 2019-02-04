@@ -613,8 +613,11 @@ end;
 
 
 procedure TFormDesigner.OIDDestroy(sender: Tobject);
+var x: array of integer;
 begin
-  saveformposition(TObjectInspectorDlg(sender));
+  setlength(x,1);
+  x[0]:=oid.PropertyGrid.SplitterX;
+  saveformposition(TObjectInspectorDlg(sender), x);
 end;
 
 procedure TFormDesigner.FormDestroy(Sender: TObject);
@@ -1128,16 +1131,35 @@ begin
     begin
       oid.left:=0;
       oid.top:=0;
-    end;
+      oid.height:=screen.WorkAreaHeight;
+      oid.show;
 
-    oid.show;
+      oid.PropertyGrid.PreferredSplitterX:=oid.canvas.TextWidth('XXXXXXXXXXXXXXXX');
+      oid.EventGrid.PreferredSplitterX:=oid.canvas.TextWidth('XXXXXXXXXXXXXXXX');
+
+      oid.PropertyGrid.SplitterX:=oid.propertygrid.preferredSplitterX;
+      oid.EventGrid.SplitterX:=oid.propertygrid.preferredSplitterX;
+      oid.width:=oid.PropertyGrid.PreferredSplitterX*2+oid.PropertyGrid.Indent;
+
+      oid.AutoSize:=false;
+    end
+    else
+    begin
+      oid.show;
+      if length(x)>0 then
+      begin
+        oid.PropertyGrid.PreferredSplitterX:=x[0];
+        oid.EventGrid.PreferredSplitterX:=x[0];
+        oid.PropertyGrid.SplitterX:=x[0];
+        oid.EventGrid.SplitterX:=x[0];
+      end;
+    end;
     {
     oipgpProperties,
     oipgpEvents,
     oipgpFavorite,
     oipgpRestricted
     }
-
 
 
     oid.DefaultItemHeight:=max(oid.DefaultItemHeight, oid.Canvas.TextHeight('QFDZj')+2); //make sure the itemheight fits the current dpi
