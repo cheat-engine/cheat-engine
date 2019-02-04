@@ -616,7 +616,7 @@ procedure TFormDesigner.OIDDestroy(sender: Tobject);
 var x: array of integer;
 begin
   setlength(x,1);
-  x[0]:=oid.PropertyGrid.SplitterX;
+  x[0]:=TObjectInspectorDlg(sender).PropertyGrid.SplitterX;
   saveformposition(TObjectInspectorDlg(sender), x);
 end;
 
