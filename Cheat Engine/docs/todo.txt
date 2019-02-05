@@ -33,17 +33,12 @@ mac version: work on it
 
 make more frequent releases ffs
 
-
 define from debug data: Use a ownerdata list instead (or better, a whole new interface where you can see beforehand the layout)
 
 structure compare: Closed a previous structure compare followed by reopening a new one and loading a file, messes up the popupmode and other stuff
- 
 pointerscan: generating pointermap should also check terminated
-
 pointerscan: when suspending a scan, CE closed itself(crash)
 
-
-groupscan generator: high dpi start too small
-
-
 Code filter: Add a address dissector that scans for vtables (optionally let the user specify the vtable)
+
+test and fix the d3dhook stuff and trainer generator.  (perhaps dx12 support as well)

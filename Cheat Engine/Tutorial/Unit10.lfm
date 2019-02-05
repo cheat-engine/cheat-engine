@@ -22,14 +22,15 @@ inherited Form10: TForm10
   end
   inherited Memo1: TMemo
     AnchorSideBottom.Control = Panel5
-    Height = 160
+    Height = 156
     Lines.Strings = (
       ''
     )
   end
   inherited Button2: TButton
     AnchorSideBottom.Control = Owner
-    AutoSize = True
+    Left = 283
+    Width = 75
     Constraints.MinWidth = 75
     OnClick = Button2Click
   end
@@ -60,7 +61,7 @@ inherited Form10: TForm10
     AnchorSideBottom.Control = Button2
     Left = 237
     Height = 25
-    Top = 221
+    Top = 217
     Width = 167
     Anchors = [akLeft, akBottom]
     AutoSize = True
@@ -76,7 +77,7 @@ inherited Form10: TForm10
     AnchorSideBottom.Control = Button6
     Left = 0
     Height = 61
-    Top = 160
+    Top = 156
     Width = 640
     Anchors = [akLeft, akRight, akBottom]
     AutoSize = True

@@ -1,16 +1,16 @@
 object Form7: TForm7
   Left = 571
-  Height = 280
+  Height = 282
   Top = 257
   Width = 640
   Caption = 'Step 6'
-  ClientHeight = 280
+  ClientHeight = 282
   ClientWidth = 640
   Color = clBtnFace
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Label1: TLabel
     AnchorSideLeft.Control = Button1
     AnchorSideLeft.Side = asrBottom
@@ -18,7 +18,7 @@ object Form7: TForm7
     AnchorSideTop.Side = asrCenter
     Left = 372
     Height = 15
-    Top = 197
+    Top = 199
     Width = 18
     BorderSpacing.Left = 3
     Caption = '100'
@@ -31,7 +31,7 @@ object Form7: TForm7
     AnchorSideTop.Side = asrCenter
     Left = 317
     Height = 15
-    Top = 225
+    Top = 227
     Width = 6
     BorderSpacing.Left = 3
     BorderSpacing.Top = 7
@@ -46,7 +46,7 @@ object Form7: TForm7
     AnchorSideBottom.Side = asrBottom
     Left = 614
     Height = 19
-    Top = 261
+    Top = 263
     Width = 26
     Anchors = [akRight, akBottom]
     AutoSize = True
@@ -57,7 +57,7 @@ object Form7: TForm7
   object Memo1: TMemo
     AnchorSideBottom.Control = Button1
     Left = 0
-    Height = 192
+    Height = 194
     Top = 0
     Width = 640
     Align = alTop
@@ -77,13 +77,15 @@ object Form7: TForm7
     AnchorSideTop.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 283
+    Left = 290
     Height = 25
-    Top = 251
-    Width = 75
+    Top = 253
+    Width = 60
     Anchors = [akLeft, akBottom]
+    AutoSize = True
     BorderSpacing.Bottom = 4
     Caption = 'Next'
+    Constraints.MinWidth = 60
     Enabled = False
     OnClick = Button2Click
     TabOrder = 1
@@ -96,7 +98,7 @@ object Form7: TForm7
     AnchorSideBottom.Control = Button3
     Left = 271
     Height = 25
-    Top = 192
+    Top = 194
     Width = 98
     Anchors = [akLeft, akBottom]
     AutoSize = True
@@ -113,7 +115,7 @@ object Form7: TForm7
     AnchorSideBottom.Control = Button2
     Left = 266
     Height = 25
-    Top = 220
+    Top = 222
     Width = 108
     Anchors = [akLeft, akBottom]
     AutoSize = True
