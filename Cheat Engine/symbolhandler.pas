@@ -44,6 +44,21 @@ type TUserdefinedSymbolCallback=procedure;
 type
   TSymHandler=class;
 
+  TSymbolLoaderThreadEvent=class(tobject)
+  private
+    done: TEvent;
+  public
+    symbolname: string;
+    address: ptruint;
+    procedure waittilldone;
+    constructor create;
+    destructor destroy; override;
+  end;
+
+  TGetAddressFromSymbolThreadEvent=class(TSymbolLoaderThreadEvent);
+  TGetSymbolFromAddressThreadEvent=class(TSymbolLoaderThreadEvent);
+
+
   TSymbolloaderthread=class(tthread)
   private
 
@@ -66,6 +81,11 @@ type
     fprogress: integer;
     modulecount: integer;
     enumeratedModules: integer;
+
+    symbolloaderthreadeventqueue: Tlist;
+    symbolloaderthreadeventqueueCS: TCriticalSection;
+    procedure processThreadEvents; //in case another thread is in a hurry and doesn't want to wait
+
     procedure EnumerateStructures;
     procedure EnumerateExtendedDebugSymbols;
 
@@ -78,6 +98,7 @@ type
     apisymbolsloaded: boolean;
     error: boolean;
     symbolsloaded: boolean;
+    DLLSymbolsLoaded: boolean;
 
     kernelsymbols: boolean;
     dllsymbols: boolean;
@@ -86,6 +107,10 @@ type
     symbollist: TSymbolListHandler;
 
     debugpart: integer;
+
+
+    function getAddressFromSymbol(symbol: string): ptruint;
+    function getSymbolFromAddress(address: ptruint): string;
 
     procedure execute; override;
     constructor create(owner: TSymhandler; targetself, CreateSuspended: boolean);
@@ -467,6 +492,24 @@ begin
   end;
 end;
 
+procedure TSymbolLoaderThreadEvent.waittilldone;
+begin
+  while done.WaitFor(1000)=wrTimeout do
+    if (symhandler.symbolloaderthread=nil) or (symhandler.symbolloaderthread.isloading=false) then exit;
+end;
+
+constructor TSymbolLoaderThreadEvent.create;
+begin
+  done:=tevent.Create(nil,true,false,'');
+end;
+
+destructor TSymbolLoaderThreadEvent.destroy;
+begin
+  if done<>nil then
+    done.free;
+
+  inherited destroy;
+end;
 
 function EnumProcessModulesExNotImplemented(hProcess: HANDLE; lphModule: PHMODULE; cb: DWORD; var lpcbNeeded: DWORD; dwFilterFlag: DWORD): BOOL; stdcall;
 begin
@@ -507,7 +550,10 @@ begin
         begin
 
           GetModuleFileNameEx(thisprocesshandle,ptrUint(x[i]),modulename,200);
-          symLoadModule64(thisprocesshandle,0,pchar(modulename),nil,ptrUint(x[i]),0);
+          if symLoadModule64(thisprocesshandle,0,pchar(modulename),nil,ptrUint(x[i]),0)=0 then
+          asm
+          nop
+          end;
         end;
       finally
         freememandnil(modulename);
@@ -518,6 +564,8 @@ begin
     freememandnil(x);
 
   end;
+
+  DLLSymbolsLoaded:=true;
 
   {$endif}
 end;
@@ -779,7 +827,7 @@ begin
   result:='';
 
   //try to figure out whee it is stored (register/ offset, etc...)
-  result:=RegToString(pSymInfo.Register);
+  result:=RegToString(pSymInfo.reg);
   if (pSymInfo.Address<>0) then
   begin
     addressString:=IntToHexSigned(LONG64(pSymInfo.Address),1);
@@ -920,6 +968,7 @@ var
   sym: PCESymbolInfo;
 
   ExtraSymbolData: TExtraSymbolData;
+
 begin
 
   if symbolsize>64*1024 then
@@ -934,6 +983,7 @@ begin
 
 
   self:=TSymbolloaderthread(UserContext);
+  self.processThreadEvents;
 
   if self.currentModuleIsNotStandard then
     s:='_'+s;
@@ -1335,11 +1385,14 @@ begin
 
  //
 
+  self.processThreadEvents;
 
+ //test:
 
   result:=(self.terminated=false) and (SymEnumSymbols(self.thisprocesshandle, baseofdll, nil, @ES, self));
 
   //mark this module as loaded
+  self.processThreadEvents;
 
   symhandler.markModuleAsLoaded(baseofdll);
   inc(self.enumeratedModules);
@@ -1364,6 +1417,105 @@ begin
   symbollist.AddSymbol(modulename, modulename+'.'+symbolname, Address, size, secondary);
   symbollist.AddSymbol(modulename, symbolname, Address, size,true);
   result:=not terminated;
+end;
+
+function TSymbolloaderthread.getAddressFromSymbol(symbol: string): ptruint;
+//called from other threads, NOT the symbolloader thread
+var afste: TGetAddressFromSymbolThreadEvent;
+begin
+  if GetCurrentThreadId=self.ThreadID then raise exception.create('Do not call getAddressFromSymbol from inside the symbolloaderthread');
+
+  //queue an getAddressFromSymbol event and wait for the result
+  afste:=TGetAddressFromSymbolThreadEvent.create;
+  afste.symbolname:=symbol;
+
+  symbolloaderthreadeventqueueCS.enter;
+  symbolloaderthreadeventqueue.add(afste);
+  symbolloaderthreadeventqueueCS.leave;
+
+  afste.waittilldone;
+  result:=afste.address;
+end;
+
+function TSymbolloaderthread.getSymbolFromAddress(address: ptruint): string;
+//called from other threads, NOT the symbolloader thread
+var sfate: TGetSymbolFromAddressThreadEvent;
+begin
+  if GetCurrentThreadId=self.ThreadID then raise exception.create('Do not call getAddressFromSymbol from inside the symbolloaderthread');
+
+  //queue an GetSymbolFromAddress event and wait for the result
+  sfate:=TGetSymbolFromAddressThreadEvent.create;
+  sfate.address:=address;
+
+  symbolloaderthreadeventqueueCS.enter;
+  symbolloaderthreadeventqueue.add(sfate);
+  symbolloaderthreadeventqueueCS.leave;
+
+  sfate.waittilldone;
+  result:=sfate.symbolname;
+end;
+
+procedure TSymbolloaderthread.processThreadEvents;
+var
+  te: TSymbolLoaderThreadEvent;
+  symbol: PSYMBOL_INFO;
+  i: integer;
+  disp: dword64;
+  a: ptruint;
+  mi: TModuleInfo;
+begin
+  if symbolloaderthreadeventqueue.count>0 then
+  begin
+    symbolloaderthreadeventqueueCS.enter;
+    try
+      if symbolloaderthreadeventqueue.Count>0 then
+      begin
+        getmem(symbol,sizeof(TSYMBOL_INFO)+256);
+        ZeroMemory(symbol, sizeof(TSYMBOL_INFO)+256);
+        symbol^.MaxNameLen:=255;
+        symbol^.SizeOfStruct:=sizeof(TSYMBOL_INFO);
+
+        te:=TSymbolLoaderThreadEvent(symbolloaderthreadeventqueue[0]);
+
+        //handle it based on the type
+        if te is TGetAddressFromSymbolThreadEvent then
+        begin
+          //address from symbol
+          for i:=1 to length(te.symbolname)-1 do
+            if te.symbolname[i]='.' then te.symbolname[i]:='!';
+
+
+          if SymFromName(thisprocesshandle, pchar(te.symbolname), symbol) then
+            te.address:=symbol.Address;
+        end
+        else
+        begin
+          //symbol from address
+          symbol.address:=te.address;
+          disp:=0;
+
+          if SymFromAddr(thisprocesshandle, te.address, @disp, symbol) then
+            if symbol^.NameLen>0 then
+            begin
+              if symhandler.getmodulebyaddress(te.address,mi) then
+                te.symbolname:=ExtractFileNameOnly(mi.modulename)+'.';
+
+              te.symbolname:=te.symbolname+pchar(@symbol^.Name);
+              if disp<>0 then
+                te.symbolname:=te.symbolname+'+'+inttohex(disp,1);
+            end;
+
+        end;
+
+        freemem(symbol);
+        te.done.SetEvent;
+        symbolloaderthreadeventqueue.Delete(0);
+      end;
+
+    finally
+      symbolloaderthreadeventqueueCS.leave;
+    end;
+  end;
 end;
 
 procedure TSymbolloaderthread.execute;
@@ -1489,6 +1641,10 @@ begin
           end;
 
 
+        end
+        else
+        begin
+          thisprocesshandle:=OpenProcess(PROCESS_ALL_ACCESS,false,thisprocessid);
         end;
 
         debugpart:=1;
@@ -1504,17 +1660,31 @@ begin
           begin
             debugpart:=2;
             symsetoptions(symgetoptions or SYMOPT_CASE_INSENSITIVE);
-            symsetsearchpath(processhandle,pchar(searchpath));
+            symsetsearchpath(thisprocesshandle,pchar(searchpath));
 
             if kernelsymbols then LoadDriverSymbols;
 
             LoadDLLSymbols;
+
+            processThreadEvents;
+
+
+            //test to see a slow running scan
+            {
+            while (true) do
+            begin
+              processThreadEvents;
+              if thisprocessid=GetCurrentProcessId then break;
+            end;
+            }
+
 
             //enumerate the basic data from the symbols
             enumeratedModules:=0;
             SymEnumerateModules64(thisprocesshandle, @EM, self );
 
             apisymbolsloaded:=true;
+            processThreadEvents;
 
             debugpart:=3;
 
@@ -1534,6 +1704,7 @@ begin
             end;
 
             //enumerate the extended debug symbols
+            processThreadEvents;
             isloading:=false;
 
             debugpart:=4;
@@ -1550,6 +1721,7 @@ begin
           symbolloaderthreadcs.Leave;
         end;
         {$else}
+          end;
         error:=true;
         {$endif}
       end
@@ -1617,11 +1789,14 @@ begin
   end;
 
   isloading:=false;
+
 end;
 
 destructor TSymbolloaderthread.destroy;
 begin
   //close the symbol handler for this processhandle
+  symbolloaderthreadeventqueue.free;
+  symbolloaderthreadeventqueueCS.free;
 
   inherited destroy;
 end;
@@ -1652,6 +1827,9 @@ begin
   thisprocessid:=_processid;
   isloading:=true;
   SymbolsLoaded:=false;
+
+  symbolloaderthreadeventqueue:=Tlist.Create;
+  symbolloaderthreadeventqueueCS:=TCriticalSection.Create;
 
   inherited create(CreateSuspended);
 end;
@@ -2001,11 +2179,20 @@ begin
 end;
 
 procedure TSymhandler.Waitforsymbolsloaded(apisymbolsonly: boolean=false; specificmodule: string='');
+//6.8.3+:Just make it till the dll list enum and load is done
 begin
   symbolloadervalid.beginread;
 
   if symbolloaderthread<>nil then
   begin
+    while (not symbolloaderthread.Finished) and (not symbolloaderthread.DLLSymbolsLoaded) do
+    begin
+      sleep(25);
+      if GetCurrentThreadID = MainThreadID then
+        CheckSynchronize;
+    end;
+
+    {
     while (not symbolloaderthread.Finished) and (symbolloaderthread.isloading) and
           not
           (
@@ -2017,7 +2204,7 @@ begin
       sleep(25);
       if GetCurrentThreadID = MainThreadID then
         CheckSynchronize;
-    end;
+    end; }
   end;
 
   symbolloadervalid.endread;
@@ -2924,9 +3111,19 @@ begin
             if found<>nil then
               found^:=true;
 
-
-
             exit;
+          end
+          else
+          begin
+            if symbolloaderthread.isloading then
+            begin
+              result:=symbolloaderthread.getSymbolFromAddress(address);
+
+              if (result='') and (symbolloaderthread.isloading=false) then   //try again
+                result:=getNameFromAddress(address, symbols, modules, baseaddress, found, hexcharsize);
+
+              if result<>'' then exit;
+            end;
           end;
 
         end;
@@ -3299,13 +3496,25 @@ begin
                   end;
                   {$endif}
 
+
+                  if symbolloaderthread.isloading then
+                  begin
+                    a:=symbolloaderthread.getAddressFromSymbol(tokens[i]);
+                    if a<>0 then
+                    begin
+                      tokens[i]:=inttohex(a,8);
+                      continue;
+                    end;
+                  end;
+
                   if waitforsymbols then
                   begin
-                    symbolloaderthread.WaitFor;
-
+                    waitforsymbolsloaded;
                     //check again now that the symbols are loaded
                     si:=symbollist.FindSymbol(tokens[i]);
                   end;
+
+
 
                   if si=nil then //STILL not found. Check if it's a structure.element notation
                   begin

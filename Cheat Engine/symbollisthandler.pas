@@ -20,22 +20,41 @@ uses
 
 type
   PSYMBOL_INFO = ^TSYMBOL_INFO;
+  (*
+  typedef struct _SYMBOL_INFO {
+      ULONG       SizeOfStruct;
+      ULONG       TypeIndex;        // Type Index of symbol
+      ULONG64     Reserved[2];
+      ULONG       Index;
+      ULONG       Size;
+      ULONG64     ModBase;          // Base Address of module comtaining this symbol
+      ULONG       Flags;
+      ULONG64     Value;            // Value of symbol, ValuePresent should be 1
+      ULONG64     Address;          // Address of symbol including base address of module
+      ULONG       Register;         // register holding value or pointer to value
+      ULONG       Scope;            // scope of the symbol
+      ULONG       Tag;              // pdb classification
+      ULONG       NameLen;          // Actual length of name
+      ULONG       MaxNameLen;
+      CHAR        Name[1];          // Name of symbol
+  } SYMBOL_INFO, *PSYMBOL_INFO;
+ *)
   TSYMBOL_INFO = {packed} record
           SizeOfStruct : ULONG;
           TypeIndex : ULONG;
           Reserved : array[0..1] of ULONG64;
-          info : ULONG;
+          index : ULONG;
           Size : ULONG;
           ModBase : ULONG64;
           Flags : ULONG;
           Value : ULONG64;
           Address : ULONG64; //it's more a signed address
-          Register : ULONG;
+          Reg : ULONG;
           Scope : ULONG;
           Tag : ULONG;
           NameLen : ULONG;
           MaxNameLen : ULONG;
-          Name : array[0..0] of TCHAR;
+          Name : array[0..0] of char;
        end;
   SYMBOL_INFO = TSYMBOL_INFO;
   LPSYMBOL_INFO = PSYMBOL_INFO;
