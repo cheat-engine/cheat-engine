@@ -1594,13 +1594,13 @@ begin
                 begin
                   for i:=0 to length(modulelist.withdebuginfo)-1 do
                   begin
-                    symsearch(thisprocesshandle, modulelist.withoutdebuginfo[i].BaseOfImage,0,0,pchar(te.symbolname),0,SymbolSearch,@searchresult,0);
+                    symsearch(thisprocesshandle, modulelist.withdebuginfo[i].BaseOfImage,0,0,pchar(te.symbolname),0,SymbolSearch,@searchresult,0);
                     if searchresult<>0 then break;
                     {
-                    symsearch(thisprocesshandle, modulelist.withoutdebuginfo[i].BaseOfImage,0,dword(SymTagPublicSymbol),pchar(te.symbolname),0,SymbolSearch,@searchresult,0);
+                    symsearch(thisprocesshandle, modulelist.withdebuginfo[i].BaseOfImage,0,dword(SymTagPublicSymbol),pchar(te.symbolname),0,SymbolSearch,@searchresult,0);
                     if searchresult<>0 then break;
 
-                    symsearch(thisprocesshandle, modulelist.withoutdebuginfo[i].BaseOfImage,0,dword(SymTagFunction),pchar(te.symbolname),0,SymbolSearch,@searchresult,0);
+                    symsearch(thisprocesshandle, modulelist.withdebuginfo[i].BaseOfImage,0,dword(SymTagFunction),pchar(te.symbolname),0,SymbolSearch,@searchresult,0);
                     if searchresult<>0 then break;
                     }
                   end;
