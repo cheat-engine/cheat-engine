@@ -2149,8 +2149,15 @@ methods
 Hexadecimal class: (Inheritance: Panel->CustomControl->WinControl->Control->Component->Object)
   The visual hexadecimal object used on the memory view window
 properties
+  Address: integer - The top address
+  HasSelection: boolean - True if something is selected
+  SelectionStart: integer
+  SelectionStop: integer
+  DisplayType: displaytype - The type being shown: dtByte, dtByteDec, dtWord, dtWordDec, dtDword, dtDwordDec, dtQword, dtQwordDec, dtSingle, dtDouble
   OnAddressChange(hexadecimalview, function): function(hexadecimalview, address)
   OnByteSelect(hexadecimalview, function): function(hexadecimalview, address, address2)
+  OnCharacterRender: function(sender, address, text) return text end - Called when a character is being rendered. Use this to change it or change the canvas fonts (Warning: slow)
+  OnValueRender: function(sender, address, text) return text end - Called when a value (depending on the displaytype) is being rendered. Use this to change it or change the canvas fonts (Warning: slow)
 
 methods
   -

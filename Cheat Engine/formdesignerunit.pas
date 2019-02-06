@@ -26,6 +26,7 @@ type
     ImageList1: TImageList;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
+    MenuItem2: TMenuItem;
     miAnchorEditor: TMenuItem;
     miMenuSep: TMenuItem;
     miMenuMoveUp: TMenuItem;
@@ -44,6 +45,7 @@ type
     OpenDialog1: TOpenDialog;
     PopupMenu1: TPopupMenu;
     controlPopup: TPopupMenu;
+    pmToolbar: TPopupMenu;
     SaveDialog1: TSaveDialog;
     ToolBar1: TToolBar;
     CEButton: TToolButton;
@@ -83,6 +85,7 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure foundlist3Data(Sender: TObject; Item: TListItem);
+    procedure MenuItem2Click(Sender: TObject);
     procedure miAddItemsClick(Sender: TObject);
     procedure miAddSubMenuClick(Sender: TObject);
     procedure miAddTabClick(Sender: TObject);
@@ -211,6 +214,17 @@ procedure TFormDesigner.foundlist3Data(Sender: TObject; Item: TListItem);
 begin
   item.caption:=inttostr(item.index);
   item.SubItems.Add(inttostr(globalcounter*(1+item.index)));
+end;
+
+procedure TFormDesigner.MenuItem2Click(Sender: TObject);
+var classname: string;
+begin
+  classname:='';
+  if inputquery('Custom class','Enter the component you wish to add. (E.g TButton)',classname) then
+  begin
+    componentToAdd:=classname;
+    NoSelection.Down:=false;
+  end;
 end;
 
 procedure TFormDesigner.miAddItemsClick(Sender: TObject);

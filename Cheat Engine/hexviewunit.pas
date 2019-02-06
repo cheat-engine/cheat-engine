@@ -21,6 +21,7 @@ const
 type
   TByteSelectEvent=procedure(sender: TObject; address: ptruint; address2: ptruint) of object;
   TAddressChangeEvent=procedure(sender: TObject; address: ptruint) of object;
+  THexViewTextRenderEvent=procedure(sender: TObject; address: ptruint; var text: string) of object;
 
   THexRegion=(hrInvalid, hrByte, hrChar);
   TPageinfo=record
@@ -91,6 +92,9 @@ type
 
     fOnByteSelect: TByteSelectEvent;
     fonAddressChange: TAddressChangeEvent;
+
+    fOnCharacterRender: THexViewTextRenderEvent;
+    fOnValueRender: THexViewTextRenderEvent;
 
     lastaddress: ptruint;
     lastselection1, lastselection2: ptruint;
@@ -212,6 +216,9 @@ type
     property BytesPerSeperator: integer read fbytesPerSeperator write setBytesPerSeperator;
     property OnByteSelect: TByteSelectEvent read fOnByteSelect write fOnByteSelect;
     property OnAddressChange: TAddressChangeEvent read fonAddressChange write fonAddressChange;
+    property OnCharacterRender: THexViewTextRenderEvent read fOnCharacterRender write fOnCharacterRender;
+    property OnValueRender: THexViewTextRenderEvent read fOnValueRender write fOnValueRender;
+
 
     property PaintBox: TPaintbox read mbCanvas;
     property OSBitmap: TBitmap read offscreenBitmap;
@@ -1925,6 +1932,7 @@ var
 
   bp: PBreakpoint;
 
+
   char: string;
   nextCharAddress: ptruint;
   lastcharsize: integer;
@@ -2159,7 +2167,13 @@ begin
       end;
 
       if displaythis then
-        offscreenbitmap.canvas.TextOut(bytestart+bytepos*charsize, 2+2*textheight+(i*(textheight+fspaceBetweenLines)) , changelist.values[itemnr]);
+      begin
+        s:=changelist.values[itemnr];
+        if assigned(fOnValueRender) then
+          fOnValueRender(self, currentaddress, s);
+
+        offscreenbitmap.canvas.TextOut(bytestart+bytepos*charsize, 2+2*textheight+(i*(textheight+fspaceBetweenLines)) , s);
+      end;
 
 
       //if isEditing and ((currentAddress=selected) or ((editingtype=hrByte) and ((CharEncoding=ceUtf16) and (currentaddress=selected+1)))) then
@@ -2180,6 +2194,10 @@ begin
       if currentAddress=nextCharAddress then //(fCharEncoding in [ceAscii, ceUtf8]) or (j mod 2=0) then
       begin
         char:=getChar(currentAddress, lastcharsize);
+
+        if assigned(fOnCharacterRender) then
+          fOnCharacterRender(self, currentaddress, char);
+
         offscreenbitmap.canvas.TextOut(charstart+j*charsize, 2+2*textheight+(i*(textheight+fspaceBetweenLines)), char); //char
 
         inc(nextCharAddress, lastcharsize);
@@ -2204,7 +2222,7 @@ begin
       end;
 
       bytepos:=bytepos+3;
-      if DisplayType=dtByteDec then   //bute decimal is special as it has a big chance it's going to be bigegr than 99
+      if DisplayType=dtByteDec then   //byte decimal is special as it has a big chance it's going to be bigegr than 99
         inc(bytepos);
 
       inc(currentaddress);

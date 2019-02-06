@@ -24,14 +24,14 @@ Pointerscan import/export now works with newer types as well
 Better Lua comment support
 Added rudimentary sort to the structure compare window (based on levelwidth only)
 Referenced strings now also shows if it's unicode
+Formdesigner now has a context menu to add undocumented controls
 
 
 
 lua:
 added enumMemoryRegions 
 added getWriteLog (Let's you get the writelog and activate it)
-
-
+HexadecimalView: added the OnCharacterRender and OnValueRender events
 
 
 How to use:

@@ -975,7 +975,7 @@ end;
 
 implementation
 
-uses luahandler,luacaller, formdesignerunit;
+uses luahandler,luacaller, formdesignerunit, CheckLst;
 
 resourcestring
   rsInvalidFormData = 'Invalid formdata';
@@ -1568,6 +1568,7 @@ initialization
   RegisterClass(TPageControl);
   RegisterClass(TTrayIcon);
   registerclass(TStatusBar);
+  registerclass(TCheckListBox);
 
 
   RegisterPropertyEditor(ClassTypeInfo(TListItems), TCEListView, 'Items', TCEListViewItemsPropertyEditor);
@@ -1592,8 +1593,6 @@ initialization
   RegisterPropertyEditor(TypeInfo(TContextPopupEvent), nil, '', THiddenPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TTVCreateNodeClassEvent), nil, '', THiddenPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TTVCustomCreateNodeEvent), nil, '', THiddenPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(TTVCustomDrawEvent), nil, '', THiddenPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(TTVCustomDrawItemEvent), nil, '', THiddenPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TTVExpandedEvent), nil, '', THiddenPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TTVEditedEvent), nil, '', THiddenPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TTVEditingEvent), nil, '', THiddenPropertyEditor);

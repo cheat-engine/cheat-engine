@@ -85,6 +85,7 @@ type
       function GetDisplayValueEvent(mr: TObject; var value: string): boolean;
       procedure MemScanGuiUpdateRoutine(sender: TObject; totaladdressestoscan: qword; currentlyscanned: qword; foundcount: qword);
 
+      procedure HexViewTextRenderEvent(sender: TObject; address: ptruint; var text: string);
 
       procedure synchronize;
 
@@ -1450,6 +1451,23 @@ begin
   end;
 end;
 
+procedure TLuaCaller.HexViewTextRenderEvent(sender: TObject; address: ptruint; var text: string);
+var
+  oldstack: integer;
+begin
+  oldstack:=lua_gettop(Luavm);
+  try
+    pushFunction;
+    luaclass_newClass(LuaVM, sender);
+    lua_pushinteger(LuaVM, address);
+    lua_pushstring(LuaVM, text);
+    lua_pcall(LuaVM, 3,1,0);
+    if lua_isstring(LuaVM,-1) then
+      text:=Lua_ToString(LuaVM,-1);
+  finally
+    lua_settop(LuaVM, oldstack);
+  end;
+end;
 
 //----------------------------Lua implementation-----------------------------
 function LuaCaller_NotifyEvent(L: PLua_state): integer; cdecl;
@@ -2391,6 +2409,30 @@ begin
     lua_pop(L, lua_gettop(L));
 end;
 
+function LuaCaller_HexViewTextRenderEvent(L: PLua_state): integer; cdecl; //(sender: TObject; address: ptruint; var text: string);
+var
+  sender: TObject;
+  address: ptruint;
+  text: string;
+  m: TMethod;
+begin
+  result:=0;
+  if lua_gettop(L)=3 then
+  begin
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_ToCEUserData(L, 1);
+    address:=lua_tointeger(L,2);
+    text:=Lua_ToString(L,3);
+
+    THexViewTextRenderEvent(m)(sender, address, text);
+
+    lua_pushstring(L,text);
+    result:=1;
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
 
 procedure registerLuaCall(typename: string; getmethodprop: lua_CFunction; setmethodprop: pointer; luafunctionheader: string);
 var t: TLuaCallData;
@@ -2451,6 +2493,8 @@ initialization
   registerLuaCall('TGetDisplayValueEvent', LuaCaller_GetDisplayValueEvent, pointer(TLuaCaller.GetDisplayValueEvent),'function %s(memrec, value)'#13#10#13#10'  return false,value'#13#10'end'#13#10);
   registerLuaCall('TMemScanGuiUpdateRoutine', LuaCaller_MemScanGuiUpdateRoutine, pointer(TLuaCaller.MemScanGuiUpdateRoutine),'function %s(Sender, TotalAddressesToScan, CurrentlyScanned, ResultsFound)'#13#10#13#10'end'#13#10);
   registerLuaCall('TProcessOpenedEvent', LuaCaller_ProcessOpenedEvent, pointer(TLuaCaller.ProcessOpenedEvent),'function %s(processid, handle, caption)'#13#10#13#10'end'#13#10);
+  registerLuaCall('THexViewTextRenderEvent', LuaCaller_HexViewTextRenderEvent, pointer(TLuaCaller.HexViewTextRenderEvent),'function %s(sender, address, text)'#13#10#13#10'  return text'#13#10'end'#13#10);
+
 
 end.
 
