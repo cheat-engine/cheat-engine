@@ -86,8 +86,8 @@ type
     symbolloaderthreadeventqueueCS: TCriticalSection;
 
     modulelist: record
-      withdebuginfo: array of IMAGEHLP_MODULE64;
-      withoutdebuginfo: array of IMAGEHLP_MODULE64;
+      withdebuginfo: array of IMAGEHLP_MODULE{$ifdef cpu64}64{$endif};
+      withoutdebuginfo: array of IMAGEHLP_MODULE{$ifdef cpu64}64{$endif};
     end;
     procedure processThreadEvents; //in case another thread is in a hurry and doesn't want to wait
 
@@ -545,8 +545,8 @@ var need:dword;
     modulename: pchar;
     modulelisttype: integer;
 
-    mi: IMAGEHLP_MODULE64;
-
+    mi: IMAGEHLP_MODULE{$ifdef cpu64}64{$endif};
+    offset: integer;
 begin
   {$ifndef unix}
   need:=0;
