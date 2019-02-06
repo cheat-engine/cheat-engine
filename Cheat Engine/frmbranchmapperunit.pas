@@ -1,6 +1,7 @@
 unit frmBranchMapperUnit;
 
 {$mode delphi}
+{$warn 4056 off}
 
 interface
 

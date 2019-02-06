@@ -142,20 +142,19 @@
       <Unit0>
         <Filename Value="vehdebug.lpr"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
         <CursorPos X="21" Y="13"/>
-        <UsageCount Value="191"/>
-        <LoadedDesigner Value="True"/>
+        <UsageCount Value="192"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit0>
       <Unit1>
         <Filename Value="init.pas"/>
         <IsPartOfProject Value="True"/>
         <WindowIndex Value="1"/>
-        <TopLine Value="4"/>
-        <CursorPos X="11" Y="17"/>
-        <UsageCount Value="191"/>
+        <TopLine Value="221"/>
+        <CursorPos Y="227"/>
+        <UsageCount Value="192"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit1>
@@ -165,9 +164,9 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="4"/>
         <WindowIndex Value="1"/>
-        <TopLine Value="94"/>
-        <CursorPos X="14" Y="109"/>
-        <UsageCount Value="191"/>
+        <TopLine Value="25"/>
+        <CursorPos X="3" Y="27"/>
+        <UsageCount Value="192"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit2>
@@ -202,7 +201,7 @@
         <WindowIndex Value="1"/>
         <TopLine Value="18"/>
         <CursorPos X="3" Y="32"/>
-        <UsageCount Value="191"/>
+        <UsageCount Value="192"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit7>
@@ -229,9 +228,9 @@
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="1"/>
-        <TopLine Value="61"/>
+        <TopLine Value="91"/>
         <CursorPos X="34" Y="29"/>
-        <UsageCount Value="151"/>
+        <UsageCount Value="152"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit11>
@@ -295,7 +294,7 @@
         <EditorIndex Value="6"/>
         <WindowIndex Value="1"/>
         <CursorPos X="7" Y="11"/>
-        <UsageCount Value="119"/>
+        <UsageCount Value="120"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit21>
@@ -319,7 +318,7 @@
         <WindowIndex Value="1"/>
         <TopLine Value="6"/>
         <CursorPos X="45" Y="6"/>
-        <UsageCount Value="71"/>
+        <UsageCount Value="72"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit24>
@@ -437,7 +436,7 @@
         <Loaded Value="True"/>
       </Unit41>
     </Units>
-    <JumpHistory Count="28" HistoryIndex="27">
+    <JumpHistory Count="29" HistoryIndex="28">
       <Position1>
         <Filename Value="DebugHandler.pas"/>
         <Caret Line="37" Column="16" TopLine="33"/>
@@ -545,9 +544,13 @@
         <Caret Line="203" Column="3" TopLine="187"/>
       </Position27>
       <Position28>
-        <Filename Value="DebugHandler.pas"/>
-        <Caret Line="48" Column="25" TopLine="92"/>
+        <Filename Value="init.pas"/>
+        <Caret Line="168" Column="21" TopLine="164"/>
       </Position28>
+      <Position29>
+        <Filename Value="init.pas"/>
+        <Caret Line="227" TopLine="101"/>
+      </Position29>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

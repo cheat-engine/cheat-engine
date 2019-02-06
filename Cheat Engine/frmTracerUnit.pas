@@ -665,7 +665,7 @@ begin
 
     if compareinfo<>nil then
     begin
-      if thisinfo.c.Rip<>compareinfo.c.Rip then
+      if thisinfo.c.{$ifdef cpu64}Rip{$else}eip{$endif}<>compareinfo.c.{$ifdef cpu64}Rip{$else}eip{$endif} then
       begin
         sender.canvas.font.color:=clWindowText;
         sender.BackgroundColor:=clRed;
@@ -707,7 +707,7 @@ begin
           {$ifdef cpu64}
           different:=CompareMem(@compareinfo.c.FltSave.XmmRegisters[0], @thisinfo.c.FltSave.XmmRegisters[0], xmmcount*sizeof(M128A));
           {$else}
-          different:=CompareMem(@compareinfo.c.ext.XMMRegisters[0], @thisinfo.c.ext.XMMRegisters[0], xmmcount*sizeof(M128A));
+          different:=CompareMem(@compareinfo.c.ext.XMMRegisters.LegacyXMM[0], @thisinfo.c.ext.XMMRegisters.LegacyXMM[0], xmmcount*sizeof(TJclXMMRegister));
           {$endif}
 
           if not different then
@@ -715,7 +715,7 @@ begin
             {$ifdef cpu64}
             different:=CompareMem(@compareinfo.c.FltSave.FloatRegisters[0], @thisinfo.c.FltSave.FloatRegisters[0], 8*sizeof(M128A));
             {$else}
-            different:=CompareMem(@compareinfo.c.FloatSave.RegisterArea[0], @thisinfo.c.FloatSave.RegisterArea[0], 80) or
+            different:=CompareMem(@compareinfo.c.FloatSave.RegisterArea[0], @thisinfo.c.FloatSave.RegisterArea[0], 80);
             {$endif}
           end;
 

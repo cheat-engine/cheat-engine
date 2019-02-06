@@ -3619,7 +3619,7 @@ var
 
 
   vartype: TVariableType;
-  ct: TCustomType;
+  ct: TCustomType=nil;
 
 begin
   if Pointerscanresults<>nil then

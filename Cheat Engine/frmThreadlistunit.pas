@@ -1,6 +1,8 @@
 unit frmThreadlistunit;
 
 {$MODE Delphi}
+{$warn 4056 off}
+{$warn 4082 off}
 
 interface
 

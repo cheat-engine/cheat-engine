@@ -41,6 +41,7 @@ begin
   else
     SetDefaultDllDirectories:=@SetDefaultDllDirectoriesNI;
 
+{$warn 4104 off}
   if assigned(AddDllDirectory) then
   begin
 {$ifdef cpu32}
@@ -52,6 +53,7 @@ begin
   end
   else
     AddDllDirectory:=@AddDllDirectoryNI;
+{$warn 4104 on}
 end;
 
 initialization

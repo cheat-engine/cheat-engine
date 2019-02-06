@@ -11,7 +11,7 @@ uses
   WindowsDebugger, debuggerinterfaceAPIWrapper, debuggerinterface,symbolhandler,
   fgl, disassembler, NetworkDebuggerInterface, Clipbrd, commonTypeDefs;
 
-
+{$warn 4056 off}
 
 
 type

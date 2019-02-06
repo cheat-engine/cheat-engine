@@ -4,6 +4,8 @@ unit Assemblerunit;
 
 {$MODE Delphi}
 
+
+
 interface
 
 {$ifdef jni}
@@ -130,6 +132,8 @@ type topcode=record
   //paramencoding: TParamEncoding;
 end;
 
+{$warn 3175 off}
+{$warn 3177 off}
 
 const opcodes: array [1..opcodecount] of topcode =(
 {ok}  (mnemonic:'AAA';opcode1:eo_none;opcode2:eo_none;paramtype1:par_noparam;paramtype2:par_noparam;paramtype3:par_noparam;bytes:1;bt1:$37;bt2:0;bt3:0), //no param
@@ -2662,6 +2666,8 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'XTEST';bytes:3;bt1:$0f;bt2:$01;bt3:$d6)
 );
 
+{$warn 3175 on}
+{$warn 3177 on}
 
 
 type

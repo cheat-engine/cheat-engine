@@ -11,10 +11,10 @@ uses windows, dialogs,forms,classes,LCLIntf, LCLProc, sysutils,registry,ComCtrls
      memscan,plugin, hotkeyhandler,frmProcessWatcherunit, newkernelhandler,
      debuggertypedefinitions, commonTypeDefs;
 
-const ceversion=6.82;
+const ceversion=6.83;
 
 resourcestring
-  cename = 'Cheat Engine 6.8.2';
+  cename = 'Cheat Engine 6.8.3';
   rsPleaseWait = 'Please Wait!';
 
 procedure UpdateToolsMenu;

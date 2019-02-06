@@ -84,6 +84,11 @@ type
 
     symbolloaderthreadeventqueue: Tlist;
     symbolloaderthreadeventqueueCS: TCriticalSection;
+
+    modulelist: record
+      withdebuginfo: array of IMAGEHLP_MODULE64;
+      withoutdebuginfo: array of IMAGEHLP_MODULE64;
+    end;
     procedure processThreadEvents; //in case another thread is in a hurry and doesn't want to wait
 
     procedure EnumerateStructures;
@@ -328,11 +333,19 @@ type TSTACKFRAME_EX = record
   PStackframe_ex=^TSTACKFRAME_EX;
 
 
-type TSymFromName=function(hProcess: HANDLE; Name: LPSTR; Symbol: PSYMBOL_INFO): BOOL; stdcall;
-type TSymFromAddr=function(hProcess:THANDLE; Address:dword64; Displacement:PDWORD64; Symbol:PSYMBOL_INFO):BOOL;stdcall;
+type
+  TSymFromName=function(hProcess: HANDLE; Name: LPSTR; Symbol: PSYMBOL_INFO): BOOL; stdcall;
+  TSymFromAddr=function(hProcess:THANDLE; Address:dword64; Displacement:PDWORD64; Symbol:PSYMBOL_INFO):BOOL;stdcall;
+
+  TSymEnumeratesymbolsCallback=function(pSymInfo: PSYMBOL_INFO; SymbolSize: ULONG; UserContext: Pointer): BOOL; stdcall;
+
+  TSymSearch=function(hProcess: THANDLE; BaseOfDLL: ULONG64; Index: DWORD; SymTag: DWORD; Mask: PCHAR; Address: DWORD64; callback: TSymEnumeratesymbolsCallback; userContext: pointer; Options: DWORD): BOOL; stdcall;
+
+
 
 var SymFromName: TSymFromName;
     SymFromAddr: TSymFromAddr;
+    SymSearch:  TSymSearch;
 
     StackWalkEx:function(MachineType:dword; hProcess:THANDLE; hThread:THANDLE; StackFrame:PStackframe_ex; ContextRecord:pointer; ReadMemoryRoutine:TREAD_PROCESS_MEMORY_ROUTINE64; FunctionTableAccessRoutine:TFUNCTION_TABLE_ACCESS_ROUTINE64; GetModuleBaseRoutine:TGET_MODULE_BASE_ROUTINE64; TranslateAddress:TTRANSLATE_ADDRESS_ROUTINE64; flags: dword):bool;stdcall;
 
@@ -494,8 +507,11 @@ end;
 
 procedure TSymbolLoaderThreadEvent.waittilldone;
 begin
-  while done.WaitFor(1000)=wrTimeout do
-    if (symhandler.symbolloaderthread=nil) or (symhandler.symbolloaderthread.isloading=false) then exit;
+  while (symhandler.symbolloaderthread<>nil) and symhandler.symbolloaderthread.isloading and (done.WaitFor(100)=wrTimeout) do
+  begin
+    if GetCurrentThreadId=MainThreadID then
+      CheckSynchronize;
+  end;
 end;
 
 constructor TSymbolLoaderThreadEvent.create;
@@ -529,6 +545,8 @@ var need:dword;
     modulename: pchar;
     modulelisttype: integer;
 
+    mi: IMAGEHLP_MODULE64;
+
 begin
   {$ifndef unix}
   need:=0;
@@ -548,11 +566,22 @@ begin
       try
         for i:=0 to count-1 do
         begin
-
           GetModuleFileNameEx(thisprocesshandle,ptrUint(x[i]),modulename,200);
-          if symLoadModule64(thisprocesshandle,0,pchar(modulename),nil,ptrUint(x[i]),0)=0 then
-          asm
-          nop
+          symLoadModule64(thisprocesshandle,0,pchar(modulename),nil,ptrUint(x[i]),0);
+
+          mi.SizeOfStruct:=sizeof(mi);
+          if SymGetModuleInfo(thisprocesshandle, ptruint(x[i]), @mi) then
+          begin
+            if mi.SymType in [SymExport, SymNone] then
+            begin
+              setlength(modulelist.withoutdebuginfo,length(modulelist.withoutdebuginfo)+1);
+              modulelist.withoutdebuginfo[length(modulelist.withoutdebuginfo)-1]:=mi;
+            end
+            else
+            begin
+              setlength(modulelist.withdebuginfo,length(modulelist.withdebuginfo)+1);
+              modulelist.withdebuginfo[length(modulelist.withdebuginfo)-1]:=mi;
+            end;
           end;
         end;
       finally
@@ -985,6 +1014,14 @@ begin
   self:=TSymbolloaderthread(UserContext);
   self.processThreadEvents;
 
+  {
+  while (true) do
+   begin
+     self.processThreadEvents;
+     if self.thisprocessid=GetCurrentProcessId then break;
+   end;
+   }
+
   if self.currentModuleIsNotStandard then
     s:='_'+s;
 
@@ -1000,8 +1037,12 @@ begin
     extraSymbolData:=nil;
 
   //don't add if it's a forwarder, but register a userdefined symbol
-
-
+  if TSymTagEnum(pSymInfo.Tag)<>SymTagPublicSymbol then
+  begin
+    asm
+    nop
+    end;
+  end;
   if (SYMFLAG_FORWARDER and pSymInfo.Flags)<>0 then
   begin
     extraSymbolData:=TExtraSymbolData.create;
@@ -1387,7 +1428,6 @@ begin
 
   self.processThreadEvents;
 
- //test:
 
   result:=(self.terminated=false) and (SymEnumSymbols(self.thisprocesshandle, baseofdll, nil, @ES, self));
 
@@ -1455,6 +1495,18 @@ begin
   result:=sfate.symbolname;
 end;
 
+function symbolsearch(pSymInfo: PSYMBOL_INFO; SymbolSize: ULONG; UserContext: Pointer): BOOL; stdcall;
+begin
+  if (pSymInfo^.NameLen<>0) and (pSymInfo^.Address<>0) then
+  begin
+    pptruint(UserContext)^:=pSymInfo^.address;
+    result:=false;
+  end
+  else
+    result:=true;
+
+end;
+
 procedure TSymbolloaderthread.processThreadEvents;
 var
   te: TSymbolLoaderThreadEvent;
@@ -1463,6 +1515,15 @@ var
   disp: dword64;
   a: ptruint;
   mi: TModuleInfo;
+
+  queueindex: integer;
+
+  hasmodulespecifier: boolean;
+  modulename: string;
+  skip: boolean;
+
+  SearchResult: ptruint;
+
 begin
   if symbolloaderthreadeventqueue.count>0 then
   begin
@@ -1470,23 +1531,94 @@ begin
     try
       if symbolloaderthreadeventqueue.Count>0 then
       begin
+        te:=nil;
+        for i:=0 to symbolloaderthreadeventqueue.count-1 do
+        begin
+          if TSymbolLoaderThreadEvent(symbolloaderthreadeventqueue[i]) is TGetSymbolFromAddressThreadEvent then
+          begin
+            te:=TSymbolLoaderThreadEvent(symbolloaderthreadeventqueue[i]);
+            queueindex:=i;
+            break;
+          end;
+        end;
+
+        if te=nil then
+        begin
+          te:=TSymbolLoaderThreadEvent(symbolloaderthreadeventqueue[0]);
+          queueindex:=0;
+        end;
+
         getmem(symbol,sizeof(TSYMBOL_INFO)+256);
         ZeroMemory(symbol, sizeof(TSYMBOL_INFO)+256);
         symbol^.MaxNameLen:=255;
         symbol^.SizeOfStruct:=sizeof(TSYMBOL_INFO);
 
-        te:=TSymbolLoaderThreadEvent(symbolloaderthreadeventqueue[0]);
+
 
         //handle it based on the type
         if te is TGetAddressFromSymbolThreadEvent then
         begin
           //address from symbol
+          skip:=length(te.symbolname)=1;
+          hasmodulespecifier:=false;
           for i:=1 to length(te.symbolname)-1 do
-            if te.symbolname[i]='.' then te.symbolname[i]:='!';
+          begin
+            if te.symbolname[i]='.' then
+            begin
+              te.symbolname[i]:='!';
+              hasModuleSpecifier:=true;
+            end;
+
+            if te.symbolname[i]=' ' then //invalid
+              skip:=true;
+          end;
+
+          if (not skip) then
+          begin
+            if assigned(symsearch) and (length(modulelist.withdebuginfo)+length(modulelist.withoutdebuginfo)>5) then
+            begin
+              searchresult:=0;
+              if hasModuleSpecifier then
+                symsearch(thisprocesshandle,0,0,0,pchar(te.symbolname),0,SymbolSearch,@searchresult,0)
+              else
+              begin
+                //scan modules without PDB's first
+
+                for i:=0 to length(modulelist.withoutdebuginfo)-1 do
+                begin
+                  symsearch(thisprocesshandle, modulelist.withoutdebuginfo[i].BaseOfImage,0,0,pchar(te.symbolname),0,SymbolSearch,@searchresult,0);
+                  if searchresult<>0 then break;
+                end;
+
+                if searchresult=0 then //try the ones with debug info
+                begin
+                  for i:=0 to length(modulelist.withoutdebuginfo)-1 do
+                  begin
+                    symsearch(thisprocesshandle, modulelist.withoutdebuginfo[i].BaseOfImage,0,0,pchar(te.symbolname),0,SymbolSearch,@searchresult,0);
+                    if searchresult<>0 then break;
+                    {
+                    symsearch(thisprocesshandle, modulelist.withoutdebuginfo[i].BaseOfImage,0,dword(SymTagPublicSymbol),pchar(te.symbolname),0,SymbolSearch,@searchresult,0);
+                    if searchresult<>0 then break;
+
+                    symsearch(thisprocesshandle, modulelist.withoutdebuginfo[i].BaseOfImage,0,dword(SymTagFunction),pchar(te.symbolname),0,SymbolSearch,@searchresult,0);
+                    if searchresult<>0 then break;
+                    }
+                  end;
+
+                end;
+              end;
+
+              if searchresult<>0 then
+                te.address:=SearchResult;
+            end
+            else
+            begin
+              if SymFromName(thisprocesshandle, pchar(te.symbolname), symbol) then
+                te.address:=symbol.Address;
+            end;
+          end;
 
 
-          if SymFromName(thisprocesshandle, pchar(te.symbolname), symbol) then
-            te.address:=symbol.Address;
         end
         else
         begin
@@ -1509,7 +1641,7 @@ begin
 
         freemem(symbol);
         te.done.SetEvent;
-        symbolloaderthreadeventqueue.Delete(0);
+        symbolloaderthreadeventqueue.Delete(queueindex);
       end;
 
     finally
@@ -1667,16 +1799,6 @@ begin
             LoadDLLSymbols;
 
             processThreadEvents;
-
-
-            //test to see a slow running scan
-            {
-            while (true) do
-            begin
-              processThreadEvents;
-              if thisprocessid=GetCurrentProcessId then break;
-            end;
-            }
 
 
             //enumerate the basic data from the symbols
@@ -4438,6 +4560,7 @@ begin
 
   SymFromName:=GetProcAddress(dbghlp,'SymFromName');
   SymFromAddr:=GetProcAddress(dbghlp,'SymFromAddr');
+  SymSearch:=GetProcAddress(dbghlp,'SymSearch');
   StackWalkEx:=GetProcAddress(dbghlp,'StackWalkEx');
 
 

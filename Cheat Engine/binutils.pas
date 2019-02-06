@@ -3,6 +3,7 @@ unit binutils;
 //responsible for launching and retrieving data from the binutil tools
 
 {$mode objfpc}{$H+}
+{$warn 2005 off}
 
 interface
 
