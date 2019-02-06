@@ -1592,7 +1592,7 @@ begin
 
                 if searchresult=0 then //try the ones with debug info
                 begin
-                  for i:=0 to length(modulelist.withoutdebuginfo)-1 do
+                  for i:=0 to length(modulelist.withdebuginfo)-1 do
                   begin
                     symsearch(thisprocesshandle, modulelist.withoutdebuginfo[i].BaseOfImage,0,0,pchar(te.symbolname),0,SymbolSearch,@searchresult,0);
                     if searchresult<>0 then break;
