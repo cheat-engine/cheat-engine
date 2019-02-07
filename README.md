@@ -3,7 +3,7 @@ Cheat Engine. A development environment focused on modding games and application
 
 
 For the latest version:
-[![Recent CE Download](./molumen-download-button-1-800px.png)](https://github.com/cheat-engine/cheat-engine/releases/download/6.8.2/CheatEngine682.exe)
+[![Recent CE Download](./molumen-download-button-1-800px.png)](https://github.com/cheat-engine/cheat-engine/releases/download/6.8.3/CheatEngine683.exe)
 
 For older versions, check out https://github.com/cheat-engine/cheat-engine/releases
 
