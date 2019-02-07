@@ -10278,6 +10278,11 @@ begin
   result:=1;
 end;
 
+function lua_enableWindowsSymbols(L: PLua_state): integer; cdecl;
+begin
+  EnableWindowsSymbols(false);
+end;
+
 procedure InitializeLua;
 var
   s: tstringlist;
@@ -10856,6 +10861,7 @@ begin
 
     lua_register(L, 'getHotkeyHandlerThread', lua_getHotkeyHandlerThread);
     lua_register(L, 'enumMemoryRegions', lua_enumMemoryRegions);
+    lua_register(L, 'enableWindowsSymbols', lua_enableWindowsSymbols);
 
     initializeLuaRemoteThread;
 

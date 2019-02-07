@@ -86,7 +86,7 @@ procedure Open_Process;
 Procedure Shutdown;
 function KeyToStr(key:word):string;
 
-
+procedure EnableWindowsSymbols(warn: boolean=true);
 
 function eflags_setCF(flagvalue: dword; value: integer): DWORD;
 function eflags_setPF(flagvalue: dword; value: integer): DWORD;
@@ -344,7 +344,7 @@ uses disassembler,CEDebugger,debughelper, symbolhandler, symbolhandlerstructs,
      frmProcessWatcherUnit, kerneldebugger, formsettingsunit, MemoryBrowserFormUnit,
      savedscanhandler, networkInterface, networkInterfaceApi, vartypestrings,
      processlist, Parsers, Globals, xinput, luahandler, LuaClass, LuaObject,
-     UnexpectedExceptionsHelper;
+     UnexpectedExceptionsHelper, LazFileUtils;
 
 
 resourcestring
@@ -3419,6 +3419,28 @@ begin
     SetKernelObjectSecurity(h, DACL_SECURITY_INFORMATION, sa.lpSecurityDescriptor);
 end;
 
+procedure EnableWindowsSymbols(warn: boolean=true);
+var
+  path: string;
+  shortpath: pchar;
+begin
+  if (length(trim(tempdiralternative))>2) and dontusetempdir then
+    path:=trim(tempdiralternative)
+  else
+    path:=GetTempDir;
+
+  path:=path+'Cheat Engine Symbols';
+
+  ForceDirectory(path);
+  if warn and (messagedlg('This can take some time if you are missing the PDB''s and CE will look frozen. Are you sure?', mtWarning, [mbyes,mbno],0,mbno)<>mryes) then exit;
+
+  getmem(shortpath,256);
+  GetShortPathName(pchar(path),shortpath,255);
+  symhandler.setsearchpath('srv*'+shortpath+'*https://msdl.microsoft.com/download/symbols');
+  freemem(shortpath);
+
+  symhandler.reinitialize(true);
+end;
 
 
 procedure Log(s: string);

@@ -615,6 +615,8 @@ var
 
 
   MemoryBrowsers: TList; //contains a list of all the memorybrowsers
+
+
   
 implementation
 
@@ -1020,27 +1022,11 @@ begin
   f.free;
 end;
 
+
+
 procedure TMemoryBrowser.MenuItem14Click(Sender: TObject);
-var
-  path: string;
-  shortpath: pchar;
 begin
-  if (length(trim(tempdiralternative))>2) and dontusetempdir then
-    path:=trim(tempdiralternative)
-  else
-    path:=GetTempDir;
-
-  path:=path+'Cheat Engine Symbols';
-
-  ForceDirectory(path);
-  if messagedlg('This can take some time if you are missing the PDB''s and CE will look frozen. Are you sure?', mtWarning, [mbyes,mbno],0,mbno)<>mryes then exit;
-
-  getmem(shortpath,256);
-  GetShortPathName(pchar(path),shortpath,255);
-  symhandler.setsearchpath('srv*'+shortpath+'*https://msdl.microsoft.com/download/symbols');
-  freemem(shortpath);
-
-  symhandler.reinitialize(true);
+  EnableWindowsSymbols(true);
 end;
 
 procedure TMemoryBrowser.miCodeFilterClick(Sender: TObject);
