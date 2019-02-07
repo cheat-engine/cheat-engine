@@ -1892,6 +1892,7 @@ begin
     fontdialog2.font.CharSet:=fd.CharSet;
     fontdialog2.font.Quality:=fd.Quality;
     fontdialog2.font.Orientation:=fd.Orientation;
+    cbFontQuality.ItemIndex:=integer(fd.Quality);
     btnHexFont.Caption:=fontdialog2.Font.Name+' '+inttostr(fontdialog2.Font.Size);
 
 

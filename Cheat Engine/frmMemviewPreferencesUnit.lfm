@@ -419,23 +419,23 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     AnchorSideBottom.Control = GroupBox2
     AnchorSideBottom.Side = asrBottom
     Left = 187
-    Height = 145
+    Height = 195
     Top = 0
     Width = 195
     AutoSize = True
     Caption = 'Hexview'
-    ClientHeight = 125
+    ClientHeight = 175
     ClientWidth = 191
     TabOrder = 1
     object lblHexExample: TLabel
       AnchorSideLeft.Control = btnHexFont
-      AnchorSideTop.Control = btnHexFont
+      AnchorSideTop.Control = cbFontQuality
       AnchorSideTop.Side = asrBottom
       Left = 8
       Height = 15
-      Top = 33
+      Top = 83
       Width = 44
-      BorderSpacing.Top = 8
+      BorderSpacing.Top = 16
       Caption = 'Example'
       ParentColor = False
     end
@@ -460,7 +460,7 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       AnchorSideTop.Side = asrBottom
       Left = 8
       Height = 15
-      Top = 64
+      Top = 114
       Width = 106
       BorderSpacing.Top = 16
       Caption = 'Space between lines'
@@ -474,7 +474,7 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       AnchorSideRight.Side = asrBottom
       Left = 8
       Height = 23
-      Top = 79
+      Top = 129
       Width = 106
       Anchors = [akTop, akLeft, akRight]
       TabOrder = 1
@@ -486,13 +486,54 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       AnchorSideTop.Side = asrBottom
       Left = 8
       Height = 19
-      Top = 106
+      Top = 156
       Width = 100
       BorderSpacing.Top = 4
       Caption = 'Show statusbar'
       Checked = True
       State = cbChecked
       TabOrder = 2
+    end
+    object cbFontQuality: TComboBox
+      AnchorSideLeft.Control = btnHexFont
+      AnchorSideTop.Control = Label1
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = btnHexFont
+      AnchorSideRight.Side = asrBottom
+      Left = 8
+      Height = 23
+      Hint = 'The font quality can impact speed'
+      Top = 44
+      Width = 175
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Top = 1
+      ItemHeight = 15
+      Items.Strings = (
+        'Default'
+        'Draft'
+        'Proof'
+        'NonAntialiased'
+        'Antialiased'
+        'Cleartype'
+        'CleartypeNatural'
+      )
+      OnSelect = cbFontQualitySelect
+      ParentShowHint = False
+      ShowHint = True
+      Style = csDropDownList
+      TabOrder = 3
+    end
+    object Label1: TLabel
+      AnchorSideLeft.Control = btnHexFont
+      AnchorSideTop.Control = btnHexFont
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 15
+      Top = 28
+      Width = 63
+      BorderSpacing.Top = 3
+      Caption = 'Font quality'
+      ParentColor = False
     end
   end
   object GroupBox6: TGroupBox
@@ -502,7 +543,7 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     AnchorSideTop.Side = asrBottom
     Left = 187
     Height = 76
-    Top = 145
+    Top = 195
     Width = 195
     AutoSize = True
     Caption = 'Register panel'

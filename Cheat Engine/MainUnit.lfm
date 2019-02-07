@@ -1,9 +1,9 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 246
+  Left = 370
   Height = 625
   Hint = ' '
-  Top = 87
+  Top = 107
   Width = 622
   HelpContext = 1
   HorzScrollBar.Visible = False
@@ -1738,7 +1738,7 @@ object MainForm: TMainForm
       Width = 98
       Anchors = [akLeft, akBottom]
       BorderSpacing.Bottom = 5
-      Caption = 'Memory view'
+      Caption = 'Memory View'
       OnClick = btnMemoryViewClick
       TabOrder = 17
     end

@@ -1716,6 +1716,8 @@ var
   i: integer;
   x: array of integer;
   reg: tregistry;
+
+  fq: TFontQuality;
 begin
 
 
@@ -1748,6 +1750,9 @@ begin
   assemblescreen:=TSynEdit.Create(self);
   assemblescreen.Highlighter:=AAHighlighter;
   assemblescreen.Options:=SYNEDIT_DEFAULT_OPTIONS - [eoScrollPastEol]+[eoTabIndent]+[eoKeepCaretX];
+  fq:=assemblescreen.Font.Quality;
+  if not (fq in [fqCleartypeNatural, fqDefault]) then
+    assemblescreen.Font.quality:=fqDefault;
 
  { if overridefont<>nil then
     assemblescreen.Font.assign(overridefont)

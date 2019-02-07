@@ -3198,10 +3198,11 @@ begin
   if found<>nil then
     found^:=false;
 
-
-  result:=self.GetUserdefinedSymbolByAddress(address);
-  if result<>'' then exit;
-
+  if symbols=true then
+  begin
+    result:=self.GetUserdefinedSymbolByAddress(address);
+    if result<>'' then exit;
+  end;
 
   if symbols then
   begin

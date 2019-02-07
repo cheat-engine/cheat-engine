@@ -1298,11 +1298,18 @@ begin
 end;
 
 procedure TfrmLuaEngine.FormCreate(Sender: TObject);
-var x: array of integer;
+var
+  x: array of integer;
+  fq: TFontQuality;
 begin
 
   synhighlighter:=TSynLuaSyn.Create(self);
   mscript.Highlighter:=synhighlighter;
+
+  fq:=mscript.Font.Quality;
+  if not (fq in [fqCleartypeNatural, fqDefault]) then
+    mscript.Font.quality:=fqDefault;
+
 
   setlength(x,1);
   if LoadFormPosition(self, x) then

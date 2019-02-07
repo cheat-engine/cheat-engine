@@ -22,6 +22,7 @@ type
     cbColorGroup: TComboBox;
     cbShowStatusBar: TCheckBox;
     ColorDialog1: TColorDialog;
+    cbFontQuality: TComboBox;
     edtSpaceAboveLines: TEdit;
     edtSpaceBelowLines: TEdit;
     edtHexSpaceBetweenLines: TEdit;
@@ -36,6 +37,7 @@ type
     GroupBox4: TGroupBox;
     GroupBox5: TGroupBox;
     GroupBox6: TGroupBox;
+    Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
@@ -63,6 +65,7 @@ type
     procedure btnHexFontClick(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure cbColorGroupChange(Sender: TObject);
+    procedure cbFontQualitySelect(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure GroupBox1Click(Sender: TObject);
@@ -413,6 +416,17 @@ begin
     lblHex.Font.color:=colors[oldstate].hexcolor;
   end;
 end;
+
+procedure TfrmMemviewPreferences.cbFontQualitySelect(Sender: TObject);
+begin
+  if cbFontQuality.ItemIndex<>-1 then
+  begin
+    fontdialog2.Font.quality:=TFontQuality(cbFontQuality.ItemIndex);
+    applyfont;
+  end;
+
+end;
+
 
 initialization
   {$I frmMemviewPreferencesUnit.lrs}

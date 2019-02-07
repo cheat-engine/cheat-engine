@@ -11,6 +11,7 @@ speedhack while key down option
 assembling values with x*2/4/8 
 the "resume thread" in the threadlist now resumes threads instead of freezing them
 fixed an error popping up when editing registers with no debugger attached
+getNameFromAddress will not show userdefined symbols when symbols are disabled
 
 
 Additions and changes:
