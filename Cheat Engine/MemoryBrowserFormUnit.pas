@@ -13,7 +13,8 @@ uses
   NewKernelHandler, ComCtrls, LResources, byteinterpreter, StrUtils, hexviewunit,
   debughelper, debuggertypedefinitions,frmMemviewPreferencesUnit, registry,
   scrollboxex, disassemblercomments, multilineinputqueryunit, frmMemoryViewExUnit,
-  LastDisassembleData, ProcessHandlerUnit, commonTypeDefs, binutils,fontSaveLoadRegistry;
+  LastDisassembleData, ProcessHandlerUnit, commonTypeDefs, binutils,
+  fontSaveLoadRegistry, LazFileUtils;
 
 
 type
@@ -44,6 +45,7 @@ type
     MenuItem11: TMenuItem;
     MenuItem12: TMenuItem;
     MenuItem13: TMenuItem;
+    MenuItem14: TMenuItem;
     miUltimap: TMenuItem;
     MenuItem15: TMenuItem;
     MenuItem16: TMenuItem;
@@ -299,6 +301,7 @@ type
     procedure MenuItem10Click(Sender: TObject);
     procedure MenuItem11Click(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
+    procedure MenuItem14Click(Sender: TObject);
     procedure miCodeFilterClick(Sender: TObject);
     procedure miUltimapClick(Sender: TObject);
     procedure MenuItem17Click(Sender: TObject);
@@ -1015,6 +1018,29 @@ begin
   f:=tfrmfilepatcher.create(self);
   f.showmodal;
   f.free;
+end;
+
+procedure TMemoryBrowser.MenuItem14Click(Sender: TObject);
+var
+  path: string;
+  shortpath: pchar;
+begin
+  if (length(trim(tempdiralternative))>2) and dontusetempdir then
+    path:=trim(tempdiralternative)
+  else
+    path:=GetTempDir;
+
+  path:=path+'Cheat Engine Symbols';
+
+  ForceDirectory(path);
+  if messagedlg('This can take some time if you are missing the PDB''s and CE will look frozen. Are you sure?', mtWarning, [mbyes,mbno],0,mbno)<>mryes then exit;
+
+  getmem(shortpath,256);
+  GetShortPathName(pchar(path),shortpath,255);
+  symhandler.setsearchpath('srv*'+shortpath+'*https://msdl.microsoft.com/download/symbols');
+  freemem(shortpath);
+
+  symhandler.reinitialize(true);
 end;
 
 procedure TMemoryBrowser.miCodeFilterClick(Sender: TObject);
@@ -3632,6 +3658,7 @@ end;
 procedure TMemoryBrowser.Setsymbolsearchpath1Click(Sender: TObject);
 var searchpath: string;
 begin
+  searchpath:=symhandler.getsearchpath;
   if inputquery(rsSymbolHandler, rsPleaseSpecifyTheNewSymbolSearchpathSeperatesPaths, searchpath) then
   begin
     symhandler.setsearchpath(searchpath);

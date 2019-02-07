@@ -10898,6 +10898,8 @@ begin
 
 
 
+
+
     s:=tstringlist.create;
     try
       //ce 6.0 compatibility. 6.0 has these methods in the stringlist instead of the strings class

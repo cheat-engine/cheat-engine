@@ -1128,6 +1128,10 @@ object MemoryBrowser: TMemoryBrowser
         Caption = 'Set symbol searchpath'
         OnClick = Setsymbolsearchpath1Click
       end
+      object MenuItem14: TMenuItem
+        Caption = 'Use windows debug symbols'
+        OnClick = MenuItem14Click
+      end
       object MenuItem13: TMenuItem
         Caption = '-'
       end

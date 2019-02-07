@@ -537,6 +537,11 @@ begin
 end;
 
 
+function cb(filename:PSTR; context:pointer):bool;stdcall;
+begin
+  result:=false;
+end;
+
 procedure TSymbolloaderthread.LoadDLLSymbols;
 var need:dword;
     x: PPointerArray;
@@ -547,6 +552,8 @@ var need:dword;
 
     mi: {$ifdef cpu32}IMAGEHLP_MODULE{$else}IMAGEHLP_MODULE64{$endif};
     offset: integer;
+
+    path: pchar;
 begin
   {$ifndef unix}
   need:=0;
@@ -572,6 +579,24 @@ begin
           mi.SizeOfStruct:=sizeof(mi);
           if SymGetModuleInfo(thisprocesshandle, ptruint(x[i]), @mi) then
           begin
+
+
+            //srv*c:\DownstreamStore*https://msdl.microsoft.com/download/symbols
+            //srv*c:\DownstreamStore
+            {
+            SymSetSearchPath(thisprocesshandle, 'srv*c:\DownstreamStore*https://msdl.microsoft.com/download/symbols');
+
+            if mi.SymType<>SymPdb then
+            begin
+              getmem(path,512);
+              if SymFindFileInPath(thisprocesshandle,pchar(searchpath),@mi.LoadedPdbName[0],@mi.PdbSig70,mi.PdbAge,0,SSRVOPT_GUIDPTR,path, cb,nil) then
+              begin
+                OutputDebugString(pchar('Loaded symbols for '+pchar(mi.LoadedImageName[0])+'+ at '+path));
+                mi.Symtype:=SymPdb;
+              end;
+              freemem(path);
+            end; }
+
             if mi.SymType in [SymExport, SymNone] then
             begin
               setlength(modulelist.withoutdebuginfo,length(modulelist.withoutdebuginfo)+1);
@@ -1792,7 +1817,6 @@ begin
           begin
             debugpart:=2;
             symsetoptions(symgetoptions or SYMOPT_CASE_INSENSITIVE);
-            symsetsearchpath(thisprocesshandle,pchar(searchpath));
 
             if kernelsymbols then LoadDriverSymbols;
 
