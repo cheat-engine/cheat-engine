@@ -9,7 +9,8 @@ interface
 uses jwawindows, windows, classes,LCLIntf,imagehlp,{psapi,}sysutils, cefuncproc,
   newkernelhandler,syncobjs, SymbolListHandler, fgl, typinfo, cvconst, PEInfoFunctions,
   DotNetPipe, DotNetTypes, commonTypeDefs, math, LazUTF8, contnrs, LazFileUtils,
-  db, sqldb, sqlite3dyn, sqlite3conn, registry, symbolhandlerstructs;
+  db, sqldb, sqlite3dyn, sqlite3conn, registry, symbolhandlerstructs, forms, controls,
+  AvgLvlTree;
 {$endif}
 
 {$ifdef unix}
@@ -112,6 +113,10 @@ type
     symbollist: TSymbolListHandler;
 
     debugpart: integer;
+
+    skipAllSymbols: Boolean;
+
+    skipList: TStringMap;
 
 
     function getAddressFromSymbol(symbol: string): ptruint;
@@ -359,7 +364,7 @@ implementation
 uses assemblerunit, driverlist, LuaHandler, lualib, lua, lauxlib,
   disassemblerComments, StructuresFrm2, networkInterface, networkInterfaceApi,
   processhandlerunit, Globals, Parsers, MemoryQuery, LuaCaller,
-  UnexpectedExceptionsHelper;
+  UnexpectedExceptionsHelper, frmSymbolEventTakingLongUnit;
 {$endif}
 
 {$ifdef unix}
@@ -506,11 +511,56 @@ begin
 end;
 
 procedure TSymbolLoaderThreadEvent.waittilldone;
+var
+  waitingtime: dword;
+  waitingfrm: TfrmSymbolEventTakingLong;
 begin
+  waitingtime:=0;
+  waitingfrm:=nil;
   while (symhandler.symbolloaderthread<>nil) and symhandler.symbolloaderthread.isloading and (done.WaitFor(100)=wrTimeout) do
   begin
     if GetCurrentThreadId=MainThreadID then
+    begin
       CheckSynchronize;
+
+      inc(waitingtime,100);
+
+      if waitingtime=2000 then
+      begin
+        //spawn a TfrmSymboleventtakinglong form that uses a timer to check the TSymbolLoaderThreadEvent event
+        waitingfrm:=TfrmSymbolEventTakingLong.Create(application);
+
+        if self is  TGetAddressFromSymbolThreadEvent then
+        begin
+          waitingfrm.lblType.Caption:='Symbol:';
+          waitingfrm.lblSymbol.caption:=symbolname;
+        end
+        else
+        begin
+          waitingfrm.lblType.Caption:='Address:';
+          waitingfrm.lblSymbol.caption:=inttohex(address,8);
+        end;
+
+        waitingfrm.done:=done;
+        if waitingfrm.ShowModal<>mrok then
+        begin
+          if waitingfrm.cbSkipAllSymbols.checked then
+          begin
+            symhandler.symbolloaderthread.skipAllSymbols:=true;
+            if symhandler.symbolloaderthread.skipList=nil then
+              symhandler.symbolloaderthread.skipList:=TStringMap.Create(false);
+
+            symhandler.symbolloaderthread.skipList.Add(symbolname);
+          end;
+        end;
+
+        waitingfrm.free;
+      end;
+    end;
+
+
+
+
   end;
 end;
 
@@ -1488,7 +1538,12 @@ function TSymbolloaderthread.getAddressFromSymbol(symbol: string): ptruint;
 //called from other threads, NOT the symbolloader thread
 var afste: TGetAddressFromSymbolThreadEvent;
 begin
+  if skipAllSymbols then exit;
+  if (skipList<>nil) and (skipList.Values[symbol]) then exit;
+
   if GetCurrentThreadId=self.ThreadID then raise exception.create('Do not call getAddressFromSymbol from inside the symbolloaderthread');
+
+
 
   //queue an getAddressFromSymbol event and wait for the result
   afste:=TGetAddressFromSymbolThreadEvent.create;
@@ -1943,6 +1998,9 @@ begin
   //close the symbol handler for this processhandle
   symbolloaderthreadeventqueue.free;
   symbolloaderthreadeventqueueCS.free;
+
+  if skiplist<>nil then
+    freeandnil(skiplist);
 
   inherited destroy;
 end;
@@ -3643,8 +3701,16 @@ begin
                   end;
                   {$endif}
 
+                  //if si=nil then //STILL not found. Check if it's a structure.element notation
+                 // begin
+                    if LookupStructureOffset(tokens[i], offset) then
+                    begin
+                      tokens[i]:=inttohex(offset,8);
+                      continue;
+                    end;
+                 // end;
 
-                  if symbolloaderthread.isloading then
+                  if symbolloaderthread.isloading and (waitforsymbols) then
                   begin
                     a:=symbolloaderthread.getAddressFromSymbol(tokens[i]);
                     if a<>0 then
@@ -3663,16 +3729,7 @@ begin
 
 
 
-                  if si=nil then //STILL not found. Check if it's a structure.element notation
-                  begin
 
-                    if LookupStructureOffset(tokens[i], offset) then
-                    begin
-                      tokens[i]:=inttohex(offset,8);
-                      continue;
-                    end;
-
-                  end;
                 end;
 
                 if si<>nil then
