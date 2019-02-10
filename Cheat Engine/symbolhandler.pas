@@ -1627,104 +1627,110 @@ begin
           te:=TSymbolLoaderThreadEvent(symbolloaderthreadeventqueue[0]);
           queueindex:=0;
         end;
+      end;
+    finally
+      symbolloaderthreadeventqueueCS.leave;
+    end;
 
-        getmem(symbol,sizeof(TSYMBOL_INFO)+256);
-        ZeroMemory(symbol, sizeof(TSYMBOL_INFO)+256);
-        symbol^.MaxNameLen:=255;
-        symbol^.SizeOfStruct:=sizeof(TSYMBOL_INFO);
+    if te<>nil then
+    begin
+      getmem(symbol,sizeof(TSYMBOL_INFO)+256);
+      ZeroMemory(symbol, sizeof(TSYMBOL_INFO)+256);
+      symbol^.MaxNameLen:=255;
+      symbol^.SizeOfStruct:=sizeof(TSYMBOL_INFO);
 
 
 
-        //handle it based on the type
-        if te is TGetAddressFromSymbolThreadEvent then
+      //handle it based on the type
+      if te is TGetAddressFromSymbolThreadEvent then
+      begin
+        //address from symbol
+        skip:=length(te.symbolname)=1;
+        hasmodulespecifier:=false;
+        for i:=1 to length(te.symbolname)-1 do
         begin
-          //address from symbol
-          skip:=length(te.symbolname)=1;
-          hasmodulespecifier:=false;
-          for i:=1 to length(te.symbolname)-1 do
+          if te.symbolname[i]='.' then
           begin
-            if te.symbolname[i]='.' then
-            begin
-              te.symbolname[i]:='!';
-              hasModuleSpecifier:=true;
-            end;
-
-            if te.symbolname[i]=' ' then //invalid
-              skip:=true;
+            te.symbolname[i]:='!';
+            hasModuleSpecifier:=true;
           end;
 
-          if (not skip) then
-          begin
-            if assigned(symsearch) and (length(modulelist.withdebuginfo)+length(modulelist.withoutdebuginfo)>5) then
-            begin
-              searchresult:=0;
-              if hasModuleSpecifier then
-                symsearch(thisprocesshandle,0,0,0,pchar(te.symbolname),0,SymbolSearch,@searchresult,0)
-              else
-              begin
-                //scan modules without PDB's first
-
-                for i:=0 to length(modulelist.withoutdebuginfo)-1 do
-                begin
-                  symsearch(thisprocesshandle, modulelist.withoutdebuginfo[i].BaseOfImage,0,0,pchar(te.symbolname),0,SymbolSearch,@searchresult,0);
-                  if searchresult<>0 then break;
-                end;
-
-                if searchresult=0 then //try the ones with debug info
-                begin
-                  for i:=0 to length(modulelist.withdebuginfo)-1 do
-                  begin
-                    symsearch(thisprocesshandle, modulelist.withdebuginfo[i].BaseOfImage,0,0,pchar(te.symbolname),0,SymbolSearch,@searchresult,0);
-                    if searchresult<>0 then break;
-                    {
-                    symsearch(thisprocesshandle, modulelist.withdebuginfo[i].BaseOfImage,0,dword(SymTagPublicSymbol),pchar(te.symbolname),0,SymbolSearch,@searchresult,0);
-                    if searchresult<>0 then break;
-
-                    symsearch(thisprocesshandle, modulelist.withdebuginfo[i].BaseOfImage,0,dword(SymTagFunction),pchar(te.symbolname),0,SymbolSearch,@searchresult,0);
-                    if searchresult<>0 then break;
-                    }
-                  end;
-
-                end;
-              end;
-
-              if searchresult<>0 then
-                te.address:=SearchResult;
-            end
-            else
-            begin
-              if SymFromName(thisprocesshandle, pchar(te.symbolname), symbol) then
-                te.address:=symbol.Address;
-            end;
-          end;
-
-
-        end
-        else
-        begin
-          //symbol from address
-          symbol.address:=te.address;
-          disp:=0;
-
-          if SymFromAddr(thisprocesshandle, te.address, @disp, symbol) then
-            if symbol^.NameLen>0 then
-            begin
-              if symhandler.getmodulebyaddress(te.address,mi) then
-                te.symbolname:=ExtractFileNameOnly(mi.modulename)+'.';
-
-              te.symbolname:=te.symbolname+pchar(@symbol^.Name);
-              if disp<>0 then
-                te.symbolname:=te.symbolname+'+'+inttohex(disp,1);
-            end;
-
+          if te.symbolname[i]=' ' then //invalid
+            skip:=true;
         end;
 
-        freemem(symbol);
-        te.done.SetEvent;
-        symbolloaderthreadeventqueue.Delete(queueindex);
+        if (not skip) then
+        begin
+          if assigned(symsearch) and (length(modulelist.withdebuginfo)+length(modulelist.withoutdebuginfo)>5) then
+          begin
+            searchresult:=0;
+            if hasModuleSpecifier then
+              symsearch(thisprocesshandle,0,0,0,pchar(te.symbolname),0,SymbolSearch,@searchresult,0)
+            else
+            begin
+              //scan modules without PDB's first
+
+              for i:=0 to length(modulelist.withoutdebuginfo)-1 do
+              begin
+                symsearch(thisprocesshandle, modulelist.withoutdebuginfo[i].BaseOfImage,0,0,pchar(te.symbolname),0,SymbolSearch,@searchresult,0);
+                if searchresult<>0 then break;
+              end;
+
+              if searchresult=0 then //try the ones with debug info
+              begin
+                for i:=0 to length(modulelist.withdebuginfo)-1 do
+                begin
+                  symsearch(thisprocesshandle, modulelist.withdebuginfo[i].BaseOfImage,0,0,pchar(te.symbolname),0,SymbolSearch,@searchresult,0);
+                  if searchresult<>0 then break;
+                  {
+                  symsearch(thisprocesshandle, modulelist.withdebuginfo[i].BaseOfImage,0,dword(SymTagPublicSymbol),pchar(te.symbolname),0,SymbolSearch,@searchresult,0);
+                  if searchresult<>0 then break;
+
+                  symsearch(thisprocesshandle, modulelist.withdebuginfo[i].BaseOfImage,0,dword(SymTagFunction),pchar(te.symbolname),0,SymbolSearch,@searchresult,0);
+                  if searchresult<>0 then break;
+                  }
+                end;
+
+              end;
+            end;
+
+            if searchresult<>0 then
+              te.address:=SearchResult;
+          end
+          else
+          begin
+            if SymFromName(thisprocesshandle, pchar(te.symbolname), symbol) then
+              te.address:=symbol.Address;
+          end;
+        end;
+
+
+      end
+      else
+      begin
+        //symbol from address
+        symbol.address:=te.address;
+        disp:=0;
+
+        if SymFromAddr(thisprocesshandle, te.address, @disp, symbol) then
+          if symbol^.NameLen>0 then
+          begin
+            if symhandler.getmodulebyaddress(te.address,mi) then
+              te.symbolname:=ExtractFileNameOnly(mi.modulename)+'.';
+
+            te.symbolname:=te.symbolname+pchar(@symbol^.Name);
+            if disp<>0 then
+              te.symbolname:=te.symbolname+'+'+inttohex(disp,1);
+          end;
+
       end;
 
-    finally
+      freemem(symbol);
+      te.done.SetEvent;
+      symbolloaderthreadeventqueueCS.enter;
+      queueindex:=symbolloaderthreadeventqueue.IndexOf(te);
+      if queueindex<>-1 then
+        symbolloaderthreadeventqueue.Delete(queueindex);
       symbolloaderthreadeventqueueCS.leave;
     end;
   end;
