@@ -118,6 +118,7 @@ type
     debugpart: integer;
 
     skipAllSymbols: Boolean;
+    skipAddressToSymbol: boolean;
 
 
 
@@ -528,7 +529,7 @@ begin
 
       inc(waitingtime,100);
 
-      if waitingtime=2000 then
+      if waitingtime>2000 then
       begin
         //spawn a TfrmSymboleventtakinglong form that uses a timer to check the TSymbolLoaderThreadEvent event
         waitingfrm:=TfrmSymbolEventTakingLong.Create(application);
@@ -542,29 +543,34 @@ begin
         begin
           waitingfrm.lblType.Caption:='Address:';
           waitingfrm.lblSymbol.caption:=inttohex(address,8);
+          waitingfrm.cbSkipAllSymbols.visible:=false;
+          waitingfrm.cbSkipThisSymbol.visible:=false;
         end;
 
         waitingfrm.done:=done;
         if waitingfrm.ShowModal<>mrok then
         begin
-          if waitingfrm.cbSkipAllSymbols.checked then
+          if self is  TGetSymbolFromAddressThreadEvent then
+            symhandler.symbolloaderthread.skipAddressToSymbol:=true
+          else
           begin
-            symhandler.symbolloaderthread.skipAllSymbols:=true;
-            if symhandler.symbolloaderthread.skipList=nil then
-              symhandler.symbolloaderthread.skipList:=TStringMap.Create(false);
+            if waitingfrm.cbSkipAllSymbols.checked then
+            begin
+              symhandler.symbolloaderthread.skipAllSymbols:=true;
+              if symhandler.symbolloaderthread.skipList=nil then
+                symhandler.symbolloaderthread.skipList:=TStringMap.Create(false);
 
-            symhandler.symbolloaderthread.skipList.Add(symbolname);
+              symhandler.symbolloaderthread.skipList.Add(symbolname);
+            end;
           end;
+          break;
         end;
-
-        waitingfrm.free;
       end;
     end;
-
-
-
-
   end;
+
+  if waitingfrm<>nil then
+    waitingfrm.free;
 end;
 
 constructor TSymbolLoaderThreadEvent.create;
@@ -1566,6 +1572,8 @@ var sfate: TGetSymbolFromAddressThreadEvent;
 begin
   if GetCurrentThreadId=self.ThreadID then raise exception.create('Do not call getAddressFromSymbol from inside the symbolloaderthread');
 
+  if skipAddressToSymbol then exit;
+
   //queue an GetSymbolFromAddress event and wait for the result
   sfate:=TGetSymbolFromAddressThreadEvent.create;
   sfate.address:=address;
@@ -1608,6 +1616,8 @@ var
   SearchResult: ptruint;
 
 begin
+//  sleep(5000);
+
   if symbolloaderthreadeventqueue.count>0 then
   begin
     symbolloaderthreadeventqueueCS.enter;
@@ -3165,27 +3175,31 @@ end;
 function TSymhandler.getmodulebyaddress(address: ptrUint; var mi: TModuleInfo):BOOLEAN;
 var i: integer;
 begin
-  result:=false;
-  modulelistMREW.beginread;
-  for i:=0 to modulelistpos-1 do
-    if (address>=modulelist[i].baseaddress) and (address<modulelist[i].baseaddress+modulelist[i].basesize) then
-    begin
-      mi:=modulelist[i];
-
-      result:=true;
-      break;
-    end;
-  modulelistMREW.endread;
-
-  if not result then
+  if (self<>nil) and (modulelistMREW<>nil) then
   begin
-    symbollistsMREW.beginread;
-    for i:=0 to length(symbollists)-1 do
+    result:=false;
+    modulelistMREW.beginread;
+    for i:=0 to modulelistpos-1 do
+      if (address>=modulelist[i].baseaddress) and (address<modulelist[i].baseaddress+modulelist[i].basesize) then
+      begin
+        mi:=modulelist[i];
+
+        result:=true;
+        break;
+      end;
+    modulelistMREW.endread;
+
+    if not result then
     begin
-      result:=symbollists[i].getModuleByAddress(address, mi);
-      if result then break;
+      symbollistsMREW.beginread;
+      for i:=0 to length(symbollists)-1 do
+      begin
+        result:=symbollists[i].getModuleByAddress(address, mi);
+        if result then break;
+      end;
+      symbollistsMREW.endread;
     end;
-    symbollistsMREW.endread;
+
   end;
 end;
 
