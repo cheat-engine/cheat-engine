@@ -16,7 +16,6 @@ uses
 
 
 
-
 type
 
   { TFormDesigner }
@@ -194,7 +193,7 @@ implementation
 { TFormDesigner }
 
 
-uses mainunit, DPIHelper;
+uses mainunit, DPIHelper{$if lcl_fullversion>=2000000}, LazMsgDialogs{$endif};
 
 resourcestring
   rsInvalidObject = '{Invalid object}';
@@ -589,8 +588,13 @@ begin
   LazIDESelectDirectory:=IDESelectDirectory;
   idedialogs.InitIDEFileDialog:=self.InitIDEFileDialog;
   idedialogs.StoreIDEFileDialog:=self.InitIDEFileDialog;
+  {$if lcl_fullversion>=2000000}
+  LazMsgDialogs.LazMessageDialog:=self.IDEMessageDialog;
+  LazMsgDialogs.LazQuestionDialog:=self.IDEQuestionDialog;
+  {$else}
   idedialogs.IDEMessageDialog:=self.IDEMessageDialog;
   idedialogs.IDEQuestionDialog:=self.IDEQuestionDialog;
+  {$endif}
 
   SurfaceList:=tlist.create;
 

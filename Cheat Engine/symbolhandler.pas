@@ -86,6 +86,9 @@ type
     symbolloaderthreadeventqueue: Tlist;
     symbolloaderthreadeventqueueCS: TCriticalSection;
 
+    skipList: TStringMap;
+    notfoundlist: TStringMap;
+
     modulelist: record
       withdebuginfo: array of {$ifdef cpu32}IMAGEHLP_MODULE{$else}IMAGEHLP_MODULE64{$endif};
       withoutdebuginfo: array of {$ifdef cpu32}IMAGEHLP_MODULE{$else}IMAGEHLP_MODULE64{$endif};
@@ -116,7 +119,7 @@ type
 
     skipAllSymbols: Boolean;
 
-    skipList: TStringMap;
+
 
 
     function getAddressFromSymbol(symbol: string): ptruint;
@@ -1659,6 +1662,10 @@ begin
             skip:=true;
         end;
 
+        if (skip=false) and (notfoundlist<>nil) then
+          skip:=notfoundlist.Values[te.symbolname];
+
+
         if (not skip) then
         begin
           if assigned(symsearch) and (length(modulelist.withdebuginfo)+length(modulelist.withoutdebuginfo)>5) then
@@ -1695,7 +1702,14 @@ begin
             end;
 
             if searchresult<>0 then
-              te.address:=SearchResult;
+              te.address:=SearchResult
+            else
+            begin
+              if notfoundlist=nil then
+                notfoundlist:=TStringMap.create(false);
+
+              notfoundlist.add(te.symbolname);
+            end;
           end
           else
           begin
@@ -2007,6 +2021,9 @@ begin
 
   if skiplist<>nil then
     freeandnil(skiplist);
+
+  if notfoundlist<>nil then
+    freeandnil(notfoundlist);
 
   inherited destroy;
 end;

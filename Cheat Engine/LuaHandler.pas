@@ -10281,6 +10281,7 @@ end;
 function lua_enableWindowsSymbols(L: PLua_state): integer; cdecl;
 begin
   EnableWindowsSymbols(false);
+  result:=0;
 end;
 
 procedure InitializeLua;

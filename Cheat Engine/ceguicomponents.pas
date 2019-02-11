@@ -533,6 +533,9 @@ type TCEToggleBox=class(TToggleBox); //there is no custom...
 
 
 type TCEEdit=class(TCustomEdit)
+  private
+    fTextHintFontColor: TColor;
+    fTextHintFontStyle: TFontStyle;
   public
     property AutoSelected;
   published
@@ -596,8 +599,8 @@ type TCEEdit=class(TCustomEdit)
     property SelText;
 
     property TextHint;
-    property TextHintFontColor;
-    property TextHintFontStyle;
+    property TextHintFontColor: Tcolor read fTextHintFontColor write fTextHintFontColor;
+    property TextHintFontStyle: TFontStyle read fTextHintFontStyle write fTextHintFontStyle;
   end;
 
 type TCEForm=class(TCustomForm)
