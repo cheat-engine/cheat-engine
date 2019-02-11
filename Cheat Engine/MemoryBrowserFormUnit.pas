@@ -1890,9 +1890,10 @@ begin
     fontdialog2.font.Pitch:=fd.Pitch;
     fontdialog2.font.Style:=fd.Style;
     fontdialog2.font.CharSet:=fd.CharSet;
-    fontdialog2.font.Quality:=fd.Quality;
+    fontdialog2.font.Quality:=hexview.HexFont.Quality;
+
     fontdialog2.font.Orientation:=fd.Orientation;
-    cbFontQuality.ItemIndex:=integer(fd.Quality);
+    cbFontQuality.ItemIndex:=integer(hexview.HexFont.Quality);
     btnHexFont.Caption:=fontdialog2.Font.Name+' '+inttostr(fontdialog2.Font.Size);
 
 
@@ -1902,7 +1903,7 @@ begin
     fontdialog3.font.Pitch:=fd.Pitch;
     fontdialog3.font.Style:=fd.Style;
     fontdialog3.font.CharSet:=fd.CharSet;
-    fontdialog3.font.Quality:=fd.Quality;
+    fontdialog3.font.Quality:=scrollbox1.Font.Quality;
     fontdialog3.font.Orientation:=fd.Orientation;
     btnRegisterViewFont.Caption:=fontdialog3.Font.Name+' '+inttostr(fontdialog3.Font.Size);
 
