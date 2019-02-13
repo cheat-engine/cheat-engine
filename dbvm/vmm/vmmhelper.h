@@ -591,6 +591,9 @@ typedef volatile struct tcpuinfo
     int ReasonsLength;
   } singleStepping;
 
+#ifdef STATISTICS
+  int eventcounter[56];
+#endif
 
 } tcpuinfo, *pcpuinfo; //allocated when the number of cpu's is known
 

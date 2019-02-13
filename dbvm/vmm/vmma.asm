@@ -1453,8 +1453,27 @@ global _invpcid
 ;--------------------------;
 ;_invlpg(int type, 128data);
 ;--------------------------;
+_invpcid:
 db 0x66,0x0f,0x38,0x82,0x3e ;invpcid rdi,[rsi]
 ret
+
+global _invept
+;--------------------------;
+;_invept(int type, 128data);  type must be either 1(local for specific ept pointer) or 2(global for all vpids)
+;--------------------------;
+_invept:
+invept rdi,[rsi]
+ret
+
+
+global _invvpid
+;--------------------------;
+;_invvpid(int type, 128data);  type must be either 0(specific linear address for specific vpid) 1(local for specific vpid) or 2(global for all vpids)
+;--------------------------;
+_invvpid:
+invvpid rdi,[rsi]
+ret
+
 
 
 global _invlpg

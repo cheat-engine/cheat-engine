@@ -192,6 +192,14 @@ typedef struct
   QWORD PhysicalPages[0];
 } __attribute__((__packed__)) VMCALL_ADD_MEMORY_PARAM, *PVMCALL_ADD_MEMORY_PARAM;
 
+#ifdef STATISTICS
+typedef struct
+{
+  VMCALL_BASIC vmcall;
+  int eventcounter[56];
+  int globaleventcounter[56];
+} __attribute__((__packed__)) VMCALL_GET_STATISTICS_PARAM, *PVMCALL_GET_STATISTICS_PARAM;
+#endif
 
 
 #endif /* VMM_VMCALLSTRUCTS_H_ */

@@ -574,8 +574,17 @@ int setupEPT(pcpuinfo currentcpuinfo)
       DWORD secondarycontrols=vmread(vm_execution_controls_cpu_secondary);
 
       sendstringf("SPBEF_ENABLE_EPT can be set\n");
-
       secondarycontrols=secondarycontrols | SPBEF_ENABLE_EPT;
+
+      if ((IA32_VMX_SECONDARY_PROCBASED_CTLS>>32) & SPBEF_ENABLE_VPID)
+      {
+    	  sendstringf("SPBEF_ENABLE_VPID can also be set\n");
+    	  secondarycontrols=secondarycontrols | SPBEF_ENABLE_VPID;
+    	  vmwrite(vm_vpid,1); //vpid
+
+    	  hasVPIDSupport=1;
+      }
+
       vmwrite(vm_execution_controls_cpu_secondary, secondarycontrols);
 
       //setup the EPT ptr
@@ -606,6 +615,15 @@ int setupEPT(pcpuinfo currentcpuinfo)
       has_EPT_1GBsupport=eptinfo.EPT_1GBSupport;
       has_EPT_2MBSupport=eptinfo.EPT_2MBSupport;
       has_EPT_ExecuteOnlySupport=eptinfo.EPT_executeOnlySupport;
+
+      has_EPT_INVEPTSingleContext=eptinfo.EPT_INVEPTSingleContext;
+      has_EPT_INVEPTAllContext=eptinfo.EPT_INVEPTAllContext;
+
+      has_VPID_INVVPIDIndividualAddress=eptinfo.VPID_INVVPIDIndividualAddress;
+      has_VPID_INVVPIDSingleContext=eptinfo.VPID_INVVPIDSingleContext;
+      has_VPID_INVVPIDAllContext=eptinfo.VPID_INVVPIDAllContext;
+      has_VPID_INVVPIDSingleContextRetainingGlobals=eptinfo.VPID_INVVPIDAllContext;
+
       //eptinfo
 
       QWORD rax=1,rbx=0,rcx=0,rdx=0;

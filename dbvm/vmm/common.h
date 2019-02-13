@@ -3,6 +3,8 @@
 
 #include <stddef.h>
 
+#define STATISTICS
+
 #define MAX_STACK_SIZE 0x10000
 
 #if (defined SERIALPORT) && (SERIALPORT != 0)
@@ -520,6 +522,18 @@ typedef struct _INVPCIDDESCRIPTOR
   QWORD LinearAddress;
 } __attribute__((__packed__)) INVPCIDDESCRIPTOR, *PINVPCIDDESCRIPTOR;
 
+typedef struct _INVEPTDESCRIPTOR
+{
+  QWORD EPTPointer;
+  QWORD Zero;
+} __attribute__((__packed__)) INVEPTDESCRIPTOR, *PINVEPTDESCRIPTOR;
+
+typedef struct _INVVPIDDESCRIPTOR
+{
+  unsigned VPID:12;
+  QWORD zero:52;
+  QWORD LinearAddress;
+} __attribute__((__packed__)) INVVPIDDESCRIPTOR, *PINVVPIDDESCRIPTOR;
 
 /* obsolete, use rflags now
 typedef struct tagEFLAGS

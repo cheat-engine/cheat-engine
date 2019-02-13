@@ -70,8 +70,12 @@ extern ULONG setCR4(UINT64 newcr4);
 extern ULONG setCR8(UINT64 newcr8);
 extern void _invlpg(UINT64 address);
 extern void _invpcid(int type, PINVPCIDDESCRIPTOR datablock);
+extern void _invept(int type, PINVEPTDESCRIPTOR datablock);
+extern void _invvpid(int type, PINVVPIDDESCRIPTOR datablock);
 extern void _wbinvd(void);
 extern void _invd(void);
+
+
 extern UINT64 _rdtsc(void);
 extern void quickboot(void);
 extern void infloop(void);

@@ -2349,6 +2349,7 @@ int setVM_CR3(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, UINT64 newcr3)
  * Called when the system changes the CR3 register
  */
 {
+  int shouldInvalidate=1;
   sendstringf("3:Setting CR3 (%6)\n\r", newcr3);
 
   //Ultimap
@@ -2370,8 +2371,11 @@ instruction does not modify bit 63 of CR3, which is reserved and always 0.
   {
     sendstringf("CR4_PCIDE is enabled and CR3 bit 63 has been set\n");
     newcr3=newcr3&0x7FFFFFFFFFFFFFFFULL;
-    //Invalidate the TLB and caches
-    sendstringf("Invalidating caches\n");
+    //don't invalidate the TLB and caches
+
+    shouldInvalidate=0;
+
+    sendstringf("Skipping the cache invalidating\n");
   }
 
   //check if CR3 sets physical address bits it shouldn't, and if so, GPF, unless it's bit 63
@@ -2415,6 +2419,27 @@ instruction does not modify bit 63 of CR3, which is reserved and always 0.
   if (hasUnrestrictedSupport)
   {
     vmwrite(vm_guest_cr3,newcr3);
+    if (shouldInvalidate)
+    {
+      int type=3;
+  	  INVVPIDDESCRIPTOR desc;
+  	  desc.LinearAddress=0;
+  	  desc.zero=0;
+  	  desc.VPID=1;
+
+  	  if (has_VPID_INVVPIDSingleContextRetainingGlobals)
+        type=3;
+  	  else
+  		if (has_VPID_INVVPIDSingleContext)
+    	  type=2;
+    	else
+    	  type=1; //all
+
+      _invvpid(type, &desc);
+    }
+
+
+
     return 0;
   }
 
@@ -2458,6 +2483,17 @@ int setVM_CR4(pcpuinfo currentcpuinfo, UINT64 newcr4)
   {
     sendstringf("THE GUEST OS WANTS TO SET A BIT THAT SHOULD STAY 0\n\r");
     return 1;
+  }
+
+  if (hasVPIDSupport & (((newCR4 & (CR4_PGE))) != ((oldCR4 & (CR4_PGE)))))
+  {
+	  //invalidate tlb
+
+	  INVVPIDDESCRIPTOR desc;
+	  desc.LinearAddress=0;
+	  desc.zero=0;
+	  desc.VPID=1;
+	  _invvpid(1,&desc);
   }
 
   if (((newCR4 & (CR4_PCIDE))) && ((oldCR4 & (CR4_PCIDE))==0))
@@ -3574,12 +3610,29 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
   int exit_reason=currentcpuinfo->guest_error?currentcpuinfo->guest_error:vmread(vm_exit_reason) & 0x7fffffff;
 
 
+  /*
+  INVVPIDDESCRIPTOR vpidd;
+  vpidd.zero=0;
+  vpidd.LinearAddress=0;
+  vpidd.VPID=1;
+  _invvpid(2, &vpidd);
+  */
+
+
+
+
+
 
   if (currentcpuinfo->vmxdata.runningvmx)
   {
     //check if I should handle it, if not
     return handleByGuest(currentcpuinfo, vmregisters);
   }
+
+#ifdef STATISTICS
+  if (exit_reason<=55)
+    currentcpuinfo->eventcounter[exit_reason]++;
+#endif
 
   switch (exit_reason) //exit reason
   {
@@ -3917,8 +3970,17 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 		}
 
 		case 48:
-		  sendstring("EPT violation\n\r");
-		  return handleEPTViolation(currentcpuinfo, vmregisters, (PFXSAVE64)fxsave);
+		{
+			int r;
+			INVEPTDESCRIPTOR eptd;
+		    sendstring("EPT violation\n\r");
+		    r=handleEPTViolation(currentcpuinfo, vmregisters, (PFXSAVE64)fxsave);
+
+		    eptd.Zero=0;
+		    eptd.EPTPointer=currentcpuinfo->EPTPML4;
+		    _invept(2, &eptd);
+		  return r;
+		}
 
 		case 49:
 		{
@@ -3951,6 +4013,9 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 		case 53:
 		{
 		  sendstring("INVVPID\n\r");
+#ifdef DEBUG
+		  while (1);
+#endif
 		  return 1;
 		}
 

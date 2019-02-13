@@ -47,6 +47,7 @@
 //secondary processor based vm-execution flags
 #define SPBEF_ENABLE_EPT            (1<<1)
 #define SPBEF_ENABLE_RDTSCP         (1<<3)
+#define SPBEF_ENABLE_VPID           (1<<5)
 #define SPBEF_ENABLE_UNRESTRICTED   (1<<7)
 #define SPBEF_ENABLE_INVPCID        (1<<12)
 #define SPBEF_ENABLE_XSAVES         (1<<20)

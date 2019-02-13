@@ -1,6 +1,10 @@
 #ifndef VMREADWRITE_H_
 #define VMREADWRITE_H_
 
+#define vm_vpid						0
+#define vm_posted_interrupt_vector	2
+#define vm_eptp_index				4
+
 #define vm_guest_es                 0x800
 #define vm_guest_cs                 0x802
 #define vm_guest_ss                 0x804

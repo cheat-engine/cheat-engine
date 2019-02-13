@@ -77,6 +77,12 @@
 //#define VMCALL_DISABLE_EPT 58 dus nut wurk
 
 
+#ifdef STATISTICS
+#define VMCALL_GET_STATISTICS 59
+#endif
+
+
+
 
 extern int hasEPTsupport;
 

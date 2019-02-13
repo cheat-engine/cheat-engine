@@ -49,8 +49,17 @@ MTRRDEF MTRRDefType;
 int has_EPT_1GBsupport;
 int has_EPT_2MBSupport;
 int has_EPT_ExecuteOnlySupport;
+int has_EPT_INVEPTSingleContext;
+int has_EPT_INVEPTAllContext;
 
 int hasUnrestrictedSupport;
+int hasVPIDSupport;
+
+int has_VPID_INVVPIDIndividualAddress;
+int has_VPID_INVVPIDSingleContext;
+int has_VPID_INVVPIDAllContext;
+int has_VPID_INVVPIDSingleContextRetainingGlobals;
+
 
 int vmx_enableProcBasedFeature(DWORD PBF);
 int vmx_disableProcBasedFeature(DWORD PBF);

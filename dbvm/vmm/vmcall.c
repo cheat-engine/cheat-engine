@@ -1644,6 +1644,35 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
     }
     */
 
+#ifdef STATISTICS
+    case VMCALL_GET_STATISTICS:
+    {
+    	int globaleventcounter[56];
+    	QWORD totalevents=0;
+    	pcpuinfo c=firstcpuinfo;
+    	PVMCALL_GET_STATISTICS_PARAM p=(PVMCALL_GET_STATISTICS_PARAM)vmcall_instruction;
+    	copymem(&p->eventcounter[0],&currentcpuinfo->eventcounter[0],sizeof(int)*56);
+
+    	zeromemory(&globaleventcounter[0],sizeof(int)*56);
+    	while (c)
+    	{
+    		int i;
+    		for (i=0;i<56;i++)
+    		{
+    			globaleventcounter[i]+=c->eventcounter[i];
+    			totalevents+=c->eventcounter[i];
+    		}
+
+    		c=c->next;
+    	}
+
+    	copymem(&p->globaleventcounter[0],&globaleventcounter[0],sizeof(int)*56);
+
+    	vmregisters->rax=totalevents;
+    	break;
+    }
+#endif
+
 
     default:
       vmregisters->rax = 0xcedead;
