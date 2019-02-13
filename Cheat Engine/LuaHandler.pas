@@ -4691,6 +4691,43 @@ begin
   result:=1;
 end;
 
+function lua_dbvm_get_statistics(L: PLua_state): integer; cdecl;
+var
+  stats: TDBVMStatistics;
+  i: integer;
+  count: qword;
+begin
+  result:=0;
+  count:=dbvm_get_statistics(stats);
+
+  lua_newtable(L);
+  //
+  lua_pushstring(L,'Local');
+  lua_newtable(L);
+  for i:=0 to 55 do
+  begin
+    lua_pushinteger(L,i);
+    lua_pushinteger(L,stats.eventCountersCurrentCPU[i]);
+    lua_settable(L,-3);
+  end;
+  lua_settable(L,-3);
+
+  lua_pushstring(L,'Global');
+  lua_newtable(L);
+  for i:=0 to 55 do
+  begin
+    lua_pushinteger(L,i);
+    lua_pushinteger(L,stats.eventCountersAllCPUS[i]);
+    lua_settable(L,-3);
+  end;
+  lua_settable(L,-3);
+
+
+  lua_pushinteger(L,count);
+  result:=2;
+
+end;
+
 function lua_dbvm_watch_writes(L: PLua_state): integer; cdecl;
 var
   physicalAddress: qword=0;
@@ -10580,6 +10617,7 @@ begin
     lua_register(L ,'dbvm_writePhysicalMemory', lua_dbvm_writephysicalmemory);
     lua_register(L ,'dbvm_psod', lua_dbvm_psod);
     lua_register(L ,'dbvm_getNMIcount', lua_dbvm_getNMIcount);
+    lua_register(L, 'dbvm_get_statistics',lua_dbvm_get_statistics);
     lua_register(L, 'dbvm_watch_writes', lua_dbvm_watch_writes);
     lua_register(L, 'dbvm_watch_reads', lua_dbvm_watch_reads);
     lua_register(L, 'dbvm_watch_retrievelog', lua_dbvm_watch_retrievelog);
