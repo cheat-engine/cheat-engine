@@ -3278,29 +3278,29 @@ var //symbol :PSYMBOL_INFO;
     si: PCESymbolInfo;
     i: integer;
 begin
-  for i:=0 to length(AddressLookupCallbacks)-1 do
-  begin
-    if assigned(AddressLookupCallbacks[i]) then
-    begin
-      result:=AddressLookupCallbacks[i](address);
-      if result<>'' then
-        exit;
-    end;
-  end;
 
 
-  //check the userdefined symbols
   if found<>nil then
     found^:=false;
 
-  if symbols=true then
-  begin
-    result:=self.GetUserdefinedSymbolByAddress(address);
-    if result<>'' then exit;
-  end;
-
   if symbols then
   begin
+    //check the userdefined symbols
+    result:=self.GetUserdefinedSymbolByAddress(address);
+    if result<>'' then exit;
+
+    //check callbacks
+    for i:=0 to length(AddressLookupCallbacks)-1 do
+    begin
+      if assigned(AddressLookupCallbacks[i]) then
+      begin
+        result:=AddressLookupCallbacks[i](address);
+        if result<>'' then
+          exit;
+      end;
+    end;
+
+
     //first see if it is a symbol
     symbolloadervalid.beginread;
     try
@@ -3374,13 +3374,7 @@ begin
     finally
       symbolloadervalid.endread;
     end;
-
-
   end;
-
-
-
-
 
 
   if modules then

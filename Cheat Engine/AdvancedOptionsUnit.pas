@@ -838,11 +838,15 @@ begin
 
   if codelist2.itemindex<>-1 then
   begin
-    memorybrowser.disassemblerview.SelectedAddress:=symhandler.getAddressFromName(code[codelist2.itemindex].symbolname);
+    try
+      memorybrowser.disassemblerview.SelectedAddress:=symhandler.getAddressFromName(code[codelist2.itemindex].symbolname);
 
-    if memorybrowser.Height<(memorybrowser.Panel1.Height+100) then memorybrowser.height:=memorybrowser.Panel1.Height+100;
-    memorybrowser.panel1.visible:=true;
-    memorybrowser.show;
+      if memorybrowser.Height<(memorybrowser.Panel1.Height+100) then memorybrowser.height:=memorybrowser.Panel1.Height+100;
+      memorybrowser.panel1.visible:=true;
+      memorybrowser.show;
+
+    except
+    end;
   end;
 
 end;

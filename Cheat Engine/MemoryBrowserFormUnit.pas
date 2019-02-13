@@ -3677,6 +3677,7 @@ var x: ptrUint;
   i: integer;
   a: ptruint;
   inadvancedoptions: boolean;
+  e: boolean;
 begin
   Breakandtraceinstructions1.Enabled:=processhandle<>0;
   miTogglebreakpoint.Enabled:=processhandle<>0;
@@ -3697,17 +3698,20 @@ begin
 
   for i:=0 to AdvancedOptions.numberofcodes-1 do
   begin
-    a:=symhandler.getAddressFromName(AdvancedOptions.code[i].symbolname);
-    if InRangeX(disassemblerview.SelectedAddress, a, a+length(AdvancedOptions.code[i].actualopcode)-1 ) then
+    a:=symhandler.getAddressFromName(AdvancedOptions.code[i].symbolname,false,e);
+    if not e then
     begin
-      inadvancedoptions:=true;
+      if InRangeX(disassemblerview.SelectedAddress, a, a+length(AdvancedOptions.code[i].actualopcode)-1 ) then
+      begin
+        inadvancedoptions:=true;
 
-      if AdvancedOptions.code[i].changed then
-        miReplacewithnops.caption:=rsRestoreWithOrginalCode
-      else
-        miReplacewithnops.caption:=rsReplaceWithCodeThatDoesNothing;
+        if AdvancedOptions.code[i].changed then
+          miReplacewithnops.caption:=rsRestoreWithOrginalCode
+        else
+          miReplacewithnops.caption:=rsReplaceWithCodeThatDoesNothing;
 
-      break;
+        break;
+      end;
     end;
   end;
 
