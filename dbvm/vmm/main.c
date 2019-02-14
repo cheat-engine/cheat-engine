@@ -904,7 +904,7 @@ void vmm_entry(void)
    * 12=vpid
    */
   dbvmversion=12;
-  int1redirection=1; //redirect to int vector 1
+  int1redirection=1; //redirect to int vector 1 (might change this to the perfcounter interrupt in the future so I don't have to deal with interrupt prologue/epilogue)
   int3redirection=3;
   int14redirection=14;
 
