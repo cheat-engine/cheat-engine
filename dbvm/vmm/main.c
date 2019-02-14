@@ -901,9 +901,9 @@ void vmm_entry(void)
    * 9 memory usage decrease and some fixes for newer systems,
    * 10=xsaves (win10)
    * 11=new memory manager , dynamic cpu initialization, UEFI boot support, EPT, unrestricted support, and other new features
-   *
+   * 12=vpid
    */
-  dbvmversion=11;
+  dbvmversion=12;
   int1redirection=1; //redirect to int vector 1
   int3redirection=3;
   int14redirection=14;
