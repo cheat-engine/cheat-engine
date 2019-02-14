@@ -69,6 +69,8 @@ const
   VMCALL_ADD_MEMORY = 57;
   VMCALL_DISABLE_EPT = 58;
 
+  VMCALL_GET_STATISTICS = 59;
+
 
 
   //---
@@ -256,10 +258,9 @@ type
 //      3: (extendeds: TPageEventExtendedStackArray);
   end;
 
-  type PPageEventListDescriptor=^TPageEventListDescriptor;
+  PPageEventListDescriptor=^TPageEventListDescriptor;
 
-
-  type TChangeRegOnBPInfo=packed record
+  TChangeRegOnBPInfo=packed record
     Flags: bitpacked record
       changeRAX: 0..1;        //0
       changeRBX: 0..1;        //1
@@ -311,6 +312,11 @@ type
     newR14: QWORD;
     newR15: QWORD;
 
+  end;
+
+  TDBVMStatistics=packed record
+    eventCountersCurrentCPU: array [0..55] of integer;
+    eventCountersAllCPUS: array [0..55] of integer;
   end;
 
 
@@ -372,6 +378,8 @@ function dbvm_cloak_changeregonbp(PhysicalAddress: QWORD; var changeregonbpinfo:
 function dbvm_cloak_removechangeregonbp(PhysicalAddress: QWORD): integer;
 
 procedure dbvm_ept_reset;
+
+function dbvm_get_statistics(out statistics: TDBVMStatistics):qword;
 
 
 
@@ -1450,6 +1458,25 @@ begin
     cloakedregionscs.leave;
   end;
 
+end;
+
+function dbvm_get_statistics(out statistics: TDBVMStatistics):qword;
+var
+  vmcallinfo: packed record
+    structsize: dword;
+    level2pass: dword;
+    command: dword;
+    eventcountercpu: array [0..55] of integer;
+    eventcounterall: array [0..55] of integer;
+  end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_GET_STATISTICS;
+  result:=vmcall(@vmcallinfo,vmx_password1);
+
+  CopyMemory(@statistics.eventCountersCurrentCPU[0],@vmcallinfo.eventcountercpu,sizeof(int)*56);
+  CopyMemory(@statistics.eventCountersAllCPUS[0],@vmcallinfo.eventcounterall,sizeof(int)*56);
 end;
 
 function dbvm_cloak_removechangeregonbp(PhysicalAddress: QWORD): integer;
