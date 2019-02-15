@@ -1442,20 +1442,24 @@ begin
   result:=vmcall(@vmcallinfo,vmx_password1);
 
   if (result=0) and (virtualAddress<>0) then
-  try
-    PhysicalBase:=PhysicalAddress and MAXPHYADDRMASKPB;
+  begin
+    cloakedregionscs.Enter;
+    try
+      PhysicalBase:=PhysicalAddress and MAXPHYADDRMASKPB;
 
-    for i:=0 to length(cloakedregions)-1 do
-      if cloakedregions[i].PhysicalAddress=PhysicalBase then exit;   //already in the list
+      for i:=0 to length(cloakedregions)-1 do
+        if cloakedregions[i].PhysicalAddress=PhysicalBase then exit;   //already in the list
 
-    i:=length(cloakedregions);
-    setlength(cloakedregions,i+1);
-    cloakedregions[i].PhysicalAddress:=PhysicalBase;
-    cloakedregions[i].virtualAddress:=virtualAddress and qword($fffffffffffff000);
+      i:=length(cloakedregions);
+      setlength(cloakedregions,i+1);
+      cloakedregions[i].PhysicalAddress:=PhysicalBase;
+      cloakedregions[i].virtualAddress:=virtualAddress and qword($fffffffffffff000);
 
-    outputdebugstring('added it to entry '+inttostr(i));
-  finally
-    cloakedregionscs.leave;
+      outputdebugstring('added it to entry '+inttostr(i));
+    finally
+      cloakedregionscs.leave;
+    end;
+
   end;
 
 end;
