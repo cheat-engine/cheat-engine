@@ -16,7 +16,6 @@
 #include <elf.h>
 #include <signal.h>
 
-
 #include "ceserver.h"
 #include "porthelp.h"
 #include "api.h"
@@ -40,8 +39,7 @@ ssize_t recvall (int s, void *buf, size_t size, int flags)
   ssize_t sizeleft=size;
   unsigned char *buffer=(unsigned char*)buf;
 
-  //printf("enter recvall\n");
-
+  // enter recvall
   flags=flags | MSG_WAITALL;
 
   while (sizeleft>0)
@@ -74,7 +72,7 @@ ssize_t recvall (int s, void *buf, size_t size, int flags)
     sizeleft-=i;
   }
 
-  //printf("leave recvall\n");
+  // leave recvall
   return totalreceived;
 }
 
@@ -186,7 +184,6 @@ int DispatchCommand(int currentsocket, unsigned char command)
           isDebuggerThread=1;
           debugfd=GetDebugPort(h);
         }
-
       }
       break;
     }
@@ -218,7 +215,6 @@ int DispatchCommand(int currentsocket, unsigned char command)
 
           sendall(currentsocket, &event, sizeof(event),0);
         }
-
       }
       break;
     }
@@ -235,10 +231,9 @@ int DispatchCommand(int currentsocket, unsigned char command)
       if (recvall(currentsocket, &cfd, sizeof(cfd), MSG_WAITALL)>0)
       {
         int r;
-       // printf("Calling ContinueFromDebugEvent(%d, %d, %d)\n", cfd.pHandle, cfd.tid, cfd.ignore);
+        // Calling ContinueFromDebugEvent
         r=ContinueFromDebugEvent(cfd.pHandle, cfd.tid, cfd.ignore);
-
-       // printf("Returned from ContinueFromDebugEvent with %d\n", r);
+        // Returned from ContinueFromDebugEvent
         sendall(currentsocket, &r, sizeof(r), 0);
       }
       break;
@@ -303,7 +298,6 @@ int DispatchCommand(int currentsocket, unsigned char command)
 
       printf("result=%d\n", result);
 
-
       if (result)
       {
         uint32_t structsize=sizeof(Context);
@@ -317,7 +311,6 @@ int DispatchCommand(int currentsocket, unsigned char command)
       break;
 
     }
-
 
     case CMD_SUSPENDTHREAD:
     {
@@ -350,7 +343,6 @@ int DispatchCommand(int currentsocket, unsigned char command)
       }
       break;
     }
-
 
     case CMD_CLOSEHANDLE:
     {
@@ -418,7 +410,6 @@ int DispatchCommand(int currentsocket, unsigned char command)
         else
           result=Module32Next(toolhelpsnapshot, &me);
 
-
         if (result)
         {
           size=sizeof(CeModuleEntry)+ strlen(me.moduleName);
@@ -427,8 +418,7 @@ int DispatchCommand(int currentsocket, unsigned char command)
           r->modulesize=me.moduleSize;
           r->modulenamesize=strlen(me.moduleName);
 
-//          printf("Sending %s size %x\n", me.moduleName, r->modulesize);
-
+          // Sending %s size %x\n, me.moduleName, r->modulesize
           memcpy((char *)r+sizeof(CeModuleEntry), me.moduleName, r->modulenamesize);
         }
         else
@@ -445,8 +435,6 @@ int DispatchCommand(int currentsocket, unsigned char command)
         sendall(currentsocket, r, size, 0);
 
         free(r);
-
-
       }
       break;
     }
@@ -467,8 +455,7 @@ int DispatchCommand(int currentsocket, unsigned char command)
         else
           result=Process32Next(toolhelpsnapshot, &pe);
 
-      //  printf("result=%d\n", result);
-
+        //  printf("result=%d\n", result);
 
         if (result)
         {
@@ -508,13 +495,9 @@ int DispatchCommand(int currentsocket, unsigned char command)
 
         o->read=ReadProcessMemory(c.handle, (void *)(uintptr_t)c.address, &o[1], c.size);
 
-
-
         if (c.compress)
         {
           //compress the output
-         // printf("Compressing output\n");
-
 #define COMPRESS_BLOCKSIZE (64*1024)
           int i;
           unsigned char *uncompressed=&o[1];
@@ -554,7 +537,6 @@ int DispatchCommand(int currentsocket, unsigned char command)
 
             if (strm.avail_out==0)
             {
-
               //new output block
               currentBlock++;
               if (currentBlock>=maxBlocks)
@@ -570,8 +552,7 @@ int DispatchCommand(int currentsocket, unsigned char command)
               strm.next_out=compressedBlocks[currentBlock];
             }
           }
-
-         // printf("finishing compressiong\n");
+          // finishing compressiong
           while (1)
           {
 
@@ -589,8 +570,6 @@ int DispatchCommand(int currentsocket, unsigned char command)
             if (strm.avail_out==0)
             {
               //new output block
-
-
               currentBlock++;
               if (currentBlock>=maxBlocks)
               {
@@ -607,15 +586,7 @@ int DispatchCommand(int currentsocket, unsigned char command)
           deflateEnd(&strm);
 
           compressedSize=strm.total_out;
-/*
-          printf("Sending compressed data\n");
-
-          printf("uncompressedSize=%d\n", uncompressedSize);
-          printf("compressedSize=%d\n", compressedSize);
-          printf("currentBlock=%d\n", currentBlock);
-
-          printf("strm.avail_out=%d\n", strm.avail_out);*/
-
+          // Sending compressed data
           sendall(currentsocket, &uncompressedSize, sizeof(uncompressedSize), MSG_MORE); //followed by the compressed size
           sendall(currentsocket, &compressedSize, sizeof(compressedSize), MSG_MORE); //the compressed data follows
           for (i=0; i<=currentBlock; i++)
@@ -627,12 +598,7 @@ int DispatchCommand(int currentsocket, unsigned char command)
 
             free(compressedBlocks[i]);
           }
-
-
           free(compressedBlocks);
-
-
-
         }
         else
           sendall(currentsocket, o, sizeof(CeReadProcessMemoryOutput)+o->read, 0);
@@ -640,7 +606,6 @@ int DispatchCommand(int currentsocket, unsigned char command)
         if (o)
           free(o);
       }
-
       break;
     }
 
@@ -650,11 +615,9 @@ int DispatchCommand(int currentsocket, unsigned char command)
 
       printf("CMD_WRITEPROCESSMEMORY:\n");
 
-
       r=recvall(currentsocket, &c, sizeof(c), MSG_WAITALL);
       if (r>0)
       {
-
         CeWriteProcessMemoryOutput o;
         unsigned char *buf;
 
@@ -687,15 +650,12 @@ int DispatchCommand(int currentsocket, unsigned char command)
           r=sendall(currentsocket, &o, sizeof(CeWriteProcessMemoryOutput), 0);
           printf("wpm: returned %d bytes to caller\n", r);
         }
-
       }
       else
       {
         printf("RPM: recv failed\n");
       }
-
       break;
-
     }
 
     case CMD_VIRTUALQUERYEXFULL:
@@ -721,17 +681,12 @@ int DispatchCommand(int currentsocket, unsigned char command)
             free(rinfo);
         }
       }
-
       break;
     }
-
-
     case CMD_GETREGIONINFO:
     case CMD_VIRTUALQUERYEX:
     {
       CeVirtualQueryExInput c;
-
-
       r=recvall(currentsocket, &c, sizeof(c), MSG_WAITALL);
       if (r>0)
       {
@@ -756,7 +711,6 @@ int DispatchCommand(int currentsocket, unsigned char command)
         if (command==CMD_GETREGIONINFO)
           o.result=VirtualQueryEx(c.handle, (void *)(uintptr_t)c.baseaddress, &rinfo, mapsline);
 
-
         o.protection=rinfo.protection;
         o.baseaddress=rinfo.baseaddress;
         o.type=rinfo.type;
@@ -774,20 +728,9 @@ int DispatchCommand(int currentsocket, unsigned char command)
             sendall(currentsocket, mapsline, size, 0);
           }
         }
-
-
-
-
-
-
       }
-
       break;
     }
-
-
-
-
     case CMD_OPENPROCESS:
     {
       int pid=0;
@@ -810,7 +753,6 @@ int DispatchCommand(int currentsocket, unsigned char command)
         close(currentsocket);
         return NULL;
       }
-
       break;
     }
 
@@ -826,7 +768,6 @@ int DispatchCommand(int currentsocket, unsigned char command)
       {
         char *symbolpath=(char *)malloc(symbolpathsize+1);
         symbolpath[symbolpathsize]='\0';
-
 
         if (recvall(currentsocket, symbolpath, symbolpathsize, MSG_WAITALL)>0)
         {
@@ -853,20 +794,14 @@ int DispatchCommand(int currentsocket, unsigned char command)
             uint64_t fail=0;
             sendall(currentsocket, &fail, sizeof(fail), 0); //just write 0
           }
-
-
-
         }
         else
         {
           printf("Failure getting symbol path\n");
           close(currentsocket);
         }
-
         free(symbolpath);
-
       }
-
       break;
     }
 
@@ -906,7 +841,6 @@ int DispatchCommand(int currentsocket, unsigned char command)
 
     case CMD_FREE:
     {
-
       CeFreeInput c;
       printf("CESERVER: CMD_FREE\n");
       if (recvall(currentsocket, &c, sizeof(c),0)>0)
@@ -944,7 +878,6 @@ int DispatchCommand(int currentsocket, unsigned char command)
 
         sendall(currentsocket, &h, sizeof(h),0);
       }
-
       break;
     }
 
@@ -967,7 +900,6 @@ int DispatchCommand(int currentsocket, unsigned char command)
           sendall(currentsocket, &result, sizeof(result),0);
         }
       }
-
       break;
     }
 
@@ -1002,13 +934,10 @@ int CheckForAndDispatchCommand(int currentsocket)
   }
 
   return 0;
-
-
 }
 
 void *newconnection(void *arg)
 {
-
   int s=(uintptr_t)arg;
   unsigned char command;
 
@@ -1016,18 +945,11 @@ void *newconnection(void *arg)
 
   isDebuggerThread=0;
   debugfd=-1;
-
-
   //printf("new connection. Using socket %d\n", s);
-
-
   while (done==0)
   {
     int r;
-
     //check if this is a debugger thread
-
-
     if (isDebuggerThread && (debugfd!=-1))
     {
       //wait for s and debugfd
@@ -1041,14 +963,9 @@ void *newconnection(void *arg)
 
       if (debugfd>maxfd)
         maxfd=debugfd;
-
-    //  printf("Waiting for multiple sockets\n");
-
+      //  Waiting for multiple sockets
       sret=select(maxfd+1, &readfds, NULL, NULL,NULL );
-
-    //  printf("Wait done\n");
-
-     // printf("sret=%d\n", sret);
+      //  Wait done
       if (sret==-1)
       {
         if (errno==EINTR)
@@ -1060,10 +977,8 @@ void *newconnection(void *arg)
         {
           printf("WTF?: %d\n", errno);
           while (1) sleep(60);
-
         }
       }
-
 
       if (FD_ISSET(debugfd, &readfds) && FD_ISSET(s, &readfds))
       {
@@ -1085,17 +1000,11 @@ void *newconnection(void *arg)
     else
       currentsocket=s;
 
-    //
-
     r=recvall(currentsocket, &command, 1, MSG_WAITALL);
-
-    //printf("s=%d  r=%d  command=%d\n", s, r, command);
-    //fflush(stdout);
 
     if (r>0)
     {
       DispatchCommand(currentsocket, command);
-
     }
     else
     if (r==-1)
@@ -1175,10 +1084,9 @@ void *IdentifierThread(void *arg)
         packet.port=PORT;
         printf("packet.checksum=%x\n", packet.checksum);
 
-//        packet.checksum=00AE98E7 - y=8C7F09E2
+        // packet.checksum=00AE98E7 - y=8C7F09E2
 
         fflush(stdout);
-
 
         i=sendto(s, &packet, sizeof(packet), 0, (struct sockaddr *)&addr_client, clisize);
         printf("sendto returned %d\n",i);
@@ -1188,8 +1096,6 @@ void *IdentifierThread(void *arg)
 
       fflush(stdout);
     }
-
-
   }
   else
     printf("bind failed\n");
@@ -1199,9 +1105,6 @@ void *IdentifierThread(void *arg)
   return 0;
 }
 
-
-
-
 int main(int argc, char *argv[])
 {
   int s;
@@ -1209,10 +1112,7 @@ int main(int argc, char *argv[])
   int l;
   int a;
 
-
   initAPI();
-
-
 
   socklen_t clisize;
   struct sockaddr_in addr, addr_client;
@@ -1220,7 +1120,6 @@ int main(int argc, char *argv[])
   PORT=52736;
 
   done=0;
-  //printf("WEEEEE\n");
 
   printf("&s=%p\n", &s);
   printf("main=%p\n", main);
@@ -1228,19 +1127,13 @@ int main(int argc, char *argv[])
   printf("sizeof(off_t)=%d\n",sizeof(off_t));
   printf("sizeof(off64_t)=%d\n",sizeof(off64_t));
 
-
-
   printf("CEServer. Waiting for client connection\n");
 
   //if (broadcast)
   pthread_create(&identifierthread, NULL, IdentifierThread, NULL);
 
-
-
   s=socket(AF_INET, SOCK_STREAM, 0);
   printf("socket=%d\n", s);
-
-
 
   memset(&addr, 0, sizeof(addr));
   addr.sin_family=AF_INET;
@@ -1250,13 +1143,11 @@ int main(int argc, char *argv[])
   int optval = 1;
   setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof (optval));
 
-
   b=bind(s, (struct sockaddr *)&addr, sizeof(addr));
   printf("bind=%d\n", b);
 
   if (b!=-1)
   {
-
     l=listen(s, 32);
 
     printf("listen=%d\n", l);
@@ -1286,22 +1177,16 @@ int main(int argc, char *argv[])
 
       fflush(stdout);
 
-
       setsockopt(a, IPPROTO_TCP, TCP_NODELAY, &b, sizeof(b));
 
       if (a != -1)
       {
         pthread_create(&pth, NULL, (void *)newconnection, (void *)(uintptr_t)a);
-
       }
     }
-
-
   }
 
   printf("Terminate server\n");
-
-
 
   close(s);
 
