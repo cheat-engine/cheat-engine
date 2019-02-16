@@ -10,7 +10,6 @@ object frmStringMap: TfrmStringMap
   OnClose = FormClose
   OnDestroy = FormDestroy
   OnResize = FormResize
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object Panel1: TPanel

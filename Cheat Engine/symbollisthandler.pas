@@ -10,7 +10,7 @@ interface
 
 {$ifdef windows}
 uses
-  windows, Classes, SysUtils, AvgLvlTree, math, fgl, cvconst, syncobjs;
+  windows, Classes, SysUtils, AvgLvlTree, math, fgl, cvconst, syncobjs, symbolhandlerstructs;
 {$endif}
 
 {$ifdef unix}
@@ -20,22 +20,41 @@ uses
 
 type
   PSYMBOL_INFO = ^TSYMBOL_INFO;
+  (*
+  typedef struct _SYMBOL_INFO {
+      ULONG       SizeOfStruct;
+      ULONG       TypeIndex;        // Type Index of symbol
+      ULONG64     Reserved[2];
+      ULONG       Index;
+      ULONG       Size;
+      ULONG64     ModBase;          // Base Address of module comtaining this symbol
+      ULONG       Flags;
+      ULONG64     Value;            // Value of symbol, ValuePresent should be 1
+      ULONG64     Address;          // Address of symbol including base address of module
+      ULONG       Register;         // register holding value or pointer to value
+      ULONG       Scope;            // scope of the symbol
+      ULONG       Tag;              // pdb classification
+      ULONG       NameLen;          // Actual length of name
+      ULONG       MaxNameLen;
+      CHAR        Name[1];          // Name of symbol
+  } SYMBOL_INFO, *PSYMBOL_INFO;
+ *)
   TSYMBOL_INFO = {packed} record
           SizeOfStruct : ULONG;
           TypeIndex : ULONG;
           Reserved : array[0..1] of ULONG64;
-          info : ULONG;
+          index : ULONG;
           Size : ULONG;
           ModBase : ULONG64;
           Flags : ULONG;
           Value : ULONG64;
           Address : ULONG64; //it's more a signed address
-          Register : ULONG;
+          Reg : ULONG;
           Scope : ULONG;
           Tag : ULONG;
           NameLen : ULONG;
           MaxNameLen : ULONG;
-          Name : array[0..0] of TCHAR;
+          Name : array[0..0] of char;
        end;
   SYMBOL_INFO = TSYMBOL_INFO;
   LPSYMBOL_INFO = PSYMBOL_INFO;
@@ -83,18 +102,31 @@ type
     next: PCESymbolInfo;
   end;
 
-  TExtraSymbolDataList=specialize TFPGList<TExtraSymbolData>;
+  TExtraSymbolDataList=TList;
 
 
+  TExtraModuleInfo=record
+          modulename: string;
+          modulepath: string;
+          baseaddress: ptrUint;
+          modulesize: dword;
+          is64bitmodule: boolean;
+        end;
+
+  TExtraModuleInfoList=array of TExtraModuleInfo;
 
 
   TSymbolListHandler=class
   private
     cs: TMultiReadExclusiveWriteSynchronizer;
+
+    modulelist: array of TExtraModuleInfo;
+
     AddressToString: TAvgLvlTree;
     StringToAddress: TAvgLvlTree;
 
     fExtraSymbolDataList: TExtraSymbolDataList;
+    fPID: dword;
     function A2SCheck(Tree: TAvgLvlTree; Data1, Data2: pointer): integer;
     function S2ACheck(Tree: TAvgLvlTree; Data1, Data2: pointer): integer;
   public
@@ -102,6 +134,12 @@ type
     destructor destroy; override;
     procedure AddExtraSymbolData(d: TExtraSymbolData);
     procedure RemoveExtraSymbolData(d: TExtraSymbolData);
+    procedure AddModule(module:string; path: string; base: ptruint; size: dword; is64bit: boolean);
+    procedure DeleteModule(module: string); overload;
+    procedure DeleteModule(base: qword); overload;
+    function GetModuleByAddress(address: ptrUint; var mi: TModuleInfo):BOOLEAN;
+    function getmodulebyname(modulename: string; var mi: TModuleInfo):BOOLEAN;
+    procedure GetModuleList(var list: TExtraModuleInfoList);
     function AddSymbol(module: string; searchkey: string; address: qword; size: integer; skipaddresstostringlookup: boolean=false; extraData: TExtraSymbolData=nil): PCESymbolInfo;
     function FindAddress(address: qword): PCESymbolInfo;
     function FindSymbol(s: string): PCESymbolInfo;
@@ -111,6 +149,7 @@ type
     procedure clear;
   published
     property ExtraSymbolDataList: TExtraSymbolDataList read fExtraSymbolDataList;
+    property PID: dword read fPID write fPID;
 
   end;
 
@@ -152,6 +191,117 @@ begin
 end;
 
 //-------------
+
+procedure TSymbolListHandler.AddModule(module:string; path: string; base: ptruint; size: dword; is64bit: boolean);
+var i: integer;
+begin
+  cs.Beginwrite;
+  i:=length(modulelist);
+  setlength(modulelist, length(modulelist)+1);
+  modulelist[i].modulename:=module;
+  modulelist[i].modulepath:=path;
+  modulelist[i].baseaddress:=base;
+  modulelist[i].modulesize:=size;
+  modulelist[i].is64bitmodule:=is64bit;
+  cs.Endwrite;
+end;
+
+procedure TSymbolListHandler.DeleteModule(module: string);
+var i,j: integer;
+begin
+  cs.beginwrite;
+  for i:=0 to length(modulelist)-1 do
+  begin
+    if modulelist[i].modulename=module then
+    begin
+      for j:=i to length(modulelist)-2 do
+        modulelist[j]:=modulelist[j+1];
+
+      setlength(modulelist,length(modulelist)-1);
+    end;
+  end;
+  cs.endwrite;
+end;
+
+procedure TSymbolListHandler.DeleteModule(base: qword);
+var i,j: integer;
+begin
+  cs.beginwrite;
+  for i:=0 to length(modulelist)-1 do
+  begin
+    if modulelist[i].baseaddress=base then
+    begin
+      for j:=i to length(modulelist)-2 do
+        modulelist[j]:=modulelist[j+1];
+
+      setlength(modulelist,length(modulelist)-1);
+    end;
+  end;
+  cs.endwrite;
+end;
+
+function TSymbolListHandler.GetModuleByAddress(address: ptrUint; var mi: TModuleInfo):BOOLEAN;
+var i: integer;
+begin
+  result:=false;
+  cs.Beginread;
+  for i:=0 to length(modulelist)-1 do
+  begin
+    if (address>=modulelist[i].baseaddress) and (address<modulelist[i].baseaddress+modulelist[i].modulesize) then
+    begin
+      mi.modulename:=modulelist[i].modulename;
+      mi.modulepath:=modulelist[i].modulepath;
+      mi.isSystemModule:=false;
+      mi.baseaddress:=modulelist[i].baseaddress;
+      mi.basesize:=modulelist[i].modulesize;
+      mi.is64bitmodule:=modulelist[i].is64bitmodule;
+      mi.symbolsLoaded:=true;
+      mi.hasStructInfo:=false;
+      mi.databaseModuleID:=0;
+      result:=true;
+      break;
+    end;
+  end;
+
+  cs.endread;
+end;
+
+function TSymbolListHandler.getmodulebyname(modulename: string; var mi: TModuleInfo):BOOLEAN;
+//pre:modulename is already sanitized and uppercase
+var i: integer;
+begin
+  result:=false;
+  cs.Beginread;
+  for i:=0 to length(modulelist)-1 do
+  begin
+    if uppercase(modulelist[i].modulename)=modulename then
+    begin
+      mi.modulename:=modulelist[i].modulename;
+      mi.modulepath:=modulelist[i].modulepath;
+      mi.isSystemModule:=false;
+      mi.baseaddress:=modulelist[i].baseaddress;
+      mi.basesize:=modulelist[i].modulesize;
+      mi.is64bitmodule:=modulelist[i].is64bitmodule;
+      mi.symbolsLoaded:=true;
+      mi.hasStructInfo:=false;
+      mi.databaseModuleID:=0;
+      result:=true;
+      break;
+    end;
+  end;
+  cs.Endread;
+end;
+
+procedure TSymbolListHandler.GetModuleList(var list: TExtraModuleInfoList);
+var i: integer;
+begin
+  cs.Beginread;
+  setlength(list, length(modulelist));
+  for i:=0 to length(list)-1 do
+    list[i]:=modulelist[i];
+
+  cs.Endread;
+end;
 
 function TSymbolListHandler.FindFirstSymbolFromBase(baseaddress: qword): PCESymbolInfo;
 var search: TCESymbolInfo;
@@ -490,7 +640,7 @@ begin
         if d^.module<>nil then
           strDispose(d^.module);
 
-        freemem(d);
+        FreeMemAndNil(d);
         x:=StringToAddress.FindSuccessor(x);
       end;
 
@@ -551,8 +701,9 @@ begin
     freeandnil(cs);
 
   for i:=0 to ExtraSymbolDataList.count-1 do
-    ExtraSymbolDataList[i].free;
+    TExtraSymbolData(ExtraSymbolDataList[i]).free;
 
+  ExtraSymbolDataList.clear;
   ExtraSymbolDataList.Free;
 
   inherited destroy;

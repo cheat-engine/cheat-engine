@@ -1,7 +1,7 @@
 object Form1: TForm1
-  Left = 878
+  Left = 687
   Height = 280
-  Top = 611
+  Top = 285
   Width = 640
   BorderIcons = [biSystemMenu]
   Caption = 'Cheat Engine Tutorial v3.4'
@@ -9,6 +9,7 @@ object Form1: TForm1
   ClientWidth = 640
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
+  OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'
   object Label1: TLabel

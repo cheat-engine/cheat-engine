@@ -25,7 +25,7 @@ begin
   reg.WriteInteger('Pitch', integer(fd.Pitch));
   reg.WriteInteger('Style', integer(fd.Style));
   reg.WriteInteger('CharSet', integer(fd.CharSet));
-  reg.WriteInteger('Quality', integer(fd.Quality));
+  reg.WriteInteger('Quality', integer(f.Quality));
   reg.WriteString('Name', UTF8ToWinCP(fd.Name));
   reg.WriteInteger('Orientation', fd.Orientation);
   reg.WriteInteger('Color', f.Color);

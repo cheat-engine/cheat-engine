@@ -295,7 +295,7 @@ end;
 
 destructor TVirtualMemory.destroy;
 begin
-  if buffer<>nil then freemem(buffer);
+  if buffer<>nil then freememandnil(buffer);
   setlength(memoryregion,0);
   setlength(memoryregion2,0);
   inherited destroy;

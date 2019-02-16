@@ -177,6 +177,7 @@ object AdvancedOptions: TAdvancedOptions
     Top = 40
     Width = 571
     Align = alClient
+    AutoWidthLastColumn = True
     Columns = <    
       item
         Caption = 'Address'
@@ -185,8 +186,7 @@ object AdvancedOptions: TAdvancedOptions
       end    
       item
         Caption = 'Name'
-        MinWidth = 10
-        Width = 31
+        Width = 447
       end>
     ColumnClick = False
     HideSelection = False
@@ -229,6 +229,7 @@ object AdvancedOptions: TAdvancedOptions
     end
     object Rename1: TMenuItem
       Caption = 'Rename'
+      ShortCut = 16397
       OnClick = Rename1Click
     end
     object Remove1: TMenuItem

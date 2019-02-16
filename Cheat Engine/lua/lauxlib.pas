@@ -298,7 +298,7 @@ end;
 
 procedure luaL_addchar(B: PluaL_Buffer; c: Char);
 begin
-  if Cardinal(@(B^.b)) < (Cardinal(@(B^.buffer[0])) + LUAL_BUFFERSIZE) then
+  if ptruint(@(B^.b)) < (ptruint(@(B^.buffer[0])) + LUAL_BUFFERSIZE) then
     luaL_prepbuffer(B);
   B^.b[1] := c;
   B^.b := B^.b + 1;

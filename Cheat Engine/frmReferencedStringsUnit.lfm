@@ -8,6 +8,8 @@ object frmReferencedStrings: TfrmReferencedStrings
   ClientWidth = 616
   Menu = MainMenu1
   OnClose = FormClose
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'
@@ -35,7 +37,10 @@ object frmReferencedStrings: TfrmReferencedStrings
         Width = 75
       end    
       item
-        AutoSize = True
+        Caption = 'Unicode'
+        Width = 80
+      end    
+      item
         Caption = 'String'
         Width = 46
       end>

@@ -1,16 +1,15 @@
 object frmTracerConfig: TfrmTracerConfig
   Left = 555
-  Height = 217
+  Height = 250
   Top = 113
   Width = 249
   AutoSize = True
   BorderStyle = bsSingle
   Caption = 'Break and Trace config'
-  ClientHeight = 217
+  ClientHeight = 250
   ClientWidth = 249
-  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object edtMaxTrace: TEdit
     AnchorSideLeft.Control = Label1
     AnchorSideTop.Control = Label1
@@ -40,32 +39,32 @@ object frmTracerConfig: TfrmTracerConfig
   end
   object Label2: TLabel
     AnchorSideLeft.Control = Label1
-    AnchorSideTop.Control = edtMaxTrace
+    AnchorSideTop.Control = edtStartCondition
     AnchorSideTop.Side = asrBottom
     Left = 16
     Height = 15
-    Top = 46
+    Top = 84
     Width = 202
     Caption = 'Stop condition (Optional, LUA format)'
     ParentColor = False
   end
-  object edtCondition: TEdit
+  object edtStopCondition: TEdit
     AnchorSideLeft.Control = Label1
     AnchorSideTop.Control = Label2
     AnchorSideTop.Side = asrBottom
     Left = 16
     Height = 23
-    Top = 61
+    Top = 99
     Width = 200
     TabOrder = 1
   end
   object cbDereferenceAddresses: TCheckBox
     AnchorSideLeft.Control = Label1
-    AnchorSideTop.Control = edtCondition
+    AnchorSideTop.Control = edtStopCondition
     AnchorSideTop.Side = asrBottom
     Left = 16
     Height = 19
-    Top = 84
+    Top = 122
     Width = 213
     Caption = 'Dereference Addresses (Slows down)'
     Checked = True
@@ -78,7 +77,7 @@ object frmTracerConfig: TfrmTracerConfig
     AnchorSideTop.Side = asrBottom
     Left = 16
     Height = 19
-    Top = 103
+    Top = 141
     Width = 210
     Caption = 'Save stack snapshots (Eats memory)'
     TabOrder = 3
@@ -89,7 +88,7 @@ object frmTracerConfig: TfrmTracerConfig
     AnchorSideTop.Side = asrBottom
     Left = 16
     Height = 19
-    Top = 160
+    Top = 198
     Width = 105
     Caption = 'Break on Access'
     TabOrder = 4
@@ -102,7 +101,7 @@ object frmTracerConfig: TfrmTracerConfig
     AnchorSideTop.Side = asrBottom
     Left = 124
     Height = 19
-    Top = 160
+    Top = 198
     Width = 97
     BorderSpacing.Left = 3
     Caption = 'Break on Write'
@@ -117,7 +116,7 @@ object frmTracerConfig: TfrmTracerConfig
     AnchorSideTop.Side = asrBottom
     Left = 16
     Height = 19
-    Top = 122
+    Top = 160
     Width = 183
     Caption = 'Step over instead of single step'
     TabOrder = 6
@@ -128,7 +127,7 @@ object frmTracerConfig: TfrmTracerConfig
     AnchorSideTop.Side = asrBottom
     Left = 16
     Height = 19
-    Top = 141
+    Top = 179
     Width = 131
     Caption = 'Skip system modules'
     TabOrder = 7
@@ -140,7 +139,7 @@ object frmTracerConfig: TfrmTracerConfig
     AnchorSideTop.Side = asrBottom
     Left = 47
     Height = 30
-    Top = 181
+    Top = 219
     Width = 154
     AutoSize = True
     BorderSpacing.Top = 2
@@ -180,5 +179,26 @@ object frmTracerConfig: TfrmTracerConfig
       ModalResult = 1
       TabOrder = 1
     end
+  end
+  object Label3: TLabel
+    AnchorSideLeft.Control = Label1
+    AnchorSideTop.Control = edtMaxTrace
+    AnchorSideTop.Side = asrBottom
+    Left = 16
+    Height = 15
+    Top = 46
+    Width = 202
+    Caption = 'Start condition (Optional, LUA format)'
+    ParentColor = False
+  end
+  object edtStartCondition: TEdit
+    AnchorSideLeft.Control = Label1
+    AnchorSideTop.Control = Label3
+    AnchorSideTop.Side = asrBottom
+    Left = 16
+    Height = 23
+    Top = 61
+    Width = 200
+    TabOrder = 9
   end
 end

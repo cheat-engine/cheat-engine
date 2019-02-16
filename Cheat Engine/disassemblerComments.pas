@@ -9,7 +9,8 @@ this unit will contain the interface for the disassembler comments
 interface
 
 uses
-  windows, Classes, SysUtils, AvgLvlTree, math, cefuncproc, symbolhandler, dom;
+  windows, Classes, SysUtils, AvgLvlTree, math, cefuncproc, symbolhandler,
+  symbolhandlerstructs, dom;
 
 type TDisassemblerComments=class
   private
@@ -326,7 +327,7 @@ begin
       StrDispose(PCommentData(n.data).header);
 
 
-    freemem(n.data);
+    FreeMemAndNil(n.data);
     commentstree.Delete(n);
   end;
 end;
@@ -453,7 +454,7 @@ begin
         prev:=c;
         c:=c.next;
 
-        freemem(prev);
+        FreeMemAndNil(prev);
       end;
     end;
 

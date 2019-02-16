@@ -43,6 +43,8 @@ var
   username, password: pchar;
 
   h: string;
+  requestflags: dword;
+  err: integer;
 begin
   h:='Content-Type: application/x-www-form-urlencoded';
 
@@ -51,11 +53,20 @@ begin
   begin
     //InternetConnect(internet, );
 
+    requestflags:=INTERNET_FLAG_PRAGMA_NOCACHE;
+
     u:=ParseURI(urlstring);
 
     port:=INTERNET_DEFAULT_HTTP_PORT;
     if lowercase(u.Protocol)='https' then
+    begin
       port:=INTERNET_DEFAULT_HTTPS_PORT;
+      requestflags:=requestflags or INTERNET_FLAG_SECURE;
+    end
+    else
+    begin
+//      requestflags:=requestflags or INTERNET_FLAG_NO_AUTO_REDIRECT;
+    end;
 
     if u.Port<>0 then
       port:=u.port;
@@ -76,7 +87,7 @@ begin
     c:=InternetConnect(internet, pchar(u.Host), port, username, password, INTERNET_SERVICE_HTTP, 0,0);
     if c<>nil then
     begin
-      r:=HttpOpenRequest(c, PChar('POST'), pchar(u.path+u.Document+u.Params), nil, nil, nil, INTERNET_FLAG_PRAGMA_NOCACHE, 0);
+      r:=HttpOpenRequest(c, PChar('POST'), pchar(u.path+u.Document+u.Params), nil, nil, nil, requestflags, 0);
       if r<>nil then
       begin
         if HttpSendRequest(r,pchar(h),length(h),pchar(urlencodedpostdata), length(urlencodedpostdata)) then
@@ -95,9 +106,17 @@ begin
                 result:=true; //something was read
               end;
             finally
-              freemem(buf);
+              FreeMemAndNil(buf);
             end;
           end;
+        end
+        else
+        begin
+          err:=getLastOSError;
+
+          if err=0 then beep;
+
+
         end;
 
         InternetCloseHandle(r);
@@ -139,7 +158,7 @@ begin
           result:=true; //something was read
         end;
       finally
-        freemem(buf);
+        FreeMemAndNil(buf);
       end;
     end;
 

@@ -10,34 +10,6 @@ amain:
 ;load vmm code into memory
 ;
 ;
-
-cli
-
-
-
-
-waitforopening:
-
-mov esi,edx
-cpuid ;serialize
-mov edx,esi
-
-mov ax,0
-mov ds,ax
-
-cmp dword [0x7c00],0
-je trytolock
-pause
-jmp waitforopening
-
-trytolock:
-mov eax,1
-xchg eax,dword [0x7c00] ;try to lock
-cmp eax,0 ;test if successful
-jne waitforopening ;nope, something else already made it 1
-
-;continue
-sti
 jmp real_entry
 
 
@@ -382,6 +354,9 @@ real_entry:
 ;ok
 
 ;-----------------------Real Entry point--------------------
+
+
+
 mov ax,0x8000
 cli
 mov ss,ax
@@ -456,12 +431,13 @@ mov ax,cx
 and ax,3fh
 inc ax
 mov [ds:bp+SectorsPerTrack-begin],ax
-shr cx,6
-inc cx
-mov [ds:bp+NumberOfCylinders-begin],cx
+mov al,ch
+shr ch,6
+mov ah,ch
+mov [ds:bp+NumberOfCylinders-begin],ax
 
 
-;enumerate the memory regions that can not be used by dbos
+;enumerate the memory regions that can not be used by dbvm
 ;int 15h
 
 ;init buffer
@@ -473,11 +449,11 @@ mov ebx,0
 enummem:
 ;mov byte [es:0xdead],2
 ;enumerate the memory regions available to the operating system and save them
+xor eax,eax
 mov eax,0e820h
 mov ecx,20
 mov edx,0534D4150h
-
-
+clc
 int 15h
 
 jc endofenummem
@@ -585,8 +561,8 @@ mov dword [es:72],0  ;
 mov dword [es:76],0
 
 ;64-bit code segment
-mov dword [es:80], 0        ;64-bit code (there is no limit checking)
-mov dword [es:84], 0x00A09A00
+mov dword [es:80], 0x0000ffff        ;64-bit code (there is no limit checking)
+mov dword [es:84], 0x00AF9B00
 mov dword [es:88],0
 mov dword [es:92],0
 
@@ -643,7 +619,7 @@ jmp short entry32
 extern _vmloader_main
 
 strnormal:
-db 'normal',13,10,'$'
+db 'normal boot',13,10,'$'
 
 strcalledlgdt:
 db 'Called LGDT (not)',13,10,'$'
@@ -693,17 +669,17 @@ mov ds,ax
 mov es,ax
 mov fs,ax
 mov gs,ax
-
-mov ax,8
 mov ss,ax
-mov esp,0x003ffffc ;4mb , the user should have that at least, else i will crash anyhow
+;mov esp,0x003ffffc ;4mb , the user should have that at least, else i will crash anyhow
+mov esp,0x0002fffc
 
-mov [readerror],ebx
-mov [sectorsread],ecx
+;mov [readerror],ebx
+;mov [sectorsread],ecx
 
 ;zero the stack
 xor eax,eax
-mov edi,0x003f0000
+mov edi,esp
+and edi,0xffff0000
 mov ecx,0xffff
 rep stosb
 
@@ -735,14 +711,15 @@ jmp lp
 strInsideVMM: db 'Inside gotoVMM',13,10,0
 strSetGDT: db 'Have set the GDT',13,10,0
 
-global pagetablebase
-pagetablebase: dd 0
 
-global pagedirptrbase
-pagedirptrbase: dd 0
+global PageMapLevel4
+PageMapLevel4: dd 0
 
 global vmmPA
 vmmPA: dd 0
+
+global GDTVA
+GDTVA: dd 0
 
 global gotoVMM
 gotoVMM:
@@ -756,12 +733,13 @@ call sendstring32
 
 
 
-mov eax,[pagedirptrbase]
+mov eax,[PageMapLevel4]
 mov cr3,eax
 
 ;set the gdt
 mov word [0x40000],0x6f
-mov dword [0x40002],0x00400000+VMMSIZE+1*4096 & 0xfffff000
+mov eax,[GDTVA]
+mov dword [0x40002],eax ;was 0x00400000+VMMSIZE+1*4096 & 0xfffff000
 lgdt [0x40000]
 
 mov esi,strSetGDT

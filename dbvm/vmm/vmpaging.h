@@ -3,16 +3,19 @@
 
 #include "vmmhelper.h"
 
-/* VirtualMachinePagingspace: this contains a pointer to memory that can be used to 
-   store the pages for the vm , this includes the pagedirptr and pagedir depending on what
-   type of scheme is chosen by the guest */
-void *nonpagedEmulationPagedir; //nonpaged memory emulation pagedir
+
+void *nonpagedEmulationPagedir; //nonpaged memory emulation pagedir (pml4)
+void *nonpagedEmulationPagedir32BitPAE;
+void *nonpagedEmulationPagedir32Bit;
+
+QWORD nonpagedEmulationPagedirPA; //nonpaged memory emulation pagedir (pml4)
+QWORD nonpagedEmulationPagedir32BitPAEPA;
+QWORD nonpagedEmulationPagedir32BitPA;
 
 
-//void *VirtualMachinePagingspace; //virtual TLB 
-//void *VirtualMachinePagingspaceFreeSpot; //next entry for virtual TLB
-
-void *mapVMmemory(pcpuinfo currentcpuinfo, UINT64 address, int size,  UINT64 VirtualAddress, int *error, UINT64 *pagefaultaddress);
+void *mapVMmemory(pcpuinfo currentcpuinfo, UINT64 address, int size, int *error, UINT64 *pagefaultaddress);
+void *mapVMmemoryEx(pcpuinfo currentcpuinfo, UINT64 address, int size, int *error, UINT64 *pagefaultaddress, int donotunmaponfail );
+void unmapVMmemory(void *address, int size);
 UINT64 getPhysicalAddressVM(pcpuinfo currentcpuinfo, UINT64 address, int *notpaged);
 void optimizeVTLB(pcpuinfo currentcpuinfo, int usermode, int WPbit);
 int ReadVMMemory(pcpuinfo currentcpuinfo, UINT64 address, unsigned char *buf,int size);

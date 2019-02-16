@@ -7,7 +7,6 @@ object frmModuleSafety: TfrmModuleSafety
   Caption = 'Module safety'
   ClientHeight = 263
   ClientWidth = 298
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object ListBox1: TListBox

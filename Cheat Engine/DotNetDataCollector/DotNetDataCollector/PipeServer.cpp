@@ -548,6 +548,9 @@ void CPipeServer::enumTypeDefMethods(UINT64 hModule, mdTypeDef TypeDef)
 			}
 		} while (r==S_OK);
 
+		if (henum)
+			MetaData->CloseEnum(henum);
+
 	}
 }
 
@@ -758,6 +761,108 @@ void CPipeServer::getAddressData(UINT64 Address)
 		WriteFile(pipe, &StartAddress, sizeof(StartAddress), &bw, NULL); //startaddress 0 means there is no data or no CorDebugProcess5
 }
 
+volatile int count;
+
+void CPipeServer::enumAllObjects(void)
+{
+	//Enumerate all objects in the heap and return their basic info
+	ICorDebugHeapEnum *pObjects;
+	DWORD bw;
+	BOOL found = FALSE;
+	UINT64 address;
+	DWORD size;
+	WCHAR classname[255];
+	ULONG classnamelength;
+
+
+	if ((CorDebugProcess5) && (CorDebugProcess5->EnumerateHeap(&pObjects) == S_OK))
+	{
+		COR_HEAPOBJECT objects[16];
+		ULONG count, i;
+		HRESULT r;
+
+		do
+		{
+			r = pObjects->Next(16, objects, &count);
+			for (i = 0; i<count; i++)
+			{
+				ICorDebugType *type;
+
+
+				
+				if (CorDebugProcess5->GetTypeForTypeID(objects[i].type, &type) == S_OK)
+				{
+					ICorDebugClass *c;
+					mdTypeDef classtoken = 0;
+					IMetaDataImport *metadata = NULL;
+					
+					
+
+					if (type->GetClass(&c) == S_OK)
+					{		
+						
+						if (c->GetToken(&classtoken) == S_OK)
+						{
+							ICorDebugModule *m = NULL;
+							if (c->GetModule(&m) == S_OK)
+							{
+								metadata=getMetaData(m);
+								m->Release();
+							}
+						}
+						
+						c->Release();
+					}
+
+					if ((metadata) && (classtoken))
+					{
+						mdToken extends;
+						DWORD flags;
+
+						if (metadata->GetTypeDefProps(classtoken, classname, 255, &classnamelength, &flags, &extends) == S_OK)
+						{
+							//everything ok, send it to CE
+							address = objects[i].address;
+							size = (DWORD)objects[i].size;
+
+							WriteFile(pipe, &address, sizeof(address), &bw, NULL);
+							WriteFile(pipe, &size, sizeof(size), &bw, NULL);
+							WriteFile(pipe, &objects[i].type, sizeof(objects[i].type), &bw, NULL);
+
+							classnamelength = sizeof(WCHAR)*classnamelength;
+
+							WriteFile(pipe, &classnamelength, sizeof(classnamelength), &bw, NULL);
+							if (classnamelength)
+								WriteFile(pipe, classname, classnamelength, &bw, NULL);							
+						}
+					}
+
+					type->Release();
+				}
+			}
+		} while (r == S_OK);
+
+		pObjects->Release();
+	}
+
+	//write the end of list entry
+	{
+		COR_TYPEID type;
+		DWORD size = 0;
+		address = 0;
+		size = 0;
+		classnamelength = 0;
+		type.token1 = 0;
+		type.token2 = 0;
+
+		WriteFile(pipe, &address, sizeof(address), &bw, NULL);
+		WriteFile(pipe, &size, sizeof(size), &bw, NULL);
+		WriteFile(pipe, &type, sizeof(type), &bw, NULL);
+		WriteFile(pipe, &classnamelength, sizeof(classnamelength), &bw, NULL);
+	}
+
+}
+
 
 int CPipeServer::Start(void)
 {
@@ -858,6 +963,12 @@ int CPipeServer::Start(void)
 						else
 							return 1;
 
+						break;
+					}
+
+				case CMD_GETALLOBJECTS:
+					{
+						enumAllObjects();
 						break;
 					}
 			}

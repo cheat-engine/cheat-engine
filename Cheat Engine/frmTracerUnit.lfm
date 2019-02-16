@@ -1,12 +1,12 @@
 object frmTracer: TfrmTracer
-  Left = 1034
-  Height = 433
-  Top = 343
-  Width = 439
+  Left = 1018
+  Height = 470
+  Top = 282
+  Width = 511
   BorderIcons = [biSystemMenu]
   Caption = 'Tracer'
-  ClientHeight = 413
-  ClientWidth = 439
+  ClientHeight = 450
+  ClientWidth = 511
   Menu = MainMenu1
   OnClose = FormClose
   OnCreate = FormCreate
@@ -15,22 +15,23 @@ object frmTracer: TfrmTracer
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'
   object Splitter1: TSplitter
-    Left = 208
-    Height = 413
+    Left = 280
+    Height = 450
     Top = 0
     Width = 4
     Align = alRight
     ResizeAnchor = akRight
   end
   object Panel1: TPanel
-    Left = 212
-    Height = 413
+    Left = 284
+    Height = 450
     Top = 0
     Width = 227
     Align = alRight
     BevelOuter = bvNone
-    ClientHeight = 413
+    ClientHeight = 450
     ClientWidth = 227
+    Constraints.MinWidth = 20
     Font.Height = -13
     Font.Name = 'Courier New'
     ParentFont = False
@@ -44,7 +45,7 @@ object frmTracer: TfrmTracer
       AnchorSideBottom.Side = asrBottom
       Left = 76
       Height = 25
-      Top = 385
+      Top = 422
       Width = 75
       Anchors = [akLeft, akBottom]
       AutoSize = True
@@ -86,6 +87,7 @@ object frmTracer: TfrmTracer
       AnchorSideTop.Side = asrBottom
       Left = 5
       Height = 192
+      Hint = 'Rightclick to copy to clipboard'#13#10'Middleclick to ignore it when comparing traces'
       Top = 34
       Width = 96
       AutoSize = True
@@ -95,6 +97,8 @@ object frmTracer: TfrmTracer
       ChildSizing.ControlsPerLine = 1
       ClientHeight = 192
       ClientWidth = 96
+      ParentShowHint = False
+      ShowHint = True
       TabOrder = 1
       object EAXLabel: TLabel
         Cursor = crHandPoint
@@ -102,6 +106,7 @@ object frmTracer: TfrmTracer
         Height = 16
         Top = 0
         Width = 96
+        AutoSize = False
         Caption = 'EAX 00000000'
         ParentColor = False
         OnDblClick = EAXLabelDblClick
@@ -366,7 +371,7 @@ object frmTracer: TfrmTracer
       AnchorSideRight.Side = asrBottom
       Left = 195
       Height = 38
-      Top = 188
+      Top = 207
       Width = 32
       Anchors = [akRight]
       AutoSize = True
@@ -416,32 +421,32 @@ object frmTracer: TfrmTracer
   end
   object Panel2: TPanel
     Left = 0
-    Height = 413
+    Height = 450
     Top = 0
-    Width = 208
+    Width = 280
     Align = alClient
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 413
-    ClientWidth = 208
+    ClientHeight = 450
+    ClientWidth = 280
     TabOrder = 2
     object pnlSearch: TPanel
       Left = 0
       Height = 48
-      Top = 365
-      Width = 208
+      Top = 402
+      Width = 280
       Align = alBottom
       AutoSize = True
       BevelOuter = bvNone
       ClientHeight = 48
-      ClientWidth = 208
+      ClientWidth = 280
       TabOrder = 0
       Visible = False
       object btnStopSearch: TButton
         AnchorSideLeft.Control = pnlSearch
         AnchorSideLeft.Side = asrCenter
         AnchorSideTop.Control = pnlSearch
-        Left = 60
+        Left = 96
         Height = 25
         Top = 2
         Width = 88
@@ -465,39 +470,72 @@ object frmTracer: TfrmTracer
         Left = 0
         Height = 19
         Top = 29
-        Width = 208
+        Width = 280
         Anchors = [akTop, akLeft, akRight, akBottom]
         AutoSize = True
         BevelOuter = bvNone
         ClientHeight = 19
-        ClientWidth = 208
+        ClientWidth = 280
         TabOrder = 1
         object ProgressBar1: TProgressBar
           Left = 0
           Height = 19
           Top = 0
-          Width = 208
+          Width = 280
           Align = alBottom
           TabOrder = 0
         end
       end
     end
-    object lvTracer: TTreeView
+    object pnlTracer: TPanel
       Left = 0
-      Height = 365
+      Height = 364
       Top = 0
-      Width = 208
+      Width = 280
       Align = alClient
-      DefaultItemHeight = 18
-      ExpandSignType = tvestPlusMinus
-      HideSelection = False
-      PopupMenu = pmTracer
-      ReadOnly = True
+      BevelOuter = bvNone
+      ClientHeight = 364
+      ClientWidth = 280
       TabOrder = 1
-      OnDblClick = lvTracerDblClick
-      OnMouseMove = lvTracerMouseMove
-      OnSelectionChanged = lvTracerClick
-      Options = [tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
+      object lvTracer: TTreeView
+        Left = 0
+        Height = 364
+        Top = 0
+        Width = 280
+        Align = alClient
+        DefaultItemHeight = 18
+        HideSelection = False
+        PopupMenu = pmTracer
+        ReadOnly = True
+        TabOrder = 0
+        OnAdvancedCustomDrawItem = lvTracerAdvancedCustomDrawItem
+        OnDblClick = lvTracerDblClick
+        OnMouseMove = lvTracerMouseMove
+        OnSelectionChanged = lvTracerClick
+        Options = [tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips]
+      end
+    end
+    object cbFPUXMM: TCheckBox
+      Left = 0
+      Height = 19
+      Top = 383
+      Width = 280
+      Align = alBottom
+      Caption = 'Compare FPU/XMM'
+      OnChange = cbFPUXMMChange
+      TabOrder = 2
+    end
+    object cbIgnoreStackPointers: TCheckBox
+      Left = 0
+      Height = 19
+      Top = 364
+      Width = 280
+      Align = alBottom
+      Caption = 'Ignore stackpointers'
+      Checked = True
+      OnChange = cbIgnoreStackPointersChange
+      State = cbChecked
+      TabOrder = 3
     end
   end
   object MainMenu1: TMainMenu
@@ -505,6 +543,11 @@ object frmTracer: TfrmTracer
     top = 56
     object MenuItem1: TMenuItem
       Caption = 'File'
+      object miNewTrace: TMenuItem
+        Caption = 'New trace'
+        ShortCut = 16462
+        OnClick = miNewTraceClick
+      end
       object miSaveToDisk: TMenuItem
         Caption = 'Save results to disk as textfile'
         ShortCut = 49235
@@ -522,6 +565,12 @@ object frmTracer: TfrmTracer
         Caption = 'Open trace'
         ShortCut = 16463
         OnClick = miLoadClick
+      end
+      object miOpenTraceForCompare: TMenuItem
+        Caption = 'Open trace for comparison'
+        Enabled = False
+        Visible = False
+        OnClick = miOpenTraceForCompareClick
       end
     end
     object MenuItem2: TMenuItem
@@ -556,19 +605,17 @@ object frmTracer: TfrmTracer
       Caption = 'Collapse all'
       OnClick = MenuItem6Click
     end
+    object miRealignCompare: TMenuItem
+      Caption = 'Reallign compare'
+      Enabled = False
+      Visible = False
+      OnClick = miRealignCompareClick
+    end
   end
   object OpenDialog1: TOpenDialog
     DefaultExt = '.cetrace'
     Filter = 'CE Trace (*.cetrace)|*.cetrace|All file (*.*)|*.*'
     left = 72
     top = 248
-  end
-  object FindDialog1: TFindDialog
-    Width = 619
-    Height = 136
-    Title = 'Type the (LUA) condition you want to search for (Example: EAX==0x1234)'
-    Options = [frDown, frHideMatchCase, frHideWholeWord, frHideEntireScope, frHidePromptOnReplace]
-    left = 70
-    top = 16
   end
 end

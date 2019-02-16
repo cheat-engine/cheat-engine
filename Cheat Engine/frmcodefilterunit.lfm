@@ -1,0 +1,405 @@
+object frmCodeFilter: TfrmCodeFilter
+  Left = 579
+  Height = 356
+  Top = 80
+  Width = 741
+  AutoSize = True
+  Caption = 'Code Filter'
+  ClientHeight = 356
+  ClientWidth = 741
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  Position = poScreenCenter
+  LCLVersion = '1.6.4.0'
+  object Label1: TLabel
+    Left = 0
+    Height = 45
+    Top = 0
+    Width = 741
+    Align = alTop
+    Caption = 'This will place software breakpoints(0xcc) on many locations of interest (Usually CALLs) and then track which ones get executed and which ones do not.'#13#10'By specifying that some code has been executed and some not you can filter down the list till it''s only ones you''re interested in'
+    ParentColor = False
+    WordWrap = True
+  end
+  object Panel1: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = pnlStatus
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 0
+    Height = 142
+    Top = 214
+    Width = 741
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Top = 4
+    BevelOuter = bvNone
+    Caption = 'Panel1'
+    ClientHeight = 142
+    ClientWidth = 741
+    TabOrder = 0
+    object lblAddressList: TLabel
+      Left = 0
+      Height = 15
+      Top = 0
+      Width = 741
+      Align = alTop
+      Caption = 'Address List'
+      ParentColor = False
+    end
+    object lvResults: TListView
+      Left = 0
+      Height = 96
+      Top = 15
+      Width = 741
+      Align = alClient
+      Columns = <      
+        item
+          Caption = 'Address'
+          Width = 100
+        end      
+        item
+          AutoSize = True
+          Caption = 'Executed'
+          Width = 62
+        end>
+      HideSelection = False
+      MultiSelect = True
+      OwnerData = True
+      PopupMenu = pmResults
+      ReadOnly = True
+      RowSelect = True
+      TabOrder = 0
+      ViewStyle = vsReport
+      OnData = lvResultsData
+      OnDblClick = lvResultsDblClick
+    end
+    object Panel4: TPanel
+      Left = 0
+      Height = 31
+      Top = 111
+      Width = 741
+      Align = alBottom
+      AutoSize = True
+      BevelOuter = bvNone
+      BorderWidth = 3
+      ClientHeight = 31
+      ClientWidth = 741
+      TabOrder = 1
+      object btnShowList: TButton
+        AnchorSideLeft.Control = Panel4
+        AnchorSideLeft.Side = asrCenter
+        Left = 329
+        Height = 25
+        Top = 3
+        Width = 83
+        AutoSize = True
+        Caption = 'Refresh list'
+        OnClick = btnShowListClick
+        TabOrder = 0
+      end
+    end
+  end
+  object Panel5: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Label1
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 120
+    Top = 53
+    Width = 411
+    AutoSize = True
+    BorderSpacing.Left = 8
+    BorderSpacing.Top = 8
+    BevelOuter = bvNone
+    ClientHeight = 120
+    ClientWidth = 411
+    TabOrder = 1
+    object GroupBox1: TGroupBox
+      AnchorSideLeft.Control = Panel3
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideRight.Side = asrBottom
+      Left = 254
+      Height = 120
+      Top = 0
+      Width = 157
+      AutoSize = True
+      BorderSpacing.Left = 8
+      Caption = 'Load address list'
+      ChildSizing.Layout = cclLeftToRightThenTopToBottom
+      ChildSizing.ControlsPerLine = 1
+      ClientHeight = 100
+      ClientWidth = 153
+      TabOrder = 0
+      object btnLoadAddressesFromTrace: TButton
+        Left = 0
+        Height = 25
+        Hint = 'Load a previous trace and filters out the CALL''s from there'
+        Top = 0
+        Width = 153
+        AutoSize = True
+        Caption = 'From Trace'
+        OnClick = btnLoadAddressesFromTraceClick
+        TabOrder = 0
+      end
+      object btnLoadAddressesByDisassembling: TButton
+        Left = 0
+        Height = 25
+        Hint = 'Disassembles the code and marks calls.  This can be inaccurate and might end up writing 0xcc''s at random/wrong locations'
+        Top = 25
+        Width = 153
+        AutoSize = True
+        Caption = 'From disassembler'
+        OnClick = btnLoadAddressesByDisassemblingClick
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 1
+      end
+      object Button1: TButton
+        Left = 0
+        Height = 25
+        Top = 50
+        Width = 153
+        Caption = 'From address dissection'
+        TabOrder = 3
+        Visible = False
+      end
+      object btnLoadAddressesFromFile: TButton
+        Left = 0
+        Height = 25
+        Hint = 'Loads a file containing a list of addresses (e.g from a previous filter session or from the branch mapper)'
+        Top = 75
+        Width = 153
+        AutoSize = True
+        Caption = 'From File'
+        OnClick = btnLoadAddressesFromFileClick
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 2
+      end
+    end
+    object Panel3: TPanel
+      AnchorSideLeft.Control = Panel5
+      AnchorSideTop.Control = Panel5
+      Left = 0
+      Height = 100
+      Top = 0
+      Width = 246
+      AutoSize = True
+      BevelOuter = bvNone
+      Caption = 'Panel3'
+      ClientHeight = 100
+      ClientWidth = 246
+      TabOrder = 1
+      object btnStart: TButton
+        AnchorSideLeft.Control = Panel2
+        AnchorSideTop.Control = Panel2
+        AnchorSideTop.Side = asrBottom
+        Left = 0
+        Height = 25
+        Top = 75
+        Width = 75
+        AutoSize = True
+        BorderSpacing.Top = 8
+        Caption = 'Start'
+        Constraints.MinWidth = 75
+        OnClick = btnStartClick
+        TabOrder = 0
+      end
+      object btnStop: TButton
+        AnchorSideLeft.Control = btnStart
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = btnStart
+        Left = 79
+        Height = 25
+        Top = 75
+        Width = 75
+        AutoSize = True
+        BorderSpacing.Left = 4
+        Caption = 'Stop'
+        Constraints.MinWidth = 75
+        Enabled = False
+        OnClick = btnStopClick
+        TabOrder = 1
+      end
+      object btnCancel: TButton
+        AnchorSideLeft.Control = btnStop
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = btnStop
+        Left = 158
+        Height = 25
+        Hint = 'Cancels the current operation'
+        Top = 75
+        Width = 75
+        BorderSpacing.Left = 4
+        Caption = 'Cancel'
+        Enabled = False
+        OnClick = btnCancelClick
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 2
+        Visible = False
+      end
+      object Panel2: TPanel
+        AnchorSideTop.Control = Label3
+        AnchorSideTop.Side = asrBottom
+        Left = 0
+        Height = 52
+        Top = 15
+        Width = 146
+        AutoSize = True
+        BevelOuter = bvNone
+        ChildSizing.VerticalSpacing = 2
+        ChildSizing.Layout = cclLeftToRightThenTopToBottom
+        ChildSizing.ControlsPerLine = 1
+        ClientHeight = 52
+        ClientWidth = 146
+        TabOrder = 3
+        OnClick = Panel2Click
+        object btnFilterOutNonExecutedAddresses: TButton
+          Left = 0
+          Height = 25
+          Hint = 'Removes all addresses from the list that have not been executed, and resets the breakpoints on the remaining addresses if the filter is active'
+          Top = 0
+          Width = 146
+          Caption = 'Has been executed'
+          OnClick = FilterClick
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 0
+        end
+        object btnFilterOutExecutedAddresses: TButton
+          Tag = 1
+          Left = 0
+          Height = 25
+          Hint = 'Removes all addresses from the list that have been executed, and resets the breakpoints on the remaining addresses if the filter is active'
+          Top = 27
+          Width = 146
+          Caption = 'Has not been executed'
+          OnClick = FilterClick
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 1
+        end
+      end
+      object Label3: TLabel
+        AnchorSideTop.Side = asrBottom
+        Left = 0
+        Height = 15
+        Top = 0
+        Width = 238
+        Caption = 'Addresses executed since last filter operation:'
+        ParentColor = False
+      end
+      object lblExecuteCount: TLabel
+        AnchorSideLeft.Control = Label3
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = Label3
+        Left = 240
+        Height = 15
+        Top = 0
+        Width = 6
+        BorderSpacing.Left = 2
+        Caption = '0'
+        ParentColor = False
+      end
+    end
+  end
+  object pnlStatus: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Panel5
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 0
+    Height = 37
+    Top = 173
+    Width = 741
+    Anchors = [akTop, akLeft, akRight]
+    AutoSize = True
+    BevelOuter = bvNone
+    ClientHeight = 37
+    ClientWidth = 741
+    TabOrder = 2
+    Visible = False
+    object lblStatus: TLabel
+      AnchorSideLeft.Control = pnlStatus
+      AnchorSideTop.Control = pnlStatus
+      Left = 0
+      Height = 15
+      Top = 0
+      Width = 92
+      Caption = 'Doing something'
+      ParentColor = False
+    end
+    object pbProgress: TProgressBar
+      AnchorSideLeft.Control = pnlStatus
+      AnchorSideTop.Control = lblStatus
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = pnlStatus
+      AnchorSideRight.Side = asrBottom
+      Left = 0
+      Height = 20
+      Top = 17
+      Width = 741
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Top = 2
+      TabOrder = 0
+    end
+  end
+  object frmLaunchBranchMapper: TButton
+    AnchorSideLeft.Control = Panel5
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Panel5
+    Left = 427
+    Height = 25
+    Hint = 'Starts a single stepping (branch only) trace and records all unique IP''s encountered.  You can use the results from this with the "From File" address list'#13#10'Make sure that the code you''re interested in is executed at least once'#13#10#13#10'<WARNING: SLOW and recommended as last resort>'
+    Top = 53
+    Width = 149
+    AutoSize = True
+    BorderSpacing.Left = 8
+    Caption = 'Launch branch mapper'
+    OnClick = frmLaunchBranchMapperClick
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 3
+  end
+  object Timer1: TTimer
+    Interval = 100
+    OnTimer = Timer1Timer
+    left = 208
+    top = 72
+  end
+  object OpenDialog: TOpenDialog
+    left = 456
+    top = 88
+  end
+  object pmResults: TPopupMenu
+    OnPopup = pmResultsPopup
+    left = 112
+    top = 240
+    object miSaveAddressList: TMenuItem
+      Caption = 'Save addresslist'
+      OnClick = miSaveAddressListClick
+    end
+    object MenuItem4: TMenuItem
+      Caption = '-'
+    end
+    object miClearList: TMenuItem
+      Caption = 'Clear list'
+      OnClick = miClearListClick
+    end
+    object miDeleteSelectedItems: TMenuItem
+      Caption = 'Delete selected addresses'
+      ShortCut = 46
+      OnClick = miDeleteSelectedItemsClick
+    end
+  end
+  object SaveDialog: TSaveDialog
+    left = 200
+    top = 248
+  end
+end

@@ -18,12 +18,12 @@
 
 //pin-based vm-execution controls
 #define EXTERNAL_INTERRUPT_EXITING    (1<<0)
-#define NMI_EXITING                   (1<<3)
-#define VIRTUAL_NMIS                  (1<<5)
+#define PINBEF_NMI_EXITING            (1<<3)
+#define PINBEF_VIRTUAL_NMIS           (1<<5)
 #define ACTIVATE_VMX_PREEMPTION_TIMER (1<<6)
 
-//processor based vm-execution controls
-#define INTERRUPT_WINDOW_EXITING  (1<<2)
+//processor based vm-execution flags
+#define PBEF_INTERRUPT_WINDOW_EXITING  (1<<2)
 #define USE_TSC_OFFSETTING        (1<<3)
 #define HLT_EXITING               (1<<7)
 #define INVLPG_EXITING            (1<<9)
@@ -33,28 +33,39 @@
 #define CR8LOAD_EXITING           (1<<19)
 #define CR8STORE_EXITING          (1<<20)
 #define USE_TPR_SHADOW            (1<<21)
+#define PBEF_NMI_WINDOW_EXITING   (1<<22)
 #define MOV_DR_EXITING            (1<<23)
 #define UNCONDITIONAL_IO_EXITING  (1<<24)
 #define USE_IO_BITMAPS            (1<<25)
+#define PBEF_MONITOR_TRAP_FLAG    (1<<27)
 #define USE_MSR_BITMAPS           (1<<28)
 #define MONITOR_EXITING           (1<<29)
 #define PAUSE_EXITING             (1<<30)
+#define SECONDARY_EXECUTION_CONTROLS (1<<31)
+
 
 //secondary processor based vm-execution flags
+#define SPBEF_ENABLE_EPT            (1<<1)
 #define SPBEF_ENABLE_RDTSCP         (1<<3)
+#define SPBEF_ENABLE_VPID           (1<<5)
+#define SPBEF_ENABLE_UNRESTRICTED   (1<<7)
 #define SPBEF_ENABLE_INVPCID        (1<<12)
 #define SPBEF_ENABLE_XSAVES         (1<<20)
 
 //vm-exit controls
-#define SAVE_DEBUG_CONTROLS           (1<<2)
-#define HOST_ADDRESS_SPACE_SIZE       (1<<9)
-#define ACKNOWLEDGE_INTERRUPT_ON_EXIT (1<<15)
+#define VMEXITC_SAVE_DEBUG_CONTROLS           (1<<2)
+#define VMEXITC_HOST_ADDRESS_SPACE_SIZE       (1<<9)
+#define VMEXITC_ACKNOWLEDGE_INTERRUPT_ON_EXIT (1<<15)
+#define VMEXITC_SAVE_IA32_EFER        (1<<20)
+#define VMEXITC_LOAD_IA32_EFER        (1<<21)
 
 //vm-entry controls
-#define RESTORE_DEBUG_CONTROLS              (1<<2)
-#define IA32E_MODE_GUEST                    (1<<9)
-#define ENTRY_TO_SMM                        (1<<10)
-#define DEACTIVATE_DUALMANAGEMENT_TREATMENT (1<<11)
+#define VMENTRYC_RESTORE_DEBUG_CONTROLS              (1<<2)
+#define VMENTRYC_IA32E_MODE_GUEST                    (1<<9)
+#define VMENTRYC_ENTRY_TO_SMM                        (1<<10)
+#define VMENTRYC_DEACTIVATE_DUALMANAGEMENT_TREATMENT (1<<11)
+#define VMENTRYC_LOAD_IA32_EFER                      (1<<15)
+
 
 
 //IA32_FEATURE_CONTROL bits
@@ -68,11 +79,19 @@
 #define vm_exit_cpuid      10
 #define vm_exit_invlpg     14
 #define vm_exit_vmcall     18
+#define vm_exit_vmptrld    21
+#define vm_exit_vmread     23
+#define vm_exit_vmresume   24
+#define vm_exit_vmwrite    25
 #define vm_exit_cr_access  28
 #define vm_exit_io_access  30
 #define vm_exit_rdmsr      31
 #define vm_exit_wrmsr      32
+#define vm_exit_monitor_trap_flag 37
+#define vm_exit_ept_violation 48
+#define vm_exit_ept_misconfiguration 49
 #define vm_exit_vmx_preemptiontimer_reachedzero  52
+#define vm_exit_xsetbv    55
 #define vm_exit_invalid_guest_state  0x80000021
 
 
@@ -120,6 +139,12 @@ typedef union
     UINT64   reserved3          :49; //must be 0
   } binary;
 }__attribute__((__packed__)) PendingDebugExceptions, *PPendingDebugExceptions;
+
+//interrupt type:
+#define itExternal          0
+#define itNMI               2
+#define itHardwareException 3
+#define itSoftwareException 6
 
 typedef struct _vmexit_interruption_information
 {
@@ -177,7 +202,9 @@ typedef struct _IA32_VMX_BASIC
       ULONG addresswidth:1;  //48
       ULONG dual_monitor:1;  //49
       ULONG memtype     :4;  //50-53
-      ULONG reserved2   :10;  //54-63
+      ULONG insoutsinfo :1; //54
+      ULONG default1canbe0 : 1;
+      ULONG reserved2   :8;  //56-63
     };
   };
 } __attribute__((__packed__)) TIA32_VMX_BASIC;
@@ -200,6 +227,42 @@ typedef struct _IA32_VMX_MISC
     };
   };
 } __attribute__((__packed__)) TIA32_VMX_MISC;
+
+typedef struct _IA32_VMX_VPID_EPT_CAP
+{
+  union{
+    unsigned long long IA32_VMX_VPID_EPT_CAP;
+    struct {
+      ULONG EPT_executeOnlySupport        : 1; //0
+      ULONG reserved1                     : 5; //1-5
+      ULONG EPT_pagewalklength4           : 1; //6
+      ULONG reserved2                     : 1; //7
+      ULONG EPT_uncachableSupport         : 1; //8
+      ULONG reserved3                     : 5; //9-13
+      ULONG EPT_writeBackSupport          : 1; //14
+      ULONG reserved4                     : 1; //15
+      ULONG EPT_2MBSupport                : 1; //16
+      ULONG EPT_1GBSupport                : 1; //17
+      ULONG reserved5                     : 2; //18-19
+      ULONG EPT_INVEPTSupport             : 1; //20
+      ULONG EPT_ADSupport                 : 1; //21
+      ULONG EPT_AdvancedExitInfo          : 1; //22
+      ULONG reserved6                     : 2; //23-24
+      ULONG EPT_INVEPTSingleContext       : 1; //25
+      ULONG EPT_INVEPTAllContext          : 1; //26
+      ULONG reserved7                     : 5; //27-31
+      //VPID
+      ULONG VPID_INVVPIDSupport           : 1; //32
+      ULONG reserved8                     : 7; //33-39
+      ULONG VPID_INVVPIDIndividualAddress : 1; //40
+      ULONG VPID_INVVPIDSingleContext     : 1; //41
+      ULONG VPID_INVVPIDAllContext        : 1; //42
+      ULONG VPID_INVVPIDSingleContextRetainingGlobals : 1; //43
+      ULONG reserved9                     : 20; //44-63
+    };
+  };
+} __attribute__((__packed__)) TIA32_VMX_VPID_EPT_CAP, *PIA32_VMX_VPID_EPT_CAP;
+
 
 
 

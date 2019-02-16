@@ -1,11 +1,11 @@
 object FormFoundCodeListExtra: TFormFoundCodeListExtra
   Left = 478
-  Height = 270
+  Height = 295
   Top = 586
   Width = 435
   AutoSize = True
   Caption = 'Extra info'
-  ClientHeight = 270
+  ClientHeight = 295
   ClientWidth = 435
   OnClose = FormClose
   OnCreate = FormCreate
@@ -16,10 +16,11 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
   LCLVersion = '1.6.4.0'
   object Panel1: TPanel
     AnchorSideLeft.Control = Owner
-    AnchorSideTop.Control = Owner
+    AnchorSideTop.Control = pnlEPTWatch
+    AnchorSideTop.Side = asrBottom
     Left = 0
     Height = 107
-    Top = 0
+    Top = 54
     Width = 82
     AutoSize = True
     BevelOuter = bvNone
@@ -121,7 +122,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     AnchorSideTop.Side = asrBottom
     Left = 0
     Height = 34
-    Top = 107
+    Top = 161
     Width = 62
     AutoSize = True
     BevelOuter = bvNone
@@ -179,7 +180,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     AnchorSideTop.Side = asrBottom
     Left = 0
     Height = 36
-    Top = 229
+    Top = 283
     Width = 435
     Anchors = [akTop, akLeft, akRight]
     AutoSize = True
@@ -216,7 +217,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     AnchorSideRight.Side = asrBottom
     Left = 4
     Height = 60
-    Top = 146
+    Top = 200
     Width = 431
     Anchors = [akTop, akLeft, akRight]
     AutoSize = True
@@ -403,7 +404,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     AnchorSideTop.Side = asrBottom
     Left = 4
     Height = 15
-    Top = 214
+    Top = 268
     Width = 530
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Left = 4
@@ -412,6 +413,73 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     ParentColor = False
     Visible = False
     WordWrap = True
+  end
+  object pnlEPTWatch: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 0
+    Height = 54
+    Top = 0
+    Width = 435
+    Anchors = [akTop, akLeft, akRight]
+    AutoSize = True
+    ChildSizing.HorizontalSpacing = 30
+    ChildSizing.VerticalSpacing = 4
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 2
+    ClientHeight = 54
+    ClientWidth = 435
+    TabOrder = 4
+    object lblPhysicalAddress: TLabel
+      Left = 0
+      Height = 15
+      Top = 0
+      Width = 152
+      Caption = 'Physical Address=XXXXXXXX'
+      ParentColor = False
+      OnMouseDown = RegisterMouseDown
+    end
+    object lblVirtualAddress: TLabel
+      Left = 182
+      Height = 15
+      Top = 0
+      Width = 143
+      Caption = 'Virtual Address=XXXXXXXX'
+      ParentColor = False
+      OnDblClick = RegisterDblClick
+      OnMouseDown = RegisterMouseDown
+    end
+    object lblFSBase: TLabel
+      Left = 0
+      Height = 15
+      Top = 19
+      Width = 152
+      Caption = 'FSBase=XXXXXXXX'
+      ParentColor = False
+      OnDblClick = RegisterDblClick
+      OnMouseDown = RegisterMouseDown
+    end
+    object lblGSBase: TLabel
+      Left = 182
+      Height = 15
+      Top = 19
+      Width = 143
+      Caption = 'GSBase=XXXXXXXX'
+      ParentColor = False
+      OnDblClick = RegisterDblClick
+      OnMouseDown = RegisterMouseDown
+    end
+    object lblCR3: TLabel
+      Left = 0
+      Height = 15
+      Top = 38
+      Width = 152
+      Caption = 'CR3=XXXXXXXX'
+      ParentColor = False
+      OnMouseDown = RegisterMouseDown
+    end
   end
   object pmCopy: TPopupMenu
     left = 112

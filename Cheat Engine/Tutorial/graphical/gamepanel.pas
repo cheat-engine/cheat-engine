@@ -28,6 +28,9 @@ type
     procedure mywndproc(var TheMessage: TLMessage);
     procedure tick(sender: tobject);
   public
+    background:record
+      r,g,b: single;
+    end;
     constructor Create(TheOwner: TComponent); override;
     procedure AddKeyEventHandler(keyevent: TKEvent; position: integer=-1);
     procedure RemoveKeyEventHandler(keyevent: TKEvent);
@@ -46,6 +49,7 @@ type
   published
     property OnGameTick: TNotifyEvent read fOnGameTick write fOnGameTick;
     property OnGameRender: TNotifyEvent read fOnRender write fOnRender;
+
   end;
 
 implementation
@@ -202,10 +206,8 @@ begin
 //  glLoadIdentity();
 //  gluOrtho2D(-1,1,-1,1); //default anyhow
 
-
-
   //setup some states
-  glClearColor(0.0, 0.0, 0.0, 1.0); // Set background color to black and opaque
+  glClearColor(background.r, background.g, background.b, 1.0); // Set background color to black and opaque
   glClear(GL_COLOR_BUFFER_BIT);         // Clear the color buffer (background)
 
   glMatrixMode(GL_MODELVIEW);

@@ -7,7 +7,6 @@ object frmExcludeHide: TfrmExcludeHide
   ClientHeight = 415
   ClientWidth = 486
   OnCreate = FormCreate
-  PopupMode = pmAuto
   Position = poOwnerFormCenter
   LCLVersion = '1.6.0.4'
   object Label4: TLabel

@@ -284,6 +284,7 @@ type
     procedure cbHasShadowChange(Sender: TObject);
     procedure cbRegExpChange(Sender: TObject);
     procedure cbPointerInRangeChange(Sender: TObject);
+    procedure cbReuseStringmapChange(Sender: TObject);
     procedure comboTypeChange(Sender: TObject);
     procedure edtBaseChange(Sender: TObject);
     procedure edtExtraChange(Sender: TObject);
@@ -568,11 +569,13 @@ end;
 
 function TPointerfileReader.getStringAndAddress(index: qword; var address: ptruint; out p: PPointerRecord; shadow: ptruint; shadowsize: integer): string;
 begin
+  result:='';
   p:=getPointerRec(index);
   if p<>nil then
+  begin
     result:=getStringFromPointerRecord(p, address, shadow, shadowsize);
-
-  address:=getAddressFromPointerRecord(p, address, shadow, shadowsize);
+    address:=getAddressFromPointerRecord(p, address, shadow, shadowsize);
+  end;
 end;
 
 constructor TPointerfileReader.create(filename: string);
@@ -599,10 +602,10 @@ begin
     freeandnil(pointerfile);
 
   if pointerrecords<>nil then
-    freemem(pointerrecords);
+    FreeMemAndNil(pointerrecords);
 
   if stringbuf<>nil then
-    freemem(stringbuf);
+    FreeMemAndNil(stringbuf);
 
   if pointermap<>nil then
     freeandnil(pointermap);
@@ -1361,7 +1364,7 @@ begin
         map.size:=map.size+oldmap.size;
 
         mappedregions.Remove(oldmap);
-        freemem(oldmap);
+        FreeMemAndNil(oldmap);
       end;
     end;
   end;
@@ -1718,16 +1721,16 @@ begin
 
 
   if fillpointerblock<>nil then
-    freemem(fillpointerblock);
+    FreeMemAndNil(fillpointerblock);
 
   if resultfile<>nil then
     freeandnil(resultfile);
 
   if tempvariablebuffer<>nil then
-    freemem(tempvariablebuffer);
+    FreeMemAndNil(tempvariablebuffer);
 
   if tempvariablebuffer2<>nil then
-    freemem(tempvariablebuffer2);
+    FreeMemAndNil(tempvariablebuffer2);
 
   if valuemap<>nil then
     freeandnil(valuemap);
@@ -1744,6 +1747,7 @@ var i: integer;
   b: pchar;
   wb: pwidechar absolute b;
 begin
+  result:='';
   a:=address+offsets[0];
   for i:=1 to level do
   begin
@@ -1770,7 +1774,7 @@ begin
       result:=b;
 
   end;
-  freemem(b);
+  FreeMemAndNil(b);
 
 end;
 
@@ -1986,7 +1990,7 @@ begin
       begin
         p:=m;
         m:=m.next;
-        freemem(p);
+        FreeMemAndNil(p);
       end;
     end;
     freeandnil(mappedRegions);
@@ -2194,7 +2198,7 @@ end;
 
 procedure TfrmStringPointerScan.cbRegExpChange(Sender: TObject);
 begin
-  cbCaseSensitive.enabled:=cbRegExp.enabled and cbRegExp.checked;
+  cbCaseSensitive.enabled:=rbstringscan.checked and cbRegExp.enabled and cbRegExp.checked;
   cbMustBeStart.enabled:=cbCaseSensitive.enabled;
   edtRegExp.enabled:=cbCaseSensitive.enabled;
   lblString.enabled:=cbCaseSensitive.enabled;
@@ -2205,6 +2209,11 @@ begin
   edtPointerStart.enabled:=cbPointerInRange.checked;
   edtPointerStop.enabled:=cbPointerInRange.checked;
   lbland.enabled:=cbPointerInRange.checked;
+end;
+
+procedure TfrmStringPointerScan.cbReuseStringmapChange(Sender: TObject);
+begin
+
 end;
 
 procedure TfrmStringPointerScan.comboTypeChange(Sender: TObject);
@@ -2405,6 +2414,7 @@ begin
   cbMustBeStart.enabled:=cbCaseSensitive.enabled;
   lblString.enabled:=cbCaseSensitive.enabled;
   edtRegExp.enabled:=cbCaseSensitive.enabled;
+  cbReuseStringmap.enabled:=cbCaseSensitive.enabled;
 
   lblAlign.enabled:=rbDatascan.enabled and rbDatascan.checked;
   edtAlignsize.enabled:=lblAlign.enabled;

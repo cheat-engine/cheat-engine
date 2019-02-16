@@ -9,7 +9,6 @@ object frmManualStacktraceConfig: TfrmManualStacktraceConfig
   Caption = 'Manual stacktrace config'
   ClientHeight = 236
   ClientWidth = 349
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'
   object edtEIP: TEdit

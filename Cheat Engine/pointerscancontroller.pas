@@ -136,6 +136,9 @@ type
 
     wasidle: boolean; //state of isIdle since last call to waitForAndHandleNetworkEvent
 
+    newProgressbarLabel: string;
+    procedure UpdateProgressbarLabel; //synced
+
     procedure InitializeCompressedPtrVariables;
     procedure InitializeEmptyPathQueue; //initializes the arrays inside the pathqueue
 
@@ -271,6 +274,7 @@ type
     startaddress: ptrUint;
     stopaddress: ptrUint;
     progressbar: TProgressbar;
+    progressbarLabel: TLabel;
     sz: integer;
     maxlevel: integer;
     unalligned: boolean;
@@ -323,6 +327,7 @@ type
 
     generatePointermapOnly: boolean;
 
+    negativeOffsets: boolean;
     compressedptr: boolean;
     MaxBitCountModuleOffset: dword;
     MaxBitCountModuleIndex: dword;
@@ -498,6 +503,7 @@ resourcestring
   rsInvalidData = 'invalid data:';
   rsNoUpdateFromTheClientForOver120Sec = 'No update from the client for over 120 seconds';
   rsAllPathsReceived = 'All paths received';
+  rsSavingPointermap = 'Saving pointermap';
 
 //------------------------POINTERLISTLOADER-------------
 procedure TPointerlistloader.execute;
@@ -843,11 +849,11 @@ begin
 
         self.starttime:=GetTickCount64;
 
-
+        sent:=0;
         UpdateChildProgress(sent, totalsize);
         //update the child progress
 
-        sent:=0;
+
 
         for i:=0 to length(f)-1 do
         begin
@@ -1676,69 +1682,78 @@ begin
   listsize:=sizeof(dword)*(maxlevel+1);
   valuelistsize:=sizeof(qword)*(maxlevel+1);
 
+  offsetcountperlist:=maxlevel;
 
+  overflowqueuecs.enter;
   pathqueueCS.enter;
   try
-
-
-    while f.Position<f.Size do
-    begin
-      i:=length(overflowqueue);
-      setlength(overflowqueue, length(overflowqueue)+1);
-      if f.Read(overflowqueue[i].valuetofind, sizeof(overflowqueue[i].valuetofind))>0 then
-      begin
-        f.read(overflowqueue[i].startlevel, sizeof(overflowqueue[i].startlevel));
-
-        if overflowqueue[i].startlevel>offsetcountperlist then
-        begin
-          j:=f.Position;
-          raise exception.create(rsInvalidData+inttostr(f.position));
-        end;
-
-        setlength(overflowqueue[i].tempresults, maxlevel+1);
-        f.read(overflowqueue[i].tempresults[0], listsize);
-
-        //length(pathqueue[i].tempresults)*sizeof(pathqueue[i].tempresults[0]));
-
-        if noloop then
-        begin
-          setlength(overflowqueue[i].valuelist, maxlevel+1);
-          f.read(overflowqueue[i].valuelist[0], valuelistsize);
-        end;
-      end;
-
-    end;
-
-    //sort based on level
-    for i:=0 to length(overflowqueue)-2 do
-    begin
-      for j:=i to length(overflowqueue)-1 do
-      begin
-        if overflowqueue[i].startlevel>overflowqueue[j].startlevel then //swap
-        begin
-          tempentry:=overflowqueue[j];
-          overflowqueue[j]:=overflowqueue[i];
-          overflowqueue[i]:=tempentry;
-        end;
-      end;
-    end;
-
-    addedToQueue:=0;
     try
 
-      for i:=length(overflowqueue)-1 downto 0 do
+      while f.Position<f.Size do
       begin
-        if pathqueuelength<MAXQUEUESIZE then
+        i:=length(overflowqueue);
+        setlength(overflowqueue, length(overflowqueue)+1);
+        if f.Read(overflowqueue[i].valuetofind, sizeof(overflowqueue[i].valuetofind))>0 then
         begin
-          pathqueue[pathqueuelength]:=overflowqueue[i];
-          inc(pathqueuelength);
+          f.read(overflowqueue[i].startlevel, sizeof(overflowqueue[i].startlevel));
 
-          overflowqueue[i].tempresults[0]:=$cece;
-          inc(addedToQueue);
+          if overflowqueue[i].startlevel>offsetcountperlist then
+          begin
+            j:=f.Position;
+            raise exception.create(rsInvalidData+inttostr(f.position));
+          end;
 
-        end else break;
+          setlength(overflowqueue[i].tempresults, maxlevel+1);
+          f.read(overflowqueue[i].tempresults[0], listsize);
+
+          //length(pathqueue[i].tempresults)*sizeof(pathqueue[i].tempresults[0]));
+
+          if noloop then
+          begin
+            setlength(overflowqueue[i].valuelist, maxlevel+1);
+            f.read(overflowqueue[i].valuelist[0], valuelistsize);
+          end;
+        end;
+
       end;
 
+      //sort based on level
+      for i:=0 to length(overflowqueue)-2 do
+      begin
+        for j:=i to length(overflowqueue)-1 do
+        begin
+          if overflowqueue[i].startlevel>overflowqueue[j].startlevel then //swap
+          begin
+            tempentry:=overflowqueue[j];
+            overflowqueue[j]:=overflowqueue[i];
+            overflowqueue[i]:=tempentry;
+          end;
+        end;
+      end;
+
+      addedToQueue:=0;
+      try
+
+        for i:=length(overflowqueue)-1 downto 0 do
+        begin
+          if pathqueuelength<MAXQUEUESIZE then
+          begin
+            pathqueue[pathqueuelength]:=overflowqueue[i];
+            inc(pathqueuelength);
+
+            overflowqueue[i].tempresults[0]:=$cece;
+            inc(addedToQueue);
+
+          end else break;
+        end;
+      except
+        on e: exception do
+        begin
+          OutputDebugString('TPointerscanController.SetupQueueForResume Error:'+e.message);
+          setlength(overflowqueue,0);
+          raise;
+        end;
+      end
     finally
       setlength(overflowqueue, length(overflowqueue)-addedToQueue);
       ReleaseSemaphore(pathqueueSemaphore, addedToQueue, nil);
@@ -1746,6 +1761,7 @@ begin
 
   finally
     pathqueueCS.leave;
+    overflowqueuecs.leave;
     f.free;
   end;
 
@@ -1934,6 +1950,7 @@ begin
           begin
             //if found, find a idle thread and tell it to look for this address starting from level 0 (like normal)
 
+            addedToQueue:=false;
 
             if pathqueuelength<MAXQUEUESIZE-1 then
             begin
@@ -1944,11 +1961,9 @@ begin
                 pathqueue[pathqueuelength].startlevel:=0;
                 pathqueue[pathqueuelength].valuetofind:=currentaddress;
                 inc(pathqueuelength);
+                addedToQueue:=true;
 
                 ReleaseSemaphore(pathqueueSemaphore, 1, nil);
-
-
-
 
               end;
 
@@ -3489,7 +3504,7 @@ begin
       begin
         setlength(pathqueue[i].valuelist, maxlevel+2);
         for j:=0 to maxlevel+1 do
-          pathqueue[i].valuelist[j]:=$cececececececece;
+          pathqueue[i].valuelist[j]:=qword($cececececececece);
       end;
     end;
 
@@ -4372,6 +4387,12 @@ begin
   devnull.free;
 end;
 
+
+procedure TPointerscanController.UpdateProgressbarLabel;
+begin
+  progressbarLabel.caption:=newProgressbarLabel;
+end;
+
 procedure TPointerscanController.execute;
 var
     i,j: integer;
@@ -4485,7 +4506,7 @@ begin
 
 
         progressbar.position:=100;
-        //sleep(10000);
+
 
 
 
@@ -4527,6 +4548,10 @@ begin
       else
         LoadedPointermapFilename:=filename+'.scandata';
 
+
+      progressbar.Position:=99;
+      newProgressbarLabel:=rsSavingPointermap;
+      synchronize(UpdateProgressbarLabel);
 
       f:=tfilestream.create(LoadedPointermapFilename, fmCreate);
       cs:=Tcompressionstream.create(clfastest, f);
@@ -4766,7 +4791,7 @@ begin
     name[namelength]:=#0;
     msg.publicname:=name;
   finally
-    freemem(name);
+    FreeMemAndNil(name);
   end;
 
   receive(sockethandle, @msg.scannerid, sizeof(msg.scannerid));
@@ -5154,6 +5179,7 @@ begin
     NewAffinity:=SetThreadAffinityMask(scanner.Handle, NewAffinity);
   end;
 
+  scanner.NegativeOffsets:=negativeOffsets;
   scanner.compressedptr:=compressedptr;
   scanner.MaxBitCountModuleIndex:=MaxBitCountModuleIndex;
   scanner.MaxBitCountModuleOffset:=MaxBitCountModuleOffset;

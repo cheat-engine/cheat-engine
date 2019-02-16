@@ -1,7 +1,7 @@
 object frmLoadMemory: TfrmLoadMemory
-  Left = 659
+  Left = 432
   Height = 135
-  Top = 358
+  Top = 475
   Width = 225
   AutoSize = True
   BorderIcons = [biSystemMenu]
@@ -10,9 +10,8 @@ object frmLoadMemory: TfrmLoadMemory
   ClientHeight = 135
   ClientWidth = 225
   OnClose = FormClose
-  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Label1: TLabel
     AnchorSideTop.Control = ListBox1
     AnchorSideTop.Side = asrBottom

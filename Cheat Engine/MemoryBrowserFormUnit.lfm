@@ -1,12 +1,12 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 812
-  Height = 578
-  Top = 215
-  Width = 716
+  Left = 749
+  Height = 460
+  Top = 216
+  Width = 622
   HelpContext = 12
   Caption = 'Memory Viewer'
-  ClientHeight = 558
-  ClientWidth = 716
+  ClientHeight = 440
+  ClientWidth = 622
   Menu = MainMenu1
   OnActivate = FormActivate
   OnClose = FormClose
@@ -21,7 +21,7 @@ object MemoryBrowser: TMemoryBrowser
     Left = 0
     Height = 5
     Top = 300
-    Width = 716
+    Width = 622
     Align = alTop
     AutoSnap = False
     Beveled = True
@@ -35,15 +35,14 @@ object MemoryBrowser: TMemoryBrowser
     Left = 0
     Height = 300
     Top = 0
-    Width = 716
+    Width = 622
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 300
-    ClientWidth = 716
+    ClientWidth = 622
     TabOrder = 0
-    OnResize = Panel1Resize
     object Splitter2: TSplitter
-      Left = 496
+      Left = 402
       Height = 300
       Top = 0
       Width = 5
@@ -56,14 +55,14 @@ object MemoryBrowser: TMemoryBrowser
       Left = 0
       Height = 300
       Top = 0
-      Width = 496
+      Width = 402
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 0
       OnClick = Panel5Click
     end
     object RegisterView: TPanel
-      Left = 501
+      Left = 407
       Height = 300
       Top = 0
       Width = 215
@@ -89,15 +88,13 @@ object MemoryBrowser: TMemoryBrowser
         Font.Name = 'Courier New'
         ParentFont = False
         TabOrder = 0
-        OnClick = ScrollBox1Click
-        OnResize = ScrollBox1Resize
         object Label14: TLabel
           AnchorSideLeft.Control = ScrollBox1
           AnchorSideTop.Control = ScrollBox1
           Left = 8
-          Height = 18
+          Height = 22
           Top = 0
-          Width = 100
+          Width = 120
           BorderSpacing.Left = 8
           Caption = 'Registers:'
           ParentColor = False
@@ -110,21 +107,20 @@ object MemoryBrowser: TMemoryBrowser
           AnchorSideRight.Side = asrBottom
           Left = 8
           Height = 2
-          Top = 19
-          Width = 100
+          Top = 23
+          Width = 120
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Top = 1
           Brush.Color = clBlack
-          OnChangeBounds = Shape1ChangeBounds
         end
         object Label15: TLabel
           AnchorSideLeft.Control = Panel2
           AnchorSideLeft.Side = asrBottom
           AnchorSideTop.Control = ScrollBox1
-          Left = 143
-          Height = 18
+          Left = 167
+          Height = 22
           Top = 0
-          Width = 50
+          Width = 60
           BorderSpacing.Left = 15
           Caption = 'Flags'
           ParentColor = False
@@ -134,10 +130,10 @@ object MemoryBrowser: TMemoryBrowser
           AnchorSideTop.Control = Shape1
           AnchorSideRight.Control = Label15
           AnchorSideRight.Side = asrBottom
-          Left = 143
+          Left = 167
           Height = 2
-          Top = 19
-          Width = 50
+          Top = 23
+          Width = 60
           Anchors = [akTop, akLeft, akRight]
           Brush.Color = clBlack
         end
@@ -146,9 +142,9 @@ object MemoryBrowser: TMemoryBrowser
           AnchorSideTop.Control = Panel2
           AnchorSideTop.Side = asrBottom
           Left = 8
-          Height = 18
-          Top = 204
-          Width = 170
+          Height = 22
+          Top = 244
+          Width = 204
           BorderSpacing.Top = 5
           Caption = 'Segment Registers'
           ParentColor = False
@@ -161,11 +157,10 @@ object MemoryBrowser: TMemoryBrowser
           AnchorSideRight.Side = asrBottom
           Left = 8
           Height = 2
-          Top = 222
-          Width = 170
+          Top = 266
+          Width = 204
           Anchors = [akTop, akLeft, akRight]
           Brush.Color = clBlack
-          OnChangeBounds = Shape3ChangeBounds
         end
         object sbShowFloats: TButton
           AnchorSideTop.Side = asrCenter
@@ -184,23 +179,23 @@ object MemoryBrowser: TMemoryBrowser
           AnchorSideTop.Control = Shape1
           AnchorSideTop.Side = asrBottom
           Left = 8
-          Height = 178
-          Top = 21
-          Width = 120
+          Height = 214
+          Top = 25
+          Width = 144
           AutoSize = True
           BevelOuter = bvNone
           ChildSizing.VerticalSpacing = 2
           ChildSizing.Layout = cclLeftToRightThenTopToBottom
           ChildSizing.ControlsPerLine = 1
-          ClientHeight = 178
-          ClientWidth = 120
+          ClientHeight = 214
+          ClientWidth = 144
           TabOrder = 1
           object EAXLabel: TLabel
             Cursor = crHandPoint
             Left = 0
-            Height = 18
+            Height = 22
             Top = 0
-            Width = 120
+            Width = 144
             Caption = 'EAX 00000000'
             ParentColor = False
             PopupMenu = pmRegisters
@@ -211,9 +206,9 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 1
             Cursor = crHandPoint
             Left = 0
-            Height = 18
-            Top = 20
-            Width = 120
+            Height = 22
+            Top = 24
+            Width = 144
             Caption = 'EBX 00000000'
             ParentColor = False
             PopupMenu = pmRegisters
@@ -224,9 +219,9 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 2
             Cursor = crHandPoint
             Left = 0
-            Height = 18
-            Top = 40
-            Width = 120
+            Height = 22
+            Top = 48
+            Width = 144
             Caption = 'ECX 00000000'
             ParentColor = False
             PopupMenu = pmRegisters
@@ -237,9 +232,9 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 3
             Cursor = crHandPoint
             Left = 0
-            Height = 18
-            Top = 60
-            Width = 120
+            Height = 22
+            Top = 72
+            Width = 144
             Caption = 'EDX 00000000'
             ParentColor = False
             PopupMenu = pmRegisters
@@ -250,9 +245,9 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 4
             Cursor = crHandPoint
             Left = 0
-            Height = 18
-            Top = 80
-            Width = 120
+            Height = 22
+            Top = 96
+            Width = 144
             Caption = 'ESI 00000000'
             ParentColor = False
             PopupMenu = pmRegisters
@@ -263,9 +258,9 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 5
             Cursor = crHandPoint
             Left = 0
-            Height = 18
-            Top = 100
-            Width = 120
+            Height = 22
+            Top = 120
+            Width = 144
             Caption = 'EDI 00000000'
             ParentColor = False
             PopupMenu = pmRegisters
@@ -276,9 +271,9 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 6
             Cursor = crHandPoint
             Left = 0
-            Height = 18
-            Top = 120
-            Width = 120
+            Height = 22
+            Top = 144
+            Width = 144
             Caption = 'EBP 00000000'
             ParentColor = False
             PopupMenu = pmRegisters
@@ -289,9 +284,9 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 7
             Cursor = crHandPoint
             Left = 0
-            Height = 18
-            Top = 140
-            Width = 120
+            Height = 22
+            Top = 168
+            Width = 144
             Caption = 'ESP 00000000'
             ParentColor = False
             PopupMenu = pmRegisters
@@ -302,9 +297,9 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 8
             Cursor = crHandPoint
             Left = 0
-            Height = 18
-            Top = 160
-            Width = 120
+            Height = 22
+            Top = 192
+            Width = 144
             Caption = 'EIP 00000000'
             ParentColor = False
             PopupMenu = pmRegisters
@@ -317,24 +312,24 @@ object MemoryBrowser: TMemoryBrowser
           AnchorSideTop.Control = Shape3
           AnchorSideTop.Side = asrBottom
           Left = 8
-          Height = 118
-          Top = 224
-          Width = 70
+          Height = 142
+          Top = 268
+          Width = 84
           AutoSize = True
           BevelOuter = bvNone
           ChildSizing.VerticalSpacing = 2
           ChildSizing.Layout = cclLeftToRightThenTopToBottom
           ChildSizing.ControlsPerLine = 1
-          ClientHeight = 118
-          ClientWidth = 70
+          ClientHeight = 142
+          ClientWidth = 84
           TabOrder = 2
           object CSLabel: TLabel
             Tag = 9
             Cursor = crHandPoint
             Left = 0
-            Height = 18
+            Height = 22
             Top = 0
-            Width = 70
+            Width = 84
             Caption = 'CS 0000'
             ParentColor = False
             OnClick = EAXLabelDblClick
@@ -343,9 +338,9 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 10
             Cursor = crHandPoint
             Left = 0
-            Height = 18
-            Top = 20
-            Width = 70
+            Height = 22
+            Top = 24
+            Width = 84
             Caption = 'SS 0000'
             ParentColor = False
             OnClick = EAXLabelDblClick
@@ -354,9 +349,9 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 11
             Cursor = crHandPoint
             Left = 0
-            Height = 18
-            Top = 40
-            Width = 70
+            Height = 22
+            Top = 48
+            Width = 84
             Caption = 'DS 0000'
             ParentColor = False
             OnClick = EAXLabelDblClick
@@ -365,9 +360,9 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 12
             Cursor = crHandPoint
             Left = 0
-            Height = 18
-            Top = 60
-            Width = 70
+            Height = 22
+            Top = 72
+            Width = 84
             Caption = 'ES 0000'
             ParentColor = False
             OnClick = EAXLabelDblClick
@@ -376,9 +371,9 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 13
             Cursor = crHandPoint
             Left = 0
-            Height = 18
-            Top = 80
-            Width = 70
+            Height = 22
+            Top = 96
+            Width = 84
             Caption = 'FS 0000'
             ParentColor = False
             OnClick = EAXLabelDblClick
@@ -387,9 +382,9 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 14
             Cursor = crHandPoint
             Left = 0
-            Height = 18
-            Top = 100
-            Width = 70
+            Height = 22
+            Top = 120
+            Width = 84
             Caption = 'GS 0000'
             ParentColor = False
             OnClick = EAXLabelDblClick
@@ -399,25 +394,25 @@ object MemoryBrowser: TMemoryBrowser
           AnchorSideLeft.Control = Shape2
           AnchorSideTop.Control = Shape2
           AnchorSideTop.Side = asrBottom
-          Left = 143
-          Height = 138
-          Top = 21
-          Width = 40
+          Left = 167
+          Height = 166
+          Top = 25
+          Width = 48
           AutoSize = True
           BevelOuter = bvNone
           ChildSizing.VerticalSpacing = 2
           ChildSizing.Layout = cclLeftToRightThenTopToBottom
           ChildSizing.ControlsPerLine = 1
-          ClientHeight = 138
-          ClientWidth = 40
+          ClientHeight = 166
+          ClientWidth = 48
           TabOrder = 3
           object oflabel: TLabel
             Tag = 26
             AnchorSideTop.Side = asrBottom
             Left = 0
-            Height = 18
+            Height = 22
             Top = 0
-            Width = 40
+            Width = 48
             Caption = 'OF 0'
             ParentColor = False
             OnClick = EAXLabelDblClick
@@ -427,9 +422,9 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 25
             AnchorSideTop.Side = asrBottom
             Left = 0
-            Height = 18
-            Top = 20
-            Width = 40
+            Height = 22
+            Top = 24
+            Width = 48
             Caption = 'DF 0'
             ParentColor = False
             OnClick = EAXLabelDblClick
@@ -439,9 +434,9 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 24
             AnchorSideTop.Side = asrBottom
             Left = 0
-            Height = 18
-            Top = 40
-            Width = 40
+            Height = 22
+            Top = 48
+            Width = 48
             Caption = 'SF 0'
             ParentColor = False
             OnClick = EAXLabelDblClick
@@ -451,9 +446,9 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 23
             AnchorSideTop.Side = asrBottom
             Left = 0
-            Height = 18
-            Top = 60
-            Width = 40
+            Height = 22
+            Top = 72
+            Width = 48
             Caption = 'ZF 0'
             ParentColor = False
             OnClick = EAXLabelDblClick
@@ -463,9 +458,9 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 22
             AnchorSideTop.Side = asrBottom
             Left = 0
-            Height = 18
-            Top = 80
-            Width = 40
+            Height = 22
+            Top = 96
+            Width = 48
             Caption = 'AF 0'
             ParentColor = False
             OnClick = EAXLabelDblClick
@@ -475,9 +470,9 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 21
             AnchorSideTop.Side = asrBottom
             Left = 0
-            Height = 18
-            Top = 100
-            Width = 40
+            Height = 22
+            Top = 120
+            Width = 48
             Caption = 'PF 0'
             ParentColor = False
             OnClick = EAXLabelDblClick
@@ -487,9 +482,9 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 20
             AnchorSideLeft.Side = asrBottom
             Left = 0
-            Height = 18
-            Top = 120
-            Width = 40
+            Height = 22
+            Top = 144
+            Width = 48
             Caption = 'CF 0'
             ParentColor = False
             OnClick = EAXLabelDblClick
@@ -500,18 +495,18 @@ object MemoryBrowser: TMemoryBrowser
   end
   object Panel4: TPanel
     Left = 0
-    Height = 253
+    Height = 135
     Top = 305
-    Width = 716
+    Width = 622
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
-    ClientHeight = 253
-    ClientWidth = 716
+    ClientHeight = 135
+    ClientWidth = 622
     TabOrder = 1
     object Splitter3: TSplitter
-      Left = 500
-      Height = 251
+      Left = 406
+      Height = 133
       Top = 1
       Width = 5
       Align = alRight
@@ -522,28 +517,28 @@ object MemoryBrowser: TMemoryBrowser
     end
     object Panel3: TPanel
       Left = 1
-      Height = 251
+      Height = 133
       Top = 1
-      Width = 499
+      Width = 405
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 0
     end
     object pnlStacktrace: TPanel
-      Left = 505
-      Height = 251
+      Left = 411
+      Height = 133
       Top = 1
       Width = 210
       Align = alRight
       BevelInner = bvLowered
-      ClientHeight = 251
+      ClientHeight = 133
       ClientWidth = 210
       PopupMenu = pmStacktrace
       TabOrder = 1
       Visible = False
       object lvStacktraceData: TListView
         Left = 2
-        Height = 247
+        Height = 129
         Hint = 'Shows the current stack.'#13#10'Tip: When doubleclicking the value and it represents an address, then you can hold shift to make it show in the disassembler, and ctrl to make it show in the memory view. Else Cheat Engine will guess it for you based on if it''s executable memory or not'
         Top = 2
         Width = 206
@@ -562,7 +557,6 @@ object MemoryBrowser: TMemoryBrowser
             Caption = 'Value'
             Width = 42
           end>
-        DragKind = dkDock
         HideSelection = False
         MultiSelect = True
         OwnerData = True
@@ -728,6 +722,13 @@ object MemoryBrowser: TMemoryBrowser
         RadioItem = True
         OnClick = miTextEncodingClick
       end
+      object miTextEncodingCodePage: TMenuItem
+        AutoCheck = True
+        Caption = 'Codepage'
+        GroupIndex = 1
+        RadioItem = True
+        OnClick = miTextEncodingClick
+      end
       object miTextEncodingUTF8: TMenuItem
         AutoCheck = True
         Caption = 'UTF-8'
@@ -818,8 +819,31 @@ object MemoryBrowser: TMemoryBrowser
       OnClick = Addthisaddresstothelist1Click
     end
     object Makepagewritable1: TMenuItem
-      Caption = 'Make page writable'
+      Caption = 'Change page protection'
       OnClick = Makepagewritable1Click
+      object miChangeProtectionRWE: TMenuItem
+        Caption = 'Read Write Execute'
+        RadioItem = True
+        OnClick = miChangeProtectionClick
+      end
+      object miChangeProtectionRE: TMenuItem
+        Tag = 1
+        Caption = 'Read Execute'
+        RadioItem = True
+        OnClick = miChangeProtectionClick
+      end
+      object miChangeProtectionRW: TMenuItem
+        Tag = 2
+        Caption = 'Read Write'
+        RadioItem = True
+        OnClick = miChangeProtectionClick
+      end
+      object miChangeProtectionR: TMenuItem
+        Tag = 3
+        Caption = 'Read'
+        RadioItem = True
+        OnClick = miChangeProtectionClick
+      end
     end
     object MenuItem4: TMenuItem
       Caption = 'Data Breakpoint'
@@ -1081,7 +1105,7 @@ object MemoryBrowser: TMemoryBrowser
     top = 32
   end
   object MainMenu1: TMainMenu
-    left = 120
+    left = 128
     top = 8
     object File1: TMenuItem
       Caption = 'File'
@@ -1103,6 +1127,10 @@ object MemoryBrowser: TMemoryBrowser
       object Setsymbolsearchpath1: TMenuItem
         Caption = 'Set symbol searchpath'
         OnClick = Setsymbolsearchpath1Click
+      end
+      object MenuItem14: TMenuItem
+        Caption = 'Use windows debug symbols'
+        OnClick = MenuItem14Click
       end
       object MenuItem13: TMenuItem
         Caption = '-'
@@ -1306,43 +1334,49 @@ object MemoryBrowser: TMemoryBrowser
     end
     object Debug1: TMenuItem
       Caption = 'Debug'
-      object Run1: TMenuItem
+      OnClick = Debug1Click
+      object miDebugRun: TMenuItem
         Caption = 'Run'
         Enabled = False
         ShortCut = 120
-        OnClick = Run1Click
+        OnClick = miDebugRunClick
       end
-      object Step1: TMenuItem
+      object miRunUnhandled: TMenuItem
+        Caption = 'Run Unhandled'
+        Visible = False
+        OnClick = miRunUnhandledClick
+      end
+      object miDebugStep: TMenuItem
         Caption = 'Step'
         Enabled = False
         ShortCut = 118
-        OnClick = Step1Click
+        OnClick = miDebugStepClick
       end
-      object StepOver1: TMenuItem
+      object miDebugStepOver: TMenuItem
         Caption = 'Step Over'
         Enabled = False
         ShortCut = 119
-        OnClick = StepOver1Click
+        OnClick = miDebugStepOverClick
       end
-      object Executetillreturn1: TMenuItem
+      object miDebugExecuteTillReturn: TMenuItem
         Caption = 'Execute till return'
         Enabled = False
         ShortCut = 8311
-        OnClick = Executetillreturn1Click
+        OnClick = miDebugExecuteTillReturnClick
       end
-      object Runtill1: TMenuItem
+      object miDebugRunTill: TMenuItem
         Caption = 'Run till...'
         Enabled = False
         ShortCut = 115
-        OnClick = Runtill1Click
+        OnClick = miDebugRunTillClick
       end
-      object miSetAddress: TMenuItem
+      object miDebugSetAddress: TMenuItem
         Caption = 'Set Address'
         Enabled = False
         ShortCut = 16499
-        OnClick = miSetAddressClick
+        OnClick = miDebugSetAddressClick
       end
-      object Setbreakpoint1: TMenuItem
+      object miDebugToggleBreakpoint: TMenuItem
         Caption = 'Toggle breakpoint'
         ShortCut = 116
         OnClick = miTogglebreakpointClick
@@ -1354,14 +1388,64 @@ object MemoryBrowser: TMemoryBrowser
       object Continueanddetachdebugger1: TMenuItem
         Caption = 'Continue and  detach debugger'
         Visible = False
-        OnClick = Continueanddetachdebugger1Click
       end
       object N16: TMenuItem
         Caption = '-'
       end
-      object Break1: TMenuItem
+      object miDebugBreak: TMenuItem
         Caption = 'Break'
-        OnClick = Break1Click
+        OnClick = miDebugBreakClick
+      end
+      object N19: TMenuItem
+        Caption = '-'
+      end
+      object miBreakOnExceptions: TMenuItem
+        Caption = 'Break on unexpected exceptions'
+        OnClick = miBreakOnExceptionsClick
+        object miUnexpectedExceptionBreakNever: TMenuItem
+          AutoCheck = True
+          Caption = 'Never'
+          Checked = True
+          GroupIndex = 4
+          RadioItem = True
+          OnClick = miUnexpectedExceptionBreakOptionClick
+        end
+        object miUnexpectedExceptionBreakAlways: TMenuItem
+          Tag = 1
+          AutoCheck = True
+          Caption = 'Always'
+          GroupIndex = 4
+          RadioItem = True
+          OnClick = miUnexpectedExceptionBreakOptionClick
+        end
+        object miUnexpectedExceptionBreakIfInRegion: TMenuItem
+          Tag = 2
+          AutoCheck = True
+          Caption = 'Only in specified regions'
+          GroupIndex = 4
+          RadioItem = True
+          OnClick = miUnexpectedExceptionBreakOptionClick
+        end
+        object miExceptionRegionSeperator: TMenuItem
+          Caption = '-'
+          Visible = False
+        end
+        object miExceptionRegionAutoAddAllocs: TMenuItem
+          AutoCheck = True
+          Caption = 'Automatically add allocated memory by CE as watched regions'
+          Visible = False
+          OnClick = miExceptionRegionAutoAddAllocsClick
+        end
+        object miExceptionRegionManageList: TMenuItem
+          Caption = 'Manage exception region list'
+          Visible = False
+          OnClick = miExceptionRegionManageListClick
+        end
+        object miExceptionIgnoreList: TMenuItem
+          Caption = 'Manage exception code filter'
+          Visible = False
+          OnClick = miExceptionIgnoreListClick
+        end
       end
     end
     object Extra1: TMenuItem
@@ -1404,6 +1488,11 @@ object MemoryBrowser: TMemoryBrowser
         ShortCut = 16452
         OnClick = miDissectData2Click
       end
+      object MenuItem29: TMenuItem
+        Caption = 'Compare data/structures'
+        ShortCut = 24643
+        OnClick = MenuItem29Click
+      end
       object Disectwindow1: TMenuItem
         Caption = 'Dissect window(s)'
         ShortCut = 49239
@@ -1427,15 +1516,20 @@ object MemoryBrowser: TMemoryBrowser
         ShortCut = 49232
         OnClick = miPointerSpiderClick
       end
-      object MenuItem14: TMenuItem
+      object miUltimap: TMenuItem
         Caption = 'Ultimap'
         ShortCut = 49237
-        OnClick = MenuItem14Click
+        OnClick = miUltimapClick
       end
-      object MenuItem26: TMenuItem
+      object miUltimap2: TMenuItem
         Caption = 'Ultimap 2'
         ShortCut = 24661
-        OnClick = MenuItem26Click
+        OnClick = miUltimap2Click
+      end
+      object miCodeFilter: TMenuItem
+        Caption = 'Code Filter'
+        ShortCut = 24646
+        OnClick = miCodeFilterClick
       end
       object MenuItem22: TMenuItem
         Caption = 'Watch memory page access'

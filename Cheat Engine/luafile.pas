@@ -81,7 +81,7 @@ begin
     if useascii85 then //this ce version also added a filesize (This is why I usually don't recommend using svn builds for production work. Of coure, not many people using the svn made use of the file stuff)
     begin
       size:=dc.ReadDWord;
-      freemem(b);
+      FreeMemAndNil(b);
       getmem(b, size);
       read:=dc.read(b^, size);
       filedata.WriteBuffer(b^, read);
@@ -96,7 +96,7 @@ begin
     end;
 
   finally
-    freemem(b);
+    FreeMemAndNil(b);
   end;
 end;
 
@@ -135,8 +135,8 @@ begin
   a.TextContent:='Ascii85';
   n.Attributes.SetNamedItem(a);
 
-  freemem(outputastext);
-  m.free;
+  FreeMemAndNil(outputastext);
+  freeandnil(m);
 end;
 
 constructor TLuafile.create(name: string; stream: tstream);

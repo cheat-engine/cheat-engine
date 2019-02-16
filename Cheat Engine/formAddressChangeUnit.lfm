@@ -1,7 +1,7 @@
 object formAddressChange: TformAddressChange
-  Left = 503
+  Left = 507
   Height = 279
-  Top = 233
+  Top = 236
   Width = 201
   AutoSize = True
   BorderIcons = [biSystemMenu]
@@ -12,9 +12,8 @@ object formAddressChange: TformAddressChange
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Label1: TLabel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
@@ -445,6 +444,18 @@ object formAddressChange: TformAddressChange
     OnPopup = pmOffsetPopup
     left = 112
     top = 88
+    object miCut: TMenuItem
+      Caption = 'Cut'
+      OnClick = miCutClick
+    end
+    object miCopy: TMenuItem
+      Caption = 'Copy'
+      OnClick = miCopyClick
+    end
+    object miPaste: TMenuItem
+      Caption = 'Paste'
+      OnClick = miPasteClick
+    end
     object miUpdateOnReinterpretOnly: TMenuItem
       AutoCheck = True
       Caption = 'Only update the offset when the memory record gets reinterpreted'
@@ -454,6 +465,14 @@ object formAddressChange: TformAddressChange
       AutoCheck = True
       Caption = 'Only update the offset after a specific amount of time'
       OnClick = miUpdateAfterIntervalClick
+    end
+  end
+  object pmPointerRow: TPopupMenu
+    left = 152
+    top = 184
+    object miAddAddressToList: TMenuItem
+      Caption = 'Add this address to the list'
+      OnClick = miAddAddressToListClick
     end
   end
 end

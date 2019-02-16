@@ -30,6 +30,7 @@ type
     editFrom: TEdit;
     editTo: TEdit;
     Button3: TButton;
+    procedure Button2Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button1Click(Sender: TObject);
     procedure DontIncludeClick(Sender: TObject);
@@ -77,6 +78,11 @@ begin
 
 end;
 
+procedure TfrmSaveMemoryRegion.Button2Click(Sender: TObject);
+begin
+  close;
+end;
+
 procedure TfrmSaveMemoryRegion.Button1Click(Sender: TObject);
 var f: TFilestream;
     fromaddress,toaddress: qword;
@@ -108,17 +114,20 @@ begin
     size:=toaddress-fromaddress+1;
     getmem(buf[i],size);
 
-    if (not readprocessmemory(processhandle,pointer(ptrUint(fromaddress)),buf[i],size,temp)) or (temp<>size) then
+    if (not readprocessmemory(processhandle,pointer(ptrUint(fromaddress)),buf[i],size,temp)) then
     begin
-      setlength(unreadable,length(unreadable)+1);
-      unreadable[length(unreadable)-1]:=i;
+      if (temp<>size) then
+      begin
+        setlength(unreadable,length(unreadable)+1);
+        unreadable[length(unreadable)-1]:=i;
+      end;
     end;
   end;
 
   if length(unreadable)>0 then
   begin
     for i:=0 to length(buf)-1 do
-      freemem(buf[i]);
+      freememandnil(buf[i]);
 
     s:=rsNotAllTheMemoryWasReadableIn;
     for i:=0 to length(unreadable)-1 do
@@ -150,7 +159,7 @@ begin
           f.WriteBuffer(size,4);
         end;
         f.WriteBuffer(buf[i]^,size);
-        freemem(buf[i]);
+        freememandnil(buf[i]);
       end;
 
       modalresult:=mrOK;

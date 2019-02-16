@@ -6,7 +6,7 @@ unit Unit10;
 interface
 
 uses
-  LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
+  windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, Unit8, StdCtrls, Buttons, LResources, ExtCtrls, math;
 
 type
@@ -62,9 +62,10 @@ type
     procedure SpeedButton1Click(Sender: TObject);
   private
     { Private declarations }
-
-
     p1, p2, p3,p4: TPlayer;
+
+    procedure  LaunchGraphicalTut;
+
   public
     { Public declarations }
   end;
@@ -135,8 +136,40 @@ begin
   unrelatedrandomlychangingthing:=random(5000000);
 end;
 
+
+procedure TForm10.LaunchGraphicalTut;
+var nexttut: string;
+    filename: string;
+begin
+  filename:='gtutorial-'+{$ifdef cpu32}'i386'{$else}'x86_64'{$endif}+'.exe';
+  nexttut:=ExtractFilePath(application.ExeName)+filename;
+
+  if fileexists(nexttut) then
+  begin
+    //launch the graphical tutorial
+    ShellExecute(0, PChar('open'), PChar(nexttut),PChar(''), PChar(extractfilepath(nexttut)), SW_SHOW);
+    ExitProcess(0);
+  end;
+
+
+  nexttut:=ExtractFileDir(application.ExeName);
+
+  if ExtractFileName(nexttut)='bin' then
+  begin
+    nexttut:=ExtractFilePath(nexttut)+'tutorial\graphical\'+filename;
+
+    if fileexists(nexttut) then
+    begin
+      //launch the graphical tutorial
+      ShellExecute(0, PChar('open'), PChar(nexttut),PChar(''), PChar(extractfilepath(nexttut)), SW_SHOW);
+      ExitProcess(0);
+    end;
+  end;
+end;
+
 procedure TForm10.Button2Click(Sender: TObject);
 begin
+  LaunchGraphicalTut;
   hide;
   form4:=tform4.create(self);
   form4.show;
@@ -272,6 +305,7 @@ end;
 
 procedure TForm10.SpeedButton1Click(Sender: TObject);
 begin
+  LaunchGraphicalTut;
   showmessage(rsU10ThisWasTheLastTutorial);
   Application.Terminate;
 end;

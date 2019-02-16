@@ -10,7 +10,6 @@ object TypeForm: TTypeForm
   ClientHeight = 118
   ClientWidth = 764
   OnShow = FormShow
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object Panel1: TPanel

@@ -258,7 +258,7 @@ begin
           copymemory(@lpme.szModule[0], mname, min(r.stringlength+1, MAX_MODULE_NAME32));
           lpme.szModule[MAX_MODULE_NAME32-1]:=#0;
 
-          freemem(mname);
+          FreeMemAndNil(mname);
         end;
 
       end;
@@ -319,7 +319,7 @@ begin
           CopyMemory(@lppe.szExeFile[0], pname, min(r.stringlength+1, MAX_PATH));
           lppe.szExeFile[MAX_PATH-1]:=#0;
 
-          freemem(pname);
+          FreeMemAndNil(pname);
         end;
 
       end;
@@ -662,7 +662,7 @@ begin
           end;
         end;
 
-        freemem(input);
+        FreeMemAndNil(input);
       end
       {$ifdef windows}
       else
@@ -1153,7 +1153,7 @@ begin
           ml[mapslinesize]:=#0;
 
           mapsline:=ml;
-          freemem(ml);
+          FreeMemAndNil(ml);
         end;
       end;
 
@@ -1381,7 +1381,7 @@ begin
         getmem(result,  contextsize);
         if receive(result, contextsize)=0 then
         begin
-          freemem(result);
+          FreeMemAndNil(result);
           result:=nil;
         end;
       end;
@@ -1410,7 +1410,7 @@ begin
       receive(_name, CeVersion.stringsize);
 
       name:=_name;
-      freemem(_name);
+      FreeMemAndNil(_name);
 
       result:=length(name);
     end;
@@ -1515,7 +1515,7 @@ var
   maxsymname: integer;
 
   isexe: uint32;
-  shortenedmodulename: string; //the name of the module with nothing after .so
+  shortenedmodulename: string=''; //the name of the module with nothing after .so
   i: integer;
 begin
   result:=true;
@@ -1586,7 +1586,7 @@ begin
                   //need more memory
                   maxsymname:=currentsymbol^.namelength+1;
 
-                  freemem(symname);
+                  FreeMemAndNil(symname);
                   getmem(symname, maxsymname);
                 end;
 
@@ -1613,9 +1613,9 @@ begin
               end;
 
 
-              freemem(symname);
+              FreeMemAndNil(symname);
 
-              freemem(decompressed);
+              FreeMemAndNil(decompressed);
 
             end;
 
@@ -1659,7 +1659,7 @@ begin
       result:=r<>0;
     end;
 
-    freemem(input);
+    FreeMemAndNil(input);
 
   end;
 end;

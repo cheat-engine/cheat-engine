@@ -22,6 +22,7 @@ type
 
   public
     constructor create;
+
     procedure render; override;
     property border: single read fborder write fborder;
     property percentage: single read fpercentage write fpercentage;
@@ -72,16 +73,16 @@ begin
   glColor3f(1,0,0);
   glBegin(GL_QUADS);              // Each set of 4 vertices form a quad
 
-  glTexCoord2f(0,1);
+//  glTexCoord2f(0,1);
   glVertex2f(x+dw*-1, ry+dh*-1);
 
-  glTexCoord2f(1,1);
+//  glTexCoord2f(1,1);
   glVertex2f(x+dw, ry+dh*-1);
 
-  glTexCoord2f(1,0);
+//  glTexCoord2f(1,0);
   glVertex2f(x+dw, ry+dh);
 
-  glTexCoord2f(0,0);
+//  glTexCoord2f(0,0);
   glVertex2f(x+dw*-1, ry+dh);
   glEnd();
 
@@ -89,16 +90,16 @@ begin
   glColor3f(0,0,1);
   glBegin(GL_QUADS);              // Each set of 4 vertices form a quad
 
-  glTexCoord2f(0,1);
+ // glTexCoord2f(0,1);
   glVertex2f(x+dw*-1+fborder, ry+dh*-1+fborder);
 
-  glTexCoord2f(1,1);
+ // glTexCoord2f(1,1);
   glVertex2f(x+dw-fborder, ry+dh*-1+fborder);
 
-  glTexCoord2f(1,0);
+ // glTexCoord2f(1,0);
   glVertex2f(x+dw-fborder, ry+dh-fborder);
 
-  glTexCoord2f(0,0);
+ // glTexCoord2f(0,0);
   glVertex2f(x+dw*-1+fborder, ry+dh-fborder);
   glEnd();
 
@@ -107,16 +108,16 @@ begin
   glColor3f(0,1,0);
   glBegin(GL_QUADS);              // Each set of 4 vertices form a quad
 
-  glTexCoord2f(0,1);
+ // glTexCoord2f(0,1);
   glVertex2f(x+dw*-1+fborder, ry+dh*-1+fborder);
 
-  glTexCoord2f(1,1);
+ // glTexCoord2f(1,1);
   glVertex2f(x+dw-fborder-percentagewidth, ry+dh*-1+fborder);
 
-  glTexCoord2f(1,0);
+ // glTexCoord2f(1,0);
   glVertex2f(x+dw-fborder-percentagewidth, ry+dh-fborder);
 
-  glTexCoord2f(0,0);
+ // glTexCoord2f(0,0);
   glVertex2f(x+dw*-1+fborder, ry+dh-fborder);
   glEnd();
 

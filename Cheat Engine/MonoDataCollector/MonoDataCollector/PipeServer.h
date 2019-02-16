@@ -40,6 +40,8 @@
 #define MONOCMD_OBJECT_INIT 34
 #define MONOCMD_GETVTABLEFROMCLASS 35
 #define MONOCMD_GETMETHODPARAMETERS 36
+#define MONOCMD_ISCLASSGENERIC 37
+
 
 typedef struct MonoType;
 typedef struct MonoMethodSignature;
@@ -58,6 +60,7 @@ typedef void* (__cdecl *MONO_OBJECT_GET_CLASS)(void *object);
 typedef void (__cdecl *MONO_DOMAIN_FOREACH)(MonoDomainFunc func, void *user_data);
 
 typedef int (__cdecl *MONO_DOMAIN_SET)(void *domain, BOOL force);
+typedef void* (__cdecl *MONO_DOMAIN_GET)();
 typedef int (__cdecl *MONO_ASSEMBLY_FOREACH)(GFunc func, void *user_data);
 typedef void* (__cdecl *MONO_ASSEMBLY_GET_IMAGE)(void *assembly);
 typedef void* (__cdecl *MONO_ASSEMBLY_OPEN)(void *fname, int *status);
@@ -82,6 +85,8 @@ typedef void* (__cdecl *MONO_CLASS_GET_PARENT)(void *klass);
 typedef void* (__cdecl *MONO_CLASS_VTABLE)(void *domain, void *klass);
 typedef void* (__cdecl *MONO_CLASS_FROM_MONO_TYPE)(void *type);
 typedef void* (__cdecl *MONO_CLASS_GET_ELEMENT_CLASS)(void *klass);
+typedef int (__cdecl *MONO_CLASS_IS_GENERIC)(void *klass);
+
 
 
 typedef int (__cdecl *MONO_CLASS_NUM_FIELDS)(void *klass);
@@ -180,9 +185,11 @@ private:
 	MONO_CLASS_GET_PARENT mono_class_get_parent;
 	MONO_CLASS_VTABLE mono_class_vtable;
 	MONO_CLASS_FROM_MONO_TYPE mono_class_from_mono_type;
+	MONO_CLASS_IS_GENERIC mono_class_is_generic;
 
 	MONO_DOMAIN_FOREACH mono_domain_foreach;
 	MONO_DOMAIN_SET mono_domain_set;
+	MONO_DOMAIN_GET mono_domain_get;
 	MONO_ASSEMBLY_FOREACH mono_assembly_foreach;	
 	MONO_ASSEMBLY_GET_IMAGE mono_assembly_get_image;
 	MONO_IMAGE_GET_ASSEMBLY mono_image_get_assembly;
@@ -307,6 +314,7 @@ private:
 	void GetFullTypeName();
 	void Object_New();
 	void Object_Init();
+	void IsGenericClass();
 
 public:
 	CPipeServer(void);

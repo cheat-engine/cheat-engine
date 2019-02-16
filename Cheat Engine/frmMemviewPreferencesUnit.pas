@@ -16,11 +16,13 @@ type
   TfrmMemviewPreferences = class(TForm)
     btnFont: TButton;
     btnHexFont: TButton;
+    btnRegisterViewFont: TButton;
     Button2: TButton;
     Button3: TButton;
     cbColorGroup: TComboBox;
     cbShowStatusBar: TCheckBox;
     ColorDialog1: TColorDialog;
+    cbFontQuality: TComboBox;
     edtSpaceAboveLines: TEdit;
     edtSpaceBelowLines: TEdit;
     edtHexSpaceBetweenLines: TEdit;
@@ -28,11 +30,14 @@ type
     edtJLSpacing: TEdit;
     FontDialog1: TFontDialog;
     FontDialog2: TFontDialog;
+    FontDialog3: TFontDialog;
     GroupBox1: TGroupBox;
     GroupBox2: TGroupBox;
     GroupBox3: TGroupBox;
     GroupBox4: TGroupBox;
     GroupBox5: TGroupBox;
+    GroupBox6: TGroupBox;
+    Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
@@ -40,6 +45,7 @@ type
     Label6: TLabel;
     Label7: TLabel;
     lblConditionalJump: TLabel;
+    lblRegisterExample: TLabel;
     lblUnconditionalJump: TLabel;
     lblCall: TLabel;
     lblHex: TLabel;
@@ -55,9 +61,11 @@ type
     Panel5: TPanel;
     pmColors: TPopupMenu;
     procedure btnFontClick(Sender: TObject);
+    procedure btnRegisterViewFontClick(Sender: TObject);
     procedure btnHexFontClick(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure cbColorGroupChange(Sender: TObject);
+    procedure cbFontQualitySelect(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure GroupBox1Click(Sender: TObject);
@@ -164,6 +172,7 @@ begin
   lblHex.font:=FontDialog1.font;
 
   lblHexExample.Font:=fontdialog2.font;
+  lblRegisterExample.Font:=FontDialog3.font;
 
   oldstate:=csUndefined;
   cbColorGroupChange(cbColorGroup); //restore the colors
@@ -352,6 +361,15 @@ begin
   end;
 end;
 
+procedure TfrmMemviewPreferences.btnRegisterViewFontClick(Sender: TObject);
+begin
+  if fontdialog3.execute then
+  begin
+    btnRegisterViewFont.Caption:=fontdialog3.Font.Name+' '+inttostr(fontdialog3.Font.Size);
+    applyfont;
+  end;
+end;
+
 procedure TfrmMemviewPreferences.btnHexFontClick(Sender: TObject);
 var fd: TFontData;
 begin
@@ -398,6 +416,17 @@ begin
     lblHex.Font.color:=colors[oldstate].hexcolor;
   end;
 end;
+
+procedure TfrmMemviewPreferences.cbFontQualitySelect(Sender: TObject);
+begin
+  if cbFontQuality.ItemIndex<>-1 then
+  begin
+    fontdialog2.Font.quality:=TFontQuality(cbFontQuality.ItemIndex);
+    applyfont;
+  end;
+
+end;
+
 
 initialization
   {$I frmMemviewPreferencesUnit.lrs}

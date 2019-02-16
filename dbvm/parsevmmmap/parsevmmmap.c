@@ -21,7 +21,7 @@ int main(void)
 	{
 		unsigned int startofbss;
 		unsigned int sizeofbss;
-		unsigned int memorylist=0;
+		unsigned int FirstFreeAddress=0;
 		temp[0]=0;
 
 		//find the line start starts with ".bss  "
@@ -31,17 +31,19 @@ int main(void)
 		fscanf(fpVMMMAP,"%x",&startofbss);
 		fscanf(fpVMMMAP,"%x",&sizeofbss);
 
+		/*
 		temp[0]=0;
-		while (strcmp(temp,"memorylist")!=0)
+		while (strcmp(temp,"FirstFreeAddress")!=0)
 		{
-			memorylist=strtol(temp,NULL,16); 
-			fscanf(fpVMMMAP,"%s",(char *)&temp);
-		}
+			FirstFreeAddress=strtol(temp,NULL,16);
+			if (fscanf(fpVMMMAP,"%s",(char *)&temp)==EOF)
+			{
+			  printf("Error: EOF\n");
+			  return 1;
+			}
+		}*/
 		fclose(fpVMMMAP);
 
-
-
-	
 		if ((startofbss+sizeofbss) % 0x1000)
 		{
 		    //add a little bit more for a nice page boundary
@@ -49,9 +51,9 @@ int main(void)
 		    sizeofbss+=0x1000-difference;
 		}
 
-                printf("startofbss=%x\n",startofbss);
-                printf("sizeofbss=%x\n",sizeofbss);
-                printf("memorylist=%x\n",memorylist);
+    printf("startofbss=%x\n",startofbss);
+    printf("sizeofbss=%x\n",sizeofbss);
+    //printf("FirstFreeAddress=%x\n",FirstFreeAddress);
 
 	  	fpVMMBIN=fopen("vmm.bin","r+");
 		if (fpVMMBIN)
@@ -63,8 +65,8 @@ int main(void)
 
 
 
-			printf("startoffreemem=%x\n",(int)startoffreemem);
-			*(unsigned long long *)(&buf[memorylist-startofbss])=startoffreemem+0x7f00;
+			//printf("startoffreemem=%x\n",(int)startoffreemem);
+			//*(unsigned long long *)(&buf[FirstFreeAddress-startofbss])=(startoffreemem+0x9000) & 0xfffffffffffff000ULL;
 
 			//seek to the end
 			printf("Seeking to %x\n",startofbss-0x00400000);

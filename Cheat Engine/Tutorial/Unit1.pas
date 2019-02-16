@@ -20,6 +20,7 @@ type
     Label1: TLabel;
     btnOK: TButton;
     procedure Button1Click(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
@@ -69,6 +70,21 @@ begin
   form2.top:=top;
   form2.show;
 
+end;
+
+procedure TForm1.FormShow(Sender: TObject);
+var
+  tw: integer;
+  th: integer;
+begin
+  tw:=canvas.TextWidth('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX');
+  th:=canvas.TextHeight('ajFgWX');
+
+  if width<tw then
+    width:=tw;
+
+  if memo1.height<th*10 then
+    height:=height+(th*10-memo1.height);
 end;
 
 procedure TForm1.Timer1Timer(Sender: TObject);

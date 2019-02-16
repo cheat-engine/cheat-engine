@@ -22,11 +22,11 @@ begin
   result:=0;
   parameters:=lua_gettop(L);
 
-
-
-
   if parameters>=1 then
-    f:=lua_toceuserdata(L, 1)
+  begin
+    f:=lua_toceuserdata(L, 1);
+    if (f<>nil) and (not (TObject(f) is TComponent)) then raise exception.create('createTimer: '+TObject(f).ClassName+' is not a Component');
+  end
   else
     f:=nil;
 

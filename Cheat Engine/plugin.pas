@@ -869,15 +869,20 @@ type TPluginHandler=class
     destructor destroy; override;
 end;
 
+
+
+
 var pluginhandler: TPluginhandler;
     exportedfunctions: TExportedFunctions;
 
     onAPIPointerChange: TNotifyEvent;
 
+
+
 implementation
 
 uses MainUnit,memorybrowserformunit,formsettingsunit, pluginexports, SynHighlighterAA,
-     DBK32functions, luahandler, processhandlerunit;
+     DBK32functions, luahandler, processhandlerunit, BetterDLLSearchPath;
 
 resourcestring
   rsErrorEnabling = 'Error enabling %s';
@@ -1416,17 +1421,29 @@ begin
   end;
 end;
 
+
+
+
 function TPluginHandler.GetPluginName(dllname:string):string;
 var hmodule: thandle;
     GetVersion: TGetVersion;
     PluginVersion: TPluginVersion;
+    path: widestring;
 begin
   result:='';
   if uppercase(extractfileext(dllname))<>'.DLL' then raise exception.Create(Format(rsErrorLoadingOnlyDLLFilesAreAllowed, [dllname]));
+
   hmodule:=loadlibrary(pchar(dllname));
+  if (hmodule=0) and assigned(AddDllDirectory) then
+  begin
+    path:=extractfiledir(dllname);
+    AddDllDirectory(pwidechar(@path[1]));
+    hmodule:=loadlibrary(pchar(dllname));
+  end;
 
   if hmodule=0 then
     raise exception.create(rsPlugThePluginDllCouldNotBeLoaded+inttostr(getlasterror));
+
 
   GetVersion:=getprocaddress(hmodule,'CEPlugin_GetVersion');
   if not assigned(GetVersion) then
@@ -1476,6 +1493,7 @@ var hmodule: thandle;
     PluginVersion: TPluginVersion;
     s: string;
     i: integer;
+    path: widestring;
 begin
   result:=-1;
   if uppercase(extractfileext(dllname))<>'.DLL' then raise exception.Create(Format(rsErrorLoadingOnlyDLLFilesAreAllowed, [dllname]));
@@ -1497,6 +1515,13 @@ begin
   end;
 
   hmodule:=loadlibrary(pchar(dllname));
+  if (hmodule=0) and assigned(AddDllDirectory) then
+  begin
+    path:=ExtractFiledir(dllname);
+    AddDllDirectory(pwidechar(@path[1]));
+    hmodule:=loadlibrary(pchar(dllname));
+  end;
+
   if hmodule=0 then
     exit;
 
@@ -1611,10 +1636,13 @@ begin
         s:=plugins[i].RegisteredFunctions6[j].menuitem.Caption;
         addressofmenuitemstring:=@s[1];
         show:=true;
-        if plugins[i].pluginversion<=5 then
-          Tpluginfuntion6OnContextVersion5(plugins[i].RegisteredFunctions6[j].callbackOnContext)(address, @addressofmenuitemstring)
-        else
-          plugins[i].RegisteredFunctions6[j].callbackOnContext(address, @addressofmenuitemstring, @show);
+        if assigned(plugins[i].RegisteredFunctions6[j].callbackOnContext) then
+        begin
+          if plugins[i].pluginversion<=5 then
+            Tpluginfuntion6OnContextVersion5(plugins[i].RegisteredFunctions6[j].callbackOnContext)(address, @addressofmenuitemstring)
+          else
+            plugins[i].RegisteredFunctions6[j].callbackOnContext(address, @addressofmenuitemstring, @show);
+        end;
 
         plugins[i].RegisteredFunctions6[j].menuitem.Caption:=addressofmenuitemstring;
         plugins[i].RegisteredFunctions6[j].menuitem.Visible:=show;
@@ -1631,7 +1659,8 @@ begin
   try
     for i:=0 to length(plugins)-1 do
       for j:=0 to length(plugins[i].RegisteredFunctions7)-1 do
-        plugins[i].RegisteredFunctions7[j].callback(address, addressStringPointer, bytestringpointer, opcodestringpointer, specialstringpointer, textcolor);
+        if assigned(plugins[i].RegisteredFunctions7[j].callback) then
+          plugins[i].RegisteredFunctions7[j].callback(address, addressStringPointer, bytestringpointer, opcodestringpointer, specialstringpointer, textcolor);
   finally
     pluginCS.Leave;
   end;
@@ -1645,7 +1674,8 @@ begin
   try
     for i:=0 to length(plugins)-1 do
       for j:=0 to length(plugins[i].RegisteredFunctions2)-1 do
-        if plugins[i].RegisteredFunctions2[j].callback(devent)=1 then result:=1;
+        if assigned(plugins[i].RegisteredFunctions2[j].callback) then
+          if plugins[i].RegisteredFunctions2[j].callback(devent)=1 then result:=1;
   finally
     pluginCS.Leave;
   end;
@@ -1898,6 +1928,7 @@ begin
   exportedfunctions.GetLuaState:=@GetLuaState;
   exportedfunctions.MainThreadCall:=@pluginsync;
 end;
+
 
 end.
 

@@ -18,6 +18,9 @@ vmeventhandler.c: This will handle the events
 #include "msrnames.h"
 #include "vmxcontrolstructures.h"
 #include "ultimap.h"
+#include "vmxemu.h"
+#include "epthandler.h"
+#include "vmxsetup.h"
 
 
 #ifndef DEBUG
@@ -25,7 +28,62 @@ vmeventhandler.c: This will handle the events
 #define sendstring(s)
 #endif
 
+criticalSection CR3ValueLogCS;
+QWORD *CR3ValueLog; //if not NULL, record
+int CR3ValuePos;
 
+int raiseNMI(void)
+{
+  VMEntry_interruption_information newintinfo;
+  sendstring("Raising NMI\n\r");
+
+  newintinfo.interruption_information=0;
+  newintinfo.interruptvector=2; //NMI
+  newintinfo.type=2; //NMI
+  newintinfo.haserrorcode=0;
+  newintinfo.valid=1;
+
+  vmwrite(vm_entry_interruptioninfo, newintinfo.interruption_information); //entry info field
+  vmwrite(vm_entry_exceptionerrorcode, 0); //entry errorcode
+  vmwrite(vm_entry_instructionlength, vmread(vm_exit_instructionlength)); //entry instruction length
+  return 0;
+}
+
+int raisePMI()
+{
+  //get the pmi interrupt number from the APIC
+  int interruptvector;
+  DWORD LVT_Perfmon_Counter_Register;
+  VMEntry_interruption_information newintinfo;
+
+  if (readMSR(IA32_APICBASE_MSR) & (1<<10))  //x2apic
+  {
+    LVT_Perfmon_Counter_Register=readMSR(IA32_X2APIC_LVT_PMI_MSR);
+
+    writeMSR(IA32_X2APIC_LVT_PMI_MSR, LVT_Perfmon_Counter_Register | (1<<16)); //set bit 16 (the mask bit)
+  }
+  else
+  {
+    LVT_Perfmon_Counter_Register=*(volatile DWORD *)(IA32_APIC_BASE+0x340);
+
+    *(volatile DWORD *)(IA32_APIC_BASE+0x340)=LVT_Perfmon_Counter_Register | (1 << 16);
+  }
+
+  interruptvector=LVT_Perfmon_Counter_Register & 0xff;
+
+  sendstringf("Raising PMI (Vector %d)\n",interruptvector);
+
+  newintinfo.interruption_information=0;
+  newintinfo.interruptvector=interruptvector;
+  newintinfo.type=itExternal; //external
+  newintinfo.haserrorcode=0;
+  newintinfo.valid=1;
+
+  vmwrite(vm_entry_interruptioninfo, newintinfo.interruption_information); //entry info field
+  vmwrite(vm_entry_exceptionerrorcode, 0); //entry errorcode
+  vmwrite(vm_entry_instructionlength, vmread(vm_exit_instructionlength)); //entry instruction length
+  return 0;
+}
 
 int raiseGeneralProtectionFault(UINT64 errorcode)
 {
@@ -38,9 +96,9 @@ int raiseGeneralProtectionFault(UINT64 errorcode)
   newintinfo.haserrorcode=1;
   newintinfo.valid=1;
 
-  vmwrite(0x4016, newintinfo.interruption_information); //entry info field
-  vmwrite(0x4018, errorcode); //entry errorcode
-  vmwrite(0x401a, vmread(0x440c)); //entry instruction length
+  vmwrite(vm_entry_interruptioninfo, newintinfo.interruption_information); //entry info field
+  vmwrite(vm_entry_exceptionerrorcode, errorcode); //entry errorcode
+  vmwrite(vm_entry_instructionlength, vmread(vm_exit_instructionlength)); //entry instruction length
   return 0;
 }
 
@@ -52,19 +110,19 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
 
   PGDT_ENTRY gdt=NULL,ldt=NULL;
   UINT64 gdtbase=isAMD?currentcpuinfo->vmcb->gdtr_base:vmread(vm_guest_gdtr_base);
+  UINT64 gdtlimit=isAMD?currentcpuinfo->vmcb->gdtr_limit:vmread(vm_guest_gdt_limit);
   ULONG ldtselector=isAMD?currentcpuinfo->vmcb->ldtr_selector:vmread(vm_guest_ldtr);
   Access_Rights old_csaccessrights, new_csaccessrights; //intel
-  Segment_Attribs old_csattribs, new_csattribs; //amd
+  Segment_Attribs /*old_csattribs,*/ new_csattribs; //amd
   int privilege_level_changed=0;
-  void *_TSS;
+  void *_TSS=NULL;
 
   //nosendchar[getAPICID()]=1;
 
-
   sendstring("Emulation\n");
-  if (vm_guest_cs==0x10)
+  if (vmread(vm_guest_cs)==0x10)
   {
-    sendstring("!!!!!FROM KERNELMODE (assuming it\'s windows 64!!!!!\n");
+    sendstring("!!!!!FROM KERNELMODE (assuming it\'s windows 64)!!!!!\n");
   }
 
   ULONG original_ss=isAMD?currentcpuinfo->vmcb->ss_selector:vmread(vm_guest_ss);
@@ -82,44 +140,33 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
 
   sendstringf("cpunr=%d\n",currentcpuinfo->cpunr);
 
-
-
-
-
-
-
   int notpaged=0;
   //int pushssrsp=0;   //if cpl change or 64-bit mode set ss/rsp on the stack as well
 
   sendstring("Mapping the gdt\n");
   sendstringf("gdtbase=%6\n",gdtbase);
-  UINT64 PAGDT=getPhysicalAddressVM(currentcpuinfo, gdtbase, &notpaged);
 
-
-  if (notpaged)
+  gdt=mapVMmemory(currentcpuinfo, gdtbase, gdtlimit, NULL, NULL);
+  if (gdt==NULL)
   {
     nosendchar[getAPICID()]=0;
     sendstring("For some messed up reason the gdt is paged out...");
     return 1;
   }
-  else
-  {
-    sendstringf("Physical address of the GDT is %6\n",PAGDT);
-    gdt=(PGDT_ENTRY)MapPhysicalMemoryEx(PAGDT, currentcpuinfo->AvailableVirtualAddress,1);
-    sendstringf("Mapped gdt at virtual address %6 (%6)\n", gdt, VirtualToPhysical((UINT64)gdt));
-  }
+
+  ULONG ldtlimit;
+
 
   if (ldtselector)
   {
     ULONG ldtbase;
-    ULONG ldtlimit;
 
     nosendchar[getAPICID()]=0;
     sendstring("ldt is valid, so getting the information\n\r");
 
     ldtbase=(gdt[(ldtselector >> 3)].Base24_31 << 24) | gdt[(ldtselector >> 3)].Base0_23;
     ldtlimit=(gdt[(ldtselector >> 3)].Limit16_19 << 16) | gdt[(ldtselector >> 3)].Limit0_15;
-    ldt=(PGDT_ENTRY)(UINT64)MapPhysicalMemory(getPhysicalAddressVM(currentcpuinfo, ldtbase, &notpaged), currentcpuinfo->AvailableVirtualAddress+0x00200000);
+    ldt=(PGDT_ENTRY)mapVMmemory(currentcpuinfo, ldtbase, ldtlimit, NULL,NULL);
 
     sendstringf("ldt=%8\n\r",(UINT64)ldt);
   }
@@ -148,9 +195,9 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
   }
   else
   {
-    old_csattribs.SegmentAttrib=currentcpuinfo->vmcb->cs_attrib;
+    //old_csattribs.SegmentAttrib=currentcpuinfo->vmcb->cs_attrib;
     new_csattribs.SegmentAttrib=getSegmentAttrib(gdt, ldt, cs);
-    sendstringf("old_cs attribs=%x\n",old_csattribs.SegmentAttrib);
+   // sendstringf("old_cs attribs=%x\n",old_csattribs.SegmentAttrib);
     sendstringf("new_cs attribs=%x\n",new_csattribs.SegmentAttrib);
     privilege_level_changed=(currentcpuinfo->vmcb->CPL != new_csattribs.DPL);
 
@@ -163,14 +210,21 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
   //look at the TSS to find out the new ss/rsp
   //map tss (tss base is can be found with vmread(0x6814))
   QWORD TSSBase=isAMD?currentcpuinfo->vmcb->tr_base:vmread(vm_guest_tr_base);
+  QWORD TSSLimit=isAMD?currentcpuinfo->vmcb->tr_limit:vmread(vm_guest_tr_limit);
 
-  _TSS=(void *)(UINT64)MapPhysicalMemory(getPhysicalAddressVM(currentcpuinfo, TSSBase, &notpaged), currentcpuinfo->AvailableVirtualAddress+0x00400000);
-  if (notpaged)
+
+   _TSS=mapVMmemory(currentcpuinfo, TSSBase, TSSLimit, NULL, NULL);
+  if (_TSS==NULL)
   {
     nosendchar[getAPICID()]=0;
     sendstring("TSS PAGING FAULT\n");
 
     //I have no idea what to do here, I'll pass it off to the original handler
+    if (gdt)
+      unmapVMmemory(gdt,gdtlimit);
+
+    if (ldt)
+      unmapVMmemory(ldt, ldtlimit);
     return 1;
 
   }
@@ -277,9 +331,9 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
 
 
     //map address of rsp and write the info there
-    stack=(UINT64 *)(UINT64)MapPhysicalMemoryEx(getPhysicalAddressVM(currentcpuinfo, rsp, &notpaged), currentcpuinfo->AvailableVirtualAddress+0x00400000,1);
+    stack=mapVMmemory(currentcpuinfo, rsp, 6*8, NULL, NULL);
 
-    if (notpaged)
+    if (stack==NULL)
     {
       nosendchar[getAPICID()]=0;
       sendstring("STACK FAILURE\n");
@@ -301,10 +355,16 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
 
       sendvmstate(currentcpuinfo, vmregisters);
 
+      if (gdt)
+        unmapVMmemory(gdt,gdtlimit);
+
+      if (ldt)
+        unmapVMmemory(ldt, ldtlimit);
+
+      if (_TSS)
+        unmapVMmemory(_TSS, TSSLimit);
 
       return 1; //error
-
-
     }
 
     if (haserrorcode)
@@ -330,6 +390,9 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
     {
       sendstringf("[%6]=%6\n", rsp+5*8,stack[5]);
     }
+
+    if (stack)
+      unmapVMmemory(stack, 6*8);
   }
   else
   {
@@ -346,7 +409,7 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
     if (privilege_level_changed) //ss-rsp
       esp-=2*4;
 
-    stack=(ULONG *)(UINT64)MapPhysicalMemoryEx(getPhysicalAddressVM(currentcpuinfo, esp, &notpaged), currentcpuinfo->AvailableVirtualAddress+0x00400000,1);
+    stack=mapVMmemory(currentcpuinfo, esp, 6*4, NULL, NULL);
 
     if (notpaged)
     {
@@ -369,6 +432,14 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
 
       sendvmstate(currentcpuinfo, vmregisters);
 
+      if (gdt)
+        unmapVMmemory(gdt,gdtlimit);
+
+      if (ldt)
+        unmapVMmemory(ldt, ldtlimit);
+
+      if (_TSS)
+        unmapVMmemory(_TSS, TSSLimit);
 
       return 1; //error
 
@@ -393,6 +464,8 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
     else
       vmwrite(vm_guest_rsp,esp);
 
+    if (stack)
+      unmapVMmemory(stack, 6*4);
   }
 
 
@@ -492,12 +565,16 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
 
   sendstringf("Returning\n\r");
 
-#ifdef DEBUG
-  //sendvmstate(currentcpuinfo, vmregisters); //debug
-#endif
+  if (gdt)
+    unmapVMmemory(gdt,gdtlimit);
+
+  if (ldt)
+    unmapVMmemory(ldt, ldtlimit);
+
+  if (_TSS)
+    unmapVMmemory(_TSS, TSSLimit);
 
   return 0;
-
 }
 
 
@@ -591,12 +668,12 @@ int handle_cr3_callback(pcpuinfo currentcpuinfo,VMRegisters *vmregisters)
 {
   PGDT_ENTRY gdt=NULL,ldt=NULL;
   UINT64 gdtbase=vmread(0x6816);
+  UINT64 gdtlimit=vmread(vm_guest_gdt_limit);
   ULONG ldtselector=vmread(0x80c);
-  int notpaged=0;
 
   nosendchar[getAPICID()]=0;
   sendstringf("Handling cr3 edit. Is %x wants to set it to %x:\n\r", vmread(0x6802), currentcpuinfo->guestCR3);
-  sendstring("Also, currently not implemtned so no idea how this happened\n\r");
+  sendstring("Also, currently not implemented so no idea how this happened\n\r");
   while (1);
 
 
@@ -695,21 +772,20 @@ int handle_cr3_callback(pcpuinfo currentcpuinfo,VMRegisters *vmregisters)
   //and set the segment selectors to what it will be (cs and ss only)
 
 
-  gdt=(PGDT_ENTRY)(UINT64)MapPhysicalMemory(
-        getPhysicalAddressVM(currentcpuinfo, gdtbase, &notpaged)
-        ,currentcpuinfo->AvailableVirtualAddress
-      );
+  gdt=mapVMmemory(currentcpuinfo, gdtbase, gdtlimit, NULL, NULL);
+  ULONG ldtlimit;
+
 
   if (ldtselector)
   {
     ULONG ldtbase;
-    ULONG ldtlimit;
 
     //sendstring("ldt is valid, so getting the information\n\r");
 
     ldtbase=(gdt[(ldtselector >> 3)].Base24_31 << 24) + gdt[(ldtselector >> 3)].Base0_23;
     ldtlimit=(gdt[(ldtselector >> 3)].Limit16_19 << 16) + gdt[(ldtselector >> 3)].Limit0_15;
-    ldt=(PGDT_ENTRY)(UINT64)MapPhysicalMemory(getPhysicalAddressVM(currentcpuinfo, ldtbase, &notpaged), currentcpuinfo->AvailableVirtualAddress+0x00200000);
+    //ldt=(PGDT_ENTRY)(UINT64)MapPhysicalMemory(getPhysicalAddressVM(currentcpuinfo, ldtbase, &notpaged), currentcpuinfo->AvailableVirtualAddress+0x00200000);
+    ldt=mapVMmemory(currentcpuinfo, ldtbase, ldtlimit, NULL, NULL);
   }
 
   vmwrite(0x802,currentcpuinfo->cr3_callback.callback_cs);
@@ -723,6 +799,11 @@ int handle_cr3_callback(pcpuinfo currentcpuinfo,VMRegisters *vmregisters)
   vmwrite(0x4816,getSegmentAccessRights(gdt,ldt,currentcpuinfo->cr3_callback.callback_cs));
   vmwrite(0x4818,getSegmentAccessRights(gdt,ldt,currentcpuinfo->cr3_callback.callback_ss));
 
+  if (gdt)
+    unmapVMmemory(gdt, gdtlimit);
+
+  if (ldt)
+    unmapVMmemory(ldt, ldtlimit);
 
   //set the params for the callback to know whats going on
   if (currentcpuinfo->cr3_callback.calling_convention==0)
@@ -735,7 +816,7 @@ int handle_cr3_callback(pcpuinfo currentcpuinfo,VMRegisters *vmregisters)
     ULONG *stack;
     //sendstring("calling convention=0\n\r");
 
-    stack=(ULONG *)(UINT64)MapPhysicalMemoryEx(getPhysicalAddressVM(currentcpuinfo, currentcpuinfo->cr3_callback.callback_rsp-12, &notpaged), currentcpuinfo->AvailableVirtualAddress,1);
+    stack=mapVMmemory(currentcpuinfo, currentcpuinfo->cr3_callback.callback_rsp-12, 12, NULL, NULL);
 
     //sendstringf("mapped callback_rsp-12 to %8\n\r",stack);
     stack[0]=vmread(vm_guest_rip);           //eip
@@ -743,6 +824,8 @@ int handle_cr3_callback(pcpuinfo currentcpuinfo,VMRegisters *vmregisters)
     stack[2]=currentcpuinfo->guestCR3; //this was already edited
 
     vmwrite(vm_guest_rsp, currentcpuinfo->cr3_callback.callback_rsp-12); //adjust esp
+
+    unmapVMmemory(stack,12);
     //sendstringf("Set esp to %x\n\r",vmread(vm_guest_rsp));
 
     //sendstringf("stack[0]=%8 (return eip)\n\r",stack[0]);
@@ -759,11 +842,15 @@ int handle_cr3_callback(pcpuinfo currentcpuinfo,VMRegisters *vmregisters)
     currentcpuinfo->cr3_callback.rsi=currentcpuinfo->guestCR3;
 
     UINT64 *stack;
-    stack=(UINT64 *)(UINT64)MapPhysicalMemoryEx(getPhysicalAddressVM(currentcpuinfo, currentcpuinfo->cr3_callback.callback_rsp-8, &notpaged), currentcpuinfo->AvailableVirtualAddress,1);
+    stack=mapVMmemory(currentcpuinfo, currentcpuinfo->cr3_callback.callback_rsp-8, 8,  NULL, NULL);
     stack[0]=vmread(vm_guest_rip);           //rip
 
+    //todo: probably a stack alignment issue
+
     vmwrite(vm_guest_rsp, currentcpuinfo->cr3_callback.callback_rsp-8); //adjust rsp
+    unmapVMmemory(stack,8);
   }
+
 
 
 
@@ -790,6 +877,7 @@ int handle_cr3_callback(pcpuinfo currentcpuinfo,VMRegisters *vmregisters)
 //  return 0;
 
 
+
   return 0;
 
 }
@@ -800,42 +888,46 @@ int handleHLT(pcpuinfo currentcpuinfo)
   nosendchar[getAPICID()]=0;
   sendstringf("Handling HLT instruction\n\r");
 
-  if (ISREALMODE(currentcpuinfo))
+  if (hasUnrestrictedSupport==0)
   {
-    ULONG guestrflags=0;
-    PRFLAGS pguestrflags=(PRFLAGS)&guestrflags;
 
-    if (currentcpuinfo->hasIF)
+    if (ISREALMODE(currentcpuinfo))
     {
-      vmwrite(vm_execution_controls_pin,vmread(vm_execution_controls_pin) | 1); //set the option to exit on external events
-      //wait for event
+      ULONG guestrflags=0;
+      PRFLAGS pguestrflags=(PRFLAGS)&guestrflags;
+
+      if (currentcpuinfo->hasIF)
+      {
+        vmwrite(vm_execution_controls_pin,vmread(vm_execution_controls_pin) | 1); //set the option to exit on external events
+        //wait for event
+      }
+      else
+      {
+        nosendchar[getAPICID()]=0;
+        sendstringf("WARNING: HLT with IF=0\n\r");
+      }
+
+      guestrflags=vmread(vm_guest_rflags);
+      pguestrflags->VM=0; //vm off, somehow when vm is on, hlt just wont work
+      pguestrflags->TF=0;
+      pguestrflags->IOPL=0;
+      pguestrflags->RF=0;
+      pguestrflags->IF=currentcpuinfo->hasIF;
+
+      sendstringf("settings guesteflags to %x\n\r",guestrflags);
+      vmwrite(vm_guest_rflags,(ULONG)guestrflags); //rflags
+
+
+      //RealEmulationIn16BitProtectedMode();
     }
     else
     {
-      nosendchar[getAPICID()]=0;
-      sendstringf("WARNING: HLT with IF=0\n\r");
+      sendstringf("HLT in protected mode\n\r");
+
     }
-
-    guestrflags=vmread(vm_guest_rflags);
-    pguestrflags->VM=0; //vm off, somehow when vm is on, hlt just wont work
-    pguestrflags->TF=0;
-    pguestrflags->IOPL=0;
-    pguestrflags->RF=0;
-    pguestrflags->IF=currentcpuinfo->hasIF;
-
-    sendstringf("settings guesteflags to %x\n\r",guestrflags);
-    vmwrite(vm_guest_rflags,(ULONG)guestrflags); //rflags
-
-
-    //RealEmulationIn16BitProtectedMode();
-  }
-  else
-  {
-    sendstringf("HLT in protected mode\n\r");
-
   }
 
-  vmwrite(0x4826,1);// set activity to HLT
+  vmwrite(vm_guest_activity_state,1);// set activity to HLT
 
   vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength)); //next instruction
 
@@ -856,7 +948,7 @@ ULONG getSegmentLimit(PGDT_ENTRY gdt, PGDT_ENTRY ldt, ULONG selector)
 
   limit=((QWORD)usedtable[index].Limit16_19 << 16) | usedtable[index].Limit0_15;
   if (usedtable[index].G)
-    limit=limit*4096-1;
+    limit=(limit+1)*4096-1;
 
 
   return limit;
@@ -869,7 +961,7 @@ UINT64 getSegmentBaseEx(PGDT_ENTRY gdt, PGDT_ENTRY ldt, ULONG selector, int expa
   unsigned int index=(selector >> 3);
   PGDT_ENTRY usedtable=TI ? ldt : gdt;
 
-  sendstringf("getSegmentBaseEx(%6, %6, %d, %d\n\r", gdt, ldt, selector, expandto80bit);
+  //sendstringf("getSegmentBaseEx(%6, %6, %d, %d\n\r", gdt, ldt, selector, expandto80bit);
 
 
   if ((usedtable==NULL) || (selector==0))
@@ -879,9 +971,6 @@ UINT64 getSegmentBaseEx(PGDT_ENTRY gdt, PGDT_ENTRY ldt, ULONG selector, int expa
   {
     //it now consists out of 3 dwords
     UINT64 temp;
-
-    UINT64 temp2;
-
     ULONG *upperbase=(ULONG *)&usedtable[index];
     temp=upperbase[2];
     temp=((QWORD)temp << 32) | ((QWORD)usedtable[index].Base24_31 << 24) | ((QWORD)usedtable[index].Base0_23);
@@ -923,18 +1012,18 @@ ULONG getSegmentAccessRights(PGDT_ENTRY gdt, PGDT_ENTRY ldt, ULONG selector)
   if ((usedtable==NULL) || (selector==0))
     return 0x10000; //bit 16 set, unusable
 
-  return (ULONG)((*(unsigned long long *)(&usedtable[index]) >> 40) & 0xf0ff);
+  return (ULONG)((*(unsigned long long *)(&usedtable[index]) >> 40) & 0xe0ff);
 }
 
-ULONG getSegmentAttrib(PGDT_ENTRY gdt, PGDT_ENTRY ldt, ULONG selector) //for AMD's
+WORD convertSegmentAccessRightsToSegmentAttrib(ULONG accessrights)
 {
   Access_Rights ar;
   Segment_Attribs sa;
-  ar.AccessRights=getSegmentAccessRights(gdt, ldt, selector);
+
+  ar.AccessRights=accessrights;
 
   if (ar.unusable)
     return 0;
-
 
   sa.Segment_type=ar.Segment_type;
   sa.S=ar.S;
@@ -948,6 +1037,11 @@ ULONG getSegmentAttrib(PGDT_ENTRY gdt, PGDT_ENTRY ldt, ULONG selector) //for AMD
   return sa.SegmentAttrib;
 }
 
+ULONG getSegmentAttrib(PGDT_ENTRY gdt, PGDT_ENTRY ldt, ULONG selector) //for AMD's
+{
+  return convertSegmentAccessRightsToSegmentAttrib(getSegmentAccessRights(gdt, ldt, selector));
+}
+
 
 
 int handleTaskswitch(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
@@ -957,6 +1051,7 @@ int handleTaskswitch(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   ULONG  exitqualification=vmread(vm_exit_qualification);
   ULONG  TScause=exitqualification>>30;
   UINT64 gdtbase=vmread(0x6816);
+  DWORD gdtlimit=vmread(vm_guest_gdt_limit);
   ULONG  newTSSselector=exitqualification & 0xffff;
   ULONG  oldTSSselector=vmread(0x80e);
 
@@ -974,17 +1069,8 @@ int handleTaskswitch(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   //int oldsize=vmread(0x480e);
   int newsize;
   unsigned int oldTSSdescriptorEntry,newTSSdescriptorEntry;
-  int notpaged;
 
-  gdt=(PGDT_ENTRY)(UINT64)MapPhysicalMemoryEx(
-        getPhysicalAddressVM(currentcpuinfo, gdtbase, &notpaged)
-        ,currentcpuinfo->AvailableVirtualAddress
-        ,1
-      );
-
-
-
-
+  gdt=mapVMmemory(currentcpuinfo, gdtbase, gdtlimit, NULL, NULL);
   //sendstringf("gdt mapped at %8\n\r",(ULONG)gdt);
 
   oldTSSdescriptorEntry=oldTSSselector >> 3;
@@ -999,6 +1085,7 @@ int handleTaskswitch(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   if ((gdt[newTSSdescriptorEntry].Type==0xb) && (TScause!=1)) //not for iret
   {
     sendstring("TARGET TSS IS STILL BUSY. Should raise GP\n\r");
+    unmapVMmemory(gdt, gdtlimit);
     return 1;
   }
 
@@ -1010,6 +1097,8 @@ int handleTaskswitch(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     if (gdt[oldTSSdescriptorEntry].Type != 0xb)
     {
       sendstring("The old descriptor was not set busy!!!\n\r");
+
+      unmapVMmemory(gdt, gdtlimit);
       return 1;
     }
 
@@ -1028,6 +1117,7 @@ int handleTaskswitch(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   newTSSaddress=(gdt[newTSSdescriptorEntry].Base24_31 << 24) + gdt[newTSSdescriptorEntry].Base0_23;
   oldTSSaddress=vmread(0x6814); //just ask the guest for the current tr base
 
+  int oldsize=vmread(vm_guest_tr_limit);
   newsize=(gdt[newTSSdescriptorEntry].Limit16_19 << 16) + gdt[newTSSdescriptorEntry].Limit0_15;
 
   //sendstringf("oldTSSaddress=%8 (size=%x)\n\r", oldTSSaddress, oldsize);
@@ -1038,8 +1128,12 @@ int handleTaskswitch(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
 
   //get a pointer to oldTSS and newTSS
-  oldTSS=(PTSS)(UINT64)MapPhysicalMemoryEx(getPhysicalAddressVM(currentcpuinfo, oldTSSaddress, &notpaged), currentcpuinfo->AvailableVirtualAddress+0x00400000,1);
-  newTSS=(PTSS)(UINT64)MapPhysicalMemoryEx(getPhysicalAddressVM(currentcpuinfo, newTSSaddress, &notpaged), currentcpuinfo->AvailableVirtualAddress+0x00800000,1);
+//  oldTSS=(PTSS)(UINT64)MapPhysicalMemoryEx(getPhysicalAddressVM(currentcpuinfo, oldTSSaddress, &notpaged), currentcpuinfo->AvailableVirtualAddress+0x00400000,1);
+//  newTSS=(PTSS)(UINT64)MapPhysicalMemoryEx(getPhysicalAddressVM(currentcpuinfo, newTSSaddress, &notpaged), currentcpuinfo->AvailableVirtualAddress+0x00800000,1);
+
+
+  oldTSS=mapVMmemory(currentcpuinfo, oldTSSaddress, oldsize, NULL, NULL);
+  newTSS=mapVMmemory(currentcpuinfo, newTSSaddress, newsize, NULL, NULL);
 
 
   //sendstringf("Mapped oldTSS at virtual address %8\n\r",(ULONG)oldTSS);
@@ -1111,15 +1205,16 @@ int handleTaskswitch(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   vmwrite(0x80c,newTSS->LDTss);
   vmwrite(0x80e,newTSSselector);
 
+  ULONG ldtlimit;
   if (newTSS->LDTss)
   {
     ULONG ldtbase;
-    ULONG ldtlimit;
+
 
     //get address and size of LDT and map it
     ldtbase=(gdt[(newTSS->LDTss >> 3)].Base24_31 << 24) + gdt[(newTSS->LDTss >> 3)].Base0_23;
     ldtlimit=(gdt[(newTSS->LDTss >> 3)].Limit16_19 << 16) + gdt[(newTSS->LDTss >> 3)].Limit0_15;
-    ldt=(PGDT_ENTRY)(UINT64)MapPhysicalMemoryEx(getPhysicalAddressVM(currentcpuinfo, ldtbase, &notpaged), currentcpuinfo->AvailableVirtualAddress+0x00c00000,1);
+    ldt=mapVMmemory(currentcpuinfo, ldtbase, ldtlimit, NULL, NULL);
   }
 
   //limits
@@ -1178,12 +1273,12 @@ int handleTaskswitch(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
   currentcpuinfo->guestCR3=newTSS->CR3;
 
-  if ((vmread(vm_cr0_fakeread) & 0x80000001) == 0x80000001) //if in protected mode with paging
+  if ((vmread(vm_cr0_read_shadow) & 0x80000001) == 0x80000001) //if in protected mode with paging
     emulatePaging(currentcpuinfo); //restart paging
 
 
   //set the TS bit in cr0
-  vmwrite(vm_cr0_fakeread, vmread(0x6004) | 0x8);
+  vmwrite(vm_cr0_read_shadow, vmread(0x6004) | 0x8);
   vmwrite(vm_guest_cr0, vmread(vm_guest_cr0) | 0x8);
 
 
@@ -1196,7 +1291,19 @@ int handleTaskswitch(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   DR7.L2=0;
   DR7.L3=0;
   DR7.LE=0;
-  vmwrite(0x681a,DR7.DR7);
+  vmwrite(vm_guest_dr7,DR7.DR7);
+
+  if (gdt)
+    unmapVMmemory(gdt, gdtlimit);
+
+  if (ldt)
+    unmapVMmemory(ldt, ldtlimit);
+
+  if (oldTSS)
+    unmapVMmemory(oldTSS, oldsize);
+
+  if (newTSS)
+    unmapVMmemory(newTSS, newsize);
 
   //sendstring("Emulated a taskswitch\n\r");
   return 0;
@@ -1205,7 +1312,7 @@ int handleTaskswitch(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
 
 
-int handleIOAccess(VMRegisters *vmregisters)
+int handleIOAccess(VMRegisters *vmregisters UNUSED)
 {
 #if (defined SERIALPORT) && (SERIALPORT != 0)
   //nosendchar[getAPICID()]=0;
@@ -1437,12 +1544,11 @@ int handleIOAccess(VMRegisters *vmregisters)
 
 int handleWRMSR(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 {
-
-  sendstring("emulating WRMSR\n\r");
-
-
   unsigned long long newvalue=((unsigned long long)vmregisters->rdx << 32)+vmregisters->rax;
   unsigned int msr=vmregisters->rcx;
+
+  sendstringf("emulating WRMSR(%x,%6)\n\r", msr, newvalue);
+
 
   switch (msr)
   {
@@ -1455,7 +1561,7 @@ int handleWRMSR(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       if (!currentcpuinfo->hidden_sysenter_modification)
       {
         currentcpuinfo->actual_sysenter_CS=newvalue;
-        vmwrite(0x482a,currentcpuinfo->actual_sysenter_CS); //not hidden, so allow this change
+        vmwrite(vm_guest_IA32_SYSENTER_CS,currentcpuinfo->actual_sysenter_CS); //not hidden, so allow this change
       }
       break;
 
@@ -1464,7 +1570,7 @@ int handleWRMSR(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       if (!currentcpuinfo->hidden_sysenter_modification)
       {
         currentcpuinfo->actual_sysenter_ESP=newvalue;
-        vmwrite(0x6824,currentcpuinfo->actual_sysenter_ESP);
+        vmwrite(vm_guest_IA32_SYSENTER_ESP,currentcpuinfo->actual_sysenter_ESP);
       }
       break;
 
@@ -1473,7 +1579,7 @@ int handleWRMSR(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       if (!currentcpuinfo->hidden_sysenter_modification)
       {
         currentcpuinfo->actual_sysenter_EIP=newvalue;
-        vmwrite(0x6826,currentcpuinfo->actual_sysenter_EIP);
+        vmwrite(vm_guest_IA32_SYSENTER_EIP,currentcpuinfo->actual_sysenter_EIP);
       }
       break;
 
@@ -1499,7 +1605,12 @@ int handleWRMSR(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
         sendstringf("EFER edit. New value=%8\n\r",newvalue);
         currentcpuinfo->efer=newvalue & 0xfffffffffffffbff; //copy, except the LMA bit, lme stays to remember the users intention
 
-        writeMSR(0xc0000080,currentcpuinfo->efer | (1<<8) | (1<<10)); //write msr for the other bits, but keep LME/LMA 1
+        if (hasUnrestrictedSupport)
+        {
+          vmwrite(vm_guest_IA32_EFER, newvalue);
+        }
+        else
+          writeMSR(0xc0000080,currentcpuinfo->efer | (1<<8) | (1<<10)); //write msr for the other bits, but keep LME/LMA 1
 
         if ((currentcpuinfo->efer >> 8) & 1)
         {
@@ -1510,20 +1621,20 @@ int handleWRMSR(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
           {
             //paging
             sendstring("Paging is enabled, so setting LMS\n\r");
-            vmwrite(0x4012, vmread(0x4012) | (1<<9)); //set bit 9, ia32e mode
+            vmwrite(vm_entry_controls, vmread(vm_entry_controls) | (1<<9)); //set bit 9, ia32e mode
             emulatePaging(currentcpuinfo); //reload the tables with the new
           }
           else
           {
             //realmode or nonpaged mode, don't enable ia32e mode
             sendstring("In realmode or nonpaged mode. Don\'t enable yet\n\r");
-            vmwrite(0x4012, vmread(0x4012) & 0xfffffffffffffdff);
+            vmwrite(vm_entry_controls, vmread(vm_entry_controls) & 0xfffffffffffffdff);
           }
         }
         else
         {
           //undo ia32e mode if it was on
-          vmwrite(0x4012, vmread(0x4012) & 0xfffffffffffffdff);
+          vmwrite(vm_entry_controls, vmread(vm_entry_controls) & 0xfffffffffffffdff);
           sendstring("LME is 0\n\r");
         }
 
@@ -1548,11 +1659,14 @@ int handleWRMSR(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
 }
 
+int RDMSRcounter=0;
+
 int handleRDMSR(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 {
 
 
   sendstring("emulating RDMSR\n\r");
+  RDMSRcounter++;
 
 
   unsigned long long result;
@@ -1563,13 +1677,15 @@ int handleRDMSR(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   switch (msr)
   {
 
-	case IA32_FEATURE_CONTROL_MSR:
-		result=readMSRSafe(currentcpuinfo, IA32_FEATURE_CONTROL_MSR);
-		result=result | FEATURE_CONTROL_LOCK; //set the LOCK bit (so the system thinks it can't be changed anymore)
+	  case IA32_FEATURE_CONTROL_MSR:
+	    result=readMSRSafe(IA32_FEATURE_CONTROL_MSR);
+	    result=result | FEATURE_CONTROL_LOCK; //set the LOCK bit (so the system thinks it can't be changed anymore)
 
-		result=result & ~(FEATURE_CONTROL_VMXON_SMX); //unset the VMX capability in SMX mode
-		result=result & ~(FEATURE_CONTROL_VMXON); //unset the VMX capability
-	  break;
+	    result=result & ~(FEATURE_CONTROL_VMXON_SMX); //unset the VMX capability in SMX mode
+
+	    if (emulatevmx==0)
+	      result=result & ~(FEATURE_CONTROL_VMXON); //unset the VMX capability
+	    break;
 
     case 0x174: //sysenter_CS
       result=currentcpuinfo->sysenter_CS;
@@ -1596,22 +1712,37 @@ int handleRDMSR(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     case 0xc0000080: //IA32_EFER_LME
     {
       //int orig;
-      result=currentcpuinfo->efer;
+      if (hasUnrestrictedSupport)
+        result=vmread(vm_guest_IA32_EFER);
+      else
+        result=currentcpuinfo->efer;
 
       //set the LMA bit to 1 if LME = 1 , protected mode=1, and paging is 1
 
-      if (((result >> 8)==1) && ((currentcpuinfo->guestCR0 & 0x80000001)==0x80000001))
+      if (((result >> 8)&1)==1)
       {
-        //lme=1, and in paged protected mode
-        //set lma to 1
-        result=result | (1<<10);
+        if ((currentcpuinfo->guestCR0 & 0x80000001)==0x80000001) //lme=1, and in paged protected mode
+          result=result | (1<<10); //set lma to 1
+        else
+          result=result & (~(QWORD)(1<<10)); //unset LMA
       }
 
       //nosendchar[getAPICID()]=0;
       sendstringf("read efer. Returning %x\n\r",result);
+
+
       //nosendchar[getAPICID()]=orig;
 
 
+      break;
+    }
+
+    case IA32_RTIT_CTL_MSR:
+    {
+      sendstringf("Exit for IA32_RTIT_CTL_MSR\n");
+      result=readMSRSafe(IA32_RTIT_CTL_MSR);
+
+      result=result & 0x00000000ffffffffULL; //for now just keep it simple and keep it at 0, later when windows does a check if it can set the bit, return a shadow value accordingly
       break;
     }
 
@@ -1856,41 +1987,92 @@ UINT64 getRegister(VMRegisters *vmregisters, int general_purpose_register)
 
 int setVM_CR0(pcpuinfo currentcpuinfo, UINT64 newcr0)
 {
+  QWORD cr4=vmread(vm_guest_cr4);
   UINT64 oldcr0=currentcpuinfo->guestCR0;//;vmread(0x6004); //fake cr0
   currentcpuinfo->guestCR0=newcr0;
+
+  if (hasUnrestrictedSupport)
+    currentcpuinfo->efer=vmread(vm_guest_IA32_EFER);
 
   //hardcode ET (bit4) to 1
   newcr0=newcr0 | 0x10;
 
-  vmwrite(vm_cr0_fakeread,newcr0); //adjust fake cr0 to this cr0
-
-  //--------------------------------------------------------------//
-  //                        ia32e mode check                      //
-  //--------------------------------------------------------------//
-  if ((oldcr0 & 0x80000001) != (currentcpuinfo->guestCR0 & 0x80000001))
+  if ((cr4 & CR4_PCIDE) && ((newcr0 & CR0_PG)==0)) //check if PCIDE is enabled and that paging is on
   {
-    sendstring("ia32e check: protectedmode or paging bit changed\n\r");
-    //page and/or protectedmode bit got changed
-    if  (((currentcpuinfo->guestCR0 & 0x80000001)==0x80000001) //protected mode
-        &&                                                     //and
-        ((currentcpuinfo->efer >> 8) & 1))                     //efer bit 8=1
-    {
-      //Access_Rights reg_traccessrights;
-      sendstring("New state has paging and protectedmode and LME=1, switching to ia32e mode\n\r");
-      //protectedmode with paging and LME is 1, set ia32e mode to 1
+    raiseGeneralProtectionFault(0);
+    return 2;
+  }
 
-      vmwrite(0x4012, vmread(0x4012) | (1<<9)); //set bit 9: ia32e guest
+  if (hasUnrestrictedSupport==0)
+  {
+    vmwrite(vm_cr0_read_shadow,newcr0); //adjust fake cr0 to this cr0
+
+
+
+
+    //--------------------------------------------------------------//
+    //                        ia32e mode check                      //
+    //--------------------------------------------------------------//
+    if ((oldcr0 & 0x80000001) != (currentcpuinfo->guestCR0 & 0x80000001))
+    {
+      sendstring("ia32e check: protectedmode or paging bit changed\n\r");
+
+
+
+      //page and/or protectedmode bit got changed
+      if  (((currentcpuinfo->guestCR0 & 0x80000001)==0x80000001) //protected mode
+          &&                                                     //and
+          ((currentcpuinfo->efer >> 8) & 1))                     //efer bit 8=1
+      {
+        //Access_Rights reg_traccessrights;
+        sendstring("New state has paging and protectedmode and LME=1, switching to ia32e mode\n\r");
+        //protectedmode with paging and LME is 1, set ia32e mode to 1
+
+
+        vmwrite(vm_entry_controls, vmread(vm_entry_controls) | VMENTRYC_IA32E_MODE_GUEST); //set bit 9: ia32e guest
+
+      }
+      else
+      {
+        sendstring("New state doesn't have paging and protectedmode, or LME=0, setting ia32e mode to disabled\n\r");
+        //unset it, doesn't matter if it was 0 or 1
+        vmwrite(vm_entry_controls, vmread(vm_entry_controls) & (~(VMENTRYC_IA32E_MODE_GUEST)));
+
+        if (hasUnrestrictedSupport)
+        {
+          sendstring("unrestricted guest, so turning of EFER.LMA\n");
+          currentcpuinfo->efer=currentcpuinfo->efer & (~(1<<10));
+          vmwrite(vm_guest_IA32_EFER, currentcpuinfo->efer);
+          //vmwrite(vm_guest_IA32_EFER, 0);
+        }
+
+
+      }
 
     }
-    else
-    {
-      sendstring("New state doesn't have paging and protectedmode, or LME=0, setting ia32e mode to disabled\n\r");
-      //unset it, doesn't matter if it was 0 or 1
-      vmwrite(0x4012, vmread(0x4012) & 0xfffffffffffffdffULL);
-    }
-
   }
   //--------------------------------------------------------------------
+
+  if (hasUnrestrictedSupport)
+  {
+    QWORD ActualFixed0=IA32_VMX_CR0_FIXED0&0xFFFFFFFF7FFFFFFEULL;  //PG and PE can be 0 in unrestricted guest mode
+    vmwrite(vm_guest_cr0, newcr0 | ActualFixed0);
+
+    if ((vmread(vm_guest_cr0) & 0x80000001)==0x80000001)
+    {
+      //PG and PE
+      if ((vmread(vm_guest_IA32_EFER) >> 8)&1) //PGE
+      {
+        vmwrite(vm_entry_controls, vmread(vm_entry_controls) | VMENTRYC_IA32E_MODE_GUEST); //set bit 9: ia32e guest
+        vmwrite(vm_guest_IA32_EFER, vmread(vm_guest_IA32_EFER) | (1 << 10));
+      }
+
+    }
+
+    vmwrite(vm_cr0_read_shadow,newcr0 & vmread(vm_cr0_guest_host_mask) ); //set the host bits accordingly
+
+    return 0;
+  }
 
 
   sendstringf("Guest wants to set CR0 to %8 (from %8)\n\r",newcr0,oldcr0);
@@ -1899,7 +2081,8 @@ int setVM_CR0(pcpuinfo currentcpuinfo, UINT64 newcr0)
   if ((IA32_VMX_CR0_FIXED1 & newcr0) != newcr0)
   {
     sendstringf("THE GUEST OS WANTS TO SET A BIT THAT SHOULD STAY 0\n\r");
-    return 1;
+    raiseGeneralProtectionFault(0);
+    return 2; //not an error, but don't change RIP
   }
 
   sendstringf("oldcr0=%8\n\r",oldcr0);
@@ -1912,311 +2095,252 @@ int setVM_CR0(pcpuinfo currentcpuinfo, UINT64 newcr0)
     sendstring("Switching from realmode to protectedmode\n\r");
 
     //set exit on HLT off, since no emulation is needed
-    vmwrite(0x4002,(ULONG)IA32_VMX_PROCBASED_CTLS | ( 1 << 9 ) | (1 << 25) | (1 << 28) );
+
+    vmwrite(vm_execution_controls_cpu, vmread(vm_execution_controls_cpu) & (~HLT_EXITING)); // (ULONG)IA32_VMX_PROCBASED_CTLS | ( 1 << 9 ) | (1 << 25) | (1 << 28) );
 
     sendstringf("IA32_VMX_PROCBASED_CTLS=%8\n\r",IA32_VMX_PROCBASED_CTLS);
-            //sendstringf("Setting processor-based vm-execution controls to %8\n\r", (ULONG)IA32_VMX_PROCBASED_CTLS | ( 1 << 9 ) | (1 << 25) | (1 << 28));
-
-            //since this used to be realmode, and a high changce it is done in vm emulation in 16-bit, set the selectors to realmode selectors
-            /*
-            vmwrite(0x4800,(ULONG)0xffff); //es limit
-            vmwrite(0x4802,(ULONG)0xffff); //cs limit
-            vmwrite(0x4804,(ULONG)0xffff); //ss limit
-            vmwrite(0x4806,(ULONG)0xffff); //ds limit
-            vmwrite(0x4808,(ULONG)0xffff); //fs limit
-            vmwrite(0x480a,(ULONG)0xffff); //gs limit
 
 
-            vmwrite(vm_guest_es,vmread(vm_guest_es_base) >> 4 & 0xfff8); //es selector
-            vmwrite(vm_guest_cs,vmread(vm_guest_cs_base) >> 4); //cs selector
-            vmwrite(vm_guest_ss,vmread(vm_guest_ss_base) >> 4 & 0xfff8); //ss selector (keep ss valid)
-            vmwrite(vm_guest_ds,vmread(vm_guest_ds_base) >> 4 & 0xfff8); //ds selector
-            vmwrite(vm_guest_fs,vmread(vm_guest_fs_base) >> 4); //fs selector
-            vmwrite(vm_guest_gs,vmread(vm_guest_gs_base) >> 4); //gs selector
-            */
+    //from realmode to protected
+    //disable vm and set iopl to 0, and set some other needed states
+    Access_Rights reg_tempcsaccessrights,tempaccessrights;
+    UINT64 guestrflags;
+    PRFLAGS pguestrflags=(PRFLAGS)&guestrflags;
 
-            //and make invalid...
-            //nj,hjkhjkhjkl
+    //set tss to the guest's tss
 
-
-
-            //from realmode to protected
-            //disable vm and set iopl to 0, and set some other needed states
-            Access_Rights reg_tempcsaccessrights,tempaccessrights;
-            UINT64 guestrflags;
-            PRFLAGS pguestrflags=(PRFLAGS)&guestrflags;
-
-            //set tss to the guest's tss
-            vmwrite(0x4822,currentcpuinfo->TSaccessRights);
-            vmwrite(0x480e,currentcpuinfo->TSlimit);
-            vmwrite(0x6814,currentcpuinfo->TSbase);
-            vmwrite(0x80e,currentcpuinfo->TSsegment);
+    vmwrite(vm_guest_tr_access_rights,currentcpuinfo->TSaccessRights);
+    vmwrite(vm_guest_tr_limit,currentcpuinfo->TSlimit);
+    vmwrite(vm_guest_tr_base,currentcpuinfo->TSbase);
+    vmwrite(vm_guest_tr,currentcpuinfo->TSsegment);
 
 
-            //16 bit segments, but leave base intact
-            //dword
-            reg_tempcsaccessrights.AccessRights=0; //unusable till loaded again
+    //16 bit segments, but leave base intact
+    //dword
+    reg_tempcsaccessrights.AccessRights=0; //unusable till loaded again
 
-            reg_tempcsaccessrights.Segment_type=15; //conforming code segment
-            reg_tempcsaccessrights.S=1;
-            reg_tempcsaccessrights.DPL=0;
-            reg_tempcsaccessrights.P=1;
-            reg_tempcsaccessrights.G=0;
-            reg_tempcsaccessrights.D_B=0;
-            reg_tempcsaccessrights.unusable=0; //1;
-            vmwrite(vm_guest_cs_access_rights,(ULONG)reg_tempcsaccessrights.AccessRights); //cs access rights
-            vmwrite(vm_guest_cs,vmread(vm_guest_cs) & 0xfffc);
+    reg_tempcsaccessrights.Segment_type=15; //conforming code segment
+    reg_tempcsaccessrights.S=1;
+    reg_tempcsaccessrights.DPL=0;
+    reg_tempcsaccessrights.P=1;
+    reg_tempcsaccessrights.G=0;
+    reg_tempcsaccessrights.D_B=0;
+    reg_tempcsaccessrights.unusable=0; //1;
+    vmwrite(vm_guest_cs_access_rights,(ULONG)reg_tempcsaccessrights.AccessRights); //cs access rights
+    vmwrite(vm_guest_cs,vmread(vm_guest_cs) & 0xfffc);
 
-            tempaccessrights.AccessRights=0;
-            tempaccessrights.Segment_type=3; //0011
-            tempaccessrights.S=1;
-            tempaccessrights.DPL=3;
-            tempaccessrights.P=1;
-            tempaccessrights.G=0;
-            tempaccessrights.D_B=0;
-            tempaccessrights.unusable=0;
+    tempaccessrights.AccessRights=0;
+    tempaccessrights.Segment_type=3; //0011
+    tempaccessrights.S=1;
+    tempaccessrights.DPL=3;
+    tempaccessrights.P=1;
+    tempaccessrights.G=0;
+    tempaccessrights.D_B=0;
+    tempaccessrights.unusable=0;
 
-            vmwrite(vm_guest_es_access_rights,(ULONG)tempaccessrights.AccessRights);
-            vmwrite(vm_guest_ds_access_rights,(ULONG)tempaccessrights.AccessRights);
-            vmwrite(vm_guest_fs_access_rights,(ULONG)tempaccessrights.AccessRights);
-            vmwrite(vm_guest_gs_access_rights,(ULONG)tempaccessrights.AccessRights);
+    vmwrite(vm_guest_es_access_rights,(ULONG)tempaccessrights.AccessRights);
+    vmwrite(vm_guest_ds_access_rights,(ULONG)tempaccessrights.AccessRights);
+    vmwrite(vm_guest_fs_access_rights,(ULONG)tempaccessrights.AccessRights);
+    vmwrite(vm_guest_gs_access_rights,(ULONG)tempaccessrights.AccessRights);
 
-            tempaccessrights.DPL=vmread(vm_guest_ss) & 3;
-            vmwrite(vm_guest_ss_access_rights,(ULONG)tempaccessrights.AccessRights);
+    tempaccessrights.DPL=vmread(vm_guest_ss) & 3;
+    vmwrite(vm_guest_ss_access_rights,(ULONG)tempaccessrights.AccessRights);
 
 
-            guestrflags=vmread(vm_guest_rflags);
+    guestrflags=vmread(vm_guest_rflags);
 
-            if ((pguestrflags->IF) || (currentcpuinfo->hasIF))
-            {
-              nosendchar[getAPICID()]=0;
-              sendstringf("IF is not 0 when switching to protected mode\n\r");
-              while (1);
-            }
+    if ((pguestrflags->IF) || (currentcpuinfo->hasIF))
+    {
+      nosendchar[getAPICID()]=0;
+      sendstringf("IF is not 0 when switching to protected mode\n\r");
+      while (1);
+    }
 
-            pguestrflags->VM=0;  //out of realmode
-            pguestrflags->TF=0;  //trap flag can go off now
-            pguestrflags->IF=currentcpuinfo->hasIF; //restore, but I bet it's 0
-            pguestrflags->IOPL=0;
-            vmwrite(vm_guest_rflags,(ULONG)guestrflags); //rflags
+    pguestrflags->VM=0;  //out of realmode
+    pguestrflags->TF=0;  //trap flag can go off now
+    pguestrflags->IF=currentcpuinfo->hasIF; //restore, but I bet it's 0
+    pguestrflags->IOPL=0;
+    vmwrite(vm_guest_rflags,(ULONG)guestrflags); //rflags
 
-            //set GDT and IDT to what it should be
-            vmwrite(vm_guest_gdtr_base, currentcpuinfo->RealMode.GDTBase);
-            vmwrite(vm_guest_gdt_limit, currentcpuinfo->RealMode.GDTLimit);
-            vmwrite(vm_guest_idtr_base, currentcpuinfo->RealMode.IDTBase);
-            vmwrite(vm_guest_idt_limit, currentcpuinfo->RealMode.IDTLimit);
+    //set GDT and IDT to what it should be
+    vmwrite(vm_guest_gdtr_base, currentcpuinfo->RealMode.GDTBase);
+    vmwrite(vm_guest_gdt_limit, currentcpuinfo->RealMode.GDTLimit);
+    vmwrite(vm_guest_idtr_base, currentcpuinfo->RealMode.IDTBase);
+    vmwrite(vm_guest_idt_limit, currentcpuinfo->RealMode.IDTLimit);
 
 
 
-            if (newcr0 & (1<<31))
-            {
-              sendstringf("Emulating paging because the page bit is 1 as well\n\r");
-              emulatePaging(currentcpuinfo);
-              vmwrite(vm_guest_cr4,vmread(0x6006) | readMSR(0x488)); //no special overrides, set to what the guest thinks it was and will become
-            }
-            else
-            {
-              setupNonPagedPaging(currentcpuinfo);
-              vmwrite(vm_guest_cr4,vmread(0x6006) | readMSR(0x488) | (1 << 4) | ( 1 << 5)); //guest's cr4, with fixed CR4 and PAE and PSE
-            }
+    if (newcr0 & (1<<31))
+    {
+      sendstringf("Emulating paging because the page bit is 1 as well\n\r");
+      emulatePaging(currentcpuinfo);
+      vmwrite(vm_guest_cr4,vmread(0x6006) | readMSR(0x488)); //no special overrides, set to what the guest thinks it was and will become
+    }
+    else
+    {
+      setupNonPagedPaging(currentcpuinfo);
+      vmwrite(vm_guest_cr4,vmread(0x6006) | readMSR(0x488) | (1 << 4) | ( 1 << 5)); //guest's cr4, with fixed CR4 and PAE and PSE
+    }
 
-          }
-          else
-          if (((oldcr0 & 1)==1) && ((newcr0 & 1)==0))
-          {
+  }
+  else
+  if (((oldcr0 & 1)==1) && ((newcr0 & 1)==0))
+  {
 
-            //Access_Rights reg_csaccessrights,reg_traccessrights;
-            RFLAGS guestrflags=(RFLAGS)(UINT64)0;
+    //Access_Rights reg_csaccessrights,reg_traccessrights;
+    RFLAGS guestrflags=(RFLAGS)(UINT64)0;
 
 
-            sendstring("Switching from protected mode to real mode.  \n\r");
+    sendstring("Switching from protected mode to real mode.  \n\r");
 
-            //set exit on HLT on, since emulation is needed
-            vmwrite(0x4002,(ULONG)IA32_VMX_PROCBASED_CTLS | (1 << 7) | ( 1 << 9 ) | (1 << 25) | (1 << 28) );
+    //set exit on HLT on, since emulation is needed
+    vmwrite(vm_execution_controls_cpu,vmread(vm_execution_controls_cpu) | HLT_EXITING  );
 
 
 
 
-            //switch to realmode
 
-            //save TSS (for when the TSS needs to be changed for virtual realmode to work)
+    //switch to realmode
 
-            currentcpuinfo->TSaccessRights=vmread(0x4822);
-            currentcpuinfo->TSlimit=vmread(0x480e);
-            currentcpuinfo->TSbase=vmread(0x6814);
-            currentcpuinfo->TSsegment=vmread(0x80e);
+    //save TSS (for when the TSS needs to be changed for virtual realmode to work)
 
-            guestrflags=(RFLAGS)vmread(vm_guest_rflags);
+    currentcpuinfo->TSaccessRights=vmread(0x4822);
+    currentcpuinfo->TSlimit=vmread(0x480e);
+    currentcpuinfo->TSbase=vmread(0x6814);
+    currentcpuinfo->TSsegment=vmread(0x80e);
+
+    guestrflags=(RFLAGS)vmread(vm_guest_rflags);
 
 #ifdef DEBUG
-            if ((guestrflags.IF) || (currentcpuinfo->hasIF))
-            {
-              nosendchar[getAPICID()]=0;
-              sendstringf("IF is not 0 when switching to protected mode\n\r");
-              while (1);
-            }
+    if ((guestrflags.IF) || (currentcpuinfo->hasIF))
+    {
+      nosendchar[getAPICID()]=0;
+      sendstringf("IF is not 0 when switching to protected mode\n\r");
+      while (1);
+    }
 #endif
 
 
-            guestrflags.IOPL=3;
-            guestrflags.VM=1;
-            currentcpuinfo->hasIF=guestrflags.IF;
-            vmwrite(vm_guest_rflags,guestrflags.value);
+    guestrflags.IOPL=3;
+    guestrflags.VM=1;
+    currentcpuinfo->hasIF=guestrflags.IF;
+    vmwrite(vm_guest_rflags,guestrflags.value);
 
-            currentcpuinfo->RealMode.GDTBase=vmread(vm_guest_gdtr_base);
-            currentcpuinfo->RealMode.GDTLimit=vmread(vm_guest_gdt_limit);
-            currentcpuinfo->RealMode.IDTBase=vmread(vm_guest_idtr_base);
-            currentcpuinfo->RealMode.IDTLimit=vmread(vm_guest_idt_limit);
-
-
-
-
-            //set real CR0
-            vmwrite(vm_guest_cr0,(ULONG)IA32_VMX_CR0_FIXED0 | /*(1 << 16) |*/ vmread(0x6004)); //forced+wp+guest
-
-            //set real CR4
-            vmwrite(vm_guest_cr4,(ULONG)IA32_VMX_CR4_FIXED0 | CR4_VME | CR4_PSE | CR4_PAE | vmread(vm_cr4_fakeread)); //VME, PAE and PSE
-
-            /*
-            setupTSS8086();
-            vmwrite(0x6814,(UINT64)VirtualToPhysical((UINT64)VirtualMachineTSS_V8086)); //tr base
-            vmwrite(0x480e,(ULONG)sizeof(TSS)+32+8192+1); //tr limit
-
-
-
-            if (vmread(vm_guest_cs_base) > 0xfffff)  //if the csbase is outside the 1mb region
-            {
-              //invalid guest state...
-              sendstring("Entered into an invalid state!!!!\n");
-
-
-              //set invalid state bit in cpu info
-              currentcpuinfo->invalidcs=1;
-
-              //create a paging model that maps the original csbase to 0xc0000 - c1000
-              setupNonPagedPaging_invalidstate_c0000(vmread(vm_guest_cs_base));
-              sendstringf("nonpagedInvalidEmulationPagedir is now %6\n\r",(UINT64)nonpagedInvalidEmulationPagedir);
-
-
-              //change cs base to 0xc0000 , hopefully unused in this small routine till next jmp...
-              vmwrite(vm_guest_cs_base,0xc0000);
-
-              //change cs selector to 0xc000
-              vmwrite(0x802,0xc000);
-
-              while (1)
-              {
-                sendstring("debug me\n\r");
-
-              }
-
-            }
-            else*/
-              setupRealModePaging(currentcpuinfo); //normal realmode
-
-            return 0;
-
-          }
-
-          if ((newcr0 & (1<<31)) && (!(oldcr0 & (1<<31))))
-          {
-            sendstring("Switching from nonpaged mode to paged mode\n\r");
-            if ((newcr0 & 1)==1)
-            {
-              sendstring("In protected mode so enable paging\n\r");
-              //switch from nonpaged to paged
-              emulatePaging(currentcpuinfo);
-
-              //set CR4 to what the guest wants it to be (so remove the forced PAE stuff)
-              vmwrite(vm_guest_cr4,(ULONG)IA32_VMX_CR4_FIXED0 | vmread(0x6006)); //gueststate + cr4 forced1
-            }
-            else
-            {
-              sendstring("Error we arn\'t in protected mode yet.\n\r");
-            }
-
-          }
-          else
-          if ((oldcr0 & (1<<31)) && (!(newcr0 & (1<<31))))
-          {
-            sendstring("Switching from pagedmode to nonpaged mode\n\r");
-            if ((newcr0 & 1)==1)
-            {
-              Access_Rights reg_ssAccessRights, reg_csAccessRights;
-              sendstring("In protected mode so disable paging\n\r");
-              //switch from paged to nonpaged
-
-              setupNonPagedPaging(currentcpuinfo);
-              vmwrite(vm_guest_cr4,vmread(vm_guest_cr4) | (1 << 4) | ( 1 << 5)); //PAE and PSE enabled
-
-              //needs a valid SS, so make sure SS is now valid
-              reg_ssAccessRights.AccessRights=vmread(vm_guest_ss_access_rights);
-
-              if (reg_ssAccessRights.unusable==1)
-              {
-                reg_ssAccessRights.unusable=0;
-                reg_ssAccessRights.Segment_type=3; //0011
-                reg_ssAccessRights.S=1;
-                reg_ssAccessRights.DPL=0;
-                reg_ssAccessRights.P=1;
-                reg_ssAccessRights.G=1;
-                reg_ssAccessRights.D_B=1;
-                reg_ssAccessRights.unusable=0;
-                vmwrite(vm_guest_ss,8);
-                vmwrite(vm_guest_ss_base,0);
-                vmwrite(vm_guest_ss_limit,0xffffffff);
-
-                vmwrite(vm_guest_ss_access_rights,reg_ssAccessRights.AccessRights);
-
-
-                reg_csAccessRights.AccessRights=vmread(vm_guest_cs_access_rights);
-                reg_csAccessRights.L=0;
-                vmwrite(vm_guest_cs_access_rights,reg_csAccessRights.AccessRights);
-              }
-
-
-            }
-            else
-            {
-              sendstring("Error we arn\'t in protected mode yet.\n\r");
-            }
-
-          }
-
-
-
-          newcr0=IA32_VMX_CR0_FIXED0 | newcr0 /*| ( 1 << 16)*/; //mix it with the required bits and set the WP bit to 1 so even ring0 is bound to readonly pages (used for marking regions dirty and can certainly be used for other 'interesting' stuff)
-          vmwrite(vm_guest_cr0,newcr0);  //set new cr0 (real one)
-
-
-          sendstringf("fake cr0 has been set to %8\n\r",vmread(0x6004));
-          sendstringf("real cr0 has been set to %8 (%8)\n\r",newcr0,vmread(vm_guest_cr0));
-
-          if  ((vmread(0x6004) & 0x80000001)==0x80000001)
-          {
-            ULONG difference = oldcr0 ^ vmread(0x6004);
-            if (
-                (difference & (1<<16)) || //WP
-                (difference & (1<<29)) || //NW
-                (difference & (1<<30)) //PE
-               )
-            {
-              emulatePaging(currentcpuinfo); //flushes the virtual tlb
-            }
-
-          }
+    currentcpuinfo->RealMode.GDTBase=vmread(vm_guest_gdtr_base);
+    currentcpuinfo->RealMode.GDTLimit=vmread(vm_guest_gdt_limit);
+    currentcpuinfo->RealMode.IDTBase=vmread(vm_guest_idtr_base);
+    currentcpuinfo->RealMode.IDTLimit=vmread(vm_guest_idt_limit);
 
 
 
 
-          sendstringf("CS-base=%x\n\r",vmread(vm_guest_cs_base));
-          sendstringf("SS-base=%x\n\r",vmread(vm_guest_ss_base));
-          sendstringf("DS-base=%x\n\r",vmread(vm_guest_ds_base));
-          sendstringf("ES-base=%x\n\r",vmread(vm_guest_es_base));
-          sendstringf("FS-base=%x\n\r",vmread(vm_guest_fs_base));
-          sendstringf("GS-base=%x\n\r",vmread(vm_guest_gs_base));
+    //set real CR0
+    vmwrite(vm_guest_cr0,(ULONG)IA32_VMX_CR0_FIXED0 | /*(1 << 16) |*/ vmread(0x6004)); //forced+wp+guest
 
-          return 0;
+    //set real CR4
+    vmwrite(vm_guest_cr4,(ULONG)IA32_VMX_CR4_FIXED0 | CR4_VME | CR4_PSE | CR4_PAE | vmread(vm_cr4_read_shadow)); //VME, PAE and PSE
+    setupRealModePaging(currentcpuinfo); //normal realmode
+    return 0;
+
+  }
+
+  if ((newcr0 & (1<<31)) && (!(oldcr0 & (1<<31))))
+  {
+    sendstring("Switching from nonpaged mode to paged mode\n\r");
+    if ((newcr0 & 1)==1)
+    {
+      sendstring("In protected mode so enable paging\n\r");
+      //switch from nonpaged to paged
+      emulatePaging(currentcpuinfo);
+
+      //set CR4 to what the guest wants it to be (so remove the forced PAE stuff and restore the disabled bits)
+      vmwrite(vm_guest_cr4,(ULONG)IA32_VMX_CR4_FIXED0 | vmread(0x6006)); //gueststate + cr4 forced1
+    }
+    else
+    {
+      sendstring("Error we arn\'t in protected mode yet.\n\r");
+    }
+
+  }
+  else
+  if ((oldcr0 & (1<<31)) && (!(newcr0 & (1<<31))))
+  {
+    sendstring("Switching from pagedmode to nonpaged mode\n\r");
+    if ((newcr0 & 1)==1)
+    {
+      Access_Rights reg_ssAccessRights, reg_csAccessRights;
+      sendstring("In protected mode so disable paging\n\r");
+      //switch from paged to nonpaged
+
+      setupNonPagedPaging(currentcpuinfo);
+      vmwrite(vm_guest_cr4,vmread(vm_guest_cr4) | (1 << 4) | ( 1 << 5)); //PAE and PSE enabled
+
+      //needs a valid SS, so make sure SS is now valid
+      reg_ssAccessRights.AccessRights=vmread(vm_guest_ss_access_rights);
+
+      if (reg_ssAccessRights.unusable==1)
+      {
+        reg_ssAccessRights.unusable=0;
+        reg_ssAccessRights.Segment_type=3; //0011
+        reg_ssAccessRights.S=1;
+        reg_ssAccessRights.DPL=0;
+        reg_ssAccessRights.P=1;
+        reg_ssAccessRights.G=1;
+        reg_ssAccessRights.D_B=1;
+        reg_ssAccessRights.unusable=0;
+        vmwrite(vm_guest_ss,8);
+        vmwrite(vm_guest_ss_base,0);
+        vmwrite(vm_guest_ss_limit,0xffffffff);
+
+        vmwrite(vm_guest_ss_access_rights,reg_ssAccessRights.AccessRights);
+
+
+        reg_csAccessRights.AccessRights=vmread(vm_guest_cs_access_rights);
+        reg_csAccessRights.L=0;
+        vmwrite(vm_guest_cs_access_rights,reg_csAccessRights.AccessRights);
+      }
+
+
+    }
+    else
+    {
+      sendstring("Error we arn\'t in protected mode yet.\n\r");
+    }
+
+  }
+
+
+
+  newcr0=IA32_VMX_CR0_FIXED0 | newcr0 /*| ( 1 << 16)*/; //mix it with the required bits and set the WP bit to 1 so even ring0 is bound to readonly pages (used for marking regions dirty and can certainly be used for other 'interesting' stuff)
+  vmwrite(vm_guest_cr0,newcr0);  //set new cr0 (real one)
+
+
+  sendstringf("fake cr0 has been set to %8\n\r",vmread(0x6004));
+  sendstringf("real cr0 has been set to %8 (%8)\n\r",newcr0,vmread(vm_guest_cr0));
+
+  if  ((vmread(0x6004) & 0x80000001)==0x80000001)
+  {
+    ULONG difference = oldcr0 ^ vmread(0x6004);
+    if (
+        (difference & (1<<16)) || //WP
+        (difference & (1<<29)) || //NW
+        (difference & (1<<30)) //PE
+       )
+    {
+      emulatePaging(currentcpuinfo); //flushes the virtual tlb
+    }
+
+  }
+
+
+  sendstringf("CS-base=%x\n\r",vmread(vm_guest_cs_base));
+  sendstringf("SS-base=%x\n\r",vmread(vm_guest_ss_base));
+  sendstringf("DS-base=%x\n\r",vmread(vm_guest_ds_base));
+  sendstringf("ES-base=%x\n\r",vmread(vm_guest_es_base));
+  sendstringf("FS-base=%x\n\r",vmread(vm_guest_fs_base));
+  sendstringf("GS-base=%x\n\r",vmread(vm_guest_gs_base));
+
+  return 0;
 
 }
 
@@ -2225,19 +2349,102 @@ int setVM_CR3(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, UINT64 newcr3)
  * Called when the system changes the CR3 register
  */
 {
-  sendstringf("3:Setting CR3\n\r");
+  int shouldInvalidate=1;
+  sendstringf("3:Setting CR3 (%6)\n\r", newcr3);
 
   //Ultimap
   if (currentcpuinfo->Ultimap.Active)
     ultimap_handleCR3Change(currentcpuinfo, currentcpuinfo->guestCR3, newcr3);
 
+  /* From intel reference docs:
+   * If CR4.PCIDE = 1, bit 63 of the source operand to MOV to CR3 determines whether the instruction invalidates
+entries in the TLBs and the paging-structure caches (see Section 4.10.4.1, “Operations that Invalidate TLBs and
+Paging-Structure Caches,” in the Intel® 64 and IA-32 Architectures Software Developer’s Manual, Volume 3A). The
+instruction does not modify bit 63 of CR3, which is reserved and always 0.
+   */
+
+  QWORD cr4=vmread(vm_guest_cr4);
+
+  sendstringf("cr4=%6\n", cr4);
+
+  if ((cr4 & CR4_PCIDE) && (newcr3 & 0x8000000000000000ULL))
+  {
+    sendstringf("CR4_PCIDE is enabled and CR3 bit 63 has been set\n");
+    newcr3=newcr3&0x7FFFFFFFFFFFFFFFULL;
+    //don't invalidate the TLB and caches
+
+    shouldInvalidate=0;
+
+    sendstringf("Skipping the cache invalidating\n");
+  }
+
+  //check if CR3 sets physical address bits it shouldn't, and if so, GPF, unless it's bit 63
+  if (newcr3 & ~MAXPHYADDRMASK)
+  {
+    //has set bits beyond acceptable range, GPF
+    sendstringf("Tried to set %6.  (Bits violating MAXPHYADDRMASK=%6)\n", newcr3, newcr3 & ~MAXPHYADDRMASK);
+    raiseGeneralProtectionFault(3);
+    return 0;
+  }
+
+  if (CR3ValueLog)
+  {
+    csEnter(&CR3ValueLogCS);
+    if ((CR3ValueLog) && (CR3ValuePos<512)) //512*8=4096
+    {
+      int i;
+      int found=0;
+      for (i=0; i<CR3ValuePos; i++)
+      {
+        if (CR3ValueLog[i]==newcr3)
+        {
+          found=1;
+          break;
+        }
+      }
+      if (found==0)
+      {
+        CR3ValueLog[CR3ValuePos]=newcr3;
+        CR3ValuePos++;
+      }
+    }
+    csLeave(&CR3ValueLogCS);
+  }
 
   currentcpuinfo->guestCR3=newcr3;
+
   if (!IS64BITPAGING(currentcpuinfo))
     currentcpuinfo->guestCR3=currentcpuinfo->guestCR3 & 0xffffffff;
 
+  if (hasUnrestrictedSupport)
+  {
+    vmwrite(vm_guest_cr3,newcr3);
+    if (shouldInvalidate)
+    {
+      int type=3;
+  	  INVVPIDDESCRIPTOR desc;
+  	  desc.LinearAddress=0;
+  	  desc.zero=0;
+  	  desc.VPID=1;
+
+  	  if (has_VPID_INVVPIDSingleContextRetainingGlobals)
+        type=3;
+  	  else
+  		if (has_VPID_INVVPIDSingleContext)
+    	  type=2;
+    	else
+    	  type=1; //all
+
+      _invvpid(type, &desc);
+    }
+
+
+
+    return 0;
+  }
+
   //if paging is enabled then set the pagetable to this else just do it and ignore till it is enabled
-  if (vmread(vm_cr0_fakeread) & (1<<31))
+  if (vmread(vm_cr0_read_shadow) & (1<<31))
   {
     if (currentcpuinfo->cr3_callback.cr3_change_callback)
       return handle_cr3_callback(currentcpuinfo,vmregisters);
@@ -2261,92 +2468,149 @@ int setVM_CR3(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, UINT64 newcr3)
 
 int setVM_CR4(pcpuinfo currentcpuinfo, UINT64 newcr4)
 {
-          UINT64 oldCR4=vmread(0x6006);
-          UINT64 newCR4=newcr4;
-          UINT64 IA32_VMX_CR4_FIXED0=readMSR(0x488);
-          UINT64 IA32_VMX_CR4_FIXED1=readMSR(0x489);
 
-          if (!IS64BITCODE(currentcpuinfo))
-            newCR4=newCR4 & 0xffffffff;
+  UINT64 oldCR4=(vmread(vm_guest_cr4) & (~vmread(vm_cr0_guest_host_mask))) | (vmread(vm_cr4_read_shadow) & vmread(vm_cr4_guest_host_mask));
+  UINT64 newCR4=newcr4;
+  UINT64 IA32_VMX_CR4_FIXED0=readMSR(0x488);
+  UINT64 IA32_VMX_CR4_FIXED1=readMSR(0x489);
 
-          sendstring("setVM_CR4(...)\n\r");
+  if (!IS64BITCODE(currentcpuinfo))
+    newCR4=newCR4 & 0xffffffff;
 
+  sendstring("setVM_CR4(...)\n\r");
 
+  if ((IA32_VMX_CR4_FIXED1 & newCR4) != newCR4)
+  {
+    sendstringf("THE GUEST OS WANTS TO SET A BIT THAT SHOULD STAY 0\n\r");
+    return 1;
+  }
 
+  if (hasVPIDSupport & (((newCR4 & (CR4_PGE))) != ((oldCR4 & (CR4_PGE)))))
+  {
+	  //invalidate tlb
 
-          if ((IA32_VMX_CR4_FIXED1 & newCR4) != newCR4)
-          {
-            sendstringf("THE GUEST OS WANTS TO SET A BIT THAT SHOULD STAY 0\n\r");
-            return 1;
-          }
+	  INVVPIDDESCRIPTOR desc;
+	  desc.LinearAddress=0;
+	  desc.zero=0;
+	  desc.VPID=1;
+	  _invvpid(1,&desc);
+  }
 
+  if (((newCR4 & (CR4_PCIDE))) && ((oldCR4 & (CR4_PCIDE))==0))
+  {
+    //do some tests
+    QWORD CR3;
+    QWORD EFER;
+    if (hasUnrestrictedSupport)
+    {
+      CR3=vmread(vm_guest_cr3);
+      EFER=vmread(vm_guest_IA32_EFER);
+    }
+    else
+    {
+      CR3=currentcpuinfo->guestCR3;
+      EFER=currentcpuinfo->efer;
+    }
 
-          sendstringf("Set fake CR4 to %x\n\r",newCR4);
-          vmwrite(0x6006,newCR4); //set the fake CR4
-
-          newCR4=IA32_VMX_CR4_FIXED0 | newCR4; //add the forced bits to it
-
-
-
-          //if paging is enabled then set the pagetable to this else just do it and ignore till it is enabled
-          if (vmread(0x6004) & (1<<31))
-          {
-            //paging is enabled, check if the pae flag has been changed
-            sendstringf("CR4 change and Paging is enabled\n\r");
-
-            if ((oldCR4 & (1<<5)) && ((newCR4 & (1<<5))==0))
-            {
-              //PAE flag got changed and paging is on. Reload paging
-              sendstringf("PAE flag got changed, restart paging\n\r");
-              emulatePaging(currentcpuinfo);
-            }
-
-          }
-          else
-          {
-            //not paging, then make sure PAE is enabled (used for memory emu for real and protected non paged)
-            newCR4=newCR4 | (1<<4) | (1<<5); //PSE and PAE bits set
-          }
-
-          if ((vmread(vm_cr0_fakeread) & 1)==0) //not in protected mode, so emulate paging. We use PAE to identity map
-            newCR4=newCR4 | (1<<4) | (1<<5);
-
-          if (ISREALMODE(currentcpuinfo))
-          {
-            sendstringf("Inside realmode, so set VME\n\r");
-            newCR4=newCR4 | 1; //enable VME
-          }
-          else
-          {
-            sendstringf("Not in realmode\n\r");
-          }
+    if (((EFER & (1<<10))==0) || (CR3 & 0xfff)) //check if LMA=1
+    {
+      raiseGeneralProtectionFault(0);
+      return 2; //not an error, but don't change RIP
+    }
+  }
 
 
-          sendstringf("Setting real CR4 to %x\n\r",newCR4);
-          vmwrite(vm_guest_cr4,newCR4);
 
 
-          if ((vmread(vm_cr0_fakeread) & 0x80000001) == 0x80000001) //protectedmode with paging enabled
-          {
-            //paging is on
-            //check if one of the paging bis is changed
-            UINT64 difference=oldCR4 ^ vmread(vm_cr4_fakeread);
+  sendstringf("Set fake CR4 to %x  (old fake was %x)\n\r",newCR4, oldCR4);
+  if (hasUnrestrictedSupport)
+    vmwrite(vm_cr4_read_shadow,newCR4 & vmread(vm_cr4_guest_host_mask) ); //set the host bits accordingly
+  else
+    vmwrite(vm_cr4_read_shadow,newCR4); //set the fake CR4
 
-            if (
-                (difference & (1<<4)) || //PSE
-                (difference & (1<<5)) //PAE
-               )
-            {
-              sendstring("Paging bits changed\n\r");
+  newCR4=IA32_VMX_CR4_FIXED0 | newCR4; //add the forced bits to it
 
-              emulatePaging(currentcpuinfo); //flushes the virtual tlb
-            }
 
-          }
+  if (hasUnrestrictedSupport)
+  {
+    vmwrite(vm_guest_cr4, newCR4);
+    return 0;
+  }
 
-          return 0;
+
+
+  //if paging is enabled then set the pagetable to this else just do it and ignore till it is enabled
+
+  if (vmread(vm_cr0_read_shadow) & CR0_PG)
+  {
+    //paging is enabled, check if the pae flag has been changed
+    sendstringf("CR4 change and Paging is enabled\n\r");
+
+
+    if ((oldCR4 & CR4_PAE) && ((newCR4 & CR4_PAE)==0))
+    {
+      //PAE flag got changed and paging is on. Reload paging
+      sendstringf("PAE flag got changed, restart paging\n\r");
+      emulatePaging(currentcpuinfo);
+    }
+
+  }
+  else
+  {
+    //not paging, then make sure PAE is enabled (used for memory emu for real and protected non paged)
+    sendstring("cr4 change, but paging is off");
+    newCR4=newCR4 | CR4_PAE | CR4_PSE; //PSE and PAE bits set
+  }
+
+  if ((vmread(vm_cr0_read_shadow) & 1)==0) //not in protected mode, so emulate paging. We use PAE to identity map
+    newCR4=newCR4 | (1<<4) | (1<<5);
+
+  if (ISREALMODE(currentcpuinfo))
+  {
+    sendstringf("Inside realmode, so set VME\n\r");
+    newCR4=newCR4 | 1; //enable VME
+  }
+  else
+  {
+    sendstringf("Not in realmode\n\r");
+  }
+
+  if (ISPAGING(currentcpuinfo)==0)
+  {
+    sendstringf("No paging yet: vmread(vm_cr0_fakeread)=%x \n", vmread(vm_cr0_read_shadow));
+    newCR4=newCR4 & 0xFFCFFFFF; //disable SMEP/SMAP //debug
+  }
+
+  sendstringf("Setting real CR4 to %x\n\r",newCR4);
+  vmwrite(vm_guest_cr4,newCR4);
+
+
+  if ((vmread(vm_cr0_read_shadow) & 0x80000001) == 0x80000001) //protectedmode with paging enabled
+  {
+    //paging is on
+    //check if one of the paging bis is changed
+    UINT64 difference=oldCR4 ^ vmread(vm_cr4_read_shadow);
+
+    if (
+        (difference & (1<<4)) || //PSE
+        (difference & (1<<5)) //PAE
+       )
+    {
+      sendstring("Paging bits changed\n\r");
+
+      emulatePaging(currentcpuinfo); //flushes the virtual tlb
+    }
+
+  }
+  else
+  {
+    setupNonPagedPaging(currentcpuinfo);
+  }
+
+  return 0;
 
 }
+
 
 int handleCRaccess(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 {
@@ -2412,7 +2676,7 @@ int handleCRaccess(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
             vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));   //adjust eip to go after this instruction (we handled/emulated it)
 
           sendstringf("new eip=%x\n\r",vmread(vm_guest_rip));
-          return result;
+          return 0;
         }
 
 
@@ -2475,16 +2739,22 @@ int handleCRaccess(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
           result = setVM_CR3(currentcpuinfo, vmregisters, getRegister(vmregisters,general_purpose_register));
           if (result==0)
+          {
             vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength)); //adjust eip to go after this instruction (we handled/emulated it)
+          }
 
-					return result;
+					return 0;
         }
 
         case 1: //move from CR3
         {
           sendstringf("THE OS REQUESTED CR3 INTO REGISTER %d \n\r",general_purpose_register);
-					setRegister(currentcpuinfo, vmregisters,general_purpose_register,currentcpuinfo->guestCR3);
+          if (hasUnrestrictedSupport)
+            setRegister(currentcpuinfo, vmregisters,general_purpose_register,vmread(vm_guest_cr3));
+          else
+            setRegister(currentcpuinfo, vmregisters,general_purpose_register,currentcpuinfo->guestCR3);
           vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));   //adjust eip to go after this instruction (we handled/emulated it)
+
           return 0;
         }
 
@@ -2520,7 +2790,7 @@ int handleCRaccess(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
             vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));   //adjust eip to go after this instruction (we handled/emulated it)
 
 
-					return result;
+					return 0;
         }
 
 
@@ -2591,27 +2861,185 @@ int isContributoryInterrupt(int interrupt)
   return 0;
 }
 
+int handleRealModeInt0x15(pcpuinfo currentcpuinfo UNUSED, VMRegisters *vmregisters, int instructionsize)
+{
+  sendstring("Int 15h software interrupt\n\r");
+
+  if (ARDcount==0)
+    initARDcount();
+
+  // Check if it is one of the functions needed to hook, if not, emulate and continue
+  if (((WORD)(vmregisters->rax) & 0xff00)==0x8800)
+  {
+  //  nosendchar[getAPICID()]=0;
+    sendstringf("Handling int 15h, AH=88 . instructionsize=%d\n\r", instructionsize);
+
+
+
+
+    vmregisters->rax=(vmregisters->rax & 0xffffffff00000000ULL)+0xfc00; //64MB, if less, well, screw you, why even use dbvm ?
+
+    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+instructionsize); //eip to next
+    vmwrite(vm_guest_rflags,vmread(vm_guest_rflags) & 0xFFFFFFFFFFFFFFFEULL); //clear carry flag
+    return 0; //handled
+  }
+
+  if (((ULONG)(vmregisters->rax) & 0xffff)==(ULONG)0xe801)
+  {
+    int i;
+
+    DWORD between1and16MB=0; //in KB, max 3c00  (between 0x100000 and 0x1000000)
+    DWORD above16MB=0;
+
+
+
+
+    nosendchar[getAPICID()]=0;
+    sendstringf("Handling int 15h, AH=e801. ARDcount=%d \n\r",ARDcount);
+
+    for (i=0; i<ARDcount; i++)
+    {
+      sendstringf("i=%d\n",i);
+      sendstringf("between1and16MB=%x\n",between1and16MB);
+      sendstringf("above16MB=%x\n",above16MB);
+
+      if (fakeARD[i].BaseAddrHigh>0)
+        continue;
+
+
+
+      if ((fakeARD[i].Type==1) && ((fakeARD[i].BaseAddrLow+fakeARD[i].LengthLow)>0x100000))
+      {
+        //upper mem, and available
+        DWORD start=fakeARD[i].BaseAddrLow;
+        DWORD stop=fakeARD[i].BaseAddrLow+fakeARD[i].LengthLow;
+
+        if (start<0x100000)
+          start=0x100000;
+
+        if (start<0x1000000)
+        {
+          DWORD tempstop=stop;
+          if (tempstop>0x1000000)
+            tempstop=0x1000000;
+
+          between1and16MB+=tempstop-start;
+          start=tempstop;
+        }
+
+        if (start>=0x1000000)
+          above16MB+=stop-start;
+
+
+      }
+    }
+
+    sendstringf("After for loop\n");
+    sendstringf("between1and16MB=%x\n",between1and16MB);
+    sendstringf("above16MB=%x\n",above16MB);
+
+    vmregisters->rax=(vmregisters->rax & 0xffffffffffff0000ULL) + (between1and16MB / 1024);
+    vmregisters->rbx=(vmregisters->rbx & 0xffffffffffff0000ULL) + (above16MB / (64*1024));
+    vmregisters->rcx=(vmregisters->rcx & 0xffffffffffff0000ULL) + (between1and16MB / 1024);
+    vmregisters->rdx=(vmregisters->rdx & 0xffffffffffff0000ULL) + (above16MB / (64*1024));
+
+    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+instructionsize); //eip to next
+    vmwrite(vm_guest_rflags,vmread(vm_guest_rflags) & 0xFFFFFFFFFFFFFFFEULL); //clear carry flag
+    return 0;
+
+  }
+
+  if (((ULONG)vmregisters->rax & 0xffff)==(ULONG)0xe820)
+  {
+    int startindex=(ULONG)vmregisters->rbx;
+
+    //return 1;
+    nosendchar[getAPICID()]=0;
+
+    sendstringf("Handling int 15h, ax=E820 (maxindex=%d)\n\r",ARDcount-1);
+    sendstringf("startindex=%d vmregisters->rcx=%d\n\r",startindex,vmregisters->rcx);
+
+
+    if (((ULONG)vmregisters->rcx >= 20) && ((ULONG)vmregisters->rdx==0x534D4150) && (startindex<ARDcount))
+    {
+      //call=ok
+      PARD output=(PARD)(vmread(vm_guest_es_base)+(vmregisters->rdi & 0xffff)); //es:di
+      int totalentries=(ULONG)vmregisters->rcx/20;
+      int o,i;
+      vmregisters->rax=(vmregisters->rax & 0xffffffff00000000ULL) + 0x534D4150;
+
+      sendstringf("totalentries=%d\n\r",totalentries);
+
+      i=startindex;
+      o=0;
+      while ((o<totalentries) && (i<ARDcount) )
+      {
+        output[o]=fakeARD[i];
+        if (output[o].Type==255)
+          output[o].Type=2;
+
+        o++;
+        i++;
+      }
+
+      //set next index, i already contains the value of the next index
+      if (i>=ARDcount)
+      {
+        vmregisters->rbx=(vmregisters->rbx & 0xffffffff00000000ULL) + 0;
+      }
+      else
+      {
+        vmregisters->rbx=(vmregisters->rbx & 0xffffffff00000000ULL) + i;
+      }
+
+      vmregisters->rcx=(vmregisters->rcx & 0xffffffff00000000ULL) + (o*20);
+      vmwrite(vm_guest_rip,vmread(vm_guest_rip)+instructionsize); //eip to next
+      vmwrite(vm_guest_rflags,vmread(vm_guest_rflags) & 0xFFFFFFFFFFFFFFFEULL); //clear carry flag
+
+      sendstringf("Handled int15h ax=e820. ECX=%8 \n\r",(ULONG)vmregisters->rcx);
+      return 0; //handled
+    }
+    else
+    {
+      //return error
+      sendstringf("Returning error\n\r");
+      vmwrite(vm_guest_rip,vmread(vm_guest_rip)+instructionsize); //eip to next
+      vmwrite(vm_guest_rflags,vmread(vm_guest_rflags) | 1); //set carry flag
+      return 0; //handled
+    }
+
+  }
+
+  if (((ULONG)vmregisters->rax & 0xffff)==(ULONG)0xe881)
+  {
+    nosendchar[getAPICID()]=0;
+    sendstring("int 0x15:ax=0xe881 is being used\n");
+  }
+
+  return 1; //unhandled
+}
+
 int handleInterruptRealMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 {
   //gather data
-  Access_Rights reg_csaccessrights;
+  //Access_Rights reg_csaccessrights;
 
 
 
-  ULONG interrorcode,idtvectorerrorcode;
-  VMExit_interruption_information intinfo;
+  //ULONG interrorcode;//,idtvectorerrorcode;
+  //VMExit_interruption_information intinfo;
   VMExit_idt_vector_information idtvectorinfo;
   //VMEntry_interruption_information entry_intinfo;
 
 
-  intinfo.interruption_information=vmread(vm_exit_interruptioninfo);
-  interrorcode=vmread(vm_exit_interruptionerror);
+  //intinfo.interruption_information=vmread(vm_exit_interruptioninfo);
+  //interrorcode=vmread(vm_exit_interruptionerror);
   idtvectorinfo.idtvector_info=vmread(vm_idtvector_information);
-  idtvectorerrorcode=vmread(vm_idtvector_error);
+  //idtvectorerrorcode=vmread(vm_idtvector_error);
 
 
 
-  reg_csaccessrights.AccessRights=vmread(vm_guest_cs_access_rights);
+  //reg_csaccessrights.AccessRights=vmread(vm_guest_cs_access_rights);
 
 
   if (idtvectorinfo.valid)
@@ -2649,167 +3077,15 @@ int handleInterruptRealMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     //emulate the call to this int
 
+
+
     //read the idt and figure out where the interrupt is
     if ((idtvectorinfo.interruptvector==0x15) && issoftware )  //bios function call
     {
+      int r=handleRealModeInt0x15(currentcpuinfo, vmregisters, issoftware);
 
-      sendstring("Int 15h software interrupt\n\r");
-
-
-      // Check if it is one of the functions needed to hook, if not, emulate and continue
-      if (((WORD)(vmregisters->rax) & 0xff00)==0x8800)
-      {
-      //  nosendchar[getAPICID()]=0;
-        sendstringf("Handling int 15h, AH=88 . issoftware=%d\n\r", issoftware);
-
-
-
-
-        vmregisters->rax=(vmregisters->rax & 0xffffffff00000000ULL)+0xfc00; //64MB, if less, well, screw you, why even use dbvm ?
-
-        vmwrite(vm_guest_rip,vmread(vm_guest_rip)+issoftware); //eip to next
-        vmwrite(vm_guest_rflags,vmread(vm_guest_rflags) & 0xFFFFFFFFFFFFFFFEULL); //clear carry flag
-        return 0; //handled
-      }
-
-      if (((ULONG)(vmregisters->rax) & 0xffff)==(ULONG)0xe801)
-      {
-        int i;
-
-        DWORD between1and16MB=0; //in KB, max 3c00  (between 0x100000 and 0x1000000)
-        DWORD above16MB=0;
-
-
-
-
-        nosendchar[getAPICID()]=0;
-        sendstringf("Handling int 15h, AH=e801. ARDcount=%d \n\r",ARDcount);
-
-        for (i=0; i<ARDcount; i++)
-        {
-          sendstringf("i=%d\n",i);
-          sendstringf("between1and16MB=%x\n",between1and16MB);
-          sendstringf("above16MB=%x\n",above16MB);
-
-          if (fakeARD[i].BaseAddrHigh>0)
-            continue;
-
-
-
-          if ((fakeARD[i].Type==1) && ((fakeARD[i].BaseAddrLow+fakeARD[i].LengthLow)>0x100000))
-          {
-            //upper mem, and available
-            DWORD start=fakeARD[i].BaseAddrLow;
-            DWORD stop=fakeARD[i].BaseAddrLow+fakeARD[i].LengthLow;
-
-            if (start<0x100000)
-              start=0x100000;
-
-            if (start<0x1000000)
-            {
-              DWORD tempstop=stop;
-              if (tempstop>0x1000000)
-                tempstop=0x1000000;
-
-              between1and16MB+=tempstop-start;
-              start=tempstop;
-            }
-
-            if (start>=0x1000000)
-              above16MB+=stop-start;
-
-
-          }
-        }
-
-        sendstringf("After for loop\n");
-        sendstringf("between1and16MB=%x\n",between1and16MB);
-        sendstringf("above16MB=%x\n",above16MB);
-
-        vmregisters->rax=(vmregisters->rax & 0xffffffffffff0000ULL) + (between1and16MB / 1024);
-        vmregisters->rbx=(vmregisters->rbx & 0xffffffffffff0000ULL) + (above16MB / (64*1024));
-        vmregisters->rcx=(vmregisters->rcx & 0xffffffffffff0000ULL) + (between1and16MB / 1024);
-        vmregisters->rdx=(vmregisters->rdx & 0xffffffffffff0000ULL) + (above16MB / (64*1024));
-
-        vmwrite(vm_guest_rip,vmread(vm_guest_rip)+issoftware); //eip to next
-        vmwrite(vm_guest_rflags,vmread(vm_guest_rflags) & 0xFFFFFFFFFFFFFFFEULL); //clear carry flag
-        return 0;
-
-      }
-
-      if (((ULONG)vmregisters->rax & 0xffff)==(ULONG)0xe820)
-      {
-        int startindex=(ULONG)vmregisters->rbx;
-
-        //return 1;
-        nosendchar[getAPICID()]=0;
-
-        sendstringf("Handling int 15h, ax=E820 (maxindex=%d)\n\r",ARDcount-1);
-        sendstringf("startindex=%d vmregisters->rcx=%d\n\r",startindex,vmregisters->rcx);
-
-
-        if (((ULONG)vmregisters->rcx >= 20) && ((ULONG)vmregisters->rdx==0x534D4150) && (startindex<ARDcount))
-        {
-          //call=ok
-          PARD output=(PARD)(vmread(vm_guest_es_base)+(vmregisters->rdi & 0xffff)); //es:di
-          int totalentries=(ULONG)vmregisters->rcx/20;
-          int o,i;
-          vmregisters->rax=(vmregisters->rax & 0xffffffff00000000ULL) + 0x534D4150;
-
-          sendstringf("totalentries=%d\n\r",totalentries);
-
-          i=startindex;
-          o=0;
-          while ((o<totalentries) && (i<ARDcount) )
-          {
-            output[o]=fakeARD[i];
-            if (output[o].Type==255)
-              output[o].Type=2;
-
-            o++;
-            i++;
-          }
-
-          //set next index, i already contains the value of the next index
-          if (i>=ARDcount)
-          {
-            vmregisters->rbx=(vmregisters->rbx & 0xffffffff00000000ULL) + 0;
-          }
-          else
-          {
-            vmregisters->rbx=(vmregisters->rbx & 0xffffffff00000000ULL) + i;
-          }
-
-          vmregisters->rcx=(vmregisters->rcx & 0xffffffff00000000ULL) + (o*20);
-          vmwrite(vm_guest_rip,vmread(vm_guest_rip)+issoftware); //eip to next
-          vmwrite(vm_guest_rflags,vmread(vm_guest_rflags) & 0xFFFFFFFFFFFFFFFEULL); //clear carry flag
-
-          sendstringf("Handled int15h ax=e820. ECX=%8 \n\r",(ULONG)vmregisters->rcx);
-          return 0; //handled
-        }
-        else
-        {
-          //return error
-          sendstringf("Returning error\n\r");
-          vmwrite(vm_guest_rip,vmread(vm_guest_rip)+issoftware); //eip to next
-          vmwrite(vm_guest_rflags,vmread(vm_guest_rflags) | 1); //set carry flag
-          return 0; //handled
-        }
-
-      }
-
-      if (((ULONG)vmregisters->rax & 0xffff)==(ULONG)0xe881)
-      {
-        nosendchar[getAPICID()]=0;
-        sendstring("0xe881 is being used\n");
-        //return 1;
-
-
-      }
-
-
-
-
+      if (r==0)
+        return r;
     }
 
     //still here so not a hooked routine
@@ -2832,10 +3108,10 @@ int handleInterruptRealMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
 int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 {
-  UINT64 fakeCR0=vmread(vm_cr0_fakeread); //guestCR0
+  //UINT64 fakeCR0=vmread(vm_cr0_fakeread); //guestCR0
   //UINT64 fakeCR4=vmread(0x6006);
 
-  ULONG interrorcode,idtvectorerrorcode;
+  //ULONG interrorcode,idtvectorerrorcode;
   VMExit_interruption_information intinfo;
   VMExit_idt_vector_information idtvectorinfo;
   //VMEntry_interruption_information entry_intinfo;
@@ -2843,40 +3119,15 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
   int isFault=1;
 
   intinfo.interruption_information=vmread(vm_exit_interruptioninfo);
-  interrorcode=vmread(vm_exit_interruptionerror);
+  //interrorcode=vmread(vm_exit_interruptionerror);
   idtvectorinfo.idtvector_info=vmread(vm_idtvector_information);
-  idtvectorerrorcode=vmread(0x440a);
+  //idtvectorerrorcode=vmread(0x440a);
 
 
   //protected mode int handling
   sendstring("protected mode interrupt handling\n\r");
-   /*
-  if (intinfo.interruptvector==1 && intinfo.type==3) //int1 hardware exception
-  {
-    if (debugmode)
-    {
-      sendstringf("debug int in protectedmode and debugmode==1\n\r");
-      return 0;
-    }
 
 
-    //check dr6 (exit qualification), if it is caused by a debug breakpoint
-    if (vmread(vm_exit_qualification)) //not 0, so a actual debug event
-    {
-      //set GD to 0
-      regDR7 dr7;
-      dr7.DR7=vmread(0x681a);
-      dr7.GD=0;
-      vmwrite(0x681a,dr7.DR7);
-
-
-    }
-  }
-
-
-
-
-  */
   if (intinfo.interruptvector==1)
   {
 	//emulate the breakpoint interrupt
@@ -2959,7 +3210,7 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
         nosendchar[getAPICID()]=0;
         sendstring("int 3\n");
 
-        vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength)); //adjust this automatically
+        vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength)); //adjust this automatically (probably 1)
 
         int r=emulateExceptionInterrupt(currentcpuinfo, vmregisters,
             int3redirection_idtbypass_cs, int3redirection_idtbypass_rip,
@@ -2979,7 +3230,6 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
         vmwrite(vm_guest_rip, vmread(vm_guest_rip)+vmread(vm_exit_instructionlength)); //set eip to the next instruction
         return 0;
       }
-
 
       setCR2(vmread(vm_exit_qualification));
 
@@ -3047,169 +3297,6 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
         intinfo.interruptvector=int14redirection;
         currentcpuinfo->int14happened=(int14redirection!=14);
       }
-
-    /*
-
-    int originalnosendchar=nosendchar[getAPICID()];
-
-    if (intinfo.valid==0)
-    {
-      nosendchar[getAPICID()]=0;
-      sendstring("INVALID PAGEFAULT!?!!?!\n\r");
-    }
-
-    if (intinfo.ireterror)
-    {
-      nosendchar[getAPICID()]=0;
-      sendstring("IRET ERROR!\n\r");
-
-
-    }
-
-
-    //nosendchar[getAPICID()]=0; //allow debug output here
-                      sendstring("\n\r");
-                      sendstring("-------------------------------------\n\r");
-
-    sendstring("Handling page fault in protected mode\n\r");
-
-
-                      int handledbyguest=handleVMPageException(currentcpuinfo);
-
-    VMEntry_interruption_information newintinfo;
-    newintinfo.interruption_information=0;
-
-    if (handledbyguest==1)
-    {
-      //nosendchar[getAPICID()]=0;
-
-      if (((vmread(0x6004) & (1<<16)) >> 16)==0)
-      {
-        //nosendchar[getAPICID()]=0;
-        sendstring("WP bit is 0\n\r");
-      }
-
-
-      //send event to guest
-      sendstring("Page fault handling by GUEST exception handler\n\r");
-
-      if (idtvectorinfo.valid)
-        sendstringf("Guest pagefault caused by interrupt (%d)\n\r",idtvectorinfo.interruptvector);
-
-      {
-        regCR0 fakeCR0;
-        regCR4 fakeCR4;
-        PFerrorcode errorcode;
-        ULONG fakepagebase=currentcpuinfo->guestCR3 & 0xffffffe0;
-        ULONG faultingaddress=vmread(vm_exit_qualification); //on pagefaults the exitqualification contains the address
-
-        errorcode.errorcode=vmread(vm_exit_interruptionerror);
-        fakeCR0.CR0=vmread(0x6004);
-        fakeCR4.CR4=vmread(0x6006);
-
-
-
-
-
-        sendstringf("guest cs=%8\n\r",vmread(0x802));
-        sendstringf("guest eip=%8\n\r",vmread(vm_guest_rip));
-        sendstringf("address=%8\n\r",faultingaddress);
-        sendstringf("errorcode P=%d\n\r",errorcode.P);
-        sendstringf("errorcode W=%d\n\r",errorcode.W);
-        sendstringf("errorcode US=%d\n\r",errorcode.US);
-        sendstringf("errorcode RSVD=%d\n\r",errorcode.RSVD);
-        sendstringf("errorcode ID=%d\n\r",errorcode.ID);
-        sendstringf("guest CR0=%8\n\r",vmread(0x6004));
-        sendstringf("guest CR4=%8\n\r",vmread(0x6006));
-
-        sendstringf("CR0.WP=%d\n\r", ((vmread(0x6004) & (1<<16)) >> 16));
-
-        //return 1;
-
-
-      }
-      //return 1;
-
-                              //handle pagefault
-
-      //inject pagefault
-      newintinfo.interruptvector=intinfo.interruptvector;
-      newintinfo.type=intinfo.type;
-      newintinfo.haserrorcode=intinfo.haserrorcode;
-      newintinfo.valid=intinfo.valid;
-
-      sendstringf("newintinfo.interruptvector=%d\n\r",newintinfo.interruptvector);
-      sendstringf("newintinfo.type=%d\n\r",newintinfo.type);
-      sendstringf("newintinfo.haserrorcode=%d\n\r",newintinfo.haserrorcode);
-      sendstringf("newintinfo.valid=%d\n\r",newintinfo.valid);
-
-      setCR2(vmread(vm_exit_qualification));
-
-      vmwrite(0x4016, newintinfo.interruption_information);
-      vmwrite(0x4018, vmread(vm_exit_interruptionerror)); //errorcode
-      vmwrite(0x401a, vmread(vm_exit_instructionlength)); //instruction length
-
-      nosendchar[getAPICID()]=originalnosendchar;
-
-
-                              return 0;
-    }
-    else
-    if (handledbyguest==2)
-    {
-
-      nosendchar[getAPICID()]=0;
-      sendstringf("Failed to handle pagefault\n\r");
-      nosendchar[getAPICID()]=originalnosendchar;
-
-      return 1;
-    }
-    else
-    if (handledbyguest==0)
-    {
-
-      sendstring("Page fault handled by VMM, checking if it was caused by a int\n\r");
-      if (idtvectorinfo.valid)
-      {
-        sendstring("Yes... it was caused by a int...refire!\n\r");
-
-        if (idtvectorinfo.type==3)
-        {
-          //nosendchar[getAPICID()]=0;
-          sendstring("Handled pagefault caused by hardware exception\n\r");
-        }
-
-        newintinfo.interruptvector=idtvectorinfo.interruptvector;
-        newintinfo.type=idtvectorinfo.type;
-        newintinfo.haserrorcode=idtvectorinfo.haserrorcode;
-        newintinfo.valid=idtvectorinfo.valid;
-
-        sendstringf("newintinfo.interruptvector=%d\n\r",newintinfo.interruptvector);
-        sendstringf("newintinfo.type=%d\n\r",newintinfo.type);
-        sendstringf("newintinfo.haserrorcode=%d\n\r",newintinfo.haserrorcode);
-        sendstringf("newintinfo.valid=%d\n\r",newintinfo.valid);
-
-        vmwrite(0x4016, newintinfo.interruption_information);
-        vmwrite(0x4018, vmread(vm_exit_interruptionerror)); //errorcode
-        vmwrite(0x401a, vmread(vm_exit_instructionlength)); //instruction length, not sure why...
-
-      }
-      else if (intinfo.ireterror)
-      {
-        //see 25.7.1.2 for this:
-        //set bit 3 in the interuptability-state field (blocking by nmi)
-        vmwrite(0x4824, vmread(0x4824) | 0x8 );
-
-      }
-
-      nosendchar[getAPICID()]=originalnosendchar;
-      return 0;
-    }
-
-                      //shouldn't be reached
-                      nosendchar[getAPICID()]=originalnosendchar;
-
-                      return 1;*/
    }
 
 
@@ -3324,7 +3411,7 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
 
   if (doublefault)
   {
-    int originalnosendchar=nosendchar[getAPICID()];
+    //int originalnosendchar=nosendchar[getAPICID()];
 
     nosendchar[getAPICID()]=0;
 
@@ -3376,31 +3463,52 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
   return 0;
 }
 
-int handleInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters) //nightmare function. Needs rewrite
+BOOL handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 {
-  int origsc;
+  //handle software breakpoints
+  sendstringf("Software breakpoint\n");
+  if (hasEPTsupport)
+  {
+    if (ept_handleSoftwareBreakpoint(currentcpuinfo, vmregisters))
+      return TRUE;
+  }
 
-  UINT64 fakeCR0=vmread(vm_cr0_fakeread); //guestCR0
+  //perhaps future breakpoint handlers here
+
+  //still here
+  return FALSE; //unhandled
+}
+
+VMSTATUS handleInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters) //nightmare function. Needs rewrite
+{
+ // int origsc;
+
+  UINT64 fakeCR0=(vmread(vm_guest_cr0) & (~vmread(vm_cr0_guest_host_mask))) | (vmread(vm_cr0_read_shadow) & vmread(vm_cr0_guest_host_mask)); //   vmread(vm_cr0_read_shadow); //guestCR0
   //UINT64 fakeCR4=vmread(0x6006);
 
-  ULONG interrorcode,idtvectorerrorcode;
+  //ULONG interrorcode,idtvectorerrorcode;
   VMExit_interruption_information intinfo;
-  VMExit_idt_vector_information idtvectorinfo;
-  //VMEntry_interruption_information entry_intinfo;
-  int doublefault=0;
+  //VMExit_idt_vector_information idtvectorinfo;
+  //VMEntry_interruption_information enstry_intinfo;
+  //int doublefault=0;
 
   intinfo.interruption_information=vmread(vm_exit_interruptioninfo);
-  interrorcode=vmread(vm_exit_interruptionerror);
-  idtvectorinfo.idtvector_info=vmread(vm_idtvector_information);
-  idtvectorerrorcode=vmread(0x440a);
+
+  if ((intinfo.interruptvector==3) && (intinfo.type==itSoftwareException))
+  {
+    if (handleSoftwareBreakpoint(currentcpuinfo, vmregisters))
+      return VM_OK;
+  }
+
+ // interrorcode=vmread(vm_exit_interruptionerror);
+  //idtvectorinfo.idtvector_info=vmread(vm_idtvector_information);
+  //idtvectorerrorcode=vmread(0x440a);
 
   //check if according to the guest protected mode is enabled or not
   if ((fakeCR0 & 1)==0)
     return handleInterruptRealMode(currentcpuinfo, vmregisters);     //nope, so we're in real mode emulation
   else
     return handleInterruptProtectedMode(currentcpuinfo, vmregisters);
-
-  return 1;
 }
 
 
@@ -3414,7 +3522,7 @@ int handleXSETBV(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   sendstring("handleXSETBV\n\r");
 
   currentcpuinfo->LastInterrupt=0;
-  currentcpuinfo->OnInterrupt.RIP=(volatile void *)&&InterruptFired; //set interrupt location
+  currentcpuinfo->OnInterrupt.RIP=(QWORD)((volatile void *)(&&InterruptFired)); //set interrupt location
   currentcpuinfo->OnInterrupt.RSP=getRSP();
 
 
@@ -3459,15 +3567,74 @@ InterruptFired:
 }
 
 
+int handleSingleStep(pcpuinfo currentcpuinfo)
+{
+  //handle the reasons one by one
+  sendstringf("handleSingleStep.  currentcpuinfo->singleStepping.ReasonsPos=%d\n", currentcpuinfo->singleStepping.ReasonsPos);
+
+  while (currentcpuinfo->singleStepping.ReasonsPos)
+  {
+    int i=currentcpuinfo->singleStepping.ReasonsPos-1;
+    int r;
+    sendstringf("  ID %d Reason %d\n",i, currentcpuinfo->singleStepping.Reasons[i].Reason);
+
+    switch (currentcpuinfo->singleStepping.Reasons[i].Reason)
+    {
+      case 1: r=ept_handleWatchEventAfterStep(currentcpuinfo, currentcpuinfo->singleStepping.Reasons[i].ID); break;
+      case 2: r=ept_handleCloakEventAfterStep(currentcpuinfo, currentcpuinfo->singleStepping.Reasons[i].ID); break;
+      case 3: r=ept_handleSoftwareBreakpointAfterStep(currentcpuinfo, currentcpuinfo->singleStepping.Reasons[i].ID); break;
+    }
+
+    if (r)
+    {
+      while (1);
+    }
+
+    currentcpuinfo->singleStepping.ReasonsPos--;
+  }
+
+  vmx_disableSingleStepMode();
+
+  sendstringf("return from handleSingleStep.  currentcpuinfo->singleStepping.ReasonsPos=%d\n", currentcpuinfo->singleStepping.ReasonsPos);
+
+  return 0;
+}
+
+
 #pragma GCC pop_options
 
 
-int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
+int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *fxsave)
 {
   int result;
+  int exit_reason=currentcpuinfo->guest_error?currentcpuinfo->guest_error:vmread(vm_exit_reason) & 0x7fffffff;
 
 
-  switch (vmread(vm_exit_reason) & 0x7fffffff) //exit reason
+  /*
+  INVVPIDDESCRIPTOR vpidd;
+  vpidd.zero=0;
+  vpidd.LinearAddress=0;
+  vpidd.VPID=1;
+  _invvpid(2, &vpidd);
+  */
+
+
+
+
+
+
+  if (currentcpuinfo->vmxdata.runningvmx)
+  {
+    //check if I should handle it, if not
+    return handleByGuest(currentcpuinfo, vmregisters);
+  }
+
+#ifdef STATISTICS
+  if (exit_reason<=55)
+    currentcpuinfo->eventcounter[exit_reason]++;
+#endif
+
+  switch (exit_reason) //exit reason
   {
     case 0: //interrupt
     {
@@ -3484,7 +3651,7 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       sendstring("received external interrupt\n\r");
       if (vmread(0x4826)==1)
       {
-        sendstring("In HLT mode so become active and disable externel event watching\n\r");
+        sendstring("In HLT mode so become active and disable external event watching\n\r");
         vmwrite(vm_execution_controls_pin,vmread(0x4000) & 0xFFFFFFFE); //disable external event watching
 
 
@@ -3518,13 +3685,16 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
 		case 3: //INIT SIGNAL
 		{
-			sendstring("Received a INIT signal\n\r");
+			sendstring("Received a INIT signal\n\r"); //should enter wait-for-sipi mode
 			return 0; //ignore?
 		}
 
 		case vm_exit_sipi: //SIPI
 		{
-			return handleSIPI();
+		  if (currentcpuinfo->vmxdata.insideVMXRootMode==1) //don't handle it
+		    return 0;
+		  else
+		    return handleSIPI();
 		}
 
 
@@ -3542,15 +3712,34 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
 		case 7: //interrupt window
 		{
-			sendstring("Interrupt window event... I did NOT ask for this\n\r");
-			sendstringf("vm_execution_controls_cpu=%6\n", vmread(vm_execution_controls_cpu));
+		  if ((currentcpuinfo->singleStepping.ReasonsPos) && (currentcpuinfo->singleStepping.Method==2))
+		  {
+        sendstring("Interrupt window event... And I am in single stepping mode\n");
+
+        return handleSingleStep(currentcpuinfo);
+		  }
+		  else
+		  {
+		    sendstring("Interrupt window event... I did NOT ask for this\n\r");
+		    sendstringf("vm_execution_controls_cpu=%6\n", vmread(vm_execution_controls_cpu));
+
+#ifndef DEBUG
+		     while (1);
+#endif
+		  }
 			return 0; //ignore for now
 		}
 
 		case 8: //NMI window
 		{
 		  sendstring("NMI Window");
-		  return 1;
+		  if (currentcpuinfo->NMIOccured)
+		    raiseNMI();
+
+
+		  vmx_disableNMIWindowExiting(); //vmwrite(vm_guest_interruptability_state,2); for some single stepping fun
+
+		  return 0;
 		}
 
     case 9:
@@ -3583,7 +3772,11 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 		{
       nosendchar[getAPICID()]=0;
 			sendstring("INVD called\n\r");
-			return 1;
+
+			vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+			_wbinvd();
+			//_invd();
+			return 0;
 		}
 
 		case 14: //INVLPG
@@ -3624,19 +3817,22 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     {
 
       nosendchar[getAPICID()]=0;
-      sendstring("vmcall\n");
+      //sendstring("vmcall\n");
 
       result = handleVMCall(currentcpuinfo, vmregisters);
 
 
-      sendstringf("Returned from handleVMCall, result=%d\n\r",result);
+      //sendstringf("Returned from handleVMCall, result=%d\n\r",result);
       return result;
     }
 
     case 19 ... 27 : //VMX instruction called
+    case 0xce00: //special exit reasons (vmresume/vmlaunch failures)
+    case 0xce01:
 		{
 			sendstring("VMX instruction called...\n\r");
-			return raiseInvalidOpcodeException(currentcpuinfo);
+			return handleIntelVMXInstruction(currentcpuinfo, vmregisters);
+			//return raiseInvalidOpcodeException(currentcpuinfo);
 		}
 
 
@@ -3709,10 +3905,20 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 			return 1;
 		}
 
-		case 37:
+
+		case vm_exit_monitor_trap_flag:
 		{
-		  sendstring("Monitor trap flag\n\r");
-		  return 1;
+			if ((currentcpuinfo->singleStepping.ReasonsPos) && (currentcpuinfo->singleStepping.Method==1))
+				return handleSingleStep(currentcpuinfo);
+
+			sendstring("(Un)expected monitor trap flag\n\r");
+#ifndef DEBUG
+			while (1) ;
+#else
+			return 0;
+#endif
+
+
 		}
 
 		case 39: //MONITOR
@@ -3765,14 +3971,21 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
 		case 48:
 		{
-		  sendstring("EPT violation\n\r");
-		  return 1;
+			int r;
+			INVEPTDESCRIPTOR eptd;
+		    sendstring("EPT violation\n\r");
+		    r=handleEPTViolation(currentcpuinfo, vmregisters, (PFXSAVE64)fxsave);
+
+		    eptd.Zero=0;
+		    eptd.EPTPointer=currentcpuinfo->EPTPML4;
+		    _invept(2, &eptd);
+		  return r;
 		}
 
 		case 49:
 		{
       sendstring("EPT misconfig\n\r");
-      return 1;
+      return handleEPTMisconfig(currentcpuinfo, vmregisters);
 		}
 
 		case 50:
@@ -3800,6 +4013,9 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 		case 53:
 		{
 		  sendstring("INVVPID\n\r");
+#ifdef DEBUG
+		  while (1);
+#endif
 		  return 1;
 		}
 

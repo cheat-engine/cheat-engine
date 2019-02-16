@@ -31,16 +31,15 @@ var c: TObject;
   proplist: PPropList;
   m: TMethod;
   ma: array of TMethod;
-
-
 begin
+  result:=0;
+
   i:=ifthen(lua_type(L, lua_upvalueindex(1))=LUA_TUSERDATA, lua_upvalueindex(1), 1);
   c:=lua_toceuserdata(L, i);
   lua_getmetatable(L, i);
   metatable:=lua_gettop(L);
 
   try
-    //check if it has onDestroy, if so, call it
     //now cleanup the callers
 
     if (c is TCustomForm) and assigned(TCustomForm(c).OnDestroy) then
@@ -50,6 +49,7 @@ begin
       except
         //don't care
       end;
+      TCustomForm(c):=nil;
     end;
 
     count:=GetPropList(c, proplist);
@@ -58,6 +58,13 @@ begin
       if proplist[i]^.PropType.Kind=tkMethod then
       begin
         m:=GetMethodProp(c, proplist[i]);
+
+        if (proplist[i]^.Name='OnDestroy') then
+        begin
+          if (m.Code<>nil) and (m.data<>nil) then
+            TNotifyEvent(m)(c);
+        end;
+
         CleanupLuaCall(m);
         m.Code:=nil;
         m.data:=nil;

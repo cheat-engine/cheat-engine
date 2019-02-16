@@ -11,7 +11,7 @@ uses unixporthelper, Assemblerunit, classes, symbolhandler, sysutils,
 {$endif}
 
 {$ifdef windows}
-uses jwawindows, windows, Assemblerunit, classes, LCLIntf,symbolhandler,
+uses jwawindows, windows, Assemblerunit, classes, LCLIntf,symbolhandler, symbolhandlerstructs,
      sysutils,dialogs,controls, CEFuncProc, NewKernelHandler ,plugin,
      ProcessHandlerUnit, lua, lualib, lauxlib, luaclass, commonTypeDefs;
 {$endif}
@@ -22,7 +22,7 @@ uses jwawindows, windows, Assemblerunit, classes, LCLIntf,symbolhandler,
 function getenableanddisablepos(code:tstrings;var enablepos,disablepos: integer): boolean;
 function autoassemble(code: tstrings;popupmessages: boolean):boolean; overload;
 function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean):boolean; overload;
-function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean;var CEAllocarray: TCEAllocArray; registeredsymbols: tstringlist=nil; memrec: pointer=nil): boolean; overload;
+function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean;var CEAllocarray: TCEAllocArray; var exceptionlist:TCEExceptionListArray; registeredsymbols: tstringlist=nil; memrec: pointer=nil): boolean; overload;
 
 type TAutoAssemblerPrologue=procedure(code: TStrings; syntaxcheckonly: boolean) of object;
 type TAutoAssemblerCallback=function(parameters: string; syntaxcheckonly: boolean): string of object;
@@ -49,7 +49,8 @@ uses strutils, memscan, disassembler, networkInterface, networkInterfaceApi,
 {$ifdef windows}
 uses simpleaobscanner, StrUtils, LuaHandler, memscan, disassembler, networkInterface,
      networkInterfaceApi, LuaCaller, SynHighlighterAA, Parsers, Globals, memoryQuery,
-     MemoryBrowserFormUnit, MemoryRecordUnit;
+     MemoryBrowserFormUnit, MemoryRecordUnit, vmxfunctions, autoassemblerexeptionhandler,
+     UnexpectedExceptionsHelper;
 {$endif}
 
 
@@ -99,6 +100,7 @@ resourcestring
   rsErrorInLine = 'Error in line %s (%s) :%s';
   rsWasSupposedToBeAddedToTheSymbollistButItIsnTDeclar = '%s was supposed to be added to the symbollist, but it isn''t declared';
   rsTheAddressInCreatethreadIsNotValid = 'The address in createthread(%s) is not valid';
+  rsTheAddressInCreatethreadAndWaitIsNotValid = 'The address in createthreadandwait(%s) is not valid';
   rsTheAddressInLoadbinaryIsNotValid = 'The address in loadbinary(%s,%s) is not valid';
   rsThisCodeCanBeInjectedAreYouSure = 'This code can be injected. Are you sure?';
   rsFailureToAllocateMemory = 'Failure to allocate memory';
@@ -121,6 +123,7 @@ resourcestring
   rsAAModuleNotFound = 'module not found:';
   rsAALuaErrorInTheScriptAtLine = 'Lua error in the script at line ';
   rsGoTo = 'Go to ';
+  rsMissingExcept = 'The {$TRY} at line %d has no matching {$EXCEPT}';
 
 //type
 //  TregisteredAutoAssemblerCommands =  TFPGList<TRegisteredAutoAssemblerCommand>;
@@ -229,6 +232,10 @@ begin
   aa_RemoveExtraCommand(pchar(command));
 {$endif jni}
 end;
+
+
+
+//----------------------------
 
 procedure tokenize(input: string; tokens: tstringlist);
 var i: integer;
@@ -540,8 +547,11 @@ var i,j: integer;
     bracecomment: boolean;
 begin
   //remove comments
+
+
   instring:=false;
   incomment:=false;
+  bracecomment:=false;
   for i:=0 to code.count-1 do
   begin
     currentline:=code[i];
@@ -1035,6 +1045,73 @@ begin
 end;
 
 
+
+procedure parseTryExcept(code: tstrings; var exceptionlist: TAAExceptionInfoList);
+//Find and replace {$TRY} , {$EXCEPT} with labels
+var
+  i,j: integer;
+  trynr: integer;
+  trylist: array of record
+    linenr: integer;
+    trynr: integer;
+    hasexcept: boolean;
+    trylabel, exceptlabel: string;
+  end;
+
+  found: boolean;
+begin
+  trynr:=0;
+  setlength(trylist,0);
+
+  for i:=0 to code.Count-1 do
+  begin
+    if uppercase(code[i])='{$TRY}' then
+    begin
+      inc(trynr);
+
+      j:=length(trylist);
+      setlength(trylist,j+1);
+      trylist[j].trynr:=trynr;
+      trylist[j].hasexcept:=false;
+      trylist[j].linenr:=integer(code.Objects[i]);
+      trylist[j].trylabel:='tryoperation_'+inttostr(trynr);
+      code[i]:=trylist[j].trylabel+':';
+    end;
+
+    if uppercase(code[i])='{$EXCEPT}' then
+    begin
+      //find the last try that doesn't have an except filled in
+      found:=false;
+      for j:=length(trylist)-1 downto 0 do
+      begin
+        if trylist[j].hasexcept=false then
+        begin
+          trylist[j].hasexcept:=true;
+          trylist[j].exceptlabel:='tryoperation'+inttostr(trylist[j].trynr)+'_except';
+          code[i]:=trylist[j].exceptlabel+':';
+          found:=true;
+          break;
+        end;
+      end;
+
+      if not found then
+        raise exception.create(format('Found an {$EXCEPT} at line %d with no matching {$TRY}',[integer(code.Objects[i])]));
+    end;
+  end;
+
+  setlength(exceptionlist, length(trylist));
+
+  for i:=0 to length(trylist)-1 do
+  begin
+    code.Insert(0,'label('+trylist[i].trylabel+')');
+    code.Insert(0,'label('+trylist[i].exceptlabel+')');
+    exceptionlist[i].trylabel:=trylist[i].trylabel;
+    exceptionlist[i].exceptlabel:=trylist[i].exceptlabel;
+
+    if trylist[i].hasexcept=false then raise exception.create(format(rsMissingExcept, [trylist[i].linenr]));
+  end;
+end;
+
 procedure luacode(code: TStrings; syntaxcheckonly: boolean; memrec: TMemoryRecord=nil);
 {
 Find and execute the LUA parts:
@@ -1154,15 +1231,15 @@ end;
 
 var nextaaid: longint;
 
-function autoassemble2(code: tstrings;popupmessages: boolean;syntaxcheckonly:boolean; targetself: boolean ;var ceallocarray:TCEAllocArray; registeredsymbols: tstringlist=nil; memrec: TMemoryRecord=nil):boolean;
+function autoassemble2(code: tstrings;popupmessages: boolean;syntaxcheckonly:boolean; targetself: boolean ;var ceallocarray:TCEAllocArray; var ceexceptionlist: TCEExceptionListArray; registeredsymbols: tstringlist=nil; memrec: TMemoryRecord=nil):boolean;
 {
 registeredsymbols is a stringlist that is initialized by the caller as case insensitive and no duplicates
 }
 
-
 type tassembled=record
   address: ptrUint;
   bytes: TAssemblerbytes;
+  createthreadandwait: integer;
 end;
 
 
@@ -1212,12 +1289,19 @@ var i,j,k,l,e: integer;
     deletesymbollist: array of string;
     createthread: array of string;
 
+    createthreadandwait: array of record
+      name: string;
+      position: integer; //after what position should the call happen (This is so that the exception handlers can be registered before the final hookcode is written)
+    end;
+
 //    aoblist: array of TAOBEntry;
 
     a,b,c,d: integer;
     s1,s2,s3: string;
 
     assemblerlines: array of string;
+
+    exceptionlist: TAAExceptionInfoList;
 
     varsize: integer;
     tokens: tstringlist;
@@ -1238,6 +1322,7 @@ var i,j,k,l,e: integer;
 
     bytes: tbytes;
     prefered: ptrUint;
+    protection: dword;
 
     oldhandle: thandle;
     oldsymhandler: TSymHandler;
@@ -1255,6 +1340,49 @@ var i,j,k,l,e: integer;
     mi: TModuleInfo;
     aaid: longint;
     strictmode: boolean;
+
+    hastryexcept: boolean;
+    createthreadandwaitid: integer;
+
+    vpe: boolean;
+
+    function getAddressFromScript(name: string): ptruint;
+    var
+      found: boolean;
+      j: integer;
+    begin
+      found:=false;
+      try
+        result:=symhandler.getAddressFromName(name);
+        exit;
+      except
+      end;
+
+      name:=uppercase(name);
+
+      for j:=0 to length(labels)-1 do
+        if uppercase(labels[j].labelname)=name then
+          exit(labels[j].address);
+
+      for j:=0 to length(allocs)-1 do
+        if uppercase(allocs[j].varname)=name then
+          exit(allocs[j].address);
+
+      for j:=0 to length(kallocs)-1 do
+         if uppercase(kallocs[j].varname)=name then
+           exit(kallocs[j].address);
+
+      for j:=0 to length(defines)-1 do
+        if uppercase(defines[j].name)=name then
+        begin
+          try
+            testptr:=symhandler.getAddressFromName(defines[j].whatever);
+            exit;
+          except
+          end;
+        end;
+    end;
+
 begin
   setlength(readmems,0);
   setlength(allocs,0);
@@ -1262,6 +1390,7 @@ begin
   setlength(globalallocs,0);
   setlength(sallocs,0);
   setlength(createthread,0);
+  setlength(createthreadandwait,0);
 
   currentaddress:=0;
 
@@ -1326,6 +1455,7 @@ begin
     setlength(deletesymbollist,0);
     setlength(defines,0);
     setlength(loadbinary,0);
+    setlength(exceptionlist,0);
 //    setlength(aoblist,0);
 
     tokens:=tstringlist.Create;
@@ -1339,10 +1469,23 @@ begin
 
     luacode(code, syntaxcheckonly, memrec);
 
+    //still here
+
     strictmode:=false;
     for i:=0 to code.count-1 do
-      if uppercase(TrimRight(code[i]))='{$STRICT}' then
+    begin
+      currentline:=uppercase(TrimRight(code[i]));
+      if currentline='{$STRICT}' then
         strictmode:=true;
+
+      if currentline='{$TRY}' then
+        hastryexcept:=true;
+    end;
+
+
+    if hastryexcept then
+      parseTryExcept(code, exceptionlist);
+
 
     removecomments(code);  //also trims each line
     unlabeledlabels(code);
@@ -1488,7 +1631,7 @@ begin
                     multilineinjection.Text:=currentline;
 
                     for k:=0 to multilineinjection.Count-1 do
-                      code.InsertObject(i+1+k, multilineinjection[k], pointer(currentlinenr));
+                      code.InsertObject(i+1+k, multilineinjection[k], pointer(ptruint(currentlinenr)));
                   finally
                     multilineinjection.Free;
                   end;
@@ -1548,8 +1691,8 @@ begin
                         end;
                     end else raise exception.Create(Format(rsTheMemoryAtCanNotBeRead, [s1]));
                   finally
-                    freemem(bytebuf);
-                    bytebuf:=nil;
+                    freememandnil(bytebuf);
+
                   end;
 
                 end
@@ -1674,12 +1817,6 @@ begin
                   raise exception.Create(Format(rsCouldNotBeFound, [s1]));
               end;
 
-
-
-
-
-
-
               include:=tstringlist.Create;
               try
                 include.LoadFromFile(s1);
@@ -1698,24 +1835,50 @@ begin
             else raise exception.Create(rsWrongSyntaxIncludeFilenameCea);
           end;
 
-          if uppercase(copy(currentline,1,13))='CREATETHREAD(' then
+          if uppercase(copy(currentline,1,12))='CREATETHREAD' then
           begin
-            //create a thread
-            a:=pos('(',currentline);
-            b:=pos(')',currentline);
-            if (a>0) and (b>0) then
+            if currentline[13]='(' then //CREATETHREAD(
             begin
-              s1:=trim(copy(currentline,a+1,b-a-1));
+              //create a thread
+              a:=pos('(',currentline);
+              b:=pos(')',currentline);
+              if (a>0) and (b>0) then
+              begin
+                s1:=trim(copy(currentline,a+1,b-a-1));
 
-              setlength(createthread,length(createthread)+1);
-              createthread[length(createthread)-1]:=s1;
+                setlength(createthread,length(createthread)+1);
+                createthread[length(createthread)-1]:=s1;
 
-              setlength(assemblerlines,length(assemblerlines)-1);
-              continue;
-            end else raise exception.Create(rsWrongSyntaxCreateThreadAddress);
+                setlength(assemblerlines,length(assemblerlines)-1);
+                continue;
+              end else raise exception.Create(rsWrongSyntaxCreateThreadAddress);
+            end
+            else
+            begin
+              //could be createthreadandwait
+              if uppercase(copy(currentline,13,8))='ANDWAIT(' then //CREATETHREADANDWAIT(
+              begin
+                a:=pos('(',currentline);
+                b:=pos(')',currentline);
+                if (a>0) and (b>0) then
+                begin
+                  s1:=trim(copy(currentline,a+1,b-a-1));
+
+                  setlength(createthreadandwait,length(createthreadandwait)+1);
+                  createthreadandwait[length(createthreadandwait)-1].name:=s1;
+                  createthreadandwait[length(createthreadandwait)-1].position:=length(assemblerlines)-1;
+
+                  setlength(assemblerlines,length(assemblerlines)-1);
+                  continue;
+                end else raise exception.Create(rsWrongSyntaxCreateThreadAddress);
+              end;
+            end;
           end;
 
+
+
           {$ifndef jni}
+
           if uppercase(copy(currentline,1,12))='LOADLIBRARY(' then
           begin
             //load a library into memory , this one already executes BEFORE the 2nd pass to get addressnames correct
@@ -1823,8 +1986,8 @@ begin
                 begin
                   if bytebuf<>nil then
                   begin
-                    freemem(bytebuf);
-                    bytebuf:=nil;
+                    freememandnil(bytebuf);
+
                   end;
 
                   raise exception.create(e.Message);
@@ -2040,7 +2203,13 @@ begin
           end;
 
           //memory alloc
-          if uppercase(copy(currentline,1,6))='ALLOC(' then
+          if (uppercase(copy(currentline,1,5))='ALLOC') and
+             (
+               (uppercase(copy(currentline,1,6))='ALLOC(') or
+               (uppercase(copy(currentline,1,8))='ALLOCNX(') or
+               (uppercase(copy(currentline,1,8))='ALLOCXO(')
+             )
+          then
           begin
             //syntax: alloc(x,size)    x=variable name size=bytes
             //or
@@ -2050,8 +2219,6 @@ begin
             b:=pos(',',currentline);
             c:=PosEx(',',currentline,b+1);
             d:=pos(')',currentline);
-
-
 
             if (a>0) and (b>0) and (d>0) then
             begin
@@ -2102,6 +2269,13 @@ begin
               else
                 allocs[j].prefered:=0;
 
+              allocs[j].protection:=PAGE_EXECUTE_READWRITE;
+              if uppercase(copy(currentline,1,8))='ALLOCNX(' then
+                allocs[j].protection:=PAGE_READWRITE
+              else
+              if uppercase(copy(currentline,1,8))='ALLOCXO(' then
+                allocs[j].protection:=PAGE_EXECUTE_READ;
+
 
               setlength(assemblerlines,length(assemblerlines)-1);   //don't bother with this in the 2nd pass
               continue;
@@ -2120,6 +2294,8 @@ begin
             for j:=0 to length(allocs)-1 do
               currentline:=replacetoken(currentline,allocs[j].varname,'00000000');
           end;
+
+
 
           {$ifndef net}
 
@@ -2217,7 +2393,12 @@ begin
               end;
 
               try
-                j:=symhandler.getAddressFromName(copy(currentline,1,length(currentline)-1));
+                s1:=copy(currentline,1,length(currentline)-1);
+
+                if s1<>'' then
+                  testPtr:=symhandler.getAddressFromName(s1);
+
+
               except
                 currentline:=inttohex(symhandler.getaddressfromname(copy(currentline,1,length(currentline)-1)),8)+':';
                 assemblerlines[length(assemblerlines)-1]:=currentline;
@@ -2410,6 +2591,59 @@ begin
 
       end;
 
+    if length(createthreadandwait)>0 then
+      for i:=0 to length(createthreadandwait)-1 do
+      begin
+        ok1:=true;
+
+        try
+          testptr:=symhandler.getAddressFromName(createthreadandwait[i].name);
+        except
+          ok1:=false;
+        end;
+
+        if not ok1 then
+          for j:=0 to length(labels)-1 do
+            if uppercase(labels[j].labelname)=uppercase(createthreadandwait[i].name) then
+            begin
+              ok1:=true;
+              break;
+            end;
+
+        if not ok1 then
+          for j:=0 to length(allocs)-1 do
+            if uppercase(allocs[j].varname)=uppercase(createthreadandwait[i].name) then
+            begin
+              ok1:=true;
+              break;
+            end;
+
+        {$ifndef net}
+        if not ok1 then
+          for j:=0 to length(kallocs)-1 do
+            if uppercase(kallocs[j].varname)=uppercase(createthreadandwait[i].name) then
+            begin
+              ok1:=true;
+              break;
+            end;
+        {$endif}
+
+        if not ok1 then
+          for j:=0 to length(defines)-1 do
+            if uppercase(defines[j].name)=uppercase(createthreadandwait[i].name) then
+            begin
+              try
+                testptr:=symhandler.getAddressFromName(defines[j].whatever);
+                ok1:=true;
+              except
+              end;
+              break;
+            end;
+
+        if not ok1 then raise exception.Create(Format(rsTheAddressInCreatethreadAndWaitIsNotValid, [createthread[i]]));
+
+      end;
+
     if length(loadbinary)>0 then
       for i:=0 to length(loadbinary)-1 do
       begin
@@ -2481,31 +2715,37 @@ begin
 
       j:=0; //entry to go from
       prefered:=allocs[0].prefered;
+      protection:=allocs[0].protection;
       x:=allocs[0].size;
 
       for i:=1 to length(allocs)-1 do
       begin
-        //does this entry have a prefered location?
-        if allocs[i].prefered<>0 then
+        //does this entry have a prefered location or a non default protection
+
+        if (allocs[i].prefered<>0) or (allocs[i].protection<>PAGE_EXECUTE_READWRITE) then
         begin
           //if yes, is it the same as the previous entry? (or was the previous one that doesn't care?)
           if prefered=0 then
             prefered:=allocs[i].prefered;
 
-          if (prefered<>allocs[i].prefered) then
+          if (prefered<>allocs[i].prefered) or (protection<>allocs[i].protection) then
           begin
-            //different prefered address
+            //different prefered address or protection
 
             if x>0 then //it has some previous entries with compatible locations
             begin
-
-
               k:=10;
               allocs[j].address:=0;
               while (k>0) and (allocs[j].address=0) do
               begin
                 //try allocating until a memory region has been found (e.g due to quick allocating by the game)
-                allocs[j].address:=ptrUint(virtualallocex(processhandle,FindFreeBlockForRegion(prefered,x),x, MEM_RESERVE or MEM_COMMIT,page_execute_readwrite));
+
+                if (prefered=0) and (j>0) then //if not a prefered address but there is a previous alloc, allocate near there
+                  prefered:=allocs[j-1].address;
+
+                prefered:=ptrUint(FindFreeBlockForRegion(prefered,x));
+
+                allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,protection));
                 if allocs[j].address=0 then
                 begin
                   OutputDebugString(rsFailureToAllocateMemory+' 1');
@@ -2516,9 +2756,10 @@ begin
               end;
 
               if allocs[j].address=0 then
-                allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,page_execute_readwrite));
-
-              if allocs[j].address=0 then OutputDebugString(rsFailureToAllocateMemory+' 2');
+              begin
+                allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,protection));
+                OutputDebugString(rsFailureToAllocateMemory+' 2');
+              end;
 
               //adjust the addresses of entries that are part of this block
               for k:=j+1 to i-1 do
@@ -2529,10 +2770,7 @@ begin
             //new prefered address
             j:=i;
             prefered:=allocs[i].prefered;
-
-
-
-
+            protection:=allocs[i].protection;
           end;
 
         end;
@@ -2551,10 +2789,14 @@ begin
         while (k>0) and (allocs[j].address=0) do
         begin
           i:=0;
+
+          if (prefered=0) and (j>0) then //if not a prefered address but there is a previous alloc, allocate near there
+            prefered:=allocs[j-1].address;
+
           prefered:=ptrUint(FindFreeBlockForRegion(prefered,x));
 
 
-          allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,page_execute_readwrite));
+          allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,protection));
           if allocs[j].address=0 then
           begin
             OutputDebugString(rsFailureToAllocateMemory+' 3 (prefered='+inttohex(prefered,8)+')');
@@ -2564,7 +2806,7 @@ begin
         end;
 
         if allocs[j].address=0 then
-          allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,page_execute_readwrite));
+          allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,protection));
 
         if allocs[j].address=0 then raise exception.create(rsFailureToAllocateMemory+' 4');
 
@@ -2593,13 +2835,17 @@ begin
     //-----------------------2nd pass------------------------
     //assemblerlines only contains label specifiers and assembler instructions
 
-
-
     setlength(assembled,0);
     for i:=0 to length(assemblerlines)-1 do
     begin
       currentline:=assemblerlines[i];
 
+      createthreadandwaitid:=-1;
+      for j:=0 to length(createthreadandwait)-1 do //there can be multiple at the time of assembly.  All entries up to the higest value will be picked at a blockwrite (and made 0 so next blockwrite won't do them)
+      begin
+        if (i>createthreadandwait[j].position) or (i=length(Assemblerlines)-1) then //if it's the last line, then do all remaining
+          createthreadandwaitid:=j;
+      end;
 
       //plugin
       {$ifndef jni}
@@ -2661,8 +2907,8 @@ begin
               end;
 
 
-
               setlength(assembled,length(assembled)+1);
+              assembled[length(assembled)-1].createthreadandwait:=createthreadandwaitid;
               assembled[length(assembled)-1].address:=currentaddress;
               assemble(currentline,currentaddress,assembled[length(assembled)-1].bytes, apnone, true);
               a:=length(assembled[length(assembled)-1].bytes);
@@ -2748,6 +2994,7 @@ begin
 
       setlength(assembled,length(assembled)+1);
       assembled[length(assembled)-1].address:=currentaddress;
+      assembled[length(assembled)-1].createthreadandwait:=createthreadandwaitid;
 
       if (currentline<>'') and (currentline[1]='<') then //special assembler instruction
       begin
@@ -2845,21 +3092,86 @@ begin
 
     //we're still here so, inject it
 
+    //addresses are known here, so parse the exception list if there is one
+    if length(exceptionlist)>0 then
+    begin
+      InitializeAutoAssemblerExceptionHandler;
+      for i:=length(exceptionlist)-1 downto 0 do //add it in the reverse order so the nested try/excepts come first
+        AutoAssemblerExceptionHandlerAddExceptionRange(getAddressFromScript(exceptionlist[i].trylabel), getAddressFromScript(exceptionlist[i].exceptlabel));
+
+      AutoAssemblerExceptionHandlerApplyChanges;
+    end;
+
 
     connection:=getconnection;
     if connection<>nil then
       connection.beginWriteProcessMemory; //group all writes
+
+    //combine assembly lines
+    j:=0;
+    for i:=1 to length(assembled)-1 do
+    begin
+      if assembled[i].address=assembled[j].address+length(assembled[j].bytes) then //matches the previous entry
+      begin
+        //group
+        k:=length(assembled[j].bytes);
+        setlength(assembled[j].bytes, k+length(assembled[i].bytes));
+        copymemory(@assembled[j].bytes[k], @assembled[i].bytes[0], length(assembled[i].bytes));
+
+        assembled[j].createthreadandwait:=max(assembled[j].createthreadandwait, assembled[i].createthreadandwait); //should always pick i
+
+
+        //mark it as empty
+        setlength(assembled[i].bytes,0);
+        assembled[i].address:=0;
+        assembled[i].createthreadandwait:=-1;
+      end
+      else
+      begin
+        j:=i; //new block
+      end;
+    end;
 
     for i:=0 to length(assembled)-1 do
     begin
       if length(assembled[i].bytes)=0 then continue;
 
       testptr:=assembled[i].address;
-      ok1:=virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),PAGE_EXECUTE_READWRITE,op);
-      ok1:=WriteProcessMemory(processhandle,pointeR(testptr),@assembled[i].bytes[0],length(assembled[i].bytes),x);
-      virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),op,op2);
+
+      vpe:=(SkipVirtualProtectEx=false) and virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),PAGE_EXECUTE_READWRITE,op);
+      ok1:=WriteProcessMemoryWithCloakSupport(processhandle, pointer(testptr),@assembled[i].bytes[0],length(assembled[i].bytes),x);
+      if vpe then
+        virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),op,op2);
 
       if not ok1 then ok2:=false;
+
+      if ok2 and (assembled[i].createthreadandwait<>-1) then
+      begin
+        //create threads
+        for j:=0 to assembled[i].createthreadandwait do
+        begin
+          if createthreadandwait[j].position<>-1 then
+          begin
+            //create the thread and wait for it's result
+            testptr:=getAddressFromScript(createthreadandwait[j].name);
+
+            threadhandle:=createremotethread(processhandle,nil,0,pointer(testptr),nil,0,bw);
+            ok2:=threadhandle>0;
+
+            if ok2 then
+            begin
+              try
+                if WaitForSingleObject(threadhandle, 5000)<>WAIT_OBJECT_0 then
+                  raise exception.create('createthreadandwait did not execute properly');
+              finally
+                closehandle(threadhandle);
+              end;
+            end;
+
+            createthreadandwait[j].position:=-1; //mark it as handled
+          end;
+        end;
+      end;
     end;
 
     if connection<>nil then  //group all writes
@@ -2893,6 +3205,8 @@ begin
           for i:=0 to length(ceallocarray)-1 do
           begin
             virtualfreeex(processhandle,pointer(dealloc[i]),0,MEM_RELEASE);
+            if (targetself=false) and allocsAddToUnexpectedExceptionList then
+              RemoveUnexpectedExceptionRegion(dealloc[i],0);
 {            if ceallocarray[i].address<baseaddress then
               baseaddress:=ceallocarray[i].address;}
           end;
@@ -2905,9 +3219,17 @@ begin
           ceallocarray[i]:=allocs[i];
       end;
 
+      if (length(ceexceptionlist)>0) and (AutoAssemblerExceptionHandlerHasEntries) then
+      begin
+        for i:=0 to length(ceexceptionlist)-1 do
+          AutoAssemblerExceptionHandlerRemoveExceptionRange(ceexceptionlist[i]);
 
+        AutoAssemblerExceptionHandlerApplyChanges;
+      end;
 
-
+      setlength(ceexceptionlist, length(exceptionlist));
+      for i:=0 to length(ceexceptionlist)-1 do
+        ceexceptionlist[i]:=getAddressFromScript(exceptionlist[i].trylabel);
 
       //check the addsymbollist array and deletesymbollist array
 
@@ -3071,6 +3393,12 @@ begin
 
     result:=ok2;
 
+    if result and allocsAddToUnexpectedExceptionList and (not targetself) then
+    begin
+      for i:=0 to length(allocs)-1 do
+        AddUnexpectedExceptionRegion(allocs[i].address,allocs[i].size);
+    end;
+
   finally
     for i:=0 to length(assembled)-1 do
       setlength(assembled[i].bytes,0);
@@ -3080,8 +3408,8 @@ begin
     for i:=0 to length(readmems)-1 do
       if readmems[i].bytes<>nil then
       begin
-        freemem(readmems[i].bytes);
-        readmems[i].bytes:=nil;
+        freememandnil(readmems[i].bytes);
+
       end;
 
     setlength(readmems,0);
@@ -3244,7 +3572,7 @@ begin
   end;
 end;
 
-function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean;var CEAllocarray: TCEAllocArray; registeredsymbols: tstringlist=nil; memrec:pointer=nil): boolean; overload;
+function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean;var CEAllocarray: TCEAllocArray; var exceptionlist:TCEExceptionListArray; registeredsymbols: tstringlist=nil; memrec: pointer=nil): boolean; overload;
 {
 targetself defines if the process that gets injected to is CE itself or the target process
 }
@@ -3309,24 +3637,28 @@ begin
     if targetself then
       Stripcpuspecificcode(tempstrings);
 
-    result:=autoassemble2(tempstrings,popupmessages,syntaxcheckonly,targetself,ceallocarray, registeredsymbols, memrec);
+    result:=autoassemble2(tempstrings,popupmessages,syntaxcheckonly,targetself,ceallocarray, exceptionlist, registeredsymbols, memrec);
   finally
     tempstrings.Free;
   end;
 end;
 
 function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean):boolean; overload;
-var aa: TCEAllocArray;
+var
+  aa: TCEAllocArray;
+  ae: TCEExceptionListArray;
 begin
   setlength(aa,0);
-  result:=autoassemble(code,popupmessages,enable,syntaxcheckonly,targetself,aa,nil);
+  result:=autoassemble(code,popupmessages,enable,syntaxcheckonly,targetself,aa,ae);
 end;
 
 function autoassemble(code: tstrings;popupmessages: boolean):boolean; overload;
-var aa: TCEAllocArray;
+var
+  aa: TCEAllocArray;
+  ae: TCEExceptionListArray;
 begin
   setlength(aa,0);
-  result:=autoassemble(code,popupmessages,true,false,false,aa,nil);
+  result:=autoassemble(code,popupmessages,true,false,false,aa,ae,nil);
 end;
 
 

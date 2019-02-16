@@ -22,6 +22,7 @@ resourcestring
   rs_vtSingle='Float';
   rs_vtDouble='Double';
   rs_vtString='String';
+  rs_vtWidestring='Widestring';
   rs_vtUnicodeString='Unicode String';
   rs_vtCodePageString='CodePage String';
   rs_vtPointer='Pointer';

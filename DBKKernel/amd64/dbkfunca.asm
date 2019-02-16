@@ -135,8 +135,26 @@ getR14:
 PUBLIC getR15
 getR15:
 	mov rax,r15
-	ret														
+	ret				
+	
+PUBLIC getAccessRights										
+getAccessRights:
+  xor rax,rax
+  lar rax,rcx
+  jnz getAccessRights_invalid
+  shr rax,8
+  and rax,0f0ffh
+  ret
+  getAccessRights_invalid:
+  mov rax,010000h
+  ret
 
+
+PUBLIC getSegmentLimit										
+getSegmentLimit:
+  xor rax,rax
+  lsl rax,rcx
+  ret
 
 _TEXT   ENDS
         END

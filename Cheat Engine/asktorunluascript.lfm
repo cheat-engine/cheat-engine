@@ -10,7 +10,6 @@ object frmLuaScriptQuestion: TfrmLuaScriptQuestion
   ClientWidth = 592
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object GroupBox5: TGroupBox

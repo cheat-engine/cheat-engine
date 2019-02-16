@@ -89,7 +89,7 @@ begin
       result:=EnumElfSymbols64(modulename, modulebase, mem, callback);
   end;
 
-  freemem(mem);
+  FreeMemAndNil(mem);
 end;
 
 

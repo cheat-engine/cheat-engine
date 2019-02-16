@@ -138,8 +138,10 @@ vtSingle=4
 vtDouble=5
 vtString=6
 vtUnicodeString=7 --Only used by autoguess
+vtWideString=7
 vtByteArray=8
 vtBinary=9
+vtAll=10
 vtAutoAssembler=11
 vtPointer=12 --Only used by autoguess and structures
 vtCustom=13
@@ -265,6 +267,9 @@ VK_LMENU = 164
 VK_RSHIFT = 161
 VK_RCONTROL = 163
 VK_RMENU = 165    
+VK_OEM1=0xBA
+VK_OEM2=0xBF
+VK_OEM3=0xc0
 
 
 --shellExecute show defines:

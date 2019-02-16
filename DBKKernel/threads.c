@@ -1,4 +1,4 @@
-#pragma warning( disable: 4103)
+#pragma warning( disable: 4100 4103)
 
 #include "threads.h"
 #include "processlist.h"
@@ -64,8 +64,6 @@ void SuspendThreadAPCRoutine(PVOID arg1, PVOID arg2, PVOID arg3)
 
 void DBKSuspendThread(ULONG ThreadID)
 {
-	KIRQL OldIrql;
-	
 	struct ThreadData *t_data;
 
 
@@ -112,8 +110,6 @@ void DBKSuspendThread(ULONG ThreadID)
 
 void DBKResumeThread(ULONG ThreadID)
 {
-	KIRQL OldIrql;
-	
 	struct ThreadData *t_data;
 
 
@@ -145,9 +141,6 @@ void DBKResumeThread(ULONG ThreadID)
 
 void DBKSuspendProcess(ULONG ProcessID)
 {
-
-	KIRQL OldIrql;
-	
 	struct ThreadData *t_data=NULL;
 	struct ProcessData *tempProcessData=NULL;
 
@@ -212,8 +205,6 @@ void DBKSuspendProcess(ULONG ProcessID)
 
 void DBKResumeProcess(ULONG ProcessID)
 {
-	KIRQL OldIrql;
-	
 	struct ThreadData *t_data=NULL;
 	struct ProcessData *tempProcessData=NULL;
 

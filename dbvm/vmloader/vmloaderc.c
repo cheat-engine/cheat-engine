@@ -9,11 +9,11 @@ enable paging, and jump to the vmm entry (which has it's base at virtual address
 #include "common.h"
 
 #ifndef VMMSIZE
-  #define VMMSIZE 0
+  #error VMMSIZE must be provided
 #endif
 
 extern int reservedmem_listcount;
-extern int pagedirptrbase;
+extern PPDPTE_PAE PageMapLevel4;
 extern void gotoVMM(void) __attribute__((stdcall));
 extern int readsectorasm(void) __attribute__((stdcall));
 extern void halt(void) __attribute__((stdcall));
@@ -35,6 +35,9 @@ extern int NumberOfHeads;
 extern int NumberOfCylinders;
 
 extern unsigned int vmmPA;
+
+extern DWORD GDTVA;
+
 
 int readsector(int sectornr, void *destination)
 {
@@ -80,18 +83,26 @@ int _vmloader_main(void)
 	PARD p;
 
 
-	unsigned char bootsector[512];
+	unsigned char bootsectorm[1024]; //extra alignment
+	unsigned char *bootsector=(unsigned char *)(((DWORD)bootsectorm+512) & 0xfffffe00);
+	//unsigned char bootsector[512]; //extra alignment
 	int i;
 	unsigned long long maxAvailableAddress=0;
-	unsigned long long tempbase,templength;
+	unsigned long long tempbase=0,templength=0;
+	unsigned int extramemory;
 	int chosenregion=-1;
 	nosendchar[getAPICID()]=0;
+
+	zeromemory(bootsectorm, 1024);
+
 
 
 
 	sendstringf("\n\n--------------------------------\n\r");
 	sendstringf("Welcome to Dark Byte\'s vmloader\n\r");
 	sendstringf("--------------------------------\n\r");
+
+	//waitforchar();
 
 
 	sendstringf("a=%8\n\r",readerror);
@@ -104,12 +115,10 @@ int _vmloader_main(void)
 	sendstringf("Going to read the VMM into memory...\n\r");
 
 
+  //isAP is obsolete
 
 
 	sendstringf("isAP value=%2  (address=%8)\n\r",isAP,(ULONG)&isAP);
-
-
-
 
 
 	if (!isAP)
@@ -138,7 +147,9 @@ int _vmloader_main(void)
 
 
   //  waitforkeypress();
- //   waitforkeypress();
+
+
+
 
 
 		if (!readsector(0, bootsector))
@@ -170,6 +181,8 @@ int _vmloader_main(void)
 
 		VMMlocation=*(unsigned short int *)&bootsector[0x8];
 		LOGOlocation=*(unsigned short int *)&bootsector[0x10];
+
+		zeromemory(bootsectorm, 1024);
 		sendstringf("VMM starts at sector %d\n\r",VMMlocation);
 		sendstringf("LOGO starts at sector %d\n\r",LOGOlocation);
 
@@ -186,7 +199,7 @@ int _vmloader_main(void)
 			sendstringf("i=%d : BaseAddress=%6, Length=%6, Type=%d ",i, tempbase, templength, p[i].Type);
 			displayline("i=%d : BaseAddress=%6, Length=%6, Type=%d \n\r",i, tempbase, templength, p[i].Type);
 
-			if (((tempbase+templength) < 0x100000000ULL ) && (templength>=0x800000) && (p[i].Type==1) && (tempbase+templength>maxAvailableAddress) )
+			if (((tempbase+templength) < 0x100000000ULL ) && (templength>=0xc00000) && (p[i].Type==1) && (tempbase+templength>maxAvailableAddress) )
 			{
 				maxAvailableAddress=tempbase+templength;
 				chosenregion=i;
@@ -196,10 +209,7 @@ int _vmloader_main(void)
 			}
 
 			sendstring("\n\r");
-
-
 		}
-
 
     //waitforkeypress();
     //waitforkeypress();
@@ -210,14 +220,13 @@ int _vmloader_main(void)
 			halt();
 		}
 
-
-
 		/* adjust memory map */
 		p[reservedmem_listcount].BaseAddrHigh=0;
 		p[reservedmem_listcount].BaseAddrLow=0;
 		p[reservedmem_listcount].LengthHigh=0;
 		p[reservedmem_listcount].LengthLow=0;
 		p[reservedmem_listcount].Type=255;  //mark as end of list (for vmm)
+
 
 
 		if (maxAvailableAddress==0)
@@ -232,24 +241,27 @@ int _vmloader_main(void)
 			unsigned int oldend;
 			PPDE2MB_PAE PageDir;
 			PPDPTE_PAE PageDirPtr;
-			PPDPTE_PAE PageMapLevel4;
+		//	PPDPTE_PAE PageMapLevel4;
 
 
 			sendstringf("Max address=%6  (region %d)\n\r",maxAvailableAddress, chosenregion);
 
 			/* create a pagetable for the vmm and it's stack at this location */
 			/* the vmm is loaded at address 0x60000 */
-			start=(maxAvailableAddress-4*1024*1024);
+			start=(maxAvailableAddress-8*1024*1024);
+
+
 
 			sendstringf("1:start=%8\n\r",start);
 			displayline("1:start=%8\n\r",start);
 
-			sendstringf("1.5:start mod 0x00400000=%8 \n\r",start % 0x00400000);
-			displayline("1.5:start mod 0x00400000=%8 \n\r",start % 0x00400000);
-			start-=start % 0x00400000;
+			extramemory=0x00400000+(start & 0x003FFFFF);
+			start=start & 0xFFC00000;
 
-			sendstringf("2:start=%8\n\r",start);
-			displayline("2:start=%8\n\r",start);
+			sendstringf("2:start after align=%8\n\r",start);
+			displayline("2:start after align=%8\n\r",start);
+
+			sendstringf("extramemory=%8\n\r", extramemory);
 
 			sendstringf("chosenregion=%d\n\r",chosenregion);
 			displayline("chosenregion=%d\n\r",chosenregion);
@@ -320,9 +332,12 @@ int _vmloader_main(void)
       //waitforkeypress();
       //waitforkeypress();
 
-			zeromemory((void *)start, 0x00400000 /*VMMSIZE*/); //I wondered why this was crashing on a normal reboot. That is because the AP cpu's are in an infinite loop in this code. So,. first disable the AP cpu's before calling qucikboot
+			zeromemory((void *)start, 0x00400000 /*VMMSIZE*/); //I wondered why this was crashing on a normal reboot. That is because the AP cpu's are in an infinite loop in this code. So,. first disable the AP cpu's before calling quickboot
 
-//		  waitforkeypress();
+      sendstringf("After zeroing 0x00400000 bytes at %p\n", start);
+     // waitforchar();
+
+		  //waitforkeypress();
 		  //waitforkeypress();
 
 			/* read the vmm into the end of memory */
@@ -366,65 +381,90 @@ int _vmloader_main(void)
       //waitforkeypress();
 
 
+      DWORD FreePA=((start+VMMSIZE) & 0xfffff000)+4096;
+      PPTE_PAE pagetable2=(PPTE_PAE)FreePA; //address for the pagedir[2] and pagedir[3] pagetables (this way the main stack can be allocated and it's end marked as not present, easier to debug that way)
+      FreePA+=4096;
+      PPTE_PAE pagetable3=(PPTE_PAE)FreePA;
+      FreePA+=4096;
+      DWORD mainstack=FreePA;
+      FreePA+=16*4096; //allocate 16 pages for the stack
 
+      gdt=FreePA;
+      FreePA+=4096;
       /* place gdt */
-      gdt=(start+VMMSIZE+4096) & 0xfffff000;
       sendstringf("gdtbase=%8\n\r",gdt);
-
-
       copymem((void *)gdt,(void *)0x50000,0x6f);
 
+      GDTVA=0x00400000+(gdt-start);
+
       /* setup pagedir / pages */
-      pagedirptrbase=(start+VMMSIZE+2*4096) & 0xfffff000;
 
 
-      sendstringf("pagedirptrbase=%8\n\r",pagedirptrbase);
-      displayline("pagedirptrbase=%8\n\r",pagedirptrbase);
 
-      PageMapLevel4=(PPDPTE_PAE)pagedirptrbase;
-      zeromemory((void *)PageMapLevel4,4096);
 
-      PageDirPtr=(PPDPTE_PAE)(pagedirptrbase+4096);
+
+      PageDirPtr=(PPDPTE_PAE)FreePA;
+      FreePA+=4096;
       zeromemory((void *)PageDirPtr,4096);
 
-      PageDir=(PPDE2MB_PAE)(pagedirptrbase+4096+4096);
+      PageDir=(PPDE2MB_PAE)FreePA;
+      FreePA+=4096;
       zeromemory((void *)PageDir,4096);
 
+      PageMapLevel4=(PPDPTE_PAE)FreePA; //allocate this as last entry
+      zeromemory((void *)PageMapLevel4,4096);
+      FreePA+=4096;
+
+
+      sendstringf("PageMapLevel4=%8\n\r",PageMapLevel4);
+      displayline("PageMapLevel4=%8\n\r",PageMapLevel4);
+
+
+      //setup the paging blocks
+
+      *(QWORD*)(&PageMapLevel4[0])=(QWORD)(DWORD)PageDirPtr;
       PageMapLevel4[0].P=1;
       PageMapLevel4[0].RW=1;
-      PageMapLevel4[0].PFN=(ULONG)PageDirPtr >> 12;
 
-
+      *(QWORD*)(&PageDirPtr[0])=(QWORD)(DWORD)PageDir;
 			PageDirPtr[0].P=1;
       PageDirPtr[0].RW=1;
-			PageDirPtr[0].PFN=(ULONG)PageDir >> 12;
-
 
       //(0x00000000 - 0x001fffff)
+      *(QWORD*)(&PageDir[0])=0;
       PageDir[0].P=1;   //present
       PageDir[0].RW=1;  //writable
       PageDir[0].PS=1;  //2MB (PAE)
-      PageDir[0].PFN=0; //0x00000000
 
 			//(0x00200000 - 0x003fffff)
+      *(QWORD*)(&PageDir[1])=0x00200000;
       PageDir[1].P=1;   //present
       PageDir[1].RW=1;  //writable
       PageDir[1].PS=1;  //2MB (PAE)
-      PageDir[1].PFN=0x00200000 >> 13; //0x00000000
 
       //(0x00400000 - 0x005fffff)
+      *(QWORD*)(&PageDir[2])=(QWORD)(DWORD)pagetable2;
       PageDir[2].P=1;   //present
       PageDir[2].RW=1;  //writable
-      PageDir[2].PS=1;  //2MB
-      PageDir[2].PFN=start >> 13; //0
 
-      vmmPA=start;
-
-			//(0x00600000 - 0x007fffff)
+      *(QWORD*)(&PageDir[3])=(QWORD)(DWORD)pagetable3;
       PageDir[3].P=1;   //present
       PageDir[3].RW=1;  //writable
-      PageDir[3].PS=1;  //2MB
-      PageDir[3].PFN=(start+0x00200000) >> 13; //0
+
+      for (i=0; i<1024; i++)
+      {
+        *(QWORD*)(&pagetable2[i])=start+i*4096;
+        pagetable2[i].P=1;   //present
+        pagetable2[i].RW=1;  //writable
+      }
+
+      //mark the end of the stack (first 4KB of the stack memory block) as non present
+      int stackindex=(mainstack-start) >> 12;
+      pagetable2[stackindex].P=0;
+
+      //space for the stack
+
+      vmmPA=start;
 
 
       //no pages...
@@ -454,11 +494,19 @@ int _vmloader_main(void)
 
       s[2]=0; //no loadedOS
       s[3]=start; //physical address of the vmm start
-      s[4]=0x00400000+VMMSIZE+2*4096;
+      s[4]=0x00400000+((DWORD)PageMapLevel4-start); //first 4KB after this is free
+      s[5]=0x00400000+(mainstack-start)+(16*4096)-0x40; //stack start
+      if (extramemory)
+      {
+        s[6]=start+0x00400000;
+        s[7]=extramemory >> 12;
+      }
+
 
 
       /* 0 to 4MB will be identity mapped */
       /* 4MB to 8MB will point to the vmm and it's stack */
+
       sendstringf("vmloader finished. Switching from 32-bit to 64-bit and entering VMM\n");
       displayline("vmloader finished. Switching from 32-bit to 64-bit and entering VMM\n");
      // displayline("Press any key to continue\n");

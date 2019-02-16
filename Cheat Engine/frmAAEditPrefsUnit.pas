@@ -13,12 +13,14 @@ type
   { TfrmAAEditPrefs }
 
   TfrmAAEditPrefs = class(TForm)
+    cbFontQuality: TComboBox;
     cbShowGutter: TCheckBox;
     cbShowLineNumbers: TCheckBox;
     cbSmartTab: TCheckBox;
     cbTabsToSpace: TCheckBox;
     edtTabWidth: TEdit;
     Label1: TLabel;
+    Label2: TLabel;
     Panel2: TPanel;
     Button1: TButton;
     Button2: TButton;
@@ -28,6 +30,7 @@ type
     Panel3: TPanel;
     Panel4: TPanel;
     procedure btnFontClick(Sender: TObject);
+    procedure cbFontQualitySelect(Sender: TObject);
     procedure edtTabWidthChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -63,6 +66,8 @@ function TfrmAAEditPrefs.execute(synedit: TSynEdit): boolean;
 begin
   fSynEdit:=synedit;
   FontDialog1.Font.Assign(fSynEdit.Font);
+
+  cbFontQuality.ItemIndex:=integer(fSynEdit.Font.Quality);
 
   //save all parameters that could get changed
   oldsettings.font.Assign(fSynEdit.Font);
@@ -102,6 +107,12 @@ begin
     fsynedit.font.size:=fontdialog1.Font.size;
     btnFont.Caption:=fontdialog1.Font.Name+' '+inttostr(fontdialog1.Font.Size);
   end;
+end;
+
+procedure TfrmAAEditPrefs.cbFontQualitySelect(Sender: TObject);
+begin
+  if cbFontQuality.itemindex<>-1 then
+    fsynedit.font.Quality:=TFontQuality(cbFontQuality.ItemIndex);
 end;
 
 procedure TfrmAAEditPrefs.edtTabWidthChange(Sender: TObject);

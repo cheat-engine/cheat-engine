@@ -59,7 +59,7 @@ type
     isbp,isultimap: boolean;
     focused: boolean;
 
-    function truncatestring(s: string; maxwidth: integer): string;
+    function truncatestring(s: string; maxwidth: integer; hasSpecialChars: boolean=false): string;
     procedure buildReferencedByString(sl: tstringlist);
     function DrawTextRectWithColor(const ARect: TRect; X, Y: integer; const Text: string): integer;
   public
@@ -93,7 +93,7 @@ implementation
 
 uses
   MemoryBrowserFormUnit, dissectCodeThread,debuggertypedefinitions,
-  dissectcodeunit, disassemblerviewunit, frmUltimap2Unit;
+  dissectcodeunit, disassemblerviewunit, frmUltimap2Unit, frmcodefilterunit;
 
 resourcestring
   rsUn = '(Unconditional)';
@@ -174,13 +174,60 @@ begin
       end;
     end;
   end;
-  sl.free;
+  freeandnil(sl);
+
 end;
 
 
-function TDisassemblerLine.truncatestring(s: string; maxwidth: integer): string;
-var dotsize: integer;
+function TDisassemblerLine.truncatestring(s: string; maxwidth: integer; hasSpecialChars: boolean=false): string;
+var
+  dotsize: integer;
+  charindexes: array of integer;
+  original: string;
+  i,j: integer;
+  insidecommand: boolean;
+
 begin
+  setlength(charindexes,0);
+  if s='' then exit(s);
+  original:=s;
+  insidecommand:=false;
+
+  if hasSpecialChars then
+  begin
+
+    setlength(charindexes, length(s)+1); //skipping index 0
+    j:=1;
+    for i:=1 to length(original) do
+    begin
+      case original[i] of
+        '{':
+        begin
+          insidecommand:=true;
+          continue
+        end;
+
+        '}':
+        begin
+          if insidecommand then
+          begin
+            insidecommand:=false;
+            continue;
+          end;
+        end;
+      end;
+
+      if insidecommand then continue;
+
+      s[j]:=original[i];
+      charindexes[j]:=i;
+      inc(j);
+    end;
+
+    setlength(s,j-1);
+  end;
+
+
   if fCanvas.TextWidth(s)>maxwidth then
   begin
     dotsize:=fCanvas.TextWidth('...');
@@ -194,8 +241,21 @@ begin
     while fCanvas.TextWidth(s)>maxwidth do
       s:=copy(s,1,length(s)-1);
 
-    result:=s+'...';
-  end else result:=s; //it fits
+    if hasSpecialChars then
+    begin
+      i:=charindexes[length(s)];
+      result:=copy(original,1,i)+'{U}...';
+    end
+    else
+      result:=s+'...';
+  end
+  else
+  begin
+    if hasSpecialChars then
+      result:=original
+    else
+      result:=s; //it fits
+  end;
 end;
 
 
@@ -262,6 +322,8 @@ var
     extrasymboldata: TExtraSymbolData;
 
     iscurrentinstruction: boolean;
+
+    b: byte;
 
 begin
 
@@ -351,8 +413,8 @@ begin
   else
     addressString:=truncatestring(addressString, fHeaders.Items[0].Width-2);
 
-  bytestring:=truncatestring(bytestring, fHeaders.Items[1].Width-2);
-  //opcodestring:=truncatestring(opcodestring, fHeaders.Items[2].Width-2);
+  bytestring:=truncatestring(bytestring, fHeaders.Items[1].Width-2, true);
+  //opcodestring:=truncatestring(opcodestring, fHeaders.Items[2].Width-2, true);
   //specialstring:=truncatestring(specialstring, fHeaders.Items[3].Width-2);
 
 
@@ -472,7 +534,8 @@ begin
 
 
   isbp:=(bp<>nil) and (bp.breakpointTrigger=bptExecute) and (bp.active) and (bp.markedfordeletion=false);
-  isultimap:=(frmUltimap2<>nil) and frmUltimap2.IsMatchingAddress(faddress);
+  isultimap:=((frmUltimap2<>nil) and frmUltimap2.IsMatchingAddress(faddress)) or ((frmCodeFilter<>nil) and (frmCodeFilter.isBreakpoint(faddress,b) ));
+
 
 
 
@@ -666,13 +729,19 @@ begin
     pspecialstring:=@specialstring[1];
 
 
+
+
   textcolor:=fcanvas.Font.Color;
   handledisassemblerplugins(@paddressString, @pbytestring, @popcodestring, @pspecialstring, @textcolor);
   fcanvas.font.color:=textcolor;
 
 
   fcanvas.TextRect(rect(fHeaders.Items[0].Left, linestart, fHeaders.Items[0].Right, linestart+height), fHeaders.Items[0].Left+1,linestart, paddressString);
-  fcanvas.TextRect(rect(fHeaders.Items[1].Left, linestart, fHeaders.Items[1].Right, linestart+height),fHeaders.Items[1].Left+1,linestart, pbytestring);
+
+//  fcanvas.TextRect(rect(fHeaders.Items[1].Left, linestart, fHeaders.Items[1].Right, linestart+height),fHeaders.Items[1].Left+1,linestart, pbytestring);
+
+  DrawTextRectWithColor(rect(fHeaders.Items[1].Left, linestart, fHeaders.Items[1].Right, linestart+height),fHeaders.Items[1].Left+1,linestart, pbytestring);
+
 
   fcanvas.font.Style:=fcanvas.font.Style+[fsBold];
   i:=DrawTextRectWithColor(rect(fHeaders.Items[2].Left, linestart, fHeaders.Items[2].Right, linestart+height),fHeaders.Items[2].Left+1,linestart, popcodestring);
@@ -722,7 +791,7 @@ begin
   end;
 
   if refferencedbystrings<>nil then
-    refferencedbystrings.free;
+    freeandnil(refferencedbystrings);
 
 
 end;
@@ -904,7 +973,7 @@ end;
 
 destructor TDisassemblerLine.destroy;
 begin
-  specialstrings.free;
+  freeandnil(specialstrings);
   inherited destroy;
 end;
 

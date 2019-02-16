@@ -243,13 +243,9 @@ end;
 function luaCreateMultiReadExclusiveWriteSynchronizer(L: PLua_State): integer; cdecl;
 var mrew: TMultiReadExclusiveWriteSynchronizer;
 begin
-  result:=0;
-  if lua_gettop(L)=1 then
-  begin
-    mrew:=TMultiReadExclusiveWriteSynchronizer.Create;
-    luaclass_newclass(L, mrew);
-    result:=1;
-  end;
+  mrew:=TMultiReadExclusiveWriteSynchronizer.Create;
+  luaclass_newclass(L, mrew);
+  result:=1;
 end;
 
 function lua_getCPUCount(L: PLua_State): integer; cdecl;
@@ -495,7 +491,6 @@ begin
   lua_register(LuaVM, 'createEvent', luaCreateEvent);
   lua_register(LuaVM, 'createSemaphore', luaCreateSemaphore);
   lua_register(LuaVM, 'createMultiReadExclusiveWriteSynchronizer', luaCreateMultiReadExclusiveWriteSynchronizer );
-  lua_register(LuaVM, 'createMultiReadExclusiveWriteSynchronizer ', luaCreateMultiReadExclusiveWriteSynchronizer );
 end;
 
 initialization

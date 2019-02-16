@@ -19,10 +19,12 @@ type
     cbSaveStack: TCheckBox;
     cbStepOver: TCheckBox;
     cbSkipSystemModules: TCheckBox;
+    edtStartCondition: TEdit;
     edtMaxTrace: TEdit;
-    edtCondition: TEdit;
+    edtStopCondition: TEdit;
     Label1: TLabel;
     Label2: TLabel;
+    Label3: TLabel;
     Panel1: TPanel;
     rbBreakOnAccess: TRadioButton;
     rbBreakOnWrite: TRadioButton;
@@ -40,6 +42,7 @@ var frmTracerConfig:TfrmTracerConfig;
 implementation
 
 { TfrmTracerConfig }
+
 
 procedure TfrmTracerConfig.setDataTrace(state: boolean);
 begin

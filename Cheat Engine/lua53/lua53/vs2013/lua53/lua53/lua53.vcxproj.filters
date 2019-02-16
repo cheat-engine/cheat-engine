@@ -208,7 +208,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\src\lua53.def">
+    <None Include="..\..\..\src\lua53-64.def">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>

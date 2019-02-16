@@ -186,14 +186,14 @@ begin
           if address=b.address then //insert the address before this one
           begin
             //found it
-            freemem(b);
+            FreeMemAndNil(b);
             ar.allocs.Delete(j);
 
             if ar.allocs.Count=0 then //completely freed this region
             begin
               virtualfreeex(processhandle,pointer(ar.remotebase),0,MEM_RELEASE);
-              ar.allocs.Free;
-              freemem(ar);
+              freeandnil(ar.allocs);
+              FreeMemAndNil(ar);
               allocatedRegions.Delete(i);
             end;
 
@@ -230,16 +230,15 @@ begin
   for i:=0 to allocatedRegions.count-1 do
   begin
     for j:=0 to PAllocatedRegion(allocatedRegions[i]).allocs.Count-1 do
-      freemem(PAllocatedRegion(allocatedRegions[i]).allocs[j]);
+      FreeMem(PAllocatedRegion(allocatedRegions[i]).allocs[j]);
 
     PAllocatedRegion(allocatedRegions[i]).allocs.Free;
-    freemem(allocatedRegions[i]);
+    FreeMem(allocatedRegions[i]);
   end;
 
-  allocatedRegions.free;
-  bigallocs.free;
-
-  cs.free;
+  freeandnil(allocatedRegions);
+  freeandnil(bigallocs);
+  freeandnil(cs);
 end;
 
 end.

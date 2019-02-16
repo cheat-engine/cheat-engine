@@ -333,6 +333,7 @@ SaveScanSession.miSaveScanSession=createMenuItem(mf.Menu)
 SaveScanSession.miSaveScanSession.caption=translate('Save scan session')
 SaveScanSession.miSaveScanSession.Shortcut='Ctrl+Alt+Shift+S'
 SaveScanSession.miSaveScanSession.OnClick=saveMemoryScan
+SaveScanSession.miSaveScanSession.Enabled=false
 mf.Menu.Items[0].insert(9, SaveScanSession.miSaveScanSession)
 
 
@@ -340,8 +341,23 @@ SaveScanSession.miLoadScanSession=createMenuItem(mf.Menu)
 SaveScanSession.miLoadScanSession.caption=translate('Load scan session')
 SaveScanSession.miLoadScanSession.Shortcut='Ctrl+Alt+Shift+O'
 SaveScanSession.miLoadScanSession.OnClick=loadMemoryScan
+SaveScanSession.miLoadScanSession.Enabled=false
 mf.Menu.Items[0].insert(10, SaveScanSession.miLoadScanSession)
 
 mi=createMenuItem(mf.Menu) --seperator
 mi.caption='-'
 mf.Menu.Items[0].insert(11, mi)
+
+local oldFileMenuClick=mf.Menu.Items[0].OnClick
+
+mf.Menu.Items[0].OnClick=function(sender)
+  if (oldFileMenuClick) then
+    oldFileMenuClick(sender)
+  end
+
+  --check that it isn't a first scan
+  local enable=getCurrentMemscan().lastScanWasRegionScan==false
+
+  SaveScanSession.miSaveScanSession.Enabled=enable
+  SaveScanSession.miLoadScanSession.Enabled=true
+end

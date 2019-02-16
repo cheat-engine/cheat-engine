@@ -24,6 +24,7 @@ var AddVectoredExceptionHandler: function (FirstHandler: Cardinal; VectoredHandl
     Thread32Next: function(hSnapshot: HANDLE; var lpte: THREADENTRY32): BOOL; stdcall;
 
 var oldExceptionHandler: pointer=nil;
+    vehdebugactive: boolean;
 
 implementation
 
@@ -82,8 +83,8 @@ begin
     CloseHandle(ths);
   end;
 
-  if VEHSharedMem.ThreadWatchMethod=0 then
-    ThreadPoller:=TThreadPoller.create(false);
+  //if VEHSharedMem.ThreadWatchMethod=0 then
+  //  ThreadPoller:=TThreadPoller.create(false);
 
   //tell ce that the debugger has been attached
 //  ep.ContextRecord:=@VEHSharedMem.CurrentContext[0]; //just some memory properly aligned that can be used as scratchspace
@@ -115,13 +116,13 @@ begin
   OutputDebugString('VEHDebug init');
 
 
-  if ThreadPoller<>nil then
+  {if ThreadPoller<>nil then
   begin
     ThreadPoller.Terminate;
     ThreadPoller.WaitFor;
     ThreadPoller.free;
     ThreadPoller:=nil;
-  end;
+  end;  }
 
   testandfixcs_final;
 
@@ -163,8 +164,8 @@ begin
 
   if assigned(AddVectoredExceptionHandler) then
   begin
-    if oldExceptionHandler<>nil then
-      outputdebugstring('Old exception handler should have been deleted. If not, this will crash');
+    //if oldExceptionHandler<>nil then
+   //   outputdebugstring('Old exception handler should have been deleted. If not, this will crash');
 
 
     OutputDebugString('Testing if it handles normal debug events');
@@ -177,7 +178,16 @@ begin
     HandlerCS.enter; //do not handle any external exception while the threadlist is sent to ce
 
     OutputDebugString('Registering exception handler');
-    oldExceptionHandler:=AddVectoredExceptionHandler(1,@Handler);
+    vehdebugactive:=true;
+    if oldExceptionHandler=nil then
+      oldExceptionHandler:=AddVectoredExceptionHandler(1,@Handler);
+
+    if oldExceptionHandler=nil then
+    begin
+      vehdebugactive:=false;
+      HandlerCS.leave;
+      exit;
+    end;
 
     EmulateInitializeEvents;
 
@@ -200,6 +210,8 @@ end;
 
 procedure UnloadVEH;
 begin
+  vehdebugactive:=false;
+  {
   if assigned(RemoveVectoredExceptionHandler) then
   begin
     if oldExceptionHandler<>nil then
@@ -208,6 +220,7 @@ begin
       oldExceptionHandler:=nil;
     end;
   end;
+  }
 end;
 
 end.

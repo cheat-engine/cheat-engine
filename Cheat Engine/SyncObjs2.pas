@@ -4,41 +4,60 @@ unit SyncObjs2;
 
 interface
 
-uses windows, LCLIntf;
+uses windows, classes, sysutils, LCLIntf;
 
 type TSemaphore=class
   private
-    handle: THandle;
+    h: THandle;
+    max: integer;
   public
+    function TryAcquire: boolean;
     procedure Acquire;
-    procedure Release;
-    constructor create(maxcount: integer);
+    function Release(count:integer=1):integer;
+    constructor create(maxcount: integer; init0:boolean=false);
     destructor destroy;  override;
 end;
 
 implementation
 
 
-constructor TSemaphore.create(maxcount:integer);
+constructor TSemaphore.create(maxcount:integer; init0: boolean=false);
+var init: integer;
 begin
-  handle:=CreateSemaphore(nil,maxcount,maxcount,nil);
+  max:=maxcount;
+  if init0 then
+    init:=0
+  else
+    init:=maxcount;
+
+  h:=CreateSemaphore(nil,init,maxcount,nil);
 end;
 
 destructor TSemaphore.destroy;
 begin
-  closehandle(handle);
+  closehandle(h);
   inherited destroy;
 end;
 
 procedure TSemaphore.Acquire;
 begin
-  waitforsingleobject(handle,infinite);
+  waitforsingleobject(h,infinite);
 end;
 
-procedure TSemaphore.Release;
-var previouscount: dword;
+function TSemaphore.TryAcquire:boolean;
 begin
-  releasesemaphore(handle,1,@previouscount);
+  result:=waitforsingleobject(h,0)=WAIT_OBJECT_0;
+end;
+
+function TSemaphore.Release(count: integer=1): integer;
+var
+  previouscount: LONG;
+  e: integer;
+begin
+  if releasesemaphore(h,count,@previouscount) then
+    result:=previouscount
+  else
+    result:=-1;
 end;
 
 end.

@@ -2,33 +2,32 @@ object frmResumePointerscan: TfrmResumePointerscan
   Left = 504
   Height = 140
   Top = 351
-  Width = 625
+  Width = 643
   AutoSize = True
   Caption = 'Resume pointerscan'
   ClientHeight = 140
-  ClientWidth = 625
+  ClientWidth = 643
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Panel1: TPanel
-    Left = 381
+    Left = 393
     Height = 140
     Top = 0
-    Width = 244
+    Width = 250
     Align = alClient
     BevelOuter = bvNone
     ClientHeight = 140
-    ClientWidth = 244
+    ClientWidth = 250
     TabOrder = 0
     OnResize = Panel1Resize
     object Label1: TLabel
       Left = 0
       Height = 15
       Top = 0
-      Width = 244
+      Width = 250
       Align = alTop
       Caption = 'Rescan pointermaps'
       ParentColor = False
@@ -37,22 +36,24 @@ object frmResumePointerscan: TfrmResumePointerscan
       Left = 0
       Height = 125
       Top = 15
-      Width = 244
+      Width = 250
       Align = alClient
       Columns = <      
         item
           Caption = 'Filename'
+          MinWidth = 100
           Width = 100
         end      
         item
           Alignment = taCenter
           Caption = 'Address'
-          Width = 66
+          Width = 80
         end      
         item
           Alignment = taCenter
+          AutoSize = True
           Caption = 'Found'
-          Width = 70
+          Width = 49
         end>
       PopupMenu = pmRescanFiles
       ReadOnly = True
@@ -66,12 +67,12 @@ object frmResumePointerscan: TfrmResumePointerscan
     Left = 0
     Height = 140
     Top = 0
-    Width = 381
+    Width = 393
     Align = alLeft
     AutoSize = True
     BevelOuter = bvNone
     ClientHeight = 140
-    ClientWidth = 381
+    ClientWidth = 393
     TabOrder = 1
     object cbDistributedScanning: TCheckBox
       AnchorSideLeft.Control = Label9
@@ -136,10 +137,12 @@ object frmResumePointerscan: TfrmResumePointerscan
       Left = 220
       Height = 25
       Top = 65
-      Width = 156
+      Width = 168
+      AutoSize = True
       BorderSpacing.Left = 4
       BorderSpacing.Right = 5
       Caption = 'Setup specific IP''s to notify'
+      Constraints.MinHeight = 25
       Enabled = False
       OnClick = btnNotifySpecificIPsClick
       TabOrder = 3
@@ -201,16 +204,16 @@ object frmResumePointerscan: TfrmResumePointerscan
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Control = btnNotifySpecificIPs
       AnchorSideTop.Side = asrBottom
-      Left = 112
+      Left = 128
       Height = 25
       Top = 98
-      Width = 157
+      Width = 137
       AutoSize = True
       BorderSpacing.Top = 8
       BorderSpacing.Bottom = 8
       BevelOuter = bvNone
       ClientHeight = 25
-      ClientWidth = 157
+      ClientWidth = 137
       TabOrder = 6
       object Button1: TButton
         AnchorSideLeft.Control = Panel3
@@ -218,8 +221,10 @@ object frmResumePointerscan: TfrmResumePointerscan
         Left = 0
         Height = 25
         Top = 0
-        Width = 75
+        Width = 68
+        AutoSize = True
         Caption = 'Resume'
+        Constraints.MinHeight = 25
         Default = True
         OnClick = Button1Click
         TabOrder = 0
@@ -228,21 +233,23 @@ object frmResumePointerscan: TfrmResumePointerscan
         AnchorSideLeft.Control = Button1
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = Button1
-        Left = 82
+        Left = 75
         Height = 25
         Top = 0
-        Width = 75
+        Width = 62
+        AutoSize = True
         BorderSpacing.Left = 7
         Cancel = True
         Caption = 'Cancel'
+        Constraints.MinHeight = 25
         ModalResult = 2
         TabOrder = 1
       end
     end
   end
   object pmRescanFiles: TPopupMenu
-    left = 443
-    top = 90
+    left = 448
+    top = 72
     object MenuItem1: TMenuItem
       Caption = 'Add pointermap'
       OnClick = MenuItem1Click

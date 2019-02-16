@@ -70,7 +70,7 @@ uses tlgUnit,MainUnit2, MainUnit, dbvmLoadManual;
 resourcestring
   rsYourSystemDOESNOTSupportDBVM = 'Your system DOES NOT support DBVM';
   rsThisMeansThatYouWillNeedANewCpuIntelToBeAbleToUseT = 'This means that you will need a new cpu (intel) to be able to use the advanced dbvm options';
-  rsYourSystemIsRunningDBVMVersion = 'Your system is running DBVM version %s';
+  rsYourSystemIsRunningDBVMVersion = 'Your system is running DBVM version %s (%.0n bytes free (%d pages))';
   rsThisMeansThatYourSystemIsRunningDbvm = 'This means that your system is running dbvm. This means ce will make use of some advanced tools that are otherwise unavailable';
   rsYourSystemSupportsDBVM = 'Your system supports DBVM';
   rsThisMeansThatYouReCurrentlyNotRunningDbvm = 'This means that you''re currently not running dbvm, but that your system is capable of running it';
@@ -186,54 +186,46 @@ end;
 procedure TAbout.UpdateDBVMStatus;
 var
   supportsdbvm: boolean;
+  pages: QWORD;
+  memfree: qword;
+  dmemfree: double;
+  vers: DWORD;
+
+  oldvmx_password1: DWORD;
+  oldvmx_password2: DWORD;
+
 begin
+  oldvmx_password1:=vmx_password1;
+  oldvmx_password2:=vmx_password2;
+  OutputDebugString('UpdateDBVMStatus');
+
   if (vmx_password1=0) and (vmx_password2=0) then
   begin
+    OutputDebugString('vmx_password1=0');
+    OutputDebugString('vmx_password2=0');
     vmx_password1:=$76543210;
     vmx_password2:=$fedcba98;
   end;
 
-  if not isDBVMCapable then
+  if dbvm_version=0 then
   begin
-    //force the default password
-
-
     vmx_password1:=$76543210;
     vmx_password2:=$fedcba98;
   end;
 
-  if not isDBVMCapable then
+  if (dbvm_version>0) then
   begin
-    lblDBVM.Font.Color:=clRed;
-    lbldbvm.caption:=rsYourSystemDOESNOTSupportDBVM;
-    lbldbvm.Hint:=rsThisMeansThatYouWillNeedANewCpuIntelToBeAbleToUseT;
+    lblDBVM.Font.Color:=clLime;
+
+    memfree:=dbvm_getMemory(pages);
+    dmemfree:=memfree;
+
+    lbldbvm.caption:=Format(rsYourSystemIsRunningDBVMVersion, [inttostr(dbvm_version and $00ffffff), dmemfree, pages]);
+    lbldbvm.Hint:=rsThisMeansThatYourSystemIsRunningDbvm;
     lbldbvm.ShowHint:=true;
+    lbldbvm.Cursor:=crDefault;
   end
   else
-  begin
-
-//{$ifdef cpu32}
-//    Loaddbk32;
-//{$endif}
-
-    if (dbvm_version>0) then
-    begin
-      lblDBVM.Font.Color:=clLime;
-      lbldbvm.caption:=Format(rsYourSystemIsRunningDBVMVersion, [inttostr(dbvm_version and $00ffffff)]);
-      lbldbvm.Hint:=rsThisMeansThatYourSystemIsRunningDbvm;
-      lbldbvm.ShowHint:=true;
-    end
-    else
-    begin
-      lblDBVM.Font.Color:=clGreen;
-      lbldbvm.caption:=rsYourSystemSupportsDBVM;
-      lbldbvm.Hint:=rsThisMeansThatYouReCurrentlyNotRunningDbvm;
-      lbldbvm.ShowHint:=true;
-    end;
-  end;
-
-
-  if (dbvm_version=0) then
   begin
     supportsdbvm:=isDBVMCapable;
 
@@ -253,15 +245,10 @@ begin
       lbldbvm.ShowHint:=true;
       lbldbvm.Cursor:=crNo;
     end;
-  end
-  else
-  begin
-    lblDBVM.Font.Color:=clLime;
-    lbldbvm.caption:=Format(rsYourSystemIsRunningDBVMVersion, [inttostr(dbvm_version and $00ffffff)]);
-    lbldbvm.Hint:=rsThisMeansThatYourSystemIsRunningDbvm;
-    lbldbvm.ShowHint:=true;
-    lbldbvm.Cursor:=crDefault;
   end;
+
+  vmx_password1:=oldvmx_password1;
+  vmx_password2:=oldvmx_password2;
 end;
 
 

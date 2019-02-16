@@ -156,6 +156,7 @@ begin
   Increase value with:
 
   }
+  result:='';
   if memrec.VarType=vtAutoAssembler then
   begin
     case a of

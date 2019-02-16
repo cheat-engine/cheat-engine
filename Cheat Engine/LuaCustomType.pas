@@ -59,7 +59,7 @@ begin
       result:=1;
     end;
   finally
-    freemem(o);
+    FreeMemAndNil(o);
   end;
 end;
 
@@ -99,7 +99,7 @@ begin
     CreateByteTableFromPointer(L, o,ct.bytesize);
     result:=1;
   finally
-    freemem(o);
+    FreeMemAndNil(o);
   end;
 end;
 

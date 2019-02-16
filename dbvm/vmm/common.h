@@ -1,6 +1,10 @@
 #ifndef COMMON_H_
 #define COMMON_H_
 
+#include <stddef.h>
+
+#define STATISTICS
+
 #define MAX_STACK_SIZE 0x10000
 
 #if (defined SERIALPORT) && (SERIALPORT != 0)
@@ -8,7 +12,11 @@
   #define DEBUGINTHANDLER //comment for release
 #endif
 
-// #define DISPLAYDEBUG //send serialport debug output to the display
+#if (DISPLAYDEBUG==1)
+  #define DEBUG
+  #define DEBUGINTHANDLER
+#endif
+
 #define ULTIMAPDEBUG //for debugging ultimap (I seem to have misplaced my serial port...)
 
 
@@ -19,14 +27,71 @@
 #define UINT32 unsigned int
 #define UINT64 unsigned long long
 #define QWORD UINT64
-#define NULL 0
+#ifndef NULL
+#define NULL (void*)0
+#endif
+
+typedef int VMSTATUS;
+#define VM_OK 0
+#define VM_ERROR 1
+
+
+typedef int BOOL;
+
+#define TRUE 1
+#define FALSE 0
+
+#define UNUSED __attribute__((unused))
+
+typedef struct{
+  QWORD RIP;
+  QWORD RBP;
+  QWORD RBX;
+  QWORD R12;
+  QWORD R13;
+  QWORD R14;
+  QWORD R15;
+  QWORD RFLAGS;
+  QWORD RSP;
+} _jmp_buf;
+
+typedef _jmp_buf volatile jmp_buf[1]; //array holding one item, RSP
+
+extern void longjmp(jmp_buf env, int val);
+extern int setjmp(jmp_buf env);
+
+#define try { int lastexception; jmp_buf previousexception; previousexception[0]=getcpuinfo()->OnException[0]; if ((lastexception=setjmp(getcpuinfo()->OnException))==0) {
+#define except } else { QWORD UNUSED ExceptionRIP=getcpuinfo()->LastExceptionRIP;
+#define tryend } getcpuinfo()->OnException[0]=previousexception[0]; }
 
 typedef volatile struct _criticalSection
 {
-  int locked;
-  int apicid;
+  volatile int locked;
+  volatile int apicid;
   int lockcount;
 } criticalSection, *PcriticalSection;
+
+
+typedef volatile struct _multireadexclusivewritesychronizer
+{
+  volatile int lock;
+  volatile int readers;
+  volatile int writers; //max 1
+
+} multireadexclusivewritesychronizer, *Pmultireadexclusivewritesychronizer;
+
+typedef struct _stacklistentry{
+  struct _stacklistentry *previous;
+  void *data;
+} StackListEntry, *PStackListEntry;
+
+typedef struct _stacklist {
+  PStackListEntry last;
+} StackList, *PStackList;
+
+void push(PStackList stackobject, void *data, int size);
+int pop(PStackList stackobject, void *data, int size);
+
 
 typedef union
 {
@@ -64,21 +129,30 @@ typedef union
 //extern UINT64 inportb(UINT64 port);
 //extern void outportb(UINT64 port, UINT64 value);
 
-inline void bochsbp(void);
-inline unsigned char inportb(unsigned int port);
-inline void outportb(unsigned int port,unsigned char value);
+void bochsbp(void);
+void jtagbp(void);
 
-inline unsigned long inportd(unsigned int port);
-inline void outportd(unsigned int port,unsigned long value);
+/* Input a byte from a port */
+unsigned char inportb(unsigned int port);
+
+void outportb(unsigned int port,unsigned char value);
+
+unsigned long inportd(unsigned int port);
+
+void outportd(unsigned int port,unsigned long value);
+
+int abs(int j);
 
 extern void clearScreen(void);
-
+extern void debugbreak(void);
 
 extern void _cpuid(UINT64 *rax, UINT64 *rbx, UINT64 *rcx, UINT64 *rdx);
 extern ULONG getRSP(void);
+extern ULONG getRBP(void);
 
 int itoa(unsigned int value,int base, char *output,int maxsize);
-unsigned long long atoi(char* input, int base, int *err);
+//int atoi(const char *nptr);
+unsigned long long atoi2(char* input, int base, int *err);
 
 void zeromemory(volatile void *address, unsigned int size);
 void printchar(char c, int x, int y, char foreground, char background);
@@ -87,10 +161,33 @@ void sendchar(char c);
 
 extern void enableserial(void);
 
+size_t strspn(const char *str, const char *chars);
+int isalpha(int c);
+int isdigit(int c);
+int isalnum(int c);
+int toupper(int c);
+int tolower(int c);
+
+
+int min(int x,int y);
+int max(int x,int y);
+
+
+double floor(double x);
+double ceil(double x);
+
+
+int strcoll(const char *s1, const char *s2);
+
 
 //#ifdef DEBUG
   void sendstring(char *s);
   void sendstringf(char *string, ...);
+
+  int sprintf(char *str, const char *format, ...);
+
+  char *strchr(const char *s, int c);
+
 //#endif
 
 /*
@@ -106,12 +203,19 @@ char getchar(void);
 char waitforchar(void);
 int readstring(char *s, int minlength, int maxlength);
 int readstringc(char *s, int minlength, int maxlength);
-int strlen(volatile const char *string);
-char *strcat(volatile char *dest, volatile const char *src);
-char *strcpy(volatile char *dest, volatile const char *src);
-volatile void* copymem(volatile void *dest, volatile const void *src, int size);
-void* memcpy(volatile void *dest, volatile const void *src, int size);
-void* memset(volatile void *dest, int c, int size);
+size_t strlen(const char *s);
+char *strcat(char *dest, const char *src);
+char *strcpy(char *dest, const char *src);
+volatile void* copymem(volatile void *dest, volatile const void *src, size_t size);
+void *memcpy(void *dest, const void *src, size_t n);
+void *memset(void *s, int c, size_t n);
+int memcmp(const void *s1, const void *s2, size_t n);
+int strcmp(const char *s1, const char *s2);
+int strncmp(const char *s1, const char *s2, size_t n);
+char *strstr(const char *haystack, const char *needle);
+
+char *strpbrk(const char *s, const char *accept);
+double strtod(const char *nptr, char **endptr);
 
 unsigned int getAPICID(void);
 unsigned int generateCRC(unsigned char *ptr, int size);
@@ -121,6 +225,8 @@ void appendzero(char *string, int wantedsize,int maxstringsize);
 void displayline(char *s, ...);
 int vbuildstring(char *str, int size, char *string, __builtin_va_list arglist);
 
+
+
 void sendDissectedFlags(PRFLAGS rflags);
 
 
@@ -128,6 +234,7 @@ void csEnter(PcriticalSection CS);
 void csLeave(PcriticalSection CS);
 
 int spinlock(volatile int *CS); //returns 0
+
 void resync(void);
 
 typedef struct textvideo {
@@ -135,6 +242,8 @@ typedef struct textvideo {
   char foregroundcolor : 4;
   char backgroundcolor : 4;
 } TEXTVIDEO, *PTEXTVIDEO;
+
+typedef TEXTVIDEO TEXTVIDEOLINE[80];
 
 unsigned char nosendchar[256];
 
@@ -149,7 +258,7 @@ typedef struct _ARD {
         unsigned int LengthLow;
         unsigned int LengthHigh;
         unsigned int Type;
-} __attribute__((__packed__)) *PARD;
+} __attribute__((__packed__)) ARD, *PARD;
 
 
 typedef volatile struct _PTE
@@ -208,7 +317,7 @@ typedef volatile struct _PDE2MB
 typedef volatile struct _PTE_PAE
 {
         unsigned P         :  1; // present (1 = present)
-        unsigned RW        :  1; // read/write
+        unsigned RW        :  1; // read/writedisplaydebugbackwardslog
         unsigned US        :  1; // user/supervisor
         unsigned PWT       :  1; // page-level write-through
         unsigned PCD       :  1; // page-level cache disabled
@@ -222,22 +331,22 @@ typedef volatile struct _PTE_PAE
         unsigned PFN       : 24; // page-frame number
         unsigned reserved  : 23;
         unsigned EXB       :  1;
-} __attribute__((__packed__)) *PPTE_PAE;
+} __attribute__((__packed__)) _PTE_PAE, *PPTE_PAE;
 
 typedef volatile struct _PDE_PAE
 {
-        unsigned P         :  1; // present (1 = present)
-        unsigned RW        :  1; // read/write
-        unsigned US        :  1; // user/supervisor
-        unsigned PWT       :  1; // page-level write-through
-        unsigned PCD       :  1; // page-level cache disabled
-        unsigned A         :  1; // accessed
-        unsigned D         :  1; // dirty
-        unsigned PS        :  1; // pagesize
-        unsigned G         :  1; // reserved (0)
-        unsigned A1        :  1; // available 1 aka copy-on-write
-        unsigned A2        :  1; // available 2/ is 1 when paged to disk
-        unsigned A3        :  1; // available 3
+        unsigned P         :  1; // 0: present (1 = present)
+        unsigned RW        :  1; // 1: read/write
+        unsigned US        :  1; // 2: user/supervisor
+        unsigned PWT       :  1; // 3: page-level write-through
+        unsigned PCD       :  1; // 4: page-level cache disabled
+        unsigned A         :  1; // 5: accessed
+        unsigned D         :  1; // 6: dirty
+        unsigned PS        :  1; // 7: pagesize
+        unsigned G         :  1; // 8: reserved (0)
+        unsigned A1        :  1; // 9: available 1 aka copy-on-write
+        unsigned A2        :  1; // 10: available 2/ is 1 when paged to disk
+        unsigned A3        :  1; // 11: available 3
         unsigned PFN       : 28; // page-frame number
         unsigned reserved4 : 23;
         unsigned EXB       :  1;
@@ -245,36 +354,36 @@ typedef volatile struct _PDE_PAE
 
 typedef volatile struct _PDE2MB_PAE
 {
-        unsigned P         :  1; // present (1 = present)
-        unsigned RW        :  1; // read/write
-        unsigned US        :  1; // user/supervisor
-        unsigned PWT       :  1; // page-level write-through
-        unsigned PCD       :  1; // page-level cache disabled
-        unsigned A         :  1; // accessed
-        unsigned reserved1 :  1; // reserved (0)
-        unsigned PS        :  1; // reserved (0)
-        unsigned reserved3 :  1; // reserved (0)
-        unsigned A1        :  1; // available 1 aka copy-on-write
-        unsigned A2        :  1; // available 2/ is 1 when paged to disk
-        unsigned A3        :  1; // available 3
+        unsigned P         :  1; // 0: present (1 = present)
+        unsigned RW        :  1; // 1: read/write
+        unsigned US        :  1; // 2: user/supervisor
+        unsigned PWT       :  1; // 3: page-level write-through
+        unsigned PCD       :  1; // 4: page-level cache disabled
+        unsigned A         :  1; // 5: accessed
+        unsigned reserved1 :  1; // 6: reserved (0)
+        unsigned PS        :  1; // 7: reserved (0)
+        unsigned reserved3 :  1; // 8: reserved (0)
+        unsigned A1        :  1; // 9: available 1 aka copy-on-write
+        unsigned A2        :  1; // 10: available 2/ is 1 when paged to disk
+        unsigned A3        :  1; // 11: available 3
         unsigned PAT       :  1; //
         unsigned PFN       : 27; // page-frame number (>> 13 instead of >>12);
         unsigned reserved4 : 23;
         unsigned EXB       :  1;
-} __attribute__((__packed__)) *PPDE2MB_PAE;
+} __attribute__((__packed__)) _PDE2MB_PAE, *PPDE2MB_PAE;
 
 
 typedef volatile struct _PDPTE_PAE
 {
-        unsigned P         :  1; // present (1 = present)
-        unsigned RW        :  1; // Read Write
-        unsigned US        :  1; // User supervisor
-        unsigned PWT       :  1; // page-level write-through
-        unsigned PCD       :  1; // page-level cache disabled
-        unsigned reserved2 :  4; // reserved
-        unsigned A1        :  1; // available 1 aka copy-on-write
-        unsigned A2        :  1; // available 2/ is 1 when paged to disk
-        unsigned A3        :  1; // available 3
+        unsigned P         :  1; // 0: present (1 = present)
+        unsigned RW        :  1; // 1: Read Write
+        unsigned US        :  1; // 2: User supervisor
+        unsigned PWT       :  1; // 3: page-level write-through
+        unsigned PCD       :  1; // 4: page-level cache disabled
+        unsigned reserved2 :  4; // 5-8: reserved
+        unsigned A1        :  1; // 9: available 1 aka copy-on-write
+        unsigned A2        :  1; // 10: available 2/ is 1 when paged to disk
+        unsigned A3        :  1; // 11: available 3
         unsigned PFN       : 28; // page-frame number
         unsigned reserved3 : 23;
         unsigned EXB       :  1;
@@ -366,12 +475,12 @@ typedef struct
   unsigned Limit0_15          : 16;
   unsigned Base0_23           : 24;
   unsigned Type               : 4;
-  unsigned System             : 1;
+  unsigned NotSystem          : 1;
   unsigned DPL                : 2;
   unsigned P                  : 1;
   unsigned Limit16_19         : 4;
   unsigned AVL                : 1;
-  unsigned Reserved           : 1;
+  unsigned L                  : 1; //long mode
   unsigned B_D                : 1;
   unsigned G                  : 1;
   unsigned Base24_31          : 8;
@@ -381,7 +490,7 @@ typedef struct tagINT_VECTOR
 {
   WORD  wLowOffset;
   WORD  wSelector;
-  BYTE  bUnused;
+  BYTE  bUnused; //3 bits of bUnused describe the IST
   BYTE  bAccess;
   WORD  wHighOffset;
   DWORD Offset32_63;
@@ -404,6 +513,27 @@ typedef struct tagIDT
   PINT_VECTOR vector;
 } IDT, *PIDT;
 #pragma pack()
+
+
+typedef struct _INVPCIDDESCRIPTOR
+{
+  unsigned PCID:12;
+  QWORD zero:52;
+  QWORD LinearAddress;
+} __attribute__((__packed__)) INVPCIDDESCRIPTOR, *PINVPCIDDESCRIPTOR;
+
+typedef struct _INVEPTDESCRIPTOR
+{
+  QWORD EPTPointer;
+  QWORD Zero;
+} __attribute__((__packed__)) INVEPTDESCRIPTOR, *PINVEPTDESCRIPTOR;
+
+typedef struct _INVVPIDDESCRIPTOR
+{
+  unsigned VPID:12;
+  QWORD zero:52;
+  QWORD LinearAddress;
+} __attribute__((__packed__)) INVVPIDDESCRIPTOR, *PINVVPIDDESCRIPTOR;
 
 /* obsolete, use rflags now
 typedef struct tagEFLAGS
@@ -436,5 +566,28 @@ typedef struct tagEFLAGS
 extern criticalSection sendstringfCS;
 extern criticalSection sendstringCS;
 
+extern QWORD textmemory; //points to physical address 0x0b8000
+
+typedef int (*POPCNT_IMPLEMENTATION)(QWORD val);
+extern POPCNT_IMPLEMENTATION popcnt;
+
+extern int getcpunr();
+extern int call32bit(DWORD address);
+
+#if DISPLAYDEBUG
+void initialize_displaydebuglogs();
+#endif
+
+DWORD getGDTENTRYBase(PGDT_ENTRY entry);
+void setGDTENTRYBase(PGDT_ENTRY entry, DWORD base);
+
+GDT_ENTRY Build16BitDataSegmentDescriptor(DWORD baseaddress, DWORD size);
+GDT_ENTRY Build16BitCodeSegmentDescriptor(DWORD baseaddress, DWORD size);
+GDT_ENTRY Build32BitDataSegmentDescriptor(DWORD baseaddress, DWORD size);
+GDT_ENTRY Build32BitCodeSegmentDescriptor(DWORD baseaddress, DWORD size);
+
+int getCPUCount();
+
+void InitCommon();
 
 #endif

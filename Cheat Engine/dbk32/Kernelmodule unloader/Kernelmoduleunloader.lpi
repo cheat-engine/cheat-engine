@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="9"/>
+    <Version Value="10"/>
     <PathDelim Value="\"/>
     <General>
       <MainUnit Value="0"/>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
       <XPManifest>
-        <ExecutionLevel Value="2"/>
+        <ExecutionLevel Value="requireAdministrator"/>
       </XPManifest>
-      <ActiveWindowIndexAtStart Value="0"/>
     </General>
     <i18n>
       <EnableI18N LFM="False"/>
@@ -34,34 +33,46 @@
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <Units Count="2">
+    <Units Count="4">
       <Unit0>
         <Filename Value="Kernelmoduleunloader.lpr"/>
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="12" Y="11"/>
+        <TopLine Value="333"/>
+        <CursorPos X="26" Y="349"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
       </Unit0>
       <Unit1>
         <Filename Value="..\multicpuexecution.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="multicpuexecution"/>
-        <EditorIndex Value="0"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
+        <TopLine Value="43"/>
         <CursorPos X="17" Y="8"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
       </Unit1>
+      <Unit2>
+        <Filename Value="C:\lazarus164\fpc\3.0.2\source\rtl\objpas\sysutils\filutilh.inc"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="151"/>
+        <CursorPos X="11" Y="171"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="C:\lazarus164\fpc\3.0.2\source\rtl\win\sysutils.pp"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="350"/>
+        <CursorPos X="3" Y="352"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit3>
     </Units>
-    <JumpHistory Count="3" HistoryIndex="2">
+    <JumpHistory Count="5" HistoryIndex="3">
       <Position1>
         <Filename Value="Kernelmoduleunloader.lpr"/>
-        <Caret Line="12" Column="49" TopLine="1"/>
+        <Caret Line="12" Column="49"/>
       </Position1>
       <Position2>
         <Filename Value="Kernelmoduleunloader.lpr"/>
@@ -69,8 +80,16 @@
       </Position2>
       <Position3>
         <Filename Value="Kernelmoduleunloader.lpr"/>
-        <Caret Line="11" Column="3" TopLine="1"/>
+        <Caret Line="11" Column="3"/>
       </Position3>
+      <Position4>
+        <Filename Value="Kernelmoduleunloader.lpr"/>
+        <Caret Line="347" Column="10" TopLine="333"/>
+      </Position4>
+      <Position5>
+        <Filename Value="C:\lazarus164\fpc\3.0.2\source\rtl\win\sysutils.pp"/>
+        <Caret Line="352" Column="3" TopLine="350"/>
+      </Position5>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
@@ -80,9 +99,12 @@
       <Filename Value="..\..\bin\kernelmoduleunloader-$(TargetCPU)"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="F:\svn\Cheat Engine 6\dbk32\;$(ProjOutDir)"/>
-      <OtherUnitFiles Value="F:\svn\Cheat Engine 6\dbk32\"/>
+      <IncludeFiles Value="$(ProjOutDir)"/>
     </SearchPaths>
+    <CodeGeneration>
+      <TargetCPU Value="i386"/>
+      <TargetOS Value="win32"/>
+    </CodeGeneration>
     <Linking>
       <Debugging>
         <GenerateDebugInfo Value="False"/>
@@ -96,12 +118,6 @@
         </Win32>
       </Options>
     </Linking>
-    <Other>
-      <CompilerMessages>
-        <UseMsgFile Value="True"/>
-      </CompilerMessages>
-      <CompilerPath Value="$(CompPath)"/>
-    </Other>
   </CompilerOptions>
   <Debugging>
     <BreakPoints Count="1">
@@ -125,5 +141,4 @@
       </Item3>
     </Exceptions>
   </Debugging>
-  <EditorMacros Count="0"/>
 </CONFIG>

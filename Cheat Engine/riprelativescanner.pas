@@ -8,8 +8,8 @@ This class will scan a given module and return the rip relative instructions
 interface
 
 uses
-  Windows, Classes, SysUtils, disassembler, symbolhandler, processhandlerunit,
-  NewKernelHandler, CEFuncProc;
+  Windows, Classes, SysUtils, disassembler, symbolhandler, symbolhandlerstructs,
+  processhandlerunit, NewKernelHandler, CEFuncProc;
 
 type
   TRIPRelativeScanner=class

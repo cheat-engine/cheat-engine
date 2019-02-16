@@ -33,22 +33,22 @@ var
   CEConnection: TCEConnection;
   server: TServer;
 
+procedure execute2(p: pointer); stdcall;
+
 implementation
 
 uses proc;
 
-
-
-procedure TServer.execute;
+var terminated: boolean;
+procedure execute2(p: pointer); stdcall;
 var
   command: byte;
   x: DWORD;
   hwnd: qword;
   pa: qword;
+  pipe: THandle;
 begin
-  server:=self;
-
-  while not terminated do
+  while not terminated  do
   begin
     pipe:=CreateNamedPipe(pchar('\\.\pipe\CEWINHOOKC'+inttostr(GetProcessID)), PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE or PIPE_READMODE_BYTE or PIPE_WAIT, 255, 16, 8192, 0, nil);
 
@@ -106,8 +106,11 @@ begin
       CloseHandle(pipe); //failure, try again
     end;
   end;
+end;
 
-
+procedure TServer.execute;
+begin
+  execute2(nil);
 end;
 
 //connection
@@ -190,14 +193,8 @@ begin
 end;
 
 finalization
-  if server<>nil then
-  begin
-    server.Terminate;
-    TerminateThread(server.Handle,60);
-  end;
-
-  if ceconnection<>nil then
-    freeandnil(ceconnection);
+//  MessageBoxA(0,'BYE','BYE',0);
+  terminated:=true;
 
 end.
 

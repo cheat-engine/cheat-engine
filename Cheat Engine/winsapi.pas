@@ -351,7 +351,7 @@ begin
   if not assigned(voice) then
   begin
     try
-      voice:=ISpVoice(CreateComObject(CLSID_SpVoice));
+      voice:=CreateComObject(CLSID_SpVoice) as ISpVoice;
     except
       exit(-1);
     end;

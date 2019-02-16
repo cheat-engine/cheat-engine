@@ -5,7 +5,7 @@ unit tracerIgnore;
 interface
 
 uses
-  Classes, SysUtils, symbolhandler, cefuncproc, globals;
+  Classes, SysUtils, symbolhandler, symbolhandlerstructs, cefuncproc, globals;
 
 type
   TTracerIgnore=class
@@ -22,6 +22,7 @@ type
 var IgnoredModuleListHandler: TTracerIgnore;
 
 implementation
+
 
 procedure TTracerIgnore.loadIgnoredModules;
 var

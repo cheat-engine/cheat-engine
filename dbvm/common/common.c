@@ -2,6 +2,8 @@
 common.c: 32-bit version Contains several functions that might be useful and can be shared by
 multiple sources. (e.g vmm and vmloader)
 
+edit: yeah, not vmm anymore as it's 64-bit, so vmloader only
+
 */
 
 #include "common.h"
@@ -358,13 +360,28 @@ void csLeave(PcriticalSection CS)
   }
 }
 
-
 void zeromemory(void *address, unsigned int size)
 {
   unsigned int i;
-  unsigned char *a=(unsigned char *)address;
+  volatile unsigned char *a=(volatile unsigned char *)address;
   for (i=0; i < size; i++)
     a[i]=0;
+}
+
+int debugzeromem=0;
+void zeromemoryd(void *address, unsigned int size)
+{
+  unsigned int i;
+  volatile unsigned char *a=(volatile unsigned char *)address;
+  for (i=0; i < size; i++)
+  {
+    if ((debugzeromem) && ((i%0x1000)==0))
+    {
+      sendstringf("i=%x\n", i);
+    }
+
+    a[i]=0;
+  }
 }
 
 
@@ -582,20 +599,29 @@ void sendchar(char c)
 	return;
 #endif
 
+  if (c=='\r')
+    return;
 
   if (nosendchar[getAPICID()])
     return;
 
-  if (1) //change to 0 for terminal testing, 1 for real
-  if (c=='\r')
-    return;
-
-
   x=inportb(SERIALPORT+5);
-  while ((x & 0x20) != 0x20)
+ //while ((x & 0x20) != 0x20)
+  while ((x & 0x40) != 0x40)
 	  x=inportb(SERIALPORT+5);
 
 	outportb(SERIALPORT,c);
+
+	if (c=='\n')
+	{
+	  x=inportb(SERIALPORT+5);
+	  while ((x & 0x20) != 0x20)
+	    x=inportb(SERIALPORT+5);
+
+	  outportb(SERIALPORT,'\r');
+	}
+
+
 }
 
 void waitforkeypress(void)

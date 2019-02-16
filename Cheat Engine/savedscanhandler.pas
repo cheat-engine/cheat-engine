@@ -723,14 +723,14 @@ procedure TSavedScanHandler.cleanup;
 begin
   if SavedScanmemory<>nil then
   begin
-    freemem(SavedScanmemory);
-    SavedScanmemory:=nil;
+    freememandnil(SavedScanmemory);
+
   end;
 
   if addresslistmemory<>nil then
   begin
-    freemem(addresslistmemory);
-    addresslistmemory:=nil;
+    freememandnil(addresslistmemory);
+
   end;
 
   if SavedScanaddressFS<>nil then

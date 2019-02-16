@@ -44,6 +44,7 @@ type TStringReference=class(tobject)
   address: ptrUint;
   s: string;
   references: array of ptrUint;
+  isUnicode: boolean;
 end;
 
 type TDissectReference=class(tobject)
@@ -55,7 +56,7 @@ type TDissectReference=class(tobject)
     end;
 end;
 
-
+type TOnCallListEntry=procedure(address: ptruint);
 
 type
   TDissectCodeThread = class(TThread)
@@ -117,6 +118,8 @@ type
 
     procedure getstringlist(s: tstrings);
     procedure getCallList(s: TList);
+
+//    procedure getCallListEx(callback: TOnCallListEntry);
     constructor create(suspended: boolean);
   protected
     procedure Execute; override;
@@ -288,9 +291,9 @@ begin
     if al<>nil then
     begin
       if al.a<>nil then
-        freemem(al.a);
+        freememandnil(al.a);
 
-      freemem(al);
+      freememandnil(al);
     end;
     mi.Next;
   end;
@@ -615,14 +618,14 @@ begin
       end;
     end;
 
-    if true then exit;
+    if result then exit;
 
     //check if unicode string
     i:=0;
     result:=true;
     while i<8 do
     begin
-      if not (tempbuf[i] in [32..127]) then
+      if not ((tempbuf[i] in [32..127]) and (tempbuf[i+1]=0)) then
       begin
         result:=false;
         break;

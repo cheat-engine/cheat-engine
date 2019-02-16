@@ -9,6 +9,8 @@ uses
   Dialogs, StdCtrls, ExtCtrls, LResources, Menus, Buttons, CEFuncProc,
   commonTypeDefs;
 
+const cehotkeycount=32;
+
 type
 
   { TframeHotkeyConfig }
@@ -53,7 +55,7 @@ type
     procedure updatespeed;
   public
     { Public declarations }
-    newhotkeys: array [0..30] of tkeycombo;
+    newhotkeys: array [0..cehotkeycount-1] of tkeycombo;
     newspeedhackspeed1: tspeedhackspeed;
     newspeedhackspeed2: tspeedhackspeed;
     newspeedhackspeed3: tspeedhackspeed;
@@ -86,37 +88,37 @@ begin
     begin
       newspeedhackspeed1.speed:=StrToFloat(edtSHspeed.Text);
       newspeedhackspeed1.disablewhenreleased:=cbStopOnRelease.checked;
-      newspeedhackspeed1.keycombo:=newhotkeys[currentspeed+2];
+      newspeedhackspeed1.keycombo:=newhotkeys[currentspeed+3];
     end else
     if currentspeed=2 then
     begin
       newspeedhackspeed2.speed:=StrToFloat(edtSHspeed.Text);
       newspeedhackspeed2.disablewhenreleased:=cbStopOnRelease.checked;
-      newspeedhackspeed2.keycombo:=newhotkeys[currentspeed+2];
+      newspeedhackspeed2.keycombo:=newhotkeys[currentspeed+3];
     end else
     if currentspeed=3 then
     begin
       newspeedhackspeed3.speed:=StrToFloat(edtSHspeed.Text);
       newspeedhackspeed3.disablewhenreleased:=cbStopOnRelease.checked;
-      newspeedhackspeed3.keycombo:=newhotkeys[currentspeed+2];
+      newspeedhackspeed3.keycombo:=newhotkeys[currentspeed+3];
     end else
     if currentspeed=4 then
     begin
       newspeedhackspeed4.speed:=StrToFloat(edtSHspeed.Text);
       newspeedhackspeed4.disablewhenreleased:=cbStopOnRelease.checked;
-      newspeedhackspeed4.keycombo:=newhotkeys[currentspeed+2];
+      newspeedhackspeed4.keycombo:=newhotkeys[currentspeed+3];
     end else
     if currentspeed=5 then
     begin
       newspeedhackspeed5.speed:=StrToFloat(edtSHspeed.Text);
       newspeedhackspeed5.disablewhenreleased:=cbStopOnRelease.checked;
-      newspeedhackspeed5.keycombo:=newhotkeys[currentspeed+2];
+      newspeedhackspeed5.keycombo:=newhotkeys[currentspeed+3];
     end;
   end;
 
-  if (listbox1.ItemIndex>=3) and (listbox1.itemindex<=7) then
+  if (listbox1.ItemIndex>=4) and (listbox1.itemindex<=8) then
   begin
-    currentspeed:=listbox1.ItemIndex-2;
+    currentspeed:=listbox1.ItemIndex-3;
     case currentspeed of
       1:
       begin
@@ -154,9 +156,9 @@ begin
     panel4.Visible:=false;
   end else panel3.Visible:=false;
 
-  if (listbox1.ItemIndex=8) or (listbox1.ItemIndex=9) then
+  if (listbox1.ItemIndex=9) or (listbox1.ItemIndex=10) then
   begin
-    increasespeed:=listbox1.itemindex=8;
+    increasespeed:=listbox1.itemindex=9;
     if increasespeed then
       edit4.Text:=format('%.3f',[speedupdelta])
     else
@@ -249,7 +251,7 @@ end;
 procedure TframeHotkeyConfig.MenuItem1Click(Sender: TObject);
 var i: integer;
 begin
-  for i:=0 to 30 do
+  for i:=0 to cehotkeycount-1 do
     newhotkeys[i][0]:=0;
 
   updatehotkey;

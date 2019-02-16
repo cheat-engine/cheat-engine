@@ -5,6 +5,9 @@
 #include "vmmhelper.h"
 
 
+
+void reboot(int skipAPTermination);
+
 void startvmx(pcpuinfo currentcpuinfo);
 void CheckCRCValues(void);
 
@@ -17,7 +20,9 @@ extern int vmcall_setintredirects(void);
 
 extern void _pause(void);
 extern UINT64 _vmread(ULONG index);
+extern int _vmread2(ULONG index, UINT64 *result);
 extern void _vmwrite(ULONG index,UINT64 value);
+extern int _vmwrite2(ULONG index, UINT64 result);
 extern int _vmclear(unsigned long long address);
 extern int _vmptrld(unsigned long long address);
 extern int _vmxon(unsigned long long address);
@@ -34,6 +39,7 @@ extern UINT64 getCR0(void);
 extern UINT64 getCR2(void);
 extern UINT64 getCR3(void);
 extern UINT64 getCR4(void);
+extern UINT64 getCR8(void);
 extern UINT64 getDR0(void);
 extern UINT64 setDR0(UINT64 newdr0);
 extern UINT64 getDR1(void);
@@ -61,7 +67,15 @@ extern ULONG setCR0(UINT64 newcr0);
 extern ULONG setCR2(UINT64 newcr2);
 extern ULONG setCR3(UINT64 newcr3);
 extern ULONG setCR4(UINT64 newcr4);
+extern ULONG setCR8(UINT64 newcr8);
 extern void _invlpg(UINT64 address);
+extern void _invpcid(int type, PINVPCIDDESCRIPTOR datablock);
+extern void _invept(int type, PINVEPTDESCRIPTOR datablock);
+extern void _invvpid(int type, PINVVPIDDESCRIPTOR datablock);
+extern void _wbinvd(void);
+extern void _invd(void);
+
+
 extern UINT64 _rdtsc(void);
 extern void quickboot(void);
 extern void infloop(void);
@@ -105,24 +119,24 @@ extern void int3bptest(void);
 
 
 volatile void       *RealmodeRing0Stack;
-volatile PTSS       ownTSS;
+volatile PTSS64     ownTSS;
 volatile PTSS       VirtualMachineTSS_V8086;
 unsigned char *ffpage;
 PPDE_PAE   ffpagedir;
 PPTE_PAE   ffpagetable;
-int        memorycloak;
 
-volatile void       *GDT_IDT_BASE; //gdt=0 idt=0x800
+volatile void       *GDT_BASE;
+int GDT_SIZE;
+int IDT_SIZE;
 
 void menu(void);
 
 //filled in by vmm.map parser
-ULONG      Password1;
-ULONG      Password2;
-ULONG      dbvmversion;
+ULONG        Password1;
+ULONG        Password2;
+extern QWORD dbvmversion;
 
 //crc checksums
-unsigned int originalIDTcrc;
 unsigned int originalVMMcrc;
 
 
@@ -130,6 +144,11 @@ int isAMD;
 int AMD_hasDecodeAssists;
 int AMD_hasNRIPS;
 
+
+extern int IntHandlerDebug;
+volatile int NMIcount;
+
+extern pcpuinfo firstcpuinfo;
 
 #define vmclear _vmclear
 #define vmptrld _vmptrld
@@ -139,6 +158,7 @@ int AMD_hasNRIPS;
 #define vmxoff _vmxoff
 #define vmread _vmread
 #define vmwrite _vmwrite
-
+#define vmread2 _vmread2
+#define vmwrite2 _vmwrite2
 
 #endif /*MAIN_H_*/

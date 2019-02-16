@@ -77,8 +77,8 @@ int handleInvalidEntryState(pcpuinfo currentcpuinfo,VMRegisters *vmregisters)
       DWORD gdtbase, idtbase;
       guestrflags.value=0;
 
-      gdtbase=VirtualToPhysical(getGDTbase());
-      idtbase=VirtualToPhysical((UINT64)idttable32);
+      gdtbase=VirtualToPhysical((void *)getGDTbase());
+      idtbase=VirtualToPhysical(idttable32);
 
       sendstring("Still in realmode, enabling VMx86 mode if not already in it and fixing possible other bugs\n\r");
       //set taskregister to realmode tr
@@ -88,7 +88,7 @@ int handleInvalidEntryState(pcpuinfo currentcpuinfo,VMRegisters *vmregisters)
       vmwrite(vm_guest_idtr_base, idtbase);
       vmwrite(vm_guest_idt_limit, 256*8);
       setupTSS8086();
-      vmwrite(vm_guest_tr_base,(UINT64)VirtualToPhysical((UINT64)VirtualMachineTSS_V8086)); //tr base
+      vmwrite(vm_guest_tr_base,(UINT64)VirtualToPhysical(VirtualMachineTSS_V8086)); //tr base
       vmwrite(vm_guest_tr_limit,(ULONG)sizeof(TSS)+32+8192+1); //tr limit
       vmwrite(vm_guest_tr,64); //the tss o
 
@@ -289,6 +289,34 @@ int handleInvalidEntryState(pcpuinfo currentcpuinfo,VMRegisters *vmregisters)
       handled=1;
     }
 
+    //check if CR0 and CR4 have bits set or unset that are not allowed
+    UINT64 oldcr0,newcr0;
+    UINT64 oldcr4,newcr4;
+
+    oldcr0=vmread(vm_guest_cr0);
+    oldcr4=vmread(vm_guest_cr4);
+
+    newcr0=(oldcr0 | (UINT64)IA32_VMX_CR0_FIXED0) & (UINT64)IA32_VMX_CR0_FIXED1;
+
+    if (newcr0!=oldcr0)
+    {
+      sendstringf("old CR0 was %6 new CR0 is %6\n",oldcr0,newcr0);
+
+      vmwrite(vm_guest_cr0, newcr0);
+      handled=1;
+    }
+
+    newcr4=(oldcr4 | (UINT64)IA32_VMX_CR4_FIXED0) & (UINT64)IA32_VMX_CR4_FIXED1;
+    if (newcr4!=oldcr4)
+    {
+      sendstringf("old CR4 was %6 new CR4 is %6\n",oldcr4,newcr4);
+      vmwrite(vm_guest_cr4, newcr4);
+      handled=1;
+    }
+
+    //setCR4(((UINT64)getCR4() | (UINT64)IA32_VMX_CR4_FIXED0) & (UINT64)IA32_VMX_CR4_FIXED1);
+
+
 
 
     if (handled==1)
@@ -299,8 +327,9 @@ int handleInvalidEntryState(pcpuinfo currentcpuinfo,VMRegisters *vmregisters)
       prflags->RF=1;
       vmwrite(vm_guest_rflags,rflags);
     }
-
     //make sure
+
+
 
     return (handled==0);
 

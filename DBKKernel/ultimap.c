@@ -3,22 +3,27 @@ Ultimap implements the recording of all the branches in the target process
 Requires dbvm for process selection
 */
 
-#include "ntifs.h"
+#pragma warning( disable: 4100 4101 4213)
+
+#include <ntifs.h>
 #include "ultimap.h"
 #include "vmxhelper.h"
 #include "DBKFunc.h"
 #include <windef.h>
 
+#include "ultimap2\apic.h"
+
 
 JUMPBACK perfmonJumpBackLocation;
 
 
-
+/*
 #ifdef AMD64
 volatile PAPIC APIC_BASE=0; //(PAPIC)0xfffffffffffe0000;
 #else
 volatile PAPIC APIC_BASE=0; //(PAPIC)0xfffe0000;
 #endif
+*/
 
 BOOL SaveToFile; //If set it will save the results to a file instead of sending a message to the usermode app that is watching the data
 HANDLE FileHandle;
@@ -43,6 +48,7 @@ PVOID *DataReadyPointerList;
 
 int perfmon_interrupt_centry(void);
 
+/* use apic.* now
 #define MSR_IA32_APICBASE               0x0000001b
 
 void setup_APIC_BASE(void)
@@ -66,7 +72,7 @@ void clean_APIC_BASE(void)
 {
 	if (APIC_BASE)
 		MmUnmapIoSpace((PVOID)APIC_BASE, sizeof(APIC));
-}
+}*/
 
 void ultimap_flushBuffers_all(UINT_PTR param)
 {
@@ -112,10 +118,10 @@ Called from usermode to signal that the data has been handled
 */
 {
 	DbgPrint("ultimap_continue\n");
-	MmUnmapLockedPages((PVOID)data->Address, (PMDL)data->Mdl);
-	IoFreeMdl((PMDL)data->Mdl);
+	MmUnmapLockedPages((PVOID)(UINT_PTR)data->Address, (PMDL)(UINT_PTR)data->Mdl);
+	IoFreeMdl((PMDL)(UINT_PTR)data->Mdl);
 
-	ExFreePool((PVOID)data->KernelAddress); //this memory is not needed anymore
+	ExFreePool((PVOID)(UINT_PTR)data->KernelAddress); //this memory is not needed anymore
 
 
 	if (DataBlock)
@@ -166,12 +172,12 @@ Called from usermode to wait for data
 			if (DataBlock)
 			{
 				data->KernelAddress=(UINT64)DataBlock[data->Block].Data;
-				(PMDL)data->Mdl=IoAllocateMdl(DataBlock[data->Block].Data, DataBlock[data->Block].DataSize, FALSE, FALSE, NULL);
+				data->Mdl=(UINT64)IoAllocateMdl(DataBlock[data->Block].Data, DataBlock[data->Block].DataSize, FALSE, FALSE, NULL);
 				if (data->Mdl)
 				{
-					MmBuildMdlForNonPagedPool((PMDL)data->Mdl);
+					MmBuildMdlForNonPagedPool((PMDL)(UINT_PTR)data->Mdl);
 
-					data->Address=(UINT_PTR)MmMapLockedPagesSpecifyCache((PMDL)data->Mdl, UserMode, MmCached, NULL, FALSE, NormalPagePriority);
+					data->Address=(UINT_PTR)MmMapLockedPagesSpecifyCache((PMDL)(UINT_PTR)data->Mdl, UserMode, MmCached, NULL, FALSE, NormalPagePriority);
 					if (data->Address)
 					{
 						data->Size=DataBlock[data->Block].DataSize;
@@ -202,12 +208,13 @@ Called from usermode to wait for data
 	
 }
 
+/*
 void apic_clearPerfmon()
 {
 	APIC_BASE->LVT_Performance_Monitor.a = APIC_BASE->LVT_Performance_Monitor.a & 0xff;
 	APIC_BASE->EOI.a = 0;
 }
-
+*/
 void ultimap_cleanstate()
 {
 	apic_clearPerfmon();
@@ -216,7 +223,8 @@ void ultimap_cleanstate()
 int perfmon_interrupt_centry(void)
 {
 
-	KIRQL old;
+	KIRQL old = PASSIVE_LEVEL;
+	int changedIRQL = 0;
 	
 	void *temp;
 	int causedbyme=(DS_AREA[cpunr()]->BTS_IndexBaseAddress>=DS_AREA[cpunr()]->BTS_InterruptThresholdAddress);
@@ -234,6 +242,7 @@ int perfmon_interrupt_centry(void)
 		if (KeGetCurrentIrql() < DISPATCH_LEVEL)
 		{
 			//When called by the pre-emptive caller
+			changedIRQL = 1;
 			old = KeRaiseIrqlToDpcLevel();
 		}
 
@@ -245,7 +254,7 @@ int perfmon_interrupt_centry(void)
 		temp=ExAllocatePool(NonPagedPool, blocksize);
 		if (temp)
 		{
-			RtlCopyMemory(temp, (PVOID *)DS_AREA[cpunr()]->BTS_BufferBaseAddress, blocksize);
+			RtlCopyMemory(temp, (PVOID *)(UINT_PTR)DS_AREA[cpunr()]->BTS_BufferBaseAddress, blocksize);
 
 			DbgPrint("temp=%p\n", temp);
 
@@ -260,7 +269,8 @@ int perfmon_interrupt_centry(void)
 			return causedbyme;
 		}
 		
-		KeLowerIrql(old);
+		if (changedIRQL)
+			KeLowerIrql(old);
 		//should be passive mode, taskswitches and cpu switches will happen now (When this returns, I may not be on the same interrupt as I was when I started)
 
 
@@ -338,13 +348,7 @@ int perfmon_interrupt_centry(void)
 		disableInterrupts();
 		return causedbyme;
 
-	}
-
-	DbgPrint("Returning from perfmon_interrupt_centry\n");
-
-	return causedbyme;
-
-	
+	}	
 }
 
 
@@ -412,7 +416,7 @@ VOID ultimap_pause_dpc(IN struct _KDPC *Dpc, IN PVOID DeferredContext, IN PVOID 
 
 void ultimap_pause(void)
 {
-	forEachCpu(ultimap_pause_dpc, NULL, NULL, NULL);
+	forEachCpu(ultimap_pause_dpc, NULL, NULL, NULL, NULL);
 }
 
 VOID ultimap_resume_dpc(IN struct _KDPC *Dpc, IN PVOID DeferredContext, IN PVOID SystemArgumen1, IN PVOID SystemArgument2)
@@ -422,7 +426,7 @@ VOID ultimap_resume_dpc(IN struct _KDPC *Dpc, IN PVOID DeferredContext, IN PVOID
 
 void ultimap_resume(void)
 {
-	forEachCpu(ultimap_resume_dpc, NULL, NULL, NULL);
+	forEachCpu(ultimap_resume_dpc, NULL, NULL, NULL, NULL);
 }
 
 VOID ultimap_disable_dpc(IN struct _KDPC *Dpc, IN PVOID DeferredContext, IN PVOID SystemArgumen1, IN PVOID SystemArgument2)
@@ -452,7 +456,7 @@ void ultimap_disable(void)
 	{
 		int i;
 
-		forEachCpu(ultimap_disable_dpc, NULL, NULL, NULL);
+		forEachCpu(ultimap_disable_dpc, NULL, NULL, NULL, NULL);
 
 		if (SaveToFile && FileHandle) 
 		{		
@@ -502,6 +506,11 @@ Call this for each processor
 	params=DeferredContext;
 
 	DS_AREA_SIZE=params->DS_AREA_SIZE;
+	if (DS_AREA_SIZE == 0)
+	{
+		DbgPrint("DS_AREA_SIZE==0\n");
+		return;
+	}
 	
 
 	DbgPrint("ultimap(%I64x, %I64x, %d)", (UINT64)params->cr3, (UINT64)params->dbgctl_msr, params->DS_AREA_SIZE);
@@ -510,6 +519,13 @@ Call this for each processor
 	if (params->DS_AREA_SIZE)
 	{
 		DS_AREA[cpunr()]=ExAllocatePool(NonPagedPool, params->DS_AREA_SIZE);
+
+		if (DS_AREA[cpunr()] == NULL)
+		{
+			DbgPrint("ExAllocatePool failed\n");
+			return;
+		}
+
 		RtlZeroMemory(DS_AREA[cpunr()],  params->DS_AREA_SIZE);
 
 		DbgPrint("DS_AREA[%d]=%p", cpunr(), DS_AREA[cpunr()]);
@@ -587,7 +603,7 @@ void ultimapapcnormal(PVOID arg1, PVOID arg2, PVOID arg3)
 }
 
 KAPC      kApc[128];
-volatile int apcnr = 0;
+volatile LONG apcnr = 0;
 
 void perfmon_hook(__in struct _KINTERRUPT *Interrupt, __in PVOID ServiceContext)
 {	
@@ -632,9 +648,9 @@ void perfmon_hook(__in struct _KINTERRUPT *Interrupt, __in PVOID ServiceContext)
 	DbgPrint("permon_return");
 }
 
-void *pperfmon_hook = perfmon_hook;
+void *pperfmon_hook = (void*)perfmon_hook;
 
-NTSTATUS ultimap(UINT64 cr3, UINT64 dbgctl_msr, int DS_AREA_SIZE, BOOL savetofile, WCHAR *filename, int handlerCount)
+NTSTATUS ultimap(UINT64 cr3, UINT64 dbgctl_msr, int _DS_AREA_SIZE, BOOL savetofile, WCHAR *filename, int handlerCount)
 {
 	struct
 	{
@@ -704,13 +720,13 @@ NTSTATUS ultimap(UINT64 cr3, UINT64 dbgctl_msr, int DS_AREA_SIZE, BOOL savetofil
 
 		params.cr3=cr3;
 		params.dbgctl_msr=dbgctl_msr;
-		params.DS_AREA_SIZE=DS_AREA_SIZE;
+		params.DS_AREA_SIZE=_DS_AREA_SIZE;
 
 		r=HalSetSystemInformation(HalProfileSourceInterruptHandler, sizeof(PVOID*), &pperfmon_hook); //hook the perfmon interrupt
 
 		DbgPrint("HalSetSystemInformation returned %x\n", r);
 
-		forEachCpu(ultimap_setup_dpc, &params, NULL, NULL);
+		forEachCpu(ultimap_setup_dpc, &params, NULL, NULL, NULL);
 		return STATUS_SUCCESS;
 	}
 	else

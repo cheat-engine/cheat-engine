@@ -15,7 +15,7 @@ uses LuaClass, LuaHandler, LuaComponent;
 
 function commondialog_execute(L: Plua_State): integer; cdecl;
 var
-  t: TFileDialog;
+  t: TCommonDialog;
 begin
   t:=luaclass_getClassObject(L);
   lua_pushboolean(L, t.Execute);

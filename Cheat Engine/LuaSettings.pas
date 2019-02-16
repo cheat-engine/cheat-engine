@@ -129,6 +129,7 @@ procedure luasettings_addMetaData(L: PLua_state; metatable: integer; userdata: i
 begin
   object_addMetaData(L, metatable, userdata);
   luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Value', luasettings_getValue, luasettings_setValue);
+  luaclass_setDefaultStringArrayProperty(L, metatable, userdata, luasettings_getValue, luasettings_setValue);
 end;
 
 procedure initializeLuaSettings;

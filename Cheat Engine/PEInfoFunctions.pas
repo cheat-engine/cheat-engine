@@ -6,6 +6,8 @@ unit PEInfoFunctions;
 This unit will contain all functions used for PE-header inspection
 }
 
+{$warn 4056 off}
+
 interface
 
 uses windows, LCLIntf,SysUtils,classes, CEFuncProc,NewKernelHandler,filemapping, commonTypeDefs;

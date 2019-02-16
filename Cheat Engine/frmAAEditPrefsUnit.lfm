@@ -1,18 +1,17 @@
 object frmAAEditPrefs: TfrmAAEditPrefs
   Left = 487
-  Height = 171
+  Height = 263
   Top = 411
   Width = 172
   Anchors = [akTop]
   AutoSize = True
   BorderStyle = bsDialog
   Caption = 'Editor preferences'
-  ClientHeight = 171
+  ClientHeight = 263
   ClientWidth = 172
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'
   object Panel2: TPanel
@@ -22,7 +21,7 @@ object frmAAEditPrefs: TfrmAAEditPrefs
     AnchorSideTop.Side = asrBottom
     Left = 9
     Height = 25
-    Top = 143
+    Top = 185
     Width = 155
     AutoSize = True
     BorderSpacing.Left = 3
@@ -70,12 +69,12 @@ object frmAAEditPrefs: TfrmAAEditPrefs
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     Left = 0
-    Height = 135
+    Height = 177
     Top = 0
     Width = 167
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 135
+    ClientHeight = 177
     ClientWidth = 167
     TabOrder = 1
     OnClick = Panel1Click
@@ -170,14 +169,14 @@ object frmAAEditPrefs: TfrmAAEditPrefs
       Left = 4
       Height = 23
       Top = 84
-      Width = 144
+      Width = 143
       AutoSize = True
       BorderSpacing.Left = 4
       BorderSpacing.Top = 2
       BorderSpacing.Right = 4
       BevelOuter = bvNone
       ClientHeight = 23
-      ClientWidth = 144
+      ClientWidth = 143
       TabOrder = 2
       object Label1: TLabel
         AnchorSideLeft.Control = Panel4
@@ -186,7 +185,7 @@ object frmAAEditPrefs: TfrmAAEditPrefs
         Left = 3
         Height = 15
         Top = 4
-        Width = 55
+        Width = 54
         BorderSpacing.Left = 3
         Caption = 'Tab Width'
         ParentColor = False
@@ -195,7 +194,7 @@ object frmAAEditPrefs: TfrmAAEditPrefs
         AnchorSideLeft.Control = Label1
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = Panel4
-        Left = 60
+        Left = 59
         Height = 23
         Top = 0
         Width = 80
@@ -205,6 +204,47 @@ object frmAAEditPrefs: TfrmAAEditPrefs
         TabOrder = 0
         Text = '4'
       end
+    end
+    object cbFontQuality: TComboBox
+      AnchorSideLeft.Control = btnFont
+      AnchorSideTop.Control = Label2
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = btnFont
+      AnchorSideRight.Side = asrBottom
+      Left = 3
+      Height = 23
+      Hint = 'The font quality can impact speed'
+      Top = 154
+      Width = 161
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Top = 1
+      ItemHeight = 15
+      Items.Strings = (
+        'Default'
+        'Draft'
+        'Proof'
+        'NonAntialiased'
+        'Antialiased'
+        'Cleartype'
+        'CleartypeNatural'
+      )
+      OnSelect = cbFontQualitySelect
+      ParentShowHint = False
+      ShowHint = True
+      Style = csDropDownList
+      TabOrder = 3
+    end
+    object Label2: TLabel
+      AnchorSideLeft.Control = btnFont
+      AnchorSideTop.Control = btnFont
+      AnchorSideTop.Side = asrBottom
+      Left = 3
+      Height = 15
+      Top = 138
+      Width = 63
+      BorderSpacing.Top = 3
+      Caption = 'Font quality'
+      ParentColor = False
     end
   end
   object FontDialog1: TFontDialog

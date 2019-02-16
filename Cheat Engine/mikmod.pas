@@ -147,7 +147,7 @@ var
   Sample_LoadFP: function(fp: pointer): PSAMPLE; cdecl;
   Sample_LoadGeneric: function(reader: PREADER): PSAMPLE; cdecl;
 
-  Sample_Play: function(s: PSAMPLE; start: ULONG; flags: Byte): SmallInt; cdecl;
+  Sample_Play: function(s: PSAMPLE; start: ULONG; flags: Word): SmallInt; cdecl;
   Sample_Free: procedure(s: PSAMPLE); cdecl;
 
   Voice_Stopped: function(v: SmallInt): BOOL; cdecl;

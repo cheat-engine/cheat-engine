@@ -1,7 +1,7 @@
 object frmStringPointerScan: TfrmStringPointerScan
-  Left = 431
+  Left = 476
   Height = 530
-  Top = 242
+  Top = 322
   Width = 813
   AutoSize = True
   Caption = 'Structure spider'
@@ -10,9 +10,8 @@ object frmStringPointerScan: TfrmStringPointerScan
   Menu = MainMenu1
   OnClose = FormClose
   OnShow = FormShow
-  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Panel1: TPanel
     Left = 0
     Height = 490
@@ -458,6 +457,7 @@ object frmStringPointerScan: TfrmStringPointerScan
       BorderSpacing.Left = 16
       Caption = 'Use existing stringmap'
       Checked = True
+      OnChange = cbReuseStringmapChange
       State = cbChecked
       TabOrder = 15
     end

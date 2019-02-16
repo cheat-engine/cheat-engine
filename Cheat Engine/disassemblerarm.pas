@@ -133,7 +133,7 @@ var
   shiftammount: integer;
   shiftRegister: integer;
 
-  shiftname: string;
+  shiftname: string='';
   _shift: string;
 
 
@@ -400,7 +400,7 @@ var
   shift: integer;
   shifttype: integer;
 
-  _shiftname: string;
+  _shiftname: string='';
   _shiftAmount: string;
   shiftamount: integer;
 
@@ -843,7 +843,7 @@ var
   Vn, Vd, op, N, Q, M, Vm: byte;
   _datatype: string;
 begin
-  opcode:=pdword(LastDisassembleData.Bytes[0])^;
+  opcode:=pdword(@LastDisassembleData.Bytes[0])^;
 
   if LastDisassembleData.Disassembler=dcThumb then
     u:=(opcode shr 28) and 1
@@ -992,11 +992,11 @@ var opcode: dword;
 
   abcdefgh: byte;
   constant: qword;
-  _dt: string;
+  _dt: string='';
 
   a32: dword;
 begin
-  opcode:=pdword(LastDisassembleData.Bytes[0])^;
+  opcode:=pdword(@LastDisassembleData.Bytes[0])^;
 
   if LastDisassembleData.Disassembler=dcThumb then
     a:=(opcode shr 28) and 1
@@ -1151,9 +1151,10 @@ var opcode: dword;
 
   op: byte;
 
-  _dt1,_dt2: string;
+  _dt1: string='';
+  _dt2: string='';
 begin
-  opcode:=pdword(LastDisassembleData.Bytes[0])^;
+  opcode:=pdword(@LastDisassembleData.Bytes[0])^;
   imm:=0;
 
   if LastDisassembleData.Disassembler=dcThumb then
@@ -1327,7 +1328,7 @@ var opcode: dword;
   d, size, Vn, Vd, op, N,M, Vm: byte;
   _datatype: string;
 begin
-  opcode:=pdword(LastDisassembleData.Bytes[0])^;
+  opcode:=pdword(@LastDisassembleData.Bytes[0])^;
 
   if LastDisassembleData.Disassembler=dcThumb then
     u:=(opcode shr 28) and 1
@@ -1396,9 +1397,9 @@ procedure ASIMD_2Reg_Scalar(var LastDisassembleData: TLastDisassembleData);
 var opcode: dword;
   q,u,b,a: byte;
   d, size, Vn, Vd, op, F,N,M, Vm: byte;
-  _datatype: string;
+  _datatype: string='';
 begin
-  opcode:=pdword(LastDisassembleData.Bytes[0])^;
+  opcode:=pdword(@LastDisassembleData.Bytes[0])^;
 
   if LastDisassembleData.Disassembler=dcThumb then
     u:=(opcode shr 28) and 1
@@ -1535,7 +1536,7 @@ var
   opcode: dword;
   D, Vn, Vd, imm4, N, Q, M, Vm: byte;
 begin
-  opcode:=pdword(LastDisassembleData.Bytes[0])^;
+  opcode:=pdword(@LastDisassembleData.Bytes[0])^;
   D:=(opcode shr 22) and 1;
   Vn:=(opcode shr 16) and $f;
   Vd:=(opcode shr 12) and $f;
@@ -1564,11 +1565,12 @@ var opcode: dword;
   u,b,a: byte;
   q,d, size, Vn, Vd, op, F,N,M, Vm: byte;
   sz: byte;
-  _dt, _dt2: string;
+  _dt: string='';
+  _dt2: string='';
 
   _sU, _sf: string;
 begin
-  opcode:=pdword(LastDisassembleData.Bytes[0])^;
+  opcode:=pdword(@LastDisassembleData.Bytes[0])^;
 
   if LastDisassembleData.Disassembler=dcThumb then
     u:=(opcode shr 28) and 1
@@ -1801,7 +1803,8 @@ var
   _list: string;
   i: integer;
 begin
-  opcode:=pdword(LastDisassembleData.Bytes[0])^;
+  _list:='';
+  opcode:=pdword(@LastDisassembleData.Bytes[0])^;
 
   D:=(opcode shr 22) and 1;
   Vn:=(opcode shr 16) and $f;
@@ -1841,7 +1844,7 @@ var
 
   size, index: byte;
 begin
-  opcode:=pdword(LastDisassembleData.Bytes[0])^;
+  opcode:=pdword(@LastDisassembleData.Bytes[0])^;
 
   D:=(opcode shr 22) and 1;
   imm4:=(opcode shr 16) and $f;

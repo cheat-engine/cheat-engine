@@ -100,6 +100,11 @@ object frmEnumerateDLLs: TfrmEnumerateDLLs
       OnExecute = FindExecute
       ShortCut = 16454
     end
+    object CopySymbolName: TAction
+      Caption = 'Copy Symbol Name'
+      OnExecute = CopySymbolNameExecute
+      ShortCut = 16451
+    end
   end
   object pmSymbol: TPopupMenu
     left = 184
@@ -107,6 +112,10 @@ object frmEnumerateDLLs: TfrmEnumerateDLLs
     object Find1: TMenuItem
       Action = Find
       OnClick = FindExecute
+    end
+    object CopySymbolName1: TMenuItem
+      Action = CopySymbolName
+      OnClick = CopySymbolNameExecute
     end
   end
 end

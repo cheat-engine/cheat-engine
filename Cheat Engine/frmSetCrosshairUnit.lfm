@@ -7,7 +7,6 @@ object frmSetCrosshair: TfrmSetCrosshair
   ClientHeight = 254
   ClientWidth = 257
   Menu = MainMenu1
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object Image1: TImage

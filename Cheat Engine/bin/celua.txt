@@ -10,7 +10,7 @@ getCheatEngineFileVersion(): Returns the full version data of the cheat engine v
 
 
 activateProtection(): Prevents basic memory scanners from opening the cheat engine process
-enableDRM() : Prevents normal memory scanners from reading the Cheat Engine process (kernelmode)
+enableDRM(altitude OPTIONAL, secondaryprocessid OPTIONAL ) : Prevents normal memory scanners from reading the Cheat Engine process (kernelmode)  The secondaryprocessid lets you protect another process. E.g the game itself, so they can't easily see what you change 
 
 fullAccess(address,size): Changes the protection of a block of memory to writable and executable
 
@@ -99,6 +99,7 @@ bShl(int, int2)   : Binary shift left
 bShr(int, int2)   : Binary shift right
 bNot(int)         : Binary not
 
+enumMemoryRegions() : Returns an indexed table containing the memorylayout. Each entry consists out of: BaseAddress, AllocationBase, AllocationProtect, RegionSize, State, Protect, Type
 
 writeRegionToFile(filename, sourceaddress,size) : Writes the given region to a file. Returns the number of bytes written
 readRegionFromFile(filename, destinationaddress)
@@ -112,7 +113,6 @@ destroyRef(integer) - Removes the reference
 encodeFunction(function): string - Converts a given function into an encoded string that you can pass on to decodeFunction
 decodeFunction(string): function - Converts an encoded string back into a function.  Note that the string must be made on the same architecture as it is currently running. 32-bit can onyl load 32-bit, 64-bit can only load 64-bit.  So either have two scripts ready, or limit to only one architecture. (Like .EXE trainers)
 
-reloadSettingsFromRegistry(): This will cause cheat engine to reload the settings from the registry and apply them
 
 getTranslationFolder(): Returns the path of the current translation files. Empty if there is no translation going on
 loadPOFile(path): Loads a .PO file used for translation
@@ -127,7 +127,8 @@ Note: GUI components mainly show in UTF8, some other functions use Ansi, try to 
 enumModules(processid OPTIONAL):
   Returns a table containing information about each module in the current process, or the specified processid
   Each entry is a table with fields
-    Name : String containing the modulename    Address: Integer representing the address the module is loaded
+    Name : String containing the modulename    
+    Address: Integer representing the address the module is loaded
     Is64Bit: Boolean set to true if it's a 64-bit module
     PathToFile: String to the location this module is loaded
 
@@ -139,12 +140,14 @@ getFileList(Path:string, searchMask:string OPTIONAL, SearchSubDirs: boolean OPTI
 getDirectoryList(Path:string, SearchSubDirs: boolean OPTIONAL): Returns an indexed table with directory names
 
 
+enableWindowsSymbols(): Will download the PDB files of Windows and load them (Takes a long time the first time)
 getAddress(string, local OPTIONAL): returns the address of a symbol. Can be a modulename or an export. set Local to true if you wish to querry the symboltable of the ce process
 getAddressSafe(string, local OPTIONAL): returns the address of a symbol, or nil if not found. Similar to getAddress when errorOnLookup is false, but returns nil instead
 getSymbolInfo(symbolname): Returns a table as defined by the SymbolList class object (modulename, searchkey, address, size)
 getModuleSize(modulename): Returns the size of a given module (Use getAddress to get the base address)
 reinitializeSymbolhandler(waittilldone: BOOLEAN OPTIONAL, default=TRUE): reinitializes the symbolhandler. E.g when new modules have been loaded
 reinitializeDotNetSymbolhandler(modulename OPTIONAL): Reinitializes only the DotNet part of the symbol list. (E.g After an ILCode has been JITed) (6.4+)
+reinitializeSelfSymbolhandler(waittilldone: BOOLEAN OPTIONAL, default=TRUE): reinitializes the selfsymbolhandler. E.g when new modules have been loaded to CE process
 
 errorOnLookupFailure(state): If set to true (default) address lookups in stringform will raise an error if it can not be looked up. This includes symbolnames that are not defined and pointers that are bad. If set to false it will return 0 in those cases
   (Useful for pointers that don't work 100% of the time)
@@ -224,6 +227,7 @@ registerStructureAndElementListCallback(function StructureListCallback(), functi
 
   tip: If you return an empty table the structure will not be created. You can use this to create the structure layout yourself and register that instead
 
+unregisterStructureAndElementListCallback(ID)
 
 
 registerStructureDissectOverride(function(structure, baseaddress): table):
@@ -274,7 +278,8 @@ sleep(milliseconds): pauses for the number of specified milliseconds (1000= 1 se
 getProcesslist(Strings): Fills a Strings inherited object with the processlist of the system. Format: %x-pidname
 getProcesslist(): Returns a table with the processlist  (pid - name )
 getWindowlist(Strings): Fills a Strings inherited object with the top-window list of the system. Format: %x-windowcaption
-getWindowlist(): Returns a table with the windowlist (pid - window caption )
+getWindowlist(): Returns a table with the windowlist (pid - window caption ).  The table is formatted as : {pid,{id,caption}}
+
 
 getThreadlist(List): fills a List object with the threadlist of the currently opened process. Format: %x
 getHandleList(filter OPTIONAL): returns a table with all the handles in the system(Filter 0=everything, 1=target process handles only, 2 handles to target process, 3 handles to ce process).  Each handle entry has fields: ProcessID, ObjectTypeIndex, HandleAttributes, HandleValue, Object and GrantedAccess.  Note: Object will be invalid if you use the 32-bit CE on a 64-bit windows
@@ -303,6 +308,11 @@ unpause(): resumes the current opened process
 
 
 getCPUCount(): Returns the number of CPU's
+cpuid(EAX,ECX): returns a table with CPUID info (EAX, EBX, ECX, EDX)
+
+gc_setPassive(state: boolean): enables/disables the passive garbage collector
+gc_setActive(state: boolean, interval: integer, minsize: integer): enables/disables the active garbage collector and lets you configure the interval and minimim size
+
 
 getSystemMetrics(index): Retrieves the specified system metric or system configuration setting
 (https://msdn.microsoft.com/en-us/library/windows/desktop/ms724385.aspx)
@@ -358,6 +368,26 @@ speedhack_getSpeed(): Returns the last set speed
 injectDLL(filename): Injects a dll, and returns true on success
 executeCode(address, parameter OPTIONAL, timeout OPTIONAL) : address - Executes a stdcall function with 1 parameter at the given address in the target process  and wait for it to return. The return value is the result of the function that was called
 executeCodeLocal(addres, parameter OPTIONAL): address -  Executes a stdcall function with 1 parameter at the given address in the target process. The return value is the result of the function that was called
+
+executeCodeEx(callmethod, timeout, address, {type,value},{type,value},...)
+  Calls a function using the given callmethod and parameters
+  callmethod: 0=stdcall, 1=cdecl
+  timeout: Number of milliseconds to wait for a result. nil or -1, infitely. 0 is no wait (will not free the call memory, so beware of it's memory leak)
+  address: Address to execute
+  {type,value} : Table containing the value type, and the value
+    {
+    type: 0=integer (32/64bit) can also be a pointer
+          1=float (32-bit float)
+          2=double (64-bit float)
+          3=ascii string (will get converted to a pointer to that string)
+          4=wide string (will get converted to a pointer to that string)
+     
+    value: anything base type that lua can interpret
+    }
+
+   Returns the E/RAX value returned by the called function (if no timeout or other interruption)
+
+
 
 loadPlugin(dllnameorpath): Loads the given plugin. Returns nil on failure. On success returns a value of 0 or greater
 
@@ -461,7 +491,7 @@ unregisterFormAddNotification(Object)
 
 getSettingsForm(): Returns the main settings form
 getMemoryViewForm() : Returns the main memoryview form class object which can be accessed using the Form_ class methods and the methods of the classes it inherits from. There can be multiple memory views, but this will only find the original/base
-getMainForm() : Returns the main form class object which can be accessed using the Form_ class methods and the methods of the classes it inherits from
+getMainForm() : Returns the main form class object which can be accessed using the Form class methods and the methods of the classes it inherits from
 getLuaEngine() : Returns the lua engine form object (Creates it if needed)
 getApplication() : Returns the application object. (the titlebar)
 getAddressList() : Returns the cheat table addresslist object
@@ -518,7 +548,7 @@ getMethodProperty(Class, propertyname): Returns a function you can use to call t
 registerSymbol(symbolname, address, OPTIONAL donotsave): Registers a userdefined symbol. If donotsave is true this symbol will not get saved when the table is saved
 unregisterSymbol(symbolname)
 
-getNameFromAddress(address): Returns the given address as a string. Registered symbolname, modulename+offset, or just a hexadecimal string depending on what address
+getNameFromAddress(address,ModuleNames OPTIONAL=true, Symbols OPTIONAL=true): Returns the given address as a string. Registered symbolname, modulename+offset, or just a hexadecimal string depending on what address
 inModule(address) : returns true if the given address is inside a module
 inSystemModule(address) : returns true if the given address is inside a system module
 getCommonModuleList: Returns the commonModuleList stringlist. (Do not free this one)
@@ -888,6 +918,7 @@ properties
 
   OnClose: function(sender) - The function to call when the form gets closed
   OnDropFiles: function(sender, {filenames}) - Called when files are dragged on top of the form. Filenames is an arraytable with the files
+  FormState: FormState string ReadOnly - The current state of the form. Possible values: fsCreating, fsVisible, fsShowing, fsModal, fsCreatedMDIChild, fsBorderStyleChanged, fsFormStyleChanged, fsFirstShow, fsDisableAutoSize 
 
 
 methods
@@ -1793,12 +1824,14 @@ properties
   Index: Integer - The index ID for this record. 0 is top. (ReadOnly)
   Description: string- The description of the memory record
   Address: string - Get/set the interpretable address string. Useful for simple address settings.
+  AddressString: string - Get the address string shown in CE (ReadOnly)
   OffsetCount: integer - The number of offsets. Set to 0 for a normal address
   Offset[] : integer - Array to access each offset
   OffsetText[] : string - Array to access each offset using the interpretable text style
 
   CurrentAddress: integer - The address the memoryrecord points to
-  Type: ValueType - The variable type of this record. See vtByte to vtCustom
+  VarType: ValueType (string) - The variable type of this record. See vtByte to vtCustom
+  Type: ValueType (number) - The variable type of this record. See vtByte to vtCustom
     If the type is vtString then the following properties are available:
      String.Size: Number of characters in the string
      String.Unicode: boolean
@@ -1811,7 +1844,7 @@ properties
     If the type is vtByteArray then the following properties are available
       Aob.Size : Number of bytes
 
-  CustomTypeName: String - If the type is vtCustomType this will contain the name of the CustomType
+  CustomTypeName: String - If the type is vtCustom this will contain the name of the CustomType
   Script: String - If the type is vtAutoAssembler this will contain the auto assembler script
   Value: string - The value in stringform.
   Selected: boolean - Set to true if selected (ReadOnly)
@@ -1826,11 +1859,23 @@ properties
   IsReadable: boolean - Set to false if record contains an unreadable address. NOTE: This property will not be set until the value property is accessed at least once. (ReadOnly)
 
   Options: String set - a string enclosed by square brackets filled with the options seperated by a comma. Valid options are: moHideChildren, moActivateChildrenAsWell, moDeactivateChildrenAsWell, moRecursiveSetValue, moAllowManualCollapseAndExpand, moManualExpandCollapse
+  
+  DropDownLinked: boolean - if dropdown list refers to list of another memory record eg. (memrec name)
+  DropDownLinkedMemrec: string - Description of linked memrec or emptystring if not linked
+  DropDownList : StringList - list of "value:description" lines, lists are still separate objects when linked, read-write
+  DropDownReadOnly: boolean - true if 'Disallow manual user input' is set
+  DropDownDescriptionOnly: boolean - self explanatory
+  DisplayAsDropDownListItem: boolean - self explanatory
+  DropDownCount: integer - equivalent to .DropDownList.Count
+  DropDownValue[index] : Array to access values in DropDownList (ReadOnly)
+  DropDownDescription[index] : Array to access Descriptions in DropDownList (ReadOnly)
+
 
 
   Count: Number of children
   Child[index] : Array to access the child records
   [index] = Child[index]
+  Parent: MemoryRecord - self explanatory
 
   HotkeyCount: integer - Number of hotkeys attached to this memory record
   Hotkey[] : Array to index the hotkeys
@@ -1937,6 +1982,10 @@ getCurrentMemscan() : Returns the current memory scan object. If tabs are used t
 createMemScan(progressbar OPTIONAL) : Returns a new MemScan class object
 
 properties
+  LastScanWasRegionScan: boolean - returns true is the previous scan was an unknown initial value
+  LastScanValue: string
+  LastScanType: ScanType/string - 'stNewScan', 'stFirstScan', 'stNextScan'
+  ScanresultFolder: string - Path where the results are stored  
   OnScanDone: function(memscan) - Set a function to be called when the scan has finished
   OnGuiUpdate: function(memscan, TotalAddressesToScan, CurrentlyScanned, ResultsFound) - Called during the scan so you can update the interface if needed
   FoundList: FoundList - The foundlist currently attached to this memscan object
@@ -2101,8 +2150,15 @@ methods
 Hexadecimal class: (Inheritance: Panel->CustomControl->WinControl->Control->Component->Object)
   The visual hexadecimal object used on the memory view window
 properties
+  Address: integer - The top address
+  HasSelection: boolean - True if something is selected
+  SelectionStart: integer
+  SelectionStop: integer
+  DisplayType: displaytype - The type being shown: dtByte, dtByteDec, dtWord, dtWordDec, dtDword, dtDwordDec, dtQword, dtQwordDec, dtSingle, dtDouble
   OnAddressChange(hexadecimalview, function): function(hexadecimalview, address)
   OnByteSelect(hexadecimalview, function): function(hexadecimalview, address, address2)
+  OnCharacterRender: function(sender, address, text) return text end - Called when a character is being rendered. Use this to change it or change the canvas fonts (Warning: slow)
+  OnValueRender: function(sender, address, text) return text end - Called when a value (depending on the displaytype) is being rendered. Use this to change it or change the canvas fonts (Warning: slow)
 
 methods
   -
@@ -2336,15 +2392,74 @@ dbk_getPEProcess(processid) : Returns the pointer of the EProcess structure of t
 dbk_getPEThread(threadid) : Gets the pointer to the EThread  structure
 
 dbk_readMSR(msr): Reads the msr
-dbk_writeMSR(msr, msrvalue): Writes the msr
+dbk_writeMSR(msr, msrvalue): Writes the msr 
 dbk_executeKernelMemory(address, parameter) :
   Executes a routine from kernelmode (e.g a routine written there with auto assembler)
   parameter can be a value or an address. It's up to your code how it's handled
 
 
-dbvm_initialize(offloados OPTIONAL) : Initializes the dbvm functions (dbk_initialize also calls this) offloados is a boolean that when set will offload the system onto dbvm if it's not yet running (and only IF the dbk driver is loaded)
-dbvm_readMSR(msr): See dbk_readMSR
+dbvm_initialize(offloados:Boolean OPTIONAL, reason:String OPTIONAL) : Initializes the dbvm functions (dbk_initialize also calls this) offloados is a boolean that when set will offload the system onto dbvm if it's not yet running (and only IF the dbk driver is loaded)
+dbvm_readMSR(msr): See dbk_readMSR but then using dbvm
 dbvm_writeMSR(msr, value): See dbk_writeMSR
+dbvm_getCR4(): Returns the real Control Register 4 state
+
+dbvm_readPhysicalMemory(address, size): bytetable
+dbvm_writePhysicalMemory(address, bytetable)
+
+dbvm_watch_writes(PhysicalAddress, bytesize OPTIONAL, OPTIONS OPTIONAL,  internalentrycount OPTIONAL) : 
+  Starts watching writes to the given address range
+  OPTIONS is a binary field.
+    (1 << 0): Log the same RIP multiple times (if different registers)
+    (1 << 1): Ignore the size field and log everything in the specified page
+    (1 << 2): Logs record the floating point state
+    (1 << 3): Logs contain a 4KB stack snapshot
+    (1 << 4): does nothing
+    (1 << 5): If the number of recorded entries gets bigger than internalentrycount, grow the list instead of discarding the entries
+
+  On success returns an ID to use with dbvm_watch_retrievelog and dbvm_watch_disable
+
+
+dbvm_watch_reads(PhysicalAddress, bytesize OPTIONAL, OPTIONS OPTIONAL,  internalentrycount OPTIONAL) : see dbvm_watch_writes but then for reads and writes
+dbvm_watch_retrievelog(ID) : Returns an array of watch event data. (Context of the system at the time of the event, like registers)
+dbvm_watch_disable(ID) : Disables the watch operation
+
+
+dbvm_cloak_activate(physicalbase, virtualbase OPTIONAL): 
+  Hides an executable memory range (4096 bytes) from snooping eyes
+  Note: It is recommended to cause a copy-on-write on the target first, else this will affect all processes that have this memory block loaded
+dbvm_cloak_deactivate(physicalbase): Disables the cloak and restores the executable memory to what the system thinks it is
+dbvm_cloak_readOriginal(physicalbase): Reads the memory that will get executed.  On success returns a 4096 byte long bytetable starting from the base of the page (remember, lua indexes start at 1, so offset 0 is index 1)
+dbvm_cloak_writeOriginal(physicalbase, bytetable[4096]): Writes the memory that will get executed. 
+
+dbvm_changeregonbp(physicaladdress, changereginfo, virtualaddress OPTIONAL): boolean
+  sets a breakpoint at the given position. When a breakpoint hits the registers will be changed according to the changereginfo table
+    changereginfo table:  (set the field to nil, or don't define it, if you don't want to change it)
+      newCF: integer/boolean (false=0, true=1) 
+      newPF: integer/boolean (false=0, true=1) 
+      newAF: integer/boolean (false=0, true=1) 
+      newZF: integer/boolean (false=0, true=1) 
+      newSF: integer/boolean (false=0, true=1) 
+      newOF: integer/boolean (false=0, true=1)
+      newRAX: integer
+      newRBX: integer
+      newRCX: integer 
+      newRDX: integer
+      newRSI: integer 
+      newRDI: integer
+      newRBP: integer 
+      newRSP: integer
+      newRIP: integer
+      newR8:  integer
+      newR9:  integer
+      newR10: integer
+      newR11: integer
+      newR12: integer
+      newR13: integer
+      newR14: integer
+      newR15: integer
+
+dbvm_log_cr3_start() : Tells DBVM to record (up to 512) unique CR3 values it encounters
+dbvm_log_cr3_stop() : Stops the logging and returns the results as a table
 
 
 dbk_getCR0(): Returns Control Register 0
@@ -2353,7 +2468,12 @@ dbk_getCR4(): Returns Control Register 4
 dbk_getPhysicalAddress(address): Returns the physical address of the given address
 dbk_writesIgnoreWriteProtection(state): Set to true if you do not wish to initiate copy-on-write behaviour
 
-dbvm_getCR4(): Returns the real Control Register 4 state
+
+getPhysicalAddressCR3(CR3, address): Looks up the physical address for the given virtual address in the given pagetable base. Returns nil if not paged
+readProcessMemoryCR3(CR3, address, size): Reads the virtual memory of the given process's CR3 value. Returns a bytetable on success, nil if fail to read (paged out)
+writeProcessMemoryCR3(CR3, address, bytetable): Reads the virtual memory of the given process's CR3 value
+ 
+
 
 allocateKernelMemory(size) : Allocates a block of nonpaged memory and returns the address
 freeKernelMemory(address) : Frees the given memory region
@@ -2444,7 +2564,7 @@ properties
 methods
   beginUpdate() : Use this function when you intent to update multiple sprites,textcontainers or textures. Otherwise artifacts may occur (sprite 1 might be drawn at the new location while sprite 2 might still be at the old location when a frame is rendered)
   endUpdate() : When done updating, call this function to apply the changes
-  enableConsole(virtualkey): Adds a (lua)console to the specific game. The given key will bring it up (0xc0=tilde)
+  enableConsole(virtualkey): Adds a (lua)console to the specific game. The given key will bring it up (0xc0=tilde(`~))
   createTexture(filename) : Returns a d3dhook_texture object
   createTexture(picture, transparentColor OPTIONAL): Returns a d3dhook_texture object
     if the picture is not a transparent image the transparentcolor parameter can be used to make one of it's colors transparent
@@ -2548,6 +2668,7 @@ Methods
       opcode: string - The opcode without parameters
       parameters: string - The parameters
       description: string - The description of this opcode
+      commentsoverride: string - If set, this will be the comments/LastParamatersToString result
       bytes: table - A table containing the bytes this instruction consists of (1.. )
 
       modrmValueType: DisAssemblerValueType  - Defines the type of the modrmValue field (dvtNone=0, dvtAddress=1, dvtValue=2)
@@ -2684,7 +2805,9 @@ Settings class
   This class can be used to read out and set settings of cheat engine and of plugins, and store your own data
 
 global functions
-  getSettings(path Optional): Settings - Returns a settings object. If path is nil it will points to the Cheat Engine main settings (Registry) . If name is provided the settings currently accessed will be the one at the subkey provided
+  reloadSettingsFromRegistry(): This will cause cheat engine to reload the settings from the registry and apply them
+
+  getSettings(path Optional): Settings - Returns a settings object. If path is nil it will point to the Cheat Engine main settings (Registry) . If name is provided the settings currently accessed will be the one at the subkey provided
   Note: Keep in mind that it returns a new object each call, even if he same name is used multiple times
 
 
@@ -2719,13 +2842,14 @@ Methods
   clear()
   getSymbolFromAddress(address) : Searches the list for the given address. The address does not have to match the exact address. As long as it falls withing the range
   getSymbolFromString(searchkey)
+  addModule(modulename, modulepath, address, size, is64bit)
+  deleteModule(modulename)
+  deleteModule(address)  
   addSymbol(modulename, searchkey, address, symbolsize, skipAddressToSymbolLookup OPTIONAL, extradata OPTIONAL)
     Adds a symbol to the symbollist
     extradata is a table which can be used to fill in a return type and parameters for function calls. It has the following fields:
       returntype: string
       parameters: string
-
-
 
   deleteSymbol(searchkey)
   deleteSymbol(address)
@@ -3073,4 +3197,39 @@ properties
 
 
 methods
+  -
 
+HotkeyHandlerThread(Inheritence: Thread)
+getHotkeyHandlerThread() : Returns the hotkey handler thread used internally by CE
+
+properties
+  state: 0 ('htsActive')=Active , 1('htsMemrecOnly')=Memory records only, 2('htsNoMemrec')=Everything except memoryrecords, 3('htsDisabled')=disabled
+
+methods
+  -
+
+RemoteThread(Inheritance: -)
+createRemoteThread(address, parameter)
+
+properties
+  Result : The 32-bit value returned by the thread 
+
+methods
+  waitForThread(timeout OPTIONAL) : Waits for the thread to finish. Timeout is time in milliseconds. If nil, the timeout it infinite. If 0, it returns without wait
+
+ModuleLoader(Inheritance: -)
+loadModule(pathtodll, executeEntryPoint OPTIONAL default=true)
+
+properties:
+  loaded: boolean - true if successfuly mapped
+  exports: Table containing all exports
+  entryPoint: integer - address of the entrypoint
+  
+
+WriteLog(Inheritence: -)
+properties
+  status: boolean
+  logsize: integer 
+
+methods
+  getLog(): table - Returns an indexed table with the write logs. each entry has a table with the fields: address, original and new

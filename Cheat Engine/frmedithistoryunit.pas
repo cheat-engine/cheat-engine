@@ -6,7 +6,8 @@ interface
 
 uses
   Windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
-  StdCtrls, ComCtrls, ExtCtrls, Menus, NewKernelHandler, syncobjs, symbolhandler;
+  StdCtrls, ComCtrls, ExtCtrls, Menus, NewKernelHandler, syncobjs,
+  symbolhandler, lua, lauxlib, lualib;
 
 type
 
@@ -59,12 +60,15 @@ procedure setMaxWriteLogSize(size: integer);
 procedure clearWriteLog;
 procedure undoLastWrite;
 
+procedure initializeLuaWriteLog;
+
 
 implementation
 
 {$R *.lfm}
 
-uses MemoryBrowserFormUnit, ProcessHandlerUnit;
+uses MemoryBrowserFormUnit, ProcessHandlerUnit, globals, luahandler, LuaClass,
+  LuaByteTable, LuaObject;
 
 var
   nextid: integer;
@@ -88,12 +92,12 @@ begin
     begin
       wle:=writelog[i];
       if wle.originalbytes<>nil then
-        freemem(wle.originalbytes);
+        FreeMemAndNil(wle.originalbytes);
 
       if wle.newbytes<>nil then
-        freemem(wle.newbytes);
+        FreeMemAndNil(wle.newbytes);
 
-      freemem(wle);
+      FreeMemAndNil(wle);
 
 
       writelog.Delete(i);
@@ -146,6 +150,7 @@ var i: integer;
   oldprot: dword;
 
   oldLogWrites: boolean;
+  vpe: boolean;
 begin
   writelogcs.enter;
   try
@@ -155,13 +160,13 @@ begin
 
       if wle^.id=id then
       begin
-        VirtualProtectEx(processhandle, pointer(wle^.address), wle^.originalsize, PAGE_EXECUTE_READWRITE, oldprot);
+        vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(wle^.address), wle^.originalsize, PAGE_EXECUTE_READWRITE, oldprot);
 
         oldLogWrites:=logWrites;
         logWrites:=false;
         WriteProcessMemory(processhandle, pointer(wle^.address), wle^.originalbytes, wle^.originalsize, x);
         logWrites:=oldLogWrites;
-        VirtualProtectEx(processhandle, pointer(wle^.address), wle^.originalsize, oldprot, oldprot);
+        if vpe then VirtualProtectEx(processhandle, pointer(wle^.address), wle^.originalsize, oldprot, oldprot);
         eraseWriteLogEntry(i);
         break;
       end;
@@ -195,14 +200,14 @@ var
   mainselectedid: integer;
 begin
   if lvWriteLog.itemindex<>-1 then
-    mainselectedid:=integer(lvWriteLog.items[lvWriteLog.ItemIndex].Data)
+    mainselectedid:=integer(ptruint(lvWriteLog.items[lvWriteLog.ItemIndex].Data))
   else
     mainselectedid:=-1;
 
   selectedids:=[];
   for i:=0 to lvWriteLog.Items.Count-1 do
     if lvWriteLog.Items[i].Selected then
-      selectedids:=selectedids+[integer(lvWriteLog.Items[i].data)];
+      selectedids:=selectedids+[integer(ptruint(lvWriteLog.Items[i].data))];
 
 
 
@@ -228,7 +233,7 @@ begin
 
       e.SubItems.add(s);
 
-      e.Data:=pointer(wle^.id);
+      e.Data:=pointer(ptruint(wle^.id));
     end;
 
   finally
@@ -297,9 +302,106 @@ begin
   refreshWriteLogView;
 end;
 
+//--------------------Lua-----------------
+type
+  TWriteLog=class
+  private
+    function getWriteLogStatus: boolean;
+    procedure setWriteLogStatus(status: boolean);
+    function getWriteLogSize: integer;
+    procedure setWriteLogSize(size: integer);
+  public
+  published
+    property status: boolean read getWriteLogStatus write setWriteLogStatus;
+    property logsize: integer read getWriteLogSize write setWriteLogSize;
+  end;
+
+var _writelog: TWriteLog;
+
+function TWriteLog.getWriteLogStatus: boolean;
+begin
+  result:=logWrites;
+end;
+
+procedure TWriteLog.setWriteLogStatus(status: boolean);
+begin
+  logWrites:=status;
+end;
+
+function TWriteLog.getWriteLogSize: integer;
+begin
+  result:=maxwritelogsize;
+end;
+
+procedure TWriteLog.setWriteLogSize(size: integer);
+begin
+  maxwritelogsize:=size;
+end;
+
+
+function lua_getWriteLog(L:PLua_state): integer; cdecl;
+begin
+  if _writelog=nil then
+    _writelog:=TWritelog.create;
+
+  luaclass_newClass(L,_writelog);
+  result:=1;
+end;
+
+function writelog_getLog(L:PLua_state): integer; cdecl;
+var
+  wle: PWriteLogEntry;
+  i: integer;
+begin
+  writelogcs.enter;
+  try
+    lua_newtable(L);
+
+    for i:=0 to writelog.count-1 do
+    begin
+      lua_pushinteger(L,i);
+      lua_newtable(L);
+      wle:=PWriteLogEntry(writelog[i]);
+
+      lua_pushstring(L, 'address');
+      lua_pushinteger(L, wle^.address);
+      lua_settable(L,-3);
+
+      lua_pushstring(L, 'original');
+      CreateByteTableFromPointer(L, pbytearray(wle^.originalbytes), wle^.originalsize);
+      lua_settable(L,-3);
+
+      lua_pushstring(L, 'new');
+      CreateByteTableFromPointer(L, pbytearray(wle^.newbytes), wle^.newsize);
+      lua_settable(L,-3);
+
+      lua_settable(L,-3);
+    end;
+
+    result:=1;
+  finally
+    writelogcs.leave;
+  end;
+end;
+
+procedure writelog_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+begin
+  object_addMetaData(L, metatable, userdata);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getLog', writelog_getLog);
+end;
+
+procedure initializeLuaWriteLog;
+begin
+  luaclass_register(TWriteLog, writelog_addMetaData);
+  lua_register(LuaVM, 'getWriteLog', lua_getWriteLog);
+end;
+
 initialization
   writelog:=TList.create;
   writelogcs:=TCriticalSection.create;
+
+
+
 
 finalization
   writelogcs.free;

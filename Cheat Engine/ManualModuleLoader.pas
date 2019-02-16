@@ -9,7 +9,8 @@ This routine will examine a module and then load it into memory, taking care of 
 interface
 
 uses windows, LCLIntf, classes, sysutils, imagehlp, dialogs, PEInfoFunctions,CEFuncProc,
-     NewKernelHandler, symbolhandler, dbk32functions, vmxfunctions, commonTypeDefs;
+     NewKernelHandler, symbolhandler, dbk32functions, vmxfunctions, commonTypeDefs,
+     SymbolListHandler, symbolhandlerstructs;
 
 resourcestring
   rsMMLNotAValidFile = 'not a valid file';
@@ -23,18 +24,56 @@ type TModuleLoader=class
     filename: string;
     FLoaded: boolean;
     FEntrypoint: ptruint;
+    fSymbolList: TSymbolListHandler;
+
+    destinationBase: ptruint;
+    modulesize: integer;
+    is64bit: boolean;
+    isdriver: boolean;
+
+    pid: dword;
   public
     Exporttable: TStringlist;
-
-
+    procedure createSymbolListHandler;
     constructor create(filename: string);
-    property loaded: boolean read FLoaded;
+  published
+    property BaseAddress: ptruint read destinationBase;
+    property Loaded: boolean read FLoaded;
     property EntryPoint: ptruint read FEntryPoint;
+    property SymbolList: TSymbollistHandler read fSymbolList;
 end;
 
 implementation
 
 uses ProcessHandlerUnit;
+
+procedure TModuleLoader.createSymbolListHandler;
+var
+  i: integer;
+  a: ptruint;
+  module: string;
+  s: string;
+  size: integer;
+begin
+  module:=ExtractFileName(filename);
+  fSymbolList:=TSymbolListHandler.create;
+
+  fSymbolList.AddModule(module,filename,destinationbase,modulesize,is64bit);
+
+  module:=ChangeFileExt(module,'');
+  for i:=0 to Exporttable.Count-1 do
+  begin
+    s:=exporttable[i];
+    a:=ptruint(exporttable.Objects[i]);
+    s:=copy(s,pos('-',s)+2,length(s));
+    fSymbolList.AddSymbol(module, Module+'.'+s, a, 4,false, nil);
+    fSymbolList.AddSymbol(module,s,a,4,true);
+  end;
+
+  fSymbolList.PID:=pid;
+
+  symhandler.AddSymbolList(fSymbolList);
+end;
 
 constructor TModuleLoader.create(filename: string);
 var
@@ -50,12 +89,12 @@ var
   importaddress: ptruint;
   importfunctionname: string;
   importfunctionnamews: widestring;  
-  is64bit, isDriver: boolean;
+
 
   numberofrva: integer;
   maxaddress: ptrUint;
 
-  destinationBase: uint64;
+
 
   basedifference: dword;
   basedifference64: uint64;
@@ -64,7 +103,7 @@ var
   haserror: boolean;
 
   processhandle: thandle;
-  pid: dword;
+  mi: TModuleInfo;
 begin
   inherited create;
   self.filename:=filename;
@@ -81,6 +120,10 @@ begin
   filemap:=tmemorystream.Create;
   try
     //showmessage('Loading '+filename);
+
+
+    //todo: add a filesearch if no patch is given
+
     filemap.LoadFromFile(filename);
     
     if PImageDosHeader(filemap.Memory)^.e_magic<>IMAGE_DOS_SIGNATURE then
@@ -123,6 +166,8 @@ begin
       tempmap.Size:=maxaddress;
       ZeroMemory(tempmap.memory, tempmap.size);
 
+      modulesize:=tempmap.size;
+
       //place the sections at the appropriate locations
       for i:=0 to ImageNTHeader^.FileHeader.NumberOfSections-1 do
       begin
@@ -144,7 +189,7 @@ begin
       begin
         //normal memory location
         isdriver:=false;
-        destinationBase:=ptrUint(VirtualAllocEx(processhandle, nil,maxaddress, MEM_COMMIT, PAGE_EXECUTE_READWRITE));
+        destinationBase:=ptrUint(VirtualAllocEx(processhandle, nil,maxaddress, MEM_COMMIT or MEM_RESERVE, PAGE_EXECUTE_READWRITE));
 
       end;
 
@@ -211,7 +256,10 @@ begin
               begin
                 importmodulename:=pchar(ptrUint(tempmap.memory)+ImageImportDirectory.name);
                 if not isdriver then
-                  InjectDll(importmodulename);
+                begin
+                  if symhandler.getmodulebyname(importmodulename, mi)=false then
+                    InjectDll(importmodulename);
+                end;
 
                 importmodulename:=ChangeFileExt(importmodulename, '');
 

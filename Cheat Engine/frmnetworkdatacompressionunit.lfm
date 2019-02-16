@@ -6,7 +6,6 @@ object frmNetworkDataCompression: TfrmNetworkDataCompression
   Caption = 'Compression level'
   ClientHeight = 235
   ClientWidth = 326
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object Label1: TLabel

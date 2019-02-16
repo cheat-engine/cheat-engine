@@ -325,10 +325,13 @@ begin
   canclose:=MessageDlg(rsTryAgain9, mtconfirmation, [mbyes, mbno], 0)=mryes;
 end;
 
+
+
 procedure TForm9.Button2Click(Sender: TObject);
 begin
 
   hide;
+
   form10:=tform10.create(self);
   form10.left:=left;
   form10.top:=top;

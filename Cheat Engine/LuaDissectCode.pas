@@ -11,7 +11,8 @@ procedure initializeLuaDissectCode;
 
 implementation
 
-uses DissectCodeThread, luahandler, LuaClass, LuaObject, symbolhandler;
+uses DissectCodeThread, luahandler, LuaClass, LuaObject, symbolhandler, symbolhandlerstructs,
+  newkernelhandler, ProcessHandlerUnit;
 
 resourcestring
   rsTheModuleNamed = 'The module named ';
@@ -182,6 +183,13 @@ var dc: TDissectCodeThread;
     i,t: integer;
 
     sr: TStringReference;
+
+    str: pchar;
+    strw: pwidechar absolute str;
+
+    x: ptruint;
+
+    temps: string;
 begin
   result:=1;
   dc:=luaclass_getClassObject(L);
@@ -195,14 +203,32 @@ begin
     lua_newtable(L);
     t:=lua_gettop(L);
 
+    getmem(str,512);
+
     for i:=0 to s.count-1 do
     begin
       sr:=TStringReference(s.Objects[i]);
+
+      if readprocessmemory(processhandle, pointer(sr.address), str,512,x) then
+      begin
+        str[511]:=#0;
+        str[510]:=#0;
+        if strlen(str)>strlen(strw) then
+          temps:=str
+        else
+          temps:=strw;
+      end
+      else
+        temps:='';
+
       lua_pushinteger(L, sr.address);
-      lua_pushstring(L, sr.s);
+      lua_pushstring(L, temps);
       lua_settable(L, t);
-      sr.free;
+
+      freeandnil(sr);
     end;
+
+    FreeMemAndNil(str);
 
   end
   else

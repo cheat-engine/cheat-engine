@@ -985,13 +985,12 @@ begin
         a:=validlist[i].lastFromAddress
       else
         a:=validlist[i].toAddress;
+
+      a2:=a;
+      disassemble(a2);
+
+      advancedoptions.AddToCodeList(a, a2-a,false,true);
     end;
-
-    a2:=a;
-    disassemble(a2);
-
-
-    advancedoptions.AddToCodeList(a, a2-a,false,true);
   end;
 end;
 

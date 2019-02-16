@@ -9,9 +9,8 @@ object frmSaveMemoryRegion: TfrmSaveMemoryRegion
   ClientHeight = 280
   ClientWidth = 274
   OnShow = FormShow
-  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Panel1: TPanel
     Left = 0
     Height = 234
@@ -181,7 +180,7 @@ object frmSaveMemoryRegion: TfrmSaveMemoryRegion
         Cancel = True
         Caption = 'Cancel'
         Constraints.MinWidth = 75
-        ModalResult = 2
+        OnClick = Button2Click
         TabOrder = 1
       end
     end

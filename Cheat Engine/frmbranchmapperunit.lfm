@@ -1,0 +1,112 @@
+object frmBranchMapper: TfrmBranchMapper
+  Left = 794
+  Height = 262
+  Top = 239
+  Width = 336
+  AutoSize = True
+  Caption = 'Branch Mapper'
+  ClientHeight = 262
+  ClientWidth = 336
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnShow = FormShow
+  LCLVersion = '1.6.4.0'
+  object Panel1: TPanel
+    Left = 8
+    Height = 148
+    Top = 4
+    Width = 320
+    Align = alClient
+    AutoSize = True
+    BorderSpacing.Left = 8
+    BorderSpacing.Top = 4
+    BorderSpacing.Right = 8
+    BorderSpacing.Bottom = 4
+    BevelOuter = bvNone
+    Caption = 'Panel1'
+    ClientHeight = 148
+    ClientWidth = 320
+    TabOrder = 0
+    object Label1: TLabel
+      Left = 0
+      Height = 15
+      Top = 0
+      Width = 320
+      Align = alTop
+      Caption = 'Record branch destinations in the following threads:'
+      ParentColor = False
+    end
+    object clbThreads: TCheckListBox
+      Left = 0
+      Height = 133
+      Top = 15
+      Width = 320
+      Align = alClient
+      ItemHeight = 0
+      TabOrder = 0
+    end
+  end
+  object Panel2: TPanel
+    Left = 0
+    Height = 106
+    Top = 156
+    Width = 336
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 106
+    ClientWidth = 336
+    TabOrder = 1
+    object Button1: TButton
+      AnchorSideLeft.Control = Panel2
+      AnchorSideTop.Control = Panel2
+      Left = 8
+      Height = 25
+      Top = 4
+      Width = 107
+      BorderSpacing.Left = 8
+      BorderSpacing.Top = 4
+      Caption = 'Start mapping'
+      OnClick = Button1Click
+      TabOrder = 0
+    end
+    object Label2: TLabel
+      AnchorSideLeft.Control = Button1
+      AnchorSideTop.Control = Button1
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 15
+      Top = 49
+      Width = 40
+      BorderSpacing.Top = 20
+      Caption = 'Found: '
+      ParentColor = False
+    end
+    object Button2: TButton
+      AnchorSideLeft.Control = Label2
+      AnchorSideTop.Control = Label2
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 25
+      Top = 64
+      Width = 120
+      AutoSize = True
+      BorderSpacing.Bottom = 10
+      Caption = 'Save results to file'
+      Enabled = False
+      OnClick = Button2Click
+      TabOrder = 1
+    end
+  end
+  object Timer1: TTimer
+    Interval = 100
+    OnTimer = Timer1Timer
+    left = 160
+    top = 104
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.ceaddress'
+    Filter = 'CE Address list|*.ceaddress'
+    left = 143
+    top = 167
+  end
+end

@@ -413,7 +413,7 @@ begin
       end;
 
       NeedsToContinue:=false; //it's not really paused
-      freemem(injectedEvent);
+      freememandnil(injectedEvent);
     end;
   end
   else

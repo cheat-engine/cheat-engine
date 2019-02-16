@@ -158,7 +158,7 @@ begin
     if datafile<>nil then
       datafile.Free;
 
-    freemem(check);
+    freememandnil(check);
   end;
 
   listbox1.itemindex:=0;

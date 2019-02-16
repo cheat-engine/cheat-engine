@@ -35,6 +35,7 @@ object frameHotkeyConfig: TframeHotkeyConfig
       Align = alClient
       ExtendedSelect = False
       Items.Strings = (
+        'Attach to current foreground process'
         'Popup/Hide cheat engine'
         'Pause the selected process'
         'Toggle the speedhack'

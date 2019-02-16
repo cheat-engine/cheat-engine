@@ -12,7 +12,8 @@ interface
 uses
   Classes, Controls, SysUtils, ceguicomponents, forms, lua, lualib, lauxlib,
   comctrls, StdCtrls, CEFuncProc, typinfo, Graphics, disassembler, LuaDisassembler,
-  LastDisassembleData, Assemblerunit, commonTypeDefs, ExtCtrls, addresslist, MemoryRecordUnit;
+  LastDisassembleData, Assemblerunit, commonTypeDefs, ExtCtrls, addresslist,
+  MemoryRecordUnit, math;
 
 type
   TLuaCaller=class
@@ -70,7 +71,7 @@ type
       function SymbolLookupCallback(s: string): ptruint;
       function StructureNameLookup(var address: ptruint; var name: string): boolean;
 
-      function StructureListCallback(callbackid: integer; list: tstringlist):boolean;
+      function StructureListCallback(callbackid: integer; list: tstringlist; max: integer=-1):boolean;
       function ElementListCallback(moduleid: integer; typeid: integer; list: TStringlist): boolean;
 
       procedure AssemblerEvent(address:qword; instruction: string; var bytes: TAssemblerBytes);
@@ -84,6 +85,7 @@ type
       function GetDisplayValueEvent(mr: TObject; var value: string): boolean;
       procedure MemScanGuiUpdateRoutine(sender: TObject; totaladdressestoscan: qword; currentlyscanned: qword; foundcount: qword);
 
+      procedure HexViewTextRenderEvent(sender: TObject; address: ptruint; var text: string);
 
       procedure synchronize;
 
@@ -135,7 +137,8 @@ implementation
 
 uses
   luahandler, LuaByteTable, MainUnit, disassemblerviewunit,
-  hexviewunit, d3dhookUnit, luaclass, debuggertypedefinitions, memscan, symbolhandler;
+  hexviewunit, d3dhookUnit, luaclass, debuggertypedefinitions, memscan,
+  symbolhandler, symbolhandlerstructs;
 
 resourcestring
   rsThisTypeOfMethod = 'This type of method:';
@@ -1232,7 +1235,7 @@ begin
   end;
 end;
 
-function TLuaCaller.StructureListCallback(callbackid: integer; list: tstringlist):boolean;
+function TLuaCaller.StructureListCallback(callbackid: integer; list: tstringlist; max: integer=-1):boolean;
 var
   oldstack: integer;
   len: integer;
@@ -1251,11 +1254,15 @@ begin
 
   try
     PushFunction;
-    if lua_pcall(l, 0,1,0)=0 then
+    lua_pushinteger(L,max);
+    if lua_pcall(l, 1,1,0)=0 then
     begin
       if not lua_istable(l,-1) then exit(false);
 
       len:=lua_objlen(l,-1);
+
+
+
       for i:=1 to len do
       begin
         lua_pushinteger(L,i);
@@ -1284,6 +1291,8 @@ begin
           si.callbackid:=callbackid;
           list.AddObject(name,si);
 
+
+          if (max<>-1) and (list.count>=max) then break;
         end else exit(false);
 
         lua_pop(L,1); //pop the table
@@ -1442,6 +1451,23 @@ begin
   end;
 end;
 
+procedure TLuaCaller.HexViewTextRenderEvent(sender: TObject; address: ptruint; var text: string);
+var
+  oldstack: integer;
+begin
+  oldstack:=lua_gettop(Luavm);
+  try
+    pushFunction;
+    luaclass_newClass(LuaVM, sender);
+    lua_pushinteger(LuaVM, address);
+    lua_pushstring(LuaVM, text);
+    lua_pcall(LuaVM, 3,1,0);
+    if lua_isstring(LuaVM,-1) then
+      text:=Lua_ToString(LuaVM,-1);
+  finally
+    lua_settop(LuaVM, oldstack);
+  end;
+end;
 
 //----------------------------Lua implementation-----------------------------
 function LuaCaller_NotifyEvent(L: PLua_state): integer; cdecl;
@@ -2383,6 +2409,30 @@ begin
     lua_pop(L, lua_gettop(L));
 end;
 
+function LuaCaller_HexViewTextRenderEvent(L: PLua_state): integer; cdecl; //(sender: TObject; address: ptruint; var text: string);
+var
+  sender: TObject;
+  address: ptruint;
+  text: string;
+  m: TMethod;
+begin
+  result:=0;
+  if lua_gettop(L)=3 then
+  begin
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_ToCEUserData(L, 1);
+    address:=lua_tointeger(L,2);
+    text:=Lua_ToString(L,3);
+
+    THexViewTextRenderEvent(m)(sender, address, text);
+
+    lua_pushstring(L,text);
+    result:=1;
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
 
 procedure registerLuaCall(typename: string; getmethodprop: lua_CFunction; setmethodprop: pointer; luafunctionheader: string);
 var t: TLuaCallData;
@@ -2443,6 +2493,8 @@ initialization
   registerLuaCall('TGetDisplayValueEvent', LuaCaller_GetDisplayValueEvent, pointer(TLuaCaller.GetDisplayValueEvent),'function %s(memrec, value)'#13#10#13#10'  return false,value'#13#10'end'#13#10);
   registerLuaCall('TMemScanGuiUpdateRoutine', LuaCaller_MemScanGuiUpdateRoutine, pointer(TLuaCaller.MemScanGuiUpdateRoutine),'function %s(Sender, TotalAddressesToScan, CurrentlyScanned, ResultsFound)'#13#10#13#10'end'#13#10);
   registerLuaCall('TProcessOpenedEvent', LuaCaller_ProcessOpenedEvent, pointer(TLuaCaller.ProcessOpenedEvent),'function %s(processid, handle, caption)'#13#10#13#10'end'#13#10);
+  registerLuaCall('THexViewTextRenderEvent', LuaCaller_HexViewTextRenderEvent, pointer(TLuaCaller.HexViewTextRenderEvent),'function %s(sender, address, text)'#13#10#13#10'  return text'#13#10'end'#13#10);
+
 
 end.
 

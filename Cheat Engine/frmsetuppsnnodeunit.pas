@@ -108,7 +108,7 @@ begin
     edtPublicname.text:=GetUserNameFromPID(GetProcessID)+'-'+inttohex(random(65536),1);
 
 
-  freemem(compname);
+  FreeMemAndNil(compname);
 
   reg:=tregistry.Create;
   Reg.RootKey := HKEY_CURRENT_USER;

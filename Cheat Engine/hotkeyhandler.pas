@@ -4,7 +4,7 @@ unit HotkeyHandler;
 
 interface
 
-uses windows, LCLIntf,classes,SyncObjs,CEFuncProc,messages,genericHotkey, math,
+uses windows, LCLIntf,classes,sysutils, SyncObjs,CEFuncProc,messages,genericHotkey, math,
   commonTypeDefs;
 
 type thotkeyitem=record
@@ -22,17 +22,24 @@ type thotkeyitem=record
   delayBetweenActivate: integer; //If not 0 this is a userdefined delay for a hotkey, so you have have fast responding and slow responding hotkeys at the same time
 end;
 
-type PHotkeyItem=^THotkeyItem;
+type
+  PHotkeyItem=^THotkeyItem;
 
-type Thotkeythread=class(tthread)
+  THotkeyThreadState=(htsActive=0, htsMemrecOnly=1, htsNoMemrec=2, htsDisabled=3);
+
+
+  Thotkeythread=class(tthread)
   private
     memrechk: pointer;
+    fstate: THotkeyThreadState;
     procedure memrechotkey;
   public
     suspended: boolean;
     hotkeylist: array of thotkeyitem;
     procedure execute; override;
     constructor create(suspended: boolean);
+  published
+    property state: THotkeyThreadState read fState write fState;
 end;
 
 
@@ -45,18 +52,19 @@ function GetGenericHotkeyKeyItem(generichotkey: TGenericHotkey): PHotkeyItem;
 
 //function OldUnregisterHotKey(hWnd: HWND; id: Integer): BOOL; stdcall;
 function GetKeyComboLength(keycombo: TKeyCombo): integer;
-function CheckKeyCombo(keycombo: tkeycombo):boolean;
+function CheckKeyCombo(keycombo: tkeycombo; nocache: boolean=false):boolean;
 procedure ConvertOldHotkeyToKeyCombo(fsModifiers, vk: uint; var k: tkeycombo);
 procedure ClearHotkeylist;
 procedure SuspendHotkeyHandler;
 procedure ResumeHotkeyHandler;
 procedure hotkeyTargetWindowHandleChanged(oldhandle, newhandle: thandle);
 
-function IsKeyPressed(key: integer):boolean;
+function IsKeyPressed(key: integer; nocache: boolean=false):boolean;
 
 
 var hotkeythread: THotkeythread;
     CSKeys: TCriticalSection;
+
 
     hotkeyPollInterval: integer=100;
     hotkeyIdletime: integer=100;
@@ -69,11 +77,13 @@ type tkeystate=(ks_undefined=0, ks_pressed=1, ks_notpressed=2);
 
 var
     keystate: array [0..255] of tkeystate;  //0=undefined, 1=pressed, 2-not pressed
+    ksCS: TCriticalSection;
     ControllerState: XINPUT_STATE;
 
-function IsKeyPressed(key: integer):boolean;
+function IsKeyPressed(key: integer; nocache: boolean=false):boolean;
 var
     ks: dword;
+    sks: short;
 begin
   result:=false;
   if key>255 then //not inside the list... (doubt it's valid)
@@ -140,29 +150,56 @@ begin
   end;
 
   //look up in the list
+  sks:=0;
+  ksCS.enter;
   if keystate[key]=ks_undefined then
   begin
-    ks:=getasynckeystate(key);
-    if ((ks and 1)=1) then
+    sks:=getasynckeystate(longint(key));
+    if ((sks and 1)=1) then
       keystate[key]:=ks_pressed
     else
-    if ((ks shr 15) and 1)=1 then
+    if ((sks shr 15) and 1)=1 then
       keystate[key]:=ks_pressed
     else
       keystate[key]:=ks_notpressed; //not pressed at all
   end;
 
   result:=keystate[key]=ks_pressed;
+
+  if nocache and (not result) then
+  begin
+    if sks<>0 then
+      result:=(sks and $8001)<>0;
+
+    if result then exit;
+
+    sks:=GetAsyncKeyState(longint(key));
+    result:=(sks and $8001)<>0;
+
+    if result=false then
+    begin
+      sks:=GetKeyState(key);
+      result:=(sks and $8001)<>0;
+      if not result then
+      begin
+        beep;
+      end;
+    end;
+  end;
+
+  ksCS.Leave;
 end;
 
 procedure clearkeystate;
 var i: integer;
 begin
+  ksCS.enter;
   zeromemory(@keystate[0],256*sizeof(tkeystate));
   for i:=0 to 255 do
     getasynckeystate(i); //clears the last call flag
 
   ControllerState.dwPacketNumber:=0;
+  ksCS.leave;
 end;
 
 procedure hotkeyTargetWindowHandleChanged(oldhandle, newhandle: thandle);
@@ -181,16 +218,16 @@ begin
   end;
 end;
 
+var presuspendstate: THotkeyThreadState;
 procedure SuspendHotkeyHandler;
 begin
-  if not hotkeythread.suspended then cskeys.Enter;
-  hotkeythread.suspended:=true;
+  presuspendstate:=hotkeythread.state;
+  hotkeythread.state:=htsDisabled;
 end;
 
 procedure ResumeHotkeyHandler;
 begin
-  if hotkeythread.suspended then cskeys.Leave;
-  hotkeythread.suspended:=false;
+  hotkeythread.state:=presuspendstate;
 end;
 
 procedure ClearHotkeylist;
@@ -213,7 +250,7 @@ begin
       inc(result);
 end;
 
-function CheckKeyCombo(keycombo: tkeycombo):boolean;
+function CheckKeyCombo(keycombo: tkeycombo; nocache: boolean=false):boolean;
 var i: integer;
 begin
   result:=false;
@@ -226,7 +263,7 @@ begin
     begin
       if (keycombo[i]=0) then exit;
 
-      if not IsKeyPressed(keycombo[i]) then
+      if not IsKeyPressed(keycombo[i], nocache) then
       begin
         //not pressed
         result:=false;
@@ -443,6 +480,8 @@ var i: integer;
     maxActiveKeyCount: integer;
 
     tempHotkey: PActiveHotkeyData;
+
+    handeit: boolean;
 begin
   activeHotkeyList:=Tlist.create;
   while not terminated do
@@ -455,12 +494,10 @@ begin
         maxActiveKeyCount:=0;
         for i:=0 to length(hotkeylist)-1 do
         begin
-
-
           if
-            ((hotkeylist[i].memrechotkey<>nil) and (checkkeycombo(TMemoryrecordHotkey(hotkeylist[i].memrechotkey).keys))) or
-            ((hotkeylist[i].genericHotkey<>nil) and (checkkeycombo(TGenericHotkey(hotkeylist[i].generichotkey).keys))) or
-            (((hotkeylist[i].memrechotkey=nil) and (hotkeylist[i].generichotkey=nil)) and checkkeycombo(hotkeylist[i].keys))
+            ((state in [htsActive,htsMemrecOnly]) and (hotkeylist[i].memrechotkey<>nil) and (checkkeycombo(TMemoryrecordHotkey(hotkeylist[i].memrechotkey).keys))) or
+            ((state in [htsActive,htsNoMemrec]) and (hotkeylist[i].genericHotkey<>nil) and (checkkeycombo(TGenericHotkey(hotkeylist[i].generichotkey).keys))) or
+            ((state in [htsActive,htsNoMemrec]) and ((hotkeylist[i].memrechotkey=nil) and (hotkeylist[i].generichotkey=nil)) and checkkeycombo(hotkeylist[i].keys))
 
           then
           begin
@@ -522,8 +559,8 @@ begin
           end;
 
           //cleanup the memory as well while we're at it
-          freemem(temphotkey);
-          temphotkey:=nil;
+          freememandnil(temphotkey);
+
         end;
         activeHotkeyList.clear;
 
@@ -541,8 +578,12 @@ begin
 end;
 
 initialization
+  ksCS:=TCriticalSection.Create;
   clearkeystate;
+
   CSKeys:=TCriticalSection.Create;
+
+
   hotkeythread:=Thotkeythread.Create(false);
 
 finalization

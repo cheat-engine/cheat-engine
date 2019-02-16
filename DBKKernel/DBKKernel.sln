@@ -1,0 +1,67 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27428.2027
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DBKKernel", "DBKKernel.vcxproj", "{43A80578-B904-4A6C-8615-528B288CBF12}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|ARM = Debug|ARM
+		Debug|ARM64 = Debug|ARM64
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release without sig|ARM = Release without sig|ARM
+		Release without sig|ARM64 = Release without sig|ARM64
+		Release without sig|x64 = Release without sig|x64
+		Release without sig|x86 = Release without sig|x86
+		Release|ARM = Release|ARM
+		Release|ARM64 = Release|ARM64
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Debug|ARM.ActiveCfg = Debug|ARM
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Debug|ARM.Build.0 = Debug|ARM
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Debug|ARM.Deploy.0 = Debug|ARM
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Debug|ARM64.Build.0 = Debug|ARM64
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Debug|ARM64.Deploy.0 = Debug|ARM64
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Debug|x64.ActiveCfg = Debug|x64
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Debug|x64.Build.0 = Debug|x64
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Debug|x64.Deploy.0 = Debug|x64
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Debug|x86.ActiveCfg = Debug|Win32
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Debug|x86.Build.0 = Debug|Win32
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Debug|x86.Deploy.0 = Debug|Win32
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Release without sig|ARM.ActiveCfg = Release without sig|ARM
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Release without sig|ARM.Build.0 = Release without sig|ARM
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Release without sig|ARM.Deploy.0 = Release without sig|ARM
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Release without sig|ARM64.ActiveCfg = Release without sig|ARM64
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Release without sig|ARM64.Build.0 = Release without sig|ARM64
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Release without sig|ARM64.Deploy.0 = Release without sig|ARM64
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Release without sig|x64.ActiveCfg = Release without sig|x64
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Release without sig|x64.Build.0 = Release without sig|x64
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Release without sig|x64.Deploy.0 = Release without sig|x64
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Release without sig|x86.ActiveCfg = Release without sig|Win32
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Release without sig|x86.Build.0 = Release without sig|Win32
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Release without sig|x86.Deploy.0 = Release without sig|Win32
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Release|ARM.ActiveCfg = Release|ARM
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Release|ARM.Build.0 = Release|ARM
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Release|ARM.Deploy.0 = Release|ARM
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Release|ARM64.ActiveCfg = Release|ARM64
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Release|ARM64.Build.0 = Release|ARM64
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Release|ARM64.Deploy.0 = Release|ARM64
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Release|x64.ActiveCfg = Release|x64
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Release|x64.Build.0 = Release|x64
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Release|x64.Deploy.0 = Release|x64
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Release|x86.ActiveCfg = Release|Win32
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Release|x86.Build.0 = Release|Win32
+		{43A80578-B904-4A6C-8615-528B288CBF12}.Release|x86.Deploy.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {67B8C064-CB48-4128-A3D9-97FC11FFB8EF}
+	EndGlobalSection
+EndGlobal

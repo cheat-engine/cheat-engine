@@ -1,38 +1,37 @@
 object frmStructuresConfig: TfrmStructuresConfig
   Left = 558
-  Height = 261
+  Height = 277
   Top = 294
   Width = 550
   AutoSize = True
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Dissect Data Config'
-  ClientHeight = 261
+  ClientHeight = 277
   ClientWidth = 550
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Panel1: TPanel
     Left = 0
-    Height = 226
+    Height = 242
     Top = 0
     Width = 550
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 226
+    ClientHeight = 242
     ClientWidth = 550
     TabOrder = 0
     object GroupBox1: TGroupBox
       Left = 0
-      Height = 226
+      Height = 242
       Top = 0
       Width = 154
       Align = alLeft
       AutoSize = True
       Caption = 'Colors'
-      ClientHeight = 203
+      ClientHeight = 219
       ClientWidth = 150
       Color = clWindow
       Font.CharSet = ANSI_CHARSET
@@ -168,7 +167,7 @@ object frmStructuresConfig: TfrmStructuresConfig
         AnchorSideBottom.Side = asrBottom
         Left = 0
         Height = 28
-        Top = 174
+        Top = 190
         Width = 150
         Anchors = [akLeft, akRight, akBottom]
         AutoSize = True
@@ -217,23 +216,23 @@ object frmStructuresConfig: TfrmStructuresConfig
     end
     object Panel3: TPanel
       Left = 154
-      Height = 226
+      Height = 242
       Top = 0
       Width = 396
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 226
+      ClientHeight = 242
       ClientWidth = 396
       TabOrder = 1
       object GroupBox2: TGroupBox
         Left = 0
-        Height = 164
+        Height = 160
         Top = 0
         Width = 396
         Align = alClient
         AutoSize = True
         Caption = 'Default options for new structures'
-        ClientHeight = 144
+        ClientHeight = 140
         ClientWidth = 392
         TabOrder = 0
         object cbAutoCreate: TCheckBox
@@ -319,13 +318,13 @@ object frmStructuresConfig: TfrmStructuresConfig
       end
       object GroupBox3: TGroupBox
         Left = 0
-        Height = 62
-        Top = 164
+        Height = 82
+        Top = 160
         Width = 396
         Align = alBottom
         AutoSize = True
         Caption = 'Global options'
-        ClientHeight = 42
+        ClientHeight = 62
         ClientWidth = 392
         TabOrder = 1
         object cbAutoGuessCustomTypes: TCheckBox
@@ -363,13 +362,26 @@ object frmStructuresConfig: TfrmStructuresConfig
           TabOrder = 1
           Text = '1'
         end
+        object cbPositionAddressesOverColumns: TCheckBox
+          AnchorSideLeft.Control = Label5
+          AnchorSideTop.Control = Label5
+          AnchorSideTop.Side = asrBottom
+          Left = 5
+          Height = 19
+          Top = 43
+          Width = 198
+          BorderSpacing.Top = 5
+          Caption = 'Position Addresses Over Columns'
+          TabOrder = 2
+          Visible = False
+        end
       end
     end
   end
   object Panel2: TPanel
     Left = 0
     Height = 35
-    Top = 226
+    Top = 242
     Width = 550
     Align = alBottom
     AutoSize = True

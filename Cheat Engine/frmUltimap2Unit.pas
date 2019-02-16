@@ -157,6 +157,7 @@ type
     cbParseToTextfile: TCheckBox;
     cbAutoProcess: TCheckBox;
     cbPauseTargetWhileProcessing: TCheckBox;
+    cbNoInterrupts: TCheckBox;
     deTargetFolder: TDirectoryEdit;
     deTextOut: TDirectoryEdit;
     edtFlushInterval: TEdit;
@@ -286,7 +287,8 @@ implementation
 
 {$R *.lfm}
 
-uses symbolhandler, frmSelectionlistunit, cpuidUnit, MemoryBrowserFormUnit, AdvancedOptionsUnit;
+uses symbolhandler, symbolhandlerstructs, frmSelectionlistunit, cpuidUnit, MemoryBrowserFormUnit,
+  AdvancedOptionsUnit, vmxfunctions;
 
 resourcestring
 rsRecording2 = 'Recording';
@@ -314,6 +316,11 @@ rsPutBetweenToMarsAsAnAutoStopRange = '(Put between *''s to mark as an auto stop
 rsTheRangeYouHaveProvidedIsAnExitRangeBeAware = 'The range you have provided is an ''Exit'' range. Be aware that this doesn''t mean it will always stop at that range, or that the result is what you expect. A context switch to another thread between the start and stop can add a lot of other data';
 rsIsAnInvalidRange = ' is an invalid range';
 rsInstructionPointerListSize = 'Instruction Pointer List Size:';
+rsRangesNeedDBVMInWindows10 = 'To use ranges with Ultimap2 in windows 10, you '
+  +'must hide the fact that you use ranges from it. To be able to do that '
+  +'DBVM needs to be running. There is a chance running DBVM can crash your '
+  +'system and make you lose your data(So don''t forget to save first). Do you'
+  +' want to run DBVM?';
 
 //worker
 
@@ -326,6 +333,8 @@ var self: TUltimap2Worker;
 
   s: integer;
 begin
+  result:=0;
+
   self:=TUltimap2Worker(context);
   //watch for page boundaries
 
@@ -398,7 +407,7 @@ begin
     result:=p;
   end
   else
-    freemem(page);
+    FreeMemAndNil(page);
 end;
 
 function TUltimap2Worker.addIPBlockToRegionTree(IP: QWORD): PRegionInfo;
@@ -415,6 +424,7 @@ begin
   result:=nil;
 
   ownerForm.regiontreeMREW.Beginwrite;
+  endaddress:=$fffffffffffffff;
 
   try
     e.address:=ip;
@@ -865,6 +875,8 @@ begin
     end else sleep(1);
   end;
 
+  done:=true;
+
   pt_image_free(callbackImage);
 
   if ts<>nil then
@@ -1211,7 +1223,7 @@ begin
 
     closehandle(filterSemaphore);
     freeandnil(queueCS);
-    freemem(workqueue);
+    FreeMemAndNil(workqueue);
     OutputDebugString('Filter thread cleanup done');
   end;
 
@@ -1251,17 +1263,17 @@ begin
   begin
     if r^.info<>nil then
     begin
-      freemem(r^.info);
-      r^.info:=nil;
+      FreeMemAndNil(r^.info);
+
     end;
 
     if r^.memory<>nil then
     begin
-      freemem(r^.memory);
-      r^.memory:=nil;
+      FreeMemAndNil(r^.memory);
+
     end;
 
-    freemem(r);
+    FreeMemAndNil(r);
   end;
 end;
 
@@ -1320,10 +1332,15 @@ var i:integer;
 begin
   OutputDebugString('TfrmUltimap2.FlushResults');
   ultimap2_resetTraceSize;
+
+  OutputDebugString('1');
   ultimap2_flush;
+
+  OutputDebugString('2');
 
   if rbLogToFolder.checked and (state=rsRecording) then
   begin
+    OutputDebugString('3');
     if cbPauseTargetWhileProcessing.checked then
     begin
       advancedoptions.Pausebutton.down := True;
@@ -1339,6 +1356,8 @@ begin
       workers[i].processFile.SetEvent;
     end;
 
+    OutputDebugString('4');
+
 
     btnShowResults.enabled:=false;
     btnRecordPause.enabled:=false;
@@ -1347,15 +1366,28 @@ begin
 
     PostProcessingFilter:=f;
     state:=rsProcessing;
+
+
     if f<>foNone then
+    begin
+      OutputDebugString('5');
       FilterGUI(false);
+      OutputDebugString('6');
+    end;
+    OutputDebugString('7');
   end
   else
   begin
 
+    OutputDebugString('8');
     //flush only returns after all data has been handled, or the data has already been handled by the file workers
     if f<>foNone then
+    begin
+      OutputDebugString('9');
       Filter(f);
+      OutputDebugString('10');
+    end;
+    OutputDebugString('11');
   end;
 end;
 
@@ -1455,6 +1487,7 @@ begin
 
     //if ssCtrl in GetKeyShiftState then
     //  debugmode:=true;
+  try
 
     if ((ultimap2Initialized=0) or (processid<>ultimap2Initialized)) then
     begin
@@ -1602,7 +1635,7 @@ begin
       end
       else
       begin
-        getexecutablememoryregionsfromregion(0, qword($ffffffffffffffff), regions);
+        getexecutablememoryregionsfromregion(0, qword($7fffffffffffffff), regions); //only 7fffffffffffffff as this only records usermode (can be changed)
         for i:=0 to length(regions)-1 do
         begin
           getmem(p, sizeof(TRegionInfo));
@@ -1632,10 +1665,25 @@ begin
 
       if not debugmode then
       begin
+
+        if (length(ranges)>0) and (WindowsVersion>=wv10) and (cbNoInterrupts.checked=false) then
+        begin
+          {$ifndef NOVMX}
+          NeedsDBVM(rsRangesNeedDBVMInWindows10);
+          dbvm_ultimap2_hideRangeUsage;
+          {$else}
+          if messagedlg('It is recommended to build in release mode or with NOVMX disabled so that DBVM can be launched at this point. '+
+                     'Not doing so will almost surely BSOD you as soon as a performance monitor interrupt triggers(buffer full).'+#13#10+
+                     'Alternatively, you could find hal!KdDebuggerNotPresent (NOT nt!KdDebuggerNotPresent which is what hal!KdDebuggerNotPresent points at) and NULL it'#13#10+
+                     'Continue?', mtWarning, [mbyes,mbno],0)<>mryes then exit;
+          {$endif}
+        end;
+
+
         if rbLogToFolder.Checked then
-          ultimap2(processid, bsize, deTargetFolder.Directory, ranges)
+          ultimap2(processid, bsize, deTargetFolder.Directory, ranges, cbNoInterrupts.checked)
         else
-          ultimap2(processid, bsize, '', ranges);
+          ultimap2(processid, bsize, '', ranges, cbNoInterrupts.checked);
       end;
 
       FilterGUI(true);
@@ -1665,6 +1713,11 @@ begin
       end;
     end;
 
+
+  except
+    on e: exception do
+      messagedlg(e.message,mtError,[mbOK],0);
+  end;
 end;
 
 procedure TfrmUltimap2.tProcessorTimer(Sender: TObject);
@@ -1698,11 +1751,9 @@ end;
 
 procedure TfrmUltimap2.FormDestroy(Sender: TObject);
 var
-  x: TWindowPosArray;
   reg: tregistry;
 begin
-  setlength(x,0);
-  SaveFormPosition(self, x);
+  SaveFormPosition(self);
 
   reg:=TRegistry.Create;
   try
@@ -2131,8 +2182,8 @@ begin
       n:=validList.GetNodeAtIndex(i);
       if (n<>nil) and (n.Data<>nil) then
       begin
-        freemem(n.data);
-        n.data:=nil
+        FreeMemAndNil(n.data);
+
       end;
     end;
     validlist.Clear;
@@ -2329,13 +2380,17 @@ var
   i: integer;
   totalprocessed, totalsize: qword;
 begin
+  OutputDebugString('Activator timer');
   done:=true;
   totalprocessed:=0;
   totalsize:=0;
   for i:=0 to length(workers)-1 do
   begin
     if not workers[i].done then
+    begin
       done:=false;
+      OutputDebugString('worker '+inttostr(i)+' is not done yet');
+    end;
 
     if workers[i].totalsize<>0 then
     begin

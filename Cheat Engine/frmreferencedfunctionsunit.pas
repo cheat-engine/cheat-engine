@@ -18,6 +18,8 @@ type
     MenuItem1: TMenuItem;
     PopupMenu1: TPopupMenu;
     Splitter1: TSplitter;
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure lbReflistDblClick(Sender: TObject);
     procedure lvCallListColumnClick(Sender: TObject; Column: TListColumn);
@@ -41,7 +43,7 @@ implementation
 
 {$R *.lfm}
 
-uses DissectCodeThread, MemoryBrowserFormUnit;
+uses DissectCodeThread, MemoryBrowserFormUnit, CEFuncProc;
 
 
 procedure TfrmReferencedFunctions.FormShow(Sender: TObject);
@@ -53,6 +55,28 @@ begin
 
   if dissectcode<>nil then
     LoadFunctionlist;
+end;
+
+procedure TfrmReferencedFunctions.FormCreate(Sender: TObject);
+var x: array of integer;
+begin
+  setlength(x, 0);
+  if loadformposition(self,x) then
+  begin
+    lvCallList.Width:=x[0];
+    lvCallList.Column[0].Width:=x[1];
+    lvCallList.Column[1].Width:=x[2];
+  end;
+end;
+
+procedure TfrmReferencedFunctions.FormDestroy(Sender: TObject);
+var x: array of integer;
+begin
+  setlength(x,3);
+  x[0]:=lvCallList.Width;
+  x[1]:=lvCallList.Column[0].Width;
+  x[2]:=lvCallList.Column[1].Width;
+  saveformposition(self,x);
 end;
 
 procedure TfrmReferencedFunctions.lbReflistDblClick(Sender: TObject);

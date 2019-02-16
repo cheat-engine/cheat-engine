@@ -133,10 +133,9 @@ begin
         if list^[i].pageinfo.data<>nil then
           freemem(list^[i].pageinfo.data);
 
-        freemem(list^[i].pageinfo);
+        FreeMemAndNil(list^[i].pageinfo);
       end;
 
-      list^[i].pageinfo:=nil;
     end;
   end
   else
@@ -146,8 +145,8 @@ begin
       if list^[i].PageEntryArray<>nil then
       begin
         deletepath(list^[i].PageEntryArray,level+1);
-        freemem(list^[i].PageEntryArray);
-        list^[i].PageEntryArray:=nil;
+        FreeMemAndNil(list^[i].PageEntryArray);
+
       end;
     end;
   end;

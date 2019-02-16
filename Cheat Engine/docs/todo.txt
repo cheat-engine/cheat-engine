@@ -1,32 +1,44 @@
-generate pointermap may show that it will genertae billions os useless results
-creating a new tab with a groupscan setup looks bad
+globaldisassembleoverride is fucked
+
 
 structure dissect: 
-  use pdb data if available
-  delete all structures sometimes AV's
-  adding names in front messes up the header names
+  delete all structures sometimes AV's (no idea how to reproduce)
 
 
-for .net games let stucture dissect see those structures aS WELL
-AND LUA
+memview paste: paste for specific displaytype
+memview->rightclick while debugging: Change eip to position, run till position in the context menu as well
 
 
-mono dissect: order methods by alphabet
-
-
-
-add enumStructureWindows list, and let lua change the selected struct
 trainergen: get rid of tcheat and just use labels
 
 graphical memory view: 
   change format makes it black sometimes(loses position ?)
   sometimes the x position is not 0, but can't be changed back
 
+memview debugging: add a toolbar for single step/step over so you can debug by clicking icons
+
+dbvm_speedhack
 
 find higher resolution icons
 
+graphical tutorial: continue with it
+
 linux: make a 32-bit linux build with .so injection support
 memscan: Don't combine the scanresults into a single file. Leave them split up (skip: for 6.7 or 7.0)
-ceshare: continue with it
 
+ceshare: continue with it
 pseudocode: continue with it
+mac version: work on it
+
+
+make more frequent releases ffs
+
+define from debug data: Use a ownerdata list instead (or better, a whole new interface where you can see beforehand the layout)
+
+structure compare: Closed a previous structure compare followed by reopening a new one and loading a file, messes up the popupmode and other stuff
+pointerscan: generating pointermap should also check terminated
+pointerscan: when suspending a scan, CE closed itself(crash)
+
+Code filter: Add a address dissector that scans for vtables (optionally let the user specify the vtable)
+
+test and fix the d3dhook stuff and trainer generator.  (perhaps dx12 support as well)

@@ -67,6 +67,9 @@ const
 const
   CONTEXT_EXTENDED_REGISTERS = 0;
 
+//  CONTEXT_XSTATE          = (CONTEXT_AMD64 or $00100040);
+  CONTEXT_XSTATE          = (CONTEXT_AMD64 or $00000040);
+
 
 type
    XMM_SAVE_AREA32 = record
@@ -569,7 +572,7 @@ procedure UseDBKQueryMemoryRegion;
 procedure UseDBKReadWriteMemory;
 procedure UseDBKOpenProcess;
 
-procedure DBKFileAsMemory(fn:string); overload;
+procedure DBKFileAsMemory(fn:string; baseaddress: ptruint=0); overload;
 procedure DBKFileAsMemory; overload;
 function VirtualQueryExPhysical(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; stdcall;
 procedure DBKPhysicalMemory;
@@ -580,8 +583,8 @@ procedure LoadDBK32; stdcall;
 procedure OutputDebugString(msg: string);
 
 
-procedure NeedsDBVM;
-function loaddbvmifneeded: BOOL; stdcall;
+procedure NeedsDBVM(Reason: string='');
+function loaddbvmifneeded(reason:string=''): BOOL; stdcall;
 function isRunningDBVM: boolean;
 function isDBVMCapable: boolean;
 
@@ -595,6 +598,11 @@ function Is64BitProcess(processhandle: THandle): boolean;
 
 
 function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL; stdcall;
+
+
+function VirtualToPhysicalCR3(cr3: QWORD; VirtualAddress: QWORD; var PhysicalAddress: QWORD): boolean;
+function ReadProcessMemoryCR3(cr3: QWORD; lpBaseAddress, lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: PTRUINT): BOOL; stdcall;
+function WriteProcessMemoryCR3(cr3: QWORD; lpBaseAddress, lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL; stdcall;
 
 
 
@@ -613,6 +621,7 @@ var
   SetThreadContext      :TSetThreadContext;
   Wow64GetThreadContext      :TWow64GetThreadContext;
   Wow64SetThreadContext      :TWow64SetThreadContext;
+
 
   {$ifdef cpu64}
   GetThreadSelectorEntry: TGetThreadSelectorEntry;
@@ -764,6 +773,11 @@ var
     ModuleListSize: integer;
     ModuleList: pointer;
 
+    MAXPHYADDR: byte; //number of bits a physical address can be made up of
+    MAXPHYADDRMASK: QWORD=QWORD($fffffffff); //mask to AND with a physical address to strip invalid bits
+    MAXPHYADDRMASKPB: QWORD=QWORD($ffffff000); //same as MAXPHYADDRMASK but also aligns it to a page boundary
+
+
 
 
 implementation
@@ -775,7 +789,7 @@ uses
      dbvmPhysicalMemoryHandler, //'' for physical mem
      {$endif}
      filehandler,  //so I can let readprocessmemory point to ReadProcessMemoryFile in filehandler
-     autoassembler, frmEditHistoryUnit, frmautoinjectunit;
+     autoassembler, frmEditHistoryUnit, frmautoinjectunit, cpuidUnit;
 {$endif}
 
 
@@ -794,6 +808,137 @@ resourcestring
 
 
 {$ifndef JNI}
+function VirtualToPhysicalCR3(cr3: QWORD; VirtualAddress: QWORD; var PhysicalAddress: QWORD): boolean;
+var
+  pml4index: integer;
+  pagedirptrindex: integer;
+  pagedirindex: integer;
+  pagetableindex: integer;
+  offset: integer;
+
+  pml4entry: QWORD;
+  pagedirptrentry: QWORD;
+  pagedirentry: qword;
+  pagetableentry: qword;
+
+  x: PTRUINT;
+begin
+  result:=false;
+  pml4index:=(VirtualAddress shr 39) and $1ff;
+  pagedirptrindex:=(VirtualAddress shr 30) and $1ff;
+  pagedirindex:=(VirtualAddress shr 21) and $1ff;
+  pagetableindex:=(VirtualAddress shr 12) and $1ff;
+  offset:=VirtualAddress and $fff;
+
+  if ReadPhysicalMemory(0,pointer(cr3+pml4index*8),@pml4entry,8,x) then
+  begin
+    if (pml4entry and 1)=1 then
+    begin
+      pml4entry:=pml4entry and MAXPHYADDRMASKPB;
+      if ReadPhysicalMemory(0,pointer(pml4entry+pagedirptrindex*8),@pagedirptrentry,8,x) then
+      begin
+        if (pagedirptrentry and 1)=1 then
+        begin
+          pagedirptrentry:=pagedirptrentry and MAXPHYADDRMASKPB;
+          if ReadPhysicalMemory(0,pointer(pagedirptrentry+pagedirindex*8),@pagedirentry,8,x) then
+          begin
+            if (pagedirentry and 1)=1 then
+            begin
+              if (pagedirentry and (1 shl 7))>0 then  //PS==1
+              begin
+                PhysicalAddress:=(pagedirentry and MAXPHYADDRMASKPB)+Offset;
+                exit(true);
+              end
+              else
+              begin
+                //has pagetable
+                pagedirentry:=pagedirentry and MAXPHYADDRMASKPB;
+                if ReadPhysicalMemory(0,pointer(pagedirentry+pagetableindex*8),@pagetableentry,8,x) then
+                begin
+                  if (pagetableentry and 1)=1 then
+                  begin
+                    PhysicalAddress:=(pagetableentry and MAXPHYADDRMASKPB)+Offset;
+                    exit(true);
+                  end;
+                end;
+              end;
+            end;
+          end;
+        end;
+      end;
+    end;
+  end;
+end;
+
+function ReadProcessMemoryCR3(cr3: QWORD; lpBaseAddress, lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: PTRUINT): BOOL; stdcall;
+var
+  currentAddress: qword;
+  PA: qword;
+  i: integer;
+  x: PtrUInt;
+
+  blocksize: integer;
+begin
+
+  cr3:=cr3 and MAXPHYADDRMASKPB;
+
+  result:=false;
+  if nsize=0 then exit(false);
+
+  lpNumberOfBytesRead:=0;
+  currentAddress:=qword(lpBaseAddress);
+
+  //aligned memory from here on
+  while nsize>0 do
+  begin
+    blocksize:=min(nsize, $1000-(currentAddress and $fff));
+
+    if not VirtualToPhysicalCR3(cr3, currentaddress, PA) then exit;
+    if not ReadPhysicalMemory(0, pointer(PA), lpBuffer, blocksize,x) then exit;
+
+    lpNumberOfBytesRead:=lpNumberOfBytesRead+x;
+    inc(currentAddress, x);
+    lpBuffer:=pointer(qword(lpbuffer)+x);
+    dec(nsize,x);
+  end;
+
+  result:=true;
+end;
+
+function WriteProcessMemoryCR3(cr3: QWORD; lpBaseAddress, lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL; stdcall;
+var
+  currentAddress: qword;
+  PA: qword;
+  i: integer;
+  x: PtrUInt;
+
+  blocksize: integer;
+begin
+  cr3:=cr3 and MAXPHYADDRMASKPB;
+
+  result:=false;
+  if nsize=0 then exit(false);
+
+  lpNumberOfBytesWritten:=0;
+  currentAddress:=qword(lpBaseAddress);
+
+  //aligned memory from here on
+  while nsize>0 do
+  begin
+    blocksize:=min(nsize, $1000-(currentAddress and $fff));
+
+    if not VirtualToPhysicalCR3(cr3, currentaddress, PA) then exit;
+    if not WritePhysicalMemory(0, pointer(PA), lpBuffer, blocksize,x) then exit;
+
+    lpNumberOfBytesWritten:=lpNumberOfBytesWritten+x;
+    inc(currentAddress, x);
+    lpBuffer:=pointer(qword(lpbuffer)+x);
+    dec(nsize,x);
+  end;
+
+  result:=true;
+end;
+
 function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL; stdcall;
 var
   wle: PWriteLogEntry;
@@ -892,12 +1037,16 @@ begin
 {$endif}
 end;
 
-procedure NeedsDBVM;
+procedure NeedsDBVM(reason: string='');
+var r: string;
 begin
 {$ifndef JNI}
   if (not isRunningDBVM) then
   begin
-    if isDBVMCapable and (MessageDlg(rsToUseThisFunctionYouWillNeedToRunDBVM, mtWarning, [mbyes, mbno], 0)=mryes) then
+    r:=reason;
+    if r='' then
+      r:=rsToUseThisFunctionYouWillNeedToRunDBVM;
+    if isDBVMCapable and (MessageDlg(r, mtWarning, [mbyes, mbno], 0)=mryes) then
     begin
       LaunchDBVM(-1);
       if not isRunningDBVM then raise exception.Create(rsDidNotLoadDBVM);
@@ -910,10 +1059,14 @@ begin
 
 end;
 
-function loaddbvmifneeded: BOOL;  stdcall;
-var signed: BOOL;
+function loaddbvmifneeded(reason: string=''): BOOL;  stdcall;
+var
+  signed: BOOL;
+  r: string;
 begin
   result:=false;
+  r:=reason;
+  if r='' then r:=rsToUseThisFunctionYouWillNeedToRunDBVM;
 
 {$ifndef JNI}
   loaddbk32;
@@ -927,7 +1080,7 @@ begin
         signed:=false;
         if isDriverLoaded(@signed) then
         begin
-          if MessageDlg(rsToUseThisFunctionYouWillNeedToRunDBVM, mtWarning, [mbyes, mbno], 0)=mryes then
+          if MessageDlg(r, mtWarning, [mbyes, mbno], 0)=mryes then
           begin
             LaunchDBVM(-1);
             if not isRunningDBVM then raise exception.Create(rsDidNotLoadDBVM);
@@ -1081,7 +1234,7 @@ begin
         result:=true; //SVM is possible
     end;
 
-  end;
+  end else result:=true; //it's already running DBVM, of course it's supported
 
 end;
 
@@ -1214,12 +1367,13 @@ begin
 {$endif}
 end;
 
-procedure DBKFileAsMemory(fn:string); overload;
+procedure DBKFileAsMemory(fn:string; baseaddress: ptruint=0); overload;
 begin
 {$ifdef windows}
   filehandler.filename:=filename;
   filehandler.filedata:=tmemorystream.create;
   filehandler.filedata.LoadFromFile(fn);
+  filehandler.filebaseaddress:=baseaddress;
   DBKFileAsMemory;
 {$endif}
 end;
@@ -1307,6 +1461,9 @@ end;
 procedure DBKProcessMemory;
 begin
 {$ifdef windows}
+  usephysical:=false;
+  Usephysicaldbvm:=false;
+
   if dbkreadwrite then
     UseDBKReadWriteMemory
   else
@@ -1317,8 +1474,7 @@ begin
   else
     dontusedbkquerymemoryregion;
 
-  usephysical:=false;
-  Usephysicaldbvm:=false;
+
 
   if filedata<>nil then
     freeandnil(filedata);
@@ -1511,6 +1667,17 @@ begin
 {$endif}
 end;
 
+procedure initMaxPhysMask;
+var cpuidr: TCPUIDResult;
+begin
+  cpuidr:=CPUID($80000008,0);
+  MAXPHYADDR:=cpuidr.eax and $ff;
+  MAXPHYADDRMASK:=qword($ffffffffffffffff);
+  MAXPHYADDRMASK:=MAXPHYADDRMASK shr MAXPHYADDR;
+  MAXPHYADDRMASK:=not (MAXPHYADDRMASK shl MAXPHYADDR);
+  MAXPHYADDRMASKPB:=MAXPHYADDRMASK and qword($fffffffffffff000);
+end;
+
 procedure getLBROffset;
 var x: TDebuggerState;
 begin
@@ -1541,8 +1708,7 @@ begin
     mappedfilename[i]:=#0;
     mapsline:=mappedfilename;
 
-    freemem(mappedfilename);
-    mappedfilename:=nil;
+    freememandnil(mappedfilename);
   end;
 end;
 {$endif}
@@ -1659,9 +1825,8 @@ initialization
   GetRegionInfo:=GetRegionInfo_Stub;
   {$endif}
 
-
-
   getLBROffset;
+  initMaxPhysMask;
 {$else}
 
 

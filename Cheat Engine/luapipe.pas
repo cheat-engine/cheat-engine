@@ -174,7 +174,7 @@ begin
 
   result:=x;
 
-  freemem(x);
+  FreeMemAndNil(x);
 end;
 
 function TPipeConnection.readWideString(size: integer): widestring;
@@ -187,7 +187,7 @@ begin
   x[size+1]:=#0;
 
   result:=x;
-  freemem(x);
+  FreeMemAndNil(x);
 end;
 
 function TPipeConnection.WriteBytes(bytes: pointer; size: integer): boolean;
@@ -346,7 +346,7 @@ begin
       result:=1;
     end;
 
-    freemem(ba);
+    FreeMemAndNil(ba);
   end;
 
 
@@ -377,7 +377,7 @@ begin
       result:=1;
     end;
 
-    freemem(ba);
+    FreeMemAndNil(ba);
   end;
 
 
@@ -503,7 +503,7 @@ begin
         result:=1;
       end;
     finally
-      freemem(s);
+      FreeMemAndNil(s);
     end;
 
   end;

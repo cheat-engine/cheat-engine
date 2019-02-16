@@ -1,8 +1,10 @@
 #pragma warning( disable: 4103)
 
-#include "ntddk.h"
+#include <ntifs.h>
+#include <ntddk.h>
 #include "DBKFunc.h"
-/*x
+
+/*
 #include "vmxhelper.h"
 #include "interruptHook.h"
 */
@@ -90,7 +92,24 @@ calls a specific function for each cpu that runs in passive mode
 #endif
 }
 
-void forEachCpu(PKDEFERRED_ROUTINE dpcfunction,  PVOID DeferredContext, PVOID  SystemArgument1, PVOID  SystemArgument2)
+void forOneCpu(CCHAR cpunr, PKDEFERRED_ROUTINE dpcfunction, PVOID DeferredContext, PVOID  SystemArgument1, PVOID  SystemArgument2, OPTIONAL PPREDPC_CALLBACK preDPCCallback)
+{
+	PKDPC dpc;
+
+	if (preDPCCallback) //if preDPCCallback is set call it which may change the system arguments
+		preDPCCallback(cpunr, dpcfunction, DeferredContext, &SystemArgument1, &SystemArgument2);
+	
+
+	dpc = ExAllocatePool(NonPagedPool, sizeof(KDPC));
+	KeInitializeDpc(dpc, dpcfunction, DeferredContext);
+	KeSetTargetProcessorDpc(dpc, cpunr);
+	KeInsertQueueDpc(dpc, SystemArgument1, SystemArgument2);
+	KeFlushQueuedDpcs();
+
+	ExFreePool(dpc);
+}
+
+void forEachCpu(PKDEFERRED_ROUTINE dpcfunction,  PVOID DeferredContext, PVOID  SystemArgument1, PVOID  SystemArgument2, OPTIONAL PPREDPC_CALLBACK preDPCCallback)
 /*
 calls a specified dpcfunction for each cpu on the system
 */
@@ -101,7 +120,7 @@ calls a specified dpcfunction for each cpu on the system
 	PKDPC dpc;
 	int dpcnr;
 
-	
+
 	//KeIpiGenericCall is not present in xp
 	
 	//count cpus first KeQueryActiveProcessorCount is not present in xp)
@@ -117,6 +136,8 @@ calls a specified dpcfunction for each cpu on the system
 
 	dpc=ExAllocatePool(NonPagedPool, sizeof(KDPC)*cpucount);
 
+		
+
 	cpus=KeQueryActiveProcessors();
 	cpunr=0;
 	dpcnr=0;
@@ -126,7 +147,10 @@ calls a specified dpcfunction for each cpu on the system
 		{
 			//bit is set
 			
-			//DbgPrint("Calling dpc routine for cpunr %d\n", cpunr);
+			//DbgPrint("Calling dpc routine for cpunr %d (dpc=%p)\n", cpunr, &dpc[dpcnr]);
+
+			if (preDPCCallback)
+				preDPCCallback(cpunr, dpcfunction, DeferredContext, &SystemArgument1, &SystemArgument2);
 
 			KeInitializeDpc(&dpc[dpcnr], dpcfunction, DeferredContext);
 			KeSetTargetProcessorDpc (&dpc[dpcnr], cpunr);
@@ -144,7 +168,7 @@ calls a specified dpcfunction for each cpu on the system
 }
 
 
-void forEachCpuAsync(PKDEFERRED_ROUTINE dpcfunction, PVOID DeferredContext, PVOID  SystemArgument1, PVOID  SystemArgument2)
+void forEachCpuAsync(PKDEFERRED_ROUTINE dpcfunction, PVOID DeferredContext, PVOID  SystemArgument1, PVOID  SystemArgument2, OPTIONAL PPREDPC_CALLBACK preDPCCallback)
 /*
 calls a specified dpcfunction for each cpu on the system
 */
@@ -154,6 +178,7 @@ calls a specified dpcfunction for each cpu on the system
 	ULONG cpucount;
 	PKDPC dpc;
 	int dpcnr;
+
 
 
 	//KeIpiGenericCall is not present in xp
@@ -181,6 +206,8 @@ calls a specified dpcfunction for each cpu on the system
 			//bit is set
 
 			//DbgPrint("Calling dpc routine for cpunr %d\n", cpunr);
+			if (preDPCCallback) //if preDPCCallback is set call it which may change the system arguments
+				preDPCCallback(cpunr, dpcfunction, DeferredContext, &SystemArgument1, &SystemArgument2);
 
 			KeInitializeDpc(&dpc[dpcnr], dpcfunction, DeferredContext);
 			KeSetTargetProcessorDpc(&dpc[dpcnr], cpunr);
@@ -201,25 +228,17 @@ calls a specified dpcfunction for each cpu on the system
 
 
 //own critical section implementation for use when the os is pretty much useless (dbvm tech)
-void spinlock(volatile int *lockvar)
+void spinlock(volatile LONG *lockvar)
 {
-	DWORD a[4];
-	
-
 	while (1)
 	{
-		while (*(volatile int *)lockvar!=0)		
-		{
-			__nop();
-			__nop();
-			__cpuid(a,0); //serialize cpu's		
-			__nop();
-			__nop();
-		}
+
 		//it was 0, let's see if we can set it to 1
 		//race who can set it to 1:
-		if (_InterlockedExchange((volatile int *)lockvar, 1)==0)
+		if (_InterlockedExchange((volatile LONG *)lockvar, 1)==0)
 			return; //lock aquired, else continue loop
+
+		_mm_pause();
 
 	}
 
@@ -228,9 +247,6 @@ void spinlock(volatile int *lockvar)
 void csEnter(PcriticalSection CS)
 { 
 	EFLAGS oldstate=getEflags();
-	
-	int apicid=cpunr()+1; //+1 so it never returns 0
-	
 	
 	if ((CS->locked) && (CS->cpunr==cpunr())) 
 	{
@@ -251,8 +267,6 @@ void csEnter(PcriticalSection CS)
 
 void csLeave(PcriticalSection CS)
 {
-	int apicid=cpunr()+1; //+1 so it never returns 0
-  
 	if ((CS->locked) && (CS->cpunr==cpunr()))
 	{
 	    CS->lockcount--;
@@ -354,7 +368,7 @@ UINT64 getCR2(void)
 
 void setCR3(UINT64 newCR3)
 {
-	__writecr3(newCR3);
+	__writecr3((UINT_PTR)newCR3);
 }
 
 UINT64 getCR3(void)

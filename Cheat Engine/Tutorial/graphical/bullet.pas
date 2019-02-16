@@ -13,6 +13,7 @@ type
     instances2: integer; static;
     ftexture2: integer; static;
     fowner: TGameObject;
+    fmegabomb: boolean;
   protected
     function getWidth:single; override;
     function getHeight:single; override;
@@ -22,6 +23,7 @@ type
     damage: integer;
     function checkCollision(other: TGameObject): boolean; override;
 
+    property megabomb: boolean read fmegabomb write fmegabomb;
     procedure travel(time: single);
     constructor create(owner: TGameObject);
     destructor destroy; override;
@@ -55,11 +57,13 @@ end;
 function TBullet.getWidth:single;
 begin
   result:=0.05; //fwidth;
+  if megabomb then result:=result*3;
 end;
 
 function TBullet.getHeight:single;
 begin
   result:=0.05*1.6; //height
+  if megabomb then result:=result*3;
 end;
 
 function TBullet.getTexture: integer;

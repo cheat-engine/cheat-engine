@@ -89,8 +89,8 @@ begin
           WriteProcessMemory(processhandle, pointer(address+i), @b[i], 1, x);
       end;
     finally
-      freemem(ba);
-      ba:=nil;
+      freememandnil(ba);
+
     end;
 
     setlength(b,0);
@@ -145,8 +145,8 @@ begin
             WriteProcessMemory(processhandle, pointer(address), ba, customtype.bytesize, x);
           end;
         finally
-          freemem(ba);
-          ba:=nil;
+          freememandnil(ba);
+
         end;
       end;
     end;
@@ -255,8 +255,8 @@ begin
         pbytearray(ws)[bytesize]:=0;
         result:=utf16toutf8(ws);
       finally
-        freemem(ws);
-        ws:=nil;
+        freememandnil(ws);
+
       end;
     end;
 
@@ -349,8 +349,8 @@ begin
         if ReadProcessMemory(processhandle,pointer(address),buf2,bytesize,x) then
           result:=readAndParsePointer(address, buf2, variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
       finally
-        freemem(buf2);
-        buf2:=nil;
+        freememandnil(buf2);
+
       end;
     end;
 
@@ -364,8 +364,8 @@ begin
 
 
       finally
-        freemem(buf2);
-        buf2:=nil;
+        freememandnil(buf2);
+
       end;
     end;
 
@@ -378,8 +378,8 @@ begin
         if ReadProcessMemory(processhandle,pointer(address),buf2,bytesize,x) then
           result:=readAndParsePointer(address, buf2, variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
       finally
-        freemem(buf2);
-        buf2:=nil;
+        freememandnil(buf2);
+
       end;
     end;
 
@@ -393,8 +393,8 @@ begin
             result:=readAndParsePointer(address, buf2, variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
 
         finally
-          freemem(buf2);
-          buf2:=nil;
+          freememandnil(buf2);
+
         end;
       end;
     end;
@@ -426,8 +426,8 @@ begin
         tempbuf[size]:=0;
         result:=pchar(tempbuf);
       finally
-        freemem(tempbuf);
-        tempbuf:=nil;
+        freememandnil(tempbuf);
+
       end;
     end;
 
@@ -443,8 +443,8 @@ begin
         result:=tr;
 
       finally
-        freemem(tempbuf);
-        tempbuf:=nil;
+        freememandnil(tempbuf);
+
       end;
     end;
 
@@ -653,7 +653,7 @@ begin
         if InRange(psingle(@buf[0])^, -100000.0, 100000.0) then
         begin
 
-          if pos(DecimalSeparator,x)>0 then
+          if pos(DefaultFormatSettings.DecimalSeparator,x)>0 then
             floathasseperator:=true;
 
           result:=vtSingle;
@@ -740,7 +740,7 @@ begin
             result:=vtCustom;
             CustomType^:=customtypes[i];
 
-            if (pos(DecimalSeparator,x)=0) then
+            if (pos(DefaultFormatSettings.DecimalSeparator,x)=0) then
               break; //found one that has no decimal seperator
 
           end;

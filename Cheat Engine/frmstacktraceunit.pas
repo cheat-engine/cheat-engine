@@ -75,8 +75,9 @@ procedure TfrmStacktrace.stacktrace(threadhandle:thandle;context:_context);
 }
 
 var
-    stackframe: TSTACKFRAME_EX;
     cxt:_context;
+    stackframe: TSTACKFRAME_EX;
+
     wow64ctx: CONTEXT32;
     a,b,c,d: dword;
     sa,sb,sc,sd:string;
@@ -86,16 +87,16 @@ var
 
     found: boolean;
 begin
+  getmem(cp,sizeof(_context)+4096);
+  try
+    zeromemory(cp,sizeof(_context)+4096);
+    CopyMemory(cp,@context, sizeof(_context));
 
-  cxt:=context;
-  cp:=@cxt;
 
  // getmem(stackframe,sizeof(TSTACKFRAME_EX));
-  zeromemory(@stackframe,sizeof(TSTACKFRAME_EX));
+    zeromemory(@stackframe,sizeof(TSTACKFRAME_EX));
+    stackframe.StackFrameSize:=sizeof(TSTACKFRAME_EX);
 
-  stackframe.StackFrameSize:=sizeof(TSTACKFRAME_EX);
-
-  try
     stackframe.AddrPC.Offset:=context.{$ifdef cpu64}rip{$else}eip{$endif};
     stackframe.AddrPC.mode:=AddrModeFlat;
 
@@ -120,14 +121,12 @@ begin
       //   if (debuggerthread<>nil) and (debuggerthread.CurrentThread<>nil) then
 
       ZeroMemory(@wow64ctx, sizeof (wow64ctx));
-      wow64ctx.Eip:=cxt.Rip;       //shouldn't be needed though
-      wow64ctx.Ebp:=cxt.Rbp;
-      wow64ctx.Esp:=cxt.Rsp;
+      wow64ctx.Eip:=context.Rip;       //shouldn't be needed though
+      wow64ctx.Ebp:=context.Rbp;
+      wow64ctx.Esp:=context.Rsp;
       machinetype:=IMAGE_FILE_MACHINE_I386;
 
-
-      cp:=@wow64ctx;
-
+      copymemory(cp,@wow64ctx,sizeof(wow64ctx));
     end;
   {$endif}
 
@@ -154,7 +153,7 @@ begin
       listview1.items[listview1.Items.Count-1].SubItems.add(sa+','+sb+','+sc+','+sd+',...');
     end;
   finally
-   // freemem(stackframe);
+    freememandnil(cp);
   end;
 end;
 

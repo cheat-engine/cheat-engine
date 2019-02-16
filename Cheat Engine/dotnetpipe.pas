@@ -5,7 +5,7 @@ unit DotNetPipe;
 interface
 {$ifdef windows}
 uses
-  jwawindows, windows, Classes, SysUtils, CEFuncProc, syncobjs, NewKernelHandler, Globals;
+  jwawindows, windows, Classes, SysUtils, CEFuncProc, syncobjs, NewKernelHandler, Globals, maps;
 {$endif}
 
 {$ifdef unix}
@@ -13,15 +13,6 @@ uses
 uses unixporthelper, Unix, Classes, SysUtils, syncobjs, NewKernelHandler, Globals;
 {$endif}
 
-const
-  CMD_TARGETPROCESS=0;
-  CMD_CLOSEPROCESSANDQUIT=1;
-  CMD_RELEASEOBJECTHANDLE=2;
-  CMD_ENUMDOMAINS=3;
-  CMD_ENUMMODULELIST=4;
-  CMD_ENUMTYPEDEFS=5;
-  CMD_GETTYPEDEFMETHODS=6;
-  CMD_GETADDRESSDATA=7;
 
 
 
@@ -84,6 +75,21 @@ type
     fields: array of TFieldInfo;
   end;
 
+  type COR_TYPEID=record
+    token1: QWORD;
+    token2: QWORD;
+  end;
+
+  TDotNetObject=record
+    startaddress: qword;
+    size: dword;
+    typeid: COR_TYPEID;
+    classname: pwidechar;
+  end;
+  PDotNetObject=^TDotNetObject;
+
+  TDOTNETObjectList=tmap;
+
   TDotNetPipe=class
   private
     pipe: THandle;
@@ -108,6 +114,8 @@ type
     procedure EnumTypeDefs(hModule: UINT64; var TypeDefs: TDotNetTypeDefArray);
     procedure GetTypeDefMethods(hModule: UINT64; typedef: DWORD; var Methods: TDotNetMethodArray);
     procedure GetAddressData(address: UINT64; var addressdata: TAddressData);
+    function EnumAllObjects: TDOTNETObjectList;
+    procedure freeNETObjectList(list: TDOTNETObjectList);
 
     property Connected: boolean read fConnected;
     property Attached: boolean read fAttached;
@@ -117,6 +125,84 @@ type
 implementation
 
 uses DotNetTypes;
+
+const
+  CMD_TARGETPROCESS=0;
+  CMD_CLOSEPROCESSANDQUIT=1;
+  CMD_RELEASEOBJECTHANDLE=2;
+  CMD_ENUMDOMAINS=3;
+  CMD_ENUMMODULELIST=4;
+  CMD_ENUMTYPEDEFS=5;
+  CMD_GETTYPEDEFMETHODS=6;
+  CMD_GETADDRESSDATA=7;
+  CMD_GETALLOBJECTS=8;
+
+
+procedure TDotNetPipe.freeNETObjectList(list: TDOTNETObjectList);
+var
+  i: TMapIterator;
+  o: PDotNetObject;
+begin
+  i:=TMapIterator.Create(list);
+  i.First;
+  while not i.EOM do
+  begin
+    o:=i.DataPtr;
+    if o^.classname<>nil then
+    begin
+      FreeMemAndNil(o^.classname);
+
+    end;
+
+    i.Next;
+  end;
+
+  freeandnil(i);
+  freeandnil(list);
+end;
+
+function TDotNetPipe.EnumAllObjects: TDOTNETObjectList;
+var
+  msg: byte;
+  r: TDOTNETObjectList;
+
+  done: boolean=false;
+
+  o: TDotNetObject;
+  stringlength: DWORD;
+begin
+  msg:=CMD_GETALLOBJECTS;
+
+
+  r:=TDOTNETObjectList.Create(itu8,sizeof(TDotNetObject));
+
+  pipecs.enter;
+  try
+    write(msg, sizeof(msg));
+
+    while not done do
+    begin
+      read(o.startaddress,sizeof(o.startaddress));
+      read(o.size, sizeof(o.size));
+      read(o.typeid,sizeof(o.typeid));
+      read(stringlength, sizeof(stringlength));
+      getmem(o.classname, stringlength+2);
+      read(o.classname^,stringlength);
+      o.classname[stringlength div 2]:=#0;
+
+      if (o.startaddress=0) and (o.size=0) and (o.typeid.token1=0) and (o.typeid.token2=0) and (stringlength=0) then //end of list marker
+        break;
+
+
+      r.Add(o.startaddress,o);
+    end;
+
+  finally
+    pipecs.Leave;
+  end;
+
+  result:=r;
+end;
 
 procedure TDotNetPipe.GetAddressData(address: UINT64; var addressdata: TAddressData);
 var
@@ -182,7 +268,7 @@ begin
           cname[classnamesize div 2]:=#0;
           addressdata.classname:=cname;
 
-          freemem(cname);
+          FreeMemAndNil(cname);
         end;
 
         read(fieldcount, sizeof(fieldcount));
@@ -198,7 +284,7 @@ begin
           read(fieldname[0], fieldnamesize);
           fieldname[fieldnamesize div 2]:=#0;
           fi.name:=fieldname;
-          freemem(fieldname);
+          FreeMemAndNil(fieldname);
 
           //sort while adding
           inserted:=false;
@@ -272,7 +358,7 @@ begin
         mname[methodnamesize div 2]:=#0;
         methods[i].name:=mname;
       finally
-        freemem(mname);
+        FreeMemAndNil(mname);
       end;
 
       read(methods[i].attributes, sizeof(methods[i].attributes));
@@ -335,7 +421,7 @@ begin
         read(typedefs[i].flags, sizeof(typedefs[i].flags));
         read(typedefs[i].extends, sizeof(typedefs[i].extends));
       finally
-        freemem(typedefname);
+        FreeMemAndNil(typedefname);
       end;
     end;
 
@@ -387,7 +473,7 @@ begin
         name[namelength div 2]:=#0;
         Modules[i].name:=name;
       finally
-        freemem(name);
+        FreeMemAndNil(name);
       end;
 
     end;
@@ -401,10 +487,10 @@ begin
 
   //find modules not in the windir path
 
-  getmem(_windir,255);
+  getmem(_windir,256);
   GetWindowsDirectory(_windir, 255);
   windir:=lowercase(_windir);
-  freemem(_windir);
+  FreeMemAndNil(_windir);
 
 
   for i:=0 to length(modules)-1 do
@@ -478,7 +564,7 @@ begin
 
         domains[i].name:=name;
       finally
-        freemem(name);
+        FreeMemAndNil(name);
       end;
     end;
   finally
@@ -507,6 +593,7 @@ end;
 procedure TDotNetPipe.Read(var o; size: integer);
 var br: dword;
 begin
+  if (size=0) then exit;
   {$ifdef unix}
   fconnected:=false;
   {$else}
@@ -517,6 +604,7 @@ end;
 procedure TDotNetPipe.Write(const o; size: integer);
 var bw: dword;
 begin
+  if size=0 then exit;
   {$ifdef unix}
   fconnected:=false;
   {$else}

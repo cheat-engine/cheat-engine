@@ -47,7 +47,7 @@ typedef struct
 } __attribute__((__packed__)) IOExit_Qualification;
 
 
-int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters);
+int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *fxsave);
 
 
 ULONG getSegmentLimit(PGDT_ENTRY gdt, PGDT_ENTRY ldt, ULONG selector);
@@ -61,6 +61,17 @@ int setVM_CR0(pcpuinfo currentcpuinfo, UINT64 newcr0);
 int setVM_CR3(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, UINT64 newcr3);
 int setVM_CR4(pcpuinfo currentcpuinfo, UINT64 newcr4);
 
+int handleRealModeInt0x15(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, int instructionsize);
+int raisePMI();
+int raiseNMI(void);
+int raiseGeneralProtectionFault(UINT64 errorcode);
+
 int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, unsigned int cs, UINT64 rip, int haserrorcode, UINT64 errorcode, int isFault);
+
+WORD convertSegmentAccessRightsToSegmentAttrib(ULONG accessrights);
+
+extern criticalSection CR3ValueLogCS;
+extern QWORD *CR3ValueLog; //if not NULL, record
+extern int CR3ValuePos;
 
 #endif

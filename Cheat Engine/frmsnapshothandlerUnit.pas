@@ -106,14 +106,14 @@ begin
     freeandnil(pic);
 
   if constantbuffer<>nil then
-    Freemem(constantbuffer);
+    FreeMemAndNil(constantbuffer);
 
   if stack<>nil then
-    freemem(stack);
+    FreeMemAndNil(stack);
 
 
   if functionname<>nil then
-    freemem(functionname);
+    FreeMemAndNil(functionname);
 
   inherited destroy;
 end;

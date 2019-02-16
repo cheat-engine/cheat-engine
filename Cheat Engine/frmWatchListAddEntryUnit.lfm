@@ -8,7 +8,6 @@ object frmWatchListAddEntry: TfrmWatchListAddEntry
   ClientHeight = 219
   ClientWidth = 231
   OnShow = FormShow
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object edtExpression: TEdit

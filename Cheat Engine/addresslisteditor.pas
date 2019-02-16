@@ -21,6 +21,8 @@ when the view is scrolled/collapsed/expanded the owner should call UpdatePositio
 
 {$mode delphi}
 
+//{$warn 3057 off}
+
 interface
 
 uses
@@ -45,7 +47,7 @@ type
     procedure DoExit; override;
   public
     procedure UpdatePosition(left: integer);
-    constructor create(owner: TTreeView; memrec: TMemoryrecord; left: integer);
+    constructor create(owner: TTreeView; memrec: TMemoryrecord; left: integer); overload;
     destructor destroy; override;
   published
     property memrec: TMemoryrecord read fmemrec;

@@ -192,4 +192,6 @@ QWORD ultimap_handleMSRRead(pcpuinfo currentcpuinfo, DWORD msr)
         return readMSR(IA32_DS_AREA);
     }
   }
+
+  return 0;
 }

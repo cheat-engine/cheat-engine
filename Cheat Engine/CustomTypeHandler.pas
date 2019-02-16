@@ -47,6 +47,7 @@ type
 
     {$ifndef unix}
     c: TCEAllocArray;
+    ce: TCEExceptionListArray;
     {$endif}
     currentscript: tstringlist;
     fCustomTypeType: TCustomTypeType; //plugins set this to cttPlugin
@@ -341,7 +342,7 @@ begin
 
     lua_pushnumber(L, f);
     lua_pushinteger(L, address);
-    if lua_pcall(l,1,bytesize,0)=0 then
+    if lua_pcall(l,2,bytesize,0)=0 then
     begin
       r:=lua_gettop(L);
       if r>0 then
@@ -479,7 +480,7 @@ begin
 
     if currentscript<>nil then
     begin
-      autoassemble(currentscript,false, false, false, true, c); //popupmessages is false so it won't complain if there is no disable section
+      autoassemble(currentscript,false, false, false, true, c, ce); //popupmessages is false so it won't complain if there is no disable section
       freeandnil(currentscript);
     end;
   end;
@@ -538,7 +539,7 @@ begin
       try
         s.text:=script;
 
-        if autoassemble(s,false, true, false, true, c) then
+        if autoassemble(s,false, true, false, true, c, ce) then
         begin
           newpreferedalignment:=-1;
           newScriptUsesFloat:=false;
@@ -846,7 +847,7 @@ end;
 function registerCustomTypeAutoAssembler(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
-  typename: string;
+  typename: string='';
   bytecount: integer;
   script: string;
   ct: TCustomType;

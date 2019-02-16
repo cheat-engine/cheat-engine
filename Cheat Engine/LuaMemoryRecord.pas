@@ -171,7 +171,11 @@ begin
   if lua_gettop(L)>=1 then
   begin
     //address
-    memrec.interpretableaddress:=Lua_ToString(L, 1);
+    if lua_type(L,1)=LUA_TNUMBER then
+      memrec.interpretableaddress:=inttohex(lua_tointeger(L,1),8)
+    else
+      memrec.interpretableaddress:=Lua_ToString(L, 1);
+
     memrec.ReinterpretAddress(true);
     memrec.offsetCount:=0;
 

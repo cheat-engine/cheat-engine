@@ -1,7 +1,7 @@
 object FormDesigner: TFormDesigner
-  Left = 298
+  Left = 428
   Height = 55
-  Top = 138
+  Top = 127
   Width = 1061
   AutoSize = True
   BorderStyle = bsSizeToolWin
@@ -25,6 +25,7 @@ object FormDesigner: TFormDesigner
     Caption = 'ToolBar1'
     Images = ImageList1
     ParentShowHint = False
+    PopupMenu = pmToolbar
     ShowHint = True
     TabOrder = 0
     object NoSelection: TToolButton
@@ -2974,6 +2975,13 @@ object FormDesigner: TFormDesigner
       Caption = 'Add Tab'
       Visible = False
       OnClick = miAddTabClick
+    end
+  end
+  object pmToolbar: TPopupMenu
+    left = 920
+    object MenuItem2: TMenuItem
+      Caption = 'Add unlisted object'
+      OnClick = MenuItem2Click
     end
   end
 end

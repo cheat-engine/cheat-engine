@@ -22,7 +22,7 @@ type TThreadPoller=class(TSimpleThread)
     procedure execute; override;
 end;
 
-var ThreadPoller: TThreadPoller;
+//var ThreadPoller: TThreadPoller;
 
 implementation
 

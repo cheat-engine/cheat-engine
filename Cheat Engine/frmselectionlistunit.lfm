@@ -1,14 +1,13 @@
 object frmSelectionList: TfrmSelectionList
-  Left = 277
+  Left = 751
   Height = 232
-  Top = 235
+  Top = 154
   Width = 313
   BorderIcons = [biSystemMenu]
   Caption = 'title'
   ClientHeight = 232
   ClientWidth = 313
   OnShow = FormShow
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'
   object Label1: TLabel

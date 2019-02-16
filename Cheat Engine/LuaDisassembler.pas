@@ -70,6 +70,11 @@ begin
   ldd.description:=Lua_ToString(L, -1);
   lua_pop(L, 1);
 
+  lua_pushstring(L,'commentsoverride');
+  lua_gettable(L, t);
+  ldd.commentsoverride:=Lua_ToString(L, -1);
+  lua_pop(L, 1);
+
   lua_pushstring(L,'bytes');
   lua_gettable(L, t);
   bytestable:=lua_gettop(L);
@@ -150,6 +155,10 @@ begin
   lua_pushstring(L, ldd.description);
   lua_settable(L, t);
 
+  lua_pushstring(L,'commentsoverride');
+  lua_pushstring(L, ldd.commentsoverride);
+  lua_settable(L, t);
+
   lua_pushstring(L, 'bytes');
   lua_newtable(L);
   temptable:=lua_gettop(L);
@@ -215,6 +224,12 @@ begin
   result:=1;
 end;
 
+function createCR3Disassembler(L: PLua_State): integer; cdecl;
+begin
+  luaclass_newClass(L, TCR3Disassembler.Create);
+  result:=1;
+end;
+
 
 function getDefaultDisassembler(L: PLua_State): integer; cdecl;
 begin
@@ -242,6 +257,8 @@ end;
 procedure initializeLuaDisassembler;
 begin
   lua_register(LuaVM, 'createDisassembler', createDisassembler);
+  lua_register(LuaVM, 'createCR3Disassembler', createCR3Disassembler);
+
   lua_register(LuaVM, 'getDefaultDisassembler', getDefaultDisassembler);
   lua_register(LuaVM, 'getVisibleDisassembler', getVisibleDisassembler);
 end;

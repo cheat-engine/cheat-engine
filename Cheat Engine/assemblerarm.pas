@@ -1,6 +1,7 @@
 unit assemblerArm;
 
 {$mode objfpc}{$H+}
+{$warn 2005 off}
 
 interface
 

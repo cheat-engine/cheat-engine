@@ -75,7 +75,7 @@ begin
 
         result:=1;
       finally
-        freemem(lbrbuf);
+        FreeMemAndNil(lbrbuf);
       end;
     end;
 

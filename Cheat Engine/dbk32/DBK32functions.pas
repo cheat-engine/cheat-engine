@@ -5,7 +5,7 @@ unit DBK32functions;
 interface
 
 uses jwawindows, windows, sysutils, classes, types, registry, multicpuexecution,
-  forms,dialogs, controls, maps;
+  forms,dialogs, controls, maps, globals;
 
 //xp sp2
 //ThreadsProcess=220
@@ -13,7 +13,7 @@ uses jwawindows, windows, sysutils, classes, types, registry, multicpuexecution,
 
 
 
-const currentversion=2000023;
+const currentversion=2000024;
 
 const FILE_ANY_ACCESS=0;
 const FILE_SPECIAL_ACCESS=FILE_ANY_ACCESS;
@@ -141,6 +141,10 @@ const IOCTL_CE_GET_PEB                = (IOCTL_UNKNOWN_BASE shl 16) or ($085d sh
 const IOCTL_CE_QUERYINFORMATIONPROCESS= (IOCTL_UNKNOWN_BASE shl 16) or ($085e shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
 
+const IOCTL_CE_LOCK_MEMORY            = (IOCTL_UNKNOWN_BASE shl 16) or ($0860 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_UNLOCK_MEMORY          = (IOCTL_UNKNOWN_BASE shl 16) or ($0861 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+
+
 type TDeviceIoControl=function(hDevice: THandle; dwIoControlCode: DWORD; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesReturned: DWORD; lpOverlapped: POverlapped): BOOL; stdcall;
 
 
@@ -234,9 +238,10 @@ type
 
 
 var hdevice: thandle=INVALID_HANDLE_VALUE; //handle to my the device driver
+    hUltimapDevice: thandle=INVALID_HANDLE_VALUE;
     handlemap: TMap;
     handlemapMREW: TMultiReadExclusiveWriteSynchronizer;
-    driverloc: string;
+    driverloc, ultimapdriverloc: string;
     iamprotected:boolean;
     SDTShadow: DWORD;
     debugport: dword;
@@ -259,7 +264,7 @@ var hdevice: thandle=INVALID_HANDLE_VALUE; //handle to my the device driver
     oldNtReadVirtualMemory: function(ProcessHandle : HANDLE; BaseAddress : PVOID; Buffer : PVOID; BufferLength : ULONG; ReturnLength : PSIZE_T): NTSTATUS; stdcall;
     oldNtOpenProcess: function(Handle: PHandle; AccessMask: dword; objectattributes: pointer; clientid: PClient_ID):DWORD; stdcall;
 
-    NextPseudoHandle: integer=$ce000000;
+    NextPseudoHandle: integer=integer(dword($ce000000));
     DoNotOpenProcessHandles: Boolean=false;
     ProcessWatcherOpensHandles: Boolean=true;
 
@@ -336,6 +341,9 @@ procedure KernelFree(address: uint64); stdcall;
 function MapMemory(address: ptruint; size: dword; frompid: dword=0; topid: dword=0):TMapMemoryResult;
 procedure UnmapMemory(r: TMapMemoryResult);
 
+function LockMemory(processid: DWORD; address: ptruint; size: integer): QWORD;
+procedure UnlockMemory(MDLAddress: QWORD);
+
 function GetKProcAddress(s: pwidechar):pointer; stdcall;
 function GetKProcAddress64(s: pwidechar):uint64; stdcall;
 
@@ -354,7 +362,7 @@ procedure ultimap_pause;
 procedure ultimap_resume;
 
 
-procedure ultimap2(processid: dword; size: dword; outputfolder: widestring; ranges: TURangeArray);
+procedure ultimap2(processid: dword; size: dword; outputfolder: widestring; ranges: TURangeArray; noPMI: boolean=false);
 procedure ultimap2_disable;
 function  ultimap2_waitForData(timeout: dword; var output: TUltimap2DataEvent): boolean;
 procedure ultimap2_continue(cpunr: integer);
@@ -403,6 +411,9 @@ type TIsWow64Process=function (processhandle: THandle; var isWow: BOOL): BOOL; s
 
 function DeviceIoControl(hDevice: THandle; dwIoControlCode: DWORD; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesReturned: DWORD; lpOverlapped: POverlapped): BOOL; stdcall;
 
+function ReadProcessMemory64_Internal(processid:dword;lpBaseAddress:UINT64;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:PtrUInt):BOOL; stdcall;
+
+
 
 var kernel32dll: thandle;
     IsWow64Process: TIsWow64Process;
@@ -420,11 +431,13 @@ resourcestring
   rsYouAreMissingTheDriver = 'You are missing the driver. Try reinstalling cheat engine, and try to disable your anti-virus before doing so.';
   rsDriverError = 'Driver error';
   rsFailureToConfigureTheDriver = 'Failure to configure the driver';
-  rsPleaseRebootAndPressF8DuringBoot = 'Please reboot and press F8 during boot. Then choose "allow unsigned drivers". '+#13#10+'Alternatively you could sign the driver yourself.'+#13#10+'Just buy yourself a class 3 business signing certificate and sign the driver. Then you''ll never have to reboot again to use this driver';
+  rsFailureToConfigureTheUltimapDriver = 'Failure to configure the ultimap driver';
+  rsPleaseRebootAndPressF8DuringBoot = 'The driver failed to load due to signing issues. If you have secure boot enabled in your BIOS, set it to "Other OS" or disable it. Alternatively, boot with driver signing policy disabled, or sign the driver yourself';
   rsDbk32Error = 'DBK32 error';
-  rsTheServiceCouldntGetOpened = 'The service couldn''t get opened and also couldn''t get created.'+' Check if you have the needed rights to create a service, or call your system admin (Who''ll probably beat you up for even trying this). Untill this is fixed you won''t be able to make use of the enhancements the driver gives you';
+  rsTheServiceCouldntGetOpenedUltimap = 'The ultimap service couldn''t get opened and also couldn''t get created.  (No admin rights?)';
+  rsTheServiceCouldntGetOpened = 'The service couldn''t get opened and also couldn''t get created.'+' Check if you have the needed rights to create a service, or call your system admin (Who''ll probably beat you up for even trying this). Until this is fixed you won''t be able to make use of the enhancements the driver gives you';
   rsTheDriverCouldntBeOpened = 'The driver couldn''t be opened! It''s not loaded or not responding. Luckely you are running dbvm so it''s not a total waste. Do you wish to force load the driver?';
-  rsTheDriverCouldntBeOpenedTryAgain = 'The driver couldn''t be opened! It''s not loaded or not responding. I recommend to reboot your system and try again (If you''re on 64-bit windows, you might want to use dbvm)';
+  rsTheDriverCouldntBeOpenedTryAgain = 'The driver couldn''t be opened! It''s not loaded or not responding. I recommend to reboot your system and try again';
   rsTheDriverThatIsCurrentlyLoaded = 'The driver that is currently loaded belongs to a different version of Cheat Engine. Please unload this driver or reboot.';
   rsTheDriverFailedToSuccessfullyInitialize = 'The driver failed to successfully initialize. Some functions may not completely work';
   rsAPCRules = 'APC rules';
@@ -436,6 +449,7 @@ var dataloc: string;
 
 type TVirtualAllocEx=function(hProcess: THandle; lpAddress: Pointer; dwSize, flAllocationType: DWORD; flProtect: DWORD): Pointer; stdcall;
 var VirtualAllocEx: TVirtualAllocEx;
+
 
 function DeviceIoControl(hDevice: THandle; dwIoControlCode: DWORD; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesReturned: DWORD; lpOverlapped: POverlapped): BOOL; stdcall;
 begin
@@ -454,7 +468,9 @@ begin
   result:=true;
   if hdevice=INVALID_HANDLE_VALUE then
   begin
-    SigningIsTheCause^:=failedduetodriversigning;
+    if SigningIsTheCause<>nil then
+      SigningIsTheCause^:=failedduetodriversigning;
+
     result:=false;
   end;
 end;
@@ -487,17 +503,17 @@ var
 begin
   OutputDebugString('disable ultimap2');
   cc:=IOCTL_CE_DISABLEULTIMAP2;
-  deviceiocontrol(hdevice,cc,nil,0,nil,0,br,nil);
+  deviceiocontrol(hultimapdevice,cc,nil,0,nil,0,br,nil);
 end;
 
 
-procedure ultimap2(processid: dword; size: dword; outputfolder: widestring; ranges: TURangeArray);
+procedure ultimap2(processid: dword; size: dword; outputfolder: widestring; ranges: TURangeArray; noPMI: boolean=false);
 var
   inp:record
     PID: UINT32;
     BufferSize: UINT32;
     rangecount: UINT32;
-    reserved:   UINT32;
+    noPMI:      UINT32;
     range: array[0..7] of TURange;
     filename: array [0..199] of WideChar;
   end;
@@ -533,22 +549,28 @@ begin
 
   inp.rangecount:=min(8,length(ranges));
 
+  if noPMI then
+    inp.noPMI:=1
+  else
+    inp.noPMI:=0;
+
   for i:=0 to inp.rangecount-1 do
   begin
     inp.range[i]:=ranges[i];
     OutputDebugString(format('r%d : %x - %x', [i, inp.range[i].startAddress, inp.range[i].endaddress]));
   end;
 
+  outputdebugstring(format('Calling IOCTL_CE_ULTIMAP2(%x)\n',[IOCTL_CE_ULTIMAP2]));
 
   cc:=IOCTL_CE_ULTIMAP2;
-  deviceiocontrol(hdevice,cc,@inp,sizeof(inp),nil,0,br,nil);
+  deviceiocontrol(hUltimapDevice,cc,@inp,sizeof(inp),nil,0,br,nil);
 end;
 
 function  ultimap2_waitForData(timeout: dword; var output: TUltimap2DataEvent): boolean;
 var cc: dword;
 begin
   if (hdevice<>INVALID_HANDLE_VALUE) then
-    result:=deviceiocontrol(hdevice,IOCTL_CE_ULTIMAP2_WAITFORDATA,@timeout,sizeof(timeout),@output,sizeof(TUltimap2DataEvent),cc,nil)
+    result:=deviceiocontrol(hUltimapDevice,IOCTL_CE_ULTIMAP2_WAITFORDATA,@timeout,sizeof(timeout),@output,sizeof(TUltimap2DataEvent),cc,nil)
   else
     result:=false;
 end;
@@ -558,7 +580,7 @@ procedure ultimap2_continue(cpunr: integer);
 var cc: dword;
 begin
   if (hdevice<>INVALID_HANDLE_VALUE) then
-    deviceiocontrol(hdevice,IOCTL_CE_ULTIMAP2_CONTINUE,@cpunr,sizeof(cpunr),nil,0,cc,nil);
+    deviceiocontrol(hUltimapDevice,IOCTL_CE_ULTIMAP2_CONTINUE,@cpunr,sizeof(cpunr),nil,0,cc,nil);
 end;
 
 procedure ultimap2_flush;
@@ -566,7 +588,7 @@ var
   cc,br: dword;
 begin
   cc:=IOCTL_CE_ULTIMAP2_FLUSH;
-  deviceiocontrol(hdevice,cc,nil,0,nil,0,br,nil);
+  deviceiocontrol(hUltimapDevice,cc,nil,0,nil,0,br,nil);
 end;
 
 
@@ -575,7 +597,7 @@ var
   cc,br: dword;
 begin
   cc:=IOCTL_CE_ULTIMAP2_PAUSE;
-  deviceiocontrol(hdevice,cc,nil,0,nil,0,br,nil);
+  deviceiocontrol(hUltimapDevice,cc,nil,0,nil,0,br,nil);
 end;
 
 procedure ultimap2_resume;
@@ -583,21 +605,21 @@ var
   cc,br: dword;
 begin
   cc:=IOCTL_CE_ULTIMAP2_RESUME;
-  deviceiocontrol(hdevice,cc,nil,0,nil,0,br,nil);
+  deviceiocontrol(hUltimapDevice,cc,nil,0,nil,0,br,nil);
 end;
 
 procedure ultimap2_lockfile(cpunr: integer);
 var br: dword;
 begin
   if (hdevice<>INVALID_HANDLE_VALUE) then
-    deviceiocontrol(hdevice,IOCTL_CE_ULTIMAP2_LOCKFILE,@cpunr,sizeof(cpunr),nil,0,br,nil);
+    deviceiocontrol(hUltimapDevice,IOCTL_CE_ULTIMAP2_LOCKFILE,@cpunr,sizeof(cpunr),nil,0,br,nil);
 end;
 
 procedure ultimap2_releasefile(cpunr: integer);
 var br: dword;
 begin
   if (hdevice<>INVALID_HANDLE_VALUE) then
-    deviceiocontrol(hdevice,IOCTL_CE_ULTIMAP2_RELEASEFILE,@cpunr,sizeof(cpunr),nil,0,br,nil);
+    deviceiocontrol(hUltimapDevice,IOCTL_CE_ULTIMAP2_RELEASEFILE,@cpunr,sizeof(cpunr),nil,0,br,nil);
 end;
 
 function ultimap2_getTraceSize: UINT64;
@@ -607,7 +629,7 @@ var
 begin
   size:=0;
   if (hdevice<>INVALID_HANDLE_VALUE) then
-    deviceiocontrol(hdevice,IOCTL_CE_ULTIMAP2_GETTRACESIZE,nil,0,@size,sizeof(size),br,nil);
+    deviceiocontrol(hUltimapDevice,IOCTL_CE_ULTIMAP2_GETTRACESIZE,nil,0,@size,sizeof(size),br,nil);
 
   result:=size;
 end;
@@ -616,7 +638,7 @@ procedure ultimap2_resetTraceSize;
 var br: dword;
 begin
   if (hdevice<>INVALID_HANDLE_VALUE) then
-    deviceiocontrol(hdevice,IOCTL_CE_ULTIMAP2_RESETTRACESIZE,nil,0,nil,0,br,nil);
+    deviceiocontrol(hUltimapDevice,IOCTL_CE_ULTIMAP2_RESETTRACESIZE,nil,0,nil,0,br,nil);
 end;
 
 function dbk_enabledrm(preferedAltitude: word=0; protectedEProcess: qword=0): boolean;
@@ -873,6 +895,11 @@ function GetCR3FromPID(pid: system.QWORD;var CR3:system.QWORD):BOOL; stdcall;
 var cc:dword;
     x,y:dword;
     _cr3: uint64;
+    __cr3: uint64;
+
+    z: ptruint;
+
+    eprocess: uint64;
 begin
   cr3:=0;
   result:=false;
@@ -883,8 +910,24 @@ begin
     result:=deviceiocontrol(hdevice,cc,@x,4,@_cr3,8,y,nil);
 
     outputdebugstring(pchar('GetCR3: return '+inttohex(_cr3,16)));
+
+    if (_cr3 and $fff)>0 then
+    begin
+    //  RPM();
+      //windows 10 usermode/kernelmode seperation
+      eprocess:=GetPEProcess(pid);
+      if ReadProcessMemory64_Internal(pid, eprocess+$278, @__cr3, 8,z) then
+      begin
+        if (__cr3 and qword($fffffffffffff000))<>0 then
+          _cr3:=__cr3;
+        //else it has no special usermode page (administrator level app)
+      end;
+      //readProcessMemory(processhandle,  GetPEProcess(pid);
+    end;
     if result then CR3:=_cr3 else cr3:=0;
   end;
+
+
 end;
 
 
@@ -1108,7 +1151,7 @@ begin
 
       end;
 
-      freemem(buf);
+      freememandnil(buf);
     end;
   end;
 end;
@@ -1297,6 +1340,12 @@ var ao: array [0..600] of byte;
     bufpointer:ptrUint;
 begin
   //processhandle is just there for compatibility in case I want to quickly wrap it over read/writeprocessmemory
+  if vmx_loaded and (dbvm_version>=$ce00000a) then
+  begin
+    numberofbytesread:=dbvm_read_physical_memory(qword(lpBaseAddress), lpBuffer, nSize);
+    exit(numberofbytesread=nSize);
+  end;
+
   result:=false;
   numberofbytesread:=0;
   if hdevice<>INVALID_HANDLE_VALUE then
@@ -1587,7 +1636,7 @@ begin
         else
           result:=STATUS_ACCESS_DENIED;
       except
-        result:=STATUS_ACCESS_VIOLATION;
+        result:=NTSTATUS(STATUS_ACCESS_VIOLATION);
       end;
 
       if result=0 then exit;
@@ -1679,11 +1728,11 @@ begin
 
             OutPutDebugString('Before Copy');
 
-            if (ProcessInformation<>nil) and (result<$80000000) then
+            if (ProcessInformation<>nil) and (DWORD(result)<$80000000) then
             try
               copymemory(ProcessInformation, @(outp^.data[0]),outp.returnlength);
             except
-              result:=STATUS_ACCESS_VIOLATION;
+              result:=NTSTATUS(STATUS_ACCESS_VIOLATION);
             end;
             OutPutDebugString('After Copy');
           end
@@ -1696,11 +1745,11 @@ begin
               result:=oldNtQueryInformationProcess(ProcessHandle, ProcessInformationClass, ProcessInformation, ProcessInformationLength, ReturnLength)
             end
             else
-              result:=STATUS_ACCESS_VIOLATION;
+              result:=NTSTATUS(STATUS_ACCESS_VIOLATION);
           end;
 
         finally
-          freemem(outp);
+          freememandnil(outp);
         end;
 
         exit;
@@ -2013,7 +2062,7 @@ begin
      // outputdebugstring('IOCTL_CE_GETACCESSEDMEMORYLIST failed');
     end;
 
-    freemem(ranges);
+    freememandnil(ranges);
   end;
 
 
@@ -2343,8 +2392,44 @@ begin
     cc:=IOCTL_CE_UNMAP_MEMORY;
     deviceiocontrol(hdevice,cc,@input,sizeof(input),nil,0,cc,nil);
   end;
+end;
 
+function LockMemory(processid: DWORD; address: ptruint; size: integer): QWORD;
+var cc: dword;
+    input: packed record
+      ProcessID: uint64;
+      address: uint64;
+      size: uint64;
+    end;
+    output: record
+      mdl: uint64;
+    end;
+begin
+  result:=0;
+  input.processid:=processid;
+  input.address:=address;
+  input.size:=size;
 
+  if (hdevice<>INVALID_HANDLE_VALUE) then
+  begin
+    cc:=IOCTL_CE_LOCK_MEMORY;
+    if deviceiocontrol(hdevice,cc,@input,sizeof(input),@output,sizeof(output),cc,nil) then
+      result:=output.mdl;
+  end;
+end;
+
+procedure UnlockMemory(MDLAddress: QWORD);
+var cc: dword;
+    input: record
+      mdl: uint64;
+    end;
+begin
+  input.mdl:=MDLAddress;
+  if (hdevice<>INVALID_HANDLE_VALUE) then
+  begin
+    cc:=IOCTL_CE_UNLOCK_MEMORY;
+    deviceiocontrol(hdevice,cc,@input,sizeof(input),nil,0,cc,nil);
+  end;
 end;
 
 function GetKProcAddress(s: pwidechar):pointer; stdcall;
@@ -2567,15 +2652,6 @@ var
 begin
   result:=QWORD($ffffffffffffffff);
 
-  if dbvm_version>=6 then
-  begin
-    try
-      result:=dbvm_readMSR(msr); //will raise a GPF if it doesn't exist
-      exit;
-    except
-    end;
-  end;
-
   if (hdevice<>INVALID_HANDLE_VALUE) then
   begin
     cc:=IOCTL_CE_READMSR;
@@ -2586,7 +2662,17 @@ begin
       raise exception.create(rsInvalidMsrAddress+inttohex(msr,1));
   end
   else
-    raise exception.create(rsMsrsAreUnavailable);
+  begin
+    if dbvm_version>=$ce000006 then
+    begin
+      try
+        result:=dbvm_readMSR(msr); //will raise a GPF if it doesn't exist
+      except
+      end;
+    end
+    else
+      raise exception.create(rsMsrsAreUnavailable);
+  end;
 end;
 
 procedure writeMSR(msr: dword; value: qword);
@@ -2648,11 +2734,12 @@ var
 
   temp: widestring;
 
-  proc, sys: DWORD_PTR;
+  proc, sys, thread: DWORD_PTR;
 
   cpuid: integer;
   fc: dword;
 begin
+
 
   if (hdevice<>INVALID_HANDLE_VALUE) then
   begin
@@ -2669,6 +2756,7 @@ begin
 
       GetProcessAffinityMask(GetCurrentProcess, proc, sys);
       SetProcessAffinityMask(GetCurrentProcess, 1 shl cpuid);
+      SetThreadAffinityMask(GetCurrentThread, 1 shl cpuid);
       sleep(10);
     end
     else
@@ -2704,7 +2792,10 @@ begin
     configure_vmx(vmx_password1, vmx_password2);
 
     if parameters<>nil then
+    begin
       SetProcessAffinityMask(GetCurrentProcess, proc);
+      SetThreadAffinityMask(GetCurrentThread, proc);
+    end;
 
   end else result:=false;
 end;
@@ -2712,6 +2803,8 @@ end;
 
 procedure LaunchDBVM(cpuid: integer); stdcall;
 begin
+  LoadDBK32;
+
   OutputDebugString('LaunchDBVM('+inttostr(cpuid)+') Before check');
 
   if (not vmx_enabled) or (cpuid<>-1) then
@@ -2947,7 +3040,7 @@ end;
 
 
 var hscManager: thandle;
-    hservicE: thandle;
+    hservice, hUltimapService: thandle;
 
 var sav: pchar;
     apppath: pchar;
@@ -2957,6 +3050,7 @@ var sav: pchar;
  //   win32kaddress: ptrUint;
  //   win32size:dword;
     servicename,sysfile: string;
+    ultimapservicename, ultimapsysfile: string;
     vmx_p1_txt,vmx_p2_txt: string;
 
 
@@ -3001,12 +3095,19 @@ begin
         begin
           outputdebugstring('b1');
           servicename:='CEDRIVER60';
+          ultimapservicename:='ULTIMAP2';
           processeventname:='DBKProcList60';
           threadeventname:='DBKThreadList60';
           if iswow64 then
-            sysfile:='dbk64.sys'
+          begin
+            sysfile:='dbk64.sys';
+            ultimapsysfile:='ultimap2-64.sys';
+          end
           else
+          begin
             sysfile:='dbk32.sys';
+            ultimapsysfile:='';
+          end;
 
           vmx_p1_txt:='76543210';
           vmx_p2_txt:='fedcba98';
@@ -3021,16 +3122,15 @@ begin
           readln(driverdat,sysfile);
           readln(driverdat,vmx_p1_txt);
           readln(driverdat,vmx_p2_txt);
+          readln(driverdat,ultimapservicename);
+          readln(driverdat,ultimapsysfile);
           closefile(driverdat);
-
-
         end;
 
-
-
         driverloc:=extractfilepath(apppath)+sysfile;
+        ultimapdriverloc:=extractfilepath(apppath)+ultimapsysfile;
       finally
-        freemem(apppath);
+        freememandnil(apppath);
       end;
 
 
@@ -3038,24 +3138,109 @@ begin
         configure_vmx(strtoint('$'+vmx_p1_txt), strtoint('$'+vmx_p2_txt) );
       except
         //couldn't parse the password
-
       end;
 
 
-
-
-
-      if not fileexists(driverloc) then
+      if (not fileexists(driverloc)) and (not fileexists(ultimapdriverloc)) then
       begin
         messagebox(0,PChar(rsYouAreMissingTheDriver),PChar(rsDriverError),MB_ICONERROR or mb_ok);
         hDevice:=INVALID_HANDLE_VALUE;
+        hUltimapDevice:=INVALID_HANDLE_VALUE;
         exit;
       end;
 
 
-
       if hscmanager<>0 then
       begin
+        //try loading ultimap
+        hUltimapService:=0;
+        hultimapdevice:=INVALID_HANDLE_VALUE;
+
+        if fileexists(ultimapdriverloc) then
+        begin
+          hUltimapService := OpenService(hSCManager, pchar(ultimapservicename), SERVICE_ALL_ACCESS);
+          if hUltimapService=0 then
+          begin
+            hUltimapService:=CreateService(
+               hSCManager,           // SCManager database
+               pchar(ultimapservicename),   // name of service
+               pchar(ultimapservicename),   // name to display
+               SERVICE_ALL_ACCESS,   // desired access
+               SERVICE_KERNEL_DRIVER,// service type
+               SERVICE_DEMAND_START, // start type
+               SERVICE_ERROR_NORMAL, // error control type
+               pchar(ultimapdriverloc),     // service's binary
+               nil,                  // no load ordering group
+               nil,                  // no tag identifier
+               nil,                  // no dependencies
+               nil,                  // LocalSystem account
+               nil                   // no password
+            );
+          end
+          else
+          begin
+            //make sure the service points to the right file
+            ChangeServiceConfig(hultimapservice,
+                                SERVICE_KERNEL_DRIVER,
+                                SERVICE_DEMAND_START,
+                                SERVICE_ERROR_NORMAL,
+                                pchar(ultimapdriverloc),
+                                nil,
+                                nil,
+                                nil,
+                                nil,
+                                nil,
+                                pchar(ultimapservicename));
+          end;
+
+        end;
+
+
+        if hUltimapService<>0 then
+        begin
+          sav:=nil;
+
+          //setup the configuration parameters before starting the driver
+          reg:=tregistry.Create;
+          reg.RootKey:=HKEY_LOCAL_MACHINE;
+          if reg.OpenKey('\SYSTEM\CurrentControlSet\Services\'+ultimapservicename,false) then
+          begin
+            reg.WriteString('A','\Device\'+ultimapservicename);
+            reg.WriteString('B','\DosDevices\'+ultimapservicename);
+
+            if startservice(hultimapservice,0,pointer(sav))=false then
+            begin
+              outputdebugstring('Failed to load ultimap2:'+inttostr(GetLastError));
+            end
+            else
+              OutputDebugString('started ultimap2');
+
+            closeservicehandle(hUltimapService);
+            hUltimapService:=0;
+          end;
+
+          hultimapDevice := CreateFile(pchar('\\.\'+ultimapservicename),
+                        GENERIC_READ or GENERIC_WRITE,
+                        FILE_SHARE_READ or FILE_SHARE_WRITE,
+                        nil,
+                        OPEN_EXISTING,
+                        FILE_FLAG_OVERLAPPED,
+                        0);
+
+          reg.DeleteValue('A');
+          reg.DeleteValue('B');
+
+          freeandnil(reg);
+        end
+        else
+          OutputDebugString('Failed to open/create ultimap service');
+
+
+        if hultimapDevice=INVALID_HANDLE_VALUE then
+          OutputDebugString('Failed to open ultimap device');
+
+        //load DBK
+
         hService := OpenService(hSCManager, pchar(servicename), SERVICE_ALL_ACCESS);
         if hService=0 then
         begin
@@ -3123,6 +3308,7 @@ begin
           end;
 
           closeservicehandle(hservice);
+          hservice:=0;
         end else
         begin
           messagebox(0,PChar(rsTheServiceCouldntGetOpened),PChar(rsDbk32Error),MB_ICONERROR or mb_ok);
@@ -3187,6 +3373,13 @@ begin
               messagebox(0,rsTheDriverFailedToSuccessfullyInitialize,'DBK',MB_ICONERROR or MB_OK);
               }
 
+          end;
+
+          //.in case the ultimap driver is missing or fail to load, fall back on DBK (which has the same ioctl values)
+          if (hdevice<>INVALID_HANDLE_VALUE) and (hUltimapDevice=INVALID_HANDLE_VALUE) then
+          begin
+            hUltimapDevice:=hDevice;
+            OutputDebugString('Falling back on DBK for ultimap2');
           end;
         end;
 

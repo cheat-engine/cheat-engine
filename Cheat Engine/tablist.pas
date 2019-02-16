@@ -207,6 +207,7 @@ var
 begin
   inherited Paint;
 
+  selectedx:=0;
   lastx:=0;
 
   //create a total of 'fTabs.count' tabs

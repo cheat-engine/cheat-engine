@@ -9,8 +9,8 @@ interface
 
 uses
   windows, LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, symbolhandler, CEFuncProc,NewKernelHandler, autoassembler,
-  ExtCtrls, ComCtrls, stacktrace2, math, Menus, syncobjs, Contnrs, circularbuffer,
+  Dialogs, StdCtrls, symbolhandler, symbolhandlerstructs, CEFuncProc,NewKernelHandler,
+  autoassembler, ExtCtrls, ComCtrls, stacktrace2, math, Menus, syncobjs, Contnrs, circularbuffer,
   LResources, commonTypeDefs;
 
 
@@ -181,6 +181,7 @@ type
 
     hookscript: tstringlist;
     hookallocarray: TCEAllocArray;
+    exceptionlist: TCEExceptionListArray;
 
     maxlevel: integer;
     pointermask: integer;
@@ -919,8 +920,8 @@ begin
       if addresslist[i].MemrecArray<>nil then
       begin
         deletepath(addresslist[i].MemrecArray,level+1, maxlevel);
-        freemem(addresslist[i].MemrecArray);
-        addresslist[i].MemrecArray:=nil;
+        freememandnil(addresslist[i].MemrecArray);
+
       end;
     end;
 
@@ -980,14 +981,14 @@ begin
     generateAPIHookScript(hookscript,'RtlFreeHeap','CeRtlFreeHeap', 'RtlFreeHeapOrig','3');
     generateAPIHookScript(hookscript,'RtlDestroyHeap','CeRtlDestroyHeap', 'RtlDestroyHeapOrig','4');
 
-    if not autoassemble(hookscript,false,true,false,false,hookallocarray) then raise exception.Create(rsFailureToHook);
+    if not autoassemble(hookscript,false,true,false,false,hookallocarray, exceptionlist) then raise exception.Create(rsFailureToHook);
   end
   else
   begin
     //unload
     if hookscript=nil then exit; //should never happen
 
-    if not autoassemble(hookscript,false,false,false,false,hookallocarray) then raise exception.Create(rsFailureToHook);
+    if not autoassemble(hookscript,false,false,false,false,hookallocarray, exceptionlist) then raise exception.Create(rsFailureToHook);
 
     freeandnil(hookscript);
   end;

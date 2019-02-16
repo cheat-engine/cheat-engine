@@ -513,7 +513,7 @@ begin
     else
     begin
       //from a file
-      loadedmodule:=virtualalloc(nil,maxaddress, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+      loadedmodule:=virtualalloc(nil,maxaddress, MEM_COMMIT or MEM_RESERVE, PAGE_EXECUTE_READWRITE);
       if loadedmodule=nil then raise exception.create(rsPEFailureAtAllocationMemory);
       ZeroMemory(loadedmodule,maxaddress);
 
@@ -857,14 +857,7 @@ begin
 
             end;
 
-            freemem(tempstring);
-
-
-
-
-
-
-
+            freememandnil(tempstring);
           end;
         end;
 
@@ -906,7 +899,7 @@ begin
     f:=tfilestream.Create(opendialog1.filename, fmOpenRead or fmShareDenyNone	);
     try
       if memorycopy<>nil then
-        freemem(memorycopy);
+        freememandnil(memorycopy);
 
       if loadedmodule<>nil then
       begin
@@ -930,10 +923,13 @@ end;
 procedure TfrmPEInfo.FormDestroy(Sender: TObject);
 begin
   if memorycopy<>nil then
-    freemem(memorycopy);
+    freememandnil(memorycopy);
 
   if loadedmodule<>nil then
+  begin
     VirtualFree(loadedmodule,0,MEM_RELEASE);
+    loadedmodule:=nil
+  end;
 end;
 
 procedure TfrmPEInfo.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -1045,12 +1041,12 @@ begin
 
   if loadedmodule<>nil then
   begin
-    virtualfree(loadedmodule,0,MEM_RELEASE	);
+    virtualfree(loadedmodule,0,MEM_RELEASE);
     loadedmodule:=nil;
   end;
 
   if memorycopy<>nil then
-    freemem(memorycopy);
+    freememandnil(memorycopy);
 
   getmem(memorycopy,4096);
   try
@@ -1065,7 +1061,7 @@ begin
     imagesize:=peinfo_getimagesize(memorycopy);
 
   finally
-    freemem(memorycopy);
+    freememandnil(memorycopy);
 
   end;
 

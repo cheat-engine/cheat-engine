@@ -6,7 +6,8 @@ interface
 
 uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,symbolhandler, ComCtrls, ExtCtrls, Menus, LResources;
+  Dialogs, StdCtrls,symbolhandler, symbolhandlerstructs, ComCtrls, ExtCtrls,
+  Menus, LResources;
 
 type
 
@@ -91,7 +92,7 @@ begin
           li.SubItems.Add(inttohex(dword(extradata^.allocsize),8));
       end;
 
-      freemem(extradata);
+      freememandnil(extradata);
     end;
   finally
     sl.free;

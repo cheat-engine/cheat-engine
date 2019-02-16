@@ -22,7 +22,7 @@ type TPointerscanResult=packed record
   modulenr: integer;
   moduleoffset: int64;
   offsetcount: integer;
-  offsets: array [0..1000] of dword;
+  offsets: array [0..1000] of integer;
 end;
 type PPointerscanResult= ^TPointerscanResult;
 
@@ -202,13 +202,13 @@ begin
   begin
     it.GetData(fn);
     rs.add(fn);
-    freemem(fn);
+    freememandnil(fn);
     it.Next;
   end;
 
   it.free;
   filemap.Clear;
-  filemap.Free;
+  freeandnil(filemap);
 
 end;
 
@@ -297,10 +297,6 @@ begin
  // OutputDebugString('InitializeCache');
 
   if i>=fcount then exit;
-
-
-
-
 
   //find which file to use
   for j:=0 to length(files)-1 do
@@ -726,7 +722,7 @@ begin
  // getmem(cache2, sizeofEntry*maxcachecount);
   InitializeCache(0);
 
-  freemem(temppchar);
+  freememandnil(temppchar);
   configfile.Free;
 
 
@@ -763,10 +759,10 @@ begin
   ReleaseFiles;
 
   if compressedTempBuffer<>nil then
-    freemem(compressedTempBuffer);
+    freememandnil(compressedTempBuffer);
 
   if compressedPointerScanResult<>nil then
-    freemem(compressedPointerScanResult);
+    freememandnil(compressedPointerScanResult);
 
 end;
 

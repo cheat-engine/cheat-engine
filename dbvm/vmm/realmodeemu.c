@@ -12,6 +12,7 @@
 #include "distorm.h"
 
 #include "vmeventhandler.h"
+#include "vmcall.h"
 
 #ifndef DEBUG
 #define sendstringf(s,x...)
@@ -35,7 +36,7 @@ int opcode_CALLE8(pcpuinfo currentcpuinfo, PINSTRUCTIONDATA id)
 
   if (!id->opperandsize)
   {
-    WORD *stack=(WORD *)mapVMmemory(currentcpuinfo, vmread(vm_guest_ss_base)+(vmread(vm_guest_rsp) & 0xffff)-2, 2, currentcpuinfo->AvailableVirtualAddress, &error, &pagefaultaddress);
+    WORD *stack=(WORD *)mapVMmemory(currentcpuinfo, vmread(vm_guest_ss_base)+(vmread(vm_guest_rsp) & 0xffff)-2, 2, &error, &pagefaultaddress);
     signed short int offset=*(signed short int *)&id->instruction[id->size];
     sendstringf("%x:%x CALL near relative offset=%d\n\r",vmread(vm_guest_cs), vmread(vm_guest_rip), offset);
     id->size+=2;
@@ -55,6 +56,8 @@ int opcode_CALLE8(pcpuinfo currentcpuinfo, PINSTRUCTIONDATA id)
     vmwrite(vm_guest_rip,newip);
 
     id->size=0;
+
+    unmapVMmemory(stack,2);
     return 2; //handled, but don't change eip, I already did it
   }
   else
@@ -94,7 +97,7 @@ int opcode_INTCD(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTION
 
 }
 
-int opcode_JMPE9(pcpuinfo currentcpuinfo, PINSTRUCTIONDATA id)
+int opcode_JMPE9(pcpuinfo currentcpuinfo UNUSED, PINSTRUCTIONDATA id)
 {
   if (!id->opperandsize)
   {
@@ -156,9 +159,6 @@ int opcode_JMPEB(PINSTRUCTIONDATA id)
   WORD newip;
 
   //While interrupt handling is not implemented:
-  UINT64 guestrflags=vmread(vm_guest_rflags);
-  PRFLAGS pguestrflags=(PRFLAGS)&guestrflags;
-
   sendstringf("%x:%x JMP short offset=%d\n\r",vmread(vm_guest_cs), vmread(vm_guest_rip), offset);
   id->size+=1;
   newip=vmread(vm_guest_rip);
@@ -174,10 +174,6 @@ int opcode_JMPEB(PINSTRUCTIONDATA id)
 
 int opcode_LGDT(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTIONDATA id)
 {
-  int error;
-  UINT64 pagefaultaddress;
-
-
   sendstring("LGDT\n\r");
 
   handleMODRM(vmregisters, id);
@@ -186,7 +182,7 @@ int opcode_LGDT(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTIOND
 
   sendstringf("For address %x\n\r",id->address);
 
-  BYTE *address=(BYTE *)mapVMmemory(currentcpuinfo, id->address, 16, currentcpuinfo->AvailableVirtualAddress, &error, &pagefaultaddress);
+  BYTE *address=(BYTE *)mapVMmemory(currentcpuinfo, id->address, 16, NULL, NULL);
   WORD gdtlimit=*(WORD*)&address[0];
   DWORD gdtbase=*(DWORD*)&address[2];
 
@@ -199,16 +195,13 @@ int opcode_LGDT(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTIOND
 //  vmwrite(vm_guest_gdtr_base,gdtbase);
 //  vmwrite(vm_guest_gdt_limit,gdtlimit);
 
+  unmapVMmemory(address,16);
   return 0;
 }
 
 
 int opcode_LIDT(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTIONDATA id)
 {
-  int error;
-  UINT64 pagefaultaddress;
-
-
   sendstring("LIDT\n\r");
 
   handleMODRM(vmregisters, id);
@@ -217,7 +210,7 @@ int opcode_LIDT(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTIOND
 
   sendstringf("For address %x\n\r",id->address);
 
-  BYTE *address=(BYTE *)mapVMmemory(currentcpuinfo, id->address, 16, currentcpuinfo->AvailableVirtualAddress, &error, &pagefaultaddress);
+  BYTE *address=(BYTE *)mapVMmemory(currentcpuinfo, id->address, 16, NULL, NULL);
   WORD idtlimit=*(WORD*)&address[0];
   DWORD idtbase=*(DWORD*)&address[2];
 
@@ -227,9 +220,7 @@ int opcode_LIDT(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTIOND
   currentcpuinfo->RealMode.IDTBase=idtbase;
   currentcpuinfo->RealMode.IDTLimit=idtlimit;
 
-  //vmwrite(vm_guest_idtr_base,idtbase);
-  //vmwrite(vm_guest_idt_limit,idtlimit);
-
+  unmapVMmemory(address,16);
   return 0;
 }
 
@@ -248,18 +239,21 @@ int opcode_LMSW(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTIOND
   if (id->opperand2==-1)
   {
     //address     (opperandsize is fixed to 16 bit)
-    WORD *address=(WORD *)mapVMmemory(currentcpuinfo, id->address, 16, currentcpuinfo->AvailableVirtualAddress, &error, &pagefaultaddress);
+    WORD *address=(WORD *)mapVMmemory(currentcpuinfo, id->address, 16, &error, &pagefaultaddress);
 
     sendstringf("id->address=%x\n\r",id->address);
 
 
     if (error)
     {
-      sendstring("Failure mapping memory\n\r");
+      sendstringf("Failure mapping memory %6\n\r", pagefaultaddress);
       return 1;
     }
 
-    return setVM_CR0(currentcpuinfo, (vmread(vm_cr0_fakeread) & 0xffff0000) | *address);
+    int r=setVM_CR0(currentcpuinfo, (vmread(vm_cr0_read_shadow) & 0xffff0000) | *address);
+
+    unmapVMmemory(address, 16);
+    return r;
   }
   else
   {
@@ -267,14 +261,14 @@ int opcode_LMSW(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTIOND
 
     switch (id->opperand2)
     {
-      case 0: return setVM_CR0(currentcpuinfo, (vmread(vm_cr0_fakeread) & 0xffff0000) | ( vmregisters->rax & 0xffff) );
-      case 1: return setVM_CR0(currentcpuinfo, (vmread(vm_cr0_fakeread) & 0xffff0000) | ( vmregisters->rcx & 0xffff) );
-      case 2: return setVM_CR0(currentcpuinfo, (vmread(vm_cr0_fakeread) & 0xffff0000) | ( vmregisters->rdx & 0xffff) );
-      case 3: return setVM_CR0(currentcpuinfo, (vmread(vm_cr0_fakeread) & 0xffff0000) | ( vmregisters->rbx & 0xffff) );
-      case 4: return setVM_CR0(currentcpuinfo, (vmread(vm_cr0_fakeread) & 0xffff0000) | ( vmread(vm_guest_rsp) & 0xffff) );
-      case 5: return setVM_CR0(currentcpuinfo, (vmread(vm_cr0_fakeread) & 0xffff0000) | ( vmregisters->rbp & 0xffff) );
-      case 6: return setVM_CR0(currentcpuinfo, (vmread(vm_cr0_fakeread) & 0xffff0000) | ( vmregisters->rsi & 0xffff) );
-      case 7: return setVM_CR0(currentcpuinfo, (vmread(vm_cr0_fakeread) & 0xffff0000) | ( vmregisters->rdi & 0xffff) );
+      case 0: return setVM_CR0(currentcpuinfo, (vmread(vm_cr0_read_shadow) & 0xffff0000) | ( vmregisters->rax & 0xffff) );
+      case 1: return setVM_CR0(currentcpuinfo, (vmread(vm_cr0_read_shadow) & 0xffff0000) | ( vmregisters->rcx & 0xffff) );
+      case 2: return setVM_CR0(currentcpuinfo, (vmread(vm_cr0_read_shadow) & 0xffff0000) | ( vmregisters->rdx & 0xffff) );
+      case 3: return setVM_CR0(currentcpuinfo, (vmread(vm_cr0_read_shadow) & 0xffff0000) | ( vmregisters->rbx & 0xffff) );
+      case 4: return setVM_CR0(currentcpuinfo, (vmread(vm_cr0_read_shadow) & 0xffff0000) | ( vmread(vm_guest_rsp) & 0xffff) );
+      case 5: return setVM_CR0(currentcpuinfo, (vmread(vm_cr0_read_shadow) & 0xffff0000) | ( vmregisters->rbp & 0xffff) );
+      case 6: return setVM_CR0(currentcpuinfo, (vmread(vm_cr0_read_shadow) & 0xffff0000) | ( vmregisters->rsi & 0xffff) );
+      case 7: return setVM_CR0(currentcpuinfo, (vmread(vm_cr0_read_shadow) & 0xffff0000) | ( vmregisters->rdi & 0xffff) );
     }
 
 
@@ -299,35 +293,35 @@ int opcode_MOV0F20(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTI
       switch (id->opperand2)
       {
         case 0:
-          vmregisters->rax=vmread(vm_cr0_fakeread);
+          vmregisters->rax=vmread(vm_cr0_read_shadow);
           return 0;
 
         case 1:
-          vmregisters->rcx=vmread(vm_cr0_fakeread);
+          vmregisters->rcx=vmread(vm_cr0_read_shadow);
           return 0;
 
         case 2:
-          vmregisters->rdx=vmread(vm_cr0_fakeread);
+          vmregisters->rdx=vmread(vm_cr0_read_shadow);
           return 0;
 
         case 3:
-          vmregisters->rbx=vmread(vm_cr0_fakeread);
+          vmregisters->rbx=vmread(vm_cr0_read_shadow);
           return 0;
 
         case 4:
-          vmwrite(vm_guest_rsp,vmread(vm_cr0_fakeread));
+          vmwrite(vm_guest_rsp,vmread(vm_cr0_read_shadow));
           return 0;
 
         case 5:
-          vmregisters->rbx=vmread(vm_cr0_fakeread);
+          vmregisters->rbx=vmread(vm_cr0_read_shadow);
           return 0;
 
         case 6:
-          vmregisters->rsi=vmread(vm_cr0_fakeread);
+          vmregisters->rsi=vmread(vm_cr0_read_shadow);
           return 0;
 
         case 7:
-          vmregisters->rdi=vmread(vm_cr0_fakeread);
+          vmregisters->rdi=vmread(vm_cr0_read_shadow);
           return 0;
       }
 
@@ -377,35 +371,35 @@ int opcode_MOV0F20(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTI
       switch (id->opperand2)
       {
         case 0:
-          vmregisters->rax=vmread(vm_cr4_fakeread);
+          vmregisters->rax=vmread(vm_cr4_read_shadow);
           return 0;
 
         case 1:
-          vmregisters->rcx=vmread(vm_cr4_fakeread);
+          vmregisters->rcx=vmread(vm_cr4_read_shadow);
           return 0;
 
         case 2:
-          vmregisters->rdx=vmread(vm_cr4_fakeread);
+          vmregisters->rdx=vmread(vm_cr4_read_shadow);
           return 0;
 
         case 3:
-          vmregisters->rbx=vmread(vm_cr4_fakeread);
+          vmregisters->rbx=vmread(vm_cr4_read_shadow);
           return 0;
 
         case 4:
-          vmwrite(vm_guest_rsp,vmread(vm_cr4_fakeread));
+          vmwrite(vm_guest_rsp,vmread(vm_cr4_read_shadow));
           return 0;
 
         case 5:
-          vmregisters->rbx=vmread(vm_cr4_fakeread);
+          vmregisters->rbx=vmread(vm_cr4_read_shadow);
           return 0;
 
         case 6:
-          vmregisters->rsi=vmread(vm_cr4_fakeread);
+          vmregisters->rsi=vmread(vm_cr4_read_shadow);
           return 0;
 
         case 7:
-          vmregisters->rdi=vmread(vm_cr4_fakeread);
+          vmregisters->rdi=vmread(vm_cr4_read_shadow);
           return 0;
       }
 
@@ -421,6 +415,8 @@ int opcode_MOV0F22(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTI
   //mov CRx,XX
   sendstring("MOV 0F 22\n\r");
 
+
+
   handleMODRM(vmregisters, id);
   if (id->error)
     return 1;
@@ -428,6 +424,7 @@ int opcode_MOV0F22(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTI
   switch (id->opperand)
   {
     case 0: //CR0
+      sendstringf("old CR0=%8\n\r", vmread(vm_guest_cr0));
       switch (id->opperand2)
       {
         case 0: return setVM_CR0(currentcpuinfo, vmregisters->rax);
@@ -503,7 +500,9 @@ int opcode_MOV8B(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTION
       {
         int error=0;
         QWORD pagefaultaddress;
-        value=*(WORD *)mapVMmemory(currentcpuinfo, id->address, 2, currentcpuinfo->AvailableVirtualAddress, &error, &pagefaultaddress);
+        WORD *v=mapVMmemory(currentcpuinfo, id->address, 2, &error, &pagefaultaddress);
+        value=*(WORD *)v;
+        unmapVMmemory(v,2);
         break;
       }
 
@@ -619,9 +618,10 @@ int opcode_MOV8E(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTION
   {
     int error=0;
     QWORD pagefaultaddress;
-    WORD *address=(WORD *)mapVMmemory(currentcpuinfo, id->address, 2, currentcpuinfo->AvailableVirtualAddress, &error, &pagefaultaddress);
+    WORD *address=(WORD *)mapVMmemory(currentcpuinfo, id->address, 2, &error, &pagefaultaddress);
 
     setSegment(id->opperand, *address);
+    unmapVMmemory(address, 2);
     return 0;
   }
   else
@@ -641,6 +641,9 @@ int opcode_MOVSA5(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTIO
   int error;
   UINT64 pagefaultaddress;
 
+  if (moves==0)
+    return 0;
+
 /*  sendstring("MOVSx A5\n");
   if (id->rep)
     sendstring("REP ");
@@ -651,34 +654,42 @@ int opcode_MOVSA5(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTIO
   if (id->addresssize)
   {
     //32-bit addressing, 2 byte operand
-    WORD *destination=(WORD *)mapVMmemory(currentcpuinfo, vmregisters->rdi, bytespermove*moves, currentcpuinfo->AvailableVirtualAddress, &error, &pagefaultaddress);
-    WORD *source=(WORD *)mapVMmemory(currentcpuinfo, vmregisters->rsi, bytespermove*moves, currentcpuinfo->AvailableVirtualAddress+0x00200000, &error, &pagefaultaddress);
+    int mapsize=bytespermove*moves;
+
+
+
+    //TODO: watch for breakpoints
 
     if (vmregisters->rdi < vmmstart)
     {
 
       if (pguestrflags->DF==0)
       {
+        WORD *destination=(WORD *)mapVMmemory(currentcpuinfo, vmregisters->rdi, bytespermove*moves, &error, &pagefaultaddress);
+        WORD *source=(WORD *)mapVMmemory(currentcpuinfo, vmregisters->rsi, bytespermove*moves, &error, &pagefaultaddress);
+
+
         copymem(destination,source,bytespermove*moves);
         vmregisters->rdi+=bytespermove*moves;
         vmregisters->rsi+=bytespermove*moves;
         vmregisters->rcx=0;
+
+        unmapVMmemory(destination,mapsize);
+        unmapVMmemory(source,mapsize);
+
       }
       else
       {
-        //slow method
-        copymem(destination,source,bytespermove);
-        vmregisters->rsi-=bytespermove;
-        vmregisters->rdi-=bytespermove;
+        WORD *destination=(WORD *)mapVMmemory(currentcpuinfo, vmregisters->rdi-bytespermove*(moves-1), bytespermove*moves, &error, &pagefaultaddress);
+        WORD *source=(WORD *)mapVMmemory(currentcpuinfo, vmregisters->rsi-bytespermove*(moves-1), bytespermove*moves, &error, &pagefaultaddress);
 
-        if (id->rep)
-        {
-          vmregisters->rcx--;
-          if (vmregisters->rcx!=0)
-          {
-            id->size=0; //so eip doesn't go up
-          }
-        }
+        copymem(destination,source,bytespermove*moves);
+        vmregisters->rsi-=bytespermove*moves;
+        vmregisters->rdi-=bytespermove*moves;
+        vmregisters->rcx=0;
+
+        unmapVMmemory(destination,mapsize);
+        unmapVMmemory(source,mapsize);
       }
 
 
@@ -690,6 +701,7 @@ int opcode_MOVSA5(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTIO
       vmregisters->rdi+=vmregisters->rcx*bytespermove;
       vmregisters->rcx=0;
     }
+
 
 
 
@@ -874,7 +886,7 @@ int opcode_MOVC6(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTION
     sendstringf("id->address=%x\n\r",id->address);
     sendstringf("id->size=%d\n\r", id->size);
 
-    BYTE *address=(BYTE *)mapVMmemory(currentcpuinfo, id->address, 16, currentcpuinfo->AvailableVirtualAddress, &error, &pagefaultaddress);
+    BYTE *address=(BYTE *)mapVMmemory(currentcpuinfo, id->address, 16, &error, &pagefaultaddress);
 
     if (error)
     {
@@ -886,6 +898,7 @@ int opcode_MOVC6(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTION
     *address=id->instruction[id->size];
 
     id->size+=1;
+    unmapVMmemory(address,16);
   }
   else
   {
@@ -955,7 +968,7 @@ int opcode_MOVC7(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTION
     if (id->opperandsize)
     {
       //32-bit
-      DWORD *address=(DWORD *)mapVMmemory(currentcpuinfo, id->address, 16, currentcpuinfo->AvailableVirtualAddress, &error, &pagefaultaddress);
+      DWORD *address=(DWORD *)mapVMmemory(currentcpuinfo, id->address, 16, &error, &pagefaultaddress);
 
       if (error)
       {
@@ -967,11 +980,12 @@ int opcode_MOVC7(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTION
       *address=*(DWORD *)&id->instruction[id->size];
 
       id->size+=4;
+      unmapVMmemory(address,16);
     }
     else
     {
       //64-bit
-      WORD *address=(WORD *)mapVMmemory(currentcpuinfo, id->address, 16, currentcpuinfo->AvailableVirtualAddress, &error, &pagefaultaddress);
+      WORD *address=(WORD *)mapVMmemory(currentcpuinfo, id->address, 16, &error, &pagefaultaddress);
 
       if (error)
       {
@@ -981,6 +995,7 @@ int opcode_MOVC7(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTION
 
 
       *address=*(WORD *)&id->instruction[id->size];
+      unmapVMmemory(address,16);
 
       id->size+=2;
     }
@@ -1085,7 +1100,7 @@ int opcode_POP58to5F(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUC
   {
     //16 bit
     //take the value from the stack
-    WORD *stack=(WORD *)mapVMmemory(currentcpuinfo, vmread(vm_guest_ss_base)+(vmread(vm_guest_rsp) & 0xffff), 2, currentcpuinfo->AvailableVirtualAddress, &error, &pagefaultaddress);
+    WORD *stack=(WORD *)mapVMmemory(currentcpuinfo, vmread(vm_guest_ss_base)+(vmread(vm_guest_rsp) & 0xffff), 2, &error, &pagefaultaddress);
 
     //write the value of *stack to the chosen register
     switch (offset)
@@ -1126,11 +1141,12 @@ int opcode_POP58to5F(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUC
     //increase sp with 2
     vmwrite(vm_guest_rsp, (vmread(vm_guest_rsp) & 0xffffffffffff0000ULL) + (WORD)(vmread(vm_guest_rsp)+2));
 
+    unmapVMmemory(stack,2);
   }
   else
   {
     //32-bit
-    DWORD *stack=(DWORD *)mapVMmemory(currentcpuinfo, vmread(vm_guest_ss_base)+(vmread(vm_guest_rsp) & 0xffff), 4, currentcpuinfo->AvailableVirtualAddress, &error, &pagefaultaddress);
+    DWORD *stack=(DWORD *)mapVMmemory(currentcpuinfo, vmread(vm_guest_ss_base)+(vmread(vm_guest_rsp) & 0xffff), 4, &error, &pagefaultaddress);
 
     //write the value of *stack to the chosen register
     switch (offset)
@@ -1171,19 +1187,22 @@ int opcode_POP58to5F(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUC
 
     //increase sp with 4
     vmwrite(vm_guest_rsp, (vmread(vm_guest_rsp) & 0xffffffffffff0000ULL) + (WORD)(vmread(vm_guest_rsp)+4));
+    unmapVMmemory(stack,4);
   }
 
   return 0; //all ok
 }
 
-int opcode_POPSegment(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTIONDATA id,int segment)
+int opcode_POPSegment(pcpuinfo currentcpuinfo, VMRegisters *vmregisters UNUSED, PINSTRUCTIONDATA id,int segment)
 {
   int error;
 
   UINT64 pagefaultaddress;
 
   //ignore the extra 16-bit when in 32-bit opperand mode, it's useless anyhow
-  WORD segmentvalue=*(WORD *)mapVMmemory(currentcpuinfo, vmread(vm_guest_ss_base)+vmread(vm_guest_rsp), 2, currentcpuinfo->AvailableVirtualAddress, &error, &pagefaultaddress);
+  WORD *sv=mapVMmemory(currentcpuinfo, vmread(vm_guest_ss_base)+vmread(vm_guest_rsp), 2, &error, &pagefaultaddress);
+  WORD segmentvalue=*sv;
+  unmapVMmemory(sv,2);
 
   sendstring("POPSegment\n");
 
@@ -1200,6 +1219,7 @@ int opcode_POPSegment(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRU
   }
 
   setSegment(segment, segmentvalue);
+
   return 0;
 }
 
@@ -1218,7 +1238,7 @@ int opcode_PUSH50to57(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRU
 	//decrease sp with 2
 	vmwrite(vm_guest_rsp, (vmread(vm_guest_rsp) & 0xffffffffffff0000ULL) + (WORD)(vmread(vm_guest_rsp)-2));
 
-    WORD *stack=(WORD *)mapVMmemory(currentcpuinfo, vmread(vm_guest_ss_base)+(vmread(vm_guest_rsp) & 0xffff), 2, currentcpuinfo->AvailableVirtualAddress, &error, &pagefaultaddress);
+    WORD *stack=(WORD *)mapVMmemory(currentcpuinfo, vmread(vm_guest_ss_base)+(vmread(vm_guest_rsp) & 0xffff), 2, &error, &pagefaultaddress);
 
     //write the value of the register to *stack
     switch (offset)
@@ -1257,14 +1277,15 @@ int opcode_PUSH50to57(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRU
     }
 
 
+    unmapVMmemory(stack, 2);
 
   }
   else
   {
     //32-bit
-	//decrease sp with 2
-	vmwrite(vm_guest_rsp, (vmread(vm_guest_rsp) & 0xffffffffffff0000ULL) + (WORD)(vmread(vm_guest_rsp)-4));
-    DWORD *stack=(DWORD *)mapVMmemory(currentcpuinfo, vmread(vm_guest_ss_base)+(vmread(vm_guest_rsp) & 0xffff), 4, currentcpuinfo->AvailableVirtualAddress, &error, &pagefaultaddress);
+	  //decrease sp with 2
+  	vmwrite(vm_guest_rsp, (vmread(vm_guest_rsp) & 0xffffffffffff0000ULL) + (WORD)(vmread(vm_guest_rsp)-4));
+    DWORD *stack=(DWORD *)mapVMmemory(currentcpuinfo, vmread(vm_guest_ss_base)+(vmread(vm_guest_rsp) & 0xffff), 4, &error, &pagefaultaddress);
 
     //write the value of *stack to the chosen register
     switch (offset)
@@ -1302,12 +1323,14 @@ int opcode_PUSH50to57(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRU
         break;
     }
 
+    unmapVMmemory(stack, 4);
+
   }
 
   return 0; //all ok
 }
 
-int opcode_PUSHSegment(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTIONDATA id,int segment)
+int opcode_PUSHSegment(pcpuinfo currentcpuinfo, VMRegisters *vmregisters UNUSED, PINSTRUCTIONDATA id,int segment)
 {
   int error;
   UINT64 pagefaultaddress;
@@ -1318,19 +1341,23 @@ int opcode_PUSHSegment(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTR
   {
     //16-bit
     WORD sp=vmread(vm_guest_rsp)-2;
-    WORD *stack=(DWORD *)mapVMmemory(currentcpuinfo, vmread(vm_guest_ss_base)+sp, 2, currentcpuinfo->AvailableVirtualAddress, &error, &pagefaultaddress);
+    WORD *stack=mapVMmemory(currentcpuinfo, vmread(vm_guest_ss_base)+sp, 2, &error, &pagefaultaddress);
 
     *stack=segmentValue;
     vmwrite(vm_guest_rsp, sp);
+
+    unmapVMmemory(stack,2);
 
   }
   else
   {
     //32-bit
     WORD sp=vmread(vm_guest_rsp)-4;
-    DWORD *stack=(DWORD *)mapVMmemory(currentcpuinfo, vmread(vm_guest_ss_base)+sp, 2, currentcpuinfo->AvailableVirtualAddress, &error, &pagefaultaddress);
+    DWORD *stack=mapVMmemory(currentcpuinfo, vmread(vm_guest_ss_base)+sp, 4, &error, &pagefaultaddress);
     *stack=segmentValue;
     vmwrite(vm_guest_rsp, sp);
+
+    unmapVMmemory(stack,4);
   }
 
   return 0;
@@ -1338,7 +1365,7 @@ int opcode_PUSHSegment(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTR
 
 
 
-int opcode_PUSH68(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTIONDATA id)
+int opcode_PUSH68(pcpuinfo currentcpuinfo, VMRegisters *vmregisters UNUSED, PINSTRUCTIONDATA id)
 {
   int error;
   UINT64 pagefaultaddress;
@@ -1350,7 +1377,7 @@ int opcode_PUSH68(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTIO
   {
     //16-bit push
     WORD sp=vmread(vm_guest_rsp)-2;
-    WORD *stack=(WORD *)mapVMmemory(currentcpuinfo, vmread(vm_guest_ss_base)+sp, 2, currentcpuinfo->AvailableVirtualAddress, &error, &pagefaultaddress);
+    WORD *stack=(WORD *)mapVMmemory(currentcpuinfo, vmread(vm_guest_ss_base)+sp, 2, &error, &pagefaultaddress);
 
     value=*(WORD *)&id->instruction[id->size];
     id->size+=2;
@@ -1359,21 +1386,57 @@ int opcode_PUSH68(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTIO
 
     *stack=value;
     vmwrite(vm_guest_rsp, sp);
+    unmapVMmemory(stack,2);
   }
   else
   {
     //32-bit push
     WORD sp=vmread(vm_guest_rsp)-4;
-    DWORD *stack=(DWORD *)mapVMmemory(currentcpuinfo, vmread(vm_guest_ss_base)+sp, 2, currentcpuinfo->AvailableVirtualAddress, &error, &pagefaultaddress);
+    DWORD *stack=(DWORD *)mapVMmemory(currentcpuinfo, vmread(vm_guest_ss_base)+sp, 4, &error, &pagefaultaddress);
 
     value=*(DWORD *)&id->instruction[id->size];
     id->size+=4;
 
     *stack=value;
     vmwrite(vm_guest_rsp, sp);
+    unmapVMmemory(stack, 4);
   }
 
   return 0; //handled
+}
+
+int opcode_RDMSR0F32(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
+{
+  DWORD MSR=vmregisters->rcx;
+  sendstringf("Reading msr %x\n", MSR);
+  QWORD value=readMSRSafe(MSR);
+
+  if (currentcpuinfo->LastInterrupt)
+  {
+    emulateRMinterrupt(currentcpuinfo, vmregisters, currentcpuinfo->LastInterrupt);
+    return 2;
+  }
+
+  vmregisters->rax=value & 0xffffffff;
+  vmregisters->rdx=value >> 32;
+
+  return 0;
+}
+
+int opcode_WRMSR0F30(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
+{
+  DWORD MSR=vmregisters->rcx;
+  QWORD value=(vmregisters->rdx << 32) | vmregisters->rax;
+  sendstringf("Writing msr %x\n", MSR);
+  writeMSRSafe(MSR, value);
+
+  if (currentcpuinfo->LastInterrupt)
+  {
+    emulateRMinterrupt(currentcpuinfo, vmregisters, currentcpuinfo->LastInterrupt);
+    return 2;
+  }
+
+  return 0;
 }
 
 int opcode_RETC3(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTIONDATA id)
@@ -1391,35 +1454,39 @@ EIP  tempEIP;
 	 */
   if (!id->opperandsize)
   {
-	WORD retaddress;
+    WORD retaddress;
 
-	WORD sp=vmread(vm_guest_rsp);
-	WORD *stack=(WORD *)mapVMmemory(currentcpuinfo, vmread(vm_guest_ss_base)+sp, 2, currentcpuinfo->AvailableVirtualAddress, &error, &pagefaultaddress);
-	sendstring("16 bit ret\n");
+    WORD sp=vmread(vm_guest_rsp);
+    WORD *stack=(WORD *)mapVMmemory(currentcpuinfo, vmread(vm_guest_ss_base)+sp, 2, &error, &pagefaultaddress);
+    sendstring("16 bit ret\n");
 
-	retaddress=*stack;
+    retaddress=*stack;
 
-	sendstringf("retaddress=%8\n", retaddress);
+    unmapVMmemory(stack,2);
 
-	sendstringf("sp was %8\n", sp);
-	sp=sp+2;
-	vmwrite(vm_guest_rsp, sp);
-	sendstringf("sp becomes %8\n", sp);
+    sendstringf("retaddress=%8\n", retaddress);
+
+    sendstringf("sp was %8\n", sp);
+    sp=sp+2;
+    vmwrite(vm_guest_rsp, sp);
+    sendstringf("sp becomes %8\n", sp);
 
 
-	if (sp<=1) //overflow in the stack segment
-	{
-		sendstringf("sp (%8) causes an stack error\n", sp);
-		emulateRMinterrupt(currentcpuinfo, vmregisters, 12);
-		return 2;
-	}
+    if (sp<=1) //overflow in the stack segment
+    {
+      sendstringf("sp (%8) causes an stack error\n", sp);
+      emulateRMinterrupt(currentcpuinfo, vmregisters, 12);
+      return 2;
+    }
 
-	//calculate what rip is for this segment base
+    //calculate what rip is for this segment base
 
-	retaddress=vmread(vm_guest_cs_base)+retaddress;
+    retaddress=vmread(vm_guest_cs_base)+retaddress;
 
-	vmwrite(vm_guest_rip, retaddress & 0xffff);
-	return 2; //handled (and I changed rip myself)
+    vmwrite(vm_guest_rip, retaddress & 0xffff);
+
+
+    return 2; //handled (and I changed rip myself)
   }
 
   return 1;
@@ -1467,7 +1534,7 @@ int opcode_STI(void)
   return 0;
 }
 
-int opcode_CLD(pcpuinfo currentcpuinfo)
+int opcode_CLD(pcpuinfo currentcpuinfo UNUSED)
 {
   UINT64 guestrflags=vmread(vm_guest_rflags);
   PRFLAGS pguestrflags=(PRFLAGS)&guestrflags;
@@ -1524,7 +1591,7 @@ int opcode_XOR31(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTION
     if (id->opperandsize)
     {
       //32-bit
-      DWORD *address=(DWORD *)mapVMmemory(currentcpuinfo, id->address, 16, currentcpuinfo->AvailableVirtualAddress, &error, &pagefaultaddress);
+      DWORD *address=(DWORD *)mapVMmemory(currentcpuinfo, id->address, 16, &error, &pagefaultaddress);
       if (error)
       {
         sendstring("Failure mapping memory\n\r");
@@ -1533,11 +1600,13 @@ int opcode_XOR31(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTION
 
       result=*address ^ opperandvalue;
       *address=result;
+
+      unmapVMmemory(address,16);
     }
     else
     {
       //16 bit
-      WORD *address=(WORD *)mapVMmemory(currentcpuinfo, id->address, 16, currentcpuinfo->AvailableVirtualAddress, &error, &pagefaultaddress);
+      WORD *address=(WORD *)mapVMmemory(currentcpuinfo, id->address, 16, &error, &pagefaultaddress);
       if (error)
       {
         sendstring("Failure mapping memory\n\r");
@@ -1546,8 +1615,8 @@ int opcode_XOR31(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTION
 
 
       result=*address ^ opperandvalue;
-
       *address=result;
+      unmapVMmemory(address,16);
     }
   }
   else
@@ -1687,7 +1756,7 @@ int getparityflag(unsigned char value)
   return (count % 2 == 0);
 }
 
-int emulateRMinterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, int intnr)
+int emulateRMinterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters UNUSED, int intnr)
 /*
  * Pre: If software bp then CS:EIP points to the instruction AFTER the software breakpoint
  */
@@ -2267,6 +2336,12 @@ int emulateRMinstruction2(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PIN
         case 0x22: //MOV CR0,x (0) MOV CR2,x (2) MOV CR3,x (3) MOV CR4,x (4)
           return opcode_MOV0F22(currentcpuinfo, vmregisters, id);
 
+        case 0x30: //wrmsr
+          return opcode_WRMSR0F30(currentcpuinfo, vmregisters);
+
+        case 0x32: //rdmsr
+          return opcode_RDMSR0F32(currentcpuinfo, vmregisters);
+
         case 0xa0: //PUSH FS
           return opcode_PUSHSegment(currentcpuinfo, vmregisters, id, 4);
 
@@ -2392,8 +2467,9 @@ int emulateRMinstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     //clear the old interruptability flag
 
     if (old_vm_guest_interruptability_state)
+    {
       sendstringf("Clearing the interuptability state.  old_vm_guest_interruptability_state=%d and vm_guest_interruptability_state=%d\n", old_vm_guest_interruptability_state, vmread(vm_guest_interruptability_state) );
-
+    }
 
     vmwrite(vm_guest_interruptability_state, (~(old_vm_guest_interruptability_state & 3)) & vmread(vm_guest_interruptability_state)); //the old interuptability state gets set to 0, a new bit will stay
 
@@ -2416,8 +2492,10 @@ int emulateHLT(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
   if (pguestrflags->IF)
   {
-	  currentcpuinfo->OnInterrupt.RIP=(volatile void *)&&InterruptFired; //set interrupt location
+	  currentcpuinfo->OnInterrupt.RIP=(QWORD)(volatile void *)(&&InterruptFired); //set interrupt location
 	  currentcpuinfo->OnInterrupt.RSP=getRSP();
+	  currentcpuinfo->OnInterrupt.RBP=getRBP();
+	  asm volatile ("": : :"memory");
 
 	  __asm("sti"); //enable interrupts
 	  __asm("hlt"); //this nop is ignored
@@ -2427,8 +2505,13 @@ int emulateHLT(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 	  sendstringf("emulateHLT returned without an interrupt! WTF!");
 	  currentcpuinfo->OnInterrupt.RIP=0;
 	  result=-1;
+	  asm volatile ("": : :"memory");
 
-	  InterruptFired:
+InterruptFired:
+    currentcpuinfo->OnInterrupt.RIP=0; //set interrupt location
+    currentcpuinfo->OnInterrupt.RSP=0;
+    currentcpuinfo->OnInterrupt.RBP=0;
+
 	  if (result==2)
 	  {
 		  sendstringf("emulateHLT caught interrupt %d", currentcpuinfo->LastInterrupt);
@@ -2469,7 +2552,7 @@ int testRMinterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
       bochsbp();
 
-      currentcpuinfo->OnInterrupt.RIP=(volatile void *)&&InterruptFired; //set interrupt location
+      currentcpuinfo->OnInterrupt.RIP=(QWORD)(volatile void *)(&&InterruptFired); //set interrupt location
       currentcpuinfo->OnInterrupt.RSP=getRSP();
 
       __asm("sti"); //enable interrupts
@@ -2582,168 +2665,8 @@ int emulateRealMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     switch (address)
     {
 
-      case 0x20067:
-      case 0x20068:
-      case 0x2006a:
-      case 0x2006d:
-      case 0x2006f:
-      case 0x20072:
-      case 0x20075:
-      case 0x20076:
-      case 0x20079:
-      case 0x2007c: //IRET
 
-      case 0x200c5:
-      case 0x200ca:
-      case 0x200d0:
-      case 0x200d9:
-      case 0x200de:
-      case 0x200df:
-      case 0x200e5:
-      case 0x200e8:
-      case 0x200eb:
-      case 0x200ec:
-      case 0x200ed:
-      case 0x200f0:
-      case 0x200f3:
-      case 0x200f6:
-      case 0x200f9:
-      case 0x200fc:
-      case 0x200ff:
-      case 0x20102:
-      case 0x20105:
-      case 0x20106:
-      case 0x20107:
-      case 0x20108:
-      case 0x2010b:
-      case 0x2010e:
-      case 0x20111:
-      case 0x20114:
-      case 0x20115:
-      case 0x20117:
-      case 0x20119:
-      case 0x2011b:
-      case 0x2011d:
-      case 0x2011f:
-      case 0x20122:
-      case 0x20124:
-      case 0x20127:
-      case 0x2012b:
-      case 0x2012e:
-      case 0x2012f:
-      case 0x20130: //CLD
-      case 0x20131:
-      case 0x20132:
-
-      case 0x202f4:
-      case 0x202f9:
-
-      case 0x20826:
-      case 0x2082b:
-      case 0x20830:
-      case 0x20833:
-      case 0x20836:
-
-      case 0x208a0:
-      case 0x208a5:
-      case 0x208a8:
-      case 0x208a9:
-      case 0x208aa:
-      case 0x208ab:
-      case 0x208ac:
-      case 0x208af:
-
-      case 0x208cf:
-      case 0x208d4:
-      case 0x208d5:
-      case 0x208d7:
-
-
-
-         /*
-
-      case 0x20957:
-
-      case 0x20958: //8b ec : mov bp,sp
-      case 0x2095a: //83 c5 02 add bp,02 (nh)  <-----
-
-      case 0x20b27:
-      case 0x20b28:
-      case 0x20b2b:
-      case 0x20b2e:
-      case 0x20c02:
-      case 0x20c03:
-      case 0x20c04:
-      case 0x20c05:
-      case 0x20c06:
-      case 0x20c09:
-      case 0x20c0b:
-      case 0x20c0e:
-      case 0x20c10:
-      case 0x20c13:
-      case 0x20c16: //nh 89 05 mov [di],ax
-      case 0x20d4b:
-      case 0x20d4c:
-      case 0x20d4e:
-      case 0x20ebb:
-      case 0x20ebc:
-      case 0x20ebe:
-
-      case 0x3062c:
-      case 0x3062f:
-      case 0x30631:
-      case 0x30637:
-
-      case 0x30682:
-      case 0x30685:
-      case 0x30689:
-      */
-      case 0xe8024: //pushf
-
-
-        /*
-
-      case 0xeb90d:
-      case 0xeb90e:
-      case 0xeb90f:
-      case 0xeb910:
-      case 0xeb915:
-      case 0xeb916:
-      case 0xec346:
-      case 0xec347:
-      case 0xec348:
-      case 0xec349:
-      case 0xec34a: //fc cld
-
-      case 0xf3c2f:
-      case 0xf4e35:
-      case 0xf85da: //jmp far
-      case 0xf9ae7:
-      case 0xf9ea7:
-      case 0xfe987:
-      case 0xff2e4:
-      case 0xff2e6:
-      case 0xff2e9:
-      case 0xff2ea:
-      case 0xff2eb:
-      case 0xff2ec:
-      case 0xff2ed:
-      case 0xff2f2:
-
-      case 0xffe6e:*/
-
-      case 0xfe05e:
-      case 0xfe05f:
-      case 0xfe060:
-      case 0xfe063:
-      case 0xfe064:
-      case 0xfe065:
-      case 0xfe066:
-      case 0xfe069:
-      case 0xfe06c: //inc word [si]
-      case 0xffea5:
-
-
+      case 0xffff1:
         skip=1;
         break;
     }

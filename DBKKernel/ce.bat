@@ -22,6 +22,8 @@ goto error
 
 :x86success:
 	copy .\obj%BUILD_ALT_DIR%\amd64\dbk.sys "..\Cheat Engine\bin\dbk64.sys"
+        copy .\obj%BUILD_ALT_DIR%\amd64\dbk.sys .\obj%BUILD_ALT_DIR%\amd64\dbk64.sys
+        copy .\obj%BUILD_ALT_DIR%\amd64\dbk.pdb .\obj%BUILD_ALT_DIR%\amd64\dbk64.pdb
 	goto successend
 
 

@@ -10,14 +10,14 @@ object Form8: TForm8
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Label1: TLabel
     AnchorSideLeft.Control = Memo1
     AnchorSideLeft.Side = asrCenter
     AnchorSideBottom.Control = Button1
     Left = 291
     Height = 15
-    Top = 206
+    Top = 202
     Width = 59
     Anchors = [akLeft, akBottom]
     BorderSpacing.Bottom = 3
@@ -42,7 +42,7 @@ object Form8: TForm8
   object Memo1: TMemo
     AnchorSideBottom.Control = Label1
     Left = 0
-    Height = 206
+    Height = 202
     Top = 0
     Width = 640
     Align = alTop
@@ -57,12 +57,15 @@ object Form8: TForm8
     AnchorSideLeft.Side = asrCenter
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 283
+    Left = 290
     Height = 25
-    Top = 255
-    Width = 75
+    Top = 251
+    Width = 60
     Anchors = [akLeft, akBottom]
+    AutoSize = True
+    BorderSpacing.Bottom = 4
     Caption = 'Next'
+    Constraints.MinWidth = 60
     Enabled = False
     OnClick = Button2Click
     TabOrder = 1
@@ -73,7 +76,7 @@ object Form8: TForm8
     AnchorSideBottom.Control = Button2
     Left = 289
     Height = 25
-    Top = 224
+    Top = 220
     Width = 62
     Anchors = [akLeft, akBottom]
     AutoSize = True

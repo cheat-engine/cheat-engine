@@ -132,6 +132,7 @@ type
 
     playbitmap: TBitmap;
     stopbitmap: TBitmap;
+    shown: boolean;
 
     procedure editHotkey(m: Tmemoryrecord; hotkey: TMemoryrecordhotkey);
     procedure AddHotkey(hk: TMemoryrecordHotkey);
@@ -164,7 +165,8 @@ var
 
 implementation
 
-uses mainunit, frmD3DTrainerGeneratorOptionsunit, xmplayer_server, ProcessHandlerUnit, ProcessList;
+uses mainunit, frmD3DTrainerGeneratorOptionsunit, xmplayer_server,
+  ProcessHandlerUnit, ProcessList, DPIHelper;
 
 { TfrmTrainerGenerator }
 resourcestring
@@ -281,6 +283,7 @@ begin
       currentcheat.parent:=cheatpanel;
       currentcheat.name:='CHEAT'+inttostr(i);
       currentcheat.cheatnr:=i;
+      currentcheat.AutoSize:=true;
 
       if lastcheat=nil then
       begin
@@ -453,6 +456,7 @@ begin
 
 
     aboutbutton:=TCEButton.create(trainerform);
+    aboutbutton.autosize:=true;
     aboutbutton.name:='ABOUTBUTTON';
     aboutbutton.caption:=rsAbout;
     aboutbutton.align:=albottom;
@@ -492,6 +496,7 @@ begin
     closebutton.top:=cheatpanel.clientheight - closebutton.height-8;
     closebutton.left:=cheatpanel.clientwidth div 2 - closebutton.width div 2;
     closebutton.parent:=cheatpanel;
+    closebutton.autosize:=true;
 
     closebutton.anchors:=[akBottom];
 
@@ -527,6 +532,20 @@ procedure TfrmTrainerGenerator.FormShow(Sender: TObject);
 var
   br: trect;
 begin
+  if not shown then
+  begin
+    DPIHelper.AdjustSpeedButtonSize(spbUp);
+    DPIHelper.AdjustSpeedButtonSize(spbDown);
+    DPIHelper.AdjustSpeedButtonSize(sbPlayActivate);
+    DPIHelper.AdjustSpeedButtonSize(sbPlayDeactivate);
+    DPIHelper.AdjustSpeedButtonSize(sbPlayStopXM);
+    DPIHelper.AdjustComboboxSize(cbOutput, self.canvas);
+    DPIHelper.AdjustComboboxSize(cbActivateSound, self.canvas);
+    DPIHelper.AdjustComboboxSize(cbDeactivateSound, self.canvas);
+
+    shown:=true;
+  end;
+
   if trainerform<>nil then
   begin
     trainerform.show;
@@ -744,7 +763,7 @@ begin
     end;
   end;
 
-  freemem(riff);
+  FreeMemAndNil(riff);
 
   for i:=0 to mainform.InternalLuaFiles.Count-1 do
   begin
@@ -1588,6 +1607,9 @@ begin
       f:=CTSaveDialog.FileName;
       protect:=cbProtect.checked;
     end;
+
+    else
+      raise exception.create('Invalid option');
 
   end;
 

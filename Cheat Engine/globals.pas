@@ -9,10 +9,14 @@ This unit will hold some global variables (previously cefuncproc.pas)
 interface
 
 uses
-  Classes, SysUtils, commonTypeDefs;
+  Classes, SysUtils, commonTypeDefs, syncobjs, Graphics;
+
+//type TUnexpectedExceptionAction=(ueaIgnore, ueaBreak, ueaBreakIfInRegion);
 
 var
 //  AllIncludesCustomType: boolean;
+  overridefont: TFont;
+
   ScanAllTypes: TVariableTypes=[vtDword, vtSingle, vtDouble];
 
   buffersize: dword=512*1024;
@@ -143,6 +147,16 @@ var
 
   fontmultiplication: single=1.0; //for some gui stuff
   istrainer: boolean=false;
+  isExeTrainer: boolean=false;
+
+  luagc_MinSize: dword;
+
+  SkipVirtualProtectEx: boolean;
+  alwaysforceload: boolean;
+
+  allocsAddToUnexpectedExceptionList: boolean;
+
+
 
 
 implementation

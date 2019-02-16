@@ -4,6 +4,7 @@ object frmAutoInject: TfrmAutoInject
   Top = 430
   Width = 431
   HelpContext = 1089
+  AllowDropFiles = True
   Caption = 'Auto assemble'
   ClientHeight = 311
   ClientWidth = 431
@@ -11,6 +12,7 @@ object frmAutoInject: TfrmAutoInject
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnDropFiles = FormDropFiles
   OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'

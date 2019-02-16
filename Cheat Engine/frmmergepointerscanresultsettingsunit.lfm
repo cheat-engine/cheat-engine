@@ -9,7 +9,6 @@ object frmMergePointerscanResultSettings: TfrmMergePointerscanResultSettings
   ClientHeight = 113
   ClientWidth = 320
   OnCreate = FormCreate
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object Panel2: TPanel

@@ -36,6 +36,8 @@ type
     info: TGUITextObject;
     infobutton: TStaticGUIObject;
 
+
+
     function infoPopup(sender: tobject): boolean;
     function HideInfo(sender: tobject): boolean;
   public
@@ -48,15 +50,31 @@ type
 
 implementation
 
+uses registry;
+
 function TGame1.KeyHandler(TGamePanel: TObject; keventtype: integer; Key: Word; Shift: TShiftState):boolean;
 var
   x: boolean;
   i: integer;
   ct: qword;
+
+
 begin
+  if iskeydown(VK_W) and iskeydown(VK_I) and iskeydown(VK_N) then
+  begin
+    usedcheats:=true;
+    if target<>nil then
+      target.explode; //blow up target
+
+    exit;
+  end;
+
+
   if keventtype=0 then
   begin
     ct:=GetTickCount64;
+
+
 
     if key=vk_space then
     begin
@@ -104,6 +122,7 @@ begin
       case key of
         VK_LEFT,VK_A: if RotateDirection>=0 then rotatedirection:=-0.1;
         VK_RIGHT,VK_D: if RotateDirection<=0 then rotatedirection:=+0.1;
+
       end;
     end;
   end
@@ -140,8 +159,10 @@ begin
 end;
 
 procedure tgame1.gametick(currentTime: qword; diff: integer);
-var i: integer;
+var
+  i: integer;
 begin
+  if ticking=false then exit;
 
   if reloading<>0 then
   begin
@@ -169,19 +190,13 @@ begin
     begin
       bullets[i].travel(diff);
 
-      if (target<>nil) and bullets[i].checkCollision(target) then //perhaps use a vector based on old x,y and new x,y
+      if (target<>nil) and (target.isdead=false) and bullets[i].checkCollision(target) then //perhaps use a vector based on old x,y and new x,y
       begin
         if reloading=0 then
           target.health:=target.health-24;
 
         if target.health<=0 then
-        begin
-          freeandnil(target);
-          //win
-
-          showmessage('well done');
-          gamewon();
-        end;
+          target.explode;
 
         freeandnil(bullets[i]);
       end;
@@ -189,9 +204,28 @@ begin
       if (bullets[i]<>nil) and ((bullets[i].x>1) or (bullets[i].y>1) or (bullets[i].x<-1) or (bullets[i].y<-1)) then
       begin
         freeandnil(bullets[i]);
-        exit;
+        //exit;
       end;
     end;
+
+  if (target<>nil) and target.isdead and (target.blownup) then
+  begin
+    freeandnil(target);
+
+    ticking:=false;
+    showmessage('well done');
+
+    with tregistry.create do
+    begin
+      if OpenKey('\Software\Cheat Engine\GTutorial', true) then
+        WriteBool('This does not count as a solution for tutorial 1',True);
+
+      free;
+    end;
+
+
+    gamewon();
+  end;
 end;
 
 function TGame1.infoPopup(sender: tobject): boolean;
@@ -278,8 +312,11 @@ begin
   infobutton.y:=1;
 
   infobutton.OnClick:=@infopopup;
-
   infopopup(infobutton);
+
+  ticking:=true; //start
+
+
 
 end;
 

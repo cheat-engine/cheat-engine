@@ -263,7 +263,7 @@ begin
     end; //else use GetThreadContext
 
     if (carm<>nil) then
-      freemem(carm);
+      FreeMemAndNil(carm);
   end;
 end;
 
@@ -350,7 +350,7 @@ begin
     end; //you should use GetThreadContextArm
 
     if c32<>nil then
-      freemem(c32);
+      FreeMemAndNil(c32);
   end;
 
   result:=lpContext.{$ifdef cpu64}rip{$else}eip{$endif}<>0;

@@ -1,26 +1,25 @@
 object ProcessWindow: TProcessWindow
-  Left = 404
-  Height = 443
-  Top = 378
+  Left = 882
+  Height = 402
+  Top = 254
   Width = 293
   HelpContext = 4
   AutoSize = True
   BorderIcons = [biSystemMenu]
   Caption = 'Process List'
-  ClientHeight = 423
+  ClientHeight = 382
   ClientWidth = 293
   Menu = MainMenu1
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  PopupMode = pmAuto
   Position = poMainFormCenter
   LCLVersion = '1.6.4.0'
   object Panel1: TPanel
     Left = 0
     Height = 112
-    Top = 311
+    Top = 270
     Width = 293
     Align = alBottom
     AutoSize = True
@@ -127,17 +126,17 @@ object ProcessWindow: TProcessWindow
       end
     end
   end
-  object TabControl1: TTabControl
+  object TabHeader: TTabControl
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
     AnchorSideRight.Control = Panel1
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Panel1
     Left = 0
-    Height = 311
+    Height = 270
     Top = 0
     Width = 293
-    OnChange = TabControl1Change
+    OnChange = TabHeaderChange
     TabIndex = 0
     Tabs.Strings = (
       'Applications'
@@ -148,7 +147,7 @@ object ProcessWindow: TProcessWindow
     TabOrder = 0
     object ProcessList: TListBox
       Left = 2
-      Height = 286
+      Height = 245
       Top = 23
       Width = 289
       Align = alClient
@@ -226,6 +225,13 @@ object ProcessWindow: TProcessWindow
       object miOpenFile: TMenuItem
         Caption = 'Open File'
         OnClick = btnOpenFileClick
+      end
+      object MenuItem2: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem3: TMenuItem
+        Caption = 'Process watcher'
+        OnClick = btnProcessWatchClick
       end
     end
     object MenuItem4: TMenuItem

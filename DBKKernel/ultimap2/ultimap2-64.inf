@@ -1,0 +1,82 @@
+;
+; ultimap2-64.inf
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+
+
+Class=System
+ClassGuid={4d36e97d-e325-11ce-bfc1-08002be10318}
+Provider=%ManufacturerName%
+CatalogFile=ultimap2-64.cat
+DriverVer= ; TODO: set DriverVer in stampinf property pages
+
+[DestinationDirs]
+DefaultDestDir = 12
+ultimap2-64_Device_CoInstaller_CopyFiles = 11
+
+; ================= Class section =====================
+
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+ultimap2-64.sys  = 1,,
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%ultimap2-64.DeviceDesc%=ultimap2-64_Device, Root\ultimap2-64 ; TODO: edit hw-id
+
+[ultimap2-64_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+ultimap2-64.sys
+
+;-------------- Service installation
+[ultimap2-64_Device.NT.Services]
+AddService = ultimap2-64,%SPSVCINST_ASSOCSERVICE%, ultimap2-64_Service_Inst
+
+; -------------- ultimap2 driver install sections
+[ultimap2-64_Service_Inst]
+DisplayName    = %ultimap2-64.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\ultimap2-64.sys
+
+;
+;--- ultimap2_Device Coinstaller installation ------
+;
+
+[ultimap2-64_Device.NT.CoInstallers]
+AddReg=ultimap2-64_Device_CoInstaller_AddReg
+CopyFiles=ultimap2-64_Device_CoInstaller_CopyFiles
+
+[ultimap2-64_Device_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
+
+[ultimap2-64_Device_CoInstaller_CopyFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
+
+[ultimap2-64_Device.NT.Wdf]
+KmdfService =  ultimap2-64, ultimap2-64_wdfsect
+[ultimap2-64_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="Cheat Engine" ;TODO: Replace with your manufacturer name
+ClassName= "System" ; TODO: edit ClassName
+DiskName = "ultimap2-64 Installation Disk"
+ultimap2-64.DeviceDesc = "ultimap2-64 Device"
+ultimap2-64.SVCDESC = "ultimap2-64 Service"

@@ -102,8 +102,8 @@ begin
   //find it in the listview and edit it's count
 
   finally
-    freemem(title);
-    freemem(classname);
+    freememandnil(title);
+    freememandnil(classname);
   end;
 end;
 

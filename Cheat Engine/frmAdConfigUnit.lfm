@@ -8,7 +8,6 @@ object frmAdConfig: TfrmAdConfig
   ClientHeight = 267
   ClientWidth = 335
   OnCreate = FormCreate
-  PopupMode = pmAuto
   LCLVersion = '1.6.0.4'
   object Label1: TLabel
     Left = 0

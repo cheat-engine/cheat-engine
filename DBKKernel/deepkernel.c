@@ -1,4 +1,4 @@
-#pragma warning( disable: 4103)
+#pragma warning( disable: 4100 4103)
 
 #include "deepkernel.h"
 #include "DBKFunc.h"

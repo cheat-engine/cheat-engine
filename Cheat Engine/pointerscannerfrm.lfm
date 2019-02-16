@@ -1,10 +1,10 @@
 object frmPointerScanner: TfrmPointerScanner
-  Left = 334
-  Height = 460
-  Top = 173
+  Left = 785
+  Height = 465
+  Top = 203
   Width = 749
   Caption = 'Pointer scan'
-  ClientHeight = 440
+  ClientHeight = 445
   ClientWidth = 749
   Menu = MainMenu1
   OnClose = FormClose
@@ -13,7 +13,7 @@ object frmPointerScanner: TfrmPointerScanner
   OnResize = FormResize
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Panel1: TPanel
     Left = 0
     Height = 27
@@ -34,21 +34,30 @@ object frmPointerScanner: TfrmPointerScanner
       BorderSpacing.Top = 2
       BorderSpacing.Bottom = 2
       ItemHeight = 15
+      ItemIndex = 2
       Items.Strings = (
+        'Byte'
+        '2 Byte'
         '4 Byte'
+        '8 Byte'
         'Float'
         'Double'
+        'String'
+        'Widestring'
       )
       OnChange = cbTypeChange
+      OnDropDown = cbTypeDropDown
+      PopupMenu = pmType
       Style = csDropDownList
       TabOrder = 0
+      Text = '4 Byte'
       Visible = False
     end
     object cbTestCrappyConnection: TCheckBox
       AnchorSideLeft.Control = Panel1
       Left = 320
       Height = 19
-      Top = 2
+      Top = 6
       Width = 146
       Anchors = [akTop]
       Caption = 'Simulate no connection'
@@ -59,7 +68,7 @@ object frmPointerScanner: TfrmPointerScanner
     object cbNonResponsive: TCheckBox
       Left = 480
       Height = 19
-      Top = 2
+      Top = 6
       Width = 165
       Caption = 'Non responsive connection'
       OnChange = cbNonResponsiveChange
@@ -68,9 +77,9 @@ object frmPointerScanner: TfrmPointerScanner
     end
   end
   object btnStopRescanLoop: TButton
-    Left = 160
+    Left = 184
     Height = 25
-    Top = -1
+    Top = 0
     Width = 144
     Caption = 'Stop rescan loop'
     OnClick = btnStopRescanLoopClick
@@ -79,43 +88,44 @@ object frmPointerScanner: TfrmPointerScanner
   end
   object pnlProgress: TPanel
     Left = 0
-    Height = 25
-    Top = 415
+    Height = 24
+    Top = 421
     Width = 749
     Align = alBottom
     AutoSize = True
-    ClientHeight = 25
+    ClientHeight = 24
     ClientWidth = 749
     TabOrder = 3
     Visible = False
     object pnlProgressName: TPanel
       Left = 1
-      Height = 23
+      Height = 22
       Top = 1
       Width = 123
       Align = alLeft
+      AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 23
+      ClientHeight = 22
       ClientWidth = 123
       TabOrder = 0
       object lblProgressbar1: TLabel
         AnchorSideTop.Side = asrCenter
         Left = 0
         Height = 15
-        Top = 3
+        Top = 0
         Width = 123
-        AutoSize = False
         Caption = 'Generating pointermap'
         ParentColor = False
       end
     end
     object pnlProgressBar: TPanel
       Left = 124
-      Height = 23
+      Height = 22
       Top = 1
       Width = 624
       Align = alClient
-      ClientHeight = 23
+      AutoSize = True
+      ClientHeight = 22
       ClientWidth = 624
       TabOrder = 1
       object ProgressBar1: TProgressBar
@@ -124,7 +134,7 @@ object frmPointerScanner: TfrmPointerScanner
         AnchorSideRight.Control = pnlProgressBar
         AnchorSideRight.Side = asrBottom
         Left = 1
-        Height = 21
+        Height = 20
         Top = 1
         Width = 622
         Anchors = [akTop, akLeft, akRight]
@@ -135,18 +145,18 @@ object frmPointerScanner: TfrmPointerScanner
   end
   object pnlData: TPanel
     Left = 0
-    Height = 388
+    Height = 394
     Top = 27
     Width = 749
     Align = alClient
     BevelOuter = bvNone
     Caption = 'pnlData'
-    ClientHeight = 388
+    ClientHeight = 394
     ClientWidth = 749
     TabOrder = 4
     object tvInfo: TTreeView
       Left = 0
-      Height = 359
+      Height = 365
       Top = 0
       Width = 590
       Align = alClient
@@ -162,7 +172,7 @@ object frmPointerScanner: TfrmPointerScanner
     object pnlStop: TPanel
       Left = 0
       Height = 29
-      Top = 359
+      Top = 365
       Width = 749
       Align = alBottom
       AutoSize = True
@@ -189,13 +199,13 @@ object frmPointerScanner: TfrmPointerScanner
     end
     object pnlControl: TPanel
       Left = 590
-      Height = 359
+      Height = 365
       Top = 0
       Width = 159
       Align = alRight
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 359
+      ClientHeight = 365
       ClientWidth = 159
       TabOrder = 2
       object cbPriority: TComboBox
@@ -206,7 +216,7 @@ object frmPointerScanner: TfrmPointerScanner
         AnchorSideRight.Side = asrBottom
         Left = 2
         Height = 23
-        Top = 206
+        Top = 199
         Width = 155
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Right = 2
@@ -229,13 +239,13 @@ object frmPointerScanner: TfrmPointerScanner
       object gbNetwork: TGroupBox
         AnchorSideRight.Side = asrBottom
         Left = 0
-        Height = 191
+        Height = 184
         Top = 0
         Width = 159
         Align = alTop
         AutoSize = True
         Caption = 'Network'
-        ClientHeight = 171
+        ClientHeight = 164
         ClientWidth = 155
         TabOrder = 1
         object edtIP: TEdit
@@ -289,11 +299,13 @@ object frmPointerScanner: TfrmPointerScanner
         end
         object edtPassword: TEdit
           AnchorSideLeft.Control = lblPassword
+          AnchorSideTop.Control = lblPassword
+          AnchorSideTop.Side = asrBottom
           AnchorSideRight.Control = gbNetwork
           AnchorSideRight.Side = asrBottom
           Left = 2
           Height = 23
-          Top = 100
+          Top = 93
           Width = 151
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Right = 2
@@ -317,7 +329,7 @@ object frmPointerScanner: TfrmPointerScanner
           Left = 2
           Height = 19
           Hint = 'Trust that this server will not disappear during the scan and that the children it trusts itself won''t do so either'
-          Top = 123
+          Top = 116
           Width = 91
           Caption = 'Trust stability'
           ParentShowHint = False
@@ -330,7 +342,7 @@ object frmPointerScanner: TfrmPointerScanner
           AnchorSideTop.Side = asrBottom
           Left = 6
           Height = 25
-          Top = 144
+          Top = 137
           Width = 143
           AutoSize = True
           BorderSpacing.Left = 6
@@ -348,7 +360,7 @@ object frmPointerScanner: TfrmPointerScanner
         AnchorSideTop.Side = asrBottom
         Left = 2
         Height = 15
-        Top = 191
+        Top = 184
         Width = 123
         BorderSpacing.Left = 2
         Caption = 'Scanner thread priority:'
@@ -362,7 +374,7 @@ object frmPointerScanner: TfrmPointerScanner
         AnchorSideRight.Side = asrBottom
         Left = 2
         Height = 25
-        Top = 272
+        Top = 265
         Width = 142
         AutoSize = True
         BorderSpacing.Top = 2
@@ -378,7 +390,7 @@ object frmPointerScanner: TfrmPointerScanner
         AnchorSideRight.Side = asrBottom
         Left = 2
         Height = 25
-        Top = 245
+        Top = 238
         Width = 146
         AutoSize = True
         BorderSpacing.Top = 16
@@ -524,7 +536,6 @@ object frmPointerScanner: TfrmPointerScanner
     LoginPrompt = False
     KeepConnection = False
     Transaction = SQLTransaction
-    Options = []
     left = 56
     top = 40
   end
@@ -538,7 +549,6 @@ object frmPointerScanner: TfrmPointerScanner
   object SQLTransaction: TSQLTransaction
     Active = False
     Database = SQLite3
-    Options = []
     left = 128
     top = 40
   end
@@ -546,7 +556,6 @@ object frmPointerScanner: TfrmPointerScanner
     FieldDefs = <>
     Database = SQLite3
     Transaction = SQLTransaction
-    Options = []
     Params = <>
     left = 223
     top = 46
@@ -570,6 +579,21 @@ object frmPointerScanner: TfrmPointerScanner
       Caption = 'Unsafe disconnect'
       Enabled = False
       OnClick = miForceDisconnectClick
+    end
+  end
+  object pmType: TPopupMenu
+    left = 33
+    top = 11
+    object miSigned: TMenuItem
+      AutoCheck = True
+      Caption = 'Signed'
+      Checked = True
+      OnClick = cbTypeChange
+    end
+    object miHexadecimal: TMenuItem
+      AutoCheck = True
+      Caption = 'Hexadecimal'
+      OnClick = cbTypeChange
     end
   end
 end

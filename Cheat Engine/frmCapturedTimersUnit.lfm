@@ -7,7 +7,6 @@ object frmCapturedTimers: TfrmCapturedTimers
   ClientHeight = 234
   ClientWidth = 507
   OnClose = FormClose
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object Label1: TLabel

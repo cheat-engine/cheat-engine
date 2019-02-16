@@ -10,7 +10,6 @@ object frmDBVMLoadManual: TfrmDBVMLoadManual
   Caption = 'Manual load DBVM'
   OnClose = FormClose
   OnCreate = FormCreate
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
 end

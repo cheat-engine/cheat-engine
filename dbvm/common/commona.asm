@@ -21,7 +21,7 @@ mov edx,[ebp+8]
 in al,dx
 
 pop ebp
-ret 4 ; (no params, in cdecl frees the caller)
+ret ;4 ; (no params, in cdecl frees the caller)
 
 ;----------------------------------------------------------;
 ;void cpuid(ULONG *eax, ULONG *ebx, ULONG *ecx, ULONG *edx);
@@ -68,7 +68,7 @@ pop eax
 
 mov esp,ebp
 pop ebp
-ret 16
+ret ;16
 
 ;---------------------------;
 ;void spinlock(int *lockvar);
@@ -103,7 +103,7 @@ jne spinlock_loop
 pop ebx
 
 pop ebp
-ret 4
+ret ;4
 
 
 ;-----------------------------------------;
@@ -119,7 +119,7 @@ mov eax,[ebp+12] ;value
 out dx,al
 
 pop ebp
-ret 8
+ret ;8
 
 ;--------------------;
 ;void showstate(void);

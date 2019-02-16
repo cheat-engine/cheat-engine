@@ -1,8 +1,23 @@
 #ifndef VMXOFFLOAD_H
 #define VMXOFFLOAD_H
 
-void vmxoffload(PCWSTR dbvmimgpath);
-VOID vmxoffload_passive (UINT_PTR param);
+void initializeDBVM(PCWSTR dbvmimgpath);
+void vmxoffload(void);
+
+void vmxoffload_override(CCHAR cpunr, PKDEFERRED_ROUTINE Dpc, PVOID DeferredContext, PVOID *SystemArgument1, PVOID *SystemArgument2);
+
+VOID vmxoffload_dpc(
+	__in struct _KDPC *Dpc,
+	__in_opt PVOID DeferredContext,
+	__in_opt PVOID SystemArgument1,
+	__in_opt PVOID SystemArgument2
+	);
+
+typedef struct _DBVMOffloadMemInfo
+{
+	UINT64 *List;
+	int Count;
+} DBVMOffloadMemInfo, *PDBVMOffloadMemInfo;
 
 #pragma pack (1)
 typedef struct _PTE
@@ -19,7 +34,7 @@ typedef struct _PTE
         unsigned A1        :  1; // available 1 aka copy-on-write
         unsigned A2        :  1; // available 2/ is 1 when paged to disk
         unsigned A3        :  1; // available 3
-        //unsigned PFN       : 20; // page-frame number
+        unsigned PFN       : 20; // page-frame number		
 } *PPTE;
 
 typedef struct _PDE
@@ -36,7 +51,7 @@ typedef struct _PDE
         unsigned A1        :  1; // available 1 aka copy-on-write
         unsigned A2        :  1; // available 2/ is 1 when paged to disk
         unsigned A3        :  1; // available 3
-        //unsigned PFN       : 20; // page-frame number
+        unsigned PFN       : 20; // page-frame number
 } *PPDE;
 
 typedef struct _PDE2MB
@@ -53,7 +68,7 @@ typedef struct _PDE2MB
         unsigned A1        :  1; // available 1 aka copy-on-write
         unsigned A2        :  1; // available 2/ is 1 when paged to disk
         unsigned A3        :  1; // available 3
-        //unsigned PFN       : 20; // page-frame number (>> 13 instead of >>12);
+        unsigned PFN       : 20; // page-frame number (>> 13 instead of >>12);
 } *PPDE2MB;
 
 
@@ -72,10 +87,9 @@ typedef struct _PTE_PAE
         unsigned A1        :  1; // available 1 aka copy-on-write
         unsigned A2        :  1; // available 2/ is 1 when paged to disk
         unsigned A3        :  1; // available 3
-		//the following 2 items cause a problem in ms's compiler
-//        unsigned PFN       : 24; // page-frame number
-        //unsigned reserved  : 28;
-} *PPTE_PAE;
+		unsigned PFN_LOW : 20;
+		unsigned PFN_HIGH : 32;
+} PTE_PAE, *PPTE_PAE;
 
 typedef struct _PDE_PAE
 {
@@ -91,9 +105,9 @@ typedef struct _PDE_PAE
         unsigned A1        :  1; // available 1 aka copy-on-write
         unsigned A2        :  1; // available 2/ is 1 when paged to disk
         unsigned A3        :  1; // available 3
-//        unsigned PFN       : 24; // page-frame number
-//        unsigned reserved4 : 28;
-} *PPDE_PAE;
+		unsigned PFN_LOW : 20;
+		unsigned PFN_HIGH : 32;
+} PDE_PAE, *PPDE_PAE;
 
 typedef struct _PDE2MB_PAE
 {
@@ -110,25 +124,28 @@ typedef struct _PDE2MB_PAE
         unsigned A2        :  1; // available 2/ is 1 when paged to disk
         unsigned A3        :  1; // available 3
         unsigned PAT       :  1; //
-        //unsigned PFN       : 23; // page-frame number (>> 13 instead of >>12);
-        //unsigned reserved4 : 28;
+		unsigned PFN_LOW : 19;
+		unsigned PFN_HIGH : 32;
 } *PPDE2MB_PAE;
 
 
 
 typedef struct _PDPTE_PAE
 {
-        unsigned char P         :  1; // present (1 = present)
-        unsigned char RW        :  1; // Read Write
-        unsigned char US        :  1; // User supervisor                
-        unsigned char PWT       :  1; // page-level write-through
-        unsigned char PCD       :  1; // page-level cache disabled
-        unsigned char reserved2 :  4; // reserved
-        unsigned char A1        :  1; // available 1 aka copy-on-write
-        unsigned char A2        :  1; // available 2/ is 1 when paged to disk
-        unsigned char A3        :  1; // available 3
-        //unsigned int PFN       : 24; // page-frame number
-        //unsigned int reserved3 : 28;
+        unsigned P         :  1; // present (1 = present)
+        unsigned RW        :  1; // Read Write
+        unsigned US        :  1; // User supervisor                
+        unsigned PWT       :  1; // page-level write-through
+        unsigned PCD       :  1; // page-level cache disabled
+		unsigned reserved0 : 1; // reserved
+		unsigned reserved1 : 1; // reserved
+		unsigned reserved2 : 1; // reserved
+		unsigned reserved3 : 1; // reserved
+        unsigned A1        :  1; // available 1 aka copy-on-write
+        unsigned A2        :  1; // available 2/ is 1 when paged to disk
+        unsigned A3        :  1; // available 3
+		unsigned PFN_LOW : 20;
+		unsigned PFN_HIGH : 32;
 } *PPDPTE_PAE;
 
 #endif

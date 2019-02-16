@@ -47,6 +47,18 @@ _fs				QWORD ?
 _gs				QWORD ?
 _tr				QWORD ?
 _ldt			QWORD ?	
+_cs_AccessRights	QWORD ?	
+_ss_AccessRights	QWORD ?	
+_ds_AccessRights	QWORD ?	
+_es_AccessRights	QWORD ?	
+_fs_AccessRights	QWORD ?	
+_gs_AccessRights	QWORD ?	
+_cs_Limit	QWORD ?	
+_ss_Limit	QWORD ?	
+_ds_Limit	QWORD ?	
+_es_Limit	QWORD ?	
+_fs_Limit	QWORD ?	
+_gs_Limit	QWORD ?	
 _fsbase			QWORD ?
 _gsbase			QWORD ?
 S_ORIGINALSTATE ENDS
@@ -55,7 +67,7 @@ PS_ORIGNALSTATE TYPEDEF PTR S_ORIGINALSTATE
 
 EXTERN NewGDTDescriptor: GDTDesc
 EXTERN NewGDTDescriptorVA: QWORD
-EXTERN pagedirptrbasePA: QWORD
+EXTERN DBVMPML4PA: QWORD
 EXTERN TemporaryPagingSetupPA: QWORD
 EXTERN enterVMM2PA: QWORD
 EXTERN originalstatePA: QWORD
@@ -66,29 +78,21 @@ EXTERN vmmPA: QWORD
 
 _TEXT SEGMENT 'CODE'
 
-
+PUBLIC JTAGBP
+JTAGBP:
+db 0f1h
+ret
 
 PUBLIC enterVMM
 enterVMM:
 begin:
-	xchg bx,bx ;trigger bochs breakpoint
-	
-
-	;setup the GDT
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop	
-
 	;switch to identity mapped pagetable
+
 	mov cr3,rdx
 	jmp short weee
 weee:
-
-
-
+	nop
+	nop
 
 	
 	;now jump to the physical address (identity mapped to the same virtual address)
@@ -121,21 +125,21 @@ secondentry:
 	;enable PAE and PSE (just to make sure)
 	mov eax,30h
 	mov cr4,rax	
-	
+
 	mov cr3,rcx
+	nop
+	nop
 	jmp short weee2
 weee2:
+    nop
+	nop
 
-
-	
-	mov rax,007ffff0h
 	mov rbx,0
 	mov ds,bx
 	mov es,bx
 	mov fs,bx
 	mov gs,bx
 	mov ss,bx
-	mov rsp,rax
 	
 	mov rax,cr0
 	or eax,10000h
@@ -145,7 +149,11 @@ weee2:
 	nop
 	nop
 	nop
+	;db 0f1h  ;jtag
+	nop
+	nop
 	nop	
+
 	
 	jmp fword ptr [vmmjump]
 	;jmp fword ptr [vmmjump] ;one thing that I don't mind about x64, relative addressing, so no need to change it by me
@@ -210,7 +218,7 @@ enterVMMPrologue:
 	mov rbx,NewGDTDescriptorVA
 	lgdt fword ptr [rbx]
 	
-	mov rcx,pagedirptrbasePA
+	mov rcx,DBVMPML4PA
 	mov rdx,TemporaryPagingSetupPA 
 	mov rsi,enterVMM2PA
 	

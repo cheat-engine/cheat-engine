@@ -37,6 +37,8 @@ function luaclass_createMetaTable(L: Plua_State): integer;
 procedure luaclass_addClassFunctionToTable(L: PLua_State; metatable: integer; userdata: integer; functionname: string; f: lua_CFunction);
 procedure luaclass_addPropertyToTable(L: PLua_State; metatable: integer; userdata: integer; propertyname: string; getfunction: lua_CFunction; setfunction: lua_CFunction);
 procedure luaclass_setDefaultArrayProperty(L: PLua_State; metatable: integer; userdata: integer; getf,setf: lua_CFunction);
+procedure luaclass_setDefaultStringArrayProperty(L: PLua_State; metatable: integer; userdata: integer; getf,setf: lua_CFunction);
+
 
 procedure luaclass_addArrayPropertyToTable(L: PLua_State; metatable: integer; userdata: integer; propertyname: string; getf: lua_CFunction; setf: lua_CFunction=nil);
 procedure luaclass_addRecordPropertyToTable(L: PLua_State; metatable: integer; userdata: integer; propertyname: string; RecordEntries: TRecordEntries);
@@ -77,7 +79,13 @@ resourcestring
 function TRecordEntries.getEntry(index: integer): TRecordEntry;
 begin
   if index<length(list) then
-    result:=list[index];
+    result:=list[index]
+  else
+  begin
+    result.name:='';
+    result.getf:=nil;
+    result.setf:=nil;
+  end;
 end;
 
 procedure TRecordEntries.setEntry(index: integer; e: TRecordEntry);
@@ -253,6 +261,33 @@ begin
     lua_error(L);
   end;
   }
+end;
+
+procedure luaclass_setDefaultStringArrayProperty(L: PLua_State; metatable: integer; userdata: integer; getf, setf: lua_CFunction);
+//this makes it so x[0], x[1], x[2],...,x.0 , x.1 , x.2,... will call these specific get/set handlers
+begin
+  lua_pushstring(L, '__defaultstringgetindexhandler');
+  if assigned(getf) then
+  begin
+    lua_pushvalue(L, userdata);
+    lua_pushcclosure(L, getf, 1);
+  end
+  else
+    lua_pushnil(L);
+
+  lua_settable(L, metatable);
+
+  lua_pushstring(L, '__defaultstringsetindexhandler');
+  if assigned(setf) then
+  begin
+    lua_pushvalue(L, userdata);
+    lua_pushcclosure(L, setf, 1);
+  end
+  else
+    lua_pushnil(L);
+
+  lua_settable(L, metatable);
+
 end;
 
 procedure luaclass_setDefaultArrayProperty(L: PLua_State; metatable: integer; userdata: integer; getf, setf: lua_CFunction);
@@ -515,8 +550,6 @@ begin
           exit;
         end;
 
-
-
         //Let's see if this is a published property
         lua_pushcfunction(L, lua_getProperty);
         lua_pushvalue(L, 1); //userdata
@@ -535,8 +568,26 @@ begin
             lua_pushvalue(L, 2);
             lua_call(L, 2, 1);
             result:=1;
+            exit;
           end;
         end;
+
+        if lua_type(L, 2)=LUA_TSTRING then
+        begin
+          //check if there is a __defaultstringgetindexhandler defined in the metatable
+          lua_pushstring(L, '__defaultstringgetindexhandler');
+          lua_gettable(L, metatable);
+          if lua_isfunction(L,-1) then
+          begin
+            lua_pushvalue(L, 2); //key
+            lua_call(L, 1, 1); //call __defaultintegergetindexhandler(key)
+            result:=1;
+            exit;
+          end
+          else
+            lua_pop(L,1);
+        end;
+
       end;
     end;
     result:=1;

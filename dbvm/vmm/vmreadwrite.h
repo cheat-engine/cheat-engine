@@ -1,6 +1,10 @@
 #ifndef VMREADWRITE_H_
 #define VMREADWRITE_H_
 
+#define vm_vpid						0
+#define vm_posted_interrupt_vector	2
+#define vm_eptp_index				4
+
 #define vm_guest_es                 0x800
 #define vm_guest_cs                 0x802
 #define vm_guest_ss                 0x804
@@ -10,10 +14,16 @@
 #define vm_guest_ldtr               0x80c
 #define vm_guest_tr                 0x80e
 
-#define vm_iobitmap_a				0x2000
-#define vm_iobitmap_b				0x2002
+#define vm_iobitmap_a				        0x2000
+#define vm_iobitmap_b				        0x2002
+
+#define vm_eptpointer               0x201a
+#define vm_guest_physical_address   0x2400
 
 #define vm_guest_IA32_DEBUGCTL      0x2802
+#define vm_guest_IA32_PAT           0x2804
+#define vm_guest_IA32_EFER          0x2806
+#define vm_guest_IA32_PERF_GLOBAL_CTRL 0x2808
 
 #define vm_execution_controls_pin   0x4000
 #define vm_execution_controls_cpu   0x4002
@@ -23,6 +33,7 @@
 #define vm_entry_controls           0x4012
 #define vm_entry_interruptioninfo   0x4016
 #define vm_entry_exceptionerrorcode 0x4018
+#define vm_entry_instructionlength  0x401a
 
 #define vm_errorcode                0x4400
 #define vm_exit_reason              0x4402
@@ -57,8 +68,10 @@
 #define vm_guest_IA32_SYSENTER_CS   0x482a
 #define vm_preemption_timer_value   0x482e
 
-#define vm_cr0_fakeread             0x6004 //what the guest sees when he reads CR3
-#define vm_cr4_fakeread             0x6006
+#define vm_cr0_guest_host_mask      0x6000
+#define vm_cr4_guest_host_mask      0x6002
+#define vm_cr0_read_shadow          0x6004 //what the guest sees when he reads CR3
+#define vm_cr4_read_shadow          0x6006
 #define vm_cr3_targetvalue0			    0x6008
 
 
@@ -91,6 +104,34 @@
 #define vm_pending_debug_exceptions 0x6822
 #define vm_guest_IA32_SYSENTER_ESP  0x6824
 #define vm_guest_IA32_SYSENTER_EIP  0x6826
+
+//host 0x*c**
+#define vm_host_es                    0xc00
+#define vm_host_cs                    0xc02
+#define vm_host_ss                    0xc04
+#define vm_host_ds                    0xc06
+#define vm_host_fs                    0xc08
+#define vm_host_gs                    0xc0a
+#define vm_host_tr                    0xc0c
+
+#define vm_host_IA32_PAT              0x2C00
+#define vm_host_IA32_EFER             0x2C02
+#define vm_host_IA32_PERF_GLOBAL_CTRL 0x2c04
+
+#define vm_host_IA32_SYSENTER_CS      0x4c00
+
+#define vm_host_cr0                   0x6c00
+#define vm_host_cr3                   0x6c02
+#define vm_host_cr4                   0x6c04
+#define vm_host_fs_base               0x6c06
+#define vm_host_gs_base               0x6c08
+#define vm_host_tr_base               0x6c0a
+#define vm_host_gdtr_base             0x6c0c
+#define vm_host_idtr_base             0x6c0e
+#define vm_host_IA32_SYSENTER_ESP     0x6c10
+#define vm_host_IA32_SYSENTER_EIP     0x6c12
+#define vm_host_rsp                   0x6c14
+#define vm_host_rip                   0x6c16
 
 
 

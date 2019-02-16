@@ -12,9 +12,8 @@ object frmTrainerGenerator: TfrmTrainerGenerator
   OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow
-  PopupMode = pmAuto
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Panel2: TPanel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner

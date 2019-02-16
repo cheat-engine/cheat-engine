@@ -10,7 +10,7 @@ object Form9: TForm9
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   Visible = True
   object Label1: TLabel
     AnchorSideLeft.Control = Button1
@@ -19,7 +19,7 @@ object Form9: TForm9
     AnchorSideTop.Side = asrCenter
     Left = 372
     Height = 15
-    Top = 198
+    Top = 197
     Width = 18
     BorderSpacing.Left = 3
     Caption = '100'
@@ -32,7 +32,7 @@ object Form9: TForm9
     AnchorSideTop.Side = asrCenter
     Left = 317
     Height = 15
-    Top = 226
+    Top = 225
     Width = 6
     Caption = '3'
     ParentColor = False
@@ -56,7 +56,7 @@ object Form9: TForm9
   object Memo1: TMemo
     AnchorSideBottom.Control = Button1
     Left = 0
-    Height = 193
+    Height = 192
     Top = 0
     Width = 640
     Align = alTop
@@ -74,13 +74,15 @@ object Form9: TForm9
     AnchorSideLeft.Side = asrCenter
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 283
+    Left = 290
     Height = 25
-    Top = 252
-    Width = 75
+    Top = 251
+    Width = 60
     Anchors = [akLeft, akBottom]
-    BorderSpacing.Bottom = 3
+    AutoSize = True
+    BorderSpacing.Bottom = 4
     Caption = 'Next'
+    Constraints.MinWidth = 60
     Enabled = False
     OnClick = Button2Click
     TabOrder = 1
@@ -91,7 +93,7 @@ object Form9: TForm9
     AnchorSideBottom.Control = Button3
     Left = 271
     Height = 25
-    Top = 193
+    Top = 192
     Width = 98
     Anchors = [akLeft, akBottom]
     AutoSize = True
@@ -106,7 +108,7 @@ object Form9: TForm9
     AnchorSideBottom.Control = Button2
     Left = 266
     Height = 25
-    Top = 221
+    Top = 220
     Width = 108
     Anchors = [akLeft, akBottom]
     AutoSize = True

@@ -17,9 +17,10 @@ type
     address: PtrUint;
     prefix: string;
     prefixsize: integer;
-    opcode: string; //and sadly undone because I want to allow the user to change the string... pchar; //replaced string with pchar so it now only contains a pointer. Faster. string; //the result without bytes
+    opcode: string;
     parameters: string;
     description: string;
+    commentsoverride: string;
     Bytes: array of byte;
     SeperatorCount: integer;
     Seperators: Array [0..5] of integer; //an index in the byte array describing the seperators (prefix/instruction/modrm/sib/extra)
@@ -31,6 +32,7 @@ type
 
     datasize: integer;
     isfloat: boolean; //True if the data it reads/writes is a float (only when sure)
+    iscloaked: boolean;
 
     hasSib: boolean;
     sibIndex: integer;

@@ -2,14 +2,14 @@
 <CONFIG>
   <ProjectSession>
     <PathDelim Value="\"/>
-    <Version Value="9"/>
+    <Version Value="10"/>
     <BuildModes Active="Release 64"/>
     <Units Count="3">
       <Unit0>
         <Filename Value="luaclient.lpr"/>
         <IsPartOfProject Value="True"/>
         <CursorPos X="9" Y="14"/>
-        <UsageCount Value="30"/>
+        <UsageCount Value="100"/>
         <Loaded Value="True"/>
       </Unit0>
       <Unit1>
@@ -17,9 +17,9 @@
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
-        <TopLine Value="215"/>
-        <CursorPos Y="226"/>
-        <UsageCount Value="30"/>
+        <TopLine Value="14"/>
+        <CursorPos X="11" Y="27"/>
+        <UsageCount Value="100"/>
         <Loaded Value="True"/>
       </Unit1>
       <Unit2>
@@ -27,11 +27,11 @@
         <EditorIndex Value="2"/>
         <TopLine Value="1712"/>
         <CursorPos X="6" Y="1726"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="45"/>
         <Loaded Value="True"/>
       </Unit2>
     </Units>
-    <JumpHistory Count="29" HistoryIndex="28">
+    <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="luaclientfunctions.pas"/>
         <Caret Line="72" TopLine="51"/>
@@ -148,6 +148,10 @@
         <Filename Value="luaclientfunctions.pas"/>
         <Caret Line="53" Column="16" TopLine="36"/>
       </Position29>
+      <Position30>
+        <Filename Value="luaclientfunctions.pas"/>
+        <Caret Line="187" Column="29" TopLine="176"/>
+      </Position30>
     </JumpHistory>
   </ProjectSession>
   <Debugging>
@@ -157,7 +161,7 @@
         <WatchScope Value="wpsLocal"/>
         <WatchKind Value="wpkWrite"/>
         <Source Value="luaclientfunctions.pas"/>
-        <Line Value="226"/>
+        <Line Value="225"/>
       </Item1>
     </BreakPoints>
   </Debugging>

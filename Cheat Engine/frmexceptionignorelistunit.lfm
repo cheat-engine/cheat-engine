@@ -1,0 +1,92 @@
+object frmExceptionIgnoreList: TfrmExceptionIgnoreList
+  Left = 1013
+  Height = 240
+  Top = 160
+  Width = 320
+  Caption = 'Exception ignore list'
+  ClientHeight = 240
+  ClientWidth = 320
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  Position = poScreenCenter
+  LCLVersion = '1.6.4.0'
+  object Panel1: TPanel
+    Left = 0
+    Height = 225
+    Top = 15
+    Width = 320
+    Align = alClient
+    BevelOuter = bvNone
+    ClientHeight = 225
+    ClientWidth = 320
+    TabOrder = 0
+    object lbExceptionCodeList: TListBox
+      Left = 0
+      Height = 225
+      Top = 0
+      Width = 177
+      Align = alClient
+      ItemHeight = 0
+      OnDblClick = lbExceptionCodeListDblClick
+      TabOrder = 0
+    end
+    object Panel2: TPanel
+      Left = 177
+      Height = 225
+      Top = 0
+      Width = 143
+      Align = alRight
+      AutoSize = True
+      ClientHeight = 225
+      ClientWidth = 143
+      TabOrder = 1
+      object edtExceptionCode: TEdit
+        AnchorSideLeft.Control = Label2
+        AnchorSideTop.Control = Label2
+        AnchorSideTop.Side = asrBottom
+        Left = 7
+        Height = 23
+        Top = 20
+        Width = 129
+        BorderSpacing.Right = 6
+        TabOrder = 0
+      end
+      object Label2: TLabel
+        AnchorSideLeft.Control = Panel2
+        AnchorSideTop.Control = Panel2
+        Left = 7
+        Height = 15
+        Top = 5
+        Width = 80
+        BorderSpacing.Left = 6
+        BorderSpacing.Top = 4
+        Caption = 'Exception code'
+        ParentColor = False
+      end
+      object btnAdd: TButton
+        AnchorSideLeft.Control = edtExceptionCode
+        AnchorSideLeft.Side = asrCenter
+        AnchorSideTop.Control = edtExceptionCode
+        AnchorSideTop.Side = asrBottom
+        Left = 34
+        Height = 25
+        Top = 48
+        Width = 75
+        BorderSpacing.Top = 5
+        Caption = 'Add'
+        OnClick = btnAddClick
+        TabOrder = 1
+      end
+    end
+  end
+  object Label1: TLabel
+    Left = 0
+    Height = 15
+    Top = 0
+    Width = 320
+    Align = alTop
+    Caption = 'The following exceptions will be ignored'
+    ParentColor = False
+    WordWrap = True
+  end
+end

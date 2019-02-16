@@ -8,7 +8,7 @@ unit foundlisthelper;
 interface
 
 {$ifdef windows}
-uses LCLIntf,sysutils,classes,ComCtrls,StdCtrls,symbolhandler, CEFuncProc,
+uses LCLIntf,sysutils,classes,ComCtrls,StdCtrls,symbolhandler, symbolhandlerstructs, CEFuncProc,
      NewKernelHandler, memscan, CustomTypeHandler, byteinterpreter,
      groupscancommandparser, math, AvgLvlTree, commonTypeDefs, parsers;
 {$endif}
@@ -295,8 +295,8 @@ begin
     freeandnil(memoryfile);
     freeandnil(outaddress);
     freeandnil(outmemory);
-    freemem(buf);
-    buf:=nil;
+    freememandnil(buf);
+
   end;
 
   //still here, not crashed, so out with the old, in with the new...
@@ -386,6 +386,7 @@ var i,j: integer;
     x: dword;
     temp: string;
 begin
+  setlength(oldvalues,0);
 
   if addressfile=nil then exit;
 
@@ -774,7 +775,7 @@ begin
           groupElementSize:=sizeof(ptruint)+sizeof(dword)*length(gcp.elements);
 
           if addresslistg<>nil then
-            freemem(addresslistg);
+            freememandnil(addresslistg);
 
           addresslistg:=getmem(1024*groupElementSize);
 
@@ -901,7 +902,7 @@ begin
     foundlist.free;
 
   if addresslistg<>nil then
-    freemem(addresslistg);
+    freememandnil(addresslistg);
 end;
 
 constructor TFoundlist.create(foundlist: tlistview; memscan: TMemScan; listname: string='');

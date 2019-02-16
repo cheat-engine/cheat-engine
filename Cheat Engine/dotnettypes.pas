@@ -105,6 +105,7 @@ implementation
 
 function DotNetTypeToString(dntype: dword):string;
 begin
+  result:=rsDNTPointer;
   case dntype of
     ELEMENT_TYPE_END            : result:=rsDNTEnd;
     ELEMENT_TYPE_VOID           : result:=rsDNTVoid;

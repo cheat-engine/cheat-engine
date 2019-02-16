@@ -1,9 +1,11 @@
 object Form1: TForm1
-  Left = 413
+  Left = 250
   Height = 600
-  Top = 155
-  Width = 600
+  Top = 56
+  Width = 800
   Caption = 'Step 1'
+  OnCreate = FormCreate
   OnShow = FormShow
+  Position = poScreenCenter
   LCLVersion = '1.6.4.0'
 end

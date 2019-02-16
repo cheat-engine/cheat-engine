@@ -1,0 +1,37 @@
+object frmChangedAddressesCommonalityScanner: TfrmChangedAddressesCommonalityScanner
+  Left = 866
+  Height = 204
+  Top = 568
+  Width = 624
+  Caption = 'Commonality scanner'
+  ClientHeight = 204
+  ClientWidth = 624
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  Position = poScreenCenter
+  LCLVersion = '1.9.0.0'
+  object lvRegisters: TListView
+    Left = 0
+    Height = 204
+    Top = 0
+    Width = 624
+    Align = alClient
+    AutoWidthLastColumn = True
+    Columns = <    
+      item
+        Caption = 'Register'
+        Width = 100
+      end    
+      item
+        Caption = 'Status'
+        Width = 520
+      end>
+    HideSelection = False
+    ReadOnly = True
+    RowSelect = True
+    TabOrder = 0
+    ViewStyle = vsReport
+    OnDblClick = lvRegistersDblClick
+  end
+end

@@ -3,11 +3,12 @@ unit binutils;
 //responsible for launching and retrieving data from the binutil tools
 
 {$mode objfpc}{$H+}
+{$warn 2005 off}
 
 interface
 
 uses
-  forms, Classes, SysUtils, process, LastDisassembleData, strutils, maps;
+  windows, newkernelhandler, forms, Classes, SysUtils, process, LastDisassembleData, strutils, maps;
 
 type
   TSection=record
@@ -56,10 +57,19 @@ type
     procedure clearDisassemblerCache;
     procedure clearLongRangeDisassemblerCache(address: ptruint);
 
+
+    function compile(script: tstringlist): boolean;
+    function compileproject(filelist: tstringlist): boolean;
+
+    procedure LinkObjectFiles(objectfiles: tstringlist; const imports: TImportList; targetfilename: string; targetaddress:ptruint=0);
+    procedure ObjectToBinary(objectfile: string; binfile: string);
+    procedure stripSection(objectfile: string; section: string);
+
     function assemble(script: tstringlist; extraparams: string; out filename: string): boolean;
-    procedure nm(filename: string; undefined: tstringlist);
+    procedure nm(filename: string; defined: tstringlist; undefined: tstringlist; registersymbols: boolean=false);
     procedure GetSections(filename: string; var sections: TSectionArray);
     procedure ldAndExtract(objectfile, linkfilename, extraparams: string; imports: TImportList; var sections: TBinarySections);
+    procedure ldAndInject(objectfiles: tstringlist);
     procedure disassemble(var ldd: TLastDisassembleData); //address and bytes are filled in
   published
     property path: string read fpath write setPath;
@@ -73,7 +83,7 @@ var
 
 implementation
 
-uses dialogs, lua, LuaHandler, NewKernelHandler, ProcessHandlerUnit;
+uses dialogs, lua, LuaHandler, ProcessHandlerUnit, symbolhandler;
 
 type
   TDisassemblerCacheEntry=record
@@ -107,8 +117,8 @@ begin
   entry:=_entry;
   if entry^.bytes<>nil then
   begin
-    freemem(entry^.bytes);
-    entry^.bytes:=nil;
+    FreeMemAndNil(entry^.bytes);
+
   end;
 
   if entry^.instruction<>nil then
@@ -335,7 +345,11 @@ begin
       for i:=0 to p.parameters.count-1 do
         params[i]:=p.Parameters[i];
 
+      {$IF (FPC_FULLVERSION<0304000)}
+      if RunCommand(p.Executable, params, os) then
+      {$else}
       if RunCommand(p.Executable, params, os,[poNoConsole]) then
+      {$endif}
       begin
         output:=TStringStream.create('');
         output.WriteString(os);
@@ -469,12 +483,168 @@ begin
 
   finally
     if buffer<>nil then
-      freemem(buffer);
+      FreeMemAndNil(buffer);
   end;
 
 end;
 
-procedure TBinUtils.ldAndExtract(objectfile, linkfilename, extraparams: string; imports: TImportList; var sections: TBinarySections);
+procedure TbinUtils.ObjectToBinary(objectfile: string; binfile: string);
+var objcopyprocess: tprocess;
+begin
+  objcopyprocess:=TProcess.create(nil);
+  objcopyprocess.CurrentDirectory:=fpath;
+  objcopyprocess.executable:='"'+fpath+prefix+'objcopy'+'"';
+  objcopyprocess.Options:=[poUsePipes, poNoConsole];
+
+  objcopyprocess.Parameters.Add('-Obinary');
+  objcopyprocess.Parameters.Add(objectfile);
+  objcopyprocess.Parameters.Add(binfile);
+
+  objcopyprocess.Execute;
+  if objcopyprocess.WaitOnExit then
+  begin
+    if objcopyprocess.ExitCode<>0 then
+    begin
+      setlength(lasterror, objcopyprocess.Stderr.NumBytesAvailable+1);
+      objcopyprocess.Stderr.ReadBuffer(lasterror[1], length(lasterror)-1);
+      lasterror[length(lasterror)]:=#0;
+
+      raise exception.create('ObjectToBinary: objcopy:'+lasterror);
+    end;
+  end
+  else
+    raise exception.create('ObjectToBinary: Wait error on objcopy');
+end;
+
+procedure TBinUtils.LinkObjectFiles(objectfiles: tstringlist; const imports: TImportList; targetfilename: string; targetaddress:ptruint=0);
+var
+  p: tprocess;
+  i: integer;
+
+begin
+  if targetaddress=$00400000 then targetaddress:=$00400010; //does not work with 0x00400000
+  p:=TProcess.create(nil);
+  p.CurrentDirectory:=fpath;
+  p.executable:='"'+fpath+prefix+'ld'+'"';
+  p.Options:=[poUsePipes, poNoConsole];
+  p.Parameters.Add('-static');
+  p.parameters.add(LDParam);      //-mi386pe for 32-bit
+  p.Parameters.Add('-T NUL');
+  if targetaddress<>0 then
+    p.parameters.add('-Ttext 0x'+inttohex(targetaddress,1));
+
+  for i:=0 to objectfiles.count-1 do
+    p.Parameters.Add(objectfiles[i]);
+
+  for i:=0 to length(imports)-1 do
+    p.Parameters.Add('--defsym='+imports[i].name+'=0x'+inttohex(imports[i].address,8));
+
+  p.Parameters.Add('-o "'+targetfilename+'"');
+
+  p.Execute;
+  if p.WaitOnExit then
+  begin
+    if p.ExitCode<>0 then
+    begin
+      setlength(lasterror, p.Stderr.NumBytesAvailable+1);
+      p.Stderr.ReadBuffer(lasterror[1], length(lasterror)-1);
+      lasterror[length(lasterror)]:=#0;
+        raise exception.create(lasterror);
+    end;
+  end;
+
+end;
+
+procedure TBinUtils.ldAndInject(objectfiles: tstringlist);
+var
+  p: tprocess;
+
+  m: tmemorystream;
+  z: tfilestream;
+  size,size2: integer;
+  i,j: integer;
+  tempfile: string='';
+  imports: TImportList;
+
+  defined, undefined: tstringlist;
+  found: boolean;
+  mem: pointer=nil;
+  x: ptruint;
+begin
+  //first get all the imports
+  defined:=tstringlist.create;
+  undefined:=tstringlist.create;
+  try
+    for i:=0 to objectfiles.count-1 do
+      nm(objectfiles[i], defined, undefined);
+
+    //go through the undefined list and fill them in (where possible)
+    setlength(imports,0);
+    for i:=0 to undefined.count-1 do
+    begin
+      found:=false;
+      for j:=0 to length(imports)-1 do
+      begin
+        if imports[j].name=undefined[i] then
+        begin
+          found:=true;
+          break;
+        end;
+      end;
+
+      if not found then
+      begin
+        j:=length(imports);
+        setlength(imports, j+1);
+        imports[j].name:=undefined[i];
+        imports[j].address:=symhandler.getAddressFromName(undefined[i]); //error out if not found
+      end;
+    end;
+  finally
+    defined.free;
+    undefined.free;
+  end;
+
+  //still here so the undefinedlist has been handled
+
+  tempfile:=GetTempFileName;
+  LinkObjectFiles(objectfiles, imports, tempfile );
+
+  ObjectToBinary(tempfile, tempfile+'.bin');
+  z:=tfilestream.create(tempfile+'.bin', fmOpenRead);
+  size:=z.Size+4096;
+  z.free;
+
+  if size=0 then raise exception.create('Failure getting filesize');
+
+
+  //still here so linking was succesful
+
+  repeat
+    size2:=size;
+    if mem<>nil then VirtualFreeEx(processhandle, mem, 0,MEM_RELEASE);
+    mem:=VirtualAllocEx(processhandle, nil,size,mem_reserve or mem_commit, PAGE_EXECUTE_READWRITE);
+    if mem=nil then raise exception.create('Failure allocating memory');
+    LinkObjectFiles(objectfiles, imports, tempfile, ptruint(mem) );
+    ObjectToBinary(tempfile, tempfile+'.bin');
+
+    z:=tfilestream.create(tempfile+'.bin' ,fmOpenRead);
+    size:=z.Size+4096;
+    z.free;
+  until size<=size2;  //repeat linking until the proper size is found (at most 2)
+
+
+  m:=tmemorystream.create;
+  m.loadfromfile(tempfile+'.bin');
+  WriteProcessMemory(processhandle, mem, m.memory, m.size,x);
+  m.free;
+
+  defined.clear;
+  undefined.clear;
+  nm(tempfile, defined, undefined, true);
+end;
+
+procedure TBinUtils.ldAndExtract(objectfile, linkfilename, extraparams: string; imports: TImportList; var sections: TBinarySections);  //for gnu assembler
 var
   p: TProcess;
   i: integer;
@@ -510,6 +680,8 @@ begin
 
       raise exception.create(lasterror);
     end;
+
+
 
   finally
     p.free;
@@ -657,15 +829,23 @@ begin
 
 end;
 
-procedure TBinUtils.nm(filename: string; undefined: tstringlist);
+procedure TBinUtils.nm(filename: string; defined: tstringlist; undefined: tstringlist; registersymbols: boolean=false);
+{
+Executes nm and keeps a list of all defined and undefined symbols
+The call can be done with a defined and undefined list already filled in. In that case, just update
+}
 var
   p: TProcess;
   ec: integer;
 
   output: TStringStream;
   s: tstringlist;
-  i: integer;
+  i,j: integer;
   line: string;
+
+  str: string;
+  a: ptruint;
+  e: integer;
 begin
   output:=TStringStream.Create('');
   p:=TProcess.Create(nil);
@@ -673,8 +853,6 @@ begin
     p.CurrentDirectory:=fpath;
     p.Executable:='"'+fpath+prefix+'nm'+'"';
     p.Options:=[poUsePipes, poNoConsole];
-
-    p.Parameters.Add('-u');
     p.Parameters.Add('"'+filename+'"');
 
     p.Execute;
@@ -701,10 +879,36 @@ begin
       for i:=0 to s.Count-1 do
       begin
         line:=trim(s[i]);
-        if (length(line)>2) and (line[1]='U') then
-          undefined.add(copy(line, 3, length(line)));
+        if (length(line)>2) then
+        begin
+          if (line[1]='U') then
+          begin
+            str:=copy(line, 3, length(line));
+
+            if (defined.IndexOf(str)<>-1) or (undefined.IndexOf(str)<>-1) then continue; //it's already defined somewhere else or already in the undefined list
+            undefined.add(str); //add it to the undefined list
+          end
+          else
+          begin
+            str:=copy(line, RPos(' ',line)+1, length(line));
+            j:=undefined.IndexOf(str); //check if it was undefined previously
+            if j<>-1 then undefined.Delete(j); //yes, found it
+
+            defined.add(str);
+           {
+            if registersymbols then
+            begin
+              j:=pos(' ',line);
+              if j>0 then
+              begin
+                str:=copy(line,1,j-1);
+                a:=StrToInt64('$'+str);
 
 
+              end;
+            end; }
+          end;
+        end;
       end;
       s.free;
     end
@@ -720,6 +924,85 @@ begin
     p.free;
     output.free;
   end;
+end;
+
+procedure TBinUtils.stripSection(objectfile: string; section: string);
+var
+  p: TProcess;
+begin
+  p:=tprocess.create(nil);
+  p.CurrentDirectory:=fpath;
+  p.Executable:='"'+fpath+prefix+'objcopy'+'"';
+  p.Options:=[poUsePipes, poWaitOnExit, poNoConsole];
+  p.parameters.add('--remove-section '+section);
+  p.Execute;
+  p.WaitOnExit;
+
+  p.free;
+end;
+
+function TBinUtils.compile(script: tstringlist): boolean;
+//compiles the given C code , allocates memory for it, links it, and then copies it to the allocated code, and registers the symbols
+//single scripts only. (no multifile supported. Use compileproject for that)
+
+//On hold. This needs to be rewritten to be dynamic instead of static and then fill in the relocation table and importtable  (my ld can't link above 0x100000000)
+
+//fuck it, just compile a dll and then force load the dll by parsing the import table
+var
+  p: TProcess;
+  inputfile: string='';
+  outputfile: string='';
+
+  i,j: integer;
+  found: boolean;
+  outputfilelist: tstringlist;
+begin
+  result:=false;
+  p:=tprocess.create(nil);
+  inputfile:=GetTempFileName;
+  DeleteFile(inputfile+'.c');
+  DeleteFile(outputfile+'.o');
+  if renamefile(inputfile,inputfile+'.c') then
+  begin
+    outputfile:=inputfile+'.o';
+    inputfile:=inputfile+'.c';
+
+    try
+      script.SaveToFile(inputfile);
+      p.CurrentDirectory:=fpath;
+      p.Executable:='"'+fpath+prefix+'gcc'+'"';
+      p.Options:=[poUsePipes, poWaitOnExit, poNoConsole];
+      p.parameters.add('-c "'+inputfile+'"');
+      p.parameters.add('-o "'+outputfile+'"');
+      p.parameters.add(outputfile);
+
+      p.Execute;
+      if p.WaitOnExit then
+      begin
+        if p.exitcode=0 then //compilation success
+        begin
+          stripSection(outputfile,'.pdata'); //the mingw I use adds a .pdata section which does not like 64-bit
+
+          outputfilelist:=tstringlist.create;
+          outputfilelist.add(outputfile);
+          ldAndInject(outputfilelist);
+          outputfilelist.free;
+        end;
+      end;
+    finally
+      if inputfile<>'' then
+        deletefile(inputfile);
+
+      if outputfile<>'' then
+        deletefile(outputfile);
+    end;
+
+  end;
+end;
+
+function TBinUtils.compileproject(filelist: tstringlist): boolean;
+begin
+  result:=false;
 end;
 
 function TBinUtils.assemble(script: tstringlist; extraparams: string; out filename: string): boolean;

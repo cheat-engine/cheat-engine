@@ -61,7 +61,7 @@ BOOL __stdcall addresslistplugin(PPLUGINTYPE0_RECORD SelectedRecord)
 {
 	char x[100];
 
-	sprintf_s(x,100,"Selected record's description=%s Address=%0.8x",SelectedRecord->description, SelectedRecord->address);
+	sprintf_s(x,100,"Selected record's description=%s Address=%0.8llx",SelectedRecord->description, (UINT64)SelectedRecord->address);
 	Exported.ShowMessage(x); //show it using CE's default messagebox
 	return FALSE; //return TRUE if you edited anything in the record and want to apply that to the table
 }
@@ -101,6 +101,14 @@ BOOL __stdcall CEPlugin_GetVersion(PPluginVersion pv , int sizeofpluginversion)
 	pv->pluginname="C Example v1.3 (SDK version 4: 6.0+)"; //exact strings like this are pointers to the string in the dll, so workable
 	return TRUE;
 }
+
+int lua_pluginExample(lua_State *L) //make sure this is cdecl
+{
+	Exported.ShowMessage("Called from lua");
+	lua_pushinteger(L, 123);
+	return 1;
+}
+
 
 BOOL __stdcall CEPlugin_InitializePlugin(PExportedFunctions ef , int pluginid)
 {
@@ -177,6 +185,10 @@ BOOL __stdcall CEPlugin_InitializePlugin(PExportedFunctions ef , int pluginid)
 		Exported.ShowMessage("Failure to register the main menu plugin");
 		return FALSE;
 	}	
+
+	lua_State *lua_state=ef->GetLuaState();
+
+	lua_register(lua_state, "pluginExample", lua_pluginExample);
 
 	Exported.ShowMessage("The \"Example C\" plugin got enabled");
 	return TRUE;

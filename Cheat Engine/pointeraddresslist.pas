@@ -166,7 +166,7 @@ begin
 
     modulebases[i]:=s.ReadQWord; //seperate array for quicker lookup
     modulelist.AddObject(mname, tobject(modulebases[i]));
-    freemem(mname);
+    FreeMemAndNil(mname);
   end;
 
   if s.ReadByte=1 then  //specific base as static only

@@ -8,7 +8,6 @@ object frmPointerrescanConnectDialog: TfrmPointerrescanConnectDialog
   ClientHeight = 93
   ClientWidth = 261
   OnCreate = FormCreate
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object lblHost: TLabel

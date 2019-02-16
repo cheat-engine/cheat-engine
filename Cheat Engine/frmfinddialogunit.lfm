@@ -1,0 +1,134 @@
+object frmFindDialog: TfrmFindDialog
+  Left = 1016
+  Height = 127
+  Top = 149
+  Width = 234
+  AutoSize = True
+  Caption = 'Find'
+  ClientHeight = 127
+  ClientWidth = 234
+  Position = poOwnerFormCenter
+  LCLVersion = '1.6.4.0'
+  object edtText: TEdit
+    AnchorSideLeft.Control = Label1
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = lblDescription
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = btnFind
+    Left = 30
+    Height = 23
+    Top = 21
+    Width = 200
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Left = 3
+    BorderSpacing.Top = 3
+    BorderSpacing.Right = 6
+    Constraints.MinWidth = 200
+    TabOrder = 0
+  end
+  object rgUpDown: TRadioGroup
+    AnchorSideLeft.Control = edtText
+    AnchorSideTop.Control = btnFind
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = btnFind
+    AnchorSideRight.Side = asrBottom
+    Left = 161
+    Height = 58
+    Top = 49
+    Width = 67
+    Anchors = [akTop, akRight]
+    AutoFill = True
+    AutoSize = True
+    BorderSpacing.Left = 4
+    BorderSpacing.Top = 3
+    BorderSpacing.Right = 3
+    Caption = 'Direction'
+    ChildSizing.LeftRightSpacing = 6
+    ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+    ChildSizing.EnlargeVertical = crsHomogenousChildResize
+    ChildSizing.ShrinkHorizontal = crsScaleChilds
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 1
+    ClientHeight = 38
+    ClientWidth = 63
+    ItemIndex = 1
+    Items.Strings = (
+      'Up'
+      'Down'
+    )
+    TabOrder = 3
+  end
+  object Label1: TLabel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = edtText
+    AnchorSideTop.Side = asrCenter
+    Left = 5
+    Height = 15
+    Top = 25
+    Width = 22
+    BorderSpacing.Left = 5
+    Caption = 'Text'
+    ParentColor = False
+  end
+  object btnFind: TButton
+    AnchorSideTop.Control = edtText
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 156
+    Height = 25
+    Top = 21
+    Width = 75
+    Anchors = [akTop, akRight]
+    AutoSize = True
+    BorderSpacing.Right = 3
+    BorderSpacing.Bottom = 3
+    Caption = 'Find'
+    Constraints.MinWidth = 75
+    Default = True
+    ModalResult = 1
+    TabOrder = 1
+  end
+  object cbCaseSensitive: TCheckBox
+    AnchorSideLeft.Control = Label1
+    AnchorSideTop.Control = edtText
+    AnchorSideTop.Side = asrBottom
+    Left = 5
+    Height = 19
+    Top = 47
+    Width = 93
+    BorderSpacing.Top = 3
+    Caption = 'Case sensitive'
+    TabOrder = 2
+  end
+  object Button1: TButton
+    AnchorSideTop.Control = rgUpDown
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = btnFind
+    AnchorSideRight.Side = asrBottom
+    Left = 156
+    Height = 25
+    Top = 115
+    Width = 75
+    Anchors = [akTop, akRight]
+    AutoSize = True
+    BorderSpacing.Top = 8
+    BorderSpacing.Bottom = 3
+    Cancel = True
+    Caption = 'Cancel'
+    Constraints.MinWidth = 75
+    ModalResult = 2
+    TabOrder = 4
+  end
+  object lblDescription: TLabel
+    AnchorSideLeft.Control = edtText
+    AnchorSideTop.Control = Owner
+    Left = 30
+    Height = 15
+    Top = 3
+    Width = 123
+    BorderSpacing.Top = 3
+    Caption = 'Enter the text to search:'
+    ParentColor = False
+  end
+end

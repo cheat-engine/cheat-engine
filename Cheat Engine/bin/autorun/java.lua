@@ -2442,10 +2442,10 @@ function java_initialize()
     local cbAlwaysShowMenu=createCheckBox(java.settingsTab)
     cbAlwaysShowMenu.Caption=translate("Show java menu item even if the target process hasn't loaded jvm.dll (Used for the local setEnvironment option)")
     cbAlwaysShowMenu.AnchorSideLeft.Control=java.settingsTab
-    cbAlwaysShowMenu.AnchorSideLeft.Side="asrLeft"
+    cbAlwaysShowMenu.AnchorSideLeft.Side=asrLeft
 
     cbAlwaysShowMenu.AnchorSideTop.Control=java.settingsTab
-    cbAlwaysShowMenu.AnchorSideTop.Side="asrTop"
+    cbAlwaysShowMenu.AnchorSideTop.Side=asrTop
 
     cbAlwaysShowMenu.Anchors="[akTop, akLeft]"
 
@@ -2457,7 +2457,7 @@ function java_initialize()
   local cbGlobalHook=createCheckBox(java.settingsTab)
   cbGlobalHook.Caption="Systemwide java agent injection. (Loads the java agent even when CE isn't running. Reboot recommended)"
   cbGlobalHook.AnchorSideLeft.Control=java.settingsTab
-  cbGlobalHook.AnchorSideLeft.Side="asrLeft"
+  cbGlobalHook.AnchorSideLeft.Side=asrLeft
 
   cbGlobalHook.AnchorSideTop.Control=cbAlwaysShowMenu
   cbGlobalHook.AnchorSideTop.Side="asrBottom"

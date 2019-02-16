@@ -10,7 +10,6 @@ object Registers: TRegisters
   OnClose = FormClose
   OnResize = FormResize
   OnShow = FormShow
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'
   object Panel1: TPanel

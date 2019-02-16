@@ -1,0 +1,81 @@
+object CallOrAllDialog: TCallOrAllDialog
+  Left = 723
+  Height = 78
+  Top = 375
+  Width = 313
+  AutoSize = True
+  BorderStyle = bsDialog
+  Caption = 'Code Filter'
+  ClientHeight = 78
+  ClientWidth = 313
+  Position = poOwnerFormCenter
+  LCLVersion = '1.6.4.0'
+  object Label1: TLabel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    Left = 10
+    Height = 15
+    Top = 10
+    Width = 271
+    Alignment = taCenter
+    BorderSpacing.Left = 10
+    BorderSpacing.Top = 10
+    BorderSpacing.Right = 10
+    Caption = 'Load all instructions into the list or just the CALL''s ?'
+    ParentColor = False
+    WordWrap = True
+  end
+  object Panel1: TPanel
+    AnchorSideLeft.Control = Label1
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = Label1
+    AnchorSideTop.Side = asrBottom
+    Left = 38
+    Height = 25
+    Top = 30
+    Width = 214
+    AutoSize = True
+    BorderSpacing.Left = 8
+    BorderSpacing.Top = 5
+    BorderSpacing.Bottom = 8
+    BevelOuter = bvNone
+    ChildSizing.HorizontalSpacing = 16
+    ChildSizing.EnlargeHorizontal = crsHomogenousSpaceResize
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 3
+    ClientHeight = 25
+    ClientWidth = 214
+    TabOrder = 0
+    object Button1: TButton
+      Left = 0
+      Height = 25
+      Top = 0
+      Width = 40
+      AutoSize = True
+      Caption = 'All'
+      ModalResult = 8
+      TabOrder = 0
+    end
+    object Button2: TButton
+      Left = 56
+      Height = 25
+      Top = 0
+      Width = 80
+      AutoSize = True
+      Caption = 'Call''s only'
+      Default = True
+      ModalResult = 9
+      TabOrder = 1
+    end
+    object Button3: TButton
+      Left = 152
+      Height = 25
+      Top = 0
+      Width = 62
+      Cancel = True
+      Caption = 'Cancel'
+      ModalResult = 2
+      TabOrder = 2
+    end
+  end
+end

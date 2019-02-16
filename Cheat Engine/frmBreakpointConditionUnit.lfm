@@ -7,7 +7,6 @@ object frmBreakpointCondition: TfrmBreakpointCondition
   ClientHeight = 232
   ClientWidth = 489
   OnCreate = FormCreate
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'
   object Button1: TButton

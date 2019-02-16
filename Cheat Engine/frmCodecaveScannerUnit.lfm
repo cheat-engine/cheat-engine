@@ -10,7 +10,6 @@ object frmCodecaveScanner: TfrmCodecaveScanner
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnShow = FormShow
-  PopupMode = pmAuto
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'
   object lbCodecaveList: TListBox

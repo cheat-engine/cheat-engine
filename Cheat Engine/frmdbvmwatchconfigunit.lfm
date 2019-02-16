@@ -1,0 +1,222 @@
+object frmDBVMWatchConfig: TfrmDBVMWatchConfig
+  Left = 925
+  Height = 242
+  Top = 284
+  Width = 311
+  AutoSize = True
+  BorderStyle = bsSingle
+  BorderWidth = 5
+  Caption = 'DBVM Watch Config'
+  ClientHeight = 242
+  ClientWidth = 311
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  Position = poScreenCenter
+  LCLVersion = '1.6.4.0'
+  object GroupBox1: TGroupBox
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    Left = 5
+    Height = 45
+    Top = 5
+    Width = 231
+    AutoSize = True
+    BorderSpacing.InnerBorder = 3
+    Caption = 'Access Type'
+    ChildSizing.LeftRightSpacing = 5
+    ChildSizing.HorizontalSpacing = 3
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 2
+    ClientHeight = 25
+    ClientWidth = 227
+    TabOrder = 0
+    object rbWriteAccess: TRadioButton
+      Left = 5
+      Height = 19
+      Top = 0
+      Width = 90
+      Caption = 'Write Access '
+      Checked = True
+      TabOrder = 0
+      TabStop = True
+    end
+    object rbReadAccess: TRadioButton
+      Left = 98
+      Height = 19
+      Top = 0
+      Width = 118
+      Caption = 'Read/Write Access'
+      TabOrder = 1
+    end
+  end
+  object lblVirtualAddress: TLabel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = GroupBox1
+    AnchorSideTop.Side = asrBottom
+    Left = 5
+    Height = 15
+    Top = 51
+    Width = 85
+    BorderSpacing.Top = 1
+    Caption = 'Virtual Address: '
+    ParentColor = False
+  end
+  object lblPhysicalAddress: TLabel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = lblVirtualAddress
+    AnchorSideTop.Side = asrBottom
+    Left = 5
+    Height = 15
+    Top = 67
+    Width = 94
+    BorderSpacing.Top = 1
+    Caption = 'Physical Address: '
+    ParentColor = False
+  end
+  object cbLockPage: TCheckBox
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = lblPhysicalAddress
+    AnchorSideTop.Side = asrBottom
+    Left = 5
+    Height = 19
+    Hint = 'This prevents the given page to get swapped out and later replaced by another physical address.  (Make sure you unlock before the game quits)'
+    Top = 83
+    Width = 74
+    BorderSpacing.Top = 1
+    Caption = 'Lock page'
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 1
+  end
+  object cbMultipleRIP: TCheckBox
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = cbSaveStack
+    AnchorSideTop.Side = asrBottom
+    Left = 5
+    Height = 19
+    Top = 143
+    Width = 291
+    BorderSpacing.Top = 1
+    Caption = 'Same instruction multiple times (different registers)'
+    TabOrder = 2
+  end
+  object cbWholePage: TCheckBox
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = cbMultipleRIP
+    AnchorSideTop.Side = asrBottom
+    Left = 5
+    Height = 19
+    Top = 163
+    Width = 235
+    BorderSpacing.Top = 1
+    Caption = 'Log whole page instead of address range'
+    TabOrder = 3
+  end
+  object cbSaveFPU: TCheckBox
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = cbLockPage
+    AnchorSideTop.Side = asrBottom
+    Left = 5
+    Height = 19
+    Top = 103
+    Width = 90
+    BorderSpacing.Top = 1
+    Caption = 'Log FPU data'
+    TabOrder = 4
+  end
+  object cbSaveStack: TCheckBox
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = cbSaveFPU
+    AnchorSideTop.Side = asrBottom
+    Left = 5
+    Height = 19
+    Hint = 'Saves a stacksnapshot of 4KB for each logged entry'
+    Top = 123
+    Width = 70
+    BorderSpacing.Top = 1
+    Caption = 'Log stack'
+    TabOrder = 5
+  end
+  object Panel1: TPanel
+    AnchorSideTop.Control = cbWholePage
+    AnchorSideTop.Side = asrBottom
+    Left = 5
+    Height = 23
+    Top = 183
+    Width = 166
+    AutoSize = True
+    BorderSpacing.Top = 1
+    BevelOuter = bvNone
+    ChildSizing.ControlsPerLine = 2
+    ClientHeight = 23
+    ClientWidth = 166
+    TabOrder = 6
+    object Label3: TLabel
+      AnchorSideTop.Control = Panel1
+      AnchorSideTop.Side = asrCenter
+      Left = 0
+      Height = 15
+      Top = 4
+      Width = 122
+      Caption = 'Max buffersize (entries)'
+      ParentColor = False
+      ParentFont = False
+    end
+    object edtMaxEntries: TEdit
+      AnchorSideLeft.Control = Label3
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Panel1
+      AnchorSideTop.Side = asrCenter
+      Left = 126
+      Height = 23
+      Top = 0
+      Width = 40
+      BorderSpacing.Left = 4
+      TabOrder = 0
+      Text = '32'
+    end
+  end
+  object Panel2: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = Panel1
+    AnchorSideTop.Side = asrBottom
+    Left = 78
+    Height = 25
+    Top = 214
+    Width = 155
+    AutoSize = True
+    BorderSpacing.Top = 8
+    BevelOuter = bvNone
+    ClientHeight = 25
+    ClientWidth = 155
+    TabOrder = 7
+    object btnOK: TButton
+      AnchorSideLeft.Control = Panel2
+      AnchorSideTop.Control = Panel2
+      Left = 0
+      Height = 25
+      Top = 0
+      Width = 75
+      Caption = 'Start watch'
+      Default = True
+      Enabled = False
+      OnClick = btnOKClick
+      TabOrder = 0
+    end
+    object Button2: TButton
+      AnchorSideLeft.Control = btnOK
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Panel2
+      Left = 80
+      Height = 25
+      Top = 0
+      Width = 75
+      BorderSpacing.Left = 5
+      Cancel = True
+      Caption = 'Cancel'
+      ModalResult = 2
+      TabOrder = 1
+    end
+  end
+end

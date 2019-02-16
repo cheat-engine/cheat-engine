@@ -68,6 +68,8 @@ begin
   finally
     reg.free;
   end;
-  messagebox(0,'Your windows install should be repaired. Try running Cheat Engine now', 'Windows Repair (CE)',0);
+
+  if (ParamCount=0) or (ParamStr(1)<>'/s') then
+    messagebox(0,'Your windows install should be repaired. Try running Cheat Engine now', 'Windows Repair (CE)',0);
 end.
 
