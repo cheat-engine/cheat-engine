@@ -3166,7 +3166,7 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
           extrafile[254]=0;
 
           f=open(extrafile, O_RDONLY);
-          if (i!=-1)
+          if (f!=-1)
           {
             i=read(f, extrafile, 255);
             if (i>=0)
