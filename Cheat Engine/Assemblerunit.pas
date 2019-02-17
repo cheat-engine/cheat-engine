@@ -3410,7 +3410,7 @@ begin
     //looks like a pointer in a address specifier (idiot user detected...)
 
 
-    temp:='['+inttohex(symhandler.getaddressfromname(copy(token,2,length(token)-2), false,haserror),8)+']';
+    temp:='['+inttohex(symhandler.getaddressfromname(copy(token,2,length(token)-2), true,haserror),8)+']';
     if not haserror then
       token:=temp
     else
@@ -3476,7 +3476,7 @@ begin
 
       if (err<>0) and (getreg(tokens[i],false)=-1) then    //not a hexadecimal value and not a register
       begin
-        temp:=inttohex(symhandler.getaddressfromname(tokens[i], false, haserror,nil),8);
+        temp:=inttohex(symhandler.getaddressfromname(tokens[i], true, haserror,nil),8);
         if not haserror then
           tokens[i]:=temp //can be rewritten as a hexadecimal
         else

@@ -10,7 +10,7 @@ object MainForm: TMainForm
   VertScrollBar.Visible = False
   AllowDropFiles = True
   AutoSize = True
-  Caption = 'Cheat Engine 6.8.2'
+  Caption = 'Cheat Engine 6.8.3'
   ClientHeight = 605
   ClientWidth = 622
   Menu = MainMenu1
