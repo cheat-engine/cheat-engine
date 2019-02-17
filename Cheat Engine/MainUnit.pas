@@ -255,6 +255,7 @@ type
     CreateGroup: TMenuItem;
     FromAddress: TEdit;
     andlabel: TLabel;
+    Label3: TLabel;
     lblSigned: TLabel;
     MainMenu2: TMainMenu;
     MenuItem12: TMenuItem;
@@ -509,6 +510,7 @@ type
     procedure CreateGroupClick(Sender: TObject);
     procedure Foundlist3SelectItem(Sender: TObject; Item: TListItem;
       Selected: boolean);
+    procedure Label3Click(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
     procedure MenuItem15Click(Sender: TObject);
     procedure miHelpClick(Sender: TObject);
@@ -3115,6 +3117,12 @@ procedure TMainForm.Foundlist3SelectItem(Sender: TObject; Item: TListItem;
   Selected: boolean);
 begin
 
+end;
+
+procedure TMainForm.Label3Click(Sender: TObject);
+var x:TChangeRegOnBPInfo;
+begin
+ // x.changeRIP
 end;
 
 procedure TMainForm.MenuItem12Click(Sender: TObject);
@@ -9206,8 +9214,10 @@ begin
   QueryPerformanceCounter(scantimefinish);
   scantime:=scantimefinish-scantimestart;
 
+{$ifdef SCANPERF}
   if ssCtrl in GetKeyShiftState then
     showmessage(inttostr(scantime));
+{$endif}
 
 
   if ScanTabList <> nil then
