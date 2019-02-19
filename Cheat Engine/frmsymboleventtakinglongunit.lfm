@@ -1,7 +1,7 @@
 object frmSymbolEventTakingLong: TfrmSymbolEventTakingLong
-  Left = 402
+  Left = 509
   Height = 240
-  Top = 147
+  Top = 157
   Width = 365
   AutoSize = True
   Caption = 'Symbol lookup taking long'

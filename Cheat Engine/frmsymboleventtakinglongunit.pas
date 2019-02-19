@@ -32,6 +32,8 @@ type
     done: Tevent;
   end;
 
+var waitingfrm: TfrmSymbolEventTakingLong;
+
 implementation
 
 { TfrmSymbolEventTakingLong }

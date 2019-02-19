@@ -9794,7 +9794,7 @@ function lua_compareMemory(L: PLua_state): integer; cdecl;
 var
   address1,address2: ptruint;
   Method: integer;
-  size,size2: integer;
+  size,i: integer;
 
   pc: integer;
   temp: Pointer;
@@ -9850,7 +9850,13 @@ begin
 
   //compare
   result:=1;
-  lua_pushinteger(L, RtlCompareMemory(buf1,buf2,size));
+  i:=RtlCompareMemory(buf1,buf2,size);
+  lua_pushboolean(L,i=size);
+  if i<>size then
+  begin
+    lua_pushinteger(L, i);
+    result:=2;
+  end;
 
 
   case method of
