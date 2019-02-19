@@ -67,7 +67,7 @@ begin
 
       symhandler.waitforsymbolsloaded(true, 'kernel32.dll'); //speed it up (else it'll wait inside the symbol lookup of injectdll)
 
-      symhandler.getAddressFromName('speedhackversion_GetTickCount',false,e);
+      symhandler.getAddressFromName('speedhackversion_GetTickCount',true,e);
       if e then
         injectdll(CheatEngineDir+fname);
 
@@ -203,7 +203,7 @@ begin
       end;
 
       //timegettime
-      if symhandler.getAddressFromName('timeGetTime',false,err)>0 then //might not be loaded
+      if symhandler.getAddressFromName('timeGetTime',true,err)>0 then //might not be loaded
       begin
         script.Clear;
         script.Add('timeGetTime:');
@@ -232,7 +232,7 @@ begin
       end;
 
       //gettickcount64
-      if symhandler.getAddressFromName('GetTickCount64',false,err)>0 then
+      if symhandler.getAddressFromName('GetTickCount64',true,err)>0 then
       begin
         script.clear;
         a:=symhandler.getAddressFromName('realGetTickCount64') ;
