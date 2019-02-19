@@ -32,6 +32,13 @@ copyMemory(sourceAddress: integer, size: integer, destinationAddress:integer SEM
 
   Returns the address of the copy on success, nil on failure
   
+compareMemory(address1: integer; address2: integer; size: integer;  method: integer; method: integer OPTIONAL)
+  Compares the memory and returns true if the same or false and and index where the first disparity is
+
+  Method can be:
+  0: Target to Target
+  1: Address1=Target Address2=CE
+  2: Address1=CE Address2=CE
 
 readBytes(address,bytecount, ReturnAsTable ) : returns the bytes at the given address. If ReturnAsTable is true it will return a table instead of multiple bytes
   Reads the bytes at the given address and returns a table containing the read out bytes

@@ -517,10 +517,10 @@ end;
 procedure TSymbolLoaderThreadEvent.waittilldone;
 var
   waitingtime: dword;
-  waitingfrm: TfrmSymbolEventTakingLong;
 begin
   waitingtime:=0;
-  waitingfrm:=nil;
+  if waitingfrm<>nil then exit; //don't bother
+
   while (symhandler.symbolloaderthread<>nil) and symhandler.symbolloaderthread.isloading and (done.WaitFor(100)=wrTimeout) do
   begin
     if GetCurrentThreadId=MainThreadID then
@@ -532,6 +532,7 @@ begin
       if waitingtime>2000 then
       begin
         //spawn a TfrmSymboleventtakinglong form that uses a timer to check the TSymbolLoaderThreadEvent event
+
         waitingfrm:=TfrmSymbolEventTakingLong.Create(application);
 
         if self is  TGetAddressFromSymbolThreadEvent then
@@ -570,7 +571,10 @@ begin
   end;
 
   if waitingfrm<>nil then
+  begin
+    freeandnil(waitingfrm);
     waitingfrm.free;
+  end;
 end;
 
 constructor TSymbolLoaderThreadEvent.create;
@@ -1537,6 +1541,7 @@ begin
     highestsymbol:=symbolname;
   end;
   }
+  if (GetCurrentThread=MainThreadID) and (waitingfrm<>nil) then exit(false);
 
   symbollist.AddSymbol(modulename, modulename+'.'+symbolname, Address, size, secondary);
   symbollist.AddSymbol(modulename, symbolname, Address, size,true);
@@ -1547,10 +1552,12 @@ function TSymbolloaderthread.getAddressFromSymbol(symbol: string): ptruint;
 //called from other threads, NOT the symbolloader thread
 var afste: TGetAddressFromSymbolThreadEvent;
 begin
-  if skipAllSymbols then exit;
-  if (skipList<>nil) and (skipList.Values[symbol]) then exit;
+  if skipAllSymbols then exit(0);
+  if (skipList<>nil) and (skipList.Values[symbol]) then exit(0);
 
   if GetCurrentThreadId=self.ThreadID then raise exception.create('Do not call getAddressFromSymbol from inside the symbolloaderthread');
+
+  if (GetCurrentThread=MainThreadID) and (waitingfrm<>nil) then exit(0);
 
 
 

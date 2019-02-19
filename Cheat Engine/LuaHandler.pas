@@ -9789,6 +9789,91 @@ begin
   end;
 end;
 
+
+function lua_compareMemory(L: PLua_state): integer; cdecl;
+var
+  address1,address2: ptruint;
+  Method: integer;
+  size,size2: integer;
+
+  pc: integer;
+  temp: Pointer;
+  ar: ptruint;
+
+  buf1, buf2: PByteArray;
+begin
+  result:=0;
+  pc:=lua_gettop(L);
+  if pc<3 then exit;
+
+  if pc=4 then
+    method:=lua_tointeger(L,4)
+  else
+    method:=0;
+
+  if method=2 then
+    address1:=lua_toaddress(L,1,true)
+  else
+    address1:=lua_toaddress(L,1);
+
+  if method>0 then
+    address2:=lua_toaddress(L,2,true)
+  else
+    address2:=lua_toaddress(L,2);
+
+  size:=lua_tointeger(L,3);
+  buf1:=nil;
+  buf2:=nil;
+
+  case method of
+    0:
+    begin
+      getmem(buf1,size);
+      getmem(buf2,size);
+      ReadProcessMemory(processhandle, pointer(address1),buf1,size,ar);
+      ReadProcessMemory(processhandle, pointer(address2),buf2,size,ar);
+    end;
+
+    1:
+    begin
+      getmem(buf1,size);
+      ReadProcessMemory(processhandle, pointer(address1),buf1,size,ar);
+      buf2:=pointer(address2);
+    end;
+
+    2:
+    begin
+      buf1:=pointer(address1);
+      buf2:=pointer(address2);
+    end;
+  end;
+
+  //compare
+  result:=1;
+  lua_pushinteger(L, RtlCompareMemory(buf1,buf2,size));
+
+
+  case method of
+    0:
+    begin
+      if buf1<>nil then
+        FreeMemAndNil(buf1);
+
+      if buf2<>nil then
+        FreeMemAndNil(buf2);
+    end;
+
+    1:
+    begin
+      if buf1<>nil then
+        freeMemAndNil(buf1);
+    end;
+  end;
+
+
+end;
+
+
 function lua_enableDRM(L: Plua_State): integer; cdecl;
 var
   PreferedAltitude: word;
@@ -10320,6 +10405,7 @@ begin
   EnableWindowsSymbols(false);
   result:=0;
 end;
+
 
 procedure InitializeLua;
 var
@@ -10901,6 +10987,7 @@ begin
     lua_register(L, 'getHotkeyHandlerThread', lua_getHotkeyHandlerThread);
     lua_register(L, 'enumMemoryRegions', lua_enumMemoryRegions);
     lua_register(L, 'enableWindowsSymbols', lua_enableWindowsSymbols);
+    lua_register(L, 'compareMemory', lua_compareMemory);
 
     initializeLuaRemoteThread;
 
