@@ -12766,7 +12766,8 @@ begin
                       lastdisassembledata.parametervaluetype:=dvtvalue;
                       lastdisassembledata.parametervalue:=dwordptr^;
 
-                      lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(dwordptr^,8);
+
+                      lastdisassembledata.parameters:=lastdisassembledata.parameters+IntToHexs(integer(dwordptr^),8);
                       inc(offset,last+3);
                     end;
                   end;
