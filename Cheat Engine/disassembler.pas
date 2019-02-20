@@ -12767,7 +12767,11 @@ begin
                       lastdisassembledata.parametervalue:=dwordptr^;
 
 
-                      lastdisassembledata.parameters:=lastdisassembledata.parameters+IntToHexs(integer(dwordptr^),8);
+                      if rex_w then
+                        lastdisassembledata.parameters:=lastdisassembledata.parameters+IntToHexs(integer(dwordptr^),8)
+                      else
+                        lastdisassembledata.parameters:=lastdisassembledata.parameters+IntToHexs(dwordptr^,8);
+
                       inc(offset,last+3);
                     end;
                   end;
