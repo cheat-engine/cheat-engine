@@ -3634,7 +3634,7 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
     currentcpuinfo->eventcounter[exit_reason]++;
 #endif
 
-  if ((hasVPIDSupport) && (currentcpuinfo->eptUpdated=1))
+  if ((hasVPIDSupport) && (currentcpuinfo->eptUpdated==1))
   {
 	  INVEPTDESCRIPTOR eptd;
 
