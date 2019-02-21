@@ -580,6 +580,7 @@ typedef volatile struct tcpuinfo
 
   PEPT_PTE *eptWatchList; //pointer to the EPT entry of the index related to the WatchList
   int eptWatchListLength;
+  int eptUpdated;
 
 
   struct //single stepping data

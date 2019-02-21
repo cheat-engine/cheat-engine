@@ -2349,7 +2349,7 @@ int setVM_CR3(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, UINT64 newcr3)
  * Called when the system changes the CR3 register
  */
 {
-  int shouldInvalidate=1;
+  int shouldInvalidate=hasVPIDSupport;
   sendstringf("3:Setting CR3 (%6)\n\r", newcr3);
 
   //Ultimap
@@ -3633,6 +3633,16 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
   if (exit_reason<=55)
     currentcpuinfo->eventcounter[exit_reason]++;
 #endif
+
+  if ((hasVPIDSupport) && (currentcpuinfo->eptUpdated=1))
+  {
+	  INVEPTDESCRIPTOR eptd;
+
+	  eptd.Zero=0;
+	  eptd.EPTPointer=currentcpuinfo->EPTPML4;
+	  currentcpuinfo->eptUpdated=0;
+	  _invept(2, &eptd);
+  }
 
   switch (exit_reason) //exit reason
   {

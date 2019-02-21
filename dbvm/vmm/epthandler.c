@@ -250,10 +250,12 @@ int ept_cloak_activate(QWORD physicalAddress)
 
 
     *(currentcpuinfo->eptCloakList[ID])=temp;
+    currentcpuinfo->eptUpdated=1;
 
     csLeave(&currentcpuinfo->EPTPML4CS);
 
     currentcpuinfo=currentcpuinfo->next;
+
   }
 
 
@@ -290,6 +292,7 @@ int ept_cloak_deactivate(QWORD physicalAddress)
 
         unmapPhysicalMemoryGlobal(currentcpuinfo->eptCloakList[i], sizeof(EPT_PTE));
         currentcpuinfo->eptCloakList[i]=NULL;
+        currentcpuinfo->eptUpdated=1;
 
         currentcpuinfo=currentcpuinfo->next;
       }
