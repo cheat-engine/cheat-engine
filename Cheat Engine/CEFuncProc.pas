@@ -2144,7 +2144,7 @@ var previouswinhandle, winhandle: Hwnd;
     end;
   end;
   plpos: integer;
-  SNAPHandle: THandle;
+  SNAPHandle: THandle=INVALID_HANDLE_VALUE;
   lppe: NewKernelHandler.TProcessEntry32;
 
   found :boolean;
@@ -2323,6 +2323,9 @@ begin
     freememandnil(pidlist);
     freememandnil(basehandlelist);
     setlength(pl,0);
+
+    if SNAPHandle<>INVALID_HANDLE_VALUE then
+      closehandle(SNAPHandle);
   end;
 end;
 
