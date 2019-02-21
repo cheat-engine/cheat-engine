@@ -1332,6 +1332,7 @@ int ept_watch_activate(QWORD PhysicalAddress, int Size, int Type, DWORD Options,
     }
     *(c->eptWatchList[ID])=temp;
 
+    c->eptUpdated=1;
     csLeave(&c->EPTPML4CS);
 
     c=c->next;
@@ -1424,6 +1425,7 @@ int ept_watch_deactivate(int ID)
       }
 
       *(c->eptWatchList[ID])=temp;
+      c->eptUpdated=1;
 
       csLeave(&c->EPTPML4CS);
 
