@@ -271,6 +271,8 @@ begin
           begin
             inc(TCodeRecord(fcd.foundcodelist.Items[j].data).hitcount, basicinfo.Count);
             skip:=true;
+
+            fcd.foundcodelist.Items[j].caption:=inttostr(TCodeRecord(fcd.foundcodelist.Items[j].data).hitcount);
             break;
           end
           else
