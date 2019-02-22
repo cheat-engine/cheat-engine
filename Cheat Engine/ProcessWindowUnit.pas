@@ -571,7 +571,7 @@ begin
     begin
       DBKFileAsMemory(opendialog2.filename, frmOpenFileAsProcessDialog.startaddress);
       processselected:=true;
-      ProcessHandler.ProcessHandle:=QWORD(-1);
+      ProcessHandler.ProcessHandle:=QWORD(-2);
       MainForm.ProcessLabel.caption:=extractfilename(opendialog2.FileName);
       MainForm.miSaveFile.visible:=true;
       ProcessHandler.processid:=$FFFFFFFF;

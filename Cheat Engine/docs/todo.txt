@@ -39,6 +39,4 @@ structure compare: Closed a previous structure compare followed by reopening a n
 pointerscan: generating pointermap should also check terminated
 pointerscan: when suspending a scan, CE closed itself(crash)
 
-Code filter: Add a address dissector that scans for vtables (optionally let the user specify the vtable)
-
 test and fix the d3dhook stuff and trainer generator.  (perhaps dx12 support as well)

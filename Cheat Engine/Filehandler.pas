@@ -55,6 +55,9 @@ var filesize,ignore:dword;
 
 begin
 //ignore hprocess
+  if hprocess=GetCurrentProcess then
+    exit(windows.ReadProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesRead));
+
   result:=false;
   ba:=ptruint(lpBaseAddress);
   inc(ba,ptruint(filedata.Memory));
@@ -138,6 +141,9 @@ var filesize,ignore:dword;
 
 begin
 //ignore hprocess
+  if hprocess=GetCurrentProcess then
+    exit(windows.WriteProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten));
+
   result:=false;
   ba:=ptruint(lpBaseAddress);
   inc(ba,ptruint(filedata.Memory));

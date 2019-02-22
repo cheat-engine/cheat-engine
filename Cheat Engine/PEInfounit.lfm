@@ -13,20 +13,20 @@ object frmPEInfo: TfrmPEInfo
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'
   object GroupBox2: TGroupBox
-    Left = 176
+    Left = 183
     Height = 318
     Top = 0
-    Width = 309
+    Width = 302
     Align = alClient
     Caption = 'Info'
     ClientHeight = 298
-    ClientWidth = 305
+    ClientWidth = 298
     TabOrder = 0
     object PageControl1: TPageControl
       Left = 0
       Height = 298
       Top = 0
-      Width = 305
+      Width = 298
       ActivePage = TabSheet1
       Align = alClient
       PopupMenu = pmInfo
@@ -35,12 +35,12 @@ object frmPEInfo: TfrmPEInfo
       object TabSheet1: TTabSheet
         Caption = 'All'
         ClientHeight = 270
-        ClientWidth = 297
+        ClientWidth = 290
         object PEItv: TTreeView
           Left = 0
           Height = 270
           Top = 0
-          Width = 297
+          Width = 290
           Align = alClient
           DefaultItemHeight = 18
           Indent = 19
@@ -102,12 +102,12 @@ object frmPEInfo: TfrmPEInfo
     Left = 0
     Height = 318
     Top = 0
-    Width = 176
+    Width = 183
     Align = alLeft
     AutoSize = True
     BevelOuter = bvNone
     ClientHeight = 318
-    ClientWidth = 176
+    ClientWidth = 183
     TabOrder = 1
     object LoadButton: TSpeedButton
       AnchorSideLeft.Control = Panel1
@@ -115,9 +115,9 @@ object frmPEInfo: TfrmPEInfo
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = Panel1
       AnchorSideRight.Side = asrBottom
-      Left = 145
+      Left = 152
       Height = 30
-      Top = 197
+      Top = 192
       Width = 31
       Anchors = [akTop, akRight]
       Glyph.Data = {
@@ -155,8 +155,9 @@ object frmPEInfo: TfrmPEInfo
       AnchorSideTop.Side = asrBottom
       Left = 10
       Height = 15
-      Top = 216
+      Top = 217
       Width = 78
+      BorderSpacing.Top = 3
       Caption = 'No file opened'
       ParentColor = False
     end
@@ -166,7 +167,7 @@ object frmPEInfo: TfrmPEInfo
       AnchorSideTop.Side = asrBottom
       Left = 10
       Height = 15
-      Top = 231
+      Top = 232
       Width = 40
       Caption = 'address'
       ParentColor = False
@@ -176,35 +177,54 @@ object frmPEInfo: TfrmPEInfo
       AnchorSideTop.Control = RadioButton2
       AnchorSideTop.Side = asrBottom
       Left = 10
-      Height = 178
+      Height = 173
       Top = 19
-      Width = 161
+      Width = 168
+      AutoSize = True
       BorderSpacing.Right = 5
       Caption = 'MZ-Start'
-      ClientHeight = 158
-      ClientWidth = 157
+      ClientHeight = 153
+      ClientWidth = 164
       TabOrder = 0
       object edtAddress: TEdit
-        Left = 10
+        AnchorSideLeft.Control = GroupBox1
+        AnchorSideTop.Control = GroupBox1
+        Left = 8
         Height = 23
-        Top = 5
+        Top = 2
         Width = 107
+        BorderSpacing.Left = 8
+        BorderSpacing.Top = 2
         TabOrder = 0
       end
       object modulelist: TListBox
-        Left = 10
+        AnchorSideLeft.Control = edtAddress
+        AnchorSideTop.Control = edtAddress
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = GroupBox1
+        AnchorSideRight.Side = asrBottom
+        Left = 8
         Height = 120
-        Top = 32
-        Width = 141
+        Top = 29
+        Width = 156
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Top = 4
+        BorderSpacing.Bottom = 4
         ItemHeight = 0
         OnClick = modulelistClick
         TabOrder = 1
       end
       object Button1: TButton
-        Left = 121
-        Height = 21
-        Top = 5
-        Width = 30
+        AnchorSideLeft.Control = edtAddress
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = edtAddress
+        AnchorSideTop.Side = asrCenter
+        Left = 117
+        Height = 25
+        Top = 1
+        Width = 47
+        AutoSize = True
+        BorderSpacing.Left = 2
         Caption = 'Info'
         OnClick = Button1Click
         TabOrder = 2
@@ -216,8 +236,9 @@ object frmPEInfo: TfrmPEInfo
       AnchorSideTop.Side = asrBottom
       Left = 10
       Height = 19
-      Top = 197
+      Top = 195
       Width = 38
+      BorderSpacing.Top = 3
       Caption = 'File'
       TabOrder = 1
     end

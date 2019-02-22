@@ -156,6 +156,9 @@ procedure TfrmSelectionList.FormShow(Sender: TObject);
 begin
   if fsearchbox then
     edit1.SetFocus;
+
+  if listbox1.height<listbox1.ItemHeight*4 then
+    height:=height+(listbox1.ItemHeight*4)-listbox1.height;
 end;
 
 procedure TfrmSelectionList.Edit1Change(Sender: TObject);

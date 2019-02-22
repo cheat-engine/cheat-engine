@@ -10,7 +10,7 @@ interface
 
 uses windows, LCLIntf, classes, sysutils, imagehlp, dialogs, PEInfoFunctions,CEFuncProc,
      NewKernelHandler, symbolhandler, dbk32functions, vmxfunctions, commonTypeDefs,
-     SymbolListHandler, symbolhandlerstructs;
+     SymbolListHandler, symbolhandlerstructs, StringHashList;
 
 resourcestring
   rsMMLNotAValidFile = 'not a valid file';
@@ -32,6 +32,10 @@ type TModuleLoader=class
     isdriver: boolean;
 
     pid: dword;
+
+    importlist: TStringHashList;
+    procedure cleanupExportList;
+    function FindKernelModuleExport(modulename: string; exportname: string): ptruint;
   public
     Exporttable: TStringlist;
     procedure createSymbolListHandler;
@@ -75,6 +79,25 @@ begin
   symhandler.AddSymbolList(fSymbolList);
 end;
 
+procedure TModuleLoader.cleanupExportList;
+begin
+  if importlist<>nil then
+  begin
+    freeandnil(importlist);
+  end;
+
+end;
+
+function TModuleLoader.FindKernelModuleExport(modulename: string; exportname: string): ptruint;
+begin
+  //check if this module is already exported
+  if importlist=nil then
+    importlist:=TStringHashList.Create(true);
+
+  //todo: implement this
+  result:=0;
+end;
+
 constructor TModuleLoader.create(filename: string);
 var
   i,j,k: integer;
@@ -106,6 +129,8 @@ var
   mi: TModuleInfo;
 begin
   inherited create;
+
+
   self.filename:=filename;
 
   exporttable:=tstringlist.create;
@@ -278,7 +303,11 @@ begin
                       importfunctionnamews:=importfunctionname;
                       funcaddress:=GetKProcAddress64(@importfunctionnamews[1]);
                       if funcaddress=0 then
-                        raise exception.create(rsMMLFailedFindingAddressOf+pwidechar(@importfunctionnamews[1]));
+                      begin
+                        funcaddress:=FindKernelModuleExport(importmodulename, importfunctionname);
+                        if funcaddress=0 then
+                          raise exception.create(rsMMLFailedFindingAddressOf+pwidechar(@importfunctionnamews[1]));
+                      end;
                     end
                     else
                     begin
@@ -379,6 +408,8 @@ begin
     end;
   finally
     filemap.free;
+
+    cleanupExportList;
   end;
 end;
 

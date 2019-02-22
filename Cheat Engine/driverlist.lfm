@@ -9,8 +9,27 @@ object frmDriverlist: TfrmDriverlist
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
-  object ListBox1: TListBox
+  LCLVersion = '1.6.4.0'
+  object Button1: TButton
+    AnchorSideLeft.Control = Owner
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = Owner
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 142
+    Height = 25
+    Top = 205
+    Width = 42
+    Anchors = [akLeft, akBottom]
+    AutoSize = True
+    BorderSpacing.Top = 5
+    BorderSpacing.Bottom = 5
+    Caption = 'OK'
+    ModalResult = 1
+    OnClick = Button1Click
+    TabOrder = 0
+  end
+  object tvDriverList: TTreeView
     AnchorSideBottom.Control = Button1
     Left = 0
     Height = 200
@@ -18,39 +37,44 @@ object frmDriverlist: TfrmDriverlist
     Width = 326
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
-    ItemHeight = 0
+    DefaultItemHeight = 18
     PopupMenu = PopupMenu1
-    TabOrder = 0
-  end
-  object Button1: TButton
-    AnchorSideTop.Control = Owner
-    AnchorSideBottom.Control = Owner
-    AnchorSideBottom.Side = asrBottom
-    Left = 128
-    Height = 25
-    Top = 205
-    Width = 75
-    Anchors = [akLeft, akBottom]
-    BorderSpacing.Top = 5
-    BorderSpacing.Bottom = 5
-    Caption = 'OK'
-    ModalResult = 1
-    OnClick = Button1Click
+    ReadOnly = True
     TabOrder = 1
+    OnDblClick = tvDriverListDblClick
+    OnExpanding = tvDriverListExpanding
+    Options = [tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
   end
   object FindDialog1: TFindDialog
+    Width = 480
+    Height = 146
+    FindText = 'Type the drivername'
     Options = [frDown, frFindNext, frDisableMatchCase, frDisableUpDown, frDisableWholeWord]
     OnFind = FindDialog1Find
     left = 8
     top = 8
   end
   object PopupMenu1: TPopupMenu
-    left = 8
-    top = 40
+    left = 96
+    top = 88
     object Find1: TMenuItem
-      Caption = 'Find'
+      Caption = 'Find Driver'
       ShortCut = 16454
       OnClick = Find1Click
     end
+    object MenuItem1: TMenuItem
+      Caption = 'Find Exportname'
+      ShortCut = 49222
+      OnClick = MenuItem1Click
+    end
+  end
+  object FindDialog2: TFindDialog
+    Width = 480
+    Height = 146
+    FindText = 'Type the exportname'
+    Options = [frDown, frFindNext, frDisableMatchCase, frDisableUpDown, frDisableWholeWord]
+    OnFind = FindDialog2Find
+    left = 104
+    top = 16
   end
 end

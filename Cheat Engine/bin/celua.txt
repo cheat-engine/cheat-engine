@@ -32,7 +32,7 @@ copyMemory(sourceAddress: integer, size: integer, destinationAddress:integer SEM
 
   Returns the address of the copy on success, nil on failure
   
-compareMemory(address1: integer; address2: integer; size: integer;  method: integer; method: integer OPTIONAL)
+compareMemory(address1: integer; address2: integer; size: integer;  method: integer)
   Compares the memory and returns true if the same or false and and index where the first disparity is
 
   Method can be:

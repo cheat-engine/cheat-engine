@@ -9806,6 +9806,7 @@ begin
   pc:=lua_gettop(L);
   if pc<3 then exit;
 
+
   if pc=4 then
     method:=lua_tointeger(L,4)
   else
@@ -9822,6 +9823,9 @@ begin
     address2:=lua_toaddress(L,2);
 
   size:=lua_tointeger(L,3);
+
+  if size=0 then exit;
+
   buf1:=nil;
   buf2:=nil;
 
