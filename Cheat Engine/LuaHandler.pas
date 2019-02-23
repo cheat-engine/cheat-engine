@@ -10416,6 +10416,58 @@ begin
   result:=0;
 end;
 
+function lua_enumExports(L: PLua_state): integer; cdecl;
+var
+  address: ptruint;
+  path: string;
+  self: boolean;
+  e: boolean;
+  list: Tstringlist;
+  i: integer;
+begin
+
+  if lua_gettop(L)>=1 then
+  begin
+    list:=Tstringlist.create;
+    try
+      if lua_gettop(L)>=2 then
+        self:=lua_toboolean(L,2);
+
+      try
+        address:=lua_toaddress(L,1,self);
+        try
+          peinfo_getExportList(address,list);
+        except
+          exit(0); //no export list
+        end;
+      except
+        if lua_isstring(L,1) then
+        begin
+          path:=Lua_ToString(L,1);
+          try
+            peinfo_getExportList(path,list);
+          except
+            exit(0);
+          end;
+        end;
+      end;
+
+      lua_newtable(L);
+      for i:=0 to list.count-1 do
+      begin
+        lua_pushstring(L,list[i]);
+        lua_pushinteger(L,ptruint(list.Objects[i]));
+        lua_settable(L,-3);
+      end;
+      result:=1;
+
+
+    finally
+      list.free;
+    end;
+
+  end;
+end;
 
 procedure InitializeLua;
 var
@@ -10998,6 +11050,8 @@ begin
     lua_register(L, 'enumMemoryRegions', lua_enumMemoryRegions);
     lua_register(L, 'enableWindowsSymbols', lua_enableWindowsSymbols);
     lua_register(L, 'compareMemory', lua_compareMemory);
+
+    lua_register(L, 'enumExports', lua_enumExports);
 
     initializeLuaRemoteThread;
 

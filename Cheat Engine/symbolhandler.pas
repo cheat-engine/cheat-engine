@@ -690,24 +690,28 @@ end;
 procedure TSymbolloaderthread.LoadDriverSymbols;
 var need:dword;
     x: PPointerArray;
-    i: integer;
+    i,c: integer;
     count: integer;
     drivername: pchar;
 begin
   {$IFNDEF UNIX}
   EnumDevicedrivers(nil,0,need);
-  getmem(x,need);
+  getmem(x,need*2);
   try
-    if enumDevicedrivers(@x[0],need,need) then
+    if enumDevicedrivers(@x[0],need*2,need) then
     begin
       count:=need div sizeof(pointer);
-      getmem(drivername,200);
+      getmem(drivername,255);
       try
         for i:=0 to count-1 do
         begin
-          GetDevicedriverFileName(x[i],drivername,200);
-          //add drive letter
-          symLoadModule64(thisprocesshandle,0,pchar(drivername),nil,ptrUint(x[i]),0);
+          c:=GetDeviceDriverFileNameA(x[i],drivername,200);
+          if c<>0 then
+          begin
+            drivername[c]:=#0;
+            //add drive letter
+            symLoadModule64(thisprocesshandle,0,pchar(drivername),nil,ptrUint(x[i]),0);
+          end;
         end;
       finally
         freememandnil(drivername);

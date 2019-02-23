@@ -230,10 +230,13 @@ IMAGE_DOS_HEADER = _IMAGE_DOS_HEADER;
 
 
 function peinfo_getImageNtHeaders(headerbase: pointer; maxsize: dword):PImageNtHeaders;
-function peinfo_getExportList(filename: string; dllList: Tstrings): boolean;
+function peinfo_getExportList(filename: string; dllList: Tstrings): boolean; overload;
+function peinfo_getExportList(modulebase: ptruint; dllList: Tstrings): boolean; overload;
 function peinfo_is64bitfile(filename: string; var is64bit: boolean): boolean;
 
 implementation
+
+uses ProcessHandlerUnit;
 
 function peinfo_getImageDosHeader(headerbase: pointer):PImageDosHeader;
 {
@@ -327,11 +330,94 @@ resourcestring
   strInvalidFile='Invalid file';
   rsPEIFNoExports = 'No exports';
 
-  {
-function peinfo_getExportList(modulebase: ptruint; dllList: Tstrings): boolean;
-begin
 
-end;   }
+function peinfo_getExportList(modulebase: ptruint; dllList: Tstrings): boolean;
+var fmap: TFileMapping;
+    header: pointer;
+    ImageNtHeader: PImageNtHeaders;
+    OptionalHeader: PImageOptionalHeader;
+    OptionalHeader64: PImageOptionalHeader64 absolute OptionalHeader;
+    ImageExportDirectory: PImageExportDirectory;
+    is64bit: boolean;
+
+    addresslist: PDwordArray;
+    exportlist: PDwordArray;
+    functionname: pchar;
+    i: integer;
+    ar:ptruint;
+
+    imagesize: dword;
+
+    diff: qword;
+begin
+  result:=false;
+
+  getmem(header, 4096);
+  try
+    if readProcessMemory(processhandle, pointer(modulebase),header, 4096, ar)=false then raise exception.create('Invalid memory address');
+
+    ImageNtHeader:=peinfo_getImageNtHeaders(header, 4096);
+    if ImageNTHeader=nil then raise exception.create(strInvalidFile);
+    is64bit:=ImageNTHeader^.FileHeader.Machine=$8664;
+
+    OptionalHeader:=peinfo_getOptionalHeaders(header, 4096);
+    if OptionalHeader=nil then raise exception.create(strInvalidFile);
+
+    imagesize:=OptionalHeader.SizeOfImage;
+    freemem(header);
+    getmem(header,imagesize);
+    ar:=0;
+    if readProcessMemory(processhandle, pointer(modulebase),header, imagesize, ar)=false then
+    begin
+      imagesize:=ar;
+      if imagesize=0 then raise exception.create('Invalid header');
+    end;
+
+    ImageNtHeader:=peinfo_getImageNtHeaders(header, imagesize);
+    OptionalHeader:=peinfo_getOptionalHeaders(header, imagesize);
+
+
+
+    if ImageNTHeader=nil then raise exception.Create(strInvalidFile);
+    if OptionalHeader=nil then raise exception.Create(strInvalidFile);
+
+    if is64bit then
+    begin
+      diff:=ptruint(header)-OptionalHeader64^.ImageBase;
+      ImageExportDirectory:=PImageExportDirectory(ptruint(header)+OptionalHeader64^.DataDirectory[0].VirtualAddress);
+    end
+    else
+    begin
+      diff:=ptruint(header)-OptionalHeader^.ImageBase;
+      ImageExportDirectory:=PImageExportDirectory(ptruint(header)+OptionalHeader^.DataDirectory[0].VirtualAddress);
+    end;
+
+    if (ptruint(ImageExportDirectory)<=ptruint(header)) or (ptruint(ImageExportDirectory)>=(ptruint(header)+imagesize)) then
+      raise exception.create(rsPEIFNoExports);
+
+    exportlist:=PDWordArray(ptruint(header)+dword(ImageExportDirectory^.AddressOfNames));
+    addresslist:=PDWordArray(ptruint(header)+dword(ImageExportDirectory^.AddressOfFunctions));
+
+    if (ptruint(exportlist)<=ptruint(header)) or (ptruint(exportlist)>=(ptruint(header)+imagesize)) then
+      raise exception.create(rsPEIFNoExports);
+
+    if (ptruint(addresslist)<=ptruint(header)) or (ptruint(addresslist)>=(ptruint(header)+imagesize)) then
+      raise exception.create(rsPEIFNoExports);
+
+
+    for i:=0 to ImageExportDirectory.NumberOfNames-1 do
+    begin
+      functionname:=pchar(ptruint(header)+exportlist[i]);
+
+      if functionname<>nil then
+        dllList.AddObject(functionname, pointer(ptruint(modulebase+addresslist[i])));
+    end;
+    result:=true;
+  finally
+    if header<>nil then
+      freemem(header);
+  end;
+end;
 
 function peinfo_getExportList(filename: string; dllList: Tstrings): boolean;
 var fmap: TFileMapping;
