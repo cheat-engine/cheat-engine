@@ -3662,7 +3662,7 @@ begin
   Kernelmodesymbols1.Checked:=not Kernelmodesymbols1.Checked;
 
   symhandler.kernelsymbols:=Kernelmodesymbols1.Checked;
-  symhandler.reinitialize;
+  symhandler.reinitialize(true);
   symhandler.waitforsymbolsloaded(true);
 {$endif}
 end;

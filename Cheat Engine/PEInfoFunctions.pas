@@ -233,6 +233,8 @@ function peinfo_getImageNtHeaders(headerbase: pointer; maxsize: dword):PImageNtH
 function peinfo_getExportList(filename: string; dllList: Tstrings): boolean; overload;
 function peinfo_getExportList(modulebase: ptruint; dllList: Tstrings): boolean; overload;
 function peinfo_is64bitfile(filename: string; var is64bit: boolean): boolean;
+function peinfo_getimagesizefromfile(filename: string; var size: dword): boolean;
+
 
 implementation
 
@@ -484,6 +486,41 @@ begin
     finally
       fmap.free;
     end;
+
+  end;
+end;
+
+function peinfo_getimagesizefromfile(filename: string; var size: dword): boolean;
+var
+  fmap: TFileMapping;
+  header: pointer;
+  ImageNtHeader: PImageNtHeaders;
+  OptionalHeader: PImageOptionalHeader;
+  OptionalHeader64: PImageOptionalHeader64 absolute OptionalHeader;
+begin
+  result:=false;
+
+  try
+    fmap:=TFileMapping.create(filename);
+    if fmap<>nil then
+    begin
+      try
+        header:=fmap.fileContent;
+        ImageNtHeader:=peinfo_getImageNtHeaders(header,fmap.filesize);
+        OptionalHeader:=peinfo_getOptionalHeaders(header,fmap.filesize);
+        if ImageNTHeader=nil then raise exception.Create(strInvalidFile);
+        if ImageNTHeader^.FileHeader.Machine=$8664 then
+          size:=OptionalHeader64.SizeOfImage
+        else
+          size:=OptionalHeader.SizeOfImage;
+
+        result:=true; //success
+      finally
+        fmap.free;
+      end;
+
+    end;
+  except
 
   end;
 end;

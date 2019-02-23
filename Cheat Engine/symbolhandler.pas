@@ -58,7 +58,7 @@ type
 
   TGetAddressFromSymbolThreadEvent=class(TSymbolLoaderThreadEvent);
   TGetSymbolFromAddressThreadEvent=class(TSymbolLoaderThreadEvent);
-
+  TModuleInfoArray=array of TModuleInfo;
 
   TSymbolloaderthread=class(tthread)
   private
@@ -121,6 +121,9 @@ type
     skipAddressToSymbol: boolean;
 
 
+    driverlistMREW: TMultiReadExclusiveWriteSynchronizer;
+    driverlistpos: integer;
+    driverlist: TModuleInfoArray;
 
 
     function getAddressFromSymbol(symbol: string): ptruint;
@@ -134,7 +137,7 @@ type
 
   end;
 
-  TModuleInfoArray=array of TModuleInfo;
+
 
   TTokens=array of string;
 
@@ -702,6 +705,8 @@ var need:dword;
     mi: {$ifdef cpu32}IMAGEHLP_MODULE{$else}IMAGEHLP_MODULE64{$endif};
     offset: integer;
     path: pchar;
+    size: dword;
+    is64bit: boolean;
 begin
   {$IFNDEF UNIX}
   EnumDevicedrivers(nil,0,need);
@@ -723,16 +728,35 @@ begin
             driverpath:=StringReplace(driverpath,'\??\','',[]);
             driverpath:=StringReplace(driverpath,'\SystemRoot\',systemroot,[rfIgnoreCase]);
 
-
             r:=symLoadModule64(thisprocesshandle,0,pchar(driverpath),pchar(extractfilename(driverpath)),ptrUint(x[i]),0);
-            if r=0 then
-            asm
-            nop
-            end;
 
             mi.SizeOfStruct:=sizeof(mi);
             if SymGetModuleInfo(thisprocesshandle, ptruint(x[i]), @mi) then
             begin
+
+              driverlistMREW.Beginwrite;
+
+              if driverlistpos>=length(driverlist) then
+                setlength(driverlist,length(driverlist)+64);
+
+              driverlist[driverlistpos].modulename:=extractfilename(driverpath);
+              driverlist[driverlistpos].modulepath:=driverpath;
+              driverlist[driverlistpos].isSystemModule:=true;
+              driverlist[driverlistpos].baseaddress:=qword(x[i]);
+
+              if peinfo_getimagesizefromfile(driverpath,size) then
+                driverlist[driverlistpos].basesize:=size
+              else
+                driverlist[driverlistpos].basesize:=4096;
+
+              driverlist[driverlistpos].is64bitmodule:=Is64bitOS;
+
+              inc(driverlistpos);
+              if driverlistpos>=length(driverlist) then
+                setlength(driverlist,length(driverlist)+64);
+
+              driverlistMREW.Endwrite;
+
 
 
               //srv*c:\DownstreamStore*https://msdl.microsoft.com/download/symbols
@@ -2131,6 +2155,8 @@ begin
   symbolloaderthreadeventqueue:=Tlist.Create;
   symbolloaderthreadeventqueueCS:=TCriticalSection.Create;
 
+  driverlistMREW:=TMultiReadExclusiveWriteSynchronizer.Create;
+
   inherited create(CreateSuspended);
 end;
 
@@ -3186,6 +3212,24 @@ begin
     list.AddObject(modulelist[i].modulename,tobject(modulelist[i].baseaddress));
   modulelistMREW.EndRead;
 
+
+  symbolloadervalid.Beginread;
+  try
+    if symbolloaderthread<>nil then
+    begin
+      symbolloaderthread.driverlistMREW.beginread;
+      try
+        for i:=0 to symbolloaderthread.driverlistpos-1 do
+          list.addObject(symbolloaderthread.driverlist[i].modulename,tobject(symbolloaderthread.driverlist[i].baseaddress));
+      finally
+        symbolloaderthread.driverlistMREW.endread;
+      end;
+    end;
+  finally
+    symbolloadervalid.Endread;
+  end;
+
+
   symbollistsMREW.BeginRead;
   for i:=0 to length(symbollists)-1 do
   begin
@@ -3195,6 +3239,8 @@ begin
       list.AddObject(list2[j].modulename,tobject(list2[j].baseaddress));
   end;
   symbollistsMREW.endread;
+
+
 end;
 
 function TSymhandler.inSystemModule(address: ptrUint): BOOLEAN;
@@ -3254,6 +3300,30 @@ begin
 
     if not result then
     begin
+      symbolloadervalid.beginread;
+      try
+        if symbolloaderthread<>nil then
+        begin
+          symbolloaderthread.driverlistMREW.beginread;
+          try
+            for i:=0 to symbolloaderthread.driverlistpos-1 do
+              if (address>=symbolloaderthread.driverlist[i].baseaddress) and (address<symbolloaderthread.driverlist[i].baseaddress+symbolloaderthread.driverlist[i].basesize) then
+              begin
+                mi:=symbolloaderthread.driverlist[i];
+                result:=true;
+                break;
+              end;
+
+          finally
+            symbolloaderthread.driverlistMREW.Endread;
+          end;
+        end;
+
+      finally
+        symbolloadervalid.Endread;
+      end;
+
+
       symbollistsMREW.beginread;
       for i:=0 to length(symbollists)-1 do
       begin
