@@ -435,6 +435,8 @@ var fmap: TFileMapping;
     functionname: pchar;
     i: integer;
 
+    ordinaloffset: integer;
+
    // a: dword;
 begin
   //open the file
@@ -473,13 +475,21 @@ begin
 
       if exportlist=nil then raise exception.Create(rsPEIFNoExports);
 
+      if ImageExportDirectory.NumberOfFunctions>ImageExportDirectory.NumberOfNames then
+      begin
+        ordinaloffset:=ImageExportDirectory.NumberOfFunctions-ImageExportDirectory.NumberOfNames;
+        for i:=0 to ordinaloffset-1 do
+          dllList.AddObject('Ordinal'+inttostr(ImageExportDirectory.Base+i), pointer(ptruint(addresslist[i])));
+      end
+      else
+        ordinaloffset:=0;
+
       for i:=0 to ImageExportDirectory.NumberOfNames-1 do
       begin
         functionname:=peinfo_VirtualAddressToFileAddress(header,fmap.filesize, exportlist[i]);
 
-
         if functionname<>nil then
-          dllList.AddObject(functionname, pointer(ptruint(addresslist[i])));
+          dllList.AddObject(functionname, pointer(ptruint(addresslist[ordinaloffset+i])));
       end;
       result:=true;
 
