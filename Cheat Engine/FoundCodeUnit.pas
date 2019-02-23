@@ -251,7 +251,7 @@ begin
 
     for i:=0 to results^.numberOfEntries-1 do
     begin
-      outputdebugstring('testing entry '+inttostr(i));
+
       case results^.entryType of
         0: basicinfo:=basic^[i];
         1: basicinfo:=extended^[i].basic;
@@ -259,6 +259,7 @@ begin
         3: basicinfo:=extendeds^[i].basic;
       end;
       address:=basicinfo.RIP;
+      outputdebugstring('testing entry '+inttostr(i)+'('+inttohex(address,8)+') - basicinfo.Count='+inttostr(basicinfo.Count+1));
 
       //check if this address is inside the list
       skip:=false;
@@ -269,7 +270,8 @@ begin
           //it's already in the list
           if fcd.multiplerip=false then
           begin
-            inc(TCodeRecord(fcd.foundcodelist.Items[j].data).hitcount, basicinfo.Count);
+            OutputDebugString(inttostr(j)+':Already in the list');
+            TCodeRecord(fcd.foundcodelist.Items[j].data).hitcount:=TCodeRecord(fcd.foundcodelist.Items[j].data).hitcount+(basicinfo.Count+1);
             skip:=true;
 
             fcd.foundcodelist.Items[j].caption:=inttostr(TCodeRecord(fcd.foundcodelist.Items[j].data).hitcount);
@@ -419,6 +421,8 @@ begin
       coderecord.context.SegEs:=coderecord.dbvmcontextbasic^.ES;
       coderecord.context.SegFs:=coderecord.dbvmcontextbasic^.FS;
       coderecord.context.SegGs:=coderecord.dbvmcontextbasic^.GS;
+
+      coderecord.hitcount:=coderecord.dbvmcontextbasic^.Count;
 
       OutputDebugString('adding to the foundlist');
       li:=fcd.FoundCodeList.Items.Add;
