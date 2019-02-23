@@ -36,18 +36,49 @@ type
       var AllowExpansion: Boolean);
   private
     { Private declarations }
-    systemroot: string;
+
   public
     { Public declarations }
   end;
 
-var frmDriverlist: TfrmDriverlist;
+
+function systemroot: string;
+
+var
+  frmDriverlist: TfrmDriverlist;
+
 
 implementation
 
 
 uses MemoryBrowserFormUnit, PEInfoFunctions;
 
+
+var _systemroot: string;
+
+function systemroot: string;
+var reg: tregistry;
+begin
+  if _systemroot='' then
+  begin
+    reg:=tregistry.Create;
+    reg.RootKey:=HKEY_LOCAL_MACHINE;
+    if reg.OpenKey('\SOFTWARE\Microsoft\Windows NT\CurrentVersion',false) then
+    begin
+      if reg.ValueExists('SystemRoot') then
+        _systemroot:=reg.ReadString('SystemRoot');
+    end;
+
+    if _systemroot='' then _systemroot:='c:\windows\';
+
+    if _systemroot[length(systemroot)]<>'\' then
+      _systemroot:=systemroot+'\';
+
+    reg.free;
+  end;
+
+  result:=_systemroot;
+end;
 
 
 procedure TfrmDriverlist.FormClose(Sender: TObject;
@@ -168,6 +199,8 @@ begin
     MemoryBrowser.disassemblerview.SelectedAddress:=ptruint(tvDriverList.Selected.data);
 end;
 
+
+
 procedure TfrmDriverlist.tvDriverListExpanding(Sender: TObject;
   Node: TTreeNode; var AllowExpansion: Boolean);
 var
@@ -177,25 +210,8 @@ var
   r: integer;
   i: integer;
   tn: TTreenode;
-
-  reg: tregistry;
-
 begin
-  if systemroot='' then
-  begin
-    reg:=tregistry.Create;
-    reg.RootKey:=HKEY_LOCAL_MACHINE;
-    if reg.OpenKey('\SOFTWARE\Microsoft\Windows NT\CurrentVersion',false) then
-    begin
-      if reg.ValueExists('SystemRoot') then
-        systemroot:=reg.ReadString('SystemRoot');
-    end;
 
-    if systemroot='' then systemroot:='c:\windows\';
-
-    if systemroot[length(systemroot)]<>'\' then
-      systemroot:=systemroot+'\';
-  end;
 
   if (node.level=0) and (node.count=0) then
   begin

@@ -693,6 +693,15 @@ var need:dword;
     i,c: integer;
     count: integer;
     drivername: pchar;
+    driverpath: string;
+    r: dword;
+
+    modulename: pchar;
+    modulelisttype: integer;
+
+    mi: {$ifdef cpu32}IMAGEHLP_MODULE{$else}IMAGEHLP_MODULE64{$endif};
+    offset: integer;
+    path: pchar;
 begin
   {$IFNDEF UNIX}
   EnumDevicedrivers(nil,0,need);
@@ -709,8 +718,51 @@ begin
           if c<>0 then
           begin
             drivername[c]:=#0;
+            driverpath:=drivername;
             //add drive letter
-            symLoadModule64(thisprocesshandle,0,pchar(drivername),nil,ptrUint(x[i]),0);
+            driverpath:=StringReplace(driverpath,'\??\','',[]);
+            driverpath:=StringReplace(driverpath,'\SystemRoot\',systemroot,[rfIgnoreCase]);
+
+
+            r:=symLoadModule64(thisprocesshandle,0,pchar(driverpath),pchar(extractfilename(driverpath)),ptrUint(x[i]),0);
+            if r=0 then
+            asm
+            nop
+            end;
+
+            mi.SizeOfStruct:=sizeof(mi);
+            if SymGetModuleInfo(thisprocesshandle, ptruint(x[i]), @mi) then
+            begin
+
+
+              //srv*c:\DownstreamStore*https://msdl.microsoft.com/download/symbols
+              //srv*c:\DownstreamStore
+              {
+              SymSetSearchPath(thisprocesshandle, 'srv*c:\DownstreamStore*https://msdl.microsoft.com/download/symbols');
+
+              if mi.SymType<>SymPdb then
+              begin
+                getmem(path,512);
+                if SymFindFileInPath(thisprocesshandle,pchar(searchpath),@mi.LoadedPdbName[0],@mi.PdbSig70,mi.PdbAge,0,SSRVOPT_GUIDPTR,path, cb,nil) then
+                begin
+                  OutputDebugString(pchar('Loaded symbols for '+pchar(mi.LoadedImageName[0])+'+ at '+path));
+                  mi.Symtype:=SymPdb;
+                end;
+                freemem(path);
+              end; }
+
+              if mi.SymType in [SymExport, SymNone] then
+              begin
+                setlength(modulelist.withoutdebuginfo,length(modulelist.withoutdebuginfo)+1);
+                modulelist.withoutdebuginfo[length(modulelist.withoutdebuginfo)-1]:=mi;
+              end
+              else
+              begin
+                setlength(modulelist.withdebuginfo,length(modulelist.withdebuginfo)+1);
+                modulelist.withdebuginfo[length(modulelist.withdebuginfo)-1]:=mi;
+              end;
+
+            end;
           end;
         end;
       finally
