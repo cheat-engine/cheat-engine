@@ -422,7 +422,7 @@ begin
       coderecord.context.SegFs:=coderecord.dbvmcontextbasic^.FS;
       coderecord.context.SegGs:=coderecord.dbvmcontextbasic^.GS;
 
-      coderecord.hitcount:=coderecord.dbvmcontextbasic^.Count;
+      coderecord.hitcount:=coderecord.dbvmcontextbasic^.Count+1;
 
       OutputDebugString('adding to the foundlist');
       li:=fcd.FoundCodeList.Items.Add;
