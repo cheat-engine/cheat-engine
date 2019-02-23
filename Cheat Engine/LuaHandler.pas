@@ -1616,12 +1616,22 @@ begin
 
       getmem(v,maxsize+1);
       try
-        if ReadProcessMemory(processhandle, pointer(address), v, maxsize, r) then
+        r:=0;
+        ReadProcessMemory(processhandle, pointer(address), v, maxsize, r);
+
+        if (r>0) and (r<=maxsize) then
         begin
           v[maxsize]:=#0;
+
+          if (r+1)<=maxsize then
+            v[r+1]:=#0;
+
           if usewidechar then
           begin
             v[maxsize-1]:=#0;
+            if (r+2)<=maxsize then
+              v[r+2]:=#0;
+
             s:=w;
           end
           else
@@ -1952,7 +1962,10 @@ begin
 
   setlength(bytes,bytestoread);
   ZeroMemory(@bytes[0], bytestoread);
-  if ReadProcessMemory(processhandle, pointer(addresstoread), @bytes[0], bytestoread, x) then
+  x:=0;
+  ReadProcessMemory(processhandle, pointer(addresstoread), @bytes[0], bytestoread, x);
+
+  if x>0 then
   begin
     if tableversion then
     begin
