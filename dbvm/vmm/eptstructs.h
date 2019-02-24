@@ -275,7 +275,7 @@ typedef struct
 {
   QWORD PhysicalAddress;
   int Size;
-  int Type; //0=write, 1=access
+  int Type; //0=write, 1=access,2=execute
   DWORD Options;
   int Active;
   int CopyInProgress; //if 1 events will be ignored

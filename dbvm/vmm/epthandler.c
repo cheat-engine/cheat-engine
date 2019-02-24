@@ -877,7 +877,7 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
   {
     if (ept_isWatchIDMatch(PhysicalAddressBase, i))
     {
-      if (eptWatchList[ID].Type==0)
+      if (eptWatchList[ID].Type==EPTW_WRITE)
       {
         //must be a write operation error
         if ((evi.W) && (evi.WasWritable==0)) //write operation and writable was 0
@@ -888,7 +888,7 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
             break;
         }
       }
-      else
+      else if (eptWatchList[ID].Type==EPTW_READWRITE)
       {
         //must be a read or write operation
         if (((evi.W) && (evi.WasWritable==0)) || ((evi.R) && (evi.WasReadable==0)))  //write operation and writable was 0 or read and readable was 0
@@ -897,6 +897,16 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
           if (ept_isWatchIDPerfectMatch(PhysicalAddress, i))
             break;
         }
+      }
+      else
+      {
+          if ((evi.X) && (evi.WasExecutable==0)) //execute operation and executable was 0
+          {
+            ID=i;
+
+            if (ept_isWatchIDPerfectMatch(PhysicalAddress, i))
+              break;
+          }
       }
     }
   }
@@ -924,7 +934,7 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
 
 
   //save this state?
-  if ((evi.R==0) && (evi.X==1))
+  if ((eptWatchList[ID].Type!=EPTW_EXECUTE) && (evi.R==0) && (evi.X==1))
   {
     sendstringf("This was an execute operation and no read. No need to log\n", ID);
     csLeave(&eptWatchListCS);
@@ -1098,27 +1108,38 @@ int ept_handleWatchEventAfterStep(pcpuinfo currentcpuinfo,  int ID)
 {
   sendstringf("ept_handleWatchEventAfterStep %d\n", ID);
 
-
-  if (eptWatchList[ID].Type==0)
+  switch (eptWatchList[ID].Type)
   {
-    sendstringf("Write type. So making it unwritable\n");
-    currentcpuinfo->eptWatchList[ID]->WA=0;
-  }
-  else
-  {
-    sendstringf("read type. So making it unreadable\n");
-    currentcpuinfo->eptWatchList[ID]->RA=0;
-    currentcpuinfo->eptWatchList[ID]->WA=0;
-    if (has_EPT_ExecuteOnlySupport)
-      currentcpuinfo->eptWatchList[ID]->XA=1;
-    else
-      currentcpuinfo->eptWatchList[ID]->XA=0;
-  }
+  	  case EPTW_WRITE:
+  	  {
+  	    sendstringf("Write type. So making it unwritable\n");
+  	    currentcpuinfo->eptWatchList[ID]->WA=0;
+  		break;
+  	  }
 
+  	  case EPTW_READWRITE:
+  	  {
+  	    sendstringf("read type. So making it unreadable\n");
+  	    currentcpuinfo->eptWatchList[ID]->RA=0;
+  	    currentcpuinfo->eptWatchList[ID]->WA=0;
+  	    if (has_EPT_ExecuteOnlySupport)
+  	      currentcpuinfo->eptWatchList[ID]->XA=1;
+  	    else
+  	      currentcpuinfo->eptWatchList[ID]->XA=0;
+
+  		break;
+  	  }
+
+  	  case EPTW_EXECUTE:
+  	  {
+  		sendstringf("execute type. So making it non-executable\n");
+  		currentcpuinfo->eptWatchList[ID]->XA=0;
+  		break;
+  	  }
+
+  }
 
   ept_invalidate();
-
-
   return 0;
 }
 
@@ -1353,10 +1374,10 @@ int ept_watch_activate(QWORD PhysicalAddress, int Size, int Type, DWORD Options,
 
     EPT_PTE temp=*c->eptWatchList[ID]; //using temp in case the cpu doesn't support a XA of 1 with an RA of 0
 
-    if (Type==0)
+    if (Type==EPTW_WRITE) //Writes
       temp.WA=0;
     else
-    if (Type==1)
+    if (Type==EPTW_READWRITE) //read and writes
     {
       if (has_EPT_ExecuteOnlySupport)
         temp.XA=1;
@@ -1364,6 +1385,11 @@ int ept_watch_activate(QWORD PhysicalAddress, int Size, int Type, DWORD Options,
         temp.XA=0;
       temp.WA=0;
       temp.RA=0;
+    }
+
+    if (Type==EPTW_EXECUTE) //executes
+    {
+    	temp.XA=0;
     }
     *(c->eptWatchList[ID])=temp;
 
@@ -1376,6 +1402,7 @@ int ept_watch_activate(QWORD PhysicalAddress, int Size, int Type, DWORD Options,
 
   //test if needed:  SetPageToWriteThrough(currentcpuinfo->eptwatchlist[ID].EPTEntry);
   //check out 28.3.3.4  (might not be needed due to vmexit, but do check anyhow)
+  //yes, is needed
   //EPTINV
 
 
@@ -1445,12 +1472,12 @@ int ept_watch_deactivate(int ID)
       csEnter(&c->EPTPML4CS);
 
       EPT_PTE temp=*(c->eptWatchList[ID]);
-      if (eptWatchList[ID].Type==0)
+      if (eptWatchList[ID].Type==EPTW_WRITE)
       {
         sendstringf("  This was a write entry. Making it writable\n");
         temp.WA=1;
       }
-      else
+      else if (eptWatchList[ID].Type==EPTW_READWRITE)
       {
         sendstringf("  This was an access entry. Making it readable and writable");
         temp.RA=1;
@@ -1460,6 +1487,11 @@ int ept_watch_deactivate(int ID)
           sendstringf(" and executable as this cpu does not support execute only pages\n");
           temp.XA=1;
         }
+      }
+      else
+      {
+          sendstringf("  This was an execute entry. Making it executable");
+          temp.XA=1;
       }
 
       *(c->eptWatchList[ID])=temp;

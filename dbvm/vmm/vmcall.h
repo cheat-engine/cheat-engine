@@ -81,6 +81,8 @@
 #define VMCALL_GET_STATISTICS 59
 #endif
 
+#define VMCALL_WATCH_EXECUTES 60
+
 
 
 
