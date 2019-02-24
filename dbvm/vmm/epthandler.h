@@ -52,5 +52,6 @@ int ept_cloak_removechangeregonbp(QWORD physicalAddress);
 BOOL ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregisters);
 
 void ept_reset();
+void ept_invalidate();
 
 #endif /* VMM_EPTHANDLER_H_ */

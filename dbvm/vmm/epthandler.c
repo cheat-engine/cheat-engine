@@ -31,6 +31,28 @@ ChangeRegBPEntry *ChangeRegBPList;
 int ChangeRegBPListSize;
 int ChangeRegBPListPos;
 
+void ept_invalidate()
+{
+	INVEPTDESCRIPTOR eptd;
+	eptd.Zero=0;
+	eptd.EPTPointer=getcpuinfo()->EPTPML4;
+
+	if (has_EPT_INVEPTAllContext)
+	{
+		_invept(2, &eptd);
+	}
+	else
+	if (has_EPT_INVEPTSingleContext)
+	{
+		_invept(1, &eptd);
+	}
+	else
+	{
+		_invept(2, &eptd);//fuck it
+	}
+
+}
+
 void ept_reset()
 /*
  * Removes all watches/breakpoints
@@ -158,6 +180,9 @@ int ept_handleCloakEventAfterStep(pcpuinfo currentcpuinfo,  int ID)
 
   csLeave(&CloakedPagesCS);
 
+
+  ept_invalidate();
+
   return 0;
 }
 
@@ -250,6 +275,7 @@ int ept_cloak_activate(QWORD physicalAddress)
 
 
     *(currentcpuinfo->eptCloakList[ID])=temp;
+    _wbinvd();
     currentcpuinfo->eptUpdated=1;
 
     csLeave(&currentcpuinfo->EPTPML4CS);
@@ -259,6 +285,9 @@ int ept_cloak_activate(QWORD physicalAddress)
   }
 
 
+
+
+  ept_invalidate();
 
 
   csLeave(&CloakedPagesCS);
@@ -292,6 +321,7 @@ int ept_cloak_deactivate(QWORD physicalAddress)
 
         unmapPhysicalMemoryGlobal(currentcpuinfo->eptCloakList[i], sizeof(EPT_PTE));
         currentcpuinfo->eptCloakList[i]=NULL;
+        _wbinvd();
         currentcpuinfo->eptUpdated=1;
 
         currentcpuinfo=currentcpuinfo->next;
@@ -310,6 +340,8 @@ int ept_cloak_deactivate(QWORD physicalAddress)
   }
 
   csLeave(&CloakedPagesCS);
+
+  ept_invalidate();
 
   //if there where cloak event events pending, then next time they violate, the normal handler will make it RWX on the address it should
   return (found==1);
@@ -1084,6 +1116,9 @@ int ept_handleWatchEventAfterStep(pcpuinfo currentcpuinfo,  int ID)
   }
 
 
+  ept_invalidate();
+
+
   return 0;
 }
 
@@ -1332,6 +1367,7 @@ int ept_watch_activate(QWORD PhysicalAddress, int Size, int Type, DWORD Options,
     }
     *(c->eptWatchList[ID])=temp;
 
+    _wbinvd();
     c->eptUpdated=1;
     csLeave(&c->EPTPML4CS);
 
@@ -1351,6 +1387,8 @@ int ept_watch_activate(QWORD PhysicalAddress, int Size, int Type, DWORD Options,
 
 
   csLeave(&eptWatchListCS);
+
+  ept_invalidate();
 
   return result;
 }
@@ -1425,6 +1463,7 @@ int ept_watch_deactivate(int ID)
       }
 
       *(c->eptWatchList[ID])=temp;
+      _wbinvd();
       c->eptUpdated=1;
 
       csLeave(&c->EPTPML4CS);
@@ -1433,6 +1472,8 @@ int ept_watch_deactivate(int ID)
       c->eptWatchList[ID]=NULL;
       c=c->next;
     }
+
+    ept_invalidate();
   }
   else
   {

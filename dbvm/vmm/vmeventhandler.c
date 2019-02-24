@@ -3609,20 +3609,6 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
   int result;
   int exit_reason=currentcpuinfo->guest_error?currentcpuinfo->guest_error:vmread(vm_exit_reason) & 0x7fffffff;
 
-
-  /*
-  INVVPIDDESCRIPTOR vpidd;
-  vpidd.zero=0;
-  vpidd.LinearAddress=0;
-  vpidd.VPID=1;
-  _invvpid(2, &vpidd);
-  */
-
-
-
-
-
-
   if (currentcpuinfo->vmxdata.runningvmx)
   {
     //check if I should handle it, if not
@@ -3634,14 +3620,10 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
     currentcpuinfo->eventcounter[exit_reason]++;
 #endif
 
-  if ((hasVPIDSupport) && (currentcpuinfo->eptUpdated==1))
+  if (currentcpuinfo->eptUpdated==1)
   {
-	  INVEPTDESCRIPTOR eptd;
-
-	  eptd.Zero=0;
-	  eptd.EPTPointer=currentcpuinfo->EPTPML4;
 	  currentcpuinfo->eptUpdated=0;
-	  _invept(2, &eptd);
+	  ept_invalidate();
   }
 
   switch (exit_reason) //exit reason
@@ -3982,14 +3964,12 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 		case 48:
 		{
 			int r;
-			INVEPTDESCRIPTOR eptd;
+
 		    sendstring("EPT violation\n\r");
 		    r=handleEPTViolation(currentcpuinfo, vmregisters, (PFXSAVE64)fxsave);
 
-		    eptd.Zero=0;
-		    eptd.EPTPointer=currentcpuinfo->EPTPML4;
-		    _invept(2, &eptd);
-		  return r;
+		    ept_invalidate();
+		    return r;
 		}
 
 		case 49:
