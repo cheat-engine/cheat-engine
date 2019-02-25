@@ -224,6 +224,10 @@ object AdvancedOptions: TAdvancedOptions
       Caption = 'Find out what addresses this code writes to'
       OnClick = Findoutwhatthiscodechanges1Click
     end
+    object miDBVMFindWhatCodeAccesses: TMenuItem
+      Caption = 'DBVM Find....'
+      OnClick = miDBVMFindWhatCodeAccessesClick
+    end
     object N1: TMenuItem
       Caption = '-'
     end

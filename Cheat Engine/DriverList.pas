@@ -119,7 +119,15 @@ begin
   try
     n:=tvDriverList.Selected;
     if n=nil then
-      n:=tvDriverList.Items.GetFirstNode;
+      n:=tvDriverList.Items.GetFirstNode
+    else
+    begin
+      if pos(uppercase(finddialog2.FindText),uppercase(n.text))>0 then
+        n:=n.GetNext;
+    end;
+
+
+
 
     while n<>nil do
     begin

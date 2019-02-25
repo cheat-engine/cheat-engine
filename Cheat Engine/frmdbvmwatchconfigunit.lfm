@@ -1,25 +1,25 @@
 object frmDBVMWatchConfig: TfrmDBVMWatchConfig
   Left = 925
-  Height = 242
+  Height = 267
   Top = 284
   Width = 311
   AutoSize = True
   BorderStyle = bsSingle
   BorderWidth = 5
   Caption = 'DBVM Watch Config'
-  ClientHeight = 242
+  ClientHeight = 267
   ClientWidth = 311
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'
-  object GroupBox1: TGroupBox
+  object gbAccessType: TGroupBox
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
     Left = 5
-    Height = 45
+    Height = 64
     Top = 5
-    Width = 231
+    Width = 240
     AutoSize = True
     BorderSpacing.InnerBorder = 3
     Caption = 'Access Type'
@@ -27,60 +27,56 @@ object frmDBVMWatchConfig: TfrmDBVMWatchConfig
     ChildSizing.HorizontalSpacing = 3
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 2
-    ClientHeight = 25
-    ClientWidth = 227
+    ClientHeight = 44
+    ClientWidth = 236
     TabOrder = 0
     object rbWriteAccess: TRadioButton
       Left = 5
       Height = 19
       Top = 0
-      Width = 90
+      Width = 99
       Caption = 'Write Access '
       Checked = True
       TabOrder = 0
       TabStop = True
     end
     object rbReadAccess: TRadioButton
-      Left = 98
+      Left = 107
       Height = 19
       Top = 0
       Width = 118
       Caption = 'Read/Write Access'
       TabOrder = 1
     end
+    object rbExecuteAccess: TRadioButton
+      Left = 5
+      Height = 19
+      Top = 19
+      Width = 99
+      Caption = 'Execute Access'
+      TabOrder = 2
+    end
   end
   object lblVirtualAddress: TLabel
     AnchorSideLeft.Control = Owner
-    AnchorSideTop.Control = GroupBox1
+    AnchorSideTop.Control = gbAccessType
     AnchorSideTop.Side = asrBottom
     Left = 5
     Height = 15
-    Top = 51
+    Top = 70
     Width = 85
     BorderSpacing.Top = 1
     Caption = 'Virtual Address: '
     ParentColor = False
   end
-  object lblPhysicalAddress: TLabel
-    AnchorSideLeft.Control = Owner
-    AnchorSideTop.Control = lblVirtualAddress
-    AnchorSideTop.Side = asrBottom
-    Left = 5
-    Height = 15
-    Top = 67
-    Width = 94
-    BorderSpacing.Top = 1
-    Caption = 'Physical Address: '
-    ParentColor = False
-  end
   object cbLockPage: TCheckBox
     AnchorSideLeft.Control = Owner
-    AnchorSideTop.Control = lblPhysicalAddress
+    AnchorSideTop.Control = Panel3
     AnchorSideTop.Side = asrBottom
     Left = 5
     Height = 19
     Hint = 'This prevents the given page to get swapped out and later replaced by another physical address.  (Make sure you unlock before the game quits)'
-    Top = 83
+    Top = 109
     Width = 74
     BorderSpacing.Top = 1
     Caption = 'Lock page'
@@ -94,7 +90,7 @@ object frmDBVMWatchConfig: TfrmDBVMWatchConfig
     AnchorSideTop.Side = asrBottom
     Left = 5
     Height = 19
-    Top = 143
+    Top = 169
     Width = 291
     BorderSpacing.Top = 1
     Caption = 'Same instruction multiple times (different registers)'
@@ -106,7 +102,7 @@ object frmDBVMWatchConfig: TfrmDBVMWatchConfig
     AnchorSideTop.Side = asrBottom
     Left = 5
     Height = 19
-    Top = 163
+    Top = 189
     Width = 235
     BorderSpacing.Top = 1
     Caption = 'Log whole page instead of address range'
@@ -118,7 +114,7 @@ object frmDBVMWatchConfig: TfrmDBVMWatchConfig
     AnchorSideTop.Side = asrBottom
     Left = 5
     Height = 19
-    Top = 103
+    Top = 129
     Width = 90
     BorderSpacing.Top = 1
     Caption = 'Log FPU data'
@@ -131,7 +127,7 @@ object frmDBVMWatchConfig: TfrmDBVMWatchConfig
     Left = 5
     Height = 19
     Hint = 'Saves a stacksnapshot of 4KB for each logged entry'
-    Top = 123
+    Top = 149
     Width = 70
     BorderSpacing.Top = 1
     Caption = 'Log stack'
@@ -142,7 +138,7 @@ object frmDBVMWatchConfig: TfrmDBVMWatchConfig
     AnchorSideTop.Side = asrBottom
     Left = 5
     Height = 23
-    Top = 183
+    Top = 209
     Width = 166
     AutoSize = True
     BorderSpacing.Top = 1
@@ -183,7 +179,7 @@ object frmDBVMWatchConfig: TfrmDBVMWatchConfig
     AnchorSideTop.Side = asrBottom
     Left = 78
     Height = 25
-    Top = 214
+    Top = 240
     Width = 155
     AutoSize = True
     BorderSpacing.Top = 8
@@ -217,6 +213,51 @@ object frmDBVMWatchConfig: TfrmDBVMWatchConfig
       Caption = 'Cancel'
       ModalResult = 2
       TabOrder = 1
+    end
+  end
+  object Panel3: TPanel
+    AnchorSideLeft.Control = lblVirtualAddress
+    AnchorSideTop.Control = lblVirtualAddress
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = gbAccessType
+    AnchorSideRight.Side = asrBottom
+    Left = 5
+    Height = 23
+    Top = 85
+    Width = 240
+    Anchors = [akTop, akLeft, akRight]
+    AutoSize = True
+    BevelOuter = bvNone
+    ClientHeight = 23
+    ClientWidth = 240
+    TabOrder = 8
+    object lblPhysicalAddress: TLabel
+      AnchorSideLeft.Control = Panel3
+      AnchorSideTop.Control = edtPhysicalAddress
+      AnchorSideTop.Side = asrCenter
+      Left = 0
+      Height = 15
+      Top = 4
+      Width = 91
+      BorderSpacing.Top = 1
+      Caption = 'Physical Address:'
+      ParentColor = False
+      OnClick = lblPhysicalAddressClick
+    end
+    object edtPhysicalAddress: TEdit
+      AnchorSideLeft.Control = lblPhysicalAddress
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Panel3
+      AnchorSideRight.Control = Panel3
+      AnchorSideRight.Side = asrBottom
+      Left = 91
+      Height = 23
+      Top = 0
+      Width = 149
+      Anchors = [akTop, akLeft, akRight]
+      TabOrder = 0
+      TextHint = 'Physical Address'
+      Visible = False
     end
   end
 end

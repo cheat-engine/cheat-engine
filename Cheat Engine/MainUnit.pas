@@ -6504,20 +6504,14 @@ end;
 
 
 procedure TMainForm.PopupMenu2Popup(Sender: TObject);
-const
-  IA32_VMX_BASIC_MSR=$480;
-  IA32_VMX_TRUE_PROCBASED_CTLS_MSR=$48e;
-  IA32_VMX_PROCBASED_CTLS_MSR=$482;
-  IA32_VMX_PROCBASED_CTLS2_MSR=$48b;
+
 var
   i: integer;
 
   //6.0
   selectionCount: integer;
   selectedrecord: TMemoryRecord;
-  canuseEPT: boolean;
 
-  procbased1flags: DWORD;
 begin
   sethotkey1.Caption := rsSetChangeHotkeys;
 
@@ -6645,36 +6639,8 @@ begin
 
   miSetDropdownOptions.visible:=addresslist.selcount > 0;
 
-
-  canuseEPT:=false;
-  if isIntel and isDBVMCapable then
-  begin
-    if isDriverLoaded(nil) then
-    begin
-      //check if it can use EPT tables in dbvm:
-      //first get the basic msr to see if TRUE procbasedctrls need to be used or old
-      if (readMSR(IA32_VMX_BASIC_MSR) and (1 shl 55))<>0 then
-        procbased1flags:=readMSR(IA32_VMX_TRUE_PROCBASED_CTLS_MSR) shr 32
-      else
-        procbased1flags:=readMSR(IA32_VMX_PROCBASED_CTLS_MSR) shr 32;
-
-      //check if it has secondary procbased flags
-      if (procbased1flags and (1 shl 31))<>0 then
-      begin
-        //yes, check if EPT can be set to 1
-        if ((readMSR(IA32_VMX_PROCBASED_CTLS2_MSR) shr 32) and (1 shl 1))<>0 then
-        begin
-          canuseEPT:=true;
-        end;
-      end;
-
-
-
-    end;
-  end;
-
-  sep2.Visible:=Findoutwhataccessesthisaddress1.Visible and canuseEPT;
-  miDBVMFindWhatWritesOrAccesses.visible:=Findoutwhataccessesthisaddress1.Visible and canuseEPT;
+  miDBVMFindWhatWritesOrAccesses.visible:=isIntel and isDBVMCapable; //02/24/2019: Most cpu's support EPT now
+  sep2.Visible:=miDBVMFindWhatWritesOrAccesses.Visible;
 end;
 
 procedure TMainForm.foundlistpopupPopup(Sender: TObject);
@@ -7027,6 +6993,11 @@ begin
 end;
 
 procedure TMainForm.miDBVMFindWhatWritesOrAccessesClick(Sender: TObject);
+const
+  IA32_VMX_BASIC_MSR=$480;
+  IA32_VMX_TRUE_PROCBASED_CTLS_MSR=$48e;
+  IA32_VMX_PROCBASED_CTLS_MSR=$482;
+  IA32_VMX_PROCBASED_CTLS2_MSR=$48b;
 var
   address: ptrUint;
   res: word;
@@ -7034,74 +7005,115 @@ var
 
   fcd: TFoundCodeDialog;
   unlockaddress: qword;
+  canuseept: boolean;
+  procbased1flags: DWORD;
 begin
-
-
-  if addresslist.selectedRecord <> nil then
+  LoadDBK32;
+  canuseept:=false;
+  if isDriverLoaded(nil) then
   begin
-    if not loaddbvmifneeded then exit;
+    //check if it can use EPT tables in dbvm:
+    //first get the basic msr to see if TRUE procbasedctrls need to be used or old
+    if (readMSR(IA32_VMX_BASIC_MSR) and (1 shl 55))<>0 then
+      procbased1flags:=readMSR(IA32_VMX_TRUE_PROCBASED_CTLS_MSR) shr 32
+    else
+      procbased1flags:=readMSR(IA32_VMX_PROCBASED_CTLS_MSR) shr 32;
 
-    address := addresslist.selectedRecord.GetRealAddress;
-
-    if addresslist.selectedRecord.IsPointer then
+    //check if it has secondary procbased flags
+    if (procbased1flags and (1 shl 31))<>0 then
     begin
-      with TformPointerOrPointee.Create(self) do
+      //yes, check if EPT can be set to 1
+      if ((readMSR(IA32_VMX_PROCBASED_CTLS2_MSR) shr 32) and (1 shl 1))<>0 then
       begin
-        btnFindWhatWritesPointer.Caption := rsFindOutWhatAccessesThisPointer;
-        btnFindWhatWritesPointee.Caption := rsFindWhatAccessesTheAddressPointedAtByThisPointer;
-
-        res := showmodal;
-        if res = mrNo then //find what writes to the address pointer at by this pointer
-          address := addresslist.selectedRecord.GetRealAddress
-        else
-        if res = mrYes then
-          address := symhandler.getAddressFromName(
-            addresslist.selectedRecord.interpretableaddress)
-        else
-          exit;
+        canuseEPT:=true;
       end;
     end;
+  end
+  else
+    canuseEPT:=true;
 
-    //spawn a DBVM watch config screen where the user can select options like lock memory
-    if frmDBVMWatchConfig=nil then
-      frmDBVMWatchConfig:=TfrmDBVMWatchConfig.create(self);
+  if (isintel=false) or (isDBVMCapable=false) then
+  begin
+    messagedlg('This function requires an Intel CPU with virtualization support. If your system has that then make sure that you''re currently not running inside a virtual machine. (Windows has some security features that can run programs inside a VM)', mtError,[mbok],0);
+    exit;
+  end;
 
-    frmDBVMWatchConfig.address:=address;
-    if frmDBVMWatchConfig.showmodal=mrok then
+  if canuseept=false then
+  begin
+    messagedlg('This function requires that your CPU supports ''Extended Page Table (EPT)'' which your CPU lacks',mtError,[mbok],0);
+    exit;
+  end;
+
+  if loaddbvmifneeded('DBVM find routines needs DBVM for EPT page hooking. Loading DBVM can potentially cause a system freeze. Are you sure?') then
+  begin
+
+    if addresslist.selectedRecord <> nil then
     begin
-      if frmDBVMWatchConfig.LockPage then
-        unlockaddress:=LockMemory(processid, address and QWORD($fffffffffffff000),4096)
-      else
-        unlockaddress:=0;
+      if not loaddbvmifneeded then exit;
 
+      address := addresslist.selectedRecord.GetRealAddress;
 
-      if frmDBVMWatchConfig.watchtype=0 then
-        id:=dbvm_watch_writes(frmDBVMWatchConfig.PhysicalAddress, addresslist.selectedRecord.bytesize, frmDBVMWatchConfig.Options, frmDBVMWatchConfig.MaxEntries)
-      else
-        id:=dbvm_watch_reads(frmDBVMWatchConfig.PhysicalAddress, addresslist.selectedRecord.bytesize, frmDBVMWatchConfig.Options, frmDBVMWatchConfig.MaxEntries);
-
-      if (id<>-1) then
+      if addresslist.selectedRecord.IsPointer then
       begin
-        //spawn a foundcodedialog
-        fcd:=TFoundCodeDialog.Create(self);
-        fcd.multipleRip:=frmDBVMWatchConfig.cbMultipleRIP.Checked;
-        fcd.dbvmwatchid:=id;
-        fcd.dbvmwatch_unlock:=unlockaddress;
-        if frmDBVMWatchConfig.watchtype=0 then
-          fcd.caption:=Format(rsTheFollowingOpcodesAccessed, [inttohex(address, 8)])
+        with TformPointerOrPointee.Create(self) do
+        begin
+          btnFindWhatWritesPointer.Caption := rsFindOutWhatAccessesThisPointer;
+          btnFindWhatWritesPointee.Caption := rsFindWhatAccessesTheAddressPointedAtByThisPointer;
+
+          res := showmodal;
+          if res = mrNo then //find what writes to the address pointer at by this pointer
+            address := addresslist.selectedRecord.GetRealAddress
+          else
+          if res = mrYes then
+            address := symhandler.getAddressFromName(
+              addresslist.selectedRecord.interpretableaddress)
+          else
+            exit;
+        end;
+      end;
+
+      //spawn a DBVM watch config screen where the user can select options like lock memory
+      if frmDBVMWatchConfig=nil then
+        frmDBVMWatchConfig:=TfrmDBVMWatchConfig.create(self);
+
+      frmDBVMWatchConfig.address:=address;
+      if frmDBVMWatchConfig.showmodal=mrok then
+      begin
+        if frmDBVMWatchConfig.LockPage then
+          unlockaddress:=LockMemory(processid, address and QWORD($fffffffffffff000),4096)
         else
-          fcd.caption:=Format(rsTheFollowingOpcodesWriteTo, [inttohex(address, 8)]);
+          unlockaddress:=0;
 
 
-        fcd.show;
-      end
-      else
-        MessageDlg('dbvm_watch failed', mtError, [mbok],0);
+        case frmDBVMWatchConfig.watchtype of
+          0: id:=dbvm_watch_writes(frmDBVMWatchConfig.PhysicalAddress, addresslist.selectedRecord.bytesize, frmDBVMWatchConfig.Options, frmDBVMWatchConfig.MaxEntries);
+          1: id:=dbvm_watch_reads(frmDBVMWatchConfig.PhysicalAddress, addresslist.selectedRecord.bytesize, frmDBVMWatchConfig.Options, frmDBVMWatchConfig.MaxEntries);
+          2: id:=dbvm_watch_executes(frmDBVMWatchConfig.PhysicalAddress, addresslist.selectedRecord.bytesize, frmDBVMWatchConfig.Options, frmDBVMWatchConfig.MaxEntries);
+        end;
+
+        if (id<>-1) then
+        begin
+          //spawn a foundcodedialog
+          fcd:=TFoundCodeDialog.Create(self);
+          fcd.multipleRip:=frmDBVMWatchConfig.cbMultipleRIP.Checked;
+          fcd.dbvmwatchid:=id;
+          fcd.dbvmwatch_unlock:=unlockaddress;
+          if frmDBVMWatchConfig.watchtype=0 then
+            fcd.caption:=Format(rsTheFollowingOpcodesAccessed, [inttohex(address, 8)])
+          else
+            fcd.caption:=Format(rsTheFollowingOpcodesWriteTo, [inttohex(address, 8)]);
+
+
+          fcd.show;
+        end
+        else
+          MessageDlg('dbvm_watch failed', mtError, [mbok],0);
+
+      end;
+      freeandnil(frmDBVMWatchConfig);
+
 
     end;
-    freeandnil(frmDBVMWatchConfig);
-
-
   end;
 
 

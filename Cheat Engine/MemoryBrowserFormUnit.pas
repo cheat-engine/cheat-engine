@@ -46,6 +46,7 @@ type
     MenuItem12: TMenuItem;
     MenuItem13: TMenuItem;
     MenuItem14: TMenuItem;
+    DBVMFindoutwhataddressesthisinstructionaccesses: TMenuItem;
     miUltimap: TMenuItem;
     MenuItem15: TMenuItem;
     MenuItem16: TMenuItem;
@@ -302,6 +303,7 @@ type
     procedure MenuItem11Click(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
     procedure MenuItem14Click(Sender: TObject);
+    procedure DBVMFindoutwhataddressesthisinstructionaccessesClick(Sender: TObject);
     procedure miCodeFilterClick(Sender: TObject);
     procedure miUltimapClick(Sender: TObject);
     procedure MenuItem17Click(Sender: TObject);
@@ -576,6 +578,7 @@ type
     backlist: TStack;
 
     procedure FindwhatThiscodeAccesses(address: ptrUint);
+    procedure DBVMFindwhatThiscodeAccesses(address: ptrUint);
 
     procedure AssemblePopup(x: string);
 
@@ -638,7 +641,8 @@ uses Valuechange, MainUnit, debugeventhandler, findwindowunit,
   frmUltimapUnit, frmUltimap2Unit, frmAssemblyScanUnit, MemoryQuery,
   AccessedMemory, Parsers, GnuAssembler, frmEditHistoryUnit, frmWatchlistUnit,
   vmxfunctions, frmstructurecompareunit, globals, UnexpectedExceptionsHelper,
-  frmExceptionRegionListUnit, frmExceptionIgnoreListUnit, frmcodefilterunit;
+  frmExceptionRegionListUnit, frmExceptionIgnoreListUnit, frmcodefilterunit,
+  frmDBVMWatchConfigUnit, DBK32functions;
 
 
 resourcestring
@@ -1027,6 +1031,11 @@ end;
 procedure TMemoryBrowser.MenuItem14Click(Sender: TObject);
 begin
   EnableWindowsSymbols(true);
+end;
+
+procedure TMemoryBrowser.DBVMFindoutwhataddressesthisinstructionaccessesClick(Sender: TObject);
+begin
+  DBVMFindwhatThiscodeAccesses(disassemblerview.SelectedAddress);
 end;
 
 procedure TMemoryBrowser.miCodeFilterClick(Sender: TObject);
@@ -3719,6 +3728,8 @@ begin
     miReplacewithnops.caption:=rsReplaceWithCodeThatDoesNothing;
 
   miAddToTheCodelist.visible:=not inadvancedoptions;
+
+  DBVMFindoutwhataddressesthisinstructionaccesses.visible:=isIntel and isDBVMCapable;
 end;
 
 procedure TMemoryBrowser.GDTlist1Click(Sender: TObject);
@@ -3966,6 +3977,141 @@ begin
   if not startdebuggerifneeded then exit;
   if debuggerthread<>nil then
     debuggerthread.FindWhatCodeAccesses(address);
+end;
+
+procedure TMemoryBrowser.DBVMFindwhatThiscodeAccesses(address: ptruint);
+const
+  IA32_VMX_BASIC_MSR=$480;
+  IA32_VMX_TRUE_PROCBASED_CTLS_MSR=$48e;
+  IA32_VMX_PROCBASED_CTLS_MSR=$482;
+  IA32_VMX_PROCBASED_CTLS2_MSR=$48b;
+var
+  address2: ptrUint;
+  res: word;
+  id: integer;
+
+  frmchangedaddresses: tfrmchangedaddresses;
+  unlockaddress: qword;
+  canuseept: boolean;
+
+  s: string;
+  procbased1flags: dword;
+  i: integer;
+begin
+  LoadDBK32;
+  canuseept:=false;
+  if isDriverLoaded(nil) then
+  begin
+    //check if it can use EPT tables in dbvm:
+    //first get the basic msr to see if TRUE procbasedctrls need to be used or old
+    if (readMSR(IA32_VMX_BASIC_MSR) and (1 shl 55))<>0 then
+      procbased1flags:=readMSR(IA32_VMX_TRUE_PROCBASED_CTLS_MSR) shr 32
+    else
+      procbased1flags:=readMSR(IA32_VMX_PROCBASED_CTLS_MSR) shr 32;
+
+    //check if it has secondary procbased flags
+    if (procbased1flags and (1 shl 31))<>0 then
+    begin
+      //yes, check if EPT can be set to 1
+      if ((readMSR(IA32_VMX_PROCBASED_CTLS2_MSR) shr 32) and (1 shl 1))<>0 then
+      begin
+        canuseEPT:=true;
+      end;
+    end;
+  end
+  else
+    canuseept:=true;
+
+  if (isintel=false) or (isDBVMCapable=false) then
+  begin
+    messagedlg('This function requires an Intel CPU with virtualization support. If your system has that then make sure that you''re currently not running inside a virtual machine. (Windows has some security features that can run programs inside a VM)', mtError,[mbok],0);
+    exit;
+  end;
+
+  if canuseept=false then
+  begin
+    messagedlg('This function requires that your CPU supports ''Extended Page Table (EPT)'' which your CPU lacks', mtError,[mbok],0);
+    exit;
+  end;
+
+  if loaddbvmifneeded('DBVM find routines needs DBVM for EPT page hooking. Loading DBVM can potentially cause a system freeze. Are you sure?') then
+  begin
+    if not loaddbvmifneeded then exit;
+
+    address2:=address;
+    s:=disassemble(address2);
+
+    //spawn a DBVM watch config screen where the user can select options like lock memory
+    if frmDBVMWatchConfig=nil then
+      frmDBVMWatchConfig:=TfrmDBVMWatchConfig.create(self);
+
+    frmDBVMWatchConfig.address:=address;
+    frmDBVMWatchConfig.rbExecuteAccess.checked:=true;
+    frmDBVMWatchConfig.gbAccessType.visible:=false;
+
+    frmDBVMWatchConfig.cbMultipleRIP.checked:=true;
+    frmDBVMWatchConfig.cbMultipleRIP.Visible:=false;
+    frmDBVMWatchConfig.cbWholePage.Visible:=false;
+
+    if frmDBVMWatchConfig.showmodal=mrok then
+    begin
+      if frmDBVMWatchConfig.LockPage then
+        unlockaddress:=LockMemory(processid, address and QWORD($fffffffffffff000),4096)
+      else
+        unlockaddress:=0;
+
+      id:=dbvm_watch_executes(frmDBVMWatchConfig.PhysicalAddress, address2-address, frmDBVMWatchConfig.Options, frmDBVMWatchConfig.MaxEntries);
+
+      if (id<>-1) then
+      begin
+        //spawn a frmchangedaddresses
+        frmchangedaddresses:=tfrmChangedAddresses.Create(application);
+
+        if frmDBVMWatchConfig.LockPage then
+          unlockaddress:=LockMemory(processid, address and QWORD($fffffffffffff000),4096)
+        else
+          unlockaddress:=0;
+
+
+        frmchangedaddresses.dbvmwatchid:=id;
+        frmchangedaddresses.dbvmwatch_unlock:=unlockaddress;
+        if defaultDisassembler.LastDisassembleData.isfloat then
+          frmchangedaddresses.cbDisplayType.ItemIndex:=3;
+
+        if uppercase(defaultDisassembler.LastDisassembleData.opcode)='RET' then
+        begin
+          if processhandler.is64Bit then
+            s:='[RSP]'
+          else
+            s:='[ESP]';
+        end
+        else
+        begin
+          i:=pos('[',s)+1;
+          if i<>0 then
+            s:=copy(s,i,pos(']',s)-i)
+          else
+          begin
+            //no [   ] part
+            if processhandler.is64Bit then
+              s:='RDI'
+            else
+              s:='EDI';
+          end;
+        end;
+
+        frmchangedaddresses.equation:=s;
+
+        frmchangedaddresses.show;
+      end
+      else
+        MessageDlg('dbvm_watch failed', mtError, [mbok],0);
+
+    end;
+    freeandnil(frmDBVMWatchConfig);
+
+
+  end;
 end;
 
 procedure TMemoryBrowser.Findoutwhataddressesthisinstructionaccesses1Click(

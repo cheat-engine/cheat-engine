@@ -21,6 +21,7 @@ type
   TAdvancedOptions = class(TForm)
     Button2: TButton;
     Button3: TButton;
+    miDBVMFindWhatCodeAccesses: TMenuItem;
     PopupMenu2: TPopupMenu;
     miReplaceWithNops: TMenuItem;
     miRestoreWithOriginal: TMenuItem;
@@ -47,6 +48,7 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure miDBVMFindWhatCodeAccessesClick(Sender: TObject);
     procedure PopupMenu2Popup(Sender: TObject);
     procedure miRestoreWithOriginalClick(Sender: TObject);
     procedure miReplaceWithNopsClick(Sender: TObject);
@@ -307,6 +309,14 @@ begin
 
 end;
 
+procedure TAdvancedOptions.miDBVMFindWhatCodeAccessesClick(Sender: TObject);
+begin
+  try
+    MemoryBrowser.DBVMFindWhatThisCodeAccesses(symhandler.getAddressFromName(code[codelist2.ItemIndex].symbolname));
+  except
+  end;
+end;
+
 resourcestring
   strFindWhatCodeaccesses='Find out what addresses this code accesses';
   strFindWhatCodeReads='Find out what addresses this code reads from';
@@ -387,10 +397,15 @@ begin
       end;
 
 
+
+
+
       Findoutwhatthiscodechanges1.enabled:=true;
     end;
   end;
 
+  miDBVMFindWhatCodeAccesses.Enabled:=isIntel and isDBVMCapable and Findoutwhatthiscodechanges1.enabled;
+  miDBVMFindWhatCodeAccesses.Caption:='DBVM '+Findoutwhatthiscodechanges1.Caption;
 end;
 
 resourcestring strcouldntrestorecode='Error when trying to restore this code!';

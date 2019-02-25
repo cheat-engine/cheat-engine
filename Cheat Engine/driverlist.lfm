@@ -59,12 +59,12 @@ object frmDriverlist: TfrmDriverlist
     top = 88
     object Find1: TMenuItem
       Caption = 'Find Driver'
-      ShortCut = 16454
+      ShortCut = 49222
       OnClick = Find1Click
     end
     object MenuItem1: TMenuItem
       Caption = 'Find Exportname'
-      ShortCut = 49222
+      ShortCut = 16454
       OnClick = MenuItem1Click
     end
   end

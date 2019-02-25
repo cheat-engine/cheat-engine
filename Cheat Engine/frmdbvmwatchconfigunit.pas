@@ -20,18 +20,22 @@ type
     cbWholePage: TCheckBox;
     cbSaveFPU: TCheckBox;
     cbSaveStack: TCheckBox;
+    edtPhysicalAddress: TEdit;
     edtMaxEntries: TEdit;
-    GroupBox1: TGroupBox;
+    gbAccessType: TGroupBox;
     lblPhysicalAddress: TLabel;
     lblVirtualAddress: TLabel;
     Label3: TLabel;
     Panel1: TPanel;
     Panel2: TPanel;
+    Panel3: TPanel;
+    rbExecuteAccess: TRadioButton;
     rbWriteAccess: TRadioButton;
     rbReadAccess: TRadioButton;
     procedure btnOKClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure lblPhysicalAddressClick(Sender: TObject);
   private
     { private declarations }
     fAddress: qword;
@@ -103,7 +107,11 @@ end;
 
 function TfrmDBVMWatchConfig.getWatchType: integer;
 begin
-  if rbReadAccess.checked then result:=1 else result:=0;
+  result:=0;
+
+  if rbWriteAccess.checked then result:=0 else
+  if rbReadAccess.checked then result:=1 else
+  if rbExecuteAccess.checked then result:=2;
 end;
 
 procedure TfrmDBVMWatchConfig.setWatchType(t:integer);
@@ -117,6 +125,16 @@ end;
 procedure TfrmDBVMWatchConfig.btnOKClick(Sender: TObject);
 var i: integer;
 begin
+  if edtPhysicalAddress.visible then
+  begin
+    try
+      fPhysicalAddress:=strtoint64('$'+edtPhysicalAddress.Text);
+    except
+      messagedlg('The provided physical address '+edtPhysicalAddress.text+' is invalid', mtError,[mbok],0);
+      exit;
+    end;
+  end;
+
   if TryStrToInt(edtMaxEntries.text,i) then
     modalresult:=mrok
   else
@@ -177,6 +195,11 @@ begin
   end;
 end;
 
+procedure TfrmDBVMWatchConfig.lblPhysicalAddressClick(Sender: TObject);
+begin
+
+end;
+
 procedure TfrmDBVMWatchConfig.setAddress(a: qword);
 var
   x: ptruint;
@@ -185,13 +208,18 @@ begin
   faddress:=a;
   lblVirtualAddress.caption:=format('Virtual Address=%.8x',[a]);
 
+
   if ReadProcessMemory(processhandle, pointer(a),@temp,1,x) then
   begin
     if GetPhysicalAddress(processhandle, pointer(a), fPhysicalAddress) then
+      lblPhysicalAddress.caption:=format('Physical Address=%.8x',[fPhysicalAddress])
+    else
     begin
-      lblPhysicalAddress.caption:=format('Physical Address=%.8x',[fPhysicalAddress]);
-      btnOK.Enabled:=true;
+      edtPhysicalAddress.visible:=true;
+      cbLockPage.enabled:=false;
     end;
+
+    btnOK.Enabled:=true;
   end;
 
   if btnok.enabled=false then

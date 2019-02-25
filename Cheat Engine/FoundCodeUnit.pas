@@ -329,20 +329,20 @@ begin
         begin
           OutputDebugString('Saving fpu data');
 
-          outputdebugstring('FPUDATA is at offset '+inttostr(qword(@extended^[i].fpudata)-QWORD(@extended^[i])));
+          //outputdebugstring('FPUDATA is at offset '+inttostr(qword(@extended^[i].fpudata)-QWORD(@extended^[i])));
           //outputdebugstring('sizeof(coderecord.context.FltSave)='+inttostr(sizeof(coderecord.context.FltSave)));
           copymemory(@coderecord.context.{$ifdef cpu64}FltSave{$else}ext{$endif}, @extended^[i].fpudata, sizeof(coderecord.context.{$ifdef cpu64}FltSave{$else}ext{$endif}));
 
-          getmem(debug, sizeof(coderecord.context.{$ifdef cpu64}FltSave{$else}ext{$endif}));
-          copymemory(debug, @coderecord.context.{$ifdef cpu64}FltSave{$else}ext{$endif}, sizeof(coderecord.context.{$ifdef cpu64}FltSave{$else}ext{$endif}));
+          //getmem(debug, sizeof(coderecord.context.{$ifdef cpu64}FltSave{$else}ext{$endif}));
+          //copymemory(debug, @coderecord.context.{$ifdef cpu64}FltSave{$else}ext{$endif}, sizeof(coderecord.context.{$ifdef cpu64}FltSave{$else}ext{$endif}));
 
-          getmem(debug2, 512);
-          copymemory(debug2, @extended^[i].fpudata, 512);
+          //getmem(debug2, 512);
+          //copymemory(debug2, @extended^[i].fpudata, 512);
 
-          outputdebugstring('debug='+inttohex(ptruint(debug),8));
-          outputdebugstring('debug2='+inttohex(ptruint(debug2),8));
+          //outputdebugstring('debug='+inttohex(ptruint(debug),8));
+         // outputdebugstring('debug2='+inttohex(ptruint(debug2),8));
 
-          outputdebugstring('@coderecord.context.FltSave='+inttohex(qword(@coderecord.context.{$ifdef cpu64}FltSave{$else}ext{$endif}),8));
+          //outputdebugstring('@coderecord.context.FltSave='+inttohex(qword(@coderecord.context.{$ifdef cpu64}FltSave{$else}ext{$endif}),8));
 
         end;
 
@@ -356,7 +356,7 @@ begin
 
         3: //extended with stack
         begin
-          copymemory(@coderecord.context.{$ifdef cpu64}FltSave{$else}ext{$endif}, @extended^[i].fpudata, sizeof(coderecord.context.{$ifdef cpu64}FltSave{$else}ext{$endif}));
+          copymemory(@coderecord.context.{$ifdef cpu64}FltSave{$else}ext{$endif}, @extendeds^[i].fpudata, sizeof(coderecord.context.{$ifdef cpu64}FltSave{$else}ext{$endif}));
           coderecord.stack.savedsize:=4096;
           getmem(coderecord.stack.stack, 4096);
 

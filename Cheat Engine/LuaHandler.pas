@@ -4815,6 +4815,43 @@ begin
   result:=1;
 end;
 
+function lua_dbvm_watch_executes(L: PLua_state): integer; cdecl;
+var
+  physicalAddress: qword=0;
+  size: integer;
+  options: DWORD;
+  MaxEntryCount: integer;
+
+  top: integer;
+begin
+  top:=lua_gettop(L);
+  if top>=1 then
+    physicalAddress:=lua_tointeger(L,1)
+  else
+  begin
+    lua_pushstring(L, 'dbvm_watch_reads needs a physical address');
+    lua_error(L);
+  end;
+
+  if top>=2 then
+    size:=lua_tointeger(L,2)
+  else
+    size:=4;
+
+  if top>=3 then
+    options:=lua_tointeger(L,3)
+  else
+    options:=0;
+
+  if top>=4 then
+    MaxEntryCount:=lua_tointeger(L,4)
+  else
+    MaxEntryCount:=16;
+
+  lua_pushinteger(L, dbvm_watch_executes(physicalAddress, Size, Options, MaxEntryCount));
+  result:=1;
+end;
+
 function lua_dbvm_watch_retrievelog(L: PLua_state): integer; cdecl;
   procedure lua_push_watch_basic_fields(pbasic: PPageEventBasic; index: integer);
   begin
@@ -10781,6 +10818,7 @@ begin
     lua_register(L, 'dbvm_get_statistics',lua_dbvm_get_statistics);
     lua_register(L, 'dbvm_watch_writes', lua_dbvm_watch_writes);
     lua_register(L, 'dbvm_watch_reads', lua_dbvm_watch_reads);
+    lua_register(L, 'dbvm_watch_executes', lua_dbvm_watch_executes);
     lua_register(L, 'dbvm_watch_retrievelog', lua_dbvm_watch_retrievelog);
     lua_register(L, 'dbvm_watch_disable', lua_dbvm_watch_disable);
 

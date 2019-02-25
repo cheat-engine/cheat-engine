@@ -8,7 +8,7 @@ uses
   windows, LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls,CEFuncProc, ExtCtrls, ComCtrls, Menus, NewKernelHandler, LResources,
   disassembler, symbolhandler, byteinterpreter, CustomTypeHandler, maps, math, Clipbrd,
-  addressparser, commonTypeDefs;
+  addressparser, commonTypeDefs, DBK32functions, vmxfunctions;
 
 type
   TAddressEntry=class
@@ -29,6 +29,20 @@ type
 
 
   { TfrmChangedAddresses }
+  TfrmChangedAddresses=class;
+
+  TDBVMWatchExecutePollThread=class(TThread)
+  private
+    results: PPageEventListDescriptor;
+    resultsize: integer;
+
+    cr3disassembler: Tcr3Disassembler;
+    procedure addEntriesToList;
+  public
+    id: integer;
+    fca: TfrmChangedAddresses;
+    procedure execute; override;
+  end;
 
   TfrmChangedAddresses = class(TForm)
     lblInfo: TLabel;
@@ -85,15 +99,23 @@ type
     addresslist: TMap;
     faddress: ptruint;
     defaultcolor: TColor;
-    procedure refetchValues(specificaddress: ptruint=0);
+
+    fdbvmwatchid: integer;
+    dbvmwatchpollthread: TDBVMWatchExecutePollThread;
+    procedure stopdbvmwatch;
+    procedure refetchValues(specificaddress: ptruint=0;countonly: boolean=false);
     procedure setAddress(a: ptruint);
+    procedure setdbvmwatchid(id: integer);
   public
     { Public declarations }
     equation: string;
     foundcodedialog: pointer;
 
+    dbvmwatch_unlock: qword;
+
     procedure AddRecord;
     property address: ptruint read fAddress write setAddress;
+    property dbvmwatchid: integer read fdbvmwatchid write setdbvmwatchid;
   end;
 
 
@@ -103,13 +125,13 @@ implementation
 uses CEDebugger, MainUnit, frmRegistersunit, MemoryBrowserFormUnit, debughelper,
   debugeventhandler, debuggertypedefinitions, FoundCodeUnit, StructuresFrm2,
   processhandlerunit, Globals, Parsers, frmStackViewUnit, frmSelectionlistunit,
-  frmChangedAddressesCommonalityScannerUnit;
+  frmChangedAddressesCommonalityScannerUnit, LastDisassembleData;
 
 resourcestring
   rsStop='Stop';
   rsClose='Close';
   rsNoDescription = 'No Description';
-  rsChangedAddressesBy = 'Changed Addresses by %x';
+  rsChangedAddressesBy = 'Accessed addresses by %x';
   rsDesignateSomeAddresses = 'Please designate a group to at least some '
     +'addresses';
   rsNoAddressesLeftForGroup = 'There are no addresses left for group %d';
@@ -137,6 +159,203 @@ begin
 end;
 
 
+//-----------------------------
+
+procedure TDBVMWatchExecutePollThread.addEntriesToList;
+var
+  c: TContext;
+  coderecord: TCodeRecord;
+  i,j: integer;
+  opcode,desc: string;
+  li: TListItem;
+  ldi: TLastDisassembleData;
+
+  basicinfo: TPageEventBasic;
+
+  basic: PPageEventBasicArray;
+  extended: PPageEventExtendedArray absolute basic;
+  basics: PPageEventBasicWithStackArray absolute basic;
+  extendeds: PPageEventExtendedWithStackArray absolute basic;
+
+  address, address2: ptruint;
+
+  skip: boolean;
+
+  debug,debug2: pointer;
+  x: TaddressEntry;
+  haserror: boolean;
+  s: string;
+begin
+  outputdebugstring('addEntriesToList ('+inttostr(results^.numberOfEntries)+')');
+
+  try
+    basic:=PPageEventBasicArray(ptruint(results)+sizeof(TPageEventListDescriptor));
+
+    for i:=0 to results^.numberOfEntries-1 do
+    begin
+
+      case results^.entryType of
+        0: basicinfo:=basic^[i];
+        1: basicinfo:=extended^[i].basic;
+        2: basicinfo:=basics^[i].basic;
+        3: basicinfo:=extendeds^[i].basic;
+      end;
+
+      ZeroMemory(@c,sizeof(c));
+
+      c.{$ifdef cpu64}Rax{$else}Eax{$endif}:=basicinfo.RAX;
+      c.{$ifdef cpu64}Rbx{$else}Ebx{$endif}:=basicinfo.RBX;
+      c.{$ifdef cpu64}Rcx{$else}Ecx{$endif}:=basicinfo.RCX;
+      c.{$ifdef cpu64}Rdx{$else}Edx{$endif}:=basicinfo.RDX;
+      c.{$ifdef cpu64}Rsi{$else}Esi{$endif}:=basicinfo.RSI;
+      c.{$ifdef cpu64}Rdi{$else}Edi{$endif}:=basicinfo.RDI;
+      c.{$ifdef cpu64}Rbp{$else}Ebp{$endif}:=basicinfo.RBP;
+      c.{$ifdef cpu64}Rsp{$else}Esp{$endif}:=basicinfo.Rsp;
+      c.{$ifdef cpu64}Rip{$else}Eip{$endif}:=basicinfo.Rip;
+      {$ifdef cpu64}
+      c.R8:=basicinfo.R8;
+      c.R9:=basicinfo.R9;
+      c.R10:=basicinfo.R10;
+      c.R11:=basicinfo.R11;
+      c.R12:=basicinfo.R12;
+      c.R13:=basicinfo.R13;
+      c.R14:=basicinfo.R14;
+      c.R15:=basicinfo.R15;
+      {$endif}
+
+      address:=symhandler.getAddressFromName(fca.equation, false, haserror, @c);
+      if haserror=false then
+      begin
+
+        //check if address is in the list
+        if fca.addresslist.GetData(address,x) then
+        begin
+          inc(x.count,basicinfo.Count+1);
+          fca.refetchValues(x.address, true);
+          continue;
+        end;
+
+        //still here so not in the list, get more info and add it
+
+        c.EFlags:=basicinfo.FLAGS;
+        c.SegCs:=basicinfo.CS;
+        c.SegSs:=basicinfo.SS;
+        c.SegDs:=basicinfo.DS;
+        c.SegEs:=basicinfo.ES;
+        c.SegFs:=basicinfo.FS;
+        c.SegGs:=basicinfo.GS;
+
+        x:=TAddressEntry.Create;
+        x.address:=address;
+        x.count:=basicinfo.Count+1;
+
+        case results^.entryType of
+          1:
+          begin
+            //fpu
+            copymemory(@c.{$ifdef cpu64}FltSave{$else}ext{$endif}, @extended^[i].fpudata, sizeof(c.{$ifdef cpu64}FltSave{$else}ext{$endif}));
+          end;
+          2:
+          begin
+            //stack
+            getmem(x.stack.stack, 4096);
+            copymemory(x.stack.stack, @basics^[i].stack[0], 4096);
+          end;
+
+          3:
+          begin
+            //fpu/stack
+            copymemory(@c.{$ifdef cpu64}FltSave{$else}ext{$endif}, @extended^[i].fpudata, sizeof(c.{$ifdef cpu64}FltSave{$else}ext{$endif}));
+            getmem(x.stack.stack, 4096);
+            copymemory(x.stack.stack, @basics^[i].stack[0], 4096);
+          end;
+        end;
+
+        x.context:=c;
+
+        OutputDebugString('adding to the lists');
+        s:=inttohex(address,8);
+
+        li:=fca.changedlist.Items.add;
+        li.caption:=s;
+        li.SubItems.Add('');
+        li.subitems.add('1');
+        li.Data:=x;
+
+        fca.addresslist.Add(address, x);
+        fca.refetchValues(x.address);
+      end
+      else
+      begin
+        OutputDebugString(fca.equation+' did not end up into an address');
+      end;
+    end;
+
+  except
+    on e: exception do
+      outputdebugstring('TDBVMWatchPollThread.addEntriesToList error: '+e.message);
+  end;
+end;
+
+procedure TDBVMWatchExecutePollThread.execute;
+var
+  i: integer;
+  size: integer;
+begin
+  cr3disassembler:=TCR3Disassembler.create;
+  getmem(results,4096);
+  resultsize:=4096;
+  zeromemory(results,resultsize);
+
+  try
+    while not terminated do
+    begin
+      size:=resultsize;
+      i:=dbvm_watch_retrievelog(id, results, size);
+      if i=0 then
+      begin
+        //OutputDebugString('TDBVMWatchExecutePollThread returned 0.  results^.numberOfEntries='+inttostr(results^.numberOfEntries));
+
+        //process data
+        if results^.numberOfEntries>0 then
+        begin
+          //OutputDebugString('calling addEntriesToList');
+          synchronize(addEntriesToList);
+          sleep(10);
+        end
+        else
+          sleep(50);
+      end
+      else
+      if i=2 then
+      begin
+        //not enough memory. Allocate twice the needed amount
+        outputdebugstring(inttostr(resultsize)+' is too small for the buffer. It needs to be at least '+inttostr(size));
+        freememandnil(results);
+
+
+        resultsize:=size*2;
+        getmem(results, resultsize);
+        zeromemory(results,resultsize);
+
+        continue; //try again, no sleep
+      end else
+      begin
+        outputdebugstring('dbvm_watch_retrievelog returned '+inttostr(i)+' which is not supported');
+        exit;
+      end;
+    end;
+  except
+    on e: exception do
+      outputdebugstring('TDBVMWatchExecutePollThread crash:'+e.Message);
+  end;
+
+  freememandnil(results);
+  freeandnil(cr3disassembler);
+end;
+
+//-----------------------------
+
 procedure TfrmChangedAddresses.AddRecord;
 var
   haserror: boolean;
@@ -161,7 +380,7 @@ begin
       if addresslist.GetData(address, x) then
       begin
         inc(x.count);
-        refetchValues(x.address);
+        refetchValues(x.address,true);
         exit;
       end;
 
@@ -206,6 +425,7 @@ var temp: dword;
     i: integer;
 
 begin
+  stopdbvmwatch;
 
   if OKButton.caption=rsStop then
   begin
@@ -748,7 +968,7 @@ begin
   miDissect.enabled:=changedlist.SelCount>0;
 end;
 
-procedure TfrmChangedAddresses.refetchValues(specificaddress: ptruint=0);
+procedure TfrmChangedAddresses.refetchValues(specificaddress: ptruint=0; countonly: boolean=false);
 var i: integer;
     s: string;
     handled: boolean;
@@ -768,18 +988,21 @@ begin
       if (specificaddress<>0) and (TAddressEntry(changedlist.items[i].Data).address <> specificaddress) then //check if this is the line to update, if not, don't read and parse
         continue;
 
-
-      case cbDisplayType.ItemIndex of
-        0: s:=ReadAndParseAddress(TAddressEntry(changedlist.items[i].Data).address, vtByte,  nil, micbShowAsHexadecimal.checked);
-        1: s:=ReadAndParseAddress(TAddressEntry(changedlist.items[i].Data).address, vtWord,  nil, micbShowAsHexadecimal.checked);
-        2: s:=ReadAndParseAddress(TAddressEntry(changedlist.items[i].Data).address, vtDWord, nil, micbShowAsHexadecimal.checked);
-        3: s:=ReadAndParseAddress(TAddressEntry(changedlist.items[i].Data).address, vtSingle,nil, micbShowAsHexadecimal.checked);
-        4: s:=ReadAndParseAddress(TAddressEntry(changedlist.items[i].Data).address, vtDouble,nil, micbShowAsHexadecimal.checked);
-        else
-        begin
-          //custom type
-          s:=ReadAndParseAddress(TAddressEntry(changedlist.items[i].Data).address, vtCustom, TCustomType(cbDisplayType.Items.Objects[cbDisplayType.ItemIndex]), micbShowAsHexadecimal.checked);
+      if countonly=false then
+      begin
+        case cbDisplayType.ItemIndex of
+          0: s:=ReadAndParseAddress(TAddressEntry(changedlist.items[i].Data).address, vtByte,  nil, micbShowAsHexadecimal.checked);
+          1: s:=ReadAndParseAddress(TAddressEntry(changedlist.items[i].Data).address, vtWord,  nil, micbShowAsHexadecimal.checked);
+          2: s:=ReadAndParseAddress(TAddressEntry(changedlist.items[i].Data).address, vtDWord, nil, micbShowAsHexadecimal.checked);
+          3: s:=ReadAndParseAddress(TAddressEntry(changedlist.items[i].Data).address, vtSingle,nil, micbShowAsHexadecimal.checked);
+          4: s:=ReadAndParseAddress(TAddressEntry(changedlist.items[i].Data).address, vtDouble,nil, micbShowAsHexadecimal.checked);
+          else
+          begin
+            //custom type
+            s:=ReadAndParseAddress(TAddressEntry(changedlist.items[i].Data).address, vtCustom, TCustomType(cbDisplayType.Items.Objects[cbDisplayType.ItemIndex]), micbShowAsHexadecimal.checked);
+          end;
         end;
+
       end;
 
 
@@ -791,8 +1014,8 @@ begin
       changedlist.items[i].SubItems[1]:=inttostr(TAddressEntry(changedlist.items[i].Data).count);
 
 
-
-      Changedlist.Items[i].SubItems[0]:=s;
+      if countonly=false then
+        Changedlist.Items[i].SubItems[0]:=s;
     end;
   end;
 end;
@@ -843,6 +1066,8 @@ var
   ae: TAddressEntry;
   x: array of integer;
 begin
+  stopDBVMWatch();
+
   for i:=0 to changedlist.Items.Count-1 do
   begin
     ae:=TAddressEntry(changedlist.Items[i].Data);
@@ -886,6 +1111,44 @@ begin
     cbDisplayType.Items.AddObject(TCustomType(customTypes[i]).name, customTypes[i]);
 
   addresslist:=TMap.Create(ituPtrSize,sizeof(pointer));
+end;
+
+procedure TfrmChangedAddresses.stopdbvmwatch;
+begin
+  if dbvmwatchpollthread<>nil then
+  begin
+    dbvmwatchpollthread.Terminate;
+    dbvmwatchpollthread.WaitFor;
+    freeandnil(dbvmwatchpollthread);
+  end;
+
+  if dbvmwatchid<>-1 then
+  begin
+    dbvm_watch_delete(dbvmwatchid);
+    dbvmwatchid:=-1;
+  end;
+
+  if dbvmwatch_unlock<>0 then
+  begin
+    UnlockMemory(dbvmwatch_unlock);
+    dbvmwatch_unlock:=0;
+  end;
+end;
+
+procedure TfrmChangedAddresses.setdbvmwatchid(id: integer);
+begin
+  fdbvmwatchid:=id;
+
+  if id<>-1 then
+  begin
+    if dbvmwatchpollthread<>nil then
+      freeandnil(dbvmwatchpollthread);
+
+    dbvmwatchpollthread:=TDBVMWatchExecutePollThread.Create(true);
+    dbvmwatchpollthread.id:=id;
+    dbvmwatchpollthread.fca:=self;
+    dbvmwatchpollthread.Start;
+  end;
 end;
 
 initialization

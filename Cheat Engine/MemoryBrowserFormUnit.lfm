@@ -1077,6 +1077,10 @@ object MemoryBrowser: TMemoryBrowser
       Caption = 'Find out what addresses this instruction accesses'
       OnClick = Findoutwhataddressesthisinstructionaccesses1Click
     end
+    object DBVMFindoutwhataddressesthisinstructionaccesses: TMenuItem
+      Caption = 'DBVM Find out what addresses this instruction accesses'
+      OnClick = DBVMFindoutwhataddressesthisinstructionaccessesClick
+    end
     object miConditionalBreak: TMenuItem
       Caption = 'Set/Change break condition'
       OnClick = miConditionalBreakClick

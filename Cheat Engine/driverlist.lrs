@@ -23,9 +23,9 @@ LazarusResources.Add('TfrmDriverlist','FORMDATA',[
   +'e drivername'#7'Options'#11#6'frDown'#10'frFindNext'#18'frDisableMatchCase'
   +#15'frDisableUpDown'#18'frDisableWholeWord'#0#6'OnFind'#7#15'FindDialog1Find'
   +#4'left'#2#8#3'top'#2#8#0#0#10'TPopupMenu'#10'PopupMenu1'#4'left'#2'`'#3'top'
-  +#2'X'#0#9'TMenuItem'#5'Find1'#7'Caption'#6#11'Find Driver'#8'ShortCut'#3'F@'
-  +#7'OnClick'#7#10'Find1Click'#0#0#9'TMenuItem'#9'MenuItem1'#7'Caption'#6#15'F'
-  +'ind Exportname'#8'ShortCut'#4'F'#192#0#0#7'OnClick'#7#14'MenuItem1Click'#0#0
+  +#2'X'#0#9'TMenuItem'#5'Find1'#7'Caption'#6#11'Find Driver'#8'ShortCut'#4'F'
+  +#192#0#0#7'OnClick'#7#10'Find1Click'#0#0#9'TMenuItem'#9'MenuItem1'#7'Caption'
+  +#6#15'Find Exportname'#8'ShortCut'#3'F@'#7'OnClick'#7#14'MenuItem1Click'#0#0
   +#0#11'TFindDialog'#11'FindDialog2'#5'Width'#3#224#1#6'Height'#3#146#0#8'Find'
   +'Text'#6#19'Type the exportname'#7'Options'#11#6'frDown'#10'frFindNext'#18'f'
   +'rDisableMatchCase'#15'frDisableUpDown'#18'frDisableWholeWord'#0#6'OnFind'#7
