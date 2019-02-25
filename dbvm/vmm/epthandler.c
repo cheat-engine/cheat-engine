@@ -1425,7 +1425,7 @@ int ept_watch_deactivate(int ID)
  * disable a watch
  * It's possible that a watch event is triggered between now and the end of this function.
  * That will result in a ept_violation event, which causes it to not see that there is a watch event for this
- * As a result, that DBVM threat will try to map the physical address , and if it's already mapped, set it to full access
+ * As a result, that DBVM thread will try to map the physical address , and if it's already mapped, set it to full access
  * In short: it's gonna be ok
  */
 {
@@ -1494,6 +1494,8 @@ int ept_watch_deactivate(int ID)
           temp.XA=1;
       }
 
+
+
       *(c->eptWatchList[ID])=temp;
       _wbinvd();
       c->eptUpdated=1;
@@ -1513,6 +1515,9 @@ int ept_watch_deactivate(int ID)
   }
 
   eptWatchList[ID].Active=0;
+  free(eptWatchList[ID].Log);
+  eptWatchList[ID].Log=NULL;
+
   csLeave(&eptWatchListCS);
   return 0;
 }
