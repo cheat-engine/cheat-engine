@@ -271,7 +271,7 @@ begin
   begin
     if loaddbvmifneeded('Launch DBVM?') then
     begin
-      pa:=strtoint64(edtPA.text);
+      pa:=strtoint64('$'+edtPA.text);
 
       //convert to a changereginfo
       changereginfo.Flags.changeRAX:=ifthen(tempregedit.change_eax,1,0);
@@ -323,10 +323,7 @@ begin
       changereginfo.newR14:=tempregedit.new_r14;
       changereginfo.newR15:=tempregedit.new_r15;
 
-      if dbvm_cloak_changeregonbp(PA, changereginfo, address)=0 then
-      begin
-
-      end;
+      dbvm_cloak_changeregonbp(PA, changereginfo, address);
 
       memorybrowser.disassemblerview.Update;
       modalresult:=mrok;

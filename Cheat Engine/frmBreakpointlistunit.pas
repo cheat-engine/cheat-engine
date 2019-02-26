@@ -115,6 +115,15 @@ begin
   if debuggerthread<>nil then
     debuggerthread.updatebplist(ListView1, miShowShadow.checked);
 
+  i:=0;
+  while i<listview1.items.count do
+  begin
+    if listview1.items[i].data=pointer(-1) then
+      listview1.Items[i].Delete
+    else
+      inc(i);
+  end;
+
   l:=TStringList.create;
   try
     dbvm_getBreakpointList(l);
