@@ -588,6 +588,8 @@ function loaddbvmifneeded(reason:string=''): BOOL; stdcall;
 function isRunningDBVM: boolean;
 function isDBVMCapable: boolean;
 
+function hasEPTSupport: boolean;
+
 function isIntel: boolean;
 function isAMD: boolean;
 
@@ -1235,7 +1237,36 @@ begin
     end;
 
   end else result:=true; //it's already running DBVM, of course it's supported
+end;
 
+function hasEPTSupport: boolean;
+const
+  IA32_VMX_BASIC_MSR=$480;
+  IA32_VMX_TRUE_PROCBASED_CTLS_MSR=$48e;
+  IA32_VMX_PROCBASED_CTLS_MSR=$482;
+  IA32_VMX_PROCBASED_CTLS2_MSR=$48b;
+var procbased1flags: DWORD;
+begin
+  result:=isIntel and isDBVMCapable; //assume yes until proven otherwise
+
+  //check if it can use EPT tables in dbvm:
+  //first get the basic msr to see if TRUE procbasedctrls need to be used or old
+  if isIntel and isDriverLoaded(nil) then
+  begin
+    result:=false;
+    if (readMSR(IA32_VMX_BASIC_MSR) and (1 shl 55))<>0 then
+      procbased1flags:=readMSR(IA32_VMX_TRUE_PROCBASED_CTLS_MSR) shr 32
+    else
+      procbased1flags:=readMSR(IA32_VMX_PROCBASED_CTLS_MSR) shr 32;
+
+    //check if it has secondary procbased flags
+    if (procbased1flags and (1 shl 31))<>0 then
+    begin
+      //yes, check if EPT can be set to 1
+      if ((readMSR(IA32_VMX_PROCBASED_CTLS2_MSR) shr 32) and (1 shl 1))<>0 then
+        result:=true;
+    end;
+  end;
 end;
 
 {$endif}

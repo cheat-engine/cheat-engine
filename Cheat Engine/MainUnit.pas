@@ -6993,11 +6993,7 @@ begin
 end;
 
 procedure TMainForm.miDBVMFindWhatWritesOrAccessesClick(Sender: TObject);
-const
-  IA32_VMX_BASIC_MSR=$480;
-  IA32_VMX_TRUE_PROCBASED_CTLS_MSR=$48e;
-  IA32_VMX_PROCBASED_CTLS_MSR=$482;
-  IA32_VMX_PROCBASED_CTLS2_MSR=$48b;
+
 var
   address: ptrUint;
   res: word;
@@ -7006,32 +7002,11 @@ var
   fcd: TFoundCodeDialog;
   unlockaddress: qword;
   canuseept: boolean;
-  procbased1flags: DWORD;
+
 begin
   LoadDBK32;
-  canuseept:=false;
-  if isDriverLoaded(nil) then
-  begin
-    //check if it can use EPT tables in dbvm:
-    //first get the basic msr to see if TRUE procbasedctrls need to be used or old
-    if (readMSR(IA32_VMX_BASIC_MSR) and (1 shl 55))<>0 then
-      procbased1flags:=readMSR(IA32_VMX_TRUE_PROCBASED_CTLS_MSR) shr 32
-    else
-      procbased1flags:=readMSR(IA32_VMX_PROCBASED_CTLS_MSR) shr 32;
 
-    //check if it has secondary procbased flags
-    if (procbased1flags and (1 shl 31))<>0 then
-    begin
-      //yes, check if EPT can be set to 1
-      if ((readMSR(IA32_VMX_PROCBASED_CTLS2_MSR) shr 32) and (1 shl 1))<>0 then
-      begin
-        canuseEPT:=true;
-      end;
-    end;
-  end
-  else
-    canuseEPT:=true;
-
+  canuseept:=hasEPTSupport;
   if (isintel=false) or (isDBVMCapable=false) then
   begin
     messagedlg('This function requires an Intel CPU with virtualization support. If your system has that then make sure that you''re currently not running inside a virtual machine. (Windows has some security features that can run programs inside a VM)', mtError,[mbok],0);

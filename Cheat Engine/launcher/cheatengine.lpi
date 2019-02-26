@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="9"/>
+    <Version Value="10"/>
     <PathDelim Value="\"/>
     <General>
       <Flags>
@@ -13,10 +13,9 @@
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
       <XPManifest>
-        <ExecutionLevel Value="2"/>
+        <ExecutionLevel Value="requireAdministrator"/>
       </XPManifest>
       <Icon Value="0"/>
-      <ActiveWindowIndexAtStart Value="0"/>
     </General>
     <i18n>
       <EnableI18N LFM="False"/>
@@ -44,6 +43,8 @@
             <Style Value="1"/>
           </Parsing>
           <CodeGeneration>
+            <TargetCPU Value="i386"/>
+            <TargetOS Value="win32"/>
             <Optimizations>
               <OptimizationLevel Value="3"/>
               <VariablesInRegisters Value="True"/>
@@ -62,9 +63,6 @@
               </Win32>
             </Options>
           </Linking>
-          <Other>
-            <CompilerPath Value="$(CompPath)"/>
-          </Other>
         </CompilerOptions>
       </Item2>
     </BuildModes>
@@ -82,33 +80,26 @@
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="cheatengine"/>
         <IsVisibleTab Value="True"/>
-        <EditorIndex Value="0"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="13"/>
-        <CursorPos X="1" Y="22"/>
+        <CursorPos X="32" Y="8"/>
         <UsageCount Value="21"/>
         <Loaded Value="True"/>
       </Unit0>
       <Unit1>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\packages\winunits-base\src\shellapi.pp"/>
         <UnitName Value="ShellApi"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="1060"/>
-        <CursorPos X="1" Y="1075"/>
+        <CursorPos Y="1075"/>
         <UsageCount Value="10"/>
       </Unit1>
       <Unit2>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\objpas\sysutils\finah.inc"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="12"/>
         <CursorPos X="17" Y="28"/>
         <UsageCount Value="10"/>
       </Unit2>
       <Unit3>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\objpas\sysutils\fina.inc"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="34"/>
         <CursorPos X="3" Y="57"/>
         <UsageCount Value="10"/>
@@ -117,19 +108,19 @@
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="30" Column="1" TopLine="15"/>
+        <Caret Line="30" TopLine="15"/>
       </Position1>
       <Position2>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="15" Column="2" TopLine="1"/>
+        <Caret Line="15" Column="2"/>
       </Position2>
       <Position3>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="3" Column="15" TopLine="1"/>
+        <Caret Line="3" Column="15"/>
       </Position3>
       <Position4>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="15" Column="2" TopLine="1"/>
+        <Caret Line="15" Column="2"/>
       </Position4>
       <Position5>
         <Filename Value="cheatengine.lpr"/>
@@ -141,31 +132,31 @@
       </Position6>
       <Position7>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="34" Column="1" TopLine="13"/>
+        <Caret Line="34" TopLine="13"/>
       </Position7>
       <Position8>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="35" Column="1" TopLine="13"/>
+        <Caret Line="35" TopLine="13"/>
       </Position8>
       <Position9>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="37" Column="1" TopLine="22"/>
+        <Caret Line="37" TopLine="22"/>
       </Position9>
       <Position10>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="38" Column="1" TopLine="22"/>
+        <Caret Line="38" TopLine="22"/>
       </Position10>
       <Position11>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="40" Column="1" TopLine="22"/>
+        <Caret Line="40" TopLine="22"/>
       </Position11>
       <Position12>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="41" Column="1" TopLine="22"/>
+        <Caret Line="41" TopLine="22"/>
       </Position12>
       <Position13>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="42" Column="1" TopLine="22"/>
+        <Caret Line="42" TopLine="22"/>
       </Position13>
       <Position14>
         <Filename Value="cheatengine.lpr"/>
@@ -189,15 +180,15 @@
       </Position18>
       <Position19>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="51" Column="1" TopLine="35"/>
+        <Caret Line="51" TopLine="35"/>
       </Position19>
       <Position20>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="53" Column="1" TopLine="35"/>
+        <Caret Line="53" TopLine="35"/>
       </Position20>
       <Position21>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="54" Column="1" TopLine="35"/>
+        <Caret Line="54" TopLine="35"/>
       </Position21>
       <Position22>
         <Filename Value="cheatengine.lpr"/>
@@ -205,23 +196,23 @@
       </Position22>
       <Position23>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="51" Column="1" TopLine="35"/>
+        <Caret Line="51" TopLine="35"/>
       </Position23>
       <Position24>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="53" Column="1" TopLine="35"/>
+        <Caret Line="53" TopLine="35"/>
       </Position24>
       <Position25>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="54" Column="1" TopLine="35"/>
+        <Caret Line="54" TopLine="35"/>
       </Position25>
       <Position26>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="55" Column="1" TopLine="35"/>
+        <Caret Line="55" TopLine="35"/>
       </Position26>
       <Position27>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="66" Column="1" TopLine="41"/>
+        <Caret Line="66" TopLine="41"/>
       </Position27>
       <Position28>
         <Filename Value="cheatengine.lpr"/>
@@ -229,7 +220,7 @@
       </Position28>
       <Position29>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="64" Column="1" TopLine="41"/>
+        <Caret Line="64" TopLine="41"/>
       </Position29>
       <Position30>
         <Filename Value="cheatengine.lpr"/>
@@ -263,9 +254,6 @@
         </Win32>
       </Options>
     </Linking>
-    <Other>
-      <CompilerPath Value="$(CompPath)"/>
-    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">
@@ -280,5 +268,4 @@
       </Item3>
     </Exceptions>
   </Debugging>
-  <EditorMacros Count="0"/>
 </CONFIG>

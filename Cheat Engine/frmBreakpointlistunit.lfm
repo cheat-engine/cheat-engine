@@ -64,7 +64,7 @@ object frmBreakpointlist: TfrmBreakpointlist
   object pmBreakpoint: TPopupMenu
     OnPopup = pmBreakpointPopup
     left = 140
-    top = 116
+    top = 112
     object MenuItem2: TMenuItem
       Caption = 'Disable breakpoint'
       Visible = False

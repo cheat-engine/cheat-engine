@@ -320,6 +320,13 @@ type
     eventCountersAllCPUS: array [0..55] of integer;
   end;
 
+  TDBVMBreakpoint=record
+    VirtualAddress: qword;
+    PhysicalAddress: qword;
+    breakoption: integer;
+  end;
+  PDBVMBreakpoint=^TDBVMBreakpoint;
+
 
 function dbvm_version: dword; stdcall;
 function dbvm_changepassword(password1,password2: dword):dword; stdcall;
@@ -399,6 +406,8 @@ function ReadProcessMemoryWithCloakSupport(hProcess: THandle; lpBaseAddress, lpB
 function WriteProcessMemoryWithCloakSupport(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL; stdcall;
 function hasCloakedRegionInRange(virtualAddress: qword; size: integer; out VA:qword; out PA: qword): boolean;
 
+procedure dbvm_getBreakpointList(l: TStrings);
+
 var
   vmx_password1: dword;
   vmx_password2: dword;
@@ -413,7 +422,7 @@ implementation
 
 uses DBK32functions, cefuncproc, PEInfoFunctions, NewKernelHandler, syncobjs,
   ProcessHandlerUnit, Globals, AvgLvlTree, maps, debuggertypedefinitions,
-  DebugHelper;
+  DebugHelper, frmBreakpointlistunit;
 
 resourcestring
 rsInvalidInstruction = 'Invalid instruction';
@@ -432,6 +441,9 @@ var vmcall2 :function(vmcallinfo:pointer; level1pass: dword; secondaryOut: pptru
       end;
 
   cloakedregioncache: tmap;
+
+  breakpoints: array of TDBVMBreakpoint;
+  breakpointsCS: TCriticalSection;
 
 type
   TCloakedMemInfo=record
@@ -1361,8 +1373,7 @@ begin
 
   if ((result=0) or (result=1)) and (virtualAddress<>0) then
   begin
-    if cloakedregionscs=nil then
-      cloakedregionscs:=TCriticalSection.Create;
+
 
     cloakedregionscs.enter;
 
@@ -1461,6 +1472,7 @@ begin
   result:=vmcall(@vmcallinfo,vmx_password1);
 end;
 
+
 function dbvm_cloak_changeregonbp(PhysicalAddress: QWORD; var changeregonbpinfo: TChangeRegOnBPInfo; VirtualAddress: qword=0): integer;
 var
   vmcallinfo: packed record
@@ -1481,28 +1493,94 @@ begin
   vmcallinfo.changeregonbpinfo:=changeregonbpinfo;
   result:=vmcall(@vmcallinfo,vmx_password1);
 
-  if (result=0) and (virtualAddress<>0) then
+  if (result=0) then
   begin
-    cloakedregionscs.Enter;
-    try
-      PhysicalBase:=PhysicalAddress and MAXPHYADDRMASKPB;
+    breakpointsCS.enter;
+    setlength(breakpoints,length(breakpoints)+1);
+    breakpoints[length(breakpoints)-1].PhysicalAddress:=PhysicalAddress;
+    breakpoints[length(breakpoints)-1].VirtualAddress:=virtualAddress;
+    breakpoints[length(breakpoints)-1].BreakOption:=integer(bo_ChangeRegister);
+    breakpointscs.leave;
 
-      for i:=0 to length(cloakedregions)-1 do
-        if cloakedregions[i].PhysicalAddress=PhysicalBase then exit;   //already in the list
+    if (VirtualAddress<>0) then
+    begin
+      cloakedregionscs.Enter;
+      try
+        PhysicalBase:=PhysicalAddress and MAXPHYADDRMASKPB;
 
-      i:=length(cloakedregions);
-      setlength(cloakedregions,i+1);
-      cloakedregions[i].PhysicalAddress:=PhysicalBase;
-      cloakedregions[i].virtualAddress:=virtualAddress and qword($fffffffffffff000);
+        for i:=0 to length(cloakedregions)-1 do
+          if cloakedregions[i].PhysicalAddress=PhysicalBase then exit;   //already in the list
 
-      outputdebugstring('added it to entry '+inttostr(i));
-    finally
-      cloakedregionscs.leave;
+        i:=length(cloakedregions);
+        setlength(cloakedregions,i+1);
+        cloakedregions[i].PhysicalAddress:=PhysicalBase;
+        cloakedregions[i].virtualAddress:=virtualAddress and qword($fffffffffffff000);
+
+        outputdebugstring('added it to entry '+inttostr(i));
+      finally
+        cloakedregionscs.leave;
+      end;
     end;
 
+    if (GetCurrentThreadId=MainThreadID) and (frmbreakPointList<>nil) and (frmbreakPointList.visible) then
+      frmbreakPointList.updatebplist;
   end;
-
 end;
+
+function dbvm_cloak_removechangeregonbp(PhysicalAddress: QWORD): integer;
+var
+  vmcallinfo: packed record
+    structsize: dword;
+    level2pass: dword;
+    command: dword;
+    PhysicalAddress: QWORD;
+  end;
+  i,j: integer;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_CLOAK_REMOVECHANGEREGONBP;
+  vmcallinfo.PhysicalAddress:=PhysicalAddress;
+  result:=vmcall(@vmcallinfo,vmx_password1);
+
+  breakpointsCS.Enter;
+  for i:=0 to length(breakpoints)-1 do
+    if breakpoints[i].PhysicalAddress=PhysicalAddress then
+    begin
+      for j:=i to length(breakpoints)-2 do
+        breakpoints[j]:=breakpoints[j+1];
+
+      setlength(breakpoints, length(breakpoints)-1);
+    end;
+
+  if (GetCurrentThreadId=MainThreadID) and (frmbreakPointList<>nil) and (frmbreakPointList.visible) then
+    frmbreakPointList.updatebplist;
+
+  breakpointsCS.Leave;
+end;
+
+procedure dbvm_getBreakpointList(l: TStrings);
+//gets the breakpoint list, the caller will need to free the entries after call
+var
+  i: integer;
+  s: string;
+begin
+  s:='';
+  breakpointscs.enter;
+  try
+    for i:=0 to length(breakpoints)-1 do
+    begin
+      if breakpoints[i].VirtualAddress<>0 then
+        s:=inttohex(breakpoints[i].VirtualAddress,8);
+
+      s:=s+' ('+inttohex(breakpoints[i].physicaladdress,8)+')';
+      l.Add(s);
+    end
+  finally
+    breakpointscs.leave;
+  end;
+end;
+
 
 function dbvm_get_statistics(out statistics: TDBVMStatistics):qword;
 var
@@ -1523,20 +1601,7 @@ begin
   CopyMemory(@statistics.eventCountersAllCPUS[0],@vmcallinfo.eventcounterall,sizeof(int)*56);
 end;
 
-function dbvm_cloak_removechangeregonbp(PhysicalAddress: QWORD): integer;
-var vmcallinfo: packed record
-  structsize: dword;
-  level2pass: dword;
-  command: dword;
-  PhysicalAddress: QWORD;
-end;
-begin
-  vmcallinfo.structsize:=sizeof(vmcallinfo);
-  vmcallinfo.level2pass:=vmx_password2;
-  vmcallinfo.command:=VMCALL_CLOAK_REMOVECHANGEREGONBP;
-  vmcallinfo.PhysicalAddress:=PhysicalAddress;
-  result:=vmcall(@vmcallinfo,vmx_password1);
-end;
+
 
 
 procedure dbvm_ept_reset;
@@ -2204,7 +2269,10 @@ initialization
       vmcall:=vmcallSupported_intel;
       vmcall2:=vmcallSupported2_intel;
     end;
-
   end;
+
+  cloakedregionscs:=TCriticalSection.Create;
+  breakpointscs:=TCriticalSection.Create;
+
   {$endif}
 end.
