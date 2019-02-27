@@ -221,7 +221,7 @@ getR15:
 GLOBAL getAccessRights
 getAccessRights:
   xor rax,rax
-  lar rax,rdi
+  lar rax,di
   jnz getAccessRights_invalid
   shr rax,8
   and rax,0f0ffh
@@ -234,7 +234,7 @@ getAccessRights:
 GLOBAL getSegmentLimit
 getSegmentLimit:
   xor rax,rax
-  lsl rax,rdi
+  lsl rax,di
   ret
 
 

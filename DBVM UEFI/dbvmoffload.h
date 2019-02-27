@@ -12,9 +12,6 @@
 #include <efilib.h>
 
 
-
-
-
 #pragma pack (1)
 typedef struct _PTE
 {
@@ -31,7 +28,7 @@ typedef struct _PTE
         unsigned A2        :  1; // available 2/ is 1 when paged to disk
         unsigned A3        :  1; // available 3
         //unsigned PFN       : 20; // page-frame number
-} *PPTE;
+} PTE, *PPTE;
 
 typedef struct _PDE
 {
@@ -48,7 +45,7 @@ typedef struct _PDE
         unsigned A2        :  1; // available 2/ is 1 when paged to disk
         unsigned A3        :  1; // available 3
         //unsigned PFN       : 20; // page-frame number
-} *PPDE;
+} PDE, *PPDE;
 
 typedef struct _PDE2MB
 {
@@ -65,7 +62,7 @@ typedef struct _PDE2MB
         unsigned A2        :  1; // available 2/ is 1 when paged to disk
         unsigned A3        :  1; // available 3
         //unsigned PFN       : 20; // page-frame number (>> 13 instead of >>12);
-} *PPDE2MB;
+} PDE2MB, *PPDE2MB;
 
 
 
@@ -84,9 +81,9 @@ typedef struct _PTE_PAE
         unsigned A2        :  1; // available 2/ is 1 when paged to disk
         unsigned A3        :  1; // available 3
     //the following 2 items cause a problem in ms's compiler
-//        unsigned PFN       : 24; // page-frame number
-        //unsigned reserved  : 28;
-} *PPTE_PAE;
+        unsigned PFN       : 24; // page-frame number
+        unsigned reserved  : 28;
+} PTE_PAE, *PPTE_PAE;
 
 typedef struct _PDE_PAE
 {
@@ -102,9 +99,9 @@ typedef struct _PDE_PAE
         unsigned A1        :  1; // available 1 aka copy-on-write
         unsigned A2        :  1; // available 2/ is 1 when paged to disk
         unsigned A3        :  1; // available 3
-//        unsigned PFN       : 24; // page-frame number
-//        unsigned reserved4 : 28;
-} *PPDE_PAE;
+        unsigned PFN       : 24; // page-frame number
+        unsigned reserved4 : 28;
+} PDE_PAE, *PPDE_PAE;
 
 typedef struct _PDE2MB_PAE
 {
@@ -121,26 +118,40 @@ typedef struct _PDE2MB_PAE
         unsigned A2        :  1; // available 2/ is 1 when paged to disk
         unsigned A3        :  1; // available 3
         unsigned PAT       :  1; //
-        //unsigned PFN       : 23; // page-frame number (>> 13 instead of >>12);
-        //unsigned reserved4 : 28;
+        unsigned PFN       : 23; // page-frame number (>> 13 instead of >>12);
+        unsigned reserved4 : 28;
 } *PPDE2MB_PAE;
 
 
 
 typedef struct _PDPTE_PAE
 {
-        unsigned char P         :  1; // present (1 = present)
-        unsigned char RW        :  1; // Read Write
-        unsigned char US        :  1; // User supervisor
-        unsigned char PWT       :  1; // page-level write-through
-        unsigned char PCD       :  1; // page-level cache disabled
-        unsigned char reserved2 :  4; // reserved
-        unsigned char A1        :  1; // available 1 aka copy-on-write
-        unsigned char A2        :  1; // available 2/ is 1 when paged to disk
-        unsigned char A3        :  1; // available 3
-        //unsigned int PFN       : 24; // page-frame number
-        //unsigned int reserved3 : 28;
-} *PPDPTE_PAE;
+        unsigned P         :  1; // present (1 = present)
+        unsigned RW        :  1; // Read Write
+        unsigned US        :  1; // User supervisor
+        unsigned PWT       :  1; // page-level write-through
+        unsigned PCD       :  1; // page-level cache disabled
+        unsigned reserved2 :  4; // reserved
+        unsigned A1        :  1; // available 1 aka copy-on-write
+        unsigned A2        :  1; // available 2/ is 1 when paged to disk
+        unsigned A3        :  1; // available 3
+        unsigned PFN       : 24; // page-frame number
+        unsigned reserved3 : 28;
+} PDPTE_PAE, *PPDPTE_PAE;
+
+#pragma pack()
+
+typedef struct _INITVARS
+{
+	UINT64 loadedOS; //physical address of the loadedOS section
+	UINT64 vmmstart; //physical address of virtual address 00400000 (obsoletish...)
+	UINT64 pagedirlvl4; //Virtual address of the pml4 table (the virtual memory after this until the next 4MB alignment is free to use)
+	UINT64 nextstack; //The virtual address of the stack for the next CPU (vmloader only sets it up when 0)
+	UINT64 extramemory; //Physical address of some extra initial memory (physically contiguous)
+	UINT64 extramemorysize; //the number of pages that extramemory spans
+} INITVARS, *PINITVARS;
+
+
 
 
 void InitializeDBVM(UINT64 vmm, int vmmsize);

@@ -50,6 +50,18 @@ struc OState
 .gs       resq 1
 .tr       resq 1
 .ldt      resq 1
+.cs_AccessRights  resq 1
+.ss_AccessRights  resq 1
+.ds_AccessRights  resq 1
+.es_AccessRights  resq 1
+.fs_AccessRights  resq 1
+.gs_AccessRights  resq 1
+.cs_Limit resq 1
+.ss_Limit resq 1
+.ds_Limit resq 1
+.es_Limit resq 1
+.fs_Limit resq 1
+.gs_Limit resq 1
 .fsbase     resq 1
 .gsbase     resq 1
 endstruc
@@ -58,7 +70,7 @@ endstruc
 
 EXTERN NewGDTDescriptor
 EXTERN NewGDTDescriptorVA
-EXTERN pagedirptrbasePA
+EXTERN DBVMPML4PA
 EXTERN TemporaryPagingSetupPA
 EXTERN enterVMM2PA
 EXTERN originalstatePA
@@ -155,13 +167,13 @@ weee2:
 
 
   mov rax,rdi
-  mov rbx,0
+  xor rbx,rbx
   mov ds,bx
   mov es,bx
   mov fs,bx
   mov gs,bx
   mov ss,bx
-  mov rsp,rax
+  ;mov rsp,rax
 
   mov rax,cr0
   or eax,10000h
@@ -239,10 +251,11 @@ enterVMMPrologue:
   mov rbx,[rel NewGDTDescriptorVA]
   lgdt [rbx]
 
-  mov rcx,[rel pagedirptrbasePA]
-  ;mov rdx,[rel TemporaryPagingSetupPA]
+  mov rcx,[rel DBVMPML4PA]
+  ;mov rcx,[rel pagedirptrbasePA]
+  mov rdx,[rel TemporaryPagingSetupPA]
   mov rsi,[rel enterVMM2PA]
-  mov rdi,[rel InitStackPA]
+  ;mov rdi,[rel InitStackPA]
 
   ;mov r8,enterVMM2
   jmp [rel enterVMM2]

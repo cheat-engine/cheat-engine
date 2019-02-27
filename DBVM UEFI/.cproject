@@ -139,9 +139,9 @@
                                 							
                             </tool>
                             							
-                            <tool command="nasm" id="cdt.managedbuild.tool.gnu.assembler.base.452149161" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.base">
+                            <tool command="yasm" id="cdt.managedbuild.tool.gnu.assembler.base.452149161" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.base">
                                 								
-                                <option id="gnu.both.asm.option.flags.1444983358" name="Assembler flags" superClass="gnu.both.asm.option.flags" useByScannerDiscovery="false" value="-f elf64 -g" valueType="string"/>
+                                <option id="gnu.both.asm.option.flags.1444983358" name="Assembler flags" superClass="gnu.both.asm.option.flags" useByScannerDiscovery="false" value="-f elf64 -gDWARF2" valueType="string"/>
                                 								
                                 <inputType id="cdt.managedbuild.tool.gnu.assembler.input.1688058130" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
                                 							
@@ -153,9 +153,9 @@
                     					
                     <fileInfo id="cdt.managedbuild.config.gnu.exe.debug.2012415518.344505268" name="dbvmoffloada.asm" rcbsApplicability="disable" resourcePath="dbvmoffloada.asm" toolsToInvoke="cdt.managedbuild.tool.gnu.assembler.base.452149161.310954567">
                         						
-                        <tool command="nasm" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="cdt.managedbuild.tool.gnu.assembler.base.452149161.310954567" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.base.452149161">
+                        <tool command="yasm" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="cdt.managedbuild.tool.gnu.assembler.base.452149161.310954567" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.base.452149161">
                             							
-                            <option id="gnu.both.asm.option.flags.1688295716" name="Assembler flags" superClass="gnu.both.asm.option.flags" value="-f elf64 -g" valueType="string"/>
+                            <option id="gnu.both.asm.option.flags.1688295716" name="Assembler flags" superClass="gnu.both.asm.option.flags" useByScannerDiscovery="false" value="-f elf64 -gDWARF2" valueType="string"/>
                             							
                             <inputType id="cdt.managedbuild.tool.gnu.assembler.input.342640417" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
                             						
@@ -177,9 +177,9 @@
                     					
                     <fileInfo id="cdt.managedbuild.config.gnu.exe.debug.2012415518.1715772470" name="helpers.asm" rcbsApplicability="disable" resourcePath="helpers.asm" toolsToInvoke="cdt.managedbuild.tool.gnu.assembler.base.452149161.22181823">
                         						
-                        <tool command="nasm" id="cdt.managedbuild.tool.gnu.assembler.base.452149161.22181823" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.base.452149161">
+                        <tool command="yasm" id="cdt.managedbuild.tool.gnu.assembler.base.452149161.22181823" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.base.452149161">
                             							
-                            <option id="gnu.both.asm.option.flags.971125062" name="Assembler flags" superClass="gnu.both.asm.option.flags" useByScannerDiscovery="false" value="-f elf64 -g" valueType="string"/>
+                            <option id="gnu.both.asm.option.flags.971125062" name="Assembler flags" superClass="gnu.both.asm.option.flags" useByScannerDiscovery="false" value="-f elf64 -gDWARF2" valueType="string"/>
                             							
                             <inputType id="cdt.managedbuild.tool.gnu.assembler.input.794251345" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
                             						

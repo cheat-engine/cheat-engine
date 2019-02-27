@@ -112,6 +112,8 @@ UINT_PTR enterVMM2PA;
 
 PVOID TemporaryPagingSetup;
 UINT_PTR TemporaryPagingSetupPA;
+
+UINT_PTR DBVMPML4PA;
 UINT_PTR originalstatePA;
 UINT_PTR NewGDTDescriptorVA;
 UINT_PTR InitStackPA;
@@ -125,101 +127,103 @@ int initializedvmm=0;
 void InitializeDBVM(UINT64 vmm, int vmmsize)
 {
   //basic paging setup for the vmm, will get expanded by the vmm itself
+  PINITVARS initvars = (PINITVARS)(vmm+0x10);
+
   UINT64 FreePA=((vmm+vmmsize) & 0xfffffffffffff00ULL) +4096;
   UINT64 mainstack=FreePA;
   FreePA+=16*4096;
-  UINT64 *GDTBase=(UINT64 *)((UINT_PTR)vmm+vmmsize+4096);
-  FreePA+=4096;
-  PUINT64  pagedirptrbase=(PUINT64)FreePA;
-  FreePA+=4096;
-  PUINT64  PageDirPtr=(PUINT64)(PageDirPtr+4096);
-  FreePA+=4096;
-  PUINT64  PageDir=(PUINT64)(PageDirPtr+4096);
-  FreePA+=4096;
-  PUINT64  PageMapLevel4=(PUINT64)PageDir; //must be the last alloc
-  FreePA+=4096;
+  UINT64 *GDTBase=(UINT64 *)FreePA; FreePA+=4096;
+  PPDPTE_PAE  PageDirPtr=(PPDPTE_PAE)FreePA; FreePA+=4096;
+  PPDE_PAE  PageDir=(PPDE_PAE)FreePA; FreePA+=4096;
+  PPTE_PAE  PageTable1=(PPTE_PAE)FreePA; FreePA+=4096;
+  PPTE_PAE  PageTable2=(PPTE_PAE)FreePA; FreePA+=4096;
+  PPDPTE_PAE  PageMapLevel4=(PPDPTE_PAE)FreePA; FreePA+=4096; //must be the last alloc
+
+  DBVMPML4PA=(UINT_PTR)PageMapLevel4;
 
   ZeroMem((void*)mainstack, FreePA-mainstack); //initialize all the allocated memory
 
 
-  Print(L"pagedirptrbase=%lx\n",pagedirptrbase);
-  pagedirptrbasePA=(UINT_PTR)pagedirptrbase;
+#define BUILD_BUG_ON(condition) ((void)sizeof(char[1 - 2*!!(condition)]))
+  BUILD_BUG_ON( sizeof(PTE_PAE) != 8 );
+  BUILD_BUG_ON( sizeof(PDE_PAE) != 8 );
+  BUILD_BUG_ON( sizeof(PDPTE_PAE) != 8 );
+
+
+
+  Print(L"PageMapLevel4=%lx\n",PageMapLevel4);
+
 
   Print(L"Setting up initial paging table for vmm\n");
 
-  PageMapLevel4[0]=(UINT_PTR)PageDirPtr;
-  ((PPDPTE_PAE)(&PageMapLevel4[0]))->P=1;
-  ((PPDPTE_PAE)(&PageMapLevel4[0]))->RW=1;
+  *(PUINT_PTR)(&PageMapLevel4[0])=(UINT_PTR)PageDirPtr;
+  PageMapLevel4[0].P=1;
+  PageMapLevel4[0].RW=1;
 
-  Print(L"PageMapLevel4[0]=%lx\n",PageMapLevel4[0]);
+  Print(L"PageMapLevel4[0]=%lx\n",*(PUINT_PTR)(&PageMapLevel4[0]));
 
 
-  PageDirPtr[0]=(UINT_PTR)PageDir;
-  ((PPDPTE_PAE)(&PageDirPtr[0]))->P=1;
-  ((PPDPTE_PAE)(&PageDirPtr[0]))->RW=1;
-  Print(L"PageDirPtr[0]=%lx\n",PageDirPtr[0]);
+  *(PUINT_PTR)(&PageDirPtr[0])=(UINT_PTR)PageDir;
+  PageDirPtr[0].P=1;
+  PageDirPtr[0].RW=1;
+  Print(L"PageDirPtr[0]=%lx\n",*(PUINT_PTR)(&PageDirPtr[0]));
 
-  PageDir[0]=0; //physical address 0x00000000 to 0x00200000
-  ((PPDE2MB_PAE)(&PageDir[0]))->P=1;
-  ((PPDE2MB_PAE)(&PageDir[0]))->US=1;
-  ((PPDE2MB_PAE)(&PageDir[0]))->RW=1;
-  ((PPDE2MB_PAE)(&PageDir[0]))->PS=1; //2MB
-  Print(L"PageDir[0]=%lx\n",PageDir[0]);
+  *(PUINT_PTR)(&PageDir[0])=0; //physical address 0x00000000 to 0x00200000
+  PageDir[0].P=1;
+  PageDir[0].US=1;
+  PageDir[0].RW=1;
+  PageDir[0].PS=1; //2MB
+  Print(L"PageDir[0]=%lx\n",*(PUINT_PTR)(&PageDir[0]));
 
-  PageDir[1]=0x00200000; //physical address 0x00200000 to 0x00400000
-  ((PPDE2MB_PAE)(&PageDir[1]))->P=1;
-  ((PPDE2MB_PAE)(&PageDir[1]))->US=1;
-  ((PPDE2MB_PAE)(&PageDir[1]))->RW=1;
-  ((PPDE2MB_PAE)(&PageDir[1]))->PS=1; //2MB
-  Print(L"PageDir[1]=%lx\n",PageDir[1]);
+  *(PUINT_PTR)(&PageDir[1])=0x00200000; //physical address 0x00200000 to 0x00400000
+  PageDir[1].P=1;
+  PageDir[1].US=1;
+  PageDir[1].RW=1;
+  PageDir[1].PS=1; //2MB
+  Print(L"PageDir[1]=%lx\n",*(PUINT_PTR)(&PageDir[1]));
 
   {
     //create a pagetable for the first 2MB of vmm
-    PUINT64 PageTable=AllocatePersistentMemory(4096);
     int i;
 
-    PageDir[2]=(UINT64)PageTable;
-    ((PPDE2MB_PAE)(&PageDir[2]))->P=1;
-    ((PPDE2MB_PAE)(&PageDir[2]))->RW=1;
-    ((PPDE2MB_PAE)(&PageDir[2]))->PS=0; //points to a pagetable
+    *(PUINT_PTR)(&PageDir[2])=(UINT64)PageTable1;
+    PageDir[2].P=1;
+    PageDir[2].RW=1;
+    PageDir[2].PS=0; //points to a pagetable
 
-    Print(L"PageDir[2]=%lx\n",PageDir[2]);
+    Print(L"PageDir[2]=%lx\n",*(PUINT_PTR)(&PageDir[2]));
 
     //fill in the pagetable
     for (i=0; i<512; i++)
     {
-      PageTable[i]=(UINT_PTR)vmm+(4096*i);
-      ((PPTE_PAE)(&PageTable[i]))->P=1;
-      ((PPTE_PAE)(&PageTable[i]))->RW=1;
+      *(PUINT_PTR)(&PageTable1[i])=vmm+(4096*i);
+      PageTable1[i].P=1;
+      PageTable1[i].RW=1;
     }
 
-    if (mainstack<vmm+0x00200000)
+    //if (mainstack<vmm+0x00200000)
+    //{
+     // int index=(mainstack-vmm) >> 12;
+    //  PageTable1[index].P=0; //mark the first page of the stack as unreadable
+    //}
+
+    //create a pagetable for the 2nd 2MB of vmm
+
+    *(PUINT_PTR)(&PageDir[3])=(UINT64)PageTable2;
+    PageDir[3].P=1;
+    PageDir[3].RW=1;
+    PageDir[3].PS=0;
+
+    Print(L"PageDir[3]=%lx\n",PageDir[3]);
+
+    //fill in the pagetable
+    for (i=0; i<512; i++)
     {
-      int index=(mainstack-vmm) >> 12;
-      ((PPTE_PAE)(&PageTable[index]))->P=0; //mark the first page of the stack as unreadable
+      *(PUINT_PTR)(&PageTable2[i])=(UINT_PTR)vmm+0x00200000+(4096*i);
+      PageTable2[i].P=1;
+      PageTable2[i].RW=1;
     }
   }
-
-  {
-     //create a pagetable for the 2nd 2MB of vmm
-     PUINT64 PageTable=AllocatePersistentMemory(4096);
-     int i;
-
-     PageDir[3]=(UINT64)PageTable;
-     ((PPDE2MB_PAE)(&PageDir[3]))->P=1;
-     ((PPDE2MB_PAE)(&PageDir[3]))->RW=1;
-     ((PPDE2MB_PAE)(&PageDir[3]))->PS=0;
-
-     Print(L"PageDir[3]=%lx\n",PageDir[3]);
-
-     //fill in the pagetable
-     for (i=0; i<512; i++)
-     {
-       PageTable[i]=(UINT_PTR)vmm+0x00200000+(4096*i);
-       ((PPTE_PAE)(&PageTable[i]))->P=1;
-       ((PPTE_PAE)(&PageTable[i]))->RW=1;
-     }
-   }
 
 
 
@@ -242,7 +246,7 @@ void InitializeDBVM(UINT64 vmm, int vmmsize)
 
 
   NewGDTDescriptor.limit=0x6f; //111
-  NewGDTDescriptor.base=0x00400000+vmmsize+4096; //virtual address to the gdt
+  NewGDTDescriptor.base=0x00400000 + (UINT64)GDTBase - (UINT64)vmm; //0x00400000+vmmsize+4096; //virtual address to the gdt
 
   Print(L"&NewGDTDescriptor=%lx, &NewGDTDescriptor.limit=%lx, &NewGDTDescriptor.base=%lx\n",(UINT64)&NewGDTDescriptor,(UINT64)&NewGDTDescriptor.limit, (UINT64)&NewGDTDescriptor.base);
   Print(L"NewGDTDescriptor.limit=%x\n",NewGDTDescriptor.limit);
@@ -308,24 +312,23 @@ void InitializeDBVM(UINT64 vmm, int vmmsize)
     EFI_PHYSICAL_ADDRESS address=0x003fffff;
     EFI_STATUS s;
 
-    UINT64 *vmimg=(UINT64 *)vmm;
-    vmimg[2]=originalstatePA;
-    vmimg[3]=vmmPA;
-    vmimg[4]=0x00400000+(PageMapLevel4-vmm); //address of the PML4 Virtual address. 4096 bytes after that will be free for use
-    vmimg[5]=0x00400000+(mainstack-vmm)+(16*4096)-0x40;
+    initvars->loadedOS=originalstatePA;
+    initvars->vmmstart=vmmPA;
+    initvars->pagedirlvl4=0x00400000+((UINT_PTR)PageMapLevel4-vmm);
+    initvars->nextstack=0x00400000+(mainstack-vmm)+(16*4096)-0x40;
 
     address=0;
     s=AllocatePages(AllocateAnyPages,EfiRuntimeServicesData, 16384,&address); //64MB of memory
     if (s!=EFI_SUCCESS)
     {
       Print(L"Allocated 64MB of extra ram at %lx\n", address);
-      vmimg[6]=address;
-      vmimg[7]=16384;
+      initvars->extramemory=address;
+      initvars->extramemorysize=16384;
     }
     else
     {
-      vmimg[6]=0;
-      vmimg[7]=0;
+      initvars->extramemory=0;
+      initvars->extramemorysize=0;
     }
 
 
@@ -462,60 +465,60 @@ void LaunchDBVM()
 
    Print(L"Storing original state\n");
    originalstate->cpucount=0;  //indicate that dbvm needs to initialize the secondary CPU's
-   Print(L"originalstate->cpucount=%d",originalstate->cpucount);
+   //Print(L"originalstate->cpucount=%d",originalstate->cpucount);
 
    originalstate->originalEFER=readMSR(0xc0000080); //amd prefers this over an LME
 
    originalstate->originalLME=(int)(((DWORD)(readMSR(0xc0000080)) >> 8) & 1);
-   Print(L"originalstate->originalLME=%d\n",originalstate->originalLME);
+   //Print(L"originalstate->originalLME=%d\n",originalstate->originalLME);
 
    originalstate->cr0=(UINT_PTR)getCR0();
-   Print(L"originalstate->cr0=%lx\n",originalstate->cr0);
+   //Print(L"originalstate->cr0=%lx\n",originalstate->cr0);
 
    originalstate->cr2=(UINT_PTR)getCR2();
-   Print(L"originalstate->cr2=%lx\n",originalstate->cr2);
+   //Print(L"originalstate->cr2=%lx\n",originalstate->cr2);
 
    originalstate->cr3=(UINT_PTR)getCR3();
-   Print(L"originalstate->cr3=%lx\n",originalstate->cr3);
+   //Print(L"originalstate->cr3=%lx\n",originalstate->cr3);
 
    originalstate->cr4=(UINT_PTR)getCR4();
-   Print(L"originalstate->cr4=%lx\n",originalstate->cr4);
+   //Print(L"originalstate->cr4=%lx\n",originalstate->cr4);
 
    originalstate->ss=getSS();
    originalstate->ss_AccessRights=getAccessRights(originalstate->ss);
    originalstate->ss_Limit=getSegmentLimit(originalstate->ss);
-   Print(L"originalstate->ss=%lx (%x:%x)\n",originalstate->ss, originalstate->ss_AccessRights, originalstate->ss_Limit);
+   //Print(L"originalstate->ss=%lx (%x:%x)\n",originalstate->ss, originalstate->ss_AccessRights, originalstate->ss_Limit);
 
    originalstate->cs=getCS();
    originalstate->cs_AccessRights=getAccessRights(originalstate->cs);
    originalstate->cs_Limit=getSegmentLimit(originalstate->cs);
-   Print(L"originalstate->cs=%lx (%x:%x)\n",originalstate->cs, originalstate->cs_AccessRights, originalstate->cs_Limit);
+   //Print(L"originalstate->cs=%lx (%x:%x)\n",originalstate->cs, originalstate->cs_AccessRights, originalstate->cs_Limit);
    originalstate->ds=getDS();
    originalstate->ds_AccessRights=getAccessRights(originalstate->ds);
    originalstate->ds_Limit=getSegmentLimit(originalstate->ds);
-   Print(L"originalstate->ds=%lx (%x:%x)\n",originalstate->ds, originalstate->ds_AccessRights, originalstate->ds_Limit);
+   //Print(L"originalstate->ds=%lx (%x:%x)\n",originalstate->ds, originalstate->ds_AccessRights, originalstate->ds_Limit);
    originalstate->es=getES();
    originalstate->es_AccessRights=getAccessRights(originalstate->es);
    originalstate->es_Limit=getSegmentLimit(originalstate->es);
-   Print(L"originalstate->es=%lx (%x:%x)\n",originalstate->es, originalstate->es_AccessRights, originalstate->es_Limit);
+   //Print(L"originalstate->es=%lx (%x:%x)\n",originalstate->es, originalstate->es_AccessRights, originalstate->es_Limit);
    originalstate->fs=getFS();
    originalstate->fs_AccessRights=getAccessRights(originalstate->fs);
    originalstate->fs_Limit=getSegmentLimit(originalstate->fs);
-   Print(L"originalstate->fs=%lx (%x:%x)\n",originalstate->fs, originalstate->fs_AccessRights, originalstate->fs_Limit);
+   //Print(L"originalstate->fs=%lx (%x:%x)\n",originalstate->fs, originalstate->fs_AccessRights, originalstate->fs_Limit);
    originalstate->gs=getGS();
    originalstate->gs_AccessRights=getAccessRights(originalstate->gs);
    originalstate->gs_Limit=getSegmentLimit(originalstate->gs);
-   Print(L"originalstate->gs=%lx (%x:%x)\n",originalstate->gs, originalstate->gs_AccessRights, originalstate->gs_Limit);
+   //Print(L"originalstate->gs=%lx (%x:%x)\n",originalstate->gs, originalstate->gs_AccessRights, originalstate->gs_Limit);
    originalstate->ldt=getLDT();
-   Print(L"originalstate->ldt=%lx\n",originalstate->ldt);
+   //Print(L"originalstate->ldt=%lx\n",originalstate->ldt);
    originalstate->tr=getTR();
-   Print(L"originalstate->tr=%lx\n",originalstate->tr);
+   //Print(L"originalstate->tr=%lx\n",originalstate->tr);
 
    originalstate->fsbase=readMSR(0xc0000100);
    originalstate->gsbase=readMSR(0xc0000101);
 
 
-   Print(L"originalstate->fsbase=%lx originalstate->gsbase=%lx\n", originalstate->fsbase, originalstate->gsbase);
+   //Print(L"originalstate->fsbase=%lx originalstate->gsbase=%lx\n", originalstate->fsbase, originalstate->gsbase);
 
    originalstate->dr7=getDR7();
 
@@ -526,66 +529,66 @@ void LaunchDBVM()
    originalstate->gdtbase=(UINT64)gdt.vector;
    originalstate->gdtlimit=gdt.wLimit;
 
-   Print(L"originalstate->gdtbase=%lx\n",originalstate->gdtbase);
-   Print(L"originalstate->gdtlimit=%lx\n",originalstate->gdtlimit);
+   //Print(L"originalstate->gdtbase=%lx\n",originalstate->gdtbase);
+   //Print(L"originalstate->gdtlimit=%lx\n",originalstate->gdtlimit);
 
    getIDT(&idt);
    originalstate->idtbase=(UINT64)idt.vector;
    originalstate->idtlimit=idt.wLimit;
 
-   Print(L"originalstate->idtbase=%lx\n",originalstate->idtbase);
-   Print(L"originalstate->idtlimit=%lx\n",originalstate->idtlimit);
+   //Print(L"originalstate->idtbase=%lx\n",originalstate->idtbase);
+   //Print(L"originalstate->idtlimit=%lx\n",originalstate->idtlimit);
 
    eflags=getEflags();
    originalstate->rflags=*(PUINT_PTR)&eflags;
-   Print(L"originalstate->rflags was %lx\n",(UINT64)originalstate->rflags);
+   //Print(L"originalstate->rflags was %lx\n",(UINT64)originalstate->rflags);
 
    eflags.IF=0;
    originalstate->rflags=*(PUINT_PTR)&eflags;
 
-   Print(L"originalstate->rflags is %lx\n",(UINT64)originalstate->rflags);
+   //Print(L"originalstate->rflags is %lx\n",(UINT64)originalstate->rflags);
 
    originalstate->rflags=*(PUINT_PTR)&eflags;
 
    originalstate->rsp=getRSP();
-   Print(L"originalstate->rsp=%lx\n",originalstate->rsp);
+   //Print(L"originalstate->rsp=%lx\n",originalstate->rsp);
    originalstate->rbp=getRBP();
-   Print(L"originalstate->rbp=%lx\n",originalstate->rbp);
+   //Print(L"originalstate->rbp=%lx\n",originalstate->rbp);
 
 
    originalstate->rax=getRAX();
-   Print(L"originalstate->rax=%lx\n",originalstate->rax);
+   //Print(L"originalstate->rax=%lx\n",originalstate->rax);
    originalstate->rbx=getRBX();
-   Print(L"originalstate->rbx=%lx\n",originalstate->rbx);
+   //Print(L"originalstate->rbx=%lx\n",originalstate->rbx);
    originalstate->rcx=getRCX();
-   Print(L"originalstate->rcx=%lx\n",originalstate->rcx);
+   //Print(L"originalstate->rcx=%lx\n",originalstate->rcx);
    originalstate->rdx=getRDX();
-   Print(L"originalstate->rdx=%lx\n",originalstate->rdx);
+   //Print(L"originalstate->rdx=%lx\n",originalstate->rdx);
    originalstate->rsi=getRSI();
-   Print(L"originalstate->rsi=%lx\n",originalstate->rsi);
+   //Print(L"originalstate->rsi=%lx\n",originalstate->rsi);
    originalstate->rdi=getRDI();
-   Print(L"originalstate->rdi=%lx\n",originalstate->rdi);
+   //Print(L"originalstate->rdi=%lx\n",originalstate->rdi);
    originalstate->r8=getR8();
-   Print(L"originalstate->r8=%lx\n",originalstate->r8);
+   //Print(L"originalstate->r8=%lx\n",originalstate->r8);
    originalstate->r9=getR9();
-   Print(L"originalstate->r9=%lx\n",originalstate->r9);
+   //Print(L"originalstate->r9=%lx\n",originalstate->r9);
    originalstate->r10=getR10();
-   Print(L"originalstate->r10=%lx\n",originalstate->r10);
+   //Print(L"originalstate->r10=%lx\n",originalstate->r10);
    originalstate->r11=getR11();
-   Print(L"originalstate->r11=%lx\n",originalstate->r11);
+   //Print(L"originalstate->r11=%lx\n",originalstate->r11);
    originalstate->r12=getR12();
-   Print(L"originalstate->r12=%lx\n",originalstate->r12);
+   //Print(L"originalstate->r12=%lx\n",originalstate->r12);
    originalstate->r13=getR13();
-   Print(L"originalstate->r13=%lx\n",originalstate->r13);
+   //Print(L"originalstate->r13=%lx\n",originalstate->r13);
    originalstate->r14=getR14();
-   Print(L"originalstate->r14=%lx\n",originalstate->r14);
+   //Print(L"originalstate->r14=%lx\n",originalstate->r14);
    originalstate->r15=getR15();
-   Print(L"originalstate->r15=%lx\n",originalstate->r15);
+   //Print(L"originalstate->r15=%lx\n",originalstate->r15);
 
     originalstate->rsp-=8; //adjust rsp for the "call entervmmprologue"
     originalstate->rip=(UINT_PTR)enterVMMEpilogue; //enterVMMEpilogue is an address inside the entervmmprologue function
 
-    Print(L"originalstate->rip=%lx\n",originalstate->rip);
+    //Print(L"originalstate->rip=%lx\n",originalstate->rip);
 
 
 
