@@ -47,6 +47,8 @@ type
     MenuItem13: TMenuItem;
     MenuItem14: TMenuItem;
     DBVMFindoutwhataddressesthisinstructionaccesses: TMenuItem;
+    miDBVMActivateCloak: TMenuItem;
+    miDBVMDisableCloak: TMenuItem;
     miUltimap: TMenuItem;
     MenuItem15: TMenuItem;
     MenuItem16: TMenuItem;
@@ -305,6 +307,8 @@ type
     procedure MenuItem14Click(Sender: TObject);
     procedure DBVMFindoutwhataddressesthisinstructionaccessesClick(Sender: TObject);
     procedure miCodeFilterClick(Sender: TObject);
+    procedure miDBVMActivateCloakClick(Sender: TObject);
+    procedure miDBVMDisableCloakClick(Sender: TObject);
     procedure miUltimapClick(Sender: TObject);
     procedure MenuItem17Click(Sender: TObject);
     procedure MenuItem18Click(Sender: TObject);
@@ -1044,6 +1048,30 @@ begin
     frmcodefilter:=tfrmcodefilter.create(application);
 
   frmcodefilter.show;
+end;
+
+procedure TMemoryBrowser.miDBVMActivateCloakClick(Sender: TObject);
+var
+  PA,VA: qword;
+begin
+  if isRunningDBVM and hasEPTSupport and (not hasCloakedRegionInRange(disassemblerview.SelectedAddress,1,VA,PA)) then
+  begin
+    VA:=disassemblerview.SelectedAddress;
+
+    if GetPhysicalAddress(processhandle,pointer(VA),int64(PA)) then
+      dbvm_cloak_activate(PA,VA);
+  end;
+end;
+
+procedure TMemoryBrowser.miDBVMDisableCloakClick(Sender: TObject);
+var PA,VA: Qword;
+begin
+  if isRunningDBVM and hasEPTSupport and (hasCloakedRegionInRange(disassemblerview.SelectedAddress,1,VA,PA)) then
+  begin
+    VA:=disassemblerview.SelectedAddress;
+    if GetPhysicalAddress(processhandle,pointer(VA),int64(PA)) then
+      dbvm_cloak_deactivate(PA);
+  end;
 end;
 
 procedure TMemoryBrowser.miUltimapClick(Sender: TObject);
@@ -3687,6 +3715,7 @@ var x: ptrUint;
   a: ptruint;
   inadvancedoptions: boolean;
   e: boolean;
+  VA,PA: QWORD;
 begin
   Breakandtraceinstructions1.Enabled:=processhandle<>0;
   miTogglebreakpoint.Enabled:=processhandle<>0;
@@ -3699,7 +3728,13 @@ begin
   pluginhandler.handledisassemblerContextPopup(disassemblerview.SelectedAddress);
 
   miConditionalBreak.enabled:=(debuggerthread<>nil) and (debuggerthread.isBreakpoint(disassemblerview.SelectedAddress)<>nil);
+  miConditionalBreak.visible:=miConditionalBreak.enabled;
 
+  miDBVMActivateCloak.visible:=isRunningDBVM and hasEPTSupport and (not hasCloakedRegionInRange(disassemblerview.SelectedAddress, 1, VA,PA));
+  miDBVMActivateCloak.enabled:=miDBVMActivateCloak.visible;
+
+  miDBVMDisableCloak.visible:=isRunningDBVM and hasEPTSupport and (hasCloakedRegionInRange(disassemblerview.SelectedAddress, 1, VA,PA));
+  miDBVMDisableCloak.enabled:=miDBVMDisableCloak.visible;
 
   miTogglebreakpoint.visible:=not ischild;
 

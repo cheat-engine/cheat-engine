@@ -1417,7 +1417,7 @@ begin
 
   if result and (cloakedregionscs<>nil) then
   begin
-    OutputDebugString('dbvm_cloak_deactivate with a registered virtual address in the list');
+    OutputDebugString('dbvm_cloak_deactivate');
     cloakedregionscs.enter;
     try
       for i:=0 to length(cloakedregions)-1 do

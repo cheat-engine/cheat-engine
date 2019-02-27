@@ -345,10 +345,30 @@ begin
 end;
 
 procedure TfrmModifyRegisters.FormCreate(Sender: TObject);
+var pref: string;
 begin
   cbUseDBVM.visible:=isDBVMCapable and hasEPTSupport;
   if isRunningDBVM and (debuggerthread=nil) then
     cbUseDBVM.checked:=true;
+
+  if processhandler.is64bit then
+  begin
+    pref:='R'
+  end
+  else
+  begin
+    pref:='E'
+  end;
+
+  label1.Caption:=pref+'AX';
+  label2.Caption:=pref+'BX';
+  label3.Caption:=pref+'CX';
+  label4.Caption:=pref+'DX';
+  label5.Caption:=pref+'SI';
+  label6.Caption:=pref+'DI';
+  label7.Caption:=pref+'BP';
+  label8.Caption:=pref+'SP';
+  label9.Caption:=pref+'IP';
 end;
 
 procedure TfrmModifyRegisters.FormShow(Sender: TObject);

@@ -1061,6 +1061,14 @@ object MemoryBrowser: TMemoryBrowser
     object N7: TMenuItem
       Caption = '-'
     end
+    object miDBVMActivateCloak: TMenuItem
+      Caption = 'DBVM Activate Cloak'
+      OnClick = miDBVMActivateCloakClick
+    end
+    object miDBVMDisableCloak: TMenuItem
+      Caption = 'DBVM Disable Cloak'
+      OnClick = miDBVMDisableCloakClick
+    end
     object Changestateofregisteratthislocation1: TMenuItem
       Caption = 'Change register at this location'
       OnClick = Changestateofregisteratthislocation1Click

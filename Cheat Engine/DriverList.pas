@@ -203,7 +203,7 @@ end;
 
 procedure TfrmDriverlist.tvDriverListDblClick(Sender: TObject);
 begin
-  if (tvDriverList.Selected<>nil) and (tvDriverList.Selected.level=1) and (tvDriverList.Selected.data<>nil) then
+  if (tvDriverList.Selected<>nil) and (tvDriverList.Selected.data<>nil) then
     MemoryBrowser.disassemblerview.SelectedAddress:=ptruint(tvDriverList.Selected.data);
 end;
 
