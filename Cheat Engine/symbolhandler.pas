@@ -3376,6 +3376,27 @@ begin
     symbollistsMREW.Endread;
   end;
 
+  symbolloadervalid.Beginread;
+  try
+    if (symbolloaderthread<>nil) and (symbolloaderthread.driverlistpos>0) then
+    begin
+      symbolloaderthread.driverlistMREW.beginread;
+      try
+        for i:=0 to symbolloaderthread.driverlistpos do
+        begin
+          if symbolloaderthread.driverlist[i].modulename=modulename then
+          begin
+            mi:=symbolloaderthread.driverlist[i];
+            exit(true);
+          end;
+        end;
+      finally
+        symbolloaderthread.driverlistMREW.Endread;
+      end;
+    end;
+  finally
+    symbolloadervalid.Endread;
+  end;
 end;
 
 function TSymHandler.getsearchpath:string;
