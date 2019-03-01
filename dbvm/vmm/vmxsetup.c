@@ -152,6 +152,9 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
     for (i=0; i<4096*2; i++)
       MSRBitmap[i]=0;
 
+	//protect 0xc0010114 (VM_CR)
+	MSRBitmap[0x1000+(0x0114*2)/8]|=3 << ((0x0114*2) % 8);
+	
     //Must protect 0xc0010117 (MSRPM_BASE_PA)
     MSRBitmap[0x1000+(0x0117*2)/8]|=3 << ((0x0117*2) % 8);
 

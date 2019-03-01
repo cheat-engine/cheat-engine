@@ -493,6 +493,9 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
         switch (vmregisters->rcx & 0xffffffff)
         {
+			case 0xC0010114: //VM_CR
+				value=(1<<3) | (1<<4); //set the Lock bit, set the SVME_DISABLE bit
+			  break;			
           case 0xc0000080://efer
             //update LMA
 
