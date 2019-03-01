@@ -1686,7 +1686,12 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
     	break;
     }
 #endif
-
+	case VMCALL_GETPHYSICALADDRESSVM:
+	{
+		int notpaged;
+		vmregisters->rax = getPhysicalAddressVM(currentcpuinfo, *(QWORD*)&vmcall_instruction[3], &notpaged);
+		break;
+	}
 
     default:
       vmregisters->rax = 0xcedead;

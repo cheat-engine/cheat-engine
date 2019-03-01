@@ -83,7 +83,7 @@
 
 #define VMCALL_WATCH_EXECUTES 60
 
-
+#define VMCALL_GETPHYSICALADDRESSVM 1000
 
 
 extern int hasEPTsupport;
