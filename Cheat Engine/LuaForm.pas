@@ -244,7 +244,7 @@ begin
     filename:=Lua_ToString(L, -1);
     lua_pop(L, lua_gettop(L));
 
-    f:=TCEForm.Create(nil);   //6.3: was application
+    f:=TCEForm.Createnew(nil);   //6.3: was application
     f.LoadFromFile(filename);
 
     luaclass_newClass(L, f);
