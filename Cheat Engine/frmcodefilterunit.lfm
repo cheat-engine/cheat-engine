@@ -164,6 +164,7 @@ object frmCodeFilter: TfrmCodeFilter
         Top = 50
         Width = 153
         Caption = 'From address dissection'
+        OnClick = Button1Click
         TabOrder = 3
         Visible = False
       end
@@ -190,10 +191,10 @@ object frmCodeFilter: TfrmCodeFilter
       Width = 246
       AutoSize = True
       BevelOuter = bvNone
-      Caption = 'Panel3'
       ClientHeight = 100
       ClientWidth = 246
       TabOrder = 1
+      OnClick = Panel3Click
       object btnStart: TButton
         AnchorSideLeft.Control = Panel2
         AnchorSideTop.Control = Panel2
@@ -206,6 +207,7 @@ object frmCodeFilter: TfrmCodeFilter
         BorderSpacing.Top = 8
         Caption = 'Start'
         Constraints.MinWidth = 75
+        Enabled = False
         OnClick = btnStartClick
         TabOrder = 0
       end
@@ -266,6 +268,7 @@ object frmCodeFilter: TfrmCodeFilter
           Top = 0
           Width = 146
           Caption = 'Has been executed'
+          Enabled = False
           OnClick = FilterClick
           ParentShowHint = False
           ShowHint = True
@@ -279,6 +282,7 @@ object frmCodeFilter: TfrmCodeFilter
           Top = 27
           Width = 146
           Caption = 'Has not been executed'
+          Enabled = False
           OnClick = FilterClick
           ParentShowHint = False
           ShowHint = True

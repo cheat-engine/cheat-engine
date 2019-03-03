@@ -54,6 +54,7 @@ type
     procedure btnShowListClick(Sender: TObject);
     procedure btnStartClick(Sender: TObject);
     procedure btnStopClick(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
     procedure frmLaunchBranchMapperClick(Sender: TObject);
     procedure Button7Click(Sender: TObject);
     procedure FilterClick(Sender: TObject);
@@ -66,6 +67,7 @@ type
     procedure miDeleteSelectedItemsClick(Sender: TObject);
     procedure miClearListClick(Sender: TObject);
     procedure Panel2Click(Sender: TObject);
+    procedure Panel3Click(Sender: TObject);
     procedure pmResultsPopup(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
   private
@@ -252,7 +254,7 @@ begin
       begin
         frmCodeFilter.callMap.Delete(address);
 
-        if frmCodeFilter.breakpointsSet and (not bpinfo^.hasBeenExecuted=false) then //restore
+        if frmCodeFilter.breakpointsSet and (not bpinfo^.hasBeenExecuted) then //restore
           WriteProcessMemory(processhandle,pointer(address), @bpinfo^.originalByte,1,x);
 
         freemem(bpinfo);
@@ -382,6 +384,11 @@ end;
 //-------------------------------
 
 procedure TfrmCodeFilter.Panel2Click(Sender: TObject);
+begin
+
+end;
+
+procedure TfrmCodeFilter.Panel3Click(Sender: TObject);
 begin
 
 end;
@@ -670,6 +677,8 @@ begin
 
       lblAddressList.caption:=format(rsAddressList, [callmap.Count]);
       btnShowList.Click;
+
+      btnStart.enabled:=callmap.count>0;
     end;
   end;
 end;
@@ -722,6 +731,8 @@ begin
 
   lblAddressList.caption:=format(rsAddressList, [callmap.Count]);
   btnShowList.Click;
+
+  btnStart.enabled:=callmap.count>0;
 end;
 
 function TfrmCodeFilter.ModuleListSelectionListSelToText(index: integer; listText: string): string;
@@ -882,6 +893,8 @@ begin
 
     lblAddressList.caption:=format(rsAddressList, [callmap.Count]);
     btnShowList.Click;
+
+    btnStart.enabled:=callmap.count>0;
   end;
 end;
 
@@ -894,6 +907,11 @@ procedure TfrmCodeFilter.btnStopClick(Sender: TObject);
 begin
   nextfilter:=fNoFilter;
   disableAllBreakpoints;
+end;
+
+procedure TfrmCodeFilter.Button1Click(Sender: TObject);
+begin
+
 end;
 
 procedure TfrmCodeFilter.frmLaunchBranchMapperClick(Sender: TObject);
