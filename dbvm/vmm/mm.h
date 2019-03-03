@@ -68,6 +68,7 @@ void markPageAsWritable(void *address);
 void VirtualAddressToPageEntries(QWORD address, PPDPTE_PAE *pml4entry, PPDPTE_PAE *pagedirpointerentry, PPDE_PAE *pagedirentry, PPTE_PAE *pagetableentry);
 
 void mmAddPhysicalPageListToDBVM(QWORD *pagelist, int count);
+void mmtest();
 
 //void wtftest(void); //test routine to figure out why some memory gets paged out
 

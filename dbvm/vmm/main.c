@@ -2138,6 +2138,7 @@ void menu(void)
     sendstring("Press 7 to test some crap\n\r");
     sendstring("Press 8 to execute testcode()\n\r");
     sendstring("Press 9 to restart\n\r");
+    sendstring("Press M to test the memorymanager\n\r");
 #if (defined SERIALPORT) && (SERIALPORT != 0)
     sendstring("Press L for Lua\n\r");
 #endif
@@ -2386,6 +2387,13 @@ void menu(void)
 
           break;
 				}
+
+        case 'm':
+        {
+          mmtest();
+          break;
+        }
+
 
 #if (defined SERIALPORT) && (SERIALPORT != 0)
         case 'l':
