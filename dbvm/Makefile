@@ -13,7 +13,8 @@ DISPLAYDEBUG=0
  
 
 all:
-	make -C vmm	all SERIALPORT=${SERIALPORT} DISPLAYDEBUG=${DISPLAYDEBUG}
+#	make -C vmm all SERIALPORT=${SERIALPORT} DISPLAYDEBUG=${DISPLAYDEBUG}
+	make -C vmm -f mkx all SERIALPORT=${SERIALPORT} DISPLAYDEBUG=${DISPLAYDEBUG}
 	make -C common all SERIALPORT=${SERIALPORT}
 	make -C parsevmmmap all SERIALPORT=${SERIALPORT}
 	parsevmmmap/parsevmmmap	

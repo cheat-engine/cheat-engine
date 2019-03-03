@@ -1092,21 +1092,19 @@ void *realloc(void *old, size_t size)
 
 void free(void *address)
 {
-  csEnter(&AllocCS);
-  int i=findClosestAllocRegion((UINT64)address);
-  if ((i<AllocListPos) && (AllocList[i].size) && (AllocList[i].base==(UINT64)address) )
+  if (address)
   {
-    free2(address, AllocList[i].size);
-    AllocList[i].size=0;
-  }
-  else
-  {
-    //if (debug)
-    sendstringf("free_new error\n");
-      while (1) ;
+    csEnter(&AllocCS);
+    int i=findClosestAllocRegion((UINT64)address);
+    if ((i<AllocListPos) && (AllocList[i].size) && (AllocList[i].base==(UINT64)address) )
+    {
+      free2(address, AllocList[i].size);
+      AllocList[i].size=0;
+    }
+    csLeave(&AllocCS);
   }
 
-  csLeave(&AllocCS);
+
 
 }
 

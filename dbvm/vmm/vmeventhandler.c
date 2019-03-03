@@ -1351,11 +1351,12 @@ int handleIOAccess(VMRegisters *vmregisters UNUSED)
   }
 
 
+  vmregisters->rax=vmregisters->rax | 0xff;
+  return 0;
 
   switch (iodata.portnr)
   {
-    vmregisters->rax=vmregisters->rax | 0xff;
-    return 0;
+
 
 
     case SERIALPORT: //3f8

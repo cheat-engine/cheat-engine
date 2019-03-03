@@ -1,0 +1,82 @@
+ASM = yasm
+LD = ld
+CC = gcc
+AFLAGS = -gDWARF2 -f elf64 -DSERIALPORT=${SERIALPORT} -DDISPLAYDEBUG=${DISPLAYDEBUG} #-DJTAG
+CFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td -O0 -W -Wall -DSERIALPORT=${SERIALPORT} -DDISPLAYDEBUG=${DISPLAYDEBUG} -DSUPPORT_64BIT_OFFSET -DDARKBYTESFUCKEDUPCROSSCOMPILER -fno-builtin-floor -fno-builtin-ceil -fno-builtin-strspn -fno-builtin-memcpy -fno-builtin-strcpy -fno-builtin-strlen -fno-builtin-strcat -fno-builtin-malloc -fno-builtin-snprintf -fno-builtin-memset -fno-stack-protector  -g
+LDFLAGS = -static -T vmm.lnk -Map vmm.map 
+LDFLAGS2 = -Map vmm.map
+C2FLAGS = -Wconversion
+POSTCOMPILE = @mv -f $(DEPDIR)/$*.Td $(DEPDIR)/$*.d && touch $@
+
+#
+
+
+DEPDIR:= .d
+$(shell mkdir -p $(DEPDIR) >/dev/null)
+
+#AFILES=vmma.o apica.o commona.o testa.o vbe3a.o
+#CFILES=main.o neward.o common.o vmmhelper.o multicore.o mm.o vmpaging.o vmevent_invalidstate.o vmeventhandler.o realmodeemu.o pmodeemu.o vmcall.o keyboard.o osspecific.o offloados.o ultimap.o pci.o apic.o test.o vmeventhandler_amd.o vmxemu.o vmxsetup.o epthandler.o exports.o vbe3.o 
+
+ifeq ($(SERIALPORT),0)
+FILES=vmma.o main.o neward.o common.o commona.o apica.o vmmhelper.o multicore.o mm.o vmpaging.o vmevent_invalidstate.o vmeventhandler.o realmodeemu.o pmodeemu.o vmcall.o keyboard.o osspecific.o offloados.o ultimap.o pci.o apic.o test.o testa.o vmeventhandler_amd.o vmxemu.o vmxsetup.o epthandler.o exports.o vbe3.o vbe3a.o psod32.o
+
+LUAFILES=
+else
+FILES=vmma.o main.o neward.o common.o commona.o apica.o vmmhelper.o multicore.o mm.o vmpaging.o vmevent_invalidstate.o vmeventhandler.o realmodeemu.o pmodeemu.o vmcall.o keyboard.o osspecific.o offloados.o ultimap.o pci.o apic.o test.o testa.o vmeventhandler_amd.o vmxemu.o vmxsetup.o epthandler.o exports.o luahandler.o vbe3.o vbe3a.o psod32.o
+
+LUAFILES=./lua/lapi.o ./lua/lobject.o ./lua/ldo.o ./lua/lgc.o ./lua/lstate.o ./lua/ldebug.o ./lua/ltm.o ./lua/lvm.o ./lua/ltable.o ./lua/lstring.o ./lua/lfunc.o ./lua/lzio.o ./lua/ldump.o ./lua/lmem.o ./lua/lundump.o ./lua/lparser.o ./lua/lopcodes.o ./lua/llex.o ./lua/lcode.o ./lua/lctype.o ./lua/lauxlib.o ./lua/lstrlib.o ./lua/linit.o ./lua/lbaselib.o
+endif
+
+DISTORMFILES=./distorm64/wstring.o ./distorm64/x86defs.o ./distorm64/textdefs.o ./distorm64/insts.o ./distorm64/prefix.o ./distorm64/instructions.o ./distorm64/decoder.o ./distorm64/operands.o ./distorm64/distorm.o
+
+vbe3a.o: vbe3.asm
+	@echo "Assembling $<"
+	@${ASM} ${AFLAGS} $< -o $@
+
+vbe3.o: vbe3.c .d/vbe3.d
+	@echo "Compiling $<"
+	@${CC} ${CFLAGS} $< -c -o $@
+	$(POSTCOMPILE)
+
+psod32.o: psod32.c .d/psod32.d
+	@${CC} ${CFLAGS} -m32 psod32.c -c -o psod32.o.32
+	@objcopy "--input-target=elf32-i386" "--output-target=elf64-x86-64" psod32.o.32 psod32.o
+	$(POSTCOMPILE)
+
+%.o : %.asm
+	@echo "Assembling $<"
+	@${ASM} ${AFLAGS} $< -o $@
+
+%.o : %.c
+%.o : %.c $(DEPDIR)/%.d
+	@echo "Compiling $<"
+	@${CC} ${CFLAGS} $< -c -o $@
+	$(POSTCOMPILE)
+
+distorm64/%: 
+	@make -C distorm64 all
+
+lua/%: 
+	@make -C lua/src all
+
+
+$(DEPDIR)/%.d: ;
+.PRECIOUS: $(DEPDIR)/%.d
+
+include $(wildcard $(patsubst %,$(DEPDIR)/%.d,$(basename $(FILES))))
+
+
+
+all: $(FILES) $(DISTORMFILES) $(LUAFILES) 
+	@echo "Linking"
+	@${LD} ${LDFLAGS} $(FILES) $(DISTORMFILES) $(LUAFILES) -o ../vmm.elf -Map ../vmm.map
+	@objcopy -O binary ../vmm.elf ../vmm.bin
+	@echo "vmm done"
+	
+clean:
+	@make -C distorm64 clean
+	@make -C lua/src clean
+	@rm -f *.o
+	@rm -f *.bin
+	@rm -f *.map
+	@rm -f *~

@@ -30,6 +30,8 @@
 #include "vmcall.h"
 #include "exports.h"
 
+#include "luahandler.h"
+
 //#include "psod.h" //for pink screen of death support
 
 /*
@@ -2088,6 +2090,21 @@ afterWRBPtest:
 }
 
 
+#if (defined SERIALPORT) && (SERIALPORT != 0)
+//obsolete, part of lauxlib again
+void *lalloc (void *ud, void *ptr, size_t osize, size_t nsize) {
+  (void)ud;
+  (void)osize;
+  if (nsize == 0) {
+    free(ptr);
+    return NULL;
+  }
+  else
+    return realloc(ptr, nsize);
+}
+#endif
+
+
 void menu(void)
 {
   displayline("menu\n\r"); //debug to find out why the vm completely freezes when SERIALPORT==0
@@ -2121,6 +2138,9 @@ void menu(void)
     sendstring("Press 7 to test some crap\n\r");
     sendstring("Press 8 to execute testcode()\n\r");
     sendstring("Press 9 to restart\n\r");
+#if (defined SERIALPORT) && (SERIALPORT != 0)
+    sendstring("Press L for Lua\n\r");
+#endif
     sendstring("Your command:");
 
 #ifndef DEBUG
@@ -2137,7 +2157,8 @@ void menu(void)
 
       if (loadedOS)
       {
-        command='0';
+//        command='0';
+        command=waitforchar();
 
       }
       else
@@ -2153,8 +2174,7 @@ void menu(void)
 
 
 
-    displayline("Checking command");
-
+    displayline("Checking command %d ",command);
 
     sendchar(command);
 
@@ -2364,9 +2384,21 @@ void menu(void)
         {
           reboot(0);
 
+          break;
 				}
 
-				break;
+#if (defined SERIALPORT) && (SERIALPORT != 0)
+        case 'l':
+        {
+          sendstring("Entering lua console:");
+          enterLuaConsole();
+
+
+          break;
+        }
+#endif
+
+
 
         case 'v':
         {

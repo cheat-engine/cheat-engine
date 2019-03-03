@@ -39,8 +39,5 @@ all:
 	@echo "lua done"
 	
 clean:
-	@make -C distorm64 clean
-	@rm -f *.o
-	@rm -f *.bin
-	@rm -f *.map
+	@rm -f ../*.o
 	@rm -f *~

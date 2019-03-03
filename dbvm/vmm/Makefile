@@ -42,10 +42,22 @@ all:
 	objcopy "--input-target=elf32-i386" "--output-target=elf64-x86-64" psod32.o.32 psod32.o
 	@${CC} ${CFLAGS} vbe3.c -c -o vbe3.o
 	@${CC} ${CFLAGS} exports.c -c -o exports.o
+	@echo "part1"
+ifneq ($(SERIALPORT), 0)	
+	@${CC} ${CFLAGS} luahandler.c -c -o luahandler.o
+endif
 
 	@make -C distorm64 all
+
+ifneq ($(SERIALPORT), 0)
+	@make -C lua/src all
+endif
 	
+ifeq ($(SERIALPORT),0)
 	@${LD} ${LDFLAGS} vmma.o main.o neward.o common.o commona.o apica.o vmmhelper.o multicore.o mm.o vmpaging.o vmevent_invalidstate.o vmeventhandler.o realmodeemu.o pmodeemu.o vmcall.o keyboard.o osspecific.o offloados.o ultimap.o pci.o apic.o test.o testa.o vmeventhandler_amd.o vmxemu.o vmxsetup.o epthandler.o exports.o vbe3.o vbe3a.o psod32.o ./distorm64/wstring.o ./distorm64/x86defs.o ./distorm64/textdefs.o ./distorm64/insts.o ./distorm64/prefix.o ./distorm64/instructions.o ./distorm64/decoder.o ./distorm64/operands.o ./distorm64/distorm.o -o ../vmm.elf -Map ../vmm.map
+else	
+	@${LD} ${LDFLAGS} vmma.o main.o neward.o common.o commona.o apica.o vmmhelper.o multicore.o mm.o vmpaging.o vmevent_invalidstate.o vmeventhandler.o realmodeemu.o pmodeemu.o vmcall.o keyboard.o osspecific.o offloados.o ultimap.o pci.o apic.o test.o testa.o vmeventhandler_amd.o vmxemu.o vmxsetup.o epthandler.o exports.o luahandler.o vbe3.o vbe3a.o psod32.o ./distorm64/wstring.o ./distorm64/x86defs.o ./distorm64/textdefs.o ./distorm64/insts.o ./distorm64/prefix.o ./distorm64/instructions.o ./distorm64/decoder.o ./distorm64/operands.o ./distorm64/distorm.o ./lua/lapi.o ./lua/lobject.o ./lua/ldo.o ./lua/lgc.o ./lua/lstate.o ./lua/ldebug.o ./lua/ltm.o ./lua/lvm.o ./lua/ltable.o ./lua/lstring.o ./lua/lfunc.o ./lua/lzio.o ./lua/ldump.o ./lua/lmem.o ./lua/lundump.o ./lua/lparser.o ./lua/lopcodes.o ./lua/llex.o ./lua/lcode.o ./lua/lctype.o ./lua/lauxlib.o ./lua/lstrlib.o ./lua/linit.o ./lua/lbaselib.o -o ../vmm.elf -Map ../vmm.map
+endif	
 	@objcopy -O binary ../vmm.elf ../vmm.bin
 	@echo "vmm done"
 	

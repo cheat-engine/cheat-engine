@@ -19,6 +19,15 @@
 
 #define ULTIMAPDEBUG //for debugging ultimap (I seem to have misplaced my serial port...)
 
+#define EXIT_FAILURE 0xffffffff
+#define EXIT_SUCCESS 0
+
+#define INT_MAX __INT_MAX__
+#define INT_MIN (-INT_MAX - 1)
+#define SHRT_MAX __SHRT_MAX__
+#define SCHAR_MAX __SCHAR_MAX__
+#define UCHAR_MAX (SCHAR_MAX * 2 + 1)
+
 
 #define BYTE unsigned char
 #define WORD unsigned short int
@@ -151,8 +160,10 @@ extern ULONG getRSP(void);
 extern ULONG getRBP(void);
 
 int itoa(unsigned int value,int base, char *output,int maxsize);
+int lltoa(long long value,int base, char *output,int maxsize);
 //int atoi(const char *nptr);
 unsigned long long atoi2(char* input, int base, int *err);
+unsigned long long int strtoull(const char *nptr, char **endptr, int base);
 
 void zeromemory(volatile void *address, unsigned int size);
 void printchar(char c, int x, int y, char foreground, char background);
@@ -161,12 +172,25 @@ void sendchar(char c);
 
 extern void enableserial(void);
 
+
+
 size_t strspn(const char *str, const char *chars);
 int isalpha(int c);
 int isdigit(int c);
 int isalnum(int c);
+int isspace(int c);
+int iscntrl(int c);
 int toupper(int c);
 int tolower(int c);
+int isprint(int c);
+
+int isgraph(int c);
+int islower(int c);
+int ispunct(int c);
+int isupper(int c);
+int islower(int c);
+int isxdigit(int c);
+
 
 
 int min(int x,int y);
@@ -175,7 +199,11 @@ int max(int x,int y);
 
 double floor(double x);
 double ceil(double x);
+double pow(double x, double y);
+double sqrt(double x);
+double frexp(double x, int *exp);
 
+double fmod(double a, double b);
 
 int strcoll(const char *s1, const char *s2);
 
@@ -185,8 +213,12 @@ int strcoll(const char *s1, const char *s2);
   void sendstringf(char *string, ...);
 
   int sprintf(char *str, const char *format, ...);
+  int snprintf(char *str, size_t size, const char *format, ...);
+
 
   char *strchr(const char *s, int c);
+
+  char *addCharToString(char c, char* string, int lastpos, int *stringsize);
 
 //#endif
 
@@ -198,14 +230,20 @@ int strcoll(const char *s1, const char *s2);
 */
 
 
+void exit(int status);
+void abort(void);
+
 void setCursorPos(unsigned char x, unsigned char y);
-char getchar(void);
+int getchar(void);
 char waitforchar(void);
 int readstring(char *s, int minlength, int maxlength);
 int readstringc(char *s, int minlength, int maxlength);
 size_t strlen(const char *s);
 char *strcat(char *dest, const char *src);
+char *strncat(char *dest, const char *src, size_t n);
 char *strcpy(char *dest, const char *src);
+char *strncpy(char *dest, const char *src, size_t n);
+
 volatile void* copymem(volatile void *dest, volatile const void *src, size_t size);
 void *memcpy(void *dest, const void *src, size_t n);
 void *memset(void *s, int c, size_t n);
@@ -213,9 +251,12 @@ int memcmp(const void *s1, const void *s2, size_t n);
 int strcmp(const char *s1, const char *s2);
 int strncmp(const char *s1, const char *s2, size_t n);
 char *strstr(const char *haystack, const char *needle);
+size_t strcspn(const char *s, const char *reject);
 
 char *strpbrk(const char *s, const char *accept);
 double strtod(const char *nptr, char **endptr);
+
+void *memchr(const void *s, int c, size_t n);
 
 unsigned int getAPICID(void);
 unsigned int generateCRC(unsigned char *ptr, int size);
@@ -224,6 +265,7 @@ void appendzero(char *string, int wantedsize,int maxstringsize);
 
 void displayline(char *s, ...);
 int vbuildstring(char *str, int size, char *string, __builtin_va_list arglist);
+
 
 
 
@@ -589,5 +631,9 @@ GDT_ENTRY Build32BitCodeSegmentDescriptor(DWORD baseaddress, DWORD size);
 int getCPUCount();
 
 void InitCommon();
+
+#include <asm-generic/errno-base.h>
+int errno; //todo: implement this
+
 
 #endif
