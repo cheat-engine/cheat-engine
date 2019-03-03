@@ -1660,6 +1660,8 @@ begin
   if GetCurrentThreadId=self.ThreadID then raise exception.create('Do not call getAddressFromSymbol from inside the symbolloaderthread');
 
   if skipAddressToSymbol then exit;
+  if address<$10000 then exit;
+
 
   //queue an GetSymbolFromAddress event and wait for the result
   sfate:=TGetSymbolFromAddressThreadEvent.create;
