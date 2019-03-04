@@ -10666,7 +10666,7 @@ begin
                 lastdisassembledata.opcode:='imul';
                 lastdisassembledata.parameters:=r32(memory[1])+modrm(memory,prefix2,1,0,last,mRight);
                 dwordptr:=@memory[last];
-                lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(dwordptr^,8);
+                lastdisassembledata.parameters:=lastdisassembledata.parameters+','+inttohexs(dwordptr^,8);
 
                 lastdisassembledata.parametervaluetype:=dvtvalue;
                 lastdisassembledata.parametervalue:=dwordptr^;
@@ -15559,7 +15559,7 @@ begin
       end;
 
 
-      s:=symhandler.getNameFromAddress(jumpAddress);
+      s:=symhandler.getNameFromAddress(jumpAddress, symhandler.showsymbols, symhandler.showmodules,nil,nil,8,false);
       if pos(s, LastDisassembleData.parameters)=0 then //no need to show a comment if it's exactly the same
         result:=result+'->'+s;
     end;
@@ -15846,13 +15846,13 @@ begin
 
                 if readprocessmemory(processhandle,pointer(value),@value,processhandler.Pointersize,actualread) then
                 begin
-                  ts:='->'+symhandler.getNameFromAddress(value);
+                  ts:='->'+symhandler.getNameFromAddress(value,symhandler.showsymbols, symhandler.showmodules,nil,nil,8,false);
                 end;
               end;
             end
             else
             begin
-              ts:=symhandler.getNameFromAddress(value);
+              ts:=symhandler.getNameFromAddress(value,symhandler.showsymbols, symhandler.showmodules,nil,nil,8,false);
             end;
 
 
@@ -15981,7 +15981,7 @@ begin
   if (showsymbols or showmodules) and (chars>=8) then
   begin
     found:=false;
-    result:=symhandler.getNameFromAddress(value,showsymbols, showmodules, nil, @found,chars);
+    result:=symhandler.getNameFromAddress(value,showsymbols, showmodules, nil, @found,chars, false);
 
     //when found, and the symbol contains a space or comma, put the symbolname in quotes
 

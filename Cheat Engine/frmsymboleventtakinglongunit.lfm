@@ -65,6 +65,7 @@ object frmSymbolEventTakingLong: TfrmSymbolEventTakingLong
     ParentFont = False
   end
   object cbSkipAllSymbols: TCheckBox
+    AnchorSideLeft.Control = cbSkipThisSymbol
     AnchorSideTop.Control = cbSkipThisSymbol
     AnchorSideTop.Side = asrBottom
     Left = 84

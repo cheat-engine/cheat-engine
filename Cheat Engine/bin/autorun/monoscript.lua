@@ -847,7 +847,7 @@ function mono_class_findInstancesOfClass(domain, klass, OnScanDone, ProgressBar)
         miDissectStruct.Shortcut='Ctrl+D'
         miDissectStruct.OnClick=function(m)
           --
-          local n=sender.Selected
+          local n=tv.Selected
           
           if n then
             while n.level>0 do --get the parent
@@ -868,7 +868,7 @@ function mono_class_findInstancesOfClass(domain, klass, OnScanDone, ProgressBar)
         miInvokeMethod.Shortcut='Ctrl+I'
         miInvokeMethod.OnClick=function(m)        
           --show the methodlist
-          local n=sender.Selected
+          local n=tv.Selected
           
           if n then
             while n.level>0 do --get the parent

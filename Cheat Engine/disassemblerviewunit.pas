@@ -709,7 +709,7 @@ begin
       else
         statusinfolabel.Font.Color:=clWindowText;
 
-      statusinfolabel.Caption:=AnsiToUtf8(symhandler.getnamefromaddress(TopAddress));
+      statusinfolabel.Caption:=AnsiToUtf8(symhandler.getnamefromaddress(TopAddress,symhandler.showsymbols, symhandler.showmodules,nil,nil,8,false));
     end;
 
     //initialize bitmap dimensions

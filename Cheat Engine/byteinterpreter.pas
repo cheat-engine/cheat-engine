@@ -613,13 +613,13 @@ begin
       if processhandler.is64bit then
       begin
         if (address mod 8) = 0 then
-          val('$'+symhandler.getNameFromAddress(pqword(@buf[0])^,true,true),v,e)
+          val('$'+symhandler.getNameFromAddress(pqword(@buf[0])^,true,true,nil,nil,8,false),v,e)
         else
           e:=0;
       end
       else
       begin
-        val('$'+symhandler.getNameFromAddress(pdword(@buf[0])^,true,true),v,e);
+        val('$'+symhandler.getNameFromAddress(pdword(@buf[0])^,true,true,nil,nil,8,false),v,e);
       end;
 
       if e>0 then //named

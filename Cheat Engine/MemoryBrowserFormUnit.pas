@@ -3700,7 +3700,7 @@ begin
 
   symhandler.kernelsymbols:=Kernelmodesymbols1.Checked;
   symhandler.reinitialize(true);
-  symhandler.waitforsymbolsloaded(true);
+  //symhandler.waitforsymbolsloaded(false);
 {$endif}
 end;
 

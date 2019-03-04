@@ -243,7 +243,7 @@ type
     function inSystemModule(address: ptrUint): BOOLEAN;
     function getNameFromAddress(address:ptrUint):string; overload;
     function getNameFromAddress(address:ptrUint; var found: boolean; hexcharsize: integer=8):string; overload;
-    function getNameFromAddress(address:ptrUint;symbols:boolean; modules: boolean; baseaddress: PUINT64=nil; found: PBoolean=nil; hexcharsize: integer=8):string; overload;
+    function getNameFromAddress(address:ptrUint;symbols:boolean; modules: boolean; baseaddress: PUINT64=nil; found: PBoolean=nil; hexcharsize: integer=8; important: boolean=true):string; overload;
     function getExtraDataFromSymbolAtAddress(address: ptruint): TExtraSymbolData;
 
     function getAddressFromNameL(name: string):ptrUint; //Called by lua. Looks at ExceptionOnLookup
@@ -558,14 +558,16 @@ begin
             symhandler.symbolloaderthread.skipAddressToSymbol:=true
           else
           begin
-            if waitingfrm.cbSkipAllSymbols.checked then
+            if waitingfrm.cbSkipThisSymbol.checked then
             begin
-              symhandler.symbolloaderthread.skipAllSymbols:=true;
               if symhandler.symbolloaderthread.skipList=nil then
                 symhandler.symbolloaderthread.skipList:=TStringMap.Create(false);
 
               symhandler.symbolloaderthread.skipList.Add(symbolname);
             end;
+
+            if waitingfrm.cbSkipAllSymbols.checked then
+              symhandler.symbolloaderthread.skipAllSymbols:=true;
           end;
           break;
         end;
@@ -3427,7 +3429,7 @@ begin
     result:=nil;
 end;
 
-function TSymhandler.getNameFromAddress(address:ptrUint;symbols:boolean; modules: boolean; baseaddress: PUINT64=nil; found: PBoolean=nil; hexcharsize: integer=8):string;
+function TSymhandler.getNameFromAddress(address:ptrUint;symbols:boolean; modules: boolean; baseaddress: PUINT64=nil; found: PBoolean=nil; hexcharsize: integer=8; important: boolean=true):string;
 var //symbol :PSYMBOL_INFO;
     offset: qword;
     mi: tmoduleinfo;
@@ -3435,6 +3437,10 @@ var //symbol :PSYMBOL_INFO;
     i: integer;
 begin
 
+  if important then
+  asm
+  nop
+  end;
 
   if found<>nil then
     found^:=false;
@@ -3513,7 +3519,7 @@ begin
           end
           else
           begin
-            if symbolloaderthread.isloading then
+            if symbolloaderthread.isloading and important then
             begin
               result:=symbolloaderthread.getSymbolFromAddress(address);
 
@@ -3904,6 +3910,12 @@ begin
                     begin
                       tokens[i]:=inttohex(a,8);
                       continue;
+                    end;
+
+                    if symbolloaderthread.isloading then
+                    begin
+                      haserror:=true;
+                      exit; //the user canceled it
                     end;
                   end;
 
