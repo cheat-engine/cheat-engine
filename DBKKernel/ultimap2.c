@@ -17,6 +17,9 @@ PSSUSPENDPROCESS PsSuspendProcess;
 PSSUSPENDPROCESS PsResumeProcess;
 KDPC RTID_DPC;
 
+BOOL LogKernelMode;
+BOOL LogUserMode;
+
 PEPROCESS CurrentTarget;
 UINT64 CurrentCR3;
 HANDLE Ultimap2Handle;
@@ -124,10 +127,13 @@ void suspendThread(PVOID StartContext)
 			KeWaitForSingleObject(&SuspendMutex, Executive, KernelMode, FALSE, NULL);
 			if (!isSuspended)
 			{
-				if (PsSuspendProcess(CurrentTarget) == 0)
-					isSuspended = TRUE;
-				else
-					DbgPrint("Failed to suspend target\n");
+				if (CurrentTarget == 0)
+				{
+					if (PsSuspendProcess(CurrentTarget) == 0)
+						isSuspended = TRUE;
+					else
+						DbgPrint("Failed to suspend target\n");
+				}
 			}
 			KeReleaseMutex(&SuspendMutex, FALSE);
 		}
@@ -712,10 +718,13 @@ NTSTATUS ultimap2_flushBuffers()
 	DbgPrint("ultimap2_flushBuffers");
 
 	KeWaitForSingleObject(&SuspendMutex, Executive, KernelMode, FALSE, NULL);
-	if (!isSuspended)
+	if (CurrentTarget)
 	{
-		PsSuspendProcess(CurrentTarget);
-		isSuspended = TRUE;
+		if (!isSuspended)
+		{
+			PsSuspendProcess(CurrentTarget);
+			isSuspended = TRUE;
+		}
 	}
 	KeReleaseMutex(&SuspendMutex, FALSE);
 
@@ -730,10 +739,13 @@ NTSTATUS ultimap2_flushBuffers()
 	flushallbuffers = FALSE;
 	DbgPrint("after wait");
 	KeWaitForSingleObject(&SuspendMutex, Executive, KernelMode, FALSE, NULL);
-	if (isSuspended)
+	if (CurrentTarget)
 	{
-		PsResumeProcess(CurrentTarget);
-		isSuspended = FALSE;
+		if (isSuspended)
+		{
+			PsResumeProcess(CurrentTarget);
+			isSuspended = FALSE;
+		}
 	}
 	KeReleaseMutex(&SuspendMutex, FALSE);	
 
@@ -837,25 +849,38 @@ void ultimap2_setup_dpc(struct _KDPC *Dpc, PVOID DeferredContext, PVOID SystemAr
 {
 	RTIT_CTL ctl;
 	RTIT_STATUS s;
-	int i=-1;
+	int i = -1;
 
 
 
 	__try
-	{	
+	{
 		ctl.Value = __readmsr(IA32_RTIT_CTL);
-		
+
 	}
 	__except (1)
 	{
 		DbgPrint("ultimap2_setup_dpc: IA32_RTIT_CTL in unreadable");
 		return;
 	}
-	
+
 	ctl.Bits.TraceEn = 1;
-	ctl.Bits.OS = 0;
-	ctl.Bits.USER = 1;
-	ctl.Bits.CR3Filter = 1;
+
+	if (LogKernelMode)
+		ctl.Bits.OS = 1;
+	else
+		ctl.Bits.OS = 0;
+
+	if (LogUserMode)
+		ctl.Bits.USER = 1;
+	else
+		ctl.Bits.USER = 0;
+
+	if (CurrentCR3)
+		ctl.Bits.CR3Filter = 1;
+	else
+		ctl.Bits.CR3Filter = 0;
+		
 	ctl.Bits.ToPA = 1;
 	ctl.Bits.TSCEn = 0;
 	ctl.Bits.DisRETC = 0;
@@ -1298,7 +1323,7 @@ NTSTATUS ultimap2_resume()
 
 void *clear = NULL;
 BOOL RegisteredProfilerInterruptHandler;
-void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, PURANGE Ranges, int NoPMI)
+void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, PURANGE Ranges, int NoPMI, int UserMode, int KernelMode)
 {
 	//for each cpu setup tracing
 	//add the PMI interupt
@@ -1317,6 +1342,8 @@ void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, P
 	}
 
 	NoPMIMode = NoPMI;
+	LogKernelMode = KernelMode;
+	LogUserMode = UserMode;
 
 
 
@@ -1356,45 +1383,53 @@ void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, P
 
 
 	//get the EProcess and CR3 for this PID
-
-	if (PsLookupProcessByProcessId((PVOID)PID, &CurrentTarget) == STATUS_SUCCESS)
+	if (PID)
 	{
-		//todo add specific windows version checks and hardcode offsets/ or use scans
-		if (getCR3() & 0xfff)
+		if (PsLookupProcessByProcessId((PVOID)PID, &CurrentTarget) == STATUS_SUCCESS)
 		{
-			DbgPrint("Split kernel/usermode pages\n");
-			//uses supervisor/usermode pagemaps			
-			CurrentCR3 = *(UINT64 *)((UINT_PTR)CurrentTarget + 0x278);
-			if ((CurrentCR3 & 0xfffffffffffff000ULL)==0)
+			//todo add specific windows version checks and hardcode offsets/ or use scans
+			if (getCR3() & 0xfff)
 			{
-				DbgPrint("No usermode CR3\n");
-				CurrentCR3 = *(UINT64 *)((UINT_PTR)CurrentTarget + 0x28);
-			}
+				DbgPrint("Split kernel/usermode pages\n");
+				//uses supervisor/usermode pagemaps			
+				CurrentCR3 = *(UINT64 *)((UINT_PTR)CurrentTarget + 0x278);
+				if ((CurrentCR3 & 0xfffffffffffff000ULL) == 0)
+				{
+					DbgPrint("No usermode CR3\n");
+					CurrentCR3 = *(UINT64 *)((UINT_PTR)CurrentTarget + 0x28);
+				}
 
-			DbgPrint("CurrentCR3=%llx\n", CurrentCR3);
+				DbgPrint("CurrentCR3=%llx\n", CurrentCR3);
+			}
+			else
+			{
+				KAPC_STATE apc_state;
+				RtlZeroMemory(&apc_state, sizeof(apc_state));
+				__try
+				{
+					KeStackAttachProcess((PVOID)CurrentTarget, &apc_state);
+					CurrentCR3 = getCR3();
+					KeUnstackDetachProcess(&apc_state);
+				}
+				__except (1)
+				{
+					DbgPrint("Failure getting CR3 for this process");
+					return;
+				}
+			}
 		}
 		else
 		{
-			KAPC_STATE apc_state;
-			RtlZeroMemory(&apc_state, sizeof(apc_state));
-			__try
-			{
-				KeStackAttachProcess((PVOID)CurrentTarget, &apc_state);
-				CurrentCR3 = getCR3();
-				KeUnstackDetachProcess(&apc_state);
-			}
-			__except (1)
-			{
-				DbgPrint("Failure getting CR3 for this process");
-				return;
-			}
+			DbgPrint("Failure getting the EProcess for pid %d", PID);
+			return;
 		}
 	}
 	else
 	{
-		DbgPrint("Failure getting the EProcess for pid %d", PID);
-		return; 
+		CurrentTarget = 0;
+		CurrentCR3 = 0;
 	}
+
 
 
 

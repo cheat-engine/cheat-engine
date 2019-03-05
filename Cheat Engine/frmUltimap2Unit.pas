@@ -158,6 +158,9 @@ type
     cbAutoProcess: TCheckBox;
     cbPauseTargetWhileProcessing: TCheckBox;
     cbNoInterrupts: TCheckBox;
+    cbTraceAllProcesses: TCheckBox;
+    cbUsermode: TCheckBox;
+    cbKernelmode: TCheckBox;
     deTargetFolder: TDirectoryEdit;
     deTextOut: TDirectoryEdit;
     edtFlushInterval: TEdit;
@@ -206,6 +209,7 @@ type
     procedure btnShowResultsClick(Sender: TObject);
     procedure cbfilterOutNewEntriesChange(Sender: TObject);
     procedure cbParseToTextfileChange(Sender: TObject);
+    procedure cbTraceAllProcessesChange(Sender: TObject);
     procedure cbTraceIntervalChange(Sender: TObject);
     procedure cbWhenFilesizeAboveChange(Sender: TObject);
     procedure edtFlushIntervalChange(Sender: TObject);
@@ -1680,13 +1684,17 @@ begin
         end;
 
 
+
         if rbLogToFolder.Checked then
-          ultimap2(processid, bsize, deTargetFolder.Directory, ranges, cbNoInterrupts.checked)
+          ultimap2(ifthen(cbTraceAllProcesses.checked,0,processid), bsize, deTargetFolder.Directory, ranges, cbNoInterrupts.checked, cbUsermode.checked, cbKernelmode.checked)
         else
-          ultimap2(processid, bsize, '', ranges, cbNoInterrupts.checked);
+          ultimap2(ifthen(cbTraceAllProcesses.checked,0,processid), bsize, '', ranges, cbNoInterrupts.checked);
       end;
 
-      FilterGUI(true);
+      if cbTraceAllProcesses.checked then
+        FilterGUI(false)
+      else
+        FilterGUI(true);
 
       for i:=0 to length(workers)-1 do
         workers[i].start;
@@ -1705,7 +1713,14 @@ begin
       if state=rsRecording then
       begin
         ultimap2_pause;
-        FlushResults(foNone);
+
+        if cbTraceAllProcesses.checked then
+        begin
+          ultimap2_resetTraceSize;
+          ultimap2_flush;
+        end
+        else
+          FlushResults(foNone);
 
 
         if rbRuntimeParsing.checked then
@@ -2285,6 +2300,26 @@ begin
 
   deTextOut.ButtonOnlyWhenFocused:=true;
   deTextOut.ButtonOnlyWhenFocused:=false;
+end;
+
+procedure TfrmUltimap2.cbTraceAllProcessesChange(Sender: TObject);
+begin
+  if cbTraceAllProcesses.checked then
+  begin
+    rbLogToFolder.checked:=true;
+    rbRuntimeParsing.enabled:=false;
+    cbAutoProcess.checked:=false;
+    cbAutoProcess.Enabled:=false;
+    cbPauseTargetWhileProcessing.enabled:=false;
+    cbPauseTargetWhileProcessing.checked:=false;
+    cbDontDeleteTraceFiles.checked:=true;
+
+  end
+  else
+  begin
+    rbRuntimeParsing.enabled:=true;
+    cbAutoProcess.enabled:=true;
+  end;
 end;
 
 procedure TfrmUltimap2.cbTraceIntervalChange(Sender: TObject);

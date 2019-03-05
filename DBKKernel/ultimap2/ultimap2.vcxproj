@@ -195,15 +195,16 @@
     <TimeStampServer>http://timestamp.globalsign.com/scripts/timstamp.dll</TimeStampServer>
     <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
     <TargetName>ULTIMAP2-64</TargetName>
-    <OutDir>..\..\Cheat Engine\bin\</OutDir>
+    <OutDir>..\..\Cheat Engine\bin</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug but signed|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <TimeStampServer>http://timestamp.globalsign.com/scripts/timstamp.dll</TimeStampServer>
     <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
     <EnableInf2cat>false</EnableInf2cat>
-    <TargetName>ULTIMAP-64</TargetName>
-    <OutDir>..\Cheat Engine\bin\</OutDir>
+    <TargetName>ULTIMAP2-64</TargetName>
+    <OutDir>..\..\Cheat Engine\bin</OutDir>
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
@@ -406,7 +407,7 @@
       <Command>cd $(MSBuildProjectDirectory)\$(Inf2CatSource)
 copy ..\ultimap2-64.pdb .
 makecab /f "$(ProjectDir)\ultimap2-64.ddf"
-"c:\Program Files (x86)\Windows Kits\8.1\bin\x64\signtool.exe" sign /v /ac "..\..\release\sig\GlobalSign Root CA.crt" /n "Cheat Engine" /t http://timestamp.globalsign.com/scripts/timstamp.dll disk1\ultimap2-64.cab</Command>
+"$(DriverSignToolPath)signtool.exe" sign /v /ac "..\..\release\sig\GlobalSign Root CA.crt" /n "Cheat Engine" /t http://timestamp.globalsign.com/scripts/timstamp.dll disk1\ultimap2-64.cab</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>create cab and sign it</Message>

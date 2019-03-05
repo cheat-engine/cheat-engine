@@ -106,7 +106,7 @@ typedef struct
 
 #pragma pack(pop)
 
-void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, PURANGE Ranges, int NoPMI);
+void SetupUltimap2(UINT32 PID, UINT32 BufferSize, WCHAR *Path, int rangeCount, PURANGE Ranges, int NoPMI, int UserMode, int KernelMode);
 void DisableUltimap2(void);
 
 NTSTATUS ultimap2_waitForData(ULONG timeout, PULTIMAP2DATAEVENT data);

@@ -30,16 +30,18 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 					UINT32 Size;
 					UINT32 RangeCount;
 					UINT32 NoPMI;
+					UINT32 UserMode;
+					UINT32 KernelMode;
 					URANGE Ranges[8];
 					WCHAR OutputPath[200];
 				} *inp = Irp->AssociatedIrp.SystemBuffer;
 				int i;
 
-				DbgPrint("IOCTL_CE_ULTIMAP2");
+				DbgPrint("IOCTL_CE_ULTIMAP2 V2");
 				for (i = 0; i < (int)(inp->RangeCount); i++)
 					DbgPrint("%d=%p -> %p", i, (PVOID)inp->Ranges[i].StartAddress, (PVOID)inp->Ranges[i].EndAddress);
 
-				SetupUltimap2(inp->PID, inp->Size, inp->OutputPath, inp->RangeCount, inp->Ranges, inp->NoPMI);
+				SetupUltimap2(inp->PID, inp->Size, inp->OutputPath, inp->RangeCount, inp->Ranges, inp->NoPMI, inp->UserMode, inp->KernelMode);
 
 				ntStatus = STATUS_SUCCESS;
 				break;

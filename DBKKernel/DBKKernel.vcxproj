@@ -254,7 +254,7 @@
       <Command>cd $(MSBuildProjectDirectory)\$(Inf2CatSource)
 copy ..\dbk64.pdb .
 makecab /f "$(ProjectDir)\dbk64.ddf"
-"c:\Program Files (x86)\Windows Kits\8.1\bin\x64\signtool.exe" sign /v /ac "..\..\release\sig\GlobalSign Root CA.crt" /n "Cheat Engine" /t http://timestamp.globalsign.com/scripts/timstamp.dll disk1\dbk64.cab</Command>
+"$(DriverSignToolPath)signtool.exe" sign /v /ac "..\..\release\sig\GlobalSign Root CA.crt" /n "Cheat Engine" /t http://timestamp.globalsign.com/scripts/timstamp.dll disk1\dbk64.cab</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Generate and sign CAB</Message>
