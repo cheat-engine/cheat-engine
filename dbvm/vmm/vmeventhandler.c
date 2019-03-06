@@ -37,7 +37,7 @@ volatile QWORD lowestTSC=0;
 
 QWORD cpuidTime=6000; //todo: Make this changeable by the user after launch, or instead of using a TSCOffset just tell the next rdtsc calls to difference of 30 or less (focussing on the currentcpu, or just for 6000 actual ticks)
 QWORD rdtscTime=6000;
-QWORD rdtscpTime=6000;
+QWORD rdtscpTime=0;
 
 criticalSection TSCCS;
 
