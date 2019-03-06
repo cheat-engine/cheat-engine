@@ -1162,6 +1162,25 @@ void vmm_entry(void)
   sendstringf("Allocated and copied GDT to %x\n\r",(UINT64)GDT_BASE);
   setGDT((UINT64)GDT_BASE, 4096);
 
+  {
+    //set the GDT to the way I like it (loaders could fuck this up)
+    QWORD *g=(QWORD *)GDT_BASE;
+    g[0 ]=0;            //0 :
+    g[1 ]=0x00cf92000000ffffULL;  //8 : 32-bit data
+    g[2 ]=0x00cf96000000ffffULL;  //16: test, stack, failed, unused
+    g[3 ]=0x00cf9b000000ffffULL;  //24: 32-bit code
+    g[4 ]=0x00009a000000ffffULL;  //32: 16-bit code
+    g[5 ]=0x000092000000ffffULL;  //40: 16-bit data
+    g[6 ]=0x00009a030000ffffULL;  //48: 16-bit code, starting at 0x30000
+    g[7 ]=0;            //56: 32-bit task
+    g[8 ]=0;            //64: 64-bit task
+    g[9 ]=0;            //72:  ^   ^   ^
+    g[10]=0x00af9b000000ffffULL;  //80: 64-bit code
+    g[11]=0x00cf9b000000ffffULL;  //88: 32-bit code compat mode
+    g[12]=0;            //96: 64-bit tss descriptor (2)
+    g[13]=0;            //104: ^   ^   ^
+  }
+
   //now replace the old IDT with a new one
   intvector=malloc(sizeof(INT_VECTOR)*256);
   zeromemory(intvector,sizeof(INT_VECTOR)*256);
@@ -1412,6 +1431,8 @@ AfterBPTest:
 
   sendstring("setting up gdt entry at offset 0x64 as virtual8086 task\n\r");
   PGDT_ENTRY currentgdt=(PGDT_ENTRY)getGDTbase();
+
+
   sendstringf("currentgdt is %x (limit=%x)\n\r",(UINT64)currentgdt, getGDTsize());
   ULONG length=(ULONG)sizeof(TSS)+32+8192+1;
 

@@ -88,5 +88,8 @@
 #define IA32_FS_BASE_MSR          0xc0000100
 #define IA32_GS_BASE_MSR          0xc0000101
 
+#define IA32_TSC_MSR              0x10
+#define IA32_TSC_AUX_MSR          0xc0000103
+
 
 #endif /* MSRNAMES_H_ */

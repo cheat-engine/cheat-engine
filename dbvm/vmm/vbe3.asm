@@ -15,9 +15,19 @@ push r15
 mov r15,rsp
 
 ;first switch to a 32-bit code segment with the segment within 0x10000
+mov si,8
+mov ss,si
+mov ds,si
+mov es,si
+
 mov rsp,0xf000fff0 ;stack16
 
 call far [doVBEINIT_32bitlimitedcodeaddress]
+
+mov si,8
+mov ss,si
+mov ds,si
+mov es,si
 
 mov rsp,r15
 pop r15
@@ -61,11 +71,18 @@ mov cr8,rsi
 push r15
 mov r15,rsp
 
+mov si,8
+mov ss,si
+;mov ds,si
+;mov es,si
+
 ;first switch to a 32-bit code segment with the segment within 0x10000
 mov rsp,0xf000fff0 ;stack16
 call far [doVBE_32bitlimitedcodeaddress] ;I could probably do it directly to 16 bit
 mov si,8
 mov ss,si
+mov ds,si
+mov es,si
 
 mov rsp,r15
 pop r15

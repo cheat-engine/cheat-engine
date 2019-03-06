@@ -1252,6 +1252,17 @@ void setupVMX(pcpuinfo currentcpuinfo)
     }
   }
 
+#ifdef TSCHOOK
+  {
+    if ((readMSR(IA32_VMX_PROCBASED_CTLS_MSR)>>32) & RDTSC_EXITING)
+      vmwrite(vm_execution_controls_cpu, vmread(vm_execution_controls_cpu) | RDTSC_EXITING);
+
+    //MSRBitmap[0x80/8]|=1 << (0x10 % 8); //read
+    //MSRBitmap[2048+0x80/8]|=1 << (0x10 % 8); //write
+  }
+#endif
+
+
 
   //----------------GUEST SETUP----------------
  //UINT64 oldloadedos=loadedOS;
@@ -1348,8 +1359,10 @@ void setupVMX(pcpuinfo currentcpuinfo)
 
         if ((IA32_VMX_SECONDARY_PROCBASED_CTLS >> 32) & SPBEF_ENABLE_RDTSCP) //can it enable rdtscp ?
         {
+//#ifndef TSCHOOK
           sendstringf("Enabling rdtscp\n");
           secondarycpu|=SPBEF_ENABLE_RDTSCP;
+//#endif
         }
 
 

@@ -32,6 +32,15 @@ criticalSection CR3ValueLogCS;
 QWORD *CR3ValueLog; //if not NULL, record
 int CR3ValuePos;
 
+volatile QWORD TSCOffset=0;
+volatile QWORD lowestTSC=0;
+
+QWORD cpuidTime=6000; //todo: Make this changeable by the user after launch, or instead of using a TSCOffset just tell the next rdtsc calls to difference of 30 or less (focussing on the currentcpu, or just for 6000 actual ticks)
+QWORD rdtscTime=6000;
+QWORD rdtscpTime=6000;
+
+criticalSection TSCCS;
+
 int raiseNMI(void)
 {
   VMEntry_interruption_information newintinfo;
@@ -1765,6 +1774,9 @@ int handleRDMSR(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
 }
 
+
+criticalSection cpuidsourcesCS;
+
 int handleCPUID(VMRegisters *vmregisters)
 {
 //  sendstring("handling CPUID\n\r");
@@ -1778,6 +1790,7 @@ int handleCPUID(VMRegisters *vmregisters)
 
   _cpuid(&(vmregisters->rax),&(vmregisters->rbx),&(vmregisters->rcx),&(vmregisters->rdx));
 
+  /*
   if (oldeax==1)
   {
     //remove the hypervisor active bit (bit 31 in ecx)
@@ -1785,7 +1798,7 @@ int handleCPUID(VMRegisters *vmregisters)
 
     if ((vmregisters->rcx & (1<<26)) && (vmread(vm_guest_cr4) & CR4_OSXSAVE)) //doe sit have OSXSave capabilities and is it enabled ?
       vmregisters->rcx=vmregisters->rcx | (1 << 27); //the guest has activated osxsave , represent that in cpuid
-  }
+  }*/
 
 
   /*
@@ -1846,6 +1859,14 @@ int handleCPUID(VMRegisters *vmregisters)
     x[3]=' ';
 
   }*/
+
+
+  //lower the TSC
+
+
+  lockedQwordIncrement(&TSCOffset, cpuidTime);
+
+  //TSCOffset+=cpuidTime;
 
   vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));   //adjust eip to go after this instruction (we handled/emulated it)
   return 0;
@@ -3601,6 +3622,89 @@ int handleSingleStep(pcpuinfo currentcpuinfo)
   return 0;
 }
 
+QWORD globalTSC;
+
+int handle_rdtsc(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
+{
+  QWORD t;
+  double s;
+  double speedhackspeed=1.0f; //0.5f;
+
+  csEnter(&TSCCS);
+
+  if (globalTSC==0)
+    globalTSC=_rdtsc();
+
+  //speedhack:
+  s=(_rdtsc()-globalTSC)*speedhackspeed;
+
+  t=globalTSC+s;
+
+  if (lowestTSC==0)
+    lowestTSC=t;
+
+  if (t<lowestTSC) lowestTSC=t; //overflow happened...
+
+  t=t-TSCOffset;
+
+
+  if (t<lowestTSC)
+    t=lowestTSC+20;
+
+
+  lowestTSC=t;
+
+
+  csLeave(&TSCCS);
+
+  /*
+  QWORD maxtaken=0;
+  QWORD t;
+
+  //todo: Timer hooks as well
+
+  sendstring("RDTSC called\n\r");
+
+
+  pcpuinfo c=firstcpuinfo;
+
+ // csEnter(&TSCCS);
+  while (c)
+  {
+    maxtaken=maxq(maxtaken, currentcpuinfo->totaltsctaken);
+    c=c->next;
+  }
+
+  t=realt-maxtaken;
+
+
+  //if (lowestTSC==0)
+  //  lowestTSC=t;
+
+
+ // if (lowestTSC<t)
+  //  t=lowestTSC;
+
+ // csLeave(&TSCCS);
+  *
+  */
+
+  vmregisters->rax=t & 0xffffffff;
+  vmregisters->rdx=t >> 32;
+
+
+
+  vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+
+  RFLAGS flags;
+  flags.value=vmread(vm_guest_rflags);
+
+  if (flags.TF==1)
+    vmwrite(vm_pending_debug_exceptions,0x4000);
+
+  return 0;
+}
+
 
 #pragma GCC pop_options
 
@@ -3795,8 +3899,9 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 
 		case 16: //RDTSC
 		{
-			sendstring("RDTSC called\n\r");
-			return 1;
+		  //TSCOffset+=rdtscTime;
+		  lockedQwordIncrement(&TSCOffset, rdtscTime);
+		  return handle_rdtsc(currentcpuinfo, vmregisters);
 		}
 
 		case 17: //RSM
@@ -3813,7 +3918,6 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
       //sendstring("vmcall\n");
 
       result = handleVMCall(currentcpuinfo, vmregisters);
-
 
       //sendstringf("Returned from handleVMCall, result=%d\n\r",result);
       return result;
@@ -3987,8 +4091,37 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 
 		case 51:
 		{
-		  sendstring("RDTSCP\n\r");
-		  return 1;
+		  //RDTSCP
+		  int r;
+
+		  //TSCOffset+=rdtscpTime;
+		  lockedQwordIncrement(&TSCOffset, rdtscpTime);
+		  //QWORD t=_rdtsc();
+
+
+		  //sendstring("RDTSCP\n");
+
+		  //vmregisters->rax=t & 0xffffffff;
+		  //vmregisters->rdx=t >> 32;
+
+
+		  r=handle_rdtsc(currentcpuinfo, vmregisters);
+		  //if (r==0)
+		  //{
+
+		    vmregisters->rcx=readMSR(IA32_TSC_AUX_MSR);
+
+		    //vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+
+		    //RFLAGS flags;
+		    //flags.value=vmread(vm_guest_rflags);
+
+		    //if (flags.TF==1)
+		    //  vmwrite(vm_pending_debug_exceptions,0x4000);
+
+		  //}
+
+		  return 0;
 		}
 
 		case vm_exit_vmx_preemptiontimer_reachedzero:

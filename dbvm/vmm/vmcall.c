@@ -149,8 +149,10 @@ void psod(void)
         VBE_ResetStart();
 
 
+        /*
         while (1)
           _pause();
+          */
 
       }
 
@@ -1681,6 +1683,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
     	}
 
     	copymem(&p->globaleventcounter[0],&globaleventcounter[0],sizeof(int)*56);
+
 
     	vmregisters->rax=totalevents;
     	break;

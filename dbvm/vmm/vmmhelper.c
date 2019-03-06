@@ -23,6 +23,7 @@
 #include "vmxsetup.h"
 #include "epthandler.h"
 #include "exports.h"
+#include "luahandler.h"
 
 #ifndef DEBUG
 #define sendstringf(s,x...)
@@ -1335,6 +1336,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
     sendstringf("|   7: toggle debugmode (%d)             |\n\r",debugmode);
     sendstring("|   8: set breakpoint                   |\n\r");
     sendstring("|   9: display physical memory          |\n\r");
+    sendstring("|   l: Lua Engine                       |\n\r");
     sendstring("|   0: quit virtual machine             |\n\r");
   //sendstring("|   p: previous event                   |\n\r");
     sendstring("\\---------------------------------------/\n\r");
@@ -1616,6 +1618,12 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
       {
         sendstringf("MSRBitmap: %p (%x)\n",MSRBitmap, VirtualToPhysical((void*)MSRBitmap));
         sendstringf("VM MSRBitmap=%x\n",vmread(0x2004));
+        break;
+      }
+
+      case 'l' :
+      {
+        enterLuaConsole();
         break;
       }
 

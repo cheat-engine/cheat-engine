@@ -1,11 +1,11 @@
 #SERIALPORT is the port to communicate with the debugger, usually 0x3f8, on db's system it's 0xef00
-SERIALPORT=0x3f8 #bochs (gigabyte test system)
+#SERIALPORT=0x3f8 #bochs (gigabyte test system)
 #SERIALPORT=0xbf00 #intel
 #SERIALPORT=0xec00 #amd
 #SERIALPORT=0xd010 #16 core test system
 #SERIALPORT=0xfff0 #32 core test system
 #SERIALPORT=0x2f8 #vmware test
-#SERIALPORT=0 #release/no serialport build
+SERIALPORT=0 #release/no serialport build
 
 #DISPLAYDEBUG if DISPLAYDEBUG==1 it means that all serial output will be sent to the screen instead (useful for cases where dbvm won't load AT ALL, not so much when it does)
 DISPLAYDEBUG=0

@@ -5,6 +5,8 @@
 
 #define STATISTICS
 
+#define TSCHOOK
+
 #define MAX_STACK_SIZE 0x10000
 
 #if (defined SERIALPORT) && (SERIALPORT != 0)
@@ -193,6 +195,8 @@ int isxdigit(int c);
 
 
 
+int minq(QWORD x,QWORD y);
+int maxq(QWORD x,QWORD y);
 int min(int x,int y);
 int max(int x,int y);
 
@@ -276,6 +280,8 @@ void csEnter(PcriticalSection CS);
 void csLeave(PcriticalSection CS);
 
 int spinlock(volatile int *CS); //returns 0
+
+void lockedQwordIncrement(volatile QWORD *address, QWORD inccount);
 
 void resync(void);
 
@@ -614,7 +620,8 @@ typedef int (*POPCNT_IMPLEMENTATION)(QWORD val);
 extern POPCNT_IMPLEMENTATION popcnt;
 
 extern int getcpunr();
-extern int call32bit(DWORD address);
+int call32bit(DWORD address);
+extern int call32bita(DWORD address, DWORD stackaddress);
 
 #if DISPLAYDEBUG
 void initialize_displaydebuglogs();

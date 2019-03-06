@@ -74,7 +74,7 @@ exportlist:         dq 0
 initcs: dd 0 ;critical section to block entering cpus.  Each CPU sets up the stack for the next CPU (so there will always be one too many)
 vmmentrycount: dd 0  ;The number of times 0x00400000 has been executed (in short, the number of CPU's launched)
 
-lasttsc: dq 0
+;lasttsc: dq 0
 
 afterinitvariables:
 
@@ -525,8 +525,8 @@ mov [rsp+11*8],rdx
 
 rdtsc
 
-mov [lasttsc],eax
-mov [lasttsc+4],edx
+mov dword [fs:0x18],eax
+mov dword [fs:0x1c],edx
 
 
 mov [rsp],r15
@@ -605,6 +605,20 @@ jae vmxloop_exitvm
 
 
 ;returned 0, so
+
+;adjust the TSC
+rdtsc
+shl rdx,32
+or rax,rdx
+
+mov rdx,qword [fs:0x18]
+
+;rax is new timestamp
+;rdx is old timestamp
+
+sub rax,rdx ;rax is now the difference
+add qword [fs:0x20],rax ;add to the total delay
+
 
 
 ;restore vmx registers (esp-36)

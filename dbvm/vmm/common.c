@@ -83,6 +83,16 @@ void outportd(unsigned int port,unsigned long value)
 }
 
 
+int minq(QWORD x,QWORD y)
+{
+  return (x<y)?x:y;
+}
+
+int maxq(QWORD x,QWORD y)
+{
+  return (x>y)?x:y;
+}
+
 int min(int x,int y)
 {
   return (x<y)?x:y;
@@ -2021,6 +2031,36 @@ GDT_ENTRY Build32BitCodeSegmentDescriptor(DWORD baseaddress, DWORD size)
 int getCPUCount()
 {
   return vmmentrycount;
+}
+
+void *gdtbase32;
+void *stackbase32;
+int call32bit(DWORD address)
+{
+  int r;
+  //setup a stack and gdt
+
+  QWORD oldgdtbase=getGDTbase();
+  QWORD oldgdtsize=getGDTsize();
+
+  if (gdtbase32==NULL)
+  {
+    void *mem=malloc(32*1024);
+    gdtbase32=mapMemory((void*)0x10000000,(void *)oldgdtbase,oldgdtsize);
+
+    stackbase32=mapMemory((void *)0x20000000,mem,32*1024);
+    stackbase32=(void *)((QWORD)stackbase32+(32*1024)-8);
+  }
+
+
+
+  setGDT((QWORD)gdtbase32,oldgdtsize);
+
+  r=call32bita(address,(DWORD)((QWORD)stackbase32));
+
+  setGDT(oldgdtbase,oldgdtsize);
+
+  return r;
 }
 
 int Initialized=0;
