@@ -600,6 +600,12 @@ int handle_vmread(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
 
   sendstring("handle_vmread\n");
+  if (currentcpuinfo->vmxdata.insideVMXRootMode==0)
+  {
+    sendstringf("invalid mode\n");
+    return raiseInvalidOpcodeException(currentcpuinfo);
+  }
+
 
   if (currentcpuinfo->vmxdata.guest_activeVMCS==0xffffffffffffffffULL)
   {
@@ -778,6 +784,9 @@ int handle_vmwrite(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   QWORD vmcsvalue;
 
   sendstring("handle_vmwrite\n");
+
+  if (currentcpuinfo->vmxdata.insideVMXRootMode==0)
+    return raiseInvalidOpcodeException(currentcpuinfo);
 
   if (currentcpuinfo->vmxdata.guest_activeVMCS==0xffffffffffffffffULL)
   {
@@ -1106,6 +1115,9 @@ int handle_vmxon(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 int handle_vmxoff(pcpuinfo currentcpuinfo, VMRegisters *vmregisters UNUSED)
 {
   sendstringf("handle_vmxoff\n");
+  if (currentcpuinfo->vmxdata.insideVMXRootMode==0)
+    return raiseInvalidOpcodeException(currentcpuinfo);
+
 
   if (currentcpuinfo->vmxdata.guest_activeVMCS!=0xffffffffffffffff) //if there is an old VMCS, restore the hoststate with the original first
   {
