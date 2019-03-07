@@ -32,12 +32,13 @@ criticalSection CR3ValueLogCS;
 QWORD *CR3ValueLog; //if not NULL, record
 int CR3ValuePos;
 
-volatile QWORD TSCOffset=0;
+//volatile QWORD TSCOffset=0;
+volatile QWORD globalTSC;
 volatile QWORD lowestTSC=0;
 
-QWORD cpuidTime=6000; //todo: Make this changeable by the user after launch, or instead of using a TSCOffset just tell the next rdtsc calls to difference of 30 or less (focussing on the currentcpu, or just for 6000 actual ticks)
-QWORD rdtscTime=6000;
-QWORD rdtscpTime=0;
+//QWORD cpuidTime=6000; //todo: Make this changeable by the user after launch, or instead of using a TSCOffset just tell the next rdtsc calls to difference of 30 or less (focussing on the currentcpu, or just for 6000 actual ticks)
+//QWORD rdtscTime=6000;
+//QWORD rdtscpTime=10;
 
 criticalSection TSCCS;
 
@@ -688,6 +689,8 @@ int handle_cr3_callback(pcpuinfo currentcpuinfo,VMRegisters *vmregisters)
 
   //sendstringf("before:\n\r");
   //sendvmstate(currentcpuinfo,vmregisters);
+
+
 
   if (currentcpuinfo->cr3_callback.called_callback)
   {
@@ -1864,7 +1867,8 @@ int handleCPUID(VMRegisters *vmregisters)
   //lower the TSC
 
 
-  lockedQwordIncrement(&TSCOffset, cpuidTime);
+//  lockedQwordIncrement(&TSCOffset, cpuidTime);
+  getcpuinfo()->lastTSCTouch=_rdtsc();
 
   //TSCOffset+=cpuidTime;
 
@@ -2373,6 +2377,12 @@ int setVM_CR3(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, UINT64 newcr3)
 {
   int shouldInvalidate=hasVPIDSupport;
   sendstringf("3:Setting CR3 (%6)\n\r", newcr3);
+
+
+  //This is likely a contextswitch. Update the lowestTSC to normal
+  currentcpuinfo->lowestTSC=_rdtsc(); //todo: apply speedhack speed
+  currentcpuinfo->lastTSCTouch=0;
+
 
   //Ultimap
   if (currentcpuinfo->Ultimap.Active)
@@ -3622,72 +3632,54 @@ int handleSingleStep(pcpuinfo currentcpuinfo)
   return 0;
 }
 
-QWORD globalTSC;
+
 
 int handle_rdtsc(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 {
   QWORD t;
   double s;
   double speedhackspeed=1.0f; //0.5f;
+  QWORD lTSC=lowestTSC;
+  QWORD realtime;
 
-  csEnter(&TSCCS);
 
-  if (globalTSC==0)
-    globalTSC=_rdtsc();
+  if (lTSC<currentcpuinfo->lowestTSC)
+    lTSC=currentcpuinfo->lowestTSC;
+
+
+  realtime=_rdtsc();
+  //csEnter(&TSCCS);
+
+
 
   //speedhack:
-  s=(_rdtsc()-globalTSC)*speedhackspeed;
+  s=(realtime-globalTSC)*speedhackspeed;
 
   t=globalTSC+s;
 
-  if (lowestTSC==0)
-    lowestTSC=t;
+  if (lTSC==0)
+    lTSC=t;
 
-  if (t<lowestTSC) lowestTSC=t; //overflow happened...
-
-  t=t-TSCOffset;
+  if (t<lTSC) lTSC=t; //overflow happened...
 
 
-  if (t<lowestTSC)
-    t=lowestTSC+20;
-
-
-  lowestTSC=t;
-
-
-  csLeave(&TSCCS);
-
-  /*
-  QWORD maxtaken=0;
-  QWORD t;
-
-  //todo: Timer hooks as well
-
-  sendstring("RDTSC called\n\r");
-
-
-  pcpuinfo c=firstcpuinfo;
-
- // csEnter(&TSCCS);
-  while (c)
+  if ((realtime-currentcpuinfo->lastTSCTouch)<2000) //todo: and not a forbidden RIP
   {
-    maxtaken=maxq(maxtaken, currentcpuinfo->totaltsctaken);
-    c=c->next;
+    int off=30+(realtime & 0xf);
+    t=currentcpuinfo->lowestTSC+off;
+    //t=lTSC+off;
+
+    writeMSR(0x838, readMSR(0x838));
+
+    //lockedQwordIncrement(&lowestTSC,off);
+    currentcpuinfo->lowestTSC=t;
   }
-
-  t=realt-maxtaken;
-
-
-  //if (lowestTSC==0)
-  //  lowestTSC=t;
-
-
- // if (lowestTSC<t)
-  //  t=lowestTSC;
-
- // csLeave(&TSCCS);
-  *
-  */
+  else
+  {
+    if (lowestTSC<t)
+      lowestTSC=t;
+    currentcpuinfo->lowestTSC=t;
+  }
 
   vmregisters->rax=t & 0xffffffff;
   vmregisters->rdx=t >> 32;
@@ -3900,7 +3892,9 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 		case 16: //RDTSC
 		{
 		  //TSCOffset+=rdtscTime;
-		  lockedQwordIncrement(&TSCOffset, rdtscTime);
+		  //lockedQwordIncrement(&TSCOffset, rdtscTime);
+		  currentcpuinfo->lastTSCTouch=_rdtsc();
+
 		  return handle_rdtsc(currentcpuinfo, vmregisters);
 		}
 
@@ -4092,35 +4086,18 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 		case 51:
 		{
 		  //RDTSCP
-		  int r;
-
 		  //TSCOffset+=rdtscpTime;
-		  lockedQwordIncrement(&TSCOffset, rdtscpTime);
-		  //QWORD t=_rdtsc();
+		  //lockedQwordIncrement(&TSCOffset, rdtscpTime);
+
+		  //if (currentcpuinfo->cpunr!=0)
+		  //todo: Callibrate at start to find the system rdtscp calls and don't touch those
+
+		  //IS
+		  //  currentcpuinfo->lastTSCTouch=_rdtsc();
 
 
-		  //sendstring("RDTSCP\n");
-
-		  //vmregisters->rax=t & 0xffffffff;
-		  //vmregisters->rdx=t >> 32;
-
-
-		  r=handle_rdtsc(currentcpuinfo, vmregisters);
-		  //if (r==0)
-		  //{
-
-		    vmregisters->rcx=readMSR(IA32_TSC_AUX_MSR);
-
-		    //vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
-
-		    //RFLAGS flags;
-		    //flags.value=vmread(vm_guest_rflags);
-
-		    //if (flags.TF==1)
-		    //  vmwrite(vm_pending_debug_exceptions,0x4000);
-
-		  //}
-
+		  handle_rdtsc(currentcpuinfo, vmregisters);
+		  vmregisters->rcx=readMSR(IA32_TSC_AUX_MSR);
 		  return 0;
 		}
 

@@ -1133,9 +1133,13 @@ void setupVMX(pcpuinfo currentcpuinfo)
 #endif
 
 
+  globalTSC=_rdtsc();
+
 
 
   vmwrite(0x4004,(UINT64)0xffff); //exception bitmap (0xffff=0-15 0xffffffff=0-31)
+
+ // vmwrite(0x4004,(UINT64)0);
   vmwrite(0x4006,(UINT64)0); //page fault error-code mask
   vmwrite(0x4008,(UINT64)0); //page fault error-code match
   vmwrite(0x400a,(UINT64)1); //cr3-target count

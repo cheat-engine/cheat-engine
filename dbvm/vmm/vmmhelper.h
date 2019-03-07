@@ -389,6 +389,8 @@ typedef volatile struct tcpuinfo
   DWORD cpunr; //must be offset 0x14
   QWORD lasttsc; //must be offset 0x18
   QWORD totaltsctaken; //must be offset 0x20
+  QWORD lastTSCTouch;
+  QWORD lowestTSC;
   DWORD active;
   DWORD apicid;
 

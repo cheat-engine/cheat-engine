@@ -70,6 +70,8 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
 
 WORD convertSegmentAccessRightsToSegmentAttrib(ULONG accessrights);
 
+extern volatile QWORD globalTSC;
+
 extern criticalSection CR3ValueLogCS;
 extern QWORD *CR3ValueLog; //if not NULL, record
 extern int CR3ValuePos;

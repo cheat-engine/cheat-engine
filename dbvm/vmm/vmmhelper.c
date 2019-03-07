@@ -822,7 +822,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 //  currentdisplayrow=0;
 //  displayline("%d: %d:%x (%x,%x)                              \n",currentcpuinfo->cpunr,vmeventcount,vmread(vm_exit_reason),vmread(vm_guest_cs),vmread(vm_guest_rip));
 
-  nosendchar[getAPICID()]=1;
+  //nosendchar[getAPICID()]=1;
   result=handleVMEvent(currentcpuinfo, (VMRegisters*)registers, fxsave);
 
   if (dbvm_plugin_exit_post)
@@ -838,7 +838,6 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
   if ((result!=0) && ((result >> 8) != 0xce)  )//on release, if an unexpected event happens, just fail the instruction and hope the OS won't make a too big mess out of it
   {
     while (wait) ; //remove for release
-
 
     if ((vmread(vm_exit_reason) & 0x7fffffff)==vm_exit_invalid_guest_state) //invalid state
       return raiseGeneralProtectionFault(0); //perhaps this can fix it, else fuck
