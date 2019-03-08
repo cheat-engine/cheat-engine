@@ -2704,7 +2704,7 @@ begin
       result:=(RoundTo(psingle(newvalue)^,-floataccuracy)=svalue);
 
     rtExtremerounded:
-      result:=(psingle(newvalue)^>minsvalue) and (psingle(newvalue)^<maxsvalue);
+      result:=(psingle(newvalue)^>=minsvalue) and (psingle(newvalue)^<=maxsvalue);
 
     rtTruncated:
       result:=(psingle(newvalue)^>=svalue) and (psingle(newvalue)^<maxsvalue);
