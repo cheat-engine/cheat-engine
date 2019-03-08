@@ -574,6 +574,7 @@ begin
       co_stepinto, co_stepover:
       begin
         //single step
+        TNetworkDebuggerInterface(CurrentDebuggerInterface).SingleStepNextContinue:=true;
         singlestepping:=true;
         if (bp=nil) or (bp.breakpointMethod=bpmDebugRegister) then
           context^.EFlags:=eflags_setRF(context^.EFlags,1);//don't break on the current instruction
