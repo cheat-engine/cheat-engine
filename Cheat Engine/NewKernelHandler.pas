@@ -848,7 +848,7 @@ begin
             begin
               if (pagedirentry and (1 shl 7))>0 then  //PS==1
               begin
-                PhysicalAddress:=(pagedirentry and MAXPHYADDRMASKPB)+Offset;
+                PhysicalAddress:=(pagedirentry and MAXPHYADDRMASKPB)+VirtualAddress and $fffff;
                 exit(true);
               end
               else
