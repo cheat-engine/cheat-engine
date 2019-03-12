@@ -125,7 +125,8 @@ BOOL ept_handleCloakEvent(pcpuinfo currentcpuinfo, QWORD Address, QWORD AddressV
 
       sendstringf("ept_handleCloakEvent on the target\n");
 
-      //todo: keep a special list for sections within cloaked regions that can see 'the truth'
+      //todo: keep a special list for physical address regions that can see 'the truth' (e.g ntoskrnl.exe and hal.dll on exported data pointers, but anything else will see the fake pointers)
+      //todo2: inverse cloak, always shows the real data except the list of physical address regions provided
 
       //check for megajmp edits
       //megajmp: ff 25 00 00 00 00 <address>
