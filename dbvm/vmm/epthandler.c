@@ -31,6 +31,16 @@ ChangeRegBPEntry *ChangeRegBPList;
 int ChangeRegBPListSize;
 int ChangeRegBPListPos;
 
+void vpid_invalidate()
+{
+  INVVPIDDESCRIPTOR vpidd;
+  vpidd.zero=0;
+  vpidd.LinearAddress=0;
+  vpidd.VPID=1;
+
+  _invvpid(2, &vpidd);
+}
+
 void ept_invalidate()
 {
 	INVEPTDESCRIPTOR eptd;
@@ -51,7 +61,10 @@ void ept_invalidate()
 		_invept(2, &eptd);//fuck it
 	}
 
+	//vpid_invalidate();
 }
+
+
 
 void ept_reset()
 /*
@@ -82,7 +95,7 @@ void ept_reset()
 
 }
 
-BOOL ept_handleCloakEvent(pcpuinfo currentcpuinfo, QWORD Address)
+BOOL ept_handleCloakEvent(pcpuinfo currentcpuinfo, QWORD Address, QWORD AddressVA)
 /*
  * Checks if the physical address is cloaked, if so handle it and return 1, else return 0
  */
@@ -104,16 +117,66 @@ BOOL ept_handleCloakEvent(pcpuinfo currentcpuinfo, QWORD Address)
     if (CloakedPages[i].PhysicalAddressExecutable==BaseAddress)
     {
       //it's a cloaked page
+      int isMegaJmp=0;
+      QWORD RIP=vmread(vm_guest_rip);
+
       EPT_VIOLATION_INFO evi;
       evi.ExitQualification=vmread(vm_exit_qualification);
 
       sendstringf("ept_handleCloakEvent on the target\n");
 
+      //todo: keep a special list for sections within cloaked regions that can see 'the truth'
+
+      //check for megajmp edits
+      //megajmp: ff 25 00 00 00 00 <address>
+      //So, if 6 bytes before the given address is ff 25 00 00 00 00 , it's a megajmp, IF the RIP is 6 bytes before the given address (and the bytes have changed from original)
+
+      if ((AddressVA-RIP)==6)
+      {
+        //check if the bytes have been changed here
+        DWORD offset=RIP & 0xfff;
+        int size=min(14,0x1000-offset);
+
+        unsigned char *new=(unsigned char *)((QWORD)CloakedPages[i].Executable+offset);
+        unsigned char *original=(unsigned char *)((QWORD)CloakedPages[i].Data+offset);
+
+
+        if (new[0]==0xff) //starts with 0xff, so very likely, inspect more
+        {
+          if (memcmp(new, original, size))
+          {
+            //the memory in this range got changed, check if it's a full megajmp
+            unsigned char megajmpbytes[6]={0xff,0x25,0x00,0x00,0x00,0x00};
+
+            if (memcmp(new, megajmpbytes, min(6,size))==0)
+            {
+              sendstring("Is megajmp");
+              isMegaJmp=1;
+            }
+
+          }
+        }
+      }
+
+
+      //Check if this page has had a MEGAJUMP code edit, if so, check if this is a megajump and in that case on executable
+
       if (evi.X) //looks like this cpu does not support execute only
         *(QWORD *)(currentcpuinfo->eptCloakList[i])=CloakedPages[i].PhysicalAddressExecutable;
       else
-        *(QWORD *)(currentcpuinfo->eptCloakList[i])=CloakedPages[i].PhysicalAddressData;
+      {
+        if (isMegaJmp==0)
+        {
+          //read/write the data
+          *(QWORD *)(currentcpuinfo->eptCloakList[i])=CloakedPages[i].PhysicalAddressData;
+        }
+        else
+        {
+          //read the executable code
+          *(QWORD *)(currentcpuinfo->eptCloakList[i])=CloakedPages[i].PhysicalAddressExecutable;
+        }
 
+      }
       currentcpuinfo->eptCloakList[i]->WA=1;
       currentcpuinfo->eptCloakList[i]->RA=1;
       currentcpuinfo->eptCloakList[i]->XA=1;
@@ -133,6 +196,8 @@ BOOL ept_handleCloakEvent(pcpuinfo currentcpuinfo, QWORD Address)
 
   }
   csLeave(&CloakedPagesCS);
+
+  ept_invalidate();
 
 
   return result;
@@ -2066,6 +2131,7 @@ VMSTATUS handleEPTViolation(pcpuinfo currentcpuinfo, VMRegisters *vmregisters UN
  //vi.ExitQualification=vmread(vm_exit_qualification);
 
   QWORD GuestAddress=vmread(vm_guest_physical_address);
+  QWORD GuestAddressVA=vmread(vm_guest_linear_address);
 
 
   if (ept_handleWatchEvent(currentcpuinfo, vmregisters, fxsave, GuestAddress))
@@ -2074,7 +2140,7 @@ VMSTATUS handleEPTViolation(pcpuinfo currentcpuinfo, VMRegisters *vmregisters UN
 
 
   //check for cloak
-  if (ept_handleCloakEvent(currentcpuinfo, GuestAddress))
+  if (ept_handleCloakEvent(currentcpuinfo, GuestAddress, GuestAddressVA))
     return 0;
 
   //still here, so not a watch or cloak

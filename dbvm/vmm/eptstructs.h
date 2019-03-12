@@ -288,6 +288,8 @@ typedef struct
   QWORD PhysicalAddressData; //the PA of the page shown when read/write operations happen
   void *Data;
   void *Executable;
+  //int *MegaJmpMap; //when the PhysicalAddressExecutable gets changed, it will keep track of code changes, including megajmp's
+  //int MegaJmpCount;
 } CloakedPageInfo, *PCloakedPageInfo;
 
 typedef struct
