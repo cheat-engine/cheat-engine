@@ -177,6 +177,7 @@ procedure lua_xmove(from, to_: Plua_State; n: Integer); cdecl;
 ** access functions (stack -> C)
 *)
 function lua_isnumber(L: Plua_State; idx: Integer): LongBool; cdecl;
+function lua_isinteger(L: Plua_State; idx: Integer): LongBool; cdecl;
 function lua_isstring(L: Plua_State; idx: Integer): LongBool; cdecl;
 function lua_iscfunction(L: Plua_State; idx: Integer): LongBool; cdecl;
 function lua_isuserdata(L: Plua_State; idx: Integer): LongBool; cdecl;
@@ -434,6 +435,7 @@ function lua_checkstack(L: Plua_State; sz: Integer): LongBool; cdecl; external L
 procedure lua_xmove(from, to_: Plua_State; n: Integer); cdecl; external LUA_NAME;
 
 function lua_isnumber(L: Plua_State; idx: Integer): LongBool; cdecl; external LUA_NAME;
+function lua_isinteger(L: Plua_State; idx: Integer): LongBool; cdecl; external LUA_NAME;
 function lua_isstring(L: Plua_State; idx: Integer): LongBool; cdecl; external LUA_NAME;
 function lua_iscfunction(L: Plua_State; idx: Integer): LongBool; cdecl; external LUA_NAME;
 function lua_isuserdata(L: Plua_State; idx: Integer): LongBool; cdecl; external LUA_NAME;

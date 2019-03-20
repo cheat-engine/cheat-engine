@@ -377,6 +377,9 @@ executeCode(address, parameter OPTIONAL, timeout OPTIONAL) : address - Executes 
 executeCodeLocal(addres, parameter OPTIONAL): address -  Executes a stdcall function with 1 parameter at the given address in the target process. The return value is the result of the function that was called
 
 executeCodeEx(callmethod, timeout, address, {type,value},{type,value},...)
+executeCodeEx(callmethod, timeout, address, param1, param2,...)
+executeCodeLocalEx(address, {type,value},{type,value},...)
+executeCodeLocalEx(address, param1, param2, ...)
   Calls a function using the given callmethod and parameters
   callmethod: 0=stdcall, 1=cdecl
   timeout: Number of milliseconds to wait for a result. nil or -1, infitely. 0 is no wait (will not free the call memory, so beware of it's memory leak)
@@ -391,8 +394,12 @@ executeCodeEx(callmethod, timeout, address, {type,value},{type,value},...)
      
     value: anything base type that lua can interpret
     }
+  
+  If a direct parameter is given instead of a table entry describing the type, CE will 'guess' the type it is
 
-   Returns the E/RAX value returned by the called function (if no timeout or other interruption)
+  Returns the E/RAX value returned by the called function (if no timeout or other interruption)
+
+
 
 
 
@@ -3234,6 +3241,8 @@ properties:
   
 
 WriteLog(Inheritence: -)
+The writelog is the log that keeps all writes (when enabled)
+
 properties
   status: boolean
   logsize: integer 

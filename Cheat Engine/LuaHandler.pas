@@ -8101,6 +8101,7 @@ begin
   end;
 end;
 
+
 function executeCodeEx(L:PLua_state): integer; cdecl; //executecodeex(callmethod, timeout, address, {param1},{param2},{param3},{...})
 //callmethod:
 //0: stdcall
@@ -8222,6 +8223,7 @@ begin
     stackpointer:=0;
     for i:=4 to lua_gettop(L) do
     begin
+      valuetype:=0;
       if lua_istable(l,i) then
       begin
         lua_pushstring(L,'type');
@@ -8255,124 +8257,137 @@ begin
             exit(2);
           end;
         end;
-
-        case valuetype of
-          0,3,4:
-          begin
-
-
-            if valuetype in [3..4] then
-            begin
-              sai:=length(stringallocs);
-              setlength(stringallocs, sai+1);
-
-              if valuetype=3 then
-              begin
-                //ascii
-                str:=Lua_ToString(L,-1);
-                stringallocs[sai]:=virtualallocex(processhandle,nil,length(str)+1,MEM_COMMIT or MEM_RESERVE,PAGE_READWRITE);
-                WriteProcessMemory(processhandle, stringallocs[sai],@str[1],length(str)+1,x);
-              end
-              else
-              begin
-                //widestring
-                wstr:=Lua_ToString(L,-1);
-                stringallocs[sai]:=virtualallocex(processhandle,nil,length(str)+2,MEM_COMMIT or MEM_RESERVE,PAGE_READWRITE);
-                WriteProcessMemory(processhandle, stringallocs[sai],@wstr[1],length(str)+2,x);
-              end;
-              value:=ptruint(stringallocs[sai]);
-            end
-            else
-              value:=lua_tointeger(L,-1);
-
-            if processhandler.is64Bit then
-            begin
-              case stackpointer of
-                0: s.add('mov rcx,'+inttohex(value,8));
-                1: s.add('mov rdx,'+inttohex(value,8));
-                2: s.add('mov r8,'+inttohex(value,8));
-                3: s.add('mov r9,'+inttohex(value,8));
-                else
-                begin
-                  s.add('mov rax,'+inttohex(lua_tointeger(L,-1),8));
-                  s.add('mov qword ptr [rsp+'+inttohex(stackpointer,8)+'],rax');
-                end;
-              end;
-            end
-            else
-            begin
-              s.add('mov dword ptr [esp+'+inttohex(stackpointer*4,1)+'],'+inttohex(value,8));
-            end;
-            inc(stackpointer);
-          end;
-
-          1: //float(single)
-          begin
-            f:=lua_tonumber(L,-1);
-            if processhandler.is64Bit then
-            begin
-              floatvalues.Add('floatvalue'+inttostr(stackpointer)+':');
-
-              floatvalues.add('dd '+inttohex(floatdword,8));
-
-              if stackpointer<4 then
-              begin
-                s.add('movss xmm'+inttostr(stackpointer)+',[floatvalue'+inttostr(stackpointer)+']')
-              end
-              else
-              begin
-                s.add('mov eax,[floatvalue'+inttostr(stackpointer)+']');
-                s.add('mov qword ptr [rsp'+inttohex(stackpointer,8)+'],rax');
-              end;
-            end
-            else
-              s.add('mov dword ptr [esp+'+inttohex(stackpointer*4,1)+'],'+inttohex(floatdword,8));
-
-            inc(stackpointer);
-          end;
-
-          2: //double
-          begin
-            d:=lua_tonumber(L,-1);
-            if processhandler.is64Bit then
-            begin
-              floatvalues.Add('floatvalue'+inttostr(stackpointer)+':');
-              floatvalues.add('dq '+inttohex(doubleqword,16));
-
-              if stackpointer<4 then
-                s.add('movsd xmm'+inttostr(stackpointer)+',[floatvalue'+inttostr(stackpointer)+']')
-              else
-              begin
-                s.add('mov rax,[floatvalue'+inttostr(stackpointer)+']');
-                s.add('mov qword ptr [rsp'+inttohex(stackpointer,8)+'],rax');
-              end;
-            end
-            else
-            begin
-              z:=@doubleqword;
-              s.add('mov dword ptr [esp+'+inttohex(stackpointer*4,1)+'],'+inttohex(z[0],8));
-              inc(stackpointer);
-              s.add('mov dword ptr [esp+'+inttohex(stackpointer*4,1)+'],'+inttohex(z[0],8));
-            end;
-            inc(stackpointer);
-          end;
-
-          else
-          begin
-            lua_pushnil(L);
-            lua_pushstring(L,'Invalid parametertype '+inttostr(i+2)+'('+inttostr(valuetype)+')');
-            exit(2);
-          end;
-        end;
-
-        lua_pop(L,1);
       end
       else
       begin
-        lua_pushnil(L);
-        lua_pushstring(L,'Invalid parameter '+inttostr(i+2));
-        exit(2);
+        //no specific type is given, guess it based on the parameters (damn those lazy ass users)
+        if lua_type(L,i)=LUA_TSTRING then
+          valuetype:=3
+        else
+        begin
+          if lua_isnumber(L,i) then
+          begin
+            if lua_isinteger(L,i) then
+              valuetype:=0 //integer/pointer
+            else
+              valuetype:=1; //float (if you want double then give a proper typespecficiation and FU)
+          end
+          else
+          begin
+            lua_pushnil(L);
+            lua_pushstring(L,'No idea how to handle the type you provided for parameter '+inttostr(i));
+            exit(2);
+          end;
+        end;
+        lua_pushvalue(L,i);  //-1 now contains the value
       end;
+
+      case valuetype of
+        0,3,4:
+        begin
+          if valuetype in [3..4] then
+          begin
+            sai:=length(stringallocs);
+            setlength(stringallocs, sai+1);
+
+            if valuetype=3 then
+            begin
+              //ascii
+              str:=Lua_ToString(L,-1);
+              stringallocs[sai]:=virtualallocex(processhandle,nil,length(str)+1,MEM_COMMIT or MEM_RESERVE,PAGE_READWRITE);
+              WriteProcessMemory(processhandle, stringallocs[sai],@str[1],length(str)+1,x);
+            end
+            else
+            begin
+              //widestring
+              wstr:=Lua_ToString(L,-1);
+              stringallocs[sai]:=virtualallocex(processhandle,nil,length(str)+2,MEM_COMMIT or MEM_RESERVE,PAGE_READWRITE);
+              WriteProcessMemory(processhandle, stringallocs[sai],@wstr[1],length(str)+2,x);
+            end;
+            value:=ptruint(stringallocs[sai]);
+          end
+          else
+            value:=lua_tointeger(L,-1);
+
+          if processhandler.is64Bit then
+          begin
+            case stackpointer of
+              0: s.add('mov rcx,'+inttohex(value,8));
+              1: s.add('mov rdx,'+inttohex(value,8));
+              2: s.add('mov r8,'+inttohex(value,8));
+              3: s.add('mov r9,'+inttohex(value,8));
+              else
+              begin
+                s.add('mov rax,'+inttohex(lua_tointeger(L,-1),8));
+                s.add('mov qword ptr [rsp+'+inttohex(stackpointer,8)+'],rax');
+              end;
+            end;
+          end
+          else
+          begin
+            s.add('mov dword ptr [esp+'+inttohex(stackpointer*4,1)+'],'+inttohex(value,8));
+          end;
+          inc(stackpointer);
+        end;
+
+        1: //float(single)
+        begin
+          f:=lua_tonumber(L,-1);
+          if processhandler.is64Bit then
+          begin
+            floatvalues.Add('floatvalue'+inttostr(stackpointer)+':');
+            floatvalues.add('dd '+inttohex(floatdword,8));
+            if stackpointer<4 then
+            begin
+              s.add('movss xmm'+inttostr(stackpointer)+',[floatvalue'+inttostr(stackpointer)+']')
+            end
+            else
+            begin
+              s.add('mov eax,[floatvalue'+inttostr(stackpointer)+']');
+              s.add('mov qword ptr [rsp'+inttohex(stackpointer,8)+'],rax');
+            end;
+          end
+          else
+            s.add('mov dword ptr [esp+'+inttohex(stackpointer*4,1)+'],'+inttohex(floatdword,8));
+
+          inc(stackpointer);
+        end;
+
+        2: //double
+        begin
+          d:=lua_tonumber(L,-1);
+          if processhandler.is64Bit then
+          begin
+            floatvalues.Add('floatvalue'+inttostr(stackpointer)+':');
+            floatvalues.add('dq '+inttohex(doubleqword,16));
+
+            if stackpointer<4 then
+              s.add('movsd xmm'+inttostr(stackpointer)+',[floatvalue'+inttostr(stackpointer)+']')
+            else
+            begin
+              s.add('mov rax,[floatvalue'+inttostr(stackpointer)+']');
+              s.add('mov qword ptr [rsp'+inttohex(stackpointer,8)+'],rax');
+            end;
+          end
+          else
+          begin
+            z:=@doubleqword;
+            s.add('mov dword ptr [esp+'+inttohex(stackpointer*4,1)+'],'+inttohex(z[0],8));
+            inc(stackpointer);
+            s.add('mov dword ptr [esp+'+inttohex(stackpointer*4,1)+'],'+inttohex(z[0],8));
+          end;
+          inc(stackpointer);
+        end;
+
+        else
+        begin
+          lua_pushnil(L);
+          lua_pushstring(L,'Invalid parametertype '+inttostr(i+2)+'('+inttostr(valuetype)+')');
+          exit(2);
+        end;
+      end;
+
+      lua_pop(L,1);
     end;
 
     if processhandler.is64Bit=false then //fix the stackfor the caller
@@ -8634,6 +8649,309 @@ begin
       VirtualFreeEx(processhandle, pointer(resultaddress), 0, MEM_RELEASE);
   end;
 end;
+
+
+function test(x: integer): qword;
+begin
+  result:=x+12;
+end;
+
+
+threadvar
+  executeCodeLocalExStack: record   //for the main thread so no need to realloc
+    stack: pbytearray;
+    size: integer;
+  end;
+
+
+function executeCodeLocalEx(L:PLua_state): integer; cdecl; //address,{param},{param},{param}
+//paramtypes:
+//0: integer/pointer
+//1: float
+//2: double
+//3: asciistring (turns into 0:pointer after writing the string)
+//4: widestring
+
+label
+ p1typeisint, p1typeisfloat, afterp1,
+ p2typeisint, p2typeisfloat, afterp2,
+ p3typeisint, p3typeisfloat, afterp3,
+ p4typeisint, p4typeisfloat, afterp4;
+var
+  //callstack: pointer;
+
+  stacksize: integer;
+  oldstack: pointer;
+  callstack: PByteArray;
+  p1type: byte;
+  p2type: byte;
+  p3type: byte;
+  p4type: byte;
+
+  valuetype: integer;
+
+  AddressToCall: pointer;
+  paramcount: integer;
+  paramsize: qword;
+
+  paramstart: pointer;
+
+  r: qword;
+  i: integer;
+
+  s: string;
+  ws: widestring;
+
+  ts: array of string;
+  tws: array of widestring;
+
+begin
+  {$ifdef cpu64}
+  //allocate a stack for this call and fill in the parameters
+  //setup the parameters at callstack $fff0-parametersize
+  //getmem(callstack, 65536);
+
+  setlength(ts,0);
+  setlength(tws,0);
+
+  if lua_gettop(L)>=1 then
+  begin
+    AddressToCall:=pointer(lua_toaddress(L,1,true));
+    paramcount:=lua_gettop(L)-1;
+
+    stacksize:=1048576; //will get reused
+    if executeCodeLocalExStack.size<stacksize then
+    begin
+      if executeCodeLocalExStack.stack<>nil then
+        freeandnil(executeCodeLocalExStack.stack);
+
+      executeCodeLocalExStack.stack:=getmem(stacksize);
+      executeCodeLocalExStack.size:=stacksize;
+      ZeroMemory(executeCodeLocalExStack.stack, stacksize);
+    end;
+
+    paramsize:=max(32,8*paramcount);
+    paramstart:=@executeCodeLocalExStack.stack[(executeCodeLocalExStack.size-$10)-paramsize];
+
+    paramstart:=pointer(qword(paramstart) and qword($fffffffffffffff0)); //in case FPC decides to allocated it on an unalligned address (just being sure)
+
+
+
+
+
+    if paramcount>0 then
+    begin
+      setlength(ts,paramcount);
+      setlength(tws,paramcount);
+
+      for i:=2 to 2+paramcount-1 do  //
+      begin
+        if lua_istable(L,i) then
+        begin
+          lua_pushstring(L,'type');
+          lua_gettable(L,i);
+          if lua_isnil(L,-1) then
+          begin
+            lua_pop(L,1);
+            lua_pushinteger(L,1);
+            lua_gettable(L,i);
+            if lua_isnil(L,-1) then
+            begin
+              lua_pushnil(L);
+              lua_pushstring(L,'Invalid parametertype '+inttostr(i));
+              exit(2);
+            end;
+          end;
+          valuetype:=lua_tointeger(L,-1);
+          lua_pop(L,1);
+
+          lua_pushstring(L,'value');
+          lua_gettable(L,i);
+          if lua_isnil(L,-1) then
+          begin
+            lua_pop(L,1);
+            lua_pushinteger(L,2);
+            lua_gettable(L,i);
+            if lua_isnil(L,-1) then
+            begin
+              lua_pushnil(L);
+              lua_pushstring(L,'Invalid parametervalue '+inttostr(i));
+              exit(2);
+            end;
+          end;
+        end
+        else
+        begin
+          //no typedefinition
+          if lua_type(L,i)=LUA_TSTRING then
+            valuetype:=3
+          else
+          begin
+            if lua_isnumber(L,i) then
+            begin
+              if lua_isinteger(L,i) then
+                valuetype:=0 //integer/pointer
+              else
+                valuetype:=1; //float (if you want double then give a proper typespecficiation and FU)
+            end
+            else
+            begin
+              lua_pushnil(L);
+              lua_pushstring(L,'No idea how to handle the type you provided for parameter '+inttostr(i));
+              exit(2);
+            end;
+          end;
+          lua_pushvalue(L,i);  //-1 now contains the value
+
+        end;
+
+        case valuetype of
+          0: pqword(ptruint(paramstart)+(i-2)*sizeof(pointer))^:=lua_tointeger(L,i);
+          1: psingle(ptruint(paramstart)+(i-2)*sizeof(pointer))^:=lua_tonumber(L,i);
+          2: pdouble(ptruint(paramstart)+(i-2)*sizeof(pointer))^:=lua_tonumber(L,i);
+          3:
+          begin
+            ts[i-2]:=Lua_ToString(L,i);
+            pqword(ptruint(paramstart)+(i-2)*sizeof(pointer))^:=ptruint(pchar(ts[i-2]));
+            valuetype:=0;
+          end;
+
+          4:
+          begin
+            tws[i-2]:=Lua_ToString(L,i);
+            pqword(ptruint(paramstart)+(i-2)*sizeof(pointer))^:=ptruint(pwidechar(tws[i-2]));
+            valuetype:=0;
+          end;
+        end;
+
+        case i-1 of
+          1: p1type:=valuetype;
+          2: p2type:=valuetype;
+          3: p3type:=valuetype;
+          4: p4type:=valuetype;
+        end;
+
+        lua_pop(L,1);
+
+      end;
+
+
+      asm
+        //parameters are accessed by use of RBP which is unaffected by this code
+
+        mov oldstack,rsp
+        mov rsp,paramstart
+
+        cmp paramcount,1
+        jb afterp4
+//p1:
+        cmp p1type,0
+        je p1typeisint
+
+        cmp p1type,1
+        je p1typeisfloat
+
+        movsd xmm0,[rsp]
+        jmp afterp1
+
+p1typeisint:
+        mov rcx,[rsp]
+        jmp afterp1
+
+p1typeisfloat:
+        movss xmm0,[rsp]
+
+afterp1:
+//p2:
+        cmp paramcount,2
+        jb afterp4
+
+        cmp [p2type],0
+        je p2typeisint
+
+        cmp [p2type],1
+        je p2typeisfloat
+
+        movsd xmm1,[rsp+8]
+        jmp afterp2
+
+p2typeisint:
+        mov rdx,[rsp+8]
+        jmp afterp2
+
+p2typeisfloat:
+        movss xmm1,[rsp+8]
+
+afterp2:
+
+//p3
+        cmp paramcount,3
+        jb afterp4
+
+        cmp [p3type],0
+        je p3typeisint
+
+        cmp [p3type],1
+        je p3typeisfloat
+
+        movsd xmm2,[rsp+$10]
+        jmp afterp3
+
+p3typeisint:
+        mov r8,[rsp+$10]
+        jmp afterp3
+
+p3typeisfloat:
+        movss xmm2,[rsp+$10]
+
+afterp3:
+
+//p4
+        cmp paramcount,4
+        jb afterp4
+
+        cmp [p4type],0
+        je p4typeisint
+
+        cmp [p4type],1
+        je p4typeisfloat
+
+        movsd xmm3,[rsp+$18]
+        jmp afterp4
+
+p4typeisint:
+        mov r9,[rsp+$18]
+        jmp afterp4
+
+p4typeisfloat:
+        movss xmm3,[rsp+$18]
+
+afterp4:
+
+
+        call AddressToCall
+
+        mov r,rax
+        mov rsp,oldstack
+      end;
+
+      lua_pushinteger(L,r);
+      exit(1);
+    end;
+  end
+  else exit(0);
+
+
+
+
+  {$else}
+  lua_pushstring(L,'executeCodeLocalEx is currently not supported on the 32-bit build');
+  lua_error(L);
+  {$endif}
+
+
+end;
+
 
 function executeCodeLocal(L:PLua_state): integer; cdecl;
 type
@@ -11003,6 +11321,7 @@ begin
     lua_register(L, 'executeCodeEx', executeCodeEx);
 
     lua_register(L, 'executeCodeLocal', executeCodeLocal);
+    lua_register(L, 'executeCodeLocalEx', executeCodeLocalEx);
 
     lua_register(L, 'md5file', md5file);
     lua_register(L, 'md5memory', md5memory);
@@ -11270,6 +11589,9 @@ begin
 
     Thread_LuaVM:=nil;
   end;
+
+  if executeCodeLocalExStack.stack<>nil then
+    freeandnil(executeCodeLocalExStack.stack);
 
   if assigned(oldReleaseThreadVars) then
     oldReleaseThreadVars();
