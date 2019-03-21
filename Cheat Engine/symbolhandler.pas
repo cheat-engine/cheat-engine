@@ -576,10 +576,7 @@ begin
   end;
 
   if waitingfrm<>nil then
-  begin
     freeandnil(waitingfrm);
-    waitingfrm.free;
-  end;
 end;
 
 constructor TSymbolLoaderThreadEvent.create;
