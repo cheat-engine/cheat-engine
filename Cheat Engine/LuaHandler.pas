@@ -6736,7 +6736,7 @@ begin
     lua_pop(L, lua_gettop(l));
     if (s<>nil) and (s is TStrings) then
     begin
-      GetWindowList2(s);
+      GetWindowList(s);
       sanitizeProcessList(s);
 
     end
@@ -6750,7 +6750,7 @@ begin
   begin
     //table version
     s:=tstringlist.create;
-    GetWindowList2(s);
+    GetWindowList(s);
     sanitizeProcessList(s);
 
 
@@ -6767,6 +6767,8 @@ begin
         if lua_isnil(L,-1) then
         begin
           //not yet in the list
+          j:=lua_gettop(L);
+
           lua_pop(L,1);
           lua_pushinteger(L, pid);
           lua_newtable(L);
@@ -6777,7 +6779,7 @@ begin
         end;
 
         j:=lua_objlen(L,-1);
-        lua_pushinteger(L, j);
+        lua_pushinteger(L, j+1);
         lua_pushstring(L, copy(s[i], 10, length(s[i])));
         lua_settable(L, -3);
 
