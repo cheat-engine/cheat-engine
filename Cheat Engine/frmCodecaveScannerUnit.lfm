@@ -1,7 +1,7 @@
 object frmCodecaveScanner: TfrmCodecaveScanner
-  Left = 528
+  Left = 1555
   Height = 324
-  Top = 213
+  Top = 20
   Width = 279
   AutoSize = True
   Caption = 'Scan for codecaves'
@@ -155,7 +155,7 @@ object frmCodecaveScanner: TfrmCodecaveScanner
       MaxLength = 16
       ParentFont = False
       TabOrder = 2
-      Text = '7FFFFFFF'
+      Text = '7FFFFFFFFFFFFFFF'
     end
     object editSize: TEdit
       AnchorSideLeft.Control = Panel1

@@ -11,7 +11,7 @@ uses
 
 type TCodeCaveScanner=class(tthread)
   private
-    found: dword;
+    found: Qword;
     progress:ptrUint;
     procedure updateprogressbar;
     procedure done;
@@ -203,7 +203,7 @@ end;
 
 procedure TfrmCodecaveScanner.btnStartClick(Sender: TObject);
 var startaddress,stopaddress:ptrUint;
-    bytelength: dword;
+    bytelength: Qword;
 begin
 {
 start the thread that scans the memory for a array of the same bytes in read-
@@ -277,7 +277,7 @@ end;
 procedure TfrmCodecaveScanner.lbCodecaveListDblClick(Sender: TObject);
 begin
   if lbCodecaveList.ItemIndex<>-1 then
-    memorybrowser.memoryaddress:=StrToInt('$'+lbCodecaveList.Items[lbCodecaveList.itemindex]);
+    memorybrowser.memoryaddress:=StrToQwordEx('$'+lbCodecaveList.Items[lbCodecaveList.itemindex]);
 
 end;
 
