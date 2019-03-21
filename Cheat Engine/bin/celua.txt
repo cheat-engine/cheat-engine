@@ -1325,6 +1325,7 @@ properties
   Selected: boolean - Returns true if selected
   Index: integer - The index in the Items object of the owner of this listitem (readonly)
   Owner: ListItems - The ListItems object that owns this ListItem (readonly)
+  Data: integer - Read/Write value up to the user to implement
 
 methods
   delete()
