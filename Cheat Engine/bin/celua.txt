@@ -160,6 +160,8 @@ errorOnLookupFailure(state): If set to true (default) address lookups in stringf
   (Useful for pointers that don't work 100% of the time)
 6.4+:Returns the original state
 
+waitforsymbols(state): If set to true looking up a symbol will wait for the symbol to be loaded(default true)
+
 generateAPIHookScript(address, addresstojumpto, addresstogetnewcalladdress OPT) : Generates an auto assembler script which will hook the given address when executed
 autoAssemble(text, targetself OPTIONAL, disableInfo OPTIONAL) : runs the auto assembler with the given text. Returns true on success, with as secondary a table you can use when disabling (if targetself is set it will assemble into Cheat Engine itself). If disableInfo is provided the [Disable] section will be handled
 autoAssemble(text, disableInfo OPTIONAL)

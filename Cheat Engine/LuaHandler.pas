@@ -139,6 +139,8 @@ resourcestring
 var
   printoutput: TStrings;
 
+  waitforsymbols: boolean=true;
+
 function lua_oldprintoutput:TStrings;
 begin
   result:=printoutput;
@@ -391,9 +393,9 @@ begin
   if lua_type(L,i)=LUA_TSTRING then
   begin
     if self then
-      result:=selfsymhandler.getAddressFromNameL(lua_tostring(L,i))
+      result:=selfsymhandler.getAddressFromNameL(lua_tostring(L,i),waitforsymbols)
     else
-      result:=symhandler.getAddressFromNameL(lua_tostring(L,i))
+      result:=symhandler.getAddressFromNameL(lua_tostring(L,i),waitforsymbols)
   end
   else
     result:=lua_tointeger(L,i);
@@ -1940,9 +1942,9 @@ begin
   if lua_isstring(L, -parameters) then
   begin
     if processhandle=GetCurrentProcess then
-      addresstoread:=selfsymhandler.getAddressFromNameL(lua_tostring(L,-parameters))
+      addresstoread:=selfsymhandler.getAddressFromNameL(lua_tostring(L,-parameters), waitforsymbols)
     else
-      addresstoread:=symhandler.getAddressFromNameL(lua_tostring(L,-parameters));
+      addresstoread:=symhandler.getAddressFromNameL(lua_tostring(L,-parameters), waitforsymbols);
   end
   else
     addresstoread:=lua_tointeger(L,-parameters);
@@ -2126,7 +2128,7 @@ begin
     if lua_Gettop(L)>=2 then
     begin
       if lua_isstring(L, 2) then
-        base:=pointer(symhandler.getAddressFromNameL(lua_tostring(L,2)))
+        base:=pointer(symhandler.getAddressFromNameL(lua_tostring(L,2), waitforsymbols))
       else
         base:=pointer(lua_tointeger(L,2));
     end
@@ -3566,9 +3568,9 @@ begin
 
     try
       if not local then
-        lua_pushinteger(L,symhandler.getAddressFromName(s))
+        lua_pushinteger(L,symhandler.getAddressFromName(s, waitforsymbols))
       else
-        lua_pushinteger(L,selfsymhandler.getAddressFromName(s));
+        lua_pushinteger(L,selfsymhandler.getAddressFromName(s, waitforsymbols));
 
       result:=1;
     except
@@ -3609,9 +3611,9 @@ begin
 
     try
       if not local then
-        lua_pushinteger(L,symhandler.getAddressFromNameL(s))
+        lua_pushinteger(L,symhandler.getAddressFromNameL(s, waitforsymbols))
       else
-        lua_pushinteger(L,selfsymhandler.getAddressFromNameL(s));
+        lua_pushinteger(L,selfsymhandler.getAddressFromNameL(s, waitforsymbols));
     except
       on e:exception do
       begin
@@ -3747,7 +3749,6 @@ begin
 
   if waitTillDone then
     selfsymhandler.waitforsymbolsloaded;
-
 end;
 
 function enumModules(L:PLua_state): integer; cdecl;
@@ -4433,7 +4434,7 @@ begin
     if parameters>=2 then
     begin
       if lua_isstring(L, -parameters+1) then
-        parameter:=symhandler.getAddressFromNameL(Lua_ToString(L,-parameters+1))
+        parameter:=symhandler.getAddressFromNameL(Lua_ToString(L,-parameters+1), waitforsymbols)
       else
         parameter:=lua_tointeger(L, -parameters+1);
     end
@@ -6581,6 +6582,13 @@ begin
   result:=1;
 end;
 
+function lua_waitforsymbols(L: Plua_State): integer; cdecl;
+begin
+  result:=0;
+  if lua_gettop(L)>0 then
+    waitforsymbols:=lua_toboolean(L,1);
+end;
+
 function errorOnLookupFailure(L: Plua_State): integer; cdecl;
 var
   parameters: integer;
@@ -6600,8 +6608,6 @@ begin
   end
   else
     lua_pop(L, parameters);
-
-
 end;
 
 function loadPlugin(L: PLua_State): integer; cdecl;
@@ -8530,7 +8536,7 @@ begin
       if lua_isnumber(L,2) then
         parameter:=lua_tointeger(L, 2)
       else
-        parameter:=symhandler.getAddressFromName(Lua_ToString(L,2));
+        parameter:=symhandler.getAddressFromName(Lua_ToString(L,2), waitforsymbols);
     end
     else
       parameter:=0;
@@ -8970,7 +8976,7 @@ begin
     if lua_gettop(L)>=2 then
     begin
       if lua_isstring(L,2) then
-        parameter:=selfsymhandler.getAddressFromName(Lua_ToString(L,2))
+        parameter:=selfsymhandler.getAddressFromName(Lua_ToString(L,2), waitforsymbols)
       else
         parameter:=lua_tointeger(L, 2)
 
@@ -11221,6 +11227,7 @@ begin
     lua_register(L, 'createJpeg', createJpeg);
     lua_register(L, 'createIcon', createIcon);
     lua_register(L, 'errorOnLookupFailure', errorOnLookupFailure);
+    lua_register(L, 'waitforsymbols', lua_waitforsymbols);
 
     lua_register(L, 'loadPlugin', loadPlugin);
 

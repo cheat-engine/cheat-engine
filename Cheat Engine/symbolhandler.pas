@@ -246,7 +246,7 @@ type
     function getNameFromAddress(address:ptrUint;symbols:boolean; modules: boolean; baseaddress: PUINT64=nil; found: PBoolean=nil; hexcharsize: integer=8; important: boolean=true):string; overload;
     function getExtraDataFromSymbolAtAddress(address: ptruint): TExtraSymbolData;
 
-    function getAddressFromNameL(name: string):ptrUint; //Called by lua. Looks at ExceptionOnLookup
+    function getAddressFromNameL(name: string; waitforsymbols: boolean=true):ptrUint; //Called by lua. Looks at ExceptionOnLookup
     function getAddressFromName(name: string):ptrUint; overload;
     function getAddressFromName(name: string; waitforsymbols: boolean):ptrUint; overload;
     function getAddressFromName(name: string; waitforsymbols: boolean; out haserror: boolean):ptrUint; overload;
@@ -1604,6 +1604,9 @@ begin
   //mark this module as loaded
   self.processThreadEvents;
 
+  if self.terminated then exit;
+  if symhandler=nil then exit;
+
   symhandler.markModuleAsLoaded(baseofdll);
   inc(self.enumeratedModules);
 
@@ -1989,6 +1992,8 @@ begin
           if symbolsloaded=false then
             SymbolsLoaded:=SymInitialize(thisprocesshandle, sp, false);
 
+          if terminated then exit;
+
           if symbolsloaded then
           begin
             debugpart:=2;
@@ -2004,6 +2009,8 @@ begin
             //enumerate the basic data from the symbols
             enumeratedModules:=0;
             SymEnumerateModules64(thisprocesshandle, @EM, self );
+
+            if terminated then exit;
 
             apisymbolsloaded:=true;
             processThreadEvents;
@@ -3579,10 +3586,10 @@ end;
 
 
 
-function TSymhandler.getAddressFromNameL(name: string):ptrUint;  //Lua
+function TSymhandler.getAddressFromNameL(name: string; waitforsymbols: boolean=true):ptrUint;  //Lua
 var e: boolean;
 begin
-  result:=getAddressFromName(name, true, e);
+  result:=getAddressFromName(name, waitforsymbols, e);
   if e then
   begin
     if ExceptionOnLuaLookup then
