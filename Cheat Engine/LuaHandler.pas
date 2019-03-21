@@ -6584,9 +6584,13 @@ end;
 
 function lua_waitforsymbols(L: Plua_State): integer; cdecl;
 begin
-  result:=0;
+  result:=1;
+  lua_pushboolean(L,waitforsymbols);
+
   if lua_gettop(L)>0 then
     waitforsymbols:=lua_toboolean(L,1);
+
+
 end;
 
 function errorOnLookupFailure(L: Plua_State): integer; cdecl;
