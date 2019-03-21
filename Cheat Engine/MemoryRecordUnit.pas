@@ -62,6 +62,8 @@ type TMemRecAutoAssemblerData=record
       allocs: TCEAllocArray;
       exceptionlist: TCEExceptionListArray;
       registeredsymbols: TStringlist;
+      lastExecutionFailed: boolean;
+      lastExecutionFailedReason: string;
     end;
 
 type TMemRecExtraData=record
@@ -196,6 +198,8 @@ type
     fOnGetDisplayValue: TGetDisplayValueEvent;
 
     fpointeroffsets: array of TMemrecOffset; //if longer than 0, this is a pointer
+
+
     function getPointerOffset(index: integer): TMemrecOffset;
 
     function getByteSize: integer;
@@ -375,6 +379,9 @@ type
     property Async: Boolean read fAsync write fAsync;
     property AsyncProcessing: Boolean read isProcessing;
     property AsyncProcessingTime: qword read getProcessingTime;
+
+    property LastAAExecutionFailed: boolean read AutoAssemblerData.lastExecutionFailed;
+    property LastAAExecutionFailedReason: string read AutoAssemblerData.lastExecutionFailedReason;
   end;
 
   THKSoundFlag=(hksPlaySound=0, hksSpeakText=1, hksSpeakTextEnglish=2); //playSound excludes speakText
@@ -451,11 +458,22 @@ begin
       owner.fActive:=state;
       if owner.autoassemblerdata.registeredsymbols.Count>0 then //if it has a registered symbol then reinterpret all addresses
         TAddresslist(owner.fOwner).ReinterpretAddresses;
+
+      owner.autoassemblerdata.lastExecutionFailed:=false;
+    end
+    else
+    begin
+      owner.autoassemblerdata.lastExecutionFailed:=true;
+      owner.autoassemblerdata.lastExecutionFailedReason:='Unknown';
     end;
   except
     //running the script failed, state unchanged
     on e:exception do
+    begin
+      owner.autoassemblerdata.lastExecutionFailed:=true;
+      owner.autoassemblerdata.lastExecutionFailedReason:=e.message;
       OutputDebugString(e.message);
+    end;
   end;
 
   Queue(owner.processingDone);
@@ -2377,10 +2395,22 @@ begin
           begin
             fActive:=state;
             if autoassemblerdata.registeredsymbols.Count>0 then //if it has a registered symbol then reinterpret all addresses
-              TAddresslist(fOwner).ReinterpretAddresses;
+             TAddresslist(fOwner).ReinterpretAddresses;
+
+            autoassemblerdata.lastExecutionFailed:=false;
+          end
+          else
+          begin
+            autoassemblerdata.lastExecutionFailed:=true;
+            autoassemblerdata.lastExecutionFailedReason:='Unknown';
           end;
         except
           //running the script failed, state unchanged
+          on e:exception do
+          begin
+            autoassemblerdata.lastExecutionFailed:=true;
+            autoassemblerdata.lastExecutionFailedReason:=e.message;
+          end;
         end;
       end;
       {$ENDIF}

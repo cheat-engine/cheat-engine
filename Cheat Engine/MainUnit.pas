@@ -260,6 +260,7 @@ type
     MenuItem12: TMenuItem;
     MenuItem14: TMenuItem;
     MenuItem15: TMenuItem;
+    miAutoAssembleErrorMessage: TMenuItem;
     miLuaDocumentation: TMenuItem;
     miForgotScan: TMenuItem;
     miDotNET: TMenuItem;
@@ -512,6 +513,7 @@ type
     procedure Label3Click(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
     procedure MenuItem15Click(Sender: TObject);
+    procedure miAutoAssembleErrorMessageClick(Sender: TObject);
     procedure miHelpClick(Sender: TObject);
     procedure miLuaDocumentationClick(Sender: TObject);
     procedure miForgotScanClick(Sender: TObject);
@@ -3157,6 +3159,11 @@ begin
       exit;
     end;
   end;
+end;
+
+procedure TMainForm.miAutoAssembleErrorMessageClick(Sender: TObject);
+begin
+  addresslist.doValueChange;
 end;
 
 procedure TMainForm.miHelpClick(Sender: TObject);
@@ -6641,6 +6648,14 @@ begin
 
   miDBVMFindWhatWritesOrAccesses.visible:=isIntel and isDBVMCapable; //02/24/2019: Most cpu's support EPT now
   sep2.Visible:=miDBVMFindWhatWritesOrAccesses.Visible;
+
+
+  if (selectedrecord<>nil) and (selectedrecord.VarType=vtAutoAssembler) then
+  begin
+    miAutoAssembleErrorMessage.visible:=selectedrecord.LastAAExecutionFailed;
+    if selectedrecord.LastAAExecutionFailed then
+      miAutoAssembleErrorMessage.Caption:='<<'+selectedrecord.LastAAExecutionFailedReason+'>>';
+  end;
 end;
 
 procedure TMainForm.foundlistpopupPopup(Sender: TObject);
