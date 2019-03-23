@@ -268,6 +268,8 @@ type
 
     //showAsHex: boolean;
 
+    fScriptHotKey: TMemoryRecordHotkey; //set when a hotkey is used to toggle a script
+
     function getuniquehotkeyid: integer;
 
     //free for editing by user:
@@ -379,6 +381,7 @@ type
     property Async: Boolean read fAsync write fAsync;
     property AsyncProcessing: Boolean read isProcessing;
     property AsyncProcessingTime: qword read getProcessingTime;
+    property ScriptHotKey: TMemoryRecordHotkey read fScriptHotKey;
 
     property LastAAExecutionFailed: boolean read AutoAssemblerData.lastExecutionFailed;
     property LastAAExecutionFailedReason: string read AutoAssemblerData.lastExecutionFailedReason;
@@ -703,7 +706,13 @@ begin
 
   //remove this hotkey from the memoryrecord
   if owner<>nil then
+  begin
     owner.hotkeylist.Remove(self);
+    if owner.fScriptHotKey=self then
+      owner.fScriptHotKey:=nil;
+  end;
+
+  inherited destroy;
 end;
 
 procedure TMemoryRecordHotkey.doHotkey;
@@ -2147,12 +2156,18 @@ begin
       case hk.action of
         mrhToggleActivation:
         begin
+          if (VarType=vtAutoAssembler)  then
+            fScriptHotKey:=hk;
+
           active:=not active;
 
-          if active then
-            hk.playActivateSound
-          else
-            hk.playDeactivateSound;
+          if (VarType<>vtAutoAssembler)  then
+          begin
+            if active then
+              hk.playActivateSound
+            else
+              hk.playDeactivateSound;
+          end;
         end;
 
         mrhSetValue:
@@ -2177,38 +2192,56 @@ begin
 
         mrhToggleActivationAllowDecrease:
         begin
+          if (VarType=vtAutoAssembler) then
+            fScriptHotKey:=hk;
+
           allowDecrease:=True;
           active:=not active;
 
-          if active then
-            hk.playActivateSound
-          else
-            hk.playDeactivateSound; //also gives a signal when failing to activate
+          if (VarType<>vtAutoAssembler)  then
+          begin
+            if active then
+              hk.playActivateSound
+            else
+              hk.playDeactivateSound; //also gives a signal when failing to activate
+          end;
         end;
 
         mrhToggleActivationAllowIncrease:
         begin
+          if (VarType=vtAutoAssembler) then
+            fScriptHotKey:=hk;
+
           allowIncrease:=True;
           active:=not active;
 
-          if active then
-            hk.playActivateSound
-          else
-            hk.playDeactivateSound; //also gives a signal when failing to activate
+          if (VarType<>vtAutoAssembler)  then
+          begin
+            if active then
+              hk.playActivateSound
+            else
+              hk.playDeactivateSound; //also gives a signal when failing to activate
+          end;
 
         end;
 
         mrhActivate:
         begin
+          if (VarType=vtAutoAssembler) then
+            fScriptHotKey:=hk;
+
           active:=true;
-          if active then
+          if (VarType<>vtAutoAssembler) and active then
             hk.playActivateSound;
         end;
 
         mrhDeactivate:
         begin
+          if (VarType=vtAutoAssembler) then
+            fScriptHotKey:=hk;
+
           active:=false;
-          if not active then
+          if (VarType<>vtAutoAssembler) and (not active) then
             hk.playDeactivateSound;  //also gives a signal when failing to activate
         end;
 
@@ -2298,6 +2331,17 @@ begin
   if not wantedstate and assigned(fondeactivate) then fondeactivate(self, false, factive); //deactivated , after
 
   SetVisibleChildrenState;
+
+  if fScriptHotKey<>nil then
+  begin
+    //play sounds if needed
+    if active then
+      fScriptHotKey.playActivateSound
+    else
+      fScriptHotKey.playDeactivateSound;
+
+    fScriptHotKey:=nil;
+  end;
 end;
 
 procedure TMemoryRecord.setActive(state: boolean);
