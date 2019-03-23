@@ -3442,11 +3442,12 @@ begin
 
     if not inquote then
     begin
-      if token[i] in ['[',']','+','-'] then
+      if token[i] in ['[',']','+','-',' '] then //6.8.4 (added ' ' for FAR, LONG, SHORT)
       begin
         if temp<>'' then
         begin
           setlength(tokens,length(tokens)+1);
+          if token[i]=' ' then temp:=temp+' ';
           tokens[length(tokens)-1]:=temp;
           temp:='';
         end;
@@ -3491,7 +3492,7 @@ begin
           if (i<length(tokens)-1) then
           begin
             //perhaps it can be concatenated with the next one
-            if (length(tokens[i+1])>0) and (not (tokens[i+1][1] in ['''','"','[',']','(',')'])) then //not an invalid token char
+            if (length(tokens[i+1])>0) and (not (tokens[i+1][1] in ['''','"','[',']','(',')',' '])) then //not an invalid token char
             begin
               tokens[i+1]:=tokens[i]+tokens[i+1];
               tokens[i]:='';
@@ -4673,12 +4674,15 @@ begin
   if (nroftokens-1)>=mnemonic+3 then parameter3:=tokens[mnemonic+3] else parameter3:='';
   if (nroftokens-1)>=mnemonic+4 then parameter4:=tokens[mnemonic+4] else parameter4:='';
 
-  overrideShort:=Pos('SHORT ',parameter1)>0;
-  overrideLong:=(Pos('LONG ',parameter1)>0);
+  tempstring:=uppercase(parameter1);
+
+
+  overrideShort:=Pos('SHORT ',tempstring)>0;
+  overrideLong:=Pos('LONG ',tempstring)>0;
   if processhandler.is64Bit then
-    overrideFar:=(Pos('FAR ',parameter1)>0)
+    overrideFar:=(Pos('FAR ',tempstring)>0)
   else
-    overrideLong:=overrideLong or (Pos('FAR ',parameter1)>0);
+    overrideLong:=overrideLong or (Pos('FAR ',tempstring)>0);
 
 
   if not (overrideShort or overrideLong) and (assemblerPreference<>apNone) then //no override chooce by the user and not a normal preference
