@@ -137,7 +137,7 @@ begin
     virtualqueryEx(processhandle,pointer(currentpos),mbi,sizeof(mbi));
 
     if alsonx then
-      a:=(mbi.AllocationProtect and (PAGE_EXECUTE or PAGE_EXECUTE_READ or PAGE_EXECUTE_READWRITE or PAGE_READONLY or PAGE_EXECUTE_WRITECOPY))>0
+      a:=(mbi.AllocationProtect and (PAGE_EXECUTE or PAGE_EXECUTE_READ or PAGE_EXECUTE_READWRITE or PAGE_EXECUTE_WRITECOPY or PAGE_READONLY))>0
     else
       a:=(mbi.AllocationProtect and (PAGE_EXECUTE or PAGE_EXECUTE_READ or PAGE_EXECUTE_READWRITE or PAGE_EXECUTE_WRITECOPY))>0;
 
@@ -245,7 +245,12 @@ only memory
     codecavescanner.startaddress:=startaddress;
     codecavescanner.stopaddress:=stopaddress;
     codecavescanner.size:=bytelength;
-    codecavescanner.AlsoNX:=cbnoexecute.checked;
+
+    //execute protection is default 64bit targets
+    if not processhandler.is64bit then
+       codecavescanner.AlsoNX:=cbnoexecute.checked
+    else
+       codecavescanner.AlsoNX:=true;
 
     progressbar1.Min:=0;
      progressbar1.Max:=1000;
@@ -285,6 +290,11 @@ begin
   editstart.font.height:=fh;
   editstop.font.height:=fh;
   editsize.font.height:=fh;
+
+  //execute protection is default 64bit targets
+  if processhandler.is64bit then
+     cbNoExecute.Enabled:=false;
+
 end;
 
 procedure TfrmCodecaveScanner.lbCodecaveListDblClick(Sender: TObject);
