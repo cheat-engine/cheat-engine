@@ -11,15 +11,15 @@ uses
 
 type TCodeCaveScanner=class(tthread)
   private
-    found: Qword;
-    progress:ptrUint;
+    found:qword;
+    progress:integer;
     procedure updateprogressbar;
     procedure done;
     procedure foundone;
   public
     startaddress:ptrUint;
     stopaddress:ptrUint;
-    size:dword;
+    size:qword;
     alsonx:boolean;
     procedure execute; override;
 end;
@@ -118,7 +118,7 @@ begin
 
   while (not terminated) and (currentpos<stopaddress) do
   begin
-    progress:=currentpos-startaddress;
+    progress:=trunc(currentpos/stopaddress*1000);
     synchronize(updateprogressbar);
 
     //find the memoryranges to scan
@@ -163,7 +163,7 @@ begin
 
     while (not terminated) and (i<length(memoryregion)) do
     begin
-      progress:=memoryregion[i].BaseAddress-startaddress;
+      progress:=trunc(memoryregion[i].BaseAddress/stopaddress*1000);
       synchronize(updateprogressbar);
 
       //read the mem
@@ -190,8 +190,6 @@ begin
 
       inc(i);
     end;
-
-
 
     inc(currentpos,mbi.RegionSize);
   end;
@@ -235,8 +233,9 @@ only memory
     codecavescanner.size:=bytelength;
     codecavescanner.AlsoNX:=cbnoexecute.checked;
 
+    progressbar1.Min:=0;
+     progressbar1.Max:=1000;
     progressbar1.Position:=0;
-    progressbar1.Max:=stopaddress-startaddress;
     btnStart.caption:=strStop;
     lbCodecaveList.Clear;
     codecavescanner.start;

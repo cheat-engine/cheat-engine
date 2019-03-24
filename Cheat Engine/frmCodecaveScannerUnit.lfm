@@ -1,12 +1,12 @@
 object frmCodecaveScanner: TfrmCodecaveScanner
-  Left = 1555
+  Left = 740
   Height = 324
-  Top = 20
-  Width = 279
+  Top = 285
+  Width = 600
   AutoSize = True
   Caption = 'Scan for codecaves'
   ClientHeight = 324
-  ClientWidth = 279
+  ClientWidth = 600
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnShow = FormShow
@@ -19,7 +19,7 @@ object frmCodecaveScanner: TfrmCodecaveScanner
     Left = 0
     Height = 288
     Top = 0
-    Width = 155
+    Width = 476
     Anchors = [akTop, akLeft, akRight]
     Font.CharSet = ANSI_CHARSET
     Font.Name = 'Courier New'
@@ -33,7 +33,7 @@ object frmCodecaveScanner: TfrmCodecaveScanner
   end
   object Panel1: TPanel
     AnchorSideTop.Control = Owner
-    Left = 155
+    Left = 476
     Height = 185
     Top = 0
     Width = 124
@@ -133,7 +133,7 @@ object frmCodecaveScanner: TfrmCodecaveScanner
       MaxLength = 16
       ParentFont = False
       TabOrder = 1
-      Text = '00400000'
+      Text = '0000000000400000'
     end
     object editStop: TEdit
       AnchorSideLeft.Control = Panel1
@@ -187,12 +187,12 @@ object frmCodecaveScanner: TfrmCodecaveScanner
     Left = 0
     Height = 36
     Top = 288
-    Width = 279
+    Width = 600
     Anchors = [akTop, akLeft, akRight]
     AutoSize = True
     BevelOuter = bvNone
     ClientHeight = 36
-    ClientWidth = 279
+    ClientWidth = 600
     TabOrder = 2
     object cbNoExecute: TCheckBox
       AnchorSideLeft.Control = Panel2
@@ -202,7 +202,7 @@ object frmCodecaveScanner: TfrmCodecaveScanner
       Left = 0
       Height = 19
       Top = 0
-      Width = 279
+      Width = 600
       Anchors = [akTop, akLeft, akRight]
       Caption = 'Also scan non-executable read-only memory'
       Checked = True
@@ -216,7 +216,7 @@ object frmCodecaveScanner: TfrmCodecaveScanner
       Left = 0
       Height = 17
       Top = 19
-      Width = 279
+      Width = 600
       Anchors = [akTop, akLeft, akRight]
       TabOrder = 1
     end
