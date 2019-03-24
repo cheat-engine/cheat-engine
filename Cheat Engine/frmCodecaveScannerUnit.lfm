@@ -1,11 +1,11 @@
 object frmCodecaveScanner: TfrmCodecaveScanner
-  Left = 740
-  Height = 324
-  Top = 285
+  Left = 539
+  Height = 342
+  Top = 296
   Width = 600
   AutoSize = True
   Caption = 'Scan for codecaves'
-  ClientHeight = 324
+  ClientHeight = 342
   ClientWidth = 600
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
@@ -21,9 +21,6 @@ object frmCodecaveScanner: TfrmCodecaveScanner
     Top = 0
     Width = 476
     Anchors = [akTop, akLeft, akRight]
-    Font.CharSet = ANSI_CHARSET
-    Font.Name = 'Courier New'
-    Font.Style = [fsBold]
     ItemHeight = 0
     MultiSelect = True
     OnDblClick = lbCodecaveListDblClick
@@ -220,6 +217,16 @@ object frmCodecaveScanner: TfrmCodecaveScanner
       Anchors = [akTop, akLeft, akRight]
       TabOrder = 1
     end
+  end
+  object Label4: TLabel
+    Left = 0
+    Height = 15
+    Top = 327
+    Width = 600
+    Align = alBottom
+    Alignment = taCenter
+    Caption = '                      '
+    ParentColor = False
   end
   object PopupMenu1: TPopupMenu
     left = 128
