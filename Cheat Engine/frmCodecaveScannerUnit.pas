@@ -246,7 +246,7 @@ only memory
     codecavescanner.stopaddress:=stopaddress;
     codecavescanner.size:=bytelength;
 
-    //execute protection default on 64bit targets
+    //execute protection on by default on 64bit targets
     if not processhandler.is64bit then
        codecavescanner.AlsoNX:=cbnoexecute.checked
     else
@@ -291,7 +291,7 @@ begin
   editstop.font.height:=fh;
   editsize.font.height:=fh;
 
-  //execute protection default on 64bit targets
+  //execute protection on by default on 64bit targets
   if processhandler.is64bit then
      cbNoExecute.Enabled:=false;
 
