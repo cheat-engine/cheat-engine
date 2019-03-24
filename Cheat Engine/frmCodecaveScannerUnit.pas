@@ -6,13 +6,15 @@ interface
 
 uses
   jwawindows, windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ComCtrls{$ifdef netclient},netapis{$else},NewKernelHandler{$endif},CEFuncProc,
-  ExtCtrls, Menus, clipbrd, LResources, commonTypeDefs;
+  Dialogs, StdCtrls, ComCtrls,{$ifndef net}NewKernelHandler,{$endif}CEFuncProc,
+  ExtCtrls, Menus, Clipbrd, LResources, commonTypeDefs;
 
 type TCodeCaveScanner=class(tthread)
   private
     found:qword;
     progress:integer;
+    curraddr:qword;
+    procedure updatelabel;
     procedure updateprogressbar;
     procedure done;
     procedure foundone;
@@ -34,6 +36,7 @@ type
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
+    Label4: TLabel;
     btnStart: TButton;
     editStart: TEdit;
     editStop: TEdit;
@@ -71,6 +74,12 @@ resourcestring
   rsPleaseProvideAValidSizeForTheWantedCodeCave = 'Please provide a valid size for the wanted code cave';
   rsClosingThisWindowWillAlsoStopTheScannerAreYouSure = 'Closing this window will also stop the scanner. Are you sure?';
 
+procedure TCodecavescanner.updatelabel;
+begin
+  if frmcodecavescanner<>nil then
+    frmcodecavescanner.Label4.Caption:=inttohex(curraddr,8);
+end;
+
 procedure TCodecavescanner.updateprogressbar;
 begin
   if frmcodecavescanner<>nil then
@@ -93,6 +102,7 @@ begin
     frmCodecaveScanner.btnStart.caption:=strStart;
     frmCodecaveScanner.codecavescanner:=nil;
     frmCodecaveScanner.progressbar1.Position:=0;
+    frmCodecaveScanner.Label4.Caption:='';
   end;
 end;
 
@@ -119,7 +129,9 @@ begin
   while (not terminated) and (currentpos<stopaddress) do
   begin
     progress:=trunc(currentpos/stopaddress*1000);
+    curraddr:=currentpos;
     synchronize(updateprogressbar);
+    synchronize(updatelabel);
 
     //find the memoryranges to scan
     virtualqueryEx(processhandle,pointer(currentpos),mbi,sizeof(mbi));
@@ -164,7 +176,9 @@ begin
     while (not terminated) and (i<length(memoryregion)) do
     begin
       progress:=trunc(memoryregion[i].BaseAddress/stopaddress*1000);
+      curraddr:=memoryregion[i].BaseAddress;
       synchronize(updateprogressbar);
+      synchronize(updatelabel);
 
       //read the mem
       if ReadProcessmemory(processhandle,pointer(memoryregion[i].BaseAddress),@buf[0],memoryregion[i].MemorySize,x) then

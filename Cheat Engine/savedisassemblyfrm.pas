@@ -178,11 +178,9 @@ begin
       temps:=''; //erase the current data
     end;
 
+    progressbar.position:=trunc(currentaddress/stopaddress*1000);
 
-    if (i mod 10=0) and (currentaddress<{$ifdef cpu64}QWORD($7fffffffffffffff){$else}$7fffffff{$endif}) then
-      progressbar.position:=currentaddress;
   end;
-
   if copymode then
   begin
     clipboard.AsText:=cpbuf.GetText;
@@ -249,19 +247,12 @@ begin
     SaveDisassemblyThread.filename:=savedialog1.FileName;
     SaveDisassemblyThread.copymode:=fcopymode;
 
-
-
     SaveDisassemblyThread.form:=self;
 
-    if (startaddress<{$ifdef cpu64}QWORD($7fffffffffffffff){$else}$7fffffff{$endif}) and (stopaddress<{$ifdef cpu64}QWORD($7fffffffffffffff){$else}$7fffffff{$endif}) then
-    begin
-      progressbar1.Max:=stopaddress;
-      progressbar1.Min:=startaddress;
-      progressbar1.Position:=startaddress;
-      if not progressbar1.Visible then progressbar1.Visible:=true;
-    end
-    else
-      progressbar1.Visible:=false;
+    progressbar1.Min:=0;
+    progressbar1.Max:=1000;
+    progressbar1.Position:=0;
+    if not progressbar1.Visible then progressbar1.Visible:=true;
 
     SaveDisassemblyThread.progressbar:=progressbar1;
 

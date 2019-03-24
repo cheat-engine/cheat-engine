@@ -11,7 +11,7 @@ object frmSavedisassembly: TfrmSavedisassembly
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object Button1: TButton
     AnchorSideLeft.Control = Owner
     AnchorSideLeft.Side = asrCenter
@@ -129,10 +129,10 @@ object frmSavedisassembly: TfrmSavedisassembly
       AnchorSideTop.Control = Edit2
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = Edit2
-      Left = 14
+      Left = 15
       Height = 15
       Top = 30
-      Width = 14
+      Width = 13
       Anchors = [akTop, akRight]
       Caption = 'To'
       ParentColor = False
@@ -149,6 +149,7 @@ object frmSavedisassembly: TfrmSavedisassembly
       Width = 149
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Top = 3
+      MaxLength = 16
       TabOrder = 0
     end
     object Edit1: TEdit
@@ -160,6 +161,7 @@ object frmSavedisassembly: TfrmSavedisassembly
       Top = 0
       Width = 149
       Anchors = [akTop, akRight]
+      MaxLength = 16
       TabOrder = 1
     end
   end
