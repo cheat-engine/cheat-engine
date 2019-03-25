@@ -137,9 +137,9 @@ begin
     virtualqueryEx(processhandle,pointer(currentpos),mbi,sizeof(mbi));
 
     if alsonx then
-      a:=(mbi.AllocationProtect and (PAGE_EXECUTE or PAGE_EXECUTE_READ or PAGE_EXECUTE_READWRITE or PAGE_EXECUTE_WRITECOPY or PAGE_READONLY))>0
+      a:=(mbi.Protect and (PAGE_EXECUTE or PAGE_EXECUTE_READ or PAGE_EXECUTE_READWRITE or PAGE_EXECUTE_WRITECOPY or PAGE_READONLY or PAGE_READWRITE))>0
     else
-      a:=(mbi.AllocationProtect and (PAGE_EXECUTE or PAGE_EXECUTE_READ or PAGE_EXECUTE_READWRITE or PAGE_EXECUTE_WRITECOPY))>0;
+      a:=(mbi.Protect and (PAGE_EXECUTE or PAGE_EXECUTE_READ or PAGE_EXECUTE_READWRITE or PAGE_EXECUTE_WRITECOPY))>0;
 
     if not a then
     begin
@@ -250,7 +250,7 @@ only memory
     if not processhandler.is64bit then
        codecavescanner.AlsoNX:=cbnoexecute.checked
     else
-       codecavescanner.AlsoNX:=true;
+       codecavescanner.AlsoNX:=false;
 
     progressbar1.Min:=0;
      progressbar1.Max:=1000;
@@ -293,7 +293,11 @@ begin
 
   //execute protection on by default on 64bit targets
   if processhandler.is64bit then
-     cbNoExecute.Enabled:=false;
+  begin
+    cbNoExecute.checked:=false;
+    cbNoExecute.Enabled:=false;
+    cbNoExecute.visible:=false;
+  end;
 
 end;
 
