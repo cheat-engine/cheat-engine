@@ -15,7 +15,6 @@ type
   { TFindWindow }
 
   TFindWindow = class(TForm)
-    ProgressBar: TProgressBar;
     Panel1: TPanel;
     labelType: TLabel;
     Label2: TLabel;
@@ -33,11 +32,14 @@ type
     Scanvalue: TEdit;
     procedure btnCancelClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
   private
     { Private declarations }
     memscan: TMemScan;
+    procedure scandone(Sender: TObject);
+
   public
     { Public declarations }
     firstscan: boolean;
@@ -56,12 +58,27 @@ resourcestring
 
 
 
+procedure TFindWindow.scandone(sender: TObject);
+var x: ptruint;
+begin
+  if memscan.GetOnlyOneResult(x) then
+  begin
+    MemoryBrowser.memoryaddress:=x;
+    modalresult:=mrok;
+  end else
+  begin
+    MessageDlg(rsNothingFound, mtError, [mbok], 0);
+  end;
+
+  freeandnil(memscan);
+end;
+
 procedure TFindWindow.btnOKClick(Sender: TObject);
 var start,stop,temp: ptruint;
     //cb: TCheckbox;
     valtype: TVariableType;
     i: integer;
-    x: ptruint;
+
 begin
 
 
@@ -94,27 +111,14 @@ begin
   memscan.scanWritable:=scanDontCare;
 
 
-  try
-    memscan.firstscan(soExactValue, valtype, rtRounded, scanvalue.text, '', start, stop, true, false, cbunicode.checked, false, fsmNotAligned);
-    memscan.waittilldone;
+  memscan.firstscan(soExactValue, valtype, rtRounded, scanvalue.text, '', start, stop, true, false, cbunicode.checked, false, fsmNotAligned);
+  memscan.OnScanDone:=ScanDone;
+end;
 
-    if memscan.GetOnlyOneResult(x) then
-    begin
-      MemoryBrowser.memoryaddress:=x;
-      modalresult:=mrok;
-    end else
-    begin
-      //showmessage(rsNothingFound);
-      //wtf...
-      freeandnil(memscan);
-
-      MessageDlg(rsNothingFound, mtError, [mbok], 0);
-    end;
-  finally
-    if memscan<>nil then
-      freeandnil(memscan);
-  end;
-
+procedure TFindWindow.FormDestroy(Sender: TObject);
+begin
+  if memscan<>nil then
+    freeandnil(memscan);
 end;
 
 procedure TFindWindow.btnCancelClick(Sender: TObject);
@@ -126,8 +130,6 @@ procedure TFindWindow.FormShow(Sender: TObject);
 const EM_GETMARGINS=$d4;
 var m: DWord;
 begin
-  progressbar.Position:=0;
-  
   if firstscan then
   begin
 
