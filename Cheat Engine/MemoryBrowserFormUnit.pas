@@ -2246,13 +2246,13 @@ begin
     disassemblerview.setheaderWidth(2,x[2]);
     disassemblerview.setheaderWidth(3,x[3]);
 
-    if length(x)>4 then
+    if length(x)>=6 then
     begin
       panel1.height:=x[4];
       registerview.width:=x[5];
     end;
 
-    if length(x)>=7 then
+    if length(x)>=8 then
     begin
       Showsymbols1.checked:=x[6]=1;
       Showmoduleaddresses1.checked:=x[7]=1;
@@ -2261,7 +2261,7 @@ begin
       symhandler.showmodules:=Showmoduleaddresses1.Checked;
     end;
 
-    if length(x)>=9 then
+    if length(x)>=10 then
     begin
       if x[8]=1 then
       begin
@@ -2270,6 +2270,11 @@ begin
       end;
     end;
 
+    if length(x)>=11 then
+    begin
+      kernelmodesymbols1.checked:=x[10]=1;
+      symhandler.kernelsymbols:=kernelmodesymbols1.Checked;
+    end;
 
     setlength(x,0);
     posloadedfromreg:=true;
@@ -2328,10 +2333,14 @@ end;
 procedure TMemoryBrowser.Timer2Timer(Sender: TObject);
 var
   rollover: integer;
+  timetaken: qword;
 begin
   if Visible then
   begin
     try
+
+      timetaken:=GetTickCount64;
+
       if hexview<>nil then hexview.update;
       if disassemblerview<>nil then disassemblerview.Update;
 
@@ -2344,6 +2353,18 @@ begin
       lastmodulelistupdate:=(lastmodulelistupdate+1) mod rollover;
       if lastmodulelistupdate=0 then
         if symhandler<>nil then symhandler.loadmodulelist;
+
+      timetaken:=GetTickCount64-timetaken;
+      if (timetaken>timer2.interval) and (timer2.interval<5000) then
+      begin
+        timer2.enabled:=false;
+        timer2.interval:=timer2.interval+100; //this system can't handle the current speed
+        timer2.enabled:=true;
+      end;
+
+      if (timetaken<timer2.interval) and (timer2.Interval>200) then
+        timer2.interval:=max(250,timer2.interval-100);
+
     except
       on e:exception do
       begin
@@ -3809,7 +3830,7 @@ begin
   begin
     if self.disassemblerview<>nil then
     begin
-      setlength(params,10);
+      setlength(params,11);
       //don't use [xx,xx,xx] crash
       params[0]:=self.disassemblerview.getheaderwidth(0);
       params[1]:=self.disassemblerview.getheaderwidth(1);
@@ -3821,6 +3842,7 @@ begin
       params[7]:=strtoint(BoolToStr(self.Showmoduleaddresses1.checked,'1','0'));
       params[8]:=strtoint(BoolToStr(self.miLockRowsize.Checked,'1','0'));
       params[9]:=self.hexview.LockedRowSize;
+      params[10]:=strtoint(BoolToStr(self.Kernelmodesymbols1.checked,'1','0'));
 
       saveformposition(self,params);
 
