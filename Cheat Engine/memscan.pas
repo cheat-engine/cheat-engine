@@ -17,7 +17,7 @@ uses windows, FileUtil, LCLIntf,sysutils, classes,ComCtrls,dialogs, NewKernelHan
      SyncObjs, windows7taskbar,SaveFirstScan, savedscanhandler, autoassembler,
      symbolhandler, CEFuncProc,shellapi, customtypehandler,lua,lualib,lauxlib,
      LuaHandler, fileaccess, groupscancommandparser, commonTypeDefs, LazUTF8,
-     forms, LazFileUtils, LCLProc;
+     forms, LazFileUtils, LCLProc, LCLVersion;
 {$define customtypeimplemented}
 {$endif}
 
@@ -5194,8 +5194,11 @@ begin
 
       log('Scanner exception:'+errorstring);
 
+
+      {$if lcl_fullversion < 2000000}
       DebugLn('Scanner exception:'+errorstring);
       DumpExceptionBackTrace;
+      {$endif}
 
       //tell all siblings to terminate, something messed up
       //and I can just do this, since the ScanController is waiting for us, and terminate is pretty much atomic
