@@ -3730,7 +3730,12 @@ begin
 
   if waitTillDone then
     symhandler.waitforsymbolsloaded;
+end;
 
+function waitForPDB(L: PLua_state): integer; cdecl;
+begin
+  symhandler.waitforpdb;
+  result:=0;
 end;
 
 function reinitializeSelfSymbolhandler(L: PLua_state): integer; cdecl;
@@ -10977,6 +10982,7 @@ begin
     lua_register(L, 'getModuleSize', getModuleSize);
     lua_register(L, 'getAddressSafe', getAddressSafe);
 
+    lua_register(L, 'waitforPDB', waitForPDB);
     lua_register(L, 'reinitializeSymbolhandler', reinitializeSymbolhandler);
     lua_register(L, 'reinitializeDotNetSymbolhandler', reinitializeDotNetSymbolhandler);
     lua_register(L, 'reinitializeSelfSymbolhandler', reinitializeSelfSymbolhandler);

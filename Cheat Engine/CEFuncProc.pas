@@ -1094,7 +1094,9 @@ begin
     end;
   except
     on e:exception do
+    begin
       forceLoadModule(dllname, functiontocall, 'dllInject failed: '+e.message);
+    end;
   end;
 end;
 
