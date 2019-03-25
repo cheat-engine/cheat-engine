@@ -2684,7 +2684,7 @@ type TAssemblerBytes=array of byte;
 
 type TAssemblerEvent=procedure(address:qword; instruction: string; var bytes: TAssemblerBytes) of object;
 
-type TassemblerPreference=(apNone, apShort, apLong);
+type TassemblerPreference=(apNone, apShort, apLong, apFar);
 
 function Assemble(opcode:string; address: ptrUint;var bytes: TAssemblerBytes; assemblerPreference: TassemblerPreference=apNone; skiprangecheck: boolean=false): boolean;
 function GetOpcodesIndex(opcode: string): integer;
@@ -2757,7 +2757,7 @@ uses symbolhandler, assemblerArm, Parsers, NewKernelHandler;
 
 {$ifdef windows}
 uses {$ifndef autoassemblerdll}CEFuncProc,{$endif}symbolhandler, lua, luahandler,
-  lualib, assemblerArm, Parsers, NewKernelHandler, LuaCaller, math;
+  lualib, assemblerArm, Parsers, NewKernelHandler, LuaCaller, math, cpuidUnit;
 {$endif}
 
 resourcestring
@@ -2771,6 +2771,8 @@ resourcestring
   rsTheAssemblerTriedToSetARegisteValueThatIsTooHigh = 'The assembler tried to set a register value that is too high';
   rsAssemblerError = 'Assembler error';
   rsOffsetTooBig = 'offset too big';
+  rsInvalidValueFor32Bit = 'The value provided can not be encoded in a 32-bit field';
+
 var ExtraAssemblers: array of TAssemblerEvent;
 
 
@@ -2914,17 +2916,29 @@ begin
   end;
 end;
 
-function SignedValueToType(value: integer): integer;
+function SignedValueToType(value: ptrint): integer;
+var
+  vup: dword;
+  msb: integer;
 begin
   result:=8;
 
   if ((value<-128) or (value>127)) then result:=16;
   if ((value<-32768) or (value>32767)) then result:=32;
 
+  vup:=value shr 32;
+  msb:=(value shr 31) and 1;
+
+  if ((msb=1) and (vup<>$ffffffff)) or
+     ((msb=0) and (vup<>$00000000)) then
+     result:=64; //can not be encoded using a 32 bit value
 
 end;
 
 function ValueToType(value: ptruint): integer;
+var
+  msb: integer;
+  vup: dword;
 begin
   result:=32;
   if value<=$ffff then
@@ -2947,6 +2961,17 @@ begin
       if PtrInt(value)>=-32768 then result:=16;
     end;
   end;
+
+  if result=32 then
+  begin
+    //still
+    vup:=value shr 32;
+    msb:=(value shr 31) and 1;
+
+    if ((msb=1) and (vup<>$ffffffff)) or
+       ((msb=0) and (vup<>$00000000)) then
+       result:=64; //can not be encoded using a 32 bit value
+  end;
 end;
 
 function StringValueToType(value: string): integer;
@@ -2958,6 +2983,7 @@ begin
 
   val(value,x,err);
   if err>0 then exit;
+
 
   if length(value)=17 then result:=64 else
   if length(value)=9 then result:=32 else
@@ -4501,6 +4527,10 @@ var tokens: ttokens;
 
     bigvex: boolean;
     VEXvvvv: integer;
+
+    cannotencodewithrexw: boolean;
+
+    //cpuinfo: TCPUIDResult;
 begin
   VEXvvvv:=$f;
   needsAddressSwitchPrefix:=false;
@@ -4529,96 +4559,150 @@ begin
 
   if nroftokens=0 then exit;
 
-  if tokens[0][1]='A' then  //A* //allign
-  begin
-    if tokens[0]='ALIGN' then
+  case tokens[0][1] of
+    'A':  //A* //allign
     begin
-      if nroftokens>=2 then
+      if tokens[0]='ALIGN' then
       begin
-        i:=HexStrToInt(tokens[1]);
+        if nroftokens>=2 then
+        begin
+          i:=HexStrToInt(tokens[1]);
 
-        if nroftokens>=3 then
-          b:=HexStrToInt(tokens[2])
-        else
-          b:=0;
+          if nroftokens>=3 then
+            b:=HexStrToInt(tokens[2])
+          else
+            b:=0;
 
-        k:=i-(address mod i);
+          k:=i-(address mod i);
 
-        if k=i then exit(true);
+          if k=i then exit(true);
 
-        for i:=0 to k-1 do
-          Add(bytes, b);
+          for i:=0 to k-1 do
+            Add(bytes, b);
+
+          result:=true;
+          exit;
+        end;
+      end;
+    end;
+
+    'D': //D*
+    begin
+      if tokens[0]='DB' then
+      begin
+        for i:=1 to nroftokens-1 do
+        begin
+          if tokens[i][1]='''' then //string
+          begin
+            //find the original non uppercase stringpos in the opcode
+            j:=pos(tokens[i],uppercase(opcode));
+
+            if j>0 then
+            begin
+              tempstring:=copy(opcode,j,length(tokens[i]));
+              addstring(bytes,tempstring);
+            end
+            else addstring(bytes,tokens[i]); //lets try to save face...
+          end
+          else
+          begin    //db 00 00 ?? ?? ?? ?? 00 00
+            if ((length(tokens[i])>=1) and (tokens[i][1] in ['?','*'])) and
+               ((length(tokens[i])<2) or ((length(tokens[i])=2) and (tokens[i][2]=tokens[i][1]))) then
+            begin
+              //wildcard
+              v:=0;
+              ReadProcessMemory(processhandle,pointer(address+i-1), @b, 1, br);
+              add(bytes, b);
+            end
+            else
+              add(bytes,[HexStrToInt(tokens[i])]);
+          end;
+        end;
+
+        result:=true;
+        exit;
+      end;
+
+      if tokens[0]='DW' then
+      begin
+        for i:=1 to nroftokens-1 do
+          addword(bytes,HexStrToInt(tokens[i]));
+
+        result:=true;
+        exit;
+      end;
+
+      if tokens[0]='DD' then
+      begin
+        for i:=1 to nroftokens-1 do
+          adddword(bytes,HexStrToInt(tokens[i]));
+
+        result:=true;
+        exit;
+      end;
+
+      if tokens[0]='DQ' then
+      begin
+        for i:=1 to nroftokens-1 do
+          addqword(bytes,HexStrToInt64(tokens[i]));
 
         result:=true;
         exit;
       end;
     end;
-  end;
 
-  if tokens[0][1]='D' then  //D*
-  begin
-    if tokens[0]='DB' then
+    'N': //N*
     begin
-      for i:=1 to nroftokens-1 do
+      if (length(tokens)=2) and ((tokens[0]='NOP') and (length(tokens[1])>=1) and (tokens[1][1] in ['a'..'f','A'..'F','0'..'9'])) then //NOP HEXVALUE
       begin
-        if tokens[i][1]='''' then //string
-        begin
-          //find the original non uppercase stringpos in the opcode
-          j:=pos(tokens[i],uppercase(opcode));
+        try
+          j:=HexStrToInt(tokens[1]);
+         // cpuinfo:=CPUID(1);
+          if isintel and (((CPUID(1).eax shr 8) and $f) in [$6,$f]) or isamd then
+          begin
+            while j>0 do
+            begin
+              k:=j;
+              if k>9 then k:=9;
 
-          if j>0 then
-          begin
-            tempstring:=copy(opcode,j,length(tokens[i]));
-            addstring(bytes,tempstring);
-          end
-          else addstring(bytes,tokens[i]); //lets try to save face...
-        end
-        else
-        begin    //db 00 00 ?? ?? ?? ?? 00 00
-          if ((length(tokens[i])>=1) and (tokens[i][1] in ['?','*'])) and
-             ((length(tokens[i])<2) or ((length(tokens[i])=2) and (tokens[i][2]=tokens[i][1]))) then
-          begin
-            //wildcard
-            v:=0;
-            ReadProcessMemory(processhandle,pointer(address+i-1), @b, 1, br);
-            add(bytes, b);
+              case k of
+                1: Add(bytes,[$90]);
+                2: Add(bytes,[$66,$90]);
+                3: Add(bytes,[$0f,$1f,$00]);
+                4: Add(bytes,[$0f,$1f,$40,$00]);
+                5: Add(bytes,[$0f,$1f,$44,$00,$00]);
+                6: Add(bytes,[$66,$0f,$1f,$44,$00,$00]);
+                7: Add(bytes,[$0f,$1f,$80,$00,$00,$00,$00]);
+                8: Add(bytes,[$0f,$1f,$84,$00,$00,$00,$00,$00]);
+                9: Add(bytes,[$66,$0f,$1f,$84,$00,$00,$00,$00,$00]);
+              end;
+
+              dec(j,k);
+            end;
           end
           else
-            add(bytes,[HexStrToInt(tokens[i])]);
+          begin
+            while j>0 do
+            begin
+              add(bytes,[$90]);
+              dec(j);
+            end;
+          end;
+
+          exit(true);
+        except
+          //could be nop EAX or whatever....
         end;
+        //build a list of NOP's
+
+        //check if this cpu supports multibyte nops, else 0x90 times j
+
+
       end;
 
-      result:=true;
-      exit;
-    end;
-
-    if tokens[0]='DW' then
-    begin
-      for i:=1 to nroftokens-1 do
-        addword(bytes,HexStrToInt(tokens[i]));
-
-      result:=true;
-      exit;
-    end;
-
-    if tokens[0]='DD' then
-    begin
-      for i:=1 to nroftokens-1 do
-        adddword(bytes,HexStrToInt(tokens[i]));
-
-      result:=true;
-      exit;
-    end;
-
-    if tokens[0]='DQ' then
-    begin
-      for i:=1 to nroftokens-1 do
-        addqword(bytes,HexStrToInt64(tokens[i]));
-
-      result:=true;
-      exit;
     end;
   end;
+
 
   for i:=0 to length(ExtraAssemblers)-1 do
   begin
@@ -4685,12 +4769,13 @@ begin
     overrideLong:=overrideLong or (Pos('FAR ',tempstring)>0);
 
 
-  if not (overrideShort or overrideLong) and (assemblerPreference<>apNone) then //no override chooce by the user and not a normal preference
+  if not (overrideShort or overrideLong or overridefar) and (assemblerPreference<>apNone) then //no override choice by the user and not a normal preference
   begin
-    if assemblerPreference=apLong then
-      overrideLong:=true
-    else if assemblerPreference=apShort then
-      overrideShort:=true;
+    case assemblerPreference of
+      apFar: overrideFar:=true;
+      apLong: overrideLong:=true;
+      apShort: overrideShort:=true;
+    end;
   end;
 
 
@@ -4906,8 +4991,8 @@ begin
     vtype:=StringValueToType(parameter4);
   end;
 
-  signedvtype:=SignedValueToType(integer(v));
-  signedv2type:=SignedValueToType(integer(v2));
+  signedvtype:=SignedValueToType(v);
+  signedv2type:=SignedValueToType(v2);
 
 
   result:=false;
@@ -5070,7 +5155,7 @@ begin
 
 
 
-          if (vtype=32) or (signedvtype>8) then
+          if (vtype=32) or (signedvtype>8)  then
           begin
             //see if there is also a 'opcode imm32' variant
             k:=startoflist;
@@ -5078,6 +5163,8 @@ begin
             begin
               if (opcodes[k].paramtype1=par_imm32) then
               begin
+                if (signedvtype=64) and rex_w then raise exception.create(rsInvalidValueFor32Bit);
+
                 addopcode(bytes,k);
                 adddword(bytes,v);
                 result:=true;
@@ -5112,6 +5199,8 @@ begin
             begin
               if (opcodes[k].paramtype1=par_imm32) then
               begin
+                if (signedvtype=64) and rex_w then raise exception.create(rsInvalidValueFor32Bit);
+
                 addopcode(bytes,k);
                 adddword(bytes,v);
                 result:=true;
@@ -5148,6 +5237,8 @@ begin
         if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
         begin
           //imm32
+          if (signedvtype=64) and rex_w then raise exception.create(rsInvalidValueFor32Bit);
+
           addopcode(bytes,j);
           addDword(bytes,v);
           result:=true;
@@ -5449,6 +5540,8 @@ begin
 
             if (opcodes[j].opcode1=eo_id) and (opcodes[j].opcode2=eo_none) then
             begin
+              if (signedvtype=64) and rex_w then raise exception.create(rsInvalidValueFor32Bit);
+
               addopcode(bytes,j);
               adddword(bytes,v);
               result:=true;
@@ -6057,6 +6150,8 @@ begin
                      (opcodes[k].paramtype2=par_rm32) and
                      (opcodes[k].paramtype3=par_imm32) then
                   begin
+                    if (signedvtype=64) and rex_w then raise exception.create(rsInvalidValueFor32Bit);
+
                     addopcode(bytes,k);
                     result:=createmodrm(bytes,getreg(parameter1),parameter2);
                     adddword(bytes,v);
@@ -6133,6 +6228,8 @@ begin
                   inc(k);
                 end;
               end;
+
+              if (signedvtype=64) and rex_w then raise exception.create(rsInvalidValueFor32Bit);
 
               addopcode(bytes,j);
               createmodrm(bytes,getreg(parameter1),parameter1);
@@ -6439,6 +6536,8 @@ begin
                 if ((opcodes[k].paramtype1=par_rm32) and (opcodes[k].paramtype2=par_imm32)) and ((opcodes[k].paramtype3=par_noparam) and (parameter3='')) then
                 begin
                   //yes, there is
+                  if (signedvtype=64) and rex_w then raise exception.create(rsInvalidValueFor32Bit);
+
                   addopcode(bytes,k);
                   createmodrm(bytes,eoToReg(opcodes[k].opcode1),parameter1);
                   adddword(bytes,v);
@@ -6484,6 +6583,8 @@ begin
               end;
             end;
             //no there's none
+            if (signedvtype=64) and rex_w then raise exception.create(rsInvalidValueFor32Bit);
+
             addopcode(bytes,j);
             createmodrm(bytes,eoToReg(opcodes[j].opcode1),parameter1);
             adddword(bytes,dword(v));
@@ -7714,6 +7815,8 @@ begin
             pdword(@bytes[relativeAddressLocation])^:=actualdisplacement-(address+length(bytes));
 
         end;
+
+
 
 
 

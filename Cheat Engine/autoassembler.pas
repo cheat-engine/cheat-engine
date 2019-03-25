@@ -1261,7 +1261,7 @@ type tdefine=record
   whatever: string;
 end;
 var i,j,k,l,e: integer;
-    currentline: string;
+    currentline, currentline2: string;
     currentlinenr: integer;
     currentlinep: pchar;
 
@@ -1298,6 +1298,8 @@ var i,j,k,l,e: integer;
 
     a,b,c,d: integer;
     s1,s2,s3: string;
+    diff: ptruint;
+
 
     assemblerlines: array of string;
 
@@ -1345,6 +1347,9 @@ var i,j,k,l,e: integer;
     createthreadandwaitid: integer;
 
     vpe: boolean;
+
+    nops: Tassemblerbytes;
+    mustbefar: boolean;
 
     function getAddressFromScript(name: string): ptruint;
     var
@@ -2901,7 +2906,109 @@ begin
               else
               begin
                 if (processhandler.is64Bit) then //and not in region
-                  currentline:=replacetoken(currentline,labels[j].labelname,IntToHex(currentaddress+$1000FFFFF,8))
+                begin
+                  //check if between here and the definition of labels[j].labelname is an write pointer change specifier to a region too far away from currentaddress, if not, LONG will suffice
+
+                  //tip: you 'could' disassemble everything inbetween and see if a small jmp is possible as well (just a lot slower)
+
+                  mustbefar:=false;
+                  for l:=i+1 to length(assemblerlines)-1 do
+                  begin
+                    currentline2:=assemblerlines[l];
+                    if currentline2=labels[j].labelname+':' then break; //reached the label
+
+                    if currentline2[length(currentline2)]=':' then
+                    begin
+                      //check if it's just a label or alloc in the same group
+                      for k:=0 to length(defines)-1 do
+                        currentline2:=replacetoken(currentline2,defines[k].name,defines[k].whatever);
+
+
+                      s2:=copy(currentline2,1,length(currentline2)-1);
+                      for k:=0 to length(allocs)-1 do
+                      begin
+                        if allocs[k].varname=s2 then
+                        begin
+                          if currentaddress>allocs[k].address then
+                            diff:=currentaddress-allocs[k].address
+                          else
+                            diff:=allocs[k].address-currentaddress;
+
+                          if diff>=$80000000 then
+                          begin
+                            mustbefar:=true;
+                            break;
+                          end;
+                        end;
+                      end;
+
+                      if mustbefar then break;
+
+                      for k:=0 to length(kallocs)-1 do
+                      begin
+                        if kallocs[k].varname=s2 then
+                        begin
+                          if currentaddress>kallocs[k].address then
+                            diff:=currentaddress-kallocs[k].address
+                          else
+                            diff:=kallocs[k].address-currentaddress;
+
+                          if diff>=$80000000 then
+                          begin
+                            mustbefar:=true;
+                            break;
+                          end;
+                        end;
+                      end;
+
+                      if mustbefar then break;
+
+                      //if it's a label it's ok
+                      ok1:=false;
+                      for k:=0 to length(labels)-1 do
+                      begin
+                        if labels[k].labelname=s2 then
+                        begin
+                          ok1:=true;
+                          break;
+                        end;
+                      end;
+
+                      if ok1 then continue; //it's a label, no need to do a heavy symbol lookup
+
+                      //not an alloc or kalloc
+
+
+
+
+                      try
+                        testptr:=symhandler.getAddressFromName(copy(currentline2,1,length(currentline2)-1));
+
+                        if currentaddress>testptr then
+                          diff:=currentaddress-testptr
+                        else
+                          diff:=testptr-currentaddress;
+
+                        if diff>=$80000000 then
+                        begin
+                          mustbefar:=true;
+                          break;
+                        end;
+
+                      except
+                        mustbefar:=true;
+                      end;
+
+
+                      if mustbefar then break;
+                    end;
+                  end;
+
+                  if mustbefar then
+                    currentline:=replacetoken(currentline,labels[j].labelname,IntToHex(currentaddress+$2000FFFFF,8))
+                  else
+                    currentline:=replacetoken(currentline,labels[j].labelname,IntToHex(currentaddress+$FFFFF,8));
+                end
                 else
                   currentline:=replacetoken(currentline,labels[j].labelname,IntToHex(currentaddress+$FFFFF,8));
               end;
@@ -2960,10 +3067,20 @@ begin
               {$endif}
               assemble(s1,assembled[labels[j].references[k]].address,assembled[labels[j].references[k]].bytes, apLong);
 
-
               b:=length(assembled[labels[j].references[k]].bytes); //new size
-
               setlength(assembled[labels[j].references[k]].bytes,a); //original size (original size is always bigger or equal than newsize)
+
+              if (b<a) and (a<12) then //try to grow the instruction as some people cry about nops (unless it was a megajmp/call as those are less efficient)
+              begin
+                //try a bigger one
+                assemble(s1,assembled[labels[j].references[k]].address,nops, apLong);
+                if length(nops)=a then //found a match size
+                  copymemory(@assembled[labels[j].references[k]].bytes[0], @nops[0], b);
+
+                b:=a;
+              end;
+
+
               //fill the difference with nops (not the most efficient approach, but it should work)
               if processhandler.SystemArchitecture=archarm then
               begin
@@ -2972,8 +3089,15 @@ begin
               end
               else
               begin
+//              todo:  if a-b>8 then replace with the far version
+                assemble('nop '+inttohex(a-b,1),0,nops);
+
                 for l:=b to a-1 do
-                  assembled[labels[j].references[k]].bytes[l]:=$90; //nop
+                  assembled[labels[j].references[k]].bytes[l]:=nops[l-b];
+
+//                for l:=b to a-1 do
+//                  assembled[labels[j].references[k]].bytes[l]:=$90; //nop
+
               end;
             end;
 
