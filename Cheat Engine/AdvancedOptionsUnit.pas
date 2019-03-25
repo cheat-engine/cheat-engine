@@ -361,7 +361,7 @@ begin
       //if neither grey it out
 
       try
-        offset:=symhandler.getAddressFromName(code[codelist2.itemindex].symbolname);
+        offset:=symhandler.getAddressFromName(code[codelist2.itemindex].symbolname, false);
         opcode:=disassemble(offset,desc);
       except
         Findoutwhatthiscodechanges1.enabled:=false;
