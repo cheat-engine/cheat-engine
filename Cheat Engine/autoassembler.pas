@@ -1301,7 +1301,10 @@ var i,j,k,l,e: integer;
     diff: ptruint;
 
 
-    assemblerlines: array of string;
+    assemblerlines: array of record
+      linenr: integer;
+      line: string;
+    end;
 
     exceptionlist: TAAExceptionInfoList;
 
@@ -1604,7 +1607,8 @@ begin
 
 
           setlength(assemblerlines,length(assemblerlines)+1);
-          assemblerlines[length(assemblerlines)-1]:=currentline;
+          assemblerlines[length(assemblerlines)-1].linenr:=currentlinenr;
+          assemblerlines[length(assemblerlines)-1].line:=currentline;
 
           //plugins
           currentlinep:=@currentline[1];
@@ -2001,7 +2005,8 @@ begin
 
 
               //still here so everything ok
-              assemblerlines[length(assemblerlines)-1]:='<READMEM'+IntToStr(length(readmems))+'>';
+              assemblerlines[length(assemblerlines)-1].linenr:=currentlinenr;
+              assemblerlines[length(assemblerlines)-1].line:='<READMEM'+IntToStr(length(readmems))+'>';
               setlength(readmems, length(readmems)+1);
               readmems[length(readmems)-1].bytelength:=a;
               readmems[length(readmems)-1].bytes:=bytebuf;
@@ -2038,7 +2043,8 @@ begin
               if syntaxcheckonly then currentline:='nop' else
                 currentline:=disassembler.LastDisassembleData.prefix+' '+Disassembler.LastDisassembleData.opcode+' '+disassembler.LastDisassembleData.parameters;;
 
-              assemblerlines[length(assemblerlines)-1]:=currentline;
+              assemblerlines[length(assemblerlines)-1].linenr:=currentlinenr;
+              assemblerlines[length(assemblerlines)-1].line:=currentline;
               disassembler.free;
             end else raise exception.Create(rsWrongSyntaxReAssemble);
 
@@ -2406,7 +2412,8 @@ begin
 
               except
                 currentline:=inttohex(symhandler.getaddressfromname(copy(currentline,1,length(currentline)-1)),8)+':';
-                assemblerlines[length(assemblerlines)-1]:=currentline;
+                assemblerlines[length(assemblerlines)-1].linenr:=currentlinenr;
+                assemblerlines[length(assemblerlines)-1].line:=currentline;
               end;
 
 
@@ -2841,302 +2848,310 @@ begin
     //assemblerlines only contains label specifiers and assembler instructions
 
     setlength(assembled,0);
-    for i:=0 to length(assemblerlines)-1 do
-    begin
-      currentline:=assemblerlines[i];
-
-      createthreadandwaitid:=-1;
-      for j:=0 to length(createthreadandwait)-1 do //there can be multiple at the time of assembly.  All entries up to the higest value will be picked at a blockwrite (and made 0 so next blockwrite won't do them)
+    currentlinenr:=0;
+    try
+      for i:=0 to length(assemblerlines)-1 do
       begin
-        if (i>createthreadandwait[j].position) or (i=length(Assemblerlines)-1) then //if it's the last line, then do all remaining
-          createthreadandwaitid:=j;
-      end;
+        currentline:=assemblerlines[i].line;
+        currentlinenr:=assemblerlines[i].linenr;
 
-      //plugin
-      {$ifndef jni}
-      if length(currentline)>0 then
-      begin
-        currentlinep:=@currentline[1];
-        pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 2,aaid);
-        currentline:=currentlinep;
-        //if handled currentline will have it's identifiers regarding the plugin's previously registered stuff replaced
-        //note that this can be called in a multithreaded situation, so the plugin must hld storage containers on a threadid base and handle the locking itself
-      end;
-      {$endif}
-      //plugin
-
-
-
-      tokenize(currentline,tokens);
-      //if alloc then replace with the address
-      for j:=0 to length(allocs)-1 do
-        currentline:=replacetoken(currentline,allocs[j].varname,IntToHex(allocs[j].address,8));
-
-      //if kalloc then replace with the address
-      for j:=0 to length(kallocs)-1 do
-        currentline:=replacetoken(currentline,kallocs[j].varname,IntToHex(kallocs[j].address,8));
-
-      for j:=0 to length(defines)-1 do
-        currentline:=replacetoken(currentline,defines[j].name,defines[j].whatever);
-
-
-      ok1:=false;
-      if currentline[length(currentline)]<>':' then //if it's not a definition then
-      begin
-        for j:=0 to length(labels)-1 do
+        createthreadandwaitid:=-1;
+        for j:=0 to length(createthreadandwait)-1 do //there can be multiple at the time of assembly.  All entries up to the higest value will be picked at a blockwrite (and made 0 so next blockwrite won't do them)
         begin
-          if tokencheck(currentline,labels[j].labelname) then
+          if (i>createthreadandwait[j].position) or (i=length(Assemblerlines)-1) then //if it's the last line, then do all remaining
+            createthreadandwaitid:=j;
+        end;
+
+        //plugin
+        {$ifndef jni}
+        if length(currentline)>0 then
+        begin
+          currentlinep:=@currentline[1];
+          pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 2,aaid);
+          currentline:=currentlinep;
+          //if handled currentline will have it's identifiers regarding the plugin's previously registered stuff replaced
+          //note that this can be called in a multithreaded situation, so the plugin must hld storage containers on a threadid base and handle the locking itself
+        end;
+        {$endif}
+        //plugin
+
+
+
+        tokenize(currentline,tokens);
+        //if alloc then replace with the address
+        for j:=0 to length(allocs)-1 do
+          currentline:=replacetoken(currentline,allocs[j].varname,IntToHex(allocs[j].address,8));
+
+        //if kalloc then replace with the address
+        for j:=0 to length(kallocs)-1 do
+          currentline:=replacetoken(currentline,kallocs[j].varname,IntToHex(kallocs[j].address,8));
+
+        for j:=0 to length(defines)-1 do
+          currentline:=replacetoken(currentline,defines[j].name,defines[j].whatever);
+
+
+        ok1:=false;
+        if currentline[length(currentline)]<>':' then //if it's not a definition then
+        begin
+          for j:=0 to length(labels)-1 do
           begin
-            if not labels[j].defined then
+            if tokencheck(currentline,labels[j].labelname) then
             begin
-              //the address hasn't been found yet
-              //this is the part that causes those nops after a short jump below the current instruction
-
-              //problem: The size of these instructions determine where this label will be defined
-
-              //close
-              s1:=replacetoken(currentline,labels[j].labelname,IntToHex(currentaddress,8));
-
-              //far and big
-
-              if processhandler.SystemArchitecture=archarm then
+              if not labels[j].defined then
               begin
-                currentline:=replacetoken(currentline,labels[j].labelname,IntToHex(currentaddress+$4FFFFF8,8));
-              end
-              else
-              begin
-                if (processhandler.is64Bit) then //and not in region
+                //the address hasn't been found yet
+                //this is the part that causes those nops after a short jump below the current instruction
+
+                //problem: The size of these instructions determine where this label will be defined
+
+                //close
+                s1:=replacetoken(currentline,labels[j].labelname,IntToHex(currentaddress,8));
+
+                //far and big
+
+                if processhandler.SystemArchitecture=archarm then
                 begin
-                  //check if between here and the definition of labels[j].labelname is an write pointer change specifier to a region too far away from currentaddress, if not, LONG will suffice
-
-                  //tip: you 'could' disassemble everything inbetween and see if a small jmp is possible as well (just a lot slower)
-
-                  mustbefar:=false;
-                  for l:=i+1 to length(assemblerlines)-1 do
-                  begin
-                    currentline2:=assemblerlines[l];
-                    if currentline2=labels[j].labelname+':' then break; //reached the label
-
-                    if currentline2[length(currentline2)]=':' then
-                    begin
-                      //check if it's just a label or alloc in the same group
-                      for k:=0 to length(defines)-1 do
-                        currentline2:=replacetoken(currentline2,defines[k].name,defines[k].whatever);
-
-
-                      s2:=copy(currentline2,1,length(currentline2)-1);
-                      for k:=0 to length(allocs)-1 do
-                      begin
-                        if allocs[k].varname=s2 then
-                        begin
-                          if currentaddress>allocs[k].address then
-                            diff:=currentaddress-allocs[k].address
-                          else
-                            diff:=allocs[k].address-currentaddress;
-
-                          if diff>=$80000000 then
-                          begin
-                            mustbefar:=true;
-                            break;
-                          end;
-                        end;
-                      end;
-
-                      if mustbefar then break;
-
-                      for k:=0 to length(kallocs)-1 do
-                      begin
-                        if kallocs[k].varname=s2 then
-                        begin
-                          if currentaddress>kallocs[k].address then
-                            diff:=currentaddress-kallocs[k].address
-                          else
-                            diff:=kallocs[k].address-currentaddress;
-
-                          if diff>=$80000000 then
-                          begin
-                            mustbefar:=true;
-                            break;
-                          end;
-                        end;
-                      end;
-
-                      if mustbefar then break;
-
-                      //if it's a label it's ok
-                      ok1:=false;
-                      for k:=0 to length(labels)-1 do
-                      begin
-                        if labels[k].labelname=s2 then
-                        begin
-                          ok1:=true;
-                          break;
-                        end;
-                      end;
-
-                      if ok1 then continue; //it's a label, no need to do a heavy symbol lookup
-
-                      //not an alloc or kalloc
-
-
-
-
-                      try
-                        testptr:=symhandler.getAddressFromName(copy(currentline2,1,length(currentline2)-1));
-
-                        if currentaddress>testptr then
-                          diff:=currentaddress-testptr
-                        else
-                          diff:=testptr-currentaddress;
-
-                        if diff>=$80000000 then
-                        begin
-                          mustbefar:=true;
-                          break;
-                        end;
-
-                      except
-                        mustbefar:=true;
-                      end;
-
-
-                      if mustbefar then break;
-                    end;
-                  end;
-
-                  if mustbefar then
-                    currentline:=replacetoken(currentline,labels[j].labelname,IntToHex(currentaddress+$2000FFFFF,8))
-                  else
-                    currentline:=replacetoken(currentline,labels[j].labelname,IntToHex(currentaddress+$FFFFF,8));
+                  currentline:=replacetoken(currentline,labels[j].labelname,IntToHex(currentaddress+$4FFFFF8,8));
                 end
                 else
-                  currentline:=replacetoken(currentline,labels[j].labelname,IntToHex(currentaddress+$FFFFF,8));
-              end;
+                begin
+                  if (processhandler.is64Bit) then //and not in region
+                  begin
+                    //check if between here and the definition of labels[j].labelname is an write pointer change specifier to a region too far away from currentaddress, if not, LONG will suffice
+
+                    //tip: you 'could' disassemble everything inbetween and see if a small jmp is possible as well (just a lot slower)
+
+                    mustbefar:=false;
+                    for l:=i+1 to length(assemblerlines)-1 do
+                    begin
+                      currentline2:=assemblerlines[l].line;
+                      if currentline2=labels[j].labelname+':' then break; //reached the label
+
+                      if currentline2[length(currentline2)]=':' then
+                      begin
+                        //check if it's just a label or alloc in the same group
+                        for k:=0 to length(defines)-1 do
+                          currentline2:=replacetoken(currentline2,defines[k].name,defines[k].whatever);
 
 
-              setlength(assembled,length(assembled)+1);
-              assembled[length(assembled)-1].createthreadandwait:=createthreadandwaitid;
-              assembled[length(assembled)-1].address:=currentaddress;
-              assemble(currentline,currentaddress,assembled[length(assembled)-1].bytes, apnone, true);
-              a:=length(assembled[length(assembled)-1].bytes);
+                        s2:=copy(currentline2,1,length(currentline2)-1);
+                        for k:=0 to length(allocs)-1 do
+                        begin
+                          if allocs[k].varname=s2 then
+                          begin
+                            if currentaddress>allocs[k].address then
+                              diff:=currentaddress-allocs[k].address
+                            else
+                              diff:=allocs[k].address-currentaddress;
 
-              assemble(s1,currentaddress,assembled[length(assembled)-1].bytes, apnone, true);
-              b:=length(assembled[length(assembled)-1].bytes);
+                            if diff>=$80000000 then
+                            begin
+                              mustbefar:=true;
+                              break;
+                            end;
+                          end;
+                        end;
 
-              if a>b then //pick the biggest one
-                assemble(currentline,currentaddress,assembled[length(assembled)-1].bytes);
+                        if mustbefar then break;
 
-              setlength(labels[j].references,length(labels[j].references)+1);
-              labels[j].references[length(labels[j].references)-1]:=length(assembled)-1;
+                        for k:=0 to length(kallocs)-1 do
+                        begin
+                          if kallocs[k].varname=s2 then
+                          begin
+                            if currentaddress>kallocs[k].address then
+                              diff:=currentaddress-kallocs[k].address
+                            else
+                              diff:=kallocs[k].address-currentaddress;
 
-              setlength(labels[j].references2,length(labels[j].references2)+1);
-              labels[j].references2[length(labels[j].references2)-1]:=i;
+                            if diff>=$80000000 then
+                            begin
+                              mustbefar:=true;
+                              break;
+                            end;
+                          end;
+                        end;
 
-              inc(currentaddress,length(assembled[length(assembled)-1].bytes));
-              ok1:=true;
-            end else currentline:=replacetoken(currentline,labels[j].labelname,IntToHex(labels[j].address,8));
+                        if mustbefar then break;
 
-            //break;
-          end;
-        end;
-      end;
+                        //if it's a label it's ok
+                        ok1:=false;
+                        for k:=0 to length(labels)-1 do
+                        begin
+                          if labels[k].labelname=s2 then
+                          begin
+                            ok1:=true;
+                            break;
+                          end;
+                        end;
 
-      if ok1 then continue;
+                        if ok1 then continue; //it's a label, no need to do a heavy symbol lookup
 
-      if currentline[length(currentline)]=':' then
-      begin
-        ok1:=false;
-        for j:=0 to length(labels)-1 do
-        begin
-          if i=labels[j].assemblerline then
-          begin
-            labels[j].address:=currentaddress;
-            labels[j].defined:=true;
-            ok1:=true;
-
-
-            //reassemble the instructions that had no target
-            for k:=0 to length(labels[j].references)-1 do
-            begin
-              a:=length(assembled[labels[j].references[k]].bytes); //original size of the assembled code
-              s1:=replacetoken(assemblerlines[labels[j].references2[k]],labels[j].labelname,IntToHex(labels[j].address,8));
-              {$ifdef cpu64}
-              if processhandler.is64Bit then
-                assemble(s1,assembled[labels[j].references[k]].address,assembled[labels[j].references[k]].bytes)
-              else
-              {$endif}
-              assemble(s1,assembled[labels[j].references[k]].address,assembled[labels[j].references[k]].bytes, apLong);
-
-              b:=length(assembled[labels[j].references[k]].bytes); //new size
-              setlength(assembled[labels[j].references[k]].bytes,a); //original size (original size is always bigger or equal than newsize)
-
-              if (b<a) and (a<12) then //try to grow the instruction as some people cry about nops (unless it was a megajmp/call as those are less efficient)
-              begin
-                //try a bigger one
-                assemble(s1,assembled[labels[j].references[k]].address,nops, apLong);
-                if length(nops)=a then //found a match size
-                  copymemory(@assembled[labels[j].references[k]].bytes[0], @nops[0], b);
-
-                b:=a;
-              end;
+                        //not an alloc or kalloc
 
 
-              //fill the difference with nops (not the most efficient approach, but it should work)
-              if processhandler.SystemArchitecture=archarm then
-              begin
-                for l:=0 to ((a-b+3) div 4)-1 do
-                  pdword(@assembled[labels[j].references[k]].bytes[b+l*4])^:=$e1a00000;      //<mov r0,r0: (nop equivalent)
-              end
-              else
-              begin
-//              todo:  if a-b>8 then replace with the far version
-                assemble('nop '+inttohex(a-b,1),0,nops);
 
-                for l:=b to a-1 do
-                  assembled[labels[j].references[k]].bytes[l]:=nops[l-b];
 
-//                for l:=b to a-1 do
-//                  assembled[labels[j].references[k]].bytes[l]:=$90; //nop
+                        try
+                          testptr:=symhandler.getAddressFromName(copy(currentline2,1,length(currentline2)-1));
 
-              end;
+                          if currentaddress>testptr then
+                            diff:=currentaddress-testptr
+                          else
+                            diff:=testptr-currentaddress;
+
+                          if diff>=$80000000 then
+                          begin
+                            mustbefar:=true;
+                            break;
+                          end;
+
+                        except
+                          mustbefar:=true;
+                        end;
+
+
+                        if mustbefar then break;
+                      end;
+                    end;
+
+                    if mustbefar then
+                      currentline:=replacetoken(currentline,labels[j].labelname,IntToHex(currentaddress+$2000FFFFF,8))
+                    else
+                      currentline:=replacetoken(currentline,labels[j].labelname,IntToHex(currentaddress+$FFFFF,8));
+                  end
+                  else
+                    currentline:=replacetoken(currentline,labels[j].labelname,IntToHex(currentaddress+$FFFFF,8));
+                end;
+
+
+                setlength(assembled,length(assembled)+1);
+                assembled[length(assembled)-1].createthreadandwait:=createthreadandwaitid;
+                assembled[length(assembled)-1].address:=currentaddress;
+                assemble(currentline,currentaddress,assembled[length(assembled)-1].bytes, apnone, true);
+                a:=length(assembled[length(assembled)-1].bytes);
+
+                assemble(s1,currentaddress,assembled[length(assembled)-1].bytes, apnone, true);
+                b:=length(assembled[length(assembled)-1].bytes);
+
+                if a>b then //pick the biggest one
+                  assemble(currentline,currentaddress,assembled[length(assembled)-1].bytes);
+
+                setlength(labels[j].references,length(labels[j].references)+1);
+                labels[j].references[length(labels[j].references)-1]:=length(assembled)-1;
+
+                setlength(labels[j].references2,length(labels[j].references2)+1);
+                labels[j].references2[length(labels[j].references2)-1]:=i;
+
+                inc(currentaddress,length(assembled[length(assembled)-1].bytes));
+                ok1:=true;
+              end else currentline:=replacetoken(currentline,labels[j].labelname,IntToHex(labels[j].address,8));
+
+              //break;
             end;
-
-
-            break;
           end;
         end;
+
         if ok1 then continue;
 
-        try
-          currentaddress:=symhandler.getAddressFromName(copy(currentline,1,length(currentline)-1));
-          continue; //next line
-        except
-          raise exception.Create(rsThisAddressSpecifierIsNotValid);
-        end;
-      end;
-
-
-      setlength(assembled,length(assembled)+1);
-      assembled[length(assembled)-1].address:=currentaddress;
-      assembled[length(assembled)-1].createthreadandwait:=createthreadandwaitid;
-
-      if (currentline<>'') and (currentline[1]='<') then //special assembler instruction
-      begin
-
-        if copy(currentline,1,8)='<READMEM' then
+        if currentline[length(currentline)]=':' then
         begin
-          //lets try this for once
-          sscanf(currentline, '<READMEM%d>', [@l]);
-          setlength(assembled[length(assembled)-1].bytes, readmems[l].bytelength);
-          CopyMemory(@assembled[length(assembled)-1].bytes[0], readmems[l].bytes, readmems[l].bytelength);
+          ok1:=false;
+          for j:=0 to length(labels)-1 do
+          begin
+            if i=labels[j].assemblerline then
+            begin
+              labels[j].address:=currentaddress;
+              labels[j].defined:=true;
+              ok1:=true;
+
+
+              //reassemble the instructions that had no target
+              for k:=0 to length(labels[j].references)-1 do
+              begin
+                a:=length(assembled[labels[j].references[k]].bytes); //original size of the assembled code
+                s1:=replacetoken(assemblerlines[labels[j].references2[k]].line,labels[j].labelname,IntToHex(labels[j].address,8));
+                {$ifdef cpu64}
+                if processhandler.is64Bit then
+                  assemble(s1,assembled[labels[j].references[k]].address,assembled[labels[j].references[k]].bytes)
+                else
+                {$endif}
+                assemble(s1,assembled[labels[j].references[k]].address,assembled[labels[j].references[k]].bytes, apLong);
+
+                b:=length(assembled[labels[j].references[k]].bytes); //new size
+                setlength(assembled[labels[j].references[k]].bytes,a); //original size (original size is always bigger or equal than newsize)
+
+                if (b<a) and (a<12) then //try to grow the instruction as some people cry about nops (unless it was a megajmp/call as those are less efficient)
+                begin
+                  //try a bigger one
+                  assemble(s1,assembled[labels[j].references[k]].address,nops, apLong);
+                  if length(nops)=a then //found a match size
+                    copymemory(@assembled[labels[j].references[k]].bytes[0], @nops[0], b);
+
+                  b:=a;
+                end;
+
+
+                //fill the difference with nops (not the most efficient approach, but it should work)
+                if processhandler.SystemArchitecture=archarm then
+                begin
+                  for l:=0 to ((a-b+3) div 4)-1 do
+                    pdword(@assembled[labels[j].references[k]].bytes[b+l*4])^:=$e1a00000;      //<mov r0,r0: (nop equivalent)
+                end
+                else
+                begin
+  //              todo:  if a-b>8 then replace with the far version
+                  assemble('nop '+inttohex(a-b,1),0,nops);
+
+                  for l:=b to a-1 do
+                    assembled[labels[j].references[k]].bytes[l]:=nops[l-b];
+
+  //                for l:=b to a-1 do
+  //                  assembled[labels[j].references[k]].bytes[l]:=$90; //nop
+
+                end;
+              end;
+
+
+              break;
+            end;
+          end;
+          if ok1 then continue;
+
+          try
+            currentaddress:=symhandler.getAddressFromName(copy(currentline,1,length(currentline)-1));
+            continue; //next line
+          except
+            raise exception.Create(rsThisAddressSpecifierIsNotValid);
+          end;
+        end;
+
+
+        setlength(assembled,length(assembled)+1);
+        assembled[length(assembled)-1].address:=currentaddress;
+        assembled[length(assembled)-1].createthreadandwait:=createthreadandwaitid;
+
+        if (currentline<>'') and (currentline[1]='<') then //special assembler instruction
+        begin
+
+          if copy(currentline,1,8)='<READMEM' then
+          begin
+            //lets try this for once
+            sscanf(currentline, '<READMEM%d>', [@l]);
+            setlength(assembled[length(assembled)-1].bytes, readmems[l].bytelength);
+            CopyMemory(@assembled[length(assembled)-1].bytes[0], readmems[l].bytes, readmems[l].bytelength);
+          end
+          else
+            assemble(currentline,currentaddress,assembled[length(assembled)-1].bytes);
         end
         else
           assemble(currentline,currentaddress,assembled[length(assembled)-1].bytes);
-      end
-      else
-        assemble(currentline,currentaddress,assembled[length(assembled)-1].bytes);
 
-      inc(currentaddress,length(assembled[length(assembled)-1].bytes));
+        inc(currentaddress,length(assembled[length(assembled)-1].bytes));
+      end;
+
+    except
+      on e:exception do
+        raise exception.create(inttostr(currentlinenr)+':'+e.message);
     end;
     //end of loop
 
