@@ -13,12 +13,19 @@ procedure AdjustComboboxSize(cb: TComboBox; canvas: TCanvas);
 procedure AdjustEditBoxSize(editbox: TEdit; mintextwidth: integer);
 function GetEditBoxMargins(editbox: TEdit): integer;
 
+function getDPIScaleFactor: single;
+
 implementation
 
 uses globals, win32proc;
 
 const
   designtimedpi=96;
+
+function getDPIScaleFactor: single;
+begin
+  result:=screen.PixelsPerInch/designtimedpi;
+end;
 
 function GetEditBoxMargins(editbox: TEdit): integer;
 var m: dword;

@@ -386,7 +386,7 @@ object formAddressChange: TformAddressChange
     Left = 120
     Height = 15
     Top = 19
-    Width = 37
+    Width = 36
     BorderSpacing.Right = 5
     Caption = '=Value'
     ParentColor = False
@@ -424,7 +424,7 @@ object formAddressChange: TformAddressChange
     Left = 8
     Height = 15
     Top = 80
-    Width = 26
+    Width = 25
     BorderSpacing.Top = 2
     Caption = 'Type'
     ParentColor = False
