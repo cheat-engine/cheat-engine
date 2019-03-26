@@ -105,7 +105,7 @@ type
     procedure EnumerateExtendedDebugSymbols;
 
     procedure LoadDriverSymbols(loadpdb: boolean);
-    procedure LoadDLLSymbols(loadpdb: boolean);
+    procedure LoadDLLSymbols(loadpdb: boolean; loadmodule: boolean);
     procedure finishedLoadingSymbols;
     function NetworkES(modulename: string; symbolname: string; address: ptruint; size: integer; secondary: boolean): boolean;
   public
@@ -627,7 +627,7 @@ begin
 end;
 
 
-procedure TSymbolloaderthread.LoadDLLSymbols(loadPDB: boolean);
+procedure TSymbolloaderthread.LoadDLLSymbols(loadPDB: boolean; loadmodule: boolean);
 var need:dword;
     x: PPointerArray;
     i: integer;
@@ -659,31 +659,17 @@ begin
         for i:=0 to count-1 do
         begin
           GetModuleFileNameEx(thisprocesshandle,ptrUint(x[i]),modulename,200);
-          if assigned(SymLoadModuleEx) then
-            symLoadModuleEx(thisprocesshandle,0,pchar(modulename),nil,ptrUint(x[i]),0,nil,ifthen(loadpdb,0,SLMFLAG_NO_SYMBOLS))
-          else
-            SymLoadModule64(thisprocesshandle,0,pchar(modulename),nil,ptrUint(x[i]),0);
-
+          if loadmodule then
+          begin
+            if assigned(SymLoadModuleEx) then
+              symLoadModuleEx(thisprocesshandle,0,pchar(modulename),nil,ptrUint(x[i]),0,nil,ifthen(loadpdb,0,SLMFLAG_NO_SYMBOLS))
+            else
+              SymLoadModule64(thisprocesshandle,0,pchar(modulename),nil,ptrUint(x[i]),0);
+          end;
 
           mi.SizeOfStruct:=sizeof(mi);
           if SymGetModuleInfo(thisprocesshandle, ptruint(x[i]), @mi) then
           begin
-            //srv*c:\DownstreamStore*https://msdl.microsoft.com/download/symbols
-            //srv*c:\DownstreamStore
-            {
-            SymSetSearchPath(thisprocesshandle, 'srv*c:\DownstreamStore*https://msdl.microsoft.com/download/symbols');
-
-            if mi.SymType<>SymPdb then
-            begin
-              getmem(path,512);
-              if SymFindFileInPath(thisprocesshandle,pchar(searchpath),@mi.LoadedPdbName[0],@mi.PdbSig70,mi.PdbAge,0,SSRVOPT_GUIDPTR,path, cb,nil) then
-              begin
-                OutputDebugString(pchar('Loaded symbols for '+pchar(mi.LoadedImageName[0])+'+ at '+path));
-                mi.Symtype:=SymPdb;
-              end;
-              freemem(path);
-            end; }
-
             if mi.SymType in [SymExport, SymNone] then
             begin
               setlength(modulelist.withoutdebuginfo,length(modulelist.withoutdebuginfo)+1);
@@ -1899,8 +1885,10 @@ var sp: pchar;
     dotNetmodules: TDotNetModuleArray;
 
 
+    d: dword;
 
     modinfo: PModInfo;
+    needstoenumodules: boolean;
 begin
   debugpart:=0;
 
@@ -2013,21 +2001,41 @@ begin
           symbolloaderthreadcs.Enter;
           try
             //get the export symbols first
-            symsetoptions(symgetoptions or SYMOPT_CASE_INSENSITIVE);
-            SymbolsLoaded:=SymInitialize(thisprocesshandle, pchar(''), false);
+
+            d:=symgetoptions;
+            d:=d or SYMOPT_CASE_INSENSITIVE;
+            d:=d and not SYMOPT_DEFERRED_LOADS;
+
+
+
+            symsetoptions(d);
+
+            SymbolsLoaded:=SymInitialize(thisprocesshandle, pchar(''), true);
+            if symbolsloaded=false then
+            begin
+              SymbolsLoaded:=SymInitialize(thisprocesshandle, pchar(''), false);
+              needstoenumodules:=true;
+            end
+            else
+              needstoenumodules:=false;
 
             if symbolsloaded then
             begin
               symbolscleaned:=false;
 
               if kernelsymbols then LoadDriverSymbols(false);
-              LoadDLLSymbols(false);
+              LoadDLLSymbols(false, needstoenumodules);
               enumeratedModules:=0;
 
               if terminated then exit;
-
               DLLSymbolsLoaded:=true;
+
+              processThreadEvents;
+
               SymEnumerateModules64(thisprocesshandle, @EM, self );
+
+              processThreadEvents;
+
               apisymbolsloaded:=true;
               SymCleanup(thisprocesshandle);
               symbolscleaned:=true;
@@ -2060,21 +2068,32 @@ begin
 
             if terminated then exit;
 
+            d:=symgetoptions;
+            d:=d or SYMOPT_CASE_INSENSITIVE;
+            d:=d or SYMOPT_DEFERRED_LOADS;
+            symsetoptions(d);
+
             SymbolsLoaded:=SymInitialize(thisprocesshandle, sp, true);
             if symbolsloaded=false then
+            begin
               SymbolsLoaded:=SymInitialize(thisprocesshandle, sp, false);
-
+              needstoenumodules:=true;
+            end
+            else
+              needstoenumodules:=false;
 
             if terminated then exit;
 
             if symbolsloaded then
             begin
+              symbolscleaned:=false;
+
               debugpart:=2;
-              symsetoptions(symgetoptions or SYMOPT_CASE_INSENSITIVE);
+              //symsetoptions(symgetoptions or SYMOPT_CASE_INSENSITIVE);
 
               if kernelsymbols then LoadDriverSymbols(true);
 
-              LoadDLLSymbols(true);
+              LoadDLLSymbols(true, needstoenumodules);
 
               processThreadEvents;
 
