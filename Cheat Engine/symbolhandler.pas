@@ -2003,7 +2003,7 @@ begin
             //get the export symbols first
 
             d:=symgetoptions;
-            d:=d or SYMOPT_CASE_INSENSITIVE;
+            d:=d or SYMOPT_CASE_INSENSITIVE or SYMOPT_INCLUDE_32BIT_MODULES;
             d:=d and not SYMOPT_DEFERRED_LOADS;
 
 
@@ -2017,7 +2017,9 @@ begin
               needstoenumodules:=true;
             end
             else
+            begin
               needstoenumodules:=false;
+            end;
 
             if symbolsloaded then
             begin
@@ -2069,7 +2071,7 @@ begin
             if terminated then exit;
 
             d:=symgetoptions;
-            d:=d or SYMOPT_CASE_INSENSITIVE;
+            d:=d or SYMOPT_CASE_INSENSITIVE or SYMOPT_INCLUDE_32BIT_MODULES;
             d:=d or SYMOPT_DEFERRED_LOADS;
             symsetoptions(d);
 
