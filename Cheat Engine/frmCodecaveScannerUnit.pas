@@ -31,24 +31,26 @@ type
   { TfrmCodecaveScanner }
 
   TfrmCodecaveScanner = class(TForm)
-    lbCodecaveList: TListBox;
-    Panel1: TPanel;
+    btnStart: TButton;
+    editSize: TEdit;
+    editStart: TEdit;
+    editStop: TEdit;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
-    btnStart: TButton;
-    editStart: TEdit;
-    editStop: TEdit;
-    editSize: TEdit;
+    lbCodecaveList: TListBox;
+    Panel1: TPanel;
     Panel2: TPanel;
     cbNoExecute: TCheckBox;
+    Panel3: TPanel;
     ProgressBar1: TProgressBar;
     PopupMenu1: TPopupMenu;
     Copytoclipboard1: TMenuItem;
     procedure btnStartClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure lbCodecaveListDblClick(Sender: TObject);
     procedure Copytoclipboard1Click(Sender: TObject);
@@ -65,7 +67,8 @@ var
 implementation
 
 
-uses MainUnit2, MemoryBrowserFormUnit, ProcessHandlerUnit, Globals, Parsers;
+uses MainUnit2, MemoryBrowserFormUnit, ProcessHandlerUnit, Globals, Parsers,
+  DPIHelper, Math;
 
 resourcestring
   rsPleaseProvideAValidStartAddress = 'Please provide a valid start address';
@@ -283,8 +286,16 @@ begin
     canclose:=messagedlg(rsClosingThisWindowWillAlsoStopTheScannerAreYouSure, mtconfirmation, [mbyes, mbno], 0)=mryes;
 end;
 
+procedure TfrmCodecaveScanner.FormCreate(Sender: TObject);
+begin
+
+end;
+
 procedure TfrmCodecaveScanner.FormShow(Sender: TObject);
-var fh: integer;
+var
+  fh: integer;
+  b: TBitmap;
+  preferedwidth: integer;
 begin
   fh:=GetFontData(font.reference.Handle).Height;
   editstart.font.height:=fh;
@@ -298,6 +309,27 @@ begin
     cbNoExecute.Enabled:=false;
     cbNoExecute.visible:=false;
   end;
+  b:=tbitmap.Create;
+  b.canvas.Font:=editstart.font;
+
+  editStart.Constraints.MinWidth:=dpihelper.GetEditBoxMargins(editstart)+canvas.GetTextWidth(' XXXXXXXXXXXXXXXX ');
+  editStop.Constraints.MinWidth:= editStart.Constraints.MinWidth;
+
+  editStart.Width:=editStart.Constraints.MinWidth;
+  editStop.Width:=editStart.Constraints.MinWidth;
+
+  editSize.Constraints.MinWidth:=dpihelper.GetEditBoxMargins(editstart)+canvas.GetTextWidth(' XXXXX ');
+  editSize.Width:=editSize.Constraints.MinWidth;
+
+  progressbar1.height:=ceil(progressbar1.height*dpihelper.getDPIScaleFactor);
+
+  DoAutoSize;
+  autosize:=false;
+  preferedwidth:=canvas.GetTextWidth('XXXXXXXXXXXXXX - XXXXXX')+panel1.width;
+  if clientwidth<preferedwidth then
+    clientwidth:=preferedwidth;
+
+
 
 end;
 

@@ -1,232 +1,226 @@
 object frmCodecaveScanner: TfrmCodecaveScanner
   Left = 539
-  Height = 342
+  Height = 323
   Top = 296
-  Width = 600
+  Width = 512
   AutoSize = True
   Caption = 'Scan for codecaves'
-  ClientHeight = 342
-  ClientWidth = 600
+  ClientHeight = 323
+  ClientWidth = 512
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'
-  object lbCodecaveList: TListBox
-    AnchorSideLeft.Control = Owner
-    AnchorSideTop.Control = Owner
-    AnchorSideRight.Control = Panel1
-    Left = 0
-    Height = 288
-    Top = 0
-    Width = 476
-    Anchors = [akTop, akLeft, akRight]
-    ItemHeight = 0
-    MultiSelect = True
-    OnDblClick = lbCodecaveListDblClick
-    ParentFont = False
-    PopupMenu = PopupMenu1
-    TabOrder = 0
-  end
-  object Panel1: TPanel
-    AnchorSideTop.Control = Owner
-    Left = 476
-    Height = 185
-    Top = 0
-    Width = 124
-    Anchors = [akTop, akRight]
-    AutoSize = True
-    BevelOuter = bvNone
-    ClientHeight = 185
-    ClientWidth = 124
-    TabOrder = 1
-    object Label1: TLabel
-      AnchorSideLeft.Control = Panel1
-      AnchorSideTop.Control = Panel1
-      AnchorSideRight.Control = Panel1
-      AnchorSideRight.Side = asrBottom
-      Left = 2
-      Height = 15
-      Top = 0
-      Width = 120
-      Alignment = taCenter
-      Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Left = 2
-      BorderSpacing.Right = 2
-      Caption = 'Start Address'
-      ParentColor = False
-    end
-    object Label2: TLabel
-      AnchorSideLeft.Control = Panel1
-      AnchorSideTop.Control = editStart
-      AnchorSideTop.Side = asrBottom
-      AnchorSideRight.Control = Panel1
-      AnchorSideRight.Side = asrBottom
-      Left = 2
-      Height = 15
-      Top = 43
-      Width = 120
-      Alignment = taCenter
-      Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Left = 2
-      BorderSpacing.Top = 2
-      BorderSpacing.Right = 2
-      Caption = 'Stop Address'
-      ParentColor = False
-    end
-    object Label3: TLabel
-      AnchorSideLeft.Control = Panel1
-      AnchorSideTop.Control = editStop
-      AnchorSideTop.Side = asrBottom
-      AnchorSideRight.Control = Panel1
-      AnchorSideRight.Side = asrBottom
-      Left = 2
-      Height = 15
-      Top = 86
-      Width = 120
-      Alignment = taCenter
-      Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Left = 2
-      BorderSpacing.Top = 2
-      BorderSpacing.Right = 2
-      Caption = 'Size of cave'
-      ParentColor = False
-    end
-    object btnStart: TButton
-      AnchorSideLeft.Control = Panel1
-      AnchorSideLeft.Side = asrCenter
-      AnchorSideTop.Control = editSize
-      AnchorSideTop.Side = asrBottom
-      Left = 25
-      Height = 25
-      Top = 130
-      Width = 75
-      AutoSize = True
-      BorderSpacing.Top = 3
-      BorderSpacing.Bottom = 30
-      Caption = 'Start'
-      Constraints.MinWidth = 75
-      Default = True
-      OnClick = btnStartClick
-      TabOrder = 0
-    end
-    object editStart: TEdit
-      AnchorSideLeft.Control = Panel1
-      AnchorSideTop.Control = Label1
-      AnchorSideTop.Side = asrBottom
-      AnchorSideRight.Control = Panel1
-      AnchorSideRight.Side = asrBottom
-      Left = 2
-      Height = 26
-      Top = 15
-      Width = 120
-      Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Left = 2
-      BorderSpacing.Right = 2
-      CharCase = ecUppercase
-      Constraints.MinWidth = 120
-      Font.CharSet = ANSI_CHARSET
-      Font.Name = 'Courier New'
-      MaxLength = 16
-      ParentFont = False
-      TabOrder = 1
-      Text = '0000000000400000'
-    end
-    object editStop: TEdit
-      AnchorSideLeft.Control = Panel1
-      AnchorSideTop.Control = Label2
-      AnchorSideTop.Side = asrBottom
-      AnchorSideRight.Control = Panel1
-      AnchorSideRight.Side = asrBottom
-      Left = 2
-      Height = 26
-      Top = 58
-      Width = 120
-      Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Left = 2
-      BorderSpacing.Right = 2
-      CharCase = ecUppercase
-      Constraints.MinWidth = 120
-      Font.CharSet = ANSI_CHARSET
-      Font.Name = 'Courier New'
-      MaxLength = 16
-      ParentFont = False
-      TabOrder = 2
-      Text = '7FFFFFFFFFFFFFFF'
-    end
-    object editSize: TEdit
-      AnchorSideLeft.Control = Panel1
-      AnchorSideLeft.Side = asrCenter
-      AnchorSideTop.Control = Label3
-      AnchorSideTop.Side = asrBottom
-      AnchorSideRight.Side = asrBottom
-      Left = 2
-      Height = 26
-      Top = 101
-      Width = 120
-      BorderSpacing.Left = 2
-      BorderSpacing.Right = 2
-      CharCase = ecUppercase
-      Constraints.MinWidth = 120
-      Font.CharSet = ANSI_CHARSET
-      Font.Name = 'Courier New'
-      ParentFont = False
-      TabOrder = 3
-      Text = '12'
-    end
-  end
   object Panel2: TPanel
-    AnchorSideLeft.Control = Owner
-    AnchorSideTop.Control = lbCodecaveList
-    AnchorSideTop.Side = asrBottom
-    AnchorSideRight.Control = Owner
-    AnchorSideRight.Side = asrBottom
     Left = 0
-    Height = 36
-    Top = 288
-    Width = 600
-    Anchors = [akTop, akLeft, akRight]
+    Height = 35
+    Top = 273
+    Width = 512
+    Align = alBottom
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 36
-    ClientWidth = 600
-    TabOrder = 2
+    ClientHeight = 35
+    ClientWidth = 512
+    TabOrder = 0
     object cbNoExecute: TCheckBox
-      AnchorSideLeft.Control = Panel2
-      AnchorSideTop.Control = Panel2
-      AnchorSideRight.Control = Panel2
-      AnchorSideRight.Side = asrBottom
       Left = 0
       Height = 19
       Top = 0
-      Width = 600
-      Anchors = [akTop, akLeft, akRight]
+      Width = 512
+      Align = alTop
       Caption = 'Also scan non-executable read-only memory'
       Checked = True
       State = cbChecked
       TabOrder = 0
     end
     object ProgressBar1: TProgressBar
-      AnchorSideLeft.Control = cbNoExecute
-      AnchorSideTop.Control = cbNoExecute
-      AnchorSideTop.Side = asrBottom
       Left = 0
-      Height = 17
+      Height = 16
       Top = 19
-      Width = 600
-      Anchors = [akTop, akLeft, akRight]
+      Width = 512
+      Align = alTop
       TabOrder = 1
     end
   end
   object Label4: TLabel
     Left = 0
     Height = 15
-    Top = 327
-    Width = 600
+    Top = 308
+    Width = 512
     Align = alBottom
     Alignment = taCenter
     Caption = '                      '
     ParentColor = False
+  end
+  object Panel3: TPanel
+    Left = 0
+    Height = 273
+    Top = 0
+    Width = 512
+    Align = alClient
+    AutoSize = True
+    BevelOuter = bvNone
+    ClientHeight = 273
+    ClientWidth = 512
+    TabOrder = 1
+    object Panel1: TPanel
+      Left = 368
+      Height = 273
+      Top = 0
+      Width = 144
+      Align = alRight
+      AutoSize = True
+      BevelOuter = bvNone
+      ClientHeight = 273
+      ClientWidth = 144
+      TabOrder = 0
+      object Label1: TLabel
+        AnchorSideLeft.Control = Panel1
+        AnchorSideTop.Control = Panel1
+        AnchorSideRight.Control = Panel1
+        AnchorSideRight.Side = asrBottom
+        Left = 2
+        Height = 15
+        Top = 2
+        Width = 140
+        Alignment = taCenter
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Left = 2
+        BorderSpacing.Top = 2
+        BorderSpacing.Right = 2
+        Caption = 'Start Address'
+        ParentColor = False
+      end
+      object Label2: TLabel
+        AnchorSideLeft.Control = Panel1
+        AnchorSideTop.Control = editStart
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = Panel1
+        AnchorSideRight.Side = asrBottom
+        Left = 2
+        Height = 15
+        Top = 51
+        Width = 140
+        Alignment = taCenter
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Left = 2
+        BorderSpacing.Top = 2
+        BorderSpacing.Right = 2
+        Caption = 'Stop Address'
+        ParentColor = False
+      end
+      object Label3: TLabel
+        AnchorSideLeft.Control = Panel1
+        AnchorSideTop.Control = editStop
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = Panel1
+        AnchorSideRight.Side = asrBottom
+        Left = 2
+        Height = 15
+        Top = 100
+        Width = 140
+        Alignment = taCenter
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Left = 2
+        BorderSpacing.Top = 2
+        BorderSpacing.Right = 2
+        Caption = 'Size of cave'
+        ParentColor = False
+      end
+      object btnStart: TButton
+        AnchorSideLeft.Control = Panel1
+        AnchorSideLeft.Side = asrCenter
+        AnchorSideTop.Control = editSize
+        AnchorSideTop.Side = asrBottom
+        Left = 35
+        Height = 25
+        Top = 148
+        Width = 75
+        AutoSize = True
+        BorderSpacing.Top = 3
+        BorderSpacing.Bottom = 30
+        Caption = 'Start'
+        Constraints.MinWidth = 75
+        Default = True
+        OnClick = btnStartClick
+        TabOrder = 0
+      end
+      object editStart: TEdit
+        AnchorSideLeft.Control = Panel1
+        AnchorSideTop.Control = Label1
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = Panel1
+        AnchorSideRight.Side = asrBottom
+        Left = 2
+        Height = 30
+        Top = 19
+        Width = 140
+        BorderSpacing.Left = 2
+        BorderSpacing.Top = 2
+        BorderSpacing.Right = 2
+        CharCase = ecUppercase
+        Constraints.MinWidth = 120
+        Font.Name = 'Courier New'
+        MaxLength = 16
+        ParentFont = False
+        TabOrder = 1
+        Text = '0000000000400000'
+      end
+      object editStop: TEdit
+        AnchorSideLeft.Control = Panel1
+        AnchorSideTop.Control = Label2
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = Panel1
+        AnchorSideRight.Side = asrBottom
+        Left = 2
+        Height = 30
+        Top = 68
+        Width = 140
+        BorderSpacing.Left = 2
+        BorderSpacing.Top = 2
+        BorderSpacing.Right = 2
+        CharCase = ecUppercase
+        Constraints.MinWidth = 120
+        Font.Name = 'Courier New'
+        MaxLength = 16
+        ParentFont = False
+        TabOrder = 2
+        Text = '7FFFFFFFFFFFFFFF'
+      end
+      object editSize: TEdit
+        AnchorSideLeft.Control = Panel1
+        AnchorSideLeft.Side = asrCenter
+        AnchorSideTop.Control = Label3
+        AnchorSideTop.Side = asrBottom
+        Left = 12
+        Height = 30
+        Top = 115
+        Width = 120
+        BorderSpacing.Left = 2
+        BorderSpacing.Right = 2
+        CharCase = ecUppercase
+        Constraints.MinWidth = 120
+        Font.Name = 'Courier New'
+        ParentFont = False
+        TabOrder = 3
+        Text = '12'
+      end
+    end
+    object lbCodecaveList: TListBox
+      Left = 0
+      Height = 273
+      Top = 0
+      Width = 368
+      Align = alClient
+      ItemHeight = 0
+      MultiSelect = True
+      OnDblClick = lbCodecaveListDblClick
+      ParentFont = False
+      PopupMenu = PopupMenu1
+      TabOrder = 1
+    end
   end
   object PopupMenu1: TPopupMenu
     left = 128
