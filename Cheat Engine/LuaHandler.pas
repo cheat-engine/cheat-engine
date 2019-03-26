@@ -3732,9 +3732,30 @@ begin
     symhandler.waitforsymbolsloaded;
 end;
 
+function waitForExports(L: PLua_state): integer; cdecl;
+begin
+  symhandler.waitforExports;
+  result:=0;
+end;
+
+
+function waitForDotNet(L: PLua_state): integer; cdecl;
+begin
+  symhandler.waitforDotNet;
+  result:=0;
+end;
+
 function waitForPDB(L: PLua_state): integer; cdecl;
 begin
   symhandler.waitforpdb;
+  result:=0;
+end;
+
+function searchPDBWhileLoading(L: PLua_state): integer; cdecl;
+begin
+  if lua_gettop(L)>=1 then
+    symhandler.searchPDBWhileLoading(lua_toboolean(L,1));
+
   result:=0;
 end;
 
@@ -10982,7 +11003,10 @@ begin
     lua_register(L, 'getModuleSize', getModuleSize);
     lua_register(L, 'getAddressSafe', getAddressSafe);
 
+    lua_register(L, 'waitforExports', waitForExports);
+    lua_register(L, 'waitforDotNet', waitForDotNet);
     lua_register(L, 'waitforPDB', waitForPDB);
+    lua_register(L, 'searchPDBWhileLoading', searchPDBWhileLoading);
     lua_register(L, 'reinitializeSymbolhandler', reinitializeSymbolhandler);
     lua_register(L, 'reinitializeDotNetSymbolhandler', reinitializeDotNetSymbolhandler);
     lua_register(L, 'reinitializeSelfSymbolhandler', reinitializeSelfSymbolhandler);

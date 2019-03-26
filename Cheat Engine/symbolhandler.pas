@@ -97,6 +97,7 @@ type
 
     symbolscleaned: boolean;
     pdbonly: boolean; //tells enummodules to skip modules without pdb info
+    searchpdb: boolean;
 
     procedure processThreadEvents; //in case another thread is in a hurry and doesn't want to wait
 
@@ -111,6 +112,7 @@ type
     isloading: boolean;
     apisymbolsloaded: boolean;
     pdbsymbolsloaded: boolean;
+    dotnetsymbolsloaded: boolean;
     error: boolean;
     symbolsloaded: boolean;
     DLLSymbolsLoaded: boolean;
@@ -233,7 +235,10 @@ type
     property progress: integer read getProgress;
 
     procedure waitforsymbolsloaded(apisymbolsonly: boolean=false; specificmodule: string='');
+    procedure waitForExports;
+    procedure waitForDotNet;
     procedure waitForPDB;
+    procedure searchPDBWhileLoading(state: boolean);
 
     procedure EnumDotNetModule(m: TdotNetmodule; symbolhandler: TSymbolListHandler);
     procedure reinitializeDotNetSymbols(modulename: string='');
@@ -1653,13 +1658,14 @@ function TSymbolloaderthread.getAddressFromSymbol(symbol: string): ptruint;
 //called from other threads, NOT the symbolloader thread
 var afste: TGetAddressFromSymbolThreadEvent;
 begin
-  if skipAllSymbols then exit(0);
-  if (skipList<>nil) and (skipList.Values[symbol]) then exit(0);
-
   if GetCurrentThreadId=self.ThreadID then raise exception.create('Do not call getAddressFromSymbol from inside the symbolloaderthread');
 
+  if skipAllSymbols then exit(0);
+  if (skipList<>nil) and (skipList.Values[symbol]) then exit(0);
   if (GetCurrentThread=MainThreadID) and (waitingfrm<>nil) then exit(0);
-
+  if trim(symbol)='' then exit(0);
+  if (symbol[1] in ['#','(']) then exit(0);
+  if (pos(' ',symbol)>0) then exit(0);
 
 
   //queue an getAddressFromSymbol event and wait for the result
@@ -1774,8 +1780,6 @@ begin
         skip:=length(te.symbolname)<=1;
         hasmodulespecifier:=false;
 
-        if not skip and (te.symbolname[1] in ['#','(']) then skip:=true;
-
         for i:=1 to length(te.symbolname)-1 do
         begin
           if te.symbolname[i]='.' then
@@ -1807,26 +1811,22 @@ begin
               begin
                 symsearch(thisprocesshandle, modulelist.withoutdebuginfo[i].BaseOfImage,0,0,pchar(te.symbolname),0,SymbolSearch,@searchresult,0);
                 if searchresult<>0 then break;
+
+                if te.abandoned then break;
               end;
 
-              if searchresult=0 then //try the ones with debug info
+              if (searchresult=0) and (searchpdb) then //try the ones with debug info
               begin
                 for i:=0 to length(modulelist.withdebuginfo)-1 do
                 begin
                   symsearch(thisprocesshandle, modulelist.withdebuginfo[i].BaseOfImage,0,dword(SymTagFunction),pchar(te.symbolname),0,SymbolSearch,@searchresult,8);
                   if searchresult<>0 then break;
 
-                           {               symsearch(thisprocesshandle, modulelist.withdebuginfo[i].BaseOfImage,0,dword(SymTagPublicSymbol),pchar(te.symbolname),0,SymbolSearch,@searchresult,0);
-                  if searchresult<>0 then break;
-
-                  symsearch(thisprocesshandle, modulelist.withdebuginfo[i].BaseOfImage,0,dword(SymTagFunction),pchar(te.symbolname),0,SymbolSearch,@searchresult,0);
-                  if searchresult<>0 then break;     }
-
-
                   if te.abandoned then break;
                 end;
-
               end;
+
+
             end;
 
             if searchresult<>0 then
@@ -2015,18 +2015,50 @@ begin
             //get the export symbols first
             symsetoptions(symgetoptions or SYMOPT_CASE_INSENSITIVE);
             SymbolsLoaded:=SymInitialize(thisprocesshandle, pchar(''), false);
-            if kernelsymbols then LoadDriverSymbols(false);
-            LoadDLLSymbols(false);
-            enumeratedModules:=0;
 
-            DLLSymbolsLoaded:=true;
-            SymEnumerateModules64(thisprocesshandle, @EM, self );
-            apisymbolsloaded:=true;
-            SymCleanup(thisprocesshandle);
+            if symbolsloaded then
+            begin
+              symbolscleaned:=false;
 
+              if kernelsymbols then LoadDriverSymbols(false);
+              LoadDLLSymbols(false);
+              enumeratedModules:=0;
+
+              if terminated then exit;
+
+              DLLSymbolsLoaded:=true;
+              SymEnumerateModules64(thisprocesshandle, @EM, self );
+              apisymbolsloaded:=true;
+              SymCleanup(thisprocesshandle);
+              symbolscleaned:=true;
+
+            end;
+
+
+
+            if terminated then exit;
+
+            if owner.dotNetDataCollector.Attached then
+            begin
+              fprogress:=50;
+
+              //Enumerate the other .net module methods
+              for i:=1 to length(dotNetmodules)-1 do
+              begin
+                if not terminated then
+                begin
+                  owner.EnumDotNetModule(dotNetmodules[i], owner.dotnetModuleSymbolList[i].symbollist);
+                  owner.dotNetDataCollector.ReleaseObject(dotNetmodules[i].hModule);
+                end;
+              end;
+            end;
+            dotnetsymbolsloaded:=true;
+
+            //enumerate the extended debug symbols
             setlength(modulelist.withdebuginfo,0);
             setlength(modulelist.withoutdebuginfo,0);
 
+            if terminated then exit;
 
             SymbolsLoaded:=SymInitialize(thisprocesshandle, sp, true);
             if symbolsloaded=false then
@@ -2043,8 +2075,6 @@ begin
               if kernelsymbols then LoadDriverSymbols(true);
 
               LoadDLLSymbols(true);
-
-              DLLSymbolsLoaded:=true;
 
               processThreadEvents;
 
@@ -2063,22 +2093,9 @@ begin
 
               debugpart:=3;
 
-              if owner.dotNetDataCollector.Attached then
-              begin
-                fprogress:=50;
 
-                //Enumerate the other .net module methods
-                for i:=1 to length(dotNetmodules)-1 do
-                begin
-                  if not terminated then
-                  begin
-                    owner.EnumDotNetModule(dotNetmodules[i], owner.dotnetModuleSymbolList[i].symbollist);
-                    owner.dotNetDataCollector.ReleaseObject(dotNetmodules[i].hModule);
-                  end;
-                end;
-              end;
 
-              //enumerate the extended debug symbols
+
               processThreadEvents;
               isloading:=false;
 
@@ -2103,6 +2120,7 @@ begin
           isloading:=false;
           DLLSymbolsLoaded:=true;
           apisymbolsloaded:=true;
+          dotnetsymbolsloaded:=true;
         end;
         {$else}
           end;
@@ -2580,8 +2598,46 @@ begin
   ReinitializeUserdefinedSymbolList;
 end;
 
-procedure TSymhandler.WaitforPDB;
-//6.8.3+:Just make it till the dll list enum and load is done
+procedure TSymhandler.searchPDBWhileLoading(state: boolean);
+begin
+  symbolloadervalid.beginread;
+  if symbolloaderthread<>nil then
+    symbolloaderthread.searchpdb:=state;
+
+  symbolloadervalid.Endread;
+end;
+
+procedure TSymhandler.WaitForExports;
+begin
+  symbolloadervalid.beginread;
+  if symbolloaderthread<>nil then
+  begin
+    while (not symbolloaderthread.Finished) and (not symbolloaderthread.apisymbolsloaded) do
+    begin
+      sleep(25);
+      if GetCurrentThreadID = MainThreadID then
+        CheckSynchronize;
+    end;
+  end;
+  symbolloadervalid.Endread;
+end;
+
+procedure TSymhandler.WaitForDotNet;
+begin
+  symbolloadervalid.beginread;
+  if symbolloaderthread<>nil then
+  begin
+    while (not symbolloaderthread.Finished) and (not symbolloaderthread.dotnetsymbolsloaded) do
+    begin
+      sleep(25);
+      if GetCurrentThreadID = MainThreadID then
+        CheckSynchronize;
+    end;
+  end;
+  symbolloadervalid.Endread;
+end;
+
+procedure TSymhandler.WaitForPDB;
 begin
   symbolloadervalid.beginread;
   if symbolloaderthread<>nil then
