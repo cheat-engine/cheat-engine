@@ -1091,6 +1091,7 @@ procedure TfrmChangedAddresses.FormCreate(Sender: TObject);
 var x: array of integer;
     i: integer;
 begin
+  fdbvmwatchid:=-1;
   okbutton.caption:=rsStop;
 
   setlength(x, 0);
