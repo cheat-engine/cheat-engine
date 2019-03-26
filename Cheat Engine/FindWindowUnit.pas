@@ -61,7 +61,7 @@ resourcestring
 procedure TFindWindow.scandone(sender: TObject);
 var x: ptruint;
 begin
-  if memscan.GetOnlyOneResult(x) then
+  if TMemScan(sender).GetOnlyOneResult(x) then
   begin
     MemoryBrowser.memoryaddress:=x;
     modalresult:=mrok;
@@ -70,7 +70,10 @@ begin
     MessageDlg(rsNothingFound, mtError, [mbok], 0);
   end;
 
-  freeandnil(memscan);
+  if memscan=sender then
+    freeandnil(memscan);
+
+  btnOK.enabled:=true;
 end;
 
 procedure TFindWindow.btnOKClick(Sender: TObject);
@@ -113,6 +116,8 @@ begin
 
   memscan.firstscan(soExactValue, valtype, rtRounded, scanvalue.text, '', start, stop, true, false, cbunicode.checked, false, fsmNotAligned);
   memscan.OnScanDone:=ScanDone;
+
+  btnOK.enabled:=false;
 end;
 
 procedure TFindWindow.FormDestroy(Sender: TObject);
