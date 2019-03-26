@@ -143,10 +143,10 @@ function scanModuleForPatches(modulepath, loadedModuleBase)
         local reltype=relinfo >> 12
         local VA=VABase+(relinfo & 0xfff);
         if (reltype == 3) then
-          writeIntegerLocal(original.Memory+VirtualToFile(VA),readIntegerLocal(original.Memory+VirtualToFile(VA)+RelocDistance))
+          writeIntegerLocal(original.Memory+VirtualToFile(VA),readIntegerLocal(original.Memory+VirtualToFile(VA))+RelocDistance)
         else
           if (reltype == 10) then
-            writeQwordLocal(original.Memory+VirtualToFile(VA),readQwordLocal(original.Memory+VirtualToFile(VA)+RelocDistance))
+            writeQwordLocal(original.Memory+VirtualToFile(VA),readQwordLocal(original.Memory+VirtualToFile(VA))+RelocDistance)
           else
             if reltype ~= 0 then
               relocs[VA]=true --just mark it as a "I don't know"
@@ -423,6 +423,9 @@ Hold shift/ctrl to select multiple modules]]
   end
 
   msf.destroy()
+  
+  if inMainThread() then processMessages() end
+  
 end
 
 local mv=getMemoryViewForm()
