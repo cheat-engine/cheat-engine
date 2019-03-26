@@ -69,12 +69,16 @@ begin
 
       symhandler.waitforsymbolsloaded(true, 'kernel32.dll'); //speed it up (else it'll wait inside the symbol lookup of injectdll)
 
-      symhandler.getAddressFromName('speedhackversion_GetTickCount',true,e);
+      symhandler.waitForExports;
+      symhandler.getAddressFromName('speedhackversion_GetTickCount',false,e);
       if e then
+      begin
         injectdll(CheatEngineDir+fname);
+        symhandler.reinitialize;
+        symhandler.waitforsymbolsloaded(true)
+      end;
 
-      symhandler.reinitialize;
-      symhandler.waitforsymbolsloaded(true)
+
     except
       on e: exception do
       begin

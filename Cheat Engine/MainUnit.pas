@@ -740,7 +740,11 @@ type
     fOnProcessOpened: TProcessOpenedEvent;
 
     overlayid: integer;   //debug
-    lastAddedAddress: string;
+    lastAdded: record
+      Address: string;
+      vartype: TVariableType;
+    end;
+
 
     saveGotCanceled: boolean; //set to true if the last save button click was canceled
 
@@ -5766,9 +5770,12 @@ end;
 procedure TMainForm.btnAddAddressManuallyClick(Sender: TObject);
 var mr: Tmemoryrecord;
 begin
-  mr:=addresslist.addAddressManually(lastAddedAddress);
+  mr:=addresslist.addAddressManually(lastAdded.Address, lastAdded.vartype);
   if mr<>nil then
-    lastAddedAddress:=mr.interpretableaddress; //store the last used string
+  begin
+    lastAdded.Address:=mr.interpretableaddress; //store the last used string
+    lastAdded.vartype:=mr.VarType;
+  end;
 end;
 
 procedure TMainForm.ScanTypeChange(Sender: TObject);

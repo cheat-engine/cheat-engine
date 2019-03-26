@@ -1512,6 +1512,15 @@ begin
 
   btnok.width:=i;
   btncancel.width:=i;
+
+  autosize:=false;
+  AdjustHeightAndButtons;
+
+  processaddress;
+
+  Repaint;
+
+  autosize:=true;
 end;
 
 procedure TformAddressChange.FormWindowStateChange(Sender: TObject);
