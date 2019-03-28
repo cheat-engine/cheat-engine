@@ -50,7 +50,6 @@ type
     procedure btnStartClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
-    procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure lbCodecaveListDblClick(Sender: TObject);
     procedure Copytoclipboard1Click(Sender: TObject);
@@ -244,6 +243,14 @@ only memory
     except
       raise exception.Create(rsPleaseProvideAValidSizeForTheWantedCodeCave);
     end;
+
+    if startaddress>stopaddress then
+    begin  //xor swap
+      startaddress:=startaddress xor stopaddress;
+      stopaddress:=stopaddress xor startaddress;
+      startaddress:=startaddress xor stopaddress;
+    end;
+
     codecavescanner:=TCodecavescanner.create(true);
     codecavescanner.startaddress:=startaddress;
     codecavescanner.stopaddress:=stopaddress;
@@ -286,11 +293,6 @@ begin
     canclose:=messagedlg(rsClosingThisWindowWillAlsoStopTheScannerAreYouSure, mtconfirmation, [mbyes, mbno], 0)=mryes;
 end;
 
-procedure TfrmCodecaveScanner.FormCreate(Sender: TObject);
-begin
-
-end;
-
 procedure TfrmCodecaveScanner.FormShow(Sender: TObject);
 var
   fh: integer;
@@ -328,9 +330,6 @@ begin
   preferedwidth:=canvas.GetTextWidth('XXXXXXXXXXXXXX - XXXXXX')+panel1.width;
   if clientwidth<preferedwidth then
     clientwidth:=preferedwidth;
-
-
-
 end;
 
 procedure TfrmCodecaveScanner.lbCodecaveListDblClick(Sender: TObject);
