@@ -22,7 +22,6 @@ type
     mAssemblerSearch: TMemo;
     Panel1: TPanel;
     Panel2: TPanel;
-    Splitter1: TSplitter;
     procedure btnOkClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
@@ -67,6 +66,16 @@ end;
 
 procedure TfrmAssemblyScan.FormShow(Sender: TObject);
 begin
+  edtfrom.Constraints.MinWidth:=canvas.GetTextWidth('XXXXXXXXXXXXXXXX');
+  edtTo.Constraints.MinWidth:=edtfrom.Constraints.MinWidth;
+
+  constraints.minwidth:=lblInputAssemblyCode.canvas.TextWidth(lblInputAssemblyCode.caption)+edtFrom.width+8;
+  constraints.MinHeight:=btnOk.top+btnok.Height;
+
+
+  doautosize;
+  panel1.autosize:=false;
   panel2.autosize:=false;
+
 end;
 end.
