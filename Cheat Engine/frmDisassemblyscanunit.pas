@@ -43,12 +43,8 @@ type
     PopupMenu1: TPopupMenu;
     ProgressBar1: TProgressBar;
     Timer1: TTimer;
-    procedure ListBox1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState
-      );
-    procedure ListBox1KeyPress(Sender: TObject; var Key: char);
     procedure MenuItem1Click(Sender: TObject);
     procedure MenuItem2Click(Sender: TObject);
-    procedure Panel1Click(Sender: TObject);
     procedure Panel1Resize(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -185,8 +181,6 @@ begin
 
       x:=checkAddress(x);
 
-
-
     end;
   except
     on e:exception do
@@ -213,18 +207,6 @@ begin
         fOnScanDone(self);
     end;
   end;
-
-
-end;
-
-procedure TfrmDisassemblyscan.Panel1Click(Sender: TObject);
-begin
-
-end;
-
-procedure TfrmDisassemblyscan.ListBox1KeyPress(Sender: TObject; var Key: char);
-begin
-
 end;
 
 procedure TfrmDisassemblyscan.MenuItem1Click(Sender: TObject);
@@ -245,13 +227,6 @@ begin
 
   clipboard.AsText:=sl.text;
   sl.free;
-end;
-
-procedure TfrmDisassemblyscan.ListBox1KeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-begin
-
-
 end;
 
 procedure TfrmDisassemblyscan.Panel1Resize(Sender: TObject);
@@ -283,8 +258,6 @@ begin
     else
     begin
       stringstofind[i]:=StringReplace(EscapeStringForRegEx(stringstofind[i]), '\*','.*',[rfReplaceAll]);
-
-
       inc(i);
     end;
   end;

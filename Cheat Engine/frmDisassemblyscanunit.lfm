@@ -30,7 +30,6 @@ object frmDisassemblyscan: TfrmDisassemblyscan
     ItemHeight = 0
     MultiSelect = True
     OnDblClick = ListBox1DblClick
-    OnKeyDown = ListBox1KeyDown
     PopupMenu = PopupMenu1
     TabOrder = 0
   end
@@ -44,7 +43,6 @@ object frmDisassemblyscan: TfrmDisassemblyscan
     ClientHeight = 150
     ClientWidth = 68
     TabOrder = 1
-    OnClick = Panel1Click
     OnResize = Panel1Resize
     object btnCancel: TButton
       AnchorSideBottom.Control = Panel1

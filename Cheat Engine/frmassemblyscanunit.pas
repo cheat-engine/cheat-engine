@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, CEFuncProc, Parsers;
+  ExtCtrls, CEFuncProc, Parsers, symbolhandler;
 
 type
 
@@ -24,7 +24,6 @@ type
     Panel2: TPanel;
     Splitter1: TSplitter;
     procedure btnOkClick(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
     { private declarations }
@@ -42,24 +41,32 @@ implementation
 
 { TfrmAssemblyScan }
 
-uses symbolhandler;
-
 procedure TfrmAssemblyScan.btnOkClick(Sender: TObject);
 begin
-  startaddress:=symhandler.getAddressFromName(edtFrom.Text);
-  stopaddress:=symhandler.getAddressFromName(edtTo.Text);
+  try
+    startaddress:=StrToQWordEx('$'+edtfrom.text);
+  except
+    startaddress:=symhandler.getAddressFromName(edtfrom.text);
+  end;
+
+  try
+    stopaddress:=StrToQWordEx('$'+edtto.text);
+  except
+    stopaddress:=symhandler.getAddressFromName(edtto.text);
+  end;
+
+  if startaddress>stopaddress then
+  begin  //xor swap
+    startaddress:=startaddress xor stopaddress;
+    stopaddress:=stopaddress xor startaddress;
+    startaddress:=startaddress xor stopaddress;
+  end;
+
   modalresult:=mrok;
-end;
-
-procedure TfrmAssemblyScan.FormCreate(Sender: TObject);
-begin
-
 end;
 
 procedure TfrmAssemblyScan.FormShow(Sender: TObject);
 begin
   panel2.autosize:=false;
 end;
-
 end.
-
