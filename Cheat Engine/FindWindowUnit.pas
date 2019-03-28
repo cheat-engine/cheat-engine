@@ -7,7 +7,7 @@ interface
 uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls,CEFuncProc,ComCtrls, ExtCtrls, LResources, memscan,
-  commonTypeDefs, math, win32proc;
+  commonTypeDefs, math, win32proc, symbolhandler;
 
 const wm_fw_scandone=wm_user+1;
 type
@@ -89,10 +89,15 @@ begin
     freeandnil(memscan);
   
   try
-    start:=StrToQWordEx('$'+editStart.text);
-    stop:=StrToQWordEx('$'+editstop.Text);
+    start:=StrToQWordEx('$'+editstart.text);
   except
-    raise exception.Create(rsTheSpecifiedRangeIsInvalid);
+    start:=symhandler.getAddressFromName(editstart.text);
+  end;
+
+  try
+    stop:=StrToQWordEx('$'+editstop.text);
+  except
+    stop:=symhandler.getAddressFromName(editstop.text);
   end;
 
   if start>stop then
