@@ -25,16 +25,13 @@ type
     rbText: TRadioButton;
     rbArByte: TRadioButton;
     cbUnicode: TCheckBox;
-    Timer1: TTimer;
     Panel2: TPanel;
     btnOK: TButton;
     btnCancel: TButton;
     Scanvalue: TEdit;
-    procedure btnCancelClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure Timer1Timer(Sender: TObject);
   private
     { Private declarations }
     memscan: TMemScan;
@@ -57,7 +54,6 @@ resourcestring
   rsTheSpecifiedRangeIsInvalid = 'The specified range is invalid';
 
 
-
 procedure TFindWindow.scandone(sender: TObject);
 var x: ptruint;
 begin
@@ -77,39 +73,36 @@ begin
 end;
 
 procedure TFindWindow.btnOKClick(Sender: TObject);
-var start,stop,temp: ptruint;
+var startaddress,stopaddress: ptruint;
     //cb: TCheckbox;
     valtype: TVariableType;
     i: integer;
 
 begin
-
-
   if memscan<>nil then
     freeandnil(memscan);
   
   try
-    start:=StrToQWordEx('$'+editstart.text);
+    startaddress:=StrToQWordEx('$'+editstart.text);
   except
-    start:=symhandler.getAddressFromName(editstart.text);
+    startaddress:=symhandler.getAddressFromName(editstart.text);
   end;
 
   try
-    stop:=StrToQWordEx('$'+editstop.text);
+    stopaddress:=StrToQWordEx('$'+editstop.text);
   except
-    stop:=symhandler.getAddressFromName(editstop.text);
+    stopaddress:=symhandler.getAddressFromName(editstop.text);
   end;
 
-  if start>stop then
-  begin
-    temp:=start;
-    start:=stop;
-    stop:=temp;
+  if startaddress>stopaddress then
+  begin  //xor swap
+    startaddress:=startaddress xor stopaddress;
+    stopaddress:=stopaddress xor startaddress;
+    startaddress:=startaddress xor stopaddress;
   end;
 
 
   if rbText.checked then valtype:=vtString else valtype:=vtByteArray;
-
 
 
   memscan:=TMemscan.create(nil);
@@ -119,7 +112,7 @@ begin
   memscan.scanWritable:=scanDontCare;
 
 
-  memscan.firstscan(soExactValue, valtype, rtRounded, scanvalue.text, '', start, stop, true, false, cbunicode.checked, false, fsmNotAligned);
+  memscan.firstscan(soExactValue, valtype, rtRounded, scanvalue.text, '', startaddress, stopaddress, true, false, cbunicode.checked, false, fsmNotAligned);
   memscan.OnScanDone:=ScanDone;
 
   btnOK.enabled:=false;
@@ -129,11 +122,6 @@ procedure TFindWindow.FormDestroy(Sender: TObject);
 begin
   if memscan<>nil then
     freeandnil(memscan);
-end;
-
-procedure TFindWindow.btnCancelClick(Sender: TObject);
-begin
-
 end;
 
 procedure TFindWindow.FormShow(Sender: TObject);
@@ -157,11 +145,6 @@ begin
     begin
       editstart.clientwidth:=canvas.TextWidth('DDDDDDDD')+(m shr 16)+(m and $ffff);
     end;
-
-
-
-
-
 
     labelType.visible:=true;
     labelarray.visible:=true;
@@ -189,7 +172,6 @@ begin
     editStart.visible:=false;
     label2.Visible:=false;
     label3.Visible:=false;
-    timer1.enabled:=true; //bah, I wanted to do execute here but it seems thats not possible
   end;
 
   btnok.AutoSize:=true;
@@ -200,13 +182,6 @@ begin
 
   btnok.width:=max(btnok.width, btncancel.width);
   btncancel.width:=max(btnok.width, btncancel.width);
-end;
-
-procedure TFindWindow.Timer1Timer(Sender: TObject);
-begin
-  timer1.enabled:=false;
-  btnOK.click;
-  close;
 end;
 
 initialization

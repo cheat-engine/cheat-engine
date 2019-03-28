@@ -1,7 +1,7 @@
 object frmCodecaveScanner: TfrmCodecaveScanner
-  Left = 539
+  Left = 532
   Height = 323
-  Top = 296
+  Top = 674
   Width = 512
   AutoSize = True
   Caption = 'Scan for codecaves'
@@ -9,7 +9,6 @@ object frmCodecaveScanner: TfrmCodecaveScanner
   ClientWidth = 512
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
-  OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'
@@ -101,7 +100,7 @@ object frmCodecaveScanner: TfrmCodecaveScanner
         AnchorSideRight.Side = asrBottom
         Left = 2
         Height = 15
-        Top = 51
+        Top = 47
         Width = 140
         Alignment = taCenter
         Anchors = [akTop, akLeft, akRight]
@@ -119,7 +118,7 @@ object frmCodecaveScanner: TfrmCodecaveScanner
         AnchorSideRight.Side = asrBottom
         Left = 2
         Height = 15
-        Top = 100
+        Top = 92
         Width = 140
         Alignment = taCenter
         Anchors = [akTop, akLeft, akRight]
@@ -136,7 +135,7 @@ object frmCodecaveScanner: TfrmCodecaveScanner
         AnchorSideTop.Side = asrBottom
         Left = 35
         Height = 25
-        Top = 148
+        Top = 136
         Width = 75
         AutoSize = True
         BorderSpacing.Top = 3
@@ -154,13 +153,12 @@ object frmCodecaveScanner: TfrmCodecaveScanner
         AnchorSideRight.Control = Panel1
         AnchorSideRight.Side = asrBottom
         Left = 2
-        Height = 30
+        Height = 26
         Top = 19
         Width = 140
         BorderSpacing.Left = 2
         BorderSpacing.Top = 2
         BorderSpacing.Right = 2
-        CharCase = ecUppercase
         Constraints.MinWidth = 120
         Font.Name = 'Courier New'
         MaxLength = 16
@@ -175,13 +173,12 @@ object frmCodecaveScanner: TfrmCodecaveScanner
         AnchorSideRight.Control = Panel1
         AnchorSideRight.Side = asrBottom
         Left = 2
-        Height = 30
-        Top = 68
+        Height = 26
+        Top = 64
         Width = 140
         BorderSpacing.Left = 2
         BorderSpacing.Top = 2
         BorderSpacing.Right = 2
-        CharCase = ecUppercase
         Constraints.MinWidth = 120
         Font.Name = 'Courier New'
         MaxLength = 16
@@ -195,12 +192,11 @@ object frmCodecaveScanner: TfrmCodecaveScanner
         AnchorSideTop.Control = Label3
         AnchorSideTop.Side = asrBottom
         Left = 12
-        Height = 30
-        Top = 115
+        Height = 26
+        Top = 107
         Width = 120
         BorderSpacing.Left = 2
         BorderSpacing.Right = 2
-        CharCase = ecUppercase
         Constraints.MinWidth = 120
         Font.Name = 'Courier New'
         ParentFont = False
