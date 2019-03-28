@@ -7,7 +7,7 @@ interface
 uses
   jwawindows, windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls,{$ifndef net}NewKernelHandler,{$endif}CEFuncProc,
-  ExtCtrls, Menus, Clipbrd, LResources, commonTypeDefs;
+  ExtCtrls, Menus, Clipbrd, LResources, commonTypeDefs, symbolhandler;
 
 type TCodeCaveScanner=class(tthread)
   private
@@ -229,13 +229,13 @@ only memory
     try
       startaddress:=StrToQWordEx('$'+editstart.text);
     except
-      raise exception.Create(rsPleaseProvideAValidStartAddress);
+      startaddress:=symhandler.getAddressFromName(editstart.text);
     end;
 
     try
-      stopaddress:=StrToQWordEx('$'+editStop.text);
+      stopaddress:=StrToQWordEx('$'+editstop.text);
     except
-      raise exception.Create(rsPleaseProvideAValidStopAddress);
+      stopaddress:=symhandler.getAddressFromName(editstop.text);
     end;
 
     try
