@@ -88,7 +88,6 @@ object FindWindow: TFindWindow
       Width = 109
       BorderSpacing.Left = 2
       BorderSpacing.Right = 2
-      MaxLength = 16
       TabOrder = 1
       Text = '00400000'
     end
@@ -104,7 +103,6 @@ object FindWindow: TFindWindow
       Width = 109
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Top = 2
-      MaxLength = 16
       TabOrder = 2
       Text = '7FFFFFFF'
     end
