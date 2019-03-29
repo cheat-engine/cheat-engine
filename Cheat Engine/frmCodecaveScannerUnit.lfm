@@ -161,7 +161,6 @@ object frmCodecaveScanner: TfrmCodecaveScanner
         BorderSpacing.Right = 2
         Constraints.MinWidth = 120
         Font.Name = 'Courier New'
-        MaxLength = 16
         ParentFont = False
         TabOrder = 1
         Text = '0000000000400000'
@@ -181,7 +180,6 @@ object frmCodecaveScanner: TfrmCodecaveScanner
         BorderSpacing.Right = 2
         Constraints.MinWidth = 120
         Font.Name = 'Courier New'
-        MaxLength = 16
         ParentFont = False
         TabOrder = 2
         Text = '7FFFFFFFFFFFFFFF'

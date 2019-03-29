@@ -7,7 +7,7 @@ interface
 uses
   LCLIntf, LResources, Messages, SysUtils, Variants, Classes, Graphics,
   Controls, Forms, Dialogs, symbolhandler, symbolhandlerstructs, disassembler,
-  StdCtrls, ComCtrls, ActnList, Clipbrd, ExtCtrls, strutils;
+  StdCtrls, ComCtrls, ActnList, Clipbrd, ExtCtrls, strutils, Parsers;
 
 type
   TfrmSavedisassembly = class;
@@ -43,7 +43,6 @@ type
     procedure Button1Click(Sender: TObject);
     procedure actCancelExecute(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure FormShow(Sender: TObject);
   private
     { Private declarations }
     SaveDisassemblyThread: TSaveDisassemblyThread;
@@ -232,8 +231,24 @@ begin
   end;
 
 
-  startaddress:=symhandler.getAddressFromName(edit1.Text);
-  stopaddress:=symhandler.getAddressFromName(edit2.text);
+  try
+    startaddress:=StrToQWordEx('$'+edit1.Text);
+  except
+    startaddress:=symhandler.getAddressFromName(edit1.Text);
+  end;
+
+  try
+    stopaddress:=StrToQWordEx('$'+edit2.text);
+  except
+    stopaddress:=symhandler.getAddressFromName(edit2.text);
+  end;
+
+  if startaddress>stopaddress then
+  begin  //xor swap
+    startaddress:=startaddress xor stopaddress;
+    stopaddress:=stopaddress xor startaddress;
+    startaddress:=startaddress xor stopaddress;
+  end;
 
 
   if (FCopyMode) or savedialog1.Execute then
@@ -279,11 +294,6 @@ begin
     SaveDisassemblyThread.WaitFor;
     freeandnil(SaveDisassemblyThread);
   end;
-end;
-
-procedure TfrmSavedisassembly.FormShow(Sender: TObject);
-begin
-
 end;
 
 procedure TfrmSavedisassembly.waittilldone;

@@ -9,7 +9,6 @@ object frmSavedisassembly: TfrmSavedisassembly
   ClientHeight = 124
   ClientWidth = 191
   OnDestroy = FormDestroy
-  OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '1.6.4.0'
   object Button1: TButton
@@ -149,7 +148,6 @@ object frmSavedisassembly: TfrmSavedisassembly
       Width = 149
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Top = 3
-      MaxLength = 16
       TabOrder = 0
     end
     object Edit1: TEdit
@@ -161,7 +159,6 @@ object frmSavedisassembly: TfrmSavedisassembly
       Top = 0
       Width = 149
       Anchors = [akTop, akRight]
-      MaxLength = 16
       TabOrder = 1
     end
   end
