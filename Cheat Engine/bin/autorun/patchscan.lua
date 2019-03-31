@@ -4,7 +4,7 @@ local IMAGE_SCN_MEM_EXECUTE=0x20000000
 function byteTableToHexString(bt)
   local i
   local r=''
-  
+
   if bt then
     for i=1,#bt do
       r=r..string.format("%.2x ",bt[i])
@@ -23,7 +23,7 @@ function scanModuleForPatches(modulepath, loadedModuleBase)
 
   if (byteTableToString(original.read(2))~='MZ') then
     original.destroy()
-    return nil, 'Not a valid executable'    
+    return nil, 'Not a valid executable'
   end
 
   original.Position=60;
@@ -220,9 +220,9 @@ function scanModuleForPatches(modulepath, loadedModuleBase)
           local entrynr=#results+1
           if (entrynr==1) or ((results[entrynr-1].Address+8)~=(VA+bytesOK)) then
             results[entrynr]={}
-            results[entrynr].Address=VA+bytesOK 
+            results[entrynr].Address=VA+bytesOK
             results[entrynr].FileAddress=FA+bytesOK
-            results[entrynr].Size=8            
+            results[entrynr].Size=8
           else
             results[entrynr-1].Size=results[entrynr-1].Size+8
           end
@@ -238,16 +238,16 @@ function scanModuleForPatches(modulepath, loadedModuleBase)
       end
     end
   end
-  
+
   --get the bytes
   for i=1,#results do
     results[i].OriginalBytes=readBytesLocal(results[i].FileAddress, results[i].Size, true) --original.read(results[i].Size)
     results[i].PatchedBytes=readBytes(results[i].Address, results[i].Size, true)
   end
-  
-  
+
+
   original.destroy()
-  
+
   return results
 end
 
@@ -306,13 +306,28 @@ Hold shift/ctrl to select multiple modules]]
     local allpatches={}
     local i
 
-    --todo: use a thread to do the scan and show a gui with progressbar
+    --todo: use a thread to do the scan
 
+
+    --progressbar + currently scanned module
+    local pform=createForm(false)
+    pform.position='poScreenCenter'
+    pform.ClientWidth = 600
+    pform.ClientHeight = 30
+    local psprogress = createProgressBar(pform)
+    psprogress.ClientWidth = 600
+    psprogress.ClientHeight = 30
+    psprogress.Max = listbox.Items.Count-1
+    psprogress.Min = 0
+    psprogress.Position = 1
+    pform.show()
     for i=0,listbox.Items.Count-1 do
+      psprogress.position = i
+      pform.Caption=string.format("Scanning: %s", l[i+1].Name)
       if listbox.Selected[i] then
         local modulepatches,emsg=scanModuleForPatches(l[i+1].PathToFile, l[i+1].Address)
 
-        if modulepatches then      
+        if modulepatches then
           local j
           for j=1,#modulepatches do
             local c=#allpatches+1
@@ -324,15 +339,16 @@ Hold shift/ctrl to select multiple modules]]
         end
       end
     end
-
+    pform.close()
+    pform.destroy()
     ---build a gui with the information in allpatches
     _G.dbg=allpatches
-    
+
     local rform=createForm(false)
     local lv=createListView(rform)
-    
+
     rform.Caption='Patch list'
-    
+
     lv.Align='alClient'
     lv.ViewStyle='vsReport'
     lv.ReadOnly=true
@@ -342,72 +358,72 @@ Hold shift/ctrl to select multiple modules]]
     local caddress=lv.Columns.add()
     local coriginal=lv.Columns.add()
     local cpatched=lv.Columns.add()
-    
+
     caddress.Width=rform.Canvas.GetTextWidth('XXXXXXXXXXXXXXXXXXXXXXXX')
     caddress.Caption='Address'
     coriginal.Width=rform.Canvas.GetTextWidth('XX XX XX XX XX XX XX XX XX')
     coriginal.Caption='Original'
     cpatched.Width=coriginal.Width
-    cpatched.Caption='Patched'   
+    cpatched.Caption='Patched'
 
     for i=1,#allpatches do
-      local li=lv.Items.add() 
-      local s=allpatches[i]      
+      local li=lv.Items.add()
+      local s=allpatches[i]
       li.Caption=getNameFromAddress(s.Address)
       li.SubItems.Add(byteTableToHexString(s.OriginalBytes))
-      li.SubItems.Add(byteTableToHexString(s.PatchedBytes))      
-      
+      li.SubItems.Add(byteTableToHexString(s.PatchedBytes))
+
       li.Data=createRef(s)
     end
-    
+
     lv.OnDblClick=function(s)
       --_G.dbglv=lv
       if lv.Selected then
         local ref=getRef(lv.Selected.Data)
-        
+
         getMemoryViewForm().DisassemblerView.SelectedAddress=ref.Address
-      end      
+      end
     end
-    
+
     local pm=createPopupMenu(rform)
     local miRestore=createMenuItem(pm)
     local miPatch=createMenuItem(pm)
-    
+
     miRestore.Caption='Restore with original'
     miPatch.Caption='Reapply patch'
     pm.Items.add(miRestore)
     pm.Items.add(miPatch)
-    
+
     miRestore.OnClick=function(s)
       local i
       for i=0, lv.Items.Count-1 do
         if lv.Items[i].Selected then
           local ref=getRef(lv.Items[i].Data)
-          
-          writeBytes(ref.Address, ref.OriginalBytes)          
+
+          writeBytes(ref.Address, ref.OriginalBytes)
         end
       end
     end
-    
+
     miPatch.OnClick=function(s)
       local i
       for i=0, lv.Items.Count-1 do
         if lv.Items[i].Selected then
           local ref=getRef(lv.Items[i].Data)
-          
-          writeBytes(ref.Address, ref.PatchedBytes)          
+
+          writeBytes(ref.Address, ref.PatchedBytes)
         end
       end
-    end    
-    
-    
+    end
+
+
     lv.PopupMenu=pm
-    
+
     rform.position='poScreenCenter'
-    rform.ClientWidth=caddress.Width+coriginal.Width+cpatched.Width    
-    rform.ClientHeight=MainForm.Canvas.getTextHeight('XGgxj')*10    
+    rform.ClientWidth=caddress.Width+coriginal.Width+cpatched.Width
+    rform.ClientHeight=MainForm.Canvas.getTextHeight('XGgxj')*10
     rform.BorderStyle='bsSizeable'
-        
+
     rform.show()
 
     rform.OnClose=function(f)
@@ -416,16 +432,16 @@ Hold shift/ctrl to select multiple modules]]
         local ref=lv.Items[i].Data
         destroyRef(ref)
       end
-      
+
       rform=nil
       return caFree
     end
   end
 
   msf.destroy()
-  
+
   if inMainThread() then processMessages() end
-  
+
 end
 
 local mv=getMemoryViewForm()
@@ -434,5 +450,3 @@ mi.Caption='Scan for patches'
 mi.Shortcut='Ctrl+Shift+P'
 mi.OnClick=startPatchScan
 mv.Extra1.insert(mv.DissectPEheaders1.MenuIndex+1, mi)
-
-
