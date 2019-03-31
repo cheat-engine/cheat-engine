@@ -5082,6 +5082,8 @@ begin
   FromAddress.Font.Size:=font.size;
   if i=0 then beep;  }
 
+  lastAdded.vartype:=vtDword;
+
   miSignTable.visible:=canSignTables;
 
 
